@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import asyncio
+import logging
+import os
 import time
 from contextlib import suppress
 
@@ -14,6 +16,15 @@ from usage_client import ClaudeUsageClient, PollOutcome, PollState
 from usage_rate import UsageRateTracker
 
 SPRITE_INTERVAL_S = [2.0, 0.8, 0.4, 0.15]  # idle/normal/active/heavy
+
+
+def _setup_logging() -> None:
+    level = logging.DEBUG if os.environ.get("USAG_DEBUG") == "1" else logging.WARNING
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s %(name)s %(levelname)s: %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
 
 
 def parse_args() -> argparse.Namespace:
@@ -108,12 +119,12 @@ async def run_tui(mock: bool, interval: int, force_group: int | None = None) -> 
 
                 effective_group = tracker.group()
                 state.rate_group = effective_group
-                
+
                 interval_s = SPRITE_INTERVAL_S[effective_group]
                 frame_index = int((now - start_time) / interval_s) % 4
-                
+
                 live.update(render_screen(state, frame_index), refresh=True)
-                await asyncio.sleep(0.1)
+                await asyncio.sleep(1.0)
 
         await poll_task
     finally:
@@ -122,6 +133,7 @@ async def run_tui(mock: bool, interval: int, force_group: int | None = None) -> 
 
 
 def main() -> None:
+    _setup_logging()
     args = parse_args()
     if args.setup:
         from setup_hook import setup

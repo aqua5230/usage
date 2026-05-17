@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 import time
 from dataclasses import dataclass
 from datetime import datetime
@@ -210,7 +211,7 @@ class PopoverContentView(NSView):
         self.status_label = _label("狀態：載入中", _regular_font(12), NSColor.labelColor())
         self.today_label = _label(
             "今日：$0.00（0 tokens）",
-            _medium_font(),
+            _regular_font(12),
             NSColor.labelColor(),
         )
         self.refresh_button = _button("立即重新整理", delegate, "refreshNow:")
@@ -272,10 +273,10 @@ class PopoverContentView(NSView):
         NSRectFill(self.bounds())
 
         width = self.bounds().size.width - (PADDING * 2)
-        # PADDING + header gap + row height + row-to-row distance + separator inset.
-        first_y = PADDING + 28 + 56 + 64 + 2
-        # first_y + provider gap + header + header gap + row + row-to-row + inset.
-        second_y = first_y + 20 + 16 + 28 + 56 + 64 + 2
+        # Claude 區結束 y=164、Codex header 起點 y=192 → 中間 178
+        first_y = 178
+        # Codex 區結束 y=340、rate_label 起點 y=364 → 中間 352
+        second_y = 352
         NSColor.separatorColor().setFill()
         for y in (first_y, second_y):
             NSRectFill(NSMakeRect(PADDING, y, width, 1))
@@ -321,6 +322,7 @@ class AppDelegate(NSObject):
     tracker = objc.ivar()
     latest_state = objc.ivar()
     codex_5h_pct = objc.ivar()
+    _refresh_in_flight = objc.ivar()
 
     def initWithMock_interval_(self, mock: bool, interval: int) -> AppDelegate:
         self = objc.super(AppDelegate, self).init()
@@ -331,6 +333,7 @@ class AppDelegate(NSObject):
         self.tracker = UsageRateTracker(mock=mock)
         self.codex_5h_pct = None
         self.latest_state = _empty_state()
+        self._refresh_in_flight = False
         return self
 
     def applicationDidFinishLaunching_(self, notification: Any) -> None:
@@ -379,17 +382,36 @@ class AppDelegate(NSObject):
         self.popover.showRelativeToRect_ofView_preferredEdge_(button.bounds(), button, NSMinYEdge)
 
     def _refresh(self) -> None:
+        if self._refresh_in_flight:
+            return
+        self._refresh_in_flight = True
+        thread = threading.Thread(target=self._refresh_in_background, daemon=True)
+        thread.start()
+
+    def _refresh_in_background(self) -> None:
         try:
             outcome = asyncio.run(self._fetch())
-            codex_rows = self._codex_rows()
+            codex_rows, codex_5h_pct = self._codex_rows()
             state = self._state_from_outcome(outcome, codex_rows)
         except Exception as exc:
-            self.codex_5h_pct = None
+            codex_5h_pct = None
             state = _error_state(type(exc).__name__, self.mock)
 
+        result = {"state": state, "codex_5h_pct": codex_5h_pct}
+        self.performSelectorOnMainThread_withObject_waitUntilDone_(
+            "_applyRefreshResult:",
+            result,
+            False,
+        )
+
+    def _applyRefreshResult_(self, result: dict[str, Any]) -> None:
+        state = result["state"]
+        codex_5h_pct = result["codex_5h_pct"]
+        self.codex_5h_pct = codex_5h_pct
         self.latest_state = state
         self.popover_controller.setState_(state)
         self.status_item.button().setTitle_(self._compose_title(state))
+        self._refresh_in_flight = False
 
     async def _fetch(self) -> PollOutcome:
         client = ClaudeUsageClient(mock=self.mock)
@@ -442,14 +464,14 @@ class AppDelegate(NSObject):
             today_text=today_text,
         )
 
-    def _codex_rows(self) -> tuple[QuotaRowState, QuotaRowState]:
+    def _codex_rows(self) -> tuple[tuple[QuotaRowState, QuotaRowState], int | None]:
         if self.mock:
             now = time.time()
-            self.codex_5h_pct = 12
-            return (
+            rows = (
                 _quota_row("Session", 12.0, now + (4 * 3600) + (15 * 60), now, CODEX_COLOR),
                 _quota_row("Weekly", 28.0, now + (4 * 86400), now, CODEX_COLOR),
             )
+            return rows, 12
 
         try:
             rate_limits = codex_loader.load_rate_limits()
@@ -457,16 +479,14 @@ class AppDelegate(NSObject):
             rate_limits = None
 
         if rate_limits is None:
-            self.codex_5h_pct = None
-            return _missing_row("Session", CODEX_COLOR), _missing_row("Weekly", CODEX_COLOR)
+            rows = _missing_row("Session", CODEX_COLOR), _missing_row("Weekly", CODEX_COLOR)
+            return rows, None
 
         now = time.time()
-        self.codex_5h_pct = (
-            round(rate_limits.five_hour_pct)
-            if rate_limits.five_hour_pct is not None
-            else None
+        codex_5h_pct = (
+            round(rate_limits.five_hour_pct) if rate_limits.five_hour_pct is not None else None
         )
-        return (
+        rows = (
             _quota_row(
                 "Session",
                 rate_limits.five_hour_pct,
@@ -482,6 +502,7 @@ class AppDelegate(NSObject):
                 CODEX_COLOR,
             ),
         )
+        return rows, codex_5h_pct
 
     def _compose_title(self, state: PopoverState) -> str:
         claude_text = state.claude_session.percent_text.replace(" 已用", "")

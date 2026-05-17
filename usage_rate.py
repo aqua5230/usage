@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import time
 
 from history_loader import load_entries
 
@@ -15,6 +16,8 @@ class UsageRateTracker:
     def __init__(self, forced_group: int | None = None, mock: bool = False) -> None:
         self.forced_group = forced_group
         self.mock = mock
+        self._cached_group: int | None = None
+        self._cache_expires_at = 0.0
 
     def sample(self, session_pct: float) -> None:
         _ = session_pct
@@ -26,9 +29,16 @@ class UsageRateTracker:
         if self.mock:
             return 0
 
+        now = time.monotonic()
+        if self._cached_group is not None and now < self._cache_expires_at:
+            return self._cached_group
+
         entries = load_entries(hours_back=1)
         if not entries:
-            return 0
+            result = 0
+            self._cached_group = result
+            self._cache_expires_at = time.monotonic() + 30
+            return result
 
         total_tokens = sum(entry.total_tokens for entry in entries)
         elapsed_seconds = (entries[-1].timestamp - entries[0].timestamp).total_seconds()
@@ -36,12 +46,17 @@ class UsageRateTracker:
         burn_rate = total_tokens / min(elapsed_minutes, 60.0)
 
         if burn_rate < BURN_RATE_THRESH_NORMAL:
-            return 0
-        if burn_rate < BURN_RATE_THRESH_ACTIVE:
-            return 1
-        if burn_rate < BURN_RATE_THRESH_HEAVY:
-            return 2
-        return 3
+            result = 0
+        elif burn_rate < BURN_RATE_THRESH_ACTIVE:
+            result = 1
+        elif burn_rate < BURN_RATE_THRESH_HEAVY:
+            result = 2
+        else:
+            result = 3
+
+        self._cached_group = result
+        self._cache_expires_at = time.monotonic() + 30
+        return result
 
     def _forced_group(self) -> int | None:
         if self.forced_group is not None:
