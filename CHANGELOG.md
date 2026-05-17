@@ -4,7 +4,7 @@
 
 本檔記錄 usag 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## Unreleased
+## 0.1.3 — 2026-05-18
 
 ### 變更
 - Popover 改版：Claude / Codex 兩段改用淡色內嵌卡片包起來，群組感更明確；間距、字重、footer 字色一併重整。卡片填色會跟著系統 Dark / Light 自動切換。

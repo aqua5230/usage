@@ -1,6 +1,6 @@
 [project]
 name = "usag"
-version = "0.1.2"
+version = "0.1.3"
 description = "在 macOS 終端機顯示 Claude Code 用量的繁中小工具"
 readme = "README.md"
 requires-python = ">=3.13"

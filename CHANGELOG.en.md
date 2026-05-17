@@ -5,7 +5,7 @@
 All notable changes to usag are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## 0.1.3 — 2026-05-18
 
 ### Changed
 - Popover redesigned: Claude / Codex sections now sit in subtle inset cards, with refined spacing, font weights, and muted footer text. Card fill adapts to Dark / Light appearance.
