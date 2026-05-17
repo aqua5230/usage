@@ -5,7 +5,7 @@ import time
 
 from history_loader import load_entries
 
-BURN_RATE_THRESH_NORMAL = 50.0    # tokens/min
+BURN_RATE_THRESH_NORMAL = 50.0  # tokens/min
 BURN_RATE_THRESH_ACTIVE = 250.0
 BURN_RATE_THRESH_HEAVY = 1000.0
 

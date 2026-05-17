@@ -52,6 +52,8 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
 
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
+
+
 def load_rate_limits() -> CodexRateLimits | None:
     if not SESSIONS_DIR.is_dir():
         return None
@@ -60,6 +62,8 @@ def load_rate_limits() -> CodexRateLimits | None:
         if rate_limits is not None:
             return rate_limits
     return None
+
+
 def _load_thread_models() -> dict[str, str]:
     if not STATE_DB.exists():
         return {}
@@ -75,6 +79,8 @@ def _load_thread_models() -> dict[str, str]:
         for thread_id, model in rows
         if isinstance(thread_id, str) and isinstance(model, str) and model
     }
+
+
 def _recent_jsonl_files() -> list[Path]:
     paths = list(SESSIONS_DIR.rglob("*.jsonl"))
     try:
@@ -82,6 +88,8 @@ def _recent_jsonl_files() -> list[Path]:
     except OSError as exc:
         logger.warning("failed to list codex session dirs: %s", exc)
         return []
+
+
 def _extract_rate_limits(path: Path) -> CodexRateLimits | None:
     last_rate_limits: tuple[dict[str, Any], str] | None = None
     try:
@@ -122,6 +130,8 @@ def _extract_rate_limits(path: Path) -> CodexRateLimits | None:
         seven_day_resets_at=seven_reset,
         updated_at=updated_at,
     )
+
+
 def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) -> UsageEntry | None:
     session_id = ""
     session_timestamp = ""
@@ -175,12 +185,16 @@ def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) ->
         cost_usd=None,
         project=project,
     )
+
+
 def _load_json_line(line: str) -> dict[str, Any] | None:
     try:
         data = json.loads(line)
     except json.JSONDecodeError:
         return None
     return data if isinstance(data, dict) else None
+
+
 def _parse_timestamp(value: str) -> datetime | None:
     try:
         timestamp = datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -189,13 +203,23 @@ def _parse_timestamp(value: str) -> datetime | None:
     if timestamp.tzinfo is None:
         return timestamp.replace(tzinfo=UTC)
     return timestamp.astimezone(UTC)
+
+
 def _project_from_cwd(cwd: str) -> str:
     return Path(os.path.expanduser(cwd)).name if cwd else "unknown"
+
+
 def _as_dict(value: Any) -> dict[str, Any]:
     return value if isinstance(value, dict) else {}
+
+
 def _as_int(value: Any) -> int:
     return value if isinstance(value, int) else 0
+
+
 def _as_str(value: Any) -> str:
     return value if isinstance(value, str) else ""
+
+
 def _as_optional_float(value: Any) -> float | None:
     return float(value) if isinstance(value, int | float) else None

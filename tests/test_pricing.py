@@ -89,8 +89,7 @@ def test_resolve_model_key_substring_match_both_directions() -> None:
 
     assert pricing._resolve_model_key("sonnet-4", pricing_table) == "claude-sonnet-4-6"
     assert (
-        pricing._resolve_model_key("anthropic/claude-opus-latest", pricing_table)
-        == "claude-opus"
+        pricing._resolve_model_key("anthropic/claude-opus-latest", pricing_table) == "claude-opus"
     )
 
 

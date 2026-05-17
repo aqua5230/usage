@@ -10,6 +10,7 @@ usag 主程式會反向讀這個檔，呈現給 menubar / TUI。
 
 刻意只用標準庫，方便用系統 python3 跑。
 """
+
 from __future__ import annotations
 
 import contextlib

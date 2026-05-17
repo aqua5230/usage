@@ -8,6 +8,7 @@ Claude Code 透過 ~/.claude/settings.json 的 statusLine 欄位，
 備份原 statusLine 到 settings["usag"]["previousStatusLine"]，
 unsetup 時還原。
 """
+
 from __future__ import annotations
 
 import contextlib

@@ -131,13 +131,9 @@ def test_project_from_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> N
     projects_dir = tmp_path / "projects"
     monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
 
+    assert history_loader._project_from_path(projects_dir / "Users-me-alpha" / "a.jsonl") == "alpha"
     assert (
-        history_loader._project_from_path(projects_dir / "Users-me-alpha" / "a.jsonl")
-        == "alpha"
-    )
-    assert (
-        history_loader._project_from_path(projects_dir / "plain-project" / "a.jsonl")
-        == "project"
+        history_loader._project_from_path(projects_dir / "plain-project" / "a.jsonl") == "project"
     )
     assert history_loader._project_from_path(tmp_path / "outside.jsonl") == "unknown"
 

@@ -79,6 +79,7 @@ async def poll_usage(
         outcome = await client.fetch_once()
         _apply_outcome(state, outcome)
 
+
 def _apply_outcome(state: AppViewState, outcome: PollOutcome) -> None:
     state.poll_state = outcome.state
     if outcome.snapshot is not None:
@@ -133,9 +134,11 @@ def main() -> None:
     args = parse_args()
     if args.setup:
         from setup_hook import setup
+
         raise SystemExit(setup())
     if args.unsetup:
         from setup_hook import unsetup
+
         raise SystemExit(unsetup())
     if args.tui:
         with suppress(KeyboardInterrupt):
