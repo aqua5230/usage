@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import sqlite3
 from dataclasses import dataclass
@@ -9,6 +10,8 @@ from pathlib import Path
 from typing import Any
 
 from history_loader import UsageEntry
+
+logger = logging.getLogger(__name__)
 
 SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
 STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
@@ -38,7 +41,8 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
             try:
                 if jsonl_path.stat().st_mtime < cutoff_ts:
                     continue
-            except OSError:
+            except OSError as exc:
+                logger.warning("failed to stat session log %s: %s", jsonl_path, exc)
                 continue
         entry = _parse_jsonl(jsonl_path, models, cutoff)
         if entry is None or entry.session_id in seen:
@@ -75,7 +79,8 @@ def _recent_jsonl_files() -> list[Path]:
     paths = list(SESSIONS_DIR.rglob("*.jsonl"))
     try:
         return sorted(paths, key=lambda path: path.stat().st_mtime, reverse=True)[:5]
-    except OSError:
+    except OSError as exc:
+        logger.warning("failed to list codex session dirs: %s", exc)
         return []
 def _extract_rate_limits(path: Path) -> CodexRateLimits | None:
     last_rate_limits: tuple[dict[str, Any], str] | None = None
@@ -91,7 +96,8 @@ def _extract_rate_limits(path: Path) -> CodexRateLimits | None:
                 rate_limits = _as_dict(payload.get("rate_limits"))
                 if rate_limits:
                     last_rate_limits = (rate_limits, _as_str(data.get("timestamp")))
-    except OSError:
+    except OSError as exc:
+        logger.warning("failed to read codex session %s: %s", path, exc)
         return None
     if last_rate_limits is None:
         return None
@@ -141,7 +147,8 @@ def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) ->
                 usage = _as_dict(_as_dict(payload.get("info")).get("total_token_usage"))
                 if usage:
                     last_usage = usage
-    except OSError:
+    except OSError as exc:
+        logger.warning("failed to parse codex session %s: %s", path, exc)
         return None
     timestamp = _parse_timestamp(session_timestamp)
     if not session_id or last_usage is None or timestamp is None:

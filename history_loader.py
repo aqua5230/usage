@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 
@@ -48,7 +51,8 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
             try:
                 if jsonl_path.stat().st_mtime < cutoff_ts:
                     continue
-            except OSError:
+            except OSError as exc:
+                logger.warning("failed to stat Claude project log %s: %s", jsonl_path, exc)
                 continue
         project = _project_from_path(jsonl_path)
         _load_file(jsonl_path, project, cutoff, seen, entries)
@@ -78,7 +82,8 @@ def _load_file(
                     continue
                 seen.add(dedup_key)
                 entries.append(entry)
-    except OSError:
+    except OSError as exc:
+        logger.warning("failed to read Claude project log %s: %s", path, exc)
         return
 
 

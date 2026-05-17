@@ -2,19 +2,24 @@ from __future__ import annotations
 
 import contextlib
 import json
+import logging
 import os
 import tempfile
+import time
 import urllib.request
 from pathlib import Path
 from typing import Any
 
 from history_loader import UsageEntry
 
+logger = logging.getLogger(__name__)
+
 LITELLM_PRICING_URL = (
     "https://raw.githubusercontent.com/BerriAI/litellm/main/"
     "model_prices_and_context_window.json"
 )
 CACHE_PATH = Path(__file__).resolve().parent / "pricing_cache.json"
+CACHE_TTL_DAYS = 7
 USER_AGENT = "usag/0.1"
 
 PricingTable = dict[str, dict[str, float]]
@@ -69,11 +74,20 @@ def _load_pricing() -> PricingTable:
 
 
 def _read_cache() -> PricingTable | None:
-    try:
-        with CACHE_PATH.open(encoding="utf-8") as file:
-            return _normalize_pricing(json.load(file))
-    except (OSError, json.JSONDecodeError):
+    cache_mtime: float | None = None
+    with contextlib.suppress(OSError):
+        cache_mtime = CACHE_PATH.stat().st_mtime
+    if cache_mtime is None:
         return None
+    if (time.time() - cache_mtime) > CACHE_TTL_DAYS * 86400:
+        return None
+
+    with contextlib.suppress(OSError), CACHE_PATH.open(encoding="utf-8") as file:
+        try:
+            return _normalize_pricing(json.load(file))
+        except json.JSONDecodeError:
+            return None
+    return None
 
 
 def _fetch_pricing() -> PricingTable | None:
@@ -94,7 +108,8 @@ def _write_cache(pricing: PricingTable) -> None:
             json.dump(pricing, file, ensure_ascii=False, indent=2, sort_keys=True)
         os.replace(tmp_path, CACHE_PATH)
         tmp_path = None
-    except OSError:
+    except OSError as exc:
+        logger.warning("failed to write pricing cache: %s", exc)
         return
     finally:
         if tmp_path and os.path.exists(tmp_path):
