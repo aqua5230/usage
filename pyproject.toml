@@ -1,7 +1,7 @@
 [project]
 name = "usag"
-version = "0.1.4"
-description = "在 macOS 終端機顯示 Claude Code 用量的繁中小工具"
+version = "0.1.5"
+description = "usage — 在 macOS menu bar 顯示 Claude Code 用量的繁中小工具（也提供終端機 TUI）"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [

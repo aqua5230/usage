@@ -2,7 +2,15 @@
 
 繁體中文 · [English](CHANGELOG.en.md)
 
-本檔記錄 usag 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
+本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
+
+## 0.1.5 — 2026-05-18
+
+### CI
+- `actions/setup-python` 從 v5 升到 v6（v6 用 Node.js 24）。GitHub 之前的警告：v5 跑在 Node.js 20，2026-09-16 之後 runner 會強制升 Node 24。先升避免之後 release 流程突然壞掉。
+
+### 文件
+- `pyproject.toml` 的 `description` 從「在 macOS 終端機顯示 Claude Code 用量的繁中小工具」改成「usage — 在 macOS menu bar 顯示 Claude Code 用量的繁中小工具（也提供終端機 TUI）」。原描述只提終端機，跟現在 menu bar 主導的事實不符，也順手讓 PyPI / GitHub 上看到的專案名稱跟 repo 對齊。
 
 ## 0.1.4 — 2026-05-18
 

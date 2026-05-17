@@ -2,8 +2,16 @@
 
 [繁體中文](CHANGELOG.md) · English
 
-All notable changes to usag are documented here.
+All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
+
+## 0.1.5 — 2026-05-18
+
+### CI
+- Bumped `actions/setup-python` from v5 to v6 (v6 runs on Node.js 24). GitHub had been warning that v5 runs on Node.js 20 and the runner will force Node 24 after 2026-09-16; pre-empting the breakage.
+
+### Documentation
+- `pyproject.toml`'s `description` was rewritten from "在 macOS 終端機顯示 Claude Code 用量的繁中小工具" (terminal-only) to "usage — 在 macOS menu bar 顯示 Claude Code 用量的繁中小工具（也提供終端機 TUI）". The old description misrepresented the project as terminal-only; the new one reflects the menu-bar-first reality and aligns the displayed project name with the repo.
 
 ## 0.1.4 — 2026-05-18
 
