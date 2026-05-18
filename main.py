@@ -19,7 +19,7 @@ SPRITE_INTERVAL_S = [2.0, 0.8, 0.4, 0.15]  # idle/normal/active/heavy
 
 
 def _setup_logging() -> None:
-    level = logging.DEBUG if os.environ.get("USAG_DEBUG") == "1" else logging.WARNING
+    level = logging.DEBUG if os.environ.get("USAGE_DEBUG") == "1" else logging.WARNING
     logging.basicConfig(
         level=level,
         format="%(asctime)s %(name)s %(levelname)s: %(message)s",

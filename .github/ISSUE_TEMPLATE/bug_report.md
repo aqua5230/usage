@@ -22,7 +22,7 @@ labels: bug
 - Mode: [menu bar / TUI / mock]
 
 **Logs**
-Run with `USAG_DEBUG=1 python3 main.py` and paste any warnings here.
+Run with `USAGE_DEBUG=1 python3 main.py` and paste any warnings here.
 Redact paths or identifiers as needed.
 
 ```

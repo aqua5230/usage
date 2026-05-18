@@ -219,7 +219,7 @@ python3 main.py --tui --mock
 想看 usage 內部有沒有吞掉什麼錯誤（例如 OSError，作業系統相關錯誤），啟動時加環境變數：
 
 ```bash
-USAG_DEBUG=1 python3 main.py
+USAGE_DEBUG=1 python3 main.py
 ```
 
 ## 一些行為說明
@@ -232,10 +232,11 @@ USAG_DEBUG=1 python3 main.py
 
 | 症狀 | 原因 | 解法 |
 |------|------|------|
-| menu bar 顯示 `--` | hook 還沒裝、或 Claude Code 還沒刷新 | **.app 使用者**：點 popover 內的「立即安裝 hook」按鈕；**原始碼使用者**：跑 `python3 main.py --setup`。裝完都要重開一次 Claude Code |
+| menu bar 顯示 `--` | hook 還沒裝、或 Claude Code 還沒刷新 | **.app 使用者**：點彈出視窗內的「立即安裝 hook」按鈕；**原始碼使用者**：跑 `python3 main.py --setup`。裝完都要重開一次 Claude Code |
+| 不小心按「結束」、腳印從選單列消失 | 「結束」會把整個 usage 程式關掉，要手動再開 | **.app 使用者**：按 `Cmd+Space` 叫出 Spotlight、輸入 `usage` 雙擊；或從 `/Applications` 找到 `usage.app` 雙擊。**LaunchAgent 使用者**：在 Terminal 跑 `launchctl start com.lollapalooza.usage`。**從原始碼跑的**：在 Terminal 再跑一次 `python3 main.py` |
 | 狀態顯示「N 分鐘未更新」 | Claude Code 沒在跑，沒有刷新 statusLine | 打開 Claude Code 跑一下，它刷新時會自動更新 |
 | Codex 那塊空白或不顯示 | `~/.codex/sessions/` 不存在，或還沒有含 rate_limits 的 token_count 事件 | 用 Codex 跑一次對話，等它寫入紀錄 |
-| 今日花費是 $0.00 | 模型名稱對不上 pricing 表，或 pricing 下載 / 快取失敗 | 刪掉 `~/.claude/pricing_cache.json` 讓它重新抓；或設 `USAG_DEBUG=1` 看錯誤訊息 |
+| 今日花費是 $0.00 | 模型名稱對不上 pricing 表，或 pricing 下載 / 快取失敗 | 刪掉 `~/.claude/pricing_cache.json` 讓它重新抓；或設 `USAGE_DEBUG=1` 看錯誤訊息 |
 | app 雙擊打不開 | macOS Gatekeeper 擋住未簽章的 app | Finder → 找到 `usage.app` → 按住 Ctrl 右鍵 → 打開 → 確認打開 |
 
 ## 打包成 .app（不開終端機就能跑）
