@@ -1,6 +1,6 @@
 [project]
 name = "usage"
-version = "0.2.1"
+version = "0.3.0"
 description = "usage — 在 macOS menu bar 顯示 Claude Code 用量的繁中小工具（也提供終端機 TUI）"
 readme = "README.md"
 requires-python = ">=3.13"

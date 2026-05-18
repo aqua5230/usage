@@ -152,6 +152,16 @@ python3 main.py
   1. Two cards for Claude Code and Codex, each with Session (5-hour) and Weekly (7-day) progress bars and a reset countdown.
   2. A footer card showing current rate, sync status, and today's token usage and cost estimate (Claude uses the actual `costUSD` from its log when available; Codex cost is estimated from token count × pricing table).
   3. Two buttons: "Refresh now" and "Quit".
+- **Switch panel** (v0.3.0+): a `⇄ Switch` button in the popover top-right opens a menu of available panel styles. Two are built in:
+  - **Default**: the original two-card + footer layout.
+  - **Taiwan usage monitor**: a red-on-white themed variant with a top header bar containing the TAIWAN flag icon.
+
+  <p align="center">
+    <img src="docs/popover.png" alt="default panel" width="280">
+    <img src="docs/popover-taiwan.png" alt="Taiwan usage monitor panel" width="280">
+  </p>
+
+  Your choice is persisted via `NSUserDefaults`, so the last selected panel survives restarts.
 - **Permissions:** on first launch, macOS may ask whether to allow background execution. Click Allow.
 
 ### Terminal TUI mode
