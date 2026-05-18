@@ -48,6 +48,11 @@ line-length = 100
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
+[tool.ruff.lint.per-file-ignores]
+# usag_statusline.py 設計成可以用系統 python3 跑（macOS 內建是 3.9），
+# 必須避開 3.11+ 才有的 datetime.UTC，用 timezone.utc 取代。
+"usag_statusline.py" = ["UP017"]
+
 [tool.mypy]
 python_version = "3.13"
 strict = true
