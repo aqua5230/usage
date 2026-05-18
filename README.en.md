@@ -8,7 +8,9 @@
 [![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
 [![License](https://img.shields.io/github/license/aqua5230/usage)](LICENSE)
 
-`usage` is a macOS tool for Claude Code users that displays your 5-hour and 7-day usage in the right-hand menu bar or a terminal TUI, with optional auto-start on login.
+`usage` is a macOS menu bar tool that pins your **Claude Code and Codex** usage to the top-right of your screen. Click the icon for a popover showing the current 5-hour usage, the current 7-day usage, and today's total spend.
+
+It **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, so it avoids the observer effect of "pinging once a minute counts as usage."
 
 <p align="center">
   <img src="docs/popover.png" alt="usage popover" width="320">
@@ -16,9 +18,18 @@
 
 ## How it gets the data
 
-usage **never calls the Anthropic API and never reads the Keychain**, so it avoids the observer effect of "pinging once a minute counts as usage."
+usage **never makes network calls**. All numbers come from local files written by Claude Code and Codex themselves.
 
-Instead it installs a Claude Code statusLine hook. Every time the Claude Code main process refreshes its status line, it pipes a JSON payload (with fields like `rate_limits.five_hour.used_percentage`) into the hook. The hook writes that payload to `~/.claude/usag-status.json`, and the usage UI reads the file. The numbers match exactly what Claude Code itself sees.
+### Claude Code usage
+
+usage installs a small **statusLine hook** — a script that Claude Code automatically pipes data into every time it refreshes its status line. The flow:
+
+1. Claude Code refreshes the status line and packages usage info (5-hour percentage, 7-day percentage, etc.) as JSON.
+2. It pipes that JSON to the hook via stdin.
+3. The hook writes the JSON to `~/.claude/usag-status.json`.
+4. The usage UI reads that file.
+
+Since both sides look at the same source data, **the numbers match exactly what Claude Code itself shows**.
 
 ```mermaid
 flowchart LR
@@ -35,12 +46,17 @@ Read priority:
 1. `~/.claude/usag-status.json` — written by the hook usage installs.
 2. `~/.claude/tt-status.json` — fallback. If you also use [token-tracker](https://github.com/stormzhang/token-tracker), usage will share its status file.
 
+### Codex usage
+
+Codex CLI doesn't expose a statusLine hook, so usage takes a different route: it scans the conversation logs Codex CLI leaves on disk (`~/.codex/sessions/*.jsonl`), extracts per-turn token counts, and reconstructs the 5-hour and 7-day usage from them.
+
+If Codex isn't installed or the directory doesn't exist, that part of the UI hides itself and Claude Code stats continue to work normally.
+
 ## Requirements
 
 - macOS
 - Python 3.13
-- Claude Code installed and signed in
-- Recommended: use a GitHub noreply email as your commit identity so your private email doesn't leak: `git config user.email "ID+username@users.noreply.github.com"`
+- Claude Code installed and signed in (Codex is optional)
 
 ## Download
 
@@ -59,21 +75,24 @@ source .venv/bin/activate
 pip install -e .
 ```
 
-## First install
+This creates an isolated Python environment (`.venv`) for the project, activates it, and installs usage plus its dependencies into it.
 
-Run setup once to write the statusLine hook into your Claude Code settings, then **restart Claude Code once** so it re-reads `~/.claude/settings.json` and refreshes its status line (which is when the data first lands on disk):
+## First install (wire up the Claude Code hook)
+
+This single command does two things: copies the hook script into `~/.claude/`, and updates your Claude Code settings to point at it.
 
 ```bash
 source .venv/bin/activate
 python3 main.py --setup
-# restart Claude Code once
 ```
 
-Setup will:
+**Restart Claude Code once after running this** so it re-reads `~/.claude/settings.json` and refreshes its status line. That refresh is when usage data first lands on disk.
 
-- Copy `usag_statusline.py` to `~/.claude/usag-statusline.py`.
-- Point `statusLine` in `~/.claude/settings.json` at that hook.
-- If you already had a custom `statusLine`, it is backed up to `settings.usag.previousStatusLine`.
+What `--setup` does in detail:
+
+- Copies `usag_statusline.py` to `~/.claude/usag-statusline.py`.
+- Points `statusLine` in `~/.claude/settings.json` at that hook.
+- If you already had a custom `statusLine`, it is backed up to `settings.usag.previousStatusLine` so nothing is overwritten.
 
 To uninstall:
 
@@ -87,23 +106,26 @@ python3 main.py --unsetup
 
 ### Menu bar mode (default)
 
-Stays in the macOS menu bar and shows the current 5-hour usage percentage.
+Stays in the macOS menu bar with a short percentage readout. Click it to open the full popover.
 
 ```bash
 source .venv/bin/activate
 python3 main.py
 ```
 
-- **Display format:** `🐾 37%`; if Codex usage is also detected, a suffix like `· 📜 10%` is appended:
+- **Menu bar format:** `🐾 37%`. If Codex usage is also detected, a Codex suffix is appended: `🐾 37% · 📜 10%`.
 
   <img src="docs/menubar.png" alt="menu bar display" width="240">
 
-- **Dropdown:** detailed 5-hour and weekly usage, reset times, current rate, and sync status.
-- **Permissions:** on first launch, macOS may ask whether to allow background execution.
+- **Click the icon to expand the popover.** It has three sections:
+  1. Two cards for Claude Code and Codex, each with Session (5-hour) and Weekly (7-day) progress bars and a reset countdown.
+  2. A footer card showing current rate, sync status, and today's spend (USD + tokens).
+  3. Two buttons: "Refresh now" and "Quit".
+- **Permissions:** on first launch, macOS may ask whether to allow background execution. Click Allow.
 
 ### Terminal TUI mode
 
-Keeps the original Rich Live interface, including the pixel-art Clawd animation.
+If you'd rather stay in a terminal, run the Rich Live TUI. It includes a small pixel-art Claude animation.
 
 ```bash
 source .venv/bin/activate
@@ -112,25 +134,29 @@ python3 main.py --tui
 
 ## Auto-start on login
 
-A LaunchAgent makes usage start automatically when you log in:
+A LaunchAgent (the macOS service that handles "what should start when this user logs in") makes usage start automatically.
 
 1. **Install:**
    ```bash
    ./scripts/install-launchagent.sh
    ```
+   This drops a plist into `~/Library/LaunchAgents/` and loads usage immediately.
+
 2. **Manual start (for testing):**
    ```bash
    launchctl start com.lollapalooza.usag
    ```
+
 3. **Logs:**
    - stdout: `~/Library/Logs/usag/usag.log`
    - stderr: `~/Library/Logs/usag/usag.err.log`
+
 4. **Uninstall:**
    ```bash
    ./scripts/uninstall-launchagent.sh
    ```
 
-## Preview mode
+## Preview mode (no install required)
 
 If you haven't installed the hook yet, or you just want to see what the UI looks like, run with fake data:
 
@@ -145,7 +171,7 @@ python3 main.py --tui --mock
 ## Options
 
 - `--setup` / `--unsetup` — install or remove the Claude Code statusLine hook.
-- `--tui` — force terminal TUI mode.
+- `--tui` — force terminal TUI mode (no menu bar).
 - `--interval N` — how often (seconds) the UI re-reads the status file. Minimum 30, default 60.
 - `--mock` — use fake data; don't read any status file.
 - `--force-group {0,1,2,3}` — force a specific rate group (TUI only).
@@ -158,9 +184,9 @@ To see internal warnings (e.g. swallowed `OSError`s), set:
 USAG_DEBUG=1 python3 main.py
 ```
 
-## Behavior notes
+## Behaviour notes
 
-- usage only reads `~/.claude/usag-status.json` or `~/.claude/tt-status.json`. It does not make network calls and does not read the Keychain.
+- usage only reads `~/.claude/usag-status.json`, `~/.claude/tt-status.json`, and Codex's session files. It does not make network calls and does not read the Keychain.
 - When Claude Code isn't running, the status file isn't updated — but actual usage isn't changing either (until reset time), so the displayed value is still accurate. After reset time passes, it auto-resets to zero.
 - If the status file hasn't been updated for more than 6 hours, the status line notes "status file is N minutes stale, numbers may be out of date."
 
@@ -178,13 +204,3 @@ The output is `dist/usag.app`. Double-click it or run `open dist/usag.app`.
 To open it: find `dist/usag.app` in Finder → right-click → Open → confirm Open. After that, double-clicking works normally.
 
 Each GitHub Release build (push a `v*` tag) automatically builds the app in CI and attaches `usag.app.zip` to the Release page, so users can download it directly from GitHub Releases.
-
-## Self-check commands
-
-```bash
-source .venv/bin/activate
-ruff check .
-mypy .
-pytest -v
-python3 main.py --tui --mock
-```
