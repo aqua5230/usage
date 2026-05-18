@@ -8,7 +8,7 @@
 [![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
 [![License](https://img.shields.io/github/license/aqua5230/usage)](LICENSE)
 
-`usage` is a macOS menu bar tool that pins your **Claude Code and Codex** usage to the top-right of your screen. Click the icon for a popover showing the current 5-hour usage, the current 7-day usage, and today's total spend.
+`usage` is a macOS menu bar tool that pins your **Claude Code and Codex** usage to the top-right of your screen. Click the icon for a popover showing the current 5-hour usage, the current 7-day usage, and today's token usage and cost estimate.
 
 It **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, so it avoids the observer effect of "pinging once a minute counts as usage."
 
@@ -18,7 +18,7 @@ It **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, 
 
 ## How it gets the data
 
-usage **never makes network calls**. All numbers come from local files written by Claude Code and Codex themselves.
+Usage numbers come from local files written by Claude Code and Codex — no Anthropic / OpenAI API calls. The one exception: to estimate Codex costs, usage needs a token pricing table. If no local cache exists (`~/.claude/pricing_cache.json`), it downloads the public [LiteLLM pricing JSON](https://github.com/BerriAI/litellm) once and caches it for 7 days. If the download fails, a built-in fallback price is used — usage percentage display is unaffected.
 
 ### Claude Code usage
 
@@ -48,7 +48,7 @@ Read priority:
 
 ### Codex usage
 
-Codex CLI doesn't expose a statusLine hook, so usage takes a different route: it scans the conversation logs Codex CLI leaves on disk (`~/.codex/sessions/*.jsonl`), extracts per-turn token counts, and reconstructs the 5-hour and 7-day usage from them.
+Codex CLI doesn't expose a statusLine hook, so usage takes a different route: it scans the conversation logs Codex CLI leaves on disk (`~/.codex/sessions/*.jsonl`). Codex writes `rate_limits` data directly into each log entry — usage reads those fields to get the 5-hour and 7-day quota percentages directly. Today's token count and cost are summed from the token usage recorded in the same files.
 
 If Codex isn't installed or the directory doesn't exist, that part of the UI hides itself and Claude Code stats continue to work normally.
 
@@ -57,6 +57,23 @@ If Codex isn't installed or the directory doesn't exist, that part of the UI hid
 - macOS
 - Python 3.13
 - Claude Code installed and signed in (Codex is optional)
+
+## Quick start
+
+| I want to… | How |
+|-----------|-----|
+| Just use it, no setup | [Download the app](#download-the-app) |
+| Run from source | [Set up the environment](#set-up-the-environment) |
+| Preview the UI without installing | [Preview mode](#preview-mode-no-install-required) |
+
+## Download the app
+
+Go to the [GitHub Releases page](https://github.com/aqua5230/usage/releases/latest) and download the latest `usag.app.zip`. Unzip it and move `usag.app` wherever you like (e.g. `/Applications`).
+
+⚠️ Because this app is not signed with an Apple Developer certificate, **macOS Gatekeeper will block the first launch**.
+To open it: find `usag.app` in Finder → right-click → Open → confirm Open. After that, double-clicking works normally.
+
+You still need to run `--setup` once so Claude Code knows to feed data to usage (see [First install](#first-install-wire-up-the-claude-code-hook)).
 
 ## Download
 
@@ -119,7 +136,7 @@ python3 main.py
 
 - **Click the icon to expand the popover.** It has three sections:
   1. Two cards for Claude Code and Codex, each with Session (5-hour) and Weekly (7-day) progress bars and a reset countdown.
-  2. A footer card showing current rate, sync status, and today's spend (USD + tokens).
+  2. A footer card showing current rate, sync status, and today's token usage and cost estimate (Claude uses the actual `costUSD` from its log when available; Codex cost is estimated from token count × pricing table).
   3. Two buttons: "Refresh now" and "Quit".
 - **Permissions:** on first launch, macOS may ask whether to allow background execution. Click Allow.
 
@@ -192,9 +209,19 @@ USAG_DEBUG=1 python3 main.py
 
 ## Behaviour notes
 
-- usage only reads `~/.claude/usag-status.json`, `~/.claude/tt-status.json`, and Codex's session files. It does not make network calls and does not read the Keychain.
+- usage only reads `~/.claude/usag-status.json`, `~/.claude/tt-status.json`, and Codex's session files. It does not call the Anthropic / OpenAI API and does not read the Keychain. The only network activity is a one-time download of the LiteLLM pricing table for Codex cost estimates (cached for 7 days; offline fallback available).
 - When Claude Code isn't running, the status file isn't updated — but actual usage isn't changing either (until reset time), so the displayed value is still accurate. After reset time passes, it auto-resets to zero.
 - If the status file hasn't been updated for more than 6 hours, the status line notes "status file is N minutes stale, numbers may be out of date."
+
+## Troubleshooting
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| Menu bar shows `--` | Hook not installed, or Claude Code hasn't refreshed yet | Run `--setup`, then restart Claude Code once |
+| Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run; it updates the file on its next status refresh |
+| Codex section is empty | `~/.codex/sessions/` doesn't exist or has no `rate_limits` events yet | Run a Codex conversation to generate log entries |
+| Today's cost shows $0.00 | Model name doesn't match the pricing table, or pricing download/cache failed | Delete `~/.claude/pricing_cache.json` to force a re-fetch; or run with `USAG_DEBUG=1` for details |
+| App won't open (blocked by macOS) | Gatekeeper blocks unsigned apps | Finder → find `usag.app` → right-click → Open → confirm Open |
 
 ## Build a .app bundle (optional)
 
@@ -206,7 +233,4 @@ If you want to launch usage by double-clicking instead of opening a terminal, bu
 
 The output is `dist/usag.app`. Double-click it or run `open dist/usag.app`.
 
-⚠️ Because this app is not signed with an Apple Developer certificate, **macOS Gatekeeper will block the first launch**.
-To open it: find `dist/usag.app` in Finder → right-click → Open → confirm Open. After that, double-clicking works normally.
-
-Each GitHub Release build (push a `v*` tag) automatically builds the app in CI and attaches `usag.app.zip` to the Release page, so users can download it directly from GitHub Releases.
+Each GitHub Release build (push a `v*` tag) automatically builds the app in CI and attaches `usag.app.zip` to the Release page.
