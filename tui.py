@@ -180,6 +180,19 @@ def _usage_block(percent: int, label: str, reset_at: float, now: float) -> Rende
     return Group(row, countdown)
 
 
+def _missing_usage_block(label: str) -> RenderableType:
+    row = Table.grid(expand=False, padding=(0, 1))
+    row.add_column(width=4)
+    row.add_column(width=16)
+    row.add_column(width=11)
+    row.add_row(
+        Text("--", style=f"bold {DIM}"),
+        _build_progress_line(0, width=15),
+        _chip(label),
+    )
+    return Group(row, Text("    Resets in --", style=DIM))
+
+
 def _spinner_frame(now: float, started_at: float) -> str:
     elapsed_ms = int((now - started_at) * 1000)
     total_ms = sum(SPINNER_PHASE_MS)
@@ -266,21 +279,31 @@ def render_screen(state: AppViewState, frame_index: int) -> Panel:
         )
         body_items.append(loading_block)
     else:
+        current_block = (
+            _usage_block(
+                state.snapshot.current_percent,
+                "Current",
+                state.snapshot.current_reset_at,
+                now,
+            )
+            if state.snapshot.current_percent is not None
+            else _missing_usage_block("Current")
+        )
+        weekly_block = (
+            _usage_block(
+                state.snapshot.weekly_percent,
+                "Weekly",
+                state.snapshot.weekly_reset_at,
+                now,
+            )
+            if state.snapshot.weekly_percent is not None
+            else _missing_usage_block("Weekly")
+        )
         body_items.append(
             Group(
-                _usage_block(
-                    state.snapshot.current_percent,
-                    "Current",
-                    state.snapshot.current_reset_at,
-                    now,
-                ),
+                current_block,
                 Text(""),
-                _usage_block(
-                    state.snapshot.weekly_percent,
-                    "Weekly",
-                    state.snapshot.weekly_reset_at,
-                    now,
-                ),
+                weekly_block,
             )
         )
 

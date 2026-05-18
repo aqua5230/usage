@@ -27,9 +27,9 @@ class PollState(StrEnum):
 
 @dataclass(slots=True)
 class UsageSnapshot:
-    current_percent: int
+    current_percent: int | None
     current_reset_at: float
-    weekly_percent: int
+    weekly_percent: int | None
     weekly_reset_at: float
     current_status: str
     polled_at: float
@@ -100,8 +100,20 @@ def _build_snapshot(data: dict[str, Any]) -> UsageSnapshot | None:
     seven_reset = _reset_at(seven.get("resets_at"), now)
 
     # reset 時間到了就把百分比歸零（跟 token-tracker 同邏輯）
-    five_pct = 0 if five_reset and five_reset < now else _pct(five_pct_raw)
-    seven_pct = 0 if seven_reset and seven_reset < now else _pct(seven_pct_raw)
+    five_pct = (
+        0
+        if five_reset and five_reset < now
+        else _pct(five_pct_raw)
+        if five_pct_raw is not None
+        else None
+    )
+    seven_pct = (
+        0
+        if seven_reset and seven_reset < now
+        else _pct(seven_pct_raw)
+        if seven_pct_raw is not None
+        else None
+    )
 
     polled_at = _as_finite_float(data.get("_received_at_ts")) or now
 

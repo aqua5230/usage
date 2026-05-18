@@ -110,6 +110,66 @@ def test_build_snapshot_handles_missing_rate_limits_and_clamps_percentages(
     assert snapshot.polled_at == now - 10
 
 
+def test_build_snapshot_keeps_missing_weekly_percent_as_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = 1_700_000_000.0
+    monkeypatch.setattr("usage_client.time.time", lambda: now)
+
+    snapshot = usage_client._build_snapshot(
+        {
+            "rate_limits": {
+                "five_hour": {"used_percentage": 42, "resets_at": now + 60},
+                "seven_day": {"resets_at": now + 120},
+            },
+        }
+    )
+
+    assert snapshot is not None
+    assert snapshot.current_percent == 42
+    assert snapshot.weekly_percent is None
+
+
+def test_build_snapshot_keeps_missing_current_percent_as_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = 1_700_000_000.0
+    monkeypatch.setattr("usage_client.time.time", lambda: now)
+
+    snapshot = usage_client._build_snapshot(
+        {
+            "rate_limits": {
+                "five_hour": {"resets_at": now + 60},
+                "seven_day": {"used_percentage": 24, "resets_at": now + 120},
+            },
+        }
+    )
+
+    assert snapshot is not None
+    assert snapshot.current_percent is None
+    assert snapshot.weekly_percent == 24
+
+
+def test_build_snapshot_keeps_both_percentages_when_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    now = 1_700_000_000.0
+    monkeypatch.setattr("usage_client.time.time", lambda: now)
+
+    snapshot = usage_client._build_snapshot(
+        {
+            "rate_limits": {
+                "five_hour": {"used_percentage": 12, "resets_at": now + 60},
+                "seven_day": {"used_percentage": 34, "resets_at": now + 120},
+            },
+        }
+    )
+
+    assert snapshot is not None
+    assert snapshot.current_percent == 12
+    assert snapshot.weekly_percent == 34
+
+
 def test_fetch_once_mock_returns_success_with_expected_snapshot() -> None:
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=True).fetch_once())
 

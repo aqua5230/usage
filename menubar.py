@@ -728,14 +728,16 @@ class AppDelegate(NSObject):
             group_name = GROUP_NAMES[self.tracker.group()]
             claude_session = _quota_row(
                 "Session",
-                float(snapshot.current_percent),
+                float(snapshot.current_percent)
+                if snapshot.current_percent is not None
+                else None,
                 snapshot.current_reset_at,
                 now,
                 CLAUDE_COLOR,
             )
             claude_weekly = _quota_row(
                 "Weekly",
-                float(snapshot.weekly_percent),
+                float(snapshot.weekly_percent) if snapshot.weekly_percent is not None else None,
                 snapshot.weekly_reset_at,
                 now,
                 CLAUDE_COLOR,
