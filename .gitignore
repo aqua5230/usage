@@ -5,8 +5,8 @@ __pycache__/
 .claude/settings.local.json
 *.log
 pricing_cache.json
-usag.log
-usag.err.log
+usage.log
+usage.err.log
 .DS_Store
 build/
 dist/

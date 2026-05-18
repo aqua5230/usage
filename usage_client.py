@@ -8,7 +8,8 @@ from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
-STATUS_FILE = os.path.expanduser("~/.claude/usag-status.json")
+STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
+LEGACY_STATUS_FILE = os.path.expanduser("~/.claude/usag-status.json")
 TT_STATUS_FILE = os.path.expanduser("~/.claude/tt-status.json")
 
 # 檔案多久沒更新就視為 stale；只用在訊息提示，不影響數字顯示
@@ -70,8 +71,8 @@ def _as_finite_float(value: Any) -> float | None:
 
 
 def _read_status_file() -> tuple[dict[str, Any], str] | None:
-    """讀任一份可用的 status JSON，優先 usag 自己的，fallback token-tracker 的。"""
-    for path in (STATUS_FILE, TT_STATUS_FILE):
+    """讀任一份可用的 status JSON，優先 usage 自己的，fallback 舊檔與 token-tracker。"""
+    for path in (STATUS_FILE, LEGACY_STATUS_FILE, TT_STATUS_FILE):
         if not os.path.exists(path):
             continue
         try:

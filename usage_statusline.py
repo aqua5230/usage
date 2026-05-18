@@ -3,10 +3,10 @@
 
 Claude Code 每次刷新 statusLine 時會把當前 session 的完整 JSON
 （含 rate_limits.five_hour / seven_day、context_window、cost 等）
-從 stdin 傳給這個 script。我們只負責落地到 usag-status.json，
+從 stdin 傳給這個 script。我們只負責落地到 usage-status.json，
 不輸出任何 statusLine 文字，避免覆蓋使用者自訂版面。
 
-usag 主程式會反向讀這個檔，呈現給 menubar / TUI。
+usage 主程式會反向讀這個檔，呈現給 menubar / TUI。
 
 刻意只用標準庫，方便用系統 python3 跑。
 """
@@ -23,7 +23,7 @@ from typing import Any
 
 __version__ = "1.0"
 
-STATUS_FILE = os.path.expanduser("~/.claude/usag-status.json")
+STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 
 
 def save(data: dict[str, Any], now: datetime) -> None:

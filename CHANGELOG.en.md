@@ -5,6 +5,19 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 0.2.0 — 2026-05-18
+
+### Breaking Changes
+- Internal app identifiers changed from `usag` to `usage`: bundle id, filenames, launchctl label, and `~/.claude/` paths were renamed.
+
+### Added
+- `setup_hook.py` now detects and clears old v0.1.x `usag` leftovers: hook script, settings statusLine, backup key, and status file.
+- `install-launchagent.sh` / `uninstall-launchagent.sh` now clean the old LaunchAgent plist and label automatically.
+- `usage_client.py` now falls back to the old `usag-status.json` path for upgrade compatibility.
+
+### Fixed
+- Public app naming and internal bundle identifiers are now consistently `usage`.
+
 ## 0.1.11 — 2026-05-18
 
 ### Fixed

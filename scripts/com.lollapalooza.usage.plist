@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.lollapalooza.usag</string>
+    <string>com.lollapalooza.usage</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
@@ -19,9 +19,9 @@
     <key>WorkingDirectory</key>
     <string>__PROJECT_DIR__</string>
     <key>StandardOutPath</key>
-    <string>__HOME__/Library/Logs/usag/usag.log</string>
+    <string>__HOME__/Library/Logs/usage/usage.log</string>
     <key>StandardErrorPath</key>
-    <string>__HOME__/Library/Logs/usag/usag.err.log</string>
+    <string>__HOME__/Library/Logs/usage/usage.err.log</string>
     <key>ProcessType</key>
     <string>Interactive</string>
 </dict>

@@ -23,7 +23,7 @@ uv run pytest -v
 ## 改 code 的方針
 
 - **改 prod 模組請順手補測試**：`tests/` 底下挑風格最接近的檔案模仿。新增測試禁止碰 `~/.claude/` 跟 `~/.codex/` 真實檔案，請用 `monkeypatch` 改路徑常數。
-- **不要改技術短名 `usag`**：所有檔案路徑、設定 key、binary、env var、LaunchAgent label 都保留 `usag` 前綴（hook contract，改了會打到已安裝的使用者）。對外名稱用 `usage`。
+- **內外名稱統一為 `usage`**：檔案路徑、設定 key、binary、env var、LaunchAgent label 都使用 `usage` 前綴。
 - **menubar.py 的 UI 常數**（`CARD_HEIGHT`、`CARD_RADIUS`、`SECTION_GAP` 等）動之前先想清楚，那是 popover 視覺設計的一部分。
 
 ## CHANGELOG 與發版

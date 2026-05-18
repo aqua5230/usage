@@ -1,6 +1,6 @@
 [project]
 name = "usage"
-version = "0.1.11"
+version = "0.2.0"
 description = "usage — 在 macOS menu bar 顯示 Claude Code 用量的繁中小工具（也提供終端機 TUI）"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -23,7 +23,7 @@ py-modules = [
     "pricing",
     "history_loader",
     "usage_rate",
-    "usag_statusline",
+    "usage_statusline",
     "setup_hook",
     "usage_client",
     "codex_loader",
@@ -49,9 +49,9 @@ line-length = 100
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
-# usag_statusline.py 設計成可以用系統 python3 跑（macOS 內建是 3.9），
+# usage_statusline.py 設計成可以用系統 python3 跑（macOS 內建是 3.9），
 # 必須避開 3.11+ 才有的 datetime.UTC，用 timezone.utc 取代。
-"usag_statusline.py" = ["UP017"]
+"usage_statusline.py" = ["UP017"]
 
 [tool.mypy]
 python_version = "3.13"

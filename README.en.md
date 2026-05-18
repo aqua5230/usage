@@ -26,15 +26,15 @@ usage installs a small **statusLine hook** — a script that Claude Code automat
 
 1. Claude Code refreshes the status line and packages usage info (5-hour percentage, 7-day percentage, etc.) as JSON.
 2. It pipes that JSON to the hook via stdin.
-3. The hook writes the JSON to `~/.claude/usag-status.json`.
+3. The hook writes the JSON to `~/.claude/usage-status.json`.
 4. The usage UI reads that file.
 
 Since both sides look at the same source data, **the numbers match exactly what Claude Code itself shows**.
 
 ```mermaid
 flowchart LR
-    A[Claude Code main process] -->|pipes JSON to stdin<br/>on every statusLine refresh| B[usag-statusline.py<br/>hook script]
-    B -->|writes| C[(~/.claude/<br/>usag-status.json)]
+    A[Claude Code main process] -->|pipes JSON to stdin<br/>on every statusLine refresh| B[usage-statusline.py<br/>hook script]
+    B -->|writes| C[(~/.claude/<br/>usage-status.json)]
     D[usage menu bar / TUI] -->|reads| C
     D -->|renders| E[macOS menu bar]
     F((Anthropic API)) -.x.- D
@@ -43,7 +43,7 @@ flowchart LR
 
 Read priority:
 
-1. `~/.claude/usag-status.json` — written by the hook usage installs.
+1. `~/.claude/usage-status.json` — written by the hook usage installs.
 2. `~/.claude/tt-status.json` — fallback. If you also use [token-tracker](https://github.com/stormzhang/token-tracker), usage will share its status file.
 
 ### Codex usage
@@ -68,16 +68,16 @@ If Codex isn't installed or the directory doesn't exist, that part of the UI hid
 
 ## Download the app
 
-Go to the [GitHub Releases page](https://github.com/aqua5230/usage/releases/latest) and download the latest `usag.app.zip`. Unzip it and move `usag.app` wherever you like (e.g. `/Applications`).
+Go to the [GitHub Releases page](https://github.com/aqua5230/usage/releases/latest) and download the latest `usage.app.zip`. Unzip it and move `usage.app` wherever you like (e.g. `/Applications`).
 
 ⚠️ Because this app is not signed with an Apple Developer certificate, **macOS Gatekeeper will block the first launch**.
-To open it: find `usag.app` in Finder → right-click → Open → confirm Open. After that, double-clicking works normally.
+To open it: find `usage.app` in Finder → right-click → Open → confirm Open. After that, double-clicking works normally.
 
 ### First launch: install the hook
 
-The first time you open usag, if Claude Code has never been wired up yet, the popover will detect the missing status file and **show an extra "立即安裝 hook" (Install hook now) button at the bottom**. Click it once — it installs the hook for you. Then **fully quit Claude Code (Cmd+Q) and re-open it**, click "Refresh now" in usag, and the numbers will appear.
+The first time you open usage, if Claude Code has never been wired up yet, the popover will detect the missing status file and **show an extra "立即安裝 hook" (Install hook now) button at the bottom**. Click it once — it installs the hook for you. Then **fully quit Claude Code (Cmd+Q) and re-open it**, click "Refresh now" in usage, and the numbers will appear.
 
-If the button doesn't show, usag is already reading data (e.g. you previously installed [token-tracker](https://github.com/stormzhang/token-tracker) and its status file works as a fallback) — nothing else to do.
+If the button doesn't show, usage is already reading data (e.g. you previously installed [token-tracker](https://github.com/stormzhang/token-tracker) and its status file works as a fallback) — nothing else to do.
 
 > **Fallback: install via curl**
 > If the in-app button doesn't work or you prefer the command line, paste this in Terminal:
@@ -107,7 +107,7 @@ This creates an isolated Python environment (`.venv`) for the project, activates
 
 ## First install (wire up the Claude Code hook — source mode only)
 
-> Using the .app? Just click the "立即安裝 hook" button in the popover on first launch instead — you don't need this section. The steps below are for developers running usag from source.
+> Using the .app? Just click the "立即安裝 hook" button in the popover on first launch instead — you don't need this section. The steps below are for developers running usage from source.
 
 This single command does two things: copies the hook script into `~/.claude/`, and updates your Claude Code settings to point at it.
 
@@ -120,9 +120,9 @@ python3 main.py --setup
 
 What `--setup` does in detail:
 
-- Copies `usag_statusline.py` to `~/.claude/usag-statusline.py`.
+- Copies `usage_statusline.py` to `~/.claude/usage-statusline.py`.
 - Points `statusLine` in `~/.claude/settings.json` at that hook.
-- If you already had a custom `statusLine`, it is backed up to `settings.usag.previousStatusLine` so nothing is overwritten.
+- If you already had a custom `statusLine`, it is backed up to `settings.usage.previousStatusLine` so nothing is overwritten.
 
 To uninstall:
 
@@ -130,7 +130,7 @@ To uninstall:
 python3 main.py --unsetup
 ```
 
-`--unsetup` restores your original statusLine and removes the hook and `~/.claude/usag-status.json`.
+`--unsetup` restores your original statusLine and removes the hook and `~/.claude/usage-status.json`.
 
 ## Run modes
 
@@ -180,12 +180,12 @@ A LaunchAgent (the macOS service that handles "what should start when this user 
 
 2. **Manual start (for testing):**
    ```bash
-   launchctl start com.lollapalooza.usag
+   launchctl start com.lollapalooza.usage
    ```
 
 3. **Logs:**
-   - stdout: `~/Library/Logs/usag/usag.log`
-   - stderr: `~/Library/Logs/usag/usag.err.log`
+   - stdout: `~/Library/Logs/usage/usage.log`
+   - stderr: `~/Library/Logs/usage/usage.err.log`
 
 4. **Uninstall:**
    ```bash
@@ -222,7 +222,7 @@ USAG_DEBUG=1 python3 main.py
 
 ## Behaviour notes
 
-- usage only reads `~/.claude/usag-status.json`, `~/.claude/tt-status.json`, and Codex's session files. It does not call the Anthropic / OpenAI API and does not read the Keychain. The only network activity is a one-time download of the LiteLLM pricing table for Codex cost estimates (cached for 7 days; offline fallback available).
+- usage only reads `~/.claude/usage-status.json`, `~/.claude/tt-status.json`, and Codex's session files. It does not call the Anthropic / OpenAI API and does not read the Keychain. The only network activity is a one-time download of the LiteLLM pricing table for Codex cost estimates (cached for 7 days; offline fallback available).
 - When Claude Code isn't running, the status file isn't updated — but actual usage isn't changing either (until reset time), so the displayed value is still accurate. After reset time passes, it auto-resets to zero.
 - If the status file hasn't been updated for more than 6 hours, the status line notes "status file is N minutes stale, numbers may be out of date."
 
@@ -234,7 +234,7 @@ USAG_DEBUG=1 python3 main.py
 | Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run; it updates the file on its next status refresh |
 | Codex section is empty | `~/.codex/sessions/` doesn't exist or has no `rate_limits` events yet | Run a Codex conversation to generate log entries |
 | Today's cost shows $0.00 | Model name doesn't match the pricing table, or pricing download/cache failed | Delete `~/.claude/pricing_cache.json` to force a re-fetch; or run with `USAG_DEBUG=1` for details |
-| App won't open (blocked by macOS) | Gatekeeper blocks unsigned apps | Finder → find `usag.app` → right-click → Open → confirm Open |
+| App won't open (blocked by macOS) | Gatekeeper blocks unsigned apps | Finder → find `usage.app` → right-click → Open → confirm Open |
 
 ## Build a .app bundle (optional)
 
@@ -244,6 +244,6 @@ If you want to launch usage by double-clicking instead of opening a terminal, bu
 ./scripts/build_app.sh
 ```
 
-The output is `dist/usag.app`. Double-click it or run `open dist/usag.app`.
+The output is `dist/usage.app`. Double-click it or run `open dist/usage.app`.
 
-Each GitHub Release build (push a `v*` tag) automatically builds the app in CI and attaches `usag.app.zip` to the Release page.
+Each GitHub Release build (push a `v*` tag) automatically builds the app in CI and attaches `usage.app.zip` to the Release page.

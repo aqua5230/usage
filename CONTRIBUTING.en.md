@@ -23,7 +23,7 @@ All three must be green to merge. CI runs the same three (`.github/workflows/che
 ## Code change guidelines
 
 - **When changing prod modules, add tests alongside.** Pick the closest existing file under `tests/` as a style reference. Tests must never touch real `~/.claude/` or `~/.codex/` — use `monkeypatch` to redirect path constants.
-- **Do not rename the technical short name `usag`.** All file paths, settings keys, binary names, environment variables, and the LaunchAgent label keep the `usag` prefix (it is a hook contract; renaming would break existing installs). The public-facing name is `usage`.
+- **Keep internal and public naming unified as `usage`.** File paths, settings keys, binary names, environment variables, and the LaunchAgent label all use the `usage` prefix.
 - **Be deliberate with `menubar.py` UI constants** (`CARD_HEIGHT`, `CARD_RADIUS`, `SECTION_GAP`, etc.); they are part of the popover's visual design.
 
 ## CHANGELOG and releases

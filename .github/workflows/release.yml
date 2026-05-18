@@ -48,10 +48,10 @@ jobs:
 
       - name: Zip .app
         run: |
-          if [[ -d dist/main.app && ! -d dist/usag.app ]]; then
-            mv dist/main.app dist/usag.app
+          if [[ -d dist/main.app && ! -d dist/usage.app ]]; then
+            mv dist/main.app dist/usage.app
           fi
-          cd dist && zip -r usag.app.zip usag.app
+          cd dist && zip -r usage.app.zip usage.app
 
       - name: Ensure release exists
         env:
@@ -68,4 +68,4 @@ jobs:
       - name: Upload to release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ steps.ref.outputs.tag }}" dist/usag.app.zip --clobber
+        run: gh release upload "${{ steps.ref.outputs.tag }}" dist/usage.app.zip --clobber

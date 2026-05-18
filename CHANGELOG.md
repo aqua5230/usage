@@ -4,6 +4,19 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## 0.2.0 — 2026-05-18
+
+### 破壞性變更
+- app 內部識別從 `usag` 改成 `usage`：bundle id、檔名、launchctl label、`~/.claude/` 路徑全數改名。
+
+### 新增
+- `setup_hook.py` 自動偵測並清除舊 v0.1.x `usag` 殘留：hook 腳本、settings 內 statusLine、備份 key 與 status 檔。
+- `install-launchagent.sh` / `uninstall-launchagent.sh` 會自動清掉舊 LaunchAgent plist 與 label。
+- `usage_client.py` 讀檔加入舊 `usag-status.json` fallback，提供升級過渡相容。
+
+### 修正
+- app 對外名稱與內部 bundle 識別統一為 `usage`。
+
 ## 0.1.11 — 2026-05-18
 
 ### 修正
