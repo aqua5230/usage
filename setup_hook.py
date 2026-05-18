@@ -14,6 +14,7 @@ from __future__ import annotations
 import contextlib
 import json
 import os
+import shlex
 import shutil
 import stat
 import sys
@@ -33,7 +34,7 @@ PREV_SL_KEY = "previousStatusLine"
 def _statusline_command() -> str:
     # 用系統 python3，不綁 venv（hook 只用標準庫）
     python = shutil.which("python3") or "python3"
-    return f"{python} {HOOK_TARGET}"
+    return f"{shlex.quote(python)} {shlex.quote(str(HOOK_TARGET))}"
 
 
 def _is_usag_hook(sl: object) -> bool:

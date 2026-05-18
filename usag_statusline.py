@@ -18,7 +18,7 @@ import json
 import os
 import sys
 import tempfile
-from datetime import UTC, datetime
+from datetime import datetime, timezone
 from typing import Any
 
 __version__ = "1.0"
@@ -57,7 +57,7 @@ def main() -> None:
         return
     if not isinstance(data, dict):
         return
-    save(data, datetime.now(UTC))
+    save(data, datetime.now(timezone.utc))
 
 
 if __name__ == "__main__":

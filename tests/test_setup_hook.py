@@ -91,3 +91,34 @@ def test_unsetup_without_install_is_safe_and_is_usag_hook_detects_commands(
     assert setup_hook.unsetup() == 0
     assert setup_hook._is_usag_hook({"command": "python3 /tmp/usag-statusline.py"})
     assert not setup_hook._is_usag_hook({"command": "python3 /tmp/other.py"})
+
+
+def test_statusline_command_quotes_paths_with_spaces(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """專案 clone 在含空格的路徑（例如中文資料夾）時，
+    產生的 statusLine command 必須能被 /bin/sh -c 正確解析。"""
+    import shlex
+    import subprocess
+
+    spaced_dir = tmp_path / "claude code小工具"
+    spaced_dir.mkdir()
+    spaced_python = spaced_dir / "python3"
+    spaced_python.write_text("#!/bin/sh\necho ok\n", encoding="utf-8")
+    spaced_python.chmod(0o755)
+
+    spaced_hook = spaced_dir / "usag-statusline.py"
+    spaced_hook.write_text("import sys; sys.exit(0)\n", encoding="utf-8")
+
+    monkeypatch.setattr(shutil, "which", lambda _: str(spaced_python))
+    monkeypatch.setattr(setup_hook, "HOOK_TARGET", spaced_hook)
+
+    cmd = setup_hook._statusline_command()
+
+    # 兩段路徑都應該被 shlex 安全處理過
+    tokens = shlex.split(cmd)
+    assert tokens == [str(spaced_python), str(spaced_hook)]
+
+    # /bin/sh -c 真的能跑（即不會被空格切碎）
+    result = subprocess.run(["/bin/sh", "-c", cmd], capture_output=True)
+    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
