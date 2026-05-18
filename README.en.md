@@ -228,6 +228,12 @@ USAGE_DEBUG=1 python3 main.py
 
 ## Troubleshooting
 
+The "Fix" column distinguishes three kinds of users — find yours first:
+
+- **.app users** — downloaded `usage.app.zip` from GitHub Releases, unzipped, dragged `usage.app` to `/Applications`, double-click to launch like any Mac app. No Terminal, no Python.
+- **LaunchAgent users** — cloned the source and ran `./scripts/install-launchagent.sh` so macOS auto-starts usage on login.
+- **Source users** — cloned the source and run `python3 main.py` manually in Terminal each time.
+
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | Menu bar shows `--` | Hook not installed, or Claude Code hasn't refreshed yet | **.app users**: click the "立即安裝 hook" button in the popover. **Source users**: run `python3 main.py --setup`. Either way, restart Claude Code once afterwards |

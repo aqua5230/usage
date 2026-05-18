@@ -230,6 +230,12 @@ USAGE_DEBUG=1 python3 main.py
 
 ## 常見問題排查
 
+下面的「解法」欄會分三種使用者寫，先對一下你屬於哪一種：
+
+- **.app 使用者** —— 從 GitHub Releases 下載 `usage.app.zip`、解壓後拖到 `/Applications`，像一般 Mac 軟體那樣雙擊圖示用的。`.app` 就是 macOS 應用程式的副檔名（像 Windows 的 `.exe`），不用碰 Terminal、不用裝 Python。
+- **LaunchAgent 使用者** —— git clone 原始碼後，跑過 `./scripts/install-launchagent.sh` 讓 macOS 幫你開機自動啟動 usage 的。
+- **原始碼使用者** —— git clone 原始碼後，每次自己在 Terminal 跑 `python3 main.py` 的。
+
 | 症狀 | 原因 | 解法 |
 |------|------|------|
 | menu bar 顯示 `--` | hook 還沒裝、或 Claude Code 還沒刷新 | **.app 使用者**：點彈出視窗內的「立即安裝 hook」按鈕；**原始碼使用者**：跑 `python3 main.py --setup`。裝完都要重開一次 Claude Code |
