@@ -4,6 +4,21 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## 0.1.10 — 2026-05-18
+
+### 介面
+- 進度條顏色依用量動態切換：< 50% 維持品牌色、50–80% 轉琥珀黃、≥ 80% 轉警告紅。
+
+### 修正
+- `codex_loader.py`：Codex 用量改用最後一次 token 事件時間做 `hours_back` 過濾；逐檔容錯排序，壞檔不拖垮整批讀取。
+- `history_loader.py`：缺 id 時改用複合 key 去重；排除 bool 與負數 token 值。
+- `usage_client.py`：`rate_limits` 子欄位非 dict 時補防衛。
+- `setup_hook.py`：寫入前驗證 settings 格式；備份欄位非 dict 時安全重建。
+
+### 文件
+- README 修正三處事實錯誤：網路聲明、Codex 資料來源描述、今日成本為估算值。
+- README 加入「快速開始」表格、「下載現成 App」段落、「常見問題排查」表格。
+
 ## 0.1.9 — 2026-05-18
 
 ### 介面

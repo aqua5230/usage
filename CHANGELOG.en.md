@@ -5,6 +5,21 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## 0.1.10 — 2026-05-18
+
+### UI
+- Progress bars now change colour based on usage level: below 50% keeps the brand colour, 50–80% shifts to amber, ≥ 80% turns red.
+
+### Fixed
+- `codex_loader.py`: use last token-event timestamp for `hours_back` filtering; per-file fault-tolerant sort.
+- `history_loader.py`: composite dedup key when id fields are absent; reject bool and negative token values.
+- `usage_client.py`: guard `rate_limits` sub-fields against non-dict values.
+- `setup_hook.py`: validate settings before writing; safely rebuild backup field if not a dict.
+
+### Documentation
+- README: corrected three factual inaccuracies (network claim, Codex data source, cost is an estimate).
+- README: added Quick start table, Download the app section, and Troubleshooting table.
+
 ## 0.1.9 — 2026-05-18
 
 ### UI
