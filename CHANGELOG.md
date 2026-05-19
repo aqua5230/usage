@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## 0.3.1 — 2026-05-19
+
+### 新增
+- **駭客任務面板（MatrixPanel）**：黑底綠字的 Matrix 數位雨動畫面板。`MatrixRainView` 以 `NSTimer`（80ms）驅動，每幀在每列畫一個頭字元（全亮）＋ 10 格漸暗拖尾，字元池為片假名 + 數字。卡片區改為半透明深綠底 + 綠色邊框，所有按鈕與標題改為終端機方括號風格（`[ SWITCH ]`、`[ REFRESH ]`、`[ EXIT ]`）；rate/status/today 標籤改為大寫英文前綴。
+
 ## 0.3.0 — 2026-05-19
 
 ### 新增

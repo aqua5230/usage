@@ -154,13 +154,15 @@ python3 main.py
   1. 上面兩張卡片分別是 Claude Code 跟 Codex，每張各有 Session（這 5 小時）跟 Weekly（這 7 天）兩條進度條，旁邊標重置倒數
   2. 最下面那張小卡是目前速率、同步狀態、今日 token 用量與成本估算（Claude 若 log 有提供實際金額則直接顯示；Codex 成本為依 token 數估算）
   3. 兩顆按鈕：「立即更新」、「結束」
-- **切換面板**（v0.3.0+）：在 Claude Code 卡片的右上角有一顆「⇄ 更換」按鈕（台灣面板則放在頂部標題列裡），點下去會跳出選單列出可選的面板樣式。目前內建兩款：
+- **切換面板**（v0.3.0+）：在 Claude Code 卡片的右上角有一顆「⇄ 更換」按鈕（台灣面板則放在頂部標題列裡），點下去會跳出選單列出可選的面板樣式。目前內建三款：
   - **預設**：原本兩張卡 + 速率/狀態/今日 的英式風格
   - **台灣用量監控**：紅底白字、上方加一條含 TAIWAN 旗 icon 的標題列
+  - **駭客任務**（v0.3.1+）：黑底綠字數位雨動畫，Matrix 風格終端機介面
 
   <p align="center">
-    <img src="docs/popover.png" alt="預設面板" width="280">
-    <img src="docs/popover-taiwan.png" alt="台灣用量監控面板" width="280">
+    <img src="docs/popover.png" alt="預設面板" width="220">
+    <img src="docs/popover-taiwan.png" alt="台灣用量監控面板" width="220">
+    <img src="docs/popover-matrix.png" alt="駭客任務面板" width="220">
   </p>
 
   選擇會記進 `NSUserDefaults`（macOS 內建的偏好設定儲存區），下次開 app 會記得上次選的面板。
