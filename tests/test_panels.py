@@ -33,14 +33,14 @@ class FakeDefaults:
 def test_registered_panel_ids_are_unique() -> None:
     ids = panels.panel_ids()
 
-    assert ids == ("classic", "taiwan")
+    assert ids == ("classic", "taiwan", "matrix")
     assert len(ids) == len(set(ids))
 
 
 def test_registered_panel_display_names() -> None:
     names = [panel.display_name for panel in panels.all_panels()]
 
-    assert names == ["預設", "台灣用量監控"]
+    assert names == ["預設", "台灣用量監控", "駭客任務"]
 
 
 def test_classic_panel_preferred_size() -> None:

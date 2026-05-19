@@ -2,9 +2,10 @@ from __future__ import annotations
 
 from panels.base import Panel
 from panels.classic import ClassicPanel
+from panels.matrix import MatrixPanel
 from panels.taiwan import TaiwanPanel
 
-PANELS: tuple[Panel, ...] = (ClassicPanel(), TaiwanPanel)
+PANELS: tuple[Panel, ...] = (ClassicPanel(), TaiwanPanel, MatrixPanel())
 DEFAULT_PANEL_ID = "classic"
 
 
