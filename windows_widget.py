@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import threading
 import time
 import tkinter as tk
 from datetime import UTC, datetime
@@ -138,7 +139,6 @@ class UsageWidget:
         self._menu.add_separator()
         self._menu.add_command(label="Quit", command=self._root.destroy)
 
-        import threading
         self._fetch_lock = threading.Lock()
         self._data: dict[str, object] = {
             "five_pct": 0, "five_reset": "--",
