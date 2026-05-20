@@ -4,14 +4,12 @@ import argparse
 import asyncio
 import logging
 import os
+import sys
 import time
 from contextlib import suppress
 from typing import Any
 
-import menubar
-from tui import AppViewState, render_screen
 from usage_client import ClaudeUsageClient, PollOutcome, PollState
-from usage_rate import UsageRateTracker
 
 SPRITE_INTERVAL_S = [2.0, 0.8, 0.4, 0.15]  # idle/normal/active/heavy
 
@@ -103,6 +101,9 @@ def _apply_outcome(state: AppViewState, outcome: PollOutcome) -> None:
 
 
 async def run_tui(mock: bool, interval: int, force_group: int | None = None) -> None:
+    from tui import AppViewState, render_screen
+    from usage_rate import UsageRateTracker
+
     Console, Live = _load_rich()
     console = Console()
     state = AppViewState()
@@ -153,12 +154,19 @@ def main() -> None:
         from setup_hook import unsetup
 
         raise SystemExit(unsetup())
+    if sys.platform == "win32":
+        import windows_widget
+
+        windows_widget.run(mock=args.mock, interval=args.interval)
+        return
     if args.tui:
         with suppress(KeyboardInterrupt):
             asyncio.run(
                 run_tui(mock=args.mock, interval=args.interval, force_group=args.force_group)
             )
     else:
+        import menubar
+
         menubar.run_app(mock=args.mock, interval=args.interval)
 
 
