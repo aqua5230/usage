@@ -8,6 +8,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 
 from history_loader import UsageEntry, load_entries
+from pricing import calculate_cost
 from usage_client import ClaudeUsageClient, PollState
 
 if TYPE_CHECKING:
@@ -49,7 +50,7 @@ def compute_month_stats(entries: list[UsageEntry]) -> tuple[float, int]:
         e for e in entries
         if e.timestamp.year == now.year and e.timestamp.month == now.month
     ]
-    cost = sum(e.cost_usd or 0.0 for e in month_entries)
+    cost = sum(calculate_cost(e) for e in month_entries)
     sessions = len({e.session_id for e in month_entries})
     return cost, sessions
 
