@@ -261,6 +261,7 @@ The "Fix" column distinguishes three kinds of users — find yours first:
 | Codex section is empty | `~/.codex/sessions/` doesn't exist or has no `rate_limits` events yet | Run a Codex conversation to generate log entries |
 | Today's cost shows $0.00 | Model name doesn't match the pricing table, or pricing download/cache failed | Delete `~/.claude/pricing_cache.json` to force a re-fetch; or run with `USAGE_DEBUG=1` for details |
 | App won't open (blocked by macOS) | Gatekeeper blocks unsigned apps | Finder → find `usage.app` → right-click → Open → confirm Open |
+| **Windows**: `usage-status.json` never appears after `--setup` | Older `setup_hook.py` generated Unix-style single-quoted paths (e.g. `'C:\...\python.EXE'`) in `settings.json` that Windows shell doesn't understand, so the hook never ran | Update to the latest version and re-run `python main.py --setup`; or manually edit `%USERPROFILE%\.claude\settings.json` and remove the single-quotes from `statusLine.command` |
 
 ## Build a .app bundle (optional)
 

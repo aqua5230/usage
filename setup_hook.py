@@ -51,6 +51,12 @@ def _statusline_command() -> str:
         or shutil.which("python")
         or ("python3" if sys.platform != "win32" else "python")
     )
+    if sys.platform == "win32":
+        # shlex.quote uses Unix single-quotes which Windows shell doesn't understand
+        def _win_quote(s: str) -> str:
+            return f'"{s}"' if " " in s else s
+
+        return f"{_win_quote(python)} {_win_quote(str(HOOK_TARGET))}"
     return f"{shlex.quote(python)} {shlex.quote(str(HOOK_TARGET))}"
 
 

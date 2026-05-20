@@ -263,6 +263,7 @@ USAGE_DEBUG=1 python3 main.py
 | Codex 那塊空白或不顯示 | `~/.codex/sessions/` 不存在，或還沒有含 rate_limits 的 token_count 事件 | 用 Codex 跑一次對話，等它寫入紀錄 |
 | 今日花費是 $0.00 | 模型名稱對不上 pricing 表，或 pricing 下載 / 快取失敗 | 刪掉 `~/.claude/pricing_cache.json` 讓它重新抓；或設 `USAGE_DEBUG=1` 看錯誤訊息 |
 | app 雙擊打不開 | macOS Gatekeeper 擋住未簽章的 app | Finder → 找到 `usage.app` → 按住 Ctrl 右鍵 → 打開 → 確認打開 |
+| **Windows**：跑完 `--setup` 後 `usage-status.json` 始終不出現 | 舊版 `setup_hook.py` 產出的指令含有 Unix single-quote（`'`），Windows shell 不認識，hook 從沒被執行到 | 更新到最新版後重跑 `python main.py --setup`；或手動編輯 `%USERPROFILE%\.claude\settings.json`，把 `statusLine.command` 的 single-quote 拿掉 |
 
 ## 打包成 .app（不開終端機就能跑）
 
