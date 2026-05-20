@@ -273,3 +273,35 @@ If you want to launch usage by double-clicking instead of opening a terminal, bu
 The output is `dist/usage.app`. Double-click it or run `open dist/usage.app`.
 
 Each GitHub Release build (push a `v*` tag) automatically builds the app in CI and attaches `usage.app.zip` to the Release page.
+
+## Windows Desktop Widget
+
+> **Note:** Only the desktop widget is Windows-specific. TUI mode (`--tui`) also works on Windows.
+
+### Installation
+
+```powershell
+# Create virtual environment and install
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e .
+
+# Install statusLine hook (run once)
+python main.py --setup
+
+# Restart Claude Code to activate the hook
+```
+
+### Launch
+
+```powershell
+# Launch floating widget (always-on-top, draggable)
+python main.py
+
+# Preview with mock data
+python main.py --mock
+```
+
+Widget controls:
+- **Drag**: click and drag anywhere on the widget to reposition
+- **Right-click menu**: Refresh (update immediately) / Quit (exit)

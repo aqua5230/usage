@@ -275,3 +275,35 @@ USAGE_DEBUG=1 python3 main.py
 跑完產物會在 `dist/usage.app`。雙擊或 `open dist/usage.app` 就能跑。
 
 每次發 GitHub Release（push 一個 `v*` 開頭的 tag 時），CI 會自動 build 並把 `usage.app.zip` 附加到 Release 頁面。
+
+## Windows 桌面小工具
+
+> **注意：** 僅 Windows 桌面小工具為 Windows 專屬，TUI 模式（`--tui`）在 Windows 同樣可用。
+
+### 安裝
+
+```powershell
+# 建立虛擬環境並安裝
+python -m venv .venv
+.venv\Scripts\activate
+pip install -e .
+
+# 安裝 statusLine hook（只需跑一次）
+python main.py --setup
+
+# 重啟 Claude Code 讓 hook 生效
+```
+
+### 啟動
+
+```powershell
+# 啟動浮動視窗（置頂、可拖動）
+python main.py
+
+# 用假資料預覽介面
+python main.py --mock
+```
+
+視窗操作：
+- **拖動**：點住視窗任意位置移動
+- **右鍵選單**：Refresh（立即更新）/ Quit（結束）
