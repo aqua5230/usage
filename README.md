@@ -296,12 +296,25 @@ python main.py --setup
 
 ### 啟動
 
+雙擊 `start_widget.bat`（推薦）— 無 CMD 視窗，關掉終端機也不影響 widget。
+
+或手動執行：
+
 ```powershell
-# 啟動浮動視窗（置頂、可拖動）
-python main.py
+# 啟動浮動視窗（不綁 CMD，關終端不會關 widget）
+pythonw main.py
 
 # 用假資料預覽介面
 python main.py --mock
+```
+
+> **注意：** 用 `python main.py` 啟動時，關掉 CMD 視窗會同時關掉 widget。請改用 `pythonw main.py` 或 `start_widget.bat`。
+
+### 開機自動啟動（選用）
+
+把 `start_widget.bat` 的捷徑放到：
+```
+%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
 ```
 
 視窗操作：

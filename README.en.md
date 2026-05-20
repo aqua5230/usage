@@ -294,12 +294,25 @@ python main.py --setup
 
 ### Launch
 
+Double-click `start_widget.bat` (recommended) — runs without a CMD window; closing the terminal won't kill the widget.
+
+Or run manually:
+
 ```powershell
-# Launch floating widget (always-on-top, draggable)
-python main.py
+# Launch without CMD dependency (closing terminal won't close widget)
+pythonw main.py
 
 # Preview with mock data
 python main.py --mock
+```
+
+> **Note:** Running `python main.py` ties the widget to the CMD window — closing the terminal kills the widget. Use `pythonw main.py` or `start_widget.bat` instead.
+
+### Auto-start on login (optional)
+
+Place a shortcut to `start_widget.bat` in:
+```
+%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup
 ```
 
 Widget controls:
