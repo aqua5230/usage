@@ -23,7 +23,7 @@ BAR_FG   = "#1d9e75"
 BAR_WARN = "#e0a02f"   # ≥80%
 BAR_CRIT = "#e05050"   # ≥95%
 
-W, H     = 220, 176
+W, H     = 220, 192
 FONT     = "Segoe UI"
 
 
