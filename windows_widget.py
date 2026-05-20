@@ -165,8 +165,6 @@ class UsageWidget:
     # ── data + render ─────────────────────────────────────────────────────────
 
     def _refresh(self) -> None:
-        import threading
-
         if self._fetch_lock.locked():
             self._root.after(self._interval, self._refresh)
             return

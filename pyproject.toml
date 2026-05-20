@@ -28,6 +28,7 @@ py-modules = [
     "usage_client",
     "codex_loader",
     "tui_sprite",
+    "windows_widget",
 ]
 
 [dependency-groups]
