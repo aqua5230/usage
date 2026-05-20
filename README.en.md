@@ -287,7 +287,7 @@ python -m venv .venv
 pip install -e .
 
 # Install statusLine hook (run once)
-python main.py --setup
+python windows_usage.py --setup
 
 # Restart Claude Code to activate the hook
 ```
@@ -300,13 +300,24 @@ Or run manually:
 
 ```powershell
 # Launch without CMD dependency (closing terminal won't close widget)
-pythonw main.py
+pythonw windows_usage.py
 
 # Preview with mock data
-python main.py --mock
+python windows_usage.py --mock
 ```
 
-> **Note:** Running `python main.py` ties the widget to the CMD window — closing the terminal kills the widget. Use `pythonw main.py` or `start_widget.bat` instead.
+> **Note:** Running `python windows_usage.py` ties the widget to the CMD window — closing the terminal kills the widget. Use `pythonw windows_usage.py` or `start_widget.bat` instead.
+
+### Switch panels
+
+Right-click the widget → **切換面板** (Switch Panel) to change the visual theme on the fly. Your choice is remembered across restarts (`~/.claude/usage-widget-panel.json`). Four themes are built in:
+
+| Panel | Style |
+|-------|-------|
+| **黑夜 / Dark** (default) | Deep navy background, original colour scheme |
+| **白日 / Light** | Light grey background, easier to read in daylight |
+| **霓虹 / Neon** | Near-black with cyan-blue glow, cyberpunk aesthetic |
+| **矩陣 / Matrix** | Pure black with terminal green text, Matrix-inspired |
 
 ### Auto-start on login (optional)
 
@@ -317,4 +328,4 @@ Place a shortcut to `start_widget.bat` in:
 
 Widget controls:
 - **Drag**: click and drag anywhere on the widget to reposition
-- **Right-click menu**: Refresh (update immediately) / Quit (exit)
+- **Right-click menu**: Refresh (update immediately) / Switch Panel / Quit (exit)

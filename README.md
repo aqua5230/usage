@@ -289,7 +289,7 @@ python -m venv .venv
 pip install -e .
 
 # 安裝 statusLine hook（只需跑一次）
-python main.py --setup
+python windows_usage.py --setup
 
 # 重啟 Claude Code 讓 hook 生效
 ```
@@ -302,13 +302,24 @@ python main.py --setup
 
 ```powershell
 # 啟動浮動視窗（不綁 CMD，關終端不會關 widget）
-pythonw main.py
+pythonw windows_usage.py
 
 # 用假資料預覽介面
-python main.py --mock
+python windows_usage.py --mock
 ```
 
-> **注意：** 用 `python main.py` 啟動時，關掉 CMD 視窗會同時關掉 widget。請改用 `pythonw main.py` 或 `start_widget.bat`。
+> **注意：** 用 `python windows_usage.py` 啟動時，關掉 CMD 視窗會同時關掉 widget。請改用 `pythonw windows_usage.py` 或 `start_widget.bat`。
+
+### 切換面板
+
+右鍵點 widget → **切換面板**，可即時切換外觀主題，下次啟動自動記憶（儲存至 `~/.claude/usage-widget-panel.json`）。目前內建四款：
+
+| 面板 | 風格 |
+|------|------|
+| **黑夜**（預設） | 深藍黑底，原始配色 |
+| **白日** | 淺灰白底，日間閱讀友善 |
+| **霓虹** | 極深黑底 + 青藍光，賽博龐克風 |
+| **矩陣** | 全黑底 + 終端機綠字，駭客任務風 |
 
 ### 開機自動啟動（選用）
 
@@ -319,4 +330,4 @@ python main.py --mock
 
 視窗操作：
 - **拖動**：點住視窗任意位置移動
-- **右鍵選單**：Refresh（立即更新）/ Quit（結束）
+- **右鍵選單**：Refresh（立即更新）/ 切換面板 / Quit（結束）
