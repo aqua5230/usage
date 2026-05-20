@@ -132,13 +132,18 @@ class UsageWidget:
         self._canvas.bind("<B1-Motion>", self._on_drag_motion)
         self._canvas.bind("<Button-3>", self._on_right_click)
 
-        self._menu = tk.Menu(self._root, tearoff=0, bg="#2e3250", fg=TEXT,
+        self._menu = tk.Menu(self._root, tearoff=0, bg=BORDER, fg=TEXT,
                              activebackground="#3a3f60", activeforeground=TEXT)
         self._menu.add_command(label="Refresh", command=self._refresh)
         self._menu.add_separator()
         self._menu.add_command(label="Quit", command=self._root.destroy)
 
-        self._data: dict[str, object] = {}
+        self._data: dict[str, object] = {
+            "five_pct": 0, "five_reset": "--",
+            "seven_pct": 0, "seven_reset": "--",
+            "month_cost": 0.0, "month_sessions": 0,
+            "status": "loading",
+        }
         self._refresh()
 
     # ── drag ──────────────────────────────────────────────────────────────────
@@ -158,9 +163,18 @@ class UsageWidget:
     # ── data + render ─────────────────────────────────────────────────────────
 
     def _refresh(self) -> None:
-        self._data = _fetch_data(self._client, self._mock)
-        self._draw()
+        import threading
+
+        def _fetch() -> None:
+            data = _fetch_data(self._client, self._mock)
+            self._root.after(0, lambda: self._apply(data))
+
+        threading.Thread(target=_fetch, daemon=True).start()
         self._root.after(self._interval, self._refresh)
+
+    def _apply(self, data: dict[str, object]) -> None:
+        self._data = data
+        self._draw()
 
     def _draw(self) -> None:
         c = self._canvas
