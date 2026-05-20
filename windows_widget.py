@@ -138,6 +138,8 @@ class UsageWidget:
         self._menu.add_separator()
         self._menu.add_command(label="Quit", command=self._root.destroy)
 
+        import threading
+        self._fetch_lock = threading.Lock()
         self._data: dict[str, object] = {
             "five_pct": 0, "five_reset": "--",
             "seven_pct": 0, "seven_reset": "--",
@@ -165,9 +167,14 @@ class UsageWidget:
     def _refresh(self) -> None:
         import threading
 
+        if self._fetch_lock.locked():
+            self._root.after(self._interval, self._refresh)
+            return
+
         def _fetch() -> None:
-            data = _fetch_data(self._client, self._mock)
-            self._root.after(0, lambda: self._apply(data))
+            with self._fetch_lock:
+                data = _fetch_data(self._client, self._mock)
+                self._root.after(0, lambda: self._apply(data))
 
         threading.Thread(target=_fetch, daemon=True).start()
         self._root.after(self._interval, self._refresh)
