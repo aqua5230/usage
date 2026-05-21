@@ -282,11 +282,6 @@ Each GitHub Release build (push a `v*` tag) automatically builds the app in CI a
 ### Installation
 
 ```powershell
-# Create virtual environment and install
-python -m venv .venv
-.venv\Scripts\activate
-pip install -e .
-
 # Install statusLine hook (run once)
 python windows_usage.py --setup
 
@@ -300,14 +295,14 @@ Double-click `start_widget.bat` (recommended) — runs without a CMD window; clo
 Or run manually:
 
 ```powershell
-# Launch without CMD dependency (closing terminal won't close widget)
+# Launch widget in background (no CMD window)
 pythonw windows_usage.py
 
 # Preview with mock data
 python windows_usage.py --mock
 ```
 
-> **Note:** Running `python windows_usage.py` ties the widget to the CMD window — closing the terminal kills the widget. Use `pythonw windows_usage.py` or `start_widget.bat` instead.
+> **Note:** Using `python` (not `pythonw`) ties the widget to the CMD window — closing the terminal kills the widget.
 
 ### Switch panels
 

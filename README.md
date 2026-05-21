@@ -284,11 +284,6 @@ USAGE_DEBUG=1 python3 main.py
 ### 安裝
 
 ```powershell
-# 建立虛擬環境並安裝
-python -m venv .venv
-.venv\Scripts\activate
-pip install -e .
-
 # 安裝 statusLine hook（只需跑一次）
 python windows_usage.py --setup
 
@@ -302,14 +297,14 @@ python windows_usage.py --setup
 或手動執行：
 
 ```powershell
-# 啟動浮動視窗（不綁 CMD，關終端不會關 widget）
+# 啟動 widget（背景執行，不開 CMD 視窗）
 pythonw windows_usage.py
 
 # 用假資料預覽介面
 python windows_usage.py --mock
 ```
 
-> **注意：** 用 `python windows_usage.py` 啟動時，關掉 CMD 視窗會同時關掉 widget。請改用 `pythonw windows_usage.py` 或 `start_widget.bat`。
+> **注意：** 用 `python`（非 `pythonw`）啟動時，關掉 CMD 視窗會同時關掉 widget。
 
 ### 切換面板
 
