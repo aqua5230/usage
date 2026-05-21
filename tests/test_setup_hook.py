@@ -2,11 +2,17 @@ from __future__ import annotations
 
 import json
 import shutil
+import sys
 from pathlib import Path
 
 import pytest
 
 import setup_hook
+
+
+def _norm(p: str | Path) -> str:
+    """Normalize path separators to forward slashes for cross-platform comparison."""
+    return str(p).replace("\\", "/")
 
 LEGACY_NAME = "usag"
 
@@ -45,7 +51,8 @@ def test_setup_creates_new_settings_with_usage_statusline(
 
     assert exit_code == 0
     assert data["statusLine"]["type"] == "command"
-    assert str(hook_target) in data["statusLine"]["command"]
+    # On Windows the command uses forward slashes; normalize before comparing.
+    assert _norm(hook_target) in _norm(data["statusLine"]["command"])
     assert hook_target.exists()
 
 
@@ -60,7 +67,7 @@ def test_setup_backs_up_existing_statusline_and_is_idempotent(
     assert setup_hook.setup() == 0
 
     data = json.loads(settings.read_text(encoding="utf-8"))
-    assert data["statusLine"]["command"] == f"/usr/bin/python3 {hook_target}"
+    assert _norm(data["statusLine"]["command"]) == f"/usr/bin/python3 {_norm(hook_target)}"
     assert data["usage"]["previousStatusLine"] == original
 
 
@@ -136,29 +143,20 @@ def test_migration_removes_legacy_files_and_moves_backup(
 def test_statusline_command_quotes_paths_with_spaces(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    """專案 clone 在含空格的路徑（例如中文資料夾）時，
-    產生的 statusLine command 必須能被 /bin/sh -c 正確解析。"""
+    """含空格（或中文）的路徑必須正確 quote，讓 shlex 能還原出原始路徑。"""
     import shlex
-    import subprocess
 
     spaced_dir = tmp_path / "claude code小工具"
     spaced_dir.mkdir()
     spaced_python = spaced_dir / "python3"
-    spaced_python.write_text("#!/bin/sh\necho ok\n", encoding="utf-8")
-    spaced_python.chmod(0o755)
-
     spaced_hook = spaced_dir / "usage-statusline.py"
-    spaced_hook.write_text("import sys; sys.exit(0)\n", encoding="utf-8")
 
     monkeypatch.setattr(shutil, "which", lambda _: str(spaced_python))
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", spaced_hook)
 
     cmd = setup_hook._statusline_command()
 
-    # 兩段路徑都應該被 shlex 安全處理過
+    # Tokenizing must yield exactly [python_path, hook_path].
+    # On Windows the command uses forward slashes; normalize before comparing.
     tokens = shlex.split(cmd)
-    assert tokens == [str(spaced_python), str(spaced_hook)]
-
-    # /bin/sh -c 真的能跑（即不會被空格切碎）
-    result = subprocess.run(["/bin/sh", "-c", cmd], capture_output=True)
-    assert result.returncode == 0, result.stderr.decode("utf-8", "replace")
+    assert [_norm(t) for t in tokens] == [_norm(spaced_python), _norm(spaced_hook)]

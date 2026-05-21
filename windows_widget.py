@@ -7,7 +7,7 @@ import threading
 import time
 import tkinter as tk
 from dataclasses import dataclass
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -119,6 +119,43 @@ def compute_month_stats(entries: list[UsageEntry]) -> tuple[float, int]:
     return cost, sessions
 
 
+def _active_tokens(e: UsageEntry) -> int:
+    """Input + output + cache_creation — the compute tokens that count toward rate limits."""
+    return e.input_tokens + e.output_tokens + (e.cache_creation_tokens or 0)
+
+
+def _format_tokens(n: int) -> str:
+    if n >= 1_000_000:
+        return f"{n/1_000_000:.1f}M"
+    if n >= 1_000:
+        return f"{n/1_000:.0f}K"
+    return str(n)
+
+
+def _token_stats(entries: list[UsageEntry]) -> tuple[int, int, int, int]:
+    """Returns (five_h_pct, seven_d_pct, five_h_tokens, seven_d_tokens).
+
+    Percentage relative to fixed default caps: 1 M tokens/5 h, 10 M tokens/7 d.
+    Used as fallback when the Claude Code hook status file is unavailable.
+
+    NOTE: historical-peak-as-denominator was removed — on heavy usage days
+    current ≈ peak → always 100 %.  Fixed caps are a better fallback estimate.
+    """
+    now = _utcnow()
+    five_h_cutoff = now - timedelta(hours=5)
+    seven_d_cutoff = now - timedelta(days=7)
+
+    five_h_tokens = sum(_active_tokens(e) for e in entries if e.timestamp >= five_h_cutoff)
+    seven_d_tokens = sum(_active_tokens(e) for e in entries if e.timestamp >= seven_d_cutoff)
+
+    max_five_h = 1_000_000
+    max_seven_d = 10_000_000
+
+    five_h_pct = min(100, round(five_h_tokens / max_five_h * 100))
+    seven_d_pct = min(100, round(seven_d_tokens / max_seven_d * 100))
+    return five_h_pct, seven_d_pct, five_h_tokens, seven_d_tokens
+
+
 def _bar_color(pct: int, panel: WidgetPanel) -> str:
     if pct >= 95:
         return panel.bar_crit
@@ -127,7 +164,7 @@ def _bar_color(pct: int, panel: WidgetPanel) -> str:
     return panel.bar_fg
 
 
-def _mock_data() -> dict[str, object]:
+def _mock_data() -> dict[str, int | float | str]:
     return {
         "five_pct": 42,
         "five_reset": "45min",
@@ -143,26 +180,49 @@ def _mock_data() -> dict[str, object]:
     }
 
 
-def _fetch_data(client: ClaudeUsageClient, mock: bool) -> dict[str, object]:
+def _fetch_data(client: ClaudeUsageClient, mock: bool) -> dict[str, int | float | str]:
     if mock:
         return _mock_data()
 
     outcome = asyncio.run(client.fetch_once())
     snap = outcome.snapshot
 
+    # Always load history entries — used for token stats and month summary
+    entries = load_entries()
+    five_h_pct, seven_d_pct, five_h_tok, seven_d_tok = _token_stats(entries)
+    month_cost, month_sessions = compute_month_stats(entries)
+
     if outcome.state != PollState.SUCCESS or snap is None:
+        # No rate-limit data from Claude Code hook → fall back to JSONL token stats
+        codex_five_pct = 0
+        codex_five_reset = "--"
+        codex_seven_pct = 0
+        codex_seven_reset = "--"
+        try:
+            rl = codex_loader.load_rate_limits()
+            if rl is not None:
+                if rl.five_hour_pct is not None:
+                    codex_five_pct = round(rl.five_hour_pct)
+                if rl.five_hour_resets_at is not None:
+                    codex_five_reset = format_reset(rl.five_hour_resets_at)
+                if rl.seven_day_pct is not None:
+                    codex_seven_pct = round(rl.seven_day_pct)
+                if rl.seven_day_resets_at is not None:
+                    codex_seven_reset = format_reset(rl.seven_day_resets_at)
+        except Exception:
+            pass
         return {
-            "five_pct": 0,
-            "five_reset": "--",
-            "seven_pct": 0,
-            "seven_reset": "--",
-            "codex_five_pct": 0,
-            "codex_five_reset": "--",
-            "codex_seven_pct": 0,
-            "codex_seven_reset": "--",
-            "month_cost": 0.0,
-            "month_sessions": 0,
-            "status": outcome.message or "error",
+            "five_pct": five_h_pct,
+            "five_reset": f"{_format_tokens(five_h_tok)} tokens",
+            "seven_pct": seven_d_pct,
+            "seven_reset": f"{_format_tokens(seven_d_tok)} tokens",
+            "codex_five_pct": codex_five_pct,
+            "codex_five_reset": codex_five_reset,
+            "codex_seven_pct": codex_seven_pct,
+            "codex_seven_reset": codex_seven_reset,
+            "month_cost": month_cost,
+            "month_sessions": month_sessions,
+            "status": "est",
         }
 
     # Codex rate limits (best-effort; failure is silent)
@@ -183,9 +243,6 @@ def _fetch_data(client: ClaudeUsageClient, mock: bool) -> dict[str, object]:
                 codex_seven_reset = format_reset(rl.seven_day_resets_at)
     except Exception:
         pass
-
-    entries = load_entries()
-    month_cost, month_sessions = compute_month_stats(entries)
 
     return {
         "five_pct": snap.current_percent or 0,
@@ -233,7 +290,7 @@ class UsageWidget:
         self._menu = self._build_menu()
 
         self._fetch_lock = threading.Lock()
-        self._data: dict[str, object] = {
+        self._data: dict[str, int | float | str] = {
             "five_pct": 0, "five_reset": "--",
             "seven_pct": 0, "seven_reset": "--",
             "codex_five_pct": 0, "codex_five_reset": "--",
@@ -283,16 +340,16 @@ class UsageWidget:
 
     # ── drag ──────────────────────────────────────────────────────────────────
 
-    def _on_drag_start(self, event: tk.Event) -> None:  # type: ignore[type-arg]
+    def _on_drag_start(self, event: tk.Event[tk.Canvas]) -> None:
         self._drag_x = event.x
         self._drag_y = event.y
 
-    def _on_drag_motion(self, event: tk.Event) -> None:  # type: ignore[type-arg]
+    def _on_drag_motion(self, event: tk.Event[tk.Canvas]) -> None:
         x = self._root.winfo_x() + event.x - self._drag_x
         y = self._root.winfo_y() + event.y - self._drag_y
         self._root.geometry(f"+{x}+{y}")
 
-    def _on_right_click(self, event: tk.Event) -> None:  # type: ignore[type-arg]
+    def _on_right_click(self, event: tk.Event[tk.Canvas]) -> None:
         self._menu.tk_popup(event.x_root, event.y_root)
 
     # ── data + render ─────────────────────────────────────────────────────────
@@ -310,7 +367,7 @@ class UsageWidget:
         threading.Thread(target=_fetch, daemon=True).start()
         self._root.after(self._interval, self._refresh)
 
-    def _apply(self, data: dict[str, object]) -> None:
+    def _apply(self, data: dict[str, int | float | str]) -> None:
         self._data = data
         self._draw()
 
@@ -374,7 +431,9 @@ class UsageWidget:
                                 fill=_bar_color(pct, p), outline="")
         c.create_text(W - 4, bar_y - 1, text=f"{pct}%", anchor="ne",
                       font=(FONT, 9), fill=p.text)
-        c.create_text(12, bar_y + bar_h + 4, text=f"Reset in {reset_label}",
+        # "Xh Ymin tokens" means token-based estimate; otherwise show "Reset in ..."
+        sub = reset_label if reset_label.endswith("tokens") else f"Reset in {reset_label}"
+        c.create_text(12, bar_y + bar_h + 4, text=sub,
                       anchor="nw", font=(FONT, 8), fill=p.muted)
 
     def run(self) -> None:

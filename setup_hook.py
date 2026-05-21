@@ -52,8 +52,11 @@ def _statusline_command() -> str:
         or ("python3" if sys.platform != "win32" else "python")
     )
     if sys.platform == "win32":
-        # shlex.quote uses Unix single-quotes which Windows shell doesn't understand
+        # shlex.quote uses Unix single-quotes which Windows shell doesn't understand.
+        # Use forward slashes: Git Bash (which Claude Code may use on Windows) treats
+        # backslashes as escape characters, mangling the path before Python sees it.
         def _win_quote(s: str) -> str:
+            s = s.replace("\\", "/")
             return f'"{s}"' if " " in s else s
 
         return f"{_win_quote(python)} {_win_quote(str(HOOK_TARGET))}"
