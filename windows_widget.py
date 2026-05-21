@@ -11,6 +11,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+import codex_loader
 from history_loader import UsageEntry, load_entries
 from pricing import calculate_cost
 from usage_client import ClaudeUsageClient, PollState
@@ -18,7 +19,7 @@ from usage_client import ClaudeUsageClient, PollState
 if TYPE_CHECKING:
     pass
 
-W, H = 220, 192
+W, H = 220, 310
 FONT = "Segoe UI"
 
 _PANEL_STATE_PATH = Path.home() / ".claude" / "usage-widget-panel.json"
@@ -132,6 +133,10 @@ def _mock_data() -> dict[str, object]:
         "five_reset": "45min",
         "seven_pct": 11,
         "seven_reset": "2d 3hr",
+        "codex_five_pct": 12,
+        "codex_five_reset": "4hr 15min",
+        "codex_seven_pct": 28,
+        "codex_seven_reset": "4d 0hr",
         "month_cost": 12.34,
         "month_sessions": 42,
         "status": "mock",
@@ -151,10 +156,33 @@ def _fetch_data(client: ClaudeUsageClient, mock: bool) -> dict[str, object]:
             "five_reset": "--",
             "seven_pct": 0,
             "seven_reset": "--",
+            "codex_five_pct": 0,
+            "codex_five_reset": "--",
+            "codex_seven_pct": 0,
+            "codex_seven_reset": "--",
             "month_cost": 0.0,
             "month_sessions": 0,
             "status": outcome.message or "error",
         }
+
+    # Codex rate limits (best-effort; failure is silent)
+    codex_five_pct = 0
+    codex_five_reset = "--"
+    codex_seven_pct = 0
+    codex_seven_reset = "--"
+    try:
+        rl = codex_loader.load_rate_limits()
+        if rl is not None:
+            if rl.five_hour_pct is not None:
+                codex_five_pct = round(rl.five_hour_pct)
+            if rl.five_hour_resets_at is not None:
+                codex_five_reset = format_reset(rl.five_hour_resets_at)
+            if rl.seven_day_pct is not None:
+                codex_seven_pct = round(rl.seven_day_pct)
+            if rl.seven_day_resets_at is not None:
+                codex_seven_reset = format_reset(rl.seven_day_resets_at)
+    except Exception:
+        pass
 
     entries = load_entries()
     month_cost, month_sessions = compute_month_stats(entries)
@@ -164,6 +192,10 @@ def _fetch_data(client: ClaudeUsageClient, mock: bool) -> dict[str, object]:
         "five_reset": format_reset(snap.current_reset_at),
         "seven_pct": snap.weekly_percent or 0,
         "seven_reset": format_reset(snap.weekly_reset_at),
+        "codex_five_pct": codex_five_pct,
+        "codex_five_reset": codex_five_reset,
+        "codex_seven_pct": codex_seven_pct,
+        "codex_seven_reset": codex_seven_reset,
         "month_cost": month_cost,
         "month_sessions": month_sessions,
         "status": "ok",
@@ -204,6 +236,8 @@ class UsageWidget:
         self._data: dict[str, object] = {
             "five_pct": 0, "five_reset": "--",
             "seven_pct": 0, "seven_reset": "--",
+            "codex_five_pct": 0, "codex_five_reset": "--",
+            "codex_seven_pct": 0, "codex_seven_reset": "--",
             "month_cost": 0.0, "month_sessions": 0,
             "status": "loading",
         }
@@ -291,6 +325,7 @@ class UsageWidget:
                       font=(FONT, 11, "bold"), fill=p.text)
         c.create_line(12, 30, W - 12, 30, fill=p.border)
 
+        # ── Claude Code ────────────────────────────────────────────────────────
         self._draw_section(c, y=38, label="5-Hour Window",
                            pct=int(d["five_pct"]),
                            reset_label=str(d["five_reset"]))
@@ -301,10 +336,25 @@ class UsageWidget:
                            reset_label=str(d["seven_reset"]))
         c.create_line(12, 146, W - 12, 146, fill=p.border)
 
-        c.create_text(12, 154, text="This Month", anchor="nw",
+        # ── Codex ──────────────────────────────────────────────────────────────
+        c.create_text(12, 152, text="Codex", anchor="nw",
+                      font=(FONT, 8, "bold"), fill=p.muted)
+
+        self._draw_section(c, y=162, label="5-Hour Window",
+                           pct=int(d["codex_five_pct"]),
+                           reset_label=str(d["codex_five_reset"]))
+        c.create_line(12, 212, W - 12, 212, fill=p.border)
+
+        self._draw_section(c, y=220, label="7-Day Window",
+                           pct=int(d["codex_seven_pct"]),
+                           reset_label=str(d["codex_seven_reset"]))
+        c.create_line(12, 270, W - 12, 270, fill=p.border)
+
+        # ── Monthly ────────────────────────────────────────────────────────────
+        c.create_text(12, 278, text="This Month", anchor="nw",
                       font=(FONT, 9), fill=p.muted)
         cost_str = f"Cost ${d['month_cost']:.2f}  |  Sessions {d['month_sessions']}"
-        c.create_text(12, 166, text=cost_str, anchor="nw",
+        c.create_text(12, 290, text=cost_str, anchor="nw",
                       font=(FONT, 9), fill=p.text)
 
     def _draw_section(self, c: tk.Canvas, y: int, label: str,
