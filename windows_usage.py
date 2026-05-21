@@ -40,6 +40,38 @@ def parse_args() -> argparse.Namespace:
     return args
 
 
+def _ensure_hook() -> None:
+    """Auto-install statusLine hook if not already configured; show dialog with result."""
+    import tkinter
+    import tkinter.messagebox
+
+    from setup_hook import (  # noqa: PLC2701  (private but same-package)
+        _is_usage_hook,
+        _load_settings,
+        setup,
+    )
+
+    settings = _load_settings()
+    if _is_usage_hook(settings.get("statusLine")):
+        return
+
+    ret = setup()
+    root = tkinter.Tk()
+    root.withdraw()
+    if ret == 0:
+        tkinter.messagebox.showinfo(
+            "statusLine Hook 已安裝",
+            "請重新啟動 Claude Code 以啟用用量追蹤。",
+        )
+    else:
+        tkinter.messagebox.showerror(
+            "安裝失敗",
+            "statusLine hook 安裝失敗，請手動執行：\n\n"
+            "  python windows_usage.py --setup",
+        )
+    root.destroy()
+
+
 def main() -> None:
     if sys.platform != "win32":
         sys.exit("windows_usage.py is Windows-only. On macOS/Linux run: python3 main.py")
@@ -54,6 +86,8 @@ def main() -> None:
     if args.unsetup:
         from setup_hook import unsetup
         raise SystemExit(unsetup())
+
+    _ensure_hook()
 
     import windows_widget
     windows_widget.run(mock=args.mock, interval=args.interval)
