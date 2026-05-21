@@ -155,10 +155,12 @@ python3 main.py
   2. A projects card listing the top three projects by usage. Click the button in the top-right corner to cycle between today / 7-day / monthly views.
   3. A footer card showing current rate, sync status, and today's token usage and cost estimate (Claude uses the actual `costUSD` from its log when available; Codex cost is estimated from token count × pricing table).
   4. Two buttons: "Refresh now" and "Quit".
-- **Panel**: click the `⇄ Switch panel` button in the Claude Code card's top-right corner to switch panel styles. v0.5.0 ships with one built-in panel; more are being redesigned.
+- **Panel**: click the `⇄ Switch panel` button in the Claude Code card's top-right corner to switch panel styles. v0.6 ships with two built-in panels — **Classic** (clean light cards) and **Matrix** (black background, neon green type, falling digital rain).
 
   <p align="center">
-    <img src="docs/popover.en.png" alt="default panel" width="320">
+    <img src="docs/popover.en.png" alt="classic panel" width="320">
+    &nbsp;&nbsp;
+    <img src="docs/matrix.en.png" alt="matrix panel" width="320">
   </p>
 
   Your choice is persisted via `NSUserDefaults`, so the last selected panel survives restarts.

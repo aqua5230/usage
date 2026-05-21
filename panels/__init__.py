@@ -5,6 +5,7 @@ from panels.web_panel import HTMLPanel
 
 PANELS: tuple[Panel, ...] = (
     HTMLPanel("classic", "預設", "classic.html"),
+    HTMLPanel("matrix", "駭客任務", "matrix.html"),
 )
 
 
