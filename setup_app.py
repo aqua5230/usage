@@ -47,7 +47,6 @@ if __name__ == "__main__":
         "resources": [
             "assets/claude.webp",
             "assets/codex.webp",
-            "assets/Google-Antigravity-Icon-Full-Color.png",
             "assets/panels",
             "usage_statusline.py",
         ],
@@ -63,7 +62,6 @@ if __name__ == "__main__":
             "usage_client",
             "usage_rate",
             "codex_loader",
-            "antigravity_loader",
             "history_loader",
             "pricing",
             "setup_hook",

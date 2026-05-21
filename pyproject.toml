@@ -29,7 +29,6 @@ py-modules = [
     "setup_hook",
     "usage_client",
     "codex_loader",
-    "antigravity_loader",
     "tui_sprite",
 ]
 

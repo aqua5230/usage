@@ -8,7 +8,7 @@
 [![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
 [![License](https://img.shields.io/github/license/aqua5230/usage)](LICENSE)
 
-`usage` 是一個 macOS menu bar（螢幕右上角的選單列）小工具，把 **Claude Code、Codex 跟 Antigravity** 的用量同時釘在你的螢幕右上角。點開可以看到這 5 小時用了多少、這 7 天用了多少、今日 token 用量與成本估算。
+`usage` 是一個 macOS menu bar（螢幕右上角的選單列）小工具，把 **Claude Code 跟 Codex** 的用量釘在你的螢幕右上角。點開可以看到 Session、Weekly、今日 token 用量與成本估算。
 
 不呼叫 Anthropic / OpenAI 的 API（接口）、也不讀 Keychain（macOS 內建的密碼保險箱），所以不會發生「自己每分鐘 ping 一次也算用量」這種事。
 
@@ -52,10 +52,6 @@ flowchart LR
 Codex CLI 沒有 statusLine hook 這種機制，所以 usage 採另一條路：掃 Codex CLI 在 `~/.codex/sessions/` 底下留下的 `*.jsonl` 對話紀錄檔。Codex 每次對話會在紀錄裡寫入 `rate_limits`（配額資訊），usage 直接讀裡面的 5 小時跟 7 天用量百分比，不需要自己計算。今日的 token 用量跟成本則從同一份紀錄的 token 統計加總。
 
 沒裝 Codex 或沒這個資料夾的話，這部分會自動隱藏，不會影響 Claude Code 那邊的顯示。
-
-### Antigravity 用量
-
-Antigravity 用量來自本機快取的 Google API 配額資料。usage 會依重置視窗自動分成 Session（24 小時內重置）與 Weekly（超過 24 小時重置），因此 Google API 補上每週 bucket 時，popover 的 Antigravity Weekly 會自動顯示。
 
 ## 你需要的東西
 
@@ -155,7 +151,7 @@ python3 main.py
   <img src="docs/menubar.png" alt="menu bar 上方顯示樣式" width="240">
 
 - **點一下會展開 popover**，分三塊：
-  1. 上面三張卡片分別是 Claude Code、Codex 跟 Antigravity；Claude Code / Codex 每張各有 Session（這 5 小時）跟 Weekly（這 7 天）兩條進度條，Antigravity 顯示 Session 與 Weekly 兩排
+  1. 上面兩張卡片分別是 Claude Code 跟 Codex；每張各有 Session 跟 Weekly 兩條進度條
   2. 最下面那張小卡是目前速率、同步狀態、今日 token 用量與成本估算（Claude 若 log 有提供實際金額則直接顯示；Codex 成本為依 token 數估算）
   3. 兩顆按鈕：「立即更新」、「結束」
 - **面板**：點 Claude Code 卡片右上角的「⇄ 更換面板」按鈕可切換面板樣式。v0.5.0 目前內建一款預設面板，更多面板正在重新設計中。

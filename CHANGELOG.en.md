@@ -19,6 +19,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Removed
 - Removed Taiwan, Matrix, ECG, Minimal, and Sketch PyObjC native panels. All panels are now HTML/CSS-based; new panel designs are in progress.
+- Removed Antigravity quota tracking (Google OAuth credentials must not be committed to source; feature to be redesigned)
 
 ## [0.4.0] - 2026-05-20
 

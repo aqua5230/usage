@@ -161,7 +161,6 @@ def _load_panel_html(filename: str) -> str:
     return (
         html.replace("{{CLAUDE_ICON}}", _data_uri("claude.webp"))
         .replace("{{CODEX_ICON}}", _data_uri("codex.webp"))
-        .replace("{{ANTIGRAVITY_ICON}}", _data_uri("Google-Antigravity-Icon-Full-Color.png"))
     )
 
 

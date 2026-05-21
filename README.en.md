@@ -8,7 +8,7 @@
 [![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
 [![License](https://img.shields.io/github/license/aqua5230/usage)](LICENSE)
 
-`usage` is a macOS menu bar tool that pins your **Claude Code, Codex, and Antigravity** usage to the top-right of your screen. Click the icon for a popover showing the current 5-hour usage, the current 7-day usage, and today's token usage and cost estimate.
+`usage` is a macOS menu bar tool that pins your **Claude Code and Codex** usage to the top-right of your screen. Click the icon for a popover showing Session, Weekly, and today's token usage and cost estimate.
 
 It **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, so it avoids the observer effect of "pinging once a minute counts as usage."
 
@@ -52,10 +52,6 @@ Read priority:
 Codex CLI doesn't expose a statusLine hook, so usage takes a different route: it scans the conversation logs Codex CLI leaves on disk (`~/.codex/sessions/*.jsonl`). Codex writes `rate_limits` data directly into each log entry — usage reads those fields to get the 5-hour and 7-day quota percentages directly. Today's token count and cost are summed from the token usage recorded in the same files.
 
 If Codex isn't installed or the directory doesn't exist, that part of the UI hides itself and Claude Code stats continue to work normally.
-
-### Antigravity usage
-
-Antigravity usage comes from locally cached Google API quota data. usage splits buckets by reset window automatically: buckets resetting within 24 hours are Session, and longer reset windows are Weekly, so the Antigravity Weekly row appears automatically when Google's API exposes the weekly bucket.
 
 ## Requirements
 
@@ -153,7 +149,7 @@ python3 main.py
   <img src="docs/menubar.png" alt="menu bar display" width="240">
 
 - **Click the icon to expand the popover.** It has three sections:
-  1. Three cards for Claude Code, Codex, and Antigravity. Claude Code / Codex each show Session (5-hour) and Weekly (7-day) progress bars with reset countdowns; Antigravity shows Session and Weekly rows.
+  1. Two cards for Claude Code and Codex. Each shows Session and Weekly progress bars with reset countdowns.
   2. A footer card showing current rate, sync status, and today's token usage and cost estimate (Claude uses the actual `costUSD` from its log when available; Codex cost is estimated from token count × pricing table).
   3. Two buttons: "Refresh now" and "Quit".
 - **Panel**: click the `⇄ Switch panel` button in the Claude Code card's top-right corner to switch panel styles. v0.5.0 ships with one built-in panel; more are being redesigned.

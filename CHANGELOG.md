@@ -18,6 +18,7 @@
 
 ### 移除
 - 移除 Taiwan、Matrix、ECG、Minimal、Sketch 五個 PyObjC 原生面板，統一改為 HTML/CSS 架構，新面板設計中。
+- 移除 Antigravity 用量追蹤（Google OAuth 憑證不應寫入原始碼；功能待架構調整後重新設計）
 
 ## [0.4.0] - 2026-05-20
 
