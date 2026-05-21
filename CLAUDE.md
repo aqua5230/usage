@@ -77,6 +77,10 @@ Claude Code ──stdin──> usage_statusline.py (hook) ──write──> ~/.
 
 Everything user-facing and on-disk uses the `usage` prefix: bundle id `com.lollapalooza.usage`, LaunchAgent label, hook filename, status filename, settings backup key. The `usag-*` form is **legacy v0.1.x only** — kept as a read-fallback for migration, never written. Don't reintroduce it.
 
+### i18n rule
+
+All user-visible strings in panels and UI **must** be looked up from `i18n.json` via the `_t()` helper (or the JS `t()` function in HTML panels). Never hardcode any language's text directly in Python, HTML, or TUI code. When adding a new panel or new UI strings, add the key to all five language sections in `i18n.json` (`zh-TW`, `zh-CN`, `en`, `ja`, `ko`) before shipping.
+
 ### Release / changelog
 
 - This project is **fully bilingual**: every README / CHANGELOG / contributing doc has a `.md` (繁中) and `.en.md`. Any user-facing doc change must update both.
