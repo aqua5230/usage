@@ -4,6 +4,17 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.9.1] - 2026-05-23
+
+### 修正
+- **TUI 模式輪詢失效**：`poll_usage` 函式內 `continue` 導致每次 timeout 後直接跳回迴圈頂端，狀態永遠停在初始那次 fetch，之後不再更新。改為 `pass` 使輪詢邏輯正常執行。
+- **環境變數名稱不一致**：`USAG_FORCE_GROUP`（v0.1.x 舊前綴）改為 `USAGE_FORCE_GROUP`，與專案其他環境變數統一命名。
+- **每次 refresh 重複掃 filesystem**：`_refresh_in_background` 原本對 `history_loader.load_entries` 呼叫 4 次（24h × 2、168h × 1、720h × 1），現改為一次性讀取 720h 超集並向下傳遞，省去重複 I/O。
+
+### 變更
+- `pricing.py` User-Agent 從過期的 `usage/0.2` 更新為 `usage/0.9`。
+- `--setup` 執行時不再多印「無需 migration」訊息（全新安裝環境下的無意義輸出）。
+
 ## [0.9.0] - 2026-05-22
 
 ### 新增

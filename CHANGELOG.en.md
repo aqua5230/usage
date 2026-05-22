@@ -5,6 +5,17 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.9.1] - 2026-05-23
+
+### Fixed
+- **TUI polling never updated after first fetch**: a `continue` in `poll_usage` caused every timeout to jump back to the loop head, leaving the UI frozen at the initial state. Changed to `pass` so the polling path is actually reached.
+- **Inconsistent env var name**: `USAG_FORCE_GROUP` (v0.1.x legacy prefix) renamed to `USAGE_FORCE_GROUP` to match all other env vars in the project.
+- **Redundant filesystem scans per refresh**: `_refresh_in_background` was calling `history_loader.load_entries` four times per cycle (24h × 2, 168h × 1, 720h × 1). Now loads the 720h superset once and passes it down, eliminating the duplicate I/O.
+
+### Changed
+- `pricing.py` User-Agent updated from the stale `usage/0.2` to `usage/0.9`.
+- `--setup` no longer prints a "no migration needed" message on clean installs.
+
 ## [0.9.0] - 2026-05-22
 
 ### Added
