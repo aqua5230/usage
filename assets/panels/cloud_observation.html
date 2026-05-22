@@ -1,0 +1,790 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    :root {
+      --sky-top: #eaf6ff;
+      --sky-bottom: #cfdeef;
+      --surface: rgba(255, 255, 255, 0.54);
+      --surface-strong: rgba(255, 255, 255, 0.74);
+      --surface-line: rgba(103, 132, 156, 0.22);
+      --text: #1b374c;
+      --muted: #627f95;
+      --muted-strong: #48677d;
+      --claude: linear-gradient(90deg, #f8bc8b 0%, #f4a261 50%, #df8b49 100%);
+      --codex: linear-gradient(90deg, #8ce7ff 0%, #54bfe3 50%, #3895be 100%);
+      --projects: linear-gradient(90deg, #dcecff 0%, #9cc1ed 50%, #6e97cf 100%);
+      --warn: #d08b3d;
+      --danger: #c76854;
+      --tick: rgba(255, 255, 255, 0.42);
+      --shadow: 0 22px 44px rgba(119, 150, 178, 0.18);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      color: var(--text);
+      background: linear-gradient(180deg, #b8d6f0 0%, #d5e7f6 46%, #eaf3fb 100%);
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overscroll-behavior: none;
+    }
+
+    body::before,
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 32%, rgba(255, 255, 255, 0.2) 100%);
+      opacity: 0.8;
+    }
+
+    body::after {
+      background:
+        radial-gradient(circle at 16% 20%, rgba(255, 255, 255, 0.32), transparent 22%),
+        radial-gradient(circle at 78% 12%, rgba(255, 255, 255, 0.22), transparent 18%),
+        radial-gradient(circle at 62% 64%, rgba(255, 255, 255, 0.18), transparent 20%);
+      opacity: 0.55;
+    }
+
+    @keyframes driftA {
+      from { transform: translate3d(-2px, -2px, 0); }
+      to { transform: translate3d(2px, 2px, 0); }
+    }
+
+    @keyframes driftB {
+      from { transform: translate3d(-2px, 0, 0); }
+      to { transform: translate3d(2px, 4px, 0); }
+    }
+
+    .viewport {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      padding: 10px;
+      overflow: hidden;
+      isolation: isolate;
+    }
+
+    .sky,
+    .contours {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .sky {
+      z-index: 0;
+    }
+
+    .contours {
+      z-index: 1;
+      opacity: 0.95;
+    }
+
+    .cloud-layer {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      animation: driftA 10s ease-in-out infinite alternate;
+    }
+
+    .cloud-layer.back {
+      opacity: 0.82;
+      animation-duration: 12s;
+    }
+
+    .cloud-layer.front {
+      opacity: 0.96;
+      animation-name: driftB;
+      animation-duration: 9s;
+    }
+
+    .cloud-shape {
+      fill: rgba(255, 255, 255, 0.95);
+    }
+
+    .cloud-shape.soft {
+      fill: rgba(255, 255, 255, 0.75);
+    }
+
+    .cloud-highlight {
+      fill: rgba(255, 255, 255, 0.9);
+    }
+
+    .contour-line {
+      fill: none;
+      stroke: rgba(80, 120, 160, 0.36);
+      stroke-width: 0.9;
+    }
+
+    .contour-line.light {
+      stroke: rgba(255, 255, 255, 0.54);
+      stroke-width: 0.7;
+    }
+
+    .haze {
+      position: absolute;
+      left: -8%;
+      right: -8%;
+      bottom: -4%;
+      height: 22%;
+      pointer-events: none;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.34)),
+        radial-gradient(ellipse at 22% 40%, rgba(255, 255, 255, 0.54) 0 22%, transparent 52%),
+        radial-gradient(ellipse at 58% 45%, rgba(255, 255, 255, 0.5) 0 22%, transparent 54%),
+        radial-gradient(ellipse at 84% 35%, rgba(255, 255, 255, 0.42) 0 20%, transparent 50%);
+      filter: blur(24px);
+      opacity: 0.9;
+      z-index: 1;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      height: 100%;
+    }
+
+    .card,
+    .footer {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.55);
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(234, 244, 251, 0.3));
+      box-shadow: var(--shadow);
+      border-radius: 24px;
+      backdrop-filter: blur(18px) saturate(1.1);
+      -webkit-backdrop-filter: blur(18px) saturate(1.1);
+    }
+
+    .card::before,
+    .footer::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 40%),
+        radial-gradient(circle at top right, rgba(255, 255, 255, 0.5), transparent 32%);
+      pointer-events: none;
+    }
+
+    .card {
+      padding: 12px 14px;
+    }
+
+    .card[data-card="claude"],
+    .card[data-card="codex"] {
+      min-height: 224px;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .header img,
+    .weather-badge {
+      width: 28px;
+      height: 28px;
+      flex: none;
+      border-radius: 50%;
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.46);
+    }
+
+    .weather-badge {
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(109, 139, 162, 0.14);
+    }
+
+    .weather-badge svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--muted-strong);
+    }
+
+    .header-copy {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .switch {
+      flex: none;
+      min-height: 28px;
+      padding: 0 12px;
+      border: 1px solid rgba(97, 128, 151, 0.2);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.58);
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      white-space: nowrap;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .switch:active,
+    .action:active,
+    .range-chip:active {
+      transform: translateY(1px);
+    }
+
+    .row {
+      position: relative;
+      padding: 10px 0 0;
+    }
+
+    .row + .row {
+      margin-top: 10px;
+      border-top: 1px solid rgba(103, 132, 156, 0.14);
+    }
+
+    .row-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 6px;
+    }
+
+    .row-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted-strong);
+      letter-spacing: 0.02em;
+    }
+
+    .percent {
+      font-size: 13px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+
+    .track {
+      position: relative;
+      height: 16px;
+      padding: 2px;
+      overflow: hidden;
+      border-radius: 999px;
+      border: 1px solid rgba(109, 139, 162, 0.16);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(218, 231, 242, 0.65)),
+        rgba(255, 255, 255, 0.4);
+      box-shadow: inset 0 2px 6px rgba(126, 154, 178, 0.1);
+    }
+
+    .track::before {
+      content: "";
+      position: absolute;
+      inset: 2px;
+      border-radius: inherit;
+      background:
+        repeating-linear-gradient(
+          90deg,
+          transparent 0 calc(10% - 1px),
+          var(--tick) calc(10% - 1px) 10%
+        );
+      opacity: 0.9;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .fill {
+      position: relative;
+      z-index: 1;
+      width: 0%;
+      height: 100%;
+      border-radius: inherit;
+      background: var(--accent);
+      box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.38),
+        0 0 18px rgba(255, 255, 255, 0.2);
+      transition: width 160ms ease-out, background 160ms ease-out;
+    }
+
+    .reset {
+      margin-top: 5px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: right;
+      white-space: nowrap;
+    }
+
+    .reset[data-warning="true"] {
+      color: var(--danger);
+      font-weight: 600;
+    }
+
+    .row[data-available="false"] .percent,
+    .row[data-available="false"] .reset {
+      color: var(--muted);
+    }
+
+    .projects-card {
+      padding-bottom: 12px;
+    }
+
+    .range-chip {
+      min-height: 28px;
+      padding: 0 12px;
+      border: 1px solid rgba(97, 128, 151, 0.2);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.58);
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    [data-project-list] {
+      display: grid;
+      gap: 8px;
+    }
+
+    .proj-row {
+      position: relative;
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 18px;
+      border: 1px solid rgba(109, 139, 162, 0.14);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.46), rgba(230, 241, 250, 0.34)),
+        rgba(255, 255, 255, 0.22);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .proj-row::before {
+      content: "";
+      position: absolute;
+      inset: auto 10px 4px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(117, 146, 170, 0.26), transparent);
+    }
+
+    .proj-topline {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .proj-rank {
+      display: grid;
+      place-items: center;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--muted-strong);
+      font-size: 11px;
+      font-weight: 700;
+      box-shadow: inset 0 0 0 1px rgba(109, 139, 162, 0.14);
+      flex: none;
+    }
+
+    .proj-name {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .proj-tokens {
+      align-self: center;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted-strong);
+      white-space: nowrap;
+    }
+
+    .proj-cost {
+      font-size: 11px;
+      color: var(--muted);
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      padding: 12px 4px 2px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .footer {
+      padding: 12px 14px;
+    }
+
+    .meta {
+      display: grid;
+      gap: 4px;
+      font-size: 12px;
+      line-height: 1.15;
+      color: var(--muted-strong);
+    }
+
+    .today {
+      margin-top: 5px;
+      padding-top: 5px;
+      border-top: 1px solid rgba(103, 132, 156, 0.14);
+      font-size: 13px;
+      line-height: 1.15;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .actions {
+      display: flex;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .action {
+      flex: 1;
+      min-height: 28px;
+      padding: 0 10px;
+      border: 1px solid rgba(97, 128, 151, 0.18);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.66);
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .action.primary {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(225, 239, 250, 0.9));
+    }
+
+    .action[data-action="install"] {
+      display: none;
+    }
+
+    .footer .action[data-action="switch"] {
+      display: none;
+    }
+
+    .action[data-action="install"][data-visible="true"] {
+      display: inline-block;
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewport">
+    <svg class="sky" viewBox="0 0 364 812" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <filter id="cloudBlurBack" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="6"/>
+        </filter>
+        <filter id="cloudBlurFront" x="-20%" y="-20%" width="140%" height="140%">
+          <feGaussianBlur stdDeviation="2"/>
+        </filter>
+      </defs>
+      <g class="cloud-layer back" filter="url(#cloudBlurBack)">
+        <path class="cloud-shape soft" d="M-42 116C-33 79 2 55 45 55C75 55 102 68 120 89C132 82 147 78 164 78C203 78 233 105 238 142C274 144 303 169 303 202C303 238 271 262 229 262H27C-14 262 -45 238 -45 203C-45 167 -21 139 14 130C17 125 18 120 20 116H-42Z"/>
+        <path class="cloud-highlight" d="M171 78C181 48 213 29 251 29C277 29 299 40 314 58C326 52 339 49 354 49C390 49 420 74 425 109C456 112 480 134 480 164C480 194 454 217 418 217H234C199 217 171 196 171 167C171 140 189 117 218 110C221 100 225 89 171 78Z" transform="translate(-64 0)"/>
+      </g>
+      <g class="cloud-layer front" filter="url(#cloudBlurFront)">
+        <path class="cloud-shape" d="M-52 228C-39 194 -4 171 38 171C70 171 98 184 116 206C128 199 143 195 160 195C200 195 231 223 236 262C274 264 304 291 304 326C304 364 271 390 227 390H22C-21 390 -55 364 -55 327C-55 291 -30 262 7 253C10 244 15 236 -52 228Z"/>
+        <path class="cloud-shape" d="M75 286C90 244 129 214 176 214C214 214 247 232 265 261C277 255 292 252 309 252C354 252 389 283 394 324C439 329 473 359 473 398C473 442 435 475 381 475H147C94 475 52 442 52 400C52 361 81 330 120 322C123 309 129 297 75 286Z" transform="translate(-54 0)"/>
+        <path class="cloud-shape" d="M145 458C160 423 194 401 235 401C267 401 295 414 313 435C326 429 341 425 358 425C399 425 431 454 436 493C474 496 504 522 504 557C504 594 472 621 426 621H218C174 621 139 593 139 557C139 523 163 496 199 488C203 477 208 466 145 458Z" transform="translate(-58 0)"/>
+        <path class="cloud-shape soft" d="M-8 456C7 419 42 395 83 395C115 395 144 408 162 429C173 423 185 420 200 420C239 420 270 447 276 485C314 488 342 515 342 548C342 584 311 612 266 612H67C25 612 -10 585 -10 549C-10 518 13 492 45 485C48 474 54 464 -8 456Z"/>
+        <path class="cloud-shape" d="M154 548C169 514 201 493 240 493C270 493 297 505 314 525C327 519 342 514 359 514C401 514 434 544 439 583C477 586 505 611 505 643C505 679 475 706 430 706H218C173 706 137 677 137 641C137 610 161 584 195 577C200 566 204 556 154 548Z" transform="translate(-72 0)"/>
+        <path class="cloud-shape" d="M-36 655C-22 625 9 606 47 606C76 606 101 617 117 636C129 630 142 627 158 627C195 627 225 653 230 688C264 691 290 714 290 745C290 778 262 802 221 802H31C-9 802 -40 777 -40 746C-40 716 -19 692 13 685C17 674 21 663 -36 655Z"/>
+      </g>
+    </svg>
+
+    <svg class="contours" viewBox="0 0 364 812" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <path class="contour-line" d="M45 118C88 79 157 65 229 86C290 105 330 147 324 191C317 240 260 269 184 265C121 261 73 239 52 203C34 172 31 138 45 118Z"/>
+      <path class="contour-line" d="M67 139C101 108 156 98 214 115C264 129 297 160 294 195C290 231 248 253 191 252C143 250 104 235 82 209C63 186 57 159 67 139Z"/>
+      <path class="contour-line light" d="M238 278C287 256 335 262 361 296C386 329 379 377 340 406C307 431 257 436 214 420C175 405 149 375 151 343C152 316 179 292 238 278Z"/>
+      <path class="contour-line" d="M214 301C253 285 292 290 313 317C334 344 329 381 299 403C274 423 233 428 198 415C167 403 146 378 147 351C149 329 169 310 214 301Z"/>
+      <path class="contour-line" d="M27 474C69 446 127 441 183 458C242 476 283 513 285 553C287 592 244 622 181 627C121 632 69 611 40 575C15 544 10 504 27 474Z"/>
+      <path class="contour-line" d="M58 495C90 474 135 470 179 483C224 497 256 523 258 554C260 586 228 610 183 614C139 619 100 605 77 581C56 559 49 522 58 495Z"/>
+      <path class="contour-line light" d="M190 640C230 617 281 615 323 632C360 647 381 676 377 707C372 745 334 774 281 781C232 788 187 770 162 739C139 711 142 670 190 640Z"/>
+      <path class="contour-line" d="M212 661C241 645 279 644 311 656C339 667 356 689 353 713C349 741 321 763 282 768C246 773 212 760 193 737C176 715 178 683 212 661Z"/>
+    </svg>
+
+    <div class="haze"></div>
+
+    <main class="wrap">
+      <section class="card" data-card="claude" style="--accent: var(--claude)">
+        <header class="header">
+          <img src="{{CLAUDE_ICON}}" alt="">
+          <div class="header-copy">
+            <h1 data-i18n="claude_name">Claude Code</h1>
+          </div>
+          <button class="switch" data-action="switch" data-i18n="switch_panel">Switch Panel</button>
+        </header>
+        <div class="row" data-row="session"></div>
+        <div class="row" data-row="weekly"></div>
+      </section>
+
+      <section class="card" data-card="codex" style="--accent: var(--codex)">
+        <header class="header">
+          <img src="{{CODEX_ICON}}" alt="">
+          <div class="header-copy">
+            <h1 data-i18n="codex_name">Codex</h1>
+          </div>
+        </header>
+        <div class="row" data-row="session"></div>
+        <div class="row" data-row="weekly"></div>
+      </section>
+
+      <section class="card projects-card" data-card="projects" style="--accent: var(--projects)">
+        <header class="header">
+          <div class="weather-badge" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M7 15.25C5.20507 15.25 3.75 13.7949 3.75 12C3.75 10.2982 5.05894 8.90208 6.72406 8.7632C7.48026 6.56686 9.56402 5 12.0145 5C15.1096 5 17.618 7.5084 17.618 10.6035L17.6148 10.7387C18.8614 10.9864 19.8 12.0849 19.8 13.4041C19.8 14.9056 18.5828 16.1228 17.0813 16.1228H7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="header-copy">
+            <h1 data-i18n="projects_title">Project Usage</h1>
+          </div>
+          <button class="range-chip" data-action="toggle-project-range">Today</button>
+        </header>
+        <div data-project-list></div>
+      </section>
+
+      <section class="footer">
+        <div class="meta">
+          <div data-footer="rate">Rate: --</div>
+          <div data-footer="status">Status: Loading</div>
+        </div>
+        <div class="today" data-footer="today">Today: $0.00 (0 tokens)</div>
+        <div class="actions">
+          <button class="action primary" data-action="refresh" data-i18n="refresh_now">Refresh</button>
+          <button class="action" data-action="switch" data-i18n="switch_panel">Switch</button>
+          <button class="action" data-action="quit" data-i18n="quit">Quit</button>
+          <button class="action" data-action="install" data-i18n="install_hook">Install Hook</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const I18N = {{I18N_BUNDLE}};
+    const FALLBACK_LANGUAGE = "en";
+    const root = document.documentElement;
+    let currentLanguage = "en";
+    let projectRange = "1d";
+    let latestState = null;
+
+    function languageTable(language) {
+      return I18N[language] || I18N[FALLBACK_LANGUAGE] || {};
+    }
+
+    function t(key, params = {}) {
+      const template = languageTable(currentLanguage)[key] || languageTable(FALLBACK_LANGUAGE)[key] || key;
+      return template.replace(/\{(\w+)\}/g, (_, name) => `${params[name] ?? ""}`);
+    }
+
+    function labels() {
+      return {
+        session: t("session_label"),
+        weekly: t("weekly_label"),
+      };
+    }
+
+    function projectRangeLabel(range) {
+      if (range === "7d") return t("project_range_7d");
+      if (range === "30d") return t("project_range_30d");
+      return t("project_range_1d");
+    }
+
+    function applyStaticText() {
+      document.documentElement.lang = currentLanguage === "zh-TW" ? "zh-Hant" : currentLanguage;
+      document.querySelectorAll("[data-i18n]").forEach((node) => {
+        const key = node.dataset.i18n;
+        if (key) node.textContent = t(key);
+      });
+      const rangeButton = document.querySelector('[data-action="toggle-project-range"]');
+      if (rangeButton) rangeButton.textContent = projectRangeLabel(projectRange);
+    }
+
+    window.usageSetLanguage = function usageSetLanguage(language) {
+      currentLanguage = I18N[language] ? language : FALLBACK_LANGUAGE;
+      applyStaticText();
+      if (latestState) {
+        window.usageApplyState({ ...latestState, language: currentLanguage });
+      }
+    };
+
+    function cssVar(name) {
+      return getComputedStyle(root).getPropertyValue(name).trim();
+    }
+
+    function colorFor(percent, fallback) {
+      if (typeof percent !== "number") return fallback;
+      if (percent >= 80) return cssVar("--danger");
+      if (percent >= 50) return cssVar("--warn");
+      return fallback;
+    }
+
+    function renderRow(card, key, row) {
+      const el = document.querySelector(`[data-card="${card}"] [data-row="${key}"]`);
+      if (!el) return;
+      const cardEl = el.closest(".card");
+      if (!cardEl) return;
+      const data = row || {
+        percent: null,
+        percentText: "--",
+        resetText: t("reset_placeholder"),
+        warning: false,
+        available: false,
+      };
+      const available = data.available === true && typeof data.percent === "number";
+      const accent = getComputedStyle(cardEl).getPropertyValue("--accent").trim();
+      const color = colorFor(data.percent, accent);
+      el.dataset.available = available ? "true" : "false";
+      el.innerHTML = `
+        <div class="row-head">
+          <div class="row-title"></div>
+          <div class="percent"></div>
+        </div>
+        <div class="track"><div class="fill"></div></div>
+        <div class="reset"></div>
+      `;
+      const title = el.querySelector(".row-title");
+      const percent = el.querySelector(".percent");
+      const reset = el.querySelector(".reset");
+      const fill = el.querySelector(".fill");
+      if (!title || !percent || !reset || !fill) return;
+      title.textContent = labels()[key];
+      percent.textContent = data.percentText || "--";
+      reset.textContent = data.resetText || t("reset_placeholder");
+      reset.dataset.warning = data.warning === true ? "true" : "false";
+      percent.style.color = available ? color : "";
+      fill.style.width = available ? `${Math.max(0, Math.min(100, data.percent))}%` : "0%";
+      fill.style.background = color;
+    }
+
+    function applyCard(name, rows) {
+      renderRow(name, "session", rows && rows.session);
+      renderRow(name, "weekly", rows && rows.weekly);
+    }
+
+    function renderProjects(projects) {
+      const list = document.querySelector("[data-project-list]");
+      if (!list) return;
+      list.innerHTML = (projects || []).slice(0, 3).map((project, index) => `
+        <div class="proj-row">
+          <div class="proj-topline">
+            <span class="proj-rank">${index + 1}</span>
+            <span class="proj-name">${project.name}</span>
+          </div>
+          <span class="proj-tokens">${project.tokensText}</span>
+          <span class="proj-cost">${project.costText}</span>
+        </div>
+      `).join("") || `<div class="empty-state">${t("projects_empty")}</div>`;
+    }
+
+    function applyFooter(footer) {
+      const rate = document.querySelector('[data-footer="rate"]');
+      const status = document.querySelector('[data-footer="status"]');
+      const today = document.querySelector('[data-footer="today"]');
+      const install = document.querySelector('[data-action="install"]');
+      if (rate) rate.textContent = footer.rate || t("rate_text", { value: "--" });
+      if (status) status.textContent = footer.status || t("status_text", { value: "--" });
+      if (today) today.textContent = footer.today || t("today_text", { cost: "0.00", tokens: "0" });
+      if (install) install.dataset.visible = footer.showInstall === true ? "true" : "false";
+    }
+
+    window.usageApplyState = function usageApplyState(state) {
+      currentLanguage = I18N[state.language] ? state.language : currentLanguage;
+      applyStaticText();
+      applyCard("claude", state.claude);
+      applyCard("codex", state.codex);
+      latestState = state;
+      renderProjects(
+        projectRange === "1d" ? state.projects
+        : projectRange === "7d" ? state.projects7d
+        : state.projects30d
+      );
+      applyFooter(state.footer || {});
+    };
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      if (button.dataset.action === "toggle-project-range") {
+        projectRange = projectRange === "1d" ? "7d" : projectRange === "7d" ? "30d" : "1d";
+        button.textContent = projectRangeLabel(projectRange);
+        if (latestState) {
+          renderProjects(
+            projectRange === "1d" ? latestState.projects
+            : projectRange === "7d" ? latestState.projects7d
+            : latestState.projects30d
+          );
+        }
+        return;
+      }
+      const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
+      if (bridge && typeof bridge.postMessage === "function") {
+        bridge.postMessage(button.dataset.action);
+      }
+    });
+
+    window.usageApplyState({
+      language: "en",
+      claude: { session: {}, weekly: {} },
+      codex: { session: {}, weekly: {} },
+      projects: [],
+      projects7d: [],
+      projects30d: [],
+      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", showInstall: false }
+    });
+  </script>
+</body>
+</html>

@@ -1,6 +1,7 @@
 {
   "zh-TW": {
     "panel_default_name": "預設",
+    "panel_cloud_observation": "雲圖觀測",
     "switch_panel": "更換面板",
     "launch_at_login": "開機自動啟動",
     "hook_installed_restart": "已安裝完成，請重開 Claude Code 一次",
@@ -34,6 +35,7 @@
     "weekly_label": "本週",
     "projects_empty": "無記錄",
     "refresh_now": "↻ 立即更新",
+    "install_hook": "安裝 Hook",
     "quit": "⏻ 結束",
     "usage_title": "Usage",
     "current_label": "目前",
@@ -48,6 +50,7 @@
   },
   "en": {
     "panel_default_name": "Default",
+    "panel_cloud_observation": "Cloud Observation",
     "switch_panel": "Switch Panel",
     "launch_at_login": "Launch at Login",
     "hook_installed_restart": "Hook installed. Restart Claude Code once.",
@@ -81,6 +84,7 @@
     "weekly_label": "Weekly",
     "projects_empty": "No records",
     "refresh_now": "↻ Refresh Now",
+    "install_hook": "Install Hook",
     "quit": "⏻ Quit",
     "usage_title": "Usage",
     "current_label": "Current",
@@ -95,6 +99,7 @@
   },
   "zh-CN": {
     "panel_default_name": "默认",
+    "panel_cloud_observation": "云图观测",
     "switch_panel": "切换面板",
     "launch_at_login": "开机自动启动",
     "hook_installed_restart": "已安装完成，请重开 Claude Code 一次",
@@ -128,6 +133,7 @@
     "weekly_label": "本周",
     "projects_empty": "无记录",
     "refresh_now": "↻ 立即更新",
+    "install_hook": "安装 Hook",
     "quit": "⏻ 结束",
     "usage_title": "Usage",
     "current_label": "当前",
@@ -142,6 +148,7 @@
   },
   "ja": {
     "panel_default_name": "デフォルト",
+    "panel_cloud_observation": "雲観測",
     "switch_panel": "パネル切替",
     "launch_at_login": "ログイン時に起動",
     "hook_installed_restart": "フックをインストールしました。Claude Code を一度再起動してください。",
@@ -175,6 +182,7 @@
     "weekly_label": "週間",
     "projects_empty": "記録なし",
     "refresh_now": "↻ 今すぐ更新",
+    "install_hook": "フックをインストール",
     "quit": "⏻ 終了",
     "usage_title": "使用量",
     "current_label": "現在",
@@ -189,6 +197,7 @@
   },
   "ko": {
     "panel_default_name": "기본",
+    "panel_cloud_observation": "구름 관측",
     "switch_panel": "패널 전환",
     "launch_at_login": "로그인 시 시작",
     "hook_installed_restart": "훅 설치가 완료되었습니다. Claude Code를 한 번 다시 시작하세요.",
@@ -222,6 +231,7 @@
     "weekly_label": "주간",
     "projects_empty": "기록 없음",
     "refresh_now": "↻ 지금 새로고침",
+    "install_hook": "훅 설치",
     "quit": "⏻ 종료",
     "usage_title": "사용량",
     "current_label": "현재",
