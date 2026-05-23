@@ -415,6 +415,69 @@
       display: inline-block;
       flex: 1;
     }
+
+    main.wrap,
+    .wrap {
+      overflow-y: auto;
+    }
+
+    .cli-status {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid rgba(120, 255, 190, 0.24);
+      border-radius: 8px;
+      background: rgba(3, 8, 10, 0.86);
+      color: #d9fbe8;
+      font-family: "SF Mono", "Menlo", "Consolas", monospace;
+      font-size: 11px;
+      line-height: 1.45;
+      overflow: hidden;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.03);
+    }
+
+    .cli-status[hidden] {
+      display: none;
+    }
+
+    .cli-line {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px 8px;
+      align-items: center;
+      min-width: 0;
+    }
+
+    .cli-line + .cli-line {
+      margin-top: 5px;
+    }
+
+    .cli-program { color: #30d158; font-weight: 800; }
+    .cli-five { color: #ffd60a; }
+    .cli-seven { color: #30d158; }
+    .cli-context { color: #64d2ff; }
+    .cli-total { color: #ff9f0a; }
+    .cli-cache { color: #5de6ff; }
+    .cli-cost { color: #bf5af2; }
+    .cli-session { color: #8e8e93; }
+    .cli-model { color: #bf5af2; }
+
+    .cli-meter {
+      width: 42px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.16);
+      overflow: hidden;
+      display: inline-flex;
+      vertical-align: middle;
+    }
+
+    .cli-meter span {
+      display: block;
+      height: 100%;
+      width: 0%;
+      background: currentColor;
+    }
+
   </style>
 </head>
 <body>
@@ -452,8 +515,11 @@
             <h1 data-i18n="projects_title">Project Usage</h1>
           </div>
           <button class="range-chip" data-action="toggle-project-range">Today</button>
+          <button class="range-chip" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
+          <button class="range-chip" data-action="toggle-cli" data-i18n="cli">CLI</button>
         </header>
         <div data-project-list></div>
+        <div class="cli-status" data-cli-panel hidden></div>
       </section>
 
       <section class="footer">
@@ -464,7 +530,6 @@
         <div class="today" data-footer="today">Today: $0.00 (0 tokens)</div>
         <div class="actions">
           <button class="action primary" data-action="refresh" data-i18n="refresh_now">Refresh</button>
-          <button class="action" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
           <button class="action" data-action="switch" data-i18n="switch_panel">Switch</button>
           <button class="action" data-action="quit" data-i18n="quit">Quit</button>
           <button class="action" data-action="install" data-i18n="install_hook">Install Hook</button>
@@ -513,6 +578,11 @@
     let currentLanguage = "en";
     let projectRange = "1d";
     let latestState = null;
+    const CLI_VISIBILITY_KEY = `usage:${location.pathname}:cli-visible`;
+    let cliVisible = false;
+    try {
+      cliVisible = window.localStorage.getItem(CLI_VISIBILITY_KEY) === "1";
+    } catch (_error) {}
 
     function languageTable(language) {
       return I18N[language] || I18N[FALLBACK_LANGUAGE] || {};
@@ -544,6 +614,7 @@
       });
       const rangeButton = document.querySelector('[data-action="toggle-project-range"]');
       if (rangeButton) rangeButton.textContent = projectRangeLabel(projectRange);
+      setCliVisible(cliVisible);
     }
 
     window.usageSetLanguage = function usageSetLanguage(language) {
@@ -655,6 +726,45 @@
       if (install) install.dataset.visible = footer.showInstall === true ? "true" : "false";
     }
 
+
+
+    function setCliVisible(nextVisible) {
+      cliVisible = nextVisible === true;
+      try {
+        window.localStorage.setItem(CLI_VISIBILITY_KEY, cliVisible ? "1" : "0");
+      } catch (_error) {}
+      const panel = document.querySelector("[data-cli-panel]");
+      const button = document.querySelector('[data-action="toggle-cli"]');
+      if (panel) panel.hidden = !cliVisible;
+      if (button) button.dataset.active = cliVisible ? "true" : "false";
+      if (latestState) renderCliStatus(latestState.cli || {});
+    }
+
+    function cliMeter(percent) {
+      const safe = typeof percent === "number" ? Math.max(0, Math.min(100, percent)) : 0;
+      return `<span class="cli-meter" aria-hidden="true"><span style="width:${safe}%"></span></span>`;
+    }
+
+    function renderCliStatus(cli) {
+      const panel = document.querySelector("[data-cli-panel]");
+      if (!panel || panel.hidden) return;
+      const data = cli || {};
+      const five = data.fiveHour || {};
+      const seven = data.sevenDay || {};
+      const context = data.context || {};
+      const tokens = data.tokens || {};
+      const cache = data.cache || {};
+      const cost = data.cost || {};
+      const session = data.session || {};
+      panel.innerHTML = `
+        <div class="cli-line"><span class="cli-program">${data.program || "lollapalooza"}</span><span class="cli-five">${t("cli_five_hour")}: ${cliMeter(five.percent)} ${five.percentText || "--"} <span class="cli-session">${five.resetText || "--"}</span></span><span class="cli-seven">${t("cli_seven_day")}: ${cliMeter(seven.percent)} ${seven.percentText || "--"} <span class="cli-session">${seven.resetText || "--"}</span></span></div>
+        <div class="cli-line"><span class="cli-context">${t("cli_context")}: ${context.maxText || "--"} / ${context.usedText || "--"} / ${t("cli_remaining")} ${context.remainingText || "--"} ${cliMeter(context.percent)}</span></div>
+        <div class="cli-line"><span class="cli-total">${t("cli_total")} ${t("cli_in_short")}${tokens.inputText || "--"} ${t("cli_out_short")}${tokens.outputText || "--"} <span class="cli-session">(${t("cli_this_turn")} ${t("cli_in_short")}${tokens.turnInputText || "--"} ${t("cli_out_short")}${tokens.turnOutputText || "--"})</span></span></div>
+        <div class="cli-line"><span class="cli-cache">${t("cli_cached")} ${cache.readText || "--"} / ${cache.creationText || "--"}</span><span class="cli-cost">${t("cli_cost")} ${cost.usdText || "--"} ≈ ${cost.twdText || "--"}</span></div>
+        <div class="cli-line"><span class="cli-session">${t("cli_session")} ${session.durationText || "--"}</span><span class="cli-model">${data.model || "--"}</span></div>
+      `;
+    }
+
     window.usageApplyState = function usageApplyState(state) {
       currentLanguage = I18N[state.language] ? state.language : currentLanguage;
       applyStaticText();
@@ -666,6 +776,7 @@
         : projectRange === "7d" ? state.projects7d
         : state.projects30d
       );
+      renderCliStatus(state.cli || {});
       applyFooter(state.footer || {});
     };
 
@@ -682,6 +793,10 @@
             : latestState.projects30d
           );
         }
+        return;
+      }
+      if (button.dataset.action === "toggle-cli") {
+        setCliVisible(!cliVisible);
         return;
       }
       const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
@@ -859,6 +974,7 @@
       projects: [],
       projects7d: [],
       projects30d: [],
+      cli: {},
       footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", showInstall: false }
     });
   </script>

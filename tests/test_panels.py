@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 import panels
 from panels.base import (
     ACTIVE_PANEL_DEFAULTS_KEY,
@@ -66,6 +68,23 @@ def test_win95_panel_preferred_size() -> None:
     panel = panels.get_panel("win95")
 
     assert panel.preferred_size() == (364.0, 768.0)
+
+
+def test_html_panels_place_analyze_and_cli_in_project_header() -> None:
+    panel_dir = Path(__file__).resolve().parent.parent / "assets" / "panels"
+
+    for panel_path in sorted(panel_dir.glob("*.html")):
+        html = panel_path.read_text(encoding="utf-8")
+        project_index = html.index('data-action="toggle-project-range"')
+        footer_index = html.index('<section class="footer"')
+        analyze_index = html.index('data-action="analyze"')
+        cli_index = html.index('data-action="toggle-cli"')
+
+        assert project_index < analyze_index < footer_index, panel_path.name
+        assert project_index < cli_index < footer_index, panel_path.name
+        assert html.count('data-action="analyze"') == 1, panel_path.name
+        assert html.count('<div class="cli-status" data-cli-panel hidden></div>') == 1
+        assert 'class="action" data-action="analyze"' not in html
 
 
 def test_missing_panel_id_falls_back_to_classic() -> None:

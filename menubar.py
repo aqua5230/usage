@@ -7,6 +7,7 @@ import contextlib
 import io
 import json
 import logging
+import math
 import os
 import threading
 import time
@@ -50,7 +51,15 @@ from history_loader import UsageEntry, load_entries
 from panels.base import Panel as UsagePanel
 from panels.base import load_active_panel_id, save_active_panel_id
 from pricing import calculate_cost
-from usage_client import ClaudeUsageClient, PollOutcome, PollState
+from usage_client import (
+    LEGACY_STATUS_FILE,
+    STATUS_FILE,
+    TT_STATUS_FILE,
+    ClaudeUsageClient,
+    PollOutcome,
+    PollState,
+    UsageSnapshot,
+)
 from usage_rate import GROUP_NAMES, UsageRateTracker
 
 BUTTON_HEIGHT = 32.0
@@ -175,6 +184,7 @@ class PopoverState:
     rate_text: str
     status_text: str
     today_text: str
+    cli_status: dict[str, object]
     show_install_button: bool = False
 
 
@@ -527,11 +537,15 @@ class AppDelegate(NSObject):
                 self.language,
                 forecast_seconds=self.burn_rate_trackers["claude_weekly"].forecast_seconds(),
             )
+            status_value = outcome.message or _t(self.language, "status_synced")
+            if snapshot.is_stale or snapshot.data_source != "hook":
+                status_value = _t(self.language, "data_stale_hint")
             status_text = _t(
                 self.language,
                 "status_text",
-                value=outcome.message or _t(self.language, "status_synced"),
+                value=status_value,
             )
+            cli_status = _cli_status_payload(snapshot, self.language, now)
         else:
             claude_session = _missing_row("Session", CLAUDE_COLOR, self.language)
             claude_weekly = _missing_row("Weekly", CLAUDE_COLOR, self.language)
@@ -540,6 +554,7 @@ class AppDelegate(NSObject):
                 "status_text",
                 value=outcome.message or _t(self.language, "status_no_data"),
             )
+            cli_status = _empty_cli_status(self.language)
 
         return PopoverState(
             language=self.language,
@@ -553,6 +568,7 @@ class AppDelegate(NSObject):
             rate_text=_t(self.language, "rate_text", value=group_name),
             status_text=status_text,
             today_text=today_text,
+            cli_status=cli_status,
             show_install_button=outcome.state == PollState.TOKEN_ERROR,
         )
 
@@ -743,6 +759,7 @@ def _empty_state(language: str = "en") -> PopoverState:
         rate_text=_t(language, "rate_text", value="--"),
         status_text=_t(language, "status_text", value=_t(language, "status_loading")),
         today_text=_t(language, "today_text", cost="0.00", tokens="0"),
+        cli_status=_empty_cli_status(language),
         show_install_button=False,
     )
 
@@ -813,6 +830,250 @@ def _missing_row(
         color=color,
         available=False,
     )
+
+
+def _empty_cli_status(language: str) -> dict[str, object]:
+    return {
+        "available": False,
+        "program": "lollapalooza",
+        "fiveHour": _empty_cli_window(language),
+        "sevenDay": _empty_cli_window(language),
+        "context": {
+            "percent": None,
+            "maxText": "--",
+            "usedText": "--",
+            "remainingText": "--",
+        },
+        "tokens": {
+            "inputText": "--",
+            "outputText": "--",
+            "turnInputText": "--",
+            "turnOutputText": "--",
+        },
+        "cache": {
+            "readText": "--",
+            "creationText": "--",
+        },
+        "cost": {
+            "usdText": "--",
+            "twdText": "--",
+        },
+        "session": {
+            "durationText": "--",
+        },
+        "model": "--",
+    }
+
+
+def _empty_cli_window(language: str) -> dict[str, object]:
+    return {
+        "percent": None,
+        "percentText": "--",
+        "resetText": _t(language, "reset_placeholder"),
+    }
+
+
+def _cli_status_payload(
+    snapshot: UsageSnapshot,
+    language: str,
+    now: float,
+) -> dict[str, object]:
+    data = _read_cli_status_data(snapshot)
+    if data is None:
+        return _empty_cli_status(language)
+
+    status = _empty_cli_status(language)
+    status["available"] = True
+    status["program"] = _cli_program_name(data)
+    status["fiveHour"] = _cli_rate_window(
+        snapshot.current_percent,
+        snapshot.current_reset_at,
+        language,
+        now,
+    )
+    status["sevenDay"] = _cli_rate_window(
+        snapshot.weekly_percent,
+        snapshot.weekly_reset_at,
+        language,
+        now,
+    )
+
+    context = _as_mapping(data.get("context_window"))
+    used_pct = _as_float(context.get("used_percentage"))
+    max_tokens = _as_int(context.get("context_window_size"))
+    used_tokens = _context_used_tokens(context, max_tokens, used_pct)
+    remaining_tokens = (
+        max(0, max_tokens - used_tokens)
+        if max_tokens is not None and used_tokens is not None
+        else None
+    )
+    status["context"] = {
+        "percent": used_pct,
+        "maxText": _format_cli_tokens(max_tokens),
+        "usedText": _format_cli_tokens(used_tokens),
+        "remainingText": _format_cli_tokens(remaining_tokens),
+    }
+
+    current_usage = _as_mapping(context.get("current_usage"))
+    turn_input = _sum_ints(
+        current_usage.get("input_tokens"),
+        current_usage.get("cache_creation_input_tokens"),
+    )
+    turn_output = _as_int(current_usage.get("output_tokens"))
+    status["tokens"] = {
+        "inputText": _format_cli_tokens(_as_int(context.get("total_input_tokens"))),
+        "outputText": _format_cli_tokens(_as_int(context.get("total_output_tokens"))),
+        "turnInputText": _format_cli_tokens(turn_input),
+        "turnOutputText": _format_cli_tokens(turn_output),
+    }
+    status["cache"] = {
+        "readText": _format_cli_tokens(_as_int(current_usage.get("cache_read_input_tokens"))),
+        "creationText": _format_cli_tokens(
+            _as_int(current_usage.get("cache_creation_input_tokens"))
+        ),
+    }
+
+    cost = _as_mapping(data.get("cost"))
+    usd = _as_float(cost.get("total_cost_usd"))
+    status["cost"] = {
+        "usdText": "--" if usd is None else f"${usd:.2f}",
+        "twdText": "--" if usd is None else f"NT${int(usd * 32):,}",
+    }
+    duration_ms = _as_float(cost.get("total_duration_ms"))
+    status["session"] = {
+        "durationText": "--"
+        if duration_ms is None or duration_ms <= 0
+        else _format_cli_duration(duration_ms / 1000),
+    }
+    status["model"] = _cli_model_name(data, language)
+    return status
+
+
+def _read_cli_status_data(snapshot: UsageSnapshot) -> dict[str, object] | None:
+    paths = (
+        (STATUS_FILE, "hook"),
+        (LEGACY_STATUS_FILE, "hook"),
+        (TT_STATUS_FILE, "tt-fallback"),
+    )
+    for path, source in paths:
+        if snapshot.data_source != source or not os.path.exists(path):
+            continue
+        try:
+            with open(path, encoding="utf-8") as file:
+                data = json.load(file)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if isinstance(data, dict):
+            return cast(dict[str, object], data)
+    return None
+
+
+def _cli_rate_window(
+    percent: int | None,
+    resets_at: float,
+    language: str,
+    now: float,
+) -> dict[str, object]:
+    if percent is None:
+        return _empty_cli_window(language)
+    remaining = resets_at - now
+    return {
+        "percent": float(percent),
+        "percentText": _t(language, "percent_used", value=_format_percent(float(percent))),
+        "resetText": _t(language, "reset_in", time=format_human_time(remaining, language)),
+    }
+
+
+def _cli_program_name(data: dict[str, object]) -> str:
+    workspace = _as_mapping(data.get("workspace"))
+    project_dir = workspace.get("project_dir")
+    if isinstance(project_dir, str) and project_dir:
+        return os.path.basename(project_dir.rstrip(os.sep)) or "lollapalooza"
+    return "lollapalooza"
+
+
+def _cli_model_name(data: dict[str, object], language: str) -> str:
+    model = _as_mapping(data.get("model"))
+    model_name = str(model.get("display_name") or "")
+    if not model_name:
+        return "--"
+    effort = _as_mapping(data.get("effort")).get("level")
+    if isinstance(effort, str) and effort:
+        effort_label = _t(language, f"cli_effort_{effort}")
+        model_name += f"/{effort_label}"
+    if data.get("fast_mode") is True:
+        model_name += f" {_t(language, 'cli_fast_mode')}"
+    elif "fast_mode" in data:
+        model_name += "/nofast"
+    return model_name
+
+
+def _context_used_tokens(
+    context: dict[str, object],
+    max_tokens: int | None,
+    used_pct: float | None,
+) -> int | None:
+    total = _sum_ints(context.get("total_input_tokens"), context.get("total_output_tokens"))
+    if total is not None and total > 0:
+        return total
+    if max_tokens is not None and used_pct is not None:
+        return round(max_tokens * max(0.0, min(100.0, used_pct)) / 100)
+    return None
+
+
+def _as_mapping(value: object) -> dict[str, object]:
+    if isinstance(value, dict):
+        return cast(dict[str, object], value)
+    return {}
+
+
+def _as_float(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        numeric = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(numeric):
+        return None
+    return numeric
+
+
+def _as_int(value: object) -> int | None:
+    numeric = _as_float(value)
+    if numeric is None:
+        return None
+    return max(0, int(numeric))
+
+
+def _sum_ints(*values: object) -> int | None:
+    total = 0
+    found = False
+    for value in values:
+        parsed = _as_int(value)
+        if parsed is None:
+            continue
+        found = True
+        total += parsed
+    return total if found else None
+
+
+def _format_cli_tokens(value: int | None) -> str:
+    if value is None:
+        return "--"
+    return f"{value:,}"
+
+
+def _format_cli_duration(seconds: float) -> str:
+    if seconds >= 86400:
+        days, remainder = divmod(int(seconds), 86400)
+        return f"{days}d{remainder // 3600}h"
+    if seconds >= 3600:
+        hours, remainder = divmod(int(seconds), 3600)
+        return f"{hours}h{remainder // 60}m"
+    if seconds >= 60:
+        return f"{int(seconds // 60)}min"
+    return f"{int(seconds)}s"
 
 
 def _today_title(
