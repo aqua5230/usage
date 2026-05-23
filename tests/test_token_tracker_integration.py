@@ -27,8 +27,10 @@ def test_all_languages_have_cli_statusline_labels() -> None:
         assert table["cli"] == "CLI"
         assert table["cli_disabled"] == "CLI"
         assert table["cli_enabled"] == "CLI ✓"
-        assert "statusline_installed" in table
-        assert "statusline_uninstalled" in table
+        removed_statusline_message_keys = {
+            "statusline_" + suffix for suffix in ("installed", "uninstalled")
+        }
+        assert removed_statusline_message_keys.isdisjoint(table)
         assert not any(key.startswith("cli_five_hour") for key in table)
 
 

@@ -234,7 +234,6 @@ class AppDelegate(NSObject):
     codex_5h_pct = objc.ivar()
     burn_rate_trackers = objc.ivar()
     _refresh_in_flight = objc.ivar()
-    _statusline_notice = objc.ivar()
     language = objc.ivar()
 
     def initWithMock_interval_(self, mock: bool, interval: int) -> AppDelegate:
@@ -255,7 +254,6 @@ class AppDelegate(NSObject):
             "codex_weekly": BurnRateTracker(),
         }
         self._refresh_in_flight = False
-        self._statusline_notice = None
         return self
 
     def applicationDidFinishLaunching_(self, notification: Any) -> None:
@@ -478,50 +476,32 @@ class AppDelegate(NSObject):
 
     def _statusline_action_in_background(self, action: str) -> None:
         output = io.StringIO()
-        exit_code = 1
-        resolved_action = action
         try:
             with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
                 if action == "toggle":
-                    resolved_action, exit_code = _toggle_statusline_settings()
+                    _toggle_statusline_settings()
                 elif action == "uninstall":
-                    exit_code = _disable_statusline_settings()
+                    _disable_statusline_settings()
                 else:
-                    exit_code = _enable_statusline_settings()
+                    _enable_statusline_settings()
         except SystemExit as exc:
-            exit_code = exc.code if isinstance(exc.code, int) else 1
             if exc.code:
                 print(exc.code, file=output)
         except Exception as exc:
             print(f"{type(exc).__name__}: {exc}", file=output)
 
-        result = {
-            "action": resolved_action,
-            "success": exit_code == 0,
-            "message": output.getvalue().strip(),
-        }
         self.performSelectorOnMainThread_withObject_waitUntilDone_(
             "_finishStatuslineAction:",
-            result,
+            {},
             False,
         )
 
     def _finishStatuslineAction_(self, result: dict[str, Any]) -> None:
-        action = str(result["action"])
-        if result["success"]:
-            key = "statusline_uninstalled" if action == "uninstall" else "statusline_installed"
-            self._statusline_notice = _t(self.language, key)
-        else:
-            detail = str(result.get("message") or _t(self.language, "hook_install_failed_default"))
-            self._statusline_notice = f"{_t(self.language, 'hook_install_failed')}: {detail}"
         self._refresh()
         self._refresh_statusline_state()
 
     def _refresh_statusline_state(self) -> None:
-        self.latest_state.statusline = _statusline_payload(
-            self.language,
-            str(self._statusline_notice) if self._statusline_notice else "",
-        )
+        self.latest_state.statusline = _statusline_payload(self.language)
         self.popover_controller.setState_(self.latest_state)
 
     def _analyze_usage_in_background(self) -> None:
@@ -631,10 +611,7 @@ class AppDelegate(NSObject):
             rate_text=_t(self.language, "rate_text", value=group_name),
             status_text=status_text,
             today_text=today_text,
-            statusline=_statusline_payload(
-                self.language,
-                str(self._statusline_notice) if self._statusline_notice else "",
-            ),
+            statusline=_statusline_payload(self.language),
             show_install_button=outcome.state == PollState.TOKEN_ERROR,
         )
 
@@ -899,12 +876,11 @@ def _missing_row(
 
 
 
-def _statusline_payload(language: str, message: str = "") -> dict[str, object]:
+def _statusline_payload(language: str) -> dict[str, object]:
     return {
         "enabled": _statusline_enabled(),
         "enabledText": _t(language, "cli_enabled"),
         "disabledText": _t(language, "cli_disabled"),
-        "message": message,
     }
 
 

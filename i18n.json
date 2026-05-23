@@ -64,9 +64,7 @@
     "analyze": "分析",
     "cli": "CLI",
     "cli_enabled": "CLI ✓",
-    "cli_disabled": "CLI",
-    "statusline_installed": "statusline 已啟用",
-    "statusline_uninstalled": "statusline 已停用"
+    "cli_disabled": "CLI"
   },
   "en": {
     "panel_default_name": "Default",
@@ -133,9 +131,7 @@
     "analyze": "Analyze",
     "cli": "CLI",
     "cli_enabled": "CLI ✓",
-    "cli_disabled": "CLI",
-    "statusline_installed": "statusline enabled",
-    "statusline_uninstalled": "statusline disabled"
+    "cli_disabled": "CLI"
   },
   "zh-CN": {
     "panel_default_name": "默认",
@@ -202,9 +198,7 @@
     "analyze": "分析",
     "cli": "CLI",
     "cli_enabled": "CLI ✓",
-    "cli_disabled": "CLI",
-    "statusline_installed": "statusline 已启用",
-    "statusline_uninstalled": "statusline 已停用"
+    "cli_disabled": "CLI"
   },
   "ja": {
     "panel_default_name": "デフォルト",
@@ -271,9 +265,7 @@
     "analyze": "分析",
     "cli": "CLI",
     "cli_enabled": "CLI ✓",
-    "cli_disabled": "CLI",
-    "statusline_installed": "statusline を有効にしました",
-    "statusline_uninstalled": "statusline を無効にしました"
+    "cli_disabled": "CLI"
   },
   "ko": {
     "panel_default_name": "기본",
@@ -340,8 +332,6 @@
     "analyze": "분석",
     "cli": "CLI",
     "cli_enabled": "CLI ✓",
-    "cli_disabled": "CLI",
-    "statusline_installed": "statusline 활성화됨",
-    "statusline_uninstalled": "statusline 비활성화됨"
+    "cli_disabled": "CLI"
   }
 }

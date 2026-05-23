@@ -559,7 +559,6 @@
           <button class="range-chip" data-action="toggle-statusline" data-i18n="cli">CLI</button>
         </header>
         <div data-project-list></div>
-        <div data-statusline-message hidden></div>
       </section>
 
       <section class="footer">
@@ -774,12 +773,6 @@
         const enabled = data.enabled === true;
         button.dataset.active = enabled ? "true" : "false";
         button.textContent = enabled ? t("cli_enabled") : t("cli_disabled");
-      }
-      const message = document.querySelector("[data-statusline-message]");
-      if (message) {
-        const text = data.message || "";
-        message.hidden = !text;
-        message.textContent = text;
       }
     }
 
