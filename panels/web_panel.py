@@ -68,6 +68,8 @@ class UsageScriptBridge(NSObject):
             self.delegate.installHook_(None)
         elif action == "switch":
             self.delegate.switchPanel_(self.web_view)
+        elif action == "analyze":
+            self.delegate.analyzeUsage_(None)
 
 
 class WebPanelView(WKWebView):

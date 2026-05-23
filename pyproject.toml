@@ -31,7 +31,13 @@ py-modules = [
     "usage_client",
     "codex_loader",
     "tui_sprite",
+    "tt_cli",
+    "tt_hooks",
+    "tt_i18n",
 ]
+
+[tool.setuptools.packages.find]
+include = ["adapters*", "analyzer*", "ui*"]
 
 [dependency-groups]
 dev = [
@@ -55,13 +61,25 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 # usage_statusline.py 設計成可以用系統 python3 跑（macOS 內建是 3.9），
 # 必須避開 3.11+ 才有的 datetime.UTC，用 timezone.utc 取代。
 "usage_statusline.py" = ["UP017"]
+# token-tracker source is imported with minimal path fixes; keep its original
+# formatting stable for this integration commit.
+"adapters/**/*.py" = ["E501", "I001", "SIM108", "UP015", "UP017"]
+"analyzer/**/*.py" = ["E501", "I001", "UP015", "UP017"]
+"ui/**/*.py" = ["E501", "I001", "UP017", "UP035"]
+"tt_cli.py" = ["E501", "I001", "UP017"]
+"tt_hooks.py" = ["E501", "I001", "UP015"]
+"tt_i18n.py" = ["E501"]
 
 [tool.mypy]
 python_version = "3.13"
 strict = true
 warn_unused_configs = true
 pretty = true
-exclude = "^(build|dist)/"
+exclude = "^(build|dist|adapters|analyzer|ui)/|^(tt_cli|tt_hooks|tt_i18n)\\.py$"
+
+[[tool.mypy.overrides]]
+module = ["adapters.*", "analyzer.*", "ui.*"]
+follow_imports = "skip"
 
 [[tool.mypy.overrides]]
 module = "rich.*"

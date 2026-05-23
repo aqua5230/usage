@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import objc
 from AppKit import (
@@ -293,6 +293,10 @@ class AppDelegate(NSObject):
         thread = threading.Thread(target=self._install_hook_in_background, daemon=True)
         thread.start()
 
+    def analyzeUsage_(self, sender: Any) -> None:
+        thread = threading.Thread(target=self._analyze_usage_in_background, daemon=True)
+        thread.start()
+
     def quitApp_(self, sender: Any) -> None:
         if self.timer is not None:
             self.timer.invalidate()
@@ -444,6 +448,29 @@ class AppDelegate(NSObject):
             )
         alert.runModal()
         self._refresh()
+
+    def _analyze_usage_in_background(self) -> None:
+        result: dict[str, str | bool]
+        try:
+            saved = _generate_analysis_report()
+            result = {"success": True, "message": saved}
+        except Exception as exc:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("analysis report failed", exc_info=True)
+            result = {"success": False, "message": f"{type(exc).__name__}: {exc}"}
+        self.performSelectorOnMainThread_withObject_waitUntilDone_(
+            "_finishAnalyzeUsage:",
+            result,
+            False,
+        )
+
+    def _finishAnalyzeUsage_(self, result: dict[str, Any]) -> None:
+        if result["success"]:
+            return
+        alert = NSAlert.alloc().init()
+        alert.setMessageText_(_t(self.language, "analysis_failed"))
+        alert.setInformativeText_(str(result["message"]))
+        alert.runModal()
 
     async def _fetch(self) -> PollOutcome:
         client = ClaudeUsageClient(mock=self.mock)
@@ -684,6 +711,16 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
     _APP_DELEGATE = AppDelegate.alloc().initWithMock_interval_(mock, interval)
     app.setDelegate_(_APP_DELEGATE)
     app.run()
+
+
+def _generate_analysis_report(period: str = "month") -> str:
+    from adapters.registry import detect_agents
+    from analyzer.reporter import build_report_data
+    from ui.html_report import save_and_open
+
+    agents = detect_agents()
+    data = build_report_data(agents, period)
+    return cast(str, save_and_open(data))
 
 
 def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
