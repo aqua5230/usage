@@ -11,6 +11,7 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
+from i18n import packaged_resource_path
 from usage_client import ClaudeUsageClient, PollOutcome, PollState
 from usage_lang import detect_lang
 from usage_rate import UsageRateTracker
@@ -54,7 +55,10 @@ def _setup_logging() -> None:
 
 def _i18n_text(language: str, key: str) -> str:
     try:
-        data = json.loads(Path(__file__).with_name("i18n.json").read_text(encoding="utf-8"))
+        i18n_path = packaged_resource_path(
+            "i18n.json", Path(__file__).with_name("i18n.json")
+        )
+        data = json.loads(i18n_path.read_text(encoding="utf-8"))
         table = data.get(language) or data.get("en") or {}
         return str(table.get(key) or data.get("en", {}).get(key) or key)
     except (OSError, json.JSONDecodeError, AttributeError):

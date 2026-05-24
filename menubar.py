@@ -45,7 +45,7 @@ import panels
 import update_checker
 from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
 from history_loader import UsageEntry, load_entries
-from i18n import _t
+from i18n import _t, packaged_resource_path
 from main import _load_preferences, _save_preferences
 from panels.base import Panel as UsagePanel
 from panels.base import load_active_panel_id, save_active_panel_id
@@ -135,7 +135,9 @@ def _current_version() -> str:
     try:
         return metadata.version("usage")
     except metadata.PackageNotFoundError as exc:
-        pyproject = Path(__file__).with_name("pyproject.toml")
+        pyproject = packaged_resource_path(
+            "pyproject.toml", Path(__file__).with_name("pyproject.toml")
+        )
         data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
         version = data.get("project", {}).get("version")
         if isinstance(version, str):

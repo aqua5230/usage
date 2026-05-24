@@ -14,6 +14,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
+from i18n import packaged_resource_path
 from tui_sprite import render_sprite
 from usage_client import PollState, UsageSnapshot
 
@@ -30,7 +31,7 @@ SPINNER_FRAMES = ["·", "✻", "✽", "✶", "✳", "✢"]
 SPINNER_PHASES = [0, 1, 2, 3, 4, 5, 4, 3, 2, 1]
 SPINNER_PHASE_MS = [260, 130, 130, 130, 130, 260, 130, 130, 130, 130]
 LOADING_INTERVAL_MS = 4000
-I18N_PATH = Path(__file__).with_name("i18n.json")
+I18N_PATH = packaged_resource_path("i18n.json", Path(__file__).with_name("i18n.json"))
 
 
 @lru_cache(maxsize=1)
