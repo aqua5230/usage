@@ -1,10 +1,30 @@
 from __future__ import annotations
 
+from datetime import date
 from typing import Any
 
 import pytest
 
+import tips_loader
 from ui import html_report
+
+
+class _FixedDate:
+    """Pin date.today() so tip rotation is deterministic in tests.
+
+    tips_loader picks `commands[date.today().toordinal() % len(commands)]`;
+    2026-05-24 lands on index 0 (/compact), which the tip-content assertions
+    below depend on.
+    """
+
+    @staticmethod
+    def today() -> date:
+        return date(2026, 5, 24)
+
+
+@pytest.fixture(autouse=True)
+def _pin_tip_date(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(tips_loader, "date", _FixedDate)
 
 
 def _report_data() -> dict[str, Any]:
