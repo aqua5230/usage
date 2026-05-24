@@ -124,6 +124,22 @@ def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
     assert row.reset_text == "重置 18分鐘"
 
 
+def test_quota_row_keeps_reset_text_when_forecast_exceeds_warning_max() -> None:
+    row = menubar._quota_row(
+        "Weekly",
+        82.0,
+        1_000.0 + (4 * 86400),
+        1_000.0,
+        menubar.CODEX_COLOR,
+        language="zh-TW",
+        forecast_seconds=25 * 3600,
+        warning_max_seconds=24 * 3600,
+    )
+
+    assert row.warning is False
+    assert row.reset_text == "重置 4天 0小時"
+
+
 def test_quota_row_keeps_reset_text_when_percent_is_below_warning_floor() -> None:
     row = menubar._quota_row(
         "Session",

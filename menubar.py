@@ -559,6 +559,7 @@ class AppDelegate(NSObject):
                 CLAUDE_COLOR,
                 self.language,
                 forecast_seconds=self.burn_rate_trackers["claude_weekly"].forecast_seconds(),
+                warning_max_seconds=24 * 3600,
             )
             status_value = outcome.message or _t(self.language, "status_synced")
             if snapshot.is_stale or snapshot.data_source != "hook":
@@ -616,6 +617,7 @@ class AppDelegate(NSObject):
                     CODEX_COLOR,
                     self.language,
                     forecast_seconds=self.burn_rate_trackers["codex_weekly"].forecast_seconds(),
+                    warning_max_seconds=24 * 3600,
                 ),
             )
             return rows, 12
@@ -660,6 +662,7 @@ class AppDelegate(NSObject):
                 CODEX_COLOR,
                 self.language,
                 forecast_seconds=self.burn_rate_trackers["codex_weekly"].forecast_seconds(),
+                warning_max_seconds=24 * 3600,
             ),
         )
         return rows, codex_5h_pct
@@ -805,6 +808,7 @@ def _quota_row(
     color: tuple[float, float, float],
     language: str = "en",
     forecast_seconds: float | None = None,
+    warning_max_seconds: float | None = None,
 ) -> QuotaRowState:
     if pct is None or resets_at is None:
         return _missing_row(title, color, language)
@@ -814,6 +818,7 @@ def _quota_row(
     if (
         forecast_seconds is not None
         and 0 < forecast_seconds < time_to_reset
+        and (warning_max_seconds is None or forecast_seconds < warning_max_seconds)
         and pct >= WARNING_PERCENT_FLOOR
     ):
         warning_seconds = forecast_seconds
