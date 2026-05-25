@@ -6,6 +6,7 @@ import os
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -26,6 +27,105 @@ def test_save_writes_status_json_with_received_metadata(
     assert data["rate_limits"] == {"status": "ok"}
     assert data["_received_at"] == now.isoformat()
     assert data["_received_at_ts"] == now.timestamp()
+
+
+def _write_prefs(path: Path, prefs: dict[str, Any]) -> None:
+    path.write_text(json.dumps(prefs), encoding="utf-8")
+
+
+def test_read_update_hint_returns_latest_when_fresh_and_newer(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    prefs_file = tmp_path / "usage-preferences.json"
+    _write_prefs(prefs_file, {
+        "last_update_check": {
+            "checked_at": 1000.0,
+            "current_version": "0.11.3",
+            "latest_version": "0.12.0",
+            "release_url": "https://x",
+        },
+    })
+    monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
+
+    assert usage_statusline._read_update_hint(1000.0) == "0.12.0"
+
+
+def test_read_update_hint_returns_none_when_same_version(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    prefs_file = tmp_path / "usage-preferences.json"
+    _write_prefs(prefs_file, {
+        "last_update_check": {
+            "checked_at": 1000.0,
+            "current_version": "0.11.3",
+            "latest_version": "0.11.3",
+            "release_url": None,
+        },
+    })
+    monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
+
+    assert usage_statusline._read_update_hint(1000.0) is None
+
+
+def test_read_update_hint_respects_skipped_version(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    prefs_file = tmp_path / "usage-preferences.json"
+    _write_prefs(prefs_file, {
+        "update_skipped_version": "0.12.0",
+        "last_update_check": {
+            "checked_at": 1000.0,
+            "current_version": "0.11.3",
+            "latest_version": "0.12.0",
+            "release_url": "https://x",
+        },
+    })
+    monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
+
+    assert usage_statusline._read_update_hint(1000.0) is None
+
+
+def test_read_update_hint_returns_none_when_stale(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    prefs_file = tmp_path / "usage-preferences.json"
+    _write_prefs(prefs_file, {
+        "last_update_check": {
+            "checked_at": 1000.0,
+            "current_version": "0.11.3",
+            "latest_version": "0.12.0",
+            "release_url": "https://x",
+        },
+    })
+    monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
+
+    stale = 1000.0 + usage_statusline.UPDATE_HINT_STALE_SECONDS + 1
+    assert usage_statusline._read_update_hint(stale) is None
+
+
+def test_read_update_hint_handles_missing_file(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(
+        usage_statusline, "PREFERENCES_FILE", str(tmp_path / "does-not-exist.json")
+    )
+    assert usage_statusline._read_update_hint(1000.0) is None
+
+
+def test_read_update_hint_handles_malformed_json(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    prefs_file = tmp_path / "usage-preferences.json"
+    prefs_file.write_text("not json", encoding="utf-8")
+    monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
+
+    assert usage_statusline._read_update_hint(1000.0) is None
 
 
 def test_save_cleans_temp_file_when_atomic_replace_fails(

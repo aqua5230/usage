@@ -305,6 +305,80 @@ def test_auto_update_disabled_skips_background_check(monkeypatch: pytest.MonkeyP
     assert called is False
 
 
+def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.MonkeyPatch) -> None:
+    saved: list[dict[str, Any]] = []
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": True})
+    monkeypatch.setattr(menubar, "_save_preferences", lambda d: saved.append(dict(d)))
+    monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
+    monkeypatch.setattr("menubar.time.time", lambda: 1700000000.0)
+    fake_release = SimpleNamespace(version="0.12.0", html_url="https://x/v0.12.0", body="")
+    monkeypatch.setattr(
+        "menubar.update_checker.check_latest_release_result",
+        lambda v: SimpleNamespace(failed=False, release=fake_release),
+    )
+    fake_self = SimpleNamespace(
+        performSelectorOnMainThread_withObject_waitUntilDone_=lambda *a: None,
+    )
+
+    menubar.AppDelegate._check_update_in_background(
+        cast(Any, fake_self),
+        manual=False,
+        ignore_cooldown=False,
+        ignore_skipped=True,
+    )
+
+    assert saved
+    cache = saved[-1]["last_update_check"]
+    assert cache["current_version"] == "0.11.3"
+    assert cache["latest_version"] == "0.12.0"
+    assert cache["release_url"] == "https://x/v0.12.0"
+    assert cache["checked_at"] == 1700000000.0
+
+
+def test_check_update_writes_cache_when_no_release(monkeypatch: pytest.MonkeyPatch) -> None:
+    saved: list[dict[str, Any]] = []
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": True})
+    monkeypatch.setattr(menubar, "_save_preferences", lambda d: saved.append(dict(d)))
+    monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
+    monkeypatch.setattr("menubar.time.time", lambda: 1700000000.0)
+    monkeypatch.setattr(
+        "menubar.update_checker.check_latest_release_result",
+        lambda v: SimpleNamespace(failed=False, release=None),
+    )
+
+    menubar.AppDelegate._check_update_in_background(
+        cast(Any, object()),
+        manual=False,
+        ignore_cooldown=False,
+        ignore_skipped=False,
+    )
+
+    assert saved
+    cache = saved[-1]["last_update_check"]
+    assert cache["latest_version"] == "0.11.3"
+    assert cache["release_url"] is None
+
+
+def test_check_update_skips_cache_on_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    saved: list[dict[str, Any]] = []
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": True})
+    monkeypatch.setattr(menubar, "_save_preferences", lambda d: saved.append(dict(d)))
+    monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
+    monkeypatch.setattr(
+        "menubar.update_checker.check_latest_release_result",
+        lambda v: SimpleNamespace(failed=True, release=None),
+    )
+
+    menubar.AppDelegate._check_update_in_background(
+        cast(Any, object()),
+        manual=False,
+        ignore_cooldown=False,
+        ignore_skipped=False,
+    )
+
+    assert saved == []
+
+
 def test_statusline_enabled_detects_usage_hook(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

@@ -565,6 +565,14 @@ class AppDelegate(NSObject):
             return
 
         release = check_result.release
+        prefs["last_update_check"] = {
+            "checked_at": time.time(),
+            "current_version": current_version,
+            "latest_version": release.version if release else current_version,
+            "release_url": release.html_url if release else None,
+        }
+        _save_preferences(prefs)
+
         if release is None:
             if manual:
                 self.performSelectorOnMainThread_withObject_waitUntilDone_(
