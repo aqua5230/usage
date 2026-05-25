@@ -41,12 +41,6 @@ flowchart LR
     style F stroke:#c0392b,stroke-dasharray:5 5
 ```
 
-<p align="center">
-  <img src="docs/statusline.en.png" alt="Claude Code statusLine display (English)" width="640">
-  <br>
-  <sub>What you see at the bottom of the Claude Code window: 5h / 7d quota bars, context usage, session duration, current model — all on one line. Percentages share the bar color, so the warning level reads at a glance.</sub>
-</p>
-
 Read priority:
 
 1. `~/.claude/usage-status.json` — written by the hook usage installs.
@@ -94,6 +88,14 @@ If the button doesn't show, usage is already reading data (e.g. you previously i
 > cat /tmp/usage-install.sh   # review the script before running
 > bash /tmp/usage-install.sh
 > ```
+
+After the hook is installed and Claude Code is restarted, the bottom of the Claude Code window will show a statusLine like this — **5h / 7d quota bars, context usage, session duration, current model — all on one line**. Percentages share the bar color (yellow / green / red), so the warning level reads at a glance:
+
+<p align="center">
+  <img src="docs/statusline.en.png" alt="Claude Code statusLine display (English)" width="640">
+</p>
+
+To toggle the statusLine on / off later (e.g. you want to see Claude Code's native status line), click the **CLI ✓** button in the menubar popover's "Projects" section toolbar — no need to run `--unsetup` / `--setup` again.
 
 ## Download
 
