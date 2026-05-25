@@ -10,6 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Fixed
 - **Visible popovers are repositioned when switching panels**: changing the active theme/panel while the popover is open now closes the old popover, rebuilds the content and size, then shows it again to avoid transient indentation or sizing glitches.
 - **Codex project usage and analysis reports now share one counting path**: when the same Codex session appears in multiple JSONL files, usage keeps the newer cumulative token entry; analysis reports now reuse `codex_loader.load_entries()`, and Project Usage includes Codex sessions so the app and report do not disagree for the same local data. Project Usage's Today range now matches the footer's local calendar day, and the footer no longer reloads Codex when the caller already supplied Codex entries.
+- **Matrix panel Project Usage header no longer truncates the title**: with CJK titles (e.g. zh-TW「專案用量」), the original `.brand` layout squeezed `[TODAY]/[ANALYZE]/[CLI]` against the title, clipping it to `專案用...`. `.card[data-card="projects"] .brand` is now a two-row grid: icon + title on top, three action buttons evenly distributed below.
 
 ## [0.11.4] - 2026-05-25
 
