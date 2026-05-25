@@ -32,8 +32,7 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
     if not SESSIONS_DIR.is_dir():
         return []
 
-    entries: list[UsageEntry] = []
-    seen: set[str] = set()
+    entries_by_session: dict[str, UsageEntry] = {}
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
     cutoff_ts = cutoff.timestamp() if cutoff else None
     models = _load_thread_models()
@@ -47,13 +46,21 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
                 logger.warning("failed to stat session log %s: %s", jsonl_path, exc)
                 continue
         entry = _parse_jsonl(jsonl_path, models, cutoff)
-        if entry is None or entry.session_id in seen:
+        if entry is None:
             continue
-        seen.add(entry.session_id)
-        entries.append(entry)
+        existing = entries_by_session.get(entry.session_id)
+        if existing is None or _is_better_session_entry(entry, existing):
+            entries_by_session[entry.session_id] = entry
 
+    entries = list(entries_by_session.values())
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
+
+
+def _is_better_session_entry(candidate: UsageEntry, existing: UsageEntry) -> bool:
+    if candidate.timestamp != existing.timestamp:
+        return candidate.timestamp > existing.timestamp
+    return candidate.total_tokens > existing.total_tokens
 
 
 def load_rate_limits() -> CodexRateLimits | None:

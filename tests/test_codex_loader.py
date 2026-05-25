@@ -81,6 +81,60 @@ def test_load_entries_parses_valid_jsonl_and_filters_by_hours_back(
     assert recent_entries[0].output_tokens == 7
 
 
+def test_load_entries_keeps_latest_duplicate_session(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    older_ts = (datetime.now(UTC) - timedelta(minutes=10)).isoformat()
+    newer_ts = (datetime.now(UTC) - timedelta(minutes=1)).isoformat()
+    _write_session(
+        sessions_dir / "older.jsonl",
+        session_id="session-1",
+        timestamp=older_ts,
+        usage={"input_tokens": 10, "cached_input_tokens": 0, "output_tokens": 5},
+    )
+    _write_session(
+        sessions_dir / "newer.jsonl",
+        session_id="session-1",
+        timestamp=newer_ts,
+        usage={"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 50},
+    )
+
+    entries = codex_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].timestamp == datetime.fromisoformat(newer_ts)
+    assert entries[0].total_tokens == 150
+
+
+def test_load_entries_uses_larger_duplicate_when_timestamps_match(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    timestamp = datetime.now(UTC).isoformat()
+    _write_session(
+        sessions_dir / "small.jsonl",
+        session_id="session-1",
+        timestamp=timestamp,
+        usage={"input_tokens": 10, "cached_input_tokens": 0, "output_tokens": 5},
+    )
+    _write_session(
+        sessions_dir / "large.jsonl",
+        session_id="session-1",
+        timestamp=timestamp,
+        usage={"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 50},
+    )
+
+    entries = codex_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].total_tokens == 150
+
+
 def test_parse_jsonl_skips_bad_lines_and_missing_fields(tmp_path: Path) -> None:
     path = tmp_path / "bad.jsonl"
     path.write_text(

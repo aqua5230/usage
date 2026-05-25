@@ -534,6 +534,41 @@ def test_project_rows_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     assert delegate._project_rows(hours_back=24) == []
 
 
+def test_load_history_entries_includes_codex_entries(monkeypatch: pytest.MonkeyPatch) -> None:
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    claude_entry = history_loader.UsageEntry(
+        timestamp=datetime(2026, 5, 21, tzinfo=UTC),
+        session_id="claude",
+        message_id="m1",
+        request_id="r1",
+        model="claude",
+        input_tokens=1,
+        output_tokens=2,
+        cache_creation_tokens=3,
+        cache_read_tokens=4,
+        cost_usd=0.1,
+        project="usage",
+    )
+    codex_entry = history_loader.UsageEntry(
+        timestamp=datetime(2026, 5, 21, tzinfo=UTC),
+        session_id="codex",
+        message_id="m2",
+        request_id="r2",
+        model="gpt",
+        input_tokens=5,
+        output_tokens=6,
+        cache_creation_tokens=7,
+        cache_read_tokens=8,
+        cost_usd=0.2,
+        project="usage",
+    )
+
+    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back: [claude_entry])
+    monkeypatch.setattr("menubar.codex_loader.load_entries", lambda *, hours_back: [codex_entry])
+
+    assert delegate._load_history_entries() == [claude_entry, codex_entry]
+
+
 def test_project_rows_top3(monkeypatch: pytest.MonkeyPatch) -> None:
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
 

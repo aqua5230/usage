@@ -6,6 +6,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+import codex_loader
 from adapters import claude, codex
 from adapters.types import AgentInfo, UsageEntry
 from pricing import calculate_cost
@@ -40,8 +41,24 @@ def _period_bounds(period: str, today: date) -> tuple[date | None, date]:
 def _load_agent_entries(agent: AgentInfo, hours_back: int = 0) -> list[UsageEntry]:
     if hours_back > 0 and agent.id == "claude-code":
         return _load_recent_claude_entries(hours_back)
-    if hours_back > 0 and agent.id == "codex":
-        return _load_recent_codex_entries(hours_back)
+    if agent.id == "codex":
+        return [
+            UsageEntry(
+                timestamp=entry.timestamp,
+                session_id=entry.session_id,
+                message_id=entry.message_id,
+                request_id=entry.request_id,
+                model=entry.model,
+                input_tokens=entry.input_tokens,
+                output_tokens=entry.output_tokens,
+                cache_creation_tokens=entry.cache_creation_tokens,
+                cache_read_tokens=entry.cache_read_tokens,
+                cost_usd=entry.cost_usd,
+                project=entry.project,
+                agent_id=agent.id,
+            )
+            for entry in codex_loader.load_entries(hours_back=hours_back)
+        ]
     loader = AGENT_LOADERS.get(agent.id)
     if loader is None:
         return []

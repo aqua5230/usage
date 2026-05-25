@@ -8,6 +8,7 @@
 
 ### 修正
 - **切換面板時重新定位已開啟的 popover**：使用者在 popover 開啟狀態下切換 theme/panel 時，先關閉舊 popover、重建內容與尺寸後再重新顯示，避免視圖短暫縮排或尺寸錯亂。
+- **Codex 專案用量與分析報告統一算法**：同一個 Codex session 出現在多個 JSONL 檔時，改選較新的 cumulative token entry；分析報告改共用 `codex_loader.load_entries()`，Project Usage 也納入 Codex session，避免同一份資料在 app 與 report 顯示不同數字。
 
 ## [0.11.4] - 2026-05-25
 

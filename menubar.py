@@ -976,12 +976,18 @@ class AppDelegate(NSObject):
     def _load_history_entries(self) -> list[UsageEntry]:
         if self.mock:
             return []
+        entries: list[UsageEntry] = []
         try:
-            return load_entries(hours_back=720)
+            entries.extend(load_entries(hours_back=720))
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("project usage load failed", exc_info=True)
-            return []
+                logger.warning("Claude project usage load failed", exc_info=True)
+        try:
+            entries.extend(codex_loader.load_entries(hours_back=720))
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Codex project usage load failed", exc_info=True)
+        return entries
 
     def _project_rows(
         self,
