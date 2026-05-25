@@ -382,7 +382,7 @@ def main():
         console.print(f"[dim]{t('detected', agents=', '.join(a.name + ' ✓' for a in agents))}[/dim]")
 
     if not is_setup():
-        setup(auto=True)
+        setup()
     elif needs_update():
         update_hook()
 
