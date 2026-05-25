@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta, timezone
 
 from adapters.types import DailyStats, P90Limits, SessionBlock, UsageEntry
-
-from .cost import calculate_cost
+from pricing import calculate_cost
 
 BLOCK_DURATION = timedelta(hours=5)
 

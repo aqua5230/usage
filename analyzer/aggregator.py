@@ -1,8 +1,7 @@
 from collections import defaultdict
 
 from adapters.types import DailyStats, MonthlyStats, SessionStats, UsageEntry, WeeklyStats
-
-from .cost import calculate_cost
+from pricing import calculate_cost
 
 
 def aggregate_daily(entries: list[UsageEntry]) -> list[DailyStats]:

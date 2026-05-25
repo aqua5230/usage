@@ -8,9 +8,9 @@ from pathlib import Path
 
 from adapters import claude, codex
 from adapters.types import AgentInfo, UsageEntry
+from pricing import calculate_cost
 
 from .aggregator import aggregate_sessions
-from .cost import calculate_cost
 
 AGENT_LOADERS = {"claude-code": claude, "codex": codex}
 AGENT_NAMES = {"claude-code": "Claude Code", "codex": "Codex"}

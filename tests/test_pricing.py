@@ -11,6 +11,7 @@ from pathlib import Path
 import pytest
 
 import pricing
+from adapters.types import UsageEntry as AnalyzerUsageEntry
 from history_loader import UsageEntry
 
 
@@ -76,6 +77,36 @@ def test_calculate_cost_sums_all_token_types(monkeypatch: pytest.MonkeyPatch) ->
         )
         == 30.0
     )
+
+
+def test_calculate_cost_accepts_analyzer_usage_entry(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        pricing,
+        "get_pricing",
+        lambda: {
+            "claude-opus-4-7": {
+                "input_cost_per_token": 15e-6,
+                "output_cost_per_token": 75e-6,
+            }
+        },
+    )
+    entry = AnalyzerUsageEntry(
+        timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+        session_id="session",
+        message_id="message",
+        request_id="request",
+        model="claude-opus-4-7",
+        input_tokens=1_000_000,
+        output_tokens=1_000_000,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=None,
+        project="project",
+        agent_id="claude-code",
+    )
+
+    assert pricing.calculate_cost(entry) == 90.0
+    assert entry.cost_usd == 90.0
 
 
 def test_resolve_model_key_exact_match() -> None:
@@ -151,6 +182,18 @@ def test_fallback_pricing_contains_expected_models() -> None:
     assert "claude-opus-4-7" in fallback
     assert "claude-sonnet-4-6" in fallback
     assert "claude-haiku-4-5-20251001" in fallback
+    assert fallback["claude-opus-4-6"] == {
+        "input_cost_per_token": 15e-6,
+        "output_cost_per_token": 75e-6,
+        "cache_creation_input_token_cost": 18.75e-6,
+        "cache_read_input_token_cost": 1.5e-6,
+    }
+    assert fallback["claude-opus-4-7"] == {
+        "input_cost_per_token": 15e-6,
+        "output_cost_per_token": 75e-6,
+        "cache_creation_input_token_cost": 18.75e-6,
+        "cache_read_input_token_cost": 1.5e-6,
+    }
 
 
 def test_read_cache_missing_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
