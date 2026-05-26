@@ -26,6 +26,20 @@ SORT_KEYS = {
     "output": ("output_tokens", True),
 }
 
+REPORT_HELP = """Usage: usage report [--last30|--all|--today|--week|--month] [--out PATH]
+
+Generate an HTML usage report.
+
+Options:
+  --last30    Include the last 30 days (default)
+  --all       Include all usage data
+  --today     Include today only
+  --week      Include this week
+  --month     Include this month
+  --out PATH  Save to a specific path
+  -h, --help  Show this help
+"""
+
 
 def _parse_sort_args(args: list[str]) -> tuple[list[str], str | None, bool]:
     """Extract --sort KEY and --asc from args, return (remaining, sort_key, descending)."""
@@ -47,6 +61,43 @@ def _parse_sort_args(args: list[str]) -> tuple[list[str], str | None, bool]:
             remaining.append(args[i])
             i += 1
     return remaining, sort_key, descending
+
+
+def _parse_report_args(args: list[str]) -> tuple[str, str | None, bool]:
+    period = "last30"
+    out_path = None
+    show_help = False
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg in {"-h", "--help"}:
+            show_help = True
+        elif arg == "--last30":
+            period = "last30"
+        elif arg == "--today":
+            period = "today"
+        elif arg == "--week":
+            period = "week"
+        elif arg == "--month":
+            period = "month"
+        elif arg == "--all":
+            period = "all"
+        elif arg.startswith("--out="):
+            out_path = arg[6:]
+        elif arg == "--out":
+            if i + 1 >= len(args) or args[i + 1].startswith("--"):
+                console.print("[red]Error:[/red] --out requires a path")
+                sys.exit(1)
+            out_path = args[i + 1]
+            i += 1
+        elif arg.startswith("-"):
+            console.print(f"[red]Error:[/red] unknown report option: {arg}")
+            sys.exit(1)
+        else:
+            console.print(f"[red]Error:[/red] unexpected report argument: {arg}")
+            sys.exit(1)
+        i += 1
+    return period, out_path, show_help
 
 
 def _apply_sort(stats, sort_key: str | None, descending: bool, default_attr: str, default_reverse: bool):
@@ -364,6 +415,9 @@ def main():
     if command in ("--version", "-v", "-V"):
         print(f"usage {_get_version()}")
         return
+    if command == "report" and any(arg in {"-h", "--help"} for arg in args[1:]):
+        console.print(REPORT_HELP)
+        return
     if command == "setup":
         setup()
         return
@@ -412,25 +466,10 @@ def main():
     rest_args, sort_key, sort_desc = _parse_sort_args(args[1:])
 
     if command == "report":
-        period = "last30"
-        out_path = None
-        i = 1
-        while i < len(args):
-            arg = args[i]
-            if arg == "--today":
-                period = "today"
-            elif arg == "--week":
-                period = "week"
-            elif arg == "--month":
-                period = "month"
-            elif arg == "--all":
-                period = "all"
-            elif arg.startswith("--out="):
-                out_path = arg[6:]
-            elif arg == "--out" and i + 1 < len(args):
-                out_path = args[i + 1]
-                i += 1
-            i += 1
+        period, out_path, show_help = _parse_report_args(args[1:])
+        if show_help:
+            console.print(REPORT_HELP)
+            return
         from analyzer.reporter import build_report_data
         from ui.html_report import save_and_open
 
