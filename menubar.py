@@ -185,6 +185,8 @@ CLAUDE_COLOR = (244 / 255, 145 / 255, 100 / 255)
 CODEX_COLOR = (88 / 255, 214 / 255, 230 / 255)
 WARN_COLOR = (255 / 255, 196 / 255, 57 / 255)
 DANGER_COLOR = (255 / 255, 69 / 255, 58 / 255)
+WEEKLY_FORECAST_WINDOW_SECONDS = 30 * 60
+WEEKLY_FORECAST_MIN_SPAN_SECONDS = 30 * 60
 UPDATE_DISMISS_SECONDS = 24 * 3600
 UPDATE_ALERT_BODY_LIMIT = 2000
 
@@ -841,7 +843,10 @@ class AppDelegate(NSObject):
                 now,
                 CLAUDE_COLOR,
                 self.language,
-                forecast_seconds=self.burn_rate_trackers["claude_weekly"].forecast_seconds(),
+                forecast_seconds=self.burn_rate_trackers["claude_weekly"].forecast_seconds(
+                    window_seconds=WEEKLY_FORECAST_WINDOW_SECONDS,
+                    min_span_seconds=WEEKLY_FORECAST_MIN_SPAN_SECONDS,
+                ),
                 warning_max_seconds=24 * 3600,
             )
             status_value = outcome.message or _t(self.language, "status_synced")
@@ -948,7 +953,10 @@ class AppDelegate(NSObject):
                 now,
                 CODEX_COLOR,
                 self.language,
-                forecast_seconds=self.burn_rate_trackers["codex_weekly"].forecast_seconds(),
+                forecast_seconds=self.burn_rate_trackers["codex_weekly"].forecast_seconds(
+                    window_seconds=WEEKLY_FORECAST_WINDOW_SECONDS,
+                    min_span_seconds=WEEKLY_FORECAST_MIN_SPAN_SECONDS,
+                ),
                 warning_max_seconds=24 * 3600,
             ),
         )

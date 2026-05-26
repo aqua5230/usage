@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import deque
 from dataclasses import dataclass
 
-ROLLING_WINDOW_SECONDS = 15 * 60
+ROLLING_WINDOW_SECONDS = 60 * 60
 FORECAST_WINDOW_SECONDS = 10 * 60
 RESET_DROP_PERCENT = 5.0
 MIN_FORECAST_SAMPLES = 5
@@ -29,19 +29,27 @@ class BurnRateTracker:
         self._samples.append(sample)
         self._prune(now=sample.timestamp)
 
-    def forecast_seconds(self) -> float | None:
+    def forecast_seconds(
+        self,
+        window_seconds: float | None = None,
+        min_span_seconds: float | None = None,
+    ) -> float | None:
         if len(self._samples) < 2:
             return None
 
         latest = self._samples[-1]
-        cutoff = latest.timestamp - FORECAST_WINDOW_SECONDS
-        window = [sample for sample in self._samples if sample.timestamp >= cutoff]
-        if len(window) < MIN_FORECAST_SAMPLES:
+        window = window_seconds if window_seconds is not None else FORECAST_WINDOW_SECONDS
+        cutoff = latest.timestamp - window
+        selected = [sample for sample in self._samples if sample.timestamp >= cutoff]
+        if len(selected) < MIN_FORECAST_SAMPLES:
             return None
 
-        first = window[0]
+        first = selected[0]
         elapsed = latest.timestamp - first.timestamp
-        if elapsed < MIN_FORECAST_SPAN_SECONDS:
+        span_threshold = (
+            min_span_seconds if min_span_seconds is not None else MIN_FORECAST_SPAN_SECONDS
+        )
+        if elapsed < span_threshold:
             return None
 
         slope_per_second = (latest.percent - first.percent) / elapsed

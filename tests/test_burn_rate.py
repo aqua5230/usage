@@ -29,6 +29,65 @@ def test_forecast_uses_recent_samples() -> None:
     assert tracker.forecast_seconds() == pytest.approx(600.0)
 
 
+def test_forecast_default_allows_six_minute_span() -> None:
+    tracker = BurnRateTracker()
+    for index in range(10):
+        tracker.record(index * 40.0, index * (10.0 / 9.0))
+
+    assert tracker.forecast_seconds() is not None
+
+
+def test_forecast_default_none_for_three_samples_under_minimums() -> None:
+    tracker = BurnRateTracker()
+    tracker.record(0.0, 0.0)
+    tracker.record(90.0, 5.0)
+    tracker.record(180.0, 10.0)
+
+    assert tracker.forecast_seconds() is None
+
+
+def test_forecast_weekly_span_threshold_rejects_six_minute_span() -> None:
+    tracker = BurnRateTracker()
+    for index in range(10):
+        tracker.record(index * 40.0, index * (10.0 / 9.0))
+
+    assert tracker.forecast_seconds(window_seconds=30 * 60, min_span_seconds=30 * 60) is None
+
+
+def test_forecast_weekly_span_threshold_allows_thirty_minute_span() -> None:
+    tracker = BurnRateTracker()
+    for index in range(31):
+        tracker.record(index * 60.0, index * (30.0 / 30.0))
+
+    assert tracker.forecast_seconds(
+        window_seconds=30 * 60,
+        min_span_seconds=30 * 60,
+    ) == pytest.approx(4200.0)
+
+
+def test_forecast_window_seconds_filters_old_samples_from_slope() -> None:
+    tracker = BurnRateTracker()
+    tracker.record(0.0, 0.0)
+    for index in range(31):
+        tracker.record(300.0 + (index * 60.0), 20.0 + index)
+
+    assert tracker.forecast_seconds(
+        window_seconds=30 * 60,
+        min_span_seconds=30 * 60,
+    ) == pytest.approx(3000.0)
+
+
+def test_forecast_explicit_none_parameters_match_default() -> None:
+    tracker = BurnRateTracker()
+    for index in range(10):
+        tracker.record(index * 40.0, index * (10.0 / 9.0))
+
+    assert tracker.forecast_seconds(
+        window_seconds=None,
+        min_span_seconds=None,
+    ) == tracker.forecast_seconds()
+
+
 def test_forecast_none_for_too_short_span() -> None:
     tracker = BurnRateTracker()
     tracker.record(0.0, 10.0)

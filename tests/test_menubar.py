@@ -176,7 +176,7 @@ def test_quota_row_uses_burn_warning_when_forecast_exceeds_risk_threshold() -> N
     )
 
     assert row.warning is True
-    assert row.reset_text == "⚠ 剩 18分鐘 用完(重置還要 51分鐘)"
+    assert row.reset_text == "⚠ 按目前速度 18分鐘 就會用完(重置還要 51分鐘)"
 
 
 def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
@@ -976,7 +976,7 @@ def test_state_from_outcome_replaces_claude_reset_with_warning(
     state = delegate._state_from_outcome(outcome, delegate._codex_rows()[0], [], [], [])
 
     assert state.claude_session.warning is True
-    assert state.claude_session.reset_text == "⚠ 剩 18分鐘 用完(重置還要 51分鐘)"
+    assert state.claude_session.reset_text == "⚠ 按目前速度 18分鐘 就會用完(重置還要 51分鐘)"
 
 
 def test_state_from_outcome_keeps_reset_when_burn_rate_is_not_positive(
