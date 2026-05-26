@@ -1,18 +1,22 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 
 import history_loader
+import project_resolver
 
 
 @pytest.fixture(autouse=True)
 def _clear_file_cache() -> None:
     history_loader._file_cache.clear()
+    project_resolver._resolve_project_name.cache_clear()
 
 
 def _line(
@@ -115,6 +119,25 @@ def test_parse_line_parses_valid_entry_and_cwd_project() -> None:
     assert entry.model == "claude-sonnet"
     assert entry.total_tokens == 10
     assert entry.cost_usd == 0.01
+    assert entry.project == "my-project"
+
+
+def test_parse_line_uses_main_worktree_project_for_cwd(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    run = Mock(
+        return_value=subprocess.CompletedProcess(
+            args=["git", "-C", "/tmp/work/my-project-feature", "worktree", "list", "--porcelain"],
+            returncode=0,
+            stdout="worktree /tmp/work/my-project\nworktree /tmp/work/my-project-feature\n",
+            stderr="",
+        )
+    )
+    monkeypatch.setattr("project_resolver.subprocess.run", run)
+
+    entry = history_loader._parse_line(_line(cwd="/tmp/work/my-project-feature"), "fallback")
+
+    assert entry is not None
     assert entry.project == "my-project"
 
 

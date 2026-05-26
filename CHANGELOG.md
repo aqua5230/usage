@@ -6,6 +6,11 @@
 
 ## [Unreleased]
 
+## [0.11.8] - 2026-05-27
+
+### 變更
+- **git worktree 自動合併到主專案**：在 worktree（同一個 repo 的副本資料夾）內跑 Claude Code 或 Codex 時，HTML report 與 TUI 排行不再把 `usage` 與 `usage-fix-bug` 算成兩個專案，而是合併歸到主 worktree 的資料夾名底下。新增 `project_resolver.py` 共用模組（純 stdlib、3 秒 timeout、查不到 git 就退回原本的 basename 行為），`history_loader.py` 與 `codex_loader.py` 統一走它。第一次升級看到歷史排行數字合併屬於預期行為。
+
 ## [0.11.7] - 2026-05-27
 
 ### 變更

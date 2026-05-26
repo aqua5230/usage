@@ -8,6 +8,8 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from project_resolver import resolve_project_name
+
 logger = logging.getLogger(__name__)
 
 _file_cache: dict[Path, tuple[float, int, list[UsageEntry]]] = {}
@@ -176,11 +178,11 @@ def _project_from_path(jsonl_path: Path) -> str:
     except (IndexError, ValueError):
         return "unknown"
     decoded = project_dir.replace("-", os.sep).strip(os.sep)
-    return Path(decoded).name or "unknown"
+    return resolve_project_name(Path(os.sep) / decoded) if decoded else "unknown"
 
 
 def _project_from_cwd(cwd: str) -> str:
-    return Path(os.path.expanduser(cwd)).name or "unknown"
+    return resolve_project_name(cwd)
 
 
 def _dedup_key(entry: UsageEntry) -> str:

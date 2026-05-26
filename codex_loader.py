@@ -10,6 +10,7 @@ from pathlib import Path
 from typing import Any
 
 from history_loader import UsageEntry
+from project_resolver import resolve_project_name
 
 logger = logging.getLogger(__name__)
 
@@ -252,7 +253,7 @@ def _parse_timestamp(value: Any) -> datetime | None:
 
 
 def _project_from_cwd(cwd: str) -> str:
-    return Path(os.path.expanduser(cwd)).name if cwd else "unknown"
+    return resolve_project_name(cwd)
 
 
 def _as_dict(value: Any) -> dict[str, Any]:
