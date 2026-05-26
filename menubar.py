@@ -324,6 +324,8 @@ class AppDelegate(NSObject):
     burn_rate_trackers = objc.ivar()
     _refresh_in_flight = objc.ivar()
     _fs_stream = objc.ivar()
+    _history_entries_cache = objc.ivar()
+    _history_entries_cache_fingerprint = objc.ivar()
     language = objc.ivar()
 
     def initWithMock_interval_(self, mock: bool, interval: int) -> AppDelegate:
@@ -346,6 +348,8 @@ class AppDelegate(NSObject):
         }
         self._refresh_in_flight = False
         self._fs_stream = None
+        self._history_entries_cache = None
+        self._history_entries_cache_fingerprint = None
         return self
 
     def applicationDidFinishLaunching_(self, notification: Any) -> None:
@@ -950,9 +954,39 @@ class AppDelegate(NSObject):
         )
         return rows, codex_5h_pct, model
 
+    def _history_sources_fingerprint(self) -> tuple[tuple[str, int, float], ...]:
+        sources = (
+            Path.home() / ".claude",
+            Path.home() / ".codex" / "sessions",
+        )
+        fingerprint: list[tuple[str, int, float]] = []
+        for source in sources:
+            newest_mtime = 0.0
+            file_count = 0
+            try:
+                if source.exists():
+                    for path in source.rglob("*.jsonl"):
+                        try:
+                            stat = path.stat()
+                        except OSError:
+                            continue
+                        file_count += 1
+                        newest_mtime = max(newest_mtime, stat.st_mtime)
+            except OSError:
+                pass
+            fingerprint.append((str(source), file_count, newest_mtime))
+        return tuple(fingerprint)
+
     def _load_history_entries(self) -> list[UsageEntry]:
         if self.mock:
             return []
+        fingerprint = self._history_sources_fingerprint()
+        if (
+            self._history_entries_cache is not None
+            and self._history_entries_cache_fingerprint == fingerprint
+        ):
+            return list(self._history_entries_cache)
+
         entries: list[UsageEntry] = []
         try:
             entries.extend(load_entries(hours_back=720))
@@ -964,6 +998,8 @@ class AppDelegate(NSObject):
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("Codex project usage load failed", exc_info=True)
+        self._history_entries_cache = list(entries)
+        self._history_entries_cache_fingerprint = fingerprint
         return entries
 
     def _project_rows(

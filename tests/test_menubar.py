@@ -8,6 +8,7 @@ from typing import Any, cast
 
 import pytest
 
+import codex_loader
 import history_loader
 import menubar
 from usage_client import PollOutcome, PollState, UsageSnapshot
@@ -592,6 +593,97 @@ def test_load_history_entries_includes_codex_entries(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr("menubar.codex_loader.load_entries", lambda *, hours_back: [codex_entry])
 
     assert delegate._load_history_entries() == [claude_entry, codex_entry]
+
+
+def test_load_history_entries_reuses_cache_when_sources_do_not_change(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    claude_entry = history_loader.UsageEntry(
+        timestamp=datetime(2026, 5, 21, tzinfo=UTC),
+        session_id="claude-session",
+        message_id="claude-message",
+        request_id="claude-request",
+        model="claude",
+        input_tokens=10,
+        output_tokens=5,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=0.01,
+        project="ClaudeProject",
+    )
+    codex_entry = history_loader.UsageEntry(
+        timestamp=datetime(2026, 5, 22, tzinfo=UTC),
+        session_id="codex-session",
+        message_id="codex-message",
+        request_id="",
+        model="gpt",
+        input_tokens=20,
+        output_tokens=7,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=None,
+        project="CodexProject",
+    )
+    calls = {"claude": 0, "codex": 0}
+
+    def fake_claude_entries(*, hours_back: int = 720) -> list[history_loader.UsageEntry]:
+        calls["claude"] += 1
+        assert hours_back == 720
+        return [claude_entry]
+
+    def fake_codex_entries(*, hours_back: int = 720) -> list[history_loader.UsageEntry]:
+        calls["codex"] += 1
+        assert hours_back == 720
+        return [codex_entry]
+
+    monkeypatch.setattr(delegate, "_history_sources_fingerprint", lambda: (("same", 1, 1.0),))
+    monkeypatch.setattr(menubar, "load_entries", fake_claude_entries)
+    monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
+
+    first = delegate._load_history_entries()
+    second = delegate._load_history_entries()
+
+    assert first == [claude_entry, codex_entry]
+    assert second == first
+    assert calls == {"claude": 1, "codex": 1}
+
+
+def test_load_history_entries_refreshes_cache_when_sources_change(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    entries = [
+        history_loader.UsageEntry(
+            timestamp=datetime(2026, 5, 22, tzinfo=UTC),
+            session_id="codex-session",
+            message_id="codex-message",
+            request_id="",
+            model="gpt",
+            input_tokens=20,
+            output_tokens=7,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=None,
+            project="CodexProject",
+        )
+    ]
+    calls = 0
+    fingerprints = iter(((("old", 1, 1.0),), (("new", 2, 2.0),)))
+
+    def fake_codex_entries(*, hours_back: int = 720) -> list[history_loader.UsageEntry]:
+        nonlocal calls
+        calls += 1
+        assert hours_back == 720
+        return entries
+
+    monkeypatch.setattr(delegate, "_history_sources_fingerprint", lambda: next(fingerprints))
+    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=720: [])
+    monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
+
+    assert delegate._load_history_entries() == entries
+    assert delegate._load_history_entries() == entries
+    assert calls == 2
 
 
 def test_project_rows_top3(monkeypatch: pytest.MonkeyPatch) -> None:
