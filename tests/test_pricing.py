@@ -244,6 +244,21 @@ def test_read_cache_valid(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> No
     assert pricing._read_cache() == {"model": {"input_cost_per_token": 1.0}}
 
 
+def test_read_cache_uses_legacy_claude_path_when_new_cache_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    legacy_cache = tmp_path / ".claude" / "pricing_cache.json"
+    legacy_cache.parent.mkdir()
+    legacy_cache.write_text(
+        json.dumps({"legacy-model": {"input_cost_per_token": 1.0}}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(pricing, "CACHE_PATH", tmp_path / ".usage" / "pricing_cache.json")
+    monkeypatch.setattr(pricing, "LEGACY_CACHE_PATH", legacy_cache)
+
+    assert pricing._read_cache() == {"legacy-model": {"input_cost_per_token": 1.0}}
+
+
 def test_load_pricing_falls_back_when_fetch_fails_without_real_network(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

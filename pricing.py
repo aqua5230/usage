@@ -16,7 +16,10 @@ logger = logging.getLogger(__name__)
 LITELLM_PRICING_URL = (
     "https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json"
 )
-CACHE_PATH = Path(os.path.expanduser("~/.claude/pricing_cache.json"))
+DEFAULT_CACHE_PATH = Path(os.path.expanduser("~/.usage/pricing_cache.json"))
+DEFAULT_LEGACY_CACHE_PATH = Path(os.path.expanduser("~/.claude/pricing_cache.json"))
+CACHE_PATH = DEFAULT_CACHE_PATH
+LEGACY_CACHE_PATH = DEFAULT_LEGACY_CACHE_PATH
 CACHE_TTL_DAYS = 7
 FALLBACK_RETRY_SECONDS = 600
 USER_AGENT = "usage/0.9"
@@ -106,20 +109,22 @@ def _load_pricing_with_source() -> tuple[PricingTable, PricingSource]:
 
 
 def _read_cache() -> PricingTable | None:
+    use_legacy = CACHE_PATH == DEFAULT_CACHE_PATH or LEGACY_CACHE_PATH != DEFAULT_LEGACY_CACHE_PATH
+    path = CACHE_PATH if CACHE_PATH.exists() or not use_legacy else LEGACY_CACHE_PATH
     cache_mtime: float | None = None
     with contextlib.suppress(OSError):
-        cache_mtime = CACHE_PATH.stat().st_mtime
+        cache_mtime = path.stat().st_mtime
     if cache_mtime is None:
         return None
     if (time.time() - cache_mtime) > CACHE_TTL_DAYS * 86400:
         return None
 
-    with contextlib.suppress(OSError), CACHE_PATH.open(encoding="utf-8") as file:
+    with contextlib.suppress(OSError), path.open(encoding="utf-8") as file:
         try:
             return _normalize_pricing(json.load(file))
         except json.JSONDecodeError:
             if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("failed to decode pricing cache %s", CACHE_PATH, exc_info=True)
+                logger.warning("failed to decode pricing cache %s", path, exc_info=True)
             return None
     return None
 
