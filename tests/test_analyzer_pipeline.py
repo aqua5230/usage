@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import json
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import codex_loader
 import history_loader
 import menubar
 from adapters.types import AgentInfo
@@ -171,21 +172,76 @@ def test_report_short_periods_use_recent_codex_loader(monkeypatch: Any) -> None:
     )
     calls: dict[str, int] = {}
 
-    def fake_recent(hours_back: int) -> list[reporter.UsageEntry]:
-        calls["recent_hours_back"] = hours_back
+    def fake_load_entries(*, hours_back: int = 0) -> list[history_loader.UsageEntry]:
+        calls["hours_back"] = hours_back
         return [recent_entry]
 
-    def fake_full(*, hours_back: int = 0) -> list[history_loader.UsageEntry]:
-        calls["full_hours_back"] = hours_back
-        return []
-
-    monkeypatch.setattr(reporter, "_load_recent_codex_entries", fake_recent)
-    monkeypatch.setattr("analyzer.reporter.codex_loader.load_entries", fake_full)
+    monkeypatch.setattr("analyzer.reporter.codex_loader.load_entries", fake_load_entries)
 
     data = reporter.build_report_data([agent], "today")
 
     assert data["summary"]["total_tokens"] == 3
-    assert calls == {"recent_hours_back": 48}
+    assert calls == {"hours_back": 48}
+
+
+def test_report_today_uses_codex_token_count_deltas(
+    monkeypatch: Any,
+    tmp_path: Path,
+) -> None:
+    codex_loader._jsonl_cache.clear()
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {"session-1": "gpt-test"})
+    now = datetime.now().astimezone()
+    yesterday = now - timedelta(days=1)
+    lines = [
+        {
+            "type": "session_meta",
+            "payload": {
+                "id": "session-1",
+                "timestamp": yesterday.isoformat(),
+                "cwd": "/tmp/usage",
+            },
+        },
+        {
+            "type": "event_msg",
+            "timestamp": yesterday.isoformat(),
+            "payload": {
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 100,
+                        "cached_input_tokens": 10,
+                        "output_tokens": 20,
+                    }
+                },
+            },
+        },
+        {
+            "type": "event_msg",
+            "timestamp": now.isoformat(),
+            "payload": {
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 150,
+                        "cached_input_tokens": 15,
+                        "output_tokens": 35,
+                    }
+                },
+            },
+        },
+    ]
+    path = sessions_dir / "session-1.jsonl"
+    path.parent.mkdir(parents=True)
+    path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
+
+    data = reporter.build_report_data(
+        [AgentInfo("codex", "Codex", "~/.codex", True)],
+        "today",
+    )
+
+    assert data["summary"]["total_tokens"] == 65
 
 
 def test_report_last30_keeps_full_codex_loader(monkeypatch: Any) -> None:

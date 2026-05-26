@@ -14,7 +14,7 @@ from project_resolver import resolve_project_name
 
 logger = logging.getLogger(__name__)
 
-_jsonl_cache: dict[Path, tuple[float, int, UsageEntry | None]] = {}
+_jsonl_cache: dict[Path, tuple[float, int, list[UsageEntry]]] = {}
 
 SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
 STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
@@ -34,7 +34,7 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
     if not SESSIONS_DIR.is_dir():
         return []
 
-    entries_by_session: dict[str, UsageEntry] = {}
+    entries_by_session: dict[str, list[UsageEntry]] = {}
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
     cutoff_ts = cutoff.timestamp() if cutoff else None
     models = _load_thread_models()
@@ -47,22 +47,32 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
             except OSError as exc:
                 logger.warning("failed to stat session log %s: %s", jsonl_path, exc)
                 continue
-        entry = _parse_jsonl(jsonl_path, models, cutoff)
-        if entry is None:
+        parsed = _parse_jsonl(jsonl_path, models, cutoff)
+        if not parsed:
             continue
-        existing = entries_by_session.get(entry.session_id)
-        if existing is None or _is_better_session_entry(entry, existing):
-            entries_by_session[entry.session_id] = entry
+        existing = entries_by_session.get(parsed[0].session_id)
+        if existing is None or _is_better_session_log(parsed, existing):
+            entries_by_session[parsed[0].session_id] = parsed
 
-    entries = list(entries_by_session.values())
+    entries = [
+        entry
+        for session_entries in entries_by_session.values()
+        for entry in session_entries
+    ]
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
 
 
-def _is_better_session_entry(candidate: UsageEntry, existing: UsageEntry) -> bool:
-    if candidate.timestamp != existing.timestamp:
-        return candidate.timestamp > existing.timestamp
-    return candidate.total_tokens > existing.total_tokens
+def _is_better_session_log(candidate: list[UsageEntry], existing: list[UsageEntry]) -> bool:
+    candidate_latest = candidate[-1]
+    existing_latest = existing[-1]
+    if candidate_latest.timestamp != existing_latest.timestamp:
+        return candidate_latest.timestamp > existing_latest.timestamp
+    return _session_total_tokens(candidate) > _session_total_tokens(existing)
+
+
+def _session_total_tokens(entries: list[UsageEntry]) -> int:
+    return sum(entry.total_tokens for entry in entries)
 
 
 def load_rate_limits() -> CodexRateLimits | None:
@@ -155,27 +165,28 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
     )
 
 
-def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) -> UsageEntry | None:
+def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) -> list[UsageEntry]:
     try:
         st = path.stat()
     except OSError as exc:
         logger.warning("failed to parse codex session %s: %s", path, exc)
-        return None
+        return []
 
     cache_entry = _jsonl_cache.get(path)
     if cache_entry is not None and cache_entry[0] == st.st_mtime and cache_entry[1] == st.st_size:
-        entry = cache_entry[2]
-        if entry is not None:
+        cached_entries = cache_entry[2]
+        for entry in cached_entries:
             entry.model = models.get(entry.session_id, "unknown")
-            if cutoff is not None and entry.timestamp < cutoff:
-                return None
-        return entry
+        if cutoff is None:
+            return cached_entries
+        return [entry for entry in cached_entries if entry.timestamp >= cutoff]
 
     session_id = ""
     session_timestamp = ""
     project = "unknown"
-    last_usage: dict[str, Any] | None = None
-    last_usage_timestamp = ""
+    entries: list[UsageEntry] = []
+    previous_usage: _TokenUsage | None = None
+    token_count_index = 0
     try:
         with path.open(encoding="utf-8") as file:
             for line in file:
@@ -194,42 +205,74 @@ def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) ->
                 if payload.get("type") != "token_count":
                     continue
                 usage = _as_dict(_as_dict(payload.get("info")).get("total_token_usage"))
-                if usage:
-                    last_usage = usage
-                    last_usage_timestamp = _as_str(data.get("timestamp"))
+                timestamp = _parse_timestamp(_as_str(data.get("timestamp")))
+                if not usage or not session_id or timestamp is None:
+                    continue
+                current_usage = _token_usage_from_payload(usage)
+                delta = current_usage.delta(previous_usage)
+                previous_usage = current_usage
+                if delta.total_tokens == 0:
+                    continue
+                token_count_index += 1
+                entries.append(
+                    UsageEntry(
+                        timestamp=timestamp,
+                        session_id=session_id,
+                        message_id=f"{session_id}:{token_count_index}",
+                        request_id="",
+                        model=models.get(session_id, "unknown"),
+                        input_tokens=delta.input_tokens,
+                        output_tokens=delta.output_tokens,
+                        cache_creation_tokens=0,
+                        cache_read_tokens=delta.cache_read_tokens,
+                        cost_usd=None,
+                        project=project,
+                    )
+                )
     except OSError as exc:
         logger.warning("failed to parse codex session %s: %s", path, exc)
-        _jsonl_cache[path] = (st.st_mtime, st.st_size, None)
-        return None
-    timestamp = _parse_timestamp(last_usage_timestamp) or _parse_timestamp(session_timestamp)
-    if not session_id or last_usage is None or timestamp is None:
-        _jsonl_cache[path] = (st.st_mtime, st.st_size, None)
-        return None
-    cached = _as_int(last_usage.get("cached_input_tokens"))
-    input_tokens = max(0, _as_int(last_usage.get("input_tokens")) - cached)
-    output_tokens = _as_int(last_usage.get("output_tokens")) + _as_int(
-        last_usage.get("reasoning_output_tokens"),
+        _jsonl_cache[path] = (st.st_mtime, st.st_size, [])
+        return []
+    if not entries and session_timestamp:
+        _jsonl_cache[path] = (st.st_mtime, st.st_size, [])
+        return []
+    _jsonl_cache[path] = (st.st_mtime, st.st_size, entries)
+    if cutoff is not None:
+        return [entry for entry in entries if entry.timestamp >= cutoff]
+    return entries
+
+
+@dataclass(frozen=True, slots=True)
+class _TokenUsage:
+    input_tokens: int
+    output_tokens: int
+    cache_read_tokens: int
+
+    @property
+    def total_tokens(self) -> int:
+        return self.input_tokens + self.output_tokens + self.cache_read_tokens
+
+    def delta(self, previous: _TokenUsage | None) -> _TokenUsage:
+        if previous is None:
+            return self
+        return _TokenUsage(
+            input_tokens=max(0, self.input_tokens - previous.input_tokens),
+            output_tokens=max(0, self.output_tokens - previous.output_tokens),
+            cache_read_tokens=max(0, self.cache_read_tokens - previous.cache_read_tokens),
+        )
+
+
+def _token_usage_from_payload(usage: dict[str, Any]) -> _TokenUsage:
+    cached = _as_int(usage.get("cached_input_tokens"))
+    input_tokens = max(0, _as_int(usage.get("input_tokens")) - cached)
+    output_tokens = _as_int(usage.get("output_tokens")) + _as_int(
+        usage.get("reasoning_output_tokens"),
     )
-    if input_tokens == 0 and output_tokens == 0:
-        _jsonl_cache[path] = (st.st_mtime, st.st_size, None)
-        return None
-    entry = UsageEntry(
-        timestamp=timestamp,
-        session_id=session_id,
-        message_id=session_id,
-        request_id="",
-        model=models.get(session_id, "unknown"),
+    return _TokenUsage(
         input_tokens=input_tokens,
         output_tokens=output_tokens,
-        cache_creation_tokens=0,
         cache_read_tokens=cached,
-        cost_usd=None,
-        project=project,
     )
-    _jsonl_cache[path] = (st.st_mtime, st.st_size, entry)
-    if cutoff is not None and entry.timestamp < cutoff:
-        return None
-    return entry
 
 
 def _load_json_line(line: str) -> dict[str, Any] | None:

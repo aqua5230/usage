@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date, datetime, timedelta, timezone
@@ -49,23 +48,7 @@ def _load_agent_entries(
     if agent.id == "codex" and use_recent_codex and hours_back > 0:
         return _load_recent_codex_entries(hours_back)
     if agent.id == "codex":
-        return [
-            UsageEntry(
-                timestamp=entry.timestamp,
-                session_id=entry.session_id,
-                message_id=entry.message_id,
-                request_id=entry.request_id,
-                model=entry.model,
-                input_tokens=entry.input_tokens,
-                output_tokens=entry.output_tokens,
-                cache_creation_tokens=entry.cache_creation_tokens,
-                cache_read_tokens=entry.cache_read_tokens,
-                cost_usd=entry.cost_usd,
-                project=entry.project,
-                agent_id=agent.id,
-            )
-            for entry in codex_loader.load_entries(hours_back=hours_back)
-        ]
+        return _load_codex_entries(hours_back)
     loader = AGENT_LOADERS.get(agent.id)
     if loader is None:
         return []
@@ -113,140 +96,28 @@ def _parse_claude_file(path: Path, base: Path, cutoff: datetime) -> list[UsageEn
 
 
 def _load_recent_codex_entries(hours_back: int) -> list[UsageEntry]:
-    entries: list[UsageEntry] = []
-    seen: set[str] = set()
-    cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_back)
-    cutoff_ts = cutoff.timestamp()
-    models = codex._load_thread_models()  # type: ignore[attr-defined]
-    sessions_path = Path(codex.SESSIONS_DIR)
-    if not sessions_path.is_dir():
-        return entries
-    jobs: list[Path] = []
-    for jsonl_path in sessions_path.rglob("*.jsonl"):
-        try:
-            if jsonl_path.stat().st_mtime < cutoff_ts:
-                continue
-        except OSError:
-            continue
-        jobs.append(jsonl_path)
-    with ThreadPoolExecutor(max_workers=8) as executor:
-        results = executor.map(lambda path: _parse_codex_file(path, models, cutoff), jobs)
-        for parsed in results:
-            for entry in parsed:
-                if entry.dedup_key in seen:
-                    continue
-                seen.add(entry.dedup_key)
-                entries.append(entry)
-    entries.sort(key=lambda entry: entry.timestamp)
-    return entries
+    return _load_codex_entries(hours_back)
 
 
-def _parse_codex_file(path: Path, models: dict[str, str], cutoff: datetime) -> list[UsageEntry]:
-    try:
-        with path.open("rb") as f:
-            head = f.read(64 * 1024)
-    except (OSError, PermissionError):
-        return []
-
-    session_id = ""
-    session_ts = ""
-    project = "unknown"
-    for raw_line in head.splitlines()[:12]:
-        if b"session_meta" not in raw_line:
-            continue
-        try:
-            data = json.loads(raw_line)
-        except json.JSONDecodeError:
-            continue
-        payload = data.get("payload", {})
-        session_id = payload.get("id", "")
-        session_ts = payload.get("timestamp", "")
-        cwd = payload.get("cwd", "")
-        if cwd:
-            project = codex._project_from_cwd(cwd)  # type: ignore[attr-defined]
-        break
-
-    if not session_id:
-        return []
-
-    try:
-        ts = datetime.fromisoformat(session_ts.replace("Z", "+00:00"))
-    except (ValueError, AttributeError):
-        return []
-    if ts < cutoff:
-        return []
-
-    raw_usage_line = _read_last_matching_line(path, b"token_count", b"total_token_usage")
-    if raw_usage_line is None:
-        return []
-    try:
-        data = json.loads(raw_usage_line)
-    except json.JSONDecodeError:
-        return []
-    payload = data.get("payload", {})
-    info = payload.get("info")
-    last_usage = info.get("total_token_usage") if info else None
-    if not last_usage:
-        return []
-
-    cached = last_usage.get("cached_input_tokens", 0)
-    input_tokens = last_usage.get("input_tokens", 0) - cached
-    output_tokens = last_usage.get("output_tokens", 0) + last_usage.get("reasoning_output_tokens", 0)
-    if input_tokens == 0 and output_tokens == 0:
-        return []
-
-    return [UsageEntry(
-        timestamp=ts,
-        session_id=session_id,
-        message_id=session_id,
-        request_id="",
-        model=models.get(session_id, "unknown"),
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        cache_creation_tokens=0,
-        cache_read_tokens=cached,
-        cost_usd=None,
-        project=project,
-        agent_id="codex",
-        message_count=_count_token_events(path),
-    )]
-
-
-def _count_token_events(path: Path) -> int:
-    count = 0
-    try:
-        with path.open("rb") as f:
-            while True:
-                chunk = f.read(1024 * 1024)
-                if not chunk:
-                    break
-                count += chunk.count(b'"token_count"')
-    except (OSError, PermissionError):
-        return 1
-    return max(1, count)
-
-
-def _read_last_matching_line(path: Path, needle_a: bytes, needle_b: bytes) -> bytes | None:
-    chunk_size = 64 * 1024
-    try:
-        with path.open("rb") as f:
-            f.seek(0, 2)
-            pos = f.tell()
-            tail = b""
-            while pos > 0:
-                read_size = min(chunk_size, pos)
-                pos -= read_size
-                f.seek(pos)
-                data = f.read(read_size) + tail
-                lines = data.splitlines()
-                tail = lines[0] if pos > 0 and lines else b""
-                search_lines = lines[1:] if pos > 0 else lines
-                for raw_line in reversed(search_lines):
-                    if needle_a in raw_line and needle_b in raw_line:
-                        return raw_line
-    except (OSError, PermissionError):
-        return None
-    return None
+def _load_codex_entries(hours_back: int) -> list[UsageEntry]:
+    return [
+        UsageEntry(
+            timestamp=entry.timestamp,
+            session_id=entry.session_id,
+            message_id=entry.message_id,
+            request_id=entry.request_id,
+            model=entry.model,
+            input_tokens=entry.input_tokens,
+            output_tokens=entry.output_tokens,
+            cache_creation_tokens=entry.cache_creation_tokens,
+            cache_read_tokens=entry.cache_read_tokens,
+            cost_usd=entry.cost_usd,
+            project=entry.project,
+            agent_id="codex",
+            message_count=getattr(entry, "message_count", 1),
+        )
+        for entry in codex_loader.load_entries(hours_back=hours_back)
+    ]
 
 
 def _pct(value: int, total: int) -> float:
