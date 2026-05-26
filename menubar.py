@@ -796,6 +796,14 @@ class AppDelegate(NSObject):
             return _t(self.language, "awaiting_rate_limits")
         return outcome.message or _t(self.language, fallback_key)
 
+    def _statusline_setup_available(self) -> bool:
+        try:
+            import setup_hook
+
+            return setup_hook.CLAUDE_SETTINGS.parent.exists() or setup_hook.CODEX_CONFIG.exists()
+        except Exception:
+            return False
+
     def _state_from_outcome(
         self,
         outcome: PollOutcome,
@@ -879,7 +887,9 @@ class AppDelegate(NSObject):
             status_text=status_text,
             today_text=today_text,
             statusline=_statusline_payload(self.language),
-            show_install_button=outcome.state == PollState.TOKEN_ERROR,
+            show_install_button=(
+                outcome.state == PollState.TOKEN_ERROR and self._statusline_setup_available()
+            ),
         )
 
     def _codex_rows(self) -> tuple[tuple[QuotaRowState, QuotaRowState], int | None, str]:

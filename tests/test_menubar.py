@@ -1126,3 +1126,37 @@ def test_state_from_outcome_translates_awaiting_rate_limits_message() -> None:
     )
 
     assert state.status_text == "狀態：請對 Claude Code 發送一句訊息以同步配額"
+
+
+def test_state_from_outcome_hides_setup_button_when_no_statusline_target_exists(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    monkeypatch.setattr(delegate, "_statusline_setup_available", lambda: False)
+
+    state = delegate._state_from_outcome(
+        PollOutcome(state=PollState.TOKEN_ERROR, message="missing"),
+        delegate._codex_rows()[0],
+        [],
+        [],
+        [],
+    )
+
+    assert state.show_install_button is False
+
+
+def test_state_from_outcome_shows_setup_button_for_codex_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    monkeypatch.setattr(delegate, "_statusline_setup_available", lambda: True)
+
+    state = delegate._state_from_outcome(
+        PollOutcome(state=PollState.TOKEN_ERROR, message="missing"),
+        delegate._codex_rows()[0],
+        [],
+        [],
+        [],
+    )
+
+    assert state.show_install_button is True

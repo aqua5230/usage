@@ -72,7 +72,7 @@ If Codex isn't installed or the directory doesn't exist, that part of the UI hid
 
 - macOS
 - Python 3.13
-- Claude Code installed and signed in (Codex is optional)
+- Claude Code or Codex has been used at least once so local usage data exists
 
 ## Quick start
 
@@ -104,11 +104,13 @@ Go to the [GitHub Releases page](https://github.com/aqua5230/usage/releases/late
 ⚠️ Because this app is not signed with an Apple Developer certificate, **macOS Gatekeeper will block the first launch**.
 To open it: find `usage.app` in Finder → right-click → Open → confirm Open. After that, double-clicking works normally.
 
-### First launch: install the hook
+### First launch: set up the status line
 
-The first time you open usage, if Claude Code has never been wired up yet, the popover will detect the missing status file and **show an extra "Install hook now" button at the bottom**. Click it once — it installs the hook for you. Then **fully quit Claude Code (Cmd+Q) and re-open it**, click "Refresh now" in usage, and the numbers will appear.
+The first time you open usage, if you have already used Codex, the Codex card usually reads `~/.codex/sessions` and shows data directly. If you use Claude Code, the popover may show a **"Set Up Status Line"** button when app-side setup is needed. If you run from source and want to add Codex status-line fields, run the command below to configure detected agents.
 
-If the button doesn't show, usage is already reading data (e.g. you previously installed the third-party tool [stormzhang/token-tracker](https://github.com/stormzhang/token-tracker) and its status file works as a fallback) — nothing else to do.
+Restart the relevant tool afterward: restart Codex once; if Claude Code was configured too, fully quit Claude Code (Cmd+Q) and re-open it.
+
+If the button does not show, usage can already read data or there is no Claude Code setup action for the app to perform.
 
 > **Fallback: install via curl**
 > If the in-app button doesn't work or you prefer the command line, run the following in Terminal (download first, inspect, then run):
@@ -119,7 +121,7 @@ If the button doesn't show, usage is already reading data (e.g. you previously i
 > bash /tmp/usage-install.sh
 > ```
 
-After the hook is installed and Claude Code is restarted, the bottom of the Claude Code window will show a statusLine like this — **5h / 7d quota bars, context usage, session duration, current model — all on one line**. Percentages share the bar color (yellow / green / red), so the warning level reads at a glance:
+After the Claude Code hook is configured and Claude Code is restarted, the bottom of the Claude Code window will show a statusLine like this — **5h / 7d quota bars, context usage, session duration, current model — all on one line**. Percentages share the bar color (yellow / green / red), so the warning level reads at a glance:
 
 <p align="center">
   <img src="docs/statusline.en.png" alt="Claude Code statusLine display (English)" width="640">
@@ -146,24 +148,25 @@ pip install -e .
 
 This creates an isolated Python environment (`.venv`) for the project, activates it, and installs usage plus its dependencies into it.
 
-## First install (wire up the Claude Code hook — source mode only)
+## Set up detected agents (source mode)
 
-> Using the .app? Just click the "Install hook now" button in the popover on first launch instead — you don't need this section. The steps below are for developers running usage from source.
+> Using the .app? Click the "Set Up Status Line" button in the popover on first launch instead. The steps below are for developers running usage from source.
 
-This single command does two things: copies the hook script into `~/.claude/`, and updates your Claude Code settings to point at it.
+This command configures detected agents: Codex gets `tui.status_line` in `~/.codex/config.toml`; if Claude Code is present, usage also copies the hook script into `~/.claude/` and updates Claude Code settings to point at it.
 
 ```bash
 source .venv/bin/activate
 python3 main.py --setup
 ```
 
-**Restart Claude Code once after running this** so it re-reads `~/.claude/settings.json` and refreshes its status line. That refresh is when usage data first lands on disk.
+**Restart Codex once after running this**. If Claude Code was configured, restart Claude Code too so it re-reads `~/.claude/settings.json` and refreshes its status line.
 
 What `--setup` does in detail:
 
-- Copies `usage_statusline.py` to `~/.claude/usage-statusline.py`.
-- Points `statusLine` in `~/.claude/settings.json` at that hook.
-- If you already had a custom `statusLine`, it is backed up to `settings.usage.previousStatusLine` so nothing is overwritten.
+- Configures `tui.status_line` in `~/.codex/config.toml` when Codex is detected.
+- If Claude Code is present, copies `usage_statusline.py` to `~/.claude/usage-statusline.py`.
+- If Claude Code is present, points `statusLine` in `~/.claude/settings.json` at that hook.
+- If you already had a custom Claude Code `statusLine`, it is backed up to `settings.usage.previousStatusLine` so nothing is overwritten.
 
 To uninstall:
 
@@ -171,7 +174,7 @@ To uninstall:
 python3 main.py --unsetup
 ```
 
-`--unsetup` restores your original statusLine and removes the hook and `~/.claude/usage-status.json`.
+`--unsetup` restores the original Codex `status_line` and Claude Code `statusLine`, then removes the Claude hook and `~/.claude/usage-status.json`.
 
 ## Run modes
 
@@ -298,7 +301,7 @@ python3 main.py --tui --mock
 
 ## Options
 
-- `--setup` / `--unsetup` — install or remove the Claude Code statusLine hook.
+- `--setup` / `--unsetup` — configure or restore detected agents (Codex `status_line`; Claude Code `statusLine` hook).
 - `--tui` — force terminal TUI mode (no menu bar).
 - `--interval N` — how often (seconds) the UI re-reads the status file. Minimum 30, default 60.
 - `--mock` — use fake data; don't read any status file.
@@ -349,7 +352,7 @@ The "Fix" column distinguishes three kinds of users — find yours first:
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
-| Menu bar shows `--` | Hook not installed, or Claude Code hasn't refreshed yet | **.app users**: click the "Install hook now" button in the popover. **Source users**: run `python3 main.py --setup`. Either way, restart Claude Code once afterwards |
+| Menu bar shows `--` | No Codex `rate_limits` yet, or the Claude Code hook has not refreshed | Run one Codex conversation first. For Claude Code integration, **.app users** click "Set Up Status Line"; **Source users** run `python3 main.py --setup` |
 | Accidentally hit "Quit", paw icon disappeared from the menu bar | "Quit" fully terminates the usage process; you have to relaunch it | **.app users**: press `Cmd+Space` for Spotlight, type `usage`, hit Enter; or double-click `usage.app` from `/Applications`. **LaunchAgent users**: run `launchctl start com.lollapalooza.usage` in Terminal. **Source users**: run `python3 main.py` in Terminal again |
 | Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run; it updates the file on its next status refresh |
 | Codex section is empty | `~/.codex/sessions/` doesn't exist or has no `rate_limits` events yet | Run a Codex conversation to generate log entries |
