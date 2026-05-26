@@ -1111,7 +1111,7 @@ class AppDelegate(NSObject):
             session_row = QuotaRowState(
                 title=session_title,
                 percent=15.0,
-                percent_text=f"$1.50 / $10.00 ({_fmt_tokens_short(120000)})",
+                percent_text=f"$0.11 / $0.75 ({_fmt_tokens_short(120000)})",
                 reset_text=_t(
                     self.language,
                     "reset_in",
@@ -1124,7 +1124,7 @@ class AppDelegate(NSObject):
             weekly_row = QuotaRowState(
                 title=weekly_title,
                 percent=14.5,
-                percent_text=f"$14.50 / $100.00 ({_fmt_tokens_short(1160000)})",
+                percent_text=f"$1.09 / $7.50 ({_fmt_tokens_short(1160000)})",
                 reset_text=_t(
                     self.language,
                     "reset_in",
@@ -1136,64 +1136,89 @@ class AppDelegate(NSObject):
             )
             return (session_row, weekly_row), 15
 
-        if not entries:
-            return (
-                _missing_row(session_title, GEMINI_COLOR, self.language),
-                _missing_row(weekly_title, GEMINI_COLOR, self.language),
-            ), None
+        # Check CLI logs first — the only reliable source for quota state.
+        # Antigravity's quota is "Work Done" (proprietary compute units), not
+        # tokens or dollars. The log records RESOURCE_EXHAUSTED with "Resets in
+        # Xh Xm Xs", which gives us exact exhaustion state and window boundaries.
+        rate_limits: gemini_loader.GeminiRateLimits | None = None
+        try:
+            rate_limits = gemini_loader.load_rate_limits()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("gemini rate limits load failed", exc_info=True)
 
-        gemini_entries = [e for e in entries if e.project == "Antigravity (Gemini)"]
-        if not gemini_entries:
+        gemini_entries = [e for e in (entries or []) if e.project == "Antigravity (Gemini)"]
+
+        if not gemini_entries and rate_limits is None:
             return (
                 _missing_row(session_title, GEMINI_COLOR, self.language),
                 _missing_row(weekly_title, GEMINI_COLOR, self.language),
             ), None
 
         now_dt = datetime.now(UTC)
-        five_hour_cutoff = now_dt - timedelta(hours=5)
+        now_ts = now_dt.timestamp()
+
+        # Determine 5h window boundaries: prefer log-derived start over trailing window
+        if rate_limits is not None and rate_limits.window_start_ts is not None:
+            five_hour_cutoff = datetime.fromtimestamp(rate_limits.window_start_ts, UTC)
+        else:
+            five_hour_cutoff = now_dt - timedelta(hours=5)
         seven_day_cutoff = now_dt - timedelta(days=7)
 
         five_hour_entries = []
         seven_day_entries = []
         for e in gemini_entries:
-            e_ts = e.timestamp
-            if e_ts.tzinfo is None:
-                e_ts = e_ts.replace(tzinfo=UTC)
+            e_ts = e.timestamp if e.timestamp.tzinfo else e.timestamp.replace(tzinfo=UTC)
             if e_ts >= five_hour_cutoff:
                 five_hour_entries.append(e)
             if e_ts >= seven_day_cutoff:
                 seven_day_entries.append(e)
 
+        five_hour_calls = len(five_hour_entries)
         five_hour_tokens = sum(e.total_tokens for e in five_hour_entries)
-        five_hour_cost = sum((e.cost_usd or 0.0) for e in five_hour_entries)
 
+        seven_day_calls = len(seven_day_entries)
         seven_day_tokens = sum(e.total_tokens for e in seven_day_entries)
-        seven_day_cost = sum((e.cost_usd or 0.0) for e in seven_day_entries)
 
-        five_hour_limit = 10.00
-        seven_day_limit = 100.00
+        # Percentage: log-confirmed exhaustion → 100%; otherwise estimate from
+        # API call count (Antigravity's real quota is undocumented "Work Done"
+        # units, so any numeric estimate is an approximation).
+        if rate_limits is not None and rate_limits.five_hour_exhausted:
+            five_hour_pct = 100.0
+        else:
+            five_hour_pct = (
+                five_hour_calls / gemini_loader.FIVE_HOUR_CALL_LIMIT * 100.0
+            )
 
-        five_hour_pct = (five_hour_cost / five_hour_limit) * 100.0 if five_hour_limit > 0 else 0.0
-        seven_day_pct = (seven_day_cost / seven_day_limit) * 100.0 if seven_day_limit > 0 else 0.0
+        if rate_limits is not None and rate_limits.seven_day_exhausted:
+            seven_day_pct = 100.0
+        else:
+            seven_day_pct = (
+                seven_day_calls / gemini_loader.SEVEN_DAY_CALL_LIMIT * 100.0
+            )
 
-        now_ts = now_dt.timestamp()
-
-        five_hour_resets_at = None
-        if five_hour_entries:
+        # Reset times: prefer log-derived values
+        if rate_limits is not None and rate_limits.five_hour_resets_at is not None:
+            five_hour_resets_at = rate_limits.five_hour_resets_at
+            if not rate_limits.five_hour_exhausted:
+                # New window started at window_start; it ends 5h later
+                five_hour_resets_at = (five_hour_cutoff + timedelta(hours=5)).timestamp()
+        elif five_hour_entries:
             earliest_5h = min(e.timestamp for e in five_hour_entries)
             if earliest_5h.tzinfo is None:
                 earliest_5h = earliest_5h.replace(tzinfo=UTC)
             five_hour_resets_at = (earliest_5h + timedelta(hours=5)).timestamp()
-        if five_hour_resets_at is None:
+        else:
             five_hour_resets_at = now_ts
 
-        seven_day_resets_at = None
-        if seven_day_entries:
+        if rate_limits is not None and rate_limits.seven_day_resets_at is not None:
+            seven_day_resets_at = rate_limits.seven_day_resets_at
+        elif seven_day_entries:
             earliest_7d = min(e.timestamp for e in seven_day_entries)
             if earliest_7d.tzinfo is None:
                 earliest_7d = earliest_7d.replace(tzinfo=UTC)
             seven_day_resets_at = (earliest_7d + timedelta(days=7)).timestamp()
-        if seven_day_resets_at is None:
+        else:
             seven_day_resets_at = now_ts
 
         five_hour_time_to_reset = max(0.0, five_hour_resets_at - now_ts)
@@ -1214,8 +1239,8 @@ class AppDelegate(NSObject):
             title=session_title,
             percent=max(0.0, min(100.0, five_hour_pct)),
             percent_text=(
-                f"${five_hour_cost:.2f} / ${five_hour_limit:.2f} "
-                f"({_fmt_tokens_short(five_hour_tokens)})"
+                f"{five_hour_calls} / ~{gemini_loader.FIVE_HOUR_CALL_LIMIT} calls"
+                f" ({_fmt_tokens_short(five_hour_tokens)})"
             ),
             reset_text=five_hour_reset_text,
             color=_bar_color(five_hour_pct, GEMINI_COLOR),
@@ -1227,8 +1252,8 @@ class AppDelegate(NSObject):
             title=weekly_title,
             percent=max(0.0, min(100.0, seven_day_pct)),
             percent_text=(
-                f"${seven_day_cost:.2f} / ${seven_day_limit:.2f} "
-                f"({_fmt_tokens_short(seven_day_tokens)})"
+                f"{seven_day_calls} / ~{gemini_loader.SEVEN_DAY_CALL_LIMIT} calls"
+                f" ({_fmt_tokens_short(seven_day_tokens)})"
             ),
             reset_text=seven_day_reset_text,
             color=_bar_color(seven_day_pct, GEMINI_COLOR),
@@ -1236,7 +1261,7 @@ class AppDelegate(NSObject):
             available=True,
         )
 
-        return (session_row, weekly_row), round(five_hour_pct)
+        return (session_row, weekly_row), min(100, round(five_hour_pct))
 
     def _load_history_entries(self) -> list[UsageEntry]:
         if self.mock:

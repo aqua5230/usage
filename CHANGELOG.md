@@ -12,6 +12,7 @@
 - **Conda/Homebrew 打包動態庫修復**：在 `scripts/build_app.sh` 中增加 post-build 階段，將 Conda/Homebrew Python base prefix 底下的 `libffi` 和 `libsqlite3` 動態庫拷貝至 App Bundles 的 Frameworks 目錄，修復 Conda 環境下打包 app 啟動時找不到動態庫閃退的問題。
 
 ### 修正
+- **Antigravity (Gemini) 配額達到上限時正確顯示 100%**：分兩階段重寫配額估算邏輯。(1) 以「單輪次」上下文追蹤取代累積上下文估算——每個 `PLANNER_RESPONSE` 僅以上次回覆後新增內容計費，消除在 2000+ 步驟超長對話中 O(N²) 通膨導致顯示 155%+ 的問題。(2) 底層指標仍有根本性錯誤：Antigravity 的配額是「已完成工作量」（Work Done，非公開計算單位），並非 token 或美元數字。最終修正：`gemini_loader` 現在解析 `~/.gemini/antigravity-cli/log/cli-*.log`，搜尋包含「Resets in Xh Xm Xs」的 `RESOURCE_EXHAUSTED` 紀錄；若找到且重置時間尚未到達，配額條形圖精確顯示 100%。在耗盡事件之間，以 API 呼叫次數估算用量（實測上限：5 小時約 360 次、7 天約 3600 次）。5 小時視窗起始點錨定在最後一次重置的時間戳記，避免跨配額週期的數值滲漏。
 - **分析報告語言跟隨 menu bar 浮窗**：按下「分析」時，HTML 報告現在使用目前 menu bar 偵測到的語言，而不是在報告產生階段重新只看環境變數，避免 LaunchAgent 未設定 `LANG` 時 fallback 成英文。
 - **切換面板時重新定位已開啟的 popover**：使用者在 popover 開啟狀態下切換 theme/panel 時，先關閉舊 popover、重建內容與尺寸後再重新顯示，避免視圖短暫縮排或尺寸錯亂。
 - **Codex 專案用量與分析報告統一算法**：同一個 Codex session 出現在多個 JSONL 檔時，改選較新的 cumulative token entry；分析報告改共用 `codex_loader.load_entries()`，Project Usage 也納入 Codex session，避免同一份資料在 app 與 report 顯示不同數字。Project Usage 的 Today 現在與底部 Today 同樣使用本地日曆日，且底部 Today 不會在呼叫端已提供 Codex entries 時重複載入 Codex。
