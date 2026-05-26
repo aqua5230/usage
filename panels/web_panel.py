@@ -28,7 +28,7 @@ if TYPE_CHECKING:
     from menubar import PopoverState, QuotaRowState
 
 PANEL_WIDTH = 364.0
-PANEL_HEIGHT = 812.0
+PANEL_HEIGHT = 700.0
 
 
 def _i18n_path() -> Path:
@@ -196,6 +196,7 @@ def _load_panel_html(filename: str) -> str:
     return (
         html.replace("{{CLAUDE_ICON}}", _data_uri("claude.webp"))
         .replace("{{CODEX_ICON}}", _data_uri("codex.webp"))
+        .replace("{{GEMINI_ICON}}", _data_uri("Google-Antigravity-Icon-Full-Color.png"))
         .replace("{{I18N_BUNDLE}}", json.dumps(_load_i18n_bundle(), ensure_ascii=False))
     )
 
@@ -219,6 +220,7 @@ def _data_uri(asset_name: str) -> str:
 
 def _row_payload(row: QuotaRowState) -> dict[str, object]:
     return {
+        "title": row.title,
         "percent": row.percent,
         "percentText": row.percent_text,
         "resetText": row.reset_text,
@@ -237,6 +239,10 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
         "codex": {
             "session": _row_payload(state.codex_session),
             "weekly": _row_payload(state.codex_weekly),
+        },
+        "gemini": {
+            "session": _row_payload(state.gemini_session),
+            "weekly": _row_payload(state.gemini_weekly),
         },
         "projects": [
             {"name": name, "tokensText": _fmt_tokens(tokens), "costText": _fmt_cost(cost)}

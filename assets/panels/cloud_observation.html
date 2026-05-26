@@ -15,6 +15,7 @@
       --muted-strong: #48677d;
       --claude: linear-gradient(90deg, #f8bc8b 0%, #f4a261 50%, #df8b49 100%);
       --codex: linear-gradient(90deg, #8ce7ff 0%, #54bfe3 50%, #3895be 100%);
+      --gemini: linear-gradient(90deg, #c09cff 0%, #985ef9 50%, #7d3fed 100%);
       --projects: linear-gradient(90deg, #dcecff 0%, #9cc1ed 50%, #6e97cf 100%);
       --warn: #d08b3d;
       --danger: #c76854;
@@ -78,8 +79,23 @@
       width: 100%;
       height: 100%;
       padding: 10px;
-      overflow: hidden;
+      box-sizing: border-box;
+      overflow-y: auto;
       isolation: isolate;
+    }
+
+    .viewport::-webkit-scrollbar {
+      width: 6px;
+    }
+    .viewport::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .viewport::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 99px;
+    }
+    .viewport::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.45);
     }
 
     .sky,
@@ -167,7 +183,6 @@
       flex-direction: column;
       gap: 10px;
       width: 100%;
-      height: 100%;
     }
 
     .card,
@@ -194,25 +209,20 @@
     }
 
     .card {
-      padding: 12px 14px;
-    }
-
-    .card[data-card="claude"],
-    .card[data-card="codex"] {
-      min-height: 224px;
+      padding: 10px 12px 8px;
     }
 
     .header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 6px;
     }
 
     .header img,
     .weather-badge {
-      width: 28px;
-      height: 28px;
+      width: 20px;
+      height: 20px;
       flex: none;
       border-radius: 50%;
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
@@ -226,8 +236,8 @@
     }
 
     .weather-badge svg {
-      width: 20px;
-      height: 20px;
+      width: 14px;
+      height: 14px;
       stroke: var(--muted-strong);
     }
 
@@ -238,7 +248,7 @@
 
     .header h1 {
       margin: 0;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1.2;
       font-weight: 600;
       letter-spacing: 0.01em;
@@ -249,14 +259,14 @@
 
     .switch {
       flex: none;
-      min-height: 28px;
-      padding: 0 12px;
+      min-height: 20px;
+      padding: 0 8px;
       border: 1px solid rgba(97, 128, 151, 0.2);
       border-radius: 999px;
       background: rgba(255, 255, 255, 0.58);
       color: var(--text);
       font: inherit;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 600;
       white-space: nowrap;
       backdrop-filter: blur(10px);
@@ -271,11 +281,11 @@
 
     .row {
       position: relative;
-      padding: 10px 0 0;
+      padding: 6px 0 0;
     }
 
     .row + .row {
-      margin-top: 10px;
+      margin-top: 6px;
       border-top: 1px solid rgba(103, 132, 156, 0.14);
     }
 
@@ -283,27 +293,27 @@
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 6px;
+      gap: 8px;
+      margin-bottom: 4px;
     }
 
     .row-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--muted-strong);
       letter-spacing: 0.02em;
     }
 
     .percent {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       white-space: nowrap;
     }
 
     .track {
       position: relative;
-      height: 16px;
-      padding: 2px;
+      height: 8px;
+      padding: 1px;
       overflow: hidden;
       border-radius: 999px;
       border: 1px solid rgba(109, 139, 162, 0.16);
@@ -343,8 +353,8 @@
     }
 
     .reset {
-      margin-top: 5px;
-      font-size: 12px;
+      margin-top: 3px;
+      font-size: 10px;
       color: var(--muted);
       text-align: right;
       white-space: nowrap;
@@ -584,6 +594,17 @@
         <div class="row" data-row="weekly"></div>
       </section>
 
+      <section class="card" data-card="gemini" style="--accent: var(--gemini)">
+        <header class="header">
+          <img src="{{GEMINI_ICON}}" alt="">
+          <div class="header-copy">
+            <h1 data-i18n="antigravity_name">Antigravity</h1>
+          </div>
+        </header>
+        <div class="row" data-row="session"></div>
+        <div class="row" data-row="weekly"></div>
+      </section>
+
       <section class="card projects-card" data-card="projects" style="--accent: var(--projects)">
         <header class="header">
           <div class="weather-badge" aria-hidden="true">
@@ -705,7 +726,7 @@
       const reset = el.querySelector(".reset");
       const fill = el.querySelector(".fill");
       if (!title || !percent || !reset || !fill) return;
-      title.textContent = labels()[key];
+      title.textContent = data.title || labels()[key];
       percent.textContent = data.percentText || "--";
       reset.textContent = data.resetText || t("reset_placeholder");
       reset.dataset.warning = data.warning === true ? "true" : "false";
@@ -764,6 +785,7 @@
       applyStaticText();
       applyCard("claude", state.claude);
       applyCard("codex", state.codex);
+      applyCard("gemini", state.gemini);
       latestState = state;
       renderProjects(
         projectRange === "1d" ? state.projects
@@ -799,6 +821,7 @@
       language: "en",
       claude: { session: {}, weekly: {} },
       codex: { session: {}, weekly: {} },
+      gemini: { session: {}, weekly: {} },
       projects: [],
       projects7d: [],
       projects30d: [],

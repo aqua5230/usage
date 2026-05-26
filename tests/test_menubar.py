@@ -590,6 +590,7 @@ def test_load_history_entries_includes_codex_entries(monkeypatch: pytest.MonkeyP
 
     monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back: [claude_entry])
     monkeypatch.setattr("menubar.codex_loader.load_entries", lambda *, hours_back: [codex_entry])
+    monkeypatch.setattr("menubar.gemini_loader.load_entries", lambda *, hours_back: [])
 
     assert delegate._load_history_entries() == [claude_entry, codex_entry]
 

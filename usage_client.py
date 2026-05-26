@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import math
@@ -81,8 +82,31 @@ def _as_finite_float(value: Any) -> float | None:
 
 
 def _read_status_file() -> tuple[dict[str, Any], str, float] | None:
-    """Read the first available status JSON, preferring usage-owned files."""
+    """Read available status JSON files and return the one with the latest timestamp."""
+    import glob
+
+    status_dir = os.path.dirname(STATUS_FILE)
+    candidates: list[str] = []
+
+    # Check for legacy and fallback files
     for path in (STATUS_FILE, LEGACY_STATUS_FILE, TT_STATUS_FILE):
+        if path != STATUS_FILE and os.path.exists(path):
+            candidates.append(path)
+
+    # Find all usage-status*.json files
+    if os.path.isdir(status_dir):
+        for path in glob.glob(os.path.join(status_dir, "usage-status*.json")):
+            if path not in candidates:
+                candidates.append(path)
+
+    now = time.time()
+    best_data: dict[str, Any] | None = None
+    best_path: str | None = None
+    best_mtime: float | None = None
+    best_ts = -1.0
+    best_is_active = False
+
+    for path in candidates:
         try:
             mtime = os.stat(path).st_mtime
         except OSError:
@@ -95,9 +119,42 @@ def _read_status_file() -> tuple[dict[str, Any], str, float] | None:
                 logger.warning("failed to read status file %s", path, exc_info=True)
             continue
         if isinstance(data, dict):
-            return data, path, mtime
-        if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("status file %s is not a JSON object", path)
+            # Check if this status file's rate limit is active (resets in the future)
+            rl = data.get("rate_limits")
+            five_hour = rl.get("five_hour") if isinstance(rl, dict) else None
+            resets_at = five_hour.get("resets_at") if isinstance(five_hour, dict) else None
+
+            is_active = False
+            if resets_at is not None:
+                with contextlib.suppress(TypeError, ValueError):
+                    is_active = float(resets_at) > now
+
+            # Try to get the timestamp when the status was received.
+            ts = data.get("_received_at_ts")
+            if ts is None:
+                ts = mtime
+            try:
+                ts = float(ts)
+            except (TypeError, ValueError):
+                ts = mtime
+
+            # Selection rule:
+            # 1. Active status files are always preferred over expired ones.
+            # 2. Within the same category (both active or both expired), prefer the newer timestamp.
+            if (is_active and not best_is_active) or (
+                is_active == best_is_active and ts > best_ts
+            ):
+                best_ts = ts
+                best_data = data
+                best_path = path
+                best_mtime = mtime
+                best_is_active = is_active
+        else:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("status file %s is not a JSON object", path)
+
+    if best_data is not None and best_path is not None and best_mtime is not None:
+        return best_data, best_path, best_mtime
     return None
 
 

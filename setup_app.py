@@ -47,6 +47,7 @@ if __name__ == "__main__":
         "resources": [
             "assets/claude.webp",
             "assets/codex.webp",
+            "assets/Google-Antigravity-Icon-Full-Color.png",
             "assets/panels",
             "i18n.json",
             "pyproject.toml",
@@ -64,6 +65,8 @@ if __name__ == "__main__":
             "tui",
             "tui_sprite",
             "usage_client",
+            "sync_service",
+            "gemini_loader",
             "usage_rate",
             "codex_loader",
             "history_loader",

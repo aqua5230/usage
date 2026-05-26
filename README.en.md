@@ -10,9 +10,9 @@
 
 🌐 **Landing page**: [aqua5230.github.io/usage](https://aqua5230.github.io/usage/)
 
-`usage` is a macOS menu bar tool that pins your **Claude Code and Codex** usage to the top-right of your screen. Click the icon for a popover showing Session, Weekly, per-project usage (today / 7-day / monthly), and today's token usage and cost estimate.
+`usage` is a macOS menu bar tool that pins your **Claude Code, Codex, and Gemini** usage to the top-right of your screen. Click the icon for a popover showing Session, Weekly, per-project usage (today / 7-day / monthly), and today's token usage and cost estimate.
 
-It **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, so it avoids the observer effect of "pinging once a minute counts as usage."
+It **never calls the Anthropic / OpenAI / Google API** and **never reads the Keychain**, so it avoids the observer effect of "pinging once a minute counts as usage."
 
 <p align="center">
   <img src="docs/popover.en.png" alt="usage popover" width="320">
@@ -55,6 +55,12 @@ Codex CLI doesn't expose a statusLine hook, so usage takes a different route: it
 
 If Codex isn't installed or the directory doesn't exist, that part of the UI hides itself and Claude Code stats continue to work normally.
 
+### Gemini (Antigravity) usage
+
+usage scans the conversation logs left on disk by the Antigravity CLI agent (`~/.gemini/antigravity-cli/brain/*/transcript.jsonl`). It calculates the 5-hour and 7-day token usage and costs from the input and output token counts of each conversational turn recorded in those transcripts.
+
+If Antigravity is not installed or the directory does not exist, the Gemini card hides itself automatically, allowing other cards to function normally.
+
 ## Comparison
 
 | Feature | usage | ccusage | TokenTracker |
@@ -62,6 +68,7 @@ If Codex isn't installed or the directory doesn't exist, that part of the UI hid
 | macOS menu bar | ✅ | — | ✅ |
 | Claude Code usage | ✅ | ✅ | ✅ |
 | Codex usage | ✅ | — | ✅ |
+| Gemini (Antigravity) | ✅ | — | — |
 | HTML deep reports | ✅ | ✅ | — |
 | 5-language i18n | ✅ | — | — |
 | 9 visual panel themes | ✅ | — | — |
@@ -356,6 +363,21 @@ The "Fix" column distinguishes three kinds of users — find yours first:
 | Today's cost shows $0.00 | Model name doesn't match the pricing table, or pricing download/cache failed | Delete `~/.claude/pricing_cache.json` to force a re-fetch; or run with `USAGE_DEBUG=1` for details |
 | App won't open (blocked by macOS) | Gatekeeper blocks unsigned apps | Finder → find `usage.app` → right-click → Open → confirm Open |
 | App crashes immediately on launch (macOS Sequoia / arm64) | You're on v0.10.x or v0.11.0 — these had a py2app bundling bug | Upgrade to **v0.11.1 or newer** by downloading `usage.app.zip` from [Releases](https://github.com/aqua5230/usage/releases/latest) |
+
+## Multi-device synchronization
+
+If you work on Claude Code across multiple machines (e.g. a local Mac and remote development servers), `usage` can sync status files and project directories automatically over SSH:
+
+1. Configure your remote hosts in `~/.claude/settings.json`:
+   ```json
+   {
+     "usage": {
+       "remotes": ["my-ubuntu-server", "work-vm"]
+     }
+   }
+   ```
+2. Make sure you can SSH into those hosts passwordlessly (using SSH keys).
+3. `usage` will automatically run a sync check every 5 minutes in the background, using `ssh`, `scp`, and `rsync` to sync your local and remote projects, copy the statusline hook to the remote host, and sync usage status files back to your local machine.
 
 ## Build a .app bundle (optional)
 

@@ -61,13 +61,13 @@ def test_registered_panel_i18n_keys() -> None:
 def test_classic_panel_preferred_size() -> None:
     panel = panels.get_panel("classic")
 
-    assert panel.preferred_size() == (364.0, 812.0)
+    assert panel.preferred_size() == (364.0, 700.0)
 
 
 def test_win95_panel_preferred_size() -> None:
     panel = panels.get_panel("win95")
 
-    assert panel.preferred_size() == (364.0, 768.0)
+    assert panel.preferred_size() == (364.0, 700.0)
 
 
 def test_html_panels_place_analyze_and_cli_in_project_header() -> None:

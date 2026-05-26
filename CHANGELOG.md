@@ -6,6 +6,11 @@
 
 ## [Unreleased]
 
+### 新增
+- **Google Gemini (Antigravity) 用量追蹤**：支援 Gemini (Antigravity CLI) 本機對話紀錄（`~/.gemini/antigravity-cli/brain/*/transcript.jsonl`）的 5 小時與 7 天滾動配額計算（Session/Weekly），並在全部 8 款 popover 視覺面板中整合 Gemini 卡片，調整為緊湊版面避免超出尺寸。
+- **自訂選單列顯示項目**：在更換面板選單中新增「選單列顯示項目」核取方塊，可自由勾選要將 Claude Code、Codex 或 Google Gemini 的百分比釘在選單列，設定儲存於 `~/.claude/usage-preferences.json` 的 `show_in_menubar`。
+- **Conda/Homebrew 打包動態庫修復**：在 `scripts/build_app.sh` 中增加 post-build 階段，將 Conda/Homebrew Python base prefix 底下的 `libffi` 和 `libsqlite3` 動態庫拷貝至 App Bundles 的 Frameworks 目錄，修復 Conda 環境下打包 app 啟動時找不到動態庫閃退的問題。
+
 ### 修正
 - **分析報告語言跟隨 menu bar 浮窗**：按下「分析」時，HTML 報告現在使用目前 menu bar 偵測到的語言，而不是在報告產生階段重新只看環境變數，避免 LaunchAgent 未設定 `LANG` 時 fallback 成英文。
 - **切換面板時重新定位已開啟的 popover**：使用者在 popover 開啟狀態下切換 theme/panel 時，先關閉舊 popover、重建內容與尺寸後再重新顯示，避免視圖短暫縮排或尺寸錯亂。

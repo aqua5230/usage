@@ -27,21 +27,38 @@
       user-select: none;
     }
 
-    html,
+    html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
     body {
       width: 100%;
-      height: 100vh;
+      height: 100%;
       margin: 0;
-      overflow: hidden;
+      padding: 14px;
+      box-sizing: border-box;
+      overflow-y: auto;
       background: var(--bg);
       color: var(--text);
       font-family: "Courier New", "SF Mono", Menlo, monospace;
       overscroll-behavior: none;
+      position: relative;
     }
 
-    body {
-      position: relative;
-      padding: 14px;
+    body::-webkit-scrollbar {
+      width: 6px;
+    }
+    body::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    body::-webkit-scrollbar-thumb {
+      background: rgba(0, 220, 90, 0.25);
+      border-radius: 99px;
+    }
+    body::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 220, 90, 0.5);
     }
 
     canvas {
@@ -60,8 +77,6 @@
       flex-direction: column;
       gap: 14px;
       width: 100%;
-      height: 100%;
-      overflow: hidden;
     }
 
     .card,
@@ -77,31 +92,31 @@
     }
 
     .card {
-      padding: 16px 18px 14px;
+      padding: 10px 12px 8px;
       flex-shrink: 0;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      min-height: 32px;
-      gap: 12px;
-      margin-bottom: 10px;
+      min-height: 20px;
+      gap: 8px;
+      margin-bottom: 6px;
     }
 
     .brand img {
-      width: 30px;
-      height: 30px;
-      border-radius: 8px;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
       object-fit: cover;
       flex: none;
       filter: grayscale(1) brightness(1.2) sepia(1) hue-rotate(68deg) saturate(5);
     }
 
     .brand-icon {
-      width: 30px;
-      height: 30px;
-      font-size: 22px;
+      width: 20px;
+      height: 20px;
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -111,8 +126,8 @@
 
     .brand-icon svg {
       display: block;
-      width: 30px;
-      height: 30px;
+      width: 20px;
+      height: 20px;
       flex: none;
     }
 
@@ -123,7 +138,7 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      font-size: 17px;
+      font-size: 14px;
       line-height: 1.25;
       font-weight: 700;
       letter-spacing: 0.04em;
@@ -132,11 +147,11 @@
 
     .card[data-card="projects"] .brand {
       display: grid;
-      grid-template-columns: 30px minmax(0, 1fr);
+      grid-template-columns: 20px minmax(0, 1fr);
       align-items: center;
       min-height: 0;
-      row-gap: 10px;
-      margin-bottom: 14px;
+      row-gap: 6px;
+      margin-bottom: 8px;
     }
 
     .card[data-card="projects"] .brand-icon {
@@ -161,13 +176,13 @@
     }
 
     .switch {
-      height: 28px;
-      padding: 0 10px;
+      height: 20px;
+      padding: 0 8px;
       border: 1px solid var(--button-border);
-      border-radius: 9px;
+      border-radius: 6px;
       background: var(--button);
       color: var(--text);
-      font: 700 12px/26px "Courier New", "SF Mono", Menlo, monospace;
+      font: 700 10px/18px "Courier New", "SF Mono", Menlo, monospace;
       white-space: nowrap;
       text-transform: uppercase;
       letter-spacing: 0.04em;
@@ -175,34 +190,34 @@
 
     .row + .row {
       border-top: 1px solid var(--line);
-      margin-top: 10px;
-      padding-top: 10px;
+      margin-top: 6px;
+      padding-top: 6px;
     }
 
     .row-head {
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 6px;
+      gap: 8px;
+      margin-bottom: 4px;
     }
 
     .row-title {
-      font-size: 15px;
-      line-height: 18px;
+      font-size: 12px;
+      line-height: 14px;
       font-weight: 700;
     }
 
     .percent {
-      font-size: 13px;
-      line-height: 18px;
+      font-size: 11px;
+      line-height: 14px;
       font-weight: 700;
       color: var(--accent);
       white-space: nowrap;
     }
 
     .track {
-      height: 8px;
+      height: 5px;
       border-radius: 99px;
       overflow: hidden;
       background: var(--track);
@@ -220,10 +235,10 @@
     }
 
     .reset {
-      margin-top: 4px;
+      margin-top: 3px;
       color: var(--muted);
-      font-size: 11px;
-      line-height: 13px;
+      font-size: 10px;
+      line-height: 12px;
       font-weight: 700;
       text-align: right;
       white-space: nowrap;
@@ -392,6 +407,15 @@
       <header class="brand">
         <img src="{{CODEX_ICON}}" alt="">
         <h1 data-i18n="codex_name"></h1>
+      </header>
+      <div class="row" data-row="session"></div>
+      <div class="row" data-row="weekly"></div>
+    </section>
+
+    <section class="card" data-card="gemini">
+      <header class="brand">
+        <img src="{{GEMINI_ICON}}" alt="">
+        <h1 data-i18n="antigravity_name"></h1>
       </header>
       <div class="row" data-row="session"></div>
       <div class="row" data-row="weekly"></div>
@@ -602,7 +626,7 @@
       const reset = el.querySelector(".reset");
       const fill = el.querySelector(".fill");
       if (!title || !percent || !reset || !fill) return;
-      title.textContent = labels()[key];
+      title.textContent = data.title || labels()[key];
       percent.textContent = data.percentText || "--";
       reset.textContent = data.resetText || t("reset_placeholder");
       reset.dataset.warning = data.warning === true ? "true" : "false";
@@ -649,6 +673,7 @@
       applyStaticText();
       applyCard("claude", state.claude);
       applyCard("codex", state.codex);
+      applyCard("gemini", state.gemini);
       latestState = state;
       renderProjects(
         projectRange === "1d" ? state.projects
@@ -695,6 +720,7 @@
       language: "en",
       claude: { session: {}, weekly: {} },
       codex: { session: {}, weekly: {} },
+      gemini: { session: {}, weekly: {} },
       projects: [],
       projects7d: [],
       projects30d: [],

@@ -6,7 +6,7 @@ from panels.web_panel import HTMLPanel
 PANELS: tuple[Panel, ...] = (
     HTMLPanel("classic", "panel_default_name", "classic.html"),
     HTMLPanel("matrix", "panel_matrix", "matrix.html"),
-    HTMLPanel("win95", "panel_win95", "win95.html", height=768.0),
+    HTMLPanel("win95", "panel_win95", "win95.html"),
     HTMLPanel("newspaper", "panel_newspaper", "newspaper.html"),
     HTMLPanel("cloud_observation", "panel_cloud_observation", "cloud_observation.html"),
     HTMLPanel("aquarium", "panel_aquarium", "aquarium.html"),

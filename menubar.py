@@ -41,6 +41,7 @@ from AppKit import (
 from Foundation import NSLocale, NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 
 import codex_loader
+import gemini_loader
 import login_item
 import panels
 import update_checker
@@ -182,6 +183,7 @@ BUTTON_HEIGHT = 32.0
 INSTALL_BUTTON_EXTRA_HEIGHT = BUTTON_HEIGHT + 10.0
 CLAUDE_COLOR = (244 / 255, 145 / 255, 100 / 255)
 CODEX_COLOR = (88 / 255, 214 / 255, 230 / 255)
+GEMINI_COLOR = (152 / 255, 94 / 255, 249 / 255)
 WARN_COLOR = (255 / 255, 196 / 255, 57 / 255)
 DANGER_COLOR = (255 / 255, 69 / 255, 58 / 255)
 UPDATE_DISMISS_SECONDS = 24 * 3600
@@ -196,6 +198,14 @@ def _bar_color(pct: float, brand: tuple[float, float, float]) -> tuple[float, fl
     if pct >= 50:
         return WARN_COLOR
     return brand
+
+
+def _fmt_tokens_short(n: int) -> str:
+    if n >= 1_000_000:
+        return f"{n / 1_000_000:.1f}M tkn"
+    if n >= 1_000:
+        return f"{n / 1_000:.1f}k tkn"
+    return f"{n} tkn"
 
 
 def _normalize_language(code: str | None) -> str:
@@ -289,6 +299,8 @@ class PopoverState:
     claude_weekly: QuotaRowState
     codex_session: QuotaRowState
     codex_weekly: QuotaRowState
+    gemini_session: QuotaRowState
+    gemini_weekly: QuotaRowState
     projects: list[tuple[str, int, float | None]]
     projects_7d: list[tuple[str, int, float | None]]
     projects_30d: list[tuple[str, int, float | None]]
@@ -351,6 +363,7 @@ class AppDelegate(NSObject):
     latest_state = objc.ivar()
     active_panel = objc.ivar()
     codex_5h_pct = objc.ivar()
+    gemini_5h_pct = objc.ivar()
     burn_rate_trackers = objc.ivar()
     _refresh_in_flight = objc.ivar()
     _fs_stream = objc.ivar()
@@ -365,6 +378,7 @@ class AppDelegate(NSObject):
         self.tracker = UsageRateTracker(mock=mock)
         self.language = _detect_language()
         self.codex_5h_pct = None
+        self.gemini_5h_pct = None
         self.latest_state = _empty_state(self.language)
         self.active_panel = panels.get_panel(load_active_panel_id())
         self.burn_rate_trackers = {
@@ -413,6 +427,16 @@ class AppDelegate(NSObject):
         self._refresh()
 
     def refreshNow_(self, sender: Any) -> None:
+        thread = threading.Thread(target=self._force_sync_and_refresh, daemon=True)
+        thread.start()
+
+    def _force_sync_and_refresh(self) -> None:
+        try:
+            from sync_service import sync_devices
+            sync_devices(force=True)
+        except Exception as exc:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Force remote sync failed: %s", exc, exc_info=True)
         self._refresh()
 
     def installHook_(self, sender: Any) -> None:
@@ -465,6 +489,14 @@ class AppDelegate(NSObject):
             item.setState_(1 if panel.id == self.active_panel.id else 0)
             menu.addItem_(item)
         menu.addItem_(NSMenuItem.separatorItem())
+        sync_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "sync_remotes"),
+            "syncRemotes:",
+            "",
+        )
+        sync_item.setTarget_(self)
+        menu.addItem_(sync_item)
+        menu.addItem_(NSMenuItem.separatorItem())
         launch_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             _t(self.language, "launch_at_login"),
             "toggleLaunchAtLogin:",
@@ -482,11 +514,76 @@ class AppDelegate(NSObject):
         auto_update_item.setTarget_(self)
         auto_update_item.setState_(1 if _auto_update_check_enabled() else 0)
         menu.addItem_(auto_update_item)
+
+        menu.addItem_(NSMenuItem.separatorItem())
+
+        header = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "show_in_menubar") or "Show in Menu Bar:",
+            None,
+            "",
+        )
+        if hasattr(header, "setEnabled_"):
+            header.setEnabled_(False)
+        menu.addItem_(header)
+
+        prefs = _load_preferences()
+        show_in_menubar = prefs.get("show_in_menubar", ["claude", "codex", "gemini"])
+        if not isinstance(show_in_menubar, list):
+            show_in_menubar = ["claude", "codex", "gemini"]
+
+        for key, name_key, label_fallback in [
+            ("claude", "claude_name", "Claude Code"),
+            ("codex", "codex_name", "Codex"),
+            ("gemini", "antigravity_name", "Antigravity"),
+        ]:
+            name = _t(self.language, name_key) or label_fallback
+            item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+                name,
+                "toggleShowInMenubar:",
+                "",
+            )
+            item.setTarget_(self)
+            item.setRepresentedObject_(key)
+            item.setState_(1 if key in show_in_menubar else 0)
+            menu.addItem_(item)
+
         menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
 
     def selectPanel_(self, sender: Any) -> None:
         panel_id = str(sender.representedObject())
         self._set_active_panel_id(panel_id)
+
+    def syncRemotes_(self, sender: Any) -> None:
+        thread = threading.Thread(target=self._sync_remotes_in_background, daemon=True)
+        thread.start()
+
+    def _sync_remotes_in_background(self) -> None:
+        try:
+            from sync_service import sync_devices
+            success, msg = sync_devices(force=True)
+        except Exception as exc:
+            success, msg = False, str(exc)
+
+        result = {
+            "success": success,
+            "message": msg,
+        }
+        self.performSelectorOnMainThread_withObject_waitUntilDone_(
+            "_finishRemoteSync:",
+            result,
+            False,
+        )
+
+    def _finishRemoteSync_(self, result: dict[str, Any]) -> None:
+        alert = NSAlert.alloc().init()
+        if result["success"]:
+            alert.setMessageText_(_t(self.language, "sync_success"))
+            alert.setInformativeText_(result["message"])
+        else:
+            alert.setMessageText_(_t(self.language, "sync_failed"))
+            alert.setInformativeText_(result["message"])
+        alert.runModal()
+        self._refresh()
 
     def toggleLaunchAtLogin_(self, sender: Any) -> None:
         try:
@@ -512,6 +609,26 @@ class AppDelegate(NSObject):
                 daemon=True,
             )
             thread.start()
+
+    def toggleShowInMenubar_(self, sender: Any) -> None:
+        key = str(sender.representedObject())
+        prefs = _load_preferences()
+        show_in_menubar = prefs.get("show_in_menubar", ["claude", "codex", "gemini"])
+        if not isinstance(show_in_menubar, list):
+            show_in_menubar = ["claude", "codex", "gemini"]
+        else:
+            show_in_menubar = list(show_in_menubar)
+
+        if key in show_in_menubar:
+            if len(show_in_menubar) > 1:
+                show_in_menubar.remove(key)
+        else:
+            show_in_menubar.append(key)
+
+        prefs["show_in_menubar"] = show_in_menubar
+        _save_preferences(prefs)
+
+        self.status_item.button().setTitle_(self._compose_title(self.latest_state))
 
     def _maybe_check_update_in_background(self) -> None:
         self._check_update_in_background(
@@ -648,12 +765,20 @@ class AppDelegate(NSObject):
 
     def _refresh_in_background(self) -> None:
         try:
+            try:
+                from sync_service import maybe_sync_remotes
+                maybe_sync_remotes()
+            except Exception as exc:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning("Background auto sync failed: %s", exc, exc_info=True)
+
             outcome = asyncio.run(self._fetch())
             codex_rows, codex_5h_pct = self._codex_rows()
             all_entries = self._load_history_entries()
             project_rows = self._project_rows(hours_back=24, entries=all_entries)
             project_rows_7d = self._project_rows(hours_back=168, entries=all_entries)
             project_rows_30d = self._project_rows(hours_back=720, entries=all_entries)
+            _, gemini_5h_pct = self._gemini_rows(all_entries)
             state = self._state_from_outcome(
                 outcome,
                 codex_rows,
@@ -666,9 +791,14 @@ class AppDelegate(NSObject):
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("refresh failed", exc_info=True)
             codex_5h_pct = None
+            gemini_5h_pct = None
             state = _error_state(type(exc).__name__, self.mock, self.language)
 
-        result = {"state": state, "codex_5h_pct": codex_5h_pct}
+        result = {
+            "state": state,
+            "codex_5h_pct": codex_5h_pct,
+            "gemini_5h_pct": gemini_5h_pct,
+        }
         self.performSelectorOnMainThread_withObject_waitUntilDone_(
             "_applyRefreshResult:",
             result,
@@ -677,8 +807,10 @@ class AppDelegate(NSObject):
 
     def _applyRefreshResult_(self, result: dict[str, Any]) -> None:
         state = result["state"]
-        codex_5h_pct = result["codex_5h_pct"]
+        codex_5h_pct = result.get("codex_5h_pct")
+        gemini_5h_pct = result.get("gemini_5h_pct")
         self.codex_5h_pct = codex_5h_pct
+        self.gemini_5h_pct = gemini_5h_pct
         self.latest_state = state
         if self.popover.isShown():
             self.popover_controller.setState_(self.latest_state)
@@ -876,12 +1008,15 @@ class AppDelegate(NSObject):
                 value=self._status_message_value(outcome, "status_no_data"),
             )
 
-        return PopoverState(
+        gemini_rows, _ = self._gemini_rows(history_entries)
+        state = PopoverState(
             language=self.language,
             claude_session=claude_session,
             claude_weekly=claude_weekly,
             codex_session=codex_rows[0],
             codex_weekly=codex_rows[1],
+            gemini_session=gemini_rows[0],
+            gemini_weekly=gemini_rows[1],
             projects=projects,
             projects_7d=project_rows_7d,
             projects_30d=project_rows_30d,
@@ -891,6 +1026,7 @@ class AppDelegate(NSObject):
             statusline=_statusline_payload(self.language),
             show_install_button=outcome.state == PollState.TOKEN_ERROR,
         )
+        return state
 
     def _codex_rows(self) -> tuple[tuple[QuotaRowState, QuotaRowState], int | None]:
         if self.mock:
@@ -965,6 +1101,143 @@ class AppDelegate(NSObject):
         )
         return rows, codex_5h_pct
 
+    def _gemini_rows(
+        self, entries: list[UsageEntry] | None = None
+    ) -> tuple[tuple[QuotaRowState, QuotaRowState], int | None]:
+        session_title = _t(self.language, "limit_5h") or "5h Limit"
+        weekly_title = _t(self.language, "limit_7d") or "7d Limit"
+
+        if self.mock:
+            session_row = QuotaRowState(
+                title=session_title,
+                percent=15.0,
+                percent_text=f"$1.50 / $10.00 ({_fmt_tokens_short(120000)})",
+                reset_text=_t(
+                    self.language,
+                    "reset_in",
+                    time=format_human_time(4 * 3600 + 15 * 60, self.language),
+                ),
+                color=GEMINI_COLOR,
+                warning=False,
+                available=True,
+            )
+            weekly_row = QuotaRowState(
+                title=weekly_title,
+                percent=14.5,
+                percent_text=f"$14.50 / $100.00 ({_fmt_tokens_short(1160000)})",
+                reset_text=_t(
+                    self.language,
+                    "reset_in",
+                    time=format_human_time(4 * 86400, self.language),
+                ),
+                color=GEMINI_COLOR,
+                warning=False,
+                available=True,
+            )
+            return (session_row, weekly_row), 15
+
+        if not entries:
+            return (
+                _missing_row(session_title, GEMINI_COLOR, self.language),
+                _missing_row(weekly_title, GEMINI_COLOR, self.language),
+            ), None
+
+        gemini_entries = [e for e in entries if e.project == "Antigravity (Gemini)"]
+        if not gemini_entries:
+            return (
+                _missing_row(session_title, GEMINI_COLOR, self.language),
+                _missing_row(weekly_title, GEMINI_COLOR, self.language),
+            ), None
+
+        now_dt = datetime.now(UTC)
+        five_hour_cutoff = now_dt - timedelta(hours=5)
+        seven_day_cutoff = now_dt - timedelta(days=7)
+
+        five_hour_entries = []
+        seven_day_entries = []
+        for e in gemini_entries:
+            e_ts = e.timestamp
+            if e_ts.tzinfo is None:
+                e_ts = e_ts.replace(tzinfo=UTC)
+            if e_ts >= five_hour_cutoff:
+                five_hour_entries.append(e)
+            if e_ts >= seven_day_cutoff:
+                seven_day_entries.append(e)
+
+        five_hour_tokens = sum(e.total_tokens for e in five_hour_entries)
+        five_hour_cost = sum((e.cost_usd or 0.0) for e in five_hour_entries)
+
+        seven_day_tokens = sum(e.total_tokens for e in seven_day_entries)
+        seven_day_cost = sum((e.cost_usd or 0.0) for e in seven_day_entries)
+
+        five_hour_limit = 10.00
+        seven_day_limit = 100.00
+
+        five_hour_pct = (five_hour_cost / five_hour_limit) * 100.0 if five_hour_limit > 0 else 0.0
+        seven_day_pct = (seven_day_cost / seven_day_limit) * 100.0 if seven_day_limit > 0 else 0.0
+
+        now_ts = now_dt.timestamp()
+
+        five_hour_resets_at = None
+        if five_hour_entries:
+            earliest_5h = min(e.timestamp for e in five_hour_entries)
+            if earliest_5h.tzinfo is None:
+                earliest_5h = earliest_5h.replace(tzinfo=UTC)
+            five_hour_resets_at = (earliest_5h + timedelta(hours=5)).timestamp()
+        if five_hour_resets_at is None:
+            five_hour_resets_at = now_ts
+
+        seven_day_resets_at = None
+        if seven_day_entries:
+            earliest_7d = min(e.timestamp for e in seven_day_entries)
+            if earliest_7d.tzinfo is None:
+                earliest_7d = earliest_7d.replace(tzinfo=UTC)
+            seven_day_resets_at = (earliest_7d + timedelta(days=7)).timestamp()
+        if seven_day_resets_at is None:
+            seven_day_resets_at = now_ts
+
+        five_hour_time_to_reset = max(0.0, five_hour_resets_at - now_ts)
+        five_hour_reset_text = _t(
+            self.language,
+            "reset_in",
+            time=format_human_time(five_hour_time_to_reset, self.language),
+        )
+
+        seven_day_time_to_reset = max(0.0, seven_day_resets_at - now_ts)
+        seven_day_reset_text = _t(
+            self.language,
+            "reset_in",
+            time=format_human_time(seven_day_time_to_reset, self.language),
+        )
+
+        session_row = QuotaRowState(
+            title=session_title,
+            percent=max(0.0, min(100.0, five_hour_pct)),
+            percent_text=(
+                f"${five_hour_cost:.2f} / ${five_hour_limit:.2f} "
+                f"({_fmt_tokens_short(five_hour_tokens)})"
+            ),
+            reset_text=five_hour_reset_text,
+            color=_bar_color(five_hour_pct, GEMINI_COLOR),
+            warning=five_hour_pct >= 80.0,
+            available=True,
+        )
+
+        weekly_row = QuotaRowState(
+            title=weekly_title,
+            percent=max(0.0, min(100.0, seven_day_pct)),
+            percent_text=(
+                f"${seven_day_cost:.2f} / ${seven_day_limit:.2f} "
+                f"({_fmt_tokens_short(seven_day_tokens)})"
+            ),
+            reset_text=seven_day_reset_text,
+            color=_bar_color(seven_day_pct, GEMINI_COLOR),
+            warning=seven_day_pct >= 80.0,
+            available=True,
+        )
+
+        return (session_row, weekly_row), round(five_hour_pct)
+
     def _load_history_entries(self) -> list[UsageEntry]:
         if self.mock:
             return []
@@ -979,6 +1252,11 @@ class AppDelegate(NSObject):
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("Codex project usage load failed", exc_info=True)
+        try:
+            entries.extend(gemini_loader.load_entries(hours_back=720))
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Gemini project usage load failed", exc_info=True)
         return entries
 
     def _project_rows(
@@ -1047,14 +1325,34 @@ class AppDelegate(NSObject):
         return rows
 
     def _compose_title(self, state: PopoverState) -> str:
-        base = (
-            "🐾 --"
-            if state.claude_session.percent is None
-            else f"🐾 {_format_percent(state.claude_session.percent)}%"
-        )
-        if self.codex_5h_pct is None:
-            return base
-        return f"{base} · 📜 {self.codex_5h_pct}%"
+        prefs = _load_preferences()
+        show_in_menubar = prefs.get("show_in_menubar", ["claude", "codex", "gemini"])
+        if not isinstance(show_in_menubar, list):
+            show_in_menubar = ["claude", "codex", "gemini"]
+
+        parts = []
+
+        # 1. Claude
+        if "claude" in show_in_menubar:
+            claude_val = (
+                "--"
+                if state.claude_session.percent is None
+                else f"{_format_percent(state.claude_session.percent)}%"
+            )
+            parts.append(f"🐾 {claude_val}")
+
+        # 2. Codex
+        if "codex" in show_in_menubar and self.codex_5h_pct is not None:
+            parts.append(f"📜 {self.codex_5h_pct}%")
+
+        # 3. Gemini
+        if "gemini" in show_in_menubar and self.gemini_5h_pct is not None:
+            parts.append(f"✦ {self.gemini_5h_pct}%")
+
+        if not parts:
+            return "🐾 --"
+
+        return " · ".join(parts)
 
 
 def run_app(mock: bool = False, interval: int = 60) -> None:
@@ -1089,6 +1387,8 @@ def _empty_state(language: str = "en") -> PopoverState:
         claude_weekly=_missing_row("Weekly", CLAUDE_COLOR, language),
         codex_session=_missing_row("Session", CODEX_COLOR, language),
         codex_weekly=_missing_row("Weekly", CODEX_COLOR, language),
+        gemini_session=_missing_row("Session", GEMINI_COLOR, language),
+        gemini_weekly=_missing_row("Weekly", GEMINI_COLOR, language),
         projects=[],
         projects_7d=[],
         projects_30d=[],
@@ -1144,8 +1444,15 @@ def _quota_row(
         )
     else:
         reset_text = _t(language, "reset_in", time=format_human_time(time_to_reset, language))
+
+    translated_title = title
+    if title == "Session":
+        translated_title = _t(language, "session_label") or "Session"
+    elif title == "Weekly":
+        translated_title = _t(language, "weekly_label") or "Weekly"
+
     return QuotaRowState(
-        title=title,
+        title=translated_title,
         percent=pct,
         percent_text=_t(language, "percent_used", value=_format_percent(pct)),
         reset_text=reset_text,
@@ -1160,8 +1467,13 @@ def _missing_row(
     color: tuple[float, float, float],
     language: str = "en",
 ) -> QuotaRowState:
+    translated_title = title
+    if title == "Session":
+        translated_title = _t(language, "session_label") or "Session"
+    elif title == "Weekly":
+        translated_title = _t(language, "weekly_label") or "Weekly"
     return QuotaRowState(
-        title=title,
+        title=translated_title,
         percent=None,
         percent_text="--",
         reset_text=_t(language, "reset_placeholder"),
@@ -1305,7 +1617,9 @@ def _today_title(
         all_entries = (
             entries
             if entries is not None
-            else list(load_entries(hours_back=24)) + codex_loader.load_entries(hours_back=24)
+            else list(load_entries(hours_back=24))
+            + codex_loader.load_entries(hours_back=24)
+            + gemini_loader.load_entries(hours_back=24)
         )
         for entry in all_entries:
             if entry.timestamp.astimezone().date() != today:

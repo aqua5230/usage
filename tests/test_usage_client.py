@@ -55,12 +55,12 @@ def test_read_status_file_prefers_legacy_over_tt_compat(
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(legacy_path))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tt_path))
 
-    legacy_path.write_text(
-        json.dumps({"rate_limits": {"five_hour": {"used_percentage": 18}}}),
-        encoding="utf-8",
-    )
     tt_path.write_text(
         json.dumps({"rate_limits": {"five_hour": {"used_percentage": 7}}}),
+        encoding="utf-8",
+    )
+    legacy_path.write_text(
+        json.dumps({"rate_limits": {"five_hour": {"used_percentage": 18}}}),
         encoding="utf-8",
     )
 

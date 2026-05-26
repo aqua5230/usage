@@ -7,6 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- **Google Gemini (Antigravity) usage tracking**: added dynamic rolling 5-hour and 7-day quota card tracking (Session/Weekly) for Gemini (Antigravity CLI), integrated inside all 8 popover panels with customized compact theme layouts, and calculated rolling usage from local transcripts (`~/.gemini/antigravity-cli/brain/*/transcript.jsonl`).
+- **Customizable menu bar display**: added checkboxes under the panel switcher to select which metrics (Claude Code, Codex, and/or Google Gemini) to show in the macOS menu bar. Preferences are saved locally to `~/.claude/usage-preferences.json` under `show_in_menubar`.
+- **Conda/Homebrew build library fix**: patched `scripts/build_app.sh` post-build steps to copy and bundle `libffi` and `libsqlite3` dynamic libraries from conda environment prefix paths to the application frameworks folder, resolving startup library crashes on conda-based systems.
+
 ### Fixed
 - **Analysis reports now follow the menu bar popover language**: clicking Analyze now passes the menu bar's current language into HTML report generation instead of redetecting from environment variables only, avoiding English fallback when LaunchAgent does not set `LANG`.
 - **Visible popovers are repositioned when switching panels**: changing the active theme/panel while the popover is open now closes the old popover, rebuilds the content and size, then shows it again to avoid transient indentation or sizing glitches.

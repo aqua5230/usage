@@ -13,6 +13,7 @@
       --cyan: #45e9ff;
       --claude: linear-gradient(90deg, #f8bc8b 0%, #f4a261 54%, #df8b49 100%);
       --codex: linear-gradient(90deg, #96f7ff 0%, #3fd9ff 50%, #1b88d2 100%);
+      --gemini: linear-gradient(90deg, #c09cff 0%, #985ef9 50%, #7d3fed 100%);
       --projects: linear-gradient(90deg, #b9fff4 0%, #50e6c7 48%, #24a9ff 100%);
       --warn: #ffd36a;
       --danger: #ff746d;
@@ -88,9 +89,24 @@
       width: 100%;
       height: 100%;
       padding: 10px;
-      overflow: hidden;
+      box-sizing: border-box;
+      overflow-y: auto;
       isolation: isolate;
       z-index: 1;
+    }
+
+    .viewport::-webkit-scrollbar {
+      width: 6px;
+    }
+    .viewport::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .viewport::-webkit-scrollbar-thumb {
+      background: rgba(0, 220, 255, 0.15);
+      border-radius: 99px;
+    }
+    .viewport::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 220, 255, 0.35);
     }
 
     .sparkles,
@@ -161,7 +177,6 @@
       flex-direction: column;
       gap: 10px;
       width: 100%;
-      height: 100%;
     }
 
     .card,
@@ -188,27 +203,22 @@
     }
 
     .card {
-      padding: 12px 14px;
-    }
-
-    .card[data-card="claude"],
-    .card[data-card="codex"] {
-      min-height: 224px;
+      padding: 10px 12px 8px;
     }
 
     .header {
       position: relative;
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 6px;
       z-index: 1;
     }
 
     .header img,
     .reef-badge {
-      width: 28px;
-      height: 28px;
+      width: 20px;
+      height: 20px;
       flex: none;
       border-radius: 50%;
       border: 1px solid rgba(0, 200, 255, 0.22);
@@ -220,7 +230,7 @@
       display: grid;
       place-items: center;
       color: var(--cyan);
-      font-size: 15px;
+      font-size: 11px;
       font-weight: 700;
     }
 
@@ -231,7 +241,7 @@
 
     .header h1 {
       margin: 0;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1.2;
       font-weight: 600;
       letter-spacing: 0;
@@ -247,7 +257,7 @@
       background: rgba(2, 22, 44, 0.62);
       color: var(--text);
       font: inherit;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 600;
       box-shadow: 0 0 12px rgba(69, 233, 255, 0.16), inset 0 0 12px rgba(69, 233, 255, 0.08);
       backdrop-filter: blur(10px);
@@ -257,8 +267,8 @@
     .switch,
     .range-chip {
       flex: none;
-      min-height: 28px;
-      padding: 0 12px;
+      min-height: 20px;
+      padding: 0 8px;
       border-radius: 999px;
       white-space: nowrap;
     }
@@ -272,11 +282,11 @@
     .row {
       position: relative;
       z-index: 1;
-      padding: 10px 0 0;
+      padding: 6px 0 0;
     }
 
     .row + .row {
-      margin-top: 10px;
+      margin-top: 6px;
       border-top: 1px solid rgba(0, 200, 255, 0.14);
     }
 
@@ -284,27 +294,27 @@
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 6px;
+      gap: 8px;
+      margin-bottom: 4px;
     }
 
     .row-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--muted);
       letter-spacing: 0;
     }
 
     .percent {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       white-space: nowrap;
     }
 
     .track {
       position: relative;
-      height: 16px;
-      padding: 2px;
+      height: 8px;
+      padding: 1px;
       overflow: hidden;
       border-radius: 999px;
       border: 1px solid rgba(0, 200, 255, 0.22);
@@ -351,8 +361,8 @@
     }
 
     .reset {
-      margin-top: 5px;
-      font-size: 12px;
+      margin-top: 3px;
+      font-size: 10px;
       color: var(--muted);
       text-align: right;
       white-space: nowrap;
@@ -548,6 +558,17 @@
         <div class="row" data-row="weekly"></div>
       </section>
 
+      <section class="card" data-card="gemini" style="--accent: var(--gemini)">
+        <header class="header">
+          <img src="{{GEMINI_ICON}}" alt="">
+          <div class="header-copy">
+            <h1 data-i18n="antigravity_name">Antigravity</h1>
+          </div>
+        </header>
+        <div class="row" data-row="session"></div>
+        <div class="row" data-row="weekly"></div>
+      </section>
+
       <section class="card projects-card" data-card="projects" style="--accent: var(--projects)">
         <header class="header">
           <div class="reef-badge" aria-hidden="true">~</div>
@@ -698,7 +719,7 @@
       const reset = el.querySelector(".reset");
       const fill = el.querySelector(".fill");
       if (!title || !percent || !reset || !fill) return;
-      title.textContent = labels()[key];
+      title.textContent = data.title || labels()[key];
       percent.textContent = data.percentText || "--";
       reset.textContent = data.resetText || t("reset_placeholder");
       reset.dataset.warning = data.warning === true ? "true" : "false";
@@ -781,6 +802,7 @@
       applyStaticText();
       applyCard("claude", state.claude);
       applyCard("codex", state.codex);
+      applyCard("gemini", state.gemini);
       latestState = state;
       renderProjects(
         projectRange === "1d" ? state.projects
@@ -895,6 +917,7 @@
       language: "en",
       claude: { session: {}, weekly: {} },
       codex: { session: {}, weekly: {} },
+      gemini: { session: {}, weekly: {} },
       projects: [],
       projects7d: [],
       projects30d: [],

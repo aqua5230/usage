@@ -86,8 +86,24 @@
       width: 100%;
       height: 100%;
       padding: 10px;
-      overflow: hidden;
+      overflow-y: auto;
       isolation: isolate;
+    }
+
+    .viewport::-webkit-scrollbar {
+      width: 6px;
+    }
+    .viewport::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .viewport::-webkit-scrollbar-thumb {
+      background: rgba(255, 0, 255, 0.25);
+      border-radius: 99px;
+      box-shadow: 0 0 8px rgba(255, 0, 255, 0.5);
+    }
+    .viewport::-webkit-scrollbar-thumb:hover {
+      background: rgba(0, 255, 255, 0.4);
+      box-shadow: 0 0 10px rgba(0, 255, 255, 0.8);
     }
 
     .wrap {
@@ -97,7 +113,6 @@
       flex-direction: column;
       gap: 10px;
       width: 100%;
-      height: 100%;
     }
 
     .card,
@@ -137,12 +152,7 @@
     }
 
     .card {
-      padding: 12px 14px;
-    }
-
-    .card[data-card="claude"],
-    .card[data-card="codex"] {
-      min-height: 224px;
+      padding: 10px 12px 8px;
     }
 
     .header {
@@ -150,14 +160,14 @@
       z-index: 1;
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 8px;
+      margin-bottom: 6px;
     }
 
     .header img,
     .prism-badge {
-      width: 28px;
-      height: 28px;
+      width: 20px;
+      height: 20px;
       flex: none;
       border-radius: 8px;
       border: 1px solid rgba(255, 255, 255, 0.22);
@@ -171,7 +181,7 @@
       display: grid;
       place-items: center;
       color: var(--text);
-      font-size: 16px;
+      font-size: 11px;
       font-weight: 800;
     }
 
@@ -182,7 +192,7 @@
 
     .header h1 {
       margin: 0;
-      font-size: 16px;
+      font-size: 14px;
       line-height: 1.2;
       font-weight: 600;
       letter-spacing: 0;
@@ -197,7 +207,7 @@
       background-color: rgba(40, 0, 60, 0.25);
       color: var(--text);
       font: inherit;
-      font-size: 12px;
+      font-size: 10px;
       font-weight: 600;
       box-shadow: 0 0 14px rgba(255, 0, 255, 0.18), inset 0 0 10px rgba(0, 255, 255, 0.08);
       backdrop-filter: blur(10px);
@@ -207,8 +217,8 @@
     .switch,
     .range-chip {
       flex: none;
-      min-height: 28px;
-      padding: 0 12px;
+      min-height: 20px;
+      padding: 0 8px;
       border-radius: 999px;
       white-space: nowrap;
     }
@@ -222,11 +232,11 @@
     .row {
       position: relative;
       z-index: 1;
-      padding: 10px 0 0;
+      padding: 6px 0 0;
     }
 
     .row + .row {
-      margin-top: 10px;
+      margin-top: 6px;
       border-top: 1px solid rgba(240, 232, 255, 0.13);
     }
 
@@ -234,27 +244,27 @@
       display: flex;
       align-items: baseline;
       justify-content: space-between;
-      gap: 12px;
-      margin-bottom: 6px;
+      gap: 8px;
+      margin-bottom: 4px;
     }
 
     .row-title {
-      font-size: 13px;
+      font-size: 12px;
       font-weight: 600;
       color: var(--muted);
       letter-spacing: 0;
     }
 
     .percent {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 600;
       white-space: nowrap;
     }
 
     .track {
       position: relative;
-      height: 16px;
-      padding: 2px;
+      height: 8px;
+      padding: 1px;
       overflow: hidden;
       border-radius: 999px;
       border: 1px solid rgba(240, 232, 255, 0.18);
@@ -301,8 +311,8 @@
     }
 
     .reset {
-      margin-top: 5px;
-      font-size: 12px;
+      margin-top: 3px;
+      font-size: 10px;
       color: var(--muted);
       text-align: right;
       white-space: nowrap;
@@ -478,6 +488,17 @@
         <div class="row" data-row="weekly"></div>
       </section>
 
+      <section class="card" data-card="gemini">
+        <header class="header">
+          <img src="{{GEMINI_ICON}}" alt="">
+          <div class="header-copy">
+            <h1 data-i18n="antigravity_name">Antigravity</h1>
+          </div>
+        </header>
+        <div class="row" data-row="session"></div>
+        <div class="row" data-row="weekly"></div>
+      </section>
+
       <section class="card projects-card" data-card="projects">
         <header class="header">
           <div class="prism-badge" aria-hidden="true">P</div>
@@ -625,7 +646,7 @@
       const reset = el.querySelector(".reset");
       const fill = el.querySelector(".fill");
       if (!title || !percent || !reset || !fill) return;
-      title.textContent = labels()[key];
+      title.textContent = data.title || labels()[key];
       percent.textContent = data.percentText || "--";
       reset.textContent = data.resetText || t("reset_placeholder");
       reset.dataset.warning = data.warning === true ? "true" : "false";
@@ -708,6 +729,7 @@
       applyStaticText();
       applyCard("claude", state.claude);
       applyCard("codex", state.codex);
+      applyCard("gemini", state.gemini);
       latestState = state;
       renderProjects(
         projectRange === "1d" ? state.projects
@@ -875,6 +897,7 @@
       language: "en",
       claude: { session: {}, weekly: {} },
       codex: { session: {}, weekly: {} },
+      gemini: { session: {}, weekly: {} },
       projects: [],
       projects7d: [],
       projects30d: [],
