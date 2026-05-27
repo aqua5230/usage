@@ -740,6 +740,7 @@
     function projectRangeLabel(range) {
       if (range === "7d") return t("project_range_7d");
       if (range === "30d") return t("project_range_30d");
+      if (range === "all") return t("project_range_all");
       return t("project_range_1d");
     }
 
@@ -945,6 +946,7 @@
       renderProjects(
         projectRange === "7d" ? state.projects7d
         : projectRange === "30d" ? state.projects30d
+        : projectRange === "all" ? state.projectsAll
         : state.projects
       );
       renderStatusline(state.statusline || {});
@@ -955,12 +957,13 @@
       const button = event.target.closest("[data-action]");
       if (!button) return;
       if (button.dataset.action === "toggle-project-range") {
-        projectRange = projectRange === "1d" ? "7d" : projectRange === "7d" ? "30d" : "1d";
+        projectRange = projectRange === "1d" ? "7d" : projectRange === "7d" ? "30d" : projectRange === "30d" ? "all" : "1d";
         button.textContent = projectRangeLabel(projectRange);
         if (latestState) {
           renderProjects(
             projectRange === "7d" ? latestState.projects7d
             : projectRange === "30d" ? latestState.projects30d
+            : projectRange === "all" ? latestState.projectsAll
             : latestState.projects
           );
         }
@@ -1329,6 +1332,11 @@
         { name: "usage", tokens: 1900000, tokensText: "1.9M", costText: "$190.00" },
         { name: "memory-aware-agent", tokens: 780000, tokensText: "780K", costText: "$78.00" },
         { name: "obsidian00", tokens: 620000, tokensText: "620K", costText: "$62.00" },
+      ],
+      projectsAll: [
+        { name: "usage", tokens: 99402498, tokensText: "99,402,498", costText: "$140.82" },
+        { name: "memory-aware-agent", tokens: 15220600, tokensText: "15,220,600", costText: "$21.45" },
+        { name: "obsidian00", tokens: 6188719, tokensText: "6,188,719", costText: "$8.74" },
       ],
       statusline: {},
       footer: { rate: "速率：高負載", status: "狀態：✓ 已同步", today: "今日：$140.82 (175,369,967 tokens)", showInstall: false },

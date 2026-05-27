@@ -280,6 +280,7 @@ def test_empty_state() -> None:
     assert state.projects == []
     assert state.projects_7d == []
     assert state.projects_30d == []
+    assert state.projects_all == []
     assert isinstance(state.statusline["enabled"], bool)
     assert state.show_install_button is False
 
@@ -731,14 +732,14 @@ def test_load_history_entries_reuses_cache_when_sources_do_not_change(
     )
     calls = {"claude": 0, "codex": 0}
 
-    def fake_claude_entries(*, hours_back: int = 720) -> list[history_loader.UsageEntry]:
+    def fake_claude_entries(*, hours_back: int = 0) -> list[history_loader.UsageEntry]:
         calls["claude"] += 1
-        assert hours_back == 720
+        assert hours_back == 0
         return [claude_entry]
 
-    def fake_codex_entries(*, hours_back: int = 720) -> list[history_loader.UsageEntry]:
+    def fake_codex_entries(*, hours_back: int = 0) -> list[history_loader.UsageEntry]:
         calls["codex"] += 1
-        assert hours_back == 720
+        assert hours_back == 0
         return [codex_entry]
 
     monkeypatch.setattr(delegate, "_history_sources_fingerprint", lambda: (("same", 1, 1.0),))
@@ -775,14 +776,14 @@ def test_load_history_entries_refreshes_cache_when_sources_change(
     calls = 0
     fingerprints = iter(((("old", 1, 1.0),), (("new", 2, 2.0),)))
 
-    def fake_codex_entries(*, hours_back: int = 720) -> list[history_loader.UsageEntry]:
+    def fake_codex_entries(*, hours_back: int = 0) -> list[history_loader.UsageEntry]:
         nonlocal calls
         calls += 1
-        assert hours_back == 720
+        assert hours_back == 0
         return entries
 
     monkeypatch.setattr(delegate, "_history_sources_fingerprint", lambda: next(fingerprints))
-    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=720: [])
+    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=0: [])
     monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
 
     assert delegate._load_history_entries() == entries
@@ -1077,7 +1078,7 @@ def test_state_from_outcome_replaces_claude_reset_with_warning(
         ),
     )
 
-    state = delegate._state_from_outcome(outcome, delegate._codex_rows()[0], [], [], [])
+    state = delegate._state_from_outcome(outcome, delegate._codex_rows()[0], [], [], [], [])
 
     assert state.claude_session.warning is True
     assert state.claude_session.reset_text == "⚠ 按目前速度 18分鐘 就會用完(重置還要 51分鐘)"
@@ -1107,7 +1108,7 @@ def test_state_from_outcome_keeps_reset_when_burn_rate_is_not_positive(
         ),
     )
 
-    state = delegate._state_from_outcome(outcome, delegate._codex_rows()[0], [], [], [])
+    state = delegate._state_from_outcome(outcome, delegate._codex_rows()[0], [], [], [], [])
 
     assert state.claude_session.warning is False
     assert state.claude_session.reset_text == "重置 51分鐘"
@@ -1120,6 +1121,7 @@ def test_state_from_outcome_translates_awaiting_rate_limits_message() -> None:
     state = delegate._state_from_outcome(
         PollOutcome(state=PollState.LOADING, message="awaiting_rate_limits"),
         delegate._codex_rows()[0],
+        [],
         [],
         [],
         [],

@@ -270,6 +270,15 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
             }
             for name, tokens, cost in state.projects_30d
         ],
+        "projectsAll": [
+            {
+                "name": name,
+                "tokens": tokens,
+                "tokensText": _fmt_tokens(tokens),
+                "costText": _fmt_cost(cost),
+            }
+            for name, tokens, cost in state.projects_all
+        ],
         "statusline": state.statusline,
         "footer": {
             "rate": state.rate_text,

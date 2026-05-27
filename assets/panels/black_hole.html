@@ -620,6 +620,7 @@
     function projectRangeLabel(range) {
       if (range === "7d") return t("project_range_7d");
       if (range === "30d") return t("project_range_30d");
+      if (range === "all") return t("project_range_all");
       return t("project_range_1d");
     }
 
@@ -766,7 +767,9 @@
       renderProjects(
         projectRange === "1d" ? state.projects
         : projectRange === "7d" ? state.projects7d
-        : state.projects30d
+        : projectRange === "30d" ? state.projects30d
+        : projectRange === "all" ? state.projectsAll
+        : state.projects
       );
       renderStatusline(state.statusline || {});
       applyFooter(state.footer || {});
@@ -776,13 +779,15 @@
       const button = event.target.closest("[data-action]");
       if (!button) return;
       if (button.dataset.action === "toggle-project-range") {
-        projectRange = projectRange === "1d" ? "7d" : projectRange === "7d" ? "30d" : "1d";
+        projectRange = projectRange === "1d" ? "7d" : projectRange === "7d" ? "30d" : projectRange === "30d" ? "all" : "1d";
         button.textContent = projectRangeLabel(projectRange);
         if (latestState) {
           renderProjects(
             projectRange === "1d" ? latestState.projects
             : projectRange === "7d" ? latestState.projects7d
-            : latestState.projects30d
+            : projectRange === "30d" ? latestState.projects30d
+            : projectRange === "all" ? latestState.projectsAll
+            : latestState.projects
           );
         }
         return;
@@ -962,6 +967,7 @@
       projects: [],
       projects7d: [],
       projects30d: [],
+      projectsAll: [],
       statusline: {},
       footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", showInstall: false }
     });
