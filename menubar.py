@@ -533,7 +533,7 @@ class AppDelegate(NSObject):
                 }
                 _save_preferences(prefs)
         except Exception:
-            current_version = None  # type: ignore[assignment]
+            current_version = None
 
         if not ignore_cooldown and _update_dismissed_recently(prefs):
             return

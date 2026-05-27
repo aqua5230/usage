@@ -1176,6 +1176,7 @@ def test_state_from_outcome_hides_setup_button_when_no_statusline_target_exists(
         [],
         [],
         [],
+        [],
     )
 
     assert state.show_install_button is False
@@ -1190,6 +1191,7 @@ def test_state_from_outcome_shows_setup_button_for_codex_only(
     state = delegate._state_from_outcome(
         PollOutcome(state=PollState.TOKEN_ERROR, message="missing"),
         delegate._codex_rows()[0],
+        [],
         [],
         [],
         [],
