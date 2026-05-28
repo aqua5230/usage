@@ -2,6 +2,8 @@
 
 > Claude Code & Codex 用量監看器 —— 把配額釘在 macOS 選單列
 
+💬 有問題或想討論？歡迎到 [Discussions](https://github.com/aqua5230/usage/discussions)
+
 繁體中文 · [English](README.en.md)
 
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)

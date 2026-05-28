@@ -2,6 +2,8 @@
 
 > Claude Code & Codex usage monitor — pin your quota to the macOS menu bar
 
+💬 Questions or ideas? Come to [Discussions](https://github.com/aqua5230/usage/discussions)
+
 [Traditional Chinese](README.md) / English
 
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
