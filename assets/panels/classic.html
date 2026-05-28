@@ -620,20 +620,40 @@
       const ranks = ["①", "②", "③"];
       const rows = (projects || []).slice(0, 3);
       const totalTokens = rows.reduce((s, p) => s + Math.max(0, Number(p.tokens) || 0), 0);
-      list.innerHTML = rows.map((p, i) => {
+      list.replaceChildren();
+      if (rows.length === 0) {
+        const empty = document.createElement("div");
+        empty.style.cssText = "color:var(--muted);font-size:13px;padding:8px 0";
+        empty.textContent = t("projects_empty");
+        list.append(empty);
+        return;
+      }
+      rows.forEach((p, i) => {
         const tokens = Math.max(0, Number(p.tokens) || 0);
         const width = totalTokens > 0 ? Math.max(0, Math.min(100, (tokens / totalTokens) * 100)) : 0;
-        const safeName = String(p.name ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-        return `
-        <div class="proj-row">
-          <span class="proj-rank">${ranks[i]}</span>
-          <span class="proj-name">${safeName}</span>
-          <span class="proj-tokens">${p.tokensText}</span>
-          <span class="proj-cost">${p.costText}</span>
-          <div class="proj-bar"><div class="proj-bar-fill" style="width:${width}%"></div></div>
-        </div>
-      `;
-      }).join("") || `<div style="color:var(--muted);font-size:13px;padding:8px 0">${t("projects_empty")}</div>`;
+        const row = document.createElement("div");
+        row.className = "proj-row";
+        const rank = document.createElement("span");
+        rank.className = "proj-rank";
+        rank.textContent = ranks[i];
+        const name = document.createElement("span");
+        name.className = "proj-name";
+        name.textContent = p.name || "";
+        const tok = document.createElement("span");
+        tok.className = "proj-tokens";
+        tok.textContent = p.tokensText || "";
+        const cost = document.createElement("span");
+        cost.className = "proj-cost";
+        cost.textContent = p.costText || "";
+        const bar = document.createElement("div");
+        bar.className = "proj-bar";
+        const fill = document.createElement("div");
+        fill.className = "proj-bar-fill";
+        fill.style.width = `${width}%`;
+        bar.append(fill);
+        row.append(rank, name, tok, cost, bar);
+        list.append(row);
+      });
     }
 
 

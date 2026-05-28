@@ -792,19 +792,35 @@
       const list = document.querySelector("[data-project-list]");
       if (!list) return;
       const rows = (projects || []).slice(0, 3);
-      list.innerHTML = rows.map((project, index) => {
-        const safeName = String(project.name ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
-        return `
-        <div class="proj-row">
-          <div class="proj-topline">
-            <span class="proj-rank">${index + 1}</span>
-            <span class="proj-name">${safeName}</span>
-          </div>
-          <span class="proj-tokens">${project.tokensText}</span>
-          <span class="proj-cost">${project.costText}</span>
-        </div>
-      `;
-      }).join("") || `<div class="empty-state">${t("projects_empty")}</div>`;
+      list.replaceChildren();
+      if (rows.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.textContent = t("projects_empty");
+        list.append(empty);
+        return;
+      }
+      rows.forEach((project, index) => {
+        const row = document.createElement("div");
+        row.className = "proj-row";
+        const topline = document.createElement("div");
+        topline.className = "proj-topline";
+        const rank = document.createElement("span");
+        rank.className = "proj-rank";
+        rank.textContent = `${index + 1}`;
+        const name = document.createElement("span");
+        name.className = "proj-name";
+        name.textContent = project.name || "";
+        topline.append(rank, name);
+        const tok = document.createElement("span");
+        tok.className = "proj-tokens";
+        tok.textContent = project.tokensText || "";
+        const cost = document.createElement("span");
+        cost.className = "proj-cost";
+        cost.textContent = project.costText || "";
+        row.append(topline, tok, cost);
+        list.append(row);
+      });
     }
 
     function applyFooter(footer) {
