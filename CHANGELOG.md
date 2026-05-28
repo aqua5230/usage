@@ -6,6 +6,14 @@
 
 ## [Unreleased]
 
+## [0.11.19] - 2026-05-29
+
+### 新增
+- **「隱藏 Codex 區塊」選單開關**：menubar 多了一個「隱藏 Codex 區塊」選項，可把所有 9 個 HTML 面板裡的 Codex 卡片收起，popover 高度也會依每個面板的設定縮減。設定透過 `NSUserDefaults` 持久保存，重啟後仍有效。五國語言 i18n key 同步補上。（PR #19，感謝 @RayCHWong 第一次貢獻）
+
+### 修正
+- **`HTMLPanel.codex_card_height` 改為強制 keyword-only、無預設值**：之前該參數有 `192.0` 預設，新增面板若忘了在 `panels/__init__.py` 設高度，會默默使用預設值；該面板的 Codex 卡片高度跟其他面板對不齊但完全不會報錯。現在改成 `*, codex_card_height: float`（無預設、強制 keyword 傳入），漏設 import 階段就會 `TypeError`。9 個既有面板已全用 `codex_card_height=...` 形式呼叫，不受影響；新增 `test_html_panel_requires_explicit_codex_card_height` 鎖定契約。
+
 ## [0.11.18] - 2026-05-28
 
 ### 變更
