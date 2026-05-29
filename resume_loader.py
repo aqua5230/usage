@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import re
+from collections import Counter
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -37,6 +38,7 @@ class ProjectResume:
     changed_files: list[str]
     commit_titles: list[str]
     session_id: str = ""
+    cwd: str = ""
 
 
 def load_recent_work(days_back: int = 30, max_projects: int = 8) -> list[ProjectResume]:
@@ -63,7 +65,20 @@ def load_recent_work(days_back: int = 30, max_projects: int = 8) -> list[Project
                 continue
             results.append(resume)
     results.sort(key=lambda r: r.last_active, reverse=True)
-    return results[:max_projects]
+    top = results[:max_projects]
+    _disambiguate(top)
+    return top
+
+
+def _disambiguate(items: list[ProjectResume]) -> None:
+    """Same basename across paths (e.g. Developer/usage vs an archived copy) is
+    ambiguous, so suffix the parent dir to tell them apart. Mutates in place."""
+    counts = Counter(r.project for r in items)
+    for r in items:
+        if counts[r.project] > 1 and r.cwd:
+            parent = Path(r.cwd).parent.name
+            if parent:
+                r.project = f"{r.project} ({parent})"
 
 
 def recent_work_items(days_back: int = 30, max_projects: int = 8) -> list[dict[str, object]]:
@@ -99,6 +114,7 @@ def _parse_session(path: Path, base: Path) -> ProjectResume | None:
     commits: list[str] = []
     last_ts: datetime | None = None
     session_id = ""
+    cwd = ""
 
     try:
         with path.open(encoding="utf-8") as file:
@@ -119,6 +135,10 @@ def _parse_session(path: Path, base: Path) -> ProjectResume | None:
                 sid = data.get("sessionId")
                 if isinstance(sid, str) and sid:
                     session_id = sid
+                if not cwd:
+                    raw_cwd = data.get("cwd")
+                    if isinstance(raw_cwd, str) and raw_cwd:
+                        cwd = raw_cwd
 
                 if data.get("type") != "assistant":
                     continue
@@ -134,12 +154,16 @@ def _parse_session(path: Path, base: Path) -> ProjectResume | None:
 
     if last_ts is None or (not changed and not commits):
         return None
+    # Real cwd from the log is lossless; the encoded dir name (dashes for every
+    # separator) mangles hyphenated and non-ASCII project names, so prefer cwd.
+    project = claude.project_from_cwd(cwd) if cwd else claude.extract_project_from_dir(path, base)
     return ProjectResume(
-        project=claude.extract_project_from_dir(path, base),
+        project=project,
         last_active=last_ts,
         changed_files=changed,
         commit_titles=commits,
         session_id=session_id,
+        cwd=cwd,
     )
 
 

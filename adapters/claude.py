@@ -59,7 +59,7 @@ def get_claude_dirs() -> list[str]:
     return dirs
 
 
-def _project_from_cwd(cwd: str) -> str:
+def project_from_cwd(cwd: str) -> str:
     home = os.path.expanduser("~")
     if cwd.startswith(home):
         rel = cwd[len(home):].strip(os.sep)
@@ -168,7 +168,7 @@ def _parse_assistant_entry(data: dict[str, Any], project: str) -> UsageEntry | N
 
     cwd = data.get("cwd", "")
     if cwd:
-        project = _project_from_cwd(cwd)
+        project = project_from_cwd(cwd)
 
     return UsageEntry(
         timestamp=ts,

@@ -562,6 +562,13 @@ h1{{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-w
 .sub-agent{{font-weight:700;color:#f0f6fc;min-width:96px}}
 .sub-plan{{color:var(--token);background:rgba(56,139,253,0.12);padding:3px 11px;border-radius:999px;font-size:.86rem}}
 .sub-since{{margin-left:auto;color:var(--muted);font-size:.84rem}}
+.rw-list{{display:grid;gap:10px}}
+.rw-item{{padding:12px 14px;border:1px solid #30363d;border-radius:7px;background:#090b0e}}
+.rw-head{{display:flex;justify-content:space-between;align-items:baseline;gap:12px}}
+.rw-proj{{font-weight:700;color:#f0f6fc;overflow-wrap:anywhere}}
+.rw-when{{color:var(--muted);font-size:.84rem;white-space:nowrap}}
+.rw-did,.rw-files{{margin-top:6px;font-size:.88rem;color:#dce2ea;overflow-wrap:anywhere}}
+.rw-did b,.rw-files b{{color:var(--muted);font-weight:400}}
 @media (max-width:780px){{.wrap{{padding:28px 14px}}header{{display:block}}.meta{{text-align:left;margin-top:16px}}.header-actions{{align-items:flex-start;margin-top:16px}}.cards{{grid-template-columns:repeat(2,1fr)}}.rank-head{{display:none}}.rank-list{{display:grid;gap:10px}}.rank-line{{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:1px solid #30363d;border-radius:6px;background:#090b0e}}.rank-line .arrow{{display:none}}.rank-line .name{{white-space:normal;font-weight:700;color:#f0f6fc}}.rank-line .pct,.rank-line .tokens,.rank-line .cost{{display:flex;justify-content:space-between;gap:14px;text-align:left}}.rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before{{content:attr(data-label);color:var(--muted)}}}}
 @media (max-width:480px){{.wrap{{padding:22px 12px 28px}}h1{{white-space:normal}}.cards{{grid-template-columns:repeat(2,1fr);gap:8px}}.card{{min-height:96px;padding:13px 11px}}.share-dialog{{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}}.share-modal{{min-height:100dvh;padding:16px 12px 18px}}.share-section{{padding:12px}}.share-action{{min-height:42px;font-size:.72rem;gap:4px;white-space:normal}}.share-file-actions{{grid-template-columns:1fr}}.section{{padding:16px 12px}}}}
 </style>
