@@ -45,6 +45,7 @@ def test_enable_registers_hook_and_writes_sidecar(
     bundle = json.loads(sidecar.read_text(encoding="utf-8"))
     assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
     assert "{project}" in bundle["en"]["prompt"]
+    assert "lead" in bundle["en"]  # lead-in so Claude's first reply acknowledges the load
 
 
 def test_enable_is_idempotent(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

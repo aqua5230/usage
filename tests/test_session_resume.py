@@ -39,8 +39,9 @@ def _sidecar(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         json.dumps(
             {
                 "en": {"prompt": "proj={project} when={when} files={files} commits={commits}",
-                       "none": "(none)"},
-                "zh-TW": {"prompt": "專案={project} 檔案={files}", "none": "（無）"},
+                       "none": "(none)", "lead": "LEAD:: "},
+                "zh-TW": {"prompt": "專案={project} 檔案={files}", "none": "（無）",
+                          "lead": "前情:: "},
             }
         ),
         encoding="utf-8",
@@ -70,6 +71,7 @@ def test_build_prompt_reads_previous_session(
         {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
     )
 
+    assert prompt.startswith("LEAD:: ")  # injected lead so Claude visibly acknowledges
     assert "proj=myproj" in prompt
     assert "foo.py" in prompt and "bar.py" in prompt
     assert "fix: the thing" in prompt
@@ -183,7 +185,8 @@ def test_build_prompt_uses_detected_language(
         {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
     )
 
-    assert prompt.startswith("專案=myproj")
+    assert prompt.startswith("前情:: ")
+    assert "專案=myproj" in prompt
 
 
 def test_main_emits_additional_context(

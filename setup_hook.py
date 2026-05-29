@@ -440,8 +440,9 @@ def _write_resume_sidecar() -> None:
         table: dict[str, Any] = table_raw if isinstance(table_raw, dict) else {}
         prompt = table.get("report_rw_prompt") or en.get("report_rw_prompt")
         none_label = table.get("report_rw_none") or en.get("report_rw_none")
+        lead = table.get("report_rw_inject_lead") or en.get("report_rw_inject_lead") or ""
         if isinstance(prompt, str) and isinstance(none_label, str):
-            out[lang] = {"prompt": prompt, "none": none_label}
+            out[lang] = {"prompt": prompt, "none": none_label, "lead": lead}
     if out:
         RESUME_PROMPT_SIDECAR.parent.mkdir(parents=True, exist_ok=True)
         _atomic_write_text(

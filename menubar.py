@@ -497,21 +497,31 @@ class AppDelegate(NSObject):
         hide_codex_item.setTarget_(self)
         hide_codex_item.setState_(1 if _hide_codex_enabled() else 0)
         menu.addItem_(hide_codex_item)
+        # "Resume where you left off" is one feature with two surfaces (report +
+        # new sessions); group them under a disabled header so the pair reads as one.
+        menu.addItem_(NSMenuItem.separatorItem())
+        resume_header = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "recent_work_group"), "", ""
+        )
+        resume_header.setEnabled_(False)
+        menu.addItem_(resume_header)
         recent_work_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "recent_work_menu"),
+            _t(self.language, "recent_work_in_report"),
             "toggleRecentWork:",
             "",
         )
         recent_work_item.setTarget_(self)
         recent_work_item.setState_(1 if _show_recent_work_enabled() else 0)
+        recent_work_item.setIndentationLevel_(1)
         menu.addItem_(recent_work_item)
         session_resume_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "session_resume_menu"),
+            _t(self.language, "recent_work_in_new_session"),
             "toggleSessionResume:",
             "",
         )
         session_resume_item.setTarget_(self)
         session_resume_item.setState_(1 if _session_resume_enabled() else 0)
+        session_resume_item.setIndentationLevel_(1)
         menu.addItem_(session_resume_item)
         menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
 

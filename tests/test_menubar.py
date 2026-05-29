@@ -47,6 +47,8 @@ class _FakeMenuItem:
         self.state = 0
         self.target: object | None = None
         self.represented: object | None = None
+        self.enabled = True
+        self.indentation = 0
 
     @classmethod
     def alloc(cls) -> _FakeMenuItem:
@@ -80,6 +82,12 @@ class _FakeMenuItem:
 
     def setState_(self, state: int) -> None:
         self.state = state
+
+    def setEnabled_(self, enabled: bool) -> None:
+        self.enabled = enabled
+
+    def setIndentationLevel_(self, level: int) -> None:
+        self.indentation = level
 
 
 def test_format_human_time_zero_and_negative() -> None:

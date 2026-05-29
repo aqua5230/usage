@@ -88,11 +88,11 @@ def _build_prompt(payload: dict[str, Any]) -> str:
     if last_active < _cutoff():
         return ""
 
-    template, none_label = _load_template(_detect_lang())
+    lead, template, none_label = _load_template(_detect_lang())
     project = _project_from_cwd(cwd) if isinstance(cwd, str) and cwd else project_dir.name
     files_text = " · ".join(changed[:_MAX_FILES]) or none_label
     commits_text = " · ".join(commits[:_MAX_COMMITS]) or none_label
-    return template.format(
+    return lead + template.format(
         project=project, when=_format_time(last_active), files=files_text, commits=commits_text
     )
 
@@ -237,19 +237,24 @@ def _normalize_lang(code: str) -> str:
     return "en"
 
 
-def _load_template(lang: str) -> tuple[str, str]:
+def _load_template(lang: str) -> tuple[str, str, str]:
+    """Return (lead, prompt, none). ``lead`` is a short instruction prepended to the
+    injected context so Claude's first reply visibly acknowledges it loaded the
+    progress — the only way a SessionStart hook can surface itself to the user."""
     try:
         bundle = json.loads(PROMPT_SIDECAR.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError, ValueError):
-        return _DEFAULT_PROMPT, _DEFAULT_NONE
+        return "", _DEFAULT_PROMPT, _DEFAULT_NONE
     if not isinstance(bundle, dict):
-        return _DEFAULT_PROMPT, _DEFAULT_NONE
+        return "", _DEFAULT_PROMPT, _DEFAULT_NONE
     entry = bundle.get(lang) or bundle.get("en")
     if not isinstance(entry, dict):
-        return _DEFAULT_PROMPT, _DEFAULT_NONE
+        return "", _DEFAULT_PROMPT, _DEFAULT_NONE
+    lead = entry.get("lead")
     prompt = entry.get("prompt")
     none_label = entry.get("none")
     return (
+        lead if isinstance(lead, str) else "",
         prompt if isinstance(prompt, str) and prompt else _DEFAULT_PROMPT,
         none_label if isinstance(none_label, str) and none_label else _DEFAULT_NONE,
     )
