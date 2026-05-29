@@ -223,6 +223,11 @@ def _hide_codex_enabled(prefs: dict[str, Any] | None = None) -> bool:
     return data.get("hide_codex_section") is True
 
 
+def _show_recent_work_enabled(prefs: dict[str, Any] | None = None) -> bool:
+    data = _load_preferences() if prefs is None else prefs
+    return data.get("show_recent_work") is not False
+
+
 def _update_dismissed_recently(prefs: dict[str, Any]) -> bool:
     dismissed_at = prefs.get("update_dismissed_at")
     if isinstance(dismissed_at, int | float):
@@ -482,6 +487,14 @@ class AppDelegate(NSObject):
         hide_codex_item.setTarget_(self)
         hide_codex_item.setState_(1 if _hide_codex_enabled() else 0)
         menu.addItem_(hide_codex_item)
+        recent_work_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "recent_work_menu"),
+            "toggleRecentWork:",
+            "",
+        )
+        recent_work_item.setTarget_(self)
+        recent_work_item.setState_(1 if _show_recent_work_enabled() else 0)
+        menu.addItem_(recent_work_item)
         menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
 
     def selectPanel_(self, sender: Any) -> None:
@@ -522,6 +535,14 @@ class AppDelegate(NSObject):
             sender.setState_(1 if enabled else 0)
         self.latest_state.hide_codex = enabled
         self.popover_controller.setState_(self.latest_state)
+
+    def toggleRecentWork_(self, sender: Any) -> None:
+        prefs = _load_preferences()
+        enabled = not _show_recent_work_enabled(prefs)
+        prefs["show_recent_work"] = enabled
+        _save_preferences(prefs)
+        if hasattr(sender, "setState_"):
+            sender.setState_(1 if enabled else 0)
 
     def _maybe_check_update_in_background(self) -> None:
         self._check_update_in_background(
@@ -1176,6 +1197,10 @@ def _generate_analysis_report(period: str = "month", language: str | None = None
 
     agents = detect_agents()
     data = build_report_data(agents, period)
+    if _show_recent_work_enabled():
+        import resume_loader
+
+        data["recent_work"] = resume_loader.recent_work_items()
     return save_and_open(data, language=language)
 
 

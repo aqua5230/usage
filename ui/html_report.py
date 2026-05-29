@@ -322,6 +322,51 @@ def _cost_value(cost_usd: float, lang: str) -> tuple[str, str]:
     return main, sub
 
 
+def _format_recent_time(value: object, lang: str) -> str:
+    if not isinstance(value, str):
+        return _t(lang, "unknown")
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return value
+    if parsed.tzinfo is not None:
+        parsed = parsed.astimezone()
+    return f"{parsed.month}/{parsed.day} {parsed.hour:02d}:{parsed.minute:02d}"
+
+
+def _recent_work_section(data: dict[str, Any], lang: str) -> str:
+    items = data.get("recent_work")
+    if not isinstance(items, list) or not items:
+        return ""
+    rows: list[str] = []
+    for item in items:
+        if not isinstance(item, dict):
+            continue
+        project = _display_name(item.get("project"), lang)
+        when = _format_recent_time(item.get("last_active"), lang)
+        commit_titles = [str(c) for c in item.get("commit_titles", []) if c]
+        changed_files = [str(f) for f in item.get("changed_files", []) if f]
+        did = (
+            f'<div class="rw-did"><b>{html.escape(_t(lang, "rw_did"))}</b> '
+            f"{html.escape(commit_titles[0])}</div>"
+            if commit_titles
+            else ""
+        )
+        changed = (
+            f'<div class="rw-files"><b>{html.escape(_t(lang, "rw_changed"))}</b> '
+            f'{html.escape(" · ".join(changed_files[:6]))}</div>'
+            if changed_files
+            else ""
+        )
+        rows.append(
+            '<div class="rw-item">'
+            f'<div class="rw-head"><span class="rw-proj">{html.escape(project)}</span>'
+            f'<span class="rw-when">{html.escape(when)}</span></div>'
+            f"{did}{changed}</div>"
+        )
+    return _section(_t(lang, "recent_work_section"), f'<div class="rw-list">{"".join(rows)}</div>')
+
+
 def generate_html(data: dict[str, Any], language: str | None = None) -> str:
     lang = language or _detect_lang()
     tip = load_tip(lang)
@@ -551,6 +596,7 @@ h1{{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-w
     </div>
   </dialog>
   <section class="cards">{''.join(f'<div class="card"><span>{html.escape(label)}</span><b>{html.escape(value)}</b>' + (f'<i>{html.escape(sub)}</i>' if sub else '') + '</div>' for label, value, sub in cards)}</section>
+  {_recent_work_section(data, lang)}
   {_section(_t(lang, "sub_section"), subscription_body, "sub-section")}
   {_section(_t(lang, "agent_section"), agent_body)}
   {_section(_t(lang, "project_section"), project_body, "project-section")}
