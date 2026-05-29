@@ -6,6 +6,18 @@
 
 ## [Unreleased]
 
+### 變更
+- **HTML 報告載入器加上檔案快取**：`adapters/claude.py` 與 `adapters/codex.py` 補上以 `mtime`+`size` 為鍵的 LRU 快取（與 `history_loader` 一致），產生報告時不再每次重新解析整批 JSONL；Codex 端的 `load_entries` 與 `load_rate_limits` 共用同一份快取。整檔級的 `OSError` / `PermissionError` / `sqlite3.Error` 現在會在 `USAGE_DEBUG=1` 時輸出到 stderr（逐行的 `JSONDecodeError` 維持靜默）。
+- **mypy `--strict` 全面覆蓋**：移除 `adapters/`、`analyzer/`、`ui/`、`usage_cli.py` 的 mypy 排除設定（約 35% 程式碼的型別盲區），補齊泛型參數與函式型別標註，`_group_by_agent` 改用 PEP 695 型別參數。`mypy --strict` 現涵蓋全部 70 個原始檔。
+- **`adapters/claude.py` 三個跨模組函式改為公開 API**：`get_claude_dirs`、`extract_project_from_dir`、`parse_jsonl`（原為底線私有），並移除 `analyzer/reporter.py` 對應的 `# type: ignore[attr-defined]`。
+
+### 修正
+- 拔除 mypy 排除後抓出並修正數個潛在問題：`adapters/claude.py` 快取改動殘留的 `parsed_entries` 重複標註、`analyzer/reporter.py` 把 `agent` 迴圈變數重用為兩種型別（內層改名 `agent_totals`）、`menubar.py` 一個多餘的 `cast`。
+
+### 測試
+- 新增 `_apply_sort` 對 `"time"` 排序鍵（對應 `None`、由各指令自行處理）分支的測試。
+- 新增 i18n key parity 測試：斷言 `i18n.json` 五個語言區塊的 key 集合一致，漏翻譯會在 CI 直接失敗，而非默默回退英文。
+
 ## [0.12.0] - 2026-05-29
 
 ### 新增

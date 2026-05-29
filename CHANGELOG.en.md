@@ -7,6 +7,18 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **File-level cache for the HTML report loaders**: `adapters/claude.py` and `adapters/codex.py` gain an `mtime`+`size`-keyed LRU cache (matching `history_loader`), so generating a report no longer re-parses every JSONL log on each run; the Codex adapter shares one cache between `load_entries` and `load_rate_limits`. Whole-file `OSError` / `PermissionError` / `sqlite3.Error` are now printed to stderr when `USAGE_DEBUG=1` (per-line `JSONDecodeError` stays silent).
+- **mypy `--strict` now covers the whole codebase**: removed the mypy exclude for `adapters/`, `analyzer/`, `ui/` and `usage_cli.py` (a ~35% type-checking blind spot), added the missing generics and function annotations, and switched `_group_by_agent` to a PEP 695 type parameter. `mypy --strict` now checks all 70 source files.
+- **Three cross-module functions in `adapters/claude.py` are now public API**: `get_claude_dirs`, `extract_project_from_dir`, `parse_jsonl` (previously underscore-private), dropping the matching `# type: ignore[attr-defined]` in `analyzer/reporter.py`.
+
+### Fixed
+- Removing the mypy exclude surfaced and fixed a few latent issues: a redundant `parsed_entries` re-annotation left over from the cache change in `adapters/claude.py`, the `agent` loop variable reused with two different types in `analyzer/reporter.py` (inner accumulator renamed `agent_totals`), and a redundant `cast` in `menubar.py`.
+
+### Tests
+- Added coverage for `_apply_sort` with the `"time"` sort key (which maps to `None` and is handled per-command).
+- Added an i18n key-parity test asserting all five `i18n.json` language sections share the same key set, so a forgotten translation fails CI instead of silently falling back to English.
+
 ## [0.12.0] - 2026-05-29
 
 ### Added
