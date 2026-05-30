@@ -97,6 +97,18 @@ def test_load_tip_returns_none_when_file_missing_or_invalid(
     assert tips_loader.load_tip("zh-TW", today=date(2026, 5, 23)) is None
 
 
+def test_load_tip_returns_none_when_commands_file_has_bad_utf8(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    broken = tmp_path / "tips" / "bad-utf8.json"
+    broken.parent.mkdir(parents=True, exist_ok=True)
+    broken.write_bytes(b"\xff\xfe not utf-8\n")
+    monkeypatch.setattr(tips_loader, "_commands_path", lambda: broken)
+
+    assert tips_loader.load_tip("zh-TW", today=date(2026, 5, 23)) is None
+
+
 def test_load_tip_uses_date_rotation(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     path = tmp_path / "tips" / "commands.json"
     _write_commands(
