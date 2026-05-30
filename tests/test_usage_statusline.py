@@ -264,6 +264,25 @@ def test_render_outputs_multiline_colored_statusline(
     assert "$" not in output  # cost line removed in v0.10.0
 
 
+def test_render_skips_bad_rate_limit_percentage_without_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    payload = {
+        "rate_limits": {
+            "five_hour": {"used_percentage": "bad"},
+            "seven_day": {"used_percentage": 33},
+        },
+    }
+
+    output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
+
+    assert output != "usage"
+    assert "7d" in output
+    assert "5h" not in output
+
+
 def test_main_prints_fallback_when_render_fails(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

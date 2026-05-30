@@ -343,6 +343,13 @@ def _as_dict(value: Any) -> Dict[str, Any]:
     return {}
 
 
+def _as_float(value: Any) -> Optional[float]:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _render_core(data: Dict[str, Any], now: datetime) -> str:
     width = get_width()
     ctx = _as_dict(data.get("context_window"))
@@ -368,7 +375,9 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
         pct = entry.get("used_percentage")
         if pct is None:
             continue
-        pct_float = float(pct)
+        pct_float = _as_float(pct)
+        if pct_float is None:
+            continue
         reset_str = ""
         resets_at = entry.get("resets_at")
         if resets_at:

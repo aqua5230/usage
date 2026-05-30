@@ -173,6 +173,69 @@ def test_statusline_command_quotes_paths_with_spaces(
     assert argv_file.read_text(encoding="utf-8").strip() == str(hook_file)
 
 
+def test_setup_codex_replaces_only_tui_status_line(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_text(
+        """
+[other]
+status_line = ["external"]
+
+[tui]
+status_line = ["old"]
+
+[another]
+status_line = ["keep"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+
+    setup_hook._setup_codex()
+    content = codex_config.read_text(encoding="utf-8")
+
+    assert '[other]\nstatus_line = ["external"]' in content
+    assert '[another]\nstatus_line = ["keep"]' in content
+    assert content.count("status_line = [") == 3
+    assert '"five-hour-limit"' in content
+
+
+def test_unsetup_codex_removes_only_tui_status_line_without_backup(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    legacy_backup = tmp_path / ".codex" / "tt-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_text(
+        """
+[other]
+status_line = ["external"]
+
+[tui]
+status_line = ["old"]
+
+[another]
+status_line = ["keep"]
+""".lstrip(),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+    monkeypatch.setattr(setup_hook, "LEGACY_CODEX_BACKUP", legacy_backup)
+
+    setup_hook._unsetup_codex()
+    content = codex_config.read_text(encoding="utf-8")
+
+    assert '[other]\nstatus_line = ["external"]' in content
+    assert '[another]\nstatus_line = ["keep"]' in content
+    assert "[tui]\nstatus_line" not in content
+
+
 def test_self_heal_installs_when_no_statusline(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

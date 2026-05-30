@@ -101,6 +101,15 @@ def _read_status_file() -> tuple[dict[str, Any], str, float] | None:
     return None
 
 
+def _status_file_stat() -> tuple[str, float] | None:
+    for path in (STATUS_FILE, LEGACY_STATUS_FILE, TT_STATUS_FILE):
+        try:
+            return path, os.stat(path).st_mtime
+        except OSError:
+            continue
+    return None
+
+
 def _source_from_path(source_path: str) -> str:
     if source_path == TT_STATUS_FILE:
         return "tt-fallback"
@@ -173,6 +182,9 @@ class ClaudeUsageClient:
         self.interval_seconds = interval_seconds
         self.mock = mock
         self._last_outcome: PollOutcome | None = None
+        self._cached_data: dict[str, Any] | None = None
+        self._cached_path: str | None = None
+        self._cached_mtime: float | None = None
 
     async def aclose(self) -> None:
         return None
@@ -181,21 +193,30 @@ class ClaudeUsageClient:
         if self.mock:
             return self._mock_outcome()
 
-        result = _read_status_file()
-        if result is None:
-            self._last_outcome = None
-            return PollOutcome(
-                state=PollState.TOKEN_ERROR,
-                message=_t(detect_lang(), "usage_status_missing"),
-            )
-
-        data, source_path, mtime = result
         if (
-            self._last_outcome is not None
-            and self._last_outcome._status_path == source_path
-            and self._last_outcome._mtime == mtime
+            (stat_result := _status_file_stat()) is not None
+            and self._cached_data is not None
+            and self._cached_path == stat_result[0]
+            and self._cached_mtime == stat_result[1]
         ):
-            return self._last_outcome
+            data = self._cached_data
+            source_path, mtime = stat_result
+        else:
+            result = _read_status_file()
+            if result is None:
+                self._last_outcome = None
+                self._cached_data = None
+                self._cached_path = None
+                self._cached_mtime = None
+                return PollOutcome(
+                    state=PollState.TOKEN_ERROR,
+                    message=_t(detect_lang(), "usage_status_missing"),
+                )
+
+            data, source_path, mtime = result
+            self._cached_data = data
+            self._cached_path = source_path
+            self._cached_mtime = mtime
 
         if not _has_complete_rate_limits(data):
             outcome = PollOutcome(

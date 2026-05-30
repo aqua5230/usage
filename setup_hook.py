@@ -303,6 +303,28 @@ def _status_line_toml(items: list[str]) -> str:
     return f"status_line = [\n{body},\n]"
 
 
+def _replace_tui_status_line(content: str, replacement: str) -> str:
+    table = re.search(r"(?m)^\[tui\]\s*$", content)
+    if table is None:
+        return content
+    next_table = re.search(r"(?m)^\[[^\]\n]+\]\s*$", content[table.end() :])
+    section_end = len(content) if next_table is None else table.end() + next_table.start()
+    section = content[table.end() : section_end]
+    updated_section = _SL_REGEX.sub(replacement, section, count=1)
+    return content[: table.end()] + updated_section + content[section_end:]
+
+
+def _remove_tui_status_line(content: str) -> str:
+    table = re.search(r"(?m)^\[tui\]\s*$", content)
+    if table is None:
+        return content
+    next_table = re.search(r"(?m)^\[[^\]\n]+\]\s*$", content[table.end() :])
+    section_end = len(content) if next_table is None else table.end() + next_table.start()
+    section = content[table.end() : section_end]
+    updated_section = _SL_REGEX.sub("", section, count=1)
+    return content[: table.end()] + updated_section + content[section_end:]
+
+
 def _read_codex_config() -> tuple[str, dict[str, Any]] | None:
     try:
         content = CODEX_CONFIG.read_text(encoding="utf-8")
@@ -334,7 +356,7 @@ def _setup_codex() -> None:
             json.dumps({"status_line": old}, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
-        content = _SL_REGEX.sub(_status_line_toml(CODEX_STATUS_LINE), content)
+        content = _replace_tui_status_line(content, _status_line_toml(CODEX_STATUS_LINE))
     elif "[tui]" in content:
         content = content.replace("[tui]", f"[tui]\n{_status_line_toml(CODEX_STATUS_LINE)}")
     else:
@@ -362,11 +384,11 @@ def _unsetup_codex() -> None:
             old_items = json.loads(backup_path.read_text(encoding="utf-8")).get("status_line", [])
         except (OSError, json.JSONDecodeError, AttributeError):
             old_items = []
-        content = _SL_REGEX.sub(_status_line_toml(old_items), content)
+        content = _replace_tui_status_line(content, _status_line_toml(old_items))
         backup_path.unlink(missing_ok=True)
         print(_t("setup_codex_restored"))
     else:
-        content = re.sub(r"status_line\s*=\s*\[.*?\]\n?", "", content, flags=re.DOTALL)
+        content = _remove_tui_status_line(content)
         print(_t("setup_codex_removed"))
 
     _atomic_write_text(CODEX_CONFIG, content)
