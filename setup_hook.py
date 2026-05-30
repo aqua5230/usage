@@ -191,7 +191,7 @@ def _migrate_from_legacy_usage() -> None:
                 settings = data
             else:
                 print(_t("setup_legacy_settings_not_object", path=CLAUDE_SETTINGS))
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         print(_t("setup_legacy_settings_read_failed", error=exc))
 
     if settings is not None:
@@ -244,7 +244,7 @@ def _load_settings() -> dict[str, Any]:
     try:
         with CLAUDE_SETTINGS.open(encoding="utf-8") as f:
             data = json.load(f)
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise SystemExit(_t("setup_settings_read_failed", path=CLAUDE_SETTINGS, error=exc)) from exc
     if not isinstance(data, dict):
         raise SystemExit(_t("setup_settings_not_object", path=CLAUDE_SETTINGS))
@@ -295,8 +295,9 @@ def _backup_existing_statusline(settings: dict[str, Any]) -> None:
     if not isinstance(backup, dict):
         backup = {}
         settings[BACKUP_KEY] = backup
-    backup[PREV_SL_KEY] = existing
-    print(_t("setup_statusline_backed_up", backup_key=BACKUP_KEY, prev_key=PREV_SL_KEY))
+    if PREV_SL_KEY not in backup:
+        backup[PREV_SL_KEY] = existing
+        print(_t("setup_statusline_backed_up", backup_key=BACKUP_KEY, prev_key=PREV_SL_KEY))
 
 
 def _status_line_toml(items: list[str]) -> str:
@@ -330,7 +331,7 @@ def _read_codex_config() -> tuple[str, dict[str, Any]] | None:
     try:
         content = CODEX_CONFIG.read_text(encoding="utf-8")
         parsed = tomllib.loads(content)
-    except (OSError, tomllib.TOMLDecodeError):
+    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError):
         return None
     return content, parsed
 
@@ -383,7 +384,7 @@ def _unsetup_codex() -> None:
     if backup_path.exists():
         try:
             old_items = json.loads(backup_path.read_text(encoding="utf-8")).get("status_line", [])
-        except (OSError, json.JSONDecodeError, AttributeError):
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError, AttributeError):
             old_items = []
         content = _replace_tui_status_line(content, _status_line_toml(old_items))
         # Write the restored config before deleting the backup: if the write fails, the

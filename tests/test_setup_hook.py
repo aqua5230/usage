@@ -144,6 +144,27 @@ def test_migration_removes_legacy_files_and_moves_backup(
     assert data["usage"]["previousStatusLine"] == previous
 
 
+def test_migrate_legacy_usage_skips_bad_utf8_settings(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    settings, _, _ = _patch_paths(monkeypatch, tmp_path)
+    settings.write_bytes(b"\xff\xfe{")
+
+    setup_hook._migrate_from_legacy_usage()
+
+    assert settings.read_bytes() == b"\xff\xfe{"
+
+
+def test_load_settings_bad_utf8_raises_system_exit(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    settings, _, _ = _patch_paths(monkeypatch, tmp_path)
+    settings.write_bytes(b"\xff\xfe{")
+
+    with pytest.raises(SystemExit, match="settings.json"):
+        setup_hook._load_settings()
+
+
 def test_statusline_command_quotes_paths_with_spaces(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -204,6 +225,26 @@ status_line = ["keep"]
     assert '"five-hour-limit"' in content
 
 
+def test_setup_preserves_initial_backup_on_reinstall(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    settings, _, _ = _patch_paths(monkeypatch, tmp_path)
+    original = {"type": "command", "command": "echo original"}
+    replacement = {"type": "command", "command": "echo replacement"}
+    settings.write_text(json.dumps({"statusLine": original}), encoding="utf-8")
+
+    assert setup_hook.setup() == 0
+
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    data["statusLine"] = replacement
+    settings.write_text(json.dumps(data), encoding="utf-8")
+
+    assert setup_hook.setup() == 0
+
+    reinstalled = json.loads(settings.read_text(encoding="utf-8"))
+    assert reinstalled["usage"]["previousStatusLine"] == original
+
+
 def test_unsetup_codex_removes_only_tui_status_line_without_backup(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -259,6 +300,36 @@ def test_unsetup_codex_keeps_backup_when_restore_write_fails(
 
     # A failed restore must leave the backup intact so a retry can still recover.
     assert codex_backup.exists()
+
+
+def test_read_codex_config_bad_utf8_returns_none(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_config.parent.mkdir()
+    codex_config.write_bytes(b"\xff\xfe[tui]\n")
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+
+    assert setup_hook._read_codex_config() is None
+
+
+def test_unsetup_codex_bad_utf8_backup_falls_back_to_empty_status_line(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    legacy_backup = tmp_path / ".codex" / "tt-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_text('[tui]\nstatus_line = ["old"]\n', encoding="utf-8")
+    codex_backup.write_bytes(b"\xff\xfe{")
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+    monkeypatch.setattr(setup_hook, "LEGACY_CODEX_BACKUP", legacy_backup)
+
+    setup_hook._unsetup_codex()
+
+    assert "status_line = [\n,\n]" in codex_config.read_text(encoding="utf-8")
+    assert not codex_backup.exists()
 
 
 def test_self_heal_installs_when_no_statusline(

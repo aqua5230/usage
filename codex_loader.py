@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import sqlite3
 from collections import OrderedDict
@@ -317,9 +318,15 @@ def _as_dict(value: Any) -> dict[str, Any]:
 
 
 def _as_int(value: Any) -> int:
-    if isinstance(value, bool) or not isinstance(value, int):
+    if isinstance(value, bool):
         return 0
-    return max(0, int(value))
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return 0
+    if not math.isfinite(number):
+        return 0
+    return max(0, int(number))
 
 
 def _as_str(value: Any) -> str:
@@ -327,6 +334,12 @@ def _as_str(value: Any) -> str:
 
 
 def _as_optional_float(value: Any) -> float | None:
-    if isinstance(value, bool) or not isinstance(value, int | float):
+    if isinstance(value, bool):
         return None
-    return float(value)
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    return number
