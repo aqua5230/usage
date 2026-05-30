@@ -150,6 +150,14 @@ def test_evaluate_javascript_completion_handler_block_signature() -> None:
     if WKWebView is None or WKWebViewConfiguration is None:
         pytest.skip("WebKit unavailable in this environment")
 
+    # Instantiating WKWebView needs a window-server connection; without one (headless
+    # CI, SSH, a non-GUI agent) the process aborts rather than raising. CGMainDisplayID
+    # returns 0 when no display is attached — a safe read that lets us skip first.
+    from Quartz import CGMainDisplayID
+
+    if CGMainDisplayID() == 0:
+        pytest.skip("no window server (headless) — cannot instantiate WKWebView")
+
     from AppKit import NSMakeRect
 
     config = WKWebViewConfiguration.alloc().init()
