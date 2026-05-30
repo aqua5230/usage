@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """usage SessionStart hook — inject "where you left off" into a new Claude Code session.
 
-This is the "Project Butler" feature. Claude Code runs this on SessionStart (matcher
+This is the session resume feature. Claude Code runs this on SessionStart (matcher
 ``startup|clear``) and pipes the session JSON on stdin; the script locates the project's
 *previous* session log, gathers the *evidence* of that session — the most recent user
 requests (newest first, so a session that drifted topics is still read correctly), the
@@ -16,7 +16,7 @@ under macOS's bundled ``/usr/bin/python3`` (3.9), so no third-party imports, no
 (no app imports), so the hook stays loadable under the bundled interpreter.
 
 When there's no fresh progress to hand over (brand-new project, the previous session
-did nothing extractable, or it's older than the cutoff) the butler still checks in with
+did nothing extractable, or it's older than the cutoff) the hook still checks in with
 a short greeting rather than going silent.
 
 The prompt wording stays single-sourced: ``setup_hook`` writes ``report_rw_prompt`` /
@@ -66,7 +66,7 @@ _DEFAULT_PROMPT = (
 _DEFAULT_NONE = "(none recorded)"
 _DEFAULT_EMPTY = (
     "(At the very start of your first reply in this session, say one line: "
-    '"🐾 Your project butler is on duty. No progress to report for this project yet.", '
+    '"🐾 Welcome back — nothing to pick up on this project yet.", '
     "then respond normally.)"
 )
 _DEFAULT_TEMPLATES = {
@@ -74,8 +74,8 @@ _DEFAULT_TEMPLATES = {
         "prompt": _DEFAULT_PROMPT,
         "none": _DEFAULT_NONE,
         "lead": (
-            "(This is a project-butler handoff. At the very start of your first reply, lead "
-            'with one line: "🐾 Your project butler is on duty — here\'s where we left off:", '
+            "(This is a resume handoff. At the very start of your first reply, lead "
+            'with one line: "🐾 Picked up where you left off — let\'s keep going!", '
             "then, instead of reading the traces below aloud, digest them like a sharp, "
             "thoughtful partner: first work out what the user was actually in the middle of "
             '("Recently working on" is newest-first, so trust the topmost item and don\'t get '
@@ -96,8 +96,8 @@ _DEFAULT_TEMPLATES = {
         ),
         "none": "（未記錄）",
         "lead": (
-            "（這是專案管家交接。請在這次對話第一則回覆的最前面，先說一行"
-            "「🐾 專屬專案管家已上線，幫你接回上次的進度：」，然後別照唸下面的線索，"
+            "（這是進度交接。請在這次對話第一則回覆的最前面，先說一行"
+            "「🐾 已接回上次進度，繼續吧！」，然後別照唸下面的線索，"
             "而是像聰明又貼心的搭檔那樣消化它：先判斷使用者最後真正在忙的是什麼"
             "（「最近在忙的」是新到舊排列，以最前面那筆為準，別被較舊的帶偏），"
             "用一兩句溫暖具體地說他上次做到哪、完成了什麼，再直接給出你判斷最該"
@@ -106,8 +106,8 @@ _DEFAULT_TEMPLATES = {
             "接著正常回應。）\n\n"
         ),
         "empty": (
-            "（請在你這次對話的第一則回覆最前面，說一行「🐾 專屬專案管家已上線。"
-            "此專案目前沒有需要報告的進度。」，再正常回應。）"
+            "（請在你這次對話的第一則回覆最前面，說一行「🐾 歡迎回來，"
+            "這個專案目前沒有要接的進度。」，再正常回應。）"
         ),
     },
     "zh-CN": {
@@ -119,8 +119,8 @@ _DEFAULT_TEMPLATES = {
         ),
         "none": "（未记录）",
         "lead": (
-            "（这是项目管家交接。请在这次对话第一则回复的最前面，先说一行"
-            "「🐾 专属项目管家已上线，帮你接回上次的进度：」，然后别照念下面的线索，"
+            "（这是进度交接。请在这次对话第一则回复的最前面，先说一行"
+            "「🐾 已接回上次进度，继续吧！」，然后别照念下面的线索，"
             "而是像聪明又贴心的搭档那样消化它：先判断用户最后真正在忙的是什么"
             "（「最近在忙的」是新到旧排列，以最前面那笔为准，别被较旧的带偏），"
             "用一两句温暖具体地说他上次做到哪、完成了什么，再直接给出你判断最该"
@@ -129,8 +129,8 @@ _DEFAULT_TEMPLATES = {
             "接着正常回应。）\n\n"
         ),
         "empty": (
-            "（请在你这次对话的第一则回复最前面，说一行「🐾 专属项目管家已上线。"
-            "此项目目前没有需要报告的进度。」，再正常回应。）"
+            "（请在你这次对话的第一则回复最前面，说一行「🐾 欢迎回来，"
+            "这个项目目前没有要接的进度。」，再正常回应。）"
         ),
     },
     "ja": {
@@ -142,8 +142,8 @@ _DEFAULT_TEMPLATES = {
         ),
         "none": "（記録なし）",
         "lead": (
-            "（これはプロジェクト執事の引き継ぎです。最初の返信の冒頭で、まず一行"
-            "「🐾 専属プロジェクト執事が待機中です。前回の続きはこちらです：」と述べ、"
+            "（これは進捗の引き継ぎです。最初の返信の冒頭で、まず一行"
+            "「🐾 前回の続き、引き継ぎ済みです！そのままどうぞ！」と述べ、"
             "下記の手がかりをそのまま読み上げるのではなく、賢く気の利いた相棒のように"
             "消化してください：まずユーザーが最後に実際に取り組んでいたことを見極め"
             "（「最近の作業」は新しい順なので、先頭の項目を信頼し、古いものに引きずられない"
@@ -154,8 +154,8 @@ _DEFAULT_TEMPLATES = {
             "その後、通常どおり応答してください。）\n\n"
         ),
         "empty": (
-            "（このセッションの最初の返信の冒頭に、一行「🐾 専属プロジェクト執事が待機中です。"
-            "このプロジェクトに報告すべき進捗はまだありません。」と述べてから、通常どおり応答してください。）"
+            "（このセッションの最初の返信の冒頭に、一行「🐾 おかえりなさい！"
+            "このプロジェクトはまだこれからですね。」と述べてから、通常どおり応答してください。）"
         ),
     },
     "ko": {
@@ -167,8 +167,8 @@ _DEFAULT_TEMPLATES = {
         ),
         "none": "(기록 없음)",
         "lead": (
-            "(이것은 프로젝트 집사 인수인계입니다. 첫 답변 맨 앞에 먼저 한 줄 "
-            '"🐾 전담 프로젝트 집사가 대기 중입니다 — 지난 작업을 이어서 불러왔습니다:"라고 '
+            "(이것은 진행 상황 인수인계입니다. 첫 답변 맨 앞에 먼저 한 줄 "
+            '"🐾 지난 작업을 불러왔어요! 이어서 가볼까요?"라고 '
             "말한 뒤, 아래 단서를 그대로 읽지 말고 똑똑하고 사려 깊은 동료처럼 소화하세요: "
             "먼저 사용자가 마지막에 실제로 무엇을 하고 있었는지 파악하고(\"최근 작업한 내용\"은 "
             "최신순이므로 맨 위 항목을 신뢰하고 오래된 것에 끌려가지 마세요), 지난번에 어디까지 "
@@ -179,8 +179,8 @@ _DEFAULT_TEMPLATES = {
             "그런 다음 평소대로 응답하세요.)\n\n"
         ),
         "empty": (
-            '(이 세션의 첫 답변 맨 앞에 한 줄 "🐾 전담 프로젝트 집사가 대기 중입니다. '
-            '이 프로젝트에 보고할 진행 상황이 아직 없습니다."라고 말한 뒤 평소대로 응답하세요.)'
+            '(이 세션의 첫 답변 맨 앞에 한 줄 "🐾 돌아오셨네요! '
+            '이 프로젝트는 아직 이어갈 내용이 없어요."라고 말한 뒤 평소대로 응답하세요.)'
         ),
     },
 }
@@ -221,7 +221,7 @@ def _build_prompt(payload: dict[str, Any]) -> str:
     lead, template, none_label, empty = _load_template(_detect_lang())
     project = _project_from_cwd(cwd) if isinstance(cwd, str) and cwd else project_dir.name
     report = _build_report(project_dir, Path(transcript).name, project, lead, template, none_label)
-    # The butler always checks in: when there's no fresh progress to hand over, it
+    # The resume hook always checks in: when there's no fresh progress to hand over, it
     # greets instead of going silent.
     return report or empty
 

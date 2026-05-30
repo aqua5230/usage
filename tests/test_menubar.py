@@ -339,9 +339,9 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     parent = next(item for item in main_menu.items if item.submenu is panel_submenu)
     assert parent.submenu is panel_submenu
 
-    # Project Butler is a single tooltip-backed toggle (no group header, no indent).
+    # Resume Last Session is a single tooltip-backed toggle (no group header, no indent).
     butler = next(item for item in main_menu.items if item.action == "toggleSessionResume:")
-    assert butler.title == "Project Butler"
+    assert butler.title == "Resume Last Session"
     assert butler.indentation == 0
     assert butler.tooltip
     assert "Show in report" not in main_titles

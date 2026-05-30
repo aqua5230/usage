@@ -303,7 +303,7 @@ def test_build_prompt_falls_back_to_detected_language_when_sidecar_missing(
         {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
     )
 
-    assert "專屬專案管家已上線" in prompt
+    assert "🐾 已接回上次進度，繼續吧！" in prompt
     assert "修好專案管家 SessionStart 缺檔問題" in prompt
 
 
