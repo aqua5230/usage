@@ -44,6 +44,7 @@ if __name__ == "__main__":
     version = _version()
     OPTIONS = {
         "argv_emulation": False,
+        "iconfile": "assets/usage.icns",
         "resources": [
             "assets/claude.webp",
             "assets/codex.webp",

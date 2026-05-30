@@ -27,6 +27,7 @@ from AppKit import (
     NSApp,
     NSApplication,
     NSApplicationActivationPolicyAccessory,
+    NSImage,
     NSMakePoint,
     NSMakeSize,
     NSMenu,
@@ -49,7 +50,7 @@ from history_loader import UsageEntry, load_entries
 from i18n import _t, packaged_resource_path
 from main import _load_preferences, _save_preferences
 from panels.base import Panel as UsagePanel
-from panels.base import load_active_panel_id, save_active_panel_id
+from panels.base import load_active_panel_id, resolve_resource, save_active_panel_id
 from pricing import calculate_cost
 from usage_client import ClaudeUsageClient, PollOutcome, PollState
 from usage_lang import detect_lang
@@ -238,6 +239,20 @@ def _session_resume_enabled() -> bool:
         return False
 
 
+def _set_app_icon() -> None:
+    # Give NSAlert dialogs and the Dock the branded icon instead of py2app's
+    # default rocket. In the bundle py2app's iconfile already sets the Dock
+    # icon, but running from source there is no bundle icon, so the dialogs
+    # would borrow the Python interpreter's icon — set it explicitly here too.
+    try:
+        image = NSImage.alloc().initWithContentsOfFile_(resolve_resource("usage.icns"))
+        if image is not None:
+            NSApp.setApplicationIconImage_(image)
+    except Exception:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("set app icon failed", exc_info=True)
+
+
 def _update_dismissed_recently(prefs: dict[str, Any]) -> bool:
     dismissed_at = prefs.get("update_dismissed_at")
     if isinstance(dismissed_at, int | float):
@@ -380,6 +395,7 @@ class AppDelegate(NSObject):
 
     def applicationDidFinishLaunching_(self, notification: Any) -> None:
         NSApp.setActivationPolicy_(NSApplicationActivationPolicyAccessory)
+        _set_app_icon()
         self.status_item = NSStatusBar.systemStatusBar().statusItemWithLength_(
             NSVariableStatusItemLength,
         )
