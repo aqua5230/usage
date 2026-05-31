@@ -16,10 +16,12 @@ from usage_client import PollOutcome, PollState, UsageSnapshot
 
 class _FakeMenu:
     last: _FakeMenu | None = None
+    instances: list[_FakeMenu] = []
 
     def __init__(self) -> None:
         self.items: list[_FakeMenuItem] = []
         _FakeMenu.last = self
+        _FakeMenu.instances.append(self)
 
     @classmethod
     def alloc(cls) -> _FakeMenu:
@@ -47,6 +49,11 @@ class _FakeMenuItem:
         self.state = 0
         self.target: object | None = None
         self.represented: object | None = None
+        self.enabled = True
+        self.indentation = 0
+        self.action = ""
+        self.submenu: object | None = None
+        self.tooltip: str | None = None
 
     @classmethod
     def alloc(cls) -> _FakeMenuItem:
@@ -80,6 +87,18 @@ class _FakeMenuItem:
 
     def setState_(self, state: int) -> None:
         self.state = state
+
+    def setEnabled_(self, enabled: bool) -> None:
+        self.enabled = enabled
+
+    def setIndentationLevel_(self, level: int) -> None:
+        self.indentation = level
+
+    def setSubmenu_(self, submenu: object) -> None:
+        self.submenu = submenu
+
+    def setToolTip_(self, tooltip: str) -> None:
+        self.tooltip = tooltip
 
 
 def test_format_human_time_zero_and_negative() -> None:
@@ -300,15 +319,32 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setattr("menubar.login_item.is_enabled", lambda: False)
     monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": True})
 
+    _FakeMenu.instances = []
     menubar.AppDelegate.switchPanel_(delegate, object())
 
-    assert _FakeMenu.last is not None
-    titles = [item.title for item in _FakeMenu.last.items]
-    assert "Automatically Check for Updates" in titles
+    # Two menus are built: the main popup and the panel-themes submenu.
+    main_menu, panel_submenu = _FakeMenu.instances[0], _FakeMenu.instances[1]
+    main_titles = [item.title for item in main_menu.items]
+
+    # Settings still live on the main menu.
+    assert "Automatically Check for Updates" in main_titles
     auto_item = next(
-        item for item in _FakeMenu.last.items if item.title == "Automatically Check for Updates"
+        item for item in main_menu.items if item.title == "Automatically Check for Updates"
     )
     assert auto_item.state == 1
+
+    # Panel themes are collapsed into a submenu, not listed inline on the main menu.
+    assert "Default" not in main_titles
+    assert [item.title for item in panel_submenu.items] == ["Default", "Bento Box"]
+    parent = next(item for item in main_menu.items if item.submenu is panel_submenu)
+    assert parent.submenu is panel_submenu
+
+    # Resume Last Session is a single tooltip-backed toggle (no group header, no indent).
+    butler = next(item for item in main_menu.items if item.action == "toggleSessionResume:")
+    assert butler.title == "Resume Last Session"
+    assert butler.indentation == 0
+    assert butler.tooltip
+    assert "Show in report" not in main_titles
 
 
 def test_auto_update_disabled_skips_background_check(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -506,6 +542,9 @@ def test_forwarder_prompt_keep_sets_ack_once(
         def addButtonWithTitle_(self, value: str) -> None:
             return None
 
+        def setIcon_(self, value: object) -> None:
+            return None
+
         def runModal(self) -> int:
             calls["alerts"] += 1
             return 1001
@@ -557,6 +596,9 @@ def test_forwarder_prompt_enable_calls_forwarder_setup(
             return None
 
         def addButtonWithTitle_(self, value: str) -> None:
+            return None
+
+        def setIcon_(self, value: object) -> None:
             return None
 
         def runModal(self) -> int:

@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import sys
 from collections import OrderedDict
@@ -59,7 +60,7 @@ def get_claude_dirs() -> list[str]:
     return dirs
 
 
-def _project_from_cwd(cwd: str) -> str:
+def project_from_cwd(cwd: str) -> str:
     home = os.path.expanduser("~")
     if cwd.startswith(home):
         rel = cwd[len(home):].strip(os.sep)
@@ -118,7 +119,7 @@ def parse_jsonl(
                     if entry is None:
                         continue
                     parsed_entries.append(entry)
-        except (OSError, PermissionError) as exc:
+        except (OSError, PermissionError, UnicodeDecodeError) as exc:
             _debug_file_error("failed to read Claude log", path, exc)
             return
 
@@ -146,10 +147,10 @@ def _parse_assistant_entry(data: dict[str, Any], project: str) -> UsageEntry | N
     if not usage or not isinstance(usage, dict):
         return None
 
-    input_tokens = usage.get("input_tokens") or 0
-    output_tokens = usage.get("output_tokens") or 0
-    cache_creation = usage.get("cache_creation_input_tokens") or 0
-    cache_read = usage.get("cache_read_input_tokens") or 0
+    input_tokens = _as_int(usage.get("input_tokens"))
+    output_tokens = _as_int(usage.get("output_tokens"))
+    cache_creation = _as_int(usage.get("cache_creation_input_tokens"))
+    cache_read = _as_int(usage.get("cache_read_input_tokens"))
 
     if input_tokens == 0 and output_tokens == 0 and cache_creation == 0 and cache_read == 0:
         return None
@@ -164,11 +165,11 @@ def _parse_assistant_entry(data: dict[str, Any], project: str) -> UsageEntry | N
     request_id = data.get("requestId") or ""
     model = message.get("model", "unknown")
     session_id = data.get("sessionId", "")
-    cost_usd = data.get("costUSD")
+    cost_usd = _as_optional_float(data.get("costUSD"))
 
     cwd = data.get("cwd", "")
     if cwd:
-        project = _project_from_cwd(cwd)
+        project = project_from_cwd(cwd)
 
     return UsageEntry(
         timestamp=ts,
@@ -189,3 +190,22 @@ def _parse_assistant_entry(data: dict[str, Any], project: str) -> UsageEntry | N
 def _debug_file_error(action: str, path: Path, exc: Exception) -> None:
     if os.environ.get("USAGE_DEBUG") == "1":
         print(f"{action} {path}: {exc}", file=sys.stderr)
+
+
+def _as_optional_float(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    return number
+
+
+def _as_int(value: Any) -> int:
+    number = _as_optional_float(value)
+    if number is None:
+        return 0
+    return int(number)

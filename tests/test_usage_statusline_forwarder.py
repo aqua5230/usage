@@ -111,6 +111,35 @@ def test_nonzero_hook_exit_keeps_forwarder_successful(
     assert capsys.readouterr().out == "failed output\nok output\n"
 
 
+def test_unicode_decode_error_hook_does_not_block_later_hooks(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    hooks = ["/tmp/bad-statusline.py", "/tmp/ok-statusline.py"]
+
+    def fake_run(
+        cmd: list[str],
+        *,
+        input: str,
+        text: bool,
+        check: bool,
+        capture_output: bool,
+        timeout: int,
+    ) -> subprocess.CompletedProcess[str]:
+        _ = input, text, check, capture_output, timeout
+        if cmd[1] == "/tmp/bad-statusline.py":
+            raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
+        return subprocess.CompletedProcess(cmd, 0, stdout="ok output\n", stderr="")
+
+    monkeypatch.setattr(sys, "stdin", io.StringIO('{"ok":true}'))
+    monkeypatch.setattr(usage_statusline_forwarder.glob, "glob", lambda pattern: hooks)
+    monkeypatch.setattr(usage_statusline_forwarder.subprocess, "run", fake_run)
+
+    usage_statusline_forwarder.main()
+
+    assert capsys.readouterr().out == "ok output\n"
+
+
 def test_blank_stdin_does_not_run_any_hooks(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "stdin", io.StringIO("  \n"))
     monkeypatch.setattr(

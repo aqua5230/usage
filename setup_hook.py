@@ -57,6 +57,16 @@ PREV_SL_KEY = "previousStatusLine"
 HOOK_VERSION = "1.0"
 _SL_REGEX = re.compile(r"status_line\s*=\s*\[.*?\]", re.DOTALL)
 
+# Ceiling C — opt-in SessionStart hook that injects "where you left off" into a new
+# session. Off by default: enabled only via the menu toggle, never by self_heal.
+RESUME_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-session-resume.py"))
+RESUME_PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-resume-prompt.json"))
+RESUME_HOOK_VERSION = "1.4"
+RESUME_MATCHER = "startup|clear"
+RESUME_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
+_RESUME_MARKER = "usage-session-resume"
+_RESUME_MARKERS = (_RESUME_MARKER, "usage_session_resume")
+
 
 def _resolve_hook_source() -> Path:
     paths = [
@@ -181,7 +191,7 @@ def _migrate_from_legacy_usage() -> None:
                 settings = data
             else:
                 print(_t("setup_legacy_settings_not_object", path=CLAUDE_SETTINGS))
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         print(_t("setup_legacy_settings_read_failed", error=exc))
 
     if settings is not None:
@@ -234,7 +244,7 @@ def _load_settings() -> dict[str, Any]:
     try:
         with CLAUDE_SETTINGS.open(encoding="utf-8") as f:
             data = json.load(f)
-    except (OSError, json.JSONDecodeError) as exc:
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise SystemExit(_t("setup_settings_read_failed", path=CLAUDE_SETTINGS, error=exc)) from exc
     if not isinstance(data, dict):
         raise SystemExit(_t("setup_settings_not_object", path=CLAUDE_SETTINGS))
@@ -285,8 +295,9 @@ def _backup_existing_statusline(settings: dict[str, Any]) -> None:
     if not isinstance(backup, dict):
         backup = {}
         settings[BACKUP_KEY] = backup
-    backup[PREV_SL_KEY] = existing
-    print(_t("setup_statusline_backed_up", backup_key=BACKUP_KEY, prev_key=PREV_SL_KEY))
+    if PREV_SL_KEY not in backup:
+        backup[PREV_SL_KEY] = existing
+        print(_t("setup_statusline_backed_up", backup_key=BACKUP_KEY, prev_key=PREV_SL_KEY))
 
 
 def _status_line_toml(items: list[str]) -> str:
@@ -294,11 +305,33 @@ def _status_line_toml(items: list[str]) -> str:
     return f"status_line = [\n{body},\n]"
 
 
+def _replace_tui_status_line(content: str, replacement: str) -> str:
+    table = re.search(r"(?m)^\[tui\]\s*$", content)
+    if table is None:
+        return content
+    next_table = re.search(r"(?m)^\[[^\]\n]+\]\s*$", content[table.end() :])
+    section_end = len(content) if next_table is None else table.end() + next_table.start()
+    section = content[table.end() : section_end]
+    updated_section = _SL_REGEX.sub(replacement, section, count=1)
+    return content[: table.end()] + updated_section + content[section_end:]
+
+
+def _remove_tui_status_line(content: str) -> str:
+    table = re.search(r"(?m)^\[tui\]\s*$", content)
+    if table is None:
+        return content
+    next_table = re.search(r"(?m)^\[[^\]\n]+\]\s*$", content[table.end() :])
+    section_end = len(content) if next_table is None else table.end() + next_table.start()
+    section = content[table.end() : section_end]
+    updated_section = _SL_REGEX.sub("", section, count=1)
+    return content[: table.end()] + updated_section + content[section_end:]
+
+
 def _read_codex_config() -> tuple[str, dict[str, Any]] | None:
     try:
         content = CODEX_CONFIG.read_text(encoding="utf-8")
         parsed = tomllib.loads(content)
-    except (OSError, tomllib.TOMLDecodeError):
+    except (OSError, UnicodeDecodeError, tomllib.TOMLDecodeError):
         return None
     return content, parsed
 
@@ -325,7 +358,7 @@ def _setup_codex() -> None:
             json.dumps({"status_line": old}, indent=2, ensure_ascii=False) + "\n",
             encoding="utf-8",
         )
-        content = _SL_REGEX.sub(_status_line_toml(CODEX_STATUS_LINE), content)
+        content = _replace_tui_status_line(content, _status_line_toml(CODEX_STATUS_LINE))
     elif "[tui]" in content:
         content = content.replace("[tui]", f"[tui]\n{_status_line_toml(CODEX_STATUS_LINE)}")
     else:
@@ -351,16 +384,18 @@ def _unsetup_codex() -> None:
     if backup_path.exists():
         try:
             old_items = json.loads(backup_path.read_text(encoding="utf-8")).get("status_line", [])
-        except (OSError, json.JSONDecodeError, AttributeError):
+        except (OSError, UnicodeDecodeError, json.JSONDecodeError, AttributeError):
             old_items = []
-        content = _SL_REGEX.sub(_status_line_toml(old_items), content)
+        content = _replace_tui_status_line(content, _status_line_toml(old_items))
+        # Write the restored config before deleting the backup: if the write fails, the
+        # backup must survive so a later retry can still recover the original status line.
+        _atomic_write_text(CODEX_CONFIG, content)
         backup_path.unlink(missing_ok=True)
         print(_t("setup_codex_restored"))
     else:
-        content = re.sub(r"status_line\s*=\s*\[.*?\]\n?", "", content, flags=re.DOTALL)
+        content = _remove_tui_status_line(content)
+        _atomic_write_text(CODEX_CONFIG, content)
         print(_t("setup_codex_removed"))
-
-    _atomic_write_text(CODEX_CONFIG, content)
 
 
 def _installed_hook_version() -> str | None:
@@ -384,6 +419,334 @@ def update_hook() -> None:
     if not HOOK_TARGET.parent.exists():
         return
     _copy_hook_script()
+
+
+def _resolve_resume_source() -> Path:
+    paths = [
+        Path(__file__).resolve().parent / "usage_session_resume.py",
+        Path(sys.executable).resolve().parent.parent / "Resources" / "usage_session_resume.py",
+    ]
+    for path in paths:
+        if path.exists():
+            return path
+    tried = ", ".join(str(path) for path in paths)
+    raise SystemExit(_t("setup_resume_source_missing", tried=tried))
+
+
+def _resume_command() -> str:
+    python = _find_system_python()
+    source = _resolve_resume_source()
+    return f"{shlex.quote(python)} {shlex.quote(str(source))}"
+
+
+def _copy_resume_script() -> None:
+    source = _resolve_resume_source()
+    RESUME_HOOK_TARGET.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, RESUME_HOOK_TARGET)
+    RESUME_HOOK_TARGET.chmod(
+        RESUME_HOOK_TARGET.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    )
+
+
+def _write_resume_sidecar() -> None:
+    """Mirror i18n.json's rw_prompt/rw_none into a sidecar the stdlib hook can read,
+    so the injected wording stays single-sourced and the hook needs no app imports."""
+    from i18n import I18N_PATH
+
+    try:
+        bundle = json.loads(I18N_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if not isinstance(bundle, dict):
+        return
+    en_raw = bundle.get("en")
+    en: dict[str, Any] = en_raw if isinstance(en_raw, dict) else {}
+    out: dict[str, dict[str, str]] = {}
+    for lang in RESUME_LANGS:
+        table_raw = bundle.get(lang)
+        table: dict[str, Any] = table_raw if isinstance(table_raw, dict) else {}
+        prompt = table.get("report_rw_prompt") or en.get("report_rw_prompt")
+        none_label = table.get("report_rw_none") or en.get("report_rw_none")
+        lead = table.get("report_rw_inject_lead") or en.get("report_rw_inject_lead") or ""
+        empty = table.get("report_rw_empty") or en.get("report_rw_empty") or ""
+        if isinstance(prompt, str) and isinstance(none_label, str):
+            out[lang] = {"prompt": prompt, "none": none_label, "lead": lead, "empty": empty}
+    if out:
+        RESUME_PROMPT_SIDECAR.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write_text(
+            RESUME_PROMPT_SIDECAR, json.dumps(out, ensure_ascii=False, indent=2) + "\n"
+        )
+
+
+def _is_resume_entry(entry: object) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    hooks = entry.get("hooks")
+    if not isinstance(hooks, list):
+        return False
+    return any(
+        isinstance(h, dict)
+        and isinstance(h.get("command"), str)
+        and any(marker in h["command"] for marker in _RESUME_MARKERS)
+        for h in hooks
+    )
+
+
+def _strip_resume_hooks(entry: object) -> object | None:
+    """Return ``entry`` with usage-owned resume hooks removed.
+
+    Removes only the resume hook *item*, not the whole entry, so a user who put their
+    own hook in the same SessionStart entry doesn't lose it when we disable. Returns
+    ``None`` when nothing but our hook was in the entry, ``entry`` unchanged when it
+    held no resume hook.
+    """
+    if not isinstance(entry, dict):
+        return entry
+    hooks = entry.get("hooks")
+    if not isinstance(hooks, list):
+        return entry
+    kept = [
+        h
+        for h in hooks
+        if not (
+            isinstance(h, dict)
+            and isinstance(h.get("command"), str)
+            and any(marker in h["command"] for marker in _RESUME_MARKERS)
+        )
+    ]
+    if len(kept) == len(hooks):
+        return entry
+    if not kept:
+        return None
+    return {**entry, "hooks": kept}
+
+
+def _session_start_list(settings: dict[str, Any]) -> list[Any] | None:
+    hooks = settings.get("hooks")
+    if not isinstance(hooks, dict):
+        return None
+    session_start = hooks.get("SessionStart")
+    return session_start if isinstance(session_start, list) else None
+
+
+def is_resume_enabled() -> bool:
+    try:
+        settings = _load_settings()
+    except SystemExit:
+        return False
+    entries = _session_start_list(settings)
+    if not entries:
+        return False
+    return any(_is_resume_entry(e) for e in entries)
+
+
+def enable_session_resume() -> int:
+    if not CLAUDE_SETTINGS.parent.exists():
+        print(_t("setup_no_agents"), file=sys.stderr)
+        return 1
+    _copy_resume_script()
+    _write_resume_sidecar()
+    settings = _load_settings()
+    hooks = settings.get("hooks")
+    if not isinstance(hooks, dict):
+        hooks = {}
+        settings["hooks"] = hooks
+    session_start = hooks.get("SessionStart")
+    if not isinstance(session_start, list):
+        session_start = []
+        hooks["SessionStart"] = session_start
+    session_start[:] = [e for e in (_strip_resume_hooks(e) for e in session_start) if e is not None]
+    session_start.append(
+        {"matcher": RESUME_MATCHER, "hooks": [{"type": "command", "command": _resume_command()}]}
+    )
+    _save_settings(settings)
+    print(_t("setup_resume_enabled", path=_resolve_resume_source()))
+    print(_t("setup_claude_restart_required"))
+    return 0
+
+
+def disable_session_resume() -> int:
+    if CLAUDE_SETTINGS.parent.exists():
+        settings = _load_settings()
+        session_start = _session_start_list(settings)
+        if session_start is not None:
+            kept = [e for e in (_strip_resume_hooks(e) for e in session_start) if e is not None]
+            if kept != session_start:
+                hooks = settings["hooks"]
+                if kept:
+                    hooks["SessionStart"] = kept
+                else:
+                    hooks.pop("SessionStart", None)
+                if not hooks:
+                    settings.pop("hooks", None)
+                _save_settings(settings)
+                print(_t("setup_resume_disabled"))
+    for path in (RESUME_HOOK_TARGET, RESUME_PROMPT_SIDECAR):
+        if path.exists():
+            path.unlink()
+    return 0
+
+
+def _installed_resume_version() -> str | None:
+    try:
+        with RESUME_HOOK_TARGET.open(encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("__version__"):
+                    return line.split("=", 1)[1].strip().strip("\"'")
+    except OSError:
+        pass
+    return None
+
+
+def _self_heal_resume() -> None:
+    """Keep the opt-in resume hook healthy *only if already enabled* — restore a missing
+    script/sidecar and update a stale script. Never enables it on its own."""
+    if not is_resume_enabled():
+        return
+    _migrate_resume_command_if_needed()
+    missing = _missing_resume_artifacts()
+    if missing:
+        detail = _resume_restore_context(missing)
+        _copy_resume_script()
+        _write_resume_sidecar()
+        _append_self_heal_log("restore_resume_hook", detail)
+    elif _installed_resume_version() != RESUME_HOOK_VERSION:
+        old = _installed_resume_version()
+        _copy_resume_script()
+        _write_resume_sidecar()
+        _append_self_heal_log("update_resume_hook", f"{old or 'unknown'} -> {RESUME_HOOK_VERSION}")
+
+
+def _migrate_resume_command_if_needed() -> None:
+    settings = _load_settings()
+    entries = _session_start_list(settings)
+    if not entries:
+        return
+    old_target = str(RESUME_HOOK_TARGET)
+    new_command = _resume_command()
+    changed = False
+    for entry in entries:
+        if not isinstance(entry, dict) or not _is_resume_entry(entry):
+            continue
+        hooks = entry.get("hooks")
+        if not isinstance(hooks, list):
+            continue
+        for hook in hooks:
+            if not isinstance(hook, dict):
+                continue
+            command = hook.get("command")
+            if not isinstance(command, str) or old_target not in command:
+                continue
+            hook["command"] = new_command
+            changed = True
+    if not changed:
+        return
+    _save_settings(settings)
+    _append_self_heal_log(
+        "migrate_resume_command",
+        f"{RESUME_HOOK_TARGET} -> {_resolve_resume_source()}",
+    )
+
+
+def _missing_resume_artifacts() -> list[str]:
+    missing: list[str] = []
+    if not RESUME_HOOK_TARGET.exists():
+        missing.append("script")
+    if not RESUME_PROMPT_SIDECAR.exists():
+        missing.append("sidecar")
+    return missing
+
+
+def _resume_restore_context(missing: list[str]) -> str:
+    parts = [f"missing={','.join(missing)}"]
+    elapsed = _seconds_since_last_self_heal("restore_resume_hook")
+    if elapsed is not None:
+        parts.append(f"seconds_since_previous_restore={elapsed}")
+    command = _installed_resume_command()
+    if command:
+        source = str(_resolve_resume_source())
+        target = str(RESUME_HOOK_TARGET)
+        if source in command:
+            parts.append("registered=source")
+        elif target in command:
+            parts.append("registered=target")
+        else:
+            parts.append("registered=other")
+    recent = _recent_claude_dir_changes()
+    if recent:
+        parts.append(f"recent_claude_entries={recent}")
+    return "; ".join(parts)
+
+
+def _seconds_since_last_self_heal(action: str) -> int | None:
+    try:
+        settings = _load_settings()
+    except SystemExit:
+        return None
+    usage_settings = settings.get(BACKUP_KEY)
+    if not isinstance(usage_settings, dict):
+        return None
+    log = usage_settings.get("selfHealLog")
+    if not isinstance(log, list):
+        return None
+    for entry in reversed(log):
+        if not isinstance(entry, dict) or entry.get("action") != action:
+            continue
+        timestamp = entry.get("timestamp")
+        if not isinstance(timestamp, str):
+            continue
+        try:
+            parsed = datetime.fromisoformat(timestamp.replace("Z", "+00:00"))
+        except ValueError:
+            continue
+        return max(0, int((datetime.now(UTC) - parsed).total_seconds()))
+    return None
+
+
+def _installed_resume_command() -> str:
+    try:
+        settings = _load_settings()
+    except SystemExit:
+        return ""
+    entries = _session_start_list(settings)
+    if not entries:
+        return ""
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        hooks = entry.get("hooks")
+        if not isinstance(hooks, list):
+            continue
+        for hook in hooks:
+            if not isinstance(hook, dict):
+                continue
+            command = hook.get("command")
+            if isinstance(command, str) and any(marker in command for marker in _RESUME_MARKERS):
+                return command
+    return ""
+
+
+def _recent_claude_dir_changes(limit: int = 6) -> str:
+    root = CLAUDE_SETTINGS.parent
+    try:
+        entries = sorted(
+            (entry for entry in root.iterdir()),
+            key=lambda entry: entry.stat().st_mtime,
+            reverse=True,
+        )
+    except OSError:
+        return ""
+    result: list[str] = []
+    now = datetime.now(UTC).timestamp()
+    for entry in entries[:limit]:
+        try:
+            stat_result = entry.stat()
+        except OSError:
+            continue
+        age = max(0, int(now - stat_result.st_mtime))
+        kind = "dir" if entry.is_dir() else "file"
+        result.append(f"{entry.name}:{kind}:{age}s")
+    return ",".join(result)
 
 
 def _append_self_heal_log(action: str, detail: str) -> None:
@@ -464,6 +827,13 @@ def self_heal() -> None:
         if isinstance(exc, KeyboardInterrupt):
             raise
         _debug_self_heal_failure("restore_hook_scripts", exc)
+
+    try:
+        _self_heal_resume()
+    except BaseException as exc:
+        if isinstance(exc, KeyboardInterrupt):
+            raise
+        _debug_self_heal_failure("resume_hook", exc)
 
 
 def is_setup() -> bool:
@@ -571,6 +941,8 @@ def unsetup() -> int:
         if STATUS_FILE.exists():
             STATUS_FILE.unlink()
             print(_t("setup_status_file_deleted", path=STATUS_FILE))
+
+        disable_session_resume()
 
     if CODEX_CONFIG.exists():
         _unsetup_codex()

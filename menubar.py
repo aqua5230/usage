@@ -27,6 +27,7 @@ from AppKit import (
     NSApp,
     NSApplication,
     NSApplicationActivationPolicyAccessory,
+    NSImage,
     NSMakePoint,
     NSMakeSize,
     NSMenu,
@@ -49,7 +50,7 @@ from history_loader import UsageEntry, load_entries
 from i18n import _t, packaged_resource_path
 from main import _load_preferences, _save_preferences
 from panels.base import Panel as UsagePanel
-from panels.base import load_active_panel_id, save_active_panel_id
+from panels.base import load_active_panel_id, resolve_resource, save_active_panel_id
 from pricing import calculate_cost
 from usage_client import ClaudeUsageClient, PollOutcome, PollState
 from usage_lang import detect_lang
@@ -221,6 +222,45 @@ def _auto_update_check_enabled(prefs: dict[str, Any] | None = None) -> bool:
 def _hide_codex_enabled(prefs: dict[str, Any] | None = None) -> bool:
     data = _load_preferences() if prefs is None else prefs
     return data.get("hide_codex_section") is True
+
+
+def _session_resume_enabled() -> bool:
+    # State lives in ~/.claude/settings.json (a hook), not in usage's prefs file.
+    try:
+        import setup_hook
+
+        return setup_hook.is_resume_enabled()
+    except Exception:
+        return False
+
+
+_ALERT_ICON: Any = None
+_ALERT_ICON_LOADED = False
+
+
+def _alert_icon() -> Any:
+    # NSAlert defaults to the application icon, which from source (and for an
+    # accessory app with no Dock presence) is py2app's / Python's rocket. Setting
+    # NSApp.applicationIconImage does not propagate to NSAlert, so each alert must
+    # set the branded icon explicitly. Loaded once and cached.
+    global _ALERT_ICON, _ALERT_ICON_LOADED
+    if not _ALERT_ICON_LOADED:
+        _ALERT_ICON_LOADED = True
+        try:
+            _ALERT_ICON = NSImage.alloc().initWithContentsOfFile_(resolve_resource("usage.icns"))
+        except Exception:
+            _ALERT_ICON = None
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("load alert icon failed", exc_info=True)
+    return _ALERT_ICON
+
+
+def _make_alert() -> Any:
+    alert = NSAlert.alloc().init()
+    icon = _alert_icon()
+    if icon is not None:
+        alert.setIcon_(icon)
+    return alert
 
 
 def _update_dismissed_recently(prefs: dict[str, Any]) -> bool:
@@ -445,6 +485,9 @@ class AppDelegate(NSObject):
 
     def switchPanel_(self, sender: Any) -> None:
         menu = NSMenu.alloc().initWithTitle_(_t(self.language, "switch_panel"))
+        # Panel themes live in a submenu so the menu stays short — one "面板主題 ▸"
+        # row that expands on demand instead of nine inline rows.
+        panel_submenu = NSMenu.alloc().initWithTitle_(_t(self.language, "switch_panel"))
         for panel in panels.all_panels():
             item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
                 _panel_title(panel, self.language),
@@ -454,7 +497,12 @@ class AppDelegate(NSObject):
             item.setTarget_(self)
             item.setRepresentedObject_(panel.id)
             item.setState_(1 if panel.id == self.active_panel.id else 0)
-            menu.addItem_(item)
+            panel_submenu.addItem_(item)
+        panel_parent = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "switch_panel"), "", ""
+        )
+        panel_parent.setSubmenu_(panel_submenu)
+        menu.addItem_(panel_parent)
         menu.addItem_(NSMenuItem.separatorItem())
         launch_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             _t(self.language, "launch_at_login"),
@@ -482,6 +530,18 @@ class AppDelegate(NSObject):
         hide_codex_item.setTarget_(self)
         hide_codex_item.setState_(1 if _hide_codex_enabled() else 0)
         menu.addItem_(hide_codex_item)
+        # Project Butler: one toggle that hands last session's progress to the next
+        # one. Tooltip carries the full explanation so the menu line stays short.
+        menu.addItem_(NSMenuItem.separatorItem())
+        butler_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "project_butler"),
+            "toggleSessionResume:",
+            "",
+        )
+        butler_item.setTarget_(self)
+        butler_item.setState_(1 if _session_resume_enabled() else 0)
+        butler_item.setToolTip_(_t(self.language, "project_butler_tooltip"))
+        menu.addItem_(butler_item)
         menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
 
     def selectPanel_(self, sender: Any) -> None:
@@ -522,6 +582,48 @@ class AppDelegate(NSObject):
             sender.setState_(1 if enabled else 0)
         self.latest_state.hide_codex = enabled
         self.popover_controller.setState_(self.latest_state)
+
+    def toggleSessionResume_(self, sender: Any) -> None:
+        thread = threading.Thread(target=self._toggle_session_resume_in_background, daemon=True)
+        thread.start()
+
+    def _toggle_session_resume_in_background(self) -> None:
+        import setup_hook
+
+        output = io.StringIO()
+        ok = True
+        enabled = False
+        try:
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+                if setup_hook.is_resume_enabled():
+                    setup_hook.disable_session_resume()
+                else:
+                    ok = setup_hook.enable_session_resume() == 0
+                    enabled = ok
+        except SystemExit as exc:
+            if exc.code:
+                ok = False
+                print(exc.code, file=output)
+        except Exception as exc:
+            ok = False
+            print(f"{type(exc).__name__}: {exc}", file=output)
+
+        self.performSelectorOnMainThread_withObject_waitUntilDone_(
+            "_finishSessionResume:",
+            {"ok": ok, "enabled": enabled, "output": output.getvalue().strip()},
+            False,
+        )
+
+    def _finishSessionResume_(self, result: dict[str, Any]) -> None:
+        alert = _make_alert()
+        if result.get("ok", True):
+            key = "resume_enabled_restart" if result.get("enabled") else "resume_disabled_msg"
+            alert.setMessageText_(_t(self.language, key))
+        else:
+            alert.setMessageText_(_t(self.language, "resume_action_failed"))
+            alert.setInformativeText_(str(result.get("output") or ""))
+        alert.runModal()
+        self._refresh()
 
     def _maybe_check_update_in_background(self) -> None:
         self._check_update_in_background(
@@ -614,7 +716,7 @@ class AppDelegate(NSObject):
         )
 
     def _showUpdateAlert_(self, release: update_checker.ReleaseInfo) -> None:
-        alert = NSAlert.alloc().init()
+        alert = _make_alert()
         alert.setMessageText_(_t(self.language, "update_alert_title", version=release.version))
         alert.setInformativeText_(release.body[:UPDATE_ALERT_BODY_LIMIT])
         alert.addButtonWithTitle_(_t(self.language, "update_btn_download"))
@@ -633,12 +735,12 @@ class AppDelegate(NSObject):
         _save_preferences(prefs)
 
     def _showNoUpdateAvailable_(self, result: Any) -> None:
-        alert = NSAlert.alloc().init()
+        alert = _make_alert()
         alert.setMessageText_(_t(self.language, "update_no_new_version"))
         alert.runModal()
 
     def _showUpdateCheckFailed_(self, result: Any) -> None:
-        alert = NSAlert.alloc().init()
+        alert = _make_alert()
         alert.setMessageText_(_t(self.language, "update_check_failed"))
         alert.runModal()
 
@@ -767,7 +869,7 @@ class AppDelegate(NSObject):
         )
 
     def _finishHookInstall_(self, result: dict[str, Any]) -> None:
-        alert = NSAlert.alloc().init()
+        alert = _make_alert()
         if result["success"]:
             alert.setMessageText_(_t(self.language, "hook_installed_restart"))
         else:
@@ -811,7 +913,7 @@ class AppDelegate(NSObject):
         self._refresh_statusline_state()
         if result.get("ok", True):
             return
-        alert = NSAlert.alloc().init()
+        alert = _make_alert()
         alert.setMessageText_(_t(self.language, "statusline_action_failed"))
         alert.setInformativeText_(str(result.get("output") or result.get("action") or ""))
         alert.runModal()
@@ -838,7 +940,7 @@ class AppDelegate(NSObject):
     def _finishAnalyzeUsage_(self, result: dict[str, Any]) -> None:
         if result["success"]:
             return
-        alert = NSAlert.alloc().init()
+        alert = _make_alert()
         alert.setMessageText_(_t(self.language, "analysis_failed"))
         alert.setInformativeText_(str(result["message"]))
         alert.runModal()
@@ -1380,7 +1482,7 @@ def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
         return
 
     lang = language or detect_lang()
-    alert = NSAlert.alloc().init()
+    alert = _make_alert()
     alert.setMessageText_(_t(lang, "alert_forwarder_title"))
     alert.setInformativeText_(_t(lang, "alert_forwarder_body"))
     alert.addButtonWithTitle_(_t(lang, "alert_forwarder_enable"))

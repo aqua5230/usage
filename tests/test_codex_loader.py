@@ -21,7 +21,7 @@ def _write_session(
     *,
     session_id: str,
     timestamp: str,
-    usage: dict[str, int] | None = None,
+    usage: dict[str, Any] | None = None,
     rate_limits: dict[str, Any] | None = None,
     mtime: float | None = None,
     cwd: str = "/tmp/demo",
@@ -54,7 +54,7 @@ def _write_session_with_usage_events(
     path: Path,
     *,
     session_id: str,
-    events: list[tuple[str, dict[str, int]]],
+    events: list[tuple[str, dict[str, Any]]],
     cwd: str = "/tmp/demo",
 ) -> None:
     lines = [
@@ -231,6 +231,15 @@ def test_parse_jsonl_skips_bad_lines_and_missing_fields(tmp_path: Path) -> None:
     assert codex_loader._parse_jsonl(path, {}, None) == []
 
 
+def test_codex_session_with_bad_encoding_is_skipped(tmp_path: Path) -> None:
+    # A non-UTF-8 session log must be skipped, not crash quota/history reads.
+    path = tmp_path / "binary.jsonl"
+    path.write_bytes(b"\xff\xfe not utf-8\n")
+
+    assert codex_loader._parse_jsonl(path, {}, None) == []
+    assert codex_loader._extract_rate_limits(path, {}) is None
+
+
 def test_jsonl_cache_evicts_oldest_entry_when_maxsize_exceeded(tmp_path: Path) -> None:
     timestamp = datetime.now(UTC).isoformat()
     paths = [
@@ -370,3 +379,54 @@ def test_load_rate_limits_picks_most_recent_valid(monkeypatch: pytest.MonkeyPatc
 
     assert result is not None
     assert result.updated_at == new_ts
+
+
+def test_load_entries_accepts_numeric_string_usage_fields(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    timestamp = datetime.now(UTC).isoformat()
+    _write_session(
+        sessions_dir / "string-usage.jsonl",
+        session_id="string-usage",
+        timestamp=timestamp,
+        usage={
+            "input_tokens": "10",
+            "cached_input_tokens": "2",
+            "output_tokens": "3",
+            "reasoning_output_tokens": "4",
+        },
+    )
+
+    entries = codex_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].input_tokens == 8
+    assert entries[0].output_tokens == 7
+    assert entries[0].cache_read_tokens == 2
+
+
+def test_load_rate_limits_accepts_numeric_string_fields(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    now = datetime.now(UTC)
+    _write_rate_limit_session(
+        sessions_dir / "string-rate.jsonl",
+        now.isoformat(),
+        {
+            "primary": {"used_percent": "25", "resets_at": str(now.timestamp() + 60)},
+            "secondary": {"used_percent": "70.0", "resets_at": str(now.timestamp() + 120)},
+        },
+        now.timestamp(),
+    )
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.five_hour_pct == 25.0
+    assert result.seven_day_pct == 70.0

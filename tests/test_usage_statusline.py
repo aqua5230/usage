@@ -128,6 +128,35 @@ def test_read_update_hint_handles_malformed_json(
     assert usage_statusline._read_update_hint(1000.0) is None
 
 
+def test_render_skips_bad_utf8_update_preferences_without_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    prefs_file = tmp_path / "usage-preferences.json"
+    prefs_file.write_bytes(b"\xff\xfe{")
+    monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+
+    output = usage_statusline.render(
+        {
+            "model": {"display_name": "Sonnet 4.6"},
+            "rate_limits": {
+                "five_hour": {"used_percentage": 85},
+                "seven_day": {"used_percentage": 33},
+            },
+            "context_window": {"used_percentage": 12, "context_window_size": 200000},
+        },
+        datetime(2026, 1, 1, tzinfo=UTC),
+    )
+
+    assert output != "usage"
+    assert "5h" in output
+    assert "7d" in output
+    assert "Context" in output
+    assert "available" not in output
+
+
 def test_save_cleans_temp_file_when_atomic_replace_fails(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -262,6 +291,43 @@ def test_render_outputs_multiline_colored_statusline(
     assert "Context" in output
     assert "Sonnet 4.6" in output
     assert "$" not in output  # cost line removed in v0.10.0
+
+
+def test_render_skips_bad_rate_limit_percentage_without_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    payload = {
+        "rate_limits": {
+            "five_hour": {"used_percentage": "bad"},
+            "seven_day": {"used_percentage": 33},
+        },
+    }
+
+    output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
+
+    assert output != "usage"
+    assert "7d" in output
+    assert "5h" not in output
+
+
+def test_render_skips_bad_resets_at_without_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    payload = {
+        "rate_limits": {
+            "five_hour": {"used_percentage": 50, "resets_at": "not-a-number"},
+            "seven_day": {"used_percentage": 33},
+        },
+    }
+
+    output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
+
+    assert output != "usage"  # one bad field must not blank the whole line
+    assert "5h" in output  # percentage still shown, just no reset countdown
 
 
 def test_main_prints_fallback_when_render_fails(

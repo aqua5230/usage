@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import io
 import json
+import os
 import sys
 from pathlib import Path
 from types import SimpleNamespace
@@ -147,3 +148,23 @@ def test_health_check_triggers_repair_when_displaced(
     main.health_check()
 
     assert calls == [True]
+
+
+def test_save_preferences_is_atomic_when_replace_fails(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    prefs_file = tmp_path / "usage-preferences.json"
+    prefs_file.write_text('{"existing": true}\n', encoding="utf-8")
+    monkeypatch.setattr(main, "PREFERENCES_FILE", prefs_file)
+
+    def fail_replace(src: str, dst: str | os.PathLike[str]) -> None:
+        _ = src, dst
+        raise OSError("replace failed")
+
+    monkeypatch.setattr("main.os.replace", fail_replace)
+
+    with pytest.raises(OSError, match="replace failed"):
+        main._save_preferences({"existing": False})
+
+    assert prefs_file.read_text(encoding="utf-8") == '{"existing": true}\n'
+    assert list(tmp_path.glob("*.tmp")) == []

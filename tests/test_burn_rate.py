@@ -120,6 +120,14 @@ def test_forecast_none_for_negative_slope() -> None:
     assert tracker.forecast_seconds() is None
 
 
+def test_forecast_none_for_duplicate_timestamp_zero_span() -> None:
+    tracker = BurnRateTracker()
+    for percent in (10.0, 20.0, 30.0, 40.0, 50.0):
+        tracker.record(100.0, percent)
+
+    assert tracker.forecast_seconds(min_span_seconds=0) is None
+
+
 def test_record_prunes_samples_older_than_rolling_window() -> None:
     tracker = BurnRateTracker()
     tracker.record(0.0, 10.0)

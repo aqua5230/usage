@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -95,7 +96,7 @@ def _load_file(
 
     parsed: list[UsageEntry] = []
     try:
-        with path.open(encoding="utf-8") as file:
+        with path.open(encoding="utf-8", errors="replace") as file:
             for line in file:
                 parsed_entry = _parse_line(line, project)
                 if parsed_entry is not None:
@@ -230,9 +231,18 @@ def _dedup_key(entry: UsageEntry) -> str:
 
 
 def _as_int(value: Any) -> int:
-    if isinstance(value, bool) or not isinstance(value, int):
+    if isinstance(value, bool):
         return 0
-    return max(0, int(value))
+    if isinstance(value, int):
+        return max(0, int(value))
+    if isinstance(value, str):
+        normalized = value.strip()
+        if normalized.isascii() and (
+            normalized.isdigit()
+            or (normalized.startswith("+") and normalized[1:].isdigit())
+        ):
+            return int(normalized)
+    return 0
 
 
 def _as_str(value: Any) -> str:
@@ -242,6 +252,10 @@ def _as_str(value: Any) -> str:
 def _as_optional_float(value: Any) -> float | None:
     if isinstance(value, bool):
         return None
-    if isinstance(value, int | float):
-        return float(value)
-    return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    return number

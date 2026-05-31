@@ -79,7 +79,7 @@ def calculate_cost(entry: _CostEntry) -> float:
 
 def get_pricing() -> PricingTable:
     global _pricing_cache
-    now = time.time()
+    now = time.monotonic()
     if _pricing_cache is not None:
         pricing, source, cached_at = _pricing_cache
         if source != "fallback" or (now - cached_at) <= FALLBACK_RETRY_SECONDS:
@@ -126,7 +126,7 @@ def _read_cache(*, allow_stale: bool = False) -> PricingTable | None:
     with contextlib.suppress(OSError), path.open(encoding="utf-8") as file:
         try:
             return _normalize_pricing(json.load(file))
-        except json.JSONDecodeError:
+        except (UnicodeDecodeError, json.JSONDecodeError):
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("failed to decode pricing cache %s", path, exc_info=True)
             return None
@@ -138,7 +138,7 @@ def _fetch_pricing() -> PricingTable | None:
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
             payload = json.loads(response.read().decode("utf-8"))
-    except (OSError, json.JSONDecodeError, TimeoutError):
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError, TimeoutError):
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("failed to fetch pricing from %s", LITELLM_PRICING_URL, exc_info=True)
         return None

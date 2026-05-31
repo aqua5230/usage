@@ -21,6 +21,31 @@ except ModuleNotFoundError:
             globals(),
             bundle_path="/System/Library/Frameworks/WebKit.framework",
         )
+    # loadBundle gives us the classes but no method metadata, so PyObjC can't
+    # infer the block signature of evaluateJavaScript:completionHandler: and
+    # raises "Argument 3 is a block, but no signature available" the moment a
+    # Python completion handler is passed (panels/web_panel.py:72). The proper
+    # pyobjc-framework-WebKit wrapper registers this for us; when it is absent
+    # (e.g. a background/non-app launch context) we register it by hand. The
+    # handler is void (^)(id result, NSError *error).
+    objc.registerMetaDataForSelector(
+        b"WKWebView",
+        b"evaluateJavaScript:completionHandler:",
+        {
+            "arguments": {
+                3: {
+                    "callable": {
+                        "retval": {"type": b"v"},
+                        "arguments": {
+                            0: {"type": b"^v"},
+                            1: {"type": b"@"},
+                            2: {"type": b"@"},
+                        },
+                    },
+                },
+            },
+        },
+    )
 
 from panels.base import resolve_resource
 

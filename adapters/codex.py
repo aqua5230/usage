@@ -1,4 +1,5 @@
 import json
+import math
 import os
 import sqlite3
 import sys
@@ -65,7 +66,7 @@ def load_rate_limits() -> RateLimits | None:
     if not sessions_path.is_dir():
         return None
 
-    jsonl_files = sorted(sessions_path.rglob("*.jsonl"), key=lambda p: p.stat().st_mtime, reverse=True)
+    jsonl_files = sorted(sessions_path.rglob("*.jsonl"), key=_safe_mtime, reverse=True)
     models = _load_thread_models()
 
     for path in jsonl_files[:5]:
@@ -80,7 +81,7 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> RateLimits | Non
     last_rl = None
     try:
         rows = _load_jsonl_rows(path)
-    except (OSError, PermissionError) as exc:
+    except (OSError, PermissionError, UnicodeDecodeError) as exc:
         _debug_file_error("failed to read Codex session log", path, exc)
         return None
 
@@ -103,10 +104,10 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> RateLimits | Non
     primary = rl.get("primary") or {}
     secondary = rl.get("secondary") or {}
 
-    five_pct = primary.get("used_percent")
-    five_reset = primary.get("resets_at")
-    seven_pct = secondary.get("used_percent")
-    seven_reset = secondary.get("resets_at")
+    five_pct = _as_optional_float(primary.get("used_percent"))
+    five_reset = _as_optional_int(primary.get("resets_at"))
+    seven_pct = _as_optional_float(secondary.get("used_percent"))
+    seven_reset = _as_optional_int(secondary.get("resets_at"))
 
     now_ts = datetime.now(timezone.utc).timestamp()
     if five_reset is not None and five_reset < now_ts:
@@ -157,7 +158,7 @@ def _parse_jsonl(
 
     try:
         rows = _load_jsonl_rows(path)
-    except (OSError, PermissionError) as exc:
+    except (OSError, PermissionError, UnicodeDecodeError) as exc:
         _debug_file_error("failed to read Codex session log", path, exc)
         return
 
@@ -187,9 +188,11 @@ def _parse_jsonl(
     if not last_usage or not session_id:
         return
 
-    cached = last_usage.get("cached_input_tokens", 0)
-    input_tokens = last_usage.get("input_tokens", 0) - cached
-    output_tokens = last_usage.get("output_tokens", 0) + last_usage.get("reasoning_output_tokens", 0)
+    cached = _as_int(last_usage.get("cached_input_tokens"))
+    input_tokens = _as_int(last_usage.get("input_tokens")) - cached
+    output_tokens = _as_int(last_usage.get("output_tokens")) + _as_int(
+        last_usage.get("reasoning_output_tokens")
+    )
 
     if input_tokens == 0 and output_tokens == 0:
         return
@@ -247,6 +250,39 @@ def _load_jsonl_rows(path: Path) -> list[dict[str, Any]]:
         _file_cache.popitem(last=False)
     _file_cache[path] = (st.st_mtime, st.st_size, rows)
     return rows
+
+
+def _safe_mtime(path: Path) -> float:
+    try:
+        return path.stat().st_mtime
+    except OSError:
+        return float("-inf")
+
+
+def _as_optional_float(value: Any) -> float | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    return number
+
+
+def _as_int(value: Any) -> int:
+    number = _as_optional_float(value)
+    if number is None:
+        return 0
+    return int(number)
+
+
+def _as_optional_int(value: Any) -> int | None:
+    number = _as_optional_float(value)
+    if number is None:
+        return None
+    return int(number)
 
 
 def _debug_file_error(action: str, path: Path, exc: Exception) -> None:

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import builtins
 import json
 import logging
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -44,6 +46,30 @@ def test_read_status_file_skips_bad_json_and_prefers_usage_file(
     assert path == str(usage_path)
     assert mtime == pytest.approx(usage_path.stat().st_mtime)
     assert data["rate_limits"]["five_hour"]["used_percentage"] == 12
+
+
+def test_read_status_file_skips_bad_encoding(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # A half-written or non-UTF-8 status file must be skipped, not crash the poll loop.
+    usage_path = tmp_path / "usage-status.json"
+    tt_path = tmp_path / "tt-status.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(usage_path))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / f"{LEGACY_NAME}.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tt_path))
+
+    usage_path.write_bytes(b"\xff\xfe garbage")
+    tt_path.write_text(
+        json.dumps({"rate_limits": {"five_hour": {"used_percentage": 7}}}),
+        encoding="utf-8",
+    )
+
+    result = usage_client._read_status_file()
+
+    assert result is not None
+    data, path, _mtime = result
+    assert path == str(tt_path)
+    assert data["rate_limits"]["five_hour"]["used_percentage"] == 7
 
 
 def test_read_status_file_prefers_legacy_over_tt_compat(
@@ -227,7 +253,7 @@ def test_fetch_once_returns_awaiting_rate_limits_when_status_has_no_limits(
     assert outcome.message == "awaiting_rate_limits"
 
 
-def test_fetch_once_skips_rebuild_when_status_mtime_is_unchanged(
+def test_fetch_once_reuses_parsed_data_and_rebuilds_when_status_mtime_is_unchanged(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     status_path = tmp_path / "usage-status.json"
@@ -249,6 +275,8 @@ def test_fetch_once_skips_rebuild_when_status_mtime_is_unchanged(
 
     calls = 0
     original = usage_client._build_snapshot
+    original_open = builtins.open
+    open_calls = 0
 
     def counting_build_snapshot(
         data: dict[str, object],
@@ -259,7 +287,13 @@ def test_fetch_once_skips_rebuild_when_status_mtime_is_unchanged(
         calls += 1
         return original(data, data_source=data_source)
 
+    def counting_open(*args: Any, **kwargs: Any) -> Any:
+        nonlocal open_calls
+        open_calls += 1
+        return original_open(*args, **kwargs)
+
     monkeypatch.setattr(usage_client, "_build_snapshot", counting_build_snapshot)
+    monkeypatch.setattr(builtins, "open", counting_open)
 
     client = usage_client.ClaudeUsageClient(mock=False)
     first = asyncio.run(client.fetch_once())
@@ -267,5 +301,44 @@ def test_fetch_once_skips_rebuild_when_status_mtime_is_unchanged(
 
     assert first.state is usage_client.PollState.SUCCESS
     assert second.state is usage_client.PollState.SUCCESS
-    assert second is first
-    assert calls == 1
+    assert second is not first
+    assert calls == 2
+    assert open_calls == 1
+
+
+def test_fetch_once_recomputes_stale_state_when_status_mtime_is_unchanged(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    status_path = tmp_path / "usage-status.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / f"{LEGACY_NAME}.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
+    received_at = 1_700_000_000.0
+    reset_at = received_at + 60
+    status_path.write_text(
+        json.dumps(
+            {
+                "_received_at_ts": received_at,
+                "rate_limits": {
+                    "five_hour": {"used_percentage": 12, "resets_at": reset_at},
+                    "seven_day": {"used_percentage": 34, "resets_at": received_at + 120},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    now = received_at + 10
+    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    client = usage_client.ClaudeUsageClient(mock=False)
+    first = asyncio.run(client.fetch_once())
+
+    now = received_at + usage_client.STALE_SECONDS + 60
+    second = asyncio.run(client.fetch_once())
+
+    assert first.snapshot is not None
+    assert second.snapshot is not None
+    assert first.snapshot.is_stale is False
+    assert second.snapshot.is_stale is True
+    assert second.snapshot.current_percent == 0
+    assert second.message == "⚠ usage stale 361m"

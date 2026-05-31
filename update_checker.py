@@ -23,11 +23,19 @@ class ReleaseCheckResult:
     failed: bool = False
 
 
-def _parse_version(version: str) -> tuple[int, int, int] | None:
-    match = re.match(r"^(\d+)\.(\d+)\.(\d+)(?:[-.+].*)?$", version)
+def _parse_version(version: str) -> tuple[int, int, int, tuple[str, ...] | None] | None:
+    match = re.match(r"^(\d+)\.(\d+)\.(\d+)(.*)?$", version)
     if match is None:
         return None
-    return (int(match.group(1)), int(match.group(2)), int(match.group(3)))
+    suffix = match.group(4) or ""
+    prerelease: tuple[str, ...] | None = None
+    if suffix.startswith("-") or suffix.startswith("."):
+        prerelease = tuple(part for part in suffix[1:].split("+", 1)[0].split(".") if part)
+        if not prerelease:
+            return None
+    elif suffix and not suffix.startswith("+"):
+        return None
+    return (int(match.group(1)), int(match.group(2)), int(match.group(3)), prerelease)
 
 
 def compare_versions(a: str, b: str) -> int:
@@ -35,9 +43,40 @@ def compare_versions(a: str, b: str) -> int:
     parsed_b = _parse_version(b)
     if parsed_a is None or parsed_b is None:
         raise ValueError("versions must use MAJOR.MINOR.PATCH numeric format")
-    if parsed_a < parsed_b:
+    base_a = parsed_a[:3]
+    base_b = parsed_b[:3]
+    if base_a < base_b:
         return -1
-    if parsed_a > parsed_b:
+    if base_a > base_b:
+        return 1
+    prerelease_a = parsed_a[3]
+    prerelease_b = parsed_b[3]
+    if prerelease_a is None and prerelease_b is None:
+        return 0
+    if prerelease_a is None:
+        return 1
+    if prerelease_b is None:
+        return -1
+    for part_a, part_b in zip(prerelease_a, prerelease_b, strict=False):
+        is_digit_a = part_a.isdigit()
+        is_digit_b = part_b.isdigit()
+        if is_digit_a and is_digit_b:
+            value_a = int(part_a)
+            value_b = int(part_b)
+            if value_a < value_b:
+                return -1
+            if value_a > value_b:
+                return 1
+            continue
+        if is_digit_a != is_digit_b:
+            return -1 if is_digit_a else 1
+        if part_a < part_b:
+            return -1
+        if part_a > part_b:
+            return 1
+    if len(prerelease_a) < len(prerelease_b):
+        return -1
+    if len(prerelease_a) > len(prerelease_b):
         return 1
     return 0
 

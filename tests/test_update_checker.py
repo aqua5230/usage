@@ -27,24 +27,44 @@ def test_compare_versions_orders_numeric_versions() -> None:
     assert update_checker.compare_versions("0.10.1", "0.10.2") == -1
     assert update_checker.compare_versions("0.10.1", "0.10.1") == 0
     assert update_checker.compare_versions("0.9.10", "0.10.0") == -1
+    assert update_checker.compare_versions("0.11.0-beta.1", "0.11.0") == -1
+    assert update_checker.compare_versions("0.11.0", "0.11.0-rc.1") == 1
 
 
 @pytest.mark.parametrize(
     ("version", "expected"),
     [
-        ("1.2.3", (1, 2, 3)),
-        ("0.11.0-beta.1", (0, 11, 0)),
-        ("0.11.0-rc1", (0, 11, 0)),
-        ("0.11.0+build.5", (0, 11, 0)),
+        ("1.2.3", (1, 2, 3, None)),
+        ("0.11.0-beta.1", (0, 11, 0, ("beta", "1"))),
+        ("0.11.0-rc1", (0, 11, 0, ("rc1",))),
+        ("0.11.0+build.5", (0, 11, 0, None)),
         ("vX.Y", None),
         ("", None),
     ],
 )
 def test_parse_version_accepts_prerelease_and_build_suffixes(
     version: str,
-    expected: tuple[int, int, int] | None,
+    expected: tuple[int, int, int, tuple[str, ...] | None] | None,
 ) -> None:
     assert update_checker._parse_version(version) == expected
+
+
+def test_check_latest_release_offers_final_to_beta_user(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        urllib.request,
+        "urlopen",
+        lambda request, *, timeout: FakeResponse(
+            b'{"tag_name":"v0.11.0","html_url":"https://example.test/release","body":"notes"}'
+        ),
+    )
+
+    assert update_checker.check_latest_release("0.11.0-beta.1") == update_checker.ReleaseInfo(
+        version="0.11.0",
+        html_url="https://example.test/release",
+        body="notes",
+    )
 
 
 def test_check_latest_release_parses_newer_release(monkeypatch: pytest.MonkeyPatch) -> None:

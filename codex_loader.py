@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import sqlite3
 from collections import OrderedDict
@@ -140,7 +141,7 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
                 rate_limits = _as_dict(payload.get("rate_limits"))
                 if rate_limits:
                     last_rate_limits = (rate_limits, _as_str(data.get("timestamp")))
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
         logger.warning("failed to read codex session %s: %s", path, exc)
         return None
     if last_rate_limits is None:
@@ -236,7 +237,7 @@ def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) ->
                         project=project,
                     )
                 )
-    except OSError as exc:
+    except (OSError, UnicodeDecodeError) as exc:
         logger.warning("failed to parse codex session %s: %s", path, exc)
         if path not in _jsonl_cache and len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
             _jsonl_cache.popitem(last=False)
@@ -317,9 +318,15 @@ def _as_dict(value: Any) -> dict[str, Any]:
 
 
 def _as_int(value: Any) -> int:
-    if isinstance(value, bool) or not isinstance(value, int):
+    if isinstance(value, bool):
         return 0
-    return max(0, int(value))
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return 0
+    if not math.isfinite(number):
+        return 0
+    return max(0, int(number))
 
 
 def _as_str(value: Any) -> str:
@@ -327,6 +334,12 @@ def _as_str(value: Any) -> str:
 
 
 def _as_optional_float(value: Any) -> float | None:
-    if isinstance(value, bool) or not isinstance(value, int | float):
+    if isinstance(value, bool):
         return None
-    return float(value)
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(number):
+        return None
+    return number

@@ -6,6 +6,7 @@ import importlib
 import json
 import logging
 import os
+import tempfile
 import time
 from contextlib import suppress
 from pathlib import Path
@@ -81,10 +82,18 @@ def _load_preferences() -> dict[str, Any]:
 
 def _save_preferences(data: dict[str, Any]) -> None:
     PREFERENCES_FILE.parent.mkdir(parents=True, exist_ok=True)
-    PREFERENCES_FILE.write_text(
-        json.dumps(data, indent=2, ensure_ascii=False) + "\n",
-        encoding="utf-8",
-    )
+    payload = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+    tmp_path: str | None = None
+    try:
+        fd, tmp_path = tempfile.mkstemp(dir=PREFERENCES_FILE.parent, suffix=".tmp")
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(payload)
+        os.replace(tmp_path, PREFERENCES_FILE)
+        tmp_path = None
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            with suppress(OSError):
+                os.unlink(tmp_path)
 
 
 def _save_user_preference(key: str) -> None:

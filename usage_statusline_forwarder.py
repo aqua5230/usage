@@ -25,7 +25,7 @@ def _run_hook(py: str, hook: str, raw: str) -> str:
             capture_output=True,
             timeout=TIMEOUT_SECONDS,
         )
-    except (subprocess.TimeoutExpired, OSError):
+    except (subprocess.TimeoutExpired, OSError, UnicodeDecodeError):
         return ""
     return result.stdout or ""
 

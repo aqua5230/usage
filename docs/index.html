@@ -8,10 +8,12 @@
 <meta name="description" data-i18n-attr="content:meta_desc" content="macOS menu bar tracker for Claude Code &amp; Codex quota, tokens, and cost. Local-only — zero API calls. HTML reports, 9 visual themes, AGPL-3.0." />
 <meta property="og:title" content="usage — pin your Claude Code & Codex quota to the menu bar" />
 <meta property="og:description" content="macOS menu bar tracker for Claude Code & Codex quota, tokens, and cost. Local-only — zero API calls." />
-<meta property="og:image" content="https://aqua5230.github.io/usage/popover.png" />
+<meta property="og:image" content="https://aqua5230.github.io/usage/logo.png" />
 <meta property="og:url" content="https://aqua5230.github.io/usage/" />
 <meta property="og:type" content="website" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:image" content="https://aqua5230.github.io/usage/logo.png" />
+<link rel="icon" type="image/png" href="avatar.png" />
 <link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/#en" />
 <link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/#zh-TW" />
 <link rel="alternate" hreflang="zh-CN" href="https://aqua5230.github.io/usage/#zh-CN" />
@@ -167,6 +169,25 @@ button { font-family: inherit; cursor: pointer; }
 }
 .shot img { max-width: 100%; max-height: 70vh; }
 
+/* Floating mascot pet */
+.mascot-pet {
+  position: fixed;
+  right: clamp(12px, 3vw, 40px);
+  bottom: 0;
+  width: clamp(96px, 12vw, 168px);
+  z-index: 40;
+  pointer-events: none;
+  /* glow lifts the black suit off the near-black background */
+  filter: drop-shadow(0 0 26px rgba(255, 140, 66, 0.32)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.7));
+  animation: mascot-in 0.6s ease-out 0.4s both;
+}
+@keyframes mascot-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@media (max-width: 720px) { .mascot-pet { display: none; } }
+@media (prefers-reduced-motion: reduce) { .mascot-pet { animation: none; } }
+
 /* Privacy strip */
 .strip {
   background: var(--bg-soft);
@@ -315,6 +336,7 @@ footer .kofi:hover { background: #ff7572; }
     <a href="#" class="brand"><span class="brand-dot">🐾</span> usage</a>
     <nav>
       <a href="#features" data-i18n="nav_features">Features</a>
+      <a href="#resume" data-i18n="nav_resume">Resume</a>
       <a href="#install" data-i18n="nav_install">Install</a>
       <a href="#screenshots" data-i18n="nav_screenshots">Screenshots</a>
       <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
@@ -397,6 +419,26 @@ footer .kofi:hover { background: #ff7572; }
   </div>
 </section>
 
+<section id="resume">
+  <div class="wrap">
+    <div style="text-align: center;">
+      <span class="eyebrow" data-i18n="resume_label">NEW</span>
+    </div>
+    <h2 data-i18n="resume_h2">Now your CLI picks up where you left off</h2>
+    <p class="subtitle" data-i18n="resume_lead">The web and desktop apps keep your history — close them, reopen, it's all there. The CLI didn't. Resume hands that power to the CLI: open a new session and it picks up where you left off automatically, no re-explaining. Local-only, zero API calls.</p>
+    <div class="shot">
+      <img src="hero.png" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="Resume restoring your last session in the CLI" />
+    </div>
+  </div>
+  <div class="strip" style="margin-top: 40px;">
+    <div class="wrap">
+      <div class="item"><span class="dot"></span><strong data-i18n="resume_point1">Auto-resumes your last progress</strong></div>
+      <div class="item"><span class="dot"></span><strong data-i18n="resume_point2">Local-only, zero API</strong></div>
+      <div class="item"><span class="dot"></span><strong data-i18n="resume_point3">One menu toggle (off by default)</strong></div>
+    </div>
+  </div>
+</section>
+
 <section id="install" class="install">
   <div class="wrap">
     <h2 data-i18n="install_h2">Install in 10 seconds.</h2>
@@ -455,6 +497,8 @@ brew install aqua5230/homebrew-usage/usage</code></pre>
   </div>
 </footer>
 
+<img class="mascot-pet" src="mascot.png" loading="lazy" data-i18n-attr="alt:mascot_alt" alt="The usage butler cat, your progress concierge" />
+
 <script>
 const T = {
   'en': {
@@ -462,6 +506,7 @@ const T = {
     meta_title: 'usage — pin your Claude Code & Codex quota to the menu bar',
     meta_desc: 'macOS menu bar tracker for Claude Code & Codex quota, tokens, and cost. Local-only — zero API calls. HTML reports, 9 visual themes, AGPL-3.0.',
     nav_features: 'Features',
+    nav_resume: 'Resume',
     nav_install: 'Install',
     nav_screenshots: 'Screenshots',
     eyebrow: 'macOS · open source · AGPL-3.0',
@@ -486,6 +531,14 @@ const T = {
     card5_p: 'Matrix digital rain, Windows 95, retro newspaper, midnight aquarium, World Cup FIFA HUD — pick a mood for your menu bar pop-out.',
     card6_h: '5-language interface',
     card6_p: 'Auto-detects your macOS language. Supports 繁體中文, 简体中文, English, 日本語, 한국어 — all strings translated, not just menus.',
+    resume_label: 'NEW',
+    resume_h2: 'Now your CLI picks up where you left off',
+    resume_lead: "The web and desktop apps keep your history — close them, reopen, it's all there. The CLI didn't. Resume hands that power to the CLI: open a new session and it picks up where you left off automatically, no re-explaining. Local-only, zero API calls.",
+    resume_point1: 'Auto-resumes your last progress',
+    resume_point2: 'Local-only, zero API',
+    resume_point3: 'One menu toggle (off by default)',
+    resume_img_alt: 'Resume restoring your last session in the CLI',
+    mascot_alt: 'The usage butler cat, your progress concierge',
     install_h2: 'Install in 10 seconds.',
     install_sub: 'Two ways to get it running. Both free, both AGPL-3.0.',
     install_label_rec: 'RECOMMENDED',
@@ -511,6 +564,7 @@ const T = {
     meta_title: 'usage — 把 Claude Code 和 Codex 的用量釘在 menu bar',
     meta_desc: 'macOS menu bar 工具，監控 Claude Code 和 Codex 的配額、token 用量與成本。本地讀取、零 API 呼叫。HTML 報告、9 款主題、AGPL-3.0。',
     nav_features: '功能',
+    nav_resume: '進度管家',
     nav_install: '安裝',
     nav_screenshots: '截圖',
     eyebrow: 'macOS · 開源 · AGPL-3.0',
@@ -535,6 +589,14 @@ const T = {
     card5_p: '駭客任務數字雨、Windows 95、復古報紙、午夜水族箱、世界盃 FIFA 轉播——挑個喜歡的氛圍。',
     card6_h: '5 語言介面',
     card6_p: '自動偵測 macOS 系統語言。支援繁體中文、简体中文、English、日本語、한국어——每一條訊息都翻譯。',
+    resume_label: '新功能',
+    resume_h2: '讓你的 CLI 也接得回上次',
+    resume_lead: '網頁版、桌面 App 關掉再打開，對話都還在；只有 CLI 關掉就沒了。進度管家把這個能力補給 CLI——開新對話時自動接回你上次做到哪，不用再重講一次。純本地、不打任何 API。',
+    resume_point1: '自動接回上次進度',
+    resume_point2: '純本地、零 API',
+    resume_point3: '選單一鍵開關（預設關）',
+    resume_img_alt: '進度管家把上次進度接回 CLI 的示意',
+    mascot_alt: 'usage 管家貓，你的進度管家',
     install_h2: '10 秒安裝完成。',
     install_sub: '兩種方式都免費、都 AGPL-3.0。',
     install_label_rec: '推薦',
@@ -560,6 +622,7 @@ const T = {
     meta_title: 'usage — 把 Claude Code 和 Codex 的用量钉在 menu bar',
     meta_desc: 'macOS menu bar 工具，监控 Claude Code 和 Codex 的额度、token 用量与花费。本地读取、零 API 调用。HTML 报告、9 款主题、AGPL-3.0。',
     nav_features: '功能',
+    nav_resume: '进度管家',
     nav_install: '安装',
     nav_screenshots: '截图',
     eyebrow: 'macOS · 开源 · AGPL-3.0',
@@ -584,6 +647,14 @@ const T = {
     card5_p: '黑客帝国数字雨、Windows 95、复古报纸、午夜水族馆、世界杯 FIFA 转播——挑个喜欢的氛围。',
     card6_h: '5 语言界面',
     card6_p: '自动检测 macOS 系统语言。支持繁體中文、简体中文、English、日本語、한국어——每条消息都有翻译。',
+    resume_label: '新功能',
+    resume_h2: '让你的 CLI 也接得回上次',
+    resume_lead: '网页版、桌面 App 关掉再打开，对话都还在；只有 CLI 关掉就没了。进度管家把这个能力补给 CLI——开新对话时自动接回你上次做到哪，不用再重讲一次。纯本地、不打任何 API。',
+    resume_point1: '自动接回上次进度',
+    resume_point2: '纯本地、零 API',
+    resume_point3: '菜单一键开关（默认关）',
+    resume_img_alt: '进度管家把上次进度接回 CLI 的示意',
+    mascot_alt: 'usage 管家猫，你的进度管家',
     install_h2: '10 秒内安装完成。',
     install_sub: '两种方式都免费、都 AGPL-3.0。',
     install_label_rec: '推荐',
@@ -609,6 +680,7 @@ const T = {
     meta_title: 'usage — Claude Code と Codex のクォータをメニューバーに固定',
     meta_desc: 'macOS メニューバーで Claude Code と Codex のクォータ、トークン使用量、コストを監視。ローカル読み取りのみ・ゼロ API コール。HTML レポート、9 種テーマ、AGPL-3.0。',
     nav_features: '機能',
+    nav_resume: '続きから',
     nav_install: 'インストール',
     nav_screenshots: 'スクリーンショット',
     eyebrow: 'macOS · オープンソース · AGPL-3.0',
@@ -633,6 +705,14 @@ const T = {
     card5_p: 'マトリックスのデジタルレイン、Windows 95、レトロ新聞、深夜水族館、ワールドカップ FIFA HUD — お好みの雰囲気で。',
     card6_h: '5 言語インターフェース',
     card6_p: 'macOS のシステム言語を自動検出。繁體中文 / 简体中文 / English / 日本語 / 한국어 をサポート — メニューだけでなくすべての文字列を翻訳。',
+    resume_label: 'NEW',
+    resume_h2: 'CLI でも前回の続きから',
+    resume_lead: 'ウェブ版もデスクトップアプリも、閉じて開き直せば会話履歴はそのまま。でも CLI は閉じたら終わり。その機能を CLI に。新しいセッションを開くと前回の続きを自動で引き継ぎ、説明し直す必要はありません。完全ローカル、API 呼び出しゼロ。',
+    resume_point1: '前回の進捗を自動で引き継ぎ',
+    resume_point2: '完全ローカル・API ゼロ',
+    resume_point3: 'メニューのスイッチ一つ（初期はオフ）',
+    resume_img_alt: '前回の続きを CLI に引き継ぐ様子',
+    mascot_alt: 'usage の執事ネコ、あなたの進捗コンシェルジュ',
     install_h2: '10 秒でインストール。',
     install_sub: '2 つの方法、どちらも無料・AGPL-3.0。',
     install_label_rec: 'おすすめ',
@@ -658,6 +738,7 @@ const T = {
     meta_title: 'usage — Claude Code와 Codex의 한도를 메뉴 바에 고정',
     meta_desc: 'macOS 메뉴 바에서 Claude Code와 Codex의 한도, 토큰 사용량, 비용을 모니터링. 로컬 전용 · API 호출 제로. HTML 보고서, 9가지 테마, AGPL-3.0.',
     nav_features: '기능',
+    nav_resume: '이어하기',
     nav_install: '설치',
     nav_screenshots: '스크린샷',
     eyebrow: 'macOS · 오픈소스 · AGPL-3.0',
@@ -682,6 +763,14 @@ const T = {
     card5_p: '매트릭스 디지털 비, Windows 95, 복고 신문, 자정 수족관, 월드컵 FIFA HUD — 메뉴 바 팝아웃의 분위기를 마음대로.',
     card6_h: '5개 언어 인터페이스',
     card6_p: 'macOS 시스템 언어를 자동 감지. 繁體中文 / 简体中文 / English / 日本語 / 한국어 지원 — 메뉴뿐만 아니라 모든 문구가 번역되어 있습니다.',
+    resume_label: 'NEW',
+    resume_h2: '이제 CLI도 이어서',
+    resume_lead: '웹과 데스크톱 앱은 닫았다 열어도 대화 기록이 그대로 남아요. CLI만 닫으면 끝이었죠. 그 기능을 CLI에도. 새 세션을 열면 지난 작업을 자동으로 불러와 다시 설명할 필요가 없어요. 완전 로컬, API 호출 제로.',
+    resume_point1: '지난 진행을 자동으로 불러오기',
+    resume_point2: '완전 로컬, API 제로',
+    resume_point3: '메뉴 스위치 하나 (기본 꺼짐)',
+    resume_img_alt: '지난 작업을 CLI로 이어주는 모습',
+    mascot_alt: 'usage 집사 고양이, 당신의 진행 관리자',
     install_h2: '10초 안에 설치 완료.',
     install_sub: '두 가지 방법 모두 무료, AGPL-3.0.',
     install_label_rec: '추천',

@@ -6,6 +6,12 @@
 
 ## [Unreleased]
 
+### 新增
+- **「專案管家」功能（Project Butler）**：純本地、零 API。開新 Claude Code 對話（`startup` / `/clear`）時，自動把上次的進度交給 AI——不用再跟它重講一次。選單一個開關（預設關、opt-in），啟用後安裝 Claude Code 的 SessionStart hook（`usage_session_resume.py`，stdlib-only、可於 macOS 內建 Python 3.9 執行）：讀出該專案上一個 session 的「你上次的請求 + 完成的 commit + 未完成待辦（若有用 TodoWrite）」，組成接續提示詞注入新對話開場，並請 Claude 第一句回「📋 已帶入上次進度」讓你知道已生效。文案走 `i18n.json`（安裝時寫入 sidecar 供 hook 讀，維持單一來源）；`setup_hook` 負責安裝/移除/備份/self-heal。滑鼠停留選單項顯示完整說明。
+
+### 變更
+- **選單瘦身**：9 個面板主題收進「面板主題」子選單，選單不再被長長一排佔滿。
+
 ## [0.12.1] - 2026-05-29
 
 ### 變更

@@ -37,7 +37,7 @@ def _commands_path() -> Path:
 def _load_commands() -> list[dict[str, Any]] | None:
     try:
         data = json.loads(_commands_path().read_text(encoding="utf-8"))
-    except (FileNotFoundError, OSError, json.JSONDecodeError):
+    except (FileNotFoundError, OSError, json.JSONDecodeError, UnicodeDecodeError):
         return None
 
     commands = data.get("commands")

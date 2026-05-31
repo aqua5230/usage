@@ -51,6 +51,8 @@ class BurnRateTracker:
         )
         if elapsed < span_threshold:
             return None
+        if elapsed <= 0:
+            return None
 
         slope_per_second = (latest.percent - first.percent) / elapsed
         if slope_per_second <= 0:

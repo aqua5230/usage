@@ -15,6 +15,20 @@ from adapters.types import UsageEntry as AnalyzerUsageEntry
 from history_loader import UsageEntry
 
 
+class FakeResponse:
+    def __init__(self, body: bytes) -> None:
+        self.body = body
+
+    def __enter__(self) -> FakeResponse:
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return self.body
+
+
 def _entry(
     *,
     model: str = "claude-sonnet",
@@ -248,6 +262,22 @@ def test_read_cache_logs_bad_json_in_debug_mode(
     assert f"failed to decode pricing cache {cache_path}" in caplog.text
 
 
+def test_read_cache_logs_bad_utf8_in_debug_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    cache_path = tmp_path / "pricing_cache.json"
+    cache_path.write_bytes(b"\xff")
+    monkeypatch.setattr(pricing, "CACHE_PATH", cache_path)
+    monkeypatch.setenv("USAGE_DEBUG", "1")
+
+    with caplog.at_level(logging.WARNING):
+        assert pricing._read_cache() is None
+
+    assert f"failed to decode pricing cache {cache_path}" in caplog.text
+
+
 def test_read_cache_valid(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     cache_path = tmp_path / "pricing_cache.json"
     cache_path.write_text(json.dumps({"model": {"input_cost_per_token": 1.0}}), encoding="utf-8")
@@ -285,6 +315,14 @@ def test_load_pricing_falls_back_when_fetch_fails_without_real_network(
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
 
     assert pricing._load_pricing() == pricing._fallback_pricing()
+
+
+def test_fetch_pricing_returns_none_for_bad_utf8_payload(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(urllib.request, "urlopen", lambda request, timeout: FakeResponse(b"\xff"))
+
+    assert pricing._fetch_pricing() is None
 
 
 def test_load_pricing_uses_fresh_cache_without_fetching(
@@ -366,7 +404,7 @@ def test_get_pricing_reuses_fallback_within_retry_ttl(
     monkeypatch.setattr(pricing, "_read_cache", lambda *, allow_stale=False: None)
     monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
     monkeypatch.setattr(pricing, "_fallback_pricing", lambda: fallback)
-    monkeypatch.setattr("pricing.time.time", lambda: now)
+    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
     monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
 
     assert pricing.get_pricing() == fallback
@@ -392,13 +430,41 @@ def test_get_pricing_retries_fallback_after_retry_ttl_and_switches_to_fetched(
     monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
     monkeypatch.setattr(pricing, "_fallback_pricing", lambda: fallback)
     monkeypatch.setattr(pricing, "_write_cache", lambda table: None)
-    monkeypatch.setattr("pricing.time.time", lambda: now)
+    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
     monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
 
     assert pricing.get_pricing() == fallback
     now += 601
     assert pricing.get_pricing() == fetched
     assert fetch_results == []
+    assert pricing._pricing_cache == (fetched, "fetched", 1_601.0)
+
+
+def test_get_pricing_retries_fallback_after_monotonic_ttl_when_wall_clock_moves_backward(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monotonic_now = 1_000.0
+    wall_clock_now = 5_000.0
+    fallback = {"fallback-model": {"input_cost_per_token": 1.0}}
+    fetched = {"fetched-model": {"input_cost_per_token": 2.0}}
+    fetch_results: list[pricing.PricingTable | None] = [None, fetched]
+
+    def fake_fetch_pricing() -> pricing.PricingTable | None:
+        return fetch_results.pop(0)
+
+    monkeypatch.setattr(pricing, "_pricing_cache", None)
+    monkeypatch.setattr(pricing, "_read_cache", lambda *, allow_stale=False: None)
+    monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
+    monkeypatch.setattr(pricing, "_fallback_pricing", lambda: fallback)
+    monkeypatch.setattr(pricing, "_write_cache", lambda table: None)
+    monkeypatch.setattr("pricing.time.monotonic", lambda: monotonic_now)
+    monkeypatch.setattr("pricing.time.time", lambda: wall_clock_now)
+    monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
+
+    assert pricing.get_pricing() == fallback
+    monotonic_now += 601
+    wall_clock_now -= 4_000
+    assert pricing.get_pricing() == fetched
     assert pricing._pricing_cache == (fetched, "fetched", 1_601.0)
 
 
@@ -418,7 +484,7 @@ def test_get_pricing_keeps_fetched_result_after_retry_ttl(
     monkeypatch.setattr(pricing, "_read_cache", lambda: None)
     monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
     monkeypatch.setattr(pricing, "_write_cache", lambda table: None)
-    monkeypatch.setattr("pricing.time.time", lambda: now)
+    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
     monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
 
     assert pricing.get_pricing() == fetched
@@ -443,7 +509,7 @@ def test_get_pricing_keeps_cache_result_after_retry_ttl(
     monkeypatch.setattr(pricing, "_pricing_cache", None)
     monkeypatch.setattr(pricing, "_read_cache", lambda: cached)
     monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
-    monkeypatch.setattr("pricing.time.time", lambda: now)
+    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
     monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
 
     assert pricing.get_pricing() == cached

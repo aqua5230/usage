@@ -171,7 +171,7 @@ def _read_update_hint(now_ts: float) -> Optional[str]:
     try:
         with open(PREFERENCES_FILE, encoding="utf-8") as f:
             prefs = json.load(f)
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return None
     if not isinstance(prefs, dict):
         return None
@@ -343,6 +343,13 @@ def _as_dict(value: Any) -> Dict[str, Any]:
     return {}
 
 
+def _as_float(value: Any) -> Optional[float]:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
 def _render_core(data: Dict[str, Any], now: datetime) -> str:
     width = get_width()
     ctx = _as_dict(data.get("context_window"))
@@ -368,10 +375,12 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
         pct = entry.get("used_percentage")
         if pct is None:
             continue
-        pct_float = float(pct)
+        pct_float = _as_float(pct)
+        if pct_float is None:
+            continue
         reset_str = ""
-        resets_at = entry.get("resets_at")
-        if resets_at:
+        resets_at = _as_float(entry.get("resets_at"))
+        if resets_at is not None:
             remain = int(resets_at) - int(now.timestamp())
             if remain > 0:
                 if lang in ("zh-TW", "zh-CN"):
