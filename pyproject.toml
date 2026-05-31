@@ -80,7 +80,7 @@ pretty = true
 exclude = "^(build|dist)/"
 
 [[tool.mypy.overrides]]
-module = "rich.*"
+module = ["rich.*", "PIL.*"]
 ignore_missing_imports = true
 
 # PyObjC C-extension frameworks ship without type stubs / py.typed marker.
