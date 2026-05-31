@@ -21,6 +21,7 @@ build-backend = "setuptools.build_meta"
 py-modules = [
     "main",
     "menubar",
+    "menubar_state",
     "tui",
     "pricing",
     "history_loader",

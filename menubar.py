@@ -15,11 +15,10 @@ import threading
 import time
 import tomllib
 import webbrowser
-from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from importlib import metadata
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any
 
 import objc
 from AppKit import (
@@ -43,18 +42,70 @@ from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 
 import codex_loader
 import login_item
+import menubar_state
 import panels
 import update_checker
-from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
+from burn_rate import BurnRateTracker
 from history_loader import UsageEntry, load_entries
 from i18n import _t, packaged_resource_path
 from main import _load_preferences, _save_preferences
+from menubar_state import (
+    CLAUDE_COLOR as CLAUDE_COLOR,
+)
+from menubar_state import (
+    CODEX_COLOR as CODEX_COLOR,
+)
+from menubar_state import (
+    DANGER_COLOR as DANGER_COLOR,
+)
+from menubar_state import (
+    WARN_COLOR as WARN_COLOR,
+)
+from menubar_state import (
+    WEEKLY_FORECAST_MIN_SPAN_SECONDS,
+    WEEKLY_FORECAST_WINDOW_SECONDS,
+    CodexStaleState,
+    PopoverState,
+    QuotaRowState,
+    _missing_row,
+    _quota_row,
+)
+from menubar_state import (
+    _bar_color as _bar_color,
+)
+from menubar_state import (
+    _format_percent as _format_percent,
+)
+from menubar_state import (
+    _group_name as _group_name,
+)
+from menubar_state import (
+    format_human_time as format_human_time,
+)
 from panels.base import Panel as UsagePanel
 from panels.base import load_active_panel_id, resolve_resource, save_active_panel_id
 from pricing import calculate_cost
 from usage_client import ClaudeUsageClient, PollOutcome, PollState
 from usage_lang import detect_lang
-from usage_rate import GROUP_NAMES, UsageRateTracker
+from usage_rate import UsageRateTracker
+
+__all__ = [
+    "CLAUDE_COLOR",
+    "CODEX_COLOR",
+    "DANGER_COLOR",
+    "WARN_COLOR",
+    "WEEKLY_FORECAST_MIN_SPAN_SECONDS",
+    "WEEKLY_FORECAST_WINDOW_SECONDS",
+    "CodexStaleState",
+    "PopoverState",
+    "QuotaRowState",
+    "_bar_color",
+    "_format_percent",
+    "_group_name",
+    "_missing_row",
+    "_quota_row",
+    "format_human_time",
+]
 
 # --- FSEvents (ctypes) for event-driven UI refresh ---
 _FSEVENTS_AVAILABLE = False
@@ -182,32 +233,14 @@ def _cleanup_fsevents(stream: Any) -> None:
 
 BUTTON_HEIGHT = 32.0
 INSTALL_BUTTON_EXTRA_HEIGHT = BUTTON_HEIGHT + 10.0
-CLAUDE_COLOR = (244 / 255, 145 / 255, 100 / 255)
-CODEX_COLOR = (88 / 255, 214 / 255, 230 / 255)
-WARN_COLOR = (255 / 255, 196 / 255, 57 / 255)
-DANGER_COLOR = (255 / 255, 69 / 255, 58 / 255)
-WEEKLY_FORECAST_WINDOW_SECONDS = 30 * 60
-WEEKLY_FORECAST_MIN_SPAN_SECONDS = 30 * 60
 UPDATE_DISMISS_SECONDS = 24 * 3600
 UPDATE_ALERT_BODY_LIMIT = 2000
 
 logger = logging.getLogger(__name__)
 
 
-def _bar_color(pct: float, brand: tuple[float, float, float]) -> tuple[float, float, float]:
-    if pct >= 80:
-        return DANGER_COLOR
-    if pct >= 50:
-        return WARN_COLOR
-    return brand
-
-
 def _detect_language() -> str:
     return detect_lang()
-
-
-def _group_name(group: int, language: str) -> str:
-    return _t(language, f"group_{GROUP_NAMES[group].lower()}")
 
 
 def _panel_title(panel: UsagePanel, language: str) -> str:
@@ -285,55 +318,6 @@ def _current_version() -> str:
 
 
 _APP_DELEGATE: AppDelegate | None = None
-
-
-@dataclass(slots=True)
-class QuotaRowState:
-    title: str
-    percent: float | None
-    percent_text: str
-    reset_text: str
-    color: tuple[float, float, float]
-    warning: bool = False
-    available: bool = True
-
-
-class CodexStaleState(TypedDict):
-    ageText: str
-
-
-@dataclass(slots=True)
-class PopoverState:
-    language: str
-    claude_session: QuotaRowState
-    claude_weekly: QuotaRowState
-    codex_session: QuotaRowState
-    codex_weekly: QuotaRowState
-    projects: list[tuple[str, int, float | None]]
-    projects_7d: list[tuple[str, int, float | None]]
-    projects_30d: list[tuple[str, int, float | None]]
-    projects_all: list[tuple[str, int, float | None]]
-    rate_text: str
-    status_text: str
-    today_text: str
-    statusline: dict[str, object]
-    show_install_button: bool = False
-    hide_codex: bool = False
-    codex_stale: CodexStaleState | None = None
-
-
-def format_human_time(seconds: float, language: str = "en") -> str:
-    if seconds <= 0:
-        return _t(language, "duration_minutes", minutes=0)
-    days, remainder = divmod(int(seconds), 86400)
-    hours, remainder = divmod(remainder, 3600)
-    minutes, _ = divmod(remainder, 60)
-
-    if days > 0:
-        return _t(language, "duration_days", days=days, hours=hours)
-    if hours > 0:
-        return _t(language, "duration_hours", hours=hours, minutes=minutes)
-    return _t(language, "duration_minutes", minutes=minutes)
 
 
 class PopoverViewController(NSViewController):
@@ -788,21 +772,37 @@ class AppDelegate(NSObject):
     def _refresh_in_background(self) -> None:
         try:
             outcome = asyncio.run(self._fetch())
-            codex_rows, codex_5h_pct, codex_model, codex_stale = self._codex_rows()
+            codex_rows, codex_5h_pct, codex_model, codex_stale = menubar_state.codex_rows(
+                mock=self.mock,
+                language=self.language,
+                burn_rate_trackers=self.burn_rate_trackers,
+            )
             all_entries = self._load_history_entries()
             project_rows = self._project_rows(hours_back=24, entries=all_entries)
             project_rows_7d = self._project_rows(hours_back=168, entries=all_entries)
             project_rows_30d = self._project_rows(hours_back=720, entries=all_entries)
             project_rows_all = self._project_rows(hours_back=0, entries=all_entries)
-            state = self._state_from_outcome(
-                outcome,
-                codex_rows,
-                project_rows,
-                project_rows_7d,
-                project_rows_30d,
-                project_rows_all,
-                history_entries=all_entries,
-                codex_model=codex_model,
+            today_text = _today_title(self.mock, self.language, entries=all_entries)
+            statusline = _statusline_payload(self.language)
+            show_install_button = (
+                outcome.state == PollState.TOKEN_ERROR and self._statusline_setup_available()
+            )
+            hide_codex = _hide_codex_enabled()
+            group = self.tracker.group()
+            state = menubar_state.build_popover_state(
+                outcome=outcome,
+                codex_rows=codex_rows,
+                projects=project_rows,
+                projects_7d=project_rows_7d,
+                projects_30d=project_rows_30d,
+                projects_all=project_rows_all,
+                language=self.language,
+                group=group,
+                burn_rate_trackers=self.burn_rate_trackers,
+                today_text=today_text,
+                statusline=statusline,
+                show_install_button=show_install_button,
+                hide_codex=hide_codex,
                 codex_stale=codex_stale,
             )
         except Exception as exc:
@@ -958,11 +958,6 @@ class AppDelegate(NSObject):
         finally:
             await client.aclose()
 
-    def _status_message_value(self, outcome: PollOutcome, fallback_key: str) -> str:
-        if outcome.message == "awaiting_rate_limits":
-            return _t(self.language, "awaiting_rate_limits")
-        return outcome.message or _t(self.language, fallback_key)
-
     def _statusline_setup_available(self) -> bool:
         try:
             import setup_hook
@@ -970,199 +965,6 @@ class AppDelegate(NSObject):
             return setup_hook.CLAUDE_SETTINGS.parent.exists() or setup_hook.CODEX_CONFIG.exists()
         except Exception:
             return False
-
-    def _state_from_outcome(
-        self,
-        outcome: PollOutcome,
-        codex_rows: tuple[QuotaRowState, QuotaRowState],
-        projects: list[tuple[str, int, float | None]],
-        project_rows_7d: list[tuple[str, int, float | None]],
-        project_rows_30d: list[tuple[str, int, float | None]],
-        project_rows_all: list[tuple[str, int, float | None]],
-        history_entries: list[UsageEntry] | None = None,
-        codex_model: str = "unknown",
-        codex_stale: CodexStaleState | None = None,
-    ) -> PopoverState:
-        now = time.time()
-        today_text = _today_title(self.mock, self.language, entries=history_entries)
-        group_name = _group_name(self.tracker.group(), self.language)
-        status_text = _t(
-            self.language,
-            "status_text",
-            value=self._status_message_value(outcome, "status_loading"),
-        )
-
-        if outcome.state == PollState.SUCCESS and outcome.snapshot is not None:
-            snapshot = outcome.snapshot
-            if snapshot.current_percent is not None:
-                self.burn_rate_trackers["claude_session"].record(
-                    snapshot.polled_at,
-                    float(snapshot.current_percent),
-                )
-            if snapshot.weekly_percent is not None:
-                self.burn_rate_trackers["claude_weekly"].record(
-                    snapshot.polled_at,
-                    float(snapshot.weekly_percent),
-                )
-            claude_session = _quota_row(
-                "Session",
-                float(snapshot.current_percent) if snapshot.current_percent is not None else None,
-                snapshot.current_reset_at,
-                now,
-                CLAUDE_COLOR,
-                self.language,
-                forecast_seconds=self.burn_rate_trackers["claude_session"].forecast_seconds(),
-            )
-            claude_weekly = _quota_row(
-                "Weekly",
-                float(snapshot.weekly_percent) if snapshot.weekly_percent is not None else None,
-                snapshot.weekly_reset_at,
-                now,
-                CLAUDE_COLOR,
-                self.language,
-                forecast_seconds=self.burn_rate_trackers["claude_weekly"].forecast_seconds(
-                    window_seconds=WEEKLY_FORECAST_WINDOW_SECONDS,
-                    min_span_seconds=WEEKLY_FORECAST_MIN_SPAN_SECONDS,
-                ),
-                warning_max_seconds=24 * 3600,
-            )
-            status_value = outcome.message or _t(self.language, "status_synced")
-            if snapshot.is_stale or snapshot.data_source != "hook":
-                status_value = _t(self.language, "data_stale_hint")
-            status_text = _t(
-                self.language,
-                "status_text",
-                value=status_value,
-            )
-        else:
-            claude_session = _missing_row("Session", CLAUDE_COLOR, self.language)
-            claude_weekly = _missing_row("Weekly", CLAUDE_COLOR, self.language)
-            status_text = _t(
-                self.language,
-                "status_text",
-                value=self._status_message_value(outcome, "status_no_data"),
-            )
-
-        return PopoverState(
-            language=self.language,
-            claude_session=claude_session,
-            claude_weekly=claude_weekly,
-            codex_session=codex_rows[0],
-            codex_weekly=codex_rows[1],
-            projects=projects,
-            projects_7d=project_rows_7d,
-            projects_30d=project_rows_30d,
-            projects_all=project_rows_all,
-            rate_text=_t(self.language, "rate_text", value=group_name),
-            status_text=status_text,
-            today_text=today_text,
-            statusline=_statusline_payload(self.language),
-            show_install_button=(
-                outcome.state == PollState.TOKEN_ERROR and self._statusline_setup_available()
-            ),
-            hide_codex=_hide_codex_enabled(),
-            codex_stale=codex_stale,
-        )
-
-    def _codex_rows(
-        self,
-    ) -> tuple[tuple[QuotaRowState, QuotaRowState], int | None, str, CodexStaleState | None]:
-        if self.mock:
-            now = time.time()
-            self.burn_rate_trackers["codex_session"].record(now, 12.0)
-            self.burn_rate_trackers["codex_weekly"].record(now, 28.0)
-            rows = (
-                _quota_row(
-                    "Session",
-                    12.0,
-                    now + (4 * 3600) + (15 * 60),
-                    now,
-                    CODEX_COLOR,
-                    self.language,
-                    forecast_seconds=self.burn_rate_trackers["codex_session"].forecast_seconds(),
-                ),
-                _quota_row(
-                    "Weekly",
-                    28.0,
-                    now + (4 * 86400),
-                    now,
-                    CODEX_COLOR,
-                    self.language,
-                    forecast_seconds=self.burn_rate_trackers["codex_weekly"].forecast_seconds(),
-                    warning_max_seconds=24 * 3600,
-                ),
-            )
-            return rows, 12, "gpt-5", None
-
-        try:
-            rate_limits = codex_loader.load_rate_limits()
-        except Exception:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("codex rate limits load failed", exc_info=True)
-            rate_limits = None
-
-        if rate_limits is None:
-            rows = (
-                _missing_row("Session", CODEX_COLOR, self.language),
-                _missing_row("Weekly", CODEX_COLOR, self.language),
-            )
-            return rows, None, "unknown", None
-        model = rate_limits.model or "unknown"
-
-        now = time.time()
-        try:
-            codex_stale = self._codex_stale_state(rate_limits.updated_at, now)
-        except Exception:
-            codex_stale = None
-        codex_5h_pct = (
-            round(rate_limits.five_hour_pct) if rate_limits.five_hour_pct is not None else None
-        )
-        if rate_limits.five_hour_pct is not None:
-            self.burn_rate_trackers["codex_session"].record(now, rate_limits.five_hour_pct)
-        if rate_limits.seven_day_pct is not None:
-            self.burn_rate_trackers["codex_weekly"].record(now, rate_limits.seven_day_pct)
-        rows = (
-            _quota_row(
-                "Session",
-                rate_limits.five_hour_pct,
-                rate_limits.five_hour_resets_at,
-                now,
-                CODEX_COLOR,
-                self.language,
-                forecast_seconds=self.burn_rate_trackers["codex_session"].forecast_seconds(),
-            ),
-            _quota_row(
-                "Weekly",
-                rate_limits.seven_day_pct,
-                rate_limits.seven_day_resets_at,
-                now,
-                CODEX_COLOR,
-                self.language,
-                forecast_seconds=self.burn_rate_trackers["codex_weekly"].forecast_seconds(
-                    window_seconds=WEEKLY_FORECAST_WINDOW_SECONDS,
-                    min_span_seconds=WEEKLY_FORECAST_MIN_SPAN_SECONDS,
-                ),
-                warning_max_seconds=24 * 3600,
-            ),
-        )
-        return rows, codex_5h_pct, model, codex_stale
-
-    def _codex_stale_state(self, updated_at: str, now: float) -> CodexStaleState | None:
-        if not updated_at:
-            return None
-        timestamp = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
-        if timestamp.tzinfo is None:
-            timestamp = timestamp.replace(tzinfo=UTC)
-        else:
-            timestamp = timestamp.astimezone(UTC)
-        age_seconds = now - timestamp.timestamp()
-        if age_seconds <= 900:
-            return None
-        if age_seconds < 3600:
-            minutes = max(1, int(age_seconds // 60))
-            return {"ageText": _t(self.language, "codex_stale_minutes", minutes=minutes)}
-        hours = max(1, int(age_seconds // 3600))
-        return {"ageText": _t(self.language, "codex_stale_hours", hours=hours)}
 
     def _history_sources_fingerprint(self) -> tuple[tuple[str, int, float], ...]:
         sources = (
@@ -1363,65 +1165,6 @@ def _error_state(message: str, mock: bool, language: str = "en") -> PopoverState
     return state
 
 
-def _quota_row(
-    title: str,
-    pct: float | None,
-    resets_at: float | None,
-    now: float,
-    color: tuple[float, float, float],
-    language: str = "en",
-    forecast_seconds: float | None = None,
-    warning_max_seconds: float | None = None,
-) -> QuotaRowState:
-    if pct is None or resets_at is None:
-        return _missing_row(title, color, language)
-    pct = max(0.0, min(100.0, float(pct)))
-    time_to_reset = resets_at - now
-    warning_seconds: float | None = None
-    if (
-        forecast_seconds is not None
-        and 0 < forecast_seconds < time_to_reset
-        and (warning_max_seconds is None or forecast_seconds < warning_max_seconds)
-        and pct >= WARNING_PERCENT_FLOOR
-    ):
-        warning_seconds = forecast_seconds
-    warning = warning_seconds is not None
-    if warning_seconds is not None:
-        reset_text = _t(
-            language,
-            "burn_warning",
-            empty=format_human_time(warning_seconds, language),
-            reset=format_human_time(time_to_reset, language),
-        )
-    else:
-        reset_text = _t(language, "reset_in", time=format_human_time(time_to_reset, language))
-    return QuotaRowState(
-        title=title,
-        percent=pct,
-        percent_text=_t(language, "percent_used", value=_format_percent(pct)),
-        reset_text=reset_text,
-        color=_bar_color(pct, color),
-        warning=warning,
-        available=True,
-    )
-
-
-def _missing_row(
-    title: str,
-    color: tuple[float, float, float],
-    language: str = "en",
-) -> QuotaRowState:
-    return QuotaRowState(
-        title=title,
-        percent=None,
-        percent_text="--",
-        reset_text=_t(language, "reset_placeholder"),
-        color=color,
-        available=False,
-    )
-
-
-
 def _statusline_payload(language: str) -> dict[str, object]:
     return {
         "enabled": _statusline_enabled(),
@@ -1620,9 +1363,3 @@ def _today_title(
         return _t(language, "today_text", cost="0.00", tokens="0")
 
     return _t(language, "today_text", cost=f"{total_cost:.2f}", tokens=f"{total_tokens:,}")
-
-
-def _format_percent(value: float) -> str:
-    if value.is_integer():
-        return str(int(value))
-    return f"{value:.1f}"

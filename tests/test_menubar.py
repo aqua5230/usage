@@ -11,6 +11,7 @@ import pytest
 import codex_loader
 import history_loader
 import menubar
+import menubar_state
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
 
@@ -99,6 +100,46 @@ class _FakeMenuItem:
 
     def setToolTip_(self, tooltip: str) -> None:
         self.tooltip = tooltip
+
+
+def _codex_rows(
+    delegate: menubar.AppDelegate,
+) -> tuple[
+    tuple[menubar_state.QuotaRowState, menubar_state.QuotaRowState],
+    int | None,
+    str,
+    menubar_state.CodexStaleState | None,
+]:
+    return menubar_state.codex_rows(
+        mock=delegate.mock,
+        language=delegate.language,
+        burn_rate_trackers=delegate.burn_rate_trackers,
+    )
+
+
+def _build_popover_state(
+    delegate: menubar.AppDelegate,
+    outcome: PollOutcome,
+    codex_rows: tuple[menubar_state.QuotaRowState, menubar_state.QuotaRowState],
+) -> menubar_state.PopoverState:
+    return menubar_state.build_popover_state(
+        outcome=outcome,
+        codex_rows=codex_rows,
+        projects=[],
+        projects_7d=[],
+        projects_30d=[],
+        projects_all=[],
+        language=delegate.language,
+        group=delegate.tracker.group(),
+        burn_rate_trackers=delegate.burn_rate_trackers,
+        today_text=menubar._today_title(delegate.mock, delegate.language),
+        statusline=menubar._statusline_payload(delegate.language),
+        show_install_button=(
+            outcome.state == PollState.TOKEN_ERROR and delegate._statusline_setup_available()
+        ),
+        hide_codex=menubar._hide_codex_enabled(),
+        codex_stale=None,
+    )
 
 
 def test_format_human_time_zero_and_negative() -> None:
@@ -1154,31 +1195,10 @@ def test_state_from_outcome_replaces_claude_reset_with_warning(
         ),
     )
 
-    state = delegate._state_from_outcome(outcome, delegate._codex_rows()[0], [], [], [], [])
+    state = _build_popover_state(delegate, outcome, _codex_rows(delegate)[0])
 
     assert state.claude_session.warning is True
     assert state.claude_session.reset_text == "⚠ 按目前速度 18分鐘 就會用完(重置還要 51分鐘)"
-
-
-def test_codex_stale_state_uses_minutes_and_hides_fresh_data() -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
-    delegate.language = "zh-TW"
-    now = datetime(2026, 1, 1, 1, 0, tzinfo=UTC).timestamp()
-
-    fresh = datetime(2026, 1, 1, 0, 50, tzinfo=UTC).isoformat()
-    stale = datetime(2026, 1, 1, 0, 30, tzinfo=UTC).isoformat()
-
-    assert delegate._codex_stale_state(fresh, now) is None
-    assert delegate._codex_stale_state(stale, now) == {"ageText": "約 30 分鐘前"}
-
-
-def test_codex_stale_state_uses_hours_after_sixty_minutes() -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
-    delegate.language = "zh-TW"
-    now = datetime(2026, 1, 1, 3, 0, tzinfo=UTC).timestamp()
-    stale = "2026-01-01T00:30:00Z"
-
-    assert delegate._codex_stale_state(stale, now) == {"ageText": "約 2 小時前"}
 
 
 def test_codex_rows_ignores_invalid_stale_timestamp(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1197,7 +1217,7 @@ def test_codex_rows_ignores_invalid_stale_timestamp(monkeypatch: pytest.MonkeyPa
         ),
     )
 
-    rows, codex_5h_pct, model, stale = delegate._codex_rows()
+    rows, codex_5h_pct, model, stale = _codex_rows(delegate)
 
     assert rows[0].available is True
     assert codex_5h_pct == 12
@@ -1229,7 +1249,7 @@ def test_state_from_outcome_keeps_reset_when_burn_rate_is_not_positive(
         ),
     )
 
-    state = delegate._state_from_outcome(outcome, delegate._codex_rows()[0], [], [], [], [])
+    state = _build_popover_state(delegate, outcome, _codex_rows(delegate)[0])
 
     assert state.claude_session.warning is False
     assert state.claude_session.reset_text == "重置 51分鐘"
@@ -1239,13 +1259,10 @@ def test_state_from_outcome_translates_awaiting_rate_limits_message() -> None:
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
     delegate.language = "zh-TW"
 
-    state = delegate._state_from_outcome(
+    state = _build_popover_state(
+        delegate,
         PollOutcome(state=PollState.LOADING, message="awaiting_rate_limits"),
-        delegate._codex_rows()[0],
-        [],
-        [],
-        [],
-        [],
+        _codex_rows(delegate)[0],
     )
 
     assert state.status_text == "狀態：請對 Claude Code 發送一句訊息以同步配額"
@@ -1257,13 +1274,10 @@ def test_state_from_outcome_hides_setup_button_when_no_statusline_target_exists(
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
     monkeypatch.setattr(delegate, "_statusline_setup_available", lambda: False)
 
-    state = delegate._state_from_outcome(
+    state = _build_popover_state(
+        delegate,
         PollOutcome(state=PollState.TOKEN_ERROR, message="missing"),
-        delegate._codex_rows()[0],
-        [],
-        [],
-        [],
-        [],
+        _codex_rows(delegate)[0],
     )
 
     assert state.show_install_button is False
@@ -1275,13 +1289,10 @@ def test_state_from_outcome_shows_setup_button_for_codex_only(
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
     monkeypatch.setattr(delegate, "_statusline_setup_available", lambda: True)
 
-    state = delegate._state_from_outcome(
+    state = _build_popover_state(
+        delegate,
         PollOutcome(state=PollState.TOKEN_ERROR, message="missing"),
-        delegate._codex_rows()[0],
-        [],
-        [],
-        [],
-        [],
+        _codex_rows(delegate)[0],
     )
 
     assert state.show_install_button is True

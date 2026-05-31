@@ -1,0 +1,5 @@
+{"type":"session_meta","payload":{"id":"golden-codex-session","timestamp":"2026-06-01T04:00:00Z","cwd":"/Users/example/Developer/usage"}}
+{"type":"event_msg","timestamp":"2026-06-01T04:01:00Z","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":120,"cached_input_tokens":20,"output_tokens":30,"reasoning_output_tokens":5}}}}
+{"type":"event_msg","timestamp":"2026-06-01T04:03:00Z","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":200,"cached_input_tokens":50,"output_tokens":75,"reasoning_output_tokens":15}}}}
+{"type":"event_msg","timestamp":"2026-06-01T04:06:00Z","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":320,"cached_input_tokens":80,"output_tokens":120,"reasoning_output_tokens":20}}}}
+{"type":"event_msg","timestamp":"2026-06-01T04:10:00Z","payload":{"type":"token_count","info":{"total_token_usage":{"input_tokens":450,"cached_input_tokens":100,"output_tokens":160,"reasoning_output_tokens":30}}}}
