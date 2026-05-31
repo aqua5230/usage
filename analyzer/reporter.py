@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import codex_loader
+import persona_loader
 import subscription
 from adapters import claude, codex
 from adapters.types import AgentInfo, UsageEntry
@@ -16,6 +17,7 @@ from .aggregator import aggregate_sessions
 
 AGENT_LOADERS = {"claude-code": claude, "codex": codex}
 AGENT_NAMES = {"claude-code": "Claude Code", "codex": "Codex"}
+PERSONA_DAYS_BY_PERIOD = {"today": 1, "week": 7, "month": 30, "all": 3650}
 
 
 def _entry_date(entry: UsageEntry) -> date:
@@ -128,6 +130,18 @@ def _pct(value: int, total: int) -> float:
 
 def _round_cost(value: float) -> float:
     return round(value, 4)
+
+
+def _load_persona_for_period(period: str) -> dict[str, Any] | None:
+    days_back = PERSONA_DAYS_BY_PERIOD.get(period, 30)
+    try:
+        profile = persona_loader.load_profile(days_back)
+    except Exception:
+        return None
+    return {
+        "hour_histogram": list(profile.hour_histogram),
+        "recent_titles": list(profile.recent_titles),
+    }
 
 
 def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[str, Any]:
@@ -277,4 +291,5 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
         "daily_trend": daily_trend,
         "top_sessions": top_sessions,
         "subscriptions": subscription.load_subscriptions(),
+        "persona": _load_persona_for_period(period),
     }

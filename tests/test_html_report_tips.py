@@ -131,3 +131,39 @@ def test_generate_html_uses_explicit_language_over_env(monkeypatch: pytest.Monke
 
     assert '<html lang="zh-TW">' in report
     assert "壓縮對話節省 token" in report
+
+
+def test_generate_html_includes_persona_section(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("USAGE_LANG", "zh-TW")
+    data = _report_data()
+    histogram = [0] * 24
+    histogram[14] = 5
+    data["persona"] = {
+        "hour_histogram": histogram,
+        "recent_titles": ["Fix <persona> report", "Keep English Title"],
+    }
+
+    report = html_report.generate_html(data)
+
+    assert "使用習慣" in report
+    assert "活躍時段" in report
+    assert "你最常在 14:00 與 AI 協作" in report
+    assert "14:00 5" in report
+    assert '<div class="persona-hour is-peak" title="14:00 5"' in report
+    assert "最近在忙什麼" not in report
+    assert "Fix &lt;persona&gt; report" not in report
+    assert "Keep English Title" not in report
+    assert "persona-grid" not in report
+
+
+def test_generate_html_handles_missing_persona(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("USAGE_LANG", "zh-TW")
+    data = _report_data()
+    data["persona"] = None
+
+    report = html_report.generate_html(data)
+
+    assert "使用習慣" in report
+    assert "這段期間還沒有足夠資料" in report
+    assert '<div class="persona-hours">' not in report
+    assert '<ul class="persona-titles">' not in report

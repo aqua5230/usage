@@ -211,6 +211,58 @@ def _trend_ascii(daily: list[dict[str, Any]], lang: str) -> str:
     return f'<div class="trend">{trend_rows}{summary}</div>'
 
 
+def _hour_histogram_html(histogram: list[int]) -> str:
+    values = [max(0, int(value)) for value in histogram[:24]]
+    if len(values) < 24:
+        values.extend([0] * (24 - len(values)))
+    max_count = max(values, default=0)
+    bars = []
+    for hour, count in enumerate(values):
+        height = max(6, round(count / max_count * 100)) if max_count and count else 0
+        class_name = "persona-hour is-peak" if max_count and count == max_count else "persona-hour"
+        bars.append(
+            f'<div class="{class_name}"'
+            f' title="{hour:02d}:00 {count}"'
+            f' aria-label="{hour:02d}:00 {count}">'
+            f'<span style="height:{height}%"></span>'
+            f'<em>{hour:02d}</em>'
+            "</div>"
+        )
+    return f'<div class="persona-hours">{"".join(bars)}</div>'
+
+
+def _persona_body(persona: object, lang: str) -> str:
+    if not isinstance(persona, dict):
+        return _empty_line(_t(lang, "persona_empty"))
+
+    raw_histogram = persona.get("hour_histogram", [])
+    histogram = raw_histogram if isinstance(raw_histogram, list) else []
+    values = [max(0, int(value)) if isinstance(value, int) else 0 for value in histogram[:24]]
+    if len(values) < 24:
+        values.extend([0] * (24 - len(values)))
+    if not any(values):
+        return _empty_line(_t(lang, "persona_empty"))
+
+    peak_hours = sorted(
+        ((count, hour) for hour, count in enumerate(values) if count > 0),
+        key=lambda item: (-item[0], item[1]),
+    )[:2]
+    h1 = f"{peak_hours[0][1]:02d}:00"
+    h2 = (
+        _t(lang, "persona_caption_second", h2=f"{peak_hours[1][1]:02d}:00")
+        if len(peak_hours) > 1
+        else ""
+    )
+    caption = _t(lang, "persona_caption", h1=h1, h2=h2)
+    return (
+        '<div class="persona-card">'
+        f'<h3>{_escape(_t(lang, "persona_active_hours"))}</h3>'
+        f'<p class="persona-caption">{_escape(caption)}</p>'
+        f'{_hour_histogram_html(values)}'
+        '</div>'
+    )
+
+
 def _donut_svg(items: list[tuple[str, int]], lang: str) -> str:
     data = [(name, tok) for name, tok in items if tok > 0]
     if not data:
@@ -427,6 +479,7 @@ def generate_html(data: dict[str, Any], language: str | None = None) -> str:
     }
     share_config_json = json.dumps(share_config, ensure_ascii=False).replace("</", "<\\/")
     subscription_body = _subscription_body(data.get("subscriptions", []), lang)
+    persona_body = _persona_body(data.get("persona"), lang)
     title = _t(lang, "title")
     return f"""<!doctype html>
 <html lang="{html.escape(lang)}">
@@ -467,6 +520,14 @@ h1{{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-w
 .trend{{display:grid;gap:6px}}
 .trend-row{{display:grid;grid-template-columns:58px minmax(0,1fr) 72px 82px;gap:12px;align-items:center}}
 .trend-row .week{{color:var(--muted)}}.trend-row b{{color:var(--token);font-weight:400;white-space:nowrap;overflow:hidden}}.trend-row em{{font-style:normal;text-align:right;color:#dce2ea}}.delta{{color:var(--muted);white-space:nowrap}}.delta.up{{color:var(--cost)}}.delta.down{{color:var(--warn)}}.delta.flat{{color:var(--muted)}}.trend-summary{{color:#dce2ea;margin-top:8px}}
+.persona-card{{border:1px solid #30363d;border-radius:7px;background:#090b0e;padding:14px;min-width:0}}
+.persona-card h3{{margin:0 0 12px;color:#f0f6fc;font-size:.9rem;font-weight:700;letter-spacing:0}}
+.persona-caption{{margin:0 0 14px;color:#dce2ea;font-size:.86rem;line-height:1.5}}
+.persona-hours{{display:grid;grid-template-columns:repeat(24,minmax(8px,1fr));gap:4px;align-items:end;height:176px;padding-top:8px}}
+.persona-hour{{display:grid;grid-template-rows:1fr auto;gap:7px;align-items:end;min-width:0;height:100%}}
+.persona-hour span{{display:block;width:100%;min-height:1px;border-radius:3px 3px 1px 1px;background:linear-gradient(180deg,var(--token),#285f9f)}}
+.persona-hour.is-peak span{{background:linear-gradient(180deg,#56d364,var(--token));box-shadow:0 0 12px rgba(86,211,100,.28)}}
+.persona-hour em{{font-style:normal;color:var(--muted);font-size:.58rem;text-align:center;overflow:hidden}}
 .table-wrap{{overflow-x:auto}}table{{width:100%;border-collapse:collapse;min-width:760px}}th,td{{padding:8px 10px;text-align:left;font-size:.86rem}}th{{color:var(--muted);font-weight:500;text-transform:uppercase}}td{{color:#dce2ea}}td:first-child{{color:var(--warn)}}
 .share-dialog{{width:min(760px,calc(100vw - 28px));max-height:min(92vh,860px);border:1px solid #30363d;border-radius:8px;background:#0d0f12;color:var(--text);padding:0;box-shadow:0 24px 70px rgba(0,0,0,.58);overflow:auto}}
 .share-dialog::backdrop{{background:rgba(0,0,0,.72)}}
@@ -556,6 +617,7 @@ h1{{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-w
   {_section(_t(lang, "project_section"), project_body, "project-section")}
   {_section(_t(lang, "model_section"), model_body)}
   {_section(_t(lang, "trend_section"), _trend_ascii(data.get("daily_trend", []), lang))}
+  {_section(_t(lang, "persona_section"), persona_body, "persona-section")}
   {_section(_t(lang, "session_section"), session_body, "session-section")}
   {_tip_section(tip, lang) if tip else ''}
   <p class="sponsor">

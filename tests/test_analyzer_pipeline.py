@@ -5,13 +5,30 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+import pytest
+
 import codex_loader
 import history_loader
 import menubar
+import persona_loader
 from adapters.types import AgentInfo, UsageEntry
 from analyzer import reporter
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture(autouse=True)
+def _stub_persona_loader(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fake_load_profile(days_back: int = 30) -> persona_loader.PersonaProfile:
+        return persona_loader.PersonaProfile(
+            hour_histogram=[0] * 24,
+            top_projects=[],
+            recent_titles=[],
+            total_sessions=0,
+            total_messages=0,
+        )
+
+    monkeypatch.setattr("analyzer.reporter.persona_loader.load_profile", fake_load_profile)
 
 
 def test_all_languages_have_analyze_label() -> None:
@@ -228,6 +245,35 @@ def test_report_short_periods_use_recent_codex_loader(monkeypatch: Any) -> None:
 
     assert data["summary"]["total_tokens"] == 3
     assert calls == {"hours_back": 48}
+
+
+def test_build_report_data_includes_serialized_persona(monkeypatch: Any) -> None:
+    histogram = [0] * 24
+    histogram[9] = 3
+    calls: list[int] = []
+
+    def fake_load_profile(days_back: int = 30) -> persona_loader.PersonaProfile:
+        calls.append(days_back)
+        return persona_loader.PersonaProfile(
+            hour_histogram=histogram,
+            top_projects=[("do-not-render-here", 9)],
+            recent_titles=["Ship HTML report"],
+            total_sessions=2,
+            total_messages=3,
+        )
+
+    monkeypatch.setattr("analyzer.reporter.persona_loader.load_profile", fake_load_profile)
+    monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
+
+    data = reporter.build_report_data([], "week")
+
+    assert calls == [7]
+    assert data["persona"] == {
+        "hour_histogram": histogram,
+        "recent_titles": ["Ship HTML report"],
+    }
+    assert len(data["persona"]["hour_histogram"]) == 24
+    assert isinstance(data["persona"]["recent_titles"], list)
 
 
 def test_report_today_uses_codex_token_count_deltas(
