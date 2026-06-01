@@ -228,7 +228,12 @@ def _create_state_db(path: Path, rows: list[tuple[str, str, str]]) -> None:
         conn.executemany("INSERT INTO threads (id, model, cwd) VALUES (?, ?, ?)", rows)
 
 
-def _create_logs_db(path: Path, rows: list[tuple[int, int, str]]) -> None:
+def _create_logs_db(
+    path: Path,
+    rows: list[tuple[int, int, str]],
+    *,
+    target: str = "codex_otel.trace_safe",
+) -> None:
     with sqlite3.connect(path) as conn:
         conn.execute(
             "CREATE TABLE logs ("
@@ -249,7 +254,7 @@ def _create_logs_db(path: Path, rows: list[tuple[int, int, str]]) -> None:
             conn.execute(
                 "INSERT INTO logs (id, ts, ts_nanos, target, feedback_log_body) "
                 "VALUES (?, ?, ?, ?, ?)",
-                (row_id, ts, row_id * 10, "codex_otel.trace_safe", body),
+                (row_id, ts, row_id * 10, target, body),
             )
 
 
@@ -462,6 +467,81 @@ def test_load_rate_limits_reads_primary_and_secondary_windows(
         seven_day_pct=70.0,
         seven_day_resets_at=now.timestamp() + 120,
         model="gpt-test",
+        updated_at=now.isoformat(),
+    )
+
+
+def test_load_rate_limits_prefers_sqlite_websocket_rate_limits(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    logs_db = tmp_path / "logs.sqlite"
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    stale_limits = _rate_limits()
+    stale_limits["primary"]["used_percent"] = 9
+    _write_rate_limit_session(
+        sessions_dir / "rate.jsonl",
+        now.isoformat(),
+        stale_limits,
+        now.timestamp(),
+    )
+    body = (
+        "session_loop{thread_id=session-sqlite}:turn{model=gpt-5.5}: "
+        'websocket event: {"type":"codex.rate_limits","plan_type":"plus",'
+        '"rate_limits":{"allowed":true,"limit_reached":false,'
+        '"primary":{"used_percent":40,"window_minutes":300,"reset_at":9999999999},'
+        '"secondary":{"used_percent":6,"window_minutes":10080,"reset_at":9999999998}},'
+        '"code_review_rate_limits":null}'
+    )
+    _create_logs_db(
+        logs_db,
+        [(1, int(now.timestamp()), body)],
+        target="codex_api::endpoint::responses_websocket",
+    )
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+
+    result = codex_loader.load_rate_limits()
+
+    assert result == codex_loader.CodexRateLimits(
+        five_hour_pct=40.0,
+        five_hour_resets_at=9999999999.0,
+        seven_day_pct=6.0,
+        seven_day_resets_at=9999999998.0,
+        model="gpt-5.5",
+        updated_at=now.isoformat(),
+    )
+
+
+def test_load_rate_limits_reads_sqlite_usage_limit_error_headers(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    logs_db = tmp_path / "logs.sqlite"
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    body = (
+        "session_loop{thread_id=session-error}:turn{model=gpt-5.4}: "
+        'websocket event: {"type":"error","error":{"type":"usage_limit_reached"},'
+        '"headers":{"X-Codex-Primary-Used-Percent":"100",'
+        '"X-Codex-Secondary-Used-Percent":"47",'
+        '"X-Codex-Primary-Reset-At":"9999999999",'
+        '"X-Codex-Secondary-Reset-At":"9999999998"}}'
+    )
+    _create_logs_db(
+        logs_db,
+        [(1, int(now.timestamp()), body)],
+        target="codex_api::endpoint::responses_websocket",
+    )
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", tmp_path / "missing-sessions")
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+
+    result = codex_loader.load_rate_limits()
+
+    assert result == codex_loader.CodexRateLimits(
+        five_hour_pct=100.0,
+        five_hour_resets_at=9999999999.0,
+        seven_day_pct=47.0,
+        seven_day_resets_at=9999999998.0,
+        model="gpt-5.4",
         updated_at=now.isoformat(),
     )
 

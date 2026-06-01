@@ -94,6 +94,9 @@ def _session_total_tokens(entries: list[UsageEntry]) -> int:
 
 
 def load_rate_limits() -> CodexRateLimits | None:
+    sqlite_limits = _load_sqlite_rate_limits()
+    if sqlite_limits is not None:
+        return sqlite_limits
     if not SESSIONS_DIR.is_dir():
         return None
     models = _load_thread_models()
@@ -103,6 +106,132 @@ def load_rate_limits() -> CodexRateLimits | None:
         if rate_limits is not None:
             return rate_limits
     return None
+
+
+def _load_sqlite_rate_limits() -> CodexRateLimits | None:
+    if not LOGS_DB.exists():
+        return None
+    query = (
+        "SELECT ts, feedback_log_body FROM logs "
+        "WHERE target = 'codex_api::endpoint::responses_websocket' "
+        "AND feedback_log_body LIKE '%websocket event:%' "
+        "AND (feedback_log_body LIKE '%\"type\":\"codex.rate_limits\"%' "
+        "OR feedback_log_body LIKE '%\"type\":\"error\"%usage_limit_reached%') "
+        "ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 50"
+    )
+    try:
+        with sqlite3.connect(f"file:{LOGS_DB}?mode=ro", uri=True) as conn:
+            rows = conn.execute(query).fetchall()
+    except (OSError, sqlite3.Error):
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("codex sqlite rate limits load failed", exc_info=True)
+        return None
+
+    for ts, body in rows:
+        parsed = _parse_sqlite_rate_limits_row(ts, body)
+        if parsed is not None:
+            return parsed
+    return None
+
+
+def _parse_sqlite_rate_limits_row(ts: Any, body: Any) -> CodexRateLimits | None:
+    if not isinstance(body, str):
+        return None
+    event = _websocket_event_payload(body)
+    if not event:
+        return None
+    if event.get("type") == "codex.rate_limits":
+        return _rate_limits_from_websocket_event(event, body, ts)
+    if event.get("type") == "error":
+        return _rate_limits_from_websocket_error(event, body, ts)
+    return None
+
+
+def _websocket_event_payload(body: str) -> dict[str, Any]:
+    marker = "websocket event: "
+    index = body.find(marker)
+    if index < 0:
+        return {}
+    try:
+        data = json.loads(body[index + len(marker):])
+    except json.JSONDecodeError:
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _rate_limits_from_websocket_event(
+    event: dict[str, Any],
+    body: str,
+    ts: Any,
+) -> CodexRateLimits | None:
+    rate_limits = _as_dict(event.get("rate_limits"))
+    primary = _as_dict(rate_limits.get("primary"))
+    secondary = _as_dict(rate_limits.get("secondary"))
+    return _build_rate_limits(
+        primary_pct=_as_optional_float(primary.get("used_percent")),
+        primary_reset=_as_optional_float(primary.get("reset_at")),
+        secondary_pct=_as_optional_float(secondary.get("used_percent")),
+        secondary_reset=_as_optional_float(secondary.get("reset_at")),
+        model=_event_value(body, "model") or "unknown",
+        updated_at=_timestamp_from_log_ts(ts),
+    )
+
+
+def _rate_limits_from_websocket_error(
+    event: dict[str, Any],
+    body: str,
+    ts: Any,
+) -> CodexRateLimits | None:
+    headers = _as_dict(event.get("headers"))
+    primary_reset = _as_optional_float(headers.get("X-Codex-Primary-Reset-At"))
+    secondary_reset = _as_optional_float(headers.get("X-Codex-Secondary-Reset-At"))
+    now_ts = datetime.now(UTC).timestamp()
+    if primary_reset is None:
+        primary_reset_after = _as_optional_float(headers.get("X-Codex-Primary-Reset-After-Seconds"))
+        primary_reset = now_ts + primary_reset_after if primary_reset_after is not None else None
+    if secondary_reset is None:
+        secondary_reset_after = _as_optional_float(
+            headers.get("X-Codex-Secondary-Reset-After-Seconds")
+        )
+        secondary_reset = (
+            now_ts + secondary_reset_after if secondary_reset_after is not None else None
+        )
+    return _build_rate_limits(
+        primary_pct=_as_optional_float(headers.get("X-Codex-Primary-Used-Percent")),
+        primary_reset=primary_reset,
+        secondary_pct=_as_optional_float(headers.get("X-Codex-Secondary-Used-Percent")),
+        secondary_reset=secondary_reset,
+        model=_event_value(body, "model") or "unknown",
+        updated_at=_timestamp_from_log_ts(ts),
+    )
+
+
+def _build_rate_limits(
+    *,
+    primary_pct: float | None,
+    primary_reset: float | None,
+    secondary_pct: float | None,
+    secondary_reset: float | None,
+    model: str,
+    updated_at: datetime | None,
+) -> CodexRateLimits | None:
+    now_ts = datetime.now(UTC).timestamp()
+    if primary_reset is not None and primary_reset < now_ts:
+        primary_pct = None
+        primary_reset = None
+    if secondary_reset is not None and secondary_reset < now_ts:
+        secondary_pct = None
+        secondary_reset = None
+    if primary_pct is None and secondary_pct is None:
+        return None
+    return CodexRateLimits(
+        five_hour_pct=primary_pct,
+        five_hour_resets_at=primary_reset,
+        seven_day_pct=secondary_pct,
+        seven_day_resets_at=secondary_reset,
+        model=model,
+        updated_at=updated_at.isoformat() if updated_at is not None else "",
+    )
 
 
 def _load_thread_models() -> dict[str, str]:
@@ -225,7 +354,7 @@ _EVENT_VALUE_RE_CACHE: dict[str, re.Pattern[str]] = {}
 def _event_value(body: str, key: str) -> str:
     pattern = _EVENT_VALUE_RE_CACHE.get(key)
     if pattern is None:
-        pattern = re.compile(rf'(?:^|\s){re.escape(key)}=(?:"([^"]*)"|([^\s]+))')
+        pattern = re.compile(rf'(?:^|[\s{{]){re.escape(key)}=(?:"([^"]*)"|([^\s}}]+))')
         _EVENT_VALUE_RE_CACHE[key] = pattern
     match = pattern.search(body)
     if match is None:
