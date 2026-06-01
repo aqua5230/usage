@@ -823,6 +823,108 @@ def test_load_rate_limits_picks_most_recent_valid(monkeypatch: pytest.MonkeyPatc
     assert result.updated_at == new_ts
 
 
+def test_recent_jsonl_files_matches_full_scan_for_date_dirs(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    specs: list[tuple[str, int, float]] = [
+        ("2026/02/01", 10, 3000),
+        ("2026/01/31", 25, 2000),
+        ("2025/12/31", 10, 1000),
+    ]
+    for date_dir, count, base_mtime in specs:
+        for index in range(count):
+            _write_rate_limit_session(
+                sessions_dir / date_dir / f"session-{index:02}.jsonl",
+                "2026-05-27T16:45:00+00:00",
+                None,
+                base_mtime + index,
+            )
+
+    expected = [
+        path
+        for _, path in sorted(
+            ((path.stat().st_mtime, path) for path in sessions_dir.rglob("*.jsonl")),
+            key=lambda item: item[0],
+            reverse=True,
+        )[: codex_loader._RECENT_JSONL_SCAN_LIMIT]
+    ]
+
+    assert codex_loader._recent_jsonl_files() == expected
+
+
+def test_recent_jsonl_files_ignores_dotfiles_without_fallback(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    for index in range(35):
+        _write_rate_limit_session(
+            sessions_dir / "2026" / "02" / "01" / f"session-{index:02}.jsonl",
+            "2026-05-27T16:45:00+00:00",
+            None,
+            1000 + index,
+        )
+    (sessions_dir / ".DS_Store").write_text("", encoding="utf-8")
+    (sessions_dir / "2026" / ".localized").write_text("", encoding="utf-8")
+    (sessions_dir / "2026" / "02" / ".DS_Store").write_text("", encoding="utf-8")
+    (sessions_dir / "2026" / "02" / "01" / ".DS_Store").write_text("", encoding="utf-8")
+    fallback_only = sessions_dir / ".fallback-only.jsonl"
+    _write_rate_limit_session(
+        fallback_only,
+        "2026-05-27T16:46:00+00:00",
+        None,
+        9999,
+    )
+
+    expected = [
+        path
+        for _, path in sorted(
+            (
+                (path.stat().st_mtime, path)
+                for path in (sessions_dir / "2026" / "02" / "01").glob("*.jsonl")
+            ),
+            key=lambda item: item[0],
+            reverse=True,
+        )[: codex_loader._RECENT_JSONL_SCAN_LIMIT]
+    ]
+
+    assert codex_loader._recent_jsonl_files() == expected
+
+
+def test_recent_jsonl_files_falls_back_for_unexpected_structure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    _write_rate_limit_session(
+        sessions_dir / "2026" / "02" / "01" / "standard.jsonl",
+        "2026-05-27T16:45:00+00:00",
+        None,
+        100,
+    )
+    unexpected = sessions_dir / "latest" / "unexpected.jsonl"
+    _write_rate_limit_session(
+        unexpected,
+        "2026-05-27T16:46:00+00:00",
+        None,
+        200,
+    )
+
+    assert codex_loader._recent_jsonl_files()[0] == unexpected
+
+
+def test_recent_jsonl_files_returns_empty_for_empty_sessions_dir(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    sessions_dir.mkdir()
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+
+    assert codex_loader._recent_jsonl_files() == []
+
+
 def test_load_entries_accepts_numeric_string_usage_fields(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

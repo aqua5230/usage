@@ -10,7 +10,7 @@ from typing import TypedDict
 
 import codex_loader
 from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker, pace_ratio
-from history_loader import UsageEntry
+from history_loader import CLAUDE_PROJECTS_DIR, UsageEntry
 from i18n import _t
 from pricing import calculate_cost
 from usage_client import PollOutcome, PollState
@@ -73,7 +73,7 @@ class PopoverState:
 
 def history_sources_fingerprint() -> tuple[tuple[str, int, float], ...]:
     sources = (
-        Path.home() / ".claude",
+        CLAUDE_PROJECTS_DIR,
         Path.home() / ".codex" / "sessions",
         Path.home() / ".codex" / "logs_2.sqlite",
         Path.home() / ".codex" / "logs_2.sqlite-wal",

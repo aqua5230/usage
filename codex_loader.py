@@ -461,8 +461,82 @@ def _timestamp_from_log_ts(value: Any) -> datetime | None:
 
 
 def _recent_jsonl_files() -> list[Path]:
+    paths = _recent_jsonl_files_from_date_dirs()
+    if paths is None:
+        paths = list(SESSIONS_DIR.rglob("*.jsonl"))
+    return _sort_recent_jsonl_files(paths)
+
+
+# This relies on Codex writing sessions under their creation date. A long session
+# from an older day that is still appended can differ from a full rglob if newer
+# date dirs already contain the scan limit; full elimination would require the
+# expensive all-tree scan this path avoids.
+def _recent_jsonl_files_from_date_dirs() -> list[Path] | None:
+    paths: list[Path] = []
+    years = _sorted_date_dirs(SESSIONS_DIR, 4)
+    if years is None:
+        return None
+    for year in years:
+        months = _sorted_date_dirs(Path(year.path), 2)
+        if months is None:
+            return None
+        for month in months:
+            days = _sorted_date_dirs(Path(month.path), 2)
+            if days is None:
+                return None
+            for day in days:
+                day_paths = _jsonl_files_in_day_dir(Path(day.path))
+                if day_paths is None:
+                    return None
+                paths.extend(day_paths)
+                if len(paths) >= _RECENT_JSONL_SCAN_LIMIT:
+                    return paths
+    return paths
+
+
+def _sorted_date_dirs(parent: Path, name_length: int) -> list[os.DirEntry[str]] | None:
+    dirs: list[os.DirEntry[str]] = []
+    try:
+        with os.scandir(parent) as entries:
+            for entry in entries:
+                if entry.name.startswith("."):
+                    continue
+                try:
+                    if not entry.is_dir():
+                        return None
+                except OSError:
+                    return None
+                if len(entry.name) != name_length or not entry.name.isdigit():
+                    return None
+                dirs.append(entry)
+    except OSError:
+        return None
+    dirs.sort(key=lambda entry: entry.name, reverse=True)
+    return dirs
+
+
+def _jsonl_files_in_day_dir(day_dir: Path) -> list[Path] | None:
+    paths: list[Path] = []
+    try:
+        with os.scandir(day_dir) as entries:
+            for entry in entries:
+                if entry.name.startswith("."):
+                    continue
+                try:
+                    if entry.is_dir():
+                        return None
+                    if entry.is_file() and entry.name.endswith(".jsonl"):
+                        paths.append(Path(entry.path))
+                except OSError:
+                    return None
+    except OSError:
+        return None
+    return paths
+
+
+def _sort_recent_jsonl_files(paths: list[Path]) -> list[Path]:
     paths_with_mtime: list[tuple[float, Path]] = []
-    for path in SESSIONS_DIR.rglob("*.jsonl"):
+    for path in paths:
         try:
             paths_with_mtime.append((path.stat().st_mtime, path))
         except OSError as exc:
