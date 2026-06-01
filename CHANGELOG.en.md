@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.15.1] - 2026-06-02
+
+### Fixed
+- **Codex quota shows fresher, more accurate numbers (#24)**: (1) the menu-bar Codex quota now updates at the very start of each refresh instead of waiting for the slower history pass; (2) SQLite and JSONL sources are merged per window (5-hour / weekly) instead of picking one whole source, so a just-hit 100% limit is no longer overwritten by an older 80% snapshot; (3) small usage shows a fractional percentage instead of rounding to 0%; (4) the refresh timer uses the configured interval instead of a hard-coded 300s; (5) FSEvents-triggered refreshes queue instead of being dropped while one is in flight; (6) if the Claude Code read fails mid-refresh, the already-loaded Codex percentage is preserved instead of flickering away.
+- **Stale "🆕 update available" badge no longer lingers after upgrading**: the cache cleanup previously ran only inside the update-check path, so the badge stuck until the app restarted; it now compares the installed version on every timer refresh and clears as soon as you're current.
+
 ## [0.15.0] - 2026-06-01
 
 ### Added
