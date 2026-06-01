@@ -103,7 +103,11 @@ def setup_fsevents(delegate: Any) -> Any:
             _flags: Any,
             _ids: Any,
         ) -> None:
-            delegate._refresh(queue_if_busy=True)
+            delegate.performSelectorOnMainThread_withObject_waitUntilDone_(
+                "refreshFromFileEvent:",
+                None,
+                False,
+            )
 
         _fs_callback_ref = _FSEventStreamCallback(_on_fs_event)
         stream = _cs_lib.FSEventStreamCreate(

@@ -759,60 +759,73 @@ class AppDelegate(NSObject):
         thread = threading.Thread(target=self._refresh_in_background, daemon=True)
         thread.start()
 
-    def _refresh_in_background(self) -> None:
-        codex_result = self._load_codex_refresh_result()
-        self.performSelectorOnMainThread_withObject_waitUntilDone_(
-            "_applyCodexRefreshResult:",
-            codex_result,
-            False,
-        )
-        try:
-            outcome = asyncio.run(self._fetch())
-            codex_rows = codex_result["codex_rows"]
-            codex_5h_pct = codex_result["codex_5h_pct"]
-            codex_model = codex_result.get("codex_model", "unknown")
-            codex_stale = codex_result.get("codex_stale")
-            all_entries = self._load_history_entries()
-            project_rows = self._project_rows(hours_back=24, entries=all_entries)
-            project_rows_7d = self._project_rows(hours_back=168, entries=all_entries)
-            project_rows_30d = self._project_rows(hours_back=720, entries=all_entries)
-            project_rows_all = self._project_rows(hours_back=0, entries=all_entries)
-            today_text = _today_title(self.mock, self.language, entries=all_entries)
-            statusline = _statusline_payload(self.language)
-            show_install_button = (
-                outcome.state == PollState.TOKEN_ERROR and self._statusline_setup_available()
-            )
-            hide_codex = _hide_codex_enabled()
-            group = self.tracker.group()
-            state = menubar_state.build_popover_state(
-                outcome=outcome,
-                codex_rows=codex_rows,
-                projects=project_rows,
-                projects_7d=project_rows_7d,
-                projects_30d=project_rows_30d,
-                projects_all=project_rows_all,
-                language=self.language,
-                group=group,
-                burn_rate_trackers=self.burn_rate_trackers,
-                today_text=today_text,
-                statusline=statusline,
-                show_install_button=show_install_button,
-                hide_codex=hide_codex,
-                codex_stale=codex_stale,
-            )
-        except Exception as exc:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("refresh failed", exc_info=True)
-            codex_5h_pct = codex_result["codex_5h_pct"]
-            codex_model = codex_result.get("codex_model", "unknown")
-            state = _error_state(type(exc).__name__, self.mock, self.language)
+    def refreshFromFileEvent_(self, _sender: Any) -> None:
+        self._refresh(queue_if_busy=True)
 
-        result = {"state": state, "codex_5h_pct": codex_5h_pct, "codex_model": codex_model}
-        self.performSelectorOnMainThread_withObject_waitUntilDone_(
-            "_applyRefreshResult:",
-            result,
-            False,
-        )
+    def _refresh_in_background(self) -> None:
+        submitted = False
+        try:
+            codex_result = self._load_codex_refresh_result()
+            self.performSelectorOnMainThread_withObject_waitUntilDone_(
+                "_applyCodexRefreshResult:",
+                codex_result,
+                False,
+            )
+            try:
+                outcome = asyncio.run(self._fetch())
+                codex_rows = codex_result["codex_rows"]
+                codex_5h_pct = codex_result["codex_5h_pct"]
+                codex_model = codex_result.get("codex_model", "unknown")
+                codex_stale = codex_result.get("codex_stale")
+                all_entries = self._load_history_entries()
+                project_rows = self._project_rows(hours_back=24, entries=all_entries)
+                project_rows_7d = self._project_rows(hours_back=168, entries=all_entries)
+                project_rows_30d = self._project_rows(hours_back=720, entries=all_entries)
+                project_rows_all = self._project_rows(hours_back=0, entries=all_entries)
+                today_text = _today_title(self.mock, self.language, entries=all_entries)
+                statusline = _statusline_payload(self.language)
+                show_install_button = (
+                    outcome.state == PollState.TOKEN_ERROR and self._statusline_setup_available()
+                )
+                hide_codex = _hide_codex_enabled()
+                group = self.tracker.group()
+                state = menubar_state.build_popover_state(
+                    outcome=outcome,
+                    codex_rows=codex_rows,
+                    projects=project_rows,
+                    projects_7d=project_rows_7d,
+                    projects_30d=project_rows_30d,
+                    projects_all=project_rows_all,
+                    language=self.language,
+                    group=group,
+                    burn_rate_trackers=self.burn_rate_trackers,
+                    today_text=today_text,
+                    statusline=statusline,
+                    show_install_button=show_install_button,
+                    hide_codex=hide_codex,
+                    codex_stale=codex_stale,
+                )
+            except Exception as exc:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning("refresh failed", exc_info=True)
+                codex_5h_pct = codex_result["codex_5h_pct"]
+                codex_model = codex_result.get("codex_model", "unknown")
+                state = _error_state(type(exc).__name__, self.mock, self.language)
+
+            result = {"state": state, "codex_5h_pct": codex_5h_pct, "codex_model": codex_model}
+            self.performSelectorOnMainThread_withObject_waitUntilDone_(
+                "_applyRefreshResult:",
+                result,
+                False,
+            )
+            submitted = True
+        finally:
+            if not submitted:
+                self.performSelectorOnMainThread_withObject_waitUntilDone_(
+                    "_clearRefreshInFlight:",
+                    None,
+                    False,
+                )
 
     def _applyRefreshResult_(self, result: dict[str, Any]) -> None:
         should_refresh_again = False
@@ -835,6 +848,9 @@ class AppDelegate(NSObject):
             self._refresh_in_flight = False
         if should_refresh_again:
             self._refresh()
+
+    def _clearRefreshInFlight_(self, _sender: Any) -> None:
+        self._refresh_in_flight = False
 
     def _load_codex_refresh_result(self) -> dict[str, Any]:
         try:
