@@ -12,6 +12,7 @@ import codex_loader
 import history_loader
 import menubar
 import menubar_state
+import statusline_settings
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
 
@@ -745,7 +746,7 @@ def test_enable_statusline_ignores_missing_previous_command(
         setup_called = True
         return 0
 
-    monkeypatch.setattr(menubar, "_claude_settings_path", lambda: settings)
+    monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
     monkeypatch.setattr(setup_hook, "setup", fake_setup)
 
     assert menubar._enable_statusline_settings() == 0
