@@ -103,7 +103,7 @@ def setup_fsevents(delegate: Any) -> Any:
             _flags: Any,
             _ids: Any,
         ) -> None:
-            delegate._refresh()
+            delegate._refresh(queue_if_busy=True)
 
         _fs_callback_ref = _FSEventStreamCallback(_on_fs_event)
         stream = _cs_lib.FSEventStreamCreate(

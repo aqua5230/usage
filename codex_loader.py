@@ -100,6 +100,9 @@ def load_rate_limits() -> CodexRateLimits | None:
         return jsonl_limits
     if jsonl_limits is None:
         return sqlite_limits
+    merged = _merge_rate_limits(sqlite_limits, jsonl_limits)
+    if merged is not None:
+        return merged
     if _rate_limits_timestamp(jsonl_limits) > _rate_limits_timestamp(sqlite_limits):
         return jsonl_limits
     return sqlite_limits
@@ -120,6 +123,75 @@ def _load_jsonl_rate_limits() -> CodexRateLimits | None:
 def _rate_limits_timestamp(rate_limits: CodexRateLimits) -> datetime:
     parsed = _parse_timestamp(rate_limits.updated_at)
     return parsed if parsed is not None else datetime.min.replace(tzinfo=UTC)
+
+
+def _merge_rate_limits(
+    sqlite_limits: CodexRateLimits,
+    jsonl_limits: CodexRateLimits,
+) -> CodexRateLimits | None:
+    sqlite_ts = _rate_limits_timestamp(sqlite_limits)
+    jsonl_ts = _rate_limits_timestamp(jsonl_limits)
+    five_pct, five_reset = _pick_rate_limit_window(
+        sqlite_limits.five_hour_pct,
+        sqlite_limits.five_hour_resets_at,
+        sqlite_ts,
+        jsonl_limits.five_hour_pct,
+        jsonl_limits.five_hour_resets_at,
+        jsonl_ts,
+    )
+    seven_pct, seven_reset = _pick_rate_limit_window(
+        sqlite_limits.seven_day_pct,
+        sqlite_limits.seven_day_resets_at,
+        sqlite_ts,
+        jsonl_limits.seven_day_pct,
+        jsonl_limits.seven_day_resets_at,
+        jsonl_ts,
+    )
+    if five_pct is None and seven_pct is None:
+        return None
+    newer = jsonl_limits if jsonl_ts > sqlite_ts else sqlite_limits
+    return CodexRateLimits(
+        five_hour_pct=five_pct,
+        five_hour_resets_at=five_reset,
+        seven_day_pct=seven_pct,
+        seven_day_resets_at=seven_reset,
+        model=newer.model,
+        updated_at=newer.updated_at,
+    )
+
+
+def _pick_rate_limit_window(
+    sqlite_pct: float | None,
+    sqlite_reset: float | None,
+    sqlite_ts: datetime,
+    jsonl_pct: float | None,
+    jsonl_reset: float | None,
+    jsonl_ts: datetime,
+) -> tuple[float | None, float | None]:
+    if sqlite_pct is None:
+        return jsonl_pct, jsonl_reset
+    if jsonl_pct is None:
+        return sqlite_pct, sqlite_reset
+    if _active_window_limit_reached(sqlite_pct, sqlite_reset, jsonl_reset):
+        return sqlite_pct, sqlite_reset
+    if jsonl_ts > sqlite_ts:
+        return jsonl_pct, jsonl_reset
+    return sqlite_pct, sqlite_reset
+
+
+def _active_window_limit_reached(
+    sqlite_pct: float,
+    sqlite_reset: float | None,
+    jsonl_reset: float | None,
+) -> bool:
+    if sqlite_pct < 100:
+        return False
+    if sqlite_reset is None:
+        return True
+    if sqlite_reset is not None and sqlite_reset < datetime.now(UTC).timestamp():
+        return False
+    # A newer reset window means Codex has already moved past the 100% event.
+    return jsonl_reset is None or jsonl_reset <= sqlite_reset + 60
 
 
 def _load_sqlite_rate_limits() -> CodexRateLimits | None:

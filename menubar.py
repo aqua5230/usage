@@ -383,7 +383,7 @@ class AppDelegate(NSObject):
         self._request_notification_authorization()
         self._refresh()
         self.timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-            300,
+            self.interval,
             self,
             "timerFired:",
             None,
@@ -758,13 +758,18 @@ class AppDelegate(NSObject):
         thread.start()
 
     def _refresh_in_background(self) -> None:
+        codex_result = self._load_codex_refresh_result()
+        self.performSelectorOnMainThread_withObject_waitUntilDone_(
+            "_applyCodexRefreshResult:",
+            codex_result,
+            False,
+        )
         try:
             outcome = asyncio.run(self._fetch())
-            codex_rows, codex_5h_pct, codex_model, codex_stale = menubar_state.codex_rows(
-                mock=self.mock,
-                language=self.language,
-                burn_rate_trackers=self.burn_rate_trackers,
-            )
+            codex_rows = codex_result["codex_rows"]
+            codex_5h_pct = codex_result["codex_5h_pct"]
+            codex_model = codex_result.get("codex_model", "unknown")
+            codex_stale = codex_result.get("codex_stale")
             all_entries = self._load_history_entries()
             project_rows = self._project_rows(hours_back=24, entries=all_entries)
             project_rows_7d = self._project_rows(hours_back=168, entries=all_entries)
@@ -828,6 +833,42 @@ class AppDelegate(NSObject):
             self._refresh_in_flight = False
         if should_refresh_again:
             self._refresh()
+
+    def _load_codex_refresh_result(self) -> dict[str, Any]:
+        try:
+            codex_rows, codex_5h_pct, codex_model, codex_stale = menubar_state.codex_rows(
+                mock=self.mock,
+                language=self.language,
+                burn_rate_trackers=self.burn_rate_trackers,
+            )
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Codex quota refresh failed", exc_info=True)
+            codex_rows = (
+                _missing_row("Session", CODEX_COLOR, self.language),
+                _missing_row("Weekly", CODEX_COLOR, self.language),
+            )
+            codex_5h_pct = None
+            codex_model = "unknown"
+            codex_stale = None
+        return {
+            "codex_rows": codex_rows,
+            "codex_5h_pct": codex_5h_pct,
+            "codex_model": codex_model,
+            "codex_stale": codex_stale,
+        }
+
+    def _applyCodexRefreshResult_(self, result: dict[str, Any]) -> None:
+        codex_rows = result["codex_rows"]
+        self.latest_state.codex_session = codex_rows[0]
+        self.latest_state.codex_weekly = codex_rows[1]
+        self.latest_state.codex_stale = result.get("codex_stale")
+        self.codex_5h_pct = result["codex_5h_pct"]
+        self.codex_model = result.get("codex_model", "unknown")
+        if self.popover.isShown():
+            self.popover_controller.setState_(self.latest_state)
+        self.popover.setContentSize_(_popover_size(self.latest_state, self.active_panel))
+        self.status_item.button().setTitle_(self._compose_title(self.latest_state))
 
     def _request_notification_authorization(self) -> None:
         if self.mock or not _quota_notifications_enabled():
@@ -1103,7 +1144,7 @@ class AppDelegate(NSObject):
         )
         if self.codex_5h_pct is None:
             return base
-        return f"{base} · 📜 {self.codex_5h_pct}%"
+        return f"{base} · 📜 {_format_percent(float(self.codex_5h_pct))}%"
 
 
 def run_app(mock: bool = False, interval: int = 60) -> None:

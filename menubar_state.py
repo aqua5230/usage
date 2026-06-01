@@ -174,7 +174,7 @@ def codex_rows(
     mock: bool,
     language: str,
     burn_rate_trackers: dict[str, BurnRateTracker],
-) -> tuple[tuple[QuotaRowState, QuotaRowState], int | None, str, CodexStaleState | None]:
+) -> tuple[tuple[QuotaRowState, QuotaRowState], float | None, str, CodexStaleState | None]:
     if mock:
         now = time.time()
         burn_rate_trackers["codex_session"].record(now, 12.0)
@@ -228,9 +228,7 @@ def codex_rows(
         )
     except Exception:
         codex_stale = None
-    codex_5h_pct = (
-        round(rate_limits.five_hour_pct) if rate_limits.five_hour_pct is not None else None
-    )
+    codex_5h_pct = rate_limits.five_hour_pct
     if rate_limits.five_hour_pct is not None:
         burn_rate_trackers["codex_session"].record(now, rate_limits.five_hour_pct)
     if rate_limits.seven_day_pct is not None:

@@ -557,6 +557,91 @@ def test_load_rate_limits_uses_newer_jsonl_when_sqlite_is_stale(
     )
 
 
+def test_load_rate_limits_keeps_active_sqlite_limit_over_newer_jsonl_snapshot(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    logs_db = tmp_path / "logs.sqlite"
+    old = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    new = datetime(2026, 1, 1, 12, 5, tzinfo=UTC)
+    reset_at = 9_999_999_999
+    stale_limits = _rate_limits()
+    stale_limits["primary"]["used_percent"] = 80
+    stale_limits["primary"]["resets_at"] = reset_at
+    _write_rate_limit_session(
+        sessions_dir / "rate.jsonl",
+        new.isoformat(),
+        stale_limits,
+        new.timestamp(),
+    )
+    body = (
+        "session_loop{thread_id=session-error}:turn{model=gpt-5.5}: "
+        'websocket event: {"type":"error","error":{"type":"usage_limit_reached"},'
+        '"headers":{"X-Codex-Primary-Used-Percent":"100",'
+        '"X-Codex-Secondary-Used-Percent":"16",'
+        f'"X-Codex-Primary-Reset-At":"{reset_at}",'
+        '"X-Codex-Secondary-Reset-At":"9999999998"}}'
+    )
+    _create_logs_db(
+        logs_db,
+        [(1, int(old.timestamp()), body)],
+        target="codex_api::endpoint::responses_websocket",
+    )
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.five_hour_pct == 100.0
+    assert result.five_hour_resets_at == float(reset_at)
+    assert result.seven_day_pct == 60.0
+    assert result.seven_day_resets_at == 9_999_999_999.0
+    assert result.updated_at == new.isoformat()
+
+
+def test_load_rate_limits_uses_newer_jsonl_after_sqlite_limit_reset_window(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    logs_db = tmp_path / "logs.sqlite"
+    old = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    new = datetime(2026, 1, 1, 12, 5, tzinfo=UTC)
+    old_reset_at = 9_999_999_000
+    new_reset_at = 9_999_999_999
+    new_limits = _rate_limits()
+    new_limits["primary"]["used_percent"] = 1
+    new_limits["primary"]["resets_at"] = new_reset_at
+    _write_rate_limit_session(
+        sessions_dir / "rate.jsonl",
+        new.isoformat(),
+        new_limits,
+        new.timestamp(),
+    )
+    body = (
+        "session_loop{thread_id=session-error}:turn{model=gpt-5.5}: "
+        'websocket event: {"type":"error","error":{"type":"usage_limit_reached"},'
+        '"headers":{"X-Codex-Primary-Used-Percent":"100",'
+        '"X-Codex-Secondary-Used-Percent":"16",'
+        f'"X-Codex-Primary-Reset-At":"{old_reset_at}",'
+        '"X-Codex-Secondary-Reset-At":"9999999998"}}'
+    )
+    _create_logs_db(
+        logs_db,
+        [(1, int(old.timestamp()), body)],
+        target="codex_api::endpoint::responses_websocket",
+    )
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.five_hour_pct == 1.0
+    assert result.five_hour_resets_at == float(new_reset_at)
+    assert result.updated_at == new.isoformat()
+
+
 def test_load_rate_limits_ignores_websocket_command_echoes(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

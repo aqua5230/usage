@@ -107,7 +107,7 @@ def _codex_rows(
     delegate: menubar.AppDelegate,
 ) -> tuple[
     tuple[menubar_state.QuotaRowState, menubar_state.QuotaRowState],
-    int | None,
+    float | None,
     str,
     menubar_state.CodexStaleState | None,
 ]:
@@ -1100,6 +1100,77 @@ def test_apply_refresh_result_pushes_state_only_when_popover_is_shown() -> None:
     assert delegate.latest_state == state
     assert delegate.codex_5h_pct == 34
     assert delegate._refresh_in_flight is False
+
+
+def test_apply_codex_refresh_result_updates_quota_before_full_refresh() -> None:
+    class FakeController:
+        def __init__(self) -> None:
+            self.calls: list[menubar.PopoverState] = []
+            self.content_view = object()
+
+        def setState_(self, state: menubar.PopoverState) -> None:
+            self.calls.append(state)
+
+    class FakePopover:
+        def __init__(self) -> None:
+            self.sizes: list[object] = []
+
+        def isShown(self) -> bool:
+            return True
+
+        def setContentSize_(self, size: object) -> None:
+            self.sizes.append(size)
+
+    class FakeButton:
+        def __init__(self) -> None:
+            self.titles: list[str] = []
+
+        def setTitle_(self, title: str) -> None:
+            self.titles.append(title)
+
+    class FakeStatusItem:
+        def __init__(self, button: FakeButton) -> None:
+            self._button = button
+
+        def button(self) -> FakeButton:
+            return self._button
+
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    controller = FakeController()
+    button = FakeButton()
+    session = menubar_state.QuotaRowState(
+        title="Session",
+        percent=18.5,
+        percent_text="18.5% used",
+        reset_text="Resets in 2h",
+        color=menubar.CODEX_COLOR,
+    )
+    weekly = menubar_state.QuotaRowState(
+        title="Weekly",
+        percent=34.0,
+        percent_text="34% used",
+        reset_text="Resets in 6d",
+        color=menubar.CODEX_COLOR,
+    )
+    delegate.popover_controller = controller
+    delegate.popover = FakePopover()
+    delegate.status_item = FakeStatusItem(button)
+
+    delegate._applyCodexRefreshResult_(
+        {
+            "codex_rows": (session, weekly),
+            "codex_5h_pct": 18.5,
+            "codex_model": "gpt-test",
+            "codex_stale": None,
+        }
+    )
+
+    assert delegate.latest_state.codex_session == session
+    assert delegate.latest_state.codex_weekly == weekly
+    assert delegate.codex_5h_pct == 18.5
+    assert delegate.codex_model == "gpt-test"
+    assert controller.calls == [delegate.latest_state]
+    assert button.titles[-1].endswith("18.5%")
 
 
 def test_refresh_now_queues_when_refresh_is_busy() -> None:
