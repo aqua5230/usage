@@ -7,6 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.15.0] - 2026-06-01
+
+### Added
+- **Quota usage notifications (opt-in, off by default)**: fires a macOS system notification when usage approaches a threshold, runs out, or recovers ("Almost out / Quota is empty / Quota is back"). Covers both session and weekly quotas for Claude Code and Codex; each threshold alerts once and re-arms after the quota resets. Controlled by one menu toggle; notification text is localized across all five languages in `i18n.json`. Triggered from the existing on-disk usage snapshot — **no network, no API calls**. The packaged `.app` now bundles the UserNotifications framework so alerts are delivered.
+- **Pace indicator**: the burn-rate warning line ("at current pace, empty in X") now appends whether you're running some multiple faster than your personal average, or under it — so you can tell at a glance if you're burning hotter than usual.
+
+### Fixed
+- **Ignore echoed Codex quota queries (#23)**: in some cases Codex echoes a prior quota query verbatim; older versions treated these echoes as new messages and let them flood the window. They're now detected and skipped.
+
 ## [0.14.2] - 2026-06-01
 
 ### Changed

@@ -22,6 +22,7 @@ All numbers come from local files written by Claude Code and Codex — it **neve
 
 - **Menu bar usage monitor** — pins Claude Code and Codex quota to the top-right. Numbers share the bar color, so the warning level reads at a glance. Click for the full breakdown.
 - **Progress Concierge** — opening a new Claude Code session automatically hands your last progress to the AI, no re-explaining. Fully local, zero API, off by default. [Learn more](https://aqua5230.github.io/usage/#resume).
+- **Quota usage notifications** — a system notification when usage nears a threshold, runs out, or recovers, nudging you to wrap up. Fully local, zero API, off by default.
 - **9 visual panel themes** — from clean light cards to a World Cup broadcast HUD, switch with one click.
 - **HTML deep reports** — token and cost trends, per-project rankings, shareable with colleagues.
 - **5-language UI** — Traditional Chinese, Simplified Chinese, English, Japanese, Korean, auto-following the system language.
