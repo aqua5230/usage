@@ -31,6 +31,7 @@ def test_codex_session_token_totals_match_between_delta_and_session_loaders(
     shutil.copyfile(FIXTURE, sessions_dir / FIXTURE.name)
 
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
     monkeypatch.setattr(codex_adapter, "SESSIONS_DIR", str(sessions_dir))
     monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
     monkeypatch.setattr(codex_adapter, "_load_thread_models", lambda: {})

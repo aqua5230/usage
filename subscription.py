@@ -71,8 +71,6 @@ def _load_codex_subscription() -> dict[str, str | None] | None:
         return None
     if not isinstance(data, dict):
         return None
-    if data.get("auth_mode") != "chatgpt":
-        return None
     tokens = data.get("tokens")
     if not isinstance(tokens, dict):
         tokens = {}

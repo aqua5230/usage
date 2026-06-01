@@ -4,6 +4,7 @@ import json
 import logging
 import math
 import os
+import re
 import sqlite3
 from collections import OrderedDict
 from dataclasses import dataclass
@@ -22,6 +23,7 @@ _jsonl_cache: OrderedDict[Path, tuple[float, int, list[UsageEntry]]] = OrderedDi
 
 SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
 STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
+LOGS_DB = Path(os.path.expanduser("~/.codex/logs_2.sqlite"))
 
 
 @dataclass(slots=True)
@@ -34,35 +36,47 @@ class CodexRateLimits:
     updated_at: str = ""
 
 
-def load_entries(hours_back: int = 0) -> list[UsageEntry]:
-    if not SESSIONS_DIR.is_dir():
-        return []
+@dataclass(frozen=True, slots=True)
+class _ThreadMetadata:
+    model: str = "unknown"
+    cwd: str = ""
 
+
+def load_entries(hours_back: int = 0) -> list[UsageEntry]:
     entries_by_session: dict[str, list[UsageEntry]] = {}
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
     cutoff_ts = cutoff.timestamp() if cutoff else None
-    models = _load_thread_models()
+    metadata = _load_thread_metadata()
+    models = {session_id: data.model for session_id, data in metadata.items()}
 
-    for jsonl_path in SESSIONS_DIR.rglob("*.jsonl"):
-        if cutoff_ts is not None:
-            try:
-                if jsonl_path.stat().st_mtime < cutoff_ts:
+    if SESSIONS_DIR.is_dir():
+        for jsonl_path in SESSIONS_DIR.rglob("*.jsonl"):
+            if cutoff_ts is not None:
+                try:
+                    if jsonl_path.stat().st_mtime < cutoff_ts:
+                        continue
+                except OSError as exc:
+                    logger.warning("failed to stat session log %s: %s", jsonl_path, exc)
                     continue
-            except OSError as exc:
-                logger.warning("failed to stat session log %s: %s", jsonl_path, exc)
+            parsed = _parse_jsonl(jsonl_path, models, cutoff)
+            if not parsed:
                 continue
-        parsed = _parse_jsonl(jsonl_path, models, cutoff)
-        if not parsed:
-            continue
-        existing = entries_by_session.get(parsed[0].session_id)
-        if existing is None or _is_better_session_log(parsed, existing):
-            entries_by_session[parsed[0].session_id] = parsed
+            existing = entries_by_session.get(parsed[0].session_id)
+            if existing is None or _is_better_session_log(parsed, existing):
+                entries_by_session[parsed[0].session_id] = parsed
+
+    latest_jsonl_ts_by_session = {
+        session_id: session_entries[-1].timestamp
+        for session_id, session_entries in entries_by_session.items()
+        if session_entries
+    }
 
     entries = [
         entry
         for session_entries in entries_by_session.values()
         for entry in session_entries
     ]
+    entries.extend(_load_sqlite_log_entries(metadata, cutoff, latest_jsonl_ts_by_session))
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
 
@@ -92,22 +106,143 @@ def load_rate_limits() -> CodexRateLimits | None:
 
 
 def _load_thread_models() -> dict[str, str]:
+    return {
+        thread_id: metadata.model
+        for thread_id, metadata in _load_thread_metadata().items()
+    }
+
+
+def _load_thread_metadata() -> dict[str, _ThreadMetadata]:
     if not STATE_DB.exists():
         return {}
     try:
         with sqlite3.connect(f"file:{STATE_DB}?mode=ro", uri=True) as conn:
             rows = conn.execute(
-                "SELECT id, model FROM threads WHERE model IS NOT NULL",
+                "SELECT id, model, cwd FROM threads",
             ).fetchall()
     except (OSError, sqlite3.Error):
         if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("codex thread models load failed", exc_info=True)
+            logger.warning("codex thread metadata load failed", exc_info=True)
         return {}
     return {
-        thread_id: model
-        for thread_id, model in rows
-        if isinstance(thread_id, str) and isinstance(model, str) and model
+        thread_id: _ThreadMetadata(
+            model=model if isinstance(model, str) and model else "unknown",
+            cwd=cwd if isinstance(cwd, str) else "",
+        )
+        for thread_id, model, cwd in rows
+        if isinstance(thread_id, str) and thread_id
     }
+
+
+def _load_sqlite_log_entries(
+    metadata: dict[str, _ThreadMetadata],
+    cutoff: datetime | None,
+    latest_jsonl_ts_by_session: dict[str, datetime],
+) -> list[UsageEntry]:
+    if not LOGS_DB.exists():
+        return []
+    cutoff_ts = cutoff.timestamp() if cutoff else None
+    query = (
+        "SELECT id, ts, ts_nanos, feedback_log_body FROM logs "
+        "WHERE target = 'codex_otel.trace_safe' "
+        "AND feedback_log_body LIKE '%event.kind=response.completed%' "
+        "AND feedback_log_body LIKE '%input_token_count=%'"
+    )
+    params: tuple[float, ...] = ()
+    if cutoff_ts is not None:
+        query += " AND ts >= ?"
+        params = (cutoff_ts,)
+    query += " ORDER BY ts ASC, ts_nanos ASC, id ASC"
+    try:
+        with sqlite3.connect(f"file:{LOGS_DB}?mode=ro", uri=True) as conn:
+            rows = conn.execute(query, params).fetchall()
+    except (OSError, sqlite3.Error):
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("codex sqlite logs load failed", exc_info=True)
+        return []
+
+    entries: list[UsageEntry] = []
+    for row_id, ts, ts_nanos, body in rows:
+        entry = _parse_sqlite_log_row(row_id, ts, ts_nanos, body, metadata)
+        if entry is None:
+            continue
+        if cutoff is not None and entry.timestamp < cutoff:
+            continue
+        latest_jsonl_ts = latest_jsonl_ts_by_session.get(entry.session_id)
+        if latest_jsonl_ts is not None and entry.timestamp <= latest_jsonl_ts:
+            continue
+        entries.append(entry)
+    return entries
+
+
+def _parse_sqlite_log_row(
+    row_id: Any,
+    ts: Any,
+    ts_nanos: Any,
+    body: Any,
+    metadata: dict[str, _ThreadMetadata],
+) -> UsageEntry | None:
+    if not isinstance(body, str):
+        return None
+    if 'event.name="codex.sse_event"' not in body or "event.kind=response.completed" not in body:
+        return None
+    session_id = _event_value(body, "conversation.id")
+    if not session_id:
+        return None
+    timestamp = _parse_timestamp(_event_value(body, "event.timestamp"))
+    if timestamp is None:
+        timestamp = _timestamp_from_log_ts(ts)
+    if timestamp is None:
+        return None
+    cached = _as_int(_event_value(body, "cached_token_count"))
+    input_tokens = max(0, _as_int(_event_value(body, "input_token_count")) - cached)
+    output_tokens = _as_int(_event_value(body, "output_token_count")) + _as_int(
+        _event_value(body, "reasoning_token_count")
+    )
+    if input_tokens + output_tokens + cached == 0:
+        return None
+    thread = metadata.get(session_id, _ThreadMetadata())
+    model = _event_value(body, "model") or thread.model
+    project = _project_from_cwd(thread.cwd) if thread.cwd else "unknown"
+    return UsageEntry(
+        timestamp=timestamp,
+        session_id=session_id,
+        message_id=f"{session_id}:sqlite:{row_id}:{ts_nanos}",
+        request_id="",
+        model=model,
+        input_tokens=input_tokens,
+        output_tokens=output_tokens,
+        cache_creation_tokens=0,
+        cache_read_tokens=cached,
+        cost_usd=None,
+        project=project,
+    )
+
+
+_EVENT_VALUE_RE_CACHE: dict[str, re.Pattern[str]] = {}
+
+
+def _event_value(body: str, key: str) -> str:
+    pattern = _EVENT_VALUE_RE_CACHE.get(key)
+    if pattern is None:
+        pattern = re.compile(rf'(?:^|\s){re.escape(key)}=(?:"([^"]*)"|([^\s]+))')
+        _EVENT_VALUE_RE_CACHE[key] = pattern
+    match = pattern.search(body)
+    if match is None:
+        return ""
+    return match.group(1) if match.group(1) is not None else match.group(2)
+
+
+def _timestamp_from_log_ts(value: Any) -> datetime | None:
+    if isinstance(value, bool):
+        return None
+    try:
+        timestamp = float(value)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(timestamp):
+        return None
+    return datetime.fromtimestamp(timestamp, UTC)
 
 
 def _recent_jsonl_files() -> list[Path]:

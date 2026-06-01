@@ -62,6 +62,21 @@ def test_codex_subscription(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> 
     assert sub == {"agent": "Codex", "plan": "ChatGPT Plus", "since": "2026-03-23"}
 
 
+def test_codex_subscription_reads_plan_without_auth_mode(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    auth = tmp_path / "auth.json"
+    auth.write_text(json.dumps({
+        "tokens": {"id_token": _make_id_token({
+            "chatgpt_plan_type": "plus",
+            "chatgpt_subscription_active_until": "2026-02-15T03:18:25+00:00",
+        })},
+    }))
+    monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
+    sub = subscription._load_codex_subscription()
+    assert sub == {"agent": "Codex", "plan": "ChatGPT Plus", "since": None}
+
+
 def test_codex_api_key_mode_no_sub(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     auth = tmp_path / "auth.json"
     auth.write_text(json.dumps({"auth_mode": "apikey"}))

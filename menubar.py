@@ -170,19 +170,28 @@ except (OSError, AttributeError):
 
 
 def _setup_fsevents(delegate: Any) -> Any:
-    """Start FSEventStream watching ~/.claude/; returns stream handle or None."""
+    """Start FSEventStream watching agent data directories; returns stream handle or None."""
     global _fs_callback_ref
     if not _FSEVENTS_AVAILABLE:
         return None
     try:
-        watch_path = str(Path.home() / ".claude")
-        cf_path = _cf_lib.CFStringCreateWithCString(
-            None,
-            watch_path.encode("utf-8"),
-            _kCFStringEncodingUTF8,
-        )
-        paths_arr = (ctypes.c_void_p * 1)(cf_path)
-        cf_paths = _cf_lib.CFArrayCreate(None, paths_arr, 1, None)
+        watch_paths = [
+            path
+            for path in (Path.home() / ".claude", Path.home() / ".codex")
+            if path.exists()
+        ]
+        if not watch_paths:
+            return None
+        cf_path_values = [
+            _cf_lib.CFStringCreateWithCString(
+                None,
+                str(path).encode("utf-8"),
+                _kCFStringEncodingUTF8,
+            )
+            for path in watch_paths
+        ]
+        paths_arr = (ctypes.c_void_p * len(cf_path_values))(*cf_path_values)
+        cf_paths = _cf_lib.CFArrayCreate(None, paths_arr, len(cf_path_values), None)
 
         def _on_fs_event(
             _stream: Any,
@@ -970,13 +979,21 @@ class AppDelegate(NSObject):
         sources = (
             Path.home() / ".claude",
             Path.home() / ".codex" / "sessions",
+            Path.home() / ".codex" / "logs_2.sqlite",
+            Path.home() / ".codex" / "logs_2.sqlite-wal",
+            Path.home() / ".codex" / "state_5.sqlite",
+            Path.home() / ".codex" / "state_5.sqlite-wal",
         )
         fingerprint: list[tuple[str, int, float]] = []
         for source in sources:
             newest_mtime = 0.0
             file_count = 0
             try:
-                if source.exists():
+                if source.is_file():
+                    stat = source.stat()
+                    file_count = 1
+                    newest_mtime = stat.st_mtime
+                elif source.exists():
                     for path in source.rglob("*.jsonl"):
                         try:
                             stat = path.stat()

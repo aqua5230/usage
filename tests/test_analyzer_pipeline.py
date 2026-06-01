@@ -283,6 +283,7 @@ def test_report_today_uses_codex_token_count_deltas(
     codex_loader._jsonl_cache.clear()
     sessions_dir = tmp_path / "sessions"
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
     monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {"session-1": "gpt-test"})
     now = datetime.now().astimezone()
     yesterday = now - timedelta(days=1)

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import os
+import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -12,8 +13,10 @@ import codex_loader
 
 
 @pytest.fixture(autouse=True)
-def _clear_jsonl_cache() -> None:
+def _clear_jsonl_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     codex_loader._jsonl_cache.clear()
+    monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
+    monkeypatch.setattr(codex_loader, "STATE_DB", tmp_path / "missing-state.sqlite")
 
 
 def _write_session(
@@ -79,6 +82,7 @@ def test_load_entries_returns_empty_list_when_sessions_dir_missing(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", tmp_path / "missing")
+    monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing.sqlite")
 
     assert codex_loader.load_entries() == []
 
@@ -90,8 +94,11 @@ def test_load_entries_parses_valid_jsonl_and_filters_by_hours_back(
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
     monkeypatch.setattr(
         codex_loader,
-        "_load_thread_models",
-        lambda: {"session-old": "gpt-test", "session-new": "gpt-test"},
+        "_load_thread_metadata",
+        lambda: {
+            "session-old": codex_loader._ThreadMetadata(model="gpt-test"),
+            "session-new": codex_loader._ThreadMetadata(model="gpt-test"),
+        },
     )
     old_ts = (datetime.now(UTC) - timedelta(hours=2)).isoformat()
     new_ts = (datetime.now(UTC) - timedelta(minutes=5)).isoformat()
@@ -213,6 +220,150 @@ def test_load_entries_splits_cumulative_usage_into_time_range_deltas(
     assert week_entries[0].input_tokens == 40
     assert week_entries[0].output_tokens == 30
     assert week_entries[0].cache_read_tokens == 10
+
+
+def _create_state_db(path: Path, rows: list[tuple[str, str, str]]) -> None:
+    with sqlite3.connect(path) as conn:
+        conn.execute("CREATE TABLE threads (id TEXT, model TEXT, cwd TEXT)")
+        conn.executemany("INSERT INTO threads (id, model, cwd) VALUES (?, ?, ?)", rows)
+
+
+def _create_logs_db(path: Path, rows: list[tuple[int, int, str]]) -> None:
+    with sqlite3.connect(path) as conn:
+        conn.execute(
+            "CREATE TABLE logs ("
+            "id INTEGER PRIMARY KEY, "
+            "ts INTEGER NOT NULL, "
+            "ts_nanos INTEGER NOT NULL, "
+            "level TEXT NOT NULL DEFAULT 'INFO', "
+            "target TEXT NOT NULL, "
+            "feedback_log_body TEXT, "
+            "module_path TEXT, "
+            "file TEXT, "
+            "line INTEGER, "
+            "thread_id TEXT, "
+            "process_uuid TEXT, "
+            "estimated_bytes INTEGER NOT NULL DEFAULT 0)"
+        )
+        for row_id, ts, body in rows:
+            conn.execute(
+                "INSERT INTO logs (id, ts, ts_nanos, target, feedback_log_body) "
+                "VALUES (?, ?, ?, ?, ?)",
+                (row_id, ts, row_id * 10, "codex_otel.trace_safe", body),
+            )
+
+
+def _sqlite_token_body(
+    *,
+    session_id: str,
+    timestamp: str,
+    input_tokens: int,
+    output_tokens: int,
+    cached_tokens: int,
+    reasoning_tokens: int = 0,
+    model: str = "gpt-test",
+) -> str:
+    return (
+        'event.name="codex.sse_event" event.kind=response.completed '
+        f"input_token_count={input_tokens} output_token_count={output_tokens} "
+        f"cached_token_count={cached_tokens} reasoning_token_count={reasoning_tokens} "
+        f"tool_token_count={input_tokens + output_tokens} event.timestamp={timestamp} "
+        f"conversation.id={session_id} model={model}"
+    )
+
+
+def test_load_entries_includes_sqlite_logs_when_sessions_dir_is_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "missing-sessions"
+    state_db = tmp_path / "state.sqlite"
+    logs_db = tmp_path / "logs.sqlite"
+    timestamp = datetime.now(UTC).replace(microsecond=0)
+    _create_state_db(state_db, [("session-sqlite", "gpt-state", "/tmp/demo")])
+    _create_logs_db(
+        logs_db,
+        [
+            (
+                1,
+                int(timestamp.timestamp()),
+                _sqlite_token_body(
+                    session_id="session-sqlite",
+                    timestamp=timestamp.isoformat().replace("+00:00", "Z"),
+                    input_tokens=100,
+                    output_tokens=7,
+                    cached_tokens=20,
+                    reasoning_tokens=3,
+                ),
+            )
+        ],
+    )
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "STATE_DB", state_db)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+
+    entries = codex_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].timestamp == timestamp
+    assert entries[0].session_id == "session-sqlite"
+    assert entries[0].input_tokens == 80
+    assert entries[0].output_tokens == 10
+    assert entries[0].cache_read_tokens == 20
+    assert entries[0].total_tokens == 110
+    assert entries[0].project == "demo"
+
+
+def test_load_entries_skips_sqlite_logs_already_covered_by_jsonl(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    state_db = tmp_path / "state.sqlite"
+    logs_db = tmp_path / "logs.sqlite"
+    old_ts = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
+    jsonl_ts = datetime(2026, 1, 1, 0, 5, tzinfo=UTC)
+    new_ts = datetime(2026, 1, 1, 0, 10, tzinfo=UTC)
+    _write_session(
+        sessions_dir / "session.jsonl",
+        session_id="same-session",
+        timestamp=jsonl_ts.isoformat(),
+        usage={"input_tokens": 20, "cached_input_tokens": 5, "output_tokens": 4},
+    )
+    _create_state_db(state_db, [("same-session", "gpt-state", "/tmp/demo")])
+    _create_logs_db(
+        logs_db,
+        [
+            (
+                1,
+                int(old_ts.timestamp()),
+                _sqlite_token_body(
+                    session_id="same-session",
+                    timestamp=old_ts.isoformat().replace("+00:00", "Z"),
+                    input_tokens=100,
+                    output_tokens=7,
+                    cached_tokens=20,
+                ),
+            ),
+            (
+                2,
+                int(new_ts.timestamp()),
+                _sqlite_token_body(
+                    session_id="same-session",
+                    timestamp=new_ts.isoformat().replace("+00:00", "Z"),
+                    input_tokens=50,
+                    output_tokens=3,
+                    cached_tokens=10,
+                ),
+            ),
+        ],
+    )
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "STATE_DB", state_db)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+
+    entries = codex_loader.load_entries()
+
+    assert [entry.timestamp for entry in entries] == [jsonl_ts, new_ts]
+    assert [entry.total_tokens for entry in entries] == [24, 53]
 
 
 def test_parse_jsonl_skips_bad_lines_and_missing_fields(tmp_path: Path) -> None:
