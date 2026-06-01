@@ -128,9 +128,9 @@ def _load_sqlite_rate_limits() -> CodexRateLimits | None:
     query = (
         "SELECT ts, feedback_log_body FROM logs "
         "WHERE target = 'codex_api::endpoint::responses_websocket' "
-        "AND feedback_log_body LIKE '%websocket event:%' "
-        "AND (feedback_log_body LIKE '%\"type\":\"codex.rate_limits\"%' "
-        "OR feedback_log_body LIKE '%\"type\":\"error\"%usage_limit_reached%') "
+        "AND (feedback_log_body LIKE '%websocket event: {\"type\":\"codex.rate_limits\"%' "
+        "OR feedback_log_body LIKE "
+        "'%websocket event: {\"type\":\"error\"%usage_limit_reached%') "
         "ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 50"
     )
     try:
