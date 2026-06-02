@@ -816,9 +816,13 @@ class AppDelegate(NSObject):
             except Exception as exc:
                 if os.environ.get("USAGE_DEBUG") == "1":
                     logger.warning("refresh failed", exc_info=True)
+                codex_rows = codex_result["codex_rows"]
                 codex_5h_pct = codex_result["codex_5h_pct"]
                 codex_model = codex_result.get("codex_model", "unknown")
                 state = _error_state(type(exc).__name__, self.mock, self.language)
+                state.codex_session = codex_rows[0]
+                state.codex_weekly = codex_rows[1]
+                state.codex_stale = codex_result.get("codex_stale")
 
             result = {"state": state, "codex_5h_pct": codex_5h_pct, "codex_model": codex_model}
             self.performSelectorOnMainThread_withObject_waitUntilDone_(

@@ -1218,6 +1218,57 @@ def test_apply_codex_refresh_result_updates_quota_before_full_refresh() -> None:
     assert button.titles[-1].endswith("18.5%")
 
 
+def test_refresh_error_preserves_codex_quota() -> None:
+    captured: dict[str, object] = {}
+    session = menubar_state.QuotaRowState(
+        title="Session",
+        percent=1.0,
+        percent_text="1% used",
+        reset_text="Resets in 4h",
+        color=menubar.CODEX_COLOR,
+    )
+    weekly = menubar_state.QuotaRowState(
+        title="Weekly",
+        percent=37.0,
+        percent_text="37% used",
+        reset_text="Resets in 5d",
+        color=menubar.CODEX_COLOR,
+    )
+
+    class Delegate:
+        mock = False
+        language = "en"
+
+        def _load_codex_refresh_result(self) -> dict[str, object]:
+            return {
+                "codex_rows": (session, weekly),
+                "codex_5h_pct": 1.0,
+                "codex_model": "gpt-test",
+                "codex_stale": None,
+            }
+
+        def performSelectorOnMainThread_withObject_waitUntilDone_(
+            self, selector: str, result: dict[str, object], wait: bool
+        ) -> None:
+            captured["selector"] = selector
+            captured["result"] = result
+            captured["wait"] = wait
+
+        async def _fetch(self) -> PollOutcome:
+            raise RuntimeError("fetch failed")
+
+    menubar.AppDelegate._refresh_in_background(cast(Any, Delegate()))
+
+    result = captured["result"]
+    assert isinstance(result, dict)
+    state = result["state"]
+    assert isinstance(state, menubar_state.PopoverState)
+    assert state.codex_session == session
+    assert state.codex_weekly == weekly
+    assert result["codex_5h_pct"] == 1.0
+    assert result["codex_model"] == "gpt-test"
+
+
 def test_refresh_now_queues_when_refresh_is_busy() -> None:
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
     delegate._refresh_in_flight = True
