@@ -2,7 +2,7 @@
 
 [Traditional Chinese](DEVELOPMENT.md) · English
 
-Everything you need to run usage from source, use the TUI / CLI, configure detected agents, and build a `.app`. If you just want to install and use it, the [README](../README.en.md) is enough.
+Everything you need to run usage from source, use the TUI / CLI, configure detected agents, and build a `.app`. If you just want to install and use it, the [README](../README.md) is enough.
 
 ## How it gets the data
 

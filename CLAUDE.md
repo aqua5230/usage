@@ -91,6 +91,6 @@ All user-visible strings in panels and UI **must** be looked up from `i18n.json`
 
 ### Release / changelog
 
-- This project is **fully bilingual**: every README / CHANGELOG / contributing doc has a `.md` (繁中) and `.en.md`. Any user-facing doc change must update both.
+- This project is **fully bilingual**: every CHANGELOG / contributing / development doc has a `.md` (繁中) and `.en.md`. Any user-facing doc change must update both. **Exception — README:** the default `README.md` is **English** (so the GitHub landing page is English for international visitors) and Traditional Chinese lives in `README.zh-TW.md`. The README pair is the inverse of every other doc; don't "fix" it back.
 - Version is bumped in `pyproject.toml`; CI builds `usage.app.zip` and attaches it on `v*` tags (`.github/workflows/release.yml`).
 - The `.app` build flow renames `dist/main.app` → `dist/usage.app` (see `scripts/build_app.sh`) — this is expected, not a bug.

@@ -2,7 +2,7 @@
 
 繁體中文 · [English](DEVELOPMENT.en.md)
 
-從原始碼執行 usage、跑 TUI / CLI、設定可偵測的 agent、打包 `.app` 的完整說明。一般使用者只想裝來用的話，看 [README](../README.md) 就夠了。
+從原始碼執行 usage、跑 TUI / CLI、設定可偵測的 agent、打包 `.app` 的完整說明。一般使用者只想裝來用的話，看 [README](../README.zh-TW.md) 就夠了。
 
 ## 它怎麼拿到你的用量數字
 
