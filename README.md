@@ -11,7 +11,7 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 
 <p align="center">
-  <img src="docs/popover.en.png" alt="usage popover" width="320">
+  <img src="docs/showcase.en.png" alt="usage — Claude Code &amp; Codex quota pinned to the macOS menu bar" width="820">
 </p>
 
 `usage` is a macOS menu bar tool that pins your **Claude Code and Codex** usage to the top-right of your screen. Click the icon for a popover showing Session, Weekly, per-project usage (today / 7-day / monthly), and today's token usage and cost estimate.
@@ -21,8 +21,8 @@ All numbers come from local files written by Claude Code and Codex — it **neve
 ## ✨ Features
 
 - **Menu bar usage monitor** — pins Claude Code and Codex quota to the top-right. Numbers share the bar color, so the warning level reads at a glance. Click for the full breakdown.
-- **Progress Concierge** — opening a new Claude Code session automatically hands your last progress to the AI, no re-explaining. Fully local, zero API, off by default. [Learn more](https://aqua5230.github.io/usage/#resume).
-- **Quota usage notifications** — a system notification when usage nears a threshold, runs out, or recovers, nudging you to wrap up. Fully local, zero API, off by default.
+- **Progress Concierge** — opening a new Claude Code session automatically hands your last progress to the AI, no re-explaining. Fully local, off by default. [Learn more](https://aqua5230.github.io/usage/#resume).
+- **Quota usage notifications** — a system notification when usage nears a threshold, runs out, or recovers, nudging you to wrap up. Fully local, off by default.
 - **9 visual panel themes** — from clean light cards to a World Cup broadcast HUD, switch with one click.
 - **HTML deep reports** — token and cost trends, per-project rankings, shareable with colleagues.
 - **5-language UI** — Traditional Chinese, Simplified Chinese, English, Japanese, Korean, auto-following the system language.

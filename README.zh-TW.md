@@ -11,7 +11,7 @@
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 
 <p align="center">
-  <img src="docs/popover.png" alt="usage popover 展開時的樣子" width="320">
+  <img src="docs/showcase.png" alt="usage — 把 Claude Code 與 Codex 的額度釘在 macOS 選單列" width="820">
 </p>
 
 `usage` 是一個 macOS menu bar（螢幕右上角的選單列）小工具，把 **Claude Code 跟 Codex** 的用量釘在你的螢幕右上角。點開可以看到 Session、Weekly、各專案用量（今日 / 7 日 / 月），以及今日 token 用量與成本估算。
@@ -21,8 +21,8 @@
 ## ✨ 主要功能
 
 - **選單列用量監看** —— Claude Code 與 Codex 的配額常駐右上角，數字跟進度條同色，掃一眼就知道警示級別。點開看更細。
-- **進度管家** —— 開新 Claude Code 對話自動接回上次進度，不用再重講一次。純本地、零 API，預設關閉。[詳見介紹](https://aqua5230.github.io/usage/#resume)。
-- **配額用量通知** —— 用量接近門檻、見底或恢復時，發一則系統通知提醒你收尾。純本地、零 API，預設關閉。
+- **進度管家** —— 開新 Claude Code 對話自動接回上次進度，不用再重講一次。純本地、預設關閉。[詳見介紹](https://aqua5230.github.io/usage/#resume)。
+- **配額用量通知** —— 用量接近門檻、見底或恢復時，發一則系統通知提醒你收尾。純本地、預設關閉。
 - **9 款視覺面板** —— 從簡潔白卡到世界盃轉播 HUD，一鍵切換主題。
 - **HTML 深度報告** —— token 與成本走勢、各專案排名，可一鍵分享給同事。
 - **5 語言介面** —— 繁中、簡中、英、日、韓，自動跟隨系統語言。
