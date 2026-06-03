@@ -50,7 +50,6 @@ if __name__ == "__main__":
             "assets/claude_color_menubar.png",
             "assets/codex.webp",
             "assets/codex_color_menubar.png",
-            "assets/usage_color_menubar.png",
             "assets/panels",
             "i18n.json",
             "pyproject.toml",
