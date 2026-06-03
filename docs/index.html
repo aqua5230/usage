@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
 <title>usage — pin your Claude Code &amp; Codex quota to the menu bar</title>
-<meta name="description" data-i18n-attr="content:meta_desc" content="macOS menu bar tracker for Claude Code &amp; Codex quota, tokens, and cost. Local-only — zero API calls. HTML reports, 9 visual themes, AGPL-3.0." />
+<meta name="description" data-i18n-attr="content:meta_desc" content="macOS menu bar tracker for Claude Code &amp; Codex quota, tokens, and cost. Reads your local files directly — never connects to Anthropic or OpenAI. HTML reports, 9 visual themes, AGPL-3.0." />
 <meta property="og:title" content="usage — pin your Claude Code & Codex quota to the menu bar" />
-<meta property="og:description" content="macOS menu bar tracker for Claude Code & Codex quota, tokens, and cost. Local-only — zero API calls." />
+<meta property="og:description" content="macOS menu bar tracker for Claude Code & Codex quota, tokens, and cost. Reads your local files directly — never connects to Anthropic or OpenAI." />
 <meta property="og:image" content="https://aqua5230.github.io/usage/logo.png" />
 <meta property="og:url" content="https://aqua5230.github.io/usage/" />
 <meta property="og:type" content="website" />
@@ -361,7 +361,7 @@ footer .kofi:hover { background: #ff7572; }
   <div class="wrap">
     <span class="eyebrow" data-i18n="eyebrow">macOS · open source · AGPL-3.0</span>
     <h1 data-i18n="h1">Pin your <span class="accent">Claude Code</span> &amp; <span class="accent">Codex</span><br>quota to the menu bar.</h1>
-    <p class="lead" data-i18n="lead">A tiny macOS menu bar app that shows how much of your AI quota is left — like a battery percentage for tokens. Reads local files only. Zero API calls.</p>
+    <p class="lead" data-i18n="lead">A tiny macOS menu bar app that shows how much of your AI quota is left — like a battery percentage for tokens. Reads your local files directly — never phones home to Anthropic or OpenAI.</p>
     <div class="cta">
       <a class="btn btn-primary" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="cta_download">↓ Download .app</a>
       <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener" data-i18n="cta_star">★ Star on GitHub</a>
@@ -374,7 +374,7 @@ footer .kofi:hover { background: #ff7572; }
 
 <div class="strip">
   <div class="wrap">
-    <div class="item"><span class="dot"></span><span data-i18n="strip_1"><strong>Zero API calls</strong> to Anthropic or OpenAI</span></div>
+    <div class="item"><span class="dot"></span><span data-i18n="strip_1"><strong>Reads your local files</strong> — never connects to Anthropic or OpenAI</span></div>
     <div class="item"><span class="dot"></span><span data-i18n="strip_2"><strong>Local-only</strong> — reads files on your disk</span></div>
     <div class="item"><span class="dot"></span><span data-i18n="strip_3"><strong>No telemetry</strong>, no accounts, no cloud</span></div>
   </div>
@@ -398,7 +398,7 @@ footer .kofi:hover { background: #ff7572; }
       <div class="card">
         <span class="icon">🔒</span>
         <h3 data-i18n="card3_h">Local-only by design</h3>
-        <p data-i18n="card3_p">Reads a status file written by an installed statusLine hook + Codex session JSONL logs. Never calls the Anthropic or OpenAI API. Doesn't touch your Keychain.</p>
+        <p data-i18n="card3_p">Reads a status file written by an installed statusLine hook + Codex session JSONL logs. Never connects to Anthropic or OpenAI to check usage. Doesn't touch your Keychain.</p>
       </div>
       <div class="card">
         <span class="icon">📊</span>
@@ -425,7 +425,7 @@ footer .kofi:hover { background: #ff7572; }
       <span class="eyebrow" data-i18n="resume_label">NEW</span>
     </div>
     <h2 data-i18n="resume_h2">Now your CLI picks up where you left off</h2>
-    <p class="subtitle" data-i18n="resume_lead">The web and desktop apps keep your history — close them, reopen, it's all there. The CLI didn't. Resume hands that power to the CLI: open a new session and it picks up where you left off automatically, no re-explaining. Local-only, zero API calls.</p>
+    <p class="subtitle" data-i18n="resume_lead">The web and desktop apps keep your history — close them, reopen, it's all there. The CLI didn't. Resume hands that power to the CLI: open a new session and it picks up where you left off automatically, no re-explaining. Reads local files only — never connects to any API.</p>
     <div class="shot">
       <img src="hero.png" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="Resume restoring your last session in the CLI" />
     </div>
@@ -433,7 +433,7 @@ footer .kofi:hover { background: #ff7572; }
   <div class="strip" style="margin-top: 40px;">
     <div class="wrap">
       <div class="item"><span class="dot"></span><strong data-i18n="resume_point1">Auto-resumes your last progress</strong></div>
-      <div class="item"><span class="dot"></span><strong data-i18n="resume_point2">Local-only, zero API</strong></div>
+      <div class="item"><span class="dot"></span><strong data-i18n="resume_point2">Reads local files only</strong></div>
       <div class="item"><span class="dot"></span><strong data-i18n="resume_point3">One menu toggle (off by default)</strong></div>
     </div>
   </div>
@@ -504,17 +504,17 @@ const T = {
   'en': {
     _label: 'EN',
     meta_title: 'usage — pin your Claude Code & Codex quota to the menu bar',
-    meta_desc: 'macOS menu bar tracker for Claude Code & Codex quota, tokens, and cost. Local-only — zero API calls. HTML reports, 9 visual themes, AGPL-3.0.',
+    meta_desc: 'macOS menu bar tracker for Claude Code & Codex quota, tokens, and cost. Reads your local files directly — never connects to Anthropic or OpenAI. HTML reports, 9 visual themes, AGPL-3.0.',
     nav_features: 'Features',
     nav_resume: 'Resume',
     nav_install: 'Install',
     nav_screenshots: 'Screenshots',
     eyebrow: 'macOS · open source · AGPL-3.0',
     h1: 'Pin your <span class="accent">Claude Code</span> &amp; <span class="accent">Codex</span><br>quota to the menu bar.',
-    lead: 'A tiny macOS menu bar app that shows how much of your AI quota is left — like a battery percentage for tokens. Reads local files only. Zero API calls.',
+    lead: 'A tiny macOS menu bar app that shows how much of your AI quota is left — like a battery percentage for tokens. Reads your local files directly — never phones home to Anthropic or OpenAI.',
     cta_download: '↓ Download .app',
     cta_star: '★ Star on GitHub',
-    strip_1: '<strong>Zero API calls</strong> to Anthropic or OpenAI',
+    strip_1: '<strong>Reads your local files</strong> — never connects to Anthropic or OpenAI',
     strip_2: '<strong>Local-only</strong> — reads files on your disk',
     strip_3: '<strong>No telemetry</strong>, no accounts, no cloud',
     features_h2: 'Built for developers who burn tokens.',
@@ -524,7 +524,7 @@ const T = {
     card2_h: 'Claude Code + Codex, one app',
     card2_p: 'Track Anthropic and OpenAI quota side by side. Codex auto-detected from <code>~/.codex/sessions/</code> with no setup.',
     card3_h: 'Local-only by design',
-    card3_p: "Reads a status file written by an installed statusLine hook + Codex session JSONL logs. Never calls the Anthropic or OpenAI API. Doesn't touch your Keychain.",
+    card3_p: "Reads a status file written by an installed statusLine hook + Codex session JSONL logs. Never connects to Anthropic or OpenAI to check usage. Doesn't touch your Keychain.",
     card4_h: 'One-click HTML reports',
     card4_p: 'Today, week, month, or all-time — get a shareable HTML report with token / cost trends, top projects, and model breakdown. Project names hide by default for client-safe sharing.',
     card5_h: '9 visual panel themes',
@@ -533,9 +533,9 @@ const T = {
     card6_p: 'Auto-detects your macOS language. Supports 繁體中文, 简体中文, English, 日本語, 한국어 — all strings translated, not just menus.',
     resume_label: 'NEW',
     resume_h2: 'Now your CLI picks up where you left off',
-    resume_lead: "The web and desktop apps keep your history — close them, reopen, it's all there. The CLI didn't. Resume hands that power to the CLI: open a new session and it picks up where you left off automatically, no re-explaining. Local-only, zero API calls.",
+    resume_lead: "The web and desktop apps keep your history — close them, reopen, it's all there. The CLI didn't. Resume hands that power to the CLI: open a new session and it picks up where you left off automatically, no re-explaining. Reads local files only — never connects to any API.",
     resume_point1: 'Auto-resumes your last progress',
-    resume_point2: 'Local-only, zero API',
+    resume_point2: 'Reads local files only',
     resume_point3: 'One menu toggle (off by default)',
     resume_img_alt: 'Resume restoring your last session in the CLI',
     mascot_alt: 'The usage butler cat, your progress concierge',
@@ -562,17 +562,17 @@ const T = {
   'zh-TW': {
     _label: '繁中',
     meta_title: 'usage — 把 Claude Code 和 Codex 的用量釘在 menu bar',
-    meta_desc: 'macOS menu bar 工具，監控 Claude Code 和 Codex 的配額、token 用量與成本。本地讀取、零 API 呼叫。HTML 報告、9 款主題、AGPL-3.0。',
+    meta_desc: 'macOS menu bar 工具，監控 Claude Code 和 Codex 的配額、token 用量與成本。直接讀本機紀錄，不連到 Anthropic 或 OpenAI。HTML 報告、9 款主題、AGPL-3.0。',
     nav_features: '功能',
     nav_resume: '進度管家',
     nav_install: '安裝',
     nav_screenshots: '截圖',
     eyebrow: 'macOS · 開源 · AGPL-3.0',
     h1: '把 <span class="accent">Claude Code</span> 和 <span class="accent">Codex</span><br>的用量釘在 menu bar。',
-    lead: '一個迷你的 macOS menu bar 小工具，把你 AI 配額剩多少顯示在螢幕右上角——像電池百分比一樣直觀。本地讀取，零 API 呼叫。',
+    lead: '一個迷你的 macOS menu bar 小工具，把你 AI 配額剩多少顯示在螢幕右上角——像電池百分比一樣直觀。直接讀本機紀錄，不連到服務端查用量。',
     cta_download: '↓ 下載 .app',
     cta_star: '★ 給個星星',
-    strip_1: '<strong>零 API 呼叫</strong>，不連 Anthropic 或 OpenAI',
+    strip_1: '<strong>直接讀本機紀錄</strong>，不連 Anthropic 或 OpenAI 查用量',
     strip_2: '<strong>本地讀取</strong>——只看你磁碟上的檔案',
     strip_3: '<strong>無遙測</strong>、無帳號、無雲端',
     features_h2: '為燒 token 的開發者打造。',
@@ -582,7 +582,7 @@ const T = {
     card2_h: 'Claude Code + Codex 一個 app 搞定',
     card2_p: 'Anthropic 跟 OpenAI 的配額並排顯示。Codex 從 <code>~/.codex/sessions/</code> 自動偵測，不需設定。',
     card3_h: '天生本地優先',
-    card3_p: '讀取已安裝 statusLine hook 寫入的狀態檔，加上 Codex session JSONL log。永不呼叫 Anthropic 或 OpenAI API，也不碰 Keychain。',
+    card3_p: '讀取已安裝 statusLine hook 寫入的狀態檔，加上 Codex session JSONL log。不連到 Anthropic 或 OpenAI 查用量，也不碰 Keychain。',
     card4_h: '一鍵 HTML 報告',
     card4_p: '今日、本週、本月或全部——產出可分享的 HTML 報告，內含 token / 成本走勢、各專案排行與模型分布。預設隱藏專案名稱，安全分享給客戶。',
     card5_h: '9 款視覺面板主題',
@@ -591,9 +591,9 @@ const T = {
     card6_p: '自動偵測 macOS 系統語言。支援繁體中文、简体中文、English、日本語、한국어——每一條訊息都翻譯。',
     resume_label: '新功能',
     resume_h2: '讓你的 CLI 也接得回上次',
-    resume_lead: '網頁版、桌面 App 關掉再打開，對話都還在；只有 CLI 關掉就沒了。進度管家把這個能力補給 CLI——開新對話時自動接回你上次做到哪，不用再重講一次。純本地、不打任何 API。',
+    resume_lead: '網頁版、桌面 App 關掉再打開，對話都還在；只有 CLI 關掉就沒了。進度管家把這個能力補給 CLI——開新對話時自動接回你上次做到哪，不用再重講一次。只讀本機紀錄，不連到服務端。',
     resume_point1: '自動接回上次進度',
-    resume_point2: '純本地、零 API',
+    resume_point2: '只讀本機紀錄',
     resume_point3: '選單一鍵開關（預設關）',
     resume_img_alt: '進度管家把上次進度接回 CLI 的示意',
     mascot_alt: 'usage 管家貓，你的進度管家',
@@ -620,17 +620,17 @@ const T = {
   'zh-CN': {
     _label: '简中',
     meta_title: 'usage — 把 Claude Code 和 Codex 的用量钉在 menu bar',
-    meta_desc: 'macOS menu bar 工具，监控 Claude Code 和 Codex 的额度、token 用量与花费。本地读取、零 API 调用。HTML 报告、9 款主题、AGPL-3.0。',
+    meta_desc: 'macOS menu bar 工具，监控 Claude Code 和 Codex 的额度、token 用量与花费。直接读本机记录，不连到 Anthropic 或 OpenAI。HTML 报告、9 款主题、AGPL-3.0。',
     nav_features: '功能',
     nav_resume: '进度管家',
     nav_install: '安装',
     nav_screenshots: '截图',
     eyebrow: 'macOS · 开源 · AGPL-3.0',
     h1: '把 <span class="accent">Claude Code</span> 和 <span class="accent">Codex</span><br>的用量钉在 menu bar。',
-    lead: '一个迷你的 macOS menu bar 小工具，把你 AI 额度剩多少显示在屏幕右上角——像电池百分比一样直观。本地读取，零 API 调用。',
+    lead: '一个迷你的 macOS menu bar 小工具，把你 AI 额度剩多少显示在屏幕右上角——像电池百分比一样直观。直接读本机记录，不连到服务端查用量。',
     cta_download: '↓ 下载 .app',
     cta_star: '★ 给个星星',
-    strip_1: '<strong>零 API 调用</strong>，不连 Anthropic 或 OpenAI',
+    strip_1: '<strong>直接读本机记录</strong>，不连 Anthropic 或 OpenAI 查用量',
     strip_2: '<strong>本地读取</strong>——只看你磁盘上的文件',
     strip_3: '<strong>无遥测</strong>、无账号、无云端',
     features_h2: '为烧 token 的开发者打造。',
@@ -640,7 +640,7 @@ const T = {
     card2_h: 'Claude Code + Codex 一个 app 搞定',
     card2_p: 'Anthropic 跟 OpenAI 的额度并排显示。Codex 从 <code>~/.codex/sessions/</code> 自动检测，无需配置。',
     card3_h: '天生本地优先',
-    card3_p: '读取已安装 statusLine hook 写入的状态文件，加上 Codex session JSONL log。绝不调用 Anthropic 或 OpenAI API，也不读 Keychain。',
+    card3_p: '读取已安装 statusLine hook 写入的状态文件，加上 Codex session JSONL log。不连到 Anthropic 或 OpenAI 查用量，也不读 Keychain。',
     card4_h: '一键 HTML 报告',
     card4_p: '今日、本周、本月或全部——生成可分享的 HTML 报告，内含 token / 花费趋势、项目排行与模型分布。默认隐藏项目名称，安全分享给客户。',
     card5_h: '9 款视觉面板主题',
@@ -649,9 +649,9 @@ const T = {
     card6_p: '自动检测 macOS 系统语言。支持繁體中文、简体中文、English、日本語、한국어——每条消息都有翻译。',
     resume_label: '新功能',
     resume_h2: '让你的 CLI 也接得回上次',
-    resume_lead: '网页版、桌面 App 关掉再打开，对话都还在；只有 CLI 关掉就没了。进度管家把这个能力补给 CLI——开新对话时自动接回你上次做到哪，不用再重讲一次。纯本地、不打任何 API。',
+    resume_lead: '网页版、桌面 App 关掉再打开，对话都还在；只有 CLI 关掉就没了。进度管家把这个能力补给 CLI——开新对话时自动接回你上次做到哪，不用再重讲一次。只读本机记录，不连到服务端。',
     resume_point1: '自动接回上次进度',
-    resume_point2: '纯本地、零 API',
+    resume_point2: '只读本机记录',
     resume_point3: '菜单一键开关（默认关）',
     resume_img_alt: '进度管家把上次进度接回 CLI 的示意',
     mascot_alt: 'usage 管家猫，你的进度管家',
@@ -678,17 +678,17 @@ const T = {
   'ja': {
     _label: '日本語',
     meta_title: 'usage — Claude Code と Codex のクォータをメニューバーに固定',
-    meta_desc: 'macOS メニューバーで Claude Code と Codex のクォータ、トークン使用量、コストを監視。ローカル読み取りのみ・ゼロ API コール。HTML レポート、9 種テーマ、AGPL-3.0。',
+    meta_desc: 'macOS メニューバーで Claude Code と Codex のクォータ、トークン使用量、コストを監視。ローカルの記録を直接読み取り、Anthropic や OpenAI には接続しません。HTML レポート、9 種テーマ、AGPL-3.0。',
     nav_features: '機能',
     nav_resume: '続きから',
     nav_install: 'インストール',
     nav_screenshots: 'スクリーンショット',
     eyebrow: 'macOS · オープンソース · AGPL-3.0',
     h1: '<span class="accent">Claude Code</span> と <span class="accent">Codex</span> の<br>クォータをメニューバーに。',
-    lead: 'AI クォータの残量を画面右上に常に表示する、小さな macOS メニューバーアプリ。バッテリー残量のようにひと目で分かります。ローカルファイルのみ読み取り、API コールはゼロ。',
+    lead: 'AI クォータの残量を画面右上に常に表示する、小さな macOS メニューバーアプリ。バッテリー残量のようにひと目で分かります。ローカルの記録を直接読み取り、Anthropic や OpenAI には接続しません。',
     cta_download: '↓ .app をダウンロード',
     cta_star: '★ GitHub でスター',
-    strip_1: 'Anthropic や OpenAI への<strong>ゼロ API コール</strong>',
+    strip_1: '<strong>ローカルの記録を直接読み取り</strong>、Anthropic や OpenAI には接続しない',
     strip_2: '<strong>ローカル読み取り</strong>のみ — ディスク上のファイルだけ',
     strip_3: '<strong>テレメトリなし</strong>、アカウント不要、クラウド不要',
     features_h2: 'トークンを燃やす開発者のために。',
@@ -698,7 +698,7 @@ const T = {
     card2_h: 'Claude Code + Codex、1 つのアプリで',
     card2_p: 'Anthropic と OpenAI のクォータを並べて追跡。Codex は <code>~/.codex/sessions/</code> から設定不要で自動検出。',
     card3_h: '設計から本当にローカルのみ',
-    card3_p: '導入された statusLine hook が書き込むステータスファイルと Codex セッション JSONL ログを読みます。Anthropic / OpenAI API は一切呼ばず、Keychain も触りません。',
+    card3_p: '導入された statusLine hook が書き込むステータスファイルと Codex セッション JSONL ログを読みます。使用状況の確認に Anthropic / OpenAI へ接続せず、Keychain も触りません。',
     card4_h: 'ワンクリック HTML レポート',
     card4_p: '今日・週・月・全期間で、トークン / コスト推移、トッププロジェクト、モデル分布を含む共有可能な HTML レポートを生成。プロジェクト名はデフォルトで非表示。',
     card5_h: '9 種のビジュアルパネル',
@@ -707,9 +707,9 @@ const T = {
     card6_p: 'macOS のシステム言語を自動検出。繁體中文 / 简体中文 / English / 日本語 / 한국어 をサポート — メニューだけでなくすべての文字列を翻訳。',
     resume_label: 'NEW',
     resume_h2: 'CLI でも前回の続きから',
-    resume_lead: 'ウェブ版もデスクトップアプリも、閉じて開き直せば会話履歴はそのまま。でも CLI は閉じたら終わり。その機能を CLI に。新しいセッションを開くと前回の続きを自動で引き継ぎ、説明し直す必要はありません。完全ローカル、API 呼び出しゼロ。',
+    resume_lead: 'ウェブ版もデスクトップアプリも、閉じて開き直せば会話履歴はそのまま。でも CLI は閉じたら終わり。その機能を CLI に。新しいセッションを開くと前回の続きを自動で引き継ぎ、説明し直す必要はありません。ローカルの記録だけを読み、サーバーには接続しません。',
     resume_point1: '前回の進捗を自動で引き継ぎ',
-    resume_point2: '完全ローカル・API ゼロ',
+    resume_point2: 'ローカルの記録だけを読む',
     resume_point3: 'メニューのスイッチ一つ（初期はオフ）',
     resume_img_alt: '前回の続きを CLI に引き継ぐ様子',
     mascot_alt: 'usage の執事ネコ、あなたの進捗コンシェルジュ',
@@ -736,17 +736,17 @@ const T = {
   'ko': {
     _label: '한국어',
     meta_title: 'usage — Claude Code와 Codex의 한도를 메뉴 바에 고정',
-    meta_desc: 'macOS 메뉴 바에서 Claude Code와 Codex의 한도, 토큰 사용량, 비용을 모니터링. 로컬 전용 · API 호출 제로. HTML 보고서, 9가지 테마, AGPL-3.0.',
+    meta_desc: 'macOS 메뉴 바에서 Claude Code와 Codex의 한도, 토큰 사용량, 비용을 모니터링. 로컬 기록을 직접 읽고 Anthropic이나 OpenAI에 연결하지 않음. HTML 보고서, 9가지 테마, AGPL-3.0.',
     nav_features: '기능',
     nav_resume: '이어하기',
     nav_install: '설치',
     nav_screenshots: '스크린샷',
     eyebrow: 'macOS · 오픈소스 · AGPL-3.0',
     h1: '<span class="accent">Claude Code</span>와 <span class="accent">Codex</span>의<br>한도를 메뉴 바에 고정.',
-    lead: 'AI 한도가 얼마나 남았는지 화면 오른쪽 상단에 표시하는 작은 macOS 메뉴 바 앱. 배터리 퍼센트처럼 한눈에 확인. 로컬 파일만 읽고 API 호출은 0.',
+    lead: 'AI 한도가 얼마나 남았는지 화면 오른쪽 상단에 표시하는 작은 macOS 메뉴 바 앱. 배터리 퍼센트처럼 한눈에 확인. 로컬 기록을 직접 읽고 Anthropic이나 OpenAI에 연결하지 않아요.',
     cta_download: '↓ .app 다운로드',
     cta_star: '★ GitHub에서 스타',
-    strip_1: 'Anthropic이나 OpenAI에 <strong>API 호출 0</strong>',
+    strip_1: '<strong>로컬 기록을 직접 읽고</strong> Anthropic이나 OpenAI에 연결 안 함',
     strip_2: '<strong>로컬 전용</strong> — 디스크 파일만 읽음',
     strip_3: '<strong>텔레메트리 없음</strong>, 계정 없음, 클라우드 없음',
     features_h2: '토큰 태우는 개발자를 위한 도구.',
@@ -756,7 +756,7 @@ const T = {
     card2_h: 'Claude Code + Codex, 한 앱에서',
     card2_p: 'Anthropic과 OpenAI 한도를 나란히 추적. Codex는 <code>~/.codex/sessions/</code>에서 설정 없이 자동 감지.',
     card3_h: '설계상 로컬 전용',
-    card3_p: '설치된 statusLine 훅이 쓴 상태 파일과 Codex 세션 JSONL 로그를 읽습니다. Anthropic이나 OpenAI API는 절대 호출하지 않고 Keychain도 건드리지 않습니다.',
+    card3_p: '설치된 statusLine 훅이 쓴 상태 파일과 Codex 세션 JSONL 로그를 읽습니다. 사용량 확인을 위해 Anthropic이나 OpenAI에 연결하지 않고 Keychain도 건드리지 않습니다.',
     card4_h: '원클릭 HTML 보고서',
     card4_p: '오늘, 주간, 월간, 전체 기간 — 토큰/비용 추세, 상위 프로젝트, 모델 분포가 포함된 공유 가능한 HTML 보고서. 프로젝트 이름은 기본 숨김 처리됩니다.',
     card5_h: '9가지 시각 패널 테마',
@@ -765,9 +765,9 @@ const T = {
     card6_p: 'macOS 시스템 언어를 자동 감지. 繁體中文 / 简体中文 / English / 日本語 / 한국어 지원 — 메뉴뿐만 아니라 모든 문구가 번역되어 있습니다.',
     resume_label: 'NEW',
     resume_h2: '이제 CLI도 이어서',
-    resume_lead: '웹과 데스크톱 앱은 닫았다 열어도 대화 기록이 그대로 남아요. CLI만 닫으면 끝이었죠. 그 기능을 CLI에도. 새 세션을 열면 지난 작업을 자동으로 불러와 다시 설명할 필요가 없어요. 완전 로컬, API 호출 제로.',
+    resume_lead: '웹과 데스크톱 앱은 닫았다 열어도 대화 기록이 그대로 남아요. CLI만 닫으면 끝이었죠. 그 기능을 CLI에도. 새 세션을 열면 지난 작업을 자동으로 불러와 다시 설명할 필요가 없어요. 로컬 기록만 읽고 서버에 연결하지 않아요.',
     resume_point1: '지난 진행을 자동으로 불러오기',
-    resume_point2: '완전 로컬, API 제로',
+    resume_point2: '로컬 기록만 읽음',
     resume_point3: '메뉴 스위치 하나 (기본 꺼짐)',
     resume_img_alt: '지난 작업을 CLI로 이어주는 모습',
     mascot_alt: 'usage 집사 고양이, 당신의 진행 관리자',
