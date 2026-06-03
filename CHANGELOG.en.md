@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.15.6] - 2026-06-03
+
+### Changed
+- **New cyberpunk-cat app icon**: replaces the teal-paw placeholder with the real usage icon (a cyberpunk-style cat). It ships with the `.app` starting this release, so the new icon shows in the Dock / Finder / menu bar after install.
+- **README onboarding improvements**: (1) a top-level Quick Start that lifts the one-line Homebrew install up to where you can copy-paste it without scrolling; (2) a Star History chart at the bottom.
+
 ## [0.15.5] - 2026-06-03
 
 ### Changed

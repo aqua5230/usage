@@ -22,6 +22,14 @@
 
 用量數字全部來自 Claude Code 跟 Codex 在你本機留下的檔案——**不呼叫 Anthropic / OpenAI 的 API、不讀 Keychain（macOS 內建的密碼保險箱）**，所以不會發生「自己每分鐘 ping 一次也算用量」這種事。
 
+## 🚀 快速上手
+
+```bash
+brew install aqua5230/homebrew-usage/usage
+```
+
+接著把 `usage.app` 拖進「應用程式」→ 右鍵「打開」一次（讓 Gatekeeper 放行）→ 點選單列圖示。想用直接下載、或想看完整細節？見下方 [安裝](#-安裝)。
+
 ## ✨ 主要功能
 
 - **選單列用量監看** —— Claude Code 與 Codex 的配額常駐右上角，數字跟進度條同色，掃一眼就知道警示級別。點開看更細。
@@ -44,9 +52,7 @@
 
 ## 📦 安裝
 
-兩種安裝方式，挑一個順手的用，步驟都在下面。
-
-**最快上手：**`brew install aqua5230/homebrew-usage/usage` → 把 `usage.app` 拖進「應用程式」→ 右鍵「打開」→ 點選單列圖示。
+兩種安裝方式，挑一個順手的用，步驟都在下面。（趕時間？一行 Homebrew 安裝在上方 [快速上手](#-快速上手)。）
 
 ### 下載現成 App
 
@@ -144,6 +150,12 @@ ln -s $(brew --prefix)/Cellar/usage/$(brew list --versions usage | awk '{print $
 ## 授權
 
 採用 AGPL-3.0-only（見頂部 badge 與 [LICENSE](LICENSE)）。若 fork 或發佈衍生版本，請標注原作者與專案連結：https://github.com/aqua5230/usage
+
+## Star 成長
+
+<a href="https://star-history.com/#aqua5230/usage&Date">
+  <img src="https://api.star-history.com/svg?repos=aqua5230/usage&type=Date" alt="usage Star History Chart" width="600">
+</a>
 
 ## 支持這個專案
 

@@ -22,6 +22,14 @@
 
 All numbers come from local files written by Claude Code and Codex — it **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, so it avoids the observer effect of "pinging once a minute counts as usage."
 
+## 🚀 Quick Start
+
+```bash
+brew install aqua5230/homebrew-usage/usage
+```
+
+Then drag `usage.app` to Applications → right-click **Open** once (to pass Gatekeeper) → click the menu bar icons. Prefer a direct download, or want every detail? See [Install](#-install) below.
+
 ## ✨ Features
 
 - **Menu bar usage monitor** — pins Claude Code and Codex quota to the top-right. Numbers share the bar color, so the warning level reads at a glance. Click for the full breakdown.
@@ -44,9 +52,7 @@ All numbers come from local files written by Claude Code and Codex — it **neve
 
 ## 📦 Install
 
-Two ways to install — pick whichever suits you. Steps for both are below.
-
-**Fastest path:** `brew install aqua5230/homebrew-usage/usage` → move `usage.app` to Applications → right-click **Open** → click the menu bar icons.
+Two ways to install — pick whichever suits you. Steps for both are below. (In a hurry? The one-line Homebrew install is in [Quick Start](#-quick-start) above.)
 
 ### Download the app
 
@@ -145,6 +151,12 @@ To run from source, use the TUI / CLI reports, configure detected agents, or bui
 
 Licensed under AGPL-3.0-only (see the badge at the top and [LICENSE](LICENSE)). If you fork or redistribute a modified version, please credit the original author and link to:
 https://github.com/aqua5230/usage
+
+## Star History
+
+<a href="https://star-history.com/#aqua5230/usage&Date">
+  <img src="https://api.star-history.com/svg?repos=aqua5230/usage&type=Date" alt="usage Star History Chart" width="600">
+</a>
 
 ## Support
 
