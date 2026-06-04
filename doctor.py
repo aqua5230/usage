@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import os
 import shlex
+import sqlite3
 import tomllib
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -28,7 +29,10 @@ def render() -> str:
         "self-heal log (last 5):",
         *_self_heal_log_lines(),
         SEPARATOR,
-        f"codex sessions:    {_field(_codex_sessions)}",
+        f"codex jsonl:       {_field(_codex_sessions)}",
+        f"codex logs:        {_field(_codex_logs)}",
+        f"codex state:       {_field(_codex_state)}",
+        f"codex rate limits: {_field(_codex_rate_limits)}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -133,11 +137,70 @@ def _codex_sessions() -> str:
 
     sessions_dir = codex_loader.SESSIONS_DIR
     if not sessions_dir.is_dir():
-        return "0 files scanned, ok"
+        return "0 files, missing sessions dir"
     count = 0
-    for _ in sessions_dir.rglob("*.jsonl"):
+    newest_mtime = 0.0
+    for path in sessions_dir.rglob("*.jsonl"):
         count += 1
-    return f"{count} files scanned, ok"
+        try:
+            newest_mtime = max(newest_mtime, path.stat().st_mtime)
+        except OSError:
+            continue
+    if newest_mtime <= 0:
+        return f"{count} files, no readable mtimes"
+    return f"{count} files, latest wrote {_ago(newest_mtime)} ago"
+
+
+def _codex_logs() -> str:
+    import codex_loader
+
+    logs_db = codex_loader.LOGS_DB
+    if not logs_db.exists():
+        return f"{_display_path(logs_db)}  [missing], rate_limit rows: 0"
+    rows = _codex_rate_limit_log_count(logs_db)
+    return f"{_display_path(logs_db)}  [ok], rate_limit rows: {rows}"
+
+
+def _codex_rate_limit_log_count(logs_db: Path) -> int:
+    query = (
+        "SELECT count(*) FROM logs "
+        "WHERE feedback_log_body LIKE '%codex.rate_limits%' "
+        "OR feedback_log_body LIKE '%usage_limit_reached%'"
+    )
+    with sqlite3.connect(f"file:{logs_db}?mode=ro", uri=True) as conn:
+        value = conn.execute(query).fetchone()[0]
+    return int(value)
+
+
+def _codex_state() -> str:
+    import codex_loader
+
+    state_db = codex_loader.STATE_DB
+    status = "ok" if state_db.exists() else "missing"
+    return f"{_display_path(state_db)}  [{status}]"
+
+
+def _codex_rate_limits() -> str:
+    import codex_loader
+
+    rate_limits = codex_loader.load_rate_limits()
+    if rate_limits is None:
+        return "none"
+    five = "yes" if rate_limits.five_hour_pct is not None else "no"
+    weekly = "yes" if rate_limits.seven_day_pct is not None else "no"
+    updated = _rate_limits_updated_age(rate_limits.updated_at)
+    return f"5h: {five}, weekly: {weekly}, updated: {updated}"
+
+
+def _rate_limits_updated_age(updated_at: str) -> str:
+    if not updated_at:
+        return "unknown"
+    timestamp = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=UTC)
+    else:
+        timestamp = timestamp.astimezone(UTC)
+    return f"{_ago(timestamp.timestamp())} ago"
 
 
 def _external_keyword(command: str) -> str | None:
