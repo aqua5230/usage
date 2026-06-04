@@ -7,6 +7,15 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.15.7] - 2026-06-04
+
+### Fixed
+- **Menu bar no longer blanks out when a refresh fails (#27)**: follow-up to #25. Local project usage / today's stats / the status line are now loaded *before* the remote quota fetch, and preserved when that fetch fails, so the view no longer flashes empty. Alert (NSAlert) creation or icon-setup failures now fall back to a safe no-op instead of interrupting the menu bar update.
+- **Project Usage "30d" report aligns with a rolling 30 days (#28)**: generating a report from the menu bar's "30d" Project Usage range previously mapped to "this month" (1st of the month to today), which didn't match the labeled rolling 30-day range. It now maps to the report pipeline's `last30` (the last 30 days).
+
+### Docs
+- Landing page theme showcase refreshed, feature icons and hero banner updated, and a panel gallery added to the READMEs.
+
 ## [0.15.6] - 2026-06-03
 
 ### Changed
