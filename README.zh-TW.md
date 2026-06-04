@@ -129,12 +129,12 @@ ln -s $(brew --prefix)/Cellar/usage/$(brew list --versions usage | awk '{print $
 點開的彈窗內建 **9 款可切換的視覺主題**——從簡潔白卡，到 Matrix 數位雨、Windows 95 視窗、世界盃轉播 HUD：
 
 <p align="center">
-  <img src="docs/classic.png" width="32%" alt="經典主題" />
   <img src="docs/matrix.png" width="32%" alt="Matrix 主題" />
   <img src="docs/win95.png" width="32%" alt="Windows 95 主題" />
   <img src="docs/world_cup.png" width="32%" alt="世界盃 HUD 主題" />
   <img src="docs/newspaper.png" width="32%" alt="復古報紙主題" />
   <img src="docs/aquarium.png" width="32%" alt="深夜水族箱主題" />
+  <img src="docs/black_hole.png" width="32%" alt="黑洞主題" />
 </p>
 
 9 款全貌見[官方介紹頁](https://aqua5230.github.io/usage/#screenshots)。

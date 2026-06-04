@@ -129,12 +129,12 @@ Table didn't solve it? If it's clearly a bug, open an [Issue](https://github.com
 The click-to-open popover ships with **9 switchable visual themes** — from a clean classic card to Matrix digital rain, a Windows 95 window, or a World Cup broadcast HUD:
 
 <p align="center">
-  <img src="docs/classic.en.png" width="32%" alt="Classic theme" />
   <img src="docs/matrix.en.png" width="32%" alt="Matrix theme" />
   <img src="docs/win95.en.png" width="32%" alt="Windows 95 theme" />
   <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD theme" />
   <img src="docs/newspaper.en.png" width="32%" alt="Newspaper theme" />
   <img src="docs/aquarium.en.png" width="32%" alt="Aquarium theme" />
+  <img src="docs/black_hole.en.png" width="32%" alt="Black Hole theme" />
 </p>
 
 See all nine on the [landing page](https://aqua5230.github.io/usage/#screenshots).
