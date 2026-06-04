@@ -1391,6 +1391,88 @@ def test_refresh_error_preserves_codex_quota() -> None:
     assert result["codex_model"] == "gpt-test"
 
 
+def test_refresh_error_preserves_project_usage() -> None:
+    captured: dict[str, object] = {}
+    session = menubar_state.QuotaRowState(
+        title="Session",
+        percent=1.0,
+        percent_text="1% used",
+        reset_text="Resets in 4h",
+        color=menubar.CODEX_COLOR,
+    )
+    weekly = menubar_state.QuotaRowState(
+        title="Weekly",
+        percent=37.0,
+        percent_text="37% used",
+        reset_text="Resets in 5d",
+        color=menubar.CODEX_COLOR,
+    )
+    entries = [
+        history_loader.UsageEntry(
+            timestamp=datetime.now(tz=UTC),
+            session_id="session",
+            message_id="message",
+            request_id="request",
+            model="gpt-5-codex",
+            input_tokens=100,
+            output_tokens=50,
+            cache_creation_tokens=10,
+            cache_read_tokens=5,
+            cost_usd=0.01,
+            project="Eric-Tools",
+        )
+    ]
+
+    class Delegate:
+        mock = False
+        language = "en"
+        latest_state = menubar._empty_state(language="en")
+
+        def _load_codex_refresh_result(self) -> dict[str, object]:
+            return {
+                "codex_rows": (session, weekly),
+                "codex_5h_pct": 1.0,
+                "codex_model": "gpt-test",
+                "codex_stale": None,
+            }
+
+        def _load_history_entries(self) -> list[history_loader.UsageEntry]:
+            return entries
+
+        def _project_rows(
+            self,
+            hours_back: int = 24,
+            entries: list[history_loader.UsageEntry] | None = None,
+        ) -> list[tuple[str, int, float | None]]:
+            return menubar.AppDelegate._project_rows(
+                cast(Any, self),
+                hours_back=hours_back,
+                entries=entries,
+            )
+
+        def performSelectorOnMainThread_withObject_waitUntilDone_(
+            self, selector: str, result: dict[str, object], wait: bool
+        ) -> None:
+            captured["selector"] = selector
+            captured["result"] = result
+            captured["wait"] = wait
+
+        async def _fetch(self) -> PollOutcome:
+            raise RuntimeError("fetch failed")
+
+    menubar.AppDelegate._refresh_in_background(cast(Any, Delegate()))
+
+    result = captured["result"]
+    assert isinstance(result, dict)
+    state = result["state"]
+    assert isinstance(state, menubar_state.PopoverState)
+    assert state.projects == [("Eric-Tools", 165, 0.01)]
+    assert state.projects_7d == [("Eric-Tools", 165, 0.01)]
+    assert state.projects_30d == [("Eric-Tools", 165, 0.01)]
+    assert state.projects_all == [("Eric-Tools", 165, 0.01)]
+    assert "165 tokens" in state.today_text
+
+
 def test_refresh_now_queues_when_refresh_is_busy() -> None:
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
     delegate._refresh_in_flight = True
