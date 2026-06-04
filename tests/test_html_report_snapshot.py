@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import os
+import time
+from collections.abc import Iterator
 from datetime import UTC, date, datetime, tzinfo
 from pathlib import Path
 from typing import Any
@@ -26,10 +29,25 @@ class _FixedDateTime:
 
 
 @pytest.fixture(autouse=True)
-def _pin_nondeterministic_report_values(monkeypatch: pytest.MonkeyPatch) -> None:
+def _pin_nondeterministic_report_values(
+    monkeypatch: pytest.MonkeyPatch,
+) -> Iterator[None]:
     monkeypatch.setattr(tips_loader, "date", _FixedTipDate)
     monkeypatch.setattr(html_report, "datetime", _FixedDateTime)
     monkeypatch.setattr(html_report, "_version", lambda: "0.15.8")
+    # generate_html renders the local timezone abbreviation via %Z, which varies
+    # by machine (CST locally, UTC on CI). Pin it so the golden is portable.
+    original_tz = os.environ.get("TZ")
+    os.environ["TZ"] = "UTC"
+    time.tzset()
+    try:
+        yield
+    finally:
+        if original_tz is None:
+            os.environ.pop("TZ", None)
+        else:
+            os.environ["TZ"] = original_tz
+        time.tzset()
 
 
 def _full_report_data() -> dict[str, Any]:
