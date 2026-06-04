@@ -200,6 +200,23 @@ _CODEX_MENUBAR_ICON: Any = None
 _CODEX_MENUBAR_ICON_LOADED = False
 
 
+class _NoopAlert:
+    def setIcon_(self, icon: Any) -> None:
+        return
+
+    def setMessageText_(self, text: str) -> None:
+        return
+
+    def setInformativeText_(self, text: str) -> None:
+        return
+
+    def addButtonWithTitle_(self, title: str) -> None:
+        return
+
+    def runModal(self) -> int:
+        return 0
+
+
 def _alert_icon() -> Any:
     # NSAlert defaults to the application icon, which from source (and for an
     # accessory app with no Dock presence) is py2app's / Python's rocket. Setting
@@ -259,10 +276,23 @@ def _menubar_icon_attachment_string(image: Any) -> Any:
 
 
 def _make_alert() -> Any:
-    alert = NSAlert.alloc().init()
+    try:
+        alert = NSAlert.alloc().init()
+    except Exception:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("create alert failed", exc_info=True)
+        return _NoopAlert()
+    if alert is None:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("create alert returned None")
+        return _NoopAlert()
     icon = _alert_icon()
     if icon is not None:
-        alert.setIcon_(icon)
+        try:
+            alert.setIcon_(icon)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("set alert icon failed", exc_info=True)
     return alert
 
 
@@ -865,12 +895,15 @@ class AppDelegate(NSObject):
                 codex_result,
                 False,
             )
+            fallback_state = getattr(self, "latest_state", _empty_state(self.language))
+            project_rows = list(fallback_state.projects)
+            project_rows_7d = list(fallback_state.projects_7d)
+            project_rows_30d = list(fallback_state.projects_30d)
+            project_rows_all = list(fallback_state.projects_all)
+            today_text = fallback_state.today_text
+            statusline = fallback_state.statusline
+            hide_codex = fallback_state.hide_codex
             try:
-                outcome = asyncio.run(self._fetch())
-                codex_rows = codex_result["codex_rows"]
-                codex_5h_pct = codex_result["codex_5h_pct"]
-                codex_model = codex_result.get("codex_model", "unknown")
-                codex_stale = codex_result.get("codex_stale")
                 all_entries = self._load_history_entries()
                 project_rows = self._project_rows(hours_back=24, entries=all_entries)
                 project_rows_7d = self._project_rows(hours_back=168, entries=all_entries)
@@ -878,10 +911,19 @@ class AppDelegate(NSObject):
                 project_rows_all = self._project_rows(hours_back=0, entries=all_entries)
                 today_text = _today_title(self.mock, self.language, entries=all_entries)
                 statusline = _statusline_payload(self.language)
+                hide_codex = _hide_codex_enabled()
+            except Exception:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning("local usage refresh failed", exc_info=True)
+            try:
+                outcome = asyncio.run(self._fetch())
+                codex_rows = codex_result["codex_rows"]
+                codex_5h_pct = codex_result["codex_5h_pct"]
+                codex_model = codex_result.get("codex_model", "unknown")
+                codex_stale = codex_result.get("codex_stale")
                 show_install_button = (
                     outcome.state == PollState.TOKEN_ERROR and self._statusline_setup_available()
                 )
-                hide_codex = _hide_codex_enabled()
                 group = self.tracker.group()
                 state = menubar_state.build_popover_state(
                     outcome=outcome,
@@ -909,6 +951,13 @@ class AppDelegate(NSObject):
                 state.codex_session = codex_rows[0]
                 state.codex_weekly = codex_rows[1]
                 state.codex_stale = codex_result.get("codex_stale")
+                state.projects = project_rows
+                state.projects_7d = project_rows_7d
+                state.projects_30d = project_rows_30d
+                state.projects_all = project_rows_all
+                state.today_text = today_text
+                state.statusline = statusline
+                state.hide_codex = hide_codex
 
             result = {"state": state, "codex_5h_pct": codex_5h_pct, "codex_model": codex_model}
             self.performSelectorOnMainThread_withObject_waitUntilDone_(
