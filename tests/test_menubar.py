@@ -807,6 +807,47 @@ def test_forwarder_prompt_enable_calls_forwarder_setup(
     assert data["usage"]["forwarderModePromptDismissed"] is True
 
 
+def test_make_alert_falls_back_when_nsalert_returns_none(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeAlert:
+        @classmethod
+        def alloc(cls) -> type[FakeAlert]:
+            return cls
+
+        @classmethod
+        def init(cls) -> None:
+            return None
+
+    monkeypatch.setattr(menubar, "NSAlert", FakeAlert)
+
+    alert = menubar._make_alert()
+
+    alert.setMessageText_("ignored")
+    alert.setInformativeText_("ignored")
+    alert.addButtonWithTitle_("ignored")
+    assert alert.runModal() == 0
+
+
+def test_make_alert_ignores_icon_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeAlert:
+        @classmethod
+        def alloc(cls) -> type[FakeAlert]:
+            return cls
+
+        @classmethod
+        def init(cls) -> FakeAlert:
+            return cls()
+
+        def setIcon_(self, value: object) -> None:
+            raise RuntimeError("icon failed")
+
+    monkeypatch.setattr(menubar, "NSAlert", FakeAlert)
+    monkeypatch.setattr(menubar, "_alert_icon", lambda: object())
+
+    assert isinstance(menubar._make_alert(), FakeAlert)
+
+
 def test_statusline_action_in_background_returns_failure_output(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

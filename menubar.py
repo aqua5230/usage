@@ -200,6 +200,23 @@ _CODEX_MENUBAR_ICON: Any = None
 _CODEX_MENUBAR_ICON_LOADED = False
 
 
+class _NoopAlert:
+    def setIcon_(self, icon: Any) -> None:
+        return
+
+    def setMessageText_(self, text: str) -> None:
+        return
+
+    def setInformativeText_(self, text: str) -> None:
+        return
+
+    def addButtonWithTitle_(self, title: str) -> None:
+        return
+
+    def runModal(self) -> int:
+        return 0
+
+
 def _alert_icon() -> Any:
     # NSAlert defaults to the application icon, which from source (and for an
     # accessory app with no Dock presence) is py2app's / Python's rocket. Setting
@@ -259,10 +276,23 @@ def _menubar_icon_attachment_string(image: Any) -> Any:
 
 
 def _make_alert() -> Any:
-    alert = NSAlert.alloc().init()
+    try:
+        alert = NSAlert.alloc().init()
+    except Exception:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("create alert failed", exc_info=True)
+        return _NoopAlert()
+    if alert is None:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("create alert returned None")
+        return _NoopAlert()
     icon = _alert_icon()
     if icon is not None:
-        alert.setIcon_(icon)
+        try:
+            alert.setIcon_(icon)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("set alert icon failed", exc_info=True)
     return alert
 
 
