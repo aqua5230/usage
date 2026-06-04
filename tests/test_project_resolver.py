@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import subprocess
 from pathlib import Path
 from unittest.mock import Mock
@@ -7,6 +8,7 @@ from unittest.mock import Mock
 import pytest
 
 import project_resolver
+from project_resolver import project_from_encoded_path
 
 
 @pytest.fixture(autouse=True)
@@ -103,3 +105,43 @@ def test_resolve_project_name_reuses_cached_subprocess_result(
     assert project_resolver.resolve_project_name(path) == "main-project"
     assert project_resolver.resolve_project_name(str(path)) == "main-project"
     assert run.call_count == 1
+
+
+def test_project_from_encoded_path_decodes_real_project(tmp_path: Path) -> None:
+    projects_dir = tmp_path / "projects"
+    real_project = tmp_path / "Users" / "me" / "alpha"
+    real_project.mkdir(parents=True)
+    encoded = str(real_project).replace(os.sep, "-")
+
+    result = project_from_encoded_path(projects_dir / encoded / "a.jsonl", projects_dir)
+
+    assert result == "alpha"
+
+
+def test_project_from_encoded_path_resolves_existing_dash_dir(tmp_path: Path) -> None:
+    projects_dir = tmp_path / "projects"
+    real_project = tmp_path / "Users" / "me" / "Desktop" / "claude-tutorial-video"
+    real_project.mkdir(parents=True)
+    encoded = str(real_project).replace(os.sep, "-")
+
+    result = project_from_encoded_path(projects_dir / encoded / "a.jsonl", projects_dir)
+
+    assert result == "claude-tutorial-video"
+
+
+def test_project_from_encoded_path_fallback_preserves_dash(tmp_path: Path) -> None:
+    projects_dir = tmp_path / "projects"
+
+    result = project_from_encoded_path(
+        projects_dir / "-missing-plain-project" / "a.jsonl", projects_dir
+    )
+
+    assert result == "missing-plain-project"
+
+
+def test_project_from_encoded_path_outside_dir_is_unknown(tmp_path: Path) -> None:
+    projects_dir = tmp_path / "projects"
+
+    result = project_from_encoded_path(tmp_path / "outside.jsonl", projects_dir)
+
+    assert result == "unknown"

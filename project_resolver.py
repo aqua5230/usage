@@ -5,7 +5,7 @@ import subprocess
 from functools import lru_cache
 from pathlib import Path
 
-__all__ = ["resolve_project_name"]
+__all__ = ["project_from_encoded_path", "resolve_project_name"]
 
 
 def resolve_project_name(cwd: str | Path) -> str:
@@ -43,3 +43,42 @@ def _resolve_project_name(normalized_cwd: str) -> str:
     if not main_path:
         return fallback
     return Path(main_path).name or fallback
+
+
+def project_from_encoded_path(jsonl_path: Path, projects_dir: Path) -> str:
+    """Decode a Claude Code project name from a sessions JSONL path under projects_dir."""
+    try:
+        project_dir = jsonl_path.relative_to(projects_dir).parts[0]
+    except (IndexError, ValueError):
+        return "unknown"
+
+    parts = [part for part in project_dir.split("-") if part]
+    if not parts:
+        return "unknown"
+
+    slash_candidate = Path(os.sep, *parts)
+    if slash_candidate.is_dir():
+        return slash_candidate.name or "unknown"
+
+    existing_project = _existing_encoded_project_path(parts)
+    if existing_project is not None:
+        return existing_project.name or "unknown"
+
+    fallback = project_dir.removeprefix("-")
+    return fallback or "unknown"
+
+
+def _existing_encoded_project_path(parts: list[str]) -> Path | None:
+    def search(index: int, current: Path) -> Path | None:
+        for end in range(index + 1, len(parts) + 1):
+            candidate = current / "-".join(parts[index:end])
+            if not candidate.is_dir():
+                continue
+            if end == len(parts):
+                return candidate
+            result = search(end, candidate)
+            if result is not None:
+                return result
+        return None
+
+    return search(0, Path(os.sep))
