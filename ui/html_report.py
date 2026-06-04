@@ -409,14 +409,14 @@ def _cost_value(cost_usd: float, lang: str) -> tuple[str, str]:
     return main, sub
 
 
-def generate_html(data: dict[str, Any], language: str | None = None) -> str:
-    lang = language or _detect_lang()
-    tip = load_tip(lang)
-    generated_at = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
-    summary = data["summary"]
+def _render_cards_section(cards: list[tuple[str, str, str]]) -> str:
+    return f"""<section class="cards">{''.join(f'<div class="card"><span>{html.escape(label)}</span><b>{html.escape(value)}</b>' + (f'<i>{html.escape(sub)}</i>' if sub else '') + '</div>' for label, value, sub in cards)}</section>"""
+
+
+def _summary_cards(summary: Mapping[str, Any], lang: str) -> list[tuple[str, str, str]]:
     total_tokens = int(summary["total_tokens"])
     cost_main, cost_sub = _cost_value(float(summary["cost_usd"]), lang)
-    cards = [
+    return [
         (_t(lang, "kpi_tokens"), f"{total_tokens:,}", f"≈ {_fmt_tokens(total_tokens)}"),
         (_t(lang, "kpi_cost"), cost_main, cost_sub),
         (_t(lang, "kpi_sessions"), f'{int(summary["sessions"]):,}', ""),
@@ -424,6 +424,41 @@ def generate_html(data: dict[str, Any], language: str | None = None) -> str:
         (_t(lang, "kpi_active"), f'{int(summary["active_days"])}/{int(summary["total_days"])}', ""),
     ]
 
+
+def _render_header(data: dict[str, Any], lang: str, title: str, generated_at: str) -> str:
+    return f"""<header>
+    <div>
+      <div class="eyebrow"><span>$ usage report</span> --period {html.escape(str(data["period_label"]))}<span class="cursor">_</span></div>
+      <h1>{html.escape(title)}</h1>
+      <p class="narrative">{html.escape(_narrative(data, lang))}</p>
+    </div>
+    <div class="header-actions">
+      <div class="meta">{html.escape(_t(lang, "generated"))} {html.escape(generated_at)}<br>usage {_escape(_t(lang, "version"))} {_escape(_version())}</div>
+      <button class="share-trigger" type="button" data-share-open><span aria-hidden="true">↗</span>{html.escape(_t(lang, "share_button_label"))}</button>
+    </div>
+  </header>"""
+
+
+def _render_share_dialog(lang: str) -> str:
+    return f"""<dialog class="share-dialog" data-share-dialog>
+    <div class="share-modal">
+      <button class="share-close" type="button" data-share-close aria-label="{html.escape(_t(lang, "share_close"))}">×</button>
+      <h2>{html.escape(_t(lang, "share_modal_title"))}</h2>
+      <section class="share-section">
+        <h3>{html.escape(_t(lang, "share_file_title"))}</h3>
+        <label class="share-file-mask"><input type="checkbox" data-share-file-mask checked> {html.escape(_t(lang, "share_file_mask_toggle"))}</label>
+        <div class="share-file-actions">
+          <button class="share-action" type="button" data-share-file="download"><span class="share-icon" aria-hidden="true">📥</span>{html.escape(_t(lang, "share_download_html"))}</button>
+          <button class="share-action" type="button" data-share-file="path"><span class="share-icon" aria-hidden="true">📋</span>{html.escape(_t(lang, "share_copy_path"))}</button>
+        </div>
+        <p class="share-file-hint">{html.escape(_t(lang, "share_file_hint"))}</p>
+      </section>
+      <div class="share-toast" data-share-toast role="status" aria-live="polite"></div>
+    </div>
+  </dialog>"""
+
+
+def _render_project_section(data: dict[str, Any], lang: str) -> str:
     project_rows = [
         _rank_line(
             _display_name(project["project"], lang),
@@ -446,7 +481,10 @@ def generate_html(data: dict[str, Any], language: str | None = None) -> str:
         if project_rows
         else _empty_line(_t(lang, "empty_projects"))
     )
+    return _section(_t(lang, "project_section"), project_body, "project-section")
 
+
+def _render_model_section(data: dict[str, Any], lang: str) -> str:
     model_rows = [
         _rank_line(
             _display_name(model["model"], lang),
@@ -464,7 +502,24 @@ def generate_html(data: dict[str, Any], language: str | None = None) -> str:
         if model_rows
         else _empty_line(_t(lang, "empty_models"))
     )
+    return _section(_t(lang, "model_section"), model_body)
 
+
+def _render_tools_section(data: dict[str, Any], lang: str) -> str:
+    tools_body = _tools_body(data.get("subscriptions", []), data.get("by_agent", []), lang)
+    return _section(_t(lang, "tools_section"), tools_body, "tools-section")
+
+
+def _render_trend_section(data: dict[str, Any], lang: str) -> str:
+    return _section(_t(lang, "trend_section"), _trend_ascii(data.get("daily_trend", []), lang))
+
+
+def _render_persona_section(data: dict[str, Any], lang: str) -> str:
+    persona_body = _persona_body(data.get("persona"), lang)
+    return _section(_t(lang, "persona_section"), persona_body, "persona-section")
+
+
+def _render_session_section(data: dict[str, Any], lang: str) -> str:
     session_rows = []
     for idx, session in enumerate(data.get("top_sessions", []), 1):
         session_rows.append(f"""
@@ -489,23 +544,33 @@ def generate_html(data: dict[str, Any], language: str | None = None) -> str:
         if session_rows
         else _empty_line(_t(lang, "empty_sessions"))
     )
+    return _section(_t(lang, "session_section"), session_body, "session-section")
 
+
+def _render_tip_section(tip: Tip | None, lang: str) -> str:
+    return _tip_section(tip, lang) if tip else ""
+
+
+def _share_config_json(lang: str) -> str:
     share_config = {
         "copied": _t(lang, "share_copied"),
         "pathCopied": _t(lang, "share_path_copied"),
     }
-    share_config_json = json.dumps(share_config, ensure_ascii=False).replace("</", "<\\/")
-    tools_body = _tools_body(data.get("subscriptions", []), data.get("by_agent", []), lang)
-    persona_body = _persona_body(data.get("persona"), lang)
-    title = _t(lang, "title")
-    return f"""<!doctype html>
-<html lang="{html.escape(lang)}">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{html.escape(title)}</title>
-<style>
-:root{{--bg:#050505;--panel:#0d0f12;--soft:#15181d;--text:#f2f4f8;--muted:#8b949e;--faint:#343941;--token:#58a6ff;--cost:#3fb950;--warn:#d29922;}}
+    return json.dumps(share_config, ensure_ascii=False).replace("</", "<\\/")
+
+
+def _render_sponsor_section(lang: str) -> str:
+    return f"""<p class="sponsor">
+    <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
+    <span class="tagline">{html.escape(_t(lang, "sponsor"))}</span>
+    <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
+  </p>
+  <p class="sponsor-link"><a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">github.com/aqua5230/usage</a></p>"""
+
+
+def _render_styles() -> str:
+    empty = ""
+    return f"""{empty}:root{{--bg:#050505;--panel:#0d0f12;--soft:#15181d;--text:#f2f4f8;--muted:#8b949e;--faint:#343941;--token:#58a6ff;--cost:#3fb950;--warn:#d29922;}}
 *{{box-sizing:border-box}}
 body{{margin:0;background:var(--bg);color:var(--text);font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;line-height:1.55}}
 .wrap{{max-width:960px;margin:0 auto;padding:42px 22px 34px}}
@@ -602,55 +667,11 @@ h1{{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-w
 .tool-row .pct,.tool-row .tokens,.tool-row .cost{{white-space:nowrap;text-align:right}}
 .tool-row .pct{{color:var(--token)}}.tool-row .tokens{{color:#dce2ea}}.tool-row .cost{{color:var(--cost)}}
 @media (max-width:780px){{.wrap{{padding:28px 14px}}header{{display:block}}.meta{{text-align:left;margin-top:16px}}.header-actions{{align-items:flex-start;margin-top:16px}}.cards{{grid-template-columns:repeat(2,1fr)}}.rank-head{{display:none}}.rank-list{{display:grid;gap:10px}}.rank-line{{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:1px solid #30363d;border-radius:6px;background:#090b0e}}.rank-line .arrow{{display:none}}.rank-line .name{{white-space:normal;font-weight:700;color:#f0f6fc}}.rank-line .pct,.rank-line .tokens,.rank-line .cost{{display:flex;justify-content:space-between;gap:14px;text-align:left}}.rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before{{content:attr(data-label);color:var(--muted)}}.tools-head{{display:none}}.tool-row{{grid-template-columns:1fr;gap:8px}}.tool-row .pct,.tool-row .tokens,.tool-row .cost{{display:flex;justify-content:space-between;gap:14px;text-align:left}}.tool-row .pct:empty,.tool-row .tokens:empty,.tool-row .cost:empty{{display:none}}.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{{content:attr(data-label);color:var(--muted)}}}}
-@media (max-width:480px){{.wrap{{padding:22px 12px 28px}}h1{{white-space:normal}}.cards{{grid-template-columns:repeat(2,1fr);gap:8px}}.card{{min-height:96px;padding:13px 11px}}.share-dialog{{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}}.share-modal{{min-height:100dvh;padding:16px 12px 18px}}.share-section{{padding:12px}}.share-action{{min-height:42px;font-size:.72rem;gap:4px;white-space:normal}}.share-file-actions{{grid-template-columns:1fr}}.section{{padding:16px 12px}}}}
-</style>
-</head>
-<body>
-<main class="wrap">
-  <header>
-    <div>
-      <div class="eyebrow"><span>$ usage report</span> --period {html.escape(str(data["period_label"]))}<span class="cursor">_</span></div>
-      <h1>{html.escape(title)}</h1>
-      <p class="narrative">{html.escape(_narrative(data, lang))}</p>
-    </div>
-    <div class="header-actions">
-      <div class="meta">{html.escape(_t(lang, "generated"))} {html.escape(generated_at)}<br>usage {_escape(_t(lang, "version"))} {_escape(_version())}</div>
-      <button class="share-trigger" type="button" data-share-open><span aria-hidden="true">↗</span>{html.escape(_t(lang, "share_button_label"))}</button>
-    </div>
-  </header>
-  <dialog class="share-dialog" data-share-dialog>
-    <div class="share-modal">
-      <button class="share-close" type="button" data-share-close aria-label="{html.escape(_t(lang, "share_close"))}">×</button>
-      <h2>{html.escape(_t(lang, "share_modal_title"))}</h2>
-      <section class="share-section">
-        <h3>{html.escape(_t(lang, "share_file_title"))}</h3>
-        <label class="share-file-mask"><input type="checkbox" data-share-file-mask checked> {html.escape(_t(lang, "share_file_mask_toggle"))}</label>
-        <div class="share-file-actions">
-          <button class="share-action" type="button" data-share-file="download"><span class="share-icon" aria-hidden="true">📥</span>{html.escape(_t(lang, "share_download_html"))}</button>
-          <button class="share-action" type="button" data-share-file="path"><span class="share-icon" aria-hidden="true">📋</span>{html.escape(_t(lang, "share_copy_path"))}</button>
-        </div>
-        <p class="share-file-hint">{html.escape(_t(lang, "share_file_hint"))}</p>
-      </section>
-      <div class="share-toast" data-share-toast role="status" aria-live="polite"></div>
-    </div>
-  </dialog>
-  <section class="cards">{''.join(f'<div class="card"><span>{html.escape(label)}</span><b>{html.escape(value)}</b>' + (f'<i>{html.escape(sub)}</i>' if sub else '') + '</div>' for label, value, sub in cards)}</section>
-  {_section(_t(lang, "tools_section"), tools_body, "tools-section")}
-  {_section(_t(lang, "project_section"), project_body, "project-section")}
-  {_section(_t(lang, "model_section"), model_body)}
-  {_section(_t(lang, "trend_section"), _trend_ascii(data.get("daily_trend", []), lang))}
-  {_section(_t(lang, "persona_section"), persona_body, "persona-section")}
-  {_section(_t(lang, "session_section"), session_body, "session-section")}
-  {_tip_section(tip, lang) if tip else ''}
-  <p class="sponsor">
-    <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
-    <span class="tagline">{html.escape(_t(lang, "sponsor"))}</span>
-    <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
-  </p>
-  <p class="sponsor-link"><a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">github.com/aqua5230/usage</a></p>
-</main>
-<script>
-const shareConfig = {share_config_json};
+@media (max-width:480px){{.wrap{{padding:22px 12px 28px}}h1{{white-space:normal}}.cards{{grid-template-columns:repeat(2,1fr);gap:8px}}.card{{min-height:96px;padding:13px 11px}}.share-dialog{{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}}.share-modal{{min-height:100dvh;padding:16px 12px 18px}}.share-section{{padding:12px}}.share-action{{min-height:42px;font-size:.72rem;gap:4px;white-space:normal}}.share-file-actions{{grid-template-columns:1fr}}.section{{padding:16px 12px}}}}"""
+
+
+def _render_scripts(share_config_json: str) -> str:
+    return f"""const shareConfig = {share_config_json};
 const shareDialog = document.querySelector('[data-share-dialog]');
 const shareFileMask = document.querySelector('[data-share-file-mask]');
 const shareToast = document.querySelector('[data-share-toast]');
@@ -787,7 +808,42 @@ document.addEventListener('click', async (e) => {{
     }}, 2000);
   }}
 }});
+"""
 
+
+def generate_html(data: dict[str, Any], language: str | None = None) -> str:
+    lang = language or _detect_lang()
+    tip = load_tip(lang)
+    generated_at = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
+    cards = _summary_cards(data["summary"], lang)
+    share_config_json = _share_config_json(lang)
+    title = _t(lang, "title")
+    return f"""<!doctype html>
+<html lang="{html.escape(lang)}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{html.escape(title)}</title>
+<style>
+{_render_styles()}
+</style>
+</head>
+<body>
+<main class="wrap">
+  {_render_header(data, lang, title, generated_at)}
+  {_render_share_dialog(lang)}
+  {_render_cards_section(cards)}
+  {_render_tools_section(data, lang)}
+  {_render_project_section(data, lang)}
+  {_render_model_section(data, lang)}
+  {_render_trend_section(data, lang)}
+  {_render_persona_section(data, lang)}
+  {_render_session_section(data, lang)}
+  {_render_tip_section(tip, lang)}
+  {_render_sponsor_section(lang)}
+</main>
+<script>
+{_render_scripts(share_config_json)}
 </script>
 </body>
 </html>

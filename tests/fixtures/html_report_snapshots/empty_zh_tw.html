@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="zh-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>你的 AI 用量回顧</title>
+<style>
+:root{--bg:#050505;--panel:#0d0f12;--soft:#15181d;--text:#f2f4f8;--muted:#8b949e;--faint:#343941;--token:#58a6ff;--cost:#3fb950;--warn:#d29922;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;line-height:1.55}
+.wrap{max-width:960px;margin:0 auto;padding:42px 22px 34px}
+header{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:28px;align-items:start;margin-bottom:26px}
+h1{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-weight:800;letter-spacing:-0.02em;white-space:nowrap}
+.eyebrow,.meta,.empty,footer{color:var(--muted)}
+.eyebrow span,.prompt span,.cursor{color:var(--token)}
+.cursor{display:inline-block;animation:blink 1s steps(2,start) infinite}
+.narrative{max-width:760px;margin:18px 0 0;color:#d5dbe4;font-size:1.02rem}
+.meta{font-size:.82rem;text-align:right;white-space:nowrap}
+.header-actions{display:flex;flex-direction:column;align-items:flex-end;gap:10px}
+.share-trigger{display:inline-flex;align-items:center;gap:7px;background:#161b22;border:1px solid #30363d;color:#f0f6fc;padding:4px 11px;border-radius:4px;cursor:pointer;font:inherit;font-size:.8rem;line-height:1.3;text-decoration:none;transition:border-color .15s,color .15s,transform .15s}
+.share-trigger:hover{border-color:#58a6ff;color:#58a6ff;transform:translateY(-1px)}
+.share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible{outline:2px solid #58a6ff;outline-offset:2px}
+.cards{display:grid;grid-template-columns:1.7fr 1.15fr .95fr .95fr .95fr;gap:10px;margin:22px 0 12px}
+.card{background:var(--panel);padding:16px 14px;border-radius:6px;min-height:108px;display:flex;flex-direction:column}
+.card span{display:block;color:var(--muted);font-size:.75rem;text-transform:uppercase;margin-bottom:10px}
+.card b{display:block;font-size:clamp(1rem,1.5vw,1.3rem);color:var(--text);white-space:nowrap;overflow-wrap:normal;line-height:1.2;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+.card i{display:block;font-style:normal;color:var(--muted);font-size:.72rem;margin-top:auto;padding-top:6px;overflow-wrap:anywhere;letter-spacing:0}
+.card:first-child b{color:var(--token)}.card:nth-child(2) b{color:var(--cost)}
+.section{background:var(--panel);border-radius:8px;margin-top:16px;padding:18px 16px}
+.prompt{font-size:.95rem;color:#f0f6fc;margin-bottom:4px}
+.rule{color:var(--faint);white-space:nowrap;overflow:hidden;margin-bottom:14px}
+.rank-head,.rank-line{display:grid;grid-template-columns:24px minmax(0,1fr) 72px 92px 88px;gap:12px;align-items:center}
+.rank-head{color:var(--muted);font-size:.74rem;text-transform:uppercase;margin-bottom:8px}
+.rank-head>span:nth-child(n+3){text-align:right}
+.rank-line{padding:7px 0;color:#dce2ea}
+.arrow{color:var(--warn)}.name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pct{color:var(--token)}.cost{color:var(--cost)}.tokens,.cost,.pct{text-align:right;white-space:nowrap}
+.trend{display:grid;gap:6px}
+.trend-row{display:grid;grid-template-columns:58px minmax(0,1fr) 72px 82px;gap:12px;align-items:center}
+.trend-row .week{color:var(--muted)}.trend-row b{color:var(--token);font-weight:400;white-space:nowrap;overflow:hidden}.trend-row em{font-style:normal;text-align:right;color:#dce2ea}.delta{color:var(--muted);white-space:nowrap}.delta.up{color:var(--cost)}.delta.down{color:var(--warn)}.delta.flat{color:var(--muted)}.trend-summary{color:#dce2ea;margin-top:8px}
+.persona-card{border:1px solid #30363d;border-radius:7px;background:#090b0e;padding:14px;min-width:0}
+.persona-card h3{margin:0 0 12px;color:#f0f6fc;font-size:.9rem;font-weight:700;letter-spacing:0}
+.persona-caption{margin:0 0 14px;color:#dce2ea;font-size:.86rem;line-height:1.5}
+.persona-hours{display:grid;grid-template-columns:repeat(24,minmax(8px,1fr));gap:4px;align-items:end;height:176px;padding-top:8px}
+.persona-hour{display:grid;grid-template-rows:1fr auto;gap:7px;align-items:end;min-width:0;height:100%}
+.persona-hour span{display:block;width:100%;min-height:1px;border-radius:3px 3px 1px 1px;background:linear-gradient(180deg,var(--token),#285f9f)}
+.persona-hour.is-peak span{background:linear-gradient(180deg,#56d364,var(--token));box-shadow:0 0 12px rgba(86,211,100,.28)}
+.persona-hour em{font-style:normal;color:var(--muted);font-size:.58rem;text-align:center;overflow:hidden}
+.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:8px 10px;text-align:left;font-size:.86rem}th{color:var(--muted);font-weight:500;text-transform:uppercase}td{color:#dce2ea}td:first-child{color:var(--warn)}
+.share-dialog{width:min(760px,calc(100vw - 28px));max-height:min(92vh,860px);border:1px solid #30363d;border-radius:8px;background:#0d0f12;color:var(--text);padding:0;box-shadow:0 24px 70px rgba(0,0,0,.58);overflow:auto}
+.share-dialog::backdrop{background:rgba(0,0,0,.72)}
+.share-modal{position:relative;padding:20px;display:grid;gap:16px;align-content:start}
+.share-modal h2{margin:0 40px 0 0;font-size:1.1rem;line-height:1.35;letter-spacing:0}
+.share-close{position:absolute;top:14px;right:14px;width:30px;height:30px;display:grid;place-items:center;border:1px solid #30363d;border-radius:4px;background:#161b22;color:#f0f6fc;cursor:pointer;font:inherit;font-size:1.1rem;line-height:1}
+.share-close:hover{border-color:#58a6ff;color:#58a6ff}
+.share-section{border:1px solid #30363d;border-radius:8px;background:#090b0e;padding:14px;display:grid;gap:12px}
+.share-section h3{margin:0;color:#f0f6fc;font-size:.98rem;line-height:1.35;letter-spacing:0}
+.share-file-mask{display:inline-flex;align-items:center;gap:9px;color:#dce2ea;font-size:.86rem;cursor:pointer;user-select:none}
+.share-file-mask input{width:16px;height:16px;accent-color:#58a6ff}
+.share-action{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:36px;border:1px solid #30363d;border-radius:4px;background:#161b22;color:#f0f6fc;cursor:pointer;font:inherit;font-size:.78rem;line-height:1.2;white-space:nowrap;transition:border-color .15s,color .15s,transform .15s}
+.share-action:hover{border-color:#58a6ff;color:#58a6ff;transform:translateY(-1px)}
+.share-icon{color:#58a6ff;font-weight:800}
+.share-file-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.share-file-hint{margin:0;color:var(--muted);font-size:.8rem;line-height:1.5}
+.share-toast{min-height:20px;color:#56d364;font-size:.82rem;opacity:0;transition:opacity .15s}
+.share-toast.show{opacity:1}
+.sponsor{display:flex;justify-content:center;align-items:center;gap:18px;flex-wrap:wrap;padding:24px 16px 32px;color:var(--muted);font-size:.88rem}
+.sponsor a{opacity:.85;transition:opacity .2s,transform .2s;text-decoration:none;display:inline-flex}
+.sponsor a:hover{opacity:1;transform:scale(1.06)}
+.sponsor img{vertical-align:middle;display:block}
+.tagline{font-size:1rem;color:#d5dbe4;letter-spacing:.01em;animation:sponsorWobble 2.6s ease-in-out infinite;display:inline-block;transform-origin:center center}
+.sponsor-link{text-align:center;padding:0 16px 24px;font-size:.8rem}
+.sponsor-link a{color:var(--muted);text-decoration:none;opacity:.7;transition:opacity .2s}
+.sponsor-link a:hover{opacity:1;color:var(--token)}
+@keyframes blink{0%,45%{opacity:1}46%,100%{opacity:0}}
+@keyframes sponsorWobble{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(-1px,-2px) rotate(-.8deg)}50%{transform:translate(0,-2.5px) rotate(0)}75%{transform:translate(1px,-2px) rotate(.8deg)}}
+.tip-cmd{background:rgba(56,139,253,0.15);color:#58a6ff;padding:2px 10px;border-radius:4px;font-family:ui-monospace,'SF Mono',monospace;font-size:0.95em}
+.tip-cmd-inline{background:rgba(56,139,253,0.10);color:#58a6ff;padding:1px 5px;border-radius:3px;font-size:0.92em}
+.tip-copy{background:transparent;border:1px solid #30363d;color:#8b949e;padding:2px 10px;margin-left:8px;border-radius:4px;cursor:pointer;font-size:12px;font-family:inherit;transition:color 0.15s,border-color 0.15s}
+.tip-copy:hover{color:#e6edf3;border-color:#58a6ff}
+.tip-copy.copied{color:#56d364;border-color:#56d364}
+.trend{display:grid;gap:6px}
+.trend-row{display:grid;grid-template-columns:58px minmax(0,1fr) 72px 82px;gap:12px;align-items:center}
+.trend-row .week{color:var(--muted)}.trend-row b{color:var(--token);font-weight:400;white-space:nowrap;overflow:hidden}.trend-row em{font-style:normal;text-align:right;color:#dce2ea}.delta{color:var(--muted);white-space:nowrap}.delta.up{color:var(--cost)}.delta.down{color:var(--warn)}.delta.flat{color:var(--muted)}.trend-summary{color:#dce2ea;margin-top:8px}
+.donut-wrap{display:flex;align-items:center;gap:24px;flex-wrap:wrap;margin-bottom:18px}
+.donut{width:150px;height:150px;flex:0 0 auto}
+.donut-total{fill:var(--text);font-size:20px;font-weight:700}
+.donut-sub{fill:var(--muted);font-size:11px;text-transform:uppercase}
+.donut-legend{list-style:none;margin:0;padding:0;display:grid;gap:8px;flex:1 1 200px;min-width:200px}
+.donut-legend li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:center;font-size:.86rem;color:#dce2ea}
+.donut-legend .dot{width:10px;height:10px;border-radius:2px}
+.donut-legend .lg-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.donut-legend .lg-pct{color:var(--muted);text-align:right}
+.tools{display:grid;gap:10px}
+.tools-head,.tool-row{display:grid;grid-template-columns:minmax(0,1fr) 72px 100px 100px;gap:18px;align-items:center}
+.tools-head{padding:0 17px;color:var(--muted);font-size:.74rem;text-transform:uppercase;margin-bottom:-2px}
+.tools-head>span:nth-child(n+2){text-align:right}
+.tool-row{padding:14px 16px;border:1px solid #30363d;border-radius:7px;background:#090b0e}
+.tool-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0}
+.sub-agent{font-weight:700;color:#f0f6fc}
+.sub-plan{color:var(--token);background:rgba(56,139,253,0.12);padding:3px 11px;border-radius:999px;font-size:.86rem}
+.sub-since{color:var(--muted);font-size:.84rem}
+.tool-row .pct,.tool-row .tokens,.tool-row .cost{white-space:nowrap;text-align:right}
+.tool-row .pct{color:var(--token)}.tool-row .tokens{color:#dce2ea}.tool-row .cost{color:var(--cost)}
+@media (max-width:780px){.wrap{padding:28px 14px}header{display:block}.meta{text-align:left;margin-top:16px}.header-actions{align-items:flex-start;margin-top:16px}.cards{grid-template-columns:repeat(2,1fr)}.rank-head{display:none}.rank-list{display:grid;gap:10px}.rank-line{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:1px solid #30363d;border-radius:6px;background:#090b0e}.rank-line .arrow{display:none}.rank-line .name{white-space:normal;font-weight:700;color:#f0f6fc}.rank-line .pct,.rank-line .tokens,.rank-line .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}.rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before{content:attr(data-label);color:var(--muted)}.tools-head{display:none}.tool-row{grid-template-columns:1fr;gap:8px}.tool-row .pct,.tool-row .tokens,.tool-row .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}.tool-row .pct:empty,.tool-row .tokens:empty,.tool-row .cost:empty{display:none}.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{content:attr(data-label);color:var(--muted)}}
+@media (max-width:480px){.wrap{padding:22px 12px 28px}h1{white-space:normal}.cards{grid-template-columns:repeat(2,1fr);gap:8px}.card{min-height:96px;padding:13px 11px}.share-dialog{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}.share-modal{min-height:100dvh;padding:16px 12px 18px}.share-section{padding:12px}.share-action{min-height:42px;font-size:.72rem;gap:4px;white-space:normal}.share-file-actions{grid-template-columns:1fr}.section{padding:16px 12px}}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow"><span>$ usage report</span> --period empty-window<span class="cursor">_</span></div>
+      <h1>你的 AI 用量回顧</h1>
+      <p class="narrative">過去這段時間你燒了 0 tokens、跨 0 個專案。---- -- -- 是高峰（0/天），主力 LLM 是 未知。</p>
+    </div>
+    <div class="header-actions">
+      <div class="meta">產生時間 2026-05-24 10:30:45 CST<br>usage 版本 0.15.8</div>
+      <button class="share-trigger" type="button" data-share-open><span aria-hidden="true">↗</span>分享</button>
+    </div>
+  </header>
+  <dialog class="share-dialog" data-share-dialog>
+    <div class="share-modal">
+      <button class="share-close" type="button" data-share-close aria-label="關閉">×</button>
+      <h2>分享報告</h2>
+      <section class="share-section">
+        <h3>傳給同事 / 主管</h3>
+        <label class="share-file-mask"><input type="checkbox" data-share-file-mask checked> 隱藏專案名稱</label>
+        <div class="share-file-actions">
+          <button class="share-action" type="button" data-share-file="download"><span class="share-icon" aria-hidden="true">📥</span>另存一份 .html</button>
+          <button class="share-action" type="button" data-share-file="path"><span class="share-icon" aria-hidden="true">📋</span>複製檔案路徑</button>
+        </div>
+        <p class="share-file-hint">可用 AirDrop / Mail / Slack / 訊息 傳給對方，手機電腦都能看</p>
+      </section>
+      <div class="share-toast" data-share-toast role="status" aria-live="polite"></div>
+    </div>
+  </dialog>
+  <section class="cards"><div class="card"><span>燒掉 Tokens</span><b>0</b><i>≈ 0</i></div><div class="card"><span>燒掉成本</span><b>$0.00</b><i>≈ NT$0</i></div><div class="card"><span>會話</span><b>0</b></div><div class="card"><span>訊息</span><b>0</b></div><div class="card"><span>活躍日</span><b>0/7</b></div></section>
+  
+    <section class="section tools-section">
+      <div class="prompt"><span>[usage]&gt;</span> 你的工具</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="empty">→ 未偵測到本地訂閱資訊</div>
+    </section>
+    
+  
+    <section class="section project-section">
+      <div class="prompt"><span>[usage]&gt;</span> 專案熱區</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="empty">→ 這段期間還沒有專案用量</div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="prompt"><span>[usage]&gt;</span> 主力模型</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="empty">→ 這段期間還沒有模型用量</div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="prompt"><span>[usage]&gt;</span> 每週燃燒趨勢</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="empty">→ 這段期間還沒有每日用量</div>
+    </section>
+    
+  
+    <section class="section persona-section">
+      <div class="prompt"><span>[usage]&gt;</span> 使用習慣</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="empty">→ 這段期間還沒有足夠資料</div>
+    </section>
+    
+  
+    <section class="section session-section">
+      <div class="prompt"><span>[usage]&gt;</span> 最燒的 5 段會話</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="empty">→ 這段期間還沒有可列出的會話</div>
+    </section>
+    
+  
+    <section class="section">
+      <div class="prompt"><span>[usage]&gt;</span> 💡 本期 Claude 進階指令</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="prompt"><code class="tip-cmd">/compact</code><button class="tip-copy" type="button" data-cmd="/compact" data-label="複製" data-copied="已複製">📋 複製</button> ← 壓縮對話節省 token</div><div class="rank-list"><p><strong>這個指令做什麼？</strong></p><p>把你目前跟 Claude 的對話『壓縮』成一份摘要。重要的決定、討論結論、寫過的 code 重點都會保留；中間 debug 走過的歪路、改了又改的提示則被刪掉。</p></div><div class="rank-list"><p><strong>什麼時候用？</strong></p><p>對話超過 100 輪、或你發現 Claude 回應變慢、開始忘事的時候。Claude Code 視窗左下角會顯示 context 剩餘比例，剩 20% 以下就建議壓一次。</p></div><div class="rank-list"><p><strong>怎麼用？</strong></p><p>在 Claude Code 對話框直接打 <code class="tip-cmd-inline">/compact</code> 按 Enter。Claude 會花幾秒讀完所有對話、產出一份摘要，然後用摘要取代原對話——你下一句話送過去時，Claude 看到的只剩摘要 + 你的新問題。</p></div><div class="rank-list"><p><strong>保留 / 丟掉</strong></p><p><strong>保留</strong>：你正在做什麼專案、架構決定、上次修過哪些 bug 的結論。<strong>丟掉</strong>：中間試錯的對話、重複的指令、debug 過程的細節。</p></div><div class="rank-list"><p><strong>實際情境</strong></p><p>你跟 Claude 討論架構 3 小時、寫了 500 行 code、解了 5 個 bug。對話累積到 80 輪、context 剩 25%。這時打 <code class="tip-cmd-inline">/compact</code>——下次問『我們之前討論的 X 函式怎麼寫的？』Claude 仍答得出來，但那 5 個 debug 過程不會再吃 context。</p></div>
+    </section>
+    
+  <p class="sponsor">
+    <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
+    <span class="tagline">No cloud. No tracking. Just yours.</span>
+    <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
+  </p>
+  <p class="sponsor-link"><a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">github.com/aqua5230/usage</a></p>
+</main>
+<script>
+const shareConfig = {"copied": "已複製到剪貼簿 ✓", "pathCopied": "路徑已複製 ✓"};
+const shareDialog = document.querySelector('[data-share-dialog]');
+const shareFileMask = document.querySelector('[data-share-file-mask]');
+const shareToast = document.querySelector('[data-share-toast]');
+let shareToastTimer = null;
+
+function showShareToast(message) {
+  window.clearTimeout(shareToastTimer);
+  shareToast.textContent = message;
+  shareToast.classList.add('show');
+  shareToastTimer = window.setTimeout(() => {
+    shareToast.classList.remove('show');
+  }, 2500);
+}
+
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+    return true;
+  } catch (_) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.left = '-9999px';
+    ta.style.top = '0';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    let success = false;
+    try { success = document.execCommand('copy'); } catch (_e) {}
+    document.body.removeChild(ta);
+    return success;
+  }
+}
+
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function closeShareModal() {
+  if (!shareDialog) return;
+  if (shareDialog.open && typeof shareDialog.close === 'function') {
+    shareDialog.close();
+  } else {
+    shareDialog.removeAttribute('open');
+  }
+}
+
+function downloadHtml(maskProjects) {
+  closeShareModal();
+  const restores = [];
+  const detached = [];
+  if (maskProjects) {
+    document.querySelectorAll('.project-section .name').forEach((el, i) => {
+      restores.push({el, original: el.textContent});
+      el.textContent = `Project ${i + 1}`;
+    });
+    document.querySelectorAll('.session-section .name').forEach((el, i) => {
+      restores.push({el, original: el.textContent});
+      el.textContent = `Project ${i + 1}`;
+    });
+    document.querySelectorAll('[data-mask]').forEach((el) => {
+      restores.push({el, original: el.textContent});
+      el.textContent = '—';
+    });
+  }
+  document.querySelectorAll('[data-share-dialog], [data-share-open]').forEach((el) => {
+    detached.push({el, parent: el.parentNode, next: el.nextSibling});
+    el.remove();
+  });
+  const html = '<!doctype html>\n' + document.documentElement.outerHTML;
+  detached.forEach((item) => {
+    item.parent.insertBefore(item.el, item.next);
+  });
+  restores.forEach((item) => {
+    item.el.textContent = item.original;
+  });
+  const blob = new Blob([html], {type: 'text/html'});
+  downloadBlob(blob, `usage-report-${new Date().toISOString().slice(0, 10)}.html`);
+}
+
+document.querySelector('[data-share-open]')?.addEventListener('click', () => {
+  shareFileMask.checked = true;
+  if (typeof shareDialog.showModal === 'function') {
+    shareDialog.showModal();
+  } else {
+    shareDialog.setAttribute('open', '');
+  }
+  shareFileMask.focus();
+});
+
+document.querySelector('[data-share-close]')?.addEventListener('click', () => {
+  closeShareModal();
+});
+
+shareDialog?.addEventListener('click', (e) => {
+  if (e.target === shareDialog) closeShareModal();
+});
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('[data-share-file]');
+  if (!btn) return;
+  const action = btn.dataset.shareFile;
+  if (action === 'download') {
+    downloadHtml(Boolean(shareFileMask?.checked));
+    return;
+  }
+  if (action === 'path') {
+    const path = window.location.protocol === 'file:' ? decodeURIComponent(window.location.href) : decodeURIComponent(window.location.pathname);
+    const copied = await copyText(path);
+    if (copied) showShareToast(shareConfig.pathCopied);
+  }
+});
+
+document.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.tip-copy');
+  if (!btn) return;
+  const cmd = btn.dataset.cmd;
+  const ok = btn.dataset.copied;
+  const label = btn.dataset.label;
+  const success = await copyText(cmd);
+  if (success) {
+    btn.classList.add('copied');
+    btn.textContent = '✓ ' + ok;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.textContent = '📋 ' + label;
+    }, 2000);
+  }
+});
+
+</script>
+</body>
+</html>
