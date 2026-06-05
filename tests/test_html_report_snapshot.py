@@ -60,7 +60,7 @@ def _full_report_data() -> dict[str, Any]:
         "summary": {
             "total_tokens": 2345678,
             "cost_usd": 45.6789,
-            "sessions": 42,
+            "sessions": 252,
             "messages": 314,
             "active_days": 18,
             "total_days": 23,
@@ -91,6 +91,14 @@ def _full_report_data() -> dict[str, Any]:
             {"date": "2026-05-13", "tokens": 300000, "cost": 6.01},
             {"date": "2026-05-20", "tokens": 140000, "cost": 2.87},
         ],
+        "comparison": {
+            "period": "month",
+            "has_prev": True,
+            "prev_tokens": 1500000,
+            "prev_cost": 30.0,
+            "prev_projects": ["client<portal>", "unknown"],
+            "prev_model_share": {"claude-sonnet-4": 45.0, "gpt-5-codex": 42.0},
+        },
         "persona": {
             "hour_histogram": histogram,
             "recent_titles": ["Ship HTML report", "Ignore in current renderer"],
@@ -132,6 +140,7 @@ def _empty_report_data() -> dict[str, Any]:
         "by_project": [],
         "by_model": [],
         "daily_trend": [],
+        "comparison": {"period": "week", "has_prev": False},
         "persona": {"hour_histogram": []},
         "top_sessions": [],
     }

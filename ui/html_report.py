@@ -510,16 +510,7 @@ def _render_tools_section(data: dict[str, Any], lang: str) -> str:
     return _section(_t(lang, "tools_section"), tools_body, "tools-section")
 
 
-def _render_priority_summary(component: dict[str, Any], lang: str) -> str:
-    rows = []
-    for item in component.get("items", []):
-        rows.append(
-            f'<li>{_t(lang, item["key"], **_insight_kwargs(item))}</li>'
-        )
-    return f'<ul class="insight-list">{"".join(rows)}</ul>' if rows else ""
-
-
-def _render_subscription_value(component: dict[str, Any], lang: str) -> str:
+def _render_insight_note(component: dict[str, Any], lang: str) -> str:
     return (
         '<div class="insight-note">'
         f'{_t(lang, component["key"], **_insight_kwargs(component))}'
@@ -527,27 +518,18 @@ def _render_subscription_value(component: dict[str, Any], lang: str) -> str:
     )
 
 
-def _render_spike_explainer(component: dict[str, Any], lang: str) -> str:
+def _render_insight_action(component: dict[str, Any], lang: str) -> str:
     return (
-        '<div class="insight-note">'
-        f'{_t(lang, "insights_spike", **_insight_kwargs(component))}'
+        '<div class="insight-action">'
+        f'{_t(lang, component["key"], **_insight_kwargs(component))}'
         '</div>'
     )
-
-
-def _render_next_actions(component: dict[str, Any], lang: str) -> str:
-    rows = []
-    for action in component.get("actions", []):
-        rows.append(
-            f'<li>{_t(lang, action["key"], **_insight_kwargs(action))}</li>'
-        )
-    return f'<ol class="insight-list insight-actions">{"".join(rows)}</ol>' if rows else ""
 
 
 def _insight_kwargs(component: dict[str, Any]) -> dict[str, object]:
     kwargs: dict[str, object] = {}
     for key, value in component.items():
-        if key == "key" or key == "type" or key == "items" or key == "actions":
+        if key in {"key", "type", "direction", "delta_pct"}:
             continue
         if key == "tokens" or key == "mean_tokens":
             kwargs[key] = _fmt_tokens(int(value))
@@ -568,10 +550,11 @@ def _render_insight_surface(data: dict[str, Any], lang: str) -> str:
         return ""
 
     renderers = {
-        "priority_summary": _render_priority_summary,
-        "subscription_value": _render_subscription_value,
-        "spike_explainer": _render_spike_explainer,
-        "next_actions": _render_next_actions,
+        "change_headline": _render_insight_note,
+        "spike": _render_insight_note,
+        "shift": _render_insight_note,
+        "pace_note": _render_insight_note,
+        "action": _render_insight_action,
     }
     body = "".join(
         renderer(component, lang)

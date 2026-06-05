@@ -1,138 +1,199 @@
 from __future__ import annotations
 
+from datetime import date
 from math import sqrt
 from typing import Any, cast
 
-INSIGHT_PRIORITY_SUMMARY = "priority_summary"
-INSIGHT_SUBSCRIPTION_VALUE = "subscription_value"
-INSIGHT_SPIKE_EXPLAINER = "spike_explainer"
-INSIGHT_NEXT_ACTIONS = "next_actions"
+INSIGHT_CHANGE_HEADLINE = "change_headline"
+INSIGHT_SPIKE = "spike"
+INSIGHT_SHIFT = "shift"
+INSIGHT_PACE_NOTE = "pace_note"
+INSIGHT_ACTION = "action"
 
 _SPIKE_MULTIPLIER_THRESHOLD = 1.5
 
 
 def build_insights(data: dict[str, Any]) -> list[dict[str, Any]]:
     components: list[dict[str, Any]] = []
+
+    change = _build_change_headline(data)
+    if change is not None:
+        components.append(change)
+
     spike = _find_spike(data.get("daily_trend"))
-    subscription_value = _build_subscription_value(data)
-
-    priority_summary = _build_priority_summary(data, spike)
-    if priority_summary is not None:
-        components.append(priority_summary)
-
-    if subscription_value is not None:
-        components.append(subscription_value)
-
     if spike is not None:
-        components.append({"type": INSIGHT_SPIKE_EXPLAINER, **spike})
-
-    next_actions = _build_next_actions(data, spike, subscription_value)
-    if next_actions is not None:
-        components.append(next_actions)
-
-    return components
-
-
-def _build_priority_summary(
-    data: dict[str, Any],
-    spike: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    items: list[dict[str, Any]] = []
-    top_project = _first_mapping(data.get("by_project"))
-    top_model = _first_mapping(data.get("by_model"))
-
-    if top_project is not None:
-        project_tokens = _int_value(top_project.get("tokens"))
-        project_cost = _float_value(top_project.get("cost"))
-        project_pct = _float_value(top_project.get("pct"))
-        if project_tokens > 0 or project_cost > 0.0:
-            items.append(
-                {
-                    "key": "insights_priority_top_project",
-                    "project": _str_value(top_project.get("project"), "unknown"),
-                    "tokens": project_tokens,
-                    "cost_usd": _round_cost(project_cost),
-                    "pct": _round_pct(project_pct),
-                    "sessions": _int_value(top_project.get("sessions")),
-                }
-            )
-
-    if spike is not None:
-        items.append(
+        components.append(
             {
-                "key": "insights_priority_spike_day",
+                "type": INSIGHT_SPIKE,
+                "key": "insights_spike_v2",
                 "date": spike["date"],
                 "tokens": spike["tokens"],
-                "mean_tokens": spike["mean_tokens"],
                 "mean_multiplier": spike["mean_multiplier"],
             }
         )
 
-    if top_model is not None:
-        model_tokens = _int_value(top_model.get("tokens"))
-        model_pct = _float_value(top_model.get("pct"))
-        if model_tokens > 0:
-            items.append(
-                {
-                    "key": "insights_priority_top_model",
-                    "model": _str_value(top_model.get("model"), "unknown"),
-                    "tokens": model_tokens,
-                    "pct": _round_pct(model_pct),
-                    "cost_usd": _round_cost(_float_value(top_model.get("cost"))),
-                }
-            )
+    shift = _build_shift(data)
+    if shift is not None:
+        components.append(shift)
+
+    pace_note = _build_pace_note(data)
+    if pace_note is not None:
+        components.append(pace_note)
+
+    action = _build_action(change, spike)
+    if action is not None:
+        components.append(action)
+
+    return components[:5]
+
+
+def _build_change_headline(data: dict[str, Any]) -> dict[str, Any] | None:
+    comparison = _mapping_value(data.get("comparison"))
+    if comparison is None or not bool(comparison.get("has_prev")):
+        return None
+
+    prev_tokens = _int_value(comparison.get("prev_tokens"))
+    if prev_tokens <= 0:
+        return None
 
     summary = _mapping_value(data.get("summary"))
-    if len(items) < 3 and summary is not None:
-        total_cost = _float_value(summary.get("cost_usd"))
-        total_tokens = _int_value(summary.get("total_tokens"))
-        sessions = _int_value(summary.get("sessions"))
-        if total_cost > 0.0 or total_tokens > 0:
-            items.append(
-                {
-                    "key": "insights_priority_total_usage",
-                    "cost_usd": _round_cost(total_cost),
-                    "tokens": total_tokens,
-                    "sessions": sessions,
-                }
-            )
-
-    if not items:
+    if summary is None:
         return None
-    return {"type": INSIGHT_PRIORITY_SUMMARY, "items": items[:3]}
+
+    cur_tokens = _int_value(summary.get("total_tokens"))
+    delta_pct = round((cur_tokens - prev_tokens) / prev_tokens * 100)
+    if delta_pct >= 8:
+        key = "insights_change_up"
+        direction = "up"
+    elif delta_pct <= -8:
+        key = "insights_change_down"
+        direction = "down"
+    else:
+        key = "insights_change_flat"
+        direction = "flat"
+
+    return {
+        "type": INSIGHT_CHANGE_HEADLINE,
+        "key": key,
+        "tokens": cur_tokens,
+        "cost_usd": _round_cost(_float_value(summary.get("cost_usd"))),
+        "pct": abs(delta_pct),
+        "direction": direction,
+        "delta_pct": delta_pct,
+    }
 
 
-def _build_subscription_value(data: dict[str, Any]) -> dict[str, Any] | None:
-    subscriptions = _list_value(data.get("subscriptions"))
-    if not subscriptions:
+def _build_shift(data: dict[str, Any]) -> dict[str, Any] | None:
+    return (
+        _build_new_project_shift(data)
+        or _build_model_shift(data)
+        or _build_trend_shift(data)
+    )
+
+
+def _build_new_project_shift(data: dict[str, Any]) -> dict[str, Any] | None:
+    comparison = _mapping_value(data.get("comparison"))
+    if comparison is None or not bool(comparison.get("has_prev")):
         return None
+
+    prev_projects = {
+        _str_value(project, "")
+        for project in _list_value(comparison.get("prev_projects"))
+    }
+    for project in _list_value(data.get("by_project")):
+        item = _mapping_value(project)
+        if item is None:
+            continue
+        name = _str_value(item.get("project"), "unknown")
+        pct = _float_value(item.get("pct"))
+        if pct >= 15.0 and name not in prev_projects:
+            return {
+                "type": INSIGHT_SHIFT,
+                "key": "insights_shift_new_project",
+                "project": name,
+                "pct": _round_pct(pct),
+            }
+    return None
+
+
+def _build_model_shift(data: dict[str, Any]) -> dict[str, Any] | None:
+    comparison = _mapping_value(data.get("comparison"))
+    if comparison is None or not bool(comparison.get("has_prev")):
+        return None
+
+    top_model = _first_mapping(data.get("by_model"))
+    prev_model_share = _mapping_value(comparison.get("prev_model_share"))
+    if top_model is None or prev_model_share is None:
+        return None
+
+    model = _str_value(top_model.get("model"), "unknown")
+    pct = _float_value(top_model.get("pct"))
+    prev_pct = _float_value(prev_model_share.get(model))
+    if pct - prev_pct < 10.0:
+        return None
+
+    return {
+        "type": INSIGHT_SHIFT,
+        "key": "insights_shift_model_up",
+        "model": model,
+        "prev_pct": _round_pct(prev_pct),
+        "pct": _round_pct(pct),
+    }
+
+
+def _build_trend_shift(data: dict[str, Any]) -> dict[str, Any] | None:
+    weekly = _weekly_token_totals(data.get("daily_trend"))
+    if len(weekly) < 2:
+        return None
+
+    if len(weekly) >= 3 and weekly[-3] < weekly[-2] < weekly[-1]:
+        return {"type": INSIGHT_SHIFT, "key": "insights_shift_trend_up"}
+    if weekly[-2] > 0 and weekly[-1] <= weekly[-2] * 0.75:
+        return {"type": INSIGHT_SHIFT, "key": "insights_shift_trend_down"}
+    return None
+
+
+def _build_pace_note(data: dict[str, Any]) -> dict[str, Any] | None:
     summary = _mapping_value(data.get("summary"))
     if summary is None:
         return None
 
     active_days = _int_value(summary.get("active_days"))
-    total_days = _int_value(summary.get("total_days"))
     sessions = _int_value(summary.get("sessions"))
-    if total_days <= 0:
+    if active_days <= 0:
         return None
 
-    active_ratio = round(active_days / total_days, 3)
-    if active_ratio >= 0.6 and sessions >= 12:
-        tier_key = "insights_subscription_high"
-    elif active_ratio >= 0.3 and sessions >= 5:
-        tier_key = "insights_subscription_medium"
-    else:
-        tier_key = "insights_subscription_low"
+    per_day = round(sessions / active_days)
+    if per_day < 12:
+        return None
 
     return {
-        "type": INSIGHT_SUBSCRIPTION_VALUE,
-        "key": tier_key,
+        "type": INSIGHT_PACE_NOTE,
+        "key": "insights_pace_dense",
         "active_days": active_days,
-        "total_days": total_days,
-        "active_ratio": active_ratio,
         "sessions": sessions,
-        "subscription_count": len(subscriptions),
+        "per_day": per_day,
     }
+
+
+def _build_action(
+    change: dict[str, Any] | None,
+    spike: dict[str, Any] | None,
+) -> dict[str, Any] | None:
+    if (
+        change is not None
+        and change.get("direction") == "up"
+        and _int_value(change.get("delta_pct")) >= 50
+    ):
+        return {"type": INSIGHT_ACTION, "key": "insights_action_watch_quota"}
+
+    if spike is not None:
+        return {
+            "type": INSIGHT_ACTION,
+            "key": "insights_action_smooth_spike",
+            "date": spike["date"],
+        }
+    return None
 
 
 def _find_spike(raw_daily: object) -> dict[str, Any] | None:
@@ -169,63 +230,6 @@ def _find_spike(raw_daily: object) -> dict[str, Any] | None:
     }
 
 
-def _build_next_actions(
-    data: dict[str, Any],
-    spike: dict[str, Any] | None,
-    subscription_value: dict[str, Any] | None,
-) -> dict[str, Any] | None:
-    actions: list[dict[str, Any]] = []
-
-    if spike is not None:
-        actions.append(
-            {
-                "key": "insights_action_smooth_spikes",
-                "date": spike["date"],
-                "tokens": spike["tokens"],
-                "mean_multiplier": spike["mean_multiplier"],
-            }
-        )
-
-    top_project = _first_mapping(data.get("by_project"))
-    if top_project is not None:
-        project_pct = _float_value(top_project.get("pct"))
-        if project_pct >= 60.0:
-            actions.append(
-                {
-                    "key": "insights_action_split_heavy_project",
-                    "project": _str_value(top_project.get("project"), "unknown"),
-                    "pct": _round_pct(project_pct),
-                    "tokens": _int_value(top_project.get("tokens")),
-                }
-            )
-
-    top_model = _first_mapping(data.get("by_model"))
-    if top_model is not None:
-        model_pct = _float_value(top_model.get("pct"))
-        if model_pct >= 70.0:
-            actions.append(
-                {
-                    "key": "insights_action_review_model_mix",
-                    "model": _str_value(top_model.get("model"), "unknown"),
-                    "pct": _round_pct(model_pct),
-                    "tokens": _int_value(top_model.get("tokens")),
-                }
-            )
-
-    if subscription_value is not None and subscription_value["key"] == "insights_subscription_low":
-        actions.append(
-            {
-                "key": "insights_action_batch_sessions",
-                "active_ratio": subscription_value["active_ratio"],
-                "sessions": subscription_value["sessions"],
-            }
-        )
-
-    if not actions:
-        return None
-    return {"type": INSIGHT_NEXT_ACTIONS, "actions": actions[:3]}
-
-
 def _daily_points(raw_daily: object) -> list[dict[str, Any]]:
     daily = _list_value(raw_daily)
     points: list[dict[str, Any]] = []
@@ -245,6 +249,23 @@ def _daily_points(raw_daily: object) -> list[dict[str, Any]]:
             }
         )
     return points
+
+
+def _weekly_token_totals(raw_daily: object) -> list[int]:
+    daily = _daily_points(raw_daily)
+    if not daily:
+        return []
+
+    weekly: dict[tuple[int, int], int] = {}
+    for point in daily:
+        try:
+            parsed = date.fromisoformat(point["date"][:10])
+        except ValueError:
+            continue
+        iso_year, iso_week, _weekday = parsed.isocalendar()
+        key = (iso_year, iso_week)
+        weekly[key] = weekly.get(key, 0) + point["tokens"]
+    return [weekly[key] for key in sorted(weekly)]
 
 
 def _first_mapping(value: object) -> dict[str, Any] | None:

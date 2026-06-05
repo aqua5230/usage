@@ -1,199 +1,256 @@
 from __future__ import annotations
 
+from datetime import date, timedelta
 from typing import Any
 
 from analyzer.insights import build_insights
 
 
+def _daily(tokens: list[int]) -> list[dict[str, Any]]:
+    return [
+        {"date": f"2026-05-{index:02d}", "tokens": value, "cost": value / 100}
+        for index, value in enumerate(tokens, 1)
+    ]
+
+
+def _daily_from(start: date, tokens: list[int]) -> list[dict[str, Any]]:
+    return [
+        {
+            "date": (start + timedelta(days=index)).isoformat(),
+            "tokens": value,
+            "cost": value / 100,
+        }
+        for index, value in enumerate(tokens)
+    ]
+
+
 def _payload() -> dict[str, Any]:
     return {
         "date_from": "2026-05-01",
-        "date_to": "2026-05-04",
+        "date_to": "2026-05-21",
         "summary": {
-            "total_tokens": 700,
-            "cost_usd": 3.5,
-            "sessions": 6,
-            "messages": 24,
+            "total_tokens": 1800,
+            "cost_usd": 9.25,
+            "sessions": 39,
+            "messages": 120,
             "active_days": 3,
-            "total_days": 4,
+            "total_days": 21,
         },
-        "by_agent": [
-            {
-                "id": "codex",
-                "name": "Codex",
-                "tokens": 700,
-                "cost": 3.5,
-                "sessions": 6,
-                "messages": 24,
-                "pct": 100.0,
-            }
-        ],
         "by_project": [
-            {"project": "usage", "tokens": 490, "cost": 2.75, "sessions": 4, "pct": 70.0},
-            {"project": "other", "tokens": 210, "cost": 0.75, "sessions": 2, "pct": 30.0},
+            {"project": "new-work", "tokens": 450, "cost": 2.0, "sessions": 8, "pct": 25.0},
+            {"project": "usage", "tokens": 1350, "cost": 7.25, "sessions": 31, "pct": 75.0},
         ],
         "by_model": [
-            {"model": "gpt-5-codex", "tokens": 560, "cost": 2.8, "pct": 80.0},
-            {"model": "gpt-5-mini", "tokens": 140, "cost": 0.7, "pct": 20.0},
+            {"model": "gpt-5-codex", "tokens": 1260, "cost": 6.5, "pct": 70.0},
+            {"model": "gpt-5-mini", "tokens": 540, "cost": 2.75, "pct": 30.0},
         ],
-        "daily_trend": [
-            {"date": "2026-05-01", "tokens": 100, "cost": 0.5},
-            {"date": "2026-05-02", "tokens": 100, "cost": 0.5},
-            {"date": "2026-05-03", "tokens": 100, "cost": 0.5},
-            {"date": "2026-05-04", "tokens": 400, "cost": 2.0},
-        ],
-        "top_sessions": [
-            {
-                "start_time": "2026-05-04 10:00",
-                "project": "usage",
-                "model": "gpt-5-codex",
-                "duration_min": 42.0,
-                "tokens": 400,
-                "cost": 2.0,
-            }
-        ],
-        "subscriptions": [{"agent": "Codex", "plan": "ChatGPT Plus", "since": "2026-03-23"}],
-        "persona": None,
+        "daily_trend": _daily(
+            [
+                100,
+                100,
+                100,
+                100,
+                100,
+                100,
+                100,
+                200,
+                200,
+                200,
+                200,
+                200,
+                200,
+                200,
+                3000,
+                100,
+                100,
+                100,
+                100,
+                100,
+                100,
+            ]
+        ),
+        "comparison": {
+            "period": "week",
+            "has_prev": True,
+            "prev_tokens": 1000,
+            "prev_cost": 5.0,
+            "prev_projects": ["usage"],
+            "prev_model_share": {"gpt-5-codex": 40.0, "gpt-5-mini": 60.0},
+        },
     }
-
-
-def test_build_insights_emits_all_component_types() -> None:
-    insights = build_insights(_payload())
-
-    assert [component["type"] for component in insights] == [
-        "priority_summary",
-        "subscription_value",
-        "spike_explainer",
-        "next_actions",
-    ]
 
 
 def test_build_insights_golden_output_is_deterministic() -> None:
     assert build_insights(_payload()) == [
         {
-            "type": "priority_summary",
-            "items": [
-                {
-                    "key": "insights_priority_top_project",
-                    "project": "usage",
-                    "tokens": 490,
-                    "cost_usd": 2.75,
-                    "pct": 70.0,
-                    "sessions": 4,
-                },
-                {
-                    "key": "insights_priority_spike_day",
-                    "date": "2026-05-04",
-                    "tokens": 400,
-                    "mean_tokens": 175.0,
-                    "mean_multiplier": 2.29,
-                },
-                {
-                    "key": "insights_priority_top_model",
-                    "model": "gpt-5-codex",
-                    "tokens": 560,
-                    "pct": 80.0,
-                    "cost_usd": 2.8,
-                },
-            ],
+            "type": "change_headline",
+            "key": "insights_change_up",
+            "tokens": 1800,
+            "cost_usd": 9.25,
+            "pct": 80,
+            "direction": "up",
+            "delta_pct": 80,
         },
         {
-            "type": "subscription_value",
-            "key": "insights_subscription_medium",
+            "type": "spike",
+            "key": "insights_spike_v2",
+            "date": "2026-05-15",
+            "tokens": 3000,
+            "mean_multiplier": 11.05,
+        },
+        {
+            "type": "shift",
+            "key": "insights_shift_new_project",
+            "project": "new-work",
+            "pct": 25.0,
+        },
+        {
+            "type": "pace_note",
+            "key": "insights_pace_dense",
             "active_days": 3,
-            "total_days": 4,
-            "active_ratio": 0.75,
-            "sessions": 6,
-            "subscription_count": 1,
+            "sessions": 39,
+            "per_day": 13,
         },
-        {
-            "type": "spike_explainer",
-            "date": "2026-05-04",
-            "tokens": 400,
-            "cost_usd": 2.0,
-            "mean_tokens": 175.0,
-            "stdev_tokens": 129.9,
-            "mean_multiplier": 2.29,
-        },
-        {
-            "type": "next_actions",
-            "actions": [
-                {
-                    "key": "insights_action_smooth_spikes",
-                    "date": "2026-05-04",
-                    "tokens": 400,
-                    "mean_multiplier": 2.29,
-                },
-                {
-                    "key": "insights_action_split_heavy_project",
-                    "project": "usage",
-                    "pct": 70.0,
-                    "tokens": 490,
-                },
-                {
-                    "key": "insights_action_review_model_mix",
-                    "model": "gpt-5-codex",
-                    "pct": 80.0,
-                    "tokens": 560,
-                },
-            ],
-        },
+        {"type": "action", "key": "insights_action_watch_quota"},
     ]
 
 
-def test_priority_summary_skips_when_usage_data_is_missing() -> None:
+def test_change_headline_skips_without_previous_period() -> None:
     payload = _payload()
-    payload["summary"] = {
-        "total_tokens": 0,
-        "cost_usd": 0.0,
-        "sessions": 0,
-        "messages": 0,
-        "active_days": 0,
-        "total_days": 4,
-    }
-    payload["by_project"] = []
-    payload["by_model"] = []
-    payload["daily_trend"] = []
-
-    assert not any(component["type"] == "priority_summary" for component in build_insights(payload))
-
-
-def test_subscription_value_skips_without_subscriptions() -> None:
-    payload = _payload()
-    payload["subscriptions"] = []
+    payload["comparison"] = {"period": "today", "has_prev": False}
 
     assert not any(
-        component["type"] == "subscription_value" for component in build_insights(payload)
+        component["type"] == "change_headline" for component in build_insights(payload)
     )
 
 
-def test_spike_explainer_skips_without_clear_spike() -> None:
+def test_change_headline_skips_when_previous_tokens_are_zero() -> None:
     payload = _payload()
-    payload["daily_trend"] = [
-        {"date": "2026-05-01", "tokens": 100, "cost": 0.5},
-        {"date": "2026-05-02", "tokens": 110, "cost": 0.5},
-        {"date": "2026-05-03", "tokens": 105, "cost": 0.5},
-        {"date": "2026-05-04", "tokens": 100, "cost": 0.5},
-    ]
+    payload["comparison"]["prev_tokens"] = 0
 
-    assert not any(component["type"] == "spike_explainer" for component in build_insights(payload))
+    assert not any(
+        component["type"] == "change_headline" for component in build_insights(payload)
+    )
 
 
-def test_next_actions_skips_without_actionable_signals() -> None:
+def test_spike_skips_without_clear_spike() -> None:
+    payload = _payload()
+    payload["daily_trend"] = _daily([100, 110, 105, 100])
+
+    assert not any(component["type"] == "spike" for component in build_insights(payload))
+
+
+def test_shift_skips_without_signal() -> None:
     payload = _payload()
     payload["by_project"] = [
-        {"project": "usage", "tokens": 350, "cost": 1.75, "sessions": 3, "pct": 50.0},
-        {"project": "other", "tokens": 350, "cost": 1.75, "sessions": 3, "pct": 50.0},
+        {"project": "usage", "tokens": 1800, "cost": 9.25, "sessions": 39, "pct": 100.0}
     ]
     payload["by_model"] = [
-        {"model": "gpt-5-codex", "tokens": 350, "cost": 1.75, "pct": 50.0},
-        {"model": "gpt-5-mini", "tokens": 350, "cost": 1.75, "pct": 50.0},
+        {"model": "gpt-5-codex", "tokens": 900, "cost": 4.0, "pct": 50.0}
     ]
-    payload["daily_trend"] = [
-        {"date": "2026-05-01", "tokens": 100, "cost": 0.5},
-        {"date": "2026-05-02", "tokens": 110, "cost": 0.5},
-        {"date": "2026-05-03", "tokens": 105, "cost": 0.5},
-        {"date": "2026-05-04", "tokens": 100, "cost": 0.5},
+    payload["comparison"]["prev_model_share"] = {"gpt-5-codex": 45.0}
+    payload["daily_trend"] = _daily_from(date(2026, 5, 4), [100] * 14)
+
+    assert not any(component["type"] == "shift" for component in build_insights(payload))
+
+
+def test_pace_note_skips_when_sessions_are_sparse() -> None:
+    payload = _payload()
+    payload["summary"]["sessions"] = 20
+    payload["summary"]["active_days"] = 2
+
+    assert not any(component["type"] == "pace_note" for component in build_insights(payload))
+
+
+def test_action_skips_without_quota_or_spike_signal() -> None:
+    payload = _payload()
+    payload["summary"]["total_tokens"] = 1040
+    payload["comparison"]["prev_tokens"] = 1000
+    payload["daily_trend"] = _daily([100, 110, 105, 100])
+
+    assert not any(component["type"] == "action" for component in build_insights(payload))
+
+
+def test_change_headline_emits_up_down_and_flat() -> None:
+    cases = [
+        (1100, "insights_change_up", 10),
+        (900, "insights_change_down", 10),
+        (1040, "insights_change_flat", 4),
+    ]
+    for tokens, key, pct in cases:
+        payload = _payload()
+        payload["summary"]["total_tokens"] = tokens
+
+        change = build_insights(payload)[0]
+
+        assert change["type"] == "change_headline"
+        assert change["key"] == key
+        assert change["pct"] == pct
+
+
+def test_shift_new_project_takes_priority_over_model_and_trend() -> None:
+    shift = next(
+        component for component in build_insights(_payload()) if component["type"] == "shift"
+    )
+
+    assert shift["key"] == "insights_shift_new_project"
+
+
+def test_shift_model_takes_priority_over_trend() -> None:
+    payload = _payload()
+    payload["by_project"] = [
+        {"project": "usage", "tokens": 1800, "cost": 9.25, "sessions": 39, "pct": 100.0}
     ]
 
-    assert not any(component["type"] == "next_actions" for component in build_insights(payload))
+    shift = next(
+        component for component in build_insights(payload) if component["type"] == "shift"
+    )
+
+    assert shift == {
+        "type": "shift",
+        "key": "insights_shift_model_up",
+        "model": "gpt-5-codex",
+        "prev_pct": 40.0,
+        "pct": 70.0,
+    }
+
+
+def test_shift_trend_up_and_down() -> None:
+    payload = _payload()
+    payload["by_project"] = [
+        {"project": "usage", "tokens": 1800, "cost": 9.25, "sessions": 39, "pct": 100.0}
+    ]
+    payload["by_model"] = [
+        {"model": "gpt-5-codex", "tokens": 900, "cost": 4.0, "pct": 50.0}
+    ]
+    payload["comparison"]["prev_model_share"] = {"gpt-5-codex": 45.0}
+    payload["daily_trend"] = _daily_from(
+        date(2026, 5, 4),
+        [100] * 7 + [200] * 7 + [300] * 7,
+    )
+
+    shift = next(
+        component for component in build_insights(payload) if component["type"] == "shift"
+    )
+    assert shift == {"type": "shift", "key": "insights_shift_trend_up"}
+
+    payload["daily_trend"] = _daily_from(date(2026, 5, 4), [200] * 7 + [100] * 7)
+    shift = next(
+        component for component in build_insights(payload) if component["type"] == "shift"
+    )
+    assert shift == {"type": "shift", "key": "insights_shift_trend_down"}
+
+
+def test_action_smooth_spike_is_used_when_quota_watch_does_not_apply() -> None:
+    payload = _payload()
+    payload["summary"]["total_tokens"] = 1100
+
+    action = next(
+        component for component in build_insights(payload) if component["type"] == "action"
+    )
+
+    assert action == {
+        "type": "action",
+        "key": "insights_action_smooth_spike",
+        "date": "2026-05-15",
+    }

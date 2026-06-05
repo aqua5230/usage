@@ -144,6 +144,58 @@ def _load_persona_for_period(period: str) -> dict[str, Any] | None:
     }
 
 
+def _empty_comparison(period: str) -> dict[str, Any]:
+    return {
+        "period": period,
+        "has_prev": False,
+        "prev_tokens": 0,
+        "prev_cost": 0.0,
+        "prev_projects": [],
+        "prev_model_share": {},
+    }
+
+
+def _build_comparison(
+    raw_entries: list[UsageEntry],
+    period: str,
+    date_from: date,
+    date_to: date,
+) -> dict[str, Any]:
+    if period not in {"week", "month"}:
+        return _empty_comparison(period)
+
+    total_days = (date_to - date_from).days + 1
+    prev_date_to = date_from - timedelta(days=1)
+    prev_date_from = prev_date_to - timedelta(days=total_days - 1)
+    prev_entries = [
+        entry
+        for entry in raw_entries
+        if prev_date_from <= _entry_date(entry) <= prev_date_to
+    ]
+
+    prev_tokens = sum(entry.total_tokens for entry in prev_entries)
+    prev_cost = sum(calculate_cost(entry) for entry in prev_entries)
+    prev_projects = sorted(
+        {entry.project or "unknown" for entry in prev_entries}
+    )
+    model_tokens: dict[str, int] = defaultdict(int)
+    for entry in prev_entries:
+        model_tokens[entry.model or "unknown"] += entry.total_tokens
+    prev_model_share = {
+        model: _pct(tokens, prev_tokens)
+        for model, tokens in sorted(model_tokens.items())
+    }
+
+    return {
+        "period": period,
+        "has_prev": bool(prev_entries),
+        "prev_tokens": prev_tokens,
+        "prev_cost": _round_cost(prev_cost),
+        "prev_projects": prev_projects,
+        "prev_model_share": prev_model_share,
+    }
+
+
 def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[str, Any]:
     """
     period: "today" | "week" | "month" | "all"
@@ -161,6 +213,10 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
     today = datetime.now().astimezone().date()
     date_from, date_to = _period_bounds(period, today)
     hours_back = 0 if date_from is None else ((date_to - date_from).days + 2) * 24
+    if date_from is not None and period in {"week", "month"}:
+        total_days_for_comparison = (date_to - date_from).days + 1
+        prev_date_from = date_from - timedelta(days=total_days_for_comparison)
+        hours_back = ((date_to - prev_date_from).days + 2) * 24
 
     raw_entries: list[UsageEntry] = []
     use_recent_codex = period in {"today", "week", "month"}
@@ -185,6 +241,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
     session_ids = {entry.session_id for entry in entries}
     active_dates = {_entry_date(entry) for entry in entries}
     total_days = (date_to - date_from).days + 1
+    comparison = _build_comparison(raw_entries, period, date_from, date_to)
 
     by_agent_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0, "sessions": set(), "messages": 0})
     by_project_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0, "sessions": set()})
@@ -290,6 +347,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
         "by_model": by_model,
         "daily_trend": daily_trend,
         "top_sessions": top_sessions,
+        "comparison": comparison,
         "subscriptions": subscription.load_subscriptions(),
         "persona": _load_persona_for_period(period),
     }
