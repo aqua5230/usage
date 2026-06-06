@@ -7,6 +7,7 @@ import os
 import re
 import sqlite3
 from collections import OrderedDict
+from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -206,7 +207,7 @@ def _load_sqlite_rate_limits() -> CodexRateLimits | None:
         "ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 50"
     )
     try:
-        with sqlite3.connect(f"file:{LOGS_DB}?mode=ro", uri=True) as conn:
+        with closing(sqlite3.connect(f"file:{LOGS_DB}?mode=ro", uri=True)) as conn:
             rows = conn.execute(query).fetchall()
     except (OSError, sqlite3.Error):
         if os.environ.get("USAGE_DEBUG") == "1":
@@ -331,7 +332,7 @@ def _load_thread_metadata() -> dict[str, _ThreadMetadata]:
     if not STATE_DB.exists():
         return {}
     try:
-        with sqlite3.connect(f"file:{STATE_DB}?mode=ro", uri=True) as conn:
+        with closing(sqlite3.connect(f"file:{STATE_DB}?mode=ro", uri=True)) as conn:
             rows = conn.execute(
                 "SELECT id, model, cwd FROM threads",
             ).fetchall()
@@ -369,7 +370,7 @@ def _load_sqlite_log_entries(
         params = (cutoff_ts,)
     query += " ORDER BY ts ASC, ts_nanos ASC, id ASC"
     try:
-        with sqlite3.connect(f"file:{LOGS_DB}?mode=ro", uri=True) as conn:
+        with closing(sqlite3.connect(f"file:{LOGS_DB}?mode=ro", uri=True)) as conn:
             rows = conn.execute(query, params).fetchall()
     except (OSError, sqlite3.Error):
         if os.environ.get("USAGE_DEBUG") == "1":

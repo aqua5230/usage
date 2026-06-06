@@ -318,6 +318,50 @@ def test_load_entries_includes_sqlite_logs_when_sessions_dir_is_missing(
     assert entries[0].project == "demo"
 
 
+def test_sqlite_reads_close_connections(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    class _Cursor:
+        def __init__(self, rows: list[tuple[Any, ...]]) -> None:
+            self._rows = rows
+
+        def fetchall(self) -> list[tuple[Any, ...]]:
+            return self._rows
+
+    class _Connection:
+        def __init__(self) -> None:
+            self.closed = False
+
+        def execute(self, *_args: Any) -> _Cursor:
+            return _Cursor([])
+
+        def close(self) -> None:
+            self.closed = True
+
+    connections: list[_Connection] = []
+
+    def _connect(*_args: Any, **_kwargs: Any) -> _Connection:
+        conn = _Connection()
+        connections.append(conn)
+        return conn
+
+    state_db = tmp_path / "state.sqlite"
+    logs_db = tmp_path / "logs.sqlite"
+    state_db.touch()
+    logs_db.touch()
+    monkeypatch.setattr(codex_loader, "STATE_DB", state_db)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+    monkeypatch.setattr(sqlite3, "connect", _connect)
+
+    assert codex_loader._load_thread_metadata() == {}
+    assert codex_loader._load_sqlite_rate_limits() is None
+    assert codex_loader._load_sqlite_log_entries({}, None, {}) == []
+
+    assert len(connections) == 3
+    assert all(conn.closed for conn in connections)
+
+
 def test_load_entries_skips_sqlite_logs_already_covered_by_jsonl(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
