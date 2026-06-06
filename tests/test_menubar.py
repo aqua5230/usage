@@ -1342,6 +1342,7 @@ def test_apply_codex_refresh_result_updates_quota_before_full_refresh() -> None:
 
 def test_refresh_error_preserves_codex_quota() -> None:
     captured: dict[str, object] = {}
+    calls: list[tuple[str, bool]] = []
     session = menubar_state.QuotaRowState(
         title="Session",
         percent=1.0,
@@ -1372,6 +1373,7 @@ def test_refresh_error_preserves_codex_quota() -> None:
         def performSelectorOnMainThread_withObject_waitUntilDone_(
             self, selector: str, result: dict[str, object], wait: bool
         ) -> None:
+            calls.append((selector, wait))
             captured["selector"] = selector
             captured["result"] = result
             captured["wait"] = wait
@@ -1389,6 +1391,10 @@ def test_refresh_error_preserves_codex_quota() -> None:
     assert state.codex_weekly == weekly
     assert result["codex_5h_pct"] == 1.0
     assert result["codex_model"] == "gpt-test"
+    assert calls == [
+        ("_applyCodexRefreshResult:", True),
+        ("_applyRefreshResult:", False),
+    ]
 
 
 def test_refresh_error_preserves_project_usage() -> None:

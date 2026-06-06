@@ -893,7 +893,7 @@ class AppDelegate(NSObject):
             self.performSelectorOnMainThread_withObject_waitUntilDone_(
                 "_applyCodexRefreshResult:",
                 codex_result,
-                False,
+                True,
             )
             fallback_state = getattr(self, "latest_state", _empty_state(self.language))
             project_rows = list(fallback_state.projects)
