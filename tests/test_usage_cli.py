@@ -46,6 +46,26 @@ def test_parse_sort_args_extracts_major_flags() -> None:
     assert descending is False
 
 
+def test_apply_sort_time_key_sorts_by_default_attr_honoring_user_direction() -> None:
+    # SORT_KEYS["time"] is None, so _apply_sort falls back to default_attr but
+    # follows the caller's descending flag rather than the command default.
+    a = SimpleNamespace(timestamp=1)
+    b = SimpleNamespace(timestamp=2)
+    c = SimpleNamespace(timestamp=3)
+
+    stats = [b, a, c]
+    usage_cli._apply_sort(
+        stats, "time", descending=False, default_attr="timestamp", default_reverse=True
+    )
+    assert [s.timestamp for s in stats] == [1, 2, 3]
+
+    stats = [b, a, c]
+    usage_cli._apply_sort(
+        stats, "time", descending=True, default_attr="timestamp", default_reverse=False
+    )
+    assert [s.timestamp for s in stats] == [3, 2, 1]
+
+
 def test_main_dashboard_uses_mocked_loaders_without_touching_agent_dirs(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
