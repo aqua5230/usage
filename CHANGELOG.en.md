@@ -7,6 +7,23 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.16.0] - 2026-06-07
+
+### Added
+- **Progress Concierge now surfaces last session's uncommitted changes**: the automatic "where you left off" handoff on a new conversation also lists the file changes the previous session hadn't committed yet, so you don't have to recall them.
+- **EMA-smoothed burn-rate forecast**: the "time until empty" estimate now uses an exponential moving average over recent interval rates instead of a single first-to-last slope, making it more responsive to sudden acceleration and steadier against single-point noise.
+
+### Fixed
+- **Packaged .app no longer crashes on a non-terminal launch**: double-clicking the .app or launching it in the background could crash the moment it opened the panel or requested notification permission (`Argument 3 is a block, but no signature available`), because py2app shipped the bare WebKit/UserNotifications modules without their full wrapper metadata. The required block signatures are now registered unconditionally and the wrappers are bundled.
+- **Missing quota data no longer triggers a false "quota empty" alert**: when a quota window temporarily has no reading (e.g. an expired Codex 5-hour window), it was treated as depleted — firing a notification with a broken "back after --" body. Depletion now requires an actual 100%.
+- **A malformed locale string can no longer crash the UI**: if a translated string's placeholder doesn't match the call site's arguments, the lookup now falls back to English, then to the raw key, instead of raising.
+
+### Changed
+- **Shorter burn-rate warning**: removed the "(N× faster than / under average pace)" suffix that pushed the red warning line past the panel width. The warning now shows only time-to-empty and the reset countdown.
+
+### Docs
+- **Open-source prep: security policy and license headers**: added a bilingual `SECURITY.md` (vulnerabilities go to a private email, not public Issues), an AGPL-3.0-only header on every Python file, and the maintainer's GitHub handle on the `LICENSE` copyright line.
+
 ## [0.15.14] - 2026-06-07
 
 ### Fixed
