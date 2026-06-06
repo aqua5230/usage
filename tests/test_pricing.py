@@ -131,7 +131,33 @@ def test_calculate_cost_accepts_analyzer_usage_entry(monkeypatch: pytest.MonkeyP
     )
 
     assert pricing.calculate_cost(entry) == 90.0
-    assert entry.cost_usd == 90.0
+    assert entry.cost_usd is None
+
+
+def test_calculate_cost_recomputes_none_cost_when_pricing_changes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pricing_tables = [
+        {
+            "gpt-5": {
+                "input_cost_per_token": 1.0,
+                "output_cost_per_token": 2.0,
+            }
+        },
+        {
+            "gpt-5": {
+                "input_cost_per_token": 3.0,
+                "output_cost_per_token": 4.0,
+            }
+        },
+    ]
+    monkeypatch.setattr(pricing, "get_pricing", lambda: pricing_tables.pop(0))
+    entry = _entry(model="gpt-5", input_tokens=1, output_tokens=1, cost_usd=None)
+
+    assert pricing.calculate_cost(entry) == 3.0
+    assert entry.cost_usd is None
+    assert pricing.calculate_cost(entry) == 7.0
+    assert entry.cost_usd is None
 
 
 def test_resolve_model_key_exact_match() -> None:

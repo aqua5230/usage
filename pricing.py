@@ -77,7 +77,6 @@ def calculate_cost(entry: _CostEntry) -> float:
         + entry.cache_creation_tokens * cache_creation_cost
         + entry.cache_read_tokens * cache_read_cost
     )
-    entry.cost_usd = cost
     return cost
 
 

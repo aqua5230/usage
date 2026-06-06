@@ -58,6 +58,7 @@ if TYPE_CHECKING:
 
 PANEL_WIDTH = 364.0
 PANEL_HEIGHT = 812.0
+MAX_INJECTION_RELOADS = 2
 
 
 def _reload_web_panel(view: Any) -> None:
@@ -69,9 +70,20 @@ def _reload_web_panel(view: Any) -> None:
 
 def _handle_injection_error(view: Any, payload: dict[str, object], error: Any) -> None:
     if error is None:
+        view._injection_retry_payload = None
+        view._injection_reload_count = 0
         return
     if os.environ.get("USAGE_DEBUG") == "1":
         logger.warning("panel state injection failed: %s", error)
+    if getattr(view, "_injection_retry_payload", None) is not payload:
+        view._injection_retry_payload = payload
+        view._injection_reload_count = 0
+    if getattr(view, "_injection_reload_count", 0) >= MAX_INJECTION_RELOADS:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("panel state injection reload limit reached")
+        view._pending = None
+        return
+    view._injection_reload_count += 1
     view._pending = payload
     _reload_web_panel(view)
 
@@ -135,6 +147,8 @@ class WebPanelView(WKWebView):
     _ready = objc.ivar()
     _pending = objc.ivar()
     _last_payload = objc.ivar()
+    _injection_retry_payload = objc.ivar()
+    _injection_reload_count = objc.ivar()
 
     def initWithFrame_configuration_delegate_(
         self,
@@ -151,6 +165,8 @@ class WebPanelView(WKWebView):
         self._ready = False
         self._pending = None
         self._last_payload = None
+        self._injection_retry_payload = None
+        self._injection_reload_count = 0
         self.setNavigationDelegate_(self)
         self.setValue_forKey_(False, "drawsBackground")
         self.setWantsLayer_(True)

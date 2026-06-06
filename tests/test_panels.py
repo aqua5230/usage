@@ -238,3 +238,32 @@ def test_web_panel_reloads_when_state_injection_fails() -> None:
     assert view._ready is False
     assert view._pending == payload
     assert view.reloads == 1
+
+
+def test_web_panel_caps_reloads_when_state_injection_keeps_failing() -> None:
+    import panels.web_panel as web_panel
+
+    class FakeWebView:
+        def __init__(self) -> None:
+            self._ready = True
+            self._pending = None
+            self._last_payload = None
+            self._injection_retry_payload = None
+            self._injection_reload_count = 0
+            self.reloads = 0
+
+        def reload(self) -> None:
+            self.reloads += 1
+
+    view = FakeWebView()
+    payload: dict[str, object] = {"projects": [{"name": "Eric-Tools"}]}
+
+    for _ in range(web_panel.MAX_INJECTION_RELOADS + 3):
+        web_panel._handle_injection_error(view, payload, "boom")
+
+    assert view.reloads == web_panel.MAX_INJECTION_RELOADS
+    assert view._pending is None
+
+    web_panel._reload_web_panel(view)
+
+    assert view.reloads == web_panel.MAX_INJECTION_RELOADS + 1
