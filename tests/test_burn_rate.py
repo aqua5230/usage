@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from burn_rate import BurnRateTracker, pace_ratio
+from burn_rate import BurnRateTracker
 
 
 def test_forecast_none_for_empty_buffer() -> None:
@@ -170,21 +170,3 @@ def test_record_prunes_samples_older_than_rolling_window() -> None:
     tracker.record(1201.0, 80.0)
 
     assert tracker.forecast_seconds() == pytest.approx(200.0)
-
-
-def test_pace_ratio_returns_one_at_average_pace() -> None:
-    assert pace_ratio(percent=50.0, resets_at=700.0, now=350.0, window_seconds=700.0) == (
-        pytest.approx(1.0)
-    )
-
-
-def test_pace_ratio_detects_faster_and_slower_usage() -> None:
-    faster = pace_ratio(percent=75.0, resets_at=700.0, now=350.0, window_seconds=700.0)
-    slower = pace_ratio(percent=25.0, resets_at=700.0, now=350.0, window_seconds=700.0)
-
-    assert faster == pytest.approx(1.5)
-    assert slower == pytest.approx(0.5)
-
-
-def test_pace_ratio_none_when_expected_percent_is_zero() -> None:
-    assert pace_ratio(percent=10.0, resets_at=700.0, now=0.0, window_seconds=700.0) is None

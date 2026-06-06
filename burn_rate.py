@@ -88,20 +88,3 @@ class BurnRateTracker:
         cutoff = now - ROLLING_WINDOW_SECONDS
         while self._samples and self._samples[0].timestamp < cutoff:
             self._samples.popleft()
-
-
-def pace_ratio(
-    *,
-    percent: float,
-    resets_at: float,
-    now: float,
-    window_seconds: float,
-) -> float | None:
-    if window_seconds <= 0:
-        return None
-    start = resets_at - window_seconds
-    elapsed = now - start
-    expected_percent = elapsed / window_seconds * 100.0
-    if expected_percent <= 0:
-        return None
-    return float(percent) / expected_percent

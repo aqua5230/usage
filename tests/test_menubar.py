@@ -245,34 +245,6 @@ def test_quota_row_uses_burn_warning_when_forecast_exceeds_risk_threshold() -> N
     assert row.warning is True
     assert row.reset_text == "⚠ 按目前速度 18分鐘 就會用完(重置還要 51分鐘)"
 
-
-def test_quota_row_appends_pace_text_only_when_warning() -> None:
-    warning = menubar._quota_row(
-        "Session",
-        75.0,
-        1_000.0 + (2.5 * 3600),
-        1_000.0,
-        menubar.CODEX_COLOR,
-        language="en",
-        forecast_seconds=18 * 60,
-        window_seconds=5 * 3600,
-    )
-    quiet = menubar._quota_row(
-        "Session",
-        75.0,
-        1_000.0 + (2.5 * 3600),
-        1_000.0,
-        menubar.CODEX_COLOR,
-        language="en",
-        window_seconds=5 * 3600,
-    )
-
-    assert warning.warning is True
-    assert "(running 1.5x faster than average)" in warning.reset_text
-    assert quiet.warning is False
-    assert "average" not in quiet.reset_text
-
-
 def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
     row = menubar._quota_row(
         "Session",
