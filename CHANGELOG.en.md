@@ -7,6 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.15.11] - 2026-06-06
+
+### Fixed
+- **Web panel now recovers automatically after its render process crashes (#29)**: the WKWebView's web content process can be terminated on its own while the app itself keeps running, leaving the panel blank/grey until the whole app is restarted. The panel now detects content-process termination, reloads, and re-applies the last payload to recover; it also reloads and retries when JavaScript state injection fails.
+
 ## [0.15.10] - 2026-06-05
 
 ### Added
