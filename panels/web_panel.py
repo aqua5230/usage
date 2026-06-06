@@ -60,6 +60,22 @@ PANEL_WIDTH = 364.0
 PANEL_HEIGHT = 812.0
 
 
+def _reload_web_panel(view: Any) -> None:
+    view._ready = False
+    if getattr(view, "_last_payload", None) is not None:
+        view._pending = view._last_payload
+    view.reload()
+
+
+def _handle_injection_error(view: Any, payload: dict[str, object], error: Any) -> None:
+    if error is None:
+        return
+    if os.environ.get("USAGE_DEBUG") == "1":
+        logger.warning("panel state injection failed: %s", error)
+    view._pending = payload
+    _reload_web_panel(view)
+
+
 def _i18n_path() -> Path:
     try:
         bundle_path = NSBundle.mainBundle().resourcePath()
@@ -118,6 +134,7 @@ class WebPanelView(WKWebView):
     user_content_controller = objc.ivar()
     _ready = objc.ivar()
     _pending = objc.ivar()
+    _last_payload = objc.ivar()
 
     def initWithFrame_configuration_delegate_(
         self,
@@ -133,6 +150,7 @@ class WebPanelView(WKWebView):
         self.user_content_controller = configuration.userContentController()
         self._ready = False
         self._pending = None
+        self._last_payload = None
         self.setNavigationDelegate_(self)
         self.setValue_forKey_(False, "drawsBackground")
         self.setWantsLayer_(True)
@@ -162,6 +180,11 @@ class WebPanelView(WKWebView):
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("panel provisional navigation failed: %s", error)
 
+    def webViewWebContentProcessDidTerminate_(self, web_view: Any) -> None:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("panel web content process terminated; reloading")
+        _reload_web_panel(self)
+
     def renderTimeoutElapsed_(self, _arg: Any) -> None:
         # If the HTML never finished rendering, the popover shows only the dark
         # backing layer (a "grey window"). Surface that in the debug log so a
@@ -174,11 +197,19 @@ class WebPanelView(WKWebView):
         self.bridge = bridge
 
     def injectState_(self, payload: dict[str, object]) -> None:
+        self._last_payload = payload
         if not self._ready:
             self._pending = payload
             return
         encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-        self.evaluateJavaScript_completionHandler_(f"window.usageApplyState({encoded})", None)
+
+        def _completed(_value: Any, error: Any) -> None:
+            _handle_injection_error(self, payload, error)
+
+        self.evaluateJavaScript_completionHandler_(
+            f"window.usageApplyState({encoded})",
+            _completed,
+        )
 
     def teardown(self) -> None:
         controller = self.user_content_controller
@@ -188,6 +219,8 @@ class WebPanelView(WKWebView):
         self.bridge = None
         self.delegate_ref = None
         self.user_content_controller = None
+        self._last_payload = None
+        self._pending = None
 
 
 class ErrorPanelView(NSView):

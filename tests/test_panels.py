@@ -193,3 +193,48 @@ def test_build_view_falls_back_to_error_panel_on_failure(
     assert isinstance(view, ErrorPanelView)
     view.injectState_({})  # no-op, must not raise
     view.teardown()  # no-op, must not raise
+
+
+def test_web_panel_reloads_and_reinjects_after_content_termination() -> None:
+    import panels.web_panel as web_panel
+
+    class FakeWebView:
+        def __init__(self) -> None:
+            self._ready = True
+            self._pending = None
+            self._last_payload = {"codex": {"session": {"percent": 67}}}
+            self.reloads = 0
+
+        def reload(self) -> None:
+            self.reloads += 1
+
+    view = FakeWebView()
+
+    web_panel._reload_web_panel(view)
+
+    assert view._ready is False
+    assert view._pending == {"codex": {"session": {"percent": 67}}}
+    assert view.reloads == 1
+
+
+def test_web_panel_reloads_when_state_injection_fails() -> None:
+    import panels.web_panel as web_panel
+
+    class FakeWebView:
+        def __init__(self) -> None:
+            self._ready = True
+            self._pending = None
+            self._last_payload = None
+            self.reloads = 0
+
+        def reload(self) -> None:
+            self.reloads += 1
+
+    view = FakeWebView()
+    payload: dict[str, object] = {"projects": [{"name": "Eric-Tools"}]}
+
+    web_panel._handle_injection_error(view, payload, "boom")
+
+    assert view._ready is False
+    assert view._pending == payload
+    assert view.reloads == 1
