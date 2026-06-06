@@ -31,6 +31,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 from collections.abc import Mapping
 from datetime import datetime, timedelta
@@ -52,6 +53,7 @@ _MAX_AGE_DAYS = 30
 _MAX_COMMITS = 3
 _MAX_TODOS = 5
 _MAX_FILES = 5
+_MAX_UNCOMMITTED_FILES = 3
 _MAX_REQUESTS = 3
 _MAX_REQUEST_CHARS = 280
 _MIN_SUBSTANTIVE_CHARS = 7
@@ -86,6 +88,9 @@ _DEFAULT_TEMPLATES = {
             "list the threads you can see for them to pick. Then respond normally.)\n\n"
         ),
         "empty": _DEFAULT_EMPTY,
+        "uncommitted": (
+            "Left uncommitted last time: {count} changed file(s) on branch {branch} ({files})"
+        ),
     },
     "zh-TW": {
         "prompt": (
@@ -109,6 +114,9 @@ _DEFAULT_TEMPLATES = {
             "（請在你這次對話的第一則回覆最前面，說一行「🐾 歡迎回來，"
             "這個專案目前沒有要接的進度。」，再正常回應。）"
         ),
+        "uncommitted": (
+            "上次離開時還留著：{branch} 分支有 {count} 個檔案改了還沒提交（{files}）"
+        ),
     },
     "zh-CN": {
         "prompt": (
@@ -131,6 +139,9 @@ _DEFAULT_TEMPLATES = {
         "empty": (
             "（请在你这次对话的第一则回复最前面，说一行「🐾 欢迎回来，"
             "这个项目目前没有要接的进度。」，再正常回应。）"
+        ),
+        "uncommitted": (
+            "上次离开时还留着：{branch} 分支有 {count} 个文件改了还没提交（{files}）"
         ),
     },
     "ja": {
@@ -157,6 +168,10 @@ _DEFAULT_TEMPLATES = {
             "（このセッションの最初の返信の冒頭に、一行「🐾 おかえりなさい！"
             "このプロジェクトはまだこれからですね。」と述べてから、通常どおり応答してください。）"
         ),
+        "uncommitted": (
+            "前回の終了時に未コミット：{branch} ブランチに変更済み未コミットのファイルが "
+            "{count} 件（{files}）"
+        ),
     },
     "ko": {
         "prompt": (
@@ -181,6 +196,9 @@ _DEFAULT_TEMPLATES = {
         "empty": (
             '(이 세션의 첫 답변 맨 앞에 한 줄 "🐾 돌아오셨네요! '
             '이 프로젝트는 아직 이어갈 내용이 없어요."라고 말한 뒤 평소대로 응답하세요.)'
+        ),
+        "uncommitted": (
+            "지난번 종료 시 미커밋: {branch} 브랜치에 변경된 미커밋 파일 {count}개 ({files})"
         ),
     },
 }
@@ -218,9 +236,19 @@ def _build_prompt(payload: dict[str, Any]) -> str:
     if not project_dir.is_dir():
         return ""
 
-    lead, template, none_label, empty = _load_template(_detect_lang())
+    lead, template, none_label, empty, uncommitted_template = _load_template(_detect_lang())
     project = _project_from_cwd(cwd) if isinstance(cwd, str) and cwd else project_dir.name
-    report = _build_report(project_dir, Path(transcript).name, project, lead, template, none_label)
+    uncommitted = _git_dirty(cwd) if isinstance(cwd, str) and cwd else None
+    report = _build_report(
+        project_dir,
+        Path(transcript).name,
+        project,
+        lead,
+        template,
+        none_label,
+        uncommitted_template,
+        uncommitted,
+    )
     # The resume hook always checks in: when there's no fresh progress to hand over, it
     # greets instead of going silent.
     return report or empty
@@ -233,6 +261,8 @@ def _build_report(
     lead: str,
     template: str,
     none_label: str,
+    uncommitted_template: str,
+    uncommitted: tuple[str, int, list[str]] | None,
 ) -> str:
     """The "I loaded your last progress" prompt, or "" when there's nothing fresh to report."""
     parsed = None
@@ -249,13 +279,64 @@ def _build_report(
     done_items = commits[:_MAX_COMMITS] or edited_files[:_MAX_FILES]
     commits_text = " · ".join(done_items) or none_label
     todos_text = " · ".join(todos[:_MAX_TODOS]) or none_label
-    return lead + template.format(
+    report = lead + template.format(
         project=project,
         when=_format_time(last_active),
         last_request=request_text,
         commits=commits_text,
         todos=todos_text,
     )
+    if uncommitted is not None:
+        branch, count, files = uncommitted
+        report += "\n" + uncommitted_template.format(
+            branch=branch,
+            count=count,
+            files=", ".join(files),
+        )
+    return report
+
+
+def _git_dirty(cwd: str) -> tuple[str, int, list[str]] | None:
+    try:
+        branch_proc = subprocess.run(
+            ["git", "-C", cwd, "rev-parse", "--abbrev-ref", "HEAD"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=2,
+            encoding="utf-8",
+            check=False,
+        )
+        if branch_proc.returncode != 0:
+            return None
+        branch = branch_proc.stdout.strip()
+        if not branch:
+            return None
+        status_proc = subprocess.run(
+            ["git", "-C", cwd, "status", "--porcelain"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=2,
+            encoding="utf-8",
+            check=False,
+        )
+        if status_proc.returncode != 0:
+            return None
+        changed = [line for line in status_proc.stdout.splitlines() if line.strip()]
+        if not changed:
+            return None
+        files: list[str] = []
+        for line in changed:
+            path = line[3:].strip() if len(line) > 3 else line.strip()
+            if " -> " in path:
+                path = path.rsplit(" -> ", 1)[1]
+            base = os.path.basename(path.strip('"'))
+            if base and base not in files:
+                files.append(base)
+            if len(files) >= _MAX_UNCOMMITTED_FILES:
+                break
+        return branch, len(changed), files
+    except Exception:
+        return None
 
 
 def _cutoff() -> datetime:
@@ -495,8 +576,8 @@ def _normalize_lang(code: str) -> str:
     return "en"
 
 
-def _load_template(lang: str) -> tuple[str, str, str, str]:
-    """Return (lead, prompt, none, empty). ``lead`` is a short instruction prepended to
+def _load_template(lang: str) -> tuple[str, str, str, str, str]:
+    """Return (lead, prompt, none, empty, uncommitted). ``lead`` is a short instruction prepended to
     the injected context so Claude's first reply visibly acknowledges it loaded the
     progress — the only way a SessionStart hook can surface itself to the user.
     ``empty`` is the standalone greeting shown when there's no fresh progress to report."""
@@ -515,19 +596,27 @@ def _load_template(lang: str) -> tuple[str, str, str, str]:
 
 def _template_from_entry(
     entry: Mapping[str, object],
-    fallback: tuple[str, str, str, str] | None = None,
-) -> tuple[str, str, str, str]:
+    fallback: tuple[str, str, str, str, str] | None = None,
+) -> tuple[str, str, str, str, str]:
     if fallback is None:
-        fallback = ("", _DEFAULT_PROMPT, _DEFAULT_NONE, _DEFAULT_EMPTY)
+        fallback = (
+            "",
+            _DEFAULT_PROMPT,
+            _DEFAULT_NONE,
+            _DEFAULT_EMPTY,
+            _DEFAULT_TEMPLATES["en"]["uncommitted"],
+        )
     lead = entry.get("lead")
     prompt = entry.get("prompt")
     none_label = entry.get("none")
     empty = entry.get("empty")
+    uncommitted = entry.get("uncommitted")
     return (
         lead if isinstance(lead, str) else fallback[0],
         prompt if isinstance(prompt, str) and prompt else fallback[1],
         none_label if isinstance(none_label, str) and none_label else fallback[2],
         empty if isinstance(empty, str) and empty else fallback[3],
+        uncommitted if isinstance(uncommitted, str) and uncommitted else fallback[4],
     )
 
 

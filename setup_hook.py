@@ -486,8 +486,15 @@ def _write_resume_sidecar() -> None:
         none_label = table.get("report_rw_none") or en.get("report_rw_none")
         lead = table.get("report_rw_inject_lead") or en.get("report_rw_inject_lead") or ""
         empty = table.get("report_rw_empty") or en.get("report_rw_empty") or ""
+        uncommitted = table.get("report_rw_uncommitted") or en.get("report_rw_uncommitted") or ""
         if isinstance(prompt, str) and isinstance(none_label, str):
-            out[lang] = {"prompt": prompt, "none": none_label, "lead": lead, "empty": empty}
+            out[lang] = {
+                "prompt": prompt,
+                "none": none_label,
+                "lead": lead,
+                "empty": empty,
+                "uncommitted": uncommitted,
+            }
     if out:
         RESUME_PROMPT_SIDECAR.parent.mkdir(parents=True, exist_ok=True)
         _atomic_write_text(

@@ -61,12 +61,14 @@ def _sidecar(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
                     "none": "(none)",
                     "lead": "LEAD:: ",
                     "empty": "GREETING::",
+                    "uncommitted": "dirty branch={branch} count={count} files={files}",
                 },
                 "zh-TW": {
                     "prompt": "專案={project} 請求={last_request}",
                     "none": "（無）",
                     "lead": "前情:: ",
                     "empty": "管家報到::",
+                    "uncommitted": "未提交 branch={branch} count={count} files={files}",
                 },
             }
         ),
@@ -101,6 +103,64 @@ def test_build_prompt_reads_previous_session(
     assert "proj=myproj" in prompt
     assert "add a dark mode toggle to the settings panel" in prompt  # the last request
     assert "fix: the thing" in prompt
+
+
+def test_build_prompt_includes_uncommitted_git_changes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    monkeypatch.setattr(
+        mod,
+        "_git_dirty",
+        lambda cwd: ("feature/resume", 2, ["usage_session_resume.py", "i18n.json"]),
+    )
+    project = _project_dir(tmp_path)
+    when = datetime.now().astimezone() - timedelta(hours=2)
+    _write_session(
+        project / "prev.jsonl",
+        when=when,
+        request="improve the resume handoff",
+        commits=["feat: resume handoff"],
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "dirty branch=feature/resume" in prompt
+    assert "count=2" in prompt
+    assert "usage_session_resume.py, i18n.json" in prompt
+
+
+def test_build_prompt_omits_uncommitted_line_when_git_dirty_returns_none(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    monkeypatch.setattr(mod, "_git_dirty", lambda cwd: None)
+    project = _project_dir(tmp_path)
+    when = datetime.now().astimezone() - timedelta(hours=2)
+    _write_session(
+        project / "prev.jsonl",
+        when=when,
+        request="improve the resume handoff",
+        commits=["feat: resume handoff"],
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert prompt == (
+        f"LEAD:: proj=myproj when={mod._format_time(when)} "
+        "req=improve the resume handoff commits=feat: resume handoff todos=(none)"
+    )
+    assert "dirty branch=" not in prompt
 
 
 def test_build_prompt_includes_pending_todos(
