@@ -122,13 +122,6 @@ def test_build_insights_golden_output_is_deterministic() -> None:
             "project": "new-work",
             "pct": 25.0,
         },
-        {
-            "type": "pace_note",
-            "key": "insights_pace_dense",
-            "active_days": 3,
-            "sessions": 39,
-            "per_day": 13,
-        },
         {"type": "action", "key": "insights_action_watch_quota"},
     ]
 
@@ -170,14 +163,6 @@ def test_shift_skips_without_signal() -> None:
     payload["daily_trend"] = _daily_from(date(2026, 5, 4), [100] * 14)
 
     assert not any(component["type"] == "shift" for component in build_insights(payload))
-
-
-def test_pace_note_skips_when_sessions_are_sparse() -> None:
-    payload = _payload()
-    payload["summary"]["sessions"] = 20
-    payload["summary"]["active_days"] = 2
-
-    assert not any(component["type"] == "pace_note" for component in build_insights(payload))
 
 
 def test_action_skips_without_quota_or_spike_signal() -> None:

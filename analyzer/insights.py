@@ -13,7 +13,6 @@ from typing import Any, cast
 INSIGHT_CHANGE_HEADLINE = "change_headline"
 INSIGHT_SPIKE = "spike"
 INSIGHT_SHIFT = "shift"
-INSIGHT_PACE_NOTE = "pace_note"
 INSIGHT_ACTION = "action"
 
 _SPIKE_MULTIPLIER_THRESHOLD = 1.5
@@ -41,10 +40,6 @@ def build_insights(data: dict[str, Any]) -> list[dict[str, Any]]:
     shift = _build_shift(data)
     if shift is not None:
         components.append(shift)
-
-    pace_note = _build_pace_note(data)
-    if pace_note is not None:
-        components.append(pace_note)
 
     action = _build_action(change, spike, data)
     if action is not None:
@@ -167,29 +162,6 @@ def _build_trend_shift(data: dict[str, Any]) -> dict[str, Any] | None:
     if weekly[-2] > 0 and weekly[-1] <= weekly[-2] * 0.75:
         return {"type": INSIGHT_SHIFT, "key": "insights_shift_trend_down"}
     return None
-
-
-def _build_pace_note(data: dict[str, Any]) -> dict[str, Any] | None:
-    summary = _mapping_value(data.get("summary"))
-    if summary is None:
-        return None
-
-    active_days = _int_value(summary.get("active_days"))
-    sessions = _int_value(summary.get("sessions"))
-    if active_days <= 0:
-        return None
-
-    per_day = round(sessions / active_days)
-    if per_day < 12:
-        return None
-
-    return {
-        "type": INSIGHT_PACE_NOTE,
-        "key": "insights_pace_dense",
-        "active_days": active_days,
-        "sessions": sessions,
-        "per_day": per_day,
-    }
 
 
 def _build_action(
