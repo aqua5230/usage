@@ -60,7 +60,7 @@ SORT_KEYS = {
     "output": ("output_tokens", True),
 }
 
-REPORT_HELP = """Usage: usage report [--last30|--all|--today|--week|--month] [--out PATH]
+REPORT_HELP = """Usage: usage report [--last30|--all|--today|--last7|--week|--month] [--out PATH]
 
 Generate an HTML usage report.
 
@@ -68,6 +68,7 @@ Options:
   --last30    Include the last 30 days (default)
   --all       Include all usage data
   --today     Include today only
+  --last7     Include the last 7 days
   --week      Include this week
   --month     Include this month
   --out PATH  Save to a specific path
@@ -110,6 +111,8 @@ def _parse_report_args(args: list[str]) -> tuple[str, str | None, bool]:
             period = "last30"
         elif arg == "--today":
             period = "today"
+        elif arg == "--last7":
+            period = "last7"
         elif arg == "--week":
             period = "week"
         elif arg == "--month":

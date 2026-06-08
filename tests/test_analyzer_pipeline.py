@@ -188,7 +188,7 @@ def test_app_analyze_uses_project_range_period(
 
 def test_analysis_period_from_project_range() -> None:
     assert menubar._analysis_period_from_project_range("1d") == "today"
-    assert menubar._analysis_period_from_project_range("7d") == "week"
+    assert menubar._analysis_period_from_project_range("7d") == "last7"
     assert menubar._analysis_period_from_project_range("30d") == "last30"
     assert menubar._analysis_period_from_project_range("all") == "all"
 
@@ -336,6 +336,88 @@ def test_report_week_includes_previous_period_comparison(monkeypatch: Any) -> No
     }
 
 
+def test_report_last7_includes_previous_period_comparison(monkeypatch: Any) -> None:
+    class FixedDateTime:
+        @staticmethod
+        def now() -> datetime:
+            return datetime(2026, 5, 21, 12, tzinfo=UTC)
+
+    agent = AgentInfo("codex", "Codex", "~/.codex", True)
+    entries = [
+        UsageEntry(
+            timestamp=datetime(2026, 5, 8, tzinfo=UTC),
+            session_id="prev-1",
+            message_id="prev-1",
+            request_id="",
+            model="gpt-5-mini",
+            input_tokens=100,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=1.0,
+            project="old",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 5, 14, tzinfo=UTC),
+            session_id="prev-2",
+            message_id="prev-2",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=300,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=3.0,
+            project="usage",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 5, 15, tzinfo=UTC),
+            session_id="cur-1",
+            message_id="cur-1",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=600,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=6.0,
+            project="usage",
+            agent_id="codex",
+        ),
+    ]
+    calls: dict[str, int] = {}
+
+    def fake_load_agent_entries(
+        received_agent: AgentInfo,
+        hours_back: int = 0,
+        *,
+        use_recent_codex: bool = False,
+    ) -> list[UsageEntry]:
+        assert received_agent == agent
+        assert use_recent_codex is True
+        calls["hours_back"] = hours_back
+        return entries
+
+    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    monkeypatch.setattr(reporter, "_load_agent_entries", fake_load_agent_entries)
+    monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
+
+    data = reporter.build_report_data([agent], "last7")
+
+    assert calls == {"hours_back": 360}
+    assert data["summary"]["total_tokens"] == 600
+    assert data["comparison"] == {
+        "period": "last7",
+        "has_prev": True,
+        "prev_tokens": 400,
+        "prev_cost": 4.0,
+        "prev_projects": ["old", "usage"],
+        "prev_model_share": {"gpt-5-codex": 75.0, "gpt-5-mini": 25.0},
+    }
+
+
 def test_build_report_data_includes_serialized_persona(monkeypatch: Any) -> None:
     histogram = [0] * 24
     histogram[9] = 3
@@ -354,7 +436,7 @@ def test_build_report_data_includes_serialized_persona(monkeypatch: Any) -> None
     monkeypatch.setattr("analyzer.reporter.persona_loader.load_profile", fake_load_profile)
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
 
-    data = reporter.build_report_data([], "week")
+    data = reporter.build_report_data([], "last7")
 
     assert calls == [7]
     assert data["persona"] == {

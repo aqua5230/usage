@@ -23,7 +23,7 @@ from .aggregator import aggregate_sessions
 
 AGENT_LOADERS = {"claude-code": claude, "codex": codex}
 AGENT_NAMES = {"claude-code": "Claude Code", "codex": "Codex"}
-PERSONA_DAYS_BY_PERIOD = {"today": 1, "week": 7, "month": 30, "all": 3650}
+PERSONA_DAYS_BY_PERIOD = {"today": 1, "week": 7, "last7": 7, "month": 30, "all": 3650}
 
 
 def _entry_date(entry: UsageEntry) -> date:
@@ -38,6 +38,8 @@ def _period_bounds(period: str, today: date) -> tuple[date | None, date]:
         return today, today
     if period == "week":
         return today - timedelta(days=today.weekday()), today
+    if period == "last7":
+        return today - timedelta(days=6), today
     if period == "month":
         return today.replace(day=1), today
     if period == "all":
@@ -167,7 +169,7 @@ def _build_comparison(
     date_from: date,
     date_to: date,
 ) -> dict[str, Any]:
-    if period not in {"week", "month"}:
+    if period not in {"week", "last7", "month"}:
         return _empty_comparison(period)
 
     total_days = (date_to - date_from).days + 1
@@ -204,7 +206,7 @@ def _build_comparison(
 
 def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[str, Any]:
     """
-    period: "today" | "week" | "month" | "all"
+    period: "today" | "week" | "last7" | "month" | "all"
     回傳 dict，包含：
       period_label: str
       date_from: str
@@ -219,13 +221,13 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
     today = datetime.now().astimezone().date()
     date_from, date_to = _period_bounds(period, today)
     hours_back = 0 if date_from is None else ((date_to - date_from).days + 2) * 24
-    if date_from is not None and period in {"week", "month"}:
+    if date_from is not None and period in {"week", "last7", "month"}:
         total_days_for_comparison = (date_to - date_from).days + 1
         prev_date_from = date_from - timedelta(days=total_days_for_comparison)
         hours_back = ((date_to - prev_date_from).days + 2) * 24
 
     raw_entries: list[UsageEntry] = []
-    use_recent_codex = period in {"today", "week", "month"}
+    use_recent_codex = period in {"today", "week", "last7", "month"}
     for agent in agents:
         raw_entries.extend(
             _load_agent_entries(agent, hours_back, use_recent_codex=use_recent_codex)
@@ -337,6 +339,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
         })
 
     return {
+        "period": period,
         "period_label": f"{date_from.isoformat()} -> {date_to.isoformat()}",
         "date_from": date_from.isoformat(),
         "date_to": date_to.isoformat(),

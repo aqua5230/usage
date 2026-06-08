@@ -167,6 +167,7 @@ def test_main_codex_warning_checks_only_codex_setup(monkeypatch: pytest.MonkeyPa
     [
         (["usage", "report"], "last30"),
         (["usage", "report", "--last30"], "last30"),
+        (["usage", "report", "--last7"], "last7"),
         (["usage", "report", "--all"], "all"),
     ],
 )
@@ -254,6 +255,7 @@ def test_parse_report_args_defaults_to_last30() -> None:
     ("flag", "expected_period"),
     [
         ("--today", "today"),
+        ("--last7", "last7"),
         ("--week", "week"),
         ("--month", "month"),
         ("--all", "all"),
