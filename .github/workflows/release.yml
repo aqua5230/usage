@@ -180,7 +180,7 @@ jobs:
             --pattern usage.app.zip.sha256 \
             --output checksum.txt
 
-      - name: Update formula
+      - name: Update cask
         run: |
           TAG="${{ needs.build.outputs.tag }}"
           VERSION="${TAG#v}"
@@ -189,20 +189,21 @@ jobs:
             echo "::error::Could not read sha256 from release checksum." >&2
             exit 1
           fi
+          # url is derived from version via v#{version} interpolation, so only
+          # version + sha256 need bumping (don't sed the url, it would break it).
           sed -i \
-            -e "s|url \"https://github.com/aqua5230/usage/releases/download/v[^/]*/usage.app.zip\"|url \"https://github.com/aqua5230/usage/releases/download/${TAG}/usage.app.zip\"|" \
             -e "s|sha256 \"[0-9a-f]*\"|sha256 \"${SHA}\"|" \
             -e "s|version \"[^\"]*\"|version \"${VERSION}\"|" \
-            Formula/usage.rb
+            Casks/usage.rb
 
       - name: Commit and push
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- Formula/usage.rb; then
-            echo "Formula already up to date; nothing to commit."
+          if git diff --quiet -- Casks/usage.rb; then
+            echo "Cask already up to date; nothing to commit."
             exit 0
           fi
-          git add Formula/usage.rb
+          git add Casks/usage.rb
           git commit -m "usage ${{ needs.build.outputs.tag }}"
           git push

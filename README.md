@@ -33,10 +33,10 @@ usage answers all three at a glance: the number is *already on your screen*, col
 ## 🚀 Quick Start
 
 ```bash
-brew install aqua5230/homebrew-usage/usage
+brew install --cask aqua5230/usage/usage
 ```
 
-Then drag `usage.app` to Applications → right-click **Open** once (to pass Gatekeeper) → click the menu bar icons. Prefer a direct download, or want every detail? See [Install](#-install) below.
+It lands in your Applications folder automatically → right-click **Open** once (to pass Gatekeeper) → click the menu bar icons. Prefer a direct download, or want every detail? See [Install](#-install) below.
 
 ## ✨ What you get
 
@@ -73,18 +73,14 @@ Two ways to install — pick whichever suits you. Steps for both are below. (In 
 
 ### Homebrew
 
-Installing via Homebrew (the macOS package manager) means a single `brew upgrade` keeps it current. The [Quick Start](#-quick-start) one-liner above already installs it — that command's full path auto-adds the tap for you, so one line is all you need. Prefer to run the two steps explicitly?
+Installing via Homebrew (the macOS package manager) means a single `brew upgrade --cask usage` keeps it current. It's shipped as a **cask** (Homebrew's format for GUI apps), so it drops `usage.app` straight into your Applications folder — no manual move needed. The [Quick Start](#-quick-start) one-liner above already installs it — that command's full path auto-adds the tap for you, so one line is all you need. Prefer to run the two steps explicitly?
 
 ```bash
 brew tap aqua5230/homebrew-usage
-brew install aqua5230/homebrew-usage/usage
+brew install --cask aqua5230/usage/usage
 ```
 
-After install, drag `usage.app` (under `/opt/homebrew/Cellar/usage/`) into your Applications folder from Finder; or run this to create the symlink for you:
-
-```bash
-ln -s $(brew --prefix)/Cellar/usage/$(brew list --versions usage | awk '{print $2}')/usage.app /Applications/usage.app
-```
+> Upgrading from an older release that installed via a formula? Run `brew uninstall usage` once, then the cask command above.
 
 Same first-launch right-click → **Open** as above (to pass Gatekeeper).
 

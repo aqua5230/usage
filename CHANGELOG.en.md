@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **Homebrew now ships as a cask**: usage is a GUI app, so it's now distributed via Homebrew's cask format — it drops `usage.app` straight into your Applications folder and skips the formula relocation/re-signing pass, which also fully fixes the earlier `usage.app/usage.app` doubled-path `Errno::ENOENT` install failure. Install with `brew install --cask aqua5230/usage/usage`; if you previously installed via the formula, run `brew uninstall usage` first, then reinstall. (Thanks @anatolii-maslennikov-improvado for reporting #34)
+
 ## [0.16.1] - 2026-06-07
 
 ### Fixed

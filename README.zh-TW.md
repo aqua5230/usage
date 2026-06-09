@@ -33,10 +33,10 @@ usage 一眼就解決三個：數字*早就在你螢幕上*、用顏色標好警
 ## 🚀 快速上手
 
 ```bash
-brew install aqua5230/homebrew-usage/usage
+brew install --cask aqua5230/usage/usage
 ```
 
-接著把 `usage.app` 拖進「應用程式」→ 右鍵「打開」一次（讓 Gatekeeper 放行）→ 點選單列圖示。想用直接下載、或想看完整細節？見下方 [安裝](#-安裝)。
+它會自動放進你的「應用程式」資料夾 → 右鍵「打開」一次（讓 Gatekeeper 放行）→ 點選單列圖示。想用直接下載、或想看完整細節？見下方 [安裝](#-安裝)。
 
 ## ✨ 你會得到什麼
 
@@ -73,18 +73,14 @@ brew install aqua5230/homebrew-usage/usage
 
 ### Homebrew
 
-用 Homebrew（macOS 的套件管理工具）裝，好處是日後一行 `brew upgrade` 就能自動更新。上方 [快速上手](#-快速上手) 那一行其實就裝好了——那串指令的完整路徑會自動幫你加 tap，所以一行就夠。想看清楚拆成兩步的話：
+用 Homebrew（macOS 的套件管理工具）裝，好處是日後一行 `brew upgrade --cask usage` 就能自動更新。它以 **cask**（Homebrew 給 GUI 應用程式用的格式）發佈，所以會直接把 `usage.app` 放進「應用程式」資料夾，不用手動搬。上方 [快速上手](#-快速上手) 那一行其實就裝好了——那串指令的完整路徑會自動幫你加 tap，所以一行就夠。想看清楚拆成兩步的話：
 
 ```bash
 brew tap aqua5230/homebrew-usage
-brew install aqua5230/homebrew-usage/usage
+brew install --cask aqua5230/usage/usage
 ```
 
-裝完後到 Finder 把 `usage.app`（在 `/opt/homebrew/Cellar/usage/` 底下）拖進「應用程式」資料夾即可；或用這行指令幫它自動建好捷徑：
-
-```bash
-ln -s $(brew --prefix)/Cellar/usage/$(brew list --versions usage | awk '{print $2}')/usage.app /Applications/usage.app
-```
+> 之前用舊版（formula）裝過的人升級：先跑一次 `brew uninstall usage`，再用上面的 cask 指令重裝。
 
 第一次開啟同上：按住 Ctrl 右鍵 →「打開」讓 macOS 放行一次。
 

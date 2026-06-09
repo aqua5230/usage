@@ -6,6 +6,9 @@
 
 ## [Unreleased]
 
+### 變更
+- **Homebrew 安裝改用 cask 發佈**：usage 是圖形介面 App，改以 Homebrew 的 cask（給 GUI 應用程式用的格式）發佈後，會直接把 `usage.app` 放進「應用程式」資料夾，不再經過 formula 的重定位／重簽章流程——這也徹底根治了 `usage.app/usage.app` 雙路徑造成的 `Errno::ENOENT` 安裝失敗。安裝指令改為 `brew install --cask aqua5230/usage/usage`；之前用 formula 裝過的人請先 `brew uninstall usage` 再重裝。（感謝 @anatolii-maslennikov-improvado 回報 #34）
+
 ## [0.16.1] - 2026-06-07
 
 ### 修正
