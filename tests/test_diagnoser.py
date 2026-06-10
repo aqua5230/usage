@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 import json
-from datetime import date
+from datetime import UTC, date, datetime
 from pathlib import Path
 from typing import Any
 
@@ -241,7 +241,9 @@ def test_anomaly_session_has_project_and_start_time(
     assert anomalies
     item = anomalies[0].items[0]
     assert item["project"] == "my-app"
-    assert item["session_start_iso"] == "2026-05-09T18:23:00+08:00"
+    started = datetime.fromisoformat(str(item["session_start_iso"]))
+    assert started == datetime(2026, 5, 9, 10, 23, tzinfo=UTC)
+    assert started.utcoffset() is not None
 
 
 def test_noisy_bash_flags_large_single_bash_output(
