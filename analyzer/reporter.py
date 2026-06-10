@@ -301,7 +301,7 @@ def _top_project(project_tokens: dict[str, int]) -> str | None:
     return max(project_tokens.items(), key=lambda item: item[1])[0]
 
 
-def _serialize_diagnosis(
+def serialize_diagnosis(
     result: diagnoser.DiagnosisResult,
     *,
     total_corpus_tokens: int,
@@ -500,7 +500,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
             tool_calls=claude_tool_calls,
             entries=claude_entries,
         )
-        diagnosis = _serialize_diagnosis(
+        diagnosis = serialize_diagnosis(
             diagnosis_result,
             total_corpus_tokens=total_tokens,
         )

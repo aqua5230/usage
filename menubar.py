@@ -54,6 +54,7 @@ import login_item
 import menubar_state
 import panels
 import update_checker
+import usage_diagnosis_snapshot
 from burn_rate import BurnRateTracker
 from fsevents_watch import cleanup_fsevents, setup_fsevents
 from history_loader import UsageEntry, load_entries
@@ -772,6 +773,7 @@ class AppDelegate(NSObject):
             pass
 
     def _maybe_check_update_in_background(self) -> None:
+        usage_diagnosis_snapshot.maybe_schedule_refresh()
         self._check_update_in_background(
             manual=False,
             ignore_cooldown=False,

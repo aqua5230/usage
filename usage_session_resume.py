@@ -39,14 +39,17 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
 from collections.abc import Mapping
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
-__version__ = "1.4"
+__version__ = "1.5"
 
 PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-resume-prompt.json"))
+DIAGNOSIS_SNAPSHOT = Path(os.path.expanduser("~/.claude/usage-diagnosis.json"))
+DIAGNOSIS_STATE = Path(os.path.expanduser("~/.claude/usage-diagnosis-state.json"))
 
 # Only a heredoc that feeds git's commit message — `-F -` / `--file -` or `-m "$(cat`.
 # Anchoring on these keeps an unrelated heredoc in the same command (e.g. a python
@@ -64,6 +67,15 @@ _MAX_REQUESTS = 3
 _MAX_REQUEST_CHARS = 280
 _MIN_SUBSTANTIVE_CHARS = 7
 _IMAGE_MARKER = re.compile(r"\[Image(?:\s+#[0-9]+)?\]", re.I)
+_DIAGNOSIS_MAX_AGE = timedelta(hours=48)
+_DIAGNOSIS_REMINDER_COOLDOWN = timedelta(days=7)
+_DIAGNOSIS_CAUSE_KEYS = (
+    "repeated_reads",
+    "polluter_dirs",
+    "anomaly_session",
+    "noisy_bash",
+    "repeated_bash",
+)
 
 _DEFAULT_PROMPT = (
     "Project: {project} (last active {when})\n"
@@ -97,6 +109,18 @@ _DEFAULT_TEMPLATES = {
         "uncommitted": (
             "Left uncommitted last time: {count} changed file(s) on branch {branch} ({files})"
         ),
+        "diagnosis_reminder": (
+            'Health check: about {waste_pct}% waste from {cause}. If you say "修", '
+            "read the full diagnosis at {path}."
+        ),
+        "diagnosis_default_cause": "avoidable context waste",
+        "diagnosis_causes": {
+            "repeated_reads": "re-reading the same files",
+            "polluter_dirs": "scanning generated folders",
+            "anomaly_session": "one oversized session",
+            "noisy_bash": "oversized Bash output",
+            "repeated_bash": "re-running the same Bash command",
+        },
     },
     "zh-TW": {
         "prompt": (
@@ -242,7 +266,16 @@ def _build_prompt(payload: dict[str, Any]) -> str:
     if not project_dir.is_dir():
         return ""
 
-    lead, template, none_label, empty, uncommitted_template = _load_template(_detect_lang())
+    (
+        lead,
+        template,
+        none_label,
+        empty,
+        uncommitted_template,
+        diagnosis_reminder,
+        diagnosis_default_cause,
+        diagnosis_causes,
+    ) = _load_template(_detect_lang())
     project = _project_from_cwd(cwd) if isinstance(cwd, str) and cwd else project_dir.name
     uncommitted = _git_dirty(cwd) if isinstance(cwd, str) and cwd else None
     report = _build_report(
@@ -257,7 +290,15 @@ def _build_prompt(payload: dict[str, Any]) -> str:
     )
     # The resume hook always checks in: when there's no fresh progress to hand over, it
     # greets instead of going silent.
-    return report or empty
+    prompt = report or empty
+    diagnosis_instruction = _build_diagnosis_instruction(
+        diagnosis_reminder=diagnosis_reminder,
+        diagnosis_default_cause=diagnosis_default_cause,
+        diagnosis_causes=diagnosis_causes,
+    )
+    if diagnosis_instruction:
+        prompt += "\n\n" + diagnosis_instruction
+    return prompt
 
 
 def _build_report(
@@ -546,6 +587,142 @@ def _parse_timestamp(value: object) -> datetime | None:
     return parsed if parsed.tzinfo is not None else parsed.astimezone()
 
 
+def _build_diagnosis_instruction(
+    *,
+    diagnosis_reminder: str,
+    diagnosis_default_cause: str,
+    diagnosis_causes: Mapping[str, str],
+) -> str:
+    snapshot = _read_json_file(DIAGNOSIS_SNAPSHOT)
+    if not isinstance(snapshot, dict):
+        return ""
+
+    now = datetime.now(timezone.utc)
+    generated_at = _parse_timestamp(snapshot.get("generated_at"))
+    if generated_at is None:
+        return ""
+    if now - generated_at.astimezone(timezone.utc) > _DIAGNOSIS_MAX_AGE:
+        return ""
+    if snapshot.get("has_data") is not True:
+        return ""
+
+    findings = snapshot.get("findings")
+    waste_pct = _coerce_float(snapshot.get("waste_pct"))
+    has_critical = any(
+        isinstance(finding, dict) and finding.get("severity") == "critical"
+        for finding in findings
+        if isinstance(findings, list)
+    )
+    if waste_pct < 5.0 and not has_critical:
+        return ""
+
+    fingerprint = _diagnosis_fingerprint(snapshot)
+    if not fingerprint:
+        return ""
+    if _diagnosis_cooldown_active(fingerprint, now):
+        return ""
+
+    primary = _pick_primary_finding(findings)
+    kind = primary.get("kind") if isinstance(primary, dict) else None
+    cause = diagnosis_causes.get(str(kind), diagnosis_default_cause)
+    reminder_line = diagnosis_reminder.format(
+        waste_pct=_format_percent_number(waste_pct),
+        cause=cause,
+        path=str(DIAGNOSIS_SNAPSHOT),
+    )
+    _write_diagnosis_state(
+        {
+            "last_fingerprint": fingerprint,
+            "last_reminded_at": _format_utc_timestamp(now),
+        }
+    )
+    return (
+        "(At the end of your first reply in this session, add exactly one line: "
+        + json.dumps(reminder_line, ensure_ascii=False)
+        + ")"
+    )
+
+
+def _read_json_file(path: Path) -> dict[str, Any] | None:
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError, ValueError):
+        return None
+    return data if isinstance(data, dict) else None
+
+
+def _coerce_float(value: object) -> float:
+    if isinstance(value, (int, float)):
+        return float(value)
+    return 0.0
+
+
+def _pick_primary_finding(findings: object) -> dict[str, Any]:
+    if not isinstance(findings, list):
+        return {}
+
+    candidates = [finding for finding in findings if isinstance(finding, dict)]
+    if not candidates:
+        return {}
+    candidates.sort(
+        key=lambda finding: (
+            0 if finding.get("severity") == "critical" else 1,
+            -int(finding.get("estimated_waste_tokens") or 0),
+            str(finding.get("kind") or ""),
+        )
+    )
+    return candidates[0]
+
+
+def _diagnosis_fingerprint(snapshot: Mapping[str, object]) -> str:
+    value = snapshot.get("findings_fingerprint")
+    if isinstance(value, str) and value:
+        return value
+    return ""
+
+
+def _diagnosis_cooldown_active(fingerprint: str, now: datetime) -> bool:
+    state = _read_json_file(DIAGNOSIS_STATE)
+    if not isinstance(state, dict):
+        return False
+    previous = state.get("last_fingerprint")
+    reminded_at = _parse_timestamp(state.get("last_reminded_at"))
+    if previous != fingerprint:
+        return False
+    if reminded_at is None:
+        return False
+    return now - reminded_at.astimezone(timezone.utc) < _DIAGNOSIS_REMINDER_COOLDOWN
+
+
+def _write_diagnosis_state(data: Mapping[str, object]) -> None:
+    DIAGNOSIS_STATE.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = None
+    try:
+        fd, tmp_path = tempfile.mkstemp(dir=str(DIAGNOSIS_STATE.parent), suffix=".tmp")
+        with os.fdopen(fd, "w", encoding="utf-8") as file:
+            json.dump(data, file, ensure_ascii=False, indent=2)
+            file.write("\n")
+        os.replace(tmp_path, DIAGNOSIS_STATE)
+        tmp_path = None
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
+
+
+def _format_utc_timestamp(value: datetime) -> str:
+    return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+
+def _format_percent_number(value: float) -> str:
+    rounded = round(value, 1)
+    if rounded.is_integer():
+        return str(int(rounded))
+    return str(rounded)
+
+
 def _format_time(parsed: datetime) -> str:
     if parsed.tzinfo is not None:
         parsed = parsed.astimezone()
@@ -582,7 +759,16 @@ def _normalize_lang(code: str) -> str:
     return "en"
 
 
-def _load_template(lang: str) -> tuple[str, str, str, str, str]:
+def _load_template(lang: str) -> tuple[
+    str,
+    str,
+    str,
+    str,
+    str,
+    str,
+    str,
+    dict[str, str],
+]:
     """Return (lead, prompt, none, empty, uncommitted). ``lead`` is a short instruction prepended to
     the injected context so Claude's first reply visibly acknowledges it loaded the
     progress — the only way a SessionStart hook can surface itself to the user.
@@ -602,8 +788,8 @@ def _load_template(lang: str) -> tuple[str, str, str, str, str]:
 
 def _template_from_entry(
     entry: Mapping[str, object],
-    fallback: tuple[str, str, str, str, str] | None = None,
-) -> tuple[str, str, str, str, str]:
+    fallback: tuple[str, str, str, str, str, str, str, dict[str, str]] | None = None,
+) -> tuple[str, str, str, str, str, str, str, dict[str, str]]:
     if fallback is None:
         fallback = (
             "",
@@ -611,18 +797,41 @@ def _template_from_entry(
             _DEFAULT_NONE,
             _DEFAULT_EMPTY,
             _DEFAULT_TEMPLATES["en"]["uncommitted"],
+            _DEFAULT_TEMPLATES["en"]["diagnosis_reminder"],
+            _DEFAULT_TEMPLATES["en"]["diagnosis_default_cause"],
+            _DEFAULT_TEMPLATES["en"]["diagnosis_causes"],
         )
     lead = entry.get("lead")
     prompt = entry.get("prompt")
     none_label = entry.get("none")
     empty = entry.get("empty")
     uncommitted = entry.get("uncommitted")
+    diagnosis_reminder = entry.get("diagnosis_reminder")
+    diagnosis_default_cause = entry.get("diagnosis_default_cause")
+    raw_causes = entry.get("diagnosis_causes")
+    causes = dict(fallback[7])
+    if isinstance(raw_causes, Mapping):
+        for key in _DIAGNOSIS_CAUSE_KEYS:
+            value = raw_causes.get(key)
+            if isinstance(value, str) and value:
+                causes[key] = value
     return (
         lead if isinstance(lead, str) else fallback[0],
         prompt if isinstance(prompt, str) and prompt else fallback[1],
         none_label if isinstance(none_label, str) and none_label else fallback[2],
         empty if isinstance(empty, str) and empty else fallback[3],
         uncommitted if isinstance(uncommitted, str) and uncommitted else fallback[4],
+        (
+            diagnosis_reminder
+            if isinstance(diagnosis_reminder, str) and diagnosis_reminder
+            else fallback[5]
+        ),
+        (
+            diagnosis_default_cause
+            if isinstance(diagnosis_default_cause, str) and diagnosis_default_cause
+            else fallback[6]
+        ),
+        causes,
     )
 
 

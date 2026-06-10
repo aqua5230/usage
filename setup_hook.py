@@ -69,11 +69,18 @@ _TABLE_REGEX = re.compile(r"(?m)^[ \t]*\[[^\]\n]+\][ \t]*(?:#.*)?$")
 # session. Off by default: enabled only via the menu toggle, never by self_heal.
 RESUME_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-session-resume.py"))
 RESUME_PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-resume-prompt.json"))
-RESUME_HOOK_VERSION = "1.4"
+RESUME_HOOK_VERSION = "1.5"
 RESUME_MATCHER = "startup|clear"
 RESUME_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
 _RESUME_MARKER = "usage-session-resume"
 _RESUME_MARKERS = (_RESUME_MARKER, "usage_session_resume")
+_RESUME_DIAGNOSIS_CAUSE_KEYS = (
+    "repeated_reads",
+    "polluter_dirs",
+    "anomaly_session",
+    "noisy_bash",
+    "repeated_bash",
+)
 
 
 def _resolve_hook_source() -> Path:
@@ -550,13 +557,34 @@ def _write_resume_sidecar() -> None:
         lead = table.get("report_rw_inject_lead") or en.get("report_rw_inject_lead") or ""
         empty = table.get("report_rw_empty") or en.get("report_rw_empty") or ""
         uncommitted = table.get("report_rw_uncommitted") or en.get("report_rw_uncommitted") or ""
+        diagnosis_reminder = (
+            table.get("report_rw_diagnosis_reminder")
+            or en.get("report_rw_diagnosis_reminder")
+            or ""
+        )
+        diagnosis_default_cause = (
+            table.get("report_rw_diagnosis_cause_default")
+            or en.get("report_rw_diagnosis_cause_default")
+            or ""
+        )
         if isinstance(prompt, str) and isinstance(none_label, str):
+            diagnosis_causes = {
+                key: (
+                    table.get(f"report_rw_diagnosis_cause_{key}")
+                    or en.get(f"report_rw_diagnosis_cause_{key}")
+                    or diagnosis_default_cause
+                )
+                for key in _RESUME_DIAGNOSIS_CAUSE_KEYS
+            }
             out[lang] = {
                 "prompt": prompt,
                 "none": none_label,
                 "lead": lead,
                 "empty": empty,
                 "uncommitted": uncommitted,
+                "diagnosis_reminder": diagnosis_reminder,
+                "diagnosis_default_cause": diagnosis_default_cause,
+                "diagnosis_causes": diagnosis_causes,
             }
     if out:
         RESUME_PROMPT_SIDECAR.parent.mkdir(parents=True, exist_ok=True)

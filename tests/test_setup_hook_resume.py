@@ -62,6 +62,8 @@ def test_enable_registers_hook_and_writes_sidecar(
     assert "lead" in bundle["en"]  # lead-in so Claude's first reply acknowledges the load
     assert bundle["en"]["empty"]  # greeting shown when there's no fresh progress to report
     assert "uncommitted" in bundle["en"]
+    assert "diagnosis_reminder" in bundle["en"]
+    assert "polluter_dirs" in bundle["en"]["diagnosis_causes"]
 
 
 def test_enable_is_idempotent(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

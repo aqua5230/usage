@@ -68,6 +68,18 @@ def _sidecar(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
                     "lead": "LEAD:: ",
                     "empty": "GREETING::",
                     "uncommitted": "dirty branch={branch} count={count} files={files}",
+                    "diagnosis_reminder": (
+                        'Health check: about {waste_pct}% waste came from {cause}. '
+                        'If you say "修", the full diagnosis is at {path}.'
+                    ),
+                    "diagnosis_default_cause": "avoidable context waste",
+                    "diagnosis_causes": {
+                        "repeated_reads": "re-reading the same files",
+                        "polluter_dirs": "scanning generated folders",
+                        "anomaly_session": "one oversized session",
+                        "noisy_bash": "oversized Bash output",
+                        "repeated_bash": "re-running the same Bash command",
+                    },
                 },
                 "zh-TW": {
                     "prompt": "專案={project} 請求={last_request}",
@@ -75,12 +87,76 @@ def _sidecar(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
                     "lead": "前情:: ",
                     "empty": "管家報到::",
                     "uncommitted": "未提交 branch={branch} count={count} files={files}",
+                    "diagnosis_reminder": (
+                        "健檢提醒：最近約 {waste_pct}% 浪費在{cause}。跟我說「修」，"
+                        "完整診斷在 {path}。"
+                    ),
+                    "diagnosis_default_cause": "可避免的上下文浪費",
+                    "diagnosis_causes": {
+                        "repeated_reads": "重複讀同一批檔案",
+                        "polluter_dirs": "掃進了產物/依賴資料夾",
+                        "anomaly_session": "單一工作階段異常膨脹",
+                        "noisy_bash": "Bash 輸出過大",
+                        "repeated_bash": "重複跑同一個 Bash 指令",
+                    },
                 },
             }
         ),
         encoding="utf-8",
     )
     monkeypatch.setattr(mod, "PROMPT_SIDECAR", sidecar)
+
+
+def _diagnosis_paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path]:
+    snapshot = tmp_path / "usage-diagnosis.json"
+    state = tmp_path / "usage-diagnosis-state.json"
+    monkeypatch.setattr(mod, "DIAGNOSIS_SNAPSHOT", snapshot)
+    monkeypatch.setattr(mod, "DIAGNOSIS_STATE", state)
+    return snapshot, state
+
+
+def _write_diagnosis_snapshot(
+    path: Path,
+    *,
+    generated_at: datetime,
+    has_data: bool = True,
+    waste_pct: float = 12.5,
+    fingerprint: str = "fp-1",
+    severity: str = "info",
+    kind: str = "polluter_dirs",
+    estimated_waste_tokens: int = 100,
+) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "generated_at": generated_at.astimezone().isoformat().replace("+00:00", "Z"),
+                "has_data": has_data,
+                "waste_pct": waste_pct,
+                "findings_fingerprint": fingerprint,
+                "findings": [
+                    {
+                        "severity": severity,
+                        "kind": kind,
+                        "estimated_waste_tokens": estimated_waste_tokens,
+                        "items": [{"label": "node_modules"}],
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+
+
+def _write_diagnosis_state(path: Path, *, fingerprint: str, reminded_at: datetime) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "last_fingerprint": fingerprint,
+                "last_reminded_at": reminded_at.astimezone().isoformat().replace("+00:00", "Z"),
+            }
+        ),
+        encoding="utf-8",
+    )
 
 
 def test_build_prompt_reads_previous_session(
@@ -626,3 +702,116 @@ def test_build_prompt_surfaces_recent_requests_newest_first(
     assert prompt.index("redesign the project butler handoff") < prompt.index(
         "fix the codex parser bug"
     )
+
+
+def test_build_prompt_skips_diagnosis_reminder_when_waste_below_threshold(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    snapshot, _state = _diagnosis_paths(tmp_path, monkeypatch)
+    _write_diagnosis_snapshot(
+        snapshot,
+        generated_at=datetime.now().astimezone(),
+        waste_pct=4.9,
+        severity="info",
+    )
+    project = _project_dir(tmp_path)
+    _write_session(
+        project / "prev.jsonl",
+        when=datetime.now().astimezone() - timedelta(hours=1),
+        request="finish the parser cleanup",
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "Health check:" not in prompt
+
+
+def test_build_prompt_skips_diagnosis_reminder_during_cooldown(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    snapshot, state = _diagnosis_paths(tmp_path, monkeypatch)
+    now = datetime.now().astimezone()
+    _write_diagnosis_snapshot(snapshot, generated_at=now, fingerprint="fp-same")
+    _write_diagnosis_state(state, fingerprint="fp-same", reminded_at=now - timedelta(days=1))
+    project = _project_dir(tmp_path)
+    _write_session(
+        project / "prev.jsonl",
+        when=now - timedelta(hours=1),
+        request="finish the parser cleanup",
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "Health check:" not in prompt
+
+
+def test_build_prompt_injects_diagnosis_reminder_when_fingerprint_changes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    snapshot, state = _diagnosis_paths(tmp_path, monkeypatch)
+    now = datetime.now().astimezone()
+    _write_diagnosis_snapshot(
+        snapshot,
+        generated_at=now,
+        waste_pct=2.0,
+        fingerprint="fp-new",
+        severity="critical",
+    )
+    _write_diagnosis_state(state, fingerprint="fp-old", reminded_at=now - timedelta(days=1))
+    project = _project_dir(tmp_path)
+    _write_session(
+        project / "prev.jsonl",
+        when=now - timedelta(hours=1),
+        request="finish the parser cleanup",
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "Health check: about 2% waste came from scanning generated folders." in prompt
+    assert str(snapshot) in prompt
+    state_data = json.loads(state.read_text(encoding="utf-8"))
+    assert state_data["last_fingerprint"] == "fp-new"
+
+
+def test_build_prompt_skips_diagnosis_reminder_when_snapshot_is_stale(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    snapshot, _state = _diagnosis_paths(tmp_path, monkeypatch)
+    _write_diagnosis_snapshot(
+        snapshot,
+        generated_at=datetime.now().astimezone() - timedelta(hours=49),
+    )
+    project = _project_dir(tmp_path)
+    _write_session(
+        project / "prev.jsonl",
+        when=datetime.now().astimezone() - timedelta(hours=1),
+        request="finish the parser cleanup",
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "Health check:" not in prompt

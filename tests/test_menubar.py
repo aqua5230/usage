@@ -490,6 +490,27 @@ def test_auto_update_disabled_skips_background_check(monkeypatch: pytest.MonkeyP
     assert called is False
 
 
+def test_background_daily_maintenance_schedules_diagnosis_snapshot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[object] = []
+
+    monkeypatch.setattr(
+        "menubar.usage_diagnosis_snapshot.maybe_schedule_refresh",
+        lambda: calls.append("snapshot"),
+    )
+    fake_self = SimpleNamespace(
+        _check_update_in_background=lambda **kwargs: calls.append(kwargs),
+    )
+
+    menubar.AppDelegate._maybe_check_update_in_background(cast(Any, fake_self))
+
+    assert calls == [
+        "snapshot",
+        {"manual": False, "ignore_cooldown": False, "ignore_skipped": False},
+    ]
+
+
 def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.MonkeyPatch) -> None:
     saved: list[dict[str, Any]] = []
     monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": True})
