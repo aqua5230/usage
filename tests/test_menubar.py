@@ -144,6 +144,7 @@ def _build_popover_state(
         show_install_button=(
             outcome.state == PollState.TOKEN_ERROR and delegate._statusline_setup_available()
         ),
+        hide_claude=menubar._hide_claude_enabled(),
         hide_codex=menubar._hide_codex_enabled(),
         codex_stale=None,
     )
@@ -440,6 +441,7 @@ def test_switch_panel_cancel_closes_visible_popover(
 
     class FakePanel:
         id = "classic"
+        claude_card_height = 0.0
         codex_card_height = 0.0
 
         def preferred_size(self) -> tuple[float, float]:
@@ -927,6 +929,69 @@ def test_popover_size_has_positive_dimensions() -> None:
 
     assert size.width > 0
     assert size.height > 0
+
+
+def test_hide_claude_enabled_reads_preferences(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"hide_claude_section": True})
+
+    assert menubar._hide_claude_enabled() is True
+    assert menubar._hide_claude_enabled({"hide_claude_section": False}) is False
+    assert menubar._hide_claude_enabled({}) is False
+
+
+def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakePanel:
+        id = "classic"
+        i18n_key = "panel_default_name"
+        claude_card_height = 100.0
+        codex_card_height = 60.0
+
+        def build_view(self, delegate: Any) -> Any:
+            return object()
+
+        def apply_state(self, view: Any, state: menubar_state.PopoverState) -> None:
+            return None
+
+        def preferred_size(self) -> tuple[float, float]:
+            return (300.0, 500.0)
+
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    state = menubar._empty_state()
+    panel = FakePanel()
+
+    assert menubar._popover_size(state, panel).height == 500.0
+    state.hide_claude = True
+    assert menubar._popover_size(state, panel).height == 400.0
+    state.hide_codex = True
+    assert menubar._popover_size(state, panel).height == 340.0
+
+
+def test_compose_title_hides_providers(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.codex_5h_pct = 12.0
+    state = menubar._empty_state()
+    state.claude_session.percent = 50.0
+
+    assert delegate._compose_title(state) == "🐾 50% · 📜 12%"
+    state.hide_claude = True
+    assert delegate._compose_title(state) == "📜 12%"
+    state.hide_codex = True
+    assert delegate._compose_title(state) == "🐾"
+    state.hide_claude = False
+    assert delegate._compose_title(state) == "🐾 50%"
+
+
+def test_compose_title_codex_placeholder_when_claude_hidden(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.codex_5h_pct = None
+    state = menubar._empty_state()
+    state.hide_claude = True
+
+    assert delegate._compose_title(state) == "📜 --"
 
 
 def test_project_rows_empty(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -138,11 +138,15 @@ def test_defaults_round_trip() -> None:
     assert defaults.synchronized is True
 
 
-def test_html_panel_requires_explicit_codex_card_height() -> None:
+def test_html_panel_requires_explicit_card_heights() -> None:
     constructor: Any = HTMLPanel
 
     with pytest.raises(TypeError):
         constructor("test", "panel_test", "test.html")
+    with pytest.raises(TypeError):
+        constructor("test", "panel_test", "test.html", codex_card_height=100.0)
+    with pytest.raises(TypeError):
+        constructor("test", "panel_test", "test.html", claude_card_height=100.0)
 
 
 def test_evaluate_javascript_completion_handler_block_signature() -> None:
@@ -192,7 +196,13 @@ def test_build_view_falls_back_to_error_panel_on_failure(
 
     monkeypatch.setattr(web_panel, "_load_panel_html", boom)
 
-    panel = HTMLPanel("test", "panel_default_name", "test.html", codex_card_height=100.0)
+    panel = HTMLPanel(
+        "test",
+        "panel_default_name",
+        "test.html",
+        claude_card_height=100.0,
+        codex_card_height=100.0,
+    )
 
     class Delegate:
         language = "en"

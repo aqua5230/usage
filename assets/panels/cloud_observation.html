@@ -588,6 +588,8 @@
 
 
     .hide-codex [data-card="codex"] { display: none; }
+    .hide-claude [data-card="claude"] { display: none; }
+    .hide-claude .footer .action[data-action="switch"] { display: inline-block; }
   </style>
 </head>
 <body>
@@ -850,6 +852,7 @@
 
     window.usageApplyState = function usageApplyState(state) {
       document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
+      document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
       currentLanguage = I18N[state.language] ? state.language : currentLanguage;
       applyStaticText();
       applyCard("claude", state.claude);

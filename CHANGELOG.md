@@ -5,6 +5,14 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.19.0] - 2026-06-11
+
+### Added
+- **Hide Claude Code section**: a new "Hide Claude Code Section" toggle in the Switch Panel menu mirrors the existing Codex one, so Codex-only users can hide the Claude Code card from every panel theme and the Claude Code percentage from the menu bar (Codex then leads the readout). Every panel keeps its "Switch Panel" button reachable — when the Claude Code card is hidden, the button moves to the next visible card. (#35, requested by @ilss0902)
+
+### Changed
+- **"Hide Codex Section" now also hides the Codex percentage from the menu bar**, matching the new Claude Code toggle. With both providers hidden, the paw icon stays in the menu bar as the click target.
+
 ## [0.18.0] - 2026-06-11
 
 ### Added

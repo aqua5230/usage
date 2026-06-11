@@ -9,30 +9,83 @@ from __future__ import annotations
 from panels.base import Panel
 from panels.web_panel import HTMLPanel
 
+# claude_card_height mirrors codex_card_height: the two cards share the same
+# structure (header + two quota rows) and measure equal in headless renders.
 PANELS: tuple[Panel, ...] = (
-    HTMLPanel("classic", "panel_default_name", "classic.html", codex_card_height=192.0),
-    HTMLPanel("matrix", "panel_matrix", "matrix.html", height=880.0, codex_card_height=207.0),
-    HTMLPanel("win95", "panel_win95", "win95.html", height=800.0, codex_card_height=173.0),
     HTMLPanel(
-        "newspaper", "panel_newspaper", "newspaper.html", height=850.0, codex_card_height=197.0
+        "classic",
+        "panel_default_name",
+        "classic.html",
+        claude_card_height=192.0,
+        codex_card_height=192.0,
+    ),
+    HTMLPanel(
+        "matrix",
+        "panel_matrix",
+        "matrix.html",
+        height=880.0,
+        claude_card_height=207.0,
+        codex_card_height=207.0,
+    ),
+    HTMLPanel(
+        "win95",
+        "panel_win95",
+        "win95.html",
+        height=800.0,
+        claude_card_height=173.0,
+        codex_card_height=173.0,
+    ),
+    HTMLPanel(
+        "newspaper",
+        "panel_newspaper",
+        "newspaper.html",
+        height=850.0,
+        claude_card_height=197.0,
+        codex_card_height=197.0,
     ),
     HTMLPanel(
         "cloud_observation",
         "panel_cloud_observation",
         "cloud_observation.html",
+        claude_card_height=211.0,
         codex_card_height=211.0,
     ),
-    HTMLPanel("aquarium", "panel_aquarium", "aquarium.html", codex_card_height=211.0),
-    HTMLPanel("prism_arcade", "panel_prism_arcade", "prism_arcade.html", codex_card_height=211.0),
-    HTMLPanel("black_hole", "panel_black_hole", "black_hole.html", codex_card_height=211.0),
+    HTMLPanel(
+        "aquarium",
+        "panel_aquarium",
+        "aquarium.html",
+        claude_card_height=211.0,
+        codex_card_height=211.0,
+    ),
+    HTMLPanel(
+        "prism_arcade",
+        "panel_prism_arcade",
+        "prism_arcade.html",
+        claude_card_height=211.0,
+        codex_card_height=211.0,
+    ),
+    HTMLPanel(
+        "black_hole",
+        "panel_black_hole",
+        "black_hole.html",
+        claude_card_height=211.0,
+        codex_card_height=211.0,
+    ),
     HTMLPanel(
         "lepidoptera",
         "panel_lepidoptera",
         "lepidoptera.html",
         height=862.0,
+        claude_card_height=208.0,
         codex_card_height=208.0,
     ),
-    HTMLPanel("world_cup", "panel_world_cup", "world_cup.html", codex_card_height=0.0),
+    HTMLPanel(
+        "world_cup",
+        "panel_world_cup",
+        "world_cup.html",
+        claude_card_height=0.0,
+        codex_card_height=0.0,
+    ),
 )
 
 

@@ -73,6 +73,7 @@ class PopoverState:
     today_text: str
     statusline: dict[str, object]
     show_install_button: bool = False
+    hide_claude: bool = False
     hide_codex: bool = False
     codex_stale: CodexStaleState | None = None
 
@@ -278,6 +279,7 @@ def build_popover_state(
     today_text: str,
     statusline: dict[str, object],
     show_install_button: bool,
+    hide_claude: bool,
     hide_codex: bool,
     codex_stale: CodexStaleState | None,
 ) -> PopoverState:
@@ -355,6 +357,7 @@ def build_popover_state(
         today_text=today_text,
         statusline=statusline,
         show_install_button=show_install_button,
+        hide_claude=hide_claude,
         hide_codex=hide_codex,
         codex_stale=codex_stale,
     )

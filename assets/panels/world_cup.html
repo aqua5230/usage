@@ -563,6 +563,11 @@
     .hide-codex .duel-fill.right,
     .hide-codex .duel-pct.right,
     .hide-codex [id^="codex-"] { display: none; }
+    .hide-claude .team.claude,
+    .hide-claude .score-sep,
+    .hide-claude .duel-fill.left,
+    .hide-claude .duel-pct.left,
+    .hide-claude [id^="claude-"] { display: none; }
   </style>
 </head>
 <body>
@@ -912,6 +917,7 @@
 
     window.usageApplyState = function usageApplyState(state) {
       document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
+      document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
       currentLanguage = I18N[state.language] ? state.language : currentLanguage;
       applyStaticText();
 

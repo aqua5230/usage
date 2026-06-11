@@ -167,6 +167,11 @@ def _auto_update_check_enabled(prefs: dict[str, Any] | None = None) -> bool:
     return data.get("auto_update_check") is not False
 
 
+def _hide_claude_enabled(prefs: dict[str, Any] | None = None) -> bool:
+    data = _load_preferences() if prefs is None else prefs
+    return data.get("hide_claude_section") is True
+
+
 def _hide_codex_enabled(prefs: dict[str, Any] | None = None) -> bool:
     data = _load_preferences() if prefs is None else prefs
     return data.get("hide_codex_section") is True
@@ -620,6 +625,14 @@ class AppDelegate(NSObject):
         auto_update_item.setState_(1 if _auto_update_check_enabled() else 0)
         menu.addItem_(auto_update_item)
         menu.addItem_(NSMenuItem.separatorItem())
+        hide_claude_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "hide_claude_section"),
+            "toggleHideClaude:",
+            "",
+        )
+        hide_claude_item.setTarget_(self)
+        hide_claude_item.setState_(1 if _hide_claude_enabled() else 0)
+        menu.addItem_(hide_claude_item)
         hide_codex_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             _t(self.language, "hide_codex_section"),
             "toggleHideCodex:",
@@ -687,6 +700,18 @@ class AppDelegate(NSObject):
             )
             thread.start()
 
+    def toggleHideClaude_(self, sender: Any) -> None:
+        self._mark_switch_menu_action()
+        prefs = _load_preferences()
+        enabled = not _hide_claude_enabled(prefs)
+        prefs["hide_claude_section"] = enabled
+        _save_preferences(prefs)
+        if hasattr(sender, "setState_"):
+            sender.setState_(1 if enabled else 0)
+        self.latest_state.hide_claude = enabled
+        self.popover_controller.setState_(self.latest_state)
+        self._set_button_title(self.latest_state)
+
     def toggleHideCodex_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
         prefs = _load_preferences()
@@ -697,6 +722,7 @@ class AppDelegate(NSObject):
             sender.setState_(1 if enabled else 0)
         self.latest_state.hide_codex = enabled
         self.popover_controller.setState_(self.latest_state)
+        self._set_button_title(self.latest_state)
 
     def toggleQuotaNotifications_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -950,6 +976,7 @@ class AppDelegate(NSObject):
             project_rows_all = list(fallback_state.projects_all)
             today_text = fallback_state.today_text
             statusline = fallback_state.statusline
+            hide_claude = fallback_state.hide_claude
             hide_codex = fallback_state.hide_codex
             try:
                 all_entries = self._load_history_entries()
@@ -959,6 +986,7 @@ class AppDelegate(NSObject):
                 project_rows_all = self._project_rows(hours_back=0, entries=all_entries)
                 today_text = _today_title(self.mock, self.language, entries=all_entries)
                 statusline = _statusline_payload(self.language)
+                hide_claude = _hide_claude_enabled()
                 hide_codex = _hide_codex_enabled()
             except Exception:
                 if os.environ.get("USAGE_DEBUG") == "1":
@@ -986,6 +1014,7 @@ class AppDelegate(NSObject):
                     today_text=today_text,
                     statusline=statusline,
                     show_install_button=show_install_button,
+                    hide_claude=hide_claude,
                     hide_codex=hide_codex,
                     codex_stale=codex_stale,
                 )
@@ -1005,6 +1034,7 @@ class AppDelegate(NSObject):
                 state.projects_all = project_rows_all
                 state.today_text = today_text
                 state.statusline = statusline
+                state.hide_claude = hide_claude
                 state.hide_codex = hide_codex
 
             result = {"state": state, "codex_5h_pct": codex_5h_pct, "codex_model": codex_model}
@@ -1357,19 +1387,27 @@ class AppDelegate(NSObject):
 
     def _menubar_attributed_title(self, state: PopoverState) -> Any:
         title = NSMutableAttributedString.alloc().init()
-        claude_percent = (
-            "--"
-            if state.claude_session.percent is None
-            else f"{_format_percent(state.claude_session.percent)}%"
-        )
-        title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
-        title.appendAttributedString_(self._menubar_text_string(f" {claude_percent}"))
-        if self.codex_5h_pct is not None:
-            title.appendAttributedString_(self._menubar_text_string(" · "))
-            title.appendAttributedString_(_menubar_icon_attachment_string(_codex_menubar_icon()))
-            title.appendAttributedString_(
-                self._menubar_text_string(f" {_format_percent(float(self.codex_5h_pct))}%"),
+        if not state.hide_claude:
+            claude_percent = (
+                "--"
+                if state.claude_session.percent is None
+                else f"{_format_percent(state.claude_session.percent)}%"
             )
+            title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
+            title.appendAttributedString_(self._menubar_text_string(f" {claude_percent}"))
+        if not state.hide_codex and (self.codex_5h_pct is not None or state.hide_claude):
+            codex_percent = (
+                "--"
+                if self.codex_5h_pct is None
+                else f"{_format_percent(float(self.codex_5h_pct))}%"
+            )
+            if not state.hide_claude:
+                title.appendAttributedString_(self._menubar_text_string(" · "))
+            title.appendAttributedString_(_menubar_icon_attachment_string(_codex_menubar_icon()))
+            title.appendAttributedString_(self._menubar_text_string(f" {codex_percent}"))
+        if title.length() == 0:
+            # Both providers hidden: keep a recognizable, clickable status item.
+            title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
         return title
 
     def _set_button_title(self, state: PopoverState) -> None:
@@ -1378,14 +1416,23 @@ class AppDelegate(NSObject):
         button.setAttributedTitle_(self._menubar_attributed_title(state))
 
     def _compose_title(self, state: PopoverState) -> str:
-        base = (
-            "🐾 --"
-            if state.claude_session.percent is None
-            else f"🐾 {_format_percent(state.claude_session.percent)}%"
-        )
-        if self.codex_5h_pct is None:
-            return base
-        return f"{base} · 📜 {_format_percent(float(self.codex_5h_pct))}%"
+        parts: list[str] = []
+        if not state.hide_claude:
+            claude = (
+                "--"
+                if state.claude_session.percent is None
+                else f"{_format_percent(state.claude_session.percent)}%"
+            )
+            parts.append(f"🐾 {claude}")
+        if not state.hide_codex and (self.codex_5h_pct is not None or state.hide_claude):
+            codex = (
+                "--"
+                if self.codex_5h_pct is None
+                else f"{_format_percent(float(self.codex_5h_pct))}%"
+            )
+            parts.append(f"📜 {codex}")
+        # Both providers hidden: keep a recognizable, clickable status item.
+        return " · ".join(parts) if parts else "🐾"
 
 
 def run_app(mock: bool = False, interval: int = 60) -> None:
@@ -1421,9 +1468,10 @@ def _analysis_period_from_project_range(project_range: str) -> str:
 def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
     active_panel = panel if panel is not None else panels.get_panel("classic")
     width, base_height = active_panel.preferred_size()
+    claude_deduct = active_panel.claude_card_height if state.hide_claude else 0.0
     codex_deduct = active_panel.codex_card_height if state.hide_codex else 0.0
     install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
-    height = base_height + install_extra - codex_deduct
+    height = base_height + install_extra - claude_deduct - codex_deduct
     return NSMakeSize(width, height)
 
 
@@ -1443,6 +1491,7 @@ def _empty_state(language: str = "en") -> PopoverState:
         today_text=_t(language, "today_text", cost="0.00", tokens="0"),
         statusline=_statusline_payload(language),
         show_install_button=False,
+        hide_claude=_hide_claude_enabled(),
         hide_codex=_hide_codex_enabled(),
     )
 
