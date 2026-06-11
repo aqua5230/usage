@@ -606,26 +606,9 @@ class AppDelegate(NSObject):
         )
         panel_parent.setSubmenu_(panel_submenu)
         menu.addItem_(panel_parent)
-        menu.addItem_(NSMenuItem.separatorItem())
-        launch_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "launch_at_login"),
-            "toggleLaunchAtLogin:",
-            "",
-        )
-        launch_item.setTarget_(self)
-        launch_item.setState_(1 if login_item.is_enabled() else 0)
-        menu.addItem_(launch_item)
-        menu.addItem_(NSMenuItem.separatorItem())
-        quota_notifications_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "quota_notifications_menu"),
-            "toggleQuotaNotifications:",
-            "",
-        )
-        quota_notifications_item.setTarget_(self)
-        quota_notifications_item.setState_(1 if _quota_notifications_enabled() else 0)
-        menu.addItem_(quota_notifications_item)
-        # Provider visibility lives in one "Hide Sections ▸" submenu row so the
-        # menu stays short as providers grow.
+        # Provider visibility lives in one "Hide Sections ▸" submenu row, grouped
+        # with the panel-themes submenu: both are drill-in rows that shape what
+        # the popover shows.
         hide_submenu = NSMenu.alloc().initWithTitle_(_t(self.language, "hide_sections_menu"))
         hide_claude_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             _t(self.language, "claude_name"),
@@ -648,6 +631,24 @@ class AppDelegate(NSObject):
         )
         hide_parent.setSubmenu_(hide_submenu)
         menu.addItem_(hide_parent)
+        # Plain on/off switches sit together in the second group.
+        menu.addItem_(NSMenuItem.separatorItem())
+        launch_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "launch_at_login"),
+            "toggleLaunchAtLogin:",
+            "",
+        )
+        launch_item.setTarget_(self)
+        launch_item.setState_(1 if login_item.is_enabled() else 0)
+        menu.addItem_(launch_item)
+        quota_notifications_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "quota_notifications_menu"),
+            "toggleQuotaNotifications:",
+            "",
+        )
+        quota_notifications_item.setTarget_(self)
+        quota_notifications_item.setState_(1 if _quota_notifications_enabled() else 0)
+        menu.addItem_(quota_notifications_item)
         # Project Butler: one toggle that hands last session's progress to the next
         # one. Tooltip carries the full explanation so the menu line stays short.
         menu.addItem_(NSMenuItem.separatorItem())
