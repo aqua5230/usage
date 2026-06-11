@@ -45,7 +45,7 @@ It lands in your Applications folder automatically → right-click **Open** once
 - **Find out where your tokens leak — without asking.** A daily background health check scans your local session logs for avoidable waste — the same files read over and over, bloated sessions, oversized command output. When it finds something worth fixing, the new-conversation handoff above gains a one-line heads-up; say "show me" and the AI walks you through the findings and how to fix them. Ships with the Progress Concierge, fully local.
 - **Warned before the wall, not at it.** A system notification when you're nearing a threshold, run out, or recover — so you wrap up on your terms instead of getting cut off mid-sentence. Fully local, off by default.
 - **Know where your tokens actually go.** HTML deep reports with token & cost trends and per-project rankings — shareable with your team.
-- **Make it yours.** 10 switchable panel themes, from a clean light card to a World Cup broadcast HUD.
+- **Make it yours.** 10 switchable panel themes, from a clean light card to a World Cup broadcast HUD. Only use one of Claude Code / Codex? Hide the other from the menu bar and every panel with a single toggle.
 - **In your language, automatically.** UI in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, following your system setting.
 
 ## 🔒 Privacy & data sources
