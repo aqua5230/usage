@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.19.1] - 2026-06-12
+
+### 修正
+- **隱藏 Claude Code 區塊後不再冒出設定錯誤**：只用 Codex、把 Claude Code 區塊藏起來的使用者，原本彈窗底部仍會顯示「找不到狀態檔，請執行 `python3 main.py --setup`」，還會跳出「安裝 Hook」按鈕。這兩者都是 Claude Code 專屬的，現在區塊隱藏時會一併隱藏，底部狀態改為中性的「已同步」。（#36，@ilss0902 回報）
+
 ## [0.19.0] - 2026-06-11
 
 ### 新增

@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.19.1] - 2026-06-12
+
+### Fixed
+- **Hidden Claude Code section no longer leaks a setup error**: Codex-only users who hid the Claude Code section still saw a "status file not found — run `python3 main.py --setup`" message in the popover footer, plus an "Install Hook" button. Both are Claude Code-specific and are now suppressed while the section is hidden; the footer falls back to a neutral synced status. (#36, reported by @ilss0902)
+
 ## [0.19.0] - 2026-06-11
 
 ### Added
