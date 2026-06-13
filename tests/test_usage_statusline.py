@@ -418,6 +418,59 @@ def test_render_skips_bad_resets_at_without_fallback(
     assert "5h" in output  # percentage still shown, just no reset countdown
 
 
+def test_render_appends_clear_nudge_when_context_is_heavy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    payload = {
+        "rate_limits": {"seven_day": {"used_percentage": 33}},
+        "context_window": {"used_percentage": 82, "context_window_size": 200000},
+        "cost": {"total_cost_usd": 2.7},
+    }
+
+    output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
+
+    last_line = output.splitlines()[-1]
+    assert "⚠" in last_line
+    assert "/clear" in last_line
+    assert "82%" in last_line
+    assert "$2.70" in last_line
+
+
+def test_render_omits_clear_nudge_below_threshold(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    payload = {
+        "rate_limits": {"seven_day": {"used_percentage": 33}},
+        "context_window": {"used_percentage": 79, "context_window_size": 200000},
+        "cost": {"total_cost_usd": 2.7},
+    }
+
+    output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
+
+    assert "⚠" not in output
+    assert "/clear" not in output
+
+
+def test_render_clear_nudge_drops_cost_when_absent(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    payload = {
+        "context_window": {"used_percentage": 90, "context_window_size": 200000},
+    }
+
+    output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
+
+    last_line = output.splitlines()[-1]
+    assert "/clear" in last_line
+    assert "$" not in last_line
+
+
 def test_main_prints_fallback_when_render_fails(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
