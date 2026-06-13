@@ -435,7 +435,6 @@ def test_render_appends_clear_nudge_when_context_is_heavy(
     assert "⚠" in last_line
     assert "/clear" in last_line
     assert "82%" in last_line
-    assert "$2.70" in last_line
 
 
 def test_render_omits_clear_nudge_below_threshold(
@@ -445,7 +444,7 @@ def test_render_omits_clear_nudge_below_threshold(
     monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
     payload = {
         "rate_limits": {"seven_day": {"used_percentage": 33}},
-        "context_window": {"used_percentage": 79, "context_window_size": 200000},
+        "context_window": {"used_percentage": 65, "context_window_size": 200000},
         "cost": {"total_cost_usd": 2.7},
     }
 

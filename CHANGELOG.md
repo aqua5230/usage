@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.20.1] - 2026-06-14
+
+### Changed
+- **Context-window nudge reframed around quality, and fires earlier (≥70%)**: the status line reminder added in 0.20.0 was framed around cost, but Claude Code (and Codex) auto-compact at ~80% and prompt caching makes resent context cheap — so the cost angle added little. What actually degrades as a conversation grows is quality: models lose the middle of long inputs well before the window fills. The nudge now triggers at 70% — ahead of the lossy automatic compaction — and suggests taking control yourself: `/clear` when switching tasks, or `/compact` to keep the focus you choose. The dollar figure was dropped.
+
 ## [0.20.0] - 2026-06-13
 
 ### Added

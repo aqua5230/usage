@@ -34,10 +34,14 @@ STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
 PREFERENCES_FILE = os.path.expanduser("~/.claude/usage-preferences.json")
 UPDATE_HINT_STALE_SECONDS = 30 * 86400
-# Context fill at which a /clear nudge is worth the noise — matches the red zone
-# in color_by_pct(). Past this, every turn resends a heavy context: pricier turns
-# and a faster rate-limit burn, both of which /clear resets.
-HEAVY_CONTEXT_PERCENT = 80.0
+# Context fill at which a /clear or /compact nudge is worth the noise. Set below
+# the default auto-compact line (~80%) so the user can act before the lossy
+# automatic pass decides for them. Long contexts degrade quality well before they
+# fill: models lose the middle of long inputs and effective context is often only
+# ~50-65% of the window. Refs: Liu et al. "Lost in the Middle" (2023,
+# arXiv:2307.03172), NVIDIA RULER (2024, arXiv:2404.06654), BABILong (2024,
+# arXiv:2406.10149).
+HEAVY_CONTEXT_PERCENT = 70.0
 STATUSLINE_TRANSLATIONS = {
     "zh-TW": {
         "five_hour": "5小時",
@@ -57,7 +61,7 @@ STATUSLINE_TRANSLATIONS = {
         "effort_low": "速答",
         "fast_mode": "⚡快速",
         "update_available_suffix": "可更新",
-        "warn_clear": "建議 /clear 開新對話更省",
+        "warn_clear": "越長 AI 越容易漏記中段 · 切任務 /clear,續做 /compact 留重點",
     },
     "zh-CN": {
         "five_hour": "5小时",
@@ -77,7 +81,7 @@ STATUSLINE_TRANSLATIONS = {
         "effort_low": "速答",
         "fast_mode": "⚡快速",
         "update_available_suffix": "可更新",
-        "warn_clear": "建议 /clear 开新对话更省",
+        "warn_clear": "越长 AI 越容易漏记中段 · 切任务 /clear,续做 /compact 留重点",
     },
     "en": {
         "five_hour": "5h",
@@ -97,7 +101,7 @@ STATUSLINE_TRANSLATIONS = {
         "effort_low": "Quick",
         "fast_mode": "⚡Fast",
         "update_available_suffix": "available",
-        "warn_clear": "/clear to start fresh & save",
+        "warn_clear": "longer chats lose the middle · /clear to switch, /compact to keep focus",
     },
     "ja": {
         "five_hour": "5時間",
@@ -117,7 +121,7 @@ STATUSLINE_TRANSLATIONS = {
         "effort_low": "即答",
         "fast_mode": "⚡高速",
         "update_available_suffix": "更新あり",
-        "warn_clear": "/clear で新しい会話に・節約",
+        "warn_clear": "長いほど中盤を忘れがち · 切替は /clear、継続は /compact で要点保持",
     },
     "ko": {
         "five_hour": "5시간",
@@ -137,7 +141,7 @@ STATUSLINE_TRANSLATIONS = {
         "effort_low": "빠른 답변",
         "fast_mode": "⚡빠름",
         "update_available_suffix": "업데이트",
-        "warn_clear": "/clear로 새 대화 시작・절약",
+        "warn_clear": "길수록 중간 내용을 놓침 · 전환은 /clear, 계속은 /compact로 핵심 유지",
     },
 }
 C = {
@@ -389,14 +393,12 @@ def _as_float(value: Any) -> Optional[float]:
 
 
 def _heavy_warning(data: Dict[str, Any]) -> Optional[str]:
-    """A /clear nudge once the context window crosses the heavy threshold."""
+    """A /clear or /compact nudge once the context window gets heavy enough
+    that quality starts to slip (see HEAVY_CONTEXT_PERCENT)."""
     pct = _as_float(_as_dict(data.get("context_window")).get("used_percentage"))
     if pct is None or pct < HEAVY_CONTEXT_PERCENT:
         return None
     detail = f"{_t('context')} {pct:.0f}%"
-    cost_usd = _as_float(_as_dict(data.get("cost")).get("total_cost_usd"))
-    if cost_usd is not None and cost_usd > 0:
-        detail += f" · ${cost_usd:.2f}"
     return f"\033[38;5;160m⚠ {detail} · {_t('warn_clear')}{C['reset']}"
 
 
