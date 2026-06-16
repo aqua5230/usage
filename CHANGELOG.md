@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.20.2] - 2026-06-16
+
+### Fixed
+- **Codex model attribution now falls back to turn context**: newer Codex sessions can store the model in `turn_context.payload.model`, while `state_5.sqlite` may not have a matching thread row yet. The reader still prefers SQLite when available, but now uses the turn context as a fallback so cost estimates and model distribution no longer collapse to unknown or $0. (#38, by @ericweichun)
+- **Animated quota rows no longer restart on every panel refresh**: panels with animated quota tracks, including Prism Arcade, Black Hole, and Aquarium, now mount each quota row once and update it in place instead of rebuilding the markup on every status update. This prevents the CSS animation flicker during normal refreshes. (#39, by @ericweichun)
+
 ## [0.20.1] - 2026-06-14
 
 ### Changed

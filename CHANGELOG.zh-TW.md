@@ -4,6 +4,12 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.20.2] - 2026-06-16
+
+### 修正
+- **Codex model 歸屬現在會退回讀取 turn context**：新版 Codex 工作階段可能把 model 記在 `turn_context.payload.model`，但 `state_5.sqlite` 還沒有對應 thread 列。讀取器仍會優先採用 SQLite；沒有資料時，現在會改用 turn context 作為後備，避免成本估算掉成 `unknown` 或 $0，也讓 model 分布保持完整。（#38，@ericweichun 貢獻）
+- **有動畫的額度列不再每次面板更新都重跑動畫**：Prism Arcade、Black Hole、Aquarium 等有動畫額度軌道的面板，現在每列只掛載一次，之後就地更新內容，不再每次狀態更新都重建 markup。這會避免正常刷新時 CSS 動畫閃爍。（#39，@ericweichun 貢獻）
+
 ## [0.20.1] - 2026-06-14
 
 ### 變更
