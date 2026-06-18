@@ -21,6 +21,7 @@ import codex_loader
 @pytest.fixture(autouse=True)
 def _clear_jsonl_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     codex_loader._jsonl_cache.clear()
+    codex_loader._fork_replay_cache.clear()
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
     monkeypatch.setattr(codex_loader, "STATE_DB", tmp_path / "missing-state.sqlite")
 
@@ -79,6 +80,63 @@ def _write_session_with_usage_events(
             "payload": {"type": "token_count", "info": {"total_token_usage": usage}},
         }
         for timestamp, usage in events
+    )
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
+
+
+def _write_fork_session(
+    path: Path,
+    *,
+    session_id: str,
+    parent_session_id: str,
+    timestamp: str,
+    replay_events: list[dict[str, Any]],
+    own_events: list[tuple[str, dict[str, Any]]],
+) -> None:
+    lines = [
+        {
+            "type": "session_meta",
+            "timestamp": timestamp,
+            "payload": {
+                "id": session_id,
+                "forked_from_id": parent_session_id,
+                "timestamp": timestamp,
+                "cwd": "/tmp/fork",
+            },
+        },
+        {
+            "type": "session_meta",
+            "timestamp": timestamp,
+            "payload": {
+                "id": parent_session_id,
+                "timestamp": "2026-01-01T00:00:00+00:00",
+                "cwd": "/tmp/parent",
+            },
+        },
+    ]
+    lines.extend(
+        {
+            "type": "event_msg",
+            "timestamp": timestamp,
+            "payload": {"type": "token_count", "info": {"total_token_usage": usage}},
+        }
+        for usage in replay_events
+    )
+    lines.append(
+        {
+            "type": "event_msg",
+            "timestamp": timestamp,
+            "payload": {"type": "thread_rolled_back", "num_turns": 1},
+        }
+    )
+    lines.extend(
+        {
+            "type": "event_msg",
+            "timestamp": event_timestamp,
+            "payload": {"type": "token_count", "info": {"total_token_usage": usage}},
+        }
+        for event_timestamp, usage in own_events
     )
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
@@ -262,6 +320,170 @@ def test_load_entries_splits_cumulative_usage_into_time_range_deltas(
     assert week_entries[0].input_tokens == 40
     assert week_entries[0].output_tokens == 20
     assert week_entries[0].cache_read_tokens == 10
+
+
+def test_load_entries_excludes_replayed_parent_usage_from_fork(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    old_ts = "2026-01-01T00:00:00+00:00"
+    fork_ts = datetime.now(UTC).replace(microsecond=0)
+    replay_ts = fork_ts.isoformat()
+    own_ts_1 = (fork_ts + timedelta(minutes=1)).isoformat()
+    own_ts_2 = (fork_ts + timedelta(minutes=2)).isoformat()
+    parent_usage = [
+        {
+            "input_tokens": 100,
+            "cached_input_tokens": 20,
+            "output_tokens": 30,
+            "reasoning_output_tokens": 10,
+        },
+        {
+            "input_tokens": 150,
+            "cached_input_tokens": 30,
+            "output_tokens": 40,
+            "reasoning_output_tokens": 15,
+        },
+    ]
+    _write_session_with_usage_events(
+        sessions_dir / "parent.jsonl",
+        session_id="parent",
+        events=[(old_ts, parent_usage[0]), (old_ts, parent_usage[1])],
+    )
+    _write_fork_session(
+        sessions_dir / "fork.jsonl",
+        session_id="fork",
+        parent_session_id="parent",
+        timestamp=replay_ts,
+        replay_events=parent_usage,
+        own_events=[
+            (
+                own_ts_1,
+                {
+                    "input_tokens": 60,
+                    "cached_input_tokens": 10,
+                    "output_tokens": 8,
+                    "reasoning_output_tokens": 3,
+                },
+            ),
+            (
+                own_ts_2,
+                {
+                    "input_tokens": 90,
+                    "cached_input_tokens": 20,
+                    "output_tokens": 12,
+                    "reasoning_output_tokens": 5,
+                },
+            ),
+        ],
+    )
+
+    entries = codex_loader.load_entries()
+    recent_entries = codex_loader.load_entries(hours_back=24)
+
+    assert [entry.session_id for entry in entries] == ["parent", "parent", "fork", "fork"]
+    assert [entry.total_tokens for entry in entries] == [130, 60, 68, 34]
+    assert [entry.session_id for entry in recent_entries] == ["fork", "fork"]
+    assert [entry.timestamp for entry in recent_entries] == [
+        datetime.fromisoformat(own_ts_1),
+        datetime.fromisoformat(own_ts_2),
+    ]
+
+
+def test_load_entries_handles_duplicate_snapshots_across_multiple_forks(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    timestamp = datetime.now(UTC).replace(microsecond=0)
+    first_usage = {"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 30}
+    second_usage = {"input_tokens": 150, "cached_input_tokens": 30, "output_tokens": 40}
+    replay = [first_usage, first_usage, second_usage]
+    _write_session_with_usage_events(
+        sessions_dir / "parent.jsonl",
+        session_id="parent",
+        events=[
+            ("2026-01-01T00:00:00+00:00", first_usage),
+            ("2026-01-01T00:01:00+00:00", first_usage),
+            ("2026-01-01T00:02:00+00:00", second_usage),
+        ],
+    )
+    for index in range(2):
+        _write_fork_session(
+            sessions_dir / f"fork-{index}.jsonl",
+            session_id=f"fork-{index}",
+            parent_session_id="parent",
+            timestamp=timestamp.isoformat(),
+            replay_events=replay,
+            own_events=[
+                (
+                    (timestamp + timedelta(minutes=index + 1)).isoformat(),
+                    {
+                        "input_tokens": 60 + index,
+                        "cached_input_tokens": 10,
+                        "output_tokens": 8,
+                    },
+                )
+            ],
+        )
+
+    entries = codex_loader.load_entries()
+
+    assert [entry.session_id for entry in entries] == [
+        "parent",
+        "parent",
+        "fork-0",
+        "fork-1",
+    ]
+    assert [entry.total_tokens for entry in entries] == [130, 60, 68, 69]
+
+
+def test_load_entries_skips_fork_jsonl_when_parent_replay_source_is_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    state_db = tmp_path / "state.sqlite"
+    logs_db = tmp_path / "logs.sqlite"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "STATE_DB", state_db)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+    timestamp = datetime.now(UTC).replace(microsecond=0)
+    usage = {"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 30}
+    _write_fork_session(
+        sessions_dir / "fork.jsonl",
+        session_id="fork",
+        parent_session_id="missing-parent",
+        timestamp=timestamp.isoformat(),
+        replay_events=[usage],
+        own_events=[((timestamp + timedelta(minutes=1)).isoformat(), usage)],
+    )
+    sqlite_timestamp = timestamp + timedelta(minutes=2)
+    _create_state_db(state_db, [("fork", "gpt-test", "/tmp/fork")])
+    _create_logs_db(
+        logs_db,
+        [
+            (
+                1,
+                int(sqlite_timestamp.timestamp()),
+                _sqlite_token_body(
+                    session_id="fork",
+                    timestamp=sqlite_timestamp.isoformat().replace("+00:00", "Z"),
+                    input_tokens=50,
+                    output_tokens=3,
+                    cached_tokens=10,
+                ),
+            )
+        ],
+    )
+
+    entries = codex_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].message_id.startswith("fork:sqlite:")
+    assert entries[0].total_tokens == 53
 
 
 def _create_state_db(path: Path, rows: list[tuple[str, str, str]]) -> None:

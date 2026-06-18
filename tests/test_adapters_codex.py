@@ -150,7 +150,7 @@ def test_load_entries_accepts_numeric_string_usage_fields(
 
     assert len(entries) == 1
     assert entries[0].input_tokens == 8
-    assert entries[0].output_tokens == 7
+    assert entries[0].output_tokens == 3
     assert entries[0].cache_read_tokens == 2
 
 

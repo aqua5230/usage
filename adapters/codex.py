@@ -9,11 +9,13 @@ import math
 import os
 import sqlite3
 import sys
-from collections import OrderedDict
+from collections import OrderedDict, defaultdict
 from contextlib import closing
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
+
+import codex_loader as shared_codex_loader
 
 from .types import AgentInfo, RateLimits, UsageEntry
 
@@ -36,23 +38,40 @@ def detect() -> AgentInfo | None:
 
 
 def load_entries(hours_back: int = 0) -> list[UsageEntry]:
-    entries: list[UsageEntry] = []
-    seen: set[str] = set()
     cutoff = None
     if hours_back > 0:
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_back)
 
     models = _load_thread_models()
-
     sessions_path = Path(SESSIONS_DIR)
-    if not sessions_path.is_dir():
-        return entries
+    delta_entries = shared_codex_loader._load_jsonl_entries(sessions_path, models, cutoff)
+    by_session: dict[str, list[Any]] = defaultdict(list)
+    for entry in delta_entries:
+        by_session[entry.session_id].append(entry)
 
-    for jsonl_path in sessions_path.rglob("*.jsonl"):
-        _parse_jsonl(jsonl_path, models, entries, seen, cutoff)
-
+    entries = [_aggregate_session(session_entries) for session_entries in by_session.values()]
     entries.sort(key=lambda e: e.timestamp)
     return entries
+
+
+def _aggregate_session(session_entries: list[Any]) -> UsageEntry:
+    first = session_entries[0]
+    primary = max(session_entries, key=lambda entry: entry.total_tokens)
+    return UsageEntry(
+        timestamp=first.timestamp,
+        session_id=first.session_id,
+        message_id=first.session_id,
+        request_id="",
+        model=primary.model,
+        input_tokens=sum(entry.input_tokens for entry in session_entries),
+        output_tokens=sum(entry.output_tokens for entry in session_entries),
+        cache_creation_tokens=sum(entry.cache_creation_tokens for entry in session_entries),
+        cache_read_tokens=sum(entry.cache_read_tokens for entry in session_entries),
+        cost_usd=None,
+        project=first.project,
+        agent_id="codex",
+        message_count=len(session_entries),
+    )
 
 
 def _load_thread_models() -> dict[str, str]:
@@ -128,104 +147,6 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> RateLimits | Non
     )
 
 
-def _project_from_cwd(cwd: str) -> str:
-    home = os.path.expanduser("~")
-    if cwd.startswith(home):
-        rel = cwd[len(home):].strip(os.sep)
-    else:
-        rel = cwd.strip(os.sep)
-    parts = rel.split(os.sep)
-    return parts[-1] if parts and parts[-1] else rel or "unknown"
-
-
-def _parse_jsonl(
-    path: Path,
-    models: dict[str, str],
-    entries: list[UsageEntry],
-    seen: set[str],
-    cutoff: datetime | None,
-) -> None:
-    session_id = ""
-    session_ts = ""
-    project = "unknown"
-    model = "unknown"
-    last_usage = None
-    msg_count = 0
-
-    try:
-        rows = _load_jsonl_rows(path)
-    except (OSError, PermissionError, UnicodeDecodeError) as exc:
-        _debug_file_error("failed to read Codex session log", path, exc)
-        return
-
-    for data in rows:
-        row_type = data.get("type")
-
-        if row_type == "session_meta":
-            payload = data.get("payload", {})
-            session_id = payload.get("id", "")
-            session_ts = payload.get("timestamp", "")
-            cwd = payload.get("cwd", "")
-            if cwd:
-                project = _project_from_cwd(cwd)
-            model = models.get(session_id) or _session_model(payload, model)
-            continue
-
-        if row_type == "turn_context":
-            model = models.get(session_id) or _session_model(data.get("payload"), model)
-            continue
-
-        if row_type != "event_msg":
-            continue
-
-        payload = data.get("payload", {})
-        if payload.get("type") == "token_count":
-            info = payload.get("info")
-            if info and info.get("total_token_usage"):
-                last_usage = info["total_token_usage"]
-                msg_count += 1
-
-    if not last_usage or not session_id:
-        return
-
-    cached = _as_int(last_usage.get("cached_input_tokens"))
-    input_tokens = _as_int(last_usage.get("input_tokens")) - cached
-    output_tokens = _as_int(last_usage.get("output_tokens")) + _as_int(
-        last_usage.get("reasoning_output_tokens")
-    )
-
-    if input_tokens == 0 and output_tokens == 0:
-        return
-
-    try:
-        ts = datetime.fromisoformat(session_ts.replace("Z", "+00:00"))
-    except (ValueError, AttributeError):
-        return
-
-    if cutoff and ts < cutoff:
-        return
-
-    if session_id in seen:
-        return
-    seen.add(session_id)
-
-    entries.append(UsageEntry(
-        timestamp=ts,
-        session_id=session_id,
-        message_id=session_id,
-        request_id="",
-        model=model,
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        cache_creation_tokens=0,
-        cache_read_tokens=cached,
-        cost_usd=None,
-        project=project,
-        agent_id="codex",
-        message_count=msg_count,
-    ))
-
-
 def _load_jsonl_rows(path: Path) -> list[dict[str, Any]]:
     st = path.stat()
     cached = _file_cache.get(path)
@@ -269,13 +190,6 @@ def _session_model(payload: Any, fallback: str) -> str:
     if not isinstance(model, str):
         model = ""
     return model or fallback
-
-
-def _as_int(value: Any) -> int:
-    number = _as_optional_float(value)
-    if number is None:
-        return 0
-    return int(number)
 
 
 def _as_optional_int(value: Any) -> int | None:

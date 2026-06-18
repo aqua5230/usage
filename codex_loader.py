@@ -26,7 +26,16 @@ logger = logging.getLogger(__name__)
 
 _JSONL_CACHE_MAXSIZE = 512
 _RECENT_JSONL_SCAN_LIMIT = 30
-_jsonl_cache: OrderedDict[Path, tuple[float, int, list[UsageEntry]]] = OrderedDict()
+_ReplayCacheKey = tuple[str, float, int, int] | None
+_jsonl_cache: OrderedDict[
+    Path,
+    tuple[float, int, _ReplayCacheKey, list[UsageEntry]],
+] = OrderedDict()
+_ReplayLookupKey = tuple[float, int, tuple[tuple[str, float, int], ...]]
+_fork_replay_cache: OrderedDict[
+    Path,
+    tuple[_ReplayLookupKey, int | None, _ReplayCacheKey],
+] = OrderedDict()
 
 SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
 STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
@@ -49,43 +58,77 @@ class _ThreadMetadata:
     cwd: str = ""
 
 
+@dataclass(frozen=True, slots=True)
+class _SessionFileInfo:
+    session_id: str = ""
+    forked_from_id: str = ""
+
+
 def load_entries(hours_back: int = 0) -> list[UsageEntry]:
-    entries_by_session: dict[str, list[UsageEntry]] = {}
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
-    cutoff_ts = cutoff.timestamp() if cutoff else None
     metadata = _load_thread_metadata()
     models = {session_id: data.model for session_id, data in metadata.items()}
-
-    if SESSIONS_DIR.is_dir():
-        for jsonl_path in SESSIONS_DIR.rglob("*.jsonl"):
-            if cutoff_ts is not None:
-                try:
-                    if jsonl_path.stat().st_mtime < cutoff_ts:
-                        continue
-                except OSError as exc:
-                    logger.warning("failed to stat session log %s: %s", jsonl_path, exc)
-                    continue
-            parsed = _parse_jsonl(jsonl_path, models, cutoff)
-            if not parsed:
-                continue
-            existing = entries_by_session.get(parsed[0].session_id)
-            if existing is None or _is_better_session_log(parsed, existing):
-                entries_by_session[parsed[0].session_id] = parsed
+    entries = _load_jsonl_entries(SESSIONS_DIR, models, cutoff)
 
     latest_jsonl_ts_by_session = {
-        session_id: session_entries[-1].timestamp
-        for session_id, session_entries in entries_by_session.items()
-        if session_entries
+        entry.session_id: entry.timestamp
+        for entry in entries
     }
+    entries.extend(_load_sqlite_log_entries(metadata, cutoff, latest_jsonl_ts_by_session))
+    entries.sort(key=lambda entry: entry.timestamp)
+    return entries
 
-    entries = [
+
+def _load_jsonl_entries(
+    sessions_dir: Path,
+    models: dict[str, str],
+    cutoff: datetime | None,
+) -> list[UsageEntry]:
+    if not sessions_dir.is_dir():
+        return []
+
+    entries_by_session: dict[str, list[UsageEntry]] = {}
+    cutoff_ts = cutoff.timestamp() if cutoff else None
+    jsonl_paths = list(sessions_dir.rglob("*.jsonl"))
+    file_info = {path: _read_session_file_info(path) for path in jsonl_paths}
+    paths_by_session: dict[str, list[Path]] = {}
+    for path, info in file_info.items():
+        if info.session_id:
+            paths_by_session.setdefault(info.session_id, []).append(path)
+
+    for jsonl_path in jsonl_paths:
+        if cutoff_ts is not None:
+            try:
+                if jsonl_path.stat().st_mtime < cutoff_ts:
+                    continue
+            except OSError as exc:
+                logger.warning("failed to stat session log %s: %s", jsonl_path, exc)
+                continue
+        info = file_info[jsonl_path]
+        replay_boundary, replay_cache_key = _fork_replay_boundary(
+            jsonl_path,
+            info,
+            paths_by_session.get(info.forked_from_id, []),
+        )
+        parsed = _parse_jsonl(
+            jsonl_path,
+            models,
+            cutoff,
+            file_info=info,
+            replay_boundary=replay_boundary,
+            replay_cache_key=replay_cache_key,
+        )
+        if not parsed:
+            continue
+        existing = entries_by_session.get(parsed[0].session_id)
+        if existing is None or _is_better_session_log(parsed, existing):
+            entries_by_session[parsed[0].session_id] = parsed
+
+    return [
         entry
         for session_entries in entries_by_session.values()
         for entry in session_entries
     ]
-    entries.extend(_load_sqlite_log_entries(metadata, cutoff, latest_jsonl_ts_by_session))
-    entries.sort(key=lambda entry: entry.timestamp)
-    return entries
 
 
 def _is_better_session_log(candidate: list[UsageEntry], existing: list[UsageEntry]) -> bool:
@@ -98,6 +141,23 @@ def _is_better_session_log(candidate: list[UsageEntry], existing: list[UsageEntr
 
 def _session_total_tokens(entries: list[UsageEntry]) -> int:
     return sum(entry.total_tokens for entry in entries)
+
+
+def _read_session_file_info(path: Path) -> _SessionFileInfo:
+    try:
+        with path.open(encoding="utf-8") as file:
+            for line in file:
+                data = _load_json_line(line)
+                if data is None or data.get("type") != "session_meta":
+                    continue
+                payload = _as_dict(data.get("payload"))
+                return _SessionFileInfo(
+                    session_id=_as_str(payload.get("id")),
+                    forked_from_id=_as_str(payload.get("forked_from_id")),
+                )
+    except (OSError, UnicodeDecodeError):
+        return _SessionFileInfo()
+    return _SessionFileInfo()
 
 
 def load_rate_limits() -> CodexRateLimits | None:
@@ -548,7 +608,165 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
     )
 
 
-def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) -> list[UsageEntry]:
+def _fork_replay_boundary(
+    path: Path,
+    info: _SessionFileInfo,
+    parent_paths: list[Path],
+) -> tuple[int | None, _ReplayCacheKey]:
+    if not info.forked_from_id:
+        return 0, None
+
+    # Fork logs rewrite replay timestamps, but preserve the parent's cumulative token sequence.
+    lookup_key = _fork_replay_lookup_key(path, parent_paths)
+    if lookup_key is None:
+        return None, None
+    cached = _fork_replay_cache.get(path)
+    if cached is not None and cached[0] == lookup_key:
+        _fork_replay_cache.move_to_end(path)
+        return cached[1], cached[2]
+
+    child_events = _token_usage_events_after_embedded_parent(path, info.forked_from_id)
+    if child_events is None:
+        result: tuple[int | None, _ReplayCacheKey] = (0, None)
+        _cache_fork_replay_boundary(path, lookup_key, result)
+        return result
+    if not lookup_key[2]:
+        result = (None, None)
+        _cache_fork_replay_boundary(path, lookup_key, result)
+        return result
+
+    child_usage = [usage for _, usage in child_events]
+    best_match = 0
+    best_key: _ReplayCacheKey = None
+    for parent_path in parent_paths:
+        match_count = _common_prefix_length(
+            child_usage,
+            _raw_token_usage_sequence(parent_path),
+        )
+        if match_count <= best_match:
+            continue
+        try:
+            parent_stat = parent_path.stat()
+        except OSError:
+            continue
+        best_match = match_count
+        best_key = (
+            str(parent_path),
+            parent_stat.st_mtime,
+            parent_stat.st_size,
+            match_count,
+        )
+
+    if child_events and best_match == 0:
+        result = (None, None)
+        _cache_fork_replay_boundary(path, lookup_key, result)
+        return result
+    boundary = child_events[best_match - 1][0] if best_match else 0
+    result = (boundary, best_key)
+    _cache_fork_replay_boundary(path, lookup_key, result)
+    return result
+
+
+def _fork_replay_lookup_key(
+    path: Path,
+    parent_paths: list[Path],
+) -> _ReplayLookupKey | None:
+    try:
+        child_stat = path.stat()
+    except OSError:
+        return None
+    parent_stats: list[tuple[str, float, int]] = []
+    for parent_path in parent_paths:
+        try:
+            parent_stat = parent_path.stat()
+        except OSError:
+            continue
+        parent_stats.append((str(parent_path), parent_stat.st_mtime, parent_stat.st_size))
+    return child_stat.st_mtime, child_stat.st_size, tuple(sorted(parent_stats))
+
+
+def _cache_fork_replay_boundary(
+    path: Path,
+    lookup_key: _ReplayLookupKey,
+    result: tuple[int | None, _ReplayCacheKey],
+) -> None:
+    if path not in _fork_replay_cache and len(_fork_replay_cache) >= _JSONL_CACHE_MAXSIZE:
+        _fork_replay_cache.popitem(last=False)
+    _fork_replay_cache[path] = (lookup_key, result[0], result[1])
+
+
+def _token_usage_events_after_embedded_parent(
+    path: Path,
+    parent_session_id: str,
+) -> list[tuple[int, _TokenUsage]] | None:
+    embedded_parent = False
+    root_seen = False
+    events: list[tuple[int, _TokenUsage]] = []
+    try:
+        with path.open(encoding="utf-8") as file:
+            for line_number, line in enumerate(file, start=1):
+                data = _load_json_line(line)
+                if data is None:
+                    continue
+                if data.get("type") == "session_meta":
+                    session_id = _as_str(_as_dict(data.get("payload")).get("id"))
+                    if not root_seen:
+                        root_seen = True
+                    elif session_id == parent_session_id:
+                        embedded_parent = True
+                    continue
+                usage = _token_usage_from_event(data)
+                if embedded_parent and usage is not None:
+                    events.append((line_number, usage))
+    except (OSError, UnicodeDecodeError):
+        return None
+    return events if embedded_parent else None
+
+
+def _raw_token_usage_sequence(path: Path) -> list[_TokenUsage]:
+    usage_events: list[_TokenUsage] = []
+    try:
+        with path.open(encoding="utf-8") as file:
+            for line in file:
+                data = _load_json_line(line)
+                if data is None:
+                    continue
+                usage = _token_usage_from_event(data)
+                if usage is not None:
+                    usage_events.append(usage)
+    except (OSError, UnicodeDecodeError):
+        return []
+    return usage_events
+
+
+def _token_usage_from_event(data: dict[str, Any]) -> _TokenUsage | None:
+    if data.get("type") != "event_msg":
+        return None
+    payload = _as_dict(data.get("payload"))
+    if payload.get("type") != "token_count":
+        return None
+    usage = _as_dict(_as_dict(payload.get("info")).get("total_token_usage"))
+    return _token_usage_from_payload(usage) if usage else None
+
+
+def _common_prefix_length(left: list[_TokenUsage], right: list[_TokenUsage]) -> int:
+    matched = 0
+    for left_usage, right_usage in zip(left, right, strict=False):
+        if left_usage != right_usage:
+            break
+        matched += 1
+    return matched
+
+
+def _parse_jsonl(
+    path: Path,
+    models: dict[str, str],
+    cutoff: datetime | None,
+    *,
+    file_info: _SessionFileInfo | None = None,
+    replay_boundary: int | None = 0,
+    replay_cache_key: _ReplayCacheKey = None,
+) -> list[UsageEntry]:
     try:
         st = path.stat()
     except OSError as exc:
@@ -556,9 +774,14 @@ def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) ->
         return []
 
     cache_entry = _jsonl_cache.get(path)
-    if cache_entry is not None and cache_entry[0] == st.st_mtime and cache_entry[1] == st.st_size:
+    if (
+        cache_entry is not None
+        and cache_entry[0] == st.st_mtime
+        and cache_entry[1] == st.st_size
+        and cache_entry[2] == replay_cache_key
+    ):
         _jsonl_cache.move_to_end(path)
-        cached_entries = cache_entry[2]
+        cached_entries = cache_entry[3]
         for entry in cached_entries:
             if entry.session_id in models:
                 entry.model = models[entry.session_id]
@@ -566,7 +789,11 @@ def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) ->
             return cached_entries
         return [entry for entry in cached_entries if entry.timestamp >= cutoff]
 
-    session_id = ""
+    info = file_info or _read_session_file_info(path)
+    if replay_boundary is None:
+        return []
+
+    session_id = info.session_id
     session_timestamp = ""
     project = "unknown"
     session_model = "unknown"
@@ -575,16 +802,18 @@ def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) ->
     token_count_index = 0
     try:
         with path.open(encoding="utf-8") as file:
-            for line in file:
+            for line_number, line in enumerate(file, start=1):
                 data = _load_json_line(line)
                 if data is None:
                     continue
                 if data.get("type") == "session_meta":
                     payload = _as_dict(data.get("payload"))
-                    session_id = _as_str(payload.get("id"))
-                    session_timestamp = _as_str(payload.get("timestamp"))
-                    project = _project_from_cwd(_as_str(payload.get("cwd")))
-                    session_model = _session_model(payload, session_model)
+                    if not session_timestamp:
+                        session_timestamp = _as_str(payload.get("timestamp"))
+                        project = _project_from_cwd(_as_str(payload.get("cwd")))
+                        session_model = _session_model(payload, session_model)
+                    continue
+                if line_number <= replay_boundary:
                     continue
                 if data.get("type") == "turn_context":
                     session_model = _session_model(data.get("payload"), session_model)
@@ -623,16 +852,16 @@ def _parse_jsonl(path: Path, models: dict[str, str], cutoff: datetime | None) ->
         logger.warning("failed to parse codex session %s: %s", path, exc)
         if path not in _jsonl_cache and len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
             _jsonl_cache.popitem(last=False)
-        _jsonl_cache[path] = (st.st_mtime, st.st_size, [])
+        _jsonl_cache[path] = (st.st_mtime, st.st_size, replay_cache_key, [])
         return []
     if not entries and session_timestamp:
         if path not in _jsonl_cache and len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
             _jsonl_cache.popitem(last=False)
-        _jsonl_cache[path] = (st.st_mtime, st.st_size, [])
+        _jsonl_cache[path] = (st.st_mtime, st.st_size, replay_cache_key, [])
         return []
     if path not in _jsonl_cache and len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
         _jsonl_cache.popitem(last=False)
-    _jsonl_cache[path] = (st.st_mtime, st.st_size, entries)
+    _jsonl_cache[path] = (st.st_mtime, st.st_size, replay_cache_key, entries)
     if cutoff is not None:
         return [entry for entry in entries if entry.timestamp >= cutoff]
     return entries

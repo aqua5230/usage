@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+### Fixed
+- **Forked Codex conversations no longer replay parent history as new usage**: Codex can embed a timestamp-rewritten copy of the parent conversation in a fork JSONL. The loader now matches and excludes that replay while retaining both the original parent usage and new post-fork usage.
+- **Codex reasoning tokens are no longer charged twice**: `reasoning_output_tokens` is already included in Codex's `output_tokens`, so JSONL and SQLite usage readers now price the output total once.
+
 ## [0.20.2] - 2026-06-16
 
 ### Fixed
