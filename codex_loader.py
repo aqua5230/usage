@@ -418,9 +418,7 @@ def _parse_sqlite_log_row(
         return None
     cached = _as_int(_event_value(body, "cached_token_count"))
     input_tokens = max(0, _as_int(_event_value(body, "input_token_count")) - cached)
-    output_tokens = _as_int(_event_value(body, "output_token_count")) + _as_int(
-        _event_value(body, "reasoning_token_count")
-    )
+    output_tokens = _as_int(_event_value(body, "output_token_count"))
     if input_tokens + output_tokens + cached == 0:
         return None
     thread = metadata.get(session_id, _ThreadMetadata())
@@ -663,9 +661,7 @@ class _TokenUsage:
 def _token_usage_from_payload(usage: dict[str, Any]) -> _TokenUsage:
     cached = _as_int(usage.get("cached_input_tokens"))
     input_tokens = max(0, _as_int(usage.get("input_tokens")) - cached)
-    output_tokens = _as_int(usage.get("output_tokens")) + _as_int(
-        usage.get("reasoning_output_tokens"),
-    )
+    output_tokens = _as_int(usage.get("output_tokens"))
     return _TokenUsage(
         input_tokens=input_tokens,
         output_tokens=output_tokens,

@@ -257,10 +257,10 @@ def test_load_entries_splits_cumulative_usage_into_time_range_deltas(
     all_entries = codex_loader.load_entries()
     week_entries = codex_loader.load_entries(hours_back=168)
 
-    assert [entry.total_tokens for entry in all_entries] == [160, 80]
-    assert [entry.total_tokens for entry in week_entries] == [80]
+    assert [entry.total_tokens for entry in all_entries] == [160, 70]
+    assert [entry.total_tokens for entry in week_entries] == [70]
     assert week_entries[0].input_tokens == 40
-    assert week_entries[0].output_tokens == 30
+    assert week_entries[0].output_tokens == 20
     assert week_entries[0].cache_read_tokens == 10
 
 
@@ -354,9 +354,9 @@ def test_load_entries_includes_sqlite_logs_when_sessions_dir_is_missing(
     assert entries[0].timestamp == timestamp
     assert entries[0].session_id == "session-sqlite"
     assert entries[0].input_tokens == 80
-    assert entries[0].output_tokens == 10
+    assert entries[0].output_tokens == 7
     assert entries[0].cache_read_tokens == 20
-    assert entries[0].total_tokens == 110
+    assert entries[0].total_tokens == 107
     assert entries[0].project == "demo"
 
 
@@ -1082,7 +1082,7 @@ def test_load_entries_accepts_numeric_string_usage_fields(
 
     assert len(entries) == 1
     assert entries[0].input_tokens == 8
-    assert entries[0].output_tokens == 7
+    assert entries[0].output_tokens == 3
     assert entries[0].cache_read_tokens == 2
 
 
