@@ -4,11 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## 尚未發布
+## [0.20.3] - 2026-06-18
 
 ### 修正
-- **Fork 後的 Codex 對話不再把父對話歷史重播算成新用量**：Codex 可能在 fork JSONL 內嵌一份 timestamp 被重寫的父對話副本。讀取器現在會比對並排除這段重播，同時保留父對話原始用量與 fork 後真正新增的用量。
-- **Codex reasoning token 不再重複計價**：`reasoning_output_tokens` 已包含於 Codex 的 `output_tokens`，JSONL 與 SQLite 用量讀取器現在只會計算一次輸出總量。
+- **Fork 後的 Codex 對話不再把父對話歷史重播算成新用量**：Codex 可能在 fork JSONL 內嵌一份 timestamp 被重寫的父對話副本。讀取器現在會比對並排除這段重播，同時保留父對話原始用量與 fork 後真正新增的用量。（#40，@ericweichun 貢獻）
+- **Codex reasoning token 不再重複計價**：`reasoning_output_tokens` 已包含於 Codex 的 `output_tokens`，JSONL 與 SQLite 用量讀取器現在只會計算一次輸出總量。（#40，@ericweichun 貢獻）
 
 ## [0.20.2] - 2026-06-16
 
