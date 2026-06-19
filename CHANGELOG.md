@@ -5,6 +5,13 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.21.0] - 2026-06-20
+
+### Added
+- **Summon Spirits — an animated companion in your menu bar**: a new "Summon Spirits" menu item toggles a small white silhouette that runs next to your usage percentages — a phoenix for Claude, a dragon for Codex. It animates faster the harder you burn tokens (idle -> paused, heavy -> sprinting), driven entirely by your local burn rate. Off by default; the on/off state is remembered. No network, like everything else.
+- **`usage export` command**: dump your usage totals to CSV straight from the terminal.
+- **CSV download in the HTML report**: the report's share dialog can now export the project/model breakdown as a CSV file (replacing the old copy-file-path action).
+
 ## [0.20.3] - 2026-06-18
 
 ### Fixed
