@@ -927,6 +927,10 @@
       const codexWeekly = state.codex?.weekly ?? {};
       const claudeSessionActive = claudeSession.available === true && typeof claudeSession.percent === "number";
       const codexSessionActive = codexSession.available === true && typeof codexSession.percent === "number";
+      const claudeSessionPercent = claudeSessionActive ? claudeSession.percent : 0;
+      const codexSessionPercent = codexSessionActive ? codexSession.percent : 0;
+
+      sessionPercentDiff = claudeSessionPercent - codexSessionPercent;
 
       updateScoreboard(
         claudeSession.percentText ?? "--",
@@ -1010,6 +1014,7 @@
     let stuckFrames = 0;
     let lastBallX = 0;
     let lastBallY = 0;
+    let sessionPercentDiff = 0;
 
     function playerBounds(team) {
       return {
@@ -1274,6 +1279,11 @@
         ball.y = height - ball.r;
         ball.vy = -Math.abs(ball.vy);
       }
+      const targetXRatio = clamp(0.5 + (sessionPercentDiff / 100) * 0.4, 0.1, 0.9);
+      const targetX = width * targetXRatio;
+      ball.vx += (targetX - ball.x) * 0.0008;
+      ball.vx = clamp(ball.vx, -2.0, 2.0);
+      ball.vy = clamp(ball.vy, -2.0, 2.0);
       if (Math.hypot(ball.x - lastBallX, ball.y - lastBallY) < 0.05) {
         stuckFrames += 1;
       } else {
