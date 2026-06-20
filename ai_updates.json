@@ -30,6 +30,47 @@
           "original": "Improved auto mode safety: destructive git commands (git reset --hard, git checkout -- ., git clean -fd, git stash drop) are now blocked when you didn't ask to discard local work; terraform destroy/pulumi destroy/cdk destroy are blocked unless you asked for the specific stack."
         }
       ]
+    },
+    {
+      "id": "codex",
+      "name": "Codex",
+      "version": "0.141.0",
+      "period": "2026-06-13 ~ 06-19",
+      "items": [
+        {
+          "title": {
+            "zh-TW": "終端機提問會倒數、時間到自動選預設",
+            "en": "Terminal prompts count down and auto-pick the default"
+          },
+          "body": {
+            "zh-TW": "Codex 在終端機介面（TUI，文字操作介面）問你「要不要繼續、選哪個」時，如果你離開沒回應，它會開始倒數，時間到就自動採用預設選項，不再卡著乾等你；你一動鍵盤，倒數就暫停，把選擇權交還給你。適合掛著跑、不想每個小提問都跑回電腦前按一下的情況。",
+            "en": "When Codex's terminal UI (TUI, the text-based interface) asks you to confirm or pick something, it now counts down and auto-applies the default if you've stepped away — no more sitting blocked waiting for you. Touch the keyboard and the countdown pauses, handing the choice back. Handy for long unattended runs where you don't want to babysit every small prompt."
+          },
+          "original": "TUI input prompts can auto-resolve after inactivity, with a countdown that pauses on interaction."
+        },
+        {
+          "title": {
+            "zh-TW": "外掛市集：找得到別人做的、也找得到自己做的",
+            "en": "Plugin marketplace: find others' plugins and your own"
+          },
+          "body": {
+            "zh-TW": "Codex 的外掛（plugin，額外加裝的小工具）現在有市集可逛：多了「我自己做的」分類，方便找回自己寫過的外掛；也按你的登入身分給整理好的精選清單，不用在一大堆裡亂翻。被選用的外掛還能依每個對話各自啟用它自帶的 MCP 伺服器（MCP，讓外掛接上外部資料或工具的通道）。",
+            "en": "Codex plugins (add-on tools) now have a browsable marketplace: a new \"created by me\" category to find plugins you built yourself, plus curated catalogs tailored to how you're signed in, so you're not digging through everything. Selected plugins can also spin up their own MCP servers (MCP = the channel a plugin uses to reach outside data or tools) per conversation."
+          },
+          "original": "Selected executor plugins can activate their stdio MCP servers per thread; plugin discovery also adds a created-by-me marketplace and auth-specific curated catalogs."
+        },
+        {
+          "title": {
+            "zh-TW": "大型對話更快、更省記憶體",
+            "en": "Big sessions run faster and lighter"
+          },
+          "body": {
+            "zh-TW": "當一段對話用了很多工具、變得又長又重時，Codex 以前會反覆複製請求和歷史紀錄，又慢又吃記憶體。這版把工具搜尋的結果快取起來（cache，把算過的存著重複用）、並省掉那些重複複製，所以工具用很兇的長對話會明顯變順、占用也降下來。",
+            "en": "In long, tool-heavy sessions Codex used to repeatedly copy requests and history — slow and memory-hungry. This release caches tool-search results (cache = keep computed results around to reuse) and cuts the redundant copying, so heavy long-running sessions feel noticeably smoother and use less memory."
+          },
+          "original": "Reduced latency and memory use in large, tool-heavy sessions by caching tool search and eliminating repeated request and history copies."
+        }
+      ]
     }
   ]
 }
