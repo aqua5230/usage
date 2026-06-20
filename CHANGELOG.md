@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.21.1] - 2026-06-20
+
+### Added
+- **AI Tool Update Digest in the HTML report**: a new section that sums up recent updates to the AI coding tools you use — Claude Code, Codex, and Antigravity — rewritten in plain, layperson-friendly language as one-idea cards, each keeping the official changelog verbatim underneath. The content is fetched from a small JSON file on GitHub, so it stays current without an app update and makes no other network calls.
+
 ## [0.21.0] - 2026-06-20
 
 ### Added
