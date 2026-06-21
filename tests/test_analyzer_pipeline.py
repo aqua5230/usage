@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -24,7 +25,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 @pytest.fixture(autouse=True)
-def _stub_persona_loader(monkeypatch: pytest.MonkeyPatch) -> None:
+def _stub_persona_loader(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     def fake_load_profile(days_back: int = 30) -> persona_loader.PersonaProfile:
         return persona_loader.PersonaProfile(
             hour_histogram=[0] * 24,
@@ -35,6 +36,37 @@ def _stub_persona_loader(monkeypatch: pytest.MonkeyPatch) -> None:
         )
 
     monkeypatch.setattr("analyzer.reporter.persona_loader.load_profile", fake_load_profile)
+    monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", tmp_path / "year_cache.json")
+
+
+def _empty_year_payload() -> dict[str, Any]:
+    return {
+        "contribution": {
+            "weeks": [],
+            "start": "2026-01-01",
+            "end": "2026-01-01",
+            "max_tokens": 0,
+            "total_tokens": 0,
+            "active_days": 0,
+            "current_streak": 0,
+            "longest_streak": 0,
+            "busiest_day": None,
+        },
+        "wrapped": {
+            "year_label": "2026",
+            "total_tokens": 0,
+            "total_cost": 0.0,
+            "active_days": 0,
+            "total_sessions": 0,
+            "top_model": None,
+            "top_project": None,
+            "busiest_day": None,
+            "longest_streak": 0,
+            "claude_tokens": 0,
+            "codex_tokens": 0,
+            "beast": None,
+        },
+    }
 
 
 def test_all_languages_have_analyze_label() -> None:
@@ -74,6 +106,137 @@ def test_all_languages_have_cli_statusline_labels() -> None:
         }
         assert removed_statusline_message_keys.isdisjoint(table)
         assert not any(key.startswith("cli_five_hour") for key in table)
+
+
+def test_load_year_data_cached_writes_missing_cache(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache_path = tmp_path / ".usage" / "year_cache.json"
+    agents = [AgentInfo("codex", "Codex", "~/.codex", True)]
+    payload = _empty_year_payload()
+    calls = 0
+
+    def fake_build_year_data(received_agents: list[AgentInfo]) -> dict[str, Any]:
+        nonlocal calls
+        calls += 1
+        assert received_agents == agents
+        return payload
+
+    monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", cache_path)
+    monkeypatch.setattr(reporter, "build_year_data", fake_build_year_data)
+
+    assert reporter._load_year_data_cached(agents) == payload
+
+    cache = json.loads(cache_path.read_text(encoding="utf-8"))
+    assert calls == 1
+    assert cache["schema_version"] == reporter._YEAR_CACHE_SCHEMA
+    assert isinstance(cache["cached_at"], float)
+    assert cache["data"] == payload
+
+
+def test_load_year_data_cached_uses_fresh_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cache_path = reporter.YEAR_CACHE_PATH
+    payload = _empty_year_payload()
+    cache_path.write_text(
+        json.dumps(
+            {
+                "schema_version": reporter._YEAR_CACHE_SCHEMA,
+                "cached_at": time.time(),
+                "data": payload,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    def fail_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
+        raise AssertionError("fresh year cache should not rebuild")
+
+    monkeypatch.setattr(reporter, "build_year_data", fail_build_year_data)
+
+    assert reporter._load_year_data_cached([]) == payload
+
+
+def test_load_year_data_cached_rebuilds_expired_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cache_path = reporter.YEAR_CACHE_PATH
+    stale_payload = _empty_year_payload()
+    fresh_payload = _empty_year_payload()
+    fresh_payload["wrapped"] = {**fresh_payload["wrapped"], "total_tokens": 99}
+    cache_path.write_text(
+        json.dumps(
+            {
+                "schema_version": reporter._YEAR_CACHE_SCHEMA,
+                "cached_at": time.time() - reporter.YEAR_CACHE_TTL_SECONDS - 1,
+                "data": stale_payload,
+            }
+        ),
+        encoding="utf-8",
+    )
+    calls = 0
+
+    def fake_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
+        nonlocal calls
+        calls += 1
+        return fresh_payload
+
+    monkeypatch.setattr(reporter, "build_year_data", fake_build_year_data)
+
+    assert reporter._load_year_data_cached([]) == fresh_payload
+    assert calls == 1
+    assert json.loads(cache_path.read_text(encoding="utf-8"))["data"] == fresh_payload
+
+
+def test_load_year_data_cached_rebuilds_bad_json(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cache_path = reporter.YEAR_CACHE_PATH
+    payload = _empty_year_payload()
+    cache_path.write_text("{bad json", encoding="utf-8")
+    calls = 0
+
+    def fake_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
+        nonlocal calls
+        calls += 1
+        return payload
+
+    monkeypatch.setattr(reporter, "build_year_data", fake_build_year_data)
+
+    assert reporter._load_year_data_cached([]) == payload
+    assert calls == 1
+
+
+def test_load_year_data_cached_rebuilds_schema_mismatch(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cache_path = reporter.YEAR_CACHE_PATH
+    stale_payload = _empty_year_payload()
+    fresh_payload = _empty_year_payload()
+    fresh_payload["wrapped"] = {**fresh_payload["wrapped"], "active_days": 3}
+    cache_path.write_text(
+        json.dumps(
+            {
+                "schema_version": reporter._YEAR_CACHE_SCHEMA + 1,
+                "cached_at": time.time(),
+                "data": stale_payload,
+            }
+        ),
+        encoding="utf-8",
+    )
+    calls = 0
+
+    def fake_build_year_data(_agents: list[AgentInfo]) -> dict[str, Any]:
+        nonlocal calls
+        calls += 1
+        return fresh_payload
+
+    monkeypatch.setattr(reporter, "build_year_data", fake_build_year_data)
+
+    assert reporter._load_year_data_cached([]) == fresh_payload
+    assert calls == 1
 
 
 def test_html_panels_expose_analyze_action() -> None:
@@ -251,6 +414,7 @@ def test_report_today_uses_expected_codex_hours_back(monkeypatch: Any) -> None:
         return [recent_entry]
 
     monkeypatch.setattr("analyzer.reporter.codex_loader.load_entries", fake_load_entries)
+    monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
 
     data = reporter.build_report_data([agent], "today")
 
@@ -323,6 +487,7 @@ def test_report_week_includes_previous_period_comparison(monkeypatch: Any) -> No
     monkeypatch.setattr(reporter, "datetime", FixedDateTime)
     monkeypatch.setattr(reporter, "_load_agent_entries", fake_load_agent_entries)
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
+    monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
 
     data = reporter.build_report_data([agent], "week")
 
@@ -402,6 +567,7 @@ def test_report_last7_includes_previous_period_comparison(monkeypatch: Any) -> N
     monkeypatch.setattr(reporter, "datetime", FixedDateTime)
     monkeypatch.setattr(reporter, "_load_agent_entries", fake_load_agent_entries)
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
+    monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
 
     data = reporter.build_report_data([agent], "last7")
 
@@ -519,6 +685,278 @@ def test_report_today_uses_codex_token_count_deltas(
     assert data["summary"]["total_tokens"] == 65
 
 
+def test_build_year_data_computes_streaks_across_month_boundary(monkeypatch: Any) -> None:
+    class FixedDateTime:
+        @staticmethod
+        def now() -> datetime:
+            return datetime(2026, 6, 3, 9, tzinfo=UTC)
+
+    agent = AgentInfo("codex", "Codex", "~/.codex", True)
+    entries = [
+        UsageEntry(
+            timestamp=datetime(2026, 5, 29, 12, tzinfo=UTC),
+            session_id="s1",
+            message_id="m1",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=20,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=1.0,
+            project="usage",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 5, 30, 12, tzinfo=UTC),
+            session_id="s2",
+            message_id="m2",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=30,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=1.0,
+            project="usage",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 5, 31, 12, tzinfo=UTC),
+            session_id="s3",
+            message_id="m3",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=40,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=1.0,
+            project="usage",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 6, 1, 12, tzinfo=UTC),
+            session_id="s4",
+            message_id="m4",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=50,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=1.0,
+            project="usage",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 6, 3, 12, tzinfo=UTC),
+            session_id="s5",
+            message_id="m5",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=90,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=1.0,
+            project="usage",
+            agent_id="codex",
+        ),
+    ]
+
+    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda _agent, _hours_back=0: entries)
+    monkeypatch.setattr(reporter, "calculate_cost", lambda entry: float(entry.input_tokens) / 10)
+
+    data = reporter.build_year_data([agent])
+
+    assert data["contribution"]["active_days"] == 5
+    assert data["contribution"]["current_streak"] == 1
+    assert data["contribution"]["longest_streak"] == 4
+    assert data["contribution"]["busiest_day"] == {"date": "2026-06-03", "tokens": 90}
+    assert data["wrapped"]["longest_streak"] == 4
+
+
+def test_contribution_level_uses_quantile_thresholds_for_edges() -> None:
+    assert reporter._contribution_thresholds([]) == []
+    assert reporter._contribution_level(0, []) == 0
+
+    one_day_thresholds = reporter._contribution_thresholds([100])
+    assert one_day_thresholds == [100, 100, 100, 100]
+    assert reporter._contribution_level(100, one_day_thresholds) == 1
+
+    same_thresholds = reporter._contribution_thresholds([50, 50, 50])
+    assert same_thresholds == [50, 50, 50, 50]
+    assert [reporter._contribution_level(50, same_thresholds) for _ in range(3)] == [1, 1, 1]
+
+    sparse_thresholds = reporter._contribution_thresholds([10, 20, 30])
+    assert sparse_thresholds == [10, 20, 30, 30]
+    sparse_levels = [
+        reporter._contribution_level(tokens, sparse_thresholds)
+        for tokens in [10, 20, 30]
+    ]
+    assert sparse_levels == [1, 2, 3]
+
+
+def test_build_year_data_uses_quantile_levels_and_selects_dragon(monkeypatch: Any) -> None:
+    class FixedDateTime:
+        @staticmethod
+        def now() -> datetime:
+            return datetime(2026, 6, 21, 12, tzinfo=UTC)
+
+    agent = AgentInfo("codex", "Codex", "~/.codex", True)
+    entries = [
+        UsageEntry(
+            timestamp=datetime(2026, 6, 15, 10, tzinfo=UTC),
+            session_id="s1",
+            message_id="m1",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=1000,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=0.1,
+            project="tiny",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 6, 16, 10, tzinfo=UTC),
+            session_id="s2",
+            message_id="m2",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=2000,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=0.1,
+            project="small",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 6, 17, 10, tzinfo=UTC),
+            session_id="s3",
+            message_id="m3",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=3000,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=0.1,
+            project="medium",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 6, 18, 10, tzinfo=UTC),
+            session_id="s4",
+            message_id="m4",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=4000,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=0.1,
+            project="huge",
+            agent_id="codex",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 6, 18, 11, tzinfo=UTC),
+            session_id="c1",
+            message_id="c1",
+            request_id="",
+            model="claude-sonnet-4",
+            input_tokens=500,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=0.1,
+            project="claude-side",
+            agent_id="claude-code",
+        ),
+    ]
+
+    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda _agent, _hours_back=0: entries)
+    monkeypatch.setattr(reporter, "calculate_cost", lambda _entry: 0.25)
+
+    data = reporter.build_year_data([agent])
+    levels = {
+        cell["date"]: cell["level"]
+        for week in data["contribution"]["weeks"]
+        for cell in week
+        if cell["tokens"] > 0
+    }
+
+    assert levels["2026-06-15"] == 1
+    assert levels["2026-06-16"] == 2
+    assert levels["2026-06-17"] == 3
+    assert levels["2026-06-18"] == 4
+    assert data["wrapped"]["beast"] == "dragon"
+    assert data["wrapped"]["top_project"] == "huge"
+
+
+def test_build_year_data_prefers_phoenix_on_tie(monkeypatch: Any) -> None:
+    class FixedDateTime:
+        @staticmethod
+        def now() -> datetime:
+            return datetime(2026, 6, 21, 12, tzinfo=UTC)
+
+    agents = [
+        AgentInfo("claude-code", "Claude Code", "~/.claude", True),
+        AgentInfo("codex", "Codex", "~/.codex", True),
+    ]
+    entries = [
+        UsageEntry(
+            timestamp=datetime(2026, 6, 20, 10, tzinfo=UTC),
+            session_id="claude",
+            message_id="claude",
+            request_id="",
+            model="claude-sonnet-4",
+            input_tokens=100,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=1.0,
+            project="shared",
+            agent_id="claude-code",
+        ),
+        UsageEntry(
+            timestamp=datetime(2026, 6, 20, 11, tzinfo=UTC),
+            session_id="codex",
+            message_id="codex",
+            request_id="",
+            model="gpt-5-codex",
+            input_tokens=100,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=1.0,
+            project="shared",
+            agent_id="codex",
+        ),
+    ]
+
+    monkeypatch.setattr(reporter, "datetime", FixedDateTime)
+    monkeypatch.setattr(
+        reporter,
+        "_load_agent_entries",
+        lambda agent, _hours_back=0: [
+            entry for entry in entries if entry.agent_id == agent.id
+        ],
+    )
+    monkeypatch.setattr(reporter, "calculate_cost", lambda _entry: 1.0)
+
+    data = reporter.build_year_data(agents)
+
+    assert data["wrapped"]["beast"] == "phoenix"
+    assert data["wrapped"]["claude_tokens"] == 100
+    assert data["wrapped"]["codex_tokens"] == 100
+
+
 def test_report_last30_uses_expected_codex_hours_back(monkeypatch: Any) -> None:
     agent = AgentInfo("codex", "Codex", "~/.codex", True)
     calls: dict[str, int] = {}
@@ -528,6 +966,7 @@ def test_report_last30_uses_expected_codex_hours_back(monkeypatch: Any) -> None:
         return []
 
     monkeypatch.setattr("analyzer.reporter.codex_loader.load_entries", fake_full)
+    monkeypatch.setattr(reporter, "build_year_data", lambda _agents: _empty_year_payload())
 
     reporter.build_report_data([agent], "last30")
 

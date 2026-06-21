@@ -113,8 +113,41 @@ h1{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-we
 .ai-update-original summary::-webkit-details-marker{display:none}
 .ai-update-original[open] summary{border-bottom:1px solid #262c34}
 .ai-update-original div{padding:10px;color:var(--muted);font-size:.82rem;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}
+.wrapped-section{background:linear-gradient(135deg,#11161c,#090c10 58%,#161015)}
+.wrapped-card{display:grid;grid-template-columns:minmax(0,1.25fr) 180px minmax(280px,.95fr);gap:18px;align-items:center;padding:4px}
+.wrapped-kicker{display:inline-flex;align-items:center;gap:8px;padding:5px 10px;border:1px solid rgba(88,166,255,.28);border-radius:999px;background:rgba(88,166,255,.08);color:#9bc5ff;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase}
+.wrapped-copy h3{margin:14px 0 8px;font-size:clamp(1.7rem,3.6vw,2.5rem);line-height:.98;letter-spacing:-.03em}
+.wrapped-beast-line{margin:0;color:#f7d38e;font-size:.95rem;line-height:1.5}
+.wrapped-total{margin-top:18px;font-size:clamp(1.7rem,4.2vw,2.8rem);line-height:1;font-weight:800;letter-spacing:-.04em;color:#f0f6fc;white-space:nowrap}
+.wrapped-total-label{margin:8px 0 0;color:#9fb3c8;font-size:.9rem;text-transform:uppercase;letter-spacing:.08em}
+.wrapped-analogy{margin:10px 0 0;color:#dce2ea;font-size:.96rem;line-height:1.55}
+.wrapped-art{display:grid;place-items:center}
+.wrapped-art img{width:min(180px,100%);height:auto;image-rendering:auto;filter:drop-shadow(0 14px 28px rgba(0,0,0,.42)) drop-shadow(0 0 22px rgba(247,120,186,.22))}
+.wrapped-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.wrapped-metric{padding:13px 14px;border:1px solid #2a313a;border-radius:10px;background:rgba(9,12,16,.82);min-width:0}
+.wrapped-metric span{display:block;color:#8b949e;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
+.wrapped-metric b{display:block;color:#f0f6fc;font-size:1rem;line-height:1.35;overflow-wrap:anywhere}
+.contribution-wrap{display:grid;gap:14px;align-items:start}
+.contribution-heatmap{min-width:0}
+.contribution-months{display:grid;grid-template-columns:repeat(var(--weeks),minmax(0,1fr));gap:3px;padding-left:30px;margin-bottom:6px;color:#8b949e;font-size:.7rem;letter-spacing:.01em}
+.contribution-months span{min-height:1em;white-space:nowrap;overflow:visible}
+.contribution-board{display:grid;grid-template-columns:24px minmax(0,1fr);gap:6px;align-items:stretch}
+.contribution-days{display:grid;grid-template-rows:repeat(7,1fr);gap:3px;color:#8b949e;font-size:.6rem;line-height:1;padding-top:0}
+.contribution-grid{display:grid;grid-template-columns:repeat(var(--weeks),minmax(0,1fr));grid-template-rows:repeat(7,auto);grid-auto-flow:column;gap:3px}
+.contribution-cell{display:block;width:100%;aspect-ratio:1;border-radius:2px;background:#161b22;border:1px solid rgba(255,255,255,.04)}
+.contribution-cell.level-1{background:#0e4429}
+.contribution-cell.level-2{background:#006d32}
+.contribution-cell.level-3{background:#26a641}
+.contribution-cell.level-4{background:#39d353}
+.contribution-legend{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:10px;color:#8b949e;font-size:.72rem}
+.contribution-legend .contribution-cell{width:12px;min-width:12px;height:12px;aspect-ratio:auto}
+.contribution-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.contribution-stat{padding:13px 14px;border:1px solid #2a313a;border-radius:8px;background:#090b0e}
+.contribution-stat span{display:block;color:#8b949e;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}
+.contribution-stat b{display:block;color:#f0f6fc;font-size:1rem;line-height:1.35;overflow-wrap:anywhere}
 @media (max-width:780px){.wrap{padding:28px 14px}header{display:block}.meta{text-align:left;margin-top:16px}.header-actions{align-items:flex-start;margin-top:16px}.cards{grid-template-columns:repeat(2,1fr)}.rank-head{display:none}.rank-list{display:grid;gap:10px}.rank-line{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:1px solid #30363d;border-radius:6px;background:#090b0e}.rank-line .arrow{display:none}.rank-line .name{white-space:normal;font-weight:700;color:#f0f6fc}.rank-line .pct,.rank-line .tokens,.rank-line .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}.rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before{content:attr(data-label);color:var(--muted)}.tools-head{display:none}.tool-row{grid-template-columns:1fr;gap:8px}.tool-row .pct,.tool-row .tokens,.tool-row .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}.tool-row .pct:empty,.tool-row .tokens:empty,.tool-row .cost:empty{display:none}.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{content:attr(data-label);color:var(--muted)}}
-@media (max-width:480px){.wrap{padding:22px 12px 28px}h1{white-space:normal}.cards{grid-template-columns:repeat(2,1fr);gap:8px}.card{min-height:96px;padding:13px 11px}.share-dialog{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}.share-modal{min-height:100dvh;padding:16px 12px 18px}.share-section{padding:12px}.share-action{min-height:42px;font-size:.72rem;gap:4px;white-space:normal}.share-file-actions{grid-template-columns:1fr}.section{padding:16px 12px}}
+@media (max-width:780px){.wrapped-card{grid-template-columns:1fr;gap:16px}.wrapped-art{order:-1}.wrapped-art img{width:140px}.wrapped-metrics{grid-template-columns:1fr 1fr}.contribution-months{padding-left:30px}}
+@media (max-width:480px){.wrap{padding:22px 12px 28px}h1{white-space:normal}.cards{grid-template-columns:repeat(2,1fr);gap:8px}.card{min-height:96px;padding:13px 11px}.share-dialog{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}.share-modal{min-height:100dvh;padding:16px 12px 18px}.share-section{padding:12px}.share-action{min-height:42px;font-size:.72rem;gap:4px;white-space:normal}.share-file-actions{grid-template-columns:1fr}.section{padding:16px 12px}.wrapped-metrics{grid-template-columns:1fr}.contribution-stats{grid-template-columns:1fr}.contribution-months{font-size:.66rem;padding-left:26px}.contribution-board{grid-template-columns:22px minmax(0,1fr)}.contribution-days{font-size:.58rem}}
 </style>
 </head>
 <body>
@@ -147,6 +180,7 @@ h1{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-we
     </div>
   </dialog>
   <section class="cards"><div class="card"><span>燒掉 Tokens</span><b>0</b><i>≈ 0</i></div><div class="card"><span>燒掉成本</span><b>$0.00</b><i>≈ NT$0</i></div><div class="card"><span>會話</span><b>0</b></div><div class="card"><span>訊息</span><b>0</b></div><div class="card"><span>活躍日</span><b>0/7</b></div></section>
+  
 
     <section class="section insights-section">
       <div class="prompt"><span>[usage]&gt;</span> 洞察</div>
@@ -181,6 +215,7 @@ h1{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-we
       <div class="empty">→ 這段期間還沒有每日用量</div>
     </section>
     
+  
   
     <section class="section persona-section">
       <div class="prompt"><span>[usage]&gt;</span> 使用習慣</div>

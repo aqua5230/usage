@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.22.0] - 2026-06-21
+
+### Added
+- **Year in review in the HTML report**: two new sections that turn a year of local usage into one glance. A GitHub-style 52-week contribution heatmap shades each day by how many tokens you burned, with your current and longest active streaks and your busiest day called out beside it. A "Wrapped" card sums up the year — total tokens, cost, active days, longest streak, and your most-used model and project — and crowns you with the spirit you leaned on most: a phoenix if you ran more Claude, a dragon if you ran more Codex. All computed from local files, no network.
+- **Reports stay fast on huge histories**: the year of data behind those sections is cached to disk and served instantly on repeat opens, only recomputed once it goes stale — so the report opens quickly even when your logs are enormous.
+
 ## [0.21.1] - 2026-06-20
 
 ### Added

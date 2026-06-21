@@ -6,11 +6,17 @@
 
 from __future__ import annotations
 
+import contextlib
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
+import json
+import logging
+import os
 from pathlib import Path
+import tempfile
+import time
 from typing import Any
 
 import codex_loader
@@ -24,8 +30,16 @@ from pricing import calculate_cost
 from .aggregator import aggregate_sessions
 from . import diagnoser
 
+logger = logging.getLogger(__name__)
+
 AGENT_LOADERS = {"claude-code": claude, "codex": codex}
 AGENT_NAMES = {"claude-code": "Claude Code", "codex": "Codex"}
+_YEAR_WEEKS = 53
+YEAR_CACHE_PATH = Path(os.path.expanduser("~/.usage/year_cache.json"))
+YEAR_CACHE_TTL_SECONDS = 6 * 3600
+_YEAR_CACHE_SCHEMA = 1
+
+
 @dataclass(frozen=True)
 class _PeriodSpec:
     persona_days: int
@@ -228,6 +242,217 @@ def _top_project(project_tokens: dict[str, int]) -> str | None:
     return max(project_tokens.items(), key=lambda item: item[1])[0]
 
 
+def _top_name(bucket: dict[str, int]) -> str | None:
+    if not bucket:
+        return None
+    return sorted(bucket.items(), key=lambda item: (-item[1], item[0]))[0][0]
+
+
+def _streaks(
+    daily_tokens: dict[date, int],
+    start: date,
+    end: date,
+) -> tuple[int, int]:
+    current_streak = 0
+    cursor = end
+    while cursor >= start and daily_tokens.get(cursor, 0) > 0:
+        current_streak += 1
+        cursor -= timedelta(days=1)
+
+    longest_streak = 0
+    streak = 0
+    cursor = start
+    while cursor <= end:
+        if daily_tokens.get(cursor, 0) > 0:
+            streak += 1
+            longest_streak = max(longest_streak, streak)
+        else:
+            streak = 0
+        cursor += timedelta(days=1)
+    return current_streak, longest_streak
+
+
+def _contribution_thresholds(active_tokens: list[int]) -> list[int]:
+    sorted_tokens = sorted(tokens for tokens in active_tokens if tokens > 0)
+    if not sorted_tokens:
+        return []
+
+    last_index = len(sorted_tokens) - 1
+    return [
+        sorted_tokens[min(last_index, (len(sorted_tokens) * quartile - 1) // 4)]
+        for quartile in range(1, 5)
+    ]
+
+
+def _contribution_level(tokens: int, thresholds: list[int]) -> int:
+    if tokens <= 0 or not thresholds:
+        return 0
+    for level, threshold in enumerate(thresholds, start=1):
+        if tokens <= threshold:
+            return level
+    return 4
+
+
+def build_year_data(agents: list[AgentInfo]) -> dict[str, Any]:
+    today = datetime.now().astimezone().date()
+    grid_end = today + timedelta(days=(5 - today.weekday()) % 7)
+    grid_start = grid_end - timedelta(days=_YEAR_WEEKS * 7 - 1)
+    hours_back = ((today - grid_start).days + 2) * 24
+
+    raw_entries: list[UsageEntry] = []
+    for agent in agents:
+        raw_entries.extend(_load_agent_entries(agent, hours_back))
+
+    entries = [
+        entry
+        for entry in raw_entries
+        if grid_start <= _entry_date(entry) <= today
+    ]
+
+    daily_tokens: dict[date, int] = defaultdict(int)
+    model_tokens: dict[str, int] = defaultdict(int)
+    project_tokens: dict[str, int] = defaultdict(int)
+    agent_tokens: dict[str, int] = defaultdict(int)
+    total_tokens = 0
+    total_cost = 0.0
+    session_ids: set[str] = set()
+
+    for entry in entries:
+        entry_tokens = entry.total_tokens
+        day = _entry_date(entry)
+        daily_tokens[day] += entry_tokens
+        model_tokens[entry.model or "unknown"] += entry_tokens
+        project_tokens[entry.project or "unknown"] += entry_tokens
+        agent_tokens[entry.agent_id or "unknown"] += entry_tokens
+        total_tokens += entry_tokens
+        total_cost += calculate_cost(entry)
+        session_ids.add(entry.session_id)
+
+    active_days = sum(1 for tokens in daily_tokens.values() if tokens > 0)
+    contribution_thresholds = _contribution_thresholds(list(daily_tokens.values()))
+    max_tokens = max(daily_tokens.values(), default=0)
+    busiest_day = None
+    if max_tokens > 0:
+        busiest_date = min(
+            day for day, tokens in daily_tokens.items() if tokens == max_tokens
+        )
+        busiest_day = {
+            "date": busiest_date.isoformat(),
+            "tokens": max_tokens,
+        }
+
+    current_streak, longest_streak = _streaks(daily_tokens, grid_start, today)
+
+    weeks: list[list[dict[str, Any]]] = []
+    cursor = grid_start
+    while cursor <= grid_end:
+        week: list[dict[str, Any]] = []
+        for _ in range(7):
+            tokens = daily_tokens.get(cursor, 0) if cursor <= today else 0
+            week.append(
+                {
+                    "date": cursor.isoformat(),
+                    "tokens": tokens,
+                    "level": _contribution_level(tokens, contribution_thresholds),
+                }
+            )
+            cursor += timedelta(days=1)
+        weeks.append(week)
+
+    claude_tokens = agent_tokens.get("claude-code", 0)
+    codex_tokens = agent_tokens.get("codex", 0)
+    beast = None
+    if total_tokens > 0:
+        beast = "phoenix" if claude_tokens >= codex_tokens else "dragon"
+
+    contribution = {
+        "weeks": weeks,
+        "start": grid_start.isoformat(),
+        "end": today.isoformat(),
+        "max_tokens": max_tokens,
+        "total_tokens": total_tokens,
+        "active_days": active_days,
+        "current_streak": current_streak,
+        "longest_streak": longest_streak,
+        "busiest_day": busiest_day,
+    }
+    wrapped = {
+        "year_label": str(today.year),
+        "total_tokens": total_tokens,
+        "total_cost": _round_cost(total_cost),
+        "active_days": active_days,
+        "total_sessions": len(session_ids),
+        "top_model": _top_name(model_tokens),
+        "top_project": _top_name(project_tokens),
+        "busiest_day": busiest_day,
+        "longest_streak": longest_streak,
+        "claude_tokens": claude_tokens,
+        "codex_tokens": codex_tokens,
+        "beast": beast,
+    }
+    return {
+        "contribution": contribution,
+        "wrapped": wrapped,
+    }
+
+
+def _load_year_data_cached(agents: list[AgentInfo]) -> dict[str, Any]:
+    cached = _read_year_cache()
+    if cached is not None:
+        return cached
+
+    data = build_year_data(agents)
+    _write_year_cache(data)
+    return data
+
+
+def _read_year_cache() -> dict[str, Any] | None:
+    try:
+        with YEAR_CACHE_PATH.open(encoding="utf-8") as file:
+            cache = json.load(file)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("failed to read year cache %s", YEAR_CACHE_PATH, exc_info=True)
+        return None
+
+    if not isinstance(cache, dict):
+        return None
+    if cache.get("schema_version") != _YEAR_CACHE_SCHEMA:
+        return None
+
+    cached_at = cache.get("cached_at")
+    if not isinstance(cached_at, int | float):
+        return None
+    if (time.time() - float(cached_at)) > YEAR_CACHE_TTL_SECONDS:
+        return None
+
+    data = cache.get("data")
+    return data if isinstance(data, dict) else None
+
+
+def _write_year_cache(data: dict[str, Any]) -> None:
+    tmp_path: str | None = None
+    try:
+        YEAR_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp_path = tempfile.mkstemp(dir=YEAR_CACHE_PATH.parent, suffix=".tmp")
+        payload = {
+            "schema_version": _YEAR_CACHE_SCHEMA,
+            "cached_at": time.time(),
+            "data": data,
+        }
+        with os.fdopen(fd, "w", encoding="utf-8") as file:
+            json.dump(payload, file, ensure_ascii=False, indent=2, sort_keys=True)
+        os.replace(tmp_path, YEAR_CACHE_PATH)
+        tmp_path = None
+    except Exception as exc:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("failed to write year cache %s: %s", YEAR_CACHE_PATH, exc)
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            with contextlib.suppress(OSError):
+                os.unlink(tmp_path)
+
+
 def serialize_diagnosis(
     result: diagnoser.DiagnosisResult,
     *,
@@ -406,6 +631,8 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
             "cost": _round_cost(session.cost_usd),
         })
 
+    year_data = _load_year_data_cached(agents)
+
     return {
         "period": period,
         "period_label": f"{date_from.isoformat()} -> {date_to.isoformat()}",
@@ -428,4 +655,6 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
         "subscriptions": subscription.load_subscriptions(),
         "persona": _load_persona_for_period(period),
         "ai_updates": ai_updates_loader.load_ai_updates(),
+        "contribution": year_data["contribution"],
+        "wrapped": year_data["wrapped"],
     }

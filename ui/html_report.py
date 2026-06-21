@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import base64
 import html
 import json
 import math
@@ -15,6 +16,7 @@ import subprocess
 import sys
 import webbrowser
 from datetime import date, datetime
+from functools import lru_cache
 from importlib.metadata import PackageNotFoundError, version
 from io import StringIO
 from pathlib import Path
@@ -50,6 +52,10 @@ def _fmt_duration(minutes: float) -> str:
     if minutes >= 60:
         return f"{int(minutes // 60)}h {int(minutes % 60)}m"
     return f"{int(minutes)}m"
+
+
+def _fmt_int(value: int) -> str:
+    return f"{value:,}"
 
 
 def _version() -> str:
@@ -116,6 +122,27 @@ def _parse_daily_date(value: object) -> date:
     if isinstance(value, date):
         return value
     return date.fromisoformat(str(value)[:10])
+
+
+def _month_label(month: int, lang: str) -> str:
+    return _t(lang, f"contribution_month_{month}")
+
+
+def _estimate_books(tokens: int) -> int:
+    return max(1, round(tokens / 80_000)) if tokens > 0 else 0
+
+
+@lru_cache(maxsize=4)
+def _sprite_data_uri(beast: str) -> str:
+    asset_path = (
+        Path(__file__).resolve().parent.parent
+        / "assets"
+        / "critters"
+        / beast
+        / "1.png"
+    )
+    encoded = base64.b64encode(asset_path.read_bytes()).decode("ascii")
+    return f"data:image/png;base64,{encoded}"
 
 
 def _weekly_trend(daily: list[dict[str, Any]]) -> list[dict[str, int | float]]:
@@ -533,6 +560,143 @@ def _render_trend_section(data: dict[str, Any], lang: str) -> str:
     return _section(_t(lang, "trend_section"), _trend_ascii(data.get("daily_trend", []), lang))
 
 
+def _render_contribution_section(data: dict[str, Any], lang: str) -> str:
+    contribution = data.get("contribution")
+    if not isinstance(contribution, dict) or int(contribution.get("active_days", 0)) <= 0:
+        return ""
+
+    raw_weeks = contribution.get("weeks", [])
+    weeks = [
+        week for week in raw_weeks
+        if isinstance(week, list) and len(week) == 7
+    ]
+    if not weeks:
+        return ""
+
+    month_labels: list[str] = []
+    seen_month: int | None = None
+    last_label_col = -3
+    for col, week in enumerate(weeks):
+        parsed = _parse_daily_date(week[0].get("date", ""))
+        label = ""
+        if parsed.month != seen_month and col - last_label_col >= 3:
+            label = _month_label(parsed.month, lang)
+            last_label_col = col
+        seen_month = parsed.month
+        month_labels.append(label)
+
+    grid_cells: list[str] = []
+    for week in weeks:
+        for cell in week:
+            cell_date = str(cell.get("date", ""))
+            tokens = int(cell.get("tokens", 0))
+            level = max(0, min(4, int(cell.get("level", 0))))
+            title = _t(lang, "contribution_cell_title", date=cell_date, tokens=_fmt_int(tokens))
+            grid_cells.append(
+                f'<span class="contribution-cell level-{level}" title="{_escape(title)}" '
+                f'aria-label="{_escape(title)}"></span>'
+            )
+
+    busiest_day = contribution.get("busiest_day")
+    busiest_value = "—"
+    if isinstance(busiest_day, dict):
+        busiest_value = (
+            f'{_escape(busiest_day.get("date", ""))} · '
+            f'{_escape(_fmt_tokens(int(busiest_day.get("tokens", 0))))}'
+        )
+
+    days_unit = _escape(_t(lang, "contribution_days_unit"))
+    current_streak = (
+        f'{_escape(_fmt_int(int(contribution.get("current_streak", 0))))} {days_unit}'
+    )
+    longest_streak = (
+        f'{_escape(_fmt_int(int(contribution.get("longest_streak", 0))))} {days_unit}'
+    )
+    stats = [
+        (_t(lang, "contribution_current_streak"), current_streak),
+        (_t(lang, "contribution_longest_streak"), longest_streak),
+        (_t(lang, "contribution_busiest_day"), busiest_value),
+    ]
+    stats_html = "".join(
+        '<div class="contribution-stat">'
+        f'<span>{_escape(label)}</span><b>{value}</b>'
+        "</div>"
+        for label, value in stats
+    )
+    month_html = "".join(
+        f'<span>{_escape(label)}</span>' for label in month_labels
+    )
+    legend_cells = "".join(
+        f'<span class="contribution-cell level-{level}" aria-hidden="true"></span>'
+        for level in range(5)
+    )
+    body = (
+        '<div class="contribution-wrap">'
+        f'<div class="contribution-heatmap" style="--weeks:{len(weeks)}">'
+        f'<div class="contribution-months">{month_html}</div>'
+        '<div class="contribution-board">'
+        '<div class="contribution-days">'
+        '<span></span>'
+        f'<span>{_escape(_t(lang, "contribution_mon"))}</span>'
+        '<span></span>'
+        f'<span>{_escape(_t(lang, "contribution_wed"))}</span>'
+        '<span></span>'
+        f'<span>{_escape(_t(lang, "contribution_fri"))}</span>'
+        '<span></span>'
+        '</div>'
+        f'<div class="contribution-grid">{ "".join(grid_cells) }</div>'
+        '</div>'
+        '<div class="contribution-legend">'
+        f'<span>{_escape(_t(lang, "contribution_less"))}</span>'
+        f'{legend_cells}'
+        f'<span>{_escape(_t(lang, "contribution_more"))}</span>'
+        '</div>'
+        '</div>'
+        f'<div class="contribution-stats">{stats_html}</div>'
+        '</div>'
+    )
+    return _section(_t(lang, "contribution_section"), body, "contribution-section")
+
+
+def _render_wrapped_section(data: dict[str, Any], lang: str) -> str:
+    wrapped = data.get("wrapped")
+    if not isinstance(wrapped, dict):
+        return ""
+
+    beast = wrapped.get("beast")
+    if beast not in {"phoenix", "dragon"}:
+        return ""
+
+    beast_name = _t(lang, f"wrapped_beast_{beast}_title")
+    beast_caption = _t(lang, f"wrapped_beast_{beast}_caption")
+    books = _estimate_books(int(wrapped.get("total_tokens", 0)))
+    top_project = _display_name(wrapped.get("top_project"), lang)
+    top_model = _display_name(wrapped.get("top_model"), lang)
+    body = (
+        '<div class="wrapped-card">'
+        '<div class="wrapped-copy">'
+        f'<div class="wrapped-kicker">{_escape(_t(lang, "wrapped_year_badge", year=wrapped.get("year_label", "")))}</div>'
+        f'<h3>{_escape(beast_name)}</h3>'
+        f'<p class="wrapped-beast-line">{_escape(beast_caption)}</p>'
+        f'<div class="wrapped-total">{_escape(_fmt_int(int(wrapped.get("total_tokens", 0))))}</div>'
+        f'<p class="wrapped-total-label">{_escape(_t(lang, "wrapped_total_tokens"))}</p>'
+        f'<p class="wrapped-analogy">{_escape(_t(lang, "wrapped_books_equivalent", books=_fmt_int(books)))}</p>'
+        '</div>'
+        '<div class="wrapped-art">'
+        f'<img src="{_escape(_sprite_data_uri(str(beast)))}" alt="{_escape(beast_name)}">'
+        '</div>'
+        '<div class="wrapped-metrics">'
+        f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_total_cost"))}</span><b>{_escape(_fmt_cost(float(wrapped.get("total_cost", 0.0))))}</b></div>'
+        f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_active_days"))}</span><b>{_escape(_fmt_int(int(wrapped.get("active_days", 0))))}</b></div>'
+        f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_longest_streak"))}</span><b>{_escape(_fmt_int(int(wrapped.get("longest_streak", 0))))} {_escape(_t(lang, "contribution_days_unit"))}</b></div>'
+        f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_top_model"))}</span><b>{_escape(top_model)}</b></div>'
+        f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_top_project"))}</span><b data-mask>{_escape(top_project)}</b></div>'
+        '</div>'
+        '</div>'
+    )
+    return _section(_t(lang, "wrapped_section"), body, "wrapped-section")
+
+
 def _render_persona_section(data: dict[str, Any], lang: str) -> str:
     persona_body = _persona_body(data.get("persona"), lang)
     return _section(_t(lang, "persona_section"), persona_body, "persona-section")
@@ -776,8 +940,41 @@ h1{{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-w
 .ai-update-original summary::-webkit-details-marker{{display:none}}
 .ai-update-original[open] summary{{border-bottom:1px solid #262c34}}
 .ai-update-original div{{padding:10px;color:var(--muted);font-size:.82rem;line-height:1.6;white-space:pre-wrap;overflow-wrap:anywhere}}
+.wrapped-section{{background:linear-gradient(135deg,#11161c,#090c10 58%,#161015)}}
+.wrapped-card{{display:grid;grid-template-columns:minmax(0,1.25fr) 180px minmax(280px,.95fr);gap:18px;align-items:center;padding:4px}}
+.wrapped-kicker{{display:inline-flex;align-items:center;gap:8px;padding:5px 10px;border:1px solid rgba(88,166,255,.28);border-radius:999px;background:rgba(88,166,255,.08);color:#9bc5ff;font-size:.78rem;letter-spacing:.08em;text-transform:uppercase}}
+.wrapped-copy h3{{margin:14px 0 8px;font-size:clamp(1.7rem,3.6vw,2.5rem);line-height:.98;letter-spacing:-.03em}}
+.wrapped-beast-line{{margin:0;color:#f7d38e;font-size:.95rem;line-height:1.5}}
+.wrapped-total{{margin-top:18px;font-size:clamp(1.7rem,4.2vw,2.8rem);line-height:1;font-weight:800;letter-spacing:-.04em;color:#f0f6fc;white-space:nowrap}}
+.wrapped-total-label{{margin:8px 0 0;color:#9fb3c8;font-size:.9rem;text-transform:uppercase;letter-spacing:.08em}}
+.wrapped-analogy{{margin:10px 0 0;color:#dce2ea;font-size:.96rem;line-height:1.55}}
+.wrapped-art{{display:grid;place-items:center}}
+.wrapped-art img{{width:min(180px,100%);height:auto;image-rendering:auto;filter:drop-shadow(0 14px 28px rgba(0,0,0,.42)) drop-shadow(0 0 22px rgba(247,120,186,.22))}}
+.wrapped-metrics{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}}
+.wrapped-metric{{padding:13px 14px;border:1px solid #2a313a;border-radius:10px;background:rgba(9,12,16,.82);min-width:0}}
+.wrapped-metric span{{display:block;color:#8b949e;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}}
+.wrapped-metric b{{display:block;color:#f0f6fc;font-size:1rem;line-height:1.35;overflow-wrap:anywhere}}
+.contribution-wrap{{display:grid;gap:14px;align-items:start}}
+.contribution-heatmap{{min-width:0}}
+.contribution-months{{display:grid;grid-template-columns:repeat(var(--weeks),minmax(0,1fr));gap:3px;padding-left:30px;margin-bottom:6px;color:#8b949e;font-size:.7rem;letter-spacing:.01em}}
+.contribution-months span{{min-height:1em;white-space:nowrap;overflow:visible}}
+.contribution-board{{display:grid;grid-template-columns:24px minmax(0,1fr);gap:6px;align-items:stretch}}
+.contribution-days{{display:grid;grid-template-rows:repeat(7,1fr);gap:3px;color:#8b949e;font-size:.6rem;line-height:1;padding-top:0}}
+.contribution-grid{{display:grid;grid-template-columns:repeat(var(--weeks),minmax(0,1fr));grid-template-rows:repeat(7,auto);grid-auto-flow:column;gap:3px}}
+.contribution-cell{{display:block;width:100%;aspect-ratio:1;border-radius:2px;background:#161b22;border:1px solid rgba(255,255,255,.04)}}
+.contribution-cell.level-1{{background:#0e4429}}
+.contribution-cell.level-2{{background:#006d32}}
+.contribution-cell.level-3{{background:#26a641}}
+.contribution-cell.level-4{{background:#39d353}}
+.contribution-legend{{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:10px;color:#8b949e;font-size:.72rem}}
+.contribution-legend .contribution-cell{{width:12px;min-width:12px;height:12px;aspect-ratio:auto}}
+.contribution-stats{{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}}
+.contribution-stat{{padding:13px 14px;border:1px solid #2a313a;border-radius:8px;background:#090b0e}}
+.contribution-stat span{{display:block;color:#8b949e;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:7px}}
+.contribution-stat b{{display:block;color:#f0f6fc;font-size:1rem;line-height:1.35;overflow-wrap:anywhere}}
 @media (max-width:780px){{.wrap{{padding:28px 14px}}header{{display:block}}.meta{{text-align:left;margin-top:16px}}.header-actions{{align-items:flex-start;margin-top:16px}}.cards{{grid-template-columns:repeat(2,1fr)}}.rank-head{{display:none}}.rank-list{{display:grid;gap:10px}}.rank-line{{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:1px solid #30363d;border-radius:6px;background:#090b0e}}.rank-line .arrow{{display:none}}.rank-line .name{{white-space:normal;font-weight:700;color:#f0f6fc}}.rank-line .pct,.rank-line .tokens,.rank-line .cost{{display:flex;justify-content:space-between;gap:14px;text-align:left}}.rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before{{content:attr(data-label);color:var(--muted)}}.tools-head{{display:none}}.tool-row{{grid-template-columns:1fr;gap:8px}}.tool-row .pct,.tool-row .tokens,.tool-row .cost{{display:flex;justify-content:space-between;gap:14px;text-align:left}}.tool-row .pct:empty,.tool-row .tokens:empty,.tool-row .cost:empty{{display:none}}.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{{content:attr(data-label);color:var(--muted)}}}}
-@media (max-width:480px){{.wrap{{padding:22px 12px 28px}}h1{{white-space:normal}}.cards{{grid-template-columns:repeat(2,1fr);gap:8px}}.card{{min-height:96px;padding:13px 11px}}.share-dialog{{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}}.share-modal{{min-height:100dvh;padding:16px 12px 18px}}.share-section{{padding:12px}}.share-action{{min-height:42px;font-size:.72rem;gap:4px;white-space:normal}}.share-file-actions{{grid-template-columns:1fr}}.section{{padding:16px 12px}}}}"""
+@media (max-width:780px){{.wrapped-card{{grid-template-columns:1fr;gap:16px}}.wrapped-art{{order:-1}}.wrapped-art img{{width:140px}}.wrapped-metrics{{grid-template-columns:1fr 1fr}}.contribution-months{{padding-left:30px}}}}
+@media (max-width:480px){{.wrap{{padding:22px 12px 28px}}h1{{white-space:normal}}.cards{{grid-template-columns:repeat(2,1fr);gap:8px}}.card{{min-height:96px;padding:13px 11px}}.share-dialog{{width:100vw;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}}.share-modal{{min-height:100dvh;padding:16px 12px 18px}}.share-section{{padding:12px}}.share-action{{min-height:42px;font-size:.72rem;gap:4px;white-space:normal}}.share-file-actions{{grid-template-columns:1fr}}.section{{padding:16px 12px}}.wrapped-metrics{{grid-template-columns:1fr}}.contribution-stats{{grid-template-columns:1fr}}.contribution-months{{font-size:.66rem;padding-left:26px}}.contribution-board{{grid-template-columns:22px minmax(0,1fr)}}.contribution-days{{font-size:.58rem}}}}"""
 
 
 def _render_scripts(share_config_json: str, csv_data_json: str, masked_csv_data_json: str) -> str:
@@ -935,10 +1132,12 @@ def generate_html(data: dict[str, Any], language: str | None = None) -> str:
   {_render_header(data, lang, title, generated_at)}
   {_render_share_dialog(lang)}
   {_render_cards_section(cards)}
+  {_render_wrapped_section(data, lang)}
 {insight_surface}  {_render_tools_section(data, lang)}
   {_render_project_section(data, lang)}
   {_render_model_section(data, lang)}
   {_render_trend_section(data, lang)}
+  {_render_contribution_section(data, lang)}
   {_render_persona_section(data, lang)}
   {_render_session_section(data, lang)}
   {_render_ai_updates_section(data, lang)}

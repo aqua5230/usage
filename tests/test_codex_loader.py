@@ -280,6 +280,59 @@ def test_load_entries_keeps_larger_duplicate_when_timestamps_match(
     assert entries[0].total_tokens == 130
 
 
+def test_load_entries_deduplicates_session_across_files_without_summing_logs(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Regression guard: duplicate session jsonl files must not double-count tokens."""
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    timestamp_1 = datetime(2026, 1, 1, 0, 0, tzinfo=UTC).isoformat()
+    timestamp_2 = datetime(2026, 1, 1, 0, 1, tzinfo=UTC).isoformat()
+    timestamp_3 = datetime(2026, 1, 1, 0, 2, tzinfo=UTC).isoformat()
+    _write_session_with_usage_events(
+        sessions_dir / "partial.jsonl",
+        session_id="duplicated-session",
+        events=[
+            (
+                timestamp_1,
+                {"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 30},
+            ),
+            (
+                timestamp_3,
+                {"input_tokens": 120, "cached_input_tokens": 25, "output_tokens": 35},
+            ),
+        ],
+    )
+    _write_session_with_usage_events(
+        sessions_dir / "complete.jsonl",
+        session_id="duplicated-session",
+        events=[
+            (
+                timestamp_1,
+                {"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 30},
+            ),
+            (
+                timestamp_2,
+                {"input_tokens": 130, "cached_input_tokens": 25, "output_tokens": 40},
+            ),
+            (
+                timestamp_3,
+                {"input_tokens": 180, "cached_input_tokens": 30, "output_tokens": 60},
+            ),
+        ],
+    )
+
+    entries = codex_loader.load_entries()
+
+    assert [entry.message_id for entry in entries] == [
+        "duplicated-session:1",
+        "duplicated-session:2",
+        "duplicated-session:3",
+    ]
+    assert [entry.total_tokens for entry in entries] == [130, 40, 70]
+    assert sum(entry.total_tokens for entry in entries) == 240
+
+
 def test_load_entries_splits_cumulative_usage_into_time_range_deltas(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -320,6 +373,35 @@ def test_load_entries_splits_cumulative_usage_into_time_range_deltas(
     assert week_entries[0].input_tokens == 40
     assert week_entries[0].output_tokens == 20
     assert week_entries[0].cache_read_tokens == 10
+
+
+def test_load_entries_skips_jsonl_when_file_mtime_is_older_than_cutoff(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Regression guard: old session file mtimes must stay outside cutoff scans."""
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    recent_ts = datetime.now(UTC).replace(microsecond=0)
+    stale_mtime = (recent_ts - timedelta(hours=2)).timestamp()
+    _write_session(
+        sessions_dir / "stale-file.jsonl",
+        session_id="stale-file",
+        timestamp=recent_ts.isoformat(),
+        usage={"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 30},
+        mtime=stale_mtime,
+    )
+    _write_session(
+        sessions_dir / "fresh-file.jsonl",
+        session_id="fresh-file",
+        timestamp=recent_ts.isoformat(),
+        usage={"input_tokens": 10, "cached_input_tokens": 2, "output_tokens": 3},
+        mtime=recent_ts.timestamp(),
+    )
+
+    entries = codex_loader.load_entries(hours_back=1)
+
+    assert [entry.session_id for entry in entries] == ["fresh-file"]
+    assert entries[0].total_tokens == 13
 
 
 def test_load_entries_excludes_replayed_parent_usage_from_fork(
@@ -390,6 +472,45 @@ def test_load_entries_excludes_replayed_parent_usage_from_fork(
         datetime.fromisoformat(own_ts_1),
         datetime.fromisoformat(own_ts_2),
     ]
+
+
+def test_load_entries_excludes_recent_replay_events_from_fork_cutoff_window(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Regression guard for #40: fork replay timestamps must not become new usage."""
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    parent_ts = "2026-01-01T00:00:00+00:00"
+    fork_ts = datetime.now(UTC).replace(microsecond=0)
+    own_ts = (fork_ts + timedelta(minutes=1)).isoformat()
+    parent_usage = [
+        {"input_tokens": 100, "cached_input_tokens": 20, "output_tokens": 30},
+        {"input_tokens": 150, "cached_input_tokens": 30, "output_tokens": 40},
+    ]
+    _write_session_with_usage_events(
+        sessions_dir / "parent.jsonl",
+        session_id="parent",
+        events=[(parent_ts, parent_usage[0]), (parent_ts, parent_usage[1])],
+    )
+    _write_fork_session(
+        sessions_dir / "fork.jsonl",
+        session_id="fork",
+        parent_session_id="parent",
+        timestamp=fork_ts.isoformat(),
+        replay_events=parent_usage,
+        own_events=[
+            (
+                own_ts,
+                {"input_tokens": 80, "cached_input_tokens": 10, "output_tokens": 12},
+            )
+        ],
+    )
+
+    entries = codex_loader.load_entries(hours_back=24)
+
+    assert [entry.session_id for entry in entries] == ["fork"]
+    assert [entry.timestamp for entry in entries] == [datetime.fromisoformat(own_ts)]
+    assert [entry.total_tokens for entry in entries] == [92]
 
 
 def test_load_entries_handles_duplicate_snapshots_across_multiple_forks(

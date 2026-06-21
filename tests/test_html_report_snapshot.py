@@ -53,6 +53,44 @@ def _full_report_data() -> dict[str, Any]:
     histogram[9] = 2
     histogram[14] = 7
     histogram[21] = 5
+    contribution_weeks = [
+        [
+            {"date": "2026-04-26", "tokens": 0, "level": 0},
+            {"date": "2026-04-27", "tokens": 0, "level": 0},
+            {"date": "2026-04-28", "tokens": 12000, "level": 1},
+            {"date": "2026-04-29", "tokens": 0, "level": 0},
+            {"date": "2026-04-30", "tokens": 25000, "level": 2},
+            {"date": "2026-05-01", "tokens": 40000, "level": 2},
+            {"date": "2026-05-02", "tokens": 0, "level": 0},
+        ],
+        [
+            {"date": "2026-05-03", "tokens": 60000, "level": 3},
+            {"date": "2026-05-04", "tokens": 120000, "level": 3},
+            {"date": "2026-05-05", "tokens": 180000, "level": 3},
+            {"date": "2026-05-06", "tokens": 0, "level": 0},
+            {"date": "2026-05-07", "tokens": 90000, "level": 3},
+            {"date": "2026-05-08", "tokens": 0, "level": 0},
+            {"date": "2026-05-09", "tokens": 0, "level": 0},
+        ],
+        [
+            {"date": "2026-05-10", "tokens": 70000, "level": 3},
+            {"date": "2026-05-11", "tokens": 110000, "level": 3},
+            {"date": "2026-05-12", "tokens": 260000, "level": 4},
+            {"date": "2026-05-13", "tokens": 300000, "level": 4},
+            {"date": "2026-05-14", "tokens": 150000, "level": 3},
+            {"date": "2026-05-15", "tokens": 0, "level": 0},
+            {"date": "2026-05-16", "tokens": 0, "level": 0},
+        ],
+        [
+            {"date": "2026-05-17", "tokens": 50000, "level": 2},
+            {"date": "2026-05-18", "tokens": 0, "level": 0},
+            {"date": "2026-05-19", "tokens": 0, "level": 0},
+            {"date": "2026-05-20", "tokens": 140000, "level": 3},
+            {"date": "2026-05-21", "tokens": 80000, "level": 3},
+            {"date": "2026-05-22", "tokens": 95000, "level": 3},
+            {"date": "2026-05-23", "tokens": 100000, "level": 3},
+        ],
+    ]
     return {
         "period_label": "2026-05-01 -> 2026-05-23",
         "summary": {
@@ -186,6 +224,31 @@ def _full_report_data() -> dict[str, Any]:
                 ],
             },
         ],
+        "contribution": {
+            "weeks": contribution_weeks,
+            "start": "2026-04-26",
+            "end": "2026-05-23",
+            "max_tokens": 300000,
+            "total_tokens": 1842000,
+            "active_days": 15,
+            "current_streak": 4,
+            "longest_streak": 5,
+            "busiest_day": {"date": "2026-05-13", "tokens": 300000},
+        },
+        "wrapped": {
+            "year_label": "2026",
+            "total_tokens": 2345678,
+            "total_cost": 45.6789,
+            "active_days": 118,
+            "total_sessions": 252,
+            "top_model": "claude-sonnet-4",
+            "top_project": "usage",
+            "busiest_day": {"date": "2026-05-13", "tokens": 300000},
+            "longest_streak": 11,
+            "claude_tokens": 1466049,
+            "codex_tokens": 879629,
+            "beast": "phoenix",
+        },
     }
 
 
@@ -208,6 +271,31 @@ def _empty_report_data() -> dict[str, Any]:
         "comparison": {"period": "week", "has_prev": False},
         "persona": {"hour_histogram": []},
         "top_sessions": [],
+        "contribution": {
+            "weeks": [],
+            "start": "2026-05-18",
+            "end": "2026-05-24",
+            "max_tokens": 0,
+            "total_tokens": 0,
+            "active_days": 0,
+            "current_streak": 0,
+            "longest_streak": 0,
+            "busiest_day": None,
+        },
+        "wrapped": {
+            "year_label": "2026",
+            "total_tokens": 0,
+            "total_cost": 0.0,
+            "active_days": 0,
+            "total_sessions": 0,
+            "top_model": None,
+            "top_project": None,
+            "busiest_day": None,
+            "longest_streak": 0,
+            "claude_tokens": 0,
+            "codex_tokens": 0,
+            "beast": None,
+        },
     }
 
 
