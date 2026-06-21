@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.22.3] - 2026-06-22
+
+### Added
+- **Warns when the status line stops updating while you're still working**: the menu bar percentage comes only from the file the status line hook writes, so if that hook gets unwired (another tool rewrites `settings.json`) or stops firing, the pinned number would silently freeze. usage now detects this — when the status file hasn't updated for 30 minutes but your `~/.claude/projects` logs show recent activity — and shows an actionable warning telling you to re-run `--setup` or restart Claude Code. The last known percentage is kept, never fabricated, and there is still no network call.
+
 ## [0.22.2] - 2026-06-21
 
 ### Fixed
