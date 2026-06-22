@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.22.7] - 2026-06-23
+
+### Fixed
+- **Switching panels no longer flickers**: every switch tore down the WKWebView and reloaded its HTML, exposing the dark backing layer until the load finished — a visible flicker, plus the popover closed and reopened. usage now caches each panel's web view (lazily, capped at 6 with LRU eviction) inside a container view and switches by toggling visibility and re-injecting the latest state, so a previously-opened panel reappears instantly with no reload. The first build of a panel fades in from a same-color overlay that is removed on the first successful paint (or after a 1.5s safety timeout). The popover no longer closes and reopens on switch.
+
 ## [0.22.6] - 2026-06-23
 
 ### Fixed
