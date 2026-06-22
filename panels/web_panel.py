@@ -61,13 +61,43 @@ if TYPE_CHECKING:
 PANEL_WIDTH = 364.0
 PANEL_HEIGHT = 812.0
 MAX_INJECTION_RELOADS = 2
+NAVIGATION_MENU_IDENTIFIER_PARTS = (
+    "WKMenuItemIdentifierReload",
+    "WKMenuItemIdentifierGoBack",
+    "WKMenuItemIdentifierGoForward",
+    "WKMenuItemIdentifierOpenLink",
+    "WKMenuItemIdentifierOpenImage",
+    "WKMenuItemIdentifierOpenFrame",
+    "WKMenuItemIdentifierDownload",
+)
 
 
 def _reload_web_panel(view: Any) -> None:
     view._ready = False
     if getattr(view, "_last_payload", None) is not None:
         view._pending = view._last_payload
-    view.reload()
+    html = getattr(view, "_html", None)
+    if html is None:
+        view.reload()
+        return
+    view.loadHTMLString_baseURL_(html, None)
+
+
+def _is_navigation_menu_item(item: Any) -> bool:
+    item_identifier = getattr(item, "itemIdentifier", None)
+    if not callable(item_identifier):
+        return False
+    identifier = item_identifier()
+    if identifier is None:
+        return False
+    identifier_text = str(identifier)
+    return any(part in identifier_text for part in NAVIGATION_MENU_IDENTIFIER_PARTS)
+
+
+def _remove_navigation_menu_items(menu: Any) -> None:
+    for item in list(menu.itemArray()):
+        if _is_navigation_menu_item(item):
+            menu.removeItem_(item)
 
 
 def _handle_injection_error(view: Any, payload: dict[str, object], error: Any) -> None:
@@ -151,6 +181,7 @@ class WebPanelView(WKWebView):
     _last_payload = objc.ivar()
     _injection_retry_payload = objc.ivar()
     _injection_reload_count = objc.ivar()
+    _html = objc.ivar()
 
     def initWithFrame_configuration_delegate_(
         self,
@@ -169,6 +200,7 @@ class WebPanelView(WKWebView):
         self._last_payload = None
         self._injection_retry_payload = None
         self._injection_reload_count = 0
+        self._html = None
         self.setNavigationDelegate_(self)
         self.setValue_forKey_(False, "drawsBackground")
         self.setWantsLayer_(True)
@@ -202,6 +234,9 @@ class WebPanelView(WKWebView):
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("panel web content process terminated; reloading")
         _reload_web_panel(self)
+
+    def willOpenMenu_withEvent_(self, menu: Any, event: Any) -> None:
+        _remove_navigation_menu_items(menu)
 
     def renderTimeoutElapsed_(self, _arg: Any) -> None:
         # If the HTML never finished rendering, the popover shows only the dark
@@ -239,6 +274,7 @@ class WebPanelView(WKWebView):
         self.user_content_controller = None
         self._last_payload = None
         self._pending = None
+        self._html = None
 
 
 class ErrorPanelView(NSView):
@@ -320,6 +356,7 @@ class HTMLPanel:
             bridge = UsageScriptBridge.alloc().initWithDelegate_webView_(delegate, web_view)
             web_view.setBridge_(bridge)
             controller.addScriptMessageHandler_name_(bridge, "usage")
+            web_view._html = html
             web_view.loadHTMLString_baseURL_(html, None)
             web_view.performSelector_withObject_afterDelay_("renderTimeoutElapsed:", None, 4.0)
             return web_view

@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.22.5] - 2026-06-22
+
+### 修正
+- **面板不再因右鍵選單的「Reload」而永久空白**：彈出面板的 HTML 是以 `loadHTMLString`、不帶 base URL 的方式載入，因此 WKWebView 系統右鍵選單的 Reload 會重新載入 `about:blank`，使面板變空白且沒有明顯的恢復方式（#42）。usage 現在會從面板右鍵選單移除導航類項目（Reload／上一頁／下一頁／開啟／下載），且內部重載改為重新注入原始 HTML 而非呼叫 `reload()`——這也順帶修好面板在網頁內容程序被終止後的恢復。
+
 ## [0.22.4] - 2026-06-22
 
 ### 修正

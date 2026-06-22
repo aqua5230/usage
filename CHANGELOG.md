@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.22.5] - 2026-06-22
+
+### Fixed
+- **Panel no longer goes permanently blank after a context-menu "Reload"**: the popover panel loads its HTML via `loadHTMLString` with no base URL, so the WKWebView system context-menu Reload reloaded `about:blank` and left the panel blank with no obvious way to recover (#42). usage now strips navigation items (Reload/back/forward/open/download) from the panel's context menu, and internal reloads re-inject the original HTML instead of calling `reload()` — which also fixes panel recovery after the web-content process is terminated.
+
 ## [0.22.4] - 2026-06-22
 
 ### Fixed

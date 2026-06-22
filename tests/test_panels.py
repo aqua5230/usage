@@ -192,6 +192,42 @@ def test_evaluate_javascript_completion_handler_block_signature() -> None:
     view.evaluateJavaScript_completionHandler_("1+1", lambda value, error: None)
 
 
+def test_web_panel_context_menu_removes_navigation_items() -> None:
+    import panels.web_panel as web_panel
+
+    class FakeMenuItem:
+        def __init__(self, identifier: str | None) -> None:
+            self.identifier = identifier
+
+        def itemIdentifier(self) -> str | None:
+            return self.identifier
+
+    class FakeMenu:
+        def __init__(self) -> None:
+            self.reload = FakeMenuItem("WKMenuItemIdentifierReload")
+            self.copy = FakeMenuItem("WKMenuItemIdentifierCopy")
+            self.open_link = FakeMenuItem("WKMenuItemIdentifierOpenLinkInNewWindow")
+            self.no_identifier = FakeMenuItem(None)
+            self.items = [
+                self.reload,
+                self.copy,
+                self.open_link,
+                self.no_identifier,
+            ]
+
+        def itemArray(self) -> list[FakeMenuItem]:
+            return self.items
+
+        def removeItem_(self, item: FakeMenuItem) -> None:
+            self.items.remove(item)
+
+    menu = FakeMenu()
+
+    web_panel._remove_navigation_menu_items(menu)
+
+    assert menu.items == [menu.copy, menu.no_identifier]
+
+
 def test_build_view_falls_back_to_error_panel_on_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -233,10 +269,15 @@ def test_web_panel_reloads_and_reinjects_after_content_termination() -> None:
             self._ready = True
             self._pending = None
             self._last_payload = {"codex": {"session": {"percent": 67}}}
+            self._html = "<html>usage</html>"
             self.reloads = 0
+            self.loaded_html: list[tuple[str, object | None]] = []
 
         def reload(self) -> None:
             self.reloads += 1
+
+        def loadHTMLString_baseURL_(self, html: str, base_url: object | None) -> None:
+            self.loaded_html.append((html, base_url))
 
     view = FakeWebView()
 
@@ -244,7 +285,8 @@ def test_web_panel_reloads_and_reinjects_after_content_termination() -> None:
 
     assert view._ready is False
     assert view._pending == {"codex": {"session": {"percent": 67}}}
-    assert view.reloads == 1
+    assert view.loaded_html == [("<html>usage</html>", None)]
+    assert view.reloads == 0
 
 
 def test_web_panel_reloads_when_state_injection_fails() -> None:
@@ -255,10 +297,15 @@ def test_web_panel_reloads_when_state_injection_fails() -> None:
             self._ready = True
             self._pending = None
             self._last_payload = None
+            self._html = "<html>usage</html>"
             self.reloads = 0
+            self.loaded_html: list[tuple[str, object | None]] = []
 
         def reload(self) -> None:
             self.reloads += 1
+
+        def loadHTMLString_baseURL_(self, html: str, base_url: object | None) -> None:
+            self.loaded_html.append((html, base_url))
 
     view = FakeWebView()
     payload: dict[str, object] = {"projects": [{"name": "Eric-Tools"}]}
@@ -267,7 +314,8 @@ def test_web_panel_reloads_when_state_injection_fails() -> None:
 
     assert view._ready is False
     assert view._pending == payload
-    assert view.reloads == 1
+    assert view.loaded_html == [("<html>usage</html>", None)]
+    assert view.reloads == 0
 
 
 def test_web_panel_caps_reloads_when_state_injection_keeps_failing() -> None:
@@ -280,10 +328,15 @@ def test_web_panel_caps_reloads_when_state_injection_keeps_failing() -> None:
             self._last_payload = None
             self._injection_retry_payload = None
             self._injection_reload_count = 0
+            self._html = "<html>usage</html>"
             self.reloads = 0
+            self.loaded_html: list[tuple[str, object | None]] = []
 
         def reload(self) -> None:
             self.reloads += 1
+
+        def loadHTMLString_baseURL_(self, html: str, base_url: object | None) -> None:
+            self.loaded_html.append((html, base_url))
 
     view = FakeWebView()
     payload: dict[str, object] = {"projects": [{"name": "Eric-Tools"}]}
@@ -291,9 +344,41 @@ def test_web_panel_caps_reloads_when_state_injection_keeps_failing() -> None:
     for _ in range(web_panel.MAX_INJECTION_RELOADS + 3):
         web_panel._handle_injection_error(view, payload, "boom")
 
-    assert view.reloads == web_panel.MAX_INJECTION_RELOADS
+    assert view.loaded_html == [
+        ("<html>usage</html>", None),
+        ("<html>usage</html>", None),
+    ]
+    assert view.reloads == 0
     assert view._pending is None
 
     web_panel._reload_web_panel(view)
 
-    assert view.reloads == web_panel.MAX_INJECTION_RELOADS + 1
+    assert view.loaded_html == [
+        ("<html>usage</html>", None),
+        ("<html>usage</html>", None),
+        ("<html>usage</html>", None),
+    ]
+    assert view.reloads == 0
+
+
+def test_web_panel_reload_falls_back_to_reload_without_html() -> None:
+    import panels.web_panel as web_panel
+
+    class FakeWebView:
+        def __init__(self) -> None:
+            self._ready = True
+            self._pending = None
+            self._last_payload = None
+            self._html = None
+            self.reloads = 0
+
+        def reload(self) -> None:
+            self.reloads += 1
+
+    view = FakeWebView()
+
+    web_panel._reload_web_panel(view)
+
+    assert view._ready is False
+    assert view._pending is None
+    assert view.reloads == 1
