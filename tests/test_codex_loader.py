@@ -1621,3 +1621,253 @@ def test_load_rate_limits_uses_turn_context_model_when_state_db_missing(
         model="gpt-5.4-mini",
         updated_at=now.isoformat(),
     )
+
+
+# ===== Disk cache tests =====
+
+
+def test_usage_entry_round_trip() -> None:
+    """Test that UsageEntry serialization/deserialization is lossless."""
+    from history_loader import UsageEntry
+
+    original = UsageEntry(
+        timestamp=datetime(2026, 6, 24, 12, 0, 0, tzinfo=UTC),
+        session_id="test-session",
+        message_id="test-session:1",
+        request_id="req-123",
+        model="gpt-5.4-mini",
+        input_tokens=100,
+        output_tokens=50,
+        cache_creation_tokens=10,
+        cache_read_tokens=5,
+        cost_usd=None,  # Codex entries always have None
+        project="/tmp/demo",
+    )
+
+    serialized = codex_loader._serialize_usage_entry(original)
+    deserialized = codex_loader._deserialize_usage_entry(serialized)
+
+    # All fields must be equal
+    assert deserialized == original
+    assert deserialized.timestamp == original.timestamp
+    assert deserialized.timestamp.tzinfo == UTC  # Timezone preserved
+    assert deserialized.cost_usd is None  # None preserved
+
+
+def test_disk_cache_seed_loads_on_cold_start(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Test that disk cache seeds memory cache on cold start."""
+
+    cache_file = tmp_path / "codex_jsonl_cache.json"
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", cache_file)
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+
+    now = datetime.now(UTC)
+    session_path = sessions_dir / "2026-06-24" / "test-session.jsonl"
+    session_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Prepare pre-seeded cache with one file
+    cache_data = {
+        "schema_version": codex_loader._CODEX_JSONL_CACHE_SCHEMA,
+        "cached_at": now.timestamp(),
+        "files": {
+            str(session_path): {
+                "mtime": 123456.0,
+                "size": 1000,
+                "session_id": "test-session",
+                "forked_from_id": "",
+                "entries": [
+                    {
+                        "timestamp": "2026-06-24T12:00:00+00:00",
+                        "session_id": "test-session",
+                        "message_id": "test-session:1",
+                        "request_id": "",
+                        "model": "gpt-5.4-mini",
+                        "input_tokens": 100,
+                        "output_tokens": 50,
+                        "cache_creation_tokens": 0,
+                        "cache_read_tokens": 0,
+                        "cost_usd": None,
+                        "project": "/tmp/demo",
+                    }
+                ],
+            }
+        },
+    }
+    cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
+
+    # Clear module flag to force seed reload
+    monkeypatch.setattr(codex_loader, "_disk_cache_seeded", False)
+
+    # Trigger seed loading by calling load_entries
+    codex_loader.load_entries()
+
+    # Cache should be seeded from disk
+    assert len(codex_loader._jsonl_cache) == 1
+    assert len(codex_loader._file_info_cache) == 1
+
+    # The seeded entry should be in cache
+    assert session_path in codex_loader._jsonl_cache
+    mtime, size, replay_key, cached_entries = codex_loader._jsonl_cache[session_path]
+    assert mtime == 123456.0
+    assert size == 1000
+    assert replay_key is None  # Non-fork file
+    assert len(cached_entries) == 1
+    assert cached_entries[0].input_tokens == 100
+
+
+def test_disk_cache_invalid_schema_fails_safely(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Test that invalid schema version is silently ignored."""
+    cache_file = tmp_path / "codex_jsonl_cache.json"
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", cache_file)
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+
+    # Write cache with wrong schema version
+    cache_file.write_text(
+        json.dumps(
+            {
+                "schema_version": 999,  # Wrong version
+                "cached_at": datetime.now(UTC).timestamp(),
+                "files": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    # Clear module flag
+    monkeypatch.setattr(codex_loader, "_disk_cache_seeded", False)
+
+    # Should not raise error; seed is simply ignored
+    codex_loader._seed_caches_from_disk()
+
+    # Caches should remain empty
+    assert len(codex_loader._jsonl_cache) == 0
+    assert len(codex_loader._file_info_cache) == 0
+
+
+def test_disk_cache_corrupted_json_fails_safely(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Test that corrupted JSON is silently ignored."""
+    cache_file = tmp_path / "codex_jsonl_cache.json"
+    monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", cache_file)
+
+    # Write garbage
+    cache_file.write_text("not valid json {", encoding="utf-8")
+
+    # Clear module flag
+    monkeypatch.setattr(codex_loader, "_disk_cache_seeded", False)
+
+    # Should not raise error
+    codex_loader._seed_caches_from_disk()
+
+    # Caches should remain empty
+    assert len(codex_loader._jsonl_cache) == 0
+
+
+def test_disk_cache_fork_file_entries_not_written(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Test that fork files have entries=null in disk cache."""
+    cache_file = tmp_path / "codex_jsonl_cache.json"
+    monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", cache_file)
+
+    # Manually construct a fork cache entry (replay_cache_key is not None)
+    fork_path = Path("/fake/fork.jsonl")
+    codex_loader._jsonl_cache[fork_path] = (
+        123.0,
+        500,
+        ("parent-session", 123.0, 100, 5),  # Non-None replay_cache_key indicates fork
+        [],  # entries exist for fork, but should not be written
+    )
+    codex_loader._file_info_cache[fork_path] = (
+        123.0,
+        500,
+        codex_loader._SessionFileInfo(session_id="fork-session", forked_from_id="parent-session"),
+    )
+
+    # Flush to disk
+    codex_loader._flush_caches_to_disk()
+
+    # Read back and verify fork file has null entries
+    with cache_file.open(encoding="utf-8") as f:
+        data = json.load(f)
+
+    fork_data = data["files"].get(str(fork_path))
+    assert fork_data is not None
+    assert fork_data["session_id"] == "fork-session"
+    assert fork_data["forked_from_id"] == "parent-session"
+    assert fork_data["entries"] is None  # Fork files must have null entries
+
+
+def test_disk_cache_file_mtime_invalidates_seed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """Test that file with mismatched mtime/size is not treated as cache hit."""
+
+    cache_file = tmp_path / "codex_jsonl_cache.json"
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", cache_file)
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+
+    now = datetime.now(UTC)
+    session_path = sessions_dir / "2026-06-24" / "test-session.jsonl"
+    session_path.parent.mkdir(parents=True, exist_ok=True)
+
+    # Seed cache with old mtime/size
+    cache_data = {
+        "schema_version": codex_loader._CODEX_JSONL_CACHE_SCHEMA,
+        "cached_at": now.timestamp(),
+        "files": {
+            str(session_path): {
+                "mtime": 100.0,  # Wrong mtime
+                "size": 200,  # Wrong size
+                "session_id": "test-session",
+                "forked_from_id": "",
+                "entries": [
+                    {
+                        "timestamp": "2026-06-24T12:00:00+00:00",
+                        "session_id": "test-session",
+                        "message_id": "test-session:1",
+                        "request_id": "",
+                        "model": "gpt-5.4-mini",
+                        "input_tokens": 100,
+                        "output_tokens": 50,
+                        "cache_creation_tokens": 0,
+                        "cache_read_tokens": 0,
+                        "cost_usd": None,
+                        "project": "/tmp/demo",
+                    }
+                ],
+            }
+        },
+    }
+    cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
+
+    # Write actual session file with different mtime/size
+    _write_session(
+        session_path,
+        session_id="test-session",
+        timestamp=now.isoformat(),
+        usage={"input_tokens": 200, "output_tokens": 100},  # Different content
+    )
+
+    # Clear module flag
+    monkeypatch.setattr(codex_loader, "_disk_cache_seeded", False)
+
+    # Load entries - should parse actual file, not use stale seed
+    entries = codex_loader.load_entries()
+    assert len(entries) == 1
+    # Should have the actual file's values, not the seed's
+    assert entries[0].input_tokens == 200
+    assert entries[0].output_tokens == 100

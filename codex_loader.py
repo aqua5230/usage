@@ -6,12 +6,14 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 import math
 import os
 import re
 import sqlite3
+import tempfile
 from collections import OrderedDict
 from contextlib import closing
 from dataclasses import dataclass
@@ -45,6 +47,14 @@ SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
 STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
 LOGS_DB = Path(os.path.expanduser("~/.codex/logs_2.sqlite"))
 
+# Disk cache for JSONL parsing results. Schema version must be bumped when the
+# serialization format or parsing logic changes incompatibly.
+_CODEX_JSONL_CACHE_SCHEMA = 1
+JSONL_CACHE_PATH = Path(os.path.expanduser("~/.usage/codex_jsonl_cache.json"))
+
+# Module-level flag to ensure seed loading happens exactly once.
+_disk_cache_seeded = False
+
 
 @dataclass(slots=True)
 class CodexRateLimits:
@@ -73,6 +83,157 @@ class _SessionFileInfo:
     forked_from_id: str = ""
 
 
+def _serialize_usage_entry(entry: UsageEntry) -> dict[str, Any]:
+    """Serialize UsageEntry to dict for JSON storage."""
+    return {
+        "timestamp": entry.timestamp.isoformat(),
+        "session_id": entry.session_id,
+        "message_id": entry.message_id,
+        "request_id": entry.request_id,
+        "model": entry.model,
+        "input_tokens": entry.input_tokens,
+        "output_tokens": entry.output_tokens,
+        "cache_creation_tokens": entry.cache_creation_tokens,
+        "cache_read_tokens": entry.cache_read_tokens,
+        "cost_usd": entry.cost_usd,
+        "project": entry.project,
+    }
+
+
+def _deserialize_usage_entry(data: dict[str, Any]) -> UsageEntry:
+    """Deserialize dict from JSON back to UsageEntry."""
+    return UsageEntry(
+        timestamp=datetime.fromisoformat(data["timestamp"]),
+        session_id=data["session_id"],
+        message_id=data["message_id"],
+        request_id=data["request_id"],
+        model=data["model"],
+        input_tokens=data["input_tokens"],
+        output_tokens=data["output_tokens"],
+        cache_creation_tokens=data["cache_creation_tokens"],
+        cache_read_tokens=data["cache_read_tokens"],
+        cost_usd=data["cost_usd"],
+        project=data["project"],
+    )
+
+
+def _seed_caches_from_disk() -> None:
+    """Seed in-memory caches from disk. Silently fails on any error."""
+    global _disk_cache_seeded, _jsonl_cache, _file_info_cache
+
+    if _disk_cache_seeded:
+        return
+    _disk_cache_seeded = True
+
+    try:
+        with JSONL_CACHE_PATH.open(encoding="utf-8") as f:
+            cache = json.load(f)
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return
+
+    if not isinstance(cache, dict):
+        return
+    if cache.get("schema_version") != _CODEX_JSONL_CACHE_SCHEMA:
+        return
+
+    files = cache.get("files")
+    if not isinstance(files, dict):
+        return
+
+    for path_str, file_data in files.items():
+        if not isinstance(file_data, dict):
+            continue
+        try:
+            path = Path(path_str)
+            mtime = file_data["mtime"]
+            size = file_data["size"]
+            session_id = file_data["session_id"]
+            forked_from_id = file_data["forked_from_id"]
+            entries_data = file_data["entries"]
+
+            # Seed file_info_cache
+            if len(_file_info_cache) >= _JSONL_CACHE_MAXSIZE:
+                _file_info_cache.popitem(last=False)
+            _file_info_cache[path] = (
+                mtime,
+                size,
+                _SessionFileInfo(session_id=session_id, forked_from_id=forked_from_id),
+            )
+
+            # Seed jsonl_cache only for non-fork files (entries not null)
+            if entries_data is not None:
+                if not isinstance(entries_data, list):
+                    continue
+                entries = [_deserialize_usage_entry(e) for e in entries_data]
+                if len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
+                    _jsonl_cache.popitem(last=False)
+                # Non-fork files have replay_cache_key = None
+                _jsonl_cache[path] = (mtime, size, None, entries)
+        except (KeyError, TypeError, ValueError):
+            # Skip malformed entry; continue with others
+            continue
+
+
+def _flush_caches_to_disk() -> None:
+    """Atomically write current in-memory caches to disk."""
+    tmp_path: str | None = None
+    try:
+        JSONL_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp_path = tempfile.mkstemp(dir=JSONL_CACHE_PATH.parent, suffix=".tmp")
+
+        files: dict[str, Any] = {}
+        # Write jsonl_cache entries
+        for path, (mtime, size, replay_cache_key, entries) in _jsonl_cache.items():
+            path_str = str(path)
+            # For fork files (replay_cache_key is not None), entries = null
+            if replay_cache_key is not None:
+                entries_data = None
+                # Still need session_id/forked_from_id from file_info_cache
+                info = _file_info_cache.get(path)
+                if info is None:
+                    continue
+                session_id = info[2].session_id
+                forked_from_id = info[2].forked_from_id
+            else:
+                entries_data = [_serialize_usage_entry(e) for e in entries]
+                if not entries:
+                    # Empty entries list: get info from file_info_cache
+                    info = _file_info_cache.get(path)
+                    if info is None:
+                        continue
+                    session_id = info[2].session_id
+                    forked_from_id = info[2].forked_from_id
+                else:
+                    session_id = entries[0].session_id
+                    forked_from_id = ""  # Not stored in UsageEntry
+
+            files[path_str] = {
+                "mtime": mtime,
+                "size": size,
+                "session_id": session_id,
+                "forked_from_id": forked_from_id,
+                "entries": entries_data,
+            }
+
+        payload = {
+            "schema_version": _CODEX_JSONL_CACHE_SCHEMA,
+            "cached_at": datetime.now(UTC).timestamp(),
+            "files": files,
+        }
+
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            json.dump(payload, f, ensure_ascii=False, indent=2, sort_keys=True)
+        os.replace(tmp_path, JSONL_CACHE_PATH)
+        tmp_path = None
+    except Exception as exc:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("failed to write codex jsonl cache %s: %s", JSONL_CACHE_PATH, exc)
+    finally:
+        if tmp_path and os.path.exists(tmp_path):
+            with contextlib.suppress(OSError):
+                os.unlink(tmp_path)
+
+
 def load_entries(hours_back: int = 0) -> list[UsageEntry]:
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
     metadata = _load_thread_metadata()
@@ -93,8 +254,18 @@ def _load_jsonl_entries(
     models: dict[str, str],
     cutoff: datetime | None,
 ) -> list[UsageEntry]:
+    # Seed from disk on first call
+    _seed_caches_from_disk()
+
     if not sessions_dir.is_dir():
         return []
+
+    # Snapshot each cached file's (mtime, size) to detect new or re-parsed files.
+    # A re-parse overwrites an existing key in place, so cache size alone would
+    # miss an updated (still-growing) session file — exactly the active files we
+    # most want to persist. dict equality ignores LRU move_to_end reordering.
+    jsonl_snapshot = {str(p): (e[0], e[1]) for p, e in _jsonl_cache.items()}
+    file_info_snapshot = {str(p): (v[0], v[1]) for p, v in _file_info_cache.items()}
 
     entries_by_session: dict[str, list[UsageEntry]] = {}
     cutoff_ts = cutoff.timestamp() if cutoff else None
@@ -132,6 +303,13 @@ def _load_jsonl_entries(
         existing = entries_by_session.get(parsed[0].session_id)
         if existing is None or _is_better_session_log(parsed, existing):
             entries_by_session[parsed[0].session_id] = parsed
+
+    # Flush to disk if any file was newly parsed or re-parsed (content changed)
+    if (
+        {str(p): (e[0], e[1]) for p, e in _jsonl_cache.items()} != jsonl_snapshot
+        or {str(p): (v[0], v[1]) for p, v in _file_info_cache.items()} != file_info_snapshot
+    ):
+        _flush_caches_to_disk()
 
     return [
         entry
