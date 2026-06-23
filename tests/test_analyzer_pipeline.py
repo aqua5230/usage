@@ -1091,6 +1091,11 @@ def test_build_report_data_by_model_includes_cost_known(monkeypatch: Any) -> Non
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
     # Mock _load_persona_for_period to return None directly
     monkeypatch.setattr("analyzer.reporter._load_persona_for_period", lambda period: None)
+    # cost_known must not depend on real LiteLLM pricing (offline CI has none)
+    monkeypatch.setattr(
+        "analyzer.reporter.is_model_priced",
+        lambda model: model == "claude-opus-4-8",
+    )
     # Pin datetime.now() to fixed_date
     from datetime import tzinfo
 
