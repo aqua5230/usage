@@ -36,6 +36,10 @@ _fork_replay_cache: OrderedDict[
     Path,
     tuple[_ReplayLookupKey, int | None, _ReplayCacheKey],
 ] = OrderedDict()
+_file_info_cache: OrderedDict[
+    Path,
+    tuple[float, int, _SessionFileInfo],
+] = OrderedDict()
 
 SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
 STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
@@ -148,7 +152,7 @@ def _session_total_tokens(entries: list[UsageEntry]) -> int:
     return sum(entry.total_tokens for entry in entries)
 
 
-def _read_session_file_info(path: Path) -> _SessionFileInfo:
+def _read_session_file_info_uncached(path: Path) -> _SessionFileInfo:
     try:
         with path.open(encoding="utf-8") as file:
             for line in file:
@@ -163,6 +167,25 @@ def _read_session_file_info(path: Path) -> _SessionFileInfo:
     except (OSError, UnicodeDecodeError):
         return _SessionFileInfo()
     return _SessionFileInfo()
+
+
+def _read_session_file_info(path: Path) -> _SessionFileInfo:
+    try:
+        st = path.stat()
+    except OSError:
+        return _SessionFileInfo()
+
+    cached = _file_info_cache.get(path)
+    if cached is not None and cached[0] == st.st_mtime and cached[1] == st.st_size:
+        _file_info_cache.move_to_end(path)
+        return cached[2]
+
+    info = _read_session_file_info_uncached(path)
+
+    if path not in _file_info_cache and len(_file_info_cache) >= _JSONL_CACHE_MAXSIZE:
+        _file_info_cache.popitem(last=False)
+    _file_info_cache[path] = (st.st_mtime, st.st_size, info)
+    return info
 
 
 def load_rate_limits() -> CodexRateLimits | None:

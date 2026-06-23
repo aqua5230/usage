@@ -22,6 +22,7 @@ import codex_loader
 def _clear_jsonl_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     codex_loader._jsonl_cache.clear()
     codex_loader._fork_replay_cache.clear()
+    codex_loader._file_info_cache.clear()
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
     monkeypatch.setattr(codex_loader, "STATE_DB", tmp_path / "missing-state.sqlite")
 
@@ -844,6 +845,101 @@ def test_jsonl_cache_evicts_oldest_entry_when_maxsize_exceeded(tmp_path: Path) -
     assert len(codex_loader._jsonl_cache) == codex_loader._JSONL_CACHE_MAXSIZE
     assert paths[0] not in codex_loader._jsonl_cache
     assert paths[-1] in codex_loader._jsonl_cache
+
+
+def test_file_info_cache_reuses_result_on_unmodified_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Second call on unchanged file returns cached result without reopening."""
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    path = sessions_dir / "test.jsonl"
+    _write_session(
+        path,
+        session_id="cached-session",
+        timestamp="2026-01-01T00:00:00+00:00",
+        usage={"input_tokens": 10},
+    )
+
+    uncached_calls = 0
+    original_uncached = codex_loader._read_session_file_info_uncached
+
+    def _counting_uncached(p: Path) -> codex_loader._SessionFileInfo:
+        nonlocal uncached_calls
+        uncached_calls += 1
+        return original_uncached(p)
+
+    monkeypatch.setattr(
+        codex_loader, "_read_session_file_info_uncached", _counting_uncached
+    )
+
+    first = codex_loader._read_session_file_info(path)
+    assert first.session_id == "cached-session"
+    assert uncached_calls == 1
+
+    second = codex_loader._read_session_file_info(path)
+    assert second.session_id == "cached-session"
+    assert uncached_calls == 1, "Cached hit should not call uncached function"
+
+
+def test_file_info_cache_invalidates_on_mtime_or_size_change(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """Cache invalidates when file mtime or size changes."""
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    path = sessions_dir / "changing.jsonl"
+    original_ts = "2026-01-01T00:00:00+00:00"
+
+    _write_session(
+        path,
+        session_id="original-session",
+        timestamp=original_ts,
+        usage={"input_tokens": 10},
+    )
+
+    first = codex_loader._read_session_file_info(path)
+    assert first.session_id == "original-session"
+
+    path.touch()  # Change mtime without changing content
+    second = codex_loader._read_session_file_info(path)
+    assert second.session_id == "original-session"
+    assert len(codex_loader._file_info_cache) == 1
+
+    new_ts = "2026-01-02T00:00:00+00:00"
+    _write_session(
+        path,
+        session_id="updated-session",
+        timestamp=new_ts,
+        usage={"input_tokens": 20},
+    )
+
+    third = codex_loader._read_session_file_info(path)
+    assert third.session_id == "updated-session"
+
+
+def test_file_info_cache_evicts_oldest_entry_when_maxsize_exceeded(
+    tmp_path: Path,
+) -> None:
+    """Cache evicts oldest entry when maxsize is exceeded."""
+    timestamp = datetime.now(UTC).isoformat()
+    paths = [
+        tmp_path / f"session-{index}.jsonl"
+        for index in range(codex_loader._JSONL_CACHE_MAXSIZE + 1)
+    ]
+
+    for index, path in enumerate(paths):
+        _write_session(
+            path,
+            session_id=f"session-{index}",
+            timestamp=timestamp,
+            usage={"input_tokens": 10},
+        )
+        codex_loader._read_session_file_info(path)
+
+    assert len(codex_loader._file_info_cache) == codex_loader._JSONL_CACHE_MAXSIZE
+    assert paths[0] not in codex_loader._file_info_cache
+    assert paths[-1] in codex_loader._file_info_cache
 
 
 def test_parse_timestamp_accepts_expected_iso8601_variants() -> None:
