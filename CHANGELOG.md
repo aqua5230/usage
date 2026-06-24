@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.22.10] - 2026-06-24
+
+### Added
+- **The AI tool updates bulletin now ships in five languages**: each bulletin item previously carried only Traditional Chinese and English, so Simplified Chinese, Japanese, and Korean readers fell back to English; every item now includes zh-CN/ja/ko translations that keep each technical term's plain-language gloss and everyday metaphor in the reader's own language. The bulletin content was also refreshed to Claude Code 2.1.187, Codex 0.142.0, and Antigravity 1.0.11.
+
 ## [0.22.9] - 2026-06-24
 
 ### Added
