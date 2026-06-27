@@ -44,6 +44,7 @@ _file_info_cache: OrderedDict[
 ] = OrderedDict()
 
 SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
+ARCHIVED_SESSIONS_DIR = Path(os.path.expanduser("~/.codex/archived_sessions"))
 STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
 LOGS_DB = Path(os.path.expanduser("~/.codex/logs_2.sqlite"))
 
@@ -249,6 +250,20 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
     return entries
 
 
+def _session_roots(primary_dir: Path) -> list[Path]:
+    roots = [primary_dir]
+    if ARCHIVED_SESSIONS_DIR.is_dir():
+        roots.append(ARCHIVED_SESSIONS_DIR)
+    return roots
+
+
+def _session_root_for_path(path: Path) -> Path | None:
+    for root in _session_roots(SESSIONS_DIR):
+        if path.is_relative_to(root):
+            return root
+    return None
+
+
 def _load_jsonl_entries(
     sessions_dir: Path,
     models: dict[str, str],
@@ -257,7 +272,8 @@ def _load_jsonl_entries(
     # Seed from disk on first call
     _seed_caches_from_disk()
 
-    if not sessions_dir.is_dir():
+    roots = [root for root in _session_roots(sessions_dir) if root.is_dir()]
+    if not roots:
         return []
 
     # Snapshot each cached file's (mtime, size) to detect new or re-parsed files.
@@ -269,7 +285,7 @@ def _load_jsonl_entries(
 
     entries_by_session: dict[str, list[UsageEntry]] = {}
     cutoff_ts = cutoff.timestamp() if cutoff else None
-    jsonl_paths = list(sessions_dir.rglob("*.jsonl"))
+    jsonl_paths = [path for root in roots for path in root.rglob("*.jsonl")]
     file_info = {path: _read_session_file_info(path) for path in jsonl_paths}
     paths_by_session: dict[str, list[Path]] = {}
     for path, info in file_info.items():
@@ -382,7 +398,7 @@ def load_rate_limits() -> CodexRateLimits | None:
 
 
 def _load_jsonl_rate_limits() -> CodexRateLimits | None:
-    if not SESSIONS_DIR.is_dir():
+    if not any(root.is_dir() for root in _session_roots(SESSIONS_DIR)):
         return None
     models = _load_thread_models()
     # scan 30 recent sessions because short/interrupted Codex sessions write null rate_limits
@@ -747,17 +763,22 @@ def _timestamp_from_log_ts(value: Any) -> datetime | None:
 
 def _recent_jsonl_files() -> list[Path]:
     try:
-        paths = [path for path in SESSIONS_DIR.rglob("*.jsonl") if _is_visible_jsonl(path)]
+        paths = [
+            path
+            for root in _session_roots(SESSIONS_DIR)
+            for path in root.rglob("*.jsonl")
+            if _is_visible_jsonl(path)
+        ]
     except OSError:
         return []
     return _sort_recent_jsonl_files(paths)
 
 
 def _is_visible_jsonl(path: Path) -> bool:
-    try:
-        relative = path.relative_to(SESSIONS_DIR)
-    except ValueError:
+    root = _session_root_for_path(path)
+    if root is None:
         return False
+    relative = path.relative_to(root)
     return all(not part.startswith(".") for part in relative.parts)
 
 

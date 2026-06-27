@@ -23,6 +23,7 @@ def _clear_jsonl_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     codex_loader._jsonl_cache.clear()
     codex_loader._fork_replay_cache.clear()
     codex_loader._file_info_cache.clear()
+    monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", tmp_path / "missing-archived")
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
     monkeypatch.setattr(codex_loader, "STATE_DB", tmp_path / "missing-state.sqlite")
 
@@ -225,6 +226,43 @@ def test_load_entries_parses_valid_jsonl_and_filters_by_hours_back(
     assert len(recent_entries) == 1
     assert recent_entries[0].input_tokens == 15
     assert recent_entries[0].output_tokens == 7
+
+
+def test_load_entries_includes_archived_sessions_when_present(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    archived_sessions_dir = tmp_path / "archived_sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", archived_sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+
+    timestamp = datetime.now(UTC).isoformat()
+    _write_session(
+        sessions_dir / "active.jsonl",
+        session_id="active-session",
+        timestamp=timestamp,
+        usage={"input_tokens": 10, "output_tokens": 1},
+    )
+
+    active_only_entries = codex_loader.load_entries()
+
+    _write_session(
+        archived_sessions_dir / "2026" / "06" / "archived.jsonl",
+        session_id="archived-session",
+        timestamp=timestamp,
+        usage={"input_tokens": 20, "output_tokens": 2},
+    )
+
+    all_entries = codex_loader.load_entries()
+
+    assert [entry.session_id for entry in active_only_entries] == ["active-session"]
+    assert sum(entry.total_tokens for entry in active_only_entries) == 11
+    assert {entry.session_id for entry in all_entries} == {
+        "active-session",
+        "archived-session",
+    }
+    assert sum(entry.total_tokens for entry in all_entries) == 33
 
 
 def test_load_entries_keeps_latest_duplicate_session(

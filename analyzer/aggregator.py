@@ -15,7 +15,7 @@ def aggregate_daily(entries: list[UsageEntry]) -> list[DailyStats]:
     sessions_by_date: dict[str, set[str]] = defaultdict(set)
 
     for e in entries:
-        date_str = e.timestamp.strftime("%Y-%m-%d")
+        date_str = e.timestamp.astimezone().strftime("%Y-%m-%d")
         if date_str not in by_date:
             by_date[date_str] = DailyStats(date=date_str)
         s = by_date[date_str]
@@ -41,7 +41,7 @@ def aggregate_monthly(entries: list[UsageEntry]) -> list[MonthlyStats]:
     sessions_by_month: dict[str, set[str]] = defaultdict(set)
 
     for e in entries:
-        month_str = e.timestamp.strftime("%Y-%m")
+        month_str = e.timestamp.astimezone().strftime("%Y-%m")
         if month_str not in by_month:
             by_month[month_str] = MonthlyStats(month=month_str)
         s = by_month[month_str]
@@ -69,7 +69,8 @@ def aggregate_weekly(entries: list[UsageEntry]) -> list[WeeklyStats]:
     sessions_by_week: dict[str, set[str]] = defaultdict(set)
 
     for e in entries:
-        monday = e.timestamp.date() - timedelta(days=e.timestamp.weekday())
+        local_ts = e.timestamp.astimezone()
+        monday = local_ts.date() - timedelta(days=local_ts.weekday())
         sunday = monday + timedelta(days=6)
         week_key = monday.isoformat()
         if week_key not in by_week:
