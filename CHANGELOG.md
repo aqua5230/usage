@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.22.11] - 2026-06-27
+
+### Fixed
+- **Usage charts group days by your local time, not UTC**: the daily/weekly/monthly aggregates bucketed each entry by its UTC calendar day, so usage in the local pre-dawn hours (e.g. 00:00–08:00 at UTC+8) was credited to the previous day; timestamps are now converted to local time before bucketing, matching the HTML report.
+- **Archived Codex sessions are no longer undercounted**: usage now scans `~/.codex/archived_sessions/` alongside `~/.codex/sessions/`, so Codex sessions that have been archived still count toward your totals (no change when that directory doesn't exist).
+
 ## [0.22.10] - 2026-06-24
 
 ### Added
