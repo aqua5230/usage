@@ -4,7 +4,7 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## Unreleased
+## [0.22.12] - 2026-07-01
 
 ### 修正
 - **看到未知模型時會立即背景更新價格表**：新模型剛上線時，即使上游價格表已更新，本機 7 天快取仍可能讓模型暫時顯示為 $0.00／未知；現在模型價格 miss 會觸發帶 debounce 的背景刷新，並補上 Claude Sonnet 5 的離線 fallback 價格，讓首次啟動或離線狀態仍能估算成本。
