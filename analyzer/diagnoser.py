@@ -6,7 +6,6 @@
 
 from __future__ import annotations
 
-import json
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, datetime
@@ -16,6 +15,7 @@ from typing import Any
 
 from adapters import claude
 from adapters.types import UsageEntry
+from jsonl_utils import iter_jsonl_dicts
 
 TOOLS = {"Read", "Edit", "Bash", "Grep", "Glob", "LS"}
 # Below this estimated waste a finding stays "info": cents must not outrank
@@ -196,18 +196,7 @@ def parse_tool_calls(
     pending: dict[str, ToolCall] = {}
 
     try:
-        with path.open(encoding="utf-8") as file:
-            for raw_line in file:
-                line = raw_line.strip()
-                if not line:
-                    continue
-                try:
-                    data = json.loads(line)
-                except json.JSONDecodeError:
-                    continue
-                if not isinstance(data, dict):
-                    continue
-
+        for data in iter_jsonl_dicts(path):
                 record_type = data.get("type")
                 if record_type == "assistant":
                     _parse_assistant_tool_uses(

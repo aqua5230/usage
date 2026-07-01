@@ -6,7 +6,6 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import time
@@ -16,6 +15,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from jsonl_utils import iter_jsonl_dicts
 from project_resolver import project_from_encoded_path, resolve_project_name
 from time_utils import parse_optional_iso8601_utc
 
@@ -87,34 +87,33 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
 
         fallback_project = _project_from_path(jsonl_path)
         try:
-            with jsonl_path.open(encoding="utf-8", errors="replace") as file:
-                for line in file:
-                    parsed = _parse_metadata_line(line)
-                    if parsed is None:
-                        continue
+            for data in iter_jsonl_dicts(jsonl_path, errors="replace"):
+                parsed = _parse_metadata_line(data)
+                if parsed is None:
+                    continue
 
-                    session_id = parsed.session_id
-                    if session_id:
-                        title = parsed.title.strip()
-                        if parsed.type == "ai-title" and title:
-                            titles_by_session[session_id] = title
+                session_id = parsed.session_id
+                if session_id:
+                    title = parsed.title.strip()
+                    if parsed.type == "ai-title" and title:
+                        titles_by_session[session_id] = title
 
-                    timestamp = parsed.timestamp
-                    if timestamp is None or timestamp < cutoff:
-                        continue
+                timestamp = parsed.timestamp
+                if timestamp is None or timestamp < cutoff:
+                    continue
 
-                    is_message = parsed.type in {"user", "assistant"}
-                    if is_message:
-                        histogram[timestamp.astimezone().hour] += 1
-                        total_messages += 1
+                is_message = parsed.type in {"user", "assistant"}
+                if is_message:
+                    histogram[timestamp.astimezone().hour] += 1
+                    total_messages += 1
 
-                    if session_id and is_message:
-                        project = _project_from_cwd(parsed.cwd) or fallback_project
-                        sessions_by_project.setdefault(project, set()).add(session_id)
-                        message_sessions.add(session_id)
-                        current_last = session_last_message_at.get(session_id)
-                        if current_last is None or timestamp > current_last:
-                            session_last_message_at[session_id] = timestamp
+                if session_id and is_message:
+                    project = _project_from_cwd(parsed.cwd) or fallback_project
+                    sessions_by_project.setdefault(project, set()).add(session_id)
+                    message_sessions.add(session_id)
+                    current_last = session_last_message_at.get(session_id)
+                    if current_last is None or timestamp > current_last:
+                        session_last_message_at[session_id] = timestamp
         except OSError as exc:
             logger.warning("failed to read Claude project log %s: %s", jsonl_path, exc)
 
@@ -143,15 +142,7 @@ def _empty_profile() -> PersonaProfile:
     )
 
 
-def _parse_metadata_line(line: str) -> _MetadataLine | None:
-    try:
-        data = json.loads(line)
-    except json.JSONDecodeError:
-        return None
-
-    if not isinstance(data, dict):
-        return None
-
+def _parse_metadata_line(data: dict[str, Any]) -> _MetadataLine | None:
     return _MetadataLine(
         type=_as_str(data.get("type")),
         timestamp=_parse_timestamp(data.get("timestamp")),

@@ -4,7 +4,6 @@
 # Part of "usage". Free software licensed under the GNU Affero General Public
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
-import json
 import math
 import os
 import sys
@@ -12,6 +11,8 @@ from collections import OrderedDict
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
+
+from jsonl_utils import iter_jsonl_dicts
 
 from .types import AgentInfo, UsageEntry
 
@@ -108,23 +109,14 @@ def parse_jsonl(
     else:
         parsed_entries = []
         try:
-            with open(path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        data = json.loads(line)
-                    except json.JSONDecodeError:
-                        continue
+            for data in iter_jsonl_dicts(path):
+                if data.get("type") != "assistant":
+                    continue
 
-                    if data.get("type") != "assistant":
-                        continue
-
-                    entry = _parse_assistant_entry(data, project)
-                    if entry is None:
-                        continue
-                    parsed_entries.append(entry)
+                entry = _parse_assistant_entry(data, project)
+                if entry is None:
+                    continue
+                parsed_entries.append(entry)
         except (OSError, PermissionError, UnicodeDecodeError) as exc:
             _debug_file_error("failed to read Claude log", path, exc)
             return

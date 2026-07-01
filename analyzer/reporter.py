@@ -17,7 +17,7 @@ import os
 from pathlib import Path
 import tempfile
 import time
-from typing import Any, TypedDict
+from typing import Any, NotRequired, TypedDict, cast
 
 import codex_loader
 import persona_loader
@@ -55,6 +55,134 @@ class _YearDay(TypedDict):
 class _YearLedger(TypedDict):
     schema_version: int
     days: dict[str, _YearDay]
+
+
+class SummaryReportData(TypedDict):
+    total_tokens: int
+    cost_usd: float
+    sessions: int
+    messages: int
+    active_days: int
+    total_days: int
+
+
+class AgentReportRow(TypedDict):
+    id: str
+    name: str
+    tokens: int
+    cost: float
+    sessions: int
+    messages: int
+    pct: float
+
+
+class ProjectReportRow(TypedDict):
+    project: str
+    tokens: int
+    cost: float
+    sessions: int
+    pct: float
+
+
+class ModelReportRow(TypedDict):
+    model: str
+    tokens: int
+    cost: float
+    cost_known: bool
+    pct: float
+    top_project: str | None
+
+
+class DailyTrendPoint(TypedDict):
+    date: str
+    tokens: int
+    cost: float
+
+
+class TopSessionReportRow(TypedDict):
+    start_time: str
+    project: str
+    model: str
+    duration_min: float
+    tokens: int
+    cost: float
+
+
+class ComparisonReportData(TypedDict):
+    period: str
+    has_prev: bool
+    prev_tokens: int
+    prev_cost: float
+    prev_projects: list[str]
+    prev_model_share: dict[str, float]
+
+
+class PersonaReportData(TypedDict):
+    hour_histogram: list[int]
+    recent_titles: list[str]
+    top_projects: NotRequired[list[tuple[str, int]]]
+
+
+class ContributionDay(TypedDict):
+    date: str
+    tokens: int
+    level: int
+
+
+class BusiestDay(TypedDict):
+    date: str
+    tokens: int
+
+
+class ContributionReportData(TypedDict):
+    weeks: list[list[ContributionDay]]
+    start: str
+    end: str
+    max_tokens: int
+    total_tokens: int
+    active_days: int
+    current_streak: int
+    longest_streak: int
+    busiest_day: BusiestDay | None
+
+
+class WrappedReportData(TypedDict):
+    year_label: str
+    total_tokens: int
+    total_cost: float
+    active_days: int
+    total_sessions: int
+    top_model: str | None
+    top_project: str | None
+    busiest_day: BusiestDay | None
+    longest_streak: int
+    claude_tokens: int
+    codex_tokens: int
+    beast: str | None
+
+
+class YearReportData(TypedDict):
+    contribution: ContributionReportData
+    wrapped: WrappedReportData
+
+
+class ReportData(TypedDict):
+    period: str
+    period_label: str
+    date_from: str
+    date_to: str
+    summary: SummaryReportData
+    by_agent: list[AgentReportRow]
+    by_project: list[ProjectReportRow]
+    by_model: list[ModelReportRow]
+    daily_trend: list[DailyTrendPoint]
+    top_sessions: list[TopSessionReportRow]
+    comparison: ComparisonReportData
+    subscriptions: list[dict[str, str | None]]
+    persona: PersonaReportData | None
+    ai_updates: list[dict[str, Any]] | None
+    contribution: ContributionReportData
+    wrapped: WrappedReportData
 
 
 @dataclass(frozen=True)
@@ -189,7 +317,7 @@ def _round_cost(value: float) -> float:
     return round(value, 4)
 
 
-def _load_persona_for_period(period: str) -> dict[str, Any] | None:
+def _load_persona_for_period(period: str) -> PersonaReportData | None:
     days_back = _period_spec(period).persona_days
     try:
         profile = persona_loader.load_profile(days_back)
@@ -201,7 +329,7 @@ def _load_persona_for_period(period: str) -> dict[str, Any] | None:
     }
 
 
-def _empty_comparison(period: str) -> dict[str, Any]:
+def _empty_comparison(period: str) -> ComparisonReportData:
     return {
         "period": period,
         "has_prev": False,
@@ -217,7 +345,7 @@ def _build_comparison(
     period: str,
     date_from: date,
     date_to: date,
-) -> dict[str, Any]:
+) -> ComparisonReportData:
     if not _period_spec(period).has_comparison:
         return _empty_comparison(period)
 
@@ -475,7 +603,7 @@ def _build_year_output_from_ledger(
     grid_start: date,
     grid_end: date,
     today: date,
-) -> dict[str, Any]:
+) -> YearReportData:
     daily_tokens: dict[date, int] = {}
     model_tokens: dict[str, int] = defaultdict(int)
     project_tokens: dict[str, int] = defaultdict(int)
@@ -502,7 +630,7 @@ def _build_year_output_from_ledger(
     active_days = sum(1 for tokens in daily_tokens.values() if tokens > 0)
     contribution_thresholds = _contribution_thresholds(list(daily_tokens.values()))
     max_tokens = max(daily_tokens.values(), default=0)
-    busiest_day = None
+    busiest_day: BusiestDay | None = None
     if max_tokens > 0:
         busiest_date = min(
             day for day, tokens in daily_tokens.items() if tokens == max_tokens
@@ -514,10 +642,10 @@ def _build_year_output_from_ledger(
 
     current_streak, longest_streak = _streaks(daily_tokens, grid_start, today)
 
-    weeks: list[list[dict[str, Any]]] = []
+    weeks: list[list[ContributionDay]] = []
     cursor = grid_start
     while cursor <= grid_end:
-        week: list[dict[str, Any]] = []
+        week: list[ContributionDay] = []
         for _ in range(7):
             tokens = daily_tokens.get(cursor, 0) if cursor <= today else 0
             week.append(
@@ -536,7 +664,7 @@ def _build_year_output_from_ledger(
     if total_tokens > 0:
         beast = "phoenix" if claude_tokens >= codex_tokens else "dragon"
 
-    contribution = {
+    contribution: ContributionReportData = {
         "weeks": weeks,
         "start": grid_start.isoformat(),
         "end": today.isoformat(),
@@ -547,7 +675,7 @@ def _build_year_output_from_ledger(
         "longest_streak": longest_streak,
         "busiest_day": busiest_day,
     }
-    wrapped = {
+    wrapped: WrappedReportData = {
         "year_label": str(today.year),
         "total_tokens": total_tokens,
         "total_cost": _round_cost(total_cost),
@@ -567,7 +695,7 @@ def _build_year_output_from_ledger(
     }
 
 
-def build_year_data(agents: list[AgentInfo]) -> dict[str, Any]:
+def build_year_data(agents: list[AgentInfo]) -> YearReportData:
     today = datetime.now().astimezone().date()
     grid_end = today + timedelta(days=(5 - today.weekday()) % 7)
     grid_start = grid_end - timedelta(days=_YEAR_WEEKS * 7 - 1)
@@ -596,10 +724,10 @@ def build_year_data(agents: list[AgentInfo]) -> dict[str, Any]:
     )
 
 
-def _load_year_data_cached(agents: list[AgentInfo]) -> dict[str, Any]:
+def _load_year_data_cached(agents: list[AgentInfo]) -> YearReportData:
     cached = _read_year_cache()
     if cached is not None:
-        return cached
+        return cast(YearReportData, cached)
 
     data = build_year_data(agents)
     _write_year_cache(data)
@@ -630,7 +758,7 @@ def _read_year_cache() -> dict[str, Any] | None:
     return data if isinstance(data, dict) else None
 
 
-def _write_year_cache(data: dict[str, Any]) -> None:
+def _write_year_cache(data: YearReportData) -> None:
     tmp_path: str | None = None
     try:
         YEAR_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -695,7 +823,7 @@ def serialize_diagnosis(
     }
 
 
-def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[str, Any]:
+def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportData:
     """
     period: "today" | "week" | "last7" | "month" | "all"
     回傳 dict，包含：
@@ -770,7 +898,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
         day["tokens"] += entry.total_tokens
         day["cost"] += cost
 
-    by_agent = [
+    by_agent: list[AgentReportRow] = [
         {
             "id": agent_id,
             "name": AGENT_NAMES.get(agent_id, agent_id),
@@ -784,7 +912,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
     ]
     by_agent.sort(key=lambda item: item["tokens"], reverse=True)
 
-    by_project = [
+    by_project: list[ProjectReportRow] = [
         {
             "project": project,
             "tokens": data["tokens"],
@@ -796,7 +924,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
     ]
     by_project.sort(key=lambda item: item["tokens"], reverse=True)
 
-    by_model = [
+    by_model: list[ModelReportRow] = [
         {
             "model": model,
             "tokens": data["tokens"],
@@ -809,7 +937,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
     ]
     by_model.sort(key=lambda item: item["tokens"], reverse=True)
 
-    daily_trend = []
+    daily_trend: list[DailyTrendPoint] = []
     cursor = date_from
     while cursor <= date_to:
         day = daily_totals[cursor]
@@ -820,7 +948,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> dict[st
         })
         cursor += timedelta(days=1)
 
-    top_sessions = []
+    top_sessions: list[TopSessionReportRow] = []
     sessions_by_cost = sorted(aggregate_sessions(entries), key=lambda session: session.cost_usd, reverse=True)
     for session in sessions_by_cost[:5]:
         top_sessions.append({

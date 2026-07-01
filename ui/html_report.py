@@ -20,7 +20,14 @@ from functools import lru_cache
 from importlib.metadata import PackageNotFoundError, version
 from io import StringIO
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Mapping, cast
+
+from analyzer.reporter import (
+    AgentReportRow,
+    DailyTrendPoint,
+    ReportData,
+    SummaryReportData,
+)
 
 from i18n import _t as _i18n_t, packaged_resource_path
 from usage_lang import detect_lang
@@ -148,7 +155,7 @@ def _sprite_data_uri(beast: str) -> str:
     return f"data:image/png;base64,{encoded}"
 
 
-def _weekly_trend(daily: list[dict[str, Any]]) -> list[dict[str, int | float]]:
+def _weekly_trend(daily: list[DailyTrendPoint]) -> list[dict[str, int | float]]:
     weekly: dict[tuple[int, int], dict[str, int | float]] = {}
     for day in daily:
         parsed = _parse_daily_date(day["date"])
@@ -199,7 +206,7 @@ def _trend_delta(current: int, previous: int, lang: str) -> tuple[str, str]:
     return "down", f"↘ {pct}%"
 
 
-def _trend_ascii(daily: list[dict[str, Any]], lang: str) -> str:
+def _trend_ascii(daily: list[DailyTrendPoint], lang: str) -> str:
     weekly = _weekly_trend(daily)
     max_tokens = max((int(week["tokens"]) for week in weekly), default=0)
     rows = []
@@ -247,8 +254,8 @@ def _hour_histogram_html(histogram: list[int]) -> str:
     return f'<div class="persona-hours">{"".join(bars)}</div>'
 
 
-def _persona_body(persona: object, lang: str) -> str:
-    if not isinstance(persona, dict):
+def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:
+    if persona is None:
         return _empty_line(_t(lang, "persona_empty"))
 
     raw_histogram = persona.get("hour_histogram", [])
@@ -323,13 +330,17 @@ def _donut_svg(items: list[tuple[str, int]], lang: str) -> str:
     )
 
 
-def _tools_body(subs: list[dict[str, Any]], agents: list[dict[str, Any]], lang: str) -> str:
+def _tools_body(
+    subs: list[dict[str, str | None]],
+    agents: list[AgentReportRow],
+    lang: str,
+) -> str:
     """One card per tool, joining subscription plan with usage by tool name."""
     by_name = {str(sub.get("agent", "")): sub for sub in subs}
     seen: set[str] = set()
     rows: list[str] = []
 
-    def _plan_html(sub: dict[str, Any] | None) -> str:
+    def _plan_html(sub: dict[str, str | None] | None) -> str:
         if not sub:
             return ""
         plan = sub.get("plan")
@@ -379,18 +390,23 @@ def _tools_body(subs: list[dict[str, Any]], agents: list[dict[str, Any]], lang: 
     return f'<div class="tools">{head}{"".join(rows)}</div>'
 
 
-def _narrative(data: dict[str, Any], lang: str) -> str:
+def _narrative(data: ReportData, lang: str) -> str:
     summary = data["summary"]
     daily = data.get("daily_trend", [])
-    peak = max(daily, key=lambda day: int(day["tokens"]), default={"date": data.get("date_to", "---- -- --"), "tokens": 0})
+    peak_date = data.get("date_to", "---- -- --")
+    peak_tokens = 0
+    if daily:
+        peak = max(daily, key=lambda day: int(day["tokens"]))
+        peak_date = peak["date"]
+        peak_tokens = peak["tokens"]
     top_model = data.get("by_model", [{}])[0].get("model", _t(lang, "unknown")) if data.get("by_model") else _t(lang, "unknown")
     return _t(
         lang,
         "narrative",
         tokens=_fmt_tokens(int(summary["total_tokens"])),
         projects=len(data.get("by_project", [])),
-        peak_date=str(peak["date"]),
-        peak_tokens=_fmt_tokens(int(peak["tokens"])),
+        peak_date=str(peak_date),
+        peak_tokens=_fmt_tokens(int(peak_tokens)),
         top_model=_display_name(top_model, lang),
     )
 
@@ -405,7 +421,7 @@ def _render_cards_section(cards: list[tuple[str, str, str]]) -> str:
     return f"""<section class="cards">{''.join(f'<div class="card"><span>{html.escape(label)}</span><b>{html.escape(value)}</b>' + (f'<i>{html.escape(sub)}</i>' if sub else '') + '</div>' for label, value, sub in cards)}</section>"""
 
 
-def _summary_cards(summary: Mapping[str, Any], lang: str) -> list[tuple[str, str, str]]:
+def _summary_cards(summary: SummaryReportData, lang: str) -> list[tuple[str, str, str]]:
     total_tokens = int(summary["total_tokens"])
     messages = int(summary["messages"])
     cost_main, cost_sub = _cost_value(float(summary["cost_usd"]), lang)
@@ -420,7 +436,7 @@ def _summary_cards(summary: Mapping[str, Any], lang: str) -> list[tuple[str, str
     ]
 
 
-def _render_header(data: dict[str, Any], lang: str, title: str, generated_at: str) -> str:
+def _render_header(data: ReportData, lang: str, title: str, generated_at: str) -> str:
     return f"""<header>
     <div>
       <div class="eyebrow"><span>$ usage report</span> --period {html.escape(str(data["period_label"]))}<span class="cursor">_</span></div>
@@ -453,7 +469,7 @@ def _render_share_dialog(lang: str) -> str:
   </dialog>"""
 
 
-def _render_project_section(data: dict[str, Any], lang: str) -> str:
+def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
     project_rows = [
         _rank_line(
             _display_name(project["project"], lang),
@@ -479,7 +495,7 @@ def _render_project_section(data: dict[str, Any], lang: str) -> str:
     return _section(_t(lang, "project_section"), project_body, "project-section")
 
 
-def _render_model_section(data: dict[str, Any], lang: str) -> str:
+def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
     model_rows = [
         _rank_line(
             _display_name(model["model"], lang),
@@ -500,7 +516,7 @@ def _render_model_section(data: dict[str, Any], lang: str) -> str:
     return _section(_t(lang, "model_section"), model_body)
 
 
-def _render_tools_section(data: dict[str, Any], lang: str) -> str:
+def _render_tools_section(data: Mapping[str, Any], lang: str) -> str:
     tools_body = _tools_body(data.get("subscriptions", []), data.get("by_agent", []), lang)
     return _section(_t(lang, "tools_section"), tools_body, "tools-section")
 
@@ -537,10 +553,10 @@ def _insight_kwargs(component: dict[str, Any]) -> dict[str, object]:
     return kwargs
 
 
-def _render_insight_surface(data: dict[str, Any], lang: str) -> str:
+def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
     from analyzer.insights import build_insights
 
-    components = build_insights(data)
+    components = build_insights(dict(data))
     quiet = f'<div class="insight-note">{_t(lang, "insights_quiet")}</div>'
     if not components:
         return _section(_t(lang, "insights_section"), quiet, "insights-section")
@@ -562,11 +578,11 @@ def _render_insight_surface(data: dict[str, Any], lang: str) -> str:
     return _section(_t(lang, "insights_section"), body, "insights-section")
 
 
-def _render_trend_section(data: dict[str, Any], lang: str) -> str:
+def _render_trend_section(data: Mapping[str, Any], lang: str) -> str:
     return _section(_t(lang, "trend_section"), _trend_ascii(data.get("daily_trend", []), lang))
 
 
-def _render_contribution_section(data: dict[str, Any], lang: str) -> str:
+def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
     contribution = data.get("contribution")
     if not isinstance(contribution, dict) or int(contribution.get("active_days", 0)) <= 0:
         return ""
@@ -664,7 +680,7 @@ def _render_contribution_section(data: dict[str, Any], lang: str) -> str:
     return _section(_t(lang, "contribution_section"), body, "contribution-section")
 
 
-def _render_wrapped_section(data: dict[str, Any], lang: str) -> str:
+def _render_wrapped_section(data: Mapping[str, Any], lang: str) -> str:
     wrapped = data.get("wrapped")
     if not isinstance(wrapped, dict):
         return ""
@@ -703,12 +719,12 @@ def _render_wrapped_section(data: dict[str, Any], lang: str) -> str:
     return _section(_t(lang, "wrapped_section"), body, "wrapped-section")
 
 
-def _render_persona_section(data: dict[str, Any], lang: str) -> str:
+def _render_persona_section(data: Mapping[str, Any], lang: str) -> str:
     persona_body = _persona_body(data.get("persona"), lang)
     return _section(_t(lang, "persona_section"), persona_body, "persona-section")
 
 
-def _render_session_section(data: dict[str, Any], lang: str) -> str:
+def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
     session_rows = []
     for idx, session in enumerate(data.get("top_sessions", []), 1):
         session_rows.append(f"""
@@ -736,7 +752,7 @@ def _render_session_section(data: dict[str, Any], lang: str) -> str:
     return _section(_t(lang, "session_section"), session_body, "session-section")
 
 
-def _render_ai_updates_section(data: dict[str, Any], lang: str) -> str:
+def _render_ai_updates_section(data: Mapping[str, Any], lang: str) -> str:
     raw_updates = data.get("ai_updates")
     if not isinstance(raw_updates, list) or not raw_updates:
         return ""
@@ -802,7 +818,7 @@ def _csv_cost(value: float | None) -> str:
     return f"{value:.4f}" if 0 < value < 1 else f"{value:.2f}"
 
 
-def _build_csv_data(data: dict[str, Any], lang: str, *, mask_projects: bool = False) -> str:
+def _build_csv_data(data: Mapping[str, Any], lang: str, *, mask_projects: bool = False) -> str:
     out = StringIO()
     writer = csv.writer(out, lineterminator="\r\n")
     writer.writerow(["type", "name", "share_pct", "tokens", "cost_usd"])
@@ -816,14 +832,14 @@ def _build_csv_data(data: dict[str, Any], lang: str, *, mask_projects: bool = Fa
                 _csv_cost(float(item.get("cost", 0.0))),
             ]
         )
-    for item in data.get("by_model", []):
-        cost_val = None if not item.get("cost_known", True) else float(item.get("cost", 0.0))
+    for model_item in data.get("by_model", []):
+        cost_val = None if not model_item.get("cost_known", True) else float(model_item.get("cost", 0.0))
         writer.writerow(
             [
                 "model",
-                _display_name(item.get("model"), lang),
-                f"{float(item.get('pct', 0.0)):.1f}",
-                str(int(item.get("tokens", 0))),
+                _display_name(model_item.get("model"), lang),
+                f"{float(model_item.get('pct', 0.0)):.1f}",
+                str(int(model_item.get("tokens", 0))),
                 _csv_cost(cost_val),
             ]
         )
@@ -1117,15 +1133,16 @@ document.addEventListener('click', (e) => {{
 """
 
 
-def generate_html(data: dict[str, Any], language: str | None = None) -> str:
+def generate_html(data: ReportData | Mapping[str, Any], language: str | None = None) -> str:
+    report_data = cast(ReportData, data)
     lang = language or _detect_lang()
     generated_at = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
-    cards = _summary_cards(data["summary"], lang)
+    cards = _summary_cards(report_data["summary"], lang)
     share_config_json = _share_config_json(lang)
-    csv_data_json = json.dumps(_build_csv_data(data, lang), ensure_ascii=False).replace("</", "<\\/")
-    masked_csv_data_json = json.dumps(_build_csv_data(data, lang, mask_projects=True), ensure_ascii=False).replace("</", "<\\/")
+    csv_data_json = json.dumps(_build_csv_data(report_data, lang), ensure_ascii=False).replace("</", "<\\/")
+    masked_csv_data_json = json.dumps(_build_csv_data(report_data, lang, mask_projects=True), ensure_ascii=False).replace("</", "<\\/")
     title = _t(lang, "title")
-    insight_surface = _render_insight_surface(data, lang)
+    insight_surface = _render_insight_surface(report_data, lang)
     return f"""<!doctype html>
 <html lang="{html.escape(lang)}">
 <head>
@@ -1138,18 +1155,18 @@ def generate_html(data: dict[str, Any], language: str | None = None) -> str:
 </head>
 <body>
 <main class="wrap">
-  {_render_header(data, lang, title, generated_at)}
+  {_render_header(report_data, lang, title, generated_at)}
   {_render_share_dialog(lang)}
   {_render_cards_section(cards)}
-  {_render_wrapped_section(data, lang)}
-{insight_surface}  {_render_tools_section(data, lang)}
-  {_render_project_section(data, lang)}
-  {_render_model_section(data, lang)}
-  {_render_trend_section(data, lang)}
-  {_render_contribution_section(data, lang)}
-  {_render_persona_section(data, lang)}
-  {_render_session_section(data, lang)}
-  {_render_ai_updates_section(data, lang)}
+  {_render_wrapped_section(report_data, lang)}
+{insight_surface}  {_render_tools_section(report_data, lang)}
+  {_render_project_section(report_data, lang)}
+  {_render_model_section(report_data, lang)}
+  {_render_trend_section(report_data, lang)}
+  {_render_contribution_section(report_data, lang)}
+  {_render_persona_section(report_data, lang)}
+  {_render_session_section(report_data, lang)}
+  {_render_ai_updates_section(report_data, lang)}
   {_render_sponsor_section(lang)}
 </main>
 <script>
@@ -1161,7 +1178,7 @@ def generate_html(data: dict[str, Any], language: str | None = None) -> str:
 
 
 def save_and_open(
-    data: dict[str, Any],
+    data: ReportData | Mapping[str, Any],
     out_path: str | None = None,
     language: str | None = None,
 ) -> str:

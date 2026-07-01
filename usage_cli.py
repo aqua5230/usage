@@ -90,6 +90,29 @@ Options:
   -h, --help  Show this help
 """
 
+_REPORT_EXPORT_OPTIONS = {
+    "report": {
+        "-h",
+        "--help",
+        "--last30",
+        "--today",
+        "--last7",
+        "--week",
+        "--month",
+        "--all",
+        "--out",
+    },
+    "export": {
+        "-h",
+        "--help",
+        "--daily",
+        "--weekly",
+        "--monthly",
+        "--sessions",
+        "--out",
+    },
+}
+
 EXPORT_FIELDS: dict[str, list[str]] = {
     "daily": [
         "agent_id", "date", "input_tokens", "output_tokens",
@@ -139,13 +162,12 @@ def _parse_sort_args(args: list[str]) -> tuple[list[str], str | None, bool]:
 
 def _parse_report_args(args: list[str]) -> tuple[str, str | None, bool]:
     period = "last30"
-    out_path = None
-    show_help = False
+    out_path, show_help = _parse_out_and_help(args, "report")
     i = 0
     while i < len(args):
         arg = args[i]
         if arg in {"-h", "--help"}:
-            show_help = True
+            pass
         elif arg == "--last30":
             period = "last30"
         elif arg == "--today":
@@ -158,17 +180,11 @@ def _parse_report_args(args: list[str]) -> tuple[str, str | None, bool]:
             period = "month"
         elif arg == "--all":
             period = "all"
-        elif arg.startswith("--out="):
-            out_path = arg[6:]
-        elif arg == "--out":
-            if i + 1 >= len(args) or args[i + 1].startswith("--"):
-                console.print("[red]Error:[/red] --out requires a path")
-                sys.exit(1)
-            out_path = args[i + 1]
-            i += 1
+        elif _is_out_arg(arg):
+            if arg == "--out":
+                i += 1
         elif arg.startswith("-"):
-            console.print(f"[red]Error:[/red] unknown report option: {arg}")
-            sys.exit(1)
+            _exit_unknown_option("report", arg)
         else:
             console.print(f"[red]Error:[/red] unexpected report argument: {arg}")
             sys.exit(1)
@@ -178,13 +194,12 @@ def _parse_report_args(args: list[str]) -> tuple[str, str | None, bool]:
 
 def _parse_export_args(args: list[str]) -> tuple[str, str | None, bool]:
     export_type = "daily"
-    out_path = None
-    show_help = False
+    out_path, show_help = _parse_out_and_help(args, "export")
     i = 0
     while i < len(args):
         arg = args[i]
         if arg in {"-h", "--help"}:
-            show_help = True
+            pass
         elif arg == "--daily":
             export_type = "daily"
         elif arg == "--weekly":
@@ -193,6 +208,35 @@ def _parse_export_args(args: list[str]) -> tuple[str, str | None, bool]:
             export_type = "monthly"
         elif arg == "--sessions":
             export_type = "sessions"
+        elif _is_out_arg(arg):
+            if arg == "--out":
+                i += 1
+        elif arg.startswith("-"):
+            _exit_unknown_option("export", arg)
+        else:
+            console.print(f"[red]Error:[/red] unexpected export argument: {arg}")
+            sys.exit(1)
+        i += 1
+    return export_type, out_path, show_help
+
+
+def _is_out_arg(arg: str) -> bool:
+    return arg == "--out" or arg.startswith("--out=")
+
+
+def _exit_unknown_option(command: str, arg: str) -> None:
+    console.print(f"[red]Error:[/red] unknown {command} option: {arg}")
+    sys.exit(1)
+
+
+def _parse_out_and_help(args: list[str], command: str) -> tuple[str | None, bool]:
+    out_path = None
+    show_help = False
+    i = 0
+    while i < len(args):
+        arg = args[i]
+        if arg in {"-h", "--help"}:
+            show_help = True
         elif arg.startswith("--out="):
             out_path = arg[6:]
         elif arg == "--out":
@@ -201,14 +245,10 @@ def _parse_export_args(args: list[str]) -> tuple[str, str | None, bool]:
                 sys.exit(1)
             out_path = args[i + 1]
             i += 1
-        elif arg.startswith("-"):
-            console.print(f"[red]Error:[/red] unknown export option: {arg}")
-            sys.exit(1)
-        else:
-            console.print(f"[red]Error:[/red] unexpected export argument: {arg}")
-            sys.exit(1)
+        elif arg.startswith("-") and arg not in _REPORT_EXPORT_OPTIONS[command]:
+            _exit_unknown_option(command, arg)
         i += 1
-    return export_type, out_path, show_help
+    return out_path, show_help
 
 
 def _csv_row(stat: Any, fields: list[str]) -> dict[str, Any]:
