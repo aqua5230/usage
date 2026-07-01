@@ -78,8 +78,49 @@ def test_calculate_cost_returns_zero_for_unknown_model(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(pricing, "get_pricing", lambda: {"known": {"input_cost_per_token": 1.0}})
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None: None)
 
     assert pricing.calculate_cost(_entry(model="missing", input_tokens=100)) == 0.0
+
+
+def test_calculate_cost_triggers_pricing_refresh_for_unknown_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    warm_up_calls = 0
+
+    def fake_warm_up_pricing(on_ready: object = None) -> None:
+        nonlocal warm_up_calls
+        _ = on_ready
+        warm_up_calls += 1
+
+    monkeypatch.setattr(pricing, "get_pricing", lambda: {"known": {"input_cost_per_token": 1.0}})
+    monkeypatch.setattr(pricing, "warm_up_pricing", fake_warm_up_pricing)
+    monkeypatch.setattr("pricing.time.monotonic", lambda: 1.0)
+
+    assert pricing.calculate_cost(_entry(model="missing", input_tokens=100)) == 0.0
+    assert warm_up_calls == 1
+
+
+def test_unknown_model_pricing_refresh_is_debounced(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    warm_up_calls = 0
+    now = 1_000.0
+
+    def fake_warm_up_pricing(on_ready: object = None) -> None:
+        nonlocal warm_up_calls
+        _ = on_ready
+        warm_up_calls += 1
+
+    monkeypatch.setattr(pricing, "get_pricing", lambda: {"known": {"input_cost_per_token": 1.0}})
+    monkeypatch.setattr(pricing, "warm_up_pricing", fake_warm_up_pricing)
+    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
+
+    assert pricing.calculate_cost(_entry(model="missing", input_tokens=100)) == 0.0
+    assert pricing.calculate_cost(_entry(model="missing", input_tokens=100)) == 0.0
+    now += pricing.FALLBACK_RETRY_SECONDS + 1
+    assert pricing.calculate_cost(_entry(model="missing", input_tokens=100)) == 0.0
+    assert warm_up_calls == 2
 
 
 def test_calculate_cost_sums_all_token_types(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -238,6 +279,7 @@ def test_fallback_pricing_contains_expected_models() -> None:
 
     assert "claude-opus-4-7" in fallback
     assert "claude-sonnet-4-6" in fallback
+    assert "claude-sonnet-5" in fallback
     assert "claude-haiku-4-5-20251001" in fallback
     assert fallback["claude-opus-4-6"] == {
         "input_cost_per_token": 15e-6,
@@ -250,6 +292,12 @@ def test_fallback_pricing_contains_expected_models() -> None:
         "output_cost_per_token": 75e-6,
         "cache_creation_input_token_cost": 18.75e-6,
         "cache_read_input_token_cost": 1.5e-6,
+    }
+    assert fallback["claude-sonnet-5"] == {
+        "input_cost_per_token": 2e-6,
+        "output_cost_per_token": 10e-6,
+        "cache_creation_input_token_cost": 2.5e-6,
+        "cache_read_input_token_cost": 0.2e-6,
     }
 
 
@@ -708,6 +756,7 @@ def test_is_model_priced_returns_false_for_unknown_model(
         "claude-opus-4-8": {"input_cost_per_token": 15e-6},
     }
     pricing._set_pricing_cache_for_test((pricing_table, "cache", 0.0))
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None: None)
 
     assert pricing.is_model_priced("glm-5.2") is False
     assert pricing.is_model_priced("unknown-model") is False

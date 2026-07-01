@@ -30,6 +30,7 @@ CACHE_PATH = DEFAULT_CACHE_PATH
 LEGACY_CACHE_PATH = DEFAULT_LEGACY_CACHE_PATH
 CACHE_TTL_DAYS = 7
 FALLBACK_RETRY_SECONDS = 600
+MISSING_MODEL_REFRESH_SECONDS = FALLBACK_RETRY_SECONDS
 USER_AGENT = "usage/0.9"
 PROVIDER_PREFIXES = (
     "openai/",
@@ -48,6 +49,8 @@ PricingSource = Literal["cache", "stale", "fetched", "fallback"]
 _pricing_cache: tuple[PricingTable, PricingSource, float] | None = None
 _pricing_cache_lock = threading.Lock()
 _pricing_warm_up_in_progress = False
+_pricing_miss_refresh_at: float | None = None
+_pricing_miss_refresh_lock = threading.Lock()
 
 
 class _CostEntry(Protocol):
@@ -66,6 +69,7 @@ def calculate_cost(entry: _CostEntry) -> float:
     pricing = get_pricing()
     model_key = _resolve_model_key(entry.model, pricing)
     if model_key is None:
+        _request_pricing_refresh_for_missing_model()
         return 0.0
 
     model_pricing = pricing[model_key]
@@ -89,7 +93,11 @@ def calculate_cost(entry: _CostEntry) -> float:
 def is_model_priced(model: str) -> bool:
     """Check if a model has pricing information available."""
     pricing = get_pricing()
-    return _resolve_model_key(model, pricing) is not None
+    model_key = _resolve_model_key(model, pricing)
+    if model_key is None:
+        _request_pricing_refresh_for_missing_model()
+        return False
+    return True
 
 
 def get_pricing() -> PricingTable:
@@ -176,9 +184,11 @@ def _get_pricing_cache_for_test() -> tuple[PricingTable, PricingSource, float] |
 
 
 def _reset_pricing_warm_up_for_test() -> None:
-    global _pricing_warm_up_in_progress
+    global _pricing_warm_up_in_progress, _pricing_miss_refresh_at
     with _pricing_cache_lock:
         _pricing_warm_up_in_progress = False
+    with _pricing_miss_refresh_lock:
+        _pricing_miss_refresh_at = None
 
 
 def _load_pricing() -> PricingTable:
@@ -326,6 +336,12 @@ def _fallback_pricing() -> PricingTable:
             "cache_creation_input_token_cost": 3.75e-6,
             "cache_read_input_token_cost": 0.3e-6,
         },
+        "claude-sonnet-5": {
+            "input_cost_per_token": 2e-6,
+            "output_cost_per_token": 10e-6,
+            "cache_creation_input_token_cost": 2.5e-6,
+            "cache_read_input_token_cost": 0.2e-6,
+        },
         "claude-haiku-4-5-20251001": {
             "input_cost_per_token": 0.8e-6,
             "output_cost_per_token": 4e-6,
@@ -333,3 +349,16 @@ def _fallback_pricing() -> PricingTable:
             "cache_read_input_token_cost": 0.08e-6,
         },
     }
+
+
+def _request_pricing_refresh_for_missing_model() -> None:
+    global _pricing_miss_refresh_at
+    now = time.monotonic()
+    with _pricing_miss_refresh_lock:
+        if (
+            _pricing_miss_refresh_at is not None
+            and (now - _pricing_miss_refresh_at) < MISSING_MODEL_REFRESH_SECONDS
+        ):
+            return
+        _pricing_miss_refresh_at = now
+    warm_up_pricing()
