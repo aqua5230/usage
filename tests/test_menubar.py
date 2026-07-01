@@ -19,6 +19,7 @@ import history_loader
 import menubar
 import menubar_state
 import statusline_settings
+from burn_rate import BurnRateTracker
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
 
@@ -151,6 +152,31 @@ def _build_popover_state(
         hide_codex=menubar._hide_codex_enabled(),
         codex_stale=None,
     )
+
+
+@pytest.fixture(scope="module")
+def _cached_state_delegate() -> menubar.AppDelegate:
+    delegate: menubar.AppDelegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    return delegate
+
+
+def _reset_state_delegate(delegate: menubar.AppDelegate) -> menubar.AppDelegate:
+    delegate.language = menubar._detect_language()
+    delegate.latest_state = menubar._empty_state(delegate.language)
+    delegate.codex_5h_pct = None
+    delegate.codex_model = "unknown"
+    delegate.burn_rate_trackers = {
+        "claude_session": BurnRateTracker(),
+        "claude_weekly": BurnRateTracker(),
+        "codex_session": BurnRateTracker(),
+        "codex_weekly": BurnRateTracker(),
+    }
+    return delegate
+
+
+@pytest.fixture
+def state_delegate(_cached_state_delegate: menubar.AppDelegate) -> menubar.AppDelegate:
+    return _reset_state_delegate(_cached_state_delegate)
 
 
 def test_format_human_time_zero_and_negative() -> None:
@@ -1768,8 +1794,9 @@ def test_switching_visible_panel_reuses_popover(monkeypatch: pytest.MonkeyPatch)
 
 def test_state_from_outcome_replaces_claude_reset_with_warning(
     monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
 ) -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    delegate = state_delegate
     delegate.language = "zh-TW"
     monkeypatch.setattr("time.time", lambda: 1_600.0)
     delegate.burn_rate_trackers["claude_session"].record(1_000.0, 72.0)
@@ -1796,8 +1823,11 @@ def test_state_from_outcome_replaces_claude_reset_with_warning(
     assert state.claude_session.reset_text == "⚠ 按目前速度 18分鐘 就會用完(重置還要 51分鐘)"
 
 
-def test_codex_rows_ignores_invalid_stale_timestamp(monkeypatch: pytest.MonkeyPatch) -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+def test_codex_rows_ignores_invalid_stale_timestamp(
+    monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
+) -> None:
+    delegate = state_delegate
     monkeypatch.setattr("time.time", lambda: 1_700_000_000.0)
     monkeypatch.setattr(
         codex_loader,
@@ -1829,8 +1859,9 @@ def test_codex_window_label_key_maps_window_to_label() -> None:
 
 def test_codex_rows_free_plan_labels_window_as_monthly(
     monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
 ) -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    delegate = state_delegate
     delegate.language = "en"
     monkeypatch.setattr("time.time", lambda: 1_700_000_000.0)
     monkeypatch.setattr(
@@ -1860,8 +1891,9 @@ def test_codex_rows_free_plan_labels_window_as_monthly(
 
 def test_state_from_outcome_keeps_reset_when_burn_rate_is_not_positive(
     monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
 ) -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    delegate = state_delegate
     delegate.language = "zh-TW"
     monkeypatch.setattr("time.time", lambda: 1_600.0)
     delegate.burn_rate_trackers["claude_session"].record(1_000.0, 82.0)
@@ -1890,8 +1922,9 @@ def test_state_from_outcome_keeps_reset_when_burn_rate_is_not_positive(
 
 def test_state_from_outcome_translates_awaiting_rate_limits_message(
     monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
 ) -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    delegate = state_delegate
     delegate.language = "zh-TW"
     monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: False)
 
@@ -1906,8 +1939,9 @@ def test_state_from_outcome_translates_awaiting_rate_limits_message(
 
 def test_state_from_outcome_translates_hook_broken_message(
     monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
 ) -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    delegate = state_delegate
     delegate.language = "en"
     monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: False)
 
@@ -1936,8 +1970,9 @@ def test_state_from_outcome_translates_hook_broken_message(
 
 def test_state_from_outcome_hides_setup_button_when_no_statusline_target_exists(
     monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
 ) -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    delegate = state_delegate
     monkeypatch.setattr(delegate, "_statusline_setup_available", lambda: False)
 
     state = _build_popover_state(
@@ -1951,8 +1986,9 @@ def test_state_from_outcome_hides_setup_button_when_no_statusline_target_exists(
 
 def test_state_from_outcome_hides_claude_error_and_setup_button(
     monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
 ) -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    delegate = state_delegate
     delegate.language = "zh-TW"
     monkeypatch.setattr(delegate, "_statusline_setup_available", lambda: True)
     monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: True)
@@ -1970,8 +2006,9 @@ def test_state_from_outcome_hides_claude_error_and_setup_button(
 
 def test_state_from_outcome_shows_setup_button_for_codex_only(
     monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
 ) -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    delegate = state_delegate
     monkeypatch.setattr(delegate, "_statusline_setup_available", lambda: True)
     monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: False)
 

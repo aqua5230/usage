@@ -7,26 +7,18 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
 import setup_hook
+from tests.helpers import ResumeHookPaths
 
 
-def _patch(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[Path, Path, Path]:
-    claude_dir = tmp_path / ".claude"
-    claude_dir.mkdir()
-    settings = claude_dir / "settings.json"
-    resume_target = claude_dir / "usage-session-resume.py"
-    sidecar = claude_dir / "usage-resume-prompt.json"
-    source = tmp_path / "usage_session_resume.py"
-    source.write_text('__version__ = "1.0"\nprint("resume")\n', encoding="utf-8")
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
-    monkeypatch.setattr(setup_hook, "RESUME_HOOK_TARGET", resume_target)
-    monkeypatch.setattr(setup_hook, "RESUME_PROMPT_SIDECAR", sidecar)
-    monkeypatch.setattr(setup_hook, "_resolve_resume_source", lambda: source)
-    return settings, resume_target, sidecar
+@pytest.fixture
+def resume_paths(patch_resume_hook_paths: Callable[..., ResumeHookPaths]) -> ResumeHookPaths:
+    return patch_resume_hook_paths()
 
 
 def _resume_entries(settings: Path) -> list[dict[str, object]]:
@@ -35,9 +27,11 @@ def _resume_entries(settings: Path) -> list[dict[str, object]]:
 
 
 def test_enable_registers_hook_and_writes_sidecar(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    resume_paths: ResumeHookPaths,
 ) -> None:
-    settings, resume_target, sidecar = _patch(monkeypatch, tmp_path)
+    settings = resume_paths.settings
+    resume_target = resume_paths.resume_target
+    sidecar = resume_paths.sidecar
 
     assert setup_hook.enable_session_resume() == 0
     assert setup_hook.is_resume_enabled()
@@ -54,7 +48,7 @@ def test_enable_registers_hook_and_writes_sidecar(
     command = first_hook["command"]
     assert isinstance(command, str)
     assert str(resume_target) not in command
-    assert str(tmp_path / "usage_session_resume.py") in command
+    assert str(resume_paths.source) in command
     # Sidecar carries the i18n-sourced prompt template for every shipped language.
     bundle = json.loads(sidecar.read_text(encoding="utf-8"))
     assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
@@ -66,17 +60,17 @@ def test_enable_registers_hook_and_writes_sidecar(
     assert "polluter_dirs" in bundle["en"]["diagnosis_causes"]
 
 
-def test_enable_is_idempotent(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    settings, _, _ = _patch(monkeypatch, tmp_path)
+def test_enable_is_idempotent(resume_paths: ResumeHookPaths) -> None:
+    settings = resume_paths.settings
     setup_hook.enable_session_resume()
     setup_hook.enable_session_resume()
     assert len(_resume_entries(settings)) == 1
 
 
 def test_enable_preserves_existing_hooks(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    resume_paths: ResumeHookPaths,
 ) -> None:
-    settings, _, _ = _patch(monkeypatch, tmp_path)
+    settings = resume_paths.settings
     settings.write_text(
         json.dumps(
             {
@@ -99,10 +93,10 @@ def test_enable_preserves_existing_hooks(
     assert data["hooks"]["PreToolUse"][0]["hooks"][0]["command"] == "guard"
 
 
-def test_disable_removes_entry_and_files(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    settings, resume_target, sidecar = _patch(monkeypatch, tmp_path)
+def test_disable_removes_entry_and_files(resume_paths: ResumeHookPaths) -> None:
+    settings = resume_paths.settings
+    resume_target = resume_paths.resume_target
+    sidecar = resume_paths.sidecar
     setup_hook.enable_session_resume()
 
     setup_hook.disable_session_resume()
@@ -114,9 +108,9 @@ def test_disable_removes_entry_and_files(
 
 
 def test_disable_keeps_other_session_start_hooks(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    resume_paths: ResumeHookPaths,
 ) -> None:
-    settings, _, _ = _patch(monkeypatch, tmp_path)
+    settings = resume_paths.settings
     setup_hook.enable_session_resume()
     data = json.loads(settings.read_text(encoding="utf-8"))
     data["hooks"]["SessionStart"].insert(
@@ -131,9 +125,11 @@ def test_disable_keeps_other_session_start_hooks(
 
 
 def test_self_heal_restores_missing_script_when_enabled(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    resume_paths: ResumeHookPaths,
 ) -> None:
-    _settings, resume_target, sidecar = _patch(monkeypatch, tmp_path)
+    _settings = resume_paths.settings
+    resume_target = resume_paths.resume_target
+    sidecar = resume_paths.sidecar
     setup_hook.enable_session_resume()
     resume_target.unlink()
     sidecar.unlink()
@@ -151,10 +147,12 @@ def test_self_heal_restores_missing_script_when_enabled(
 
 
 def test_self_heal_migrates_existing_target_command(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    resume_paths: ResumeHookPaths,
 ) -> None:
-    settings, resume_target, sidecar = _patch(monkeypatch, tmp_path)
-    source = tmp_path / "usage_session_resume.py"
+    settings = resume_paths.settings
+    resume_target = resume_paths.resume_target
+    sidecar = resume_paths.sidecar
+    source = resume_paths.source
     resume_target.write_text('__version__ = "1.2"\n', encoding="utf-8")
     sidecar.write_text("{}", encoding="utf-8")
     settings.write_text(
@@ -207,9 +205,10 @@ def test_self_heal_migrates_existing_target_command(
 
 
 def test_self_heal_does_not_repeat_resume_command_migration(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    resume_paths: ResumeHookPaths,
 ) -> None:
-    settings, _resume_target, sidecar = _patch(monkeypatch, tmp_path)
+    settings = resume_paths.settings
+    sidecar = resume_paths.sidecar
     setup_hook.enable_session_resume()
     sidecar.write_text("{}", encoding="utf-8")
     data = json.loads(settings.read_text(encoding="utf-8"))
@@ -236,19 +235,19 @@ def test_self_heal_does_not_repeat_resume_command_migration(
 
 
 def test_self_heal_noop_when_disabled(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    resume_paths: ResumeHookPaths,
 ) -> None:
-    _settings, resume_target, _sidecar = _patch(monkeypatch, tmp_path)
+    resume_target = resume_paths.resume_target
     setup_hook._self_heal_resume()
     assert not resume_target.exists()
 
 
 def test_disable_preserves_user_hook_in_shared_entry(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    resume_paths: ResumeHookPaths,
 ) -> None:
     # A user who tucked their own hook into the *same* SessionStart entry as ours must
     # not lose it when resume is disabled — we strip only our hook item, not the entry.
-    settings, _resume_target, _sidecar = _patch(monkeypatch, tmp_path)
+    settings = resume_paths.settings
     setup_hook.enable_session_resume()
     data = json.loads(settings.read_text(encoding="utf-8"))
     data["hooks"]["SessionStart"][0]["hooks"].append(

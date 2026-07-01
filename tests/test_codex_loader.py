@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import json
-import os
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -16,6 +15,10 @@ from typing import Any
 import pytest
 
 import codex_loader
+from tests.helpers import write_codex_session as _write_session
+from tests.helpers import (
+    write_codex_session_with_turn_context_model as _write_session_with_turn_context_model,
+)
 
 
 @pytest.fixture(autouse=True)
@@ -26,33 +29,6 @@ def _clear_jsonl_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", tmp_path / "missing-archived")
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
     monkeypatch.setattr(codex_loader, "STATE_DB", tmp_path / "missing-state.sqlite")
-
-
-def _write_session(
-    path: Path,
-    *,
-    session_id: str,
-    timestamp: str,
-    usage: dict[str, Any] | None = None,
-    rate_limits: dict[str, Any] | None = None,
-    mtime: float | None = None,
-    cwd: str = "/tmp/demo",
-) -> None:
-    lines = [
-        {
-            "type": "session_meta",
-            "payload": {"id": session_id, "timestamp": timestamp, "cwd": cwd},
-        },
-        {
-            "type": "event_msg",
-            "timestamp": timestamp,
-            "payload": {"type": "token_count", "info": {"total_token_usage": usage or {"input_tokens": 1}}, "rate_limits": rate_limits},  # noqa: E501
-        },
-    ]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
-    if mtime is not None:
-        os.utime(path, (mtime, mtime))
 
 
 def _write_rate_limit_session(path: Path, timestamp: str, rate_limits: dict[str, Any] | None, mtime: float) -> None:  # noqa: E501
@@ -142,42 +118,6 @@ def _write_fork_session(
     )
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
-
-
-def _write_session_with_turn_context_model(
-    path: Path,
-    *,
-    session_id: str,
-    timestamp: str,
-    model: str,
-    usage: dict[str, Any],
-    rate_limits: dict[str, Any] | None = None,
-    mtime: float | None = None,
-    cwd: str = "/tmp/demo",
-) -> None:
-    lines = [
-        {
-            "type": "session_meta",
-            "payload": {"id": session_id, "timestamp": timestamp, "cwd": cwd},
-        },
-        {
-            "type": "turn_context",
-            "payload": {"model": model, "cwd": cwd},
-        },
-        {
-            "type": "event_msg",
-            "timestamp": timestamp,
-            "payload": {
-                "type": "token_count",
-                "info": {"total_token_usage": usage},
-                "rate_limits": rate_limits,
-            },
-        },
-    ]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
-    if mtime is not None:
-        os.utime(path, (mtime, mtime))
 
 
 def test_load_entries_returns_empty_list_when_sessions_dir_missing(

@@ -7,53 +7,27 @@
 from __future__ import annotations
 
 import json
-import shutil
 import sys
 import tomllib
+from collections.abc import Callable
 from pathlib import Path
 
 import pytest
 
 import setup_hook
+from tests.helpers import SetupHookPaths
 
 LEGACY_NAME = "usag"
 
 
-def _patch_paths(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> tuple[Path, Path, Path]:
-    claude_dir = tmp_path / ".claude"
-    settings = claude_dir / "settings.json"
-    hook_target = claude_dir / "usage-statusline.py"
-    forwarder_target = claude_dir / "usage-statusline-forwarder.py"
-    status_file = claude_dir / "usage-status.json"
-    hook_source = tmp_path / "hook_source.py"
-    forwarder_source = tmp_path / "forwarder_source.py"
-    hook_source.write_text("print('hook')\n", encoding="utf-8")
-    forwarder_source.write_text("print('forwarder')\n", encoding="utf-8")
-    claude_dir.mkdir()
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
-    monkeypatch.setattr(setup_hook, "HOOK_TARGET", hook_target)
-    monkeypatch.setattr(setup_hook, "FORWARDER_TARGET", forwarder_target)
-    monkeypatch.setattr(setup_hook, "STATUS_FILE", status_file)
-    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", tmp_path / ".codex" / "config.toml")
-    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", tmp_path / ".codex" / "usage-backup.json")
-    monkeypatch.setattr(
-        setup_hook,
-        "LEGACY_HOOK_TARGET",
-        claude_dir / f"{LEGACY_NAME}-statusline.py",
-    )
-    monkeypatch.setattr(setup_hook, "LEGACY_STATUS_FILE", claude_dir / f"{LEGACY_NAME}-status.json")
-    monkeypatch.setattr(setup_hook, "_resolve_hook_source", lambda: hook_source)
-    monkeypatch.setattr(setup_hook, "_resolve_forwarder_source", lambda: forwarder_source)
-    monkeypatch.setattr(shutil, "which", lambda _: "/usr/bin/python3")
-    return settings, hook_target, status_file
+@pytest.fixture
+def setup_paths(patch_setup_hook_paths: Callable[..., SetupHookPaths]) -> SetupHookPaths:
+    return patch_setup_hook_paths(legacy_name=LEGACY_NAME)
 
 
-def test_setup_creates_new_settings_with_usage_statusline(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    settings, hook_target, _ = _patch_paths(monkeypatch, tmp_path)
+def test_setup_creates_new_settings_with_usage_statusline(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
 
     exit_code = setup_hook.setup()
     data = json.loads(settings.read_text(encoding="utf-8"))
@@ -65,9 +39,10 @@ def test_setup_creates_new_settings_with_usage_statusline(
 
 
 def test_setup_backs_up_existing_statusline_and_is_idempotent(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    setup_paths: SetupHookPaths,
 ) -> None:
-    settings, hook_target, _ = _patch_paths(monkeypatch, tmp_path)
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
     original = {"type": "command", "command": "echo original"}
     settings.write_text(json.dumps({"statusLine": original}), encoding="utf-8")
 
@@ -81,10 +56,10 @@ def test_setup_backs_up_existing_statusline_and_is_idempotent(
     assert setup_hook.FORWARDER_TARGET.exists()
 
 
-def test_unsetup_restores_backup_and_removes_hook_files(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    settings, hook_target, status_file = _patch_paths(monkeypatch, tmp_path)
+def test_unsetup_restores_backup_and_removes_hook_files(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
+    status_file = setup_paths.status_file
     previous = {"type": "command", "command": "echo original"}
     settings.write_text(
         json.dumps(
@@ -111,19 +86,17 @@ def test_unsetup_restores_backup_and_removes_hook_files(
 
 
 def test_unsetup_without_install_is_safe_and_is_usage_hook_detects_commands(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    setup_paths: SetupHookPaths,
 ) -> None:
-    _patch_paths(monkeypatch, tmp_path)
+    _ = setup_paths
 
     assert setup_hook.unsetup() == 0
     assert setup_hook._is_usage_hook({"command": "python3 /tmp/usage-statusline.py"})
     assert not setup_hook._is_usage_hook({"command": "python3 /tmp/other.py"})
 
 
-def test_migration_removes_legacy_files_and_moves_backup(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    settings, _, _ = _patch_paths(monkeypatch, tmp_path)
+def test_migration_removes_legacy_files_and_moves_backup(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
     legacy_hook = setup_hook.LEGACY_HOOK_TARGET
     legacy_status = setup_hook.LEGACY_STATUS_FILE
     legacy_hook.write_text("legacy hook\n", encoding="utf-8")
@@ -152,10 +125,8 @@ def test_migration_removes_legacy_files_and_moves_backup(
     assert data["usage"]["previousStatusLine"] == previous
 
 
-def test_migrate_legacy_usage_skips_bad_utf8_settings(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    settings, _, _ = _patch_paths(monkeypatch, tmp_path)
+def test_migrate_legacy_usage_skips_bad_utf8_settings(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
     settings.write_bytes(b"\xff\xfe{")
 
     setup_hook._migrate_from_legacy_usage()
@@ -163,10 +134,8 @@ def test_migrate_legacy_usage_skips_bad_utf8_settings(
     assert settings.read_bytes() == b"\xff\xfe{"
 
 
-def test_load_settings_bad_utf8_raises_system_exit(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    settings, _, _ = _patch_paths(monkeypatch, tmp_path)
+def test_load_settings_bad_utf8_raises_system_exit(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
     settings.write_bytes(b"\xff\xfe{")
 
     with pytest.raises(SystemExit, match="settings.json"):
@@ -274,9 +243,9 @@ note = """
 
 
 def test_setup_preserves_initial_backup_on_reinstall(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    setup_paths: SetupHookPaths,
 ) -> None:
-    settings, _, _ = _patch_paths(monkeypatch, tmp_path)
+    settings = setup_paths.settings
     original = {"type": "command", "command": "echo original"}
     replacement = {"type": "command", "command": "echo replacement"}
     settings.write_text(json.dumps({"statusLine": original}), encoding="utf-8")
@@ -397,10 +366,9 @@ def test_unsetup_codex_bad_utf8_backup_falls_back_to_empty_status_line(
     assert not codex_backup.exists()
 
 
-def test_self_heal_installs_when_no_statusline(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    settings, hook_target, _ = _patch_paths(monkeypatch, tmp_path)
+def test_self_heal_installs_when_no_statusline(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
 
     setup_hook.self_heal()
     data = json.loads(settings.read_text(encoding="utf-8"))
@@ -409,10 +377,9 @@ def test_self_heal_installs_when_no_statusline(
     assert data["usage"]["selfHealLog"][-1]["action"] == "install_hook"
 
 
-def test_self_heal_skips_external_statusline(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
-    settings, hook_target, _ = _patch_paths(monkeypatch, tmp_path)
+def test_self_heal_skips_external_statusline(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
     external = {"type": "command", "command": "python3 ccusage.py"}
     settings.write_text(json.dumps({"statusLine": external}), encoding="utf-8")
 
@@ -424,10 +391,12 @@ def test_self_heal_skips_external_statusline(
 
 
 def test_self_heal_updates_owned_hook(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
 ) -> None:
-    settings, hook_target, _ = _patch_paths(monkeypatch, tmp_path)
-    source = tmp_path / "hook_source.py"
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
+    source = setup_paths.hook_source
     source.write_text('__version__ = "1.0"\n', encoding="utf-8")
     monkeypatch.setattr(setup_hook, "_resolve_hook_source", lambda: source)
     settings.write_text(
@@ -446,9 +415,12 @@ def test_self_heal_updates_owned_hook(
 
 
 def test_setup_migrates_bundled_python_commands(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+    tmp_path: Path,
 ) -> None:
-    settings, hook_target, _ = _patch_paths(monkeypatch, tmp_path)
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
     resume_source = tmp_path / "usage_session_resume.py"
     resume_source.write_text('__version__ = "1.0"\n', encoding="utf-8")
     monkeypatch.setattr(setup_hook, "_resolve_resume_source", lambda: resume_source)
@@ -497,9 +469,12 @@ def test_setup_migrates_bundled_python_commands(
 
 
 def test_setup_keeps_correct_python_commands_unchanged(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+    tmp_path: Path,
 ) -> None:
-    settings, hook_target, _ = _patch_paths(monkeypatch, tmp_path)
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
     resume_source = tmp_path / "usage_session_resume.py"
     resume_source.write_text('__version__ = "1.0"\n', encoding="utf-8")
     monkeypatch.setattr(setup_hook, "_resolve_resume_source", lambda: resume_source)

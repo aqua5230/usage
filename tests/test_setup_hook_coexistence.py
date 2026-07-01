@@ -10,6 +10,7 @@ import io
 import json
 import os
 import sys
+from collections.abc import Callable
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -20,35 +21,24 @@ import main
 import setup_hook
 import usage_client
 import usage_statusline_forwarder
+from tests.helpers import SetupHookPaths
 
 
-def _patch_setup_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[Path, Path, Path]:
-    claude_dir = tmp_path / ".claude"
-    claude_dir.mkdir()
-    settings = claude_dir / "settings.json"
-    hook_target = claude_dir / "usage-statusline.py"
-    forwarder_target = claude_dir / "usage-statusline-forwarder.py"
-    hook_source = tmp_path / "usage_statusline.py"
-    forwarder_source = tmp_path / "usage_statusline_forwarder.py"
-    hook_source.write_text("print('usage')\n", encoding="utf-8")
-    forwarder_source.write_text("print('forwarder')\n", encoding="utf-8")
-
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
-    monkeypatch.setattr(setup_hook, "HOOK_TARGET", hook_target)
-    monkeypatch.setattr(setup_hook, "FORWARDER_TARGET", forwarder_target)
-    monkeypatch.setattr(setup_hook, "STATUS_FILE", claude_dir / "usage-status.json")
-    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", tmp_path / ".codex" / "config.toml")
-    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", tmp_path / ".codex" / "usage-backup.json")
-    monkeypatch.setattr(setup_hook, "_resolve_hook_source", lambda: hook_source)
-    monkeypatch.setattr(setup_hook, "_resolve_forwarder_source", lambda: forwarder_source)
-    monkeypatch.setattr("setup_hook.shutil.which", lambda _: "/usr/bin/python3")
-    return settings, hook_target, forwarder_target
+@pytest.fixture
+def setup_paths(patch_setup_hook_paths: Callable[..., SetupHookPaths]) -> SetupHookPaths:
+    return patch_setup_hook_paths(
+        hook_source_name="usage_statusline.py",
+        forwarder_source_name="usage_statusline_forwarder.py",
+        hook_source_text="print('usage')\n",
+    )
 
 
 def test_install_when_no_existing_statusline(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    setup_paths: SetupHookPaths,
 ) -> None:
-    settings, hook_target, forwarder_target = _patch_setup_paths(monkeypatch, tmp_path)
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
+    forwarder_target = setup_paths.forwarder_target
 
     assert setup_hook.setup() == 0
     data = json.loads(settings.read_text(encoding="utf-8"))
@@ -59,9 +49,11 @@ def test_install_when_no_existing_statusline(
 
 
 def test_install_when_tt_statusline_exists(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    setup_paths: SetupHookPaths,
 ) -> None:
-    settings, hook_target, forwarder_target = _patch_setup_paths(monkeypatch, tmp_path)
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
+    forwarder_target = setup_paths.forwarder_target
     legacy_name = "tt" + "-statusline.py"
     external = {"type": "command", "command": f"python3 ~/.claude/{legacy_name}"}
     settings.write_text(json.dumps({"statusLine": external}), encoding="utf-8")
@@ -76,9 +68,10 @@ def test_install_when_tt_statusline_exists(
 
 
 def test_install_when_forwarder_already_exists(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    setup_paths: SetupHookPaths,
 ) -> None:
-    settings, _, forwarder_target = _patch_setup_paths(monkeypatch, tmp_path)
+    settings = setup_paths.settings
+    forwarder_target = setup_paths.forwarder_target
     existing = {"type": "command", "command": f"/usr/bin/python3 {forwarder_target}"}
     settings.write_text(json.dumps({"statusLine": existing}), encoding="utf-8")
 
@@ -134,9 +127,12 @@ def test_forwarder_ignores_failed_hook(tmp_path: Path, monkeypatch: pytest.Monke
 
 
 def test_health_check_triggers_repair_when_displaced(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    setup_paths: SetupHookPaths,
 ) -> None:
-    settings, hook_target, _ = _patch_setup_paths(monkeypatch, tmp_path)
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
     settings.write_text(
         json.dumps({"statusLine": {"type": "command", "command": "python3 other.py"}}),
         encoding="utf-8",
@@ -158,9 +154,12 @@ def test_health_check_triggers_repair_when_displaced(
 
 
 def test_health_check_triggers_repair_when_hook_detection_raises(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    setup_paths: SetupHookPaths,
 ) -> None:
-    settings, hook_target, _ = _patch_setup_paths(monkeypatch, tmp_path)
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
     settings.write_text(
         json.dumps({"statusLine": {"type": "command", "command": "python3 usage-statusline.py"}}),
         encoding="utf-8",
@@ -188,9 +187,11 @@ def test_health_check_triggers_repair_when_hook_detection_raises(
 
 
 def test_health_check_does_not_prompt_on_first_run_when_hook_detection_raises(
-    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    setup_paths: SetupHookPaths,
 ) -> None:
-    _settings, _hook_target, _ = _patch_setup_paths(monkeypatch, tmp_path)
+    _ = setup_paths
     monkeypatch.setattr(main, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
     monkeypatch.setattr(
         usage_client,

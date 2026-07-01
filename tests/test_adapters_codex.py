@@ -6,87 +6,21 @@
 
 from __future__ import annotations
 
-import json
-import os
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
 
 import pytest
 
 from adapters import codex
+from tests.helpers import write_codex_session as _write_session
+from tests.helpers import (
+    write_codex_session_with_turn_context_model as _write_session_with_turn_context_model,
+)
 
 
 @pytest.fixture(autouse=True)
 def _clear_file_cache() -> None:
     codex._file_cache.clear()
-
-
-def _write_session(
-    path: Path,
-    *,
-    session_id: str,
-    timestamp: str,
-    usage: dict[str, Any] | None = None,
-    rate_limits: dict[str, Any] | None = None,
-    mtime: float | None = None,
-    cwd: str = "/tmp/demo",
-) -> None:
-    lines = [
-        {
-            "type": "session_meta",
-            "payload": {"id": session_id, "timestamp": timestamp, "cwd": cwd},
-        },
-        {
-            "type": "event_msg",
-            "timestamp": timestamp,
-            "payload": {
-                "type": "token_count",
-                "info": {"total_token_usage": usage or {"input_tokens": 1}},
-                "rate_limits": rate_limits,
-            },
-        },
-    ]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
-    if mtime is not None:
-        os.utime(path, (mtime, mtime))
-
-
-def _write_session_with_turn_context_model(
-    path: Path,
-    *,
-    session_id: str,
-    timestamp: str,
-    model: str,
-    usage: dict[str, Any],
-    rate_limits: dict[str, Any] | None = None,
-    mtime: float | None = None,
-    cwd: str = "/tmp/demo",
-) -> None:
-    lines = [
-        {
-            "type": "session_meta",
-            "payload": {"id": session_id, "timestamp": timestamp, "cwd": cwd},
-        },
-        {
-            "type": "turn_context",
-            "payload": {"model": model, "cwd": cwd},
-        },
-        {
-            "type": "event_msg",
-            "timestamp": timestamp,
-            "payload": {
-                "type": "token_count",
-                "info": {"total_token_usage": usage},
-                "rate_limits": rate_limits,
-            },
-        },
-    ]
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text("\n".join(json.dumps(line) for line in lines), encoding="utf-8")
-    if mtime is not None:
-        os.utime(path, (mtime, mtime))
 
 
 def test_loaders_skip_bad_utf8_jsonl_without_crashing(
