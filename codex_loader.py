@@ -6,14 +6,10 @@
 
 from __future__ import annotations
 
-import contextlib
 import json
 import logging
-import math
 import os
-import re
 import sqlite3
-import tempfile
 from collections import OrderedDict
 from contextlib import closing
 from dataclasses import dataclass
@@ -21,6 +17,42 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from codex_disk_cache import (  # noqa: F401  (de)serializers re-exported for tests
+    _deserialize_usage_entry as _deserialize_usage_entry,
+)
+from codex_disk_cache import (
+    _serialize_usage_entry as _serialize_usage_entry,
+)
+from codex_disk_cache import (
+    flush_caches,
+    seed_caches,
+)
+from codex_events import (
+    _as_dict,
+    _as_int,
+    _as_optional_float,
+    _as_str,
+    _event_value,
+    _load_json_line,
+    _session_model,
+    _timestamp_from_log_ts,
+    _token_usage_from_payload,
+    _TokenUsage,
+)
+from codex_events import (
+    _SessionFileInfo as _SessionFileInfo,
+)
+from codex_events import (
+    _ThreadMetadata as _ThreadMetadata,
+)
+from codex_fork_replay import (
+    _common_prefix_length,
+    _fork_replay_lookup_key,
+    _raw_token_usage_sequence,
+    _ReplayCacheKey,
+    _ReplayLookupKey,
+    _token_usage_events_after_embedded_parent,
+)
 from history_loader import UsageEntry
 from project_resolver import resolve_project_name
 from time_utils import parse_optional_iso8601_utc
@@ -29,12 +61,10 @@ logger = logging.getLogger(__name__)
 
 _JSONL_CACHE_MAXSIZE = 512
 _RECENT_JSONL_SCAN_LIMIT = 30
-_ReplayCacheKey = tuple[str, float, int, int] | None
 _jsonl_cache: OrderedDict[
     Path,
     tuple[float, int, _ReplayCacheKey, list[UsageEntry]],
 ] = OrderedDict()
-_ReplayLookupKey = tuple[float, int, tuple[tuple[str, float, int], ...]]
 _fork_replay_cache: OrderedDict[
     Path,
     tuple[_ReplayLookupKey, int | None, _ReplayCacheKey],
@@ -73,167 +103,30 @@ class CodexRateLimits:
     updated_at: str = ""
 
 
-@dataclass(frozen=True, slots=True)
-class _ThreadMetadata:
-    model: str = "unknown"
-    cwd: str = ""
-
-
-@dataclass(frozen=True, slots=True)
-class _SessionFileInfo:
-    session_id: str = ""
-    forked_from_id: str = ""
-
-
-def _serialize_usage_entry(entry: UsageEntry) -> dict[str, Any]:
-    """Serialize UsageEntry to dict for JSON storage."""
-    return {
-        "timestamp": entry.timestamp.isoformat(),
-        "session_id": entry.session_id,
-        "message_id": entry.message_id,
-        "request_id": entry.request_id,
-        "model": entry.model,
-        "input_tokens": entry.input_tokens,
-        "output_tokens": entry.output_tokens,
-        "cache_creation_tokens": entry.cache_creation_tokens,
-        "cache_read_tokens": entry.cache_read_tokens,
-        "cost_usd": entry.cost_usd,
-        "project": entry.project,
-    }
-
-
-def _deserialize_usage_entry(data: dict[str, Any]) -> UsageEntry:
-    """Deserialize dict from JSON back to UsageEntry."""
-    return UsageEntry(
-        timestamp=datetime.fromisoformat(data["timestamp"]),
-        session_id=data["session_id"],
-        message_id=data["message_id"],
-        request_id=data["request_id"],
-        model=data["model"],
-        input_tokens=data["input_tokens"],
-        output_tokens=data["output_tokens"],
-        cache_creation_tokens=data["cache_creation_tokens"],
-        cache_read_tokens=data["cache_read_tokens"],
-        cost_usd=data["cost_usd"],
-        project=data["project"],
-    )
-
-
 def _seed_caches_from_disk() -> None:
-    """Seed in-memory caches from disk. Silently fails on any error."""
-    global _disk_cache_seeded, _jsonl_cache, _file_info_cache
+    """Seed in-memory caches from disk exactly once. Silently fails on any error."""
+    global _disk_cache_seeded
 
     if _disk_cache_seeded:
         return
     _disk_cache_seeded = True
-
-    try:
-        with JSONL_CACHE_PATH.open(encoding="utf-8") as f:
-            cache = json.load(f)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        return
-
-    if not isinstance(cache, dict):
-        return
-    if cache.get("schema_version") != _CODEX_JSONL_CACHE_SCHEMA:
-        return
-
-    files = cache.get("files")
-    if not isinstance(files, dict):
-        return
-
-    for path_str, file_data in files.items():
-        if not isinstance(file_data, dict):
-            continue
-        try:
-            path = Path(path_str)
-            mtime = file_data["mtime"]
-            size = file_data["size"]
-            session_id = file_data["session_id"]
-            forked_from_id = file_data["forked_from_id"]
-            entries_data = file_data["entries"]
-
-            # Seed file_info_cache
-            if len(_file_info_cache) >= _JSONL_CACHE_MAXSIZE:
-                _file_info_cache.popitem(last=False)
-            _file_info_cache[path] = (
-                mtime,
-                size,
-                _SessionFileInfo(session_id=session_id, forked_from_id=forked_from_id),
-            )
-
-            # Seed jsonl_cache only for non-fork files (entries not null)
-            if entries_data is not None:
-                if not isinstance(entries_data, list):
-                    continue
-                entries = [_deserialize_usage_entry(e) for e in entries_data]
-                if len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
-                    _jsonl_cache.popitem(last=False)
-                # Non-fork files have replay_cache_key = None
-                _jsonl_cache[path] = (mtime, size, None, entries)
-        except (KeyError, TypeError, ValueError):
-            # Skip malformed entry; continue with others
-            continue
+    seed_caches(
+        JSONL_CACHE_PATH,
+        _CODEX_JSONL_CACHE_SCHEMA,
+        _JSONL_CACHE_MAXSIZE,
+        _jsonl_cache,
+        _file_info_cache,
+    )
 
 
 def _flush_caches_to_disk() -> None:
     """Atomically write current in-memory caches to disk."""
-    tmp_path: str | None = None
-    try:
-        JSONL_CACHE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp_path = tempfile.mkstemp(dir=JSONL_CACHE_PATH.parent, suffix=".tmp")
-
-        files: dict[str, Any] = {}
-        # Write jsonl_cache entries
-        for path, (mtime, size, replay_cache_key, entries) in _jsonl_cache.items():
-            path_str = str(path)
-            # For fork files (replay_cache_key is not None), entries = null
-            if replay_cache_key is not None:
-                entries_data = None
-                # Still need session_id/forked_from_id from file_info_cache
-                info = _file_info_cache.get(path)
-                if info is None:
-                    continue
-                session_id = info[2].session_id
-                forked_from_id = info[2].forked_from_id
-            else:
-                entries_data = [_serialize_usage_entry(e) for e in entries]
-                if not entries:
-                    # Empty entries list: get info from file_info_cache
-                    info = _file_info_cache.get(path)
-                    if info is None:
-                        continue
-                    session_id = info[2].session_id
-                    forked_from_id = info[2].forked_from_id
-                else:
-                    session_id = entries[0].session_id
-                    forked_from_id = ""  # Not stored in UsageEntry
-
-            files[path_str] = {
-                "mtime": mtime,
-                "size": size,
-                "session_id": session_id,
-                "forked_from_id": forked_from_id,
-                "entries": entries_data,
-            }
-
-        payload = {
-            "schema_version": _CODEX_JSONL_CACHE_SCHEMA,
-            "cached_at": datetime.now(UTC).timestamp(),
-            "files": files,
-        }
-
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2, sort_keys=True)
-        os.replace(tmp_path, JSONL_CACHE_PATH)
-        tmp_path = None
-    except Exception as exc:
-        if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("failed to write codex jsonl cache %s: %s", JSONL_CACHE_PATH, exc)
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            with contextlib.suppress(OSError):
-                os.unlink(tmp_path)
+    flush_caches(
+        JSONL_CACHE_PATH,
+        _CODEX_JSONL_CACHE_SCHEMA,
+        _jsonl_cache,
+        _file_info_cache,
+    )
 
 
 def load_entries(hours_back: int = 0) -> list[UsageEntry]:
@@ -736,32 +629,6 @@ def _parse_sqlite_log_row(
     )
 
 
-_EVENT_VALUE_RE_CACHE: dict[str, re.Pattern[str]] = {}
-
-
-def _event_value(body: str, key: str) -> str:
-    pattern = _EVENT_VALUE_RE_CACHE.get(key)
-    if pattern is None:
-        pattern = re.compile(rf'(?:^|[\s{{]){re.escape(key)}=(?:"([^"]*)"|([^\s}}]+))')
-        _EVENT_VALUE_RE_CACHE[key] = pattern
-    match = pattern.search(body)
-    if match is None:
-        return ""
-    return match.group(1) if match.group(1) is not None else match.group(2)
-
-
-def _timestamp_from_log_ts(value: Any) -> datetime | None:
-    if isinstance(value, bool):
-        return None
-    try:
-        timestamp = float(value)
-    except (TypeError, ValueError):
-        return None
-    if not math.isfinite(timestamp):
-        return None
-    return datetime.fromtimestamp(timestamp, UTC)
-
-
 def _recent_jsonl_files() -> list[Path]:
     try:
         paths = [
@@ -913,24 +780,6 @@ def _fork_replay_boundary(
     return result
 
 
-def _fork_replay_lookup_key(
-    path: Path,
-    parent_paths: list[Path],
-) -> _ReplayLookupKey | None:
-    try:
-        child_stat = path.stat()
-    except OSError:
-        return None
-    parent_stats: list[tuple[str, float, int]] = []
-    for parent_path in parent_paths:
-        try:
-            parent_stat = parent_path.stat()
-        except OSError:
-            continue
-        parent_stats.append((str(parent_path), parent_stat.st_mtime, parent_stat.st_size))
-    return child_stat.st_mtime, child_stat.st_size, tuple(sorted(parent_stats))
-
-
 def _cache_fork_replay_boundary(
     path: Path,
     lookup_key: _ReplayLookupKey,
@@ -939,69 +788,6 @@ def _cache_fork_replay_boundary(
     if path not in _fork_replay_cache and len(_fork_replay_cache) >= _JSONL_CACHE_MAXSIZE:
         _fork_replay_cache.popitem(last=False)
     _fork_replay_cache[path] = (lookup_key, result[0], result[1])
-
-
-def _token_usage_events_after_embedded_parent(
-    path: Path,
-    parent_session_id: str,
-) -> list[tuple[int, _TokenUsage]] | None:
-    embedded_parent = False
-    root_seen = False
-    events: list[tuple[int, _TokenUsage]] = []
-    try:
-        with path.open(encoding="utf-8") as file:
-            for line_number, line in enumerate(file, start=1):
-                data = _load_json_line(line)
-                if data is None:
-                    continue
-                if data.get("type") == "session_meta":
-                    session_id = _as_str(_as_dict(data.get("payload")).get("id"))
-                    if not root_seen:
-                        root_seen = True
-                    elif session_id == parent_session_id:
-                        embedded_parent = True
-                    continue
-                usage = _token_usage_from_event(data)
-                if embedded_parent and usage is not None:
-                    events.append((line_number, usage))
-    except (OSError, UnicodeDecodeError):
-        return None
-    return events if embedded_parent else None
-
-
-def _raw_token_usage_sequence(path: Path) -> list[_TokenUsage]:
-    usage_events: list[_TokenUsage] = []
-    try:
-        with path.open(encoding="utf-8") as file:
-            for line in file:
-                data = _load_json_line(line)
-                if data is None:
-                    continue
-                usage = _token_usage_from_event(data)
-                if usage is not None:
-                    usage_events.append(usage)
-    except (OSError, UnicodeDecodeError):
-        return []
-    return usage_events
-
-
-def _token_usage_from_event(data: dict[str, Any]) -> _TokenUsage | None:
-    if data.get("type") != "event_msg":
-        return None
-    payload = _as_dict(data.get("payload"))
-    if payload.get("type") != "token_count":
-        return None
-    usage = _as_dict(_as_dict(payload.get("info")).get("total_token_usage"))
-    return _token_usage_from_payload(usage) if usage else None
-
-
-def _common_prefix_length(left: list[_TokenUsage], right: list[_TokenUsage]) -> int:
-    matched = 0
-    for left_usage, right_usage in zip(left, right, strict=False):
-        if left_usage != right_usage:
-            break
-        matched += 1
-    return matched
 
 
 def _parse_jsonl(
@@ -1113,45 +899,6 @@ def _parse_jsonl(
     return entries
 
 
-@dataclass(frozen=True, slots=True)
-class _TokenUsage:
-    input_tokens: int
-    output_tokens: int
-    cache_read_tokens: int
-
-    @property
-    def total_tokens(self) -> int:
-        return self.input_tokens + self.output_tokens + self.cache_read_tokens
-
-    def delta(self, previous: _TokenUsage | None) -> _TokenUsage:
-        if previous is None:
-            return self
-        return _TokenUsage(
-            input_tokens=max(0, self.input_tokens - previous.input_tokens),
-            output_tokens=max(0, self.output_tokens - previous.output_tokens),
-            cache_read_tokens=max(0, self.cache_read_tokens - previous.cache_read_tokens),
-        )
-
-
-def _token_usage_from_payload(usage: dict[str, Any]) -> _TokenUsage:
-    cached = _as_int(usage.get("cached_input_tokens"))
-    input_tokens = max(0, _as_int(usage.get("input_tokens")) - cached)
-    output_tokens = _as_int(usage.get("output_tokens"))
-    return _TokenUsage(
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        cache_read_tokens=cached,
-    )
-
-
-def _load_json_line(line: str) -> dict[str, Any] | None:
-    try:
-        data = json.loads(line)
-    except json.JSONDecodeError:
-        return None
-    return data if isinstance(data, dict) else None
-
-
 def _parse_timestamp(value: Any) -> datetime | None:
     return parse_optional_iso8601_utc(value)
 
@@ -1160,38 +907,3 @@ def _project_from_cwd(cwd: str) -> str:
     return resolve_project_name(cwd)
 
 
-def _as_dict(value: Any) -> dict[str, Any]:
-    return value if isinstance(value, dict) else {}
-
-
-def _session_model(payload: Any, fallback: str) -> str:
-    model = _as_str(_as_dict(payload).get("model"))
-    return model or fallback
-
-
-def _as_int(value: Any) -> int:
-    if isinstance(value, bool):
-        return 0
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return 0
-    if not math.isfinite(number):
-        return 0
-    return max(0, int(number))
-
-
-def _as_str(value: Any) -> str:
-    return value if isinstance(value, str) else ""
-
-
-def _as_optional_float(value: Any) -> float | None:
-    if isinstance(value, bool):
-        return None
-    try:
-        number = float(value)
-    except (TypeError, ValueError):
-        return None
-    if not math.isfinite(number):
-        return None
-    return number
