@@ -10,7 +10,6 @@ import logging
 import os
 import time
 from dataclasses import dataclass
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import TypedDict
 
@@ -19,6 +18,7 @@ from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
 from history_loader import CLAUDE_PROJECTS_DIR, UsageEntry
 from i18n import _t
 from pricing import calculate_cost
+from time_utils import parse_iso8601_utc_or_raise
 from usage_client import PollOutcome, PollState
 from usage_rate import GROUP_NAMES
 
@@ -163,11 +163,7 @@ def format_human_time(seconds: float, language: str = "en") -> str:
 def codex_stale_state(updated_at: str, now: float, language: str) -> CodexStaleState | None:
     if not updated_at:
         return None
-    timestamp = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
-    if timestamp.tzinfo is None:
-        timestamp = timestamp.replace(tzinfo=UTC)
-    else:
-        timestamp = timestamp.astimezone(UTC)
+    timestamp = parse_iso8601_utc_or_raise(updated_at)
     age_seconds = now - timestamp.timestamp()
     if age_seconds <= 900:
         return None

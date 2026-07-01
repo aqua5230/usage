@@ -18,6 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from analyzer import diagnoser, reporter
+from time_utils import parse_optional_iso8601_utc
 
 SNAPSHOT_PATH = Path(os.path.expanduser("~/.claude/usage-diagnosis.json"))
 _LOOKBACK_DAYS = 7
@@ -119,15 +120,7 @@ def _read_snapshot() -> dict[str, Any] | None:
 
 
 def _parse_timestamp(value: object) -> datetime | None:
-    if not isinstance(value, str):
-        return None
-    try:
-        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    if parsed.tzinfo is None:
-        return parsed.replace(tzinfo=UTC)
-    return parsed.astimezone(UTC)
+    return parse_optional_iso8601_utc(value)
 
 
 def _format_timestamp(value: datetime) -> str:

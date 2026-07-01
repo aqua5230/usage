@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import Any
 
 from project_resolver import project_from_encoded_path, resolve_project_name
+from time_utils import parse_optional_iso8601_utc
 
 logger = logging.getLogger(__name__)
 
@@ -173,15 +174,7 @@ def _parse_line(line: str, project: str) -> UsageEntry | None:
 
 
 def _parse_timestamp(value: Any) -> datetime | None:
-    if not isinstance(value, str) or not value:
-        return None
-    try:
-        timestamp = datetime.fromisoformat(value.replace("Z", "+00:00"))
-    except ValueError:
-        return None
-    if timestamp.tzinfo is None:
-        return timestamp.replace(tzinfo=UTC)
-    return timestamp.astimezone(UTC)
+    return parse_optional_iso8601_utc(value)
 
 
 def _project_from_path(jsonl_path: Path) -> str:
