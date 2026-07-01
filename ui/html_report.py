@@ -407,13 +407,16 @@ def _render_cards_section(cards: list[tuple[str, str, str]]) -> str:
 
 def _summary_cards(summary: Mapping[str, Any], lang: str) -> list[tuple[str, str, str]]:
     total_tokens = int(summary["total_tokens"])
+    messages = int(summary["messages"])
     cost_main, cost_sub = _cost_value(float(summary["cost_usd"]), lang)
+    tokens_per_msg = total_tokens // messages if messages else 0
     return [
         (_t(lang, "kpi_tokens"), f"{total_tokens:,}", f"≈ {_fmt_tokens(total_tokens)}"),
         (_t(lang, "kpi_cost"), cost_main, cost_sub),
         (_t(lang, "kpi_sessions"), f'{int(summary["sessions"]):,}', ""),
-        (_t(lang, "kpi_messages"), f'{int(summary["messages"]):,}', ""),
+        (_t(lang, "kpi_messages"), f'{messages:,}', ""),
         (_t(lang, "kpi_active"), f'{int(summary["active_days"])}/{int(summary["total_days"])}', ""),
+        (_t(lang, "kpi_productivity"), f"{tokens_per_msg:,}", _t(lang, "kpi_productivity_unit")),
     ]
 
 
@@ -853,7 +856,7 @@ h1{{margin:0 0 10px;font-size:clamp(1.8rem, 4.2vw, 3rem);line-height:1.02;font-w
 .share-trigger{{display:inline-flex;align-items:center;gap:7px;background:#161b22;border:1px solid #30363d;color:#f0f6fc;padding:4px 11px;border-radius:4px;cursor:pointer;font:inherit;font-size:.8rem;line-height:1.3;text-decoration:none;transition:border-color .15s,color .15s,transform .15s}}
 .share-trigger:hover{{border-color:#58a6ff;color:#58a6ff;transform:translateY(-1px)}}
 .share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible{{outline:2px solid #58a6ff;outline-offset:2px}}
-.cards{{display:grid;grid-template-columns:1.7fr 1.15fr .95fr .95fr .95fr;gap:10px;margin:22px 0 12px}}
+.cards{{display:grid;grid-template-columns:1.7fr 1.15fr .95fr .95fr .95fr .95fr;gap:10px;margin:22px 0 12px}}
 .card{{background:var(--panel);padding:16px 14px;border-radius:6px;min-height:108px;display:flex;flex-direction:column}}
 .card span{{display:block;color:var(--muted);font-size:.75rem;text-transform:uppercase;margin-bottom:10px}}
 .card b{{display:block;font-size:clamp(1rem,1.5vw,1.3rem);color:var(--text);white-space:nowrap;overflow-wrap:normal;line-height:1.2;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums}}
