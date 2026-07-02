@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.22.13] - 2026-07-02
+
+### Added
+- **HTML report gets an "Avg per Message" KPI card**: a sixth summary card shows total tokens divided by message count, giving a quick read on how much each message burns (this includes cache tokens, so it reflects burn per message rather than literal message length).
+
 ## [0.22.12] - 2026-07-01
 
 ### Fixed
