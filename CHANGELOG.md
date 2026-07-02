@@ -5,6 +5,18 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.22.14] - 2026-07-03
+
+### Fixed
+- **Archived Codex sessions could show stale data**: usage counted `~/.codex/archived_sessions/` when computing totals but didn't watch it for changes, so edits there might not refresh the menu bar until an unrelated refresh happened; the archived folder is now included in the same change-detection that drives live updates.
+- **A broken usage-data hook no longer causes constant background rescanning**: when Claude Code's status hook goes stale, usage now caches the "is there recent activity" check briefly instead of rescanning your entire `~/.claude/projects` tree on every poll.
+
+### Added
+- **A small warning badge appears if local usage history can't be read**: previously, a failed read silently fell back to the last known data with no visible sign anything was wrong; the Project Usage card now shows a brief note (hover for detail) so you can tell "no new data" apart from "something broke."
+
+### Performance
+- **Faster per-refresh history scans**: each refresh previously walked the Claude/Codex session directories multiple times (once to detect changes, again per data source); it's now scanned once and reused.
+
 ## [0.22.13] - 2026-07-02
 
 ### Added
