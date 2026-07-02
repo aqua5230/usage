@@ -17,6 +17,7 @@ import pytest
 import codex_loader
 import history_loader
 import menubar
+import menubar_prefs
 import menubar_state
 import statusline_settings
 from burn_rate import BurnRateTracker
@@ -395,7 +396,11 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setattr(menubar, "NSMenuItem", _FakeMenuItem)
     monkeypatch.setattr("menubar.panels.all_panels", lambda: panels)
     monkeypatch.setattr("menubar.login_item.is_enabled", lambda: False)
-    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"hide_codex_section": True})
+    monkeypatch.setattr(
+        menubar_prefs,
+        "_load_preferences",
+        lambda: {"hide_codex_section": True},
+    )
 
     _FakeMenu.instances = []
     menubar.AppDelegate.switchPanel_(delegate, object())
@@ -979,7 +984,11 @@ def test_popover_size_has_positive_dimensions() -> None:
 
 
 def test_hide_claude_enabled_reads_preferences(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"hide_claude_section": True})
+    monkeypatch.setattr(
+        menubar_prefs,
+        "_load_preferences",
+        lambda: {"hide_claude_section": True},
+    )
 
     assert menubar._hide_claude_enabled() is True
     assert menubar._hide_claude_enabled({"hide_claude_section": False}) is False
@@ -1077,8 +1086,21 @@ def test_load_history_entries_includes_codex_entries(monkeypatch: pytest.MonkeyP
         project="usage",
     )
 
-    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back: [claude_entry])
-    monkeypatch.setattr("menubar.codex_loader.load_entries", lambda *, hours_back: [codex_entry])
+    scan = menubar_state.HistorySourceScan(
+        fingerprint=(("same", 1, 1.0),),
+        claude_paths=(),
+        codex_paths=(),
+    )
+    monkeypatch.setattr(delegate, "_history_source_scan", lambda: scan)
+    monkeypatch.setattr(
+        menubar,
+        "load_entries",
+        lambda *, hours_back, jsonl_paths=None: [claude_entry],
+    )
+    monkeypatch.setattr(
+        "menubar.codex_loader.load_entries",
+        lambda *, hours_back, jsonl_paths=None: [codex_entry],
+    )
 
     assert delegate._load_history_entries() == [claude_entry, codex_entry]
 
@@ -1115,17 +1137,33 @@ def test_load_history_entries_reuses_cache_when_sources_do_not_change(
     )
     calls = {"claude": 0, "codex": 0}
 
-    def fake_claude_entries(*, hours_back: int = 0) -> list[history_loader.UsageEntry]:
+    scan = menubar_state.HistorySourceScan(
+        fingerprint=(("same", 1, 1.0),),
+        claude_paths=(Path("/tmp/claude.jsonl"),),
+        codex_paths=(Path("/tmp/codex.jsonl"),),
+    )
+
+    def fake_claude_entries(
+        *,
+        hours_back: int = 0,
+        jsonl_paths: tuple[Path, ...] = (),
+    ) -> list[history_loader.UsageEntry]:
         calls["claude"] += 1
         assert hours_back == 0
+        assert jsonl_paths == scan.claude_paths
         return [claude_entry]
 
-    def fake_codex_entries(*, hours_back: int = 0) -> list[history_loader.UsageEntry]:
+    def fake_codex_entries(
+        *,
+        hours_back: int = 0,
+        jsonl_paths: tuple[Path, ...] = (),
+    ) -> list[history_loader.UsageEntry]:
         calls["codex"] += 1
         assert hours_back == 0
+        assert jsonl_paths == scan.codex_paths
         return [codex_entry]
 
-    monkeypatch.setattr(delegate, "_history_sources_fingerprint", lambda: (("same", 1, 1.0),))
+    monkeypatch.setattr(delegate, "_history_source_scan", lambda: scan)
     monkeypatch.setattr(menubar, "load_entries", fake_claude_entries)
     monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
 
@@ -1157,21 +1195,69 @@ def test_load_history_entries_refreshes_cache_when_sources_change(
         )
     ]
     calls = 0
-    fingerprints = iter(((("old", 1, 1.0),), (("new", 2, 2.0),)))
+    scans = iter(
+        (
+            menubar_state.HistorySourceScan((("old", 1, 1.0),), (), ()),
+            menubar_state.HistorySourceScan((("new", 2, 2.0),), (), ()),
+        )
+    )
 
-    def fake_codex_entries(*, hours_back: int = 0) -> list[history_loader.UsageEntry]:
+    def fake_codex_entries(
+        *,
+        hours_back: int = 0,
+        jsonl_paths: tuple[Path, ...] = (),
+    ) -> list[history_loader.UsageEntry]:
         nonlocal calls
         calls += 1
         assert hours_back == 0
         return entries
 
-    monkeypatch.setattr(delegate, "_history_sources_fingerprint", lambda: next(fingerprints))
-    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=0: [])
+    monkeypatch.setattr(delegate, "_history_source_scan", lambda: next(scans))
+    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
     monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
 
     assert delegate._load_history_entries() == entries
     assert delegate._load_history_entries() == entries
     assert calls == 2
+
+
+@pytest.mark.parametrize(
+    ("exc", "expected_key"),
+    [
+        (OSError("boom"), "history_load_error_file"),
+        (ValueError("bad json"), "history_load_error_parse"),
+        (RuntimeError("other"), "history_load_error_unknown"),
+    ],
+)
+def test_classify_history_load_error(exc: Exception, expected_key: str) -> None:
+    assert menubar._classify_history_load_error(exc) == expected_key
+
+
+def test_load_history_entries_records_error_key_on_failure_and_clears_on_success(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    scans = iter(
+        (
+            menubar_state.HistorySourceScan((("a", 1, 1.0),), (), ()),
+            menubar_state.HistorySourceScan((("b", 2, 2.0),), (), ()),
+        )
+    )
+    monkeypatch.setattr(delegate, "_history_source_scan", lambda: next(scans))
+    monkeypatch.setattr(codex_loader, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
+
+    def failing_load_entries(
+        *, hours_back: int = 0, jsonl_paths: tuple[Path, ...] | None = None
+    ) -> list[history_loader.UsageEntry]:
+        raise OSError("cannot read jsonl")
+
+    monkeypatch.setattr(menubar, "load_entries", failing_load_entries)
+    delegate._load_history_entries()
+    assert delegate._history_load_error_key == "history_load_error_file"
+
+    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
+    delegate._load_history_entries()
+    assert delegate._history_load_error_key is None
 
 
 def test_project_rows_top3(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1561,6 +1647,7 @@ def test_refresh_error_preserves_codex_quota() -> None:
     class Delegate:
         mock = False
         language = "en"
+        _history_load_error_key = None
 
         def _load_codex_refresh_result(self) -> dict[str, object]:
             return {
@@ -1633,6 +1720,7 @@ def test_refresh_error_preserves_project_usage() -> None:
         mock = False
         language = "en"
         latest_state = menubar._empty_state(language="en")
+        _history_load_error_key = None
 
         def _load_codex_refresh_result(self) -> dict[str, object]:
             return {

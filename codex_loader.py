@@ -11,6 +11,7 @@ import logging
 import os
 import sqlite3
 from collections import OrderedDict
+from collections.abc import Iterable
 from contextlib import closing
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -129,11 +130,15 @@ def _flush_caches_to_disk() -> None:
     )
 
 
-def load_entries(hours_back: int = 0) -> list[UsageEntry]:
+def load_entries(
+    hours_back: int = 0,
+    *,
+    jsonl_paths: Iterable[Path] | None = None,
+) -> list[UsageEntry]:
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
     metadata = _load_thread_metadata()
     models = {session_id: data.model for session_id, data in metadata.items()}
-    entries = _load_jsonl_entries(SESSIONS_DIR, models, cutoff)
+    entries = _load_jsonl_entries(SESSIONS_DIR, models, cutoff, jsonl_paths=jsonl_paths)
 
     latest_jsonl_ts_by_session = {
         entry.session_id: entry.timestamp
@@ -162,13 +167,21 @@ def _load_jsonl_entries(
     sessions_dir: Path,
     models: dict[str, str],
     cutoff: datetime | None,
+    *,
+    jsonl_paths: Iterable[Path] | None = None,
 ) -> list[UsageEntry]:
     # Seed from disk on first call
     _seed_caches_from_disk()
 
-    roots = [root for root in _session_roots(sessions_dir) if root.is_dir()]
-    if not roots:
-        return []
+    if jsonl_paths is None:
+        roots = [root for root in _session_roots(sessions_dir) if root.is_dir()]
+        if not roots:
+            return []
+        jsonl_path_list = [path for root in roots for path in root.rglob("*.jsonl")]
+    else:
+        jsonl_path_list = list(jsonl_paths)
+        if not jsonl_path_list:
+            return []
 
     # Snapshot each cached file's (mtime, size) to detect new or re-parsed files.
     # A re-parse overwrites an existing key in place, so cache size alone would
@@ -179,14 +192,13 @@ def _load_jsonl_entries(
 
     entries_by_session: dict[str, list[UsageEntry]] = {}
     cutoff_ts = cutoff.timestamp() if cutoff else None
-    jsonl_paths = [path for root in roots for path in root.rglob("*.jsonl")]
-    file_info = {path: _read_session_file_info(path) for path in jsonl_paths}
+    file_info = {path: _read_session_file_info(path) for path in jsonl_path_list}
     paths_by_session: dict[str, list[Path]] = {}
     for path, info in file_info.items():
         if info.session_id:
             paths_by_session.setdefault(info.session_id, []).append(path)
 
-    for jsonl_path in jsonl_paths:
+    for jsonl_path in jsonl_path_list:
         if cutoff_ts is not None:
             try:
                 if jsonl_path.stat().st_mtime < cutoff_ts:
@@ -905,5 +917,4 @@ def _parse_timestamp(value: Any) -> datetime | None:
 
 def _project_from_cwd(cwd: str) -> str:
     return resolve_project_name(cwd)
-
 

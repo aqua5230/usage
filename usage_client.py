@@ -30,6 +30,7 @@ CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 # Stale files only affect hints; quota values still render.
 STALE_SECONDS = 6 * 3600
 RECENT_ACTIVITY_SECONDS = 30 * 60
+RECENT_ACTIVITY_CACHE_TTL_SECONDS = 75
 HOOK_BROKEN_NOT_INSTALLED = "hook_broken_not_installed"
 HOOK_BROKEN_RESTART = "hook_broken_restart"
 
@@ -62,6 +63,15 @@ class PollOutcome:
     message: str | None = None
     _mtime: float | None = None
     _status_path: str | None = None
+
+
+@dataclass(slots=True)
+class _RecentActivityCache:
+    checked_at: float
+    result: bool
+
+
+_recent_activity_cache: _RecentActivityCache | None = None
 
 
 def _pct(value: Any) -> int | None:
@@ -129,16 +139,27 @@ def _source_from_path(source_path: str) -> str:
 
 
 def _has_recent_claude_project_activity(now: float) -> bool:
+    global _recent_activity_cache
+
+    if (
+        _recent_activity_cache is not None
+        and now - _recent_activity_cache.checked_at < RECENT_ACTIVITY_CACHE_TTL_SECONDS
+    ):
+        return _recent_activity_cache.result
+
+    result = False
     try:
         for path in CLAUDE_PROJECTS_DIR.rglob("*.jsonl"):
             try:
                 if now - path.stat().st_mtime <= RECENT_ACTIVITY_SECONDS:
-                    return True
+                    result = True
+                    break
             except OSError:
                 continue
     except OSError:
-        return False
-    return False
+        result = False
+    _recent_activity_cache = _RecentActivityCache(checked_at=now, result=result)
+    return result
 
 
 def _hook_broken_message(now: float, polled_at: float) -> str | None:

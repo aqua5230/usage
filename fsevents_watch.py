@@ -82,7 +82,11 @@ def usage_watch_paths() -> list[Path]:
     home = Path.home()
     return [
         path
-        for path in (home / ".claude" / "projects", home / ".codex" / "sessions")
+        for path in (
+            home / ".claude" / "projects",
+            home / ".codex" / "sessions",
+            home / ".codex" / "archived_sessions",
+        )
         if path.exists()
     ]
 

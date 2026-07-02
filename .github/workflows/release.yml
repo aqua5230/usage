@@ -68,17 +68,12 @@ jobs:
         with:
           ref: ${{ steps.ref.outputs.ref }}
 
-      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
-        with:
-          python-version: '3.13'
+      - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
-      - name: Install build dependencies
-        run: |
-          python3 -m pip install --upgrade pip
-          python3 -m pip install -e . py2app
+      - run: uv python install 3.13
 
       - name: Build .app
-        run: python3 setup_app.py py2app
+        run: ./scripts/build_app.sh
 
       - name: Verify .app bundle contents
         run: |

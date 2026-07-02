@@ -490,6 +490,7 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
         ],
         "hideClaude": state.hide_claude,
         "hideCodex": state.hide_codex,
+        "historyError": state.history_error,
         "statusline": state.statusline,
         "footer": {
             "rate": state.rate_text,

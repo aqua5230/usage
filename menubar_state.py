@@ -57,6 +57,10 @@ class CodexStaleState(TypedDict):
     ageText: str
 
 
+class HistoryLoadErrorState(TypedDict):
+    reasonText: str
+
+
 @dataclass(slots=True)
 class PopoverState:
     language: str
@@ -76,38 +80,76 @@ class PopoverState:
     hide_claude: bool = False
     hide_codex: bool = False
     codex_stale: CodexStaleState | None = None
+    history_error: HistoryLoadErrorState | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class HistorySourceScan:
+    fingerprint: tuple[tuple[str, int, float], ...]
+    claude_paths: tuple[Path, ...]
+    codex_paths: tuple[Path, ...]
+
+
+def _jsonl_paths(root: Path) -> tuple[Path, ...]:
+    if not root.exists():
+        return ()
+    try:
+        return tuple(root.rglob("*.jsonl"))
+    except OSError:
+        return ()
+
+
+def _fingerprint_source(
+    source: Path,
+    *,
+    jsonl_paths: tuple[Path, ...] | None = None,
+) -> tuple[str, int, float]:
+    newest_mtime = 0.0
+    file_count = 0
+    try:
+        if source.is_file():
+            stat = source.stat()
+            file_count = 1
+            newest_mtime = stat.st_mtime
+        elif source.exists():
+            paths = _jsonl_paths(source) if jsonl_paths is None else jsonl_paths
+            for path in paths:
+                try:
+                    stat = path.stat()
+                except OSError:
+                    continue
+                file_count += 1
+                newest_mtime = max(newest_mtime, stat.st_mtime)
+    except OSError:
+        pass
+    return (str(source), file_count, newest_mtime)
+
+
+def history_source_scan() -> HistorySourceScan:
+    claude_paths = _jsonl_paths(CLAUDE_PROJECTS_DIR)
+    codex_session_paths = _jsonl_paths(codex_loader.SESSIONS_DIR)
+    codex_archived_paths = _jsonl_paths(codex_loader.ARCHIVED_SESSIONS_DIR)
+    fingerprint = (
+        _fingerprint_source(CLAUDE_PROJECTS_DIR, jsonl_paths=claude_paths),
+        _fingerprint_source(codex_loader.SESSIONS_DIR, jsonl_paths=codex_session_paths),
+        _fingerprint_source(
+            codex_loader.ARCHIVED_SESSIONS_DIR,
+            jsonl_paths=codex_archived_paths,
+        ),
+        _fingerprint_source(codex_loader.LOGS_DB),
+        _fingerprint_source(Path.home() / ".codex" / "logs_2.sqlite-wal"),
+        _fingerprint_source(codex_loader.STATE_DB),
+        _fingerprint_source(Path.home() / ".codex" / "state_5.sqlite-wal"),
+    )
+    return HistorySourceScan(
+        fingerprint=fingerprint,
+        claude_paths=claude_paths,
+        codex_paths=codex_session_paths + codex_archived_paths,
+    )
 
 
 def history_sources_fingerprint() -> tuple[tuple[str, int, float], ...]:
-    sources = (
-        CLAUDE_PROJECTS_DIR,
-        Path.home() / ".codex" / "sessions",
-        Path.home() / ".codex" / "logs_2.sqlite",
-        Path.home() / ".codex" / "logs_2.sqlite-wal",
-        Path.home() / ".codex" / "state_5.sqlite",
-        Path.home() / ".codex" / "state_5.sqlite-wal",
-    )
-    fingerprint: list[tuple[str, int, float]] = []
-    for source in sources:
-        newest_mtime = 0.0
-        file_count = 0
-        try:
-            if source.is_file():
-                stat = source.stat()
-                file_count = 1
-                newest_mtime = stat.st_mtime
-            elif source.exists():
-                for path in source.rglob("*.jsonl"):
-                    try:
-                        stat = path.stat()
-                    except OSError:
-                        continue
-                    file_count += 1
-                    newest_mtime = max(newest_mtime, stat.st_mtime)
-        except OSError:
-            pass
-        fingerprint.append((str(source), file_count, newest_mtime))
-    return tuple(fingerprint)
+    return history_source_scan().fingerprint
 
 
 def project_rows(entries: list[UsageEntry]) -> list[tuple[str, int, float | None]]:
@@ -172,6 +214,14 @@ def codex_stale_state(updated_at: str, now: float, language: str) -> CodexStaleS
         return {"ageText": _t(language, "codex_stale_minutes", minutes=minutes)}
     hours = max(1, int(age_seconds // 3600))
     return {"ageText": _t(language, "codex_stale_hours", hours=hours)}
+
+
+def history_load_error_state(
+    reason_key: str | None, language: str
+) -> HistoryLoadErrorState | None:
+    if reason_key is None:
+        return None
+    return {"reasonText": _t(language, reason_key)}
 
 
 # Codex reports each quota slot's window length in minutes. Map it to a label so
@@ -324,6 +374,7 @@ def build_popover_state(
     hide_claude: bool,
     hide_codex: bool,
     codex_stale: CodexStaleState | None,
+    history_error: HistoryLoadErrorState | None = None,
 ) -> PopoverState:
     now = time.time()
     group_name = _group_name(group, language)
@@ -402,6 +453,7 @@ def build_popover_state(
         hide_claude=hide_claude,
         hide_codex=hide_codex,
         codex_stale=codex_stale,
+        history_error=history_error,
     )
 
 

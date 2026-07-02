@@ -11,6 +11,7 @@ import logging
 import math
 import os
 from collections import OrderedDict
+from collections.abc import Iterable
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -51,16 +52,25 @@ class UsageEntry:
         )
 
 
-def load_entries(hours_back: int = 0) -> list[UsageEntry]:
+def load_entries(
+    hours_back: int = 0,
+    *,
+    jsonl_paths: Iterable[Path] | None = None,
+) -> list[UsageEntry]:
     entries: list[UsageEntry] = []
     seen: set[str] = set()
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
 
-    if not CLAUDE_PROJECTS_DIR.is_dir():
+    if jsonl_paths is None and not CLAUDE_PROJECTS_DIR.is_dir():
         return []
 
     cutoff_ts = cutoff.timestamp() if cutoff else None
-    for jsonl_path in CLAUDE_PROJECTS_DIR.rglob("*.jsonl"):
+    paths = (
+        tuple(CLAUDE_PROJECTS_DIR.rglob("*.jsonl"))
+        if jsonl_paths is None
+        else tuple(jsonl_paths)
+    )
+    for jsonl_path in paths:
         if cutoff_ts is not None:
             try:
                 if jsonl_path.stat().st_mtime < cutoff_ts:

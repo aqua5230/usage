@@ -68,6 +68,13 @@ from burn_rate import BurnRateTracker
 from fsevents_watch import cleanup_fsevents, setup_fsevents
 from history_loader import UsageEntry, load_entries
 from i18n import _t, packaged_resource_path
+from menubar_prefs import (
+    _auto_update_check_enabled,
+    _hide_claude_enabled,
+    _hide_codex_enabled,
+    _quota_notification_thresholds,
+    _quota_notifications_enabled,
+)
 from menubar_state import (
     CLAUDE_COLOR as CLAUDE_COLOR,
 )
@@ -153,6 +160,11 @@ __all__ = [
     "_missing_row",
     "_quota_row",
     "format_human_time",
+    "_auto_update_check_enabled",
+    "_hide_claude_enabled",
+    "_hide_codex_enabled",
+    "_quota_notification_thresholds",
+    "_quota_notifications_enabled",
 ]
 
 BUTTON_HEIGHT = 32.0
@@ -170,38 +182,6 @@ def _detect_language() -> str:
 
 def _panel_title(panel: UsagePanel, language: str) -> str:
     return _t(language, panel.i18n_key)
-
-
-def _auto_update_check_enabled(prefs: dict[str, Any] | None = None) -> bool:
-    data = _load_preferences() if prefs is None else prefs
-    return data.get("auto_update_check") is not False
-
-
-def _hide_claude_enabled(prefs: dict[str, Any] | None = None) -> bool:
-    data = _load_preferences() if prefs is None else prefs
-    return data.get("hide_claude_section") is True
-
-
-def _hide_codex_enabled(prefs: dict[str, Any] | None = None) -> bool:
-    data = _load_preferences() if prefs is None else prefs
-    return data.get("hide_codex_section") is True
-
-
-def _quota_notifications_enabled(prefs: dict[str, Any] | None = None) -> bool:
-    data = _load_preferences() if prefs is None else prefs
-    return data.get("quota_notifications") is not False
-
-
-def _quota_notification_thresholds(prefs: dict[str, Any] | None = None) -> list[float]:
-    data = _load_preferences() if prefs is None else prefs
-    raw = data.get("quota_notification_thresholds")
-    if not isinstance(raw, list):
-        return [90.0]
-    thresholds: list[float] = []
-    for value in raw:
-        if isinstance(value, int | float) and 0 < float(value) <= 100:
-            thresholds.append(float(value))
-    return thresholds or [90.0]
 
 
 def _session_resume_enabled() -> bool:
@@ -658,6 +638,7 @@ class AppDelegate(NSObject):
     _fs_stream = objc.ivar()
     _history_entries_cache = objc.ivar()
     _history_entries_cache_fingerprint = objc.ivar()
+    _history_load_error_key = objc.ivar()
     _quota_notifier = objc.ivar()
     _switch_menu_action_taken = objc.ivar()
     critters_enabled = objc.ivar()
@@ -694,6 +675,7 @@ class AppDelegate(NSObject):
         self._fs_stream = None
         self._history_entries_cache = None
         self._history_entries_cache_fingerprint = None
+        self._history_load_error_key = None
         self._switch_menu_action_taken = False
         self.critters_enabled = _critters_enabled()
         self.critter_timer = None
@@ -1329,6 +1311,9 @@ class AppDelegate(NSObject):
                     hide_claude=hide_claude,
                     hide_codex=hide_codex,
                     codex_stale=codex_stale,
+                    history_error=menubar_state.history_load_error_state(
+                        self._history_load_error_key, self.language
+                    ),
                 )
             except Exception as exc:
                 if os.environ.get("USAGE_DEBUG") == "1":
@@ -1340,6 +1325,9 @@ class AppDelegate(NSObject):
                 state.codex_session = codex_rows[0]
                 state.codex_weekly = codex_rows[1]
                 state.codex_stale = codex_result.get("codex_stale")
+                state.history_error = menubar_state.history_load_error_state(
+                    self._history_load_error_key, self.language
+                )
                 state.projects = project_rows
                 state.projects_7d = project_rows_7d
                 state.projects_30d = project_rows_30d
@@ -1621,12 +1609,16 @@ class AppDelegate(NSObject):
             return False
 
     def _history_sources_fingerprint(self) -> tuple[tuple[str, int, float], ...]:
-        return menubar_state.history_sources_fingerprint()
+        return self._history_source_scan().fingerprint
+
+    def _history_source_scan(self) -> menubar_state.HistorySourceScan:
+        return menubar_state.history_source_scan()
 
     def _load_history_entries(self) -> list[UsageEntry]:
         if self.mock:
             return []
-        fingerprint = self._history_sources_fingerprint()
+        scan = self._history_source_scan()
+        fingerprint = scan.fingerprint
         if (
             self._history_entries_cache is not None
             and self._history_entries_cache_fingerprint == fingerprint
@@ -1634,16 +1626,20 @@ class AppDelegate(NSObject):
             return list(self._history_entries_cache)
 
         entries: list[UsageEntry] = []
+        error_key: str | None = None
         try:
-            entries.extend(load_entries(hours_back=0))
-        except Exception:
+            entries.extend(load_entries(hours_back=0, jsonl_paths=scan.claude_paths))
+        except Exception as exc:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("Claude project usage load failed", exc_info=True)
+            error_key = _classify_history_load_error(exc)
         try:
-            entries.extend(codex_loader.load_entries(hours_back=0))
-        except Exception:
+            entries.extend(codex_loader.load_entries(hours_back=0, jsonl_paths=scan.codex_paths))
+        except Exception as exc:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("Codex project usage load failed", exc_info=True)
+            error_key = _classify_history_load_error(exc)
+        self._history_load_error_key = error_key
         self._history_entries_cache = list(entries)
         self._history_entries_cache_fingerprint = fingerprint
         return entries
@@ -1822,6 +1818,14 @@ def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
     install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
     height = base_height + install_extra - claude_deduct - codex_deduct
     return NSMakeSize(width, height)
+
+
+def _classify_history_load_error(exc: Exception) -> str:
+    if isinstance(exc, OSError):
+        return "history_load_error_file"
+    if isinstance(exc, (ValueError, KeyError, TypeError)):
+        return "history_load_error_parse"
+    return "history_load_error_unknown"
 
 
 def _empty_state(language: str = "en") -> PopoverState:

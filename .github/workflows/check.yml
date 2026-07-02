@@ -27,5 +27,8 @@ jobs:
       - name: Run mypy
         run: uv run mypy .
 
+      - name: Run bilingual doc parity check
+        run: uv run python scripts/check_doc_parity.py
+
       - name: Run pytest
         run: uv run pytest -v

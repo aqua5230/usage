@@ -21,6 +21,11 @@ import usage_client
 LEGACY_NAME = "usag"
 
 
+@pytest.fixture(autouse=True)
+def reset_recent_activity_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
+
+
 def test_read_status_file_returns_none_when_both_paths_missing(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -403,6 +408,7 @@ def _patch_status_paths(
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / f"{LEGACY_NAME}.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
     monkeypatch.setattr(usage_client, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
     return status_path
 
 
@@ -473,3 +479,61 @@ def test_fetch_once_does_not_warn_without_recent_project_activity(
     assert outcome.snapshot.current_percent == 12
     assert outcome.snapshot.weekly_percent == 34
     assert outcome.message is None
+
+
+def test_recent_project_activity_uses_ttl_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakePath:
+        def __init__(self, mtime: float) -> None:
+            self._mtime = mtime
+
+        def stat(self) -> os.stat_result:
+            return os.stat_result((0, 0, 0, 0, 0, 0, 0, self._mtime, self._mtime, self._mtime))
+
+    class FakeProjectsDir:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def rglob(self, _pattern: str) -> list[FakePath]:
+            self.calls += 1
+            return [FakePath(1_700_000_000.0 - 60)]
+
+    now = 1_700_000_000.0
+    projects_dir = FakeProjectsDir()
+    monkeypatch.setattr(usage_client, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
+
+    assert usage_client._has_recent_claude_project_activity(now) is True
+    assert usage_client._has_recent_claude_project_activity(
+        now + usage_client.RECENT_ACTIVITY_CACHE_TTL_SECONDS - 1
+    ) is True
+    assert projects_dir.calls == 1
+
+
+def test_recent_project_activity_rescans_after_ttl_expires(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakePath:
+        def __init__(self, mtime: float) -> None:
+            self._mtime = mtime
+
+        def stat(self) -> os.stat_result:
+            return os.stat_result((0, 0, 0, 0, 0, 0, 0, self._mtime, self._mtime, self._mtime))
+
+    class FakeProjectsDir:
+        def __init__(self) -> None:
+            self.calls = 0
+
+        def rglob(self, _pattern: str) -> list[FakePath]:
+            self.calls += 1
+            return [FakePath(1_700_000_000.0 - 60)]
+
+    now = 1_700_000_000.0
+    projects_dir = FakeProjectsDir()
+    monkeypatch.setattr(usage_client, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
+
+    assert usage_client._has_recent_claude_project_activity(now) is True
+    assert usage_client._has_recent_claude_project_activity(
+        now + usage_client.RECENT_ACTIVITY_CACHE_TTL_SECONDS
+    ) is True
+    assert projects_dir.calls == 2
