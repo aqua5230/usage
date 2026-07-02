@@ -68,11 +68,21 @@ jobs:
         with:
           ref: ${{ steps.ref.outputs.ref }}
 
+      - uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.13'
+
       - uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
 
-      - run: uv python install 3.13
-
       - name: Build .app
+        env:
+          # py2app needs a Python build where extension modules like zlib are
+          # real .so files with a __file__ (so it can copy them into the
+          # bundle). uv's own downloaded interpreter builds some stdlib
+          # extensions as built-ins with no __file__, which crashes py2app.
+          # Force uv to use the actions/setup-python interpreter instead of
+          # downloading its own.
+          UV_PYTHON_PREFERENCE: only-system
         run: ./scripts/build_app.sh
 
       - name: Verify .app bundle contents
