@@ -5,7 +5,7 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.23.1] - 2026-07-04
 
 ### Added
 - **Terse Mode now covers Codex CLI too**: the same menu-bar toggle installs a matching SessionStart hook for Codex when it's detected on the machine, using Codex's native hooks system (`[features] hooks = true` plus a `~/.codex/hooks.json` entry). No separate switch — one toggle, both tools. Turning it off only removes usage's own hook entry; it leaves the `hooks` feature flag and any other hooks you've installed for Codex untouched.

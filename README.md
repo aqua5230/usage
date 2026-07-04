@@ -42,7 +42,7 @@ It lands in your Applications folder automatically → right-click **Open** once
 
 - **See it without looking for it.** Your quota lives in the menu bar, color-coded — green to red — so the warning level reads in a glance, no click required. Click only when you want the full breakdown.
 - **Never re-explain your progress again.** Open a new Claude Code session and usage hands your last progress straight to the AI — no `/resume`, no recap, and no dragging a bloated old conversation back just to continue. Fully local, off by default. [Learn more](https://aqua5230.github.io/usage/#resume).
-- **Ask Claude to talk less, save output tokens.** A menu-bar toggle — Terse Mode — asks Claude Code to answer more tersely for the whole session: same substance, fewer words, while code, commands, file paths, and error messages stay byte-exact. Fully local, off by default.
+- **Ask Claude (and Codex) to talk less, save output tokens.** A menu-bar toggle — Terse Mode — asks Claude Code to answer more tersely for the whole session, and now does the same for Codex CLI when it's installed: same substance, fewer words, while code, commands, file paths, and error messages stay byte-exact. Fully local, off by default.
   ```
   Before: "Sure, let me take a look! This is a pretty common issue — it usually
            means the path you're pointing at is wrong, or the file just isn't
