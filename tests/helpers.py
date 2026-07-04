@@ -179,6 +179,9 @@ class TerseHookPaths:
     terse_target: Path
     sidecar: Path
     source: Path
+    codex_config: Path
+    codex_hooks_json: Path
+    codex_terse_target: Path
 
 
 def patch_terse_hook_paths(
@@ -193,15 +196,26 @@ def patch_terse_hook_paths(
     settings = claude_dir / "settings.json"
     terse_target = claude_dir / "usage-terse-mode.py"
     sidecar = claude_dir / "usage-terse-prompt.json"
+    codex_dir = tmp_path / ".codex"
+    codex_dir.mkdir(exist_ok=True)
+    codex_config = codex_dir / "config.toml"
+    codex_hooks_json = codex_dir / "hooks.json"
+    codex_terse_target = codex_dir / "usage-terse-mode.py"
     source = tmp_path / source_name
     source.write_text(source_text, encoding="utf-8")
     monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
     monkeypatch.setattr(setup_hook, "TERSE_HOOK_TARGET", terse_target)
     monkeypatch.setattr(setup_hook, "TERSE_PROMPT_SIDECAR", sidecar)
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_HOOKS_JSON", codex_hooks_json)
+    monkeypatch.setattr(setup_hook, "CODEX_TERSE_HOOK_TARGET", codex_terse_target)
     monkeypatch.setattr(setup_hook, "_resolve_terse_source", lambda: source)
     return TerseHookPaths(
         settings=settings,
         terse_target=terse_target,
         sidecar=sidecar,
         source=source,
+        codex_config=codex_config,
+        codex_hooks_json=codex_hooks_json,
+        codex_terse_target=codex_terse_target,
     )

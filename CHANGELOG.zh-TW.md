@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 新增
+- **精簡模式現在也對 Codex CLI 生效**：同一顆選單列開關，偵測到機器上有裝 Codex 就順便幫它裝一份對應的 SessionStart hook，用的是 Codex 原生的 hooks 機制（`[features] hooks = true` 加上 `~/.codex/hooks.json` 裡的一筆條目）。不用另開一顆開關——一顆開關兩邊都生效。關閉時只會拿掉 usage 自己裝的那條 hook，`hooks` 這個 feature flag 跟你自己裝的其他 Codex hook 都不會被動到。
+
 ## [0.23.0] - 2026-07-04
 
 ### 新增

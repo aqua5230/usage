@@ -62,7 +62,6 @@ LEGACY_BACKUP_KEY = LEGACY_NAME
 PREV_SL_KEY = "previousStatusLine"
 HOOK_VERSION = "1.0"
 _SL_REGEX = re.compile(r"(?m)^[ \t]*status_line\s*=\s*\[.*?\]", re.DOTALL)
-_TUI_TABLE_REGEX = re.compile(r"(?m)^[ \t]*\[tui\][ \t]*(?:#.*)?$")
 _TABLE_REGEX = re.compile(r"(?m)^[ \t]*\[[^\]\n]+\][ \t]*(?:#.*)?$")
 
 # Ceiling C — opt-in SessionStart hook that injects "where you left off" into a new
@@ -88,6 +87,12 @@ TERSE_MATCHER = "startup|clear"
 TERSE_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
 _TERSE_MARKER = "usage-terse-mode"
 _TERSE_MARKERS = (_TERSE_MARKER, "usage_terse_mode")
+# Codex CLI shares the same terse-mode script (its SessionStart hook I/O schema matches Claude
+# Code's). Installed into the user-global ~/.codex so one toggle covers both tools.
+CODEX_TERSE_HOOK_TARGET = Path(os.path.expanduser("~/.codex/usage-terse-mode.py"))
+CODEX_HOOKS_JSON = Path(os.path.expanduser("~/.codex/hooks.json"))
+CODEX_TERSE_MATCHER = "startup|resume|clear"
+_FEATURES_HOOKS_REGEX = re.compile(r"(?m)^[ \t]*hooks\s*=\s*[A-Za-z0-9_]+")
 
 
 def _resolve_hook_source() -> Path:
@@ -391,37 +396,75 @@ def _status_line_toml(items: list[str]) -> str:
     return f"status_line = [\n{body},\n]"
 
 
+def _find_table(content: str, name: str) -> re.Match[str] | None:
+    return re.compile(rf"(?m)^[ \t]*\[{re.escape(name)}\][ \t]*(?:#.*)?$").search(content)
+
+
+def _table_section(content: str, table: re.Match[str]) -> tuple[int, int]:
+    """Return (start, end) offsets of ``table``'s body — from end of its header line up to
+    (not including) the next top-level table header, or EOF."""
+    next_table = _TABLE_REGEX.search(content[table.end() :])
+    section_end = len(content) if next_table is None else table.end() + next_table.start()
+    return table.end(), section_end
+
+
+def _insert_table_line(content: str, name: str, line: str) -> str:
+    table = _find_table(content, name)
+    if table is None:
+        return content
+    return content[: table.end()] + f"\n{line}" + content[table.end() :]
+
+
+def _replace_table_line(
+    content: str, name: str, line_regex: re.Pattern[str], replacement: str
+) -> str:
+    table = _find_table(content, name)
+    if table is None:
+        return content
+    start, end = _table_section(content, table)
+    section = content[start:end]
+    return content[:start] + line_regex.sub(replacement, section, count=1) + content[end:]
+
+
+def _remove_table_line(content: str, name: str, line_regex: re.Pattern[str]) -> str:
+    table = _find_table(content, name)
+    if table is None:
+        return content
+    start, end = _table_section(content, table)
+    section = content[start:end]
+    return content[:start] + line_regex.sub("", section, count=1) + content[end:]
+
+
+def _ensure_table_line(
+    content: str, name: str, line_regex: re.Pattern[str], line: str
+) -> str:
+    """Make sure ``line`` is in table ``name``: replace an existing ``line_regex`` match if
+    present, else insert ``line`` fresh. Appends a new ``[name]`` table at EOF when the table
+    itself is absent."""
+    table = _find_table(content, name)
+    if table is None:
+        return content.rstrip() + f"\n\n[{name}]\n{line}\n"
+    start, end = _table_section(content, table)
+    section = content[start:end]
+    if line_regex.search(section):
+        return content[:start] + line_regex.sub(line, section, count=1) + content[end:]
+    return content[:start] + f"\n{line}" + content[start:]
+
+
 def _find_tui_table(content: str) -> re.Match[str] | None:
-    return _TUI_TABLE_REGEX.search(content)
+    return _find_table(content, "tui")
 
 
 def _insert_tui_status_line(content: str, replacement: str) -> str:
-    table = _find_tui_table(content)
-    if table is None:
-        return content
-    return content[: table.end()] + f"\n{replacement}" + content[table.end() :]
+    return _insert_table_line(content, "tui", replacement)
 
 
 def _replace_tui_status_line(content: str, replacement: str) -> str:
-    table = _find_tui_table(content)
-    if table is None:
-        return content
-    next_table = _TABLE_REGEX.search(content[table.end() :])
-    section_end = len(content) if next_table is None else table.end() + next_table.start()
-    section = content[table.end() : section_end]
-    updated_section = _SL_REGEX.sub(replacement, section, count=1)
-    return content[: table.end()] + updated_section + content[section_end:]
+    return _replace_table_line(content, "tui", _SL_REGEX, replacement)
 
 
 def _remove_tui_status_line(content: str) -> str:
-    table = _find_tui_table(content)
-    if table is None:
-        return content
-    next_table = _TABLE_REGEX.search(content[table.end() :])
-    section_end = len(content) if next_table is None else table.end() + next_table.start()
-    section = content[table.end() : section_end]
-    updated_section = _SL_REGEX.sub("", section, count=1)
-    return content[: table.end()] + updated_section + content[section_end:]
+    return _remove_table_line(content, "tui", _SL_REGEX)
 
 
 def _read_codex_config() -> tuple[str, dict[str, Any]] | None:
@@ -742,6 +785,159 @@ def _strip_terse_hooks(entry: object) -> object | None:
     return {**entry, "hooks": kept}
 
 
+def _codex_terse_command() -> str:
+    python = _find_system_python()
+    return f"{shlex.quote(python)} {shlex.quote(str(CODEX_TERSE_HOOK_TARGET))}"
+
+
+def _load_codex_hooks() -> dict[str, Any]:
+    if not CODEX_HOOKS_JSON.exists():
+        return {}
+    try:
+        data = json.loads(CODEX_HOOKS_JSON.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _save_codex_hooks(data: dict[str, Any]) -> None:
+    _atomic_write_text(
+        CODEX_HOOKS_JSON, json.dumps(data, indent=2, ensure_ascii=False) + "\n"
+    )
+
+
+def _codex_session_start_list(data: dict[str, Any]) -> list[Any] | None:
+    hooks = data.get("hooks")
+    if not isinstance(hooks, dict):
+        return None
+    session_start = hooks.get("SessionStart")
+    return session_start if isinstance(session_start, list) else None
+
+
+def _is_codex_terse_installed() -> bool:
+    entries = _codex_session_start_list(_load_codex_hooks())
+    if not entries:
+        return False
+    return any(_is_terse_entry(e) for e in entries)
+
+
+def _copy_codex_terse_script() -> None:
+    source = _resolve_terse_source()
+    CODEX_TERSE_HOOK_TARGET.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, CODEX_TERSE_HOOK_TARGET)
+    CODEX_TERSE_HOOK_TARGET.chmod(
+        CODEX_TERSE_HOOK_TARGET.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    )
+
+
+def _setup_codex_terse() -> None:
+    """Install the terse hook into the user-global ~/.codex. No-op when config.toml can't be
+    read — the [features] hooks flag is the gate, so without a readable config the hook
+    wouldn't fire anyway. Stays silent: Codex is an opt-in add-on to the Claude toggle."""
+    result = _read_codex_config()
+    if result is None:
+        return
+    content, parsed = result
+    _copy_codex_terse_script()
+
+    features = parsed.get("features")
+    if not (isinstance(features, dict) and features.get("hooks") is True):
+        new_content = _ensure_table_line(
+            content, "features", _FEATURES_HOOKS_REGEX, "hooks = true"
+        )
+        if new_content != content:
+            _atomic_write_text(CODEX_CONFIG, new_content)
+
+    data = _load_codex_hooks()
+    hooks = data.get("hooks")
+    if not isinstance(hooks, dict):
+        hooks = {}
+        data["hooks"] = hooks
+    session_start = hooks.get("SessionStart")
+    if not isinstance(session_start, list):
+        session_start = []
+        hooks["SessionStart"] = session_start
+    session_start[:] = [
+        e for e in (_strip_terse_hooks(e) for e in session_start) if e is not None
+    ]
+    session_start.append(
+        {
+            "matcher": CODEX_TERSE_MATCHER,
+            "hooks": [{"type": "command", "command": _codex_terse_command(), "timeout": 5}],
+        }
+    )
+    _save_codex_hooks(data)
+
+
+def _teardown_codex_terse() -> None:
+    """Remove only usage's own Codex SessionStart entry; leave ``[features] hooks = true``
+    and any user-installed Codex hooks intact. Deletes hooks.json when nothing remains."""
+    data = _load_codex_hooks()
+    entries = _codex_session_start_list(data)
+    if entries is not None:
+        kept = [e for e in (_strip_terse_hooks(e) for e in entries) if e is not None]
+        hooks = data.get("hooks")
+        if isinstance(hooks, dict):
+            if kept:
+                hooks["SessionStart"] = kept
+            else:
+                hooks.pop("SessionStart", None)
+            if not hooks:
+                data.pop("hooks", None)
+        if data:
+            _save_codex_hooks(data)
+        else:
+            CODEX_HOOKS_JSON.unlink(missing_ok=True)
+    CODEX_TERSE_HOOK_TARGET.unlink(missing_ok=True)
+
+
+def _installed_codex_terse_version() -> str | None:
+    try:
+        with CODEX_TERSE_HOOK_TARGET.open(encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("__version__"):
+                    return line.split("=", 1)[1].strip().strip("\"'")
+    except OSError:
+        pass
+    return None
+
+
+def _self_heal_codex_terse() -> None:
+    """Restore the Codex side of terse mode — but only when Claude's side is already on and
+    Codex is installed. Re-runs the idempotent installer for any missing/stale artifact."""
+    if not CODEX_CONFIG.exists():
+        return
+    result = _read_codex_config()
+    if result is None:
+        return
+    _, parsed = result
+    features = parsed.get("features")
+    hooks_enabled = isinstance(features, dict) and features.get("hooks") is True
+
+    script_missing = not CODEX_TERSE_HOOK_TARGET.exists()
+    entry_missing = not _is_codex_terse_installed()
+    old_version = _installed_codex_terse_version()
+    version_stale = CODEX_TERSE_HOOK_TARGET.exists() and old_version != TERSE_HOOK_VERSION
+
+    if not (script_missing or entry_missing or version_stale or not hooks_enabled):
+        return
+
+    _setup_codex_terse()
+    if script_missing or entry_missing or not hooks_enabled:
+        parts: list[str] = []
+        if script_missing:
+            parts.append("script")
+        if entry_missing:
+            parts.append("hooks_entry")
+        if not hooks_enabled:
+            parts.append("features_flag")
+        _append_self_heal_log("restore_terse_hook_codex", f"missing={','.join(parts)}")
+    else:
+        _append_self_heal_log(
+            "update_terse_hook_codex", f"{old_version or 'unknown'} -> {TERSE_HOOK_VERSION}"
+        )
+
+
 def _session_start_list(settings: dict[str, Any]) -> list[Any] | None:
     hooks = settings.get("hooks")
     if not isinstance(hooks, dict):
@@ -817,6 +1013,8 @@ def enable_terse_mode() -> int:
         {"matcher": TERSE_MATCHER, "hooks": [{"type": "command", "command": _terse_command()}]}
     )
     _save_settings(settings)
+    if CODEX_CONFIG.exists():
+        _setup_codex_terse()
     print(_t("terse_mode_enabled_msg"))
     print(_t("setup_claude_restart_required"))
     return 0
@@ -863,6 +1061,7 @@ def disable_terse_mode() -> int:
     for path in (TERSE_HOOK_TARGET, TERSE_PROMPT_SIDECAR):
         if path.exists():
             path.unlink()
+    _teardown_codex_terse()
     return 0
 
 
@@ -924,12 +1123,15 @@ def _self_heal_terse_mode() -> None:
         _copy_terse_script()
         _write_terse_sidecar()
         _append_self_heal_log("restore_terse_hook", f"missing={','.join(missing)}")
-        return
-    old = _installed_terse_version()
-    if old != TERSE_HOOK_VERSION:
-        _copy_terse_script()
-        _write_terse_sidecar()
-        _append_self_heal_log("update_terse_hook", f"{old or 'unknown'} -> {TERSE_HOOK_VERSION}")
+    else:
+        old = _installed_terse_version()
+        if old != TERSE_HOOK_VERSION:
+            _copy_terse_script()
+            _write_terse_sidecar()
+            _append_self_heal_log(
+                "update_terse_hook", f"{old or 'unknown'} -> {TERSE_HOOK_VERSION}"
+            )
+    _self_heal_codex_terse()
 
 
 def _migrate_resume_command_if_needed() -> None:

@@ -92,3 +92,34 @@ def test_main_emits_instruction_for_empty_payload(
     assert mod.main() == 0
     out = json.loads(capsys.readouterr().out)
     assert out["hookSpecificOutput"]["additionalContext"] == "TERSE::EN"
+
+
+def test_main_handles_codex_style_payload(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    """The script is tool-agnostic — Codex's SessionStart input uses a different field
+    shape (``source`` as an enum, ``session_id``/``permission_mode`` etc.) than Claude
+    Code's, but the hook ignores the contents and emits the instruction regardless."""
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    monkeypatch.setattr(
+        "sys.stdin",
+        _FakeStdin(
+            json.dumps(
+                {
+                    "hook_event_name": "SessionStart",
+                    "source": "startup",
+                    "cwd": "/tmp/demo",
+                    "model": "gpt-5",
+                    "session_id": "abc-123",
+                    "transcript_path": "/tmp/t.jsonl",
+                    "permission_mode": "default",
+                }
+            )
+        ),
+    )
+
+    assert mod.main() == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["hookSpecificOutput"]["hookEventName"] == "SessionStart"
+    assert out["hookSpecificOutput"]["additionalContext"] == "TERSE::EN"

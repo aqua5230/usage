@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import tomllib
 from collections.abc import Callable
 from pathlib import Path
 
@@ -23,6 +24,11 @@ def terse_paths(patch_terse_hook_paths: Callable[..., TerseHookPaths]) -> TerseH
 
 def _terse_entries(settings: Path) -> list[dict[str, object]]:
     data = json.loads(settings.read_text(encoding="utf-8"))
+    return [e for e in data["hooks"]["SessionStart"] if setup_hook._is_terse_entry(e)]
+
+
+def _codex_terse_entries(hooks_json: Path) -> list[dict[str, object]]:
+    data = json.loads(hooks_json.read_text(encoding="utf-8"))
     return [e for e in data["hooks"]["SessionStart"] if setup_hook._is_terse_entry(e)]
 
 
@@ -150,3 +156,111 @@ def test_self_heal_updates_old_version(terse_paths: TerseHookPaths) -> None:
 def test_self_heal_noop_when_disabled(terse_paths: TerseHookPaths) -> None:
     setup_hook._self_heal_terse_mode()
     assert not terse_paths.terse_target.exists()
+
+
+def test_enable_installs_codex_when_present(terse_paths: TerseHookPaths) -> None:
+    terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
+
+    assert setup_hook.enable_terse_mode() == 0
+
+    assert terse_paths.codex_terse_target.exists()
+    parsed = tomllib.loads(terse_paths.codex_config.read_text(encoding="utf-8"))
+    assert parsed["features"]["hooks"] is True
+    entries = _codex_terse_entries(terse_paths.codex_hooks_json)
+    assert len(entries) == 1
+    assert entries[0]["matcher"] == setup_hook.CODEX_TERSE_MATCHER
+    hooks_list = entries[0]["hooks"]
+    assert isinstance(hooks_list, list)
+    hook = hooks_list[0]
+    assert isinstance(hook, dict)
+    assert hook["timeout"] == 5
+    assert str(terse_paths.codex_terse_target) in hook["command"]
+
+
+def test_enable_idempotent_on_codex_features_and_entries(terse_paths: TerseHookPaths) -> None:
+    terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
+
+    setup_hook.enable_terse_mode()
+    setup_hook.enable_terse_mode()
+
+    parsed = tomllib.loads(terse_paths.codex_config.read_text(encoding="utf-8"))
+    assert parsed["features"]["hooks"] is True
+    assert len(_codex_terse_entries(terse_paths.codex_hooks_json)) == 1
+
+
+def test_enable_skips_codex_when_absent(terse_paths: TerseHookPaths) -> None:
+    assert not terse_paths.codex_config.exists()
+
+    setup_hook.enable_terse_mode()
+
+    assert not terse_paths.codex_config.exists()
+    assert not terse_paths.codex_hooks_json.exists()
+    assert not terse_paths.codex_terse_target.exists()
+
+
+def test_disable_keeps_codex_features_and_user_hooks(terse_paths: TerseHookPaths) -> None:
+    terse_paths.codex_config.write_text("[features]\nhooks = true\n", encoding="utf-8")
+    terse_paths.codex_hooks_json.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "SessionStart": [
+                        {
+                            "matcher": "startup",
+                            "hooks": [{"type": "command", "command": "echo user-hook"}],
+                        }
+                    ]
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    setup_hook.enable_terse_mode()
+
+    setup_hook.disable_terse_mode()
+
+    parsed = tomllib.loads(terse_paths.codex_config.read_text(encoding="utf-8"))
+    assert parsed["features"]["hooks"] is True
+    data = json.loads(terse_paths.codex_hooks_json.read_text(encoding="utf-8"))
+    commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
+    assert commands == ["echo user-hook"]
+    assert not terse_paths.codex_terse_target.exists()
+
+
+def test_disable_deletes_codex_hooks_json_when_empty(terse_paths: TerseHookPaths) -> None:
+    terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
+    setup_hook.enable_terse_mode()
+
+    setup_hook.disable_terse_mode()
+
+    assert not terse_paths.codex_hooks_json.exists()
+    assert not terse_paths.codex_terse_target.exists()
+    parsed = tomllib.loads(terse_paths.codex_config.read_text(encoding="utf-8"))
+    assert parsed["features"]["hooks"] is True
+
+
+def test_self_heal_restores_missing_codex_script(terse_paths: TerseHookPaths) -> None:
+    terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
+    setup_hook.enable_terse_mode()
+    terse_paths.codex_terse_target.unlink()
+
+    setup_hook._self_heal_terse_mode()
+
+    assert terse_paths.codex_terse_target.exists()
+    data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    assert data["usage"]["selfHealLog"][-1]["action"] == "restore_terse_hook_codex"
+    assert data["usage"]["selfHealLog"][-1]["detail"] == "missing=script"
+
+
+def test_self_heal_restores_missing_codex_hooks_entry(terse_paths: TerseHookPaths) -> None:
+    terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
+    setup_hook.enable_terse_mode()
+    # Wipe our entry but leave the script in place.
+    terse_paths.codex_hooks_json.write_text('{"hooks": {}}', encoding="utf-8")
+
+    setup_hook._self_heal_terse_mode()
+
+    assert len(_codex_terse_entries(terse_paths.codex_hooks_json)) == 1
+    data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    assert data["usage"]["selfHealLog"][-1]["action"] == "restore_terse_hook_codex"
+    assert data["usage"]["selfHealLog"][-1]["detail"] == "missing=hooks_entry"
