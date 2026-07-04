@@ -81,6 +81,13 @@ _RESUME_DIAGNOSIS_CAUSE_KEYS = (
     "noisy_bash",
     "repeated_bash",
 )
+TERSE_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-terse-mode.py"))
+TERSE_PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-terse-prompt.json"))
+TERSE_HOOK_VERSION = "1.0"
+TERSE_MATCHER = "startup|clear"
+TERSE_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
+_TERSE_MARKER = "usage-terse-mode"
+_TERSE_MARKERS = (_TERSE_MARKER, "usage_terse_mode")
 
 
 def _resolve_hook_source() -> Path:
@@ -525,9 +532,27 @@ def _resolve_resume_source() -> Path:
     raise SystemExit(_t("setup_resume_source_missing", tried=tried))
 
 
+def _resolve_terse_source() -> Path:
+    paths = [
+        Path(__file__).resolve().parent / "usage_terse_mode.py",
+        Path(sys.executable).resolve().parent.parent / "Resources" / "usage_terse_mode.py",
+    ]
+    for path in paths:
+        if path.exists():
+            return path
+    tried = ", ".join(str(path) for path in paths)
+    raise SystemExit(_t("setup_terse_source_missing", tried=tried))
+
+
 def _resume_command() -> str:
     python = _find_system_python()
     source = _resolve_resume_source()
+    return f"{shlex.quote(python)} {shlex.quote(str(source))}"
+
+
+def _terse_command() -> str:
+    python = _find_system_python()
+    source = _resolve_terse_source()
     return f"{shlex.quote(python)} {shlex.quote(str(source))}"
 
 
@@ -537,6 +562,15 @@ def _copy_resume_script() -> None:
     shutil.copyfile(source, RESUME_HOOK_TARGET)
     RESUME_HOOK_TARGET.chmod(
         RESUME_HOOK_TARGET.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    )
+
+
+def _copy_terse_script() -> None:
+    source = _resolve_terse_source()
+    TERSE_HOOK_TARGET.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, TERSE_HOOK_TARGET)
+    TERSE_HOOK_TARGET.chmod(
+        TERSE_HOOK_TARGET.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
     )
 
 
@@ -604,6 +638,31 @@ def _write_resume_sidecar() -> None:
         )
 
 
+def _write_terse_sidecar() -> None:
+    from i18n import I18N_PATH
+
+    try:
+        bundle = json.loads(I18N_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return
+    if not isinstance(bundle, dict):
+        return
+    en_raw = bundle.get("en")
+    en: dict[str, Any] = en_raw if isinstance(en_raw, dict) else {}
+    out: dict[str, dict[str, str]] = {}
+    for lang in TERSE_LANGS:
+        table_raw = bundle.get(lang)
+        table: dict[str, Any] = table_raw if isinstance(table_raw, dict) else {}
+        instruction = table.get("terse_mode_instruction") or en.get("terse_mode_instruction")
+        if isinstance(instruction, str) and instruction:
+            out[lang] = {"instruction": instruction}
+    if out:
+        TERSE_PROMPT_SIDECAR.parent.mkdir(parents=True, exist_ok=True)
+        _atomic_write_text(
+            TERSE_PROMPT_SIDECAR, json.dumps(out, ensure_ascii=False, indent=2) + "\n"
+        )
+
+
 def _is_resume_entry(entry: object) -> bool:
     if not isinstance(entry, dict):
         return False
@@ -647,6 +706,42 @@ def _strip_resume_hooks(entry: object) -> object | None:
     return {**entry, "hooks": kept}
 
 
+def _is_terse_entry(entry: object) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    hooks = entry.get("hooks")
+    if not isinstance(hooks, list):
+        return False
+    return any(
+        isinstance(h, dict)
+        and isinstance(h.get("command"), str)
+        and any(marker in h["command"] for marker in _TERSE_MARKERS)
+        for h in hooks
+    )
+
+
+def _strip_terse_hooks(entry: object) -> object | None:
+    if not isinstance(entry, dict):
+        return entry
+    hooks = entry.get("hooks")
+    if not isinstance(hooks, list):
+        return entry
+    kept = [
+        h
+        for h in hooks
+        if not (
+            isinstance(h, dict)
+            and isinstance(h.get("command"), str)
+            and any(marker in h["command"] for marker in _TERSE_MARKERS)
+        )
+    ]
+    if len(kept) == len(hooks):
+        return entry
+    if not kept:
+        return None
+    return {**entry, "hooks": kept}
+
+
 def _session_start_list(settings: dict[str, Any]) -> list[Any] | None:
     hooks = settings.get("hooks")
     if not isinstance(hooks, dict):
@@ -664,6 +759,17 @@ def is_resume_enabled() -> bool:
     if not entries:
         return False
     return any(_is_resume_entry(e) for e in entries)
+
+
+def is_terse_mode_enabled() -> bool:
+    try:
+        settings = _load_settings()
+    except SystemExit:
+        return False
+    entries = _session_start_list(settings)
+    if not entries:
+        return False
+    return any(_is_terse_entry(e) for e in entries)
 
 
 def enable_session_resume() -> int:
@@ -691,6 +797,31 @@ def enable_session_resume() -> int:
     return 0
 
 
+def enable_terse_mode() -> int:
+    if not CLAUDE_SETTINGS.parent.exists():
+        print(_t("setup_no_agents"), file=sys.stderr)
+        return 1
+    _copy_terse_script()
+    _write_terse_sidecar()
+    settings = _load_settings()
+    hooks = settings.get("hooks")
+    if not isinstance(hooks, dict):
+        hooks = {}
+        settings["hooks"] = hooks
+    session_start = hooks.get("SessionStart")
+    if not isinstance(session_start, list):
+        session_start = []
+        hooks["SessionStart"] = session_start
+    session_start[:] = [e for e in (_strip_terse_hooks(e) for e in session_start) if e is not None]
+    session_start.append(
+        {"matcher": TERSE_MATCHER, "hooks": [{"type": "command", "command": _terse_command()}]}
+    )
+    _save_settings(settings)
+    print(_t("terse_mode_enabled_msg"))
+    print(_t("setup_claude_restart_required"))
+    return 0
+
+
 def disable_session_resume() -> int:
     if CLAUDE_SETTINGS.parent.exists():
         settings = _load_settings()
@@ -713,9 +844,42 @@ def disable_session_resume() -> int:
     return 0
 
 
+def disable_terse_mode() -> int:
+    if CLAUDE_SETTINGS.parent.exists():
+        settings = _load_settings()
+        session_start = _session_start_list(settings)
+        if session_start is not None:
+            kept = [e for e in (_strip_terse_hooks(e) for e in session_start) if e is not None]
+            if kept != session_start:
+                hooks = settings["hooks"]
+                if kept:
+                    hooks["SessionStart"] = kept
+                else:
+                    hooks.pop("SessionStart", None)
+                if not hooks:
+                    settings.pop("hooks", None)
+                _save_settings(settings)
+                print(_t("terse_mode_disabled_msg"))
+    for path in (TERSE_HOOK_TARGET, TERSE_PROMPT_SIDECAR):
+        if path.exists():
+            path.unlink()
+    return 0
+
+
 def _installed_resume_version() -> str | None:
     try:
         with RESUME_HOOK_TARGET.open(encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("__version__"):
+                    return line.split("=", 1)[1].strip().strip("\"'")
+    except OSError:
+        pass
+    return None
+
+
+def _installed_terse_version() -> str | None:
+    try:
+        with TERSE_HOOK_TARGET.open(encoding="utf-8") as f:
             for line in f:
                 if line.startswith("__version__"):
                     return line.split("=", 1)[1].strip().strip("\"'")
@@ -741,6 +905,31 @@ def _self_heal_resume() -> None:
         _copy_resume_script()
         _write_resume_sidecar()
         _append_self_heal_log("update_resume_hook", f"{old or 'unknown'} -> {RESUME_HOOK_VERSION}")
+
+
+def _missing_terse_artifacts() -> list[str]:
+    missing: list[str] = []
+    if not TERSE_HOOK_TARGET.exists():
+        missing.append("script")
+    if not TERSE_PROMPT_SIDECAR.exists():
+        missing.append("sidecar")
+    return missing
+
+
+def _self_heal_terse_mode() -> None:
+    if not is_terse_mode_enabled():
+        return
+    missing = _missing_terse_artifacts()
+    if missing:
+        _copy_terse_script()
+        _write_terse_sidecar()
+        _append_self_heal_log("restore_terse_hook", f"missing={','.join(missing)}")
+        return
+    old = _installed_terse_version()
+    if old != TERSE_HOOK_VERSION:
+        _copy_terse_script()
+        _write_terse_sidecar()
+        _append_self_heal_log("update_terse_hook", f"{old or 'unknown'} -> {TERSE_HOOK_VERSION}")
 
 
 def _migrate_resume_command_if_needed() -> None:
@@ -962,6 +1151,13 @@ def self_heal() -> None:
             raise
         _debug_self_heal_failure("resume_hook", exc)
 
+    try:
+        _self_heal_terse_mode()
+    except BaseException as exc:
+        if isinstance(exc, KeyboardInterrupt):
+            raise
+        _debug_self_heal_failure("terse_hook", exc)
+
 
 def is_setup() -> bool:
     has_claude = CLAUDE_SETTINGS.parent.exists()
@@ -1089,6 +1285,7 @@ def unsetup() -> int:
             print(_t("setup_status_file_deleted", path=STATUS_FILE))
 
         disable_session_resume()
+        disable_terse_mode()
 
     if CODEX_CONFIG.exists():
         _unsetup_codex()

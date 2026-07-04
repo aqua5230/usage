@@ -444,6 +444,9 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     assert butler.title == "Resume Last Session"
     assert butler.indentation == 0
     assert butler.tooltip
+    terse = next(item for item in main_menu.items if item.action == "toggleTerseMode:")
+    assert terse.title == "Terse Mode"
+    assert terse.tooltip
     assert "Show in report" not in main_titles
 
 

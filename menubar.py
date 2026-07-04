@@ -194,6 +194,15 @@ def _session_resume_enabled() -> bool:
         return False
 
 
+def _terse_mode_enabled() -> bool:
+    try:
+        import setup_hook
+
+        return setup_hook.is_terse_mode_enabled()
+    except Exception:
+        return False
+
+
 _ALERT_ICON: Any = None
 _ALERT_ICON_LOADED = False
 _CLAUDE_MENUBAR_ICON: Any = None
@@ -870,6 +879,15 @@ class AppDelegate(NSObject):
         butler_item.setState_(1 if _session_resume_enabled() else 0)
         butler_item.setToolTip_(_t(self.language, "project_butler_tooltip"))
         menu.addItem_(butler_item)
+        terse_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "terse_mode_menu"),
+            "toggleTerseMode:",
+            "",
+        )
+        terse_item.setTarget_(self)
+        terse_item.setState_(1 if _terse_mode_enabled() else 0)
+        terse_item.setToolTip_(_t(self.language, "terse_mode_tooltip"))
+        menu.addItem_(terse_item)
         self._switch_menu_action_taken = False
         menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
         if self._switch_menu_action_taken:
@@ -979,6 +997,49 @@ class AppDelegate(NSObject):
         alert = _make_alert()
         if result.get("ok", True):
             key = "resume_enabled_restart" if result.get("enabled") else "resume_disabled_msg"
+            alert.setMessageText_(_t(self.language, key))
+        else:
+            alert.setMessageText_(_t(self.language, "resume_action_failed"))
+            alert.setInformativeText_(str(result.get("output") or ""))
+        alert.runModal()
+        self._refresh()
+
+    def toggleTerseMode_(self, sender: Any) -> None:
+        self._mark_switch_menu_action()
+        thread = threading.Thread(target=self._toggle_terse_mode_in_background, daemon=True)
+        thread.start()
+
+    def _toggle_terse_mode_in_background(self) -> None:
+        import setup_hook
+
+        output = io.StringIO()
+        ok = True
+        enabled = False
+        try:
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+                if setup_hook.is_terse_mode_enabled():
+                    setup_hook.disable_terse_mode()
+                else:
+                    ok = setup_hook.enable_terse_mode() == 0
+                    enabled = ok
+        except SystemExit as exc:
+            if exc.code:
+                ok = False
+                print(exc.code, file=output)
+        except Exception as exc:
+            ok = False
+            print(f"{type(exc).__name__}: {exc}", file=output)
+
+        self.performSelectorOnMainThread_withObject_waitUntilDone_(
+            "_finishTerseMode:",
+            {"ok": ok, "enabled": enabled, "output": output.getvalue().strip()},
+            False,
+        )
+
+    def _finishTerseMode_(self, result: dict[str, Any]) -> None:
+        alert = _make_alert()
+        if result.get("ok", True):
+            key = "terse_mode_enabled_msg" if result.get("enabled") else "terse_mode_disabled_msg"
             alert.setMessageText_(_t(self.language, key))
         else:
             alert.setMessageText_(_t(self.language, "resume_action_failed"))

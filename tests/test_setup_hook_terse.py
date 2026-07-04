@@ -1,0 +1,152 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lollapalooza <https://github.com/aqua5230>
+#
+# Part of "usage". Free software licensed under the GNU Affero General Public
+# License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
+
+from __future__ import annotations
+
+import json
+from collections.abc import Callable
+from pathlib import Path
+
+import pytest
+
+import setup_hook
+from tests.helpers import TerseHookPaths
+
+
+@pytest.fixture
+def terse_paths(patch_terse_hook_paths: Callable[..., TerseHookPaths]) -> TerseHookPaths:
+    return patch_terse_hook_paths()
+
+
+def _terse_entries(settings: Path) -> list[dict[str, object]]:
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    return [e for e in data["hooks"]["SessionStart"] if setup_hook._is_terse_entry(e)]
+
+
+def test_enable_registers_hook_and_writes_sidecar(terse_paths: TerseHookPaths) -> None:
+    settings = terse_paths.settings
+
+    assert setup_hook.enable_terse_mode() == 0
+    assert setup_hook.is_terse_mode_enabled()
+    assert terse_paths.terse_target.exists()
+    assert terse_paths.sidecar.exists()
+
+    entries = _terse_entries(settings)
+    assert len(entries) == 1
+    assert entries[0]["matcher"] == setup_hook.TERSE_MATCHER
+    hooks = entries[0]["hooks"]
+    assert isinstance(hooks, list)
+    first_hook = hooks[0]
+    assert isinstance(first_hook, dict)
+    command = first_hook["command"]
+    assert isinstance(command, str)
+    assert str(terse_paths.terse_target) not in command
+    assert str(terse_paths.source) in command
+    bundle = json.loads(terse_paths.sidecar.read_text(encoding="utf-8"))
+    assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
+    assert "Terse mode is on for this session" in bundle["en"]["instruction"]
+
+
+def test_enable_is_idempotent(terse_paths: TerseHookPaths) -> None:
+    setup_hook.enable_terse_mode()
+    setup_hook.enable_terse_mode()
+    assert len(_terse_entries(terse_paths.settings)) == 1
+
+
+def test_enable_preserves_existing_hooks(terse_paths: TerseHookPaths) -> None:
+    settings = terse_paths.settings
+    settings.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "SessionStart": [
+                        {"matcher": "startup", "hooks": [{"type": "command", "command": "other"}]}
+                    ],
+                    "PreToolUse": [{"hooks": [{"type": "command", "command": "guard"}]}],
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    setup_hook.enable_terse_mode()
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
+    assert "other" in commands
+    assert any("usage_terse_mode" in c for c in commands)
+    assert data["hooks"]["PreToolUse"][0]["hooks"][0]["command"] == "guard"
+
+
+def test_disable_removes_entry_and_files(terse_paths: TerseHookPaths) -> None:
+    setup_hook.enable_terse_mode()
+
+    setup_hook.disable_terse_mode()
+    assert not setup_hook.is_terse_mode_enabled()
+    assert not terse_paths.terse_target.exists()
+    assert not terse_paths.sidecar.exists()
+    data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    assert "hooks" not in data
+
+
+def test_disable_keeps_other_session_start_hooks(terse_paths: TerseHookPaths) -> None:
+    settings = terse_paths.settings
+    setup_hook.enable_terse_mode()
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    data["hooks"]["SessionStart"].insert(
+        0, {"matcher": "startup", "hooks": [{"type": "command", "command": "other"}]}
+    )
+    settings.write_text(json.dumps(data), encoding="utf-8")
+
+    setup_hook.disable_terse_mode()
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
+    assert commands == ["other"]
+
+
+def test_disable_preserves_user_hook_in_shared_entry(terse_paths: TerseHookPaths) -> None:
+    settings = terse_paths.settings
+    setup_hook.enable_terse_mode()
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    data["hooks"]["SessionStart"][0]["hooks"].append(
+        {"type": "command", "command": "echo my-own-hook"}
+    )
+    settings.write_text(json.dumps(data), encoding="utf-8")
+
+    assert setup_hook.disable_terse_mode() == 0
+
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    shared = data["hooks"]["SessionStart"][0]["hooks"]
+    assert shared == [{"type": "command", "command": "echo my-own-hook"}]
+
+
+def test_self_heal_restores_missing_script_when_enabled(terse_paths: TerseHookPaths) -> None:
+    setup_hook.enable_terse_mode()
+    terse_paths.terse_target.unlink()
+    terse_paths.sidecar.unlink()
+
+    setup_hook._self_heal_terse_mode()
+    assert terse_paths.terse_target.exists()
+    assert terse_paths.sidecar.exists()
+
+    data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    assert data["usage"]["selfHealLog"][-1]["action"] == "restore_terse_hook"
+    assert data["usage"]["selfHealLog"][-1]["detail"] == "missing=script,sidecar"
+
+
+def test_self_heal_updates_old_version(terse_paths: TerseHookPaths) -> None:
+    setup_hook.enable_terse_mode()
+    terse_paths.terse_target.write_text('__version__ = "0.1"\n', encoding="utf-8")
+
+    setup_hook._self_heal_terse_mode()
+
+    data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    assert data["usage"]["selfHealLog"][-1]["action"] == "update_terse_hook"
+    assert data["usage"]["selfHealLog"][-1]["detail"] == "0.1 -> 1.0"
+
+
+def test_self_heal_noop_when_disabled(terse_paths: TerseHookPaths) -> None:
+    setup_hook._self_heal_terse_mode()
+    assert not terse_paths.terse_target.exists()

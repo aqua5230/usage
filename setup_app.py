@@ -63,6 +63,7 @@ if __name__ == "__main__":
             "usage_statusline.py",
             "usage_statusline_forwarder.py",
             "usage_session_resume.py",
+            "usage_terse_mode.py",
         ],
         "includes": [
             "AppKit",

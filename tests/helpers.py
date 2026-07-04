@@ -171,3 +171,37 @@ def patch_resume_hook_paths(
         sidecar=sidecar,
         source=source,
     )
+
+
+@dataclass(frozen=True)
+class TerseHookPaths:
+    settings: Path
+    terse_target: Path
+    sidecar: Path
+    source: Path
+
+
+def patch_terse_hook_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    *,
+    source_name: str = "usage_terse_mode.py",
+    source_text: str = '__version__ = "1.0"\nprint("terse")\n',
+) -> TerseHookPaths:
+    claude_dir = tmp_path / ".claude"
+    claude_dir.mkdir(exist_ok=True)
+    settings = claude_dir / "settings.json"
+    terse_target = claude_dir / "usage-terse-mode.py"
+    sidecar = claude_dir / "usage-terse-prompt.json"
+    source = tmp_path / source_name
+    source.write_text(source_text, encoding="utf-8")
+    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(setup_hook, "TERSE_HOOK_TARGET", terse_target)
+    monkeypatch.setattr(setup_hook, "TERSE_PROMPT_SIDECAR", sidecar)
+    monkeypatch.setattr(setup_hook, "_resolve_terse_source", lambda: source)
+    return TerseHookPaths(
+        settings=settings,
+        terse_target=terse_target,
+        sidecar=sidecar,
+        source=source,
+    )

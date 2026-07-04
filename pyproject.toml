@@ -43,6 +43,7 @@ py-modules = [
     "usage_lang",
     "usage_statusline_forwarder",
     "usage_session_resume",
+    "usage_terse_mode",
     "project_resolver",
     "subscription",
     "doctor",
