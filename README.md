@@ -42,6 +42,13 @@ It lands in your Applications folder automatically → right-click **Open** once
 
 - **See it without looking for it.** Your quota lives in the menu bar, color-coded — green to red — so the warning level reads in a glance, no click required. Click only when you want the full breakdown.
 - **Never re-explain your progress again.** Open a new Claude Code session and usage hands your last progress straight to the AI — no `/resume`, no recap, and no dragging a bloated old conversation back just to continue. Fully local, off by default. [Learn more](https://aqua5230.github.io/usage/#resume).
+- **Ask Claude to talk less, save output tokens.** A menu-bar toggle — Terse Mode — asks Claude Code to answer more tersely for the whole session: same substance, fewer words, while code, commands, file paths, and error messages stay byte-exact. Fully local, off by default.
+  ```
+  Before: "Sure! I'd be happy to help. The issue is most likely that your regex is
+           greedy — I'd recommend adding a `?` after the `+` to make it lazy instead."
+  After:  "Regex is greedy. Add `?` after `+` to make it lazy."
+  ```
+  Like any style instruction, it's a request rather than a hard rule — on a very long conversation it can gradually fade and drift back to Claude's normal verbosity, and a one-line reminder brings it back.
 - **Find out where your tokens leak — without asking.** A daily background health check scans your local session logs for avoidable waste — the same files read over and over, bloated sessions, oversized command output. When it finds something worth fixing, the new-conversation handoff above gains a one-line heads-up; say "show me" and the AI walks you through the findings and how to fix them. Ships with the Progress Concierge, fully local.
 - **Summon a tiny spirit that runs with your burn rate.** A menu-bar toggle adds a small white silhouette beside your usage percentages — phoenix for Claude, dragon for Codex. It speeds up as your local token burn climbs, stays fully local, and is off by default.
 - **Warned before the wall, not at it.** A system notification when you're nearing a threshold, run out, or recover — so you wrap up on your terms instead of getting cut off mid-sentence. Fully local, off by default.
@@ -157,6 +164,7 @@ See more on the [landing page](https://aqua5230.github.io/usage/#screenshots).
 | 5-language i18n | ✅ | — | — |
 | 10 visual panel themes | ✅ | — | — |
 | Progress Concierge (session resume) | ✅ | — | — |
+| Terse Mode (reply compression) | ✅ | — | — |
 | Token-waste health check | ✅ | — | — |
 | Year-in-review (contribution graph + Wrapped) | ✅ | — | — |
 | Zero API calls | ✅ | ✅ | ✅ |

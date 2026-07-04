@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.23.0] - 2026-07-04
+
+### Added
+- **Terse Mode**: a new menu-bar toggle that asks Claude Code to answer more tersely for the whole session — cutting hedging, filler, and repeated preamble while keeping code, commands, file paths, and error messages byte-exact. Fully local (just a SessionStart hook, no API calls), off by default, and announces itself at the start of your first reply — merged into the Progress Concierge's greeting when both are on, or on its own line otherwise. Like any style instruction, it's a request rather than a hard constraint: on a very long conversation it can gradually fade and drift back to Claude's normal verbosity, at which point a one-line reminder brings it back.
+
 ## [0.22.14] - 2026-07-03
 
 ### Fixed
