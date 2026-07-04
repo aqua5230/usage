@@ -5,11 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root {
-      --bg: #ece3d0;
-      --paper: rgba(245, 238, 224, 0.96);
-      --paper-edge: rgba(124, 101, 73, 0.18);
+      --bg: #e0cea3;
+      --paper: rgba(244, 232, 200, 0.96);
+      --paper-edge: rgba(124, 101, 73, 0.28);
       --line: rgba(54, 42, 31, 0.42);
       --text: #1c1813;
+      --ink: #14100a;
       --muted: #65584a;
       --claude: #2d241c;
       --codex: #46392d;
@@ -45,10 +46,8 @@
       padding: 10px;
       position: relative;
       background:
-        radial-gradient(circle at 18% 12%, rgba(110, 84, 45, 0.05), transparent 24%),
-        radial-gradient(circle at 82% 28%, rgba(146, 122, 85, 0.05), transparent 26%),
-        radial-gradient(circle at 40% 78%, rgba(126, 102, 70, 0.04), transparent 22%),
-        linear-gradient(180deg, #f0e8d7 0%, #ece3d0 100%);
+        radial-gradient(ellipse at 50% 42%, transparent 52%, rgba(74, 49, 18, 0.08) 100%),
+        linear-gradient(180deg, #e6d6b3 0%, #d9c394 55%, #ccb87c 100%);
     }
 
     body::before {
@@ -65,36 +64,56 @@
       pointer-events: none;
     }
 
+    body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'%3E%3Cg fill='none' stroke='%23231a10' stroke-width='0.9' stroke-linejoin='round'%3E%3Ccircle cx='60' cy='60' r='54'/%3E%3Ccircle cx='60' cy='60' r='40'/%3E%3Cpath d='M60 6 L67 60 L60 114 L53 60 Z'/%3E%3Cpath d='M6 60 L60 53 L114 60 L60 67 Z'/%3E%3Cpath d='M22 22 L57 57 L98 98 L63 63 Z'/%3E%3Cpath d='M98 22 L63 57 L22 98 L57 63 Z'/%3E%3Ccircle cx='60' cy='60' r='5'/%3E%3C/g%3E%3C/svg%3E");
+      background-position: 52% 44%;
+      background-repeat: no-repeat;
+      background-size: 64% auto;
+      opacity: 0.07;
+      pointer-events: none;
+      z-index: 0;
+    }
+
     .wrap {
       position: relative;
       display: flex;
       flex-direction: column;
-      justify-content: center;
       gap: 10px;
       width: 100%;
       height: 100%;
       padding: 6px;
-      border: 1px solid rgba(28, 24, 19, 0.68);
+      z-index: 1;
+      border: 1.5px solid #2b2117;
       box-shadow:
-        inset 0 0 0 3px rgba(236, 227, 208, 0.95),
-        inset 0 0 0 4px rgba(28, 24, 19, 0.58);
-      background: rgba(236, 227, 208, 0.28);
+        inset 0 0 0 1px rgba(236, 227, 208, 0.92),
+        inset 0 0 0 4px rgba(43, 33, 23, 0.5),
+        inset 0 0 0 5px rgba(236, 227, 208, 0.9),
+        0 1px 3px rgba(40, 28, 12, 0.18);
+      background: rgba(232, 216, 178, 0.32);
     }
 
     .card,
     .footer {
       position: relative;
       background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(217, 204, 178, 0.16)),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(210, 188, 140, 0.18)),
         var(--paper);
       border: 1px solid var(--paper-edge);
       box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.26);
       border-radius: 0;
       overflow: hidden;
+      flex: none;
     }
 
     .card {
       padding: 8px 10px 10px;
+    }
+
+    .card[data-card="projects"] {
+      flex: 1;
     }
 
     .brand {
@@ -102,8 +121,8 @@
       align-items: center;
       min-height: 30px;
       gap: 8px;
-      margin: 0 0 10px;
-      padding: 7px 0 6px;
+      margin: 0 0 8px;
+      padding: 6px 0 5px;
       background: none;
       color: var(--text);
       font-weight: 700;
@@ -144,7 +163,8 @@
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: var(--text);
+      color: var(--ink);
+      text-shadow: 0 0 1px rgba(35, 22, 8, 0.32);
       font-size: 15px;
       line-height: 1.2;
       font-weight: 700;
@@ -222,8 +242,8 @@
 
     .row + .row {
       border-top: 1px solid var(--line);
-      margin-top: 10px;
-      padding-top: 10px;
+      margin-top: 8px;
+      padding-top: 8px;
     }
 
     .card[data-card="claude"] .row:last-child,
@@ -241,14 +261,15 @@
 
     .row-title {
       font-size: 15px;
-      line-height: 1.3;
+      line-height: 1.15;
       font-weight: 700;
-      color: var(--text);
+      color: var(--ink);
+      text-shadow: 0 0 1px rgba(35, 22, 8, 0.28);
     }
 
     .percent {
       font-size: 14px;
-      line-height: 1.3;
+      line-height: 1.15;
       font-weight: 700;
       color: var(--accent);
       white-space: nowrap;
@@ -256,7 +277,7 @@
 
     .track {
       position: relative;
-      height: 13px;
+      height: 9px;
       overflow: hidden;
       background: rgba(244, 236, 223, 0.92);
       border: 1px solid rgba(28, 24, 19, 0.5);
@@ -303,7 +324,7 @@
       margin-top: 4px;
       color: var(--muted);
       font-size: 12px;
-      line-height: 1.3;
+      line-height: 1.15;
       font-weight: 400;
       text-align: right;
       white-space: nowrap;
@@ -328,7 +349,7 @@
       flex-wrap: wrap;
       align-items: baseline;
       gap: 8px;
-      padding: 8px 2px;
+      padding: 6px 2px;
       font-size: 14px;
       line-height: 1.3;
     }
@@ -363,7 +384,7 @@
       flex: 0 0 100%;
       width: 100%;
       height: 3px;
-      margin-top: 6px;
+      margin-top: 4px;
       align-self: end;
       overflow: hidden;
       border-radius: 2px;
@@ -387,7 +408,7 @@
     }
 
     .proj-row:last-child .proj-bar {
-      margin-bottom: 10px;
+      margin-bottom: 12px;
     }
 
     .footer {
@@ -400,7 +421,7 @@
       gap: 6px;
       color: var(--text);
       font-size: 14px;
-      line-height: 1.3;
+      line-height: 1.15;
       font-weight: 400;
     }
 
@@ -408,9 +429,10 @@
       margin-top: 8px;
       padding-top: 8px;
       border-top: 1px solid var(--line);
-      color: var(--text);
+      color: var(--ink);
+      text-shadow: 0 0 1px rgba(35, 22, 8, 0.28);
       font-size: 15px;
-      line-height: 1.3;
+      line-height: 1.15;
       font-weight: 700;
       white-space: nowrap;
       overflow: hidden;
@@ -420,7 +442,7 @@
     .actions {
       display: flex;
       gap: 10px;
-      margin-top: 12px;
+      margin-top: 10px;
     }
 
     .action {

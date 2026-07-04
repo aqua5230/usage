@@ -52,7 +52,6 @@
     .wrap {
       display: flex;
       flex-direction: column;
-      justify-content: center;
       gap: 10px;
       width: 100%;
       height: 100%;
@@ -68,10 +67,15 @@
       box-shadow: inset 1px 1px 0 #dfdfdf, inset -1px -1px 0 #808080;
       border-radius: 0;
       overflow: hidden;
+      flex: none;
     }
 
     .card {
       padding: 2px;
+    }
+
+    .card[data-card="projects"] {
+      flex: 1;
     }
 
     .brand {

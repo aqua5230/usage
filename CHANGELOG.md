@@ -5,7 +5,16 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [0.23.1] - 2026-07-04
+## [0.23.2] - 2026-07-04
+
+### Fixed
+- **Matrix panel's countdown and footer text was too dim to read**: `--muted` opacity was bumped up and a subtle glow (matching the card titles) added to the reset countdown and footer status lines.
+- **Black Hole panel's signature animation was barely visible**: the accretion-disk scene was drawn directly behind the cards, and their 16px frosted-glass blur was smearing it into a faint blob; the blur is now much lighter so the disk, event horizon, and particle stream actually show through.
+- **Newspaper and Win95 panels could clip the last project row**: both panels' outer layout was missing the `flex: none` / `flex: 1` split every other panel uses to absorb variable content height, so with 3 projects showing, the bottom of the list (and sometimes the footer) got silently cut off by `overflow: hidden`. Layout fixed and registered panel heights recalibrated to the real measured minimum for each panel (Win95 800→870, others tightened after also trimming row spacing).
+- **Newspaper panel's row spacing was looser than every other panel**: track height, line-heights, and card padding are now in line with Classic's proportions, so the panel isn't noticeably taller without needing extra clipping-avoidance padding.
+
+### Changed
+- **Newspaper panel now leans into the "aged paper" look**: deeper amber tone, a faint compass-rose watermark, ink-shadowed titles, and a double-line decorative border.
 
 ### Added
 - **Terse Mode now covers Codex CLI too**: the same menu-bar toggle installs a matching SessionStart hook for Codex when it's detected on the machine, using Codex's native hooks system (`[features] hooks = true` plus a `~/.codex/hooks.json` entry). No separate switch — one toggle, both tools. Turning it off only removes usage's own hook entry; it leaves the `hooks` feature flag and any other hooks you've installed for Codex untouched.
