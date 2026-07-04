@@ -44,9 +44,11 @@ It lands in your Applications folder automatically → right-click **Open** once
 - **Never re-explain your progress again.** Open a new Claude Code session and usage hands your last progress straight to the AI — no `/resume`, no recap, and no dragging a bloated old conversation back just to continue. Fully local, off by default. [Learn more](https://aqua5230.github.io/usage/#resume).
 - **Ask Claude to talk less, save output tokens.** A menu-bar toggle — Terse Mode — asks Claude Code to answer more tersely for the whole session: same substance, fewer words, while code, commands, file paths, and error messages stay byte-exact. Fully local, off by default.
   ```
-  Before: "Sure! I'd be happy to help. The issue is most likely that your regex is
-           greedy — I'd recommend adding a `?` after the `+` to make it lazy instead."
-  After:  "Regex is greedy. Add `?` after `+` to make it lazy."
+  Before: "Sure, let me take a look! This is a pretty common issue — it usually
+           means the path you're pointing at is wrong, or the file just isn't
+           in the folder you think it's in. Let me check the current directory
+           structure first so I can pin down the real cause."
+  After:  "Wrong path — the file isn't in that folder."
   ```
   Like any style instruction, it's a request rather than a hard rule — on a very long conversation it can gradually fade and drift back to Claude's normal verbosity, and a one-line reminder brings it back.
 - **Find out where your tokens leak — without asking.** A daily background health check scans your local session logs for avoidable waste — the same files read over and over, bloated sessions, oversized command output. When it finds something worth fixing, the new-conversation handoff above gains a one-line heads-up; say "show me" and the AI walks you through the findings and how to fix them. Ships with the Progress Concierge, fully local.
