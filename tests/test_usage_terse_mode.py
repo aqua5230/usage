@@ -58,7 +58,8 @@ def test_main_falls_back_to_default_when_sidecar_missing(
 
     assert mod.main() == 0
     out = json.loads(capsys.readouterr().out)
-    assert "Terse mode is on for this session" in out["hookSpecificOutput"]["additionalContext"]
+    context = out["hookSpecificOutput"]["additionalContext"]
+    assert "Terse mode is on for this entire conversation" in context
 
 
 def test_main_uses_detected_language(

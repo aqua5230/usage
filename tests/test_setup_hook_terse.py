@@ -47,7 +47,7 @@ def test_enable_registers_hook_and_writes_sidecar(terse_paths: TerseHookPaths) -
     assert str(terse_paths.source) in command
     bundle = json.loads(terse_paths.sidecar.read_text(encoding="utf-8"))
     assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
-    assert "Terse mode is on for this session" in bundle["en"]["instruction"]
+    assert "Terse mode is on for this entire conversation" in bundle["en"]["instruction"]
 
 
 def test_enable_is_idempotent(terse_paths: TerseHookPaths) -> None:

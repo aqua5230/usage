@@ -35,28 +35,34 @@ PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-terse-prompt.json"))
 
 _DEFAULT_INSTRUCTION: dict[str, str] = {
     "zh-TW": (
-        "（這個對話已開啟「精簡模式」：回覆盡量簡短，去掉客套語、重複鋪陳與不必要的過渡句，"
-        "能用短句或條列就不要展開成長段落；但程式碼、指令、檔案路徑、錯誤訊息一個字都不能"
-        "省略或改寫。如果使用者明確要求詳細解說、逐步教學，或情境需要完整推理，仍以使用者"
-        "當下的要求為準，不要因為這個模式而省略關鍵資訊。）"
+        "（這個對話已開啟「精簡模式」：從現在起，直到這個對話結束為止，每一則回覆都要遵守"
+        "這條規則——不會因為對話變長、話題變多就淡忘或恢復正常語氣。回覆盡量簡短，去掉客套"
+        "語、重複鋪陳與不必要的過渡句，能用短句或條列就不要展開成長段落；但程式碼、指令、"
+        "檔案路徑、錯誤訊息一個字都不能省略或改寫。如果使用者明確要求詳細解說、逐步教學，"
+        "或情境需要完整推理，仍以使用者當下的要求為準，不要因為這個模式而省略關鍵資訊。）"
     ),
     "en": (
-        "(Terse mode is on for this session: keep replies short — cut hedging, filler, "
-        "and repeated preamble, and prefer short sentences or bullets over long "
-        "paragraphs. Code, commands, file paths, and error messages must stay "
-        "byte-exact, never trimmed or rewritten. If the user explicitly asks for a "
-        "detailed walkthrough, step-by-step teaching, or the situation needs full "
-        "reasoning, follow that instead — don't drop essential information just to stay "
-        "terse.)"
+        "(Terse mode is on for this entire conversation, starting now and lasting "
+        "until it ends — apply it to every single reply, no matter how long the "
+        "conversation gets; don't let it fade or drift back to normal verbosity "
+        "partway through. Keep replies short — cut hedging, filler, and repeated "
+        "preamble, and prefer short sentences or bullets over long paragraphs. Code, "
+        "commands, file paths, and error messages must stay byte-exact, never trimmed "
+        "or rewritten. If the user explicitly asks for a detailed walkthrough, "
+        "step-by-step teaching, or the situation needs full reasoning, follow that "
+        "instead — don't drop essential information just to stay terse.)"
     ),
     "zh-CN": (
-        "（这个对话已开启「精简模式」：回复尽量简短，去掉客套语、重复铺陈和不必要的过渡句，"
-        "能用短句或条列就不要展开成长段落；但代码、指令、文件路径、错误信息一个字都不能"
-        "省略或改写。如果用户明确要求详细讲解、逐步教学，或情境需要完整推理，仍以用户当下"
-        "的要求为准，不要因为这个模式而省略关键信息。）"
+        "（这个对话已开启「精简模式」：从现在起，直到这个对话结束为止，每一则回复都要遵守"
+        "这条规则——不会因为对话变长、话题变多就淡忘或恢复正常语气。回复尽量简短，去掉客套"
+        "语、重复铺陈和不必要的过渡句，能用短句或条列就不要展开成长段落；但代码、指令、"
+        "文件路径、错误信息一个字都不能省略或改写。如果用户明确要求详细讲解、逐步教学，"
+        "或情境需要完整推理，仍以用户当下的要求为准，不要因为这个模式而省略关键信息。）"
     ),
     "ja": (
-        "（この会話では「簡潔モード」が有効です。返答はできるだけ短くし、前置きや重複した"
+        "（この会話では「簡潔モード」が有効です。今この瞬間から会話が終わるまで、すべての"
+        "返信でこのルールを守ってください——会話が長くなったり話題が増えたりしても、薄れ"
+        "たり通常の口調に戻ったりしないこと。返答はできるだけ短くし、前置きや重複した"
         "言い回し、不必要なつなぎ文を省いてください。短文や箇条書きで済むなら長い段落に"
         "広げないでください。ただし、コード、コマンド、ファイルパス、エラーメッセージは"
         "一文字たりとも省略・書き換えしないこと。ユーザーが明確に詳しい解説や段階的な"
@@ -64,7 +70,9 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "このモードのために重要な情報を落とさないでください。）"
     ),
     "ko": (
-        "(이 대화에는 '간결 모드'가 켜져 있습니다. 답변은 최대한 짧게 하고, 빈말이나 반복되는 "
+        "(이 대화에는 '간결 모드'가 켜져 있습니다. 지금부터 이 대화가 끝날 때까지 모든 답변에 "
+        "이 규칙을 적용하세요 — 대화가 길어지거나 주제가 늘어나도 흐려지거나 원래 말투로 "
+        "돌아가지 마세요. 답변은 최대한 짧게 하고, 빈말이나 반복되는 "
         "서두, 불필요한 연결 문장은 덜어내세요. 짧은 문장이나 목록으로 충분하면 긴 단락으로 "
         "늘이지 마세요. 다만 코드, 명령어, 파일 경로, 오류 메시지는 한 글자도 생략하거나 "
         "바꾸면 안 됩니다. 사용자가 자세한 설명이나 단계별 안내를 명확히 요청했거나, 상황상 "
