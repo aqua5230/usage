@@ -11,7 +11,7 @@
       --panel-border: rgba(0, 220, 90, 0.35);
       --line: rgba(0, 220, 90, 0.18);
       --text: #2ef272;
-      --muted: rgba(46, 242, 114, 0.55);
+      --muted: rgba(46, 242, 114, 0.85);
       --track: rgba(0, 140, 50, 0.35);
       --button: rgba(0, 0, 0, 0.72);
       --button-border: rgba(0, 220, 90, 0.45);
@@ -222,11 +222,12 @@
     .reset {
       margin-top: 4px;
       color: var(--muted);
-      font-size: 11px;
-      line-height: 13px;
+      font-size: 12px;
+      line-height: 14px;
       font-weight: 700;
       text-align: right;
       white-space: nowrap;
+      text-shadow: 0 0 6px rgba(46, 242, 114, 0.35);
     }
 
     .reset[data-warning="true"] {
@@ -332,6 +333,7 @@
       font-size: 13.5px;
       line-height: 18px;
       font-weight: 700;
+      text-shadow: 0 0 6px rgba(46, 242, 114, 0.35);
     }
 
     .today {
@@ -671,6 +673,11 @@
       renderRow(name, "weekly", rows && rows.weekly);
     }
 
+    function formatTokenAbbrev(n) {
+      if (n >= 1000000000) return (n / 1000000000).toFixed(1) + "B";
+      if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
+      return null;
+    }
     function renderProjects(projects) {
       const list = document.querySelector("[data-project-list]");
       if (!list) return;
@@ -698,7 +705,9 @@
         name.textContent = project.name || "";
         const tok = document.createElement("span");
         tok.className = "proj-tokens";
-        tok.textContent = project.tokensText || "";
+        const abbrev = formatTokenAbbrev(tokens);
+        tok.textContent = abbrev !== null ? abbrev : (project.tokensText || "");
+        tok.title = project.tokensText || "";
         const cost = document.createElement("span");
         cost.className = "proj-cost";
         cost.textContent = project.costText || "";
