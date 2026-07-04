@@ -673,11 +673,6 @@
       renderRow(name, "weekly", rows && rows.weekly);
     }
 
-    function formatTokenAbbrev(n) {
-      if (n >= 1000000000) return (n / 1000000000).toFixed(1) + "B";
-      if (n >= 1000000) return (n / 1000000).toFixed(1) + "M";
-      return null;
-    }
     function renderProjects(projects) {
       const list = document.querySelector("[data-project-list]");
       if (!list) return;
@@ -705,9 +700,7 @@
         name.textContent = project.name || "";
         const tok = document.createElement("span");
         tok.className = "proj-tokens";
-        const abbrev = formatTokenAbbrev(tokens);
-        tok.textContent = abbrev !== null ? abbrev : (project.tokensText || "");
-        tok.title = project.tokensText || "";
+        tok.textContent = project.tokensText || "";
         const cost = document.createElement("span");
         cost.className = "proj-cost";
         cost.textContent = project.costText || "";
