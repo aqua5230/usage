@@ -760,3 +760,63 @@ def test_is_model_priced_returns_false_for_unknown_model(
 
     assert pricing.is_model_priced("glm-5.2") is False
     assert pricing.is_model_priced("unknown-model") is False
+
+
+def test_missing_model_resolution_is_memoized_per_pricing_object(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pricing_table = {
+        "claude-opus-4-8": {"input_cost_per_token": 15e-6},
+    }
+    resolve_calls = 0
+
+    original_resolve_model_key = pricing._resolve_model_key
+
+    def counted_resolve_model_key(model: str, table: pricing.PricingTable) -> str | None:
+        nonlocal resolve_calls
+        resolve_calls += 1
+        return original_resolve_model_key(model, table)
+
+    pricing._set_pricing_cache_for_test((pricing_table, "cache", 0.0))
+    monkeypatch.setattr(pricing, "_resolve_model_key", counted_resolve_model_key)
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None: None)
+
+    missing_entry = _entry(model="glm-5.2", input_tokens=100)
+
+    assert pricing.calculate_cost(missing_entry) == 0.0
+    assert pricing.calculate_cost(missing_entry) == 0.0
+    assert pricing.is_model_priced("glm-5.2") is False
+    assert pricing.is_model_priced("glm-5.2") is False
+    assert resolve_calls == 1
+
+
+def test_missing_model_resolution_rechecks_after_pricing_object_replaced(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pricing_table = {
+        "claude-opus-4-8": {"input_cost_per_token": 15e-6},
+    }
+    replacement_pricing_table = {
+        "glm-5.2": {"input_cost_per_token": 1.0},
+    }
+    resolve_calls = 0
+
+    original_resolve_model_key = pricing._resolve_model_key
+
+    def counted_resolve_model_key(model: str, table: pricing.PricingTable) -> str | None:
+        nonlocal resolve_calls
+        resolve_calls += 1
+        return original_resolve_model_key(model, table)
+
+    monkeypatch.setattr(pricing, "_resolve_model_key", counted_resolve_model_key)
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None: None)
+
+    pricing._set_pricing_cache_for_test((pricing_table, "cache", 0.0))
+    assert pricing.calculate_cost(_entry(model="glm-5.2", input_tokens=100)) == 0.0
+    assert pricing.is_model_priced("glm-5.2") is False
+    assert resolve_calls == 1
+
+    pricing._set_pricing_cache_for_test((replacement_pricing_table, "cache", 0.0))
+    assert pricing.is_model_priced("glm-5.2") is True
+    assert pricing.calculate_cost(_entry(model="glm-5.2", input_tokens=2)) == 2.0
+    assert resolve_calls == 2

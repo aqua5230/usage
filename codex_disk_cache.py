@@ -25,9 +25,19 @@ from pathlib import Path
 from typing import Any
 
 from codex_events import _SessionFileInfo, _TokenUsage
-from history_loader import UsageEntry
+from history_disk_cache import (
+    _deserialize_usage_entry,
+    _serialize_usage_entry,
+)
 
 logger = logging.getLogger(__name__)
+
+__all__ = [
+    "_deserialize_usage_entry",
+    "_serialize_usage_entry",
+    "flush_caches",
+    "seed_caches",
+]
 
 _JsonlCache = OrderedDict[Path, Any]
 _FileInfoCache = OrderedDict[Path, tuple[float, int, _SessionFileInfo]]
@@ -54,40 +64,6 @@ def _deserialize_token_usage(value: Any) -> _TokenUsage | None:
         )
     except (KeyError, TypeError, ValueError):
         return None
-
-
-def _serialize_usage_entry(entry: UsageEntry) -> dict[str, Any]:
-    """Serialize UsageEntry to dict for JSON storage."""
-    return {
-        "timestamp": entry.timestamp.isoformat(),
-        "session_id": entry.session_id,
-        "message_id": entry.message_id,
-        "request_id": entry.request_id,
-        "model": entry.model,
-        "input_tokens": entry.input_tokens,
-        "output_tokens": entry.output_tokens,
-        "cache_creation_tokens": entry.cache_creation_tokens,
-        "cache_read_tokens": entry.cache_read_tokens,
-        "cost_usd": entry.cost_usd,
-        "project": entry.project,
-    }
-
-
-def _deserialize_usage_entry(data: dict[str, Any]) -> UsageEntry:
-    """Deserialize dict from JSON back to UsageEntry."""
-    return UsageEntry(
-        timestamp=datetime.fromisoformat(data["timestamp"]),
-        session_id=data["session_id"],
-        message_id=data["message_id"],
-        request_id=data["request_id"],
-        model=data["model"],
-        input_tokens=data["input_tokens"],
-        output_tokens=data["output_tokens"],
-        cache_creation_tokens=data["cache_creation_tokens"],
-        cache_read_tokens=data["cache_read_tokens"],
-        cost_usd=data["cost_usd"],
-        project=data["project"],
-    )
 
 
 def seed_caches(

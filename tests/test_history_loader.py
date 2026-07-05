@@ -21,8 +21,10 @@ import project_resolver
 
 
 @pytest.fixture(autouse=True)
-def _clear_file_cache() -> None:
+def _clear_file_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     history_loader._file_cache.clear()
+    monkeypatch.setattr(history_loader, "_disk_cache_seeded", False)
+    monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", tmp_path / "history_jsonl_cache.json")
     project_resolver._resolve_project_name.cache_clear()
 
 
@@ -399,3 +401,172 @@ def test_load_entries_falls_back_to_full_reparse_when_prefix_changes(
     second = history_loader.load_entries(jsonl_paths=[path])
 
     assert [entry.input_tokens for entry in second] == [10, 2, 3]
+
+
+def test_disk_cache_seed_loads_on_cold_start(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache_file = tmp_path / "history_jsonl_cache.json"
+    projects_dir = tmp_path / "projects"
+    session_path = projects_dir / "plain-project" / "session.jsonl"
+    session_path.parent.mkdir(parents=True, exist_ok=True)
+    monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
+    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+
+    cache_file.write_text(
+        json.dumps(
+            {
+                "schema_version": history_loader._HISTORY_JSONL_CACHE_SCHEMA,
+                "cached_at": datetime.now(UTC).timestamp(),
+                "files": {
+                    str(session_path): {
+                        "mtime": 123456.0,
+                        "size": 1000,
+                        "entries": [
+                            {
+                                "timestamp": "2026-06-24T12:00:00+00:00",
+                                "session_id": "test-session",
+                                "message_id": "test-message",
+                                "request_id": "test-request",
+                                "model": "claude-sonnet",
+                                "input_tokens": 100,
+                                "output_tokens": 50,
+                                "cache_creation_tokens": 10,
+                                "cache_read_tokens": 5,
+                                "cost_usd": 0.25,
+                                "project": "plain-project",
+                            }
+                        ],
+                        "confirmed_offset": 1000,
+                        "confirmed_prefix_digest": "abcd",
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    history_loader.load_entries()
+
+    assert len(history_loader._file_cache) == 1
+    assert session_path in history_loader._file_cache
+    cache_entry = history_loader._file_cache[session_path]
+    assert cache_entry.mtime == 123456.0
+    assert cache_entry.size == 1000
+    assert len(cache_entry.entries) == 1
+    assert cache_entry.entries[0].input_tokens == 100
+    assert cache_entry.entries[0].cache_creation_tokens == 10
+    assert cache_entry.confirmed_offset == 1000
+    assert cache_entry.confirmed_prefix_digest == bytes.fromhex("abcd")
+
+
+def test_disk_cache_invalid_schema_fails_safely(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache_file = tmp_path / "history_jsonl_cache.json"
+    monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
+    cache_file.write_text(
+        json.dumps(
+            {
+                "schema_version": 999,
+                "cached_at": datetime.now(UTC).timestamp(),
+                "files": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    history_loader._seed_caches_from_disk()
+
+    assert len(history_loader._file_cache) == 0
+
+
+def test_disk_cache_missing_file_fails_safely(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache_file = tmp_path / "history_jsonl_cache.json"
+    monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
+
+    history_loader._seed_caches_from_disk()
+
+    assert len(history_loader._file_cache) == 0
+
+
+def test_disk_cache_corrupted_json_fails_safely(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache_file = tmp_path / "history_jsonl_cache.json"
+    monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
+    cache_file.write_text("not valid json {", encoding="utf-8")
+
+    history_loader._seed_caches_from_disk()
+
+    assert len(history_loader._file_cache) == 0
+
+
+def test_disk_cache_file_mtime_invalidates_seed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cache_file = tmp_path / "history_jsonl_cache.json"
+    projects_dir = tmp_path / "projects"
+    project_dir = projects_dir / "plain-project"
+    project_dir.mkdir(parents=True)
+    session_path = project_dir / "session.jsonl"
+    monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
+    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+
+    cache_file.write_text(
+        json.dumps(
+            {
+                "schema_version": history_loader._HISTORY_JSONL_CACHE_SCHEMA,
+                "cached_at": datetime.now(UTC).timestamp(),
+                "files": {
+                    str(session_path): {
+                        "mtime": 100.0,
+                        "size": 200,
+                        "entries": [
+                            {
+                                "timestamp": "2026-06-24T12:00:00+00:00",
+                                "session_id": "test-session",
+                                "message_id": "stale-message",
+                                "request_id": "stale-request",
+                                "model": "claude-sonnet",
+                                "input_tokens": 1,
+                                "output_tokens": 2,
+                                "cache_creation_tokens": 3,
+                                "cache_read_tokens": 4,
+                                "cost_usd": 0.01,
+                                "project": "plain-project",
+                            }
+                        ],
+                        "confirmed_offset": 200,
+                        "confirmed_prefix_digest": "abcd",
+                    }
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    session_path.write_text(
+        _line(
+            message_id="fresh-message",
+            request_id="fresh-request",
+            input_tokens=20,
+            output_tokens=30,
+            cache_creation_tokens=40,
+            cache_read_tokens=50,
+        ),
+        encoding="utf-8",
+    )
+
+    entries = history_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].message_id == "fresh-message"
+    assert entries[0].input_tokens == 20
+    assert entries[0].output_tokens == 30

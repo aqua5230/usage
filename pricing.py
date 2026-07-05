@@ -51,6 +51,8 @@ _pricing_cache_lock = threading.Lock()
 _pricing_warm_up_in_progress = False
 _pricing_miss_refresh_at: float | None = None
 _pricing_miss_refresh_lock = threading.Lock()
+_model_key_cache_lock = threading.Lock()
+_model_key_cache: dict[int, tuple[PricingTable, dict[str, str | None]]] = {}
 
 
 class _CostEntry(Protocol):
@@ -67,7 +69,7 @@ def calculate_cost(entry: _CostEntry) -> float:
         return entry.cost_usd
 
     pricing = get_pricing()
-    model_key = _resolve_model_key(entry.model, pricing)
+    model_key = _resolve_model_key_cached(entry.model, pricing)
     if model_key is None:
         _request_pricing_refresh_for_missing_model()
         return 0.0
@@ -93,11 +95,28 @@ def calculate_cost(entry: _CostEntry) -> float:
 def is_model_priced(model: str) -> bool:
     """Check if a model has pricing information available."""
     pricing = get_pricing()
-    model_key = _resolve_model_key(model, pricing)
+    model_key = _resolve_model_key_cached(model, pricing)
     if model_key is None:
         _request_pricing_refresh_for_missing_model()
         return False
     return True
+
+
+def _resolve_model_key_cached(model: str, pricing: PricingTable) -> str | None:
+    with _model_key_cache_lock:
+        per_table_cache = _model_key_cache.get(id(pricing))
+        if per_table_cache is None or per_table_cache[0] is not pricing:
+            model_cache: dict[str, str | None] = {}
+            _model_key_cache[id(pricing)] = (pricing, model_cache)
+        else:
+            model_cache = per_table_cache[1]
+
+        if model in model_cache:
+            return model_cache[model]
+
+        resolved = _resolve_model_key(model, pricing)
+        model_cache[model] = resolved
+        return resolved
 
 
 def get_pricing() -> PricingTable:

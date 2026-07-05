@@ -18,6 +18,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from history_disk_cache import flush_caches, seed_caches
 from project_resolver import project_from_encoded_path, resolve_project_name
 from time_utils import parse_optional_iso8601_utc
 
@@ -43,6 +44,9 @@ class _FileCacheEntry:
 _file_cache: OrderedDict[Path, _FileCacheEntry] = OrderedDict()
 
 CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
+HISTORY_CACHE_PATH = Path(os.path.expanduser("~/.usage/history_jsonl_cache.json"))
+_HISTORY_JSONL_CACHE_SCHEMA = 1
+_disk_cache_seeded = False
 
 
 @dataclass(slots=True)
@@ -74,6 +78,8 @@ def load_entries(
     *,
     jsonl_paths: Iterable[Path] | None = None,
 ) -> list[UsageEntry]:
+    _seed_caches_from_disk()
+
     entries: list[UsageEntry] = []
     seen: set[str] = set()
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
@@ -87,6 +93,9 @@ def load_entries(
         if jsonl_paths is None
         else tuple(jsonl_paths)
     )
+    file_cache_snapshot = {
+        str(path): (entry.mtime, entry.size) for path, entry in _file_cache.items()
+    }
     for jsonl_path in paths:
         if cutoff_ts is not None:
             try:
@@ -98,8 +107,35 @@ def load_entries(
         project = _project_from_path(jsonl_path)
         _load_file(jsonl_path, project, cutoff, seen, entries)
 
+    if {
+        str(path): (entry.mtime, entry.size) for path, entry in _file_cache.items()
+    } != file_cache_snapshot:
+        _flush_caches_to_disk()
+
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
+
+
+def _seed_caches_from_disk() -> None:
+    global _disk_cache_seeded
+
+    if _disk_cache_seeded:
+        return
+    _disk_cache_seeded = True
+    seed_caches(
+        HISTORY_CACHE_PATH,
+        _HISTORY_JSONL_CACHE_SCHEMA,
+        _FILE_CACHE_MAXSIZE,
+        _file_cache,
+    )
+
+
+def _flush_caches_to_disk() -> None:
+    flush_caches(
+        HISTORY_CACHE_PATH,
+        _HISTORY_JSONL_CACHE_SCHEMA,
+        _file_cache,
+    )
 
 
 def _load_file(
