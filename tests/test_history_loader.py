@@ -330,3 +330,72 @@ def test_file_cache_evicts_oldest_entry_when_maxsize_exceeded(tmp_path: Path) ->
     assert len(history_loader._file_cache) == history_loader._FILE_CACHE_MAXSIZE
     assert paths[0] not in history_loader._file_cache
     assert paths[-1] in history_loader._file_cache
+
+
+def test_load_entries_incremental_append_matches_full_reparse(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    project_dir = projects_dir / "plain-project"
+    project_dir.mkdir(parents=True)
+    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+
+    lines = [_line(message_id=f"m{index}", request_id=f"r{index}") for index in range(6)]
+
+    full_path = project_dir / "full.jsonl"
+    full_path.write_text("\n".join(lines), encoding="utf-8")
+    expected = history_loader.load_entries(jsonl_paths=[full_path])
+
+    history_loader._file_cache.clear()
+
+    incremental_path = project_dir / "incremental.jsonl"
+    partial = lines[2][: len(lines[2]) // 2]
+    incremental_path.write_text("\n".join([lines[0], lines[1]]) + "\n" + partial, encoding="utf-8")
+
+    first = history_loader.load_entries(jsonl_paths=[incremental_path])
+    assert [entry.message_id for entry in first] == ["m0", "m1"]
+
+    with incremental_path.open("a", encoding="utf-8") as file:
+        file.write(lines[2][len(partial) :] + "\n" + lines[3])
+
+    second = history_loader.load_entries(jsonl_paths=[incremental_path])
+    assert [entry.message_id for entry in second] == ["m0", "m1", "m2", "m3"]
+
+    with incremental_path.open("a", encoding="utf-8") as file:
+        file.write("\n" + "\n".join(lines[4:]))
+
+    final = history_loader.load_entries(jsonl_paths=[incremental_path])
+
+    assert final == expected
+
+
+def test_load_entries_falls_back_to_full_reparse_when_prefix_changes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    project_dir = projects_dir / "plain-project"
+    project_dir.mkdir(parents=True)
+    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+
+    path = project_dir / "session.jsonl"
+    original_lines = [
+        _line(message_id="m1", request_id="r1", input_tokens=1),
+        _line(message_id="m2", request_id="r2", input_tokens=2),
+    ]
+    path.write_text("\n".join(original_lines), encoding="utf-8")
+
+    first = history_loader.load_entries(jsonl_paths=[path])
+    assert [entry.input_tokens for entry in first] == [1, 2]
+
+    rewritten_lines = [
+        _line(message_id="m1", request_id="r1", input_tokens=10),
+        _line(message_id="m2", request_id="r2", input_tokens=2),
+        _line(message_id="m3", request_id="r3", input_tokens=3),
+    ]
+    path.write_text("\n".join(rewritten_lines), encoding="utf-8")
+
+    second = history_loader.load_entries(jsonl_paths=[path])
+
+    assert [entry.input_tokens for entry in second] == [10, 2, 3]

@@ -13,6 +13,9 @@ usage.err.log
 build/
 dist/
 *.egg-info/
+# Compiled instate-cli binary (built from the separate ~/Developer/instate project).
+# Contains private role content — must never enter usage's public git history.
+vendor/
 .pytest_cache/
 .coverage
 .antigravitycli/

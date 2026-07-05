@@ -61,6 +61,7 @@ import critter_frames
 import login_item
 import menubar_state
 import panels
+import talent_market_bridge
 import update_checker
 import update_gate
 import usage_diagnosis_snapshot
@@ -650,6 +651,7 @@ class AppDelegate(NSObject):
     _history_load_error_key = objc.ivar()
     _quota_notifier = objc.ivar()
     _switch_menu_action_taken = objc.ivar()
+    _pre_talent_panel_id = objc.ivar()
     critters_enabled = objc.ivar()
     critter_timer = objc.ivar()
     critter_frame = objc.ivar()
@@ -686,6 +688,7 @@ class AppDelegate(NSObject):
         self._history_entries_cache_fingerprint = None
         self._history_load_error_key = None
         self._switch_menu_action_taken = False
+        self._pre_talent_panel_id = None
         self.critters_enabled = _critters_enabled()
         self.critter_timer = None
         self.critter_frame = 0
@@ -694,6 +697,7 @@ class AppDelegate(NSObject):
         self.dragon_frame = 0
         self.dragon_interval = 0.0
         self._last_button_title_key: tuple[str, bool, int | None, int | None] | None = None
+        self._last_plain_title_key: tuple[str, bool] | None = None
         return self
 
     def applicationDidFinishLaunching_(self, notification: Any) -> None:
@@ -806,10 +810,25 @@ class AppDelegate(NSObject):
         critters_item.setState_(1 if self.critters_enabled else 0)
         menu.addItem_(critters_item)
         menu.addItem_(NSMenuItem.separatorItem())
+        # AI 人才市場 is a feature panel, not a cosmetic skin — it gets its own
+        # top-level row instead of hiding inside "面板主題 ▸" next to Matrix/Win95.
+        talent_market_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "panel_talent_market"),
+            "toggleTalentMarket:",
+            "",
+        )
+        talent_market_item.setTarget_(self)
+        talent_market_item.setRepresentedObject_("talent_market")
+        talent_market_item.setState_(1 if self.active_panel.id == "talent_market" else 0)
+        menu.addItem_(talent_market_item)
+        menu.addItem_(NSMenuItem.separatorItem())
         # Panel themes live in a submenu so the menu stays short — one "面板主題 ▸"
-        # row that expands on demand instead of nine inline rows.
+        # row that expands on demand instead of nine inline rows. talent_market is
+        # excluded here since it already has its own top-level row above.
         panel_submenu = NSMenu.alloc().initWithTitle_(_t(self.language, "switch_panel"))
         for panel in panels.all_panels():
+            if panel.id == "talent_market":
+                continue
             item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
                 _panel_title(panel, self.language),
                 "selectPanel:",
@@ -899,6 +918,16 @@ class AppDelegate(NSObject):
         self._mark_switch_menu_action()
         panel_id = str(sender.representedObject())
         self._set_active_panel_id(panel_id)
+
+    def toggleTalentMarket_(self, sender: Any) -> None:
+        self._mark_switch_menu_action()
+        if self.active_panel.id != "talent_market":
+            self._pre_talent_panel_id = self.active_panel.id
+            self._set_active_panel_id("talent_market")
+            return
+
+        target_panel_id = self._pre_talent_panel_id or "classic"
+        self._set_active_panel_id(target_panel_id)
 
     def toggleCritters_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -1160,6 +1189,10 @@ class AppDelegate(NSObject):
         self.active_panel = panel
         self.popover_controller.switchToPanel_(panel)
         self.popover.setContentSize_(_popover_size(self.latest_state, panel))
+        if panel.id == "talent_market":
+            # Talent data is fetched in the background refresh; switchToPanel_
+            # injected the last (talent-less) state, so kick a refresh to fill it.
+            self._refresh()
 
     def _show_popover_from_button(self, button: Any) -> None:
         self.popover.showRelativeToRect_ofView_preferredEdge_(
@@ -1397,6 +1430,18 @@ class AppDelegate(NSObject):
                 state.statusline = statusline
                 state.hide_claude = hide_claude
                 state.hide_codex = hide_codex
+
+            # Talent-market data is panel-local (no quota numbers). Fetch it
+            # only when that panel is active so classic/matrix users never pay
+            # the subprocess cost. list_state already swallows CLI errors and
+            # returns {ok:False,...}, so the panel shows its empty state.
+            active_panel = getattr(self, "active_panel", None)
+            if active_panel is not None and active_panel.id == "talent_market":
+                try:
+                    state.talent = talent_market_bridge.list_state()
+                except Exception:
+                    if os.environ.get("USAGE_DEBUG") == "1":
+                        logger.warning("talent market state load failed", exc_info=True)
 
             result = {"state": state, "codex_5h_pct": codex_5h_pct, "codex_model": codex_model}
             self.performSelectorOnMainThread_withObject_waitUntilDone_(
@@ -1817,7 +1862,16 @@ class AppDelegate(NSObject):
             return
 
         button = self.status_item.button()
-        button.setTitle_(title)
+        # setTitle: forces a full NSStatusItem relayout (_adjustLength) that
+        # cascades into the popover's frame/corner-mask recompute even while
+        # it's hidden. attributedTitle is what's actually rendered, so during
+        # critter/dragon animation (phoenix_frame/dragon_frame changing every
+        # 0.05-0.18s) only push the plain title when its own text changed —
+        # not on every sprite frame — to avoid paying that relayout per frame.
+        plain_key = (title, critters_enabled)
+        if self._last_plain_title_key != plain_key:
+            button.setTitle_(title)
+            self._last_plain_title_key = plain_key
         button.setAttributedTitle_(self._menubar_attributed_title(state))
         self._last_button_title_key = title_key
 

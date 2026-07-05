@@ -9,7 +9,7 @@ from __future__ import annotations
 import importlib
 import tomllib
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from setuptools import setup  # type: ignore[import-untyped]
 from setuptools.dist import Distribution  # type: ignore[import-untyped]
@@ -86,6 +86,7 @@ if __name__ == "__main__":
             "update_checker",
             "i18n",
             "usage_cli",
+            "talent_market_bridge",
             "rich",
             "rich.align",
             "rich.console",
@@ -136,6 +137,17 @@ if __name__ == "__main__":
             ),
         },
     }
+
+    # Conditionally bundle the compiled instate-cli (built from the separate
+    # ~/Developer/instate project) so the talent-market panel works in the
+    # shipped .app. Appended at runtime — not in the literal list above — so the
+    # packaged-resources test (which parses the literal) stays clean on machines
+    # where vendor/instate-cli does not exist. py2app flattens a single-file
+    # resource to Resources/<basename> (Resources/instate-cli), which the bridge
+    # finds via NSBundle.pathForResource:ofType:.
+    _instate_cli = Path(__file__).with_name("vendor") / "instate-cli"
+    if _instate_cli.exists():
+        cast(list[Any], OPTIONS["resources"]).append("vendor/instate-cli")
 
     setup(
         app=APP,

@@ -24,14 +24,36 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from codex_events import _SessionFileInfo
-from codex_fork_replay import _ReplayCacheKey
+from codex_events import _SessionFileInfo, _TokenUsage
 from history_loader import UsageEntry
 
 logger = logging.getLogger(__name__)
 
-_JsonlCache = OrderedDict[Path, tuple[float, int, _ReplayCacheKey, list[UsageEntry]]]
+_JsonlCache = OrderedDict[Path, Any]
 _FileInfoCache = OrderedDict[Path, tuple[float, int, _SessionFileInfo]]
+
+
+def _serialize_token_usage(value: _TokenUsage | None) -> dict[str, int] | None:
+    if value is None:
+        return None
+    return {
+        "input_tokens": value.input_tokens,
+        "output_tokens": value.output_tokens,
+        "cache_read_tokens": value.cache_read_tokens,
+    }
+
+
+def _deserialize_token_usage(value: Any) -> _TokenUsage | None:
+    if not isinstance(value, dict):
+        return None
+    try:
+        return _TokenUsage(
+            input_tokens=int(value["input_tokens"]),
+            output_tokens=int(value["output_tokens"]),
+            cache_read_tokens=int(value["cache_read_tokens"]),
+        )
+    except (KeyError, TypeError, ValueError):
+        return None
 
 
 def _serialize_usage_entry(entry: UsageEntry) -> dict[str, Any]:
@@ -76,6 +98,8 @@ def seed_caches(
     file_info_cache: _FileInfoCache,
 ) -> None:
     """Seed the given in-memory caches from disk. Silently fails on any error."""
+    from codex_loader import _JsonlCacheEntry, _JsonlParseState
+
     try:
         with cache_path.open(encoding="utf-8") as f:
             cache = json.load(f)
@@ -101,6 +125,11 @@ def seed_caches(
             session_id = file_data["session_id"]
             forked_from_id = file_data["forked_from_id"]
             entries_data = file_data["entries"]
+            confirmed_offset = int(file_data.get("confirmed_offset", 0))
+            digest_hex = file_data.get("confirmed_prefix_digest", "")
+            parse_state_data = file_data.get("parse_state", {})
+            if not isinstance(parse_state_data, dict):
+                parse_state_data = {}
 
             # Seed file_info_cache
             if len(file_info_cache) >= maxsize:
@@ -115,11 +144,33 @@ def seed_caches(
             if entries_data is not None:
                 if not isinstance(entries_data, list):
                     continue
+                if (
+                    "confirmed_offset" not in file_data
+                    or "confirmed_prefix_digest" not in file_data
+                    or "parse_state" not in file_data
+                ):
+                    continue
                 entries = [_deserialize_usage_entry(e) for e in entries_data]
+                state = _JsonlParseState(
+                    session_timestamp=str(parse_state_data.get("session_timestamp", "")),
+                    project=str(parse_state_data.get("project", "unknown")),
+                    session_model=str(parse_state_data.get("session_model", "unknown")),
+                    previous_usage=_deserialize_token_usage(parse_state_data.get("previous_usage")),
+                    token_count_index=int(parse_state_data.get("token_count_index", 0)),
+                )
                 if len(jsonl_cache) >= maxsize:
                     jsonl_cache.popitem(last=False)
-                # Non-fork files have replay_cache_key = None
-                jsonl_cache[path] = (mtime, size, None, entries)
+                jsonl_cache[path] = _JsonlCacheEntry(
+                    mtime=mtime,
+                    size=size,
+                    replay_cache_key=None,
+                    entries=entries,
+                    confirmed_offset=confirmed_offset,
+                    confirmed_prefix_digest=bytes.fromhex(digest_hex)
+                    if isinstance(digest_hex, str)
+                    else b"",
+                    state=state,
+                )
         except (KeyError, TypeError, ValueError):
             # Skip malformed entry; continue with others
             continue
@@ -139,8 +190,12 @@ def flush_caches(
 
         files: dict[str, Any] = {}
         # Write jsonl_cache entries
-        for path, (mtime, size, replay_cache_key, entries) in jsonl_cache.items():
+        for path, entry in jsonl_cache.items():
             path_str = str(path)
+            mtime = entry.mtime
+            size = entry.size
+            replay_cache_key = entry.replay_cache_key
+            entries = entry.entries
             # For fork files (replay_cache_key is not None), entries = null
             if replay_cache_key is not None:
                 entries_data = None
@@ -169,6 +224,15 @@ def flush_caches(
                 "session_id": session_id,
                 "forked_from_id": forked_from_id,
                 "entries": entries_data,
+                "confirmed_offset": entry.confirmed_offset,
+                "confirmed_prefix_digest": entry.confirmed_prefix_digest.hex(),
+                "parse_state": {
+                    "session_timestamp": entry.state.session_timestamp,
+                    "project": entry.state.project,
+                    "session_model": entry.state.session_model,
+                    "previous_usage": _serialize_token_usage(entry.state.previous_usage),
+                    "token_count_index": entry.state.token_count_index,
+                },
             }
 
         payload = {

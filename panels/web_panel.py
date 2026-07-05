@@ -11,6 +11,7 @@ import base64
 import json
 import logging
 import os
+import threading
 from functools import lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -20,6 +21,7 @@ from AppKit import NSColor, NSFont, NSMakeRect, NSTextField, NSView
 from Foundation import NSBundle, NSObject
 from Quartz import CGColorCreateGenericRGB
 
+import talent_market_bridge
 from panels.base import resolve_resource
 
 try:
@@ -149,6 +151,18 @@ class UsageScriptBridge(NSObject):
 
     def userContentController_didReceiveScriptMessage_(self, controller: Any, message: Any) -> None:
         action = str(message.body())
+        # New parametric actions arrive as a JSON string (e.g.
+        # {"action":"install_role","roleId":"contract-review"}). Plain fixed-string
+        # actions ("refresh", "switch", ...) never start with "{", so they skip
+        # this branch unchanged.
+        if action.startswith("{"):
+            try:
+                parsed = json.loads(action)
+            except ValueError:
+                parsed = None
+            if isinstance(parsed, dict) and "action" in parsed:
+                self._dispatch_talent_action(parsed)
+                return
         if action == "refresh":
             self.delegate.refreshNow_(None)
         elif action == "quit":
@@ -170,6 +184,51 @@ class UsageScriptBridge(NSObject):
             self.delegate.installStatusline_(None)
         elif action == "uninstall_statusline":
             self.delegate.uninstallStatusline_(None)
+
+    def _dispatch_talent_action(self, payload: dict[str, object]) -> None:
+        action = str(payload.get("action", ""))
+        role_id = str(payload.get("roleId") or "")
+        if action == "set_folder":
+            path = talent_market_bridge.pick_folder()
+            if not path:
+                return
+            self._run_talent_then_refresh(lambda: talent_market_bridge.set_folder(role_id, path))
+            return
+        if action == "launch_role":
+            task_prompt_obj = payload.get("taskPrompt")
+            task_prompt = str(task_prompt_obj) if task_prompt_obj else None
+            self._run_talent_then_refresh(
+                lambda: talent_market_bridge.launch_role(role_id, task_prompt)
+            )
+            return
+        if action == "install_role":
+            self._run_talent_then_refresh(lambda: talent_market_bridge.install_role(role_id))
+            return
+        if action == "restore_role":
+            self._run_talent_then_refresh(lambda: talent_market_bridge.restore_role(role_id))
+            return
+        if action == "ignore_drift":
+            self._run_talent_then_refresh(lambda: talent_market_bridge.ignore_drift(role_id))
+            return
+        if action == "talent_refresh":
+            self.delegate.refreshNow_(None)
+            return
+
+    def _run_talent_then_refresh(self, fn: Any) -> None:
+        delegate = self.delegate
+
+        def _work() -> None:
+            try:
+                fn()
+            except Exception:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning("talent market action failed", exc_info=True)
+            if delegate is not None:
+                delegate.performSelectorOnMainThread_withObject_waitUntilDone_(
+                    "refreshNow:", None, False
+                )
+
+        threading.Thread(target=_work, daemon=True).start()
 
 
 class WebPanelView(WKWebView):
@@ -492,6 +551,7 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
         "hideCodex": state.hide_codex,
         "historyError": state.history_error,
         "statusline": state.statusline,
+        "talent": state.talent,
         "footer": {
             "rate": state.rate_text,
             "status": state.status_text,

@@ -86,6 +86,14 @@ PANELS: tuple[Panel, ...] = (
         claude_card_height=0.0,
         codex_card_height=0.0,
     ),
+    HTMLPanel(
+        "talent_market",
+        "panel_talent_market",
+        "talent_market.html",
+        height=620.0,
+        claude_card_height=0.0,
+        codex_card_height=0.0,
+    ),
 )
 
 

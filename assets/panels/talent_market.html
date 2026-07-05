@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Talent Market</title>
+  <style>
+    :root {
+      --bg: #080d12;
+      --panel: rgba(25, 33, 42, 0.86);
+      --panel-border: rgba(255, 255, 255, 0.15);
+      --text: rgba(255, 255, 255, 0.94);
+      --muted: rgba(255, 255, 255, 0.58);
+      --accent: #d1a54c;
+      --accent-soft: rgba(209, 165, 76, 0.16);
+      --hairline: rgba(255, 255, 255, 0.08);
+      --danger: #ff6b6b;
+      --shadow: 0 14px 32px rgba(0, 0, 0, 0.42);
+      --card-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 28px rgba(0, 0, 0, 0.24);
+    }
+
+    @media (prefers-color-scheme: light) {
+      :root {
+        --bg: #eef2f7;
+        --panel: rgba(255, 255, 255, 0.92);
+        --panel-border: rgba(20, 28, 38, 0.14);
+        --text: rgba(12, 18, 26, 0.9);
+        --muted: rgba(12, 18, 26, 0.55);
+        --accent: #96721f;
+        --accent-soft: rgba(150, 114, 31, 0.14);
+        --hairline: rgba(20, 28, 38, 0.085);
+        --danger: #c0392b;
+        --shadow: 0 14px 32px rgba(20, 28, 38, 0.18);
+        --card-shadow-hover: inset 0 1px 0 rgba(255, 255, 255, 0.58), 0 10px 24px rgba(15, 24, 36, 0.1);
+      }
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    html,
+    body {
+      width: 100%;
+      height: 100vh;
+      margin: 0;
+      overflow: hidden;
+      color: var(--text);
+      background: var(--bg);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+      overscroll-behavior: none;
+    }
+
+    .viewport {
+      width: 100%;
+      height: 100%;
+      padding: 12px;
+    }
+
+    .wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      width: 100%;
+      height: 100%;
+      min-height: 0;
+    }
+
+    .tm-header {
+      flex: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow);
+    }
+
+    .tm-title {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .tm-title .tm-title-accent {
+      color: var(--accent);
+    }
+
+    .tm-switch {
+      flex: none;
+      border: 1px solid var(--panel-border);
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      min-height: 26px;
+      padding: 0 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tm-switch:active {
+      opacity: 0.65;
+    }
+
+    .tm-sub {
+      flex: none;
+      margin: -2px 2px 0;
+      font-size: 11.5px;
+      font-weight: 600;
+      color: var(--muted);
+    }
+
+    .tm-search {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      min-height: 36px;
+      margin: 12px 12px 0;
+      padding: 0 12px;
+      border-radius: 10px;
+      background: var(--bg);
+      border: 1px solid var(--panel-border);
+    }
+
+    .tm-search:focus-within {
+      border-color: var(--accent);
+    }
+
+    .tm-search-icon {
+      flex: none;
+      width: 15px;
+      height: 15px;
+      color: var(--muted);
+    }
+
+    .tm-search-icon svg {
+      width: 15px;
+      height: 15px;
+      display: block;
+    }
+
+    .tm-search-input {
+      flex: 1;
+      min-width: 0;
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 12.5px;
+      padding: 0;
+    }
+
+    .tm-search-input:focus {
+      outline: none;
+    }
+
+    .tm-search-input::placeholder {
+      color: var(--muted);
+    }
+
+    .tm-body {
+      flex: 1;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+      border-radius: 12px;
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      box-shadow: var(--shadow);
+    }
+
+    .tm-layer {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .tm-layer[hidden] {
+      display: none;
+    }
+
+    .tm-scroll {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 12px;
+    }
+
+    .tm-scroll::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .tm-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .tm-scroll::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.18);
+      border-radius: 999px;
+    }
+    .tm-scroll::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+    .tm-scroll::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    @media (prefers-color-scheme: light) {
+      .tm-scroll::-webkit-scrollbar-thumb {
+        background: rgba(12, 18, 26, 0.18);
+      }
+      .tm-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(12, 18, 26, 0.28);
+      }
+    }
+
+    .tm-back-row {
+      flex: none;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px 0;
+    }
+
+    .tm-back {
+      border: 1px solid var(--panel-border);
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 600;
+      min-height: 26px;
+      padding: 0 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tm-back:active {
+      opacity: 0.65;
+    }
+
+    .tm-pack-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--pack-accent, var(--accent));
+    }
+
+    .tm-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      width: 100%;
+      min-height: 62px;
+      padding: 10px 2px;
+      border: 0;
+      border-bottom: 1px solid var(--hairline);
+      border-radius: 8px;
+      background: transparent;
+      cursor: pointer;
+      text-align: left;
+      color: inherit;
+      font: inherit;
+      transition: background-color 160ms ease, padding 160ms ease;
+    }
+
+    .tm-card:last-child {
+      border-bottom-color: transparent;
+    }
+
+    .tm-card:hover,
+    .tm-card:focus-visible {
+      padding-left: 8px;
+      padding-right: 8px;
+      background: var(--pack-accent-soft, var(--accent-soft));
+    }
+
+    .tm-card:active {
+      opacity: 0.85;
+    }
+
+    .tm-card-icon {
+      flex: none;
+      width: 34px;
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--pack-accent, var(--accent));
+      border-radius: 9px;
+      background: var(--pack-accent-soft, var(--accent-soft));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pack-accent, var(--accent)) 22%, transparent);
+    }
+
+    .tm-card-icon svg {
+      width: 18px;
+      height: 18px;
+    }
+
+    .tm-card-main {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .tm-card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .tm-card-name {
+      font-size: 13.5px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tm-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .tm-tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 16px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid var(--panel-border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .tm-count {
+      flex: none;
+      font-size: 10.5px;
+      font-weight: 700;
+      color: var(--pack-accent, var(--accent));
+      padding: 3px 8px;
+      border-radius: 7px;
+      border: 1px solid color-mix(in srgb, var(--pack-accent, var(--accent)) 30%, transparent);
+      background: var(--pack-accent-soft, var(--accent-soft));
+      white-space: nowrap;
+    }
+
+    .tm-chevron {
+      flex: none;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .tm-role {
+      width: 100%;
+      padding: 12px 2px;
+      border-bottom: 1px solid var(--hairline);
+    }
+
+    .tm-role:last-child {
+      border-bottom-color: transparent;
+    }
+
+    .tm-role-head {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .tm-role-icon {
+      flex: none;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--pack-accent, var(--accent));
+      border-radius: 8px;
+      background: var(--pack-accent-soft, var(--accent-soft));
+      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pack-accent, var(--accent)) 22%, transparent);
+    }
+
+    .tm-role-icon svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .tm-role-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .tm-role-name {
+      font-size: 12.5px;
+      font-weight: 700;
+    }
+
+    .tm-role-persona {
+      font-size: 11px;
+      color: var(--pack-accent, var(--accent));
+    }
+
+    .tm-role-desc {
+      margin: 8px 0 0;
+      font-size: 11.5px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+
+    .tm-role-folder {
+      margin-top: 6px;
+      font-size: 10.5px;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .tm-role-actions {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .tm-btn {
+      border: 1px solid var(--panel-border);
+      background: transparent;
+      color: var(--text);
+      font: inherit;
+      font-size: 11.5px;
+      font-weight: 600;
+      min-height: 26px;
+      padding: 0 12px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tm-btn:active {
+      opacity: 0.65;
+    }
+
+    .tm-btn:disabled {
+      opacity: 0.5;
+      cursor: default;
+    }
+
+    .tm-btn-primary {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #1a1206;
+    }
+
+    .tm-btn-ghost {
+      border-color: var(--panel-border);
+      background: transparent;
+    }
+
+    .tm-chip {
+      border: 1px solid var(--panel-border);
+      background: var(--bg);
+      color: var(--muted);
+      font: inherit;
+      font-size: 10.5px;
+      min-height: 22px;
+      padding: 0 9px;
+      border-radius: 999px;
+      cursor: pointer;
+    }
+
+    .tm-chip:active {
+      opacity: 0.65;
+    }
+
+    .tm-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      background: var(--bg);
+    }
+
+    .tm-empty {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 24px;
+      text-align: center;
+    }
+
+    .tm-empty-icon {
+      font-size: 30px;
+      opacity: 0.7;
+    }
+
+    .tm-empty-text {
+      font-size: 12.5px;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .tm-empty-hint {
+      font-size: 11px;
+      color: var(--muted);
+      opacity: 0.7;
+    }
+
+    .tm-status {
+      flex: none;
+      padding: 6px 12px;
+      font-size: 11px;
+      color: var(--accent);
+      min-height: 22px;
+    }
+  </style>
+</head>
+<body>
+  <div class="viewport">
+    <div class="wrap">
+      <header class="tm-header">
+        <div class="tm-title" data-i18n="panel_talent_market">AI 人才市場</div>
+        <button class="tm-switch" type="button" data-action="switch" data-i18n="switch_panel">Switch Panel</button>
+      </header>
+      <p class="tm-sub" data-i18n="talent_subtitle"></p>
+      <div class="tm-body">
+        <section class="tm-layer" id="tm-list-layer">
+          <label class="tm-search">
+            <span class="tm-search-icon">
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="10.5" cy="10.5" r="6.5" stroke="currentColor" stroke-width="1.6"/><path d="M15.5 15.5L20 20" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+            </span>
+            <input class="tm-search-input" type="text" id="tm-search-input" data-i18n-placeholder="talent_search_placeholder">
+          </label>
+          <div class="tm-scroll" id="tm-pack-list"></div>
+          <div class="tm-status" id="tm-list-status"></div>
+        </section>
+        <section class="tm-layer" id="tm-detail-layer" hidden>
+          <div class="tm-back-row">
+            <button class="tm-back" type="button" data-action="talent-back" data-i18n="talent_back">Back</button>
+            <span class="tm-pack-name" id="tm-detail-pack-name"></span>
+          </div>
+          <div class="tm-scroll" id="tm-role-list"></div>
+          <div class="tm-status" id="tm-detail-status"></div>
+        </section>
+        <section class="tm-layer" id="tm-empty-layer" hidden>
+          <div class="tm-empty">
+            <div class="tm-empty-icon">🧰</div>
+            <div class="tm-empty-text" data-i18n="talent_empty">人才市場元件尚未安裝</div>
+            <div class="tm-empty-hint" data-i18n="talent_empty_hint"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const I18N = {{I18N_BUNDLE}};
+    let currentLanguage = "en";
+    let currentPacks = [];
+    let searchQuery = "";
+    let view = { layer: "list", packId: null };
+
+    const packListEl = document.getElementById("tm-pack-list");
+    const roleListEl = document.getElementById("tm-role-list");
+    const listLayer = document.getElementById("tm-list-layer");
+    const detailLayer = document.getElementById("tm-detail-layer");
+    const emptyLayer = document.getElementById("tm-empty-layer");
+    const detailPackName = document.getElementById("tm-detail-pack-name");
+    const listStatus = document.getElementById("tm-list-status");
+    const detailStatus = document.getElementById("tm-detail-status");
+    const searchInputEl = document.getElementById("tm-search-input");
+
+    // Role/pack data carries plain icon-name strings (e.g. "scale", "server"),
+    // not emoji — map them to flat single-color stroke SVGs so they render as
+    // icons instead of raw text. Unknown names fall back to a generic sparkle.
+    const ICON_SVGS = {
+      scale: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2.5v14"/><path d="M4 6h12"/><path d="M4 6L2 10.5a2 2 0 0 0 4 0L4 6Z"/><path d="M16 6l-2 4.5a2 2 0 0 0 4 0L16 6Z"/><path d="M6.5 16.5h7"/></svg>',
+      briefcase: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="7.5" width="12" height="10"/><path d="M7 7.5V3.8L10 2.5l3 1.3v3.4"/><path d="M8 11h1M11 11h1M8 14h1M11 14h1"/></svg>',
+      document: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2.5" width="10" height="15" rx="1"/><path d="M7.5 6.5h5M7.5 9.5h5M7.5 12.5h3"/></svg>',
+      "person-check": '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="6.3" r="3"/><path d="M4.3 17c0-3.6 2.5-6 5.7-6s5.7 2.4 5.7 6"/><path d="M13 6.2l1.4 1.4 2.3-2.6"/></svg>',
+      clock: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="10" r="7"/><path d="M10 6v4l3 2"/></svg>',
+      grid: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="5.5" height="5.5" rx="1"/><rect x="11.5" y="3" width="5.5" height="5.5" rx="1"/><rect x="3" y="11.5" width="5.5" height="5.5" rx="1"/><rect x="11.5" y="11.5" width="5.5" height="5.5" rx="1"/></svg>',
+      server: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="3.5" width="13" height="4.5" rx="1"/><rect x="3.5" y="12" width="13" height="4.5" rx="1"/><path d="M6.5 5.8h.01M6.5 14.3h.01M10 8v4"/></svg>',
+      search: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.5" cy="8.5" r="4.8"/><path d="m12 12 4.2 4.2"/></svg>',
+      default: '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 2v5M10 13v5M3.5 6.5l4.3 2.5M12.2 11l4.3 2.5M16.5 6.5l-4.3 2.5M7.8 11l-4.3 2.5"/></svg>',
+    };
+
+    // Same 6-color cycle Instate's own renderer uses, so each pack keeps a
+    // stable, recognizable accent instead of every row sharing one gold tone.
+    const PACK_ACCENTS = ["#d4a85b", "#58b7c8", "#71c98b", "#f28a6c", "#b58cff", "#8fb0ff"];
+
+    function packAccent(packId) {
+      const index = currentPacks.findIndex((pack) => pack.id === packId);
+      return PACK_ACCENTS[(index < 0 ? 0 : index) % PACK_ACCENTS.length];
+    }
+
+    function setIcon(el, name) {
+      el.innerHTML = ICON_SVGS[name] || ICON_SVGS.default;
+    }
+
+    function t(key, params) {
+      const lang = I18N[currentLanguage] ? currentLanguage : "en";
+      let template = (I18N[lang] && I18N[lang][key]) || (I18N.en && I18N.en[key]) || key;
+      if (params) {
+        template = template.replace(/\{(\w+)\}/g, (_, name) => `${params[name] ?? ""}`);
+      }
+      return template;
+    }
+
+    function applyStaticText() {
+      document.documentElement.lang = currentLanguage === "zh-TW" ? "zh-Hant" : currentLanguage;
+      document.querySelectorAll("[data-i18n]").forEach((node) => {
+        const key = node.dataset.i18n;
+        if (key) node.textContent = t(key);
+      });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach((node) => {
+        const key = node.dataset.i18nPlaceholder;
+        if (key) node.placeholder = t(key);
+      });
+    }
+
+    function showLayer(name) {
+      listLayer.hidden = name !== "list";
+      detailLayer.hidden = name !== "detail";
+      emptyLayer.hidden = name !== "empty";
+    }
+
+    function findPack(packId) {
+      return currentPacks.find((pack) => pack.id === packId) || null;
+    }
+
+    function packMatchesQuery(pack, query) {
+      if (!query) return true;
+      const roles = Array.isArray(pack.roles) ? pack.roles : [];
+      const fields = [pack.name, pack.subtitle, ...roles.flatMap((role) => [role.name, role.description])];
+      return fields.some((value) => (value || "").toLowerCase().includes(query));
+    }
+
+    function renderPacks() {
+      packListEl.textContent = "";
+      const query = searchQuery.trim().toLowerCase();
+      const visiblePacks = currentPacks.filter((pack) => packMatchesQuery(pack, query));
+
+      visiblePacks.forEach((pack) => {
+        const accent = packAccent(pack.id);
+        const card = document.createElement("button");
+        card.className = "tm-card";
+        card.type = "button";
+        card.dataset.packId = pack.id || "";
+        card.style.setProperty("--pack-accent", accent);
+        card.style.setProperty("--pack-accent-soft", `color-mix(in srgb, ${accent} 16%, transparent)`);
+
+        const icon = document.createElement("div");
+        icon.className = "tm-card-icon";
+        setIcon(icon, pack.icon);
+
+        const main = document.createElement("div");
+        main.className = "tm-card-main";
+
+        const head = document.createElement("div");
+        head.className = "tm-card-head";
+        const name = document.createElement("div");
+        name.className = "tm-card-name";
+        name.textContent = pack.name || "";
+        const count = document.createElement("div");
+        count.className = "tm-count";
+        count.textContent = pack.countLabel || "";
+        head.appendChild(name);
+        head.appendChild(count);
+
+        const tags = document.createElement("div");
+        tags.className = "tm-tags";
+        (pack.subtitle || "")
+          .split("・")
+          .map((part) => part.trim())
+          .filter(Boolean)
+          .forEach((part) => {
+            const tag = document.createElement("span");
+            tag.className = "tm-tag";
+            tag.textContent = part;
+            tags.appendChild(tag);
+          });
+
+        main.appendChild(head);
+        main.appendChild(tags);
+
+        const chevron = document.createElement("div");
+        chevron.className = "tm-chevron";
+        chevron.textContent = "›";
+
+        card.appendChild(icon);
+        card.appendChild(main);
+        card.appendChild(chevron);
+        packListEl.appendChild(card);
+      });
+
+      if (query && visiblePacks.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "tm-empty-hint";
+        empty.style.padding = "16px 4px";
+        empty.textContent = t("talent_no_results");
+        packListEl.appendChild(empty);
+      }
+    }
+
+    function renderRoles(pack) {
+      const accent = packAccent(pack.id);
+      detailLayer.style.setProperty("--pack-accent", accent);
+      detailLayer.style.setProperty("--pack-accent-soft", `color-mix(in srgb, ${accent} 16%, transparent)`);
+      roleListEl.textContent = "";
+      detailPackName.textContent = pack.name || "";
+      const roles = Array.isArray(pack.roles) ? pack.roles : [];
+      roles.forEach((role) => {
+        const card = document.createElement("div");
+        card.className = "tm-role";
+
+        const head = document.createElement("div");
+        head.className = "tm-role-head";
+        const icon = document.createElement("div");
+        icon.className = "tm-role-icon";
+        setIcon(icon, role.icon);
+        const main = document.createElement("div");
+        main.className = "tm-role-main";
+        const name = document.createElement("div");
+        name.className = "tm-role-name";
+        name.textContent = role.name || "";
+        const persona = document.createElement("div");
+        persona.className = "tm-role-persona";
+        persona.textContent = role.personaName || "";
+        main.appendChild(name);
+        main.appendChild(persona);
+        head.appendChild(icon);
+        head.appendChild(main);
+        card.appendChild(head);
+
+        if (role.description) {
+          const desc = document.createElement("p");
+          desc.className = "tm-role-desc";
+          desc.textContent = role.description;
+          card.appendChild(desc);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "tm-role-actions";
+
+        if (role.installed) {
+          const launch = document.createElement("button");
+          launch.className = "tm-btn tm-btn-primary";
+          launch.type = "button";
+          launch.dataset.action = "launch_role";
+          launch.dataset.roleId = role.id || "";
+          launch.textContent = "▸ " + t("talent_launch");
+          actions.appendChild(launch);
+
+          if (role.drifted) {
+            const drifted = document.createElement("span");
+            drifted.className = "tm-badge";
+            drifted.textContent = t("talent_drifted");
+            actions.appendChild(drifted);
+
+            const restore = document.createElement("button");
+            restore.className = "tm-btn";
+            restore.type = "button";
+            restore.dataset.action = "restore_role";
+            restore.dataset.roleId = role.id || "";
+            restore.textContent = t("talent_restore");
+            actions.appendChild(restore);
+          }
+        } else {
+          const install = document.createElement("button");
+          install.className = "tm-btn tm-btn-primary";
+          install.type = "button";
+          install.dataset.action = "install_role";
+          install.dataset.roleId = role.id || "";
+          install.textContent = t("talent_install");
+          actions.appendChild(install);
+        }
+
+        const folderBtn = document.createElement("button");
+        folderBtn.className = "tm-btn tm-btn-ghost";
+        folderBtn.type = "button";
+        folderBtn.dataset.action = "set_folder";
+        folderBtn.dataset.roleId = role.id || "";
+        folderBtn.textContent = t("talent_choose_folder");
+        actions.appendChild(folderBtn);
+
+        if (role.selectedFolderLabel) {
+          const folderLabel = document.createElement("span");
+          folderLabel.className = "tm-role-folder";
+          folderLabel.textContent = role.selectedFolderLabel;
+          actions.appendChild(folderLabel);
+        }
+
+        const quickTasks = Array.isArray(role.quickTasks) ? role.quickTasks : [];
+        quickTasks.slice(0, 4).forEach((task) => {
+          const label = typeof task === "string" ? task : task.label;
+          const prompt = typeof task === "string" ? task : task.prompt;
+          if (!label) return;
+          const chip = document.createElement("button");
+          chip.className = "tm-chip";
+          chip.type = "button";
+          chip.dataset.action = "launch_role";
+          chip.dataset.roleId = role.id || "";
+          chip.dataset.taskPrompt = prompt || label;
+          chip.textContent = label;
+          actions.appendChild(chip);
+        });
+
+        card.appendChild(actions);
+        roleListEl.appendChild(card);
+      });
+    }
+
+    function showDetail(packId) {
+      const pack = findPack(packId);
+      if (!pack) {
+        showList();
+        return;
+      }
+      view = { layer: "detail", packId };
+      renderRoles(pack);
+      showLayer("detail");
+    }
+
+    function showList() {
+      view = { layer: "list", packId: null };
+      showLayer("list");
+    }
+
+    function showEmpty() {
+      view = { layer: "empty", packId: null };
+      showLayer("empty");
+    }
+
+    function setStatus(text) {
+      const el = view.layer === "detail" ? detailStatus : listStatus;
+      const other = view.layer === "detail" ? listStatus : detailStatus;
+      el.textContent = text || "";
+      if (other) other.textContent = "";
+    }
+
+    window.usageApplyState = function usageApplyState(state) {
+      currentLanguage = I18N[state.language] ? state.language : currentLanguage;
+      applyStaticText();
+      const talent = state.talent;
+      const packs = talent && Array.isArray(talent.packs) ? talent.packs : [];
+      currentPacks = packs;
+      if (packs.length === 0) {
+        showEmpty();
+        return;
+      }
+      renderPacks();
+      if (view.layer === "detail" && view.packId && findPack(view.packId)) {
+        renderRoles(findPack(view.packId));
+        showLayer("detail");
+      } else {
+        showList();
+      }
+      const message = talent && talent.message ? String(talent.message) : "";
+      setStatus(message);
+    };
+
+    searchInputEl.addEventListener("input", () => {
+      searchQuery = searchInputEl.value;
+      renderPacks();
+    });
+
+    function postMessage(payload) {
+      const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
+      if (bridge && typeof bridge.postMessage === "function") {
+        bridge.postMessage(payload);
+      }
+    }
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-action]");
+      if (button) {
+        const action = button.dataset.action;
+        if (action === "switch") {
+          postMessage("switch");
+          return;
+        }
+        if (action === "talent-back") {
+          showList();
+          return;
+        }
+        const roleId = button.dataset.roleId;
+        if (roleId && action) {
+          const payload = { action, roleId };
+          if (action === "launch_role" && button.dataset.taskPrompt) {
+            payload.taskPrompt = button.dataset.taskPrompt;
+          }
+          postMessage(JSON.stringify(payload));
+          setStatus(t("talent_working"));
+        }
+        return;
+      }
+      const card = event.target.closest("[data-pack-id]");
+      if (card && card.dataset.packId) {
+        showDetail(card.dataset.packId);
+      }
+    });
+
+    applyStaticText();
+    showEmpty();
+  </script>
+</body>
+</html>

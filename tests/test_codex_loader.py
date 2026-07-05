@@ -825,6 +825,270 @@ def test_jsonl_cache_evicts_oldest_entry_when_maxsize_exceeded(tmp_path: Path) -
     assert paths[-1] in codex_loader._jsonl_cache
 
 
+def test_parse_jsonl_incremental_append_matches_full_reparse(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    session_path = tmp_path / "session.jsonl"
+    base = datetime(2026, 1, 1, tzinfo=UTC)
+    lines = [
+        {
+            "type": "session_meta",
+            "payload": {
+                "id": "session-linear",
+                "timestamp": base.isoformat(),
+                "cwd": "/tmp/project-alpha",
+            },
+        },
+        {
+            "type": "turn_context",
+            "payload": {"model": "gpt-5", "cwd": "/tmp/project-alpha"},
+        },
+        {
+            "type": "event_msg",
+            "timestamp": (base + timedelta(seconds=1)).isoformat(),
+            "payload": {
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 10,
+                        "cached_input_tokens": 2,
+                        "output_tokens": 3,
+                    }
+                },
+            },
+        },
+        {
+            "type": "event_msg",
+            "timestamp": (base + timedelta(seconds=2)).isoformat(),
+            "payload": {
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 25,
+                        "cached_input_tokens": 5,
+                        "output_tokens": 8,
+                    }
+                },
+            },
+        },
+        {
+            "type": "turn_context",
+            "payload": {"model": "gpt-5.1", "cwd": "/tmp/project-alpha"},
+        },
+        {
+            "type": "event_msg",
+            "timestamp": (base + timedelta(seconds=3)).isoformat(),
+            "payload": {
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 40,
+                        "cached_input_tokens": 9,
+                        "output_tokens": 12,
+                    }
+                },
+            },
+        },
+        {
+            "type": "event_msg",
+            "timestamp": (base + timedelta(seconds=4)).isoformat(),
+            "payload": {
+                "type": "token_count",
+                "info": {
+                    "total_token_usage": {
+                        "input_tokens": 55,
+                        "cached_input_tokens": 12,
+                        "output_tokens": 18,
+                    }
+                },
+            },
+        },
+    ]
+    rendered = [json.dumps(line) for line in lines]
+    session_path.write_text("\n".join(rendered), encoding="utf-8")
+    expected = codex_loader._parse_jsonl(session_path, {}, None)
+
+    codex_loader._jsonl_cache.clear()
+    partial = rendered[5][: len(rendered[5]) // 2]
+    session_path.write_text(
+        "\n".join(rendered[:5]) + "\n" + partial,
+        encoding="utf-8",
+    )
+
+    first = codex_loader._parse_jsonl(session_path, {}, None)
+    assert [(entry.message_id, entry.model) for entry in first] == [
+        ("session-linear:1", "gpt-5"),
+        ("session-linear:2", "gpt-5"),
+    ]
+
+    with session_path.open("a", encoding="utf-8") as file:
+        file.write(rendered[5][len(partial):] + "\n" + rendered[6])
+
+    final = codex_loader._parse_jsonl(session_path, {}, None)
+
+    assert final == expected
+    assert [
+        (entry.input_tokens, entry.output_tokens, entry.cache_read_tokens)
+        for entry in final
+    ] == [
+        (8, 3, 2),
+        (12, 5, 3),
+        (11, 4, 4),
+        (12, 6, 3),
+    ]
+    assert [entry.model for entry in final] == ["gpt-5", "gpt-5", "gpt-5.1", "gpt-5.1"]
+
+
+def test_parse_jsonl_incremental_reapplies_updated_model_mapping(tmp_path: Path) -> None:
+    session_path = tmp_path / "session.jsonl"
+    base = datetime(2026, 1, 1, tzinfo=UTC)
+    first_line = {
+        "type": "session_meta",
+        "payload": {
+            "id": "session-model-update",
+            "timestamp": base.isoformat(),
+            "cwd": "/tmp/project-alpha",
+        },
+    }
+    first_event = {
+        "type": "event_msg",
+        "timestamp": (base + timedelta(seconds=1)).isoformat(),
+        "payload": {
+            "type": "token_count",
+            "info": {
+                "total_token_usage": {
+                    "input_tokens": 10,
+                    "cached_input_tokens": 2,
+                    "output_tokens": 3,
+                }
+            },
+        },
+    }
+    session_path.write_text(
+        "\n".join(json.dumps(line) for line in [first_line, first_event]),
+        encoding="utf-8",
+    )
+    codex_loader._jsonl_cache.clear()
+
+    # First call: session_id isn't in `models` yet (sqlite thread->model lookup
+    # hasn't resolved it), so the entry falls back to the file's own "unknown".
+    first = codex_loader._parse_jsonl(session_path, {}, None)
+    assert [entry.model for entry in first] == ["unknown"]
+
+    second_event = {
+        "type": "event_msg",
+        "timestamp": (base + timedelta(seconds=2)).isoformat(),
+        "payload": {
+            "type": "token_count",
+            "info": {
+                "total_token_usage": {
+                    "input_tokens": 25,
+                    "cached_input_tokens": 5,
+                    "output_tokens": 8,
+                }
+            },
+        },
+    }
+    with session_path.open("a", encoding="utf-8") as file:
+        file.write("\n" + json.dumps(second_event))
+
+    # Second call: file grew (triggers the incremental path) *and* `models` now
+    # resolves this session_id. Both the carried-forward entry from the first
+    # call and the newly parsed one must reflect the updated model — a stale
+    # model on carried-forward entries would silently skew cost estimates.
+    resolved = codex_loader._parse_jsonl(session_path, {"session-model-update": "gpt-5.1"}, None)
+    assert [entry.model for entry in resolved] == ["gpt-5.1", "gpt-5.1"]
+
+
+def test_parse_jsonl_falls_back_to_full_reparse_when_prefix_changes(tmp_path: Path) -> None:
+    session_path = tmp_path / "session.jsonl"
+    _write_session_with_usage_events(
+        session_path,
+        session_id="session-linear",
+        events=[
+            (
+                "2026-01-01T00:00:01+00:00",
+                {"input_tokens": 10, "cached_input_tokens": 2, "output_tokens": 3},
+            ),
+            (
+                "2026-01-01T00:00:02+00:00",
+                {"input_tokens": 25, "cached_input_tokens": 5, "output_tokens": 8},
+            ),
+        ],
+    )
+
+    first = codex_loader._parse_jsonl(session_path, {}, None)
+    assert [entry.input_tokens for entry in first] == [8, 12]
+
+    _write_session_with_usage_events(
+        session_path,
+        session_id="session-linear",
+        events=[
+            (
+                "2026-01-01T00:00:01+00:00",
+                {"input_tokens": 20, "cached_input_tokens": 2, "output_tokens": 4},
+            ),
+            (
+                "2026-01-01T00:00:02+00:00",
+                {"input_tokens": 35, "cached_input_tokens": 5, "output_tokens": 9},
+            ),
+            (
+                "2026-01-01T00:00:03+00:00",
+                {"input_tokens": 50, "cached_input_tokens": 8, "output_tokens": 11},
+            ),
+        ],
+    )
+
+    second = codex_loader._parse_jsonl(session_path, {}, None)
+
+    assert [
+        (entry.input_tokens, entry.output_tokens, entry.cache_read_tokens)
+        for entry in second
+    ] == [
+        (18, 4, 2),
+        (12, 5, 3),
+        (12, 2, 3),
+    ]
+
+
+def test_parse_jsonl_replay_cache_key_change_ignores_stale_cache(tmp_path: Path) -> None:
+    session_path = tmp_path / "session.jsonl"
+    _write_session_with_usage_events(
+        session_path,
+        session_id="session-replay",
+        events=[
+            (
+                "2026-01-01T00:00:01+00:00",
+                {"input_tokens": 10, "cached_input_tokens": 2, "output_tokens": 3},
+            ),
+        ],
+    )
+
+    stat = session_path.stat()
+    codex_loader._jsonl_cache[session_path] = codex_loader._JsonlCacheEntry(
+        mtime=stat.st_mtime,
+        size=stat.st_size,
+        replay_cache_key=("parent-a", 1.0, 100, 1),
+        entries=[],
+    )
+
+    parsed = codex_loader._parse_jsonl(
+        session_path,
+        {},
+        None,
+        replay_boundary=0,
+        replay_cache_key=("parent-b", 2.0, 200, 1),
+    )
+
+    assert [
+        (entry.input_tokens, entry.output_tokens, entry.cache_read_tokens)
+        for entry in parsed
+    ] == [
+        (8, 3, 2),
+    ]
+
+
 def test_file_info_cache_reuses_result_on_unmodified_file(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -1657,6 +1921,19 @@ def test_disk_cache_seed_loads_on_cold_start(
                 "size": 1000,
                 "session_id": "test-session",
                 "forked_from_id": "",
+                "confirmed_offset": 1000,
+                "confirmed_prefix_digest": "abcd",
+                "parse_state": {
+                    "session_timestamp": "2026-06-24T12:00:00+00:00",
+                    "project": "/tmp/demo",
+                    "session_model": "gpt-5.4-mini",
+                    "previous_usage": {
+                        "input_tokens": 100,
+                        "output_tokens": 50,
+                        "cache_read_tokens": 0,
+                    },
+                    "token_count_index": 1,
+                },
                 "entries": [
                     {
                         "timestamp": "2026-06-24T12:00:00+00:00",
@@ -1689,12 +1966,16 @@ def test_disk_cache_seed_loads_on_cold_start(
 
     # The seeded entry should be in cache
     assert session_path in codex_loader._jsonl_cache
-    mtime, size, replay_key, cached_entries = codex_loader._jsonl_cache[session_path]
-    assert mtime == 123456.0
-    assert size == 1000
-    assert replay_key is None  # Non-fork file
-    assert len(cached_entries) == 1
-    assert cached_entries[0].input_tokens == 100
+    cache_entry = codex_loader._jsonl_cache[session_path]
+    assert cache_entry.mtime == 123456.0
+    assert cache_entry.size == 1000
+    assert cache_entry.replay_cache_key is None  # Non-fork file
+    assert len(cache_entry.entries) == 1
+    assert cache_entry.entries[0].input_tokens == 100
+    assert cache_entry.confirmed_offset == 1000
+    assert cache_entry.confirmed_prefix_digest == bytes.fromhex("abcd")
+    assert cache_entry.state.session_model == "gpt-5.4-mini"
+    assert cache_entry.state.token_count_index == 1
 
 
 def test_disk_cache_invalid_schema_fails_safely(
@@ -1761,11 +2042,11 @@ def test_disk_cache_fork_file_entries_not_written(
 
     # Manually construct a fork cache entry (replay_cache_key is not None)
     fork_path = Path("/fake/fork.jsonl")
-    codex_loader._jsonl_cache[fork_path] = (
-        123.0,
-        500,
-        ("parent-session", 123.0, 100, 5),  # Non-None replay_cache_key indicates fork
-        [],  # entries exist for fork, but should not be written
+    codex_loader._jsonl_cache[fork_path] = codex_loader._JsonlCacheEntry(
+        mtime=123.0,
+        size=500,
+        replay_cache_key=("parent-session", 123.0, 100, 5),
+        entries=[],
     )
     codex_loader._file_info_cache[fork_path] = (
         123.0,

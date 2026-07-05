@@ -390,6 +390,7 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     panels = [
         SimpleNamespace(id="classic", i18n_key="panel_default_name"),
         SimpleNamespace(id="matrix", i18n_key="panel_matrix"),
+        SimpleNamespace(id="talent_market", i18n_key="panel_talent_market"),
     ]
 
     monkeypatch.setattr(menubar, "NSMenu", _FakeMenu)
@@ -420,6 +421,10 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     critters = next(item for item in main_menu.items if item.action == "toggleCritters:")
     assert critters.title == "Summon Spirits"
     assert critters.state == 0
+    talent_market = next(item for item in main_menu.items if item.title == "AI Talent Market")
+    assert talent_market.action == "toggleTalentMarket:"
+    assert talent_market.representedObject() == "talent_market"
+    assert talent_market.state == 0
 
     # Panel themes are collapsed into a submenu, not listed inline on the main menu.
     assert "Default" not in main_titles
@@ -1881,6 +1886,44 @@ def test_switching_visible_panel_reuses_popover(monkeypatch: pytest.MonkeyPatch)
     assert delegate.popover.closed == 0
     assert len(delegate.popover.sizes) == 1
     assert delegate.popover.shown == []
+
+
+def test_toggle_talent_market_switches_back_to_previous_panel() -> None:
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.active_panel = SimpleNamespace(id="matrix")
+
+    switched: list[str] = []
+
+    def fake_set_active_panel_id(panel_id: str) -> None:
+        switched.append(panel_id)
+        delegate.active_panel = SimpleNamespace(id=panel_id)
+
+    delegate._set_active_panel_id = fake_set_active_panel_id
+
+    menubar.AppDelegate.toggleTalentMarket_(delegate, object())
+    menubar.AppDelegate.toggleTalentMarket_(delegate, object())
+
+    assert switched == ["talent_market", "matrix"]
+    assert delegate._pre_talent_panel_id == "matrix"
+    assert delegate._switch_menu_action_taken is True
+
+
+def test_toggle_talent_market_falls_back_to_classic_without_previous_panel() -> None:
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.active_panel = SimpleNamespace(id="talent_market")
+    delegate._pre_talent_panel_id = None
+
+    switched: list[str] = []
+
+    def fake_set_active_panel_id(panel_id: str) -> None:
+        switched.append(panel_id)
+
+    delegate._set_active_panel_id = fake_set_active_panel_id
+
+    menubar.AppDelegate.toggleTalentMarket_(delegate, object())
+
+    assert switched == ["classic"]
+    assert delegate._switch_menu_action_taken is True
 
 
 def test_state_from_outcome_replaces_claude_reset_with_warning(

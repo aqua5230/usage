@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import os
@@ -13,7 +14,7 @@ import sqlite3
 from collections import OrderedDict
 from collections.abc import Iterable
 from contextlib import closing
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -60,12 +61,47 @@ from time_utils import parse_optional_iso8601_utc
 
 logger = logging.getLogger(__name__)
 
-_JSONL_CACHE_MAXSIZE = 512
+# Must comfortably exceed a real user's total *.jsonl session count. A cap at
+# or below that count means every load_entries() call evicts and re-parses
+# files that were just cached last refresh (LRU thrashing) — measured 512
+# capped at 809 real sessions into a permanent 17+ second full-reparse every
+# single call, even with per-file incremental caching working correctly in
+# isolation. Also backs _file_info_cache and _fork_replay_cache below, which
+# share the same real-world file count.
+_JSONL_CACHE_MAXSIZE = 4096
 _RECENT_JSONL_SCAN_LIMIT = 30
-_jsonl_cache: OrderedDict[
-    Path,
-    tuple[float, int, _ReplayCacheKey, list[UsageEntry]],
-] = OrderedDict()
+
+
+@dataclass(slots=True)
+class _JsonlParseState:
+    session_timestamp: str = ""
+    project: str = "unknown"
+    session_model: str = "unknown"
+    previous_usage: _TokenUsage | None = None
+    token_count_index: int = 0
+
+    def copy(self) -> _JsonlParseState:
+        return _JsonlParseState(
+            session_timestamp=self.session_timestamp,
+            project=self.project,
+            session_model=self.session_model,
+            previous_usage=self.previous_usage,
+            token_count_index=self.token_count_index,
+        )
+
+
+@dataclass(slots=True)
+class _JsonlCacheEntry:
+    mtime: float
+    size: int
+    replay_cache_key: _ReplayCacheKey
+    entries: list[UsageEntry]
+    confirmed_offset: int = 0
+    confirmed_prefix_digest: bytes = b""
+    state: _JsonlParseState = field(default_factory=_JsonlParseState)
+
+
+_jsonl_cache: OrderedDict[Path, _JsonlCacheEntry] = OrderedDict()
 _fork_replay_cache: OrderedDict[
     Path,
     tuple[_ReplayLookupKey, int | None, _ReplayCacheKey],
@@ -82,7 +118,7 @@ LOGS_DB = Path(os.path.expanduser("~/.codex/logs_2.sqlite"))
 
 # Disk cache for JSONL parsing results. Schema version must be bumped when the
 # serialization format or parsing logic changes incompatibly.
-_CODEX_JSONL_CACHE_SCHEMA = 1
+_CODEX_JSONL_CACHE_SCHEMA = 2
 JSONL_CACHE_PATH = Path(os.path.expanduser("~/.usage/codex_jsonl_cache.json"))
 
 # Module-level flag to ensure seed loading happens exactly once.
@@ -187,7 +223,7 @@ def _load_jsonl_entries(
     # A re-parse overwrites an existing key in place, so cache size alone would
     # miss an updated (still-growing) session file — exactly the active files we
     # most want to persist. dict equality ignores LRU move_to_end reordering.
-    jsonl_snapshot = {str(p): (e[0], e[1]) for p, e in _jsonl_cache.items()}
+    jsonl_snapshot = {str(p): (e.mtime, e.size) for p, e in _jsonl_cache.items()}
     file_info_snapshot = {str(p): (v[0], v[1]) for p, v in _file_info_cache.items()}
 
     entries_by_session: dict[str, list[UsageEntry]] = {}
@@ -228,7 +264,7 @@ def _load_jsonl_entries(
 
     # Flush to disk if any file was newly parsed or re-parsed (content changed)
     if (
-        {str(p): (e[0], e[1]) for p, e in _jsonl_cache.items()} != jsonl_snapshot
+        {str(p): (e.mtime, e.size) for p, e in _jsonl_cache.items()} != jsonl_snapshot
         or {str(p): (v[0], v[1]) for p, v in _file_info_cache.items()} != file_info_snapshot
     ):
         _flush_caches_to_disk()
@@ -802,6 +838,165 @@ def _cache_fork_replay_boundary(
     _fork_replay_cache[path] = (lookup_key, result[0], result[1])
 
 
+def _cache_jsonl_entry(path: Path, entry: _JsonlCacheEntry) -> None:
+    if path not in _jsonl_cache and len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
+        _jsonl_cache.popitem(last=False)
+    _jsonl_cache[path] = entry
+
+
+def _confirmed_prefix_hasher(path: Path, cached: _JsonlCacheEntry) -> Any | None:
+    if cached.confirmed_offset == 0:
+        return hashlib.blake2b(digest_size=16)
+    digest = hashlib.blake2b(digest_size=16)
+    remaining = cached.confirmed_offset
+    try:
+        with path.open("rb") as file:
+            while remaining > 0:
+                chunk = file.read(min(remaining, 65536))
+                if not chunk:
+                    return None
+                digest.update(chunk)
+                remaining -= len(chunk)
+    except OSError:
+        return None
+    if digest.digest() != cached.confirmed_prefix_digest:
+        return None
+    return digest
+
+
+def _parse_linear_jsonl_bytes(
+    file: Any,
+    *,
+    session_id: str,
+    models: dict[str, str],
+    entries: list[UsageEntry],
+    state: _JsonlParseState,
+    digest: Any,
+    confirmed_offset: int,
+) -> int:
+    while True:
+        line_start = int(file.tell())
+        line = file.readline()
+        if not line:
+            return confirmed_offset
+        data = _load_json_line(line.decode("utf-8", errors="replace"))
+        if not line.endswith(b"\n") and data is None:
+            return line_start
+        digest.update(line)
+        confirmed_offset = int(file.tell())
+        if data is None:
+            continue
+        if data.get("type") == "session_meta":
+            payload = _as_dict(data.get("payload"))
+            if not state.session_timestamp:
+                state.session_timestamp = _as_str(payload.get("timestamp"))
+                state.project = _project_from_cwd(_as_str(payload.get("cwd")))
+                state.session_model = _session_model(payload, state.session_model)
+            continue
+        if data.get("type") == "turn_context":
+            state.session_model = _session_model(data.get("payload"), state.session_model)
+            continue
+        if data.get("type") != "event_msg":
+            continue
+        payload = _as_dict(data.get("payload"))
+        if payload.get("type") != "token_count":
+            continue
+        usage = _as_dict(_as_dict(payload.get("info")).get("total_token_usage"))
+        timestamp = _parse_timestamp(_as_str(data.get("timestamp")))
+        if not usage or not session_id or timestamp is None:
+            continue
+        current_usage = _token_usage_from_payload(usage)
+        delta = current_usage.delta(state.previous_usage)
+        state.previous_usage = current_usage
+        if delta.total_tokens == 0:
+            continue
+        state.token_count_index += 1
+        entries.append(
+            UsageEntry(
+                timestamp=timestamp,
+                session_id=session_id,
+                message_id=f"{session_id}:{state.token_count_index}",
+                request_id="",
+                model=models.get(session_id, state.session_model),
+                input_tokens=delta.input_tokens,
+                output_tokens=delta.output_tokens,
+                cache_creation_tokens=0,
+                cache_read_tokens=delta.cache_read_tokens,
+                cost_usd=None,
+                project=state.project,
+            )
+        )
+
+
+def _refresh_linear_jsonl_cache(
+    path: Path,
+    st: os.stat_result,
+    session_id: str,
+    models: dict[str, str],
+    cached: _JsonlCacheEntry | None,
+) -> _JsonlCacheEntry | None:
+    prefix_hasher = (
+        _confirmed_prefix_hasher(path, cached)
+        if cached is not None and st.st_size >= cached.confirmed_offset and st.st_size > cached.size
+        else None
+    )
+    if prefix_hasher is not None:
+        assert cached is not None
+        incremental_entries = list(cached.entries)
+        state = cached.state.copy()
+        try:
+            with path.open("rb") as file:
+                file.seek(cached.confirmed_offset)
+                confirmed_offset = _parse_linear_jsonl_bytes(
+                    file,
+                    session_id=session_id,
+                    models=models,
+                    entries=incremental_entries,
+                    state=state,
+                    digest=prefix_hasher,
+                    confirmed_offset=cached.confirmed_offset,
+                )
+        except OSError as exc:
+            logger.warning("failed to parse codex session %s: %s", path, exc)
+            return None
+        return _JsonlCacheEntry(
+            mtime=st.st_mtime,
+            size=st.st_size,
+            replay_cache_key=None,
+            entries=incremental_entries,
+            confirmed_offset=confirmed_offset,
+            confirmed_prefix_digest=prefix_hasher.digest(),
+            state=state,
+        )
+
+    entries: list[UsageEntry] = []
+    state = _JsonlParseState()
+    digest = hashlib.blake2b(digest_size=16)
+    try:
+        with path.open("rb") as file:
+            confirmed_offset = _parse_linear_jsonl_bytes(
+                file,
+                session_id=session_id,
+                models=models,
+                entries=entries,
+                state=state,
+                digest=digest,
+                confirmed_offset=0,
+            )
+    except OSError as exc:
+        logger.warning("failed to parse codex session %s: %s", path, exc)
+        return None
+    return _JsonlCacheEntry(
+        mtime=st.st_mtime,
+        size=st.st_size,
+        replay_cache_key=None,
+        entries=entries,
+        confirmed_offset=confirmed_offset,
+        confirmed_prefix_digest=digest.digest(),
+        state=state,
+    )
+
+
 def _parse_jsonl(
     path: Path,
     models: dict[str, str],
@@ -820,12 +1015,12 @@ def _parse_jsonl(
     cache_entry = _jsonl_cache.get(path)
     if (
         cache_entry is not None
-        and cache_entry[0] == st.st_mtime
-        and cache_entry[1] == st.st_size
-        and cache_entry[2] == replay_cache_key
+        and cache_entry.mtime == st.st_mtime
+        and cache_entry.size == st.st_size
+        and cache_entry.replay_cache_key == replay_cache_key
     ):
         _jsonl_cache.move_to_end(path)
-        cached_entries = cache_entry[3]
+        cached_entries = cache_entry.entries
         for entry in cached_entries:
             if entry.session_id in models:
                 entry.model = models[entry.session_id]
@@ -836,6 +1031,32 @@ def _parse_jsonl(
     info = file_info or _read_session_file_info(path)
     if replay_boundary is None:
         return []
+
+    if not info.forked_from_id and replay_boundary == 0 and replay_cache_key is None:
+        refreshed = _refresh_linear_jsonl_cache(path, st, info.session_id, models, cache_entry)
+        if refreshed is None:
+            _cache_jsonl_entry(
+                path,
+                _JsonlCacheEntry(
+                    mtime=st.st_mtime,
+                    size=st.st_size,
+                    replay_cache_key=None,
+                    entries=[],
+                ),
+            )
+            return []
+        _cache_jsonl_entry(path, refreshed)
+        refreshed_entries = refreshed.entries
+        # Carried-forward entries from a prior incremental parse were built
+        # before `models` (thread->model, resolved from sqlite) may have caught
+        # up — reapply it here too, not just to entries parsed in this call, or
+        # a stale/unknown model (and thus wrong per-model cost) sticks forever.
+        for entry in refreshed_entries:
+            if entry.session_id in models:
+                entry.model = models[entry.session_id]
+        if cutoff is not None:
+            return [entry for entry in refreshed_entries if entry.timestamp >= cutoff]
+        return refreshed_entries
 
     session_id = info.session_id
     session_timestamp = ""
@@ -894,18 +1115,36 @@ def _parse_jsonl(
                 )
     except (OSError, UnicodeDecodeError) as exc:
         logger.warning("failed to parse codex session %s: %s", path, exc)
-        if path not in _jsonl_cache and len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
-            _jsonl_cache.popitem(last=False)
-        _jsonl_cache[path] = (st.st_mtime, st.st_size, replay_cache_key, [])
+        _cache_jsonl_entry(
+            path,
+            _JsonlCacheEntry(
+                mtime=st.st_mtime,
+                size=st.st_size,
+                replay_cache_key=replay_cache_key,
+                entries=[],
+            ),
+        )
         return []
     if not entries and session_timestamp:
-        if path not in _jsonl_cache and len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
-            _jsonl_cache.popitem(last=False)
-        _jsonl_cache[path] = (st.st_mtime, st.st_size, replay_cache_key, [])
+        _cache_jsonl_entry(
+            path,
+            _JsonlCacheEntry(
+                mtime=st.st_mtime,
+                size=st.st_size,
+                replay_cache_key=replay_cache_key,
+                entries=[],
+            ),
+        )
         return []
-    if path not in _jsonl_cache and len(_jsonl_cache) >= _JSONL_CACHE_MAXSIZE:
-        _jsonl_cache.popitem(last=False)
-    _jsonl_cache[path] = (st.st_mtime, st.st_size, replay_cache_key, entries)
+    _cache_jsonl_entry(
+        path,
+        _JsonlCacheEntry(
+            mtime=st.st_mtime,
+            size=st.st_size,
+            replay_cache_key=replay_cache_key,
+            entries=entries,
+        ),
+    )
     if cutoff is not None:
         return [entry for entry in entries if entry.timestamp >= cutoff]
     return entries
@@ -917,4 +1156,3 @@ def _parse_timestamp(value: Any) -> datetime | None:
 
 def _project_from_cwd(cwd: str) -> str:
     return resolve_project_name(cwd)
-
