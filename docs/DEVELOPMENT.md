@@ -277,4 +277,6 @@ The output is `dist/usage.app`. Double-click it or run `open dist/usage.app`.
 
 > **Build environment**: Please use `uv` (not conda Python) when building the `.app` locally. Conda bundles its own `libffi` / `libsqlite3` that py2app does not auto-include, which causes the resulting `.app` to crash on startup. CI builds use `uv` and are tested.
 
+> **AI Talent Market panel**: its data comes from a separate, private companion project you won't have access to. Building without it (and without an `INSTATE_CLI_TOKEN` env var) still produces a working `.app` — that one panel just shows an empty state instead of crashing.
+
 Each GitHub Release build (push a `v*` tag) automatically builds the app in CI and attaches `usage.app.zip` to the Release page.

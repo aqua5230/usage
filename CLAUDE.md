@@ -77,6 +77,7 @@ Claude Code ──stdin──> usage_statusline.py (hook) ──write──> ~/.
 | `update_checker.py` | GitHub Releases update check added in v0.11.0. |
 | `login_item.py` | Login item toggle for launching at login. |
 | `panels/` | HTML panel logic and `NSPopover` / `WKWebView` integration. |
+| `talent_market_bridge.py` | JS↔Python bridge for the AI Talent Market panel (`assets/panels/talent_market.html`) — installs Claude Code subagent persona teams into `~/.claude/agents/` via a bundled `vendor/instate-cli` binary (built by the separate, private `instate` project; gitignored, fetched by `scripts/build_app.sh`). |
 | `adapters/`, `analyzer/`, `ui/` | HTML report subsystem. |
 | `setup_app.py` | `py2app` build script invoked by `scripts/build_app.sh`. Bundles `usage_statusline.py` and asset webps as `Resources/`. |
 

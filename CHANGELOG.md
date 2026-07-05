@@ -5,6 +5,14 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.0] - 2026-07-05
+
+### Added
+- **AI Talent Market**: a new menu-bar panel for installing curated teams of Claude Code subagent personas — organized by scenario (a one-person law practice, a solo software studio, and more) — straight into `~/.claude/agents/`; once installed, call a persona by name in any Claude Code conversation. Search or browse by team, drill into a role for a full write-up and one-click launch into a new Terminal session, and pick which folder each launch targets instead of it being guessed for you. Runs fully local through a bundled companion CLI — no account, no network call.
+
+### Fixed
+- **Menu bar refresh could take 17+ seconds on long-running installs**: the Claude Code / Codex history loaders cached parsed JSONL files behind a 512-entry LRU, too small once a machine has accumulated more sessions than that — every refresh evicted and fully re-parsed files that had just been cached the tick before. Both loaders now parse incrementally from the last confirmed byte offset instead of re-reading whole files, the cache is sized to hold a real working set, and a redundant title update that forced a full relayout on every critter-animation frame has been removed too.
+
 ## [0.23.2] - 2026-07-04
 
 ### Fixed

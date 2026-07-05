@@ -279,4 +279,6 @@ USAGE_LANG=zh-CN python3 main.py   # 簡體中文
 
 > **打包環境提醒**：本機打包 `.app` 請使用 `uv`（不要用 conda 的 Python）。conda 自帶的 `libffi` / `libsqlite3`（動態程式庫，程式跑時需要載入的共用程式碼）不會被 py2app 自動帶進 `.app`，會導致打出來的 `.app` 一啟動就閃退。CI 打包流程使用 `uv`，已通過測試。
 
+> **AI 人才市場面板**：它的資料來自另一個私有的獨立專案，你不會有存取權限。沒有它（也沒設 `INSTATE_CLI_TOKEN` 環境變數）一樣能打包出可正常執行的 `.app`——只是這個面板會顯示空白狀態，不會導致閃退。
+
 每次發 GitHub Release（push 一個 `v*` 開頭的 tag 時），CI 會自動 build 並把 `usage.app.zip` 附加到 Release 頁面。

@@ -436,6 +436,11 @@ footer .kofi:hover { background: #ff7572; }
         <h3 data-i18n="card6_h">5-language interface</h3>
         <p data-i18n="card6_p">Auto-detects your macOS language. Supports 繁體中文, 简体中文, English, 日本語, 한국어 — all strings translated, not just menus.</p>
       </div>
+      <div class="card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="9.5" cy="8" r="3"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.5-3.37"/><path d="M14.5 4.13a3 3 0 0 1 0 5.74"/></svg></span>
+        <h3 data-i18n="card7_h">AI Talent Market</h3>
+        <p data-i18n="card7_p">Install a curated team of Claude Code subagent personas — a one-person law practice, a solo software studio, and more — straight into <code>~/.claude/agents/</code>, then call one by name in your next conversation.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -552,6 +557,8 @@ const T = {
     card5_p: 'Matrix digital rain, Windows 95, retro newspaper, midnight aquarium, World Cup FIFA HUD — pick a mood for your menu bar pop-out.',
     card6_h: '5-language interface',
     card6_p: 'Auto-detects your macOS language. Supports 繁體中文, 简体中文, English, 日本語, 한국어 — all strings translated, not just menus.',
+    card7_h: 'AI Talent Market',
+    card7_p: 'Install a curated team of Claude Code subagent personas — a one-person law practice, a solo software studio, and more — straight into <code>~/.claude/agents/</code>, then call one by name in your next conversation.',
     resume_label: 'NEW',
     resume_h2: 'Now your CLI picks up where you left off',
     resume_lead: "The web and desktop apps keep your history — close them, reopen, it's all there. The CLI didn't. Resume hands that power to the CLI: open a new session and it picks up where you left off automatically, no re-explaining. It now also runs a daily health check on your logs — when it spots token waste, the handoff adds a one-line heads-up; say \"show me\" for the findings and fixes. Reads local files only — never connects to any API.",
@@ -611,6 +618,8 @@ const T = {
     card5_p: '駭客任務數字雨、Windows 95、復古報紙、午夜水族箱、世界盃 FIFA 轉播——挑個喜歡的氛圍。',
     card6_h: '5 語言介面',
     card6_p: '自動偵測 macOS 系統語言。支援繁體中文、简体中文、English、日本語、한국어——每一條訊息都翻譯。',
+    card7_h: 'AI 人才市場',
+    card7_p: '把整套 Claude Code 角色人設檔——律師事務所、軟體工作室等——一次安裝進 <code>~/.claude/agents/</code>，下次對話點名就能用。',
     resume_label: '新功能',
     resume_h2: '讓你的 CLI 也接得回上次',
     resume_lead: '網頁版、桌面 App 關掉再打開，對話都還在；只有 CLI 關掉就沒了。進度管家把這個能力補給 CLI——開新對話時自動接回你上次做到哪，不用再重講一次。現在還會每天對本機紀錄做一次健檢，發現 token 浪費時，開場白會多一行提醒；說「看」，AI 就會解釋發現了什麼、該怎麼改。只讀本機紀錄，不連到服務端。',
@@ -670,6 +679,8 @@ const T = {
     card5_p: '黑客帝国数字雨、Windows 95、复古报纸、午夜水族馆、世界杯 FIFA 转播——挑个喜欢的氛围。',
     card6_h: '5 语言界面',
     card6_p: '自动检测 macOS 系统语言。支持繁體中文、简体中文、English、日本語、한국어——每条消息都有翻译。',
+    card7_h: 'AI 人才市场',
+    card7_p: '把整套 Claude Code 角色人设档——律师事务所、软件工作室等——一次安装进 <code>~/.claude/agents/</code>，下次对话点名就能用。',
     resume_label: '新功能',
     resume_h2: '让你的 CLI 也接得回上次',
     resume_lead: '网页版、桌面 App 关掉再打开，对话都还在；只有 CLI 关掉就没了。进度管家把这个能力补给 CLI——开新对话时自动接回你上次做到哪，不用再重讲一次。现在还会每天对本机记录做一次健检，发现 token 浪费时，开场白会多一行提醒；说「看」，AI 就会解释发现了什么、该怎么改。只读本机记录，不连到服务端。',
@@ -729,6 +740,8 @@ const T = {
     card5_p: 'マトリックスのデジタルレイン、Windows 95、レトロ新聞、深夜水族館、ワールドカップ FIFA HUD — お好みの雰囲気で。',
     card6_h: '5 言語インターフェース',
     card6_p: 'macOS のシステム言語を自動検出。繁體中文 / 简体中文 / English / 日本語 / 한국어 をサポート — メニューだけでなくすべての文字列を翻訳。',
+    card7_h: 'AI人材マーケット',
+    card7_p: '法律事務所やソフトウェア工房など、キャラクター設定一式を <code>~/.claude/agents/</code> にまとめてインストール。次の会話で名前を呼ぶだけで使えます。',
     resume_label: 'NEW',
     resume_h2: 'CLI でも前回の続きから',
     resume_lead: 'ウェブ版もデスクトップアプリも、閉じて開き直せば会話履歴はそのまま。でも CLI は閉じたら終わり。その機能を CLI に。新しいセッションを開くと前回の続きを自動で引き継ぎ、説明し直す必要はありません。さらに毎日ローカルのログをヘルスチェックし、トークンの無駄を見つけると引き継ぎに一行のお知らせを追加。「見せて」と言えば、AI が内容と改善策を説明します。ローカルの記録だけを読み、サーバーには接続しません。',
@@ -788,6 +801,8 @@ const T = {
     card5_p: '매트릭스 디지털 비, Windows 95, 복고 신문, 자정 수족관, 월드컵 FIFA HUD — 메뉴 바 팝아웃의 분위기를 마음대로.',
     card6_h: '5개 언어 인터페이스',
     card6_p: 'macOS 시스템 언어를 자동 감지. 繁體中文 / 简体中文 / English / 日本語 / 한국어 지원 — 메뉴뿐만 아니라 모든 문구가 번역되어 있습니다.',
+    card7_h: 'AI 인재 마켓',
+    card7_p: '1인 법률사무소, 1인 소프트웨어 스튜디오 등 큐레이션된 Claude Code 서브에이전트 페르소나 팀을 <code>~/.claude/agents/</code>에 바로 설치하고, 다음 대화에서 이름만 불러 사용하세요.',
     resume_label: 'NEW',
     resume_h2: '이제 CLI도 이어서',
     resume_lead: '웹과 데스크톱 앱은 닫았다 열어도 대화 기록이 그대로 남아요. CLI만 닫으면 끝이었죠. 그 기능을 CLI에도. 새 세션을 열면 지난 작업을 자동으로 불러와 다시 설명할 필요가 없어요. 이제 매일 로컬 로그를 헬스 체크해서 토큰 낭비를 발견하면 인계 메시지에 한 줄 알림을 붙여요. "보여줘"라고 하면 AI가 내용과 개선 방법을 설명해 줘요. 로컬 기록만 읽고 서버에 연결하지 않아요.',
