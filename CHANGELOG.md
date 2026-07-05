@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.5] - 2026-07-06
+
+### Changed
+- **AI Talent Market catalog expanded**: the bundled `instate-cli` was rebuilt from upstream to add 4 new role packs (12 new roles) — content creator, event planner, translation/localization, and personal finance advisor. No usage code changed; this is a vendored-content refresh.
+
 ## [0.24.4] - 2026-07-05
 
 ### Changed
