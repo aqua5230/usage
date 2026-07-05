@@ -441,6 +441,21 @@ footer .kofi:hover { background: #ff7572; }
         <h3 data-i18n="card7_h">AI Talent Market</h3>
         <p data-i18n="card7_p">Install a curated team of Claude Code subagent personas — a one-person law practice, a solo software studio, and more — straight into <code>~/.claude/agents/</code>, then call one by name in your next conversation.</p>
       </div>
+      <div class="card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg></span>
+        <h3 data-i18n="card8_h">Terse Mode</h3>
+        <p data-i18n="card8_p">A menu-bar toggle that asks Claude Code — and Codex CLI too, if it's installed — to answer more tersely for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact.</p>
+      </div>
+      <div class="card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg></span>
+        <h3 data-i18n="card9_h">Summon Spirits</h3>
+        <p data-i18n="card9_p">An optional menu-bar critter — phoenix for Claude, dragon for Codex — that speeds up as your local token burn climbs, so you can feel your pace at a glance without reading a single number.</p>
+      </div>
+      <div class="card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+        <h3 data-i18n="card10_h">Notifications before you hit the wall</h3>
+        <p data-i18n="card10_p">A system notification when you're nearing a threshold, running low, or have just recovered — so you wrap up on your own terms instead of getting cut off mid-sentence.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -559,6 +574,12 @@ const T = {
     card6_p: 'Auto-detects your macOS language. Supports 繁體中文, 简体中文, English, 日本語, 한국어 — all strings translated, not just menus.',
     card7_h: 'AI Talent Market',
     card7_p: 'Install a curated team of Claude Code subagent personas — a one-person law practice, a solo software studio, and more — straight into <code>~/.claude/agents/</code>, then call one by name in your next conversation.',
+    card8_h: 'Terse Mode',
+    card8_p: "A menu-bar toggle that asks Claude Code — and Codex CLI too, if it's installed — to answer more tersely for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact.",
+    card9_h: 'Summon Spirits',
+    card9_p: 'An optional menu-bar critter — phoenix for Claude, dragon for Codex — that speeds up as your local token burn climbs, so you can feel your pace at a glance without reading a single number.',
+    card10_h: 'Notifications before you hit the wall',
+    card10_p: "A system notification when you're nearing a threshold, running low, or have just recovered — so you wrap up on your own terms instead of getting cut off mid-sentence.",
     resume_label: 'NEW',
     resume_h2: 'Now your CLI picks up where you left off',
     resume_lead: "The web and desktop apps keep your history — close them, reopen, it's all there. The CLI didn't. Resume hands that power to the CLI: open a new session and it picks up where you left off automatically, no re-explaining. It now also runs a daily health check on your logs — when it spots token waste, the handoff adds a one-line heads-up; say \"show me\" for the findings and fixes. Reads local files only — never connects to any API.",
@@ -580,7 +601,7 @@ const T = {
     screen_h2: 'Pick a panel that fits your mood.',
     screen_sub: 'Ten built-in themes. Change anytime from the popover toolbar.',
     report_h: 'Your AI usage, in one shareable page.',
-    report_p: 'Generate an HTML report with token spend, cost, top projects, and model distribution. Send to your manager. Use as a client invoice attachment. Project names hide by default.',
+    report_p: 'Generate an HTML report with token spend, cost, top projects, and model distribution — plus a year-in-review page with a GitHub-style contribution heatmap and a "Wrapped" card. Send to your manager. Use as a client invoice attachment. Project names hide by default.',
     footer_tag_pre: 'Built by',
     footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
     footer_releases: 'Releases',
@@ -620,6 +641,12 @@ const T = {
     card6_p: '自動偵測 macOS 系統語言。支援繁體中文、简体中文、English、日本語、한국어——每一條訊息都翻譯。',
     card7_h: 'AI 人才市場',
     card7_p: '把整套 Claude Code 角色人設檔——律師事務所、軟體工作室等——一次安裝進 <code>~/.claude/agents/</code>，下次對話點名就能用。',
+    card8_h: '精簡模式',
+    card8_p: '選單列開關，讓 Claude Code——連同裝好的 Codex CLI——整個對話回答更簡短：內容不變、字變少，但程式碼、指令、錯誤訊息一個字都不會被縮減。',
+    card9_h: '召喚神獸',
+    card9_p: '選單列可選開關——Claude 是鳳凰、Codex 是肥龍——token 燒得越快牠跑越快，不看數字也能感覺自己的燒錢節奏。',
+    card10_h: '撞牆前先提醒你',
+    card10_p: '接近門檻、用完，或剛恢復時跳出系統通知——讓你照自己的節奏收尾，而不是話講到一半被切斷。',
     resume_label: '新功能',
     resume_h2: '讓你的 CLI 也接得回上次',
     resume_lead: '網頁版、桌面 App 關掉再打開，對話都還在；只有 CLI 關掉就沒了。進度管家把這個能力補給 CLI——開新對話時自動接回你上次做到哪，不用再重講一次。現在還會每天對本機紀錄做一次健檢，發現 token 浪費時，開場白會多一行提醒；說「看」，AI 就會解釋發現了什麼、該怎麼改。只讀本機紀錄，不連到服務端。',
@@ -641,7 +668,7 @@ const T = {
     screen_h2: '挑一個你喜歡的面板。',
     screen_sub: '10 款內建主題。隨時從 popover 工具列切換。',
     report_h: '你的 AI 用量，一頁可分享。',
-    report_p: '產出 HTML 報告，內含 token 開銷、成本、專案排行、模型分布。傳給主管、附在客戶請款裡都行。預設隱藏專案名稱。',
+    report_p: '產出 HTML 報告，內含 token 開銷、成本、專案排行、模型分布，還有年度回顧頁——GitHub 風格貢獻熱力圖，加一張「Wrapped」卡。傳給主管、附在客戶請款裡都行。預設隱藏專案名稱。',
     footer_tag_pre: '作者：',
     footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
     footer_releases: 'Releases',
@@ -681,6 +708,12 @@ const T = {
     card6_p: '自动检测 macOS 系统语言。支持繁體中文、简体中文、English、日本語、한국어——每条消息都有翻译。',
     card7_h: 'AI 人才市场',
     card7_p: '把整套 Claude Code 角色人设档——律师事务所、软件工作室等——一次安装进 <code>~/.claude/agents/</code>，下次对话点名就能用。',
+    card8_h: '精简模式',
+    card8_p: '菜单栏开关，让 Claude Code——连同装好的 Codex CLI——整个对话回答更简短：内容不变、字变少，但代码、命令、错误消息一个字都不会被缩减。',
+    card9_h: '召唤神兽',
+    card9_p: '菜单栏可选开关——Claude 是凤凰、Codex 是巨龙——token 烧得越快它跑越快，不看数字也能感受自己的烧钱节奏。',
+    card10_h: '撞墙前先提醒你',
+    card10_p: '接近门槛、用完，或刚恢复时弹出系统通知——让你照自己的节奏收尾，而不是话讲到一半被切断。',
     resume_label: '新功能',
     resume_h2: '让你的 CLI 也接得回上次',
     resume_lead: '网页版、桌面 App 关掉再打开，对话都还在；只有 CLI 关掉就没了。进度管家把这个能力补给 CLI——开新对话时自动接回你上次做到哪，不用再重讲一次。现在还会每天对本机记录做一次健检，发现 token 浪费时，开场白会多一行提醒；说「看」，AI 就会解释发现了什么、该怎么改。只读本机记录，不连到服务端。',
@@ -702,7 +735,7 @@ const T = {
     screen_h2: '挑一个你喜欢的面板。',
     screen_sub: '10 款内建主题。随时从 popover 工具栏切换。',
     report_h: '你的 AI 用量，一页可分享。',
-    report_p: '生成 HTML 报告，内含 token 开销、花费、项目排行、模型分布。发给老板、附在客户发票里都行。默认隐藏项目名称。',
+    report_p: '生成 HTML 报告，内含 token 开销、花费、项目排行、模型分布，还有年度回顾页——GitHub 风格贡献热力图，加一张「Wrapped」卡。发给老板、附在客户发票里都行。默认隐藏项目名称。',
     footer_tag_pre: '作者：',
     footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
     footer_releases: 'Releases',
@@ -742,6 +775,12 @@ const T = {
     card6_p: 'macOS のシステム言語を自動検出。繁體中文 / 简体中文 / English / 日本語 / 한국어 をサポート — メニューだけでなくすべての文字列を翻訳。',
     card7_h: 'AI人材マーケット',
     card7_p: '法律事務所やソフトウェア工房など、キャラクター設定一式を <code>~/.claude/agents/</code> にまとめてインストール。次の会話で名前を呼ぶだけで使えます。',
+    card8_h: '簡潔モード',
+    card8_p: 'メニューバーのスイッチ一つで、Claude Code（導入済みなら Codex CLI にも）に会話全体をより簡潔に答えるよう依頼——内容はそのまま、文字数だけ減り、コード・コマンド・エラーメッセージは一切省略されません。',
+    card9_h: '神獣を呼ぶ',
+    card9_p: 'メニューバーの任意スイッチ——Claude は不死鳥、Codex は龍——ローカルの token 消費が速いほど走る速度も上がり、数字を読まなくてもペースを体感できます。',
+    card10_h: '壁にぶつかる前に通知',
+    card10_p: 'しきい値接近時、枯渇時、回復直後にシステム通知——文の途中で打ち切られるのではなく、自分のペースで区切りをつけられます。',
     resume_label: 'NEW',
     resume_h2: 'CLI でも前回の続きから',
     resume_lead: 'ウェブ版もデスクトップアプリも、閉じて開き直せば会話履歴はそのまま。でも CLI は閉じたら終わり。その機能を CLI に。新しいセッションを開くと前回の続きを自動で引き継ぎ、説明し直す必要はありません。さらに毎日ローカルのログをヘルスチェックし、トークンの無駄を見つけると引き継ぎに一行のお知らせを追加。「見せて」と言えば、AI が内容と改善策を説明します。ローカルの記録だけを読み、サーバーには接続しません。',
@@ -763,7 +802,7 @@ const T = {
     screen_h2: '気分に合うパネルを選んで。',
     screen_sub: '10 種の内蔵テーマ。ポップオーバーのツールバーからいつでも切り替え可能。',
     report_h: 'あなたの AI 使用量を、共有可能な 1 ページに。',
-    report_p: 'トークン支出、コスト、トッププロジェクト、モデル分布を含む HTML レポートを生成。マネージャーへの送付、クライアントへの請求添付など。プロジェクト名はデフォルトで非表示。',
+    report_p: 'トークン支出、コスト、トッププロジェクト、モデル分布を含む HTML レポートを生成——さらに GitHub 風のコントリビューションヒートマップと「Wrapped」カード付きの年間振り返りページも。マネージャーへの送付、クライアントへの請求添付など。プロジェクト名はデフォルトで非表示。',
     footer_tag_pre: '制作：',
     footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
     footer_releases: 'Releases',
@@ -803,6 +842,12 @@ const T = {
     card6_p: 'macOS 시스템 언어를 자동 감지. 繁體中文 / 简体中文 / English / 日本語 / 한국어 지원 — 메뉴뿐만 아니라 모든 문구가 번역되어 있습니다.',
     card7_h: 'AI 인재 마켓',
     card7_p: '1인 법률사무소, 1인 소프트웨어 스튜디오 등 큐레이션된 Claude Code 서브에이전트 페르소나 팀을 <code>~/.claude/agents/</code>에 바로 설치하고, 다음 대화에서 이름만 불러 사용하세요.',
+    card8_h: '간결 모드',
+    card8_p: '메뉴 바 스위치 하나로 Claude Code — 설치되어 있다면 Codex CLI까지 — 대화 전체를 더 간결하게 답하도록 요청합니다. 내용은 그대로, 글자 수만 줄고 코드·명령어·오류 메시지는 한 글자도 줄지 않습니다.',
+    card9_h: '신수 소환',
+    card9_p: '메뉴 바 선택 스위치 — Claude는 불사조, Codex는 용 — 로컬 토큰 소모 속도가 빠를수록 더 빨리 달려서, 숫자를 보지 않아도 페이스를 직감할 수 있어요.',
+    card10_h: '한도에 닿기 전에 알림',
+    card10_p: '임계값에 가까워지거나 소진되거나 방금 회복됐을 때 시스템 알림 — 문장 중간에 끊기지 않고 스스로 정한 타이밍에 마무리할 수 있어요.',
     resume_label: 'NEW',
     resume_h2: '이제 CLI도 이어서',
     resume_lead: '웹과 데스크톱 앱은 닫았다 열어도 대화 기록이 그대로 남아요. CLI만 닫으면 끝이었죠. 그 기능을 CLI에도. 새 세션을 열면 지난 작업을 자동으로 불러와 다시 설명할 필요가 없어요. 이제 매일 로컬 로그를 헬스 체크해서 토큰 낭비를 발견하면 인계 메시지에 한 줄 알림을 붙여요. "보여줘"라고 하면 AI가 내용과 개선 방법을 설명해 줘요. 로컬 기록만 읽고 서버에 연결하지 않아요.',
@@ -824,7 +869,7 @@ const T = {
     screen_h2: '마음에 드는 패널을 골라보세요.',
     screen_sub: '10가지 내장 테마. 팝오버 툴바에서 언제든 전환 가능.',
     report_h: '당신의 AI 사용량을, 공유 가능한 한 페이지로.',
-    report_p: '토큰 지출, 비용, 상위 프로젝트, 모델 분포가 포함된 HTML 보고서를 생성. 매니저에게 전송하거나 고객 청구서 첨부로 활용. 프로젝트 이름은 기본 숨김.',
+    report_p: '토큰 지출, 비용, 상위 프로젝트, 모델 분포가 포함된 HTML 보고서를 생성 — GitHub 스타일 기여 히트맵과 "Wrapped" 카드가 담긴 연말 결산 페이지도 함께. 매니저에게 전송하거나 고객 청구서 첨부로 활용. 프로젝트 이름은 기본 숨김.',
     footer_tag_pre: '제작:',
     footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
     footer_releases: 'Releases',
