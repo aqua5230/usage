@@ -99,8 +99,11 @@ def _run(args: list[str]) -> dict[str, Any]:
     return parsed
 
 
-def list_state() -> dict[str, Any]:
-    return _run(["list-state"])
+def list_state(lang: str | None = None) -> dict[str, Any]:
+    args = ["list-state"]
+    if lang:
+        args.append(lang)
+    return _run(args)
 
 
 def install_role(role_id: str) -> dict[str, Any]:

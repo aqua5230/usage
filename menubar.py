@@ -1438,7 +1438,7 @@ class AppDelegate(NSObject):
             active_panel = getattr(self, "active_panel", None)
             if active_panel is not None and active_panel.id == "talent_market":
                 try:
-                    state.talent = talent_market_bridge.list_state()
+                    state.talent = talent_market_bridge.list_state(self.language)
                 except Exception:
                     if os.environ.get("USAGE_DEBUG") == "1":
                         logger.warning("talent market state load failed", exc_info=True)
