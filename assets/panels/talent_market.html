@@ -225,12 +225,18 @@
       }
     }
 
+    .tm-detail-masthead {
+      flex: none;
+      padding: 10px 14px 14px;
+      background: linear-gradient(115deg, color-mix(in srgb, var(--pack-accent-soft, var(--accent-soft)) 90%, transparent), transparent 62%);
+      border-bottom: 1px solid var(--hairline);
+    }
+
     .tm-back-row {
       flex: none;
       display: flex;
       align-items: center;
       gap: 8px;
-      padding: 10px 12px 0;
     }
 
     .tm-back {
@@ -251,9 +257,17 @@
     }
 
     .tm-pack-name {
-      font-size: 13px;
+      flex: none;
+      margin: 10px 0 0;
+      font-family: "Iowan Old Style", "Palatino", "Times New Roman", serif;
+      font-size: 23px;
       font-weight: 700;
+      letter-spacing: -0.01em;
       color: var(--pack-accent, var(--accent));
+    }
+
+    .tm-pack-name:empty {
+      display: none;
     }
 
     .tm-card {
@@ -339,13 +353,13 @@
     .tm-tag {
       display: inline-flex;
       align-items: center;
-      min-height: 16px;
-      padding: 2px 6px;
+      min-height: 18px;
+      padding: 2px 7px;
       border-radius: 4px;
       border: 1px solid var(--panel-border);
       background: rgba(255, 255, 255, 0.05);
       color: var(--muted);
-      font-size: 10px;
+      font-size: 11px;
       font-weight: 600;
       line-height: 1;
       white-space: nowrap;
@@ -353,7 +367,7 @@
 
     .tm-count {
       flex: none;
-      font-size: 10.5px;
+      font-size: 11px;
       font-weight: 700;
       color: var(--pack-accent, var(--accent));
       padding: 3px 8px;
@@ -369,90 +383,140 @@
       font-size: 14px;
     }
 
-    .tm-role {
+    #tm-detail-layer .tm-role {
       width: 100%;
-      padding: 12px 2px;
+      padding: 16px 0;
       border-bottom: 1px solid var(--hairline);
+      font-family: "Iowan Old Style", "Palatino", "Times New Roman", serif;
     }
 
-    .tm-role:last-child {
+    #tm-detail-layer .tm-role:last-child {
       border-bottom-color: transparent;
+      padding-bottom: 18px;
     }
 
-    .tm-role-head {
+    #tm-detail-layer .tm-role-head {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+
+    #tm-detail-layer .tm-role-icon {
+      flex: none;
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: var(--pack-accent, var(--accent));
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--pack-accent, var(--accent)) 34%, var(--panel-border));
+      background: color-mix(in srgb, var(--pack-accent-soft, var(--accent-soft)) 52%, transparent);
+      margin-top: 1px;
+    }
+
+    #tm-detail-layer .tm-role-icon svg {
+      width: 17px;
+      height: 17px;
+      stroke: currentColor;
+      fill: none;
+      stroke-width: 1.8;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    #tm-detail-layer .tm-role-main {
+      min-width: 0;
       display: flex;
-      align-items: center;
+      align-items: baseline;
+      justify-content: space-between;
       gap: 10px;
     }
 
-    .tm-role-icon {
-      flex: none;
-      width: 32px;
-      height: 32px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--pack-accent, var(--accent));
-      border-radius: 8px;
-      background: var(--pack-accent-soft, var(--accent-soft));
-      box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pack-accent, var(--accent)) 22%, transparent);
-    }
-
-    .tm-role-icon svg {
-      width: 16px;
-      height: 16px;
-    }
-
-    .tm-role-main {
-      flex: 1;
+    #tm-detail-layer .tm-role-name {
       min-width: 0;
-    }
-
-    .tm-role-name {
-      font-size: 12.5px;
+      font-size: 17px;
       font-weight: 700;
+      letter-spacing: -0.015em;
     }
 
-    .tm-role-persona {
-      font-size: 11px;
-      color: var(--pack-accent, var(--accent));
-    }
-
-    .tm-role-desc {
-      margin: 8px 0 0;
+    #tm-detail-layer .tm-role-persona {
+      flex: none;
+      font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
       font-size: 11.5px;
-      line-height: 1.45;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--pack-accent, var(--accent));
+      white-space: nowrap;
+    }
+
+    #tm-detail-layer .tm-role-desc {
+      margin: 7px 0 0 46px;
+      font-size: 13.5px;
+      line-height: 1.55;
+      color: var(--text);
+    }
+
+    #tm-detail-layer .tm-role-folder {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      width: 100%;
+      margin-top: 12px;
+      margin-left: 46px;
+      padding-left: 1px;
+      font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
+      font-size: 12px;
+      line-height: 1.5;
       color: var(--muted);
     }
 
-    .tm-role-folder {
-      margin-top: 6px;
-      font-size: 10.5px;
-      color: var(--muted);
+    #tm-detail-layer .tm-role-folder-label {
+      flex: none;
+    }
+
+    #tm-detail-layer .tm-role-folder-value {
+      min-width: 0;
+      color: var(--text);
+      font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
     }
 
-    .tm-role-actions {
-      margin-top: 10px;
+    #tm-detail-layer .tm-role-actions {
+      margin-top: 14px;
+      margin-left: 46px;
       display: flex;
       flex-wrap: wrap;
-      gap: 6px;
+      gap: 8px;
       align-items: center;
+      font-family: "SF Pro Text", -apple-system, BlinkMacSystemFont, sans-serif;
     }
 
-    .tm-btn {
-      border: 1px solid var(--panel-border);
+    #tm-detail-layer .tm-role-tasks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-top: 11px;
+      margin-left: 46px;
+      padding-top: 0;
+      border-top: 0;
+    }
+
+    #tm-detail-layer .tm-btn {
+      border: 1px solid color-mix(in srgb, var(--panel-border) 76%, transparent);
       background: transparent;
       color: var(--text);
       font: inherit;
-      font-size: 11.5px;
-      font-weight: 600;
-      min-height: 26px;
-      padding: 0 12px;
+      font-size: 12px;
+      font-weight: 700;
+      min-height: 34px;
+      padding: 0 14px;
       border-radius: 999px;
       cursor: pointer;
+      white-space: nowrap;
     }
 
     .tm-btn:active {
@@ -464,26 +528,28 @@
       cursor: default;
     }
 
-    .tm-btn-primary {
-      border-color: var(--accent);
-      background: var(--accent);
-      color: #1a1206;
+    #tm-detail-layer .tm-btn-primary {
+      background: linear-gradient(180deg, color-mix(in srgb, white 18%, var(--pack-accent, var(--accent))) 0%, var(--pack-accent, var(--accent)) 100%);
+      color: #241809;
+      border-color: color-mix(in srgb, var(--pack-accent, var(--accent)) 82%, #6a4f1f);
     }
 
-    .tm-btn-ghost {
-      border-color: var(--panel-border);
+    #tm-detail-layer .tm-btn-ghost {
+      border-color: color-mix(in srgb, var(--panel-border) 76%, transparent);
       background: transparent;
     }
 
-    .tm-chip {
-      border: 1px solid var(--panel-border);
-      background: var(--bg);
+    #tm-detail-layer .tm-chip {
+      border: 0;
+      background: transparent;
       color: var(--muted);
       font: inherit;
-      font-size: 10.5px;
-      min-height: 22px;
-      padding: 0 9px;
-      border-radius: 999px;
+      font-size: 11.5px;
+      line-height: 1.2;
+      min-height: 0;
+      padding: 5px 0;
+      border-radius: 0;
+      border-bottom: 1px solid color-mix(in srgb, var(--pack-accent, var(--accent)) 24%, transparent);
       cursor: pointer;
     }
 
@@ -558,9 +624,11 @@
           <div class="tm-status" id="tm-list-status"></div>
         </section>
         <section class="tm-layer" id="tm-detail-layer" hidden>
-          <div class="tm-back-row">
-            <button class="tm-back" type="button" data-action="talent-back" data-i18n="talent_back">Back</button>
-            <span class="tm-pack-name" id="tm-detail-pack-name"></span>
+          <div class="tm-detail-masthead">
+            <div class="tm-back-row">
+              <button class="tm-back" type="button" data-action="talent-back" data-i18n="talent_back">Back</button>
+            </div>
+            <div class="tm-pack-name" id="tm-detail-pack-name"></div>
           </div>
           <div class="tm-scroll" id="tm-role-list"></div>
           <div class="tm-status" id="tm-detail-status"></div>
@@ -808,13 +876,23 @@
         actions.appendChild(folderBtn);
 
         if (role.selectedFolderLabel) {
-          const folderLabel = document.createElement("span");
+          const folderLabel = document.createElement("div");
           folderLabel.className = "tm-role-folder";
-          folderLabel.textContent = role.selectedFolderLabel;
-          actions.appendChild(folderLabel);
+          const folderPrefix = document.createElement("span");
+          folderPrefix.className = "tm-role-folder-label";
+          folderPrefix.textContent = "資料夾：";
+          const folderValue = document.createElement("strong");
+          folderValue.className = "tm-role-folder-value";
+          folderValue.textContent = role.selectedFolderLabel;
+          folderLabel.appendChild(folderPrefix);
+          folderLabel.appendChild(folderValue);
+          card.appendChild(folderLabel);
         }
 
         const quickTasks = Array.isArray(role.quickTasks) ? role.quickTasks : [];
+        const tasks = document.createElement("div");
+        tasks.className = "tm-role-tasks";
+        let hasQuickTasks = false;
         quickTasks.slice(0, 4).forEach((task) => {
           const label = typeof task === "string" ? task : task.label;
           const prompt = typeof task === "string" ? task : task.prompt;
@@ -826,10 +904,16 @@
           chip.dataset.roleId = role.id || "";
           chip.dataset.taskPrompt = prompt || label;
           chip.textContent = label;
-          actions.appendChild(chip);
+          tasks.appendChild(chip);
+          hasQuickTasks = true;
         });
 
+        if (hasQuickTasks) {
+          card.appendChild(tasks);
+        }
+
         card.appendChild(actions);
+
         roleListEl.appendChild(card);
       });
     }
