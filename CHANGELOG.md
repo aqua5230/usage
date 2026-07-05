@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.2] - 2026-07-05
+
+### Fixed
+- **Session-resume handoff could surface skill-expansion noise and duplicate the same request**: `usage_session_resume.py`'s `_parse_session` collected every `type: "user"` transcript entry as a candidate "recently working on" request without checking Claude Code's `isMeta` flag, so skill/command expansions injected into the transcript (e.g. a full `SKILL.md` body) could show up as if they were a real request. Dedup also only compared against the immediately preceding request, so the same request separated by one of these injected entries counted twice, wasting handoff slots that are capped at 3. `isMeta: true` entries are now skipped, and dedup checks against every request seen so far, not just the last one. (Reported in #46 by @apple8409.)
+
 ## [0.24.1] - 2026-07-05
 
 ### Fixed
