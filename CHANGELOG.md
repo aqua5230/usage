@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.3] - 2026-07-05
+
+### Fixed
+- **AI Talent Market panel always showed pack/role names in Chinese**: `talent_market_bridge.list_state()` called the bundled `instate-cli` without a language argument, so it always fell back to its default locale even though the CLI now supports five-language translations (`zh-TW`/`zh-CN`/`en`/`ja`/`ko`) for pack and role names. usage's already-detected UI language is now passed through, so the panel matches the rest of the app instead of being locked to Chinese.
+
 ## [0.24.2] - 2026-07-05
 
 ### Fixed

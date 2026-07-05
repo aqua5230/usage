@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.24.3] - 2026-07-05
+
+### 修正
+- **AI 人才市場面板的角色/團隊名稱永遠顯示中文**：`talent_market_bridge.list_state()` 呼叫內建的 `instate-cli` 時沒帶語言參數，即使 CLI 現在已支援五種語言（`zh-TW`/`zh-CN`/`en`/`ja`/`ko`）的團隊與角色名稱翻譯，還是永遠退回預設語系。現在會把 usage 已經偵測到的介面語言傳進去，面板會跟著整個 App 的語言走，不再固定顯示中文。
+
 ## [0.24.2] - 2026-07-05
 
 ### 修正
