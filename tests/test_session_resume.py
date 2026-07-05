@@ -710,6 +710,48 @@ def test_build_prompt_surfaces_recent_requests_newest_first(
     )
 
 
+def test_build_prompt_skips_meta_entries_and_dedupes_non_adjacent_repeats(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    """isMeta entries (skill/command expansions) are noise, not requests; repeats separated
+    by such noise are still the same request and shouldn't eat a second handoff slot."""
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    project = _project_dir(tmp_path)
+    when = datetime.now().astimezone() - timedelta(hours=1)
+    lines = [
+        {
+            "type": "user",
+            "timestamp": when.isoformat(),
+            "message": {"content": "evaluate repo X"},
+        },
+        {
+            "type": "user",
+            "isMeta": True,
+            "timestamp": when.isoformat(),
+            "message": {"content": "Base directory for this skill: /skills/foo ..."},
+        },
+        {
+            "type": "user",
+            "timestamp": when.isoformat(),
+            "message": {"content": "evaluate repo X"},
+        },
+        {"type": "assistant", "timestamp": when.isoformat(), "message": {"content": []}},
+    ]
+    (project / "prev.jsonl").write_text(
+        "\n".join(json.dumps(line) for line in lines) + "\n", encoding="utf-8"
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "Base directory for this skill" not in prompt
+    assert prompt.count("evaluate repo X") == 1
+
+
 def test_build_prompt_skips_diagnosis_reminder_when_waste_below_threshold(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

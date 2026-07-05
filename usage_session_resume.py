@@ -428,6 +428,7 @@ def _parse_session(path: Path) -> tuple[datetime, str, list[str], list[str], lis
     of files touched by Edit / Write / NotebookEdit, deduplicated and in first-seen order.
     """
     requests: list[str] = []
+    seen_requests: set[str] = set()
     commits: list[str] = []
     todos: list[str] = []
     edited_files: list[str] = []
@@ -450,16 +451,21 @@ def _parse_session(path: Path) -> tuple[datetime, str, list[str], list[str], lis
                 if timestamp is not None and (last_ts is None or timestamp > last_ts):
                     last_ts = timestamp
 
+                if data.get("isMeta") is True:
+                    continue
+
                 entry_type = data.get("type")
                 if entry_type == "last-prompt":
                     text = _clean_request(data.get("lastPrompt"))
-                    if text and (not requests or requests[-1] != text):
+                    if text and text not in seen_requests:
                         requests.append(text)
+                        seen_requests.add(text)
                     continue
                 if entry_type == "user":
                     text = _user_request_text(data.get("message"))
-                    if text and (not requests or requests[-1] != text):
+                    if text and text not in seen_requests:
                         requests.append(text)
+                        seen_requests.add(text)
                     continue
                 if entry_type != "assistant":
                     continue
