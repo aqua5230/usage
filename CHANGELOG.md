@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.4] - 2026-07-05
+
+### Changed
+- **AI Talent Market catalog expanded**: the bundled `instate-cli` was rebuilt from upstream to add 11 new role packs (33 new roles) — customer support, virtual assistant, ecommerce operator, career coach, data analyst consultant, sales, game studio, HR recruiting, project management, paid media, and product consulting — plus a guardrail line each on the contract-review, tax-filing-prep, and design-proposal-quote roles covering unauthorized-practice and IP-assignment risk. No usage code changed; this is a vendored-content refresh.
+
 ## [0.24.3] - 2026-07-05
 
 ### Fixed
