@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.6] - 2026-07-07
+
+### Changed
+- **AI Talent Market code-reviewer role strengthened**: the bundled `instate-cli` was rebuilt from upstream — the code-reviewer role now carries a security/boundary-condition checklist and flags over-engineering, folded into the existing persona rather than added as overlapping new roles. No usage code changed; this is a vendored-content refresh.
+
 ## [0.24.5] - 2026-07-06
 
 ### Changed
