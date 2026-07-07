@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.8] - 2026-07-07
+
+### Changed
+- **AI Talent Market catalog expanded**: the bundled `instate-cli` was rebuilt from upstream to add 3 new roles — Technical Writer and UX Researcher (extending the solo-software-studio and solo-product-consultant packs to 4 roles each) and AI Visual Production (extending the content-creator pack to 4 roles) — plus a rename of every role's persona name to a real singer's given name across all five locales for easier recall. No usage code changed; this is a vendored-content refresh.
+
 ## [0.24.7] - 2026-07-07
 
 ### Fixed
