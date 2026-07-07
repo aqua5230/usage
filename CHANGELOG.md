@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.9] - 2026-07-08
+
+### Fixed
+- **Analysis report occasionally failed with `ZipImportError: bad local file header`**: `analyzer/reporter.py` imported three single-file modules (`persona_loader.py`, `subscription.py`, `ai_updates_loader.py`) that lived outside the package directories py2app already unzips, so they still loaded through `python313.zip` — the same failure mode the earlier adapters/analyzer/ui packaging fix was meant to close. Moved all three under `analyzer/` so the entire report pipeline is now free of zipimport.
+
 ## [0.24.8] - 2026-07-07
 
 ### Changed

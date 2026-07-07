@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.24.9] - 2026-07-08
+
+### 修正
+- **分析報告偶爾產生失敗，跳出 `ZipImportError: bad local file header`**：`analyzer/reporter.py` 依賴的三個單一檔案模組（`persona_loader.py`、`subscription.py`、`ai_updates_loader.py`）躺在 py2app 既有解壓套件目錄之外，仍會被打包進 `python313.zip`、走 zipimport 載入——跟先前 adapters/analyzer/ui 打包修復要堵住的是同一種失敗模式。已把三個模組搬進 `analyzer/` 目錄，報告流程現在完全不再經過 zipimport。
+
 ## [0.24.8] - 2026-07-07
 
 ### 變更
