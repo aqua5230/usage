@@ -180,6 +180,8 @@ def _normalize_payload(payload: Any) -> list[dict[str, Any]] | None:
                 "versions": versions,
             }
         )
+    if not tools:
+        return None
     return tools
 
 

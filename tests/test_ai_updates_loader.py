@@ -145,6 +145,43 @@ def test_load_ai_updates_prefers_fresh_cache(monkeypatch: pytest.MonkeyPatch) ->
     assert result == _payload()["tools"]
 
 
+def test_load_ai_updates_refetches_when_cache_is_legacy_schema(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    legacy_payload = {
+        "tools": [
+            {
+                "id": "codex",
+                "name": "Codex",
+                "version": "0.141.0",
+                "period": "2026-06-18",
+                "items": [
+                    {
+                        "title": {"en": "Remote execution"},
+                        "body": {"en": "Remote execution got better."},
+                        "original": "Remote execution got better.",
+                    }
+                ],
+            }
+        ]
+    }
+    ai_updates_loader.CACHE_PATH.write_text(
+        json.dumps(legacy_payload),
+        encoding="utf-8",
+    )
+
+    payload = _payload()
+
+    def fake_urlopen(*_args: object, **_kwargs: object) -> _FakeResponse:
+        return _FakeResponse(json.dumps(payload).encode("utf-8"))
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+
+    result = ai_updates_loader.load_ai_updates()
+
+    assert result == payload["tools"]
+
+
 def test_load_ai_updates_fetches_and_caches_when_cache_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
