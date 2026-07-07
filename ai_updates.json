@@ -1,435 +1,737 @@
 {
-  "generated_at": "2026-07-01",
+  "generated_at": "2026-07-08",
   "tools": [
     {
       "id": "claude_code",
       "name": "Claude Code",
-      "version": "2.1.197",
-      "period": "2026-06-25 ~ 06-30",
-      "items": [
+      "versions": [
         {
-          "title": {
-            "zh-TW": "預設模型升級成 Sonnet 5，記憶容量暴增到一百萬字，價格還打折",
-            "zh-CN": "默认模型升级成 Sonnet 5，记忆容量暴涨到一百万字，价格还打折",
-            "en": "Default model upgraded to Sonnet 5 — memory jumps to a million words, and it's cheaper too",
-            "ja": "デフォルトモデルが Sonnet 5 にアップグレード、記憶容量は 100 万語規模に、価格も割引に",
-            "ko": "기본 모델이 Sonnet 5 로 업그레이드, 기억 용량이 백만 단어 규모로 늘고 가격도 할인"
-          },
-          "body": {
-            "zh-TW": "你打開 Claude Code 現在預設用的就是 Sonnet 5，原生支援一百萬 token（token，AI 讀寫文字時切出來的最小單位，大約等於零點幾個字）的記憶視窗（context window，AI 一次能記住多少對話內容的容量），等於同一個對話能塞進比以前多好幾倍的程式碼或文件還不會忘記前面講過什麼。即日起到 8 月 31 日，每百萬 token 只要 2 到 10 美元的促銷價，比平常便宜。這就像你原本租了一個小倉庫放資料，現在免費升級成大十倍的倉庫，租金還打折。",
-            "zh-CN": "你打开 Claude Code 现在默认用的就是 Sonnet 5，原生支持一百万 token（token，AI 读写文字时切出来的最小单位，大约等于零点几个字）的记忆窗口（context window，AI 一次能记住多少对话内容的容量），等于同一个对话能塞进比以前多好几倍的代码或文档还不会忘记前面讲过什么。即日起到 8 月 31 日，每百万 token 只要 2 到 10 美元的促销价，比平常便宜。这就像你原本租了一个小仓库放资料，现在免费升级成大十倍的仓库，租金还打折。",
-            "en": "Claude Code now defaults to Sonnet 5, with a native 1-million-token context window (context window, how much of the conversation the AI can remember at once; a token is the small chunk of text the AI reads and writes in) — meaning one conversation can now hold several times more code or documents without the AI forgetting what came before. From now through August 31, pricing is a promotional $2-$10 per million tokens, cheaper than usual. It's like your storage unit was upgraded to ten times the size for free, with a discounted rent on top.",
-            "ja": "Claude Code は今からデフォルトで Sonnet 5 を使うようになり、生まれつき 100 万トークン（token、AI が文章を読み書きするときの最小単位、だいたい数文字分）分のコンテキストウィンドウ（context window、AI が一度に覚えていられる会話量）を持っています。つまり同じ会話に、以前より何倍も多いコードや文書を入れても前の内容を忘れません。今から 8 月 31 日まで、100 万トークンあたり 2〜10 ドルのキャンペーン価格で、通常より安くなっています。これはまるで借りていた小さな倉庫が無料で 10 倍の大きさに引っ越しでき、しかも家賃まで割引になったようなものです。",
-            "ko": "이제 Claude Code 는 기본으로 Sonnet 5 를 사용하며, 태생적으로 100 만 토큰（token，AI 가 글을 읽고 쓸 때 나누는 가장 작은 단위, 대략 글자 몇 개 분량）의 컨텍스트 윈도우（context window，AI 가 한 번에 기억할 수 있는 대화 분량）를 지원합니다. 즉 같은 대화에 예전보다 훨씬 많은 코드나 문서를 넣어도 앞서 한 이야기를 잊지 않습니다. 지금부터 8 월 31 일까지 100 만 토큰당 2~10 달러의 프로모션 가격으로, 평소보다 저렴합니다. 마치 빌리던 작은 창고가 공짜로 10 배 큰 창고로 업그레이드되고 임대료까지 할인받은 것과 같습니다."
-          },
-          "original": "Introducing Claude Sonnet 5: now the default model in Claude Code, with a native 1M-token context window and promotional pricing of $2/$10 per Mtok through August 31."
+          "version": "2.1.202",
+          "period": "2026-07-01 ~ 07-08",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "搜尋歷史指令按 Ctrl+R 不會再突然閃退了",
+                "zh-CN": "搜索历史命令按 Ctrl+R 不会再突然闪退了",
+                "en": "Inline history search (Ctrl+R) no longer crashes unexpectedly",
+                "ja": "コマンド履歴検索で Ctrl+R を押しても、突然アプリが強制終了しなくなった",
+                "ko": "명령 기록 검색 시 Ctrl+R 을 눌러도 더 이상 앱이 강제 종료되지 않음"
+              },
+              "body": {
+                "zh-TW": "為了省去你手動重打一長串舊指令的力氣，系統現在修復了 Ctrl+R 歷史搜尋（Ctrl+R history search，在終端機裡按 Ctrl+R 鍵來快速搜尋你以前打過哪些指令的功能）功能。以前用這功能找舊指令時，系統偶爾會因為字串比對錯誤直接崩潰閃退，逼你整台重新啟動；現在修好了，隨你怎麼搜都能穩定運作。這就像圖書館的舊書檢索電腦以前打字打太快會當機，現在修好系統後，隨便你怎麼翻查卡片檢索都不會當機。",
+                "zh-CN": "为了省去你手动重打一长串旧命令的力气，系统现在修复了 Ctrl+R 历史搜索（Ctrl+R history search，在终端里按 Ctrl+R 键来快速搜索你以前打过哪些命令的功能）功能。以前用这功能找旧命令时，系统偶尔会因为字符串比对错误直接崩溃闪退，逼你整台重新启动；现在修好了，随你怎么搜都能稳定运行。这就像图书馆的旧书检索电脑以前打字打太快会死机，现在修好系统后，随便你怎么翻查卡片检索都不会死机。",
+                "en": "To save you the effort of manually retyping long command strings from scratch, the system has patched the Ctrl+R history search (Ctrl+R history search, a feature that lets you press Ctrl+R to quickly search through commands you typed earlier) tool. Previously, searching for old commands this way could trigger a string-matching bug that crashed the terminal, forcing you to restart the session; now it is resolved so searches run stably. It's like a library catalog search terminal that used to freeze if you typed too fast; now the database search is patched and never locks up.",
+                "ja": "過去に打ち込んだ長いコマンドを打ち直す手間を省くため、Ctrl+R 履歴検索（Ctrl+R history search、以前に打ち込んだコマンドを素早く検索する機能）のバグが修正されました。以前は検索時に文字の一致判定エラーで突然クラッシュし、再起動が必要になることがありましたが、今はどのように履歴を検索しても安定して動きます。これは図書館の蔵書検索パソコンで、文字を打つのが早すぎるとフリーズしていたのが、検索エンジンが改善されてどれだけ探しても固まらなくなったようなものです。",
+                "ko": "예전에 입력한 긴 명령어를 처음부터 다시 입력하는 수고를 덜어드리고자, Ctrl+R 기록 검색（Ctrl+R history search, 이전에 입력했던 명령어를 단축키로 빠르게 찾아내는 기능）의 오류를 수정했습니다. 예전에는 이 기능으로 검색할 때 글자 매칭 오류가 발생해 앱이 꺼지곤 했으나, 이제는 언제든 안정적으로 작동합니다. 마치 도서관의 도서 검색 컴퓨터가 타이핑을 빨리 하면 멈추던 버그를 고쳐서, 이제 아무리 검색해도 먹통이 되지 않는 것과 같습니다."
+              },
+              "original": "Fixed crashes during inline history searches (Ctrl+R)."
+            },
+            {
+              "title": {
+                "zh-TW": "AI 碰到問題會乖乖等你回答，不會自作主張繼續做下去",
+                "zh-CN": "AI 碰到问题会乖乖等你回答，不会自作自受继续做下去",
+                "en": "AI now patiently waits for your answers instead of auto-continuing on its own",
+                "ja": "AI が判断に迷ったとき勝手に進まず、あなたが答えるまでじっと待つように",
+                "ko": "AI 가 애매한 상황일 때 멋대로 진행하지 않고 답해줄 때까지 기다림"
+              },
+              "body": {
+                "zh-TW": "為了避免 AI 在你離開座位時自作主張做錯事，系統現在把預設權限規則改為「手動確認（Manual）」模式。以前 AI 遇到需要你同意的 AskUserQuestion（AskUserQuestion，AI 遇到疑惑停下來彈出對話框問你該怎麼辦的機制）時，如果你放著一段時間沒理它，它會自作主張自動繼續往下執行，可能不小心做錯；現在它會老老實實等到你回來點頭，如果你需要人不在時也能自動執行，可以在設定裡自己開啟閒置逾時（idle timeout，放著不理時會自動按預設流程繼續執行的計時器）。這就像以前的工程助理問你「這段程式要刪嗎？」，你沒回答他就自己動手刪了；現在他會站著等到你給指示，除非你交代「十分鐘沒回就照舊」。",
+                "zh-CN": "为了避免 AI 在你离开座位时自作主张做错事，系统现在把默认权限规则改为“手动确认（Manual）”模式。以前 AI 遇到需要你同意的 AskUserQuestion（AskUserQuestion，AI 遇到疑惑停下来弹出对话框问你该怎么办的机制）时，如果你放着一段时间没理它，它会自作主张自动继续往下执行，可能不小心做错；现在它会老老实实等到你回来点头，如果你需要人不在时也能自动运行，可以在设置里自己开启闲置超时（idle timeout，放着不理时会自动按默认流程继续运行的计时器）。这就像以前的工程助理问你“这段代码要删吗？”，你没回答他就自己动手删了；现在他会站着等到你给指示，除非你交代“分钟没回就照旧”。",
+                "en": "To prevent the AI from taking risky actions behind your back when you step away from your desk, the default permission mode has been changed to 'Manual.' Previously, when the AI asked a question via AskUserQuestion (AskUserQuestion, the dialog prompt where the AI pauses to ask for your feedback before acting), if you left the terminal unattended, it would auto-continue by itself and potentially break things. Now it waits indefinitely until a human responds, unless you manually configure an idle timeout (idle timeout, a timer that lets the AI take action after you've been away for a set time) in `/config`. It's like a junior builder who used to knock down a wall if you didn't answer his question; now he stands with his hammer waiting for your nod, unless you tell him 'if I'm away for ten minutes, proceed.'",
+                "ja": "席を外している間に AI が勝手な判断をしてミスをするのを防ぐため、デフォルトの権限設定が「マニュアル（Manual）」モードに切り替わりました。以前は、AI が判断を求める AskUserQuestion（AskUserQuestion、AI が疑問を感じたときに進行を止めてあなたに尋ねる画面）を放置すると、勝手に「続行」と判断して進めてしまう危険がありましたが、今はあなたが答えるまで待機します。放置時に自動処理させたい場合は、設定でアイドルタイムアウト（idle timeout、返事がないまま一定時間経つと自動処理するタイマー）を有効化できます。これは、アシスタントが「このファイルを消していいですか？」と聞いてきた際、返事をしなかったら勝手に消されていたのが、指示があるまで手を止めて待つようになったようなものです（「10分待って返事がなければ消す」という指示もできます）。",
+                "ko": "자리를 비웠을 때 AI 가 멋대로 오판해 사고를 치는 일을 방지하고자, 기본 권한 설정을 ‘수동 확인（Manual）’ 모드로 바꿨습니다. 예전에는 AI 가 판단을 구하는 AskUserQuestion（AskUserQuestion, 진행 중 판단이 서지 않을 때 멈춰 서서 사용자에게 의견을 묻는 창） 상황에서 답변을 안 하면 자동으로 계속 진행해 실수를 범하곤 했으나, 이제는 사용자가 올 때까지 대기합니다. 자리를 비웠을 때도 진행되길 원한다면 설정에서 유휴 시간 초과（idle timeout, 일정 시간 조작이 없을 때 자동으로 처리를 넘기는 타이머）를 켜면 됩니다. 이는 마치 비서에게 “이 서류를 파기할까요?”라는 질문을 받고 답을 안 했더니 멋대로 파기해 버리던 비서가, 이제는 답을 줄 때까지 서류를 들고 서 있는 것과 같습니다."
+              },
+              "original": "Dialogs no longer auto-continue by default and will wait for a human; users can opt into an idle timeout via /config."
+            },
+            {
+              "title": {
+                "zh-TW": "派小助手做事時，現在可以控制小助手的數量上限、省下大筆額度",
+                "zh-CN": "派小助手做事时，现在可以控制小助手的数量上限、省下大笔额度",
+                "en": "Control how many helper agents are spawned for complex tasks, saving your quota",
+                "ja": "子エージェントを呼ぶ上限数を指定可能に、無駄なクォータ消費を防止",
+                "ko": "서브에이전트가 자동 분업할 때 투입할 최대 인원수를 조절해 요금 폭탄을 방지"
+              },
+              "body": {
+                "zh-TW": "為了控制你的 API 帳單花費，系統在 `/config` 裡新增了設定項目，讓你控制 workflowSizeGuideline（workflowSizeGuideline，用來限制 AI 遇到大型工作時自動分派出去的小助手數量的指導方針）。你可以自由選擇小、中、大三種規模，防止 AI 遇到複雜任務時，自作主張分工給幾十個子代理人同時運作，導致你的用量額度在一瞬間被燒光。這就像你把裝潢外包給工頭，以前工頭會默默叫來三十個工人一天做完然後找你收大筆工錢；現在你可以限制他「最多只能帶五個徒弟來」，讓預算在控制範圍內。",
+                "zh-CN": "为了控制你的 API 账单花费，系统在 `/config` 里新增了设置项目，让你控制 workflowSizeGuideline（workflowSizeGuideline，用来限制 AI 遇到大型工作时自动分派出去的小助手数量的指导方针）。你可以自由选择小、中、大三种规模，防止 AI 遇到复杂任务时，自作主张分工给几十个子智能体同时运行，导致你的用量额度在一瞬间被烧光。这就像你把装潢外包给工头，以前工头会默默叫来三十个工人一天做完然后找你收大笔工钱；现在你可以限制他“最多只能带五个徒弟来”，让预算在控制范围内。",
+                "en": "To keep your API token bills from spinning out of control, a new configuration allows you to guide the workflowSizeGuideline (workflowSizeGuideline, a guideline setting that controls how many sub-helper agents the AI is allowed to summon when breaking down a massive task) in `/config`. By selecting small, medium, or large sizes, you prevent the AI from spawning dozens of subagents to tackle a complex task, which used to burn through your quota in seconds. It's like hiring a contractor who used to show up with thirty assistants and bill you for all of them; now you can set a rule saying 'bring at most five helpers,' keeping your budget fully under control.",
+                "ja": "API 利用枠の料金が予想外に膨らむのを防ぐため、設定で新たに workflowSizeGuideline（workflowSizeGuideline、複雑な大仕事に対して AI が自動的に作成するアシスタントの数を制限する目安設定）を「小・中・大」から選べるようになりました。これにより、AI が難しい課題に対して何十人もの子エージェントを一斉に呼び出し、あなたのクォータ利用枠を一瞬で使い果たすのを防止できます。これは、リフォームを依頼した親方が勝手に 30 人の作業員を連れてきて高額請求してきたのを、「一度に呼ぶ職人は最大 5 人までにしてくれ」と予算に合わせて指定できるようになったようなものです。",
+                "ko": "대화 비용이 급격하게 청구되는 것을 막기 위해, 설정에서 workflowSizeGuideline（workflowSizeGuideline, 거대한 과제에 직면한 AI 가 업무 분담을 위해 임의로 동원하는 서브에이전트 수의 가이드라인）을 소·중·대 규모로 지정할 수 있는 기능을 추가했습니다. AI 가 까다로운 작업을 분업하여 처리할 때 수십 명의 자식 에이전트를 소환해 예산을 소진하는 사태를 미리 막아줍니다. 마치 공사를 맡은 인부 반장이 제멋대로 30 명의 일꾼을 데려와 일당 청구서를 내밀던 상황에서, “최대 5 명까지만 데려오라”고 통제해 비용 부담을 낮춘 것과 같습니다."
+              },
+              "original": "Added a setting in /config to control the scale of dynamic workflows (small/medium/large agent counts) as an advisory guideline."
+            },
+            {
+              "title": {
+                "zh-TW": "子助手如果被呼叫次數限制擋住，現在會老實報錯，不會裝沒事回傳空資料",
+                "zh-CN": "子助手如果被呼叫次数限制挡住，现在会老实报错，不会装没事回传空数据",
+                "en": "Helper agents blocked by rate limits now report errors instead of silently returning empty data",
+                "ja": "子エージェントが呼び出し制限で止まったとき、空のデータを返さず正直にエラーを伝えるように",
+                "ko": "서브에이전트가 호출 제한에 막히면 빈 결과를 내는 대신 에러를 내어 문제 상황을 명시함"
+              },
+              "body": {
+                "zh-TW": "為了讓主要 AI 不被錯誤的空資料誤導，系統現在修復了子代理人被擋時的回報機制。以前 subagents（subagents，主要 AI 為了分工而派出去幫忙跑分支任務的子代理人）遇到 API 頻率限制（rate limit，雲端伺服器限制你一分鐘內只能發送幾次請求的規則）時，會默默裝作沒事、回傳一個空結果，導致主要 AI 誤以為資料真的不存在而胡亂分析；現在它被限制時會清清楚楚報錯，讓主要 AI 知道是連線被擋而自動進行重新嘗試。這就像你派人去郵局領信，以前他因為郵局關門沒領到信，回來卻對你說「今天沒有信」；現在他會老實坦白「郵局關門了我進不去」，你才不會被誤導。",
+                "zh-CN": "为了让主要 AI 不被错误的空数据误导，系统现在修复了子智能体被挡时的回报机制。以前 subagents（subagents，主要 AI 为了分工而派出去帮忙跑分支任务的子智能体）遇到 API 频率限制（rate limit，云端服务器限制你一分钟内只能发送几次请求的规则）时，会默默装作没事、回传一个空结果，导致主要 AI 误以为数据真的不存在而胡乱分析；现在它被限制时会清清楚楚报错，让主要 AI 知道是连线被挡而自动进行重新尝试。这就像你派人去邮局领信，以前他因为邮局关门没领到信，回来却对你说“今天没有信”；现在他会老实坦白“邮局关门了我进不去”，你才不会被误导。",
+                "en": "To ensure the main agent doesn't get misled by false empty data, subagents (subagents, smaller assistant AIs spawned by the main agent to work on subtasks) now fail cleanly when rate-limited. Previously, if they hit a rate limit (rate limit, the speed limit rules that prevent calling an API too many times in a minute) they would return empty results instead of an error, causing the main AI to assume the target file or data was empty; now they throw a clear error so the main agent knows it was blocked and can retry. It's like sending an errand boy to get letters, and because the post office was closed, he returns and tells you 'you have no mail'; now he tells you 'the post office was closed so I couldn't get in,' saving you from being misinformed.",
+                "ja": "メイン AI が空のデータによって誤った判断を下すのを防ぐため、子エージェントがブロックされた際の報告ルールが改善されました。以前は subagents（subagents、メイン AI が特定のサブタスクを任せるために起動する子エージェント）が API 制限（rate limit、1 分間にリクエストを送れる回数の上限）にかかると、エラーを出さず空のデータを返していたため、メイン AI はデータが存在しないと勘違いしていました。今はエラーを正直に報告するため、メイン AI は再試行を実行できます。これは、用事を頼んだお使いの者が、役所が閉まっていて書類を受け取れなかったのに「書類はありませんでした」と嘘を報告していたのを、「閉まっていて入れませんでした」と正しく報告するようになったようなものです。",
+                "ko": "주 에이전트가 잘못된 빈 결과값에 속아 오판하는 일을 막기 위해, 서브에이전트가 차단당했을 때의 에러 보고 방식을 고쳤습니다. 예전에는 subagents（subagents, 메인 에이전트가 특정 작업을 처리하기 위해 소환하는 서브 AI）들이 API 호출 한도（rate limit, 1 분 동안 보낼 수 있는 요청 횟수를 제한하는 규칙）를 초과했을 때 아무 경고 없이 빈 결과를 반환해 주 에이전트를 오도했으나, 이제는 에러를 확실히 보고해 주 에이전트가 재시도하게 돕습니다. 비서에게 심부름을 보냈는데 상점 문이 닫혀 물건을 못 사 왔으면서 “원래 파는 물건이 없대요”라고 하던 비서가, 이제는 “가게가 닫혀 못 샀습니다”라고 정직하게 말하여 오해를 없앤 것과 같습니다."
+              },
+              "original": "Fixed subagents cut off by rate limits returning empty results instead of failing cleanly."
+            },
+            {
+              "title": {
+                "zh-TW": "修復丟到背景跑的代理人因為重啟而失效、或突然卡在背景罷工的 bug",
+                "zh-CN": "修复丢到后台跑的智能体因为重启而失效、或突然卡在后台罢工的 bug",
+                "en": "Background agents no longer lose authentication tokens or get stuck during service restarts",
+                "ja": "バックグラウンド作業中に接続キーが消えて AI がサボったり、停止したまま残留するバグを修正",
+                "ko": "백그라운드에서 돌아가는 에이전트가 재시작 시 인증 토큰을 잃어 멈추는 현상 해결"
+              },
+              "body": {
+                "zh-TW": "為了讓你在背後跑的長任務能順利執行完成，系統修復了背景程式重啟時的驗證錯誤。以前把任務交給背景的 daemons（daemons，在背景默默幫你做事的常駐程式）時，如果遇到連線重置，系統在重啟背景程式的過程中，會不小心把安全連線驗證的金鑰（socket auth token，用來與主程式進行安全加密連線的憑證金鑰）洗掉，導致背景任務直接失效或變成卡死在記憶體裡的幽靈程式；現在重啟時金鑰會被妥善保留，孤立的幽靈程式也會被乾淨清空。這就像你去遊樂園玩到一半，工作人員重啟排隊通道時把你的快速通關票收走了、讓你只能傻站著；現在重啟後車票依舊有效，你可以順利玩完。",
+                "zh-CN": "为了让你在背后跑的长任务能顺利运行完成，系统修复了后台程序重启时的验证错误。以前把任务交给后台的 daemons（daemons，在后台默默帮你做事的常驻程序）时，如果遇到连接重置，系统在重启后台程序的过程中，会不小心把安全连接验证的密钥（socket auth token，用来与主程序进行安全加密连接的凭证密钥）洗掉，导致后台任务直接失效或变成卡死在内存里的幽灵程序；现在重启时密钥会被妥善保留，孤立的幽灵程序也会被干净清空。这就像你去游乐园玩到一半，工作人员重启排队通道时把你的快速通关票收走了、让你只能傻站着；现在重启后票依旧有效，你可以顺利玩完。",
+                "en": "To ensure your long-running background tasks complete successfully, the system now preserves authentication credentials during daemon restarts. Previously, when tasks ran under background daemons (daemons, background server programs that run tasks quietly in the background), any connection reset caused the restart sequence to lose the secure connection key (socket auth token, the security credential used to communicate securely with the main application), leaving the agent frozen or orphaned in memory; now the token is preserved, and orphans are swept away. It's like an amusement park ride that broke down, and during the queue restart the ride operator took away your fast-pass ticket, leaving you stranded; now the ticket remains valid through restarts so you can finish the ride.",
+                "ja": "バックグラウンドで走らせている長時間タスクを確実にやり遂げるため、常駐システムの再起動時の認証エラーを修正しました。以前はバックグラウンドの daemons（daemons、裏でずっと動き続けて仕事をこなす常駐システム）でタスクを走らせている際、接続が切れて再起動すると、安全な通信用のキー（socket auth token、メインアプリと安全にやり取りするための暗号化キー）が消失し、処理が停止したりメモリ上に残留する問題がありました。今は再起動後もキーが保持され、不要な残留プロセスも片付けられます。これは、遊園地のアトラクションが一時停止した際、並び直すときにファストパスチケットを回収されてしまい、ただ立ち尽くすしかなかったのが、再開後もチケットがそのまま使えて最後まで乗れるようになったようなものです。",
+                "ko": "백그라운드에 올려둔 긴 작업이 중단 없이 끝까지 완수되도록, 상주 프로그램 재시작 시의 인증 유실 버그를 잡았습니다. 예전에는 백그라운드 daemons（daemons, 터미널을 닫아도 보이지 않는 곳에서 묵묵히 돌아가는 상주 프로그램）이 네트워크 순단 등으로 다시 켜지는 과정에서 보안 접속용 열쇠（socket auth token, 메인 앱과 안전하게 암호화 통신을 하기 위해 발급받는 인증용 토큰）를 잃어버리는 바람에 작업이 그대로 뻗거나 메모리 미아가 되곤 했으나, 이제는 열쇠가 유지되고 방치된 프로세스도 깨끗이 정리됩니다. 놀이공원 기구가 점検으로 잠시 멈췄을 때 재입장 통로에서 우선탑승권을 뺏겨 멍하니 서 있어야 했던 상황에서, 이제 탑승권이 그대로 유지되어 정상 탑승할 수 있게 된 것과 같습니다."
+              },
+              "original": "Fixed socket auth tokens being stripped during daemon restarts and resolving orphan background agents."
+            }
+          ]
         },
         {
-          "title": {
-            "zh-TW": "對話裡的檔案附件可以直接點開，不用自己去資料夾裡翻",
-            "zh-CN": "对话里的文件附件可以直接点开，不用自己去文件夹里翻",
-            "en": "File attachments in chat are now clickable — no more digging through folders yourself",
-            "ja": "チャット内のファイル添付がワンクリックで開けるように、自分でフォルダを探す必要なし",
-            "ko": "대화 속 파일 첨부를 바로 열 수 있어, 직접 폴더를 뒤질 필요 없음"
-          },
-          "body": {
-            "zh-TW": "以前 AI 在對話裡提到或附上一個檔案，你想看實體檔案在哪還得自己切到 Finder（macOS 的檔案總管）裡找。現在按住 Cmd（Mac）或 Ctrl（Windows/Linux）點一下附件，就會直接在檔案總管裡跳出來、選好給你看。像收到包裹不用自己去倉庫翻箱子，按一下貨單就直接帶你走到那一格架子前面。",
-            "zh-CN": "以前 AI 在对话里提到或附上一个文件，你想看实体文件在哪还得自己切到文件管理器里找。现在按住 Cmd（Mac）或 Ctrl（Windows/Linux）点一下附件，就会直接在文件管理器里跳出来、选好给你看。像收到包裹不用自己去仓库翻箱子，点一下货单就直接带你走到那一格架子前面。",
-            "en": "When the AI mentions or attaches a file in chat, you used to have to switch to Finder or Explorer yourself and hunt for it. Now Cmd-click (Mac) or Ctrl-click (Windows/Linux) on the attachment jumps straight to that file, already selected, in your file manager. It's like a delivery slip that walks you straight to the right shelf instead of making you dig through the warehouse yourself.",
-            "ja": "以前 AI がチャットの中でファイルに触れたり添付したりしても、実物のファイルがどこにあるかは自分で Finder（macOS のファイル管理アプリ）を開いて探す必要がありました。今は Cmd（Mac）または Ctrl（Windows/Linux）キーを押しながら添付ファイルをクリックすると、ファイル管理アプリの中でそのファイルが選択された状態でパッと出てきます。荷物を受け取ったときに自分で倉庫の箱をひっくり返さなくても、伝票をクリックすればその棚の前まで連れて行ってもらえるようなものです。",
-            "ko": "예전에는 AI 가 대화 중 파일을 언급하거나 첨부해도, 실제 파일이 어디 있는지 직접 파일 관리자로 가서 찾아야 했습니다. 이제는 첨부 파일을 Cmd（Mac）또는 Ctrl（Windows/Linux）를 누른 채 클릭하면 파일 관리자에서 바로 그 파일이 선택된 채로 나타납니다. 택배를 받았을 때 직접 창고에서 상자를 뒤지지 않고, 송장을 클릭하면 바로 그 선반 앞까지 데려다주는 것과 같습니다."
-          },
-          "original": "Added clickable file attachments in chat — Cmd/Ctrl-click reveals the file in Finder/Explorer."
-        },
-        {
-          "title": {
-            "zh-TW": "查看 MCP 外掛清單不會再偷偷啟動陌生專案裡藏的伺服器",
-            "zh-CN": "查看 MCP 插件清单不会再偷偷启动陌生项目里藏的服务器",
-            "en": "Listing MCP plugins no longer secretly starts servers hidden in untrusted projects",
-            "ja": "MCP プラグイン一覧を見るだけで、見知らぬプロジェクトに潜むサーバーがこっそり起動することはなくなった",
-            "ko": "MCP 플러그인 목록을 보는 것만으로 낯선 프로젝트에 숨은 서버가 몰래 켜지지 않음"
-          },
-          "body": {
-            "zh-TW": "MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器以前只要你下 `claude mcp list` 或 `get` 這種「查清單」的指令，就算是還沒被你信任的專案，只要它的設定檔（.claude/settings.json）裡自己寫好「已核准」，也會被默默啟動執行。現在不會了：不信任的工作目錄會老實顯示「⏸ 等待核准」，光是查清單不會觸發任何程式執行。這就像你以前只是「看」陌生人的名片夾，結果名片自己跳出來打電話；現在光看不會打電話，要你親自按下確認才行。",
-            "zh-CN": "MCP（Model Context Protocol，让 AI 连接外部工具的协议）服务器以前只要你下 `claude mcp list` 或 `get` 这种“查清单”的命令，就算是还没被你信任的项目，只要它的配置文件（.claude/settings.json）里自己写好“已核准”，也会被默默启动执行。现在不会了：不信任的工作目录会老实显示“⏸ 等待核准”，光是查清单不会触发任何程序执行。这就像你以前只是“看”陌生人的名片夹，结果名片自己跳出来打电话；现在光看不会打电话，要你亲自按下确认才行。",
-            "en": "MCP servers (Model Context Protocol, the standard that lets the AI talk to external tools) used to spin up just from running the read-only `claude mcp list`/`get` commands, even in a project you hadn't trusted yet, as long as its own settings file (.claude/settings.json) had self-approved itself. Not anymore — an untrusted workspace now honestly shows '⏸ Pending approval', and merely listing servers no longer triggers anything to run. It's like flipping through a stranger's business cards used to dial their number by itself; now looking doesn't dial — you have to press confirm yourself.",
-            "ja": "MCP（Model Context Protocol、AI が外部ツールとつながるための取り決め）サーバーは以前、信頼していないプロジェクトでも `claude mcp list` や `get` のような「一覧を見るだけ」のコマンドを打つと、そのプロジェクトの設定ファイル（.claude/settings.json）が自分で「承認済み」と書いてさえいれば、こっそり起動されてしまっていました。今は違います：信頼していない作業ディレクトリは正直に「⏸ 承認待ち」と表示され、一覧を見るだけでは何のプログラムも実行されません。これは見知らぬ人の名刺入れをめくっただけなのに、名刺が勝手に電話をかけ始めていたようなもの。今は見るだけでは電話はかからず、自分で確認ボタンを押す必要があります。",
-            "ko": "MCP（Model Context Protocol，AI 가 외부 도구와 연결되는 규약）서버는 예전에는 아직 신뢰하지 않은 프로젝트라도 `claude mcp list` 나 `get` 같은 “목록 조회” 명령만 내려도, 그 프로젝트 설정 파일（.claude/settings.json）이 스스로 “승인됨”이라고 적어두면 몰래 실행되었습니다. 이제는 그렇지 않습니다: 신뢰하지 않은 작업 디렉터리는 솔직하게 “⏸ 승인 대기”라고 표시되고, 목록만 조회해서는 아무 프로그램도 실행되지 않습니다. 마치 낯선 사람의 명함첩을 들춰봤을 뿐인데 명함이 제멋대로 전화를 걸던 것과 같은데, 이제는 보기만 해서는 전화가 걸리지 않고 직접 확인 버튼을 눌러야 합니다."
-          },
-          "original": "Security: `claude mcp list`/`get` no longer spawn `.mcp.json` servers that a repo self-approved via a committed `.claude/settings.json`; untrusted workspaces show `⏸ Pending approval`."
-        },
-        {
-          "title": {
-            "zh-TW": "喚醒背景工作不會再把整段對話紀錄誤刪、逼你重講一次",
-            "zh-CN": "唤醒后台任务不会再把整段对话记录误删、逼你重讲一次",
-            "en": "Waking a background job no longer wipes its entire conversation and forces a redo",
-            "ja": "バックグラウンドジョブを起こしても、もう会話記録ごと誤って消されてやり直しを強いられることはない",
-            "ko": "백그라운드 작업을 깨워도 대화 기록 전체가 잘못 지워져 다시 시켜야 하는 일이 없어짐"
-          },
-          "body": {
-            "zh-TW": "背景工作（background job，丟給 AI 在背後默默跑、你可以先去忙別的事的任務）以前偶爾會因為系統誤判對話紀錄檔案壞掉，喚醒時就把整段紀錄永久刪掉，還自動把你原本的指令重跑一次——等於白做工還搞丟記錄。現在系統改成「先把可疑檔案移到旁邊」，絕對不會直接刪除，你的對話紀錄保住了。像以前醫院弄丟病歷會直接燒掉重建檔案，現在改成先封存在另一個櫃子，至少東西還在。",
-            "zh-CN": "后台任务（background job，丢给 AI 在后台默默运行、你可以先去忙别的事的任务）以前偶尔会因为系统误判对话记录文件损坏，唤醒时就把整段记录永久删除，还自动把你原本的指令重跑一次——等于白做工还搞丢记录。现在系统改成“先把可疑文件移到一边”，绝对不会直接删除，你的对话记录保住了。像以前医院弄丢病历会直接烧掉重建档案，现在改成先封存在另一个柜子，至少东西还在。",
-            "en": "Background jobs (tasks you hand off to the AI to run quietly while you do something else) used to occasionally have their entire conversation permanently deleted on waking, whenever the system misread the transcript as corrupted — and then it would auto-rerun your original prompt from scratch, wasting work and losing history. Now the suspect file just gets set aside instead of deleted, so your transcript survives. It's like a hospital that used to burn a medical record it thought was damaged and start a new one from scratch; now it just files the old one in another drawer instead — at least it's still there.",
-            "ja": "バックグラウンドジョブ（background job、裏で AI に任せて走らせ、自分は別の作業をしておける仕事）は以前、システムが会話記録ファイルを「壊れている」と誤判定したとき、ジョブを呼び起こした瞬間に記録ごと完全に削除し、しかも元のプロンプトを最初から自動で再実行してしまうことがありました。せっかくの作業も記録も失ってしまうわけです。今はシステムが「疑わしいファイルをいったん脇に置く」方式に変わり、絶対に直接削除しません。あなたの会話記録は守られます。これは以前、病院がカルテを壊れたと判断したら焼却して作り直していたのを、今は別の棚に保管するだけにしたようなもの——少なくとも現物は残ります。",
-            "ko": "백그라운드 작업（background job，AI 에게 맡겨 뒤에서 조용히 돌리고 당신은 다른 일을 할 수 있는 작업）은 예전에는 시스템이 대화 기록 파일을 손상됐다고 잘못 판단하면, 작업을 깨우는 순간 기록 전체를 영구 삭제하고 원래 프롬프트를 처음부터 자동으로 다시 실행했습니다. 헛수고에 기록까지 잃는 셈이었죠. 이제는 시스템이 “의심스러운 파일을 일단 옆으로 치워두는” 방식으로 바뀌어 절대 바로 삭제하지 않습니다. 당신의 대화 기록은 보존됩니다. 예전 병원이 손상됐다고 판단한 진료기록을 태워버리고 새로 만들던 것을, 이제는 다른 캐비닛에 보관만 해두는 것과 같습니다 — 적어도 원본은 남아있습니다."
-          },
-          "original": "Fixed waking a background job permanently deleting its conversation and re-running the original prompt when the transcript probe misread a real transcript; the file is now set aside, never deleted."
-        },
-        {
-          "title": {
-            "zh-TW": "開「跳過所有權限確認」模式時，現在會老實告訴你風險，不會默默改成別的模式",
-            "zh-CN": "开“跳过所有权限确认”模式时，现在会老实告诉你风险，不会默默改成别的模式",
-            "en": "The \"skip all permission checks\" flag now honestly warns you of the risk instead of quietly switching modes",
-            "ja": "「すべての権限確認をスキップ」モードを有効にすると、今はリスクを正直に警告してくれ、こっそり別モードに変わることはない",
-            "ko": "\"모든 권한 확인 건너뛰기\" 모드를 켜면 이제 위험을 솔직히 경고하며, 몰래 다른 모드로 바뀌지 않음"
-          },
-          "body": {
-            "zh-TW": "`--dangerously-skip-permissions`（危險跳過權限確認，讓 AI 不問你同意就直接執行所有動作的開關）這個參數以前有個 bug：你明明開了它，系統卻偷偷把它降級成「自動模式」（auto mode，仍會在風險動作前問你），子代理（被主任務分派出去做事的小 AI 助手）也沒真的套用跳過權限的設定，而且不會跳出風險警告告訴你發生了什麼。現在修好了：你開這個開關，系統就老實顯示風險聲明、子代理也會確實套用同樣的跳過權限設定。這就像你按下「跳過安檢」的按鈕，警衛卻偷偷還是把你攔下來檢查、也不告訴你為什麼——現在按下去就真的跳過，而且會先提醒你「這樣做有風險喔」。",
-            "zh-CN": "`--dangerously-skip-permissions`（危险跳过权限确认，让 AI 不问你同意就直接执行所有动作的开关）这个参数以前有个 bug：你明明开了它，系统却偷偷把它降级成“自动模式”（auto mode，仍会在风险动作前问你），子智能体（被主任务分派出去做事的小 AI 助手）也没真的套用跳过权限的设置，而且不会跳出风险警告告诉你发生了什么。现在修好了：你开这个开关，系统就老实显示风险声明、子智能体也会确实套用同样的跳过权限设置。这就像你按下“跳过安检”的按钮，警卫却偷偷还是把你拦下来检查、也不告诉你为什么——现在按下去就真的跳过，而且会先提醒你“这样做有风险哦”。",
-            "en": "`--dangerously-skip-permissions` (a flag that lets the AI act without asking your permission first) had a bug: turning it on used to silently downgrade it to 'auto mode' instead (which still asks before risky actions), without showing the risk disclaimer, and subagents (helper AIs spawned to do part of the work) didn't actually inherit the bypass either. Now it's fixed — flipping the switch shows the real risk warning, and subagents genuinely inherit the same bypass. It's like pressing a 'skip security check' button that secretly still stopped and searched you anyway, without telling you why — now pressing it really does skip the check, after first warning you it's risky.",
-            "ja": "`--dangerously-skip-permissions`（危険を承知で許可確認をスキップし、AI に同意なしで全行動を実行させるスイッチ）にはバグがありました。オンにしても実際にはこっそり「オートモード」（auto mode、リスクのある行動の前にはまだ確認してくる）に格下げされ、リスク表明も表示されず、サブエージェント（メインタスクから仕事を割り振られる子 AI）にもスキップ設定が反映されていませんでした。今は修正され、スイッチを入れると正直にリスク表明が表示され、サブエージェントにも同じスキップ設定がきちんと適用されます。これは「保安検査スキップ」ボタンを押したのに警備員がこっそりまだ止めて調べていて、理由も教えてくれなかったようなもの——今は押せば本当にスキップされ、先に「これはリスクがありますよ」と教えてくれます。",
-            "ko": "`--dangerously-skip-permissions`（위험을 감수하고 권한 확인을 건너뛰어 AI 가 동의 없이 모든 동작을 실행하게 하는 스위치）에 버그가 있었습니다. 켜도 실제로는 몰래 “자동 모드”（auto mode，여전히 위험한 동작 전에는 물어봄）로 격하되고, 위험 경고도 뜨지 않았으며, 서브에이전트（메인 작업에서 일을 나눠받는 자식 AI）에도 실제로 건너뛰기 설정이 적용되지 않았습니다. 이제 수정되어, 스위치를 켜면 정직하게 위험 경고가 뜨고 서브에이전트에도 동일한 건너뛰기 설정이 확실히 적용됩니다. 마치 “보안검색 생략” 버튼을 눌렀는데 경비원이 몰래 여전히 막아서 검사하면서 이유도 알려주지 않던 것과 같은데, 이제는 누르면 정말로 생략되고 먼저 “이건 위험합니다”라고 알려줍니다."
-          },
-          "original": "Fixed `claude agents --dangerously-skip-permissions` silently falling back to auto mode instead of showing the bypass disclaimer and applying bypass mode to spawned agents."
-        },
-        {
-          "title": {
-            "zh-TW": "程式碼審查指令變更省，同樣品質但少燒四分之一額度",
-            "zh-CN": "代码审查命令变更省，同样质量但少烧四分之一额度",
-            "en": "Code review got leaner — same quality, a quarter less quota burned",
-            "ja": "コードレビューがより省エネに、品質はそのままでクォータ消費は 4 分の 1 減",
-            "ko": "코드 리뷰가 더 절약형으로, 품질은 그대로인데 할당량은 4 분의 1 덜 씀"
-          },
-          "body": {
-            "zh-TW": "`/code-review`（叫 AI 幫你審查程式碼找問題的指令）背後原本拆成五個各自獨立的「抓問題小幫手」分別跑一輪，現在合併成一個一起跑，審查品質不變，但消耗的 token（token，AI 讀寫文字計費的最小單位，你的用量額度就是用這個算的）少了大約四分之一。這就像原本派五個保全分頭巡邏五次，現在改成一個熟練的保全一次巡完全部範圍，一樣巡得到、但人事費省了四分之一。",
-            "zh-CN": "`/code-review`（叫 AI 帮你审查代码找问题的命令）背后原本拆成五个各自独立的“找问题小帮手”分别跑一轮，现在合并成一个一起跑，审查质量不变，但消耗的 token（token，AI 读写文字计费的最小单位，你的用量额度就是用这个算的）少了大约四分之一。这就像原本派五个保安分头巡逻五次，现在改成一个熟练的保安一次巡完全部范围，一样巡得到，但人事费省了四分之一。",
-            "en": "`/code-review` (the command that has the AI review your code for problems) used to run five separate 'issue-finder' passes behind the scenes. Now they're merged into one pass — same review quality, but token usage (token, the unit the AI's reading/writing is metered in, which is also what your usage quota counts) drops by roughly a quarter. It's like replacing five separate security guards each patrolling once with one experienced guard who covers the whole route in a single pass — same coverage, a quarter less payroll.",
-            "ja": "`/code-review`（AI にコードをレビューして問題を見つけてもらうコマンド）は裏側で、もともと 5 つの独立した「問題探し役」がそれぞれ 1 周ずつ走っていました。今はそれが 1 つにまとまって動くようになり、レビューの質はそのままに、トークン（token、AI が文章を読み書きする際の課金単位で、あなたの利用枠もこれで数えられます）消費量が約 4 分の 1 減りました。これは 5 人の警備員がそれぞれ 1 回ずつ巡回していたのを、熟練した警備員 1 人が 1 回で全範囲を回り切るようにしたようなもの——カバー範囲は同じなのに人件費は 4 分の 1 減ります。",
-            "ko": "`/code-review`（AI 가 코드를 검토해 문제를 찾아주는 명령）는 원래 뒤에서 다섯 개의 독립된 “문제 찾기 도우미”가 각각 한 바퀴씩 돌았습니다. 이제 하나로 합쳐져 같이 도는데, 검토 품질은 그대로면서 토큰（token，AI 가 글을 읽고 쓰는 데 매겨지는 단위로, 당신의 사용량 한도도 이걸로 계산됩니다） 소비량은 약 4 분의 1 줄었습니다. 마치 경비원 다섯 명이 각각 한 번씩 순찰하던 것을, 숙련된 경비원 한 명이 한 번에 전 구역을 다 도는 것으로 바꾼 것과 같습니다 — 순찰 범위는 같은데 인건비는 4 분의 1 절약됩니다."
-          },
-          "original": "Improved `/code-review` workflow: merged five cleanup finders into one, cutting token usage by roughly 25%."
-        },
-        {
-          "title": {
-            "zh-TW": "在終端機模式打指令時，檔案路徑會即時跳出來讓你選，不用自己一個字一個字拼",
-            "zh-CN": "在终端模式打命令时，文件路径会即时弹出来让你选，不用自己一个字一个字拼",
-            "en": "Typing commands in terminal mode now auto-suggests file paths as you go, no more spelling them out yourself",
-            "ja": "ターミナルモードでコマンドを打つとき、ファイルパスがその場で候補表示され、一文字ずつ打ち込む必要がなくなった",
-            "ko": "터미널 모드에서 명령을 칠 때 파일 경로가 즉시 후보로 떠서, 직접 한 글자씩 칠 필요 없음"
-          },
-          "body": {
-            "zh-TW": "在 Claude Code 裡按 `!` 切換到 bash 模式（直接打終端機指令、不經過 AI 對話的模式）打字時，現在輸入檔案路徑會即時跳出自動完成（autocomplete，打到一半就幫你列出可能的選項讓你選）建議清單，不用自己記清楚資料夾名稱再一個字一個字打對。就像你在搜尋引擎打字，還沒打完它就先幫你列出你可能要找的東西。",
-            "zh-CN": "在 Claude Code 里按 `!` 切换到 bash 模式（直接打终端命令、不经过 AI 对话的模式）打字时，现在输入文件路径会即时弹出自动完成（autocomplete，打到一半就帮你列出可能的选项让你选）建议清单，不用自己记清楚文件夹名称再一个字一个字打对。就像你在搜索引擎打字，还没打完它就先帮你列出你可能要找的东西。",
-            "en": "When you press `!` in Claude Code to drop into bash mode (typing raw terminal commands directly, bypassing the AI), typing a file path now triggers live autocomplete (autocomplete, a suggestion list that pops up partway through typing) — no need to remember and spell out exact folder names yourself. It's like a search engine that starts suggesting what you're looking for before you've finished typing.",
-            "ja": "Claude Code で `!` を押して bash モード（AI を介さず直接ターミナルコマンドを打つモード）に入ったとき、ファイルパスを入力すると今はリアルタイムでオートコンプリート（autocomplete、入力途中で候補を一覧表示してくれる機能）が出てくるようになりました。フォルダ名を正確に覚えて一文字ずつ打ち込む必要はありません。検索エンジンに文字を打っている途中で、もう欲しいものの候補を先に出してくれるようなものです。",
-            "ko": "Claude Code 에서 `!` 를 눌러 bash 모드（AI 를 거치지 않고 바로 터미널 명령을 입력하는 모드）로 들어가면, 이제 파일 경로를 입력할 때 실시간 자동완성（autocomplete，입력 도중 후보 목록을 보여주는 기능）이 나타납니다. 폴더 이름을 정확히 외워서 한 글자씩 칠 필요가 없습니다. 검색엔진에 글자를 다 치기도 전에 원하는 것을 먼저 추천해주는 것과 같습니다."
-          },
-          "original": "Added live file path autocomplete to bash mode (`!`)."
-        },
-        {
-          "title": {
-            "zh-TW": "`/clear` 清空對話後，`/rewind` 現在可以把清空前的內容拉回來",
-            "zh-CN": "`/clear` 清空对话后，`/rewind` 现在可以把清空前的内容拉回来",
-            "en": "After `/clear` wipes the conversation, `/rewind` can now bring back what came before it",
-            "ja": "`/clear` で会話を消去したあとも、`/rewind` で消去前の内容まで取り戻せるように",
-            "ko": "`/clear` 로 대화를 지운 뒤에도, `/rewind` 로 지우기 전 내용을 다시 불러올 수 있음"
-          },
-          "body": {
-            "zh-TW": "`/clear`（清空目前對話、讓 AI 忘記前面講過什麼的指令）以前一旦按下去，前面的對話就真的回不去了。現在 `/rewind`（倒帶，把對話拉回之前某個時間點的指令）支援連 `/clear` 之前的內容都能拉回來，等於多了一次反悔的機會。像你以前按下碎紙機就真的沒救了，現在碎紙機旁多了一台還原機，可以把紙條重新拼回去。",
-            "zh-CN": "`/clear`（清空目前对话、让 AI 忘记前面讲过什么的命令）以前一旦按下去，前面的对话就真的回不去了。现在 `/rewind`（倒带，把对话拉回之前某个时间点的命令）支持连 `/clear` 之前的内容都能拉回来，等于多了一次反悔的机会。像你以前按下碎纸机就真的没救了，现在碎纸机旁多了一台还原机，可以把纸条重新拼回去。",
-            "en": "Once you ran `/clear` (the command that wipes the current conversation so the AI forgets everything before it), there used to be no going back. Now `/rewind` (the command that rolls the conversation back to an earlier point) can reach back to before a `/clear`, giving you a second chance. It's like a paper shredder that used to be final — now there's a reconstruction machine next to it that can piece the strips back together.",
-            "ja": "`/clear`（現在の会話を消去して、それ以前の内容を AI に忘れさせるコマンド）は以前、一度押すと本当に元には戻りませんでした。今は `/rewind`（巻き戻し、会話を以前のある時点まで戻すコマンド）が `/clear` より前の内容まで遡れるようになり、やり直すチャンスが一つ増えました。以前はシュレッダーにかけたら本当に終わりだったのが、今はシュレッダーの横に復元機が置かれて、紙片をもう一度貼り合わせられるようになったようなものです。",
-            "ko": "`/clear`（현재 대화를 지워서 AI 가 이전 내용을 잊게 만드는 명령）는 예전에는 한 번 누르면 정말로 되돌릴 수 없었습니다. 이제 `/rewind`（되감기, 대화를 이전 어느 시점으로 되돌리는 명령）는 `/clear` 이전 내용까지도 다시 불러올 수 있어, 한 번 더 되돌릴 기회가 생겼습니다. 예전엔 파쇄기에 넣으면 정말 끝이었는데, 이제 파쇄기 옆에 복원기가 한 대 더 생겨 종이 조각을 다시 맞출 수 있게 된 것과 같습니다."
-          },
-          "original": "Added `/rewind` support for resuming a conversation from before `/clear` was run."
-        },
-        {
-          "title": {
-            "zh-TW": "從任務面板停掉的背景代理人，這次是真的停了，不會自己又活過來",
-            "zh-CN": "从任务面板停掉的后台智能体，这次是真的停了，不会自己又活过来",
-            "en": "Stopping a background agent from the tasks panel now actually stays stopped — no more resurrections",
-            "ja": "タスクパネルから止めたバックグラウンドエージェントは、今度こそ本当に止まったまま、勝手に生き返らない",
-            "ko": "작업 패널에서 정지시킨 백그라운드 에이전트가 이번엔 정말 멈춘 채로 있고, 저절로 되살아나지 않음"
-          },
-          "body": {
-            "zh-TW": "背景代理人（background agent，被分派出去獨立工作的子 AI）以前你在任務面板按下「停止」，結果它過一陣子又自己悄悄醒過來繼續跑，等於你的停止指令沒被真正遵守。現在修好了：按下停止就是永久停止，不會詐屍。就像你以前拔掉吸塵器插頭，它過幾分鐘又自己插回去運轉；現在拔掉就是真的關機。",
-            "zh-CN": "后台智能体（background agent，被分派出去独立工作的子 AI）以前你在任务面板按下“停止”，结果它过一阵子又自己悄悄醒过来继续跑，等于你的停止指令没被真正遵守。现在修好了：按下停止就是永久停止，不会“诈尸”。就像你以前拔掉吸尘器插头，它过几分钟又自己插回去运转；现在拔掉就是真的关机。",
-            "en": "Background agents (helper AIs spawned to work independently) used to occasionally wake themselves back up and keep running a while after you'd hit 'stop' in the tasks panel — your stop command wasn't really being honored. Now it's fixed: stopping an agent is permanent, no resurrections. It's like a vacuum cleaner that used to plug itself back in and start running again a few minutes after you unplugged it; now unplugging it actually means it stays off.",
-            "ja": "バックグラウンドエージェント（background agent、独立して仕事をするために分担させられる子 AI）は以前、タスクパネルで「停止」を押しても、しばらくするとこっそり目を覚まして動き続けることがありました。あなたの停止指示が本当には守られていなかったわけです。今は修正され、停止させたら本当に永久停止します、生き返りません。掃除機のコンセントを抜いたのに数分後にまた自分で差し込んで動き出していたのが、今はコンセントを抜けば本当に電源が切れたままになるようなものです。",
-            "ko": "백그라운드 에이전트（background agent，독립적으로 일하도록 분배된 자식 AI）는 예전에는 작업 패널에서 “정지”를 눌러도 잠시 후 몰래 다시 깨어나 계속 돌아가는 경우가 있었습니다. 당신의 정지 명령이 제대로 지켜지지 않은 셈이었죠. 이제 수정되어, 정지시키면 영구적으로 정지하고 다시 살아나지 않습니다. 청소기 플러그를 뽑았는데 몇 분 후 저절로 다시 꽂혀 돌아가던 것이, 이제는 뽑으면 정말로 꺼진 채 있는 것과 같습니다."
-          },
-          "original": "Fixed background agents resurrecting after being stopped — stopping an agent from the tasks panel is now permanent."
-        },
-        {
-          "title": {
-            "zh-TW": "AI 一個字一個字吐出回答時，現在不會再把你的電腦風扇逼到狂轉",
-            "zh-CN": "AI 一个字一个字吐出回答时，现在不会再把你的电脑风扇逼到狂转",
-            "en": "While the AI streams its answer word by word, your computer's fan no longer has to work overtime",
-            "ja": "AI が回答を一文字ずつ吐き出している間、もうパソコンのファンを全開で回させることはない",
-            "ko": "AI 가 답을 한 글자씩 토해낼 때, 이제 컴퓨터 팬을 풀가동시키지 않음"
-          },
-          "body": {
-            "zh-TW": "AI 用串流（streaming，AI 一邊想一邊把文字逐字吐出來、不用等全部想完才顯示的方式）方式輸出回答時，系統以前是每收到一點新文字就立刻重新畫一次畫面，很耗電腦資源。現在改成把文字更新合併、每 100 毫秒（千分之一秒）統一刷新一次，CPU（處理器，電腦的大腦，負責執行運算）使用量降低了大約三分之一強。這就像以前服務生每端一口菜就跑一趟廚房，現在改成湊滿一輪菜再一起端出來，跑的趟數少了，人也不會那麼喘。",
-            "zh-CN": "AI 用流式（streaming，AI 一边想一边把文字逐字吐出来、不用等全部想完才显示的方式）方式输出回答时，系统以前是每收到一点新文字就立刻重新画一次画面，很耗电脑资源。现在改成把文字更新合并、每 100 毫秒（千分之一秒）统一刷新一次，CPU（处理器，电脑的大脑，负责执行运算）使用量降低了大约三分之一强。这就像以前服务员每端一口菜就跑一趟厨房，现在改成凑满一轮菜再一起端出来，跑的趟数少了，人也不会那么喘。",
-            "en": "When the AI streams its answer (streaming, writing text out token by token instead of waiting until it's fully done), the system used to redraw the screen every single time a little new text arrived, which was hard on your machine. Now text updates are batched and redrawn once every 100 milliseconds (a thousandth of a second), cutting CPU usage (CPU, your computer's 'brain' that does the actual computing) by roughly a third. It's like a waiter who used to run to the kitchen for every single bite of food, now waiting to carry out a full round of dishes at once — fewer trips, less out of breath.",
-            "ja": "AI がストリーミング（streaming、考えながら文字を一字ずつ吐き出していき、全部考え終わるのを待たずに表示する方式）で回答を出すとき、以前は少しでも新しい文字が来るたびに画面を描き直していて、コンピューターの負荷が大きくなっていました。今はテキスト更新をまとめて 100 ミリ秒（千分の一秒）ごとに一括で描き直す方式に変わり、CPU（コンピューターの「脳」にあたる、計算を担う部品）の使用量が約 3 分の 1 強減りました。これは以前、ウェイターが料理を一口分運ぶたびに厨房まで走っていたのを、ひと揃い分まとめて一度に運ぶように変えたようなもの——往復が減って、息も切れにくくなります。",
-            "ko": "AI 가 스트리밍（streaming，다 생각하고 나서가 아니라 한 글자씩 토해내며 답하는 방식）으로 답을 내놓을 때, 예전에는 새 글자가 조금만 와도 화면을 매번 다시 그려서 컴퓨터에 부담이 컸습니다. 이제는 텍스트 업데이트를 모아서 100 밀리초（천분의 1 초）마다 한 번씩 갱신하도록 바뀌어, CPU（컴퓨터의 “뇌”에 해당하며 연산을 담당하는 부품） 사용량이 약 3 분의 1 넘게 줄었습니다. 마치 종업원이 음식을 한 입씩 나를 때마다 주방을 오가던 것을, 한 차례 분량을 모아서 한 번에 나르도록 바꾼 것과 같습니다 — 왕복이 줄어 덜 헐떡이게 됩니다."
-          },
-          "original": "Reduced CPU usage during streaming responses by ~37% by coalescing text updates to 100ms."
+          "version": "2.1.197",
+          "period": "2026-06-25 ~ 06-30",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "預設模型升級成 Sonnet 5，記憶容量暴增到一百萬字，價格還打折",
+                "zh-CN": "默认模型升级成 Sonnet 5，记忆容量暴涨到一百万字，价格还打折",
+                "en": "Default model upgraded to Sonnet 5 — memory jumps to a million words, and it's cheaper too",
+                "ja": "デフォルトモデルが Sonnet 5 にアップグレード、記憶容量は 100 万語規模に、価格も割引に",
+                "ko": "기본 모델이 Sonnet 5 로 업그레이드, 기억 용량이 백만 단어 규모로 늘고 가격도 할인"
+              },
+              "body": {
+                "zh-TW": "你打開 Claude Code 現在預設用的就是 Sonnet 5，原生支援一百萬 token（token，AI 讀寫文字時切出來的最小單位，大約等於零點幾個字）的記憶視窗（context window，AI 一次能記住多少對話內容的容量），等於同一個對話能塞進比以前多好幾倍的程式碼或文件還不會忘記前面講過什麼。即日起到 8 月 31 日，每百萬 token 只要 2 到 10 美元的促銷價，比平常便宜。這就像你原本租了一個小倉庫放資料，現在免費升級成大十倍的倉庫，租金還打折。",
+                "zh-CN": "你打开 Claude Code 现在默认用的就是 Sonnet 5，原生支持一百万 token（token，AI 读写文字时切出来的最小单位，大约等于零点几个字）的记忆窗口（context window，AI 一次能记住多少对话内容的容量），等于同一个对话能塞进比以前多好几倍的代码或文档还不会忘记前面讲过什么。即日起到 8 月 31 日，每百万 token 只要 2 到 10 美元的促销价，比平常便宜。这就像你原本租了一个小仓库放资料，现在免费升级成大十倍的仓库，租金还打折。",
+                "en": "Claude Code now defaults to Sonnet 5, with a native 1-million-token context window (context window, how much of the conversation the AI can remember at once; a token is the small chunk of text the AI reads and writes in) — meaning one conversation can now hold several times more code or documents without the AI forgetting what came before. From now through August 31, pricing is a promotional $2-$10 per million tokens, cheaper than usual. It's like your storage unit was upgraded to ten times the size for free, with a discounted rent on top.",
+                "ja": "Claude Code は今からデフォルトで Sonnet 5 を使うようになり、生まれつき 100 万トークン（token、AI が文章を読み書きするときの最小単位、だいたい数文字分）分のコンテキストウィンドウ（context window、AI が一度に覚えていられる会話量）を持っています。つまり同じ会話に、以前より何倍も多いコードや文書を入れても前の内容を忘れません。今から 8 月 31 日まで、100 万トークンあたり 2〜10 ドルのキャンペーン価格で、通常より安くなっています。これはまるで借りていた小さな倉庫が無料で 10 倍の大きさに引っ越しでき、しかも家賃まで割引になったようなものです。",
+                "ko": "이제 Claude Code 는 기본으로 Sonnet 5 를 사용하며, 태생적으로 100 만 토큰（token，AI 가 글을 읽고 쓸 때 나누는 가장 작은 단위, 대략 글자 몇 개 분량）의 컨텍스트 윈도우（context window，AI 가 한 번에 기억할 수 있는 대화 분량）를 지원합니다. 즉 같은 대화에 예전보다 훨씬 많은 코드나 문서를 넣어도 앞서 한 이야기를 잊지 않습니다. 지금부터 8 월 31 일까지 100 만 토큰당 2~10 달러의 프로모션 가격으로, 평소보다 저렴합니다. 마치 빌리던 작은 창고가 공짜로 10 배 큰 창고로 업그레이드되고 임대료까지 할인받은 것과 같습니다."
+              },
+              "original": "Introducing Claude Sonnet 5: now the default model in Claude Code, with a native 1M-token context window and promotional pricing of $2/$10 per Mtok through August 31."
+            },
+            {
+              "title": {
+                "zh-TW": "對話裡的檔案附件可以直接點開，不用自己去資料夾裡翻",
+                "zh-CN": "对话里的文件附件可以直接点开，不用自己去文件夹里翻",
+                "en": "File attachments in chat are now clickable — no more digging through folders yourself",
+                "ja": "チャット内のファイル添付がワンクリックで開けるように、自分でフォルダを探す必要なし",
+                "ko": "대화 속 파일 첨부를 바로 열 수 있어, 직접 폴더를 뒤질 필요 없음"
+              },
+              "body": {
+                "zh-TW": "以前 AI 在對話裡提到或附上一個檔案，你想看實體檔案在哪還得自己切到 Finder（macOS 的檔案總管）裡找。現在按住 Cmd（Mac）或 Ctrl（Windows/Linux）點一下附件，就會直接在檔案總管裡跳出來、選好給你看。像收到包裹不用自己去倉庫翻箱子，按一下貨單就直接帶你走到那一格架子前面。",
+                "zh-CN": "以前 AI 在对话里提到或附上一个文件，你想看实体文件在哪还得自己切到文件管理器里找。现在按住 Cmd（Mac）或 Ctrl（Windows/Linux）点一下附件，就会直接在文件管理器里跳出来、选好给你看。像收到包裹不用自己去仓库翻箱子，点一下货单就直接带你走到那一格架子前面。",
+                "en": "When the AI mentions or attaches a file in chat, you used to have to switch to Finder or Explorer yourself and hunt for it. Now Cmd-click (Mac) or Ctrl-click (Windows/Linux) on the attachment jumps straight to that file, already selected, in your file manager. It's like a delivery slip that walks you straight to the right shelf instead of making you dig through the warehouse yourself.",
+                "ja": "以前 AI がチャットの中でファイルに触れたり添付したりしても、実物のファイルがどこにあるかは自分で Finder（macOS のファイル管理アプリ）を開いて探す必要がありました。今は Cmd（Mac）または Ctrl（Windows/Linux）キーを押しながら添付ファイルをクリックすると、ファイル管理アプリの中でそのファイルが選択された状態でパッと出てきます。荷物を受け取ったときに自分で倉庫の箱をひっくり返さなくても、伝票をクリックすればその棚の前まで連れて行ってもらえるようなものです。",
+                "ko": "예전에는 AI 가 대화 중 파일을 언급하거나 첨부해도, 실제 파일이 어디 있는지 직접 파일 관리자로 가서 찾아야 했습니다. 이제는 첨부 파일을 Cmd（Mac）또는 Ctrl（Windows/Linux）를 누른 채 클릭하면 파일 관리자에서 바로 그 파일이 선택된 채로 나타납니다. 택배를 받았을 때 직접 창고에서 상자를 뒤지지 않고, 송장을 클릭하면 바로 그 선반 앞까지 데려다주는 것과 같습니다."
+              },
+              "original": "Added clickable file attachments in chat — Cmd/Ctrl-click reveals the file in Finder/Explorer."
+            },
+            {
+              "title": {
+                "zh-TW": "查看 MCP 外掛清單不會再偷偷啟動陌生專案裡藏的伺服器",
+                "zh-CN": "查看 MCP 插件清单不会再偷偷启动陌生项目里藏的服务器",
+                "en": "Listing MCP plugins no longer secretly starts servers hidden in untrusted projects",
+                "ja": "MCP プラグイン一覧を見るだけで、見知らぬプロジェクトに潜むサーバーがこっそり起動することはなくなった",
+                "ko": "MCP 플러그인 목록을 보는 것만으로 낯선 프로젝트에 숨은 서버가 몰래 켜지지 않음"
+              },
+              "body": {
+                "zh-TW": "MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器以前只要你下 `claude mcp list` 或 `get` 這種「查清單」的指令，就算是還沒被你信任的專案，只要它的設定檔（.claude/settings.json）裡自己寫好「已核准」，也會被默默啟動執行。現在不會了：不信任的工作目錄會老實顯示「⏸ 等待核准」，光是查清單不會觸發任何程式執行。這就像你以前只是「看」陌生人的名片夾，結果名片自己跳出來打電話；現在光看不會打電話，要你親自按下確認才行。",
+                "zh-CN": "MCP（Model Context Protocol，让 AI 连接外部工具的协议）服务器以前只要你下 `claude mcp list` 或 `get` 这种“查清单”的命令，就算是还没被你信任的项目，只要它的配置文件（.claude/settings.json）里自己写好“已核准”，也会被默默启动执行。现在不会了：不信任的工作目录会老实显示“⏸ 等待核准”，光是查清单不会触发任何程序执行。这就像你以前只是“看”陌生人的名片夹，结果名片自己跳出来打电话；现在光看不会打电话，要你亲自按下确认才行。",
+                "en": "MCP servers (Model Context Protocol, the standard that lets the AI talk to external tools) used to spin up just from running the read-only `claude mcp list`/`get` commands, even in a project you hadn't trusted yet, as long as its own settings file (.claude/settings.json) had self-approved itself. Not anymore — an untrusted workspace now honestly shows '⏸ Pending approval', and merely listing servers no longer triggers anything to run. It's like flipping through a stranger's business cards used to dial their number by itself; now looking doesn't dial — you have to press confirm yourself.",
+                "ja": "MCP（Model Context Protocol、AI が外部ツールとつながるための取り決め）サーバーは以前、信頼していないプロジェクトでも `claude mcp list` や `get` のような「一覧を見るだけ」のコマンドを打つと、そのプロジェクトの設定ファイル（.claude/settings.json）が自分で「承認済み」と書いてさえいれば、こっそり起動されてしまっていました。今は違います：信頼していない作業ディレクトリは正直に「⏸ 承認待ち」と表示され、一覧を見るだけでは何のプログラムも実行されません。これは見知らぬ人の名刺入れをめくっただけなのに、名刺が勝手に電話をかけ始めていたようなもの。今は見るだけでは電話はかからず、自分で確認ボタンを押す必要があります。",
+                "ko": "MCP（Model Context Protocol，AI 가 외부 도구와 연결되는 규약）서버는 예전에는 아직 신뢰하지 않은 프로젝트라도 `claude mcp list` 나 `get` 같은 “목록 조회” 명령만 내려도, 그 프로젝트 설정 파일（.claude/settings.json）이 스스로 “승인됨”이라고 적어두면 몰래 실행되었습니다. 이제는 그렇지 않습니다: 신뢰하지 않은 작업 디렉터리는 솔직하게 “⏸ 승인 대기”라고 표시되고, 목록만 조회해서는 아무 프로그램도 실행되지 않습니다. 마치 낯선 사람의 명함첩을 들춰봤을 뿐인데 명함이 제멋대로 전화를 걸던 것과 같은데, 이제는 보기만 해서는 전화가 걸리지 않고 직접 확인 버튼을 눌러야 합니다."
+              },
+              "original": "Security: `claude mcp list`/`get` no longer spawn `.mcp.json` servers that a repo self-approved via a committed `.claude/settings.json`; untrusted workspaces show `⏸ Pending approval`."
+            },
+            {
+              "title": {
+                "zh-TW": "喚醒背景工作不會再把整段對話紀錄誤刪、逼你重講一次",
+                "zh-CN": "唤醒后台任务不会再把整段对话记录误删、逼你重讲一次",
+                "en": "Waking a background job no longer wipes its entire conversation and forces a redo",
+                "ja": "バックグラウンドジョブを起こしても、もう会話記録ごと誤って消されてやり直しを強いられることはない",
+                "ko": "백그라운드 작업을 깨워도 대화 기록 전체가 잘못 지워져 다시 시켜야 하는 일이 없어짐"
+              },
+              "body": {
+                "zh-TW": "背景工作（background job，丟給 AI 在背後默默跑、你可以先去忙別的事的任務）以前偶爾會因為系統誤判對話紀錄檔案壞掉，喚醒時就把整段紀錄永久刪掉，還自動把你原本的指令重跑一次——等於白做工還搞丟記錄。現在系統改成「先把可疑檔案移到旁邊」，絕對不會直接刪除，你的對話紀錄保住了。像以前醫院弄丟病歷會直接燒掉重建檔案，現在改成先封存在另一個櫃子，至少東西還在。",
+                "zh-CN": "后台任务（background job，丢给 AI 在后台默默运行、你可以先去忙别的事的任务）以前偶尔会因为系统误判对话记录文件损坏，唤醒时就把整段记录永久删除，还自动把你原本的指令重跑一次——等于白做工还搞丢记录。现在系统改成“先把可疑文件移到一边”，绝对不会直接删除，你的对话记录保住了。像以前医院弄丢病历会直接烧掉重建档案，现在改成先封存在另一个柜子，至少东西还在。",
+                "en": "Background jobs (tasks you hand off to the AI to run quietly while you do something else) used to occasionally have their entire conversation permanently deleted on waking, whenever the system misread the transcript as corrupted — and then it would auto-rerun your original prompt from scratch, wasting work and losing history. Now the suspect file just gets set aside instead of deleted, so your transcript survives. It's like a hospital that used to burn a medical record it thought was damaged and start a new one from scratch; now it just files the old one in another drawer instead — at least it's still there.",
+                "ja": "バックグラウンドジョブ（background job、裏で AI に任せて走らせ、自分は別の作業をしておける仕事）は以前、システムが会話記録ファイルを「壊れている」と誤判定したとき、ジョブを呼び起こした瞬間に記録ごと完全に削除し、しかも元のプロンプトを最初から自動で再実行してしまうことがありました。せっかくの作業も記録も失ってしまうわけです。今はシステムが「疑わしいファイルをいったん脇に置く」方式に変わり、絶対に直接削除しません。あなたの会話記録は守られます。これは以前、病院がカルテを壊れたと判断したら焼却して作り直していたのを、今は別の棚に保管するだけにしたようなもの——少なくとも現物は残ります。",
+                "ko": "백그라운드 작업（background job，AI 에게 맡겨 뒤에서 조용히 돌리고 당신은 다른 일을 할 수 있는 작업）은 예전에는 시스템이 대화 기록 파일을 손상됐다고 잘못 판단하면, 작업을 깨우는 순간 기록 전체를 영구 삭제하고 원래 프롬프트를 처음부터 자동으로 다시 실행했습니다. 헛수고에 기록까지 잃는 셈이었죠. 이제는 시스템이 “의심스러운 파일을 일단 옆으로 치워두는” 방식으로 바뀌어 절대 바로 삭제하지 않습니다. 당신의 대화 기록은 보존됩니다. 예전 병원이 손상됐다고 판단한 진료기록을 태워버리고 새로 만들던 것을, 이제는 다른 캐비닛에 보관만 해두는 것과 같습니다 — 적어도 원본은 남아있습니다."
+              },
+              "original": "Fixed waking a background job permanently deleting its conversation and re-running the original prompt when the transcript probe misread a real transcript; the file is now set aside, never deleted."
+            },
+            {
+              "title": {
+                "zh-TW": "開「跳過所有權限確認」模式時，現在會老實告訴你風險，不會默默改成別的模式",
+                "zh-CN": "开“跳过所有权限确认”模式时，现在会老实告诉你风险，不会默默改成别的模式",
+                "en": "The \"skip all permission checks\" flag now honestly warns you of the risk instead of quietly switching modes",
+                "ja": "「すべての権限確認をスキップ」モードを有効にすると、今はリスクを正直に警告してくれ、こっそり別モードに変わることはない",
+                "ko": "\"모든 권한 확인 건너뛰기\" 모드를 켜면 이제 위험을 솔직히 경고하며, 몰래 다른 모드로 바뀌지 않음"
+              },
+              "body": {
+                "zh-TW": "`--dangerously-skip-permissions`（危險跳過權限確認，讓 AI 不問你同意就直接執行所有動作的開關）這個參數以前有個 bug：你明明開了它，系統卻偷偷把它降級成「自動模式」（auto mode，仍會在風險動作前問你），子代理（被主任務分派出去做事的小 AI 助手）也沒真的套用跳過權限的設定，而且不會跳出風險警告告訴你發生了什麼。現在修好了：你開這個開關，系統就老實顯示風險聲明、子代理也會確實套用同樣的跳過權限設定。這就像你按下「跳過安檢」的按鈕，警衛卻偷偷還是把你攔下來檢查、也不告訴你為什麼——現在按下去就真的跳過，而且會先提醒你「這樣做有風險喔」。",
+                "zh-CN": "`--dangerously-skip-permissions`（危险跳过权限确认，让 AI 不问你同意就直接执行所有动作的开关）这个参数以前有个 bug：你明明开了它，系统却偷偷把它降级成“自动模式”（auto mode，仍会在风险动作前问你），子智能体（被主任务分派出去做事的小 AI 助手）也没真的套用跳过权限的设置，而且不会跳出风险警告告诉你发生了什么。现在修好了：你开这个开关，系统就老实显示风险声明、子智能体也会确实套用同样的跳过权限设置。这就像你按下“跳过安检”的按钮，警卫却偷偷还是把你拦下来检查、也不告诉你为什么——现在按下去就真的跳过，而且会先提醒你“这样做有风险哦”。",
+                "en": "`--dangerously-skip-permissions` (a flag that lets the AI act without asking your permission first) had a bug: turning it on used to silently downgrade it to 'auto mode' instead (which still asks before risky actions), without showing the risk disclaimer, and subagents (helper AIs spawned to do part of the work) didn't actually inherit the bypass either. Now it's fixed — flipping the switch shows the real risk warning, and subagents genuinely inherit the same bypass. It's like pressing a 'skip security check' button that secretly still stopped and searched you anyway, without telling you why — now pressing it really does skip the check, after first warning you it's risky.",
+                "ja": "`--dangerously-skip-permissions`（危険を承知で許可確認をスキップし、AI に同意なしで全行動を実行させるスイッチ）にはバグがありました。オンにしても実際にはこっそり「オートモード」（auto mode、リスクのある行動の前にはまだ確認してくる）に格下げされ、リスク表明も表示されず、サブエージェント（メインタスクから仕事を割り振られる子 AI）にもスキップ設定が反映されていませんでした。今は修正され、スイッチを入れると正直にリスク表明が表示され、サブエージェントにも同じスキップ設定がきちんと適用されます。これは「保安検査スキップ」ボタンを押したのに警備員がこっそりまだ止めて調べていて、理由も教えてくれなかったようなもの——今は押せば本当にスキップされ、先に「これはリスクがありますよ」と教えてくれます。",
+                "ko": "`--dangerously-skip-permissions`（위험을 감수하고 권한 확인을 건너뛰어 AI 가 동의 없이 모든 동작을 실행하게 하는 스위치）에 버그가 있었습니다. 켜도 실제로는 몰래 “자동 모드”（auto mode，여전히 위험한 동작 전에는 물어봄）로 격하되고, 위험 경고도 뜨지 않았으며, 서브에이전트（메인 작업에서 일을 나눠받는 자식 AI）에도 실제로 건너뛰기 설정이 적용되지 않았습니다. 이제 수정되어, 스위치를 켜면 정직하게 위험 경고가 뜨고 서브에이전트에도 동일한 건너뛰기 설정이 확실히 적용됩니다. 마치 “보안검색 생략” 버튼을 눌렀는데 경비원이 몰래 여전히 막아서 검사하면서 이유도 알려주지 않던 것과 같은데, 이제는 누르면 정말로 생략되고 먼저 “이건 위험합니다”라고 알려줍니다."
+              },
+              "original": "Fixed `claude agents --dangerously-skip-permissions` silently falling back to auto mode instead of showing the bypass disclaimer and applying bypass mode to spawned agents."
+            },
+            {
+              "title": {
+                "zh-TW": "程式碼審查指令變更省，同樣品質但少燒四分之一額度",
+                "zh-CN": "代码审查命令变更省，同样质量但少烧四分之一额度",
+                "en": "Code review got leaner — same quality, a quarter less quota burned",
+                "ja": "コードレビューがより省エネに、品質はそのままでクォータ消費は 4 分の 1 減",
+                "ko": "코드 리뷰가 더 절약형으로, 품질은 그대로인데 할당량은 4 분의 1 덜 씀"
+              },
+              "body": {
+                "zh-TW": "`/code-review`（叫 AI 幫你審查程式碼找問題的指令）背後原本拆成五個各自獨立的「抓問題小幫手」分別跑一輪，現在合併成一個一起跑，審查品質不變，但消耗的 token（token，AI 讀寫文字計費的最小單位，你的用量額度就是用這個算的）少了大約四分之一。這就像原本派五個保全分頭巡邏五次，現在改成一個熟練的保全一次巡完全部範圍，一樣巡得到、但人事費省了四分之一。",
+                "zh-CN": "`/code-review`（叫 AI 帮你审查代码找问题的命令）背后原本拆成五个各自独立的“找问题小帮手”分别跑一轮，现在合并成一个一起跑，审查质量不变，但消耗的 token（token，AI 读写文字计费的最小单位，你的用量额度就是用这个算的）少了大约四分之一。这就像原本派五个保安分头巡逻五次，现在改成一个熟练的保安一次巡完全部范围，一样巡得到，但人事费省了四分之一。",
+                "en": "`/code-review` (the command that has the AI review your code for problems) used to run five separate 'issue-finder' passes behind the scenes. Now they're merged into one pass — same review quality, but token usage (token, the unit the AI's reading/writing is metered in, which is also what your usage quota counts) drops by roughly a quarter. It's like replacing five separate security guards each patrolling once with one experienced guard who covers the whole route in a single pass — same coverage, a quarter less payroll.",
+                "ja": "`/code-review`（AI にコードをレビューして問題を見つけてもらうコマンド）は裏側で、もともと 5 つの独立した「問題探し役」がそれぞれ 1 周ずつ走っていました。今はそれが 1 つにまとまって動くようになり、レビューの質はそのままに、トークン（token、AI が文章を読み書きする際の課金単位で、あなたの利用枠もこれで数えられます）消費量が約 4 分の 1 減りました。これは 5 人の警備員がそれぞれ 1 回ずつ巡回していたのを、熟練した警備員 1 人が 1 回で全範囲を回り切るようにしたようなもの——カバー範囲は同じなのに人件費は 4 分の 1 減ります。",
+                "ko": "`/code-review`（AI 가 코드를 검토해 문제를 찾아주는 명령）는 원래 뒤에서 다섯 개의 독립된 “문제 찾기 도우미”가 각각 한 바퀴씩 돌았습니다. 이제 하나로 합쳐져 같이 도는데, 검토 품질은 그대로면서 토큰（token，AI 가 글을 읽고 쓰는 데 매겨지는 단위로, 당신의 사용량 한도도 이걸로 계산됩니다） 소비량은 약 4 분의 1 줄었습니다. 마치 경비원 다섯 명이 각각 한 번씩 순찰하던 것을, 숙련된 경비원 한 명이 한 번에 전 구역을 다 도는 것으로 바꾼 것과 같습니다 — 순찰 범위는 같은데 인건비는 4 분의 1 절약됩니다."
+              },
+              "original": "Improved `/code-review` workflow: merged five cleanup finders into one, cutting token usage by roughly 25%."
+            },
+            {
+              "title": {
+                "zh-TW": "在終端機模式打指令時，檔案路徑會即時跳出來讓你選，不用自己一個字一個字拼",
+                "zh-CN": "在终端模式打命令时，文件路径会即时弹出来让你选，不用自己一个字一个字拼",
+                "en": "Typing commands in terminal mode now auto-suggests file paths as you go, no more spelling them out yourself",
+                "ja": "ターミナルモードでコマンドを打つとき、ファイルパスがその場で候補表示され、一文字ずつ打ち込む必要がなくなった",
+                "ko": "터미널 모드에서 명령을 칠 때 파일 경로가 즉시 후보로 떠서, 직접 한 글자씩 칠 필요 없음"
+              },
+              "body": {
+                "zh-TW": "在 Claude Code 裡按 `!` 切換到 bash 模式（直接打終端機指令、不經過 AI 對話的模式）打字時，現在輸入檔案路徑會即時跳出自動完成（autocomplete，打到一半就幫你列出可能的選項讓你選）建議清單，不用自己記清楚資料夾名稱再一個字一個字打對。就像你在搜尋引擎打字，還沒打完它就先幫你列出你可能要找的東西。",
+                "zh-CN": "在 Claude Code 里按 `!` 切换到 bash 模式（直接打终端命令、不经过 AI 对话的模式）打字时，现在输入文件路径会即时弹出自动完成（autocomplete，打到一半就帮你列出可能的选项让你选）建议清单，不用自己记清楚文件夹名称再一个字一个字打对。就像你在搜索引擎打字，还没打完它就先帮你列出你可能要找的东西。",
+                "en": "When you press `!` in Claude Code to drop into bash mode (typing raw terminal commands directly, bypassing the AI), typing a file path now triggers live autocomplete (autocomplete, a suggestion list that pops up partway through typing) — no need to remember and spell out exact folder names yourself. It's like a search engine that starts suggesting what you're looking for before you've finished typing.",
+                "ja": "Claude Code で `!` を押して bash モード（AI を介さず直接ターミナルコマンドを打つモード）に入ったとき、ファイルパスを入力すると今はリアルタイムでオートコンプリート（autocomplete、入力途中で候補を一覧表示してくれる機能）が出てくるようになりました。フォルダ名を正確に覚えて一文字ずつ打ち込む必要はありません。検索エンジンに文字を打っている途中で、もう欲しいものの候補を先に出してくれるようなものです。",
+                "ko": "Claude Code 에서 `!` 를 눌러 bash 모드（AI 를 거치지 않고 바로 터미널 명령을 입력하는 모드）로 들어가면, 이제 파일 경로를 입력할 때 실시간 자동완성（autocomplete，입력 도중 후보 목록을 보여주는 기능）이 나타납니다. 폴더 이름을 정확히 외워서 한 글자씩 칠 필요가 없습니다. 검색엔진에 글자를 다 치기도 전에 원하는 것을 먼저 추천해주는 것과 같습니다."
+              },
+              "original": "Added live file path autocomplete to bash mode (`!`)."
+            },
+            {
+              "title": {
+                "zh-TW": "`/clear` 清空對話後，`/rewind` 現在可以把清空前的內容拉回來",
+                "zh-CN": "`/clear` 清空对话后，`/rewind` 现在可以把清空前的内容拉回来",
+                "en": "After `/clear` wipes the conversation, `/rewind` can now bring back what came before it",
+                "ja": "`/clear` で会話を消去したあとも、`/rewind` で消去前の内容まで取り戻せるように",
+                "ko": "`/clear` 로 대화를 지운 뒤에도, `/rewind` 로 지우기 전 내용을 다시 불러올 수 있음"
+              },
+              "body": {
+                "zh-TW": "`/clear`（清空目前對話、讓 AI 忘記前面講過什麼的指令）以前一旦按下去，前面的對話就真的回不去了。現在 `/rewind`（倒帶，把對話拉回之前某個時間點的指令）支援連 `/clear` 之前的內容都能拉回來，等於多了一次反悔的機會。像你以前按下碎紙機就真的沒救了，現在碎紙機旁多了一台還原機，可以把紙條重新拼回去。",
+                "zh-CN": "`/clear`（清空目前对话、让 AI 忘记前面讲过什么的命令）以前一旦按下去，前面的对话就真的回不去了。现在 `/rewind`（倒带，把对话拉回之前某个时间点的命令）支持连 `/clear` 之前的内容都能拉回来，等于多了一次反悔的机会。像你以前按下碎纸机就真的没救了，现在碎纸机旁多了一台还原机，可以把纸条重新拼回去。",
+                "en": "Once you ran `/clear` (the command that wipes the current conversation so the AI forgets everything before it), there used to be no going back. Now `/rewind` (the command that rolls the conversation back to an earlier point) can reach back to before a `/clear`, giving you a second chance. It's like a paper shredder that used to be final — now there's a reconstruction machine next to it that can piece the strips back together.",
+                "ja": "`/clear`（現在の会話を消去して、それ以前の内容を AI に忘れさせるコマンド）は以前、一度押すと本当に元には戻りませんでした。今は `/rewind`（巻き戻し、会話を以前のある時点まで戻すコマンド）が `/clear` より前の内容まで遡れるようになり、やり直すチャンスが一つ増えました。以前はシュレッダーにかけたら本当に終わりだったのが、今はシュレッダーの横に復元機が置かれて、紙片をもう一度貼り合わせられるようになったようなものです。",
+                "ko": "`/clear`（현재 대화를 지워서 AI 가 이전 내용을 잊게 만드는 명령）는 예전에는 한 번 누르면 정말로 되돌릴 수 없었습니다. 이제 `/rewind`（되감기, 대화를 이전 어느 시점으로 되돌리는 명령）는 `/clear` 이전 내용까지도 다시 불러올 수 있어, 한 번 더 되돌릴 기회가 생겼습니다. 예전엔 파쇄기에 넣으면 정말 끝이었는데, 이제 파쇄기 옆에 복원기가 한 대 더 생겨 종이 조각을 다시 맞출 수 있게 된 것과 같습니다."
+              },
+              "original": "Added `/rewind` support for resuming a conversation from before `/clear` was run."
+            },
+            {
+              "title": {
+                "zh-TW": "從任務面板停掉的背景代理人，這次是真的停了，不會自己又活過來",
+                "zh-CN": "从任务面板停掉的后台智能体，这次是真的停了，不会自己又活过来",
+                "en": "Stopping a background agent from the tasks panel now actually stays stopped — no more resurrections",
+                "ja": "タスクパネルから止めたバックグラウンドエージェントは、今度こそ本当に止まったまま、勝手に生き返らない",
+                "ko": "작업 패널에서 정지시킨 백그라운드 에이전트가 이번엔 정말 멈춘 채로 있고, 저절로 되살아나지 않음"
+              },
+              "body": {
+                "zh-TW": "背景代理人（background agent，被分派出去獨立工作的子 AI）以前你在任務面板按下「停止」，結果它過一陣子又自己悄悄醒過來繼續跑，等於你的停止指令沒被真正遵守。現在修好了：按下停止就是永久停止，不會詐屍。就像你以前拔掉吸塵器插頭，它過幾分鐘又自己插回去運轉；現在拔掉就是真的關機。",
+                "zh-CN": "后台智能体（background agent，被分派出去独立工作的子 AI）以前你在任务面板按下“停止”，结果它过一阵子又自己悄悄醒过来继续跑，等于你的停止指令没被真正遵守。现在修好了：按下停止就是永久停止，不会“诈尸”。就像你以前拔掉吸尘器插头，它过几分钟又自己插回去运转；现在拔掉就是真的关机。",
+                "en": "Background agents (helper AIs spawned to work independently) used to occasionally wake themselves back up and keep running a while after you'd hit 'stop' in the tasks panel — your stop command wasn't really being honored. Now it's fixed: stopping an agent is permanent, no resurrections. It's like a vacuum cleaner that used to plug itself back in and start running again a few minutes after you unplugged it; now unplugging it actually means it stays off.",
+                "ja": "バックグラウンドエージェント（background agent、独立して仕事をするために分担させられる子 AI）は以前、タスクパネルで「停止」を押しても、しばらくするとこっそり目を覚まして動き続けることがありました。あなたの停止指示が本当には守られていなかったわけです。今は修正され、停止させたら本当に永久停止します、生き返りません。掃除機のコンセントを抜いたのに数分後にまた自分で差し込んで動き出していたのが、今はコンセントを抜けば本当に電源が切れたままになるようなものです。",
+                "ko": "백그라운드 에이전트（background agent，독립적으로 일하도록 분배된 자식 AI）는 예전에는 작업 패널에서 “정지”를 눌러도 잠시 후 몰래 다시 깨어나 계속 돌아가는 경우가 있었습니다. 당신의 정지 명령이 제대로 지켜지지 않은 셈이었죠. 이제 수정되어, 정지시키면 영구적으로 정지하고 다시 살아나지 않습니다. 청소기 플러그를 뽑았는데 몇 분 후 저절로 다시 꽂혀 돌아가던 것이, 이제는 뽑으면 정말로 꺼진 채 있는 것과 같습니다."
+              },
+              "original": "Fixed background agents resurrecting after being stopped — stopping an agent from the tasks panel is now permanent."
+            },
+            {
+              "title": {
+                "zh-TW": "AI 一個字一個字吐出回答時，現在不會再把你的電腦風扇逼到狂轉",
+                "zh-CN": "AI 一个字一个字吐出回答时，现在不会再把你的电脑风扇逼到狂转",
+                "en": "While the AI streams its answer word by word, your computer's fan no longer has to work overtime",
+                "ja": "AI が回答を一文字ずつ吐き出している間、もうパソコンのファンを全開で回させることはない",
+                "ko": "AI 가 답을 한 글자씩 토해낼 때, 이제 컴퓨터 팬을 풀가동시키지 않음"
+              },
+              "body": {
+                "zh-TW": "AI 用串流（streaming，AI 一邊想一邊把文字逐字吐出來、不用等全部想完才顯示的方式）方式輸出回答時，系統以前是每收到一點新文字就立刻重新畫一次畫面，很耗電腦資源。現在改成把文字更新合併、每 100 毫秒（千分之一秒）統一刷新一次，CPU（處理器，電腦的大腦，負責執行運算）使用量降低了大約三分之一強。這就像以前服務生每端一口菜就跑一趟廚房，現在改成湊滿一輪菜再一起端出來，跑的趟數少了，人也不會那麼喘。",
+                "zh-CN": "AI 用流式（streaming，AI 一边想一边把文字逐字吐出来、不用等全部想完才显示的方式）方式输出回答时，系统以前是每收到一点新文字就立刻重新画一次画面，很耗电脑资源。现在改成把文字更新合并、每 100 毫秒（千分之一秒）统一刷新一次，CPU（处理器，电脑的大脑，负责执行运算）使用量降低了大约三分之一强。这就像以前服务员每端一口菜就跑一趟厨房，现在改成凑满一轮菜再一起端出来，跑的趟数少了，人也不会那么喘。",
+                "en": "When the AI streams its answer (streaming, writing text out token by token instead of waiting until it's fully done), the system used to redraw the screen every single time a little new text arrived, which was hard on your machine. Now text updates are batched and redrawn once every 100 milliseconds (a thousandth of a second), cutting CPU usage (CPU, your computer's 'brain' that does the actual computing) by roughly a third. It's like a waiter who used to run to the kitchen for every single bite of food, now waiting to carry out a full round of dishes at once — fewer trips, less out of breath.",
+                "ja": "AI がストリーミング（streaming、考えながら文字を一字ずつ吐き出していき、全部考え終わるのを待たずに表示する方式）で回答を出すとき、以前は少しでも新しい文字が来るたびに画面を描き直していて、コンピューターの負荷が大きくなっていました。今はテキスト更新をまとめて 100 ミリ秒（千分の一秒）ごとに一括で描き直す方式に変わり、CPU（コンピューターの「脳」にあたる、計算を担う部品）の使用量が約 3 分の 1 強減りました。これは以前、ウェイターが料理を一口分運ぶたびに厨房まで走っていたのを、ひと揃い分まとめて一度に運ぶように変えたようなもの——往復が減って、息も切れにくくなります。",
+                "ko": "AI 가 스트리밍（streaming，다 생각하고 나서가 아니라 한 글자씩 토해내며 답하는 방식）으로 답을 내놓을 때, 예전에는 새 글자가 조금만 와도 화면을 매번 다시 그려서 컴퓨터에 부담이 컸습니다. 이제는 텍스트 업데이트를 모아서 100 밀리초（천분의 1 초）마다 한 번씩 갱신하도록 바뀌어, CPU（컴퓨터의 “뇌”에 해당하며 연산을 담당하는 부품） 사용량이 약 3 분의 1 넘게 줄었습니다. 마치 종업원이 음식을 한 입씩 나를 때마다 주방을 오가던 것을, 한 차례 분량을 모아서 한 번에 나르도록 바꾼 것과 같습니다 — 왕복이 줄어 덜 헐떡이게 됩니다."
+              },
+              "original": "Reduced CPU usage during streaming responses by ~37% by coalescing text updates to 100ms."
+            }
+          ]
         }
       ]
     },
     {
       "id": "codex",
       "name": "Codex",
-      "version": "0.142.4",
-      "period": "2026-06-25 ~ 06-29",
-      "items": [
+      "versions": [
         {
-          "title": {
-            "zh-TW": "公司網路設了代理伺服器也能正常登入，Windows 版終於跟上了",
-            "zh-CN": "公司网络设了代理服务器也能正常登录，Windows 版终于跟上了",
-            "en": "Logging in still works even behind a corporate proxy — Windows finally caught up",
-            "ja": "会社のプロキシ環境でも問題なくログインできるように、Windows 版がようやく対応",
-            "ko": "회사 프록시 환경에서도 로그인이 정상 작동, Windows 버전이 드디어 따라옴"
-          },
-          "body": {
-            "zh-TW": "如果你公司網路要求所有連線都要先過一道代理伺服器（proxy，幫你的網路請求轉手繼承送出去的中介站，常見於公司防火牆環境）才能出去，Windows 上的 Codex 登入流程以前不認得這個設定，現在可以選擇性開啟，支援 PAC（自動設定腳本）、WPAD（自動偵測代理位置）、固定代理位址，以及「哪些網址不要走代理」的例外規則。這就像你家信箱以前規定信一定要先送到社區警衛室才能轉交，現在系統終於認得這條規定，不會把信卡在半路。",
-            "zh-CN": "如果你公司网络要求所有连接都要先过一道代理服务器（proxy，帮你的网络请求转手发送出去的中介站，常见于公司防火墙环境）才能出去，Windows 上的 Codex 登录流程以前不认得这个设置，现在可以选择性开启，支持 PAC（自动配置脚本）、WPAD（自动侦测代理位置）、固定代理地址，以及“哪些网址不走代理”的例外规则。这就像你家信箱以前规定信一定要先送到小区警卫室才能转交，现在系统终于认得这条规定，不会把信卡在半路。",
-            "en": "If your company network routes everything through a proxy (proxy, a middleman server your network requests get handed off through, common on corporate firewalls) before it can reach the internet, Codex's Windows login flow used to not understand that setup. Now you can opt in to support for PAC (auto-config scripts), WPAD (auto-discovering the proxy), static proxy addresses, and bypass rules for which destinations skip the proxy. It's like a mailbox rule that always required mail to go through the building's security desk first — the system finally understands that rule, so your mail doesn't get stuck halfway.",
-            "ja": "会社のネットワークがすべての通信を一度プロキシ（proxy、ネットワークの要求を代わりに取り次いで送り出す中継サーバーで、社内ファイアウォール環境でよく使われます）経由にしている場合、Windows 版 Codex のログイン処理は以前この設定を理解していませんでした。今はオプトインで有効化でき、PAC（自動設定スクリプト）、WPAD（プロキシ位置の自動検出）、固定プロキシアドレス、そして「どの宛先はプロキシを通さないか」の例外ルールに対応しています。自宅の郵便受けが「必ず管理人室を経由してから配達」というルールだったのに、システムがそのルールをずっと理解していなかったのが、ようやく理解して郵便が途中で詰まらなくなったようなものです。",
-            "ko": "회사 네트워크가 모든 연결을 프록시（proxy，네트워크 요청을 대신 전달해 보내는 중계 서버로, 회사 방화벽 환경에서 흔함）를 거치도록 요구한다면, Windows 의 Codex 로그인 과정은 예전엔 이 설정을 이해하지 못했습니다. 이제는 선택적으로 켤 수 있으며, PAC（자동 설정 스크립트）, WPAD（프록시 위치 자동 감지）, 고정 프록시 주소, 그리고 “어떤 주소는 프록시를 거치지 않는다”는 예외 규칙을 지원합니다. 우편함이 항상 경비실을 거쳐야 전달되도록 정해져 있었는데, 시스템이 드디어 그 규칙을 이해해서 편지가 중간에 막히지 않게 된 것과 같습니다."
-          },
-          "original": "Added opt-in Windows system proxy support for authentication, including PAC, WPAD, static proxies, and bypass rules."
+          "version": "0.143.0-alpha.38",
+          "period": "2026-07-01 ~ 07-08",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "修正日誌寫入頻率過高的問題，拯救你的固態硬碟壽命",
+                "zh-CN": "修正日志写入频率过高的问题，拯救你的固态硬盘寿命",
+                "en": "Fixed high-frequency logging that generated massive disk writes, saving your SSD",
+                "ja": "ログの超高頻度な書き込みバグを修正、あなたの SSD の寿命を守る",
+                "ko": "로그의 초고빈도 쓰기 버그를 수정하여 소중한 SSD 의 수명을 보호함"
+              },
+              "body": {
+                "zh-TW": "為了避免 AI 運作時在背景瘋狂寫入日誌縮短你的硬碟壽命，系統移除了過於頻繁的資料庫記錄。以前系統預設開啟 TRACE 等級（TRACE，最詳細、連每一秒傳遞了什麼細微資料都記錄下來的偵錯等級），會把巨量的 WebSocket 資料與檔案系統異動反覆寫入本機 `~/.codex/logs_2.sqlite` 資料庫，產生嚴重的寫入放大（write amplification，寫入硬碟的資料量遠大於實際檔案大小的現象），一年下來可能寫入高達 640 TB 的巨量資料，嚴重威脅固態硬碟（SSD，固態硬碟，電腦儲存資料的硬碟）的壽命；現在把這些囉唆的通訊過程從資料庫裡拿掉，寫入量幾乎降到零。這就像以前助理把跟你講的每一字、呼吸的每一口氣都拿筆刻在木板上，一小時就堆滿一整個倉庫；現在改成只記重要結論，省下了大片森林。",
+                "zh-CN": "为了避免 AI 运行时在后台疯狂写入日志缩短你的硬盘寿命，系统移除了过于频繁的数据库记录。以前系统默认开启 TRACE 等级（TRACE，最详细、连每一秒传递了什么细微数据都记录下来的调试等级），会把巨量的 WebSocket 数据与文件系统异动反复写入本机 `~/.codex/logs_2.sqlite` 数据库，产生严重的写入放大（write amplification，写入硬盘的数据量远大于实际文件大小的现象），一年下来可能写入高达 640 TB 的巨量数据，严重威胁固态硬盘（SSD，固态硬盘，电脑存储数据的硬盘）的寿命；现在把这些啰唆的通讯过程从数据库里拿掉，写入量几乎降到零。这就像以前助理把你跟讲的每一字、呼吸的每一口气都拿笔刻在木板上，一小时就堆满一整个仓库；现在改成只记重要结论，省下了大片森林。",
+                "en": "To protect your physical drive from being worn down by excessive background logging, the system stopped saving noisy connection events. Previously, the logs defaulted to TRACE level (TRACE, the most verbose debugging level that records every tiny bit of activity second-by-second), continuously saving huge WebSocket packets and file changes to `~/.codex/logs_2.sqlite`. This created massive write amplification (write amplification, a phenomenon where the actual volume of data written to physical storage is far larger than the logical file size), racking up to 640 TB of disk writes a year and risking premature solid-state drive (SSD, the high-speed storage drive in your computer) failure. These verbose bridge events are now ignored, dropping disk writes to near zero. It's like an assistant writing down every single word you speak and breath you take by carving them into wooden blocks, filling a whole warehouse in an hour; now he only logs key decisions, saving a forest.",
+                "ja": "バックグラウンドの過剰なログ書き込みでハードディスクの寿命が縮むのを防ぐため、不要なデータ保存処理が廃止されました。以前はデバッグ設定が TRACE レレベル（TRACE、1 秒ごとの極小のデータ通信や動作まで全て詳細に記録する、最もおしゃべりなデバッグ設定）になっていたため、膨大な WebSocket 通信やファイル変更情報が `~/.codex/logs_2.sqlite` データベースへ絶えず書き込まれていました。これにより深刻な書き込み増幅（write amplification，実際に書き込まれた物理データ量が元のファイルサイズより肥大化する現象）が発生し、1 年間で最大 640 TB もの書き込みが行われ、ソリッドステートドライブ（SSD、データを保存するパソコンの高速ドライブ）の寿命を縮めていました。今は不要な通信記録を保存しないように修正され、ディスク書き込み量はほぼゼロになりました。これは、アシスタントがあなたの発言だけでなく呼吸の一つ一つまで木板に彫り刻んで記録し、1 時間で倉庫をいっぱいにしていたのを、重要な決定事項だけをメモ帳に書くように改めて、森林資源を節約したようなものです。",
+                "ko": "AI 가 돌아가는 동안 보이지 않는 곳에서 로그를 과도하게 써서 디스크 수명을 단축시키던 결함을 해결하고자, 너무 빈번하게 이루어지던 데이터베이스 쓰기 동작을 제거했습니다. 예전에는 로그 세부 등급이 TRACE 레벨（TRACE, 매초 발생하는 미세한 연결 상태나 파일 변경까지 전부 낱낱이 기록하는 가장 세밀한 디버깅 등급）로 켜진 탓에, 막대한 WebSocket 데이터와 파일 이벤트가 로컬 `~/.codex/logs_2.sqlite` 데이터베이스에 쉴 새 없이 쓰였습니다. 이로 인해 디스크 쓰기 증폭（write amplification, 실제 파일 크기보다 물리적 디스크에 쓰이는 데이터 용량이 훨씬 불어나는 현상）이 일어났고, 연간 최대 640 TB 에 달하는 용량을 쓰고 지우기를 반복해 솔리드 스테이트 드라이브（SSD, 컴퓨터 내에서 파일 저장을 담당하는 고속 하드디스크） 수명을 단축하고 있었습니다. 이제 상세 이벤트 영구 저장이 해제되어 쓰기 동작이 거의 소멸했습니다. 마치 조수가 당신이 하는 모든 말과 숨소리까지 컴퓨터 내부의 데이터베이스에 일일이 깎아 새기는 바람에 한 시간 만에 창고를 가득 채우던 것을, 이제 핵심 메모만 노트에 적도록 바꾸어 자원을 아끼게 된 것과 같습니다."
+              },
+              "original": "Fixed critical SQLite TRACE-level database logging causing severe write amplification and high SSD wear (up to 640TB/year) by stopping bridging verbose log events."
+            },
+            {
+              "title": {
+                "zh-TW": "偵錯日誌不再記錄連線內容，保障你的對話與程式碼安全",
+                "zh-CN": "调试日志不再记录连线内容，保障你的对话与代码安全",
+                "en": "Debug logs no longer save raw connection payloads, protecting your code privacy",
+                "ja": "デバッグログに生データ通信の中身を残さないよう変更、コードと会話のプライバシー保護",
+                "ko": "디버깅 로그에 통신 데이터 원본을 저장하지 않도록 변경하여 코드와 대화 내용 보안 강화"
+              },
+              "body": {
+                "zh-TW": "為了保護你的程式碼私密性與個人敏感資料不外洩，偵錯日誌現在不會再記錄原始連線內容。以前系統在進行偵錯時，會把對話中傳輸的 WebSocket payloads（WebSocket payloads，透過網路即時傳輸資料時承載的原始內容封包，包括你輸入的程式碼和對話）一字不漏地寫入本機明文追蹤日誌（trace logs，追蹤日誌，記錄程式執行詳細過程的文字檔）中，有安全隱憂；現在已加強安全防護、將這些原始資訊自動遮蔽過濾。這就像快遞公司的包裹追蹤系統以前會把箱子裡面的所有財物明細貼在箱子外面，現在改成只顯示包裹單號，保護你的隱私不被路人看光。",
+                "zh-CN": "为了保护你的代码私密性与个人敏感数据不外泄，调试日志现在不会再记录原始连线内容。以前系统在进行调试时，会把对话中传输的 WebSocket payloads（WebSocket payloads，通过网络即时传输数据时承载的原始内容数据包，包括你输入的代码和对话）一字不漏地写入本机明文追踪日志（trace logs，追踪日志，记录程序运行详细过程的文字文件）中，有安全隐忧；现在已加强安全防护、将这些原始信息自动遮蔽过滤。这就像快递公司的包裹追踪系统以前会把箱子里面的所有财物明细贴在箱子外面，现在改成只显示包裹单号，保护你的隐私不被路人看光。",
+                "en": "To protect your confidential code and private data from accidental leaks, debug logs no longer save raw connection messages. Previously, the app recorded full WebSocket payloads (WebSocket payloads, the raw data packets transmitted over the network containing your code and messages) directly inside local plain-text trace logs (trace logs, detailed text files that record the application's step-by-step runtime operations) during debug sessions; now these are automatically stripped. It's like a courier company's package tracking system that used to print the exact contents of your box on the shipping label; now it only shows a tracking number to keep your items private.",
+                "ja": "ソースコードの秘密や個人情報が意図せず流出するのを防ぐため、デバッグ用の記録に生データを残さなくなりました。以前はトラブルシューティングの際、会話やツールとやり取りする生データの WebSocket payloads（WebSocket payloads，ネットワーク経由でやり取りされるコードや会話を含む元データの塊）が、パソコン内の追跡ログ（trace logs，システムの詳細な動きをテキストとして記録したファイル）へ平文でそのまま保存されるセキュリティリスクがありました。現在はこれらが自動的にマスクされます。これは、配送会社の追跡システムが以前、送り状に箱の中身の貴重品リストを丸見えで印刷していたのを、追跡番号だけを表示するように改めて、荷物のプライバシーを守るようにしたようなものです。",
+                "ko": "중요 코드나 개인 정보가 의도치 않게 유출되는 것을 차단하기 위해, 디버깅용 텍스트에 통신 데이터 원본을 포함하지 않도록 수정했습니다. 예전에는 디버깅 과정에서 오가는 WebSocket payloads（WebSocket payloads, 네트워크상에서 실시간으로 대화 내용이나 작성된 코드를 실어 나르는 날것의 데이터 패키지）를 로컬 추적 로그（trace logs, 프로그램이 돌며 상세 과정을 기록해 두는 텍스트 파일）에 평문으로 다 적어두어 정보 노출 위험이 높았습니다. 이제는 이 내용이 자동 필터링됩니다. 마치 택배 송장에 상자 내부의 상세 물품 목록과 금액을 그대로 인쇄해 붙이던 것을, 이제 단순 배송 번호만 적도록 바꾸어 물건 주인의 비밀을 보장하는 것과 같습니다."
+              },
+              "original": "Security: Prevented full 'Responses' WebSocket request payloads from being written to trace logs."
+            },
+            {
+              "title": {
+                "zh-TW": "支援 Amazon Bedrock 上的最新 GPT-5.6 系列模型",
+                "zh-CN": "支持 Amazon Bedrock 上的最新 GPT-5.6 系列模型",
+                "en": "Support added for the newest GPT-5.6 models on Amazon Bedrock",
+                "ja": "Amazon Bedrock の最新モデル GPT-5.6 シリーズに対応",
+                "ko": "Amazon Bedrock 의 최신 GPT-5.6 모델 제품군 지원"
+              },
+              "body": {
+                "zh-TW": "為了讓你能立即使用最新的強大人工智慧，系統已經將最新版模型納入支援清單。當你透過 Amazon Bedrock（Amazon Bedrock，亞馬遜雲端託管各大品牌 AI 模型的服務平台）串接模型時，現在可以直接選用最新的 GPT-5.6 變體模型（包括 Sol、Terra、Luna 等不同大小規格的版本），免去你自己手動寫設定來新增模型名稱的麻煩。這就像是你在串流平台上，系統自動幫你把最新上映的電影分類列在首頁推薦，你點一下就能直接播放，不用自己大費周章去搜尋片源。",
+                "zh-CN": "为了让你能立即使用最新的强大人工智能，系统已经将最新版模型纳入支持清单。当你通过 Amazon Bedrock（Amazon Bedrock，亚马逊云端托管各大品牌 AI 模型的服务平台）串接模型时，现在可以直接选用最新的 GPT-5.6 变体模型（包括 Sol、Terra、Luna 等不同大小规格的版本），免去你自己手动写设置来新增模型名称的麻烦。这就像是你在流媒体平台上，系统自动帮你把最新上映的电影分类列在首页推荐，你点一下就能直接播放，不用自己大费周章去搜寻片源。",
+                "en": "To let you immediately harness the power of the newest AI developments, the model selector now supports the latest GPT-5.6 variants. If you access models via Amazon Bedrock (Amazon Bedrock, Amazon's cloud hosting platform for top-tier AI models), you can now choose GPT-5.6 (including the Sol, Terra, and Luna sizes) directly from the list, without having to manually edit config files to map them. It's like a video streaming app automatically listing the newest blockbuster movie directly on your home screen, ready to play with one click, instead of making you hunt down the raw file path yourself.",
+                "ja": "最新の強力な AI を今すぐ仕事に活用できるようにするため、最新モデルが利用可能な対応リストへ追加されました。Amazon Bedrock（Amazon Bedrock、Amazon がクラウド上で各社の高性能 AI モデルをまとめて提供するサービス）を経由して接続する際、最新の GPT-5.6 シリーズ（Sol、Terra、Luna という各スケールのモデル）を簡単に選択して利用でき、手書きで設定ファイルを修正する面倒がなくなりました。これは、動画ストリーミングサイトで最新の映画が自動的にホーム画面のトップに掲載され、クリックするだけで再生できるようになったのと同じです。怪しい動画ファイルを自分で探し回る必要はありません。",
+                "ko": "출시된 최신 대화 모델을 개발 업무에 곧장 도입할 수 있도록, 시스템의 기본 지원 리스트를 확장했습니다. Amazon Bedrock（Amazon Bedrock, 아마존 클라우드에서 여러 대형 AI 모델을 간편하게 빌려 쓸 수 있게 해주는 서비스）을 사용하는 도중 새로운 GPT-5.6 변형 모델들（Sol, Terra, Luna 등 체급이 다른 버전들）을 별도의 환경 설정 파일을 뜯어고쳐 매핑하지 않고도 바로 골라 사용할 수 있습니다. 마치 영상 서비스 플랫폼에서 새로 개봉한 영화를 메인 화면에 띄워주어 단 한 번의 클릭만으로 감상할 수 있게 한 것과 같습니다. 직접 파일 소스를 찾아 등록하지 않아도 됩니다."
+              },
+              "original": "Added support for GPT-5.6 variants (Sol, Terra, Luna) to the static Amazon Bedrock catalog."
+            },
+            {
+              "title": {
+                "zh-TW": "整理 AI 多代理人分工的防摔欄設定，派小助手工作更穩健",
+                "zh-CN": "整理 AI 多智能体分工的防摔栏设置，派小助手工作更稳健",
+                "en": "Cleaned up multi-agent guardrails, making helper delegation more reliable",
+                "ja": "複数 AI の分担ルールを整理し、子エージェントへの業務委託をより安定化",
+                "ko": "여러 에이전트의 분업 안전 규칙을 정리하여 동시 다발적 작업의 신뢰성 보장"
+              },
+              "body": {
+                "zh-TW": "為了提高大任務自動拆解與多工協作的成功率，系統最佳化了多個代理人之間的派發邏輯。現在系統在進行 multi-agent delegation（multi-agent delegation，一個主 AI 為了完成工作，分頭派工作給多個小助手 AI 合作的機制）時，會套用重新整理過、最穩健的第一版引導方針，並清理了可能阻礙子代理人協作的規則，防止助手們互相干擾卡死。這就像是辦公室主管在給實習生分配任務時，重新整理了「分工守則」，講清楚誰做什麼、怎麼回報，讓小助手們不會因為權限打架而呆立在現場、不知道該聽誰的。",
+                "zh-CN": "为了提高大任务自动拆解与多工协作的成功率，系统优化了多个智能体之间的派发逻辑。现在系统在进行 multi-agent delegation（multi-agent delegation，一个主 AI 为了完成工作，分头派工作给多个小助手 AI 合作的机制）时，会套用重新整理过、最稳健的第一版引导方针，并清理了可能阻碍子智能体协作的规则，防止助手们互相干扰卡死。这就像是办公室主管在给实习生分配任务时，重新整理了“分工守则”，讲清楚谁做什么、怎么回报，让小助手们不会因为权限打架而呆立在现场、不知道该听谁的。",
+                "en": "To improve the success rate of breaking down big tasks into concurrent workflows, the delegation manager has streamlined its dispatch rules. During multi-agent delegation (multi-agent delegation, a workflow where one main AI assigns and divides work among several assistant AIs working together), the app now enforces the robust v1 layout instructions and sweeps away redundant guardrail blocks, keeping helpers moving without gridlock. It's like an office manager updating the team handbook to clarify exactly who does what and how to report back, so assistants don't end up standing around frozen because of conflicting instructions.",
+                "ja": "複雑なタスクを効率よく自動分割して並行処理させるため、エージェント間の連携ロジックがクリーンアップされました。multi-agent delegation（multi-agent delegation，主となる AI が仕事を分割し、別々の分野の担当 AI に仕事を委託して協力させる仕組み）を実行する際、一番安定していた初期バージョン（v1）の動作ガイダンスを復元し、意図せずエージェント同士を足止めしていた無駄な制約を整理したことで、作業中のフリーズを防ぎます。これは、チームリーダーが新入社員に指示を出すときの「作業マニュアル」を整理し直し、誰が何を担当するのか、互いの仕事がどう影響し合うのかを明確にして、お互いの指示がバッティングして身動きが取れなくなるのを防いだようなものです。",
+                "ko": "대형 과제를 작게 쪼개어 여러 서브 AI 에게 협업시킬 때의 분업 성공률을 높이기 위해, 에이전트 간 전달 코드를 보강했습니다. multi-agent delegation（multi-agent delegation, 대표 AI 가 업무 효율을 높이기 위해 특정 분야의 전문 서브 AI 들에게 일을 나누어 맡기는 협업 방식） 실행 시 검증된 1 세대 가이드라인으로 회귀하고, 에이전트들끼리 상호 진행을 간섭하여 멈추게 하던 예외 규칙들을 정돈해 작업 마비를 제거했습니다. 마치 프로젝트 매니저가 업무 분장 규칙을 더 명쾌하게 다듬어, 사원들이 서로의 눈치만 보며 다음 단계를 수행하지 못하고 엉거주춤 멈춰 서 있는 병목 현상을 방지한 것과 같습니다."
+              },
+              "original": "Restored v1 delegation guidance and cleaned up multi-agent delegation guardrail configurations."
+            }
+          ]
         },
         {
-          "title": {
-            "zh-TW": "AI 要找外掛工具時，現在會先「搜尋」再用，找工具更準也更快",
-            "zh-CN": "AI 要找插件工具时，现在会先“搜索”再用，找工具更准也更快",
-            "en": "When the AI needs a plugin tool, it now searches for it first — faster and more accurate",
-            "ja": "AI がプラグインのツールを探すとき、今はまず「検索」してから使うように、より正確で速い",
-            "ko": "AI 가 플러그인 도구를 찾을 때 이제 먼저 “검색”한 뒤 쓰며, 더 정확하고 빠름"
-          },
-          "body": {
-            "zh-TW": "當你接了很多 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）外掛伺服器時，AI 以前得把所有工具的說明書整本塞進腦袋裡才知道有什麼可以用。現在如果環境支援，AI 改成用「搜尋」（tool search，AI 用查詢的方式臨時找出需要的工具，而不是整本背起來）的方式找工具，找得更準，舊型號的模型跟舊版外掛也都還能正常運作。這就像以前你進圖書館得把整層樓的書名都背下來才知道哪本有用，現在改成直接用搜尋系統查「我要找什麼」，馬上指給你看在哪一格。",
-            "zh-CN": "当你接了很多 MCP（Model Context Protocol，让 AI 连接外部工具的协议）插件服务器时，AI 以前得把所有工具的说明书整本塞进脑袋里才知道有什么可以用。现在如果环境支持，AI 改成用“搜索”（tool search，AI 用查询的方式临时找出需要的工具，而不是整本背起来）的方式找工具，找得更准，旧型号的模型跟旧版插件也都还能正常运作。这就像以前你进图书馆得把整层楼的书名都背下来才知道哪本有用，现在改成直接用搜索系统查“我要找什么”，马上指给你看在哪一格。",
-            "en": "When you've hooked up a lot of MCP servers (Model Context Protocol, the standard that lets the AI talk to external tools), the AI used to have to memorize every tool's full instruction manual just to know what was available. Now, where supported, the AI uses tool search instead (tool search, looking up the specific tool it needs on demand rather than memorizing the whole catalog), finding tools more accurately, while older models and plugins keep working fine. It's like having to memorize every book title on a whole library floor just to find one useful book — now you just search for what you want and get pointed straight to the shelf.",
-            "ja": "MCP（Model Context Protocol、AI が外部ツールとつながるための取り決め）サーバーをたくさん接続しているとき、AI は以前すべてのツールの説明書を丸ごと頭に詰め込まないと何が使えるか分かりませんでした。今は対応環境であれば、AI はツールサーチ（tool search、丸暗記するのではなく必要なときに必要なツールをクエリで探す方式）でツールを探すようになり、より正確に見つけられます。古いモデルや古いプラグインも引き続き問題なく動きます。これは以前、図書館のフロア中の本のタイトルを全部覚えないと使える本が分からなかったのを、検索システムで「これが欲しい」と探せば、すぐその棚を指し示してもらえるようになったようなものです。",
-            "ko": "MCP（Model Context Protocol，AI 가 외부 도구와 연결되는 규약）서버를 많이 연결해두면, AI 는 예전엔 모든 도구의 설명서를 통째로 외워야만 뭐가 쓸 수 있는지 알 수 있었습니다. 이제는 지원되는 환경에서 AI 가 도구 검색（tool search，통째로 외우는 대신 필요할 때 질의로 필요한 도구를 찾는 방식）으로 도구를 찾아 더 정확하게 찾아내며, 구형 모델과 구버전 플러그인도 그대로 잘 작동합니다. 마치 예전엔 도서관 한 층의 책 제목을 전부 외워야 쓸만한 책을 찾을 수 있었던 것을, 이제는 검색 시스템에 “이걸 찾는다”고 물으면 바로 그 칸을 가리켜주는 것과 같습니다."
-          },
-          "original": "MCP tools now use tool search by default when supported, improving tool discovery while preserving compatibility with older models and providers."
-        },
-        {
-          "title": {
-            "zh-TW": "外掛圖示在深色模式下不會再刺眼，可以自己準備一張暗色版",
-            "zh-CN": "插件图标在深色模式下不会再刺眼，可以自己准备一张暗色版",
-            "en": "Plugin icons no longer clash in dark mode — developers can ship a dedicated dark version",
-            "ja": "ダークモードでもプラグインアイコンが浮かなくなった、専用のダーク版を用意できる",
-            "ko": "다크 모드에서 플러그인 아이콘이 더 이상 튀지 않으며, 전용 다크 버전을 따로 준비 가능"
-          },
-          "body": {
-            "zh-TW": "外掛（plugin，幫 Codex 擴充額外功能的附加套件）的開發者現在可以額外準備一張「深色模式」（dark mode，背景偏黑、適合夜間使用的顯示模式）專用的圖示，透過外掛自己的設定檔或遠端外掛商店提供，當你切到深色介面時就會自動換成這張，不會再出現亮色圖示在暗背景上突兀刺眼的狀況。",
-            "zh-CN": "插件（plugin，帮 Codex 扩展额外功能的附加套件）的开发者现在可以额外准备一张“深色模式”（dark mode，背景偏黑、适合夜间使用的显示模式）专用的图标，通过插件自己的配置文件或远程插件商店提供，当你切到深色界面时就会自动换成这张，不会再出现亮色图标在暗背景上突兀刺眼的状况。",
-            "en": "Plugin (plugin, an add-on package that extends Codex with extra features) developers can now ship a dedicated dark-mode (dark mode, the dark-background display mode meant for low-light use) icon, supplied through the plugin's own manifest or a remote plugin store, which swaps in automatically when you switch to a dark interface — no more glaring light-colored icons sitting on a dark background.",
-            "ja": "プラグイン（plugin、Codex に追加機能を加える拡張パッケージ）の開発者は今、専用の「ダークモード」（dark mode、背景が黒っぽく夜間利用向けの表示モード）用アイコンを別途用意できるようになりました。プラグイン自身のマニフェストやリモートのプラグインストア経由で提供され、ダーク表示に切り替えると自動的にこちらに差し替わります。暗い背景に明るいアイコンが浮いて見えることもなくなります。",
-            "ko": "플러그인（plugin，Codex 에 추가 기능을 더해주는 부가 패키지）개발자는 이제 전용 다크 모드（dark mode，배경이 어둡고 야간 사용에 적합한 표시 모드）아이콘을 따로 준비할 수 있습니다. 플러그인 자체 매니페스트나 원격 플러그인 스토어를 통해 제공되며, 다크 화면으로 전환하면 자동으로 이 아이콘으로 바뀌어, 어두운 배경에 밝은 아이콘이 튀어 보이는 일이 없어집니다."
-          },
-          "original": "Plugins can provide dedicated dark-mode logos through local manifests and remote catalogs."
-        },
-        {
-          "title": {
-            "zh-TW": "用 Amazon Bedrock 的金鑰過期了，現在會直接告訴你怎麼修，不再只丟一句「沒授權」",
-            "zh-CN": "用 Amazon Bedrock 的密钥过期了，现在会直接告诉你怎么修，不再只丢一句“没授权”",
-            "en": "Expired Amazon Bedrock credentials now tell you exactly how to fix it, not just \"unauthorized\"",
-            "ja": "Amazon Bedrock の資格情報が切れても、今は直し方をはっきり教えてくれる、ただの「権限なし」では終わらない",
-            "ko": "Amazon Bedrock 자격 증명이 만료돼도 이제 고치는 법을 정확히 알려줌, 단순히 \"권한 없음\"으로 끝나지 않음"
-          },
-          "body": {
-            "zh-TW": "如果你是透過 Amazon Bedrock（亞馬遜雲端的 AI 服務平台）的方式連接模型，以前憑證（credentials，用來證明你有權限使用服務的金鑰）過期時，系統只會丟出一句很籠統的「沒有授權」錯誤，你得自己猜到底是哪裡出了問題。現在會直接告訴你具體該怎麼處理、怎麼重新取得有效憑證。就像以前提款機只顯示「卡片有問題」，現在改成寫清楚「卡片過期了，請去櫃台辦新卡」。",
-            "zh-CN": "如果你是通过 Amazon Bedrock（亚马逊云端的 AI 服务平台）的方式连接模型，以前凭证（credentials，用来证明你有权限使用服务的密钥）过期时，系统只会丢出一句很笼统的“没有授权”错误，你得自己猜到底是哪里出了问题。现在会直接告诉你具体该怎么处理、怎么重新获取有效凭证。就像以前提款机只显示“卡片有问题”，现在改成写清楚“卡片过期了，请去柜台办新卡”。",
-            "en": "If you connect to a model through Amazon Bedrock (Amazon's cloud AI platform), expired credentials (credentials, the keys that prove you're allowed to use the service) used to just throw a vague 'unauthorized' error, leaving you to guess what actually went wrong. Now it tells you exactly what to do and how to get a valid credential again. It's like an ATM that used to just say 'card problem' now spelling out 'card expired, please get a new one at the counter.'",
-            "ja": "Amazon Bedrock（Amazon のクラウド AI プラットフォーム）経由でモデルに接続している場合、以前は資格情報（credentials、サービスを使う権限があることを証明する鍵）の期限が切れると、ただ漠然とした「権限がありません」というエラーが出るだけで、何が問題なのか自分で推測するしかありませんでした。今は具体的に何をすればいいか、どうやって有効な資格情報を再取得すればいいかをはっきり教えてくれます。以前は ATM が「カードに問題があります」としか表示しなかったのが、今は「カードの期限切れです、窓口で新しいカードを発行してください」とちゃんと書いてくれるようなものです。",
-            "ko": "Amazon Bedrock（아마존의 클라우드 AI 플랫폼）을 통해 모델에 연결하는 경우, 예전엔 자격 증명（credentials，서비스 사용 권한이 있음을 증명하는 키）이 만료되면 그냥 막연한 “권한 없음” 오류만 떴고 무엇이 문제인지 직접 추측해야 했습니다. 이제는 구체적으로 어떻게 해야 하는지, 유효한 자격 증명을 어떻게 다시 받는지 정확히 알려줍니다. 예전엔 ATM 이 “카드에 문제가 있습니다”라고만 표시하던 것을, 이제는 “카드가 만료됐으니 창구에서 새 카드를 발급받으세요”라고 또박또박 알려주는 것과 같습니다."
-          },
-          "original": "Expired Amazon Bedrock credentials now produce actionable recovery guidance instead of a generic authorization error."
-        },
-        {
-          "title": {
-            "zh-TW": "貼網路圖片連結出錯時，AI 現在看得懂為什麼失敗，不會悶不吭聲",
-            "zh-CN": "贴网络图片链接出错时，AI 现在看得懂为什么失败，不会闷不吭声",
-            "en": "When a remote image link fails, the AI now understands why instead of failing silently",
-            "ja": "リモート画像リンクが失敗しても、AI が理由を理解できるようになった、黙って失敗しない",
-            "ko": "원격 이미지 링크가 실패해도 AI 가 이제 이유를 이해함, 조용히 실패하지 않음"
-          },
-          "body": {
-            "zh-TW": "你如果丟一個網路上的圖片連結（HTTP/HTTPS image，存在遠端伺服器上、用網址連過去才看得到的圖片）給 AI 看，以前格式或來源有問題時可能整個流程默默卡住或失敗，原因說不清楚。現在系統會產生清楚的驗證錯誤訊息，連 AI 自己都讀得懂「為什麼這張圖不能用」，而直接貼上的圖片資料（data URL）或本機檔案的圖片不受影響、照樣能用。",
-            "zh-CN": "你如果丢一个网络上的图片链接（HTTP/HTTPS image，存在远程服务器上、用网址连过去才看得到的图片）给 AI 看，以前格式或来源有问题时可能整个流程默默卡住或失败，原因说不清楚。现在系统会产生清楚的验证错误信息，连 AI 自己都读得懂“为什么这张图不能用”，而直接粘贴的图片数据（data URL）或本机文件的图片不受影响、照样能用。",
-            "en": "If you point the AI at a remote image link (HTTP/HTTPS image, a picture that lives on a server elsewhere and only loads via its URL), problems with the format or source used to silently stall or fail the whole flow with no clear reason. Now the system produces a clear validation error the AI itself can read and understand — 'here's why this image didn't work' — while inline pasted image data (data URLs) and local files are unaffected and keep working.",
-            "ja": "リモートの画像リンク（HTTP/HTTPS image、別のサーバー上にあり URL 経由でしか表示できない画像）を AI に渡したとき、以前はフォーマットや取得元に問題があると、原因も分からないまま処理全体が黙って止まったり失敗したりしていました。今はシステムが明確な検証エラーを出し、AI 自身も「なぜこの画像が使えないか」を理解できるようになりました。直接貼り付けた画像データ（data URL）やローカルファイルの画像には影響がなく、引き続き使えます。",
-            "ko": "원격 이미지 링크（HTTP/HTTPS image，다른 서버에 있어 URL 을 통해야만 보이는 이미지）를 AI 에게 줬을 때, 예전엔 형식이나 출처에 문제가 있으면 이유도 모른 채 과정 전체가 조용히 멈추거나 실패하곤 했습니다. 이제는 시스템이 명확한 검증 오류를 만들어내, AI 스스로도 “왜 이 이미지가 안 되는지”를 읽고 이해할 수 있습니다. 직접 붙여넣은 이미지 데이터（data URL）나 로컬 파일 이미지는 영향 없이 그대로 작동합니다."
-          },
-          "original": "Remote HTTP(S) image inputs now return clear model-visible validation errors; inline data URLs and local images remain supported."
-        },
-        {
-          "title": {
-            "zh-TW": "PowerShell 指令裡藏著系統看不懂的可執行片段時，現在會先攔下來問你",
-            "zh-CN": "PowerShell 命令里藏着系统看不懂的可执行片段时，现在会先拦下来问你",
-            "en": "PowerShell commands with unreadable executable code now get held for your approval, not waved through",
-            "ja": "PowerShell コマンドに解析できない実行可能コードが含まれていると、今はまず止めて確認を求める",
-            "ko": "PowerShell 명령에 분석 못 하는 실행 가능 코드가 있으면 이제 먼저 막고 승인을 구함"
-          },
-          "body": {
-            "zh-TW": "安全分類器（safety classifier，自動判斷一條指令安不安全的系統，決定要不要事先問你同意）原本碰到 PowerShell（Windows 的指令稿語言）指令裡有些它解析不出來、但確實可以被執行的程式片段（AST，abstract syntax tree，把程式碼拆解成結構樹方便電腦理解的格式）時，可能會誤判成安全、直接放行。現在只要分類器看不懂、判斷不了，一律先攔下來要你親自核准，不會因為「看不懂所以放行」而留下安全漏洞。像海關以前看不懂的可疑物品有時會放過，現在改成看不懂就一律先攔下來開箱檢查。",
-            "zh-CN": "安全分类器（safety classifier，自动判断一条指令安不安全的系统，决定要不要事先问你同意）原本碰到 PowerShell（Windows 的脚本语言）指令里有些它解析不出来、但确实可以被执行的代码片段（AST，abstract syntax tree，把代码拆解成结构树方便电脑理解的格式）时，可能会误判成安全、直接放行。现在只要分类器看不懂、判断不了，一律先拦下来要你亲自核准，不会因为“看不懂所以放行”而留下安全漏洞。像海关以前看不懂的可疑物品有时会放过，现在改成看不懂就一律先拦下来开箱检查。",
-            "en": "The safety classifier (safety classifier, the system that automatically judges whether a command is safe and decides whether to ask your permission first) used to sometimes wave through PowerShell (Windows's scripting language) commands containing executable code regions (AST, abstract syntax tree, a structured breakdown of code that computers can parse) it couldn't actually parse — treating 'can't read it' as 'must be safe.' Now anything the classifier can't read gets stopped for your manual approval instead, closing that 'unreadable so let it through' loophole. It's like customs that used to sometimes wave through suspicious items it couldn't identify; now anything it can't identify gets pulled aside and opened up first.",
-            "ja": "安全分類器（safety classifier、コマンドが安全かどうかを自動判定し、事前に確認を求めるか決めるシステム）は以前、PowerShell（Windows のスクリプト言語）コマンドの中に、解析できないが実際には実行可能なコード領域（AST、abstract syntax tree、コードを構造化したツリーに分解し、コンピューターが理解しやすくしたもの）が含まれていると、安全だと誤判定してそのまま通してしまうことがありました。今は分類器が読み解けず判断できない場合は、一律にいったん止めて手動の承認を求めるようになり、「読めないから通す」という抜け穴がふさがれました。これは税関が以前、識別できない不審物をたまに通してしまっていたのを、識別できないものは一律に開けて検査するように変えたようなものです。",
-            "ko": "안전 분류기（safety classifier，명령이 안전한지 자동으로 판단해 사전에 동의를 구할지 정하는 시스템）는 예전엔 PowerShell（Windows 의 스크립트 언어）명령 안에 자신이 분석할 수 없지만 실제로는 실행 가능한 코드 영역（AST，abstract syntax tree，코드를 컴퓨터가 이해하기 쉽게 구조화한 트리）이 있으면 안전하다고 오판해 그냥 통과시키는 경우가 있었습니다. 이제는 분류기가 읽지 못하고 판단할 수 없으면 무조건 먼저 막고 직접 승인을 받도록 바뀌어, “못 읽으니 통과”라는 허점이 사라졌습니다. 세관이 예전엔 식별 못 하는 의심 물품을 가끔 그냥 통과시키던 것을, 이제는 식별 못 하면 무조건 먼저 막고 열어서 검사하는 것으로 바꾼 것과 같습니다."
-          },
-          "original": "PowerShell commands containing executable AST regions the safety classifier cannot inspect now require approval."
-        },
-        {
-          "title": {
-            "zh-TW": "用 Code Mode 時選到不相容的模型，系統現在會先提醒你",
-            "zh-CN": "用 Code Mode 时选到不兼容的模型，系统现在会先提醒你",
-            "en": "Picking an incompatible model in Code Mode now gets you a warning up front",
-            "ja": "Code Mode で非対応のモデルを選ぶと、今は事前に警告してくれる",
-            "ko": "Code Mode 에서 호환되지 않는 모델을 고르면 이제 미리 경고해줌"
-          },
-          "body": {
-            "zh-TW": "Code Mode（讓 AI 直接用寫程式的方式呼叫工具、而非一個個指令慢慢喊的模式）需要模型提供特定的中繼資料（metadata，描述這個模型支援哪些功能的附加資訊）才能正常運作。以前選到不支援的模型，可能就默默出問題讓你一頭霧水；現在系統會主動跳出警告，讓你在出狀況前就知道「這個模型可能不適合這樣用」。",
-            "zh-CN": "Code Mode（让 AI 直接用写代码的方式调用工具、而非一个个命令慢慢喊的模式）需要模型提供特定的元数据（metadata，描述这个模型支持哪些功能的附加信息）才能正常运作。以前选到不支持的模型，可能就默默出问题让你一头雾水；现在系统会主动弹出警告，让你在出状况前就知道“这个模型可能不适合这样用”。",
-            "en": "Code Mode (a mode where the AI calls tools by writing code directly instead of issuing commands one at a time) needs the model to supply specific metadata (metadata, extra information describing which features a model supports) to work properly. Picking an unsupported model used to just fail silently and leave you confused. Now the system proactively warns you up front: 'this model might not work well this way.'",
-            "ja": "Code Mode（AI が一つずつコマンドを呼ぶのではなく、コードを書く形でツールを呼び出すモード）が正しく動作するには、モデルが特定のメタデータ（metadata、そのモデルがどの機能に対応しているかを示す付加情報）を提供している必要があります。以前は対応していないモデルを選ぶと、何が起きているか分からないまま黙って不具合が出ることがありました。今はシステムが事前に「このモデルはこの使い方に向いていないかもしれません」と警告を出してくれます。",
-            "ko": "Code Mode（AI 가 명령을 하나씩 부르는 대신 코드를 작성하는 방식으로 도구를 호출하는 모드）가 제대로 작동하려면 모델이 특정 메타데이터（metadata，이 모델이 어떤 기능을 지원하는지 설명하는 부가 정보）를 제공해야 합니다. 예전엔 지원하지 않는 모델을 고르면 영문도 모른 채 조용히 문제가 생기곤 했습니다. 이제는 시스템이 미리 “이 모델은 이렇게 쓰기에 적합하지 않을 수 있습니다”라고 경고를 띄워줍니다."
-          },
-          "original": "Code Mode now warns when the selected model lacks the required metadata."
+          "version": "0.142.4",
+          "period": "2026-06-25 ~ 06-29",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "公司網路設了代理伺服器也能正常登入，Windows 版終於跟上了",
+                "zh-CN": "公司网络设了代理服务器也能正常登录，Windows 版终于跟上了",
+                "en": "Logging in still works even behind a corporate proxy — Windows finally caught up",
+                "ja": "会社のプロキシ環境でも問題なくログインできるように、Windows 版がようやく対応",
+                "ko": "회사 프록시 환경에서도 로그인이 정상 작동, Windows 버전이 드디어 따라옴"
+              },
+              "body": {
+                "zh-TW": "如果你公司網路要求所有連線都要先過一道代理伺服器（proxy，幫你的網路請求轉手繼承送出去的中介站，常見於公司防火牆環境）才能出去，Windows 上的 Codex 登入流程以前不認得這個設定，現在可以選擇性開啟，支援 PAC（自動設定腳本）、WPAD（自動偵測代理位置）、固定代理位址，以及「哪些網址不要走代理」的例外規則。這就像你家信箱以前規定信一定要先送到社區警衛室才能轉交，現在系統終於認得這條規定，不會把信卡在半路。",
+                "zh-CN": "如果你公司网络要求所有连接都要先过一道代理服务器（proxy，帮你的网络请求转手发送出去的中介站，常见于公司防火墙环境）才能出去，Windows 上的 Codex 登录流程以前不认得这个设置，现在可以选择性开启，支持 PAC（自动配置脚本）、WPAD（自动侦测代理位置）、固定代理地址，以及“哪些网址不走代理”的例外规则。这就像你家信箱以前规定信一定要先送到小区警卫室才能转交，现在系统终于认得这条规定，不会把信卡在半路。",
+                "en": "If your company network routes everything through a proxy (proxy, a middleman server your network requests get handed off through, common on corporate firewalls) before it can reach the internet, Codex's Windows login flow used to not understand that setup. Now you can opt in to support for PAC (auto-config scripts), WPAD (auto-discovering the proxy), static proxy addresses, and bypass rules for which destinations skip the proxy. It's like a mailbox rule that always required mail to go through the building's security desk first — the system finally understands that rule, so your mail doesn't get stuck halfway.",
+                "ja": "会社のネットワークがすべての通信を一度プロキシ（proxy、ネットワークの要求を代わりに取り次いで送り出す中継サーバーで、社内ファイアウォール環境でよく使われます）経由にしている場合、Windows 版 Codex のログイン処理は以前この設定を理解していませんでした。今はオプトインで有効化でき、PAC（自動設定スクリプト）、WPAD（プロキシ位置の自動検出）、固定プロキシアドレス、そして「どの宛先はプロキシを通さないか」の例外ルールに対応しています。自宅の郵便受けが「必ず管理人室を経由してから配達」というルールだったのに、システムがそのルールをずっと理解していなかったのが、ようやく理解して郵便が途中で詰まらなくなったようなものです。",
+                "ko": "회사 네트워크가 모든 연결을 프록시（proxy，네트워크 요청을 대신 전달해 보내는 중계 서버로, 회사 방화벽 환경에서 흔함）를 거치도록 요구한다면, Windows 의 Codex 로그인 과정은 예전엔 이 설정을 이해하지 못했습니다. 이제는 선택적으로 켤 수 있으며, PAC（자동 설정 스크립트）, WPAD（프록시 위치 자동 감지）, 고정 프록시 주소, 그리고 “어떤 주소는 프록시를 거치지 않는다”는 예외 규칙을 지원합니다. 우편함이 항상 경비실을 거쳐야 전달되도록 정해져 있었는데, 시스템이 드디어 그 규칙을 이해해서 편지가 중간에 막히지 않게 된 것과 같습니다."
+              },
+              "original": "Added opt-in Windows system proxy support for authentication, including PAC, WPAD, static proxies, and bypass rules."
+            },
+            {
+              "title": {
+                "zh-TW": "AI 要找外掛工具時，現在會先「搜尋」再用，找工具更準也更快",
+                "zh-CN": "AI 要找插件工具时，现在会先“搜索”再用，找工具更准也更快",
+                "en": "When the AI needs a plugin tool, it now searches for it first — faster and more accurate",
+                "ja": "AI がプラグインのツールを探すとき、今はまず「検索」してから使うように、より正確で速い",
+                "ko": "AI 가 플러그인 도구를 찾을 때 이제 먼저 “검색”한 뒤 쓰며, 더 정확하고 빠름"
+              },
+              "body": {
+                "zh-TW": "當你接了很多 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）外掛伺服器時，AI 以前得把所有工具的說明書整本塞進腦袋裡才知道有什麼可以用。現在如果環境支援，AI 改成用「搜尋」（tool search，AI 用查詢的方式臨時找出需要的工具，而不是整本背起來）的方式找工具，找得更準，舊型號的模型跟舊版外掛也都還能正常運作。這就像以前你進圖書館得把整層樓的書名都背下來才知道哪本有用，現在改成直接用搜尋系統查「我要找什麼」，馬上指給你看在哪一格。",
+                "zh-CN": "当你接了很多 MCP（Model Context Protocol，让 AI 连接外部工具的协议）插件服务器时，AI 以前得把所有工具的说明书整本塞进脑袋里才知道有什么可以用。现在如果环境支持，AI 改成用“搜索”（tool search，AI 用查询的方式临时找出需要的工具，而不是整本背起来）的方式找工具，找得更准，旧型号的模型跟旧版插件也都还能正常运作。这就像以前你进图书馆得把整层楼的书名都背下来才知道哪本有用，现在改成直接用搜索系统查“我要找什么”，马上指给你看在哪一格。",
+                "en": "When you've hooked up a lot of MCP servers (Model Context Protocol, the standard that lets the AI talk to external tools), the AI used to have to memorize every tool's full instruction manual just to know what was available. Now, where supported, the AI uses tool search instead (tool search, looking up the specific tool it needs on demand rather than memorizing the whole catalog), finding tools more accurately, while older models and plugins keep working fine. It's like having to memorize every book title on a whole library floor just to find one useful book — now you just search for what you want and get pointed straight to the shelf.",
+                "ja": "MCP（Model Context Protocol、AI が外部ツールとつながるための取り決め）サーバーをたくさん接続しているとき、AI は以前すべてのツールの説明書を丸ごと頭に詰め込まないと何が使えるか分かりませんでした。今は対応環境であれば、AI はツールサーチ（tool search、丸暗記するのではなく必要なときに必要なツールをクエリで探す方式）でツールを探すようになり、より正確に見つけられます。古いモデルや古いプラグインも引き続き問題なく動きます。これは以前、図書館のフロア中の本のタイトルを全部覚えないと使える本が分からなかったのを、検索システムで「これが欲しい」と探せば、すぐその棚を指し示してもらえるようになったようなものです。",
+                "ko": "MCP（Model Context Protocol，AI 가 외부 도구와 연결되는 규약）서버를 많이 연결해두면, AI 는 예전엔 모든 도구의 설명서를 통째로 외워야만 뭐가 쓸 수 있는지 알 수 있었습니다. 이제는 지원되는 환경에서 AI 가 도구 검색（tool search，통째로 외우는 대신 필요할 때 질의로 필요한 도구를 찾는 방식）으로 도구를 찾아 더 정확하게 찾아내며, 구형 모델과 구버전 플러그인도 그대로 잘 작동합니다. 마치 예전엔 도서관 한 층의 책 제목을 전부 외워야 쓸만한 책을 찾을 수 있었던 것을, 이제는 검색 시스템에 “이걸 찾는다”고 물으면 바로 그 칸을 가리켜주는 것과 같습니다."
+              },
+              "original": "MCP tools now use tool search by default when supported, improving tool discovery while preserving compatibility with older models and providers."
+            },
+            {
+              "title": {
+                "zh-TW": "外掛圖示在深色模式下不會再刺眼，可以自己準備一張暗色版",
+                "zh-CN": "插件图标在深色模式下不会再刺眼，可以自己准备一张暗色版",
+                "en": "Plugin icons no longer clash in dark mode — developers can ship a dedicated dark version",
+                "ja": "ダークモードでもプラグインアイコンが浮かなくなった、専用のダーク版を用意できる",
+                "ko": "다크 모드에서 플러그인 아이콘이 더 이상 튀지 않으며, 전용 다크 버전을 따로 준비 가능"
+              },
+              "body": {
+                "zh-TW": "外掛（plugin，幫 Codex 擴充額外功能的附加套件）的開發者現在可以額外準備一張「深色模式」（dark mode，背景偏黑、適合夜間使用的顯示模式）專用的圖示，透過外掛自己的設定檔或遠端外掛商店提供，當你切到深色介面時就會自動換成這張，不會再出現亮色圖示在暗背景上突兀刺眼的狀況。",
+                "zh-CN": "插件（plugin，帮 Codex 扩展额外功能的附加套件）的开发者现在可以额外准备一张“深色模式”（dark mode，背景偏黑、适合夜间使用的显示模式）专用的图标，通过插件自己的配置文件或远程插件商店提供，当你切到深色界面时就会自动换成这张，不会再出现亮色图标在暗背景上突兀刺眼的状况。",
+                "en": "Plugin (plugin, an add-on package that extends Codex with extra features) developers can now ship a dedicated dark-mode (dark mode, the dark-background display mode meant for low-light use) icon, supplied through the plugin's own manifest or a remote plugin store, which swaps in automatically when you switch to a dark interface — no more glaring light-colored icons sitting on a dark background.",
+                "ja": "プラグイン（plugin、Codex に追加機能を加える拡張パッケージ）の開発者は今、専用の「ダークモード」（dark mode、背景が黒っぽく夜間利用向けの表示モード）用アイコンを別途用意できるようになりました。プラグイン自身のマニフェストやリモートのプラグインストア経由で提供され、ダーク表示に切り替えると自動的にこちらに差し替わります。暗い背景に明るいアイコンが浮いて見えることもなくなります。",
+                "ko": "플러그인（plugin，Codex 에 추가 기능을 더해주는 부가 패키지）개발자는 이제 전용 다크 모드（dark mode，배경이 어둡고 야간 사용에 적합한 표시 모드）아이콘을 따로 준비할 수 있습니다. 플러그인 자체 매니페스트나 원격 플러그인 스토어를 통해 제공되며, 다크 화면으로 전환하면 자동으로 이 아이콘으로 바뀌어, 어두운 배경에 밝은 아이콘이 튀어 보이는 일이 없어집니다."
+              },
+              "original": "Plugins can provide dedicated dark-mode logos through local manifests and remote catalogs."
+            },
+            {
+              "title": {
+                "zh-TW": "用 Amazon Bedrock 的金鑰過期了，現在會直接告訴你怎麼修，不再只丟一句「沒授權」",
+                "zh-CN": "用 Amazon Bedrock 的密钥过期了，现在会直接告诉你怎么修，不再只丢一句“没授权”",
+                "en": "Expired Amazon Bedrock credentials now tell you exactly how to fix it, not just \"unauthorized\"",
+                "ja": "Amazon Bedrock の資格情報が切れても、今は直し方をはっきり教えてくれる、ただの「権限なし」では終わらない",
+                "ko": "Amazon Bedrock 자격 증명이 만료돼도 이제 고치는 법을 정확히 알려줌, 단순히 \"권한 없음\"으로 끝나지 않음"
+              },
+              "body": {
+                "zh-TW": "如果你是透過 Amazon Bedrock（亞馬遜雲端的 AI 服務平台）的方式連接模型，以前憑證（credentials，用來證明你有權限使用服務的金鑰）過期時，系統只會丟出一句很籠統的「沒有授權」錯誤，你得自己猜到底是哪裡出了問題。現在會直接告訴你具體該怎麼處理、怎麼重新取得有效憑證。就像以前提款機只顯示「卡片有問題」，現在改成寫清楚「卡片過期了，請去櫃台辦新卡」。",
+                "zh-CN": "如果你是通过 Amazon Bedrock（亚马逊云端的 AI 服务平台）的方式连接模型，以前凭证（credentials，用来证明你有权限使用服务的密钥）过期时，系统只会丢出一句很笼统的“没有授权”错误，你得自己猜到底是哪里出了问题。现在会直接告诉你具体该怎么处理、怎么重新获取有效凭证。就像以前提款机只显示“卡片有问题”，现在改成写清楚“卡片过期了，请去柜台办新卡”。",
+                "en": "If you connect to a model through Amazon Bedrock (Amazon's cloud AI platform), expired credentials (credentials, the keys that prove you're allowed to use the service) used to just throw a vague 'unauthorized' error, leaving you to guess what actually went wrong. Now it tells you exactly what to do and how to get a valid credential again. It's like an ATM that used to just say 'card problem' now spelling out 'card expired, please get a new one at the counter.'",
+                "ja": "Amazon Bedrock（Amazon のクラウド AI プラットフォーム）経由でモデルに接続している場合、以前は資格情報（credentials、サービスを使う権限があることを証明する鍵）の期限が切れると、ただ漠然とした「権限がありません」というエラーが出るだけで、何が問題なのか自分で推測するしかありませんでした。今は具体的に何をすればいいか、どうやって有効な資格情報を再取得すればいいかをはっきり教えてくれます。以前は ATM が「カードに問題があります」としか表示しなかったのが、今は「カードの期限切れです、窓口で新しいカードを発行してください」とちゃんと書いてくれるようなものです。",
+                "ko": "Amazon Bedrock（아마존의 클라우드 AI 플랫폼）을 통해 모델에 연결하는 경우, 예전엔 자격 증명（credentials，서비스 사용 권한이 있음을 증명하는 키）이 만료되면 그냥 막연한 “권한 없음” 오류만 떴고 무엇이 문제인지 직접 추측해야 했습니다. 이제는 구체적으로 어떻게 해야 하는지, 유효한 자격 증명을 어떻게 다시 받는지 정확히 알려줍니다. 예전엔 ATM 이 “카드에 문제가 있습니다”라고만 표시하던 것을, 이제는 “카드가 만료됐으니 창구에서 새 카드를 발급받으세요”라고 또박또박 알려주는 것과 같습니다."
+              },
+              "original": "Expired Amazon Bedrock credentials now produce actionable recovery guidance instead of a generic authorization error."
+            },
+            {
+              "title": {
+                "zh-TW": "貼網路圖片連結出錯時，AI 現在看得懂為什麼失敗，不會悶不吭聲",
+                "zh-CN": "贴网络图片链接出错时，AI 现在看得懂为什么失败，不会闷不吭声",
+                "en": "When a remote image link fails, the AI now understands why instead of failing silently",
+                "ja": "リモート画像リンクが失敗しても、AI が理由を理解できるようになった、黙って失敗しない",
+                "ko": "원격 이미지 링크가 실패해도 AI 가 이제 이유를 이해함, 조용히 실패하지 않음"
+              },
+              "body": {
+                "zh-TW": "你如果丟一個網路上的圖片連結（HTTP/HTTPS image，存在遠端伺服器上、用網址連過去才看得到的圖片）給 AI 看，以前格式或來源有問題時可能整個流程默默卡住或失敗，原因說不清楚。現在系統會產生清楚的驗證錯誤訊息，連 AI 自己都讀得懂「為什麼這張圖不能用」，而直接貼上的圖片資料（data URL）或本機檔案的圖片不受影響、照樣能用。",
+                "zh-CN": "你如果丢一个网络上的图片链接（HTTP/HTTPS image，存在远程服务器上、用网址连过去才看得到的图片）给 AI 看，以前格式或来源有问题时可能整个流程默默卡住或失败，原因说不清楚。现在系统会产生清楚的验证错误信息，连 AI 自己都读得懂“为什么这张图不能用”，而直接粘贴的图片数据（data URL）或本机文件的图片不受影响、照样能用。",
+                "en": "If you point the AI at a remote image link (HTTP/HTTPS image, a picture that lives on a server elsewhere and only loads via its URL), problems with the format or source used to silently stall or fail the whole flow with no clear reason. Now the system produces a clear validation error the AI itself can read and understand — 'here's why this image didn't work' — while inline pasted image data (data URLs) and local files are unaffected and keep working.",
+                "ja": "リモートの画像リンク（HTTP/HTTPS image、別のサーバー上にあり URL 経由でしか表示できない画像）を AI に渡したとき、以前はフォーマットや取得元に問題があると、原因も分からないまま処理全体が黙って止まったり失敗したりしていました。今はシステムが明確な検証エラーを出し、AI 自身も「なぜこの画像が使えないか」を理解できるようになりました。直接貼り付けた画像データ（data URL）やローカルファイルの画像には影響がなく、引き続き使えます。",
+                "ko": "원격 이미지 링크（HTTP/HTTPS image，다른 서버에 있어 URL 을 통해야만 보이는 이미지）를 AI 에게 줬을 때, 예전엔 형식이나 출처에 문제가 있으면 이유도 모른 채 과정 전체가 조용히 멈추거나 실패하곤 했습니다. 이제는 시스템이 명확한 검증 오류를 만들어내, AI 스스로도 “왜 이 이미지가 안 되는지”를 읽고 이해할 수 있습니다. 직접 붙여넣은 이미지 데이터（data URL）나 로컬 파일 이미지는 영향 없이 그대로 작동합니다."
+              },
+              "original": "Remote HTTP(S) image inputs now return clear model-visible validation errors; inline data URLs and local images remain supported."
+            },
+            {
+              "title": {
+                "zh-TW": "PowerShell 指令裡藏著系統看不懂的可執行片段時，現在會先攔下來問你",
+                "zh-CN": "PowerShell 命令里藏着系统看不懂的可执行片段时，现在会先拦下来问你",
+                "en": "PowerShell commands with unreadable executable code now get held for your approval, not waved through",
+                "ja": "PowerShell コマンドに解析できない実行可能コードが含まれていると、今はまず止めて確認を求める",
+                "ko": "PowerShell 명령에 분석 못 하는 실행 가능 코드가 있으면 이제 먼저 막고 승인을 구함"
+              },
+              "body": {
+                "zh-TW": "安全分類器（safety classifier，自動判斷一條指令安不安全的系統，決定要不要事先問你同意）原本碰到 PowerShell（Windows 的指令稿語言）指令裡有些它解析不出來、但確實可以被執行的程式片段（AST，abstract syntax tree，把程式碼拆解成結構樹方便電腦理解的格式）時，可能會誤判成安全、直接放行。現在只要分類器看不懂、判斷不了，一律先攔下來要你親自核准，不會因為「看不懂所以放行」而留下安全漏洞。像海關以前看不懂的可疑物品有時會放過，現在改成看不懂就一律先攔下來開箱檢查。",
+                "zh-CN": "安全分类器（safety classifier，自动判断一条指令安不安全的系统，决定要不要事先问你同意）原本碰到 PowerShell（Windows 的脚本语言）指令里有些它解析不出来、但确实可以被执行的代码片段（AST，abstract syntax tree，把代码拆解成结构树方便电脑理解的格式）时，可能会误判成安全、直接放行。现在只要分类器看不懂、判断不了，一律先拦下来要你亲自核准，不会因为“看不懂所以放行”而留下安全漏洞。像海关以前看不懂的可疑物品有时会放过，现在改成看不懂就一律先拦下来开箱检查。",
+                "en": "The safety classifier (safety classifier, the system that automatically judges whether a command is safe and decides whether to ask your permission first) used to sometimes wave through PowerShell (Windows's scripting language) commands containing executable code regions (AST, abstract syntax tree, a structured breakdown of code that computers can parse) it couldn't actually parse — treating 'can't read it' as 'must be safe.' Now anything the classifier can't read gets stopped for your manual approval instead, closing that 'unreadable so let it through' loophole. It's like customs that used to sometimes wave through suspicious items it couldn't identify; now anything it can't identify gets pulled aside and opened up first.",
+                "ja": "安全分類器（safety classifier、コマンドが安全かどうかを自動判定し、事前に確認を求めるか決めるシステム）は以前、PowerShell（Windows のスクリプト言語）コマンドの中に、解析できないが実際には実行可能なコード領域（AST、abstract syntax tree、コードを構造化したツリーに分解し、コンピューターが理解しやすくしたもの）が含まれていると、安全だと誤判定してそのまま通してしまうことがありました。今は分類器が読み解けず判断できない場合は、一律にいったん止めて手動の承認を求めるようになり、「読めないから通す」という抜け穴がふさがれました。これは税関が以前、識別できない不審物をたまに通してしまっていたのを、識別できないものは一律に開けて検査するように変えたようなものです。",
+                "ko": "안전 분류기（safety classifier，명령이 안전한지 자동으로 판단해 사전에 동의를 구할지 정하는 시스템）는 예전엔 PowerShell（Windows 의 스크립트 언어）명령 안에 자신이 분석할 수 없지만 실제로는 실행 가능한 코드 영역（AST，abstract syntax tree，코드를 컴퓨터가 이해하기 쉽게 구조화한 트리）이 있으면 안전하다고 오판해 그냥 통과시키는 경우가 있었습니다. 이제는 분류기가 읽지 못하고 판단할 수 없으면 무조건 먼저 막고 직접 승인을 받도록 바뀌어, “못 읽으니 통과”라는 허점이 사라졌습니다. 세관이 예전엔 식별 못 하는 의심 물품을 가끔 그냥 통과시키던 것을, 이제는 식별 못 하면 무조건 먼저 막고 열어서 검사하는 것으로 바꾼 것과 같습니다."
+              },
+              "original": "PowerShell commands containing executable AST regions the safety classifier cannot inspect now require approval."
+            },
+            {
+              "title": {
+                "zh-TW": "用 Code Mode 時選到不相容的模型，系統現在會先提醒你",
+                "zh-CN": "用 Code Mode 时选到不兼容的模型，系统现在会先提醒你",
+                "en": "Picking an incompatible model in Code Mode now gets you a warning up front",
+                "ja": "Code Mode で非対応のモデルを選ぶと、今は事前に警告してくれる",
+                "ko": "Code Mode 에서 호환되지 않는 모델을 고르면 이제 미리 경고해줌"
+              },
+              "body": {
+                "zh-TW": "Code Mode（讓 AI 直接用寫程式的方式呼叫工具、而非一個個指令慢慢喊的模式）需要模型提供特定的中繼資料（metadata，描述這個模型支援哪些功能的附加資訊）才能正常運作。以前選到不支援的模型，可能就默默出問題讓你一頭霧水；現在系統會主動跳出警告，讓你在出狀況前就知道「這個模型可能不適合這樣用」。",
+                "zh-CN": "Code Mode（让 AI 直接用写代码的方式调用工具、而非一个个命令慢慢喊的模式）需要模型提供特定的元数据（metadata，描述这个模型支持哪些功能的附加信息）才能正常运作。以前选到不支持的模型，可能就默默出问题让你一头雾水；现在系统会主动弹出警告，让你在出状况前就知道“这个模型可能不适合这样用”。",
+                "en": "Code Mode (a mode where the AI calls tools by writing code directly instead of issuing commands one at a time) needs the model to supply specific metadata (metadata, extra information describing which features a model supports) to work properly. Picking an unsupported model used to just fail silently and leave you confused. Now the system proactively warns you up front: 'this model might not work well this way.'",
+                "ja": "Code Mode（AI が一つずつコマンドを呼ぶのではなく、コードを書く形でツールを呼び出すモード）が正しく動作するには、モデルが特定のメタデータ（metadata、そのモデルがどの機能に対応しているかを示す付加情報）を提供している必要があります。以前は対応していないモデルを選ぶと、何が起きているか分からないまま黙って不具合が出ることがありました。今はシステムが事前に「このモデルはこの使い方に向いていないかもしれません」と警告を出してくれます。",
+                "ko": "Code Mode（AI 가 명령을 하나씩 부르는 대신 코드를 작성하는 방식으로 도구를 호출하는 모드）가 제대로 작동하려면 모델이 특정 메타데이터（metadata，이 모델이 어떤 기능을 지원하는지 설명하는 부가 정보）를 제공해야 합니다. 예전엔 지원하지 않는 모델을 고르면 영문도 모른 채 조용히 문제가 생기곤 했습니다. 이제는 시스템이 미리 “이 모델은 이렇게 쓰기에 적합하지 않을 수 있습니다”라고 경고를 띄워줍니다."
+              },
+              "original": "Code Mode now warns when the selected model lacks the required metadata."
+            }
+          ]
         }
       ]
     },
     {
       "id": "agy",
       "name": "Antigravity",
-      "version": "1.0.14",
-      "period": "2026-06-25 ~ 06-30",
-      "items": [
+      "versions": [
         {
-          "title": {
-            "zh-TW": "在 tmux 終端機分頁裡也能直接貼上剪貼簿的圖片了",
-            "zh-CN": "在 tmux 终端分页里也能直接粘贴剪贴板的图片了",
-            "en": "Pasting clipboard images now works inside tmux panes too",
-            "ja": "tmux のペイン内でもクリップボードの画像を直接貼り付けられるように",
-            "ko": "tmux 분할 화면 안에서도 클립보드 이미지를 바로 붙여넣을 수 있게 됨"
-          },
-          "body": {
-            "zh-TW": "tmux（一種能在終端機裡開多個分頁、背景常駐執行的工具）使用者以前在裡面用 Antigravity 時沒辦法直接貼上剪貼簿裡的圖片，得繞路用別的方式才能把截圖塞進對話。現在可以直接貼上了，跟在一般終端機裡操作一樣方便。",
-            "zh-CN": "tmux（一种能在终端里开多个分页、后台常驻运行的工具）用户以前在里面用 Antigravity 时没办法直接粘贴剪贴板里的图片，得绕路用别的方式才能把截图塞进对话。现在可以直接粘贴了，跟在普通终端里操作一样方便。",
-            "en": "tmux (a tool that lets you run multiple panes inside a terminal session that keeps running in the background) users previously couldn't paste clipboard images directly while using Antigravity inside it, and had to work around it some other way to get a screenshot into the chat. Now you can just paste it, exactly as easily as in a regular terminal.",
-            "ja": "tmux（ターミナルの中で複数のペインを開いてバックグラウンドで常駐実行できるツール）の中で Antigravity を使っているとき、以前はクリップボードの画像を直接貼り付けることができず、スクリーンショットを会話に入れるのに回り道が必要でした。今は直接貼り付けられるようになり、普通のターミナルで操作するのと同じくらい手軽です。",
-            "ko": "tmux（터미널 안에서 여러 분할 화면을 열어 백그라운드에 상주시키는 도구）안에서 Antigravity 를 쓸 때, 예전엔 클립보드의 이미지를 바로 붙여넣을 수 없어서 스크린샷을 대화에 넣으려면 다른 방법을 돌아가야 했습니다. 이제는 바로 붙여넣을 수 있어, 일반 터미널에서 쓰는 것만큼 편합니다."
-          },
-          "original": "Allowed image pasting from the clipboard in local tmux sessions."
+          "version": "1.0.16",
+          "period": "2026-07-01 ~ 07-08",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "輸入框下方新增狀態列，一眼掌控所有在背景默默工作的助手",
+                "zh-CN": "输入框下方新增状态栏，一眼掌控所有在后台默默工作的助手",
+                "en": "New real-time status bar showing all subagents working in the background",
+                "ja": "入力欄の下にステータスバーを新設、裏で働くアシスタントが一目瞭然に",
+                "ko": "입력창 아래에 상태 표시줄이 생겨 배경에서 일하는 도우미들을 한눈에 감시함"
+              },
+              "body": {
+                "zh-TW": "為了讓你隨時掌握背景任務的動向，系統在輸入框正下方設計了全新的互動式狀態列。它可以即時顯示 active subagents（active subagents，在背景幫你分析程式碼或寫報告的子助理 AI）與 background tasks（background tasks，丟給電腦在背後慢慢執行的耗時指令，例如跑測試或編譯）的即時動態，讓你在輸入指令時一眼看清背後是誰在忙、有沒有卡住，不需手動打命令查詢。這就像你在辦公室裝了透明玻璃，抬頭就能看到小助手們是不是在賣力打字、測試軟體，不用每隔五分鐘就跑去敲門問進度。",
+                "zh-CN": "为了让你随时掌握后台任务的动向，系统在输入框正下方设计了全新的互动式状态栏。它可以即时显示 active subagents（active subagents，在后台帮你分析代码或写报告的子智能体 AI）与 background tasks（background tasks，丢给电脑在背后慢慢执行的耗时命令，例如跑测试或编译）的即时动态，让你在输入命令时一眼看清背后是谁在忙、有没有卡住，不需手动打命令查询。这就像你在办公室装了透明玻璃，抬头就能看到小助手们是不是在卖力打字、测试软件，不用每隔五分钟就跑去敲门问进度。",
+                "en": "To give you instant visibility into what the AI is running in the background, a new interactive status line has been added directly under the input prompt. It reports on active subagents (active subagents, helper AIs spawned in the background to analyze code or write docs) and background tasks (background tasks, long-running processes like code compilation or test suites running behind the scenes) in real-time, allowing you to see if anything is stuck without typing queries. It's like replacing solid walls with glass windows in an office; now you can see if your assistants are typing away, without having to knock on their doors every five minutes.",
+                "ja": "バックグラウンドの動きをいつでも見守れるように、コマンド入力欄のすぐ下に新しいステータスバーが配置されました。現在稼働中の active subagents（active subagents，背景でコード解析や文書作成をこなす子 AI たち）や background tasks（background tasks，ビルドやテストなど時間がかかるために裏で動かしている実行プロセス）の状況をリアルタイムで表示し、コマンドで確認しなくても進行が止まっていないか確認できます。これは、オフィスの壁をガラス張りにしたようなもの。作業員たちがしっかりタイピングしているか、わざわざ部屋に入って確認しなくてもひと目で分かるようになりました。",
+                "ko": "백그라운드 작업의 동향을 실시간으로 편하게 감시할 수 있도록, 입력창 바로 아래에 대화형 상태 표시줄을 새로 만들었습니다. 이곳에서 active subagents（active subagents, 배경에서 사용자를 대신해 분석이나 문서 작성을 진행 중인 보조 AI）와 background tasks（background tasks, 테스트 실행이나 빌드처럼 시간이 걸려 백그라운드에 던져놓은 명령）의 상황을 실시간 모니터링하여, 별도의 조회 명령어 없이도 막힘 여부를 바로 파악 가능하게 돕습니다. 사무실 벽을 투명 유리로 바꿔 비서들이 성실히 일하고 있는지 매번 문을 두드려 확인하지 않아도 한눈에 알 수 있게 된 든든함과 같습니다."
+              },
+              "original": "Introduced a new interactive status indicator below the input box that displays active subagents and background tasks in real-time."
+            },
+            {
+              "title": {
+                "zh-TW": "背景任務面板會隨日誌更新自動下捲，省去你一直手動滾畫面的麻煩",
+                "zh-CN": "后台任务面板会随日志更新自动下卷，省去你一直手动滚画面的麻烦",
+                "en": "Task detail panel now auto-scrolls down to show live logs as they write",
+                "ja": "タスクログ画面が自動スクロールに対応、常に最新の出力が目の前に",
+                "ko": "백그라운드 로그 창이 자동 스크롤되어 손가락 아프게 화면을 내릴 필요 없음"
+              },
+              "body": {
+                "zh-TW": "為了省去你反覆手動滾動日誌畫面的時間，`/tasks` 詳情視窗現在會配合日誌流更新自動下捲。每當新的背景任務 log（log，程式執行時印出的詳細過程與輸出文字）吐出時，視窗會自動捲到底部呈現最新一行；若你手動向上滾動檢視舊內容，自動下捲就會貼心暫停，絕不強行拉回底部打斷閱讀。這就像你用手機通訊軟體聊天，畫面會隨著對方的回信自動往下推進、顯示最新訊息；但當你想往上翻舊對話時，畫面也不會調皮地一直跳回最底下。",
+                "zh-CN": "为了省去你反复手动滚动日志画面的时间，`/tasks` 详情窗口现在会配合日志流更新自动下卷。每当新的后台任务 log（log，程序运行时印出的详细过程与输出文本）吐出时，窗口会自动卷到底部呈现最新一行；若你手动向上滚动检视旧内容，自动下卷就会贴心暂停，绝不强行拉回底部打断阅读。这就像你用手机通讯软件聊天，画面会随着对方的回信自动往下推进、显示最新消息；但当你想往上翻旧对话时，画面也不会调皮地一直跳回最底下。",
+                "en": "To save you from constantly fighting the scrollbar to see progress, the `/tasks` detail panel now auto-scrolls down in sync with log streams. As new background task log output (log, text streams outputted by programs as they run to describe their progress) arrives, the panel scrolls to show the latest lines, but pauses if you manually scroll up to inspect earlier entries. It's like typing in a chat app where the view scrolls to keep up with new incoming messages, but stays put if you scroll up to reread what was said earlier.",
+                "ja": "ビューのスクロール操作を何度も繰り返す手間を減らすため、`/tasks` 詳細画面がログ更新に合わせて自動スクロールするようになりました。バックグラウンドジョブの新しい log 出力（log，プログラムが処理の過程で出力する詳細なテキスト）が追加されると自動で一番下へ進みますが、手動で上へスクロールして過去の内容を読んでいる間は、その読み取り箇所をキープし自動追従をストップします。これはチャットアプリで、新しいメッセージが来ると画面が下に進むものの、あなたが上にスクロールして過去の履歴を読んでいる間は、画面が勝手に最新の位置へすっ飛んだりしないのと同じ親切設計です。",
+                "ko": "로그 화면을 끝까지 읽으려 스크롤바를 억지로 붙들고 있는 번거로움을 덜고자, `/tasks` 작업 관리 창에 스마트 자동 스크롤을 탑재했습니다. 백그라운드 작업의 새 log（log, 프로그램이 작동하면서 순차적으로 뿜어내는 과정 기록용 텍스트）가 출력되는 족족 화면이 맨 아래로 굴러 이동하지만, 사용자가 이전 대목을 확인하려 위로 마우스를 올리는 순간 이동이 알아서 일시 정지됩니다. 카카오톡 같은 메신저에서 새 대화가 오면 자동으로 아래를 보여주다가도, 이전 대화를 확인하려 위로 올리면 화면이 제자리에 멈춰 서 있는 배려와 같습니다."
+              },
+              "original": "Improved the /tasks detail panel to automatically scroll to the bottom as new background task logs stream in, and default to the latest output when opened while preserving scroll position if scrolled up manually."
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 貼上圖片新增 Alt+V 鍵，不再被終端機快捷鍵擋下來",
+                "zh-CN": "Windows 粘贴图片新增 Alt+V 键，不再被终端快捷键挡下来",
+                "en": "Added Alt+V on Windows as an alternative shortcut to paste clipboard images",
+                "ja": "Windows の画像貼り付けに Alt+V ショートカットを追加、貼り付け競合を回避",
+                "ko": "Windows 이미지 붙여넣기 단축키 Alt+V 추가, 터미널 간 충돌로 인한 씹힘 해결"
+              },
+              "body": {
+                "zh-TW": "為了讓 Windows 使用者能順暢貼上剪貼簿中的截圖，系統新增了專屬貼上快捷鍵。如果你的 `Ctrl+V` 被終端機軟體（如命令提示字元或 PowerShell 視窗）攔截而無法貼上，現在可以直接改按 `Alt+V`，即可順利將圖片或文字貼進輸入框，不再因鍵位衝突而卡關。這就像是大樓的旋轉門（Ctrl+V）因為安全設定把你的大件行李（圖片）卡在門外，現在保全在旁邊幫你開了一扇專屬的側門（Alt+V），讓你提著行李也能輕鬆通過。",
+                "zh-CN": "为了让 Windows 用户能顺畅粘贴剪贴板中的截图，系统新增了专属粘贴快捷键。如果你的 `Ctrl+V` 被终端软件（如命令提示符或 PowerShell 窗口）拦截而无法粘贴，现在可以直接改按 `Alt+V`，即可顺利将图片或文字贴进输入框，不再因键位冲突而卡关。这就像是大楼的旋转门（Ctrl+V）因为安全设置把你的大件行李（图片）卡在门外，现在保安在旁边帮你开了一扇专属的侧门（Alt+V），让你提着行李也能轻松通过。",
+                "en": "To ensure Windows users can smoothly upload screenshots, the app features an alternative paste hotkey. If your standard `Ctrl+V` is hijacked by your terminal emulator (the shell window programs like CMD or PowerShell), you can press `Alt+V` instead to insert clipboard images or text directly, avoiding shortcut conflicts. It's like a revolving entrance door (Ctrl+V) that keeps locking because your large luggage (images) gets stuck; now security has opened a side door (Alt+V) so you can carry your luggage straight in.",
+                "ja": "Windows 環境でクリップボードの画像をストレスなく AI に渡せるようにするため、新しいペースト用ショートカットが追加されました。`Ctrl+V` キーが使用中のターミナルエミュレータ（コマンドプロンプトや PowerShell などの黒い画面のソフト）に奪われて貼り付けられない場合は、代わりに `Alt+V` を押すことで画像やテキストを正しく入力欄へ渡せるようになります。これは、ホテルの回転ドア（Ctrl+V）が大きな荷物（画像データ）のせいで引っかかって通れないとき、横にある手動のドア（Alt+V）を開けてもらって難なく中に入れるようになったようなものです。",
+                "ko": "윈도우 환경에서 캡처 이미지를 지체 없이 AI 에게 입력하기 위해, 전용 대체 입력 키를 추가했습니다. `Ctrl+V` 복사 동작이 터미널 에뮬레이터（윈도우 기본 CMD 나 파워셸 같은 도구） 단축키와 부딪혀 복사가 안 될 때 `Alt+V` 를 누르면, 이미지와 텍스트를 접속창에 부드럽게 붙여넣을 수 있습니다. 회전문（Ctrl+V）이 큰 가방（이미지 자료）때문에 걸려서 들어가지 못할 때, 건물 직원이 옆에 여닫이문（Alt+V）을 따로 열어주어 가방을 든 채 편히 들어갈 수 있게 도운 조치와 같습니다."
+              },
+              "original": "Added alt+v as an alternative paste shortcut on Windows to resolve issues where ctrl+v is intercepted by the terminal emulator, enabling reliable image pasting."
+            },
+            {
+              "title": {
+                "zh-TW": "在看 AI 檔案時按 Ctrl+G 就能用你最愛的編輯器直接打開修改",
+                "zh-CN": "在看 AI 文件时按 Ctrl+G 就能用你最爱的编辑器直接打开修改",
+                "en": "Press Ctrl+G on an artifact to edit it directly in your favorite editor",
+                "ja": "AI の成果物表示で Ctrl+G を押せば、お気に入りのエディタで直接開いて編集可能に",
+                "ko": "AI 산출물 화면에서 Ctrl+G 를 누르면 주 편집기로 바로 열어 수정할 수 있음"
+              },
+              "body": {
+                "zh-TW": "為了讓你能直接使用最習慣的開發工具修改 AI 產出的內容，現在在成果畫面可以直接呼叫外部編輯器。當你在檢視 AI 寫好的 artifacts（artifacts，AI 產出的程式碼或完整文件檔案）時，按一下 `Ctrl+G` 就會以你本機設定的 `$EDITOR`（你的預設文字編輯器，比如 VS Code 或 Vim）開啟該檔案；若當前有未送出的草稿備註，系統也會貼心詢問是否保留。這就像你原本用公用電腦看文件，現在按一下按鈕，這份文件就直接拷貝一份用你自己的筆記本電腦打開，還順便幫你帶上剛剛寫了一半的草稿紙。",
+                "zh-CN": "为了让你能直接使用最习惯的开发工具修改 AI 产出的内容，现在在成果画面可以直接呼叫外部编辑器。当你在检视 AI 写好的 artifacts（artifacts，AI 产出的代码或完整文件文件）时，按一下 `Ctrl+G` 就会以你本机设置的 `$EDITOR`（你的默认文字编辑器，比如 VS Code 或 Vim）开启该文件；若当前有未送出的草稿备注，系统也会贴心询问是否保留。这就像你原本用公用电脑看文件，现在按一下按钮，这份文件就直接拷贝一份用你自己的笔记本电脑打开，还顺便帮你带上刚刚写了一半的草稿纸。",
+                "en": "To let you modify AI output using your favorite development environment, you can now open files directly in your preferred editor. While viewing generated artifacts (artifacts, documents or files of code generated by the AI for you to read), pressing `Ctrl+G` opens the file in your configured `$EDITOR` (your default text editor, such as VS Code, Vim, or Notepad), checking to save any unsent comment drafts first. It's like viewing a document on a library tablet and pressing a button that instantly transfers the file to your personal laptop, along with the half-written sticky notes you had placed on it.",
+                "ja": "AI が書き出したプログラムや文章をお好みのソフトで手早く手直しできるように、ビューから直接外部アプリを起動できるようになりました。AI が用意した成果物の artifacts（artifacts，AI が生成したプログラムコードや取扱説明書などのファイル）を閲覧中、`Ctrl+G` を押すとシステムに設定された `$EDITOR`（あなたの規定テキストエディタ、例えば VS Code や Vim など）で即座に開き、未送信のメモ書きがあれば自動で保存するか確認してくれます。これは展示されている書類を見ているときに、ボタンを一押しするだけで自分のノート（エディタ）へ書類がコピーされ、それまで書いていた付箋紙（メモ）も一緒に移動してくれるような感覚です。",
+                "ko": "AI 가 뽑아준 코딩 결과를 본인의 주요 개발 도구로 빠르게 연동해 손볼 수 있도록, 파일에서 바로 외부 에디터를 켤 수 있게 설정했습니다. 작성된 artifacts（artifacts, AI 가 작성한 정돈된 마크다운 문서나 긴 코드 파일）를 확인하던 도중 `Ctrl+G` 키를 누르면 로컬 환경의 `$EDITOR`（사용자의 기본 텍스트 편집기, VS Code 나 Vim 등）로 열어주며, 임시 입력 필드에 적어두었던 코멘트가 있을 시 소실 여부를 물어봅니다. 공용 서재에서 문서를 훑어보다가 단축키 하나로 자기 개인 노트북으로 복사해 열면서, 옆에 끄적여두던 임시 쪽지까지 안전하게 같이 가져와서 계속 손보는 상황을 연상케 합니다."
+              },
+              "original": "Added ctrl+g on the artifact view to open $EDITOR, with a warning confirmation prompt before opening the editor in the artifact detail view if there are unsent comments."
+            },
+            {
+              "title": {
+                "zh-TW": "遇到網路斷線或伺服器忙碌時，系統會自動在背後重試、寫程式不中斷",
+                "zh-CN": "遇到网络断开或服务器忙碌时，系统会自动在后台重试、写程序不中断",
+                "en": "Auto-retry on network glitches or busy servers, keeping your code sessions flowing",
+                "ja": "ネットワークの瞬断やサーバー混雑時に自動で再試行し、回答生成を維持",
+                "ko": "인터넷이 일시적으로 끊기거나 서버가 바쁠 때 자동으로 재시도하여 대화의 맥을 살림"
+              },
+              "body": {
+                "zh-TW": "為了防止網路波動打斷你的思考，系統提升了模型生成時的容錯能力。當 AI 回答遇到 transient errors（transient errors，因為網路不穩暫時斷線，或是雲端伺服器瞬間過載造成的暫時性錯誤）時，系統會自動在背後嘗試重新連線並接續發送，不會像以前一樣直接噴錯中斷，逼你把指令重新打一遍。這就像你打電話給客服時突然訊號不好斷線，系統在背景幫你自動重撥，接通了直接讓你跟原本的客服人員繼續聊，不用重新撥號排隊。",
+                "zh-CN": "为了防止网络波动打断你的思考，系统提升了模型生成时的容错能力。当 AI 回答遇到 transient errors（transient errors，因为网络不稳暂时断线，或是云端服务器瞬间过载造成的暂时性错误）时，系统会自动在后台尝试重新连线并接续发送，不会像以前一样直接报错中断，逼你把命令重新打一遍。这就像你打电话给客服时突然信号不好断线，系统在后台帮你自动重拨，接通了直接让你跟原本的客服人员继续聊，不用重新拨号排队。",
+                "en": "To keep network glitches from interrupting your coding train of thought, response generation is now more resilient. When the AI model runs into transient errors (transient errors, temporary failures caused by unstable Wi-Fi disconnects or brief cloud server overloads), the app automatically handles client-side retries behind the scenes, rather than aborting and making you resubmit your prompt. It's like being on a support call when your signal drops; instead of hanging up and making you dial and queue again, the phone system automatically redials in the background and reconnects you to the same agent.",
+                "ja": "ネットワーク回線のゆらぎで AI とのやり取りが遮られるのを防ぐため、通信エラーへの耐性が強化されました。回答生成中に transient errors（transient errors，Wi-Fi 回線の瞬断やサーバーの一時的な過負荷による一時的なエラー）が起きても、アプリが裏で自動的に接続をリトライするため、処理が途切れてプロンプトを再入力するイライラが解消されます。これは電話相談の最中に電波が切れたとき、通話が切れてかけ直す羽目になるのではなく、電話機が勝手に裏でリダイヤルして同じオペレーターとの通話を何事もなかったかのように繋ぎ戻してくれるようなものです。",
+                "ko": "와이파이 단절 등으로 타이핑 중이던 작업 흐름이 방해받지 않도록, 네트워크 재연결 대응력을 올렸습니다. AI 답변 수신 시 transient errors（transient errors, 와이파이 신호 불안정으로 인한 단절이나 서버의 일시적인 과부하 에러）가 검출되면, 화면 전체에 에러 창을 띄워 작동을 중단하는 대신 뒤에서 소리 없이 재시도를 진행합니다. 이는 마치 고객센터와 통화하던 중 전파가 끊겼을 때, 전화기가 스스로 리다이얼을 걸어 방금 대화하던 상담원과 바로 연결해 주어 대화를 매끄럽게 이어가도록 돕는 서비스와 유사합니다."
+              },
+              "original": "Improved model generation resilience by adding automatic client-side retries when encountering transient errors."
+            },
+            {
+              "title": {
+                "zh-TW": "跑那種完全沒印出字的背景指令（如 sleep）時，系統不會再崩潰了",
+                "zh-CN": "跑那种完全没打出字的后台命令（如 sleep）时，系统不会再崩溃了",
+                "en": "Executing background commands with zero text output (like sleep) no longer crashes the app",
+                "ja": "テキストを出力しないコマンド（sleep など）をバックグラウンド実行してもフリーズしなくなった",
+                "ko": "아무런 텍스트를 출력하지 않는 명령（sleep 등）을 배경에 던져도 버그로 꺼지지 않음"
+              },
+              "body": {
+                "zh-TW": "為了能安心執行所有類型的終端指令，背景任務現在能正確處理完全沒有內容的輸出。以前當你執行的 background tasks（background tasks，丟到背景悄悄執行的任務，例如延遲幾秒的 `sleep` 指令）沒有印出任何文字時，系統會因為讀到 empty outputs（empty outputs，完全沒有任何文字的空輸出結果）而觸發崩潰錯誤；現在已修妥此問題，即使指令靜悄悄地執行完畢也絕不當機。這就像你以前叫保鏢去辦事，如果他沒拿回任何文件，你就認定他出了意外而直接抓狂；現在你懂了「沒拿回文件也是一種正常辦完的結果」，大家相安無事。",
+                "zh-CN": "为了能安心执行所有类型的终端命令，后台任务现在能正确处理完全没有内容的输出。以前当你执行的 background tasks（background tasks，丢到后台悄悄执行的任务，例如延迟几秒的 `sleep` 命令）没有印出任何文字时，系统会因为读到 empty outputs（empty outputs，完全没有任何文字的空输出结果）而触发崩溃错误；现在已修妥此问题，即使命令静悄悄地执行完毕也绝不当机。这就像你以前叫保镖去办事，如果他没拿回任何文件，你就认定他出了意外而直接抓狂；现在你懂了“没拿回文件也是一种正常办完的结果”，大家相安无事。",
+                "en": "To let you confidently run all kinds of shell scripts, background executors now handle silent processes properly. Previously, if background tasks (background tasks, tasks sent to run silently in the background, like a `sleep` command that pauses for a few seconds) yielded empty outputs (empty outputs, console command outputs containing absolutely no text), the internal reader panicked and crashed; this is now fixed so silent finishes close cleanly. It's like hiring a messenger and panicking that he was kidnapped because he came back with no letters; now you understand that returning empty-handed is a perfectly normal result.",
+                "ja": "どのようなシェルコマンドも心配なく動かせるようにするため、空の出力に対する処理能力が補強されました。以前は、バックグラウンドの background tasks（background tasks，指定時間処理を止める `sleep` コマンドなど、裏で静かに動かす処理）を実行した際、中身が全くない empty outputs（empty outputs，画面に文字を一切表示しない空の出力）を受け取るとシステムが読み取りに失敗しクラッシュしていました。現在は、静かに出力なしで終了しても何事もなく機能します。これは、お使いに行かせた部下が手ぶらで帰ってきた際に、「何も回収できなかったのはトラブルだ」とパニックになっていたのが、「用事が無事に終わったから手ぶらなのだ」と理解して何事もなく作業を続けられるようになったようなものです。",
+                "ko": "에러 우려 없이 모든 명령을 백그라운드로 마음 놓고 실행할 수 있도록, 텍스트가 나오지 않는 특수 프로세스 실행 안정성을 검증했습니다. 예전에는 백그라운드로 작동하는 background tasks（background tasks, 프로그램 빌드나 일정 시간 지연시키는 `sleep` 명령어처럼 눈에 보이지 않게 실행하는 작업）가 화면에 어떠한 문구도 내놓지 않는 empty outputs（empty outputs, 아무런 글자도 적히지 않은 빈 출력 결과）로 마쳐지면 시스템 예외로 TUI 가 급정지되던 문제를 고쳤습니다. 심부름을 보낸 사람이 편지를 못 받아 왔다고 해서 사고를 당한 줄 알고 소리를 지르던 주인이, 이제는 “빈손으로 돌아온 것도 일을 잘 끝낸 한 종류”라고 차분히 받아들이는 모습과 같습니다."
+              },
+              "original": "Fixed a crash occurring when executing background tasks or terminal commands that produce empty outputs (such as sleep)."
+            },
+            {
+              "title": {
+                "zh-TW": "修正臨時建立的小助手助理因為格式錯誤而無法被叫醒的 bug",
+                "zh-CN": "修正临时建立的小助手智能体因为格式错误而无法被叫醒的 bug",
+                "en": "Fixed custom, dynamically created helper agents failing to wake up due to format bugs",
+                "ja": "あなたがその場で作ったカスタム子アシスタントが、フォーマットエラーで起動しないバグを修正",
+                "ko": "임시로 설계해 쓰는 맞춤형 서브 AI 에이전트들이 형식 오류로 기동하지 않던 버그 해결"
+              },
+              "body": {
+                "zh-TW": "為了讓你能量身訂做特殊助手，臨時建立客製化助理的流程已被完全修復。以前你使用 `define_subagent` 臨時在系統中產生一個具有特定指示與工具權限的 dynamically defined subagents（dynamically defined subagents，你臨時為特殊工作量身設定、具有獨特指示與工具權限的小助手）時，會因為內部以脆弱的 JSON 格式傳遞而導致無法被順利喚醒；現在系統已全面改用 Markdown 格式，你的客製化助理可以穩定就位、隨喚隨到。這就像你原本用繁雜晦澀的手寫表格（JSON）去申請臨時雇員，表格填錯一個空格就被駁回；現在改成用一般白話紙條（Markdown）交代，助理一看就懂，馬上就能開工。",
+                "zh-CN": "为了让你量身订做特殊助手，临时建立客制化助理的流程已被完全修复。以前你使用 `define_subagent` 临时在系统中产生一个具有特定指示与工具权限的 dynamically defined subagents（dynamically defined subagents，你临时为特殊工作量身设定、具有独特指示与工具权限的小助手）时，会因为内部以脆弱的 JSON 格式传递而导致无法被顺利唤醒；现在系统已全面改用 Markdown 格式，你的客制化助理可以稳定就位、随唤随到。这就像你原本用繁杂晦涩的手写表格（JSON）去申请临时雇员，表格填错一个空格就被驳回；现在改成用一般白话纸条（Markdown）交代，助理一看就懂，马上就能开工。",
+                "en": "To let you deploy tailored helper agents seamlessly, custom agent creations are now fully functional. Spawning custom helper agents on the fly via define_subagent (dynamically defined subagents, custom AIs created on the fly with specialized prompts and tool permissions for unique tasks) used to fail due to fragile JSON format checks; the app now maps these in Markdown, allowing custom helpers to wake up and run immediately. It's like filling out a complex, poorly designed form (JSON) to hire a temp worker where one wrong checkmark rejects the request; now you just write a simple sticky note (Markdown) that they read and start working from immediately.",
+                "ja": "面倒な繰り返し作業用にあなた専用の即席 AI を呼び出せるようにするため、カスタムエージェントの作成システムが修正されました。以前は `define_subagent` で dynamically defined subagents（dynamically defined subagents，あなた専用に設定した子エージェント）を作成しても、受け渡す JSON 記述の構造エラーのせいで子エージェントが起動できませんでしたが、現在は Markdown 記述に変更され、確実に仕事を引き受けられるようになりました。これは、派遣スタッフを呼ぶ際のお堅い申請書類（JSON）の書き方が難しく、記入漏れで差し戻されていたのが、手軽な箇条書きのメモ（Markdown）で良くなって、頼めばすぐ現場に駆けつけてくれるようになったようなものです。",
+                "ko": "본인의 프로젝트 성격에 맞는 1 회용 조수를 편하게 양성해 쓸 수 있도록, 맞춤형 에이전트 소환 과정을 완전 수정했습니다. 이전에는 define_subagent 를 통해 독특한 기능과 도구 접근권을 부여한 dynamically defined subagents（dynamically defined subagents, 복잡한 작업을 시키려 사용자가 즉석에서 전용 프롬프트와 도구 권한을 쥐여준 서브 AI）를 만들었으나 fragile 한 JSON 문자열 파싱 문제로 에이전트가 정상적으로 움직이지 못했던 버그를 지우고, 마크다운 형식으로 교체해 구동 신뢰도를 정비했습니다. 서류 양식（JSON）이 지나치게 까다로워 칸 하나만 밀려 쓰면 임시 비서 채용이 거부되던 시스템을, 핵심 지시만 담은 마크다운 편지（Markdown）를 건네면 알아서 척척 비서가 즉각 투입되게 완화한 것과 같습니다."
+              },
+              "original": "Fixed dynamically defined subagents failing to invoke by transitioning definitions from JSON to Markdown format."
+            }
+          ]
         },
         {
-          "title": {
-            "zh-TW": "`/goal` 長任務不再被強制中斷，AI 可以一路做到完成為止",
-            "zh-CN": "`/goal` 长任务不再被强制中断，AI 可以一路做到完成为止",
-            "en": "`/goal` no longer cuts long tasks short — the AI can run until it's actually done",
-            "ja": "`/goal` の長時間タスクが強制中断されなくなり、AI は完了するまで走り続けられる",
-            "ko": "`/goal` 긴 작업이 더 이상 강제 중단되지 않고, AI 가 끝날 때까지 계속할 수 있음"
-          },
-          "body": {
-            "zh-TW": "`/goal`（設定一個長期目標、讓 AI 自己規劃步驟去達成的指令）以前有個跑多久就會被系統強制喊停的上限，就算任務還沒做完也得停下來。現在拿掉了這個上限，AI 會一直做下去，直到任務真正完成或你自己取消為止，不會被系統半路打斷。",
-            "zh-CN": "`/goal`（设定一个长期目标、让 AI 自己规划步骤去达成的命令）以前有个跑多久就会被系统强制喊停的上限，就算任务还没做完也得停下来。现在去掉了这个上限，AI 会一直做下去，直到任务真正完成或你自己取消为止，不会被系统半路打断。",
-            "en": "`/goal` (the command that sets a long-term objective and lets the AI plan its own steps to get there) used to be capped at a maximum runtime — the system would force it to stop even if the task wasn't done. That cap is now removed: the AI keeps working until the task is genuinely complete or you cancel it yourself, with no mid-task interruption from the system.",
-            "ja": "`/goal`（長期目標を設定して、AI 自身に達成までの手順を計画させるコマンド）には以前、実行時間の上限があり、タスクが終わっていなくてもシステムに強制的に止められていました。今はこの上限が撤廃され、AI はタスクが本当に完了するか、あなた自身がキャンセルするまでずっと作業を続けます。システムに途中で打ち切られることはありません。",
-            "ko": "`/goal`（장기 목표를 설정해 AI 가 스스로 단계를 계획해 달성하도록 하는 명령）는 예전엔 일정 시간이 지나면 시스템이 강제로 멈추는 상한선이 있어, 작업이 끝나지 않았어도 멈춰야 했습니다. 이제 이 상한선이 없어져, AI 는 작업이 정말로 끝나거나 당신이 직접 취소할 때까지 계속 일합니다. 시스템에 의해 중간에 끊기지 않습니다."
-          },
-          "original": "Removed the max limit for the `/goal` command, allowing goals to run indefinitely until completed or cancelled."
-        },
-        {
-          "title": {
-            "zh-TW": "自動完成選到技能指令後，現在真的會送出去執行，不會選了卻沒反應",
-            "zh-CN": "自动完成选到技能命令后，现在真的会送出去执行，不会选了却没反应",
-            "en": "Picking a skill command from autocomplete now actually runs it, instead of doing nothing",
-            "ja": "オートコンプリートでスキルコマンドを選ぶと、今は本当に実行される、選んでも反応なしということがなくなった",
-            "ko": "자동완성에서 스킬 명령을 고르면 이제 정말로 실행됨, 골라도 반응 없던 문제 해결"
-          },
-          "body": {
-            "zh-TW": "技能（skill，預先包好的一組指令範本，輸入 `/` 開頭呼叫）指令以前如果你是從自動完成（autocomplete，打到一半系統幫你列出建議選項）的清單裡點選的，偶爾會發生輸入框被清空、但指令根本沒送出去執行的怪狀況，等於你選了等於沒選。現在修好了，從清單點選後會確實送出執行。",
-            "zh-CN": "技能（skill，预先包好的一组命令模板，输入 `/` 开头调用）命令以前如果你是从自动完成（autocomplete，打到一半系统帮你列出建议选项）的清单里点选的，偶尔会发生输入框被清空、但命令根本没送出去执行的怪状况，等于你选了等于没选。现在修好了，从清单点选后会确实送出执行。",
-            "en": "Skill (skill, a pre-packaged set of command templates invoked with a leading `/`) commands used to occasionally clear the input box without actually submitting, when you picked them from the autocomplete (autocomplete, the suggestion list that pops up partway through typing) list — selecting it had no effect. Now it's fixed: picking from the list reliably submits and runs.",
-            "ja": "スキル（skill、`/` で呼び出す事前定義済みのコマンドテンプレート）コマンドは以前、オートコンプリート（autocomplete、入力途中で候補を表示してくれる機能）の一覧から選んだとき、入力欄が空になるのにコマンド自体は送信されないという奇妙な不具合がときどき起きていました。選んでも選んでいないのと同じだったわけです。今は修正され、一覧から選べば確実に送信・実行されます。",
-            "ko": "스킬（skill，`/` 로 호출하는 미리 만들어진 명령 묶음）명령은 예전엔 자동완성（autocomplete，입력 도중 후보 목록을 보여주는 기능）목록에서 선택했을 때, 가끔 입력창만 비워지고 명령은 실제로 전송되지 않는 이상한 일이 있었습니다. 선택해도 선택 안 한 것과 같았죠. 이제 수정되어, 목록에서 선택하면 확실히 전송되어 실행됩니다."
-          },
-          "original": "Resolved inconsistent behavior where selecting skill-derived slash commands from autocompletion suggestions cleared the input without executing. Autocompleted skill commands are now correctly submitted to the backend."
-        },
-        {
-          "title": {
-            "zh-TW": "「永遠允許」的指令規則預設改成「完全比對」，比較不會誤放行危險指令",
-            "zh-CN": "“永远允许”的命令规则默认改成“完全比对”，比较不会误放行危险命令",
-            "en": "\"Always Approve\" rules now default to exact matching, far less likely to wave through a dangerous lookalike command",
-            "ja": "「常に承認」ルールはデフォルトで完全一致に、危険な「なりすまし」コマンドを誤って通すリスクが減少",
-            "ko": "\"항상 허용\" 규칙이 기본적으로 정확히 일치하는 것으로 바뀌어, 위험한 비슷한 명령을 잘못 통과시킬 위험이 줄어듦"
-          },
-          "body": {
-            "zh-TW": "「永遠允許」（Always Approve，你設定好以後同類指令不用每次都跳出來問你同意）這種規則以前預設用比對範圍很寬的正規表示式（regex，一種可以模糊比對文字模式的寫法，但也容易不小心放行不該放行的東西）去判斷，現在預設改成「完全照字面比對」，比較不容易誤放行看起來像但其實不一樣的危險指令；如果你真的需要模糊比對的彈性，可以在規則前面加上 `regex:` 自己選擇開啟。這就像門禁系統以前刷「長得很像」的卡就放行，現在改成一定要刷一模一樣的卡才開門，除非你自己特別交代要放寬。",
-            "zh-CN": "“永远允许”（Always Approve，你设定好以后同类命令不用每次都弹出来问你同意）这种规则以前默认用比对范围很宽的正则表达式（regex，一种可以模糊比对文字模式的写法，但也容易不小心放行不该放行的东西）去判断，现在默认改成“完全照字面比对”，比较不容易误放行看起来像但其实不一样的危险命令；如果你真的需要模糊比对的弹性，可以在规则前面加上 `regex:` 自己选择开启。这就像门禁系统以前刷“长得很像”的卡就放行，现在改成一定要刷一模一样的卡才开门，除非你自己特别交代要放宽。",
-            "en": "'Always Approve' rules (Always Approve, settings that let matching commands skip asking for your consent every time) used to default to matching with loose regular expressions (regex, a pattern-matching syntax that's flexible but can accidentally let through things that look similar but aren't), which now default to strict literal matching instead — much less likely to wave through a dangerous command that merely resembles an approved one. If you really need the flexibility of fuzzy matching, you can opt in by prefixing a rule with `regex:`. It's like an access card reader that used to accept cards that 'looked close enough'; now it requires an exact match unless you specifically tell it to relax.",
-            "ja": "「常に承認」（Always Approve、設定しておくと同じ種類のコマンドは毎回同意を聞かれなくなる仕組み）ルールは以前、緩い正規表現（regex、柔軟に文字パターンを照合できるが、似て非なるものまでうっかり通してしまいやすい書き方）でマッチング判定するのがデフォルトでした。今はデフォルトが「文字通り完全一致」に変わり、見た目は似ているが実は違う危険なコマンドを誤って通してしまうリスクが減りました。あいまい一致の柔軟性が本当に必要な場合は、ルールの先頭に `regex:` を付けて自分でオプトインできます。これは入退室カードリーダーが以前「だいたい似ているカード」でも通していたのを、自分で緩めると指定しない限り完全一致のカードしか通さなくなったようなものです。",
-            "ko": "“항상 허용”（Always Approve，설정해두면 같은 종류의 명령은 매번 동의를 묻지 않는 설정）규칙은 예전엔 매칭 범위가 넓은 정규표현식（regex，문자 패턴을 느슨하게 매칭할 수 있지만 비슷해 보이는 다른 것까지 실수로 통과시키기 쉬운 방식）을 기본값으로 썼습니다. 이제 기본값이 “글자 그대로 정확히 일치”로 바뀌어, 비슷해 보이지만 실제로는 다른 위험한 명령을 잘못 통과시킬 가능성이 줄었습니다. 정말 느슨한 매칭이 필요하면 규칙 앞에 `regex:` 를 붙여 직접 선택해 켤 수 있습니다. 출입 카드 리더기가 예전엔 “비슷하게 생긴” 카드도 통과시켰는데, 이제는 직접 완화하라고 지정하지 않는 한 똑같은 카드만 문을 열어주는 것과 같습니다."
-          },
-          "original": "Improved command permission security by making \"Always Approve\" rule matching strict (non-regex) by default, while allowing users to explicitly opt-in to regex matching by prepending rules with `regex:`."
-        },
-        {
-          "title": {
-            "zh-TW": "把指令結果存成檔案這種安全動作，現在不會每次都被擋下來要你重新核准",
-            "zh-CN": "把命令结果存成文件这种安全动作，现在不会每次都被挡下来要你重新核准",
-            "en": "Safe output-redirection commands no longer get blocked for re-approval every single time",
-            "ja": "コマンドの結果をファイルに保存するような安全な操作が、もう毎回再承認を求められなくなった",
-            "ko": "명령 결과를 파일로 저장하는 안전한 동작이 이제 매번 다시 승인받지 않아도 됨"
-          },
-          "body": {
-            "zh-TW": "像 `tool > file`（把某個指令的輸出結果導向、存成一個檔案，> 符號叫做重新導向）這種其實很安全的常見寫法，以前因為系統比對規則太嚴格，常常被當成「跟之前核准過的指令不完全一樣」而要你重新核准一次。現在放寬了這類檢查，安全的輸出重新導向指令可以直接套用你之前設定好的允許規則，不用每次都被多問一次。",
-            "zh-CN": "像 `tool > file`（把某个命令的输出结果重定向、存成一个文件，> 符号叫做重定向）这种其实很安全的常见写法，以前因为系统比对规则太严格，常常被当成“跟之前核准过的命令不完全一样”而要你重新核准一次。现在放宽了这类检查，安全的输出重定向命令可以直接套用你之前设定好的允许规则，不用每次都被多问一次。",
-            "en": "Genuinely safe, common patterns like `tool > file` (redirecting a command's output into a file, where `>` is a redirection symbol) used to often get flagged as 'not quite the same' as a previously approved command, forcing you to re-approve every time, because the matching rules were too strict. These checks are now relaxed — safe output-redirection commands can apply your existing approval rules directly, without being asked again every time.",
-            "ja": "`tool > file`（あるコマンドの出力結果をリダイレクトしてファイルに保存する書き方で、`>` はリダイレクト記号）のような本来とても安全な書き方でも、以前はマッチングルールが厳しすぎて「以前承認したコマンドと完全には一致しない」と判定され、毎回再承認を求められることがよくありました。今はこの種のチェックが緩和され、安全な出力リダイレクトコマンドはあなたが以前設定した許可ルールをそのまま適用でき、毎回余計に聞かれることがなくなりました。",
-            "ko": "`tool > file`（어떤 명령의 출력 결과를 리다이렉트해 파일로 저장하는 방식으로, `>` 는 리다이렉트 기호）같은 본래 안전한 흔한 패턴도, 예전엔 매칭 규칙이 너무 엄격해 “이전에 승인한 명령과 완전히 같지 않다”고 판단되어 매번 다시 승인해야 하는 경우가 많았습니다. 이제 이런 검사가 완화되어, 안전한 출력 리다이렉트 명령은 당신이 이미 설정해둔 허용 규칙을 그대로 적용할 수 있어 매번 다시 묻지 않습니다."
-          },
-          "original": "Improved command permission usability by relaxing redirection checks, allowing safe commands with output redirection (e.g., `tool > file`) to match without requiring strict full-command approval."
-        },
-        {
-          "title": {
-            "zh-TW": "終端機裡的連結變成可以直接點，看 diff 也能按 shift+n 往回翻",
-            "zh-CN": "终端里的链接变成可以直接点，看 diff 也能按 shift+n 往回翻",
-            "en": "Links in the terminal are now clickable, and you can press shift+n to step backward through a diff",
-            "ja": "ターミナル内のリンクがクリック可能に、diff の確認も shift+n で後戻りできるように",
-            "ko": "터미널 링크를 바로 클릭할 수 있고, diff 화면도 shift+n 으로 뒤로 넘길 수 있음"
-          },
-          "body": {
-            "zh-TW": "支援的終端機現在能把網址顯示成真正可以點擊的連結（OSC8，一種讓終端機文字變成可點擊超連結的技術標準），舊版不支援的終端機則會自動退回成純文字、不會顯示亂碼。另外在統一差異檢視模式（diff review，比對程式碼修改前後差異的畫面）裡新增了 `shift+n` 快捷鍵，可以往回翻看上一段修改，不用只能往前翻。",
-            "zh-CN": "支持的终端现在能把网址显示成真正可以点击的链接（OSC8，一种让终端文字变成可点击超链接的技术标准），旧版不支持的终端则会自动退回成纯文本、不会显示乱码。另外在统一差异检视模式（diff review，比对代码修改前后差异的画面）里新增了 `shift+n` 快捷键，可以往回翻看上一段修改，不用只能往前翻。",
-            "en": "Terminals that support it can now render URLs as genuinely clickable links (OSC8, a technical standard for clickable hyperlinks inside terminal text), while older unsupported terminals automatically fall back to plain text instead of garbled output. Also, the unified diff review screen (diff review, the view that compares code before and after a change) now has a `shift+n` shortcut to cycle backward through changes, instead of only being able to move forward.",
-            "ja": "対応しているターミナルでは、URL が本物のクリック可能なリンク（OSC8、ターミナル内のテキストをクリック可能なハイパーリンクにする技術標準）として表示されるようになり、対応していない古いターミナルでは自動的にプレーンテキストへフォールバックして文字化けしません。また統一差分レビュー画面（diff review、変更前後のコードを比較する画面）に `shift+n` ショートカットが追加され、前の変更へ後戻りできるようになりました。以前は前へ進むことしかできませんでした。",
-            "ko": "지원되는 터미널에서는 URL 이 진짜 클릭 가능한 링크（OSC8，터미널 텍스트를 클릭 가능한 하이퍼링크로 만드는 기술 표준）로 표시되며, 지원하지 않는 구형 터미널은 자동으로 일반 텍스트로 돌아가 깨진 글자가 나오지 않습니다. 또한 통합 diff 검토 화면（diff review，코드 변경 전후를 비교하는 화면）에 `shift+n` 단축키가 추가되어, 이전 변경으로 되돌아가며 볼 수 있습니다. 예전엔 앞으로만 넘길 수 있었습니다."
-          },
-          "original": "Added dynamic OSC8 terminal hyperlink support to render clickable links in supporting terminals, with automatic fallback stripping for backward compatibility. Introduced reverse diff cycling navigation mapped to `shift+n` in unified diff review mode to allow users to easily cycle backwards through diff blocks."
-        },
-        {
-          "title": {
-            "zh-TW": "程式碼區塊裡的 Makefile 語法不會再被誤判成數學公式、印出亂碼",
-            "zh-CN": "代码块里的 Makefile 语法不会再被误判成数学公式、打出乱码",
-            "en": "Makefile syntax inside code blocks no longer gets mistaken for math formulas and garbled",
-            "ja": "コードブロック内の Makefile 構文が数式と誤認識されて文字化けすることがなくなった",
-            "ko": "코드 블록 안 Makefile 문법이 더 이상 수식으로 오인되어 깨진 글자가 나오지 않음"
-          },
-          "body": {
-            "zh-TW": "Antigravity 支援 LaTeX（一種專門用來排版數學公式的標記語法）數學公式渲染，但以前連程式碼區塊裡 Makefile（一種寫建置指令的設定檔語法）的 `$(call ...)` 這類寫法都會被誤判成數學公式語法去解析，結果印出一團亂碼。現在加了一道判斷機制，只在一般文字段落才會嘗試解析數學公式，程式碼區塊裡的內容不會被誤傷。",
-            "zh-CN": "Antigravity 支持 LaTeX（一种专门用来排版数学公式的标记语法）数学公式渲染，但以前连代码块里 Makefile（一种写构建命令的配置文件语法）的 `$(call ...)` 这类写法都会被误判成数学公式语法去解析，结果打印出一团乱码。现在加了一道判断机制，只在普通文本段落才会尝试解析数学公式，代码块里的内容不会被误伤。",
-            "en": "Antigravity supports LaTeX (a markup syntax dedicated to typesetting math formulas) math rendering, but it used to misread Makefile (a config syntax for writing build instructions) patterns like `$(call ...)` inside code blocks as math formula syntax, garbling the output. A new state machine now restricts math-formula parsing to plain prose paragraphs only, so code block contents no longer get caught in the crossfire.",
-            "ja": "Antigravity は LaTeX（数式組版専用のマークアップ記法）の数式レンダリングに対応していますが、以前はコードブロック内の Makefile（ビルド手順を書く設定ファイルの記法）の `$(call ...)` のような記述まで数式構文だと誤認識して解析してしまい、文字化けして表示されることがありました。今は状態管理の仕組みが追加され、数式の解析は通常の地の文の段落でのみ行われるようになり、コードブロックの内容が巻き添えを食うことはなくなりました。",
-            "ko": "Antigravity 는 LaTeX（수식 조판 전용 마크업 문법）수식 렌더링을 지원하지만, 예전엔 코드 블록 안 Makefile（빌드 명령을 적는 설정 파일 문법）의 `$(call ...)` 같은 표기까지 수식 문법으로 오인해 분석하는 바람에 깨진 글자가 출력되곤 했습니다. 이제 상태 판별 장치가 추가되어, 수식 분석은 일반 본문 단락에서만 시도되며 코드 블록 안 내용은 영향을 받지 않습니다."
-          },
-          "original": "Fixed a rendering bug where Makefile syntax (like `$(call ...)`) inside code blocks was mistakenly parsed and mangled by LaTeX math expansion, by introducing a state machine that restricts expansion to prose segments."
+          "version": "1.0.14",
+          "period": "2026-06-25 ~ 06-30",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "在 tmux 終端機分頁裡也能直接貼上剪貼簿的圖片了",
+                "zh-CN": "在 tmux 终端分页里也能直接粘贴剪贴板的图片了",
+                "en": "Pasting clipboard images now works inside tmux panes too",
+                "ja": "tmux のペイン内でもクリップボードの画像を直接貼り付けられるように",
+                "ko": "tmux 분할 화면 안에서도 클립보드 이미지를 바로 붙여넣을 수 있게 됨"
+              },
+              "body": {
+                "zh-TW": "tmux（一種能在終端機裡開多個分頁、背景常駐執行的工具）使用者以前在裡面用 Antigravity 時沒辦法直接貼上剪貼簿裡的圖片，得繞路用別的方式才能把截圖塞進對話。現在可以直接貼上了，跟在一般終端機裡操作一樣方便。",
+                "zh-CN": "tmux（一种能在终端里开多个分页、后台常驻运行的工具）用户以前在里面用 Antigravity 时没办法直接粘贴剪贴板里的图片，得绕路用别的方式才能把截图塞进对话。现在可以直接粘贴了，跟在普通终端里操作一样方便。",
+                "en": "tmux (a tool that lets you run multiple panes inside a terminal session that keeps running in the background) users previously couldn't paste clipboard images directly while using Antigravity inside it, and had to work around it some other way to get a screenshot into the chat. Now you can just paste it, exactly as easily as in a regular terminal.",
+                "ja": "tmux（ターミナルの中で複数のペインを開いてバックグラウンドで常駐実行できるツール）の中で Antigravity を使っているとき、以前はクリップボードの画像を直接貼り付けることができず、スクリーンショットを会話に入れるのに回り道が必要でした。今は直接貼り付けられるようになり、普通のターミナルで操作するのと同じくらい手軽です。",
+                "ko": "tmux（터미널 안에서 여러 분할 화면을 열어 백그라운드에 상주시키는 도구）안에서 Antigravity 를 쓸 때, 예전엔 클립보드의 이미지를 바로 붙여넣을 수 없어서 스크린샷을 대화에 넣으려면 다른 방법을 돌아가야 했습니다. 이제는 바로 붙여넣을 수 있어, 일반 터미널에서 쓰는 것만큼 편합니다."
+              },
+              "original": "Allowed image pasting from the clipboard in local tmux sessions."
+            },
+            {
+              "title": {
+                "zh-TW": "`/goal` 長任務不再被強制中斷，AI 可以一路做到完成為止",
+                "zh-CN": "`/goal` 长任务不再被强制中断，AI 可以一路做到完成为止",
+                "en": "`/goal` no longer cuts long tasks short — the AI can run until it's actually done",
+                "ja": "`/goal` の長時間タスクが強制中断されなくなり、AI は完了するまで走り続けられる",
+                "ko": "`/goal` 긴 작업이 더 이상 강제 중단되지 않고, AI 가 끝날 때까지 계속할 수 있음"
+              },
+              "body": {
+                "zh-TW": "`/goal`（設定一個長期目標、讓 AI 自己規劃步驟去達成的指令）以前有個跑多久就會被系統強制喊停的上限，就算任務還沒做完也得停下來。現在拿掉了這個上限，AI 會一直做下去，直到任務真正完成或你自己取消為止，不會被系統半路打斷。",
+                "zh-CN": "`/goal`（设定一个长期目标、让 AI 自己规划步骤去达成的命令）以前有个跑多久就会被系统强制喊停的上限，就算任务还没做完也得停下来。现在去掉了这个上限，AI 会一直做下去，直到任务真正完成或你自己取消为止，不会被系统半路打断。",
+                "en": "`/goal` (the command that sets a long-term objective and lets the AI plan its own steps to get there) used to be capped at a maximum runtime — the system would force it to stop even if the task wasn't done. That cap is now removed: the AI keeps working until the task is genuinely complete or you cancel it yourself, with no mid-task interruption from the system.",
+                "ja": "`/goal`（長期目標を設定して、AI 自身に達成までの手順を計画させるコマンド）には以前、実行時間の上限があり、タスクが終わっていなくてもシステムに強制的に止められていました。今はこの上限が撤廃され、AI はタスクが本当に完了するか、あなた自身がキャンセルするまでずっと作業を続けます。システムに途中で打ち切られることはありません。",
+                "ko": "`/goal`（장기 목표를 설정해 AI 가 스스로 단계를 계획해 달성하도록 하는 명령）는 예전엔 일정 시간이 지나면 시스템이 강제로 멈추는 상한선이 있어, 작업이 끝나지 않았어도 멈춰야 했습니다. 이제 이 상한선이 없어져, AI 는 작업이 정말로 끝나거나 당신이 직접 취소할 때까지 계속 일합니다. 시스템에 의해 중간에 끊기지 않습니다."
+              },
+              "original": "Removed the max limit for the `/goal` command, allowing goals to run indefinitely until completed or cancelled."
+            },
+            {
+              "title": {
+                "zh-TW": "自動完成選到技能指令後，現在真的會送出去執行，不會選了卻沒反應",
+                "zh-CN": "自动完成选到技能命令后，现在真的会送出去执行，不会选了却没反应",
+                "en": "Picking a skill command from autocomplete now actually runs it, instead of doing nothing",
+                "ja": "オートコンプリートでスキルコマンドを選ぶと、今は本当に実行される、選んでも反応なしということがなくなった",
+                "ko": "자동완성에서 스킬 명령을 고르면 이제 정말로 실행됨, 골라도 반응 없던 문제 해결"
+              },
+              "body": {
+                "zh-TW": "技能（skill，預先包好的一組指令範本，輸入 `/` 開頭呼叫）指令以前如果你是從自動完成（autocomplete，打到一半系統幫你列出建議選項）的清單裡點選的，偶爾會發生輸入框被清空、但指令根本沒送出去執行的怪狀況，等於你選了等於沒選。現在修好了，從清單點選後會確實送出執行。",
+                "zh-CN": "技能（skill，预先包好的一组命令模板，输入 `/` 开头调用）命令以前如果你是从自动完成（autocomplete，打到一半系统帮你列出建议选项）的清单里点选的，偶尔会发生输入框被清空、但命令根本没送出去执行的怪状况，等于你选了等于没选。现在修好了，从清单点选后会确实送出执行。",
+                "en": "Skill (skill, a pre-packaged set of command templates invoked with a leading `/`) commands used to occasionally clear the input box without actually submitting, when you picked them from the autocomplete (autocomplete, the suggestion list that pops up partway through typing) list — selecting it had no effect. Now it's fixed: picking from the list reliably submits and runs.",
+                "ja": "スキル（skill、`/` で呼び出す事前定義済みのコマンドテンプレート）コマンドは以前、オートコンプリート（autocomplete、入力途中で候補を表示してくれる機能）の一覧から選んだとき、入力欄が空になるのにコマンド自体は送信されないという奇妙な不具合がときどき起きていました。選んでも選んでいないのと同じだったわけです。今は修正され、一覧から選べば確実に送信・実行されます。",
+                "ko": "스킬（skill，`/` 로 호출하는 미리 만들어진 명령 묶음）명령은 예전엔 자동완성（autocomplete，입력 도중 후보 목록을 보여주는 기능）목록에서 선택했을 때, 가끔 입력창만 비워지고 명령은 실제로 전송되지 않는 이상한 일이 있었습니다. 선택해도 선택 안 한 것과 같았죠. 이제 수정되어, 목록에서 선택하면 확실히 전송되어 실행됩니다."
+              },
+              "original": "Resolved inconsistent behavior where selecting skill-derived slash commands from autocompletion suggestions cleared the input without executing. Autocompleted skill commands are now correctly submitted to the backend."
+            },
+            {
+              "title": {
+                "zh-TW": "「永遠允許」的指令規則預設改成「完全比對」，比較不會誤放行危險指令",
+                "zh-CN": "“永远允许”的命令规则默认改成“完全比对”，比较不会误放行危险命令",
+                "en": "\"Always Approve\" rules now default to exact matching, far less likely to wave through a dangerous lookalike command",
+                "ja": "「常に承認」ルールはデフォルトで完全一致に、危険な「なりすまし」コマンドを誤って通すリスクが減少",
+                "ko": "\"항상 허용\" 규칙이 기본적으로 정확히 일치하는 것으로 바뀌어, 위험한 비슷한 명령을 잘못 통과시킬 위험이 줄어듦"
+              },
+              "body": {
+                "zh-TW": "「永遠允許」（Always Approve，你設定好以後同類指令不用每次都跳出來問你同意）這種規則以前預設用比對範圍很寬的正規表示式（regex，一種可以模糊比對文字模式的寫法，但也容易不小心放行不該放行的東西）去判斷，現在預設改成「完全照字面比對」，比較不容易誤放行看起來像但其實不一樣的危險指令；如果你真的需要模糊比對的彈性，可以在規則前面加上 `regex:` 自己選擇開啟。這就像門禁系統以前刷「長得很像」的卡就放行，現在改成一定要刷一模一樣的卡才開門，除非你自己特別交代要放寬。",
+                "zh-CN": "“永远允许”（Always Approve，你设定好以后同类命令不用每次都弹出来问你同意）这种规则以前默认用比对范围很宽的正则表达式（regex，一种可以模糊比对文字模式的写法，但也容易不小心放行不该放行的东西）去判断，现在默认改成“完全照字面比对”，比较不容易误放行看起来像但其实不一样的危险命令；如果你真的需要模糊比对的弹性，可以在规则前面加上 `regex:` 自己选择开启。这就像门禁系统以前刷“长得很像”的卡就放行，现在改成一定要刷一模一样的卡才开门，除非你自己特别交代要放宽。",
+                "en": "'Always Approve' rules (Always Approve, settings that let matching commands skip asking for your consent every time) used to default to matching with loose regular expressions (regex, a pattern-matching syntax that's flexible but can accidentally let through things that look similar but aren't), which now default to strict literal matching instead — much less likely to wave through a dangerous command that merely resembles an approved one. If you really need the flexibility of fuzzy matching, you can opt in by prefixing a rule with `regex:`. It's like an access card reader that used to accept cards that 'looked close enough'; now it requires an exact match unless you specifically tell it to relax.",
+                "ja": "「常に承認」（Always Approve、設定しておくと同じ種類のコマンドは毎回同意を聞かれなくなる仕組み）ルールは以前、緩い正規表現（regex、柔軟に文字パターンを照合できるが、似て非なるものまでうっかり通してしまいやすい書き方）でマッチング判定するのがデフォルトでした。今はデフォルトが「文字通り完全一致」に変わり、見た目は似ているが実は違う危険なコマンドを誤って通してしまうリスクが減りました。あいまい一致の柔軟性が本当に必要な場合は、ルールの先頭に `regex:` を付けて自分でオプトインできます。これは入退室カードリーダーが以前「だいたい似ているカード」でも通していたのを、自分で緩めると指定しない限り完全一致のカードしか通さなくなったようなものです。",
+                "ko": "“항상 허용”（Always Approve，설정해두면 같은 종류의 명령은 매번 동의를 묻지 않는 설정）규칙은 예전엔 매칭 범위가 넓은 정규표현식（regex，문자 패턴을 느슨하게 매칭할 수 있지만 비슷해 보이는 다른 것까지 실수로 통과시키기 쉬운 방식）을 기본값으로 썼습니다. 이제 기본값이 “글자 그대로 정확히 일치”로 바뀌어, 비슷해 보이지만 실제로는 다른 위험한 명령을 잘못 통과시킬 가능성이 줄었습니다. 정말 느슨한 매칭이 필요하면 규칙 앞에 `regex:` 를 붙여 직접 선택해 켤 수 있습니다. 출입 카드 리더기가 예전엔 “비슷하게 생긴” 카드도 통과시켰는데, 이제는 직접 완화하라고 지정하지 않는 한 똑같은 카드만 문을 열어주는 것과 같습니다."
+              },
+              "original": "Improved command permission security by making \"Always Approve\" rule matching strict (non-regex) by default, while allowing users to explicitly opt-in to regex matching by prepending rules with `regex:`."
+            },
+            {
+              "title": {
+                "zh-TW": "把指令結果存成檔案這種安全動作，現在不會每次都被擋下來要你重新核准",
+                "zh-CN": "把命令结果存成文件这种安全动作，现在不会每次都被挡下来要你重新核准",
+                "en": "Safe output-redirection commands no longer get blocked for re-approval every single time",
+                "ja": "コマンドの結果をファイルに保存するような安全な操作が、もう毎回再承認を求められなくなった",
+                "ko": "명령 결과를 파일로 저장하는 안전한 동작이 이제 매번 다시 승인받지 않아도 됨"
+              },
+              "body": {
+                "zh-TW": "像 `tool > file`（把某個指令的輸出結果導向、存成一個檔案，> 符號叫做重新導向）這種其實很安全的常見寫法，以前因為系統比對規則太嚴格，常常被當成「跟之前核准過的指令不完全一樣」而要你重新核准一次。現在放寬了這類檢查，安全的輸出重新導向指令可以直接套用你之前設定好的允許規則，不用每次都被多問一次。",
+                "zh-CN": "像 `tool > file`（把某个命令的输出结果重定向、存成一个文件，> 符号叫做重定向）这种其实很安全的常见写法，以前因为系统比对规则太严格，常常被当成“跟之前核准过的命令不完全一样”而要你重新核准一次。现在放宽了这类检查，安全的输出重定向命令可以直接套用你之前设定好的允许规则，不用每次都被多问一次。",
+                "en": "Genuinely safe, common patterns like `tool > file` (redirecting a command's output into a file, where `>` is a redirection symbol) used to often get flagged as 'not quite the same' as a previously approved command, forcing you to re-approve every time, because the matching rules were too strict. These checks are now relaxed — safe output-redirection commands can apply your existing approval rules directly, without being asked again every time.",
+                "ja": "`tool > file`（あるコマンドの出力結果をリダイレクトしてファイルに保存する書き方で、`>` はリダイレクト記号）のような本来とても安全な書き方でも、以前はマッチングルールが厳しすぎて「以前承認したコマンドと完全には一致しない」と判定され、毎回再承認を求められることがよくありました。今はこの種のチェックが緩和され、安全な出力リダイレクトコマンドはあなたが以前設定した許可ルールをそのまま適用でき、毎回余計に聞かれることがなくなりました。",
+                "ko": "`tool > file`（어떤 명령의 출력 결과를 리다이렉트해 파일로 저장하는 방식으로, `>` 는 리다이렉트 기호）같은 본래 안전한 흔한 패턴도, 예전엔 매칭 규칙이 너무 엄격해 “이전에 승인한 명령과 완전히 같지 않다”고 판단되어 매번 다시 승인해야 하는 경우가 많았습니다. 이제 이런 검사가 완화되어, 안전한 출력 리다이렉트 명령은 당신이 이미 설정해둔 허용 규칙을 그대로 적용할 수 있어 매번 다시 묻지 않습니다."
+              },
+              "original": "Improved command permission usability by relaxing redirection checks, allowing safe commands with output redirection (e.g., `tool > file`) to match without requiring strict full-command approval."
+            },
+            {
+              "title": {
+                "zh-TW": "終端機裡的連結變成可以直接點，看 diff 也能按 shift+n 往回翻",
+                "zh-CN": "终端里的链接变成可以直接点，看 diff 也能按 shift+n 往回翻",
+                "en": "Links in the terminal are now clickable, and you can press shift+n to step backward through a diff",
+                "ja": "ターミナル内のリンクがクリック可能に、diff の確認も shift+n で後戻りできるように",
+                "ko": "터미널 링크를 바로 클릭할 수 있고, diff 화면도 shift+n 으로 뒤로 넘길 수 있음"
+              },
+              "body": {
+                "zh-TW": "支援的終端機現在能把網址顯示成真正可以點擊的連結（OSC8，一種讓終端機文字變成可點擊超連結的技術標準），舊版不支援的終端機則會自動退回成純文字、不會顯示亂碼。另外在統一差異檢視模式（diff review，比對程式碼修改前後差異的畫面）裡新增了 `shift+n` 快捷鍵，可以往回翻看上一段修改，不用只能往前翻。",
+                "zh-CN": "支持的终端现在能把网址显示成真正可以点击的链接（OSC8，一种让终端文字变成可点击超链接的技术标准），旧版不支持的终端则会自动退回成纯文本、不会显示乱码。另外在统一差异检视模式（diff review，比对代码修改前后差异的画面）里新增了 `shift+n` 快捷键，可以往回翻看上一段修改，不用只能往前翻。",
+                "en": "Terminals that support it can now render URLs as genuinely clickable links (OSC8, a technical standard for clickable hyperlinks inside terminal text), while older unsupported terminals automatically fall back to plain text instead of garbled output. Also, the unified diff review screen (diff review, the view that compares code before and after a change) now has a `shift+n` shortcut to cycle backward through changes, instead of only being able to move forward.",
+                "ja": "対応しているターミナルでは、URL が本物のクリック可能なリンク（OSC8、ターミナル内のテキストをクリック可能なハイパーリンクにする技術標準）として表示されるようになり、対応していない古いターミナルでは自動的にプレーンテキストへフォールバックして文字化けしません。また統一差分レビュー画面（diff review、変更前後のコードを比較する画面）に `shift+n` ショートカットが追加され、前の変更へ後戻りできるようになりました。以前は前へ進むことしかできませんでした。",
+                "ko": "지원되는 터미널에서는 URL 이 진짜 클릭 가능한 링크（OSC8，터미널 텍스트를 클릭 가능한 하이퍼링크로 만드는 기술 표준）로 표시되며, 지원하지 않는 구형 터미널은 자동으로 일반 텍스트로 돌아가 깨진 글자가 나오지 않습니다. 또한 통합 diff 검토 화면（diff review，코드 변경 전후를 비교하는 화면）에 `shift+n` 단축키가 추가되어, 이전 변경으로 되돌아가며 볼 수 있습니다. 예전엔 앞으로만 넘길 수 있었습니다."
+              },
+              "original": "Added dynamic OSC8 terminal hyperlink support to render clickable links in supporting terminals, with automatic fallback stripping for backward compatibility. Introduced reverse diff cycling navigation mapped to `shift+n` in unified diff review mode to allow users to easily cycle backwards through diff blocks."
+            },
+            {
+              "title": {
+                "zh-TW": "程式碼區塊裡的 Makefile 語法不會再被誤判成數學公式、印出亂碼",
+                "zh-CN": "代码块里的 Makefile 语法不会再被误判成数学公式、打出乱码",
+                "en": "Makefile syntax inside code blocks no longer gets mistaken for math formulas and garbled",
+                "ja": "コードブロック内の Makefile 構文が数式と誤認識されて文字化けすることがなくなった",
+                "ko": "코드 블록 안 Makefile 문법이 더 이상 수식으로 오인되어 깨진 글자가 나오지 않음"
+              },
+              "body": {
+                "zh-TW": "Antigravity 支援 LaTeX（一種專門用來排版數學公式的標記語法）數學公式渲染，但以前連程式碼區塊裡 Makefile（一種寫建置指令的設定檔語法）的 `$(call ...)` 這類寫法都會被誤判成數學公式語法去解析，結果印出一團亂碼。現在加了一道判斷機制，只在一般文字段落才會嘗試解析數學公式，程式碼區塊裡的內容不會被誤傷。",
+                "zh-CN": "Antigravity 支持 LaTeX（一种专门用来排版数学公式的标记语法）数学公式渲染，但以前连代码块里 Makefile（一种写构建命令的配置文件语法）的 `$(call ...)` 这类写法都会被误判成数学公式语法去解析，结果打印出一团乱码。现在加了一道判断机制，只在普通文本段落才会尝试解析数学公式，代码块里的内容不会被误伤。",
+                "en": "Antigravity supports LaTeX (a markup syntax dedicated to typesetting math formulas) math rendering, but it used to misread Makefile (a config syntax for writing build instructions) patterns like `$(call ...)` inside code blocks as math formula syntax, garbling the output. A new state machine now restricts math-formula parsing to plain prose paragraphs only, so code block contents no longer get caught in the crossfire.",
+                "ja": "Antigravity は LaTeX（数式組版専用のマークアップ記法）の数式レンダリングに対応していますが、以前はコードブロック内の Makefile（ビルド手順を書く設定ファイルの記法）の `$(call ...)` のような記述まで数式構文だと誤認識して解析してしまい、文字化けして表示されることがありました。今は状態管理の仕組みが追加され、数式の解析は通常の地の文の段落でのみ行われるようになり、コードブロックの内容が巻き添えを食うことはなくなりました。",
+                "ko": "Antigravity 는 LaTeX（수식 조판 전용 마크업 문법）수식 렌더링을 지원하지만, 예전엔 코드 블록 안 Makefile（빌드 명령을 적는 설정 파일 문법）의 `$(call ...)` 같은 표기까지 수식 문법으로 오인해 분석하는 바람에 깨진 글자가 출력되곤 했습니다. 이제 상태 판별 장치가 추가되어, 수식 분석은 일반 본문 단락에서만 시도되며 코드 블록 안 내용은 영향을 받지 않습니다."
+              },
+              "original": "Fixed a rendering bug where Makefile syntax (like `$(call ...)`) inside code blocks was mistakenly parsed and mangled by LaTeX math expansion, by introducing a state machine that restricts expansion to prose segments."
+            }
+          ]
         }
       ]
     }
