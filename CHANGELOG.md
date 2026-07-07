@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.11] - 2026-07-08
+
+### Fixed
+- **AI Tool Update Digest went blank after upgrading from 0.24.9 or earlier**: the new versions-array schema introduced in 0.24.10 caused `_normalize_payload` to return an empty list (not `None`) when reading a pre-0.24.10 cache file, which `load_ai_updates` then treated as a valid "fresh" empty result instead of refetching from GitHub — hiding the section for up to 24h (the cache TTL) on every machine that had used an older version. Legacy-schema caches now correctly trigger a refetch.
+
 ## [0.24.10] - 2026-07-08
 
 ### Added
