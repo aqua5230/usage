@@ -20,15 +20,13 @@ Claude Code & Codex usage, always in the macOS menu bar. A command tells you *wh
   <img src="docs/showcase.en.png" alt="usage — Claude Code &amp; Codex quota pinned to the macOS menu bar" width="820">
 </p>
 
-`usage` keeps your **Claude Code and Codex** quota pinned to the top-right of your screen, color-coded so the warning level reads at a glance. One click opens Session, Weekly, per-project usage (today / 7-day / monthly), and today's token cost. Every number is read from local files Claude Code and Codex already write — it **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, so the monitor itself never adds to your usage.
+`usage` keeps your **Claude Code and Codex** quota pinned to the top-right of your screen, color-coded so the warning level reads at a glance. Every number is read passively from local files — it **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, meaning the monitor itself never adds to your token usage.
 
-## Sound familiar?
+## 💡 Why usage?
 
-- 🧱 **You're deep in a refactor and Claude Code just… stops.** Out of quota, no heads-up — now you're blocked and you didn't even see it coming.
-- ❓ **No idea how much of your 5-hour or weekly limit is left.** You're flying blind until you hit the wall.
-- 🔁 **A CLI answers — but only when you stop and run it.** usage never makes you ask; the number's already in the corner of your eye.
-
-usage answers all three at a glance: the number is *already on your screen*, color-coded, updated passively from local logs — no command to run, no page to open.
+- 🧱 **No more surprise blocks.** You're deep in a refactor and Claude Code just stops. Out of quota, no heads-up — now you're blocked.
+- ❓ **No more flying blind.** You have no idea how much of your 5-hour or weekly limit is left until you hit the wall.
+- 🔁 **Zero friction.** A CLI answers you only when you stop and ask. `usage` answers all questions at a glance: the number is already on your screen, color-coded, no command to run, no page to open.
 
 ## 🚀 Quick Start
 
@@ -36,113 +34,67 @@ usage answers all three at a glance: the number is *already on your screen*, col
 brew install --cask aqua5230/usage/usage
 ```
 
-It lands in your Applications folder automatically → right-click **Open** once (to pass Gatekeeper) → click the menu bar icons. Prefer a direct download, or want every detail? See [Install](#-install) below.
+It lands in your Applications folder automatically → right-click **Open** once (to pass Gatekeeper) → click the menu bar icons. Prefer a direct download or want every detail? See [Install](#-install) below.
 
-## ✨ What you get
+## ✨ Features
 
-- **See it without looking for it.** Your quota lives in the menu bar, color-coded — green to red — so the warning level reads in a glance, no click required. Click only when you want the full breakdown.
-- **Never re-explain your progress again.** Open a new Claude Code session and usage hands your last progress straight to the AI — no `/resume`, no recap, and no dragging a bloated old conversation back just to continue. Fully local, off by default. [Learn more](https://aqua5230.github.io/usage/#resume).
-- **Ask Claude (and Codex) to talk less, save output tokens.** A menu-bar toggle — Terse Mode — asks Claude Code to answer more tersely for the whole session, and now does the same for Codex CLI when it's installed: same substance, fewer words, while code, commands, file paths, and error messages stay byte-exact. Fully local, off by default.
-  ```
-  Before: "Sure, let me take a look! This is a pretty common issue — it usually
-           means the path you're pointing at is wrong, or the file just isn't
-           in the folder you think it's in. Let me check the current directory
-           structure first so I can pin down the real cause."
-  After:  "Wrong path — the file isn't in that folder."
-  ```
-  Like any style instruction, it's a request rather than a hard rule — on a very long conversation it can gradually fade and drift back to Claude's normal verbosity, and a one-line reminder brings it back.
-- **Find out where your tokens leak — without asking.** A daily background health check scans your local session logs for avoidable waste — the same files read over and over, bloated sessions, oversized command output. When it finds something worth fixing, the new-conversation handoff above gains a one-line heads-up; say "show me" and the AI walks you through the findings and how to fix them. Ships with the Progress Concierge, fully local.
-- **Summon a tiny spirit that runs with your burn rate.** A menu-bar toggle adds a small white silhouette beside your usage percentages — phoenix for Claude, dragon for Codex. It speeds up as your local token burn climbs, stays fully local, and is off by default.
-- **Warned before the wall, not at it.** A system notification when you're nearing a threshold, run out, or recover — so you wrap up on your terms instead of getting cut off mid-sentence. Fully local, off by default.
-- **Know where your tokens actually go.** HTML deep reports with token & cost trends and per-project rankings — shareable with your team. The report also digests recent updates to Claude Code, Codex, and Antigravity in plain language, and gives you a year in review: a GitHub-style contribution heatmap of your daily token activity plus a "Wrapped" card crowned with the spirit you used most.
-- **Make it yours.** 10 switchable panel themes, from a clean light card to a World Cup broadcast HUD. Only use one of Claude Code / Codex? Hide the other from the menu bar and every panel with a single toggle.
-- **Bring a ready-made AI team into Claude Code.** The AI Talent Market panel installs curated teams of subagent personas — a one-person law practice, a solo software studio, and more — straight into `~/.claude/agents/`. Pick a role, install it, and call it by name next time you talk to Claude Code. Runs on a bundled local CLI — no account, no network call.
-- **In your language, automatically.** UI in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, following your system setting.
+- 👁️ **Always-on Monitor:** Your quota lives in the menu bar, color-coded (green to red). Click only when you want the full session, weekly, and per-project breakdown.
+- 🧠 **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI — including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. Fully local, off by default.
+- 🤐 **Terse Mode:** A menu-bar toggle asks Claude Code and Codex to answer more tersely for the session, saving output tokens while keeping code and error messages byte-exact.
+- 🩺 **Token-waste Health Check:** A daily background diagnosis scans your logs for waste — repeated file reads, polluter directories, noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
+- 📊 **Deep HTML Reports:** Instant, shareable HTML deep reports showing daily/weekly token trends, project rankings, and cost. Includes an **AI Tool Update Digest** summarizing recent changes, and a **Year in Review** featuring a contribution heatmap and "Wrapped" summary.
+- 🎨 **10 Visual Themes:** Switch between stunning panel styles: Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, and Lepidoptera (blueprint).
+- 🧑‍💼 **AI Talent Market:** Bring a ready-made AI team into Claude Code. Browse and install curated subagent personas into `~/.claude/agents/` instantly. Runs fully locally via the bundled CLI.
+- 🐉 **Summon Spirits:** Add a tiny animated white silhouette beside your usage percentages — a phoenix for Claude, a dragon for Codex. It accelerates dynamically as your token burn rate climbs.
+- 🔔 **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
+- 🌍 **Automatic Localization:** Beautiful UI translated into Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
+- 💻 **TUI & CLI:** Love the terminal? Run the rich TUI dashboard with `python3 main.py --tui`, or generate deep analytics with `python3 usage_cli.py report`.
+- 🎛️ **Hide Sections:** Only use one tool? Hide the Claude Code or Codex section from the menu bar and panels completely with a single click.
 
-## 🔒 Privacy & data sources
+## 🔒 Privacy & Data Sources
 
-- Usage numbers are read only from the local log files Claude Code / Codex leave on your machine — it **never calls the Anthropic / OpenAI API and never reads the Keychain** (macOS's built-in password vault).
-- The only two times it goes online: fetching a public model-pricing table to estimate cost (falls back to built-in prices if that fails), and occasionally checking GitHub for a new version. Neither involves your usage data, and nothing is ever uploaded.
+- Usage numbers are read **only from local log files** on your machine.
+- It **never calls the Anthropic / OpenAI API** and **never reads the Keychain** (macOS's password vault).
+- The only network activity: fetching a public model-pricing table to estimate cost (falls back to built-in prices offline) and occasionally checking GitHub for a new version. **Nothing is ever uploaded.**
 
-## Requirements
+## ⚙️ Requirements
 
 - macOS
-- Claude Code or Codex has been used at least once so local usage data exists
-- (Only if running from source) Python 3.13
+- Claude Code or Codex has been used at least once (so local usage data exists).
+- (Source runs only) Python 3.13.
 
 ## 📦 Install
 
-Two ways to install — pick whichever suits you. Steps for both are below. (In a hurry? The one-line Homebrew install is in [Quick Start](#-quick-start) above.)
+### 1. Homebrew (Recommended)
 
-### Download the app
-
-1. Download the latest `usage.app.zip` from the [GitHub Releases page](https://github.com/aqua5230/usage/releases/latest)
-2. Unzip it and drag `usage.app` into your Applications folder (or anywhere you like)
-3. First launch: in Finder, right-click `usage.app` → **Open** → confirm Open
-4. Click the usage icons in the top-right menu bar to see your usage
-
-⚠️ Step 3 is needed because the app isn't signed with an Apple Developer certificate, so **macOS Gatekeeper (the built-in feature that blocks unfamiliar programs) blocks the first launch**; once you right-click → Open to allow it once, double-clicking works normally afterward.
-
-### Homebrew
-
-Installing via Homebrew (the macOS package manager) means a single `brew upgrade --cask usage` keeps it current. It's shipped as a **cask** (Homebrew's format for GUI apps), so it drops `usage.app` straight into your Applications folder — no manual move needed. The [Quick Start](#-quick-start) one-liner above already installs it — that command's full path auto-adds the tap for you, so one line is all you need. Prefer to run the two steps explicitly?
+Installing via Homebrew means a single `brew upgrade --cask usage` keeps it current.
 
 ```bash
-brew tap aqua5230/homebrew-usage
 brew install --cask aqua5230/usage/usage
 ```
 
-> Upgrading from an older release that installed via a formula? Run `brew uninstall usage` once, then the cask command above.
+*(First launch: right-click `usage.app` in Finder → **Open** to pass Gatekeeper).*
 
-Same first-launch right-click → **Open** as above (to pass Gatekeeper).
+### 2. Download the App
 
-### First launch: set up the status line
+1. Download the latest `usage.app.zip` from the [GitHub Releases page](https://github.com/aqua5230/usage/releases/latest).
+2. Unzip it and drag `usage.app` into your Applications folder.
+3. First launch: in Finder, right-click `usage.app` → **Open** → confirm Open.
 
-The first time you open usage, if you've already used Codex, it automatically picks up your Codex history and shows it — no setup needed. If you use Claude Code, the popover (the small window that pops up when you click the icon) may show a **"Set Up Status Line"** button — click it to install the hook (a small script that runs every time Claude Code refreshes its status line) that syncs your usage to the menu bar.
+### First Launch: Set Up the Status Line
 
-Restart the relevant tool afterward: restart Codex once; if Claude Code was configured too, fully quit Claude Code (Cmd+Q) and re-open it so the data lands on disk.
+If you've used Codex, `usage` picks up its history automatically. For Claude Code, click the **"Set Up Status Line"** button in the app popover to install the sync hook.
+Restart the relevant tool afterward (fully Cmd+Q Claude Code and re-open it).
 
-**Then you'll see:**
-
-- The Claude / Codex usage icons and percentages in the top-right menu bar
-- Click it for the Claude Code / Codex usage cards
-- If it shows `--`, it's usually not broken — there's just no local usage data yet: Codex needs one conversation first, and Claude Code needs the status line set up plus a full restart
-
-Once set up, the bottom of the Claude Code window will show a status line like this — **5h / 7d quota bars, context usage, session duration, current model — all on one line**:
+Once set up, the bottom of the Claude Code window will show a status line like this:
 
 <p align="center">
   <img src="docs/statusline.en.png" alt="Claude Code statusLine display (English)" width="640">
 </p>
 
-To toggle the status line on / off later (e.g. you want to see Claude Code's native status line), click the **CLI ✓** button in the menubar popover's "Projects" section toolbar.
+## 🎨 Panel Themes
 
-> Running from source, or want to install via the command line? See the [development docs](docs/DEVELOPMENT.md).
-
-## Troubleshooting
-
-The "Fix" column distinguishes three kinds of users — find yours first:
-
-- **.app users** — downloaded `usage.app.zip` from GitHub Releases, unzipped, dragged `usage.app` to `/Applications`, double-click to launch like any Mac app. No Terminal, no Python.
-- **LaunchAgent users** — cloned the source and ran `./scripts/install-launchagent.sh` so macOS auto-starts usage on login.
-- **Source users** — cloned the source and run `python3 main.py` manually in Terminal each time.
-
-> Seeing `--`? Don't reinstall just yet — in the vast majority of cases there's simply no local usage data yet, and it appears after one conversation.
-
-| Symptom | Likely cause | Fix |
-|---------|--------------|-----|
-| Menu bar shows `--` | No Codex `rate_limits` yet, or the Claude Code hook has not refreshed | Run one Codex conversation first. For Claude Code integration, **.app users** click "Set Up Status Line"; **Source users** run `python3 main.py --setup` |
-| Accidentally hit "Quit", usage icons disappeared from the menu bar | "Quit" fully terminates the usage process; you have to relaunch it | **.app users**: press `Cmd+Space` for Spotlight, type `usage`, hit Enter; or double-click `usage.app` from `/Applications`. **LaunchAgent users**: run `launchctl start com.lollapalooza.usage` in Terminal. **Source users**: run `python3 main.py` in Terminal again |
-| Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run; it updates the file on its next status refresh |
-| Codex section is empty | `~/.codex/sessions/` doesn't exist or has no `rate_limits` events yet | Run a Codex conversation to generate log entries |
-| Today's cost shows $0.00 | Model name doesn't match the pricing table, or pricing download/cache failed | Delete `~/.claude/pricing_cache.json` to force a re-fetch; or run with `USAGE_DEBUG=1` for details |
-| App won't open (blocked by macOS) | Gatekeeper blocks unsigned apps | Finder → find `usage.app` → right-click → Open → confirm Open |
-| App crashes immediately on launch (macOS Sequoia / arm64) | You're on v0.10.x or v0.11.0 — these had a py2app bundling bug | Upgrade to **v0.11.1 or newer** by downloading `usage.app.zip` from [Releases](https://github.com/aqua5230/usage/releases/latest) |
-
-Table didn't solve it? If it's clearly a bug, open an [Issue](https://github.com/aqua5230/usage/issues); for questions, ideas, or general usage chat, head to [Discussions](https://github.com/aqua5230/usage/discussions).
-
-## 🎨 Panel themes
-
-The click-to-open popover ships with **10 switchable visual themes** — from a clean classic card to Matrix digital rain, a Windows 95 window, a World Cup broadcast HUD, or a cyanotype blueprint plate:
+Switch between **10 visual themes** directly from the UI:
 
 <p align="center">
   <img src="docs/matrix.en.png" width="32%" alt="Matrix theme" />
@@ -153,50 +105,53 @@ The click-to-open popover ships with **10 switchable visual themes** — from a 
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole theme" />
 </p>
 
-See more on the [landing page](https://aqua5230.github.io/usage/#screenshots).
+## 🛠️ Troubleshooting
 
-## Comparison
+If the menu bar shows `--`, it's usually not broken — there's just no local data yet.
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| Menu bar shows `--` | No data yet, or Claude Code hook not refreshed | Run one Codex conversation. For Claude Code, click "Set Up Status Line" or run `python3 main.py --setup` |
+| Accidentally hit "Quit" | Process terminated | Launch `usage.app` from Spotlight / Applications, or run `launchctl start com.lollapalooza.usage` |
+| Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run |
+| Codex section is empty | No Codex history found | Run a Codex conversation to generate logs |
+| Today's cost shows $0.00 | Model pricing missing | Delete `~/.claude/pricing_cache.json` or check `USAGE_DEBUG=1` |
+| App won't open | macOS Gatekeeper blocked it | Right-click `usage.app` in Finder → Open |
+| App crashes immediately (arm64) | py2app bundling bug in older versions | Upgrade to **v0.11.1 or newer** |
+
+## ⚖️ Comparison
 
 | Feature | usage | ccusage | TokenTracker |
 |---------|:-----:|:-------:|:------------:|
-| Always on screen — no command to run | ✅ | — | ✅ |
+| Always on screen | ✅ | — | ✅ |
 | macOS menu bar | ✅ | — | ✅ |
-| Claude Code usage | ✅ | ✅ | ✅ |
-| Codex usage | ✅ | — | ✅ |
-| HTML deep reports | ✅ | ✅ | — |
-| 5-language i18n | ✅ | — | — |
-| 10 visual panel themes | ✅ | — | — |
-| Progress Concierge (session resume) | ✅ | — | — |
-| Terse Mode (reply compression) | ✅ | — | — |
-| Token-waste health check | ✅ | — | — |
-| Year-in-review (contribution graph + Wrapped) | ✅ | — | — |
+| Claude Code & Codex usage | ✅ | Claude only | ✅ |
+| HTML deep reports & UI | ✅ | ✅ | — |
+| AI Talent Market | ✅ | — | — |
+| Progress Concierge & Terse Mode | ✅ | — | — |
+| Token-waste Health Check | ✅ | — | — |
 | Zero API calls | ✅ | ✅ | ✅ |
 | Open-source license | AGPL-3.0 | MIT | — |
 
-## Run from source / develop
+## 💻 Run from Source / Develop
 
-To run from source, use the TUI / CLI reports, configure detected agents, or build the `.app` yourself, see the **[development docs (docs/DEVELOPMENT.md)](docs/DEVELOPMENT.md)**, which cover:
+Want to run the terminal TUI, configure custom agents, or build the app yourself? Check out the **[development docs](docs/DEVELOPMENT.md)**.
 
-- How usage gets your data (Claude Code hook flow, Codex log parsing, read priority)
-- Environment setup, configuring detected agents, Menu bar / TUI run modes
-- Reports & deep analytics CLI, auto-start on login, preview mode, all options, debug, language switching
-- Building a `.app` bundle
+## 📄 License
 
-## License
-
-Licensed under AGPL-3.0-only (see the badge at the top and [LICENSE](LICENSE)). If you fork or redistribute a modified version, please credit the original author and link to:
+Licensed under AGPL-3.0-only (see [LICENSE](LICENSE)). If you fork or redistribute a modified version, please credit the original author and link back to:
 https://github.com/aqua5230/usage
 
-## Star History
+## 📈 Star History
 
 <a href="https://star-history.com/#aqua5230/usage&Date">
   <img src="https://api.star-history.com/svg?repos=aqua5230/usage&type=Date" alt="usage Star History Chart" width="600">
 </a>
 
-## Support
+## ❤️ Support
 
-If usage has ever saved you from a surprise quota cutoff mid-task, a ⭐ helps other developers find it.
+If `usage` has ever saved you from a surprise quota cutoff mid-task, a ⭐ helps other developers find it.
 
-If this tool helps you, consider buying me a coffee ☕
+Consider buying me a coffee ☕
 
 [![Ko-fi](https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/lollapalooza)

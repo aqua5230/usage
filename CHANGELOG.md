@@ -5,6 +5,15 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.7] - 2026-07-07
+
+### Fixed
+- **Black hole panel: the black hole was barely visible behind the cards**: card surface opacity (0.28 → 0.14) and backdrop blur (4px → 1.5px) were heavy enough to bury the accretion disk and event horizon drawn on the background canvas. Both were lowered so the black hole stays clearly visible through the cards.
+- **Midnight aquarium panel: fish and jellyfish were hidden behind the cards**: same treatment as the black hole panel — card surface opacity (0.22/0.28 → 0.13/0.17) and backdrop blur (12px → 2.5px) lowered so the aquarium life stays visible while text remains readable.
+
+### Docs
+- **README overhauled in both languages**: restructured along conventions surveyed from well-maintained open-source developer tools, with a complete inventory of current features.
+
 ## [0.24.6] - 2026-07-07
 
 ### Changed
