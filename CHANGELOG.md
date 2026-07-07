@@ -5,6 +5,14 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.24.10] - 2026-07-08
+
+### Added
+- **AI Tool Update Digest now keeps history**: previously each refresh of `ai_updates.json` overwrote the prior period, so older updates were lost. The digest now stores every tool's updates as a versions array (newest first) and the report adds a "View update history" collapsible section beneath each card so older periods stay browsable.
+
+### Changed
+- **AI Tool Update Digest content refreshed**: Claude Code 2.1.202, Codex 0.143.0-alpha.38, Antigravity 1.0.16 (covering 2026-07-01~07-08).
+
 ## [0.24.9] - 2026-07-08
 
 ### Fixed
