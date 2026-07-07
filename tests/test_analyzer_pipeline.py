@@ -17,9 +17,8 @@ import pytest
 import codex_loader
 import history_loader
 import menubar
-import persona_loader
 from adapters.types import AgentInfo, UsageEntry
-from analyzer import reporter
+from analyzer import persona_loader, reporter
 
 ROOT = Path(__file__).resolve().parents[1]
 

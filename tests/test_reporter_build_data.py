@@ -15,14 +15,11 @@ from typing import Any
 
 import pytest
 
-import ai_updates_loader
 import codex_loader
 import history_loader
-import persona_loader
 import pricing
-import subscription
 from adapters.types import AgentInfo, UsageEntry
-from analyzer import reporter
+from analyzer import ai_updates_loader, persona_loader, reporter, subscription
 
 
 def _empty_year_payload() -> dict[str, Any]:

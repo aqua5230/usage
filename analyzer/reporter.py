@@ -20,9 +20,9 @@ import time
 from typing import Any, NotRequired, TypedDict, cast
 
 import codex_loader
-import persona_loader
-import subscription
-import ai_updates_loader
+from analyzer import ai_updates_loader
+from analyzer import persona_loader
+from analyzer import subscription
 from adapters import claude, codex
 from adapters.types import AgentInfo, UsageEntry
 from pricing import calculate_cost, is_model_priced

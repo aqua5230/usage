@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-import subscription
+from analyzer import subscription
 
 
 def _make_id_token(auth_claims: object) -> str:

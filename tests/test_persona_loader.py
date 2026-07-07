@@ -14,8 +14,8 @@ from typing import Any
 
 import pytest
 
-import persona_loader
 import project_resolver
+from analyzer import persona_loader
 
 
 @pytest.fixture(autouse=True)

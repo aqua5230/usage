@@ -16,7 +16,7 @@ from typing import Any
 
 import pytest
 
-import ai_updates_loader
+from analyzer import ai_updates_loader
 
 
 class _FakeResponse:
