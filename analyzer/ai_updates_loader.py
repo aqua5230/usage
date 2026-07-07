@@ -111,52 +111,73 @@ def _normalize_payload(payload: Any) -> list[dict[str, Any]] | None:
     for raw_tool in raw_tools:
         if not isinstance(raw_tool, dict):
             continue
-        required_keys = ("id", "name", "version", "period")
+        required_keys = ("id", "name")
         if not all(isinstance(raw_tool.get(key), str) for key in required_keys):
             continue
-        raw_items = raw_tool.get("items")
-        if not isinstance(raw_items, list):
+        raw_versions = raw_tool.get("versions")
+        if not isinstance(raw_versions, list):
             continue
 
-        items: list[dict[str, Any]] = []
-        for raw_item in raw_items:
-            if not isinstance(raw_item, dict):
+        versions: list[dict[str, Any]] = []
+        for raw_version in raw_versions:
+            if not isinstance(raw_version, dict):
+                continue
+            if not all(
+                isinstance(raw_version.get(key), str)
+                for key in ("version", "period")
+            ):
+                continue
+            raw_items = raw_version.get("items")
+            if not isinstance(raw_items, list):
                 continue
 
-            title = raw_item.get("title")
-            body = raw_item.get("body")
-            original = raw_item.get("original")
-            if not isinstance(title, dict) or not isinstance(body, dict):
+            items: list[dict[str, Any]] = []
+            for raw_item in raw_items:
+                if not isinstance(raw_item, dict):
+                    continue
+
+                title = raw_item.get("title")
+                body = raw_item.get("body")
+                original = raw_item.get("original")
+                if not isinstance(title, dict) or not isinstance(body, dict):
+                    continue
+                if not all(
+                    isinstance(key, str) and isinstance(value, str)
+                    for key, value in title.items()
+                ):
+                    continue
+                if not all(
+                    isinstance(key, str) and isinstance(value, str)
+                    for key, value in body.items()
+                ):
+                    continue
+                if not isinstance(original, str):
+                    continue
+                items.append(
+                    {
+                        "title": title,
+                        "body": body,
+                        "original": original,
+                    }
+                )
+
+            if not items:
                 continue
-            if not all(
-                isinstance(key, str) and isinstance(value, str)
-                for key, value in title.items()
-            ):
-                continue
-            if not all(
-                isinstance(key, str) and isinstance(value, str)
-                for key, value in body.items()
-            ):
-                continue
-            if not isinstance(original, str):
-                continue
-            items.append(
+            versions.append(
                 {
-                    "title": title,
-                    "body": body,
-                    "original": original,
+                    "version": raw_version["version"],
+                    "period": raw_version["period"],
+                    "items": items,
                 }
             )
 
-        if not items:
+        if not versions:
             continue
         tools.append(
             {
                 "id": raw_tool["id"],
                 "name": raw_tool["name"],
-                "version": raw_tool["version"],
-                "period": raw_tool["period"],
-                "items": items,
+                "versions": versions,
             }
         )
     return tools

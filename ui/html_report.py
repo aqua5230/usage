@@ -763,7 +763,13 @@ def _render_ai_updates_section(data: Mapping[str, Any], lang: str) -> str:
     for tool in raw_updates:
         if not isinstance(tool, dict):
             continue
-        raw_items = tool.get("items")
+        raw_versions = tool.get("versions")
+        if not isinstance(raw_versions, list) or not raw_versions:
+            continue
+        latest = raw_versions[0]
+        if not isinstance(latest, dict):
+            continue
+        raw_items = latest.get("items")
         if not isinstance(raw_items, list) or not raw_items:
             continue
 
@@ -789,12 +795,63 @@ def _render_ai_updates_section(data: Mapping[str, Any], lang: str) -> str:
 
         if not items:
             continue
+
+        history = ""
+        if len(raw_versions) > 1:
+            history_versions: list[str] = []
+            for raw_version in raw_versions[1:]:
+                if not isinstance(raw_version, dict):
+                    continue
+                version = raw_version.get("version")
+                period = raw_version.get("period")
+                version_items = raw_version.get("items")
+                if (
+                    not isinstance(version, str)
+                    or not isinstance(period, str)
+                    or not isinstance(version_items, list)
+                    or not version_items
+                ):
+                    continue
+
+                history_items: list[str] = []
+                for item in version_items:
+                    if not isinstance(item, dict):
+                        continue
+                    title = _localized_text(item.get("title"), lang)
+                    body = _localized_text(item.get("body"), lang)
+                    if not title or not body:
+                        continue
+                    history_items.append(
+                        '<li class="ai-update-history-item">'
+                        f'<p class="ai-update-item-title">{_escape(title)}</p>'
+                        f'<p class="ai-update-item-body">{_escape(body)}</p>'
+                        "</li>"
+                    )
+
+                if not history_items:
+                    continue
+                history_versions.append(
+                    '<section class="ai-update-history-period">'
+                    f'<p class="ai-update-period">{_escape(version)} · {_escape(period)}</p>'
+                    f'<ol class="ai-update-history-items">{"".join(history_items)}</ol>'
+                    "</section>"
+                )
+
+            if history_versions:
+                history = (
+                    '<details class="ai-update-history">'
+                    f'<summary>{_escape(_t(lang, "ai_updates_history"))}</summary>'
+                    f'<div>{"".join(history_versions)}</div>'
+                    "</details>"
+                )
+
         cards.append(
             '<article class="ai-update-card">'
             f'<div class="ai-update-head"><h3>{_escape(tool.get("name", ""))}</h3>'
-            f'<span class="ai-update-version">{_escape(_t(lang, "ai_updates_updated_to"))} {_escape(tool.get("version", ""))}</span></div>'
-            f'<p class="ai-update-period">{_escape(tool.get("period", ""))}</p>'
+            f'<span class="ai-update-version">{_escape(_t(lang, "ai_updates_updated_to"))} {_escape(latest.get("version", ""))}</span></div>'
+            f'<p class="ai-update-period">{_escape(latest.get("period", ""))}</p>'
             f'<ol class="ai-update-items">{"".join(items)}</ol>'
+            f"{history}"
             "</article>"
         )
     if not cards:

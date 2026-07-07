@@ -78,10 +78,15 @@ def test_all_languages_have_analyze_label() -> None:
     assert bundle["ja"]["analyze_usage"] == "レポート"
     assert bundle["ko"]["analyze_usage"] == "리포트"
     assert bundle["zh-TW"]["report_ai_updates_original"] == "原文"
+    assert bundle["zh-TW"]["report_ai_updates_history"] == "查看歷史更新"
     assert bundle["zh-CN"]["report_ai_updates_original"] == "原文"
+    assert bundle["zh-CN"]["report_ai_updates_history"] == "查看历史更新"
     assert bundle["en"]["report_ai_updates_original"] == "Original"
+    assert bundle["en"]["report_ai_updates_history"] == "View update history"
     assert bundle["ja"]["report_ai_updates_original"] == "原文"
+    assert bundle["ja"]["report_ai_updates_history"] == "更新履歴を見る"
     assert bundle["ko"]["report_ai_updates_original"] == "원문"
+    assert bundle["ko"]["report_ai_updates_history"] == "업데이트 기록 보기"
     for table in bundle.values():
         assert table["project_range_all"]
 

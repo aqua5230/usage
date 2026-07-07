@@ -162,66 +162,119 @@ def _full_report_data() -> dict[str, Any]:
             {
                 "id": "claude_code",
                 "name": "Claude Code",
-                "version": "2.1.183",
-                "period": "2026-06-17 ~ 2026-06-19",
-                "items": [
+                "versions": [
                     {
-                        "title": {
-                            "zh-TW": "改設定不再怕手滑",
-                            "en": "Settings are easier to keep",
-                        },
-                        "body": {
-                            "zh-TW": "Esc 會存檔後關閉。",
-                            "en": "Esc now saves and closes.",
-                        },
-                        "original": "Changed /config toggle behavior.",
+                        "version": "2.1.183",
+                        "period": "2026-06-17 ~ 2026-06-19",
+                        "items": [
+                            {
+                                "title": {
+                                    "zh-TW": "改設定不再怕手滑",
+                                    "en": "Settings are easier to keep",
+                                },
+                                "body": {
+                                    "zh-TW": "Esc 會存檔後關閉。",
+                                    "en": "Esc now saves and closes.",
+                                },
+                                "original": "Changed /config toggle behavior.",
+                            },
+                            {
+                                "title": {
+                                    "zh-TW": "更安全：自動執行時攔下危險指令",
+                                    "en": "Safer auto mode: blocks destructive commands",
+                                },
+                                "body": {
+                                    "zh-TW": "自動模式會先擋掉危險指令。",
+                                    "en": "Auto mode now blocks destructive commands first.",
+                                },
+                                "original": "Improved auto mode safety.",
+                            },
+                        ],
                     },
                     {
-                        "title": {
-                            "zh-TW": "更安全：自動執行時攔下危險指令",
-                            "en": "Safer auto mode: blocks destructive commands",
-                        },
-                        "body": {
-                            "zh-TW": "自動模式會先擋掉危險指令。",
-                            "en": "Auto mode now blocks destructive commands first.",
-                        },
-                        "original": "Improved auto mode safety.",
+                        "version": "2.1.182",
+                        "period": "2026-06-10 ~ 2026-06-16",
+                        "items": [
+                            {
+                                "title": {
+                                    "zh-TW": "舊版設定面板更穩",
+                                    "en": "The older settings panel is steadier",
+                                },
+                                "body": {
+                                    "zh-TW": "切換主題時不再跳動。",
+                                    "en": "Theme switching no longer flickers.",
+                                },
+                                "original": "Stabilized the settings panel.",
+                            }
+                        ],
                     },
                 ],
             },
             {
                 "id": "codex",
                 "name": "Codex",
-                "version": "0.141.0",
-                "period": "2026-06-18",
-                "items": [
+                "versions": [
                     {
-                        "title": {"en": "Remote work keeps the remote machine's shell."},
-                        "body": {"en": "Native directories and shells are preserved."},
-                        "original": (
-                            "Cross-platform remote execution now preserves "
-                            "executor-native working directories and shells, "
-                            "including filesystem permission paths across "
-                            "app-server and exec-server boundaries."
-                        ),
-                    }
+                        "version": "0.141.0",
+                        "period": "2026-06-18",
+                        "items": [
+                            {
+                                "title": {"en": "Remote work keeps the remote machine's shell."},
+                                "body": {"en": "Native directories and shells are preserved."},
+                                "original": (
+                                    "Cross-platform remote execution now preserves "
+                                    "executor-native working directories and shells, "
+                                    "including filesystem permission paths across "
+                                    "app-server and exec-server boundaries."
+                                ),
+                            }
+                        ],
+                    },
+                    {
+                        "version": "0.140.9",
+                        "period": "2026-06-12",
+                        "items": [
+                            {
+                                "title": {"en": "Remote sessions reconnect more reliably."},
+                                "body": {"en": "Recovery is smoother after transient disconnects."},
+                                "original": "Improved reconnect handling.",
+                            }
+                        ],
+                    },
                 ],
             },
             {
                 "id": "agy",
                 "name": "Antigravity",
-                "version": "1.0.10",
-                "period": "2026-06-13 ~ 2026-06-19",
-                "items": [
+                "versions": [
                     {
-                        "title": {"en": "Built-in guides are one ask away."},
-                        "body": {"en": "The antigravity_guide skill opens docs in context."},
-                        "original": (
-                            "Added antigravity_guide builtin skill to provide "
-                            "instant, in-context reference guides for the "
-                            "Antigravity 2.0, CLI, IDE, and SDK."
-                        ),
-                    }
+                        "version": "1.0.10",
+                        "period": "2026-06-13 ~ 2026-06-19",
+                        "items": [
+                            {
+                                "title": {"en": "Built-in guides are one ask away."},
+                                "body": {
+                                    "en": "The antigravity_guide skill opens docs in context."
+                                },
+                                "original": (
+                                    "Added antigravity_guide builtin skill to provide "
+                                    "instant, in-context reference guides for the "
+                                    "Antigravity 2.0, CLI, IDE, and SDK."
+                                ),
+                            }
+                        ],
+                    },
+                    {
+                        "version": "1.0.9",
+                        "period": "2026-06-06 ~ 2026-06-12",
+                        "items": [
+                            {
+                                "title": {"en": "Task drawer opens faster."},
+                                "body": {"en": "Background task details render with less lag."},
+                                "original": "Optimized task drawer rendering.",
+                            }
+                        ],
+                    },
                 ],
             },
         ],
@@ -366,14 +419,29 @@ def test_render_ai_updates_section_falls_back_to_english_and_escapes() -> None:
                 {
                     "id": "codex",
                     "name": "Codex<script>",
-                    "version": "0.141.0",
-                    "period": "2026-06-18",
-                    "items": [
+                    "versions": [
                         {
-                            "title": {"en": "Remote <upgrade>"},
-                            "body": {"en": "Remote <upgrade> shipped."},
-                            "original": "Use `codex --remote` <beta>.",
-                        }
+                            "version": "0.141.0",
+                            "period": "2026-06-18",
+                            "items": [
+                                {
+                                    "title": {"en": "Remote <upgrade>"},
+                                    "body": {"en": "Remote <upgrade> shipped."},
+                                    "original": "Use `codex --remote` <beta>.",
+                                }
+                            ],
+                        },
+                        {
+                            "version": "0.140.9",
+                            "period": "2026-06-12",
+                            "items": [
+                                {
+                                    "title": {"en": "Fallback <mode>"},
+                                    "body": {"en": "Fallback <mode> recovered."},
+                                    "original": "Older entry.",
+                                }
+                            ],
+                        },
                     ],
                 }
             ]
@@ -392,6 +460,8 @@ def test_render_ai_updates_section_falls_back_to_english_and_escapes() -> None:
     assert "<details" in html
     assert '<ol class="ai-update-items">' in html
     assert '<li class="ai-update-item">' in html
+    assert "更新履歴を見る" in html
+    assert "0.140.9" in html
 
 
 def test_fmt_cost_returns_dash_for_none() -> None:

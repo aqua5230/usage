@@ -38,13 +38,17 @@ def _payload(*, include_invalid: bool = False) -> dict[str, Any]:
         {
             "id": "codex",
             "name": "Codex",
-            "version": "0.141.0",
-            "period": "2026-06-18",
-            "items": [
+            "versions": [
                 {
-                    "title": {"en": "Remote execution"},
-                    "body": {"en": "Remote execution got better."},
-                    "original": "Remote execution got better.",
+                    "version": "0.141.0",
+                    "period": "2026-06-18",
+                    "items": [
+                        {
+                            "title": {"en": "Remote execution"},
+                            "body": {"en": "Remote execution got better."},
+                            "original": "Remote execution got better.",
+                        }
+                    ],
                 }
             ],
         }
@@ -56,36 +60,60 @@ def _payload(*, include_invalid: bool = False) -> dict[str, Any]:
                 {
                     "id": "claude_code",
                     "name": "Claude Code",
-                    "version": "2.1.183",
-                    "period": "2026-06-13 ~ 06-19",
-                    "items": [
+                    "versions": [
                         {
-                            "title": {"en": "Valid title"},
-                            "body": {"en": "Valid body"},
-                            "original": "Valid original.",
+                            "version": "2.1.183",
+                            "period": "2026-06-13 ~ 06-19",
+                            "items": [
+                                {
+                                    "title": {"en": "Valid title"},
+                                    "body": {"en": "Valid body"},
+                                    "original": "Valid original.",
+                                },
+                                {
+                                    "title": {"en": "Missing original"},
+                                    "body": {"en": "Should be skipped"},
+                                },
+                            ],
                         },
                         {
-                            "title": {"en": "Missing original"},
-                            "body": {"en": "Should be skipped"},
+                            "version": "2.1.182",
+                            "period": "2026-06-10 ~ 06-12",
+                            "items": [],
                         },
                     ],
                 },
                 {
                     "id": "agy",
                     "name": "agy",
-                    "version": "1.0.10",
-                    "period": "最新版 1.0.10",
-                    "items": [
+                    "versions": [
                         {
-                            "title": "not-a-dict",
-                            "body": {"en": "Bad title type"},
-                            "original": "Bad title type.",
-                        },
+                            "version": "1.0.10",
+                            "period": "最新版 1.0.10",
+                            "items": [
+                                {
+                                    "title": "not-a-dict",
+                                    "body": {"en": "Bad title type"},
+                                    "original": "Bad title type.",
+                                },
+                                {
+                                    "title": {"en": "Bad body"},
+                                    "body": "not-a-dict",
+                                    "original": "Bad body type.",
+                                },
+                            ],
+                        }
+                    ],
+                },
+                {
+                    "id": "empty_versions",
+                    "name": "Empty Versions",
+                    "versions": [
                         {
-                            "title": {"en": "Bad body"},
-                            "body": "not-a-dict",
-                            "original": "Bad body type.",
-                        },
+                            "version": "0.0.1",
+                            "period": "2026-06-10",
+                            "items": [],
+                        }
                     ],
                 },
             ]
@@ -178,13 +206,17 @@ def test_load_ai_updates_skips_tools_missing_required_fields() -> None:
         {
             "id": "claude_code",
             "name": "Claude Code",
-            "version": "2.1.183",
-            "period": "2026-06-13 ~ 06-19",
-            "items": [
+            "versions": [
                 {
-                    "title": {"en": "Valid title"},
-                    "body": {"en": "Valid body"},
-                    "original": "Valid original.",
+                    "version": "2.1.183",
+                    "period": "2026-06-13 ~ 06-19",
+                    "items": [
+                        {
+                            "title": {"en": "Valid title"},
+                            "body": {"en": "Valid body"},
+                            "original": "Valid original.",
+                        }
+                    ],
                 }
             ],
         },
@@ -201,13 +233,17 @@ def test_load_ai_updates_skips_invalid_items_and_empty_tools() -> None:
         {
             "id": "claude_code",
             "name": "Claude Code",
-            "version": "2.1.183",
-            "period": "2026-06-13 ~ 06-19",
-            "items": [
+            "versions": [
                 {
-                    "title": {"en": "Valid title"},
-                    "body": {"en": "Valid body"},
-                    "original": "Valid original.",
+                    "version": "2.1.183",
+                    "period": "2026-06-13 ~ 06-19",
+                    "items": [
+                        {
+                            "title": {"en": "Valid title"},
+                            "body": {"en": "Valid body"},
+                            "original": "Valid original.",
+                        }
+                    ],
                 }
             ],
         },
