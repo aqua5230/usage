@@ -55,7 +55,7 @@ include = ["adapters*", "analyzer*", "panels*", "ui*"]
 [dependency-groups]
 dev = [
     "ruff>=0.6",
-    "mypy>=1.10",
+    "mypy>=2.2.0",
     "pytest>=8",
 ]
 build = [
