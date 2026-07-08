@@ -15,6 +15,7 @@ Claude Code 與 Codex 用量，常駐 macOS 選單列。指令是你**問了才�
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
   <img src="docs/showcase.zh-TW.png" alt="usage — 把 Claude Code 與 Codex 的額度釘在 macOS 選單列" width="820">

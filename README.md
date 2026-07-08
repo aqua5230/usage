@@ -15,6 +15,7 @@ Claude Code & Codex usage, always in the macOS menu bar. A command tells you *wh
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
   <img src="docs/showcase.en.png" alt="usage — Claude Code &amp; Codex quota pinned to the macOS menu bar" width="820">
