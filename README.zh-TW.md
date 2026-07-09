@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/icon.png" alt="usage app icon" width="120">
+  <img src="docs/readme-logo.png" alt="usage logo" width="128">
 </p>
 
 # usage
