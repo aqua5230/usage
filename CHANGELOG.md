@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.25.1] - 2026-07-10
+
+### Changed
+- **Sharper phoenix critter sprites**: the Claude-side menu-bar critter animation now ships 216×216 source art (up from 54×54) for crisper rendering on Retina displays; the template-image alpha masking is unchanged.
+
 ## [0.25.0] - 2026-07-10
 
 ### Added
