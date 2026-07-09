@@ -1,0 +1,786 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Usage Phoenix Art Panel</title>
+<style>
+  :root {
+    --ink: #18110d;
+    --muted: #5f4d3f;
+    --paper: rgba(255, 250, 237, .22);
+    --paper-strong: rgba(255, 252, 244, .26);
+    --line: rgba(99, 68, 45, .18);
+    --track: rgba(70, 50, 35, .14);
+    --red: #8f2f24;
+    --gold: #81510f;
+    --green: #0b5731;
+    --teal: #096c7c;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    width: 100%;
+    height: 100vh;
+    margin: 0;
+    overflow: hidden;
+    background: #e8dbc1;
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Noto Sans TC", sans-serif;
+  }
+
+  body {
+    display: grid;
+    place-items: start center;
+    padding: 10px;
+  }
+
+  .popover {
+    position: relative;
+    width: 364px;
+    height: 812px;
+    overflow: hidden;
+    border: 1px solid rgba(90, 58, 34, .30);
+    background: #fff0d0;
+    box-shadow: 0 18px 48px rgba(72, 45, 24, .22);
+  }
+
+  .art {
+    position: absolute;
+    inset: -18px -22px -24px -10px;
+    background: url("{{UKIYO_PHOENIX_BG}}") right center / auto 104% no-repeat;
+    animation: artDrift 10s ease-in-out infinite;
+    filter: none;
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    contain: paint;
+  }
+
+  .readability {
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgba(255,247,226,.14) 0%, rgba(255,247,226,.06) 56%, rgba(255,247,226,.00) 100%),
+      linear-gradient(180deg, rgba(255,255,255,.00), rgba(255,255,255,.02) 100%);
+    pointer-events: none;
+  }
+
+  .feather-glow {
+    position: absolute;
+    right: -40px;
+    bottom: 48px;
+    width: 220px;
+    height: 260px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(22,132,154,.16), transparent 68%);
+    animation: glowPulse 5s ease-in-out infinite;
+    pointer-events: none;
+    will-change: transform, opacity;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .petal {
+    position: absolute;
+    z-index: 4;
+    top: -22px;
+    width: 8px;
+    height: 12px;
+    border-radius: 80% 20% 80% 20%;
+    background: rgba(220, 96, 71, .58);
+    animation: fall linear infinite;
+    will-change: transform, opacity;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .p1 { left: 40px; animation-duration: 8s; animation-delay: 0s; }
+  .p2 { left: 118px; animation-duration: 11s; animation-delay: -4s; }
+  .p3 { left: 292px; animation-duration: 9s; animation-delay: -5s; }
+
+  .content {
+    position: relative;
+    z-index: 2;
+    height: 100%;
+    padding: 10px;
+    display: grid;
+    grid-template-rows: 176px 184px 246px 148px;
+    gap: 10px;
+  }
+
+  .card,
+  .footer {
+    position: relative;
+    padding: 13px 14px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.00)),
+      var(--paper);
+    box-shadow:
+      0 7px 18px rgba(87, 54, 27, .08),
+      inset 0 0 0 999px rgba(255, 250, 237, .04);
+    backdrop-filter: none;
+    transform: translate3d(0, 0, 0);
+    overflow: hidden;
+  }
+
+  .card::before,
+  .footer::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--accent);
+  }
+
+  .projects,
+  .footer {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.00)),
+      var(--paper-strong);
+  }
+
+  .head-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: grid;
+    place-items: center;
+    flex: none;
+    background: var(--accent);
+    color: #fff8e8;
+    font-size: 16px;
+    font-weight: 950;
+    box-shadow: inset 0 0 0 2px rgba(255,255,255,.32);
+  }
+
+  h1 {
+    margin: 0;
+    flex: 1;
+    font-size: 21px;
+    line-height: 1;
+    font-weight: 950;
+    text-shadow:
+      0 1px 0 rgba(255,255,255,.55),
+      0 0 8px rgba(255,250,237,.65);
+  }
+
+  button { font: inherit; }
+
+  .switch {
+    height: 28px;
+    padding: 0 11px;
+    border: 1px solid rgba(96, 64, 42, .24);
+    border-radius: 999px;
+    background: rgba(255,255,255,.24);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 850;
+  }
+
+  .quota + .quota {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(96, 64, 42, .14);
+  }
+
+  .quota-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 6px;
+  }
+
+  .label {
+    font-size: 15px;
+    font-weight: 950;
+    text-shadow:
+      0 1px 0 rgba(255,255,255,.42),
+      0 0 7px rgba(255,247,226,.42);
+  }
+
+  .pct {
+    color: color-mix(in srgb, var(--accent) 72%, #20130d);
+    font-size: 14px;
+    font-weight: 950;
+    text-shadow:
+      0 1px 0 rgba(255,255,255,.34),
+      0 0 5px rgba(255,247,226,.55);
+  }
+
+  .bar {
+    height: 7px;
+    border-radius: 999px;
+    background: rgba(70, 50, 35, .20);
+    overflow: hidden;
+  }
+
+  .bar span {
+    display: block;
+    width: var(--w);
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 62%, white));
+  }
+
+  .reset {
+    margin-top: 5px;
+    text-align: right;
+    color: #4a3a30;
+    font-size: 12px;
+    line-height: 14px;
+    min-height: 14px;
+    font-weight: 760;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+    text-shadow:
+      0 1px 0 rgba(255,255,255,.36),
+      0 0 5px rgba(255,247,226,.55);
+  }
+
+  .tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin: 4px 0 12px;
+  }
+
+  .tab {
+    height: 28px;
+    border: 1px solid rgba(96, 64, 42, .23);
+    border-radius: 999px;
+    background: rgba(255,255,255,.22);
+    color: var(--ink);
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .tab.active {
+    background: rgba(18,107,63,.20);
+    color: #0d3e27;
+  }
+
+  .project {
+    display: grid;
+    grid-template-columns: 24px minmax(0,1fr) auto;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 0;
+  }
+
+  .rank {
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(96,64,42,.24);
+    color: white;
+    font-size: 11px;
+    font-weight: 950;
+  }
+
+  .rank.top { background: var(--green); }
+
+  .name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+    font-weight: 900;
+    text-shadow: 0 1px 0 rgba(255,255,255,.52);
+  }
+
+  .metric { text-align: right; white-space: nowrap; }
+  .tokens { color: var(--green); font-size: 14px; font-weight: 950; }
+  .cost { margin-left: 7px; color: var(--muted); font-size: 12px; font-weight: 820; }
+
+  .thin {
+    grid-column: 2 / 4;
+    height: 4px;
+    border-radius: 999px;
+    background: rgba(96,64,42,.16);
+    overflow: hidden;
+  }
+
+  .thin span {
+    display: block;
+    width: var(--w);
+    height: 100%;
+    background: linear-gradient(90deg, var(--green), var(--gold));
+  }
+
+  .chips {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .chip {
+    height: 24px;
+    padding: 0 9px;
+    display: inline-flex;
+    align-items: center;
+    border: 1px solid rgba(96,64,42,.22);
+    border-radius: 999px;
+    background: rgba(255,255,255,.22);
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 850;
+  }
+
+  .today {
+    margin-bottom: 11px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(96,64,42,.15);
+    font-size: 17px;
+    font-weight: 950;
+    text-shadow: 0 1px 0 rgba(255,255,255,.55);
+  }
+
+  .today span {
+    color: var(--muted);
+    font-size: 13px;
+    font-weight: 800;
+  }
+
+  .actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .action {
+    height: 32px;
+    border: 1px solid rgba(96,64,42,.24);
+    border-radius: 999px;
+    background: rgba(255,255,255,.24);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 900;
+  }
+
+  .primary {
+    border-color: rgba(184,66,50,.46);
+    background: rgba(184,66,50,.14);
+    color: #74271d;
+  }
+
+  .credit {
+    margin-top: 6px;
+    color: rgba(118,101,85,.55);
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  .codex-stale {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--gold);
+    font-size: 11px;
+    line-height: 1;
+    font-weight: 850;
+    white-space: nowrap;
+  }
+
+  .codex-stale[hidden] { display: none; }
+
+  .codex-stale-info {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+  }
+
+  .codex-stale-tooltip {
+    position: absolute;
+    z-index: 20;
+    top: calc(100% + 8px);
+    right: 0;
+    display: none;
+    width: max-content;
+    max-width: 240px;
+    padding: 8px 10px;
+    border-radius: 7px;
+    background: rgba(38, 28, 20, .94);
+    color: #fff8e8;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .24);
+    font-size: 11px;
+    line-height: 1.45;
+    font-weight: 650;
+    white-space: normal;
+  }
+
+  .codex-stale-info:hover .codex-stale-tooltip {
+    display: block;
+  }
+
+  .hide-codex [data-card="codex"] { display: none; }
+  .hide-claude [data-card="claude"] { display: none; }
+
+  @keyframes artDrift {
+    0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+    45% { transform: translate3d(-10px, -14px, 0) scale(1.025); }
+    72% { transform: translate3d(4px, 8px, 0) scale(1.01); }
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: .45; transform: scale(.94); }
+    50% { opacity: .78; transform: scale(1.12); }
+  }
+
+  @keyframes fall {
+    from { transform: translateY(-30px) translateX(0) rotate(0deg); opacity: 0; }
+    12% { opacity: .76; }
+    to { transform: translateY(850px) translateX(-42px) rotate(260deg); opacity: 0; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+  <main class="popover">
+    <div class="art"></div>
+    <div class="readability"></div>
+    <div class="feather-glow"></div>
+    <i class="petal p1"></i><i class="petal p2"></i><i class="petal p3"></i>
+
+    <div class="content">
+      <section class="card" data-card="claude" style="--accent: var(--red)">
+        <div class="head-row">
+          <img class="icon" src="{{CLAUDE_ICON}}" alt="">
+          <h1 data-i18n="claude_name">Claude Code</h1>
+          <button class="switch" data-action="switch" data-i18n="switch_panel">更換面板</button>
+        </div>
+        <div class="quota" data-row="session"></div>
+        <div class="quota" data-row="weekly"></div>
+      </section>
+
+      <section class="card" data-card="codex" style="--accent: var(--gold)">
+        <div class="head-row">
+          <img class="icon" src="{{CODEX_ICON}}" alt="">
+          <h1 data-i18n="codex_name">Codex</h1>
+          <div class="codex-stale" data-codex-stale hidden>
+            <span aria-hidden="true">⚠</span>
+            <span data-codex-stale-age></span>
+            <span class="codex-stale-info" aria-hidden="true">ⓘ
+              <span class="codex-stale-tooltip" data-codex-stale-tooltip></span>
+            </span>
+          </div>
+        </div>
+        <div class="quota" data-row="session"></div>
+        <div class="quota" data-row="weekly"></div>
+      </section>
+
+      <section class="card projects" data-card="projects" style="--accent: var(--green)">
+        <div class="head-row">
+          <div class="icon">田</div>
+          <h1 data-i18n="projects_title">專案用量</h1>
+          <div class="codex-stale" data-history-error hidden>
+            <span aria-hidden="true">⚠</span>
+            <span data-history-error-text></span>
+            <span class="codex-stale-info" aria-hidden="true">ⓘ
+              <span class="codex-stale-tooltip" data-history-error-tooltip></span>
+            </span>
+          </div>
+        </div>
+        <div class="tabs">
+          <button class="tab" data-action="toggle-project-range">今日</button>
+          <button class="tab" data-action="analyze" data-i18n="analyze_usage">報告</button>
+          <button class="tab active" data-action="toggle-statusline" data-i18n="cli">終端 ✓</button>
+        </div>
+        <div data-project-list></div>
+      </section>
+
+      <section class="footer" style="--accent: var(--teal)">
+        <div class="chips"><div class="chip" data-footer="rate">速率：--</div><div class="chip" data-footer="status">狀態：載入中</div></div>
+        <div class="today" data-footer="today">今日：$0.00 (0 tokens)</div>
+        <div class="actions">
+          <button class="action primary" data-action="refresh" data-i18n="refresh_now">↻ 立即更新</button>
+          <button class="action" data-action="quit" data-i18n="quit">⏻ 結束</button>
+        </div>
+        <div class="credit">based on usage by lollapalooza</div>
+      </section>
+    </div>
+  </main>
+  <script>
+    const I18N = {{I18N_BUNDLE}};
+    const FALLBACK_LANGUAGE = "en";
+    const root = document.documentElement;
+    let currentLanguage = "en";
+    let projectRange = "1d";
+    let latestState = null;
+
+    function languageTable(language) {
+      return I18N[language] || I18N[FALLBACK_LANGUAGE] || {};
+    }
+
+    function t(key, params = {}) {
+      const template = languageTable(currentLanguage)[key] || languageTable(FALLBACK_LANGUAGE)[key] || key;
+      return template.replace(/\{(\w+)\}/g, (_, name) => `${params[name] ?? ""}`);
+    }
+
+    function labels() {
+      return { session: t("session_label"), weekly: t("weekly_label") };
+    }
+
+    function projectRangeLabel(range) {
+      if (range === "7d") return t("project_range_7d");
+      if (range === "30d") return t("project_range_30d");
+      if (range === "all") return t("project_range_all");
+      return t("project_range_1d");
+    }
+
+    function applyStaticText() {
+      document.documentElement.lang = currentLanguage === "zh-TW" ? "zh-Hant" : currentLanguage;
+      document.querySelectorAll("[data-i18n]").forEach((node) => {
+        const key = node.dataset.i18n;
+        if (key) node.textContent = t(key);
+      });
+      const rangeButton = document.querySelector('[data-action="toggle-project-range"]');
+      if (rangeButton) rangeButton.textContent = projectRangeLabel(projectRange);
+    }
+
+    window.usageSetLanguage = function usageSetLanguage(language) {
+      currentLanguage = I18N[language] ? language : FALLBACK_LANGUAGE;
+      applyStaticText();
+      if (latestState) window.usageApplyState({ ...latestState, language: currentLanguage });
+    };
+
+    function colorFor(percent, fallback) {
+      if (typeof percent !== "number") return fallback;
+      if (percent >= 80) return getComputedStyle(root).getPropertyValue("--red").trim();
+      if (percent >= 50) return getComputedStyle(root).getPropertyValue("--gold").trim();
+      return fallback;
+    }
+
+    function renderRow(card, key, row) {
+      const el = document.querySelector(`[data-card="${card}"] [data-row="${key}"]`);
+      if (!el) return;
+      const cardEl = el.closest(".card");
+      if (!cardEl) return;
+      const data = row || {
+        percent: null,
+        percentText: "--",
+        resetText: t("reset_placeholder"),
+        warning: false,
+        available: false,
+      };
+      const available = data.available === true && typeof data.percent === "number";
+      const accent = getComputedStyle(cardEl).getPropertyValue("--accent").trim();
+      const color = colorFor(data.percent, accent);
+      el.dataset.available = available ? "true" : "false";
+      if (el.dataset.rowReady !== "true") {
+        el.innerHTML = `
+          <div class="quota-top">
+            <div class="label"></div>
+            <div class="pct"></div>
+          </div>
+          <div class="bar"><span></span></div>
+          <div class="reset"></div>
+        `;
+        el.dataset.rowReady = "true";
+      }
+      const title = el.querySelector(".label");
+      const percent = el.querySelector(".pct");
+      const reset = el.querySelector(".reset");
+      const fill = el.querySelector(".bar span");
+      if (!title || !percent || !reset || !fill) return;
+      title.textContent = data.title != null ? data.title : labels()[key];
+      percent.textContent = data.percentText || "--";
+      reset.textContent = data.resetText || t("reset_placeholder");
+      reset.dataset.warning = data.warning === true ? "true" : "false";
+      percent.style.color = available ? color : "";
+      fill.style.width = available ? `${Math.max(0, Math.min(100, data.percent))}%` : "0%";
+      fill.style.background = color;
+    }
+
+    function applyCard(name, rows) {
+      renderRow(name, "session", rows && rows.session);
+      renderRow(name, "weekly", rows && rows.weekly);
+    }
+
+    function renderCodexStale(stale) {
+      const staleEl = document.querySelector("[data-codex-stale]");
+      const ageEl = document.querySelector("[data-codex-stale-age]");
+      const tooltipEl = document.querySelector("[data-codex-stale-tooltip]");
+      if (!staleEl || !ageEl || !tooltipEl) return;
+      if (stale && stale.ageText) {
+        ageEl.textContent = stale.ageText;
+        tooltipEl.textContent = t("codex_stale_tooltip");
+        staleEl.hidden = false;
+        return;
+      }
+      ageEl.textContent = "";
+      tooltipEl.textContent = "";
+      staleEl.hidden = true;
+    }
+
+    function renderHistoryLoadError(err) {
+      const el = document.querySelector("[data-history-error]");
+      const textEl = document.querySelector("[data-history-error-text]");
+      const tooltipEl = document.querySelector("[data-history-error-tooltip]");
+      if (!el || !textEl || !tooltipEl) return;
+      if (err && err.reasonText) {
+        textEl.textContent = err.reasonText;
+        tooltipEl.textContent = t("history_load_error_tooltip");
+        el.hidden = false;
+        return;
+      }
+      textEl.textContent = "";
+      tooltipEl.textContent = "";
+      el.hidden = true;
+    }
+
+    function renderProjects(projects) {
+      const list = document.querySelector("[data-project-list]");
+      if (!list) return;
+      const rows = (projects || []).slice(0, 3);
+      const totalTokens = rows.reduce((sum, p) => sum + Math.max(0, Number(p.tokens) || 0), 0);
+      list.replaceChildren();
+      if (rows.length === 0) {
+        const empty = document.createElement("div");
+        empty.style.cssText = "color:var(--muted);font-size:13px;padding:8px 0";
+        empty.textContent = t("projects_empty");
+        list.append(empty);
+        return;
+      }
+      rows.forEach((project, index) => {
+        const tokens = Math.max(0, Number(project.tokens) || 0);
+        const width = totalTokens > 0 ? Math.max(0, Math.min(100, (tokens / totalTokens) * 100)) : 0;
+        const row = document.createElement("div");
+        row.className = "project";
+        const rank = document.createElement("div");
+        rank.className = index === 0 ? "rank top" : "rank";
+        rank.textContent = String(index + 1);
+        const name = document.createElement("div");
+        name.className = "name";
+        name.textContent = project.name || "";
+        const metric = document.createElement("div");
+        metric.className = "metric";
+        const tokenEl = document.createElement("span");
+        tokenEl.className = "tokens";
+        tokenEl.textContent = project.tokensText || "";
+        const costEl = document.createElement("span");
+        costEl.className = "cost";
+        costEl.textContent = project.costText || "";
+        metric.append(tokenEl, costEl);
+        const bar = document.createElement("div");
+        bar.className = "thin";
+        const fill = document.createElement("span");
+        fill.style.width = `${width}%`;
+        bar.append(fill);
+        row.append(rank, name, metric, bar);
+        list.append(row);
+      });
+    }
+
+    function renderStatusline(statusline) {
+      const button = document.querySelector('[data-action="toggle-statusline"]');
+      if (!button) return;
+      const enabled = statusline && statusline.enabled === true;
+      button.dataset.active = enabled ? "true" : "false";
+      button.textContent = enabled ? t("cli_enabled") : t("cli_disabled");
+    }
+
+    function relocateSwitchButton(state) {
+      const button = document.querySelector('[data-action="switch"]');
+      if (!button) return;
+      let host = document.querySelector('[data-card="claude"] .head-row');
+      let className = "switch";
+      if (state.hideClaude && !state.hideCodex) {
+        host = document.querySelector('[data-card="codex"] .head-row');
+      } else if (state.hideClaude && state.hideCodex) {
+        host = document.querySelector(".footer .actions");
+        className = "action";
+      }
+      if (!host) return;
+      button.className = className;
+      if (button.parentElement !== host) host.appendChild(button);
+    }
+
+    window.usageApplyState = function usageApplyState(state) {
+      document.documentElement.classList.toggle("hide-codex", !!state.hideCodex);
+      document.documentElement.classList.toggle("hide-claude", !!state.hideClaude);
+      relocateSwitchButton(state);
+      currentLanguage = I18N[state.language] ? state.language : currentLanguage;
+      applyStaticText();
+      applyCard("claude", state.claude);
+      applyCard("codex", state.codex);
+      renderCodexStale(state.codex && state.codex.stale);
+      renderHistoryLoadError(state.historyError);
+      latestState = state;
+      renderProjects(
+        projectRange === "1d" ? state.projects
+        : projectRange === "7d" ? state.projects7d
+        : projectRange === "30d" ? state.projects30d
+        : projectRange === "all" ? state.projectsAll
+        : state.projects
+      );
+      renderStatusline(state.statusline || {});
+      const rate = document.querySelector('[data-footer="rate"]');
+      const status = document.querySelector('[data-footer="status"]');
+      const today = document.querySelector('[data-footer="today"]');
+      if (rate) rate.textContent = state.footer.rate || t("rate_text", { value: "--" });
+      if (status) status.textContent = state.footer.status || t("status_text", { value: "--" });
+      if (today) today.textContent = state.footer.today || t("today_text", { cost: "0.00", tokens: "0" });
+    };
+
+    document.addEventListener("click", (event) => {
+      const button = event.target.closest("[data-action]");
+      if (!button) return;
+      if (button.dataset.action === "toggle-project-range") {
+        projectRange = projectRange === "1d" ? "7d" : projectRange === "7d" ? "30d" : projectRange === "30d" ? "all" : "1d";
+        button.textContent = projectRangeLabel(projectRange);
+        if (latestState) {
+          renderProjects(
+            projectRange === "1d" ? latestState.projects
+            : projectRange === "7d" ? latestState.projects7d
+            : projectRange === "30d" ? latestState.projects30d
+            : projectRange === "all" ? latestState.projectsAll
+            : latestState.projects
+          );
+        }
+        return;
+      }
+      const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
+      if (bridge && typeof bridge.postMessage === "function") {
+        bridge.postMessage(button.dataset.action);
+      }
+    });
+
+    window.usageApplyState({
+      language: "en",
+      claude: { session: {}, weekly: {} },
+      codex: { session: {}, weekly: {} },
+      projects: [],
+      projects7d: [],
+      projects30d: [],
+      projectsAll: [],
+      statusline: {},
+      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)" }
+    });
+  </script>
+</body>
+</html>

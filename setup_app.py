@@ -58,6 +58,7 @@ if __name__ == "__main__":
             "assets/codex_color_menubar.png",
             "assets/critters",
             "assets/panels",
+            "assets/ukiyo_phoenix_bg.png",
             "i18n.json",
             "pyproject.toml",
             "usage_statusline.py",
