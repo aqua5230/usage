@@ -5,6 +5,18 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.25.0] - 2026-07-10
+
+### Added
+- **Save the report as a .png image**: the share dialog gains a third button next to .html/.csv. It renders the report with a vendored html-to-image v1.11.13 (MIT) — fully offline, no network, and it honors the "hide project names" toggle so a masked screenshot is one click.
+
+### Changed
+- **Report visual redesign (warm glassmorphism)**: warm ink background with amber/jade glows, frosted-glass cards over a subtle noise texture, and a gold/jade/coral accent palette replacing the old blue/purple. The contribution heatmap turns gold, the base type scale grows to 17.5px with a clearer size hierarchy, and headings/body adopt Grenette/Styrene font stacks (system-font fallbacks; no font files embedded or fetched).
+- **Share dialog copy is audience-neutral**: the "Send to a colleague / manager" heading is now "Share a copy" across all five locales.
+
+### Security
+- CI hardening while closing out this cycle's supply-chain checklist: ClusterFuzzLite + Atheris fuzzing for the JSONL parsers (base image pinned by digest), CodeQL actions bumped to v4, and routine action bumps (setup-python 6.3.0, setup-uv 8.3.2) — all dependabot PRs merged and both OpenSSF Scorecard alerts triaged.
+
 ## [0.24.11] - 2026-07-08
 
 ### Fixed

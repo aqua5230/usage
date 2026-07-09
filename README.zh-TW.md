@@ -43,7 +43,7 @@ brew install --cask aqua5230/usage/usage
 - 🧠 **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的 commits 與待辦清單交給 AI，不用重講一遍進度。完全本機、預設關閉。
 - 🤐 **精簡模式 (Terse Mode)：** 一鍵讓 Claude Code 與 Codex 講話更精簡，省下輸出 token，但程式碼與錯誤訊息保證一個字都不縮水。
 - 🩺 **Token 浪費健檢：** 每日背景診斷（重複讀取檔案、污染目錄、雜訊輸出），當發現浪費時會悄悄提醒，AI 能幫你解讀報告並給出改善建議。
-- 📊 **深度 HTML 報告與年度回顧：** 視覺化呈現趨勢圖、專案排行與成本。包含整理了近期工具更新的**「AI 工具情報」**，以及帶有貢獻熱力圖的**「年度回顧 (Wrapped)」**。
+- 📊 **深度 HTML 報告與年度回顧：** 視覺化呈現趨勢圖、專案排行與成本。包含整理了近期工具更新的**「AI 工具情報」**，以及帶有貢獻熱力圖的**「年度回顧 (Wrapped)」**。一鍵另存 **.html／.csv／.png 圖卡**分享，全程離線、可選擇隱藏專案名稱。
 - 🎨 **10 款視覺面板：** 內建 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026 以及藍曬圖 (Lepidoptera) 供你自由切換。
 - 🧑‍💼 **AI 人才市場：** 將整個 AI 團隊帶進 Claude Code。瀏覽並一鍵將律師、產品經理等專業角色人設檔安裝到 `~/.claude/agents/`。
 - 🐉 **召喚神獸夥伴：** 在百分比旁顯示一隻會跟著「燃燒率」動態加速的小神獸（Claude 是鳳凰，Codex 是飛龍）。
