@@ -379,8 +379,8 @@ def test_sprite_data_uri_reads_py2app_resourcepath_layout(
     dragon_png = b"bundle dragon"
     (tmp_path / "critters" / "phoenix").mkdir(parents=True)
     (tmp_path / "critters" / "dragon").mkdir(parents=True)
-    (tmp_path / "critters" / "phoenix" / "1.png").write_bytes(phoenix_png)
-    (tmp_path / "critters" / "dragon" / "1.png").write_bytes(dragon_png)
+    (tmp_path / "critters" / "phoenix" / "wrapped.png").write_bytes(phoenix_png)
+    (tmp_path / "critters" / "dragon" / "wrapped.png").write_bytes(dragon_png)
     monkeypatch.setenv("RESOURCEPATH", str(tmp_path))
 
     html_report._sprite_data_uri.cache_clear()

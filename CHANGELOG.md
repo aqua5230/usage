@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.25.2] - 2026-07-10
+
+### Fixed
+- **Phoenix menu-bar animation was nearly static in 0.25.1**: that release accidentally replaced all 5 menu-bar animation frames with near-identical high-res art meant only for the Year Wrapped report card, so the animation barely changed between frames. The menu-bar frames are restored to the original animated set, and the Wrapped report card now reads from its own dedicated `wrapped.png` asset per critter so the two no longer share a file.
+
 ## [0.25.1] - 2026-07-10
 
 ### Changed

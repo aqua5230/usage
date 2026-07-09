@@ -146,12 +146,12 @@ def _estimate_books(tokens: int) -> int:
 @lru_cache(maxsize=4)
 def _sprite_data_uri(beast: str) -> str:
     asset_path = packaged_resource_path(
-        f"critters/{beast}/1.png",
+        f"critters/{beast}/wrapped.png",
         Path(__file__).resolve().parent.parent
         / "assets"
         / "critters"
         / beast
-        / "1.png",
+        / "wrapped.png",
     )
     encoded = base64.b64encode(asset_path.read_bytes()).decode("ascii")
     return f"data:image/png;base64,{encoded}"
