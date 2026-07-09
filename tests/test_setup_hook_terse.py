@@ -27,6 +27,12 @@ def _terse_entries(settings: Path) -> list[dict[str, object]]:
     return [e for e in data["hooks"]["SessionStart"] if setup_hook._is_terse_entry(e)]
 
 
+def _reminder_entries(settings: Path) -> list[dict[str, object]]:
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    ups = data.get("hooks", {}).get("UserPromptSubmit", [])
+    return [e for e in ups if setup_hook._is_terse_reminder_entry(e)]
+
+
 def _codex_terse_entries(hooks_json: Path) -> list[dict[str, object]]:
     data = json.loads(hooks_json.read_text(encoding="utf-8"))
     return [e for e in data["hooks"]["SessionStart"] if setup_hook._is_terse_entry(e)]
@@ -264,3 +270,81 @@ def test_self_heal_restores_missing_codex_hooks_entry(terse_paths: TerseHookPath
     data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
     assert data["usage"]["selfHealLog"][-1]["action"] == "restore_terse_hook_codex"
     assert data["usage"]["selfHealLog"][-1]["detail"] == "missing=hooks_entry"
+
+
+def test_enable_registers_reminder_hook(terse_paths: TerseHookPaths) -> None:
+    settings = terse_paths.settings
+
+    assert setup_hook.enable_terse_mode() == 0
+    assert terse_paths.terse_reminder_target.exists()
+    assert setup_hook.is_terse_reminder_enabled()
+
+    entries = _reminder_entries(settings)
+    assert len(entries) == 1
+    assert entries[0]["matcher"] == setup_hook.TERSE_REMINDER_MATCHER
+    hooks = entries[0]["hooks"]
+    assert isinstance(hooks, list)
+    first_hook = hooks[0]
+    assert isinstance(first_hook, dict)
+    command = first_hook["command"]
+    assert isinstance(command, str)
+    assert str(terse_paths.terse_reminder_target) not in command
+    assert str(terse_paths.reminder_source) in command
+
+
+def test_enable_reminder_is_idempotent(terse_paths: TerseHookPaths) -> None:
+    setup_hook.enable_terse_mode()
+    setup_hook.enable_terse_mode()
+    assert len(_reminder_entries(terse_paths.settings)) == 1
+    assert len(_terse_entries(terse_paths.settings)) == 1
+
+
+def test_disable_removes_reminder_entry_and_file(terse_paths: TerseHookPaths) -> None:
+    setup_hook.enable_terse_mode()
+
+    setup_hook.disable_terse_mode()
+    assert not terse_paths.terse_reminder_target.exists()
+    assert not setup_hook.is_terse_reminder_enabled()
+    data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    assert "UserPromptSubmit" not in data.get("hooks", {})
+
+
+def test_disable_keeps_user_userpromptsubmit_hook(terse_paths: TerseHookPaths) -> None:
+    settings = terse_paths.settings
+    setup_hook.enable_terse_mode()
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    data["hooks"]["UserPromptSubmit"][0]["hooks"].append(
+        {"type": "command", "command": "echo my-own-prompt-hook"}
+    )
+    settings.write_text(json.dumps(data), encoding="utf-8")
+
+    assert setup_hook.disable_terse_mode() == 0
+
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    shared = data["hooks"]["UserPromptSubmit"][0]["hooks"]
+    assert shared == [{"type": "command", "command": "echo my-own-prompt-hook"}]
+
+
+def test_self_heal_backfills_reminder_for_legacy_user(terse_paths: TerseHookPaths) -> None:
+    # Legacy state: terse SessionStart on (from an older build) but no reminder hook/script.
+    setup_hook.enable_terse_mode()
+    terse_paths.terse_reminder_target.unlink()
+    data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    data["hooks"].pop("UserPromptSubmit", None)
+    if not data["hooks"]:
+        data.pop("hooks", None)
+    terse_paths.settings.write_text(json.dumps(data), encoding="utf-8")
+    assert not setup_hook.is_terse_reminder_enabled()
+
+    setup_hook._self_heal_terse_mode()
+
+    assert terse_paths.terse_reminder_target.exists()
+    assert len(_reminder_entries(terse_paths.settings)) == 1
+    heal = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    assert heal["usage"]["selfHealLog"][-1]["action"] == "restore_terse_reminder_hook"
+    assert heal["usage"]["selfHealLog"][-1]["detail"] == "missing=script,entry"
+
+
+def test_self_heal_reminder_noop_when_disabled(terse_paths: TerseHookPaths) -> None:
+    setup_hook._self_heal_terse_mode()
+    assert not terse_paths.terse_reminder_target.exists()

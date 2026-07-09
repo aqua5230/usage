@@ -53,7 +53,7 @@ from AppKit import (
     NSWindowCollectionBehaviorCanJoinAllSpaces,
     NSWindowCollectionBehaviorFullScreenAuxiliary,
 )
-from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer, NSUserDefaults
+from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 from Quartz import CGColorCreateGenericRGB
 
 import codex_loader
@@ -172,7 +172,6 @@ BUTTON_HEIGHT = 32.0
 INSTALL_BUTTON_EXTRA_HEIGHT = BUTTON_HEIGHT + 10.0
 UPDATE_DISMISS_SECONDS = 24 * 3600
 UPDATE_ALERT_BODY_LIMIT = 2000
-CRITTERS_DEFAULTS_KEY = "usage.critters_enabled"
 
 logger = logging.getLogger(__name__)
 
@@ -305,18 +304,6 @@ def _critter_frame_image(path: str) -> Any:
         image.setSize_(NSMakeSize(18, 18))
     _CRITTER_IMAGE_CACHE[path] = image
     return image
-
-
-def _critters_enabled(defaults: Any | None = None) -> bool:
-    store = defaults if defaults is not None else NSUserDefaults.standardUserDefaults()
-    return bool(store.boolForKey_(CRITTERS_DEFAULTS_KEY))
-
-
-def _save_critters_enabled(enabled: bool, defaults: Any | None = None) -> None:
-    store = defaults if defaults is not None else NSUserDefaults.standardUserDefaults()
-    store.setBool_forKey_(enabled, CRITTERS_DEFAULTS_KEY)
-    if hasattr(store, "synchronize"):
-        store.synchronize()
 
 
 def _make_alert() -> Any:
@@ -652,7 +639,6 @@ class AppDelegate(NSObject):
     _quota_notifier = objc.ivar()
     _switch_menu_action_taken = objc.ivar()
     _pre_talent_panel_id = objc.ivar()
-    critters_enabled = objc.ivar()
     critter_timer = objc.ivar()
     critter_frame = objc.ivar()
     critter_interval = objc.ivar()
@@ -689,15 +675,14 @@ class AppDelegate(NSObject):
         self._history_load_error_key = None
         self._switch_menu_action_taken = False
         self._pre_talent_panel_id = None
-        self.critters_enabled = _critters_enabled()
         self.critter_timer = None
         self.critter_frame = 0
         self.critter_interval = 0.0
         self.dragon_timer = None
         self.dragon_frame = 0
         self.dragon_interval = 0.0
-        self._last_button_title_key: tuple[str, bool, int | None, int | None] | None = None
-        self._last_plain_title_key: tuple[str, bool] | None = None
+        self._last_button_title_key: tuple[str, int | None, int | None] | None = None
+        self._last_plain_title_key: tuple[str] | None = None
         return self
 
     def applicationDidFinishLaunching_(self, notification: Any) -> None:
@@ -798,18 +783,6 @@ class AppDelegate(NSObject):
 
     def switchPanel_(self, sender: Any) -> None:
         menu = NSMenu.alloc().initWithTitle_(_t(self.language, "switch_panel"))
-        critters_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(
-                self.language,
-                "dismiss_critters" if self.critters_enabled else "summon_critters",
-            ),
-            "toggleCritters:",
-            "",
-        )
-        critters_item.setTarget_(self)
-        critters_item.setState_(1 if self.critters_enabled else 0)
-        menu.addItem_(critters_item)
-        menu.addItem_(NSMenuItem.separatorItem())
         # AI 人才市場 is a feature panel, not a cosmetic skin — it gets its own
         # top-level row instead of hiding inside "面板主題 ▸" next to Matrix/Win95.
         talent_market_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
@@ -928,21 +901,6 @@ class AppDelegate(NSObject):
 
         target_panel_id = self._pre_talent_panel_id or "classic"
         self._set_active_panel_id(target_panel_id)
-
-    def toggleCritters_(self, sender: Any) -> None:
-        self._mark_switch_menu_action()
-        enabled = not bool(self.critters_enabled)
-        self.critters_enabled = enabled
-        _save_critters_enabled(enabled)
-        self.critter_frame = 0
-        self.dragon_frame = 0
-        if hasattr(sender, "setState_"):
-            sender.setState_(1 if enabled else 0)
-        if hasattr(sender, "setTitle_"):
-            sender.setTitle_(
-                _t(self.language, "dismiss_critters" if enabled else "summon_critters")
-            )
-        self._set_button_title(self.latest_state)
 
     def toggleLaunchAtLogin_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -1232,11 +1190,6 @@ class AppDelegate(NSObject):
         self.popover.setContentSize_(_popover_size(self.latest_state, self.active_panel))
 
     def animateCritters_(self, timer: Any) -> None:
-        if not self.critters_enabled:
-            self.critter_frame = 0
-            self._stop_critter_timer()
-            self._set_button_title(self.latest_state)
-            return
         interval = self._current_critter_interval()
         if interval <= 0:
             self.critter_frame = 0
@@ -1247,11 +1200,6 @@ class AppDelegate(NSObject):
         self._set_button_title(self.latest_state)
 
     def animateDragon_(self, timer: Any) -> None:
-        if not self.critters_enabled:
-            self.dragon_frame = 0
-            self._stop_dragon_timer()
-            self._set_button_title(self.latest_state)
-            return
         interval = self._current_dragon_interval()
         if interval <= 0:
             self.dragon_frame = 0
@@ -1276,10 +1224,6 @@ class AppDelegate(NSObject):
         return critter_frames.group_to_interval(group)
 
     def _sync_critter_timer(self) -> None:
-        if not self.critters_enabled:
-            self.critter_frame = 0
-            self._stop_critter_timer()
-            return
         interval = self._current_critter_interval()
         if interval <= 0:
             self.critter_frame = 0
@@ -1301,10 +1245,6 @@ class AppDelegate(NSObject):
             timer.invalidate()
 
     def _sync_dragon_timer(self) -> None:
-        if not self.critters_enabled:
-            self.dragon_frame = 0
-            self._stop_dragon_timer()
-            return
         interval = self._current_dragon_interval()
         if interval <= 0:
             self.dragon_frame = 0
@@ -1816,11 +1756,10 @@ class AppDelegate(NSObject):
             )
             title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
             title.appendAttributedString_(self._menubar_text_string(f" {claude_percent}"))
-            if self.critters_enabled:
-                phoenix = _critter_frame_image(critter_frames.PHOENIX_FRAMES[phoenix_frame])
-                if phoenix is not None:
-                    title.appendAttributedString_(self._menubar_text_string(" "))
-                    title.appendAttributedString_(_critter_icon_attachment_string(phoenix))
+            phoenix = _critter_frame_image(critter_frames.PHOENIX_FRAMES[phoenix_frame])
+            if phoenix is not None:
+                title.appendAttributedString_(self._menubar_text_string(" "))
+                title.appendAttributedString_(_critter_icon_attachment_string(phoenix))
         if not state.hide_codex and (self.codex_5h_pct is not None or state.hide_claude):
             codex_percent = (
                 "--"
@@ -1831,11 +1770,10 @@ class AppDelegate(NSObject):
                 title.appendAttributedString_(self._menubar_text_string(" · "))
             title.appendAttributedString_(_menubar_icon_attachment_string(_codex_menubar_icon()))
             title.appendAttributedString_(self._menubar_text_string(f" {codex_percent}"))
-            if self.critters_enabled:
-                dragon = _critter_frame_image(critter_frames.DRAGON_FRAMES[dragon_frame])
-                if dragon is not None:
-                    title.appendAttributedString_(self._menubar_text_string(" "))
-                    title.appendAttributedString_(_critter_icon_attachment_string(dragon))
+            dragon = _critter_frame_image(critter_frames.DRAGON_FRAMES[dragon_frame])
+            if dragon is not None:
+                title.appendAttributedString_(self._menubar_text_string(" "))
+                title.appendAttributedString_(_critter_icon_attachment_string(dragon))
         if title.length() == 0:
             # Both providers hidden: keep a recognizable, clickable status item.
             title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
@@ -1845,19 +1783,12 @@ class AppDelegate(NSObject):
         self._sync_critter_timer()
         self._sync_dragon_timer()
         title = self._compose_title(state)
-        critters_enabled = bool(self.critters_enabled)
-        phoenix_frame = (
-            int(self.critter_frame)
-            if critters_enabled and not state.hide_claude
-            else None
-        )
+        phoenix_frame = int(self.critter_frame) if not state.hide_claude else None
         dragon_visible = not state.hide_codex and (
             self.codex_5h_pct is not None or state.hide_claude
         )
-        dragon_frame = (
-            int(self.dragon_frame) if critters_enabled and dragon_visible else None
-        )
-        title_key = (title, critters_enabled, phoenix_frame, dragon_frame)
+        dragon_frame = int(self.dragon_frame) if dragon_visible else None
+        title_key = (title, phoenix_frame, dragon_frame)
         if self._last_button_title_key == title_key:
             return
 
@@ -1868,7 +1799,7 @@ class AppDelegate(NSObject):
         # critter/dragon animation (phoenix_frame/dragon_frame changing every
         # 0.05-0.18s) only push the plain title when its own text changed —
         # not on every sprite frame — to avoid paying that relayout per frame.
-        plain_key = (title, critters_enabled)
+        plain_key = (title,)
         if self._last_plain_title_key != plain_key:
             button.setTitle_(title)
             self._last_plain_title_key = plain_key

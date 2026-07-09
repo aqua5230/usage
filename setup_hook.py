@@ -93,6 +93,13 @@ CODEX_TERSE_HOOK_TARGET = Path(os.path.expanduser("~/.codex/usage-terse-mode.py"
 CODEX_HOOKS_JSON = Path(os.path.expanduser("~/.codex/hooks.json"))
 CODEX_TERSE_MATCHER = "startup|resume|clear"
 _FEATURES_HOOKS_REGEX = re.compile(r"(?m)^[ \t]*hooks\s*=\s*[A-Za-z0-9_]+")
+# Per-message tail reminder — a UserPromptSubmit hook installed alongside the SessionStart
+# terse hook. Re-injects a one-line nudge on every prompt so the terse style holds across a
+# long conversation. Claude Code only — Codex CLI has no UserPromptSubmit equivalent.
+TERSE_REMINDER_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-terse-reminder.py"))
+TERSE_REMINDER_MATCHER = ""
+_TERSE_REMINDER_MARKER = "usage-terse-reminder"
+_TERSE_REMINDER_MARKERS = (_TERSE_REMINDER_MARKER, "usage_terse_reminder")
 
 
 def _resolve_hook_source() -> Path:
@@ -587,6 +594,22 @@ def _resolve_terse_source() -> Path:
     raise SystemExit(_t("setup_terse_source_missing", tried=tried))
 
 
+def _resolve_terse_reminder_source() -> Path:
+    paths = [
+        Path(__file__).resolve().parent / "usage_terse_reminder.py",
+        (
+            Path(sys.executable).resolve().parent.parent
+            / "Resources"
+            / "usage_terse_reminder.py"
+        ),
+    ]
+    for path in paths:
+        if path.exists():
+            return path
+    tried = ", ".join(str(path) for path in paths)
+    raise SystemExit(_t("setup_terse_source_missing", tried=tried))
+
+
 def _resume_command() -> str:
     python = _find_system_python()
     source = _resolve_resume_source()
@@ -596,6 +619,12 @@ def _resume_command() -> str:
 def _terse_command() -> str:
     python = _find_system_python()
     source = _resolve_terse_source()
+    return f"{shlex.quote(python)} {shlex.quote(str(source))}"
+
+
+def _terse_reminder_command() -> str:
+    python = _find_system_python()
+    source = _resolve_terse_reminder_source()
     return f"{shlex.quote(python)} {shlex.quote(str(source))}"
 
 
@@ -614,6 +643,15 @@ def _copy_terse_script() -> None:
     shutil.copyfile(source, TERSE_HOOK_TARGET)
     TERSE_HOOK_TARGET.chmod(
         TERSE_HOOK_TARGET.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    )
+
+
+def _copy_terse_reminder_script() -> None:
+    source = _resolve_terse_reminder_source()
+    TERSE_REMINDER_HOOK_TARGET.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(source, TERSE_REMINDER_HOOK_TARGET)
+    TERSE_REMINDER_HOOK_TARGET.chmod(
+        TERSE_REMINDER_HOOK_TARGET.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
     )
 
 
@@ -697,8 +735,12 @@ def _write_terse_sidecar() -> None:
         table_raw = bundle.get(lang)
         table: dict[str, Any] = table_raw if isinstance(table_raw, dict) else {}
         instruction = table.get("terse_mode_instruction") or en.get("terse_mode_instruction")
+        reminder = table.get("terse_reminder_instruction") or en.get("terse_reminder_instruction")
         if isinstance(instruction, str) and instruction:
-            out[lang] = {"instruction": instruction}
+            entry = {"instruction": instruction}
+            if isinstance(reminder, str) and reminder:
+                entry["reminder"] = reminder
+            out[lang] = entry
     if out:
         TERSE_PROMPT_SIDECAR.parent.mkdir(parents=True, exist_ok=True)
         _atomic_write_text(
@@ -783,6 +825,71 @@ def _strip_terse_hooks(entry: object) -> object | None:
     if not kept:
         return None
     return {**entry, "hooks": kept}
+
+
+def _user_prompt_submit_list(settings: dict[str, Any]) -> list[Any] | None:
+    hooks = settings.get("hooks")
+    if not isinstance(hooks, dict):
+        return None
+    ups = hooks.get("UserPromptSubmit")
+    return ups if isinstance(ups, list) else None
+
+
+def _is_terse_reminder_entry(entry: object) -> bool:
+    if not isinstance(entry, dict):
+        return False
+    hooks = entry.get("hooks")
+    if not isinstance(hooks, list):
+        return False
+    return any(
+        isinstance(h, dict)
+        and isinstance(h.get("command"), str)
+        and any(marker in h["command"] for marker in _TERSE_REMINDER_MARKERS)
+        for h in hooks
+    )
+
+
+def _strip_terse_reminder_hooks(entry: object) -> object | None:
+    if not isinstance(entry, dict):
+        return entry
+    hooks = entry.get("hooks")
+    if not isinstance(hooks, list):
+        return entry
+    kept = [
+        h
+        for h in hooks
+        if not (
+            isinstance(h, dict)
+            and isinstance(h.get("command"), str)
+            and any(marker in h["command"] for marker in _TERSE_REMINDER_MARKERS)
+        )
+    ]
+    if len(kept) == len(hooks):
+        return entry
+    if not kept:
+        return None
+    return {**entry, "hooks": kept}
+
+
+def _register_terse_reminder(settings: dict[str, Any]) -> None:
+    """Idempotently add the per-message UserPromptSubmit reminder entry to ``settings``
+    (in memory — caller persists). Strips any prior reminder entry first so a repeat
+    enable never duplicates it."""
+    hooks = settings.get("hooks")
+    if not isinstance(hooks, dict):
+        hooks = {}
+        settings["hooks"] = hooks
+    ups = hooks.get("UserPromptSubmit")
+    if not isinstance(ups, list):
+        ups = []
+        hooks["UserPromptSubmit"] = ups
+    ups[:] = [e for e in (_strip_terse_reminder_hooks(e) for e in ups) if e is not None]
+    ups.append(
+        {
+            "matcher": TERSE_REMINDER_MATCHER,
+            "hooks": [{"type": "command", "command": _terse_reminder_command()}],
+        }
+    )
 
 
 def _codex_terse_command() -> str:
@@ -968,6 +1075,17 @@ def is_terse_mode_enabled() -> bool:
     return any(_is_terse_entry(e) for e in entries)
 
 
+def is_terse_reminder_enabled() -> bool:
+    try:
+        settings = _load_settings()
+    except SystemExit:
+        return False
+    entries = _user_prompt_submit_list(settings)
+    if not entries:
+        return False
+    return any(_is_terse_reminder_entry(e) for e in entries)
+
+
 def enable_session_resume() -> int:
     if not CLAUDE_SETTINGS.parent.exists():
         print(_t("setup_no_agents"), file=sys.stderr)
@@ -998,6 +1116,7 @@ def enable_terse_mode() -> int:
         print(_t("setup_no_agents"), file=sys.stderr)
         return 1
     _copy_terse_script()
+    _copy_terse_reminder_script()
     _write_terse_sidecar()
     settings = _load_settings()
     hooks = settings.get("hooks")
@@ -1012,6 +1131,7 @@ def enable_terse_mode() -> int:
     session_start.append(
         {"matcher": TERSE_MATCHER, "hooks": [{"type": "command", "command": _terse_command()}]}
     )
+    _register_terse_reminder(settings)
     _save_settings(settings)
     if CODEX_CONFIG.exists():
         _setup_codex_terse()
@@ -1045,6 +1165,8 @@ def disable_session_resume() -> int:
 def disable_terse_mode() -> int:
     if CLAUDE_SETTINGS.parent.exists():
         settings = _load_settings()
+        changed = False
+
         session_start = _session_start_list(settings)
         if session_start is not None:
             kept = [e for e in (_strip_terse_hooks(e) for e in session_start) if e is not None]
@@ -1054,11 +1176,28 @@ def disable_terse_mode() -> int:
                     hooks["SessionStart"] = kept
                 else:
                     hooks.pop("SessionStart", None)
-                if not hooks:
-                    settings.pop("hooks", None)
-                _save_settings(settings)
-                print(_t("terse_mode_disabled_msg"))
-    for path in (TERSE_HOOK_TARGET, TERSE_PROMPT_SIDECAR):
+                changed = True
+
+        ups = _user_prompt_submit_list(settings)
+        if ups is not None:
+            kept_ups = [
+                e for e in (_strip_terse_reminder_hooks(e) for e in ups) if e is not None
+            ]
+            if kept_ups != ups:
+                hooks = settings["hooks"]
+                if kept_ups:
+                    hooks["UserPromptSubmit"] = kept_ups
+                else:
+                    hooks.pop("UserPromptSubmit", None)
+                changed = True
+
+        if changed:
+            hooks = settings.get("hooks")
+            if isinstance(hooks, dict) and not hooks:
+                settings.pop("hooks", None)
+            _save_settings(settings)
+            print(_t("terse_mode_disabled_msg"))
+    for path in (TERSE_HOOK_TARGET, TERSE_REMINDER_HOOK_TARGET, TERSE_PROMPT_SIDECAR):
         if path.exists():
             path.unlink()
     _teardown_codex_terse()
@@ -1131,7 +1270,28 @@ def _self_heal_terse_mode() -> None:
             _append_self_heal_log(
                 "update_terse_hook", f"{old or 'unknown'} -> {TERSE_HOOK_VERSION}"
             )
+    _self_heal_terse_reminder()
     _self_heal_codex_terse()
+
+
+def _self_heal_terse_reminder() -> None:
+    """Backfill the per-message reminder hook when terse mode is on but the
+    UserPromptSubmit entry or its script is missing — e.g. a user who enabled terse
+    mode before this hook existed upgrades and self-heal installs it."""
+    script_missing = not TERSE_REMINDER_HOOK_TARGET.exists()
+    entry_missing = not is_terse_reminder_enabled()
+    if not (script_missing or entry_missing):
+        return
+    _copy_terse_reminder_script()
+    settings = _load_settings()
+    _register_terse_reminder(settings)
+    _save_settings(settings)
+    parts: list[str] = []
+    if script_missing:
+        parts.append("script")
+    if entry_missing:
+        parts.append("entry")
+    _append_self_heal_log("restore_terse_reminder_hook", f"missing={','.join(parts)}")
 
 
 def _migrate_resume_command_if_needed() -> None:

@@ -179,6 +179,8 @@ class TerseHookPaths:
     terse_target: Path
     sidecar: Path
     source: Path
+    terse_reminder_target: Path
+    reminder_source: Path
     codex_config: Path
     codex_hooks_json: Path
     codex_terse_target: Path
@@ -190,11 +192,14 @@ def patch_terse_hook_paths(
     *,
     source_name: str = "usage_terse_mode.py",
     source_text: str = '__version__ = "1.0"\nprint("terse")\n',
+    reminder_source_name: str = "usage_terse_reminder.py",
+    reminder_source_text: str = '__version__ = "1.0"\nprint("terse-reminder")\n',
 ) -> TerseHookPaths:
     claude_dir = tmp_path / ".claude"
     claude_dir.mkdir(exist_ok=True)
     settings = claude_dir / "settings.json"
     terse_target = claude_dir / "usage-terse-mode.py"
+    terse_reminder_target = claude_dir / "usage-terse-reminder.py"
     sidecar = claude_dir / "usage-terse-prompt.json"
     codex_dir = tmp_path / ".codex"
     codex_dir.mkdir(exist_ok=True)
@@ -203,18 +208,24 @@ def patch_terse_hook_paths(
     codex_terse_target = codex_dir / "usage-terse-mode.py"
     source = tmp_path / source_name
     source.write_text(source_text, encoding="utf-8")
+    reminder_source = tmp_path / reminder_source_name
+    reminder_source.write_text(reminder_source_text, encoding="utf-8")
     monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
     monkeypatch.setattr(setup_hook, "TERSE_HOOK_TARGET", terse_target)
+    monkeypatch.setattr(setup_hook, "TERSE_REMINDER_HOOK_TARGET", terse_reminder_target)
     monkeypatch.setattr(setup_hook, "TERSE_PROMPT_SIDECAR", sidecar)
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
     monkeypatch.setattr(setup_hook, "CODEX_HOOKS_JSON", codex_hooks_json)
     monkeypatch.setattr(setup_hook, "CODEX_TERSE_HOOK_TARGET", codex_terse_target)
     monkeypatch.setattr(setup_hook, "_resolve_terse_source", lambda: source)
+    monkeypatch.setattr(setup_hook, "_resolve_terse_reminder_source", lambda: reminder_source)
     return TerseHookPaths(
         settings=settings,
         terse_target=terse_target,
         sidecar=sidecar,
         source=source,
+        terse_reminder_target=terse_reminder_target,
+        reminder_source=reminder_source,
         codex_config=codex_config,
         codex_hooks_json=codex_hooks_json,
         codex_terse_target=codex_terse_target,

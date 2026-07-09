@@ -41,12 +41,12 @@ It lands in your Applications folder automatically → right-click **Open** once
 
 - 👁️ **Always-on Monitor:** Your quota lives in the menu bar, color-coded (green to red). Click only when you want the full session, weekly, and per-project breakdown.
 - 🧠 **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI — including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. Fully local, off by default.
-- 🤐 **Terse Mode:** A menu-bar toggle asks Claude Code and Codex to answer more tersely for the session, saving output tokens while keeping code and error messages byte-exact.
+- 🤐 **Token Saver:** A menu-bar toggle asks Claude Code and Codex to answer more tersely for the session, saving output tokens while keeping code and error messages byte-exact. A light per-message reminder keeps replies from drifting back to verbose in long conversations (A/B-tested: late-conversation replies stay ~40% shorter).
 - 🩺 **Token-waste Health Check:** A daily background diagnosis scans your logs for waste — repeated file reads, polluter directories, noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
 - 📊 **Deep HTML Reports:** Instant, shareable HTML deep reports showing daily/weekly token trends, project rankings, and cost. Includes an **AI Tool Update Digest** summarizing recent changes, and a **Year in Review** featuring a contribution heatmap and "Wrapped" summary. One click saves a copy as **.html, .csv, or a .png image** — fully offline, with optional project-name masking.
 - 🎨 **10 Visual Themes:** Switch between stunning panel styles: Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, and Lepidoptera (blueprint).
 - 🧑‍💼 **AI Talent Market:** Bring a ready-made AI team into Claude Code. Browse and install curated subagent personas into `~/.claude/agents/` instantly. Runs fully locally via the bundled CLI.
-- 🐉 **Summon Spirits:** Add a tiny animated white silhouette beside your usage percentages — a phoenix for Claude, a dragon for Codex. It accelerates dynamically as your token burn rate climbs.
+- 🐉 **Spirit Companions:** A tiny animated white silhouette lives beside your usage percentages — a phoenix for Claude, a dragon for Codex. It accelerates dynamically as your token burn rate climbs.
 - 🔔 **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
 - 🌍 **Automatic Localization:** Beautiful UI translated into Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
 - 💻 **TUI & CLI:** Love the terminal? Run the rich TUI dashboard with `python3 main.py --tui`, or generate deep analytics with `python3 usage_cli.py report`.
@@ -129,7 +129,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Claude Code & Codex usage | ✅ | Claude only | ✅ |
 | HTML deep reports & UI | ✅ | ✅ | — |
 | AI Talent Market | ✅ | — | — |
-| Progress Concierge & Terse Mode | ✅ | — | — |
+| Progress Concierge & Token Saver | ✅ | — | — |
 | Token-waste Health Check | ✅ | — | — |
 | Zero API calls | ✅ | ✅ | ✅ |
 | Open-source license | AGPL-3.0 | MIT | — |

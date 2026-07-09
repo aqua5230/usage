@@ -5,6 +5,15 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.25.3] - 2026-07-10
+
+### Added
+- **Token Saver now holds up in long conversations**: enabling it also installs a per-message reminder hook (`usage_terse_reminder.py`, UserPromptSubmit) that re-injects a one-line terse nudge with every message you send. In an A/B test on real Claude sessions the start-of-session instruction alone drifted badly — late-conversation replies grew +84% (603 → 1108 chars) — while the tail reminder held them steady (538 → 674), keeping late replies ~40% shorter. Existing installs pick the new hook up automatically via self-heal. Claude Code only (Codex CLI has no UserPromptSubmit equivalent).
+
+### Changed
+- **"Terse Mode" is renamed "Token Saver"** in the menu across all five languages — the name now states the benefit instead of the mechanism.
+- **Spirit critters are now always on**: the phoenix/dragon animation lives permanently beside the percentages; the "Summon Spirits / Dismiss Spirits" toggle is gone.
+
 ## [0.25.2] - 2026-07-10
 
 ### Fixed

@@ -386,7 +386,6 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
     delegate.language = "en"
     delegate.active_panel = SimpleNamespace(id="classic")
-    delegate.critters_enabled = False
     panels = [
         SimpleNamespace(id="classic", i18n_key="panel_default_name"),
         SimpleNamespace(id="matrix", i18n_key="panel_matrix"),
@@ -418,9 +417,6 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     # The auto-update row is gone — update checks just stay on by default.
     assert "Automatically Check for Updates" not in main_titles
     assert "Usage Alert Notifications" in main_titles
-    critters = next(item for item in main_menu.items if item.action == "toggleCritters:")
-    assert critters.title == "Summon Spirits"
-    assert critters.state == 0
     talent_market = next(item for item in main_menu.items if item.title == "AI Talent Market")
     assert talent_market.action == "toggleTalentMarket:"
     assert talent_market.representedObject() == "talent_market"
@@ -450,7 +446,7 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     assert butler.indentation == 0
     assert butler.tooltip
     terse = next(item for item in main_menu.items if item.action == "toggleTerseMode:")
-    assert terse.title == "Terse Mode"
+    assert terse.title == "Token Saver"
     assert terse.tooltip
     assert "Show in report" not in main_titles
 
@@ -1543,7 +1539,6 @@ def test_set_button_title_updates_for_animation_frame(
     state = menubar._empty_state(language="en")
     button = FakeButton()
     delegate.status_item = FakeStatusItem(button)
-    delegate.critters_enabled = True
     delegate.codex_5h_pct = 12
     monkeypatch.setattr(delegate, "_menubar_attributed_title", lambda current: object())
     monkeypatch.setattr(delegate, "_sync_critter_timer", lambda: None)
