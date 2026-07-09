@@ -465,7 +465,6 @@ def _load_panel_html(filename: str) -> str:
     return (
         html.replace("{{CLAUDE_ICON}}", _data_uri("claude.webp"))
         .replace("{{CODEX_ICON}}", _data_uri("codex.webp"))
-        .replace("{{UKIYO_PHOENIX_BG}}", _data_uri("ukiyo_phoenix_bg.png"))
         .replace("{{I18N_BUNDLE}}", json.dumps(_load_i18n_bundle(), ensure_ascii=False))
     )
 

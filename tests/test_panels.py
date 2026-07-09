@@ -48,7 +48,6 @@ def test_registered_panel_ids_are_unique() -> None:
         "prism_arcade",
         "black_hole",
         "lepidoptera",
-        "ukiyo_phoenix",
         "world_cup",
         "talent_market",
     )
@@ -68,7 +67,6 @@ def test_registered_panel_i18n_keys() -> None:
         "panel_prism_arcade",
         "panel_black_hole",
         "panel_lepidoptera",
-        "panel_ukiyo_phoenix",
         "panel_world_cup",
         "panel_talent_market",
     ]
