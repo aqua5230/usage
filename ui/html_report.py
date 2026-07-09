@@ -31,7 +31,7 @@ from analyzer.reporter import (
 
 from i18n import _t as _i18n_t, packaged_resource_path
 from usage_lang import detect_lang
-from ui.report_scripts import REPORT_JS_TEMPLATE
+from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE
 from ui.report_styles import REPORT_CSS
 
 
@@ -463,6 +463,7 @@ def _render_share_dialog(lang: str) -> str:
         <div class="share-file-actions">
           <button class="share-action" type="button" data-share-file="download"><span class="share-icon" aria-hidden="true">📥</span>{html.escape(_t(lang, "share_download_html"))}</button>
           <button class="share-action" type="button" data-share-file="csv"><span class="share-icon" aria-hidden="true">📊</span>{html.escape(_t(lang, "share_download_csv"))}</button>
+          <button class="share-action" type="button" data-share-file="png"><span class="share-icon" aria-hidden="true">🖼️</span>{html.escape(_t(lang, "share_download_png"))}</button>
         </div>
         <p class="share-file-hint">{html.escape(_t(lang, "share_file_hint"))}</p>
       </section>
@@ -919,10 +920,15 @@ def _render_styles() -> str:
 
 
 def _render_scripts(share_config_json: str, csv_data_json: str, masked_csv_data_json: str) -> str:
-    return REPORT_JS_TEMPLATE.format(
-        share_config_json=share_config_json,
-        csv_data_json=csv_data_json,
-        masked_csv_data_json=masked_csv_data_json,
+    return f"{HTML_TO_IMAGE_UMD}\n" + REPORT_JS_TEMPLATE.replace(
+        "__SHARE_CONFIG_JSON__",
+        share_config_json,
+    ).replace(
+        "__CSV_DATA_JSON__",
+        csv_data_json,
+    ).replace(
+        "__MASKED_CSV_DATA_JSON__",
+        masked_csv_data_json,
     )
 
 
