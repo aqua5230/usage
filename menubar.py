@@ -172,6 +172,7 @@ BUTTON_HEIGHT = 32.0
 INSTALL_BUTTON_EXTRA_HEIGHT = BUTTON_HEIGHT + 10.0
 UPDATE_DISMISS_SECONDS = 24 * 3600
 UPDATE_ALERT_BODY_LIMIT = 2000
+SLOW_POLL_INTERVAL_S = 300.0
 
 logger = logging.getLogger(__name__)
 
@@ -621,6 +622,7 @@ class AppDelegate(NSObject):
     popover = objc.ivar()
     popover_controller = objc.ivar()
     timer = objc.ivar()
+    timer_interval = objc.ivar()
     mock = objc.ivar()
     interval = objc.ivar()
     tracker = objc.ivar()
@@ -653,6 +655,8 @@ class AppDelegate(NSObject):
             return None
         self.mock = mock
         self.interval = max(30, interval)
+        self.timer = None
+        self.timer_interval = 0.0
         self.tracker = UsageRateTracker(mock=mock)
         self.codex_tracker = UsageRateTracker(mock=mock, load=codex_loader.load_entries)
         self.language = _detect_language()
@@ -703,19 +707,13 @@ class AppDelegate(NSObject):
         )
         self.popover = NSPopover.alloc().init()
         self.popover.setBehavior_(NSPopoverBehaviorTransient)
+        self.popover.setDelegate_(self)
         self.popover.setContentSize_(_popover_size(self.latest_state, self.active_panel))
         self.popover.setContentViewController_(self.popover_controller)
 
         self._request_notification_authorization()
         self._refresh()
-        self.timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
-            self.interval,
-            self,
-            "timerFired:",
-            None,
-            True,
-        )
-        NSRunLoop.currentRunLoop().addTimer_forMode_(self.timer, NSRunLoopCommonModes)
+        self._reschedule_poll_timer(max(self.interval, SLOW_POLL_INTERVAL_S))
         self._fs_stream = setup_fsevents(self)
         warm_up_pricing(self._refresh_after_pricing_warm_up)
         thread = threading.Thread(target=self._maybe_check_update_in_background, daemon=True)
@@ -731,6 +729,29 @@ class AppDelegate(NSObject):
     def timerFired_(self, timer: Any) -> None:
         self._refresh()
         self._clear_stale_update_cache()
+
+    def _reschedule_poll_timer(self, interval: float) -> None:
+        if self.timer is not None and self.timer_interval == interval:
+            return
+        self._stop_poll_timer()
+        scheduled_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_
+        self.timer = scheduled_timer(interval, self, "timerFired:", None, True)
+        self.timer_interval = interval
+        NSRunLoop.currentRunLoop().addTimer_forMode_(self.timer, NSRunLoopCommonModes)
+
+    def _stop_poll_timer(self) -> None:
+        timer = self.timer
+        self.timer = None
+        self.timer_interval = 0.0
+        if timer is not None:
+            timer.invalidate()
+
+    def popoverWillShow_(self, notification: Any) -> None:
+        self._reschedule_poll_timer(self.interval)
+        self.refreshNow_(None)
+
+    def popoverDidClose_(self, notification: Any) -> None:
+        self._reschedule_poll_timer(max(self.interval, SLOW_POLL_INTERVAL_S))
 
     def refreshNow_(self, sender: Any) -> None:
         self._refresh(queue_if_busy=True)
@@ -769,11 +790,11 @@ class AppDelegate(NSObject):
         thread.start()
 
     def quitApp_(self, sender: Any) -> None:
-        if self.timer is not None:
-            self.timer.invalidate()
+        self._stop_poll_timer()
         NSApp.terminate_(sender)
 
     def applicationWillTerminate_(self, notification: Any) -> None:
+        self._stop_poll_timer()
         cleanup_fsevents(self._fs_stream)
         self._fs_stream = None
         self._stop_critter_timer()
