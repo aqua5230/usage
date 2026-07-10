@@ -5,6 +5,13 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.25.4] - 2026-07-11
+
+### Changed
+- **AI Talent Market: full role-library refresh** — all 69 role prompts are restructured (XML-tagged sections, explicit tool guidance, contrastive good/bad examples) for noticeably more reliable in-conversation behavior, across the now 22 packs / 69 roles. The library ships inside the .app bundle, so this update is the way to get it.
+- **The menu bar polls less when you're not looking**: the fallback refresh timer stretches from 60s to 300s while the popover is closed, and snaps back (with an immediate refresh) the moment it opens. File-change-driven updates are untouched, so the pinned numbers stay just as live — this only cuts idle CPU wakeups.
+- **HTML report density polish**: tighter stat tiles, table rows, and trend rows.
+
 ## [0.25.3] - 2026-07-10
 
 ### Added
