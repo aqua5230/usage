@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-import setup_hook
+import session_hooks
 from tests.helpers import TerseHookPaths
 
 
@@ -24,31 +24,31 @@ def terse_paths(patch_terse_hook_paths: Callable[..., TerseHookPaths]) -> TerseH
 
 def _terse_entries(settings: Path) -> list[dict[str, object]]:
     data = json.loads(settings.read_text(encoding="utf-8"))
-    return [e for e in data["hooks"]["SessionStart"] if setup_hook._is_terse_entry(e)]
+    return [e for e in data["hooks"]["SessionStart"] if session_hooks._is_terse_entry(e)]
 
 
 def _reminder_entries(settings: Path) -> list[dict[str, object]]:
     data = json.loads(settings.read_text(encoding="utf-8"))
     ups = data.get("hooks", {}).get("UserPromptSubmit", [])
-    return [e for e in ups if setup_hook._is_terse_reminder_entry(e)]
+    return [e for e in ups if session_hooks._is_terse_reminder_entry(e)]
 
 
 def _codex_terse_entries(hooks_json: Path) -> list[dict[str, object]]:
     data = json.loads(hooks_json.read_text(encoding="utf-8"))
-    return [e for e in data["hooks"]["SessionStart"] if setup_hook._is_terse_entry(e)]
+    return [e for e in data["hooks"]["SessionStart"] if session_hooks._is_terse_entry(e)]
 
 
 def test_enable_registers_hook_and_writes_sidecar(terse_paths: TerseHookPaths) -> None:
     settings = terse_paths.settings
 
-    assert setup_hook.enable_terse_mode() == 0
-    assert setup_hook.is_terse_mode_enabled()
+    assert session_hooks.enable_terse_mode() == 0
+    assert session_hooks.is_terse_mode_enabled()
     assert terse_paths.terse_target.exists()
     assert terse_paths.sidecar.exists()
 
     entries = _terse_entries(settings)
     assert len(entries) == 1
-    assert entries[0]["matcher"] == setup_hook.TERSE_MATCHER
+    assert entries[0]["matcher"] == session_hooks.TERSE_MATCHER
     hooks = entries[0]["hooks"]
     assert isinstance(hooks, list)
     first_hook = hooks[0]
@@ -63,8 +63,8 @@ def test_enable_registers_hook_and_writes_sidecar(terse_paths: TerseHookPaths) -
 
 
 def test_enable_is_idempotent(terse_paths: TerseHookPaths) -> None:
-    setup_hook.enable_terse_mode()
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     assert len(_terse_entries(terse_paths.settings)) == 1
 
 
@@ -84,7 +84,7 @@ def test_enable_preserves_existing_hooks(terse_paths: TerseHookPaths) -> None:
         encoding="utf-8",
     )
 
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     data = json.loads(settings.read_text(encoding="utf-8"))
     commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
     assert "other" in commands
@@ -93,10 +93,10 @@ def test_enable_preserves_existing_hooks(terse_paths: TerseHookPaths) -> None:
 
 
 def test_disable_removes_entry_and_files(terse_paths: TerseHookPaths) -> None:
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
 
-    setup_hook.disable_terse_mode()
-    assert not setup_hook.is_terse_mode_enabled()
+    session_hooks.disable_terse_mode()
+    assert not session_hooks.is_terse_mode_enabled()
     assert not terse_paths.terse_target.exists()
     assert not terse_paths.sidecar.exists()
     data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
@@ -105,14 +105,14 @@ def test_disable_removes_entry_and_files(terse_paths: TerseHookPaths) -> None:
 
 def test_disable_keeps_other_session_start_hooks(terse_paths: TerseHookPaths) -> None:
     settings = terse_paths.settings
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     data = json.loads(settings.read_text(encoding="utf-8"))
     data["hooks"]["SessionStart"].insert(
         0, {"matcher": "startup", "hooks": [{"type": "command", "command": "other"}]}
     )
     settings.write_text(json.dumps(data), encoding="utf-8")
 
-    setup_hook.disable_terse_mode()
+    session_hooks.disable_terse_mode()
     data = json.loads(settings.read_text(encoding="utf-8"))
     commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
     assert commands == ["other"]
@@ -120,14 +120,14 @@ def test_disable_keeps_other_session_start_hooks(terse_paths: TerseHookPaths) ->
 
 def test_disable_preserves_user_hook_in_shared_entry(terse_paths: TerseHookPaths) -> None:
     settings = terse_paths.settings
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     data = json.loads(settings.read_text(encoding="utf-8"))
     data["hooks"]["SessionStart"][0]["hooks"].append(
         {"type": "command", "command": "echo my-own-hook"}
     )
     settings.write_text(json.dumps(data), encoding="utf-8")
 
-    assert setup_hook.disable_terse_mode() == 0
+    assert session_hooks.disable_terse_mode() == 0
 
     data = json.loads(settings.read_text(encoding="utf-8"))
     shared = data["hooks"]["SessionStart"][0]["hooks"]
@@ -135,11 +135,11 @@ def test_disable_preserves_user_hook_in_shared_entry(terse_paths: TerseHookPaths
 
 
 def test_self_heal_restores_missing_script_when_enabled(terse_paths: TerseHookPaths) -> None:
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     terse_paths.terse_target.unlink()
     terse_paths.sidecar.unlink()
 
-    setup_hook._self_heal_terse_mode()
+    session_hooks._self_heal_terse_mode()
     assert terse_paths.terse_target.exists()
     assert terse_paths.sidecar.exists()
 
@@ -149,10 +149,10 @@ def test_self_heal_restores_missing_script_when_enabled(terse_paths: TerseHookPa
 
 
 def test_self_heal_updates_old_version(terse_paths: TerseHookPaths) -> None:
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     terse_paths.terse_target.write_text('__version__ = "0.1"\n', encoding="utf-8")
 
-    setup_hook._self_heal_terse_mode()
+    session_hooks._self_heal_terse_mode()
 
     data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
     assert data["usage"]["selfHealLog"][-1]["action"] == "update_terse_hook"
@@ -160,21 +160,21 @@ def test_self_heal_updates_old_version(terse_paths: TerseHookPaths) -> None:
 
 
 def test_self_heal_noop_when_disabled(terse_paths: TerseHookPaths) -> None:
-    setup_hook._self_heal_terse_mode()
+    session_hooks._self_heal_terse_mode()
     assert not terse_paths.terse_target.exists()
 
 
 def test_enable_installs_codex_when_present(terse_paths: TerseHookPaths) -> None:
     terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
 
-    assert setup_hook.enable_terse_mode() == 0
+    assert session_hooks.enable_terse_mode() == 0
 
     assert terse_paths.codex_terse_target.exists()
     parsed = tomllib.loads(terse_paths.codex_config.read_text(encoding="utf-8"))
     assert parsed["features"]["hooks"] is True
     entries = _codex_terse_entries(terse_paths.codex_hooks_json)
     assert len(entries) == 1
-    assert entries[0]["matcher"] == setup_hook.CODEX_TERSE_MATCHER
+    assert entries[0]["matcher"] == session_hooks.CODEX_TERSE_MATCHER
     hooks_list = entries[0]["hooks"]
     assert isinstance(hooks_list, list)
     hook = hooks_list[0]
@@ -186,8 +186,8 @@ def test_enable_installs_codex_when_present(terse_paths: TerseHookPaths) -> None
 def test_enable_idempotent_on_codex_features_and_entries(terse_paths: TerseHookPaths) -> None:
     terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
 
-    setup_hook.enable_terse_mode()
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
+    session_hooks.enable_terse_mode()
 
     parsed = tomllib.loads(terse_paths.codex_config.read_text(encoding="utf-8"))
     assert parsed["features"]["hooks"] is True
@@ -197,7 +197,7 @@ def test_enable_idempotent_on_codex_features_and_entries(terse_paths: TerseHookP
 def test_enable_skips_codex_when_absent(terse_paths: TerseHookPaths) -> None:
     assert not terse_paths.codex_config.exists()
 
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
 
     assert not terse_paths.codex_config.exists()
     assert not terse_paths.codex_hooks_json.exists()
@@ -221,9 +221,9 @@ def test_disable_keeps_codex_features_and_user_hooks(terse_paths: TerseHookPaths
         ),
         encoding="utf-8",
     )
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
 
-    setup_hook.disable_terse_mode()
+    session_hooks.disable_terse_mode()
 
     parsed = tomllib.loads(terse_paths.codex_config.read_text(encoding="utf-8"))
     assert parsed["features"]["hooks"] is True
@@ -235,9 +235,9 @@ def test_disable_keeps_codex_features_and_user_hooks(terse_paths: TerseHookPaths
 
 def test_disable_deletes_codex_hooks_json_when_empty(terse_paths: TerseHookPaths) -> None:
     terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
 
-    setup_hook.disable_terse_mode()
+    session_hooks.disable_terse_mode()
 
     assert not terse_paths.codex_hooks_json.exists()
     assert not terse_paths.codex_terse_target.exists()
@@ -247,10 +247,10 @@ def test_disable_deletes_codex_hooks_json_when_empty(terse_paths: TerseHookPaths
 
 def test_self_heal_restores_missing_codex_script(terse_paths: TerseHookPaths) -> None:
     terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     terse_paths.codex_terse_target.unlink()
 
-    setup_hook._self_heal_terse_mode()
+    session_hooks._self_heal_terse_mode()
 
     assert terse_paths.codex_terse_target.exists()
     data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
@@ -260,11 +260,11 @@ def test_self_heal_restores_missing_codex_script(terse_paths: TerseHookPaths) ->
 
 def test_self_heal_restores_missing_codex_hooks_entry(terse_paths: TerseHookPaths) -> None:
     terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     # Wipe our entry but leave the script in place.
     terse_paths.codex_hooks_json.write_text('{"hooks": {}}', encoding="utf-8")
 
-    setup_hook._self_heal_terse_mode()
+    session_hooks._self_heal_terse_mode()
 
     assert len(_codex_terse_entries(terse_paths.codex_hooks_json)) == 1
     data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
@@ -275,13 +275,13 @@ def test_self_heal_restores_missing_codex_hooks_entry(terse_paths: TerseHookPath
 def test_enable_registers_reminder_hook(terse_paths: TerseHookPaths) -> None:
     settings = terse_paths.settings
 
-    assert setup_hook.enable_terse_mode() == 0
+    assert session_hooks.enable_terse_mode() == 0
     assert terse_paths.terse_reminder_target.exists()
-    assert setup_hook.is_terse_reminder_enabled()
+    assert session_hooks.is_terse_reminder_enabled()
 
     entries = _reminder_entries(settings)
     assert len(entries) == 1
-    assert entries[0]["matcher"] == setup_hook.TERSE_REMINDER_MATCHER
+    assert entries[0]["matcher"] == session_hooks.TERSE_REMINDER_MATCHER
     hooks = entries[0]["hooks"]
     assert isinstance(hooks, list)
     first_hook = hooks[0]
@@ -293,32 +293,32 @@ def test_enable_registers_reminder_hook(terse_paths: TerseHookPaths) -> None:
 
 
 def test_enable_reminder_is_idempotent(terse_paths: TerseHookPaths) -> None:
-    setup_hook.enable_terse_mode()
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     assert len(_reminder_entries(terse_paths.settings)) == 1
     assert len(_terse_entries(terse_paths.settings)) == 1
 
 
 def test_disable_removes_reminder_entry_and_file(terse_paths: TerseHookPaths) -> None:
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
 
-    setup_hook.disable_terse_mode()
+    session_hooks.disable_terse_mode()
     assert not terse_paths.terse_reminder_target.exists()
-    assert not setup_hook.is_terse_reminder_enabled()
+    assert not session_hooks.is_terse_reminder_enabled()
     data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
     assert "UserPromptSubmit" not in data.get("hooks", {})
 
 
 def test_disable_keeps_user_userpromptsubmit_hook(terse_paths: TerseHookPaths) -> None:
     settings = terse_paths.settings
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     data = json.loads(settings.read_text(encoding="utf-8"))
     data["hooks"]["UserPromptSubmit"][0]["hooks"].append(
         {"type": "command", "command": "echo my-own-prompt-hook"}
     )
     settings.write_text(json.dumps(data), encoding="utf-8")
 
-    assert setup_hook.disable_terse_mode() == 0
+    assert session_hooks.disable_terse_mode() == 0
 
     data = json.loads(settings.read_text(encoding="utf-8"))
     shared = data["hooks"]["UserPromptSubmit"][0]["hooks"]
@@ -327,16 +327,16 @@ def test_disable_keeps_user_userpromptsubmit_hook(terse_paths: TerseHookPaths) -
 
 def test_self_heal_backfills_reminder_for_legacy_user(terse_paths: TerseHookPaths) -> None:
     # Legacy state: terse SessionStart on (from an older build) but no reminder hook/script.
-    setup_hook.enable_terse_mode()
+    session_hooks.enable_terse_mode()
     terse_paths.terse_reminder_target.unlink()
     data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
     data["hooks"].pop("UserPromptSubmit", None)
     if not data["hooks"]:
         data.pop("hooks", None)
     terse_paths.settings.write_text(json.dumps(data), encoding="utf-8")
-    assert not setup_hook.is_terse_reminder_enabled()
+    assert not session_hooks.is_terse_reminder_enabled()
 
-    setup_hook._self_heal_terse_mode()
+    session_hooks._self_heal_terse_mode()
 
     assert terse_paths.terse_reminder_target.exists()
     assert len(_reminder_entries(terse_paths.settings)) == 1
@@ -346,5 +346,5 @@ def test_self_heal_backfills_reminder_for_legacy_user(terse_paths: TerseHookPath
 
 
 def test_self_heal_reminder_noop_when_disabled(terse_paths: TerseHookPaths) -> None:
-    setup_hook._self_heal_terse_mode()
+    session_hooks._self_heal_terse_mode()
     assert not terse_paths.terse_reminder_target.exists()

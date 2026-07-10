@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-import setup_hook
+import session_hooks
 from tests.helpers import ResumeHookPaths
 
 
@@ -23,7 +23,7 @@ def resume_paths(patch_resume_hook_paths: Callable[..., ResumeHookPaths]) -> Res
 
 def _resume_entries(settings: Path) -> list[dict[str, object]]:
     data = json.loads(settings.read_text(encoding="utf-8"))
-    return [e for e in data["hooks"]["SessionStart"] if setup_hook._is_resume_entry(e)]
+    return [e for e in data["hooks"]["SessionStart"] if session_hooks._is_resume_entry(e)]
 
 
 def test_enable_registers_hook_and_writes_sidecar(
@@ -33,14 +33,14 @@ def test_enable_registers_hook_and_writes_sidecar(
     resume_target = resume_paths.resume_target
     sidecar = resume_paths.sidecar
 
-    assert setup_hook.enable_session_resume() == 0
-    assert setup_hook.is_resume_enabled()
+    assert session_hooks.enable_session_resume() == 0
+    assert session_hooks.is_resume_enabled()
     assert resume_target.exists()
     assert sidecar.exists()
 
     entries = _resume_entries(settings)
     assert len(entries) == 1
-    assert entries[0]["matcher"] == setup_hook.RESUME_MATCHER
+    assert entries[0]["matcher"] == session_hooks.RESUME_MATCHER
     hooks = entries[0]["hooks"]
     assert isinstance(hooks, list)
     first_hook = hooks[0]
@@ -62,8 +62,8 @@ def test_enable_registers_hook_and_writes_sidecar(
 
 def test_enable_is_idempotent(resume_paths: ResumeHookPaths) -> None:
     settings = resume_paths.settings
-    setup_hook.enable_session_resume()
-    setup_hook.enable_session_resume()
+    session_hooks.enable_session_resume()
+    session_hooks.enable_session_resume()
     assert len(_resume_entries(settings)) == 1
 
 
@@ -85,7 +85,7 @@ def test_enable_preserves_existing_hooks(
         encoding="utf-8",
     )
 
-    setup_hook.enable_session_resume()
+    session_hooks.enable_session_resume()
     data = json.loads(settings.read_text(encoding="utf-8"))
     commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
     assert "other" in commands
@@ -97,10 +97,10 @@ def test_disable_removes_entry_and_files(resume_paths: ResumeHookPaths) -> None:
     settings = resume_paths.settings
     resume_target = resume_paths.resume_target
     sidecar = resume_paths.sidecar
-    setup_hook.enable_session_resume()
+    session_hooks.enable_session_resume()
 
-    setup_hook.disable_session_resume()
-    assert not setup_hook.is_resume_enabled()
+    session_hooks.disable_session_resume()
+    assert not session_hooks.is_resume_enabled()
     assert not resume_target.exists()
     assert not sidecar.exists()
     data = json.loads(settings.read_text(encoding="utf-8"))
@@ -111,14 +111,14 @@ def test_disable_keeps_other_session_start_hooks(
     resume_paths: ResumeHookPaths,
 ) -> None:
     settings = resume_paths.settings
-    setup_hook.enable_session_resume()
+    session_hooks.enable_session_resume()
     data = json.loads(settings.read_text(encoding="utf-8"))
     data["hooks"]["SessionStart"].insert(
         0, {"matcher": "startup", "hooks": [{"type": "command", "command": "other"}]}
     )
     settings.write_text(json.dumps(data), encoding="utf-8")
 
-    setup_hook.disable_session_resume()
+    session_hooks.disable_session_resume()
     data = json.loads(settings.read_text(encoding="utf-8"))
     commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
     assert commands == ["other"]
@@ -130,11 +130,11 @@ def test_self_heal_restores_missing_script_when_enabled(
     _settings = resume_paths.settings
     resume_target = resume_paths.resume_target
     sidecar = resume_paths.sidecar
-    setup_hook.enable_session_resume()
+    session_hooks.enable_session_resume()
     resume_target.unlink()
     sidecar.unlink()
 
-    setup_hook._self_heal_resume()
+    session_hooks._self_heal_resume()
     assert resume_target.exists()
     assert sidecar.exists()
 
@@ -180,7 +180,7 @@ def test_self_heal_migrates_existing_target_command(
         encoding="utf-8",
     )
 
-    setup_hook._self_heal_resume()
+    session_hooks._self_heal_resume()
 
     data = json.loads(settings.read_text(encoding="utf-8"))
     session_entry = data["hooks"]["SessionStart"][0]
@@ -209,7 +209,7 @@ def test_self_heal_does_not_repeat_resume_command_migration(
 ) -> None:
     settings = resume_paths.settings
     sidecar = resume_paths.sidecar
-    setup_hook.enable_session_resume()
+    session_hooks.enable_session_resume()
     sidecar.write_text("{}", encoding="utf-8")
     data = json.loads(settings.read_text(encoding="utf-8"))
     data["usage"] = {
@@ -223,7 +223,7 @@ def test_self_heal_does_not_repeat_resume_command_migration(
     }
     settings.write_text(json.dumps(data), encoding="utf-8")
 
-    setup_hook._self_heal_resume()
+    session_hooks._self_heal_resume()
 
     after = json.loads(settings.read_text(encoding="utf-8"))
     migrate_entries = [
@@ -238,7 +238,7 @@ def test_self_heal_noop_when_disabled(
     resume_paths: ResumeHookPaths,
 ) -> None:
     resume_target = resume_paths.resume_target
-    setup_hook._self_heal_resume()
+    session_hooks._self_heal_resume()
     assert not resume_target.exists()
 
 
@@ -248,16 +248,16 @@ def test_disable_preserves_user_hook_in_shared_entry(
     # A user who tucked their own hook into the *same* SessionStart entry as ours must
     # not lose it when resume is disabled — we strip only our hook item, not the entry.
     settings = resume_paths.settings
-    setup_hook.enable_session_resume()
+    session_hooks.enable_session_resume()
     data = json.loads(settings.read_text(encoding="utf-8"))
     data["hooks"]["SessionStart"][0]["hooks"].append(
         {"type": "command", "command": "echo my-own-hook"}
     )
     settings.write_text(json.dumps(data), encoding="utf-8")
 
-    assert setup_hook.disable_session_resume() == 0
+    assert session_hooks.disable_session_resume() == 0
 
     data = json.loads(settings.read_text(encoding="utf-8"))
     commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
     assert "echo my-own-hook" in commands  # user's hook survived
-    assert not setup_hook.is_resume_enabled()  # ours is gone
+    assert not session_hooks.is_resume_enabled()  # ours is gone

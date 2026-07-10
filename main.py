@@ -155,9 +155,11 @@ def health_check() -> None:
 
     choice = _show_repair_dialog()
     if choice == "repair":
+        import session_hooks
         import setup_hook
 
         setup_hook.setup(force_forwarder=True)
+        session_hooks._migrate_bundled_python_commands_if_needed()
     elif choice == "never":
         _save_user_preference("no_auto_repair")
     else:
@@ -166,9 +168,9 @@ def health_check() -> None:
 
 def _self_heal() -> None:
     try:
-        import setup_hook
+        import session_hooks
 
-        setup_hook.self_heal()
+        session_hooks.self_heal()
     except Exception:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("self-heal failed", exc_info=True)
@@ -292,12 +294,19 @@ def main() -> None:
         print(doctor.render(), end="")
         raise SystemExit(0)
     if args.setup:
+        import session_hooks
         from setup_hook import setup
 
-        raise SystemExit(setup())
+        exit_code = setup()
+        if exit_code == 0:
+            session_hooks._migrate_bundled_python_commands_if_needed()
+        raise SystemExit(exit_code)
     if args.unsetup:
+        from session_hooks import disable_session_resume, disable_terse_mode
         from setup_hook import unsetup
 
+        disable_session_resume()
+        disable_terse_mode()
         raise SystemExit(unsetup())
     _self_heal()
     if args.tui:

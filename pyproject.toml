@@ -31,6 +31,7 @@ py-modules = [
     "usage_rate",
     "usage_statusline",
     "setup_hook",
+    "session_hooks",
     "login_item",
     "usage_client",
     "codex_loader",

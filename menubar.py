@@ -188,18 +188,18 @@ def _panel_title(panel: UsagePanel, language: str) -> str:
 def _session_resume_enabled() -> bool:
     # State lives in ~/.claude/settings.json (a hook), not in usage's prefs file.
     try:
-        import setup_hook
+        import session_hooks
 
-        return setup_hook.is_resume_enabled()
+        return session_hooks.is_resume_enabled()
     except Exception:
         return False
 
 
 def _terse_mode_enabled() -> bool:
     try:
-        import setup_hook
+        import session_hooks
 
-        return setup_hook.is_terse_mode_enabled()
+        return session_hooks.is_terse_mode_enabled()
     except Exception:
         return False
 
@@ -975,17 +975,17 @@ class AppDelegate(NSObject):
         thread.start()
 
     def _toggle_session_resume_in_background(self) -> None:
-        import setup_hook
+        import session_hooks
 
         output = io.StringIO()
         ok = True
         enabled = False
         try:
             with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-                if setup_hook.is_resume_enabled():
-                    setup_hook.disable_session_resume()
+                if session_hooks.is_resume_enabled():
+                    session_hooks.disable_session_resume()
                 else:
-                    ok = setup_hook.enable_session_resume() == 0
+                    ok = session_hooks.enable_session_resume() == 0
                     enabled = ok
         except SystemExit as exc:
             if exc.code:
@@ -1018,17 +1018,17 @@ class AppDelegate(NSObject):
         thread.start()
 
     def _toggle_terse_mode_in_background(self) -> None:
-        import setup_hook
+        import session_hooks
 
         output = io.StringIO()
         ok = True
         enabled = False
         try:
             with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-                if setup_hook.is_terse_mode_enabled():
-                    setup_hook.disable_terse_mode()
+                if session_hooks.is_terse_mode_enabled():
+                    session_hooks.disable_terse_mode()
                 else:
-                    ok = setup_hook.enable_terse_mode() == 0
+                    ok = session_hooks.enable_terse_mode() == 0
                     enabled = ok
         except SystemExit as exc:
             if exc.code:
@@ -1563,9 +1563,12 @@ class AppDelegate(NSObject):
         exit_code = 1
         try:
             with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+                import session_hooks
                 import setup_hook
 
                 exit_code = setup_hook.setup()
+                if exit_code == 0:
+                    session_hooks._migrate_bundled_python_commands_if_needed()
         except SystemExit as exc:
             exit_code = exc.code if isinstance(exc.code, int) else 1
             if exc.code:
@@ -1963,7 +1966,10 @@ def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
 
     try:
         if result == 1000:
+            import session_hooks
+
             setup_hook.setup(force_forwarder=True)
+            session_hooks._migrate_bundled_python_commands_if_needed()
     except Exception:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("forwarder setup failed", exc_info=True)

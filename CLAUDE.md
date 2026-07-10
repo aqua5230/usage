@@ -74,7 +74,8 @@ Claude Code ──stdin──> usage_statusline.py (hook) ──write──> ~/.
 | `usage_cli.py` | Standalone terminal analytics CLI (`python3 usage_cli.py report`) — drives the `adapters/analyzer/ui` report subsystem without the menu bar. |
 | `doctor.py` | Renders the `python3 main.py --doctor` environment/hook-state diagnostic report. |
 | `usage_lang.py` | Detects `USAGE_LANG` / system locale. |
-| `setup_hook.py` | Idempotent install/uninstall of the Claude Code statusLine hook, including migration of v0.1.x `usag-*` artifacts. Backs up any pre-existing `statusLine` under `settings["usage"]["previousStatusLine"]`. |
+| `setup_hook.py` | Idempotent install/uninstall of the Claude Code statusLine hook, including migration of v0.1.x `usag-*` artifacts. Backs up any pre-existing `statusLine` under `settings["usage"]["previousStatusLine"]`. Also owns the shared low-level settings/TOML editing helpers that `session_hooks.py` builds on. |
+| `session_hooks.py` | Install/enable/disable/self-heal for the session companion hooks (session resume, terse mode, terse reminder, Codex terse) — split out of `setup_hook.py`. Depends one-way on `setup_hook.py`; never the reverse. |
 | `usage_statusline.py` | The hook itself. **Stdlib-only** so it can run under macOS's bundled `/usr/bin/python3` (3.9) — that's why `tool.ruff.lint.per-file-ignores` excludes `UP017` (`datetime.UTC`) for this one file; use `timezone.utc` here. |
 | `usage_statusline_forwarder.py` | Multi-hook fan-out. **Stdlib-only** so it can run under macOS's bundled `/usr/bin/python3` (3.9), with the same constraints as `usage_statusline.py`. |
 | `usage_session_resume.py` | SessionStart hook script — injects "where you left off" context into a new Claude Code session. **Stdlib-only** under macOS's bundled `/usr/bin/python3` (3.9), same `UP017` constraint as `usage_statusline.py`. |

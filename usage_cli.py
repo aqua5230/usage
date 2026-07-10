@@ -18,6 +18,7 @@ from adapters.types import AgentInfo, RateLimits
 from analyzer.aggregator import aggregate_daily, aggregate_monthly, aggregate_sessions, aggregate_weekly
 from analyzer.blocks import analyze_blocks, calculate_p90
 from setup_hook import is_claude_setup, is_codex_setup, is_setup, setup, unsetup
+from session_hooks import disable_session_resume, disable_terse_mode
 from i18n import t
 from ui.tables import (
     AGENT_LABEL, console, render_daily, render_dashboard,
@@ -605,8 +606,13 @@ def main() -> None:
         return
     if command == "setup":
         setup()
+        import session_hooks
+
+        session_hooks._migrate_bundled_python_commands_if_needed()
         return
     if command == "unsetup":
+        disable_session_resume()
+        disable_terse_mode()
         unsetup()
         return
 

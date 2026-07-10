@@ -14,6 +14,7 @@ from pathlib import Path
 
 import pytest
 
+import session_hooks
 import setup_hook
 from tests.helpers import SetupHookPaths
 
@@ -370,7 +371,7 @@ def test_self_heal_installs_when_no_statusline(setup_paths: SetupHookPaths) -> N
     settings = setup_paths.settings
     hook_target = setup_paths.hook_target
 
-    setup_hook.self_heal()
+    session_hooks.self_heal()
     data = json.loads(settings.read_text(encoding="utf-8"))
 
     assert str(hook_target) in data["statusLine"]["command"]
@@ -383,7 +384,7 @@ def test_self_heal_skips_external_statusline(setup_paths: SetupHookPaths) -> Non
     external = {"type": "command", "command": "python3 ccusage.py"}
     settings.write_text(json.dumps({"statusLine": external}), encoding="utf-8")
 
-    setup_hook.self_heal()
+    session_hooks.self_heal()
     data = json.loads(settings.read_text(encoding="utf-8"))
 
     assert data == {"statusLine": external}
@@ -407,14 +408,14 @@ def test_self_heal_updates_owned_hook(
     )
     hook_target.write_text('__version__ = "0.9"\n', encoding="utf-8")
 
-    setup_hook.self_heal()
+    session_hooks.self_heal()
     data = json.loads(settings.read_text(encoding="utf-8"))
 
     assert hook_target.read_text(encoding="utf-8") == '__version__ = "1.0"\n'
     assert data["usage"]["selfHealLog"][-1]["action"] == "update_hook"
 
 
-def test_setup_migrates_bundled_python_commands(
+def test_self_heal_migrates_bundled_python_commands(
     monkeypatch: pytest.MonkeyPatch,
     setup_paths: SetupHookPaths,
     tmp_path: Path,
@@ -423,7 +424,7 @@ def test_setup_migrates_bundled_python_commands(
     hook_target = setup_paths.hook_target
     resume_source = tmp_path / "usage_session_resume.py"
     resume_source.write_text('__version__ = "1.0"\n', encoding="utf-8")
-    monkeypatch.setattr(setup_hook, "_resolve_resume_source", lambda: resume_source)
+    monkeypatch.setattr(session_hooks, "_resolve_resume_source", lambda: resume_source)
     settings.write_text(
         json.dumps(
             {
@@ -434,7 +435,7 @@ def test_setup_migrates_bundled_python_commands(
                 "hooks": {
                     "SessionStart": [
                         {
-                            "matcher": setup_hook.RESUME_MATCHER,
+                            "matcher": session_hooks.RESUME_MATCHER,
                             "hooks": [
                                 {
                                     "type": "command",
@@ -452,7 +453,7 @@ def test_setup_migrates_bundled_python_commands(
         encoding="utf-8",
     )
 
-    assert setup_hook.setup() == 0
+    session_hooks._migrate_bundled_python_commands_if_needed()
 
     data = json.loads(settings.read_text(encoding="utf-8"))
     assert data["statusLine"]["command"] == f"/usr/bin/python3 {hook_target}"
@@ -468,7 +469,7 @@ def test_setup_migrates_bundled_python_commands(
     assert "resume" in migrate_entries[-1]["detail"]
 
 
-def test_setup_keeps_correct_python_commands_unchanged(
+def test_self_heal_keeps_correct_python_commands_unchanged(
     monkeypatch: pytest.MonkeyPatch,
     setup_paths: SetupHookPaths,
     tmp_path: Path,
@@ -477,7 +478,7 @@ def test_setup_keeps_correct_python_commands_unchanged(
     hook_target = setup_paths.hook_target
     resume_source = tmp_path / "usage_session_resume.py"
     resume_source.write_text('__version__ = "1.0"\n', encoding="utf-8")
-    monkeypatch.setattr(setup_hook, "_resolve_resume_source", lambda: resume_source)
+    monkeypatch.setattr(session_hooks, "_resolve_resume_source", lambda: resume_source)
     settings.write_text(
         json.dumps(
             {
@@ -488,7 +489,7 @@ def test_setup_keeps_correct_python_commands_unchanged(
                 "hooks": {
                     "SessionStart": [
                         {
-                            "matcher": setup_hook.RESUME_MATCHER,
+                            "matcher": session_hooks.RESUME_MATCHER,
                             "hooks": [
                                 {"type": "command", "command": f"/usr/bin/python3 {resume_source}"}
                             ],
@@ -500,7 +501,7 @@ def test_setup_keeps_correct_python_commands_unchanged(
         encoding="utf-8",
     )
 
-    assert setup_hook.setup() == 0
+    session_hooks._migrate_bundled_python_commands_if_needed()
 
     data = json.loads(settings.read_text(encoding="utf-8"))
     assert data["statusLine"]["command"] == f"/usr/bin/python3 {hook_target}"

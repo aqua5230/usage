@@ -84,6 +84,7 @@ if __name__ == "__main__":
             "history_loader",
             "pricing",
             "setup_hook",
+            "session_hooks",
             "update_checker",
             "i18n",
             "usage_cli",
