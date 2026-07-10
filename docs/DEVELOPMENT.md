@@ -6,7 +6,7 @@ Everything you need to run usage from source, use the TUI / CLI, configure detec
 
 ## How it gets the data
 
-Usage numbers come from local files written by Claude Code and Codex — no Anthropic / OpenAI API calls. Network access is limited to two things: (1) to estimate Codex costs, usage needs a token pricing table — if no local cache exists (`~/.claude/pricing_cache.json`), usage shows the estimate immediately with a built-in fallback price, then tries to download and cache the public [LiteLLM pricing JSON](https://github.com/BerriAI/litellm) in the background, refreshing it again after 7 days. If the download fails, usage percentage display is unaffected, and pricing updates automatically once the network succeeds. (2) Starting in v0.11.0, usage pings the GitHub Releases API at most once per 24h to check for new versions (toggleable from the "Switch Panel" menu).
+Usage numbers come from local files written by Claude Code and Codex — no Anthropic / OpenAI API calls. Network access is limited to two things: (1) to estimate Codex costs, usage needs a token pricing table — if no local cache exists (`~/.usage/pricing_cache.json`), usage shows the estimate immediately with a built-in fallback price, then tries to download and cache the public [LiteLLM pricing JSON](https://github.com/BerriAI/litellm) in the background, refreshing it again after 7 days. If the download fails, usage percentage display is unaffected, and pricing updates automatically once the network succeeds. (2) Starting in v0.11.0, usage pings the GitHub Releases API at most once per 24h to check for new versions (toggleable from the "Switch Panel" menu).
 
 ### Claude Code usage
 

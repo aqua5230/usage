@@ -65,7 +65,7 @@ Claude Code ──stdin──> usage_statusline.py (hook) ──write──> ~/.
 | `usage_client.py` | Reads the Claude Code status JSON, builds a `UsageSnapshot`. Async interface preserved for the polling loop even though reads are sync. |
 | `codex_loader.py` | Parses Codex JSONL session logs for both rate-limits and per-message token usage. Also reads `~/.codex/state_5.sqlite` (read-only) for thread→model mapping. |
 | `history_loader.py` | Parses Claude Code's per-project JSONL logs under `~/.claude/projects/` for token totals and cost. |
-| `pricing.py` | Cost estimation. Downloads LiteLLM's `model_prices_and_context_window.json` once, caches to `~/.claude/pricing_cache.json` (TTL 7 days; 10-min TTL on fallback so offline-then-online recovers). |
+| `pricing.py` | Cost estimation. Downloads LiteLLM's `model_prices_and_context_window.json` once, caches to `~/.usage/pricing_cache.json` (TTL 7 days; 10-min TTL on fallback so offline-then-online recovers; `~/.claude/pricing_cache.json` is a legacy read-only fallback). |
 | `usage_rate.py` | Burn-rate classifier (Idle/Normal/Active/Heavy) — drives sprite animation speed in TUI. |
 | `burn_rate.py` | Burn-rate prediction core used by `menubar.py`. |
 | `menubar.py` | PyObjC menu bar + popover UI. `# mypy: disable-error-code="import-untyped,misc"` is intentional (PyObjC has no stubs). UI layout constants near the top of the file are part of the visual design — don't tweak casually. |

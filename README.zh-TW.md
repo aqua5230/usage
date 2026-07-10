@@ -116,7 +116,7 @@ brew install --cask aqua5230/usage/usage
 | 不小心按到「結束」 | 程式已終止 | 透過 Spotlight 重新開啟 `usage.app`，或跑 `launchctl start com.lollapalooza.usage` |
 | 顯示「N 分鐘未更新」 | Claude Code 未執行 | 打開 Claude Code 跑一下就會更新 |
 | Codex 區塊空白 | 找不到 Codex 紀錄 | 用 Codex 跑一次對話 |
-| 今日花費是 $0.00 | 價格表對不上或抓取失敗 | 刪掉 `~/.claude/pricing_cache.json` 重新抓取 |
+| 今日花費是 $0.00 | 價格表對不上或抓取失敗 | 刪掉 `~/.usage/pricing_cache.json` 重新抓取 |
 | App 打不開 | Gatekeeper 擋住 | Finder → 找到 `usage.app` → 按右鍵 → 打開 |
 | App 一開就閃退 (arm64)| 舊版打包 bug | 請升級至 **v0.11.1 或更新版本** |
 

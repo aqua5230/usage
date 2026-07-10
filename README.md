@@ -116,7 +116,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Accidentally hit "Quit" | Process terminated | Launch `usage.app` from Spotlight / Applications, or run `launchctl start com.lollapalooza.usage` |
 | Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run |
 | Codex section is empty | No Codex history found | Run a Codex conversation to generate logs |
-| Today's cost shows $0.00 | Model pricing missing | Delete `~/.claude/pricing_cache.json` or check `USAGE_DEBUG=1` |
+| Today's cost shows $0.00 | Model pricing missing | Delete `~/.usage/pricing_cache.json` or check `USAGE_DEBUG=1` |
 | App won't open | macOS Gatekeeper blocked it | Right-click `usage.app` in Finder → Open |
 | App crashes immediately (arm64) | py2app bundling bug in older versions | Upgrade to **v0.11.1 or newer** |
 
