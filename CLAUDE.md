@@ -68,12 +68,16 @@ Claude Code ──stdin──> usage_statusline.py (hook) ──write──> ~/.
 | `pricing.py` | Cost estimation. Downloads LiteLLM's `model_prices_and_context_window.json` once, caches to `~/.usage/pricing_cache.json` (TTL 7 days; 10-min TTL on fallback so offline-then-online recovers; `~/.claude/pricing_cache.json` is a legacy read-only fallback). |
 | `usage_rate.py` | Burn-rate classifier (Idle/Normal/Active/Heavy) — drives sprite animation speed in TUI. |
 | `burn_rate.py` | Burn-rate prediction core used by `menubar.py`. |
-| `menubar.py` | PyObjC menu bar + popover UI. `# mypy: disable-error-code="import-untyped,misc"` is intentional (PyObjC has no stubs). UI layout constants near the top of the file are part of the visual design — don't tweak casually. |
+| `menubar.py` | PyObjC menu bar + popover UI. `# mypy: disable-error-code="import-untyped,misc"` is intentional (PyObjC has no stubs). UI layout constants near the top of the file are part of the visual design — don't tweak casually. **Growth policy: this file has regrown to ~2000 lines twice. New feature logic must land in a leaf module (like `menubar_state.py` / `update_gate.py`); only the thin ObjC dispatch shell goes here.** |
+| `menubar_state.py` | Pure history/state projections consumed by `menubar.py` — kept PyObjC-free so the logic stays unit-testable. |
 | `tui.py`, `tui_sprite.py` | `rich`-based terminal renderer. |
+| `usage_cli.py` | Standalone terminal analytics CLI (`python3 usage_cli.py report`) — drives the `adapters/analyzer/ui` report subsystem without the menu bar. |
+| `doctor.py` | Renders the `python3 main.py --doctor` environment/hook-state diagnostic report. |
 | `usage_lang.py` | Detects `USAGE_LANG` / system locale. |
 | `setup_hook.py` | Idempotent install/uninstall of the Claude Code statusLine hook, including migration of v0.1.x `usag-*` artifacts. Backs up any pre-existing `statusLine` under `settings["usage"]["previousStatusLine"]`. |
 | `usage_statusline.py` | The hook itself. **Stdlib-only** so it can run under macOS's bundled `/usr/bin/python3` (3.9) — that's why `tool.ruff.lint.per-file-ignores` excludes `UP017` (`datetime.UTC`) for this one file; use `timezone.utc` here. |
 | `usage_statusline_forwarder.py` | Multi-hook fan-out. **Stdlib-only** so it can run under macOS's bundled `/usr/bin/python3` (3.9), with the same constraints as `usage_statusline.py`. |
+| `usage_session_resume.py` | SessionStart hook script — injects "where you left off" context into a new Claude Code session. **Stdlib-only** under macOS's bundled `/usr/bin/python3` (3.9), same `UP017` constraint as `usage_statusline.py`. |
 | `update_checker.py` | GitHub Releases update check added in v0.11.0. |
 | `login_item.py` | Login item toggle for launching at login. |
 | `panels/` | HTML panel logic and `NSPopover` / `WKWebView` integration. |
