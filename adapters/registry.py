@@ -5,12 +5,12 @@
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
 from .types import AgentInfo
-from . import claude, codex
+from . import agy, claude, codex
 
 
 def detect_agents() -> list[AgentInfo]:
     agents: list[AgentInfo] = []
-    for detector in [claude.detect, codex.detect]:
+    for detector in [claude.detect, codex.detect, agy.detect]:
         info = detector()
         if info:
             agents.append(info)

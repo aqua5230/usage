@@ -23,7 +23,7 @@ import codex_loader
 from analyzer import ai_updates_loader
 from analyzer import persona_loader
 from analyzer import subscription
-from adapters import claude, codex
+from adapters import agy, claude, codex
 from adapters.types import AgentInfo, UsageEntry
 from pricing import calculate_cost, is_model_priced
 
@@ -32,7 +32,7 @@ from . import diagnoser
 
 logger = logging.getLogger(__name__)
 
-AGENT_LOADERS = {"claude-code": claude, "codex": codex}
+AGENT_LOADERS = {"claude-code": claude, "codex": codex, "antigravity": agy}
 AGENT_NAMES = {"claude-code": "Claude Code", "codex": "Codex"}
 _YEAR_WEEKS = 53
 YEAR_CACHE_PATH = Path(os.path.expanduser("~/.usage/year_cache.json"))
@@ -898,10 +898,11 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         day["tokens"] += entry.total_tokens
         day["cost"] += cost
 
+    agent_names = {agent.id: agent.name for agent in agents}
     by_agent: list[AgentReportRow] = [
         {
             "id": agent_id,
-            "name": AGENT_NAMES.get(agent_id, agent_id),
+            "name": agent_names.get(agent_id, AGENT_NAMES.get(agent_id, agent_id)),
             "tokens": data["tokens"],
             "cost": _round_cost(data["cost"]),
             "sessions": len(data["sessions"]),
