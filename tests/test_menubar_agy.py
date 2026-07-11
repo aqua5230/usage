@@ -1,0 +1,123 @@
+# SPDX-License-Identifier: AGPL-3.0-only
+# Copyright (C) 2026 lollapalooza <https://github.com/aqua5230>
+
+from __future__ import annotations
+
+from datetime import UTC, datetime, timedelta
+
+import pytest
+
+import menubar_agy
+from agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
+
+
+def _group(
+    name: str,
+    *,
+    session_remaining: float,
+    weekly_remaining: float,
+    session_reset_minutes: int | None = 90,
+    weekly_reset_minutes: int | None = 1440,
+) -> AgyQuotaGroup:
+    return AgyQuotaGroup(
+        name=name,
+        models=["model"],
+        five_hour=AgyQuotaWindow(
+            remaining_percent=session_remaining,
+            resets_in=None,
+            resets_in_minutes=session_reset_minutes,
+        ),
+        weekly=AgyQuotaWindow(
+            remaining_percent=weekly_remaining,
+            resets_in=None,
+            resets_in_minutes=weekly_reset_minutes,
+        ),
+    )
+
+
+def test_project_quota_selects_the_most_constrained_group_and_converts_percent() -> None:
+    quota = AgyQuotaResult(
+        groups=[
+            _group("GEMINI MODELS", session_remaining=40, weekly_remaining=90),
+            _group("CLAUDE AND GPT MODELS", session_remaining=70, weekly_remaining=12.5),
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+
+    projection = menubar_agy.project_quota(quota, "en", now=1_767_225_600.0)
+
+    assert projection is not None
+    assert projection.group_name == "CLAUDE AND GPT MODELS"
+    assert projection.session.percent == 30.0
+    assert projection.session.percent_text == "30% used"
+    assert projection.weekly.percent == 87.5
+    assert projection.weekly.percent_text == "87.5% used"
+    assert projection.session.reset_text == "Resets in 1h 30m"
+
+
+def test_project_quota_marks_full_quota_without_a_countdown() -> None:
+    quota = AgyQuotaResult(
+        groups=[
+            _group(
+                "GEMINI MODELS",
+                session_remaining=100,
+                weekly_remaining=100,
+                session_reset_minutes=None,
+                weekly_reset_minutes=None,
+            )
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+
+    projection = menubar_agy.project_quota(quota, "en", now=1_767_225_600.0)
+
+    assert projection is not None
+    assert projection.session.percent == 0.0
+    assert projection.weekly.percent == 0.0
+    assert projection.session.reset_text == "Quota full"
+    assert projection.weekly.reset_text == "Quota full"
+
+
+def test_project_quota_marks_cached_result_stale_after_twenty_minutes() -> None:
+    now = datetime(2026, 1, 1, 1, 0, tzinfo=UTC)
+    quota = AgyQuotaResult(
+        groups=[_group("GEMINI MODELS", session_remaining=80, weekly_remaining=80)],
+        fetched_at=(now - timedelta(minutes=21)).isoformat(),
+    )
+
+    projection = menubar_agy.project_quota(quota, "en", now=now.timestamp())
+
+    assert projection is not None
+    assert projection.stale is not None
+    assert projection.stale["ageText"] == "about 21 minutes ago"
+
+
+def test_load_refresh_result_hides_card_when_agy_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("menubar_agy.find_agy", lambda: None)
+    monkeypatch.setattr(
+        menubar_agy,
+        "load_quota",
+        lambda: pytest.fail("load_quota must not run without agy"),
+    )
+
+    result = menubar_agy.load_refresh_result("en")
+
+    assert result.hide_agy is True
+    assert result.projection is None
+
+
+def test_load_refresh_result_projects_mocked_quota(monkeypatch: pytest.MonkeyPatch) -> None:
+    quota = AgyQuotaResult(
+        groups=[_group("GEMINI MODELS", session_remaining=75, weekly_remaining=50)],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+    monkeypatch.setattr("menubar_agy.find_agy", lambda: "/usr/local/bin/agy")
+    monkeypatch.setattr(menubar_agy, "load_quota", lambda: quota)
+
+    result = menubar_agy.load_refresh_result("en")
+
+    assert result.hide_agy is False
+    assert result.projection is not None
+    assert result.projection.group_name == "GEMINI MODELS"

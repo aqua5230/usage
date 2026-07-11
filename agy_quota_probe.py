@@ -79,7 +79,8 @@ def probe_quota(timeout_seconds: float = 35) -> AgyQuotaResult | None:
     An existing user-owned ``agy`` process means its SQLite databases may be
     locked, so this deliberately declines to start a second instance.
     """
-    if timeout_seconds <= 0 or shutil.which("agy") is None or _agy_is_running():
+    agy_path = find_agy()
+    if timeout_seconds <= 0 or agy_path is None or _agy_is_running():
         return None
 
     master_fd: int | None = None
@@ -89,10 +90,11 @@ def probe_quota(timeout_seconds: float = 35) -> AgyQuotaResult | None:
         master_fd, slave_fd = pty.openpty()
         _set_window_size(slave_fd)
         process = subprocess.Popen(
-            ["agy"],
+            [agy_path],
             stdin=slave_fd,
             stdout=slave_fd,
             stderr=slave_fd,
+            env=_probe_env(agy_path),
             start_new_session=True,
             close_fds=True,
         )
@@ -162,6 +164,39 @@ def probe_quota(timeout_seconds: float = 35) -> AgyQuotaResult | None:
                 os.close(master_fd)
         if process is not None:
             _terminate_process_group(process)
+
+
+def find_agy() -> str | None:
+    """Find the Antigravity CLI in PATH or common user installation paths."""
+    path = shutil.which("agy")
+    if path is not None:
+        return path
+    for candidate in ("~/.local/bin/agy", "/opt/homebrew/bin/agy", "/usr/local/bin/agy"):
+        expanded = os.path.expanduser(candidate)
+        if os.access(expanded, os.X_OK):
+            return expanded
+    return None
+
+
+def _probe_env(agy_path: str) -> dict[str, str]:
+    """Build an environment with the tools needed by the Antigravity CLI."""
+    env = os.environ.copy()
+    path_entries = [
+        os.path.dirname(agy_path),
+        os.path.expanduser("~/.local/bin"),
+        "/opt/homebrew/bin",
+        "/usr/local/bin",
+        *env.get("PATH", "").split(os.pathsep),
+    ]
+    seen: set[str] = set()
+    unique_entries: list[str] = []
+    for entry in path_entries:
+        if entry and entry not in seen:
+            seen.add(entry)
+            unique_entries.append(entry)
+    env["PATH"] = os.pathsep.join(unique_entries)
+    env.setdefault("TERM", "xterm-256color")
+    return env
 
 
 def load_quota(max_age_minutes: float = 15) -> AgyQuotaResult | None:

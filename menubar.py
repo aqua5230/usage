@@ -59,6 +59,7 @@ from Quartz import CGColorCreateGenericRGB
 import codex_loader
 import critter_frames
 import login_item
+import menubar_agy
 import menubar_state
 import panels
 import talent_market_bridge
@@ -1311,6 +1312,10 @@ class AppDelegate(NSObject):
         submitted = False
         try:
             codex_result = self._load_codex_refresh_result()
+            agy_result = menubar_agy.load_refresh_result(self.language)
+            agy_projection = agy_result.projection or menubar_agy.fallback_projection(
+                self.language
+            )
             self.performSelectorOnMainThread_withObject_waitUntilDone_(
                 "_applyCodexRefreshResult:",
                 codex_result,
@@ -1325,6 +1330,7 @@ class AppDelegate(NSObject):
             statusline = fallback_state.statusline
             hide_claude = fallback_state.hide_claude
             hide_codex = fallback_state.hide_codex
+            hide_agy = agy_result.hide_agy
             try:
                 all_entries = self._load_history_entries()
                 project_rows = self._project_rows(hours_back=24, entries=all_entries)
@@ -1353,6 +1359,8 @@ class AppDelegate(NSObject):
                 state = menubar_state.build_popover_state(
                     outcome=outcome,
                     codex_rows=codex_rows,
+                    agy_rows=(agy_projection.session, agy_projection.weekly),
+                    agy_group_name=agy_projection.group_name,
                     projects=project_rows,
                     projects_7d=project_rows_7d,
                     projects_30d=project_rows_30d,
@@ -1365,7 +1373,9 @@ class AppDelegate(NSObject):
                     show_install_button=show_install_button,
                     hide_claude=hide_claude,
                     hide_codex=hide_codex,
+                    hide_agy=hide_agy,
                     codex_stale=codex_stale,
+                    agy_stale=agy_projection.stale,
                     history_error=menubar_state.history_load_error_state(
                         self._history_load_error_key, self.language
                     ),
@@ -1380,6 +1390,10 @@ class AppDelegate(NSObject):
                 state.codex_session = codex_rows[0]
                 state.codex_weekly = codex_rows[1]
                 state.codex_stale = codex_result.get("codex_stale")
+                state.agy_session = agy_projection.session
+                state.agy_weekly = agy_projection.weekly
+                state.agy_group_name = agy_projection.group_name
+                state.agy_stale = agy_projection.stale
                 state.history_error = menubar_state.history_load_error_state(
                     self._history_load_error_key, self.language
                 )
@@ -1391,6 +1405,7 @@ class AppDelegate(NSObject):
                 state.statusline = statusline
                 state.hide_claude = hide_claude
                 state.hide_codex = hide_codex
+                state.hide_agy = hide_agy
 
             # Talent-market data is panel-local (no quota numbers). Fetch it
             # only when that panel is active so classic/matrix users never pay
@@ -1885,8 +1900,10 @@ def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
     width, base_height = active_panel.preferred_size()
     claude_deduct = active_panel.claude_card_height if state.hide_claude else 0.0
     codex_deduct = active_panel.codex_card_height if state.hide_codex else 0.0
+    agy_card_height = getattr(active_panel, "agy_card_height", 0.0)
+    agy_deduct = agy_card_height if state.hide_agy else 0.0
     install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
-    height = base_height + install_extra - claude_deduct - codex_deduct
+    height = base_height + install_extra - claude_deduct - codex_deduct - agy_deduct
     return NSMakeSize(width, height)
 
 
@@ -1905,6 +1922,9 @@ def _empty_state(language: str = "en") -> PopoverState:
         claude_weekly=_missing_row(_t(language, "weekly_label"), CLAUDE_COLOR, language),
         codex_session=_missing_row(_t(language, "session_label"), CODEX_COLOR, language),
         codex_weekly=_missing_row(_t(language, "weekly_label"), CODEX_COLOR, language),
+        agy_session=_missing_row(_t(language, "session_label"), menubar_state.AGY_COLOR, language),
+        agy_weekly=_missing_row(_t(language, "weekly_label"), menubar_state.AGY_COLOR, language),
+        agy_group_name="",
         projects=[],
         projects_7d=[],
         projects_30d=[],
@@ -1916,6 +1936,11 @@ def _empty_state(language: str = "en") -> PopoverState:
         show_install_button=False,
         hide_claude=_hide_claude_enabled(),
         hide_codex=_hide_codex_enabled(),
+        # Keep the card mounted while the first background probe is running.
+        # Otherwise startup shows the shorter layout until agy finishes, which
+        # looks like the integration never loaded even though the child process
+        # is already active.
+        hide_agy=menubar_agy.find_agy() is None,
     )
 
 

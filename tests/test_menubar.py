@@ -17,6 +17,7 @@ import pytest
 import codex_loader
 import history_loader
 import menubar
+import menubar_agy
 import menubar_prefs
 import menubar_state
 import statusline_settings
@@ -135,6 +136,11 @@ def _build_popover_state(
     return menubar_state.build_popover_state(
         outcome=outcome,
         codex_rows=codex_rows,
+        agy_rows=(
+            menubar._missing_row("Session", menubar_state.AGY_COLOR),
+            menubar._missing_row("Weekly", menubar_state.AGY_COLOR),
+        ),
+        agy_group_name="",
         projects=[],
         projects_7d=[],
         projects_30d=[],
@@ -151,7 +157,9 @@ def _build_popover_state(
         ),
         hide_claude=hide_claude,
         hide_codex=menubar._hide_codex_enabled(),
+        hide_agy=True,
         codex_stale=None,
+        agy_stale=None,
     )
 
 
@@ -1005,6 +1013,7 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
         i18n_key = "panel_default_name"
         claude_card_height = 100.0
         codex_card_height = 60.0
+        agy_card_height = 40.0
 
         def build_view(self, delegate: Any) -> Any:
             return object()
@@ -1017,6 +1026,7 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
 
     monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
     state = menubar._empty_state()
+    state.hide_agy = False
     panel = FakePanel()
 
     assert menubar._popover_size(state, panel).height == 500.0
@@ -1024,6 +1034,24 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
     assert menubar._popover_size(state, panel).height == 400.0
     state.hide_codex = True
     assert menubar._popover_size(state, panel).height == 340.0
+    state.hide_agy = True
+    assert menubar._popover_size(state, panel).height == 300.0
+
+
+def test_empty_state_keeps_agy_card_visible_during_initial_probe(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(menubar_agy, "find_agy", lambda: "/usr/local/bin/agy")
+
+    assert menubar._empty_state().hide_agy is False
+
+
+def test_empty_state_hides_agy_card_when_cli_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(menubar_agy, "find_agy", lambda: None)
+
+    assert menubar._empty_state().hide_agy is True
 
 
 def test_compose_title_hides_providers(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1629,7 +1657,7 @@ def test_apply_codex_refresh_result_updates_quota_before_full_refresh(
     assert button.titles[-1].endswith("18.5%")
 
 
-def test_refresh_error_preserves_codex_quota() -> None:
+def test_refresh_error_preserves_codex_quota(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
     calls: list[tuple[str, bool]] = []
     session = menubar_state.QuotaRowState(
@@ -1645,6 +1673,11 @@ def test_refresh_error_preserves_codex_quota() -> None:
         percent_text="37% used",
         reset_text="Resets in 5d",
         color=menubar.CODEX_COLOR,
+    )
+    monkeypatch.setattr(
+        menubar_agy,
+        "load_refresh_result",
+        lambda _: menubar_agy.AgyRefreshResult(projection=None, hide_agy=True),
     )
 
     class Delegate:
@@ -1687,7 +1720,7 @@ def test_refresh_error_preserves_codex_quota() -> None:
     ]
 
 
-def test_refresh_error_preserves_project_usage() -> None:
+def test_refresh_error_preserves_project_usage(monkeypatch: pytest.MonkeyPatch) -> None:
     captured: dict[str, object] = {}
     session = menubar_state.QuotaRowState(
         title="Session",
@@ -1718,6 +1751,11 @@ def test_refresh_error_preserves_project_usage() -> None:
             project="Eric-Tools",
         )
     ]
+    monkeypatch.setattr(
+        menubar_agy,
+        "load_refresh_result",
+        lambda _: menubar_agy.AgyRefreshResult(projection=None, hide_agy=True),
+    )
 
     class Delegate:
         mock = False

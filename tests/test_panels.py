@@ -75,7 +75,7 @@ def test_registered_panel_i18n_keys() -> None:
 def test_classic_panel_preferred_size() -> None:
     panel = panels.get_panel("classic")
 
-    assert panel.preferred_size() == (364.0, 812.0)
+    assert panel.preferred_size() == (364.0, 1004.0)
 
 
 def test_win95_panel_preferred_size() -> None:

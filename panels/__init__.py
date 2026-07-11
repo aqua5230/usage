@@ -16,8 +16,10 @@ PANELS: tuple[Panel, ...] = (
         "classic",
         "panel_default_name",
         "classic.html",
+        height=1004.0,
         claude_card_height=192.0,
         codex_card_height=192.0,
+        agy_card_height=192.0,
     ),
     HTMLPanel(
         "matrix",

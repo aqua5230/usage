@@ -18,6 +18,7 @@
       --button-hover: rgba(255, 255, 255, 0.13);
       --claude: #f49164;
       --codex: #58d6e6;
+      --agy: #6b9aff;
       --projects: #30d158;
       --warn: #ffc439;
       --danger: #ff453a;
@@ -36,6 +37,7 @@
         --button: rgba(12, 18, 26, 0.05);
         --button-border: rgba(12, 18, 26, 0.14);
         --button-hover: rgba(12, 18, 26, 0.10);
+        --agy: #3f74e8;
       }
     }
 
@@ -96,7 +98,8 @@
       padding: 13px 15px 12px;
     }
 
-    .card[data-card="codex"] {
+    .card[data-card="codex"],
+    .card[data-card="agy"] {
       overflow: visible;
       z-index: 2;
     }
@@ -142,6 +145,15 @@
       box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent);
     }
 
+    .card[data-card="agy"] .brand-icon svg {
+      width: 22px;
+      height: 22px;
+    }
+
+    .card[data-card="agy"] .brand-icon {
+      color: var(--accent);
+    }
+
     .brand h1 {
       margin: 0;
       min-width: 0;
@@ -169,6 +181,11 @@
 
     .codex-stale[hidden] {
       display: none;
+    }
+
+    .card[data-card="agy"] .brand h1 {
+      flex: none;
+      overflow: visible;
     }
 
     .codex-stale-info {
@@ -530,6 +547,7 @@
 
     .hide-codex [data-card="codex"] { display: none; }
     .hide-claude [data-card="claude"] { display: none; }
+    .hide-agy [data-card="agy"] { display: none; }
   </style>
 </head>
 <body>
@@ -553,6 +571,22 @@
           <span data-codex-stale-age></span>
           <span class="codex-stale-info" aria-hidden="true">ⓘ
             <span class="codex-stale-tooltip" data-codex-stale-tooltip></span>
+          </span>
+        </div>
+      </header>
+      <div class="row" data-row="session"></div>
+      <div class="row" data-row="weekly"></div>
+    </section>
+
+    <section class="card" data-card="agy" style="--accent: var(--agy)">
+      <header class="brand">
+        <div class="brand-icon"><svg fill="currentColor" fill-rule="evenodd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21.751 22.607c1.34 1.005 3.35.335 1.508-1.508C17.73 15.74 18.904 1 12.037 1 5.17 1 6.342 15.74.815 21.1c-2.01 2.009.167 2.511 1.507 1.506 5.192-3.517 4.857-9.714 9.715-9.714 4.857 0 4.522 6.197 9.714 9.715z"></path></svg></div>
+        <h1 data-i18n="agy_name">Antigravity</h1>
+        <div class="codex-stale" data-agy-stale hidden>
+          <span aria-hidden="true">⚠</span>
+          <span data-agy-stale-age></span>
+          <span class="codex-stale-info" aria-hidden="true">ⓘ
+            <span class="codex-stale-tooltip" data-agy-stale-tooltip></span>
           </span>
         </div>
       </header>
@@ -717,6 +751,23 @@
       staleEl.hidden = true;
     }
 
+    function renderAgy(agy) {
+      applyCard("agy", agy);
+      const staleEl = document.querySelector("[data-agy-stale]");
+      const ageEl = document.querySelector("[data-agy-stale-age]");
+      const tooltipEl = document.querySelector("[data-agy-stale-tooltip]");
+      if (!staleEl || !ageEl || !tooltipEl) return;
+      if (agy && agy.stale && agy.stale.ageText) {
+        ageEl.textContent = agy.stale.ageText;
+        tooltipEl.textContent = t("agy_stale_tooltip");
+        staleEl.hidden = false;
+        return;
+      }
+      ageEl.textContent = "";
+      tooltipEl.textContent = "";
+      staleEl.hidden = true;
+    }
+
     function renderHistoryLoadError(err) {
       const el = document.querySelector("[data-history-error]");
       const textEl = document.querySelector("[data-history-error-text]");
@@ -798,7 +849,10 @@
       let className = "switch";
       if (state.hideClaude && !state.hideCodex) {
         host = document.querySelector('[data-card="codex"] .brand');
-      } else if (state.hideClaude && state.hideCodex) {
+      } else if (state.hideClaude && state.hideCodex && !state.hideAgy) {
+        host = document.querySelector('[data-card="agy"] .brand');
+      }
+      if (!host || (state.hideClaude && state.hideCodex && state.hideAgy)) {
         host = document.querySelector(".footer .actions");
         className = "action";
       }
@@ -810,12 +864,14 @@
     window.usageApplyState = function usageApplyState(state) {
       document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
       document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
+      document.documentElement.classList.toggle('hide-agy', !!state.hideAgy);
       relocateSwitchButton(state);
       currentLanguage = I18N[state.language] ? state.language : currentLanguage;
       applyStaticText();
       applyCard("claude", state.claude);
       applyCard("codex", state.codex);
       renderCodexStale(state.codex && state.codex.stale);
+      renderAgy(state.agy);
       renderHistoryLoadError(state.historyError);
       latestState = state;
       renderProjects(
@@ -861,6 +917,8 @@
       language: "en",
       claude: { session: {}, weekly: {} },
       codex: { session: {}, weekly: {} },
+      agy: { session: {}, weekly: {}, groupName: "" },
+      hideAgy: true,
       projects: [],
       projects7d: [],
       projects30d: [],

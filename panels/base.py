@@ -22,6 +22,7 @@ class Panel(Protocol):
     i18n_key: str
     claude_card_height: float
     codex_card_height: float
+    agy_card_height: float
 
     def build_view(self, delegate: Any) -> Any: ...
     def apply_state(self, view: Any, state: PopoverState) -> None: ...

@@ -3,7 +3,9 @@
 
 from __future__ import annotations
 
+import os
 import re
+import shutil
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -37,6 +39,74 @@ CLAUDE AND GPT MODELS
     [================================] 100.00%
     Quota available
 """
+
+
+def test_find_agy_returns_path_from_which(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(shutil, "which", lambda _: "/custom/bin/agy")
+
+    assert agy_quota_probe.find_agy() == "/custom/bin/agy"
+
+
+def test_find_agy_falls_back_to_user_path(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    agy_path = tmp_path / ".local" / "bin" / "agy"
+    agy_path.parent.mkdir(parents=True)
+    agy_path.touch()
+    agy_path.chmod(0o755)
+    monkeypatch.setattr(shutil, "which", lambda _: None)
+    monkeypatch.setattr(
+        os.path,
+        "expanduser",
+        lambda path: str(tmp_path / path.removeprefix("~/")),
+    )
+
+    assert agy_quota_probe.find_agy() == str(agy_path)
+
+
+def test_find_agy_returns_none_when_all_paths_miss(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(shutil, "which", lambda _: None)
+    monkeypatch.setattr(
+        os.path,
+        "expanduser",
+        lambda path: str(tmp_path / path.removeprefix("~/")),
+    )
+
+    assert agy_quota_probe.find_agy() is None
+
+
+def test_probe_env_prepends_paths_deduplicates_and_preserves_environment(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv(
+        "PATH",
+        os.pathsep.join(["/usr/local/bin", "/usr/bin", "/custom/bin"]),
+    )
+    monkeypatch.setenv("AGY_PROBE_TEST", "retained")
+    monkeypatch.delenv("TERM", raising=False)
+
+    env = agy_quota_probe._probe_env("/custom/bin/agy")
+    path_entries = env["PATH"].split(os.pathsep)
+
+    assert path_entries == [
+        "/custom/bin",
+        os.path.expanduser("~/.local/bin"),
+        "/opt/homebrew/bin",
+        "/usr/local/bin",
+        "/usr/bin",
+    ]
+    assert env["TERM"] == "xterm-256color"
+    assert env["AGY_PROBE_TEST"] == "retained"
+
+
+def test_probe_env_preserves_existing_term(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("TERM", "screen-256color")
+
+    assert agy_quota_probe._probe_env("/custom/bin/agy")["TERM"] == "screen-256color"
 
 
 def test_parse_quota_output_parses_all_groups_and_windows() -> None:
