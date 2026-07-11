@@ -8,7 +8,7 @@
 
 Keep Claude Code and Codex quota in view while you work. `usage` puts session limits, weekly limits, and cost context in the macOS menu bar, so you can manage usage before it interrupts a session.
 
-[繁體中文](README.zh-TW.md) · English &nbsp;|&nbsp; 💬 [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; 🌐 [Landing page](https://aqua5230.github.io/usage/)
+[繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · English · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [Landing page](https://aqua5230.github.io/usage/)
 
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![Latest Release](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
@@ -23,59 +23,57 @@ Keep Claude Code and Codex quota in view while you work. `usage` puts session li
 
 `usage` keeps your **Claude Code and Codex** quota pinned to the top-right of your screen, color-coded so warning levels read at a glance. Every number is read passively from local files already on your machine. It **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, so the monitor itself never adds to your token usage.
 
-## 💡 Why usage?
+## Why usage?
 
-- 🧱 **Prevent quota interruptions before they block work.** When a long refactor or debugging session depends on Claude Code, running out of quota without warning is expensive.
-- ❓ **Replace guesswork with live visibility.** See 5-hour and weekly limits before you hit the wall, instead of after.
-- 🔁 **Keep the answer where you already look.** A CLI replies only when you stop and ask. `usage` stays visible all the time, with no command to run and no page to open.
+Running out of quota mid-session is expensive — especially during a long refactor or debugging run that depends on Claude Code. `usage` surfaces 5-hour and weekly limits *before* you hit the wall, and keeps them visible the whole time. There's no command to run and no page to open; the answer is just there, where you already look.
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 brew install --cask aqua5230/usage/usage
 ```
 
-It lands in your Applications folder automatically. Right-click **Open** once to pass Gatekeeper, then click the menu bar icon. Prefer a direct download or want the full setup flow? See [Install](#-install) below.
+It lands in your Applications folder automatically. Right-click **Open** once to pass Gatekeeper, then click the menu bar icon. Prefer a direct download or want the full setup flow? See [Install](#install) below.
 
-## ✨ What You Get
+## What You Get
 
 ### Live Visibility
 
-- 👁️ **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
-- 🔔 **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
-- 🎛️ **Hide Sections:** Only use one tool? Hide the Claude Code or Codex section from the menu bar and panels completely with a single click.
+- **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
+- **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
+- **Hide Sections:** Only use one tool? Hide the Claude Code or Codex section from the menu bar and panels completely with a single click.
 
 ### Workflow Helpers
 
-- 🧠 **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI, including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. Fully local, off by default.
-- 🤐 **Token Saver:** A menu-bar toggle asks Claude Code and Codex to answer more tersely for the session, saving output tokens while keeping code and error messages byte-exact. A light per-message reminder keeps replies from drifting back to verbose in long conversations (A/B-tested: late-conversation replies stay ~40% shorter).
-- 🩺 **Token-waste Health Check:** A daily background diagnosis scans your logs for waste, including repeated file reads, polluter directories, and noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
+- **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI, including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. Fully local, off by default.
+- **Token Saver:** A menu-bar toggle asks Claude Code and Codex to answer more tersely for the session, saving output tokens while keeping code and error messages byte-exact. A light per-message reminder keeps replies from drifting back to verbose in long conversations (A/B-tested: late-conversation replies stay ~40% shorter).
+- **Token-waste Health Check:** A daily background diagnosis scans your logs for waste, including repeated file reads, polluter directories, and noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
 
 ### Reporting & Insight
 
-- 📊 **Deep HTML Reports:** Instant, shareable HTML deep reports showing daily and weekly token trends, project rankings, and cost. Includes an **AI Tool Update Digest** summarizing recent changes, and a **Year in Review** featuring a contribution heatmap and "Wrapped" summary. One click saves a copy as **.html, .csv, or a .png image** — fully offline, with optional project-name masking.
-- 💻 **TUI & CLI:** Prefer the terminal? Run the rich TUI dashboard with `python3 main.py --tui`, or generate deep analytics with `python3 usage_cli.py report`.
+- **Deep HTML Reports:** Instant, shareable HTML deep reports showing daily and weekly token trends, project rankings, and cost. Includes an **AI Tool Update Digest** summarizing recent changes, and a **Year in Review** featuring a contribution heatmap and "Wrapped" summary. One click saves a copy as **.html, .csv, or a .png image** — fully offline, with optional project-name masking.
+- **TUI & CLI:** Prefer the terminal? Run the rich TUI dashboard with `python3 main.py --tui`, or generate deep analytics with `python3 usage_cli.py report`.
 
 ### Experience & Customization
 
-- 🎨 **10 Visual Themes:** Switch between panel styles including Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, and Lepidoptera (blueprint).
-- 🧑‍💼 **AI Talent Market:** Bring a ready-made AI team into Claude Code. Browse and install curated subagent personas into `~/.claude/agents/` instantly. Runs fully locally via the bundled CLI.
-- 🐉 **Spirit Companions:** A small animated white silhouette lives beside your usage percentages — a phoenix for Claude, a dragon for Codex. It accelerates dynamically as your token burn rate climbs.
-- 🌍 **Automatic Localization:** UI text is available in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
+- **10 Visual Themes:** Switch between panel styles including Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, and Lepidoptera (blueprint).
+- **AI Talent Market:** Bring a ready-made AI team into Claude Code. Browse and install curated subagent personas into `~/.claude/agents/` instantly. Runs fully locally via the bundled CLI.
+- **Spirit Companions:** A small animated white silhouette lives beside your usage percentages — a phoenix for Claude, a dragon for Codex. It accelerates dynamically as your token burn rate climbs.
+- **Automatic Localization:** UI text is available in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
 
-## 🔒 Privacy & Data Sources
+## Privacy & Data Sources
 
 - Usage numbers are read **only from local log files** on your machine.
 - It **never calls the Anthropic / OpenAI API** and **never reads the Keychain** (macOS's password vault).
 - The only network activity: fetching a public model-pricing table to estimate cost (falls back to built-in prices offline) and occasionally checking GitHub for a new version. **Nothing is ever uploaded.**
 
-## ⚙️ Requirements
+## Requirements
 
 - macOS
 - Claude Code or Codex has been used at least once (so local usage data exists).
 - (Source runs only) Python 3.13.
 
-## 📦 Install
+## Install
 
 ### 1. Homebrew (Recommended)
 
@@ -104,7 +102,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
   <img src="docs/statusline.en.png" alt="Claude Code statusLine display (English)" width="640">
 </p>
 
-## 🎨 Theme Gallery
+## Theme Gallery
 
 Switch between **10 visual themes** directly from the UI:
 
@@ -117,7 +115,7 @@ Switch between **10 visual themes** directly from the UI:
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole theme" />
 </p>
 
-## 🛠️ Troubleshooting
+## Troubleshooting
 
 If the menu bar shows `--`, it's usually not broken — there's just no local data yet.
 
@@ -131,7 +129,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | App won't open | macOS Gatekeeper blocked it | Right-click `usage.app` in Finder → Open |
 | App crashes immediately (arm64) | py2app bundling bug in older versions | Upgrade to **v0.11.1 or newer** |
 
-## ⚖️ Comparison
+## Comparison
 
 | Feature | usage | ccusage | TokenTracker |
 |---------|:-----:|:-------:|:------------:|
@@ -145,16 +143,16 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Zero API calls | ✅ | ✅ | ✅ |
 | Open-source license | AGPL-3.0 | MIT | — |
 
-## 💻 Development
+## Development
 
 Want to run the terminal TUI, configure custom agents, or build the app yourself? Check out the **[development docs](docs/DEVELOPMENT.md)**.
 
-## 📄 License
+## License
 
 Licensed under AGPL-3.0-only (see [LICENSE](LICENSE)). If you fork or redistribute a modified version, please credit the original author and link back to:
 https://github.com/aqua5230/usage
 
-## 📈 Star History
+## Star History
 
 <a href="https://star-history.com/#aqua5230/usage&Date">
   <img src="https://api.star-history.com/svg?repos=aqua5230/usage&type=Date" alt="usage Star History Chart" width="600">
