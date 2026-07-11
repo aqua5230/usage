@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import importlib
 import sys
 from pathlib import Path
 
@@ -10,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-history_loader = importlib.import_module("history_loader")
+import history_loader  # noqa: E402
 
 
 def _test_one_input(data: bytes) -> None:

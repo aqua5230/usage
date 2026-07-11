@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-import importlib
 import io
 import sys
 from pathlib import Path
@@ -12,7 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-codex_loader = importlib.import_module("codex_loader")
+import codex_loader  # noqa: E402
+from history_loader import UsageEntry  # noqa: E402
 
 
 def _test_one_input(data: bytes) -> None:
@@ -20,7 +20,7 @@ def _test_one_input(data: bytes) -> None:
     line = provider.ConsumeUnicodeNoSurrogates(len(data)).encode("utf-8", errors="replace")
     if provider.ConsumeBool():
         line += b"\n"
-    entries: list[object] = []
+    entries: list[UsageEntry] = []
     codex_loader._parse_linear_jsonl_bytes(
         io.BytesIO(line),
         session_id="fuzz-session",
