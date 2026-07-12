@@ -4,9 +4,9 @@
 
 # usage
 
-### Quota visibility for Claude Code and Codex, built into the macOS menu bar.
+### Quota visibility for Claude Code, Codex, and Antigravity, built into the macOS menu bar.
 
-Keep Claude Code and Codex quota in view while you work. `usage` puts session limits, weekly limits, and cost context in the macOS menu bar, so you can manage usage before it interrupts a session.
+Keep Claude Code, Codex, and Antigravity quota in view while you work. `usage` puts session limits, weekly limits, and cost context in the macOS menu bar, so you can manage usage before it interrupts a session.
 
 [繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · English · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [Landing page](https://aqua5230.github.io/usage/)
 
@@ -21,7 +21,7 @@ Keep Claude Code and Codex quota in view while you work. `usage` puts session li
   <img src="docs/showcase.en.png" alt="usage — Claude Code &amp; Codex quota pinned to the macOS menu bar" width="820">
 </p>
 
-`usage` keeps your **Claude Code and Codex** quota pinned to the top-right of your screen, color-coded so warning levels read at a glance. Every number is read passively from local files already on your machine. It **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, so the monitor itself never adds to your token usage.
+`usage` keeps your **Claude Code, Codex, and Antigravity** quota pinned to the top-right of your screen, color-coded so warning levels read at a glance. Every number is read passively from local files already on your machine. It **never calls the Anthropic / OpenAI API** and **never reads the Keychain**, so the monitor itself never adds to your token usage.
 
 ## Why usage?
 
@@ -40,8 +40,9 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 ### Live Visibility
 
 - **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
+- **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every panel. Numbers come from periodically running the official CLI's `/quota` command in the background — the same thing as typing it yourself, with a 15-minute cache.
 - **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
-- **Hide Sections:** Only use one tool? Hide the Claude Code or Codex section from the menu bar and panels completely with a single click.
+- **Hide Sections:** Only use one or two of the tools? Hide the Claude Code, Codex, or Antigravity section from the menu bar and panels completely with a single click.
 
 ### Workflow Helpers
 
@@ -57,20 +58,22 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 ### Experience & Customization
 
 - **10 Visual Themes:** Switch between panel styles including Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, and Lepidoptera (blueprint).
+- **Drag to Reorder:** Grab any quota card and drag it up or down to swap the order — the arrangement is shared across every theme and survives restarts.
 - **AI Talent Market:** Bring a ready-made AI team into Claude Code. Browse and install curated subagent personas into `~/.claude/agents/` instantly. Runs fully locally via the bundled CLI.
-- **Spirit Companions:** A small animated white silhouette lives beside your usage percentages — a phoenix for Claude, a dragon for Codex. It accelerates dynamically as your token burn rate climbs.
+- **Spirit Companions:** A small animated white silhouette lives beside your usage percentages — a phoenix for Claude, a dragon for Codex, a lion for Antigravity. Each accelerates dynamically as its own tool's token burn rate climbs.
 - **Automatic Localization:** UI text is available in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
 
 ## Privacy & Data Sources
 
 - Usage numbers are read **only from local log files** on your machine.
 - It **never calls the Anthropic / OpenAI API** and **never reads the Keychain** (macOS's password vault).
+- Antigravity quota is fetched by running the official Antigravity CLI's own `/quota` command locally — exactly what happens when you type it yourself. `usage` never touches its API or tokens directly.
 - The only network activity: fetching a public model-pricing table to estimate cost (falls back to built-in prices offline) and occasionally checking GitHub for a new version. **Nothing is ever uploaded.**
 
 ## Requirements
 
 - macOS
-- Claude Code or Codex has been used at least once (so local usage data exists).
+- Claude Code, Codex, or Antigravity has been used at least once (so local usage data exists).
 - (Source runs only) Python 3.13.
 
 ## Install
@@ -126,6 +129,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run |
 | Codex section is empty | No Codex history found | Run a Codex conversation to generate logs |
 | Today's cost shows $0.00 | Model pricing missing | Delete `~/.usage/pricing_cache.json` or check `USAGE_DEBUG=1` |
+| Antigravity card is missing | Antigravity CLI not installed or not signed in | Install and sign in to the Antigravity CLI; the card appears automatically once a background `/quota` probe succeeds |
 | App won't open | macOS Gatekeeper blocked it | Right-click `usage.app` in Finder → Open |
 | App crashes immediately (arm64) | py2app bundling bug in older versions | Upgrade to **v0.11.1 or newer** |
 
@@ -136,6 +140,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Always on screen | ✅ | — | ✅ |
 | macOS menu bar | ✅ | — | ✅ |
 | Claude Code & Codex usage | ✅ | Claude only | ✅ |
+| Antigravity (Gemini) usage | ✅ | — | — |
 | HTML deep reports & UI | ✅ | ✅ | — |
 | AI Talent Market | ✅ | — | — |
 | Progress Concierge & Token Saver | ✅ | — | — |

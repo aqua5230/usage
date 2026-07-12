@@ -4,9 +4,9 @@
 
 # usage
 
-### 把 Claude Code 與 Codex 額度直接放進 macOS 選單列
+### 把 Claude Code、Codex 與 Antigravity 額度直接放進 macOS 選單列
 
-讓 Claude Code 與 Codex 的額度在工作時持續可見。`usage` 把 session 限額、每週限額與成本脈絡放進 macOS 選單列，讓你在工作被打斷前就先掌握用量。
+讓 Claude Code、Codex 與 Antigravity 的額度在工作時持續可見。`usage` 把 session 限額、每週限額與成本脈絡放進 macOS 選單列，讓你在工作被打斷前就先掌握用量。
 
 繁體中文 · [简体中文](README.zh-CN.md) · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介紹頁](https://aqua5230.github.io/usage/)
 
@@ -21,7 +21,7 @@
   <img src="docs/showcase.zh-TW.png" alt="usage — 把 Claude Code 與 Codex 的額度釘在 macOS 選單列" width="820">
 </p>
 
-`usage` 把 **Claude Code 與 Codex** 的額度釘在螢幕右上角的選單列，用顏色標好警戒級別，掃一眼就懂。每個數字都被動讀自你機器上原本就在寫的本機檔案。它**不呼叫 Anthropic / OpenAI 的 API，也不讀 Keychain**，所以這個監看器本身永遠不會增加你的用量。
+`usage` 把 **Claude Code、Codex 與 Antigravity** 的額度釘在螢幕右上角的選單列，用顏色標好警戒級別，掃一眼就懂。每個數字都被動讀自你機器上原本就在寫的本機檔案。它**不呼叫 Anthropic / OpenAI 的 API，也不讀 Keychain**，所以這個監看器本身永遠不會增加你的用量。
 
 ## 為什麼需要 usage？
 
@@ -40,8 +40,9 @@ brew install --cask aqua5230/usage/usage
 ### 即時可見性
 
 - **常駐監控：** 額度常駐選單列，顏色標示警戒級別（綠到紅）。點開能看 Session、Weekly 與各專案用量細節。
+- **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在每一款面板。數字來自背景定期執行官方 CLI 的 `/quota` 指令——跟你自己打一次指令一模一樣，並帶 15 分鐘快取。
 - **上下文提醒與系統通知：** Context Window 達 70% 時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
-- **獨立隱藏區塊：** 只用其中一套工具？一鍵就能把 Claude Code 或 Codex 從選單列及面板上徹底隱藏。
+- **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex 或 Antigravity 從選單列及面板上徹底隱藏。
 
 ### 工作流程輔助
 
@@ -57,20 +58,22 @@ brew install --cask aqua5230/usage/usage
 ### 體驗與客製化
 
 - **10 款視覺面板：** 可在 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026 與 Lepidoptera（藍曬圖）之間切換。
+- **拖曳排序：** 按住任何一張額度卡上下拖曳就能交換順序，排法在所有主題間共用、重開也會記住。
 - **AI 人才市場：** 將整個 AI 團隊帶進 Claude Code。瀏覽並一鍵將精選 subagent persona 安裝到 `~/.claude/agents/`，全程透過內建 CLI 在本機完成。
-- **神獸夥伴：** 百分比旁常駐一隻小型白色動畫神獸（Claude 是鳳凰，Codex 是飛龍），會跟著 token 燃燒率動態加速。
+- **神獸夥伴：** 百分比旁常駐一隻小型白色動畫神獸（Claude 是鳳凰，Codex 是飛龍，Antigravity 是獅子），各自跟著自家工具的 token 燃燒率動態加速。
 - **自動多語言 (i18n)：** 介面支援繁中、簡中、英、日、韓，自動跟隨系統語言設定。
 
 ## 隱私與資料來源
 
 - 用量數字**只讀本機紀錄檔**。
 - **絕對不呼叫 Anthropic / OpenAI API，不讀 Keychain**（macOS 內建密碼保險箱）。
+- Antigravity 額度是在本機執行官方 Antigravity CLI 自己的 `/quota` 指令取得——跟你自己輸入指令完全相同。`usage` 絕不直接碰它的 API 或 token。
 - 唯二連網：抓公開價格表估算成本（斷網會用內建預設），以及偶爾檢查 GitHub 版本更新。**不會上傳任何資料。**
 
 ## 環境需求
 
 - macOS
-- 已經使用過 Claude Code 或 Codex（需有本機用量資料）
+- 已經使用過 Claude Code、Codex 或 Antigravity（需有本機用量資料）
 - （僅限從原始碼跑）Python 3.13
 
 ## 安裝
@@ -126,6 +129,7 @@ brew install --cask aqua5230/usage/usage
 | 顯示「N 分鐘未更新」 | Claude Code 未執行 | 打開 Claude Code 跑一下就會更新 |
 | Codex 區塊空白 | 找不到 Codex 紀錄 | 用 Codex 跑一次對話 |
 | 今日花費是 $0.00 | 價格表對不上或抓取失敗 | 刪掉 `~/.usage/pricing_cache.json` 重新抓取 |
+| Antigravity 卡片沒出現 | 未安裝或未登入 Antigravity CLI | 安裝並登入 Antigravity CLI，背景 `/quota` 探測成功後卡片會自動出現 |
 | App 打不開 | Gatekeeper 擋住 | Finder → 找到 `usage.app` → 按右鍵 → 打開 |
 | App 一開就閃退 (arm64)| 舊版打包 bug | 請升級至 **v0.11.1 或更新版本** |
 
@@ -136,6 +140,7 @@ brew install --cask aqua5230/usage/usage
 | 一直在螢幕上 | ✅ | — | ✅ |
 | macOS 選單列 | ✅ | — | ✅ |
 | Claude Code 與 Codex 支援 | ✅ | 僅 Claude | ✅ |
+| Antigravity（Gemini）支援 | ✅ | — | — |
 | HTML 深度報告與 UI 面板 | ✅ | ✅ | — |
 | AI 人才市場 | ✅ | — | — |
 | 進度管家與省 token 模式 | ✅ | — | — |

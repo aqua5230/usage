@@ -4,6 +4,24 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.26.0] - 2026-07-13
+
+### 新增
+- **Antigravity（Gemini）支援**——usage 在 Claude Code 與 Codex 之外，開始看顧第三套 AI 工具：
+  - **每款面板都有額度卡**：Session 與每週限額以第三張卡片進駐 classic 與其餘九款主題面板，各自融入該主題的視覺語言，並帶著跟另外兩套工具相同的過期警示徽章與隱藏開關。
+  - **官方數字、不碰 API**：額度是背景定期執行 Antigravity CLI 自己的 `/quota` 指令取得（15 分鐘快取）——跟你自己打指令一模一樣。不刮 OAuth token、不打內部 API。
+  - **選單列區段**：Antigravity 標誌與 Session 百分比進駐選單列，還帶著一隻**獅子神獸**——動畫速度跟著 Antigravity 自己的 token 燃燒率跑，鳳凰（Claude）和飛龍（Codex）終於有第三位夥伴。
+  - **HTML 報告整合**：本機紀錄中的 Antigravity token 用量納入深度報告。
+- **額度卡拖曳排序**：在任何面板按住 Claude／Codex／Antigravity 卡片上下拖曳即可交換順序。排法經過驗證後保存，所有主題共用、重開也記得。
+
+### 修正
+- **Antigravity 探測強化**：探測不再被 Antigravity CLI 1.1.1 新增的信任資料夾提示卡住；過期資料的提示文字如實描述探測行為。
+- Fuzz 測試改用靜態 import，讓 PyInstaller 能打包解析模組（僅影響 CI fuzzing，與使用者無關）。
+
+### 變更
+- README 出貨五種語言（英文、繁中、簡中、日文、韓文），版面同步整理。
+- AI Tool Update Digest 更新（Claude Code 2.1.206／Codex 0.144.1／Antigravity 1.1.1）。
+
 ## [0.25.4] - 2026-07-11
 
 ### 變更
