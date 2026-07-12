@@ -586,6 +586,11 @@
     .codex-stale-info:hover .codex-stale-tooltip {
       display: block;
     }
+    .card[data-card="claude"],
+    .card[data-card="codex"],
+    .card[data-card="agy"] { cursor: grab; }
+    .card.is-dragging { cursor: grabbing; opacity: 0.85; box-shadow: 0 8px 16px rgba(40, 28, 12, 0.35); transform: translateY(-2px); }
+    .is-card-dragging, .is-card-dragging * { user-select: none; }
   </style>
 </head>
 <body>
@@ -851,10 +856,29 @@
       if (button.parentElement !== host) host.appendChild(button);
     }
 
+    const QUOTA_CARD_IDS = ["claude", "codex", "agy"];
+
+    function applyCardOrder(order) {
+      if (cardDrag && cardDrag.dragging) return;
+      if (!Array.isArray(order) || order.length !== QUOTA_CARD_IDS.length || new Set(order).size !== QUOTA_CARD_IDS.length || !order.every((id) => QUOTA_CARD_IDS.includes(id))) return;
+      const wrap = document.querySelector("main.wrap");
+      const projects = document.querySelector('[data-card="projects"]');
+      if (!wrap || !projects) return;
+      const currentOrder = [...wrap.querySelectorAll(':scope > [data-card]')]
+        .filter((card) => QUOTA_CARD_IDS.includes(card.dataset.card))
+        .map((card) => card.dataset.card);
+      if (order.every((id, index) => currentOrder[index] === id)) return;
+      order.forEach((id) => {
+        const card = document.querySelector(`[data-card="${id}"]`);
+        if (card) wrap.insertBefore(card, projects);
+      });
+    }
+
     window.usageApplyState = function usageApplyState(state) {
       document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
       document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
       document.documentElement.classList.toggle('hide-agy', !!state.hideAgy);
+      applyCardOrder(state.cardOrder);
       relocateSwitchButton(state);
       currentLanguage = I18N[state.language] ? state.language : currentLanguage;
       applyStaticText();
@@ -901,11 +925,60 @@
       }
     });
 
+    let cardDrag = null;
+
+    document.addEventListener("pointerdown", (event) => {
+      const card = event.target.closest('[data-card="claude"], [data-card="codex"], [data-card="agy"]');
+      if (!card || event.button !== 0 || event.target.closest("button, a, .codex-stale-info")) return;
+      cardDrag = { card, pointerId: event.pointerId, startY: event.clientY, dragging: false };
+      card.setPointerCapture(event.pointerId);
+    });
+
+    document.addEventListener("pointermove", (event) => {
+      if (!cardDrag || event.pointerId !== cardDrag.pointerId) return;
+      if (!cardDrag.dragging) {
+        if (Math.abs(event.clientY - cardDrag.startY) <= 4) return;
+        cardDrag.dragging = true;
+        cardDrag.card.classList.add("is-dragging");
+        document.documentElement.classList.add("is-card-dragging");
+      }
+      event.preventDefault();
+      const cards = [...document.querySelectorAll('[data-card="claude"], [data-card="codex"], [data-card="agy"]')]
+        .filter((card) => card.offsetParent !== null);
+      const target = cards.find((card) => card !== cardDrag.card && event.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2);
+      if (target) target.parentElement.insertBefore(cardDrag.card, target);
+      else {
+        const projects = document.querySelector('[data-card="projects"]');
+        if (projects) projects.parentElement.insertBefore(cardDrag.card, projects);
+      }
+    });
+
+    function finishCardDrag(event) {
+      if (!cardDrag || event.pointerId !== cardDrag.pointerId) return;
+      const { card, dragging } = cardDrag;
+      if (card.hasPointerCapture(event.pointerId)) card.releasePointerCapture(event.pointerId);
+      card.classList.remove("is-dragging");
+      document.documentElement.classList.remove("is-card-dragging");
+      cardDrag = null;
+      if (!dragging) return;
+      const order = [...document.querySelectorAll('main.wrap > [data-card]')]
+        .filter((item) => QUOTA_CARD_IDS.includes(item.dataset.card))
+        .map((item) => item.dataset.card);
+      const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
+      if (bridge && typeof bridge.postMessage === "function") {
+        bridge.postMessage(JSON.stringify({ action: "set_card_order", order }));
+      }
+    }
+
+    document.addEventListener("pointerup", finishCardDrag);
+    document.addEventListener("pointercancel", finishCardDrag);
+
     window.usageApplyState({
       language: "en",
       claude: { session: {}, weekly: {} },
       codex: { session: {}, weekly: {} },
       agy: { session: {}, weekly: {}, groupName: "" },
+      cardOrder: ["claude", "codex", "agy"],
       hideAgy: true,
       projects: [],
       projects7d: [],
