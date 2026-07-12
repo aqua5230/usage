@@ -90,6 +90,7 @@ class PopoverState:
     hide_agy: bool = True
     codex_stale: CodexStaleState | None = None
     agy_stale: AgyStaleState | None = None
+    card_order: tuple[str, ...] = ("claude", "codex", "agy")
     history_error: HistoryLoadErrorState | None = None
     # Talent-market panel payload (None for non-talent panels). Fetched from the
     # external instate-cli by talent_market_bridge, only when the active panel
@@ -392,6 +393,7 @@ def build_popover_state(
     hide_agy: bool,
     codex_stale: CodexStaleState | None,
     agy_stale: AgyStaleState | None,
+    card_order: tuple[str, ...] = ("claude", "codex", "agy"),
     history_error: HistoryLoadErrorState | None = None,
 ) -> PopoverState:
     now = time.time()
@@ -476,6 +478,7 @@ def build_popover_state(
         hide_agy=hide_agy,
         codex_stale=codex_stale,
         agy_stale=agy_stale,
+        card_order=card_order,
         history_error=history_error,
     )
 

@@ -22,6 +22,7 @@ from Foundation import NSBundle, NSObject
 from Quartz import CGColorCreateGenericRGB
 
 import talent_market_bridge
+from menubar_prefs import _save_quota_card_order, _valid_quota_card_order
 from panels.base import resolve_resource
 
 try:
@@ -161,6 +162,17 @@ class UsageScriptBridge(NSObject):
             except ValueError:
                 parsed = None
             if isinstance(parsed, dict) and "action" in parsed:
+                if parsed["action"] == "set_card_order":
+                    order = _valid_quota_card_order(parsed.get("order"))
+                    if order is not None:
+                        _save_quota_card_order(list(order))
+                        # Keep the in-memory state in sync so re-injections
+                        # (popover reopen, panel switch) before the next poll
+                        # don't snap the cards back to the stale order.
+                        state = getattr(self.delegate, "latest_state", None)
+                        if state is not None:
+                            state.card_order = order
+                    return
                 self._dispatch_talent_action(parsed)
                 return
         if action == "refresh":
@@ -559,6 +571,7 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
         "hideClaude": state.hide_claude,
         "hideCodex": state.hide_codex,
         "hideAgy": state.hide_agy,
+        "cardOrder": list(state.card_order),
         "historyError": state.history_error,
         "statusline": state.statusline,
         "talent": state.talent,

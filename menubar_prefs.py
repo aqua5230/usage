@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from prefs import _load_preferences
+from prefs import _load_preferences, _save_preferences
+
+DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy")
 
 
 def _resolved_preferences(prefs: Mapping[str, object] | None = None) -> Mapping[str, object]:
@@ -33,6 +35,33 @@ def _hide_codex_enabled(prefs: Mapping[str, object] | None = None) -> bool:
 def _hide_agy_enabled(prefs: Mapping[str, object] | None = None) -> bool:
     data = _resolved_preferences(prefs)
     return data.get("hide_agy_section") is True
+
+
+def _quota_card_order(prefs: Mapping[str, object] | None = None) -> tuple[str, ...]:
+    data = _resolved_preferences(prefs)
+    order = _valid_quota_card_order(data.get("quota_card_order"))
+    return DEFAULT_QUOTA_CARD_ORDER if order is None else order
+
+
+def _save_quota_card_order(order: object) -> bool:
+    valid_order = _valid_quota_card_order(order)
+    if valid_order is None:
+        return False
+    prefs = _load_preferences()
+    prefs["quota_card_order"] = list(valid_order)
+    _save_preferences(prefs)
+    return True
+
+
+def _valid_quota_card_order(value: object) -> tuple[str, ...] | None:
+    if not isinstance(value, list) or len(value) != len(DEFAULT_QUOTA_CARD_ORDER):
+        return None
+    if any(not isinstance(card, str) for card in value):
+        return None
+    order = tuple(value)
+    if set(order) != set(DEFAULT_QUOTA_CARD_ORDER):
+        return None
+    return order
 
 
 def _quota_notifications_enabled(prefs: Mapping[str, object] | None = None) -> bool:

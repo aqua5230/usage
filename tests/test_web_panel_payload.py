@@ -3,10 +3,16 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
 import menubar
 import menubar_agy
+import prefs
 from agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
-from panels.web_panel import _state_payload
+from panels.web_panel import UsageScriptBridge, _state_payload
 
 
 def test_state_payload_includes_agy_card_data() -> None:
@@ -41,6 +47,7 @@ def test_state_payload_includes_agy_card_data() -> None:
     payload = _state_payload(state)
 
     assert payload["hideAgy"] is False
+    assert payload["cardOrder"] == ["claude", "codex", "agy"]
     assert payload["agy"] == {
         "session": {
             "percent": 25.0,
@@ -61,3 +68,29 @@ def test_state_payload_includes_agy_card_data() -> None:
         "groupName": "GEMINI MODELS",
         "stale": None,
     }
+
+
+def test_bridge_saves_valid_card_order_and_ignores_invalid_input(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_file = tmp_path / "usage-preferences.json"
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_file)
+    bridge = UsageScriptBridge.alloc().init()
+
+    bridge.userContentController_didReceiveScriptMessage_(
+        None,
+        SimpleNamespace(
+            body=lambda: '{"action":"set_card_order","order":["agy","claude","codex"]}'
+        ),
+    )
+
+    assert prefs._load_preferences()["quota_card_order"] == ["agy", "claude", "codex"]
+
+    bridge.userContentController_didReceiveScriptMessage_(
+        None,
+        SimpleNamespace(
+            body=lambda: '{"action":"set_card_order","order":["agy","claude","claude"]}'
+        ),
+    )
+
+    assert prefs._load_preferences()["quota_card_order"] == ["agy", "claude", "codex"]

@@ -2,7 +2,12 @@
 
 from __future__ import annotations
 
+from pathlib import Path
+
+import pytest
+
 import menubar_prefs
+import prefs
 
 
 def test_quota_notification_thresholds_default() -> None:
@@ -18,3 +23,36 @@ def test_quota_notification_thresholds_filters_invalid_values() -> None:
 def test_auto_update_check_enabled_defaults_true() -> None:
     assert menubar_prefs._auto_update_check_enabled({}) is True
     assert menubar_prefs._auto_update_check_enabled({"auto_update_check": False}) is False
+
+
+def test_quota_card_order_validates_preferences() -> None:
+    assert menubar_prefs._quota_card_order({"quota_card_order": ["agy", "claude", "codex"]}) == (
+        "agy",
+        "claude",
+        "codex",
+    )
+    invalid_values = (
+        None,
+        "agy",
+        ["agy", "claude"],
+        ["agy", "claude", "claude"],
+        ["agy", "claude", "unknown"],
+    )
+    for value in invalid_values:
+        assert menubar_prefs._quota_card_order({"quota_card_order": value}) == (
+            "claude",
+            "codex",
+            "agy",
+        )
+
+
+def test_save_quota_card_order_ignores_invalid_values(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_file = tmp_path / "usage-preferences.json"
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_file)
+
+    assert menubar_prefs._save_quota_card_order(["agy", "claude", "codex"]) is True
+    assert prefs._load_preferences()["quota_card_order"] == ["agy", "claude", "codex"]
+    assert menubar_prefs._save_quota_card_order(["agy", "claude", "claude"]) is False
+    assert prefs._load_preferences()["quota_card_order"] == ["agy", "claude", "codex"]

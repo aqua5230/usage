@@ -75,6 +75,7 @@ from menubar_prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
+    _quota_card_order,
     _quota_notification_thresholds,
     _quota_notifications_enabled,
 )
@@ -167,6 +168,7 @@ __all__ = [
     "_hide_agy_enabled",
     "_hide_claude_enabled",
     "_hide_codex_enabled",
+    "_quota_card_order",
     "_quota_notification_thresholds",
     "_quota_notifications_enabled",
 ]
@@ -1353,6 +1355,7 @@ class AppDelegate(NSObject):
             hide_claude = fallback_state.hide_claude
             hide_codex = fallback_state.hide_codex
             hide_agy = agy_result.hide_agy or _hide_agy_enabled()
+            card_order = _quota_card_order()
             try:
                 all_entries = self._load_history_entries()
                 project_rows = self._project_rows(hours_back=24, entries=all_entries)
@@ -1399,6 +1402,7 @@ class AppDelegate(NSObject):
                     hide_agy=hide_agy,
                     codex_stale=codex_stale,
                     agy_stale=agy_projection.stale,
+                    card_order=card_order,
                     history_error=menubar_state.history_load_error_state(
                         self._history_load_error_key, self.language
                     ),
@@ -1429,6 +1433,7 @@ class AppDelegate(NSObject):
                 state.hide_claude = hide_claude
                 state.hide_codex = hide_codex
                 state.hide_agy = hide_agy
+                state.card_order = card_order
 
             # Talent-market data is panel-local (no quota numbers). Fetch it
             # only when that panel is active so classic/matrix users never pay
@@ -1964,6 +1969,7 @@ def _empty_state(language: str = "en") -> PopoverState:
         # looks like the integration never loaded even though the child process
         # is already active.
         hide_agy=menubar_agy.find_agy() is None,
+        card_order=_quota_card_order(),
     )
 
 
