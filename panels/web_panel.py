@@ -585,7 +585,6 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
         "historyError": state.history_error,
         "statusline": state.statusline,
         "talent": state.talent,
-        "aiDaily": state.ai_daily,
         "footer": {
             "rate": state.rate_text,
             "status": state.status_text,

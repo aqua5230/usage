@@ -240,7 +240,7 @@ def test_html_panels_expose_analyze_action() -> None:
     for path in panels_dir.glob("*.html"):
         # talent_market is a non-quota marketplace panel; it has no analyze/CLI
         # affordances, only talent-pack/role actions.
-        if path.name in {"talent_market.html", "ai_daily.html"}:
+        if path.name == "talent_market.html":
             continue
         html = path.read_text(encoding="utf-8")
         assert 'data-action="analyze"' in html, path.name

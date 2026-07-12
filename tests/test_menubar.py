@@ -430,6 +430,10 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     assert talent_market.action == "toggleTalentMarket:"
     assert talent_market.representedObject() == "talent_market"
     assert talent_market.state == 0
+    daily_item = next(item for item in main_menu.items if item.title == "AI Update Daily")
+    assert daily_item.action == "toggleAiDaily:"
+    assert daily_item.representedObject() is None
+    assert daily_item.state == 0
 
     # Panel themes are collapsed into a submenu, not listed inline on the main menu.
     assert "Default" not in main_titles
@@ -1973,6 +1977,23 @@ def test_toggle_talent_market_falls_back_to_classic_without_previous_panel() -> 
     menubar.AppDelegate.toggleTalentMarket_(delegate, object())
 
     assert switched == ["classic"]
+    assert delegate._switch_menu_action_taken is True
+
+
+def test_daily_link_closes_popover_then_opens_browser(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    events: list[str] = []
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.popover = SimpleNamespace(
+        isShown=lambda: True,
+        performClose_=lambda sender: events.append("close"),
+    )
+    monkeypatch.setattr("menubar.webbrowser.open", lambda url: events.append(url))
+
+    menubar.AppDelegate.toggleAiDaily_(delegate, object())
+
+    assert events == ["close", "https://aqua5230.github.io/ai-updates/"]
     assert delegate._switch_menu_action_taken is True
 
 
