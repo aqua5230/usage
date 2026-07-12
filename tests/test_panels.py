@@ -81,7 +81,7 @@ def test_classic_panel_preferred_size() -> None:
 def test_win95_panel_preferred_size() -> None:
     panel = panels.get_panel("win95")
 
-    assert panel.preferred_size() == (364.0, 870.0)
+    assert panel.preferred_size() == (364.0, 1079.0)
 
 
 def test_html_panels_place_analyze_and_cli_in_project_header() -> None:

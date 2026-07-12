@@ -18,6 +18,7 @@
       --title-end: #1084d0;
       --claude: #f49164;
       --codex: #1084d0;
+      --agy: #3f74e8;
       --projects: #008000;
       --warn: #d97c00;
       --danger: #c00000;
@@ -465,6 +466,63 @@
 
     .hide-codex [data-card="codex"] { display: none; }
     .hide-claude [data-card="claude"] { display: none; }
+    .hide-agy [data-card="agy"] { display: none; }
+
+    .codex-stale {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex: none;
+      min-width: 0;
+      color: var(--danger);
+      font-size: 11px;
+      line-height: 1;
+      font-weight: 700;
+      white-space: nowrap;
+      margin-left: auto;
+      padding-right: 4px;
+    }
+
+    .codex-stale[hidden] {
+      display: none;
+    }
+
+    .codex-stale-info {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      color: #000000;
+      font-size: 11px;
+      line-height: 1;
+      cursor: help;
+    }
+
+    .codex-stale-tooltip {
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 4px);
+      right: 0;
+      display: none;
+      width: max-content;
+      max-width: 200px;
+      padding: 3px 6px;
+      background: #ffffe1;
+      color: #000000;
+      border: 1px solid #000000;
+      box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.5);
+      font-size: 11px;
+      line-height: 1.3;
+      font-weight: 400;
+      white-space: normal;
+      text-align: left;
+    }
+
+    .codex-stale-info:hover .codex-stale-tooltip {
+      display: block;
+    }
   </style>
 </head>
 <body>
@@ -483,6 +541,20 @@
       <header class="brand">
         <img src="{{CODEX_ICON}}" alt="">
         <h1 data-i18n="codex_name">Codex</h1>
+      </header>
+      <div class="row" data-row="session"></div>
+      <div class="row" data-row="weekly"></div>
+    </section>
+
+    <section class="card" data-card="agy" style="--accent: var(--agy)">
+      <header class="brand">
+        <div class="brand-icon"><svg fill="currentColor" fill-rule="evenodd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21.751 22.607c1.34 1.005 3.35.335 1.508-1.508C17.73 15.74 18.904 1 12.037 1 5.17 1 6.342 15.74.815 21.1c-2.01 2.009.167 2.511 1.507 1.506 5.192-3.517 4.857-9.714 9.715-9.714 4.857 0 4.522 6.197 9.714 9.715z"></path></svg></div>
+        <h1 data-i18n="agy_name">Antigravity</h1>
+        <div class="codex-stale" data-agy-stale hidden>
+          <span aria-hidden="true">⚠</span>
+          <span data-agy-stale-age></span>
+          <span class="codex-stale-info" aria-hidden="true">ⓘ<span class="codex-stale-tooltip" data-agy-stale-tooltip></span></span>
+        </div>
       </header>
       <div class="row" data-row="session"></div>
       <div class="row" data-row="weekly"></div>
@@ -620,6 +692,21 @@
       renderRow(name, "weekly", rows && rows.weekly);
     }
 
+    function renderAgy(agy) {
+      applyCard("agy", agy);
+      const staleEl = document.querySelector("[data-agy-stale]");
+      const ageEl = document.querySelector("[data-agy-stale-age]");
+      const tooltipEl = document.querySelector("[data-agy-stale-tooltip]");
+      if (!staleEl || !ageEl || !tooltipEl) return;
+      if (agy && agy.stale && agy.stale.ageText) {
+        ageEl.textContent = agy.stale.ageText;
+        tooltipEl.textContent = t("agy_stale_tooltip");
+        staleEl.hidden = false;
+      } else {
+        staleEl.hidden = true;
+      }
+    }
+
     function renderProjects(projects) {
       const list = document.querySelector('[data-project-list]');
       if (!list) return;
@@ -685,7 +772,10 @@
       let className = "switch";
       if (state.hideClaude && !state.hideCodex) {
         host = document.querySelector('[data-card="codex"] .brand');
-      } else if (state.hideClaude && state.hideCodex) {
+      } else if (state.hideClaude && state.hideCodex && !state.hideAgy) {
+        host = document.querySelector('[data-card="agy"] .brand');
+      }
+      if (!host || (state.hideClaude && state.hideCodex && state.hideAgy)) {
         host = document.querySelector(".footer .actions");
         className = "action";
       }
@@ -697,11 +787,13 @@
     window.usageApplyState = function usageApplyState(state) {
       document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
       document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
+      document.documentElement.classList.toggle('hide-agy', !!state.hideAgy);
       relocateSwitchButton(state);
       currentLanguage = I18N[state.language] ? state.language : currentLanguage;
       applyStaticText();
       applyCard("claude", state.claude);
       applyCard("codex", state.codex);
+      renderAgy(state.agy);
       latestState = state;
       renderProjects(
         projectRange === "1d" ? state.projects
@@ -746,6 +838,8 @@
       language: "en",
       claude: { session: {}, weekly: {} },
       codex: { session: {}, weekly: {} },
+      agy: { session: {}, weekly: {}, groupName: "" },
+      hideAgy: true,
       projects: [],
       projects7d: [],
       projects30d: [],

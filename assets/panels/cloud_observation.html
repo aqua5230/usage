@@ -15,6 +15,7 @@
       --muted-strong: #48677d;
       --claude: linear-gradient(90deg, #f8bc8b 0%, #f4a261 50%, #df8b49 100%);
       --codex: linear-gradient(90deg, #8ce7ff 0%, #54bfe3 50%, #3895be 100%);
+      --agy: linear-gradient(90deg, #c5b4ff 0%, #9277e8 50%, #765bc9 100%);
       --projects: linear-gradient(90deg, #dcecff 0%, #9cc1ed 50%, #6e97cf 100%);
       --warn: #d08b3d;
       --danger: #c76854;
@@ -194,17 +195,20 @@
     }
 
     .card {
+      flex: none;
       padding: 12px 14px;
     }
 
     .card[data-card="claude"],
-    .card[data-card="codex"] {
+    .card[data-card="codex"],
+    .card[data-card="agy"] {
       min-height: 210px;
       padding: 10px 14px;
     }
 
     .card[data-card="claude"] .header,
-    .card[data-card="codex"] .header {
+    .card[data-card="codex"] .header,
+    .card[data-card="agy"] .header {
       margin-bottom: 8px;
     }
 
@@ -251,6 +255,75 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+    }
+
+    .brand-icon {
+      display: grid;
+      place-items: center;
+      width: 28px;
+      height: 28px;
+      flex: none;
+      border-radius: 50%;
+      border: 1px solid rgba(109, 139, 162, 0.14);
+      background: rgba(255, 255, 255, 0.46);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.55);
+      color: #765bc9;
+    }
+
+    .brand-icon svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    .stale {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      flex: none;
+      color: var(--warn);
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1;
+      white-space: nowrap;
+    }
+
+    .stale[hidden] {
+      display: none;
+    }
+
+    .stale-info {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 14px;
+      height: 14px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    .stale-tooltip {
+      position: absolute;
+      z-index: 20;
+      top: calc(100% + 8px);
+      right: 0;
+      display: none;
+      width: max-content;
+      max-width: 260px;
+      padding: 8px 10px;
+      border-radius: 7px;
+      background: rgba(27, 55, 76, 0.94);
+      color: rgba(255, 255, 255, 0.94);
+      box-shadow: 0 10px 24px rgba(65, 93, 117, 0.28);
+      font-size: 11px;
+      font-weight: 500;
+      line-height: 1.45;
+      white-space: normal;
+    }
+
+    .stale-info:hover .stale-tooltip {
+      display: block;
     }
 
     .card[data-card="projects"] .header {
@@ -326,7 +399,8 @@
     }
 
     .card[data-card="claude"] .row,
-    .card[data-card="codex"] .row {
+    .card[data-card="codex"] .row,
+    .card[data-card="agy"] .row {
       padding-top: 8px;
     }
 
@@ -336,7 +410,8 @@
     }
 
     .card[data-card="claude"] .row + .row,
-    .card[data-card="codex"] .row + .row {
+    .card[data-card="codex"] .row + .row,
+    .card[data-card="agy"] .row + .row {
       margin-top: 8px;
     }
 
@@ -422,6 +497,7 @@
     }
 
     .projects-card {
+      flex: 1;
       padding-bottom: 12px;
     }
 
@@ -589,7 +665,8 @@
 
     .hide-codex [data-card="codex"] { display: none; }
     .hide-claude [data-card="claude"] { display: none; }
-    .hide-claude .footer .action[data-action="switch"] { display: inline-block; }
+    .hide-agy [data-card="agy"] { display: none; }
+    .footer .action[data-action="switch"].switch-relocated { display: inline-block; }
   </style>
 </head>
 <body>
@@ -637,7 +714,7 @@
           <div class="header-copy">
             <h1 data-i18n="claude_name">Claude Code</h1>
           </div>
-          <button class="switch" data-action="switch" data-i18n="switch_panel">Switch Panel</button>
+          <button class="switch" data-action="switch" data-switch-relocatable data-i18n="switch_panel">Switch Panel</button>
         </header>
         <div class="row" data-row="session"></div>
         <div class="row" data-row="weekly"></div>
@@ -648,6 +725,24 @@
           <img src="{{CODEX_ICON}}" alt="">
           <div class="header-copy">
             <h1 data-i18n="codex_name">Codex</h1>
+          </div>
+        </header>
+        <div class="row" data-row="session"></div>
+        <div class="row" data-row="weekly"></div>
+      </section>
+
+      <section class="card" data-card="agy" style="--accent: var(--agy)">
+        <header class="header">
+          <div class="brand-icon"><svg fill="currentColor" fill-rule="evenodd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21.751 22.607c1.34 1.005 3.35.335 1.508-1.508C17.73 15.74 18.904 1 12.037 1 5.17 1 6.342 15.74.815 21.1c-2.01 2.009.167 2.511 1.507 1.506 5.192-3.517 4.857-9.714 9.715-9.714 4.857 0 4.522 6.197 9.714 9.715z"></path></svg></div>
+          <div class="header-copy">
+            <h1 data-i18n="agy_name">Antigravity</h1>
+          </div>
+          <div class="stale" data-agy-stale hidden>
+            <span aria-hidden="true">⚠</span>
+            <span data-agy-stale-age></span>
+            <span class="stale-info" aria-hidden="true">ⓘ
+              <span class="stale-tooltip" data-agy-stale-tooltip></span>
+            </span>
           </div>
         </header>
         <div class="row" data-row="session"></div>
@@ -793,6 +888,23 @@
       renderRow(name, "weekly", rows && rows.weekly);
     }
 
+    function renderAgy(agy) {
+      applyCard("agy", agy);
+      const staleEl = document.querySelector("[data-agy-stale]");
+      const ageEl = document.querySelector("[data-agy-stale-age]");
+      const tooltipEl = document.querySelector("[data-agy-stale-tooltip]");
+      if (!staleEl || !ageEl || !tooltipEl) return;
+      if (agy && agy.stale && agy.stale.ageText) {
+        ageEl.textContent = agy.stale.ageText;
+        tooltipEl.textContent = t("agy_stale_tooltip");
+        staleEl.hidden = false;
+        return;
+      }
+      ageEl.textContent = "";
+      tooltipEl.textContent = "";
+      staleEl.hidden = true;
+    }
+
     function renderProjects(projects) {
       const list = document.querySelector("[data-project-list]");
       if (!list) return;
@@ -853,13 +965,35 @@
       }
     }
 
+    function relocateSwitchButton(state) {
+      const button = document.querySelector('[data-switch-relocatable]');
+      if (!button) return;
+      let host = document.querySelector('[data-card="claude"] .header');
+      let className = "switch";
+      if (state.hideClaude && !state.hideCodex) {
+        host = document.querySelector('[data-card="codex"] .header');
+      } else if (state.hideClaude && state.hideCodex && !state.hideAgy) {
+        host = document.querySelector('[data-card="agy"] .header');
+      }
+      if (!host || (state.hideClaude && state.hideCodex && state.hideAgy)) {
+        host = document.querySelector(".footer .actions");
+        className = "action switch-relocated";
+      }
+      if (!host) return;
+      button.className = className;
+      if (button.parentElement !== host) host.appendChild(button);
+    }
+
     window.usageApplyState = function usageApplyState(state) {
       document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
       document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
+      document.documentElement.classList.toggle('hide-agy', !!state.hideAgy);
+      relocateSwitchButton(state);
       currentLanguage = I18N[state.language] ? state.language : currentLanguage;
       applyStaticText();
       applyCard("claude", state.claude);
       applyCard("codex", state.codex);
+      renderAgy(state.agy);
       latestState = state;
       renderProjects(
         projectRange === "1d" ? state.projects
@@ -899,6 +1033,7 @@
       language: "en",
       claude: { session: {}, weekly: {} },
       codex: { session: {}, weekly: {} },
+      agy: { session: {}, weekly: {}, groupName: "" },
       projects: [],
       projects7d: [],
       projects30d: [],
