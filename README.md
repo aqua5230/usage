@@ -40,7 +40,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 ### Live Visibility
 
 - **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
-- **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every panel. Numbers come from periodically running the official CLI's `/quota` command in the background — the same thing as typing it yourself, with a 15-minute cache.
+- **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every panel. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns.
 - **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
 - **Hide Sections:** Only use one or two of the tools? Hide the Claude Code, Codex, or Antigravity section from the menu bar and panels completely with a single click.
 
@@ -67,7 +67,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 - Usage numbers are read **only from local log files** on your machine.
 - It **never calls the Anthropic / OpenAI API** and **never reads the Keychain** (macOS's password vault).
-- Antigravity quota is fetched by running the official Antigravity CLI's own `/quota` command locally — exactly what happens when you type it yourself. `usage` never touches its API or tokens directly.
+- Antigravity quota is fetched from the official quota API using the OAuth token the Antigravity CLI stores locally after sign-in. `usage` treats that token file as strictly read-only, and the call itself only reads quota metadata — it never consumes your model quota.
 - The only network activity: fetching a public model-pricing table to estimate cost (falls back to built-in prices offline) and occasionally checking GitHub for a new version. **Nothing is ever uploaded.**
 
 ## Requirements
@@ -129,7 +129,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run |
 | Codex section is empty | No Codex history found | Run a Codex conversation to generate logs |
 | Today's cost shows $0.00 | Model pricing missing | Delete `~/.usage/pricing_cache.json` or check `USAGE_DEBUG=1` |
-| Antigravity card is missing | Antigravity CLI not installed or not signed in | Install and sign in to the Antigravity CLI; the card appears automatically once a background `/quota` probe succeeds |
+| Antigravity card is missing | Antigravity CLI not installed or not signed in | Install and sign in to the Antigravity CLI; the card appears automatically once a background quota fetch succeeds |
 | App won't open | macOS Gatekeeper blocked it | Right-click `usage.app` in Finder → Open |
 | App crashes immediately (arm64) | py2app bundling bug in older versions | Upgrade to **v0.11.1 or newer** |
 

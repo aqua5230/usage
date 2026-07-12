@@ -63,13 +63,14 @@ def project_quota(
         return None
     selected = min(quota.groups, key=_group_remaining_percent)
     current_time = time.time() if now is None else now
+    age_minutes = _cache_age_minutes(quota.fetched_at, current_time)
     return AgyQuotaProjection(
         group_name=selected.name,
         session=_window_row(
-            _t(language, "session_label"), selected.five_hour, language
+            _t(language, "session_label"), selected.five_hour, language, age_minutes
         ),
         weekly=_window_row(
-            _t(language, "weekly_label"), selected.weekly, language
+            _t(language, "weekly_label"), selected.weekly, language, age_minutes
         ),
         stale=_stale_state(quota.fetched_at, current_time, language),
     )
@@ -121,7 +122,18 @@ def _remaining_percent(window: AgyQuotaWindow) -> float:
     return max(0.0, min(100.0, float(window.remaining_percent)))
 
 
-def _window_row(title: str, window: AgyQuotaWindow, language: str) -> QuotaRowState:
+def _cache_age_minutes(fetched_at: str, now: float) -> int:
+    """Whole minutes since the cached snapshot was taken (never negative)."""
+    try:
+        age_seconds = now - parse_iso8601_utc_or_raise(fetched_at).timestamp()
+    except (TypeError, ValueError):
+        return 0
+    return max(0, int(age_seconds // 60))
+
+
+def _window_row(
+    title: str, window: AgyQuotaWindow, language: str, age_minutes: int = 0
+) -> QuotaRowState:
     remaining = _remaining_percent(window)
     used = 100.0 - remaining
     if remaining == 100.0 and window.resets_in_minutes is None:
@@ -129,10 +141,11 @@ def _window_row(title: str, window: AgyQuotaWindow, language: str) -> QuotaRowSt
     elif window.resets_in_minutes is None:
         reset_text = _t(language, "reset_placeholder")
     else:
+        minutes_left = max(1, window.resets_in_minutes - max(0, age_minutes))
         reset_text = _t(
             language,
             "reset_in",
-            time=format_human_time(window.resets_in_minutes * 60, language),
+            time=format_human_time(minutes_left * 60, language),
         )
     return QuotaRowState(
         title=title,

@@ -4,50 +4,44 @@
 # Part of "usage". Free software licensed under the GNU Affero General Public
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
-"""Probe Antigravity CLI's ``/quota`` view without creating a conversation."""
+"""Fetch Antigravity quota straight from the official Cloud Code quota API.
+
+Reads the local OAuth token that the Antigravity CLI stores after sign-in,
+refreshes it through Google's token endpoint when stale, then POSTs the
+internal ``retrieveUserQuotaSummary`` endpoint for the quota summary. No CLI is
+spawned, no screen text is parsed.
+"""
 
 from __future__ import annotations
 
-import fcntl
 import json
 import os
-import pty
-import re
-import select
 import shutil
-import signal
-import struct
-import subprocess
 import tempfile
-import termios
 import time
+import urllib.parse
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_quota_cache.json"))
-# A dedicated empty directory so the CLI's workspace-trust prompt has nothing to
-# act on; launching from an arbitrary cwd (e.g. "/" under launchd) would stall the
-# probe on that prompt forever.
-PROBE_WORKSPACE = Path(os.path.expanduser("~/.usage/agy_probe_workspace"))
+# OAuth token written by the Antigravity CLI at sign-in. Read-only: we never
+# write back here (that is the CLI's home and would risk corrupting its login).
+_TOKEN_PATH = Path(os.path.expanduser("~/.gemini/antigravity-cli/antigravity-oauth-token"))
 
-_ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
-_GROUP_RE = re.compile(
-    r"(?ms)^\s*(?P<name>[A-Z][A-Z0-9 &-]*)\s*$"
-    r"\s*^\s*Models within this group:\s*(?P<models>[^\n]+)\s*$"
-    r"(?P<body>.*?)(?=^\s*[A-Z][A-Z0-9 &-]*\s*$\s*^\s*Models within this group:|\Z)"
-)
-_WINDOW_RE = re.compile(
-    r"(?ms)^\s*(?P<label>Weekly Limit|Five Hour Limit)\s*$"
-    r"(?P<body>.*?)(?=^\s*(?:Weekly Limit|Five Hour Limit)\s*$|\Z)"
-)
-_PROGRESS_RE = re.compile(r"\]\s*(?P<percent>\d+(?:\.\d+)?)%")
-_REMAINING_RE = re.compile(
-    r"(?P<percent>\d+(?:\.\d+)?)%\s+remaining\s*·\s*Refreshes in\s*"
-    r"(?P<countdown>(?:\d+h\s*)?(?:\d+m)?)"
-)
-_COUNTDOWN_RE = re.compile(r"^(?:(?P<hours>\d+)h\s*)?(?:(?P<minutes>\d+)m)?$")
+_TOKEN_URL = "https://oauth2.googleapis.com/token"
+_QUOTA_URL = "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary"
+# Antigravity's installed-app public client constants (same values quotio ships).
+_CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com"
+_CLIENT_SECRET = "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"
+_USER_AGENT = "antigravity/1.11.3 Darwin/arm64"
+
+# In-memory cache of a refreshed access token so each probe does not re-refresh.
+# Holds {"access_token": str, "expires_monotonic": float}.
+_token_cache: dict[str, object] = {}
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,116 +65,26 @@ class AgyQuotaGroup:
 
 @dataclass(frozen=True, slots=True)
 class AgyQuotaResult:
-    """All model groups returned by one ``/quota`` probe."""
+    """All model groups returned by one quota probe."""
 
     groups: list[AgyQuotaGroup]
     fetched_at: str
 
 
-def probe_quota(timeout_seconds: float = 35) -> AgyQuotaResult | None:
-    """Run ``agy /quota`` in a PTY, returning no result on any failure.
-
-    Only this call's own spawned process is tracked and cleaned up; an
-    unrelated ``agy`` process elsewhere (the user's own session, a dispatched
-    task, or an orphan from a previous crash) is never checked for, since a
-    global "is agy running" gate can get wedged forever by an orphan and
-    then block every future probe.
-    """
-    agy_path = find_agy()
-    if timeout_seconds <= 0 or agy_path is None:
+def probe_quota(timeout_seconds: float = 15) -> AgyQuotaResult | None:
+    """Fetch the quota summary via the Cloud Code API, returning no result on failure."""
+    if timeout_seconds <= 0:
         return None
-
-    master_fd: int | None = None
-    slave_fd: int | None = None
-    process: subprocess.Popen[bytes] | None = None
-    try:
-        with suppress(OSError):
-            PROBE_WORKSPACE.mkdir(parents=True, exist_ok=True)
-        master_fd, slave_fd = pty.openpty()
-        _set_window_size(slave_fd)
-        process = subprocess.Popen(
-            [agy_path],
-            stdin=slave_fd,
-            stdout=slave_fd,
-            stderr=slave_fd,
-            env=_probe_env(agy_path),
-            start_new_session=True,
-            close_fds=True,
-            cwd=str(PROBE_WORKSPACE),
-        )
-        os.close(slave_fd)
-        slave_fd = None
-
-        deadline = time.monotonic() + timeout_seconds
-        transcript = ""
-        trust_confirmed = False
-        prompt_seen_at: float | None = None
-        quota_sent_at: float | None = None
-        sent_offset = 0
-        resent = False
-        candidate: AgyQuotaResult | None = None
-        last_chunk_at = time.monotonic()
-        while time.monotonic() < deadline:
-            if process.poll() is not None:
-                return None
-            now = time.monotonic()
-            # A parse can succeed on a partially rendered screen (first group
-            # only), so hold the candidate until the stream stays quiet.
-            if candidate is not None and now - last_chunk_at >= 0.6:
-                return _parse_quota_output(transcript) or candidate
-            # A fresh cwd triggers a "Do you trust the contents of this
-            # project?" prompt that blocks the input box; its cursor defaults to
-            # "Yes, I trust this folder", so a bare Enter accepts it.
-            if not trust_confirmed and "Do you trust the contents" in transcript:
-                os.write(master_fd, b"\r")
-                trust_confirmed = True
-            # The banner paints before the input box accepts keystrokes, so
-            # wait for the shortcut hint plus a settle delay before typing.
-            if prompt_seen_at is None and "? for shortcuts" in transcript:
-                prompt_seen_at = now
-            if quota_sent_at is None and prompt_seen_at is not None and now - prompt_seen_at >= 0.5:
-                sent_offset = len(transcript)
-                os.write(master_fd, b"/quota\r")
-                quota_sent_at = now
-            elif (
-                quota_sent_at is not None
-                and not resent
-                and now - quota_sent_at > 4.0
-                and "quota" not in transcript[sent_offset:]
-            ):
-                # No echo: the keystrokes were swallowed. Clear the line and retype once.
-                sent_offset = len(transcript)
-                os.write(master_fd, b"\x15/quota\r")
-                resent = True
-            remaining = deadline - time.monotonic()
-            ready, _, _ = select.select([master_fd], [], [], min(0.2, max(remaining, 0.0)))
-            if not ready:
-                continue
-            try:
-                chunk = os.read(master_fd, 65536)
-            except OSError:
-                return None
-            if not chunk:
-                return None
-            transcript += chunk.decode("utf-8", errors="replace")
-            last_chunk_at = time.monotonic()
-            if quota_sent_at is not None and candidate is None:
-                candidate = _parse_quota_output(transcript)
-        return candidate
-    except Exception:
+    access_token = _resolve_access_token(timeout_seconds)
+    if access_token is None:
         return None
-    finally:
-        if master_fd is not None:
-            with suppress(OSError):
-                os.write(master_fd, b"/exit\r")
-        if slave_fd is not None:
-            with suppress(OSError):
-                os.close(slave_fd)
-        if master_fd is not None:
-            with suppress(OSError):
-                os.close(master_fd)
-        if process is not None:
-            _terminate_process_group(process)
+    raw = _post_json(_QUOTA_URL, access_token, {}, timeout_seconds)
+    if raw is None:
+        return None
+    groups_raw = _extract_groups(raw)
+    if not groups_raw:
+        return None
+    return _build_result(groups_raw)
 
 
 def find_agy() -> str | None:
@@ -195,28 +99,7 @@ def find_agy() -> str | None:
     return None
 
 
-def _probe_env(agy_path: str) -> dict[str, str]:
-    """Build an environment with the tools needed by the Antigravity CLI."""
-    env = os.environ.copy()
-    path_entries = [
-        os.path.dirname(agy_path),
-        os.path.expanduser("~/.local/bin"),
-        "/opt/homebrew/bin",
-        "/usr/local/bin",
-        *env.get("PATH", "").split(os.pathsep),
-    ]
-    seen: set[str] = set()
-    unique_entries: list[str] = []
-    for entry in path_entries:
-        if entry and entry not in seen:
-            seen.add(entry)
-            unique_entries.append(entry)
-    env["PATH"] = os.pathsep.join(unique_entries)
-    env.setdefault("TERM", "xterm-256color")
-    return env
-
-
-def load_quota(max_age_minutes: float = 15) -> AgyQuotaResult | None:
+def load_quota(max_age_minutes: float = 5) -> AgyQuotaResult | None:
     """Return fresh cached quota, otherwise probe and preserve stale fallback."""
     cached = _read_cache()
     if cached is not None and _is_fresh(cached, max_age_minutes):
@@ -229,99 +112,303 @@ def load_quota(max_age_minutes: float = 15) -> AgyQuotaResult | None:
     return probed
 
 
-def _set_window_size(fd: int) -> None:
-    """Give the TUI enough width that its quota lines do not wrap."""
-    fcntl.ioctl(fd, termios.TIOCSWINSZ, struct.pack("HHHH", 48, 140, 0, 0))
+def _resolve_access_token(timeout: float) -> str | None:
+    """Return a usable access token, refreshing when stale.
+
+    Prefer a refreshed token still held in memory, then the on-disk token if its
+    expiry is comfortably in the future, otherwise refresh via the token
+    endpoint. Falls back to the on-disk access token (possibly expired) only if a
+    refresh is impossible, so a 401 surfaces naturally.
+    """
+    cached_token = _token_cache.get("access_token")
+    cached_expiry = _token_cache.get("expires_monotonic")
+    if (
+        isinstance(cached_token, str)
+        and isinstance(cached_expiry, (int, float))
+        and time.monotonic() < float(cached_expiry) - 60
+    ):
+        return cached_token
+
+    token_data = _read_token_file()
+    if not isinstance(token_data, dict):
+        return None
+    token = token_data.get("token")
+    if not isinstance(token, dict):
+        return None
+    access_token = token.get("access_token")
+    expiry = token.get("expiry")
+    if (
+        isinstance(access_token, str)
+        and isinstance(expiry, str)
+        and _seconds_until(expiry) > 60
+    ):
+        return access_token
+
+    refresh_token = token.get("refresh_token")
+    if not isinstance(refresh_token, str) or not refresh_token:
+        return access_token if isinstance(access_token, str) else None
+    refreshed = _refresh_token(refresh_token, timeout)
+    if refreshed is None:
+        return access_token if isinstance(access_token, str) else None
+    new_token, expires_in = refreshed
+    _token_cache["access_token"] = new_token
+    _token_cache["expires_monotonic"] = time.monotonic() + float(expires_in)
+    return new_token
 
 
-def _terminate_process_group(process: subprocess.Popen[bytes]) -> None:
-    """Stop the PTY child and every process it started."""
-    with suppress(OSError):
-        os.killpg(process.pid, signal.SIGTERM)
+def _read_token_file() -> object:
+    """Read and parse the Antigravity OAuth token file (never writes back)."""
     try:
-        process.wait(timeout=1)
-        return
-    except subprocess.TimeoutExpired:
-        pass
+        with _TOKEN_PATH.open(encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, ValueError):
+        return None
+
+
+def _refresh_token(refresh_token: str, timeout: float) -> tuple[str, int] | None:
+    """Exchange a refresh token for a fresh access token via the token endpoint."""
+    body = urllib.parse.urlencode(
+        {
+            "client_id": _CLIENT_ID,
+            "client_secret": _CLIENT_SECRET,
+            "refresh_token": refresh_token,
+            "grant_type": "refresh_token",
+        }
+    ).encode("utf-8")
+    request = Request(
+        _TOKEN_URL,
+        data=body,
+        headers={"Content-Type": "application/x-www-form-urlencoded"},
+        method="POST",
+    )
     try:
-        os.killpg(process.pid, signal.SIGKILL)
-        process.wait(timeout=1)
-    except (OSError, subprocess.TimeoutExpired):
-        pass
+        with urlopen(request, timeout=timeout) as response:
+            payload = json.load(response)
+    except (URLError, OSError, ValueError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    access_token = payload.get("access_token")
+    expires_in = payload.get("expires_in")
+    if not isinstance(access_token, str) or isinstance(expires_in, bool):
+        return None
+    if not isinstance(expires_in, (int, float)):
+        return None
+    return access_token, int(expires_in)
 
 
-def _parse_quota_output(transcript: str) -> AgyQuotaResult | None:
-    """Parse the complete text rendered by Antigravity's ``/quota`` command."""
-    text = _normalise_terminal_text(transcript)
+def _post_json(url: str, access_token: str, body: dict[str, object], timeout: float) -> object:
+    """POST a JSON body with the bearer token; return parsed JSON or None on failure."""
+    request = Request(
+        url,
+        data=json.dumps(body).encode("utf-8"),
+        headers={
+            "Authorization": f"Bearer {access_token}",
+            "User-Agent": _USER_AGENT,
+            "Content-Type": "application/json",
+        },
+        method="POST",
+    )
+    try:
+        with urlopen(request, timeout=timeout) as response:
+            return json.load(response)
+    except (URLError, OSError, ValueError):
+        return None
+
+
+def _extract_groups(raw: object) -> list[dict[str, object]] | None:
+    """Pull the groups array from any of its three known nesting locations."""
+    if not isinstance(raw, dict):
+        return None
+    direct = raw.get("groups")
+    if isinstance(direct, list):
+        return [group for group in direct if isinstance(group, dict)]
+    for wrapper_key in ("response", "summary"):
+        wrapper = raw.get(wrapper_key)
+        if isinstance(wrapper, dict):
+            inner = wrapper.get("groups")
+            if isinstance(inner, list):
+                return [group for group in inner if isinstance(group, dict)]
+    return None
+
+
+def _build_result(groups_raw: list[dict[str, object]]) -> AgyQuotaResult | None:
+    """Classify buckets into the Gemini / Claude-GPT groups UI expects."""
+    windows: dict[str, dict[str, AgyQuotaWindow]] = {}
+    for group in groups_raw:
+        group_id = _group_id(group)
+        if group_id is None:
+            continue
+        buckets = group.get("buckets")
+        if not isinstance(buckets, list):
+            continue
+        slot = windows.setdefault(group_id, {})
+        for bucket in buckets:
+            if not isinstance(bucket, dict) or _bucket_disabled(bucket):
+                continue
+            period = _bucket_period(bucket)
+            if period is None or period in slot:
+                continue
+            window = _bucket_to_window(bucket)
+            if window is None:
+                continue
+            slot[period] = window
+    result_groups = _assemble_groups(windows)
+    if not result_groups:
+        return None
+    return AgyQuotaResult(groups=result_groups, fetched_at=datetime.now(UTC).isoformat())
+
+
+def _assemble_groups(
+    windows: dict[str, dict[str, AgyQuotaWindow]],
+) -> list[AgyQuotaGroup]:
+    """Lay out the two UI groups in fixed order, filling missing windows as full."""
+    full = AgyQuotaWindow(100.0, None, None)
+    layout = (
+        ("gemini", "GEMINI MODELS", ["Gemini Flash", "Gemini Pro"]),
+        ("claude-gpt", "CLAUDE AND GPT MODELS", ["Claude Opus", "Claude Sonnet", "GPT-OSS"]),
+    )
     groups: list[AgyQuotaGroup] = []
-    for match in _GROUP_RE.finditer(text):
-        models = [model.strip() for model in match.group("models").split(",") if model.strip()]
-        weekly = _parse_window(match.group("body"), "Weekly Limit")
-        five_hour = _parse_window(match.group("body"), "Five Hour Limit")
-        if not models or weekly is None or five_hour is None:
-            return None
+    for group_id, name, models in layout:
+        slot = windows.get(group_id)
+        if slot is None:
+            continue
         groups.append(
             AgyQuotaGroup(
-                name=match.group("name").strip(),
-                models=models,
-                weekly=weekly,
-                five_hour=five_hour,
+                name=name,
+                models=list(models),
+                weekly=slot.get("weekly", full),
+                five_hour=slot.get("session", full),
             )
         )
-    if not groups:
+    return groups
+
+
+def _group_id(group: dict[str, object]) -> str | None:
+    name = _coerce_str(group.get("displayName")) or _coerce_str(group.get("name"))
+    if name is None:
         return None
-    return AgyQuotaResult(groups=groups, fetched_at=datetime.now(UTC).isoformat())
+    lower = name.lower()
+    if "gemini" in lower:
+        return "gemini"
+    if "claude" in lower or "gpt" in lower:
+        return "claude-gpt"
+    return None
 
 
-def _normalise_terminal_text(transcript: str) -> str:
-    text = _ANSI_ESCAPE_RE.sub("", transcript).replace("\r\n", "\n").replace("\r", "\n")
-    return "".join(character for character in text if character == "\n" or ord(character) >= 32)
+def _bucket_period(bucket: dict[str, object]) -> str | None:
+    label = " ".join(
+        [
+            _coerce_str(bucket.get("bucketId")) or "",
+            _coerce_str(bucket.get("id")) or "",
+            _coerce_str(bucket.get("displayName")) or "",
+            _coerce_str(bucket.get("name")) or "",
+            _coerce_str(bucket.get("window")) or "",
+        ]
+    ).lower()
+    if "week" in label or "7d" in label or "seven" in label:
+        return "weekly"
+    if "session" in label or "5" in label or "hour" in label:
+        return "session"
+    return None
 
 
-def _parse_window(group_body: str, label: str) -> AgyQuotaWindow | None:
-    match = next(
-        (
-            candidate
-            for candidate in _WINDOW_RE.finditer(group_body)
-            if candidate.group("label") == label
-        ),
-        None,
-    )
-    if match is None:
+def _bucket_disabled(bucket: dict[str, object]) -> bool:
+    value = bucket.get("disabled")
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        return value != 0
+    text = _coerce_str(value)
+    return text is not None and text.lower() in {"true", "1"}
+
+
+def _bucket_to_window(bucket: dict[str, object]) -> AgyQuotaWindow | None:
+    fraction = _remaining_fraction(bucket)
+    if fraction is None:
         return None
-    body = match.group("body")
-    if "Quota available" in body:
-        return AgyQuotaWindow(remaining_percent=100.0, resets_in=None, resets_in_minutes=None)
-
-    summary = _REMAINING_RE.search(body)
-    if summary is None:
-        return None
-    countdown = summary.group("countdown").strip()
-    minutes = _countdown_minutes(countdown)
+    remaining = max(0.0, min(1.0, fraction)) * 100.0
+    reset_time = _bucket_reset_time(bucket)
+    if remaining >= 100.0 and reset_time is None:
+        return AgyQuotaWindow(100.0, None, None)
+    if reset_time is None:
+        return AgyQuotaWindow(remaining, None, None)
+    minutes = _minutes_until(reset_time)
     if minutes is None:
-        return None
-    progress = _PROGRESS_RE.search(body)
-    try:
-        percent_text = (
-            progress.group("percent") if progress is not None else summary.group("percent")
-        )
-        remaining_percent = float(percent_text)
-    except ValueError:
-        return None
-    if not 0 <= remaining_percent <= 100:
-        return None
-    return AgyQuotaWindow(
-        remaining_percent=remaining_percent,
-        resets_in=countdown,
-        resets_in_minutes=minutes,
-    )
+        return AgyQuotaWindow(remaining, None, None)
+    minutes = max(0, minutes)
+    return AgyQuotaWindow(remaining, _format_resets_in(minutes), minutes)
 
 
-def _countdown_minutes(countdown: str) -> int | None:
-    match = _COUNTDOWN_RE.fullmatch(countdown)
-    if match is None or (match.group("hours") is None and match.group("minutes") is None):
+def _remaining_fraction(bucket: dict[str, object]) -> float | None:
+    """Read remainingFraction across its three shapes (flat, nested, or case-tagged)."""
+    for key in ("remainingFraction", "remaining_fraction"):
+        value = _coerce_float(bucket.get(key))
+        if value is not None:
+            return value
+    remaining = bucket.get("remaining")
+    if not isinstance(remaining, dict):
         return None
-    return int(match.group("hours") or 0) * 60 + int(match.group("minutes") or 0)
+    for key in ("remainingFraction", "remaining_fraction"):
+        value = _coerce_float(remaining.get(key))
+        if value is not None:
+            return value
+    if _coerce_str(remaining.get("case")) == "remainingFraction":
+        return _coerce_float(remaining.get("value"))
+    return None
+
+
+def _bucket_reset_time(bucket: dict[str, object]) -> str | None:
+    for key in ("resetTime", "reset_time", "resetAt", "reset_at"):
+        value = _coerce_str(bucket.get(key))
+        if value:
+            return value
+    return None
+
+
+def _seconds_until(expiry: str) -> float:
+    parsed = _parse_timestamp(expiry)
+    if parsed is None:
+        return -1.0
+    return (parsed - datetime.now(UTC)).total_seconds()
+
+
+def _minutes_until(reset_time: str) -> int | None:
+    parsed = _parse_timestamp(reset_time)
+    if parsed is None:
+        return None
+    delta_seconds = (parsed - datetime.now(UTC)).total_seconds()
+    return int(delta_seconds // 60)
+
+
+def _format_resets_in(minutes: int) -> str:
+    if minutes >= 60:
+        return f"{minutes // 60}h {minutes % 60}m"
+    return f"{minutes}m"
+
+
+def _coerce_str(value: object) -> str | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, str):
+        text = value.strip()
+        return text or None
+    if isinstance(value, (int, float)):
+        return str(value)
+    return None
+
+
+def _coerce_float(value: object) -> float | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, (int, float)):
+        return float(value)
+    if isinstance(value, str):
+        try:
+            return float(value.strip())
+        except ValueError:
+            return None
+    return None
 
 
 def _is_fresh(result: AgyQuotaResult, max_age_minutes: float) -> bool:

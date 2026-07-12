@@ -3,42 +3,92 @@
 
 from __future__ import annotations
 
+import json
 import os
-import re
 import shutil
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import Request
 
 import pytest
 
 import agy_quota_probe
-from agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
+from agy_quota_probe import (
+    AgyQuotaGroup,
+    AgyQuotaResult,
+    AgyQuotaWindow,
+)
+from agy_quota_probe import (
+    find_agy as find_agy,
+)
 
-SYNTHETIC_TRANSCRIPT = """
-Models & Quota
+_TOKEN_URL = agy_quota_probe._TOKEN_URL
+_QUOTA_URL = agy_quota_probe._QUOTA_URL
 
-GEMINI MODELS
-  Models within this group: Gemini Flash, Gemini Pro
+# A reset time comfortably in the future so minute rounding never flips the sign
+# during a test run; we only assert structure, not the exact countdown.
+_FUTURE_RESET = (datetime.now(UTC) + timedelta(days=7)).isoformat()
 
-  Weekly Limit
-    [===========================>] 83.28%
-    83% remaining · Refreshes in 145h 44m
 
-  Five Hour Limit
-    [===============================>] 95.27%
-    95% remaining · Refreshes in 3h 53m
+class _FakeResponse:
+    """Minimal file-like object that json.load can read inside a with-block."""
 
-CLAUDE AND GPT MODELS
-  Models within this group: Claude Opus, Claude Sonnet, GPT-OSS
+    def __init__(self, payload: object) -> None:
+        self._data = json.dumps(payload).encode("utf-8")
 
-  Weekly Limit
-    [================================] 100.00%
-    Quota available
+    def __enter__(self) -> _FakeResponse:
+        return self
 
-  Five Hour Limit
-    [================================] 100.00%
-    Quota available
-"""
+    def __exit__(self, *_exc: object) -> None:
+        return None
+
+    def read(self) -> bytes:
+        return self._data
+
+
+def _build_urlopen(
+    routing: dict[str, object],
+) -> tuple[Callable[..., _FakeResponse], list[tuple[str, str | None]]]:
+    """Return a fake urlopen plus a log of (url, Authorization) per call."""
+    visited: list[tuple[str, str | None]] = []
+
+    def fake(request: Request, timeout: float = 0.0) -> _FakeResponse:  # noqa: ARG001
+        visited.append((request.full_url, request.get_header("Authorization")))
+        for prefix, payload in routing.items():
+            if request.full_url == prefix:
+                return _FakeResponse(payload)
+        raise AssertionError(f"unexpected request to {request.full_url}")
+
+    return fake, visited
+
+
+def _write_token(
+    path: Path,
+    *,
+    access_token: str = "old-token",
+    refresh_token: str | None = "rt-secret",
+    expiry: datetime | None = None,
+) -> None:
+    token: dict[str, object] = {"access_token": access_token, "token_type": "Bearer"}
+    if refresh_token is not None:
+        token["refresh_token"] = refresh_token
+    token["expiry"] = (expiry or datetime.now(UTC) + timedelta(hours=1)).isoformat()
+    path.write_text(
+        json.dumps({"token": token, "auth_method": "consumer"}),
+        encoding="utf-8",
+    )
+
+
+@pytest.fixture(autouse=True)
+def _reset_token_cache() -> Iterator[None]:
+    agy_quota_probe._token_cache.clear()
+    yield
+    agy_quota_probe._token_cache.clear()
+
+
+# --- find_agy (unchanged behavior) -----------------------------------------
 
 
 def test_find_agy_returns_path_from_which(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -79,70 +129,291 @@ def test_find_agy_returns_none_when_all_paths_miss(
     assert agy_quota_probe.find_agy() is None
 
 
-def test_probe_env_prepends_paths_deduplicates_and_preserves_environment(
+# --- token freshness + refresh --------------------------------------------
+
+
+def test_resolve_access_token_uses_disk_token_when_not_expired(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    token_path = tmp_path / "antigravity-oauth-token"
+    _write_token(token_path, access_token="fresh-from-disk")
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", token_path)
+    urlopen, visited = _build_urlopen({})
+    monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
+
+    assert agy_quota_probe._resolve_access_token(15.0) == "fresh-from-disk"
+    assert visited == []  # no refresh, no API call
+
+
+def test_resolve_access_token_refreshes_when_expired(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    token_path = tmp_path / "antigravity-oauth-token"
+    _write_token(token_path, expiry=datetime.now(UTC) - timedelta(minutes=5))
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", token_path)
+    urlopen, visited = _build_urlopen(
+        {_TOKEN_URL: {"access_token": "refreshed-token", "expires_in": 3600}}
+    )
+    monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
+
+    assert agy_quota_probe._resolve_access_token(15.0) == "refreshed-token"
+    assert visited[0][0] == _TOKEN_URL
+    # The refreshed token is cached for subsequent probes.
+    assert agy_quota_probe._token_cache.get("access_token") == "refreshed-token"
+
+    # A second resolution reuses the cache without hitting the network again.
+    visited.clear()
+    assert agy_quota_probe._resolve_access_token(15.0) == "refreshed-token"
+    assert visited == []
+
+
+def test_refresh_token_returns_none_on_http_error(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setenv(
-        "PATH",
-        os.pathsep.join(["/usr/local/bin", "/usr/bin", "/custom/bin"]),
-    )
-    monkeypatch.setenv("AGY_PROBE_TEST", "retained")
-    monkeypatch.delenv("TERM", raising=False)
+    def raise_error(request: Request, timeout: float = 0.0) -> object:  # noqa: ARG001
+        raise URLError("boom")
 
-    env = agy_quota_probe._probe_env("/custom/bin/agy")
-    path_entries = env["PATH"].split(os.pathsep)
+    monkeypatch.setattr(agy_quota_probe, "urlopen", raise_error)
 
-    assert path_entries == [
-        "/custom/bin",
-        os.path.expanduser("~/.local/bin"),
-        "/opt/homebrew/bin",
-        "/usr/local/bin",
-        "/usr/bin",
+    assert agy_quota_probe._refresh_token("rt", 15.0) is None
+
+
+# --- response parsing ------------------------------------------------------
+
+
+def _groups_payload(groups: list[dict[str, object]], *, wrap: str | None = None) -> object:
+    body: dict[str, object] = {"groups": groups}
+    if wrap is None:
+        return body
+    return {wrap: body}
+
+
+def _bucket(
+    *,
+    bucket_id: str = "weekly",
+    name: str | None = None,
+    window: str = "WEEK",
+    remaining: object,
+    reset_time: str | None = _FUTURE_RESET,
+    disabled: bool | None = None,
+) -> dict[str, object]:
+    if name is None:
+        name = "Five Hour Limit" if bucket_id == "session" else "Weekly Limit"
+    bucket: dict[str, object] = {
+        "bucketId": bucket_id,
+        "displayName": name,
+        "window": window,
+    }
+    bucket.update(remaining if isinstance(remaining, dict) else {"remainingFraction": remaining})
+    if reset_time is not None:
+        bucket["resetTime"] = reset_time
+    if disabled is not None:
+        bucket["disabled"] = disabled
+    return bucket
+
+
+def _gemini_group(buckets: list[dict[str, object]]) -> dict[str, object]:
+    return {"displayName": "Gemini Models", "buckets": buckets}
+
+
+def test_extract_groups_finds_direct_response_summary_and_nested() -> None:
+    group = _gemini_group([_bucket(remaining=0.83, bucket_id="weekly")])
+
+    direct = agy_quota_probe._extract_groups(_groups_payload([group]))
+    assert direct is not None and len(direct) == 1
+
+    wrapped = agy_quota_probe._extract_groups(_groups_payload([group], wrap="response"))
+    assert wrapped is not None and len(wrapped) == 1
+
+    summary = agy_quota_probe._extract_groups(_groups_payload([group], wrap="summary"))
+    assert summary is not None and len(summary) == 1
+
+
+def test_build_result_parses_group_and_windows() -> None:
+    groups_raw = [
+        _gemini_group(
+            [
+                _bucket(remaining=0.8328, bucket_id="weekly", name="Weekly Limit"),
+                _bucket(remaining=0.9527, bucket_id="session", name="Five Hour", window="5h"),
+            ]
+        )
     ]
-    assert env["TERM"] == "xterm-256color"
-    assert env["AGY_PROBE_TEST"] == "retained"
 
-
-def test_probe_env_preserves_existing_term(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setenv("TERM", "screen-256color")
-
-    assert agy_quota_probe._probe_env("/custom/bin/agy")["TERM"] == "screen-256color"
-
-
-def test_parse_quota_output_parses_all_groups_and_windows() -> None:
-    result = agy_quota_probe._parse_quota_output(SYNTHETIC_TRANSCRIPT)
+    result = agy_quota_probe._build_result(groups_raw)
 
     assert result is not None
-    assert [group.name for group in result.groups] == ["GEMINI MODELS", "CLAUDE AND GPT MODELS"]
-    first_group, second_group = result.groups
-    assert first_group.models == ["Gemini Flash", "Gemini Pro"]
-    assert first_group.weekly == AgyQuotaWindow(83.28, "145h 44m", 8744)
-    assert first_group.five_hour == AgyQuotaWindow(95.27, "3h 53m", 233)
-    assert second_group.models == ["Claude Opus", "Claude Sonnet", "GPT-OSS"]
-    assert second_group.weekly == AgyQuotaWindow(100.0, None, None)
-    assert second_group.five_hour == AgyQuotaWindow(100.0, None, None)
+    assert [group.name for group in result.groups] == ["GEMINI MODELS"]
+    gemini = result.groups[0]
+    assert gemini.models == ["Gemini Flash", "Gemini Pro"]
+    assert gemini.weekly.remaining_percent == pytest.approx(83.28)
+    assert gemini.weekly.resets_in_minutes is not None and gemini.weekly.resets_in_minutes > 0
+    assert gemini.weekly.resets_in is not None and "h" in gemini.weekly.resets_in
+    assert gemini.five_hour.remaining_percent == pytest.approx(95.27)
+    assert gemini.five_hour.resets_in is not None
 
 
-def test_parse_quota_output_returns_none_for_malformed_output() -> None:
-    malformed = SYNTHETIC_TRANSCRIPT.replace("Refreshes in 3h 53m", "Refreshes later")
+def test_build_result_handles_remaining_fraction_three_shapes() -> None:
+    for remaining in (
+        {"remainingFraction": 0.5},
+        {"remaining": {"remainingFraction": 0.5}},
+        {"remaining": {"case": "remainingFraction", "value": 0.5}},
+    ):
+        groups_raw = [_gemini_group([_bucket(remaining=remaining, bucket_id="weekly")])]
+        result = agy_quota_probe._build_result(groups_raw)
+        assert result is not None
+        assert result.groups[0].weekly.remaining_percent == pytest.approx(50.0)
 
-    assert agy_quota_probe._parse_quota_output(malformed) is None
-    assert agy_quota_probe._parse_quota_output("not a quota screen") is None
+
+def test_build_result_full_bucket_without_reset_time_is_full_window() -> None:
+    groups_raw = [
+        _gemini_group(
+            [_bucket(remaining=1.0, bucket_id="weekly", reset_time=None)]
+        )
+    ]
+
+    result = agy_quota_probe._build_result(groups_raw)
+
+    assert result is not None
+    assert result.groups[0].weekly == AgyQuotaWindow(100.0, None, None)
 
 
-def test_parse_quota_output_falls_back_to_summary_percent_without_progress_bar() -> None:
-    transcript = re.sub(
-        r"^\s*\[=+>\]\s*83\.28%\n",
-        "",
-        SYNTHETIC_TRANSCRIPT,
-        count=1,
-        flags=re.MULTILINE,
+def test_build_result_non_full_bucket_without_reset_time_has_no_countdown() -> None:
+    groups_raw = [
+        _gemini_group([_bucket(remaining=0.4, bucket_id="weekly", reset_time=None)])
+    ]
+
+    result = agy_quota_probe._build_result(groups_raw)
+
+    assert result is not None
+    window = result.groups[0].weekly
+    assert window.remaining_percent == pytest.approx(40.0)
+    assert window.resets_in is None
+    assert window.resets_in_minutes is None
+
+
+def test_build_result_skips_disabled_bucket_and_fills_missing_window_as_full() -> None:
+    groups_raw = [
+        _gemini_group(
+            [
+                _bucket(
+                    remaining=0.1,
+                    bucket_id="weekly",
+                    disabled=True,
+                ),
+                _bucket(remaining=0.7, bucket_id="session", window="5h"),
+            ]
+        )
+    ]
+
+    result = agy_quota_probe._build_result(groups_raw)
+
+    assert result is not None
+    gemini = result.groups[0]
+    # Disabled weekly dropped; only the session bucket survived.
+    assert gemini.weekly == AgyQuotaWindow(100.0, None, None)
+    assert gemini.five_hour.remaining_percent == pytest.approx(70.0)
+
+
+def test_build_result_returns_none_when_no_known_group() -> None:
+    groups_raw: list[dict[str, object]] = [{"displayName": "Unknown Tier", "buckets": []}]
+
+    assert agy_quota_probe._build_result(groups_raw) is None
+
+
+def test_build_result_splits_gemini_and_claude_gpt_groups() -> None:
+    groups_raw: list[dict[str, object]] = [
+        {"displayName": "Gemini Models", "buckets": [_bucket(remaining=0.9, bucket_id="weekly")]},
+        {
+            "displayName": "Claude and GPT Models",
+            "buckets": [_bucket(remaining=0.2, bucket_id="session", window="5h")],
+        },
+    ]
+
+    result = agy_quota_probe._build_result(groups_raw)
+
+    assert result is not None
+    assert [group.name for group in result.groups] == [
+        "GEMINI MODELS",
+        "CLAUDE AND GPT MODELS",
+    ]
+    assert result.groups[1].models == ["Claude Opus", "Claude Sonnet", "GPT-OSS"]
+
+
+# --- probe_quota end-to-end (mocked HTTP) ----------------------------------
+
+
+def test_probe_quota_returns_none_without_token_file(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", tmp_path / "missing-token")
+    urlopen, visited = _build_urlopen({})
+    monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
+
+    assert agy_quota_probe.probe_quota() is None
+    assert visited == []
+
+
+def test_probe_quota_refreshes_then_fetches_quota(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    token_path = tmp_path / "antigravity-oauth-token"
+    _write_token(token_path, expiry=datetime.now(UTC) - timedelta(minutes=5))
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", token_path)
+    quota_payload = _groups_payload(
+        [_gemini_group([_bucket(remaining=0.8328, bucket_id="weekly")])], wrap="response"
     )
+    urlopen, visited = _build_urlopen(
+        {
+            _TOKEN_URL: {"access_token": "refreshed-token", "expires_in": 3600},
+            _QUOTA_URL: quota_payload,
+        }
+    )
+    monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
 
-    result = agy_quota_probe._parse_quota_output(transcript)
+    result = agy_quota_probe.probe_quota()
 
     assert result is not None
-    assert result.groups[0].weekly.remaining_percent == 83.0
+    assert result.groups[0].name == "GEMINI MODELS"
+    assert result.groups[0].weekly.remaining_percent == pytest.approx(83.28)
+    # Two calls: refresh then quota; the quota call carried the refreshed token.
+    assert [url for url, _auth in visited] == [_TOKEN_URL, _QUOTA_URL]
+    assert visited[1][1] == "Bearer refreshed-token"
+
+
+def test_probe_quota_returns_none_on_http_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    token_path = tmp_path / "antigravity-oauth-token"
+    _write_token(token_path)  # not expired, so only the quota call is attempted
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", token_path)
+
+    def raise_error(request: Request, timeout: float = 0.0) -> object:  # noqa: ARG001
+        raise URLError("offline")
+
+    monkeypatch.setattr(agy_quota_probe, "urlopen", raise_error)
+
+    assert agy_quota_probe.probe_quota() is None
+
+
+def test_probe_quota_returns_none_when_response_has_no_groups(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    token_path = tmp_path / "antigravity-oauth-token"
+    _write_token(token_path)
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", token_path)
+    urlopen, _visited = _build_urlopen({_QUOTA_URL: {"unrelated": "payload"}})
+    monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
+
+    assert agy_quota_probe.probe_quota() is None
+
+
+# --- load_quota + cache ----------------------------------------------------
 
 
 def test_load_quota_returns_fresh_cache_without_probing(

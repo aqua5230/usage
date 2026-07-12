@@ -40,7 +40,7 @@ brew install --cask aqua5230/usage/usage
 ### 即時可見性
 
 - **常駐監控：** 額度常駐選單列，顏色標示警戒級別（綠到紅）。點開能看 Session、Weekly 與各專案用量細節。
-- **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在每一款面板。數字來自背景定期執行官方 CLI 的 `/quota` 指令——跟你自己打一次指令一模一樣，並帶 15 分鐘快取。
+- **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在每一款面板。數字直接向官方額度 API 查詢，用的是 Antigravity CLI 本來就存在你機器上的登入身分——每幾分鐘自動刷新，重置倒數即時遞減。
 - **上下文提醒與系統通知：** Context Window 達 70% 時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
 - **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex 或 Antigravity 從選單列及面板上徹底隱藏。
 
@@ -67,7 +67,7 @@ brew install --cask aqua5230/usage/usage
 
 - 用量數字**只讀本機紀錄檔**。
 - **絕對不呼叫 Anthropic / OpenAI API，不讀 Keychain**（macOS 內建密碼保險箱）。
-- Antigravity 額度是在本機執行官方 Antigravity CLI 自己的 `/quota` 指令取得——跟你自己輸入指令完全相同。`usage` 絕不直接碰它的 API 或 token。
+- Antigravity 額度是用 Antigravity CLI 登入後存在本機的 OAuth token 向官方額度 API 查詢。`usage` 對那個 token 檔只讀不寫，這個呼叫也只讀額度資訊——絕不消耗你的模型額度。
 - 唯二連網：抓公開價格表估算成本（斷網會用內建預設），以及偶爾檢查 GitHub 版本更新。**不會上傳任何資料。**
 
 ## 環境需求
@@ -129,7 +129,7 @@ brew install --cask aqua5230/usage/usage
 | 顯示「N 分鐘未更新」 | Claude Code 未執行 | 打開 Claude Code 跑一下就會更新 |
 | Codex 區塊空白 | 找不到 Codex 紀錄 | 用 Codex 跑一次對話 |
 | 今日花費是 $0.00 | 價格表對不上或抓取失敗 | 刪掉 `~/.usage/pricing_cache.json` 重新抓取 |
-| Antigravity 卡片沒出現 | 未安裝或未登入 Antigravity CLI | 安裝並登入 Antigravity CLI，背景 `/quota` 探測成功後卡片會自動出現 |
+| Antigravity 卡片沒出現 | 未安裝或未登入 Antigravity CLI | 安裝並登入 Antigravity CLI，背景額度查詢成功後卡片會自動出現 |
 | App 打不開 | Gatekeeper 擋住 | Finder → 找到 `usage.app` → 按右鍵 → 打開 |
 | App 一開就閃退 (arm64)| 舊版打包 bug | 請升級至 **v0.11.1 或更新版本** |
 

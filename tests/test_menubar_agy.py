@@ -121,3 +121,47 @@ def test_load_refresh_result_projects_mocked_quota(monkeypatch: pytest.MonkeyPat
     assert result.hide_agy is False
     assert result.projection is not None
     assert result.projection.group_name == "GEMINI MODELS"
+
+
+def test_project_quota_counts_down_by_cache_age() -> None:
+    now_dt = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
+    fetched = now_dt - timedelta(minutes=3)
+    quota = AgyQuotaResult(
+        groups=[
+            _group(
+                "GEMINI MODELS",
+                session_remaining=50,
+                weekly_remaining=100,
+                session_reset_minutes=12,
+                weekly_reset_minutes=None,
+            )
+        ],
+        fetched_at=fetched.isoformat(),
+    )
+
+    projection = menubar_agy.project_quota(quota, "en", now=now_dt.timestamp())
+
+    assert projection is not None
+    assert projection.session.reset_text == "Resets in 9m"
+
+
+def test_project_quota_countdown_clamps_to_one_minute_when_overdue() -> None:
+    now_dt = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
+    fetched = now_dt - timedelta(minutes=18)
+    quota = AgyQuotaResult(
+        groups=[
+            _group(
+                "GEMINI MODELS",
+                session_remaining=50,
+                weekly_remaining=100,
+                session_reset_minutes=12,
+                weekly_reset_minutes=None,
+            )
+        ],
+        fetched_at=fetched.isoformat(),
+    )
+
+    projection = menubar_agy.project_quota(quota, "en", now=now_dt.timestamp())
+
+    assert projection is not None
+    assert projection.session.reset_text == "Resets in 1m"

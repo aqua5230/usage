@@ -40,7 +40,7 @@ brew install --cask aqua5230/usage/usage
 ### 实时可见
 
 - **常驻监视器：** 配额常驻菜单栏，以绿色到红色的颜色编码显示。需要完整的会话、每周和各项目明细时，点击即可查看。
-- **Antigravity 支持：** Antigravity（Gemini）的会话与每周配额以第三张卡片出现在每一款面板。数值来自后台定期运行官方 CLI 的 `/quota` 命令——与你自己输入一次完全相同，并带有 15 分钟缓存。
+- **Antigravity 支持：** Antigravity（Gemini）的会话与每周配额以第三张卡片出现在每一款面板。数值直接向官方配额 API 查询，使用的是 Antigravity CLI 本就保存在你机器上的登录身份——每隔几分钟自动刷新，重置倒计时实时递减。
 - **上下文提醒与通知：** 当上下文窗口达到 70% 时，状态栏会提示你使用 `/clear` 或 `/compact`，避免浪费 token。你也可以选择接收关于配额限额和恢复的系统通知。
 - **隐藏区块：** 没全都用？点击一次即可从菜单栏和面板中完全隐藏 Claude Code、Codex 或 Antigravity 区块。
 
@@ -67,7 +67,7 @@ brew install --cask aqua5230/usage/usage
 
 - 使用量数值**仅从本机本地日志文件**读取。
 - 它**从不调用 Anthropic / OpenAI API**，也**从不读取钥匙串**（macOS 的密码保险库）。
-- Antigravity 配额通过在本地运行官方 Antigravity CLI 自带的 `/quota` 命令获取——与你自己输入时完全相同。`usage` 绝不直接接触它的 API 或 token。
+- Antigravity 配额通过 Antigravity CLI 登录后保存在本地的 OAuth token 向官方配额 API 查询。`usage` 对该 token 文件只读不写，该调用也只读取配额信息——绝不消耗你的模型配额。
 - 唯一的网络活动：获取公开的模型价格表以估算费用（离线时回退到内置价格），以及偶尔在 GitHub 检查新版本。**绝不会上传任何内容。**
 
 ## 系统要求
@@ -129,7 +129,7 @@ brew install --cask aqua5230/usage/usage
 | 状态显示“N minutes stale” | Claude Code 未运行 | 打开 Claude Code 并让它运行 |
 | Codex 区块为空 | 未找到 Codex 历史记录 | 进行一次 Codex 对话以生成日志 |
 | 今日费用显示 $0.00 | 缺少模型价格 | 删除 `~/.usage/pricing_cache.json`，或检查 `USAGE_DEBUG=1` |
-| Antigravity 卡片未显示 | 未安装或未登录 Antigravity CLI | 安装并登录 Antigravity CLI；后台 `/quota` 探测成功后卡片会自动出现 |
+| Antigravity 卡片未显示 | 未安装或未登录 Antigravity CLI | 安装并登录 Antigravity CLI；后台配额查询成功后卡片会自动出现 |
 | App 无法打开 | macOS Gatekeeper 阻止了它 | 在 Finder 中右键 `usage.app` → Open |
 | App 立即崩溃（arm64） | 旧版本中的 py2app 打包 bug | 升级到 **v0.11.1 或更高版本** |
 
