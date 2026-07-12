@@ -4,6 +4,14 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.27.0] - 2026-07-13
+
+### 新增
+- **「AI 更新日報」面板**——選單裡緊鄰「AI 人才市場」的獨立項目，每天帶你看 Claude Code、Codex、Antigravity 三套工具的更新。資料來自公開的 [ai-updates](https://github.com/aqua5230/ai-updates) 專案，每天自動抓官方 changelog；已審核的更新顯示五語白話版，未審核的顯示官方原文並標「白話版審核中」。完整更新歷史也可到公開[網頁](https://aqua5230.github.io/ai-updates/)瀏覽。
+
+### 變更
+- **HTML 報告移除「AI 工具更新速報」區塊**——該資訊已獨立成上述面板與網頁，HTML 深度報告不再重複刊載。
+
 ## [0.26.1] - 2026-07-13
 
 ### 修正

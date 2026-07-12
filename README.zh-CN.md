@@ -52,7 +52,7 @@ brew install --cask aqua5230/usage/usage
 
 ### 报告与洞察
 
-- **深入 HTML 报告：** 即时生成可分享的 HTML 深度报告，展示每日和每周 token 趋势、项目排名和费用。包含汇总近期变更的**AI 工具更新摘要**，以及带有贡献热图和“Wrapped”摘要的**年度回顾**。一键保存为 **.html、.csv 或 .png 图像**，完全离线，并可选择遮蔽项目名称。
+- **深入 HTML 报告：** 即时生成可分享的 HTML 深度报告，展示每日和每周 token 趋势、项目排名和费用。包含带有贡献热图和“Wrapped”摘要的**年度回顾**。一键保存为 **.html、.csv 或 .png 图像**，完全离线，并可选择遮蔽项目名称。
 - **TUI 与 CLI：** 更偏好终端？运行功能丰富的 TUI 仪表板：`python3 main.py --tui`，或通过 `python3 usage_cli.py report` 生成深度分析。
 
 ### 体验与自定义
@@ -60,6 +60,7 @@ brew install --cask aqua5230/usage/usage
 - **10 个视觉主题：** 可切换面板风格，包括 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026 和 Lepidoptera（蓝图）。
 - **拖拽排序：** 按住任意配额卡上下拖拽即可交换顺序——这一排列在所有主题间共享，并在重启后保留。
 - **AI 人才市场：** 将现成的 AI 团队带入 Claude Code。浏览并立即将精选子代理角色安装到 `~/.claude/agents/`。通过随附 CLI 完全在本地运行。
+- **AI 更新日报：** 菜单里紧邻 AI 人才市场的独立项目，每天带你看 Claude Code、Codex、Antigravity 三套工具的更新。资料来自公开的 [ai-updates](https://github.com/aqua5230/ai-updates) 项目，每天自动抓取官方 changelog；已审核的更新显示五语白话版、未审核的显示官方原文并标注“白话版审核中”。完整历史可到公开[网页版](https://aqua5230.github.io/ai-updates/)查看。
 - **灵伴：** 一个小型动态白色剪影会出现在使用百分比旁边：Claude 是凤凰，Codex 是龙，Antigravity 是狮子。每个伙伴都会随各自工具的 token 消耗速率上升而动态加速。
 - **自动本地化：** 界面文本提供繁体中文、简体中文、英语、日语和韩语，并自动匹配系统设置。
 
@@ -143,6 +144,7 @@ brew install --cask aqua5230/usage/usage
 | Antigravity（Gemini）用量 | ✅ | — | — |
 | HTML 深度报告与界面 | ✅ | ✅ | — |
 | AI 人才市场 | ✅ | — | — |
+| AI 更新日报 | ✅ | — | — |
 | 进度管家与 Token 节省器 | ✅ | — | — |
 | Token 浪费健康检查 | ✅ | — | — |
 | 零 API 调用 | ✅ | ✅ | ✅ |

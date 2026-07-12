@@ -5,6 +5,14 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.27.0] - 2026-07-13
+
+### Added
+- **AI Update Daily panel** — a dedicated menu item next to the AI Talent Market surfaces the daily changes to Claude Code, Codex, and Antigravity. Updates are sourced from the public [ai-updates](https://github.com/aqua5230/ai-updates) project, which auto-fetches official changelogs every day. Reviewed updates show a plain-language summary in all five UI languages; unreviewed ones show the official source text flagged as "plain-language review pending." The full update history is also browsable on the public [web page](https://aqua5230.github.io/ai-updates/).
+
+### Changed
+- **HTML report's "AI Tool Update Digest" section removed** — the digest has graduated into its own dedicated panel and web page, so the HTML deep report no longer duplicates it.
+
 ## [0.26.1] - 2026-07-13
 
 ### Fixed

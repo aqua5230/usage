@@ -52,7 +52,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 ### Reporting & Insight
 
-- **Deep HTML Reports:** Instant, shareable HTML deep reports showing daily and weekly token trends, project rankings, and cost. Includes an **AI Tool Update Digest** summarizing recent changes, and a **Year in Review** featuring a contribution heatmap and "Wrapped" summary. One click saves a copy as **.html, .csv, or a .png image** — fully offline, with optional project-name masking.
+- **Deep HTML Reports:** Instant, shareable HTML deep reports showing daily and weekly token trends, project rankings, and cost. Includes a **Year in Review** featuring a contribution heatmap and "Wrapped" summary. One click saves a copy as **.html, .csv, or a .png image** — fully offline, with optional project-name masking.
 - **TUI & CLI:** Prefer the terminal? Run the rich TUI dashboard with `python3 main.py --tui`, or generate deep analytics with `python3 usage_cli.py report`.
 
 ### Experience & Customization
@@ -60,6 +60,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 - **10 Visual Themes:** Switch between panel styles including Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, and Lepidoptera (blueprint).
 - **Drag to Reorder:** Grab any quota card and drag it up or down to swap the order — the arrangement is shared across every theme and survives restarts.
 - **AI Talent Market:** Bring a ready-made AI team into Claude Code. Browse and install curated subagent personas into `~/.claude/agents/` instantly. Runs fully locally via the bundled CLI.
+- **AI Update Daily:** A dedicated menu item next to the AI Talent Market surfaces the daily changes to Claude Code, Codex, and Antigravity. Updates come from the public [ai-updates](https://github.com/aqua5230/ai-updates) project, which auto-fetches official changelogs every day; reviewed updates show a plain-language summary in all five languages, while unreviewed ones show the official source text flagged as "plain-language review pending." Browse the full history on the public [web page](https://aqua5230.github.io/ai-updates/).
 - **Spirit Companions:** A small animated white silhouette lives beside your usage percentages — a phoenix for Claude, a dragon for Codex, a lion for Antigravity. Each accelerates dynamically as its own tool's token burn rate climbs.
 - **Automatic Localization:** UI text is available in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
 
@@ -143,6 +144,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Antigravity (Gemini) usage | ✅ | — | — |
 | HTML deep reports & UI | ✅ | ✅ | — |
 | AI Talent Market | ✅ | — | — |
+| AI Update Daily | ✅ | — | — |
 | Progress Concierge & Token Saver | ✅ | — | — |
 | Token-waste Health Check | ✅ | — | — |
 | Zero API calls | ✅ | ✅ | ✅ |

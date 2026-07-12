@@ -52,7 +52,7 @@ brew install --cask aqua5230/usage/usage
 
 ### 報告與洞察
 
-- **深度 HTML 報告：** 視覺化呈現每日與每週趨勢、專案排行與成本。包含整理近期工具更新的 **AI Tool Update Digest**，以及帶有貢獻熱力圖與 Wrapped 摘要的 **Year in Review**。一鍵另存 **.html／.csv／.png 圖卡**分享，全程離線、可選擇隱藏專案名稱。
+- **深度 HTML 報告：** 視覺化呈現每日與每週趨勢、專案排行與成本。包含帶有貢獻熱力圖與 Wrapped 摘要的 **Year in Review**。一鍵另存 **.html／.csv／.png 圖卡**分享，全程離線、可選擇隱藏專案名稱。
 - **TUI 與 CLI 支援：** 偏好終端機的話，可用 `python3 main.py --tui` 開 Rich TUI 面板，或用 `python3 usage_cli.py report` 產出深度分析報告。
 
 ### 體驗與客製化
@@ -60,6 +60,7 @@ brew install --cask aqua5230/usage/usage
 - **10 款視覺面板：** 可在 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026 與 Lepidoptera（藍曬圖）之間切換。
 - **拖曳排序：** 按住任何一張額度卡上下拖曳就能交換順序，排法在所有主題間共用、重開也會記住。
 - **AI 人才市場：** 將整個 AI 團隊帶進 Claude Code。瀏覽並一鍵將精選 subagent persona 安裝到 `~/.claude/agents/`，全程透過內建 CLI 在本機完成。
+- **AI 更新日報：** 選單裡緊鄰「AI 人才市場」的獨立項目，每天帶你看 Claude Code、Codex、Antigravity 三套工具的更新。資料來自公開的 [ai-updates](https://github.com/aqua5230/ai-updates) 專案，每天自動抓官方 changelog；已審核的更新顯示五語白話版、未審核的顯示官方原文並標「白話版審核中」。完整歷史可到公開[網頁版](https://aqua5230.github.io/ai-updates/)瀏覽。
 - **神獸夥伴：** 百分比旁常駐一隻小型白色動畫神獸（Claude 是鳳凰，Codex 是飛龍，Antigravity 是獅子），各自跟著自家工具的 token 燃燒率動態加速。
 - **自動多語言 (i18n)：** 介面支援繁中、簡中、英、日、韓，自動跟隨系統語言設定。
 
@@ -143,6 +144,7 @@ brew install --cask aqua5230/usage/usage
 | Antigravity（Gemini）支援 | ✅ | — | — |
 | HTML 深度報告與 UI 面板 | ✅ | ✅ | — |
 | AI 人才市場 | ✅ | — | — |
+| AI 更新日報 | ✅ | — | — |
 | 進度管家與省 token 模式 | ✅ | — | — |
 | Token 浪費健檢 | ✅ | — | — |
 | 零 API 呼叫 | ✅ | ✅ | ✅ |
