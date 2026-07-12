@@ -8,6 +8,7 @@ from __future__ import annotations
 
 PHOENIX_FRAMES = tuple(f"critters/phoenix/{index}.png" for index in range(1, 6))
 DRAGON_FRAMES = tuple(f"critters/dragon/{index}.png" for index in range(1, 6))
+LION_FRAMES = tuple(f"critters/lion/{index}.png" for index in range(1, 6))
 
 IDLE_INTERVAL_SECONDS = 0.0
 NORMAL_INTERVAL_SECONDS = 0.18

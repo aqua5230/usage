@@ -56,6 +56,7 @@ if __name__ == "__main__":
             "assets/claude_color_menubar.png",
             "assets/codex.webp",
             "assets/codex_color_menubar.png",
+            "assets/agy_color_menubar.png",
             "assets/critters",
             "assets/panels",
             "i18n.json",

@@ -21,7 +21,7 @@ import webbrowser
 from datetime import UTC, datetime, timedelta
 from importlib import metadata
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import objc
 from AppKit import (
@@ -56,6 +56,7 @@ from AppKit import (
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 from Quartz import CGColorCreateGenericRGB
 
+import agy_loader
 import codex_loader
 import critter_frames
 import login_item
@@ -215,6 +216,8 @@ _CLAUDE_MENUBAR_ICON: Any = None
 _CLAUDE_MENUBAR_ICON_LOADED = False
 _CODEX_MENUBAR_ICON: Any = None
 _CODEX_MENUBAR_ICON_LOADED = False
+_AGY_MENUBAR_ICON: Any = None
+_AGY_MENUBAR_ICON_LOADED = False
 _CRITTER_IMAGE_CACHE: dict[str, Any] = {}
 
 
@@ -284,6 +287,19 @@ def _codex_menubar_icon() -> Any:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("load Codex menubar icon failed", exc_info=True)
     return _CODEX_MENUBAR_ICON
+
+
+def _agy_menubar_icon() -> Any:
+    global _AGY_MENUBAR_ICON, _AGY_MENUBAR_ICON_LOADED
+    if not _AGY_MENUBAR_ICON_LOADED:
+        _AGY_MENUBAR_ICON_LOADED = True
+        try:
+            _AGY_MENUBAR_ICON = _load_menubar_color_icon("agy_color_menubar.png")
+        except Exception:
+            _AGY_MENUBAR_ICON = None
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("load Antigravity menubar icon failed", exc_info=True)
+    return _AGY_MENUBAR_ICON
 
 
 def _menubar_icon_attachment_string(image: Any) -> Any:
@@ -632,6 +648,7 @@ class AppDelegate(NSObject):
     interval = objc.ivar()
     tracker = objc.ivar()
     codex_tracker = objc.ivar()
+    agy_tracker = objc.ivar()
     latest_state = objc.ivar()
     active_panel = objc.ivar()
     codex_5h_pct = objc.ivar()
@@ -652,6 +669,9 @@ class AppDelegate(NSObject):
     dragon_timer = objc.ivar()
     dragon_frame = objc.ivar()
     dragon_interval = objc.ivar()
+    lion_timer = objc.ivar()
+    lion_frame = objc.ivar()
+    lion_interval = objc.ivar()
     language = objc.ivar()
 
     def initWithMock_interval_(self, mock: bool, interval: int) -> AppDelegate:
@@ -664,6 +684,7 @@ class AppDelegate(NSObject):
         self.timer_interval = 0.0
         self.tracker = UsageRateTracker(mock=mock)
         self.codex_tracker = UsageRateTracker(mock=mock, load=codex_loader.load_entries)
+        self.agy_tracker = UsageRateTracker(mock=mock, load=cast(Any, agy_loader.load_entries))
         self.language = _detect_language()
         self.codex_5h_pct = None
         self.codex_model = "unknown"
@@ -690,7 +711,10 @@ class AppDelegate(NSObject):
         self.dragon_timer = None
         self.dragon_frame = 0
         self.dragon_interval = 0.0
-        self._last_button_title_key: tuple[str, int | None, int | None] | None = None
+        self.lion_timer = None
+        self.lion_frame = 0
+        self.lion_interval = 0.0
+        self._last_button_title_key: tuple[str, int | None, int | None, int | None] | None = None
         self._last_plain_title_key: tuple[str] | None = None
         return self
 
@@ -804,6 +828,7 @@ class AppDelegate(NSObject):
         self._fs_stream = None
         self._stop_critter_timer()
         self._stop_dragon_timer()
+        self._stop_lion_timer()
         if hasattr(self, "popover_controller") and self.popover_controller is not None:
             self.popover_controller.teardown()
 
@@ -1255,6 +1280,16 @@ class AppDelegate(NSObject):
         self.dragon_frame = (int(self.dragon_frame) + 1) % len(critter_frames.DRAGON_FRAMES)
         self._set_button_title(self.latest_state)
 
+    def animateLion_(self, timer: Any) -> None:
+        interval = self._current_lion_interval()
+        if interval <= 0:
+            self.lion_frame = 0
+            self._stop_lion_timer()
+            self._set_button_title(self.latest_state)
+            return
+        self.lion_frame = (int(self.lion_frame) + 1) % len(critter_frames.LION_FRAMES)
+        self._set_button_title(self.latest_state)
+
     def _current_critter_interval(self) -> float:
         try:
             group = int(self.tracker.group())
@@ -1265,6 +1300,13 @@ class AppDelegate(NSObject):
     def _current_dragon_interval(self) -> float:
         try:
             group = int(self.codex_tracker.group())
+        except Exception:
+            group = 0
+        return critter_frames.group_to_interval(group)
+
+    def _current_lion_interval(self) -> float:
+        try:
+            group = int(self.agy_tracker.group())
         except Exception:
             group = 0
         return critter_frames.group_to_interval(group)
@@ -1308,6 +1350,27 @@ class AppDelegate(NSObject):
         timer = self.dragon_timer
         self.dragon_timer = None
         self.dragon_interval = 0.0
+        if timer is not None:
+            timer.invalidate()
+
+    def _sync_lion_timer(self) -> None:
+        interval = self._current_lion_interval()
+        if interval <= 0:
+            self.lion_frame = 0
+            self._stop_lion_timer()
+            return
+        if self.lion_timer is not None and self.lion_interval == interval:
+            return
+        self._stop_lion_timer()
+        self.lion_interval = interval
+        scheduled_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_
+        self.lion_timer = scheduled_timer(interval, self, "animateLion:", None, True)
+        NSRunLoop.currentRunLoop().addTimer_forMode_(self.lion_timer, NSRunLoopCommonModes)
+
+    def _stop_lion_timer(self) -> None:
+        timer = self.lion_timer
+        self.lion_timer = None
+        self.lion_interval = 0.0
         if timer is not None:
             timer.invalidate()
 
@@ -1815,6 +1878,7 @@ class AppDelegate(NSObject):
         title = NSMutableAttributedString.alloc().init()
         phoenix_frame = int(self.critter_frame) % len(critter_frames.PHOENIX_FRAMES)
         dragon_frame = int(self.dragon_frame) % len(critter_frames.DRAGON_FRAMES)
+        lion_frame = int(self.lion_frame) % len(critter_frames.LION_FRAMES)
         if not state.hide_claude:
             claude_percent = (
                 "--"
@@ -1841,6 +1905,19 @@ class AppDelegate(NSObject):
             if dragon is not None:
                 title.appendAttributedString_(self._menubar_text_string(" "))
                 title.appendAttributedString_(_critter_icon_attachment_string(dragon))
+        agy_session_percent = state.agy_session.percent
+        agy_visible = not state.hide_agy and agy_session_percent is not None
+        if agy_visible:
+            assert agy_session_percent is not None
+            agy_percent = f"{_format_percent(agy_session_percent)}%"
+            if title.length() > 0:
+                title.appendAttributedString_(self._menubar_text_string(" · "))
+            title.appendAttributedString_(_menubar_icon_attachment_string(_agy_menubar_icon()))
+            title.appendAttributedString_(self._menubar_text_string(f" {agy_percent}"))
+            lion = _critter_frame_image(critter_frames.LION_FRAMES[lion_frame])
+            if lion is not None:
+                title.appendAttributedString_(self._menubar_text_string(" "))
+                title.appendAttributedString_(_critter_icon_attachment_string(lion))
         if title.length() == 0:
             # Both providers hidden: keep a recognizable, clickable status item.
             title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
@@ -1849,13 +1926,16 @@ class AppDelegate(NSObject):
     def _set_button_title(self, state: PopoverState) -> None:
         self._sync_critter_timer()
         self._sync_dragon_timer()
+        self._sync_lion_timer()
         title = self._compose_title(state)
         phoenix_frame = int(self.critter_frame) if not state.hide_claude else None
         dragon_visible = not state.hide_codex and (
             self.codex_5h_pct is not None or state.hide_claude
         )
         dragon_frame = int(self.dragon_frame) if dragon_visible else None
-        title_key = (title, phoenix_frame, dragon_frame)
+        lion_visible = not state.hide_agy and state.agy_session.percent is not None
+        lion_frame = int(self.lion_frame) if lion_visible else None
+        title_key = (title, phoenix_frame, dragon_frame, lion_frame)
         if self._last_button_title_key == title_key:
             return
 
@@ -1863,7 +1943,7 @@ class AppDelegate(NSObject):
         # setTitle: forces a full NSStatusItem relayout (_adjustLength) that
         # cascades into the popover's frame/corner-mask recompute even while
         # it's hidden. attributedTitle is what's actually rendered, so during
-        # critter/dragon animation (phoenix_frame/dragon_frame changing every
+        # critter/dragon/lion animation (their frame values changing every
         # 0.05-0.18s) only push the plain title when its own text changed —
         # not on every sprite frame — to avoid paying that relayout per frame.
         plain_key = (title,)
@@ -1889,6 +1969,9 @@ class AppDelegate(NSObject):
                 else f"{_format_percent(float(self.codex_5h_pct))}%"
             )
             parts.append(f"📜 {codex}")
+        if not state.hide_agy and state.agy_session.percent is not None:
+            agy = f"{_format_percent(state.agy_session.percent)}%"
+            parts.append(f"🦁 {agy}")
         # Both providers hidden: keep a recognizable, clickable status item.
         return " · ".join(parts) if parts else "🐾"
 

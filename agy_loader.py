@@ -34,6 +34,15 @@ class AgyUsageEntry:
     dedup_key: str
     session_id: str
 
+    @property
+    def total_tokens(self) -> int:
+        return (
+            self.input_tokens
+            + self.output_tokens
+            + self.cache_read_tokens
+            + self.thinking_tokens
+        )
+
 
 @dataclass(frozen=True, slots=True)
 class AgyLoadResult:

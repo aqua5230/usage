@@ -12,10 +12,13 @@ import critter_frames
 def test_critter_frame_paths_have_five_frames() -> None:
     assert len(critter_frames.PHOENIX_FRAMES) == 5
     assert len(critter_frames.DRAGON_FRAMES) == 5
+    assert len(critter_frames.LION_FRAMES) == 5
     assert critter_frames.PHOENIX_FRAMES[0] == "critters/phoenix/1.png"
     assert critter_frames.PHOENIX_FRAMES[-1] == "critters/phoenix/5.png"
     assert critter_frames.DRAGON_FRAMES[0] == "critters/dragon/1.png"
     assert critter_frames.DRAGON_FRAMES[-1] == "critters/dragon/5.png"
+    assert critter_frames.LION_FRAMES[0] == "critters/lion/1.png"
+    assert critter_frames.LION_FRAMES[-1] == "critters/lion/5.png"
 
 
 def test_group_to_interval_boundaries() -> None:
