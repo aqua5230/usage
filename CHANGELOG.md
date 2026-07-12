@@ -5,6 +5,17 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.26.1] - 2026-07-13
+
+### Fixed
+- **Codex card no longer shows an untitled "--" row**: mid-day on 2026-07-13, OpenAI's server-side rate-limit payload switched to weekly-only (the 5-hour window vanished with the CLI version unchanged), and the loader — which mapped fields by position — shoved the weekly number into the session slot, leaving a blank row behind. Rate-limit windows are now classified by their duration, a window the server no longer reports is hidden entirely (the card shrinks by one row), and the menu-bar Codex percentage falls back to the weekly value while the 5-hour limit is absent. If OpenAI brings the 5-hour window back, both rows return automatically.
+- **Antigravity reset countdowns tick down live** instead of freezing at the last-fetched value until the next refresh.
+
+### Changed
+- **Antigravity quota now comes straight from the official quota API**: usage reads the sign-in token the Antigravity CLI already stores on your machine (strictly read-only — the file is never modified) and queries the official quota endpoint directly, replacing the background `/quota` CLI probe. Numbers refresh every ~5 minutes instead of 15, countdowns are exact, no helper process is spawned, and the call reads quota metadata only — it never consumes your model quota. Any fetch failure still falls back to the cached snapshot with the usual stale badge. The data-source description in all five README languages is updated to match.
+- **Less idle disk I/O**: the JSONL scan caches are flushed to disk at most once per 5 minutes (with a final flush on quit), rapid file-event bursts coalesce into a single refresh, and the four per-project ranking windows are aggregated in one pass over history.
+- Antigravity token rows in the HTML report are labeled "Antigravity" instead of "unknown".
+
 ## [0.26.0] - 2026-07-13
 
 ### Added
