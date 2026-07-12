@@ -75,6 +75,7 @@ if __name__ == "__main__":
             "UserNotifications",
             "objc",
             "menubar",
+            "ai_daily_loader",
             "usage_notifications",
             "tui",
             "tui_sprite",

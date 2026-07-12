@@ -50,6 +50,7 @@ def test_registered_panel_ids_are_unique() -> None:
         "lepidoptera",
         "world_cup",
         "talent_market",
+        "ai_daily",
     )
     assert len(ids) == len(set(ids))
 
@@ -69,6 +70,7 @@ def test_registered_panel_i18n_keys() -> None:
         "panel_lepidoptera",
         "panel_world_cup",
         "panel_talent_market",
+        "panel_ai_daily",
     ]
 
 
@@ -90,7 +92,7 @@ def test_html_panels_place_analyze_and_cli_in_project_header() -> None:
     for panel_path in sorted(panel_dir.glob("*.html")):
         # talent_market is a non-quota marketplace panel (talent packs → roles),
         # so it has no project range / analyze / CLI / footer affordances.
-        if panel_path.name == "talent_market.html":
+        if panel_path.name in {"talent_market.html", "ai_daily.html"}:
             continue
         html = panel_path.read_text(encoding="utf-8")
         project_index = html.index('data-action="toggle-project-range"')

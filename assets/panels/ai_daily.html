@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title></title>
+  <style>
+    :root{--bg:#080b0f;--panel:#0e141b;--line:#26313d;--text:#d7e0e8;--muted:#7f8d99;--green:#55d68b;--amber:#e5b567}
+    *{box-sizing:border-box}html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--text);font:12px ui-monospace,SFMono-Regular,Menlo,monospace}
+    .shell{height:100%;display:flex;flex-direction:column;padding:12px;gap:10px}.head{border:1px solid var(--line);background:var(--panel);padding:12px}.row{display:flex;align-items:center;justify-content:space-between;gap:8px}.title{font-size:15px;font-weight:700;color:var(--green)}
+    button{border:1px solid var(--line);background:transparent;color:var(--text);font:inherit;padding:5px 9px;cursor:pointer}.meta{margin-top:7px;color:var(--muted)}
+    .tools{display:flex;gap:6px;overflow-x:auto}.tool{white-space:nowrap}.tool.active{border-color:var(--green);color:var(--green)}
+    .scroll{flex:1;min-height:0;overflow-y:auto;border:1px solid var(--line);background:var(--panel);padding:12px}.version{margin-bottom:16px}.version-head{display:flex;justify-content:space-between;gap:8px;padding-bottom:7px;border-bottom:1px solid var(--line);color:var(--amber)}
+    .item{position:relative;margin:10px 0 0 8px;padding:10px 10px 10px 16px;border:1px solid var(--line);background:#0a1016}.item::before{content:"";position:absolute;left:-9px;top:15px;width:5px;height:5px;border-radius:50%;background:var(--green)}
+    .item-title{font-weight:700;color:var(--green);margin-bottom:6px}.item-body,.original{line-height:1.55;white-space:pre-wrap}.original{margin-top:7px;color:var(--muted)}.pending{display:inline-block;margin-bottom:7px;padding:2px 5px;border:1px solid var(--amber);color:var(--amber)}.empty{color:var(--muted);padding:24px 8px;text-align:center}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="head"><div class="row"><div class="title" id="title"></div><button id="switch" type="button"></button></div><div class="meta" id="generated"></div></header>
+    <nav class="tools" id="tools"></nav><section class="scroll" id="content"></section>
+  </main>
+  <script>
+    const I18N={{I18N_BUNDLE}};let language="en",payload=null,activeTool="";
+    function t(key,params={}){const table=I18N[language]||I18N.en||{};let value=table[key]||(I18N.en||{})[key]||key;Object.entries(params).forEach(([name,replacement])=>{value=value.replaceAll(`{${name}}`,String(replacement))});return value}
+    function node(tag,className,text){const element=document.createElement(tag);if(className)element.className=className;if(text!==undefined)element.textContent=text;return element}
+    function local(value){return value&&typeof value==="object"?(value[language]||value.en||""):""}
+    function render(){document.documentElement.lang=language;document.title=t("panel_ai_daily");document.getElementById("title").textContent=t("panel_ai_daily");document.getElementById("switch").textContent=t("switch_panel");const tools=document.getElementById("tools"),content=document.getElementById("content"),generated=document.getElementById("generated");tools.replaceChildren();content.replaceChildren();generated.textContent=payload?t("ai_daily_generated",{time:payload.generated_at}):"";const list=payload&&Array.isArray(payload.tools)?payload.tools:[];if(!list.length){content.append(node("p","empty",t("ai_daily_empty")));return}if(!activeTool||!list.some(tool=>tool.id===activeTool))activeTool=list[0].id;list.forEach(tool=>{const button=node("button",`tool${tool.id===activeTool?" active":""}`,tool.name);button.type="button";button.addEventListener("click",()=>{activeTool=tool.id;render()});tools.append(button)});const tool=list.find(entry=>entry.id===activeTool);(tool.versions||[]).forEach(version=>{const section=node("article","version"),head=node("div","version-head");head.append(node("span","",t("ai_daily_version",{version:version.version})),node("span","",version.period));section.append(head);(version.items||[]).forEach(item=>{const card=node("div","item");if(version.curated){card.append(node("div","item-title",local(item.title)),node("div","item-body",local(item.body)),node("div","original",t("ai_daily_original",{text:item.original})))}else{card.append(node("div","pending",t("ai_daily_pending")),node("div","item-body",item.original))}section.append(card)});content.append(section)});if(!content.childNodes.length)content.append(node("p","empty",t("ai_daily_empty")))}
+    document.getElementById("switch").addEventListener("click",()=>window.webkit.messageHandlers.usage.postMessage("switch"));
+    window.usageSetState=function(state){language=state.language||"en";payload=state.aiDaily||null;render()};render();window.webkit.messageHandlers.usage.postMessage("ready");
+  </script>
+</body>
+</html>

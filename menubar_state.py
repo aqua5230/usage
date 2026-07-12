@@ -124,6 +124,7 @@ class PopoverState:
     # external instate-cli by talent_market_bridge, only when the active panel
     # is "talent_market", so classic/matrix users never spawn that subprocess.
     talent: dict[str, object] | None = None
+    ai_daily: dict[str, object] | None = None
 
 
 @dataclass(frozen=True, slots=True)

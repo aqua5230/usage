@@ -57,6 +57,7 @@ from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 from Quartz import CGColorCreateGenericRGB
 
 import agy_loader
+import ai_daily_loader
 import codex_loader
 import critter_frames
 import login_item
@@ -671,6 +672,7 @@ class AppDelegate(NSObject):
     _quota_notifier = objc.ivar()
     _switch_menu_action_taken = objc.ivar()
     _pre_talent_panel_id = objc.ivar()
+    _pre_ai_daily_panel_id = objc.ivar()
     critter_timer = objc.ivar()
     critter_frame = objc.ivar()
     critter_interval = objc.ivar()
@@ -715,6 +717,7 @@ class AppDelegate(NSObject):
         self._history_load_error_key = None
         self._switch_menu_action_taken = False
         self._pre_talent_panel_id = None
+        self._pre_ai_daily_panel_id = None
         self.critter_timer = None
         self.critter_frame = 0
         self.critter_interval = 0.0
@@ -860,13 +863,20 @@ class AppDelegate(NSObject):
         talent_market_item.setRepresentedObject_("talent_market")
         talent_market_item.setState_(1 if self.active_panel.id == "talent_market" else 0)
         menu.addItem_(talent_market_item)
+        ai_daily_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "panel_ai_daily"), "toggleAiDaily:", ""
+        )
+        ai_daily_item.setTarget_(self)
+        ai_daily_item.setRepresentedObject_("ai_daily")
+        ai_daily_item.setState_(1 if self.active_panel.id == "ai_daily" else 0)
+        menu.addItem_(ai_daily_item)
         menu.addItem_(NSMenuItem.separatorItem())
         # Panel themes live in a submenu so the menu stays short — one "面板主題 ▸"
         # row that expands on demand instead of nine inline rows. talent_market is
         # excluded here since it already has its own top-level row above.
         panel_submenu = NSMenu.alloc().initWithTitle_(_t(self.language, "switch_panel"))
         for panel in panels.all_panels():
-            if panel.id == "talent_market":
+            if panel.id in {"talent_market", "ai_daily"}:
                 continue
             item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
                 _panel_title(panel, self.language),
@@ -975,6 +985,14 @@ class AppDelegate(NSObject):
 
         target_panel_id = self._pre_talent_panel_id or "classic"
         self._set_active_panel_id(target_panel_id)
+
+    def toggleAiDaily_(self, sender: Any) -> None:
+        self._mark_switch_menu_action()
+        if self.active_panel.id != "ai_daily":
+            self._pre_ai_daily_panel_id = self.active_panel.id
+            self._set_active_panel_id("ai_daily")
+            return
+        self._set_active_panel_id(self._pre_ai_daily_panel_id or "classic")
 
     def toggleLaunchAtLogin_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -1233,7 +1251,7 @@ class AppDelegate(NSObject):
         self.active_panel = panel
         self.popover_controller.switchToPanel_(panel)
         self.popover.setContentSize_(_popover_size(self.latest_state, panel))
-        if panel.id == "talent_market":
+        if panel.id in {"talent_market", "ai_daily"}:
             # Talent data is fetched in the background refresh; switchToPanel_
             # injected the last (talent-less) state, so kick a refresh to fill it.
             self._refresh()
@@ -1574,6 +1592,12 @@ class AppDelegate(NSObject):
                 except Exception:
                     if os.environ.get("USAGE_DEBUG") == "1":
                         logger.warning("talent market state load failed", exc_info=True)
+            elif active_panel is not None and active_panel.id == "ai_daily":
+                try:
+                    state.ai_daily = ai_daily_loader.load_ai_daily()
+                except Exception:
+                    if os.environ.get("USAGE_DEBUG") == "1":
+                        logger.warning("AI daily state load failed", exc_info=True)
 
             result = {"state": state, "codex_5h_pct": codex_5h_pct, "codex_model": codex_model}
             self.performSelectorOnMainThread_withObject_waitUntilDone_(

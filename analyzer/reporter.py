@@ -20,7 +20,6 @@ import time
 from typing import Any, NotRequired, TypedDict, cast
 
 import codex_loader
-from analyzer import ai_updates_loader
 from analyzer import persona_loader
 from analyzer import subscription
 from adapters import agy, claude, codex
@@ -180,7 +179,6 @@ class ReportData(TypedDict):
     comparison: ComparisonReportData
     subscriptions: list[dict[str, str | None]]
     persona: PersonaReportData | None
-    ai_updates: list[dict[str, Any]] | None
     contribution: ContributionReportData
     wrapped: WrappedReportData
 
@@ -984,7 +982,6 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         "comparison": comparison,
         "subscriptions": subscription.load_subscriptions(),
         "persona": _load_persona_for_period(period),
-        "ai_updates": ai_updates_loader.load_ai_updates(),
         "contribution": year_data["contribution"],
         "wrapped": year_data["wrapped"],
     }

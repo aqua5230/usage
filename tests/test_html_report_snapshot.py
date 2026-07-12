@@ -412,56 +412,6 @@ def test_build_csv_data_masks_project_names() -> None:
     assert "project,usage,70.2,1646859,32.07\r\n" not in csv_text
 
 
-def test_render_ai_updates_section_falls_back_to_english_and_escapes() -> None:
-    html = html_report._render_ai_updates_section(
-        {
-            "ai_updates": [
-                {
-                    "id": "codex",
-                    "name": "Codex<script>",
-                    "versions": [
-                        {
-                            "version": "0.141.0",
-                            "period": "2026-06-18",
-                            "items": [
-                                {
-                                    "title": {"en": "Remote <upgrade>"},
-                                    "body": {"en": "Remote <upgrade> shipped."},
-                                    "original": "Use `codex --remote` <beta>.",
-                                }
-                            ],
-                        },
-                        {
-                            "version": "0.140.9",
-                            "period": "2026-06-12",
-                            "items": [
-                                {
-                                    "title": {"en": "Fallback <mode>"},
-                                    "body": {"en": "Fallback <mode> recovered."},
-                                    "original": "Older entry.",
-                                }
-                            ],
-                        },
-                    ],
-                }
-            ]
-        },
-        "ja",
-    )
-
-    assert "AIツール更新速報" in html
-    assert "Updated to 0.141.0" not in html
-    assert "更新：" in html
-    assert "Original" not in html
-    assert "原文" in html
-    assert "Remote &lt;upgrade&gt;" in html
-    assert "Remote &lt;upgrade&gt; shipped." in html
-    assert "Use `codex --remote` &lt;beta&gt;." in html
-    assert "<details" in html
-    assert '<ol class="ai-update-items">' in html
-    assert '<li class="ai-update-item">' in html
-    assert "更新履歴を見る" in html
-    assert "0.140.9" in html
 
 
 def test_fmt_cost_returns_dash_for_none() -> None:

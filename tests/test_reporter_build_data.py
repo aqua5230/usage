@@ -19,7 +19,7 @@ import codex_loader
 import history_loader
 import pricing
 from adapters.types import AgentInfo, UsageEntry
-from analyzer import ai_updates_loader, persona_loader, reporter, subscription
+from analyzer import persona_loader, reporter, subscription
 
 
 def _empty_year_payload() -> dict[str, Any]:
@@ -108,7 +108,6 @@ def _sandbox_reporter_dependencies(
     monkeypatch.setattr(reporter, "_load_persona_for_period", lambda _period: None)
     monkeypatch.setattr(reporter, "is_model_priced", lambda model: model != "unknown")
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
-    monkeypatch.setattr("analyzer.reporter.ai_updates_loader.load_ai_updates", lambda: [])
 
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", tmp_path / ".codex" / "sessions")
     monkeypatch.setattr(
@@ -123,11 +122,6 @@ def _sandbox_reporter_dependencies(
     monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", tmp_path / ".claude" / "projects")
     monkeypatch.setattr(subscription, "CLAUDE_CONFIG", tmp_path / ".claude.json")
     monkeypatch.setattr(subscription, "CODEX_AUTH", tmp_path / ".codex" / "auth.json")
-    monkeypatch.setattr(
-        ai_updates_loader,
-        "CACHE_PATH",
-        tmp_path / ".usage" / "ai_updates_cache.json",
-    )
     monkeypatch.setattr(pricing, "CACHE_PATH", tmp_path / ".usage" / "pricing_cache.json")
     monkeypatch.setattr(pricing, "LEGACY_CACHE_PATH", tmp_path / ".claude" / "pricing_cache.json")
 

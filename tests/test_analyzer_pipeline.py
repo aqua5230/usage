@@ -77,16 +77,6 @@ def test_all_languages_have_analyze_label() -> None:
     assert bundle["en"]["analyze_usage"] == "Report"
     assert bundle["ja"]["analyze_usage"] == "レポート"
     assert bundle["ko"]["analyze_usage"] == "리포트"
-    assert bundle["zh-TW"]["report_ai_updates_original"] == "原文"
-    assert bundle["zh-TW"]["report_ai_updates_history"] == "查看歷史更新"
-    assert bundle["zh-CN"]["report_ai_updates_original"] == "原文"
-    assert bundle["zh-CN"]["report_ai_updates_history"] == "查看历史更新"
-    assert bundle["en"]["report_ai_updates_original"] == "Original"
-    assert bundle["en"]["report_ai_updates_history"] == "View update history"
-    assert bundle["ja"]["report_ai_updates_original"] == "原文"
-    assert bundle["ja"]["report_ai_updates_history"] == "更新履歴を見る"
-    assert bundle["ko"]["report_ai_updates_original"] == "원문"
-    assert bundle["ko"]["report_ai_updates_history"] == "업데이트 기록 보기"
     for table in bundle.values():
         assert table["project_range_all"]
 
@@ -250,7 +240,7 @@ def test_html_panels_expose_analyze_action() -> None:
     for path in panels_dir.glob("*.html"):
         # talent_market is a non-quota marketplace panel; it has no analyze/CLI
         # affordances, only talent-pack/role actions.
-        if path.name == "talent_market.html":
+        if path.name in {"talent_market.html", "ai_daily.html"}:
             continue
         html = path.read_text(encoding="utf-8")
         assert 'data-action="analyze"' in html, path.name
@@ -619,18 +609,6 @@ def test_build_report_data_includes_serialized_persona(monkeypatch: Any) -> None
     }
     assert len(data["persona"]["hour_histogram"]) == 24
     assert isinstance(data["persona"]["recent_titles"], list)
-
-
-def test_build_report_data_includes_ai_updates(monkeypatch: Any) -> None:
-    monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])
-    monkeypatch.setattr(
-        "analyzer.reporter.ai_updates_loader.load_ai_updates",
-        lambda: [{"id": "codex"}],
-    )
-
-    data = reporter.build_report_data([], "last7")
-
-    assert data["ai_updates"] == [{"id": "codex"}]
 
 
 def test_report_today_uses_codex_token_count_deltas(
