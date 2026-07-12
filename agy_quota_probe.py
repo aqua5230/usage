@@ -27,6 +27,10 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_quota_cache.json"))
+# A dedicated empty directory so the CLI's workspace-trust prompt has nothing to
+# act on; launching from an arbitrary cwd (e.g. "/" under launchd) would stall the
+# probe on that prompt forever.
+PROBE_WORKSPACE = Path(os.path.expanduser("~/.usage/agy_probe_workspace"))
 
 _ANSI_ESCAPE_RE = re.compile(r"\x1b\[[0-?]*[ -/]*[@-~]")
 _GROUP_RE = re.compile(
@@ -76,17 +80,22 @@ class AgyQuotaResult:
 def probe_quota(timeout_seconds: float = 35) -> AgyQuotaResult | None:
     """Run ``agy /quota`` in a PTY, returning no result on any failure.
 
-    An existing user-owned ``agy`` process means its SQLite databases may be
-    locked, so this deliberately declines to start a second instance.
+    Only this call's own spawned process is tracked and cleaned up; an
+    unrelated ``agy`` process elsewhere (the user's own session, a dispatched
+    task, or an orphan from a previous crash) is never checked for, since a
+    global "is agy running" gate can get wedged forever by an orphan and
+    then block every future probe.
     """
     agy_path = find_agy()
-    if timeout_seconds <= 0 or agy_path is None or _agy_is_running():
+    if timeout_seconds <= 0 or agy_path is None:
         return None
 
     master_fd: int | None = None
     slave_fd: int | None = None
     process: subprocess.Popen[bytes] | None = None
     try:
+        with suppress(OSError):
+            PROBE_WORKSPACE.mkdir(parents=True, exist_ok=True)
         master_fd, slave_fd = pty.openpty()
         _set_window_size(slave_fd)
         process = subprocess.Popen(
@@ -97,12 +106,14 @@ def probe_quota(timeout_seconds: float = 35) -> AgyQuotaResult | None:
             env=_probe_env(agy_path),
             start_new_session=True,
             close_fds=True,
+            cwd=str(PROBE_WORKSPACE),
         )
         os.close(slave_fd)
         slave_fd = None
 
         deadline = time.monotonic() + timeout_seconds
         transcript = ""
+        trust_confirmed = False
         prompt_seen_at: float | None = None
         quota_sent_at: float | None = None
         sent_offset = 0
@@ -117,6 +128,12 @@ def probe_quota(timeout_seconds: float = 35) -> AgyQuotaResult | None:
             # only), so hold the candidate until the stream stays quiet.
             if candidate is not None and now - last_chunk_at >= 0.6:
                 return _parse_quota_output(transcript) or candidate
+            # A fresh cwd triggers a "Do you trust the contents of this
+            # project?" prompt that blocks the input box; its cursor defaults to
+            # "Yes, I trust this folder", so a bare Enter accepts it.
+            if not trust_confirmed and "Do you trust the contents" in transcript:
+                os.write(master_fd, b"\r")
+                trust_confirmed = True
             # The banner paints before the input box accepts keystrokes, so
             # wait for the shortcut hint plus a settle delay before typing.
             if prompt_seen_at is None and "? for shortcuts" in transcript:
@@ -210,22 +227,6 @@ def load_quota(max_age_minutes: float = 15) -> AgyQuotaResult | None:
         return cached
     _write_cache(probed)
     return probed
-
-
-def _agy_is_running() -> bool:
-    """Return whether a user-visible Antigravity CLI process already exists."""
-    try:
-        completed = subprocess.run(
-            ["pgrep", "-x", "agy"],
-            stdin=subprocess.DEVNULL,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-            check=False,
-            timeout=1,
-        )
-    except (OSError, subprocess.SubprocessError):
-        return False
-    return completed.returncode == 0
 
 
 def _set_window_size(fd: int) -> None:
