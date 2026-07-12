@@ -20,6 +20,7 @@ import menubar
 import menubar_agy
 import menubar_prefs
 import menubar_state
+import panels
 import statusline_settings
 from burn_rate import BurnRateTracker
 from usage_client import PollOutcome, PollState, UsageSnapshot
@@ -1038,6 +1039,20 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
     assert menubar._popover_size(state, panel).height == 340.0
     state.hide_agy = True
     assert menubar._popover_size(state, panel).height == 300.0
+
+
+def test_popover_size_deducts_one_missing_codex_row(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    monkeypatch.setattr(menubar_agy, "find_agy", lambda: None)
+    state = menubar._empty_state()
+    panel = panels.get_panel("classic")
+    full_height = menubar._popover_size(state, panel).height
+
+    state.codex_session.title = ""
+
+    assert menubar._popover_size(state, panel).height == full_height - 64.0
 
 
 def test_empty_state_keeps_agy_card_visible_during_initial_probe(
