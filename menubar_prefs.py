@@ -30,6 +30,11 @@ def _hide_codex_enabled(prefs: Mapping[str, object] | None = None) -> bool:
     return data.get("hide_codex_section") is True
 
 
+def _hide_agy_enabled(prefs: Mapping[str, object] | None = None) -> bool:
+    data = _resolved_preferences(prefs)
+    return data.get("hide_agy_section") is True
+
+
 def _quota_notifications_enabled(prefs: Mapping[str, object] | None = None) -> bool:
     data = _resolved_preferences(prefs)
     return data.get("quota_notifications") is not False

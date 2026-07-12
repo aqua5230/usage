@@ -72,6 +72,7 @@ from history_loader import UsageEntry, load_entries
 from i18n import _t, packaged_resource_path
 from menubar_prefs import (
     _auto_update_check_enabled,
+    _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
     _quota_notification_thresholds,
@@ -163,6 +164,7 @@ __all__ = [
     "_quota_row",
     "format_human_time",
     "_auto_update_check_enabled",
+    "_hide_agy_enabled",
     "_hide_claude_enabled",
     "_hide_codex_enabled",
     "_quota_notification_thresholds",
@@ -858,6 +860,14 @@ class AppDelegate(NSObject):
         hide_codex_item.setTarget_(self)
         hide_codex_item.setState_(1 if _hide_codex_enabled() else 0)
         hide_submenu.addItem_(hide_codex_item)
+        hide_agy_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "agy_name"),
+            "toggleHideAgy:",
+            "",
+        )
+        hide_agy_item.setTarget_(self)
+        hide_agy_item.setState_(1 if _hide_agy_enabled() else 0)
+        hide_submenu.addItem_(hide_agy_item)
         hide_parent = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             _t(self.language, "hide_sections_menu"), "", ""
         )
@@ -956,6 +966,18 @@ class AppDelegate(NSObject):
         if hasattr(sender, "setState_"):
             sender.setState_(1 if enabled else 0)
         self.latest_state.hide_codex = enabled
+        self.popover_controller.setState_(self.latest_state)
+        self._set_button_title(self.latest_state)
+
+    def toggleHideAgy_(self, sender: Any) -> None:
+        self._mark_switch_menu_action()
+        prefs = _load_preferences()
+        enabled = not _hide_agy_enabled(prefs)
+        prefs["hide_agy_section"] = enabled
+        _save_preferences(prefs)
+        if hasattr(sender, "setState_"):
+            sender.setState_(1 if enabled else 0)
+        self.latest_state.hide_agy = enabled
         self.popover_controller.setState_(self.latest_state)
         self._set_button_title(self.latest_state)
 
@@ -1330,7 +1352,7 @@ class AppDelegate(NSObject):
             statusline = fallback_state.statusline
             hide_claude = fallback_state.hide_claude
             hide_codex = fallback_state.hide_codex
-            hide_agy = agy_result.hide_agy
+            hide_agy = agy_result.hide_agy or _hide_agy_enabled()
             try:
                 all_entries = self._load_history_entries()
                 project_rows = self._project_rows(hours_back=24, entries=all_entries)
@@ -1341,6 +1363,7 @@ class AppDelegate(NSObject):
                 statusline = _statusline_payload(self.language)
                 hide_claude = _hide_claude_enabled()
                 hide_codex = _hide_codex_enabled()
+                hide_agy = agy_result.hide_agy or _hide_agy_enabled()
             except Exception:
                 if os.environ.get("USAGE_DEBUG") == "1":
                     logger.warning("local usage refresh failed", exc_info=True)

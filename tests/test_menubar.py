@@ -439,14 +439,16 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     # Provider hide toggles are collapsed into one "Hide Sections" submenu, with
     # the checkmark reflecting the stored preference.
     assert "Hide Sections" in main_titles
-    assert [item.title for item in hide_submenu.items] == ["Claude Code", "Codex"]
+    assert [item.title for item in hide_submenu.items] == ["Claude Code", "Codex", "Antigravity"]
     hide_parent = next(item for item in main_menu.items if item.submenu is hide_submenu)
     assert hide_parent.title == "Hide Sections"
-    claude_item, codex_item = hide_submenu.items
+    claude_item, codex_item, agy_item = hide_submenu.items
     assert claude_item.action == "toggleHideClaude:"
     assert claude_item.state == 0
     assert codex_item.action == "toggleHideCodex:"
     assert codex_item.state == 1
+    assert agy_item.action == "toggleHideAgy:"
+    assert agy_item.state == 0
 
     # Resume Last Session is a single tooltip-backed toggle (no group header, no indent).
     butler = next(item for item in main_menu.items if item.action == "toggleSessionResume:")

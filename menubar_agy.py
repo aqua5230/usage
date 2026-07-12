@@ -16,8 +16,10 @@ from agy_quota_probe import (
     AgyQuotaGroup,
     AgyQuotaResult,
     AgyQuotaWindow,
-    find_agy,
     load_quota,
+)
+from agy_quota_probe import (
+    find_agy as find_agy,
 )
 from i18n import _t
 from menubar_state import (
