@@ -7,7 +7,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -118,6 +118,38 @@ def test_html_panel_rows_are_initialized_once() -> None:
 
         assert 'el.dataset.rowReady !== "true"' in html, panel_path.name
         assert 'el.dataset.rowReady = "true"' in html, panel_path.name
+
+
+def test_quota_panels_hide_absent_codex_rows_with_dom_api() -> None:
+    panel_dir = Path(__file__).resolve().parent.parent / "assets" / "panels"
+    quota_panels = [
+        path for path in sorted(panel_dir.glob("*.html"))
+        if "function renderRow(" in path.read_text(encoding="utf-8")
+    ]
+
+    assert len(quota_panels) == 9
+    for panel_path in quota_panels:
+        html = panel_path.read_text(encoding="utf-8")
+        assert 'el.hidden = card === "codex" && !row;' in html, panel_path.name
+
+
+def test_state_payload_omits_codex_rows_with_empty_titles(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import menubar
+    import menubar_agy
+    import panels.web_panel as web_panel
+
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    monkeypatch.setattr(menubar_agy, "find_agy", lambda: None)
+    state = menubar._empty_state()
+    state.codex_session.title = ""
+
+    payload = web_panel._state_payload(state)
+
+    codex_payload = cast(dict[str, object], payload["codex"])
+    assert "session" not in codex_payload
+    assert "weekly" in codex_payload
 
 
 def test_classic_project_header_expands_for_action_row() -> None:

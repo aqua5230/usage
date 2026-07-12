@@ -583,6 +583,21 @@ def _build_rate_limits(
         secondary_reset = None
     if primary_pct is None and secondary_pct is None:
         return None
+    (
+        primary_pct,
+        primary_reset,
+        primary_window_minutes,
+        secondary_pct,
+        secondary_reset,
+        secondary_window_minutes,
+    ) = _assign_rate_limit_slots(
+        primary_pct,
+        primary_reset,
+        primary_window_minutes,
+        secondary_pct,
+        secondary_reset,
+        secondary_window_minutes,
+    )
     return CodexRateLimits(
         five_hour_pct=primary_pct,
         five_hour_resets_at=primary_reset,
@@ -592,6 +607,57 @@ def _build_rate_limits(
         seven_day_window_minutes=secondary_window_minutes,
         model=model,
         updated_at=updated_at.isoformat() if updated_at is not None else "",
+    )
+
+
+def _assign_rate_limit_slots(
+    primary_pct: float | None,
+    primary_reset: float | None,
+    primary_window_minutes: float | None,
+    secondary_pct: float | None,
+    secondary_reset: float | None,
+    secondary_window_minutes: float | None,
+) -> tuple[
+    float | None,
+    float | None,
+    float | None,
+    float | None,
+    float | None,
+    float | None,
+]:
+    primary_is_session = (
+        primary_window_minutes is not None and primary_window_minutes <= 600.0
+    )
+    secondary_is_session = (
+        secondary_window_minutes is not None and secondary_window_minutes <= 600.0
+    )
+    classify_by_window = (
+        primary_window_minutes is not None
+        and secondary_window_minutes is not None
+        and primary_is_session != secondary_is_session
+    ) or (
+        primary_window_minutes is not None
+        and secondary_pct is None
+        and secondary_window_minutes is None
+    ) or (
+        secondary_window_minutes is not None
+        and primary_pct is None
+        and primary_window_minutes is None
+    )
+    if classify_by_window and not primary_is_session:
+        primary_pct, secondary_pct = secondary_pct, primary_pct
+        primary_reset, secondary_reset = secondary_reset, primary_reset
+        primary_window_minutes, secondary_window_minutes = (
+            secondary_window_minutes,
+            primary_window_minutes,
+        )
+    return (
+        primary_pct,
+        primary_reset,
+        primary_window_minutes,
+        secondary_pct,
+        secondary_reset,
+        secondary_window_minutes,
     )
 
 
@@ -787,6 +853,16 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
         seven_reset = None
     if five_pct is None and seven_pct is None:
         return None
+    five_pct, five_reset, five_window, seven_pct, seven_reset, seven_window = (
+        _assign_rate_limit_slots(
+            five_pct,
+            five_reset,
+            five_window,
+            seven_pct,
+            seven_reset,
+            seven_window,
+        )
+    )
     return CodexRateLimits(
         five_hour_pct=five_pct,
         five_hour_resets_at=five_reset,

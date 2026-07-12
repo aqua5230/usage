@@ -398,6 +398,7 @@ class HTMLPanel:
     height: float
     claude_card_height: float
     codex_card_height: float
+    codex_row_height: float
     agy_card_height: float
 
     def __init__(
@@ -410,6 +411,7 @@ class HTMLPanel:
         *,
         claude_card_height: float,
         codex_card_height: float,
+        codex_row_height: float = 64.0,
         agy_card_height: float = 0.0,
     ) -> None:
         self.id = panel_id
@@ -419,6 +421,7 @@ class HTMLPanel:
         self.height = height
         self.claude_card_height = claude_card_height
         self.codex_card_height = codex_card_height
+        self.codex_row_height = codex_row_height
         self.agy_card_height = agy_card_height
 
     def build_view(self, delegate: Any) -> NSView:
@@ -515,6 +518,14 @@ def _row_payload(row: QuotaRowState) -> dict[str, object]:
 
 
 def _state_payload(state: PopoverState) -> dict[str, object]:
+    codex_rows = {
+        key: _row_payload(row)
+        for key, row in (
+            ("session", state.codex_session),
+            ("weekly", state.codex_weekly),
+        )
+        if row.title
+    }
     return {
         "language": state.language,
         "claude": {
@@ -522,8 +533,7 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
             "weekly": _row_payload(state.claude_weekly),
         },
         "codex": {
-            "session": _row_payload(state.codex_session),
-            "weekly": _row_payload(state.codex_weekly),
+            **codex_rows,
             "stale": state.codex_stale,
         },
         "agy": {

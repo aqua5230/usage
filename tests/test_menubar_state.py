@@ -13,6 +13,7 @@ import pytest
 
 import codex_loader
 import menubar_state
+from burn_rate import BurnRateTracker
 from history_loader import UsageEntry
 
 
@@ -75,6 +76,65 @@ def test_codex_stale_state_hides_missing_timestamp() -> None:
     now = datetime(2026, 1, 1, 1, 0, tzinfo=UTC).timestamp()
 
     assert menubar_state.codex_stale_state("", now, "en") is None
+
+
+def test_codex_rows_hides_missing_session_and_uses_weekly_for_menu(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        codex_loader,
+        "load_rate_limits",
+        lambda: codex_loader.CodexRateLimits(
+            five_hour_pct=None,
+            five_hour_resets_at=None,
+            seven_day_pct=7.0,
+            seven_day_resets_at=9_999_999_999.0,
+            five_hour_window_minutes=None,
+            seven_day_window_minutes=10080.0,
+            model="gpt-test",
+            updated_at="",
+        ),
+    )
+    trackers = {
+        "codex_session": BurnRateTracker(),
+        "codex_weekly": BurnRateTracker(),
+    }
+
+    rows, menu_pct, _model, _stale = menubar_state.codex_rows(
+        mock=False, language="en", burn_rate_trackers=trackers
+    )
+
+    assert rows[0].title == ""
+    assert rows[1].title == "Weekly"
+    assert menu_pct == 7.0
+    assert not trackers["codex_session"]._samples
+
+
+def test_codex_rows_menu_prefers_session_when_present(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        codex_loader,
+        "load_rate_limits",
+        lambda: codex_loader.CodexRateLimits(
+            five_hour_pct=12.0,
+            five_hour_resets_at=9_999_999_998.0,
+            seven_day_pct=7.0,
+            seven_day_resets_at=9_999_999_999.0,
+            model="gpt-test",
+            updated_at="",
+        ),
+    )
+    trackers = {
+        "codex_session": BurnRateTracker(),
+        "codex_weekly": BurnRateTracker(),
+    }
+
+    _rows, menu_pct, _model, _stale = menubar_state.codex_rows(
+        mock=False, language="en", burn_rate_trackers=trackers
+    )
+
+    assert menu_pct == 12.0
 
 
 def test_history_load_error_state_none_when_no_reason() -> None:

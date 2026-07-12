@@ -719,6 +719,8 @@
     function renderRow(card, key, row) {
       const el = document.querySelector(`[data-card="${card}"] [data-row="${key}"]`);
       if (!el) return;
+      el.hidden = card === "codex" && !row;
+      if (el.hidden) return;
       const cardEl = el.closest(".card");
       if (!cardEl) return;
       const data = row || {

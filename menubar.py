@@ -2088,10 +2088,25 @@ def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
     width, base_height = active_panel.preferred_size()
     claude_deduct = active_panel.claude_card_height if state.hide_claude else 0.0
     codex_deduct = active_panel.codex_card_height if state.hide_codex else 0.0
+    codex_missing_rows = sum(
+        not row.title for row in (state.codex_session, state.codex_weekly)
+    )
+    codex_row_deduct = (
+        getattr(active_panel, "codex_row_height", 0.0) * codex_missing_rows
+        if not state.hide_codex and active_panel.codex_card_height > 0
+        else 0.0
+    )
     agy_card_height = getattr(active_panel, "agy_card_height", 0.0)
     agy_deduct = agy_card_height if state.hide_agy else 0.0
     install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
-    height = base_height + install_extra - claude_deduct - codex_deduct - agy_deduct
+    height = (
+        base_height
+        + install_extra
+        - claude_deduct
+        - codex_deduct
+        - codex_row_deduct
+        - agy_deduct
+    )
     return NSMakeSize(width, height)
 
 

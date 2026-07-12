@@ -420,13 +420,24 @@ def codex_rows(
         )
     except Exception:
         codex_stale = None
-    codex_5h_pct = rate_limits.five_hour_pct
+    codex_5h_pct = (
+        rate_limits.five_hour_pct
+        if rate_limits.five_hour_pct is not None
+        else rate_limits.seven_day_pct
+    )
     if rate_limits.five_hour_pct is not None:
         burn_rate_trackers["codex_session"].record(now, rate_limits.five_hour_pct)
     if rate_limits.seven_day_pct is not None:
         burn_rate_trackers["codex_weekly"].record(now, rate_limits.seven_day_pct)
-    session_title = _codex_window_title(
-        rate_limits.five_hour_window_minutes, "session_label", language
+    session_absent = (
+        rate_limits.five_hour_pct is None and rate_limits.five_hour_window_minutes is None
+    )
+    session_title = (
+        ""
+        if session_absent
+        else _codex_window_title(
+            rate_limits.five_hour_window_minutes, "session_label", language
+        )
     )
     # A slot with neither usage nor a window is absent (the free plan has no
     # weekly window) — leave its label blank rather than mislabel it "Weekly".
