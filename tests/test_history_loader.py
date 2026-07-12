@@ -25,7 +25,41 @@ def _clear_file_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     history_loader._file_cache.clear()
     monkeypatch.setattr(history_loader, "_disk_cache_seeded", False)
     monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", tmp_path / "history_jsonl_cache.json")
+    monkeypatch.setattr(history_loader, "_disk_cache_dirty", False)
+    monkeypatch.setattr(history_loader, "_last_disk_cache_flush_at", None)
     project_resolver._resolve_project_name.cache_clear()
+
+
+def test_disk_cache_flush_is_throttled_and_dirty_is_preserved(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    flush = Mock()
+    now = 100.0
+    monkeypatch.setattr(history_loader, "flush_caches", flush)
+    monkeypatch.setattr(history_loader, "_monotonic", lambda: now)
+    monkeypatch.setattr(history_loader, "_disk_cache_dirty", True)
+
+    history_loader._flush_caches_to_disk()
+    now = 200.0
+    monkeypatch.setattr(history_loader, "_disk_cache_dirty", True)
+    history_loader._flush_caches_to_disk()
+
+    assert flush.call_count == 1
+    assert history_loader._disk_cache_dirty is True
+
+    now = 400.0
+    history_loader._flush_caches_to_disk()
+    assert flush.call_count == 2
+    assert history_loader._disk_cache_dirty is False
+
+
+def test_history_cache_terminate_flush_is_best_effort(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(history_loader, "_disk_cache_dirty", True)
+    monkeypatch.setattr(history_loader, "flush_caches", Mock(side_effect=OSError("full")))
+
+    history_loader.flush_caches_on_terminate()
+
+    assert history_loader._disk_cache_dirty is True
 
 
 def _line(

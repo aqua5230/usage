@@ -6,11 +6,13 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import logging
 import os
 import sqlite3
+import time
 from collections import OrderedDict
 from collections.abc import Iterable
 from contextlib import closing
@@ -123,6 +125,10 @@ JSONL_CACHE_PATH = Path(os.path.expanduser("~/.usage/codex_jsonl_cache.json"))
 
 # Module-level flag to ensure seed loading happens exactly once.
 _disk_cache_seeded = False
+_DISK_CACHE_FLUSH_INTERVAL_S = 300.0
+_disk_cache_dirty = False
+_last_disk_cache_flush_at: float | None = None
+_monotonic = time.monotonic
 
 
 @dataclass(slots=True)
@@ -156,14 +162,33 @@ def _seed_caches_from_disk() -> None:
     )
 
 
-def _flush_caches_to_disk() -> None:
+def _flush_caches_to_disk(*, force: bool = False) -> None:
     """Atomically write current in-memory caches to disk."""
+    global _disk_cache_dirty, _last_disk_cache_flush_at
+
+    if not _disk_cache_dirty:
+        return
+    now = _monotonic()
+    if (
+        not force
+        and _last_disk_cache_flush_at is not None
+        and now - _last_disk_cache_flush_at < _DISK_CACHE_FLUSH_INTERVAL_S
+    ):
+        return
     flush_caches(
         JSONL_CACHE_PATH,
         _CODEX_JSONL_CACHE_SCHEMA,
         _jsonl_cache,
         _file_info_cache,
     )
+    _last_disk_cache_flush_at = now
+    _disk_cache_dirty = False
+
+
+def flush_caches_on_terminate() -> None:
+    """Best-effort persistence of cache changes still waiting for the throttle."""
+    with contextlib.suppress(Exception):
+        _flush_caches_to_disk(force=True)
 
 
 def load_entries(
@@ -206,6 +231,8 @@ def _load_jsonl_entries(
     *,
     jsonl_paths: Iterable[Path] | None = None,
 ) -> list[UsageEntry]:
+    global _disk_cache_dirty
+
     # Seed from disk on first call
     _seed_caches_from_disk()
 
@@ -267,6 +294,9 @@ def _load_jsonl_entries(
         {str(p): (e.mtime, e.size) for p, e in _jsonl_cache.items()} != jsonl_snapshot
         or {str(p): (v[0], v[1]) for p, v in _file_info_cache.items()} != file_info_snapshot
     ):
+        _disk_cache_dirty = True
+        _flush_caches_to_disk()
+    elif _disk_cache_dirty:
         _flush_caches_to_disk()
 
     return [

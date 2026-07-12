@@ -69,7 +69,13 @@ import update_gate
 import usage_diagnosis_snapshot
 from burn_rate import BurnRateTracker
 from fsevents_watch import cleanup_fsevents, setup_fsevents
-from history_loader import UsageEntry, load_entries
+from history_loader import (
+    UsageEntry,
+    load_entries,
+)
+from history_loader import (
+    flush_caches_on_terminate as flush_history_cache,
+)
 from i18n import _t, packaged_resource_path
 from menubar_prefs import (
     _auto_update_check_enabled,
@@ -656,6 +662,8 @@ class AppDelegate(NSObject):
     burn_rate_trackers = objc.ivar()
     _refresh_in_flight = objc.ivar()
     _refresh_queued = objc.ivar()
+    _file_event_refresh_timer = objc.ivar()
+    _last_file_event_refresh_started_at = objc.ivar()
     _fs_stream = objc.ivar()
     _history_entries_cache = objc.ivar()
     _history_entries_cache_fingerprint = objc.ivar()
@@ -699,6 +707,8 @@ class AppDelegate(NSObject):
         self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
         self._refresh_in_flight = False
         self._refresh_queued = False
+        self._file_event_refresh_timer = None
+        self._last_file_event_refresh_started_at = None
         self._fs_stream = None
         self._history_entries_cache = None
         self._history_entries_cache_fingerprint = None
@@ -829,6 +839,11 @@ class AppDelegate(NSObject):
         self._stop_critter_timer()
         self._stop_dragon_timer()
         self._stop_lion_timer()
+        if self._file_event_refresh_timer is not None:
+            self._file_event_refresh_timer.invalidate()
+            self._file_event_refresh_timer = None
+        flush_history_cache()
+        codex_loader.flush_caches_on_terminate()
         if hasattr(self, "popover_controller") and self.popover_controller is not None:
             self.popover_controller.teardown()
 
@@ -1393,21 +1408,57 @@ class AppDelegate(NSObject):
         thread.start()
 
     def refreshFromFileEvent_(self, _sender: Any) -> None:
+        now = time.monotonic()
+        decision = menubar_state.file_event_refresh_decision(
+            now,
+            self._last_file_event_refresh_started_at,
+            self._file_event_refresh_timer is not None,
+        )
+        if decision.refresh_now:
+            self._last_file_event_refresh_started_at = now
+            self._refresh(queue_if_busy=True)
+        elif decision.trailing_delay is not None:
+            self._file_event_refresh_timer = (
+                NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_(
+                    decision.trailing_delay,
+                    self,
+                    "refreshFromTrailingFileEvent:",
+                    None,
+                    False,
+                )
+            )
+
+    def refreshFromTrailingFileEvent_(self, _sender: Any) -> None:
+        self._file_event_refresh_timer = None
+        self._last_file_event_refresh_started_at = time.monotonic()
         self._refresh(queue_if_busy=True)
 
     def _refresh_in_background(self) -> None:
         submitted = False
+        debug_timing = os.environ.get("USAGE_DEBUG") == "1"
+
+        def measure(stage: str, started_at: float) -> None:
+            if debug_timing:
+                elapsed_ms = (time.monotonic() - started_at) * 1000
+                logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", stage, elapsed_ms)
+
         try:
+            started_at = time.monotonic() if debug_timing else 0.0
             codex_result = self._load_codex_refresh_result()
+            measure("codex_load", started_at)
+            started_at = time.monotonic() if debug_timing else 0.0
             agy_result = menubar_agy.load_refresh_result(self.language)
+            measure("agy_load", started_at)
             agy_projection = agy_result.projection or menubar_agy.fallback_projection(
                 self.language
             )
+            started_at = time.monotonic() if debug_timing else 0.0
             self.performSelectorOnMainThread_withObject_waitUntilDone_(
                 "_applyCodexRefreshResult:",
                 codex_result,
                 True,
             )
+            measure("main_apply_codex", started_at)
             fallback_state = getattr(self, "latest_state", _empty_state(self.language))
             project_rows = list(fallback_state.projects)
             project_rows_7d = list(fallback_state.projects_7d)
@@ -1420,11 +1471,23 @@ class AppDelegate(NSObject):
             hide_agy = agy_result.hide_agy or _hide_agy_enabled()
             card_order = _quota_card_order()
             try:
+                started_at = time.monotonic() if debug_timing else 0.0
                 all_entries = self._load_history_entries()
-                project_rows = self._project_rows(hours_back=24, entries=all_entries)
-                project_rows_7d = self._project_rows(hours_back=168, entries=all_entries)
-                project_rows_30d = self._project_rows(hours_back=720, entries=all_entries)
-                project_rows_all = self._project_rows(hours_back=0, entries=all_entries)
+                measure("history_load", started_at)
+                started_at = time.monotonic() if debug_timing else 0.0
+                if self.mock:
+                    project_rows = self._project_rows(hours_back=24, entries=all_entries)
+                    project_rows_7d = self._project_rows(hours_back=168, entries=all_entries)
+                    project_rows_30d = self._project_rows(hours_back=720, entries=all_entries)
+                    project_rows_all = self._project_rows(hours_back=0, entries=all_entries)
+                else:
+                    (
+                        project_rows,
+                        project_rows_7d,
+                        project_rows_30d,
+                        project_rows_all,
+                    ) = menubar_state.project_rows_for_windows(all_entries)
+                measure("project_rows_windows", started_at)
                 today_text = _today_title(self.mock, self.language, entries=all_entries)
                 statusline = _statusline_payload(self.language)
                 hide_claude = _hide_claude_enabled()
@@ -1434,7 +1497,9 @@ class AppDelegate(NSObject):
                 if os.environ.get("USAGE_DEBUG") == "1":
                     logger.warning("local usage refresh failed", exc_info=True)
             try:
+                started_at = time.monotonic() if debug_timing else 0.0
                 outcome = asyncio.run(self._fetch())
+                measure("fetch", started_at)
                 codex_rows = codex_result["codex_rows"]
                 codex_5h_pct = codex_result["codex_5h_pct"]
                 codex_model = codex_result.get("codex_model", "unknown")
@@ -1526,6 +1591,7 @@ class AppDelegate(NSObject):
                 )
 
     def _applyRefreshResult_(self, result: dict[str, Any]) -> None:
+        started_at = time.monotonic() if os.environ.get("USAGE_DEBUG") == "1" else 0.0
         should_refresh_again = False
         try:
             state = result["state"]
@@ -1546,6 +1612,11 @@ class AppDelegate(NSObject):
             self._refresh_in_flight = False
         if should_refresh_again:
             self._refresh()
+        if started_at:
+            logger.debug(
+                "refresh_timing stage=main_apply elapsed_ms=%.1f",
+                (time.monotonic() - started_at) * 1000,
+            )
 
     def _clearRefreshInFlight_(self, _sender: Any) -> None:
         self._refresh_in_flight = False
@@ -1575,6 +1646,7 @@ class AppDelegate(NSObject):
         }
 
     def _applyCodexRefreshResult_(self, result: dict[str, Any]) -> None:
+        started_at = time.monotonic() if os.environ.get("USAGE_DEBUG") == "1" else 0.0
         codex_rows = result["codex_rows"]
         self.latest_state.codex_session = codex_rows[0]
         self.latest_state.codex_weekly = codex_rows[1]
@@ -1585,6 +1657,11 @@ class AppDelegate(NSObject):
             self.popover_controller.setState_(self.latest_state)
         self.popover.setContentSize_(_popover_size(self.latest_state, self.active_panel))
         self._set_button_title(self.latest_state)
+        if started_at:
+            logger.debug(
+                "refresh_timing stage=main_apply_codex_ui elapsed_ms=%.1f",
+                (time.monotonic() - started_at) * 1000,
+            )
 
     def _request_notification_authorization(self) -> None:
         if self.mock or not _quota_notifications_enabled():

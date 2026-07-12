@@ -24,6 +24,8 @@ _MODEL_ALIASES = {
     "gemini-3-pro-low": "gemini-3-pro",
 }
 
+_PROJECT_NAME = "Antigravity"
+
 
 def detect() -> AgentInfo | None:
     sessions_dir = shared_agy_loader.AGY_SESSIONS_DIR
@@ -57,7 +59,7 @@ def _to_usage_entry(entry: shared_agy_loader.AgyUsageEntry) -> UsageEntry:
         cache_creation_tokens=0,
         cache_read_tokens=entry.cache_read_tokens,
         cost_usd=None,
-        project="unknown",
+        project=_PROJECT_NAME,
         agent_id="antigravity",
     )
 

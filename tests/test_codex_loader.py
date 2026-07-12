@@ -11,6 +11,7 @@ import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 
@@ -29,6 +30,29 @@ def _clear_jsonl_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", tmp_path / "missing-archived")
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
     monkeypatch.setattr(codex_loader, "STATE_DB", tmp_path / "missing-state.sqlite")
+    monkeypatch.setattr(codex_loader, "_disk_cache_dirty", False)
+    monkeypatch.setattr(codex_loader, "_last_disk_cache_flush_at", None)
+
+
+def test_disk_cache_flush_is_throttled_and_terminate_flushes_dirty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    flush = Mock()
+    now = 100.0
+    monkeypatch.setattr(codex_loader, "flush_caches", flush)
+    monkeypatch.setattr(codex_loader, "_monotonic", lambda: now)
+    monkeypatch.setattr(codex_loader, "_disk_cache_dirty", True)
+
+    codex_loader._flush_caches_to_disk()
+    now = 200.0
+    monkeypatch.setattr(codex_loader, "_disk_cache_dirty", True)
+    codex_loader._flush_caches_to_disk()
+    assert flush.call_count == 1
+    assert codex_loader._disk_cache_dirty is True
+
+    codex_loader.flush_caches_on_terminate()
+    assert flush.call_count == 2
+    assert codex_loader._disk_cache_dirty is False
 
 
 def _write_rate_limit_session(path: Path, timestamp: str, rate_limits: dict[str, Any] | None, mtime: float) -> None:  # noqa: E501
@@ -2055,6 +2079,7 @@ def test_disk_cache_fork_file_entries_not_written(
     )
 
     # Flush to disk
+    monkeypatch.setattr(codex_loader, "_disk_cache_dirty", True)
     codex_loader._flush_caches_to_disk()
 
     # Read back and verify fork file has null entries

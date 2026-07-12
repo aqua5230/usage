@@ -13,6 +13,7 @@ import pytest
 
 import codex_loader
 import menubar_state
+from history_loader import UsageEntry
 
 
 def test_history_sources_fingerprint_uses_claude_projects_dir(
@@ -85,3 +86,66 @@ def test_history_load_error_state_localizes_reason() -> None:
 
     assert state is not None
     assert state["reasonText"]
+
+
+def test_file_event_refresh_decision_passes_through_outside_interval() -> None:
+    decision = menubar_state.file_event_refresh_decision(130.0, 100.0, False)
+
+    assert decision.refresh_now is True
+    assert decision.trailing_delay is None
+
+
+def test_file_event_refresh_decision_schedules_trailing_inside_interval() -> None:
+    decision = menubar_state.file_event_refresh_decision(110.0, 100.0, False)
+
+    assert decision.refresh_now is False
+    assert decision.trailing_delay == 20.0
+
+
+def test_file_event_refresh_decision_merges_into_existing_trailing() -> None:
+    decision = menubar_state.file_event_refresh_decision(129.0, 100.0, True)
+
+    assert decision.refresh_now is False
+    assert decision.trailing_delay is None
+
+
+def test_project_rows_for_windows_matches_window_boundaries() -> None:
+    now = datetime.now(UTC).replace(microsecond=0)
+
+    def entry(project: str, timestamp: datetime, tokens: int) -> UsageEntry:
+        return UsageEntry(
+            timestamp=timestamp,
+            session_id=project,
+            message_id=project,
+            request_id=project,
+            model="test",
+            input_tokens=tokens,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=float(tokens),
+            project=project,
+        )
+
+    rows_24h, rows_7d, rows_30d, rows_all = menubar_state.project_rows_for_windows(
+        [
+            entry("today", now, 4),
+            entry("week", now - timedelta(days=2), 3),
+            entry("month", now - timedelta(days=10), 2),
+            entry("old", now - timedelta(days=40), 1),
+        ],
+        now=now,
+    )
+
+    assert rows_24h == [("today", 4, 4.0)]
+    assert rows_7d == [("today", 4, 4.0), ("week", 3, 3.0)]
+    assert rows_30d == [
+        ("today", 4, 4.0),
+        ("week", 3, 3.0),
+        ("month", 2, 2.0),
+    ]
+    assert rows_all == [
+        ("today", 4, 4.0),
+        ("week", 3, 3.0),
+        ("month", 2, 2.0),
+    ]

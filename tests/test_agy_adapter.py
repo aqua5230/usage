@@ -84,7 +84,7 @@ def test_load_entries_maps_usage_without_precomputing_cost(
     assert entries[0].request_id == ""
     assert entries[0].cache_creation_tokens == 0
     assert entries[0].cost_usd is None
-    assert entries[0].project == "unknown"
+    assert entries[0].project == "Antigravity"
     assert entries[0].agent_id == "antigravity"
 
 

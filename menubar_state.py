@@ -10,6 +10,8 @@ import logging
 import os
 import time
 from dataclasses import dataclass
+from datetime import UTC, datetime, timedelta
+from datetime import time as datetime_time
 from pathlib import Path
 from typing import TypedDict
 
@@ -21,6 +23,32 @@ from pricing import calculate_cost
 from time_utils import parse_iso8601_utc_or_raise
 from usage_client import PollOutcome, PollState
 from usage_rate import GROUP_NAMES
+
+FILE_EVENT_REFRESH_MIN_INTERVAL_S = 30.0
+
+
+@dataclass(frozen=True, slots=True)
+class FileEventRefreshDecision:
+    refresh_now: bool
+    trailing_delay: float | None
+
+
+def file_event_refresh_decision(
+    now: float,
+    last_refresh_started_at: float | None,
+    trailing_scheduled: bool,
+    *,
+    min_interval: float = FILE_EVENT_REFRESH_MIN_INTERVAL_S,
+) -> FileEventRefreshDecision:
+    """Decide whether a file event refreshes now or joins one trailing refresh."""
+    if last_refresh_started_at is None or now - last_refresh_started_at >= min_interval:
+        return FileEventRefreshDecision(refresh_now=True, trailing_delay=None)
+    if trailing_scheduled:
+        return FileEventRefreshDecision(refresh_now=False, trailing_delay=None)
+    return FileEventRefreshDecision(
+        refresh_now=False,
+        trailing_delay=max(0.0, min_interval - (now - last_refresh_started_at)),
+    )
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +217,73 @@ def project_rows(entries: list[UsageEntry]) -> list[tuple[str, int, float | None
             )
         )
     return rows
+
+
+def project_rows_for_windows(
+    entries: list[UsageEntry],
+    *,
+    now: datetime | None = None,
+) -> tuple[
+    list[tuple[str, int, float | None]],
+    list[tuple[str, int, float | None]],
+    list[tuple[str, int, float | None]],
+    list[tuple[str, int, float | None]],
+]:
+    """Aggregate the four project windows in one pass over the history."""
+    current_time = datetime.now(UTC) if now is None else now
+    local_now = current_time.astimezone()
+    local_today = local_now.date()
+    local_tz = local_now.tzinfo
+    assert local_tz is not None
+    today_start = datetime.combine(local_today, datetime_time.min, tzinfo=local_tz).astimezone(
+        UTC
+    )
+    tomorrow_start = datetime.combine(
+        local_today + timedelta(days=1), datetime_time.min, tzinfo=local_tz
+    ).astimezone(UTC)
+    cutoff_7d = current_time - timedelta(hours=168)
+    cutoff_30d = current_time - timedelta(hours=720)
+    aggregates_24h: dict[str, list[float]] = {}
+    aggregates_7d: dict[str, list[float]] = {}
+    aggregates_30d: dict[str, list[float]] = {}
+    aggregates_all: dict[str, list[float]] = {}
+
+    for entry in entries:
+        tokens = entry.total_tokens
+        cost = calculate_cost(entry)
+        _add_project_usage(aggregates_all, entry.project, tokens, cost)
+        if entry.timestamp >= cutoff_30d:
+            _add_project_usage(aggregates_30d, entry.project, tokens, cost)
+        if entry.timestamp >= cutoff_7d:
+            _add_project_usage(aggregates_7d, entry.project, tokens, cost)
+        if today_start <= entry.timestamp < tomorrow_start:
+            _add_project_usage(aggregates_24h, entry.project, tokens, cost)
+
+    return (
+        _rank_project_rows(aggregates_24h),
+        _rank_project_rows(aggregates_7d),
+        _rank_project_rows(aggregates_30d),
+        _rank_project_rows(aggregates_all),
+    )
+
+
+def _add_project_usage(
+    aggregates: dict[str, list[float]], project: str, tokens: int, cost: float
+) -> None:
+    bucket = aggregates.setdefault(project, [0.0, 0.0])
+    bucket[0] += tokens
+    bucket[1] += cost
+
+
+def _rank_project_rows(
+    aggregates: dict[str, list[float]],
+) -> list[tuple[str, int, float | None]]:
+    ranked = sorted(
+        aggregates.items(),
+        key=lambda item: (int(item[1][0]), item[0]),
+        reverse=True,
+    )
+    return [(project, int(tokens), cost) for project, (tokens, cost) in ranked[:3]]
 
 
 def _group_name(group: int, language: str) -> str:

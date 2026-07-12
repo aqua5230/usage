@@ -6,11 +6,13 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import logging
 import math
 import os
+import time
 from collections import OrderedDict
 from collections.abc import Iterable
 from dataclasses import dataclass
@@ -47,6 +49,10 @@ CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 HISTORY_CACHE_PATH = Path(os.path.expanduser("~/.usage/history_jsonl_cache.json"))
 _HISTORY_JSONL_CACHE_SCHEMA = 1
 _disk_cache_seeded = False
+_DISK_CACHE_FLUSH_INTERVAL_S = 300.0
+_disk_cache_dirty = False
+_last_disk_cache_flush_at: float | None = None
+_monotonic = time.monotonic
 
 
 @dataclass(slots=True)
@@ -78,6 +84,8 @@ def load_entries(
     *,
     jsonl_paths: Iterable[Path] | None = None,
 ) -> list[UsageEntry]:
+    global _disk_cache_dirty
+
     _seed_caches_from_disk()
 
     entries: list[UsageEntry] = []
@@ -110,6 +118,9 @@ def load_entries(
     if {
         str(path): (entry.mtime, entry.size) for path, entry in _file_cache.items()
     } != file_cache_snapshot:
+        _disk_cache_dirty = True
+        _flush_caches_to_disk()
+    elif _disk_cache_dirty:
         _flush_caches_to_disk()
 
     entries.sort(key=lambda entry: entry.timestamp)
@@ -130,12 +141,31 @@ def _seed_caches_from_disk() -> None:
     )
 
 
-def _flush_caches_to_disk() -> None:
+def _flush_caches_to_disk(*, force: bool = False) -> None:
+    global _disk_cache_dirty, _last_disk_cache_flush_at
+
+    if not _disk_cache_dirty:
+        return
+    now = _monotonic()
+    if (
+        not force
+        and _last_disk_cache_flush_at is not None
+        and now - _last_disk_cache_flush_at < _DISK_CACHE_FLUSH_INTERVAL_S
+    ):
+        return
     flush_caches(
         HISTORY_CACHE_PATH,
         _HISTORY_JSONL_CACHE_SCHEMA,
         _file_cache,
     )
+    _last_disk_cache_flush_at = now
+    _disk_cache_dirty = False
+
+
+def flush_caches_on_terminate() -> None:
+    """Best-effort persistence of cache changes still waiting for the throttle."""
+    with contextlib.suppress(Exception):
+        _flush_caches_to_disk(force=True)
 
 
 def _load_file(
