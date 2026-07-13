@@ -1007,6 +1007,115 @@
           ]
         }
       ]
+    },
+    {
+      "id": "usage",
+      "name": "Usage",
+      "versions": [
+        {
+          "version": "0.27.0",
+          "period": "2026-07-13",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "專屬更新網頁上線，報表不再塞滿冗長紀錄",
+                "zh-CN": "专属更新网页上线，报表不再塞满冗长记录",
+                "en": "Dedicated update website is live, keeping the HTML report uncluttered",
+                "ja": "専用のアップデートページが公開され、レポートが冗長な記録で埋まらなくなった",
+                "ko": "전용 업데이트 웹페이지가 열려, 보고서가 더 이상 길고 복잡한 기록으로 채워지지 않는다."
+              },
+              "body": {
+                "zh-TW": "點擊選單列上的「AI Update Daily」，你現在可以直接打開專屬的更新網頁，不用再像以前那樣在 HTML 深度報表（deep report，顯示完整數據分析的網頁）裡翻找。這個新網頁每天自動更新，完整收錄了 Claude Code、Codex 和 Antigravity 的歷史紀錄；有人工審查過的版本會顯示五種語言的白話摘要，還沒審查的則會顯示官方原文。也因為有了這個專屬網頁，原本塞在深度報表裡的更新摘要區塊就被移除了，讓報表回歸清爽。就像是一間餐廳把原本擠在點菜單角落的新菜介紹，獨立印成一本精美的全彩菜單，點菜單本身變乾淨了，想看新菜的人也能看得更清楚。",
+                "zh-CN": "点击菜单列上的「AI Update Daily」，你现在可以直接打开专属的更新网页，不用再像以前那样在 HTML 深度报表（deep report，显示完整数据分析的网页）里翻找。这个新网页每天自动更新，完整收录了 Claude Code、Codex 和 Antigravity 的历史记录；有人工审查过的版本会显示五种语言的白话摘要，还没审查的则会显示官方原文。也因为有了这个专属网页，原本塞在深度报表里的更新摘要区块就被移除了，让报表回归清爽。就像是一间餐厅把原本挤在点菜单角落的新菜介绍，独立印成一本精美的全彩菜单，点菜单本身变干净了，想看新菜的人也能看得更清楚。",
+                "en": "Clicking \"AI Update Daily\" in the menu bar now takes you straight to a dedicated public web page, instead of making you hunt through the HTML deep report (the page showing your full data analysis). This new page auto-updates daily with the complete history for Claude Code, Codex, and Antigravity; reviewed versions show plain-language summaries in all five UI languages, while unreviewed ones display the official source text. Because this dedicated page now exists, the old update digest section has been removed from the HTML deep report to keep it uncluttered. It's like a restaurant moving the \"new dishes\" section from the corner of the order sheet into a beautifully printed full-color menu—the order sheet stays clean, and those looking for new dishes get a much better reading experience.",
+                "ja": "メニューバーの「AI Update Daily」をクリックするだけで、専用のアップデート情報ページを直接開けるようになり、以前のように HTML ディープレポート（deep report、詳細なデータ分析を表示するウェブページ）の中を探し回る必要がなくなった。この新ページは毎日自動更新され、Claude Code、Codex、Antigravity の完全な更新履歴を網羅している。査読済みの更新は5つの UI 言語で平易な要約が表示され、未査読のものは公式の原文が表示される。この専用ページができたことで、HTML レポート内に詰め込まれていたアップデートダイジェストのセクションは削除され、レポート全体がすっきりした。レストランが、注文用紙の隅に押し込んでいた新メニューの紹介を独立したフルカラーのメニュー表に分けたようなものである。注文用紙は書きやすくなり、新メニューを見たい人も快適に読める。",
+                "ko": "메뉴 바에서 'AI Update Daily'를 클릭하면 이제 전용 업데이트 웹페이지가 바로 열려, 예전처럼 HTML 딥 리포트(deep report, 전체 데이터 분석 결과를 보여주는 웹페이지) 안을 뒤적일 필요가 없다. 이 새 페이지는 매일 자동으로 업데이트되며 Claude Code, Codex, Antigravity의 전체 업데이트 기록을 담고 있다. 검토가 끝난 버전은 5개 언어로 된 알기 쉬운 요약본을 보여주고, 아직 검토되지 않은 버전은 공식 원문을 그대로 보여준다. 이 전용 페이지가 생기면서, 원래 딥 리포트 안에 자리 잡고 있던 업데이트 요약 영역은 삭제되어 보고서가 훨씬 깔끔해졌다. 식당이 원래 주문서 구석에 욱여넣었던 신메뉴 소개를 풀컬러로 된 예쁜 메뉴판으로 따로 빼낸 것과 같다. 주문서는 깔끔해지고 신메뉴를 보고 싶은 사람도 훨씬 편하게 읽을 수 있다."
+              },
+              "original": "**AI Update Daily** — clicking this menu item opens the public [web page](https://aqua5230.github.io/ai-updates/) in your default browser. The page auto-updates every day, covers Claude Code, Codex, and Antigravity, and keeps the full update history; reviewed updates show a plain-language summary in all five UI languages, while unreviewed ones show the official source text.\n**HTML report's \"AI Tool Update Digest\" section removed** — the digest has graduated into its own dedicated web page, so the HTML deep report no longer duplicates it."
+            }
+          ]
+        },
+        {
+          "version": "0.26.1",
+          "period": "2026-07-13",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "介面不再留下空白列，硬碟讀寫更安靜",
+                "zh-CN": "界面不再留下空白列，硬盘读写更安静",
+                "en": "No more blank rows in the interface, and disk I/O stays quiet",
+                "ja": "インターフェースに空白行が残らなくなり、ディスクの読み書きも静かに",
+                "ko": "인터페이스에 빈 줄이 남지 않고 디스크 읽기/쓰기가 더 조용해졌다."
+              },
+              "body": {
+                "zh-TW": "當 OpenAI 伺服器突然把 Codex 的限流（rate-limit，限制你多久能發送幾次請求的機制）從「5 小時與每週」改成「只剩每週」時，你的選單列卡片不會再留下一行醜醜的空白了。以前系統只會傻傻照著位置填數字，現在它會認明限流的時長，伺服器沒給的就不顯示，整張卡片會自動縮排；而且選單列上的百分比也會聰明地退回顯示每週的額度。另外，系統現在把零碎的檔案掃描紀錄集中起來，最多每 5 分鐘才寫入硬碟（disk I/O，程式讀寫硬碟的動作）一次，不再頻繁吵醒你的硬碟。就像是原本收納盒裡有兩個專屬格子，如果廠商突然不送其中一款贈品，以前格子會空在那裡長灰塵，現在收納盒會自動縮小不佔位；而且原本你每丟一張發票記帳軟體就要存檔一次，現在它會先記在腦袋裡，每五分鐘才寫進本子裡一次。",
+                "zh-CN": "当 OpenAI 服务器突然把 Codex 的限流（rate-limit，限制你多久能发送几次请求的机制）从「5 小时与每周」改成「只剩每周」时，你的菜单列卡片不会再留下一行丑丑的空白了。以前系统只会傻傻照着位置填数字，现在它会认明限流的时长，服务器没给的就不显示，整张卡片会自动缩进；而且菜单列上的百分比也会聪明地退回显示每周的额度。另外，系统现在把零碎的文件扫描记录集中起来，最多每 5 分钟才写入硬盘（disk I/O，程序读写硬盘的动作）一次，不再频繁吵醒你的硬盘。就像是原本收纳盒里有两个专属格子，如果厂商突然不送其中一款赠品，以前格子会空在那里长灰尘，现在收纳盒会自动缩小不占位；而且原本你每丢一张发票记账软件就要存档一次，现在它会先记在脑袋里，每五分钟才写进本子里一次。",
+                "en": "When OpenAI's servers abruptly switch the Codex rate-limit (the mechanism restricting how many requests you can make) payload from showing both a 5-hour and a weekly window to weekly-only, your menu bar card won't leave an ugly blank row anymore. Previously, the system mapped numbers purely by their position, but now it classifies limits by their duration—if the server stops reporting one, that row disappears completely, the card shrinks, and the menu bar percentage smartly falls back to the weekly value. Additionally, the system now coalesces file scan records and flushes them to your disk (disk I/O) at most once every 5 minutes, stopping the constant disk waking. It's like a bento box with dedicated slots: if a side dish stops being served, the box used to just leave an empty, dusty compartment, but now it automatically resizes to save space; and instead of writing to the ledger every single time you hand over a receipt, the accountant now batches them up and writes everything down once every five minutes.",
+                "ja": "OpenAI のサーバーが突然 Codex のレート制限（rate-limit、リクエスト送信回数を制限する仕組み）を「5時間と週間」から「週間のみ」に変更した際、メニューバーのカードに不格好な空白行が残らなくなった。以前は位置だけで愚直に数字を当てはめていたが、これからは制限期間を正しく識別し、サーバーから送られてこない期間は表示せずカード全体が縮む。メニューバーのパーセンテージも賢く週間枠の値に切り替わる。さらに、システムは細々としたファイルスキャン記録をまとめ、最大でも5分に1回しかディスクへの書き込み（disk I/O）を行わなくなり、ハードディスクを頻繁に起こすことがなくなった。お弁当箱の専用の仕切りが、おかずが一品減った時に以前なら空っぽのまま場所を取っていたのが、今は自動で縮んでコンパクトになり、経理担当者がレシートを1枚もらうたびに帳簿を書いていたのが、今は5分に1回まとめて書き込むようになったようなものである。",
+                "ko": "OpenAI 서버가 갑자기 Codex의 속도 제한(rate-limit, 요청을 얼마나 자주 보낼 수 있는지 막는 장치)을 '5시간 및 매주'에서 '매주 한정'으로 바꿔버려도, 이제 메뉴 바 카드에 보기 싫은 빈 줄이 남지 않는다. 예전엔 시스템이 그저 자리 순서대로 숫자를 채워 넣었지만, 이제는 제한 시간을 정확히 알아보고 서버가 안 주는 정보는 아예 숨겨 카드 크기를 알아서 줄인다. 메뉴 바의 퍼센트도 똑똑하게 주간 할당량으로 돌아간다. 또한 자잘한 파일 스캔 기록을 모아 최대 5분에 한 번만 디스크에 쓰기(disk I/O) 때문에 하드디스크를 자주 깨우지 않는다. 칸이 나뉜 도시락통에서 반찬 하나가 안 나오면 예전엔 빈 칸이 먼지만 쌓인 채 남았지만 이제는 알아서 통이 줄어들어 자리를 아끼고, 영수증을 낼 때마다 장부에 쓰던 경리가 이제는 5분마다 한 번씩 몰아서 적어주는 것과 같다."
+              },
+              "original": "**Codex card no longer shows an untitled \"--\" row**: mid-day on 2026-07-13, OpenAI's server-side rate-limit payload switched to weekly-only (the 5-hour window vanished with the CLI version unchanged), and the loader — which mapped fields by position — shoved the weekly number into the session slot, leaving a blank row behind. Rate-limit windows are now classified by their duration, a window the server no longer reports is hidden entirely (the card shrinks by one row), and the menu-bar Codex percentage falls back to the weekly value while the 5-hour limit is absent. If OpenAI brings the 5-hour window back, both rows return automatically.\n**Less idle disk I/O**: the JSONL scan caches are flushed to disk at most once per 5 minutes (with a final flush on quit), rapid file-event bursts coalesce into a single refresh, and the four per-project ranking windows are aggregated in one pass over history."
+            },
+            {
+              "title": {
+                "zh-TW": "Antigravity 額度更新更即時，報表標籤更清楚",
+                "zh-CN": "Antigravity 额度更新更即时，报表标签更清楚",
+                "en": "Antigravity quotas refresh faster, with live countdowns and clear labels",
+                "ja": "Antigravity のクォータ更新が迅速化、カウントダウンもリアルタイムに",
+                "ko": "Antigravity 할당량 업데이트가 빨라지고, 보고서 라벨도 더 명확해졌다."
+              },
+              "body": {
+                "zh-TW": "查看 Antigravity 的額度倒數時，數字現在會即時跟著時間跳動，不會像以前那樣卡在上次更新的時間點。這背後是因為系統現在改為直接讀取你電腦上已有的登入憑證（唯讀不修改），去向官方的額度介面（API）要資料，不再透過背景偷跑指令來檢查。這讓資料更新頻率從 15 分鐘縮短到 5 分鐘，倒數時間無比精準，也免去了多開額外處理程序的負擔；而且這完全只讀取額度資訊，不會扣到你的模型扣打（quota）。此外，HTML 報表裡的 Antigravity 使用紀錄也不會再被誤標成「unknown」了。就像搭火車，以前月台看板每 15 分鐘才人工翻牌一次，有時還會寫著「未知車種」；現在直接連線行控中心，每分每秒都精準倒數，而且車次名稱清清楚楚。",
+                "zh-CN": "查看 Antigravity 的额度倒数时，数字现在会实时跟着时间跳动，不会像以前那样卡在上次更新的时间点。这背后是因为系统现在改为直接读取你电脑上已有的登录凭证（只读不修改），去向官方的额度界面（API）要资料，不再通过后台偷跑指令来检查。这让资料更新频率从 15 分钟缩短到 5 分钟，倒数时间无比精准，也免去了多开额外处理程序的负担；而且这完全只读取额度信息，不会扣到你的模型配额（quota）。此外，HTML 报表里的 Antigravity 使用记录也不会再被误标成「unknown」了。就像搭火车，以前月台看板每 15 分钟才人工翻牌一次，有时还会写着「未知车种」；现在直接连接行控中心，每分每秒都精准倒数，而且车次名称清清楚楚。",
+                "en": "When checking your Antigravity quotas, the reset countdowns now tick down live second by second, rather than freezing at whatever time it was last fetched. Behind the scenes, the system now reads the sign-in token already on your machine (strictly read-only) to query the official quota endpoint directly, instead of running background commands. This shortens the refresh cycle from 15 to 5 minutes, makes countdowns perfectly exact, and eliminates the overhead of spawning helper processes—and since it only reads metadata, it never consumes your model quota. Additionally, Antigravity usage rows in the HTML report are now properly labeled instead of defaulting to \"unknown\". It's like taking a train: the platform display used to only manually flip every 15 minutes and sometimes said \"Unknown Train\"; now it's hooked directly to dispatch, counting down perfectly to the second with the exact train name displayed.",
+                "ja": "Antigravity のクォータのカウントダウンを見る際、以前のように前回取得した時間で固まることなく、時計のようにリアルタイムで減っていくようになった。裏側では、バックグラウンドでこっそりコマンドを走らせるのをやめ、あなたの PC にすでにあるログイン認証情報（読み取り専用で改変不可）を直接読み込んで公式の API からデータを取得するようになった。これにより更新間隔が 15 分から 5 分に縮まり、カウントダウンが極めて正確になり、余計な処理プロセスを立ち上げる負荷も消えた。クォータ情報だけを読むため、あなたのモデル枠（quota）を消費することもない。また、HTML レポート内の Antigravity 使用記録も「unknown」と誤表記されなくなった。駅のホームの掲示板が、以前は15分ごとに手動でめくられ、たまに「謎の列車」と表示されていたのが、今は運行センター直結で毎秒正確にカウントダウンされ、列車名もはっきり表示されるようになったようなものである。",
+                "ko": "Antigravity의 할당량 카운트다운을 볼 때, 예전처럼 마지막으로 확인한 시간에 멈춰 있지 않고 숫자가 실시간으로 째깍째깍 줄어든다. 이는 시스템이 백그라운드에서 몰래 명령어를 실행하는 대신, 컴퓨터에 이미 있는 로그인 인증 토큰(읽기 전용이라 안전함)을 직접 읽어 공식 할당량 API에 데이터를 요청하도록 바뀌었기 때문이다. 덕분에 업데이트 주기가 15분에서 5분으로 짧아졌고, 카운트다운이 정확해졌으며 쓸데없이 추가 프로세스를 띄우는 부담도 사라졌다. 할당량 정보만 읽기 때문에 모델 할당량(quota)을 갉아먹지도 않는다. 또한, HTML 보고서에서 Antigravity 사용 기록이 'unknown'으로 잘못 표시되던 문제도 해결됐다. 기차역 승강장 전광판이 예전엔 15분마다 손으로 뒤집어야 했고 가끔 '정체불명 기차'라고 뜨던 것이, 이제는 통제소와 직접 연결돼 1초 단위로 정확히 카운트다운을 하고 열차 이름도 또렷하게 띄워주는 것과 같다."
+              },
+              "original": "**Antigravity reset countdowns tick down live** instead of freezing at the last-fetched value until the next refresh.\n**Antigravity quota now comes straight from the official quota API**: usage reads the sign-in token the Antigravity CLI already stores on your machine (strictly read-only — the file is never modified) and queries the official quota endpoint directly, replacing the background `/quota` CLI probe. Numbers refresh every ~5 minutes instead of 15, countdowns are exact, no helper process is spawned, and the call reads quota metadata only — it never consumes your model quota. Any fetch failure still falls back to the cached snapshot with the usual stale badge. The data-source description in all five README languages is updated to match.\nAntigravity token rows in the HTML report are labeled \"Antigravity\" instead of \"unknown\"."
+            }
+          ]
+        },
+        {
+          "version": "0.26.0",
+          "period": "2026-07-13",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Antigravity 正式加入監控行列，三強鼎立",
+                "zh-CN": "Antigravity 正式加入监控行列，三强鼎立",
+                "en": "Antigravity joins the lineup, bringing the big three together",
+                "ja": "Antigravity が監視対象に正式加入し、三本柱が揃い踏み",
+                "ko": "Antigravity가 감시 목록에 정식으로 합류하여 3강 체제가 완성되었다."
+              },
+              "body": {
+                "zh-TW": "你現在可以同時監看 Antigravity（Gemini）的使用量了，它正式成為與 Claude Code、Codex 並列的第三個追蹤工具。不管你切換到哪種主題介面，都會多出一張專屬的 Antigravity 額度卡片，完全融入當前的設計風格；而且它靠著在背景每 15 分鐘跑一次官方指令來抓額度，不耍暗招也不亂戳內部介面。選單列上除了原本的鳳凰和龍，現在還多了一隻專屬的獅子精靈（spirit companion），牠的動畫快慢會誠實反映你燃燒 Antigravity token 的速度。此外，HTML 深度報表也已經把 Antigravity 的紀錄整合進去。就像是你車上的儀表板原本只能看油量和電量，現在多裝了一顆專屬的水箱溫度表，不但風格完美契合，連指針跳動的速度都跟引擎同步，讓你一手掌握整台車的狀況。",
+                "zh-CN": "你现在可以同时监看 Antigravity（Gemini）的使用量了，它正式成为与 Claude Code、Codex 并列的第三个追踪工具。不管你切换到哪种主题界面，都会多出一张专属的 Antigravity 额度卡片，完全融入当前的设计风格；而且它靠着在背景每 15 分钟跑一次官方指令来抓额度，不耍暗招也不乱戳内部界面。菜单列上除了原本的凤凰和龙，现在还多了一只专属的狮子精灵（spirit companion），它的动画快慢会诚实反映你燃烧 Antigravity token 的速度。此外，HTML 深度报表也已经把 Antigravity 的记录整合进去。就像是你车上的仪表板原本只能看油量和电量，现在多装了一颗专属的水箱温度表，不但风格完美契合，连指针跳动的速度都跟引擎同步，让你一手掌握整台车的状况。",
+                "en": "You can now track your Antigravity (Gemini) usage alongside Claude Code and Codex, as it officially joins the app as the third monitored tool. No matter which UI theme you use, a dedicated Antigravity quota card now appears, styled perfectly to match its host theme. It safely reads this quota by running the official CLI command in the background every 15 minutes, with no sketchy token scraping or undocumented API poking. Up in the menu bar, the phoenix and dragon are joined by a new lion spirit companion, whose animation speed accurately reflects how fast you're burning through Antigravity tokens. Finally, Antigravity usage is now fully fed into the HTML deep report. It's like your car's dashboard: it used to only show gas and battery, but now it has a perfectly matching water temperature gauge installed; the needle moves in total sync with the engine, giving you the complete picture at a glance.",
+                "ja": "Claude Code と Codex に並ぶ第3の監視対象として、Antigravity（Gemini）の利用量も同時に把握できるようになった。どのテーマに着せ替えても専用の Antigravity クォータカードが追加され、デザインも周囲に完璧に溶け込む。クォータの取得は、バックグラウンドで15分ごとに公式コマンドを走らせる正攻法であり、怪しいトークン抜き取りや非公開 API の乱用はしていない。メニューバーには従来の不死鳥と竜に加え、新たに獅子の精霊（spirit companion）が仲間入りし、そのアニメーション速度は Antigravity トークンの消費スピードに連動する。また、HTML ディープレポートにも Antigravity のデータが統合された。車のダッシュボードに例えるなら、ガソリンとバッテリーしか見えなかったところに、デザインが統一された水温計が追加され、針の動きもエンジンと完全に同期し、車体全体の状況が一目で分かるようになったようなものである。",
+                "ko": "이제 Claude Code, Codex와 나란히 제3의 도구로서 Antigravity(Gemini) 사용량도 함께 지켜볼 수 있게 되었다. 어떤 테마를 쓰든 Antigravity 전용 할당량 카드가 추가되며, 현재 테마 디자인에 완벽하게 녹아든다. 할당량은 백그라운드에서 15분마다 공식 명령어를 실행해 정직하게 가져오며, 토큰을 훔쳐보거나 내부 API를 마구 찌르는 꼼수는 쓰지 않았다. 메뉴 바에는 원래 있던 불사조와 용에 이어 전용 사자 정령(spirit companion)이 추가되었으며, 이 녀석이 움직이는 속도는 당신이 Antigravity 토큰을 태우는 속도를 정직하게 반영한다. 또한 HTML 딥 리포트에도 Antigravity 기록이 통합되었다. 원래 기름과 배터리만 보여주던 자동차 계기판에 디자인이 똑같은 냉각수 온도계가 새로 달렸고, 바늘 움직임까지 엔진과 완벽하게 동기화되어 차의 상태를 한눈에 꿰뚫어 볼 수 있게 된 것과 같다."
+              },
+              "original": "**Antigravity (Gemini) support** — usage now watches a third AI tool alongside Claude Code and Codex:\n- **Quota card in every panel**: session + weekly limits appear as a third card in the classic panel and all nine themed quota panels, each styled in its host theme's visual language, with the same stale-data badge and hide toggle as the other two tools.\n- **Official numbers, no API poking**: quota is read by periodically running the Antigravity CLI's own `/quota` command in the background (15-minute cache) — identical to typing it yourself. No OAuth-token scraping, no internal API calls.\n- **Menu bar segment**: the Antigravity mark and session percentage join the menu bar, complete with a **lion spirit companion** whose animation speed follows Antigravity's own token burn rate — the phoenix (Claude) and dragon (Codex) finally have a third packmate.\n- **HTML report integration**: Antigravity token usage from local logs feeds the deep report."
+            },
+            {
+              "title": {
+                "zh-TW": "卡片隨你排，說明書多國語言化",
+                "zh-CN": "卡片随你排，说明书多国语言化",
+                "en": "Reorder cards by dragging, and read the manual in five languages",
+                "ja": "カードの並べ替えが自由になり、説明書も多言語対応に",
+                "ko": "카드를 마음대로 배치하고, 설명서도 다국어로 읽을 수 있다."
+              },
+              "body": {
+                "zh-TW": "現在你可以直接按住拖曳，隨心所欲地把 Claude、Codex 或 Antigravity 的額度卡片換位子了。這份排版順序會自動存下來，就算你切換介面主題或重開機都不會跑掉。另外，當 Antigravity 遇到需要確認信任工作區的提示時，額度探測器（probe）也不會再傻傻卡住，過期資料的提示文字也寫得更準確。專案的 README 說明書現在一口氣支援了五種語言（英、繁中、簡中、日、韓），內容也梳理得更乾淨。就像你可以把自己最常用的悠遊卡、信用卡在皮夾裡隨意換格子，換了新皮夾順序依然照舊；而且買這套皮夾附贈的說明書，現在翻譯成了五國語言，任何人都能看懂。",
+                "zh-CN": "现在你可以直接按住拖曳，随心所欲地把 Claude、Codex 或 Antigravity 的额度卡片换位子了。这份排版顺序会自动存下来，就算你切换界面主题或重开机都不会跑掉。另外，当 Antigravity 遇到需要确认信任工作区的提示时，额度探测器（probe）也不会再傻傻卡住，过期资料的提示文字也写得更准确。项目的 README 说明书现在一口气支持了五种语言（英、繁中、简中、日、韩），内容也梳理得更干净。就像你可以把自己最常用的公交卡、信用卡在钱包里随意换格子，换了新钱包顺序依然照旧；而且买这套钱包附赠的说明书，现在翻译成了五国语言，任何人都能看懂。",
+                "en": "You can now click and drag the Claude, Codex, and Antigravity quota cards to arrange them however you like. Your custom order is saved, shared across all themes, and survives app restarts. Furthermore, the quota probe won't hang anymore if the Antigravity CLI throws up a workspace-trust prompt, and the tooltip explaining stale data is now perfectly accurate. The project's README manual has also been cleaned up and translated into five languages (English, Traditional Chinese, Simplified Chinese, Japanese, Korean). It's like being able to slide your ID and credit cards into whichever slots you prefer in your wallet, and that arrangement stays exactly the same even if you buy a different colored wallet of the same brand; plus, the wallet now comes with an instruction booklet everyone can read.",
+                "ja": "これからは Claude、Codex、Antigravity のクォータカードをドラッグして、好きな順番に並べ替えられるようになった。この並び順は自動的に保存され、テーマを変更しても再起動しても維持される。また、Antigravity がワークスペースの信頼確認プロンプトを出してきてもクォータ探査機能（probe）がフリーズしなくなり、古いデータに対するツールチップの説明も正確になった。プロジェクトの README 説明書は内容が整理され、一気に5言語（英語、繁体字中国語、簡体字中国語、日本語、韓国語）対応になった。財布の中でよく使う交通系ICカードやクレジットカードを好きなポケットに入れ替えられ、財布の色を変えてもその配置が引き継がれるようなものであり、しかも財布の取扱説明書が5カ国語に翻訳されて誰でも読めるようになったのと同じである。",
+                "ko": "이제 Claude, Codex, Antigravity 할당량 카드를 꾹 눌러 드래그해 마음대로 순서를 바꿀 수 있다. 이렇게 정한 순서는 자동으로 저장되어 테마를 바꾸거나 컴퓨터를 껐다 켜도 그대로 유지된다. 또한, Antigravity가 작업 공간을 신뢰하겠냐고 묻는 프롬프트를 띄워도 할당량 탐색기(probe)가 더 이상 멍하니 멈추지 않으며, 오래된 데이터를 알리는 말풍선 설명도 훨씬 정확해졌다. 프로젝트의 README 설명서는 내용을 깔끔하게 다듬어 5개 언어(영어, 번체 중문, 간체 중문, 일어, 한국어)로 제공된다. 지갑 안에서 자주 쓰는 교통카드와 신용카드를 편한 칸에 마음대로 옮겨 꽂을 수 있고 지갑을 새로 바꿔도 그 순서가 그대로 유지되는 것과 같으며, 지갑을 샀을 때 들어 있는 설명서도 5개 국어로 번역되어 누구나 읽을 수 있게 된 셈이다."
+              },
+              "original": "**Drag to reorder quota cards**: press and drag the Claude / Codex / Antigravity cards in any panel to swap their order. The arrangement is validated, persisted, shared across all themes, and survives restarts.\n**Antigravity quota probe hardening**: the probe no longer hangs on Antigravity CLI 1.1.1's new workspace-trust prompt, and the stale-data tooltip now describes the probe behavior accurately.\nFuzz harness imports are static so PyInstaller bundles the parser modules (CI fuzzing only; no user-facing impact).\nREADME now ships in five languages (English, Traditional Chinese, Simplified Chinese, Japanese, Korean) with a cleaned-up presentation.\nAI Tool Update Digest refreshed (Claude Code 2.1.206 / Codex 0.144.1 / Antigravity 1.1.1)."
+            }
+          ]
+        }
+      ]
     }
   ]
 }
