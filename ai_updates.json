@@ -1,10 +1,33 @@
 {
-  "generated_at": "2026-07-14",
+  "generated_at": "2026-07-15",
   "tools": [
     {
       "id": "claude_code",
       "name": "Claude Code",
       "versions": [
+        {
+          "version": "2.1.209",
+          "period": "2026-07-14",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "背景任務不再擋選單，互動指令恢復正常",
+                "zh-CN": "后台任务不再挡菜单，交互指令恢复正常",
+                "en": "Interactive menus are no longer blocked in agent background sessions",
+                "ja": "背景タスクでメニューがブロックされなくなり、対話コマンドが正常化",
+                "ko": "백그라운드 작업에서 메뉴가 막히지 않고, 대화형 명령어가 정상화됨"
+              },
+              "body": {
+                "zh-TW": "現在你在跑代理的背景任務時，又可以順暢使用切換模型等互動選單，不會再被莫名擋下。以前，一個設定得太嚴格的防護機制（guard，用來阻擋非預期操作的保安設定）不小心封殺了 `/model` 指令與其他對話框，導致你在跑 `claude agents`（Claude 同時開多個分身代理幫你做事的功能）背景任務（background sessions，在主畫面背後默默執行的工作）時無法叫出這些互動介面。現在這個管太寬的限制已經被撤銷，讓你恢復應有的操作權限。就像辦公室換了新的電子鎖，結果設定太嚴格，連正常上班的員工都被鎖在自己的會議室外面；現在門禁規定撤回原本的標準，你總算能正常推開門辦公了。",
+                "zh-CN": "现在你在跑代理的后台任务时，又可以顺畅使用切换模型等交互菜单，不会再被莫名挡下。以前，一个设置得太严格的防护机制（guard，用来阻挡非预期操作的保安设置）不小心封杀了 `/model` 指令与其他对话框，导致你在跑 `claude agents`（Claude 同时开多个分身代理帮你做事的功能）后台任务（background sessions，在主界面后台默默运行的任务）时无法叫出这些交互界面。现在这个管太宽的限制已经被撤销，让你恢复应有的操作权限。就像办公室换了新的电子锁，结果设置太严格，连正常上班的员工都被锁在自己的会议室外面；现在门禁规定撤回原本的标准，你总算能正常推开门办公了。",
+                "en": "You can once again use interactive menus, like changing AI models, without them getting stuck while running agent tasks behind the scenes. Previously, an overly strict guard (a protective mechanism meant to prevent unwanted actions) accidentally blocked the `/model` command and other dialogs from appearing in `claude agents` (a feature where Claude opens multiple agent instances to work for you) background sessions (tasks running silently in the background). This meant you couldn't interact with these interfaces when you needed to. We've rolled back this overly broad restriction so everything works normally again. It's like an office security door that was set so strictly it locked regular employees out of their own meeting rooms; the rule has been reverted to its standard setting so you can actually push the door open and get to work.",
+                "ja": "エージェントの背景タスクを実行している最中でも、モデル切り替えなどの対話メニューが再びスムーズに使えるようになった。以前は、厳しすぎる防御メカニズム（guard、予期せぬ操作を防ぐための保安設定）が誤って `/model` コマンドやその他のダイアログをブロックしてしまい、`claude agents`（Claude が複数のエージェントを同時に開いて作業を代行する機能）の背景タスク（background sessions、画面の裏側で黙々と動く作業）においてこれらの対話インターフェースを呼び出せなくなっていた。現在はこの広すぎる制限が撤回され、本来の操作権限が回復している。オフィスに新しい電子錠を導入したら、設定が厳しすぎて普通の社員まで会議室から締め出されてしまったが、元の基準に戻したことでようやく普通にドアを開けて仕事ができるようになったようなものである。",
+                "ko": "에이전트의 백그라운드 작업을 돌릴 때 모델 변경 같은 대화형 메뉴를 막힘없이 다시 쓸 수 있다. 예전에는 지나치게 엄격한 방어 메커니즘(guard, 원치 않는 조작을 막기 위한 보안 설정)이 실수로 `/model` 명령어와 기타 대화 상자를 차단하는 바람에, `claude agents`(Claude가 여러 에이전트를 동시에 열어 작업을 대신 해주는 기능) 백그라운드 작업(background sessions, 화면 뒤에서 조용히 돌아가는 작업) 중에는 이런 대화형 인터페이스를 부를 수 없었다. 이제는 이 지나치게 넓은 제한이 취소되어 원래의 조작 권한을 되찾았다. 사무실에 새 전자 자물쇠를 달았더니 설정이 너무 엄격해 평범한 직원들마저 회의실 밖으로 쫓겨났다가, 이제 출입 규정을 원래대로 되돌려 마침내 정상적으로 문을 열고 일할 수 있게 된 것과 같다."
+              },
+              "original": "Fixed /model and other dialogs being blocked in `claude agents` background sessions (reverts an overly broad guard)"
+            }
+          ]
+        },
         {
           "version": "2.1.208",
           "period": "2026-07-14",
@@ -439,182 +462,6 @@
                 "ko": "당신을 깜짝 놀라게 하던 시스템의 행동 몇 가지를 바로잡았다. 크레딧을 충전할 때 실수로 타임스탬프 같은 걸 붙여넣으면, 예전엔 숫자만 억지로 골라내 엉뚱한 금액으로 결제해 버렸지만 이제는 곧바로 오류를 내며 멈춘다. 1,000달러가 넘으면 지갑이 털리지 않게 직접 타이핑해 확인해야 한다. Claude를 실행하는 바로 가기 스크립트를 쓰기 편하게 고쳐 놓았다면, 자동 업데이트가 더 이상 무식하게 덮어쓰지 않는다. 또한, 시스템 내부에서 일어나는 정상적인 대화 업데이트를 방화벽이 '프롬프트 인젝션 공격'으로 잘못 알고 경보를 울리던 문제도 고쳐졌다. 현금지급기에서 비밀번호를 마구 눌러도 제멋대로 돈을 뱉어내지 않고, 은행 소프트웨어가 업그레이드될 때 당신이 설정한 단축키를 날려버리지 않으며, 은행 직원이 지폐를 채워 넣는다고 도난 경보기가 울리지 않는 것과 같다."
               },
               "original": "Fixed the auto-updater overwriting a custom launcher script or symlink at `~/.local/bin/claude` on every release; `/doctor` now reports an externally managed launcher\nFixed spurious prompt-injection warnings triggered by benign system-generated conversation updates\nFixed `/usage-credits` amount inputs silently stripping malformed values (e.g. a pasted timestamp) to digits; malformed amounts are now rejected with an error, and amounts over $1,000 require a typed confirmation (2.1.207)"
-            }
-          ]
-        },
-        {
-          "version": "2.1.206",
-          "period": "2026-07-08 ~ 07-11",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "背景代理不再卡死、斷線、偷偷重跑",
-                "zh-CN": "背景代理不再卡死、断线、偷偷重跑",
-                "en": "Background agents no longer stall, hang, or silently restart",
-                "ja": "バックグラウンドエージェントが停止・ハング・勝手な再実行を起こさなくなった",
-                "ko": "백그라운드 에이전트가 멈추거나, 응답 없거나, 몰래 재시작되는 일이 없어졌다."
-              },
-              "body": {
-                "zh-TW": "你把任務丟給背景代理（background agent，讓 Claude 在背景幫你跑活、你先去忙別的的功能）之後，現在可以放心走開了。以前它有一堆怪毛病：在 macOS 上開啟或切換要莫名卡 15 到 20 秒、內部通行證（session token，系統認人用的臨時憑證）過期後整隻永遠叫不醒、回到列表畫面還會偷偷把跑到一半的子任務砍掉從頭重來；這批毛病一次修完，斷線還會自己接回來。就像洗衣店以前偶爾弄丟衣服、或把洗到一半的整批重洗，現在每件衣服的進度都記得牢牢的，你隨時回來拿都對得上。",
-                "zh-CN": "你把任务丢给背景代理（background agent，让 Claude 在背景帮你跑活、你先去忙别的的功能）之后，现在可以放心走开了。以前它有一堆怪毛病：在 macOS 上开启或切换要莫名卡 15 到 20 秒、内部通行证（session token，系统认人用的临时凭证）过期后整只永远叫不醒、回到列表画面还会偷偷把跑到一半的子任务砍掉从头重来；这批毛病一次修完，断线还会自己接回来。就像洗衣店以前偶尔弄丢衣服、或把洗到一半的整批重洗，现在每件衣服的进度都记得牢牢的，你随时回来拿都对得上。",
-                "en": "Once you hand a job to a background agent (a feature that lets Claude keep working on a task while you go do something else), you can now actually walk away. It used to have a pile of quirks: opening or switching sessions on macOS could stall for 15–20 seconds, an expired internal session token (the temporary pass the system uses to recognize you) could leave a session permanently unresponsive, and returning to the list view could silently kill half-finished subagents and restart them from scratch. All of these are fixed, and dropped sessions now reconnect on their own. It's like a laundry service that used to occasionally lose your clothes or rewash a half-done load; now every item's progress is tracked, and whenever you come back, it all checks out.",
-                "ja": "バックグラウンドエージェント（background agent、Claude が裏でタスクを進めている間に別の作業に取り掛かれる機能）に仕事を任せたら、もう安心して離席できる。以前は厄介な癖がいろいろあった。macOS でセッションを開いたり切り替えたりすると謎の 15〜20 秒のフリーズが起きる、内部のセッショントークン（session token、システムが人を識別するための一時的な通行証）が期限切れになるとセッション全体が二度と反応しなくなる、リスト画面に戻ると途中まで進んだサブタスクをこっそり中断して最初からやり直す、などだ。これらは一括で直り、接続が切れても自動でつなぎ直されるようになった。昔のコインランドリーがたまに服をなくしたり、洗いかけの荷を丸ごと洗い直したりしたのに対し、今は一着ごとの進捗を確実に覚えており、いつ戻っても見当が合う、そんな具合である。",
-                "ko": "백그라운드 에이전트(background agent, Claude가 뒤에서 작업을 대신 돌려주어 당신이 다른 일을 먼저 할 수 있게 하는 기능)에 일을 맡긴 뒤 이제 안심하고 자리를 비워도 된다. 예전엔 잔버그가 많았다. macOS에서 세션을 열거나 전환할 때 이유 없이 15~20초씩 멈추거나, 내부 세션 토큰(session token, 시스템이 사용자를 식별하는 임시 증명서)이 만료되면 세션 전체가 영영 반응하지 않거나, 목록 화면으로 돌아가면 진행 중이던 하위 작업을 몰래 잘라내 처음부터 다시 시작하곤 했다. 이번에 이런 문제들이 한꺼번에 해결됐고, 연결이 끊겨도 스스로 다시 이어진다. 예전 세탁소가 가끔 옷을 잃어버리거나 빨다 만 것을 통째로 다시 빨기도 한 것과 달리, 이제는 옷 한 벌 한 벌의 진행 상태를 꼼꼼히 기억해서 언제 돌아와도 맞아떨어진다."
-              },
-              "original": "Fixed opening or switching background agent sessions on macOS stalling for 15–20 seconds due to a false low-memory detection (regression in 2.1.196). Fixed background sessions becoming permanently unresponsive to attach, replies, and stop when the daemon's session token went stale — the session now recovers automatically. Fixed returning to `claude agents` silently stopping running subagents and re-running the prompt from scratch — their work now carries over. Fixed background agents crash-looping when their working directory was deleted, replaced by a file, or became an invalid path. Fixed a background daemon auto-upgrade failure silently killing all running background sessions. (2.1.203)"
-            },
-            {
-              "title": {
-                "zh-TW": "背景任務列表一眼看懂：彩色狀態＋一句話進度",
-                "zh-CN": "背景任务列表一眼看懂：彩色状态＋一句话进度",
-                "en": "The agents list now shows colored status words and one-line summaries",
-                "ja": "バックグラウンドタスク一覧がひと目で分かる：色付きステータスと一行要約",
-                "ko": "백그라운드 작업 목록이 한눈에: 색깔 상태 표시와 한 줄 진행 요약"
-              },
-              "body": {
-                "zh-TW": "打開 claude agents 的任務列表，現在一眼就知道每隻代理在幹嘛。以前每一列只顯示生硬的工具呼叫原文，看半天看不出進度；現在改成彩色的狀態字（例如「執行中」「等你回覆」）加上一句自動寫好的進度標題，欄位還會撐滿整個終端機寬度不再截斷，代理改過或推送過的 PR（pull request，請別人把你的修改合併進主程式的申請單）也會直接附上連結。就像貨運追蹤頁從一串看不懂的物流代碼，變成「包裹已到你家附近的營業所」這種人話。",
-                "zh-CN": "打开 claude agents 的任务列表，现在一眼就知道每只代理在干嘛。以前每一列只显示生硬的工具调用原文，看半天看不出进度；现在改成彩色的状态字（例如「执行中」「等你回复」）加上一句自动写好的进度标题，栏位还会撑满整个终端宽度不再截断，代理改过或推送过的 PR（pull request，请别人把你的修改合并进主程序的申请单）也会直接附上链接。就像货运追踪页从一串看不懂的物流代码，变成「包裹已到你家附近的营业所」这种人话。",
-                "en": "Open the claude agents task list and you can now tell at a glance what every agent is up to. Rows used to show raw tool-call text that told you nothing; now each shows a colored state word (like \"working\" or \"needs input\") plus an auto-written one-line headline, the status column stretches across the full terminal width instead of truncating, and any PR (pull request, the request form for merging your changes into the main code) an agent touched is linked right there. It's like a package-tracking page upgrading from cryptic logistics codes to \"your parcel has reached the local depot\" in plain words.",
-                "ja": "claude agents のタスクリストを開くと、各エージェントが何をしているかがひと目で分かるようになった。以前は各列に生硬なツール呼び出しの生ログが出るだけで、いくら眺めても進捗が読めなかった。今は色付きのステータス語（例えば「実行中」「入力待ち」）に、自動で書かれた一行の進捗見出しが付き、項目幅は端末の幅いっぱいに広がって切り詰められない。エージェントが編集やプッシュした PR（pull request、自分の変更をメインプログラムに取り込んでもらうための申請書）には直接リンクが付く。荷物追跡ページが謎の物流コードの羅列から「お届け先付近の営業所に到着しました」という人間の言葉に変わったようなものである。",
-                "ko": "claude agents 작업 목록을 열면 이제 각 에이전트가 무엇을 하는지 한눈에 알 수 있다. 예전엔 각 줄마다 딱딱한 도구 호출 원문만 보여 한참을 봐도 진행 상태를 알 수 없었다. 이제는 색깔이 입혀진 상태 표시(예: '실행 중', '응답 기다림')에 자동으로 작성된 한 줄 진행 제목이 붙고, 항목 폭이 터미널 너비를 꽉 채워 더 이상 잘리지 않는다. 에이전트가 편집하거나 푸시한 PR(pull request, 당신의 변경을 메인 프로그램에 반영해 달라고 신청하는 양식)에도 곧바로 링크가 달린다. 택배 추적 페이지가 알아볼 수 없는 물류 코드 나열에서 '택배가 동네 영업소에 도착했다' 같은 사람 말로 바뀐 것과 같다."
-              },
-              "original": "Improved agent view: rows now show a colored state word and a classifier-written headline instead of raw tool call text, and the peek opens with full status including the exact ask for blocked sessions. Improved agent view: sessions that edit, merge, comment on, or push to an existing PR now link it in `claude agents`. Improved agents view: status column now uses full terminal width instead of truncating at 64 characters. Changed agents view: Ctrl+X now permanently removes a completed session, and sessions no longer render twice. (2.1.205–2.1.206)"
-            },
-            {
-              "title": {
-                "zh-TW": "/doctor 升級成一站式健檢，還會幫你動手修",
-                "zh-CN": "/doctor 升级成一站式健检，还会帮你动手修",
-                "en": "/doctor is now a full checkup that can also fix what it finds",
-                "ja": "/doctor がワンストップの健診にアップグレード、見つけた問題は自ら直す",
-                "ko": "/doctor가 원스톱 건강검진으로 업그레이드, 문제도 직접 고쳐준다."
-              },
-              "body": {
-                "zh-TW": "覺得 Claude Code 哪裡怪怪的，現在打一句 /doctor 就能做全身健檢，而且它不只診斷、還會動手修；順口的別名 /checkup 也通。健檢項目也變多：會建議你精簡塞太肥的 CLAUDE.md（專案說明檔，Claude 每次開工都要先讀的備忘錄）——凡是 Claude 自己看程式碼就推得出來的內容都可以刪掉省空間；用 Homebrew 裝的人，更新檢查也改成對正確的更新頻道。就像健檢中心從「只印報告」升級成「當場幫你拔智齒」。",
-                "zh-CN": "觉得 Claude Code 哪里怪怪的，现在打一句 /doctor 就能做全身健检，而且它不只诊断、还会动手修；顺口的别名 /checkup 也通。健检项目也变多：会建议你精简塞太肥的 CLAUDE.md（项目说明文件，Claude 每次开工都要先读的备忘录）——凡是 Claude 自己看代码就推得出来的内容都可以删掉省空间；用 Homebrew 装的人，更新检查也改成对正确的更新频道。就像健检中心从「只印报告」升级成「当场帮你拔智齿」。",
-                "en": "When Claude Code feels off, one /doctor now runs a full checkup — and it doesn't just diagnose, it can fix what it finds; /checkup works as an alias. The checkup also covers more ground: it can propose trimming an overweight CLAUDE.md (the project memo Claude reads before every work session) by cutting anything Claude could figure out from the code itself, and Homebrew installs now get their update check compared against the right release channel. It's like a health clinic upgrading from \"here's your report\" to \"let's pull that wisdom tooth right now.\"",
-                "ja": "Claude Code の調子がおかしいと思ったら、/doctor と打つだけでフル健診ができるようになった。しかも診断するだけでなく、見つけた問題を自ら直してくれる。語呂の良いエイリアス /checkup も通る。健診項目も増えた。肥大化しすぎた CLAUDE.md（プロジェクトの説明ファイル、Claude が作業に入る前に毎回読むメモ）をスリムにするよう提案し、Claude がコードを見れば自力で導ける内容は容量節約のために削れる。Homebrew で入れた場合は、更新チェックが正しいリリースチャネルと照合されるようになった。健診センターが「報告書を印刷するだけ」から「その場で親知らずを抜いてくれる」にアップグレードしたようなものである。",
-                "ko": "Claude Code가 어딘가 이상하다면, 이제 /doctor 한 줄이면 전신 건강검진을 할 수 있다. 게다가 진단만 하는 게 아니라 직접 고쳐준다. 입에 잘 붙는 별칭 /checkup도 통한다. 검진 항목도 늘었다. 너무 비대해진 CLAUDE.md(프로젝트 설명 파일, Claude가 작업을 시작할 때마다 먼저 읽는 메모)를 다이어트하라고 제안하며, Claude가 코드만 봐도 알 수 있는 내용은 공간 절약을 위해 지울 수 있다고 안내한다. Homebrew로 설치한 경우, 업데이트 확인도 올바른 업데이트 채널과 비교하도록 바뀌었다. 건강검진 센터가 '보고서만 뽑아주던 곳'에서 '그 자리에서 사랑니를 빼주는 곳'으로 업그레이드된 셈이다."
-              },
-              "original": "`/doctor` is now a full setup checkup that can diagnose and fix issues; `/checkup` is its alias. (2.1.205) Added a `/doctor` check that proposes trimming checked-in `CLAUDE.md` files by cutting content Claude could derive from the codebase. Fixed `/doctor`'s update check to compare Homebrew installs against their cask's channel instead of the settings channel. Fixed `/status` listing the same broken-install warning twice. (2.1.206)"
-            },
-            {
-              "title": {
-                "zh-TW": "登入快過期會先提醒，過期也不再誤報成模型故障",
-                "zh-CN": "登录快过期会先提醒，过期也不再误报成模型故障",
-                "en": "You get a heads-up before your login expires — and expired logins stop masquerading as model errors",
-                "ja": "ログイン期限切れが近づいたら事前に通知、期限切れもモデルの故障と誤報されない",
-                "ko": "로그인 만료가 가까워지면 미리 알려주고, 만료 후 모델 고장으로 잘못 보고하지 않는다."
-              },
-              "body": {
-                "zh-TW": "登入快到期時，Claude Code 現在會提前警告你，讓你在背景任務被打斷前先重新登入。以前更糟的是登入真的過期後，畫面只會冒出「所選模型有問題」這種牛頭不對馬嘴的錯誤，害你以為是模型壞了；現在會老實告訴你「請執行 /login」。就像大樓門禁卡快失效時警衛先提醒你去換卡，而不是等你被鎖在門外還騙你「是門壞了」。",
-                "zh-CN": "登录快到期时，Claude Code 现在会提前警告你，让你在背景任务被打断前先重新登录。以前更糟的是登录真的过期后，画面只会冒出「所选模型有问题」这种牛头不对马嘴的错误，害你以为是模型坏了；现在会老实告诉你「请执行 /login」。就像大楼门禁卡快失效时警卫先提醒你去换卡，而不是等你被锁在门外还骗你「是门坏了」。",
-                "en": "Claude Code now warns you before your login expires, so you can re-authenticate before background sessions get cut off. Worse before: once the login actually expired, every request failed with a misleading \"There's an issue with the selected model\" error, sending you hunting for a model problem that didn't exist; now it plainly tells you to run /login. It's like a building guard reminding you to renew your keycard before it dies, instead of letting you get locked out and telling you \"the door is broken.\"",
-                "ja": "ログインの有効期限が近づくと、Claude Code は事前に警告を出し、背景タスクが中断される前に再ログインできるようにした。以前はもっとひどく、ログインが実際に期限切れになると「選択したモデルに問題がある」という見当違いのエラーが出るだけで、モデルが壊れたと勘違いさせられた。今は正直に「/login を実行してください」と教えてくれる。マンションの入館カードが切れる前に警備員が取り替えを促すようなもので、外に締め出されてから「ドアが壊れています」と嘘をつかれるのとは違う。",
-                "ko": "로그인이 곧 만료될 때 Claude Code가 미리 경고해서, 백그라운드 작업이 끊기기 전에 다시 로그인할 수 있게 했다. 예전엔 더 심했다. 로그인이 실제로 만료되면 화면에 '선택한 모델에 문제가 있습니다'라는 엉뚱한 오류만 떠서 모델이 고장 난 줄 알았다. 이제는 솔직하게 '/login을 실행하세요'라고 알려준다. 건물 출입카드가 만료되기 전에 경비가 먼저 카드를 바꾸라고 알려주는 것이지, 밖에 나가 문이 잠긴 뒤에야 '문이 고장 났다'라고 거짓말하는 것이 아니다."
-              },
-              "original": "Added a warning when your login is about to expire, so you can re-authenticate before background sessions are interrupted. (2.1.203) Fixed an expired login failing every model with a misleading \"There's an issue with the selected model\" error instead of prompting to run `/login`. (2.1.206)"
-            },
-            {
-              "title": {
-                "zh-TW": "更順更省：長回覆不再整屏重繪，更新時少吃 400 MB 記憶體",
-                "zh-CN": "更顺更省：长回复不再整屏重绘，更新时少吃 400 MB 内存",
-                "en": "Faster and lighter: streaming stops redrawing the whole screen, updates use ~400 MB less memory",
-                "ja": "より滑らかで軽く：長い応答の全画面再描画を廃止、更新時のメモリ使用量を約 400 MB 削減",
-                "ko": "더 부드럽고 가볍게: 긴 응답이 화면 전체를 다시 그리지 않고, 업데이트 시 메모리 약 400 MB 절약."
-              },
-              "body": {
-                "zh-TW": "這一輪把幾個吃效能的老毛病一起減掉了。長回覆串流（streaming，答案一邊生成一邊逐字顯示）時不再整個畫面重繪，打字和捲動都變順；對話額度指標以前每講一輪就重新掃描整段對話、白吃記憶體和 CPU，現在不會了；程式本體瘦了約 7 MB、啟動時少吃約 7 MB 記憶體；自動更新下載改成邊下邊寫進磁碟，尖峰記憶體省下約 400 MB。就像家裡同一週換了省電燈泡、又修好漏水的水龍頭——每一項都不起眼，帳單加起來有感。",
-                "zh-CN": "这一轮把几个吃效能的老毛病一起减掉了。长回复串流（streaming，答案一边生成一边逐字显示）时不再整个画面重绘，打字和滚动都变顺；对话额度指标以前每讲一轮就重新扫描整段对话、白吃内存和 CPU，现在不会了；程序本体瘦了约 7 MB、启动时少吃约 7 MB 内存；自动更新下载改成边下边写进磁盘，尖峰内存省下约 400 MB。就像家里同一周换了省电灯泡、又修好漏水的水龙头——每一项都不起眼，账单加起来有感。",
-                "en": "This round trims several old performance drains at once. Long streaming responses (answers appearing word by word as they generate) no longer redraw the whole screen, so typing and scrolling stay smooth; the context-usage indicator used to re-scan the entire transcript after every single turn, burning memory and CPU for nothing — not anymore; the binary slimmed down by about 7 MB and uses about 7 MB less memory at startup; and auto-update downloads now stream to disk instead of piling up in memory, cutting peak usage by roughly 400 MB. It's like swapping in LED bulbs and fixing a dripping faucet in the same week — each change is small, but the bill notices.",
-                "ja": "このラウンドで、効率を食う古い癖をいくつか一気に減らした。長い応答のストリーミング（streaming、答えが生成されるそばから一文字ずつ表示される仕組み）では画面全体を再描画しなくなり、入力もスクロールも滑らかになった。コンテキスト使用量インジケーターは以前、毎ターンごとに会話全体を再スキャンして無駄にメモリと CPU を食っていたが、もうしない。プログラム本体は約 7 MB 痩せて、起動時のメモリも約 7 MB 減った。自動更新のダウンロードは受けながら順次ディスクに書き込むようになり、ピークメモリを約 400 MB 節約した。自宅で同じ週に省電球に替え、水漏れする蛇口も直したようなもの、一つ一つは目立たないが請求書で実感する。",
-                "ko": "이번 회차에서 효율을 갉아먹던 옛 버그들을 한꺼번에 줄였다. 긴 응답 스트리밍(streaming, 답이 생성되는 대로 글자 하나하나 보여 주는 방식)에서 화면 전체를 다시 그리지 않게 돼 타이핑과 스크롤이 부드러워졌다. 문맥 사용량 표시는 예전에 매 턴마다 대화 전체를 다시 훑어 메모리와 CPU를 헛되이 잡아먹었지만 이제는 그러지 않는다. 프로그램 본체는 약 7 MB 가벼워졌고, 시작할 때 메모리도 약 7 MB 덜 쓴다. 자동 업데이트 다운로드는 받으면서 곧장 디스크에 쓰도록 바뀌어, 최대 메모리 사용량을 약 400 MB 절약했다. 같은 주에 집에서 절전 전구로 바꾸고 새는 수도꼭지까지 고친 것과 같다. 하나하나는 눈에 띄지 않지만 청구서에서 체감된다."
-              },
-              "original": "Improved responsiveness while long responses stream: live-preview updates no longer re-render the whole screen. Reduced binary size by ~7 MB and startup memory by ~7 MB by loading a large bundled dependency lazily instead of inlining it. Fixed a memory and per-turn CPU regression in interactive sessions: the context-usage indicator no longer re-analyzes the entire transcript after every turn. (2.1.203) Auto-update binary downloads now stream to disk instead of buffering in memory, cutting the updater's peak memory usage by roughly 400 MB. (2.1.205)"
-            },
-            {
-              "title": {
-                "zh-TW": "自動模式加了三道保險，危險刪除會先停下來問你",
-                "zh-CN": "自动模式加了三道保险，危险删除会先停下来问你",
-                "en": "Auto mode gains three guardrails, including a pause before risky deletes",
-                "ja": "自動モードに三重の安全策を追加、危険な削除は事前に確認",
-                "ko": "자동 모드에 세 가지 안전장치 추가, 위험한 삭제는 먼저 물어본다."
-              },
-              "body": {
-                "zh-TW": "自動模式（auto mode，讓 Claude 不逐一問你就自己執行的模式）加了三道新保險。第一，禁止竄改對話紀錄檔，留底的證據動不得；第二，遇到 rm -rf 後面接一個看不出內容的變數（也就是刪除指令指向的位置不明）時，會先停下來問你再動手；第三，背景任務的通知現在會明講「過程中沒有任何人工核可」，避免有人在對話裡偽造一句「使用者已同意」就騙過系統。就像自動駕駛多了三個感測器：黑盒子上鎖、看不清路況先減速、儀表板不讓人貼假的綠燈。",
-                "zh-CN": "自动模式（auto mode，让 Claude 不逐一问你就自己执行的模式）加了三道新保险。第一，禁止篡改对话记录文件，留底的证据动不得；第二，遇到 rm -rf 后面接一个看不出内容的变量（也就是删除命令指向的位置不明）时，会先停下来问你再动手；第三，背景任务的通知现在会明讲「过程中没有任何人工核可」，避免有人在对话里伪造一句「用户已同意」就骗过系统。就像自动驾驶多了三个感测器：黑盒子上锁、看不清路况先减速、仪表盘不让人贴假的绿灯。",
-                "en": "Auto mode (the mode where Claude acts without asking you step by step) gains three new guardrails. First, tampering with session transcript files is blocked — the paper trail stays untouchable. Second, before running rm -rf on a variable it can't resolve (a delete command whose target is unclear), it now stops and asks you. Third, background task notifications explicitly state that no human input has occurred, so a fabricated \"the user approved this\" line planted in a transcript can't trick the system. Like a self-driving car gaining three sensors: a locked black box, slowing down when the road is unclear, and a dashboard nobody can tape a fake green light onto.",
-                "ja": "自動モード（auto mode、Claude がいちいち確認せずに自律実行するモード）に三つの新しい安全策が加わった。第一に、会話記録ファイルの改ざんを禁じ、記録された証拠は弄れない。第二に、rm -rf の後に中身の分からない変数が続く場合（つまり削除コマンドの対象が不明）は、実行前に立ち止まって尋ねる。第三に、背景タスクの通知は「プロセス中に人の承認は一切ない」と明記するようになり、会話内に「ユーザーが同意した」と偽装した一文を仕込んでシステムを騙すのを防ぐ。自動運転車に三つのセンサーが増えたようなもの。ブラックボックスに鍵がかかり、見通しの悪い時は減速し、計器板に偽の青信号を貼られることがない。",
-                "ko": "자동 모드(auto mode, Claude가 일일이 묻지 않고 스스로 실행하는 모드)에 세 가지 새 안전장치가 붙었다. 첫째, 대화 기록 파일을 변조하지 못하게 막아 남겨진 증거를 건드릴 수 없다. 둘째, rm -rf 뒤에 내용을 알 수 없는 변수가 올 때(즉 삭제 명령이 가리키는 대상이 불분명할 때)는 먼저 멈춰서 물어본 뒤 움직인다. 셋째, 백그라운드 작업 알림은 이제 '진행 중 어떤 사람 승인도 없었음'이라고 명시해서, 대화 안에 '사용자가 동의함'이라는 거짓 문장을 심어 시스템을 속이는 일을 막는다. 자율주행차에 센서 세 개가 더 달린 것과 같다. 블랙박스에 자물쇠가 채워지고, 도로 사정이 안 보이면 속도를 줄이며, 계기판에 가짜 파란불이 붙는 일은 없다."
-              },
-              "original": "Added an auto mode rule that blocks tampering with session transcript files. Improved auto mode to ask before running `rm -rf` on a variable it can't resolve from context. Background task notifications now explicitly state that no human input has occurred, preventing fabricated in-transcript approvals from being acted on. (2.1.205)"
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 使用者注意：清理工作樹不會再誤刪外面的檔案",
-                "zh-CN": "Windows 用户注意：清理工作树不会再误删外面的文件",
-                "en": "Windows: removing a worktree can no longer delete files outside it",
-                "ja": "Windows ユーザーへ：ワークツリーの削除が外部のファイルを誤って消すことはなくなった",
-                "ko": "Windows 사용자 주의: 워크트리 정리가 바깥의 파일을 더 이상 잘못 지우지 않는다."
-              },
-              "body": {
-                "zh-TW": "Windows 使用者這條要看：以前清理工作樹（worktree，讓同一個專案多開幾份平行工作副本的 git 功能）時，如果裡面藏著 NTFS 目錄捷徑（junction，Windows 上把一個資料夾指向另一個位置的分身），刪除會順著捷徑刪到工作樹外面的真檔案；現在修好了，刪除只動工作樹自己的東西。就像拆違建時以前會順著水管拆到隔壁鄰居家，現在確實只拆自己這一戶。",
-                "zh-CN": "Windows 用户这条要看：以前清理工作树（worktree，让同一个项目多开几份平行工作副本的 git 功能）时，如果里面藏着 NTFS 目录快捷方式（junction，Windows 上把一个文件夹指向另一个位置的分身），删除会顺着快捷方式删到工作树外面的真文件；现在修好了，删除只动工作树自己的东西。就像拆违建时以前会顺着水管拆到隔壁邻居家，现在确实只拆自己这一户。",
-                "en": "Windows users, this one's for you: removing a worktree (a git feature that gives one project several parallel working copies) used to follow any NTFS junction or directory symlink (a Windows shortcut that points a folder at another location) hiding inside it and delete real files outside the worktree; that's fixed, and removal now touches only the worktree's own files. Like a demolition crew that used to follow the plumbing into the neighbor's house — now it strictly tears down only your unit.",
-                "ja": "Windows ユーザーはここ要チェック。以前、ワークツリー（worktree、一つのプロジェクトで複数の並行作業コピーを開ける git 機能）を削除する際、中に NTFS ジャンクション（junction、Windows で一つのフォルダを別の場所へ向ける分身）が潜んでいると、削除がジャンクションを辿ってワークツリー外の実ファイルまで消してしまった。それは修正され、削除はワークツリー自身の中身にしか触れない。違法建築の解体で以前は配管を伝って隣家まで壊していたのが、今は自分の戸だけを確実に壊すようになったようなものである。",
-                "ko": "Windows 사용자는 이 항목을 봐야 한다. 예전엔 워크트리(worktree, 같은 프로젝트의 병렬 작업 사본을 여러 개 열어 주는 git 기능)를 정리할 때, 안에 NTFS 정션(junction, Windows에서 한 폴더를 다른 위치로 향하게 하는 분신)이 숨어 있으면 삭제가 정션을 따라 워크트리 바깥의 실제 파일까지 지워버렸다. 이제는 고쳐져서 삭제는 워크트리 자기 것만 건드린다. 불법 건축물을 철거하면서 예전엔 배관을 따라 이웃 집까지 허물었던 것이, 이제는 확실히 자기 집만 허무는 것과 같다."
-              },
-              "original": "Fixed Windows worktree removal deleting files outside the worktree when an NTFS junction or directory symlink existed inside it. (2.1.205)"
-            },
-            {
-              "title": {
-                "zh-TW": "MCP 外掛更耐用：逾時設定真的生效、斷一次線不用重登",
-                "zh-CN": "MCP 插件更耐用：超时设定真的生效、断一次线不用重登",
-                "en": "MCP servers got sturdier: timeouts are honored, one hiccup no longer forces re-login",
-                "ja": "MCP プラグインがより頑丈に：タイムアウト設定が実効し、一度の接続切れで再ログイン不要",
-                "ko": "MCP 플러그인이 더 견고해져: 타임아웃 설정이 실제로 적용되고, 연결이 한 번 끊겨도 재로그인 불필요."
-              },
-              "body": {
-                "zh-TW": "有裝 MCP 伺服器（Model Context Protocol，讓 Claude 外接其他工具服務的插座標準）的人，這輪有兩個修復。一是你在設定裡寫的單一伺服器逾時秒數（request_timeout_ms）以前會被無視、新對話一律用預設 60 秒就砍線，跑比較久的工具老是被斷頭，現在真的照你設的來；二是走 OAuth 登入（把登入委託給原服務認證的機制）的伺服器，以前只要一次換證失敗就逼你手動重新登入，現在小失誤會自己重試接上。就像延長線以前標示耐重 10 公斤、實際 6 公斤就跳電，現在標多少就耐多少。",
-                "zh-CN": "有装 MCP 服务器（Model Context Protocol，让 Claude 外接其他工具服务的插座标准）的人，这轮有两个修复。一是你在设置里写的单一服务器超时秒数（request_timeout_ms）以前会被无视、新对话一律用默认 60 秒就砍线，跑比较久的工具老是被断头，现在真的照你设的来；二是走 OAuth 登录（把登录委托给原服务认证的机制）的服务器，以前只要一次换证失败就逼你手动重新登录，现在小失误会自己重试接上。就像延长线以前标示耐重 10 公斤、实际 6 公斤就跳电，现在标多少就耐多少。",
-                "en": "If you run MCP servers (Model Context Protocol, the socket standard that lets Claude plug into outside tools), two fixes this round. First, the per-server timeout you set (request_timeout_ms) used to be ignored — fresh sessions cut every call off at the default 60 seconds, beheading long-running tools; it now honors your setting. Second, OAuth-based servers (which delegate sign-in to the original service) used to demand a full manual re-login after a single failed token refresh; small hiccups now retry and reconnect on their own. Like a power strip that claimed a 10 kg rating but tripped at 6 — now it holds exactly what the label says.",
-                "ja": "MCP サーバー（Model Context Protocol、Claude に外部のツールやサービスを接続するためのソケット規格）を入れている人向けに、このラウンドで二つの修正が入った。一つは、設定に書いたサーバーごとのタイムアウト秒数（request_timeout_ms）が以前は無視され、新しい会話では常にデフォルトの 60 秒で打ち切られて、長く走るツールが首を切られていた点。今は設定通りに動く。二つは、OAuth ログイン（認証を元のサービスに任せる仕組み）のサーバーで、以前はトークンの更新に一度でも失敗すると手動での再ログインを迫られたが、小さな失敗は自動で再試行してつなぎ直すようになった。電源タップが以前は 10 kg 耐久と書いておきながら実際は 6 kg で落ちたのが、今は表示通りに耐えるようになったようなものである。",
-                "ko": "MCP 서버(Model Context Protocol, Claude가 외부 도구 서비스에 접속하게 하는 소켓 표준)를 설치한 사람에게 이번 회차 수정 두 가지가 있다. 첫째, 설정에 적은 서버별 타임아웃 초수(request_timeout_ms)가 예전엔 무시돼서 새 대화에서는 무조건 기본값 60초에 잘려, 오래 도는 도구가 늘 목이 잘렸다. 이제는 설정한 대로 작동한다. 둘째, OAuth 로그인(로그인을 원래 서비스의 인증에 맡기는 방식) 서버는 예전엔 토큰 갱신이 한 번이라도 실패하면 수동 재로그인을 강요했지만, 이제는 사소한 실패는 스스로 재시도해 다시 이어진다. 예전 멀티탭이 10 kg 내중이라고 표시해 놓고 실제로는 6 kg에 전원이 꺼졌던 것이, 이제는 표시한 만큼 버티는 것과 같다."
-              },
-              "original": "Fixed MCP servers configured via `--mcp-config` or `.mcp.json` ignoring a per-server `request_timeout_ms`, which caused long-running MCP tool calls to time out at the 60s default in fresh sessions. Fixed OAuth MCP servers requiring manual re-authentication after a single failed token refresh. (2.1.206)"
-            },
-            {
-              "title": {
-                "zh-TW": "/commit-push-pr 推送不再多問一次",
-                "zh-CN": "/commit-push-pr 推送不再多问一次",
-                "en": "/commit-push-pr stops double-checking pushes to your configured remote",
-                "ja": "/commit-push-pr のプッシュが二度確認されなくなった",
-                "ko": "/commit-push-pr 푸시가 더 이상 한 번 더 묻지 않는다."
-              },
-              "body": {
-                "zh-TW": "用 /commit-push-pr 一條龍提交時，推送（git push，把你的修改上傳到遠端儲存庫）這步不再多跳一次確認。以前只有推到 origin（預設遠端的慣用名字）會自動放行，推到你自己設定的推送遠端還是會被攔下來問；現在只要是 repo 設定裡指名的推送目的地，一樣直接放行。就像社區大門的車牌辨識，以前只認你的舊車牌，現在你登記過的車都直接開門。",
-                "zh-CN": "用 /commit-push-pr 一条龙提交时，推送（git push，把你的修改上传到远程仓库）这步不再多跳一次确认。以前只有推到 origin（默认远程的惯用名字）会自动放行，推到你自己设置的推送远程还是会被拦下来问；现在只要是 repo 设置里指名的推送目的地，一样直接放行。就像社区大门的车牌辨识，以前只认你的旧车牌，现在你登记过的车都直接开门。",
-                "en": "When you run the one-stop /commit-push-pr, the push step (git push, uploading your changes to the remote repository) no longer throws an extra confirmation. It used to auto-allow pushes only to origin (the customary name for the default remote), stopping to ask about the push remote you'd actually configured; now any destination named in your repo's config sails through too. Like a gated community's plate reader that only knew your old car — now every car you've registered opens the gate.",
-                "ja": "/commit-push-pr で一括コミットする際、プッシュ（git push、変更をリモートリポジトリへ送る操作）の工程で確認が一度余分に出なくなった。以前は origin（デフォルトリモートの慣習名）へのプッシュだけが自動許可され、自分で設定したプッシュ先リモートでは止まって聞かれていた。今は repo 設定で名指しされたプッシュ先なら同じく素通りできる。マンションのゲートのナンバープレート認識が、以前は古い車番しか覚えていなかったのが、今は登録済みの車ならどれでも開くようになったようなものである。",
-                "ko": "/commit-push-pr로 한 번에 커밋할 때 푸시(git push, 변경 사항을 원격 저장소에 올리는 작업) 단계에서 확인이 한 번 더 뜨지 않는다. 예전엔 origin(기본 원격의 관례적 이름)으로 푸시할 때만 자동 허용되고, 직접 설정한 푸시 원격으로는 걸려서 물어보았다. 이제는 repo 설정에 지정된 푸시 대상이라면 똑같이 곧장 통과한다. 단지문 차량 번호판 인식이 예전엔 낡은 번판만 알아보다가, 이제는 등록한 차는 모두 문을 열어 주는 것과 같다."
-              },
-              "original": "`/commit-push-pr` now auto-allows `git push` to the repo's configured push remote (`remote.pushDefault`, or the sole remote when only one is configured) in addition to `origin`. (2.1.206)"
-            },
-            {
-              "title": {
-                "zh-TW": "/model 選單的價格標籤不再張冠李戴",
-                "zh-CN": "/model 选单的价格标签不再张冠李戴",
-                "en": "The /model picker no longer shows the wrong model's price",
-                "ja": "/model ピッカーの価格ラベルが別モデルと取り違えられることはなくなった",
-                "ko": "/model 선택 메뉴의 가격 표가 잘못 매겨지는 일이 없어졌다."
-              },
-              "body": {
-                "zh-TW": "打 /model 挑模型時，價格標籤不再張冠李戴。以前清單有時會把 A 模型的單價印在 B 模型那一列，害你以為換了個便宜的、其實更貴；順帶也不再對「根本不照官方定價收費」的第三方供應商硬印官方牌價。就像菜單以前會把牛排的價錢印在義大利麵旁邊，現在每道菜對準自己的標價，代售的菜也不再亂掛別家的價目。",
-                "zh-CN": "打 /model 挑模型时，价格标签不再张冠李戴。以前清单有时会把 A 模型的单价印在 B 模型那一列，害你以为换了个便宜的、其实更贵；顺带也不再对「根本不照官方定价收费」的第三方供应商硬印官方牌价。就像菜单以前会把牛排的价钱印在意大利面旁边，现在每道菜对准自己的标价，代售的菜也不再乱挂别家的价目。",
-                "en": "When you open /model to pick a model, price tags no longer land on the wrong row. The list could print one model's price next to another model's name, letting you \"switch to something cheaper\" that wasn't; it also stops quoting first-party list prices for third-party providers that don't bill by them at all. Like a menu that used to print the steak's price next to the pasta — every dish now wears its own tag, and consignment dishes stop borrowing another shop's price list.",
-                "ja": "/model でモデルを選ぶ際、価格ラベルが別モデルと入れ替わることはなくなった。以前はリストが A モデルの単価を B モデルの行に印字することがあり、「安い方に替えたつもりが実は高かった」と勘違いさせられた。ついでに、公式の定価で請求しないサードパーティープロバイダーに対しても公式の定価を無理に表示するのをやめた。メニューが以前はステーキの値段をパスタの横に印字していたのが、今は各料理に正しい価格が付き、委託販売の料理にも他人の店の価格表をでたらめに貼らなくなったようなものである。",
-                "ko": "/model로 모델을 고를 때 가격 표가 잘못 매겨지지 않는다. 예전엔 목록이 A 모델의 단가를 B 모델 줄에 찍어서, '더 싼 걸로 바꿨다'고 착각하게 만들었다. 덧붙여 공식 정가로 청구하지 않는 서드파티 공급자에게 공식 정가를 억지로 표시하는 일도 멈췄다. 메뉴가 예전엔 스테이크 가격을 파스타 옆에 적어 두었다면, 이제는 각 요리가 자기 가격표에 정확히 맞고 위탁 판매 요리도 다른 집의 가격표를 함부로 걸어 두지 않는 것과 같다."
-              },
-              "original": "Fixed `/model` picker rows printing a price for a different model than the row named, and stopped quoting first-party list prices on providers that don't bill them. Fixed server-provided model rows being misplaced in the `/model` picker when an entitlement or allowlist restriction drops the row they were positioned against. (2.1.206)"
             }
           ]
         }
@@ -1166,6 +1013,29 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.27.1",
+          "period": "2026-07-14",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Antigravity 卡片不再誤報配額用盡，還你真實的剩餘用量",
+                "zh-CN": "Antigravity 卡片不再误报配额用尽，还你真实的剩余用量",
+                "en": "Antigravity card stops falsely reporting exhausted quotas, showing your real remaining usage",
+                "ja": "Antigravity カードがクオータ枯渇を誤報しなくなり、本当の残量を表示する",
+                "ko": "Antigravity 카드가 할당량 고갈을 오보하지 않고 실제 남은 사용량을 보여준다"
+              },
+              "body": {
+                "zh-TW": "現在查看 Antigravity 卡片（usage 裡顯示 Antigravity 帳號 AI 配額用量的資訊卡）時，不會再被明明還有很多可用量、卻顯示「100% 已用」的假警報嚇到了。以前卡片在決定顯示多少用量時，會去挑兩個配額群組（quota groups，計算不同 AI 模型使用量的分類，分為 Gemini 或 Claude/GPT）中消耗最嚴重的那一個。因此，只要你的 Claude/GPT 五小時視窗（five-hour window，這類模型計算額度的時間重置區間）被耗盡，就算你帳號實際上在跑的 Gemini 群組還有滿滿的可用量，卡片還是會誤報成額度完全用光。現在這個顯示邏輯修好了，卡片會始終專注追蹤 Gemini 群組的狀態，只有當 API response（伺服器回傳給程式的資料）裡完全找不到 Gemini 的數據時，才會退而求其次去看消耗最多的群組。就像拿雙卡雙待的手機，以前只要你很少用的副卡網路流量用完，手機畫面就會一直跳出「流量耗盡」的警告，明明你真正上網用的主卡還有一大堆流量；現在螢幕終於會乖乖顯示主卡的真實流量，除非主卡不見了才會去看副卡。",
+                "zh-CN": "现在查看 Antigravity 卡片（usage 里显示 Antigravity 账号 AI 配额用量的信息卡）时，不会再被明明还有很多可用量、却显示「100% 已用」的假警报吓到了。以前卡片在决定显示多少用量时，会去挑两个配额群组（quota groups，计算不同 AI 模型使用量的分类，分为 Gemini 或 Claude/GPT）中消耗最严重的那一个。因此，只要你的 Claude/GPT 五小时窗口（five-hour window，这类模型计算额度的时间重置区间）被耗尽，就算你账号实际上在跑的 Gemini 群组还有满满的可用量，卡片还是会误报成额度完全用光。现在这个显示逻辑修好了，卡片会始终专注追踪 Gemini 群组的状态，只有当 API response（服务器回传给程序的数据）里完全找不到 Gemini 的数据时，才会退而求其次去看消耗最多的群组。就像拿双卡双待的手机，以前只要你很少用的副卡网络流量用完，手机画面就会一直跳出「流量耗尽」的警告，明明你真正上网用的主卡还有一大堆流量；现在屏幕终于会乖乖显示主卡的真实流量，除非主卡不见了才会去看副卡。",
+                "en": "When you check your Antigravity card (the info card in usage showing the AI quota of your Antigravity account), you'll no longer be jumpscared by a \"100% used\" fake alarm when you actually have plenty of usage left. Previously, to determine what to display, the card would simply pick the more depleted of the two quota groups (categories for tracking different AI model usage, specifically Gemini vs. Claude/GPT). Because of this, if your Claude/GPT five-hour window (the resetting time frame over which these models calculate their limits) was exhausted, the card would falsely report your entire quota as maxed out, even while the Gemini group that your account actually runs on still had plenty of capacity. This display logic is now fixed so the card always reliably tracks the Gemini group, and it will only fall back to showing the most-depleted group if Gemini is ever completely missing from the API response (the data the server sends back to the program). It's like using a dual-SIM phone: your screen used to constantly flash a \"Data Exhausted\" warning just because you ran out of data on your rarely-used secondary SIM, even though your primary SIM—the one you actually use for internet—had plenty of data left. Now the screen properly reflects your primary SIM's true data usage, and only looks at the secondary one if the primary SIM is removed.",
+                "ja": "Antigravity カード（usage 内で Antigravity アカウントの AI クオータ使用量を示す情報カード）を見る際、まだ利用可能枠が十分にあるのに「100% 使用済み」と表示される偽の警告に驚かされることはもうない。以前は、カードが使用量を表示する際、2つのクオータグループ（quota groups、Gemini と Claude/GPT に分かれる、異なる AI モデルの使用量を計算する分類）のうち、より枯渇している方を選んで表示していた。そのため、Claude/GPT の5時間ウィンドウ（five-hour window、これらのモデルが枠を計算する際のリセット時間枠）が使い果たされると、アカウントが実際に動いている Gemini グループにはまだ余裕がたっぷりあるのに、カードは利用枠を完全に使い切ったと誤報していたのである。現在はこの表示ロジックが直り、カードは常に Gemini グループの状況を追跡するようになり、API レスポンス（API response、サーバーがプログラムに返すデータ）の中に Gemini のデータが全く見当たらない場合にのみ、妥協して最も枯渇しているグループを見るようになった。デュアルSIMのスマートフォンを使っていると、以前は滅多に使わない副回線のデータ通信量を使い切っただけで、実際にネット接続に使っている主回線にはデータがたっぷり残っているのに、画面に「通信量枯渇」の警告が出続けていたのが、今は画面がきちんと主回線の本当の通信量を表示するようになり、主回線が抜かれている時にしか副回線を見に行かないようになったようなものである。",
+                "ko": "Antigravity 카드(usage에서 Antigravity 계정의 AI 할당량 사용량을 보여주는 정보 카드)를 볼 때, 아직 쓸 수 있는 양이 충분한데도 \"100% 사용됨\"이라고 뜨는 가짜 경보에 더는 놀라지 않아도 된다. 예전엔 카드가 사용량을 보여줄 때 두 가지 할당량 그룹(quota groups, 여러 AI 모델의 사용량을 계산하는 분류로 Gemini와 Claude/GPT로 나뉨) 중 더 많이 고갈된 쪽을 골라서 보여주었다. 그 탓에 Claude/GPT의 5시간 창(five-hour window, 이들 모델이 한도를 계산하는 초기화 시간대)을 다 써버리면, 계정이 실제로 돌아가고 있는 Gemini 그룹에는 아직 여유가 넉넉한데도 카드는 한도를 완전히 다 썼다고 잘못 알려주곤 했다. 이제는 이 표시 논리가 고쳐져서 카드가 항상 Gemini 그룹의 상태만 끈질기게 따라다니며, API 응답(API response, 서버가 프로그램에 돌려주는 데이터)에서 Gemini 데이터가 아예 보이지 않을 때만 어쩔 수 없이 가장 많이 고갈된 그룹을 쳐다본다. 듀얼 유심 스마트폰을 쓸 때, 예전엔 어쩌다 한 번 쓰는 보조 유심의 데이터가 바닥났을 뿐인데 정작 인터넷을 할 때 쓰는 기본 유심엔 데이터가 넘쳐나도 화면에 자꾸 \"데이터 고갈\" 경고가 뜨던 것이, 이제는 화면이 기본 유심의 진짜 데이터양을 얌전히 보여주고 기본 유심이 빠졌을 때만 보조 유심을 쳐다보게 된 것과 같다."
+              },
+              "original": "**Antigravity card no longer misreads as maxed out**: the card used to show whichever of the two quota groups (Gemini, or Claude/GPT) was most depleted, so an exhausted Claude/GPT five-hour window read as \"100% used\" even while the Gemini group the account actually runs on still had plenty left. The card now always tracks the Gemini group (falling back to the most-depleted group only if Gemini is ever absent from the API response)."
+            }
+          ]
+        },
+        {
           "version": "0.27.0",
           "period": "2026-07-13",
           "items": [
@@ -1225,46 +1095,6 @@
                 "ko": "Antigravity의 할당량 카운트다운을 볼 때, 예전처럼 마지막으로 확인한 시간에 멈춰 있지 않고 숫자가 실시간으로 째깍째깍 줄어든다. 이는 시스템이 백그라운드에서 몰래 명령어를 실행하는 대신, 컴퓨터에 이미 있는 로그인 인증 토큰(읽기 전용이라 안전함)을 직접 읽어 공식 할당량 API에 데이터를 요청하도록 바뀌었기 때문이다. 덕분에 업데이트 주기가 15분에서 5분으로 짧아졌고, 카운트다운이 정확해졌으며 쓸데없이 추가 프로세스를 띄우는 부담도 사라졌다. 할당량 정보만 읽기 때문에 모델 할당량(quota)을 갉아먹지도 않는다. 또한, HTML 보고서에서 Antigravity 사용 기록이 'unknown'으로 잘못 표시되던 문제도 해결됐다. 기차역 승강장 전광판이 예전엔 15분마다 손으로 뒤집어야 했고 가끔 '정체불명 기차'라고 뜨던 것이, 이제는 통제소와 직접 연결돼 1초 단위로 정확히 카운트다운을 하고 열차 이름도 또렷하게 띄워주는 것과 같다."
               },
               "original": "**Antigravity reset countdowns tick down live** instead of freezing at the last-fetched value until the next refresh.\n**Antigravity quota now comes straight from the official quota API**: usage reads the sign-in token the Antigravity CLI already stores on your machine (strictly read-only — the file is never modified) and queries the official quota endpoint directly, replacing the background `/quota` CLI probe. Numbers refresh every ~5 minutes instead of 15, countdowns are exact, no helper process is spawned, and the call reads quota metadata only — it never consumes your model quota. Any fetch failure still falls back to the cached snapshot with the usual stale badge. The data-source description in all five README languages is updated to match.\nAntigravity token rows in the HTML report are labeled \"Antigravity\" instead of \"unknown\"."
-            }
-          ]
-        },
-        {
-          "version": "0.26.0",
-          "period": "2026-07-13",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Antigravity 正式加入監控行列，三強鼎立",
-                "zh-CN": "Antigravity 正式加入监控行列，三强鼎立",
-                "en": "Antigravity joins the lineup, bringing the big three together",
-                "ja": "Antigravity が監視対象に正式加入し、三本柱が揃い踏み",
-                "ko": "Antigravity가 감시 목록에 정식으로 합류하여 3강 체제가 완성되었다."
-              },
-              "body": {
-                "zh-TW": "你現在可以同時監看 Antigravity（Gemini）的使用量了，它正式成為與 Claude Code、Codex 並列的第三個追蹤工具。不管你切換到哪種主題介面，都會多出一張專屬的 Antigravity 額度卡片，完全融入當前的設計風格；而且它靠著在背景每 15 分鐘跑一次官方指令來抓額度，不耍暗招也不亂戳內部介面。選單列上除了原本的鳳凰和龍，現在還多了一隻專屬的獅子精靈（spirit companion），牠的動畫快慢會誠實反映你燃燒 Antigravity token 的速度。此外，HTML 深度報表也已經把 Antigravity 的紀錄整合進去。就像是你車上的儀表板原本只能看油量和電量，現在多裝了一顆專屬的水箱溫度表，不但風格完美契合，連指針跳動的速度都跟引擎同步，讓你一手掌握整台車的狀況。",
-                "zh-CN": "你现在可以同时监看 Antigravity（Gemini）的使用量了，它正式成为与 Claude Code、Codex 并列的第三个追踪工具。不管你切换到哪种主题界面，都会多出一张专属的 Antigravity 额度卡片，完全融入当前的设计风格；而且它靠着在背景每 15 分钟跑一次官方指令来抓额度，不耍暗招也不乱戳内部界面。菜单列上除了原本的凤凰和龙，现在还多了一只专属的狮子精灵（spirit companion），它的动画快慢会诚实反映你燃烧 Antigravity token 的速度。此外，HTML 深度报表也已经把 Antigravity 的记录整合进去。就像是你车上的仪表板原本只能看油量和电量，现在多装了一颗专属的水箱温度表，不但风格完美契合，连指针跳动的速度都跟引擎同步，让你一手掌握整台车的状况。",
-                "en": "You can now track your Antigravity (Gemini) usage alongside Claude Code and Codex, as it officially joins the app as the third monitored tool. No matter which UI theme you use, a dedicated Antigravity quota card now appears, styled perfectly to match its host theme. It safely reads this quota by running the official CLI command in the background every 15 minutes, with no sketchy token scraping or undocumented API poking. Up in the menu bar, the phoenix and dragon are joined by a new lion spirit companion, whose animation speed accurately reflects how fast you're burning through Antigravity tokens. Finally, Antigravity usage is now fully fed into the HTML deep report. It's like your car's dashboard: it used to only show gas and battery, but now it has a perfectly matching water temperature gauge installed; the needle moves in total sync with the engine, giving you the complete picture at a glance.",
-                "ja": "Claude Code と Codex に並ぶ第3の監視対象として、Antigravity（Gemini）の利用量も同時に把握できるようになった。どのテーマに着せ替えても専用の Antigravity クォータカードが追加され、デザインも周囲に完璧に溶け込む。クォータの取得は、バックグラウンドで15分ごとに公式コマンドを走らせる正攻法であり、怪しいトークン抜き取りや非公開 API の乱用はしていない。メニューバーには従来の不死鳥と竜に加え、新たに獅子の精霊（spirit companion）が仲間入りし、そのアニメーション速度は Antigravity トークンの消費スピードに連動する。また、HTML ディープレポートにも Antigravity のデータが統合された。車のダッシュボードに例えるなら、ガソリンとバッテリーしか見えなかったところに、デザインが統一された水温計が追加され、針の動きもエンジンと完全に同期し、車体全体の状況が一目で分かるようになったようなものである。",
-                "ko": "이제 Claude Code, Codex와 나란히 제3의 도구로서 Antigravity(Gemini) 사용량도 함께 지켜볼 수 있게 되었다. 어떤 테마를 쓰든 Antigravity 전용 할당량 카드가 추가되며, 현재 테마 디자인에 완벽하게 녹아든다. 할당량은 백그라운드에서 15분마다 공식 명령어를 실행해 정직하게 가져오며, 토큰을 훔쳐보거나 내부 API를 마구 찌르는 꼼수는 쓰지 않았다. 메뉴 바에는 원래 있던 불사조와 용에 이어 전용 사자 정령(spirit companion)이 추가되었으며, 이 녀석이 움직이는 속도는 당신이 Antigravity 토큰을 태우는 속도를 정직하게 반영한다. 또한 HTML 딥 리포트에도 Antigravity 기록이 통합되었다. 원래 기름과 배터리만 보여주던 자동차 계기판에 디자인이 똑같은 냉각수 온도계가 새로 달렸고, 바늘 움직임까지 엔진과 완벽하게 동기화되어 차의 상태를 한눈에 꿰뚫어 볼 수 있게 된 것과 같다."
-              },
-              "original": "**Antigravity (Gemini) support** — usage now watches a third AI tool alongside Claude Code and Codex:\n- **Quota card in every panel**: session + weekly limits appear as a third card in the classic panel and all nine themed quota panels, each styled in its host theme's visual language, with the same stale-data badge and hide toggle as the other two tools.\n- **Official numbers, no API poking**: quota is read by periodically running the Antigravity CLI's own `/quota` command in the background (15-minute cache) — identical to typing it yourself. No OAuth-token scraping, no internal API calls.\n- **Menu bar segment**: the Antigravity mark and session percentage join the menu bar, complete with a **lion spirit companion** whose animation speed follows Antigravity's own token burn rate — the phoenix (Claude) and dragon (Codex) finally have a third packmate.\n- **HTML report integration**: Antigravity token usage from local logs feeds the deep report."
-            },
-            {
-              "title": {
-                "zh-TW": "卡片隨你排，說明書多國語言化",
-                "zh-CN": "卡片随你排，说明书多国语言化",
-                "en": "Reorder cards by dragging, and read the manual in five languages",
-                "ja": "カードの並べ替えが自由になり、説明書も多言語対応に",
-                "ko": "카드를 마음대로 배치하고, 설명서도 다국어로 읽을 수 있다."
-              },
-              "body": {
-                "zh-TW": "現在你可以直接按住拖曳，隨心所欲地把 Claude、Codex 或 Antigravity 的額度卡片換位子了。這份排版順序會自動存下來，就算你切換介面主題或重開機都不會跑掉。另外，當 Antigravity 遇到需要確認信任工作區的提示時，額度探測器（probe）也不會再傻傻卡住，過期資料的提示文字也寫得更準確。專案的 README 說明書現在一口氣支援了五種語言（英、繁中、簡中、日、韓），內容也梳理得更乾淨。就像你可以把自己最常用的悠遊卡、信用卡在皮夾裡隨意換格子，換了新皮夾順序依然照舊；而且買這套皮夾附贈的說明書，現在翻譯成了五國語言，任何人都能看懂。",
-                "zh-CN": "现在你可以直接按住拖曳，随心所欲地把 Claude、Codex 或 Antigravity 的额度卡片换位子了。这份排版顺序会自动存下来，就算你切换界面主题或重开机都不会跑掉。另外，当 Antigravity 遇到需要确认信任工作区的提示时，额度探测器（probe）也不会再傻傻卡住，过期资料的提示文字也写得更准确。项目的 README 说明书现在一口气支持了五种语言（英、繁中、简中、日、韩），内容也梳理得更干净。就像你可以把自己最常用的公交卡、信用卡在钱包里随意换格子，换了新钱包顺序依然照旧；而且买这套钱包附赠的说明书，现在翻译成了五国语言，任何人都能看懂。",
-                "en": "You can now click and drag the Claude, Codex, and Antigravity quota cards to arrange them however you like. Your custom order is saved, shared across all themes, and survives app restarts. Furthermore, the quota probe won't hang anymore if the Antigravity CLI throws up a workspace-trust prompt, and the tooltip explaining stale data is now perfectly accurate. The project's README manual has also been cleaned up and translated into five languages (English, Traditional Chinese, Simplified Chinese, Japanese, Korean). It's like being able to slide your ID and credit cards into whichever slots you prefer in your wallet, and that arrangement stays exactly the same even if you buy a different colored wallet of the same brand; plus, the wallet now comes with an instruction booklet everyone can read.",
-                "ja": "これからは Claude、Codex、Antigravity のクォータカードをドラッグして、好きな順番に並べ替えられるようになった。この並び順は自動的に保存され、テーマを変更しても再起動しても維持される。また、Antigravity がワークスペースの信頼確認プロンプトを出してきてもクォータ探査機能（probe）がフリーズしなくなり、古いデータに対するツールチップの説明も正確になった。プロジェクトの README 説明書は内容が整理され、一気に5言語（英語、繁体字中国語、簡体字中国語、日本語、韓国語）対応になった。財布の中でよく使う交通系ICカードやクレジットカードを好きなポケットに入れ替えられ、財布の色を変えてもその配置が引き継がれるようなものであり、しかも財布の取扱説明書が5カ国語に翻訳されて誰でも読めるようになったのと同じである。",
-                "ko": "이제 Claude, Codex, Antigravity 할당량 카드를 꾹 눌러 드래그해 마음대로 순서를 바꿀 수 있다. 이렇게 정한 순서는 자동으로 저장되어 테마를 바꾸거나 컴퓨터를 껐다 켜도 그대로 유지된다. 또한, Antigravity가 작업 공간을 신뢰하겠냐고 묻는 프롬프트를 띄워도 할당량 탐색기(probe)가 더 이상 멍하니 멈추지 않으며, 오래된 데이터를 알리는 말풍선 설명도 훨씬 정확해졌다. 프로젝트의 README 설명서는 내용을 깔끔하게 다듬어 5개 언어(영어, 번체 중문, 간체 중문, 일어, 한국어)로 제공된다. 지갑 안에서 자주 쓰는 교통카드와 신용카드를 편한 칸에 마음대로 옮겨 꽂을 수 있고 지갑을 새로 바꿔도 그 순서가 그대로 유지되는 것과 같으며, 지갑을 샀을 때 들어 있는 설명서도 5개 국어로 번역되어 누구나 읽을 수 있게 된 셈이다."
-              },
-              "original": "**Drag to reorder quota cards**: press and drag the Claude / Codex / Antigravity cards in any panel to swap their order. The arrangement is validated, persisted, shared across all themes, and survives restarts.\n**Antigravity quota probe hardening**: the probe no longer hangs on Antigravity CLI 1.1.1's new workspace-trust prompt, and the stale-data tooltip now describes the probe behavior accurately.\nFuzz harness imports are static so PyInstaller bundles the parser modules (CI fuzzing only; no user-facing impact).\nREADME now ships in five languages (English, Traditional Chinese, Simplified Chinese, Japanese, Korean) with a cleaned-up presentation.\nAI Tool Update Digest refreshed (Claude Code 2.1.206 / Codex 0.144.1 / Antigravity 1.1.1)."
             }
           ]
         }
