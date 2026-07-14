@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.27.1] - 2026-07-14
+
+### Fixed
+- **Antigravity card no longer misreads as maxed out**: the card used to show whichever of the two quota groups (Gemini, or Claude/GPT) was most depleted, so an exhausted Claude/GPT five-hour window read as "100% used" even while the Gemini group the account actually runs on still had plenty left. The card now always tracks the Gemini group (falling back to the most-depleted group only if Gemini is ever absent from the API response).
+
 ## [0.27.0] - 2026-07-13
 
 ### Added

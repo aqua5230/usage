@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.27.1] - 2026-07-14
+
+### 修正
+- **Antigravity 卡不再誤判成額度爆滿**：原本卡片會挑兩個額度群組（Gemini、或 Claude/GPT）中剩最少的那組顯示，導致 Claude/GPT 組的 5 小時額度歸零時，卡片顯示「100% 已用」，即使帳號實際在跑的 Gemini 組明明還剩很多。現在卡片固定追蹤 Gemini 組（只有官方 API 哪天真的沒回傳 Gemini 組時，才退回顯示剩最少的那組）。
+
 ## [0.27.0] - 2026-07-13
 
 ### 新增
