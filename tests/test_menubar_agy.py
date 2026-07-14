@@ -35,7 +35,7 @@ def _group(
     )
 
 
-def test_project_quota_selects_the_most_constrained_group_and_converts_percent() -> None:
+def test_project_quota_selects_gemini_group_and_converts_percent() -> None:
     quota = AgyQuotaResult(
         groups=[
             _group("GEMINI MODELS", session_remaining=40, weekly_remaining=90),
@@ -47,12 +47,31 @@ def test_project_quota_selects_the_most_constrained_group_and_converts_percent()
     projection = menubar_agy.project_quota(quota, "en", now=1_767_225_600.0)
 
     assert projection is not None
-    assert projection.group_name == "CLAUDE AND GPT MODELS"
-    assert projection.session.percent == 30.0
-    assert projection.session.percent_text == "30% used"
-    assert projection.weekly.percent == 87.5
-    assert projection.weekly.percent_text == "87.5% used"
+    assert projection.group_name == "GEMINI MODELS"
+    assert projection.session.title == "Session · Gemini"
+    assert projection.session.percent == 60.0
+    assert projection.session.percent_text == "60% used"
+    assert projection.weekly.percent == 10.0
+    assert projection.weekly.percent_text == "10% used"
     assert projection.session.reset_text == "Resets in 1h 30m"
+
+
+def test_project_quota_falls_back_to_most_constrained_group_without_gemini() -> None:
+    quota = AgyQuotaResult(
+        groups=[
+            _group("CLAUDE AND GPT MODELS", session_remaining=70, weekly_remaining=12.5),
+            _group("OTHER MODELS", session_remaining=40, weekly_remaining=90),
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+
+    projection = menubar_agy.project_quota(quota, "en", now=1_767_225_600.0)
+
+    assert projection is not None
+    assert projection.group_name == "CLAUDE AND GPT MODELS"
+    assert projection.session.title == "Session · Claude/GPT"
+    assert projection.session.percent == 30.0
+    assert projection.weekly.percent == 87.5
 
 
 def test_project_quota_marks_full_quota_without_a_countdown() -> None:

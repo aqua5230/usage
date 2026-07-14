@@ -37,7 +37,7 @@ AGY_STALE_SECONDS = 20 * 60
 
 @dataclass(frozen=True, slots=True)
 class AgyQuotaProjection:
-    """Panel-ready data for the most constrained Antigravity model group."""
+    """Panel-ready data for Antigravity's Gemini group by default."""
 
     group_name: str
     session: QuotaRowState
@@ -58,19 +58,32 @@ def project_quota(
     language: str,
     now: float | None = None,
 ) -> AgyQuotaProjection | None:
-    """Select and convert the most constrained quota group without I/O."""
+    """Select and convert the Gemini quota group without I/O when available."""
     if quota is None or not quota.groups:
         return None
-    selected = min(quota.groups, key=_group_remaining_percent)
+    selected = next(
+        (group for group in quota.groups if "gemini" in group.name.lower()),
+        min(quota.groups, key=_group_remaining_percent),
+    )
+    group_label = _t(
+        language,
+        "agy_group_gemini" if "gemini" in selected.name.lower() else "agy_group_claude_gpt",
+    )
     current_time = time.time() if now is None else now
     age_minutes = _cache_age_minutes(quota.fetched_at, current_time)
     return AgyQuotaProjection(
         group_name=selected.name,
         session=_window_row(
-            _t(language, "session_label"), selected.five_hour, language, age_minutes
+            f"{_t(language, 'session_label')} · {group_label}",
+            selected.five_hour,
+            language,
+            age_minutes,
         ),
         weekly=_window_row(
-            _t(language, "weekly_label"), selected.weekly, language, age_minutes
+            f"{_t(language, 'weekly_label')} · {group_label}",
+            selected.weekly,
+            language,
+            age_minutes,
         ),
         stale=_stale_state(quota.fetched_at, current_time, language),
     )
