@@ -77,6 +77,8 @@ NAVIGATION_MENU_IDENTIFIER_PARTS = (
 
 def _reload_web_panel(view: Any) -> None:
     view._ready = False
+    view._first_paint_done = False
+    view._last_injected_payload = None
     if getattr(view, "_last_payload", None) is not None:
         view._pending = view._last_payload
     html = getattr(view, "_html", None)
@@ -84,6 +86,14 @@ def _reload_web_panel(view: Any) -> None:
         view.reload()
         return
     view.loadHTMLString_baseURL_(html, None)
+
+
+def _new_state_payload(view: Any, payload: dict[str, object]) -> str | None:
+    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    if encoded == view._last_injected_payload:
+        return None
+    view._last_injected_payload = encoded
+    return encoded
 
 
 def _is_navigation_menu_item(item: Any) -> bool:
@@ -250,6 +260,7 @@ class WebPanelView(WKWebView):
     _ready = objc.ivar()
     _pending = objc.ivar()
     _last_payload = objc.ivar()
+    _last_injected_payload = objc.ivar()
     _injection_retry_payload = objc.ivar()
     _injection_reload_count = objc.ivar()
     _html = objc.ivar()
@@ -270,6 +281,7 @@ class WebPanelView(WKWebView):
         self._ready = False
         self._pending = None
         self._last_payload = None
+        self._last_injected_payload = None
         self._injection_retry_payload = None
         self._injection_reload_count = 0
         self._html = None
@@ -327,7 +339,9 @@ class WebPanelView(WKWebView):
         if not self._ready:
             self._pending = payload
             return
-        encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+        encoded = _new_state_payload(self, payload)
+        if encoded is None:
+            return
 
         def _completed(_value: Any, error: Any) -> None:
             _handle_injection_error(self, payload, error)
@@ -351,6 +365,7 @@ class WebPanelView(WKWebView):
         self.delegate_ref = None
         self.user_content_controller = None
         self._last_payload = None
+        self._last_injected_payload = None
         self._pending = None
         self._html = None
 

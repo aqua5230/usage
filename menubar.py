@@ -787,6 +787,8 @@ class AppDelegate(NSObject):
 
     def popoverWillShow_(self, notification: Any) -> None:
         self._reschedule_poll_timer(self.interval)
+
+    def popoverDidShow_(self, notification: Any) -> None:
         self.refreshNow_(None)
 
     def popoverDidClose_(self, notification: Any) -> None:

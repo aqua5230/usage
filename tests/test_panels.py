@@ -307,6 +307,8 @@ def test_web_panel_reloads_and_reinjects_after_content_termination() -> None:
             self._ready = True
             self._pending = None
             self._last_payload = {"codex": {"session": {"percent": 67}}}
+            self._last_injected_payload = "previous"
+            self._first_paint_done = True
             self._html = "<html>usage</html>"
             self.reloads = 0
             self.loaded_html: list[tuple[str, object | None]] = []
@@ -322,6 +324,8 @@ def test_web_panel_reloads_and_reinjects_after_content_termination() -> None:
     web_panel._reload_web_panel(view)
 
     assert view._ready is False
+    assert view._first_paint_done is False
+    assert view._last_injected_payload is None
     assert view._pending == {"codex": {"session": {"percent": 67}}}
     assert view.loaded_html == [("<html>usage</html>", None)]
     assert view.reloads == 0
@@ -354,6 +358,23 @@ def test_web_panel_reloads_when_state_injection_fails() -> None:
     assert view._pending == payload
     assert view.loaded_html == [("<html>usage</html>", None)]
     assert view.reloads == 0
+
+
+def test_web_panel_skips_duplicate_state_injection() -> None:
+    import panels.web_panel as web_panel
+
+    class FakeWebView:
+        def __init__(self) -> None:
+            self._last_injected_payload = None
+
+    view = FakeWebView()
+    payload: dict[str, object] = {"projects": [{"name": "Eric-Tools"}]}
+
+    first = web_panel._new_state_payload(view, payload)
+    duplicate = web_panel._new_state_payload(view, payload.copy())
+
+    assert first == '{"projects":[{"name":"Eric-Tools"}]}'
+    assert duplicate is None
 
 
 def test_web_panel_caps_reloads_when_state_injection_keeps_failing() -> None:
