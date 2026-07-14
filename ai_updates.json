@@ -908,7 +908,7 @@
                 "zh-TW": "用腳本呼叫 agy 的人這條最有感：print 模式（--print／-p，不開介面、印完答案就走的無頭用法）以前伺服器端失敗時會裝沒事——回傳成功代碼、輸出空白，害你的腳本以為任務完成了；現在錯誤會寫進 stderr（標準錯誤輸出，專門裝錯誤訊息的通道）並回傳非零代碼。另外在 shell 腳本或子程序裡跑 agy -p 會卡住等輸入的毛病也修了。就像外送員以前送失敗會默默把空袋子掛你門口，現在會確實打電話告訴你「餐沒送到」。",
                 "zh-CN": "用脚本呼叫 agy 的人这条最有感：print 模式（--print／-p，不开界面、印完答案就走的无头用法）以前服务器端失败时会装没事——回传成功代码、输出空白，害你的脚本以为任务完成了；现在错误会写进 stderr（标准错误输出，专门装错误信息的通道）并回传非零代码。另外在 shell 脚本或子进程里跑 agy -p 会卡住等输入的毛病也修了。就像外卖员以前送失败会默默把空袋子挂你门口，现在会确实打电话告诉你「餐没送到」。",
                 "en": "If you call agy from scripts, this is your fix: print mode (--print / -p, the headless usage that prints an answer and exits) used to play innocent when a request failed server-side — exiting with a success code and empty output, so your script believed the job was done; failures now go to stderr (the standard error stream, the channel reserved for error messages) with a non-zero exit code. The bug where agy -p hung waiting for input inside shell scripts and subprocesses is fixed too. Like a delivery courier who used to silently hang an empty bag on your door after a failed run — now they actually call to say the food didn't make it.",
-                "ja": "スクリプトはタスク完了と勘違いしていた。今はエラーが stderr（標準エラー出力、エラーメッセージ専用の経路）に書き込まれ、非ゼロのコードが返る。さらに、shell スクリプトやサブプロセス内で agy -p を走らせると入力待ちで固まる癖も直った。デリバリー配達員が以前は配達失敗を黙って空の袋をドアに掛けたのに対し、今はきちんと電話して「届きませんでした」と伝えるようになったようなものである。",
+                "ja": "スクリプトから agy を呼ぶ人にとって、これが待ち望んだ修正だ。print モード（--print／-p、答えを出力して終わるヘッドレスな使い方）は以前、サーバー側で失敗しても平気な顔をし、成功コードと空の出力を返すため、スクリプトはタスク完了と勘違いしていた。今はエラーが stderr（標準エラー出力、エラーメッセージ専用の経路）に書き込まれ、非ゼロのコードが返る。さらに、shell スクリプトやサブプロセス内で agy -p を走らせると入力待ちで固まる癖も直った。デリバリー配達員が以前は配達失敗を黙って空の袋をドアに掛けたのに対し、今はきちんと電話して「届きませんでした」と伝えるようになったようなものである。",
                 "ko": "스크립트로 agy를 부르는 사람이 가장 체감하는 항목이다. print 모드(--print／-p, 인터페이스를 열지 않고 답만 찍고 끝내는 헤드리스 쓰임새)는 예전에 서버 쪽이 실패해도 아무 일 없는 척했다. 성공 코드를 돌려주고 빈 출력을 내어 스크립트가 작업이 끝났다고 착각하게 만들었다. 이제는 오류가 stderr(표준 에러 출력, 오류 메시지를 담는 전용 통로)에 쓰이고 0이 아닌 코드가 돌아온다. 덧붙여 shell 스크립트나 하위 프로세스 안에서 agy -p를 돌리면 입력을 기다리며 멈춰 서던 버그도 고쳐졌다. 배달 기사가 예전엔 배달에 실패하면 말없이 빈 봉투를 문 앞에 걸어 두었다면, 이제는 제대로 전화해서 '음식이 도착하지 않았다'고 알려 주는 것과 같다."
               },
               "original": "Fixed print mode (`--print` / `-p`) silently exiting with a success code and empty output when a request failed server-side, now writing the error to stderr and returning a non-zero exit code. Fixed `agy -p` hanging when run inside a shell script or subprocess by no longer reading stdin when a prompt is provided via a flag. (1.1.1)"
@@ -1013,6 +1013,29 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.27.2",
+          "period": "2026-07-15",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "點開選單不再卡頓，瞬間滑順展開且不做白工",
+                "zh-CN": "点开菜单不再卡顿，瞬间顺滑展开且不做无用功",
+                "en": "Popover stops stuttering when opened, expanding instantly and avoiding redundant work",
+                "ja": "メニューを開く際のカクつきが解消、一瞬で滑らかに開き無駄な処理をしない",
+                "ko": "메뉴를 열 때 버벅대지 않고, 순식간에 부드럽게 열리며 헛고생을 하지 않는다"
+              },
+              "body": {
+                "zh-TW": "現在點開 menu bar（螢幕最上方那排選單列）圖示時，popover（點按後彈出的懸浮面板）瞬間順滑展開，不再卡一下才出現。以前一按圖示就急著更新資料，跟面板畫出第一格畫面的工作在 main thread（主執行緒，畫面與操作都得排隊走的同一條通道）上撞車；而且就算內容沒變，每次打開都把整包 state JSON（記錄目前狀態的資料）重新注入面板，白做工。現在改成等面板完全顯示才開始更新，payload（要送進面板的那包資料）跟上次相同就跳過注入；只有 WebKit（負責畫出這個面板的網頁引擎）行程重載後才強制重注，出錯後的復原不受影響。就像去開門，以前手剛碰到門把，門房就急著塞一大包信給你卡住門；現在門房會等你完全推開門才遞上新信，除非他剛換班才會重新對一遍信件。",
+                "zh-CN": "现在点开顶部的 menu bar（屏幕最上方的那排控制列）图标时，popover（点击后弹出来的悬浮小窗口）不再卡顿掉帧，瞬间就能顺滑展开。以前一按图标就急着整理数据，这与画出第一帧画面的工作在 main thread（处理画面显示的唯一通道）上撞车。而且就算数据没变，每次还是会把 state JSON（记录目前状态的数据包）硬塞进面板重读。现在会等窗口完全展开才开始整理数据；且若 payload（要送进面板的那包数据）相同就跳过重复塞数据。但遇到 WebKit（画出网页的核心引擎）重启时仍会强制重塞，不影响出错修复。就像去开门，以前手刚碰到门把，门卫就急着塞一大包信给你卡住门；现在门卫会等你完全推开门才递上新信，除非他刚换班才会重新对一遍信件。",
+                "en": "Clicking the menu bar (the control row at the top of your screen) icon now opens the popover (the small floating window) instantly without stuttering. Previously, this kicked off a data refresh that collided with rendering the first frame on the main thread (the single processing lane for screen drawing). It also shoved the entire state JSON (the data package recording current status) into the panel every time, even if nothing changed. Now, the refresh waits until the popover is fully shown, and skips injecting data if the payload (the exact data bundle sent into the panel) is identical. If the underlying WebKit (the engine rendering web graphics) process reloads, it still forces a fresh injection to ensure error recovery. It's like a doorman who used to jam your door by shoving mail at you the millisecond you touched the knob; now, he waits until you fully open the door to hand you only new mail, unless he just changed shifts and must re-verify everything.",
+                "ja": "画面上部の menu bar（一番上にある操作列）のアイコンをクリックした際、popover（飛び出す小さな浮遊ウィンドウ）が一瞬で滑らかに開くようになった。以前はアイコンを押すと即座にデータ更新が走り、ウィンドウの最初の1コマを描画する作業と main thread（画面表示を処理する唯一の通り道）上で衝突していた。さらにデータが変わっていなくても、毎回 state JSON（現在の状態を記録したデータ包み）を無理やりパネルにねじ込んでいた。今はウィンドウが完全に開き切るのを待ってからデータ整理を始め、payload（パネルへ送るデータ一式）が同一ならデータの再注入をスキップする。ただし WebKit（ウェブ画面を描画する中核エンジン）が再起動した際は強制的にデータを再注入し、エラー修復能力は保たれる。以前はドアノブに触れた瞬間に門番が大量の郵便物を押し付けてきて扉が開けられなかったが、今は扉を完全に開くまで待ってから新着の郵便物だけを渡し、門番が交代した時だけ全てを照合し直すようなものである。",
+                "ko": "이제 화면 상단 menu bar(가장 위에 있는 제어 막대) 아이콘을 클릭할 때, popover(클릭하면 나타나는 작은 팝업 창)가 버벅대지 않고 순식간에 열린다. 예전에는 아이콘을 누르자마자 데이터 갱신이 시작되어 창의 첫 장면을 그리는 작업과 main thread(화면 표시를 처리하는 유일한 통로) 위에서 부딪혔다. 또한 데이터가 변하지 않았는데도 매번 state JSON(현재 상태를 기록한 데이터 꾸러미)을 패널에 억지로 욱여넣었다. 이제는 창이 완전히 열릴 때까지 기다렸다가 데이터를 정리하며, payload(패널로 보내는 데이터 묶음)가 똑같다면 다시 집어넣는 작업을 건너뛴다. 단, WebKit(웹 화면을 그리는 핵심 엔진)이 재시작될 때는 강제로 데이터를 다시 집어넣어 오류 복구 능력을 유지한다. 예전엔 문고리에 손이 닿자마자 문지기가 우편물 뭉치를 억지로 떠안겨 문이 열리지 않았지만, 이제는 문을 활짝 열 때까지 기다렸다가 새 우편물만 건네주며, 문지기가 교대했을 때만 처음부터 다시 대조하는 것과 같다."
+              },
+              "original": "**Opening the popover no longer stutters**: clicking the menu bar icon used to kick off a data refresh whose UI apply raced the popover's first frame on the main thread, and every open re-injected the full state JSON into the panel even when nothing changed. The refresh now starts only after the popover is fully shown, and state injection is skipped when the payload is identical to the last one (still force-reinjected after a WebKit process reload, so recovery is unaffected)."
+            }
+          ]
+        },
+        {
           "version": "0.27.1",
           "period": "2026-07-14",
           "items": [
@@ -1055,46 +1078,6 @@
                 "ko": "메뉴 바에서 'AI Update Daily'를 클릭하면 이제 전용 업데이트 웹페이지가 바로 열려, 예전처럼 HTML 딥 리포트(deep report, 전체 데이터 분석 결과를 보여주는 웹페이지) 안을 뒤적일 필요가 없다. 이 새 페이지는 매일 자동으로 업데이트되며 Claude Code, Codex, Antigravity의 전체 업데이트 기록을 담고 있다. 검토가 끝난 버전은 5개 언어로 된 알기 쉬운 요약본을 보여주고, 아직 검토되지 않은 버전은 공식 원문을 그대로 보여준다. 이 전용 페이지가 생기면서, 원래 딥 리포트 안에 자리 잡고 있던 업데이트 요약 영역은 삭제되어 보고서가 훨씬 깔끔해졌다. 식당이 원래 주문서 구석에 욱여넣었던 신메뉴 소개를 풀컬러로 된 예쁜 메뉴판으로 따로 빼낸 것과 같다. 주문서는 깔끔해지고 신메뉴를 보고 싶은 사람도 훨씬 편하게 읽을 수 있다."
               },
               "original": "**AI Update Daily** — clicking this menu item opens the public [web page](https://aqua5230.github.io/ai-updates/) in your default browser. The page auto-updates every day, covers Claude Code, Codex, and Antigravity, and keeps the full update history; reviewed updates show a plain-language summary in all five UI languages, while unreviewed ones show the official source text.\n**HTML report's \"AI Tool Update Digest\" section removed** — the digest has graduated into its own dedicated web page, so the HTML deep report no longer duplicates it."
-            }
-          ]
-        },
-        {
-          "version": "0.26.1",
-          "period": "2026-07-13",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "介面不再留下空白列，硬碟讀寫更安靜",
-                "zh-CN": "界面不再留下空白列，硬盘读写更安静",
-                "en": "No more blank rows in the interface, and disk I/O stays quiet",
-                "ja": "インターフェースに空白行が残らなくなり、ディスクの読み書きも静かに",
-                "ko": "인터페이스에 빈 줄이 남지 않고 디스크 읽기/쓰기가 더 조용해졌다."
-              },
-              "body": {
-                "zh-TW": "當 OpenAI 伺服器突然把 Codex 的限流（rate-limit，限制你多久能發送幾次請求的機制）從「5 小時與每週」改成「只剩每週」時，你的選單列卡片不會再留下一行醜醜的空白了。以前系統只會傻傻照著位置填數字，現在它會認明限流的時長，伺服器沒給的就不顯示，整張卡片會自動縮排；而且選單列上的百分比也會聰明地退回顯示每週的額度。另外，系統現在把零碎的檔案掃描紀錄集中起來，最多每 5 分鐘才寫入硬碟（disk I/O，程式讀寫硬碟的動作）一次，不再頻繁吵醒你的硬碟。就像是原本收納盒裡有兩個專屬格子，如果廠商突然不送其中一款贈品，以前格子會空在那裡長灰塵，現在收納盒會自動縮小不佔位；而且原本你每丟一張發票記帳軟體就要存檔一次，現在它會先記在腦袋裡，每五分鐘才寫進本子裡一次。",
-                "zh-CN": "当 OpenAI 服务器突然把 Codex 的限流（rate-limit，限制你多久能发送几次请求的机制）从「5 小时与每周」改成「只剩每周」时，你的菜单列卡片不会再留下一行丑丑的空白了。以前系统只会傻傻照着位置填数字，现在它会认明限流的时长，服务器没给的就不显示，整张卡片会自动缩进；而且菜单列上的百分比也会聪明地退回显示每周的额度。另外，系统现在把零碎的文件扫描记录集中起来，最多每 5 分钟才写入硬盘（disk I/O，程序读写硬盘的动作）一次，不再频繁吵醒你的硬盘。就像是原本收纳盒里有两个专属格子，如果厂商突然不送其中一款赠品，以前格子会空在那里长灰尘，现在收纳盒会自动缩小不占位；而且原本你每丢一张发票记账软件就要存档一次，现在它会先记在脑袋里，每五分钟才写进本子里一次。",
-                "en": "When OpenAI's servers abruptly switch the Codex rate-limit (the mechanism restricting how many requests you can make) payload from showing both a 5-hour and a weekly window to weekly-only, your menu bar card won't leave an ugly blank row anymore. Previously, the system mapped numbers purely by their position, but now it classifies limits by their duration—if the server stops reporting one, that row disappears completely, the card shrinks, and the menu bar percentage smartly falls back to the weekly value. Additionally, the system now coalesces file scan records and flushes them to your disk (disk I/O) at most once every 5 minutes, stopping the constant disk waking. It's like a bento box with dedicated slots: if a side dish stops being served, the box used to just leave an empty, dusty compartment, but now it automatically resizes to save space; and instead of writing to the ledger every single time you hand over a receipt, the accountant now batches them up and writes everything down once every five minutes.",
-                "ja": "OpenAI のサーバーが突然 Codex のレート制限（rate-limit、リクエスト送信回数を制限する仕組み）を「5時間と週間」から「週間のみ」に変更した際、メニューバーのカードに不格好な空白行が残らなくなった。以前は位置だけで愚直に数字を当てはめていたが、これからは制限期間を正しく識別し、サーバーから送られてこない期間は表示せずカード全体が縮む。メニューバーのパーセンテージも賢く週間枠の値に切り替わる。さらに、システムは細々としたファイルスキャン記録をまとめ、最大でも5分に1回しかディスクへの書き込み（disk I/O）を行わなくなり、ハードディスクを頻繁に起こすことがなくなった。お弁当箱の専用の仕切りが、おかずが一品減った時に以前なら空っぽのまま場所を取っていたのが、今は自動で縮んでコンパクトになり、経理担当者がレシートを1枚もらうたびに帳簿を書いていたのが、今は5分に1回まとめて書き込むようになったようなものである。",
-                "ko": "OpenAI 서버가 갑자기 Codex의 속도 제한(rate-limit, 요청을 얼마나 자주 보낼 수 있는지 막는 장치)을 '5시간 및 매주'에서 '매주 한정'으로 바꿔버려도, 이제 메뉴 바 카드에 보기 싫은 빈 줄이 남지 않는다. 예전엔 시스템이 그저 자리 순서대로 숫자를 채워 넣었지만, 이제는 제한 시간을 정확히 알아보고 서버가 안 주는 정보는 아예 숨겨 카드 크기를 알아서 줄인다. 메뉴 바의 퍼센트도 똑똑하게 주간 할당량으로 돌아간다. 또한 자잘한 파일 스캔 기록을 모아 최대 5분에 한 번만 디스크에 쓰기(disk I/O) 때문에 하드디스크를 자주 깨우지 않는다. 칸이 나뉜 도시락통에서 반찬 하나가 안 나오면 예전엔 빈 칸이 먼지만 쌓인 채 남았지만 이제는 알아서 통이 줄어들어 자리를 아끼고, 영수증을 낼 때마다 장부에 쓰던 경리가 이제는 5분마다 한 번씩 몰아서 적어주는 것과 같다."
-              },
-              "original": "**Codex card no longer shows an untitled \"--\" row**: mid-day on 2026-07-13, OpenAI's server-side rate-limit payload switched to weekly-only (the 5-hour window vanished with the CLI version unchanged), and the loader — which mapped fields by position — shoved the weekly number into the session slot, leaving a blank row behind. Rate-limit windows are now classified by their duration, a window the server no longer reports is hidden entirely (the card shrinks by one row), and the menu-bar Codex percentage falls back to the weekly value while the 5-hour limit is absent. If OpenAI brings the 5-hour window back, both rows return automatically.\n**Less idle disk I/O**: the JSONL scan caches are flushed to disk at most once per 5 minutes (with a final flush on quit), rapid file-event bursts coalesce into a single refresh, and the four per-project ranking windows are aggregated in one pass over history."
-            },
-            {
-              "title": {
-                "zh-TW": "Antigravity 額度更新更即時，報表標籤更清楚",
-                "zh-CN": "Antigravity 额度更新更即时，报表标签更清楚",
-                "en": "Antigravity quotas refresh faster, with live countdowns and clear labels",
-                "ja": "Antigravity のクォータ更新が迅速化、カウントダウンもリアルタイムに",
-                "ko": "Antigravity 할당량 업데이트가 빨라지고, 보고서 라벨도 더 명확해졌다."
-              },
-              "body": {
-                "zh-TW": "查看 Antigravity 的額度倒數時，數字現在會即時跟著時間跳動，不會像以前那樣卡在上次更新的時間點。這背後是因為系統現在改為直接讀取你電腦上已有的登入憑證（唯讀不修改），去向官方的額度介面（API）要資料，不再透過背景偷跑指令來檢查。這讓資料更新頻率從 15 分鐘縮短到 5 分鐘，倒數時間無比精準，也免去了多開額外處理程序的負擔；而且這完全只讀取額度資訊，不會扣到你的模型扣打（quota）。此外，HTML 報表裡的 Antigravity 使用紀錄也不會再被誤標成「unknown」了。就像搭火車，以前月台看板每 15 分鐘才人工翻牌一次，有時還會寫著「未知車種」；現在直接連線行控中心，每分每秒都精準倒數，而且車次名稱清清楚楚。",
-                "zh-CN": "查看 Antigravity 的额度倒数时，数字现在会实时跟着时间跳动，不会像以前那样卡在上次更新的时间点。这背后是因为系统现在改为直接读取你电脑上已有的登录凭证（只读不修改），去向官方的额度界面（API）要资料，不再通过后台偷跑指令来检查。这让资料更新频率从 15 分钟缩短到 5 分钟，倒数时间无比精准，也免去了多开额外处理程序的负担；而且这完全只读取额度信息，不会扣到你的模型配额（quota）。此外，HTML 报表里的 Antigravity 使用记录也不会再被误标成「unknown」了。就像搭火车，以前月台看板每 15 分钟才人工翻牌一次，有时还会写着「未知车种」；现在直接连接行控中心，每分每秒都精准倒数，而且车次名称清清楚楚。",
-                "en": "When checking your Antigravity quotas, the reset countdowns now tick down live second by second, rather than freezing at whatever time it was last fetched. Behind the scenes, the system now reads the sign-in token already on your machine (strictly read-only) to query the official quota endpoint directly, instead of running background commands. This shortens the refresh cycle from 15 to 5 minutes, makes countdowns perfectly exact, and eliminates the overhead of spawning helper processes—and since it only reads metadata, it never consumes your model quota. Additionally, Antigravity usage rows in the HTML report are now properly labeled instead of defaulting to \"unknown\". It's like taking a train: the platform display used to only manually flip every 15 minutes and sometimes said \"Unknown Train\"; now it's hooked directly to dispatch, counting down perfectly to the second with the exact train name displayed.",
-                "ja": "Antigravity のクォータのカウントダウンを見る際、以前のように前回取得した時間で固まることなく、時計のようにリアルタイムで減っていくようになった。裏側では、バックグラウンドでこっそりコマンドを走らせるのをやめ、あなたの PC にすでにあるログイン認証情報（読み取り専用で改変不可）を直接読み込んで公式の API からデータを取得するようになった。これにより更新間隔が 15 分から 5 分に縮まり、カウントダウンが極めて正確になり、余計な処理プロセスを立ち上げる負荷も消えた。クォータ情報だけを読むため、あなたのモデル枠（quota）を消費することもない。また、HTML レポート内の Antigravity 使用記録も「unknown」と誤表記されなくなった。駅のホームの掲示板が、以前は15分ごとに手動でめくられ、たまに「謎の列車」と表示されていたのが、今は運行センター直結で毎秒正確にカウントダウンされ、列車名もはっきり表示されるようになったようなものである。",
-                "ko": "Antigravity의 할당량 카운트다운을 볼 때, 예전처럼 마지막으로 확인한 시간에 멈춰 있지 않고 숫자가 실시간으로 째깍째깍 줄어든다. 이는 시스템이 백그라운드에서 몰래 명령어를 실행하는 대신, 컴퓨터에 이미 있는 로그인 인증 토큰(읽기 전용이라 안전함)을 직접 읽어 공식 할당량 API에 데이터를 요청하도록 바뀌었기 때문이다. 덕분에 업데이트 주기가 15분에서 5분으로 짧아졌고, 카운트다운이 정확해졌으며 쓸데없이 추가 프로세스를 띄우는 부담도 사라졌다. 할당량 정보만 읽기 때문에 모델 할당량(quota)을 갉아먹지도 않는다. 또한, HTML 보고서에서 Antigravity 사용 기록이 'unknown'으로 잘못 표시되던 문제도 해결됐다. 기차역 승강장 전광판이 예전엔 15분마다 손으로 뒤집어야 했고 가끔 '정체불명 기차'라고 뜨던 것이, 이제는 통제소와 직접 연결돼 1초 단위로 정확히 카운트다운을 하고 열차 이름도 또렷하게 띄워주는 것과 같다."
-              },
-              "original": "**Antigravity reset countdowns tick down live** instead of freezing at the last-fetched value until the next refresh.\n**Antigravity quota now comes straight from the official quota API**: usage reads the sign-in token the Antigravity CLI already stores on your machine (strictly read-only — the file is never modified) and queries the official quota endpoint directly, replacing the background `/quota` CLI probe. Numbers refresh every ~5 minutes instead of 15, countdowns are exact, no helper process is spawned, and the call reads quota metadata only — it never consumes your model quota. Any fetch failure still falls back to the cached snapshot with the usual stale badge. The data-source description in all five README languages is updated to match.\nAntigravity token rows in the HTML report are labeled \"Antigravity\" instead of \"unknown\"."
             }
           ]
         }
