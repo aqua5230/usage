@@ -846,6 +846,7 @@ class AppDelegate(NSObject):
             self._file_event_refresh_timer = None
         flush_history_cache()
         codex_loader.flush_caches_on_terminate()
+        agy_loader.flush_caches_on_terminate()
         if hasattr(self, "popover_controller") and self.popover_controller is not None:
             self.popover_controller.teardown()
 

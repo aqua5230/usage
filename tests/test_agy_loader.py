@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import os
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -95,6 +96,15 @@ def sessions_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     return directory
 
 
+@pytest.fixture(autouse=True)
+def _clear_file_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    agy_loader._file_cache.clear()
+    monkeypatch.setattr(agy_loader, "AGY_CACHE_PATH", tmp_path / "agy_db_cache.json")
+    monkeypatch.setattr(agy_loader, "_disk_cache_seeded", False)
+    monkeypatch.setattr(agy_loader, "_disk_cache_dirty", False)
+    monkeypatch.setattr(agy_loader, "_last_disk_cache_flush_at", None)
+
+
 def test_load_entries_parses_usage_deduplicates_and_skips_non_generation_rows(
     sessions_dir: Path,
 ) -> None:
@@ -178,3 +188,81 @@ def test_load_entries_skips_database_when_sqlite_is_locked(
     monkeypatch.setattr(sqlite3, "connect", _locked_connect)
 
     assert agy_loader.load_entries() == []
+
+
+def test_load_entries_reuses_unchanged_database_cache(
+    monkeypatch: pytest.MonkeyPatch, sessions_dir: Path
+) -> None:
+    now = datetime.now(UTC)
+    _write_database(
+        sessions_dir / "cached.db",
+        [_generation_blob(timestamp=now, dedup_key="cached")],
+        now,
+    )
+    original_parse_database = agy_loader._parse_database
+    parse_calls = 0
+
+    def _counting_parse_database(
+        path: Path,
+    ) -> tuple[list[agy_loader.AgyUsageEntry], int] | None:
+        nonlocal parse_calls
+        parse_calls += 1
+        return original_parse_database(path)
+
+    monkeypatch.setattr(agy_loader, "_parse_database", _counting_parse_database)
+
+    first = agy_loader.load_entries_with_stats()
+    second = agy_loader.load_entries_with_stats()
+
+    assert first == second
+    assert parse_calls == 1
+
+
+def test_load_entries_reparses_database_when_mtime_changes(
+    monkeypatch: pytest.MonkeyPatch, sessions_dir: Path
+) -> None:
+    now = datetime.now(UTC)
+    path = sessions_dir / "changed.db"
+    _write_database(path, [_generation_blob(timestamp=now, dedup_key="changed")], now)
+    original_parse_database = agy_loader._parse_database
+    parse_calls = 0
+
+    def _counting_parse_database(
+        database_path: Path,
+    ) -> tuple[list[agy_loader.AgyUsageEntry], int] | None:
+        nonlocal parse_calls
+        parse_calls += 1
+        return original_parse_database(database_path)
+
+    monkeypatch.setattr(agy_loader, "_parse_database", _counting_parse_database)
+
+    agy_loader.load_entries_with_stats()
+    stat = path.stat()
+    path.touch(exist_ok=True)
+    os.utime(path, (stat.st_atime, stat.st_mtime + 10))
+    agy_loader.load_entries_with_stats()
+
+    assert parse_calls == 2
+
+
+def test_load_entries_reuses_disk_cache_after_reseed(
+    monkeypatch: pytest.MonkeyPatch, sessions_dir: Path
+) -> None:
+    now = datetime.now(UTC)
+    _write_database(
+        sessions_dir / "persisted.db",
+        [_generation_blob(timestamp=now, dedup_key="persisted")],
+        now,
+    )
+    expected = agy_loader.load_entries_with_stats()
+    assert agy_loader.AGY_CACHE_PATH.is_file()
+
+    agy_loader._file_cache.clear()
+    monkeypatch.setattr(agy_loader, "_disk_cache_seeded", False)
+
+    def _unexpected_connect(*_args: object, **_kwargs: object) -> sqlite3.Connection:
+        raise AssertionError("disk cache miss unexpectedly opened SQLite")
+
+    monkeypatch.setattr(sqlite3, "connect", _unexpected_connect)
+
+    assert agy_loader.load_entries_with_stats() == expected

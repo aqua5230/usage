@@ -8,17 +8,34 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import sqlite3
+import time
+from collections import OrderedDict
 from collections.abc import Iterator
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
+from agy_disk_cache import flush_caches, seed_caches
+
 logger = logging.getLogger(__name__)
 
 AGY_SESSIONS_DIR = Path(os.path.expanduser("~/.gemini/antigravity-cli/conversations"))
+
+# Must comfortably exceed a real user's total *.db conversation count. A cap
+# below that count evicts databases parsed during the prior refresh, causing a
+# permanent full SQLite/protobuf reparse on every load (LRU thrashing).
+_FILE_CACHE_MAXSIZE = 4096
+_AGY_DB_CACHE_SCHEMA = 1
+AGY_CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_db_cache.json"))
+_disk_cache_seeded = False
+_DISK_CACHE_FLUSH_INTERVAL_S = 300.0
+_disk_cache_dirty = False
+_last_disk_cache_flush_at: float | None = None
+_monotonic = time.monotonic
 
 
 @dataclass(frozen=True, slots=True)
@@ -52,6 +69,17 @@ class AgyLoadResult:
     skipped_missing_dedup_key: int
 
 
+@dataclass(slots=True)
+class _FileCacheEntry:
+    mtime: float
+    size: int
+    entries: list[AgyUsageEntry]
+    skipped_missing_dedup_key: int
+
+
+_file_cache: OrderedDict[Path, _FileCacheEntry] = OrderedDict()
+
+
 def load_entries(hours_back: int = 0) -> list[AgyUsageEntry]:
     """Load deduplicated entries from the last ``hours_back`` hours.
 
@@ -63,6 +91,9 @@ def load_entries(hours_back: int = 0) -> list[AgyUsageEntry]:
 
 def load_entries_with_stats(hours_back: int = 0) -> AgyLoadResult:
     """Load entries and report how many usage rows lacked a deduplication key."""
+    global _disk_cache_dirty
+
+    _seed_caches_from_disk()
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
     if not AGY_SESSIONS_DIR.is_dir():
         return AgyLoadResult(entries=[], skipped_missing_dedup_key=0)
@@ -70,16 +101,67 @@ def load_entries_with_stats(hours_back: int = 0) -> AgyLoadResult:
     entries: list[AgyUsageEntry] = []
     seen_dedup_keys: set[str] = set()
     skipped_missing_dedup_key = 0
+    cutoff_ts = cutoff.timestamp() if cutoff else None
+    file_cache_snapshot = {
+        str(path): (entry.mtime, entry.size) for path, entry in _file_cache.items()
+    }
     for path in AGY_SESSIONS_DIR.glob("*.db"):
+        if cutoff_ts is not None:
+            try:
+                if path.stat().st_mtime < cutoff_ts:
+                    continue
+            except OSError as exc:
+                logger.warning("failed to stat Antigravity database %s: %s", path, exc)
+                continue
         file_entries, skipped = _load_database(path, cutoff, seen_dedup_keys)
         entries.extend(file_entries)
         skipped_missing_dedup_key += skipped
+
+    if {
+        str(path): (entry.mtime, entry.size) for path, entry in _file_cache.items()
+    } != file_cache_snapshot:
+        _disk_cache_dirty = True
+        _flush_caches_to_disk()
+    elif _disk_cache_dirty:
+        _flush_caches_to_disk()
 
     entries.sort(key=lambda entry: entry.timestamp)
     return AgyLoadResult(
         entries=entries,
         skipped_missing_dedup_key=skipped_missing_dedup_key,
     )
+
+
+def _seed_caches_from_disk() -> None:
+    global _disk_cache_seeded
+
+    if _disk_cache_seeded:
+        return
+    _disk_cache_seeded = True
+    seed_caches(AGY_CACHE_PATH, _AGY_DB_CACHE_SCHEMA, _FILE_CACHE_MAXSIZE, _file_cache)
+
+
+def _flush_caches_to_disk(*, force: bool = False) -> None:
+    global _disk_cache_dirty, _last_disk_cache_flush_at
+
+    if not _disk_cache_dirty:
+        return
+    now = _monotonic()
+    if (
+        not force
+        and _last_disk_cache_flush_at is not None
+        and now - _last_disk_cache_flush_at < _DISK_CACHE_FLUSH_INTERVAL_S
+    ):
+        return
+    flush_caches(AGY_CACHE_PATH, _AGY_DB_CACHE_SCHEMA, _file_cache)
+    _last_disk_cache_flush_at = now
+    _disk_cache_dirty = False
+
+
+def flush_caches_on_terminate() -> None:
+    """Best-effort persistence of cache changes still waiting for the throttle."""
+    with contextlib.suppress(Exception):
+        _flush_caches_to_disk(force=True)
 
 
 def recent_input_output_tokens(hours_back: int) -> int:
@@ -95,6 +177,55 @@ def _load_database(
     seen_dedup_keys: set[str],
 ) -> tuple[list[AgyUsageEntry], int]:
     try:
+        st = path.stat()
+    except OSError as exc:
+        logger.warning("failed to stat Antigravity database %s: %s", path, exc)
+        return [], 0
+
+    cached = _file_cache.get(path)
+    if cached is not None and cached.mtime == st.st_mtime and cached.size == st.st_size:
+        _file_cache.move_to_end(path)
+        return _filter_entries(
+            cached.entries,
+            cached.skipped_missing_dedup_key,
+            cutoff,
+            seen_dedup_keys,
+        )
+
+    parsed = _parse_database(path)
+    if parsed is None:
+        return [], 0
+    parsed_entries, skipped_missing_dedup_key = parsed
+    if path not in _file_cache and len(_file_cache) >= _FILE_CACHE_MAXSIZE:
+        _file_cache.popitem(last=False)
+    _file_cache[path] = _FileCacheEntry(
+        mtime=st.st_mtime,
+        size=st.st_size,
+        entries=parsed_entries,
+        skipped_missing_dedup_key=skipped_missing_dedup_key,
+    )
+    return _filter_entries(parsed_entries, skipped_missing_dedup_key, cutoff, seen_dedup_keys)
+
+
+def _filter_entries(
+    candidates: list[AgyUsageEntry],
+    skipped_missing_dedup_key: int,
+    cutoff: datetime | None,
+    seen_dedup_keys: set[str],
+) -> tuple[list[AgyUsageEntry], int]:
+    entries: list[AgyUsageEntry] = []
+    for entry in candidates:
+        if cutoff is not None and entry.timestamp < cutoff:
+            continue
+        if entry.dedup_key in seen_dedup_keys:
+            continue
+        seen_dedup_keys.add(entry.dedup_key)
+        entries.append(entry)
+    return entries, skipped_missing_dedup_key
+
+
+def _parse_database(path: Path) -> tuple[list[AgyUsageEntry], int] | None:
+    try:
         with sqlite3.connect(f"file:{path}?mode=ro", uri=True) as connection:
             session_timestamp = _session_timestamp(connection, path)
             rows = connection.execute("SELECT data FROM gen_metadata ORDER BY idx")
@@ -107,15 +238,15 @@ def _load_database(
                     blob,
                     path.stem,
                     session_timestamp,
-                    seen_dedup_keys,
+                    set(),
                 )
                 skipped_missing_dedup_key += missing_dedup_key
-                if entry is not None and (cutoff is None or entry.timestamp >= cutoff):
+                if entry is not None:
                     entries.append(entry)
             return entries, skipped_missing_dedup_key
     except sqlite3.Error as exc:
         logger.debug("skipping Antigravity database %s: %s", path, exc)
-        return [], 0
+        return None
 
 
 def _session_timestamp(connection: sqlite3.Connection, path: Path) -> datetime:

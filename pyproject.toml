@@ -36,6 +36,7 @@ py-modules = [
     "usage_client",
     "codex_loader",
     "agy_loader",
+    "agy_disk_cache",
     "agy_quota_probe",
     "critter_frames",
     "tui_sprite",
