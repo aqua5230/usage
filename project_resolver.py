@@ -14,6 +14,7 @@ from pathlib import Path
 __all__ = ["project_from_encoded_path", "resolve_project_name"]
 
 
+@lru_cache(maxsize=256)
 def resolve_project_name(cwd: str | Path) -> str:
     """Resolve a cwd to its canonical project name, including git worktrees."""
     if not str(cwd):

@@ -27,6 +27,7 @@ def _clear_file_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", tmp_path / "history_jsonl_cache.json")
     monkeypatch.setattr(history_loader, "_disk_cache_dirty", False)
     monkeypatch.setattr(history_loader, "_last_disk_cache_flush_at", None)
+    project_resolver.resolve_project_name.cache_clear()
     project_resolver._resolve_project_name.cache_clear()
 
 

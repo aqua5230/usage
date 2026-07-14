@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 _CACHE_TTL_SECONDS = 300.0
-_cache: tuple[float, int, PersonaProfile] | None = None
+_cache: dict[int, tuple[float, PersonaProfile]] = {}
 
 
 @dataclass(slots=True)
@@ -45,22 +45,20 @@ class _MetadataLine:
 
 
 def load_profile(days_back: int = 30) -> PersonaProfile:
-    global _cache
-
     now = time.time()
-    if _cache is not None:
-        cached_at, cached_days_back, cached_profile = _cache
-        if cached_days_back == days_back and now - cached_at < _CACHE_TTL_SECONDS:
+    cached = _cache.get(days_back)
+    if cached is not None:
+        cached_at, cached_profile = cached
+        if now - cached_at < _CACHE_TTL_SECONDS:
             return cached_profile
 
     profile = _load_profile_uncached(days_back)
-    _cache = (now, days_back, profile)
+    _cache[days_back] = (now, profile)
     return profile
 
 
 def _reset_cache() -> None:
-    global _cache
-    _cache = None
+    _cache.clear()
 
 
 def _load_profile_uncached(days_back: int) -> PersonaProfile:

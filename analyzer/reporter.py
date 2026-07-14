@@ -340,6 +340,7 @@ def _empty_comparison(period: str) -> ComparisonReportData:
 
 def _build_comparison(
     raw_entries: list[UsageEntry],
+    entry_dates: dict[int, date],
     period: str,
     date_from: date,
     date_to: date,
@@ -353,7 +354,7 @@ def _build_comparison(
     prev_entries = [
         entry
         for entry in raw_entries
-        if prev_date_from <= _entry_date(entry) <= prev_date_to
+        if prev_date_from <= entry_dates[id(entry)] <= prev_date_to
     ]
 
     prev_tokens = sum(entry.total_tokens for entry in prev_entries)
@@ -846,24 +847,25 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     raw_entries: list[UsageEntry] = []
     for agent in agents:
         raw_entries.extend(_load_agent_entries(agent, hours_back))
+    entry_dates = {id(entry): _entry_date(entry) for entry in raw_entries}
 
     if date_from is None and raw_entries:
-        date_from = min(_entry_date(entry) for entry in raw_entries)
+        date_from = min(entry_dates[id(entry)] for entry in raw_entries)
     if date_from is None:
         date_from = date_to
 
     entries = [
         entry
         for entry in raw_entries
-        if date_from <= _entry_date(entry) <= date_to
+        if date_from <= entry_dates[id(entry)] <= date_to
     ]
 
     total_tokens = sum(entry.total_tokens for entry in entries)
     total_cost = 0.0
     session_ids = {entry.session_id for entry in entries}
-    active_dates = {_entry_date(entry) for entry in entries}
+    active_dates = {entry_dates[id(entry)] for entry in entries}
     total_days = (date_to - date_from).days + 1
-    comparison = _build_comparison(raw_entries, period, date_from, date_to)
+    comparison = _build_comparison(raw_entries, entry_dates, period, date_from, date_to)
 
     by_agent_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0, "sessions": set(), "messages": 0})
     by_project_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0, "sessions": set()})
@@ -892,7 +894,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             entry.total_tokens
         )
 
-        day = daily_totals[_entry_date(entry)]
+        day = daily_totals[entry_dates[id(entry)]]
         day["tokens"] += entry.total_tokens
         day["cost"] += cost
 

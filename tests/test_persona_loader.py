@@ -11,6 +11,7 @@ import os
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
+from unittest.mock import Mock
 
 import pytest
 
@@ -21,6 +22,7 @@ from analyzer import persona_loader
 @pytest.fixture(autouse=True)
 def _reset_persona_cache() -> None:
     persona_loader._reset_cache()
+    project_resolver.resolve_project_name.cache_clear()
     project_resolver._resolve_project_name.cache_clear()
 
 
@@ -54,6 +56,21 @@ def _title_row(session_id: str, ai_title: str) -> dict[str, Any]:
         "sessionId": session_id,
         "aiTitle": ai_title,
     }
+
+
+def test_profile_cache_keeps_each_period_within_ttl(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    profile = persona_loader.PersonaProfile([0] * 24, [], [], 0, 0)
+    load = Mock(return_value=profile)
+    monkeypatch.setattr(persona_loader, "_load_profile_uncached", load)
+
+    assert persona_loader.load_profile(1) is profile
+    assert persona_loader.load_profile(7) is profile
+    assert persona_loader.load_profile(1) is profile
+    assert persona_loader.load_profile(7) is profile
+
+    assert load.call_args_list == [((1,), {}), ((7,), {})]
 
 
 def test_empty_directory_returns_empty_profile(

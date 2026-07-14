@@ -19,6 +19,7 @@ from project_resolver import project_from_encoded_path
 
 @pytest.fixture(autouse=True)
 def _clear_project_resolver_cache() -> None:
+    project_resolver.resolve_project_name.cache_clear()
     project_resolver._resolve_project_name.cache_clear()
 
 
@@ -110,6 +111,21 @@ def test_resolve_project_name_reuses_cached_subprocess_result(
 
     assert project_resolver.resolve_project_name(path) == "main-project"
     assert project_resolver.resolve_project_name(str(path)) == "main-project"
+    assert run.call_count == 1
+
+
+def test_resolve_project_name_caches_path_resolution(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    resolve = Mock(return_value=Path("/work/feature"))
+    run = Mock(return_value=_completed(0, stdout="worktree /work/main-project\n"))
+    monkeypatch.setattr(Path, "resolve", resolve)
+    monkeypatch.setattr("project_resolver.subprocess.run", run)
+
+    assert project_resolver.resolve_project_name("/work/feature") == "main-project"
+    assert project_resolver.resolve_project_name("/work/feature") == "main-project"
+
+    assert resolve.call_count == 1
     assert run.call_count == 1
 
 

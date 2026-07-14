@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 import time
 from collections.abc import Iterator
-from datetime import UTC, datetime, tzinfo
+from datetime import UTC, date, datetime, tzinfo
 from pathlib import Path
 from typing import Any
 
@@ -134,6 +134,46 @@ def _sandbox_reporter_dependencies(
             os.environ["TZ"] = original_tz
         if hasattr(time, "tzset"):
             time.tzset()
+
+
+def test_build_report_data_calculates_each_entry_date_once(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixed_now = datetime(2026, 5, 21, 12, tzinfo=UTC)
+    agent = AgentInfo("codex", "Codex", "~/.codex", True)
+    entries = [
+        _entry(
+            when=datetime(2026, 5, 20, 12, tzinfo=UTC),
+            session_id="current",
+            model="gpt-5-codex",
+            project="usage",
+            agent_id="codex",
+            input_tokens=100,
+        ),
+        _entry(
+            when=datetime(2026, 4, 20, 12, tzinfo=UTC),
+            session_id="previous",
+            model="gpt-5-codex",
+            project="usage",
+            agent_id="codex",
+            input_tokens=50,
+        ),
+    ]
+    entry_date = reporter._entry_date
+    calls = 0
+
+    def count_entry_date(entry: UsageEntry) -> date:
+        nonlocal calls
+        calls += 1
+        return entry_date(entry)
+
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(fixed_now))
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda _agent, _hours: entries)
+    monkeypatch.setattr(reporter, "_entry_date", count_entry_date)
+
+    reporter.build_report_data([agent], "month")
+
+    assert calls == len(entries)
 
 
 def test_build_report_data_week_window_includes_boundaries_and_zero_fill(
