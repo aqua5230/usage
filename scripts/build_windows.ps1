@@ -23,9 +23,9 @@ try {
         --distpath $DistRoot `
         --workpath $BuildDir `
         --specpath $SpecDir `
-        --add-data "i18n.json;." `
-        --add-data "pyproject.toml;." `
-        --add-data "assets;assets" `
+        --add-data "$(Join-Path $RepoRoot 'i18n.json');." `
+        --add-data "$(Join-Path $RepoRoot 'pyproject.toml');." `
+        --add-data "$(Join-Path $RepoRoot 'assets');assets" `
         --hidden-import wintray `
         --hidden-import pystray `
         --hidden-import webview `
