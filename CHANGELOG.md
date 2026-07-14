@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.27.4] - 2026-07-15
+
+### Fixed
+- **Codex card no longer leaves a blank gap (and clips the projects list) on four panels**: the "Cloud Observation", "Aquarium", "Prism Arcade", and "Black Hole" panels pinned every quota card at a fixed two-row height. When Codex reports weekly-only rate limits, the session row correctly hides but these four panels kept the card at its full height while the popover window itself had already shrunk by one row, leaving a blank band inside the Codex card and cutting off the projects card at the bottom. The card now collapses along with the missing row, matching the other five panels; the two-row layout is unchanged when both rows are present.
+
 ## [0.27.3] - 2026-07-15
 
 ### Changed
