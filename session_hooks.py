@@ -13,7 +13,6 @@ import io
 import json
 import os
 import re
-import shlex
 import shutil
 import stat
 import sys
@@ -37,6 +36,7 @@ from setup_hook import (
     _load_settings,
     _read_codex_config,
     _save_settings,
+    _shell_arg,
     _statusline_command,
     _statusline_command_target_exists,
     _uses_bundled_app_python,
@@ -183,19 +183,19 @@ def _resolve_terse_reminder_source() -> Path:
 def _resume_command() -> str:
     python = _find_system_python()
     source = _resolve_resume_source()
-    return f"{shlex.quote(python)} {shlex.quote(str(source))}"
+    return f"{_shell_arg(python)} {_shell_arg(str(source))}"
 
 
 def _terse_command() -> str:
     python = _find_system_python()
     source = _resolve_terse_source()
-    return f"{shlex.quote(python)} {shlex.quote(str(source))}"
+    return f"{_shell_arg(python)} {_shell_arg(str(source))}"
 
 
 def _terse_reminder_command() -> str:
     python = _find_system_python()
     source = _resolve_terse_reminder_source()
-    return f"{shlex.quote(python)} {shlex.quote(str(source))}"
+    return f"{_shell_arg(python)} {_shell_arg(str(source))}"
 
 
 def _copy_resume_script() -> None:
@@ -464,7 +464,7 @@ def _register_terse_reminder(settings: dict[str, Any]) -> None:
 
 def _codex_terse_command() -> str:
     python = _find_system_python()
-    return f"{shlex.quote(python)} {shlex.quote(str(CODEX_TERSE_HOOK_TARGET))}"
+    return f"{_shell_arg(python)} {_shell_arg(str(CODEX_TERSE_HOOK_TARGET))}"
 
 
 def _load_codex_hooks() -> dict[str, Any]:

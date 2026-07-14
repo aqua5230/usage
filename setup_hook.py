@@ -24,6 +24,7 @@ import re
 import shlex
 import shutil
 import stat
+import subprocess
 import sys
 import tempfile
 import tomllib
@@ -107,10 +108,11 @@ def _statusline_command_target_exists() -> bool:
     if not isinstance(command, str):
         return True
     try:
-        parts = shlex.split(command)
+        parts = shlex.split(command, posix=sys.platform != "win32")
     except ValueError:
         return True
     for part in parts:
+        part = part.strip('"')
         if "statusline" not in part or not part.endswith(".py"):
             continue
         return Path(os.path.expanduser(part)).exists()
@@ -118,6 +120,11 @@ def _statusline_command_target_exists() -> bool:
 
 
 def _find_system_python() -> str:
+    if sys.platform == "win32":
+        executable = sys.executable
+        if executable and not getattr(sys, "frozen", False):
+            return executable
+        return shutil.which("python") or "python"
     if os.path.exists("/usr/bin/python3"):
         return "/usr/bin/python3"
     executable = sys.executable
@@ -127,12 +134,14 @@ def _find_system_python() -> str:
 
 
 def _shell_arg(value: str) -> str:
+    if sys.platform == "win32":
+        return subprocess.list2cmdline([value])
     return shlex.quote(value)
 
 
 def _forwarder_command() -> str:
     python = _find_system_python()
-    return f"{shlex.quote(python)} {shlex.quote(str(FORWARDER_TARGET))}"
+    return f"{_shell_arg(python)} {_shell_arg(str(FORWARDER_TARGET))}"
 
 
 def _uses_bundled_app_python(command: str) -> bool:

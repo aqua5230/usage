@@ -40,6 +40,7 @@
     "update_btn_later": "稍後再說",
     "update_btn_skip": "跳過此版本",
     "update_no_new_version": "已是最新版本",
+    "check_update": "檢查更新",
     "update_check_failed": "檢查更新失敗",
     "hook_installed_restart": "已安裝完成，請重開 Claude Code 一次",
     "hook_install_failed": "安裝 hook 失敗",
@@ -356,7 +357,8 @@
     "setup_claude_statusline_removed": "✓ 已移除 usage statusLine",
     "setup_statusline_not_usage": "ℹ statusLine 不是 usage 安裝的，settings 未動",
     "setup_hook_deleted": "✓ 已刪除 hook：{path}",
-    "setup_status_file_deleted": "✓ 已刪除狀態檔：{path}"
+    "setup_status_file_deleted": "✓ 已刪除狀態檔：{path}",
+    "wintray_unavailable": "Windows 系統匣介面尚未安裝，改用終端機 TUI。"
   },
   "en": {
     "panel_default_name": "Default",
@@ -399,6 +401,7 @@
     "update_btn_later": "Later",
     "update_btn_skip": "Skip This Version",
     "update_no_new_version": "You are up to date",
+    "check_update": "Check for Updates",
     "update_check_failed": "Update check failed",
     "hook_installed_restart": "Hook installed. Restart Claude Code once.",
     "hook_install_failed": "Hook installation failed",
@@ -715,7 +718,8 @@
     "setup_claude_statusline_removed": "✓ Removed usage statusLine",
     "setup_statusline_not_usage": "ℹ statusLine was not installed by usage; settings unchanged",
     "setup_hook_deleted": "✓ Deleted hook: {path}",
-    "setup_status_file_deleted": "✓ Deleted status file: {path}"
+    "setup_status_file_deleted": "✓ Deleted status file: {path}",
+    "wintray_unavailable": "The Windows tray interface is not installed; falling back to the terminal TUI."
   },
   "zh-CN": {
     "panel_default_name": "默认",
@@ -758,6 +762,7 @@
     "update_btn_later": "稍后再说",
     "update_btn_skip": "跳过此版本",
     "update_no_new_version": "已是最新版本",
+    "check_update": "检查更新",
     "update_check_failed": "检查更新失败",
     "hook_installed_restart": "已安装完成，请重开 Claude Code 一次",
     "hook_install_failed": "安装 hook 失败",
@@ -1074,7 +1079,8 @@
     "setup_claude_statusline_removed": "✓ 已移除 usage statusLine",
     "setup_statusline_not_usage": "ℹ statusLine 不是 usage 安装的，settings 未改动",
     "setup_hook_deleted": "✓ 已删除 hook：{path}",
-    "setup_status_file_deleted": "✓ 已删除状态文件：{path}"
+    "setup_status_file_deleted": "✓ 已删除状态文件：{path}",
+    "wintray_unavailable": "Windows 系统托盘界面尚未安装，改用终端 TUI。"
   },
   "ja": {
     "panel_default_name": "デフォルト",
@@ -1117,6 +1123,7 @@
     "update_btn_later": "あとで",
     "update_btn_skip": "このバージョンをスキップ",
     "update_no_new_version": "最新バージョンです",
+    "check_update": "アップデートを確認",
     "update_check_failed": "アップデート確認に失敗しました",
     "hook_installed_restart": "フックをインストールしました。Claude Code を一度再起動してください。",
     "hook_install_failed": "フックのインストールに失敗しました",
@@ -1433,7 +1440,8 @@
     "setup_claude_statusline_removed": "✓ usage statusLine を削除しました",
     "setup_statusline_not_usage": "ℹ statusLine は usage がインストールしたものではありません。settings は変更していません",
     "setup_hook_deleted": "✓ hook を削除しました: {path}",
-    "setup_status_file_deleted": "✓ 状態ファイルを削除しました: {path}"
+    "setup_status_file_deleted": "✓ 状態ファイルを削除しました: {path}",
+    "wintray_unavailable": "Windows のシステムトレイ画面は未インストールです。ターミナル TUI に切り替えます。"
   },
   "ko": {
     "panel_default_name": "기본",
@@ -1476,6 +1484,7 @@
     "update_btn_later": "나중에",
     "update_btn_skip": "이 버전 건너뛰기",
     "update_no_new_version": "최신 버전입니다",
+    "check_update": "업데이트 확인",
     "update_check_failed": "업데이트 확인 실패",
     "hook_installed_restart": "훅 설치가 완료되었습니다. Claude Code를 한 번 다시 시작하세요.",
     "hook_install_failed": "훅 설치에 실패했습니다",
@@ -1792,6 +1801,7 @@
     "setup_claude_statusline_removed": "✓ usage statusLine을 제거했습니다",
     "setup_statusline_not_usage": "ℹ statusLine은 usage가 설치한 것이 아닙니다. settings는 변경하지 않았습니다",
     "setup_hook_deleted": "✓ hook 삭제됨: {path}",
-    "setup_status_file_deleted": "✓ 상태 파일 삭제됨: {path}"
+    "setup_status_file_deleted": "✓ 상태 파일 삭제됨: {path}",
+    "wintray_unavailable": "Windows 시스템 트레이 화면이 설치되지 않아 터미널 TUI로 전환합니다."
   }
 }

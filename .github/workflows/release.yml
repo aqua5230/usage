@@ -160,6 +160,55 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ steps.ref.outputs.tag }}" dist/usage.app.zip dist/usage.app.zip.sha256 --clobber
 
+  build-windows:
+    needs: build
+    runs-on: windows-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Resolve ref
+        id: ref
+        shell: bash
+        run: |
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            echo "ref=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
+            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+
+      - run: uv python install 3.13
+
+      - name: Install Windows build dependencies
+        run: |
+          uv sync --frozen --group dev --extra windows
+          uv pip install pyinstaller
+
+      - name: Build Windows executable
+        shell: pwsh
+        run: ./scripts/build_windows.ps1
+
+      - name: Zip Windows bundle
+        shell: pwsh
+        run: |
+          Compress-Archive -Path dist/usage-windows -DestinationPath dist/usage-windows.zip
+          $hash = (Get-FileHash dist/usage-windows.zip -Algorithm SHA256).Hash.ToLower()
+          "$hash  usage-windows.zip" | Out-File -FilePath dist/usage-windows.zip.sha256 -Encoding ascii -NoNewline
+
+      - name: Upload to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: gh release upload "${{ steps.ref.outputs.tag }}" dist/usage-windows.zip dist/usage-windows.zip.sha256 --clobber
+
   bump-homebrew:
     needs: build
     runs-on: ubuntu-latest

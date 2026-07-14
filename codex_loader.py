@@ -125,6 +125,11 @@ ARCHIVED_SESSIONS_DIR = Path(os.path.expanduser("~/.codex/archived_sessions"))
 STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
 LOGS_DB = Path(os.path.expanduser("~/.codex/logs_2.sqlite"))
 
+
+def _readonly_sqlite_uri(path: Path) -> str:
+    """Return a read-only SQLite URI that also accepts Windows drive paths."""
+    return f"{path.resolve().as_uri()}?mode=ro"
+
 # Disk cache for JSONL parsing results. Schema version must be bumped when the
 # serialization format or parsing logic changes incompatibly.
 _CODEX_JSONL_CACHE_SCHEMA = 3
@@ -484,7 +489,7 @@ def _load_sqlite_rate_limits() -> CodexRateLimits | None:
         "ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 50"
     )
     try:
-        with closing(sqlite3.connect(f"file:{LOGS_DB}?mode=ro", uri=True)) as conn:
+        with closing(sqlite3.connect(_readonly_sqlite_uri(LOGS_DB), uri=True)) as conn:
             rows = conn.execute(query).fetchall()
     except (OSError, sqlite3.Error):
         if os.environ.get("USAGE_DEBUG") == "1":
@@ -681,7 +686,7 @@ def _load_thread_metadata() -> dict[str, _ThreadMetadata]:
     if not STATE_DB.exists():
         return {}
     try:
-        with closing(sqlite3.connect(f"file:{STATE_DB}?mode=ro", uri=True)) as conn:
+        with closing(sqlite3.connect(_readonly_sqlite_uri(STATE_DB), uri=True)) as conn:
             rows = conn.execute(
                 "SELECT id, model, cwd FROM threads",
             ).fetchall()
@@ -720,7 +725,7 @@ def _load_sqlite_log_entries(
         params = _sqlite_log_cache.watermark
     query += " ORDER BY ts ASC, ts_nanos ASC, id ASC"
     try:
-        with closing(sqlite3.connect(f"file:{LOGS_DB}?mode=ro", uri=True)) as conn:
+        with closing(sqlite3.connect(_readonly_sqlite_uri(LOGS_DB), uri=True)) as conn:
             conn.execute("BEGIN")
             rows = conn.execute(query, params).fetchall()
             newest_rows = conn.execute(

@@ -12,15 +12,16 @@ import importlib
 import json
 import logging
 import os
+import sys
 import time
 from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
+import prefs
 from i18n import packaged_resource_path
+from i18n import t as _t
 from prefs import PREFERENCES_FILE as PREFERENCES_FILE
-from prefs import _load_preferences as _load_preferences
-from prefs import _save_preferences as _save_preferences
 from usage_client import ClaudeUsageClient, PollOutcome, PollState
 from usage_lang import detect_lang
 from usage_rate import UsageRateTracker
@@ -31,6 +32,14 @@ IMPORT_RETRY_DELAY_S = 3.0
 REPAIR_DISMISS_SECONDS = 24 * 3600
 
 logger = logging.getLogger(__name__)
+
+
+def _load_preferences() -> dict[str, Any]:
+    return prefs._load_preferences(PREFERENCES_FILE)
+
+
+def _save_preferences(data: dict[str, Any]) -> None:
+    prefs._save_preferences(data, PREFERENCES_FILE)
 
 
 def _load_rich() -> tuple[type[Any], type[Any]]:
@@ -314,10 +323,41 @@ def main() -> None:
             asyncio.run(
                 run_tui(mock=args.mock, interval=args.interval, force_group=args.force_group)
             )
-    else:
+    elif sys.platform == "darwin":
         menubar = _import_module_with_oserror_retry("menubar")
         menubar.show_forwarder_mode_prompt_if_needed()
         menubar.run_app(mock=args.mock, interval=args.interval)
+    elif sys.platform == "win32":
+        try:
+            wintray = importlib.import_module("wintray")
+        except ModuleNotFoundError as exc:
+            if exc.name != "wintray":
+                raise
+            print(_t("wintray_unavailable"))
+            with suppress(KeyboardInterrupt):
+                asyncio.run(
+                    run_tui(mock=args.mock, interval=args.interval, force_group=args.force_group)
+                )
+        else:
+            try:
+                wintray.run_app(mock=args.mock, interval=args.interval)
+            except ModuleNotFoundError as exc:
+                if exc.name not in {"pystray", "PIL", "webview"}:
+                    raise
+                print(_t("wintray_unavailable"))
+                with suppress(KeyboardInterrupt):
+                    asyncio.run(
+                        run_tui(
+                            mock=args.mock,
+                            interval=args.interval,
+                            force_group=args.force_group,
+                        )
+                    )
+    else:
+        with suppress(KeyboardInterrupt):
+            asyncio.run(
+                run_tui(mock=args.mock, interval=args.interval, force_group=args.force_group)
+            )
 
 
 if __name__ == "__main__":

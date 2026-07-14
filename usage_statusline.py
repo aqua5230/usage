@@ -20,13 +20,32 @@ usage 主程式會反向讀這個檔，呈現給 menubar / TUI。
 
 from __future__ import annotations
 
-import fcntl
 import json
 import os
 import sys
 import tempfile
+from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
+
+_fcntl: Any = None
+_msvcrt: Any = None
+if sys.platform == "win32":
+    try:
+        import msvcrt
+    except ImportError:
+        pass
+    else:
+        _msvcrt = msvcrt
+else:
+    try:
+        import fcntl
+    except ImportError:
+        pass
+    else:
+        _fcntl = fcntl
+fcntl = _fcntl
+msvcrt = _msvcrt
 
 __version__ = "1.0"
 
@@ -230,23 +249,52 @@ def _rate_limits_complete(rate_limits: Any) -> bool:
     seven = rate_limits.get("seven_day")
     if not isinstance(five, dict) or not isinstance(seven, dict):
         return False
-    return (
-        five.get("used_percentage") is not None
-        and seven.get("used_percentage") is not None
-    )
+    return five.get("used_percentage") is not None and seven.get("used_percentage") is not None
+
+
+@contextmanager
+def _exclusive_lock(lock_fd: int) -> Any:
+    """Use the native lock when available; preserve atomic writes without one."""
+    if fcntl is not None:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+        return
+
+    locked = False
+    if msvcrt is not None:
+        try:
+            if os.fstat(lock_fd).st_size == 0:
+                os.write(lock_fd, b"\0")
+            os.lseek(lock_fd, 0, os.SEEK_SET)
+            msvcrt.locking(lock_fd, msvcrt.LK_NBLCK, 1)
+            locked = True
+        except OSError:
+            pass
+    try:
+        yield
+    finally:
+        if locked and msvcrt is not None:
+            try:
+                os.lseek(lock_fd, 0, os.SEEK_SET)
+                msvcrt.locking(lock_fd, msvcrt.LK_UNLCK, 1)
+            except OSError:
+                pass
 
 
 def save(data: Dict[str, Any], now: datetime) -> None:
     data["_received_at"] = now.isoformat()
     data["_received_at_ts"] = now.timestamp()
     target_dir = os.path.dirname(STATUS_FILE)
+    lock_file = os.path.join(target_dir, os.path.basename(LOCK_FILE))
     os.makedirs(target_dir, exist_ok=True)
-    os.makedirs(os.path.dirname(LOCK_FILE), exist_ok=True)
+    os.makedirs(os.path.dirname(lock_file), exist_ok=True)
     tmp_path: Optional[str] = None
-    lock_fd = os.open(LOCK_FILE, os.O_CREAT | os.O_RDWR, 0o600)
+    lock_fd = os.open(lock_file, os.O_CREAT | os.O_RDWR, 0o600)
     try:
-        fcntl.flock(lock_fd, fcntl.LOCK_EX)
-        try:
+        with _exclusive_lock(lock_fd):
             if not _rate_limits_complete(data.get("rate_limits")):
                 try:
                     with open(STATUS_FILE, encoding="utf-8") as f:
@@ -262,8 +310,6 @@ def save(data: Dict[str, Any], now: datetime) -> None:
                 json.dump(data, f, ensure_ascii=False)
             os.replace(tmp_path, STATUS_FILE)
             tmp_path = None
-        finally:
-            fcntl.flock(lock_fd, fcntl.LOCK_UN)
     finally:
         os.close(lock_fd)
         if tmp_path and os.path.exists(tmp_path):
@@ -494,9 +540,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
         name = os.path.basename(project)
         branch = git_branch(project)
         if branch:
-            line1.append(
-                f"{C['green']}{name}{C['reset']}({C['magenta']}{branch}{C['reset']})"
-            )
+            line1.append(f"{C['green']}{name}{C['reset']}({C['magenta']}{branch}{C['reset']})")
         else:
             line1.append(f"{C['green']}{name}{C['reset']}")
 
@@ -516,13 +560,9 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             remain = int(resets_at) - int(now.timestamp())
             if remain > 0:
                 if lang in ("zh-TW", "zh-CN"):
-                    reset_str = (
-                        f" ({_t('remaining_prefix')}{fmt_duration(remain)})"
-                    )
+                    reset_str = f" ({_t('remaining_prefix')}{fmt_duration(remain)})"
                 else:
-                    reset_str = (
-                        f" ({fmt_duration(remain)} {_t('remaining_prefix')})"
-                    )
+                    reset_str = f" ({fmt_duration(remain)} {_t('remaining_prefix')})"
         rl_parts.append(
             (
                 f"{C['blue']}{label}:{C['reset']}{progress_bar(pct_float, bar_w)}{reset_str}",
@@ -585,9 +625,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
 
     update_version = _read_update_hint(now.timestamp())
     if update_version and (line1 or line3):
-        line3.append(
-            f"{C['cyan']}🆕 v{update_version} {_t('update_available_suffix')}{C['reset']}"
-        )
+        line3.append(f"{C['cyan']}🆕 v{update_version} {_t('update_available_suffix')}{C['reset']}")
 
     output = [" | ".join(line) for line in (line1, line3) if line]
     warning = _heavy_warning(data, now.timestamp())

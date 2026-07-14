@@ -7,11 +7,18 @@ requires-python = ">=3.13"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE"]
 dependencies = [
-    "pyobjc-framework-Cocoa>=11.0",
-    "pyobjc-framework-Quartz>=11.0",
-    "pyobjc-framework-UserNotifications>=11.0",
-    "pyobjc-framework-WebKit>=11.0",
+    "pyobjc-framework-Cocoa>=11.0; sys_platform == 'darwin'",
+    "pyobjc-framework-Quartz>=11.0; sys_platform == 'darwin'",
+    "pyobjc-framework-UserNotifications>=11.0; sys_platform == 'darwin'",
+    "pyobjc-framework-WebKit>=11.0; sys_platform == 'darwin'",
     "rich>=15.0.0,<16.0.0",
+]
+
+[project.optional-dependencies]
+windows = [
+    "pystray>=0.19.5; sys_platform == 'win32'",
+    "pillow>=11.0.0; sys_platform == 'win32'",
+    "pywebview>=5.4; sys_platform == 'win32'",
 ]
 
 [build-system]
@@ -33,6 +40,8 @@ py-modules = [
     "setup_hook",
     "session_hooks",
     "login_item",
+    "win_login_item",
+    "wintray",
     "usage_client",
     "codex_loader",
     "agy_loader",
@@ -63,7 +72,7 @@ dev = [
     "pytest>=9.1.1",
 ]
 build = [
-    "py2app>=0.28",
+    "py2app>=0.28; sys_platform == 'darwin'",
 ]
 
 [tool.ruff]
@@ -94,7 +103,7 @@ pretty = true
 exclude = "^(build|dist)/"
 
 [[tool.mypy.overrides]]
-module = ["rich.*", "PIL.*"]
+module = ["rich.*", "PIL.*", "pystray.*", "webview.*"]
 ignore_missing_imports = true
 
 # PyObjC C-extension frameworks ship without type stubs / py.typed marker.

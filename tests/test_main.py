@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import sys
 from typing import Any
 
 import main
@@ -105,3 +106,36 @@ def test_apply_outcome_non_success_keeps_fatal_message() -> None:
 
     assert state.poll_state == PollState.TOKEN_ERROR
     assert state.fatal_message == "still fatal"
+
+
+def test_main_win32_falls_back_to_tui_when_wintray_is_missing(
+    monkeypatch: Any, capsys: Any
+) -> None:
+    calls: list[dict[str, Any]] = []
+
+    async def fake_run_tui(**kwargs: Any) -> None:
+        calls.append(kwargs)
+
+    monkeypatch.setattr(
+        main,
+        "parse_args",
+        lambda: type("Args", (), {
+            "doctor": False,
+            "setup": False,
+            "unsetup": False,
+            "tui": False,
+            "mock": False,
+            "interval": 60,
+            "force_group": None,
+        })(),
+    )
+    monkeypatch.setattr(main, "_self_heal", lambda: None)
+    monkeypatch.setattr(main, "run_tui", fake_run_tui)
+    monkeypatch.setattr(main, "_t", lambda key: "fallback")
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.delitem(sys.modules, "wintray", raising=False)
+
+    main.main()
+
+    assert calls == [{"mock": False, "interval": 60, "force_group": None}]
+    assert capsys.readouterr().out == "fallback\n"

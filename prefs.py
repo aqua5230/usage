@@ -16,25 +16,27 @@ from typing import Any
 PREFERENCES_FILE = Path(os.path.expanduser("~/.claude/usage-preferences.json"))
 
 
-def _load_preferences() -> dict[str, Any]:
-    if not PREFERENCES_FILE.exists():
+def _load_preferences(path: Path | None = None) -> dict[str, Any]:
+    preferences_file = PREFERENCES_FILE if path is None else path
+    if not preferences_file.exists():
         return {}
     try:
-        data = json.loads(PREFERENCES_FILE.read_text(encoding="utf-8"))
+        data = json.loads(preferences_file.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
         return {}
     return data if isinstance(data, dict) else {}
 
 
-def _save_preferences(data: dict[str, Any]) -> None:
-    PREFERENCES_FILE.parent.mkdir(parents=True, exist_ok=True)
+def _save_preferences(data: dict[str, Any], path: Path | None = None) -> None:
+    preferences_file = PREFERENCES_FILE if path is None else path
+    preferences_file.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     tmp_path: str | None = None
     try:
-        fd, tmp_path = tempfile.mkstemp(dir=PREFERENCES_FILE.parent, suffix=".tmp")
+        fd, tmp_path = tempfile.mkstemp(dir=preferences_file.parent, suffix=".tmp")
         with os.fdopen(fd, "w", encoding="utf-8") as f:
             f.write(payload)
-        os.replace(tmp_path, PREFERENCES_FILE)
+        os.replace(tmp_path, preferences_file)
         tmp_path = None
     finally:
         if tmp_path and os.path.exists(tmp_path):

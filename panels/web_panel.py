@@ -7,23 +7,36 @@
 # mypy: disable-error-code="import-untyped,import-not-found,misc"
 from __future__ import annotations
 
-import base64
 import json
 import logging
 import os
 import threading
-from functools import lru_cache
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 import objc
 from AppKit import NSColor, NSFont, NSMakeRect, NSTextField, NSView
-from Foundation import NSBundle, NSObject
+from Foundation import NSObject
 from Quartz import CGColorCreateGenericRGB
 
 import talent_market_bridge
 from menubar_prefs import _save_quota_card_order, _valid_quota_card_order
-from panels.base import resolve_resource
+from panels.payload import (
+    _data_uri,
+    _load_i18n_bundle,
+    _load_panel_html,
+    _new_state_payload,
+    _row_payload,
+    _state_payload,
+)
+
+__all__ = [
+    "_data_uri",
+    "_load_i18n_bundle",
+    "_load_panel_html",
+    "_new_state_payload",
+    "_row_payload",
+    "_state_payload",
+]
 
 try:
     from WebKit import WKUserContentController, WKWebView, WKWebViewConfiguration
@@ -59,7 +72,7 @@ objc.registerMetaDataForSelector(
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from menubar import PopoverState, QuotaRowState
+    from menubar import PopoverState
 
 PANEL_WIDTH = 364.0
 PANEL_HEIGHT = 812.0
@@ -86,14 +99,6 @@ def _reload_web_panel(view: Any) -> None:
         view.reload()
         return
     view.loadHTMLString_baseURL_(html, None)
-
-
-def _new_state_payload(view: Any, payload: dict[str, object]) -> str | None:
-    encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
-    if encoded == view._last_injected_payload:
-        return None
-    view._last_injected_payload = encoded
-    return encoded
 
 
 def _is_navigation_menu_item(item: Any) -> bool:
@@ -131,21 +136,6 @@ def _handle_injection_error(view: Any, payload: dict[str, object], error: Any) -
     view._injection_reload_count += 1
     view._pending = payload
     _reload_web_panel(view)
-
-
-def _i18n_path() -> Path:
-    try:
-        bundle_path = NSBundle.mainBundle().resourcePath()
-        if bundle_path:
-            candidate = Path(str(bundle_path)) / "i18n.json"
-            if candidate.exists():
-                return candidate
-    except Exception:
-        pass
-    return Path(__file__).resolve().parent.parent / "i18n.json"
-
-
-I18N_PATH = _i18n_path()
 
 
 class UsageScriptBridge(NSObject):
@@ -482,138 +472,3 @@ class HTMLPanel:
 
     def preferred_size(self) -> tuple[float, float]:
         return (self.width, self.height)
-
-
-def _load_panel_html(filename: str) -> str:
-    bundle = NSBundle.mainBundle()
-    html_path: Path | None = None
-    if bundle is not None:
-        stem, _, ext = filename.rpartition(".")
-        bundled = bundle.pathForResource_ofType_inDirectory_(stem, ext, "panels")
-        if bundled:
-            html_path = Path(str(bundled))
-    if html_path is None:
-        html_path = Path(resolve_resource(f"panels/{filename}"))
-    html = html_path.read_text(encoding="utf-8")
-    return (
-        html.replace("{{CLAUDE_ICON}}", _data_uri("claude.webp"))
-        .replace("{{CODEX_ICON}}", _data_uri("codex.webp"))
-        .replace("{{I18N_BUNDLE}}", json.dumps(_load_i18n_bundle(), ensure_ascii=False))
-    )
-
-
-@lru_cache(maxsize=1)
-def _load_i18n_bundle() -> dict[str, dict[str, str]]:
-    data = json.loads(I18N_PATH.read_text(encoding="utf-8"))
-    return {
-        str(lang): {str(key): str(value) for key, value in values.items()}
-        for lang, values in data.items()
-    }
-
-
-@lru_cache(maxsize=4)
-def _data_uri(asset_name: str) -> str:
-    path = Path(resolve_resource(asset_name))
-    mime = "image/png" if path.suffix.lower() == ".png" else "image/webp"
-    data = base64.b64encode(path.read_bytes()).decode("ascii")
-    return f"data:{mime};base64,{data}"
-
-
-def _row_payload(row: QuotaRowState) -> dict[str, object]:
-    return {
-        "percent": row.percent,
-        "percentText": row.percent_text,
-        "resetText": row.reset_text,
-        "warning": row.warning,
-        "available": row.available,
-        # Backend-resolved label (follows Codex's window length); panels prefer
-        # this over their hard-coded session/weekly text. "" means "hide label".
-        "title": row.title,
-    }
-
-
-def _state_payload(state: PopoverState) -> dict[str, object]:
-    codex_rows = {
-        key: _row_payload(row)
-        for key, row in (
-            ("session", state.codex_session),
-            ("weekly", state.codex_weekly),
-        )
-        if row.title
-    }
-    return {
-        "language": state.language,
-        "claude": {
-            "session": _row_payload(state.claude_session),
-            "weekly": _row_payload(state.claude_weekly),
-        },
-        "codex": {
-            **codex_rows,
-            "stale": state.codex_stale,
-        },
-        "agy": {
-            "session": _row_payload(state.agy_session),
-            "weekly": _row_payload(state.agy_weekly),
-            "groupName": state.agy_group_name,
-            "stale": state.agy_stale,
-        },
-        "projects": [
-            {
-                "name": name,
-                "tokens": tokens,
-                "tokensText": _fmt_tokens(tokens),
-                "costText": _fmt_cost(cost),
-            }
-            for name, tokens, cost in state.projects
-        ],
-        "projects7d": [
-            {
-                "name": name,
-                "tokens": tokens,
-                "tokensText": _fmt_tokens(tokens),
-                "costText": _fmt_cost(cost),
-            }
-            for name, tokens, cost in state.projects_7d
-        ],
-        "projects30d": [
-            {
-                "name": name,
-                "tokens": tokens,
-                "tokensText": _fmt_tokens(tokens),
-                "costText": _fmt_cost(cost),
-            }
-            for name, tokens, cost in state.projects_30d
-        ],
-        "projectsAll": [
-            {
-                "name": name,
-                "tokens": tokens,
-                "tokensText": _fmt_tokens(tokens),
-                "costText": _fmt_cost(cost),
-            }
-            for name, tokens, cost in state.projects_all
-        ],
-        "hideClaude": state.hide_claude,
-        "hideCodex": state.hide_codex,
-        "hideAgy": state.hide_agy,
-        "cardOrder": list(state.card_order),
-        "historyError": state.history_error,
-        "statusline": state.statusline,
-        "talent": state.talent,
-        "footer": {
-            "rate": state.rate_text,
-            "status": state.status_text,
-            "today": state.today_text,
-            "showInstall": state.show_install_button,
-        },
-    }
-
-
-def _fmt_tokens(n: int) -> str:
-    return f"{n:,}"
-
-
-def _fmt_cost(cost: float | None) -> str:
-    if cost is None:
-        return "--"
-    return f"${cost:.2f}"

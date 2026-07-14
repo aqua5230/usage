@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from functools import lru_cache
 from pathlib import Path
 
@@ -37,6 +38,11 @@ def packaged_resource_path(filename: str, source_mode_path: Path) -> Path:
     resource_root = os.environ.get("RESOURCEPATH")
     if resource_root:
         bundled = Path(resource_root) / filename
+        if bundled.exists():
+            return bundled
+    frozen_root = getattr(sys, "_MEIPASS", None)
+    if frozen_root:
+        bundled = Path(frozen_root) / filename
         if bundled.exists():
             return bundled
     return source_mode_path

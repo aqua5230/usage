@@ -12,6 +12,7 @@ from __future__ import annotations
 import concurrent.futures
 import glob
 import os
+import shutil
 import subprocess
 import sys
 
@@ -50,7 +51,7 @@ def main() -> None:
             continue
         hooks.append(path)
 
-    py = sys.executable or "/usr/bin/python3"
+    py = sys.executable or shutil.which("python") or "python"
     with concurrent.futures.ThreadPoolExecutor(max_workers=max(1, len(hooks))) as ex:
         futures = [ex.submit(_run_hook, py, hook, raw) for hook in hooks]
         for future in futures:

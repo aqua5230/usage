@@ -35,3 +35,23 @@ jobs:
 
       - name: Run pytest
         run: uv run pytest -v
+
+  check-windows:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - uses: astral-sh/setup-uv@11f9893b081a58869d3b5fccaea48c9e9e46f990 # v8.3.2
+
+      - run: uv python install 3.13
+
+      - run: uv sync --frozen --group dev --extra windows
+
+      - name: Run ruff
+        run: uv run ruff check .
+
+      # PyObjC stubs and Darwin-only dependency markers leave Windows without
+      # a complete type environment; keep mypy on the existing macOS job.
+      - name: Run pytest
+        run: uv run pytest -v

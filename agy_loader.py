@@ -33,6 +33,10 @@ _AGY_DB_CACHE_SCHEMA = 1
 AGY_CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_db_cache.json"))
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
+
+
+def _readonly_sqlite_uri(path: Path) -> str:
+    return f"{path.resolve().as_uri()}?mode=ro"
 _disk_cache_dirty = False
 _last_disk_cache_flush_at: float | None = None
 _monotonic = time.monotonic
@@ -226,7 +230,7 @@ def _filter_entries(
 
 def _parse_database(path: Path) -> tuple[list[AgyUsageEntry], int] | None:
     try:
-        with sqlite3.connect(f"file:{path}?mode=ro", uri=True) as connection:
+        with sqlite3.connect(_readonly_sqlite_uri(path), uri=True) as connection:
             session_timestamp = _session_timestamp(connection, path)
             rows = connection.execute("SELECT data FROM gen_metadata ORDER BY idx")
             entries: list[AgyUsageEntry] = []

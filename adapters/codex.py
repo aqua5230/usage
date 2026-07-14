@@ -26,6 +26,10 @@ _FILE_CACHE_MAXSIZE = 512
 _file_cache: OrderedDict[Path, tuple[float, int, list[dict[str, Any]]]] = OrderedDict()
 
 
+def _readonly_sqlite_uri(path: str | Path) -> str:
+    return f"{Path(path).resolve().as_uri()}?mode=ro"
+
+
 def detect() -> AgentInfo | None:
     if Path(SESSIONS_DIR).is_dir():
         return AgentInfo(
@@ -78,7 +82,7 @@ def _load_thread_models() -> dict[str, str]:
     if not os.path.exists(STATE_DB):
         return {}
     try:
-        with closing(sqlite3.connect(f"file:{STATE_DB}?mode=ro", uri=True)) as conn:
+        with closing(sqlite3.connect(_readonly_sqlite_uri(STATE_DB), uri=True)) as conn:
             rows = conn.execute("SELECT id, model FROM threads WHERE model IS NOT NULL").fetchall()
         return {row[0]: row[1] for row in rows}
     except (sqlite3.Error, OSError) as exc:

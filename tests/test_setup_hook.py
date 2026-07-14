@@ -184,6 +184,41 @@ def test_find_system_python_prefers_usr_bin_over_bundled_app_python(
     assert setup_hook._find_system_python() == "/usr/bin/python3"
 
 
+def test_find_system_python_uses_current_interpreter_on_windows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "executable", r"C:\\Program Files\\Python\\python.exe")
+
+    assert setup_hook._find_system_python() == r"C:\\Program Files\\Python\\python.exe"
+
+
+def test_windows_hook_commands_use_double_quotes(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(
+        setup_hook, "_find_system_python", lambda: r"C:\Program Files\Python\python.exe"
+    )
+    monkeypatch.setattr(
+        setup_hook,
+        "HOOK_TARGET",
+        Path(r"C:\Users\test user\.claude\usage-statusline.py"),
+    )
+    monkeypatch.setattr(
+        setup_hook,
+        "FORWARDER_TARGET",
+        Path(r"C:\Users\test user\.claude\usage-statusline-forwarder.py"),
+    )
+
+    assert setup_hook._statusline_command() == (
+        '"C:\\Program Files\\Python\\python.exe" '
+        '"C:\\Users\\test user\\.claude\\usage-statusline.py"'
+    )
+    assert setup_hook._forwarder_command() == (
+        '"C:\\Program Files\\Python\\python.exe" '
+        '"C:\\Users\\test user\\.claude\\usage-statusline-forwarder.py"'
+    )
+
+
 def test_setup_codex_replaces_only_tui_status_line(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

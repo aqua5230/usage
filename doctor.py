@@ -173,7 +173,7 @@ def _codex_rate_limit_log_count(logs_db: Path) -> int:
         "WHERE feedback_log_body LIKE '%codex.rate_limits%' "
         "OR feedback_log_body LIKE '%usage_limit_reached%'"
     )
-    with sqlite3.connect(f"file:{logs_db}?mode=ro", uri=True) as conn:
+    with sqlite3.connect(f"{logs_db.resolve().as_uri()}?mode=ro", uri=True) as conn:
         value = conn.execute(query).fetchone()[0]
     return int(value)
 

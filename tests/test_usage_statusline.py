@@ -47,6 +47,21 @@ def test_save_writes_status_json_with_received_metadata(
     assert data["_received_at_ts"] == now.timestamp()
 
 
+def test_save_works_without_fcntl_or_msvcrt(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    status_file = tmp_path / "usage-status.json"
+    monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
+    monkeypatch.setattr(usage_statusline, "LOCK_FILE", str(tmp_path / "usage-status.lock"))
+    monkeypatch.setattr(usage_statusline, "fcntl", None)
+    monkeypatch.setattr(usage_statusline, "msvcrt", None)
+
+    usage_statusline.save({"rate_limits": {"status": "ok"}}, datetime.now(UTC))
+
+    assert status_file.exists()
+
+
 def test_save_preserves_existing_complete_rate_limits_when_new_data_is_incomplete(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

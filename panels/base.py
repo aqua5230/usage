@@ -6,10 +6,15 @@
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol
 
-from Foundation import NSBundle, NSUserDefaults
+if sys.platform == "darwin":
+    from Foundation import NSBundle, NSUserDefaults
+else:
+    NSBundle = None
+    NSUserDefaults = None
 
 if TYPE_CHECKING:
     from menubar import PopoverState
@@ -30,12 +35,26 @@ class Panel(Protocol):
 
 
 def load_active_panel_id(defaults: Any | None = None) -> str:
+    if defaults is None and sys.platform == "win32":
+        from prefs import _load_preferences
+
+        value = _load_preferences().get(ACTIVE_PANEL_DEFAULTS_KEY)
+        return str(value) if isinstance(value, str) and value else "classic"
+    assert NSUserDefaults is not None
     store = defaults if defaults is not None else NSUserDefaults.standardUserDefaults()
     value = store.stringForKey_(ACTIVE_PANEL_DEFAULTS_KEY)
     return str(value) if value else "classic"
 
 
 def save_active_panel_id(panel_id: str, defaults: Any | None = None) -> None:
+    if defaults is None and sys.platform == "win32":
+        from prefs import _load_preferences, _save_preferences
+
+        preferences = _load_preferences()
+        preferences[ACTIVE_PANEL_DEFAULTS_KEY] = panel_id
+        _save_preferences(preferences)
+        return
+    assert NSUserDefaults is not None
     store = defaults if defaults is not None else NSUserDefaults.standardUserDefaults()
     store.setObject_forKey_(panel_id, ACTIVE_PANEL_DEFAULTS_KEY)
     if hasattr(store, "synchronize"):
@@ -43,7 +62,7 @@ def save_active_panel_id(panel_id: str, defaults: Any | None = None) -> None:
 
 
 def resolve_resource(name: str) -> str:
-    bundle = NSBundle.mainBundle()
+    bundle = NSBundle.mainBundle() if NSBundle is not None else None
     if bundle is not None:
         stem, _, ext = name.rpartition(".")
         path = bundle.pathForResource_ofType_(stem, ext)
