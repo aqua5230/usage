@@ -4,16 +4,16 @@
 
 # usage
 
-### 在 macOS 菜单栏中查看 Claude Code、Codex 和 Antigravity 配额。
+### 在 macOS 菜单栏和 Windows 系统托盘中查看 Claude Code、Codex 和 Antigravity 配额。
 
-工作时持续查看 Claude Code、Codex 和 Antigravity 配额。`usage` 将会话限额、每周限额和费用背景信息显示在 macOS 菜单栏中，让你能在配额中断会话前主动管理使用量。
+工作时持续查看 Claude Code、Codex 和 Antigravity 配额。`usage` 将会话限额、每周限额和费用背景信息显示在 macOS 菜单栏或 Windows 系统托盘中，让你能在配额中断会话前主动管理使用量。
 
 [繁體中文](README.zh-TW.md) · 简体中文 · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介绍页](https://aqua5230.github.io/usage/)
 
 [![持续集成](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![最新版本](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
-[![平台](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
+[![平台](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/aqua5230/usage/releases/latest)
 [![许可证：AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![OpenSSF 最佳实践](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
@@ -73,7 +73,7 @@ brew install --cask aqua5230/usage/usage
 
 ## 系统要求
 
-- macOS
+- macOS 或 Windows 10/11
 - 至少使用过一次 Claude Code、Codex 或 Antigravity（以便存在本地使用数据）。
 - （仅限源代码运行）Python 3.13。
 
@@ -89,11 +89,19 @@ brew install --cask aqua5230/usage/usage
 
 *（首次启动：在 Finder 中右键 `usage.app` → **Open** 以通过 Gatekeeper）。*
 
-### 2. 下载 App
+### 2. 下载 macOS App
 
 1. 从 [GitHub Releases 页面](https://github.com/aqua5230/usage/releases/latest)下载最新的 `usage.app.zip`。
 2. 解压后，将 `usage.app` 拖入 Applications 文件夹。
 3. 首次启动：在 Finder 中右键 `usage.app` → **Open** → 确认 Open。
+
+## Windows 支持
+
+Windows 原生支持完整核心功能：TUI、Claude Code 状态栏 hook 和 Codex 记录解析均可使用。从[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后直接运行 `usage.exe`，无需安装。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
+
+系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 11 个 HTML 面板（Classic 加十个主题）；右键可切换面板、刷新、设置开机自启、检查更新和退出。
+
+Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托盘图标；更新提示使用系统 Yes/No 对话框；AI 人才市场面板仅限 macOS。
 
 ### 首次启动：设置状态栏
 

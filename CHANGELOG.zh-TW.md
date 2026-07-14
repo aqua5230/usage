@@ -4,6 +4,17 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.28.0] - 2026-07-15
+
+### 新增
+- **完整支援 Windows**：`usage` 現在可原生在 Windows 執行，包含 TUI、Claude Code 狀態列 hook 與 Codex 記錄解析。
+- **Windows 系統匣 UI**：動態托盤圖示會顯示 Claude 額度百分比；提示文字摘要 Claude 與 Codex 的各視窗。左鍵透過 WebView2 開啟與 macOS 相同的 11 款 HTML 主題面板，右鍵選單可切換面板、重新整理、設定開機自啟、檢查更新與結束。
+- **免安裝 Windows 發行檔**：GitHub Releases 現在提供 `usage-windows.zip`，內含解壓即可執行的 `usage.exe`。需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
+
+### 變更
+- Windows 打包與 CI 現在以 PyInstaller 和 `windows-latest` 產生檢查與發行產物。選用的 `windows` extra 安裝 pystray、pywebview、Pillow；僅限 macOS 的 PyObjC 依賴改由 Darwin 平台標記保護。
+- 狀態列 hook 的檔案鎖定與產生的 hook 指令引號已改為平台感知，因此 Windows 與 macOS 都能運作。
+
 ## [0.27.4] - 2026-07-15
 
 ### 修正

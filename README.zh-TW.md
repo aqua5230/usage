@@ -4,16 +4,16 @@
 
 # usage
 
-### 把 Claude Code、Codex 與 Antigravity 額度直接放進 macOS 選單列
+### 把 Claude Code、Codex 與 Antigravity 額度直接放進 macOS 選單列與 Windows 系統匣
 
-讓 Claude Code、Codex 與 Antigravity 的額度在工作時持續可見。`usage` 把 session 限額、每週限額與成本脈絡放進 macOS 選單列，讓你在工作被打斷前就先掌握用量。
+讓 Claude Code、Codex 與 Antigravity 的額度在工作時持續可見。`usage` 把 session 限額、每週限額與成本脈絡放進 macOS 選單列或 Windows 系統匣，讓你在工作被打斷前就先掌握用量。
 
 繁體中文 · [简体中文](README.zh-CN.md) · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介紹頁](https://aqua5230.github.io/usage/)
 
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![Latest Release](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
-[![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/aqua5230/usage/releases/latest)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
@@ -73,7 +73,7 @@ brew install --cask aqua5230/usage/usage
 
 ## 環境需求
 
-- macOS
+- macOS 或 Windows 10/11
 - 已經使用過 Claude Code、Codex 或 Antigravity（需有本機用量資料）
 - （僅限從原始碼跑）Python 3.13
 
@@ -89,11 +89,19 @@ brew install --cask aqua5230/usage/usage
 
 *（第一次開啟：請在 Finder 找到 `usage.app` 按右鍵 → **打開** 讓系統放行）。*
 
-### 2. 下載現成 App
+### 2. 下載 macOS App
 
 1. 到 [GitHub Releases 頁面](https://github.com/aqua5230/usage/releases/latest) 下載最新的 `usage.app.zip`。
 2. 解壓縮，將 `usage.app` 拖進「應用程式」資料夾。
 3. 第一次開啟：在 Finder 對 `usage.app` 按右鍵 → **打開** → 確認打開。
+
+## Windows 支援
+
+Windows 可完整使用核心功能：TUI、Claude Code 狀態列 hook 與 Codex 記錄解析都原生支援。從[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下載 `usage-windows.zip`，解壓後執行 `usage.exe` 即可，無須安裝程式。系統匣 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
+
+系統匣圖示會隨 Claude 額度百分比更新；提示文字摘要 Claude 與 Codex 的各視窗。左鍵會用 WebView2 開啟與 macOS 相同的 11 款 HTML 面板（Classic 加十款主題）；右鍵可切換面板、重新整理、設定開機自啟、檢查更新與結束。
+
+Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示；更新提示使用系統 Yes/No 對話框；AI 人才市場面板僅提供 macOS。
 
 ### 首次打開：設定狀態列
 

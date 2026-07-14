@@ -5,6 +5,17 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.28.0] - 2026-07-15
+
+### Added
+- **Full Windows support**: `usage` now runs natively on Windows, including the TUI, Claude Code status-line hook, and Codex history parsing.
+- **Windows system tray UI**: a dynamic tray icon shows the Claude quota percentage; its tooltip summarizes Claude and Codex windows. Left-click opens the same 11 HTML theme panels used on macOS through WebView2, while the right-click menu offers panel switching, refresh, launch at login, update checks, and quit.
+- **Portable Windows release**: GitHub Releases now include `usage-windows.zip`, containing `usage.exe` for unzip-and-run use. It requires the Microsoft Edge WebView2 Runtime, which is normally already present on Windows 10 and 11.
+
+### Changed
+- Windows packaging and CI now use PyInstaller and `windows-latest` for both checks and release artifacts. The optional `windows` extra installs pystray, pywebview, and Pillow; macOS-only PyObjC dependencies are guarded by a Darwin platform marker.
+- Status-line hook file locking and generated hook-command quoting are platform-aware, so they work on Windows as well as macOS.
+
 ## [0.27.4] - 2026-07-15
 
 ### Fixed

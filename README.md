@@ -4,16 +4,16 @@
 
 # usage
 
-### Quota visibility for Claude Code, Codex, and Antigravity, built into the macOS menu bar.
+### Quota visibility for Claude Code, Codex, and Antigravity, built into the macOS menu bar and Windows system tray.
 
-Keep Claude Code, Codex, and Antigravity quota in view while you work. `usage` puts session limits, weekly limits, and cost context in the macOS menu bar, so you can manage usage before it interrupts a session.
+Keep Claude Code, Codex, and Antigravity quota in view while you work. `usage` puts session limits, weekly limits, and cost context in the macOS menu bar or Windows system tray, so you can manage usage before it interrupts a session.
 
 [繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · English · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [Landing page](https://aqua5230.github.io/usage/)
 
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![Latest Release](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
-[![Platform](https://img.shields.io/badge/platform-macOS-lightgrey.svg)](https://www.apple.com/macos/)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/aqua5230/usage/releases/latest)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
@@ -73,7 +73,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 ## Requirements
 
-- macOS
+- macOS or Windows 10/11
 - Claude Code, Codex, or Antigravity has been used at least once (so local usage data exists).
 - (Source runs only) Python 3.13.
 
@@ -89,11 +89,19 @@ brew install --cask aqua5230/usage/usage
 
 *(First launch: right-click `usage.app` in Finder → **Open** to pass Gatekeeper).*
 
-### 2. Download the App
+### 2. Download for macOS
 
 1. Download the latest `usage.app.zip` from the [GitHub Releases page](https://github.com/aqua5230/usage/releases/latest).
 2. Unzip it and drag `usage.app` into your Applications folder.
 3. First launch: in Finder, right-click `usage.app` → **Open** → confirm Open.
+
+## Windows Support
+
+Windows has the full core experience: the TUI, Claude Code status-line hook, and Codex history parsing all work natively. Download `usage-windows.zip` from the [latest GitHub Release](https://github.com/aqua5230/usage/releases/latest), unzip it, then run `usage.exe`—no installer is needed. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
+
+The system-tray icon updates with your Claude quota percentage; its tooltip summarizes the Claude and Codex windows. Left-click opens the same 11 HTML panels as macOS (Classic plus the ten themes) in WebView2. Right-click provides panel switching, refresh, launch at login, check for updates, and quit.
+
+Windows differences: the panel opens at the bottom-right of the working area rather than next to the tray icon; update prompts use a system Yes/No dialog; and the AI Talent Market panel is macOS-only.
 
 ### First Launch: Set Up the Status Line
 
