@@ -55,7 +55,7 @@ def test_state_payload_includes_agy_card_data() -> None:
             "resetText": "Resets in 1h 0m",
             "warning": False,
             "available": True,
-            "title": "Session · Gemini",
+            "title": "Session",
         },
         "weekly": {
             "percent": 50.0,
@@ -63,7 +63,7 @@ def test_state_payload_includes_agy_card_data() -> None:
             "resetText": "Resets in 1d 0h",
             "warning": False,
             "available": True,
-            "title": "Weekly · Gemini",
+            "title": "Weekly",
         },
         "groupName": "GEMINI MODELS",
         "stale": None,

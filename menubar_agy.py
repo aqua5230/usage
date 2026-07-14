@@ -65,22 +65,18 @@ def project_quota(
         (group for group in quota.groups if "gemini" in group.name.lower()),
         min(quota.groups, key=_group_remaining_percent),
     )
-    group_label = _t(
-        language,
-        "agy_group_gemini" if "gemini" in selected.name.lower() else "agy_group_claude_gpt",
-    )
     current_time = time.time() if now is None else now
     age_minutes = _cache_age_minutes(quota.fetched_at, current_time)
     return AgyQuotaProjection(
         group_name=selected.name,
         session=_window_row(
-            f"{_t(language, 'session_label')} · {group_label}",
+            _t(language, "session_label"),
             selected.five_hour,
             language,
             age_minutes,
         ),
         weekly=_window_row(
-            f"{_t(language, 'weekly_label')} · {group_label}",
+            _t(language, "weekly_label"),
             selected.weekly,
             language,
             age_minutes,

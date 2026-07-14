@@ -48,7 +48,7 @@ def test_project_quota_selects_gemini_group_and_converts_percent() -> None:
 
     assert projection is not None
     assert projection.group_name == "GEMINI MODELS"
-    assert projection.session.title == "Session · Gemini"
+    assert projection.session.title == "Session"
     assert projection.session.percent == 60.0
     assert projection.session.percent_text == "60% used"
     assert projection.weekly.percent == 10.0
@@ -69,7 +69,7 @@ def test_project_quota_falls_back_to_most_constrained_group_without_gemini() -> 
 
     assert projection is not None
     assert projection.group_name == "CLAUDE AND GPT MODELS"
-    assert projection.session.title == "Session · Claude/GPT"
+    assert projection.session.title == "Session"
     assert projection.session.percent == 30.0
     assert projection.weekly.percent == 87.5
 
