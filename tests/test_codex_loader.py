@@ -16,6 +16,7 @@ from unittest.mock import Mock
 import pytest
 
 import codex_loader
+from history_loader import UsageEntry
 from tests.helpers import write_codex_session as _write_session
 from tests.helpers import (
     write_codex_session_with_turn_context_model as _write_session_with_turn_context_model,
@@ -27,7 +28,10 @@ def _clear_jsonl_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     codex_loader._jsonl_cache.clear()
     codex_loader._fork_replay_cache.clear()
     codex_loader._file_info_cache.clear()
+    codex_loader._sqlite_log_cache.watermark = None
+    codex_loader._sqlite_log_cache.entries.clear()
     monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", tmp_path / "missing-archived")
+    monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", tmp_path / "codex-cache.json")
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
     monkeypatch.setattr(codex_loader, "STATE_DB", tmp_path / "missing-state.sqlite")
     monkeypatch.setattr(codex_loader, "_disk_cache_dirty", False)
@@ -801,6 +805,100 @@ def test_load_entries_skips_sqlite_logs_already_covered_by_jsonl(
 
     assert [entry.timestamp for entry in entries] == [jsonl_ts, new_ts]
     assert [entry.total_tokens for entry in entries] == [24, 53]
+
+
+def test_sqlite_log_cache_uses_composite_watermark_and_dynamic_filters(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    logs_db = tmp_path / "logs.sqlite"
+    log_ts = int(datetime(2026, 1, 1, tzinfo=UTC).timestamp())
+    old_event_ts = datetime(2026, 1, 1, 0, 1, tzinfo=UTC)
+    new_event_ts = datetime(2026, 1, 1, 0, 2, tzinfo=UTC)
+    _create_logs_db(
+        logs_db,
+        [
+            (
+                1,
+                log_ts,
+                _sqlite_token_body(
+                    session_id="old-session",
+                    timestamp=old_event_ts.isoformat(),
+                    input_tokens=10,
+                    output_tokens=1,
+                    cached_tokens=0,
+                ),
+            ),
+            (
+                2,
+                log_ts,
+                _sqlite_token_body(
+                    session_id="new-session",
+                    timestamp=new_event_ts.isoformat(),
+                    input_tokens=20,
+                    output_tokens=2,
+                    cached_tokens=0,
+                ),
+            ),
+        ],
+    )
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+
+    recent = codex_loader._load_sqlite_log_entries(
+        {}, datetime(2026, 1, 1, 0, 1, 30, tzinfo=UTC), {}
+    )
+    assert [entry.session_id for entry in recent] == ["new-session"]
+    assert codex_loader._sqlite_log_cache.watermark == (log_ts, 20, 2)
+    assert len(codex_loader._sqlite_log_cache.entries) == 2
+
+    later_event_ts = datetime(2026, 1, 1, 0, 3, tzinfo=UTC)
+    with sqlite3.connect(logs_db) as conn:
+        conn.execute(
+            "INSERT INTO logs (id, ts, ts_nanos, target, feedback_log_body) "
+            "VALUES (?, ?, ?, ?, ?)",
+            (
+                3,
+                log_ts,
+                30,
+                "codex_otel.trace_safe",
+                _sqlite_token_body(
+                    session_id="later-session",
+                    timestamp=later_event_ts.isoformat(),
+                    input_tokens=30,
+                    output_tokens=3,
+                    cached_tokens=0,
+                ),
+            ),
+        )
+        conn.execute("DELETE FROM logs WHERE id IN (1, 2)")
+
+    all_entries = codex_loader._load_sqlite_log_entries(
+        {}, None, {"new-session": new_event_ts}
+    )
+
+    assert [entry.session_id for entry in all_entries] == [
+        "old-session",
+        "later-session",
+    ]
+    assert codex_loader._sqlite_log_cache.watermark == (log_ts, 30, 3)
+    assert len(codex_loader._sqlite_log_cache.entries) == 3
+
+
+def test_sqlite_log_cache_advances_watermark_without_matching_rows(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    logs_db = tmp_path / "logs.sqlite"
+    _create_logs_db(logs_db, [(1, 100, "unrelated body")], target="other-target")
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+
+    assert codex_loader._load_sqlite_log_entries({}, None, {}) == []
+
+    assert codex_loader._sqlite_log_cache.watermark == (100, 10, 1)
+    assert codex_loader._sqlite_log_cache.entries == []
+
+    with sqlite3.connect(logs_db) as conn:
+        conn.execute("DELETE FROM logs")
+    assert codex_loader._load_sqlite_log_entries({}, None, {}) == []
+    assert codex_loader._sqlite_log_cache.watermark == (100, 10, 1)
 
 
 def test_parse_jsonl_skips_bad_lines_and_missing_fields(tmp_path: Path) -> None:
@@ -2061,6 +2159,39 @@ def test_disk_cache_seed_loads_on_cold_start(
     assert cache_entry.confirmed_prefix_digest == bytes.fromhex("abcd")
     assert cache_entry.state.session_model == "gpt-5.4-mini"
     assert cache_entry.state.token_count_index == 1
+
+
+def test_disk_cache_round_trips_sqlite_log_watermark_and_candidates(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    cache_file = tmp_path / "codex_jsonl_cache.json"
+    monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", cache_file)
+    timestamp = datetime(2026, 1, 1, tzinfo=UTC)
+    candidate = UsageEntry(
+        timestamp=timestamp,
+        session_id="sqlite-session",
+        message_id="sqlite-session:sqlite:1:10",
+        request_id="",
+        model="gpt-test",
+        input_tokens=10,
+        output_tokens=2,
+        cache_creation_tokens=0,
+        cache_read_tokens=3,
+        cost_usd=None,
+        project="demo",
+    )
+    codex_loader._sqlite_log_cache.watermark = (100, 10, 1)
+    codex_loader._sqlite_log_cache.entries = [candidate]
+    monkeypatch.setattr(codex_loader, "_disk_cache_dirty", True)
+
+    codex_loader._flush_caches_to_disk(force=True)
+    codex_loader._sqlite_log_cache.watermark = None
+    codex_loader._sqlite_log_cache.entries.clear()
+    monkeypatch.setattr(codex_loader, "_disk_cache_seeded", False)
+    codex_loader._seed_caches_from_disk()
+
+    assert codex_loader._sqlite_log_cache.watermark == (100, 10, 1)
+    assert codex_loader._sqlite_log_cache.entries == [candidate]
 
 
 def test_disk_cache_invalid_schema_fails_safely(

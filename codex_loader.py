@@ -103,6 +103,12 @@ class _JsonlCacheEntry:
     state: _JsonlParseState = field(default_factory=_JsonlParseState)
 
 
+@dataclass(slots=True)
+class _SqliteLogCache:
+    watermark: tuple[int, int, int] | None = None
+    entries: list[UsageEntry] = field(default_factory=list)
+
+
 _jsonl_cache: OrderedDict[Path, _JsonlCacheEntry] = OrderedDict()
 _fork_replay_cache: OrderedDict[
     Path,
@@ -112,6 +118,7 @@ _file_info_cache: OrderedDict[
     Path,
     tuple[float, int, _SessionFileInfo],
 ] = OrderedDict()
+_sqlite_log_cache = _SqliteLogCache()
 
 SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
 ARCHIVED_SESSIONS_DIR = Path(os.path.expanduser("~/.codex/archived_sessions"))
@@ -120,7 +127,7 @@ LOGS_DB = Path(os.path.expanduser("~/.codex/logs_2.sqlite"))
 
 # Disk cache for JSONL parsing results. Schema version must be bumped when the
 # serialization format or parsing logic changes incompatibly.
-_CODEX_JSONL_CACHE_SCHEMA = 2
+_CODEX_JSONL_CACHE_SCHEMA = 3
 JSONL_CACHE_PATH = Path(os.path.expanduser("~/.usage/codex_jsonl_cache.json"))
 
 # Module-level flag to ensure seed loading happens exactly once.
@@ -159,6 +166,7 @@ def _seed_caches_from_disk() -> None:
         _JSONL_CACHE_MAXSIZE,
         _jsonl_cache,
         _file_info_cache,
+        _sqlite_log_cache,
     )
 
 
@@ -180,6 +188,7 @@ def _flush_caches_to_disk(*, force: bool = False) -> None:
         _CODEX_JSONL_CACHE_SCHEMA,
         _jsonl_cache,
         _file_info_cache,
+        _sqlite_log_cache,
     )
     _last_disk_cache_flush_at = now
     _disk_cache_dirty = False
@@ -695,33 +704,56 @@ def _load_sqlite_log_entries(
     cutoff: datetime | None,
     latest_jsonl_ts_by_session: dict[str, datetime],
 ) -> list[UsageEntry]:
+    global _disk_cache_dirty
+
     if not LOGS_DB.exists():
         return []
-    cutoff_ts = cutoff.timestamp() if cutoff else None
     query = (
         "SELECT id, ts, ts_nanos, feedback_log_body FROM logs "
         "WHERE target = 'codex_otel.trace_safe' "
         "AND feedback_log_body LIKE '%event.kind=response.completed%' "
         "AND feedback_log_body LIKE '%input_token_count=%'"
     )
-    params: tuple[float, ...] = ()
-    if cutoff_ts is not None:
-        query += " AND ts >= ?"
-        params = (cutoff_ts,)
+    params: tuple[int, ...] = ()
+    if _sqlite_log_cache.watermark is not None:
+        query += " AND (ts, ts_nanos, id) > (?, ?, ?)"
+        params = _sqlite_log_cache.watermark
     query += " ORDER BY ts ASC, ts_nanos ASC, id ASC"
     try:
         with closing(sqlite3.connect(f"file:{LOGS_DB}?mode=ro", uri=True)) as conn:
+            conn.execute("BEGIN")
             rows = conn.execute(query, params).fetchall()
+            newest_rows = conn.execute(
+                "SELECT ts, ts_nanos, id FROM logs "
+                "ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 1"
+            ).fetchall()
+            newest = newest_rows[0] if newest_rows else None
     except (OSError, sqlite3.Error):
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("codex sqlite logs load failed", exc_info=True)
         return []
 
-    entries: list[UsageEntry] = []
+    candidates = list(_sqlite_log_cache.entries)
     for row_id, ts, ts_nanos, body in rows:
         entry = _parse_sqlite_log_row(row_id, ts, ts_nanos, body, metadata)
-        if entry is None:
-            continue
+        if entry is not None:
+            candidates.append(entry)
+
+    watermark = _sqlite_log_watermark(newest)
+    if _sqlite_log_cache.watermark is not None and (
+        watermark is None or watermark < _sqlite_log_cache.watermark
+    ):
+        watermark = _sqlite_log_cache.watermark
+    if watermark != _sqlite_log_cache.watermark or len(candidates) != len(
+        _sqlite_log_cache.entries
+    ):
+        _sqlite_log_cache.watermark = watermark
+        _sqlite_log_cache.entries = candidates
+        _disk_cache_dirty = True
+        _flush_caches_to_disk()
+
+    entries: list[UsageEntry] = []
+    for entry in candidates:
         if cutoff is not None and entry.timestamp < cutoff:
             continue
         latest_jsonl_ts = latest_jsonl_ts_by_session.get(entry.session_id)
@@ -729,6 +761,15 @@ def _load_sqlite_log_entries(
             continue
         entries.append(entry)
     return entries
+
+
+def _sqlite_log_watermark(row: Any) -> tuple[int, int, int] | None:
+    if not isinstance(row, (list, tuple)) or len(row) != 3:
+        return None
+    try:
+        return int(row[0]), int(row[1]), int(row[2])
+    except (TypeError, ValueError):
+        return None
 
 
 def _parse_sqlite_log_row(

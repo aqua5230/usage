@@ -4,7 +4,7 @@
 # Part of "usage". Free software licensed under the GNU Affero General Public
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
-"""Disk persistence for codex_loader's in-memory JSONL parse caches.
+"""Disk persistence for codex_loader's in-memory parse caches.
 
 The caches themselves, the on-disk path, the schema constant and the
 seeded-once flag all live in codex_loader (tests monkeypatch them there);
@@ -72,6 +72,7 @@ def seed_caches(
     maxsize: int,
     jsonl_cache: _JsonlCache,
     file_info_cache: _FileInfoCache,
+    sqlite_log_cache: Any,
 ) -> None:
     """Seed the given in-memory caches from disk. Silently fails on any error."""
     from codex_loader import _JsonlCacheEntry, _JsonlParseState
@@ -86,6 +87,23 @@ def seed_caches(
         return
     if cache.get("schema_version") != schema_version:
         return
+
+    sqlite_log_data = cache.get("sqlite_log")
+    if isinstance(sqlite_log_data, dict):
+        try:
+            watermark = sqlite_log_data["watermark"]
+            entries_data = sqlite_log_data["entries"]
+            if (
+                isinstance(watermark, list)
+                and len(watermark) == 3
+                and isinstance(entries_data, list)
+            ):
+                sqlite_log_cache.watermark = tuple(int(item) for item in watermark)
+                sqlite_log_cache.entries = [
+                    _deserialize_usage_entry(entry) for entry in entries_data
+                ]
+        except (KeyError, TypeError, ValueError):
+            pass
 
     files = cache.get("files")
     if not isinstance(files, dict):
@@ -157,6 +175,7 @@ def flush_caches(
     schema_version: int,
     jsonl_cache: _JsonlCache,
     file_info_cache: _FileInfoCache,
+    sqlite_log_cache: Any,
 ) -> None:
     """Atomically write the given in-memory caches to disk."""
     tmp_path: str | None = None
@@ -215,6 +234,14 @@ def flush_caches(
             "schema_version": schema_version,
             "cached_at": datetime.now(UTC).timestamp(),
             "files": files,
+            "sqlite_log": {
+                "watermark": list(sqlite_log_cache.watermark)
+                if sqlite_log_cache.watermark is not None
+                else None,
+                "entries": [
+                    _serialize_usage_entry(entry) for entry in sqlite_log_cache.entries
+                ],
+            },
         }
 
         with os.fdopen(fd, "w", encoding="utf-8") as f:
