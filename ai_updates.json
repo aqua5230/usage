@@ -1013,6 +1013,52 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.27.4",
+          "period": "2026-07-15",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "額度卡片不再留難看空白，專案清單完整顯示",
+                "zh-CN": "额度卡片不再留难看空白，项目清单完整显示",
+                "en": "Quota cards drop the ugly blank gaps and stop clipping project lists",
+                "ja": "クオータカードの不格好な余白が消え、プロジェクトリストを完全に表示",
+                "ko": "할당량 카드의 보기 흉한 빈칸이 사라지고 프로젝트 목록이 온전히 보임"
+              },
+              "body": {
+                "zh-TW": "當你在使用特定幾款介面面板時，底部的專案清單不會再被莫名其妙切掉一半，Codex 的額度卡（quota card，顯示剩餘使用次數的區塊）也不會再空出一塊難看的空白了。以前，「雲霧觀測」（Cloud Observation）、「午夜水族箱」（Aquarium）、「秒鏡街機」（Prism Arcade）與「黑洞視界」（Black Hole）這四款面板，把每張額度卡都死板地固定成兩列的高度。當 Codex 只回報每週的限額時，不需要的 Session（單次對話）那列雖然有正確隱藏起來，但這四款面板的卡片外框卻不肯跟著縮小。偏偏這時整個彈窗（popover，點按後彈出的懸浮視窗）的總高度已經自動扣掉了一列，這就導致 Codex 卡片內部留著一塊空白，而真正位在最底下的專案清單反而被擠到視窗外。現在，這四款面板的卡片會像另外五款面板一樣，懂得跟著消失的資料列一起彈性收合；當然，當兩列資料都齊全時，原本的雙列排版依然保持不變。這就像是使用一個硬殼的便當盒，以前就算裡面只裝了一顆白煮蛋，盒子還是佔據著兩層的高度，硬塞進提袋裡不但空蕩蕩的，還把底下的水果壓到提袋外；現在盒子換成了可以摺疊的矽膠保鮮盒，只裝一顆蛋時會自動壓扁一層不浪費空間，而裝滿兩層菜色時也依然堅挺。",
+                "zh-CN": "当你在使用特定几款界面面板时，底部的项目清单不会再被莫名其妙切掉一半，Codex 的额度卡（quota card，显示剩余使用次数的区块）也不会再空出一块难看的空白了。以前，「云雾观测」（Cloud Observation）、「午夜水族箱」（Aquarium）、「秒镜街机」（Prism Arcade）与「黑洞视界」（Black Hole）这四款面板，把每张额度卡都死板地固定成两列的高度。当 Codex 只回报每周的限额时，不需要的 Session（单次对话）那列虽然有正确隐藏起来，但这四款面板的卡片外框却不肯跟着缩小。偏偏这时整个弹窗（popover，点击后弹出来的悬浮窗口）的总高度已经自动扣掉了一列，这就导致 Codex 卡片内部留着一块空白，而真正位在最底下的项目清单反而被挤到窗口外。现在，这四款面板的卡片会像另外五款面板一样，懂得跟着消失的数据列一起弹性收合；当然，当两列数据都齐全时，原本的双列排版依然保持不变。这就像是使用一个硬壳的便当盒，以前就算里面只装了一颗白煮蛋，盒子还是占据着两层的高度，硬塞进提袋里不但空荡荡的，还把底下的水果挤到提袋外；现在盒子换成了可以折叠的硅胶保鲜盒，只装一颗蛋时会自动压扁一层不浪费空间，而装满两层菜色时也依然坚挺。",
+                "en": "When using certain interface panels, your projects list at the bottom will no longer get mysteriously chopped off, and the Codex quota card (the section displaying your remaining usage limits) won't leave an ugly blank gap anymore. Previously, the \"Cloud Observation\", \"Aquarium\", \"Prism Arcade\", and \"Black Hole\" panels rigidly pinned every quota card to a fixed two-row height. Whenever Codex only reported weekly rate limits, the unneeded Session (single conversation) row correctly hid itself, but the outer frame of the card in these four panels stubbornly refused to shrink. Meanwhile, the overall popover (the small floating window that appears when clicked) had already automatically reduced its total height by one row. This mismatch left a blank band inside the Codex card while shoving the projects card at the very bottom right out of the window frame. Now, the cards in these four panels know how to flexibly collapse along with the missing row, matching the behavior of the other five panels; and naturally, the original two-row layout remains perfectly intact when both rows of data are present. It's like a rigid double-decker lunchbox — previously, even if it only held a single boiled egg, the box still took up two tiers of space, leaving a huge empty gap inside while pushing the fruit at the bottom out of your tote bag. Now, it's been replaced with a collapsible silicone container that automatically flattens down one tier to save space when holding less, while still standing tall when fully packed.",
+                "ja": "特定のインターフェースパネルを使用している際、下部のプロジェクトリストが不自然に半分見切れたり、Codex のクオータカード（quota card、残りの利用枠を表示する領域）に不格好な余白ができたりすることはなくなった。以前は、「Cloud Observation」「Aquarium」「Prism Arcade」「Black Hole」の4つのパネルにおいて、すべてのクオータカードが2行分の高さで固定されていた。Codex が週単位の制限しか報告しない場合、不要な Session（単一の会話）の行自体は正しく非表示になるものの、これら4つのパネルではカードの外枠が縮むのを頑なに拒んでいた。その一方で、ポップオーバー（popover、クリックした際に飛び出す小さな浮遊ウィンドウ）自体の全体の高さはすでに1行分自動で短くなっているため、結果として Codex カードの内部に空の帯が残り、一番下にあるはずのプロジェクトリストがウィンドウの外へ押し出されて見切れてしまっていた。現在、これら4つのパネルのカードは他の5つのパネルと同様に、非表示になった行に合わせて柔軟に折りたたまれるようになった。もちろん、2行分のデータが揃っている場合は、本来の2行レイアウトがそのまま保たれる。以前は、ゆで卵を1個入れただけでも2段分の高さを占拠し、無駄な空間を残したままバッグの底にある果物を外へ押し出してしまう硬い弁当箱だったのが、今は中身が少ない時は自動で1段分潰れてスペースを節約し、2段分の料理が詰まっている時はしっかり高さを保つ折りたたみ式のシリコン容器に変わったようなものである。",
+                "ko": "특정 인터페이스 패널을 사용할 때, 화면 맨 아래의 프로젝트 목록이 뜬금없이 반쯤 잘려 나가거나 Codex의 할당량 카드(quota card, 남은 사용 횟수를 보여주는 영역)에 보기 흉한 빈 공간이 남는 일이 더 이상 없다. 예전에는 'Cloud Observation', 'Aquarium', 'Prism Arcade', 'Black Hole' 이 네 가지 패널이 모든 할당량 카드의 높이를 두 줄 크기로 융통성 없이 고정해 두었다. Codex가 주간 한도만 보고할 때, 필요 없는 Session(단일 대화) 줄은 제대로 숨겨졌지만 이 네 패널의 카드 테두리는 고집스럽게 줄어들지 않았다. 그런데 이때 팝오버(popover, 클릭하면 나타나는 작은 팝업 창) 전체의 높이는 이미 자동으로 한 줄만큼 줄어든 상태였다. 이 엇박자 때문에 Codex 카드 안에는 텅 빈 공간이 남고, 정작 제일 밑에 있어야 할 프로젝트 목록은 창 밖으로 밀려나 잘려버렸다. 이제 이 네 패널의 카드는 다른 다섯 개의 패널들처럼 사라진 줄에 맞춰 유연하게 접혀 들어간다. 물론 두 줄짜리 데이터가 모두 있을 때는 원래의 두 줄짜리 배치가 그대로 유지된다. 예전엔 삶은 달걀 하나만 넣어도 두 단짜리 크기를 그대로 차지해 가방 속 빈 공간만 차지하고 밑에 정돈된 과일을 밖으로 짓눌러버리던 딱딱한 2단 도시락 통이었다면, 이제는 내용물이 적을 땐 자동으로 한 단이 납작해져 공간을 아끼고 음식이 가득 찼을 땐 원래 모양을 유지하는 접이식 실리콘 용기로 바뀐 것과 같다."
+              },
+              "original": "**Codex card no longer leaves a blank gap (and clips the projects list) on four panels**: the \"Cloud Observation\", \"Aquarium\", \"Prism Arcade\", and \"Black Hole\" panels pinned every quota card at a fixed two-row height. When Codex reports weekly-only rate limits, the session row correctly hides but these four panels kept the card at its full height while the popover window itself had already shrunk by one row, leaving a blank band inside the Codex card and cutting off the projects card at the bottom. The card now collapses along with the missing row, matching the other five panels; the two-row layout is unchanged when both rows are present."
+            }
+          ]
+        },
+        {
+          "version": "0.27.3",
+          "period": "2026-07-15",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "報告載入不再苦等，重複點擊瞬間顯示",
+                "zh-CN": "报告载入不再苦等，重复点击瞬间显示",
+                "en": "Reports load instantly on repeat clicks without redundant processing",
+                "ja": "レポートの読み込み待ちが消滅、連続クリックでも一瞬で表示",
+                "ko": "보고서 로딩 기다림 끝, 반복 클릭 시 순식간에 표시"
+              },
+              "body": {
+                "zh-TW": "現在當你連續點擊查看「今天」或「七日」的 HTML 報告時，畫面會瞬間跳出，不再每次都讓你苦等轉圈圈。以前只要你點開報告，程式就會把所有的 Antigravity 對話資料庫、Codex 的 OTel 追蹤紀錄（OTel trace log，記錄軟體執行步驟的流水帳）從頭到尾重新打開解析一次；甚至在產生同一份報告的過程中，同一個本地日期和工作目錄對應的專案名稱，也會被重複計算好幾次。現在這三個地方都補上了對應的快取（cache，把算好的結果暫存起來，下次直接拿來用的機制）——針對 SQLite（一種輕量級資料庫）來源採用檔案層級暫存，而單次報告內的重複運算則用當次的記憶體暫存。因此，當你第二次點擊同一個區間時速度會大幅提升，而顯示的數字結果完全不受影響。這就像是一間餐廳的結帳櫃台，以前每印一次明細，店員都要跑進廚房重看一次點菜單、重新按一次計算機；現在店員懂得把剛算好的總金額寫在便條紙上，你再要一次同一桌的帳單，他看一眼便條就能立刻給你。",
+                "zh-CN": "现在当你连续点击查看「今天」或「七日」的 HTML 报告时，画面会瞬间跳出，不再每次都让你苦等转圈圈。以前只要你点开报告，程序就会把所有的 Antigravity 对话数据库、Codex 的 OTel 追踪记录（OTel trace log，记录软件执行步骤的流水账）从头到尾重新打开解析一次；甚至在生成同一份报告的过程中，同一个本地日期和工作目录对应的项目名称，也会被重复计算好几次。现在这三个地方都补上了对应的缓存（cache，把算好的结果暂存起来，下次直接拿来用的机制）——针对 SQLite（一种轻量级数据库）来源采用文件层级暂存，而单次报告内的重复运算则用当次的内存暂存。因此，当你第二次点击同一个区间时速度会大幅提升，而显示的数字结果完全不受影响。这就像是一家餐厅的结账柜台，以前每打印一次明细，店员都要跑进厨房重看一次点菜单、重新按一次计算器；现在店员懂得把刚算好的总金额写在便签纸上，你再要一次同一桌的账单，他看一眼便签就能立刻给你。",
+                "en": "When you repeatedly click to view the \"Today\" or \"Last 7 days\" HTML report, it now pops up instantly instead of making you wait. Previously, every time you opened the report, the program would re-open and re-parse all your Antigravity conversation databases and Codex's OTel trace log (a detailed diary of every step the software took) completely from scratch. It would even repeatedly recalculate the same local dates and working directory mappings during a single report generation. Now, appropriate caches (a mechanism that temporarily stores calculated results to be reused later) have been added to all three areas. It uses file-level caching for the SQLite (a lightweight database) sources, and in-memory caching for repeated calculations within a single report build. As a result, clicking the same time period a second time is dramatically faster, with no change to the final numbers. It's like a restaurant cashier who used to run back into the kitchen to recount the order tickets and punch the calculator all over again every time you asked for a receipt duplicate; now, they just write the subtotal on a sticky note, so if you ask for the same bill again, they can hand it to you in a split second.",
+                "ja": "「今日」や「過去7日間」の HTML レポートを連続してクリックした際、もはや待たされることなく一瞬で画面が表示されるようになった。以前はレポートを開くたびに、プログラムがすべての Antigravity 会話データベースや Codex の OTel トレースログ（OTel trace log、ソフトウェアの実行手順を記録した詳細な日記）を最初から開き直して解析していた。そればかりか、1回のレポート作成プロセスの中で、同じローカル日付や作業ディレクトリに対応するプロジェクト名を何度も無駄に計算し直していた。現在はこれら3箇所に適切なキャッシュ（cache、計算済みの結果を一時的に保存し、次回そのまま使い回す仕組み）が追加された。SQLite（軽量なデータベース）のソースにはファイル単位のキャッシュを採用し、単一レポート内の重複計算にはその場限りのメモリ内キャッシュを用いている。そのため、同じ期間を再度クリックした際の表示速度が劇的に向上し、最終的な数値結果には一切影響を与えない。以前はレシートを再発行するたびに、店員が厨房へ走って注文伝票を数え直し、電卓を叩き直していたレストランのレジが、今は計算済みの合計額を付箋にメモしておくようになり、同じテーブルの請求書を再度求められても付箋をチラッと見るだけで即座に渡せるようになったようなものである。",
+                "ko": "이제 '오늘'이나 '최근 7일'의 HTML 보고서를 연속으로 클릭할 때, 더 이상 화면이 빙글빙글 돌며 기다리게 하지 않고 순식간에 나타난다. 예전에는 보고서를 열 때마다 프로그램이 모든 Antigravity 대화 데이터베이스와 Codex의 OTel 추적 로그(OTel trace log, 소프트웨어가 실행된 과정을 기록한 상세한 일기장)를 처음부터 끝까지 다시 열고 분석해야 했다. 심지어 하나의 보고서를 만드는 과정에서도 같은 로컬 날짜와 작업 디렉토리에 해당하는 프로젝트 이름을 바보같이 여러 번 다시 계산하곤 했다. 이제 이 세 곳에 모두 적절한 캐시(cache, 계산이 끝난 결과를 임시로 저장해 두었다가 다음에 바로 가져다 쓰는 장치)를 달았다. SQLite(가벼운 데이터베이스) 출처에는 파일 수준의 캐시를, 한 보고서 내에서 반복되는 계산에는 그 시점의 메모리 캐시를 쓴다. 덕분에 같은 기간을 두 번째로 클릭할 때는 속도가 눈에 띄게 빨라지며, 최종 숫자 결과는 전혀 변하지 않는다. 예전엔 영수증을 다시 뽑아달라고 할 때마다 주방으로 달려가 주문표를 처음부터 다시 세고 계산기를 두드리던 식당 계산원이, 이제는 방금 계산한 총액을 포스트잇에 적어 두어 같은 테이블의 계산서를 다시 요구하면 포스트잇만 쓱 보고 1초 만에 내어주는 것과 같다."
+              },
+              "original": "**Report generation is much faster, especially on repeat clicks**: generating the \"Today\"/\"Last 7 days\" HTML report used to re-open and re-parse every Antigravity conversation database and re-scan Codex's OTel trace log from scratch every time, and recomputed the same entry's local date and working-directory-to-project-name mapping repeatedly within a single report build. All three now cache appropriately (file-level caching for the SQLite sources, in-memory caching scoped to each report build), so a repeat click of the same period is dramatically faster with no change in the numbers shown."
+            }
+          ]
+        },
+        {
           "version": "0.27.2",
           "period": "2026-07-15",
           "items": [
@@ -1032,52 +1078,6 @@
                 "ko": "이제 화면 상단 menu bar(가장 위에 있는 제어 막대) 아이콘을 클릭할 때, popover(클릭하면 나타나는 작은 팝업 창)가 버벅대지 않고 순식간에 열린다. 예전에는 아이콘을 누르자마자 데이터 갱신이 시작되어 창의 첫 장면을 그리는 작업과 main thread(화면 표시를 처리하는 유일한 통로) 위에서 부딪혔다. 또한 데이터가 변하지 않았는데도 매번 state JSON(현재 상태를 기록한 데이터 꾸러미)을 패널에 억지로 욱여넣었다. 이제는 창이 완전히 열릴 때까지 기다렸다가 데이터를 정리하며, payload(패널로 보내는 데이터 묶음)가 똑같다면 다시 집어넣는 작업을 건너뛴다. 단, WebKit(웹 화면을 그리는 핵심 엔진)이 재시작될 때는 강제로 데이터를 다시 집어넣어 오류 복구 능력을 유지한다. 예전엔 문고리에 손이 닿자마자 문지기가 우편물 뭉치를 억지로 떠안겨 문이 열리지 않았지만, 이제는 문을 활짝 열 때까지 기다렸다가 새 우편물만 건네주며, 문지기가 교대했을 때만 처음부터 다시 대조하는 것과 같다."
               },
               "original": "**Opening the popover no longer stutters**: clicking the menu bar icon used to kick off a data refresh whose UI apply raced the popover's first frame on the main thread, and every open re-injected the full state JSON into the panel even when nothing changed. The refresh now starts only after the popover is fully shown, and state injection is skipped when the payload is identical to the last one (still force-reinjected after a WebKit process reload, so recovery is unaffected)."
-            }
-          ]
-        },
-        {
-          "version": "0.27.1",
-          "period": "2026-07-14",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Antigravity 卡片不再誤報配額用盡，還你真實的剩餘用量",
-                "zh-CN": "Antigravity 卡片不再误报配额用尽，还你真实的剩余用量",
-                "en": "Antigravity card stops falsely reporting exhausted quotas, showing your real remaining usage",
-                "ja": "Antigravity カードがクオータ枯渇を誤報しなくなり、本当の残量を表示する",
-                "ko": "Antigravity 카드가 할당량 고갈을 오보하지 않고 실제 남은 사용량을 보여준다"
-              },
-              "body": {
-                "zh-TW": "現在查看 Antigravity 卡片（usage 裡顯示 Antigravity 帳號 AI 配額用量的資訊卡）時，不會再被明明還有很多可用量、卻顯示「100% 已用」的假警報嚇到了。以前卡片在決定顯示多少用量時，會去挑兩個配額群組（quota groups，計算不同 AI 模型使用量的分類，分為 Gemini 或 Claude/GPT）中消耗最嚴重的那一個。因此，只要你的 Claude/GPT 五小時視窗（five-hour window，這類模型計算額度的時間重置區間）被耗盡，就算你帳號實際上在跑的 Gemini 群組還有滿滿的可用量，卡片還是會誤報成額度完全用光。現在這個顯示邏輯修好了，卡片會始終專注追蹤 Gemini 群組的狀態，只有當 API response（伺服器回傳給程式的資料）裡完全找不到 Gemini 的數據時，才會退而求其次去看消耗最多的群組。就像拿雙卡雙待的手機，以前只要你很少用的副卡網路流量用完，手機畫面就會一直跳出「流量耗盡」的警告，明明你真正上網用的主卡還有一大堆流量；現在螢幕終於會乖乖顯示主卡的真實流量，除非主卡不見了才會去看副卡。",
-                "zh-CN": "现在查看 Antigravity 卡片（usage 里显示 Antigravity 账号 AI 配额用量的信息卡）时，不会再被明明还有很多可用量、却显示「100% 已用」的假警报吓到了。以前卡片在决定显示多少用量时，会去挑两个配额群组（quota groups，计算不同 AI 模型使用量的分类，分为 Gemini 或 Claude/GPT）中消耗最严重的那一个。因此，只要你的 Claude/GPT 五小时窗口（five-hour window，这类模型计算额度的时间重置区间）被耗尽，就算你账号实际上在跑的 Gemini 群组还有满满的可用量，卡片还是会误报成额度完全用光。现在这个显示逻辑修好了，卡片会始终专注追踪 Gemini 群组的状态，只有当 API response（服务器回传给程序的数据）里完全找不到 Gemini 的数据时，才会退而求其次去看消耗最多的群组。就像拿双卡双待的手机，以前只要你很少用的副卡网络流量用完，手机画面就会一直跳出「流量耗尽」的警告，明明你真正上网用的主卡还有一大堆流量；现在屏幕终于会乖乖显示主卡的真实流量，除非主卡不见了才会去看副卡。",
-                "en": "When you check your Antigravity card (the info card in usage showing the AI quota of your Antigravity account), you'll no longer be jumpscared by a \"100% used\" fake alarm when you actually have plenty of usage left. Previously, to determine what to display, the card would simply pick the more depleted of the two quota groups (categories for tracking different AI model usage, specifically Gemini vs. Claude/GPT). Because of this, if your Claude/GPT five-hour window (the resetting time frame over which these models calculate their limits) was exhausted, the card would falsely report your entire quota as maxed out, even while the Gemini group that your account actually runs on still had plenty of capacity. This display logic is now fixed so the card always reliably tracks the Gemini group, and it will only fall back to showing the most-depleted group if Gemini is ever completely missing from the API response (the data the server sends back to the program). It's like using a dual-SIM phone: your screen used to constantly flash a \"Data Exhausted\" warning just because you ran out of data on your rarely-used secondary SIM, even though your primary SIM—the one you actually use for internet—had plenty of data left. Now the screen properly reflects your primary SIM's true data usage, and only looks at the secondary one if the primary SIM is removed.",
-                "ja": "Antigravity カード（usage 内で Antigravity アカウントの AI クオータ使用量を示す情報カード）を見る際、まだ利用可能枠が十分にあるのに「100% 使用済み」と表示される偽の警告に驚かされることはもうない。以前は、カードが使用量を表示する際、2つのクオータグループ（quota groups、Gemini と Claude/GPT に分かれる、異なる AI モデルの使用量を計算する分類）のうち、より枯渇している方を選んで表示していた。そのため、Claude/GPT の5時間ウィンドウ（five-hour window、これらのモデルが枠を計算する際のリセット時間枠）が使い果たされると、アカウントが実際に動いている Gemini グループにはまだ余裕がたっぷりあるのに、カードは利用枠を完全に使い切ったと誤報していたのである。現在はこの表示ロジックが直り、カードは常に Gemini グループの状況を追跡するようになり、API レスポンス（API response、サーバーがプログラムに返すデータ）の中に Gemini のデータが全く見当たらない場合にのみ、妥協して最も枯渇しているグループを見るようになった。デュアルSIMのスマートフォンを使っていると、以前は滅多に使わない副回線のデータ通信量を使い切っただけで、実際にネット接続に使っている主回線にはデータがたっぷり残っているのに、画面に「通信量枯渇」の警告が出続けていたのが、今は画面がきちんと主回線の本当の通信量を表示するようになり、主回線が抜かれている時にしか副回線を見に行かないようになったようなものである。",
-                "ko": "Antigravity 카드(usage에서 Antigravity 계정의 AI 할당량 사용량을 보여주는 정보 카드)를 볼 때, 아직 쓸 수 있는 양이 충분한데도 \"100% 사용됨\"이라고 뜨는 가짜 경보에 더는 놀라지 않아도 된다. 예전엔 카드가 사용량을 보여줄 때 두 가지 할당량 그룹(quota groups, 여러 AI 모델의 사용량을 계산하는 분류로 Gemini와 Claude/GPT로 나뉨) 중 더 많이 고갈된 쪽을 골라서 보여주었다. 그 탓에 Claude/GPT의 5시간 창(five-hour window, 이들 모델이 한도를 계산하는 초기화 시간대)을 다 써버리면, 계정이 실제로 돌아가고 있는 Gemini 그룹에는 아직 여유가 넉넉한데도 카드는 한도를 완전히 다 썼다고 잘못 알려주곤 했다. 이제는 이 표시 논리가 고쳐져서 카드가 항상 Gemini 그룹의 상태만 끈질기게 따라다니며, API 응답(API response, 서버가 프로그램에 돌려주는 데이터)에서 Gemini 데이터가 아예 보이지 않을 때만 어쩔 수 없이 가장 많이 고갈된 그룹을 쳐다본다. 듀얼 유심 스마트폰을 쓸 때, 예전엔 어쩌다 한 번 쓰는 보조 유심의 데이터가 바닥났을 뿐인데 정작 인터넷을 할 때 쓰는 기본 유심엔 데이터가 넘쳐나도 화면에 자꾸 \"데이터 고갈\" 경고가 뜨던 것이, 이제는 화면이 기본 유심의 진짜 데이터양을 얌전히 보여주고 기본 유심이 빠졌을 때만 보조 유심을 쳐다보게 된 것과 같다."
-              },
-              "original": "**Antigravity card no longer misreads as maxed out**: the card used to show whichever of the two quota groups (Gemini, or Claude/GPT) was most depleted, so an exhausted Claude/GPT five-hour window read as \"100% used\" even while the Gemini group the account actually runs on still had plenty left. The card now always tracks the Gemini group (falling back to the most-depleted group only if Gemini is ever absent from the API response)."
-            }
-          ]
-        },
-        {
-          "version": "0.27.0",
-          "period": "2026-07-13",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "專屬更新網頁上線，報表不再塞滿冗長紀錄",
-                "zh-CN": "专属更新网页上线，报表不再塞满冗长记录",
-                "en": "Dedicated update website is live, keeping the HTML report uncluttered",
-                "ja": "専用のアップデートページが公開され、レポートが冗長な記録で埋まらなくなった",
-                "ko": "전용 업데이트 웹페이지가 열려, 보고서가 더 이상 길고 복잡한 기록으로 채워지지 않는다."
-              },
-              "body": {
-                "zh-TW": "點擊選單列上的「AI Update Daily」，你現在可以直接打開專屬的更新網頁，不用再像以前那樣在 HTML 深度報表（deep report，顯示完整數據分析的網頁）裡翻找。這個新網頁每天自動更新，完整收錄了 Claude Code、Codex 和 Antigravity 的歷史紀錄；有人工審查過的版本會顯示五種語言的白話摘要，還沒審查的則會顯示官方原文。也因為有了這個專屬網頁，原本塞在深度報表裡的更新摘要區塊就被移除了，讓報表回歸清爽。就像是一間餐廳把原本擠在點菜單角落的新菜介紹，獨立印成一本精美的全彩菜單，點菜單本身變乾淨了，想看新菜的人也能看得更清楚。",
-                "zh-CN": "点击菜单列上的「AI Update Daily」，你现在可以直接打开专属的更新网页，不用再像以前那样在 HTML 深度报表（deep report，显示完整数据分析的网页）里翻找。这个新网页每天自动更新，完整收录了 Claude Code、Codex 和 Antigravity 的历史记录；有人工审查过的版本会显示五种语言的白话摘要，还没审查的则会显示官方原文。也因为有了这个专属网页，原本塞在深度报表里的更新摘要区块就被移除了，让报表回归清爽。就像是一间餐厅把原本挤在点菜单角落的新菜介绍，独立印成一本精美的全彩菜单，点菜单本身变干净了，想看新菜的人也能看得更清楚。",
-                "en": "Clicking \"AI Update Daily\" in the menu bar now takes you straight to a dedicated public web page, instead of making you hunt through the HTML deep report (the page showing your full data analysis). This new page auto-updates daily with the complete history for Claude Code, Codex, and Antigravity; reviewed versions show plain-language summaries in all five UI languages, while unreviewed ones display the official source text. Because this dedicated page now exists, the old update digest section has been removed from the HTML deep report to keep it uncluttered. It's like a restaurant moving the \"new dishes\" section from the corner of the order sheet into a beautifully printed full-color menu—the order sheet stays clean, and those looking for new dishes get a much better reading experience.",
-                "ja": "メニューバーの「AI Update Daily」をクリックするだけで、専用のアップデート情報ページを直接開けるようになり、以前のように HTML ディープレポート（deep report、詳細なデータ分析を表示するウェブページ）の中を探し回る必要がなくなった。この新ページは毎日自動更新され、Claude Code、Codex、Antigravity の完全な更新履歴を網羅している。査読済みの更新は5つの UI 言語で平易な要約が表示され、未査読のものは公式の原文が表示される。この専用ページができたことで、HTML レポート内に詰め込まれていたアップデートダイジェストのセクションは削除され、レポート全体がすっきりした。レストランが、注文用紙の隅に押し込んでいた新メニューの紹介を独立したフルカラーのメニュー表に分けたようなものである。注文用紙は書きやすくなり、新メニューを見たい人も快適に読める。",
-                "ko": "메뉴 바에서 'AI Update Daily'를 클릭하면 이제 전용 업데이트 웹페이지가 바로 열려, 예전처럼 HTML 딥 리포트(deep report, 전체 데이터 분석 결과를 보여주는 웹페이지) 안을 뒤적일 필요가 없다. 이 새 페이지는 매일 자동으로 업데이트되며 Claude Code, Codex, Antigravity의 전체 업데이트 기록을 담고 있다. 검토가 끝난 버전은 5개 언어로 된 알기 쉬운 요약본을 보여주고, 아직 검토되지 않은 버전은 공식 원문을 그대로 보여준다. 이 전용 페이지가 생기면서, 원래 딥 리포트 안에 자리 잡고 있던 업데이트 요약 영역은 삭제되어 보고서가 훨씬 깔끔해졌다. 식당이 원래 주문서 구석에 욱여넣었던 신메뉴 소개를 풀컬러로 된 예쁜 메뉴판으로 따로 빼낸 것과 같다. 주문서는 깔끔해지고 신메뉴를 보고 싶은 사람도 훨씬 편하게 읽을 수 있다."
-              },
-              "original": "**AI Update Daily** — clicking this menu item opens the public [web page](https://aqua5230.github.io/ai-updates/) in your default browser. The page auto-updates every day, covers Claude Code, Codex, and Antigravity, and keeps the full update history; reviewed updates show a plain-language summary in all five UI languages, while unreviewed ones show the official source text.\n**HTML report's \"AI Tool Update Digest\" section removed** — the digest has graduated into its own dedicated web page, so the HTML deep report no longer duplicates it."
             }
           ]
         }
