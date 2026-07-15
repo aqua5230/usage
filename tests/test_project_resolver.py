@@ -129,6 +129,20 @@ def test_resolve_project_name_caches_path_resolution(
     assert run.call_count == 1
 
 
+def test_zzz_debug_windows_decode(tmp_path: Path) -> None:
+    real_project = tmp_path / "Users" / "me" / "alpha"
+    real_project.mkdir(parents=True)
+    encoded = str(real_project).replace(os.sep, "-")
+    parts = [p for p in encoded.split("-") if p]
+    root, start = project_resolver._encoded_path_root(parts)
+    debug = [f"os.sep={os.sep!r}", f"tmp_path={tmp_path!r}", f"parts={parts!r}", f"root={root!r} start={start}"]
+    current = root
+    for p in parts[start:]:
+        current = current / p
+        debug.append(f"{current!r} is_dir={current.is_dir()}")
+    assert False, "\n".join(debug)
+
+
 def test_project_from_encoded_path_decodes_real_project(tmp_path: Path) -> None:
     projects_dir = tmp_path / "projects"
     real_project = tmp_path / "Users" / "me" / "alpha"
