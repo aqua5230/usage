@@ -4,7 +4,7 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## Unreleased
+## [0.28.1] - 2026-07-15
 
 ### 新增
 - **Windows 會自動偵測介面語言**：在沒有設定 `USAGE_LANG`／`TT_LANG`／`LANG` 的情況下，語言偵測過去只會詢問 macOS（`NSLocale`），在 Windows 上永遠退回英文。現在會透過 `locale.windows_locale` 對應 `GetUserDefaultUILanguage()`，因此 zh-TW／zh-CN／ja／ko 的 Windows 介面語言開箱即得到對應的介面語言。環境變數仍有較高優先權。
