@@ -58,7 +58,9 @@ _LOCK_TIMEOUT_S = 10.0
 _LOCK_POLL_INTERVAL_S = 0.001
 # msvcrt.locking reports a contended byte as EACCES; EDEADLOCK is what it
 # raises once its own internal retries are exhausted.
-_LOCK_CONTENDED_ERRNOS = frozenset((errno.EACCES, errno.EDEADLOCK, errno.EDEADLK))
+_LOCK_CONTENDED_ERRNOS = frozenset(
+    (errno.EACCES, getattr(errno, "EDEADLOCK", errno.EDEADLK), errno.EDEADLK)
+)
 PREFERENCES_FILE = os.path.expanduser("~/.claude/usage-preferences.json")
 CONTEXT_BURN_FILE = os.path.expanduser("~/.claude/usage-context-burn.json")
 UPDATE_HINT_STALE_SECONDS = 30 * 86400
