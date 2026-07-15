@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -64,6 +65,34 @@ def test_doctor_reports_external_hook_keyword(
 
     assert "hook state:        external" in output
     assert "external hooks:    ccusage" in output
+
+
+def test_doctor_flags_windows_backslash_statusline_command(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    claude_dir = tmp_path / ".claude"
+    claude_dir.mkdir()
+    settings = claude_dir / "settings.json"
+    settings.write_text(
+        json.dumps(
+            {
+                "statusLine": {
+                    "type": "command",
+                    "command": (
+                        r"C:\Python\python.exe "
+                        r"C:\Users\test\.claude\usage-statusline.py"
+                    ),
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
+
+    output = doctor.render()
+
+    assert "status command:    Windows Git Bash-incompatible paths" in output
 
 
 def test_doctor_reports_codex_diagnostics(

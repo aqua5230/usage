@@ -911,8 +911,8 @@ def _resume_restore_context(missing: list[str]) -> str:
         parts.append(f"seconds_since_previous_restore={elapsed}")
     command = _installed_resume_command()
     if command:
-        source = str(_resolve_resume_source())
-        target = str(RESUME_HOOK_TARGET)
+        source = _resolve_resume_source().as_posix()
+        target = RESUME_HOOK_TARGET.as_posix()
         if source in command:
             parts.append("registered=source")
         elif target in command:
@@ -1039,6 +1039,7 @@ def self_heal() -> None:
         if state in {"external", "legacy-tt"}:
             return
         _migrate_bundled_python_commands_if_needed(settings)
+        setup_hook._migrate_windows_statusline_command_if_needed(settings)
         if not is_setup() and "statusLine" not in settings:
             exit_code = _run_quietly(setup)
             if exit_code == 0:

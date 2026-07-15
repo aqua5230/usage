@@ -56,7 +56,7 @@ def test_enable_registers_hook_and_writes_sidecar(terse_paths: TerseHookPaths) -
     command = first_hook["command"]
     assert isinstance(command, str)
     assert str(terse_paths.terse_target) not in command
-    assert str(terse_paths.source) in command
+    assert terse_paths.source.as_posix() in command
     bundle = json.loads(terse_paths.sidecar.read_text(encoding="utf-8"))
     assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
     assert "Terse mode is on for this entire conversation" in bundle["en"]["instruction"]
@@ -180,7 +180,7 @@ def test_enable_installs_codex_when_present(terse_paths: TerseHookPaths) -> None
     hook = hooks_list[0]
     assert isinstance(hook, dict)
     assert hook["timeout"] == 5
-    assert str(terse_paths.codex_terse_target) in hook["command"]
+    assert terse_paths.codex_terse_target.as_posix() in hook["command"]
 
 
 def test_enable_idempotent_on_codex_features_and_entries(terse_paths: TerseHookPaths) -> None:
@@ -289,7 +289,7 @@ def test_enable_registers_reminder_hook(terse_paths: TerseHookPaths) -> None:
     command = first_hook["command"]
     assert isinstance(command, str)
     assert str(terse_paths.terse_reminder_target) not in command
-    assert str(terse_paths.reminder_source) in command
+    assert terse_paths.reminder_source.as_posix() in command
 
 
 def test_enable_reminder_is_idempotent(terse_paths: TerseHookPaths) -> None:

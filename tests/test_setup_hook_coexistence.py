@@ -72,7 +72,10 @@ def test_install_when_forwarder_already_exists(
 ) -> None:
     settings = setup_paths.settings
     forwarder_target = setup_paths.forwarder_target
-    existing = {"type": "command", "command": f"/usr/bin/python3 {forwarder_target}"}
+    existing = {
+        "type": "command",
+        "command": expected_statusline_command(forwarder_target),
+    }
     settings.write_text(json.dumps({"statusLine": existing}), encoding="utf-8")
 
     assert setup_hook.setup() == 0

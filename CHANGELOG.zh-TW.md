@@ -4,10 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## Unreleased
+## [Unreleased]
 
 ### 修正
 - **Antigravity 額度探測現在會讀取 Windows CLI 目前的 OAuth 憑證**：舊版 token 檔案不存在或不可用時，usage 會唯讀退回 Windows Credential Manager 的 `gemini:antigravity` 項目。額度請求的 user agent 也會識別實際主機平台，不再一律宣稱是 Darwin/arm64。
+- **Windows 搭配 Git Bash 時 Claude Code 額度資料現在可正常收集**：狀態列指令過去寫入 Windows 反斜線路徑；但 Claude Code 偵測到 Git Bash 時會透過它執行指令，反斜線會被當作跳脫字元，導致 Python hook 無法啟動。新指令改用兩種 Windows shell 都可用的正斜線路徑；啟動時的自我修復會遷移既有的 usage 指令，`--doctor` 也會辨識舊格式並提示復原步驟。
 
 ## [0.28.2] - 2026-07-15
 
