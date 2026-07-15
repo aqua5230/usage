@@ -81,6 +81,27 @@ window.webkit.messageHandlers.usage = {
 """.strip()
 
 
+def _winreg() -> Any:
+    import winreg
+
+    return winreg
+
+
+def _system_background_color() -> str:
+    try:
+        winreg = _winreg()
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+        ) as key:
+            value, _value_type = winreg.QueryValueEx(key, "AppsUseLightTheme")
+        if value == 0:
+            return "#080d12"
+    except Exception:
+        pass
+    return "#eef2f7"
+
+
 def available_panels() -> tuple[tuple[str, str, str], ...]:
     """Windows excludes talent_market because its vendored CLI is macOS-only."""
     return tuple(panel for panel in WINDOWS_PANELS if panel[0] != "talent_market")
@@ -228,6 +249,7 @@ class _WindowsTrayController:
         self.interval = max(30, interval)
         self.language = detect_lang()
         self.active_panel_id = _active_panel_id()
+        self._switch_pending: bool = False
         self.latest_state = self._empty_state()
         self.tracker = UsageRateTracker(mock=mock)
         self.burn_rate_trackers = {
@@ -445,6 +467,12 @@ class _WindowsTrayController:
         _save_active_panel_id(panel_id)
         self.window.load_html(panel_html(self.panel_filename()))
 
+    def _deferred_switch_panel(self) -> None:
+        self._switch_pending = False
+        ids = [panel[0] for panel in available_panels()]
+        next_panel_id = ids[(ids.index(self.active_panel_id) + 1) % len(ids)]
+        self.switch_panel(next_panel_id)
+
     def toggle_login(self, _icon: Any = None, _item: Any = None) -> None:
         win_login_item.disable() if win_login_item.is_enabled() else win_login_item.enable()
 
@@ -499,8 +527,17 @@ class _WindowsTrayController:
         elif action == "quit":
             self.quit()
         elif action == "switch":
-            ids = [panel[0] for panel in available_panels()]
-            self.switch_panel(ids[(ids.index(self.active_panel_id) + 1) % len(ids)])
+            if self._switch_pending:
+                return
+            self._switch_pending = True
+            # postMessage is a pywebview promise. Reloading the document before
+            # that promise resolves destroys its callback and can leave the
+            # Edge WebView as a blank white window. Defer the reload until the
+            # bridge call has returned to JavaScript. This empirical delay is
+            # not a synchronization guarantee. If slow machines still show a
+            # blank window, JavaScript must call a second API after postMessage's
+            # promise resolves to trigger the reload; do not increase this delay.
+            threading.Timer(0.05, self._deferred_switch_panel).start()
         elif action in {"toggle_statusline", "toggle-statusline"}:
             threading.Thread(target=self._toggle_statusline, daemon=True).start()
         elif action == "install":
@@ -587,6 +624,7 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
         easy_drag=False,
         on_top=True,
         hidden=True,
+        background_color=_system_background_color(),
     )
     if window is None:
         raise RuntimeError("pywebview did not create a window")
