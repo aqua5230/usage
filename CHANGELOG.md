@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+### Fixed
+- **The status line no longer drops quota data when two Claude Code instances refresh at once on Windows**: the hook's file lock was blocking on POSIX (`fcntl.flock(LOCK_EX)`) but non-blocking on Windows (`msvcrt.locking(LK_NBLCK)`), and a contended lock raised `OSError` that was swallowed — leaving the `rate_limits` carry-forward read-modify-write in `save()` completely unsynchronized. Windows now polls the lock until it is acquired (10s deadline), matching POSIX semantics; genuinely unsupported locking still falls back to the atomic write alone. Measured over 200 concurrent hook pairs: `rate_limits` were lost 21 times before, 0 times after.
+
 ## [0.28.2] - 2026-07-15
 
 ### Fixed

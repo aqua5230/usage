@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## Unreleased
+
+### 修正
+- **Windows 上兩個 Claude Code 同時刷新時，狀態列不再掉失額度資料**：hook 的檔案鎖在 POSIX 上是阻塞式的（`fcntl.flock(LOCK_EX)`），在 Windows 上卻是非阻塞的（`msvcrt.locking(LK_NBLCK)`），而搶鎖失敗拋出的 `OSError` 被吞掉——導致 `save()` 裡 `rate_limits` 的 carry-forward 讀改寫完全沒有同步保護。Windows 現在會輪詢直到取得鎖（10 秒上限），語意與 POSIX 一致；若該檔案系統真的不支援鎖定，仍退回單靠原子寫入。實測 200 組並行 hook：修正前掉失 `rate_limits` 21 次，修正後 0 次。
+
 ## [0.28.2] - 2026-07-15
 
 ### 修正

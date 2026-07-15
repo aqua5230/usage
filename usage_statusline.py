@@ -20,10 +20,12 @@ usage 主程式會反向讀這個檔，呈現給 menubar / TUI。
 
 from __future__ import annotations
 
+import errno
 import json
 import os
 import sys
 import tempfile
+import time
 from contextlib import contextmanager
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
@@ -51,6 +53,12 @@ __version__ = "1.0"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
+# Windows lock acquisition: poll rather than fail instantly on contention.
+_LOCK_TIMEOUT_S = 10.0
+_LOCK_POLL_INTERVAL_S = 0.001
+# msvcrt.locking reports a contended byte as EACCES; EDEADLOCK is what it
+# raises once its own internal retries are exhausted.
+_LOCK_CONTENDED_ERRNOS = frozenset((errno.EACCES, errno.EDEADLOCK, errno.EDEADLK))
 PREFERENCES_FILE = os.path.expanduser("~/.claude/usage-preferences.json")
 CONTEXT_BURN_FILE = os.path.expanduser("~/.claude/usage-context-burn.json")
 UPDATE_HINT_STALE_SECONDS = 30 * 86400
@@ -252,6 +260,33 @@ def _rate_limits_complete(rate_limits: Any) -> bool:
     return five.get("used_percentage") is not None and seven.get("used_percentage") is not None
 
 
+def _acquire_msvcrt_lock(lock_fd: int) -> bool:
+    """Block (bounded) until the byte is locked; False if locking is unavailable.
+
+    msvcrt has no blocking-with-timeout mode: LK_LOCK retries on a fixed
+    one-second granularity, and LK_NBLCK gives up instantly. Poll LK_NBLCK so a
+    contended lock is waited out rather than silently skipped — dropping the
+    lock would run save()'s read-modify-write unsynchronized, which fcntl.flock
+    never does on POSIX.
+    """
+    deadline = time.monotonic() + _LOCK_TIMEOUT_S
+    while True:
+        try:
+            if os.fstat(lock_fd).st_size == 0:
+                os.write(lock_fd, b"\0")
+            os.lseek(lock_fd, 0, os.SEEK_SET)
+            msvcrt.locking(lock_fd, msvcrt.LK_NBLCK, 1)
+            return True
+        except OSError as exc:
+            if exc.errno not in _LOCK_CONTENDED_ERRNOS:
+                # Locking is unsupported on this descriptor or filesystem;
+                # spinning would not help. Fall back to the atomic write alone.
+                return False
+            if time.monotonic() >= deadline:
+                return False
+            time.sleep(_LOCK_POLL_INTERVAL_S)
+
+
 @contextmanager
 def _exclusive_lock(lock_fd: int) -> Any:
     """Use the native lock when available; preserve atomic writes without one."""
@@ -263,16 +298,7 @@ def _exclusive_lock(lock_fd: int) -> Any:
             fcntl.flock(lock_fd, fcntl.LOCK_UN)
         return
 
-    locked = False
-    if msvcrt is not None:
-        try:
-            if os.fstat(lock_fd).st_size == 0:
-                os.write(lock_fd, b"\0")
-            os.lseek(lock_fd, 0, os.SEEK_SET)
-            msvcrt.locking(lock_fd, msvcrt.LK_NBLCK, 1)
-            locked = True
-        except OSError:
-            pass
+    locked = _acquire_msvcrt_lock(lock_fd) if msvcrt is not None else False
     try:
         yield
     finally:
