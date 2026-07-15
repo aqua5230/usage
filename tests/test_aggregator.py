@@ -16,13 +16,19 @@ from adapters.types import UsageEntry
 from analyzer.aggregator import aggregate_daily
 
 
+def _tzset() -> None:
+    # The test is skipif-gated on tzset, but calling time.tzset() directly
+    # fails mypy's win32 run, where the attribute does not exist.
+    getattr(time, "tzset", lambda: None)()
+
+
 @pytest.mark.skipif(not hasattr(time, "tzset"), reason="tzset unavailable")
 def test_aggregate_daily_groups_entries_by_local_date(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     original_tz = os.environ.get("TZ")
     monkeypatch.setenv("TZ", "Asia/Taipei")
-    time.tzset()
+    _tzset()
     try:
         entries = [
             UsageEntry(
@@ -61,7 +67,7 @@ def test_aggregate_daily_groups_entries_by_local_date(
             monkeypatch.delenv("TZ", raising=False)
         else:
             monkeypatch.setenv("TZ", original_tz)
-        time.tzset()
+        _tzset()
 
     assert len(daily) == 1
     assert daily[0].date == "2026-06-27"

@@ -113,6 +113,14 @@ ignore_missing_imports = true
 module = ["AppKit", "Foundation", "objc", "Quartz", "UserNotifications", "WebKit"]
 ignore_missing_imports = true
 
+# usage_cli's key readers pair a POSIX branch (termios/tty) with a Windows
+# branch (msvcrt); each side's `type: ignore` comments are only "used" when
+# mypy runs on the other platform, so unused-ignore warnings must stay off
+# for this module to keep `mypy .` green on both macOS and Windows CI.
+[[tool.mypy.overrides]]
+module = "usage_cli"
+warn_unused_ignores = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"

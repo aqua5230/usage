@@ -588,6 +588,8 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
         on_top=True,
         hidden=True,
     )
+    if window is None:
+        raise RuntimeError("pywebview did not create a window")
     window.events.loaded += controller.on_loaded
     icon = pystray.Icon("usage", draw_tray_icon(None), "usage", _menu(controller))
     controller.attach(icon, window)

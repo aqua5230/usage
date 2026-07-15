@@ -75,9 +75,9 @@ def test_draw_tray_icon_and_tooltip(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     monkeypatch.setitem(sys.modules, "PIL", fake_pil)
 
-    image = wintray.draw_tray_icon(25.0)
+    icon_image = wintray.draw_tray_icon(25.0)
 
-    assert image.size == (64, 64)
+    assert icon_image.size == (64, 64)
     assert wintray.build_tooltip(_state()).splitlines() == [
         "Claude Session: 75%",
         "Claude Weekly: 40%",

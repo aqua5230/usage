@@ -51,7 +51,8 @@ jobs:
       - name: Run ruff
         run: uv run ruff check .
 
-      # PyObjC stubs and Darwin-only dependency markers leave Windows without
-      # a complete type environment; keep mypy on the existing macOS job.
+      - name: Run mypy
+        run: uv run mypy .
+
       - name: Run pytest
         run: uv run pytest -v

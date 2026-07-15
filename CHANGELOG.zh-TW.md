@@ -6,6 +6,9 @@
 
 ## Unreleased
 
+### 變更
+- **mypy 現在也會在 Windows CI job 上執行**：`check-windows` job 過去跳過型別檢查，這正是數個 Windows 限定缺陷（包括系統匣啟動崩潰面）沒被發現的原因。平台條件式的程式碼路徑（`termios`／`msvcrt` 按鍵讀取、`os.getuid`、`time.tzset`、pywebview 的 `Window | None`）現在都有正確型別，讓 `mypy .` 在 macOS 與 Windows 上都乾淨通過。
+
 ### 修正
 - **Windows 系統匣現在真的能啟動了**：載入系統匣會一併載入 `panels` 套件，而其 `__init__` 會立刻 import 依賴 PyObjC 的 `panels.web_panel`；在 Windows 上這會拋出 `ModuleNotFoundError: No module named 'objc'`，且 `main.py` 的 TUI 後備機制只認得 `wintray` 模組本身缺失的情況，導致視窗版建置無聲無息地結束、畫面上什麼都不會出現。面板註冊表現在改為在 `all_panels()` 內惰性 import `web_panel`（macOS 行為不變），且只要系統匣 import 鏈中任一模組缺失，後備機制都會退回 TUI 並印出缺失模組的名稱。
 - **系統匣選單與 JS 橋接不再於啟動時故障**：pystray 會拒絕 lambda 帶有額外預設位置參數的選單動作，因此建立面板切換子選單時會在圖示出現前就拋出 `ValueError`；而 pywebview 會把 `js_api` 物件的所有公開屬性序列化進 JS 橋接，因此把系統匣 controller 掛在上面會沿著 WinForms 視窗物件圖無限遞迴直到達到遞迴上限。面板 id 綁定現在改為 keyword-only，橋接物件也改用私有屬性持有 controller。
