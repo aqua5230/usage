@@ -6,6 +6,9 @@
 
 ## Unreleased
 
+### 新增
+- **Windows 會自動偵測介面語言**：在沒有設定 `USAGE_LANG`／`TT_LANG`／`LANG` 的情況下，語言偵測過去只會詢問 macOS（`NSLocale`），在 Windows 上永遠退回英文。現在會透過 `locale.windows_locale` 對應 `GetUserDefaultUILanguage()`，因此 zh-TW／zh-CN／ja／ko 的 Windows 介面語言開箱即得到對應的介面語言。環境變數仍有較高優先權。
+
 ### 變更
 - **mypy 現在也會在 Windows CI job 上執行**：`check-windows` job 過去跳過型別檢查，這正是數個 Windows 限定缺陷（包括系統匣啟動崩潰面）沒被發現的原因。平台條件式的程式碼路徑（`termios`／`msvcrt` 按鍵讀取、`os.getuid`、`time.tzset`、pywebview 的 `Window | None`）現在都有正確型別，讓 `mypy .` 在 macOS 與 Windows 上都乾淨通過。
 
@@ -14,6 +17,7 @@
 - **系統匣選單與 JS 橋接不再於啟動時故障**：pystray 會拒絕 lambda 帶有額外預設位置參數的選單動作，因此建立面板切換子選單時會在圖示出現前就拋出 `ValueError`；而 pywebview 會把 `js_api` 物件的所有公開屬性序列化進 JS 橋接，因此把系統匣 controller 掛在上面會沿著 WinForms 視窗物件圖無限遞迴直到達到遞迴上限。面板 id 綁定現在改為 keyword-only，橋接物件也改用私有屬性持有 controller。
 - **Windows 上能正確從 POSIX 風格的 cwd 取出專案名稱**：`usage_session_resume._project_from_cwd` 與 `adapters.claude.project_from_cwd` 過去只用 `os.sep` 切割路徑，因此在 Windows 上讀到以正斜線記錄的 transcript cwd（或 `C:/...` 風格路徑）時，會把整條路徑當成「專案名稱」。兩處現在都會在 Windows 上先統一分隔符再切割；POSIX 行為不變，因為反斜線在 POSIX 檔名中是合法字元。
 - **測試套件在 Windows 上可收集、可通過**：`check-windows` CI job 自新增以來一直是紅的。五個在模組層級 import PyObjC 相關程式碼的測試模組，現在透過 `collect_ignore` 在非 macOS 平台跳過；原本依賴 `TZ` + `time.tzset()`（Windows 沒有）的時區釘選改為直接釘住換算點；setup-hook 測試不再寫死 `/usr/bin/python3` 與 `/bin/sh`；Codex adapter／一致性測試現在會隔離 `ARCHIVED_SESSIONS_DIR` 與 JSONL 磁碟快取——先前不分作業系統，只要機器上有使用紀錄，就會把真實的 `~/.codex` 歷史洩漏進斷言。
+- **編碼過的專案路徑在 Windows 上現在能正確解碼**：`project_from_encoded_path` 過去靠從檔案系統根目錄往下搜尋，把 dash 編碼的名稱還原成真實資料夾，但裸的 Windows `\` 沒有磁碟機代號、永遠比對不到真實路徑，導致解碼一律退回原始編碼字串。現在偵測到編碼名稱以磁碟機代號開頭時會錨定在磁碟根目錄（例如 `C:\`）；POSIX 行為不變。
 
 ## [0.28.0] - 2026-07-15
 

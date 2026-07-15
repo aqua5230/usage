@@ -133,7 +133,7 @@ def test_project_from_encoded_path_decodes_real_project(tmp_path: Path) -> None:
     projects_dir = tmp_path / "projects"
     real_project = tmp_path / "Users" / "me" / "alpha"
     real_project.mkdir(parents=True)
-    encoded = str(real_project).replace(os.sep, "-")
+    encoded = str(real_project).replace(os.sep, "-").replace(":", "-")
 
     result = project_from_encoded_path(projects_dir / encoded / "a.jsonl", projects_dir)
 
@@ -144,20 +144,24 @@ def test_project_from_encoded_path_resolves_existing_dash_dir(tmp_path: Path) ->
     projects_dir = tmp_path / "projects"
     real_project = tmp_path / "Users" / "me" / "Desktop" / "claude-tutorial-video"
     real_project.mkdir(parents=True)
-    encoded = str(real_project).replace(os.sep, "-")
+    encoded = str(real_project).replace(os.sep, "-").replace(":", "-")
 
     result = project_from_encoded_path(projects_dir / encoded / "a.jsonl", projects_dir)
 
     assert result == "claude-tutorial-video"
 
 
+@pytest.mark.parametrize("drive", ["C", "C:"])
 def test_encoded_path_root_uses_windows_drive_root(
     monkeypatch: pytest.MonkeyPatch,
+    drive: str,
 ) -> None:
+    # Claude Code encodes "C:\Users\..." as "C--Users-..." (every non-alphanumeric
+    # becomes "-"), so the drive normally survives only as a bare letter.
     monkeypatch.setattr(os, "sep", "\\")
 
     root, start = project_resolver._encoded_path_root(
-        ["C:", "Users", "runneradmin", "AppData", "Local", "Temp", "alpha"]
+        [drive, "Users", "runneradmin", "AppData", "Local", "Temp", "alpha"]
     )
 
     assert str(root) == "C:\\"

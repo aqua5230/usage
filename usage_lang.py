@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from collections.abc import Mapping
 
 
@@ -47,6 +48,20 @@ def _detect_macos_lang() -> str:
         return "en"
 
 
+def _detect_windows_lang() -> str:
+    try:
+        import ctypes
+        import locale
+
+        windll = getattr(ctypes, "windll", None)
+        if windll is None:
+            return "en"
+        lang_id = int(windll.kernel32.GetUserDefaultUILanguage())
+        return _normalize_lang(locale.windows_locale.get(lang_id))
+    except Exception:
+        return "en"
+
+
 def detect_lang(env: Mapping[str, str] | None = None) -> str:
     source = os.environ if env is None else env
     for key in ("USAGE_LANG", "TT_LANG", "LANG"):
@@ -54,5 +69,7 @@ def detect_lang(env: Mapping[str, str] | None = None) -> str:
         if value:
             return _normalize_lang(value)
     if env is None:
+        if sys.platform == "win32":
+            return _detect_windows_lang()
         return _detect_macos_lang()
     return "en"

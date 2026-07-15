@@ -249,7 +249,7 @@ def test_project_from_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> N
     projects_dir = tmp_path / "projects"
     real_project = tmp_path / "Users" / "me" / "alpha"
     real_project.mkdir(parents=True)
-    encoded_project = str(real_project).replace(os.sep, "-")
+    encoded_project = str(real_project).replace(os.sep, "-").replace(":", "-")
     monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
 
     assert history_loader._project_from_path(projects_dir / encoded_project / "a.jsonl") == "alpha"
@@ -267,7 +267,7 @@ def test_project_from_path_resolves_existing_dash_project_dir(
     projects_dir = tmp_path / "projects"
     real_project = tmp_path / "Users" / "me" / "Desktop" / "claude-tutorial-video"
     real_project.mkdir(parents=True)
-    encoded_project = str(real_project).replace(os.sep, "-")
+    encoded_project = str(real_project).replace(os.sep, "-").replace(":", "-")
     monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
 
     project = history_loader._project_from_path(projects_dir / encoded_project / "a.jsonl")
@@ -307,7 +307,7 @@ def test_load_entries_deduplicates_sorts_and_filters_hours_back(
     projects_dir = tmp_path / "projects"
     real_project = tmp_path / "Users" / "me" / "alpha"
     real_project.mkdir(parents=True)
-    encoded_project = str(real_project).replace(os.sep, "-")
+    encoded_project = str(real_project).replace(os.sep, "-").replace(":", "-")
     project_dir = projects_dir / encoded_project
     project_dir.mkdir(parents=True)
     now = datetime.now(UTC)

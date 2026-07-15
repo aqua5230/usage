@@ -183,7 +183,7 @@ def test_project_falls_back_to_encoded_file_path_without_cwd(
     projects_dir = tmp_path / "projects"
     real_project = tmp_path / "Users" / "me" / "fallback-project"
     real_project.mkdir(parents=True)
-    encoded_project = str(real_project).replace(os.sep, "-")
+    encoded_project = str(real_project).replace(os.sep, "-").replace(":", "-")
     monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
     _write_jsonl(
         projects_dir / encoded_project / "a.jsonl",
