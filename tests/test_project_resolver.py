@@ -151,6 +151,19 @@ def test_project_from_encoded_path_resolves_existing_dash_dir(tmp_path: Path) ->
     assert result == "claude-tutorial-video"
 
 
+def test_encoded_path_root_uses_windows_drive_root(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(os, "sep", "\\")
+
+    root, start = project_resolver._encoded_path_root(
+        ["C:", "Users", "runneradmin", "AppData", "Local", "Temp", "alpha"]
+    )
+
+    assert str(root) == "C:\\"
+    assert start == 1
+
+
 def test_project_from_encoded_path_fallback_preserves_dash(tmp_path: Path) -> None:
     projects_dir = tmp_path / "projects"
 
