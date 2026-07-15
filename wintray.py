@@ -465,6 +465,11 @@ class _WindowsTrayController:
     def switch_panel(self, panel_id: str) -> None:
         self.active_panel_id = panel_id
         _save_active_panel_id(panel_id)
+        # A panel reload is initialized from ``latest_state`` in ``on_loaded``.
+        # Card order is changed directly by the JS bridge, outside the refresh
+        # worker, so refresh this field from the shared preferences before the
+        # next theme receives that state.
+        self.latest_state.card_order = _quota_card_order()
         self.window.load_html(panel_html(self.panel_filename()))
 
     def _deferred_switch_panel(self) -> None:

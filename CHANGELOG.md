@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+- **Windows panel card order now follows across themes**: reloading a theme after dragging a quota card now rereads the shared saved order before state injection, so every draggable panel opens with the same Claude, Codex, and Antigravity card order.
+
 ## [0.28.3] - 2026-07-16
 
 ### Fixed
