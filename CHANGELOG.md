@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+### Fixed
+- **Antigravity quota probing now reads the current Windows CLI OAuth credential**: when the legacy token file is missing or unusable, usage falls back read-only to the `gemini:antigravity` Windows Credential Manager entry. The quota request's user agent now also identifies the actual host platform instead of always claiming Darwin/arm64.
+
 ## [0.28.2] - 2026-07-15
 
 ### Fixed
