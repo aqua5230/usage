@@ -100,11 +100,13 @@ def _existing_encoded_project_path(parts: list[str]) -> Path | None:
 
 def _encoded_path_root(parts: list[str]) -> tuple[Path, int]:
     """Return the filesystem root and first encoded component to search."""
-    if (
-        os.sep == "\\"
-        and len(parts[0]) == 2
-        and parts[0][0].isalpha()
-        and parts[0][1] == ":"
-    ):
-        return Path(parts[0] + os.sep), 1
+    if os.sep == "\\":
+        drive = parts[0]
+        # Claude Code encodes every non-alphanumeric character as "-", so
+        # "C:\Users\me" arrives as "C--Users-me" and the drive survives only
+        # as a bare letter; accept "C:" too for robustness.
+        if len(drive) == 1 and drive.isalpha():
+            return Path(f"{drive}:{os.sep}"), 1
+        if len(drive) == 2 and drive[0].isalpha() and drive[1] == ":":
+            return Path(drive + os.sep), 1
     return Path(os.sep), 0
