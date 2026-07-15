@@ -298,6 +298,8 @@ def test_run_app_wires_pystray_and_pywebview(
     monkeypatch.setattr(wintray, "draw_tray_icon", lambda value: object())
     monkeypatch.setattr(wintray, "_system_background_color", lambda: "#eef2f7")
     monkeypatch.setattr(wintray._WindowsTrayController, "attach", lambda self, icon, view: None)
+    # A tray may genuinely be running on the machine executing the tests.
+    monkeypatch.setattr(wintray, "_acquire_single_instance_lock", lambda: True)
 
     wintray.run_app(mock=True, interval=60)
 
@@ -308,6 +310,79 @@ def test_run_app_wires_pystray_and_pywebview(
         "run_detached",
         ("start", "edgechromium"),
     ]
+
+
+def test_on_loaded_does_not_place_hidden_window() -> None:
+    # Regression: pywebview's resize()/move() call SetWindowPos with
+    # SWP_SHOWWINDOW, so placing the window at document load dragged the bare
+    # unrendered panel onto the screen at every launch.
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[str] = []
+    controller.window = SimpleNamespace(
+        resize=lambda *args: calls.append("resize"),
+        move=lambda *args: calls.append("move"),
+        show=lambda: calls.append("show"),
+        evaluate_js=lambda code: calls.append("evaluate_js"),
+    )
+
+    controller.on_loaded()
+
+    assert calls == []
+
+
+def test_show_panel_places_window_before_showing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[str] = []
+    monkeypatch.setattr(controller, "_place_window", lambda: calls.append("place"))
+    monkeypatch.setattr(controller, "inject_state", lambda: calls.append("inject"))
+    monkeypatch.setattr(controller, "refresh", lambda: calls.append("refresh"))
+    controller.window = SimpleNamespace(
+        show=lambda: calls.append("show"), hide=lambda: calls.append("hide")
+    )
+
+    controller.show_panel()
+
+    assert controller.visible is True
+    assert calls == ["place", "show", "inject", "refresh"]
+
+
+def test_run_app_bails_out_when_another_instance_holds_the_lock(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Regression: a second tray instance used to fight the first over the
+    # WebView2 user-data directory and linger as a bare white window.
+    notices: list[str] = []
+    monkeypatch.setattr(wintray, "_acquire_single_instance_lock", lambda: False)
+    monkeypatch.setattr(wintray, "_show_already_running_notice", lambda: notices.append("shown"))
+    fake_webview = SimpleNamespace(
+        create_window=lambda *args, **kwargs: pytest.fail("window must not be created"),
+        start=lambda **kwargs: pytest.fail("webview must not start"),
+    )
+    monkeypatch.setitem(sys.modules, "webview", fake_webview)
+
+    wintray.run_app(mock=True, interval=60)
+
+    assert notices == ["shown"]
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows named mutex")
+def test_single_instance_lock_blocks_second_acquire_until_released(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Use a test-specific mutex name so a real tray running on this machine
+    # cannot interfere.
+    monkeypatch.setattr(
+        wintray, "_SINGLE_INSTANCE_MUTEX", "usage-tray-single-instance-pytest"
+    )
+    assert wintray._acquire_single_instance_lock() is True
+    try:
+        assert wintray._acquire_single_instance_lock() is False
+    finally:
+        wintray._release_single_instance_lock()
+    assert wintray._acquire_single_instance_lock() is True
+    wintray._release_single_instance_lock()
 
 
 def test_menu_actions_pass_real_pystray_signature_validation() -> None:
