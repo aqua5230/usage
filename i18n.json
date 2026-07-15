@@ -358,7 +358,8 @@
     "setup_statusline_not_usage": "ℹ statusLine 不是 usage 安裝的，settings 未動",
     "setup_hook_deleted": "✓ 已刪除 hook：{path}",
     "setup_status_file_deleted": "✓ 已刪除狀態檔：{path}",
-    "wintray_unavailable": "Windows 系統匣介面尚未安裝，改用終端機 TUI。"
+    "wintray_unavailable": "Windows 系統匣介面尚未安裝，改用終端機 TUI。",
+    "wintray_already_running": "usage 已在執行中；請點系統匣的 usage 圖示開啟面板。"
   },
   "en": {
     "panel_default_name": "Default",
@@ -719,7 +720,8 @@
     "setup_statusline_not_usage": "ℹ statusLine was not installed by usage; settings unchanged",
     "setup_hook_deleted": "✓ Deleted hook: {path}",
     "setup_status_file_deleted": "✓ Deleted status file: {path}",
-    "wintray_unavailable": "The Windows tray interface is not installed; falling back to the terminal TUI."
+    "wintray_unavailable": "The Windows tray interface is not installed; falling back to the terminal TUI.",
+    "wintray_already_running": "usage is already running; click the usage tray icon to open the panel."
   },
   "zh-CN": {
     "panel_default_name": "默认",
@@ -1080,7 +1082,8 @@
     "setup_statusline_not_usage": "ℹ statusLine 不是 usage 安装的，settings 未改动",
     "setup_hook_deleted": "✓ 已删除 hook：{path}",
     "setup_status_file_deleted": "✓ 已删除状态文件：{path}",
-    "wintray_unavailable": "Windows 系统托盘界面尚未安装，改用终端 TUI。"
+    "wintray_unavailable": "Windows 系统托盘界面尚未安装，改用终端 TUI。",
+    "wintray_already_running": "usage 已在运行；请点击系统托盘的 usage 图标打开面板。"
   },
   "ja": {
     "panel_default_name": "デフォルト",
@@ -1441,7 +1444,8 @@
     "setup_statusline_not_usage": "ℹ statusLine は usage がインストールしたものではありません。settings は変更していません",
     "setup_hook_deleted": "✓ hook を削除しました: {path}",
     "setup_status_file_deleted": "✓ 状態ファイルを削除しました: {path}",
-    "wintray_unavailable": "Windows のシステムトレイ画面は未インストールです。ターミナル TUI に切り替えます。"
+    "wintray_unavailable": "Windows のシステムトレイ画面は未インストールです。ターミナル TUI に切り替えます。",
+    "wintray_already_running": "usage は既に実行中です。トレイの usage アイコンをクリックしてパネルを開いてください。"
   },
   "ko": {
     "panel_default_name": "기본",
@@ -1802,6 +1806,7 @@
     "setup_statusline_not_usage": "ℹ statusLine은 usage가 설치한 것이 아닙니다. settings는 변경하지 않았습니다",
     "setup_hook_deleted": "✓ hook 삭제됨: {path}",
     "setup_status_file_deleted": "✓ 상태 파일 삭제됨: {path}",
-    "wintray_unavailable": "Windows 시스템 트레이 화면이 설치되지 않아 터미널 TUI로 전환합니다."
+    "wintray_unavailable": "Windows 시스템 트레이 화면이 설치되지 않아 터미널 TUI로 전환합니다.",
+    "wintray_already_running": "usage가 이미 실행 중입니다. 트레이의 usage 아이콘을 클릭해 패널을 여세요."
   }
 }
