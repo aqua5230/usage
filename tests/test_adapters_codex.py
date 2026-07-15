@@ -11,6 +11,7 @@ from pathlib import Path
 
 import pytest
 
+import codex_loader
 from adapters import codex
 from tests.helpers import write_codex_session as _write_session
 from tests.helpers import (
@@ -19,8 +20,19 @@ from tests.helpers import (
 
 
 @pytest.fixture(autouse=True)
-def _clear_file_cache() -> None:
+def _clear_file_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     codex._file_cache.clear()
+    # Keep the loader away from the developer's real ~/.codex and ~/.usage:
+    # the archived-sessions dir and the JSONL disk cache would otherwise leak
+    # real entries into assertions on machines with usage history.
+    monkeypatch.setattr(
+        codex_loader, "ARCHIVED_SESSIONS_DIR", tmp_path / "archived_sessions"
+    )
+    monkeypatch.setattr(
+        codex_loader, "JSONL_CACHE_PATH", tmp_path / "codex_jsonl_cache.json"
+    )
+    monkeypatch.setattr(codex_loader, "_disk_cache_seeded", True)
+    codex_loader._jsonl_cache.clear()
 
 
 def test_loaders_skip_bad_utf8_jsonl_without_crashing(

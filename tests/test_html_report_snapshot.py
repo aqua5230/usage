@@ -7,9 +7,6 @@
 from __future__ import annotations
 
 import base64
-import os
-import time
-from collections.abc import Iterator
 from datetime import UTC, datetime, tzinfo
 from pathlib import Path
 from typing import Any
@@ -21,32 +18,31 @@ from ui import html_report
 SNAPSHOT_DIR = Path(__file__).resolve().parent / "fixtures" / "html_report_snapshots"
 
 
+class _FixedLocalDateTime(datetime):
+    # generate_html renders "now" as .astimezone().strftime("... %Z"), and the
+    # local timezone varies by machine (CST locally, UTC on CI). Pinning it via
+    # TZ + time.tzset() is not portable — Windows has no tzset — so pin the
+    # astimezone() result itself to a fixed UTC instant.
+    def astimezone(self, tz: tzinfo | None = None) -> datetime:
+        del tz
+        return datetime(2026, 5, 24, 10, 30, 45, tzinfo=UTC)
+
+
 class _FixedDateTime:
     @staticmethod
     def now(tz: tzinfo | None = None) -> datetime:
         fixed = datetime(2026, 5, 24, 10, 30, 45, tzinfo=UTC)
-        return fixed.astimezone(tz) if tz else fixed.replace(tzinfo=None)
+        if tz:
+            return fixed.astimezone(tz)
+        return _FixedLocalDateTime(2026, 5, 24, 10, 30, 45)
 
 
 @pytest.fixture(autouse=True)
 def _pin_nondeterministic_report_values(
     monkeypatch: pytest.MonkeyPatch,
-) -> Iterator[None]:
+) -> None:
     monkeypatch.setattr(html_report, "datetime", _FixedDateTime)
     monkeypatch.setattr(html_report, "_version", lambda: "0.15.8")
-    # generate_html renders the local timezone abbreviation via %Z, which varies
-    # by machine (CST locally, UTC on CI). Pin it so the golden is portable.
-    original_tz = os.environ.get("TZ")
-    os.environ["TZ"] = "UTC"
-    time.tzset()
-    try:
-        yield
-    finally:
-        if original_tz is None:
-            os.environ.pop("TZ", None)
-        else:
-            os.environ["TZ"] = original_tz
-        time.tzset()
 
 
 def _full_report_data() -> dict[str, Any]:
