@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import importlib
 import sys
 from typing import Any
 
@@ -144,9 +145,7 @@ def test_main_win32_falls_back_to_tui_when_wintray_is_missing(
 ) -> None:
     calls: list[dict[str, Any]] = []
     _patch_main_for_win32(monkeypatch, calls)
-    monkeypatch.setattr(
-        main.importlib, "import_module", _raise_module_not_found("wintray")
-    )
+    monkeypatch.setattr(importlib, "import_module", _raise_module_not_found("wintray"))
 
     main.main()
 
@@ -161,9 +160,7 @@ def test_main_win32_falls_back_to_tui_when_wintray_dependency_is_missing(
     # the fallback (exc.name != "wintray") and crash the windowed build.
     calls: list[dict[str, Any]] = []
     _patch_main_for_win32(monkeypatch, calls)
-    monkeypatch.setattr(
-        main.importlib, "import_module", _raise_module_not_found("objc")
-    )
+    monkeypatch.setattr(importlib, "import_module", _raise_module_not_found("objc"))
 
     main.main()
 

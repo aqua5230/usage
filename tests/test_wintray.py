@@ -158,3 +158,25 @@ def test_run_app_wires_pystray_and_pywebview(
         "run_detached",
         ("start", "edgechromium"),
     ]
+
+
+def test_menu_actions_pass_real_pystray_signature_validation() -> None:
+    # Regression: pystray validates every action's co_argcount when a MenuItem
+    # is constructed, and the panel-switch lambda used to carry a third
+    # defaulted positional parameter, raising ValueError before the tray icon
+    # ever appeared. Build the menu against the real pystray to catch that.
+    pytest.importorskip("pystray", reason="pystray is a Windows-only extra")
+    controller = SimpleNamespace(
+        language="en",
+        active_panel_id="classic",
+        switch_panel=lambda panel_id: None,
+        show_panel=lambda: None,
+        refresh=lambda: None,
+        toggle_login=lambda: None,
+        check_update=lambda: None,
+        quit=lambda: None,
+    )
+
+    menu = wintray._menu(controller)  # type: ignore[arg-type]
+
+    assert menu is not None

@@ -23,7 +23,9 @@ class _FixedLocalDateTime(datetime):
     # local timezone varies by machine (CST locally, UTC on CI). Pinning it via
     # TZ + time.tzset() is not portable — Windows has no tzset — so pin the
     # astimezone() result itself to a fixed UTC instant.
-    def astimezone(self, tz: tzinfo | None = None) -> datetime:
+    # The override intentionally collapses every zone to a fixed plain-datetime
+    # instant, so it narrows typeshed's `-> Self`.
+    def astimezone(self, tz: tzinfo | None = None) -> datetime:  # type: ignore[override]
         del tz
         return datetime(2026, 5, 24, 10, 30, 45, tzinfo=UTC)
 

@@ -11,7 +11,7 @@ import time
 from collections.abc import Iterator
 from datetime import UTC, date, datetime, tzinfo
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import pytest
 
@@ -57,7 +57,7 @@ def _fixed_datetime(fixed: datetime) -> type:
     # no-arg astimezone() to UTC so the pinned clock is machine-zone-proof
     # (Windows cannot pin the process zone through TZ + tzset).
     class _FixedLocalDateTime(datetime):
-        def astimezone(self, tz: tzinfo | None = None) -> datetime:
+        def astimezone(self, tz: tzinfo | None = None) -> Self:
             return super().astimezone(tz if tz is not None else UTC)
 
     class _FixedDateTime:
