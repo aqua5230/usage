@@ -26,6 +26,11 @@ try {
         --add-data "$(Join-Path $RepoRoot 'i18n.json');." `
         --add-data "$(Join-Path $RepoRoot 'pyproject.toml');." `
         --add-data "$(Join-Path $RepoRoot 'assets');assets" `
+        --add-data "$(Join-Path $RepoRoot 'usage_statusline.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_statusline_forwarder.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_session_resume.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_terse_mode.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_terse_reminder.py');." `
         --hidden-import wintray `
         --hidden-import pystray `
         --hidden-import webview `

@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import sys
+import threading
 from types import SimpleNamespace
 
 import pytest
@@ -106,6 +107,27 @@ def test_js_api_forwards_panel_message() -> None:
     wintray._JSApi(controller).postMessage("refresh")  # type: ignore[arg-type]
 
     assert received == ["refresh"]
+
+
+def test_switch_panel_waits_for_bridge_promise_to_resolve(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    scheduled: list[tuple[float, object, tuple[object, ...]]] = []
+
+    class FakeTimer:
+        def __init__(self, delay: float, callback: object, args: tuple[object, ...]) -> None:
+            scheduled.append((delay, callback, args))
+
+        def start(self) -> None:
+            return None
+
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.active_panel_id = "classic"
+    monkeypatch.setattr(threading, "Timer", FakeTimer)
+
+    controller.handle_panel_message("switch")
+
+    assert scheduled == [(0.05, controller.switch_panel, ("matrix",))]
 
 
 def test_run_app_wires_pystray_and_pywebview(

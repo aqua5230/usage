@@ -500,7 +500,12 @@ class _WindowsTrayController:
             self.quit()
         elif action == "switch":
             ids = [panel[0] for panel in available_panels()]
-            self.switch_panel(ids[(ids.index(self.active_panel_id) + 1) % len(ids)])
+            next_panel_id = ids[(ids.index(self.active_panel_id) + 1) % len(ids)]
+            # postMessage is a pywebview promise. Reloading the document before
+            # that promise resolves destroys its callback and can leave the
+            # Edge WebView as a blank white window. Defer the reload until the
+            # bridge call has returned to JavaScript.
+            threading.Timer(0.05, self.switch_panel, args=(next_panel_id,)).start()
         elif action in {"toggle_statusline", "toggle-statusline"}:
             threading.Thread(target=self._toggle_statusline, daemon=True).start()
         elif action == "install":
