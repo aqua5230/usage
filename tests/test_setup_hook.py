@@ -16,7 +16,7 @@ import pytest
 
 import session_hooks
 import setup_hook
-from tests.helpers import SetupHookPaths
+from tests.helpers import SetupHookPaths, expected_statusline_command
 
 LEGACY_NAME = "usag"
 
@@ -51,7 +51,9 @@ def test_setup_backs_up_existing_statusline_and_is_idempotent(
     assert setup_hook.setup() == 0
 
     data = json.loads(settings.read_text(encoding="utf-8"))
-    assert data["statusLine"]["command"] == f"/usr/bin/python3 {setup_hook.FORWARDER_TARGET}"
+    assert data["statusLine"]["command"] == expected_statusline_command(
+        setup_hook.FORWARDER_TARGET
+    )
     assert data["usage"]["previousStatusLine"] == original
     assert hook_target.exists()
     assert setup_hook.FORWARDER_TARGET.exists()
@@ -143,6 +145,9 @@ def test_load_settings_bad_utf8_raises_system_exit(setup_paths: SetupHookPaths) 
         setup_hook._load_settings()
 
 
+@pytest.mark.skipif(
+    sys.platform == "win32", reason="exercises POSIX shell quoting via /bin/sh"
+)
 def test_statusline_command_quotes_paths_with_spaces(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -175,6 +180,7 @@ def test_statusline_command_quotes_paths_with_spaces(
 def test_find_system_python_prefers_usr_bin_over_bundled_app_python(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    monkeypatch.setattr(sys, "platform", "darwin")
     monkeypatch.setattr(sys, "executable", "/Applications/usage.app/Contents/MacOS/python")
     monkeypatch.setattr(
         "setup_hook.os.path.exists",
@@ -491,9 +497,9 @@ def test_self_heal_migrates_bundled_python_commands(
     session_hooks._migrate_bundled_python_commands_if_needed()
 
     data = json.loads(settings.read_text(encoding="utf-8"))
-    assert data["statusLine"]["command"] == f"/usr/bin/python3 {hook_target}"
+    assert data["statusLine"]["command"] == expected_statusline_command(hook_target)
     hooks = data["hooks"]["SessionStart"][0]["hooks"]
-    assert hooks[0]["command"] == f"/usr/bin/python3 {resume_source}"
+    assert hooks[0]["command"] == expected_statusline_command(resume_source)
     migrate_entries = [
         entry
         for entry in data["usage"]["selfHealLog"]

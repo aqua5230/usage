@@ -11,7 +11,7 @@ import time
 from collections.abc import Iterator
 from datetime import UTC, date, datetime, tzinfo
 from pathlib import Path
-from typing import Any
+from typing import Any, Self
 
 import pytest
 
@@ -53,10 +53,19 @@ def _empty_year_payload() -> dict[str, Any]:
 
 
 def _fixed_datetime(fixed: datetime) -> type:
+    # build_report_data derives "today" via datetime.now().astimezone(); pin the
+    # no-arg astimezone() to UTC so the pinned clock is machine-zone-proof
+    # (Windows cannot pin the process zone through TZ + tzset).
+    class _FixedLocalDateTime(datetime):
+        def astimezone(self, tz: tzinfo | None = None) -> Self:
+            return super().astimezone(tz if tz is not None else UTC)
+
     class _FixedDateTime:
         @staticmethod
         def now(tz: tzinfo | None = None) -> datetime:
-            return fixed.astimezone(tz) if tz else fixed
+            if tz:
+                return fixed.astimezone(tz)
+            return _FixedLocalDateTime.fromtimestamp(fixed.timestamp(), tz=UTC)
 
     return _FixedDateTime
 
@@ -101,6 +110,17 @@ def _sandbox_reporter_dependencies(
     os.environ["TZ"] = "UTC"
     if hasattr(time, "tzset"):
         time.tzset()
+
+    # TZ + tzset only pins the local zone on POSIX — Windows has no tzset, so
+    # entry dates would still be bucketed in the machine's zone there. Pin the
+    # conversion point itself to UTC as well.
+    def _entry_date_utc(entry: UsageEntry) -> date:
+        ts = entry.timestamp
+        if ts.tzinfo:
+            ts = ts.astimezone(UTC)
+        return ts.date()
+
+    monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
 
     monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", tmp_path / ".usage" / "year_cache.json")
     monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", tmp_path / ".usage" / "year_ledger.json")
