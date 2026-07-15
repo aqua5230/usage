@@ -16,7 +16,9 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import shutil
+import sys
 import tempfile
 import time
 import urllib.parse
@@ -24,6 +26,7 @@ from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from typing import Any
 from urllib.error import URLError
 from urllib.request import Request, urlopen
 
@@ -37,7 +40,14 @@ _QUOTA_URL = "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSu
 # Antigravity's installed-app public client constants (same values quotio ships).
 _CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com"
 _CLIENT_SECRET = "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"
-_USER_AGENT = "antigravity/1.11.3 Darwin/arm64"
+
+
+def _user_agent() -> str:
+    """Build the Antigravity client identifier for the host platform."""
+    return f"antigravity/1.11.3 {platform.system()}/{platform.machine()}"
+
+
+_USER_AGENT = _user_agent()
 
 # In-memory cache of a refreshed access token so each probe does not re-refresh.
 # Holds {"access_token": str, "expires_monotonic": float}.
@@ -130,6 +140,8 @@ def _resolve_access_token(timeout: float) -> str | None:
         return cached_token
 
     token_data = _read_token_file()
+    if not _has_usable_token(token_data) and sys.platform == "win32":
+        token_data = _read_windows_credential()
     if not isinstance(token_data, dict):
         return None
     token = token_data.get("token")
@@ -163,6 +175,87 @@ def _read_token_file() -> object:
             return json.load(handle)
     except (OSError, ValueError):
         return None
+
+
+def _has_usable_token(token_data: object) -> bool:
+    """Return whether a token payload has the fields needed to resolve access."""
+    if not isinstance(token_data, dict):
+        return False
+    token = token_data.get("token")
+    if not isinstance(token, dict):
+        return False
+    access_token = token.get("access_token")
+    expiry = token.get("expiry")
+    return (
+        isinstance(access_token, str)
+        and bool(access_token)
+        and isinstance(expiry, str)
+        and _parse_timestamp(expiry) is not None
+    )
+
+
+def _windows_ctypes() -> tuple[Any, Any]:
+    """Lazily import Windows-only ctypes helpers so this module stays portable."""
+    import ctypes
+    from ctypes import wintypes
+
+    return ctypes, wintypes
+
+
+def _read_windows_credential() -> object:
+    """Read the Antigravity OAuth credential from Windows Credential Manager.
+
+    Read-only: we never write back to Credential Manager (that is the CLI's
+    home and changing it would risk corrupting its login).
+    """
+    if sys.platform != "win32":
+        return None
+
+    ctypes, wintypes = _windows_ctypes()
+
+    class _Credential(ctypes.Structure):  # type: ignore[name-defined, misc]
+        _fields_ = [
+            ("Flags", wintypes.DWORD),
+            ("Type", wintypes.DWORD),
+            ("TargetName", wintypes.LPWSTR),
+            ("Comment", wintypes.LPWSTR),
+            ("LastWritten", wintypes.FILETIME),
+            ("CredentialBlobSize", wintypes.DWORD),
+            ("CredentialBlob", ctypes.POINTER(wintypes.BYTE)),
+            ("Persist", wintypes.DWORD),
+            ("AttributeCount", wintypes.DWORD),
+            ("Attributes", wintypes.LPVOID),
+            ("TargetAlias", wintypes.LPWSTR),
+            ("UserName", wintypes.LPWSTR),
+        ]
+
+    credential = ctypes.POINTER(_Credential)()
+    cred_read = ctypes.windll.advapi32.CredReadW
+    cred_read.argtypes = [
+        wintypes.LPCWSTR,
+        wintypes.DWORD,
+        wintypes.DWORD,
+        ctypes.POINTER(ctypes.POINTER(_Credential)),
+    ]
+    cred_read.restype = wintypes.BOOL
+    if not cred_read("gemini:antigravity", 1, 0, ctypes.byref(credential)):
+        return None
+    try:
+        size = credential.contents.CredentialBlobSize
+        blob = ctypes.string_at(credential.contents.CredentialBlob, size)
+    finally:
+        ctypes.windll.advapi32.CredFree(credential)
+    return _parse_windows_credential_blob(blob)
+
+
+def _parse_windows_credential_blob(blob: bytes) -> object:
+    """Parse a CredentialBlob, normally UTF-16LE JSON written by the CLI."""
+    for encoding in ("utf-16-le", "utf-8"):
+        try:
+            return json.loads(blob.decode(encoding).lstrip("\ufeff").rstrip("\x00"))
+        except (UnicodeDecodeError, ValueError):
+            continue
+    return None
 
 
 def _refresh_token(refresh_token: str, timeout: float) -> tuple[str, int] | None:

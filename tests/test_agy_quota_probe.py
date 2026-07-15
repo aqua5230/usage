@@ -5,7 +5,9 @@ from __future__ import annotations
 
 import json
 import os
+import platform
 import shutil
+import sys
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -144,6 +146,43 @@ def test_resolve_access_token_uses_disk_token_when_not_expired(
 
     assert agy_quota_probe._resolve_access_token(15.0) == "fresh-from-disk"
     assert visited == []  # no refresh, no API call
+
+
+def test_resolve_access_token_falls_back_to_windows_credential(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", Path("missing-antigravity-token"))
+    monkeypatch.setattr(sys, "platform", "win32")
+    credential_payload = {
+        "token": {
+            "access_token": "fresh-from-credential-manager",
+            "expiry": (datetime.now(UTC) + timedelta(hours=1)).isoformat(),
+        }
+    }
+    calls: list[None] = []
+
+    def read_credential() -> object:
+        calls.append(None)
+        return credential_payload
+
+    monkeypatch.setattr(agy_quota_probe, "_read_windows_credential", read_credential)
+
+    assert agy_quota_probe._resolve_access_token(15.0) == "fresh-from-credential-manager"
+    assert calls == [None]
+
+
+def test_parse_windows_credential_blob_reads_utf16le_json() -> None:
+    payload = {"token": {"access_token": "credential-token", "expiry": "2030-01-01T00:00:00Z"}}
+    blob = json.dumps(payload).encode("utf-16-le")
+
+    assert agy_quota_probe._parse_windows_credential_blob(blob) == payload
+
+
+def test_user_agent_uses_current_platform(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(platform, "system", lambda: "Windows")
+    monkeypatch.setattr(platform, "machine", lambda: "AMD64")
+
+    assert agy_quota_probe._user_agent() == "antigravity/1.11.3 Windows/AMD64"
 
 
 def test_resolve_access_token_refreshes_when_expired(
@@ -349,6 +388,7 @@ def test_probe_quota_returns_none_without_token_file(
     tmp_path: Path,
 ) -> None:
     monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", tmp_path / "missing-token")
+    monkeypatch.setattr(agy_quota_probe, "_read_windows_credential", lambda: None)
     urlopen, visited = _build_urlopen({})
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
 
