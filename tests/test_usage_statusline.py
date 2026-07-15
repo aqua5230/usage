@@ -6,10 +6,12 @@
 
 from __future__ import annotations
 
+import errno
 import io
 import json
 import os
 import sys
+import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -60,6 +62,72 @@ def test_save_works_without_fcntl_or_msvcrt(
     usage_statusline.save({"rate_limits": {"status": "ok"}}, datetime.now(UTC))
 
     assert status_file.exists()
+
+
+def test_acquire_msvcrt_lock_waits_out_a_contended_lock(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    # Regression: LK_NBLCK gives up instantly, and the caller used to swallow
+    # that and run save()'s read-modify-write unlocked — unlike the blocking
+    # fcntl.flock on POSIX.
+    attempts = []
+
+    class FakeMsvcrt:
+        LK_NBLCK = 1
+        LK_UNLCK = 0
+
+        def locking(self, fd: int, mode: int, nbytes: int) -> None:
+            attempts.append(mode)
+            if len(attempts) < 3:
+                raise OSError(errno.EACCES, "Permission denied")
+
+    monkeypatch.setattr(usage_statusline, "msvcrt", FakeMsvcrt())
+    monkeypatch.setattr(usage_statusline, "_LOCK_POLL_INTERVAL_S", 0)
+
+    with tempfile.TemporaryFile() as handle:
+        assert usage_statusline._acquire_msvcrt_lock(handle.fileno()) is True
+
+    assert len(attempts) == 3
+
+
+def test_acquire_msvcrt_lock_gives_up_at_the_deadline(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeMsvcrt:
+        LK_NBLCK = 1
+        LK_UNLCK = 0
+
+        def locking(self, fd: int, mode: int, nbytes: int) -> None:
+            raise OSError(errno.EACCES, "Permission denied")
+
+    monkeypatch.setattr(usage_statusline, "msvcrt", FakeMsvcrt())
+    monkeypatch.setattr(usage_statusline, "_LOCK_POLL_INTERVAL_S", 0)
+    monkeypatch.setattr(usage_statusline, "_LOCK_TIMEOUT_S", 0.01)
+
+    with tempfile.TemporaryFile() as handle:
+        assert usage_statusline._acquire_msvcrt_lock(handle.fileno()) is False
+
+
+def test_acquire_msvcrt_lock_does_not_spin_when_locking_is_unsupported(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    attempts = []
+
+    class FakeMsvcrt:
+        LK_NBLCK = 1
+        LK_UNLCK = 0
+
+        def locking(self, fd: int, mode: int, nbytes: int) -> None:
+            attempts.append(mode)
+            raise OSError(errno.EINVAL, "Invalid argument")
+
+    monkeypatch.setattr(usage_statusline, "msvcrt", FakeMsvcrt())
+    monkeypatch.setattr(usage_statusline, "_LOCK_POLL_INTERVAL_S", 0)
+
+    with tempfile.TemporaryFile() as handle:
+        assert usage_statusline._acquire_msvcrt_lock(handle.fileno()) is False
+
+    assert len(attempts) == 1
 
 
 def test_save_preserves_existing_complete_rate_limits_when_new_data_is_incomplete(
