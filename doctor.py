@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import shlex
 import sqlite3
+import sys
 import tomllib
 from collections.abc import Callable
 from datetime import UTC, datetime
@@ -30,6 +31,7 @@ def render() -> str:
         f"hook script:       {_script_status(setup_hook.HOOK_TARGET)}",
         f"forwarder script:  {_script_status(setup_hook.FORWARDER_TARGET)}",
         f"status file:       {_field(_status_file)}",
+        f"status command:    {_field(_status_command)}",
         f"external hooks:    {_field(_external_hooks)}",
         f"forwarder prompt:  {_field(_forwarder_prompt)}",
         "self-heal log (last 5):",
@@ -95,6 +97,21 @@ def _status_file() -> str:
     if not path.exists():
         return f"{display}  [missing]"
     return f"{display}  (wrote {_ago(path.stat().st_mtime)} ago)"
+
+
+def _status_command() -> str:
+    settings = setup_hook._load_settings()
+    sl = settings.get("statusLine")
+    command = sl.get("command") if isinstance(sl, dict) else None
+    if not isinstance(command, str):
+        return "not configured"
+    if (
+        sys.platform == "win32"
+        and "usage-statusline" in command
+        and "\\" in command
+    ):
+        return "Windows Git Bash-incompatible paths; run usage --setup, then restart Claude Code"
+    return "ok"
 
 
 def _external_hooks() -> str:

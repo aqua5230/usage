@@ -48,7 +48,7 @@ def test_enable_registers_hook_and_writes_sidecar(
     command = first_hook["command"]
     assert isinstance(command, str)
     assert str(resume_target) not in command
-    assert str(resume_paths.source) in command
+    assert resume_paths.source.as_posix() in command
     # Sidecar carries the i18n-sourced prompt template for every shipped language.
     bundle = json.loads(sidecar.read_text(encoding="utf-8"))
     assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
@@ -190,7 +190,7 @@ def test_self_heal_migrates_existing_target_command(
     assert migrated_hook["type"] == "command"
     assert migrated_hook["timeout"] == 3
     assert str(resume_target) not in migrated_hook["command"]
-    assert str(source) in migrated_hook["command"]
+    assert source.as_posix() in migrated_hook["command"]
     assert session_entry["hooks"][1]["command"] == "other"
     assert data["hooks"]["PreToolUse"][0]["hooks"][0]["command"] == "guard"
     # The stale "1.2" target also triggers a version update in the same pass, so the

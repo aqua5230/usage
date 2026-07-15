@@ -135,6 +135,10 @@ def _find_system_python() -> str:
 
 def _shell_arg(value: str) -> str:
     if sys.platform == "win32":
+        # Claude Code runs statusLine commands through Git Bash when it is
+        # installed.  Backslashes are escape characters there, while forward
+        # slashes also work in PowerShell, so emit the portable Windows form.
+        value = value.replace("\\", "/")
         return subprocess.list2cmdline([value])
     return shlex.quote(value)
 
@@ -146,6 +150,32 @@ def _forwarder_command() -> str:
 
 def _uses_bundled_app_python(command: str) -> bool:
     return ".app/Contents" in command
+
+
+def _migrate_windows_statusline_command_if_needed(
+    settings: dict[str, Any] | None = None,
+) -> None:
+    """Replace legacy backslash paths in usage-owned Windows statusLine commands."""
+    if sys.platform != "win32":
+        return
+    data = _load_settings() if settings is None else settings
+    sl = data.get("statusLine")
+    if not isinstance(sl, dict):
+        return
+    command = sl.get("command")
+    if not isinstance(command, str) or "\\" not in command:
+        return
+    if "usage-statusline-forwarder" in command:
+        new_command = _forwarder_command()
+    elif "usage-statusline" in command:
+        new_command = _statusline_command()
+    else:
+        return
+    if command == new_command:
+        return
+    sl["command"] = new_command
+    _save_settings(data)
+    _append_hook_repair_log("migrate_windows_statusline", "backslash paths -> forward slashes")
 
 
 def _append_hook_repair_log(action: str, detail: str) -> None:
@@ -600,6 +630,7 @@ def setup(force_forwarder: bool = False) -> int:
     if has_claude:
         settings = _load_settings()
         _migrate_bundled_python_commands_if_needed(settings)
+        _migrate_windows_statusline_command_if_needed(settings)
         state = _detect_current_state(settings)
 
         if force_forwarder or state in {"external", "legacy-tt"}:

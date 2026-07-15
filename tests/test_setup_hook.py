@@ -35,7 +35,7 @@ def test_setup_creates_new_settings_with_usage_statusline(setup_paths: SetupHook
 
     assert exit_code == 0
     assert data["statusLine"]["type"] == "command"
-    assert str(hook_target) in data["statusLine"]["command"]
+    assert data["statusLine"]["command"] == expected_statusline_command(hook_target)
     assert hook_target.exists()
 
 
@@ -216,13 +216,37 @@ def test_windows_hook_commands_use_double_quotes(monkeypatch: pytest.MonkeyPatch
     )
 
     assert setup_hook._statusline_command() == (
-        '"C:\\Program Files\\Python\\python.exe" '
-        '"C:\\Users\\test user\\.claude\\usage-statusline.py"'
+        '"C:/Program Files/Python/python.exe" '
+        '"C:/Users/test user/.claude/usage-statusline.py"'
     )
     assert setup_hook._forwarder_command() == (
-        '"C:\\Program Files\\Python\\python.exe" '
-        '"C:\\Users\\test user\\.claude\\usage-statusline-forwarder.py"'
+        '"C:/Program Files/Python/python.exe" '
+        '"C:/Users/test user/.claude/usage-statusline-forwarder.py"'
     )
+
+
+def test_windows_statusline_migration_rewrites_legacy_backslash_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(
+        setup_hook, "_find_system_python", lambda: r"C:\Program Files\Python\python.exe"
+    )
+    command = (
+        r"C:\Program Files\Python\python.exe "
+        rf"{setup_paths.hook_target}".replace("/", "\\")
+    )
+    setup_paths.settings.write_text(
+        json.dumps({"statusLine": {"type": "command", "command": command}}),
+        encoding="utf-8",
+    )
+
+    setup_hook._migrate_windows_statusline_command_if_needed()
+
+    data = json.loads(setup_paths.settings.read_text(encoding="utf-8"))
+    assert data["statusLine"]["command"] == expected_statusline_command(setup_paths.hook_target)
+    assert data["usage"]["selfHealLog"][-1]["action"] == "migrate_windows_statusline"
 
 
 def test_setup_codex_replaces_only_tui_status_line(
@@ -415,7 +439,7 @@ def test_self_heal_installs_when_no_statusline(setup_paths: SetupHookPaths) -> N
     session_hooks.self_heal()
     data = json.loads(settings.read_text(encoding="utf-8"))
 
-    assert str(hook_target) in data["statusLine"]["command"]
+    assert data["statusLine"]["command"] == expected_statusline_command(hook_target)
     assert data["usage"]["selfHealLog"][-1]["action"] == "install_hook"
 
 
