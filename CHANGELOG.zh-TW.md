@@ -4,7 +4,7 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## [Unreleased]
+## [0.28.3] - 2026-07-16
 
 ### 修正
 - **Antigravity 額度探測現在會讀取 Windows CLI 目前的 OAuth 憑證**：舊版 token 檔案不存在或不可用時，usage 會唯讀退回 Windows Credential Manager 的 `gemini:antigravity` 項目。額度請求的 user agent 也會識別實際主機平台，不再一律宣稱是 Darwin/arm64。
