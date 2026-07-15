@@ -68,7 +68,8 @@ def project_from_encoded_path(jsonl_path: Path, projects_dir: Path) -> str:
     if not parts:
         return "unknown"
 
-    slash_candidate = Path(os.sep, *parts)
+    root, start = _encoded_path_root(parts)
+    slash_candidate = root.joinpath(*parts[start:])
     if slash_candidate.is_dir():
         return slash_candidate.name or "unknown"
 
@@ -93,4 +94,17 @@ def _existing_encoded_project_path(parts: list[str]) -> Path | None:
                 return result
         return None
 
-    return search(0, Path(os.sep))
+    root, start = _encoded_path_root(parts)
+    return search(start, root)
+
+
+def _encoded_path_root(parts: list[str]) -> tuple[Path, int]:
+    """Return the filesystem root and first encoded component to search."""
+    if (
+        os.sep == "\\"
+        and len(parts[0]) == 2
+        and parts[0][0].isalpha()
+        and parts[0][1] == ":"
+    ):
+        return Path(parts[0] + os.sep), 1
+    return Path(os.sep), 0
