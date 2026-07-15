@@ -81,6 +81,27 @@ window.webkit.messageHandlers.usage = {
 """.strip()
 
 
+def _winreg() -> Any:
+    import winreg
+
+    return winreg
+
+
+def _system_background_color() -> str:
+    try:
+        winreg = _winreg()
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize",
+        ) as key:
+            value, _value_type = winreg.QueryValueEx(key, "AppsUseLightTheme")
+        if value == 0:
+            return "#080d12"
+    except Exception:
+        pass
+    return "#eef2f7"
+
+
 def available_panels() -> tuple[tuple[str, str, str], ...]:
     """Windows excludes talent_market because its vendored CLI is macOS-only."""
     return tuple(panel for panel in WINDOWS_PANELS if panel[0] != "talent_market")
@@ -603,6 +624,7 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
         easy_drag=False,
         on_top=True,
         hidden=True,
+        background_color=_system_background_color(),
     )
     if window is None:
         raise RuntimeError("pywebview did not create a window")

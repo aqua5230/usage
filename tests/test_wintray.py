@@ -13,6 +13,30 @@ import menubar_state
 import wintray
 
 
+class _Key:
+    def __enter__(self) -> _Key:
+        return self
+
+    def __exit__(self, *args: object) -> None:
+        return None
+
+
+class FakeWinreg:
+    HKEY_CURRENT_USER = object()
+
+    def __init__(self, value: int = 1, error: Exception | None = None) -> None:
+        self.value = value
+        self.error = error
+
+    def OpenKey(self, *args: object) -> _Key:  # noqa: N802 - winreg contract
+        if self.error is not None:
+            raise self.error
+        return _Key()
+
+    def QueryValueEx(self, key: object, name: str) -> tuple[int, int]:  # noqa: N802
+        return (self.value, 4)
+
+
 def _state() -> menubar_state.PopoverState:
     row = menubar_state.QuotaRowState(
         title="Session",
@@ -91,6 +115,30 @@ def test_windows_panels_exclude_talent_market() -> None:
 
     assert "classic" in ids
     assert "talent_market" not in ids
+
+
+def test_system_background_color_dark(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(wintray, "_winreg", lambda: FakeWinreg(value=0))
+
+    assert wintray._system_background_color() == "#080d12"
+
+
+def test_system_background_color_light(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(wintray, "_winreg", lambda: FakeWinreg(value=1))
+
+    assert wintray._system_background_color() == "#eef2f7"
+
+
+def test_system_background_color_falls_back_on_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        wintray,
+        "_winreg",
+        lambda: FakeWinreg(error=OSError("registry unavailable")),
+    )
+
+    assert wintray._system_background_color() == "#eef2f7"
 
 
 def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
@@ -194,7 +242,9 @@ def test_run_app_wires_pystray_and_pywebview(
     window = SimpleNamespace(events=SimpleNamespace(loaded=Event()))
 
     def create_window(*args: object, **kwargs: object) -> object:
-        events.append(("window", args[0], kwargs["hidden"]))
+        events.append(
+            ("window", args[0], kwargs["hidden"], kwargs["background_color"])
+        )
         return window
 
     fake_pystray = SimpleNamespace(Icon=FakeIcon, Menu=FakeMenu, MenuItem=FakeMenuItem)
@@ -205,12 +255,13 @@ def test_run_app_wires_pystray_and_pywebview(
     monkeypatch.setitem(sys.modules, "pystray", fake_pystray)
     monkeypatch.setitem(sys.modules, "webview", fake_webview)
     monkeypatch.setattr(wintray, "draw_tray_icon", lambda value: object())
+    monkeypatch.setattr(wintray, "_system_background_color", lambda: "#eef2f7")
     monkeypatch.setattr(wintray._WindowsTrayController, "attach", lambda self, icon, view: None)
 
     wintray.run_app(mock=True, interval=60)
 
     assert events == [
-        ("window", "usage", True),
+        ("window", "usage", True, "#eef2f7"),
         "loaded_handler",
         ("icon", "usage"),
         "run_detached",
