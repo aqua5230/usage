@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **Windows panel card order now follows across themes**: reloading a theme after dragging a quota card now rereads the shared saved order before state injection, so every draggable panel opens with the same Claude, Codex, and Antigravity card order.
+- **The tray panel no longer appears as an empty white/dark rectangle at launch**: pywebview's `resize()` and `move()` call `SetWindowPos` with `SWP_SHOWWINDOW`, and the tray placed its still-hidden window as soon as the panel document loaded — dragging the unrendered panel onto the screen on every start. The window is now placed right before it is shown; after a visible panel switch the placement is re-applied as before.
 - **Launching the Windows tray twice no longer leaves a blank white window**: a second instance fought the first over the shared WebView2 user-data directory, so its panel failed to initialize and lingered on screen as a bare white rectangle. The tray now holds a named mutex for its lifetime; a second launch shows an "already running" notice (localized) and exits instead.
 
 ## [0.28.3] - 2026-07-16

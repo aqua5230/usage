@@ -315,8 +315,12 @@ class _WindowsTrayController:
         self.refresh()
 
     def on_loaded(self) -> None:
-        self._place_window()
+        # pywebview's resize()/move() call SetWindowPos with SWP_SHOWWINDOW,
+        # so placing the window while it is hidden would drag the bare panel
+        # onto the screen. Placement happens in show_panel() instead; here it
+        # only re-applies after a visible panel switch reloads the document.
         if self.visible:
+            self._place_window()
             self.inject_state()
 
     def _place_window(self) -> None:
@@ -458,6 +462,7 @@ class _WindowsTrayController:
             self.window.hide()
             return
         self.visible = True
+        self._place_window()
         self.window.show()
         self.inject_state()
         self.refresh()

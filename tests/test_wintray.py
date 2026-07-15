@@ -312,6 +312,42 @@ def test_run_app_wires_pystray_and_pywebview(
     ]
 
 
+def test_on_loaded_does_not_place_hidden_window() -> None:
+    # Regression: pywebview's resize()/move() call SetWindowPos with
+    # SWP_SHOWWINDOW, so placing the window at document load dragged the bare
+    # unrendered panel onto the screen at every launch.
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[str] = []
+    controller.window = SimpleNamespace(
+        resize=lambda *args: calls.append("resize"),
+        move=lambda *args: calls.append("move"),
+        show=lambda: calls.append("show"),
+        evaluate_js=lambda code: calls.append("evaluate_js"),
+    )
+
+    controller.on_loaded()
+
+    assert calls == []
+
+
+def test_show_panel_places_window_before_showing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[str] = []
+    monkeypatch.setattr(controller, "_place_window", lambda: calls.append("place"))
+    monkeypatch.setattr(controller, "inject_state", lambda: calls.append("inject"))
+    monkeypatch.setattr(controller, "refresh", lambda: calls.append("refresh"))
+    controller.window = SimpleNamespace(
+        show=lambda: calls.append("show"), hide=lambda: calls.append("hide")
+    )
+
+    controller.show_panel()
+
+    assert controller.visible is True
+    assert calls == ["place", "show", "inject", "refresh"]
+
+
 def test_run_app_bails_out_when_another_instance_holds_the_lock(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
