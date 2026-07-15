@@ -141,10 +141,23 @@ def test_zzz_debug_windows_decode(tmp_path: Path) -> None:
         f"parts={parts!r}",
         f"root={root!r} start={start}",
     ]
-    current = root
-    for p in parts[start:]:
-        current = current / p
-        debug.append(f"{current!r} is_dir={current.is_dir()}")
+
+    def search(index: int, current: Path) -> Path | None:
+        for end in range(index + 1, len(parts) + 1):
+            candidate = current / "-".join(parts[index:end])
+            hit = candidate.is_dir()
+            debug.append(f"try index={index} end={end} candidate={candidate!r} is_dir={hit}")
+            if not hit:
+                continue
+            if end == len(parts):
+                return candidate
+            result = search(end, candidate)
+            if result is not None:
+                return result
+        return None
+
+    found = search(start, root)
+    debug.append(f"found={found!r}")
     raise AssertionError("\n".join(debug))
 
 
