@@ -489,14 +489,18 @@ def _show_interactive_dashboard(agents: list[AgentInfo]) -> None:
 
 
 def _read_key_unix() -> str:
+    # The termios/tty attribute ignores are for mypy's win32 run, where the
+    # modules exist as stubs but expose no POSIX attributes; pyproject sets
+    # warn_unused_ignores=false for this module so the darwin run tolerates
+    # them (and the msvcrt ignores below, in reverse).
     import os as _os
     import select
     import tty
     import termios
     fd = sys.stdin.fileno()
-    old = termios.tcgetattr(fd)
+    old = termios.tcgetattr(fd)  # type: ignore[attr-defined]
     try:
-        tty.setraw(fd)
+        tty.setraw(fd)  # type: ignore[attr-defined]
         ch = _os.read(fd, 1)
         if ch == b"\x1b":
             if not select.select([fd], [], [], 0.05)[0]:
@@ -543,7 +547,7 @@ def _read_key_unix() -> str:
             return "quit"
         return "other"
     finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old)
+        termios.tcsetattr(fd, termios.TCSADRAIN, old)  # type: ignore[attr-defined]
 
 
 def _read_key_win() -> str:

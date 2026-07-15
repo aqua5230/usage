@@ -21,7 +21,7 @@ import main
 import setup_hook
 import usage_client
 import usage_statusline_forwarder
-from tests.helpers import SetupHookPaths
+from tests.helpers import SetupHookPaths, expected_statusline_command
 
 
 @pytest.fixture
@@ -43,7 +43,7 @@ def test_install_when_no_existing_statusline(
     assert setup_hook.setup() == 0
     data = json.loads(settings.read_text(encoding="utf-8"))
 
-    assert data["statusLine"]["command"] == f"/usr/bin/python3 {hook_target}"
+    assert data["statusLine"]["command"] == expected_statusline_command(hook_target)
     assert hook_target.exists()
     assert not forwarder_target.exists()
 
@@ -61,7 +61,7 @@ def test_install_when_tt_statusline_exists(
     assert setup_hook.setup() == 0
     data = json.loads(settings.read_text(encoding="utf-8"))
 
-    assert data["statusLine"]["command"] == f"/usr/bin/python3 {forwarder_target}"
+    assert data["statusLine"]["command"] == expected_statusline_command(forwarder_target)
     assert data["usage"]["previousStatusLine"] == external
     assert hook_target.exists()
     assert forwarder_target.exists()

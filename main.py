@@ -331,9 +331,10 @@ def main() -> None:
         try:
             wintray = importlib.import_module("wintray")
         except ModuleNotFoundError as exc:
-            if exc.name != "wintray":
-                raise
-            print(_t("wintray_unavailable"))
+            # Any missing module — wintray itself, an optional GUI package, or a
+            # transitive import — must degrade to the TUI; a bare raise would exit
+            # a --windowed build with no visible output at all.
+            print(f"{_t('wintray_unavailable')} [{exc.name}]")
             with suppress(KeyboardInterrupt):
                 asyncio.run(
                     run_tui(mock=args.mock, interval=args.interval, force_group=args.force_group)
@@ -342,9 +343,7 @@ def main() -> None:
             try:
                 wintray.run_app(mock=args.mock, interval=args.interval)
             except ModuleNotFoundError as exc:
-                if exc.name not in {"pystray", "PIL", "webview"}:
-                    raise
-                print(_t("wintray_unavailable"))
+                print(f"{_t('wintray_unavailable')} [{exc.name}]")
                 with suppress(KeyboardInterrupt):
                     asyncio.run(
                         run_tui(

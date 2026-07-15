@@ -13,6 +13,14 @@ import session_hooks
 import setup_hook
 
 
+def expected_statusline_command(target: Path) -> str:
+    # setup() writes the command through _find_system_python + _shell_arg;
+    # mirror that here so assertions hold on POSIX (where the fixture mocks
+    # shutil.which to /usr/bin/python3) and on Windows (sys.executable).
+    python = setup_hook._find_system_python()
+    return f"{setup_hook._shell_arg(python)} {setup_hook._shell_arg(str(target))}"
+
+
 def write_codex_session(
     path: Path,
     *,
