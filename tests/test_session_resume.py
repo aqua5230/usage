@@ -869,7 +869,9 @@ def test_build_prompt_uses_explain_reminder_when_nothing_fixable(
     assert "Health check: about 2% waste came from scanning generated folders." in prompt
     assert "看" in prompt
     assert "修" not in prompt
-    assert str(snapshot) in prompt
+    # The reminder line is JSON-encoded into the prompt, which escapes the
+    # backslashes of a Windows snapshot path.
+    assert json.dumps(str(snapshot), ensure_ascii=False)[1:-1] in prompt
     state_data = json.loads(state.read_text(encoding="utf-8"))
     assert state_data["last_fingerprint"] == "fp-new"
 

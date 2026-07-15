@@ -746,8 +746,17 @@ def _format_time(parsed: datetime) -> str:
 
 def _project_from_cwd(cwd: str) -> str:
     home = os.path.expanduser("~")
-    rel = cwd[len(home):].strip(os.sep) if cwd.startswith(home) else cwd.strip(os.sep)
-    parts = rel.split(os.sep)
+    rel = cwd[len(home):] if cwd.startswith(home) else cwd
+    # Windows sessions read transcripts whose cwd may use either separator
+    # (e.g. POSIX-style paths). POSIX filenames may legitimately contain
+    # backslashes, so only normalize them on Windows.
+    if sys.platform == "win32":
+        rel = rel.replace("\\", "/")
+        sep = "/"
+    else:
+        sep = os.sep
+    rel = rel.strip(sep)
+    parts = rel.split(sep)
     return parts[-1] if parts and parts[-1] else (rel or "unknown")
 
 

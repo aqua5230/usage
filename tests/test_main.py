@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import importlib
 import sys
 from typing import Any
 
@@ -108,11 +109,7 @@ def test_apply_outcome_non_success_keeps_fatal_message() -> None:
     assert state.fatal_message == "still fatal"
 
 
-def test_main_win32_falls_back_to_tui_when_wintray_is_missing(
-    monkeypatch: Any, capsys: Any
-) -> None:
-    calls: list[dict[str, Any]] = []
-
+def _patch_main_for_win32(monkeypatch: Any, calls: list[dict[str, Any]]) -> None:
     async def fake_run_tui(**kwargs: Any) -> None:
         calls.append(kwargs)
 
@@ -133,9 +130,39 @@ def test_main_win32_falls_back_to_tui_when_wintray_is_missing(
     monkeypatch.setattr(main, "run_tui", fake_run_tui)
     monkeypatch.setattr(main, "_t", lambda key: "fallback")
     monkeypatch.setattr(sys, "platform", "win32")
-    monkeypatch.delitem(sys.modules, "wintray", raising=False)
+
+
+def _raise_module_not_found(missing: str) -> Any:
+    def fake_import(name: str) -> Any:
+        assert name == "wintray"
+        raise ModuleNotFoundError(f"No module named '{missing}'", name=missing)
+
+    return fake_import
+
+
+def test_main_win32_falls_back_to_tui_when_wintray_is_missing(
+    monkeypatch: Any, capsys: Any
+) -> None:
+    calls: list[dict[str, Any]] = []
+    _patch_main_for_win32(monkeypatch, calls)
+    monkeypatch.setattr(importlib, "import_module", _raise_module_not_found("wintray"))
 
     main.main()
 
     assert calls == [{"mock": False, "interval": 60, "force_group": None}]
-    assert capsys.readouterr().out == "fallback\n"
+    assert capsys.readouterr().out == "fallback [wintray]\n"
+
+
+def test_main_win32_falls_back_to_tui_when_wintray_dependency_is_missing(
+    monkeypatch: Any, capsys: Any
+) -> None:
+    # Regression: wintray -> panels -> panels.web_panel -> objc used to escape
+    # the fallback (exc.name != "wintray") and crash the windowed build.
+    calls: list[dict[str, Any]] = []
+    _patch_main_for_win32(monkeypatch, calls)
+    monkeypatch.setattr(importlib, "import_module", _raise_module_not_found("objc"))
+
+    main.main()
+
+    assert calls == [{"mock": False, "interval": 60, "force_group": None}]
+    assert capsys.readouterr().out == "fallback [objc]\n"

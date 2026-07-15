@@ -213,10 +213,13 @@ class _RefreshData:
 
 class _JSApi:
     def __init__(self, controller: _WindowsTrayController) -> None:
-        self.controller = controller
+        # Underscore-private: pywebview serializes every public attribute of a
+        # js_api object into the JS bridge, and walking the controller (and its
+        # WinForms window graph) recurses forever.
+        self._controller = controller
 
     def postMessage(self, message: object) -> None:  # noqa: N802 - JavaScript contract
-        self.controller.handle_panel_message(message)
+        self._controller.handle_panel_message(message)
 
 
 class _WindowsTrayController:
@@ -547,7 +550,9 @@ def _menu(controller: _WindowsTrayController) -> Any:
     panel_items = tuple(
         pystray.MenuItem(
             _t(controller.language, key),
-            lambda _icon, _item, panel_id=panel_id: controller.switch_panel(panel_id),
+            # pystray rejects actions whose co_argcount isn't 0/1/2, so the
+            # panel_id binding must be keyword-only.
+            lambda _icon, _item, *, panel_id=panel_id: controller.switch_panel(panel_id),
             checked=lambda _item, panel_id=panel_id: controller.active_panel_id == panel_id,
             radio=True,
         )
@@ -583,6 +588,8 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
         on_top=True,
         hidden=True,
     )
+    if window is None:
+        raise RuntimeError("pywebview did not create a window")
     window.events.loaded += controller.on_loaded
     icon = pystray.Icon("usage", draw_tray_icon(None), "usage", _menu(controller))
     controller.attach(icon, window)

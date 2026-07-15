@@ -80,6 +80,10 @@ def _write_plist(contents: str) -> None:
 
 
 def _launchctl_domain_target() -> str:
+    # login_item is only imported on macOS; the guard also keeps mypy's win32
+    # run (which has no os.getuid) off the POSIX call.
+    if sys.platform == "win32":
+        raise RuntimeError("login_item is macOS-only")
     return f"gui/{os.getuid()}"
 
 

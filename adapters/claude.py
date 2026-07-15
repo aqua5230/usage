@@ -69,11 +69,17 @@ def get_claude_dirs() -> list[str]:
 
 def project_from_cwd(cwd: str) -> str:
     home = os.path.expanduser("~")
-    if cwd.startswith(home):
-        rel = cwd[len(home):].strip(os.sep)
+    rel = cwd[len(home):] if cwd.startswith(home) else cwd
+    # Windows sessions read transcripts whose cwd may use either separator
+    # (e.g. POSIX-style paths). POSIX filenames may legitimately contain
+    # backslashes, so only normalize them on Windows.
+    if sys.platform == "win32":
+        rel = rel.replace("\\", "/")
+        sep = "/"
     else:
-        rel = cwd.strip(os.sep)
-    parts = rel.split(os.sep)
+        sep = os.sep
+    rel = rel.strip(sep)
+    parts = rel.split(sep)
     return parts[-1] if parts and parts[-1] else rel or "unknown"
 
 
