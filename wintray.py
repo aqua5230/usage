@@ -609,7 +609,57 @@ def _menu(controller: _WindowsTrayController) -> Any:
     )
 
 
+_SINGLE_INSTANCE_MUTEX = "usage-windows-tray-single-instance"
+_ERROR_ALREADY_EXISTS = 183
+_single_instance_handle: int | None = None
+
+
+def _acquire_single_instance_lock() -> bool:
+    """Hold a named mutex for the process lifetime; False if another tray owns it.
+
+    Two tray instances fight over the same WebView2 user-data directory: the
+    loser's panel fails to initialize and lingers as a bare white window.
+    """
+    global _single_instance_handle
+    import ctypes
+
+    library_name = "windll"
+    windll: Any = getattr(ctypes, library_name)
+    handle = windll.kernel32.CreateMutexW(None, False, _SINGLE_INSTANCE_MUTEX)
+    if not handle:
+        return True
+    if windll.kernel32.GetLastError() == _ERROR_ALREADY_EXISTS:
+        windll.kernel32.CloseHandle(handle)
+        return False
+    _single_instance_handle = handle
+    return True
+
+
+def _release_single_instance_lock() -> None:
+    global _single_instance_handle
+    if _single_instance_handle is None:
+        return
+    import ctypes
+
+    library_name = "windll"
+    windll: Any = getattr(ctypes, library_name)
+    windll.kernel32.CloseHandle(_single_instance_handle)
+    _single_instance_handle = None
+
+
+def _show_already_running_notice() -> None:
+    import ctypes
+
+    library_name = "windll"
+    windll: Any = getattr(ctypes, library_name)
+    windll.user32.MessageBoxW(0, _t(detect_lang(), "wintray_already_running"), "usage", 0x40)
+
+
 def run_app(mock: bool = False, interval: int = 60) -> None:
+    if not _acquire_single_instance_lock():
+        _show_already_running_notice()
+        return
+
     import pystray
     import webview
 
