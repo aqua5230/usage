@@ -112,22 +112,58 @@ def test_js_api_forwards_panel_message() -> None:
 def test_switch_panel_waits_for_bridge_promise_to_resolve(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    scheduled: list[tuple[float, object, tuple[object, ...]]] = []
+    scheduled: list[FakeTimer] = []
 
     class FakeTimer:
-        def __init__(self, delay: float, callback: object, args: tuple[object, ...]) -> None:
-            scheduled.append((delay, callback, args))
+        def __init__(self, delay: float, callback: object) -> None:
+            self.delay = delay
+            self.callback = callback
+            scheduled.append(self)
+
+        def start(self) -> None:
+            return None
+
+        def fire(self) -> None:
+            assert callable(self.callback)
+            self.callback()
+
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.active_panel_id = "classic"
+    switched_to: list[str] = []
+    monkeypatch.setattr(controller, "switch_panel", switched_to.append)
+    monkeypatch.setattr(threading, "Timer", FakeTimer)
+
+    controller.handle_panel_message("switch")
+
+    assert len(scheduled) == 1
+    assert scheduled[0].delay == 0.05
+    assert switched_to == []
+
+    controller.active_panel_id = "matrix"
+    scheduled[0].fire()
+
+    assert switched_to == ["win95"]
+
+
+def test_switch_panel_ignores_second_click_while_switch_is_pending(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    scheduled: list[object] = []
+
+    class FakeTimer:
+        def __init__(self, delay: float, callback: object) -> None:
+            scheduled.append((delay, callback))
 
         def start(self) -> None:
             return None
 
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.active_panel_id = "classic"
     monkeypatch.setattr(threading, "Timer", FakeTimer)
 
     controller.handle_panel_message("switch")
+    controller.handle_panel_message("switch")
 
-    assert scheduled == [(0.05, controller.switch_panel, ("matrix",))]
+    assert len(scheduled) == 1
 
 
 def test_run_app_wires_pystray_and_pywebview(
