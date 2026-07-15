@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 修正
+- **Windows 面板的卡片排序現在會跨主題同步**：拖曳額度卡後重載其他主題時，會在注入 state 前重新讀取共用的已儲存排序，因此所有支援拖曳的面板都會使用相同的 Claude、Codex 與 Antigravity 卡片順序。
+
 ## [0.28.3] - 2026-07-16
 
 ### 修正

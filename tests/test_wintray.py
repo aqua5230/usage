@@ -3,12 +3,14 @@
 
 from __future__ import annotations
 
+import json
 import sys
 import threading
 from types import SimpleNamespace
 
 import pytest
 
+import menubar_prefs
 import menubar_state
 import wintray
 
@@ -212,6 +214,45 @@ def test_switch_panel_ignores_second_click_while_switch_is_pending(
     controller.handle_panel_message("switch")
 
     assert len(scheduled) == 1
+
+
+@pytest.mark.parametrize("panel_id", ["matrix", "aquarium", "win95"])
+def test_card_order_persists_into_the_next_loaded_panel(
+    monkeypatch: pytest.MonkeyPatch,
+    panel_id: str,
+) -> None:
+    preferences: dict[str, object] = {}
+    injected: list[str] = []
+    loaded: list[str] = []
+    window = SimpleNamespace(
+        evaluate_js=injected.append,
+        load_html=loaded.append,
+    )
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = window
+    controller.visible = True
+    order = ["codex", "claude", "agy"]
+
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences.copy())
+    monkeypatch.setattr(menubar_prefs, "_load_preferences", lambda: preferences.copy())
+    monkeypatch.setattr(
+        wintray,
+        "_save_preferences",
+        lambda updated: preferences.update(updated),
+    )
+    monkeypatch.setattr(controller, "_place_window", lambda: None)
+
+    controller.handle_panel_message(
+        json.dumps({"action": "set_card_order", "order": order})
+    )
+    controller.switch_panel(panel_id)
+    controller.on_loaded()
+
+    assert preferences["quota_card_order"] == order
+    assert controller.latest_state.card_order == tuple(order)
+    assert len(loaded) == 1
+    payload = injected[-1].removeprefix("window.usageApplyState(").removesuffix(")")
+    assert json.loads(payload)["cardOrder"] == order
 
 
 def test_run_app_wires_pystray_and_pywebview(
