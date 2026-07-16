@@ -11,6 +11,7 @@ import builtins
 import json
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 
@@ -24,8 +25,32 @@ LEGACY_NAME = "usag"
 
 
 @pytest.fixture(autouse=True)
-def reset_recent_activity_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+def isolate_claude_files(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
+    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(tmp_path / ".claude.json"))
+
+
+def _write_claude_json(path: Path, fetched_at: float) -> None:
+    path.write_text(
+        json.dumps(
+            {
+                "cachedUsageUtilization": {
+                    "fetchedAtMs": fetched_at * 1000,
+                    "utilization": {
+                        "five_hour": {
+                            "utilization": 3,
+                            "resets_at": "2026-07-16T08:29:59.915566+08:00",
+                        },
+                        "seven_day": {
+                            "utilization": 99,
+                            "resets_at": "2026-07-17T04:59:59.915591+08:00",
+                        },
+                    },
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
 
 
 def test_read_status_file_returns_none_when_both_paths_missing(
@@ -272,6 +297,96 @@ def test_fetch_once_without_status_file_returns_non_success(
     assert outcome.state is usage_client.PollState.TOKEN_ERROR
 
 
+def test_fetch_once_uses_claude_json_when_status_is_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    fetched_at = 1_784_144_611.575
+    claude_json_path = tmp_path / ".claude.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(tmp_path / "usage-status.json"))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
+    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr("usage_client.time.time", lambda: fetched_at + 1)
+    _write_claude_json(claude_json_path, fetched_at)
+
+    outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
+
+    assert outcome.state is usage_client.PollState.SUCCESS
+    assert outcome.snapshot is not None
+    assert outcome.snapshot.data_source == "claude-json"
+    assert outcome.snapshot.current_percent == 3
+    assert outcome.snapshot.weekly_percent == 99
+    assert outcome.snapshot.current_reset_at == pytest.approx(
+        datetime.fromisoformat("2026-07-16T08:29:59.915566+08:00").timestamp()
+    )
+    assert outcome.snapshot.weekly_reset_at == pytest.approx(
+        datetime.fromisoformat("2026-07-17T04:59:59.915591+08:00").timestamp()
+    )
+
+
+@pytest.mark.parametrize("status_age", [-1.0, 1.0])
+def test_fetch_once_chooses_newest_complete_source(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, status_age: float
+) -> None:
+    fetched_at = 1_784_144_611.575
+    status_path = tmp_path / "usage-status.json"
+    claude_json_path = tmp_path / ".claude.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
+    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr("usage_client.time.time", lambda: fetched_at + 2)
+    _write_complete_status(status_path, fetched_at + status_age)
+    _write_claude_json(claude_json_path, fetched_at)
+
+    outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
+
+    assert outcome.snapshot is not None
+    if status_age >= 0:
+        assert outcome.snapshot.data_source == "hook"
+        assert outcome.snapshot.current_percent == 12
+    else:
+        assert outcome.snapshot.data_source == "claude-json"
+        assert outcome.snapshot.current_percent == 3
+
+
+@pytest.mark.parametrize(
+    "contents",
+    ["{bad json", "{}", '{"cachedUsageUtilization": {}}'],
+)
+def test_invalid_claude_json_preserves_missing_status_error(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, contents: str
+) -> None:
+    claude_json_path = tmp_path / ".claude.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(tmp_path / "usage-status.json"))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
+    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    claude_json_path.write_text(contents, encoding="utf-8")
+
+    outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
+
+    assert outcome.state is usage_client.PollState.TOKEN_ERROR
+
+
+def test_invalid_claude_json_preserves_incomplete_status_loading(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    status_path = tmp_path / "usage-status.json"
+    claude_json_path = tmp_path / ".claude.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
+    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    status_path.write_text('{"foo": "bar"}', encoding="utf-8")
+    claude_json_path.write_text("{}", encoding="utf-8")
+
+    outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
+
+    assert outcome.state is usage_client.PollState.LOADING
+    assert outcome.message == "awaiting_rate_limits"
+
+
 def test_fetch_once_returns_awaiting_rate_limits_when_status_has_no_limits(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -338,6 +453,35 @@ def test_fetch_once_reuses_parsed_data_and_rebuilds_when_status_mtime_is_unchang
     assert second is not first
     assert calls == 2
     assert open_calls == 1
+
+
+def test_fetch_once_reuses_claude_json_snapshot_until_mtime_changes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    claude_json_path = tmp_path / ".claude.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(tmp_path / "missing.json"))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt.json"))
+    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    claude_json_path.write_text("{}", encoding="utf-8")
+    calls = 0
+    original = usage_client._read_claude_json_snapshot
+
+    def counting_read() -> usage_client.UsageSnapshot | None:
+        nonlocal calls
+        calls += 1
+        return original()
+
+    monkeypatch.setattr(usage_client, "_read_claude_json_snapshot", counting_read)
+    client = usage_client.ClaudeUsageClient(mock=False)
+
+    asyncio.run(client.fetch_once())
+    asyncio.run(client.fetch_once())
+    current = claude_json_path.stat().st_mtime
+    os.utime(claude_json_path, (current + 1, current + 1))
+    asyncio.run(client.fetch_once())
+
+    assert calls == 2
 
 
 def test_fetch_once_recomputes_stale_state_when_status_mtime_is_unchanged(
@@ -570,3 +714,34 @@ def test_recent_project_activity_rescans_after_ttl_expires(
         now + usage_client.RECENT_ACTIVITY_CACHE_TTL_SECONDS
     ) is True
     assert projects_dir.calls == 2
+
+
+def test_cached_claude_json_rezeroes_after_reset_passes(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    fetched_at = 1_784_144_611.575
+    five_reset = datetime.fromisoformat("2026-07-16T08:29:59.915566+08:00").timestamp()
+    seven_reset = datetime.fromisoformat("2026-07-17T04:59:59.915591+08:00").timestamp()
+    claude_json_path = tmp_path / ".claude.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(tmp_path / "usage-status.json"))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
+    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    fake_now = fetched_at + 1
+    monkeypatch.setattr("usage_client.time.time", lambda: fake_now)
+    _write_claude_json(claude_json_path, fetched_at)
+
+    client = usage_client.ClaudeUsageClient(mock=False)
+    first = asyncio.run(client.fetch_once())
+    assert first.snapshot is not None
+    assert first.snapshot.current_percent == 3
+    assert first.snapshot.weekly_percent == 99
+
+    # File untouched, but the five-hour window resets: the cache hit must re-derive
+    # expiry-sensitive fields instead of replaying the stale parse.
+    fake_now = five_reset + 10
+    assert fake_now < seven_reset
+    second = asyncio.run(client.fetch_once())
+    assert second.snapshot is not None
+    assert second.snapshot.current_percent == 0
+    assert second.snapshot.weekly_percent == 99

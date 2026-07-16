@@ -527,9 +527,12 @@ def _clean_request(value: object) -> str:
     text = _IMAGE_MARKER.sub("", text).strip()
     if not text:
         return ""
-    if starts_with_image and _substantive_len(text) < _MIN_SUBSTANTIVE_CHARS:
+    substantive_len = _substantive_len(text)
+    if substantive_len == 0:
         return ""
-    if _substantive_len(text) < _MIN_SUBSTANTIVE_CHARS and not _has_structural_signal(text):
+    if starts_with_image and substantive_len < _MIN_SUBSTANTIVE_CHARS:
+        return ""
+    if substantive_len < _MIN_SUBSTANTIVE_CHARS and not _has_structural_signal(text):
         return ""
     if len(text) > _MAX_REQUEST_CHARS:
         text = text[: _MAX_REQUEST_CHARS - 1].rstrip() + "…"

@@ -47,8 +47,7 @@ def test_enable_registers_hook_and_writes_sidecar(
     assert isinstance(first_hook, dict)
     command = first_hook["command"]
     assert isinstance(command, str)
-    assert str(resume_target) not in command
-    assert resume_paths.source.as_posix() in command
+    assert resume_target.as_posix() in command
     # Sidecar carries the i18n-sourced prompt template for every shipped language.
     bundle = json.loads(sidecar.read_text(encoding="utf-8"))
     assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
@@ -89,7 +88,7 @@ def test_enable_preserves_existing_hooks(
     data = json.loads(settings.read_text(encoding="utf-8"))
     commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
     assert "other" in commands
-    assert any("usage_session_resume" in c for c in commands)
+    assert any("usage-session-resume" in c for c in commands)
     assert data["hooks"]["PreToolUse"][0]["hooks"][0]["command"] == "guard"
 
 
@@ -142,11 +141,11 @@ def test_self_heal_restores_missing_script_when_enabled(
     detail = data["usage"]["selfHealLog"][-1]["detail"]
     assert data["usage"]["selfHealLog"][-1]["action"] == "restore_resume_hook"
     assert "missing=script,sidecar" in detail
-    assert "registered=source" in detail
+    assert "registered=target" in detail
     assert "recent_claude_entries=" in detail
 
 
-def test_self_heal_migrates_existing_target_command(
+def test_self_heal_normalizes_existing_target_command(
     resume_paths: ResumeHookPaths,
 ) -> None:
     settings = resume_paths.settings
@@ -166,7 +165,7 @@ def test_self_heal_migrates_existing_target_command(
                             "hooks": [
                                 {
                                     "type": "command",
-                                    "command": f"/usr/bin/python3 {resume_target}",
+                                    "command": f"/usr/bin/python3 {source}",
                                     "timeout": 3,
                                 },
                                 {"type": "command", "command": "other"},
@@ -189,8 +188,7 @@ def test_self_heal_migrates_existing_target_command(
     assert session_entry["custom"] == "keep"
     assert migrated_hook["type"] == "command"
     assert migrated_hook["timeout"] == 3
-    assert str(resume_target) not in migrated_hook["command"]
-    assert source.as_posix() in migrated_hook["command"]
+    assert resume_target.as_posix() in migrated_hook["command"]
     assert session_entry["hooks"][1]["command"] == "other"
     assert data["hooks"]["PreToolUse"][0]["hooks"][0]["command"] == "guard"
     # The stale "1.2" target also triggers a version update in the same pass, so the

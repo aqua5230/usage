@@ -187,6 +187,15 @@ def _write_diagnosis_state(path: Path, *, fingerprint: str, reminded_at: datetim
     )
 
 
+@pytest.mark.parametrize("value", [".", "..."])
+def test_clean_request_rejects_punctuation_only(value: str) -> None:
+    assert mod._clean_request(value) == ""
+
+
+def test_clean_request_keeps_structured_text() -> None:
+    assert mod._clean_request("fix menubar.py") == "fix menubar.py"
+
+
 def test_build_prompt_reads_previous_session(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

@@ -8,6 +8,7 @@ import json
 import logging
 import os
 import threading
+import time
 import tomllib
 import webbrowser
 from dataclasses import dataclass
@@ -468,6 +469,13 @@ class _WindowsTrayController:
         self.stopping = threading.Event()
         self.refresh_lock = threading.Lock()
         self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
+        self.usage_client = ClaudeUsageClient(mock=mock)
+        self._last_tray_percent: float | None = None
+        self._last_tray_tooltip: str | None = None
+        self._last_injected_state: str | None = None
+        self._history_fingerprint: tuple[tuple[str, int, float], ...] | None = None
+        self._cached_history: _RefreshData | None = None
+        self._cached_projects: tuple[list[tuple[str, int, float | None]], ...] | None = None
 
     def _empty_state(self) -> menubar_state.PopoverState:
         missing = menubar_state._missing_row
@@ -526,7 +534,7 @@ class _WindowsTrayController:
         # only re-applies after a visible panel switch reloads the document.
         if self.visible:
             self._place_window()
-            self.inject_state()
+            self.inject_state(force=True)
 
     def _working_area(self) -> tuple[int, int, int, int] | None:
         """Return the primary monitor work area (without taskbar)."""
@@ -642,22 +650,32 @@ class _WindowsTrayController:
         threading.Thread(target=self._refresh_worker, daemon=True).start()
 
     def _refresh_worker(self) -> None:
+        debug_timing = os.environ.get("USAGE_DEBUG") == "1"
+
+        def measure(stage: str, started_at: float) -> None:
+            if debug_timing:
+                elapsed_ms = (time.monotonic() - started_at) * 1000
+                logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", stage, elapsed_ms)
+
         try:
-            self.latest_state = self._build_state()
+            self.latest_state = self._build_state(measure=measure, debug_timing=debug_timing)
             self._process_quota_notifications(self.latest_state)
+            started_at = time.monotonic() if debug_timing else 0.0
             self._update_tray()
+            measure("update_tray", started_at)
             if self.visible:
+                started_at = time.monotonic() if debug_timing else 0.0
                 self.inject_state()
+                measure("inject_state", started_at)
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("Windows tray refresh failed", exc_info=True)
         finally:
             self.refresh_lock.release()
 
-    def _load_entries(self) -> _RefreshData:
+    def _load_entries(self, scan: menubar_state.HistorySourceScan) -> _RefreshData:
         if self.mock:
             return _RefreshData([], None)
-        scan = menubar_state.history_source_scan()
         entries: list[UsageEntry] = []
         error_key = None
         try:
@@ -674,21 +692,50 @@ class _WindowsTrayController:
             error_key = "history_load_error_parse"
         return _RefreshData(entries, error_key)
 
-    def _build_state(self) -> menubar_state.PopoverState:
+    def _build_state(
+        self,
+        *,
+        measure: Any = lambda _stage, _started_at: None,
+        debug_timing: bool = False,
+    ) -> menubar_state.PopoverState:
+        started_at = time.monotonic() if debug_timing else 0.0
         codex_rows, _codex_pct, _model, codex_stale = menubar_state.codex_rows(
             mock=self.mock,
             language=self.language,
             burn_rate_trackers=self.burn_rate_trackers,
         )
+        measure("codex_load", started_at)
+        started_at = time.monotonic() if debug_timing else 0.0
         agy_result = menubar_agy.load_refresh_result(self.language)
         agy = agy_result.projection or menubar_agy.fallback_projection(self.language)
-        history = self._load_entries()
-        projects = (
-            _mock_projects()
-            if self.mock
-            else menubar_state.project_rows_for_windows(history.entries)
-        )
+        measure("agy_load", started_at)
+        started_at = time.monotonic() if debug_timing else 0.0
+        scan = menubar_state.history_source_scan()
+        if menubar_state.history_cache_needs_reload(
+            self._history_fingerprint,
+            scan.fingerprint,
+            has_cached_result=(
+                self._cached_history is not None and self._cached_projects is not None
+            ),
+        ):
+            self._cached_history = self._load_entries(scan)
+            self._cached_projects = (
+                _mock_projects()
+                if self.mock
+                else menubar_state.project_rows_for_windows(self._cached_history.entries)
+            )
+            # A load error may be transient (e.g. a file locked mid-write); keep the
+            # fingerprint unset so the next poll retries instead of pinning the error.
+            self._history_fingerprint = (
+                scan.fingerprint if self._cached_history.history_error_key is None else None
+            )
+        history = self._cached_history
+        projects = self._cached_projects
+        assert history is not None and projects is not None
+        measure("history_load", started_at)
+        started_at = time.monotonic() if debug_timing else 0.0
         outcome = asyncio.run(self._fetch())
+        measure("fetch", started_at)
         return menubar_state.build_popover_state(
             outcome=outcome,
             codex_rows=codex_rows,
@@ -720,25 +767,30 @@ class _WindowsTrayController:
         )
 
     async def _fetch(self) -> Any:
-        client = ClaudeUsageClient(mock=self.mock)
-        try:
-            return await client.fetch_once()
-        finally:
-            await client.aclose()
+        return await self.usage_client.fetch_once()
 
     def _update_tray(self) -> None:
         if self.icon is None:
             return
-        self.icon.icon = draw_tray_icon(self.latest_state.claude_session.percent)
-        self.icon.title = build_tooltip(self.latest_state)
+        percent = self.latest_state.claude_session.percent
+        tooltip = build_tooltip(self.latest_state)
+        if percent == self._last_tray_percent and tooltip == self._last_tray_tooltip:
+            return
+        self.icon.icon = draw_tray_icon(percent)
+        self.icon.title = tooltip
+        self._last_tray_percent = percent
+        self._last_tray_tooltip = tooltip
 
-    def inject_state(self) -> None:
+    def inject_state(self, *, force: bool = False) -> None:
         if self.window is None:
             return
         encoded = json.dumps(
             _state_payload(self.latest_state), ensure_ascii=False, separators=(",", ":")
         )
+        if not force and encoded == self._last_injected_state:
+            return
         self.window.evaluate_js(f"window.usageApplyState({encoded})")
+        self._last_injected_state = encoded
 
     def show_panel(self, _icon: Any = None, _item: Any = None) -> None:
         if self.visible:
@@ -750,7 +802,7 @@ class _WindowsTrayController:
         self.visible = True
         self._place_window()
         self.window.show()
-        self.inject_state()
+        self.inject_state(force=True)
         self.refresh()
 
     def switch_panel(self, panel_id: str) -> None:

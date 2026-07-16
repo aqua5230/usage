@@ -511,6 +511,8 @@ def test_self_heal_migrates_bundled_python_commands(
     resume_source = tmp_path / "usage_session_resume.py"
     resume_source.write_text('__version__ = "1.0"\n', encoding="utf-8")
     monkeypatch.setattr(session_hooks, "_resolve_resume_source", lambda: resume_source)
+    resume_target = tmp_path / ".claude" / "usage-session-resume.py"
+    monkeypatch.setattr(session_hooks, "RESUME_HOOK_TARGET", resume_target)
     settings.write_text(
         json.dumps(
             {
@@ -544,7 +546,7 @@ def test_self_heal_migrates_bundled_python_commands(
     data = json.loads(settings.read_text(encoding="utf-8"))
     assert data["statusLine"]["command"] == expected_statusline_command(hook_target)
     hooks = data["hooks"]["SessionStart"][0]["hooks"]
-    assert hooks[0]["command"] == expected_statusline_command(resume_source)
+    assert hooks[0]["command"] == expected_statusline_command(resume_target)
     migrate_entries = [
         entry
         for entry in data["usage"]["selfHealLog"]
@@ -562,9 +564,9 @@ def test_self_heal_keeps_correct_python_commands_unchanged(
 ) -> None:
     settings = setup_paths.settings
     hook_target = setup_paths.hook_target
-    resume_source = tmp_path / "usage_session_resume.py"
-    resume_source.write_text('__version__ = "1.0"\n', encoding="utf-8")
-    monkeypatch.setattr(session_hooks, "_resolve_resume_source", lambda: resume_source)
+    resume_target = tmp_path / ".claude" / "usage-session-resume.py"
+    monkeypatch.setattr(session_hooks, "RESUME_HOOK_TARGET", resume_target)
+    resume_command = session_hooks._resume_command()
     settings.write_text(
         json.dumps(
             {
@@ -576,9 +578,7 @@ def test_self_heal_keeps_correct_python_commands_unchanged(
                     "SessionStart": [
                         {
                             "matcher": session_hooks.RESUME_MATCHER,
-                            "hooks": [
-                                {"type": "command", "command": f"/usr/bin/python3 {resume_source}"}
-                            ],
+                            "hooks": [{"type": "command", "command": resume_command}],
                         }
                     ]
                 },
@@ -591,8 +591,5 @@ def test_self_heal_keeps_correct_python_commands_unchanged(
 
     data = json.loads(settings.read_text(encoding="utf-8"))
     assert data["statusLine"]["command"] == f"/usr/bin/python3 {hook_target}"
-    assert (
-        data["hooks"]["SessionStart"][0]["hooks"][0]["command"]
-        == f"/usr/bin/python3 {resume_source}"
-    )
+    assert data["hooks"]["SessionStart"][0]["hooks"][0]["command"] == resume_command
     assert "usage" not in data

@@ -487,7 +487,9 @@ def test_show_panel_places_window_before_showing(
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     calls: list[str] = []
     monkeypatch.setattr(controller, "_place_window", lambda: calls.append("place"))
-    monkeypatch.setattr(controller, "inject_state", lambda: calls.append("inject"))
+    monkeypatch.setattr(
+        controller, "inject_state", lambda *, force=False: calls.append(f"inject:{force}")
+    )
     monkeypatch.setattr(controller, "refresh", lambda: calls.append("refresh"))
     controller.window = SimpleNamespace(
         show=lambda: calls.append("show"), hide=lambda: calls.append("hide")
@@ -496,7 +498,79 @@ def test_show_panel_places_window_before_showing(
     controller.show_panel()
 
     assert controller.visible is True
-    assert calls == ["place", "show", "inject", "refresh"]
+    assert calls == ["place", "show", "inject:True", "refresh"]
+
+
+def test_tray_update_skips_unchanged_values(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = _state()
+    icon = SimpleNamespace(icon=None, title=None)
+    controller.icon = icon
+    images: list[float | None] = []
+
+    def fake_draw_tray_icon(percent: float | None) -> object:
+        images.append(percent)
+        return object()
+
+    monkeypatch.setattr(wintray, "draw_tray_icon", fake_draw_tray_icon)
+
+    controller._update_tray()
+    first_image = icon.icon
+    controller._update_tray()
+    controller.latest_state.claude_session.percent = 26.0
+    controller._update_tray()
+
+    assert images == [25.0, 26.0]
+    assert icon.icon is not first_image
+
+
+def test_inject_state_skips_duplicate_but_forces_after_panel_reopens(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    injected: list[str] = []
+    controller.window = SimpleNamespace(
+        evaluate_js=injected.append,
+        show=lambda: None,
+        hide=lambda: None,
+    )
+    monkeypatch.setattr(controller, "_place_window", lambda: None)
+    monkeypatch.setattr(controller, "refresh", lambda: None)
+
+    controller.inject_state()
+    controller.inject_state()
+    controller.show_panel()
+    controller.on_loaded()
+    controller.show_panel()
+    controller.show_panel()
+
+    assert len(injected) == 4
+
+
+def test_build_state_reuses_history_until_fingerprint_changes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    fingerprints = iter([(("history", 1, 10.0),), (("history", 1, 10.0),), (("history", 2, 11.0),)])
+    monkeypatch.setattr(
+        menubar_state,
+        "history_source_scan",
+        lambda: menubar_state.HistorySourceScan(next(fingerprints), (), ()),
+    )
+    calls: list[int] = []
+    original = controller._load_entries
+
+    def counting_load_entries(scan: menubar_state.HistorySourceScan) -> wintray._RefreshData:
+        calls.append(1)
+        return original(scan)
+
+    monkeypatch.setattr(controller, "_load_entries", counting_load_entries)
+
+    controller._build_state()
+    controller._build_state()
+    controller._build_state()
+
+    assert calls == [1, 1]
 
 
 def test_hide_section_updates_preferences_and_visible_panel(

@@ -133,6 +133,16 @@ class HistorySourceScan:
     codex_paths: tuple[Path, ...]
 
 
+def history_cache_needs_reload(
+    previous_fingerprint: tuple[tuple[str, int, float], ...] | None,
+    current_fingerprint: tuple[tuple[str, int, float], ...],
+    *,
+    has_cached_result: bool,
+) -> bool:
+    """Decide whether Windows history projections need to be rebuilt."""
+    return not has_cached_result or previous_fingerprint != current_fingerprint
+
+
 def _jsonl_paths(root: Path) -> tuple[Path, ...]:
     if not root.exists():
         return ()

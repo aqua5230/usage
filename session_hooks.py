@@ -125,7 +125,9 @@ def _migrate_bundled_python_commands_if_needed(
                 if not isinstance(hook, dict):
                     continue
                 command = hook.get("command")
-                if not isinstance(command, str) or not _uses_bundled_app_python(command):
+                if not isinstance(command, str) or not any(
+                    marker in command for marker in _RESUME_MARKERS
+                ):
                     continue
                 if command != new_command:
                     hook["command"] = new_command
@@ -133,6 +135,55 @@ def _migrate_bundled_python_commands_if_needed(
                     resume_changed = True
         if resume_changed:
             details.append("resume")
+
+        new_command = _terse_command()
+        terse_changed = False
+        for entry in entries:
+            if not isinstance(entry, dict) or not _is_terse_entry(entry):
+                continue
+            hooks = entry.get("hooks")
+            if not isinstance(hooks, list):
+                continue
+            for hook in hooks:
+                if not isinstance(hook, dict):
+                    continue
+                command = hook.get("command")
+                if not isinstance(command, str) or not any(
+                    marker in command for marker in _TERSE_MARKERS
+                ):
+                    continue
+                if command != new_command:
+                    hook["command"] = new_command
+                    changed = True
+                    terse_changed = True
+        if terse_changed:
+            details.append("terse")
+
+    hooks_data = data.get("hooks")
+    prompt_entries = hooks_data.get("UserPromptSubmit") if isinstance(hooks_data, dict) else None
+    if isinstance(prompt_entries, list):
+        new_command = _terse_reminder_command()
+        reminder_changed = False
+        for entry in prompt_entries:
+            if not isinstance(entry, dict) or not _is_terse_reminder_entry(entry):
+                continue
+            hooks = entry.get("hooks")
+            if not isinstance(hooks, list):
+                continue
+            for hook in hooks:
+                if not isinstance(hook, dict):
+                    continue
+                command = hook.get("command")
+                if not isinstance(command, str) or not any(
+                    marker in command for marker in _TERSE_REMINDER_MARKERS
+                ):
+                    continue
+                if command != new_command:
+                    hook["command"] = new_command
+                    changed = True
+                    reminder_changed = True
+        if reminder_changed:
+            details.append("terse_reminder")
 
     if not changed:
         return
@@ -182,20 +233,17 @@ def _resolve_terse_reminder_source() -> Path:
 
 def _resume_command() -> str:
     python = _find_system_python()
-    source = _resolve_resume_source()
-    return f"{_shell_arg(python)} {_shell_arg(str(source))}"
+    return f"{_shell_arg(python)} {_shell_arg(str(RESUME_HOOK_TARGET))}"
 
 
 def _terse_command() -> str:
     python = _find_system_python()
-    source = _resolve_terse_source()
-    return f"{_shell_arg(python)} {_shell_arg(str(source))}"
+    return f"{_shell_arg(python)} {_shell_arg(str(TERSE_HOOK_TARGET))}"
 
 
 def _terse_reminder_command() -> str:
     python = _find_system_python()
-    source = _resolve_terse_reminder_source()
-    return f"{_shell_arg(python)} {_shell_arg(str(source))}"
+    return f"{_shell_arg(python)} {_shell_arg(str(TERSE_REMINDER_HOOK_TARGET))}"
 
 
 def _copy_resume_script() -> None:
@@ -873,7 +921,6 @@ def _migrate_resume_command_if_needed() -> None:
     entries = _session_start_list(settings)
     if not entries:
         return
-    old_target = str(RESUME_HOOK_TARGET)
     new_command = _resume_command()
     changed = False
     for entry in entries:
@@ -886,7 +933,11 @@ def _migrate_resume_command_if_needed() -> None:
             if not isinstance(hook, dict):
                 continue
             command = hook.get("command")
-            if not isinstance(command, str) or old_target not in command:
+            if (
+                not isinstance(command, str)
+                or not any(marker in command for marker in _RESUME_MARKERS)
+                or command == new_command
+            ):
                 continue
             hook["command"] = new_command
             changed = True
@@ -895,7 +946,7 @@ def _migrate_resume_command_if_needed() -> None:
     _save_settings(settings)
     _append_self_heal_log(
         "migrate_resume_command",
-        f"{RESUME_HOOK_TARGET} -> {_resolve_resume_source()}",
+        f"{_resolve_resume_source()} -> {RESUME_HOOK_TARGET}",
     )
 
 
