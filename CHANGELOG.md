@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## Unreleased
 
 ### Added
+- **Windows panel switch buttons now open the full controls menu**: clicking a panel's built-in Switch Panel button opens a localized HTML overlay with the same panel, visibility, refresh, notification, workflow, update, and quit controls as the Windows tray menu.
 - **Windows tray panels can now be repositioned**: a subtle top drag handle moves frameless panels without interfering with quota-card sorting; the position is restored on the next open, clamped to the current work area, and can be reset from the tray menu.
 - **Windows tray menu parity for daily updates and workflow controls**: the Windows system tray now links to AI Update Daily, offers a Hide Sections submenu for Claude, Codex, and Antigravity, supports quota-alert notifications at the same thresholds as macOS, and exposes Resume Last Session and Token Saver toggles. Changes to visible sections are injected into an open panel immediately; quota alerts use native Windows tray notifications. The macOS-only AI Talent Market remains unavailable on Windows.
 

@@ -81,6 +81,85 @@ window.webkit.messageHandlers.usage = {
   postMessage: function(message) { return window.pywebview.api.postMessage(message); }
 };
 
+// The panel assets are shared with macOS.  On Windows, intercept their
+// built-in switch button and provide the equivalent of the native menu here.
+(function() {
+  var menuRoot;
+
+  function closeMenu() {
+    if (menuRoot) {
+      menuRoot.remove();
+      menuRoot = null;
+    }
+  }
+
+  function post(action, extra) {
+    var message = Object.assign({ action: action }, extra || {});
+    return Promise.resolve(
+      window.webkit.messageHandlers.usage.postMessage(JSON.stringify(message))
+    );
+  }
+
+  function menuItem(item) {
+    if (item.type === 'separator') {
+      var separator = document.createElement('div');
+      separator.className = 'usage-panel-menu-separator';
+      separator.setAttribute('role', 'separator');
+      return separator;
+    }
+    var row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'usage-panel-menu-item';
+    row.setAttribute('role', item.children ? 'menuitem' : 'menuitemcheckbox');
+    row.textContent = (item.checked ? '✓  ' : '    ') + item.label + (item.children ? '  ›' : '');
+    if (item.children) {
+      row.classList.add('usage-panel-menu-parent');
+      var submenu = document.createElement('div');
+      submenu.className = 'usage-panel-menu-submenu';
+      submenu.setAttribute('role', 'menu');
+      item.children.forEach(function(child) { submenu.appendChild(menuItem(child)); });
+      row.appendChild(submenu);
+      return row;
+    }
+    row.addEventListener('click', function() {
+      var extra = item.panelId ? { panel_id: item.panelId } :
+        item.preferenceKey ? { preference_key: item.preferenceKey } : undefined;
+      post(item.action, extra);
+      closeMenu();
+    });
+    return row;
+  }
+
+  function showMenu(items) {
+    closeMenu();
+    menuRoot = document.createElement('div');
+    menuRoot.className = 'usage-panel-menu-backdrop';
+    menuRoot.setAttribute('aria-hidden', 'false');
+    var menu = document.createElement('div');
+    menu.className = 'usage-panel-menu';
+    menu.setAttribute('role', 'menu');
+    items.forEach(function(item) { menu.appendChild(menuItem(item)); });
+    menuRoot.appendChild(menu);
+    menuRoot.addEventListener('click', function(event) {
+      if (event.target === menuRoot) closeMenu();
+    });
+    document.body.appendChild(menuRoot);
+  }
+
+  document.addEventListener('click', function(event) {
+    var button = event.target.closest && event.target.closest('[data-action="switch"]');
+    if (!button) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    post('open_menu').then(function(items) {
+      if (Array.isArray(items)) showMenu(items);
+    });
+  }, true);
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') closeMenu();
+  });
+})();
+
 // Keep the native drag target deliberately small: quota cards also support
 // drag-to-reorder, so making the entire frameless window draggable would steal
 // their pointer events.
@@ -110,6 +189,58 @@ document.addEventListener('DOMContentLoaded', function() {
   background: rgba(127, 127, 127, .65);
   opacity: 1;
 }
+.usage-panel-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  background: rgba(0, 0, 0, .12);
+}
+.usage-panel-menu {
+  position: absolute;
+  top: 36px;
+  right: 12px;
+  min-width: 220px;
+  max-height: calc(100vh - 48px);
+  overflow: auto;
+  padding: 6px;
+  border: 1px solid rgba(127, 127, 127, .55);
+  border-radius: 9px;
+  background: rgba(30, 32, 36, .96);
+  color: #f5f5f5;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .32);
+  font: 13px/1.3 system-ui, sans-serif;
+}
+.usage-panel-menu-item {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.usage-panel-menu-item:hover, .usage-panel-menu-item:focus {
+  background: rgba(120, 160, 255, .32);
+  outline: none;
+}
+.usage-panel-menu-parent:hover > .usage-panel-menu-submenu { display: block; }
+.usage-panel-menu-submenu {
+  display: none;
+  position: absolute;
+  top: -6px;
+  right: calc(100% - 4px);
+  min-width: 190px;
+  padding: 6px;
+  border: 1px solid rgba(127, 127, 127, .55);
+  border-radius: 9px;
+  background: rgba(30, 32, 36, .98);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .32);
+}
+.usage-panel-menu-separator { height: 1px; margin: 5px 4px; background: rgba(180, 180, 180, .35); }
 </style>
 """.strip()
 
@@ -272,8 +403,10 @@ class _JSApi:
         # WinForms window graph) recurses forever.
         self._controller = controller
 
-    def postMessage(self, message: object) -> None:  # noqa: N802 - JavaScript contract
-        self._controller.handle_panel_message(message)
+    def postMessage(  # noqa: N802 - JavaScript contract
+        self, message: object
+    ) -> list[dict[str, object]] | None:
+        return self._controller.handle_panel_message(message)
 
 
 class _WindowsTrayController:
@@ -593,11 +726,81 @@ class _WindowsTrayController:
         self.latest_state.card_order = _quota_card_order()
         self.window.load_html(panel_html(self.panel_filename()))
 
-    def _deferred_switch_panel(self) -> None:
+    def _deferred_switch_panel(self, panel_id: str) -> None:
         self._switch_pending = False
-        ids = [panel[0] for panel in available_panels()]
-        next_panel_id = ids[(ids.index(self.active_panel_id) + 1) % len(ids)]
-        self.switch_panel(next_panel_id)
+        self.switch_panel(panel_id)
+
+    def _schedule_panel_switch(self, panel_id: str) -> None:
+        if self._switch_pending or panel_id not in {panel[0] for panel in available_panels()}:
+            return
+        self._switch_pending = True
+        # postMessage is a pywebview promise. Reloading the document before
+        # that promise resolves destroys its callback and can leave the Edge
+        # WebView as a blank white window. Keep the existing short deferral,
+        # but now reload the panel explicitly chosen from the HTML menu.
+        threading.Timer(0.05, lambda: self._deferred_switch_panel(panel_id)).start()
+
+    def _panel_menu_data(self) -> list[dict[str, object]]:
+        """Return fresh, localized data for the HTML panel menu."""
+
+        def item(key: str, action: str, **extra: object) -> dict[str, object]:
+            return {
+                "i18nKey": key,
+                "label": _t(self.language, key),
+                "action": action,
+                **extra,
+            }
+
+        panels = [
+            item(
+                key,
+                "switch_panel",
+                panelId=panel_id,
+                checked=self.active_panel_id == panel_id,
+            )
+            for panel_id, key, _filename in available_panels()
+        ]
+        hidden_sections = [
+            item(
+                "claude_name",
+                "toggle_hide_section",
+                preferenceKey="hide_claude_section",
+                checked=_hide_claude_enabled(),
+            ),
+            item(
+                "codex_name",
+                "toggle_hide_section",
+                preferenceKey="hide_codex_section",
+                checked=_hide_codex_enabled(),
+            ),
+            item(
+                "agy_name",
+                "toggle_hide_section",
+                preferenceKey="hide_agy_section",
+                checked=_hide_agy_enabled(),
+            ),
+        ]
+        return [
+            item("panel_ai_daily", "open_ai_daily"),
+            item("reset_panel_position", "reset_panel_position"),
+            {"type": "separator"},
+            item("switch_panel", "", children=panels),
+            item("hide_sections_menu", "", children=hidden_sections),
+            {"type": "separator"},
+            item("refresh_now", "refresh"),
+            item("launch_at_login", "toggle_login", checked=win_login_item.is_enabled()),
+            item(
+                "quota_notifications_menu",
+                "toggle_quota_notifications",
+                checked=_quota_notifications_enabled(),
+            ),
+            {"type": "separator"},
+            item("project_butler", "toggle_session_resume", checked=_session_resume_enabled()),
+            item("terse_mode_menu", "toggle_terse_mode", checked=_terse_mode_enabled()),
+            {"type": "separator"},
+            item("check_update", "check_update"),
+            item("quit", "quit"),
+        ]
 
     def toggle_login(self, _icon: Any = None, _item: Any = None) -> None:
         win_login_item.disable() if win_login_item.is_enabled() else win_login_item.enable()
@@ -723,15 +926,18 @@ class _WindowsTrayController:
         windll: Any = getattr(ctypes, library_name)
         return int(windll.user32.MessageBoxW(0, text, "usage", style))
 
-    def handle_panel_message(self, message: object) -> None:
+    def handle_panel_message(self, message: object) -> list[dict[str, object]] | None:
         payload: object = message
         if isinstance(message, str) and message.startswith("{"):
             try:
                 payload = json.loads(message)
             except ValueError:
-                return
+                return None
         if isinstance(payload, dict):
-            if payload.get("action") == "set_card_order":
+            action = payload.get("action")
+            if action == "open_menu":
+                return self._panel_menu_data()
+            if action == "set_card_order":
                 order = payload.get("order")
                 if (
                     isinstance(order, list)
@@ -742,24 +948,46 @@ class _WindowsTrayController:
                     preferences = _load_preferences()
                     preferences["quota_card_order"] = order
                     _save_preferences(preferences)
-            return
+            elif action == "switch_panel":
+                panel_id = payload.get("panel_id")
+                if isinstance(panel_id, str):
+                    self._schedule_panel_switch(panel_id)
+            elif action == "toggle_hide_section":
+                preference_key = payload.get("preference_key")
+                if preference_key in {
+                    "hide_claude_section",
+                    "hide_codex_section",
+                    "hide_agy_section",
+                }:
+                    self.toggle_hide_section(preference_key)
+            elif action == "open_ai_daily":
+                self.open_ai_daily()
+            elif action == "reset_panel_position":
+                self.reset_panel_position()
+            elif action == "refresh":
+                self.refresh()
+            elif action == "toggle_login":
+                self.toggle_login()
+            elif action == "toggle_quota_notifications":
+                self.toggle_quota_notifications()
+            elif action == "toggle_session_resume":
+                self.toggle_session_resume()
+            elif action == "toggle_terse_mode":
+                self.toggle_terse_mode()
+            elif action == "check_update":
+                self.check_update()
+            elif action == "quit":
+                self.quit()
+            return None
         action = str(payload)
         if action == "refresh":
             self.refresh()
         elif action == "quit":
             self.quit()
         elif action == "switch":
-            if self._switch_pending:
-                return
-            self._switch_pending = True
-            # postMessage is a pywebview promise. Reloading the document before
-            # that promise resolves destroys its callback and can leave the
-            # Edge WebView as a blank white window. Defer the reload until the
-            # bridge call has returned to JavaScript. This empirical delay is
-            # not a synchronization guarantee. If slow machines still show a
-            # blank window, JavaScript must call a second API after postMessage's
-            # promise resolves to trigger the reload; do not increase this delay.
-            threading.Timer(0.05, self._deferred_switch_panel).start()
+            # Older panel assets post this action directly. Return menu data
+            # instead of cycling themes so the bridge remains forwards-safe.
+            return self._panel_menu_data()
         elif action in {"toggle_statusline", "toggle-statusline"}:
             threading.Thread(target=self._toggle_statusline, daemon=True).start()
         elif action == "install":
@@ -773,6 +1001,7 @@ class _WindowsTrayController:
                 args=(str(project_range or "30d"),),
                 daemon=True,
             ).start()
+        return None
 
     def _toggle_statusline(self) -> None:
         _toggle_statusline_settings()
