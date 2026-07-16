@@ -165,7 +165,7 @@ def test_self_heal_normalizes_existing_target_command(
                             "hooks": [
                                 {
                                     "type": "command",
-                                    "command": f"/usr/bin/python3 {resume_target}",
+                                    "command": f"/usr/bin/python3 {source}",
                                     "timeout": 3,
                                 },
                                 {"type": "command", "command": "other"},

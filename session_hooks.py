@@ -921,7 +921,6 @@ def _migrate_resume_command_if_needed() -> None:
     entries = _session_start_list(settings)
     if not entries:
         return
-    old_target = str(RESUME_HOOK_TARGET)
     new_command = _resume_command()
     changed = False
     for entry in entries:
@@ -934,7 +933,11 @@ def _migrate_resume_command_if_needed() -> None:
             if not isinstance(hook, dict):
                 continue
             command = hook.get("command")
-            if not isinstance(command, str) or old_target not in command:
+            if (
+                not isinstance(command, str)
+                or not any(marker in command for marker in _RESUME_MARKERS)
+                or command == new_command
+            ):
                 continue
             hook["command"] = new_command
             changed = True
@@ -943,7 +946,7 @@ def _migrate_resume_command_if_needed() -> None:
     _save_settings(settings)
     _append_self_heal_log(
         "migrate_resume_command",
-        f"{RESUME_HOOK_TARGET} -> {_resolve_resume_source()}",
+        f"{_resolve_resume_source()} -> {RESUME_HOOK_TARGET}",
     )
 
 
