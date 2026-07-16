@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.28.5] - 2026-07-16
+
+### Fixed
+- **The Claude quota card now explains why it shows no data for desktop-app/headless-only users**: the quota card depends entirely on the statusLine hook, which Claude Code only invokes when rendering an interactive terminal. Users whose usage happens exclusively through the desktop app or other non-TUI surfaces never trigger it, so the card stayed on a generic "status file not found" message even while the hook was correctly installed and Claude Code transcripts kept growing. The card now distinguishes this case — hook installed, transcripts actively updating, status file still missing — and shows a targeted hint that a terminal session needs to run once to sync, instead of the setup-focused message meant for users who never installed the hook at all.
+
 ## [0.28.4] - 2026-07-16
 
 ### Fixed

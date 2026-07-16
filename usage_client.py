@@ -265,9 +265,15 @@ class ClaudeUsageClient:
                 self._cached_data = None
                 self._cached_path = None
                 self._cached_mtime = None
+                message_key = "usage_status_missing"
+                if current_hook_state() in {
+                    "us-direct",
+                    "us-forwarder",
+                } and _has_recent_claude_project_activity(time.time()):
+                    message_key = "usage_status_missing_active"
                 return PollOutcome(
                     state=PollState.TOKEN_ERROR,
-                    message=_t(detect_lang(), "usage_status_missing"),
+                    message=_t(detect_lang(), message_key),
                 )
 
             data, source_path, mtime = result

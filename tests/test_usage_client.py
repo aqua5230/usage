@@ -17,6 +17,8 @@ from typing import Any
 import pytest
 
 import usage_client
+from i18n import _t
+from usage_lang import detect_lang
 
 LEGACY_NAME = "usag"
 
@@ -479,6 +481,37 @@ def test_fetch_once_does_not_warn_without_recent_project_activity(
     assert outcome.snapshot.current_percent == 12
     assert outcome.snapshot.weekly_percent == 34
     assert outcome.message is None
+
+
+def test_fetch_once_hints_active_when_status_missing_hook_installed_and_active(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    now = 1_700_000_000.0
+    projects_dir = tmp_path / "projects"
+    _patch_status_paths(monkeypatch, tmp_path, projects_dir)
+    _touch_project_log(projects_dir / "demo" / "session.jsonl", now - 60)
+    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr(usage_client, "current_hook_state", lambda: "us-direct")
+
+    outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
+
+    assert outcome.state is usage_client.PollState.TOKEN_ERROR
+    assert outcome.message == _t(detect_lang(), "usage_status_missing_active")
+
+
+def test_fetch_once_uses_generic_missing_message_without_recent_activity(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    now = 1_700_000_000.0
+    projects_dir = tmp_path / "projects"
+    _patch_status_paths(monkeypatch, tmp_path, projects_dir)
+    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr(usage_client, "current_hook_state", lambda: "us-direct")
+
+    outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
+
+    assert outcome.state is usage_client.PollState.TOKEN_ERROR
+    assert outcome.message == _t(detect_lang(), "usage_status_missing")
 
 
 def test_recent_project_activity_uses_ttl_cache(monkeypatch: pytest.MonkeyPatch) -> None:
