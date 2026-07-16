@@ -6,12 +6,14 @@ from __future__ import annotations
 import json
 import sys
 import threading
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 import menubar_prefs
 import menubar_state
+import prefs
 import wintray
 from usage_notifications import NotificationEvent
 
@@ -149,6 +151,58 @@ def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
 
     assert "window.webkit.messageHandlers.usage" in html
     assert "window.pywebview.api.postMessage(message)" in html
+    assert "pywebview-drag-region" in html
+    assert "usage-window-drag-handle" in html
+
+
+def test_panel_position_is_clamped_and_persisted_on_hide(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_path = tmp_path / "usage-preferences.json"
+    preferences_path.write_text(
+        json.dumps({"usage.windowPosition": {"x": 5000, "y": -100}}), encoding="utf-8"
+    )
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
+    moves: list[tuple[int, int]] = []
+    window = SimpleNamespace(
+        x=0,
+        y=0,
+        resize=lambda *args: None,
+        move=lambda x, y: moves.append((x, y)),
+        hide=lambda: None,
+    )
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = window
+    controller.visible = True
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 1080))
+
+    controller._place_window()
+
+    assert moves == [(608, 12)]
+    window.x, window.y = 123, 234
+    controller.show_panel()
+    assert prefs._load_preferences()["usage.windowPosition"] == {"x": 123, "y": 234}
+
+
+def test_reset_panel_position_clears_preference_and_repositions_visible_window(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_path = tmp_path / "usage-preferences.json"
+    preferences_path.write_text(
+        json.dumps({"usage.windowPosition": {"x": 123, "y": 234}}), encoding="utf-8"
+    )
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    calls: list[bool] = []
+    monkeypatch.setattr(
+        controller, "_place_window", lambda *, force_default=False: calls.append(force_default)
+    )
+
+    controller.reset_panel_position()
+
+    assert prefs._load_preferences() == {}
+    assert calls == [True]
 
 
 def test_js_api_forwards_panel_message() -> None:
@@ -466,6 +520,7 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
         active_panel_id="classic",
         switch_panel=lambda panel_id: None,
         show_panel=lambda: None,
+        reset_panel_position=lambda: None,
         refresh=lambda: None,
         toggle_login=lambda: None,
         open_ai_daily=lambda: None,

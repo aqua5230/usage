@@ -80,7 +80,37 @@ window.webkit.messageHandlers = window.webkit.messageHandlers || {};
 window.webkit.messageHandlers.usage = {
   postMessage: function(message) { return window.pywebview.api.postMessage(message); }
 };
+
+// Keep the native drag target deliberately small: quota cards also support
+// drag-to-reorder, so making the entire frameless window draggable would steal
+// their pointer events.
+document.addEventListener('DOMContentLoaded', function() {
+  var handle = document.createElement('div');
+  handle.className = 'usage-window-drag-handle pywebview-drag-region';
+  handle.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(handle);
+});
 </script>
+<style>
+.usage-window-drag-handle {
+  position: fixed;
+  top: 4px;
+  left: 50%;
+  z-index: 2147483647;
+  width: 56px;
+  height: 7px;
+  margin-left: -28px;
+  border-radius: 99px;
+  background: rgba(127, 127, 127, .28);
+  cursor: move;
+  opacity: .35;
+  transition: opacity .15s ease, background .15s ease;
+}
+.usage-window-drag-handle:hover {
+  background: rgba(127, 127, 127, .65);
+  opacity: 1;
+}
+</style>
 """.strip()
 
 
@@ -264,6 +294,7 @@ class _WindowsTrayController:
         self.icon: Any = None
         self.window: Any = None
         self.visible = False
+        self._positioned_this_show = False
         self.stopping = threading.Event()
         self.refresh_lock = threading.Lock()
         self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
@@ -327,9 +358,10 @@ class _WindowsTrayController:
             self._place_window()
             self.inject_state()
 
-    def _place_window(self) -> None:
-        if os.name != "nt" or self.window is None:
-            return
+    def _working_area(self) -> tuple[int, int, int, int] | None:
+        """Return the primary monitor work area (without taskbar)."""
+        if os.name != "nt":
+            return None
         import ctypes
 
         class Rect(ctypes.Structure):
@@ -344,12 +376,89 @@ class _WindowsTrayController:
         library_name = "windll"
         user32: Any = getattr(ctypes, library_name).user32
         if user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0):
-            height = min(self.panel_height(), max(640, rect.bottom - rect.top - 24))
-            self.window.resize(PANEL_WIDTH, height)
-            self.window.move(
-                max(rect.left + 12, rect.right - PANEL_WIDTH - 12),
-                max(rect.top + 12, rect.bottom - height - 12),
+            return (rect.left, rect.top, rect.right, rect.bottom)
+        return None
+
+    def _saved_window_position(self) -> tuple[int, int] | None:
+        value = _load_preferences().get("usage.windowPosition")
+        if not isinstance(value, dict):
+            return None
+        x, y = value.get("x"), value.get("y")
+        if isinstance(x, bool) or isinstance(y, bool):
+            return None
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            return None
+        return (int(x), int(y))
+
+    def _current_window_position(self) -> tuple[int, int] | None:
+        if self.window is None:
+            return None
+        try:
+            x, y = self.window.x, self.window.y
+        except (AttributeError, TypeError, ValueError):
+            return None
+        if isinstance(x, bool) or isinstance(y, bool):
+            return None
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            return None
+        return (int(x), int(y))
+
+    @staticmethod
+    def _clamp_window_position(
+        position: tuple[int, int], work_area: tuple[int, int, int, int], height: int
+    ) -> tuple[int, int]:
+        left, top, right, bottom = work_area
+        return (
+            min(max(position[0], left + 12), max(left + 12, right - PANEL_WIDTH - 12)),
+            min(max(position[1], top + 12), max(top + 12, bottom - height - 12)),
+        )
+
+    @staticmethod
+    def _default_window_position(
+        work_area: tuple[int, int, int, int], height: int
+    ) -> tuple[int, int]:
+        left, top, right, bottom = work_area
+        return (max(left + 12, right - PANEL_WIDTH - 12), max(top + 12, bottom - height - 12))
+
+    def _place_window(self, *, force_default: bool = False) -> None:
+        if self.window is None:
+            return
+        work_area = self._working_area()
+        if work_area is None:
+            return
+        left, top, right, bottom = work_area
+        height = min(self.panel_height(), max(640, bottom - top - 24))
+        self.window.resize(PANEL_WIDTH, height)
+        if force_default:
+            position = self._default_window_position(work_area, height)
+        elif self._positioned_this_show:
+            current_position = self._current_window_position()
+            position = (
+                current_position
+                or self._saved_window_position()
+                or self._default_window_position(work_area, height)
             )
+        else:
+            position = self._saved_window_position() or self._default_window_position(
+                work_area, height
+            )
+        self.window.move(*self._clamp_window_position(position, work_area, height))
+        self._positioned_this_show = True
+
+    def _save_window_position(self) -> None:
+        position = self._current_window_position()
+        if position is None:
+            return
+        preferences = _load_preferences()
+        preferences["usage.windowPosition"] = {"x": position[0], "y": position[1]}
+        _save_preferences(preferences)
+
+    def reset_panel_position(self, _icon: Any = None, _item: Any = None) -> None:
+        preferences = _load_preferences()
+        preferences.pop("usage.windowPosition", None)
+        _save_preferences(preferences)
+        if self.visible:
+            self._place_window(force_default=True)
 
     def _poll_loop(self) -> None:
         while not self.stopping.wait(
@@ -463,7 +572,9 @@ class _WindowsTrayController:
 
     def show_panel(self, _icon: Any = None, _item: Any = None) -> None:
         if self.visible:
+            self._save_window_position()
             self.visible = False
+            self._positioned_this_show = False
             self.window.hide()
             return
         self.visible = True
@@ -709,6 +820,9 @@ def _menu(controller: _WindowsTrayController) -> Any:
     return pystray.Menu(
         pystray.MenuItem("Open", controller.show_panel, default=True, visible=False),
         pystray.MenuItem(_t(controller.language, "panel_ai_daily"), controller.open_ai_daily),
+        pystray.MenuItem(
+            _t(controller.language, "reset_panel_position"), controller.reset_panel_position
+        ),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem(_t(controller.language, "switch_panel"), pystray.Menu(*panel_items)),
         pystray.MenuItem(
