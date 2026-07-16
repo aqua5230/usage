@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## 未發行
+
+### 新增
+- **Windows 系統匣選單補齊每日更新與工作流程控制**：Windows 系統匣現在可開啟 AI 更新日報，並提供 Claude、Codex、Antigravity 的「隱藏區塊」子選單；用量提醒通知沿用與 macOS 相同的跨門檻判斷，也加入「接著上次做」與「省 token 模式」開關。可見區塊的變更會立即注入目前開啟的面板，額度提醒則使用原生 Windows 系統匣通知。僅限 macOS 的 AI 人才市場仍不會在 Windows 出現。
+
 ## [0.28.5] - 2026-07-16
 
 ### 修正

@@ -13,6 +13,7 @@ import pytest
 import menubar_prefs
 import menubar_state
 import wintray
+from usage_notifications import NotificationEvent
 
 
 class _Key:
@@ -288,6 +289,7 @@ def test_run_app_wires_pystray_and_pywebview(
         )
         return window
 
+    FakeMenu.SEPARATOR = object()  # type: ignore[attr-defined]
     fake_pystray = SimpleNamespace(Icon=FakeIcon, Menu=FakeMenu, MenuItem=FakeMenuItem)
     fake_webview = SimpleNamespace(
         create_window=create_window,
@@ -348,6 +350,74 @@ def test_show_panel_places_window_before_showing(
     assert calls == ["place", "show", "inject", "refresh"]
 
 
+def test_hide_section_updates_preferences_and_visible_panel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    preferences: dict[str, object] = {}
+    saved: list[dict[str, object]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    injected: list[str] = []
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences)
+    monkeypatch.setattr(wintray, "_save_preferences", lambda value: saved.append(dict(value)))
+    monkeypatch.setattr(wintray, "_hide_claude_enabled", lambda: True)
+    monkeypatch.setattr(wintray, "_hide_codex_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_hide_agy_enabled", lambda: False)
+    monkeypatch.setattr(controller, "inject_state", lambda: injected.append("state"))
+
+    controller.toggle_hide_section("hide_claude_section")
+
+    assert preferences == {"hide_claude_section": True}
+    assert saved == [preferences]
+    assert controller.latest_state.hide_claude is True
+    assert injected == ["state"]
+
+
+def test_quota_notifications_use_pystray_notify_and_existing_i18n(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=False, interval=60)
+    controller.language = "en"
+    notices: list[tuple[str, str]] = []
+    controller.icon = SimpleNamespace(
+        notify=lambda message, title: notices.append((message, title))
+    )
+    monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: True)
+    state = _state()
+
+    controller._send_quota_notification(
+        NotificationEvent("warn", "claude_session", 90.0), state
+    )
+
+    assert notices == [("Claude Session is 25% used. Time to wrap up?", "🐾 Almost out")]
+
+
+def test_session_hook_toggles_run_in_background_helpers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    def record(name: str) -> int:
+        calls.append(name)
+        return 0
+
+    hooks = SimpleNamespace(
+        is_resume_enabled=lambda: False,
+        enable_session_resume=lambda: record("enable_resume"),
+        disable_session_resume=lambda: record("disable_resume"),
+        is_terse_mode_enabled=lambda: True,
+        enable_terse_mode=lambda: record("enable_terse"),
+        disable_terse_mode=lambda: record("disable_terse"),
+    )
+    monkeypatch.setitem(sys.modules, "session_hooks", hooks)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+
+    controller._toggle_session_resume_in_background()
+    controller._toggle_terse_mode_in_background()
+
+    assert calls == ["enable_resume", "disable_terse"]
+
+
 def test_run_app_bails_out_when_another_instance_holds_the_lock(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -398,6 +468,11 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
         show_panel=lambda: None,
         refresh=lambda: None,
         toggle_login=lambda: None,
+        open_ai_daily=lambda: None,
+        toggle_hide_section=lambda key: None,
+        toggle_quota_notifications=lambda: None,
+        toggle_session_resume=lambda: None,
+        toggle_terse_mode=lambda: None,
         check_update=lambda: None,
         quit=lambda: None,
     )

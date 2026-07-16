@@ -29,6 +29,8 @@ from menubar_prefs import (
     _hide_claude_enabled,
     _hide_codex_enabled,
     _quota_card_order,
+    _quota_notification_thresholds,
+    _quota_notifications_enabled,
 )
 from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
@@ -36,6 +38,7 @@ from pricing import calculate_cost
 from statusline_settings import _statusline_enabled, _toggle_statusline_settings
 from usage_client import ClaudeUsageClient, PollState
 from usage_lang import detect_lang
+from usage_notifications import NotificationEvent, QuotaNotifier
 from usage_rate import UsageRateTracker
 
 if TYPE_CHECKING:
@@ -263,6 +266,7 @@ class _WindowsTrayController:
         self.visible = False
         self.stopping = threading.Event()
         self.refresh_lock = threading.Lock()
+        self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
 
     def _empty_state(self) -> menubar_state.PopoverState:
         missing = menubar_state._missing_row
@@ -361,6 +365,7 @@ class _WindowsTrayController:
     def _refresh_worker(self) -> None:
         try:
             self.latest_state = self._build_state()
+            self._process_quota_notifications(self.latest_state)
             self._update_tray()
             if self.visible:
                 self.inject_state()
@@ -486,6 +491,102 @@ class _WindowsTrayController:
     def toggle_login(self, _icon: Any = None, _item: Any = None) -> None:
         win_login_item.disable() if win_login_item.is_enabled() else win_login_item.enable()
 
+    def open_ai_daily(self, _icon: Any = None, _item: Any = None) -> None:
+        webbrowser.open("https://aqua5230.github.io/ai-updates/")
+
+    def toggle_hide_section(self, preference_key: str) -> None:
+        preferences = _load_preferences()
+        preferences[preference_key] = preferences.get(preference_key) is not True
+        _save_preferences(preferences)
+        self.latest_state.hide_claude = _hide_claude_enabled()
+        self.latest_state.hide_codex = _hide_codex_enabled()
+        self.latest_state.hide_agy = _hide_agy_enabled()
+        if self.visible:
+            self.inject_state()
+
+    def toggle_quota_notifications(self, _icon: Any = None, _item: Any = None) -> None:
+        preferences = _load_preferences()
+        preferences["quota_notifications"] = not _quota_notifications_enabled(preferences)
+        _save_preferences(preferences)
+
+    def toggle_session_resume(self, _icon: Any = None, _item: Any = None) -> None:
+        threading.Thread(target=self._toggle_session_resume_in_background, daemon=True).start()
+
+    def _toggle_session_resume_in_background(self) -> None:
+        import session_hooks
+
+        try:
+            if session_hooks.is_resume_enabled():
+                session_hooks.disable_session_resume()
+            else:
+                session_hooks.enable_session_resume()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("toggle session resume failed", exc_info=True)
+
+    def toggle_terse_mode(self, _icon: Any = None, _item: Any = None) -> None:
+        threading.Thread(target=self._toggle_terse_mode_in_background, daemon=True).start()
+
+    def _toggle_terse_mode_in_background(self) -> None:
+        import session_hooks
+
+        try:
+            if session_hooks.is_terse_mode_enabled():
+                session_hooks.disable_terse_mode()
+            else:
+                session_hooks.enable_terse_mode()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("toggle terse mode failed", exc_info=True)
+
+    def _process_quota_notifications(self, state: menubar_state.PopoverState) -> None:
+        try:
+            events = self._quota_notifier.update(
+                {
+                    "claude_session": (
+                        state.claude_session.percent,
+                        state.claude_session.available,
+                    ),
+                    "claude_weekly": (
+                        state.claude_weekly.percent,
+                        state.claude_weekly.available,
+                    ),
+                    "codex_session": (state.codex_session.percent, state.codex_session.available),
+                    "codex_weekly": (state.codex_weekly.percent, state.codex_weekly.available),
+                }
+            )
+            if _quota_notifications_enabled() and not self.mock:
+                for event in events:
+                    self._send_quota_notification(event, state)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows quota notification processing failed", exc_info=True)
+
+    def _send_quota_notification(
+        self, event: NotificationEvent, state: menubar_state.PopoverState
+    ) -> None:
+        if self.icon is None or not hasattr(self.icon, "notify"):
+            return
+        rows = {
+            "claude_session": state.claude_session,
+            "claude_weekly": state.claude_weekly,
+            "codex_session": state.codex_session,
+            "codex_weekly": state.codex_weekly,
+        }
+        row = rows[event.channel]
+        scope = row.title or _t(
+            self.language, "session_label" if event.channel.endswith("_session") else "weekly_label"
+        )
+        message = _t(
+            self.language,
+            f"notif_{event.kind}_body",
+            tool="Claude" if event.channel.startswith("claude_") else "Codex",
+            scope=scope,
+            pct=f"{round(row.percent or event.threshold or 0.0):g}",
+            reset=row.reset_text,
+        )
+        self.icon.notify(message, _t(self.language, f"notif_{event.kind}_title"))
+
     def check_update(self, _icon: Any = None, _item: Any = None) -> None:
         def worker() -> None:
             result = update_checker.check_latest_release_result(_current_version())
@@ -607,16 +708,74 @@ def _menu(controller: _WindowsTrayController) -> Any:
     )
     return pystray.Menu(
         pystray.MenuItem("Open", controller.show_panel, default=True, visible=False),
+        pystray.MenuItem(_t(controller.language, "panel_ai_daily"), controller.open_ai_daily),
+        pystray.Menu.SEPARATOR,
         pystray.MenuItem(_t(controller.language, "switch_panel"), pystray.Menu(*panel_items)),
+        pystray.MenuItem(
+            _t(controller.language, "hide_sections_menu"),
+            pystray.Menu(
+                pystray.MenuItem(
+                    _t(controller.language, "claude_name"),
+                    lambda _icon, _item: controller.toggle_hide_section("hide_claude_section"),
+                    checked=lambda _item: _hide_claude_enabled(),
+                ),
+                pystray.MenuItem(
+                    _t(controller.language, "codex_name"),
+                    lambda _icon, _item: controller.toggle_hide_section("hide_codex_section"),
+                    checked=lambda _item: _hide_codex_enabled(),
+                ),
+                pystray.MenuItem(
+                    _t(controller.language, "agy_name"),
+                    lambda _icon, _item: controller.toggle_hide_section("hide_agy_section"),
+                    checked=lambda _item: _hide_agy_enabled(),
+                ),
+            ),
+        ),
+        pystray.Menu.SEPARATOR,
         pystray.MenuItem(_t(controller.language, "refresh_now"), lambda i, x: controller.refresh()),
         pystray.MenuItem(
             _t(controller.language, "launch_at_login"),
             controller.toggle_login,
             checked=lambda _item: win_login_item.is_enabled(),
         ),
+        pystray.MenuItem(
+            _t(controller.language, "quota_notifications_menu"),
+            controller.toggle_quota_notifications,
+            checked=lambda _item: _quota_notifications_enabled(),
+        ),
+        pystray.Menu.SEPARATOR,
+        pystray.MenuItem(
+            _t(controller.language, "project_butler"),
+            controller.toggle_session_resume,
+            checked=lambda _item: _session_resume_enabled(),
+        ),
+        pystray.MenuItem(
+            _t(controller.language, "terse_mode_menu"),
+            controller.toggle_terse_mode,
+            checked=lambda _item: _terse_mode_enabled(),
+        ),
+        pystray.Menu.SEPARATOR,
         pystray.MenuItem(_t(controller.language, "check_update"), controller.check_update),
         pystray.MenuItem(_t(controller.language, "quit"), controller.quit),
     )
+
+
+def _session_resume_enabled() -> bool:
+    try:
+        import session_hooks
+
+        return session_hooks.is_resume_enabled()
+    except Exception:
+        return False
+
+
+def _terse_mode_enabled() -> bool:
+    try:
+        import session_hooks
+
+        return session_hooks.is_terse_mode_enabled()
+    except Exception:
+        return False
 
 
 _SINGLE_INSTANCE_MUTEX = "usage-windows-tray-single-instance"
