@@ -9,6 +9,8 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **Windows hook and setup output now uses UTF-8**: statusLine bars keep their intended Unicode glyphs when Claude Code reads a pipe, and `--setup` / `--unsetup` no longer fail in legacy cp950 consoles when localized messages contain characters such as ✓.
+- **Windows panel controls now fit and follow the macOS grouping**: Reset Panel Position has moved into the Windows-only bottom actions, while Change Panel and Hide Sections expand in place inside a scrollable menu instead of opening clipped side submenus.
+- **Windows quota cards no longer reorder when dragging the panel**: the Windows shim suppresses the shared card-reorder gesture while retaining saved card order and the dedicated top window-drag handle.
 
 ### Added
 - **Windows panel switch buttons now open the full controls menu**: clicking a panel's built-in Switch Panel button opens a localized HTML overlay with the same panel, visibility, refresh, notification, workflow, update, and quit controls as the Windows tray menu.

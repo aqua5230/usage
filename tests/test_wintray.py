@@ -157,6 +157,11 @@ def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
     assert "usage-window-drag-handle" in html
     assert "post('open_menu')" in html
     assert "usage-panel-menu-backdrop" in html
+    assert "usage-panel-menu-accordion" in html
+    assert "max-height: 80vh" in html
+    assert "overflow-y: auto" in html
+    assert "event.stopImmediatePropagation()" in html
+    assert "[data-card=\"claude\"]" in html
 
 
 def test_panel_position_is_clamped_and_persisted_on_hide(
@@ -237,7 +242,7 @@ def test_switch_panel_message_returns_menu_instead_of_cycling(
     menu = controller.handle_panel_message("switch")
 
     assert isinstance(menu, list)
-    assert menu[3]["i18nKey"] == "switch_panel"
+    assert menu[2]["i18nKey"] == "switch_panel"
     assert switched_to == []
 
 
@@ -295,15 +300,33 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "label": "AI Update Daily",
         "action": "open_ai_daily",
     }
-    panels = cast(list[dict[str, object]], menu[3]["children"])
-    hidden_sections = cast(list[dict[str, object]], menu[4]["children"])
+    assert [entry.get("i18nKey", entry.get("type")) for entry in menu] == [
+        "panel_ai_daily",
+        "separator",
+        "switch_panel",
+        "hide_sections_menu",
+        "separator",
+        "launch_at_login",
+        "quota_notifications_menu",
+        "separator",
+        "project_butler",
+        "terse_mode_menu",
+        "separator",
+        "refresh_now",
+        "reset_panel_position",
+        "check_update",
+        "separator",
+        "quit",
+    ]
+    panels = cast(list[dict[str, object]], menu[2]["children"])
+    hidden_sections = cast(list[dict[str, object]], menu[3]["children"])
     assert panels[1]["panelId"] == "matrix"
     assert panels[1]["checked"] is True
     assert [item["checked"] for item in hidden_sections] == [True, False, True]
-    assert menu[7]["checked"] is True
-    assert menu[8]["checked"] is False
-    assert menu[10]["checked"] is True
-    assert menu[11]["checked"] is False
+    assert menu[5]["checked"] is True
+    assert menu[6]["checked"] is False
+    assert menu[8]["checked"] is True
+    assert menu[9]["checked"] is False
 
 
 @pytest.mark.parametrize(

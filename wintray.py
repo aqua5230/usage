@@ -107,20 +107,35 @@ window.webkit.messageHandlers.usage = {
       separator.setAttribute('role', 'separator');
       return separator;
     }
-    var row = document.createElement('button');
-    row.type = 'button';
-    row.className = 'usage-panel-menu-item';
-    row.setAttribute('role', item.children ? 'menuitem' : 'menuitemcheckbox');
-    row.textContent = (item.checked ? '✓  ' : '    ') + item.label + (item.children ? '  ›' : '');
     if (item.children) {
-      row.classList.add('usage-panel-menu-parent');
+      var group = document.createElement('div');
+      group.className = 'usage-panel-menu-accordion';
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'usage-panel-menu-item usage-panel-menu-parent';
+      row.setAttribute('role', 'menuitem');
+      row.setAttribute('aria-expanded', 'false');
+      row.textContent = item.label + '  ›';
       var submenu = document.createElement('div');
       submenu.className = 'usage-panel-menu-submenu';
       submenu.setAttribute('role', 'menu');
       item.children.forEach(function(child) { submenu.appendChild(menuItem(child)); });
-      row.appendChild(submenu);
-      return row;
+      row.addEventListener('click', function() {
+        var expanded = row.getAttribute('aria-expanded') === 'true';
+        row.setAttribute('aria-expanded', String(!expanded));
+        row.textContent = item.label + (!expanded ? '  ˅' : '  ›');
+        submenu.hidden = expanded;
+      });
+      submenu.hidden = true;
+      group.appendChild(row);
+      group.appendChild(submenu);
+      return group;
     }
+    var row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'usage-panel-menu-item';
+    row.setAttribute('role', 'menuitemcheckbox');
+    row.textContent = (item.checked ? '✓  ' : '    ') + item.label;
     row.addEventListener('click', function() {
       var extra = item.panelId ? { panel_id: item.panelId } :
         item.preferenceKey ? { preference_key: item.preferenceKey } : undefined;
@@ -160,9 +175,22 @@ window.webkit.messageHandlers.usage = {
   });
 })();
 
-// Keep the native drag target deliberately small: quota cards also support
-// drag-to-reorder, so making the entire frameless window draggable would steal
-// their pointer events.
+// Panel assets register their card reorder handler in the bubbling phase. This
+// earlier capture listener disables that Windows-only gesture without changing
+// the shared macOS HTML, while leaving controls embedded in cards usable.
+document.addEventListener('pointerdown', function(event) {
+  var target = event.target;
+  var card = target && target.closest && target.closest(
+    '[data-card="claude"], [data-card="codex"], [data-card="agy"]'
+  );
+  if (!card || event.button !== 0 || target.closest(
+    'button, a, input, select, textarea, .codex-stale-info, .stale-info'
+  )) return;
+  event.stopImmediatePropagation();
+}, true);
+
+// Keep the native drag target deliberately small so it remains distinct from
+// normal panel interaction.
 document.addEventListener('DOMContentLoaded', function() {
   var handle = document.createElement('div');
   handle.className = 'usage-window-drag-handle pywebview-drag-region';
@@ -200,8 +228,8 @@ document.addEventListener('DOMContentLoaded', function() {
   top: 36px;
   right: 12px;
   min-width: 220px;
-  max-height: calc(100vh - 48px);
-  overflow: auto;
+  max-height: 80vh;
+  overflow-y: auto;
   padding: 6px;
   border: 1px solid rgba(127, 127, 127, .55);
   border-radius: 9px;
@@ -227,18 +255,12 @@ document.addEventListener('DOMContentLoaded', function() {
   background: rgba(120, 160, 255, .32);
   outline: none;
 }
-.usage-panel-menu-parent:hover > .usage-panel-menu-submenu { display: block; }
+.usage-panel-menu-accordion { display: block; }
 .usage-panel-menu-submenu {
+  padding-left: 16px;
+}
+.usage-panel-menu-submenu[hidden] {
   display: none;
-  position: absolute;
-  top: -6px;
-  right: calc(100% - 4px);
-  min-width: 190px;
-  padding: 6px;
-  border: 1px solid rgba(127, 127, 127, .55);
-  border-radius: 9px;
-  background: rgba(30, 32, 36, .98);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, .32);
 }
 .usage-panel-menu-separator { height: 1px; margin: 5px 4px; background: rgba(180, 180, 180, .35); }
 </style>
@@ -782,12 +804,10 @@ class _WindowsTrayController:
         ]
         return [
             item("panel_ai_daily", "open_ai_daily"),
-            item("reset_panel_position", "reset_panel_position"),
             {"type": "separator"},
             item("switch_panel", "", children=panels),
             item("hide_sections_menu", "", children=hidden_sections),
             {"type": "separator"},
-            item("refresh_now", "refresh"),
             item("launch_at_login", "toggle_login", checked=win_login_item.is_enabled()),
             item(
                 "quota_notifications_menu",
@@ -798,7 +818,10 @@ class _WindowsTrayController:
             item("project_butler", "toggle_session_resume", checked=_session_resume_enabled()),
             item("terse_mode_menu", "toggle_terse_mode", checked=_terse_mode_enabled()),
             {"type": "separator"},
+            item("refresh_now", "refresh"),
+            item("reset_panel_position", "reset_panel_position"),
             item("check_update", "check_update"),
+            {"type": "separator"},
             item("quit", "quit"),
         ]
 
