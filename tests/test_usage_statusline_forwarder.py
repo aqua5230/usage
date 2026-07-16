@@ -29,8 +29,8 @@ def test_windows_output_reconfigures_both_streams(monkeypatch: pytest.MonkeyPatc
     stdout = Stream()
     stderr = Stream()
     monkeypatch.setattr(usage_statusline_forwarder, "os", SimpleNamespace(name="nt"))
-    monkeypatch.setattr(usage_statusline_forwarder.sys, "stdout", stdout)
-    monkeypatch.setattr(usage_statusline_forwarder.sys, "stderr", stderr)
+    monkeypatch.setattr(sys, "stdout", stdout)
+    monkeypatch.setattr(sys, "stderr", stderr)
 
     usage_statusline_forwarder._configure_windows_utf8_output()
 

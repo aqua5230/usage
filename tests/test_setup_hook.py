@@ -33,8 +33,8 @@ def test_windows_cli_output_reconfigures_both_streams(monkeypatch: pytest.Monkey
     stdout = Stream()
     stderr = Stream()
     monkeypatch.setattr(setup_hook, "os", SimpleNamespace(name="nt"))
-    monkeypatch.setattr(setup_hook.sys, "stdout", stdout)
-    monkeypatch.setattr(setup_hook.sys, "stderr", stderr)
+    monkeypatch.setattr(sys, "stdout", stdout)
+    monkeypatch.setattr(sys, "stderr", stderr)
 
     setup_hook.configure_windows_utf8_output()
 

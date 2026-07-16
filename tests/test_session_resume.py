@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -28,8 +29,8 @@ def test_windows_output_reconfigures_both_streams(monkeypatch: pytest.MonkeyPatc
     stdout = Stream()
     stderr = Stream()
     monkeypatch.setattr(mod, "os", SimpleNamespace(name="nt"))
-    monkeypatch.setattr(mod.sys, "stdout", stdout)
-    monkeypatch.setattr(mod.sys, "stderr", stderr)
+    monkeypatch.setattr(sys, "stdout", stdout)
+    monkeypatch.setattr(sys, "stderr", stderr)
 
     mod._configure_windows_utf8_output()
 
