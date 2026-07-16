@@ -274,7 +274,10 @@ def _has_complete_rate_limits(data: dict[str, Any]) -> bool:
     seven = rl.get("seven_day")
     if not isinstance(five, dict) or not isinstance(seven, dict):
         return False
-    return five.get("used_percentage") is not None and seven.get("used_percentage") is not None
+    return (
+        _as_finite_float(five.get("used_percentage")) is not None
+        and _as_finite_float(seven.get("used_percentage")) is not None
+    )
 
 
 def _build_snapshot(data: dict[str, Any], *, data_source: str = "hook") -> UsageSnapshot | None:

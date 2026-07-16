@@ -346,6 +346,39 @@ def test_fetch_once_prefers_complete_hook_over_claude_json_cache(
     assert outcome.snapshot.current_percent == 12
 
 
+@pytest.mark.parametrize("invalid_percentage", ["bad", True])
+def test_fetch_once_uses_claude_json_when_hook_percentage_is_invalid(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, invalid_percentage: object
+) -> None:
+    fetched_at = 1_784_144_611.575
+    status_path = tmp_path / "usage-status.json"
+    claude_json_path = tmp_path / ".claude.json"
+    monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
+    monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
+    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr("usage_client.time.time", lambda: fetched_at + 2)
+    status_path.write_text(
+        json.dumps(
+            {
+                "_received_at_ts": fetched_at + 1,
+                "rate_limits": {
+                    "five_hour": {"used_percentage": invalid_percentage},
+                    "seven_day": {"used_percentage": 34},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    _write_claude_json(claude_json_path, fetched_at)
+
+    outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
+
+    assert outcome.snapshot is not None
+    assert outcome.snapshot.data_source == "claude-json"
+    assert outcome.snapshot.current_percent == 3
+
+
 @pytest.mark.parametrize(
     "contents",
     ["{bad json", "{}", '{"cachedUsageUtilization": {}}'],
