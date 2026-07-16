@@ -979,6 +979,63 @@
               "original": "Make filtering by bot authors more discoverable by @BagToad in https://github.com/cli/cli/pull/13642"
             }
           ]
+        },
+        {
+          "version": "2.92.0",
+          "period": "2026-04-28",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "擴充技能安裝與預覽更簡明，全面支援企業雲端資料存儲",
+                "zh-CN": "扩展技能安装与预览更简明，全面支持企业云数据存储",
+                "en": "Extensions install flat by name and support GHEC with data residency",
+                "ja": "拡張機能が名前でシンプルにインストール可能になり、データローカリティ要件対応の企業向けクラウドもサポートした",
+                "ko": "확장 기능이 이름만으로 깔끔하게 설치되며, 데이터 레지던시를 지원하는 기업용 클라우드도 지원한다."
+              },
+              "body": {
+                "zh-TW": "現在你在預覽自訂擴充技能時，可以直接帶上參數來允許讀取隱藏的資料夾；如果你的公司使用限制資料只能存在特定地區的企業雲（GHEC，GitHub 企業雲端版），系統也能正常連線支援。同時，安裝這些技能時，系統會直接用技能本身的名稱存檔，不再加上複雜的前綴命名空間，讓路徑更簡潔。就像你的手機安裝小工具，以前必須按照開發者名字分類塞在好幾層資料夾裡，現在安裝直接放在案頭，而且在資料必須存於特定地區時也能正常使用。",
+                "zh-CN": "现在你在预览自定义扩展技能时，可以直接带上参数来允许读取隐藏的文件夹；如果你的公司使用限制数据只能存在特定地区的企业云（GHEC，GitHub 企业云端版），系统也能正常连线支持。同时，安装这些技能时，系统会直接用技能本身的名称存档，不再加上复杂的前缀命名空间，让路径更简洁。就像你的手机安装小工具，以前必须按照开发者名字分类塞在好几层文件夹里，现在安装直接放在案头，而且在数据需存特定地区时也能正常使用。",
+                "en": "You can now preview and install custom extensions with more flexibility, and easily comply with corporate data residency policies. When previewing skills, you can pass a flag to allow access to hidden directories, and the system now fully supports GitHub Enterprise Cloud (GHEC) with data residency hosts. Additionally, skills are now installed flatly by their name rather than namespaces, making file paths much cleaner. It's like installing widgets on your phone: instead of nesting them deep inside folders named after developers, they now sit directly on your home screen, and it supports corporate data-residency requirements.",
+                "ja": "カスタム拡張機能のプレビューとインストールをより柔軟に行えるようになり、企業のデータ保存地域ポリシーへの準拠も容易になった。スキルをプレビューする際、非表示ディレクトリへのアクセスを許可するフラグを指定でき、データレジデンシーに対応した GitHub Enterprise Cloud（GHEC）もサポートする。さらに、スキルはネームスペースではなく単純な名前でフラットにインストールされるようになり、パスがすっきりした。スマートフォンのウィジェットで、以前は開発者名ごとの深いフォルダに仕分けされていたのが、今はホーム画面に直接置けるようになり、データ保存地域の要件に対応した GHEC も利用できるようなものである。",
+                "ko": "커스텀 확장 기능을 더 유연하게 미리 보고 설치할 수 있으며, 기업의 데이터 스토리지 지역 규정도 쉽게 준수할 수 있다. 스킬을 미리 볼 때 숨겨진 디렉터리 접근을 허용하는 플래그를 지정할 수 있고, 데이터 레지던시를 지원하는 GitHub Enterprise Cloud(GHEC)도 정상 작동한다. 또한 스킬을 설치할 때 복잡한 네임스페이스 대신 스킬 고유의 이름으로 저장되어 경로가 한결 깔끔해졌다. 스마트폰에 위젯을 설치할 때, 예전엔 개발자 이름별로 여러 폴더에 복잡하게 얽혀 있던 것이 이제는 홈 화면에 곧바로 설치되고, 데이터 레지던시 호스트를 쓰는 GHEC를 지원하는 것과 같다."
+              },
+              "original": "feat(skills): add --allow-hidden-dirs flag to preview command by @SamMorrowDrums in https://github.com/cli/cli/pull/13265\nfeat(skills): support GHEC with data residency hosts by @SamMorrowDrums in https://github.com/cli/cli/pull/13264\nInstall skills flat by Name, not namespaced InstallName by @SamMorrowDrums in https://github.com/cli/cli/pull/13266"
+            },
+            {
+              "title": {
+                "zh-TW": "過濾日誌控制碼防禦終端機注入攻擊，新增擴充功能安全警告",
+                "zh-CN": "过滤日志控制码防御终端注入攻击，新增扩展功能安全警告",
+                "en": "Clean logs to prevent terminal injection and add security warnings to extensions",
+                "ja": "ログの制御コードをクリーンにして端末注入攻撃を防ぎ、拡張機能にセキュリティ警告を追加",
+                "ko": "로그 제어 코드를 정화해 터미널 주입 공격을 방지하고, 확장 기능에 보안 경고를 추가한다."
+              },
+              "body": {
+                "zh-TW": "現在當你在查看執行紀錄時，系統會先過濾掉可能隱藏的惡意控制碼，防止有心人士透過終端機注入攻擊（terminal injection）來控制你的畫面。同時，當你查閱擴充功能說明時，畫面會貼心顯示安全免責聲明，提醒你只安裝信任的工具。此外，自動部署設定檔（deployment.yml）中關於變數替換的寫法也修正了，避免自動化流程出錯。就像你在路邊看佈告欄，以前可能有人在海報下偷黏按鈕騙你按，現在不僅海報被防護玻璃罩住，佈告欄旁邊還立了警告標語提醒你小心詐騙。",
+                "zh-CN": "现在当你在查看运行日志时，系统会先过滤掉可能隐藏的恶意控制码，防止有心人士通过终端注入攻击（terminal injection）来控制你的画面。同时，当你阅览扩展功能说明时，画面会贴心显示安全免责声明，提醒你只安装信任的工具。此外，自动部署配置文件（deployment.yml）中关于变量替换的写法也修正了，避免自动化流程出错。就像你在路边看布告栏，以前可能有人在海报下偷粘按钮骗你按，现在不仅海报被防护玻璃罩住，布告栏旁边还立了警告标语提醒你小心诈骗。",
+                "en": "You can now review logs and install third-party extensions with much better protection against malicious exploits. The CLI now filters unsafe escape codes when outputting logs to prevent terminal injection from manipulating your screen. Additionally, help pages for extensions now display a clear trust disclaimer, reminding you to only run extensions you trust. A syntax fix was also applied to variable interpolation in deployment workflows (deployment.yml) to keep automated processes stable. It's like looking at a public bulletin board: previously someone could hide sticky buttons under posters to trick you, but now the posters are behind safety glass and there's a warning sign reminding you to watch out for scams.",
+                "ja": "ログの確認やサードパーティ製拡張機能のインストールを、悪意あるコードの脅威から守られた安全な環境で行えるようになった。ログ出力時に危険な制御コードをフィルタリングし、端末エミュレータを操作される端末注入攻撃（terminal injection）を防止する。また、拡張機能のヘルプ画面に免責事項を追加し、信頼できる開発者のツールのみをインストールするよう注意を促す。さらに、デプロイワークフロー（deployment.yml）の変数展開の記述ミスも修正され、自動化処理が安定した。街頭の掲示板で、以前はポスターの下に不正なボタンが仕込まれて誤操作させられる恐れがあったのが、ポスターが保護ガラスで覆われ、横に警告の張り紙が出されたようなものである。",
+                "ko": "이제 악성 코드의 위협으로부터 한층 더 보호된 상태에서 로그를 검토하고 서드파티 확장 기능을 설치할 수 있다. 로그를 출력할 때 안전하지 않은 제어 코드를 걸러내어, 터미널 주입 공격(terminal injection)을 원천 차단한다. 또한 확장 기능 도움말 화면에 명확한 면책 조항을 추가하여 신뢰할 수 있는 개발자의 도구만 실행하도록 상기시킨다. 아울러 배포 워크플로(deployment.yml) 파일의 변수 보간법 문법 오류도 수정되어 자동화 프로세스가 안정적으로 작동한다. 길거리 게시판에 붙은 포스터 밑에 누군가 몰래 버튼을 숨겨두고 누르게 유도하던 상황에서, 포스터를 보호 유리로 덮고 옆에 경고문을 붙여 사기를 예방하는 것과 같다."
+              },
+              "original": "Fix log terminal injection by @williammartin in https://github.com/cli/cli/pull/13272\nAdd trust disclaimer to extension help text by @travellertales in https://github.com/cli/cli/pull/13296\nfix: using variable interpolation `${{ in deployment.yml... by @orbisai0security in https://github.com/cli/cli/pull/13258\n@orbisai0security made their first contribution in https://github.com/cli/cli/pull/13258\n@travellertales made their first contribution in https://github.com/cli/cli/pull/13296"
+            },
+            {
+              "title": {
+                "zh-TW": "忽略專案看板無權限錯誤，修復 Linux 自動補完與統計回報",
+                "zh-CN": "忽略项目看板无权限错误，修复 Linux 自动补全与统计回报",
+                "en": "Ignore project access errors and fix Linux autocompletion and telemetry metrics",
+                "ja": "プロジェクト管理ボードの権限エラーを無視し、Linux での自動補完とテレメトリ収集を修正",
+                "ko": "프로젝트 보드 권한 오류를 무시하고, Linux 자동 완성 및 원격 측정 메트릭을 수정한다."
+              },
+              "body": {
+                "zh-TW": "現在在 Debian 系統上使用 zsh（一種終端機 shell 軟體）時，自動補完功能可以正常運作了。同時，如果你在存取專案看板時遇到「資源無法存取」的錯誤，系統會自動忽略，不會再像以前那樣直接中斷崩潰。底層也升級了 Go 語言與多個終端介面套件，修復了統計回報率沒有正確更新的問題。就像你去圖書館借書，以前遇到沒權限的書櫃機器人會直接死機，而且查詢系統還經常打錯字、自動推薦按不出來；現在它會自動跳過不合適的書，找書的過程也更順暢。",
+                "zh-CN": "现在在 Debian 系统上使用 zsh（一种终端 shell 软件）时，自动补全功能可以正常运作了。同时，如果你在访问项目看板时遇到“资源无法访问”的错误，系统会自动忽略，不会再像以前那样直接中断崩溃。底层也升级了 Go 语言与多个终端界面套件，修复了统计回报率没有正确更新的问题。就像你去图书馆借书，以前遇到没权限的书柜机器人会直接死机，而且查询系统还经常打错字、自动推荐按不出来；现在它会自动跳过不合适的书，找书的过程也更顺畅。",
+                "en": "You can now enjoy a smoother autocompletion experience and more stable CLI runs across different Linux environments. When running tab completions with zsh on Debian, autocomplete options now resolve correctly. In project management, accessing boards and hitting a \"Resource not accessible\" error will be gracefully ignored instead of crashing your session. Telemetry metrics also received a fix, ensuring the sample rate updates correctly. It's like visiting a library: previously, if you walked past a locked door, the guide robot would freeze completely, the lookup catalog had typos, and search suggestions didn't work. Now, it silently bypasses restricted sections, and looking up books is completely frictionless.",
+                "ja": "様々な Linux 環境において、よりスムーズな自動補完と安定したコマンド実行が可能になった。Debian 上で zsh を用いてタブ補完を行う際、候補が正しく表示される。プロジェクト管理においては、ボードへのアクセス時に「リソースにアクセスできません」というエラーが発生しても、クラッシュせずスマートに無視する。テレメトリ収集のサンプルレートが更新されない不具合も直った。図書館で本を探す際、以前は権限のない書架に遭遇しただけで案内ロボットがフリーズし、検索機は誤字だらけで自動推薦も機能しなかったのが、今は立ち入り禁止エリアを自動で避けてくれ、書籍の検索が極めてスムーズに行えるようなものである。",
+                "ko": "다양한 Linux 환경에서 더 매끄러운 자동 완성과 안정적인 명령어 실행을 누릴 수 있다. Debian 환경의 zsh에서 탭 키로 명령어를 완성할 때 후보 목록이 올바르게 나타난다. 프로젝트 보드에 접근하다가 '리소스 접근 불가' 오류가 발생하더라도 이제 프로그램을 중단시키지 않고 가볍게 무시하고 넘어간다. 아울러 원격 측정의 샘플링 비율이 갱신되지 않던 문제도 고쳐졌다. 도서관에서 책을 찾을 때, 예전엔 권한이 없는 서가와 마주치면 안내 로봇이 완전히 멈춰버리고 검색 키오스크는 오타 투성이에 자동 추천도 되지 않았던 반면, 이제는 제한 구역을 알아서 우회해 가며 책 검색이 매끄럽게 이루어지는 것과 같다."
+              },
+              "original": "Fix SetSampleRate not updating sample_rate dimension by @williammartin in https://github.com/cli/cli/pull/13259\nAdd \"Resource not accessible\" to ProjectsV2IgnorableError by @maxbeizer in https://github.com/cli/cli/pull/13281\ndocs: correct typo in Linux Homebrew copy by @cassidyjames in https://github.com/cli/cli/pull/13273\nchore: fix zsh completion on debian by @babakks in https://github.com/cli/cli/pull/13274\nBump Go to 1.26.2 by @github-actions[bot] in https://github.com/cli/cli/pull/13301\nchore(deps): bump github.com/mattn/go-isatty from 0.0.20 to 0.0.21 by @dependabot[bot] in https://github.com/cli/cli/pull/13161\nchore(deps): bump github.com/google/go-containerregistry from 0.21.4 to 0.21.5 by @dependabot[bot] in https://github.com/cli/cli/pull/13162\nchore(deps): bump charm.land/lipgloss/v2 from 2.0.2 to 2.0.3 by @dependabot[bot] in https://github.com/cli/cli/pull/13163\nchore(deps): bump charm.land/bubbletea/v2 from 2.0.2 to 2.0.6 by @dependabot[bot] in https://github.com/cli/cli/pull/13206\nchore(deps): bump github.com/gdamore/tcell/v2 from 2.13.8 to 2.13.9 by @dependabot[bot] in https://github.com/cli/cli/pull/13241\nchore(deps): bump github.com/mattn/go-isatty from 0.0.21 to 0.0.22 by @dependabot[bot] in https://github.com/cli/cli/pull/13298\n@cassidyjames made their first contribution in https://github.com/cli/cli/pull/13273"
+            }
+          ]
         }
       ]
     }
