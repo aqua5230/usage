@@ -26,9 +26,20 @@ import os
 import sys
 import tempfile
 import time
-from contextlib import contextmanager
+from contextlib import contextmanager, suppress
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
+
+
+def _configure_windows_utf8_output() -> None:
+    """Make hook output UTF-8 when Claude Code reads a Windows pipe."""
+    if os.name != "nt":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        with suppress(AttributeError, OSError, ValueError):
+            # Test runners and embedders may replace the TextIOWrapper streams.
+            cast(Any, stream).reconfigure(encoding="utf-8")
+
 
 _fcntl: Any = None
 _msvcrt: Any = None
@@ -671,6 +682,7 @@ def render(data: Dict[str, Any], now: datetime) -> str:
 
 
 def main() -> None:
+    _configure_windows_utf8_output()
     try:
         raw = sys.stdin.read()
     except Exception as exc:

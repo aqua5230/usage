@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## Unreleased
 
+### Fixed
+- **Windows hook and setup output now uses UTF-8**: statusLine bars keep their intended Unicode glyphs when Claude Code reads a pipe, and `--setup` / `--unsetup` no longer fail in legacy cp950 consoles when localized messages contain characters such as ✓.
+
 ### Added
 - **Windows panel switch buttons now open the full controls menu**: clicking a panel's built-in Switch Panel button opens a localized HTML overlay with the same panel, visibility, refresh, notification, workflow, update, and quit controls as the Windows tray menu.
 - **Windows tray panels can now be repositioned**: a subtle top drag handle moves frameless panels without interfering with quota-card sorting; the position is restored on the next open, clamped to the current work area, and can be reset from the tray menu.

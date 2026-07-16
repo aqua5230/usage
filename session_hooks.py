@@ -657,6 +657,7 @@ def is_terse_reminder_enabled() -> bool:
 
 
 def enable_session_resume() -> int:
+    setup_hook.configure_windows_utf8_output()
     if not CLAUDE_SETTINGS.parent.exists():
         print(_t("setup_no_agents"), file=sys.stderr)
         return 1
@@ -682,6 +683,7 @@ def enable_session_resume() -> int:
 
 
 def enable_terse_mode() -> int:
+    setup_hook.configure_windows_utf8_output()
     if not CLAUDE_SETTINGS.parent.exists():
         print(_t("setup_no_agents"), file=sys.stderr)
         return 1
@@ -711,6 +713,7 @@ def enable_terse_mode() -> int:
 
 
 def disable_session_resume() -> int:
+    setup_hook.configure_windows_utf8_output()
     if CLAUDE_SETTINGS.parent.exists():
         settings = _load_settings()
         session_start = _session_start_list(settings)
@@ -733,6 +736,7 @@ def disable_session_resume() -> int:
 
 
 def disable_terse_mode() -> int:
+    setup_hook.configure_windows_utf8_output()
     if CLAUDE_SETTINGS.parent.exists():
         settings = _load_settings()
         changed = False

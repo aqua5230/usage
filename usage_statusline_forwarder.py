@@ -10,16 +10,28 @@
 from __future__ import annotations
 
 import concurrent.futures
+import contextlib
 import glob
 import os
 import shutil
 import subprocess
 import sys
+from typing import Any, cast
 
 __version__ = "1.0"
 TIMEOUT_SECONDS = 5
 HOOK_DIR = os.path.expanduser("~/.claude")
 SELF_NAME = "usage-statusline-forwarder.py"
+
+
+def _configure_windows_utf8_output() -> None:
+    """Make forwarded hook output UTF-8 when Claude Code reads a pipe."""
+    if os.name != "nt":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        with contextlib.suppress(AttributeError, OSError, ValueError):
+            # Test runners and embedders may replace the TextIOWrapper streams.
+            cast(Any, stream).reconfigure(encoding="utf-8")
 
 
 def _run_hook(py: str, hook: str, raw: str) -> str:
@@ -38,6 +50,7 @@ def _run_hook(py: str, hook: str, raw: str) -> str:
 
 
 def main() -> None:
+    _configure_windows_utf8_output()
     raw = sys.stdin.read()
     if not raw.strip():
         return

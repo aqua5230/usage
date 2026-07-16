@@ -30,7 +30,7 @@ import tempfile
 import tomllib
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from i18n import t as _t
 
@@ -63,6 +63,16 @@ PREV_SL_KEY = "previousStatusLine"
 HOOK_VERSION = "1.0"
 _SL_REGEX = re.compile(r"(?m)^[ \t]*status_line\s*=\s*\[.*?\]", re.DOTALL)
 _TABLE_REGEX = re.compile(r"(?m)^[ \t]*\[[^\]\n]+\][ \t]*(?:#.*)?$")
+
+
+def configure_windows_utf8_output() -> None:
+    """Prevent Windows legacy console encodings from rejecting CLI messages."""
+    if os.name != "nt":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        with contextlib.suppress(AttributeError, OSError, ValueError):
+            # Test runners and embedders may replace the TextIOWrapper streams.
+            cast(Any, stream).reconfigure(encoding="utf-8")
 
 
 def _resolve_hook_source() -> Path:
@@ -620,6 +630,7 @@ def _install_forwarder(settings: dict[str, Any]) -> None:
 
 
 def setup(force_forwarder: bool = False) -> int:
+    configure_windows_utf8_output()
     _migrate_from_legacy_usage()
     has_claude = CLAUDE_SETTINGS.parent.exists()
     has_codex = CODEX_CONFIG.exists()
@@ -658,6 +669,7 @@ def setup(force_forwarder: bool = False) -> int:
 
 
 def unsetup() -> int:
+    configure_windows_utf8_output()
     if CLAUDE_SETTINGS.parent.exists():
         settings = _load_settings()
         sl = settings.get("statusLine")

@@ -14,11 +14,40 @@ import sys
 import tempfile
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 
 import usage_statusline
+
+
+def test_windows_output_reconfigures_both_streams(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Stream:
+        def __init__(self) -> None:
+            self.encodings: list[str] = []
+
+        def reconfigure(self, *, encoding: str) -> None:
+            self.encodings.append(encoding)
+
+    stdout = Stream()
+    stderr = Stream()
+    monkeypatch.setattr(usage_statusline, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(usage_statusline.sys, "stdout", stdout)
+    monkeypatch.setattr(usage_statusline.sys, "stderr", stderr)
+
+    usage_statusline._configure_windows_utf8_output()
+
+    assert stdout.encodings == ["utf-8"]
+    assert stderr.encodings == ["utf-8"]
+
+
+def test_windows_output_tolerates_replaced_streams(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(usage_statusline, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(usage_statusline.sys, "stdout", object())
+    monkeypatch.setattr(usage_statusline.sys, "stderr", object())
+
+    usage_statusline._configure_windows_utf8_output()
 
 
 @pytest.fixture(autouse=True)
