@@ -169,6 +169,20 @@ def test_file_event_refresh_decision_merges_into_existing_trailing() -> None:
     assert decision.trailing_delay is None
 
 
+def test_history_cache_reload_decision() -> None:
+    fingerprint = (("history", 1, 10.0),)
+
+    assert menubar_state.history_cache_needs_reload(
+        None, fingerprint, has_cached_result=False
+    )
+    assert not menubar_state.history_cache_needs_reload(
+        fingerprint, fingerprint, has_cached_result=True
+    )
+    assert menubar_state.history_cache_needs_reload(
+        fingerprint, (("history", 2, 11.0),), has_cached_result=True
+    )
+
+
 def test_project_rows_for_windows_matches_window_boundaries() -> None:
     now = datetime.now(UTC).replace(microsecond=0)
 

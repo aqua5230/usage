@@ -55,8 +55,7 @@ def test_enable_registers_hook_and_writes_sidecar(terse_paths: TerseHookPaths) -
     assert isinstance(first_hook, dict)
     command = first_hook["command"]
     assert isinstance(command, str)
-    assert str(terse_paths.terse_target) not in command
-    assert terse_paths.source.as_posix() in command
+    assert terse_paths.terse_target.as_posix() in command
     bundle = json.loads(terse_paths.sidecar.read_text(encoding="utf-8"))
     assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
     assert "Terse mode is on for this entire conversation" in bundle["en"]["instruction"]
@@ -88,7 +87,7 @@ def test_enable_preserves_existing_hooks(terse_paths: TerseHookPaths) -> None:
     data = json.loads(settings.read_text(encoding="utf-8"))
     commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
     assert "other" in commands
-    assert any("usage_terse_mode" in c for c in commands)
+    assert any("usage-terse-mode" in c for c in commands)
     assert data["hooks"]["PreToolUse"][0]["hooks"][0]["command"] == "guard"
 
 
@@ -288,8 +287,7 @@ def test_enable_registers_reminder_hook(terse_paths: TerseHookPaths) -> None:
     assert isinstance(first_hook, dict)
     command = first_hook["command"]
     assert isinstance(command, str)
-    assert str(terse_paths.terse_reminder_target) not in command
-    assert terse_paths.reminder_source.as_posix() in command
+    assert terse_paths.terse_reminder_target.as_posix() in command
 
 
 def test_enable_reminder_is_idempotent(terse_paths: TerseHookPaths) -> None:

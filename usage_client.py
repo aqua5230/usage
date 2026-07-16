@@ -12,6 +12,7 @@ import math
 import os
 import time
 from dataclasses import dataclass
+from datetime import datetime
 from enum import StrEnum
 from pathlib import Path
 from typing import Any
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LEGACY_STATUS_FILE = os.path.expanduser("~/.claude/usag-status.json")
 TT_STATUS_FILE = os.path.expanduser("~/.claude/tt-status.json")
+CLAUDE_JSON_FILE = os.path.expanduser("~/.claude.json")
 CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 
 # Stale files only affect hints; quota values still render.
@@ -102,6 +104,21 @@ def _as_finite_float(value: Any) -> float | None:
     return numeric if math.isfinite(numeric) else None
 
 
+def _iso_timestamp(value: Any) -> float | None:
+    if not isinstance(value, str):
+        return None
+    try:
+        parsed = datetime.fromisoformat(value)
+    except ValueError:
+        return None
+    if parsed.tzinfo is None:
+        return None
+    try:
+        return parsed.timestamp()
+    except (OSError, OverflowError, ValueError):
+        return None
+
+
 def _read_status_file() -> tuple[dict[str, Any], str, float] | None:
     """Read the first available status JSON, preferring usage-owned files."""
     for path in (STATUS_FILE, LEGACY_STATUS_FILE, TT_STATUS_FILE):
@@ -136,6 +153,82 @@ def _source_from_path(source_path: str) -> str:
     if source_path == TT_STATUS_FILE:
         return "tt-fallback"
     return "hook"
+
+
+def _read_claude_json_snapshot() -> UsageSnapshot | None:
+    """Read Claude Code's own cached quota utilization as a fallback."""
+    try:
+        os.stat(CLAUDE_JSON_FILE)
+        with open(CLAUDE_JSON_FILE, encoding="utf-8") as f:
+            data = json.load(f)
+    except (OSError, json.JSONDecodeError, UnicodeDecodeError):
+        return None
+    if not isinstance(data, dict):
+        return None
+
+    cached = _as_dict(data.get("cachedUsageUtilization"))
+    fetched_at_ms = _as_finite_float(cached.get("fetchedAtMs"))
+    if fetched_at_ms is None:
+        return None
+    utilization = _as_dict(cached.get("utilization"))
+    five = _as_dict(utilization.get("five_hour"))
+    seven = _as_dict(utilization.get("seven_day"))
+    five_raw = five.get("utilization")
+    seven_raw = seven.get("utilization")
+    if five_raw is None and seven_raw is None:
+        return None
+
+    five_pct = _pct(five_raw) if five_raw is not None else None
+    seven_pct = _pct(seven_raw) if seven_raw is not None else None
+    if five_pct is None and seven_pct is None:
+        return None
+
+    now = time.time()
+    five_reset = _iso_timestamp(five.get("resets_at")) if five else None
+    seven_reset = _iso_timestamp(seven.get("resets_at")) if seven else None
+    if five and five_reset is None:
+        return None
+    if seven and seven_reset is None:
+        return None
+    five_reset = five_reset if five_reset is not None else now
+    seven_reset = seven_reset if seven_reset is not None else now
+    if five_pct is not None and five_reset < now:
+        five_pct = 0
+    if seven_pct is not None and seven_reset < now:
+        seven_pct = 0
+
+    polled_at = fetched_at_ms / 1000
+    return UsageSnapshot(
+        current_percent=five_pct,
+        current_reset_at=five_reset,
+        weekly_percent=seven_pct,
+        weekly_reset_at=seven_reset,
+        current_status="",
+        polled_at=polled_at,
+        is_stale=(now - polled_at) > STALE_SECONDS,
+        data_source="claude-json",
+    )
+
+
+def _time_adjusted(snapshot: UsageSnapshot) -> UsageSnapshot:
+    """Re-derive expiry-sensitive fields of a cached snapshot at the current time."""
+    now = time.time()
+    five_pct = snapshot.current_percent
+    if five_pct is not None and snapshot.current_reset_at < now:
+        five_pct = 0
+    seven_pct = snapshot.weekly_percent
+    if seven_pct is not None and snapshot.weekly_reset_at < now:
+        seven_pct = 0
+    return UsageSnapshot(
+        current_percent=five_pct,
+        current_reset_at=snapshot.current_reset_at,
+        weekly_percent=seven_pct,
+        weekly_reset_at=snapshot.weekly_reset_at,
+        current_status=snapshot.current_status,
+        polled_at=snapshot.polled_at,
+        is_stale=(now - snapshot.polled_at) > STALE_SECONDS,
+        data_source=snapshot.data_source,
+    )
 
 
 def _has_recent_claude_project_activity(now: float) -> bool:
@@ -242,6 +335,10 @@ class ClaudeUsageClient:
         self._cached_data: dict[str, Any] | None = None
         self._cached_path: str | None = None
         self._cached_mtime: float | None = None
+        self._claude_json_cached_path: str | None = None
+        self._claude_json_cached_mtime: float | None = None
+        self._claude_json_cached_snapshot: UsageSnapshot | None = None
+        self._claude_json_cache_valid = False
 
     async def aclose(self) -> None:
         return None
@@ -249,6 +346,8 @@ class ClaudeUsageClient:
     async def fetch_once(self) -> PollOutcome:
         if self.mock:
             return self._mock_outcome()
+
+        claude_json_snapshot = self._read_claude_json_snapshot_cached()
 
         if (
             (stat_result := _status_file_stat()) is not None
@@ -265,6 +364,8 @@ class ClaudeUsageClient:
                 self._cached_data = None
                 self._cached_path = None
                 self._cached_mtime = None
+                if claude_json_snapshot is not None:
+                    return self._success_outcome(claude_json_snapshot)
                 message_key = "usage_status_missing"
                 if current_hook_state() in {
                     "us-direct",
@@ -280,6 +381,14 @@ class ClaudeUsageClient:
             self._cached_data = data
             self._cached_path = source_path
             self._cached_mtime = mtime
+
+        status_polled_at = _as_finite_float(data.get("_received_at_ts"))
+        if claude_json_snapshot is not None and (
+            not _has_complete_rate_limits(data)
+            or status_polled_at is None
+            or status_polled_at < claude_json_snapshot.polled_at
+        ):
+            return self._success_outcome(claude_json_snapshot)
 
         if not _has_complete_rate_limits(data):
             outcome = PollOutcome(
@@ -302,10 +411,48 @@ class ClaudeUsageClient:
             self._last_outcome = outcome
             return outcome
 
+        return self._success_outcome(snapshot, mtime=mtime, source_path=source_path)
+
+    def _read_claude_json_snapshot_cached(self) -> UsageSnapshot | None:
+        try:
+            mtime = os.stat(CLAUDE_JSON_FILE).st_mtime
+        except OSError:
+            self._claude_json_cache_valid = False
+            self._claude_json_cached_path = None
+            self._claude_json_cached_mtime = None
+            self._claude_json_cached_snapshot = None
+            return None
+        if (
+            self._claude_json_cache_valid
+            and self._claude_json_cached_path == CLAUDE_JSON_FILE
+            and self._claude_json_cached_mtime == mtime
+        ):
+            # The file may sit unchanged across a quota reset, so the expiry-derived
+            # fields must be recomputed on every hit — only the parse is cached.
+            if self._claude_json_cached_snapshot is None:
+                return None
+            return _time_adjusted(self._claude_json_cached_snapshot)
+        snapshot = _read_claude_json_snapshot()
+        self._claude_json_cache_valid = True
+        self._claude_json_cached_path = CLAUDE_JSON_FILE
+        self._claude_json_cached_mtime = mtime
+        self._claude_json_cached_snapshot = snapshot
+        return snapshot
+
+    def _success_outcome(
+        self,
+        snapshot: UsageSnapshot,
+        *,
+        mtime: float | None = None,
+        source_path: str | None = None,
+    ) -> PollOutcome:
         now = time.time()
         message = _hook_broken_message(now, snapshot.polled_at)
         if snapshot.is_stale:
-            source_tag = "tt-status" if snapshot.data_source == "tt-fallback" else "usage"
+            source_tag = {
+                "tt-fallback": "tt-status",
+                "claude-json": "claude.json",
+            }.get(snapshot.data_source, "usage")
             mins = int((now - snapshot.polled_at) / 60)
             message = message or f"⚠ {source_tag} stale {mins}m"
 

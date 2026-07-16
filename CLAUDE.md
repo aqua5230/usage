@@ -55,7 +55,7 @@ Claude Code ──stdin──> usage_statusline.py (hook) ──write──> ~/.
 
 - **Claude Code side**: `usage_statusline.py` is installed into `~/.claude/usage-statusline.py` by `setup_hook.py` and wired into `~/.claude/settings.json`'s `statusLine`. Every time Claude Code refreshes its status line, it pipes the session JSON to the hook on stdin; the hook atomically writes it to `~/.claude/usage-status.json`. The UI reads that file — never the network.
 - **Codex side**: no hook is possible (Codex CLI has no equivalent), so `codex_loader.py` scans `~/.codex/sessions/**/*.jsonl` and pulls `rate_limits` straight from the conversation logs.
-- **Read priority** in `usage_client.py`: `usage-status.json` → `usag-status.json` (v0.1.x legacy) → `tt-status.json` (compat fallback for users migrating from the third-party tool `stormzhang/token-tracker`; **NOT an in-repo module — no `token-tracker` directory or source exists anywhere on this machine**).
+- **Read priority** in `usage_client.py`: the newest usable data from `usage-status.json` → `usag-status.json` (v0.1.x legacy) → `tt-status.json` (compat fallback for users migrating from the third-party tool `stormzhang/token-tracker`) or Claude Code's `~/.claude.json` `cachedUsageUtilization` fallback; **no `token-tracker` module or source exists in this repository**.
 
 ### Module map
 
