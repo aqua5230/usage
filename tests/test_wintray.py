@@ -243,6 +243,7 @@ def test_switch_panel_message_returns_menu_instead_of_cycling(
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     switched_to: list[str] = []
     monkeypatch.setattr(controller, "switch_panel", switched_to.append)
+    monkeypatch.setattr(win_login_item, "is_enabled", lambda: True)
 
     menu = controller.handle_panel_message("switch")
 
