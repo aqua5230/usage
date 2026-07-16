@@ -4,6 +4,12 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.28.7] - 2026-07-17
+
+### 修正
+- **即使 statusLine hook 沒觸發，Windows 上也能顯示 Claude 額度**：某些 Windows 環境因 Claude Code 的官方 regression 導致 hook 完全不會被呼叫，Claude 額度卡片因此永遠空白。`usage_client.py` 現在會在找不到 `usage-status.json` 時，改讀 Claude Code 自己寫的 `~/.claude.json` 裡的 `cachedUsageUtilization` 當備援資料源，卡片仍能正常顯示數字。
+- **Windows 上含中日韓字元的專案路徑不再讓 session hook 失效**：接續上次進度、省 token 模式與其提醒這幾個 hook 指令過去可能指向專案或 app bundle 的來源路徑，若該路徑含中日韓字元會在 Windows 上執行失敗。自我修復現在會把這些指令正規化成固定的 `~/.claude/` 目標路徑，且這個遷移具備冪等性——指令已經正確時，不會每次重開都重寫 `settings.json` 並多寫一筆重複的自我修復紀錄。
+
 ## [0.28.6] - 2026-07-17
 
 ### 修正
