@@ -551,7 +551,7 @@ def test_build_state_reuses_history_until_fingerprint_changes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    fingerprints = iter([(("history", 1, 10.0),), (("history", 1, 10.0),), (("history", 2, 11.0),)])
+    fingerprints = iter([(("history", 1, 10.0),), (("history", 2, 11.0),)])
     monkeypatch.setattr(
         menubar_state,
         "history_source_scan",
@@ -565,10 +565,40 @@ def test_build_state_reuses_history_until_fingerprint_changes(
         return original(scan)
 
     monkeypatch.setattr(controller, "_load_entries", counting_load_entries)
+    now = 100.0
+    monkeypatch.setattr("wintray.time.monotonic", lambda: now)
 
     controller._build_state()
     controller._build_state()
+    now += wintray.HISTORY_SCAN_CACHE_SECONDS
     controller._build_state()
+
+    assert calls == [1, 1]
+
+
+def test_history_source_scan_is_cached_between_tray_ticks(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    scan = menubar_state.HistorySourceScan((("history", 1, 10.0),), (), ())
+    calls: list[int] = []
+    now = 100.0
+    monkeypatch.setattr("wintray.time.monotonic", lambda: now)
+
+    def scan_history() -> menubar_state.HistorySourceScan:
+        calls.append(1)
+        return scan
+
+    monkeypatch.setattr(
+        menubar_state,
+        "history_source_scan",
+        scan_history,
+    )
+
+    assert controller._history_source_scan() is scan
+    assert controller._history_source_scan() is scan
+    now += wintray.HISTORY_SCAN_CACHE_SECONDS
+    assert controller._history_source_scan() is scan
 
     assert calls == [1, 1]
 

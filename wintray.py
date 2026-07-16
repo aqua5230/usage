@@ -48,6 +48,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 SLOW_POLL_INTERVAL_S = 300
+HISTORY_SCAN_CACHE_SECONDS = 30.0
 PANEL_WIDTH = 380
 WINDOWS_PANELS = (
     ("classic", "panel_default_name", "classic.html"),
@@ -476,6 +477,8 @@ class _WindowsTrayController:
         self._history_fingerprint: tuple[tuple[str, int, float], ...] | None = None
         self._cached_history: _RefreshData | None = None
         self._cached_projects: tuple[list[tuple[str, int, float | None]], ...] | None = None
+        self._history_scan: menubar_state.HistorySourceScan | None = None
+        self._history_scan_at: float | None = None
 
     def _empty_state(self) -> menubar_state.PopoverState:
         missing = menubar_state._missing_row
@@ -692,6 +695,19 @@ class _WindowsTrayController:
             error_key = "history_load_error_parse"
         return _RefreshData(entries, error_key)
 
+    def _history_source_scan(self) -> menubar_state.HistorySourceScan:
+        """Avoid recursively statting every session JSONL on each tray tick."""
+        now = time.monotonic()
+        if (
+            self._history_scan is not None
+            and self._history_scan_at is not None
+            and now - self._history_scan_at < HISTORY_SCAN_CACHE_SECONDS
+        ):
+            return self._history_scan
+        self._history_scan = menubar_state.history_source_scan()
+        self._history_scan_at = now
+        return self._history_scan
+
     def _build_state(
         self,
         *,
@@ -710,7 +726,7 @@ class _WindowsTrayController:
         agy = agy_result.projection or menubar_agy.fallback_projection(self.language)
         measure("agy_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
-        scan = menubar_state.history_source_scan()
+        scan = self._history_source_scan()
         if menubar_state.history_cache_needs_reload(
             self._history_fingerprint,
             scan.fingerprint,

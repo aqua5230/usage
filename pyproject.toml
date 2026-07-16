@@ -78,6 +78,7 @@ build = [
 [tool.ruff]
 target-version = "py313"
 line-length = 100
+extend-exclude = ["release-win"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM"]
@@ -100,7 +101,7 @@ python_version = "3.13"
 strict = true
 warn_unused_configs = true
 pretty = true
-exclude = "^(build|dist)/"
+exclude = "^(build|dist|release-win)/"
 
 [[tool.mypy.overrides]]
 module = ["rich.*", "PIL.*", "pystray.*", "webview.*"]
