@@ -6,13 +6,18 @@ from __future__ import annotations
 import json
 import sys
 import threading
+from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 
 import menubar_prefs
 import menubar_state
+import prefs
+import win_login_item
 import wintray
+from usage_notifications import NotificationEvent
 
 
 class _Key:
@@ -148,6 +153,70 @@ def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
 
     assert "window.webkit.messageHandlers.usage" in html
     assert "window.pywebview.api.postMessage(message)" in html
+    assert "pywebview-drag-region" in html
+    assert "usage-window-drag-handle" in html
+    assert "post('open_menu')" in html
+    assert "usage-panel-menu-backdrop" in html
+    assert "usage-panel-menu-accordion" in html
+    assert "max-height: 80vh" in html
+    assert "overflow-y: auto" in html
+    assert "event.stopImmediatePropagation()" in html
+    assert "[data-card=\"claude\"]" in html
+    assert "usage-card-window-dragging" in html
+    assert "card.classList.add('pywebview-drag-region'" in html
+    assert "button, a, input, select, textarea, label, summary" in html
+    assert "cursor: grab" in html
+    assert "cursor: grabbing" in html
+
+
+def test_panel_position_is_clamped_and_persisted_on_hide(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_path = tmp_path / "usage-preferences.json"
+    preferences_path.write_text(
+        json.dumps({"usage.windowPosition": {"x": 5000, "y": -100}}), encoding="utf-8"
+    )
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
+    moves: list[tuple[int, int]] = []
+    window = SimpleNamespace(
+        x=0,
+        y=0,
+        resize=lambda *args: None,
+        move=lambda x, y: moves.append((x, y)),
+        hide=lambda: None,
+    )
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = window
+    controller.visible = True
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 1080))
+
+    controller._place_window()
+
+    assert moves == [(608, 12)]
+    window.x, window.y = 123, 234
+    controller.show_panel()
+    assert prefs._load_preferences()["usage.windowPosition"] == {"x": 123, "y": 234}
+
+
+def test_reset_panel_position_clears_preference_and_repositions_visible_window(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_path = tmp_path / "usage-preferences.json"
+    preferences_path.write_text(
+        json.dumps({"usage.windowPosition": {"x": 123, "y": 234}}), encoding="utf-8"
+    )
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    calls: list[bool] = []
+    monkeypatch.setattr(
+        controller, "_place_window", lambda *, force_default=False: calls.append(force_default)
+    )
+
+    controller.reset_panel_position()
+
+    assert prefs._load_preferences() == {}
+    assert calls == [True]
 
 
 def test_js_api_forwards_panel_message() -> None:
@@ -159,7 +228,31 @@ def test_js_api_forwards_panel_message() -> None:
     assert received == ["refresh"]
 
 
-def test_switch_panel_waits_for_bridge_promise_to_resolve(
+def test_js_api_returns_panel_menu_data() -> None:
+    menu = [{"label": "Menu"}]
+    controller = SimpleNamespace(handle_panel_message=lambda _message: menu)
+
+    result = wintray._JSApi(controller).postMessage("open_menu")  # type: ignore[arg-type]
+
+    assert result == menu
+
+
+def test_switch_panel_message_returns_menu_instead_of_cycling(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    switched_to: list[str] = []
+    monkeypatch.setattr(controller, "switch_panel", switched_to.append)
+    monkeypatch.setattr(win_login_item, "is_enabled", lambda: True)
+
+    menu = controller.handle_panel_message("switch")
+
+    assert isinstance(menu, list)
+    assert menu[2]["i18nKey"] == "switch_panel"
+    assert switched_to == []
+
+
+def test_selected_panel_switch_waits_for_bridge_promise_and_debounces(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     scheduled: list[FakeTimer] = []
@@ -178,42 +271,99 @@ def test_switch_panel_waits_for_bridge_promise_to_resolve(
             self.callback()
 
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.active_panel_id = "classic"
     switched_to: list[str] = []
     monkeypatch.setattr(controller, "switch_panel", switched_to.append)
     monkeypatch.setattr(threading, "Timer", FakeTimer)
 
-    controller.handle_panel_message("switch")
+    controller.handle_panel_message(json.dumps({"action": "switch_panel", "panel_id": "matrix"}))
+    controller.handle_panel_message(json.dumps({"action": "switch_panel", "panel_id": "win95"}))
 
     assert len(scheduled) == 1
     assert scheduled[0].delay == 0.05
-    assert switched_to == []
-
-    controller.active_panel_id = "matrix"
     scheduled[0].fire()
 
-    assert switched_to == ["win95"]
+    assert switched_to == ["matrix"]
 
 
-def test_switch_panel_ignores_second_click_while_switch_is_pending(
+def test_panel_menu_data_is_localized_and_reads_current_checks(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    scheduled: list[object] = []
-
-    class FakeTimer:
-        def __init__(self, delay: float, callback: object) -> None:
-            scheduled.append((delay, callback))
-
-        def start(self) -> None:
-            return None
-
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    monkeypatch.setattr(threading, "Timer", FakeTimer)
+    controller.language = "en"
+    controller.active_panel_id = "matrix"
+    monkeypatch.setattr(wintray, "_hide_claude_enabled", lambda: True)
+    monkeypatch.setattr(wintray, "_hide_codex_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_hide_agy_enabled", lambda: True)
+    monkeypatch.setattr(win_login_item, "is_enabled", lambda: True)
+    monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_session_resume_enabled", lambda: True)
+    monkeypatch.setattr(wintray, "_terse_mode_enabled", lambda: False)
 
-    controller.handle_panel_message("switch")
-    controller.handle_panel_message("switch")
+    menu = controller._panel_menu_data()
 
-    assert len(scheduled) == 1
+    assert menu[0] == {
+        "i18nKey": "panel_ai_daily",
+        "label": "AI Update Daily",
+        "action": "open_ai_daily",
+    }
+    assert [entry.get("i18nKey", entry.get("type")) for entry in menu] == [
+        "panel_ai_daily",
+        "separator",
+        "switch_panel",
+        "hide_sections_menu",
+        "separator",
+        "launch_at_login",
+        "quota_notifications_menu",
+        "separator",
+        "project_butler",
+        "terse_mode_menu",
+        "separator",
+        "refresh_now",
+    ]
+    panels = cast(list[dict[str, object]], menu[2]["children"])
+    hidden_sections = cast(list[dict[str, object]], menu[3]["children"])
+    assert panels[1]["panelId"] == "matrix"
+    assert panels[1]["checked"] is True
+    assert [item["checked"] for item in hidden_sections] == [True, False, True]
+    assert menu[5]["checked"] is True
+    assert menu[6]["checked"] is False
+    assert menu[8]["checked"] is True
+    assert menu[9]["checked"] is False
+
+
+@pytest.mark.parametrize(
+    ("payload", "method", "expected"),
+    [
+        ({"action": "open_ai_daily"}, "open_ai_daily", ()),
+        ({"action": "reset_panel_position"}, "reset_panel_position", ()),
+        ({"action": "switch_panel", "panel_id": "matrix"}, "_schedule_panel_switch", ("matrix",)),
+        (
+            {"action": "toggle_hide_section", "preference_key": "hide_codex_section"},
+            "toggle_hide_section",
+            ("hide_codex_section",),
+        ),
+        ({"action": "refresh"}, "refresh", ()),
+        ({"action": "toggle_login"}, "toggle_login", ()),
+        ({"action": "toggle_quota_notifications"}, "toggle_quota_notifications", ()),
+        ({"action": "toggle_session_resume"}, "toggle_session_resume", ()),
+        ({"action": "toggle_terse_mode"}, "toggle_terse_mode", ()),
+        ({"action": "check_update"}, "check_update", ()),
+        ({"action": "quit"}, "quit", ()),
+    ],
+)
+def test_panel_menu_actions_dispatch_to_controller_methods(
+    monkeypatch: pytest.MonkeyPatch,
+    payload: dict[str, str],
+    method: str,
+    expected: tuple[str, ...],
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[tuple[str, ...]] = []
+    monkeypatch.setattr(controller, method, lambda *args: calls.append(args))
+
+    controller.handle_panel_message(json.dumps(payload))
+
+    assert calls == [expected]
 
 
 @pytest.mark.parametrize("panel_id", ["matrix", "aquarium", "win95"])
@@ -288,6 +438,7 @@ def test_run_app_wires_pystray_and_pywebview(
         )
         return window
 
+    FakeMenu.SEPARATOR = object()  # type: ignore[attr-defined]
     fake_pystray = SimpleNamespace(Icon=FakeIcon, Menu=FakeMenu, MenuItem=FakeMenuItem)
     fake_webview = SimpleNamespace(
         create_window=create_window,
@@ -348,6 +499,74 @@ def test_show_panel_places_window_before_showing(
     assert calls == ["place", "show", "inject", "refresh"]
 
 
+def test_hide_section_updates_preferences_and_visible_panel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    preferences: dict[str, object] = {}
+    saved: list[dict[str, object]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    injected: list[str] = []
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences)
+    monkeypatch.setattr(wintray, "_save_preferences", lambda value: saved.append(dict(value)))
+    monkeypatch.setattr(wintray, "_hide_claude_enabled", lambda: True)
+    monkeypatch.setattr(wintray, "_hide_codex_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_hide_agy_enabled", lambda: False)
+    monkeypatch.setattr(controller, "inject_state", lambda: injected.append("state"))
+
+    controller.toggle_hide_section("hide_claude_section")
+
+    assert preferences == {"hide_claude_section": True}
+    assert saved == [preferences]
+    assert controller.latest_state.hide_claude is True
+    assert injected == ["state"]
+
+
+def test_quota_notifications_use_pystray_notify_and_existing_i18n(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=False, interval=60)
+    controller.language = "en"
+    notices: list[tuple[str, str]] = []
+    controller.icon = SimpleNamespace(
+        notify=lambda message, title: notices.append((message, title))
+    )
+    monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: True)
+    state = _state()
+
+    controller._send_quota_notification(
+        NotificationEvent("warn", "claude_session", 90.0), state
+    )
+
+    assert notices == [("Claude Session is 25% used. Time to wrap up?", "🐾 Almost out")]
+
+
+def test_session_hook_toggles_run_in_background_helpers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    def record(name: str) -> int:
+        calls.append(name)
+        return 0
+
+    hooks = SimpleNamespace(
+        is_resume_enabled=lambda: False,
+        enable_session_resume=lambda: record("enable_resume"),
+        disable_session_resume=lambda: record("disable_resume"),
+        is_terse_mode_enabled=lambda: True,
+        enable_terse_mode=lambda: record("enable_terse"),
+        disable_terse_mode=lambda: record("disable_terse"),
+    )
+    monkeypatch.setitem(sys.modules, "session_hooks", hooks)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+
+    controller._toggle_session_resume_in_background()
+    controller._toggle_terse_mode_in_background()
+
+    assert calls == ["enable_resume", "disable_terse"]
+
+
 def test_run_app_bails_out_when_another_instance_holds_the_lock(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -396,8 +615,14 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
         active_panel_id="classic",
         switch_panel=lambda panel_id: None,
         show_panel=lambda: None,
+        reset_panel_position=lambda: None,
         refresh=lambda: None,
         toggle_login=lambda: None,
+        open_ai_daily=lambda: None,
+        toggle_hide_section=lambda key: None,
+        toggle_quota_notifications=lambda: None,
+        toggle_session_resume=lambda: None,
+        toggle_terse_mode=lambda: None,
         check_update=lambda: None,
         quit=lambda: None,
     )

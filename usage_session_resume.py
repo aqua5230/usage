@@ -44,9 +44,20 @@ import tempfile
 from collections.abc import Mapping
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 __version__ = "1.6"
+
+
+def _configure_windows_utf8_output() -> None:
+    """Make SessionStart JSON UTF-8 when Claude Code reads a Windows pipe."""
+    if os.name != "nt":
+        return
+    for stream in (sys.stdout, sys.stderr):
+        with contextlib.suppress(AttributeError, OSError, ValueError):
+            # Test runners and embedders may replace the TextIOWrapper streams.
+            cast(Any, stream).reconfigure(encoding="utf-8")
+
 
 PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-resume-prompt.json"))
 DIAGNOSIS_SNAPSHOT = Path(os.path.expanduser("~/.claude/usage-diagnosis.json"))
@@ -240,6 +251,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
 
 
 def main() -> int:
+    _configure_windows_utf8_output()
     try:
         payload = json.loads(sys.stdin.read() or "{}")
     except (json.JSONDecodeError, ValueError):

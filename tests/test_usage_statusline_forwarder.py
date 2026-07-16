@@ -10,11 +10,32 @@ import io
 import subprocess
 import sys
 from importlib import import_module
+from types import SimpleNamespace
 from typing import Any
 
 import pytest
 
 usage_statusline_forwarder: Any = import_module("usage_statusline_forwarder")
+
+
+def test_windows_output_reconfigures_both_streams(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Stream:
+        def __init__(self) -> None:
+            self.encodings: list[str] = []
+
+        def reconfigure(self, *, encoding: str) -> None:
+            self.encodings.append(encoding)
+
+    stdout = Stream()
+    stderr = Stream()
+    monkeypatch.setattr(usage_statusline_forwarder, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(sys, "stdout", stdout)
+    monkeypatch.setattr(sys, "stderr", stderr)
+
+    usage_statusline_forwarder._configure_windows_utf8_output()
+
+    assert stdout.encodings == ["utf-8"]
+    assert stderr.encodings == ["utf-8"]
 
 
 def test_main_fans_stdin_out_to_all_hooks(

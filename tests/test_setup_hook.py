@@ -11,6 +11,7 @@ import sys
 import tomllib
 from collections.abc import Callable
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
@@ -19,6 +20,26 @@ import setup_hook
 from tests.helpers import SetupHookPaths, expected_statusline_command
 
 LEGACY_NAME = "usag"
+
+
+def test_windows_cli_output_reconfigures_both_streams(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Stream:
+        def __init__(self) -> None:
+            self.encodings: list[str] = []
+
+        def reconfigure(self, *, encoding: str) -> None:
+            self.encodings.append(encoding)
+
+    stdout = Stream()
+    stderr = Stream()
+    monkeypatch.setattr(setup_hook, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(sys, "stdout", stdout)
+    monkeypatch.setattr(sys, "stderr", stderr)
+
+    setup_hook.configure_windows_utf8_output()
+
+    assert stdout.encodings == ["utf-8"]
+    assert stderr.encodings == ["utf-8"]
 
 
 @pytest.fixture

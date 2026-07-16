@@ -8,12 +8,34 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 
 import usage_session_resume as mod
+
+
+def test_windows_output_reconfigures_both_streams(monkeypatch: pytest.MonkeyPatch) -> None:
+    class Stream:
+        def __init__(self) -> None:
+            self.encodings: list[str] = []
+
+        def reconfigure(self, *, encoding: str) -> None:
+            self.encodings.append(encoding)
+
+    stdout = Stream()
+    stderr = Stream()
+    monkeypatch.setattr(mod, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(sys, "stdout", stdout)
+    monkeypatch.setattr(sys, "stderr", stderr)
+
+    mod._configure_windows_utf8_output()
+
+    assert stdout.encodings == ["utf-8"]
+    assert stderr.encodings == ["utf-8"]
 
 
 def _write_session(

@@ -29,6 +29,8 @@ from menubar_prefs import (
     _hide_claude_enabled,
     _hide_codex_enabled,
     _quota_card_order,
+    _quota_notification_thresholds,
+    _quota_notifications_enabled,
 )
 from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
@@ -36,6 +38,7 @@ from pricing import calculate_cost
 from statusline_settings import _statusline_enabled, _toggle_statusline_settings
 from usage_client import ClaudeUsageClient, PollState
 from usage_lang import detect_lang
+from usage_notifications import NotificationEvent, QuotaNotifier
 from usage_rate import UsageRateTracker
 
 if TYPE_CHECKING:
@@ -77,7 +80,205 @@ window.webkit.messageHandlers = window.webkit.messageHandlers || {};
 window.webkit.messageHandlers.usage = {
   postMessage: function(message) { return window.pywebview.api.postMessage(message); }
 };
+
+// The panel assets are shared with macOS.  On Windows, intercept their
+// built-in switch button and provide the equivalent of the native menu here.
+(function() {
+  var menuRoot;
+
+  function closeMenu() {
+    if (menuRoot) {
+      menuRoot.remove();
+      menuRoot = null;
+    }
+  }
+
+  function post(action, extra) {
+    var message = Object.assign({ action: action }, extra || {});
+    return Promise.resolve(
+      window.webkit.messageHandlers.usage.postMessage(JSON.stringify(message))
+    );
+  }
+
+  function menuItem(item) {
+    if (item.type === 'separator') {
+      var separator = document.createElement('div');
+      separator.className = 'usage-panel-menu-separator';
+      separator.setAttribute('role', 'separator');
+      return separator;
+    }
+    if (item.children) {
+      var group = document.createElement('div');
+      group.className = 'usage-panel-menu-accordion';
+      var row = document.createElement('button');
+      row.type = 'button';
+      row.className = 'usage-panel-menu-item usage-panel-menu-parent';
+      row.setAttribute('role', 'menuitem');
+      row.setAttribute('aria-expanded', 'false');
+      row.textContent = item.label + '  ›';
+      var submenu = document.createElement('div');
+      submenu.className = 'usage-panel-menu-submenu';
+      submenu.setAttribute('role', 'menu');
+      item.children.forEach(function(child) { submenu.appendChild(menuItem(child)); });
+      row.addEventListener('click', function() {
+        var expanded = row.getAttribute('aria-expanded') === 'true';
+        row.setAttribute('aria-expanded', String(!expanded));
+        row.textContent = item.label + (!expanded ? '  ˅' : '  ›');
+        submenu.hidden = expanded;
+      });
+      submenu.hidden = true;
+      group.appendChild(row);
+      group.appendChild(submenu);
+      return group;
+    }
+    var row = document.createElement('button');
+    row.type = 'button';
+    row.className = 'usage-panel-menu-item';
+    row.setAttribute('role', 'menuitemcheckbox');
+    row.textContent = (item.checked ? '✓  ' : '    ') + item.label;
+    row.addEventListener('click', function() {
+      var extra = item.panelId ? { panel_id: item.panelId } :
+        item.preferenceKey ? { preference_key: item.preferenceKey } : undefined;
+      post(item.action, extra);
+      closeMenu();
+    });
+    return row;
+  }
+
+  function showMenu(items) {
+    closeMenu();
+    menuRoot = document.createElement('div');
+    menuRoot.className = 'usage-panel-menu-backdrop';
+    menuRoot.setAttribute('aria-hidden', 'false');
+    var menu = document.createElement('div');
+    menu.className = 'usage-panel-menu';
+    menu.setAttribute('role', 'menu');
+    items.forEach(function(item) { menu.appendChild(menuItem(item)); });
+    menuRoot.appendChild(menu);
+    menuRoot.addEventListener('click', function(event) {
+      if (event.target === menuRoot) closeMenu();
+    });
+    document.body.appendChild(menuRoot);
+  }
+
+  document.addEventListener('click', function(event) {
+    var button = event.target.closest && event.target.closest('[data-action="switch"]');
+    if (!button) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    post('open_menu').then(function(items) {
+      if (Array.isArray(items)) showMenu(items);
+    });
+  }, true);
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') closeMenu();
+  });
+})();
+
+// Panel assets register their card reorder handler in the bubbling phase. This
+// earlier capture listener turns their empty card area into a native drag
+// region without changing the shared macOS HTML.  Add the class only after
+// excluding controls, so pywebview never treats a button click as a window drag.
+document.addEventListener('pointerdown', function(event) {
+  var target = event.target;
+  var card = target && target.closest && target.closest(
+    '[data-card="claude"], [data-card="codex"], [data-card="agy"]'
+  );
+  var interactive = target && target.closest && target.closest(
+    'button, a, input, select, textarea, label, summary, [contenteditable], '
+    + '[role="button"], .codex-stale-info, .stale-info'
+  );
+  if (!card || event.button !== 0 || interactive) return;
+  card.classList.add('pywebview-drag-region', 'usage-card-window-dragging');
+  var clearDragRegion = function() {
+    card.classList.remove('pywebview-drag-region', 'usage-card-window-dragging');
+    document.removeEventListener('pointerup', clearDragRegion, true);
+    document.removeEventListener('pointercancel', clearDragRegion, true);
+  };
+  document.addEventListener('pointerup', clearDragRegion, true);
+  document.addEventListener('pointercancel', clearDragRegion, true);
+  event.stopImmediatePropagation();
+}, true);
+
+// Keep the native drag target deliberately small so it remains distinct from
+// normal panel interaction.
+document.addEventListener('DOMContentLoaded', function() {
+  var handle = document.createElement('div');
+  handle.className = 'usage-window-drag-handle pywebview-drag-region';
+  handle.setAttribute('aria-hidden', 'true');
+  document.body.appendChild(handle);
+});
 </script>
+<style>
+.usage-window-drag-handle {
+  position: fixed;
+  top: 4px;
+  left: 50%;
+  z-index: 2147483647;
+  width: 56px;
+  height: 7px;
+  margin-left: -28px;
+  border-radius: 99px;
+  background: rgba(127, 127, 127, .28);
+  cursor: grab;
+  opacity: .35;
+  transition: opacity .15s ease, background .15s ease;
+}
+.usage-window-drag-handle:hover {
+  background: rgba(127, 127, 127, .65);
+  opacity: 1;
+}
+.usage-window-drag-handle:active,
+.usage-card-window-dragging {
+  cursor: grabbing;
+}
+.usage-panel-menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483646;
+  background: rgba(0, 0, 0, .12);
+}
+.usage-panel-menu {
+  position: absolute;
+  top: 36px;
+  right: 12px;
+  min-width: 220px;
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid rgba(127, 127, 127, .55);
+  border-radius: 9px;
+  background: rgba(30, 32, 36, .96);
+  color: #f5f5f5;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .32);
+  font: 13px/1.3 system-ui, sans-serif;
+}
+.usage-panel-menu-item {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.usage-panel-menu-item:hover, .usage-panel-menu-item:focus {
+  background: rgba(120, 160, 255, .32);
+  outline: none;
+}
+.usage-panel-menu-accordion { display: block; }
+.usage-panel-menu-submenu {
+  padding-left: 16px;
+}
+.usage-panel-menu-submenu[hidden] {
+  display: none;
+}
+.usage-panel-menu-separator { height: 1px; margin: 5px 4px; background: rgba(180, 180, 180, .35); }
+</style>
 """.strip()
 
 
@@ -239,8 +440,10 @@ class _JSApi:
         # WinForms window graph) recurses forever.
         self._controller = controller
 
-    def postMessage(self, message: object) -> None:  # noqa: N802 - JavaScript contract
-        self._controller.handle_panel_message(message)
+    def postMessage(  # noqa: N802 - JavaScript contract
+        self, message: object
+    ) -> list[dict[str, object]] | None:
+        return self._controller.handle_panel_message(message)
 
 
 class _WindowsTrayController:
@@ -261,8 +464,10 @@ class _WindowsTrayController:
         self.icon: Any = None
         self.window: Any = None
         self.visible = False
+        self._positioned_this_show = False
         self.stopping = threading.Event()
         self.refresh_lock = threading.Lock()
+        self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
 
     def _empty_state(self) -> menubar_state.PopoverState:
         missing = menubar_state._missing_row
@@ -323,9 +528,10 @@ class _WindowsTrayController:
             self._place_window()
             self.inject_state()
 
-    def _place_window(self) -> None:
-        if os.name != "nt" or self.window is None:
-            return
+    def _working_area(self) -> tuple[int, int, int, int] | None:
+        """Return the primary monitor work area (without taskbar)."""
+        if os.name != "nt":
+            return None
         import ctypes
 
         class Rect(ctypes.Structure):
@@ -340,12 +546,89 @@ class _WindowsTrayController:
         library_name = "windll"
         user32: Any = getattr(ctypes, library_name).user32
         if user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0):
-            height = min(self.panel_height(), max(640, rect.bottom - rect.top - 24))
-            self.window.resize(PANEL_WIDTH, height)
-            self.window.move(
-                max(rect.left + 12, rect.right - PANEL_WIDTH - 12),
-                max(rect.top + 12, rect.bottom - height - 12),
+            return (rect.left, rect.top, rect.right, rect.bottom)
+        return None
+
+    def _saved_window_position(self) -> tuple[int, int] | None:
+        value = _load_preferences().get("usage.windowPosition")
+        if not isinstance(value, dict):
+            return None
+        x, y = value.get("x"), value.get("y")
+        if isinstance(x, bool) or isinstance(y, bool):
+            return None
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            return None
+        return (int(x), int(y))
+
+    def _current_window_position(self) -> tuple[int, int] | None:
+        if self.window is None:
+            return None
+        try:
+            x, y = self.window.x, self.window.y
+        except (AttributeError, TypeError, ValueError):
+            return None
+        if isinstance(x, bool) or isinstance(y, bool):
+            return None
+        if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
+            return None
+        return (int(x), int(y))
+
+    @staticmethod
+    def _clamp_window_position(
+        position: tuple[int, int], work_area: tuple[int, int, int, int], height: int
+    ) -> tuple[int, int]:
+        left, top, right, bottom = work_area
+        return (
+            min(max(position[0], left + 12), max(left + 12, right - PANEL_WIDTH - 12)),
+            min(max(position[1], top + 12), max(top + 12, bottom - height - 12)),
+        )
+
+    @staticmethod
+    def _default_window_position(
+        work_area: tuple[int, int, int, int], height: int
+    ) -> tuple[int, int]:
+        left, top, right, bottom = work_area
+        return (max(left + 12, right - PANEL_WIDTH - 12), max(top + 12, bottom - height - 12))
+
+    def _place_window(self, *, force_default: bool = False) -> None:
+        if self.window is None:
+            return
+        work_area = self._working_area()
+        if work_area is None:
+            return
+        left, top, right, bottom = work_area
+        height = min(self.panel_height(), max(640, bottom - top - 24))
+        self.window.resize(PANEL_WIDTH, height)
+        if force_default:
+            position = self._default_window_position(work_area, height)
+        elif self._positioned_this_show:
+            current_position = self._current_window_position()
+            position = (
+                current_position
+                or self._saved_window_position()
+                or self._default_window_position(work_area, height)
             )
+        else:
+            position = self._saved_window_position() or self._default_window_position(
+                work_area, height
+            )
+        self.window.move(*self._clamp_window_position(position, work_area, height))
+        self._positioned_this_show = True
+
+    def _save_window_position(self) -> None:
+        position = self._current_window_position()
+        if position is None:
+            return
+        preferences = _load_preferences()
+        preferences["usage.windowPosition"] = {"x": position[0], "y": position[1]}
+        _save_preferences(preferences)
+
+    def reset_panel_position(self, _icon: Any = None, _item: Any = None) -> None:
+        preferences = _load_preferences()
+        preferences.pop("usage.windowPosition", None)
+        _save_preferences(preferences)
+        if self.visible:
+            self._place_window(force_default=True)
 
     def _poll_loop(self) -> None:
         while not self.stopping.wait(
@@ -361,6 +644,7 @@ class _WindowsTrayController:
     def _refresh_worker(self) -> None:
         try:
             self.latest_state = self._build_state()
+            self._process_quota_notifications(self.latest_state)
             self._update_tray()
             if self.visible:
                 self.inject_state()
@@ -458,7 +742,9 @@ class _WindowsTrayController:
 
     def show_panel(self, _icon: Any = None, _item: Any = None) -> None:
         if self.visible:
+            self._save_window_position()
             self.visible = False
+            self._positioned_this_show = False
             self.window.hide()
             return
         self.visible = True
@@ -477,14 +763,177 @@ class _WindowsTrayController:
         self.latest_state.card_order = _quota_card_order()
         self.window.load_html(panel_html(self.panel_filename()))
 
-    def _deferred_switch_panel(self) -> None:
+    def _deferred_switch_panel(self, panel_id: str) -> None:
         self._switch_pending = False
-        ids = [panel[0] for panel in available_panels()]
-        next_panel_id = ids[(ids.index(self.active_panel_id) + 1) % len(ids)]
-        self.switch_panel(next_panel_id)
+        self.switch_panel(panel_id)
+
+    def _schedule_panel_switch(self, panel_id: str) -> None:
+        if self._switch_pending or panel_id not in {panel[0] for panel in available_panels()}:
+            return
+        self._switch_pending = True
+        # postMessage is a pywebview promise. Reloading the document before
+        # that promise resolves destroys its callback and can leave the Edge
+        # WebView as a blank white window. Keep the existing short deferral,
+        # but now reload the panel explicitly chosen from the HTML menu.
+        threading.Timer(0.05, lambda: self._deferred_switch_panel(panel_id)).start()
+
+    def _panel_menu_data(self) -> list[dict[str, object]]:
+        """Return fresh, localized data for the HTML panel menu."""
+
+        def item(key: str, action: str, **extra: object) -> dict[str, object]:
+            return {
+                "i18nKey": key,
+                "label": _t(self.language, key),
+                "action": action,
+                **extra,
+            }
+
+        panels = [
+            item(
+                key,
+                "switch_panel",
+                panelId=panel_id,
+                checked=self.active_panel_id == panel_id,
+            )
+            for panel_id, key, _filename in available_panels()
+        ]
+        hidden_sections = [
+            item(
+                "claude_name",
+                "toggle_hide_section",
+                preferenceKey="hide_claude_section",
+                checked=_hide_claude_enabled(),
+            ),
+            item(
+                "codex_name",
+                "toggle_hide_section",
+                preferenceKey="hide_codex_section",
+                checked=_hide_codex_enabled(),
+            ),
+            item(
+                "agy_name",
+                "toggle_hide_section",
+                preferenceKey="hide_agy_section",
+                checked=_hide_agy_enabled(),
+            ),
+        ]
+        return [
+            item("panel_ai_daily", "open_ai_daily"),
+            {"type": "separator"},
+            item("switch_panel", "", children=panels),
+            item("hide_sections_menu", "", children=hidden_sections),
+            {"type": "separator"},
+            item("launch_at_login", "toggle_login", checked=win_login_item.is_enabled()),
+            item(
+                "quota_notifications_menu",
+                "toggle_quota_notifications",
+                checked=_quota_notifications_enabled(),
+            ),
+            {"type": "separator"},
+            item("project_butler", "toggle_session_resume", checked=_session_resume_enabled()),
+            item("terse_mode_menu", "toggle_terse_mode", checked=_terse_mode_enabled()),
+            {"type": "separator"},
+            item("refresh_now", "refresh"),
+        ]
 
     def toggle_login(self, _icon: Any = None, _item: Any = None) -> None:
         win_login_item.disable() if win_login_item.is_enabled() else win_login_item.enable()
+
+    def open_ai_daily(self, _icon: Any = None, _item: Any = None) -> None:
+        webbrowser.open("https://aqua5230.github.io/ai-updates/")
+
+    def toggle_hide_section(self, preference_key: str) -> None:
+        preferences = _load_preferences()
+        preferences[preference_key] = preferences.get(preference_key) is not True
+        _save_preferences(preferences)
+        self.latest_state.hide_claude = _hide_claude_enabled()
+        self.latest_state.hide_codex = _hide_codex_enabled()
+        self.latest_state.hide_agy = _hide_agy_enabled()
+        if self.visible:
+            self.inject_state()
+
+    def toggle_quota_notifications(self, _icon: Any = None, _item: Any = None) -> None:
+        preferences = _load_preferences()
+        preferences["quota_notifications"] = not _quota_notifications_enabled(preferences)
+        _save_preferences(preferences)
+
+    def toggle_session_resume(self, _icon: Any = None, _item: Any = None) -> None:
+        threading.Thread(target=self._toggle_session_resume_in_background, daemon=True).start()
+
+    def _toggle_session_resume_in_background(self) -> None:
+        import session_hooks
+
+        try:
+            if session_hooks.is_resume_enabled():
+                session_hooks.disable_session_resume()
+            else:
+                session_hooks.enable_session_resume()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("toggle session resume failed", exc_info=True)
+
+    def toggle_terse_mode(self, _icon: Any = None, _item: Any = None) -> None:
+        threading.Thread(target=self._toggle_terse_mode_in_background, daemon=True).start()
+
+    def _toggle_terse_mode_in_background(self) -> None:
+        import session_hooks
+
+        try:
+            if session_hooks.is_terse_mode_enabled():
+                session_hooks.disable_terse_mode()
+            else:
+                session_hooks.enable_terse_mode()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("toggle terse mode failed", exc_info=True)
+
+    def _process_quota_notifications(self, state: menubar_state.PopoverState) -> None:
+        try:
+            events = self._quota_notifier.update(
+                {
+                    "claude_session": (
+                        state.claude_session.percent,
+                        state.claude_session.available,
+                    ),
+                    "claude_weekly": (
+                        state.claude_weekly.percent,
+                        state.claude_weekly.available,
+                    ),
+                    "codex_session": (state.codex_session.percent, state.codex_session.available),
+                    "codex_weekly": (state.codex_weekly.percent, state.codex_weekly.available),
+                }
+            )
+            if _quota_notifications_enabled() and not self.mock:
+                for event in events:
+                    self._send_quota_notification(event, state)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows quota notification processing failed", exc_info=True)
+
+    def _send_quota_notification(
+        self, event: NotificationEvent, state: menubar_state.PopoverState
+    ) -> None:
+        if self.icon is None or not hasattr(self.icon, "notify"):
+            return
+        rows = {
+            "claude_session": state.claude_session,
+            "claude_weekly": state.claude_weekly,
+            "codex_session": state.codex_session,
+            "codex_weekly": state.codex_weekly,
+        }
+        row = rows[event.channel]
+        scope = row.title or _t(
+            self.language, "session_label" if event.channel.endswith("_session") else "weekly_label"
+        )
+        message = _t(
+            self.language,
+            f"notif_{event.kind}_body",
+            tool="Claude" if event.channel.startswith("claude_") else "Codex",
+            scope=scope,
+            pct=f"{round(row.percent or event.threshold or 0.0):g}",
+            reset=row.reset_text,
+        )
+        self.icon.notify(message, _t(self.language, f"notif_{event.kind}_title"))
 
     def check_update(self, _icon: Any = None, _item: Any = None) -> None:
         def worker() -> None:
@@ -511,15 +960,18 @@ class _WindowsTrayController:
         windll: Any = getattr(ctypes, library_name)
         return int(windll.user32.MessageBoxW(0, text, "usage", style))
 
-    def handle_panel_message(self, message: object) -> None:
+    def handle_panel_message(self, message: object) -> list[dict[str, object]] | None:
         payload: object = message
         if isinstance(message, str) and message.startswith("{"):
             try:
                 payload = json.loads(message)
             except ValueError:
-                return
+                return None
         if isinstance(payload, dict):
-            if payload.get("action") == "set_card_order":
+            action = payload.get("action")
+            if action == "open_menu":
+                return self._panel_menu_data()
+            if action == "set_card_order":
                 order = payload.get("order")
                 if (
                     isinstance(order, list)
@@ -530,24 +982,46 @@ class _WindowsTrayController:
                     preferences = _load_preferences()
                     preferences["quota_card_order"] = order
                     _save_preferences(preferences)
-            return
+            elif action == "switch_panel":
+                panel_id = payload.get("panel_id")
+                if isinstance(panel_id, str):
+                    self._schedule_panel_switch(panel_id)
+            elif action == "toggle_hide_section":
+                preference_key = payload.get("preference_key")
+                if preference_key in {
+                    "hide_claude_section",
+                    "hide_codex_section",
+                    "hide_agy_section",
+                }:
+                    self.toggle_hide_section(preference_key)
+            elif action == "open_ai_daily":
+                self.open_ai_daily()
+            elif action == "reset_panel_position":
+                self.reset_panel_position()
+            elif action == "refresh":
+                self.refresh()
+            elif action == "toggle_login":
+                self.toggle_login()
+            elif action == "toggle_quota_notifications":
+                self.toggle_quota_notifications()
+            elif action == "toggle_session_resume":
+                self.toggle_session_resume()
+            elif action == "toggle_terse_mode":
+                self.toggle_terse_mode()
+            elif action == "check_update":
+                self.check_update()
+            elif action == "quit":
+                self.quit()
+            return None
         action = str(payload)
         if action == "refresh":
             self.refresh()
         elif action == "quit":
             self.quit()
         elif action == "switch":
-            if self._switch_pending:
-                return
-            self._switch_pending = True
-            # postMessage is a pywebview promise. Reloading the document before
-            # that promise resolves destroys its callback and can leave the
-            # Edge WebView as a blank white window. Defer the reload until the
-            # bridge call has returned to JavaScript. This empirical delay is
-            # not a synchronization guarantee. If slow machines still show a
-            # blank window, JavaScript must call a second API after postMessage's
-            # promise resolves to trigger the reload; do not increase this delay.
-            threading.Timer(0.05, self._deferred_switch_panel).start()
+            # Older panel assets post this action directly. Return menu data
+            # instead of cycling themes so the bridge remains forwards-safe.
+            return self._panel_menu_data()
         elif action in {"toggle_statusline", "toggle-statusline"}:
             threading.Thread(target=self._toggle_statusline, daemon=True).start()
         elif action == "install":
@@ -561,6 +1035,7 @@ class _WindowsTrayController:
                 args=(str(project_range or "30d"),),
                 daemon=True,
             ).start()
+        return None
 
     def _toggle_statusline(self) -> None:
         _toggle_statusline_settings()
@@ -607,16 +1082,77 @@ def _menu(controller: _WindowsTrayController) -> Any:
     )
     return pystray.Menu(
         pystray.MenuItem("Open", controller.show_panel, default=True, visible=False),
+        pystray.MenuItem(_t(controller.language, "panel_ai_daily"), controller.open_ai_daily),
+        pystray.MenuItem(
+            _t(controller.language, "reset_panel_position"), controller.reset_panel_position
+        ),
+        pystray.Menu.SEPARATOR,
         pystray.MenuItem(_t(controller.language, "switch_panel"), pystray.Menu(*panel_items)),
+        pystray.MenuItem(
+            _t(controller.language, "hide_sections_menu"),
+            pystray.Menu(
+                pystray.MenuItem(
+                    _t(controller.language, "claude_name"),
+                    lambda _icon, _item: controller.toggle_hide_section("hide_claude_section"),
+                    checked=lambda _item: _hide_claude_enabled(),
+                ),
+                pystray.MenuItem(
+                    _t(controller.language, "codex_name"),
+                    lambda _icon, _item: controller.toggle_hide_section("hide_codex_section"),
+                    checked=lambda _item: _hide_codex_enabled(),
+                ),
+                pystray.MenuItem(
+                    _t(controller.language, "agy_name"),
+                    lambda _icon, _item: controller.toggle_hide_section("hide_agy_section"),
+                    checked=lambda _item: _hide_agy_enabled(),
+                ),
+            ),
+        ),
+        pystray.Menu.SEPARATOR,
         pystray.MenuItem(_t(controller.language, "refresh_now"), lambda i, x: controller.refresh()),
         pystray.MenuItem(
             _t(controller.language, "launch_at_login"),
             controller.toggle_login,
             checked=lambda _item: win_login_item.is_enabled(),
         ),
+        pystray.MenuItem(
+            _t(controller.language, "quota_notifications_menu"),
+            controller.toggle_quota_notifications,
+            checked=lambda _item: _quota_notifications_enabled(),
+        ),
+        pystray.Menu.SEPARATOR,
+        pystray.MenuItem(
+            _t(controller.language, "project_butler"),
+            controller.toggle_session_resume,
+            checked=lambda _item: _session_resume_enabled(),
+        ),
+        pystray.MenuItem(
+            _t(controller.language, "terse_mode_menu"),
+            controller.toggle_terse_mode,
+            checked=lambda _item: _terse_mode_enabled(),
+        ),
+        pystray.Menu.SEPARATOR,
         pystray.MenuItem(_t(controller.language, "check_update"), controller.check_update),
         pystray.MenuItem(_t(controller.language, "quit"), controller.quit),
     )
+
+
+def _session_resume_enabled() -> bool:
+    try:
+        import session_hooks
+
+        return session_hooks.is_resume_enabled()
+    except Exception:
+        return False
+
+
+def _terse_mode_enabled() -> bool:
+    try:
+        import session_hooks
+
+        return session_hooks.is_terse_mode_enabled()
+    except Exception:
+        return False
 
 
 _SINGLE_INSTANCE_MUTEX = "usage-windows-tray-single-instance"
