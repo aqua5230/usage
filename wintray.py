@@ -176,16 +176,27 @@ window.webkit.messageHandlers.usage = {
 })();
 
 // Panel assets register their card reorder handler in the bubbling phase. This
-// earlier capture listener disables that Windows-only gesture without changing
-// the shared macOS HTML, while leaving controls embedded in cards usable.
+// earlier capture listener turns their empty card area into a native drag
+// region without changing the shared macOS HTML.  Add the class only after
+// excluding controls, so pywebview never treats a button click as a window drag.
 document.addEventListener('pointerdown', function(event) {
   var target = event.target;
   var card = target && target.closest && target.closest(
     '[data-card="claude"], [data-card="codex"], [data-card="agy"]'
   );
-  if (!card || event.button !== 0 || target.closest(
-    'button, a, input, select, textarea, .codex-stale-info, .stale-info'
-  )) return;
+  var interactive = target && target.closest && target.closest(
+    'button, a, input, select, textarea, label, summary, [contenteditable], '
+    + '[role="button"], .codex-stale-info, .stale-info'
+  );
+  if (!card || event.button !== 0 || interactive) return;
+  card.classList.add('pywebview-drag-region', 'usage-card-window-dragging');
+  var clearDragRegion = function() {
+    card.classList.remove('pywebview-drag-region', 'usage-card-window-dragging');
+    document.removeEventListener('pointerup', clearDragRegion, true);
+    document.removeEventListener('pointercancel', clearDragRegion, true);
+  };
+  document.addEventListener('pointerup', clearDragRegion, true);
+  document.addEventListener('pointercancel', clearDragRegion, true);
   event.stopImmediatePropagation();
 }, true);
 
@@ -209,13 +220,17 @@ document.addEventListener('DOMContentLoaded', function() {
   margin-left: -28px;
   border-radius: 99px;
   background: rgba(127, 127, 127, .28);
-  cursor: move;
+  cursor: grab;
   opacity: .35;
   transition: opacity .15s ease, background .15s ease;
 }
 .usage-window-drag-handle:hover {
   background: rgba(127, 127, 127, .65);
   opacity: 1;
+}
+.usage-window-drag-handle:active,
+.usage-card-window-dragging {
+  cursor: grabbing;
 }
 .usage-panel-menu-backdrop {
   position: fixed;
@@ -819,10 +834,6 @@ class _WindowsTrayController:
             item("terse_mode_menu", "toggle_terse_mode", checked=_terse_mode_enabled()),
             {"type": "separator"},
             item("refresh_now", "refresh"),
-            item("reset_panel_position", "reset_panel_position"),
-            item("check_update", "check_update"),
-            {"type": "separator"},
-            item("quit", "quit"),
         ]
 
     def toggle_login(self, _icon: Any = None, _item: Any = None) -> None:

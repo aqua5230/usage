@@ -162,6 +162,11 @@ def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
     assert "overflow-y: auto" in html
     assert "event.stopImmediatePropagation()" in html
     assert "[data-card=\"claude\"]" in html
+    assert "usage-card-window-dragging" in html
+    assert "card.classList.add('pywebview-drag-region'" in html
+    assert "button, a, input, select, textarea, label, summary" in html
+    assert "cursor: grab" in html
+    assert "cursor: grabbing" in html
 
 
 def test_panel_position_is_clamped_and_persisted_on_hide(
@@ -313,10 +318,6 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "terse_mode_menu",
         "separator",
         "refresh_now",
-        "reset_panel_position",
-        "check_update",
-        "separator",
-        "quit",
     ]
     panels = cast(list[dict[str, object]], menu[2]["children"])
     hidden_sections = cast(list[dict[str, object]], menu[3]["children"])
