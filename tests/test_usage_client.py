@@ -325,7 +325,7 @@ def test_fetch_once_uses_claude_json_when_status_is_missing(
 
 
 @pytest.mark.parametrize("status_age", [-1.0, 1.0])
-def test_fetch_once_chooses_newest_complete_source(
+def test_fetch_once_prefers_complete_hook_over_claude_json_cache(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, status_age: float
 ) -> None:
     fetched_at = 1_784_144_611.575
@@ -342,12 +342,8 @@ def test_fetch_once_chooses_newest_complete_source(
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
 
     assert outcome.snapshot is not None
-    if status_age >= 0:
-        assert outcome.snapshot.data_source == "hook"
-        assert outcome.snapshot.current_percent == 12
-    else:
-        assert outcome.snapshot.data_source == "claude-json"
-        assert outcome.snapshot.current_percent == 3
+    assert outcome.snapshot.data_source == "hook"
+    assert outcome.snapshot.current_percent == 12
 
 
 @pytest.mark.parametrize(

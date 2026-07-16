@@ -382,12 +382,12 @@ class ClaudeUsageClient:
             self._cached_path = source_path
             self._cached_mtime = mtime
 
-        status_polled_at = _as_finite_float(data.get("_received_at_ts"))
-        if claude_json_snapshot is not None and (
-            not _has_complete_rate_limits(data)
-            or status_polled_at is None
-            or status_polled_at < claude_json_snapshot.polled_at
-        ):
+        # ``.claude.json`` is Claude Code's cache, not a competing live source.
+        # In particular its fetchedAtMs can be newer than the hook timestamp while
+        # still describing a different/expired session.  A complete statusLine
+        # payload must therefore always win; use the cache only when the hook has
+        # not provided both quota windows yet.
+        if claude_json_snapshot is not None and not _has_complete_rate_limits(data):
             return self._success_outcome(claude_json_snapshot)
 
         if not _has_complete_rate_limits(data):
