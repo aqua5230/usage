@@ -4,7 +4,7 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## 未發行
+## [0.28.6] - 2026-07-17
 
 ### 修正
 - **Windows hook 與設定訊息現在使用 UTF-8**：Claude Code 從管道讀取 statusLine 時會保留進度條的 Unicode 字元；在傳統 cp950 主控台中，`--setup`／`--unsetup` 遇到 ✓ 等字元的在地化訊息也不再失敗。

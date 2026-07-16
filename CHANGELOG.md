@@ -5,7 +5,7 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## [0.28.6] - 2026-07-17
 
 ### Fixed
 - **Windows hook and setup output now uses UTF-8**: statusLine bars keep their intended Unicode glyphs when Claude Code reads a pipe, and `--setup` / `--unsetup` no longer fail in legacy cp950 consoles when localized messages contain characters such as ✓.
