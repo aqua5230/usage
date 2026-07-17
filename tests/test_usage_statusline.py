@@ -22,6 +22,89 @@ import pytest
 import usage_statusline
 
 
+def test_get_width_uses_conout_width_after_windows_pipe_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def raise_oserror(fd: int) -> os.terminal_size:
+        _ = fd
+        raise OSError("not a terminal")
+
+    monkeypatch.setattr(
+        usage_statusline,
+        "os",
+        SimpleNamespace(name="nt", get_terminal_size=raise_oserror),
+    )
+    monkeypatch.setattr(usage_statusline, "_conout_columns", lambda: 220)
+
+    assert usage_statusline.get_width() == 216
+
+
+@pytest.mark.parametrize("columns", (None, 0))
+def test_get_width_keeps_default_when_conout_is_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+    columns: int | None,
+) -> None:
+    def raise_oserror(fd: int) -> os.terminal_size:
+        _ = fd
+        raise OSError("not a terminal")
+
+    monkeypatch.setattr(
+        usage_statusline,
+        "os",
+        SimpleNamespace(name="nt", get_terminal_size=raise_oserror),
+    )
+    monkeypatch.setattr(usage_statusline, "_conout_columns", lambda: columns)
+
+    assert usage_statusline.get_width() == 116
+
+
+def test_get_width_does_not_probe_conout_off_windows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def raise_oserror(fd: int) -> os.terminal_size:
+        _ = fd
+        raise OSError("not a terminal")
+
+    def fail_probe() -> int:
+        raise AssertionError("CONOUT$ probe should not run off Windows")
+
+    monkeypatch.setattr(
+        usage_statusline,
+        "os",
+        SimpleNamespace(name="posix", get_terminal_size=raise_oserror),
+    )
+    monkeypatch.setattr(usage_statusline, "_conout_columns", fail_probe)
+
+    assert usage_statusline.get_width() == 116
+
+
+def test_statusline_detect_lang_uses_windows_system_lang_when_env_is_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for key in ("USAGE_LANG", "TT_LANG", "LANG"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(usage_statusline, "_windows_system_lang", lambda: "zh_TW")
+
+    assert usage_statusline._statusline_detect_lang({}) == "en"
+    assert usage_statusline._statusline_detect_lang() == "zh-TW"
+
+
+def test_statusline_detect_lang_prefers_usage_lang_over_windows_system_lang(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(usage_statusline, "_windows_system_lang", lambda: "zh_TW")
+
+    assert usage_statusline._statusline_detect_lang({"USAGE_LANG": "ja"}) == "ja"
+
+
+def test_statusline_windows_system_lang_is_empty_off_windows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(usage_statusline, "os", SimpleNamespace(name="posix"))
+
+    assert usage_statusline._windows_system_lang() == ""
+
+
 def test_windows_output_reconfigures_both_streams(monkeypatch: pytest.MonkeyPatch) -> None:
     class Stream:
         def __init__(self) -> None:
@@ -408,6 +491,26 @@ def test_main_writes_valid_json_object(
     assert data["rate_limits"] == {"status": "ok"}
     assert isinstance(data["_received_at"], str)
     assert isinstance(data["_received_at_ts"], int | float)
+    assert capsys.readouterr().out == "usage\n"
+
+
+def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    status_file = tmp_path / "usage-status.json"
+    payload = {"cwd": r"C:\\Users\\USER\\Desktop\\GitHub專案\\usage"}
+    stdin = io.TextIOWrapper(
+        io.BytesIO(json.dumps(payload, ensure_ascii=False).encode("utf-8")), encoding="cp950"
+    )
+    monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
+    monkeypatch.setattr(usage_statusline, "LOCK_FILE", str(tmp_path / "usage-status.lock"))
+    monkeypatch.setattr(sys, "stdin", stdin)
+
+    usage_statusline.main()
+
+    assert json.loads(status_file.read_text(encoding="utf-8"))["cwd"] == payload["cwd"]
     assert capsys.readouterr().out == "usage\n"
 
 

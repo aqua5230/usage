@@ -59,6 +59,13 @@ def _configure_windows_utf8_output() -> None:
             cast(Any, stream).reconfigure(encoding="utf-8")
 
 
+def _read_stdin_utf8() -> str:
+    buffer = getattr(sys.stdin, "buffer", None)
+    if buffer is None:
+        return sys.stdin.read()
+    return cast(bytes, buffer.read()).decode("utf-8", "replace")
+
+
 PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-resume-prompt.json"))
 DIAGNOSIS_SNAPSHOT = Path(os.path.expanduser("~/.claude/usage-diagnosis.json"))
 DIAGNOSIS_STATE = Path(os.path.expanduser("~/.claude/usage-diagnosis-state.json"))
@@ -253,7 +260,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
 def main() -> int:
     _configure_windows_utf8_output()
     try:
-        payload = json.loads(sys.stdin.read() or "{}")
+        payload = json.loads(_read_stdin_utf8() or "{}")
     except (json.JSONDecodeError, ValueError):
         return 0
     if not isinstance(payload, dict):
@@ -775,12 +782,28 @@ def _project_from_cwd(cwd: str) -> str:
     return parts[-1] if parts and parts[-1] else (rel or "unknown")
 
 
+def _windows_system_lang() -> str:
+    if os.name != "nt":
+        return ""
+    try:
+        import ctypes
+        import locale as _locale
+
+        windll = getattr(ctypes, "windll", None)
+        if windll is None:
+            return ""
+        lang_id = int(windll.kernel32.GetUserDefaultUILanguage())
+        return _locale.windows_locale.get(lang_id, "") or ""
+    except Exception:
+        return ""
+
+
 def _detect_lang() -> str:
     for key in ("USAGE_LANG", "TT_LANG", "LANG"):
         value = os.environ.get(key, "").strip()
         if value:
             return _normalize_lang(value)
-    return "en"
+    return _normalize_lang(_windows_system_lang())
 
 
 def _normalize_lang(code: str) -> str:

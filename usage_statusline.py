@@ -41,6 +41,13 @@ def _configure_windows_utf8_output() -> None:
             cast(Any, stream).reconfigure(encoding="utf-8")
 
 
+def _read_stdin_utf8() -> str:
+    buffer = getattr(sys.stdin, "buffer", None)
+    if buffer is None:
+        return sys.stdin.read()
+    return cast(bytes, buffer.read()).decode("utf-8", "replace")
+
+
 _fcntl: Any = None
 _msvcrt: Any = None
 if sys.platform == "win32":
@@ -207,10 +214,32 @@ C = {
 }
 
 
+def _windows_system_lang() -> str:
+    if os.name != "nt":
+        return ""
+    try:
+        import ctypes
+        import locale as _locale
+
+        windll = getattr(ctypes, "windll", None)
+        if windll is None:
+            return ""
+        lang_id = int(windll.kernel32.GetUserDefaultUILanguage())
+        return _locale.windows_locale.get(lang_id, "") or ""
+    except Exception:
+        return ""
+
+
 def _statusline_detect_lang(env: Optional[Dict[str, str]] = None) -> str:
     source = os.environ if env is None else env
-    override = source.get("TT_LANG", "").strip()
-    raw = override or source.get("LANG", "")
+    raw = ""
+    for key in ("USAGE_LANG", "TT_LANG", "LANG"):
+        value = source.get(key, "").strip()
+        if value:
+            raw = value
+            break
+    if not raw and env is None:
+        raw = _windows_system_lang()
     code = raw.split(".")[0].replace("_", "-")
     table = {
         "zh-TW": "zh-TW",
@@ -382,10 +411,66 @@ def vlen(s: str) -> int:
     return visible
 
 
+def _conout_columns() -> Optional[int]:
+    """Return the active Windows console window width, if one is available."""
+    if os.name != "nt":
+        return None
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        class _CSBI(ctypes.Structure):
+            _fields_ = [
+                ("dwSize", wintypes._COORD),
+                ("dwCursorPosition", wintypes._COORD),
+                ("wAttributes", wintypes.WORD),
+                ("srWindow", wintypes.SMALL_RECT),
+                ("dwMaximumWindowSize", wintypes._COORD),
+            ]
+
+        win_dll = getattr(ctypes, "WinDLL", None)
+        if win_dll is None:
+            return None
+        kernel32 = win_dll("kernel32", use_last_error=True)
+        create_file = kernel32.CreateFileW
+        create_file.restype = wintypes.HANDLE
+        get_console_info = kernel32.GetConsoleScreenBufferInfo
+        get_console_info.argtypes = [wintypes.HANDLE, ctypes.POINTER(_CSBI)]
+        close_handle = kernel32.CloseHandle
+        close_handle.argtypes = [wintypes.HANDLE]
+
+        handle = create_file(
+            "CONOUT$",
+            0x80000000 | 0x40000000,
+            0x00000001 | 0x00000002,
+            None,
+            3,
+            0,
+            None,
+        )
+        invalid_handle_value = ctypes.c_void_p(-1).value
+        if handle in (None, 0, -1, invalid_handle_value):
+            return None
+        try:
+            csbi = _CSBI()
+            if not get_console_info(handle, ctypes.byref(csbi)):
+                return None
+            columns = csbi.srWindow.Right - csbi.srWindow.Left + 1
+            return columns if columns > 0 else None
+        finally:
+            close_handle(handle)
+    except Exception:
+        return None
+
+
 def get_width() -> int:
     try:
         return max(1, os.get_terminal_size(2).columns - 4)
     except Exception:
+        if os.name == "nt":
+            columns = _conout_columns()
+            if columns:
+                return max(1, columns - 4)
         return 116
 
 
@@ -684,7 +769,7 @@ def render(data: Dict[str, Any], now: datetime) -> str:
 def main() -> None:
     _configure_windows_utf8_output()
     try:
-        raw = sys.stdin.read()
+        raw = _read_stdin_utf8()
     except Exception as exc:
         _debug("stdin read failed", exc)
         return

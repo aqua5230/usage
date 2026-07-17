@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import shutil
 import sys
 import tomllib
 from collections.abc import Callable
@@ -220,6 +221,20 @@ def test_find_system_python_uses_current_interpreter_on_windows(
     assert setup_hook._find_system_python() == r"C:\\Program Files\\Python\\python.exe"
 
 
+def test_find_system_python_avoids_non_ascii_windows_interpreter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "executable", r"C:\\專案\\usage\\.venv\\Scripts\\python.exe")
+    monkeypatch.setattr(
+        shutil,
+        "which",
+        lambda name: r"C:\\Program Files\\Python\\python.exe" if name == "python" else None,
+    )
+
+    assert setup_hook._find_system_python() == r"C:\\Program Files\\Python\\python.exe"
+
+
 def test_windows_hook_commands_use_double_quotes(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setattr(
@@ -268,6 +283,37 @@ def test_windows_statusline_migration_rewrites_legacy_backslash_paths(
     data = json.loads(setup_paths.settings.read_text(encoding="utf-8"))
     assert data["statusLine"]["command"] == expected_statusline_command(setup_paths.hook_target)
     assert data["usage"]["selfHealLog"][-1]["action"] == "migrate_windows_statusline"
+
+
+def test_windows_statusline_migration_rewrites_non_ascii_interpreter(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(
+        setup_hook, "_find_system_python", lambda: r"C:\\Program Files\\Python\\python.exe"
+    )
+    setup_paths.settings.write_text(
+        json.dumps(
+            {
+                "statusLine": {
+                    "type": "command",
+                    "command": (
+                        r"C:/Users/USER/Desktop/GitHub專案/usage/.venv/Scripts/python.exe "
+                        f"{setup_paths.hook_target}"
+                    ),
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    setup_hook._migrate_windows_statusline_command_if_needed()
+
+    data = json.loads(setup_paths.settings.read_text(encoding="utf-8"))
+    command = data["statusLine"]["command"]
+    assert command == expected_statusline_command(setup_paths.hook_target)
+    assert command.isascii()
 
 
 def test_setup_codex_replaces_only_tui_status_line(

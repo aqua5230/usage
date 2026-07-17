@@ -27,9 +27,17 @@ import json
 import os
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 __version__ = "1.0"
+
+
+def _read_stdin_utf8() -> str:
+    buffer = getattr(sys.stdin, "buffer", None)
+    if buffer is None:
+        return sys.stdin.read()
+    return cast(bytes, buffer.read()).decode("utf-8", "replace")
+
 
 PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-terse-prompt.json"))
 
@@ -132,12 +140,28 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
 }
 
 
+def _windows_system_lang() -> str:
+    if os.name != "nt":
+        return ""
+    try:
+        import ctypes
+        import locale as _locale
+
+        windll = getattr(ctypes, "windll", None)
+        if windll is None:
+            return ""
+        lang_id = int(windll.kernel32.GetUserDefaultUILanguage())
+        return _locale.windows_locale.get(lang_id, "") or ""
+    except Exception:
+        return ""
+
+
 def _detect_lang() -> str:
     for key in ("USAGE_LANG", "TT_LANG", "LANG"):
         value = os.environ.get(key, "").strip()
         if value:
             return _normalize_lang(value)
-    return "en"
+    return _normalize_lang(_windows_system_lang())
 
 
 def _normalize_lang(code: str) -> str:
@@ -176,7 +200,7 @@ def _load_instruction(lang: str) -> str:
 
 def main() -> int:
     try:
-        payload = json.loads(sys.stdin.read() or "{}")
+        payload = json.loads(_read_stdin_utf8() or "{}")
     except (OSError, ValueError, TypeError):
         return 0
     if not isinstance(payload, dict):

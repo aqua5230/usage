@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import io
+import json
 import subprocess
 import sys
 from importlib import import_module
@@ -54,11 +55,15 @@ def test_main_fans_stdin_out_to_all_hooks(
         *,
         input: str,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         capture_output: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
         assert text is True
+        assert encoding == "utf-8"
+        assert errors == "replace"
         assert check is False
         assert capture_output is True
         calls.append((cmd, input, timeout))
@@ -77,6 +82,30 @@ def test_main_fans_stdin_out_to_all_hooks(
     assert capsys.readouterr().out == "/tmp/claude-statusline.py\n/tmp/usage-statusline.py\n"
 
 
+def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    raw_values: list[str] = []
+    payload = json.dumps(
+        {"cwd": r"C:\\Users\\USER\\Desktop\\GitHub專案\\usage"}, ensure_ascii=False
+    )
+    stdin = io.TextIOWrapper(io.BytesIO(payload.encode("utf-8")), encoding="cp950")
+
+    def fake_run(cmd: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        raw_values.append(kwargs["input"])
+        return subprocess.CompletedProcess(cmd, 0, stdout="", stderr="")
+
+    monkeypatch.setattr(sys, "stdin", stdin)
+    monkeypatch.setattr(
+        usage_statusline_forwarder.glob, "glob", lambda pattern: ["/tmp/x-statusline.py"]
+    )
+    monkeypatch.setattr(usage_statusline_forwarder.subprocess, "run", fake_run)
+
+    usage_statusline_forwarder.main()
+
+    assert raw_values == [payload]
+
+
 def test_timeout_hook_does_not_block_later_hooks(
     monkeypatch: pytest.MonkeyPatch,
     capsys: pytest.CaptureFixture[str],
@@ -89,11 +118,13 @@ def test_timeout_hook_does_not_block_later_hooks(
         *,
         input: str,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         capture_output: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
-        _ = input, text, check, capture_output
+        _ = input, text, encoding, errors, check, capture_output
         calls.append(cmd[1])
         if cmd[1] == "/tmp/aaa-slow-statusline.py":
             raise subprocess.TimeoutExpired(cmd, timeout)
@@ -120,11 +151,13 @@ def test_nonzero_hook_exit_keeps_forwarder_successful(
         *,
         input: str,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         capture_output: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
-        _ = input, text, check, capture_output, timeout
+        _ = input, text, encoding, errors, check, capture_output, timeout
         if cmd[1] == "/tmp/fail-statusline.py":
             return subprocess.CompletedProcess(cmd, 1, stdout="failed output\n", stderr="boom")
         return subprocess.CompletedProcess(cmd, 0, stdout="ok output\n", stderr="")
@@ -149,11 +182,13 @@ def test_unicode_decode_error_hook_does_not_block_later_hooks(
         *,
         input: str,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         capture_output: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
-        _ = input, text, check, capture_output, timeout
+        _ = input, text, encoding, errors, check, capture_output, timeout
         if cmd[1] == "/tmp/bad-statusline.py":
             raise UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid start byte")
         return subprocess.CompletedProcess(cmd, 0, stdout="ok output\n", stderr="")
