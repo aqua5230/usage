@@ -411,6 +411,26 @@ def test_main_writes_valid_json_object(
     assert capsys.readouterr().out == "usage\n"
 
 
+def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    status_file = tmp_path / "usage-status.json"
+    payload = {"cwd": r"C:\\Users\\USER\\Desktop\\GitHub專案\\usage"}
+    stdin = io.TextIOWrapper(
+        io.BytesIO(json.dumps(payload, ensure_ascii=False).encode("utf-8")), encoding="cp950"
+    )
+    monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
+    monkeypatch.setattr(usage_statusline, "LOCK_FILE", str(tmp_path / "usage-status.lock"))
+    monkeypatch.setattr(sys, "stdin", stdin)
+
+    usage_statusline.main()
+
+    assert json.loads(status_file.read_text(encoding="utf-8"))["cwd"] == payload["cwd"]
+    assert capsys.readouterr().out == "usage\n"
+
+
 def test_main_returns_when_stdin_read_raises(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

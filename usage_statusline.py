@@ -41,6 +41,13 @@ def _configure_windows_utf8_output() -> None:
             cast(Any, stream).reconfigure(encoding="utf-8")
 
 
+def _read_stdin_utf8() -> str:
+    buffer = getattr(sys.stdin, "buffer", None)
+    if buffer is None:
+        return sys.stdin.read()
+    return cast(bytes, buffer.read()).decode("utf-8", "replace")
+
+
 _fcntl: Any = None
 _msvcrt: Any = None
 if sys.platform == "win32":
@@ -684,7 +691,7 @@ def render(data: Dict[str, Any], now: datetime) -> str:
 def main() -> None:
     _configure_windows_utf8_output()
     try:
-        raw = sys.stdin.read()
+        raw = _read_stdin_utf8()
     except Exception as exc:
         _debug("stdin read failed", exc)
         return

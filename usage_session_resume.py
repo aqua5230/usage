@@ -59,6 +59,13 @@ def _configure_windows_utf8_output() -> None:
             cast(Any, stream).reconfigure(encoding="utf-8")
 
 
+def _read_stdin_utf8() -> str:
+    buffer = getattr(sys.stdin, "buffer", None)
+    if buffer is None:
+        return sys.stdin.read()
+    return cast(bytes, buffer.read()).decode("utf-8", "replace")
+
+
 PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-resume-prompt.json"))
 DIAGNOSIS_SNAPSHOT = Path(os.path.expanduser("~/.claude/usage-diagnosis.json"))
 DIAGNOSIS_STATE = Path(os.path.expanduser("~/.claude/usage-diagnosis-state.json"))
@@ -253,7 +260,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
 def main() -> int:
     _configure_windows_utf8_output()
     try:
-        payload = json.loads(sys.stdin.read() or "{}")
+        payload = json.loads(_read_stdin_utf8() or "{}")
     except (json.JSONDecodeError, ValueError):
         return 0
     if not isinstance(payload, dict):

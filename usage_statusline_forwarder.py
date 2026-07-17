@@ -34,12 +34,21 @@ def _configure_windows_utf8_output() -> None:
             cast(Any, stream).reconfigure(encoding="utf-8")
 
 
+def _read_stdin_utf8() -> str:
+    buffer = getattr(sys.stdin, "buffer", None)
+    if buffer is None:
+        return sys.stdin.read()
+    return cast(bytes, buffer.read()).decode("utf-8", "replace")
+
+
 def _run_hook(py: str, hook: str, raw: str) -> str:
     try:
         result = subprocess.run(
             [py, hook],
             input=raw,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
             capture_output=True,
             timeout=TIMEOUT_SECONDS,
@@ -51,7 +60,7 @@ def _run_hook(py: str, hook: str, raw: str) -> str:
 
 def main() -> None:
     _configure_windows_utf8_output()
-    raw = sys.stdin.read()
+    raw = _read_stdin_utf8()
     if not raw.strip():
         return
 

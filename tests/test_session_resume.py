@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 import os
 import sys
@@ -547,6 +548,27 @@ def test_main_emits_greeting_when_no_progress(
     assert mod.main() == 0
     out = json.loads(capsys.readouterr().out)
     assert out["hookSpecificOutput"]["additionalContext"] == "GREETING::"
+
+
+def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    project = _project_dir(tmp_path)
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+    payload = json.dumps(
+        {"transcript_path": str(current), "cwd": r"C:\\Users\\USER\\Desktop\\GitHub專案\\usage"},
+        ensure_ascii=False,
+    )
+    monkeypatch.setattr(
+        sys, "stdin", io.TextIOWrapper(io.BytesIO(payload.encode("utf-8")), encoding="cp950")
+    )
+
+    assert mod.main() == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["hookSpecificOutput"]["hookEventName"] == "SessionStart"
 
 
 def test_extract_commit_title_handles_heredoc_forms() -> None:

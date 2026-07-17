@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import io
 import json
 from pathlib import Path
 
@@ -74,6 +75,23 @@ def test_main_uses_detected_language(
     assert mod.main() == 0
     out = json.loads(capsys.readouterr().out)
     assert out["hookSpecificOutput"]["additionalContext"] == "提醒::繁中"
+
+
+def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+) -> None:
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    _sidecar(tmp_path, monkeypatch)
+    payload = json.dumps(
+        {"cwd": r"C:\\Users\\USER\\Desktop\\GitHub專案\\usage"}, ensure_ascii=False
+    )
+    monkeypatch.setattr(
+        "sys.stdin", io.TextIOWrapper(io.BytesIO(payload.encode("utf-8")), encoding="cp950")
+    )
+
+    assert mod.main() == 0
+    out = json.loads(capsys.readouterr().out)
+    assert out["hookSpecificOutput"]["additionalContext"] == "REMINDER::EN"
 
 
 def test_main_is_silent_on_invalid_json(
