@@ -132,15 +132,29 @@ def _statusline_command_target_exists() -> bool:
 def _find_system_python() -> str:
     if sys.platform == "win32":
         executable = sys.executable
-        if executable and not getattr(sys, "frozen", False):
+        if (
+            executable
+            and not getattr(sys, "frozen", False)
+            and _is_ascii_path(executable)
+        ):
             return executable
-        return shutil.which("python") or "python"
+        # Claude Code can fail to spawn a command containing non-ASCII paths
+        # on Windows.  The hook is stdlib-only, so an ASCII-path Python from
+        # PATH (or the Windows launcher) is preferable to this app's venv.
+        for candidate in (shutil.which("python"), shutil.which("py")):
+            if candidate and _is_ascii_path(candidate):
+                return candidate
+        return "python"
     if os.path.exists("/usr/bin/python3"):
         return "/usr/bin/python3"
     executable = sys.executable
     if ".app/Contents" not in executable:
         return executable
     return shutil.which("python3") or "python3"
+
+
+def _is_ascii_path(value: str) -> bool:
+    return value.isascii()
 
 
 def _shell_arg(value: str) -> str:
@@ -165,7 +179,7 @@ def _uses_bundled_app_python(command: str) -> bool:
 def _migrate_windows_statusline_command_if_needed(
     settings: dict[str, Any] | None = None,
 ) -> None:
-    """Replace legacy backslash paths in usage-owned Windows statusLine commands."""
+    """Repair Windows usage commands with backslash or non-ASCII paths."""
     if sys.platform != "win32":
         return
     data = _load_settings() if settings is None else settings
@@ -173,7 +187,7 @@ def _migrate_windows_statusline_command_if_needed(
     if not isinstance(sl, dict):
         return
     command = sl.get("command")
-    if not isinstance(command, str) or "\\" not in command:
+    if not isinstance(command, str) or ("\\" not in command and command.isascii()):
         return
     if "usage-statusline-forwarder" in command:
         new_command = _forwarder_command()
@@ -185,7 +199,9 @@ def _migrate_windows_statusline_command_if_needed(
         return
     sl["command"] = new_command
     _save_settings(data)
-    _append_hook_repair_log("migrate_windows_statusline", "backslash paths -> forward slashes")
+    _append_hook_repair_log(
+        "migrate_windows_statusline", "backslash/non-ASCII paths -> ASCII forward-slash command"
+    )
 
 
 def _append_hook_repair_log(action: str, detail: str) -> None:
