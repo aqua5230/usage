@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.28.9] - 2026-07-17
+
+### Fixed
+- **The Claude Code statusLine hook now works end-to-end on Windows**: four fixes land together. `setup_hook` now prefers an all-ASCII `python.exe` path (falling back to system PATH when the venv path isn't ASCII), since Claude Code on Windows fails to spawn statusLine commands whose path contains non-ASCII characters; `--setup` migrates existing non-ASCII commands. All five hook scripts now read stdin via `sys.stdin.buffer` and decode UTF-8 explicitly (and the forwarder pins `encoding=utf-8` on its subprocess fan-out), since Windows otherwise decodes the piped session JSON with the locale codepage, turning a cwd like `GitHub專案` into mojibake and silently breaking `usage-status.json` writes. Hooks now fall back to `GetUserDefaultUILanguage` when no `LANG`-style env var is set (the Windows norm), matching the tray's existing language detection. `get_width()` now probes the real console width via `CONOUT$` + `GetConsoleScreenBufferInfo` instead of always falling back to a fixed 116 columns, restoring the `(left)` reset-time suffix on wide terminals. Non-Windows behavior is unchanged.
+
 ## [0.28.8] - 2026-07-17
 
 ### Fixed

@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.28.9] - 2026-07-17
+
+### 修正
+- **Claude Code 的狀態列 hook 在 Windows 上終於整套打通**：一次合併四個修正。`setup_hook` 現在優先採用全 ASCII 的 `python.exe` 路徑（若虛擬環境路徑非 ASCII 則退回系統 PATH），因為 Claude Code 在 Windows 上無法啟動路徑含非 ASCII 字元的狀態列指令；`--setup` 會遷移既有的非 ASCII 指令。五個 hook 腳本現在都改用 `sys.stdin.buffer` 讀取標準輸入並明確以 UTF-8 解碼（轉發器的子行程也固定 `encoding=utf-8`），因為 Windows 原本會用系統語言的編碼頁解碼管線傳入的工作階段 JSON，導致像 `GitHub專案` 這種路徑變成亂碼，讓 JSON 解析失敗、`usage-status.json` 悄悄寫不出來。沒有設定 `LANG` 類環境變數時（Windows 常態），hook 現在會改用 `GetUserDefaultUILanguage` 判斷語言，跟系統匣既有的語言偵測邏輯一致。`get_width()` 現在會透過 `CONOUT$` + `GetConsoleScreenBufferInfo` 探測真實主控台寬度，不再固定退回 116 欄，讓寬螢幕終端機恢復顯示重置時間的「(left)」後綴。非 Windows 行為不變。
+
 ## [0.28.8] - 2026-07-17
 
 ### 修正
