@@ -1134,59 +1134,76 @@
           ]
         },
         {
-          "version": "2.92.0",
-          "period": "2026-04-28",
+          "version": "2.94.0",
+          "period": "2026-06-10",
           "items": [
             {
               "title": {
-                "zh-TW": "擴充技能安裝與預覽更簡明，全面支援企業雲端資料存儲",
-                "zh-CN": "扩展技能安装与预览更简明，全面支持企业云数据存储",
-                "en": "Extensions install flat by name and support GHEC with data residency",
-                "ja": "拡張機能が名前でシンプルにインストール可能になり、データローカリティ要件対応の企業向けクラウドもサポートした",
-                "ko": "확장 기능이 이름만으로 깔끔하게 설치되며, 데이터 레지던시를 지원하는 기업용 클라우드도 지원한다."
+                "zh-TW": "gh CLI 終端機直接開討論串",
+                "zh-CN": "gh CLI 终端直接开讨论串",
+                "en": "gh CLI can now drive GitHub Discussions from the terminal",
+                "ja": "gh CLI がターミナルから直接ディスカッションを開けるようになった",
+                "ko": "gh CLI가 터미널에서 바로 디스커션을 열 수 있게 됐다"
               },
               "body": {
-                "zh-TW": "現在你在預覽自訂擴充技能時，可以直接帶上參數來允許讀取隱藏的資料夾；如果你的公司使用限制資料只能存在特定地區的企業雲（GHEC，GitHub 企業雲端版），系統也能正常連線支援。同時，安裝這些技能時，系統會直接用技能本身的名稱存檔，不再加上複雜的前綴命名空間，讓路徑更簡潔。就像你的手機安裝小工具，以前必須按照開發者名字分類塞在好幾層資料夾裡，現在安裝直接放在案頭，而且在資料必須存於特定地區時也能正常使用。",
-                "zh-CN": "现在你在预览自定义扩展技能时，可以直接带上参数来允许读取隐藏的文件夹；如果你的公司使用限制数据只能存在特定地区的企业云（GHEC，GitHub 企业云端版），系统也能正常连线支持。同时，安装这些技能时，系统会直接用技能本身的名称存档，不再加上复杂的前缀命名空间，让路径更简洁。就像你的手机安装小工具，以前必须按照开发者名字分类塞在好几层文件夹里，现在安装直接放在案头，而且在数据需存特定地区时也能正常使用。",
-                "en": "You can now preview and install custom extensions with more flexibility, and easily comply with corporate data residency policies. When previewing skills, you can pass a flag to allow access to hidden directories, and the system now fully supports GitHub Enterprise Cloud (GHEC) with data residency hosts. Additionally, skills are now installed flatly by their name rather than namespaces, making file paths much cleaner. It's like installing widgets on your phone: instead of nesting them deep inside folders named after developers, they now sit directly on your home screen, and it supports corporate data-residency requirements.",
-                "ja": "カスタム拡張機能のプレビューとインストールをより柔軟に行えるようになり、企業のデータ保存地域ポリシーへの準拠も容易になった。スキルをプレビューする際、非表示ディレクトリへのアクセスを許可するフラグを指定でき、データレジデンシーに対応した GitHub Enterprise Cloud（GHEC）もサポートする。さらに、スキルはネームスペースではなく単純な名前でフラットにインストールされるようになり、パスがすっきりした。スマートフォンのウィジェットで、以前は開発者名ごとの深いフォルダに仕分けされていたのが、今はホーム画面に直接置けるようになり、データ保存地域の要件に対応した GHEC も利用できるようなものである。",
-                "ko": "커스텀 확장 기능을 더 유연하게 미리 보고 설치할 수 있으며, 기업의 데이터 스토리지 지역 규정도 쉽게 준수할 수 있다. 스킬을 미리 볼 때 숨겨진 디렉터리 접근을 허용하는 플래그를 지정할 수 있고, 데이터 레지던시를 지원하는 GitHub Enterprise Cloud(GHEC)도 정상 작동한다. 또한 스킬을 설치할 때 복잡한 네임스페이스 대신 스킬 고유의 이름으로 저장되어 경로가 한결 깔끔해졌다. 스마트폰에 위젯을 설치할 때, 예전엔 개발자 이름별로 여러 폴더에 복잡하게 얽혀 있던 것이 이제는 홈 화면에 곧바로 설치되고, 데이터 레지던시 호스트를 쓰는 GHEC를 지원하는 것과 같다."
+                "zh-TW": "gh CLI 現在能直接在命令列操作 GitHub Discussions（討論區功能，社群提問與閒聊的看板）了，這是預覽版（preview，功能還在測試、之後可能調整）。新增「gh discussion」指令組：list 列出討論串、view 看內容、create 開新討論、edit 編輯，另外「gh discussion comment」可以直接留言或回覆別人的討論。內建的 gh 技能（skill，讓 AI 代理知道怎麼用 gh 指令的說明書）也同步補上這批 discussion 指令和 Issues 2.0 的用法說明。像原本只能用網頁逛的社群留言板，現在終端機也能直接開窗留言。",
+                "zh-CN": "gh CLI 现在能直接在命令行操作 GitHub Discussions（讨论区功能，社区提问与闲聊的看板）了，这是预览版（preview，功能还在测试、之后可能调整）。新增「gh discussion」指令组：list 列出讨论串、view 看内容、create 开新讨论、edit 编辑，另外「gh discussion comment」可以直接留言或回复别人的讨论。内置的 gh 技能（skill，让 AI 代理知道怎么用 gh 指令的说明书）也同步补上这批 discussion 指令和 Issues 2.0 的用法说明。像原本只能用网页逛的社区留言板，现在终端也能直接开窗留言。",
+                "en": "gh CLI can now drive GitHub Discussions (a community Q&A and chat board) straight from the command line — this is a preview (the feature is still being tested and may change). The new `gh discussion` command set covers `list`, `view`, `create`, and `edit`, and `gh discussion comment` lets you post or reply to a discussion directly. The built-in `gh` skill (a skill is a manual that tells an AI agent how to use `gh` commands) has also been updated with these discussion commands and Issues 2.0 usage notes. It's like a community message board you used to have to browse on the web now getting its own window right in your terminal.",
+                "ja": "gh CLI が GitHub Discussions（ディスカッション、コミュニティの質問や雑談の掲示板）をコマンドラインから直接操作できるようになった。これはプレビュー版（preview、まだテスト中で今後変わる可能性がある機能）だ。新しい「gh discussion」コマンド群は list・view・create・edit をカバーし、「gh discussion comment」でディスカッションに直接コメントしたり返信したりできる。内蔵の gh スキル（skill、AI エージェントに gh コマンドの使い方を教える説明書）にも、この discussion コマンド群と Issues 2.0 の使い方が追記された。ウェブでしか見られなかったコミュニティ掲示板に、ターミナルからも直接窓を開けて書き込めるようになったようなものだ。",
+                "ko": "gh CLI가 이제 명령줄에서 바로 GitHub Discussions(디스커션, 커뮤니티 질문과 잡담 게시판)를 다룰 수 있다. 이건 프리뷰(preview, 아직 테스트 중이라 나중에 바뀔 수 있는 기능) 버전이다. 새로운 'gh discussion' 명령 모음은 list, view, create, edit를 포함하고, 'gh discussion comment'로 디스커션에 직접 댓글을 달거나 답글을 달 수 있다. 내장된 gh 스킬(skill, AI 에이전트에게 gh 명령 쓰는 법을 알려주는 설명서)에도 이번 discussion 명령들과 Issues 2.0 사용법이 함께 추가됐다. 웹에서만 보던 커뮤니티 게시판을, 이제 터미널에서도 바로 창을 열어 글을 쓸 수 있게 된 셈이다."
               },
-              "original": "feat(skills): add --allow-hidden-dirs flag to preview command by @SamMorrowDrums in https://github.com/cli/cli/pull/13265\nfeat(skills): support GHEC with data residency hosts by @SamMorrowDrums in https://github.com/cli/cli/pull/13264\nInstall skills flat by Name, not namespaced InstallName by @SamMorrowDrums in https://github.com/cli/cli/pull/13266"
+              "original": "Add `gh discussion` command set (`list`, `view`, `create`, `edit`) as a preview by @babakks and @maxbeizer in [#13541](https://github.com/cli/cli/pull/13541)\nAdd `gh discussion comment` to comment on and reply to discussions by @babakks in [#13620](https://github.com/cli/cli/pull/13620)\nAdd `gh discussion` and Issues 2.0 reference to the `gh` skill, plus a README note by @BagToad in [#13631](https://github.com/cli/cli/pull/13631)"
             },
             {
               "title": {
-                "zh-TW": "過濾日誌控制碼防禦終端機注入攻擊，新增擴充功能安全警告",
-                "zh-CN": "过滤日志控制码防御终端注入攻击，新增扩展功能安全警告",
-                "en": "Clean logs to prevent terminal injection and add security warnings to extensions",
-                "ja": "ログの制御コードをクリーンにして端末注入攻撃を防ぎ、拡張機能にセキュリティ警告を追加",
-                "ko": "로그 제어 코드를 정화해 터미널 주입 공격을 방지하고, 확장 기능에 보안 경고를 추가한다."
+                "zh-TW": "議題可以分類、拆子任務、互相牽線了",
+                "zh-CN": "议题可以分类、拆子任务、互相关联了",
+                "en": "Issues can now be typed, split, and linked to each other",
+                "ja": "イシューを種類分け・分割・相互リンクできるようになった",
+                "ko": "이슈를 종류별로 나누고 쪼개고 서로 연결할 수 있게 됐다"
               },
               "body": {
-                "zh-TW": "現在當你在查看執行紀錄時，系統會先過濾掉可能隱藏的惡意控制碼，防止有心人士透過終端機注入攻擊（terminal injection）來控制你的畫面。同時，當你查閱擴充功能說明時，畫面會貼心顯示安全免責聲明，提醒你只安裝信任的工具。此外，自動部署設定檔（deployment.yml）中關於變數替換的寫法也修正了，避免自動化流程出錯。就像你在路邊看佈告欄，以前可能有人在海報下偷黏按鈕騙你按，現在不僅海報被防護玻璃罩住，佈告欄旁邊還立了警告標語提醒你小心詐騙。",
-                "zh-CN": "现在当你在查看运行日志时，系统会先过滤掉可能隐藏的恶意控制码，防止有心人士通过终端注入攻击（terminal injection）来控制你的画面。同时，当你阅览扩展功能说明时，画面会贴心显示安全免责声明，提醒你只安装信任的工具。此外，自动部署配置文件（deployment.yml）中关于变量替换的写法也修正了，避免自动化流程出错。就像你在路边看布告栏，以前可能有人在海报下偷粘按钮骗你按，现在不仅海报被防护玻璃罩住，布告栏旁边还立了警告标语提醒你小心诈骗。",
-                "en": "You can now review logs and install third-party extensions with much better protection against malicious exploits. The CLI now filters unsafe escape codes when outputting logs to prevent terminal injection from manipulating your screen. Additionally, help pages for extensions now display a clear trust disclaimer, reminding you to only run extensions you trust. A syntax fix was also applied to variable interpolation in deployment workflows (deployment.yml) to keep automated processes stable. It's like looking at a public bulletin board: previously someone could hide sticky buttons under posters to trick you, but now the posters are behind safety glass and there's a warning sign reminding you to watch out for scams.",
-                "ja": "ログの確認やサードパーティ製拡張機能のインストールを、悪意あるコードの脅威から守られた安全な環境で行えるようになった。ログ出力時に危険な制御コードをフィルタリングし、端末エミュレータを操作される端末注入攻撃（terminal injection）を防止する。また、拡張機能のヘルプ画面に免責事項を追加し、信頼できる開発者のツールのみをインストールするよう注意を促す。さらに、デプロイワークフロー（deployment.yml）の変数展開の記述ミスも修正され、自動化処理が安定した。街頭の掲示板で、以前はポスターの下に不正なボタンが仕込まれて誤操作させられる恐れがあったのが、ポスターが保護ガラスで覆われ、横に警告の張り紙が出されたようなものである。",
-                "ko": "이제 악성 코드의 위협으로부터 한층 더 보호된 상태에서 로그를 검토하고 서드파티 확장 기능을 설치할 수 있다. 로그를 출력할 때 안전하지 않은 제어 코드를 걸러내어, 터미널 주입 공격(terminal injection)을 원천 차단한다. 또한 확장 기능 도움말 화면에 명확한 면책 조항을 추가하여 신뢰할 수 있는 개발자의 도구만 실행하도록 상기시킨다. 아울러 배포 워크플로(deployment.yml) 파일의 변수 보간법 문법 오류도 수정되어 자동화 프로세스가 안정적으로 작동한다. 길거리 게시판에 붙은 포스터 밑에 누군가 몰래 버튼을 숨겨두고 누르게 유도하던 상황에서, 포스터를 보호 유리로 덮고 옆에 경고문을 붙여 사기를 예방하는 것과 같다."
+                "zh-TW": "GitHub 的 Issues 2.0（新一代議題系統，議題可以分類、拆子任務、彼此關聯）現在 gh CLI 也支援了：issue 可以標上類型（issue types）、拆成子議題（sub-issues，大任務底下的小任務）、跟其他議題建立關聯（relationships）。像把一張寫滿待辦的便條紙，換成可以分類貼、拆小張、互相牽線的看板，管理大專案的議題終於不用全部擠在一張清單裡。",
+                "zh-CN": "GitHub 的 Issues 2.0（新一代议题系统，议题可以分类、拆子任务、彼此关联）现在 gh CLI 也支持了：issue 可以标上类型（issue types）、拆成子议题（sub-issues，大任务底下的小任务）、跟其他议题建立关联（relationships）。像把一张写满待办的便利贴，换成可以分类贴、拆小张、互相牵线的看板，管理大项目的议题终于不用全挤在一张清单里。",
+                "en": "GitHub's Issues 2.0 (the next-generation issue system, where issues can be typed, split into sub-issues, and linked to each other) is now supported in gh CLI: issues can carry a type (issue types), be broken into sub-issues (smaller tasks under a bigger one), and form relationships with other issues. It's like swapping a sticky note crammed with to-dos for a board where you can categorize, split into smaller notes, and draw connecting lines — managing a big project's issues no longer means cramming everything onto one list.",
+                "ja": "GitHub の Issues 2.0（次世代のイシューシステムで、イシューに種類を付けたりサブイシューに分けたり互いに関連付けたりできる仕組み）が gh CLI でも使えるようになった。issue には種類（issue types）が付けられ、サブイシュー（sub-issues、大きなタスクの下にぶら下がる小さなタスク）に分割でき、他のイシューと関連（relationships）を結べる。やることを書き殴った一枚の付箋を、種類ごとに貼り分け、小さく分割し、線で結べるボードに置き換えたようなもので、大きなプロジェクトのイシュー管理がもう一枚のリストに詰め込まれずに済む。",
+                "ko": "GitHub의 Issues 2.0(차세대 이슈 시스템, 이슈에 종류를 붙이고 하위 이슈로 쪼개고 서로 연결할 수 있는 방식)이 이제 gh CLI에서도 지원된다: issue에 종류(issue types)를 붙이고, 하위 이슈(sub-issues, 큰 작업 아래 딸린 작은 작업)로 쪼개고, 다른 이슈와 관계(relationships)를 맺을 수 있다. 할 일로 빼곡한 메모지 한 장을, 종류별로 붙이고 작게 쪼개고 서로 선으로 연결할 수 있는 보드로 바꾼 셈이라, 큰 프로젝트의 이슈 관리가 더는 리스트 한 장에 다 욱여넣지 않아도 된다."
               },
-              "original": "Fix log terminal injection by @williammartin in https://github.com/cli/cli/pull/13272\nAdd trust disclaimer to extension help text by @travellertales in https://github.com/cli/cli/pull/13296\nfix: using variable interpolation `${{ in deployment.yml... by @orbisai0security in https://github.com/cli/cli/pull/13258\n@orbisai0security made their first contribution in https://github.com/cli/cli/pull/13258\n@travellertales made their first contribution in https://github.com/cli/cli/pull/13296"
+              "original": "Add Issues 2.0 support: issue types, sub-issues, and relationships by @BagToad in [#13057](https://github.com/cli/cli/pull/13057)"
             },
             {
               "title": {
-                "zh-TW": "忽略專案看板無權限錯誤，修復 Linux 自動補完與統計回報",
-                "zh-CN": "忽略项目看板无权限错误，修复 Linux 自动补全与统计回报",
-                "en": "Ignore project access errors and fix Linux autocompletion and telemetry metrics",
-                "ja": "プロジェクト管理ボードの権限エラーを無視し、Linux での自動補完とテレメトリ収集を修正",
-                "ko": "프로젝트 보드 권한 오류를 무시하고, Linux 자동 완성 및 원격 측정 메트릭을 수정한다."
+                "zh-TW": "gh skill 系列指令一次補齊",
+                "zh-CN": "gh skill 系列指令一次补齐",
+                "en": "The `gh skill` command family gets rounded out",
+                "ja": "gh skill 系のコマンドが一通り揃った",
+                "ko": "gh skill 계열 명령이 한 번에 갖춰졌다"
               },
               "body": {
-                "zh-TW": "現在在 Debian 系統上使用 zsh（一種終端機 shell 軟體）時，自動補完功能可以正常運作了。同時，如果你在存取專案看板時遇到「資源無法存取」的錯誤，系統會自動忽略，不會再像以前那樣直接中斷崩潰。底層也升級了 Go 語言與多個終端介面套件，修復了統計回報率沒有正確更新的問題。就像你去圖書館借書，以前遇到沒權限的書櫃機器人會直接死機，而且查詢系統還經常打錯字、自動推薦按不出來；現在它會自動跳過不合適的書，找書的過程也更順暢。",
-                "zh-CN": "现在在 Debian 系统上使用 zsh（一种终端 shell 软件）时，自动补全功能可以正常运作了。同时，如果你在访问项目看板时遇到“资源无法访问”的错误，系统会自动忽略，不会再像以前那样直接中断崩溃。底层也升级了 Go 语言与多个终端界面套件，修复了统计回报率没有正确更新的问题。就像你去图书馆借书，以前遇到没权限的书柜机器人会直接死机，而且查询系统还经常打错字、自动推荐按不出来；现在它会自动跳过不合适的书，找书的过程也更顺畅。",
-                "en": "You can now enjoy a smoother autocompletion experience and more stable CLI runs across different Linux environments. When running tab completions with zsh on Debian, autocomplete options now resolve correctly. In project management, accessing boards and hitting a \"Resource not accessible\" error will be gracefully ignored instead of crashing your session. Telemetry metrics also received a fix, ensuring the sample rate updates correctly. It's like visiting a library: previously, if you walked past a locked door, the guide robot would freeze completely, the lookup catalog had typos, and search suggestions didn't work. Now, it silently bypasses restricted sections, and looking up books is completely frictionless.",
-                "ja": "様々な Linux 環境において、よりスムーズな自動補完と安定したコマンド実行が可能になった。Debian 上で zsh を用いてタブ補完を行う際、候補が正しく表示される。プロジェクト管理においては、ボードへのアクセス時に「リソースにアクセスできません」というエラーが発生しても、クラッシュせずスマートに無視する。テレメトリ収集のサンプルレートが更新されない不具合も直った。図書館で本を探す際、以前は権限のない書架に遭遇しただけで案内ロボットがフリーズし、検索機は誤字だらけで自動推薦も機能しなかったのが、今は立ち入り禁止エリアを自動で避けてくれ、書籍の検索が極めてスムーズに行えるようなものである。",
-                "ko": "다양한 Linux 환경에서 더 매끄러운 자동 완성과 안정적인 명령어 실행을 누릴 수 있다. Debian 환경의 zsh에서 탭 키로 명령어를 완성할 때 후보 목록이 올바르게 나타난다. 프로젝트 보드에 접근하다가 '리소스 접근 불가' 오류가 발생하더라도 이제 프로그램을 중단시키지 않고 가볍게 무시하고 넘어간다. 아울러 원격 측정의 샘플링 비율이 갱신되지 않던 문제도 고쳐졌다. 도서관에서 책을 찾을 때, 예전엔 권한이 없는 서가와 마주치면 안내 로봇이 완전히 멈춰버리고 검색 키오스크는 오타 투성이에 자동 추천도 되지 않았던 반면, 이제는 제한 구역을 알아서 우회해 가며 책 검색이 매끄럽게 이루어지는 것과 같다."
+                "zh-TW": "gh skill（技能，讓 AI 代理照著說明書做事的功能包）系列指令更好用了。新增「gh skill list」可以一次看清楚裝了哪些技能。「gh skill install」加上 --all 旗標，能把一個 repository（儲存庫）裡的技能全部裝起來，不用一個一個裝。「gh skill update --all」批次更新時，遇到缺 metadata（描述資訊）的技能會自動跳過、不會卡住整批更新。技能檔案放在比較深的巢狀資料夾裡，以前掃描不到，現在也找得到了。像倉庫裡的工具箱終於有清單可以點名，一鍵進貨、缺標籤的工具不會卡住盤點，藏在櫃子深處的工具也翻得出來。",
+                "zh-CN": "gh skill（技能，让 AI 代理照着说明书做事的功能包）系列指令更好用了。新增「gh skill list」可以一次看清楚装了哪些技能。「gh skill install」加上 --all 参数，能把一个 repository（仓库）里的技能全部装起来，不用一个一个装。「gh skill update --all」批量更新时，遇到缺 metadata（描述信息）的技能会自动跳过、不会卡住整批更新。技能文件放在比较深的嵌套文件夹里，以前扫描不到，现在也找得到了。像仓库里的工具箱终于有清单可以点名，一键进货、缺标签的工具不会卡住盘点，藏在柜子深处的工具也翻得出来。",
+                "en": "The `gh skill` (a skill is a bundle of instructions that tells an AI agent how to do a task) command family got more usable. The new `gh skill list` shows everything installed at a glance. `gh skill install` gained an `--all` flag to install every skill in a repository at once instead of one by one. `gh skill update --all` now skips skills missing metadata (description info) instead of getting stuck on the whole batch. And skill files buried in nested subfolders, which used to go undetected, are now found too. It's like a warehouse toolbox finally getting an inventory list, one-click restocking, tools without labels no longer jamming the count, and gear buried deep in the cabinet finally turning up.",
+                "ja": "gh skill（スキル、AI エージェントに作業のやり方を教える説明書のまとまり）系のコマンド群が使いやすくなった。新しい「gh skill list」で、入っているスキルを一覧できる。「gh skill install」に --all フラグが加わり、リポジトリ内のスキルを一括インストールできる。「gh skill update --all」での一括更新時、metadata（説明情報）がないスキルは自動でスキップされ、全体が止まらなくなった。ネストした深いフォルダに置かれたスキルファイルも、これまでは見つからなかったが、今は検出されるようになった。倉庫の工具箱にようやく在庫リストができ、ワンクリックで一括仕入れでき、ラベルのない工具が棚卸しを止めることもなく、戸棚の奥に埋もれた道具も見つかるようになったようなものだ。",
+                "ko": "gh skill(스킬, AI 에이전트에게 작업 방법을 알려주는 설명서 묶음) 계열 명령이 더 쓰기 좋아졌다. 새로 생긴 'gh skill list'로 설치된 스킬을 한눈에 볼 수 있다. 'gh skill install'에 --all 플래그가 붙어서, 저장소 안의 스킬을 한 번에 전부 설치할 수 있다. 'gh skill update --all'로 일괄 업데이트할 때 metadata(설명 정보)가 없는 스킬은 자동으로 건너뛰어 전체가 멈추지 않는다. 깊이 중첩된 폴더에 있던 스킬 파일도 예전엔 못 찾았는데 이제 찾아낸다. 창고 공구함에 드디어 재고 목록이 생기고, 클릭 한 번으로 한꺼번에 들여놓고, 라벨 없는 공구가 재고 조사를 멈추게 하지 않고, 서랍 깊숙이 묻힌 도구도 찾아지는 셈이다."
               },
-              "original": "Fix SetSampleRate not updating sample_rate dimension by @williammartin in https://github.com/cli/cli/pull/13259\nAdd \"Resource not accessible\" to ProjectsV2IgnorableError by @maxbeizer in https://github.com/cli/cli/pull/13281\ndocs: correct typo in Linux Homebrew copy by @cassidyjames in https://github.com/cli/cli/pull/13273\nchore: fix zsh completion on debian by @babakks in https://github.com/cli/cli/pull/13274\nBump Go to 1.26.2 by @github-actions[bot] in https://github.com/cli/cli/pull/13301\nchore(deps): bump github.com/mattn/go-isatty from 0.0.20 to 0.0.21 by @dependabot[bot] in https://github.com/cli/cli/pull/13161\nchore(deps): bump github.com/google/go-containerregistry from 0.21.4 to 0.21.5 by @dependabot[bot] in https://github.com/cli/cli/pull/13162\nchore(deps): bump charm.land/lipgloss/v2 from 2.0.2 to 2.0.3 by @dependabot[bot] in https://github.com/cli/cli/pull/13163\nchore(deps): bump charm.land/bubbletea/v2 from 2.0.2 to 2.0.6 by @dependabot[bot] in https://github.com/cli/cli/pull/13206\nchore(deps): bump github.com/gdamore/tcell/v2 from 2.13.8 to 2.13.9 by @dependabot[bot] in https://github.com/cli/cli/pull/13241\nchore(deps): bump github.com/mattn/go-isatty from 0.0.21 to 0.0.22 by @dependabot[bot] in https://github.com/cli/cli/pull/13298\n@cassidyjames made their first contribution in https://github.com/cli/cli/pull/13273"
+              "original": "Add `gh skill list` to inventory installed agent skills by @tommaso-moro in [#13418](https://github.com/cli/cli/pull/13418)\nAdd `--all` flag to `gh skill install` to install every skill in a repository by @tommaso-moro in [#13471](https://github.com/cli/cli/pull/13471)\nSkip skills without metadata when running `gh skill update --all` by @tommaso-moro in [#13469](https://github.com/cli/cli/pull/13469)\nfix(skill): support skill discovery in nested directories by @tommaso-moro in [#13459](https://github.com/cli/cli/pull/13459)"
+            },
+            {
+              "title": {
+                "zh-TW": "擴充功能別名與 CI 自動安裝小改善",
+                "zh-CN": "扩展别名与 CI 自动安装小改善",
+                "en": "Small extension-alias and CI auto-install improvements",
+                "ja": "拡張機能の別名と CI 自動インストールの小さな改善",
+                "ko": "확장 기능 별칭과 CI 자동 설치 소소한 개선"
+              },
+              "body": {
+                "zh-TW": "這批是指令別名跟自動化的小改善。「gh extension uninstall」現在也能打成「gh extension remove」，兩個名字都通、不用記兩套指令。CI（持續整合，自動跑測試建置的流程）環境裡官方 extension（擴充功能）現在會自動安裝好，不用額外設定。另外新增一個 terminal-mockup canvas extension（終端機模擬畫布擴充功能，用來產生行銷用的終端機截圖）。其餘還有內部整理與相依套件版本更新，不影響日常操作。像商店把退貨跟退款兩個按鈕合併成一個，怎麼按都通到同一個地方。",
+                "zh-CN": "这批是指令别名和自动化的小改善。「gh extension uninstall」现在也能打成「gh extension remove」，两个名字都通、不用记两套指令。CI（持续集成，自动跑测试构建的流程）环境里官方 extension（扩展）现在会自动安装好，不用额外设置。另外新增一个 terminal-mockup canvas extension（终端模拟画布扩展，用来生成营销用的终端截图）。其余还有内部整理与依赖包版本更新，不影响日常操作。像商店把退货和退款两个按钮合并成一个，怎么按都通到同一个地方。",
+                "en": "This batch is small command-alias and automation cleanup. `gh extension uninstall` now also works as `gh extension remove` — both names point to the same thing, so you don't need to remember two commands. Official extensions now auto-install in CI (continuous integration, the automated build-and-test pipeline) environments without extra setup. A new terminal-mockup canvas extension was also added, for generating terminal-style screenshots used in marketing. The rest includes internal cleanup and dependency version bumps that don't affect day-to-day use. It's like a store merging its 'return' and 'refund' buttons into one — press either and you end up in the same place.",
+                "ja": "今回はコマンドの別名と自動化まわりの小さな改善。「gh extension uninstall」は「gh extension remove」でも打てるようになり、どちらの名前でも同じ場所にたどり着くので二つ覚える必要がない。CI（継続的インテグレーション、自動でビルドやテストを回す仕組み）環境では公式 extension（拡張機能）が自動でインストールされるようになり、追加設定は不要になった。マーケティング用のターミナル風スクリーンショットを作る terminal-mockup canvas extension も新しく追加された。残りには内部整理と依存パッケージのバージョン更新がある。日常の操作には影響しない。お店が「返品」と「返金」のボタンを一つにまとめたようなもので、どちらを押しても同じ窓口に着く。",
+                "ko": "이번엔 명령어 별칭과 자동화 쪽의 자잘한 개선이다. 'gh extension uninstall'을 이제 'gh extension remove'로도 칠 수 있어서, 이름 두 개를 다 외울 필요 없이 같은 곳으로 통한다. CI(지속적 통합, 자동으로 빌드와 테스트를 도는 흐름) 환경에서는 공식 extension(확장 기능)이 자동으로 설치돼 따로 설정할 필요가 없다. 마케팅용 터미널 화면 스크린샷을 만드는 terminal-mockup canvas extension도 새로 추가됐다. 나머지에는 내부 정리와 의존 패키지 버전 업데이트가 있다. 평소 사용에는 영향 없다. 가게가 '반품'과 '환불' 버튼을 하나로 합친 것과 같아서, 어느 쪽을 눌러도 같은 곳으로 간다."
+              },
+              "original": "Alias `gh extension uninstall` to `gh extension remove` by @BagToad in [#13599](https://github.com/cli/cli/pull/13599)\nAuto-install official extensions in CI by @BagToad in [#13581](https://github.com/cli/cli/pull/13581)\nBump Go to 1.26.4 by @github-actions[bot] in [#13578](https://github.com/cli/cli/pull/13578)\nClean up deferred issue update helper by @BagToad in [#13584](https://github.com/cli/cli/pull/13584)\nAdd terminal-mockup canvas extension for marketing screenshots by @BagToad in [#13612](https://github.com/cli/cli/pull/13612)\nchore(deps): bump golangci/golangci-lint-action from 9.2.0 to 9.2.1 by @dependabot in [#13521](https://github.com/cli/cli/pull/13521)\nchore(deps): bump github.com/gdamore/tcell/v2 from 2.13.9 to 2.13.10 by @dependabot in [#13520](https://github.com/cli/cli/pull/13520)\nchore(deps): bump github.com/mattn/go-colorable from 0.1.14 to 0.1.15 by @dependabot in [#13572](https://github.com/cli/cli/pull/13572)\nchore(deps): bump charm.land/bubbletea/v2 from 2.0.6 to 2.0.7 by @dependabot in [#13595](https://github.com/cli/cli/pull/13595)\nchore(deps): bump github/codeql-action from 4.36.0 to 4.36.1 by @dependabot  in [#13596](https://github.com/cli/cli/pull/13596)\nchore(deps): bump actions/checkout from 6.0.2 to 6.0.3 by @dependabot in [#13597](https://github.com/cli/cli/pull/13597)"
             }
           ]
         }
