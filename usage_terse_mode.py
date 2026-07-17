@@ -140,12 +140,28 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
 }
 
 
+def _windows_system_lang() -> str:
+    if os.name != "nt":
+        return ""
+    try:
+        import ctypes
+        import locale as _locale
+
+        windll = getattr(ctypes, "windll", None)
+        if windll is None:
+            return ""
+        lang_id = int(windll.kernel32.GetUserDefaultUILanguage())
+        return _locale.windows_locale.get(lang_id, "") or ""
+    except Exception:
+        return ""
+
+
 def _detect_lang() -> str:
     for key in ("USAGE_LANG", "TT_LANG", "LANG"):
         value = os.environ.get(key, "").strip()
         if value:
             return _normalize_lang(value)
-    return "en"
+    return _normalize_lang(_windows_system_lang())
 
 
 def _normalize_lang(code: str) -> str:

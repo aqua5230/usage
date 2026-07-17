@@ -19,6 +19,31 @@ import pytest
 import usage_session_resume as mod
 
 
+def test_detect_lang_uses_windows_system_lang_when_env_is_empty(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for key in ("USAGE_LANG", "TT_LANG", "LANG"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(mod, "_windows_system_lang", lambda: "zh_TW")
+
+    assert mod._detect_lang() == "zh-TW"
+
+
+def test_detect_lang_prefers_usage_lang_over_windows_system_lang(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "ja")
+    monkeypatch.setattr(mod, "_windows_system_lang", lambda: "zh_TW")
+
+    assert mod._detect_lang() == "ja"
+
+
+def test_windows_system_lang_is_empty_off_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(mod, "os", SimpleNamespace(name="posix"))
+
+    assert mod._windows_system_lang() == ""
+
+
 def test_windows_output_reconfigures_both_streams(monkeypatch: pytest.MonkeyPatch) -> None:
     class Stream:
         def __init__(self) -> None:
