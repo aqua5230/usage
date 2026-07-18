@@ -928,6 +928,29 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.28.9",
+          "period": "2026-07-17",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Windows 的 Claude Code 狀態列終於正常運作",
+                "zh-CN": "Windows 的 Claude Code 状态栏终于正常运作",
+                "en": "Claude Code's status line finally works end-to-end on Windows",
+                "ja": "Windows の Claude Code ステータス行がようやく最後まで正しく動く",
+                "ko": "Windows에서 Claude Code 상태 표시줄이 마침내 끝까지 제대로 작동한다"
+              },
+              "body": {
+                "zh-TW": "Windows 的 Claude Code 狀態列（statusLine，顯示在終端機最底下的狀態列）終於正常運作。這次修好四處：掛鉤（hook，特定事件發生時被觸發的小程式）優先用全 ASCII 的 Python 路徑；虛擬環境路徑不合就改用系統 PATH，`--setup` 也會遷移舊指令。五支掛鉤用 UTF-8 讀標準輸入（stdin，程式接收外來資料的入口），轉發器啟動子行程時也固定 UTF-8。Windows 不會再以系統語言的編碼頁誤解工作階段 JSON，將 `GitHub專案` 這類工作資料夾變成亂碼、寫壞 `usage-status.json`。沒有 `LANG` 類環境變數時，改查系統介面語言，和系統匣相同；主控台量實際寬度，寬終端機會重現 `(left)` 重設時間。像校正列車資訊牌的線路、語言和尺規，班次不再中途消失。非 Windows 不變。",
+                "zh-CN": "Windows 上 Claude Code 终端底部的状态栏（statusLine，显示在终端最底下的状态栏）原本容易半途失灵，这次把沿路四个关卡一起修好。挂钩（hook，特定事件发生时被触发的小程序）会避开含非 ASCII 字符的 Python 路径；旧命令也会在 `--setup` 时搬家。五个挂钩脚本改用 UTF-8 读取标准输入（stdin，程序接收外来数据的入口），不再把 `GitHub專案` 这类工作文件夹名解成乱码，害 `usage-status.json` 写不进去。Windows 没有 `LANG` 类环境变量时，现在会改查系统界面语言；宽终端也会量真实宽度，重新显示 `(left)` 的重置时间。像列车信息牌的电线、语言和尺规同时校正后，班次才不会在中途消失。非 Windows 的行为不变。",
+                "en": "On Windows, Claude Code's status line at the bottom of the terminal could fail somewhere along the way. This release fixes four links in that chain. Hooks (small programs triggered by particular events) now avoid Python paths containing non-ASCII characters, and `--setup` migrates older commands. All five hook scripts now read standard input as UTF-8, so a working-folder name like `GitHub專案` is no longer turned into mojibake and prevented from writing `usage-status.json`. If Windows has no `LANG`-style environment variable, the hooks now use the system UI language instead. Wide terminals also measure their actual width again, restoring the `(left)` reset-time suffix. It is like repairing the wiring, language setting, and ruler behind a train-information board so its timetable does not vanish mid-journey. Non-Windows behavior is unchanged.",
+                "ja": "Windows では、端末の最下部に出る Claude Code のステータス行が途中で動かなくなることがあった。今回、その経路にある四つの関門をまとめて直した。フック（hook、特定の出来事で起動する小さなプログラム）は非 ASCII 文字を含む Python のパスを避け、`--setup` は古いコマンドも移行する。五つのフックスクリプトは標準入力（stdin、プログラムが外からデータを受け取る入口）を UTF-8 として読むため、`GitHub專案` のような作業フォルダ名が文字化けし、`usage-status.json` を書けなくなる問題も防ぐ。`LANG` 系の環境変数がない Windows では、システムの表示言語を使う。幅広い端末では実際の幅を測り、`(left)` のリセット時刻表示も戻る。列車案内板の配線、言語、定規を一緒に直し、途中で時刻表が消えないようにするような修正である。Windows 以外の動作は変わらない。",
+                "ko": "Windows에서는 터미널 맨 아래 Claude Code 상태 표시줄이 중간에 멈추는 일이 있었다. 이번에는 그 길목의 네 문제를 한꺼번에 고쳤다. 훅(hook, 특정 일이 일어날 때 실행되는 작은 프로그램)은 ASCII 밖의 문자가 든 Python 경로를 피하고, `--setup`은 기존 명령도 옮긴다. 다섯 훅 스크립트는 표준 입력(stdin, 프로그램이 바깥 데이터를 받는 입구)을 UTF-8로 읽으므로 `GitHub專案` 같은 작업 폴더 이름이 깨져 `usage-status.json`을 쓰지 못하던 일도 막는다. `LANG` 계열 환경 변수가 없는 Windows에서는 시스템 화면 언어를 사용한다. 넓은 터미널은 실제 너비를 다시 재서 `(left)` 재설정 시간 표시도 되살린다. 열차 안내판의 전선, 언어 설정, 자를 함께 고쳐 운행표가 중간에 사라지지 않게 한 셈이다. Windows 밖의 동작은 바뀌지 않는다."
+              },
+              "original": "**The Claude Code statusLine hook now works end-to-end on Windows**: four fixes land together. `setup_hook` now prefers an all-ASCII `python.exe` path (falling back to system PATH when the venv path isn't ASCII), since Claude Code on Windows fails to spawn statusLine commands whose path contains non-ASCII characters; `--setup` migrates existing non-ASCII commands. All five hook scripts now read stdin via `sys.stdin.buffer` and decode UTF-8 explicitly (and the forwarder pins `encoding=utf-8` on its subprocess fan-out), since Windows otherwise decodes the piped session JSON with the locale codepage, turning a cwd like `GitHub專案` into mojibake and silently breaking `usage-status.json` writes. Hooks now fall back to `GetUserDefaultUILanguage` when no `LANG`-style env var is set (the Windows norm), matching the tray's existing language detection. `get_width()` now probes the real console width via `CONOUT$` + `GetConsoleScreenBufferInfo` instead of always falling back to a fixed 116 columns, restoring the `(left)` reset-time suffix on wide terminals. Non-Windows behavior is unchanged."
+            }
+          ]
+        },
+        {
           "version": "0.28.8",
           "period": "2026-07-17",
           "items": [
@@ -970,63 +993,6 @@
                 "ko": "Windows에서 한국어 등 아시아 문자(CJK)가 포함된 프로젝트 경로를 사용하더라도 명령어가 충돌하거나 사용량(quota) 카드가 계속 빈칸으로 남는 걱정을 하지 않아도 된다. 이전에는 일부 Windows 환경에서 statusLine(터미널 가장 아래에 표시되는 상태 표시줄)의 hook(훅, 특정 이벤트 발생 시 트리거되는 프로그램)이 정상적으로 호출되지 않아 할당량 카드가 공란으로 표시되었으나, 이제는 상태 파일이 없을 때 설정 파일에서 직접 데이터를 읽어오는 백업 기능이 작동한다. 또한 프로젝트 경로에 한글 등이 포함되어 세션 훅 명령어가 실행 실패하던 문제도 자체 복구 기능을 통해 표준 경로로 규격화되며, 이 마이그레이션 작업은 멱등성(동일한 작업을 여러 번 수행해도 결과가 같은 성질)을 지녀 재부팅할 때마다 무의미한 로그를 중복해서 기록하지 않는다. 이는 배관공이 파이프 안의 돌멩이를 치워줄 뿐만 아니라, 메인 관이 막힐 때를 대비해 보조 파이프를 마련해 두는 것과 같다. 한 번 제대로 설치하면 수도꼭지를 틀 때마다 매번 새로 공사할 필요가 없는 셈이다."
               },
               "original": "**Claude quota now shows on Windows even when the statusLine hook never fires**: a Claude Code regression stops the hook from being invoked on some Windows setups, leaving the Claude quota card permanently blank. `usage_client.py` now falls back to reading `cachedUsageUtilization` straight out of Claude Code's own `~/.claude.json` when no `usage-status.json` exists, so the card still populates.\n**Session hooks no longer break on non-ASCII (CJK) project paths on Windows**: the resume, terse-mode, and terse-reminder hook commands could point into the project or app-bundle source path, which failed to execute on Windows when that path contained Chinese/Japanese/Korean characters. Self-heal now normalizes these commands to their canonical `~/.claude/` targets, and the migration is idempotent — it no longer rewrites `settings.json` and appends a duplicate self-heal log entry on every restart once the command is already correct."
-            }
-          ]
-        },
-        {
-          "version": "0.28.6",
-          "period": "2026-07-17",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Windows 控制台不再亂碼，進度條與設定順利顯示",
-                "zh-CN": "Windows 控制台不再乱码，进度条与设置顺利显示",
-                "en": "Windows console stops showing gibberish, progress bars and setup output display perfectly",
-                "ja": "Windows コンソールの文字化けが直り、プログレスバーや設定画面が正常に表示",
-                "ko": "Windows 콘솔의 글자 깨짐이 해결되어 진행률 표시줄과 설정 화면이 깔끔하게 나온다."
-              },
-              "body": {
-                "zh-TW": "在老舊的 Windows 控制台裡執行指令時，你不會再被莫名其妙的亂碼或錯誤中斷了。以前在傳統的 cp950（繁體中文的舊編碼）控制台環境下，跑 `--setup` 和 `--unsetup` 時若遇到像「✓」這樣的在地化符號，系統會因為讀不懂這些 Unicode（萬國碼）字元而直接失敗中斷。現在這些 hook（用來攔截並回報狀態的隱藏外掛）與設定輸出都全面改用 UTF-8（現代通用編碼），因此 `--setup` 系列指令不再報錯，而且當 Claude Code 從 pipe（用來傳遞資料的通道）讀取時，statusLine（顯示在最底下的狀態列）進度條也能順利保留原本的圖形字元。就像你拿著一本現代的表情符號字典去給只懂古文的老爺爺看，以前他會直接罷工，現在系統幫你請了個翻譯，爺爺也能看懂並笑著幫你辦事了。",
-                "zh-CN": "在老旧的 Windows 控制台里执行指令时，你不会再被莫名其妙的乱码或报错中断了。以前在传统的 cp950（繁体中文的旧编码）控制台环境下，跑 `--setup` 和 `--unsetup` 时若遇到像「✓」这样的本地化符号，系统会因为读不懂这些 Unicode（万国码）字符而直接失败中断。现在这些 hook（用来拦截并回报状态的隐藏插件）与设置输出都全面改用 UTF-8（现代通用编码），因此 `--setup` 系列指令不再报错，而且当 Claude Code 从 pipe（用来传递数据的通道）读取时，statusLine（显示在最底下的状态栏）进度条也能顺利保留原本的图形字符。就像你拿着一本现代的表情符号字典去给只懂古文的老爷爷看，以前他会直接罢工，现在系统帮你请了个翻译，爷爷也能看懂并笑着帮你办事了。",
-                "en": "You will no longer be interrupted by bizarre gibberish errors when running commands in legacy Windows consoles. Previously, in traditional cp950 (legacy text encoding) console environments, encountering localized symbols like \"✓\" during `--setup` and `--unsetup` would cause the system to fail because it couldn't understand those Unicode (universal character standard) characters. Now, these hooks (hidden plugins used to intercept and report status) and setup outputs strictly use UTF-8 (modern text encoding). As a result, setup commands no longer fail, and when Claude Code reads a pipe for the statusLine (the progress bar at the bottom), it successfully keeps its intended glyphs. It's like handing a modern emoji dictionary to a grandfather who only reads ancient text; he used to just walk away, but now the system provides a translator so he can understand and happily do his job.",
-                "ja": "古い Windows コンソールでコマンドを実行する際、わけのわからない文字化けやエラーで中断されることはもうない。以前は従来の cp950（繁体字の古いエンコーディング）コンソール環境において、`--setup` や `--unsetup` の実行中に「✓」のようなローカライズされた記号に遭遇すると、システムがそれらの Unicode（世界共通の文字コード）文字を理解できずに失敗していた。今後は、これらの hook（状態を傍受して報告する隠しプラグイン）や設定出力はすべて UTF-8（現代の汎用エンコーディング）を使用する。そのためセットアップ系のコマンドが失敗しなくなり、Claude Code が pipe（データを渡す経路）から読み取る際も、statusLine（画面最下部のステータスバー）の進捗状況は本来の記号が正常に表示されたままになる。現代の絵文字辞典を古文しか読めないおじいさんに渡すと、以前ならストライキに突入していたのが、今はシステムが通訳を用意したおかげで、おじいさんも内容を理解して笑顔で仕事をしてくれるようなものである。",
-                "ko": "낡은 Windows 콘솔에서 명령어를 칠 때 알 수 없는 외계어나 오류로 중단되는 일이 사라졌다. 예전엔 전통적인 cp950(옛날 문자 인코딩) 콘솔 환경에서 `--setup`, `--unsetup`을 실행하다 '✓' 같은 현지화된 기호를 만나면, 시스템이 이 Unicode(만국 공통 문자 코드) 문자를 읽지 못해 그대로 실패해 버렸다. 이제는 이 hook(상태를 가로채 보고하는 숨겨진 플러그인)과 설정 출력들이 모두 UTF-8(현대 범용 인코딩)을 쓴다. 그 덕분에 설정 명령어가 더 이상 실패하지 않으며, Claude Code가 파이프라인에서 statusLine(맨 아래 나타나는 상태 표시줄)을 읽을 때도 원래의 기호를 그대로 유지한다. 고어만 아는 할아버지에게 현대식 이모티콘 사전만 달랑 쥐여주면 예전엔 파업을 선언했지만, 이제는 시스템이 통역사를 붙여줘서 할아버지도 뜻을 알아채고 웃으며 일을 처리해 주는 것과 같다."
-              },
-              "original": "**Windows hook and setup output now uses UTF-8**: statusLine bars keep their intended Unicode glyphs when Claude Code reads a pipe, and `--setup` / `--unsetup` no longer fail in legacy cp950 consoles when localized messages contain characters such as ✓."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 選單介面大翻新，操作對齊 macOS 且不再被裁切",
-                "zh-CN": "Windows 菜单界面大翻新，操作对齐 macOS 且不再被裁切",
-                "en": "Windows menus get a massive overhaul, aligning with macOS and fixing clipped screens",
-                "ja": "Windows のメニューが大幅刷新、macOS に揃って画面切れも解消",
-                "ko": "Windows 메뉴 대대적 개편, macOS와 똑같아지고 화면 짤림 현상도 해결."
-              },
-              "body": {
-                "zh-TW": "Windows 用戶現在點開系統匣或面板選單，不會再找不到按鈕了。以前面板的子選單常被視窗邊緣裁切掉；現在「更換面板」與「隱藏區塊」等選項會直接在可捲動的選單裡原地展開。Windows 的日常更新與工作流程控制也跟上 macOS：面板內建按鈕會彈出在地化的 HTML（網頁標記語言）覆蓋層提供各項控制，系統匣選單補齊 AI 更新日報、Claude、Codex 與 Antigravity 的「隱藏區塊」子選單，加上「接著上次做」與「省 token（AI 處理與計費單位）模式」開關。可見區塊的變更立刻套用，額度提醒也在相同門檻發出 Windows 原生通知。面板選單底部也不再重複列更新、位置重設和退出。就像重新裝潢的中控室：以前螢幕太小、按鈕被切掉按不到；現在換上能捲動的大螢幕，隔壁蘋果部門的好用按鈕也搬齊了。（macOS 限定的 AI 人才市場，Windows 仍不提供。）",
-                "zh-CN": "Windows 用户现在点开系统托盘或面板菜单，不会再找不到按钮了。以前面板的子菜单常被窗口边缘裁切掉；现在「更换面板」与「隐藏版块」等选项会直接在可滚动的菜单里原地展开。Windows 的日常更新与工作流控制也跟上 macOS：面板内置按钮会弹出本地化的 HTML（网页标记语言）覆盖层提供各项控制，系统托盘菜单补齐 AI 更新日报、Claude、Codex 与 Antigravity 的「隐藏版块」子菜单，加上「接着上次做」与「省 token（AI 处理与计费单位）模式」开关。可见版块的变更立刻应用，额度提醒也在相同门槛发出 Windows 原生通知。面板菜单底部也不再重复列更新、重置位置和退出。就像重新装修的中控室：以前屏幕太小、按钮被切掉按不到；现在换上能滚动的大屏幕，隔壁苹果部门的好用按钮也搬齐了。（macOS 限定的 AI 人才市场，Windows 仍不提供。）",
-                "en": "Windows users clicking the system tray or panel menus will now find these features neatly organized and easy to access. Previously, opening panel control submenus on Windows would often cause them to get ruthlessly clipped by the window edge; now, options like Change Panel and Hide Sections expand securely inside a scrollable menu. Furthermore, the Windows interface has reached parity with macOS for daily updates and workflow controls: the built-in panel buttons now launch a localized HTML (web markup language) overlay for controls, and the system tray menu features the AI Update Daily, a Hide Sections submenu for Claude, Codex, and Antigravity, and toggles for Resume Last Session and Token Saver (a mode to save AI processing units). Visibility changes apply instantly to the open panel, and quota alerts correctly use native Windows notifications at the same thresholds as macOS. The panel menu no longer clutters its bottom with duplicate update, position-reset, and quit actions. It's like a newly renovated control room: previously, the screens were so small that some buttons got chopped off, and you lacked some tools the Apple team had. Now you have a scrolling monitor with these workflow buttons brought over and neatly arranged. (Note: the macOS-only AI Talent Market remains unavailable on Windows).",
-                "ja": "Windows ユーザーがシステムトレイやパネルのメニューをクリックすると、これらの機能が整理整頓され、ボタン探しで迷うことがなくなる。以前は Windows でパネルのコントロールメニューを開くと、サブメニューがウィンドウの端に無情にも見切れてしまうことがあった。今は「パネルの変更」や「セクションを隠す」といった項目が、スクロール可能なメニューの中でそのまま展開される。それだけでなく、Windows の UI は日々の更新やワークフロー制御において macOS と同等の機能を持つようになった。パネル内のボタンはローカライズされた HTML（ウェブマークアップ言語）オーバーレイを表示して各種コントロールを提供し、トレイメニューには AI アップデートの日報、Claude、Codex、Antigravity の「セクションを隠す」サブメニュー、さらに「前回の続きから」「token（AI 処理の基本単位）節約モード」のスイッチも揃った。表示セクションの変更は開いているパネルへ即座に反映され、クォータ警告は macOS と同じしきい値で Windows ネイティブの通知を使う。パネルメニューの最後には、重複していた更新、位置リセット、終了の操作がなくなる。まるで改装されたコントロールルームである。以前は画面が狭くて一部のボタンが見切れて押せず、隣の Apple 部門より機能が少なかったのが、今はスクロールできる大画面に変わり、これらの便利なボタンも持ってきて綺麗に並べたような状態だ。（注：macOS 専用の AI タレントマーケットは引き続き Windows では提供されない）。",
-                "ko": "Windows 사용자가 시스템 트레이나 패널 메뉴를 누르면 이 기능들이 깔끔하게 정리되어 있어 버튼을 못 찾는 일이 없다. 예전엔 Windows에서 패널 제어 메뉴를 열면 하위 메뉴가 창 가장자리에 무참히 잘리곤 했는데, 이제 '패널 변경'과 '섹션 숨기기' 같은 옵션이 스크롤 가능한 메뉴 안에서 제자리에 펼쳐진다. 그뿐만 아니라 Windows UI가 일일 업데이트와 워크플로 제어 측면에서 macOS와 기능이 같아졌다. 패널에 내장된 버튼을 누르면 현지화된 HTML(웹 마크업 언어) 오버레이가 떠서 각종 제어 기능을 제공하고, 트레이 메뉴에는 AI 일일 업데이트, Claude, Codex, Antigravity의 '섹션 숨기기' 하위 메뉴는 물론 '마지막 세션 이어서 하기'와 'token(AI 처리 단위) 절약 모드' 스위치까지 채워졌다. 화면 섹션 변경 사항은 열려 있는 패널에 즉시 적용되며, 할당량 경고는 macOS와 동일한 기준점 바탕으로 Windows 기본 알림을 제대로 쓴다. 패널 메뉴 맨 아래에 중복되던 업데이트, 위치 초기화, 종료 버튼도 싹 치워졌다. 새로 단장한 중앙 통제실과 같다. 예전엔 모니터가 좁아서 버튼이 잘려 누르지도 못하고 옆집 애플 부서보다 기능도 적었지만, 이제 위아래로 굴릴 수 있는 대형 스크린으로 바꾸고 이런 좋은 제어 버튼들까지 가져와 말끔하게 정리한 셈이다. (참고: macOS 전용인 AI 인재 시장은 Windows에서 여전히 쓸 수 없다.)"
-              },
-              "original": "**Windows panel controls now fit and follow the macOS grouping**: Change Panel and Hide Sections expand in place inside a scrollable menu instead of opening clipped side submenus; the panel menu now ends with only Refresh Now, avoiding duplicate update, position-reset, and quit actions.\n**Windows panel switch buttons now open a focused controls menu**: clicking a panel's built-in Switch Panel button opens a localized HTML overlay for panel, visibility, refresh, notification, and workflow controls; tray-only update, position-reset, and quit actions stay out of the panel menu.\n**Windows tray menu parity for daily updates and workflow controls**: the Windows system tray now links to AI Update Daily, offers a Hide Sections submenu for Claude, Codex, and Antigravity, supports quota-alert notifications at the same thresholds as macOS, and exposes Resume Last Session and Token Saver toggles. Changes to visible sections are injected into an open panel immediately; quota alerts use native Windows tray notifications. The macOS-only AI Talent Market remains unavailable on Windows."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 面板支援自由拖曳，再也不會誤觸卡片排序",
-                "zh-CN": "Windows 面板支持自由拖曳，再也不会误触卡片排序",
-                "en": "Windows panels are now freely draggable without messing up card orders",
-                "ja": "Windows パネルが自由にドラッグ可能になり、カードの並び順を誤爆しなくなった",
-                "ko": "Windows 패널을 자유롭게 끌고 다닐 수 있으며, 카드 순서를 실수로 섞는 일도 없다."
-              },
-              "body": {
-                "zh-TW": "你現在可以隨心所欲地在螢幕上拖動 Windows 的系統匣面板了。只要按住無邊框面板頂端不顯眼的把手，或是額度卡片的空白處，游標就會變成抓取的圖示，讓你輕鬆移動視窗；系統也會記住你放的位置，下次打開還在原地，並確保它不會跑出螢幕外。更棒的是，以前在額度卡片空白處按壓可能會不小心觸發重新排列卡片的功能，現在 Windows 墊片（shim，用來轉換不同系統行為的中介層）會暫時把這些非互動區域標記為純拖曳區。這表示你可以放心用它來移動整個面板，不會打亂你原本排好的卡片順序，而卡片上的按鈕和連結依然可以正常點擊。就像一張原本黏死在桌布上的佈告欄，現在不只裝了滑輪讓你隨意推動，而且你推著板子邊緣時，也不用怕不小心把上面的便利貼給撕下來。",
-                "zh-CN": "你现在可以随心所欲地在屏幕上拖动 Windows 的系统托盘面板了。只要按住无边框面板顶端不显眼的把手，或是额度卡片的空白处，游标就会变成抓取的图标，让你轻松移动窗口；系统也会记住你放的位置，下次打开还在原地，并确保它不会跑出屏幕外。更棒的是，以前在额度卡片空白处按压可能会不小心触发重新排列卡片的功能，现在 Windows 垫片（shim，用来转换不同系统行为的中介层）会暂时把这些非互动区域标记为纯拖曳区。这表示你可以放心用它来移动整个面板，不会打乱你原本排好的卡片顺序，而卡片上的按钮和链接依然可以正常点击。就像一张原本黏死在桌布上的布告栏，现在不仅装了滑轮让你随意推动，而且你推着板子边缘时，也不用怕不小心把上面的便利贴给撕下来。",
-                "en": "You can now freely drag the Windows system tray panels around your screen. By grabbing the subtle handle at the top of the frameless panel or clicking the empty areas of the quota card, your cursor turns into a grabbing hand, letting you move the window with ease. The system remembers where you put it for the next time, clamping it safely within your active workspace. Even better, pressing empty areas of the quota card used to accidentally trigger card reordering, but now the Windows shim (a compatibility layer bridging different system behaviors) temporarily designates these non-interactive zones exclusively for dragging. This means you can comfortably move the entire panel without scrambling your perfectly organized cards, while all buttons and links remain fully clickable. It's like a corkboard that used to be nailed to the wall—now it has wheels so you can roll it anywhere, and when you push the edges to move it, you no longer have to worry about accidentally knocking all the sticky notes off.",
-                "ja": "Windows のシステムトレイパネルを画面上で自由にドラッグできるようになった。枠のないパネル上部のさりげないハンドルや、クォータカードの空白部分を掴むと、カーソルが「掴む」アイコンに変わり、簡単にウィンドウを移動できる。移動した位置は次に開く時まで記憶され、画面外にはみ出さないよう制限される。さらに嬉しいことに、以前はクォータカードの空白部分を押すと誤ってカードの並び替えが発動することがあったが、今は Windows 用のシム（shim、異なるシステムの挙動を吸収する中間層）が、こうした非対話型の領域を一時的に「ドラッグ専用」として扱う。つまり、丁寧に並べたカードの順序をぐちゃぐちゃにすることなく、安心してパネル全体を動かすことができる。もちろんカード上のボタンやリンクは今まで通りクリック可能だ。壁にボルトで固定されていた掲示板にキャスターがついて自由に転がせるようになり、さらに板のフチを押して移動させる際、うっかり貼ってある付箋をはがしてしまう心配がなくなったようなものである。",
-                "ko": "이제 화면에서 Windows 시스템 트레이 패널을 마음대로 끌고 다닐 수 있다. 테두리 없는 패널 맨 위의 눈에 잘 띄지 않는 손잡이나 할당량 카드의 빈 곳을 누르면 커서가 움켜쥐는 모양으로 변하며 창을 쉽게 옮길 수 있다. 시스템은 당신이 창을 둔 위치를 기억해 다음 번에도 그 자리에 열어주며, 화면 밖으로 벗어나지 않게 잡아준다. 더 반가운 소식은, 예전엔 할당량 카드 빈 곳을 누르면 실수로 카드 순서가 뒤섞이곤 했는데, 이제 Windows 심(shim, 서로 다른 시스템의 동작을 맞춰주는 중간 계층)이 이 반응 없는 공간을 임시로 '드래그 전용 구역'으로 지정한다. 즉, 애써 정렬해 둔 카드를 망가뜨릴 걱정 없이 패널 전체를 안심하고 옮길 수 있고, 카드 위 버튼과 링크는 여전히 잘 눌린다. 벽에 못 박혀 있던 게시판에 바퀴를 달아 마음껏 밀고 다닐 수 있게 되었고, 널빤지 가장자리를 잡고 밀 때 행여나 붙어 있던 포스트잇이 떨어질까 노심초사하지 않아도 되는 것과 같다."
-              },
-              "original": "**Windows quota-card empty areas now drag the panel rather than reorder cards**: the Windows shim temporarily marks only non-interactive card presses as native drag regions, retaining saved card order while buttons and links remain clickable.\n**Windows tray panels can now be repositioned**: a subtle top drag handle and quota-card empty areas move frameless panels with grab/grabbing cursors; the position is restored on the next open, clamped to the current work area, and can be reset from the tray menu."
             }
           ]
         }
