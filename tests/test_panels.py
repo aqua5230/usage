@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any, cast
 
@@ -15,6 +16,7 @@ import panels
 from panels.base import (
     ACTIVE_PANEL_DEFAULTS_KEY,
     load_active_panel_id,
+    next_panel_eviction_id,
     save_active_panel_id,
 )
 from panels.web_panel import HTMLPanel
@@ -185,7 +187,37 @@ def test_defaults_round_trip() -> None:
 
     assert defaults.values[ACTIVE_PANEL_DEFAULTS_KEY] == "classic"
     assert load_active_panel_id(defaults) == "classic"
-    assert defaults.synchronized is True
+    assert defaults.synchronized is False
+
+
+def test_next_panel_eviction_id_skips_active_and_pending_panels() -> None:
+    panel_ids = ["classic", "matrix", "win95"]
+
+    assert next_panel_eviction_id(panel_ids, "matrix", {"classic"}) == "win95"
+    assert next_panel_eviction_id(panel_ids, "matrix", {"classic", "win95"}) is None
+
+
+def test_load_panel_html_caches_assembled_markup(monkeypatch: pytest.MonkeyPatch) -> None:
+    import panels.payload as payload
+
+    reads: list[str] = []
+    panel_html = "{{CLAUDE_ICON}} {{CODEX_ICON}} {{I18N_BUNDLE}}"
+
+    def read_text(self: Path, *, encoding: str) -> str:
+        reads.append(str(self))
+        return panel_html
+
+    monkeypatch.setattr(payload, "resolve_resource", lambda name: f"/tmp/{name}")
+    monkeypatch.setattr(Path, "read_text", read_text)
+    monkeypatch.setattr(payload, "_data_uri", lambda name: f"data:{name}")
+    monkeypatch.setattr(payload, "_load_i18n_bundle", lambda: {"en": {"title": "Usage"}})
+    payload._load_panel_html.cache_clear()
+
+    try:
+        assert payload._load_panel_html("classic.html") == payload._load_panel_html("classic.html")
+        assert reads == ["/tmp/panels/classic.html"]
+    finally:
+        payload._load_panel_html.cache_clear()
 
 
 def test_html_panel_requires_explicit_card_heights() -> None:
@@ -360,21 +392,34 @@ def test_web_panel_reloads_when_state_injection_fails() -> None:
     assert view.reloads == 0
 
 
-def test_web_panel_skips_duplicate_state_injection() -> None:
+def test_web_panel_skips_duplicate_state_serialization_and_injection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     import panels.web_panel as web_panel
 
     class FakeWebView:
         def __init__(self) -> None:
             self._last_injected_payload = None
+            self._last_injected_state = None
 
     view = FakeWebView()
     payload: dict[str, object] = {"projects": [{"name": "Eric-Tools"}]}
+    calls = 0
+    original_dumps: Any = json.dumps
+
+    def dumps(*args: object, **kwargs: object) -> str:
+        nonlocal calls
+        calls += 1
+        return cast(str, original_dumps(*args, **kwargs))
+
+    monkeypatch.setattr("panels.payload.json.dumps", dumps)
 
     first = web_panel._new_state_payload(view, payload)
     duplicate = web_panel._new_state_payload(view, payload.copy())
 
     assert first == '{"projects":[{"name":"Eric-Tools"}]}'
     assert duplicate is None
+    assert calls == 1
 
 
 def test_web_panel_caps_reloads_when_state_injection_keeps_failing() -> None:

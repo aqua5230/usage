@@ -120,7 +120,12 @@ from menubar_state import (
     format_human_time as format_human_time,
 )
 from panels.base import Panel as UsagePanel
-from panels.base import load_active_panel_id, resolve_resource, save_active_panel_id
+from panels.base import (
+    load_active_panel_id,
+    next_panel_eviction_id,
+    resolve_resource,
+    save_active_panel_id,
+)
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost, warm_up_pricing
 from statusline_settings import (
@@ -478,6 +483,7 @@ class PopoverViewController(NSViewController):
     panel_lru = objc.ivar()
     transition_overlays = objc.ivar()
     latest_state = objc.ivar()
+    pending_panel_evictions = objc.ivar()
 
     def initWithPanel_delegate_(self, panel: UsagePanel, delegate: Any) -> PopoverViewController:
         self = objc.super(PopoverViewController, self).init()
@@ -488,6 +494,7 @@ class PopoverViewController(NSViewController):
         self.panel_views = {}
         self.panel_lru = []
         self.transition_overlays = {}
+        self.pending_panel_evictions = set()
         self.latest_state = None
         self.content_view = panel.build_view(delegate)
         container = NSView.alloc().initWithFrame_(self.content_view.frame())
@@ -622,21 +629,39 @@ class PopoverViewController(NSViewController):
         self.panel_lru.append(panel_id)
 
     def evictPanelViewsIfNeeded(self) -> None:
-        while len(self.panel_views) > MAX_CACHED_PANEL_VIEWS:
-            evict_id = next(
-                (panel_id for panel_id in self.panel_lru if panel_id != self.panel.id),
-                None,
-            )
-            if evict_id is None:
-                return
-            self.panel_lru = [panel_id for panel_id in self.panel_lru if panel_id != evict_id]
-            view = self.panel_views.pop(evict_id, None)
-            self.removeTransitionOverlay_(evict_id)
-            if view is None:
-                continue
-            if hasattr(view, "teardown"):
-                view.teardown()
-            view.removeFromSuperview()
+        self._schedulePanelEvictionIfNeeded()
+
+    def _schedulePanelEvictionIfNeeded(self) -> None:
+        if self.panel is None or len(self.panel_views) <= MAX_CACHED_PANEL_VIEWS:
+            return
+        evict_id = next_panel_eviction_id(
+            self.panel_lru,
+            self.panel.id,
+            self.pending_panel_evictions,
+        )
+        if evict_id is None:
+            return
+        self.pending_panel_evictions.add(evict_id)
+        self.performSelector_withObject_afterDelay_("evictPanelViewForId:", evict_id, 0.0)
+
+    def evictPanelViewForId_(self, panel_id: str) -> None:
+        self.pending_panel_evictions.discard(panel_id)
+        # A user can return to this panel before the next run-loop turn. In
+        # that case it remains live; schedule another LRU candidate instead.
+        if self.panel is None or panel_id == self.panel.id:
+            self._schedulePanelEvictionIfNeeded()
+            return
+        view = self.panel_views.get(panel_id)
+        if view is None:
+            self._schedulePanelEvictionIfNeeded()
+            return
+        self.panel_lru = [cached_id for cached_id in self.panel_lru if cached_id != panel_id]
+        self.panel_views.pop(panel_id, None)
+        self.removeTransitionOverlay_(panel_id)
+        if hasattr(view, "teardown"):
+            view.teardown()
+        view.removeFromSuperview()
+        self._schedulePanelEvictionIfNeeded()
 
     def removeTransitionOverlay_(self, panel_id: str) -> None:
         overlay = self.transition_overlays.pop(panel_id, None)

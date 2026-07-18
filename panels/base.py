@@ -22,6 +22,19 @@ if TYPE_CHECKING:
 ACTIVE_PANEL_DEFAULTS_KEY = "usage.activePanelId"
 
 
+def next_panel_eviction_id(
+    panel_ids: list[str], active_panel_id: str, pending_evictions: set[str]
+) -> str | None:
+    return next(
+        (
+            panel_id
+            for panel_id in panel_ids
+            if panel_id != active_panel_id and panel_id not in pending_evictions
+        ),
+        None,
+    )
+
+
 class Panel(Protocol):
     id: str
     i18n_key: str
@@ -57,8 +70,6 @@ def save_active_panel_id(panel_id: str, defaults: Any | None = None) -> None:
     assert NSUserDefaults is not None
     store = defaults if defaults is not None else NSUserDefaults.standardUserDefaults()
     store.setObject_forKey_(panel_id, ACTIVE_PANEL_DEFAULTS_KEY)
-    if hasattr(store, "synchronize"):
-        store.synchronize()
 
 
 def resolve_resource(name: str) -> str:

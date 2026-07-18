@@ -7,7 +7,7 @@ import base64
 import json
 import os
 import sys
-from functools import lru_cache
+from functools import cache, lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -44,13 +44,17 @@ def _i18n_path() -> Path:
 
 
 def _new_state_payload(view: Any, payload: dict[str, object]) -> str | None:
+    if payload == getattr(view, "_last_injected_state", None):
+        return None
     encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
+    view._last_injected_state = payload
     if encoded == view._last_injected_payload:
         return None
     view._last_injected_payload = encoded
     return encoded
 
 
+@cache
 def _load_panel_html(filename: str) -> str:
     html = Path(resolve_resource(f"panels/{filename}")).read_text(encoding="utf-8")
     return (

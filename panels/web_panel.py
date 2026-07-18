@@ -92,6 +92,7 @@ def _reload_web_panel(view: Any) -> None:
     view._ready = False
     view._first_paint_done = False
     view._last_injected_payload = None
+    view._last_injected_state = None
     if getattr(view, "_last_payload", None) is not None:
         view._pending = view._last_payload
     html = getattr(view, "_html", None)
@@ -251,6 +252,7 @@ class WebPanelView(WKWebView):
     _pending = objc.ivar()
     _last_payload = objc.ivar()
     _last_injected_payload = objc.ivar()
+    _last_injected_state = objc.ivar()
     _injection_retry_payload = objc.ivar()
     _injection_reload_count = objc.ivar()
     _html = objc.ivar()
@@ -272,6 +274,7 @@ class WebPanelView(WKWebView):
         self._pending = None
         self._last_payload = None
         self._last_injected_payload = None
+        self._last_injected_state = None
         self._injection_retry_payload = None
         self._injection_reload_count = 0
         self._html = None
@@ -356,6 +359,7 @@ class WebPanelView(WKWebView):
         self.user_content_controller = None
         self._last_payload = None
         self._last_injected_payload = None
+        self._last_injected_state = None
         self._pending = None
         self._html = None
 
