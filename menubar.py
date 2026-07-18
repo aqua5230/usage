@@ -1601,7 +1601,10 @@ class AppDelegate(NSObject):
                 )
                 if outcome.snapshot is not None:
                     window_keeper.maybe_ping(
-                        outcome.snapshot.current_reset_at, self.mock
+                        outcome.snapshot.current_reset_at,
+                        outcome.snapshot.current_percent,
+                        outcome.snapshot.data_source,
+                        self.mock,
                     )
             except Exception as exc:
                 if os.environ.get("USAGE_DEBUG") == "1":

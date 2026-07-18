@@ -43,9 +43,17 @@ WINDOW_KEEPER_STATE_PATH = Path(os.path.expanduser("~/.usage/window_keeper.json"
 PING_COOLDOWN_SECONDS = 5 * 3600
 PING_TIMEOUT_SECONDS = 180
 
+# usage_client defaults a missing ``resets_at`` to parse-time "now", which one
+# refresh later reads as "expired seconds ago". Requiring the expiry to be at
+# least this old filters those synthetic timestamps without delaying a real
+# expired-while-away ping by more than two minutes.
+PING_EXPIRY_GRACE_SECONDS = 120
+
 # ``claude`` binary resolution order: PATH first, then the well-known install
-# spots the Claude Code installer/Node/Homebrew lay down.
+# spots the Claude Code installer/Node/Homebrew lay down. The .app bundle runs
+# with a minimal PATH, so the native installer's ~/.local/bin must be listed.
 _CLAUDE_BIN_FALLBACKS = (
+    "~/.local/bin/claude",
     "~/.claude/local/claude",
     "/opt/homebrew/bin/claude",
     "/usr/local/bin/claude",
@@ -60,11 +68,22 @@ def should_ping(
     current_reset_at: float | None,
     enabled: bool,
     last_ping_at: float | None,
+    current_percent: float | None,
+    data_source: str,
 ) -> bool:
     """Pure gate — no I/O. See module docstring for the rules."""
     if not enabled:
         return False
-    if current_reset_at is None or current_reset_at > now:
+    # Only the statusLine hook carries trustworthy reset timestamps; fallback
+    # sources (tt-fallback / claude-json) may default a missing resets_at to
+    # parse time, which would read as "expired" and fire a spurious ping.
+    if data_source != "hook":
+        return False
+    # No five-hour block in the payload at all — we can't tell whether a window
+    # is running, so stay quiet rather than risk a false start.
+    if current_percent is None:
+        return False
+    if current_reset_at is None or now - current_reset_at < PING_EXPIRY_GRACE_SECONDS:
         return False
     # Outside the self-throttle cooldown (None last_ping_at means we never have).
     return last_ping_at is None or now - last_ping_at >= PING_COOLDOWN_SECONDS
@@ -164,7 +183,12 @@ def _ping_worker(started_at: float) -> None:
         _release()
 
 
-def maybe_ping(current_reset_at: float | None, mock: bool) -> None:
+def maybe_ping(
+    current_reset_at: float | None,
+    current_percent: float | None,
+    data_source: str,
+    mock: bool,
+) -> None:
     """High-level entry: read prefs + state, gate, and fire a background ping.
 
     Returns immediately — the subprocess runs on a daemon thread. Safe to call
@@ -178,7 +202,7 @@ def maybe_ping(current_reset_at: float | None, mock: bool) -> None:
         return
     now = time.time()
     last_ping_at = _load_last_ping()
-    if not should_ping(now, current_reset_at, enabled, last_ping_at):
+    if not should_ping(now, current_reset_at, enabled, last_ping_at, current_percent, data_source):
         return
     if not _try_acquire():
         return

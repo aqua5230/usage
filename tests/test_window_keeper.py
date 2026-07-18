@@ -55,26 +55,50 @@ def isolated_state(
 # --- should_ping (pure gate) ---
 
 
+EXPIRED = -(window_keeper.PING_EXPIRY_GRACE_SECONDS + 1)
+
+
 def test_should_ping_disabled() -> None:
     now = time.time()
-    assert window_keeper.should_ping(now, now - 1, enabled=False, last_ping_at=None) is False
+    assert (
+        window_keeper.should_ping(
+            now, now + EXPIRED, enabled=False, last_ping_at=None,
+            current_percent=0.0, data_source="hook",
+        )
+        is False
+    )
 
 
 def test_should_ping_window_still_running() -> None:
     now = time.time()
-    assert window_keeper.should_ping(now, now + 3600, enabled=True, last_ping_at=None) is False
+    assert (
+        window_keeper.should_ping(
+            now, now + 3600, enabled=True, last_ping_at=None,
+            current_percent=50.0, data_source="hook",
+        )
+        is False
+    )
 
 
 def test_should_ping_missing_reset_at() -> None:
     now = time.time()
-    assert window_keeper.should_ping(now, None, enabled=True, last_ping_at=None) is False
+    assert (
+        window_keeper.should_ping(
+            now, None, enabled=True, last_ping_at=None,
+            current_percent=0.0, data_source="hook",
+        )
+        is False
+    )
 
 
 def test_should_ping_within_cooldown() -> None:
     now = time.time()
     last_ping = now - 60  # pinged a minute ago
     assert (
-        window_keeper.should_ping(now, now - 1, enabled=True, last_ping_at=last_ping)
+        window_keeper.should_ping(
+            now, now + EXPIRED, enabled=True, last_ping_at=last_ping,
+            current_percent=0.0, data_source="hook",
+        )
         is False
     )
 
@@ -83,7 +107,10 @@ def test_should_ping_fires_when_expired_and_cooled() -> None:
     now = time.time()
     last_ping = now - window_keeper.PING_COOLDOWN_SECONDS - 1  # past the cooldown
     assert (
-        window_keeper.should_ping(now, now - 1, enabled=True, last_ping_at=last_ping)
+        window_keeper.should_ping(
+            now, now + EXPIRED, enabled=True, last_ping_at=last_ping,
+            current_percent=0.0, data_source="hook",
+        )
         is True
     )
 
@@ -91,7 +118,46 @@ def test_should_ping_fires_when_expired_and_cooled() -> None:
 def test_should_ping_fires_with_no_prior_ping() -> None:
     now = time.time()
     assert (
-        window_keeper.should_ping(now, now - 1, enabled=True, last_ping_at=None) is True
+        window_keeper.should_ping(
+            now, now + EXPIRED, enabled=True, last_ping_at=None,
+            current_percent=0.0, data_source="hook",
+        )
+        is True
+    )
+
+
+def test_should_ping_within_grace_period_not_yet_expired() -> None:
+    # A resets_at only a few seconds in the past looks like it could be the
+    # "default to now" placeholder a fallback data source emits — must not fire.
+    now = time.time()
+    assert (
+        window_keeper.should_ping(
+            now, now - 5, enabled=True, last_ping_at=None,
+            current_percent=0.0, data_source="hook",
+        )
+        is False
+    )
+
+
+def test_should_ping_ignores_non_hook_source() -> None:
+    now = time.time()
+    assert (
+        window_keeper.should_ping(
+            now, now + EXPIRED, enabled=True, last_ping_at=None,
+            current_percent=0.0, data_source="claude-json",
+        )
+        is False
+    )
+
+
+def test_should_ping_missing_percent() -> None:
+    now = time.time()
+    assert (
+        window_keeper.should_ping(
+            now, now + EXPIRED, enabled=True, last_ping_at=None,
+            current_percent=None, data_source="hook",
+        )
+        is False
     )
 
 
@@ -147,7 +213,9 @@ def test_maybe_ping_fires_when_conditions_met(
     calls = _arm_successful_ping(monkeypatch)
     now = time.time()
     # Expired window, no prior ping on disk.
-    window_keeper.maybe_ping(current_reset_at=now - 10, mock=False)
+    window_keeper.maybe_ping(
+        current_reset_at=now + EXPIRED, current_percent=0.0, data_source="hook", mock=False
+    )
 
     assert calls == ["/fake/claude"]
     # last_ping_at stamped at dispatch even though subprocess "ran" synchronously.
@@ -161,7 +229,9 @@ def test_maybe_ping_mock_is_noop(
 ) -> None:
     calls = _arm_successful_ping(monkeypatch)
     now = time.time()
-    window_keeper.maybe_ping(current_reset_at=now - 10, mock=True)
+    window_keeper.maybe_ping(
+        current_reset_at=now + EXPIRED, current_percent=0.0, data_source="hook", mock=True
+    )
 
     assert calls == []
     assert isolated_state.exists() is False
@@ -174,7 +244,9 @@ def test_maybe_ping_disabled_is_noop(
     # Opt-in switch is OFF — must not read/write state, must not spawn a thread.
     calls = _arm_successful_ping(monkeypatch, enabled=False)
     now = time.time()
-    window_keeper.maybe_ping(current_reset_at=now - 10, mock=False)
+    window_keeper.maybe_ping(
+        current_reset_at=now + EXPIRED, current_percent=0.0, data_source="hook", mock=False
+    )
 
     assert calls == []
     assert isolated_state.exists() is False
@@ -186,7 +258,9 @@ def test_maybe_ping_skips_when_window_still_running(
 ) -> None:
     calls = _arm_successful_ping(monkeypatch)
     now = time.time()
-    window_keeper.maybe_ping(current_reset_at=now + 3600, mock=False)
+    window_keeper.maybe_ping(
+        current_reset_at=now + 3600, current_percent=50.0, data_source="hook", mock=False
+    )
 
     assert calls == []
     assert isolated_state.exists() is False
@@ -200,7 +274,9 @@ def test_maybe_ping_respects_cooldown(
     now = time.time()
     # Pretend we pinged 10 minutes ago — within the 5h cooldown.
     window_keeper._save_last_ping(now - 600)
-    window_keeper.maybe_ping(current_reset_at=now - 10, mock=False)
+    window_keeper.maybe_ping(
+        current_reset_at=now + EXPIRED, current_percent=0.0, data_source="hook", mock=False
+    )
 
     assert calls == []
     # State file untouched beyond the seed we wrote.
@@ -215,7 +291,9 @@ def test_maybe_ping_inflight_guard_prevents_double_spawn(
     now = time.time()
     # Simulate a ping already running.
     monkeypatch.setattr(window_keeper, "_ping_in_flight", True)
-    window_keeper.maybe_ping(current_reset_at=now - 10, mock=False)
+    window_keeper.maybe_ping(
+        current_reset_at=now + EXPIRED, current_percent=0.0, data_source="hook", mock=False
+    )
 
     assert calls == []
     # Must not have stamped a new ping or spawned another worker.
@@ -230,9 +308,30 @@ def test_maybe_ping_does_not_crash_when_claude_missing(
     monkeypatch.setattr(window_keeper, "_resolve_claude_bin", lambda: None)
     now = time.time()
     # Should return cleanly, not raise — app must never crash on this path.
-    window_keeper.maybe_ping(current_reset_at=now - 10, mock=False)
+    window_keeper.maybe_ping(
+        current_reset_at=now + EXPIRED, current_percent=0.0, data_source="hook", mock=False
+    )
     # The worker ran (and released the in-flight flag) but fired no subprocess.
     assert calls == []
     assert len(_SyncThread.instances) == 1
     assert _SyncThread.instances[0].started is True
     assert window_keeper._ping_in_flight is False
+
+
+def test_maybe_ping_ignores_non_hook_source(
+    monkeypatch: pytest.MonkeyPatch, isolated_state: Path
+) -> None:
+    # claude-json / tt-fallback sources may default a missing resets_at to
+    # parse time — must not be trusted as a real expiry signal.
+    calls = _arm_successful_ping(monkeypatch)
+    now = time.time()
+    window_keeper.maybe_ping(
+        current_reset_at=now + EXPIRED,
+        current_percent=0.0,
+        data_source="claude-json",
+        mock=False,
+    )
+
+    assert calls == []
+    assert isolated_state.exists() is False
+    assert _SyncThread.instances == []
