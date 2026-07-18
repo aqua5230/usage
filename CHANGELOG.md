@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.28.11] - 2026-07-18
+
+### Changed
+- **The HTML usage report looks less like a template and reads more cleanly**: gold is no longer a blanket accent — it's now reserved for four focal points (headline tail, primary KPI number, the Wrapped kicker badge, the terminal cursor), with the contribution heatmap and donut chart moved to a cohesive teal/mauve palette instead. Fixed three alignment bugs: the KPI card grid now keeps a consistent rhythm across all six cards, the Wrapped section's total-token figure no longer overlaps the phoenix illustration at high digit counts, and the trailing metric card in that section no longer orphans onto its own row. Also cleans up several small "obviously AI-generated" tells: `transition: all` rules now list only the properties that actually animate, card/section borders read at a clearer contrast in both color schemes, disabled/active button states are now styled instead of falling back to defaults, motion respects `prefers-reduced-motion`, and the three share-dialog emoji icons are now matched-stroke SVGs.
+
 ## [0.28.10] - 2026-07-18
 
 ### Fixed
