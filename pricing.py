@@ -349,6 +349,12 @@ def _fallback_pricing() -> PricingTable:
             "cache_creation_input_token_cost": 18.75e-6,
             "cache_read_input_token_cost": 1.5e-6,
         },
+        "claude-opus-4-8": {
+            "input_cost_per_token": 5e-6,
+            "output_cost_per_token": 25e-6,
+            "cache_creation_input_token_cost": 6.25e-6,
+            "cache_read_input_token_cost": 0.5e-6,
+        },
         "claude-sonnet-4-6": {
             "input_cost_per_token": 3e-6,
             "output_cost_per_token": 15e-6,
@@ -360,6 +366,12 @@ def _fallback_pricing() -> PricingTable:
             "output_cost_per_token": 10e-6,
             "cache_creation_input_token_cost": 2.5e-6,
             "cache_read_input_token_cost": 0.2e-6,
+        },
+        "claude-fable-5": {
+            "input_cost_per_token": 10e-6,
+            "output_cost_per_token": 50e-6,
+            "cache_creation_input_token_cost": 12.5e-6,
+            "cache_read_input_token_cost": 1e-6,
         },
         "claude-haiku-4-5-20251001": {
             "input_cost_per_token": 0.8e-6,
