@@ -189,8 +189,8 @@ def _trend_summary(weekly: list[dict[str, int | float]], lang: str) -> str:
 
 
 _PALETTE = [
-    "#58a6ff", "#3fb950", "#d29922", "#bc8cff",
-    "#f778ba", "#56d4dd", "#7ee787", "#e3b341",
+    "#5abfa0", "#8f86c9", "#e0885a", "#78cdb2",
+    "#aaa3d4", "#dca080", "#3f9f82", "#7168ad",
 ]
 
 
@@ -461,9 +461,9 @@ def _render_share_dialog(lang: str) -> str:
         <h3>{html.escape(_t(lang, "share_file_title"))}</h3>
         <label class="share-file-mask"><input type="checkbox" data-share-file-mask checked> {html.escape(_t(lang, "share_file_mask_toggle"))}</label>
         <div class="share-file-actions">
-          <button class="share-action" type="button" data-share-file="download"><span class="share-icon" aria-hidden="true">📥</span>{html.escape(_t(lang, "share_download_html"))}</button>
-          <button class="share-action" type="button" data-share-file="csv"><span class="share-icon" aria-hidden="true">📊</span>{html.escape(_t(lang, "share_download_csv"))}</button>
-          <button class="share-action" type="button" data-share-file="png"><span class="share-icon" aria-hidden="true">🖼️</span>{html.escape(_t(lang, "share_download_png"))}</button>
+          <button class="share-action" type="button" data-share-file="download"><span class="share-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 19h14"/></svg></span>{html.escape(_t(lang, "share_download_html"))}</button>
+          <button class="share-action" type="button" data-share-file="csv"><span class="share-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10h4v10M10 20V4h4v16M16 20v-7h4v7M3 20h18"/></svg></span>{html.escape(_t(lang, "share_download_csv"))}</button>
+          <button class="share-action" type="button" data-share-file="png"><span class="share-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.5"/><path d="m4 17 5-5 4 4 2-2 5 5"/></svg></span>{html.escape(_t(lang, "share_download_png"))}</button>
         </div>
         <p class="share-file-hint">{html.escape(_t(lang, "share_file_hint"))}</p>
       </section>
