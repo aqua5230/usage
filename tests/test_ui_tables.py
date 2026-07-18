@@ -46,6 +46,7 @@ def test_is_light_theme_reads_theme_and_colorfgbg(
     ("model", "expected"),
     [
         ("claude-opus-4-7", "Opus 4.7"),
+        ("claude-sonnet-5", "Sonnet 5"),
         ("provider/model-name-that-is-long", "model-name-that-"),
         ("plain-model-name-that-is-long", "plain-model-name"),
     ],
