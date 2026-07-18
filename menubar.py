@@ -67,6 +67,7 @@ import talent_market_bridge
 import update_checker
 import update_gate
 import usage_diagnosis_snapshot
+import window_keeper
 from burn_rate import BurnRateTracker
 from fsevents_watch import cleanup_fsevents, setup_fsevents
 from history_loader import (
@@ -85,6 +86,7 @@ from menubar_prefs import (
     _quota_card_order,
     _quota_notification_thresholds,
     _quota_notifications_enabled,
+    _window_keeper_enabled,
 )
 from menubar_state import (
     CLAUDE_COLOR as CLAUDE_COLOR,
@@ -183,6 +185,7 @@ __all__ = [
     "_quota_card_order",
     "_quota_notification_thresholds",
     "_quota_notifications_enabled",
+    "_window_keeper_enabled",
 ]
 
 BUTTON_HEIGHT = 32.0
@@ -966,6 +969,15 @@ class AppDelegate(NSObject):
         quota_notifications_item.setTarget_(self)
         quota_notifications_item.setState_(1 if _quota_notifications_enabled() else 0)
         menu.addItem_(quota_notifications_item)
+        window_keeper_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+            _t(self.language, "window_keeper_menu"),
+            "toggleWindowKeeper:",
+            "",
+        )
+        window_keeper_item.setTarget_(self)
+        window_keeper_item.setState_(1 if _window_keeper_enabled() else 0)
+        window_keeper_item.setToolTip_(_t(self.language, "window_keeper_tooltip"))
+        menu.addItem_(window_keeper_item)
         # Project Butler: one toggle that hands last session's progress to the next
         # one. Tooltip carries the full explanation so the menu line stays short.
         menu.addItem_(NSMenuItem.separatorItem())
@@ -1071,6 +1083,20 @@ class AppDelegate(NSObject):
             sender.setState_(1 if enabled else 0)
         if enabled:
             self._request_notification_authorization()
+
+    def toggleWindowKeeper_(self, sender: Any) -> None:
+        self._mark_switch_menu_action()
+        prefs = _load_preferences()
+        enabled = not _window_keeper_enabled(prefs)
+        prefs["window_keeper"] = enabled
+        _save_preferences(prefs)
+        if hasattr(sender, "setState_"):
+            sender.setState_(1 if enabled else 0)
+        if enabled:
+            alert = _make_alert()
+            alert.setMessageText_(_t(self.language, "window_keeper_sleep_title"))
+            alert.setInformativeText_(_t(self.language, "window_keeper_sleep_body"))
+            alert.runModal()
 
     def toggleSessionResume_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -1573,6 +1599,10 @@ class AppDelegate(NSObject):
                         self._history_load_error_key, self.language
                     ),
                 )
+                if outcome.snapshot is not None:
+                    window_keeper.maybe_ping(
+                        outcome.snapshot.current_reset_at, self.mock
+                    )
             except Exception as exc:
                 if os.environ.get("USAGE_DEBUG") == "1":
                     logger.warning("refresh failed", exc_info=True)

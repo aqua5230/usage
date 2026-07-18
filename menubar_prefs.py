@@ -69,6 +69,13 @@ def _quota_notifications_enabled(prefs: Mapping[str, object] | None = None) -> b
     return data.get("quota_notifications") is not False
 
 
+def _window_keeper_enabled(prefs: Mapping[str, object] | None = None) -> bool:
+    # Defaults OFF (opt-in) — opposite polarity from quota_notifications, which
+    # is why this is `is True` rather than `is not False`.
+    data = _resolved_preferences(prefs)
+    return data.get("window_keeper") is True
+
+
 def _quota_notification_thresholds(prefs: Mapping[str, object] | None = None) -> list[float]:
     data = _resolved_preferences(prefs)
     raw = data.get("quota_notification_thresholds")
