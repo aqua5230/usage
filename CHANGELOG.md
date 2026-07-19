@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.28.14] - 2026-07-19
+
+### Added
+- **Antigravity can now auto-start its next 5-hour session.** A new opt-in menu toggle watches fresh, non-mock agy quota results and, when the selected model group's session is fully reset with no countdown running, dispatches one background `agy -p ok --model 'Gemini 3.5 Flash (Low)'`. It is off by default, self-throttles for five hours, uses only the local agy CLI, and shows the same Mac sleep warning as the Claude window keeper when enabled.
+
 ## [0.28.13] - 2026-07-18
 
 ### Fixed

@@ -76,6 +76,11 @@ def _window_keeper_enabled(prefs: Mapping[str, object] | None = None) -> bool:
     return data.get("window_keeper") is True
 
 
+def _agy_window_keeper_enabled(prefs: Mapping[str, object] | None = None) -> bool:
+    data = _resolved_preferences(prefs)
+    return data.get("agy_window_keeper") is True
+
+
 def _quota_notification_thresholds(prefs: Mapping[str, object] | None = None) -> list[float]:
     data = _resolved_preferences(prefs)
     raw = data.get("quota_notification_thresholds")

@@ -43,6 +43,7 @@ class AgyQuotaProjection:
     session: QuotaRowState
     weekly: QuotaRowState
     stale: AgyStaleState | None
+    five_hour: AgyQuotaWindow | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,6 +83,7 @@ def project_quota(
             age_minutes,
         ),
         stale=_stale_state(quota.fetched_at, current_time, language),
+        five_hour=selected.five_hour,
     )
 
 
@@ -117,6 +119,7 @@ def fallback_projection(language: str) -> AgyQuotaProjection:
             available=False,
         ),
         stale=None,
+        five_hour=None,
     )
 
 

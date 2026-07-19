@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.28.14] - 2026-07-19
+
+### 新增
+- **Antigravity 現在也能自動啟動下一輪 5 小時計時。** 新增預設關閉的選單開關；usage 只在 agy 額度資料新鮮、不是 mock，且選中模型群組的 Session 已回滿又沒有重置倒數時，才於背景送出一次 `agy -p ok --model 'Gemini 3.5 Flash (Low)'`。功能每五小時最多觸發一次、只呼叫本機 agy CLI，開啟時也會顯示與 Claude 版相同的 Mac 睡眠提醒。
+
 ## [0.28.13] - 2026-07-18
 
 ### 修正
