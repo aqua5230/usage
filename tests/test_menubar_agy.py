@@ -97,6 +97,26 @@ def test_project_quota_marks_full_quota_without_a_countdown() -> None:
     assert projection.weekly.reset_text == "Quota full"
 
 
+def test_project_quota_marks_full_session_with_sliding_countdown_as_full() -> None:
+    quota = AgyQuotaResult(
+        groups=[
+            AgyQuotaGroup(
+                name="GEMINI MODELS",
+                models=["model"],
+                five_hour=AgyQuotaWindow(100.0, "4h 59m", 299),
+                weekly=AgyQuotaWindow(50.0, "1d", 1440),
+            )
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+
+    projection = menubar_agy.project_quota(quota, "en", now=1_767_225_600.0)
+
+    assert projection is not None
+    assert projection.session.reset_text == "Quota full"
+    assert projection.session.reset_text != "Resets in 4h 59m"
+
+
 def test_project_quota_marks_cached_result_stale_after_twenty_minutes() -> None:
     now = datetime(2026, 1, 1, 1, 0, tzinfo=UTC)
     quota = AgyQuotaResult(

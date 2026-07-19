@@ -57,7 +57,6 @@ def _gate(**overrides: object) -> bool:
         "enabled": True,
         "last_ping_at": None,
         "remaining_percent": 100.0,
-        "resets_in_minutes": None,
         "stale": None,
         "fallback_projection": False,
         "mock": False,
@@ -68,7 +67,6 @@ def _gate(**overrides: object) -> bool:
         enabled=cast(bool, values["enabled"]),
         last_ping_at=cast(float | None, values["last_ping_at"]),
         remaining_percent=cast(float | None, values["remaining_percent"]),
-        resets_in_minutes=cast(int | None, values["resets_in_minutes"]),
         stale=values["stale"],
         fallback_projection=cast(bool, values["fallback_projection"]),
         mock=cast(bool, values["mock"]),
@@ -99,8 +97,8 @@ def test_should_ping_rejects_running_window() -> None:
     assert _gate(remaining_percent=99.9) is False
 
 
-def test_should_ping_rejects_full_window_with_countdown() -> None:
-    assert _gate(resets_in_minutes=300) is False
+def test_should_ping_allows_full_window_with_sliding_countdown() -> None:
+    assert _gate() is True
 
 
 def test_should_ping_rejects_cooldown() -> None:

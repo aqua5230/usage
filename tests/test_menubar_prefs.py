@@ -25,6 +25,21 @@ def test_auto_update_check_enabled_defaults_true() -> None:
     assert menubar_prefs._auto_update_check_enabled({"auto_update_check": False}) is False
 
 
+@pytest.mark.parametrize(
+    "preferences, enabled",
+    [
+        ({"window_keeper": True}, True),
+        ({"agy_window_keeper": True}, True),
+        ({}, False),
+    ],
+)
+def test_window_keeper_enabled_uses_a_combined_migration_gate(
+    preferences: dict[str, bool], enabled: bool
+) -> None:
+    assert menubar_prefs._window_keeper_enabled(preferences) is enabled
+    assert menubar_prefs._agy_window_keeper_enabled(preferences) is enabled
+
+
 def test_quota_card_order_validates_preferences() -> None:
     assert menubar_prefs._quota_card_order({"quota_card_order": ["agy", "claude", "codex"]}) == (
         "agy",

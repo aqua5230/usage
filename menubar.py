@@ -80,7 +80,6 @@ from history_loader import (
 )
 from i18n import _t, packaged_resource_path
 from menubar_prefs import (
-    _agy_window_keeper_enabled,
     _auto_update_check_enabled,
     _hide_agy_enabled,
     _hide_claude_enabled,
@@ -181,7 +180,6 @@ __all__ = [
     "_quota_row",
     "format_human_time",
     "_auto_update_check_enabled",
-    "_agy_window_keeper_enabled",
     "_hide_agy_enabled",
     "_hide_claude_enabled",
     "_hide_codex_enabled",
@@ -981,17 +979,6 @@ class AppDelegate(NSObject):
         window_keeper_item.setState_(1 if _window_keeper_enabled() else 0)
         window_keeper_item.setToolTip_(_t(self.language, "window_keeper_tooltip"))
         menu.addItem_(window_keeper_item)
-        agy_window_keeper_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "agy_window_keeper_menu"),
-            "toggleAgyWindowKeeper:",
-            "",
-        )
-        agy_window_keeper_item.setTarget_(self)
-        agy_window_keeper_item.setState_(1 if _agy_window_keeper_enabled() else 0)
-        agy_window_keeper_item.setToolTip_(
-            _t(self.language, "agy_window_keeper_tooltip")
-        )
-        menu.addItem_(agy_window_keeper_item)
         # Project Butler: one toggle that hands last session's progress to the next
         # one. Tooltip carries the full explanation so the menu line stays short.
         menu.addItem_(NSMenuItem.separatorItem())
@@ -1103,6 +1090,7 @@ class AppDelegate(NSObject):
         prefs = _load_preferences()
         enabled = not _window_keeper_enabled(prefs)
         prefs["window_keeper"] = enabled
+        prefs.pop("agy_window_keeper", None)
         _save_preferences(prefs)
         if hasattr(sender, "setState_"):
             sender.setState_(1 if enabled else 0)
@@ -1110,20 +1098,6 @@ class AppDelegate(NSObject):
             alert = _make_alert()
             alert.setMessageText_(_t(self.language, "window_keeper_sleep_title"))
             alert.setInformativeText_(_t(self.language, "window_keeper_sleep_body"))
-            alert.runModal()
-
-    def toggleAgyWindowKeeper_(self, sender: Any) -> None:
-        self._mark_switch_menu_action()
-        prefs = _load_preferences()
-        enabled = not _agy_window_keeper_enabled(prefs)
-        prefs["agy_window_keeper"] = enabled
-        _save_preferences(prefs)
-        if hasattr(sender, "setState_"):
-            sender.setState_(1 if enabled else 0)
-        if enabled:
-            alert = _make_alert()
-            alert.setMessageText_(_t(self.language, "agy_window_keeper_sleep_title"))
-            alert.setInformativeText_(_t(self.language, "agy_window_keeper_sleep_body"))
             alert.runModal()
 
     def toggleSessionResume_(self, sender: Any) -> None:

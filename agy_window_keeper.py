@@ -41,17 +41,18 @@ def should_ping(
     enabled: bool,
     last_ping_at: float | None,
     remaining_percent: float | None,
-    resets_in_minutes: int | None,
     stale: object | None,
     fallback_projection: bool,
     mock: bool,
 ) -> bool:
-    """Return whether fresh quota data shows no active five-hour window."""
+    """Return whether fresh quota data shows no active five-hour window.
+
+    At 100% remaining, the API reset time is a sliding placeholder, so it
+    cannot indicate an active window.
+    """
     if not enabled or mock or fallback_projection or stale is not None:
         return False
     if remaining_percent is None or remaining_percent < 100.0:
-        return False
-    if resets_in_minutes is not None:
         return False
     return last_ping_at is None or now - last_ping_at >= PING_COOLDOWN_SECONDS
 
@@ -162,9 +163,6 @@ def maybe_ping(result: AgyRefreshResult, mock: bool) -> None:
         last_ping_at=last_ping_at,
         remaining_percent=(
             five_hour.remaining_percent if five_hour is not None else None
-        ),
-        resets_in_minutes=(
-            five_hour.resets_in_minutes if five_hour is not None else None
         ),
         stale=projection.stale if projection is not None else None,
         fallback_projection=projection is None,

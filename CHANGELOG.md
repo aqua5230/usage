@@ -5,6 +5,14 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.28.15] - 2026-07-19
+
+### Changed
+- **Auto-start is now one shared switch for Claude and Antigravity.** It starts both keepers together; users who previously enabled either individual switch are automatically treated as having both enabled.
+
+### Fixed
+- **Antigravity auto-start never fired, and the card showed a phantom countdown.** The Antigravity quota API reports a *sliding* reset time (always "in ~5 hours") while a 5-hour window is still untouched at 100% remaining. The 0.28.14 auto-start gate treated any reported countdown as "a window is already running", so it never pinged; it now treats 100% remaining itself as "no active window" (the 5-hour self-throttle still applies). The card likewise stopped rendering that placeholder as a live countdown — at 100% remaining it now shows "Quota full" until a real window starts.
+
 ## [0.28.14] - 2026-07-19
 
 ### Added

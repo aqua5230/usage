@@ -148,7 +148,7 @@ def _window_row(
 ) -> QuotaRowState:
     remaining = _remaining_percent(window)
     used = 100.0 - remaining
-    if remaining == 100.0 and window.resets_in_minutes is None:
+    if remaining == 100.0:
         reset_text = _t(language, "agy_quota_full")
     elif window.resets_in_minutes is None:
         reset_text = _t(language, "reset_placeholder")
