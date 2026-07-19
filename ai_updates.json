@@ -1,10 +1,33 @@
 {
-  "generated_at": "2026-07-18",
+  "generated_at": "2026-07-19",
   "tools": [
     {
       "id": "claude_code",
       "name": "Claude Code",
       "versions": [
+        {
+          "version": "2.1.215",
+          "period": "2026-07-19",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "檢查與程式審查改由你親自叫出來",
+                "zh-CN": "验证与代码审查改由你亲自叫出来",
+                "en": "Verification and code review now start only when you ask",
+                "ja": "検証とコードレビューは、自分で呼び出して始める",
+                "ko": "검증과 코드 리뷰는 이제 직접 불러야 시작된다."
+              },
+              "body": {
+                "zh-TW": "你要交付一份改動，卻想先自己檢查一輪時，現在得明確輸入 `/verify` 才會啟動驗證技能（幫你檢查結果的內建流程）；想請它檢視程式碼，也要輸入 `/code-review` 才會啟動程式碼審查技能（找出程式問題的內建流程）。Claude 不會再自行猜測你何時需要它們。這像工具箱裡兩把檢查尺：以前它會自己抽出來量，現在把決定權還給你；需要時叫它一聲即可。不必擔心它在你沒要求時多做一次檢查，也別忘了，想用時要親自下指令。",
+                "zh-CN": "准备交付一项改动前，想自己先检查一轮，现在得明确输入 `/verify` 才会启动验证技能（帮你检查结果的内置流程）；想让它查看代码，也要输入 `/code-review` 才会启动代码审查技能（找出代码问题的内置流程）。Claude 不会再自行猜测你何时需要它们。这像工具箱里的两把检查尺：以前它会自己抽出来量，现在把决定权还给你；需要时叫它一声即可。不必担心它在你没要求时多做一次检查，也别忘了，想用时要亲自下指令。",
+                "en": "Before handing over a change, you may want one last check. Now you must explicitly type `/verify` to run the verification skill, Claude's built-in checking workflow. To have it inspect code, type `/code-review` to run the code-review skill, its built-in workflow for finding code issues. Claude will no longer guess when either is wanted. Think of two measuring tools in a toolbox: it used to pull them out on its own; now you hold the handle. Call for one when needed, and it will not add an unasked-for check to your work.",
+                "ja": "変更を渡す前に一度自分で確かめたいなら、`/verify` を明示して入力し、検証スキル（結果を確認する内蔵の手順）を起動する。コードを見てもらいたい場合も、`/code-review` を入力してコードレビューのスキル（コードの問題を探す内蔵の手順）を起動する必要がある。Claude が必要な時を勝手に推測して走らせることはなくなった。工具箱の二本の検査用定規のようなものだ。以前は自分で取り出して測っていたが、今は使う判断があなたに戻った。必要な時だけ呼び出せばよいのである。",
+                "ko": "변경 사항을 넘기기 전 한 번 더 확인하고 싶다면, 이제 `/verify`를 직접 입력해 검증 기술(결과를 확인하는 내장 절차)을 시작해야 한다. 코드를 살펴보게 하려면 `/code-review`를 입력해 코드 리뷰 기술(코드 문제를 찾는 내장 절차)을 시작한다. Claude는 두 기능이 필요한 때를 더 이상 스스로 추측해 실행하지 않는다. 공구함 속 검사 자 두 개와 같다. 예전에는 알아서 꺼내 재었지만, 이제는 언제 쓸지 결정하는 권한이 당신에게 돌아왔다. 필요할 때만 불러 쓰면 된다."
+              },
+              "original": "Claude no longer runs the `/verify` and `/code-review` skills on its own; invoke them with `/verify` or `/code-review` when you want them"
+            }
+          ]
+        },
         {
           "version": "2.1.214",
           "period": "2026-07-18",
@@ -320,114 +343,6 @@
                 "ko": "에이전트 소대를 꾸렸는데 연동 문제로 화면이 하얗게 뜨거나 연결이 툭툭 끊기는가? 여러 네트워크 버그가 대거 정리됐다. 원격 제어(Remote Control)로 대화 도중 참가한 클라이언트의 모니터가 비어 있던 현상이 해결됐다. 또한 스트리밍(streaming) 모드에서 세션 재부팅 시 요청이 유실되던 현상, 그리고 에이전트 소대가 다시 켜질 때 중복 신호가 가던 문제도 고쳐졌다. 빌딩의 자잘한 설비 불량들을 한 번에 보수 완료한 것과 같다."
               },
               "original": "Fixed the workflow agent grid staying empty for Remote Control clients that join a session mid-run\nFixed streaming-mode control requests being marked complete before their handler finished, which could lose the request on session restart\nFixed agent teams: a stopping teammate could send the leader duplicate idle notifications when team initialization re-ran within a session\nFixed @-mentions attaching nothing after a partial file read, plugin uninstall targeting the wrong marketplace, and false \"Command timed out\" on exit code 143"
-            }
-          ]
-        },
-        {
-          "version": "2.1.211",
-          "period": "2026-07-15",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "背景代理不撒謊、不復活，追蹤與管理更牢靠",
-                "zh-CN": "后台代理不撒谎、不复活，追踪与管理更牢靠",
-                "en": "Subagents get more honest status reports and better lifecycle controls",
-                "ja": "バックグラウンドエージェントが嘘をつかず、自動で復活しなくなった",
-                "ko": "백그라운드 에이전트가 거짓말하지 않고 자동으로 부활하지 않는다"
-              },
-              "body": {
-                "zh-TW": "把耗時的任務發送至背景執行，卻常常因為進度不明或代理人擅自重啟而感到困擾嗎？現在你派出的子代理（subagents）變得更聽話了。以前系統在任務尚未完成時，有時會捏造已完成的報告；現在會確實顯示仍在執行。被手動砍掉的背景工作階段（session，工作階段為原定譯法）也不會再悄悄復活或重複執行舊指令。當你想在串流中調閱子代理的完整思路，這正是加開「--forward-subagent-text」參數或設定環境變數的時刻，它們會老實交出思考紀錄。就像請了誠實的助手，沒做完不會撒謊，開除後也不會回來重做白工。",
-                "zh-CN": "把耗时的任务发送至后台运行，却常常因为进度不明或代理人擅自重启而感到困扰吗？现在你派出的子代理（subagents）变得更听话了。以前系统在任务尚未完成时，有时会捏造已完成的报告；现在会切实显示仍在运行。被手动砍掉的后台会话（session）也不会再悄悄复活或重复运行旧指令.当你想要在流式输出中调阅子代理的完整思路，这正是加开「--forward-subagent-text」参数或设置环境变量的时刻，它们会老实交出思考记录。就像请了诚实的助手，没做完不会撒谎，开除后也不会跑回来重做白工。",
-                "en": "Have you ever dispatched a long-running task to the background only to find your agent's status unclear or restarting itself? Now subagents behave much better. Claude no longer fabricates final results while an agent is still working, and manually killed background sessions will not respawn or replay old tasks. If you want to include subagent thoughts and texts in stream-json output, that is when to append `--forward-subagent-text` or set the environment variable. It is like hiring a reliable helper—they report their actual status instead of lying, and stay stopped when you let them go.",
-                "ja": "時間のかかる処理をバックグラウンドへ投げた後、進捗が不明だったり勝手に再起動したりして困ったことはないだろうか。子エージェント（subagents）の管理が強固になった。処理中に捏造された完了報告を返すことはなくなり、手動で終了したセッション（session）が勝手に復活することもない。子エージェントの思考プロセスを含めて出力させたいときは、まさに「--forward-subagent-text」フラグを追加する瞬間である。進捗をごまかさず、解雇すれば静かに去るアシスタントを雇ったようなものだ。",
-                "ko": "오래 걸리는 작업을 백그라운드로 보냈는데, 에이전트의 진행 상태가 모호하거나 스스로 재시작되어 당황했는가? 서브에이전트(subagents) 관리가 훨씬 안정적으로 변했다. 진행 중인데 완료됐다고 거짓 보고를 올리지 않으며 지운 세션(session)이 살아나지도 않는다. 서브에이전트의 구체적 생각 흐름까지 함께 실어보고 싶다면 바로 '--forward-subagent-text' 옵션을 쓸 때다. 일도 안 끝났는데 다 했다고 속이거나 해고했는데 다시 나타나 억지 부리지 않는 정직한 직원을 둔 셈이다."
-              },
-              "original": "Added `--forward-subagent-text` flag and `CLAUDE_CODE_FORWARD_SUBAGENT_TEXT` environment variable to include subagent text and thinking in stream-json output\nFixed subagents spawned with an explicit model override reverting to the parent's model when resumed or sent a follow-up message\nFixed reopening a just-stopped background session from the agents view starting a blank conversation under the same session id\nFixed `/loop` hiding the session from `/resume` after a single use\nFixed `claude agents` jobs becoming permanently undeletable when git no longer recognizes their worktree — the row now shows why the delete was refused instead of silently reappearing\nFixed background session titles in the agents view showing the naming model's refusal text when the prompt contains a link\nFixed background agents killed by the user auto-respawning, and revived agents re-running stale prompts from old sessions\nFixed routines with no schedule reporting a next run time in the year 1\nImproved background agent result reporting — Claude now reports the status of still-running agents and waits for the real completion instead of fabricating results"
-            },
-            {
-              "title": {
-                "zh-TW": "權限與安全漏洞補齊，惡意騙局無所遁形",
-                "zh-CN": "权限与安全漏洞补齐，恶意骗局无所遁形",
-                "en": "Security gaps patched to block malicious input overrides",
-                "ja": "権限とセキュリティホールが修正され、悪意ある偽装を防ぐ",
-                "ko": "권한과 보안 취약점이 패치되어 악의적인 위장을 차단한다"
-              },
-              "body": {
-                "zh-TW": "放心地讓 AI 在專案中自動執行指令，但有時會擔心被惡意程式碼的障眼法騙過？這些安全漏洞已被徹底補齊。以前指令確認視窗可能會被零寬度字元（zero-width characters，隱形墨水般的特殊字元）或假引號矇騙，誤導你按下執行，現在它們都會在畫面現出原形。自動模式下，只要掛鉤判定需要詢問，系統便不能擅自跳過，必須停下來請示。此外，你按下的「永遠允許」特權現在會寫在專案的根目錄，即使換了工作樹（worktree，專案的平行副本）也同樣生效。就像保全換上能看穿偽裝的墨鏡，並把通行證鎖在大門口。",
-                "zh-CN": "放心地让 AI 在项目中自动运行指令，但有时会担心被恶意代码的障眼法骗过？这些安全漏洞已被彻底补齐。以前指令确认窗口可能会被零宽度字符（zero-width characters，隐形墨水般的特殊字符）或假引号蒙骗，误导你按下执行，现在它们都会在画面现出原形。自动模式下，只要钩子判定需要询问，系统便不能擅自跳过，必须停下来请示。此外，你按下的「永远允许」特权现在会写在项目的根目录，即使换了工作树（worktree，项目的平行副本）也同样生效。就像保安换上能看穿伪装的墨镜，并把通行证锁在大门口。",
-                "en": "Are you sure your environment is safe from sneaky command execution? A set of critical security gaps has been closed. Attackers previously tried using zero-width characters (invisible characters acting like fake quotes) to visually trick you into approving bad actions, but the review screen now strips them out. In auto mode, when a hook specifies an ask prompt, the system will respect that. Finally, \"always allow\" rules are now saved at your repository root, keeping permissions active across a worktree (a parallel folder copy) without asking again. It is like security guards putting on special glasses that expose invisible ink and locking passes at the front gate.",
-                "ja": "AI にコマンドを任せるとき、悪意あるコードの偽装に騙されないか心配したことはないだろうか。セキュリティホールが解消された。承認画面でゼロ幅文字（zero-width characters，見えないインクのような特殊文字）や偽の記号を使って確認文をすり替える攻撃が防がれるようになった。また自動実行時もフックによる確認要求を無視しなくなる。さらに「常に許可」のルールはリポジトリのルートに保存され、ワークツリー（worktree，リポジトリの平行コピー）を切り替えてもそのまま適用される。警備員が特殊な眼鏡をかけ、通行証を玄関の鍵箱に固定したようなものだ。",
-                "ko": "AI가 명령을 실행하도록 승인할 때, 악성 코드에 교묘히 낚이지 않을까 우려해 본 적이 있는가? 주요 보안 취약점들이 패치됐다. 승인 창에서 제로 너비 문자(zero-width characters, 보이지 않는 잉크처럼 숨겨진 특수 문자)나 유사 따옴표를 섞어 위험한 명령을 안전한 척 위장해 속이던 꼼수가 이제 막힌다. 또한 자동 실행 중에 훅의 물음 결정을 무시하지 않으며, '항상 허용' 규칙은 저장소 루트에 저장되어 워크트리(worktree, 저장소의 평행 복사본)가 바뀌어도 유지된다. 경비원이 숨겨진 글자를 찾아내고 패스를 정문에 보관하는 격이다."
-              },
-              "original": "Fixed permission previews relayed to chat channels not neutralizing bidirectional-override, zero-width, and look-alike quote characters, so tool inputs cannot visually alter the approval message\nFixed auto mode overriding a PreToolUse hook's `ask` decision for unsandboxed Bash — a hook `ask` now floors the decision at a prompt\nFixed nested `.claude/rules/*.md` files loading even when setting sources exclude project settings\nChanged \"always allow\" permission rules to save at the repository root, so approvals granted in a git worktree persist across sessions and worktrees"
-            },
-            {
-              "title": {
-                "zh-TW": "瀏覽器外掛與上傳不卡死，連截圖也能好好存了",
-                "zh-CN": "浏览器外挂与上传不卡死，连截图也能好好存了",
-                "en": "Upload checks relaxed and screenshots saved correctly",
-                "ja": "アップロード制限の緩和とスクリーンショット保存が修正された",
-                "ko": "업로드 제한 완화와 스크린샷 저장이 정상화됐다"
-              },
-              "body": {
-                "zh-TW": "每次上傳檔案或召喚瀏覽器外掛，總是遇到莫名其妙的卡死嗎？現在上傳與網頁操作更加順暢。以前檔名以點結尾或包含保留字（如 DOS 系統專用的 .prn 後綴）的檔案會被拒收，現已全部放開，並嚴格杜絕具多重連結的危險檔案。使用 Chrome 瀏覽器外掛時，即使 Chrome 本身未啟動，主程式也不再死當。如果你要留下瀏覽器操作的網頁證據，這正是執行截圖並透過「save_to_disk」寫入磁碟的時刻，系統會將圖片存好並回傳檔案路徑。就像郵局優化了流程，即使寄送怪名字的包裹也能安全送達。",
-                "zh-CN": "每次上传文件或召唤浏览器外挂，总是遇到莫名其妙的卡死吗？现在上传与网页操作更加顺畅。以前文件名以点结尾或包含保留字（如 DOS 系统专用的 .prn 后缀）的文件会被拒收，现已全部放开，并严格杜绝具多重链接的危险文件。使用 Chrome 浏览器插件时，即使 Chrome 本身未启动，主程序也不再死机。如果你需要留下浏览器操作的网页证据，这正是执行截图并通过「save_to_disk」写入磁盘的时刻，系统会将图片存好并返回文件路径。就像邮局优化了流程，即使寄送怪名字的包裹也能安全送达。",
-                "en": "Have you ever had your uploads block or Chrome extension hang at startup? Files ending with a dot or DOS-reserved suffixes like `.prn` are now accepted, while double-linked files are correctly rejected. The CLI will no longer freeze if you have the Chrome extension enabled but Chrome is closed. When you need to keep a record of your web screen, that is when to execute `save_to_disk` during screenshot actions, which now correctly saves the image to your disk and returns the path. It is like a post office expanding its parcel policies to accept irregular names and ensuring pictures are printed.",
-                "ja": "ファイルをアップロードしようとしたり、拡張機能を使ったりした際に、謎のフリーズに遭遇したことはないだろうか。ファイル名末尾にドットがあるものや「.prn」などの DOS 予約名を含むものも正しく読み込めるようになり、多重リンクファイルは拒否される。拡張機能を有効にした状態で Chrome が立ち上がっていなくてもフリーズしない。ウェブ画面の証拠をローカルに保存したいときは、まさに「save_to_disk」を実行する瞬間である。スクリーンショットを保存しパスを返す。郵便局が変な名前の小包でも安全に届ける仕組みを作ったようなものだ。",
-                "ko": "파일을 올리거나 브라우저 플러그인을 쓸 때 이유 모를 다운으로 답답했던 적이 있는가? 파일 업로드와 브라우저 연동 기능이 개선됐다. 파일명 끝에 점이 있거나 '.prn' 같은 DOS 예약어가 들어간 파일도 잘 올라가며, 다중 링크 파일은 걸러낸다. 크롬 확장 프로그램이 켜져 있으나 크롬 브라우저가 꺼져 있어도 메인 프로그램이 먹통이 되지 않는다. 웹 화면의 증거를 하드 디스크에 남겨두고 싶다면 바로 'save_to_disk' 기능을 실행해 스크린샷을 찍을 때다. 이미지를 하드에 쓰고 해당 경로를 반환한다. 우체국이 포장을 가리지 않고 안전하게 배송해 주는 것과 같다."
-              },
-              "original": "Fixed file upload validation: filenames ending in a DOS device suffix (`.prn`) or trailing dot are now accepted, and files with multiple hard links are refused\nFixed file uploads to Claude in Chrome from remote and CLI sessions\nFixed a startup hang when the Claude in Chrome extension is enabled but Chrome is not running\nFixed Claude in Chrome setup pages failing to open in the browser on Windows\nClaude in Chrome: hardened file-upload path validation\nClaude in Chrome: `save_to_disk` on screenshot actions now writes the image to disk and returns the path; previously it did nothing"
-            },
-            {
-              "title": {
-                "zh-TW": "系統底層與登入更穩定，睡醒不再集體失憶",
-                "zh-CN": "系统底层与登录更稳定，睡醒不再集体失忆",
-                "en": "Parallel sessions stay logged in and MCP servers auto-reconnect",
-                "ja": "複数セッションの常時ログインと MCP サーバーの自動再接続",
-                "ko": "복수 세션의 로그인 유지와 MCP 서버 자동 재연결"
-              },
-              "body": {
-                "zh-TW": "早上打開電腦重啟工作，卻發現開著的對話視窗集體被登出，或背景工具全部斷線？這些睡眠喚醒後的疑難雜症已全被修好。以往多個工作階段（session，工作階段為原定譯法）睡眠喚醒後會連鎖登出，現已隔離。同時多個工作階段共用同一個憑證庫（credential store，存登入證明的地方）也不會互相干擾。閒置對話喚醒後，外部工具伺服器（MCP servers）也會自動重新連線。而在 Windows 的無畫面工作階段下，也不會再因為讀不到鍵盤輸入就直接崩潰。就像員工睡醒回到崗位，櫃檯不會弄丟認證，外部合作商的電話也重新接通。",
-                "zh-CN": "早上打开电脑重启工作，却发现开着的对话窗口集体被登出，或后台工具全部断线？这些睡眠唤醒后的疑难杂症已全被修好。以往多个会话（session）睡眠唤醒后会连锁登出，现已隔离。同时多个会话共享同一个凭证库（credential store，存登录证明的地方）也不会互相干扰。闲置对话唤醒后，外部工具服务器（MCP servers）也会自动重新连线。而在 Windows 的无画面会话下，也不会再因为读不到键盘输入就直接崩溃。就像员工睡醒回到岗位，前台不会弄丢认证，外部合作商的电话也重新接通。",
-                "en": "Are you tired of finding your terminal windows logged out or plugins disconnected after your computer wakes from sleep? The sleep-wake recovery bugs are now solved. Sessions sharing one credential store (where logins are saved) will not trigger simultaneous logouts when waking up. In addition, idle web sessions will now auto-reconnect to MCP servers (tool integration servers) right away. Background jobs using LLM gateway tokens stay authorized when the daemon restarts, and Windows headless processes will not crash if stdin goes dry. It is like staff returning to their desks—IDs are intact and partner phones reconnect.",
-                "ja": "スリープから復帰した際に、開いていた会話セッション（session）が一斉にログアウトしてしまってはいないだろうか。スリープ復帰時の不具合が解消された。同一の資格情報ストア（credential store，認証情報を保管する場所）を共有するセッション同士が干渉しなくなっている。スリープから復帰すると、外部ツールサーバー（MCP servers）とも自動で再接続される。また、Windows のヘッドレス実行で入力を読み込めない場合に強制終了する問題も修正された。出社した社員の ID カードがそのままで、外部回線がすぐに繋ぎ直されるようなものだ。",
-                "ko": "컴퓨터 절전 모드가 풀렸을 때, 열려 있던 대화 세션(session)들이 한꺼번에 로그아웃되어 곤란했는가? 절전 복귀와 관련된 여러 자잘한 문제들이 잡혔다. 하나의 자격 증명 저장소(credential store, 로그인 정보를 보관하는 장소)를 공유하는 세션들이 깨어날 때 로그아웃되지 않는다. 아울러 깨어난 세션에서 외부 도구 서버(MCP servers)와의 연결도 자동으로 복구된다. 또한 Windows 헤드리스 환경에서 입력 부족으로 터지던 현상도 해결됐다. 아침에 출근한 직원들의 신분증이 유효하고, 협력업체 전화가 바로 개통되는 것과 같다."
-              },
-              "original": "Fixed parallel Claude Code sessions all logging out simultaneously after wake-from-sleep when many sessions share one credential store\nFixed plugin MCP servers not reconnecting after an idle web session woke, leaving MCP calls failing until the next message\nFixed background jobs on LLM gateway auth (`ANTHROPIC_AUTH_TOKEN` + `ANTHROPIC_BASE_URL`) coming back \"Not logged in\" after the daemon respawns them\nFixed headless print-mode sessions on Windows crashing or silently exiting when stdin is unreadable\nHardened synced skill/plugin directory naming on Windows and kept CCR web fetch/search proxies working after `/clear`"
-            },
-            {
-              "title": {
-                "zh-TW": "介面反應變快，小毛病不再煩人",
-                "zh-CN": "界面反应变快，小毛病不再烦人",
-                "en": "Async panel delays and odd UI bugs fixed",
-                "ja": "非同期読み込みの遅延排除と細かな UI バグの解消",
-                "ko": "비동기 로딩 지연 제거와 자잘한 UI 오류 해결"
-              },
-              "body": {
-                "zh-TW": "頻繁切換設定分頁或清除對話時，是否覺得畫面載入總是慢半拍？多個拖慢速度的介面問題已被一掃而空。非同步內容載入時原本存在 300 毫秒的延遲，現在已被完全抹平，畫面渲染效能也大幅提升。以前在輸入框輸入問號「?」時指令會被吃掉，現在這異常現象已修正。此外，當你以「/clear」清除當前的工作階段（session，工作階段為原定譯法）時，一切將重新計量。顯示在最底下的狀態列（statusLine，狀態列為原定譯法）費用計算也會確實歸零。就像開車的儀表板，以前切換功能會卡頓，現在指針反應靈敏，且按重設時里程表會乖乖歸零。",
-                "zh-CN": "频繁切换设置分页或清除对话时，是否觉得画面载入总是慢半拍？多个拖慢速度的界面问题已被一扫而空。异步内容载入时原本存在 300 毫秒的延迟，现在已被完全抹平，画面渲染性能也大幅提升。以前在输入框输入问号「?」时指令会被吞掉，现在这异常现象已修正。此外，当你以「/clear」清除当前会话（session）时，一切将重新计量。显示在最底下的状态栏（statusLine）费用计算也会确实归零。就像开车的仪表盘，以前切换功能会卡顿，现在指针反应灵敏，且按重设时里程表会乖乖归零。",
-                "en": "Does switching panels or running `/clear` feel a bit sluggish? This update sweeps away UI lags and annoying quirks. The 300ms delay before loading Settings and Stats views is gone, and terminal rendering is faster. Entering a single question mark in the command prompt will not open the shortcuts panel by mistake anymore. When you run `/clear` to reset the current session, the cost counter will start fresh. The statusline (the bar showing info at the bottom) also resets to $0. It is like a dashboard where shifting screens is instant, and resetting your trip meter actually resets it to zero.",
-                "ja": "設定画面の切り替えや履歴のクリア時に、動作が少し遅れるように感じたことはないだろうか。UI の遅延が一掃された。設定や統計情報のロード時にあった300ミリ秒のウェイトがなくなり、描画が滑らかになった。コマンドプロンプトで「?」を入れたときにショートカットパネルが開いてしまうバグも修正した。また、「/clear」を実行して現在のセッション（session）をリセットした際にも、カウンターは一新される。画面最下部にあるステータスライン（statusLine）の費用表示も確実にゼロへ戻る。車のトリップメーターをリセットしたときに、メーターがしっかりゼロになるようなものだ。",
-                "ko": "설정 화면을 바꿀 때나 대화 창을 비울 때 로딩이 반 박자씩 밀리는 느낌을 받았는가? 반응성을 깎아먹던 자잘한 결함들이 해결됐다. 설정이나 통계 뷰를 띄울 때 있던 300밀리초 지연 시간이 사라졌고 드로잉 속도가 빨라졌다. 입력 창에 '?'만 쳤을 때 명령어 전체가 무시되던 현상도 정리됐다. 아울러 '/clear'로 현재 세션(session)을 비웠을 때에도 사용 요금은 다시 리셋된다. 화면 최하단 상태 표시줄(statusLine)의 비용 표시가 0달러로 확실히 돌아간다. 계기판의 여행 거리를 리셋했을 때 수치가 깔끔하게 0으로 떨어지는 것과 같다."
-              },
-              "original": "Fixed edits that leave the input as \"?\" being silently swallowed and toggling the shortcuts panel\nFixed a 300ms delay revealing async content (Settings tabs, Stats, diff views, and other loading states)\nFixed screen reader users losing the audible terminal bell after `/terminal-setup` or onboarding terminal setup\nFixed `/clear` not resetting the session cost counter — the statusline's cost now starts at $0 after `/clear`\nImproved terminal layout and rendering performance\nUpdated integer environment variables (timeouts, token budgets, retry counts) to accept scientific notation and digit-separator spellings like `1e6` and `64_000`\nUpdated documentation links to the current docs sites\nChanged Vim mode `s` and `S` (substitute char/line) to work in NORMAL mode, matching vim behavior\n[VSCode] Updated the Remote Control banner to describe what it does"
-            },
-            {
-              "title": {
-                "zh-TW": "計費精準不亂算，模型載入更聰明",
-                "zh-CN": "计费精准不乱算，模型载入更聪明",
-                "en": "Precision token billing and smarter memory indexing",
-                "ja": "トークン課金の精密化とメモリインデックス警告の適正化",
-                "ko": "토큰 과금의 정밀화와 메모리 인덱스 경고 적정화"
-              },
-              "body": {
-                "zh-TW": "擔心因為快取失效而被重複收取重複提問的運算費嗎？這批修復讓計費更精準，避免花冤枉錢。在 Bedrock 與 Vertex 雲端服務上，提示詞快取（prompt-caching，把重複提問暫存以節省成本的功能）的退化問題已解決，不會再把背景系統脈絡誤算為新文字。現在若遇到模型備援（fallback，備援為原定譯法）警報，系統也會依照你的設定，在載入時自動修正，不跳多餘的警示。就像去市場買菜的過磅機，只精確秤量你買的菜，不把額外包裝袋也算進重量多收錢。",
-                "zh-CN": "担心因为缓存失效而被重复收取重复提问的运算费吗？这批修复让计费更精准，避免花冤枉钱。在 Bedrock 与 Vertex 云服务上，提示词缓存（prompt-caching，把重复提问暂存以节省成本的功能）退化问题已解决，不会再把背景系统上下文误算为新文字。现在如果遇到模型备援（fallback）警报，系统也会依照你的设定，在载入时自动修正，不弹多余的警示。就像去市场买菜的过磅机，只精确称量你买的菜，不把额外包装袋也算进重量多收费。",
-                "en": "Want to save on recurring tokens but worried that cache slips are costing you extra? We have patched credit calculations to prevent double billing. Prompt caching (saving past prompts to lower token use) on Bedrock or Vertex will no longer bill the trailing system block as fresh inputs on every request. If repository models are configured explicitly, Claude won't trigger default configurations or spurious fallback alerts at startup. It is like a produce scale that only weighs the vegetables you buy, without charging you for the heavy plastic wrapping.",
-                "ja": "繰り返し同じプロンプトを使っているのに、キャッシュ漏れで余計な課金が発生していないか心配だろうか。請求処理のバグが修正された。Bedrock や Vertex において、プロンプトキャッシュ（prompt caching，プロンプトの一部を一時保存する仕組み）が効かずに全データを再課金する問題が解消された。モデルの切り替え設定を行っている場合、起動時に余分な警告が出るバグも修正された。野菜の計量器が、包装材の重さを除いて中身だけを正確に量ってくれるようなものだ。",
-                "ko": "자주 묻는 질문으로 비용을 아끼고 싶은데 캐시가 풀려 요금이 곱절로 나가지 않을까 불안한가? 계산이 정확하도록 빌링 로직이 수정됐다. Bedrock이나 Vertex 클라우드에서 프롬프트 캐싱(prompt caching, 중복 내용을 임시 저장해 비용을 낮추는 기술)이 매번 새 데이터로 인식되던 오류가 패치됐다. 명시적인 모델 설정이 있으면 실행 시 쓸데없는 fallback 알림을 띄우지 않는다. 정밀 저울이 물건의 진짜 무게만 달아서 그릇이나 포장지 값을 청구하지 않는 것과 같다."
-              },
-              "original": "Fixed Claude Code on Vertex and Bedrock attempting the default Opus model at startup and printing a spurious fallback notice when a model is explicitly configured\nImproved the memory index over-limit warning to measure only loaded content, excluding frontmatter and HTML comments\nChanged `/usage-credits` to ask for confirmation before sending a request to organization admins\nFixed a prompt-caching regression on Bedrock, Vertex, Mantle, and Foundry that billed the trailing system context block as fresh input tokens on every request."
             }
           ]
         }
