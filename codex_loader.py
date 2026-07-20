@@ -120,6 +120,15 @@ _file_info_cache: OrderedDict[
 ] = OrderedDict()
 _sqlite_log_cache = _SqliteLogCache()
 
+_SqliteFileFingerprint = tuple[
+    tuple[str, tuple[int, int] | None],
+    tuple[str, tuple[int, int] | None],
+]
+_thread_metadata_cache_key: _SqliteFileFingerprint | None = None
+_thread_metadata_cache: dict[str, _ThreadMetadata] = {}
+_sqlite_rate_limits_cache_key: _SqliteFileFingerprint | None = None
+_sqlite_rate_limits_rows_cache: list[tuple[Any, Any]] = []
+
 SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
 ARCHIVED_SESSIONS_DIR = Path(os.path.expanduser("~/.codex/archived_sessions"))
 STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
@@ -130,9 +139,21 @@ def _readonly_sqlite_uri(path: Path) -> str:
     """Return a read-only SQLite URI that also accepts Windows drive paths."""
     return f"{path.resolve().as_uri()}?mode=ro"
 
+
+def _sqlite_file_fingerprint(path: Path) -> _SqliteFileFingerprint:
+    def stat_key(candidate: Path) -> tuple[int, int] | None:
+        try:
+            stat = candidate.stat()
+        except OSError:
+            return None
+        return (stat.st_mtime_ns, stat.st_size)
+
+    wal_path = Path(f"{path}-wal")
+    return ((str(path), stat_key(path)), (str(wal_path), stat_key(wal_path)))
+
 # Disk cache for JSONL parsing results. Schema version must be bumped when the
 # serialization format or parsing logic changes incompatibly.
-_CODEX_JSONL_CACHE_SCHEMA = 3
+_CODEX_JSONL_CACHE_SCHEMA = 4
 JSONL_CACHE_PATH = Path(os.path.expanduser("~/.usage/codex_jsonl_cache.json"))
 
 # Module-level flag to ensure seed loading happens exactly once.
@@ -232,7 +253,7 @@ def _session_roots(primary_dir: Path) -> list[Path]:
 
 
 def _session_root_for_path(path: Path) -> Path | None:
-    for root in _session_roots(SESSIONS_DIR):
+    for root in (SESSIONS_DIR, ARCHIVED_SESSIONS_DIR):
         if path.is_relative_to(root):
             return root
     return None
@@ -368,9 +389,12 @@ def _read_session_file_info(path: Path) -> _SessionFileInfo:
     return info
 
 
-def load_rate_limits() -> CodexRateLimits | None:
+def load_rate_limits(
+    *,
+    jsonl_candidates: Iterable[tuple[Path, float]] | None = None,
+) -> CodexRateLimits | None:
     sqlite_limits = _load_sqlite_rate_limits()
-    jsonl_limits = _load_jsonl_rate_limits()
+    jsonl_limits = _load_jsonl_rate_limits(jsonl_candidates=jsonl_candidates)
     if sqlite_limits is None:
         return jsonl_limits
     if jsonl_limits is None:
@@ -383,12 +407,17 @@ def load_rate_limits() -> CodexRateLimits | None:
     return sqlite_limits
 
 
-def _load_jsonl_rate_limits() -> CodexRateLimits | None:
-    if not any(root.is_dir() for root in _session_roots(SESSIONS_DIR)):
+def _load_jsonl_rate_limits(
+    *,
+    jsonl_candidates: Iterable[tuple[Path, float]] | None = None,
+) -> CodexRateLimits | None:
+    if jsonl_candidates is None and not any(
+        root.is_dir() for root in _session_roots(SESSIONS_DIR)
+    ):
         return None
     models = _load_thread_models()
     # scan 30 recent sessions because short/interrupted Codex sessions write null rate_limits
-    for path in _recent_jsonl_files():
+    for path in _recent_jsonl_files(jsonl_candidates=jsonl_candidates):
         rate_limits = _extract_rate_limits(path, models)
         if rate_limits is not None:
             return rate_limits
@@ -478,23 +507,33 @@ def _active_window_limit_reached(
 
 
 def _load_sqlite_rate_limits() -> CodexRateLimits | None:
-    if not LOGS_DB.exists():
+    global _sqlite_rate_limits_cache_key, _sqlite_rate_limits_rows_cache
+
+    fingerprint = _sqlite_file_fingerprint(LOGS_DB)
+    if fingerprint == _sqlite_rate_limits_cache_key:
+        rows = _sqlite_rate_limits_rows_cache
+    elif fingerprint[0][1] is None:
+        _sqlite_rate_limits_cache_key = fingerprint
+        _sqlite_rate_limits_rows_cache = []
         return None
-    query = (
-        "SELECT ts, feedback_log_body FROM logs "
-        "WHERE target = 'codex_api::endpoint::responses_websocket' "
-        "AND (feedback_log_body LIKE '%websocket event: {\"type\":\"codex.rate_limits\"%' "
-        "OR feedback_log_body LIKE "
-        "'%websocket event: {\"type\":\"error\"%usage_limit_reached%') "
-        "ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 50"
-    )
-    try:
-        with closing(sqlite3.connect(_readonly_sqlite_uri(LOGS_DB), uri=True)) as conn:
-            rows = conn.execute(query).fetchall()
-    except (OSError, sqlite3.Error):
-        if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("codex sqlite rate limits load failed", exc_info=True)
-        return None
+    else:
+        query = (
+            "SELECT ts, feedback_log_body FROM logs "
+            "WHERE target = 'codex_api::endpoint::responses_websocket' "
+            "AND (feedback_log_body LIKE '%websocket event: {\"type\":\"codex.rate_limits\"%' "
+            "OR feedback_log_body LIKE "
+            "'%websocket event: {\"type\":\"error\"%usage_limit_reached%') "
+            "ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 50"
+        )
+        try:
+            with closing(sqlite3.connect(_readonly_sqlite_uri(LOGS_DB), uri=True)) as conn:
+                rows = conn.execute(query).fetchall()
+        except (OSError, sqlite3.Error):
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("codex sqlite rate limits load failed", exc_info=True)
+            return None
+        _sqlite_rate_limits_cache_key = fingerprint
+        _sqlite_rate_limits_rows_cache = rows
 
     for ts, body in rows:
         parsed = _parse_sqlite_rate_limits_row(ts, body)
@@ -683,7 +722,14 @@ def _load_thread_models() -> dict[str, str]:
 
 
 def _load_thread_metadata() -> dict[str, _ThreadMetadata]:
-    if not STATE_DB.exists():
+    global _thread_metadata_cache, _thread_metadata_cache_key
+
+    fingerprint = _sqlite_file_fingerprint(STATE_DB)
+    if fingerprint == _thread_metadata_cache_key:
+        return _thread_metadata_cache
+    if fingerprint[0][1] is None:
+        _thread_metadata_cache_key = fingerprint
+        _thread_metadata_cache = {}
         return {}
     try:
         with closing(sqlite3.connect(_readonly_sqlite_uri(STATE_DB), uri=True)) as conn:
@@ -694,7 +740,7 @@ def _load_thread_metadata() -> dict[str, _ThreadMetadata]:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("codex thread metadata load failed", exc_info=True)
         return {}
-    return {
+    result = {
         thread_id: _ThreadMetadata(
             model=model if isinstance(model, str) and model else "unknown",
             cwd=cwd if isinstance(cwd, str) else "",
@@ -702,6 +748,9 @@ def _load_thread_metadata() -> dict[str, _ThreadMetadata]:
         for thread_id, model, cwd in rows
         if isinstance(thread_id, str) and thread_id
     }
+    _thread_metadata_cache_key = fingerprint
+    _thread_metadata_cache = result
+    return result
 
 
 def _load_sqlite_log_entries(
@@ -819,7 +868,18 @@ def _parse_sqlite_log_row(
     )
 
 
-def _recent_jsonl_files() -> list[Path]:
+def _recent_jsonl_files(
+    *,
+    jsonl_candidates: Iterable[tuple[Path, float]] | None = None,
+) -> list[Path]:
+    if jsonl_candidates is not None:
+        visible_candidates = [
+            (mtime, path)
+            for path, mtime in jsonl_candidates
+            if _is_visible_jsonl(path)
+        ]
+        visible_candidates.sort(key=lambda item: item[0], reverse=True)
+        return [path for _, path in visible_candidates[:_RECENT_JSONL_SCAN_LIMIT]]
     try:
         paths = [
             path

@@ -4,31 +4,22 @@
 # Part of "usage". Free software licensed under the GNU Affero General Public
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
-"""Disk persistence for codex_loader's in-memory parse caches.
-
-The caches themselves, the on-disk path, the schema constant and the
-seeded-once flag all live in codex_loader (tests monkeypatch them there);
-callers pass everything in and these functions mutate the given caches
-in place.
-"""
+"""Sharded disk persistence for codex_loader's parse caches."""
 
 from __future__ import annotations
 
 import contextlib
+import hashlib
 import json
 import logging
 import os
 import tempfile
 from collections import OrderedDict
-from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
 from codex_events import _SessionFileInfo, _TokenUsage
-from history_disk_cache import (
-    _deserialize_usage_entry,
-    _serialize_usage_entry,
-)
+from history_disk_cache import _deserialize_usage_entry, _serialize_usage_entry
 
 logger = logging.getLogger(__name__)
 
@@ -41,6 +32,7 @@ __all__ = [
 
 _JsonlCache = OrderedDict[Path, Any]
 _FileInfoCache = OrderedDict[Path, tuple[float, int, _SessionFileInfo]]
+_SHARD_COUNT = 32
 
 
 def _serialize_token_usage(value: _TokenUsage | None) -> dict[str, int] | None:
@@ -66,6 +58,74 @@ def _deserialize_token_usage(value: Any) -> _TokenUsage | None:
         return None
 
 
+def _cache_dir(cache_path: Path) -> Path:
+    return cache_path.with_suffix(f"{cache_path.suffix}.d")
+
+
+def _shard_index(path: Path) -> int:
+    digest = hashlib.sha256(str(path).encode("utf-8", errors="surrogatepass")).digest()
+    return digest[0] % _SHARD_COUNT
+
+
+def _shard_path(cache_path: Path, index: int) -> Path:
+    return _cache_dir(cache_path) / f"files-{index:02x}.json"
+
+
+def _sqlite_log_path(cache_path: Path) -> Path:
+    return _cache_dir(cache_path) / "sqlite-log.json"
+
+
+def _remove_legacy_cache(cache_path: Path) -> None:
+    with contextlib.suppress(OSError):
+        cache_path.unlink()
+
+
+def _load_payload(path: Path, schema_version: int) -> dict[str, Any] | None:
+    try:
+        with path.open(encoding="utf-8") as file:
+            payload = json.load(file)
+        if not isinstance(payload, dict) or payload.get("schema_version") != schema_version:
+            path.unlink(missing_ok=True)
+            return None
+        return payload
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        with contextlib.suppress(OSError):
+            path.unlink()
+        return None
+
+
+def _encoded_payload(payload: dict[str, Any]) -> bytes:
+    return json.dumps(
+        payload,
+        ensure_ascii=False,
+        separators=(",", ":"),
+        sort_keys=True,
+    ).encode("utf-8")
+
+
+def _write_if_changed(path: Path, payload: bytes) -> None:
+    try:
+        if path.read_bytes() == payload:
+            return
+    except OSError:
+        pass
+
+    tmp_path: str | None = None
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+        with os.fdopen(fd, "wb") as file:
+            file.write(payload)
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(tmp_path, path)
+        tmp_path = None
+    finally:
+        if tmp_path:
+            with contextlib.suppress(OSError):
+                os.unlink(tmp_path)
+
+
 def seed_caches(
     cache_path: Path,
     schema_version: int,
@@ -74,25 +134,15 @@ def seed_caches(
     file_info_cache: _FileInfoCache,
     sqlite_log_cache: Any,
 ) -> None:
-    """Seed the given in-memory caches from disk. Silently fails on any error."""
+    """Seed valid shards, skipping only corrupt or stale shards."""
     from codex_loader import _JsonlCacheEntry, _JsonlParseState
 
-    try:
-        with cache_path.open(encoding="utf-8") as f:
-            cache = json.load(f)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        return
-
-    if not isinstance(cache, dict):
-        return
-    if cache.get("schema_version") != schema_version:
-        return
-
-    sqlite_log_data = cache.get("sqlite_log")
-    if isinstance(sqlite_log_data, dict):
+    _remove_legacy_cache(cache_path)
+    sqlite_payload = _load_payload(_sqlite_log_path(cache_path), schema_version)
+    if sqlite_payload is not None:
         try:
-            watermark = sqlite_log_data["watermark"]
-            entries_data = sqlite_log_data["entries"]
+            watermark = sqlite_payload["watermark"]
+            entries_data = sqlite_payload["entries"]
             if (
                 isinstance(watermark, list)
                 and len(watermark) == 3
@@ -105,37 +155,38 @@ def seed_caches(
         except (KeyError, TypeError, ValueError):
             pass
 
-    files = cache.get("files")
-    if not isinstance(files, dict):
-        return
-
-    for path_str, file_data in files.items():
-        if not isinstance(file_data, dict):
+    for index in range(_SHARD_COUNT):
+        payload = _load_payload(_shard_path(cache_path, index), schema_version)
+        if payload is None:
             continue
-        try:
-            path = Path(path_str)
-            mtime = file_data["mtime"]
-            size = file_data["size"]
-            session_id = file_data["session_id"]
-            forked_from_id = file_data["forked_from_id"]
-            entries_data = file_data["entries"]
-            confirmed_offset = int(file_data.get("confirmed_offset", 0))
-            digest_hex = file_data.get("confirmed_prefix_digest", "")
-            parse_state_data = file_data.get("parse_state", {})
-            if not isinstance(parse_state_data, dict):
-                parse_state_data = {}
+        files = payload.get("files")
+        if not isinstance(files, dict):
+            continue
+        for path_str, file_data in files.items():
+            if not isinstance(file_data, dict):
+                continue
+            try:
+                path = Path(path_str)
+                mtime = file_data["mtime"]
+                size = file_data["size"]
+                session_id = file_data["session_id"]
+                forked_from_id = file_data["forked_from_id"]
+                entries_data = file_data["entries"]
+                confirmed_offset = int(file_data.get("confirmed_offset", 0))
+                digest_hex = file_data.get("confirmed_prefix_digest", "")
+                parse_state_data = file_data.get("parse_state", {})
+                if not isinstance(parse_state_data, dict):
+                    parse_state_data = {}
 
-            # Seed file_info_cache
-            if len(file_info_cache) >= maxsize:
-                file_info_cache.popitem(last=False)
-            file_info_cache[path] = (
-                mtime,
-                size,
-                _SessionFileInfo(session_id=session_id, forked_from_id=forked_from_id),
-            )
-
-            # Seed jsonl_cache only for non-fork files (entries not null)
-            if entries_data is not None:
+                if len(file_info_cache) >= maxsize:
+                    file_info_cache.popitem(last=False)
+                file_info_cache[path] = (
+                    mtime,
+                    size,
+                    _SessionFileInfo(session_id=session_id, forked_from_id=forked_from_id),
+                )
+                if entries_data is None:
+                    continue
                 if not isinstance(entries_data, list):
                     continue
                 if (
@@ -144,7 +195,6 @@ def seed_caches(
                     or "parse_state" not in file_data
                 ):
                     continue
-                entries = [_deserialize_usage_entry(e) for e in entries_data]
                 state = _JsonlParseState(
                     session_timestamp=str(parse_state_data.get("session_timestamp", "")),
                     project=str(parse_state_data.get("project", "unknown")),
@@ -158,16 +208,15 @@ def seed_caches(
                     mtime=mtime,
                     size=size,
                     replay_cache_key=None,
-                    entries=entries,
+                    entries=[_deserialize_usage_entry(entry) for entry in entries_data],
                     confirmed_offset=confirmed_offset,
                     confirmed_prefix_digest=bytes.fromhex(digest_hex)
                     if isinstance(digest_hex, str)
                     else b"",
                     state=state,
                 )
-        except (KeyError, TypeError, ValueError):
-            # Skip malformed entry; continue with others
-            continue
+            except (KeyError, TypeError, ValueError):
+                continue
 
 
 def flush_caches(
@@ -177,45 +226,31 @@ def flush_caches(
     file_info_cache: _FileInfoCache,
     sqlite_log_cache: Any,
 ) -> None:
-    """Atomically write the given in-memory caches to disk."""
-    tmp_path: str | None = None
+    """Atomically replace only shards whose serialized contents changed."""
     try:
-        cache_path.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp_path = tempfile.mkstemp(dir=cache_path.parent, suffix=".tmp")
-
-        files: dict[str, Any] = {}
-        # Write jsonl_cache entries
+        _remove_legacy_cache(cache_path)
+        shards: list[dict[str, Any]] = [{} for _ in range(_SHARD_COUNT)]
         for path, entry in jsonl_cache.items():
-            path_str = str(path)
-            mtime = entry.mtime
-            size = entry.size
-            replay_cache_key = entry.replay_cache_key
-            entries = entry.entries
-            # For fork files (replay_cache_key is not None), entries = null
-            if replay_cache_key is not None:
-                entries_data = None
-                # Still need session_id/forked_from_id from file_info_cache
-                info = file_info_cache.get(path)
+            info = file_info_cache.get(path)
+            if entry.replay_cache_key is not None:
                 if info is None:
                     continue
+                entries_data = None
                 session_id = info[2].session_id
                 forked_from_id = info[2].forked_from_id
             else:
-                entries_data = [_serialize_usage_entry(e) for e in entries]
-                if not entries:
-                    # Empty entries list: get info from file_info_cache
-                    info = file_info_cache.get(path)
-                    if info is None:
-                        continue
+                entries_data = [_serialize_usage_entry(item) for item in entry.entries]
+                if entry.entries:
+                    session_id = entry.entries[0].session_id
+                    forked_from_id = ""
+                elif info is not None:
                     session_id = info[2].session_id
                     forked_from_id = info[2].forked_from_id
                 else:
-                    session_id = entries[0].session_id
-                    forked_from_id = ""  # Not stored in UsageEntry
-
-            files[path_str] = {
-                "mtime": mtime,
-                "size": size,
+                    continue
+            shards[_shard_index(path)][str(path)] = {
+                "mtime": entry.mtime,
+                "size": entry.size,
                 "session_id": session_id,
                 "forked_from_id": forked_from_id,
                 "entries": entries_data,
@@ -230,28 +265,26 @@ def flush_caches(
                 },
             }
 
-        payload = {
-            "schema_version": schema_version,
-            "cached_at": datetime.now(UTC).timestamp(),
-            "files": files,
-            "sqlite_log": {
-                "watermark": list(sqlite_log_cache.watermark)
-                if sqlite_log_cache.watermark is not None
-                else None,
-                "entries": [
-                    _serialize_usage_entry(entry) for entry in sqlite_log_cache.entries
-                ],
-            },
-        }
+        for index, files in enumerate(shards):
+            path = _shard_path(cache_path, index)
+            if files:
+                _write_if_changed(
+                    path,
+                    _encoded_payload({"schema_version": schema_version, "files": files}),
+                )
+            else:
+                path.unlink(missing_ok=True)
 
-        with os.fdopen(fd, "w", encoding="utf-8") as f:
-            json.dump(payload, f, ensure_ascii=False, indent=2, sort_keys=True)
-        os.replace(tmp_path, cache_path)
-        tmp_path = None
+        sqlite_payload = {
+            "schema_version": schema_version,
+            "watermark": list(sqlite_log_cache.watermark)
+            if sqlite_log_cache.watermark is not None
+            else None,
+            "entries": [
+                _serialize_usage_entry(entry) for entry in sqlite_log_cache.entries
+            ],
+        }
+        _write_if_changed(_sqlite_log_path(cache_path), _encoded_payload(sqlite_payload))
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("failed to write codex jsonl cache %s: %s", cache_path, exc)
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            with contextlib.suppress(OSError):
-                os.unlink(tmp_path)

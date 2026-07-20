@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sqlite3
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -15,6 +16,7 @@ from unittest.mock import Mock
 
 import pytest
 
+import codex_disk_cache
 import codex_loader
 from history_loader import UsageEntry
 from tests.helpers import write_codex_session as _write_session
@@ -30,6 +32,10 @@ def _clear_jsonl_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     codex_loader._file_info_cache.clear()
     codex_loader._sqlite_log_cache.watermark = None
     codex_loader._sqlite_log_cache.entries.clear()
+    monkeypatch.setattr(codex_loader, "_thread_metadata_cache_key", None)
+    monkeypatch.setattr(codex_loader, "_thread_metadata_cache", {})
+    monkeypatch.setattr(codex_loader, "_sqlite_rate_limits_cache_key", None)
+    monkeypatch.setattr(codex_loader, "_sqlite_rate_limits_rows_cache", [])
     monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", tmp_path / "missing-archived")
     monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", tmp_path / "codex-cache.json")
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "missing-logs.sqlite")
@@ -752,6 +758,74 @@ def test_sqlite_reads_close_connections(
 
     assert len(connections) == 3
     assert all(conn.closed for conn in connections)
+
+
+def test_thread_metadata_cache_reuses_unchanged_database_and_invalidates_on_mtime(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    state_db = tmp_path / "state_5.sqlite"
+    with sqlite3.connect(state_db) as conn:
+        conn.execute("CREATE TABLE threads (id TEXT, model TEXT, cwd TEXT)")
+        conn.execute("INSERT INTO threads VALUES ('thread-1', 'gpt-test', '/tmp/demo')")
+    monkeypatch.setattr(codex_loader, "STATE_DB", state_db)
+    original_connect = sqlite3.connect
+    connect_calls = 0
+
+    def count_connect(*args: Any, **kwargs: Any) -> Any:
+        nonlocal connect_calls
+        connect_calls += 1
+        return original_connect(*args, **kwargs)
+
+    monkeypatch.setattr(sqlite3, "connect", count_connect)
+
+    first = codex_loader._load_thread_metadata()
+    second = codex_loader._load_thread_metadata()
+    assert second == first
+    assert connect_calls == 1
+
+    stat = state_db.stat()
+    os.utime(state_db, ns=(stat.st_atime_ns, stat.st_mtime_ns - 1_000_000_000))
+    assert codex_loader._load_thread_metadata() == first
+    assert connect_calls == 2
+
+    state_db.unlink()
+    assert codex_loader._load_thread_metadata() == {}
+    assert connect_calls == 2
+
+
+def test_sqlite_rate_limit_cache_reuses_unchanged_database_and_invalidates_on_mtime(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    logs_db = tmp_path / "logs_2.sqlite"
+    with sqlite3.connect(logs_db) as conn:
+        conn.execute(
+            "CREATE TABLE logs (id INTEGER, ts INTEGER, ts_nanos INTEGER, "
+            "target TEXT, feedback_log_body TEXT)"
+        )
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+    original_connect = sqlite3.connect
+    connect_calls = 0
+
+    def count_connect(*args: Any, **kwargs: Any) -> Any:
+        nonlocal connect_calls
+        connect_calls += 1
+        return original_connect(*args, **kwargs)
+
+    monkeypatch.setattr(sqlite3, "connect", count_connect)
+
+    assert codex_loader._load_sqlite_rate_limits() is None
+    assert codex_loader._load_sqlite_rate_limits() is None
+    assert connect_calls == 1
+
+    stat = logs_db.stat()
+    os.utime(logs_db, ns=(stat.st_atime_ns, stat.st_mtime_ns - 1_000_000_000))
+    assert codex_loader._load_sqlite_rate_limits() is None
+    assert connect_calls == 2
+
+
+    logs_db.unlink()
+    assert codex_loader._load_sqlite_rate_limits() is None
+    assert connect_calls == 2
 
 
 def test_load_entries_skips_sqlite_logs_already_covered_by_jsonl(
@@ -1831,6 +1905,41 @@ def test_recent_jsonl_files_sorts_visible_sessions_by_mtime(
     assert codex_loader._recent_jsonl_files() == expected
 
 
+def test_load_rate_limits_uses_candidates_without_rglob(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    candidate = sessions_dir / "candidate.jsonl"
+    timestamp = datetime.now(UTC).isoformat()
+    _write_rate_limit_session(candidate, timestamp, _rate_limits(), 123.0)
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_sqlite_rate_limits", lambda: None)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    rglob_calls = 0
+    stat_calls = 0
+
+    def count_rglob(_self: Path, _pattern: str) -> tuple[Path, ...]:
+        nonlocal rglob_calls
+        rglob_calls += 1
+        return ()
+
+    def count_stat(self: Path, *, follow_symlinks: bool = True) -> os.stat_result:
+        nonlocal stat_calls
+        stat_calls += 1
+        return original_stat(self, follow_symlinks=follow_symlinks)
+
+    original_stat = Path.stat
+    monkeypatch.setattr(Path, "rglob", count_rglob)
+    monkeypatch.setattr(Path, "stat", count_stat)
+
+    result = codex_loader.load_rate_limits(jsonl_candidates=((candidate, 123.0),))
+
+    assert result is not None
+    assert result.five_hour_pct == 30.0
+    assert rglob_calls == 0
+    assert stat_calls == 0
+
+
 def test_recent_jsonl_files_keeps_newest_file_even_if_older_date_dir(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -2135,7 +2244,11 @@ def test_disk_cache_seed_loads_on_cold_start(
             }
         },
     }
-    cache_file.write_text(json.dumps(cache_data), encoding="utf-8")
+    shard_path = codex_disk_cache._shard_path(
+        cache_file, codex_disk_cache._shard_index(session_path)
+    )
+    shard_path.parent.mkdir()
+    shard_path.write_text(json.dumps(cache_data), encoding="utf-8")
 
     # Clear module flag to force seed reload
     monkeypatch.setattr(codex_loader, "_disk_cache_seeded", False)
@@ -2225,6 +2338,7 @@ def test_disk_cache_invalid_schema_fails_safely(
     # Caches should remain empty
     assert len(codex_loader._jsonl_cache) == 0
     assert len(codex_loader._file_info_cache) == 0
+    assert not cache_file.exists()
 
 
 def test_disk_cache_corrupted_json_fails_safely(
@@ -2275,7 +2389,10 @@ def test_disk_cache_fork_file_entries_not_written(
     codex_loader._flush_caches_to_disk()
 
     # Read back and verify fork file has null entries
-    with cache_file.open(encoding="utf-8") as f:
+    shard_path = codex_disk_cache._shard_path(
+        cache_file, codex_disk_cache._shard_index(fork_path)
+    )
+    with shard_path.open(encoding="utf-8") as f:
         data = json.load(f)
 
     fork_data = data["files"].get(str(fork_path))

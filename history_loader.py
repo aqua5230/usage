@@ -47,7 +47,7 @@ _file_cache: OrderedDict[Path, _FileCacheEntry] = OrderedDict()
 
 CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 HISTORY_CACHE_PATH = Path(os.path.expanduser("~/.usage/history_jsonl_cache.json"))
-_HISTORY_JSONL_CACHE_SCHEMA = 1
+_HISTORY_JSONL_CACHE_SCHEMA = 2
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
 _disk_cache_dirty = False

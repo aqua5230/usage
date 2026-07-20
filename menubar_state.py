@@ -133,6 +133,7 @@ class HistorySourceScan:
     fingerprint: tuple[tuple[str, int, float], ...]
     claude_paths: tuple[Path, ...]
     codex_paths: tuple[Path, ...]
+    codex_rate_limit_candidates: tuple[tuple[Path, float], ...] = ()
 
 
 @dataclass(slots=True)
@@ -317,7 +318,22 @@ def _history_scan_from_index(index: HistorySourceIndex) -> HistorySourceScan:
         if path.suffix == ".jsonl"
         and any(path == root or root in path.parents for root in (sessions_root, archived_root))
     )
-    return HistorySourceScan(fingerprint, claude_paths, codex_paths)
+    codex_rate_limit_candidates = tuple(
+        (path, index.file_stats[path][0] / 1e9)
+        for path in codex_paths
+        if all(
+            not part.startswith(".")
+            for root in (sessions_root, archived_root)
+            if path == root or root in path.parents
+            for part in path.relative_to(root).parts
+        )
+    )
+    return HistorySourceScan(
+        fingerprint,
+        claude_paths,
+        codex_paths,
+        codex_rate_limit_candidates,
+    )
 
 
 def history_source_scan() -> HistorySourceScan:
@@ -501,6 +517,7 @@ def codex_rows(
     mock: bool,
     language: str,
     burn_rate_trackers: dict[str, BurnRateTracker],
+    jsonl_candidates: tuple[tuple[Path, float], ...] | None = None,
 ) -> tuple[tuple[QuotaRowState, QuotaRowState], float | None, str, CodexStaleState | None]:
     if mock:
         now = time.time()
@@ -530,7 +547,11 @@ def codex_rows(
         return rows, 12, "gpt-5", None
 
     try:
-        rate_limits = codex_loader.load_rate_limits()
+        rate_limits = (
+            codex_loader.load_rate_limits()
+            if jsonl_candidates is None
+            else codex_loader.load_rate_limits(jsonl_candidates=jsonl_candidates)
+        )
     except Exception:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("codex rate limits load failed", exc_info=True)

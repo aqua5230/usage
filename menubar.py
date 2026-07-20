@@ -1521,6 +1521,7 @@ class AppDelegate(NSObject):
         try:
             started_at = time.monotonic() if debug_timing else 0.0
             codex_result = self._load_codex_refresh_result()
+            history_scan = codex_result.get("_history_scan")
             measure("codex_load", started_at)
             started_at = time.monotonic() if debug_timing else 0.0
             agy_result = menubar_agy.load_refresh_result(self.language)
@@ -1548,7 +1549,10 @@ class AppDelegate(NSObject):
             card_order = _quota_card_order()
             try:
                 started_at = time.monotonic() if debug_timing else 0.0
-                all_entries = self._load_history_entries()
+                if isinstance(history_scan, menubar_state.HistorySourceScan):
+                    all_entries = self._load_history_entries(scan=history_scan)
+                else:
+                    all_entries = self._load_history_entries()
                 measure("history_load", started_at)
                 started_at = time.monotonic() if debug_timing else 0.0
                 if self.mock:
@@ -1706,11 +1710,17 @@ class AppDelegate(NSObject):
         self._refresh_in_flight = False
 
     def _load_codex_refresh_result(self) -> dict[str, Any]:
+        history_scan = None if self.mock else self._history_source_scan()
         try:
             codex_rows, codex_5h_pct, codex_model, codex_stale = menubar_state.codex_rows(
                 mock=self.mock,
                 language=self.language,
                 burn_rate_trackers=self.burn_rate_trackers,
+                jsonl_candidates=(
+                    None
+                    if history_scan is None
+                    else history_scan.codex_rate_limit_candidates
+                ),
             )
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":
@@ -1727,6 +1737,7 @@ class AppDelegate(NSObject):
             "codex_5h_pct": codex_5h_pct,
             "codex_model": codex_model,
             "codex_stale": codex_stale,
+            "_history_scan": history_scan,
         }
 
     def _applyCodexRefreshResult_(self, result: dict[str, Any]) -> None:
@@ -1951,10 +1962,15 @@ class AppDelegate(NSObject):
     def _history_source_scan(self) -> menubar_state.HistorySourceScan:
         return cast(menubar_state.HistorySourceScan, self._history_source_tracker.scan())
 
-    def _load_history_entries(self) -> list[UsageEntry]:
+    def _load_history_entries(
+        self,
+        *,
+        scan: menubar_state.HistorySourceScan | None = None,
+    ) -> list[UsageEntry]:
         if self.mock:
             return []
-        scan = self._history_source_scan()
+        if scan is None:
+            scan = self._history_source_scan()
         fingerprint = scan.fingerprint
         if (
             self._history_entries_cache is not None

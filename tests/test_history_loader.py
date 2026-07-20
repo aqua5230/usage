@@ -16,6 +16,7 @@ from unittest.mock import Mock
 
 import pytest
 
+import history_disk_cache
 import history_loader
 import project_resolver
 
@@ -449,7 +450,7 @@ def test_disk_cache_seed_loads_on_cold_start(
     monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
     monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
 
-    cache_file.write_text(
+    cache_data = (
         json.dumps(
             {
                 "schema_version": history_loader._HISTORY_JSONL_CACHE_SCHEMA,
@@ -478,9 +479,13 @@ def test_disk_cache_seed_loads_on_cold_start(
                     }
                 },
             }
-        ),
-        encoding="utf-8",
+        )
     )
+    shard_path = history_disk_cache._shard_path(
+        cache_file, history_disk_cache._shard_index(session_path)
+    )
+    shard_path.parent.mkdir()
+    shard_path.write_text(cache_data, encoding="utf-8")
 
     history_loader.load_entries()
 
@@ -516,6 +521,7 @@ def test_disk_cache_invalid_schema_fails_safely(
     history_loader._seed_caches_from_disk()
 
     assert len(history_loader._file_cache) == 0
+    assert not cache_file.exists()
 
 
 def test_disk_cache_missing_file_fails_safely(
