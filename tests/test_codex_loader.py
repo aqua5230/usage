@@ -767,6 +767,7 @@ def test_thread_metadata_cache_reuses_unchanged_database_and_invalidates_on_mtim
     with sqlite3.connect(state_db) as conn:
         conn.execute("CREATE TABLE threads (id TEXT, model TEXT, cwd TEXT)")
         conn.execute("INSERT INTO threads VALUES ('thread-1', 'gpt-test', '/tmp/demo')")
+    conn.close()  # `with` only commits/rolls back; Windows keeps the file locked otherwise.
     monkeypatch.setattr(codex_loader, "STATE_DB", state_db)
     original_connect = sqlite3.connect
     connect_calls = 0
@@ -802,6 +803,7 @@ def test_sqlite_rate_limit_cache_reuses_unchanged_database_and_invalidates_on_mt
             "CREATE TABLE logs (id INTEGER, ts INTEGER, ts_nanos INTEGER, "
             "target TEXT, feedback_log_body TEXT)"
         )
+    conn.close()  # `with` only commits/rolls back; Windows keeps the file locked otherwise.
     monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
     original_connect = sqlite3.connect
     connect_calls = 0
