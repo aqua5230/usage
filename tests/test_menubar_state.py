@@ -17,6 +17,24 @@ from burn_rate import BurnRateTracker
 from history_loader import UsageEntry
 
 
+def _patch_history_sources(
+    monkeypatch: pytest.MonkeyPatch,
+    home: Path,
+) -> tuple[Path, Path, Path]:
+    claude = home / ".claude" / "projects"
+    sessions = home / ".codex" / "sessions"
+    archived = home / ".codex" / "archived_sessions"
+    for root in (claude, sessions, archived):
+        root.mkdir(parents=True)
+    monkeypatch.setattr(Path, "home", lambda: home)
+    monkeypatch.setattr(menubar_state, "CLAUDE_PROJECTS_DIR", claude)
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions)
+    monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", archived)
+    monkeypatch.setattr(codex_loader, "LOGS_DB", home / ".codex" / "logs_2.sqlite")
+    monkeypatch.setattr(codex_loader, "STATE_DB", home / ".codex" / "state_5.sqlite")
+    return claude, sessions, archived
+
+
 def test_history_sources_fingerprint_uses_claude_projects_dir(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -43,6 +61,126 @@ def test_history_sources_fingerprint_uses_claude_projects_dir(
     assert fingerprint[0][1] == 1
     assert fingerprint[2][0] == str(archived_dir)
     assert fingerprint[2][1] == 1
+
+
+def test_history_source_tracker_skips_directory_io_when_unchanged(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    claude, _, _ = _patch_history_sources(monkeypatch, tmp_path)
+    (claude / "one.jsonl").write_text("{}", encoding="utf-8")
+    tracker = menubar_state.HistorySourceTracker(incremental_enabled=True)
+    tracker.scan(now=0.0)
+    jsonl_calls = 0
+    stat_calls = 0
+
+    def count_jsonl(_root: Path) -> tuple[Path, ...]:
+        nonlocal jsonl_calls
+        jsonl_calls += 1
+        return ()
+
+    def count_stat(_path: Path) -> tuple[int, int] | None:
+        nonlocal stat_calls
+        stat_calls += 1
+        return None
+
+    monkeypatch.setattr(menubar_state, "_jsonl_paths", count_jsonl)
+    monkeypatch.setattr(menubar_state, "_stat_index_entry", count_stat)
+
+    scan = tracker.scan(now=1.0)
+
+    assert scan.claude_paths == (claude / "one.jsonl",)
+    assert jsonl_calls == 0
+    # Only the sqlite file sources get re-stat'ed; no per-jsonl stats.
+    assert stat_calls == len(menubar_state._history_file_sources())
+
+
+def test_history_source_tracker_only_stats_dirty_file(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    claude, _, _ = _patch_history_sources(monkeypatch, tmp_path)
+    dirty = claude / "dirty.jsonl"
+    unchanged = claude / "unchanged.jsonl"
+    dirty.write_text("old", encoding="utf-8")
+    unchanged.write_text("same", encoding="utf-8")
+    tracker = menubar_state.HistorySourceTracker(incremental_enabled=True)
+    first = tracker.scan(now=0.0)
+    dirty.write_text("new content", encoding="utf-8")
+    calls: list[Path] = []
+    original_stat = menubar_state._stat_index_entry
+
+    def record_stat(path: Path) -> tuple[int, int] | None:
+        calls.append(path)
+        return original_stat(path)
+
+    monkeypatch.setattr(menubar_state, "_stat_index_entry", record_stat)
+    tracker.record_changes({dirty})
+    second = tracker.scan(now=1.0)
+
+    assert [path for path in calls if path.suffix == ".jsonl"] == [dirty]
+    assert first.fingerprint != second.fingerprint
+    assert set(second.claude_paths) == {dirty, unchanged}
+
+
+def test_history_source_tracker_handles_added_and_deleted_files(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    claude, _, _ = _patch_history_sources(monkeypatch, tmp_path)
+    removed = claude / "removed.jsonl"
+    added = claude / "added.jsonl"
+    removed.write_text("old", encoding="utf-8")
+    tracker = menubar_state.HistorySourceTracker(incremental_enabled=True)
+    tracker.scan(now=0.0)
+    removed.unlink()
+    added.write_text("new", encoding="utf-8")
+
+    tracker.record_changes({removed, added})
+    scan = tracker.scan(now=1.0)
+
+    assert scan.claude_paths == (added,)
+
+
+def test_history_source_tracker_full_scan_fallbacks(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _patch_history_sources(monkeypatch, tmp_path)
+    tracker = menubar_state.HistorySourceTracker(incremental_enabled=True)
+    calls: list[float] = []
+    original_build = menubar_state._build_history_source_index
+
+    def record_build(now: float) -> menubar_state.HistorySourceIndex:
+        calls.append(now)
+        return original_build(now)
+
+    monkeypatch.setattr(menubar_state, "_build_history_source_index", record_build)
+
+    tracker.scan(now=0.0)
+    tracker.scan(now=1.0)
+    tracker.record_changes(set(), needs_full_scan=True)
+    tracker.scan(now=2.0)
+    tracker.scan(now=2.0 + menubar_state.HISTORY_FULL_SCAN_INTERVAL_S)
+
+    assert calls == [0.0, 2.0, 2.0 + menubar_state.HISTORY_FULL_SCAN_INTERVAL_S]
+
+
+def test_history_source_tracker_scans_every_time_without_fsevents(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _patch_history_sources(monkeypatch, tmp_path)
+    tracker = menubar_state.HistorySourceTracker(incremental_enabled=False)
+    calls = 0
+    original_build = menubar_state._build_history_source_index
+
+    def record_build(now: float) -> menubar_state.HistorySourceIndex:
+        nonlocal calls
+        calls += 1
+        return original_build(now)
+
+    monkeypatch.setattr(menubar_state, "_build_history_source_index", record_build)
+
+    tracker.scan(now=0.0)
+    tracker.scan(now=1.0)
+
+    assert calls == 2
 
 
 def test_codex_stale_state_hides_fresh_data() -> None:

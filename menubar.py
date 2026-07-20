@@ -70,7 +70,7 @@ import update_gate
 import usage_diagnosis_snapshot
 import window_keeper
 from burn_rate import BurnRateTracker
-from fsevents_watch import cleanup_fsevents, setup_fsevents
+from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from history_loader import (
     UsageEntry,
     load_entries,
@@ -696,6 +696,7 @@ class AppDelegate(NSObject):
     _fs_stream = objc.ivar()
     _history_entries_cache = objc.ivar()
     _history_entries_cache_fingerprint = objc.ivar()
+    _history_source_tracker = objc.ivar()
     _history_load_error_key = objc.ivar()
     _quota_notifier = objc.ivar()
     _switch_menu_action_taken = objc.ivar()
@@ -741,6 +742,7 @@ class AppDelegate(NSObject):
         self._fs_stream = None
         self._history_entries_cache = None
         self._history_entries_cache_fingerprint = None
+        self._history_source_tracker = menubar_state.HistorySourceTracker()
         self._history_load_error_key = None
         self._switch_menu_action_taken = False
         self._pre_talent_panel_id = None
@@ -783,6 +785,7 @@ class AppDelegate(NSObject):
         self._refresh()
         self._reschedule_poll_timer(max(self.interval, SLOW_POLL_INTERVAL_S))
         self._fs_stream = setup_fsevents(self)
+        self._history_source_tracker.set_incremental_enabled(self._fs_stream is not None)
         warm_up_pricing(self._refresh_after_pricing_warm_up)
         thread = threading.Thread(target=self._maybe_check_update_in_background, daemon=True)
         thread.start()
@@ -1473,7 +1476,11 @@ class AppDelegate(NSObject):
         thread = threading.Thread(target=self._refresh_in_background, daemon=True)
         thread.start()
 
-    def refreshFromFileEvent_(self, _sender: Any) -> None:
+    def refreshFromFileEvent_(self, changes: FileEventChanges) -> None:
+        self._history_source_tracker.record_changes(
+            set(changes.paths),
+            needs_full_scan=changes.needs_full_scan,
+        )
         now = time.monotonic()
         decision = menubar_state.file_event_refresh_decision(
             now,
@@ -1939,7 +1946,7 @@ class AppDelegate(NSObject):
         return self._history_source_scan().fingerprint
 
     def _history_source_scan(self) -> menubar_state.HistorySourceScan:
-        return menubar_state.history_source_scan()
+        return cast(menubar_state.HistorySourceScan, self._history_source_tracker.scan())
 
     def _load_history_entries(self) -> list[UsageEntry]:
         if self.mock:

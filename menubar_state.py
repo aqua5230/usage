@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
 import time
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -25,6 +26,7 @@ from usage_client import PollOutcome, PollState
 from usage_rate import GROUP_NAMES
 
 FILE_EVENT_REFRESH_MIN_INTERVAL_S = 30.0
+HISTORY_FULL_SCAN_INTERVAL_S = 15 * 60.0
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,6 +135,67 @@ class HistorySourceScan:
     codex_paths: tuple[Path, ...]
 
 
+@dataclass(slots=True)
+class HistorySourceIndex:
+    file_stats: dict[Path, tuple[int, int]]
+    last_full_scan_at: float
+
+
+class HistorySourceTracker:
+    """Maintain the history source index without depending on PyObjC."""
+
+    def __init__(self, *, incremental_enabled: bool = False) -> None:
+        self._incremental_enabled = incremental_enabled
+        self._index: HistorySourceIndex | None = None
+        self._dirty_paths: set[Path] = set()
+        self._needs_full_scan = False
+        self._lock = threading.Lock()
+
+    def set_incremental_enabled(self, enabled: bool) -> None:
+        with self._lock:
+            self._incremental_enabled = enabled
+
+    def record_changes(
+        self,
+        paths: set[Path] | frozenset[Path],
+        *,
+        needs_full_scan: bool = False,
+    ) -> None:
+        with self._lock:
+            self._dirty_paths.update(paths)
+            self._needs_full_scan = self._needs_full_scan or needs_full_scan
+
+    def scan(self, *, now: float | None = None) -> HistorySourceScan:
+        current_time = time.monotonic() if now is None else now
+        with self._lock:
+            incremental_enabled = self._incremental_enabled
+            dirty_paths = set(self._dirty_paths)
+            needs_full_scan = self._needs_full_scan
+            self._dirty_paths.difference_update(dirty_paths)
+            if needs_full_scan:
+                self._needs_full_scan = False
+            index = self._index
+
+        if (
+            not incremental_enabled
+            or index is None
+            or needs_full_scan
+            or current_time - index.last_full_scan_at >= HISTORY_FULL_SCAN_INTERVAL_S
+        ):
+            index = _build_history_source_index(current_time)
+        else:
+            # The sqlite sources live outside the FSEvents-watched directories,
+            # so re-stat them every scan to keep their fingerprint fresh.
+            index = _update_history_source_index(
+                index,
+                dirty_paths | set(_history_file_sources()),
+            )
+
+        with self._lock:
+            self._index = index
+        return _history_scan_from_index(index)
+
+
 def history_cache_needs_reload(
     previous_fingerprint: tuple[tuple[str, int, float], ...] | None,
     current_fingerprint: tuple[tuple[str, int, float], ...],
@@ -152,53 +215,113 @@ def _jsonl_paths(root: Path) -> tuple[Path, ...]:
         return ()
 
 
-def _fingerprint_source(
-    source: Path,
-    *,
-    jsonl_paths: tuple[Path, ...] | None = None,
-) -> tuple[str, int, float]:
-    newest_mtime = 0.0
-    file_count = 0
+def _history_directory_sources() -> tuple[Path, Path, Path]:
+    return (
+        CLAUDE_PROJECTS_DIR,
+        codex_loader.SESSIONS_DIR,
+        codex_loader.ARCHIVED_SESSIONS_DIR,
+    )
+
+
+def _history_file_sources() -> tuple[Path, Path, Path, Path]:
+    return (
+        codex_loader.LOGS_DB,
+        Path.home() / ".codex" / "logs_2.sqlite-wal",
+        codex_loader.STATE_DB,
+        Path.home() / ".codex" / "state_5.sqlite-wal",
+    )
+
+
+def _stat_index_entry(path: Path) -> tuple[int, int] | None:
     try:
-        if source.is_file():
-            stat = source.stat()
-            file_count = 1
-            newest_mtime = stat.st_mtime
-        elif source.exists():
-            paths = _jsonl_paths(source) if jsonl_paths is None else jsonl_paths
-            for path in paths:
-                try:
-                    stat = path.stat()
-                except OSError:
-                    continue
-                file_count += 1
-                newest_mtime = max(newest_mtime, stat.st_mtime)
+        stat = path.stat()
     except OSError:
-        pass
-    return (str(source), file_count, newest_mtime)
+        return None
+    return (stat.st_mtime_ns, stat.st_size)
+
+
+def _build_history_source_index(now: float) -> HistorySourceIndex:
+    file_stats: dict[Path, tuple[int, int]] = {}
+    for root in _history_directory_sources():
+        for path in _jsonl_paths(root):
+            entry = _stat_index_entry(path)
+            if entry is not None:
+                file_stats[path] = entry
+    for path in _history_file_sources():
+        entry = _stat_index_entry(path)
+        if entry is not None:
+            file_stats[path] = entry
+    return HistorySourceIndex(file_stats=file_stats, last_full_scan_at=now)
+
+
+def _is_indexed_history_path(path: Path) -> bool:
+    if path in _history_file_sources():
+        return True
+    if path.suffix != ".jsonl":
+        return False
+    return any(path == root or root in path.parents for root in _history_directory_sources())
+
+
+def _update_history_source_index(
+    index: HistorySourceIndex,
+    dirty_paths: set[Path],
+) -> HistorySourceIndex:
+    file_stats = dict(index.file_stats)
+    for path in dirty_paths:
+        if not _is_indexed_history_path(path):
+            continue
+        entry = _stat_index_entry(path)
+        if entry is None:
+            file_stats.pop(path, None)
+        else:
+            file_stats[path] = entry
+    return HistorySourceIndex(file_stats, index.last_full_scan_at)
+
+
+def _source_fingerprint_from_index(
+    source: Path,
+    file_stats: dict[Path, tuple[int, int]],
+) -> tuple[str, int, float]:
+    if source in _history_file_sources():
+        entry = file_stats.get(source)
+        return (str(source), int(entry is not None), 0.0 if entry is None else entry[0] / 1e9)
+    mtimes = [
+        entry[0]
+        for path, entry in file_stats.items()
+        if path == source or source in path.parents
+    ]
+    return (str(source), len(mtimes), max(mtimes, default=0) / 1e9)
+
+
+def _history_scan_from_index(index: HistorySourceIndex) -> HistorySourceScan:
+    directory_sources = _history_directory_sources()
+    file_sources = _history_file_sources()
+    source_fingerprint = tuple(
+        _source_fingerprint_from_index(source, index.file_stats)
+        for source in (*directory_sources, *file_sources)
+    )
+    file_fingerprint = tuple(
+        (str(path), entry[1], entry[0] / 1e9)
+        for path, entry in sorted(index.file_stats.items(), key=lambda item: str(item[0]))
+    )
+    fingerprint = source_fingerprint + file_fingerprint
+    claude_root, sessions_root, archived_root = directory_sources
+    claude_paths = tuple(
+        path
+        for path in index.file_stats
+        if path.suffix == ".jsonl" and (path == claude_root or claude_root in path.parents)
+    )
+    codex_paths = tuple(
+        path
+        for path in index.file_stats
+        if path.suffix == ".jsonl"
+        and any(path == root or root in path.parents for root in (sessions_root, archived_root))
+    )
+    return HistorySourceScan(fingerprint, claude_paths, codex_paths)
 
 
 def history_source_scan() -> HistorySourceScan:
-    claude_paths = _jsonl_paths(CLAUDE_PROJECTS_DIR)
-    codex_session_paths = _jsonl_paths(codex_loader.SESSIONS_DIR)
-    codex_archived_paths = _jsonl_paths(codex_loader.ARCHIVED_SESSIONS_DIR)
-    fingerprint = (
-        _fingerprint_source(CLAUDE_PROJECTS_DIR, jsonl_paths=claude_paths),
-        _fingerprint_source(codex_loader.SESSIONS_DIR, jsonl_paths=codex_session_paths),
-        _fingerprint_source(
-            codex_loader.ARCHIVED_SESSIONS_DIR,
-            jsonl_paths=codex_archived_paths,
-        ),
-        _fingerprint_source(codex_loader.LOGS_DB),
-        _fingerprint_source(Path.home() / ".codex" / "logs_2.sqlite-wal"),
-        _fingerprint_source(codex_loader.STATE_DB),
-        _fingerprint_source(Path.home() / ".codex" / "state_5.sqlite-wal"),
-    )
-    return HistorySourceScan(
-        fingerprint=fingerprint,
-        claude_paths=claude_paths,
-        codex_paths=codex_session_paths + codex_archived_paths,
-    )
+    return _history_scan_from_index(_build_history_source_index(time.monotonic()))
 
 
 def history_sources_fingerprint() -> tuple[tuple[str, int, float], ...]:
