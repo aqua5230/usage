@@ -11,6 +11,16 @@ from typing import Any
 
 import update_checker
 
+AUTO_CHECK_TTL_SECONDS = 24 * 60 * 60
+
+
+def auto_check_is_due(prefs: dict[str, Any]) -> bool:
+    cached = prefs.get("last_update_check")
+    checked_at = cached.get("checked_at") if isinstance(cached, dict) else None
+    if not isinstance(checked_at, int | float):
+        return True
+    return (time.time() - float(checked_at)) >= AUTO_CHECK_TTL_SECONDS
+
 
 def stale_cache_reset(prefs: dict[str, Any], current_version: str) -> dict[str, Any] | None:
     cached = prefs.get("last_update_check")

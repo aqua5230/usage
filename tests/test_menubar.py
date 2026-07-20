@@ -563,6 +563,67 @@ def test_auto_update_disabled_skips_background_check(monkeypatch: pytest.MonkeyP
     assert called is False
 
 
+def test_fresh_auto_update_check_skips_network_request(monkeypatch: pytest.MonkeyPatch) -> None:
+    called = False
+
+    def fake_check_latest_release_result(current_version: str) -> object:
+        nonlocal called
+        _ = current_version
+        called = True
+        return SimpleNamespace(failed=False, release=None)
+
+    monkeypatch.setattr(
+        menubar,
+        "_load_preferences",
+        lambda: {"auto_update_check": True, "last_update_check": {"checked_at": 1.0}},
+    )
+    monkeypatch.setattr("menubar.update_gate.auto_check_is_due", lambda prefs: False)
+    monkeypatch.setattr(
+        "menubar.update_checker.check_latest_release_result",
+        fake_check_latest_release_result,
+    )
+
+    menubar.AppDelegate._check_update_in_background(
+        cast(Any, object()),
+        manual=False,
+        ignore_cooldown=False,
+        ignore_skipped=False,
+    )
+
+    assert called is False
+
+
+def test_manual_update_check_ignores_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
+    called = False
+
+    def fake_check_latest_release_result(current_version: str) -> object:
+        nonlocal called
+        _ = current_version
+        called = True
+        return SimpleNamespace(failed=False, release=None)
+
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"last_update_check": {}})
+    monkeypatch.setattr(menubar, "_save_preferences", lambda prefs: None)
+    monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
+    monkeypatch.setattr("menubar.update_gate.auto_check_is_due", lambda prefs: False)
+    monkeypatch.setattr(
+        "menubar.update_checker.check_latest_release_result",
+        fake_check_latest_release_result,
+    )
+    fake_self = SimpleNamespace(
+        performSelectorOnMainThread_withObject_waitUntilDone_=lambda *args: None,
+    )
+
+    menubar.AppDelegate._check_update_in_background(
+        cast(Any, fake_self),
+        manual=True,
+        ignore_cooldown=False,
+        ignore_skipped=False,
+    )
+
+    assert called is True
+
+
 def test_background_daily_maintenance_schedules_diagnosis_snapshot(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

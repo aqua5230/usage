@@ -147,18 +147,29 @@ def _memory_cache_is_fresh(source: PricingSource, cached_at: float, now: float) 
     return (now - cached_at) <= CACHE_TTL_DAYS * 86400
 
 
-def warm_up_pricing(on_ready: Callable[[], None] | None = None) -> None:
+def warm_up_pricing(
+    on_ready: Callable[[], None] | None = None,
+    *,
+    force: bool = False,
+) -> None:
     global _pricing_warm_up_in_progress
     with _pricing_cache_lock:
         if _pricing_warm_up_in_progress:
             return
         _pricing_warm_up_in_progress = True
 
-    thread = threading.Thread(target=_warm_up_pricing_worker, args=(on_ready,), daemon=True)
+    thread = threading.Thread(
+        target=_warm_up_pricing_worker,
+        args=(on_ready, force),
+        daemon=True,
+    )
     thread.start()
 
 
-def _warm_up_pricing_worker(on_ready: Callable[[], None] | None) -> None:
+def _warm_up_pricing_worker(
+    on_ready: Callable[[], None] | None,
+    force: bool,
+) -> None:
     global _pricing_cache, _pricing_warm_up_in_progress
     try:
         with _pricing_cache_lock:
@@ -166,6 +177,14 @@ def _warm_up_pricing_worker(on_ready: Callable[[], None] | None) -> None:
         if baseline is None:
             baseline_pricing, baseline_source = _load_pricing_with_source()
             baseline = (baseline_pricing, baseline_source, time.monotonic())
+
+        _, source, cached_at = baseline
+        if (
+            not force
+            and source == "cache"
+            and _memory_cache_is_fresh(source, cached_at, time.monotonic())
+        ):
+            return
 
         fetched = _fetch_pricing()
         if not fetched:
@@ -392,4 +411,4 @@ def _request_pricing_refresh_for_missing_model() -> None:
         ):
             return
         _pricing_miss_refresh_at = now
-    warm_up_pricing()
+    warm_up_pricing(force=True)

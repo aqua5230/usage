@@ -78,7 +78,7 @@ def test_calculate_cost_returns_zero_for_unknown_model(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(pricing, "get_pricing", lambda: {"known": {"input_cost_per_token": 1.0}})
-    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None: None)
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None, **kwargs: None)
 
     assert pricing.calculate_cost(_entry(model="missing", input_tokens=100)) == 0.0
 
@@ -88,9 +88,9 @@ def test_calculate_cost_triggers_pricing_refresh_for_unknown_model(
 ) -> None:
     warm_up_calls = 0
 
-    def fake_warm_up_pricing(on_ready: object = None) -> None:
+    def fake_warm_up_pricing(on_ready: object = None, **kwargs: object) -> None:
         nonlocal warm_up_calls
-        _ = on_ready
+        _ = on_ready, kwargs
         warm_up_calls += 1
 
     monkeypatch.setattr(pricing, "get_pricing", lambda: {"known": {"input_cost_per_token": 1.0}})
@@ -107,9 +107,9 @@ def test_unknown_model_pricing_refresh_is_debounced(
     warm_up_calls = 0
     now = 1_000.0
 
-    def fake_warm_up_pricing(on_ready: object = None) -> None:
+    def fake_warm_up_pricing(on_ready: object = None, **kwargs: object) -> None:
         nonlocal warm_up_calls
-        _ = on_ready
+        _ = on_ready, kwargs
         warm_up_calls += 1
 
     monkeypatch.setattr(pricing, "get_pricing", lambda: {"known": {"input_cost_per_token": 1.0}})
@@ -456,6 +456,54 @@ def test_warm_up_pricing_fetches_writes_updates_cache_and_notifies(
     assert pricing._get_pricing_cache_for_test() == (fetched, "fetched", 1_000.0)
 
 
+def test_warm_up_pricing_skips_fetch_for_fresh_disk_cache(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cached = {"cached-model": {"input_cost_per_token": 1.0}}
+    fetch_calls = 0
+
+    def fake_fetch_pricing() -> pricing.PricingTable | None:
+        nonlocal fetch_calls
+        fetch_calls += 1
+        return None
+
+    monkeypatch.setattr(
+        pricing,
+        "_load_pricing_with_source",
+        lambda: (cached, "cache"),
+    )
+    monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
+    monkeypatch.setattr("pricing.time.monotonic", lambda: 1_000.0)
+
+    pricing._warm_up_pricing_worker(None, False)
+
+    assert fetch_calls == 0
+
+
+def test_warm_up_pricing_fetches_when_disk_cache_is_expired(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    cached = {"cached-model": {"input_cost_per_token": 1.0}}
+    fetched = {"fetched-model": {"input_cost_per_token": 2.0}}
+    fetch_calls = 0
+
+    def fake_fetch_pricing() -> pricing.PricingTable | None:
+        nonlocal fetch_calls
+        fetch_calls += 1
+        return fetched
+
+    pricing._set_pricing_cache_for_test(
+        (cached, "cache", 1_000.0 - pricing.CACHE_TTL_DAYS * 86400 - 1),
+    )
+    monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
+    monkeypatch.setattr(pricing, "_write_cache", lambda table: None)
+    monkeypatch.setattr("pricing.time.monotonic", lambda: 1_000.0)
+
+    pricing._warm_up_pricing_worker(None, False)
+
+    assert fetch_calls == 1
+
+
 def test_load_pricing_uses_stale_cache_without_fetching(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -596,6 +644,7 @@ def test_warm_up_pricing_deduplicates_concurrent_and_reentrant_calls(
 
     monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
     monkeypatch.setattr(pricing, "_write_cache", lambda table: None)
+    monkeypatch.setattr(pricing, "_read_cache", lambda *, allow_stale=False: None)
 
     pricing.warm_up_pricing(on_ready)
     assert fetch_started.wait(timeout=1)
@@ -756,7 +805,7 @@ def test_is_model_priced_returns_false_for_unknown_model(
         "claude-opus-4-8": {"input_cost_per_token": 15e-6},
     }
     pricing._set_pricing_cache_for_test((pricing_table, "cache", 0.0))
-    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None: None)
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None, **kwargs: None)
 
     assert pricing.is_model_priced("glm-5.2") is False
     assert pricing.is_model_priced("unknown-model") is False
@@ -779,7 +828,7 @@ def test_missing_model_resolution_is_memoized_per_pricing_object(
 
     pricing._set_pricing_cache_for_test((pricing_table, "cache", 0.0))
     monkeypatch.setattr(pricing, "_resolve_model_key", counted_resolve_model_key)
-    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None: None)
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None, **kwargs: None)
 
     missing_entry = _entry(model="glm-5.2", input_tokens=100)
 
@@ -809,7 +858,7 @@ def test_missing_model_resolution_rechecks_after_pricing_object_replaced(
         return original_resolve_model_key(model, table)
 
     monkeypatch.setattr(pricing, "_resolve_model_key", counted_resolve_model_key)
-    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None: None)
+    monkeypatch.setattr(pricing, "warm_up_pricing", lambda on_ready=None, **kwargs: None)
 
     pricing._set_pricing_cache_for_test((pricing_table, "cache", 0.0))
     assert pricing.calculate_cost(_entry(model="glm-5.2", input_tokens=100)) == 0.0

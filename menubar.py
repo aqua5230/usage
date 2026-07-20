@@ -1219,6 +1219,9 @@ class AppDelegate(NSObject):
         if not manual and not _auto_update_check_enabled(prefs):
             return
 
+        if not manual and not update_gate.auto_check_is_due(prefs):
+            return
+
         if not ignore_cooldown and _update_dismissed_recently(prefs):
             return
 

@@ -8,6 +8,23 @@ import update_checker
 import update_gate
 
 
+def test_auto_check_is_due_for_missing_or_invalid_timestamp() -> None:
+    assert update_gate.auto_check_is_due({}) is True
+    assert update_gate.auto_check_is_due({"last_update_check": {"checked_at": "bad"}}) is True
+
+
+def test_auto_check_is_due_only_after_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
+    now = 1_700_000_000.0
+    monkeypatch.setattr("update_gate.time.time", lambda: now)
+
+    assert update_gate.auto_check_is_due(
+        {"last_update_check": {"checked_at": now - update_gate.AUTO_CHECK_TTL_SECONDS + 1}},
+    ) is False
+    assert update_gate.auto_check_is_due(
+        {"last_update_check": {"checked_at": now - update_gate.AUTO_CHECK_TTL_SECONDS}},
+    ) is True
+
+
 def test_stale_cache_reset_updates_after_upgrade() -> None:
     prefs: dict[str, Any] = {
         "last_update_check": {
