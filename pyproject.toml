@@ -58,7 +58,6 @@ py-modules = [
     "usage_session_resume",
     "usage_terse_mode",
     "project_resolver",
-    "subscription",
     "doctor",
 ]
 
