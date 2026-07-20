@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-19",
+  "generated_at": "2026-07-20",
   "tools": [
     {
       "id": "claude_code",
@@ -353,6 +353,29 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.144.6",
+          "period": "2026-07-18",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "GPT-5.6 三個模型的說明更新，對話容量校正為 27.2 萬 token",
+                "zh-CN": "GPT-5.6 三个模型说明更新，对话容量校正为 27.2 万 token",
+                "en": "GPT-5.6 model guidance refreshed, with context corrected to 272,000 tokens",
+                "ja": "GPT-5.6の3モデル向け説明を更新、文脈容量を27.2万トークンに訂正",
+                "ko": "GPT-5.6 세 모델 안내를 새로 고치고, 문맥 용량을 27만 2천 토큰으로 바로잡음"
+              },
+              "body": {
+                "zh-TW": "你正要把長企劃、會議紀錄和程式碼一起交給 Codex 時，最在意的常是它到底記得住多少內容。這版更新了 GPT-5.6 Sol、Terra 與 Luna 隨附的操作說明，並把三者的 context window（單次對話能保留的內容容量）校正為 272,000 token。token 是 AI 處理文字的計量單位；把它想成可放進同一張工作桌的紙張數，容量標對了，你才不會拿錯桌子大小來安排材料。後兩項變更也把這份模型資料和提示詞修正帶回 0.144 版，範圍只鎖定 GPT-5.6，沒有宣告三個模型新增能力。",
+                "zh-CN": "当你准备把长企划、会议记录和代码一起交给 Codex 时，最在意的往往是它究竟能记住多少内容。此版本更新了 GPT-5.6 Sol、Terra 与 Luna 附带的操作说明，并把三者的 context window（单次对话能保留的内容容量）校正为 272,000 token。token 是 AI 处理文字的计量单位；可以把它想成同一张工作桌能摆下的纸张数，容量标对了，才不会拿错桌子大小来安排材料。后两项变更也把这份模型资料和提示词修正带回 0.144 版，范围只锁定 GPT-5.6，并非宣布三个模型新增能力。",
+                "en": "When you are about to hand Codex a long plan, meeting notes, and code together, the key question is how much it can keep in view. This release refreshes bundled guidance for GPT-5.6 Sol, Terra, and Luna, and corrects each model's context window—the amount of material one conversation can hold—to 272,000 tokens. A token is a unit AI uses to process text. Think of it as the number of sheets that fit on one worktable: label the table correctly, and you can plan your pile of material properly. The two follow-up changes also backport that model-metadata and prompt correction to 0.144, limited to GPT-5.6; they do not announce new abilities for these models.",
+                "ja": "長い企画書、会議メモ、コードをまとめて Codex に渡す前に気になるのは、どれだけの内容を覚えておけるかである。今回、GPT-5.6 Sol、Terra、Luna に同梱する操作説明を更新し、3モデルの context window（1回の会話で保持できる内容の容量）を272,000 tokenに訂正した。token はAIが文章を処理する数え方の単位である。同じ作業机に置ける紙の枚数だと考えればよい。机の大きさが正しく示されれば、載せる資料も取り違えずに済む。続く2件の変更は、このモデル情報とプロンプトの訂正を0.144へ戻したもので、対象はGPT-5.6だけであり、3モデルの新機能を告知したものではない。",
+                "ko": "긴 기획서, 회의록, 코드를 한꺼번에 Codex에 맡기려 할 때 가장 궁금한 것은 얼마나 많은 내용을 기억할 수 있느냐이다. 이번 버전은 GPT-5.6 Sol, Terra, Luna에 함께 제공되는 사용 안내를 새로 고치고, 세 모델의 context window(한 번의 대화에서 보관할 수 있는 내용의 용량)를 272,000 token으로 바로잡았다. token은 AI가 글을 처리할 때 쓰는 단위이다. 한 작업대에 올려둘 수 있는 종이 수라고 생각하면 된다. 작업대 크기가 정확히 표시되어야 자료를 알맞게 올려둘 수 있다. 이어진 두 변경은 이 모델 정보와 프롬프트 수정을 0.144에 되돌린 것이며, 대상은 GPT-5.6뿐이고 세 모델의 새 기능을 알린 것은 아니다."
+              },
+              "original": "Refreshed bundled instructions for GPT-5.6 Sol, Terra, and Luna, and corrected their context windows to 272,000 tokens. (#33972, #34009)\n#33972 Backport refreshed bundled model metadata to 0.144 @sayan-oai\n#34009 Narrow 0.144 hotfix to GPT-5.6 prompts and context @sayan-oai"
+            }
+          ]
+        },
+        {
           "version": "0.144.5",
           "period": "2026-07-16",
           "items": [
@@ -395,165 +418,6 @@
                 "ko": "자동 코드 리뷰가 갑자기 이상해졌다면, 이번에 제대로 원래 모습으로 돌려놨다. 이전의 한 번 업데이트에서 Codex의 Guardian 자동 리뷰 기능(Guardian, 코드를 자동으로 검사해 주는 AI 심사원 같은 것)을 실수로 망가뜨렸다 — 이 기능에 내리는 프롬프트(prompting, AI에게 어떻게 일할지 알려주는 지시문의 표현)를 바꾸었다가 오히려 리뷰 품질이 후퇴(regression, 새 버전이 옛 버전보다 나빠지는 퇴보)하는 일이 벌어진 것이다. 이번에는 이를 리버트(revert, 바꾼 것을 취소하고 이전 상태로 되돌리는 것)해서, 이전 버전의 리뷰 정책, 요청 형식(request format, AI가 요청을 보낼 때의 메시지 구조), 도구 동작(tool behavior, AI가 외부 도구를 호출할 때의 행동 양식)을 모두 원래대로 회복했다. 식당 주방장이 새 레시피를 시도했다가 단골 손님들에게 맛이 떨어졌다는 불만을 듣고 서둘러 옛 레시피를 찾아내 본래 요리법으로 되돌린 것과 같다."
               },
               "original": "Restored the previous Guardian auto-review policy, request format, and tool behavior after rolling back a prompting regression. (#32672)\n#32672 [release/0.144] Revert \"Update auto review prompting\" @dylan-hurd-oai"
-            }
-          ]
-        },
-        {
-          "version": "0.144.1",
-          "period": "2026-07-08 ~ 07-11",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "額度重置點數看得到種類和效期，還能自己挑哪張先用",
-                "zh-CN": "额度重置点数看得到种类和效期，还能自己挑哪张先用",
-                "en": "Usage-limit reset credits show their type and expiry — and you pick which to redeem",
-                "ja": "利用限度リセットクレジットが種類と有効期限付きで表示、どれを使うか選べる",
-                "ko": "사용량 한도 리셋 크레딧이 종류와 만료일과 함께 보이고, 어느 것을 먼저 쓸지 고를 수 있다."
-              },
-              "body": {
-                "zh-TW": "撞到用量上限時拿到的重置點數（usage-limit reset credits，官方補償或活動送的「把額度計時器歸零」券），現在看得到每張的種類和到期日，兌換時還能自己挑要用哪一張。以前只能盲兌，可能把效期還長的先花掉、快過期的反而放到作廢；現在像皮夾裡的折價券終於印上了面額和效期，先用哪張自己精打細算。",
-                "zh-CN": "撞到用量上限时拿到的重置点数（usage-limit reset credits，官方补偿或活动送的「把额度计时器归零」券），现在看得到每张的种类和到期日，兑换时还能自己挑要用哪一张。以前只能盲兑，可能把效期还长的先花掉、快过期的反而放到作废；现在像皮夹里的折价券终于印上了面额和效期，先用哪张自己精打细算。",
-                "en": "The usage-limit reset credits you get around usage caps (vouchers from goodwill grants or promos that zero out your quota timer) now show their type and expiration, and you choose which one to redeem. Redemption used to be blind, so you could spend a long-lived credit while an expiring one quietly went to waste; now it's like the coupons in your wallet finally printing their value and expiry date, so you decide which to use first.",
-                "ja": "利用上限にぶつかった時にもらえるリセットクレジット（usage-limit reset credits、公式のお詫びやキャンペーンで配られる「利用枠のタイマーをゼロにする」チケット）は、今では一枚ごとの種類と有効期限が見え、引き換え時にどれを使うか選べる。以前は盲目的に引き換えるしかなく、期限の長いものを先に使い、期限切れ間近のものをうだうだして失効させることもあった。今は財布の割引券にようやく額面と有効期限が印字され、どれから使うか自分でやりくりできるようになったようなものである。",
-                "ko": "사용량 한도에 부딪혔을 때 받는 리셋 크레딧(usage-limit reset credits, 공식 보상이나 이벤트로 주는 '사용량 타이머를 0으로 되돌리는' 쿠폰)이 이제는 매 장마다 종류와 만료일이 보이고, 교환할 때 어느 것을 쓸지 직접 고를 수 있다. 예전엔 맹목적으로 교환할 수밖에 없어 유효기간이 긴 것을 먼저 쓰거나, 만료가 임박한 것을 방치해 무효로 만들기도 했다. 이제는 지갑 속 할인 쿠폰에 마침내 액면과 만료일이 인쇄되어, 어느 것부터 쓸지 스스로 따져 쓸 수 있게 된 것과 같다."
-              },
-              "original": "Usage-limit reset credits now show their type and expiration, and let you choose which credit to redeem. (0.144.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "遠端外掛預設開通：型錄變豐富、還能裝 npm 上的外掛",
-                "zh-CN": "远程插件默认开通：型录变丰富、还能装 npm 上的插件",
-                "en": "Remote plugins are on by default, with a richer catalog and npm sources",
-                "ja": "リモートプラグインがデフォルトで有効化：カタログが充実、npm 由来のプラグインも導入可",
-                "ko": "원격 플러그인이 기본으로 활성화: 카탈로그가 풍부해지고 npm의 플러그인도 설치 가능."
-              },
-              "body": {
-                "zh-TW": "外掛（plugin，幫 Codex 加裝新技能的擴充包）生態這次大開門：遠端外掛預設直接可用，不用再自己開開關；型錄列出的資訊變豐富、看得到遠端和本機各是什麼版本，還能從 npm（JavaScript 世界最大的套件市集）來源安裝。就像手機從「只能裝原廠預載的 App」升級成「應用商店直接開張」。",
-                "zh-CN": "插件（plugin，帮 Codex 加装新技能的扩充包）生态这次大开门：远程插件默认直接可用，不用再自己开开关；型录列出的信息变丰富、看得到远程和本地各是什么版本，还能从 npm（JavaScript 世界最大的包市集）来源安装。就像手机从「只能装原厂预载的 App」升级成「应用商店直接开张」。",
-                "en": "The plugin ecosystem (add-on packs that teach Codex new skills) just flung its doors open: remote plugins are enabled by default with no switch to flip, catalog rows show richer info including remote and local versions, and you can install from npm sources (the JavaScript world's biggest package marketplace). It's like a phone going from \"factory-preloaded apps only\" to \"the app store is open.\"",
-                "ja": "プラグイン（plugin、Codex に新しいスキルを追加する拡張パック）の生態系が今回大きく開かれた。リモートプラグインがデフォルトでそのまま使いやすくなり、自分でスイッチを入れる必要がない。カタログの表示情報が充実し、リモートとローカルそれぞれのバージョンが分かるほか、npm（JavaScript 界隈最大のパッケージマーケット）からのインストールにも対応した。スマホが「メーカー搭載の App しか入れなかった」状態から「アプリストアが開店した」状態にアップグレードしたようなものである。",
-                "ko": "플러그인(plugin, Codex에 새 기능을 더해 주는 확장 팩) 생태계가 이번에 활짝 열렸다. 원격 플러그인이 기본으로 바로 쓸 수 있게 돼 직접 스위치를 켤 필요가 없다. 카탈로그가 보여 주는 정보가 풍부해져 원격과 로컬 각각의 버전이 보이고, npm(JavaScript 세계에서 가장 큰 패키지 마켓) 출처에서도 설치할 수 있다. 스마트폰이 '제조사가 미리 깔아둔 App만 설치할 수 있던 것'에서 '앱 스토어가 바로 문을 여는 것'으로 업그레이드된 셈이다."
-              },
-              "original": "Remote plugins are now enabled by default, with richer catalog rows, npm marketplace sources, and visible remote/local versions. (0.143.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "公司網路救星：Codex 會走系統代理連線了",
-                "zh-CN": "公司网络救星：Codex 会走系统代理连线了",
-                "en": "Codex now works through macOS and Windows system proxies",
-                "ja": "社内ネットワークの救世主：Codex がシステムプロキシ経由で繋がる",
-                "ko": "사내망 구원자: Codex가 시스템 프록시로 연결된다."
-              },
-              "body": {
-                "zh-TW": "在公司網路後面用不了 Codex 的人有救了：登入和 API 流量現在會乖乖走 macOS 和 Windows 的系統代理（system proxy，公司統一管制對外連線的中繼站）設定，連 PAC 和 WPAD（讓電腦自動找到該走哪個代理的設定檔機制）這種自動配置都支援。就像新來的同事終於學會走公司大門的訪客登記流程，不再翻牆進來被警衛擋。",
-                "zh-CN": "在公司网络后面用不了 Codex 的人有救了：登录和 API 流量现在会乖乖走 macOS 和 Windows 的系统代理（system proxy，公司统一管制对外连线的中继站）设置，连 PAC 和 WPAD（让电脑自动找到该走哪个代理的配置文件机制）这种自动配置都支持。就像新来的同事终于学会走公司大门的访客登记流程，不再翻墙进来被警卫挡。",
-                "en": "If Codex never worked behind your corporate network, relief is here: authentication and API traffic now duly route through macOS and Windows system proxies (the relay your company uses to control outbound connections), including PAC and WPAD auto-configuration (the mechanisms that let a computer discover which proxy to use). Like a new hire finally learning to sign in at the front desk instead of climbing the fence and getting stopped by security.",
-                "ja": "社内ネットワークの裏側で Codex が使えなかった人は助かった。ログインと API の通信は今や macOS と Windows のシステムプロキシ（system proxy、社が対外接続を一元管理する中継所）の設定に素直に従い、PAC や WPAD（コンピューターがどのプロキシを使うべきか自動で見つける設定ファイルの仕組み）といった自動構成にも対応する。新入社員がようやく社の正面玄関の受付手順を覚え、塀を乗り越えて警備員に止められることがなくなったようなものである。",
-                "ko": "사내망 뒤에서 Codex를 쓰지 못했던 사람에게 희소식이다. 로그인과 API 트래픽이 이제 macOS와 Windows의 시스템 프록시(system proxy, 회사가 대외 연결을 통제하는 중계소) 설정을 순순히 따르고, PAC과 WPAD(컴퓨터가 어느 프록시로 갈지 자동으로 찾는 설정 파일 방식) 같은 자동 구성도 지원한다. 신규 입사자가 마침내 정문 방문 등록 절차를 익혀 담장을 넘다 경비에게 걸리는 일이 없어진 것과 같다."
-              },
-              "original": "Codex can route authentication and Responses API traffic through macOS and Windows system proxies, including PAC and WPAD configurations. (0.143.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "新增「只問寫入」核准模式：查看放行、動手才問",
-                "zh-CN": "新增「只问写入」核准模式：查看放行、动手才问",
-                "en": "New `writes` approval mode: reads sail through, writes still ask",
-                "ja": "新追加の「writes」承認モード：読み取りは素通り、書き込みのみ確認",
-                "ko": "신규 '쓰기만 묻는' 승인 모드: 읽기는 허용, 쓰기만 물어본다."
-              },
-              "body": {
-                "zh-TW": "應用核准（app approval，決定外接應用哪些動作要先徵求你同意的規則）多了一種 writes 模式：標明是唯讀的動作直接放行，要動手寫入時才跳出來問你。以前粒度太粗、要嘛全問要嘛全放；現在像圖書館的規矩——隨便翻書不用登記，要在書上畫線才需要館員蓋章。",
-                "zh-CN": "应用核准（app approval，决定外接应用哪些动作要先征求你同意的规则）多了一种 writes 模式：标明是唯读的动作直接放行，要动手写入时才跳出来问你。以前粒度太粗、要嘛全问要嘛全放；现在像图书馆的规矩——随便翻书不用登记，要在书上画线才需要馆员盖章。",
-                "en": "App approvals (the rules deciding which actions an external app must clear with you first) gain a `writes` mode: actions declared read-only sail through, and you're only prompted when something wants to write. The old granularity was all-or-nothing — ask about everything or nothing; now it works like a library: browse any book freely, but the librarian's stamp is only needed if you want to mark one up.",
-                "ja": "アプリ承認（app approval、外接アプリのどの動作に事前同意を求めるかを決めるルール）に writes モードが一つ増えた。読み取り専用と宣言された動作は素通りし、書き込みを行う時だけ尋ねてくる。以前は粒度が粗く、全部聞くか全部許すかの二択だった。今は図書館の決まりのようなもの、自由にページをめくるのに届け出は不要だが、本に線を引くには司書の判子が要る。",
-                "ko": "앱 승인(app approval, 외부 앱의 어떤 동작에 사전 동의를 구할지 정하는 규칙)에 writes 모드가 하나 늘었다. 읽기 전용으로 표시된 동작은 그냥 허용하고, 쓰기를 할 때만 물어본다. 예전엔 단위가 너무 커서 전부 물어보거나 전부 허용하는 둘 중 하나였다. 이제는 도서관 규칙 같다. 책을 자유롭게 넘기는 데는 신고가 필다 없고, 책에 밑줄을 그을 때만 사서의 도장이 필요하다."
-              },
-              "original": "Added a `writes` app-approval mode that allows declared read-only actions while prompting for writes. (0.144.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "開 Ultra 推理前會提醒你：多代理齊發很燒額度",
-                "zh-CN": "开 Ultra 推理前会提醒你：多代理齐发很烧额度",
-                "en": "Picking Ultra reasoning now warns when multi-agent runs could burn quota fast",
-                "ja": "Ultra 推論の使用前に警告：マルチエージェント同時実行はクレジットを激しく消費する",
-                "ko": "Ultra 추론을 켜기 전에 알려준다: 다중 에이전트 동시 실행은 사용량을 많이 태운다."
-              },
-              "body": {
-                "zh-TW": "選 Ultra 推理（最高強度的思考等級，答得更深、但吃額度也快）時，如果你同時開著多代理高併發（很多隻代理一起跑），Codex 現在會先警告你：這樣開下去用量會衝很快。就像租車行在你一口氣租五台跑車時提醒一句「油錢會很可觀喔」，讓你衝之前心裡有數。",
-                "zh-CN": "选 Ultra 推理（最高强度的思考等级，答得更深、但吃额度也快）时，如果你同时开着多代理高并发（很多只代理一起跑），Codex 现在会先警告你：这样开下去用量会冲很快。就像租车行在你一口气租五台跑车时提醒一句「油钱会很可观喔」，让你冲之前心里有数。",
-                "en": "When you pick Ultra reasoning (the highest thinking tier — deeper answers, faster quota burn) while running high multi-agent concurrency (many agents at once), Codex now warns you that usage could spike quickly. Like a rental agency reminding you, as you rent five sports cars at once, that the fuel bill will be considerable — so you commit with your eyes open.",
-                "ja": "Ultra 推論（最強の思考ティア、より深い回答が得られるがクレジットの消費も早い）を選ぶ際、同時にマルチエージェントの高並行（多数のエージェントを一斉に走らせること）を動かしていると、Codex は事前に警告する。このまま進めると利用量が急激に跳ね上がると。レンタカー屋で一度にスポーツカーを五台借りようとする時、「ガソリン代は相当かかりますよ」と一言あるようなもので、飛び込む前に覚悟が決められる。",
-                "ko": "Ultra 추론(가장 강도 높은 사고 단계, 더 깊은 답을 내지만 사용량도 빨리 태운다)을 고를 때 동시에 다중 에이전트 고동시성(여러 에이전트를 한꺼번에 돌리는 것)을 켜두면, Codex가 먼저 경고한다. 이대로 가면 사용량이 급격히 치솟는다고. 렌터카에서 스포츠카 다섯 대를 한꺼번에 빌릴 때 '기름값이 꽤 나올 겁니다'라고 한마디 해 주는 것과 같아서, 달리기 전에 마음의 준비가 된다."
-              },
-              "original": "Selecting Ultra reasoning now warns when high multi-agent concurrency could increase usage quickly. (0.144.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "貼上奇怪內容不再把畫面弄花",
-                "zh-CN": "贴上奇怪内容不再把画面弄花",
-                "en": "Pasting weird terminal content no longer garbles the screen",
-                "ja": "変な内容を貼り付けても画面が乱れなくなった",
-                "ko": "이상한 내용을 붙여넣어도 화면이 망가지지 않는다."
-              },
-              "body": {
-                "zh-TW": "從別處貼上帶有終端控制序列（terminal control sequences，藏在文字裡指揮游標移動、變色的隱形指令）的內容，以前會把終端介面弄得亂七八糟，連恢復的舊對話紀錄都可能被弄髒；現在這些隱形指令會被安全處理，畫面穩穩的。就像影印店現在會先把你原稿上的隱形墨水消掉再印，不會印出一堆鬼畫符。",
-                "zh-CN": "从别处贴上带有终端控制序列（terminal control sequences，藏在文字里指挥游标移动、变色的隐形指令）的内容，以前会把终端界面弄得乱七八糟，连恢复的旧对话记录都可能被弄脏；现在这些隐形指令会被安全处理，画面稳稳的。就像复印店现在会先把你原稿上的隐形墨水消掉再印，不会印出一堆鬼画符。",
-                "en": "Pasting content that carries terminal control sequences (invisible commands hiding in text that move the cursor or change colors) used to garble the terminal interface and could even corrupt resumed conversation history; those stowaways are now handled safely and the screen stays put. Like a print shop that now neutralizes the invisible ink on your original before copying, so no scribbles show up on the page.",
-                "ja": "別の場所から、端末制御シーケンス（terminal control sequences、文字に潜んでカーソル移動や色変更を指図する不可視のコマンド）を含んだ内容を貼り付けると、以前は端末の画面がぐちゃぐちゃになり、復元した古い会話履歴まで汚されることがあった。今はそれらの隠しコマンドが安全に処理され、画面は安定している。コピー店が原稿のインクを消してから印刷してくれるようになり、ぐしゃぐしゃの落書きが出てこない、そんな具合である。",
-                "ko": "다른 곳에서 터미널 제어 시퀀스(terminal control sequences, 글자 속에 숨어 커서 이동과 색 변경을 지시하는 보이지 않는 명령)가 든 내용을 붙여넣으면, 예전엔 터미널 화면이 엉망이 되고 되살린 지난 대화 기록마저 더러워질 수 있었다. 이제는 이런 숨은 명령이 안전하게 처리돼 화면이 안정적이다. 복사점이 원고의 보이지 않는 잉크를 지우고 나서 복사해 주어, 알아볼 수 없는 낙서가 나오지 않는 것과 같다."
-              },
-              "original": "Pasted terminal control sequences can no longer corrupt TUI rendering or resumed conversation history. (0.144.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "MCP 工具要登入時會當場問你，不用再開實驗開關",
-                "zh-CN": "MCP 工具要登录时会当场问你，不用再开实验开关",
-                "en": "MCP tools can now ask you to sign in on the spot",
-                "ja": "MCP ツールはログインが必要な場面でその場で尋ねる、実験フラグ不要",
-                "ko": "MCP 도구는 로그인이 필요할 때 그 자리에서 물어본다, 실험 스위치 불필요."
-              },
-              "body": {
-                "zh-TW": "MCP 工具（Model Context Protocol，外接工具的插座標準）需要登入驗證時，現在會當場跳出來問你，不用再先去設定裡打開實驗性開關。以前工具卡在「需要登入」就整個停擺，你還得知道有那個隱藏開關才救得回來；現在像店員遇到需要會員卡的商品，直接在櫃檯問你「要現在辦嗎」，不用先回家翻說明書。",
-                "zh-CN": "MCP 工具（Model Context Protocol，外接工具的插座标准）需要登录验证时，现在会当场跳出来问你，不用再先去设置里打开实验性开关。以前工具卡在「需要登录」就整个停摆，你还得知道有那个隐藏开关才救得回来；现在像店员遇到需要会员卡的商品，直接在柜台问你「要现在办吗」，不用先回家翻说明书。",
-                "en": "When an MCP tool (Model Context Protocol, the socket standard for plugging in outside tools) needs you to authenticate, it now just asks on the spot — no more flipping an experimental opt-in first. Tools used to stall at \"authentication required,\" recoverable only if you knew about the hidden switch; now it's like a cashier asking \"want to sign up for the membership now?\" right at the counter, instead of sending you home to read the fine print.",
-                "ja": "MCP ツール（Model Context Protocol、外部ツールを接続するソケット規格）がログイン認証を必要とする時、今はその場で尋ねてきて、先に設定で実験的フラグを立てる必要はない。以前はツールが「認証が必要」で止まって全体が立ち往生し、その隠しスイッチの存在を知っていなければ復旧できなかった。今は会員カードが必要な商品に店員が遭遇した時のように、カウンターで「今作りますか？」と聞いてくれ、家に帰って説明書をひっくり返す必要はない。",
-                "ko": "MCP 도구(Model Context Protocol, 외부 도구를 꽂는 소켓 표준)가 로그인 인증을 필요로 할 때 이제 그 자리에서 물어본다. 더 이상 먼저 설정에서 실험 스위치를 켤 필요가 없다. 예전엔 도구가 '인증 필요'에서 멈춰 통째로 먹통이 되고, 그 숨겨진 스위치가 있다는 것까지 알아야 살릴 수 있었다. 이제는 점원이 회원카드가 필요한 상품을 만나면 카운터에서 곧바로 '지금 만드실래요?'라고 묻는 것과 같아서, 집에 가서 설명서를 뒤질 필요가 없다."
-              },
-              "original": "MCP tools can now request authentication interactively without an experimental opt-in. (0.144.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "安裝與更新不再看 GitHub 臉色失敗",
-                "zh-CN": "安装与更新不再看 GitHub 脸色失败",
-                "en": "Installs and updates stop failing at GitHub's whim",
-                "ja": "インストールと更新が GitHub の機嫌で失敗することはなくなった",
-                "ko": "설치와 업데이트가 GitHub 사정에 따라 실패하지 않는다."
-              },
-              "body": {
-                "zh-TW": "安裝和更新變得結實多了。以前 GitHub 回傳的版本資訊只要格式精簡一點或順序換一下，獨立安裝就直接失敗；API 被限流（rate limit，同一時間查太多次就暫時拒絕服務）也會害安裝掛掉。現在版本資訊會重複利用、格式變化也吃得下；macOS 套件還補齊了 code mode 需要的配套程式，就算配套程式缺席也會退回內建版本繼續動。就像自動販賣機以前紙鈔稍微皺一點就吐出來，現在皺鈔新鈔都收。",
-                "zh-CN": "安装和更新变皮实了。以前 GitHub 回传的版本信息只要格式精简一点或顺序换一下，独立安装就直接失败；API 被限流（rate limit，同一时间查太多次就暂时拒绝服务）也会害安装挂掉。现在版本信息会重复利用、格式变化也吃得下；macOS 软件包还补齐了 code mode 需要的配套程序，就算配套程序缺席也会退回内置版本继续动。就像自动贩卖机以前纸钞稍微皱一点就吐出来，现在皱钞新钞都收。",
-                "en": "Installs and updates got tougher. Standalone installs used to break the moment GitHub returned compact or reordered release metadata, and API rate limits (temporary refusals when too many requests arrive at once) could sink an install too. Release metadata is now reused and format quirks are tolerated; macOS packages also ship the companion program that code mode needs, and if that companion is missing, an embedded fallback keeps things running. Like a vending machine that used to spit out any slightly wrinkled bill — it now takes them all.",
-                "ja": "インストールと更新が頑丈になった。以前は GitHub が返すバージョン情報のフォーマットが少し簡潔だったり順序が変わるだけで、単体インストールが即座に失敗した。API のレートリミット（rate limit、一度に問い合わせが多すぎると一時的にサービスを拒否される仕組み）でもインストールが落ちた。今はバージョン情報を再利用し、フォーマットの揺れも飲み込む。macOS パッケージには code mode が必要とするホストプログラムも揃い、たとえそれが欠けていても組み込み版にフォールバックして動き続ける。自動販売機が以前は紙幣が少し皺んでいると弾き出していたのが、今は皺んだ紙幣も新札も受け付けるようになったようなものである。",
-                "ko": "설치와 업데이트가 단단해졌다. 예전엔 GitHub가 돌려주는 버전 정보가 조금만 간결해지거나 순서가 바뀌어도 단독 설치가 곧바로 실패했고, API 레이트 리밋(rate limit, 동시에 너무 많이 조회하면 잠시 서비스를 거부하는 것)에 설치가 무너지기도 했다. 이제는 버전 정보를 재사용하고 포맷 변화도 소화한다. macOS 패키지에는 code mode가 필요로 하는 동반 프로그램까지 채워졌고, 동반 프로그램이 빠져도 내장 버전으로 돌아가 계속 움직인다. 자판기가 예전엔 지폐가 조금만 구겨져도 토해 냈다면, 이제는 구겨진 돈이든 새 돈이든 모두 받아 주는 것과 같다."
-              },
-              "original": "Fixed standalone installs failing when GitHub returns compact or reordered release metadata. Ensured macOS package installs expose the code-mode host alongside the `codex` executable. Kept code mode working when the companion host binary is unavailable by falling back to the embedded runtime. (0.144.1) Reduced installer failures from GitHub API rate limits by reusing release metadata. (0.143.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "登入畫面多了一段防釣魚提醒",
-                "zh-CN": "登录画面多了一段防钓鱼提醒",
-                "en": "Device-code login now teaches you to spot phishing",
-                "ja": "ログイン画面にフィッシング対策の注意文が追加",
-                "ko": "로그인 화면에 피싱 주의 안내 한 토막이 추가됐다."
-              },
-              "body": {
-                "zh-TW": "用裝置代碼登入（device-code login，在另一台裝置輸入一組代碼來授權登入的方式）時，畫面現在多了一段警語，教你辨認並擋下釣魚（phishing，壞人假冒官方、騙你把登入代碼交出去的詐術）。登入機制本身沒變，變的是多了一位站在 ATM 旁提醒「不要照電話指示轉帳」的警察。",
-                "zh-CN": "用设备代码登录（device-code login，在另一台设备输入一组代码来授权登录的方式）时，画面现在多了一段警语，教你辨认并挡下钓鱼（phishing，坏人假冒官方、骗你把登录代码交出去的诈术）。登录机制本身没变，变的是多了一位站在 ATM 旁提醒「不要照电话指示转账」的警察。",
-                "en": "Device-code login (authorizing a sign-in by typing a code on another device) now shows a warning that teaches you to recognize and stop phishing (the con where someone poses as the official site to trick your login code out of you). The mechanism itself didn't change — there's just now a police officer standing by the ATM reminding you not to wire money to strangers on the phone.",
-                "ja": "デバイスコードログイン（device-code login、別の端末でコードを入力してログインを承認する方式）の際、画面に警作文が一つ追加され、フィッシング（phishing、悪人が公式を装ってログインコードを奪い取る詐欺）を見抜き防ぐ方法を教えてくれる。ログインの仕組み自体は変わっていない。変わったのは、ATM のそばに立って「電話の指示通りに振り込まないで」と注意する警察官が一人増えたことである。",
-                "ko": "디바이스 코드 로그인(device-code login, 다른 기기에서 코드를 입력해 로그인을 승인하는 방식)을 할 때 화면에 경고문 한 토막이 추가되어, 피싱(phishing, 나쁜 사람이 공식을 사칭해 로그인 코드를 빼앗아 가는 사기)을 알아보고 막는 법을 알려 준다. 로그인 방식 자체는 바뀌지 않았다. 달라진 것은 ATM 곁에 서서 '전화 지시대로 돈을 보내지 마세요'라고 알려 주는 경찰관이 한 명 더 생긴 것이다."
-              },
-              "original": "Device-code login warnings now explain how to recognize and stop phishing attempts. (0.144.0)"
             }
           ]
         }
@@ -877,71 +741,71 @@
       "name": "Usage",
       "versions": [
         {
-          "version": "0.28.12",
-          "period": "2026-07-18",
+          "version": "0.28.15",
+          "period": "2026-07-19",
           "items": [
             {
               "title": {
-                "zh-TW": "離席時，讓下一個 5 小時額度窗口先起跑",
-                "zh-CN": "离席时，让下一个 5 小时额度窗口先起跑",
-                "en": "Start your next 5-hour window while you're away",
-                "ja": "離席中に次の5時間枠を先に走らせる",
-                "ko": "자리를 비운 사이 다음 5시간 창을 먼저 시작한다"
+                "zh-TW": "自動接棒合併一鍵，Antigravity 不再被假倒數騙住",
+                "zh-CN": "自动接棒合并一键，Antigravity 不再被假倒计时骗住",
+                "en": "One switch now runs both keepers, without Antigravity's fake countdown",
+                "ja": "自動引き継ぎを一つのスイッチに統合し、Antigravity の偽のカウントダウンも解消",
+                "ko": "자동 이어받기를 한 스위치로 묶고, Antigravity의 가짜 카운트다운도 없앴다"
               },
               "body": {
-                "zh-TW": "要離開電腦吃飯或出門，卻不想回來才開始等下一輪 Claude 額度嗎？usage 新增可自行開啟的「Auto-start 5-hour Session」選項。它發現 5 小時 quota window（Claude 額度每 5 小時重新計算的一段時間）剛重設、而且目前沒有執行中的 session（一次持續運作的工作階段）時，會在背景送出一次 `claude -p ok --model haiku`，立刻替下一個窗口起跑。像替洗衣機設好延後啟動：你人不在，倒數仍先開始；每個窗口最多只送一次，不會反覆叫醒它。這項功能預設關閉，不會碰 Anthropic 的 quota API（查詢額度的程式介面）；找不到 `claude` CLI（從終端機下指令操作 Claude 的工具）也會安靜略過。開啟時會先說明 usage 和 Mac 必須保持醒著，但闔上筆電仍照常讓 Mac 睡眠。",
-                "zh-CN": "要离开电脑吃饭或出门，却不想回来才开始等下一轮 Claude 额度吗？usage 新增可自行开启的“Auto-start 5-hour Session”选项。它发现 5 小时 quota window（Claude 额度每 5 小时重新计算的一段时间）刚重设、而且目前没有运行中的 session（一次持续运行的工作阶段）时，会在后台发送一次 `claude -p ok --model haiku`，立刻替下一个窗口起跑。像替洗衣机设好延后启动：你人不在，倒计时仍先开始；每个窗口最多只发送一次，不会反复叫醒它。这项功能默认关闭，不会碰 Anthropic 的 quota API（查询额度的程序接口）；找不到 `claude` CLI（从终端机下命令操作 Claude 的工具）也会安静跳过。开启时会先说明 usage 和 Mac 必须保持唤醒，但合上笔记本仍照常让 Mac 休眠。",
-                "en": "Heading out for lunch or errands and don't want your next Claude allowance window to start only when you return? usage now has an opt-in Auto-start 5-hour Session toggle. When it sees that a 5-hour quota window has reset and no session is running, it sends one background `claude -p ok --model haiku` command to start the next window immediately. Think of it like scheduling a washing machine: the countdown can begin while you're away, but it runs at most once per window rather than repeatedly nudging the machine. It is off by default, never calls Anthropic's quota API, and quietly does nothing if the `claude` CLI is unavailable. On setup, it explains that usage and your Mac need to stay awake; closing the lid still puts your Mac to sleep as usual.",
-                "ja": "食事や外出で Mac を離れるとき、戻ってから次の Claude 利用枠を始めたくないなら、usage の「Auto-start 5-hour Session」を自分で有効にできる。5時間の quota window（Claude の利用枠を5時間ごとに数え直す区切り）がリセットされ、実行中の session（継続して動く作業単位）がないことを見つけると、背景で `claude -p ok --model haiku` を一度だけ実行し、次の枠をすぐ始める。洗濯機の開始予約のように、外出中でもカウントダウンは先に始まるが、同じ枠で何度も動かすことはない。初期設定ではオフであり、Anthropic の quota API には触れず、`claude` CLI が見つからなければ静かに何もしない。有効化時には usage と Mac を起動したままにする必要を説明するが、ふたを閉じれば Mac は従来どおりスリープする。",
-                "ko": "밥을 먹으러 가거나 외출할 때, 돌아온 뒤에야 다음 Claude 사용량 창이 시작되는 것은 아쉽다. usage에 직접 켤 수 있는 ‘Auto-start 5-hour Session’ 토글이 생겼다. 5시간 quota window(Claude 사용량을 5시간마다 새로 계산하는 구간)가 막 초기화됐고 실행 중인 session(계속 돌아가는 작업 단위)이 없음을 감지하면, 백그라운드에서 `claude -p ok --model haiku`를 한 번 실행해 다음 창을 곧바로 시작한다. 세탁기 예약 시작처럼 자리를 비운 동안에도 카운트다운은 먼저 시작되지만, 같은 창에서 반복해 깨우지는 않는다. 기본값은 꺼짐이며 Anthropic의 quota API를 건드리지 않고, `claude` CLI를 찾지 못하면 조용히 아무 일도 하지 않는다. 켤 때 usage와 Mac이 깨어 있어야 함을 알려 주지만, 노트북 덮개를 닫으면 Mac은 평소처럼 잠든다."
+                "zh-TW": "你替 Claude 或 Antigravity 開過自動接棒，現在不用記得兩個開關在哪裡：它們合成同一個選項，打開後兩位視窗守護者會一起啟動；先前只開其中一項的人，也會自動視為兩項都開啟。Antigravity 的額度 API（程式用來取得額度資料的介面）在額度還有 100% 時，仍會回報「約五小時後重設」。這只是尚未使用的滑動視窗（從第一次使用才開始計時的五小時時段）預留時間，不是已在倒數。舊版誤認工作階段正在跑，讓自動接棒從不觸發；現在會把 100% 視為沒有進行中的時段，符合條件就可自動接棒，五小時防連續觸發仍保留。額度卡也會顯示「Quota full」，不再拿假倒數嚇你。",
+                "zh-CN": "你给 Claude 或 Antigravity 开过自动接棒，现在不用记住两个开关在哪里：它们合成一个选项，打开后两位窗口守护者会一起启动；此前只开过其中一项的人，也会自动视为两项都已开启。这次还修好了 Antigravity 的假倒计时。它的额度 API（程序用来取得额度资料的接口）在额度仍有 100% 时，依旧会回报“约五小时后重置”——那只是尚未开始使用的滑动窗口（从第一次使用才开始计时的五小时时段）预留时间，并非已经在倒计时。旧版把它误认成工作会话正在运行，因此自动接棒从不触发；现在会把 100% 视为没有进行中的时段，符合条件就会自动接棒，五小时防连续触发仍会保留。额度卡也会显示“Quota full”，不再拿假倒计时吓你。像接力赛的总开关：两名跑者同时就位，计时器真正起跑才倒计时。",
+                "en": "If you enabled automatic handoff for either Claude or Antigravity, you no longer need to hunt for two switches. They are now one shared toggle: turn it on and both keepers start; anyone who had enabled either old switch is automatically treated as having enabled both. This also fixes Antigravity's phantom countdown. Its quota API (the program connection used to retrieve quota data) reported “in about five hours” even with 100% remaining. That is reserved time for a sliding window (a five-hour period whose clock starts only with first use), not a running countdown. The old gate mistook it for an active session, so it never launched. At 100% remaining, it treats the window as inactive and can launch, while its five-hour self-throttle remains. The card shows “Quota full” until then. Like one relay-race switch: both runners get ready together, but the clock counts down only after the race begins.",
+                "ja": "Claude または Antigravity の自動引き継ぎを有効にしていたなら、もう二つのスイッチを探す必要はない。一つの共通スイッチにまとまり、オンにすると両方のキーパーが動く。以前どちらか一方を有効にしていた人も、両方を有効にした扱いになる。今回、Antigravity の偽のカウントダウンも直した。利用枠 API（プログラムが利用枠の情報を取得するための接続）は、残量が 100% でも「約5時間後にリセット」と返していた。これは最初の利用から時計が動くスライディングウィンドウ（5時間の利用枠）の予約表示であり、実際のカウントダウンではない。旧版はこれを実行中のセッションと誤認し、自動引き継ぎが発火しなかった。残量100%なら進行中の時間帯なしと判断し、自動引き継ぎを開始する。5時間の連続実行防止は残る。カードもそれまでは「Quota full」と表示する。リレーの総合スイッチのように、二人の走者は同時に準備するが、時計は本当に走り出してから進むのである。",
+                "ko": "Claude 또는 Antigravity의 자동 이어받기를 켰다면 이제 두 스위치를 찾을 필요가 없다. 하나의 공용 스위치로 합쳐져, 켜면 두 창 지킴이가 함께 시작한다. 예전에 둘 중 하나만 켠 사람도 둘 다 켠 것으로 자동 처리된다. Antigravity의 가짜 카운트다운도 고쳤다. 할당량 API(프로그램이 할당량 정보를 가져오는 연결)는 잔여량이 100%여도 ‘약 5시간 후 재설정’이라고 알려 주곤 했다. 이는 첫 사용부터 시간이 흐르는 슬라이딩 윈도우(5시간 이용 구간)의 예약 표시일 뿐, 실제 카운트다운이 아니다. 이전 버전은 이를 실행 중인 세션으로 오해해 자동 이어받기를 전혀 실행하지 못했다. 잔여량 100%면 진행 중인 구간이 없다고 보고 자동 이어받기를 시작한다. 5시간 동안 재실행하지 않는 제한은 유지된다. 카드도 그때까지는 ‘Quota full’을 보여 준다. 계주 전체 스위치처럼 두 선수가 함께 준비하되, 시계는 경기가 정말 시작된 뒤에만 흐르는 셈이다."
               },
-              "original": "**New opt-in menu toggle: Auto-start 5-hour Session.** When enabled, usage detects that your Claude 5-hour quota window has just reset and no session is currently running, then fires a single `claude -p ok --model haiku` in the background to immediately start the next window — useful if you're stepping away and want the next 5 hours counting down before you're back. Off by default; sends at most once per 5-hour window (self-throttled), never touches the Anthropic quota API, and silently no-ops if the `claude` CLI can't be found. Enabling it shows a one-time dialog explaining that it needs usage (and the Mac) to stay awake to fire — closing the lid always sleeps the Mac regardless of this setting."
+              "original": "**Auto-start is now one shared switch for Claude and Antigravity.** It starts both keepers together; users who previously enabled either individual switch are automatically treated as having both enabled.\n**Antigravity auto-start never fired, and the card showed a phantom countdown.** The Antigravity quota API reports a *sliding* reset time (always \"in ~5 hours\") while a 5-hour window is still untouched at 100% remaining. The 0.28.14 auto-start gate treated any reported countdown as \"a window is already running\", so it never pinged; it now treats 100% remaining itself as \"no active window\" (the 5-hour self-throttle still applies). The card likewise stopped rendering that placeholder as a live countdown — at 100% remaining it now shows \"Quota full\" until a real window starts."
             }
           ]
         },
         {
-          "version": "0.28.11",
-          "period": "2026-07-18",
+          "version": "0.28.14",
+          "period": "2026-07-19",
           "items": [
             {
               "title": {
-                "zh-TW": "用量報表不再像套版，重點更好找也更好看",
-                "zh-CN": "用量报告不再像套版，重点更好找也更好看",
-                "en": "Usage reports look less templated and put the important numbers in focus",
-                "ja": "利用レポートがテンプレート感を脱し、重要な数字を追いやすくなった",
-                "ko": "사용량 보고서가 틀에 박힌 느낌을 벗고 중요한 숫자를 더 쉽게 찾게 한다"
+                "zh-TW": "下一個五小時工作階段可自動接棒",
+                "zh-CN": "下一个五小时工作会话可自动接棒",
+                "en": "Your next five-hour session can start itself",
+                "ja": "次の5時間セッションを自動で引き継げるようになった",
+                "ko": "다음 5시간 세션이 자동으로 이어서 시작된다"
               },
               "body": {
-                "zh-TW": "月底打開 HTML 用量報表（可在瀏覽器看的網頁格式）時，重要數字終於不必從一片金色裡挖。金色現在只留給標題尾端、主要 KPI 數字（最關鍵的指標）、Wrapped 小標與終端機游標；貢獻熱圖和甜甜圈圖則改用一致的藍綠與藕紫。這像把舞台追光只打在主角身上，其餘演員穿協調的服裝，目光自然會落到最該看的地方。六張 KPI 卡片的排列距離已對齊，Wrapped 的總 token 數（AI 處理文字的計量單位）再長也不會壓住鳳凰插圖，最後一張指標卡也不會孤零零掉到下一列。卡片和區塊邊框在兩套配色中都更清楚；按鈕的停用、啟用狀態也更好認。動畫會尊重「減少動態效果」偏好，分享視窗三個圖示換成筆畫一致的 SVG 圖檔。連 CSS 的 `transition: all` 都改成只列會動的屬性，少掉模板常見的多餘手勢。",
-                "zh-CN": "月底打开 HTML 用量报告（可在浏览器看的网页格式）时，重要数字终于不用从一片金色里挖。金色现在只留给标题尾端、主要 KPI 数字（最关键的指标）、Wrapped 小标题和终端光标；贡献热图和甜甜圈图则改用一致的蓝绿与藕紫。这像把舞台追光只打在主角身上，其余演员穿协调的服装，目光自然会落到最该看的地方。六张 KPI 卡片的排列间距已对齐，Wrapped 的总 token 数（AI 处理文字的计量单位）再长也不会压住凤凰插图，最后一张指标卡也不会孤零零掉到下一行。卡片和区块边框在两套配色中都更清楚；按钮的停用、启用状态也更好认。动画会遵从“减少动态效果”偏好，分享窗口三个图标换成笔画一致的 SVG 图形。连 CSS 的 `transition: all` 都改成只列会动的属性，少掉模板常见的多余手势。",
-                "en": "When you open your HTML usage report (the web-page version you view in a browser) at the end of the month, the important numbers no longer have to fight through a sea of gold. Gold is now reserved for the headline tail, main KPI number (the key performance indicator), Wrapped badge, and terminal cursor; the contribution heatmap and donut chart use a coordinated teal-and-mauve palette instead. It is like saving the spotlight for the lead actor while the rest of the cast wears matching costumes. The six KPI cards now keep even spacing, a long Wrapped total-token count no longer overlaps the phoenix, and the last metric card no longer drops onto a row by itself. Card and section borders are clearer in both color schemes, while button states are easier to recognize. Motion follows reduced-motion preferences, and the share dialog's three icons now use matching-stroke SVG artwork. Even CSS `transition: all` rules now name only properties that move, removing a telltale template habit.",
-                "ja": "月末に HTML 利用レポート（ブラウザで見るウェブページ形式）を開くと、重要な数字を一面の金色から掘り出す必要がなくなる。金色は見出しの末尾、主要 KPI の数字（最も大事な指標）、Wrapped のバッジ、端末のカーソルだけに使われ、貢献ヒートマップとドーナツチャートは統一感のある青緑と藤色になった。舞台のスポットライトを主役だけに当て、ほかの出演者には調和した衣装を着せるようなものだ。6 枚の KPI カードは間隔がそろい、Wrapped の合計 token 数（AI が文字を処理する計量単位）が長くても不死鳥の絵に重ならず、最後の指標カードだけが次の行へ取り残されることもない。カードと区画の境界線は両方の配色で見やすくなり、ボタンの無効・有効状態も見分けやすい。動きは視覚効果を減らす設定に従う。共有画面の 3 アイコンも線の太さがそろった SVG 画像になり、CSS の `transition: all` も動く属性だけを指定する。",
-                "ko": "월말에 HTML 사용량 보고서(브라우저에서 보는 웹페이지 형식)를 열면 중요한 숫자를 금빛 화면 속에서 찾아 헤맬 필요가 없다. 금색은 이제 제목 끝부분, 주요 KPI 숫자(가장 중요한 지표), Wrapped 배지, 터미널 커서에만 쓰고 기여도 히트맵과 도넛 차트는 조화로운 청록·연보라 색으로 바꿨다. 무대 조명은 주인공에게만 비추고 다른 배우에게는 어울리는 의상을 입히는 것과 같다. KPI 카드 여섯 장의 간격이 고르게 맞고, Wrapped의 총 token 수(AI가 글자를 처리하는 계량 단위)가 길어도 불사조 그림을 덮지 않으며 마지막 지표 카드만 다음 줄에 홀로 남지 않는다. 카드와 구역의 테두리는 두 색 구성 모두에서 더 또렷하고, 버튼의 비활성·활성 상태도 더 분명하다. 움직임은 동작 줄이기 설정을 따른다. 공유 창의 아이콘 세 개는 선 굵기가 맞는 SVG 그림으로 바뀌었으며 CSS의 `transition: all`도 실제로 움직이는 속성만 적는다."
+                "zh-TW": "你剛用完 Antigravity 的五小時工作階段（session，一段可使用的固定時段），不想守著倒數等下一輪，現在可以在選單手動開啟自動接棒。它會查看最新、非模擬的 agy 額度結果；只有所選模型群組已完全重設且沒有倒數時，才在背景執行一次本機 agy CLI（命令列工具）的指定指令來開啟下一段。這個選項預設關閉，開過一次後五小時內不會重複觸發，也只使用你電腦上的 agy CLI。像接力賽交棒：跑者真的回到起跑線、計時器歸零才交棒，不會提早衝出去；開啟時也會顯示和 Claude 視窗守護功能相同的 Mac 睡眠提醒。",
+                "zh-CN": "刚用完 Antigravity 的五小时工作会话（session，一段可使用的固定时段），不想守着倒计时等下一轮，现在可以在菜单手动开启自动接棒。它会查看最新、非模拟的 agy 配额结果；只有所选模型群组已完全重置且没有倒计时，才在后台执行一次本机 agy CLI（命令行工具）的指定命令来开启下一段。这个选项默认关闭，开过一次后五小时内不会重复触发，也只使用你电脑上的 agy CLI。像接力赛交棒：跑者真的回到起跑线、计时器归零才交棒，不会提前冲出去；开启时也会显示和 Claude 窗口守护功能相同的 Mac 睡眠提醒。",
+                "en": "Finished an Antigravity five-hour session and don't want to watch the clock for the next one? You can now opt into an automatic handoff from the menu. It watches fresh, real agy quota results and, only when your chosen model group has fully reset with no countdown running, launches one specified command through the local agy CLI in the background. It is off by default, will not fire again for five hours, and uses only the agy CLI on your computer. Think of a relay race: the baton moves only after the runner is back at the starting line and the clock is at zero, never early. Enabling it also shows the same Mac sleep warning as the Claude window keeper.",
+                "ja": "Antigravity の5時間セッションを使い切り、次の回を始める時刻まで見張りたくないなら、メニューから自動引き継ぎを任意で有効にできる。最新かつ模擬ではない agy の利用枠結果を確認し、選んだモデル群のセッションが完全にリセットされ、カウントダウンもない時だけ、ローカルの agy CLI（コマンドライン操作用の道具）で指定コマンドを一度バックグラウンド実行する。初期状態では無効で、一度動くと5時間は再実行せず、使うのも自分の Mac 上の agy CLI だけである。走者が本当にスタート地点へ戻り、時計がゼロになってからバトンを渡すリレーのような仕組みであり、早出はしない。有効にすると Claude のウィンドウキーパーと同じ Mac のスリープ警告も表示される。",
+                "ko": "Antigravity의 5시간 세션을 다 쓴 뒤 다음 차례를 기다리기 싫다면, 메뉴에서 자동 이어받기를 선택해 켤 수 있다. 최신의 실제 agy 할당량 결과를 살피고, 선택한 모델 그룹의 세션이 완전히 초기화됐으며 카운트다운도 없을 때만 로컬 agy CLI(명령줄에서 쓰는 도구)로 지정된 명령 하나를 백그라운드에서 실행한다. 기본값은 꺼짐이며, 한 번 실행한 뒤에는 5시간 동안 다시 실행하지 않고, 내 컴퓨터의 agy CLI만 사용한다. 달리기 선수가 출발선으로 돌아오고 시계가 0이 된 뒤에만 바통을 넘기는 계주와 같아서 일찍 출발하지 않는다. 켜면 Claude 창 지킴이와 같은 Mac 잠자기 경고도 표시한다."
               },
-              "original": "**The HTML usage report looks less like a template and reads more cleanly**: gold is no longer a blanket accent — it's now reserved for four focal points (headline tail, primary KPI number, the Wrapped kicker badge, the terminal cursor), with the contribution heatmap and donut chart moved to a cohesive teal/mauve palette instead. Fixed three alignment bugs: the KPI card grid now keeps a consistent rhythm across all six cards, the Wrapped section's total-token figure no longer overlaps the phoenix illustration at high digit counts, and the trailing metric card in that section no longer orphans onto its own row. Also cleans up several small \"obviously AI-generated\" tells: `transition: all` rules now list only the properties that actually animate, card/section borders read at a clearer contrast in both color schemes, disabled/active button states are now styled instead of falling back to defaults, motion respects `prefers-reduced-motion`, and the three share-dialog emoji icons are now matched-stroke SVGs."
+              "original": "**Antigravity can now auto-start its next 5-hour session.** A new opt-in menu toggle watches fresh, non-mock agy quota results and, when the selected model group's session is fully reset with no countdown running, dispatches one background `agy -p ok --model 'Gemini 3.5 Flash (Low)'`. It is off by default, self-throttles for five hours, uses only the local agy CLI, and shows the same Mac sleep warning as the Claude window keeper when enabled."
             }
           ]
         },
         {
-          "version": "0.28.10",
+          "version": "0.28.13",
           "period": "2026-07-18",
           "items": [
             {
               "title": {
-                "zh-TW": "切換面板不再轉彩球，畫面終於跟得上手",
-                "zh-CN": "切换面板不再转彩球，界面终于跟得上手",
-                "en": "Panel switching no longer leaves you waiting on a spinning beachball",
-                "ja": "パネルを切り替えてもレインボーカーソルで待たされなくなった",
-                "ko": "패널을 바꿔도 무지개 커서를 보며 기다리지 않게 됐다."
+                "zh-TW": "離席自動起跑，現在真的會啟動也不會誤響",
+                "zh-CN": "离席自动起跑，现在真的会启动也不会误响",
+                "en": "Away-time auto-start now runs reliably without false alarms",
+                "ja": "離席中の自動開始が確実に動き、誤作動もしなくなった",
+                "ko": "자리 비운 동안 자동 시작이 제대로 작동하고 오작동도 줄었다"
               },
               "body": {
-                "zh-TW": "你在面板間點來點去查用量時，畫面不該每次都像重新拆箱再組裝。之前若面板剛好被 LRU cache（快取，把算過的結果暫存起來直接用）擠出去，切回去得從磁碟重讀 HTML 並重組；現在每個面板組好的內容會留著，只建一次。切換時也不再讓主執行緒（專門處理你點擊與畫面的主要工作線）硬做設定同步，連著兩次刷新更不會重複打包同一份狀態。舊面板的清理改在點擊之後處理，就像店員先替你打開下一扇門，再慢慢收回前一間的展示架；換面板時終於不必盯著彩球等它回神。",
-                "zh-CN": "你在面板间点来点去查看用量时，界面不该每次都像重新拆箱再组装。之前如果面板刚好被 LRU cache（缓存，把算过的结果暂存起来直接用）挤出去，切回去得从磁盘重读 HTML 并重组；现在每个面板组好的内容会留着，只建一次。切换时也不再让主线程（专门处理你的点击和界面的主要工作线）强行做设置同步，连续两次刷新也不会重复打包同一份状态。旧面板的清理改在点击之后处理，就像店员先替你打开下一扇门，再慢慢收回前一间的展示架；换面板时终于不必盯着彩球等它回神。",
-                "en": "When you hop between panels to check usage, the app should not unpack and rebuild a room every time. If a panel had been pushed out of the small LRU cache, switching back used to reread its HTML from disk and assemble it again. Now each panel keeps its finished markup and builds it only once. Switching also stops forcing settings synchronization on the main thread, duplicate back-to-back refreshes no longer repackage unchanged state, and cleanup of an old panel happens after your click. Like a shop attendant opening your next door before tidying the last display, rather than making you wait in the aisle.",
-                "ja": "使用量を確認するためにパネルを次々切り替えるなら、毎回部屋を開梱して組み立て直すような待ち時間は不要である。小さな LRU cache（キャッシュ、計算済みの結果を一時保存してすぐ使う仕組み）から外れたパネルは、以前は HTML をディスクから読み直して再構築していた。今は完成した内容をパネルごとに保持し、一度だけ組み立てる。切替時に主スレッド（クリックや画面表示を担う中心の処理）へ設定同期を強制せず、連続した更新でも変わらない状態を再注入しない。古いパネルの片付けもクリック後へ回した。店員が次の扉を先に開け、前の展示を後から片付けるような改善である。",
-                "ko": "사용량을 보려고 패널을 이리저리 바꿀 때마다 방을 다시 뜯어 조립하듯 기다릴 필요가 없어졌다. 작은 LRU cache(캐시, 계산한 결과를 잠시 저장해 바로 쓰는 공간)에서 밀려난 패널은 예전에 HTML을 디스크에서 다시 읽고 조립해야 했다. 이제 패널마다 완성한 내용을 보관해 한 번만 만든다. 전환할 때 주 스레드(클릭과 화면 표시를 맡는 중심 작업)를 붙잡고 설정을 동기화하지 않으며, 연달아 새로 고쳐도 바뀌지 않은 상태를 다시 넣지 않는다. 이전 패널을 치우는 일도 클릭 뒤로 미뤘다. 점원이 다음 문을 먼저 열고 이전 진열대는 나중에 정리하는 것처럼, 패널 전환 중 무지개 커서를 볼 일이 줄었다."
+                "zh-TW": "你離開電腦前開啟 Auto-start 5-hour Session（下個 5 小時階段自動啟動），它現在就會準時啟動。Mac App 的 `PATH` 很窄，找指令的名單漏掉原生安裝器放置 `claude` CLI（從終端機下指令操作 Claude 的工具）的 `~/.local/bin/claude`，背景 ping 找不到可執行項目便放棄；已補上。它也只信任 statusLine hook（會提供終端機底部狀態列資料、在特定事件觸發的小程式）的即時資料來判斷重設時間，避免備援來源把缺少的 `resets_at` 當成剛解析時間，下一次刷新又誤認額度已過期。到期滿兩分鐘才 ping，濾掉誤報，離席自動啟動不會明顯變慢。像定時洗衣機終於找得到插座，也不會把剛按下的按鈕誤當成洗完。說明視窗改成先講睡眠會暫停、醒來會恢復；睡眠設定改用 System Settings 搜尋。",
+                "zh-CN": "你离开电脑前打开 Auto-start 5-hour Session（自动为下一个 5 小时额度窗口起跑），它现在就会准时启动。原本 Mac App 的 `.app` bundle（把 App 装成一包文件的容器）里 `PATH` 很窄，找命令的列表又漏掉原生安装器放置 `claude` CLI（从终端下命令操作 Claude 的工具）的 `~/.local/bin/claude`，后台 ping 找不到可执行的东西便悄悄放弃；如今已补上。它也只信任 statusLine hook（会提供终端底部状态栏数据、在特定事件触发的小程序）的实时数据来判断重置时间，避免其他来源把缺少的 `resets_at` 当成刚解析时间，下一次刷新又误认额度已过期。到期至少两分钟才发出 ping，能滤掉这种假警报，真正的离席自动启动不会明显变慢。像定时洗衣机终于找得到插座，也不会把刚按下的按钮误当成洗完。说明窗口则改成先讲睡眠会暂停、醒来会恢复；睡眠设置直接用 System Settings 搜索，不必猜不同 Mac 或 macOS 会把选项藏在哪。",
+                "en": "Turn on Auto-start 5-hour Session before stepping away, and it will now fire on time. The Mac app's `.app` bundle has a narrow `PATH`, and its command lookup list had omitted `~/.local/bin/claude`, where the native installer puts the `claude` CLI. The background ping could find nothing to run and quietly give up; that location is now included. The reset-time check also now trusts only live statusLine hook data, supplied by a small program that is triggered by particular events and feeds the terminal's bottom status bar, rather than fallback data that can treat a missing `resets_at` value as the parsing time and later mistake it for an expired session. It waits until expiry is at least two minutes old before pinging, filtering that false alarm without meaningfully delaying a real away-time auto-start. Think of a timed washing machine that can finally find its outlet and no longer mistakes a freshly pressed button for a completed wash. The dialog now leads with the important bit: it pauses during sleep and resumes on wake. Sleep instructions send you to System Settings search, so you do not have to hunt through differently named panes on different Macs or macOS versions.",
+                "ja": "席を離れる前に Auto-start 5-hour Session を有効にすれば、今度は時間どおりに起動する。Mac App の `.app` bundle は `PATH` が狭く、コマンドを探す一覧からネイティブインストーラーが `claude` CLI を置く `~/.local/bin/claude` が漏れていた。バックグラウンドの ping は実行物を見つけられず、黙って諦めていたが、今はその場所も探す。リセット時刻の判定も、statusLine hook（端末最下部のステータスバーにデータを提供し、特定のイベントで動く小さなプログラム）のライブデータだけを信頼するようになった。代替データは `resets_at` が欠けると解析時刻を入れ、次の更新で期限切れと誤読することがあるためである。期限から少なくとも2分後に ping することで、この誤報を除きつつ実際の離席中の自動開始はほとんど遅れない。タイマー付き洗濯機がようやくコンセントを見つけ、押したばかりのボタンを洗濯終了と取り違えなくなったようなものだ。案内文も、スリープ中は停止し起動時に再開することを先に伝える。睡眠設定は System Settings の検索から開けるため、Mac や macOS ごとに違う設定画面を探し回らずに済む。",
+                "ko": "자리를 비우기 전에 Auto-start 5-hour Session을 켜면, 이제 제시간에 시작한다. Mac App의 `.app` bundle은 `PATH`가 좁은데, 명령어를 찾는 목록에서 네이티브 설치기가 `claude` CLI를 두는 `~/.local/bin/claude`가 빠져 있었다. 그래서 백그라운드 ping은 실행할 것을 찾지 못한 채 조용히 포기했지만, 이제 그 위치도 찾는다. 재설정 시간 판단도 statusLine hook(터미널 맨 아래 상태 표시줄 데이터를 제공하고 특정 이벤트에 반응해 실행되는 작은 프로그램)의 실시간 데이터만 믿도록 바뀌었다. 다른 데이터는 `resets_at`가 없을 때 분석 시간을 넣을 수 있고, 다음 새로고침에서 이를 이미 만료된 것으로 잘못 읽을 수 있기 때문이다. 만료 뒤 적어도 2분이 지나야 ping을 보내므로 이런 오작동은 걸러 내면서도 실제 자리 비움 자동 시작은 눈에 띄게 늦어지지 않는다. 예약 세탁기가 마침내 콘센트를 찾고, 방금 누른 버튼을 세탁 완료로 착각하지 않는 것과 같다. 안내 창은 잠자기 중에는 멈추고 깨어나면 다시 시작한다는 점을 먼저 알려 준다. 수면 설정은 System Settings 검색으로 열 수 있어 Mac이나 macOS마다 다른 메뉴를 헤맬 필요도 없다."
               },
-              "original": "**Switching panels no longer stalls the UI with a beachball**: cold-rebuilding a panel view (evicted from the small LRU cache) reread and reassembled its HTML from disk every time — now the assembled markup is cached per panel and only built once. Selecting a panel no longer forces `NSUserDefaults.synchronize()` on the main thread. Unchanged panel state is no longer redundantly re-serialized and re-injected when a switch triggers two refresh passes back to back. Evicting an old cached panel view from the LRU cache is now deferred off the click's run-loop turn instead of running inline with the new panel's setup."
+              "original": "**Auto-start 5-hour Session now actually fires**: the `claude` CLI resolution list was missing `~/.local/bin/claude` (where the native installer puts it), so inside the `.app` bundle's narrow `PATH` the ping silently found nothing to run and gave up. Also hardened against a false \"expired\" read: the reset-time check now only trusts the live statusLine hook data source (fallback sources can default a missing `resets_at` to parse time, which the next refresh would misread as already-expired) and requires the expiry to be at least 2 minutes old before firing, filtering out that false positive without meaningfully delaying a real away-from-keyboard ping. Dialog copy from 0.28.12 also simplified — leads with \"pauses on sleep, resumes on wake, nothing to manage\" and routes the sleep-setting instructions through System Settings search (the exact pane/wording varies by Mac model and macOS version) with a fallback suggestion to ask Claude Code to walk through it."
             }
           ]
         }
