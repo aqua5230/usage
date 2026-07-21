@@ -1,10 +1,169 @@
 {
-  "generated_at": "2026-07-20",
+  "generated_at": "2026-07-21",
   "tools": [
     {
       "id": "claude_code",
       "name": "Claude Code",
       "versions": [
+        {
+          "version": "2.1.216",
+          "period": "2026-07-20",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "保留網路管制，關掉檔案隔離",
+                "zh-CN": "保留网络管控，关掉文件隔离",
+                "en": "Keep network controls while disabling file isolation",
+                "ja": "ネットワーク制御を残したままファイル隔離を切れる",
+                "ko": "네트워크 제어는 유지하고 파일 격리는 끌 수 있다"
+              },
+              "body": {
+                "zh-TW": "有些公司工具必須直接碰到電腦上的檔案，卻仍想限制它往外連網。現在可用 `sandbox.filesystem.disabled` 設定，跳過檔案系統隔離（把程式能看的檔案範圍圈起來的防護），同時保留網路出口管制。它像辦公室把檔案室的門打開給指定同事，卻仍由警衛管住所有外出通道；不是把整套沙盒（sandbox，限制程式活動範圍的保護環境）拆掉。需要讓 Claude Code 存取本機檔案、又不願放開網路限制時，這項開關提供了中間選擇。",
+                "zh-CN": "有些公司工具必须直接碰到电脑上的文件，却仍想限制它往外联网。现在可用 `sandbox.filesystem.disabled` 设置，跳过文件系统隔离（把程序能看的文件范围圈起来的防护），同时保留网络出口管控。它像办公室把档案室的门打开给指定同事，却仍由保安管住所有外出通道；不是把整套沙盒（sandbox，限制程序活动范围的保护环境）拆掉。需要让 Claude Code 访问本机文件、又不愿放开网络限制时，这个开关提供了中间选择。",
+                "en": "Some company tools need direct access to files on the computer while their internet access must remain restricted. The new `sandbox.filesystem.disabled` setting skips filesystem isolation (the guardrail that limits which files a program can see) but keeps network egress control. Think of opening the records room to approved staff while guards still control every exit; it does not tear down the whole sandbox (a protected boundary around what a program can do). This gives you a middle option when Claude Code needs local files but the network restrictions must stay in place.",
+                "ja": "社内ツールが PC 上のファイルへ直接触れる必要はあるが、外部ネットワークへの接続は制限したいことがある。新しい `sandbox.filesystem.disabled` 設定では、ファイルシステム隔離（プログラムが見られるファイルの範囲を囲う防護）だけを外し、ネットワーク出口の制御は維持できる。許可された社員には書庫を開けつつ、出口は警備員が管理し続けるようなものだ。sandbox（プログラムの行動範囲を制限する保護環境）全体を外すわけではない。",
+                "ko": "회사 도구가 컴퓨터 파일에는 직접 접근해야 하지만 인터넷 연결은 계속 제한해야 할 때가 있다. 새 `sandbox.filesystem.disabled` 설정은 파일 시스템 격리(프로그램이 볼 수 있는 파일 범위를 가두는 보호)는 건너뛰고 네트워크 외부 연결 통제는 유지한다. 허가된 직원에게 자료실 문은 열되 모든 출구는 경비원이 계속 관리하는 셈이다. sandbox(프로그램 활동 범위를 제한하는 보호 환경)를 통째로 푸는 것은 아니다."
+              },
+              "original": "Added `sandbox.filesystem.disabled` setting to skip filesystem isolation while keeping network egress control"
+            },
+            {
+              "title": {
+                "zh-TW": "長對話與內容視窗，終於會明說卡在哪",
+                "zh-CN": "长对话与内容窗口，终于会说清卡在哪",
+                "en": "Long chats run faster and tell you when context is full",
+                "ja": "長い会話が速くなり、文脈上限もはっきり分かる",
+                "ko": "긴 대화가 빨라지고 문맥 한계도 분명히 알린다"
+              },
+              "body": {
+                "zh-TW": "同一段對話談很久，Claude Code 以前會越聊越慢：每多一輪，整理訊息的成本增加得更快，續接時甚至會停好幾秒。這次修掉這種二次方累積，也讓 `/context` 在對話超過內容視窗（context window，AI 一次能記住的對話容量）時直接警告；`/compact` 壓縮失敗也會明確顯示錯誤。像桌上文件越堆越高，舊作法每加一張就得從頭翻更多遍；現在能更順地整理，抽屜塞滿時也會亮紅燈，而非假裝沒事。",
+                "zh-CN": "同一段对话谈很久，Claude Code 以前会越聊越慢：每多一轮，整理消息的成本增加得更快，续接时甚至会停好几秒。这次修掉这种二次方累积，也让 `/context` 在对话超过上下文窗口（context window，AI 一次能记住的对话容量）时直接警告；`/compact` 压缩失败也会明确显示错误。像桌上文件越堆越高，旧做法每加一张就得从头翻更多遍；现在能更顺地整理，抽屉塞满时也会亮红灯，而非假装没事。",
+                "en": "A long-running chat used to get slower the longer it went: each new turn made message cleanup grow disproportionately, producing multi-second stalls and slow resumes. That quadratic buildup is fixed. `/context` now explicitly warns when the conversation exceeds its context window (how much of a conversation the AI can hold at once), and a failed `/compact` clearly appears as an error. It is like a desk where every added sheet once meant rereading a larger pile from the start; now sorting stays smoother, and an overfilled drawer shows a warning instead of pretending nothing is wrong.",
+                "ja": "長く続く会話では、以前はターンが増えるほど Claude Code が遅くなっていた。メッセージ整理の負担が不釣り合いに増え、再開時に数秒止まることもあった。この二次的な増加を修正した。`/context` は会話がコンテキストウィンドウ（AI が一度に覚えておける会話量）を超えると明示的に警告し、`/compact` の失敗もエラーとして表示する。書類を一枚足すたびに山を最初から多く読み返していた机が、整理しやすくなり、引き出しが満杯なら警告灯を出すようなものである。",
+                "ko": "오래 이어진 대화는 턴이 늘수록 Claude Code가 느려졌다. 메시지를 정리하는 부담이 불균형하게 커져 재개할 때 몇 초씩 멈추기도 했다. 이런 제곱 수준의 누적을 고쳤다. `/context`는 대화가 context window(AI가 한 번에 기억할 수 있는 대화량)를 넘으면 분명히 경고하고, `/compact` 실패도 오류로 표시한다. 서류를 한 장 더 올릴 때마다 더 큰 서류 더미를 처음부터 다시 읽던 책상이, 이제는 정리가 빨라지고 서랍이 가득 차면 경고등을 켜는 모습과 같다."
+              },
+              "original": "Fixed a slowdown in long sessions where message normalization cost grew quadratically with the number of turns, causing multi-second stalls and slow resumes\n`/context` now shows an explicit warning when the conversation exceeds the context window, and a failed `/compact` displays as an error"
+            },
+            {
+              "title": {
+                "zh-TW": "登入失效、提問與網頁續接，不再吞掉你的答案",
+                "zh-CN": "登录失效、提问与网页续接，不再吞掉你的答案",
+                "en": "Expired sign-ins, questions, and web resumes stop losing your answer",
+                "ja": "認証切れ、質問、Web 再開で答えが消えなくなった",
+                "ko": "인증 만료·질문·웹 재개에서 답변을 잃지 않는다"
+              },
+              "body": {
+                "zh-TW": "你剛回答「先等等」或「先解釋」，Claude 不會再把它聽成「繼續做」；AskUserQuestion 的自由填答改為中性提示。自動模式的 OAuth token（授權令牌，證明登入身分的暫時通行證）在工作中過期或輪替，也不會被錯誤分類成 HTTP 401 而拒絕指令。網頁版閒置幾分鐘後不再重問同題、遺失回答；雲端工作階段的容器中途重啟，也會在續接時重跑被打斷的那輪，而非無回應。像客服把你的留言貼上工單，現在不會讀錯、弄丟或叫你再講一次。",
+                "zh-CN": "你刚回答“先等等”或“先解释”，Claude 不会再把它听成“继续做”；AskUserQuestion 的自由填答改为中性提示。自动模式的 OAuth token（授权令牌，证明登录身份的临时通行证）在工作中过期或轮换，也不会被错误分类成 HTTP 401 而拒绝命令。网页版闲置几分钟后不再重问同题、丢失回答；云端会话的容器中途重启，也会在续接时重跑被打断的那一轮，而非没反应。像客服把你的留言贴上工单，现在不会读错、弄丢或叫你再讲一次。",
+                "en": "If you answer “wait” or “explain first,” Claude will no longer hear it as “continue”: free-text AskUserQuestion replies now use neutral wording. When an OAuth token (a temporary pass proving your sign-in) expires or rotates mid-session, auto mode will not misclassify it as HTTP 401 and deny commands. The web app also stops asking the same question again after a few idle minutes and losing your answer. If a cloud session’s container restarts mid-turn, that interrupted turn reruns on resume rather than leaving the session unresponsive. Like a support desk, it now reads, keeps, and acts on your message without making you repeat it.",
+                "ja": "「待って」や「先に説明して」と答えても、Claude が「続けて」と受け取ることはなくなった。AskUserQuestion の自由入力は中立的な文言になる。OAuth token（ログインを証明する一時的な通行証）が作業中に失効または更新されても、自動モードが HTTP 401 と誤分類してコマンドを拒否しない。Web 版は数分の放置後に同じ質問を繰り返し、答えを落とすこともなくなる。クラウドセッションのコンテナが途中で再起動しても、中断したターンを再開時にやり直す。",
+                "ko": "“기다려” 또는 “먼저 설명해”라고 답해도 Claude가 더 진행하라는 뜻으로 받아들이지 않는다. AskUserQuestion의 자유 입력 답변은 중립적인 문구로 바뀌었다. OAuth token(로그인 신분을 증명하는 임시 통행증)이 작업 중 만료되거나 교체되어도 자동 모드가 이를 HTTP 401로 잘못 분류해 명령을 거부하지 않는다. 웹 버전도 몇 분 쉬었다고 같은 질문을 다시 하며 답변을 잃지 않는다. 클라우드 세션의 컨테이너가 중간에 재시작되어도 끊긴 턴을 재개 때 다시 실행한다."
+              },
+              "original": "Fixed auto mode denying commands with \"HTTP 401\" classifier errors after the OAuth token expired or rotated mid-session\nFixed AskUserQuestion telling Claude to continue even when your answer asked it to wait or explain first — free-text answers now get neutral wording\nFixed Claude Code on the web re-asking the same question and dropping your answer after the session sat idle for a few minutes\nFixed cloud sessions dropping the in-flight message when the session's container restarts mid-turn — the interrupted turn now re-runs on resume instead of leaving the session unresponsive"
+            },
+            {
+              "title": {
+                "zh-TW": "編輯、恢復與終端機操作少了連環小故障",
+                "zh-CN": "编辑、恢复与终端操作少了连环小故障",
+                "en": "Editing, resuming, and terminal controls lose a chain of small failures",
+                "ja": "編集、再開、端末操作の連鎖的な不具合を修正",
+                "ko": "편집·재개·터미널 조작의 잔고장을 고쳤다"
+              },
+              "body": {
+                "zh-TW": "改檔後用 @ 提及檔案、在 Vim 連按 `c` 指令或貼上文字，現在不會悄悄附上一片空白。工作階段恢復時，狀態列（statusline，終端機最底下顯示狀態的一行）不會跑兩次，選擇器失敗也不會卡住；背景工作很久時，閒置提示按兩下 Esc 仍能打開 `/rewind` 回溯選單。開啟 `/memory`、`/plan`、`/keybindings` 或 Ctrl+G 的圖形編輯器，也不再把滑鼠與焦點控制碼灑進終端機，`/memory` 不必等編輯器關掉才繼續。像修好的文書桌：夾子不再夾空白紙，抽屜不卡死，旁邊開著筆記本也不會把墨水潑滿桌面。",
+                "zh-CN": "改文件后用 @ 提及文件、在 Vim 连按 `c` 指令或粘贴文字，现在不会悄悄附上一片空白。会话恢复时，状态栏（statusline，终端最底下显示状态的一行）不会跑两次，选择器失败也不会卡住；后台工作很久时，空闲提示按两下 Esc 仍能打开 `/rewind` 回溯菜单。打开 `/memory`、`/plan`、`/keybindings` 或 Ctrl+G 的图形编辑器，也不再把鼠标与焦点控制码洒进终端，`/memory` 不必等编辑器关掉才继续。像修好的文书桌：夹子不再夹空白纸，抽屉不卡死，旁边开着记事本也不会把墨水泼满桌面。",
+                "en": "After modifying files, @-mentions, Vim’s repeated `c` operations, and pasted text no longer silently attach nothing. On resume, the statusline (the line of status at the bottom of your terminal) does not run twice, and a failed resume picker no longer hangs. In long-running work with background tasks, pressing Esc twice at an idle prompt still opens `/rewind`. Opening a GUI editor from `/memory`, `/plan`, `/keybindings`, or Ctrl+G no longer sprays mouse and focus control junk into the terminal, and `/memory` no longer waits for that editor to close. Think of a repaired desk: clips hold paper, drawers do not jam, and an open notebook beside it does not spill ink everywhere.",
+                "ja": "ファイル変更後の @ メンション、Vim の `c` 操作の繰り返し、貼り付けが、何も添付しないまま終わることはなくなった。再開時に statusline（端末最下部の状態表示）が二重に走らず、選択画面の失敗で固まることもない。バックグラウンド作業が長い場合も、待機中に Esc を二度押せば `/rewind` を開ける。GUI エディタを開いても端末にマウスやフォーカスのごみが出ず、`/memory` もエディタ終了を待たない。",
+                "ko": "파일을 고친 뒤 @ 멘션, Vim의 `c` 연속 조작, 붙여넣기가 아무것도 붙이지 못한 채 끝나는 일이 없다. 재개할 때 statusline(터미널 맨 아래 상태 표시 줄)이 두 번 실행되지 않고 선택기가 실패해도 멈추지 않는다. 배경 작업이 오래가도 대기 프롬프트에서 Esc를 두 번 누르면 `/rewind`를 열 수 있다. GUI 편집기를 열어도 마우스와 포커스 제어 문자가 터미널에 흩어지지 않으며 `/memory`도 편집기가 닫히기를 기다리지 않는다."
+              },
+              "original": "Fixed @-mentions silently attaching nothing after file-modifying hooks, vim dot-repeat of `c`-operators and paste, statusline running twice on resume, and resume-picker hangs on failure\nFixed Esc-Esc at an idle prompt not opening the rewind picker in long-running sessions with background tasks\nFixed mouse and focus garbage in the terminal while a GUI editor from `/memory`, `/plan`, `/keybindings`, or Ctrl+G is open; `/memory` no longer waits for the editor to close"
+            },
+            {
+              "title": {
+                "zh-TW": "背景代理與工作樹不再走錯棚",
+                "zh-CN": "后台代理与工作树不再走错棚",
+                "en": "Background agents and worktrees stop wandering into the wrong set",
+                "ja": "バックグラウンドエージェントと worktree が迷子にならない",
+                "ko": "백그라운드 에이전트와 작업 트리가 엉뚱한 곳으로 가지 않는다"
+              },
+              "body": {
+                "zh-TW": "讓 Claude 在背景跑任務或分出工作樹（worktree，Git 讓同一專案平行開多份副本的功能）時，隔離終於守得住。恢復的背景代理會取回原本的提示詞與工具限制，不會變回預設代理；剛啟動時收到高優先訊息也不會被取消。隔離工作樹的子代理不能再靠 `git -C`、`--git-dir` 或環境變數偷偷把 Git 指去共用檢出；工作目錄選錯專案時，也不會掉進別案遺留的工作樹。沒有 Git 倉庫的背景工作樹可刪除，Ctrl+X 連按兩次能刪工作階段，死掉的背景工作者不會讓已刪項目復活。像劇組每人進自己的攝影棚：帶回自己的劇本與道具，也不能把鏡頭接到隔壁棚。",
+                "zh-CN": "让 Claude 在后台跑任务或分出工作树（worktree，Git 让同一项目平行开多份副本的功能）时，隔离终于守得住。恢复的后台代理会取回原本的提示词与工具限制，不会变回默认代理；刚启动时收到高优先消息也不会被取消。隔离工作树的子代理不能再靠 `git -C`、`--git-dir` 或环境变量偷偷把 Git 指去共享检出；工作目录选错项目时，也不会掉进别的项目遗留的工作树。没有 Git 仓库的后台工作树可删除，Ctrl+X 连按两次能删会话，死掉的后台工作者不会让已删项目复活。",
+                "en": "When Claude runs jobs in the background or splits work into a worktree (Git’s way to make parallel copies of one project), the isolation now holds. A resumed background agent gets back its original prompt and tool restrictions rather than reverting to the default agent, and a high-priority message during its startup window no longer cancels it. An isolated subagent cannot redirect Git into the shared checkout through `git -C`, `--git-dir`, or environment variables; a mismatched working directory also will not land in another project’s leftover worktree. Non-Git background worktrees can be deleted, Ctrl+X twice deletes a session, and a dead worker cannot resurrect it. Like a film set, each crew keeps its own stage, script, and equipment.",
+                "ja": "Claude がバックグラウンドで作業したり、worktree（Git で一つのプロジェクトの並行コピーを作る機能）に分けたりするとき、隔離が正しく守られる。再開した背景エージェントは元のプロンプトとツール制限を取り戻し、起動直後の高優先メッセージで取り消されない。隔離された子エージェントは `git -C`、`--git-dir`、環境変数で共有チェックアウトへ Git を向けられず、別プロジェクトの残り物 worktree にも入らない。Git のない背景 worktree も削除でき、消したセッションが復活しない。",
+                "ko": "Claude가 백그라운드 작업을 하거나 worktree(Git에서 한 프로젝트의 병렬 사본을 만드는 기능)로 나눌 때 격리가 제대로 지켜진다. 재개된 백그라운드 에이전트는 원래 프롬프트와 도구 제한을 되찾고, 시작 직후 높은 우선순위 메시지가 와도 취소되지 않는다. 격리된 하위 에이전트는 `git -C`, `--git-dir`, 환경 변수로 Git을 공유 체크아웃으로 돌릴 수 없으며 다른 프로젝트의 남은 worktree에도 들어가지 않는다. Git 저장소 없는 배경 worktree도 삭제할 수 있고 삭제한 세션이 되살아나지 않는다."
+              },
+              "original": "Fixed resumed background agent sessions reverting to the default agent: the agent's prompt and tool restrictions are now restored\nFixed worktree-isolated subagents redirecting git into the shared checkout via `git -C`, `--git-dir`, or `GIT_DIR`/`GIT_WORK_TREE`\nFixed worktree sessions landing in another project's leftover worktree when the working directory did not match the selected project\nFixed background sessions whose worktree has no git repository being undeletable\nFixed pressing Ctrl+X twice in the agent list failing to delete a session, and deleted sessions reappearing when their background worker had died\nFixed background subagents getting cancelled when a high-priority message arrives during their startup window"
+            },
+            {
+              "title": {
+                "zh-TW": "連結、權限與指令解析，安全邊界補得更緊",
+                "zh-CN": "链接、权限与命令解析，安全边界补得更紧",
+                "en": "Links, permissions, and command parsing get tighter safety boundaries",
+                "ja": "リンク、権限、コマンド解析の安全境界を強化",
+                "ko": "링크·권한·명령 해석의 안전 경계를 더 단단히 했다"
+              },
+              "body": {
+                "zh-TW": "專案裡看似普通的 `.claude` 捷徑檔，現在不能把 workflow 或排程工作寫到專案外；`/rewind` 也不會透過符號連結或硬連結去還原、刪除被追蹤檔案，且會告訴你跳過幾個路徑。Windows 讀取網路路徑的唯讀指令會先問權限。Bash 對非 ASCII 字元的分詞改得更接近真正 shell，PowerShell 也會驗證藏有看不見 Unicode 字元的指令；複合 Bash 指令在 `&&` 或否定式裡夾重新導向，權限檢查不再漏掉。這像保全不只看門牌，還會檢查走廊裡的暗門與偽裝字條；通往外面的門，全都先問你。",
+                "zh-CN": "项目里看似普通的 `.claude` 快捷链接，现在不能把 workflow 或定时任务写到项目外；`/rewind` 也不会透过符号链接或硬链接去恢复、删除被追踪文件，还会告诉你跳过了几条路径。Windows 读取网络路径的只读命令会先问权限。Bash 对非 ASCII 字符的分词改得更接近真正 shell，PowerShell 也会验证藏有看不见 Unicode 字符的命令；复合 Bash 命令在 `&&` 或否定式里夹重定向，权限检查不再漏掉。像保安不只看门牌，还会检查走廊里的暗门与伪装字条；通往外面的门，都会先问你。",
+                "en": "A seemingly ordinary `.claude` shortcut inside a project can no longer redirect workflow saves or scheduled-task writes outside that project. `/rewind` also will not restore or delete tracked files through symbolic or hard links, and reports how many paths it skipped. On Windows, read-only commands that access network paths now ask permission. Bash now splits non-ASCII text closer to real shell word boundaries; PowerShell validates commands with invisible Unicode characters; and permission checks no longer miss redirects inside `&&` lists or negations. It is like security checking not only the door label but hidden passages and disguised notes in the hallway — every route outside gets your approval first.",
+                "ja": "プロジェクト内の普通に見える `.claude` のショートカットが、workflow 保存や予定タスクの書き込みをプロジェクト外へ向けることはできなくなった。`/rewind` もシンボリックリンクやハードリンク経由で追跡ファイルを復元・削除せず、飛ばしたパス数を報告する。Windows ではネットワークパスへ触れる読み取り専用コマンドも権限を尋ねる。Bash の非 ASCII 文字の解析、不可視 Unicode を含む PowerShell コマンドの検証、複合 Bash コマンドのリダイレクト確認も強化された。",
+                "ko": "프로젝트 안의 평범해 보이는 `.claude` 바로 가기가 workflow 저장이나 예약 작업 쓰기를 프로젝트 밖으로 돌릴 수 없게 됐다. `/rewind`도 심볼릭 링크나 하드 링크를 통해 추적 파일을 복원하거나 삭제하지 않으며 건너뛴 경로 수를 알린다. Windows에서 네트워크 경로를 읽는 읽기 전용 명령도 권한을 묻는다. Bash의 비 ASCII 문자 해석, 보이지 않는 Unicode 문자가 든 PowerShell 명령 검증, 복합 Bash 명령의 리디렉션 권한 검사도 강화됐다."
+              },
+              "original": "Fixed Bash command permission checking for compound statements with redirects inside `&&` lists or negations\nFixed workflow saves and scheduled-task writes following a symlink at `.claude`, which could redirect writes outside the project\nFixed read-only commands on Windows accessing network paths without a permission prompt\nFixed Bash command parsing of non-ASCII characters to match real shell word boundaries\nFixed PowerShell tool permission validation of commands containing invisible Unicode characters\n`/rewind` no longer restores or deletes files through symlinks or hard links at tracked paths and reports how many paths it skipped"
+            },
+            {
+              "title": {
+                "zh-TW": "帳號、MCP 與背景需求，重新接得回來",
+                "zh-CN": "账号、MCP 与后台需求，重新接得回来",
+                "en": "Accounts, MCP, and background requests reconnect cleanly",
+                "ja": "アカウント、MCP、背景の要求を正しくつなぎ直せる",
+                "ko": "계정·MCP·백그라운드 요청을 제대로 다시 연결한다"
+              },
+              "body": {
+                "zh-TW": "背景工作階段沒有客戶端連著時，執行 `/mcp` 或 `/install-github-app` 不再無聲失敗，而會在代理畫面停一張「需要輸入」通知。MCP（Model Context Protocol，讓 AI 連接外部工具的協定）重新登入時，也不會在新登入成功前先撤銷舊憑證；背景工作階段的重新連線提示會指向能用的指令。Claude-in-Chrome 若 OAuth token 少了必要範圍，重連不再陷入 403 迴圈。最後，`claude daemon stop --any` 不會因陳舊鎖定檔誤殺無關行程。像接線員先保留舊門禁卡，直到新卡真的能刷，再把需要你回覆的便條貼在看得到的地方；也不會拿過期地址去關掉隔壁公司的機器。",
+                "zh-CN": "后台会话没有客户端连着时，执行 `/mcp` 或 `/install-github-app` 不再无声失败，而会在代理界面停一张“需要输入”通知。MCP（Model Context Protocol，让 AI 连接外部工具的协议）重新登录时，也不会在新登录成功前先撤销旧凭证；后台会话的重新连接提示会指向能用的命令。Claude-in-Chrome 若 OAuth token 少了必要范围，重连不再陷入 403 循环。最后，`claude daemon stop --any` 不会因陈旧锁定文件误杀无关进程。",
+                "en": "If no client is attached to a background session, `/mcp` and `/install-github-app` no longer fail silently; they park a “needs input” request in the agent view. During MCP reauthentication (Model Context Protocol, the protocol that lets AI connect to external tools), working credentials are not revoked until the new sign-in succeeds, and its background reconnect message points to a usable command. Claude-in-Chrome no longer loops on 403 reconnects when an OAuth token lacks a required scope. Finally, `claude daemon stop --any` will not kill an unrelated process because of a stale legacy lockfile. Like a receptionist, it keeps the old access card until the new one works and leaves your note where you can see it.",
+                "ja": "クライアントが接続していない背景セッションで `/mcp` や `/install-github-app` を実行しても、無言で失敗せずエージェント画面に「入力が必要」と残る。MCP（Model Context Protocol、AI を外部ツールへつなぐプロトコル）の再認証では、新しいログイン成功前に動作中の認証情報を取り消さず、再接続メッセージも使えるコマンドを示す。Claude-in-Chrome の 403 再接続ループや、古いロックファイルで無関係なプロセスを止める問題も修正した。",
+                "ko": "클라이언트가 붙지 않은 백그라운드 세션에서 `/mcp`나 `/install-github-app`을 실행해도 조용히 실패하지 않고 에이전트 화면에 “입력 필요” 요청을 남긴다. MCP(Model Context Protocol, AI를 외부 도구에 연결하는 규약)를 다시 인증할 때도 새 로그인이 성공하기 전 기존 자격 증명을 취소하지 않으며 재연결 안내도 쓸 수 있는 명령을 가리킨다. Claude-in-Chrome의 403 재연결 반복과 오래된 잠금 파일로 무관한 프로세스를 멈추는 문제도 고쳤다."
+              },
+              "original": "Fixed `claude daemon stop --any` potentially terminating an unrelated process via a stale legacy daemon lockfile\nFixed Claude-in-Chrome 403-looping on reconnect when the session's OAuth token lacks a required scope\nFixed MCP re-authenticate revoking working credentials before the new sign-in succeeds, and the reconnect needs-auth message in background sessions pointing at an unusable command\nBackground sessions: `/mcp` and `/install-github-app` now park a \"needs input\" request in the agent view when no client is attached"
+            },
+            {
+              "title": {
+                "zh-TW": "畫面、選單與診斷訊息，更不會讓人猜",
+                "zh-CN": "画面、菜单与诊断信息，更不会让人猜",
+                "en": "Screens, menus, and diagnostics leave less guesswork",
+                "ja": "画面、メニュー、診断が分かりやすくなった",
+                "ko": "화면·메뉴·진단 정보가 더 알기 쉬워졌다"
+              },
+              "body": {
+                "zh-TW": "全螢幕對話框不再撐出右側面板，`/config` 的鍵盤提示與窄於 104 欄終端機的 Ctrl+O 頁尾也不再被截斷。工作階段中改過的 skills 與 commands 不用重開就會出現在斜線選單，外掛 skill 有 `name` 欄位也會保留外掛前綴。Prometheus metrics（監測系統讀取的數值格式）不再輸出無效的 `# UNIT` 行；VSCode 的阿拉伯文、希伯來文、波斯文混英文字或程式碼也能用正確順序顯示。`/fork` 的確認縮成一行並列新名稱、`claude attach` id 與是否共用檢出；ultrareview 與空 diff 會說明限制、大小、最大檔案或正確 base ref，花費上限被拒也會顯示伺服器理由。像機場的看板不再切掉班機資訊，還會直接告訴你哪個閘門、哪件行李出了問題。",
+                "zh-CN": "全屏对话框不再撑出右侧面板，`/config` 的键盘提示与窄于 104 栏终端的 Ctrl+O 页脚也不再被截断。会话中改过的 skills 与 commands 不用重开就会出现在斜线菜单，插件 skill 有 `name` 字段也会保留插件前缀。Prometheus metrics（监测系统读取的数值格式）不再输出无效的 `# UNIT` 行；VSCode 的阿拉伯文、希伯来文、波斯文混英文或代码也能按正确顺序显示。`/fork` 的确认缩成一行并列新名称、`claude attach` id 与是否共享检出；ultrareview 与空 diff 会说明限制、大小、最大文件或正确 base ref，花费上限被拒也会显示服务器理由。",
+                "en": "Fullscreen dialogs no longer spill past the right panel, and `/config` keyboard hints plus the Ctrl+O footer on terminals narrower than 104 columns no longer get clipped. Skills and commands changed during a session appear in the slash menu without restart, and plugin skills keep their prefix even with a `name` field. Prometheus metrics (the numeric format used by monitoring systems) no longer emit invalid `# UNIT` lines; VSCode renders mixed Arabic, Hebrew, or Persian with English or code in the right order. `/fork`, ultrareview, empty diffs, and rejected spend-limit changes now give the name, limits, sizes, relevant files, base ref, or server reason you need. Like an airport board, it no longer cuts off the useful part of the message.",
+                "ja": "全画面ダイアログは右側パネルからはみ出さず、`/config` のキー案内や幅 104 列未満の端末での Ctrl+O フッターも切れない。セッション中に変えた skills と commands は再起動なしでスラッシュメニューに現れ、`name` を持つプラグイン skill も接頭辞を保つ。Prometheus metrics（監視システム用の数値形式）の無効な `# UNIT` 行、VSCode で英語やコードが混じる右から左の文字の順序も修正した。`/fork`、ultrareview、空の diff、利用上限の拒否は必要な理由と詳細を示す。",
+                "ko": "전체 화면 대화 상자가 오른쪽 패널 밖으로 나가지 않고 `/config` 키보드 안내와 104열보다 좁은 터미널의 Ctrl+O 바닥 안내도 잘리지 않는다. 세션 중 바꾼 skills와 commands는 재시작 없이 슬래시 메뉴에 나타나며 `name` 필드가 있는 플러그인 skill도 접두사를 유지한다. Prometheus metrics(모니터링 시스템이 읽는 수치 형식)의 잘못된 `# UNIT` 줄과 VSCode에서 영어·코드가 섞인 오른쪽에서 왼쪽 언어 표시도 고쳤다. `/fork`, ultrareview, 빈 diff, 사용 한도 거절은 필요한 이유와 세부 정보를 알려 준다."
+              },
+              "original": "Fixed dialogs in fullscreen mode stretching past the right-hand edge of their panel\nFixed the `/config` settings list in fullscreen mode clipping its keyboard-hint footer\nFixed the transcript-mode (Ctrl+O) footer hint wrapping on terminals narrower than 104 columns\nFixed the Prometheus metrics endpoint (`OTEL_METRICS_EXPORTER=prometheus`) emitting invalid `# UNIT` lines\nFixed skills and commands changed during a session not appearing in the slash menu until restart\nFixed plugin skills with a `name` frontmatter field losing their plugin prefix in slash-command autocomplete\nImproved the `/fork` confirmation to one line with the new session's name, `claude attach` id, and a note when the copy shares your checkout\nImproved the `/ultrareview` diff-too-large error to show configured limits, measured diff size, and largest contributing files\nImproved `/code-review ultra` empty-diff message to name the exact base ref and suggest passing an explicit base\nImproved the spend limit adjustment prompt to show the server's reason when a spend limit change is rejected\n[VSCode] Fixed right-to-left text (Arabic, Hebrew, Persian) rendering in the wrong order when mixed with English or code"
+            },
+            {
+              "title": {
+                "zh-TW": "權限紀錄與圖表建議，少了誤判",
+                "zh-CN": "权限记录与图表建议，少了误判",
+                "en": "Permission reporting and chart guidance stop mislabeling events",
+                "ja": "権限記録とグラフ案内の誤判定を修正",
+                "ko": "권한 기록과 차트 안내의 오판을 줄였다"
+              },
+              "body": {
+                "zh-TW": "使用者拒絕權限、取消工作，現在在 telemetry（遙測，回傳產品使用狀態的紀錄）裡會被正確分開：跳出權限詢問卻失敗的請求，不再算成你拒絕；你主動中斷則標為使用者中止。PowerShell 裡 `git`、`gh` 的參數驗證也更嚴謹。隨附的 dataviz skill（資料視覺化指引）則調整預設圖表色盤順序，並修正四條資料線也建議直接標籤的說法。這像客服報表終於把「櫃台故障」「客人離開」和「客人拒絕」分成不同欄，不會把錯怪到你頭上；儀表板也換了更好辨認的顏色安排。",
+                "zh-CN": "用户拒绝权限、取消工作，现在在 telemetry（遥测，回传产品使用状态的记录）里会被正确分开：跳出权限询问却失败的请求，不再算成你拒绝；你主动中断则标为用户中止。PowerShell 里 `git`、`gh` 的参数验证也更严谨。随附的 dataviz skill（数据可视化指引）则调整默认图表色盘顺序，并修正四条数据线也建议直接标签的说法。像客服报表终于把“柜台故障”“客人离开”和“客人拒绝”分成不同栏，不会把错怪到你头上。",
+                "en": "Telemetry (records sent back about product use) now separates permission events correctly: a request whose permission prompt failed no longer counts as your rejection, while an interruption you make is reported as a user abort. Validation of `git` and `gh` arguments in PowerShell is also stronger. The bundled dataviz skill (guidance for data visualization) reorders its default chart palette and corrects advice that suggested direct labels for four series. Like a support report, it now keeps “counter failed,” “customer left,” and “customer refused” in separate columns instead of blaming you for every one.",
+                "ja": "telemetry（製品利用の状態を返す記録）で、権限イベントが正しく分けられる。権限確認の表示に失敗した要求はユーザーの拒否として数えず、ユーザー自身の中断は中止として記録する。PowerShell の `git` と `gh` の引数検証も強化した。同梱 dataviz skill（データ可視化の案内）は既定の色順を並べ替え、四系列に直接ラベルを勧める案内を修正した。",
+                "ko": "telemetry(제품 사용 상태를 되돌려 보내는 기록)는 이제 권한 이벤트를 바르게 구분한다. 권한 창 표시가 실패한 요청은 사용자의 거절로 세지 않고, 사용자가 끊은 작업은 사용자 중단으로 기록한다. PowerShell의 `git`, `gh` 인수 검증도 강화됐다. 함께 제공되는 dataviz skill(데이터 시각화 안내)은 기본 차트 색 순서를 바꾸고 네 개 계열에 직접 레이블을 권하던 안내를 고쳤다."
+              },
+              "original": "Fixed telemetry misreporting permission denials: failed permission-prompt requests no longer count as user rejections, and user interrupts are now reported as user aborts instead of rejections\nImproved validation of `git` and `gh` command arguments in the PowerShell tool\nUpdated the bundled dataviz skill: reordered the default chart palette and fixed guidance that suggested direct labels for four-series charts"
+            }
+          ]
+        },
         {
           "version": "2.1.215",
           "period": "2026-07-19",
@@ -152,199 +311,6 @@
               "original": "Fixed `/ultrareview` refusing to run in repos with no merge base — it now offers to review all tracked files\nFixed hooks with exit code 2 not blocking as documented when the hook's stdout JSON fails schema validation\nFixed MCP transient errors during prompts/resources refresh clearing the server's slash commands and resources\nChanged keep-alive connection pooling to disable after a stale-connection error, so retries open a fresh socket"
             }
           ]
-        },
-        {
-          "version": "2.1.212",
-          "period": "2026-07-17",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "對話分身自動掛名，跑腿小幫手分家",
-                "zh-CN": "对话分身自动命名，跑腿小帮手分家",
-                "en": "Conversation copies name themselves, and the helper gets its own lane",
-                "ja": "会話の分身に自動で名前が付き、お使い役も別になった",
-                "ko": "대화 분신은 자동으로 이름 붙고, 심부름 도우미는 따로 나뉜다"
-              },
-              "body": {
-                "zh-TW": "你請 Claude 改報告磨了半小時，它摸熟你的想法了，這時又想順便生一版簡報。插話問，討論會變大雜燴；開新對話，它又什麼都不記得，得重講半小時。這正是打「/fork」的時刻（原意是叉子，因為它像樹枝分岔，從目前對話分出一條新枝）。打下去，Claude 把聊到現在的內容整份複製給分身，成為獨立的「背景工作階段」（background session，丟到背景自己繼續跑、不用你盯著），帶著全部記憶去做簡報；你留在原地改報告。分身就像交出去的外送單：在「claude agents」清單自成一列，沒取名字就自動拿你交代的那句話當名字，一眼認出誰是誰。「查一下這個詞」這種要等答案才能繼續的小事，交給「/subtask」（子任務）。它是原本「/fork」順便叫出的內建子代理（subagent），這次分了家——就像外送平台把「叫外送」跟「請店內夥計跑腿」分成兩顆按鈕，你再也不會按錯。",
-                "zh-CN": "你请 Claude 改报告磨了半小时，它已经摸熟你的想法了，这时又想顺手出一版演示文稿。插话问，讨论会变成大杂烩；另开新对话，它又什么都不记得，得重讲半小时。这正是用「/fork」的时候（原意是叉子，因为它像树枝分岔，从当前对话分出一条新枝）。一敲下去，Claude 会把聊到现在的内容整份复制给分身，成为独立的「后台会话」（background session，放到后台自己继续跑，不用你盯着），带着全部记忆去做演示文稿；你留在原地改报告。分身就像交出去的外卖单：在「claude agents」列表里自成一行，没取名字就自动拿你交代的那句话当名字，一眼认出谁是谁。像「查一下这个词」这种得等答案才能继续的小事，交给「/subtask」（子任务）。它是原来「/fork」顺带叫出的内置子代理（subagent），这次分家了——就像外卖平台把「叫外卖」和「请店内伙计跑腿」分成两个按钮，你再也不会按错。",
-                "en": "You have spent half an hour revising a report with Claude, and it now understands your thinking. Then you want it to make a slide deck too. Ask in the same conversation and the discussion becomes a jumble; start a new one and Claude remembers nothing, so you must explain it all again for half an hour. That is when to use `/fork`: named after a fork in a tree, it branches off from the current conversation. Run it and Claude gives a copy everything discussed so far as an independent background session, which makes the slide deck with all that context while you keep revising the report. The copy is like a delivery order you hand off: it gets its own row in `claude agents`, and if unnamed, takes your prompt as its name so you can tell them apart. For a small job such as “look up this term,” where you need the answer before continuing, use `/subtask`. It is the built-in subagent that `/fork` used to launch along the way, but they now have separate homes—like a delivery app splitting “order delivery” and “ask the shop assistant to run an errand” into two buttons, so you no longer press the wrong one.",
-                "ja": "Claude に報告書を直してもらって半時間、あなたの考えをつかんだところで、ついでにスライドも作りたくなる。会話に割り込んで聞けば話がごちゃ混ぜになり、新しい会話を始めれば Claude は何も覚えておらず、また半時間かけて説明し直すことになる。そんなときに打つのが「/fork」である。木の枝のように、今の会話から新しい枝を分ける名前だ。打てば Claude はここまでの会話を丸ごと分身へコピーし、独立したバックグラウンドセッション（background session）として任せられる。分身は全ての文脈を持ってスライドを作り、あなたはその場で報告書を直し続けられる。分身は渡した宅配注文のようなものだ。「claude agents」の一覧に1行で現れ、名前がなければ指示した文が自動で名前になるため、すぐ見分けられる。「この用語を調べて」のように答えを待ってから進める小さな用事は「/subtask」（子タスク）へ渡す。これは元々「/fork」が一緒に呼んでいた内蔵サブエージェント（subagent）であり、今回別になった。宅配アプリの「配達を頼む」と「店員にお使いを頼む」が別ボタンになり、もう押し間違えないようなものだ。",
-                "ko": "Claude에게 보고서를 고쳐 달라고 한 지 30분, 당신 생각을 익힌 참에 발표 자료도 한 벌 만들고 싶어진다. 같은 대화에 끼어들어 물으면 논의가 뒤죽박죽되고, 새 대화를 열면 Claude는 아무것도 기억하지 못해 30분 동안 다시 설명해야 한다. 이때 '/fork'를 쓴다. 나뭇가지처럼 현재 대화에서 새 가지를 뻗는다는 뜻이다. 실행하면 Claude가 지금까지 나눈 내용을 통째로 분신에게 복사해 독립된 백그라운드 세션(background session, 뒤에서 스스로 계속 돌아가 지켜볼 필요 없는 작업)으로 만든다. 분신은 모든 맥락을 들고 발표 자료를 만들고, 당신은 그 자리에서 보고서를 계속 고친다. 분신은 넘겨 준 배달 주문과 같다. 'claude agents' 목록에서 한 줄을 따로 차지하고, 이름이 없으면 지시한 문장이 자동으로 이름이 되어 바로 구별할 수 있다. '이 용어를 찾아줘'처럼 답을 기다려야 다음으로 갈 수 있는 작은 일은 '/subtask'(하위 작업)에 맡긴다. 이는 원래 '/fork'가 함께 부르던 내장 서브에이전트(subagent)이며, 이번에 따로 분리됐다. 배달 앱에서 '배달 주문하기'와 '가게 직원에게 심부름 시키기'를 두 버튼으로 나눈 셈이라 더는 잘못 누르지 않는다."
-              },
-              "original": "`/fork` now copies your conversation into a new background session (its own row in `claude agents`) while you keep working; the in-session subagent it used to launch is now `/subtask`\nChanged `/fork` to name the copy after your prompt when the session has no title, so the row is recognizable in the agent view"
-            },
-            {
-              "title": {
-                "zh-TW": "刪掉的對話找得回來，分身做完會回報",
-                "zh-CN": "删掉的会话找得回来，分身做完会汇报",
-                "en": "Deleted sessions can come back, and copies report when they're done",
-                "ja": "消した会話も呼び戻せ、分身は終わると知らせる",
-                "ko": "지운 세션도 되찾고, 분신은 끝나면 알려준다"
-              },
-              "body": {
-                "zh-TW": "派出去的分身，現在更難搞丟、也更會回報。昨天手滑刪掉的對話，今天又想接著用？在代理畫面輸入「/resume」（恢復），過去的工作階段都會列出來讓你挑——連從清單手動刪掉的都找得回來，選了就丟回背景接著跑，像取消的外送單還能重新派送。兩個會讓分身出狀況的毛病修好了：以前分身碰上寫入失敗，會失去跟主線對話的保護；剛停掉的分身重開，偶爾也不吭聲就失敗——現在重開要嘛直接成功，要嘛講清楚原因、讓你強制重開。你中途點開一個還在開機的分身，也不再對著空白畫面乾等，會先看到整理好的對話紀錄。分身做完事而你正閒著時，左下角提示字會跳「N done」（N 件完成）閃一下提醒你。就像每位外送員送達都會回報，你不用一直開門張望。",
-                "zh-CN": "派出去的分身，现在更不容易弄丢，也更会汇报。昨天手滑删掉的对话，今天又想接着用？在代理界面输入「/resume」（恢复），过去的会话都会列出来让你挑——连从列表手动删掉的都找得回来，选中后就丢回后台接着跑，像取消的外卖单还能重新派送。两个会让分身出状况的毛病也修好了：以前分身遇到写入失败，会失去和主线对话的保护；刚停掉的分身重开，偶尔也会一声不吭地失败——现在重开要么直接成功，要么说清原因，让你强制重开。中途点开一个还在启动的分身，也不用对着空白画面干等，会先看到整理好的会话记录。分身做完事而你正闲着时，左下角提示会跳出「N done」（N 件完成）闪一下提醒你。就像每个外卖骑手送达都会回报，你不用一直开门张望。",
-                "en": "The copy you sent out is now harder to lose and better at reporting back. Did you accidentally delete a conversation yesterday and want to continue it today? Type `/resume` in the agent view and you can choose from past sessions — including ones manually removed from the list — then send it back to the background to keep running, like re-dispatching a cancelled delivery order. Two bugs that could disrupt a copy are fixed: after a state write failure, it used to lose its protection tied to the parent conversation; reopening a just-stopped copy also sometimes failed without a word. Now reopening either succeeds or explains why it cannot and lets you force a restart. Open a copy that is still booting and, instead of staring at a blank screen, you first see the formatted transcript. When a copy finishes while you have nothing to answer, the footer briefly pulses `N done` to alert you. Like every courier reporting a delivery, you no longer need to keep watching the door.",
-                "ja": "送り出した分身は、今では見失いにくく、報告もしてくれる。昨日うっかり消した会話を、今日また使いたくなったか。エージェント画面で「/resume」（再開）と入力すれば、過去のセッションが並んで選べる。一覧から手で削除したものも見つかり、選べばバックグラウンドに戻して続きを走らせられる。取り消した宅配注文をもう一度配車するようなものだ。分身を困らせていた不具合も2つ直った。状態の書き込みに失敗すると親の会話につながる保護を失うことがあり、止めたばかりの分身を開き直すと黙って失敗することもあった。今は再開できるか、できない理由を示して強制再起動を選べる。起動中の分身を途中で開いても、空白画面で待つ代わりに整形済みの会話記録が先に見える。分身が終わり、あなたの入力を待っていないときは、左下のヒントが「N done」（N件完了）と一瞬点滅して知らせる。配達員が配達完了を報告するように、ずっと玄関をのぞく必要はない。",
-                "ko": "내보낸 분신은 이제 더 잃어버리기 어렵고, 끝나면 더 잘 알려 준다. 어제 실수로 지운 대화를 오늘 다시 이어 쓰고 싶은가? 에이전트 화면에서 '/resume'(재개)를 입력하면 지난 세션을 모두 골라 볼 수 있다. 목록에서 직접 지운 세션도 찾아서, 고르면 백그라운드로 돌려 계속 실행한다. 취소한 배달 주문을 다시 배차하는 것과 같다. 분신을 곤란하게 하던 문제 두 가지도 고쳤다. 상태 저장이 실패하면 부모 대화와 연결된 보호를 잃을 수 있었고, 막 멈춘 분신을 다시 열면 말없이 실패하기도 했다. 이제는 재개에 바로 성공하거나, 안 되는 이유를 보여 주고 강제로 다시 시작하게 한다. 아직 켜지는 중인 분신을 중간에 열어도 빈 화면만 기다리지 않고, 정리된 대화 기록을 먼저 볼 수 있다. 분신이 일을 끝냈고 당신의 입력이 필요 없으면 왼쪽 아래 힌트가 잠깐 'N done'(N건 완료)이라고 깜박여 알린다. 배달 기사가 도착을 알리듯, 계속 문 앞을 내다볼 필요가 없다."
-              },
-              "original": "Typing `/resume` in the agent view now opens a picker of past sessions — including sessions deleted from the list — and resumes your pick as a background session\nFixed background sessions created with `/fork` losing their live-parent protection after a state write failure\nFixed reopening a stopped background session from the agent view failing silently — it now resumes the session, or shows why it can't and lets you force a restart\nImproved background agent attach: cold-attaching now instantly shows the formatted transcript while the session boots, instead of a blank wait\nChanged the `←` footer hint to pulse `N done` for a moment when a background agent finishes while nothing needs your input"
-            },
-            {
-              "title": {
-                "zh-TW": "auto-mode 加裝煞車，失控前先喊停",
-                "zh-CN": "auto-mode 装上刹车，失控前先喊停",
-                "en": "Auto-mode gets brakes that stop runaway loops before they spiral",
-                "ja": "auto-mode にブレーキが付き、暴走する前に止まるようになった",
-                "ko": "auto-mode에 브레이크가 붙어 폭주하기 전에 멈춘다"
-              },
-              "body": {
-                "zh-TW": "你是否曾遇過自動模式（auto-mode）失控？當 Claude 陷入瘋狂搜尋或無限開啟子代理（subagent）的迴圈時，荷包可能瞬間大失血。現在系統加裝了跳電保護。單一工作階段（session）的網頁搜尋與子代理數量預設限制在 200 次，一旦超標就強制中斷，打「/clear」可重新計數。如果遇上運行超過 2 分鐘的 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）指令，也會自動移到背景執行，不讓畫面卡死。若要回復乾淨的預設值，這正是你輸入「claude auto-mode reset」的時刻，系統會先詢問確認，加上「--yes」就能直接跳過。像家裡裝了無熔絲開關，一個插座短路只會跳開它，不會燒毀整棟房子。",
-                "zh-CN": "你是否曾遇到自动模式（auto-mode）失控？当 Claude 陷入疯狂搜索或无限开启子代理（subagent）的循环时，钱包可能瞬间大失血。现在系统加装了跳闸保护。单个会话（session）的网页搜索与子代理数量默认限制在 200 次，一旦超标就强制中断，输入「/clear」可重新计数。如果遇到运行超过 2 分钟的 MCP（Model Context Protocol，让 AI 连接外部工具的协议）指令，也会自动移到后台运行，不让画面卡死。若要恢复干净的默认值，这正是你输入「claude auto-mode reset」的时候，系统会先弹出确认，加上「--yes」就能直接跳过。像家里装了空气开关，一个插座短路只会跳开它，不会烧毁整栋房子。",
-                "en": "Have you ever watched auto-mode run wild? When Claude spirals into endless searches or subagent loops, your budget can vanish instantly. Now there is a breaker in place. A session is capped at 200 WebSearch calls and 200 subagent spawns by default, with `/clear` resetting the counter. Any MCP (Model Context Protocol) call running past 2 minutes automatically moves to the background so your window does not freeze. If you want to wipe the slate clean, that is when to run `claude auto-mode reset` (adding `--yes` skips the confirmation prompt). It is like adding a surge protector to your home—a single faulty plug trips the switch instead of burning down the house.",
-                "ja": "自動モード（auto-mode）が暴走したことはないだろうか。Claude が検索やサブエージェント（subagent）の起動ループにはまると、トークンがあっという間に枯渇する。そこで、システムにブレーカーが導入された。セッション（session）あたりの検索やサブエージェントは上限が200回に制限され、「/clear」でリセットできる。2分を超える MCP（Model Context Protocol）呼び出しは自動的にバックグラウンドへ送られ、画面が固まらない。設定を初期化したいときは、まさに「claude auto-mode reset」をたたく瞬間である（--yes で確認をスキップできる）。家の一部がショートした際に、ブレーカーが落ちるだけで家全体が燃えずに済むようなものだ。",
-                "ko": "자동 모드(auto-mode)가 제멋대로 날뛴 적이 있는가? Claude가 끝없는 검색이나 서브에이전트(subagent) 실행 루프에 빠지면 비용이 순식간에 불어날 수 있다. 이제 시스템에 누전 차단기가 추가됐다. 세션(session)당 웹 검색과 서브에이전트 실행이 기본 200회로 제한되며, '/clear'로 초기화할 수 있다. 2분이 넘는 MCP(Model Context Protocol) 호출은 자동으로 백그라운드로 넘어가 화면이 멈추지 않는다. 설정을 초기화하고 싶다면 바로 'claude auto-mode reset'을 실행할 때다('--yes'를 붙이면 확인 단계를 건너뛴다). 집안의 두꺼비집과 같아서, 플러그 하나가 합선되어도 차단기만 내려갈 뿐 온 집안이 타지 않는다."
-              },
-              "original": "Added `claude auto-mode reset` to restore the default auto-mode configuration, with a confirmation prompt (pass `--yes` to skip)\nAdded a session-wide limit on WebSearch tool calls (default 200, tunable via `CLAUDE_CODE_MAX_WEB_SEARCHES_PER_SESSION`) to stop runaway search loops\nAdded a per-session cap on subagent spawns (default 200, override with `CLAUDE_CODE_MAX_SUBAGENTS_PER_SESSION`) to stop runaway delegation loops; `/clear` resets the budget\nMCP tool calls running longer than 2 minutes now move to the background automatically so the session stays usable; configure the threshold or disable with `CLAUDE_CODE_MCP_AUTO_BACKGROUND_MS`\nFixed auto-mode denial notifications rendering broken characters when a long denial reason was truncated mid-emoji"
-            },
-            {
-              "title": {
-                "zh-TW": "危險指令與掛鉤失效的漏洞補齊",
-                "zh-CN": "危险指令与钩子失效的漏洞补上了",
-                "en": "Holes that let risky commands slip through without asking are patched",
-                "ja": "危険なコマンドや hook 無効化の抜け穴がふさがれた",
-                "ko": "위험한 명령과 hook 무력화 구멍이 메워졌다"
-              },
-              "body": {
-                "zh-TW": "把鑰匙交給管家，最怕他擅自開鎖或把外人帶進家門。以前在規劃模式下，像 touch 或 rm 這種修改檔案的危險指令有時會沒問你就自己跑掉，現在已被牢牢鎖上。當你建立工作樹（worktree，Git 讓同一專案平行開多份副本的功能）時，以前會跟著連結亂跑。現在若專案藏了指向外部的符號連結（symlink，指向另一位置的捷徑檔），系統會直接擋住，防止檔案被寫到專案外。此外，當掛鉤（hook，特定事件被觸發的小程式）要求中斷時，即使工具失敗也不會再漏掉指令。甚至在收到終端終止訊號時，系統也會把背景子行程清乾淨。像保全系統補上了沒鎖好的後門，該阻擋的動作這次真的擋得住。",
-                "zh-CN": "把钥匙交给管家，最怕他擅自开锁或把外人带进家门。以前在规划模式下，像 touch 或 rm 这种修改文件的危险指令有时会没问你就自己跑掉，现在已被牢牢锁上。当你创建工作树（worktree，Git 让同一项目平行开多份副本的功能）时，以前会跟着链接乱跑。现在如果项目里藏了指向外部的符号链接（symlink，指向另一位置的快捷方式），系统会直接挡住，防止文件被写到项目外。此外，当钩子（hook，特定事件发生时被触发的小程序）要求中断时，即使工具失败也不会再漏掉指令。甚至在收到终端终止信号时，系统也会把后台子进程清理干净。像安保系统补上了没锁好的后门，该阻挡的动作这次真的挡得住。",
-                "en": "Handing your keys to a helper is risky if they unlock doors without asking. Under plan mode, file-modifying commands like `touch` or `rm` sometimes ran without permission; they are now locked down. When you create a worktree (Git's feature for parallel copies), Claude will no longer write files outside your folder by following a symlink (a shortcut file pointing elsewhere). In addition, when a hook (a script triggered by events) requests a halt, infrastructure errors will no longer swallow the command. Even if a process receives SIGTERM, the CLI kills the whole process tree. It is like a security system patching unlocked back doors—what should be blocked actually is.",
-                "ja": "留守を頼んだ手伝いが、勝手に鍵を開けたり外人を連れ込んだりしたら困るだろう。プランモードで touch や rm のようなファイルを変更するコマンドが確認なしで実行される不具合が修正された。ワークツリー（worktree，Git でプロジェクトの平行コピーを作る機能）を作成する際、外部を指すシンボリックリンク（symlink，別の場所を指すショートカットファイル）をたどってリポジトリ外にファイルが作られる問題も防がれる。さらに、フック（hook，特定イベントでトリガーされるスクリプト）が中断を要求したときにエラーで無視されたり、SIGTERM 受信時に子プロセスが孤立する問題も直った。防犯システムが裏口の鍵を締め直したようなものだ。",
-                "ko": "집을 맡긴 도우미가 허락 없이 문을 열거나 외부인을 들인다면 곤란할 것이다. 계획 모드에서 touch나 rm처럼 파일을 수정하는 위험한 명령이 확인 없이 실행되던 문제가 고쳐졌다. 워크트리(worktree, Git 프로젝트의 평행 사본을 만드는 기능)를 만들 때 외부를 가리키는 심볼릭 링크(symlink, 다른 위치를 가리키는 바로가기 파일)를 따라가 저장소 밖에 파일을 쓰던 문제도 막힌다. 또한 훅(hook, 특정 이벤트 때 실행되는 스크립트)이 중단을 요청할 때 오류로 씹히거나, SIGTERM을 받았을 때 백그라운드에 프로세스가 남는 문제도 수정됐다. 보안 시스템이 뒷문을 굳게 걸어 잠근 셈이다."
-              },
-              "original": "Fixed plan mode auto-running file-modifying Bash commands (e.g. `touch`, `rm`) without a permission prompt or SDK `canUseTool` callback\nFixed worktree creation following a repository-committed symlink at `.claude/worktrees`, which could create files outside the repository\nFixed a `continue:false` hook's halt being dropped when the tool fails or completes mid-stream, and hook infrastructure errors being misreported as user rejections\nFixed SIGTERM during a running Bash tool orphaning the command's process tree in print/SDK mode; the CLI now aborts the turn, kills the tree, and exits 143"
-            },
-            {
-              "title": {
-                "zh-TW": "「/ultrareview」四個卡關一次修掉",
-                "zh-CN": "「/ultrareview」四个卡点一次修完",
-                "en": "Four `/ultrareview` snags fixed in one pass",
-                "ja": "「/ultrareview」の4つの詰まりが一気に直った",
-                "ko": "'/ultrareview'의 네 가지 막힘이 한 번에 고쳐졌다"
-              },
-              "body": {
-                "zh-TW": "想要進行程式碼審查，卻發現指令老是聽不懂你的意思？這次「/ultrareview」一口氣修復了四個讓你卡關的地方。以前你輸入「#123」或貼上 PR 連結時，系統常常認不出來直接報錯，現在各種寫法都吃得下去。當你指定只存在於遠端的分支時，系統也會主動去 origin 抓取，打錯字還會幫你猜最接近的名字。在「/clear」後重開的工作階段（session，工作階段為原定譯法）中，原本會被跳過的計費確認現已補回。而在桌面版應用程式遇到非 Git 儲存庫錯誤時，提示也會改為引導你切換資料夾。就像客服專線終於聽懂你的話，不再轉錯部門或忘記收費。",
-                "zh-CN": "想要进行代码审查，却发现指令总是听不懂你的意思？这次「/ultrareview」一口气修复了四个让你卡点的地方。以前你输入「#123」或贴上 PR 链接时，系统经常认不出来直接报错，现在各种写法都支持了。当你指定只存在于远端的分支时，系统也会主动去 origin 抓取，打错字还会帮你猜最接近的名字。在「/clear」后重开的会话（session）中，原本会被跳过的计费确认现已补回。而在桌面版应用遇到非 Git 仓库错误时，提示也会改为引导你切换文件夹。就像客服专线终于听懂你的话，不再转错部门或忘记收费。",
-                "en": "Need a code review but the command keeps failing to understand you? Four `/ultrareview` snags are now fixed in one go. It now accepts `#123`, `PR 123`, or a full PR link instead of throwing errors. Specifying a remote-only branch automatically triggers a fetch from origin, and typos will get suggestions for the closest match. In a fresh session after `/clear`, the billing confirmation is no longer skipped. Finally, if you run into repository errors on Claude Desktop, the app will guide you to switch folders. It is like a customer hotline that stopped dropping calls, transferring you to the wrong desk, or forgetting to bill you.",
-                "ja": "コードレビューを頼みたいのに、コマンドがこちらの意図を理解してくれないことはないだろうか。「/ultrareview」で発生していた4つの問題が一度に解決した。「#123」や PR の URL を直接貼り付けても認識するようになり、打ち間違えると、最も近いブランチ名を提案する。ローカルにないリモートブランチを指定した場合は origin から取得し、名前が似ているブランチを提案する。さらに「/clear」後のセッション（session）で料金確認がスキップされる問題や、デスクトップ版でリポジトリエラー時に端末コマンドを案内する問題も修正された。コールセンターがこちらの話を正しく聞き取り、転送ミスや請求漏れをなくしたようなものだ。",
-                "ko": "코드 리뷰를 맡기고 싶은데 명령어가 내 뜻을 못 알아듣는 일이 잦았는가? '/ultrareview'에서 막히던 네 가지 문제가 한 번에 고쳐졌다. 이제 '#123'이나 PR 주소를 직접 붙여넣어도 인식하며, 오타를 내면 가장 가까운 브랜치 이름을 제안한다. 로컬에 없는 원격 브랜치를 지정하면 origin에서 자동으로 가져오고 비슷한 이름을 제안해 준다. 또한 '/clear' 후 새 세션(session)에서 결제 확인이 건너뛰어지던 버그와, 데스크톱 앱에서 저장소 오류 시 터미널 명령을 안내하던 문제도 수정됐다. 고객센터가 말을 정확히 알아듣고, 전화를 잘못 돌리거나 요금 청구를 빠뜨리지 않게 된 셈이다."
-              },
-              "original": "Fixed `/ultrareview` rejecting PR references like `#123`, `PR 123`, and pasted PR URLs; error hints now name the command you actually typed\nFixed `/ultrareview <branch>` not fetching the branch from origin when it exists remotely; it now suggests the closest branch name on typos\nFixed `/ultrareview` skipping the billing confirmation in a new conversation after `/clear`\nFixed `/ultrareview`'s \"not a git repository\" error on Claude Desktop now suggesting the project's repository folder instead of terminal commands"
-            },
-            {
-              "title": {
-                "zh-TW": "終端機操作卡頓與跑版修好了",
-                "zh-CN": "终端操作卡顿与排版错乱修好了",
-                "en": "Terminal input glitches and layout jank are fixed",
-                "ja": "端末操作の引っかかりとレイアウト崩れが直った",
-                "ko": "터미널 조작 버벅임과 레이아웃 깨짐이 고쳐졌다"
-              },
-              "body": {
-                "zh-TW": "當你在終端機裡手忙腳亂地輸入指令，卻常碰上畫面卡頓或文字折行跑版？這批修正專門治這些介面上的小疙瘩。在 Windows 上被原則擋住 PowerShell 5.1 時，後台守護行程（daemon）現改用第七版啟動。用「!」在 shell 模式輸入含路徑的指令時，不會再因為自動完成選單開著而失效。在代理畫面按 Ctrl+J 也終於能正常換行。此外，像是計畫核准對話框提示被長路徑擠爛、全螢幕縮放時歡迎畫面沒跟著變寬，以及窄版 diff 畫面行號消失等排版問題，也全部調整完畢。就像幫家裡卡卡的門鎖上了油，開關終於順了。",
-                "zh-CN": "当你在终端里手忙脚乱地输入指令，却常碰上画面卡顿或文字折行排版错乱？这批修正专门治这些界面上的小疙瘩。在 Windows 上被组策略挡住 PowerShell 5.1 时，后台守护进程（daemon）现改用第七版启动。用「!」在 shell 模式输入含路径的指令时，不会再因为自动补全菜单开着而失效。在代理视图按 Ctrl+J 也终于能正常换行。此外，像是计划批准对话框提示被长路径挤烂、全屏缩放时欢迎界面没跟着变宽，以及窄版 diff 画面行号消失等排版问题，也全部调整完毕。就像帮家里卡卡的门锁上了油，开关终于顺了。",
-                "en": "Are terminal glitches and broken layouts slowing down your typing? This batch smooths out those interface friction points. On Windows, if policies block PowerShell 5.1, the daemon prefers PowerShell 7. In shell mode (`!`), path autocomplete will no longer freeze commands containing file paths. Keyboards with extended reporting can now use Ctrl+J for newlines correctly. Layout bugs like truncated text in the approval dialog, static panels on window resizing, and missing markers in narrow diff views are all patched. It is like oiling a few sticky door locks—everything finally moves smoothly.",
-                "ja": "端末でコマンドを入力しているときに、画面の引っかかりやレイアウト崩れにイライラしたことはないだろうか。Windows でポリシー制限により PowerShell 5.1 が防がれている場合、デーモン（daemon）は自動で PowerShell 7 を探すようになった。また「!」のシェルモードで自動補完が原因でパス入力が実行されない問題や、Ctrl+J で改行ができない不具合も直った。他には承認ダイアログが長いパスで崩れる問題、リサイズ時にパネル幅が固定されるバグ、狭い画面で diff の表示が消える問題などが調整された。ドアの鍵に油を差してスムーズにしたようなものだ。",
-                "ko": "터미널에서 열심히 입력하는데 화면이 버벅이거나 글자가 깨져서 짜증 난 적이 있는가? 이번 패치는 이런 자잘한 인터페이스 오작동을 고쳤다. Windows에서 정책 때문에 PowerShell 5.1이 막히면 데몬(daemon)이 자동으로 PowerShell 7을 찾아 실행한다. '!' 셸 모드에서 자동완성 메뉴가 켜져 있어 파일 경로 명령이 무시되던 문제와 Ctrl+J로 줄바꿈이 안 되던 버그도 해결됐다. 아울러 긴 경로명 때문에 승인창 레이아웃이 터지거나, 리사이즈 시 환영 화면 크기가 고정되는 현상, 좁은 화면에서 diff 행 번호가 사라지는 현상도 전부 바로잡혔다. 뻑뻑한 문고리에 기름을 쳐서 부드럽게 만든 셈이다."
-              },
-              "original": "Fixed `/background` and `claude --bg` failing with \"EUNKNOWN: unknown error, uv_spawn\" on Windows when Group Policy blocks PowerShell 5.1; the daemon now prefers PowerShell 7\nFixed shell mode (`!`) not executing commands containing file paths while the path autocomplete popup was open\nFixed Ctrl+J not inserting a newline in the agent view dispatch input on terminals with extended key reporting, and surfaced the newline shortcut in the `?` help overlay\nFixed the plan-approval dialog footer splitting \"ctrl+g to edit in <editor>\" apart when the file path is long\nFixed the welcome banner keeping its old panel widths after a combined width+height terminal resize in fullscreen mode\nFixed diff previews losing their line numbers and +/- markers in narrow layouts"
-            },
-            {
-              "title": {
-                "zh-TW": "幾種讓工作階段開不起來的毛病修好了",
-                "zh-CN": "几种让会话开不起来的毛病修好了",
-                "en": "A few reasons sessions failed to start are fixed",
-                "ja": "セッションが起動できなくなる不具合がいくつか直った",
-                "ko": "세션이 시작되지 않던 몇 가지 문제가 고쳐졌다"
-              },
-              "body": {
-                "zh-TW": "你正在處理緊急任務，工作階段卻無預警卡死在啟動畫面？這些阻礙對話開機的疑難雜症已經被清除了。如果你的專案設定了特殊的傳輸安全性憑證（如 mTLS 或額外的 CA 憑證包），雲端代管工作階段現在會忽略這些設定並跳出警告，但保證讓你順利開機。以前如果先讀取了檔案的局部內容，在恢復工作階段（session，工作階段為原定譯法）時若編輯該檔會被誤判而擋下，這問題已修好。另外，使用繼續參數重啟後若呼叫 ExitWorktree 也會正常執行。就像大樓保全認識了更多款門禁卡，不再因為格式不同就把你鎖在門外。",
-                "zh-CN": "你正在处理紧急任务，会话却无预警卡死在启动画面？这些阻碍对话启动的疑难杂症已经被清除了。如果你的项目配置了特殊的传输安全证书（如 mTLS 或额外的 CA 证书包），云端托管会话现在会忽略这些设置并弹出警告，但保证让你顺利启动。以前如果先读取了文件的局部内容，在恢复会话（session）时编辑该文件会被误判而挡下，这问题已修复。另外，使用继续参数重启后如果调用 ExitWorktree 也会正常执行。就像大楼保安认识了更多种门禁卡，不再因为格式不同就把你锁在门外。",
-                "en": "Are you rushing a task only to have your session freeze right at startup? A few bugs preventing conversations from launching are now gone. Cloud-managed sessions that used to crash due to project certs like mTLS or custom CA bundles will now ignore those settings with a warning and start anyway. We fixed an error where editing a file previously read in chunks would block you on resuming. Also, calling `ExitWorktree` after picking up a session with resume parameters works fine now. It is like building security learning to accept different ID card styles instead of locking you out.",
-                "ja": "作業を進めたいのに、セッションが起動時に固まってしまったことはないだろうか。起動を邪魔していたいくつかの不具合が修正された。mTLS などの転送証明書が設定されているリポジトリでクラウドセッションが失敗する問題は、警告を出しつつ無視して起動するように改善された。また、部分的に読み込んだファイルをセッション（session）再開後に編集した際のエラーや、ExitWorktree 呼び出し時の失敗も解決した。警備員が新しい種類の入館証を覚え、カードのデザインが違うだけで締め出すのをやめたようなものだ。",
-                "ko": "급히 작업해야 하는데 세션이 시작 화면에서 멈춰 답답한 적이 있는가? 대화 시작을 방해하던 문제들이 사라졌다. mTLS 같은 전송 보안 인증서가 설정된 저장소에서 클라우드 세션이 켜지지 않던 문제는 경고를 띄우면서 해당 설정을 무시하고 실행되도록 개선됐다. 또한 파일의 일부만 읽은 상태에서 세션(session)을 재개한 뒤 수정할 때 뜨던 spurious 오류와, ExitWorktree를 호출할 때 연결이 끊기던 오류도 잡혔다. 경비원이 여러 형태의 출입증을 알아보고 문을 열어 주는 것과 같다."
-              },
-              "original": "Fixed hosted (host-managed) sessions failing at startup when repository settings configured mTLS certs, extra CA bundles, or OAuth scopes; these transport settings are now ignored with a warning\nFixed a spurious \"File has not been read yet\" error when editing a file that had been read with offset/limit before resuming a session\nFixed `ExitWorktree` failing with \"no active EnterWorktree session\" after resuming a session with `--continue`/`--resume` in print/SDK mode"
-            },
-            {
-              "title": {
-                "zh-TW": "遙測回報與搜尋擷取的可靠度修好了",
-                "zh-CN": "遥测回报与搜索获取的可靠度修好了",
-                "en": "Telemetry export and web search reliability fixed",
-                "ja": "テレメトリ送信とウェブ検索の信頼性が改善した",
-                "ko": "텔레메트리 전송과 웹 검색 안정성이 개선됐다"
-              },
-              "body": {
-                "zh-TW": "你在背景傳送監控指標或抓取網頁資料時，是否常被斷斷續續的網路錯誤打斷？這批修正提高了遙測與搜尋的可靠度。當 OpenTelemetry 匯出遇到不吃分段傳輸的 Azure 監控伺服器時，現改用傳統相容模式發送，避免被 411 拒絕。在無頭模式（headless，沒有終端機視窗／視覺介面的執行模式）下若設定了 TRACEPARENT，事件紀錄也不會再漏掉追蹤編號。而當網頁搜尋工具因流量過大回傳 API 錯誤或遭遇限流時，系統會自動在背景以漸進拉長等待的方式重試。就像客服學會分清答錄機和忙線音，遇到忙線會等一下再撥，不再直接放棄。",
-                "zh-CN": "你在后台发送监控指标或抓取网页数据时，是否常被断断续续的网络错误打断？这批修正提高了遥测与搜索的可靠性。当 OpenTelemetry 导出遇到不支持分块传输的 Azure 监控服务器时，现改用传统兼容模式发送，避免被 411 拒绝。在无头模式（headless，没有终端机窗口／视觉界面的执行模式）下如果设置了 TRACEPARENT，事件记录也不会再漏掉追踪编号。而当网页搜索工具因流量过大返回 API 错误或遭遇限流时，系统会自动在后台以渐进拉长等待的方式重试。就像客服学会分清录音机和忙音，遇到忙音会等一下再拨，不再直接放弃。",
-                "en": "Do network drops and fetch errors interrupt your metrics exports and web searches? We have hardened telemetry and web tools. OpenTelemetry HTTP exports to Azure Monitor will use compatible settings to avoid chunked transfer rejections. Under headless mode (running without terminal windows), OTLP logs will not lose trace IDs when TRACEPARENT is set. If web search hits an overloaded server or rate limits, the tool now retries with backoff instead of giving up with an API error text. It is like an agent waiting for a line to clear and calling back later, instead of reporting a busy signal as the final answer.",
-                "ja": "メトリクスの送信やウェブ検索が、ネットワークエラーで途切れたことはないだろうか。テレメトリとウェブ検索の堅牢性が向上した。OpenTelemetry が Azure Monitor などにデータを送る際、分割転送を嫌うサーバー向けに設定を調整しエラーを回避する。また、ヘッドレスモード（headless，端末画面を持たない実行モード）で追跡 ID が欠落するバグも直した。検索機能が過負荷でエラーになったり制限されたりしても、自動でリトライを行う。コールセンターが話中音（ビジーシグナル）を聞いたときに、あきらめずかけ直すようになったようなものだ。",
-                "ko": "지표 송신이나 웹 검색이 수시로 일어나는 네트워크 오류로 끊겨 불편했는가? 텔레메트리와 웹 검색의 안정성이 향상됐다. OpenTelemetry가 Azure Monitor 등에 데이터를 보낼 때 분할 전송이 지원되지 않아 생기는 오류를 방지하도록 설정을 보완했다. 또한 헤드리스 모드(headless, 터미널 화면이 없는 실행 모드)에서 추적 ID가 유실되던 문제를 잡았다. 웹 검색이 일시적인 과부하로 실패할 때 단순히 오류만 뱉지 않고 알아서 시간 간격을 늘려가며 다시 시도한다. 전화가 통화 중일 때 곧바로 끊지 않고 잠시 후 다시 전화를 거는 것과 같다."
-              },
-              "original": "Fixed OpenTelemetry HTTP exports being rejected with 411/400 by Azure Monitor and other endpoints that don't accept chunked transfer encoding\nFixed OTLP event log records missing `trace_id`/`span_id` when `TRACEPARENT` is set in SDK/headless mode\nFixed conversations with many images incorrectly failing with \"Request too large\" errors, and improved the error message to explain the actual cause\nFixed web search and web fetch returning \"API Error\" text as search results or page content when the API was overloaded\nImproved web search and web fetch reliability by retrying 529 errors and rate-limited requests with bounded backoff"
-            },
-            {
-              "title": {
-                "zh-TW": "換模型與傳訊更即時，講話變輕量",
-                "zh-CN": "换模型与传讯更即时，讲话变轻量",
-                "en": "Lighter inter-agent talk and faster mid-turn model swaps",
-                "ja": "エージェント間通信の軽量化と実行中モデル切り替えの高速化",
-                "ko": "에이전트 간 통신 가벼워지고 실행 중 모델 전환 더 빨라졌다"
-              },
-              "body": {
-                "zh-TW": "呼叫 AI 總是花大把冤枉錢，而且中途換模型還要等下一輪才生效？這批更新讓傳送指令更即時且省錢。現在提示詞快取（prompt caching，把重複提問暫存以節省成本的功能）在 Bedrock 或自訂代理端點也終於支援了。當多個代理互相對話時，訊息本體不會在歷史紀錄中重複塞兩次，節省你的 token（AI 處理與計費的文字單位）花費。在無頭模式下，當你想切換模型，這正是打「set_model」的時刻，指令會直接在下個往返當下生效。像外送軟體分清「正在送餐」與「等你確認付款」，狀態會顯示「需要輸入」，再也不會讓你乾等。",
-                "zh-CN": "调用 AI 总是花大把冤枉钱，而且中途换模型还要等下一轮才生效？这批更新让发送指令更即时且省钱。现在提示词缓存（prompt caching，把重复提问暂存以节省成本的功能）在 Bedrock 或自订代理网关也终于支持了。当多个代理互相对话时，消息体不会在历史记录中重复塞两次，节省你的 token（AI 处理与计费的文字单位）花费。在无头模式下，当你想要切换模型，这正是打「set_model」的时候，指令会直接在下个往返当下生效。像外卖软件分清「正在送餐」与「等你确认付款」，状态会显示「需要输入」，再也不会让你干等。",
-                "en": "Are you spending too much on AI tokens, or waiting until the next turn just to switch models? We have made communications faster and lighter. Prompt caching (saving past prompts to reduce costs) now works across gateways like Bedrock or custom base URLs. In multi-agent systems, messages are no longer duplicated in histories, saving your token budget. Under headless mode, when you need to swap models, that is when to send a `set_model` request, which changes the model on the spot instead of waiting for the next turn. It is like a delivery app distinguishing between \"out for delivery\" and \"waiting for approval,\" so you are never left guessing.",
-                "ja": "AI の呼び出しに無駄な費用がかかり、途中でモデルを切り替えるのに次のターンまで待たされてはいないだろうか。通信の軽量化と高速化が行われた。プロンプトキャッシュ（prompt caching，同じプロンプトを一時保存してコストを下げる仕組み）が Bedrock などのゲートウェイに対応した。また、複数エージェント間のメッセージ重複を省くことで、トークン（token，AI 処理の課金単位）を節約する。ヘッドレスでモデルを切り替えたいときは、まさに「set_model」を指示する瞬間であり、即座に反映される。デリバリーアプリが「配達中」と「決済待ち」を正しく区別して表示するようなものだ。",
-                "ko": "AI를 쓸 때 비용이 많이 들고 대화 중에 모델을 바꾸려면 다음 턴까지 기다려야 하는가? 전송이 더 빠르고 가볍게 개선됐다. 프롬프트 캐싱(prompt caching, 자주 쓰는 데이터를 임시 저장해 비용을 아끼는 기능)이 Bedrock 등 게이트웨이 환경에서도 작동한다. 또한 여러 에이전트가 통신할 때 메시지 본문이 중복 저장되지 않아 토큰(token, AI 처리와 비용 부과의 기본 단위) 요금이 절약된다. 헤드리스 모드에서 모델을 바꾸고 싶다면 바로 'set_model'을 보낼 때다. 즉시 새 모델이 반영된다. 배달 앱이 '배달 중'과 '입력 대기' 상태를 정확히 구분해 주는 것과 같다."
-              },
-              "original": "Improved prompt caching: the mid-conversation system block now works behind LLM gateways and custom base URLs (Bedrock, Vertex, 1P)\nReduced token usage in inter-agent messaging: `SendMessage` bodies are no longer duplicated into replayed history and tool results\nChanged headless/SDK sessions to apply a `set_model` control request mid-turn; the next model round-trip uses the new model instead of waiting for the next turn\nChanged agent view / `claude agents --json`: sessions waiting on a sandbox, MCP-input, or managed-settings prompt now show as \"Needs input\" instead of \"Working\""
-            },
-            {
-              "title": {
-                "zh-TW": "介面用詞與規則微調收尾",
-                "zh-CN": "界面用词与规则微调收尾",
-                "en": "UI wording and rule adjustments",
-                "ja": "UIの用語調整とルールの微調整",
-                "ko": "UI 문구 조정과 규칙 미세 조정"
-              },
-              "body": {
-                "zh-TW": "你想回頭查看先前的旁支對話，卻發現面板早就關掉了？這次更新針對介面用詞和核心規則進行了微調。現在，當你想要回頭翻看之前的問答時，這正是打「/btw」的時刻，它會直接幫你重開最近一次的側邊提問面板。此外，子代理預設將直接繼承主工作階段（session，工作階段為原定譯法）的權限設定。企業版的強登入限制也同步延伸至 VS Code 插件與 SDK 等各個角落。而 tmux 在舊版本下不支援同步輸出的說明也已更正。就像把說明書上印反的按鈕名稱重新校正，使用時才不會一頭霧水。",
-                "zh-CN": "你想回头查看先前的旁支对话，却发现面板早就关闭了？这次更新针对界面用词和核心规则进行了微调。现在，当你想要回头翻看之前的问答时，这正是打「/btw」的时候，它会直接帮你重开最近一次的侧边提问面板。此外，子代理默认将直接继承主会话（session）的权限设置。企业版的强登录限制也同步延伸至 VS Code 插件与 SDK 等各个角落。而 tmux 在旧版本下不支持同步输出的说明也已更正。就像把说明书上印反的按钮名称重新校正，使用时才不会一头雾水。",
-                "en": "Did you close your side-question panel only to realize you still need the answers? This batch polishes the UI text and permissions. When you want to review previous side discussions, that is when to type `/btw`, which reopens your most recent exchange on the side panel. In addition, subagents now inherit the parent session's permissions directly. Enterprise sign-in rules now apply to VS Code extensions and the SDK, not just the terminal. A tmux sync warning was also corrected. It is like correcting a typo in a device manual—getting the details straight ensures a smooth setup.",
-                "ja": "横道にそれて質問した内容をもう一度見たくなったが、すでにサイドパネルが閉じてしまってはいないだろうか。UI テキストやルールの調整が行われた。以前のやり取りを見たいときは、まさに「/btw」をたたく瞬間である。直近のサイドパネルが開き直す。また、子エージェントは親セッション（session）の権限設定をそのまま引き継ぐように簡素化され、VS Code 拡張機能や SDK でも企業向けログイン制限が強制される。説明書の誤記を正すような微調整だ。",
-                "ko": "옆길로 새어 물어봤던 답변들을 다시 찾고 싶은데 화면이 이미 닫혀 버렸는가? UI 문구와 권한 규정이 깔끔하게 다듬어졌다. 예전 대화 기록을 모아 보고 싶다면 바로 '/btw'를 칠 때다. 최근 띄웠던 질문 창이 바로 열린다. 또한 하위 에이전트는 부모 세션(session)의 권한 설정을 그대로 이어받으며, VS Code 확장 프로그램이나 SDK에서도 기업용 로그인 규칙이 고스란히 강제된다. 매뉴얼에 잘못 표기된 인쇄 문구를 바로잡은 셈이다."
-              },
-              "original": "Changed bare `/btw` to reopen the side-question panel on your most recent exchange so you can browse earlier answers\nDeprecated the Task tool's `mode` parameter (now ignored); subagents inherit the parent session's permission mode by default\nChanged Enterprise `forceLoginMethod` to be enforced for VS Code extension, SDK, `setup-token`, and `install-github-app` logins, not just the terminal\nChanged session transcripts to record the reasoning effort level on each assistant message\nUpdated the auth status panel title from \"Cloud authentication\" to \"Authentication\"\nCorrected an earlier release note (2.1.200): tmux through the 3.6 series lacks synchronized output; newer tmux with support is detected automatically"
-            },
-            {
-              "title": {
-                "zh-TW": "連線疑難雜症再修一輪",
-                "zh-CN": "连接疑难杂症再修一轮",
-                "en": "Another round of connection and syncing fixes",
-                "ja": "通信接続のエラーと同期バグがもう一巡修正された",
-                "ko": "연동 및 동기화 관련 오류가 한 차례 더 해결됐다"
-              },
-              "body": {
-                "zh-TW": "當你建立起複雜的多代理合作小隊，卻常在連線中途遭遇各種斷線或顯示空白？這批修復清理了剩餘的連線頑疾。在遠端控制（Remote Control）中途加入的客戶端，不會再看到空空如也的畫面。在串流（streaming）模式下重啟工作階段時，控制請求也不再無故消失。同時，代理小隊重新初始化時，正在關閉的隊友也不會向隊長重複發送空閒狀態。此外，修復了局部讀取後 @ 提及失效，以及退出代碼 143 造成逾時誤判等問題。就像大樓的許多零星小故障，技師一次巡完徹底解決。",
-                "zh-CN": "当你建立起复杂的多代理合作小队，却常在连接中途遭遇各种断线或显示空白？这批修复清理了剩余的连接顽疾。在远程控制（Remote Control）中途加入的客户端，不会再看到空空如也的画面。在流式（streaming）模式下重启会话时，控制请求也不再无故消失。同时，代理小队重新初始化时，正在关闭的队友也不会向队长重复发送空闲状态。此外，修复了局部读取后 @ 提及失效，以及退出代码 143 造成超时误判等问题。就像大楼的许多零星小故障，技师一次巡完彻底解决。",
-                "en": "Are remote controllers and teammates losing connection or showing blank grids mid-run? We have cleared a batch of connectivity bugs. Remote Control clients joining a running session will no longer see an empty workflow grid. In streaming mode, restarting a session won't drop control requests that were prematurely marked complete. Teammate agents won't spam leaders with duplicate idle alerts when teams are initialized again. Small bugs like failing @-mentions after offset reads and exit code 143 timeout alerts are also resolved. It is like a technician fixing scattered minor bugs in a building all at once.",
-                "ja": "エージェントの小隊を作ったが、通信エラーで画面が空白になったりチームの連携が崩れたりはしないだろうか。接続周りの問題が解決した。リモートコントロール（Remote Control）でセッションの途中に参加したクライアントのグリッドが空白になるバグが解消された。またストリーミング（streaming）中の制御が消えるバグや、チームの初期化時に重複する通知が飛ぶ問題、プロセス終了コード143の誤判定なども一掃された。ビルの複数の軽微な故障をまとめて修理したようなものだ。",
-                "ko": "에이전트 소대를 꾸렸는데 연동 문제로 화면이 하얗게 뜨거나 연결이 툭툭 끊기는가? 여러 네트워크 버그가 대거 정리됐다. 원격 제어(Remote Control)로 대화 도중 참가한 클라이언트의 모니터가 비어 있던 현상이 해결됐다. 또한 스트리밍(streaming) 모드에서 세션 재부팅 시 요청이 유실되던 현상, 그리고 에이전트 소대가 다시 켜질 때 중복 신호가 가던 문제도 고쳐졌다. 빌딩의 자잘한 설비 불량들을 한 번에 보수 완료한 것과 같다."
-              },
-              "original": "Fixed the workflow agent grid staying empty for Remote Control clients that join a session mid-run\nFixed streaming-mode control requests being marked complete before their handler finished, which could lose the request on session restart\nFixed agent teams: a stopping teammate could send the leader duplicate idle notifications when team initialization re-ran within a session\nFixed @-mentions attaching nothing after a partial file read, plugin uninstall targeting the wrong marketplace, and false \"Command timed out\" on exit code 143"
-            }
-          ]
         }
       ]
     },
@@ -427,6 +393,114 @@
       "id": "agy",
       "name": "Antigravity",
       "versions": [
+        {
+          "version": "1.1.5",
+          "period": "2026-07-21",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "模型選擇多了深淺旋鈕，也能替代理指定等級",
+                "zh-CN": "模型选择多了深浅旋钮，也能替代理指定等级",
+                "en": "Model choice gains a depth dial and agent-specific tiers",
+                "ja": "モデル選びに深さのダイヤル、エージェントには専用の等級",
+                "ko": "모델 선택에 깊이 조절기가 생기고 에이전트별 등급도 지정한다"
+              },
+              "body": {
+                "zh-TW": "趕著回覆訊息時，你會想要快；遇到棘手問題時，則願意多等一下換更深的推理。新的 `/effort` 指令把這個取捨做成時間軸儀表，可左右選擇，也能直接輸入等級；啟動 CLI 時則用 `--effort` 選定。`/model` 現在用穩定的 model slug（模型的固定代號）列出選項，跨工作階段也能可靠指定同一款模型。你替 custom agent（自訂代理，預先寫好工作規則的小幫手）加上 `model` 後，叫它當子代理時可跑 flash 或 pro；沒指定便沿用父代理。像相機不只選鏡頭，還能轉快門：快拍或細拍，由你在當下決定。",
+                "zh-CN": "赶着回复消息时，你会想要快；遇到棘手问题时，则愿意多等一下换更深的推理。新的 `/effort` 指令把这个取舍做成时间轴仪表，可左右选择，也能直接输入等级；启动 CLI 时则用 `--effort` 选定。`/model` 现在用稳定的 model slug（模型的固定代号）列出选项，跨会话也能可靠指定同一款模型。你替 custom agent（自定义代理，预先写好工作规则的小帮手）加上 `model` 后，叫它当子代理时可跑 flash 或 pro；没指定便沿用父代理。像相机不只选镜头，还能转快门：快拍或细拍，由你在当下决定。",
+                "en": "When a reply is urgent, you want speed; when a problem is thorny, you may accept a wait for deeper reasoning. The new `/effort` command turns that tradeoff into a left/right timeline gauge, and also accepts a level directly; `--effort` makes the choice when launching the CLI. `/model` now shows stable model slugs, fixed names you can reliably reuse across sessions. A custom agent, a helper with prewritten instructions, can now declare its own `model`: as a subagent it can use a tier such as flash or pro, otherwise it inherits its parent’s model. It is like setting both a camera lens and shutter speed: choose quick or deliberate for task in front of you.",
+                "ja": "急ぎの返信なら速さが欲しく、難問なら少し待って深い推論を得たい。新しい `/effort` 指令はその交換条件を左右で選べる時間軸のゲージにし、等級を直接入力することもできる。CLI 起動時は `--effort` で選ぶ。`/model` には、作業セッションをまたいでも同じ機種を確実に指定できる固定名 model slug が表示される。custom agent（あらかじめ仕事の規則を書いた小さな助手）には `model` を付けられ、子エージェントとして呼ぶと flash や pro を使える。未指定なら親のモデルを引き継ぐ。カメラでレンズだけでなくシャッター速度も選ぶようなものである。",
+                "ko": "급한 답장에는 속도가 필요하고, 어려운 문제에는 조금 기다려 더 깊은 추론을 얻고 싶다. 새 `/effort` 명령은 이 선택을 좌우로 고르는 시간축 게이지로 만들었고 등급을 바로 입력할 수도 있다. CLI를 시작할 때는 `--effort`로 고른다. `/model`에는 세션이 달라도 같은 모델을 확실히 지정할 수 있는 고정 이름 model slug가 나온다. custom agent(미리 작업 규칙을 적어 둔 작은 도우미)에 `model`을 붙이면 하위 에이전트로 불렀을 때 flash나 pro를 쓴다. 지정하지 않으면 부모 모델을 물려받는다. 카메라에서 렌즈와 셔터 속도를 함께 고르는 것과 같다."
+              },
+              "original": "Added a `/effort` command to view and change the current model's reasoning effort, with a left/right timeline-gauge picker and a direct `/effort <level>` form so you can trade latency for depth on the fly.\nAdded an `--effort` flag to select a model's reasoning-effort variant when launching the CLI.\nAdded stable, user-facing model slugs that appear in the `/model` picker and are accepted by `--model`, so you can pin a specific model reliably across sessions.\nAdded a `model` option to custom agent frontmatter so an agent runs at a chosen model tier (such as `flash` or `pro`) when invoked as a subagent, defaulting to `inherit` (the parent's model).\nRedesigned the `/model` picker to group models by their base model and choose reasoning effort from a timeline gauge navigable with Left and Right, and added an effort badge to the status line for models that expose multiple effort variants."
+            },
+            {
+              "title": {
+                "zh-TW": "短終端機也看得清設定，檢視差異不再把畫面推歪",
+                "zh-CN": "短终端也看得清设置，查看差异不再把画面推歪",
+                "en": "Settings fit short terminals and diff viewing stays steady",
+                "ja": "短い端末でも設定が読め、差分表示もぶれない",
+                "ko": "작은 터미널에서도 설정이 보이고 차이 보기 화면도 흔들리지 않는다"
+              },
+              "body": {
+                "zh-TW": "筆電分割畫面時，設定清單不該像過長的海報從視窗底下溢出去。`/settings` 或 `/config` 現在是有邊界、可捲動的清單，開關下拉選單也不再閃爍。你查看程式修改處時，`/diff` 檢視器在換頁、長行折行或展開留言後，不會抖動，更不會把狀態列擠出螢幕。連輸入框也聽得懂你的重綁 Enter：若綁到 `prompt.insert_newline`，按下去會換行而非送出。這些改動像把凌亂書桌換成有抽屜的工作台；內容還是那些內容，手邊位置終於穩了。",
+                "zh-CN": "笔电分屏时，设置清单不该像过长的海报从窗口底下溢出去。`/settings` 或 `/config` 现在是有边界、可滚动的清单，开关下拉菜单也不再闪烁。你查看代码修改处时，`/diff` 查看器在换页、长行折行或展开留言后，不会抖动，更不会把状态栏挤出屏幕。连输入框也听得懂你重绑的 Enter：若绑到 `prompt.insert_newline`，按下去会换行而非提交。这些改动像把凌乱书桌换成有抽屉的工作台；内容还是那些内容，手边位置终于稳了。",
+                "en": "On a split laptop screen, a settings list should not spill below the window like an overlong poster. `/settings` and `/config` are now bounded, scrollable lists, and their dropdowns no longer flicker. While reviewing code changes, the `/diff` viewer no longer jitters or pushes the status line offscreen when you page, wrapped lines appear, or comments expand. The prompt also honors a remapped Enter: if it is bound to `prompt.insert_newline`, it inserts a line break instead of submitting. It is like replacing a messy desk with a workbench full of drawers: same tools, but they stay where your hands expect them.",
+                "ja": "ノート PC を分割表示したとき、設定一覧が長いポスターのように画面下へはみ出すべきではない。`/settings` と `/config` は枠内でスクロールできる一覧になり、ドロップダウンを開閉してもちらつかない。変更箇所を見る `/diff` も、ページ送り、長い行の折り返し、コメント展開で揺れたり状態行を画面外へ押し出したりしなくなった。入力欄は Enter の再割り当ても守る。`prompt.insert_newline` に結び付ければ、送信ではなく改行する。散らかった机を引き出し付きの作業台に替えるようなものである。",
+                "ko": "노트북 화면을 나눠 쓸 때 설정 목록이 긴 포스터처럼 창 아래로 흘러내리면 안 된다. `/settings`와 `/config`는 이제 경계가 있는 스크롤 목록이 되었고 드롭다운을 열고 닫아도 깜빡이지 않는다. 코드 변경을 보는 `/diff`도 페이지를 넘기거나 긴 줄이 접히고 댓글이 펼쳐져도 흔들리거나 상태 줄을 화면 밖으로 밀어내지 않는다. 입력칸은 다시 묶은 Enter도 따른다. `prompt.insert_newline`에 연결했다면 제출 대신 줄바꿈을 넣는다. 어질러진 책상을 서랍 있는 작업대로 바꾼 것과 같다."
+              },
+              "original": "Improved the `/settings` (`/config`) panel by making it a bounded, scrollable list so it renders correctly in short terminals instead of overflowing, and stopped it from flickering when opening and closing dropdowns.\nImproved scrolling in the `/diff` viewer so paging through a diff no longer jitters or pushes the status line off the screen when lines wrap or comments expand.\nFixed the prompt to honor a custom Enter binding to `prompt.insert_newline`, so a remapped Enter inserts a newline instead of submitting."
+            },
+            {
+              "title": {
+                "zh-TW": "背景工作不再一處失火、整場陪葬",
+                "zh-CN": "后台工作不再一处失火、整场陪葬",
+                "en": "Background work becomes isolated, orderly, and less wasteful",
+                "ja": "バックグラウンド作業が巻き添えで止まらず、無駄も減る",
+                "ko": "백그라운드 작업이 함께 멈추지 않고 낭비도 줄어든다"
+              },
+              "body": {
+                "zh-TW": "讓 CLI 在背景慢慢更新資料時，最怕其中一件小事出錯，整個工作階段跟著亂掉。現在長時間背景任務共用同一套生命週期，啟動與關閉都有固定順序，啟動時也能安全面對 panic（程式遇到嚴重錯誤而中斷）；單一任務失敗不再拖垮整場，離開前待送的分析資料也會送完。短時間內連續觸發更新，則會合併成一次，少做重複工作。收集自訂規則時的 data race（多個工作同時碰同份資料造成結果不穩）也補上保護。像廚房把各道菜分到獨立爐火，並把連按三次的叫餐鈴合成一張單；一口鍋燒焦，不會讓整間餐廳停擺。",
+                "zh-CN": "让 CLI 在后台慢慢更新数据时，最怕其中一件小事出错，整个会话跟着乱掉。现在长时间后台任务共用同一套生命周期，启动与关闭都有固定顺序，启动时也能安全面对 panic（程序遇到严重错误而中断）；单个任务失败不再拖垮整场，退出前待发送的分析数据也会送完。短时间内连续触发更新，则会合并成一次，少做重复工作。收集自定义规则时的 data race（多个工作同时碰同份数据造成结果不稳）也补上保护。像厨房把各道菜分到独立炉火，并把连按三次的叫餐铃合成一张单；一口锅烧焦，不会让整间餐厅停摆。",
+                "en": "When the CLI refreshes data in the background, one small failure should not scramble the whole session. Long-running background tasks now share one lifecycle, with deterministic start and shutdown and panic-safe launching; one failed task no longer disrupts the session, and pending analytics are flushed before exit. Several refresh triggers arriving in a burst are coalesced into one run instead of repeating work. A data race, where concurrent work touches shared data unpredictably, is also guarded while customization rules are collected. It is like giving each dish in a kitchen its own burner and turning three rapid bell rings into one order: one burnt pan does not close the restaurant.",
+                "ja": "CLI が裏でデータを更新しているとき、小さな失敗一つで作業セッション全体が乱れては困る。長時間のバックグラウンド作業は共通のライフサイクルで動き、起動と終了の順序が決まり、panic（重大なエラーでプログラムが中断すること）にも安全に対応する。一つの失敗は全体へ波及せず、終了前には保留中の分析データも送られる。連続した更新要求は一回にまとめ、重複作業を減らす。カスタマイズ規則を集める際の data race（複数の処理が同じデータに同時に触れて結果が不安定になること）も防ぐ。厨房で料理ごとに火口を分け、三度鳴った注文ベルを一枚にまとめるようなものである。",
+                "ko": "CLI가 뒤에서 데이터를 새로 고칠 때 작은 실패 하나가 전체 세션을 흐트러뜨리면 곤란하다. 오래 가는 백그라운드 작업은 이제 하나의 생명주기를 공유하며 시작과 종료 순서가 정해져 있고 panic(심각한 오류로 프로그램이 중단되는 일)에도 안전하게 시작한다. 한 작업의 실패가 세션 전체를 망치지 않으며 나가기 전 남은 분석 데이터도 보낸다. 짧은 시간에 몰린 갱신 요청은 한 번으로 합쳐 중복 일을 줄인다. 사용자 규칙을 모을 때의 data race(여러 작업이 같은 데이터를 동시에 건드려 결과가 흔들리는 일)도 막았다. 주방에서 요리마다 화구를 나누고 세 번 울린 벨을 주문 한 장으로 합치는 것과 같다."
+              },
+              "original": "Improved background-task reliability by moving long-running work onto a shared lifecycle with deterministic startup and shutdown and panic-safe launching, so a failure in one background task no longer disrupts the session and pending analytics are flushed on exit instead of dropped.\nImproved responsiveness of bursty background refreshes by coalescing rapid repeated triggers into a single run, cutting redundant work.\nFixed a data race when collecting customization rules by guarding the shared structures."
+            },
+            {
+              "title": {
+                "zh-TW": "MCP 登入不當機，伺服器回傳內容不再消失",
+                "zh-CN": "MCP 登录不崩溃，服务器返回内容不再消失",
+                "en": "MCP authentication stays up and returned content reaches chat",
+                "ja": "MCP 認証で落ちず、サーバーの返答も会話へ届く",
+                "ko": "MCP 인증에서 멈추지 않고 서버 응답도 대화에 도착한다"
+              },
+              "body": {
+                "zh-TW": "你在 `/mcp` 面板替遠端 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器按 Authenticate 時，現在不會再把 CLI 按到當機。更重要的是，MCP 工具回傳的 embedded resources（嵌入式資源，文字或內嵌媒體等隨結果附上的內容）以前會被悄悄丟掉，現在會出現在對話裡。也就是說，接上外部工具後，登入這扇門能打開，工具端帶回來的說明或圖片也不會留在門外。像快遞站以前辦證時會關門，包裹裡附的文件還會被抽走；現在櫃台照常辦理，附檔也完整交到你手上。",
+                "zh-CN": "你在 `/mcp` 面板替远程 MCP（Model Context Protocol，让 AI 连接外部工具的协议）服务器按 Authenticate 时，现在不会再把 CLI 按到崩溃。更重要的是，MCP 工具返回的 embedded resources（嵌入式资源，文字或内嵌媒体等随结果附上的内容）以前会被悄悄丢掉，现在会出现在对话里。也就是说，接上外部工具后，登录这扇门能打开，工具端带回来的说明或图片也不会留在门外。像快递站以前办证时会关门，包裹里附的文件还会被抽走；现在柜台照常办理，附件也完整交到你手上。",
+                "en": "Pressing Authenticate for a remote MCP server in the `/mcp` panel no longer crashes the CLI. More importantly, embedded resources, extra text or inline media carried inside an MCP tool result, used to be silently discarded; they now appear in the conversation. In other words, once you connect an external tool through MCP, the authentication door opens and its explanation or image can come through with it. It is like a parcel counter that once shut down while checking your ID and removed documents from packages; now the counter stays open and every enclosure reaches your hands.",
+                "ja": "`/mcp` パネルでリモート MCP（Model Context Protocol、AI を外部ツールにつなぐ協定）サーバーの Authenticate を押しても、CLI はクラッシュしなくなった。さらに、MCP ツールの結果に含まれる embedded resources（本文やインラインメディアなど、結果に添えられる内容）は以前こっそり捨てられていたが、会話に表示される。外部ツールにつないだあと、認証という扉が開くだけでなく、説明や画像も扉の外に置き去りにならない。本人確認中に窓口が閉まり、荷物の同封書類まで抜き取る宅配所が、今は窓口を開けたまま全てを渡すようなものである。",
+                "ko": "`/mcp` 패널에서 원격 MCP(Model Context Protocol, AI를 외부 도구에 연결하는 규약) 서버의 Authenticate를 눌러도 CLI가 더는 멈추지 않는다. 더 중요한 점은 MCP 도구 결과에 들어 있던 embedded resources(본문이나 인라인 미디어처럼 결과에 딸린 내용)가 예전에는 조용히 버려졌지만 이제 대화에 나타난다는 것이다. 외부 도구를 연결하면 인증 문이 열리고 도구가 가져온 설명이나 그림도 문밖에 남지 않는다. 신분 확인 중 창구를 닫고 소포 속 서류까지 빼던 택배소가 이제는 창구를 열어 둔 채 모든 동봉물을 건네는 것과 같다."
+              },
+              "original": "Fixed a crash when triggering Authenticate on a remote MCP server in the `/mcp` panel.\nFixed MCP tool results containing embedded resources being silently dropped, so text and inline media returned by MCP servers now surface in the conversation."
+            },
+            {
+              "title": {
+                "zh-TW": "指令判讀與檔案搜尋更耐髒資料，錯誤也說人話",
+                "zh-CN": "指令判断与文件搜索更耐脏数据，错误也说人话",
+                "en": "Command checks and file search handle awkward input more safely",
+                "ja": "コマンド判定とファイル検索が厄介な入力に強くなる",
+                "ko": "명령 판단과 파일 검색이 까다로운 입력에도 견고해진다"
+              },
+              "body": {
+                "zh-TW": "你下 `--grep=\"a|b\"` 這類指令時，管線符號明明只是引號裡的參數，權限檢查卻曾誤以為你真要建立 pipeline（管線，把一個指令輸出交給下一個指令的串接），跳出多餘提示；現在能正確看懂。檢視或搜尋檔案時，若多位元字元剛好被截在中間，也不再因 invalid UTF-8 而失敗。資格不符時，CLI 也重新顯示真正原因，不再只說「unknown reason」。這像機場安檢終於會分辨行李標籤上的豎線和危險物，掃描到半截外文字也不會當成壞行李；拒絕登機時，還會告訴你缺的是哪份證件。",
+                "zh-CN": "你下 `--grep=\"a|b\"` 这类指令时，管线符号明明只是引号里的参数，权限检查却曾误以为你真要建立 pipeline（管线，把一个命令输出交给下一个命令的串接），跳出多余提示；现在能正确看懂。查看或搜索文件时，若多字节字符刚好被截在中间，也不再因 invalid UTF-8 而失败。资格不符时，CLI 也重新显示真正原因，不再只说“unknown reason”。这像机场安检终于会分辨行李标签上的竖线和危险物，扫描到半截外文字也不会当成坏行李；拒绝登机时，还会告诉你缺的是哪份证件。",
+                "en": "With a command such as `--grep=\"a|b\"`, a pipe character inside a quoted argument is not a pipeline, a chain that passes one command’s output to another. Permission checks used to misread it and ask unnecessarily; now they interpret it correctly. File viewing and search also stop failing with invalid UTF-8 when a multibyte character is cut at a truncation boundary. And when you are not eligible, the CLI again shows the real reason rather than “unknown reason.” It is like airport screening that can distinguish a vertical mark on a luggage tag from a hazardous item, and can explain which document is missing when it cannot let you board.",
+                "ja": "`--grep=\"a|b\"` のような命令では、引用符内の縦線は pipeline（ある命令の出力を次の命令へ渡す連結）ではない。権限確認は以前これを誤読して余計な確認を出したが、今は正しく判定する。ファイルの表示や検索も、複数バイト文字が切り詰め境界で途中までになって invalid UTF-8 で失敗しなくなった。利用資格がない場合も、CLI は “unknown reason” ではなく本当の理由を再び示す。荷札の縦線と危険物を見分け、搭乗を断るなら不足書類を教える空港検査のようなものである。",
+                "ko": "`--grep=\"a|b\"` 같은 명령에서 따옴표 안의 세로줄은 pipeline(한 명령의 출력을 다음 명령에 넘기는 연결)이 아니다. 권한 확인은 예전에 이를 잘못 읽고 쓸데없이 물었지만 이제 제대로 판단한다. 파일 보기와 검색도 여러 바이트 문자가 잘림 경계에서 끊겼다고 invalid UTF-8 오류로 실패하지 않는다. 자격이 없을 때 CLI는 “unknown reason” 대신 진짜 이유를 다시 보여 준다. 수하물 표의 세로줄과 위험물을 구별하고 탑승을 거절할 때 빠진 서류를 알려 주는 공항 보안 검색과 같다."
+              },
+              "original": "Fixed permission checks splitting a single command into a pipeline when an argument contained quoted shell metacharacters (such as `--grep=\"a|b\"`), which caused spurious permission prompts.\nFixed the file-view and file-search tools failing with invalid-UTF-8 errors when a multi-byte character was split at a truncation boundary.\nFixed eligibility error messages so the CLI shows the real reason again instead of defaulting to a generic \"unknown reason\"."
+            },
+            {
+              "title": {
+                "zh-TW": "多指令能連著下，代理與無頭執行也各守界線",
+                "zh-CN": "多指令能连着下，代理与无头执行也各守界线",
+                "en": "Chained commands, agents, and headless runs now follow their intended rules",
+                "ja": "連続コマンド、エージェント、無頭実行が意図どおりに動く",
+                "ko": "연속 명령, 에이전트, 헤드리스 실행이 의도한 규칙을 따른다"
+              },
+              "body": {
+                "zh-TW": "規劃完還想立刻請它挑毛病？現在同一句可排 `/plan /grill-me <prompt>`，每個開頭斜線指令會依輸入順序解析、啟用並顯示。custom agent 若明確寫 `subagent: false`，也不會再混進可呼叫的子代理清單。用 `-p` 或 `--print` 跑 headless（無頭模式，沒有終端機視窗／視覺介面的執行模式）時，已儲存的 `settings.json` 政策終於會生效，包括權限、檔案存取、sandbox mode（沙盒模式，把程式限制在安全範圍內的執行方式）、自動執行與成品審查。`/btw` 的岔題也不再複製成另一筆同標題對話。像火車站的轉乘牌：能依序換線，但標著不接客的月台不會被派車，沒有站務員的夜車仍照既定規則行駛。",
+                "zh-CN": "规划完还想立刻请它挑毛病？现在同一句可排 `/plan /grill-me <prompt>`，每个开头斜线命令会依输入顺序解析、启用并显示。custom agent 若明确写 `subagent: false`，也不会再混进可调用的子代理清单。用 `-p` 或 `--print` 跑 headless（无头模式，没有终端窗口／视觉界面的执行模式）时，已保存的 `settings.json` 政策终于会生效，包括权限、文件访问、sandbox mode（沙盒模式，把程序限制在安全范围内的执行方式）、自动执行与成品审查。`/btw` 的岔题也不再复制成另一笔同标题对话。像火车站的换乘牌：能依序换线，但标着不接客的站台不会被派车，没有站务员的夜车仍照既定规则行驶。",
+                "en": "Finished planning and want an immediate critique? One prompt can now begin `/plan /grill-me <prompt>`; each leading slash command is parsed, activated, and displayed in typed order. A custom agent explicitly marked `subagent: false` no longer sneaks into the callable-subagent list. Headless runs, execution through `-p` or `--print` without a terminal window, now honor saved `settings.json` policies: permissions, file access, sandbox mode, auto-execution, and artifact review. A `/btw` side question also stops making a duplicate conversation with its parent’s title. It is like a station transfer board: you can change lines in order, closed platforms are not assigned trains, and an unattended night train still follows its rules.",
+                "ja": "計画のあとすぐ批評も頼みたいなら、一つの入力に `/plan /grill-me <prompt>` と並べられる。先頭のスラッシュ命令は入力順に解析、起動、表示される。`subagent: false` を明記した custom agent も、呼び出せる子エージェント一覧に紛れ込まない。`-p` や `--print` で行う headless（無頭モード、端末の画面や視覚的な画面を出さない実行）も、保存済み `settings.json` の方針を守る。権限、ファイルアクセス、sandbox mode（プログラムを安全な範囲へ閉じ込める実行方式）、自動実行、成果物レビューが対象である。`/btw` の脇道も親と同名の重複会話を作らない。駅の乗換案内のようなものである。",
+                "ko": "계획을 세운 뒤 곧바로 흠을 찾아 달라고 하고 싶다면 한 입력에 `/plan /grill-me <prompt>`를 나란히 쓸 수 있다. 앞쪽 슬래시 명령은 입력한 순서대로 해석되고 켜지며 표시된다. `subagent: false`를 분명히 적은 custom agent도 호출 가능한 하위 에이전트 목록에 섞이지 않는다. `-p`나 `--print`로 하는 헤드리스 모드(터미널 창이나 시각 화면 없이 실행하는 방식)도 저장된 `settings.json` 정책을 따른다. 권한, 파일 접근, sandbox mode(프로그램을 안전한 범위에 가두는 실행 방식), 자동 실행, 결과물 검토가 포함된다. `/btw` 곁가지 질문도 부모 제목을 단 중복 대화를 만들지 않는다. 역의 환승 안내판과 같다."
+              },
+              "original": "Added support for stacking multiple leading slash commands in a single prompt, so a chain like `/plan /grill-me <prompt>` parses, activates, and renders every command in the order you typed them.\nFixed custom agents that declare `subagent: false` still appearing in the available-subagents list and being invocable as subagents.\nFixed headless (`-p` / `--print`) runs so they now honor persisted `settings.json` policies, including `permissions`, file access, sandbox mode, auto-execution, and artifact review.\nFixed `/btw` side-questions leaking into the conversation list as duplicate entries that carried the parent conversation's title."
+            }
+          ]
+        },
         {
           "version": "1.1.3",
           "period": "2026-07-16",
@@ -591,148 +665,6 @@
               "original": "Fixed mcp manager failing to resolve tool schema paths in standalone mode and leaking MCP server subprocesses after shutdown, which previously caused panics and cleanup failures for custom agents loading MCP tools.\nFixed a data race and copy-on-write violation when updating subagent states by cloning their stats before in-place mutation, preventing corrupted step counts and status for parallel subagents."
             }
           ]
-        },
-        {
-          "version": "1.1.1",
-          "period": "2026-07-08 ~ 07-11",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "預設改成「寫檔前先給你過目」：逐行看差異、想留哪段自己挑",
-                "zh-CN": "默认改成「写文件前先给你过目」：逐行看差异、想留哪段自己挑",
-                "en": "New default: Antigravity pauses before writing files and shows a line-level diff",
-                "ja": "デフォルトが「ファイル書き込み前に確認」へ：行単位の差分を見て、残す範囲を自分で選ぶ",
-                "ko": "기본이 '파일을 쓰기 전에 먼저 보여준다'로: 줄 단위 차이를 보고, 남길 부분을 직접 고른다."
-              },
-              "body": {
-                "zh-TW": "Antigravity 動你的檔案之前，現在預設會先停下來給你過目。新的 request-review 模式（顧名思義「請求審核」——動你的檔案前先請你過目）在每次寫檔前攤開逐行差異預覽（diff preview，把改前改後逐行並排、標紅標綠的對照畫面，按 f 開啟），你可以整批接受，也可以一段留一段丟；連新建檔案都有專屬的「Create file」預覽，讓你先看內容再點頭。就像裁縫改衣服前先讓你試穿別上珠針的版本，滿意哪段留哪段，而不是改完才給你看成品。",
-                "zh-CN": "Antigravity 动你的文件之前，现在默认会先停下来给你过目。新的 request-review 模式（顾名思义「请求审核」——动你的文件前先请你过目）在每次写文件前摊开逐行差异预览（diff preview，把改前改后逐行并排、标红标绿的对照画面，按 f 开启），你可以整批接受，也可以一段留一段丢；连新建文件都有专属的「Create file」预览，让你先看内容再点头。就像裁缝改衣服前先让你试穿别上珠针的版本，满意哪段留哪段，而不是改完才给你看成品。",
-                "en": "Before Antigravity touches your files, it now pauses by default and shows its work. The new request-review mode spreads out a line-level diff preview before every write (a view marking removals red and additions green line by line, opened with f), letting you accept the whole batch or keep some chunks and toss others; even brand-new files get their own \"Create file\" preview so you approve the content first. Like a tailor pinning the alterations and letting you try them on before sewing, instead of showing you the finished jacket.",
-                "ja": "Antigravity があなたのファイルに手を付ける前、今はデフォルトで一旦止まって確認を求める。新しい request-review モード（名前の通り「レビューを求める」、ファイルに触れる前にまず確認を仰ぐ仕組み）はファイル書き込みのたびに行単位の差分プレビュー（diff preview、変更前と変更後を行ごとに並べ、赤と緑で印を付けた対比画面、f で開く）を広げ、一括で受け入れることも、一部を残し一部を捨てることもできる。新規ファイルにも専用の「Create file」プレビューが付き、中身を確認してから承認できる。仕立て屋が衣服を直す前にピンで留めた仮縫いを試着させ、気に入った所だけ残すのと同じで、仕上げてから見せるのとは違う。",
-                "ko": "Antigravity가 당신의 파일에 손대기 전, 이제 기본으로 잠시 멈춰 보여 준다. 새 request-review 모드(이름 그대로 '검토 요청', 파일을 건드리기 전에 먼저 살펴보게 하는 방식)는 파일을 쓸 때마다 줄 단위 차이 미리보기(diff preview, 바꾸기 전과 후를 줄마다 나란히 놓고 빨강과 초록으로 표시한 대조 화면, f로 열기)를 펼쳐 보인다. 한꺼번에 받아들일 수도 있고, 일부는 남기고 일부는 버릴 수도 있다. 새로 만드는 파일에도 전용 'Create file' 미리보기가 있어 내용을 먼저 보고 승인한다. 양장사가 옷을 고치기 전 먼저 핀으로 짚어 놓은 옷을 입어 보게 하고 어느 부분은 남길지 정하는 것과 같지, 다 고친 뒤에야 결과를 보여 주는 것이 아니다."
-              },
-              "original": "Added `request-review` (default) mode as the default execution behavior: automatically pauses before file write operations to display an interactive, line-level diff preview (`f` shortcut) where users can review, accept, or reject individual code modifications before they are saved to disk. Added a dedicated \"Create file\" confirmation preview for new file creations (`write_to_file` without overwrite): renders new content as an addition-only diff preview. (1.1.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "shift+tab 一鍵循環三種執行模式，/plan 取代 /planning",
-                "zh-CN": "shift+tab 一键循环三种执行模式，/plan 取代 /planning",
-                "en": "Cycle execution modes with shift+tab; /plan replaces /planning",
-                "ja": "shift+tab で三つの実行モードを切替、/plan が /planning に取って代わる",
-                "ko": "shift+tab 한 번으로 세 가지 실행 모드를 순환, /plan이 /planning을 대체."
-              },
-              "body": {
-                "zh-TW": "執行模式切換正式開放：按 shift+tab 就能在 default（每次寫檔先問）、accept-edits（放行編輯）、plan（只規劃不動手）三檔之間循環。指令也整併了——/plan 取代舊的 /planning、/fast 直接移除，切換方式收斂成一套，不再多頭馬車。就像檯燈從三顆分開的開關變成一顆旋鈕，轉一下換一檔。",
-                "zh-CN": "执行模式切换正式开放：按 shift+tab 就能在 default（每次写文件先问）、accept-edits（放行编辑）、plan（只规划不动手）三档之间循环。命令也整并了——/plan 取代旧的 /planning、/fast 直接移除，切换方式收敛成一套，不再多头马车。就像台灯从三颗分开的开关变成一颗旋钮，转一下换一档。",
-                "en": "Execution-mode switching is now public: shift+tab cycles through default (ask before each write), accept-edits (edits sail through), and plan (plan only, hands off). Commands got consolidated too — /plan replaces the old /planning and /fast is removed, folding mode switching into one coherent set. Like a lamp trading three scattered switches for a single knob you click through.",
-                "ja": "実行モードの切替が正式に公開された。shift+tab を押すだけで default（書き込みのたびに確認）、accept-edits（編集を素通り）、plan（計画だけ立て手を出さない）の三つのモードを循環できる。コマンドも整理され、/plan が旧来の /planning に取って代わり、/fast は削除された。切替方法は一つにまとまり、あちこちに別れたままではなくなった。デスクライトが三つの別々のスイッチから一つのツマミになり、回すたびに段が変わるようなものである。",
-                "ko": "실행 모드 전환이 정식으로 공개됐다. shift+tab을 누르면 default(쓸 때마다 묻기), accept-edits(편집 허용), plan(계획만 세우고 손 대지 않기) 세 가지 사이를 순환한다. 명령도 정리돼 /plan이 예전 /planning을 대체하고 /fast는 바로 제거됐다. 전환 방법이 한 가지로 수렴해 더 이상 갈라져 있지 않다. 책상 조명이 흩어진 스위치 세 개에서 하나의 다이얼로 바뀌어 돌릴 때마다 단이 바뀌는 것과 같다."
-              },
-              "original": "Agent execution mode cycling is now publicly available: `default` -> `accept-edits` -> `plan`. Added `/plan` mode to replace legacy `/planning`, and removed `/fast` slash commands: consolidated and simplified execution mode switching around `shift+tab` mode cycling and the `/plan` mode prefix. (1.1.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "預設模式進 /settings 面板，改完立刻生效",
-                "zh-CN": "默认模式进 /settings 面板，改完立刻生效",
-                "en": "Set your default execution mode right in /settings",
-                "ja": "デフォルトモードが /settings パネルへ、変更は即時反映",
-                "ko": "기본 모드가 /settings 패널로, 바꾸면 곧바로 적용."
-              },
-              "body": {
-                "zh-TW": "想固定用某個執行模式，現在到 /settings 面板挑 Agent Mode 就好，改完即時生效，不用再手動編輯 settings.json（設定檔）、也不用每次啟動都掛 --mode 參數。就像冷氣終於有了遙控器上的「預設模式」鈕，不必每次開機都爬去主機上按。",
-                "zh-CN": "想固定用某个执行模式，现在到 /settings 面板挑 Agent Mode 就好，改完即时生效，不用再手动编辑 settings.json（配置文件）、也不用每次启动都挂 --mode 参数。就像冷气终于有了遥控器上的「默认模式」钮，不必每次开机都爬去主机上按。",
-                "en": "To make one execution mode your default, just pick Agent Mode in the /settings panel — it takes effect immediately, with no more hand-editing settings.json (the config file) and no more passing --mode at every launch. Like an air conditioner finally getting a \"default mode\" button on the remote, so you stop climbing up to the unit each time.",
-                "ja": "特定の実行モードを固定したければ、/settings パネルで Agent Mode を選ぶだけで済む。変更は即座に反映され、settings.json（設定ファイル）を手作業で編集したり、起動のたびに --mode を付けたりする必要はない。エアコンのリモコンにようやく「デフォルトモード」ボタンが付いたようなもので、電源を入れるたびに本体まで這い上がる必要がなくなった。",
-                "ko": "특정 실행 모드를 고정하고 싶다면 이제 /settings 패널에서 Agent Mode를 고르기만 하면 된다. 바꾸면 즉시 적용되어 settings.json(설정 파일)을 손으로 편집하거나 시작할 때마다 --mode를 붙일 필요가 없다. 에어컨 리모컨에 마침내 '기본 모드' 버튼이 생겨, 켤 때마다 본체로 기어갈 필요가 없어진 것과 같다."
-              },
-              "original": "Added an `Agent Mode` option to the `/settings` panel so users can set and persist a default execution mode (`default`, `accept-edits`, `plan`) without manually editing `settings.json` or passing `--mode` on startup, with real-time synchronization so changes take effect immediately. (1.1.0)"
-            },
-            {
-              "title": {
-                "zh-TW": "啟動就能指定要用哪個自訂代理",
-                "zh-CN": "启动就能指定要用哪个自定义代理",
-                "en": "Pick a custom agent right at launch with --agent",
-                "ja": "起動時にどのカスタムエージェントを使うか指定可能に",
-                "ko": "실행할 때 어떤 사용자 정의 에이전트를 쓸지 지정할 수 있다."
-              },
-              "body": {
-                "zh-TW": "啟動時就能指定要用哪個自訂代理（custom agent，你事先寫好個性與專長的分身）：掛上 --agent 旗標直接點名，agent／agents 子指令還能列出手上有哪些分身可挑。以前得先進門再換人，現在像叫車 App 直接指定司機，上車前就選好。",
-                "zh-CN": "启动时就能指定要用哪个自定义代理（custom agent，你事先写好个性与专长的分身）：挂上 --agent 标志直接点名，agent／agents 子命令还能列出手上有哪些分身可挑。以前得先进门再换人，现在像叫车 App 直接指定司机，上车前就选好。",
-                "en": "You can now pick a custom agent (a persona you've pre-written with its own skills and style) right at launch: name it with the --agent flag, and the agent/agents subcommands list which personas you have. You used to have to walk in first and swap afterwards; now it's like a ride-hailing app that lets you choose the driver before getting in.",
-                "ja": "起動時にどのカスタムエージェント（custom agent、あらかじめ性格と得意分野を書き込んだ分身）を使うか指定できる。--agent フラグで直接名指しでき、agent／agents サブコマンドで手持ちの分身一覧も出せる。以前は中に入ってから交代するしかなかったが、今は配車アプリで運転手を指名するように、乗る前に選んでおける。",
-                "ko": "실행할 때 어떤 사용자 정의 에이전트(custom agent, 미리 성격과 특기를 적어 둔 분신)를 쓸지 지정할 수 있다. --agent 플래그로 직접 이름을 대고, agent／agents 하위 명령으로 수중에 어떤 분신들이 있는지도 볼 수 있다. 예전엔 들어가서야 사람을 바꿨지만 이제는 차량 호출 앱으로 기사를 지정하듯 타기 전에 고른다."
-              },
-              "original": "Added the `--agent` flag and `agent/agents` subcommand, allowing users to select a custom agent at launch and list available agents. (1.1.1)"
-            },
-            {
-              "title": {
-                "zh-TW": "成果檢視器能按 / 搜尋、n/N 跳轉了",
-                "zh-CN": "成果查看器能按 / 搜索、n/N 跳转了",
-                "en": "Search inside artifacts with / and hop between matches with n/N",
-                "ja": "アーティファクトビューワーで / 検索、n/N ジャンプが可能に",
-                "ko": "결과물 뷰어에서 /로 검색하고 n/N으로 이동할 수 있다."
-              },
-              "body": {
-                "zh-TW": "在成果檢視器（artifact viewer，看代理產出的檔案或報告的畫面）裡按 / 就能就地搜尋關鍵字，n 跳下一個、N 跳上一個，長報告不用再用眼睛慢慢掃。就像看紙本說明書終於改成看 PDF，Ctrl+F 一按直達你要的那行。",
-                "zh-CN": "在成果查看器（artifact viewer，看代理产出的文件或报告的画面）里按 / 就能就地搜索关键字，n 跳下一个、N 跳上一个，长报告不用再用眼睛慢慢扫。就像看纸本说明书终于改成看 PDF，Ctrl+F 一按直达你要的那行。",
-                "en": "In the artifact viewer (the screen for reading files and reports an agent produced), press / to search for a keyword in place, then n and N to hop between matches — no more eyeball-scanning long reports. Like trading a paper manual for a PDF where one Ctrl+F jumps straight to the line you need.",
-                "ja": "成果物ビューワー（artifact viewer、エージェントが産んだファイルやレポートを読む画面）で / を押すとその場でキーワード検索でき、n で次へ、N で前へ跳べる。長いレポートを目でゆっくり追う必要はなくなった。紙の説明書を読むのがついに PDF に変わり、Ctrl+F 一発で欲しい行に飛べるようになったようなものである。",
-                "ko": "결과물 뷰어(artifact viewer, 에이전트가 만들어 낸 파일이나 보고서를 보는 화면)에서 /를 누르면 그 자리에서 키워드 검색이 되고, n은 다음으로, N은 이전으로 뛴다. 긴 보고서를 이제 눈으로 천천히 훑을 필요가 없다. 종이 설명서를 보던 것이 마침내 PDF로 바뀌어 Ctrl+F 한 번에 원하는 줄로 곧장 가는 것과 같다."
-              },
-              "original": "Added in-file keyword search (`/`) and jump navigation (`n/N`) to the artifact detail viewer, allowing users to find and cycle through matches without disrupting terminal escape sequences or image grids. (1.1.1)"
-            },
-            {
-              "title": {
-                "zh-TW": "腳本派工救星：-p 失敗會老實報錯，也不再卡住不動",
-                "zh-CN": "脚本派工救星：-p 失败会老实报错，也不再卡住不动",
-                "en": "Script users rejoice: -p now reports failures honestly and never hangs",
-                "ja": "スクリプト派兵の救世主：-p が失敗を正直に報告、固まることもなし",
-                "ko": "스크립트 파견 구원자: -p가 실패를 솔직히 보고하고, 멈춰 서지도 않는다."
-              },
-              "body": {
-                "zh-TW": "用腳本呼叫 agy 的人這條最有感：print 模式（--print／-p，不開介面、印完答案就走的無頭用法）以前伺服器端失敗時會裝沒事——回傳成功代碼、輸出空白，害你的腳本以為任務完成了；現在錯誤會寫進 stderr（標準錯誤輸出，專門裝錯誤訊息的通道）並回傳非零代碼。另外在 shell 腳本或子程序裡跑 agy -p 會卡住等輸入的毛病也修了。就像外送員以前送失敗會默默把空袋子掛你門口，現在會確實打電話告訴你「餐沒送到」。",
-                "zh-CN": "用脚本呼叫 agy 的人这条最有感：print 模式（--print／-p，不开界面、印完答案就走的无头用法）以前服务器端失败时会装没事——回传成功代码、输出空白，害你的脚本以为任务完成了；现在错误会写进 stderr（标准错误输出，专门装错误信息的通道）并回传非零代码。另外在 shell 脚本或子进程里跑 agy -p 会卡住等输入的毛病也修了。就像外卖员以前送失败会默默把空袋子挂你门口，现在会确实打电话告诉你「餐没送到」。",
-                "en": "If you call agy from scripts, this is your fix: print mode (--print / -p, the headless usage that prints an answer and exits) used to play innocent when a request failed server-side — exiting with a success code and empty output, so your script believed the job was done; failures now go to stderr (the standard error stream, the channel reserved for error messages) with a non-zero exit code. The bug where agy -p hung waiting for input inside shell scripts and subprocesses is fixed too. Like a delivery courier who used to silently hang an empty bag on your door after a failed run — now they actually call to say the food didn't make it.",
-                "ja": "スクリプトから agy を呼ぶ人にとって、これが待ち望んだ修正だ。print モード（--print／-p、答えを出力して終わるヘッドレスな使い方）は以前、サーバー側で失敗しても平気な顔をし、成功コードと空の出力を返すため、スクリプトはタスク完了と勘違いしていた。今はエラーが stderr（標準エラー出力、エラーメッセージ専用の経路）に書き込まれ、非ゼロのコードが返る。さらに、shell スクリプトやサブプロセス内で agy -p を走らせると入力待ちで固まる癖も直った。デリバリー配達員が以前は配達失敗を黙って空の袋をドアに掛けたのに対し、今はきちんと電話して「届きませんでした」と伝えるようになったようなものである。",
-                "ko": "스크립트로 agy를 부르는 사람이 가장 체감하는 항목이다. print 모드(--print／-p, 인터페이스를 열지 않고 답만 찍고 끝내는 헤드리스 쓰임새)는 예전에 서버 쪽이 실패해도 아무 일 없는 척했다. 성공 코드를 돌려주고 빈 출력을 내어 스크립트가 작업이 끝났다고 착각하게 만들었다. 이제는 오류가 stderr(표준 에러 출력, 오류 메시지를 담는 전용 통로)에 쓰이고 0이 아닌 코드가 돌아온다. 덧붙여 shell 스크립트나 하위 프로세스 안에서 agy -p를 돌리면 입력을 기다리며 멈춰 서던 버그도 고쳐졌다. 배달 기사가 예전엔 배달에 실패하면 말없이 빈 봉투를 문 앞에 걸어 두었다면, 이제는 제대로 전화해서 '음식이 도착하지 않았다'고 알려 주는 것과 같다."
-              },
-              "original": "Fixed print mode (`--print` / `-p`) silently exiting with a success code and empty output when a request failed server-side, now writing the error to stderr and returning a non-zero exit code. Fixed `agy -p` hanging when run inside a shell script or subprocess by no longer reading stdin when a prompt is provided via a flag. (1.1.1)"
-            },
-            {
-              "title": {
-                "zh-TW": "放行過的寫檔不再重複問",
-                "zh-CN": "放行过的写文件不再重复问",
-                "en": "Pre-approved file writes skip the review prompt",
-                "ja": "事前許可したファイル書き込みは再確認されない",
-                "ko": "미리 허용한 파일 쓰기는 다시 묻지 않는다."
-              },
-              "body": {
-                "zh-TW": "你在 settings.json 的 permission.allow 允許清單（事先放行的白名單）裡核准過的寫檔動作，預設模式現在會直接放行，不再每次都跳審查。就像機場的常客快速通關——身家早就查核過的人，不必每趟都重新排安檢。",
-                "zh-CN": "你在 settings.json 的 permission.allow 允许清单（事先放行的白名单）里核准过的写文件动作，默认模式现在会直接放行，不再每次都跳审查。就像机场的常客快速通关——身家早就核查过的人，不必每趟都重新排安检。",
-                "en": "File writes you've already allowlisted under permission.allow in settings.json (the pre-approved whitelist) now sail through in default mode instead of prompting for review every time. Like an airport trusted-traveler lane — once you've been vetted, you don't re-queue for screening on every trip.",
-                "ja": "settings.json の permission.allow 許可リスト（あらかじめ通したホワイトリスト）で承認済みのファイル書き込みは、デフォルトモードでそのまま通るようになり、毎回審査を挟まなくなった。空港の信用ある旅行者レーンのようなもので、身元を一度審査された人は毎便並び直す必要がない。",
-                "ko": "settings.json의 permission.allow 허용 목록(미리 풀어 준 화이트리스트)에서 승인한 파일 쓰기 동작은, 기본 모드에서 곧장 허용되어 매번 심사를 띄우지 않는다. 공항의 단골 패스트트랙 같다. 신원이 이미 조회된 사람은 매 여정마다 보안 검색대에 다시 설 필요가 없다."
-              },
-              "original": "Changed the default mode to respect write_file permissions allowlisted in `settings.json` under `permission.allow`, so pre-approved file writes no longer prompt for review. (1.1.1)"
-            },
-            {
-              "title": {
-                "zh-TW": "介面細節總打磨：差異預覽、快捷鍵提示、表格對齊都變順眼",
-                "zh-CN": "界面细节总打磨：差异预览、快捷键提示、表格对齐都变顺眼",
-                "en": "A round of UI polish: diff previews, keybinding hints, and table alignment",
-                "ja": "インターフェースの細部を総磨き：差分プレビュー、ショートカットヒント、表の揃えが見やすく",
-                "ko": "인터페이스 디테일 종합 다듬기: 차이 미리보기, 단축키 안내, 표 정렬이 모두 보기 좋아져."
-              },
-              "body": {
-                "zh-TW": "這輪順手把一圈介面細節磨亮了：檔案編輯的差異預覽補上前後文和分段線更好讀；各面板頁尾的快捷鍵提示會尊重你自訂的鍵位、不再寫死；/resume 選單裡重新命名對話的輸入框不再把長標題吃掉；聊天輸出裡帶檔案連結的 Markdown 表格也不再歪掉。像車子進廠保養——沒換引擎，但每個按鈕都變順手了。",
-                "zh-CN": "这轮顺手把一圈界面细节磨亮了：文件编辑的差异预览补上前后文和分段线更好读；各面板页脚的快捷键提示会尊重你自定义的键位、不再写死；/resume 菜单里重新命名对话的输入框不再把长标题吃掉；聊天输出里带文件链接的 Markdown 表格也不再歪掉。像车子进厂保养——没换引擎，但每个按钮都变顺手了。",
-                "en": "A lap of interface polish landed this round: file-edit diff previews gain context lines and section separators for easier reading; footer keybinding hints across panels now respect your customized keys instead of showing hardcoded ones; the rename box in the /resume picker stops swallowing long titles; and Markdown tables with file links in chat output stop skewing. Like a car service visit — same engine, but every knob feels smoother.",
-                "ja": "このラウンドで画面の細部を一通り磨き上げた。ファイル編集の差分プレビューは前後文と区切り線が補われて読みやすくなり、各パネルのフッターにあるショートカットヒントはカスタマイズしたキー割り当てを尊重して固定表示されなくなり、/resume メニューで会話名を変更する入力欄が長いタイトルを飲み込まなくなり、チャット出力内でファイルリンクを含む Markdown 表も歪まなくなった。車を工場に入れて点検したようなもの、エンジンは替えていないがボタン一つ一つが手に馴染むようになった。",
-                "ko": "이번 회차에서 인터페이스 디테일 한 바퀴를 매끄럽게 다듬었다. 파일 편집의 차이 미리보기에 앞뒤 문맥과 구분선이 보태져 더 읽기 쉬워졌고, 각 패널 하단의 단축키 안내는 사용자가 정한 키 배정을 존중해 더 이상 고정되지 않으며, /resume 메뉴에서 대화 이름을 바꾸는 입력칸이 긴 제목을 삼키지 않고, 채팅 출력에서 파일 링크가 든 Markdown 표도 더 이상 어긋나지 않는다. 차를 공장에 맡겨 정비한 것과 같다. 엔진은 바꾸지 않았지만 버튼 하나하나가 더 손에 익는다."
-              },
-              "original": "Improved file-edit diff preview rendering: computed accurate line-level diffs with context lines (3 lines) and hunk separators. Improved UI footer keybinding hints across all panels by replacing hardcoded hint strings with centralized layout helpers that dynamically respect customized keybinding configurations. Improved the multiline conversation rename view in the `/resume` picker. Fixed misaligned markdown tables containing file links in chat output. (1.1.0–1.1.1)"
-            }
-          ]
         }
       ]
     },
@@ -740,6 +672,29 @@
       "id": "usage",
       "name": "Usage",
       "versions": [
+        {
+          "version": "0.28.16",
+          "period": "2026-07-21",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "閒置時少做白工，Usage 更省 CPU 與硬碟",
+                "zh-CN": "闲置时少做无用功，Usage 更省 CPU 和硬盘",
+                "en": "Usage stops doing busywork while idle, saving CPU and disk activity",
+                "ja": "アイドル中の無駄仕事を減らし、Usage の CPU とディスク負荷を抑える",
+                "ko": "유휴 상태의 헛일을 줄여 Usage의 CPU와 디스크 부담을 낮춘다."
+              },
+              "body": {
+                "zh-TW": "電腦明明沒在操作 Usage，CPU 與硬碟卻不該一直忙著翻舊帳。這版把背景整理改成像圖書館只查看剛歸還的書：它會依 FSEvents（macOS 告知哪些檔案改過的通知）只挑出有變動的檔案。於是它只讀取有變動的 Claude、Codex 工作階段 JSONL（每行存一筆資料的紀錄檔），不再每次更新都重翻成千上萬個檔案；仍會定期全面檢查，避免漏掉變更。啟動時，價格表與更新檢查也會尊重既有快取（把查過的結果暫存起來直接用）的有效期限，不再每次重抓。Codex 的限流資料會共用檔案索引，SQLite（放在單一檔案裡的小型資料庫）檔沒變就不讀；解析快取更分成 32 份，活躍工作階段只改自己的那份。結果是閒置時明顯減少 CPU 與硬碟讀寫，啟動也少做無謂工作。",
+                "zh-CN": "电脑明明没在操作 Usage，CPU 和硬盘却不该一直忙着翻旧账。这版把后台整理改成像图书馆只查看刚归还的书：它会依 FSEvents（macOS 告知哪些文件改过的通知）只挑出有变动的文件。于是它只读取有变动的 Claude、Codex 会话 JSONL（每行存一条数据的记录文件），不再每次刷新都重翻成千上万个文件；仍会定期全面检查，避免漏掉变更。启动时，价格表和更新检查也会尊重既有缓存（把查过的结果暂存起来直接用）的有效期限，不再每次重抓。Codex 的限流数据会共用文件索引，SQLite（放在单个文件里的小型数据库）文件没变就不读；解析缓存更分成 32 份，活跃会话只改自己的那份。结果是闲置时明显减少 CPU 和硬盘读写，启动也少做无谓工作。",
+                "en": "When you are not even using Usage, your CPU and disk should not be stuck riffling through old records. This release makes its background housekeeping work like a library checking only books that were just returned: FSEvents, macOS notifications about changed files, tells it which files to inspect. It now reads only changed Claude and Codex session JSONL logs, rather than re-walking and checking thousands of files on every refresh; a full scan still runs from time to time as a safety net. On startup, the pricing table and update check now honor their existing cache, saved results that remain valid for a while, instead of downloading again every time. Codex rate-limit reads share the file index, unchanged SQLite database files are skipped, and the parse cache is split into 32 buckets so an active session rewrites only its own. The result: substantially less idle CPU and disk I/O, plus less needless work at launch.",
+                "ja": "Usage を触っていないのに、CPU とディスクが古い記録を延々と探し回る必要はない。この版では、バックグラウンドの整理を「返却されたばかりの本だけ確認する図書館」のように変えた。FSEvents（macOS が変更済みファイルを知らせる通知）で対象を絞る。これにより、毎回数千個のファイルを調べ直す代わりに、変更された Claude と Codex のセッション JSONL（1 行に 1 件のデータを入れる記録ファイル）だけを読む。見落とし防止のため、定期的な全件確認も残している。起動時の料金表と更新確認も、まだ有効なキャッシュ（以前に調べた結果を一時保存して使う仕組み）を尊重し、毎回取り直さない。Codex のレート制限の読み取りは同じファイル索引を共有し、SQLite のファイルが変わっていなければ読まない。解析キャッシュも 32 個に分け、動いているセッションは自分の分だけを書き換える。アイドル時の CPU とディスク I/O が大きく減り、起動時の無駄も減るのである。",
+                "ko": "Usage를 쓰고 있지도 않은데 CPU와 디스크가 옛 기록을 계속 뒤질 필요는 없다. 이번 버전은 백그라운드 정리를 방금 반납된 책만 확인하는 도서관처럼 바꿨다. FSEvents(macOS가 바뀐 파일을 알려 주는 알림)로 살필 파일부터 추린다. 그래서 새로 바뀐 Claude와 Codex 세션 JSONL(한 줄에 데이터 한 건을 담는 기록 파일)만 읽고, 새로 고칠 때마다 수천 개 파일을 전부 다시 훑지 않는다. 놓친 변경이 없도록 주기적인 전체 검사도 계속한다. 시작할 때 가격표와 업데이트도 캐시(전에 확인한 결과를 잠시 저장해 바로 쓰는 것)의 유효 기간을 따르므로 매번 다시 내려받지 않는다. Codex의 속도 제한 정보는 같은 파일 색인을 함께 쓰고, SQLite 파일이 안 바뀌면 읽지 않는다. 분석 캐시는 32개로 나뉘어 활성 세션이 자기 몫만 고쳐 쓴다. 유휴 상태의 CPU와 디스크 I/O가 크게 줄고, 시작할 때 하는 쓸데없는 일도 줄어든다."
+              },
+              "original": "**Idle CPU and disk I/O cut significantly across the board.** History scanning now uses FSEvents-reported paths to stat only changed files instead of re-walking and stat'ing every Claude/Codex session JSONL (thousands of files) on every refresh tick; a full rescan still runs periodically as a safety net. Startup no longer unconditionally re-downloads the pricing table or checks for updates — both now respect their existing cache freshness windows. Codex rate-limit reads reuse the same file index instead of re-scanning session directories, and SQLite reads (thread metadata, rate limits) are skipped entirely when the underlying database file hasn't changed. The on-disk parse cache is now sharded into 32 buckets so a single active session only rewrites its own shard instead of the whole multi-megabyte cache file."
+            }
+          ]
+        },
         {
           "version": "0.28.15",
           "period": "2026-07-19",
@@ -783,29 +738,6 @@
                 "ko": "Antigravity의 5시간 세션을 다 쓴 뒤 다음 차례를 기다리기 싫다면, 메뉴에서 자동 이어받기를 선택해 켤 수 있다. 최신의 실제 agy 할당량 결과를 살피고, 선택한 모델 그룹의 세션이 완전히 초기화됐으며 카운트다운도 없을 때만 로컬 agy CLI(명령줄에서 쓰는 도구)로 지정된 명령 하나를 백그라운드에서 실행한다. 기본값은 꺼짐이며, 한 번 실행한 뒤에는 5시간 동안 다시 실행하지 않고, 내 컴퓨터의 agy CLI만 사용한다. 달리기 선수가 출발선으로 돌아오고 시계가 0이 된 뒤에만 바통을 넘기는 계주와 같아서 일찍 출발하지 않는다. 켜면 Claude 창 지킴이와 같은 Mac 잠자기 경고도 표시한다."
               },
               "original": "**Antigravity can now auto-start its next 5-hour session.** A new opt-in menu toggle watches fresh, non-mock agy quota results and, when the selected model group's session is fully reset with no countdown running, dispatches one background `agy -p ok --model 'Gemini 3.5 Flash (Low)'`. It is off by default, self-throttles for five hours, uses only the local agy CLI, and shows the same Mac sleep warning as the Claude window keeper when enabled."
-            }
-          ]
-        },
-        {
-          "version": "0.28.13",
-          "period": "2026-07-18",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "離席自動起跑，現在真的會啟動也不會誤響",
-                "zh-CN": "离席自动起跑，现在真的会启动也不会误响",
-                "en": "Away-time auto-start now runs reliably without false alarms",
-                "ja": "離席中の自動開始が確実に動き、誤作動もしなくなった",
-                "ko": "자리 비운 동안 자동 시작이 제대로 작동하고 오작동도 줄었다"
-              },
-              "body": {
-                "zh-TW": "你離開電腦前開啟 Auto-start 5-hour Session（下個 5 小時階段自動啟動），它現在就會準時啟動。Mac App 的 `PATH` 很窄，找指令的名單漏掉原生安裝器放置 `claude` CLI（從終端機下指令操作 Claude 的工具）的 `~/.local/bin/claude`，背景 ping 找不到可執行項目便放棄；已補上。它也只信任 statusLine hook（會提供終端機底部狀態列資料、在特定事件觸發的小程式）的即時資料來判斷重設時間，避免備援來源把缺少的 `resets_at` 當成剛解析時間，下一次刷新又誤認額度已過期。到期滿兩分鐘才 ping，濾掉誤報，離席自動啟動不會明顯變慢。像定時洗衣機終於找得到插座，也不會把剛按下的按鈕誤當成洗完。說明視窗改成先講睡眠會暫停、醒來會恢復；睡眠設定改用 System Settings 搜尋。",
-                "zh-CN": "你离开电脑前打开 Auto-start 5-hour Session（自动为下一个 5 小时额度窗口起跑），它现在就会准时启动。原本 Mac App 的 `.app` bundle（把 App 装成一包文件的容器）里 `PATH` 很窄，找命令的列表又漏掉原生安装器放置 `claude` CLI（从终端下命令操作 Claude 的工具）的 `~/.local/bin/claude`，后台 ping 找不到可执行的东西便悄悄放弃；如今已补上。它也只信任 statusLine hook（会提供终端底部状态栏数据、在特定事件触发的小程序）的实时数据来判断重置时间，避免其他来源把缺少的 `resets_at` 当成刚解析时间，下一次刷新又误认额度已过期。到期至少两分钟才发出 ping，能滤掉这种假警报，真正的离席自动启动不会明显变慢。像定时洗衣机终于找得到插座，也不会把刚按下的按钮误当成洗完。说明窗口则改成先讲睡眠会暂停、醒来会恢复；睡眠设置直接用 System Settings 搜索，不必猜不同 Mac 或 macOS 会把选项藏在哪。",
-                "en": "Turn on Auto-start 5-hour Session before stepping away, and it will now fire on time. The Mac app's `.app` bundle has a narrow `PATH`, and its command lookup list had omitted `~/.local/bin/claude`, where the native installer puts the `claude` CLI. The background ping could find nothing to run and quietly give up; that location is now included. The reset-time check also now trusts only live statusLine hook data, supplied by a small program that is triggered by particular events and feeds the terminal's bottom status bar, rather than fallback data that can treat a missing `resets_at` value as the parsing time and later mistake it for an expired session. It waits until expiry is at least two minutes old before pinging, filtering that false alarm without meaningfully delaying a real away-time auto-start. Think of a timed washing machine that can finally find its outlet and no longer mistakes a freshly pressed button for a completed wash. The dialog now leads with the important bit: it pauses during sleep and resumes on wake. Sleep instructions send you to System Settings search, so you do not have to hunt through differently named panes on different Macs or macOS versions.",
-                "ja": "席を離れる前に Auto-start 5-hour Session を有効にすれば、今度は時間どおりに起動する。Mac App の `.app` bundle は `PATH` が狭く、コマンドを探す一覧からネイティブインストーラーが `claude` CLI を置く `~/.local/bin/claude` が漏れていた。バックグラウンドの ping は実行物を見つけられず、黙って諦めていたが、今はその場所も探す。リセット時刻の判定も、statusLine hook（端末最下部のステータスバーにデータを提供し、特定のイベントで動く小さなプログラム）のライブデータだけを信頼するようになった。代替データは `resets_at` が欠けると解析時刻を入れ、次の更新で期限切れと誤読することがあるためである。期限から少なくとも2分後に ping することで、この誤報を除きつつ実際の離席中の自動開始はほとんど遅れない。タイマー付き洗濯機がようやくコンセントを見つけ、押したばかりのボタンを洗濯終了と取り違えなくなったようなものだ。案内文も、スリープ中は停止し起動時に再開することを先に伝える。睡眠設定は System Settings の検索から開けるため、Mac や macOS ごとに違う設定画面を探し回らずに済む。",
-                "ko": "자리를 비우기 전에 Auto-start 5-hour Session을 켜면, 이제 제시간에 시작한다. Mac App의 `.app` bundle은 `PATH`가 좁은데, 명령어를 찾는 목록에서 네이티브 설치기가 `claude` CLI를 두는 `~/.local/bin/claude`가 빠져 있었다. 그래서 백그라운드 ping은 실행할 것을 찾지 못한 채 조용히 포기했지만, 이제 그 위치도 찾는다. 재설정 시간 판단도 statusLine hook(터미널 맨 아래 상태 표시줄 데이터를 제공하고 특정 이벤트에 반응해 실행되는 작은 프로그램)의 실시간 데이터만 믿도록 바뀌었다. 다른 데이터는 `resets_at`가 없을 때 분석 시간을 넣을 수 있고, 다음 새로고침에서 이를 이미 만료된 것으로 잘못 읽을 수 있기 때문이다. 만료 뒤 적어도 2분이 지나야 ping을 보내므로 이런 오작동은 걸러 내면서도 실제 자리 비움 자동 시작은 눈에 띄게 늦어지지 않는다. 예약 세탁기가 마침내 콘센트를 찾고, 방금 누른 버튼을 세탁 완료로 착각하지 않는 것과 같다. 안내 창은 잠자기 중에는 멈추고 깨어나면 다시 시작한다는 점을 먼저 알려 준다. 수면 설정은 System Settings 검색으로 열 수 있어 Mac이나 macOS마다 다른 메뉴를 헤맬 필요도 없다."
-              },
-              "original": "**Auto-start 5-hour Session now actually fires**: the `claude` CLI resolution list was missing `~/.local/bin/claude` (where the native installer puts it), so inside the `.app` bundle's narrow `PATH` the ping silently found nothing to run and gave up. Also hardened against a false \"expired\" read: the reset-time check now only trusts the live statusLine hook data source (fallback sources can default a missing `resets_at` to parse time, which the next refresh would misread as already-expired) and requires the expiry to be at least 2 minutes old before firing, filtering out that false positive without meaningfully delaying a real away-from-keyboard ping. Dialog copy from 0.28.12 also simplified — leads with \"pauses on sleep, resumes on wake, nothing to manage\" and routes the sleep-setting instructions through System Settings search (the exact pane/wording varies by Mac model and macOS version) with a fallback suggestion to ask Claude Code to walk through it."
             }
           ]
         }
