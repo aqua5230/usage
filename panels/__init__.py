@@ -29,6 +29,7 @@ def all_panels() -> tuple[Panel, ...]:
             claude_card_height=192.0,
             codex_card_height=192.0,
             agy_card_height=192.0,
+            status_wrap_extra_height=30.0,
         ),
         HTMLPanel(
             "matrix",

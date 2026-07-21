@@ -1120,6 +1120,24 @@ def test_popover_size_deducts_one_missing_codex_row(
     assert menubar._popover_size(state, panel).height == full_height - 64.0
 
 
+def test_popover_size_adds_status_wrap_height_only_for_classic(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    monkeypatch.setattr(menubar_agy, "find_agy", lambda: None)
+    state = menubar._empty_state()
+    classic = panels.get_panel("classic")
+    matrix = panels.get_panel("matrix")
+
+    state.status_long = False
+    classic_short = menubar._popover_size(state, classic).height
+    matrix_short = menubar._popover_size(state, matrix).height
+    state.status_long = True
+
+    assert menubar._popover_size(state, classic).height == classic_short + 30.0
+    assert menubar._popover_size(state, matrix).height == matrix_short
+
+
 def test_empty_state_keeps_agy_card_visible_during_initial_probe(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -2232,6 +2250,34 @@ def test_state_from_outcome_translates_hook_broken_message(
         state.status_text
         == "Status: ⚠ Status line hook is not running. Restart Claude Code once."
     )
+    assert state.status_long is True
+
+
+def test_state_from_normal_hook_success_has_short_status(
+    monkeypatch: pytest.MonkeyPatch,
+    state_delegate: menubar.AppDelegate,
+) -> None:
+    delegate = state_delegate
+    monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: False)
+
+    state = _build_popover_state(
+        delegate,
+        PollOutcome(
+            state=PollState.SUCCESS,
+            snapshot=UsageSnapshot(
+                current_percent=70,
+                current_reset_at=1_600.0 + (51 * 60),
+                weekly_percent=20,
+                weekly_reset_at=1_600.0 + (2 * 86400),
+                current_status="ok",
+                polled_at=1_600.0,
+                data_source="hook",
+            ),
+        ),
+        _codex_rows(delegate)[0],
+    )
+
+    assert state.status_long is False
 
 
 def test_state_from_outcome_hides_setup_button_when_no_statusline_target_exists(

@@ -115,6 +115,7 @@ class PopoverState:
     today_text: str
     statusline: dict[str, object]
     show_install_button: bool = False
+    status_long: bool = False
     hide_claude: bool = False
     hide_codex: bool = False
     hide_agy: bool = True
@@ -706,6 +707,11 @@ def build_popover_state(
             "status_text",
             value=status_value,
         )
+        status_long = (
+            bool(outcome.message)
+            or snapshot.is_stale
+            or snapshot.data_source != "hook"
+        )
     else:
         claude_session = _missing_row(_t(language, "session_label"), CLAUDE_COLOR, language)
         claude_weekly = _missing_row(_t(language, "weekly_label"), CLAUDE_COLOR, language)
@@ -714,6 +720,7 @@ def build_popover_state(
         else:
             status_value = _status_message_value(outcome, "status_no_data", language)
         status_text = _t(language, "status_text", value=status_value)
+        status_long = not hide_claude and bool(outcome.message)
 
     return PopoverState(
         language=language,
@@ -733,6 +740,7 @@ def build_popover_state(
         today_text=today_text,
         statusline=statusline,
         show_install_button=show_install_button,
+        status_long=status_long,
         hide_claude=hide_claude,
         hide_codex=hide_codex,
         hide_agy=hide_agy,

@@ -2199,9 +2199,15 @@ def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
     agy_card_height = getattr(active_panel, "agy_card_height", 0.0)
     agy_deduct = agy_card_height if state.hide_agy else 0.0
     install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
+    status_extra = (
+        getattr(active_panel, "status_wrap_extra_height", 0.0)
+        if state.status_long
+        else 0.0
+    )
     height = (
         base_height
         + install_extra
+        + status_extra
         - claude_deduct
         - codex_deduct
         - codex_row_deduct
