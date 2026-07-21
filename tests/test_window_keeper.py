@@ -62,7 +62,7 @@ def test_should_ping_disabled() -> None:
     now = time.time()
     assert (
         window_keeper.should_ping(
-            now, now + EXPIRED, enabled=False, last_ping_at=None,
+            now, now + EXPIRED, enabled=False, last_pinged_reset_at=None,
             current_percent=0.0, data_source="hook",
         )
         is False
@@ -73,7 +73,7 @@ def test_should_ping_window_still_running() -> None:
     now = time.time()
     assert (
         window_keeper.should_ping(
-            now, now + 3600, enabled=True, last_ping_at=None,
+            now, now + 3600, enabled=True, last_pinged_reset_at=None,
             current_percent=50.0, data_source="hook",
         )
         is False
@@ -84,31 +84,34 @@ def test_should_ping_missing_reset_at() -> None:
     now = time.time()
     assert (
         window_keeper.should_ping(
-            now, None, enabled=True, last_ping_at=None,
+            now, None, enabled=True, last_pinged_reset_at=None,
             current_percent=0.0, data_source="hook",
         )
         is False
     )
 
 
-def test_should_ping_within_cooldown() -> None:
+def test_should_ping_rejects_already_handled_boundary() -> None:
     now = time.time()
-    last_ping = now - 60  # pinged a minute ago
+    reset_at = now + EXPIRED
     assert (
         window_keeper.should_ping(
-            now, now + EXPIRED, enabled=True, last_ping_at=last_ping,
+            now, reset_at, enabled=True, last_pinged_reset_at=reset_at,
             current_percent=0.0, data_source="hook",
         )
         is False
     )
 
 
-def test_should_ping_fires_when_expired_and_cooled() -> None:
+def test_should_ping_fires_for_new_boundary_despite_recent_ping() -> None:
     now = time.time()
-    last_ping = now - window_keeper.PING_COOLDOWN_SECONDS - 1  # past the cooldown
+    previous_reset_at = now - 10 * 60
     assert (
         window_keeper.should_ping(
-            now, now + EXPIRED, enabled=True, last_ping_at=last_ping,
+            now,
+            now + EXPIRED,
+            enabled=True,
+            last_pinged_reset_at=previous_reset_at,
             current_percent=0.0, data_source="hook",
         )
         is True
@@ -119,7 +122,7 @@ def test_should_ping_fires_with_no_prior_ping() -> None:
     now = time.time()
     assert (
         window_keeper.should_ping(
-            now, now + EXPIRED, enabled=True, last_ping_at=None,
+            now, now + EXPIRED, enabled=True, last_pinged_reset_at=None,
             current_percent=0.0, data_source="hook",
         )
         is True
@@ -132,7 +135,7 @@ def test_should_ping_within_grace_period_not_yet_expired() -> None:
     now = time.time()
     assert (
         window_keeper.should_ping(
-            now, now - 5, enabled=True, last_ping_at=None,
+            now, now - 5, enabled=True, last_pinged_reset_at=None,
             current_percent=0.0, data_source="hook",
         )
         is False
@@ -143,7 +146,7 @@ def test_should_ping_ignores_non_hook_source() -> None:
     now = time.time()
     assert (
         window_keeper.should_ping(
-            now, now + EXPIRED, enabled=True, last_ping_at=None,
+            now, now + EXPIRED, enabled=True, last_pinged_reset_at=None,
             current_percent=0.0, data_source="claude-json",
         )
         is False
@@ -154,7 +157,7 @@ def test_should_ping_missing_percent() -> None:
     now = time.time()
     assert (
         window_keeper.should_ping(
-            now, now + EXPIRED, enabled=True, last_ping_at=None,
+            now, now + EXPIRED, enabled=True, last_pinged_reset_at=None,
             current_percent=None, data_source="hook",
         )
         is False
@@ -164,27 +167,34 @@ def test_should_ping_missing_percent() -> None:
 # --- state file read/write ---
 
 
-def test_load_last_ping_missing_file(isolated_state: Path) -> None:
-    assert window_keeper._load_last_ping() is None
+def test_load_last_pinged_reset_missing_file(isolated_state: Path) -> None:
+    assert window_keeper._load_last_pinged_reset() is None
 
 
-def test_save_and_load_last_ping_roundtrip(isolated_state: Path) -> None:
-    window_keeper._save_last_ping(12345.5)
-    assert window_keeper._load_last_ping() == 12345.5
+def test_save_and_load_last_pinged_reset_roundtrip(isolated_state: Path) -> None:
+    window_keeper._save_last_pinged_reset(12345.5)
+    assert window_keeper._load_last_pinged_reset() == 12345.5
     payload = json.loads(isolated_state.read_text(encoding="utf-8"))
-    assert payload == {"last_ping_at": 12345.5}
+    assert payload == {"last_pinged_reset_at": 12345.5}
 
 
-def test_load_last_ping_corrupt_json(isolated_state: Path) -> None:
+def test_load_last_pinged_reset_corrupt_json(isolated_state: Path) -> None:
     isolated_state.write_text("not json at all", encoding="utf-8")
-    assert window_keeper._load_last_ping() is None
+    assert window_keeper._load_last_pinged_reset() is None
 
 
-def test_load_last_ping_rejects_non_numeric(isolated_state: Path) -> None:
+def test_load_last_pinged_reset_rejects_non_numeric(isolated_state: Path) -> None:
     isolated_state.write_text(
-        json.dumps({"last_ping_at": "soon"}), encoding="utf-8"
+        json.dumps({"last_pinged_reset_at": "soon"}), encoding="utf-8"
     )
-    assert window_keeper._load_last_ping() is None
+    assert window_keeper._load_last_pinged_reset() is None
+
+
+def test_load_last_pinged_reset_accepts_legacy_state(isolated_state: Path) -> None:
+    isolated_state.write_text(
+        json.dumps({"last_ping_at": 12345.5}), encoding="utf-8"
+    )
+    assert window_keeper._load_last_pinged_reset() is None
 
 
 # --- maybe_ping (integration) ---
@@ -218,8 +228,9 @@ def test_maybe_ping_fires_when_conditions_met(
     )
 
     assert calls == ["/fake/claude"]
-    # last_ping_at stamped at dispatch even though subprocess "ran" synchronously.
-    assert window_keeper._load_last_ping() is not None
+    # The expired reset boundary is stamped at dispatch even though subprocess
+    # "ran" synchronously.
+    assert window_keeper._load_last_pinged_reset() == now + EXPIRED
     assert len(_SyncThread.instances) == 1
     assert _SyncThread.instances[0].started is True
 
@@ -267,21 +278,65 @@ def test_maybe_ping_skips_when_window_still_running(
     assert _SyncThread.instances == []
 
 
-def test_maybe_ping_respects_cooldown(
+def test_maybe_ping_deduplicates_same_boundary(
     monkeypatch: pytest.MonkeyPatch, isolated_state: Path
 ) -> None:
     calls = _arm_successful_ping(monkeypatch)
     now = time.time()
-    # Pretend we pinged 10 minutes ago — within the 5h cooldown.
-    window_keeper._save_last_ping(now - 600)
+    reset_at = now + EXPIRED
+    window_keeper._save_last_pinged_reset(reset_at)
     window_keeper.maybe_ping(
-        current_reset_at=now + EXPIRED, current_percent=0.0, data_source="hook", mock=False
+        current_reset_at=reset_at, current_percent=0.0, data_source="hook", mock=False
     )
 
     assert calls == []
     # State file untouched beyond the seed we wrote.
-    assert window_keeper._load_last_ping() == now - 600
+    assert window_keeper._load_last_pinged_reset() == reset_at
     assert _SyncThread.instances == []
+
+
+def test_maybe_ping_new_boundary_ignores_dispatch_time_drift(
+    monkeypatch: pytest.MonkeyPatch, isolated_state: Path
+) -> None:
+    calls = _arm_successful_ping(monkeypatch)
+    now = time.time()
+    new_reset_at = now + EXPIRED
+    previous_reset_at = new_reset_at - 5 * 3600
+    # Even if the previous ping was dispatched late, deduplication is tied to
+    # its true boundary, so this newly expired boundary must still fire.
+    window_keeper._save_last_pinged_reset(previous_reset_at)
+
+    window_keeper.maybe_ping(
+        current_reset_at=new_reset_at,
+        current_percent=0.0,
+        data_source="hook",
+        mock=False,
+    )
+
+    assert calls == ["/fake/claude"]
+    assert window_keeper._load_last_pinged_reset() == new_reset_at
+    assert len(_SyncThread.instances) == 1
+
+
+def test_maybe_ping_legacy_recent_dispatch_does_not_block_new_boundary(
+    monkeypatch: pytest.MonkeyPatch, isolated_state: Path
+) -> None:
+    calls = _arm_successful_ping(monkeypatch)
+    now = time.time()
+    isolated_state.write_text(
+        json.dumps({"last_ping_at": now - 60}), encoding="utf-8"
+    )
+    new_reset_at = now + EXPIRED
+
+    window_keeper.maybe_ping(
+        current_reset_at=new_reset_at,
+        current_percent=0.0,
+        data_source="hook",
+        mock=False,
+    )
+
+    assert calls == ["/fake/claude"]
+    assert window_keeper._load_last_pinged_reset() == new_reset_at
 
 
 def test_maybe_ping_inflight_guard_prevents_double_spawn(
@@ -297,7 +352,7 @@ def test_maybe_ping_inflight_guard_prevents_double_spawn(
 
     assert calls == []
     # Must not have stamped a new ping or spawned another worker.
-    assert window_keeper._load_last_ping() is None
+    assert window_keeper._load_last_pinged_reset() is None
     assert _SyncThread.instances == []
 
 
@@ -315,6 +370,7 @@ def test_maybe_ping_does_not_crash_when_claude_missing(
     assert calls == []
     assert len(_SyncThread.instances) == 1
     assert _SyncThread.instances[0].started is True
+    assert window_keeper._load_last_pinged_reset() == now + EXPIRED
     assert window_keeper._ping_in_flight is False
 
 

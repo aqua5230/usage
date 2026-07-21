@@ -33,14 +33,11 @@ from menubar_prefs import _window_keeper_enabled
 
 logger = logging.getLogger(__name__)
 
-# State file holding ``{"last_ping_at": <float epoch>}``. Module constant so
-# tests can monkeypatch it instead of touching the real ``~/.usage/`` dir.
+# State file holding ``{"last_pinged_reset_at": <float epoch>}``. Module
+# constant so tests can monkeypatch it instead of touching the real
+# ``~/.usage/`` dir.
 WINDOW_KEEPER_STATE_PATH = Path(os.path.expanduser("~/.usage/window_keeper.json"))
 
-# Our own ping does not refresh the status file (``claude -p`` print mode never
-# triggers the statusLine hook), so we must self-throttle: after a ping, wait a
-# full window before trying again, regardless of subprocess success/failure.
-PING_COOLDOWN_SECONDS = 5 * 3600
 PING_TIMEOUT_SECONDS = 180
 
 # usage_client defaults a missing ``resets_at`` to parse-time "now", which one
@@ -67,7 +64,7 @@ def should_ping(
     now: float,
     current_reset_at: float | None,
     enabled: bool,
-    last_ping_at: float | None,
+    last_pinged_reset_at: float | None,
     current_percent: float | None,
     data_source: str,
 ) -> bool:
@@ -85,11 +82,12 @@ def should_ping(
         return False
     if current_reset_at is None or now - current_reset_at < PING_EXPIRY_GRACE_SECONDS:
         return False
-    # Outside the self-throttle cooldown (None last_ping_at means we never have).
-    return last_ping_at is None or now - last_ping_at >= PING_COOLDOWN_SECONDS
+    # A reset boundary is handled at most once. Unlike a cooldown measured from
+    # dispatch time, this re-arms as soon as a different real boundary expires.
+    return current_reset_at != last_pinged_reset_at
 
 
-def _load_last_ping(path: Path | None = None) -> float | None:
+def _load_last_pinged_reset(path: Path | None = None) -> float | None:
     state_path = WINDOW_KEEPER_STATE_PATH if path is None else path
     if not state_path.exists():
         return None
@@ -99,16 +97,19 @@ def _load_last_ping(path: Path | None = None) -> float | None:
         return None
     if not isinstance(data, dict):
         return None
-    value = data.get("last_ping_at")
+    # Legacy files containing only ``last_ping_at`` intentionally read as no
+    # handled boundary: a dispatch timestamp cannot identify which reset it
+    # belonged to.
+    value = data.get("last_pinged_reset_at")
     if isinstance(value, bool) or not isinstance(value, int | float):
         return None
     return float(value)
 
 
-def _save_last_ping(ts: float, path: Path | None = None) -> None:
+def _save_last_pinged_reset(reset_at: float, path: Path | None = None) -> None:
     state_path = WINDOW_KEEPER_STATE_PATH if path is None else path
     state_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps({"last_ping_at": ts}) + "\n"
+    payload = json.dumps({"last_pinged_reset_at": reset_at}) + "\n"
     tmp_path: str | None = None
     try:
         fd, tmp_path = tempfile.mkstemp(dir=state_path.parent, suffix=".tmp")
@@ -192,7 +193,8 @@ def maybe_ping(
     """High-level entry: read prefs + state, gate, and fire a background ping.
 
     Returns immediately — the subprocess runs on a daemon thread. Safe to call
-    on every UI refresh; cooldown + in-flight guard make it a no-op when busy.
+    on every UI refresh; boundary deduplication + the in-flight guard make it a
+    no-op when busy.
     """
     if mock:
         return
@@ -201,15 +203,23 @@ def maybe_ping(
         # Switch off → zero side effects: don't read or write state, don't spawn.
         return
     now = time.time()
-    last_ping_at = _load_last_ping()
-    if not should_ping(now, current_reset_at, enabled, last_ping_at, current_percent, data_source):
+    last_pinged_reset_at = _load_last_pinged_reset()
+    if not should_ping(
+        now,
+        current_reset_at,
+        enabled,
+        last_pinged_reset_at,
+        current_percent,
+        data_source,
+    ):
         return
     if not _try_acquire():
         return
-    # Stamp the ping at dispatch time regardless of subprocess outcome, so a
-    # failed ping doesn't retry on every refresh; the next window naturally
-    # re-arms 5h later.
-    _save_last_ping(now)
+    # Mark this boundary handled at dispatch time regardless of subprocess
+    # outcome, so a failed ping doesn't retry on every refresh. A different
+    # real reset boundary naturally re-arms the keeper.
+    assert current_reset_at is not None  # guaranteed by should_ping
+    _save_last_pinged_reset(current_reset_at)
     worker = threading.Thread(target=_ping_worker, args=(now,), daemon=True)
     worker.start()
 
