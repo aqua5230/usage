@@ -30,7 +30,10 @@ AGY_WINDOW_KEEPER_STATE_PATH = Path(
 PING_COOLDOWN_SECONDS = 5 * 3600
 PING_TIMEOUT_SECONDS = 180
 AGY_MODEL = "Gemini 3.5 Flash (Low)"
-_AGY_BIN_FALLBACK = "~/.local/bin/agy"
+_AGY_BIN_FALLBACKS = (
+    "~/.local/bin/agy",
+    "~/AppData/Local/agy/bin/agy.exe",
+)
 
 _lock = threading.Lock()
 _ping_in_flight = False
@@ -96,9 +99,10 @@ def _resolve_agy_bin() -> str | None:
     found = shutil.which("agy")
     if found:
         return found
-    fallback = os.path.expanduser(_AGY_BIN_FALLBACK)
-    if os.path.isfile(fallback) and os.access(fallback, os.X_OK):
-        return fallback
+    for candidate in _AGY_BIN_FALLBACKS:
+        resolved = os.path.expanduser(candidate)
+        if os.path.isfile(resolved) and os.access(resolved, os.X_OK):
+            return resolved
     return None
 
 

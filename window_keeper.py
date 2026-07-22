@@ -51,6 +51,7 @@ PING_EXPIRY_GRACE_SECONDS = 120
 # with a minimal PATH, so the native installer's ~/.local/bin must be listed.
 _CLAUDE_BIN_FALLBACKS = (
     "~/.local/bin/claude",
+    "~/.local/bin/claude.exe",
     "~/.claude/local/claude",
     "/opt/homebrew/bin/claude",
     "/usr/local/bin/claude",

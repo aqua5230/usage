@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import threading
 import time
 from pathlib import Path
@@ -11,6 +13,15 @@ from typing import Any
 import pytest
 
 import window_keeper
+
+
+def test_resolve_claude_bin_uses_windows_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(shutil, "which", lambda _: None)
+    monkeypatch.setattr(os.path, "expanduser", lambda path: f"/fake/{Path(path).name}")
+    monkeypatch.setattr(os.path, "isfile", lambda path: path == "/fake/claude.exe")
+    monkeypatch.setattr(os, "access", lambda *_: True)
+
+    assert window_keeper._resolve_claude_bin() == "/fake/claude.exe"
 
 
 class _SyncThread:
