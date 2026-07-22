@@ -8,6 +8,7 @@ import os
 import platform
 import shutil
 import sys
+from base64 import b64encode
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
@@ -84,8 +85,9 @@ def _write_token(
 
 
 @pytest.fixture(autouse=True)
-def _reset_token_cache() -> Iterator[None]:
+def _reset_token_cache(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     agy_quota_probe._token_cache.clear()
+    monkeypatch.setattr(agy_quota_probe, "_read_macos_credential", lambda: None)
     yield
     agy_quota_probe._token_cache.clear()
 
@@ -134,6 +136,13 @@ def test_find_agy_returns_none_when_all_paths_miss(
 # --- token freshness + refresh --------------------------------------------
 
 
+def test_quota_url_matches_current_cli_backend() -> None:
+    assert _QUOTA_URL == (
+        "https://daily-cloudcode-pa.googleapis.com/"
+        "v1internal:retrieveUserQuotaSummary"
+    )
+
+
 def test_resolve_access_token_uses_disk_token_when_not_expired(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -169,6 +178,58 @@ def test_resolve_access_token_falls_back_to_windows_credential(
 
     assert agy_quota_probe._resolve_access_token(15.0) == "fresh-from-credential-manager"
     assert calls == [None]
+
+
+def test_resolve_access_token_prefers_macos_keychain(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    token_path = tmp_path / "antigravity-oauth-token"
+    _write_token(token_path, access_token="stale-file-token")
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", token_path)
+    monkeypatch.setattr(sys, "platform", "darwin")
+    credential_payload = {
+        "token": {
+            "access_token": "fresh-from-keychain",
+            "expiry": (datetime.now(UTC) + timedelta(hours=1)).isoformat(),
+        }
+    }
+    monkeypatch.setattr(
+        agy_quota_probe,
+        "_read_macos_credential",
+        lambda: credential_payload,
+    )
+
+    assert agy_quota_probe._resolve_access_token(15.0) == "fresh-from-keychain"
+
+
+def test_resolve_access_token_falls_back_when_macos_keychain_is_unusable(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    token_path = tmp_path / "antigravity-oauth-token"
+    _write_token(token_path, access_token="fresh-from-file")
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", token_path)
+    monkeypatch.setattr(sys, "platform", "darwin")
+    monkeypatch.setattr(agy_quota_probe, "_read_macos_credential", lambda: None)
+
+    assert agy_quota_probe._resolve_access_token(15.0) == "fresh-from-file"
+
+
+def test_parse_keyring_secret_reads_go_keyring_base64_json() -> None:
+    payload = {
+        "token": {
+            "access_token": "credential-token",
+            "expiry": "2030-01-01T00:00:00Z",
+        }
+    }
+    encoded = b"go-keyring-base64:" + b64encode(json.dumps(payload).encode("utf-8"))
+
+    assert agy_quota_probe._parse_keyring_secret(encoded) == payload
+
+
+def test_parse_keyring_secret_rejects_invalid_base64() -> None:
+    assert agy_quota_probe._parse_keyring_secret(b"go-keyring-base64:not base64") is None
 
 
 def test_parse_windows_credential_blob_reads_utf16le_json() -> None:

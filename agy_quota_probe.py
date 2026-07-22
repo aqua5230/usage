@@ -6,10 +6,10 @@
 
 """Fetch Antigravity quota straight from the official Cloud Code quota API.
 
-Reads the local OAuth token that the Antigravity CLI stores after sign-in,
-refreshes it through Google's token endpoint when stale, then POSTs the
-internal ``retrieveUserQuotaSummary`` endpoint for the quota summary. No CLI is
-spawned, no screen text is parsed.
+Reads the OAuth token that the Antigravity CLI stores in the platform credential
+store (with its legacy token file as fallback), refreshes it through Google's
+token endpoint when stale, then POSTs the internal ``retrieveUserQuotaSummary``
+endpoint for the quota summary. No CLI is spawned, no screen text is parsed.
 """
 
 from __future__ import annotations
@@ -18,10 +18,13 @@ import json
 import os
 import platform
 import shutil
+import subprocess
 import sys
 import tempfile
 import time
 import urllib.parse
+from base64 import b64decode
+from binascii import Error as Base64Error
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
@@ -31,12 +34,15 @@ from urllib.error import URLError
 from urllib.request import Request, urlopen
 
 CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_quota_cache.json"))
-# OAuth token written by the Antigravity CLI at sign-in. Read-only: we never
-# write back here (that is the CLI's home and would risk corrupting its login).
+# Legacy OAuth token written by older Antigravity CLI versions. Read-only: we
+# never write back here (that is the CLI's home and could corrupt its login).
 _TOKEN_PATH = Path(os.path.expanduser("~/.gemini/antigravity-cli/antigravity-oauth-token"))
+_KEYCHAIN_SERVICE = "gemini"
+_KEYCHAIN_ACCOUNT = "antigravity"
+_KEYRING_BASE64_PREFIX = "go-keyring-base64:"
 
 _TOKEN_URL = "https://oauth2.googleapis.com/token"
-_QUOTA_URL = "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary"
+_QUOTA_URL = "https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary"
 # Antigravity's installed-app public client constants (same values quotio ships).
 _CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com"
 _CLIENT_SECRET = "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"
@@ -139,7 +145,11 @@ def _resolve_access_token(timeout: float) -> str | None:
     ):
         return cached_token
 
-    token_data = _read_token_file()
+    token_data: object = None
+    if sys.platform == "darwin":
+        token_data = _read_macos_credential()
+    if not _has_usable_token(token_data):
+        token_data = _read_token_file()
     if not _has_usable_token(token_data) and sys.platform == "win32":
         token_data = _read_windows_credential()
     if not isinstance(token_data, dict):
@@ -174,6 +184,47 @@ def _read_token_file() -> object:
         with _TOKEN_PATH.open(encoding="utf-8") as handle:
             return json.load(handle)
     except (OSError, ValueError):
+        return None
+
+
+def _read_macos_credential() -> object:
+    """Read the current Antigravity OAuth credential from macOS Keychain."""
+    if sys.platform != "darwin":
+        return None
+    try:
+        completed = subprocess.run(
+            [
+                "security",
+                "find-generic-password",
+                "-a",
+                _KEYCHAIN_ACCOUNT,
+                "-s",
+                _KEYCHAIN_SERVICE,
+                "-w",
+            ],
+            check=False,
+            capture_output=True,
+            timeout=5,
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if completed.returncode != 0:
+        return None
+    return _parse_keyring_secret(completed.stdout)
+
+
+def _parse_keyring_secret(secret: bytes) -> object:
+    """Parse JSON stored directly or through go-keyring's Base64 wrapper."""
+    prefix = _KEYRING_BASE64_PREFIX.encode("ascii")
+    payload = secret.strip()
+    if payload.startswith(prefix):
+        try:
+            payload = b64decode(payload[len(prefix) :], validate=True)
+        except (Base64Error, ValueError):
+            return None
+    try:
+        return json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, ValueError):
         return None
 
 
@@ -250,6 +301,9 @@ def _read_windows_credential() -> object:
 
 def _parse_windows_credential_blob(blob: bytes) -> object:
     """Parse a CredentialBlob, normally UTF-16LE JSON written by the CLI."""
+    parsed = _parse_keyring_secret(blob)
+    if parsed is not None:
+        return parsed
     for encoding in ("utf-16-le", "utf-8"):
         try:
             return json.loads(blob.decode(encoding).lstrip("\ufeff").rstrip("\x00"))

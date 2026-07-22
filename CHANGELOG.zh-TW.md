@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.28.18] - 2026-07-22
+
+### 修正
+- **自 Antigravity CLI 1.1.5 版更新後，額度卡卡在錯誤的數字不會動。** Antigravity CLI 把 OAuth 憑證從本機的一份純文字檔搬進了 macOS 鑰匙圈（`security` 服務名 `gemini`、帳號 `antigravity`，內容是 `go-keyring-base64:` 包一層的 JSON），配額查詢的後端網域也從 `cloudcode-pa.googleapis.com` 換成 `daily-cloudcode-pa.googleapis.com`。額度卡當時繼續讀那份已被棄用的舊 token 檔，靜默地拿一個過期授權去刷新，回傳的數字因此跟 CLI 自己 `/quota` 顯示的對不上。現在改成優先讀鑰匙圈裡的憑證（讀不到才退回舊檔案），並打新的後端網域。
+
 ## [0.28.17] - 2026-07-21
 
 ### 修正
