@@ -296,6 +296,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     monkeypatch.setattr(wintray, "_hide_agy_enabled", lambda: True)
     monkeypatch.setattr(win_login_item, "is_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_window_keeper_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_session_resume_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_terse_mode_enabled", lambda: False)
 
@@ -314,6 +315,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "separator",
         "launch_at_login",
         "quota_notifications_menu",
+        "window_keeper_menu",
         "separator",
         "project_butler",
         "terse_mode_menu",
@@ -327,8 +329,9 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     assert [item["checked"] for item in hidden_sections] == [True, False, True]
     assert menu[5]["checked"] is True
     assert menu[6]["checked"] is False
-    assert menu[8]["checked"] is True
-    assert menu[9]["checked"] is False
+    assert menu[7]["checked"] is True
+    assert menu[9]["checked"] is True
+    assert menu[10]["checked"] is False
 
 
 @pytest.mark.parametrize(
@@ -345,6 +348,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         ({"action": "refresh"}, "refresh", ()),
         ({"action": "toggle_login"}, "toggle_login", ()),
         ({"action": "toggle_quota_notifications"}, "toggle_quota_notifications", ()),
+        ({"action": "toggle_window_keeper"}, "toggle_window_keeper", ()),
         ({"action": "toggle_session_resume"}, "toggle_session_resume", ()),
         ({"action": "toggle_terse_mode"}, "toggle_terse_mode", ()),
         ({"action": "check_update"}, "check_update", ()),
@@ -725,6 +729,7 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
         open_ai_daily=lambda: None,
         toggle_hide_section=lambda key: None,
         toggle_quota_notifications=lambda: None,
+        toggle_window_keeper=lambda: None,
         toggle_session_resume=lambda: None,
         toggle_terse_mode=lambda: None,
         check_update=lambda: None,

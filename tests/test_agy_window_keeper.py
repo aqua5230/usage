@@ -260,6 +260,15 @@ def test_resolve_agy_bin_uses_local_fallback(monkeypatch: pytest.MonkeyPatch) ->
     assert agy_window_keeper._resolve_agy_bin() == "/fake/agy"
 
 
+def test_resolve_agy_bin_uses_windows_fallback(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(shutil, "which", lambda _: None)
+    monkeypatch.setattr(os.path, "expanduser", lambda path: f"/fake/{Path(path).name}")
+    monkeypatch.setattr(os.path, "isfile", lambda path: path == "/fake/agy.exe")
+    monkeypatch.setattr(os, "access", lambda *_: True)
+
+    assert agy_window_keeper._resolve_agy_bin() == "/fake/agy.exe"
+
+
 def test_run_agy_ping_uses_verified_noninteractive_command(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

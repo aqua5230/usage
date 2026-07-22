@@ -17,11 +17,13 @@ from importlib import metadata
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+import agy_window_keeper
 import codex_loader
 import menubar_agy
 import menubar_state
 import update_checker
 import win_login_item
+import window_keeper
 from burn_rate import BurnRateTracker
 from history_loader import UsageEntry, load_entries
 from i18n import _t
@@ -32,6 +34,7 @@ from menubar_prefs import (
     _quota_card_order,
     _quota_notification_thresholds,
     _quota_notifications_enabled,
+    _window_keeper_enabled,
 )
 from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
@@ -752,6 +755,14 @@ class _WindowsTrayController:
         started_at = time.monotonic() if debug_timing else 0.0
         outcome = asyncio.run(self._fetch())
         measure("fetch", started_at)
+        if outcome.snapshot is not None:
+            window_keeper.maybe_ping(
+                outcome.snapshot.current_reset_at,
+                outcome.snapshot.current_percent,
+                outcome.snapshot.data_source,
+                self.mock,
+            )
+        agy_window_keeper.maybe_ping(agy_result, self.mock)
         return menubar_state.build_popover_state(
             outcome=outcome,
             codex_rows=codex_rows,
@@ -898,6 +909,11 @@ class _WindowsTrayController:
                 "toggle_quota_notifications",
                 checked=_quota_notifications_enabled(),
             ),
+            item(
+                "window_keeper_menu",
+                "toggle_window_keeper",
+                checked=_window_keeper_enabled(),
+            ),
             {"type": "separator"},
             item("project_butler", "toggle_session_resume", checked=_session_resume_enabled()),
             item("terse_mode_menu", "toggle_terse_mode", checked=_terse_mode_enabled()),
@@ -925,6 +941,18 @@ class _WindowsTrayController:
         preferences = _load_preferences()
         preferences["quota_notifications"] = not _quota_notifications_enabled(preferences)
         _save_preferences(preferences)
+
+    def toggle_window_keeper(self, _icon: Any = None, _item: Any = None) -> None:
+        preferences = _load_preferences()
+        enabled = not _window_keeper_enabled(preferences)
+        preferences["window_keeper"] = enabled
+        preferences.pop("agy_window_keeper", None)
+        _save_preferences(preferences)
+        if enabled:
+            self._message_box(
+                f"{_t(self.language, 'window_keeper_sleep_title')}\n\n"
+                f"{_t(self.language, 'window_keeper_sleep_body_windows')}"
+            )
 
     def toggle_session_resume(self, _icon: Any = None, _item: Any = None) -> None:
         threading.Thread(target=self._toggle_session_resume_in_background, daemon=True).start()
@@ -1073,6 +1101,8 @@ class _WindowsTrayController:
                 self.toggle_login()
             elif action == "toggle_quota_notifications":
                 self.toggle_quota_notifications()
+            elif action == "toggle_window_keeper":
+                self.toggle_window_keeper()
             elif action == "toggle_session_resume":
                 self.toggle_session_resume()
             elif action == "toggle_terse_mode":
@@ -1188,6 +1218,11 @@ def _menu(controller: _WindowsTrayController) -> Any:
             _t(controller.language, "quota_notifications_menu"),
             controller.toggle_quota_notifications,
             checked=lambda _item: _quota_notifications_enabled(),
+        ),
+        pystray.MenuItem(
+            _t(controller.language, "window_keeper_menu"),
+            controller.toggle_window_keeper,
+            checked=lambda _item: _window_keeper_enabled(),
         ),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem(
