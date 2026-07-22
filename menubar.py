@@ -1584,6 +1584,7 @@ class AppDelegate(NSObject):
                 codex_5h_pct = codex_result["codex_5h_pct"]
                 codex_model = codex_result.get("codex_model", "unknown")
                 codex_stale = codex_result.get("codex_stale")
+                codex_credits = codex_result.get("codex_credits")
                 show_install_button = (
                     not hide_claude
                     and outcome.state == PollState.TOKEN_ERROR
@@ -1609,6 +1610,7 @@ class AppDelegate(NSObject):
                     hide_codex=hide_codex,
                     hide_agy=hide_agy,
                     codex_stale=codex_stale,
+                    codex_credits=codex_credits,
                     agy_stale=agy_projection.stale,
                     card_order=card_order,
                     history_error=menubar_state.history_load_error_state(
@@ -1712,7 +1714,13 @@ class AppDelegate(NSObject):
     def _load_codex_refresh_result(self) -> dict[str, Any]:
         history_scan = None if self.mock else self._history_source_scan()
         try:
-            codex_rows, codex_5h_pct, codex_model, codex_stale = menubar_state.codex_rows(
+            (
+                codex_rows,
+                codex_5h_pct,
+                codex_model,
+                codex_stale,
+                codex_credits,
+            ) = menubar_state.codex_rows(
                 mock=self.mock,
                 language=self.language,
                 burn_rate_trackers=self.burn_rate_trackers,
@@ -1732,11 +1740,13 @@ class AppDelegate(NSObject):
             codex_5h_pct = None
             codex_model = "unknown"
             codex_stale = None
+            codex_credits = None
         return {
             "codex_rows": codex_rows,
             "codex_5h_pct": codex_5h_pct,
             "codex_model": codex_model,
             "codex_stale": codex_stale,
+            "codex_credits": codex_credits,
             "_history_scan": history_scan,
         }
 
@@ -1746,6 +1756,7 @@ class AppDelegate(NSObject):
         self.latest_state.codex_session = codex_rows[0]
         self.latest_state.codex_weekly = codex_rows[1]
         self.latest_state.codex_stale = result.get("codex_stale")
+        self.latest_state.codex_credits = result.get("codex_credits")
         self.codex_5h_pct = result["codex_5h_pct"]
         self.codex_model = result.get("codex_model", "unknown")
         if self.popover.isShown():
@@ -2204,10 +2215,16 @@ def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
         if state.status_long
         else 0.0
     )
+    codex_credits_extra = (
+        24.0
+        if active_panel.id == "classic" and state.codex_credits is not None and not state.hide_codex
+        else 0.0
+    )
     height = (
         base_height
         + install_extra
         + status_extra
+        + codex_credits_extra
         - claude_deduct
         - codex_deduct
         - codex_row_deduct

@@ -183,6 +183,13 @@
       display: none;
     }
 
+    .codex-credits {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
     .card[data-card="agy"] .brand h1 {
       flex: none;
       overflow: visible;
@@ -762,6 +769,25 @@
       staleEl.hidden = true;
     }
 
+    function renderCodexCredits(credits) {
+      const card = document.querySelector('[data-card="codex"]');
+      if (!card) return;
+      const existing = card.querySelector('[data-codex-credits]');
+      if (!credits) {
+        if (existing) existing.remove();
+        return;
+      }
+      const el = existing || document.createElement("div");
+      if (!existing) {
+        el.className = "codex-credits";
+        el.dataset.codexCredits = "";
+        card.appendChild(el);
+      }
+      el.textContent = credits.unlimited
+        ? t("codex_credits_unlimited")
+        : t("codex_credits", { balance: credits.balance || "--" });
+    }
+
     function renderAgy(agy) {
       applyCard("agy", agy);
       const staleEl = document.querySelector("[data-agy-stale]");
@@ -901,6 +927,7 @@
       applyCard("claude", state.claude);
       applyCard("codex", state.codex);
       renderCodexStale(state.codex && state.codex.stale);
+      renderCodexCredits(state.codex && state.codex.credits);
       renderAgy(state.agy);
       renderHistoryLoadError(state.historyError);
       latestState = state;

@@ -120,6 +120,7 @@ def _codex_rows(
     float | None,
     str,
     menubar_state.CodexStaleState | None,
+    menubar_state.CodexCreditsState | None,
 ]:
     return menubar_state.codex_rows(
         mock=delegate.mock,
@@ -2126,7 +2127,7 @@ def test_codex_rows_ignores_invalid_stale_timestamp(
         ),
     )
 
-    rows, codex_5h_pct, model, stale = _codex_rows(delegate)
+    rows, codex_5h_pct, model, stale, _credits = _codex_rows(delegate)
 
     assert rows[0].available is True
     assert codex_5h_pct == 12
@@ -2163,7 +2164,7 @@ def test_codex_rows_free_plan_labels_window_as_monthly(
         ),
     )
 
-    rows, _codex_5h_pct, _model, _stale = _codex_rows(delegate)
+    rows, _codex_5h_pct, _model, _stale, _credits = _codex_rows(delegate)
 
     # 30-day window must read as "Monthly", not the hard-coded "Session".
     assert rows[0].title == "Monthly"

@@ -238,7 +238,7 @@ def test_codex_rows_hides_missing_session_and_uses_weekly_for_menu(
         "codex_weekly": BurnRateTracker(),
     }
 
-    rows, menu_pct, _model, _stale = menubar_state.codex_rows(
+    rows, menu_pct, _model, _stale, _credits = menubar_state.codex_rows(
         mock=False, language="en", burn_rate_trackers=trackers
     )
 
@@ -268,7 +268,7 @@ def test_codex_rows_menu_prefers_session_when_present(
         "codex_weekly": BurnRateTracker(),
     }
 
-    _rows, menu_pct, _model, _stale = menubar_state.codex_rows(
+    _rows, menu_pct, _model, _stale, _credits = menubar_state.codex_rows(
         mock=False, language="en", burn_rate_trackers=trackers
     )
 

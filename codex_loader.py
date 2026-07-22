@@ -177,6 +177,9 @@ class CodexRateLimits:
     seven_day_window_minutes: float | None = None
     model: str | None = "unknown"
     updated_at: str = ""
+    has_credits: bool = False
+    credit_balance: str | None = None
+    credits_unlimited: bool = False
 
 
 def _seed_caches_from_disk() -> None:
@@ -467,6 +470,9 @@ def _merge_rate_limits(
         seven_day_window_minutes=seven_window,
         model=newer.model,
         updated_at=newer.updated_at,
+        has_credits=newer.has_credits,
+        credit_balance=newer.credit_balance,
+        credits_unlimited=newer.credits_unlimited,
     )
 
 
@@ -575,6 +581,7 @@ def _rate_limits_from_websocket_event(
     rate_limits = _as_dict(event.get("rate_limits"))
     primary = _as_dict(rate_limits.get("primary"))
     secondary = _as_dict(rate_limits.get("secondary"))
+    credits = _as_dict(rate_limits.get("credits"))
     return _build_rate_limits(
         primary_pct=_as_optional_float(primary.get("used_percent")),
         primary_reset=_as_optional_float(primary.get("reset_at")),
@@ -582,6 +589,9 @@ def _rate_limits_from_websocket_event(
         secondary_reset=_as_optional_float(secondary.get("reset_at")),
         primary_window_minutes=_as_optional_float(primary.get("window_minutes")),
         secondary_window_minutes=_as_optional_float(secondary.get("window_minutes")),
+        has_credits=credits.get("has_credits") is True,
+        credit_balance=_as_str(credits.get("balance")) or None,
+        credits_unlimited=credits.get("unlimited") is True,
         model=_event_value(body, "model") or "unknown",
         updated_at=_timestamp_from_log_ts(ts),
     )
@@ -626,6 +636,9 @@ def _build_rate_limits(
     updated_at: datetime | None,
     primary_window_minutes: float | None = None,
     secondary_window_minutes: float | None = None,
+    has_credits: bool = False,
+    credit_balance: str | None = None,
+    credits_unlimited: bool = False,
 ) -> CodexRateLimits | None:
     now_ts = datetime.now(UTC).timestamp()
     if primary_reset is not None and primary_reset < now_ts:
@@ -660,6 +673,9 @@ def _build_rate_limits(
         seven_day_window_minutes=secondary_window_minutes,
         model=model,
         updated_at=updated_at.isoformat() if updated_at is not None else "",
+        has_credits=has_credits,
+        credit_balance=credit_balance,
+        credits_unlimited=credits_unlimited,
     )
 
 
@@ -944,6 +960,7 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
     rate_limits, updated_at = last_rate_limits
     primary = _as_dict(rate_limits.get("primary"))
     secondary = _as_dict(rate_limits.get("secondary"))
+    credits = _as_dict(rate_limits.get("credits"))
     five_pct = _as_optional_float(primary.get("used_percent"))
     five_reset = _as_optional_float(primary.get("resets_at"))
     five_window = _as_optional_float(primary.get("window_minutes"))
@@ -978,6 +995,9 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
         seven_day_window_minutes=seven_window,
         model=models.get(session_id, session_model),
         updated_at=updated_at,
+        has_credits=credits.get("has_credits") is True,
+        credit_balance=_as_str(credits.get("balance")) or None,
+        credits_unlimited=credits.get("unlimited") is True,
     )
 
 

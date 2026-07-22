@@ -69,6 +69,7 @@ class AppViewState:
     fatal_message: str | None = None
     started_at: float = field(default_factory=time.monotonic)
     rate_group: int = 0
+    codex_credits: tuple[str | None, bool] | None = None
 
 
 def format_countdown(reset_at: float, language: str, now: float | None = None) -> str:
@@ -260,6 +261,15 @@ def render_screen(state: AppViewState, frame_index: int) -> Panel:
                 weekly_block,
             )
         )
+
+    if state.codex_credits is not None:
+        balance, unlimited = state.codex_credits
+        text = (
+            _t(state.language, "codex_credits_unlimited")
+            if unlimited
+            else _t(state.language, "codex_credits", balance=balance or "--")
+        )
+        body_items.append(Text(text, style=DIM))
 
     screen = Group(
         title_table,

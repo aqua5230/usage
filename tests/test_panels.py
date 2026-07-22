@@ -135,6 +135,18 @@ def test_quota_panels_hide_absent_codex_rows_with_dom_api() -> None:
         assert 'el.hidden = card === "codex" && !row;' in html, panel_path.name
 
 
+def test_classic_panel_renders_codex_credits_with_dom_api() -> None:
+    panel_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / "classic.html"
+    html = panel_path.read_text(encoding="utf-8")
+
+    assert "function renderCodexCredits(credits)" in html
+    assert 'document.createElement("div")' in html
+    assert "if (!credits)" in html
+    assert "existing.remove()" in html
+    assert 't("codex_credits_unlimited")' in html
+    assert 't("codex_credits", { balance: credits.balance || "--" })' in html
+
+
 def test_state_payload_omits_codex_rows_with_empty_titles(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

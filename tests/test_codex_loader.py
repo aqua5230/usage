@@ -918,6 +918,7 @@ def test_sqlite_log_cache_uses_composite_watermark_and_dynamic_filters(
         ],
     )
     monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", tmp_path / "missing-sessions")
 
     recent = codex_loader._load_sqlite_log_entries(
         {}, datetime(2026, 1, 1, 0, 1, 30, tzinfo=UTC), {}
@@ -1436,6 +1437,66 @@ def test_load_rate_limits_reads_primary_and_secondary_windows(
     )
 
 
+def test_load_rate_limits_reads_jsonl_credits_and_ignores_unavailable_credits(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    now = datetime.now(UTC)
+    limits = _rate_limits()
+    limits["credits"] = {"has_credits": True, "unlimited": False, "balance": "42"}
+    _write_rate_limit_session(
+        sessions_dir / "available.jsonl", now.isoformat(), limits, now.timestamp()
+    )
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.has_credits is True
+    assert result.credit_balance == "42"
+    assert result.credits_unlimited is False
+
+    limits["credits"] = {"has_credits": False, "unlimited": False, "balance": "0"}
+    _write_rate_limit_session(
+        sessions_dir / "unavailable.jsonl", now.isoformat(), limits, now.timestamp() + 1
+    )
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.has_credits is False
+    assert result.credit_balance == "0"
+    assert result.credits_unlimited is False
+
+
+def test_load_rate_limits_reads_sqlite_credits(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    logs_db = tmp_path / "logs.sqlite"
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    body = (
+        "session_loop{thread_id=session-sqlite}:turn{model=gpt-5.5}: "
+        'websocket event: {"type":"codex.rate_limits","rate_limits":{'
+        '"primary":{"used_percent":40,"window_minutes":300,"reset_at":9999999999},'
+        '"secondary":null,"credits":{"has_credits":true,"unlimited":true}}}'
+    )
+    _create_logs_db(
+        logs_db,
+        [(1, int(now.timestamp()), body)],
+        target="codex_api::endpoint::responses_websocket",
+    )
+    monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", tmp_path / "missing-sessions")
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.has_credits is True
+    assert result.credit_balance is None
+    assert result.credits_unlimited is True
+
+
 def test_load_rate_limits_classifies_weekly_only_primary_by_window(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -1495,6 +1556,35 @@ def test_merge_rate_limits_keeps_old_session_with_new_weekly_slot() -> None:
     assert result.five_hour_pct == 20.0
     assert result.seven_day_pct == 7.0
     assert result.model == "new"
+
+
+def test_merge_rate_limits_uses_credits_from_newer_source() -> None:
+    old = codex_loader.CodexRateLimits(
+        five_hour_pct=20.0,
+        five_hour_resets_at=9_999_999_999.0,
+        seven_day_pct=None,
+        seven_day_resets_at=None,
+        updated_at="2026-07-13T00:00:00+00:00",
+        has_credits=False,
+        credit_balance="0",
+    )
+    new = codex_loader.CodexRateLimits(
+        five_hour_pct=21.0,
+        five_hour_resets_at=9_999_999_999.0,
+        seven_day_pct=None,
+        seven_day_resets_at=None,
+        updated_at="2026-07-13T00:05:00+00:00",
+        has_credits=True,
+        credit_balance="99",
+        credits_unlimited=True,
+    )
+
+    result = codex_loader._merge_rate_limits(old, new)
+
+    assert result is not None
+    assert result.has_credits is True
+    assert result.credit_balance == "99"
+    assert result.credits_unlimited is True
 
 
 def test_load_rate_limits_resets_expired_primary_window_to_zero(

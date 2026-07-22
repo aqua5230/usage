@@ -715,7 +715,7 @@ class _WindowsTrayController:
         debug_timing: bool = False,
     ) -> menubar_state.PopoverState:
         started_at = time.monotonic() if debug_timing else 0.0
-        codex_rows, _codex_pct, _model, codex_stale = menubar_state.codex_rows(
+        codex_rows, _codex_pct, _model, codex_stale, codex_credits = menubar_state.codex_rows(
             mock=self.mock,
             language=self.language,
             burn_rate_trackers=self.burn_rate_trackers,
@@ -775,6 +775,7 @@ class _WindowsTrayController:
             hide_codex=_hide_codex_enabled(),
             hide_agy=agy_result.hide_agy or _hide_agy_enabled(),
             codex_stale=codex_stale,
+            codex_credits=codex_credits,
             agy_stale=agy.stale,
             card_order=_quota_card_order(),
             history_error=menubar_state.history_load_error_state(

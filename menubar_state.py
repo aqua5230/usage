@@ -96,6 +96,11 @@ class HistoryLoadErrorState(TypedDict):
     reasonText: str
 
 
+class CodexCreditsState(TypedDict):
+    balance: str | None
+    unlimited: bool
+
+
 @dataclass(slots=True)
 class PopoverState:
     language: str
@@ -120,6 +125,7 @@ class PopoverState:
     hide_codex: bool = False
     hide_agy: bool = True
     codex_stale: CodexStaleState | None = None
+    codex_credits: CodexCreditsState | None = None
     agy_stale: AgyStaleState | None = None
     card_order: tuple[str, ...] = ("claude", "codex", "agy")
     history_error: HistoryLoadErrorState | None = None
@@ -519,7 +525,13 @@ def codex_rows(
     language: str,
     burn_rate_trackers: dict[str, BurnRateTracker],
     jsonl_candidates: tuple[tuple[Path, float], ...] | None = None,
-) -> tuple[tuple[QuotaRowState, QuotaRowState], float | None, str, CodexStaleState | None]:
+) -> tuple[
+    tuple[QuotaRowState, QuotaRowState],
+    float | None,
+    str,
+    CodexStaleState | None,
+    CodexCreditsState | None,
+]:
     if mock:
         now = time.time()
         burn_rate_trackers["codex_session"].record(now, 12.0)
@@ -545,7 +557,7 @@ def codex_rows(
                 warning_max_seconds=24 * 3600,
             ),
         )
-        return rows, 12, "gpt-5", None
+        return rows, 12, "gpt-5", None, None
 
     try:
         rate_limits = (
@@ -563,7 +575,7 @@ def codex_rows(
             _missing_row(_t(language, "session_label"), CODEX_COLOR, language),
             _missing_row(_t(language, "weekly_label"), CODEX_COLOR, language),
         )
-        return rows, None, "unknown", None
+        return rows, None, "unknown", None, None
     model = rate_limits.model or "unknown"
 
     now = time.time()
@@ -630,7 +642,15 @@ def codex_rows(
             warning_max_seconds=24 * 3600,
         ),
     )
-    return rows, codex_5h_pct, model, codex_stale
+    credits: CodexCreditsState | None = (
+        {
+            "balance": rate_limits.credit_balance,
+            "unlimited": rate_limits.credits_unlimited,
+        }
+        if rate_limits.has_credits
+        else None
+    )
+    return rows, codex_5h_pct, model, codex_stale, credits
 
 
 def build_popover_state(
@@ -653,6 +673,7 @@ def build_popover_state(
     hide_codex: bool,
     hide_agy: bool,
     codex_stale: CodexStaleState | None,
+    codex_credits: CodexCreditsState | None = None,
     agy_stale: AgyStaleState | None,
     card_order: tuple[str, ...] = ("claude", "codex", "agy"),
     history_error: HistoryLoadErrorState | None = None,
@@ -745,6 +766,7 @@ def build_popover_state(
         hide_codex=hide_codex,
         hide_agy=hide_agy,
         codex_stale=codex_stale,
+        codex_credits=codex_credits,
         agy_stale=agy_stale,
         card_order=card_order,
         history_error=history_error,
