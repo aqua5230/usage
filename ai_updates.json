@@ -11,18 +11,18 @@
           "items": [
             {
               "title": {
-                "zh-TW": "輸入表情符號，現在不用翻鍵盤",
-                "zh-CN": "输入表情符号，现在不用翻键盘",
-                "en": "Emoji without hunting through a keyboard",
-                "ja": "絵文字をキーボードから探さなくてよくなった",
-                "ko": "이제 키보드에서 이모지를 찾지 않아도 된다"
+                "zh-TW": "打幾個字母，表情符號就自己送上門",
+                "zh-CN": "打几个字母，表情符号就自己送上门",
+                "en": "Type a few letters and the emoji comes to you",
+                "ja": "数文字打つだけで、絵文字がすぐ見つかる",
+                "ko": "몇 글자만 치면 이모지가 바로 나온다"
               },
               "body": {
-                "zh-TW": "想在提示裡放個愛心，卻得停下來找表情符號嗎？現在直接輸入 `:heart:` 就會變成 ❤️；才打到 `:hea` 時也會列出候選。它像手機訊息裡的預測輸入：你先給一小段線索，Claude Code 幫你把符號找出來，不必離開正在寫的句子。若你偏好完全不跳提示，可在設定加入 `emojiCompletionEnabled: false`（設定鍵，控制這項自動補全的開關）關掉它。",
-                "zh-CN": "想在提示里放个爱心，却得停下来找表情符号吗？现在直接输入 `:heart:` 就会变成 ❤️；才打到 `:hea` 时也会列出候选。它像手机消息里的预测输入：你先给一小段线索，Claude Code 帮你把符号找出来，不必离开正在写的句子。若你不想看到提示，可在设置中把 `emojiCompletionEnabled` 设为 `false` 关闭它。",
-                "en": "Want a heart in a prompt without stopping to hunt through an emoji picker? Type `:heart:` and get ❤️, or type `:hea` to see suggestions. It works like predictive text on a phone: give Claude Code a small clue and it finds the symbol while you keep writing. Prefer no suggestions at all? Disable them with the `emojiCompletionEnabled` setting.",
-                "ja": "プロンプトにハートを入れたいのに、絵文字一覧を探して手が止まることがある。` :heart: ` と入力すれば ❤️ になり、` :hea` まで打てば候補が出る。スマートフォンの予測入力のように、短い手掛かりから Claude Code が記号を探すため、文を書く流れを切らない。候補が不要なら `emojiCompletionEnabled` 設定で無効にできる。",
-                "ko": "프롬프트에 하트를 넣고 싶은데 이모지 목록을 찾느라 손이 멈출 때가 있다. 이제 `:heart:`를 입력하면 ❤️가 되고, `:hea`까지만 입력해도 후보가 나온다. 휴대폰 예측 입력처럼 짧은 단서를 주면 Claude Code가 기호를 찾아 주므로 문장을 쓰는 흐름이 끊기지 않는다. 원하지 않으면 `emojiCompletionEnabled` 설정으로 끌 수 있다."
+                "zh-TW": "你正在寫提示，想加一顆愛心時，不必停下來翻表情符號鍵盤。現在輸入完整的 `:heart:`，Claude Code 就會插入 ❤️；只打到 `:hea`，畫面也會列出候選。這項表情符號短碼（用冒號包住名稱來代表一個符號的簡寫）就像手機的預測輸入：先給幾個字母，它便把可能要用的圖案送到手邊，寫句子的節奏不會被打斷。若候選清單反而讓你分心，打開個人設定檔 `~/.claude/settings.json`，在最外層加入下面這一行即可關閉：\n\n```json\n{\"emojiCompletionEnabled\": false}\n```\n\n若檔案裡已有其他設定，只需在同一對大括號內加入 `\"emojiCompletionEnabled\": false`，並用逗號和前一項隔開。",
+                "zh-CN": "你正在写提示词，想加一颗爱心时，不必停下来翻表情符号键盘。现在输入完整的 `:heart:`，Claude Code 就会插入 ❤️；只打到 `:hea`，界面也会列出候选项。这种表情符号短代码（用冒号包住名称来代表一个符号的简写）就像手机的预测输入：先给几个字母，它便把可能要用的图案送到手边，写句子的节奏不会被打断。如果候选列表反而让你分心，打开个人配置文件 `~/.claude/settings.json`，在最外层加入下面这一项即可关闭：\n\n```json\n{\"emojiCompletionEnabled\": false}\n```\n\n如果文件里已有其他设置，只需在同一对大括号内加入 `\"emojiCompletionEnabled\": false`，并用逗号和前一项隔开。",
+                "en": "Want a heart in the prompt you are writing? You no longer need to stop and hunt through an emoji picker. Type the complete shortcode `:heart:` and Claude Code inserts ❤️; type only `:hea` and it shows suggestions. A shortcode is a symbol name wrapped in colons, and it works like predictive text on a phone: offer a few letters and the likely emoji comes to you without breaking your writing rhythm. If the suggestion list is distracting, open your personal settings file at `~/.claude/settings.json` and add this top-level setting:\n\n```json\n{\"emojiCompletionEnabled\": false}\n```\n\nIf that file already contains other settings, add `\"emojiCompletionEnabled\": false` inside the same outer braces and separate it from the previous entry with a comma.",
+                "ja": "プロンプトを書いている途中でハートを添えたくなっても、絵文字一覧を探しに行く必要はない。完全な短縮コード `:heart:` を入力すれば Claude Code が ❤️ を挿入し、`:hea` まで打てば候補を表示する。短縮コードとは、絵文字の名前をコロンで挟んだ略記である。スマートフォンの予測入力と同じで、数文字を手掛かりとして渡すだけで候補が手元に届き、文章を書く流れが途切れない。候補一覧がかえって邪魔なら、個人設定ファイル `~/.claude/settings.json` を開き、最上位に次の設定を追加すれば無効にできる。\n\n```json\n{\"emojiCompletionEnabled\": false}\n```\n\nすでに別の設定がある場合は、同じ外側の波括弧内に `\"emojiCompletionEnabled\": false` を加え、直前の項目との間をコンマで区切る。",
+                "ko": "프롬프트를 쓰다가 하트를 넣고 싶어도 이모지 목록을 뒤지러 갈 필요가 없다. 완성된 단축 코드 `:heart:`를 입력하면 Claude Code가 ❤️를 삽입하고, `:hea`까지만 치면 후보를 보여 준다. 단축 코드는 이모지 이름을 콜론으로 감싼 줄임말이다. 휴대폰의 자동 완성처럼 몇 글자만 단서로 주면 쓸 만한 그림이 손앞에 와서 문장을 쓰는 흐름이 끊기지 않는다. 후보 목록이 오히려 방해된다면 개인 설정 파일 `~/.claude/settings.json`을 열고 최상위에 다음 설정을 추가해 끈다.\n\n```json\n{\"emojiCompletionEnabled\": false}\n```\n\n파일에 다른 설정이 이미 있다면 같은 바깥쪽 중괄호 안에 `\"emojiCompletionEnabled\": false`를 넣고 앞 항목과 쉼표로 구분한다."
               },
               "original": "Added emoji shortcode autocomplete in the prompt input: type `:heart:` to insert ❤️, or `:hea` for suggestions — disable with the `emojiCompletionEnabled` setting"
             },
