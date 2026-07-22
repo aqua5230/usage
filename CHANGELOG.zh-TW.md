@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.28.19] - 2026-07-23
+
+### 新增
+- **Windows tray 現在也有跟 macOS 一樣的「5 小時自動連線」開關。** 把既有的 `window_keeper` 自動 ping 邏輯接進 `wintray.py`，每次刷新後觸發；開關同時出現在 tray 選單和 HTML 面板選單，並補上 Windows 版的開啟說明文字（設定 → 電源與電池），五種語言都有。另外也補上 `claude`/`agy` 執行檔在 Windows 上實際安裝路徑的備援位置。
+
 ## [0.28.18] - 2026-07-22
 
 ### 修正
