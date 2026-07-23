@@ -184,6 +184,14 @@ def _self_heal() -> None:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("self-heal failed", exc_info=True)
 
+    try:
+        from usage_dir_sweeper import sweep_stale_temp_files
+
+        sweep_stale_temp_files()
+    except Exception:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("stale temp file sweep failed", exc_info=True)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="顯示 Claude Code 用量的工具")
