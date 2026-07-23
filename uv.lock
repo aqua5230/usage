@@ -570,7 +570,7 @@ wheels = [
 
 [[package]]
 name = "usage"
-version = "0.28.19"
+version = "0.28.20"
 source = { editable = "." }
 dependencies = [
     { name = "pyobjc-framework-cocoa", marker = "sys_platform == 'darwin'" },
