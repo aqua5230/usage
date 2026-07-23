@@ -12,6 +12,12 @@ message in the background to start a fresh window. The ping is the cheapest
 possible Claude call; it does NOT touch any Anthropic quota API — it only shells
 out to the user's local ``claude`` CLI.
 
+That ping runs headless, so Claude Code's statusLine hook never fires and
+``usage-status.json`` keeps reporting the boundary we already handled. A
+cooldown clock therefore re-arms the keeper independently of the payload, so a
+machine that never opens Claude Code interactively still gets a fresh window
+every cycle instead of wedging after the first ping.
+
 Defaults OFF. All judgement and side effects live here; ``menubar.py`` only
 dispatches a one-line call into :func:`maybe_ping`.
 """
@@ -33,12 +39,16 @@ from menubar_prefs import _window_keeper_enabled
 
 logger = logging.getLogger(__name__)
 
-# State file holding ``{"last_pinged_reset_at": <float epoch>}``. Module
+# State file holding the last handled reset boundary and dispatch time. Module
 # constant so tests can monkeypatch it instead of touching the real
 # ``~/.usage/`` dir.
 WINDOW_KEEPER_STATE_PATH = Path(os.path.expanduser("~/.usage/window_keeper.json"))
 
 PING_TIMEOUT_SECONDS = 180
+
+# One full window plus five minutes, so a re-arm can never land inside the
+# window the previous ping opened.
+PING_COOLDOWN_SECONDS = 5 * 3600 + 300
 
 # usage_client defaults a missing ``resets_at`` to parse-time "now", which one
 # refresh later reads as "expired seconds ago". Requiring the expiry to be at
@@ -66,6 +76,7 @@ def should_ping(
     current_reset_at: float | None,
     enabled: bool,
     last_pinged_reset_at: float | None,
+    last_ping_at: float | None,
     current_percent: float | None,
     data_source: str,
 ) -> bool:
@@ -83,34 +94,49 @@ def should_ping(
         return False
     if current_reset_at is None or now - current_reset_at < PING_EXPIRY_GRACE_SECONDS:
         return False
-    # A reset boundary is handled at most once. Unlike a cooldown measured from
-    # dispatch time, this re-arms as soon as a different real boundary expires.
-    return current_reset_at != last_pinged_reset_at
+    # Two independent re-arm paths, because the two cases run on different
+    # clocks. A different real boundary means the user was active and the
+    # window genuinely rolled over — fire regardless of how recent the last
+    # ping was. The same boundary reported over and over means the payload has
+    # gone stale (see module docstring), and only the dispatch clock can tell
+    # us another window's worth of time has passed.
+    if current_reset_at != last_pinged_reset_at:
+        return True
+    return last_ping_at is None or now - last_ping_at >= PING_COOLDOWN_SECONDS
 
 
-def _load_last_pinged_reset(path: Path | None = None) -> float | None:
+def _load_ping_state(
+    path: Path | None = None,
+) -> tuple[float | None, float | None]:
     state_path = WINDOW_KEEPER_STATE_PATH if path is None else path
     if not state_path.exists():
-        return None
+        return None, None
     try:
         data = json.loads(state_path.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):
-        return None
+        return None, None
     if not isinstance(data, dict):
-        return None
-    # Legacy files containing only ``last_ping_at`` intentionally read as no
-    # handled boundary: a dispatch timestamp cannot identify which reset it
-    # belonged to.
-    value = data.get("last_pinged_reset_at")
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        return None
-    return float(value)
+        return None, None
+
+    def numeric_value(key: str) -> float | None:
+        value = data.get(key)
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            return None
+        return float(value)
+
+    return numeric_value("last_pinged_reset_at"), numeric_value("last_ping_at")
 
 
-def _save_last_pinged_reset(reset_at: float, path: Path | None = None) -> None:
+def _save_ping_state(
+    reset_at: float,
+    ping_at: float,
+    path: Path | None = None,
+) -> None:
     state_path = WINDOW_KEEPER_STATE_PATH if path is None else path
     state_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps({"last_pinged_reset_at": reset_at}) + "\n"
+    payload = json.dumps(
+        {"last_pinged_reset_at": reset_at, "last_ping_at": ping_at}
+    ) + "\n"
     tmp_path: str | None = None
     try:
         fd, tmp_path = tempfile.mkstemp(dir=state_path.parent, suffix=".tmp")
@@ -204,12 +230,13 @@ def maybe_ping(
         # Switch off → zero side effects: don't read or write state, don't spawn.
         return
     now = time.time()
-    last_pinged_reset_at = _load_last_pinged_reset()
+    last_pinged_reset_at, last_ping_at = _load_ping_state()
     if not should_ping(
         now,
         current_reset_at,
         enabled,
         last_pinged_reset_at,
+        last_ping_at,
         current_percent,
         data_source,
     ):
@@ -217,10 +244,9 @@ def maybe_ping(
     if not _try_acquire():
         return
     # Mark this boundary handled at dispatch time regardless of subprocess
-    # outcome, so a failed ping doesn't retry on every refresh. A different
-    # real reset boundary naturally re-arms the keeper.
+    # outcome, so a failed ping doesn't retry on every refresh.
     assert current_reset_at is not None  # guaranteed by should_ping
-    _save_last_pinged_reset(current_reset_at)
+    _save_ping_state(current_reset_at, now)
     worker = threading.Thread(target=_ping_worker, args=(now,), daemon=True)
     worker.start()
 
