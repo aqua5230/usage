@@ -9,3 +9,10 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+    groups:
+      # init, analyze and upload-sarif must run the exact same version — a
+      # split bump fails with "Loaded a configuration file for version X, but
+      # running version Y". Grouping them keeps the three in one PR.
+      codeql-action:
+        patterns:
+          - "github/codeql-action*"
