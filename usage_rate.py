@@ -12,9 +12,9 @@ from collections.abc import Callable
 
 from history_loader import UsageEntry, load_entries
 
-BURN_RATE_THRESH_NORMAL = 50.0  # tokens/min
-BURN_RATE_THRESH_ACTIVE = 250.0
-BURN_RATE_THRESH_HEAVY = 1000.0
+BURN_RATE_THRESH_NORMAL = 500.0  # tokens/min
+BURN_RATE_THRESH_ACTIVE = 2500.0
+BURN_RATE_THRESH_HEAVY = 6000.0
 
 GROUP_NAMES = ["Idle", "Normal", "Active", "Heavy"]
 
@@ -54,10 +54,10 @@ class UsageRateTracker:
             self._cache_expires_at = time.monotonic() + 30
             return result
 
-        total_tokens = sum(entry.total_tokens for entry in entries)
+        active_tokens = sum(entry.active_tokens for entry in entries)
         elapsed_seconds = (entries[-1].timestamp - entries[0].timestamp).total_seconds()
         elapsed_minutes = max(elapsed_seconds / 60.0, 1.0)
-        burn_rate = total_tokens / min(elapsed_minutes, 60.0)
+        burn_rate = active_tokens / min(elapsed_minutes, 60.0)
 
         if burn_rate < BURN_RATE_THRESH_NORMAL:
             result = 0

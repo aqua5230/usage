@@ -105,6 +105,21 @@ def _clear_file_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(agy_loader, "_last_disk_cache_flush_at", None)
 
 
+def test_active_tokens_excludes_cache_read_tokens() -> None:
+    entry = agy_loader.AgyUsageEntry(
+        timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+        model="gemini-3.5-flash-low",
+        input_tokens=100,
+        output_tokens=100,
+        cache_read_tokens=5_000_000,
+        thinking_tokens=100,
+        dedup_key="opaque-response-id",
+        session_id="session",
+    )
+
+    assert entry.active_tokens == 300
+
+
 def test_load_entries_parses_usage_deduplicates_and_skips_non_generation_rows(
     sessions_dir: Path,
 ) -> None:
