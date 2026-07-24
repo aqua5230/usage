@@ -1,10 +1,203 @@
 {
-  "generated_at": "2026-07-23",
+  "generated_at": "2026-07-24",
   "tools": [
     {
       "id": "claude_code",
       "name": "Claude Code",
       "versions": [
+        {
+          "version": "2.1.218",
+          "period": "2026-07-22",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "程式碼審查留在背景，結果更貼近你的分支",
+                "zh-CN": "代码审查留在后台，结果更贴近你的分支",
+                "en": "Code reviews move to the background and stay on target",
+                "ja": "コードレビューは裏で進み、対象を見失わない",
+                "ko": "코드 검토는 뒤에서 진행되고 대상도 놓치지 않는다"
+              },
+              "body": {
+                "zh-TW": "你請 Claude 檢查一串改動，還想繼續問別的事時，`/code-review` 現在會交給背景 subagent（在旁邊獨立做事的小幫手）處理，不再把整個對話塞滿；連著輸入的 slash commands 也仍會以這次審查為目標。`/ultrareview` 可接受「檢查我的登入改動」這種說法：它會審查目前分支，並把這句當成結果備註。非互動執行 `/code-review ultra` 也會確實啟動雲端審查，而非悄悄改做本機審查；參數不對時，Claude 會拿到可修正的錯誤訊息。像把文件送去後台校稿，你仍能在前台寫下一封信，校稿員也知道該看哪一份。",
+                "zh-CN": "你让 Claude 检查一串改动、还想继续问别的事时，`/code-review` 现在会交给后台 subagent（在旁边独立做事的小帮手）处理，不再塞满整个对话；连着输入的 slash commands 也仍会以这次审查为目标。`/ultrareview` 可以接受“检查我的登录改动”这种说法：它会审查当前分支，并把这句话当作结果备注。非交互执行 `/code-review ultra` 也会确实启动云端审查，不再悄悄改成本地审查；参数不对时，Claude 会拿到可修正的错误信息。像把文件送去后台校稿，你仍能在前台写下一封信，校稿员也知道该看哪一份。",
+                "en": "If you ask Claude to inspect a batch of changes but want to keep chatting, `/code-review` now hands the job to a background subagent, a separate helper working alongside the conversation. Chained slash commands still point at that review. `/ultrareview` now accepts wording such as “review my auth changes”: it reviews the current branch and attaches those words as a note. In non-interactive runs, `/code-review ultra` now truly starts a cloud review instead of silently falling back to a local one, and bad arguments return useful feedback. It is like sending a document to an editor while you keep writing at your desk; the editor still knows which document to read.",
+                "ja": "一連の変更を Claude に点検させながら別の話も続けたいとき、`/code-review` は背景 subagent（会話の脇で独立して作業する小さな助手）に仕事を渡すため、会話がレビューで埋まらなくなった。続けて入力した slash commands もそのレビューを対象に保つ。`/ultrareview` は「認証の変更を見て」のような説明も受け取り、現在のブランチを調べてその文を結果の注記にする。非対話実行の `/code-review ultra` も、黙ってローカル審査へ替わらずクラウド審査を始める。原稿を校正へ回し、自分は次の手紙を書き続けるようなものである。",
+                "ko": "변경 묶음을 Claude에게 점검시키면서 다른 대화도 이어 가고 싶을 때, `/code-review`는 background subagent(대화 옆에서 따로 일하는 작은 도우미)에게 일을 넘겨 대화가 검토 내용으로 가득 차지 않게 한다. 이어 입력한 slash commands도 그 검토를 대상으로 유지한다. `/ultrareview`는 ‘내 인증 변경을 검토해’ 같은 설명도 받아 현재 브랜치를 검토하고 그 말을 결과 메모로 붙인다. 비대화형 실행의 `/code-review ultra`도 몰래 로컬 검토로 바뀌지 않고 클라우드 검토를 시작한다. 원고를 교정실에 맡기고 자신은 다음 편지를 쓰는 것과 같다."
+              },
+              "original": "Changed `/code-review` to run as a background subagent, so review work no longer fills your conversation and keeps stacked slash commands as its review target\nFixed `/ultrareview` failing on descriptive arguments like \"review my auth changes\" — they now run a review of your current branch with the text applied as a note to the findings\nFixed `/code-review ultra` silently running a local review in non-interactive sessions — it now launches the cloud review\nImproved `/ultrareview` error feedback so Claude can correct an invalid argument instead of retrying it unchanged"
+            },
+            {
+              "title": {
+                "zh-TW": "螢幕閱讀器能跟上刪字與游標",
+                "zh-CN": "屏幕阅读器能跟上删字与光标",
+                "en": "Screen readers now follow deletions and focus",
+                "ja": "スクリーンリーダーが削除とカーソル移動に追随する",
+                "ko": "스크린 리더가 삭제와 커서 이동을 따라간다"
+              },
+              "body": {
+                "zh-TW": "使用 `--ax-screen-reader` 模式改句子時，按 `Option+Delete`、`Ctrl+W` 或 `Ctrl+U` 刪掉一個詞或一整行，螢幕閱讀器現在會唸出剛刪掉的文字，不必猜自己刪了什麼。輸入列尾端打一個空白，VoiceOver 也會回報空白，而不是誤唸「換行」。在 plugin 與 settings 面板用方向鍵移動時，終端機游標會跟著停在焦點列，讓螢幕閱讀器和放大鏡都找得到目前位置。這像有人一邊替你讀稿，一邊用手指指出你剛擦掉的字與正在看的那一行。",
+                "zh-CN": "使用 `--ax-screen-reader` 模式改句子时，按 `Option+Delete`、`Ctrl+W` 或 `Ctrl+U` 删掉一个词或整行，屏幕阅读器现在会念出刚删掉的文字，不必猜自己删了什么。输入行末尾打一个空格，VoiceOver 也会报出空格，而不是误念“换行”。在 plugin 和 settings 面板用方向键移动时，终端光标会跟着停在焦点行，让屏幕阅读器和放大镜都找得到当前位置。这像有人一边替你读稿，一边用手指指出刚擦掉的字和正在看的那一行。",
+                "en": "When editing in `--ax-screen-reader` mode, deleting a word or line with `Option+Delete`, `Ctrl+W`, or `Ctrl+U` now makes the screen reader announce what disappeared. At the end of the input, VoiceOver reports a typed space instead of wrongly saying “new line.” In the plugin and settings panels, terminal focus now follows the row selected with arrow keys, so screen readers and magnifiers can locate it. It is like having someone read a draft aloud while pointing to the words you just erased and the line you are currently reading.",
+                "ja": "`--ax-screen-reader` モードで文章を直し、`Option+Delete`、`Ctrl+W`、`Ctrl+U` で単語や行を消すと、スクリーンリーダーが消えた文字を読み上げるようになった。入力欄の末尾で打った空白も、VoiceOver は誤って「改行」と言わず空白として伝える。plugin と settings の画面で矢印キーを使うと、端末のカーソルも選択行へ移るため、スクリーンリーダーや拡大鏡が現在地を追える。原稿を読む人が、消した字と今読んでいる行を指で示してくれるようなものだ。",
+                "ko": "`--ax-screen-reader` 모드에서 문장을 고치며 `Option+Delete`, `Ctrl+W`, `Ctrl+U`로 단어나 줄을 지우면, 스크린 리더가 방금 지운 글자를 읽어 준다. 입력 끝에서 친 공백도 VoiceOver가 ‘새 줄’이라고 잘못 읽지 않고 공백으로 알린다. plugin 및 settings 패널에서 화살표 키로 움직이면 터미널 커서도 선택 행으로 따라가 스크린 리더와 돋보기가 현재 위치를 찾을 수 있다. 누군가 원고를 읽으며 방금 지운 글자와 읽는 줄을 손가락으로 짚어 주는 것과 같다."
+              },
+              "original": "Added screen-reader announcements of deleted text for word and line deletions (`Option+Delete`, `Ctrl+W`, `Cmd+Backspace`, `Ctrl+U`, `Ctrl+K`) in `--ax-screen-reader` mode\nFixed VoiceOver reading \"new line\" instead of echoing the typed space at the end of the input in `--ax-screen-reader` mode\nFixed plugin and settings panels not moving the terminal cursor to the focused row, so screen readers and magnifiers can follow arrow-key navigation"
+            },
+            {
+              "title": {
+                "zh-TW": "貼上多行不變形，誤按左方向鍵可回頭",
+                "zh-CN": "粘贴多行不变形，误按左方向键可回头",
+                "en": "Multiline pastes stay intact and a left-arrow slip is recoverable",
+                "ja": "複数行の貼り付けを守り、左矢印の誤操作から戻れる",
+                "ko": "여러 줄 붙여넣기를 지키고 왼쪽 화살표 실수도 되돌린다"
+              },
+              "body": {
+                "zh-TW": "把好幾行指令貼進某些終端機時，換行曾被編成 `Ctrl+J`，Claude 卻把它當成字母 `j`，整段內容擠成一行；現在會保留原本的換行。剛編輯完就按左方向鍵，也不再無預警丟掉整段對話：它會先請你確認。若你進入 agent view（把工作放到背景看的畫面），按 Esc 則能回到剛背景化的對話。像寫信時貼上的段落不再被壓成一行，手肘碰到返回鍵前也有人先問你要不要真的把信丟掉。",
+                "zh-CN": "把好几行命令粘进某些终端时，换行曾被编码成 `Ctrl+J`，Claude 却把它当成字母 `j`，整段内容挤成一行；现在会保留原本的换行。刚编辑完就按左方向键，也不再无预警丢掉整个对话：它会先请你确认。若进入 agent view（查看后台工作的画面），按 Esc 则能回到刚放到后台的对话。像写信时粘贴的段落不再被压成一行，手肘碰到返回键前也有人先问你是否真要把信丢掉。",
+                "en": "Pasting several lines into certain terminals used to turn their newline encoding, `Ctrl+J`, into literal `j` characters and squash everything into one line. The pasted line breaks are now preserved. Pressing Left Arrow immediately after editing no longer silently discards the whole conversation; Claude asks for confirmation first. If you enter agent view, the screen for work running in the background, Esc returns you to the conversation it backgrounded. It is like pasted paragraphs staying as paragraphs, with someone asking before an accidental elbow bump throws your letter away.",
+                "ja": "一部の端末へ複数行を貼り付けると、改行を表す `Ctrl+J` を Claude が文字の `j` と取り違え、内容が一行に潰れることがあった。今は改行を保つ。編集直後に左矢印を押しても、会話全体を無言で捨てず先に確認する。agent view（背景で動く作業を見る画面）へ入った場合も Esc で背景化した会話へ戻れる。貼った手紙の段落が潰れず、肘が戻るボタンに当たっても捨てる前に確認されるようなものである。",
+                "ko": "일부 터미널에 여러 줄을 붙여넣으면 줄바꿈을 뜻하는 `Ctrl+J`를 Claude가 글자 `j`로 착각해 내용이 한 줄로 뭉개지곤 했다. 이제 줄바꿈을 보존한다. 편집 직후 왼쪽 화살표를 눌러도 대화 전체를 말없이 버리지 않고 먼저 확인한다. agent view(뒤에서 돌아가는 작업을 보는 화면)에 들어갔어도 Esc로 배경으로 보낸 대화에 돌아갈 수 있다. 붙인 편지의 문단이 찌그러지지 않고, 팔꿈치가 뒤로 가기 버튼에 닿아도 버리기 전에 묻는 것과 같다."
+              },
+              "original": "Fixed the left arrow key discarding the conversation with no undo: presses right after editing now ask to confirm, and Esc in the agent view returns to the conversation it backgrounded\nFixed multi-line paste collapsing into one line with `j` in place of newlines in terminals that encode pasted newlines as Ctrl+J"
+            },
+            {
+              "title": {
+                "zh-TW": "MCP 連不上時，終於看得到原因",
+                "zh-CN": "MCP 连不上时，终于看得到原因",
+                "en": "MCP connection failures now explain themselves",
+                "ja": "MCP 接続失敗の理由が見える",
+                "ko": "MCP 연결 실패 이유를 이제 볼 수 있다"
+              },
+              "body": {
+                "zh-TW": "外部工具突然不能用時，`claude mcp list` 或 `/mcp` 現在會顯示 HTTP 狀態與錯誤文字，不再只留一句「連不上」。MCP（Model Context Protocol，讓 AI 連接外部工具的協定）設定值前後若藏了看不見的空白，也會先警告你；這種空白常讓看似相同的網址或金鑰失效。啟動時「N 個 MCP servers 需要驗證」的通知，則不會再把尚未在 claude.ai 連接的 connector 多算進去。好比客服不只說電話不通，還告訴你是號碼錯、對方忙線，並把名單上的幽靈聯絡人劃掉。",
+                "zh-CN": "外部工具突然不能用时，`claude mcp list` 或 `/mcp` 现在会显示 HTTP 状态和错误文字，不再只留一句“连不上”。MCP（Model Context Protocol，让 AI 连接外部工具的协议）设置值前后若藏了看不见的空格，也会先警告你；这种空格常让看似相同的网址或密钥失效。启动时“N 个 MCP servers 需要认证”的通知，也不会再把尚未在 claude.ai 连接的 connector 多算进去。好比客服不只说电话不通，还告诉你是号码错、对方忙线，并把名单上的幽灵联系人划掉。",
+                "en": "When an external tool suddenly will not work, `claude mcp list` and `/mcp` now show the HTTP status and error text instead of merely saying it could not connect. MCP, the Model Context Protocol for connecting AI to outside tools, also warns when a configuration value has invisible whitespace at its beginning or end; those spaces can break an otherwise identical URL or key. The startup notice about MCP servers needing authentication no longer counts claude.ai connectors that are not connected there. It is like support telling you whether a phone number is wrong or busy, then removing ghost contacts from the list.",
+                "ja": "外部ツールが急に使えなくなったとき、`claude mcp list` と `/mcp` は単に接続失敗と告げるだけでなく、HTTP 状態とエラー文を表示する。MCP（Model Context Protocol、AI を外部ツールへつなぐための規約）の設定値の前後に見えない空白があれば警告も出す。この空白は同じに見える URL や鍵を壊しうる。起動時の認証が必要な MCP servers の数も、claude.ai で未接続の connector を余計に数えなくなった。電話が通じない理由を教え、名簿の幽霊連絡先も消してくれる案内係のようなものだ。",
+                "ko": "외부 도구가 갑자기 안 될 때 `claude mcp list`와 `/mcp`는 이제 단순히 연결 실패라고만 하지 않고 HTTP 상태와 오류 문구를 보여 준다. MCP(Model Context Protocol, AI를 외부 도구에 연결하는 규약) 설정값 앞뒤에 보이지 않는 공백이 있으면 경고도 한다. 이런 공백은 같은 URL이나 키처럼 보여도 망가뜨릴 수 있다. 시작할 때 뜨는 인증이 필요한 MCP servers 수에도 claude.ai에서 연결되지 않은 connector를 더 이상 잘못 세지 않는다. 전화가 안 되는 이유를 알려 주고 주소록의 유령 연락처도 지워 주는 안내원과 같다."
+              },
+              "original": "Added HTTP status and error text to `claude mcp list` and `/mcp` when a server fails to connect, and a warning for MCP config values with hidden leading or trailing whitespace\nFixed the \"N MCP servers need authentication\" startup notice over-counting claude.ai connectors that aren't connected in claude.ai"
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 路徑與長選取文字不再亂碼",
+                "zh-CN": "Windows 路径与长选取文字不再乱码",
+                "en": "Windows paths and long selections no longer become garbled",
+                "ja": "Windows パスと長い選択文字列が文字化けしない",
+                "ko": "Windows 경로와 긴 선택 텍스트가 더는 깨지지 않는다"
+              },
+              "body": {
+                "zh-TW": "Windows 使用者若要讓工具讀取 `C:\\Users\\unicorn` 這類路徑，`\\u` 開頭的片段以前可能被誤當成 Unicode 編碼，變成中日韓字，於是檔案像被改了地址般找不到；現在會保留原路徑。IDE 裡選了一大段文字，若內容剛好在 emoji 中間被截斷，也不再產生亂碼。另有工具執行器出錯卻被悄悄吞掉的情形也已修正。這像郵差終於照信封地址送件，不會把 `\\u` 當成暗號改寫，信封破到一半時也會說清楚，而不是裝作沒收到。",
+                "zh-CN": "Windows 用户让工具读取 `C:\\Users\\unicorn` 这类路径时，`\\u` 开头的片段以前可能被误当成 Unicode 编码，变成中日韩字符，于是文件像被改了地址般找不到；现在会保留原路径。IDE 里选了一大段文字，若内容刚好在 emoji 中间被截断，也不再产生乱码。另有工具执行器出错却被悄悄吞掉的情形也已修正。这像邮差终于照信封地址送件，不会把 `\\u` 当成暗号改写，信封破到一半时也会说清楚，而不是装作没收到。",
+                "en": "For Windows users, a path such as `C:\\Users\\unicorn` could have its `\\u` segment mistaken for Unicode encoding and turned into CJK characters, making the file unreachable as if its address had changed. The original path is now kept intact. A long selection from an IDE also no longer becomes mojibake when it is cut in the middle of an emoji, and a tool-executor error is no longer silently lost. It is like a postal worker finally delivering to the address written on the envelope, rather than treating `\\u` as a secret code and pretending a torn envelope never arrived.",
+                "ja": "Windows で `C:\\Users\\unicorn` のようなパスをツールへ渡すと、`\\u` で始まる部分が Unicode の記号と誤解されて中日韓文字になり、住所を書き換えられたようにファイルへ届かないことがあった。今は元のパスを保つ。IDE から長い範囲を選び、emoji の途中で切り詰められても文字化けしない。ツール実行器のエラーが黙って消える場合も直った。郵便配達員が宛名どおりに届け、破れた封筒も届かなかったふりをしないような改善である。",
+                "ko": "Windows에서 `C:\\Users\\unicorn` 같은 경로를 도구에 넘기면 `\\u`로 시작하는 부분을 Unicode 표기로 오해해 한중일 문자로 바꾸고, 주소가 바뀐 것처럼 파일을 못 찾는 일이 있었다. 이제 원래 경로를 보존한다. IDE에서 긴 텍스트를 골랐을 때 emoji 한가운데에서 잘려도 글자가 깨지지 않으며, 도구 실행기 오류가 조용히 사라지는 경우도 고쳤다. 우체부가 봉투에 적힌 주소대로 배달하고 찢어진 봉투도 못 본 척하지 않는 것과 같다."
+              },
+              "original": "Fixed Windows paths with `\\u`-prefixed segments (like `C:\\Users\\unicorn`) being corrupted into CJK characters in tool inputs, which made those files inaccessible\nFixed mojibake when a long IDE selection was truncated mid-emoji, and a case where a tool executor error could be silently dropped"
+            },
+            {
+              "title": {
+                "zh-TW": "對話紀錄與背景工作少出現幽靈狀態",
+                "zh-CN": "对话记录与后台工作少出现幽灵状态",
+                "en": "Conversation history and background work lose their ghost states",
+                "ja": "会話履歴と背景作業から幽霊状態を減らす",
+                "ko": "대화 기록과 백그라운드 작업의 유령 상태를 줄인다"
+              },
+              "body": {
+                "zh-TW": "整理過長對話後查看 `/context`，token（AI 處理與計費的文字單位）用量不再顯示整理前的舊數字。工具中斷後，也不會亂留「使用者中斷請求」或缺了另一半的 `tool_use` 紀錄；prompt history 寫入碰撞或失敗時，歷史紀錄不再容易漏掉或重複。遇到 context overflow（對話塞超過可容納的量）又有很大的 thinking budget 時，重試不會一直重送同一個註定失敗的請求。背景化與 headless／SDK 的 fork session，整理後也保得住來源關係；壞掉的 delta attachment 不再讓續接對話每回合失敗。像一本帳本不再重複記帳、掉頁，換了書封後仍看得出每張收據從哪裡來。",
+                "zh-CN": "整理过长对话后查看 `/context`，token（AI 处理和计费的文字单位）用量不再显示整理前的旧数字。工具中断后，也不会乱留“用户中断请求”或缺了另一半的 `tool_use` 记录；prompt history 写入碰撞或失败时，历史记录不再容易漏掉或重复。遇到 context overflow（对话塞超过可容纳的量）又有很大的 thinking budget 时，重试不会一直重发同一个注定失败的请求。后台化与 headless／SDK 的 fork session，整理后也保得住来源关系；坏掉的 delta attachment 不再让续接对话每回合失败。像一本账本不再重复记账、掉页，换了书封后仍看得出每张收据从哪里来。",
+                "en": "After compacting a long conversation, `/context` no longer reports the old pre-compaction token count, the text units AI processes and bills for. Interrupted tools no longer leave a false “Request interrupted by user” message or half a `tool_use` record, and prompt history is less likely to lose or duplicate entries when writes collide or fail. A context-overflow retry with a large thinking budget stops resending the same doomed request. Backgrounded and headless or SDK fork sessions also retain their lineage after compaction, while malformed delta attachments no longer doom every resumed turn. It is like an account book that stops duplicating or losing entries and still shows where each receipt came from after rebinding.",
+                "ja": "長い会話を compact した後の `/context` は、整理前の token（AI が処理・課金に使う文字の単位）数を出さなくなった。ツールが中断しても、誤った「ユーザーが中断した」表示や片方だけの `tool_use` 記録を残しにくい。prompt history の書き込み競合や失敗でも、履歴の欠落・重複を抑える。context overflow と大きな thinking budget で同じ失敗する要求を延々と送り直すこともない。背景化や headless／SDK の fork session の由来も整理後に保たれ、壊れた delta attachment で再開後の全ターンが失敗する問題も直った。帳簿が重複や欠頁をやめ、製本し直しても領収書の出所が分かるようなものだ。",
+                "ko": "긴 대화를 compact한 뒤 `/context`는 이제 정리 전의 token(AI가 처리하고 요금에 쓰는 글자 단위) 수치를 보여 주지 않는다. 도구가 중단돼도 잘못된 ‘사용자가 요청을 중단함’ 메시지나 반쪽짜리 `tool_use` 기록을 남기지 않으며, prompt history 쓰기가 겹치거나 실패해도 기록이 빠지거나 중복되기 어렵다. context overflow와 큰 thinking budget 때문에 같은 실패 요청을 계속 다시 보내는 일도 멈춘다. 배경화한 headless／SDK fork session도 정리 뒤 계보를 보존하며, 잘못된 delta attachment가 재개한 대화의 모든 턴을 망치는 문제도 고쳤다. 장부가 중복 기록과 빠진 장을 멈추고 다시 제본해도 영수증 출처를 알 수 있는 것과 같다."
+              },
+              "original": "Fixed `/context` reporting stale pre-compact token usage after compacting from the message picker\nFixed an engine teardown race that could start and abandon a phantom turn, and made input pushed after close consistently rejected\nFixed spurious \"[Request interrupted by user]\" messages after interrupted tool calls, and an unpaired `tool_use` block left in the transcript when a tool aborted mid-response\nFixed prompt history entries being dropped or duplicated when history writes raced or failed\nFixed a retry loop that re-sent identical doomed requests after a context-overflow error with a large thinking budget; `Ctrl+B` backgrounding now applies the same background-shell caps as other paths\nFixed fork-session lineage being lost after compaction in headless and SDK sessions\nFixed a resumed session failing every turn, or crashing on resume, when its history held a malformed delta attachment\nFixed remote sessions continuing to send heartbeats after their worker was replaced, which left long-lived desktop and IDE processes retrying a rejected request every few seconds forever"
+            },
+            {
+              "title": {
+                "zh-TW": "雲端模型計費、PR 與 AWS 設定更可靠",
+                "zh-CN": "云端模型计费、PR 与 AWS 设置更可靠",
+                "en": "Cloud model billing, PRs, and AWS setup become more reliable",
+                "ja": "クラウド料金、PR、AWS 設定の信頼性を上げる",
+                "ko": "클라우드 요금, PR, AWS 설정이 더 안정적이다"
+              },
+              "body": {
+                "zh-TW": "透過 Bedrock 使用模型時，gateway 花費計量現在會依你設定的模型費率計算 application-inference-profile ARN 與其他對應到上游模型的 ID，不會因識別碼不同而算錯價。剛建立或連結 pull request（PR，請求把一組程式改動併入專案的單據）就結束 session，也較不會遺失 PR 事件。Bedrock 設定精靈對分區 AWS 區域的 assume-role profile（暫時借用另一個 AWS 身分的設定），或只能走 proxy 的網路，能正確驗證。系統時鐘被調整後，回合耗時也不會罕見地變負數或失真。就像計程車改按可靠的里程表計價，收據、身分證明與行車時間都不會因儀表跳動而弄錯。",
+                "zh-CN": "通过 Bedrock 使用模型时，gateway 花费计量现在会按你设置的模型费率计算 application-inference-profile ARN 和其他映射到上游模型的 ID，不会因识别码不同而算错价。刚创建或关联 pull request（PR，请求把一组代码改动合入项目的单据）就结束 session，也较不容易丢失 PR 事件。Bedrock 设置向导对分区 AWS 区域的 assume-role profile（临时借用另一个 AWS 身份的设置），或只能走 proxy 的网络，能正确验证。系统时钟被调整后，回合耗时也不会罕见地变成负数或失真。就像出租车改按可靠的里程表计价，收据、身份验证和行车时间都不会因仪表跳动而弄错。",
+                "en": "When using models through Bedrock, gateway spend metering now charges application-inference-profile ARNs and other IDs mapped to an upstream model at the configured model’s rate, rather than pricing them incorrectly because the identifier differs. Pull-request events are less likely to vanish if a session ends right after creating or linking a PR, a request to merge a set of code changes. The Bedrock setup wizard can also verify assume-role profiles in partitioned AWS regions and proxy-only networks. Turn durations no longer rarely become negative or wrong after a system clock change. It is like a taxi switching to a dependable meter, so fares, receipts, identity checks, and trip time do not drift when the dashboard clock jumps.",
+                "ja": "Bedrock 経由でモデルを使う場合、gateway の支出計測は application-inference-profile ARN など、上流モデルへ対応付けられた ID を設定済みモデルの料金で計算する。識別子が違うだけで誤課金しない。pull request（PR、変更一式をプロジェクトへ取り込む申請）を作成・接続した直後に session を終えても、PR イベントを失いにくい。Bedrock の設定ウィザードは、分割された AWS リージョンの assume-role profile や proxy 専用ネットワークも正しく検証する。時計調整後にターン時間が負数や異常値になる問題も直った。信頼できる料金メーターへ替えたタクシーのような改善である。",
+                "ko": "Bedrock으로 모델을 쓸 때 gateway 지출 계량은 이제 application-inference-profile ARN 등 상위 모델에 매핑된 ID를 설정한 모델 요금으로 계산한다. 식별자가 다르다는 이유로 가격을 틀리게 매기지 않는다. pull request(PR, 코드 변경 묶음을 프로젝트에 합치기 위한 요청)를 만들거나 연결한 직후 session이 끝나도 PR 이벤트가 사라질 가능성이 줄었다. Bedrock 설정 마법사는 분할된 AWS 리전의 assume-role profile과 proxy 전용 네트워크도 올바르게 검증한다. 시스템 시계 조정 뒤 턴 시간이 음수나 이상값이 되는 문제도 고쳤다. 믿을 만한 미터기로 바꾼 택시처럼 요금, 영수증, 신원 확인, 이동 시간이 시계 흔들림에 헷갈리지 않는다."
+              },
+              "original": "Fixed gateway spend metering to price Bedrock application-inference-profile ARNs and other config-mapped upstream model IDs at the configured model's rates\nFixed pull request events occasionally being lost when a session exited immediately after creating or linking a PR\nFixed the Bedrock setup wizard failing profile verification for assume-role profiles in partitioned AWS regions and on proxy-only networks\nFixed rare negative or incorrect turn duration measurements after a system clock adjustment by timing turns with a monotonic clock"
+            },
+            {
+              "title": {
+                "zh-TW": "自動模式少打擾，信任範圍更清楚",
+                "zh-CN": "自动模式少打扰，信任范围更清楚",
+                "en": "Auto mode interrupts less and makes trust boundaries clearer",
+                "ja": "自動モードの割り込みを減らし、信頼範囲を明示する",
+                "ko": "자동 모드의 방해를 줄이고 신뢰 범위를 분명히 한다"
+              },
+              "body": {
+                "zh-TW": "自動模式遇到危險的 `rm`、背景 `&` 或可疑 Windows 路徑時，不會一律跳出權限視窗；會交由 auto-mode classifier（判斷是否安全的自動分類器）決定。plan mode 裡，靜態分析器無法證明是唯讀的 Bash 指令，也同樣交給它判斷，少掉不必要的打斷。IDE 互動的 sandbox（把程式限制在安全範圍的隔間）指令限制也加強了。信任對話框會明說授權涵蓋哪個 repository root（專案最外層資料夾），agent frontmatter 的 hook（特定事件觸發的小程式）則必須放在已接受工作區信任的資料夾。伺服器管理設定中的無害功能與成本開關，也不再每次都要求批准。這像門禁把一般訪客、危險包裹和哪棟樓的通行證分清楚。",
+                "zh-CN": "自动模式遇到危险的 `rm`、后台 `&` 或可疑 Windows 路径时，不会一律跳出权限窗口；会交给 auto-mode classifier（判断是否安全的自动分类器）决定。plan mode 里，静态分析器无法证明是只读的 Bash 命令，也同样交给它判断，少掉不必要的打断。IDE 交互的 sandbox（把程序限制在安全范围的隔间）命令限制也加强了。信任对话框会明说授权覆盖哪个 repository root（项目最外层文件夹），agent frontmatter 的 hook（特定事件触发的小程序）则必须放在已接受工作区信任的文件夹。服务器托管设置中的无害功能与成本开关，也不再每次都要求批准。这像门禁把普通访客、危险包裹和哪栋楼的通行证分清楚。",
+                "en": "Auto mode no longer opens a permission dialog for every dangerous `rm`, background `&`, or suspicious Windows path; its safety classifier decides instead. In plan mode, Bash commands the static analyzer cannot prove read-only go to that classifier too, reducing needless interruptions. Sandbox restrictions, the boundaries that confine a program, are stronger for IDE interactions. Trust dialogs now name the repository root they cover, while hooks, small programs triggered by events, in agent frontmatter require the agent file’s own folder to be trusted. Benign feature and cost toggles in server-managed settings no longer request approval every time. It is like an entry desk that distinguishes an ordinary visitor, a dangerous parcel, and which building a pass actually opens.",
+                "ja": "自動モードは危険な `rm`、背景 `&`、怪しい Windows パスに対して、毎回権限ダイアログを開かなくなった。安全かを決める auto-mode classifier に判断を任せる。plan mode で静的解析器が読み取り専用と証明できない Bash コマンドも同様で、不要な中断を減らす。IDE 操作の sandbox（プログラムを安全な範囲に閉じ込める区画）制限も強化した。信頼ダイアログは対象の repository root を明記し、agent frontmatter の hook（特定の出来事で起動する小プログラム）は信頼済みフォルダー内でなければ動かない。サーバー管理設定の無害な機能・料金切替も毎回の承認を求めない。入館口が来客、危険物、通行証の対象棟を見分けるようなものだ。",
+                "ko": "자동 모드는 위험한 `rm`, 백그라운드 `&`, 의심스러운 Windows 경로마다 권한 창을 열지 않고 안전 여부를 가리는 auto-mode classifier에 맡긴다. plan mode에서 정적 분석기가 읽기 전용임을 증명하지 못한 Bash 명령도 마찬가지여서 불필요한 중단이 줄어든다. IDE 상호작용의 sandbox(프로그램을 안전한 범위에 가두는 칸) 명령 제한도 강화했다. 신뢰 대화상자는 적용되는 repository root를 밝히며, agent frontmatter의 hook(특정 사건에 실행되는 작은 프로그램)은 신뢰한 폴더 안에서만 실행된다. 서버 관리 설정의 무해한 기능·비용 전환도 매번 승인을 묻지 않는다. 출입구가 일반 방문객, 위험 소포, 통행증이 열 수 있는 건물을 구분하는 것과 같다."
+              },
+              "original": "Fixed agent frontmatter hooks running from untrusted folders: hooks now require the agent file's own folder to have accepted workspace trust\nImproved auto mode: the dangerous-rm, background-`&`, and suspicious-Windows-path checks no longer open permission dialogs; the auto-mode classifier adjudicates them instead\nImproved sandbox command restrictions for IDE interactions\nImproved trust dialogs to name the repository root the grant covers\nChanged plan mode with auto to no longer prompt for Bash commands the static analyzer can't prove read-only; the auto-mode classifier judges them instead\nChanged server-managed settings so benign feature and cost toggles no longer trigger the settings-approval prompt"
+            },
+            {
+              "title": {
+                "zh-TW": "深度研究改由你開啟，換模型會通知",
+                "zh-CN": "深度研究改由你开启，换模型会通知",
+                "en": "You now start deep research, and model switches announce themselves",
+                "ja": "深い調査は自分で始め、モデル切替も知らせる",
+                "ko": "심층 조사는 직접 시작하고 모델 전환도 알려 준다"
+              },
+              "body": {
+                "zh-TW": "你想快速問一個小問題時，Claude 不會自行啟動 `/deep-research` 把流程拉長；只有你手動輸入這個指令才會開始。相反地，若你透過 `/config model=<x>` 或 Remote Control 換模型，fast mode（優先加快回應的模式）因此改變時，現在會有公告，避免你以為速度設定還和剛才一樣。這像咖啡店不會擅自把你的外帶咖啡升級成慢工手沖，但換了吧台與出杯速度，會把牌子翻出來讓你知道。",
+                "zh-CN": "你想快速问一个小问题时，Claude 不会自行启动 `/deep-research` 把流程拉长；只有你手动输入这个命令才会开始。相反地，若你通过 `/config model=<x>` 或 Remote Control 换模型，fast mode（优先加快响应的模式）因此改变时，现在会有公告，避免你以为速度设置还和刚才一样。这像咖啡店不会擅自把你的外带咖啡升级成慢工手冲，但换了吧台和出杯速度，会把牌子翻出来让你知道。",
+                "en": "When you want a quick answer, Claude no longer starts `/deep-research` on its own and stretches the process out; it begins only when you invoke the command manually. Conversely, if switching models through `/config model=<x>` or Remote Control changes fast mode, the mode that prioritizes quicker responses, Claude now announces that change. You no longer have to assume the speed setting is what it was a moment ago. It is like a coffee shop not upgrading your takeaway order to a slow hand brew without asking, while clearly flipping a sign if the bar and serving speed change.",
+                "ja": "小さな質問へすぐ答えが欲しいとき、Claude は勝手に `/deep-research` を始めて流れを長くしない。開始するのは自分でそのコマンドを呼んだときだけである。一方、`/config model=<x>` や Remote Control でモデルを替え、fast mode（応答速度を優先するモード）が変わったときは通知が出る。速度設定がさっきのままだと思い込まずに済む。持ち帰りコーヒーを頼んだのに、店が無断で時間のかかる手淹れに替えず、提供速度が変われば札で知らせるようなものだ。",
+                "ko": "작은 질문에 빨리 답을 받고 싶을 때 Claude는 이제 `/deep-research`를 멋대로 시작해 과정을 길게 만들지 않는다. 직접 그 명령을 호출했을 때만 시작한다. 반대로 `/config model=<x>`나 Remote Control로 모델을 바꾸어 fast mode(응답 속도를 우선하는 모드)가 달라지면 이제 알림이 나온다. 속도 설정이 조금 전과 같다고 짐작할 필요가 없다. 테이크아웃 커피를 주문했는데 가게가 묻지 않고 오래 걸리는 핸드드립으로 바꾸지 않으며, 제공 속도가 바뀌면 표지판으로 알려 주는 것과 같다."
+              },
+              "original": "Changed `/deep-research` to start only when invoked manually; Claude no longer launches it on its own\nAdded an announcement when fast mode changes as a result of switching models via `/config model=<x>` or Remote Control"
+            },
+            {
+              "title": {
+                "zh-TW": "Agent 與 skill 設定更寬容，也避開名稱撞車",
+                "zh-CN": "Agent 与 skill 设置更宽容，也避开名称撞车",
+                "en": "Agent and skill settings accept more forms and avoid name clashes",
+                "ja": "agent と skill の設定が柔軟になり、名前の衝突を避ける",
+                "ko": "agent와 skill 설정은 더 유연해지고 이름 충돌을 피한다"
+              },
+              "body": {
+                "zh-TW": "自己寫 agent 或 skill 的 Markdown 設定時，agent 名稱若含 `:`，現在會直接拒絕，因為這個符號保留給 plugin namespacing（用名稱前綴區分外掛來源的規則），可避免日後撞名。skill 的 frontmatter（檔案最上方的設定區）若填 `context: fork`，預設會在背景執行；想留在前台，可加 `background: false`。布林值也不必只能寫 `true`／`false`：不分大小寫的 `yes`、`no`、`on`、`off`、`1`、`0` 都接受。像替社區信箱訂規格：冒號留給地址分區，寄件方式有清楚預設，而「開／關」也聽得懂多種自然說法。",
+                "zh-CN": "自己写 agent 或 skill 的 Markdown 设置时，agent 名称若含 `:`，现在会直接拒绝，因为这个符号保留给 plugin namespacing（用名称前缀区分插件来源的规则），可避免日后撞名。skill 的 frontmatter（文件最上方的设置区）若填 `context: fork`，默认会在后台执行；想留在前台，可加 `background: false`。布尔值也不必只能写 `true`／`false`：不分大小写的 `yes`、`no`、`on`、`off`、`1`、`0` 都接受。像替小区信箱订规格：冒号留给地址分区，寄件方式有清楚默认，而“开／关”也听得懂多种自然说法。",
+                "en": "When writing Markdown settings for an agent or skill, an agent name containing `:` is now rejected because that character is reserved for plugin namespacing, the prefix system that distinguishes plugin sources. This prevents future name collisions. A skill frontmatter, the settings block at the top of the file, with `context: fork` now runs in the background by default; add `background: false` to keep it in front. Boolean values no longer need to be only `true` or `false`: case-insensitive `yes`, `no`, `on`, `off`, `1`, and `0` work too. It is like setting rules for community mailboxes: colons reserve address zones, delivery has a clear default, and several natural ways of saying on or off are understood.",
+                "ja": "agent や skill の Markdown 設定を書くとき、agent 名に `:` があれば拒否されるようになった。この記号は plugin namespacing（プラグインの出所を名前の接頭辞で区別する仕組み）用に予約され、将来の同名衝突を防ぐ。skill の frontmatter（ファイル先頭の設定欄）に `context: fork` を書くと、既定では背景で走る。前面に残したければ `background: false` を足す。真偽値も `true`／`false` だけでなく、大文字小文字を問わず `yes`、`no`、`on`、`off`、`1`、`0` を受け付ける。集合ポストの規約で、コロンは住所区画に空け、配達方法の既定を定め、開閉の言い方も複数理解するようなものだ。",
+                "ko": "agent나 skill의 Markdown 설정을 쓸 때 agent 이름에 `:`가 있으면 이제 거부한다. 이 기호는 plugin namespacing(플러그인 출처를 이름 접두사로 구분하는 규칙)에 예약되어 앞으로 이름이 부딪히는 일을 막는다. skill의 frontmatter(파일 맨 위 설정 구역)에 `context: fork`를 쓰면 기본으로 백그라운드 실행하며, 앞에 남기려면 `background: false`를 더하면 된다. 불리언 값도 `true`／`false`만 쓸 필요 없이 대소문자와 관계없이 `yes`, `no`, `on`, `off`, `1`, `0`을 받는다. 공동 우편함 규칙에서 콜론은 주소 구역에 남기고, 배달 방식에는 기본값이 있으며, 켜기·끄기를 여러 자연스러운 말로 알아듣는 것과 같다."
+              },
+              "original": "Changed agent markdown files to reject agent names containing `:`, which is reserved for plugin namespacing\nChanged skills with `context: fork` to run in the background by default; opt out per skill with `background: false`\nAdded `yes`/`no`/`on`/`off`/`1`/`0` (case-insensitive) as accepted values for skill and plugin frontmatter booleans, alongside `true`/`false`"
+            },
+            {
+              "title": {
+                "zh-TW": "深層資料夾搬動不再讓介面當掉",
+                "zh-CN": "深层文件夹搬动不再让界面崩掉",
+                "en": "Moving deep folder trees no longer crashes the interface",
+                "ja": "深いフォルダー木を動かしても画面が落ちない",
+                "ko": "깊은 폴더 트리를 옮겨도 화면이 멈추지 않는다"
+              },
+              "body": {
+                "zh-TW": "專案裡有一層又一層的被監看資料夾時，整棵目錄樹被刪除或搬走，Claude 以前可能因呼叫層數太深而崩潰，畫面要繪製同樣深的 UI 樹也會出問題；現在已修正。這對一般專案不會多出新按鈕，卻讓大型、巢狀很深的專案整理資料夾時少一次突然斷線。像搬走一整排層層疊起的收納箱，搬運員不再數到最底層就昏倒，展示架也不會在畫到最深一格時垮掉。",
+                "zh-CN": "项目里有一层又一层的被监看文件夹时，整棵目录树被删除或搬走，Claude 以前可能因调用层数太深而崩溃，界面要绘制同样深的 UI 树也会出问题；现在已修复。这对一般项目不会多出新按钮，却让大型、嵌套很深的项目整理文件夹时少一次突然断线。像搬走一整排层层叠起的收纳箱，搬运员不再数到最底层就昏倒，展示架也不会在画到最深一格时垮掉。",
+                "en": "In a project with watched folders nested many layers deep, deleting or moving the whole directory tree could make Claude crash from excessive call depth. Rendering an equally deep UI tree could fail too. Both cases are fixed. This adds no new button for an ordinary project, but it makes reorganizing a large, deeply nested one less likely to end in a sudden failure. It is like moving a tower of stacked storage boxes without the mover fainting at the bottom layer or the display rack collapsing at its deepest shelf.",
+                "ja": "何層にも入れ子になった監視対象フォルダーがあるプロジェクトでは、ディレクトリツリー全体を削除・移動すると、呼び出しの深さが限界を超えて Claude が落ちることがあった。同じほど深い UI ツリーを描く場合も失敗しえた。両方を直した。普通のプロジェクトに新しいボタンが増える変更ではないが、大規模で深い入れ子の整理中に突然止まりにくくなる。積み重ねた収納箱を最下段まで運んでも運び手が倒れず、最深部の棚も崩れないようなものだ。",
+                "ko": "여러 겹으로 깊게 중첩된 감시 폴더가 있는 프로젝트에서 디렉터리 트리 전체를 지우거나 옮기면 호출 깊이가 너무 깊어져 Claude가 충돌할 수 있었다. 그만큼 깊은 UI 트리를 그릴 때도 문제가 생겼다. 두 경우 모두 고쳤다. 보통 프로젝트에 새 버튼이 생기는 변경은 아니지만, 크고 깊게 중첩된 프로젝트에서 폴더를 정리하다 갑자기 멈출 가능성을 줄인다. 쌓아 올린 수납 상자를 맨 아래까지 옮겨도 운반자가 쓰러지지 않고, 가장 깊은 선반도 무너지지 않는 것과 같다."
+              },
+              "original": "Fixed crashes (maximum call stack exceeded) when a deeply nested watched directory tree was deleted or moved, and when rendering deeply nested UI trees"
+            }
+          ]
+        },
         {
           "version": "2.1.217",
           "period": "2026-07-21",
@@ -320,29 +513,6 @@
                 "ko": "telemetry(제품 사용 상태를 되돌려 보내는 기록)는 이제 권한 이벤트를 바르게 구분한다. 권한 창 표시가 실패한 요청은 사용자의 거절로 세지 않고, 사용자가 끊은 작업은 사용자 중단으로 기록한다. PowerShell의 `git`, `gh` 인수 검증도 강화됐다. 함께 제공되는 dataviz skill(데이터 시각화 안내)은 기본 차트 색 순서를 바꾸고 네 개 계열에 직접 레이블을 권하던 안내를 고쳤다."
               },
               "original": "Fixed telemetry misreporting permission denials: failed permission-prompt requests no longer count as user rejections, and user interrupts are now reported as user aborts instead of rejections\nImproved validation of `git` and `gh` command arguments in the PowerShell tool\nUpdated the bundled dataviz skill: reordered the default chart palette and fixed guidance that suggested direct labels for four-series charts"
-            }
-          ]
-        },
-        {
-          "version": "2.1.215",
-          "period": "2026-07-19",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "檢查與程式審查改由你親自叫出來",
-                "zh-CN": "验证与代码审查改由你亲自叫出来",
-                "en": "Verification and code review now start only when you ask",
-                "ja": "検証とコードレビューは、自分で呼び出して始める",
-                "ko": "검증과 코드 리뷰는 이제 직접 불러야 시작된다."
-              },
-              "body": {
-                "zh-TW": "你要交付一份改動，卻想先自己檢查一輪時，現在得明確輸入 `/verify` 才會啟動驗證技能（幫你檢查結果的內建流程）；想請它檢視程式碼，也要輸入 `/code-review` 才會啟動程式碼審查技能（找出程式問題的內建流程）。Claude 不會再自行猜測你何時需要它們。這像工具箱裡兩把檢查尺：以前它會自己抽出來量，現在把決定權還給你；需要時叫它一聲即可。不必擔心它在你沒要求時多做一次檢查，也別忘了，想用時要親自下指令。",
-                "zh-CN": "准备交付一项改动前，想自己先检查一轮，现在得明确输入 `/verify` 才会启动验证技能（帮你检查结果的内置流程）；想让它查看代码，也要输入 `/code-review` 才会启动代码审查技能（找出代码问题的内置流程）。Claude 不会再自行猜测你何时需要它们。这像工具箱里的两把检查尺：以前它会自己抽出来量，现在把决定权还给你；需要时叫它一声即可。不必担心它在你没要求时多做一次检查，也别忘了，想用时要亲自下指令。",
-                "en": "Before handing over a change, you may want one last check. Now you must explicitly type `/verify` to run the verification skill, Claude's built-in checking workflow. To have it inspect code, type `/code-review` to run the code-review skill, its built-in workflow for finding code issues. Claude will no longer guess when either is wanted. Think of two measuring tools in a toolbox: it used to pull them out on its own; now you hold the handle. Call for one when needed, and it will not add an unasked-for check to your work.",
-                "ja": "変更を渡す前に一度自分で確かめたいなら、`/verify` を明示して入力し、検証スキル（結果を確認する内蔵の手順）を起動する。コードを見てもらいたい場合も、`/code-review` を入力してコードレビューのスキル（コードの問題を探す内蔵の手順）を起動する必要がある。Claude が必要な時を勝手に推測して走らせることはなくなった。工具箱の二本の検査用定規のようなものだ。以前は自分で取り出して測っていたが、今は使う判断があなたに戻った。必要な時だけ呼び出せばよいのである。",
-                "ko": "변경 사항을 넘기기 전 한 번 더 확인하고 싶다면, 이제 `/verify`를 직접 입력해 검증 기술(결과를 확인하는 내장 절차)을 시작해야 한다. 코드를 살펴보게 하려면 `/code-review`를 입력해 코드 리뷰 기술(코드 문제를 찾는 내장 절차)을 시작한다. Claude는 두 기능이 필요한 때를 더 이상 스스로 추측해 실행하지 않는다. 공구함 속 검사 자 두 개와 같다. 예전에는 알아서 꺼내 재었지만, 이제는 언제 쓸지 결정하는 권한이 당신에게 돌아왔다. 필요할 때만 불러 쓰면 된다."
-              },
-              "original": "Claude no longer runs the `/verify` and `/code-review` skills on its own; invoke them with `/verify` or `/code-review` when you want them"
             }
           ]
         }
