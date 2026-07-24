@@ -326,6 +326,24 @@
       padding: 12px 15px 12px;
     }
 
+    .service-alert {
+      padding: 3px 8px;
+      border-radius: var(--radius);
+      background: rgba(255, 69, 58, 0.15);
+      border: 1px solid var(--danger);
+      color: #ff736b;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      box-shadow: 0 0 10px rgba(255, 69, 58, 0.28);
+    }
+
+    [data-footer="service-alerts"] {
+      display: grid;
+      gap: 4px;
+    }
+
     .meta {
       display: flex;
       flex-wrap: wrap;
@@ -559,6 +577,7 @@
     </section>
 
     <section class="footer">
+      <div data-footer="service-alerts" hidden></div>
       <div class="meta">
         <div data-footer="rate"></div>
         <div data-footer="status"></div>
@@ -905,9 +924,20 @@
       const rate = document.querySelector('[data-footer="rate"]');
       const status = document.querySelector('[data-footer="status"]');
       const today = document.querySelector('[data-footer="today"]');
+      const serviceAlerts = document.querySelector('[data-footer="service-alerts"]');
       if (rate) rate.textContent = state.footer.rate || t("rate_text", { value: "--" });
       if (status) status.textContent = state.footer.status || t("status_text", { value: "--" });
       if (today) today.textContent = state.footer.today || t("today_text", { cost: "0.00", tokens: "0" });
+      if (serviceAlerts) {
+        const alerts = state.footer.serviceAlerts || [];
+        serviceAlerts.replaceChildren(...alerts.slice(0, 2).map((alert) => {
+          const item = document.createElement("div");
+          item.className = "service-alert";
+          item.textContent = alert;
+          return item;
+        }));
+        serviceAlerts.hidden = alerts.length === 0;
+      }
     };
 
     document.addEventListener("click", (event) => {
@@ -1002,6 +1032,7 @@
         rate: t("rate_text", { value: "--" }),
         status: t("status_text", { value: "--" }),
         today: t("today_text", { cost: "0.00", tokens: "0" }),
+        serviceAlerts: [],
         showInstall: false,
       }
     });

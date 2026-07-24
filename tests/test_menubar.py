@@ -1073,13 +1073,14 @@ def test_popover_size_grows_with_service_alerts() -> None:
     two_state = menubar._empty_state()
     two_state.service_alerts = ("claude", "codex")
 
-    base = menubar._popover_size(menubar._empty_state())
-    one = menubar._popover_size(one_state)
-    two = menubar._popover_size(two_state)
+    panel = panels.get_panel("matrix")
+    base = menubar._popover_size(menubar._empty_state(), panel)
+    one = menubar._popover_size(one_state, panel)
+    two = menubar._popover_size(two_state, panel)
 
-    assert one.height - base.height == menubar.SERVICE_ALERT_HEIGHT
+    assert one.height - base.height == panel.service_alert_height
     assert two.height - base.height == (
-        menubar.SERVICE_ALERT_HEIGHT * 2 + menubar.SERVICE_ALERT_GAP
+        panel.service_alert_height * 2 + menubar.SERVICE_ALERT_GAP
     )
 
 
@@ -1102,6 +1103,7 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
         claude_card_height = 100.0
         codex_card_height = 60.0
         agy_card_height = 40.0
+        service_alert_height = 0.0
 
         def build_view(self, delegate: Any) -> Any:
             return object()

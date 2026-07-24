@@ -30,6 +30,7 @@ def all_panels() -> tuple[Panel, ...]:
             codex_card_height=192.0,
             agy_card_height=192.0,
             status_wrap_extra_height=30.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "matrix",
@@ -39,6 +40,7 @@ def all_panels() -> tuple[Panel, ...]:
             claude_card_height=200.0,
             codex_card_height=200.0,
             agy_card_height=200.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "win95",
@@ -48,6 +50,7 @@ def all_panels() -> tuple[Panel, ...]:
             claude_card_height=210.0,
             codex_card_height=209.0,
             agy_card_height=209.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "newspaper",
@@ -57,6 +60,7 @@ def all_panels() -> tuple[Panel, ...]:
             claude_card_height=205.0,
             codex_card_height=203.0,
             agy_card_height=203.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "cloud_observation",
@@ -66,6 +70,7 @@ def all_panels() -> tuple[Panel, ...]:
             claude_card_height=211.0,
             codex_card_height=211.0,
             agy_card_height=211.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "aquarium",
@@ -75,6 +80,7 @@ def all_panels() -> tuple[Panel, ...]:
             claude_card_height=211.0,
             codex_card_height=211.0,
             agy_card_height=211.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "prism_arcade",
@@ -84,6 +90,7 @@ def all_panels() -> tuple[Panel, ...]:
             claude_card_height=211.0,
             codex_card_height=211.0,
             agy_card_height=211.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "black_hole",
@@ -93,6 +100,7 @@ def all_panels() -> tuple[Panel, ...]:
             claude_card_height=211.0,
             codex_card_height=211.0,
             agy_card_height=211.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "lepidoptera",
@@ -102,6 +110,7 @@ def all_panels() -> tuple[Panel, ...]:
             claude_card_height=208.0,
             codex_card_height=208.0,
             agy_card_height=208.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "world_cup",
@@ -109,6 +118,7 @@ def all_panels() -> tuple[Panel, ...]:
             "world_cup.html",
             claude_card_height=0.0,
             codex_card_height=0.0,
+            service_alert_height=32.0,
         ),
         HTMLPanel(
             "talent_market",

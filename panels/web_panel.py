@@ -410,6 +410,7 @@ class HTMLPanel:
     codex_row_height: float
     agy_card_height: float
     status_wrap_extra_height: float
+    service_alert_height: float
 
     def __init__(
         self,
@@ -424,6 +425,7 @@ class HTMLPanel:
         codex_row_height: float = 64.0,
         agy_card_height: float = 0.0,
         status_wrap_extra_height: float = 0.0,
+        service_alert_height: float = 0.0,
     ) -> None:
         self.id = panel_id
         self.i18n_key = i18n_key
@@ -435,6 +437,7 @@ class HTMLPanel:
         self.codex_row_height = codex_row_height
         self.agy_card_height = agy_card_height
         self.status_wrap_extra_height = status_wrap_extra_height
+        self.service_alert_height = service_alert_height
 
     def build_view(self, delegate: Any) -> NSView:
         try:

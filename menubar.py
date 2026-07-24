@@ -192,8 +192,6 @@ __all__ = [
 
 BUTTON_HEIGHT = 32.0
 INSTALL_BUTTON_EXTRA_HEIGHT = BUTTON_HEIGHT + 10.0
-# One service-status banner: 3px*2 padding + 16px line + 1px*2 border + 8px margin.
-SERVICE_ALERT_HEIGHT = 32.0
 SERVICE_ALERT_GAP = 4.0
 UPDATE_DISMISS_SECONDS = 24 * 3600
 UPDATE_ALERT_BODY_LIMIT = 2000
@@ -2229,8 +2227,9 @@ def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
         if active_panel.id == "classic" and state.codex_credits is not None and not state.hide_codex
         else 0.0
     )
-    alert_count = len(state.service_alerts) if active_panel.id == "classic" else 0
-    service_alert_extra = SERVICE_ALERT_HEIGHT * alert_count + SERVICE_ALERT_GAP * max(
+    service_alert_height = getattr(active_panel, "service_alert_height", 0.0)
+    alert_count = len(state.service_alerts) if service_alert_height else 0
+    service_alert_extra = service_alert_height * alert_count + SERVICE_ALERT_GAP * max(
         alert_count - 1, 0
     )
     height = (
