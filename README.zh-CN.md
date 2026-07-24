@@ -18,7 +18,7 @@
 [![OpenSSF 最佳实践](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="docs/showcase.en.png" alt="usage — 固定在 macOS 菜单栏中的 Claude Code 与 Codex 配额" width="820">
+  <img src="docs/showcase.en.png" alt="usage — 固定在 macOS 菜单栏中的 Claude Code、Codex 与 Antigravity 配额" width="820">
 </p>
 
 `usage` 将你的 **Claude Code、Codex 和 Antigravity** 配额固定显示在屏幕右上角，并以颜色区分，让你一眼辨识警示等级。所有数值都以被动方式从你电脑上已有的本地文件读取。它**从不调用 Anthropic / OpenAI API**，也**从不读取钥匙串**，因此这个监视器本身不会增加你的 token 使用量。

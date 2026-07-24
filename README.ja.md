@@ -18,7 +18,7 @@
 [![OpenSSF ベストプラクティス](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="docs/showcase.en.png" alt="usage — macOSメニューバーに固定されたClaude CodeとCodexのクォータ" width="820">
+  <img src="docs/showcase.en.png" alt="usage — macOSメニューバーに固定されたClaude Code、Codex、Antigravityのクォータ" width="820">
 </p>
 
 `usage` は **Claude Code、Codex、Antigravity** のクォータを画面右上に固定し、警告レベルをひと目で判断できるよう色分けして表示します。すべての数値は、すでにマシンにあるローカルファイルから受動的に読み取られます。**Anthropic / OpenAI API を呼び出すことはなく**、**キーチェーンを読み取ることもありません**。そのため、モニター自体がtoken使用量を増やすことはありません。

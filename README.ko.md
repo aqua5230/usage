@@ -18,7 +18,7 @@
 [![OpenSSF 모범 사례](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="docs/showcase.en.png" alt="usage — macOS 메뉴 막대에 고정된 Claude Code와 Codex 할당량" width="820">
+  <img src="docs/showcase.en.png" alt="usage — macOS 메뉴 막대에 고정된 Claude Code, Codex, Antigravity 할당량" width="820">
 </p>
 
 `usage`는 화면 오른쪽 상단에 **Claude Code, Codex, Antigravity** 할당량을 고정하고, 경고 수준을 한눈에 파악하도록 색상으로 구분합니다. 모든 수치는 이미 컴퓨터에 있는 로컬 파일에서 수동적으로 읽습니다. **Anthropic / OpenAI API를 호출하지 않으며**, **키체인도 읽지 않으므로** 모니터 자체가 token 사용량을 늘리지 않습니다.
