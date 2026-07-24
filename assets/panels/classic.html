@@ -453,6 +453,18 @@
       max-width: 100%;
     }
 
+    .service-alert {
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(220, 80, 60, 0.16);
+      border: 1px solid rgba(220, 80, 60, 0.4);
+      color: #ff9b85;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
     .today {
       margin-top: 8px;
       padding-top: 8px;
@@ -631,6 +643,7 @@
     </section>
 
     <section class="footer">
+      <div class="service-alert" data-footer="service-alert" hidden></div>
       <div class="meta">
         <div data-footer="rate">Rate: --</div>
         <div data-footer="status">Status: Loading</div>
@@ -942,9 +955,14 @@
       const rate = document.querySelector('[data-footer="rate"]');
       const status = document.querySelector('[data-footer="status"]');
       const today = document.querySelector('[data-footer="today"]');
+      const serviceAlert = document.querySelector('[data-footer="service-alert"]');
       if (rate) rate.textContent = state.footer.rate || t("rate_text", { value: "--" });
       if (status) status.textContent = state.footer.status || t("status_text", { value: "--" });
       if (today) today.textContent = state.footer.today || t("today_text", { cost: "0.00", tokens: "0" });
+      if (serviceAlert) {
+        serviceAlert.textContent = state.footer.serviceAlert || "";
+        serviceAlert.hidden = !state.footer.serviceAlert;
+      }
     };
 
     document.addEventListener("click", (event) => {
@@ -1030,7 +1048,7 @@
       projects30d: [],
       projectsAll: [],
       statusline: {},
-      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", showInstall: false }
+      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", serviceAlert: "", showInstall: false }
     });
   </script>
 </body>

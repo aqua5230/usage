@@ -143,6 +143,7 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
             "rate": state.rate_text,
             "status": state.status_text,
             "today": state.today_text,
+            "serviceAlert": state.service_alert,
             "showInstall": state.show_install_button,
         },
     }

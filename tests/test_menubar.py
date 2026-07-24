@@ -22,6 +22,7 @@ import menubar_prefs
 import menubar_state
 import panels
 import statusline_settings
+from anthropic_status import AnthropicStatus
 from burn_rate import BurnRateTracker
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
@@ -133,6 +134,7 @@ def _build_popover_state(
     delegate: menubar.AppDelegate,
     outcome: PollOutcome,
     codex_rows: tuple[menubar_state.QuotaRowState, menubar_state.QuotaRowState],
+    service_status: AnthropicStatus | None = None,
 ) -> menubar_state.PopoverState:
     hide_claude = menubar._hide_claude_enabled()
     return menubar_state.build_popover_state(
@@ -162,6 +164,7 @@ def _build_popover_state(
         hide_agy=True,
         codex_stale=None,
         agy_stale=None,
+        service_status=service_status,
     )
 
 
@@ -2220,6 +2223,37 @@ def test_state_from_outcome_translates_awaiting_rate_limits_message(
     )
 
     assert state.status_text == "狀態：請對 Claude Code 發送一句訊息以同步配額"
+
+
+def test_popover_state_hides_service_alert_without_status(
+    state_delegate: menubar.AppDelegate,
+) -> None:
+    state = _build_popover_state(
+        state_delegate,
+        PollOutcome(state=PollState.LOADING),
+        _codex_rows(state_delegate)[0],
+    )
+
+    assert state.service_alert == ""
+
+
+def test_popover_state_translates_degraded_service_alert(
+    state_delegate: menubar.AppDelegate,
+) -> None:
+    state_delegate.language = "en"
+    state = _build_popover_state(
+        state_delegate,
+        PollOutcome(state=PollState.LOADING),
+        _codex_rows(state_delegate)[0],
+        AnthropicStatus(
+            is_abnormal=True,
+            status="degraded_performance",
+            description="for logs only",
+            source="fetched",
+        ),
+    )
+
+    assert state.service_alert == "⚠ Claude service issue: Degraded performance"
 
 
 def test_state_from_outcome_translates_hook_broken_message(
