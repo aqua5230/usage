@@ -598,6 +598,131 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.1.6",
+          "period": "2026-07-24",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "自訂 Agent 改用 Markdown，角色切換不再卡住",
+                "zh-CN": "自定义 Agent 改用 Markdown，角色切换不再卡住",
+                "en": "Custom agents move to Markdown, and switching roles no longer gets stuck",
+                "ja": "カスタム Agent が Markdown 化され、役割切替も止まらない",
+                "ko": "사용자 지정 Agent가 Markdown으로 바뀌고 역할 전환도 멈추지 않는다"
+              },
+              "body": {
+                "zh-TW": "想替 AI 配一位專門校稿或查資料的助手，現在可以用 `agent.md` 這種 Markdown 檔（用標題與一般文字寫內容的純文字格式）來定義 custom agent（自訂 Agent，替 AI 指定另一套角色與做事規則）。檔案開頭的 YAML frontmatter（放在檔案開頭、用欄位寫設定的區塊）可決定它是主助手、子助手、是否隱藏、是否沿用 MCP（讓 AI 連接外部工具的協定），以及可否執行指令；用 H1 標題也能切出給它的系統提示詞。這像替不同職務做名牌和工作守則；動態建立的子助手也會拿到同款名牌，搬到外部版本仍認得出來。`/agents` 從自訂角色切回預設角色的失敗問題也修好，不會表面切換、其實還困在舊人格。",
+                "zh-CN": "想给 AI 配一位专门校稿或查资料的助手，现在可以用 `agent.md` 这种 Markdown 文件（用标题和普通文字写内容的纯文本格式）来定义 custom agent（自定义 Agent，替 AI 指定另一套角色与做事规则）。文件开头的 YAML frontmatter（放在文件开头、用字段写设置的区块）可决定它是主助手、子助手、是否隐藏、是否沿用 MCP（让 AI 连接外部工具的协议），以及能否执行命令。这像替不同职务做名牌和工作守则；动态建立的子助手也会拿到同款名牌，搬到外部版本仍认得出来。`/agents` 从自定义角色切回默认角色的失败问题也修好，不会表面切换、其实还困在旧人格。",
+                "en": "If you want an AI helper dedicated to proofreading or research, you can now define a custom agent with an `agent.md` Markdown file: ordinary text with headings. Its YAML frontmatter, a settings block at the very top of the file, can say whether it is the main agent, a subagent, hidden, inherits MCP (the protocol that lets AI connect to outside tools), or may run commands. Think of it as a job badge plus work rules for each role. Dynamically created subagents now get the same badge, so external builds recognize them too. `/agents` also correctly returns from a custom role to the default one instead of appearing to switch while leaving the conversation in the old persona.",
+                "ja": "校正や調査だけを任せる AI の手伝い役が欲しいなら、見出しと本文で書く `agent.md` という Markdown ファイルで custom agent（役割と行動規則を別にした AI 担当者）を定義できるようになった。先頭の YAML frontmatter（項目で設定を書く冒頭の区画）では、主担当か子担当か、隠すか、MCP（AI を外部ツールにつなぐ協定）を引き継ぐか、コマンド実行を許すかを決められる。職種ごとの名札と作業規則を作るようなものだ。動的に作った子担当者も同じ形式になるため、外部ビルドでも正しく見つかる。`/agents` でカスタム役から標準役へ戻れず、会話だけが古い人格に残る不具合も直った。",
+                "ko": "교정이나 자료 조사를 맡길 AI 도우미가 필요하다면, 제목과 일반 텍스트로 쓰는 `agent.md` Markdown 파일로 custom agent(별도 역할과 작업 규칙을 준 AI 담당자)를 정의할 수 있다. 파일 맨 앞의 YAML frontmatter(항목으로 설정을 적는 첫 구역)에서 주 담당인지 하위 담당인지, 숨길지, MCP(AI를 외부 도구에 연결하는 규약)를 물려받을지, 명령을 실행할지를 정한다. 직무마다 명찰과 업무 수칙을 붙이는 셈이다. 동적으로 만든 하위 담당자도 같은 형식으로 저장되어 외부 빌드에서도 제대로 찾아진다. `/agents`로 사용자 지정 역할에서 기본 역할로 돌아갈 때 겉으로만 바뀌고 이전 인격에 남던 문제도 고쳤다."
+              },
+              "original": "Custom Agents (Markdown Format). Added support for defining custom agents using Markdown files (`agent.md`) with YAML frontmatter and H1-delimited system prompts. Markdown agents support `mainAgent`, `subagent`, `hidden`, `inheritMcp`, and `commandExecutionPolicy` frontmatter fields for fine-grained control over agent behavior. Dynamically defined subagents (via `define_subagent`) now also write Markdown format so they resolve correctly on external builds.\nImproved support for markdown-based custom agents so custom agent management and selection behave more consistently.\nFixed switching from a custom agent back to the default agent via `/agents`, which previously failed silently and left the conversation stuck on the custom agent's persona."
+            },
+            {
+              "title": {
+                "zh-TW": "`/copy` 能挑選較早的回答",
+                "zh-CN": "`/copy` 能挑选较早的回答",
+                "en": "`/copy` can now pick an earlier answer",
+                "ja": "`/copy` で少し前の回答も選べる",
+                "ko": "`/copy`로 조금 전 답변도 고를 수 있다"
+              },
+              "body": {
+                "zh-TW": "剛看完幾輪回答，才發現想貼出去的是前一則？`/copy 2` 現在會把倒數第二則回答複製到剪貼簿（暫時放著、可貼到別處的地方）。數字 `n` 代表第 n 則最近回答；不加數字的 `/copy` 和 `/copy 1` 仍是最新一則。你可直接把那段貼進訊息、文件或筆記。像翻相簿時直接抽出前一張照片，不必先把最新照片複製走，再回頭手動選文字。",
+                "zh-CN": "刚看完几轮回答，才发现想贴出去的是前一则？`/copy 2` 现在会把倒数第二则回答复制到剪贴板（暂时放着、可贴到别处的地方）。数字 `n` 代表第 n 则最近回答；不加数字的 `/copy` 和 `/copy 1` 仍是最新一则。像翻相册时直接抽出前一张照片，不必先把最新照片复制走，再回头手动选文字。",
+                "en": "Finished a few rounds of answers and realized the one you need to paste is the previous one? `/copy 2` now copies the second-most-recent response to the clipboard, the temporary place from which you paste elsewhere. The number `n` means the n-th most recent response; plain `/copy` and `/copy 1` still mean the latest. It is like pulling the prior photo from an album directly instead of copying the newest photo first and then selecting old text by hand.",
+                "ja": "何往復か読んでから、貼りたいのは一つ前の回答だったと気づくことがある。`/copy 2` は、貼り付け用に一時保存する clipboard へ、二番目に新しい回答をコピーする。数字 `n` は新しい順で n 番目を表す。数字なしの `/copy` と `/copy 1` は従来どおり最新の回答である。アルバムから一つ前の写真を直接取り出せるようなもので、最新の写真を先にコピーして古い文章を手で選び直す必要がない。",
+                "ko": "몇 차례 답변을 읽은 뒤 붙여 넣을 것은 바로 전 답변이었다는 걸 깨달을 때가 있다. 이제 `/copy 2`는 붙여 넣기 전 잠시 보관하는 clipboard에 두 번째로 최근 답변을 복사한다. 숫자 `n`은 최근 답변 중 n번째를 뜻하며, 숫자 없는 `/copy`와 `/copy 1`은 여전히 최신 답변을 복사한다. 앨범에서 바로 앞 사진을 곧장 꺼내는 것과 같아서, 최신 답변을 먼저 복사한 뒤 예전 글을 손으로 다시 고를 필요가 없다."
+              },
+              "original": "Added an optional index argument to `/copy` so `/copy <n>` copies the n-th most recent response to the clipboard, while `/copy` and `/copy 1` still copy the latest."
+            },
+            {
+              "title": {
+                "zh-TW": "程式碼搜尋邊找邊顯示，也能按 Esc 停下",
+                "zh-CN": "代码搜索边找边显示，也能按 Esc 停下",
+                "en": "Code search shows results as it works, and Esc can stop it",
+                "ja": "コード検索は途中結果を表示し、Esc で止められる",
+                "ko": "코드 검색이 진행 중 결과를 보여 주고 Esc로 멈출 수 있다"
+              },
+              "body": {
+                "zh-TW": "在大專案裡用 `/codesearch` 找一個函式名稱時，不必盯著空畫面等全部結果。搜尋結果現在會隨資料到達逐步顯示，還會告訴你目前找到了幾筆；你可以先從已出現的檔案判斷是否找對地方。如果方向不對，按 `Esc` 就能取消還在跑的搜尋。這像在倉庫找貨時，搬運員一找到一箱就先送到你面前，數量也一路更新；你發現拿錯訂單，隨時喊停即可。",
+                "zh-CN": "在大项目里用 `/codesearch` 找一个函数名称时，不必盯着空画面等全部结果。搜索结果现在会随资料到达逐步显示，还会告诉你目前找到了几笔；如果方向不对，按 `Esc` 就能取消还在跑的搜索。这像在仓库找货时，搬运员一找到一箱就先送到你面前，数量也一路更新；你发现拿错订单，随时喊停即可。",
+                "en": "When you use `/codesearch` to find a function name in a large project, you no longer have to stare at an empty screen until every result arrives. Matches now appear progressively, with a live count; if you searched in the wrong direction, `Esc` cancels the search while it is still running. It is like a warehouse worker bringing each box to you as soon as it is found while updating the tally, and stopping the moment you realize it is the wrong order.",
+                "ja": "大きなプロジェクトで `/codesearch` に関数名を探させるとき、全結果がそろうまで空の画面を見つめる必要がなくなった。見つかったものから順に表示され、件数もその場で増えていく。探す方向が違ったなら、実行中でも `Esc` で取り消せる。倉庫で品物を探す際、見つかった箱から先に運んでもらい、数も更新され、注文違いに気づいたらすぐ止められるようなものだ。",
+                "ko": "큰 프로젝트에서 `/codesearch`로 함수 이름을 찾을 때 모든 결과가 올 때까지 빈 화면을 볼 필요가 없어졌다. 찾은 결과부터 차례로 나타나고 개수도 실시간으로 보인다. 방향이 틀렸다면 아직 실행 중인 검색도 `Esc`로 취소할 수 있다. 창고에서 물건을 찾을 때 발견한 상자부터 먼저 가져오고 수량도 계속 알려 주며, 주문이 틀렸음을 알면 바로 멈추는 것과 같다."
+              },
+              "original": "Improved `/codesearch` to render results progressively as they stream in, showing a live count while loading and letting you cancel an in-flight search with `Esc` instead of blocking until the whole search finishes."
+            },
+            {
+              "title": {
+                "zh-TW": "讀取暫存檔不再先跳權限詢問",
+                "zh-CN": "读取临时文件不再先跳权限询问",
+                "en": "Reading temporary files no longer starts with a permission prompt",
+                "ja": "一時ファイルの読み取りで最初に権限確認が出なくなる",
+                "ko": "임시 파일을 읽을 때 권한 확인이 먼저 뜨지 않는다"
+              },
+              "body": {
+                "zh-TW": "你請 Agent 看剛下載或剛產生的暫存檔時，現在通常不會先被權限視窗打斷。CLI 已預設給 system temporary directory（系統暫存目錄，程式短暫放檔案的地方）讀取權限，並依 Windows、macOS、Linux 各自的位置正確處理。它只多開了「看」的門，沒有多開修改或刪除的門；像飯店櫃台直接給你行李寄放區的查看證，讓助手能讀到它剛放進去的收據，不必每次先打電話確認。",
+                "zh-CN": "你请 Agent 看刚下载或刚生成的临时文件时，现在通常不会先被权限窗口打断。CLI 已默认给 system temporary directory（系统临时目录，程序短暂放文件的地方）读取权限，并按 Windows、macOS、Linux 各自的位置正确处理。它只多开了“看”的门，没有多开修改或删除的门；像酒店前台直接给你行李寄存区的查看证，让助手能读到它刚放进去的收据，不必每次先打电话确认。",
+                "en": "When you ask an agent to inspect a file it just downloaded or generated temporarily, a permission dialog usually will not interrupt first. The CLI now grants read access by default to the system temporary directory, the place where programs briefly park files, and resolves that location correctly on each platform. This opens only the door to look, not to edit or delete. It is like a hotel desk giving you a viewing pass for the luggage area so the helper can read the receipt it just put there without calling for approval every time.",
+                "ja": "Agent に、今ダウンロードした一時ファイルや生成直後の一時ファイルを見せる際、最初に権限画面で止められることが減る。CLI は system temporary directory（プログラムが短時間だけファイルを置く場所）への読み取りを最初から許可し、Windows、macOS、Linux それぞれの場所も正しく判断する。開くのは見るための扉だけで、変更や削除の扉ではない。ホテルのフロントが荷物預かり所の閲覧証を渡し、助手が置いたばかりの控えを毎回電話確認なしで読めるようなものだ。",
+                "ko": "Agent에게 방금 내려받거나 막 만든 임시 파일을 보여 줄 때 권한 창이 먼저 끼어드는 일이 줄었다. CLI가 system temporary directory(프로그램이 파일을 잠시 두는 곳)에 읽기 권한을 기본으로 주고 Windows, macOS, Linux의 위치도 각각 올바르게 찾는다. 열리는 것은 보기 위한 문뿐이며 수정하거나 삭제하는 문은 아니다. 호텔 프런트가 짐 보관소 열람증을 줘서 도우미가 방금 넣은 영수증을 매번 확인 전화 없이 읽는 것과 같다."
+              },
+              "original": "Improved default file access by granting read access to the system temporary directory out of the box, resolved correctly per platform, so agents no longer trigger permission prompts when reading temporary files."
+            },
+            {
+              "title": {
+                "zh-TW": "自訂規則排序固定，快取不再白白失效",
+                "zh-CN": "自定义规则排序固定，缓存不再白白失效",
+                "en": "Custom rules keep a stable order, avoiding needless cache misses",
+                "ja": "カスタム規則の順序が安定し、不要なキャッシュ切れを防ぐ",
+                "ko": "사용자 지정 규칙 순서가 고정되어 불필요한 캐시 누락을 막는다"
+              },
+              "body": {
+                "zh-TW": "同一套自訂規則和路徑，現在每次被找到時都會排成固定順序。以前順序偶爾飄動，即使內容沒變，送進 prompt cache（提示詞快取，把已處理過的指示暫存再利用）看起來也像另一份資料，得重新處理。這次把排序定下來，讓快取能認出「還是原來那張清單」，少做無謂的重複準備。像把食譜卡永遠照同一順序放回抽屜，廚師下次一眼就知道沒換菜單，不必重新備料。",
+                "zh-CN": "同一套自定义规则和路径，现在每次被找到时都会排成固定顺序。以前顺序偶尔飘动，即使内容没变，送进 prompt cache（提示词缓存，把已处理过的指示暂存再利用）看起来也像另一份资料，得重新处理。这次把排序定下来，让缓存能认出“还是原来那张清单”。像把食谱卡永远按同一顺序放回抽屉，厨师下次一眼就知道没换菜单，不必重新备料。",
+                "en": "The same set of custom rules and discovered paths now arrives in a fixed order every time. Previously, the order could drift; even unchanged content then looked new to the prompt cache, which temporarily stores processed instructions for reuse, and had to be handled again. Stable sorting lets the cache recognize the same list. It is like returning recipe cards to a drawer in the same order, so the cook sees at once that the menu has not changed and need not prep everything again.",
+                "ja": "同じカスタム規則と見つかったパスは、これからは毎回決まった順序で並ぶ。以前は順序が時々揺れ、内容が同じでも prompt cache（処理済みの指示を一時保存して再利用する仕組み）には別の資料に見え、再処理が必要だった。順序を固定したため、キャッシュは同じ一覧だと認識できる。レシピカードをいつも同じ順で引き出しに戻せば、料理人がメニューは同じだとすぐ分かり、仕込みをやり直さずに済むようなものだ。",
+                "ko": "같은 사용자 지정 규칙과 찾아낸 경로가 이제는 매번 정해진 순서로 들어온다. 예전에는 순서가 가끔 달라져 내용이 같아도 prompt cache(처리한 지시를 잠시 저장해 다시 쓰는 기능)에는 다른 자료처럼 보여 다시 처리해야 했다. 정렬을 고정해 캐시가 같은 목록임을 알아본다. 조리법 카드를 늘 같은 순서로 서랍에 넣으면 요리사가 메뉴가 그대로임을 바로 알아차려 재료 준비를 다시 하지 않는 것과 같다."
+              },
+              "original": "Improved customization discovery by sorting rules and discovered paths deterministically, preventing unstable prompt ordering and needless prompt-cache misses."
+            },
+            {
+              "title": {
+                "zh-TW": "終端機畫面修順，登入後不再一片空白",
+                "zh-CN": "终端画面修顺，登录后不再一片空白",
+                "en": "Terminal views are smoother, with no blank screen after sign-in",
+                "ja": "端末画面が滑らかになり、ログイン後の真っ白な画面も消える",
+                "ko": "터미널 화면이 매끄러워지고 로그인 뒤 빈 화면도 사라진다"
+              },
+              "body": {
+                "zh-TW": "螢幕上的小毛病，這版一次掃掉好幾個。切到圖片 artifact viewer（成品檢視器，用來看 AI 產出檔案的畫面）時，iTerm2 這類偵測到但不能畫 Kitty 圖形的終端機，不會再噴出亂碼；第一次開啟檢視器也不會吞掉你按的 `Esc`。回答串流時，Markdown（用簡單符號排版的文字格式）重新排版不再把輸入框往上推得抖動；倒帶或重設步驟後，訊息列表標題仍在。登入驗證頁結束後也不會只剩空白畫面。像電影院換幕時，以前字幕、座椅和片頭偶爾各自滑走；現在換場仍把畫面與你的按鍵留在該在的位置。",
+                "zh-CN": "屏幕上的小毛病，这版一次扫掉好几个。切到图片 artifact viewer（成品查看器，用来查看 AI 产出文件的画面）时，iTerm2 这类检测到但不能画 Kitty 图形的终端，不会再喷出乱码；第一次打开查看器也不会吞掉你按的 `Esc`。回答流式输出时，Markdown（用简单符号排版的文字格式）重新排版不再把输入框往上推得抖动；倒带或重置步骤后，消息列表标题仍在。登录验证页结束后也不会只剩空白画面。像电影院换幕时，以前字幕、座椅和片头偶尔各自滑走；现在换场仍把画面与按键留在该在的位置。",
+                "en": "Several screen glitches disappear together in this release. When switching an image artifact viewer, the view used for AI-generated files, iTerm2-like terminals that are detected but cannot draw Kitty graphics no longer spew garbage characters; the first viewer opening also stops swallowing your `Esc` key. During response streaming, Markdown, a plain-text formatting language, no longer reflows in a way that jitters the input box upward, and the message-list header survives rewinding or resetting steps. The screen also no longer goes blank after the sign-in page. Like a cinema changing scenes: subtitles, seats, and the opening title used to slide away separately; now the scene changes while the image and your keypress stay put.",
+                "ja": "画面まわりの小さな不具合をこの版でまとめて取り除いた。AI が作ったファイルを見る artifact viewer（成果物の表示画面）を画像表示へ切り替えるとき、iTerm2 のように検出はされるが Kitty graphics を描けない端末がゴミ文字を出すことはない。最初に表示画面を開いたときの `Esc` の取りこぼしも直った。回答のストリーミング中も、Markdown（簡単な記号で整形するテキスト形式）の再配置が入力欄を上へ揺らさず、手順を巻き戻し・リセットしてもメッセージ一覧の見出しは残る。認証ページ後に画面が真っ白になることもない。映画館の場面転換で字幕も座席もタイトルも別々にずれていたのが、今は画面とキー入力を正しい位置に残したまま切り替わるようなものだ。",
+                "ko": "화면에서 보이던 자잘한 문제를 이번 판에서 한꺼번에 없앴다. AI가 만든 파일을 보는 artifact viewer(결과물 보기 화면)를 이미지 모드로 바꿀 때 iTerm2처럼 감지는 되지만 Kitty graphics를 그릴 수 없는 터미널이 더는 깨진 문자를 뿜지 않는다. 처음 보기 화면을 열 때 `Esc`가 사라지던 문제도 고쳤다. 답변이 스트리밍되는 중에도 Markdown(간단한 기호로 글을 꾸미는 텍스트 형식)이 다시 배치되며 입력창을 위로 흔들지 않고, 단계를 되감거나 초기화해도 메시지 목록의 제목이 남는다. 인증 화면 뒤에 화면이 텅 비는 일도 없다. 영화관 장면 전환 때 자막과 좌석과 제목이 제각각 밀려나던 것이, 이제는 화면과 키 입력을 제자리에 둔 채 바뀌는 것과 같다."
+              },
+              "original": "Fixed the artifact viewer emitting garbage escape bytes when cycling to image mode on terminals that are detected but cannot actually render Kitty graphics, such as iTerm2.\nFixed the first keystroke (such as `Esc`) being dropped when opening the first artifact view on some non-Kitty terminals.\nFixed conversation jitter and a stranded input box during streaming so transient markdown reflow no longer shifts the pending line and input box upward.\nFixed the message list dropping its header when rewinding or resetting conversation steps.\nFixed the screen going blank after the authentication page."
+            },
+            {
+              "title": {
+                "zh-TW": "背景更新與受阻指令的錯誤資訊更可靠",
+                "zh-CN": "后台更新与受阻命令的错误信息更可靠",
+                "en": "Background updates and blocked-command errors are more reliable",
+                "ja": "バックグラウンド更新と拒否されたコマンドのエラー表示が確実に",
+                "ko": "백그라운드 업데이트와 막힌 명령 오류 정보가 더 믿을 만해진다"
+              },
+              "body": {
+                "zh-TW": "程式卡住時，最怕它只丟一句無關的錯誤。print mode（列印模式，用 `-p` 把回答直接輸出、不開互動介面的模式）建立對話失敗時，現在會顯示真正的建立失敗原因，不再假稱「沒有啟用中的對話」。sandbox（沙箱，把程式關在受限空間裡執行的保護機制）先擋住指令時，即使 network proxy（網路代理，代替程式轉送網路請求的中介）停用，也會留下受阻紀錄，核准與拒絕的訊息也整理得更清楚。背景自動更新器則修掉雙重啟動競賽：同一個更新時段不會兩個行程各自再叫一個更新器。沒有正在執行的背景 shell 指令時，你重新綁定的 `ctrl+b` 快捷鍵也會生效。像值班室終於寫對事故單，也確保同一班只派一位維修員出車。",
+                "zh-CN": "程序卡住时，最怕它只丢一句无关的错误。print mode（打印模式，用 `-p` 把回答直接输出、不打开交互界面的模式）创建对话失败时，现在会显示真正的创建失败原因，不再假称“没有进行中的对话”。sandbox（沙箱，把程序关在受限空间里运行的保护机制）先挡住命令时，即使 network proxy（网络代理，代替程序转送网络请求的中介）停用，也会留下受阻记录，批准与拒绝的消息也整理得更清楚。后台自动更新器则修掉双重启动竞争：同一个更新时段不会两个进程各自再叫一个更新器。没有正在运行的后台 shell 命令时，重新绑定的 `ctrl+b` 快捷键也会生效。像值班室终于写对事故单，也确保同一班只派一位维修员出车。",
+                "en": "When a program fails, the worst outcome is an error that points somewhere else. If print mode, the `-p` mode that outputs an answer without an interactive interface, cannot create a conversation, it now shows the real creation failure rather than claiming there is no active conversation. When the sandbox, the protective restricted space for running programs, blocks a command first, it records that block even with the network proxy off; approval and denial messages are cleaner too. The background auto-updater also fixes a double-spawn race, so two processes cannot each launch an updater in the same update window. When no background shell commands are running, a remapped `ctrl+b` shortcut is now respected. It is like a control room finally filing the right incident report and sending only one repair crew for one shift.",
+                "ja": "プログラムが失敗したとき、関係ないエラーしか出ないのが一番困る。`-p` で回答を直接出力し対話画面を開かない print mode で会話作成に失敗した場合、今は「有効な会話がない」とごまかさず、本当の作成失敗理由を示す。sandbox（プログラムを制限された空間で動かす保護機構）が先にコマンドを止めた場合も、network proxy（ネットワーク要求を代行して中継する仕組み）が無効でも記録を残し、許可・拒否の表示も整理した。バックグラウンドの自動更新器も二重起動の競合を直し、同じ更新時間帯に二つのプロセスが別々の更新器を呼ばない。バックグラウンドの shell コマンドが実行されていないとき、再割り当てした `ctrl+b` が使える。管制室が正しい事故票を書き、同じ勤務には修理班を一組だけ出すようなものだ。",
+                "ko": "프로그램이 실패했을 때 엉뚱한 오류 하나만 나오는 것만큼 답답한 일은 없다. `-p`로 답을 바로 내보내고 대화 화면을 열지 않는 print mode에서 대화 생성에 실패하면 이제 ‘진행 중인 대화가 없음’이라고 둘러대지 않고 실제 실패 원인을 보여 준다. sandbox(프로그램을 제한된 공간에 가둬 실행하는 보호 장치)가 먼저 명령을 막아도 network proxy(프로그램 대신 네트워크 요청을 전달하는 중개)가 꺼져 있으면 기록을 남기며, 허용과 거부 메시지도 더 분명해졌다. 백그라운드 자동 업데이트기는 같은 업데이트 시간에 두 프로세스가 각각 업데이트기를 띄우던 경쟁 문제도 고쳤다. 실행 중인 백그라운드 shell 명령이 없으면 다시 지정한 `ctrl+b` 단축키가 적용된다. 관제실이 올바른 사고 보고서를 쓰고 한 근무조에는 수리반 한 팀만 보내는 것과 같다."
+              },
+              "original": "Improved overall reliability and stability across the CLI with additional hardening and fixes for intermittent failures in background tasks, print mode, and interactive flows.\nFixed a crash when a command was blocked by sandbox permissions before its output was captured, and cleaned up the permission approval and denial messages.\nFixed print mode (`-p`) surfacing the real conversation-creation failure instead of a misleading \"no active conversation\" error.\nFixed a background auto-updater double-spawn race where two processes could each spawn an updater within a single update window.\nFixed sandbox error reporting so blocked actions are recorded even when the network proxy is disabled.\nFixed the `ctrl+b` shortcut being hardcoded to background shell commands even when none were running, so a remapped `ctrl+b` is now respected whenever there are no running shell commands in the conversation."
+            }
+          ]
+        },
+        {
           "version": "1.1.5",
           "period": "2026-07-21",
           "items": [
@@ -795,80 +920,6 @@
               "original": "Fixed MCP servers hanging the agent indefinitely when a server never responds by bounding connection, tool-listing, and per-tool-call attempts with timeouts.\nFixed conversations breaking after certain tool calls, which previously corrupted the conversation history and blocked all further responses."
             }
           ]
-        },
-        {
-          "version": "1.1.2",
-          "period": "2026-07-14",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "終端機不再卡頓，介面顯示與預覽更完善",
-                "zh-CN": "终端机不再卡顿，界面显示与预览更完善",
-                "en": "Terminal becomes smoother, tool headers are clearer, and new files get full diffs",
-                "ja": "端末がフリーズしなくなり、画面表示とプレビューがさらに充実",
-                "ko": "터미널 버벅거림이 사라지고, 화면 표시와 미리보기가 더 완벽해져."
-              },
-              "body": {
-                "zh-TW": "當你長對話執行到 5000 步（step，AI 動作次數）以上時，終端機不再卡頓或吃滿 CPU。以前在不閃爍模式（no flickering mode，防止畫面更新閃爍的機制）下，長對話會因行數計算消耗大量資源而打字卡頓；現在優化計算後已徹底解決。另外，新建檔案確認時可按 f 開啟全螢幕的差異預覽（full diff，完整的更動對照），體驗與修改現有檔案一致。最後，對話裡的工具標題不再顯示 CodeSearch(4 files found...) 等混亂內容，改為 Read(/path) 般乾淨的摘要。就像看超長小說，以前越後面越難翻且目錄凌亂，現在每一頁都很順手、目錄整齊，還能隨時拉出全螢幕對照。",
-                "zh-CN": "当你长对话执行到 5000 步（step，AI 动作次数）以上时，终端不再卡顿或吃满 CPU。以前在不闪烁模式（no flickering mode，防止画面更新闪烁的机制）下，长对话会因行数计算消耗大量资源而打字卡顿；现在优化计算后已彻底解决。另外，新建文件确认时可按 f 开启全屏的差异预览（full diff，完整的更改对照），体验与修改现有文件一致。最后，对话里的工具标题不再显示 CodeSearch(4 files found...) 等混乱内容，改为 Read(/path) 般干净的摘要。就像看超长小说，以前越后面越难翻且目录凌乱，现在每一页都很顺手、目录整齐，还能随时拉出全屏对照。",
-                "en": "Your terminal stays responsive and typing stays buttery smooth even if your conversation goes over 5,000 steps (step, AI action counts). Previously, in no flickering mode, counting lines for long chats caused high CPU and lag on every frame; this logic has been optimized to resolve the bottleneck. Also, when confirming new file creation, you can now press f to open a full screen difference preview (full diff) to see complete changes, matching the experience of editing existing files. Finally, chat tool headers are cleaned up from messy strings like CodeSearch(4 files found...) to neat summaries like Read(/path). It's like reading a massive novel where pages used to get harder to turn, the index is clear, and you can pull out a full-screen comparison/diff view anytime.",
-                "ja": "会話が5000ステップ（step、AI の動作回数）を超えても、端末が CPU を食い潰さずタイピングもスムーズなままである。以前はちらつき防止モード（no flickering mode）での行数計算が高負荷を招き文字入力が遅れていたが、計算処理の最適化で解決した。また、新規ファイル作成の確認時に f を押して全画面の差分プレビュー（full diff、ファイル全体の変更点）を開けるようになり、既存ファイルの編集と統一された。さらに、チャット内のツール見出しは CodeSearch(4 files found...) などの乱れた表示から Read(/path) のような簡潔な要約に修正された。分厚い小説の後半でページがくっついて捲れなかったのが、今はすらすら捲れて目次も見やすく、全画面の差分比較をいつでも引き出せるのと同じである。",
-                "ko": "대화가 5,000단계(step, AI 동작 횟수)를 넘어도 터미널이 CPU를 과도하게 쓰지 않고 타이핑도 부드럽게 유지된다. 이전엔 깜빡임 방지 모드(no flickering mode)에서 줄 수 계산 문제로 화면 갱신 때마다 타자가 버벅거렸으나, 계산 방식을 최적화해 완전히 해결했다. 또한 새 파일을 만들 때 f를 누르면 전체 화면 차이 미리보기(full diff, 전체 변경 대조)를 열 수 있어 기존 파일 편집과 똑같은 경험을 제공한다. 마지막으로 대화창 도구 제목이 CodeSearch(4 files found...) 대신 Read(/path)처럼 깔끔한 요약으로 표시된다. 두꺼운 소설책의 뒷부분이 붙어 넘기기 어렵던 문제를 해결하여, 이제는 책장이 잘 넘어가고 목차도 깔끔하며 전체 화면 차이 미리보기를 바로 꺼내 볼 수 있는 것과 같다."
-              },
-              "original": "Added an `f` (full diff) shortcut to the create-file tool review screen so new-file confirmations can open a full-screen diff view, matching the existing file-edit experience.\nImproved responsiveness on large conversations (5000+ steps) in no flickering mode by switching hot-path line-count methods to pointer receivers, cutting the per-frame prefix-sum cost and eliminating sustained 99% CPU and keystroke lag.\nFixed garbled builtin tool headers such as CodeSearch(4 files found...) by mapping generic tool steps back to clean summaries like Read(/path) and CodeSearch(query)."
-            },
-            {
-              "title": {
-                "zh-TW": "腳本模式更可靠，模型不偷換、授權不卡死",
-                "zh-CN": "脚本模式更可靠，模型不偷换、授权不卡死",
-                "en": "Print mode fails honestly on missing models and handles auth gracefully",
-                "ja": "スクリプトモードがより確実になり、モデルのすり替えや認証のフリーズを防止",
-                "ko": "스크립트 모드가 더 믿음직해져, 모델을 몰래 바꾸거나 인증 시 멈추지 않는다."
-              },
-              "body": {
-                "zh-TW": "當你用腳本自動執行任務時，系統不再默默更換模型或卡死。在列印模式（print mode，印出答案即結束的執行方式）下，若指定的模型不存在，系統會立刻報錯中斷並列出可用清單，不再默默降級（但互動模式仍維持警告並使用備援模型（fallback，指主要方案失效時的替代方案）的舊規）。此外，用管線餵指令給腳本時，若需要登入，你可以直接在控制終端機（controlling terminal，如 /dev/tty）貼上 OAuth 授權碼；若在無頭模式（headless runs，沒有終端機視窗的執行模式）下則會立刻報錯，不再傻傻等待。就像派助理買限量便當，買不到時他會立刻打電話告知並回報菜單讓你重挑，需要刷卡時也會把刷卡機遞到你面前；若你不在場，他會直接回報失敗，而不是在櫃檯乾等。",
-                "zh-CN": "当你用脚本自动执行任务时，系统不再默默更换模型或卡死。在打印模式（print mode，印出答案即结束的执行方式）下，若指定的模型不存在，系统会立刻报错中断并列出可用清单，不再默默降级（但交互模式仍维持警告并使用备用模型（fallback，指主要方案失效时的替代方案）旧规）。此外，用管道喂命令给脚本时，若需要登录，你可以直接在控制终端（controlling terminal，如 /dev/tty）贴上 OAuth 授权码；若在无头模式（headless runs，没有终端窗口的执行方式）下则会立刻报错，不再傻傻等待。就像派助理买限量便当，买不到时他会立刻打电话告知并汇报菜单让你重挑，需要刷卡时也会把刷卡机递到你面前；若你不在场，他会直接汇报失败，而不是在柜台干等。",
-                "en": "When automating tasks with scripts, the system stops silently changing models or hanging. In print mode (-p, exit-after-printing), if a specified model is missing, the CLI fails fast and lists available options (interactive sessions keep the old fallback-with-warning behavior). Additionally, if piping prompts consumes stdin and login is required, you can paste the OAuth authorization code directly into the controlling terminal (/dev/tty). Truly headless runs fail fast instead of blocking. Like sending an assistant to buy a lunch box — they call you immediately with the menu if it is sold out, and hand you the card reader if payment is needed; if you aren't there, they return instead of waiting forever.",
-                "ja": "スクリプトで自動タスクを走らせる際、システムが黙ってモデルを変更したりフリーズしたりしなくなった。プリントモード（print mode、出力して即終了）で指定モデルが見つからない場合、エラー終了して利用可能一覧を示す（対話モードでは警告を出してフォールバック（fallback）する旧仕様を維持）。またパイプでプロンプトを流し込み中にログインが必要な場合、制御端末（controlling terminal、/dev/tty 等）に直接 OAuth 認可コードを貼り付けられる。ヘッドレス実行（headless runs）なら無限に待たず即座にエラー終了する。お使いで品切れなら即電話してメニューを読み上げ、支払いが必要なら端末を差し出し、不在ならその場で待たずに引き返すようなものである。",
-                "ko": "스크립트로 자동화 작업을 돌릴 때 시스템이 몰래 모델을 바꾸거나 멈춰 서지 않는다. 인쇄 모드(print mode, 출력 후 즉시 종료)에서 지정 모델이 없으면 즉시 오류를 내고 사용 가능 목록을 보여준다(대화형 모드는 경고 후 대체(fallback)하는 예전 방식을 유지한다). 또한 파이프로 입력 중에 로그인이 필요해지면 제어 터미널(controlling terminal, /dev/tty 등)에 바로 OAuth 인증 코드를 붙여넣을 수 있다. 헤드리스 실행(headless runs) 상태라면 무한정 기다리지 않고 즉시 오류로 끝낸다. 심부름꾼이 품절 시 즉시 전화해 메뉴를 읊어주고, 결제가 필요할 때 단말기를 내밀며, 부재중이면 계산대에서 대기하지 않고 곧장 돌아오는 것과 같다."
-              },
-              "original": "Added support for pasting the OAuth authorization code in print mode (-p) via the controlling terminal (/dev/tty on POSIX and CONIN$ on Windows) when stdin is consumed by a piped prompt, and made truly headless runs fail fast with an actionable message instead of blocking.\nFixed print mode silently downgrading to the default model when --model cannot be resolved by hard-failing with a non-zero exit and listing the available models, while interactive sessions keep the fallback-with-warning behavior."
-            },
-            {
-              "title": {
-                "zh-TW": "捷徑自動更新不覆蓋，指令檢查不再大驚小怪",
-                "zh-CN": "快捷键自动更新不覆盖，命令检查不再大惊小怪",
-                "en": "Keybindings stay updated automatically, and nested commands respect allowlists",
-                "ja": "ショートカットの更新が上書きせず、コマンドの確認も過剰に反応しない",
-                "ko": "단축키가 덮어쓰기 없이 자동 업데이트되고, 명령어 검사도 호들갑 떨지 않는다."
-              },
-              "body": {
-                "zh-TW": "自訂快捷鍵能隨著系統升級自動更新，指令安全檢查也更聰明了。當系統加入新的預設快捷鍵時，它會自動補上新值，同時完整保留你修改過的按鍵配置（user overrides）。另外，當你輸入包著另一層指令的巢狀指令替換（nested command substitutions，如在 echo 裡包著 git 查詢）時，只要這兩個指令都在允許清單（allowlist，白名單）裡，系統就會直接放行，不再重複計算層數（double-counting）而跳出提示詢問。就像遊戲更新後會自動加上新技能按鍵，且不影響你改過的自訂鍵；也像機場安檢看到包包裡裝著已過安檢的隨身包，不會再叫你拆開檢查一次。",
-                "zh-CN": "自定义快捷键能随着系统升级自动更新，命令安全检查也更聪明了。当系统加入新的默认快捷键时，它会自动补上新值，同时完整保留你修改过的按键配置（user overrides）。另外，当你输入包着另一层命令的嵌套命令替换（nested command substitutions，如在 echo 里包着 git 查询）时，只要这两个命令都在允许清单（allowlist，白名单）里，系统就会直接放行，不再重复计算层数（double-counting）而跳出提示询问。就像游戏更新后会自动加上新技能按键，且不影响你改过的自定义键；也像机场安检看到包包里装着已过安检的随身包，不会再叫你拆开检查一次。",
-                "en": "Custom shortcuts now upgrade automatically, and command security checks are smarter. When the system adds new default keybindings, it injects them while preserving your custom configurations (user overrides). Also, when you write nested command substitutions (like echo wrapping a git query), the system runs them without interruption as long as both commands are on your allowlist. It no longer double-counts the nested layers to prompt for permission. Like updating a game — new ultimate keybindings are added without wiping out your custom jump button; and airport security seeing a pre-screened bag inside another pre-screened bag no longer forces you to unpack it again.",
-                "ja": "カスタムショートカットが自動更新され、コマンドの安全確認も賢くなった。システムに新しいデフォルトのキー割り当てが追加された際、ユーザーの独自設定（user overrides）を保ちつつ自動で新設定を追記する。また、別のコマンドを内包した入れ子のコマンド置換（nested command substitutions）を実行する際、両方のコマンドが許可リスト（allowlist）に入っていれば、階層の重複カウント（double-counting）による確認を挟まずにそのまま実行させる。ゲームの更新で新キーが追加されても自作設定が消えず、検査済みの鞄に入った検査済みのポーチを、空港の保安検査で二度開けさせられないのと同じである。",
-                "ko": "사용자 지정 단축키가 자동 업데이트되고, 명령어 안전 검사도 똑똑해졌다. 시스템에 새 기본 단축키가 추가되면 사용자 변경 설정(user overrides)을 보존하면서 새 단축키를 자동으로 추가한다. 또한 다른 명령어를 감싸는 중첩 명령어 치환(nested command substitutions)을 입력할 때, 두 명령어 모두 허용 목록(allowlist)에 있다면 중첩 층수를 이중 계산(double-counting)해 확인을 요구하는 일 없이 곧바로 실행해 준다. 게임 업데이트 시 새 단축키가 추가되어도 기존 설정이 초기화되지 않고, 보안 검색대에서 이미 검사한 가방 안의 파우치를 다시 열어보라고 요구하지 않는 것과 같다."
-              },
-              "original": "Fixed permission checks not respecting the allowlist for nested command substitutions, so a command like echo \"$(dirname $(git rev-parse --show-toplevel))\" now runs without prompting when echo and git are allowlisted, instead of double-counting the nested command and prompting for review.\nFixed the CLI keybindings file staying out of sync with /keybindings when new default bindings are introduced by persisting the injected defaults while preserving user overrides."
-            },
-            {
-              "title": {
-                "zh-TW": "代理分身狀態更精準，MCP 工具不留殘局",
-                "zh-CN": "代理分身状态更精准，MCP 工具不留残局",
-                "en": "Subagents report accurate states, and MCP tools stop leaking memory",
-                "ja": "エージェント分身の状態が正確になり、MCP ツールも綺麗に終了",
-                "ko": "에이전트 분신 상태가 정확해지고, MCP 도구도 흔적 없이 정리된다."
-              },
-              "body": {
-                "zh-TW": "當你叫出多個代理幫忙或掛載外部工具時，進度追蹤更精準，系統也更乾淨。多個代理分身（subagents，平行處理任務的 AI 助手）同時工作時，以前會因資料競爭（data race，搶改同一筆資料）和違反寫入時複製（copy-on-write violation）導致狀態錯亂；現在修改狀態前會先複製紀錄，不再互踩。此外，載入 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）工具時，以前在獨立模式下會找不到路徑且殘留背景程序（subprocesses）；現在能正確定位並在關閉時清乾淨。就像請裝潢工班，以前搶簽同一張表導致塗改混亂，現在每人發一張表；離開時也一定帶走所有工具，不留電線垃圾。",
-                "zh-CN": "当你叫出多个代理帮忙或挂载外部工具时，进度追踪更精准，系统也更干净。多个代理分身（subagents，平行处理任务的 AI 助手）同时工作时，以前会因数据竞争（data race，抢改同一笔数据）和违反写入时复制（copy-on-write violation）导致状态错乱；现在修改状态前会先复制记录，不再互踩。此外，载入 MCP（Model Context Protocol，让 AI 连接外部工具的协定）工具时，以前在独立模式下会找不到路径且残留背景进程（subprocesses）；现在能正确定位并在关闭时清干净。就像请装修工班，以前抢签同一张表导致修改混乱，现在每人发一张表；离开时也一定带走所有工具，不留电线垃圾。",
-                "en": "Task progress is fully accurate and the system cleans up properly when you run agent teams or load external tools. When multiple subagents (AI helpers running in parallel) work together, the system used to suffer from a data race and copy-on-write violation, corrupting step counts; they now clone records before updating to avoid collisions. Furthermore, when loading MCP (Model Context Protocol) tools, the manager previously failed to resolve paths in standalone mode and leaked background subprocesses; it now locates paths perfectly and sweeps up processes on exit. Like hiring a crew — they used to fight over one sign-in sheet but now get individual clipboards, and clean up all their tools on departure.",
-                "ja": "複数のエージェントを動かしたり外部ツールを繋いだりする際、進捗管理が正確になりシステムも清潔に保たれる。複数のエージェント分身（subagents，並行処理を行う AI 助手）の同時稼働時，以前はデータ競合（data race）やコピーオンライト違反（copy-on-write violation）で状態が壊れていたが、更新前に複製を作ることで衝突を防ぐ。また、MCP（Model Context Protocol，AI を外部ツールに接続する規格）ツールの読み込み時、以前はスタンドアロンモードでパスを見失いサブプロセス（subprocesses）をリークしていたが、正しく検知して終了時に一掃する。工事の職人がサインシートを奪い合わず個別のバインダーを使い、帰る時は道具をすべて持ち帰るのと同じである。",
-                "ko": "여러 에이전트를 가동하거나 외부 도구를 연결할 때 진행 상황 추적이 정확해지고 시스템도 깨끗이 정리된다. 여러 에이전트 분신(subagents, 병렬 작업을 수행하는 AI 조수)이 동시 작동할 때, 이전엔 데이터 충돌(data race)이나 기록 시 복사 위반(copy-on-write violation)으로 상태가 꼬였으나 이제는 업데이트 전 기록을 복제해 충돌을 피한다. 또한 MCP(Model Context Protocol, AI를 외부 도구에 연결하는 규약) 도구를 불러올 때 독립 모드에서 경로를 찾지 못해 백그라운드 프로세스(subprocesses)가 남던 오류를 해결하고 종료 시 완전히 정리한다. 공사 인부들이 출근부 한 장으로 다투지 않고 개별판을 쓰며, 퇴근할 때 공구를 모두 챙겨가는 것과 같다."
-              },
-              "original": "Fixed mcp manager failing to resolve tool schema paths in standalone mode and leaking MCP server subprocesses after shutdown, which previously caused panics and cleanup failures for custom agents loading MCP tools.\nFixed a data race and copy-on-write violation when updating subagent states by cloning their stats before in-place mutation, preventing corrupted step counts and status for parallel subagents."
-            }
-          ]
         }
       ]
     },
@@ -876,6 +927,103 @@
       "id": "usage",
       "name": "Usage",
       "versions": [
+        {
+          "version": "0.28.21",
+          "period": "2026-07-24",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "服務出狀況時，面板會亮起警示燈",
+                "zh-CN": "服务出状况时，面板会亮起警示灯",
+                "en": "A warning light now appears when a service is having trouble",
+                "ja": "サービス障害時にはパネルに警告灯が付く",
+                "ko": "서비스에 문제가 생기면 패널에 경고등이 켜진다"
+              },
+              "body": {
+                "zh-TW": "你打開 usage 想看 Claude Code 的用量，卻懷疑回應變慢是自己額度用完，還是服務真的故障？現在有頁尾的面板，會在 Claude Code、Claude API 或 Codex API 發生中斷或效能降低時，底部亮起橘紅警示條。它讀的是各家公開的 Statuspage.io 狀態頁，不會呼叫 LLM 用量 API；所以這盞燈只告訴你服務是否出事，不會替你查 AI 用了多少。每個工具用各自面板的警示色，藏起工具卡時也不會冒出它的通知。五種介面語言都有文字說明。這像車上各自獨立的故障燈：引擎、煞車哪一處亮了就看哪一處，沒裝感測器的 Antigravity 則不會硬亮一顆假的燈。",
+                "zh-CN": "你打开 usage 想看 Claude Code 的用量，却怀疑回应变慢是自己额度用完，还是服务真的故障？现在有页脚的面板，会在 Claude Code、Claude API 或 Codex API 发生中断或性能下降时，底部亮起橙红警示条。它读取的是各家公开的 Statuspage.io 状态页，不会调用 LLM 用量 API；所以这盏灯只告诉你服务是否出事，不会替你查 AI 用了多少。每个工具用各自面板的警示色，藏起工具卡时也不会冒出它的通知。五种界面语言都有文字说明。这像车上各自独立的故障灯：发动机、刹车哪一处亮了就看哪一处，没有可用公开状态页的 Antigravity 则不会硬亮一颗假的灯。",
+                "en": "When usage feels slow, it can be hard to tell whether you hit a limit or the service itself is struggling. Panels with a footer now show an orange-red banner when Claude Code, the Claude API, or the Codex API has an outage or degraded performance. The banner reads each service's public Statuspage.io page; it never calls an LLM usage API, so it reports service health rather than your AI consumption. Each tool uses its own panel colors, and a hidden tool card produces no banner. The wording is available in all five interface languages. Think of separate dashboard lights in a car: the light tells you which fitted component has trouble. Antigravity has no usable public status page, so it does not pretend to have one.",
+                "ja": "usage を開いて Claude Code の利用量を見ても、遅さの原因が自分の上限なのかサービス障害なのかは分かりにくい。今後はフッターのあるパネルで、Claude Code、Claude API、Codex API に障害または性能低下が起きた時だけ、下部に橙赤色の警告バナーが出る。各サービスの公開 Statuspage.io を読むもので、LLM の利用量 API は呼ばない。つまり知らせるのはサービスの健康状態であり、AI をどれだけ使ったかではない。色は各パネルに合わせ、隠したツールのカードには出ず、文面は五言語で読める。車の警告灯のように、故障した部品だけが点く仕組みである。使える公開状態ページのない Antigravity には偽の灯を付けない。",
+                "ko": "usage에서 Claude Code 사용량을 보다가 응답이 느리면, 내 한도를 쓴 것인지 서비스가 고장 난 것인지 구분하기 어렵다. 이제 푸터가 있는 패널은 Claude Code, Claude API, Codex API에 장애나 성능 저하가 있을 때만 아래에 주황빛 빨간 경고 배너를 띄운다. 각 서비스의 공개 Statuspage.io 상태 페이지를 읽으며 LLM 사용량 API는 호출하지 않는다. 따라서 이 불빛은 서비스 상태만 알려 주고 AI를 얼마나 썼는지는 알려 주지 않는다. 도구마다 자기 패널 색을 쓰고, 숨긴 도구 카드에는 배너도 나오지 않으며 문구는 다섯 UI 언어로 제공한다. 차의 경고등처럼 문제 난 부품만 켜지는 셈이다. 쓸 만한 공개 상태 페이지가 없는 Antigravity에는 가짜 불빛을 켜지 않는다."
+              },
+              "original": "**Service-status banners for Claude Code, Claude API, and Codex API incidents.** `usage` reads the public Claude and Codex Statuspage.io status pages and shows an orange-red warning banner at the bottom of a panel only when an affected service has an outage or degraded performance. It never calls an LLM usage API.\n**Service-status banners work across every panel with a footer.** Each panel uses warning colors matched to its own theme, and a banner for a tool is not shown when that tool's card is hidden.\n**Service-status banner text is available in all five UI languages.** Antigravity is not supported because it has no usable public status page."
+            },
+            {
+              "title": {
+                "zh-TW": "頁尾資訊改成並排，警示出現也不擠內容",
+                "zh-CN": "页脚信息改成并排，警示出现也不挤内容",
+                "en": "Footer details now sit side by side, with room for warnings",
+                "ja": "フッター情報を横並びにし、警告が出ても内容を圧迫しない",
+                "ko": "푸터 정보가 나란히 놓이고, 경고가 떠도 내용이 눌리지 않는다"
+              },
+              "body": {
+                "zh-TW": "掃過八種主題面板時，現在更容易一眼同時看到用量速度和服務狀態。原本上下堆疊的兩項資訊，已改成和預設面板一致的左右並排；畫面像把兩張便條貼在同一排，而不是一張壓著一張。萬一服務警示條出現，面板也會自己長高，替它留出位置，不再把原有內容擠扁。就像電梯裡加了一則公告，電梯不會因此把樓層按鈕擠到看不清楚，而是多開一塊版面讓內容看清。",
+                "zh-CN": "扫过八种主题面板时，现在更容易一眼同时看到用量速度和服务状态。原本上下堆叠的两项信息，已改成和默认面板一致的左右并排；画面像把两张便条贴在同一排，而不是一张压着一张。万一服务警示条出现，面板也会自己长高，替它留出位置，不再把原有内容挤扁。就像电梯里加了一则公告，电梯不会因此把楼层按钮挤到看不清楚，而是多开一块版面。",
+                "en": "Scanning the eight themed panels now makes it easier to see usage rate and service status at the same time. Those footer details used to be stacked vertically; they now sit side by side, matching the default panel, like two notes placed on one row instead of one covering the other. If a service-status banner appears, the panel also grows tall enough to give it space rather than squeezing the existing content. It is like adding a notice to an elevator without cramming the floor buttons out of sight: the cabin simply makes room.",
+                "ja": "八つのテーマ付きパネルを見比べる時、利用率とサービス状態を同時に一目で確認しやすくなった。以前はフッター内で上下に積まれていた情報が、標準パネルと同じ左右並びになった。一枚の付箋がもう一枚に重なるのではなく、同じ列に二枚を並べるような変化である。サービス状態の警告バナーが出た場合も、パネルは必要な分だけ高さを増し、既存の内容を押しつぶさない。エレベーターにお知らせを貼っても階数ボタンを見えなくせず、空間を増やすようなものだ。",
+                "ko": "여덟 가지 테마 패널을 훑어볼 때 사용량 속도와 서비스 상태를 한눈에 함께 보기 쉬워졌다. 푸터에서 위아래로 쌓이던 두 정보는 이제 기본 패널처럼 좌우로 나란히 놓인다. 메모 두 장이 서로 덮는 대신 한 줄에 붙는 모양이다. 서비스 상태 경고 배너가 나타나도 패널은 필요한 만큼 높아져 기존 내용을 눌러 찌그러뜨리지 않는다. 엘리베이터에 공지를 붙인다고 층 버튼을 가리지 않고, 공간을 조금 더 만드는 것과 같다."
+              },
+              "original": "**Rate and status information now sit side by side in the footers of all eight themed panels.** They now match the default panel instead of being stacked vertically.\n**Popover height now accounts for the service-status banner.** When the banner appears, the panel grows enough to contain it instead of squeezing its content."
+            },
+            {
+              "title": {
+                "zh-TW": "重度使用判定不再把快取重讀算進去",
+                "zh-CN": "重度使用判定不再把缓存重读算进去",
+                "en": "Heavy-use labels stop counting cache rereads",
+                "ja": "ヘビー利用の判定からキャッシュ再読込みを外した",
+                "ko": "헤비 사용 판정에서 캐시 재읽기를 뺐다"
+              },
+              "body": {
+                "zh-TW": "明明只是接著同一段對話問問題，usage 卻一直把你標成 Heavy，現在這種誤判會少很多。用量速度會以每分鐘 token（AI 處理與計費的文字單位）分類成 Idle、Normal、Active、Heavy；先前計算 Heavy 時，把 `cache_read` 也算進使用量。`cache_read` 是提示快取（把已讀過內容暫存，重用時不用重新處理）的重讀，幾乎免費，主要反映對話有多長，不代表你用得多猛。現在它已被排除，門檻也從每分鐘 50／250／1000 調成 500／2500／6000 tokens。像健身房把你反覆看同一張課表當成運動量，當然會虛報；現在只計真正的訓練，標籤比較接近實際強度。",
+                "zh-CN": "明明只是接着同一段对话问问题，usage 却一直把你标成 Heavy，现在这种误判会少很多。用量速度会以每分钟 token（AI 处理与计费的文字单位）分类成 Idle、Normal、Active、Heavy；先前计算 Heavy 时，把 `cache_read` 也算进使用量。`cache_read` 是提示缓存（把读过内容暂存，重用时不用重新处理）的重读，几乎免费，主要反映对话有多长，不代表你用得多猛。现在它已被排除，门槛也从每分钟 50／250／1000 调成 500／2500／6000 tokens。像健身房把你反复看同一张课表当成运动量，当然会虚报；现在只计真正的训练，标签更接近实际强度。",
+                "en": "If usage kept labeling you Heavy while you were only continuing one conversation, that false impression should now be much rarer. The live rate sorts activity into Idle, Normal, Active, and Heavy by tokens per minute—tokens are the units of text an AI processes and bills for. Previously, the Heavy calculation included `cache_read`, a nearly free reread of prompt-cache content that mainly reflects conversation length rather than intensity. That value is now excluded, and the thresholds have moved from 50 / 250 / 1000 to 500 / 2500 / 6000 tokens per minute. It is like a gym counting rereading the same workout sheet as exercise; now it counts the training itself, so the label better matches the effort.",
+                "ja": "同じ会話を続けて質問しているだけなのに、usage がずっと Heavy と表示するなら、その誤判定はかなり減る。ライブ利用率は毎分の token（AI が処理・課金する文字の単位）で Idle、Normal、Active、Heavy に分ける。以前の Heavy 判定には `cache_read` も入っていた。これはプロンプトキャッシュ、つまり読んだ内容を一時保存して再利用する仕組みの再読込みで、ほぼ無料であり、利用の激しさより会話の長さを映す。今はこれを除外し、境界も毎分 50／250／1000 から 500／2500／6000 tokens に再調整した。同じ運動メニューを読み返す回数まで運動量にするジムが、本当の運動だけ数えるようになったようなものだ。",
+                "ko": "같은 대화를 이어 질문했을 뿐인데 usage가 계속 Heavy라고 표시했다면, 이제 그런 오판은 훨씬 줄어든다. 실시간 사용 속도는 분당 token(AI가 처리하고 과금하는 글자 단위)으로 Idle, Normal, Active, Heavy를 나눈다. 예전 Heavy 계산에는 `cache_read`도 들어갔다. 이는 프롬프트 캐시, 곧 읽은 내용을 잠시 저장해 다시 쓰는 기능의 재읽기이며 거의 무료다. 그래서 사용 강도보다 대화 길이를 보여 준다. 이제 이를 빼고 경계도 분당 50／250／1000에서 500／2500／6000 tokens로 다시 맞췄다. 헬스장이 같은 운동표를 다시 읽는 것까지 운동량으로 세다가, 이제 실제 운동만 세는 것과 같다."
+              },
+              "original": "**Live usage-rate categories can distinguish heavy use again.** Heavy users previously remained permanently in Heavy because burn rate counted `cache_read`—a near-free prompt-cache reread that reflects conversation length rather than usage intensity—in its numerator. It now excludes `cache_read`, and the Idle / Normal / Active / Heavy thresholds have been recalibrated from 50 / 250 / 1000 to 500 / 2500 / 6000 tokens per minute."
+            }
+          ]
+        },
+        {
+          "version": "0.28.20",
+          "period": "2026-07-24",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "5 小時工作階段會重新自動開啟",
+                "zh-CN": "5 小时工作时段会重新自动开启",
+                "en": "Your 5-hour sessions can auto-start again",
+                "ja": "5時間セッションが再び自動で始まる",
+                "ko": "5시간 세션이 다시 자동으로 시작된다"
+              },
+              "body": {
+                "zh-TW": "你靠自動功能守著 5 小時工作階段時，第一個提醒過後不會再整天沒動靜。先前它改用「跨過時段交界才提醒」的判斷，卻因為背景執行的 `claude -p` 不會觸發 statusLine（顯示在終端機最底下的狀態列）掛鉤，`usage-status.json` 一直留著已處理過的交界時間，於是自動功能永遠不再啟動。現在除了保留交界判斷來即時抓住真正換時段，也加上 5 小時 5 分鐘的冷卻計時；資料太舊時便重新準備下一次提醒。像鬧鐘既會在整點響，也有備用計時器；其中一個卡住，另一個仍會叫你起床。原本避免已開啟工作階段又亂提醒的關卡都還在。",
+                "zh-CN": "你靠自动功能守着 5 小时工作时段时，第一个提醒过后不会再一整天没动静。此前它改用「跨过时段交界才提醒」的判断，却因为后台运行的 `claude -p` 不会触发 statusLine（显示在终端最底下的状态栏）挂钩，`usage-status.json` 一直留着已处理过的交界时间，于是自动功能永远不再启动。现在除了保留交界判断来及时抓住真正换时段，也加上 5 小时 5 分钟的冷却计时；数据太旧时便重新准备下一次提醒。像闹钟既会在整点响，也有备用计时器；其中一个卡住，另一个仍会叫你起床。原本避免已开启时段又乱提醒的关卡都还在。",
+                "en": "If you rely on automatic starts to watch a 5-hour session, it will no longer fall silent for the rest of the day after its first alert. The recent switch to detecting a session boundary got stuck because headless `claude -p` does not trigger the statusLine hook, leaving `usage-status.json` stuck on a boundary it had already handled. The boundary check remains, so a real rollover is still caught immediately, but a separate 5-hour-and-5-minute cooldown now rearms the alert once that record is stale. Think of an alarm clock with both a chime and a backup timer: if one gets stuck, the other still wakes you. All the existing checks that prevent an alert during a live session remain in place.",
+                "ja": "5時間セッションを自動開始で見守っているなら、最初の通知後に丸一日沈黙することはなくなる。時段の境目を検知する方式へ変えた後、ヘッドレスで動く `claude -p` が statusLine のフックを発火しないため、`usage-status.json` に処理済みの境目が残り続け、自動開始が永久に止まっていた。実際の切り替わりをすぐ捉える境目判定は残しつつ、記録が古くなれば5時間5分の別の待機時計でも次の通知を再準備する。時報と予備タイマーを持つ目覚ましのようなもので、一方が止まってももう一方が起こしてくれる。動いているセッション中に余計な通知を出さない既存の条件もそのままである。",
+                "ko": "5시간 세션을 자동 시작으로 지켜보고 있었다면, 첫 알림 뒤 하루 종일 조용해지는 일이 없어진다. 세션 경계를 넘을 때만 알리도록 바꾼 뒤, 헤드리스로 실행되는 `claude -p`가 statusLine 훅을 발동하지 않아 `usage-status.json`에 이미 처리한 경계가 계속 남았고 자동 시작이 영영 멈췄다. 실제 전환을 즉시 잡는 경계 확인은 유지하면서, 기록이 오래되면 5시간 5분짜리 별도 대기 시간이 다음 알림을 다시 준비한다. 정각 종과 예비 타이머를 함께 둔 알람시계와 같아서 한쪽이 멈춰도 다른 쪽이 깨운다. 진행 중인 세션에 쓸데없는 알림을 내지 않던 기존 조건도 그대로 유지한다."
+              },
+              "original": "**Auto-start 5-hour Session stopped firing at all after its first ping.** 0.28.17 swapped the keeper's elapsed-time throttle for reset-boundary deduplication, which only holds up while the boundary keeps moving — and it doesn't. The ping runs `claude -p` headless, which never triggers Claude Code's statusLine hook, so `usage-status.json` goes on reporting the boundary that was already handled and the keeper wedges permanently. One machine went 23 hours with no auto-opened window while the cooldown-based Antigravity keeper kept working normally. The boundary check stays, since it is what catches a real rollover the moment it happens; a 5h5m cooldown is added alongside it as a second, independent way to re-arm once the payload has gone stale. Every existing gate is untouched, so a live window still never draws a spurious ping."
+            },
+            {
+              "title": {
+                "zh-TW": "異常中斷留下的暫存檔會自動清理",
+                "zh-CN": "异常中断留下的临时文件会自动清理",
+                "en": "Temporary files left by crashes now get cleaned up",
+                "ja": "異常終了で残った一時ファイルを自動で掃除する",
+                "ko": "비정상 종료가 남긴 임시 파일을 자동으로 치운다"
+              },
+              "body": {
+                "zh-TW": "程式在寫入資料時若突然當掉或被強制關閉，`~/.usage/` 裡留下的暫存檔現在會被收走，不會越堆越多。正常情況下，原子寫入（先寫好新檔再一次換上去，避免寫到一半壞掉）結束時會刪除 `mkstemp` 產生的檔案；但遇到 SIGKILL（作業系統立刻強制終止程式的訊號）或崩潰，清理步驟來不及跑。一台電腦曾在 12 天累積 40 MB，主要是寫得較慢的 JSONL 快取（把算過／查過的結果暫存起來直接用）。現在啟動時會掃描 `~/.usage/` 和它直接底下的 `*.d` 資料夾，只刪符合名稱、超過 24 小時未碰過的一般檔案；符號連結和資料夾一律不碰。像倉庫每天開門先清昨夜遺下的包材，仍在裝箱的貨不會被誤丟。",
+                "zh-CN": "程序写入数据时若突然崩溃或被强制关闭，`~/.usage/` 里留下的临时文件现在会被收走，不会越堆越多。正常情况下，原子写入（先写好新文件再一次换上去，避免写到一半损坏）结束时会删除 `mkstemp` 产生的文件；但遇到 SIGKILL（操作系统立刻强制终止程序的信号）或崩溃，清理步骤来不及运行。一台电脑曾在 12 天累积 40 MB，主要是写得较慢的 JSONL 缓存（把算过或查过的结果暂存起来直接用）。现在启动时会扫描 `~/.usage/` 和它直接下面的 `*.d` 文件夹，只删符合名称、超过 24 小时未碰过的普通文件；符号链接和文件夹一律不碰。像仓库每天开门先清昨夜遗下的包装材料，仍在装箱的货不会被误丢。",
+                "en": "If the app crashes or is forcibly stopped while saving data, its leftover temporary files in `~/.usage/` will now be cleared instead of piling up. An atomic write normally deletes the file made by `mkstemp` after safely putting the completed new file in place, but SIGKILL or a crash prevents that cleanup from running. One installation gathered 40 MB in 12 days, mostly from slower JSONL caches. On startup, Usage now checks `~/.usage/` and its immediate `*.d` children, deleting only ordinary files with the matching temporary-file name that have not been touched for 24 hours. Symlinks and directories are always left alone. It is like a warehouse clearing yesterday's packing scraps each morning without throwing away a box still being packed.",
+                "ja": "データ保存中にアプリがクラッシュしたり強制終了されたりしても、`~/.usage/` に残る一時ファイルが積み上がらず、今後は自動で片付く。原子的な書き込みは、完成した新しいファイルを安全に置き換えた後で `mkstemp` が作ったファイルを通常は消すが、SIGKILL やクラッシュではその掃除まで実行できない。ある環境では12日間で40 MBたまり、主に書き込みの遅い JSONL キャッシュだった。起動時に `~/.usage/` と直下の `*.d` フォルダを調べ、名前が一致し24時間触られていない通常ファイルだけを削除する。シンボリックリンクとフォルダには決して触れない。倉庫が毎朝、昨夜の梱包くずだけを片付け、まだ荷造り中の箱は捨てないようなものである。",
+                "ko": "데이터를 저장하다 앱이 충돌하거나 강제 종료되어도 `~/.usage/`에 남는 임시 파일이 계속 쌓이지 않고 자동으로 정리된다. 원자적 쓰기는 완성한 새 파일을 안전하게 교체한 뒤 보통 `mkstemp`가 만든 파일을 지우지만, SIGKILL이나 충돌이 나면 그 정리 단계가 실행될 틈이 없다. 한 설치 환경에는 12일 동안 40 MB가 쌓였고, 주로 쓰기가 느린 JSONL 캐시였다. 이제 시작할 때 `~/.usage/`와 바로 아래 `*.d` 폴더를 살피며, 이름이 맞고 24시간 동안 손대지 않은 일반 파일만 지운다. 심볼릭 링크와 폴더는 절대 건드리지 않는다. 창고가 매일 아침 전날 포장 쓰레기만 치우고 아직 포장 중인 상자는 버리지 않는 것과 같다."
+              },
+              "original": "**Orphaned temp files piled up in `~/.usage/`.** Every atomic write unlinks its `mkstemp` file in a `finally` block, and that block never runs when the app is SIGKILLed or crashes mid-write. One install had collected 40 MB of them over twelve days, dominated by the large JSONL caches whose slow writes are the likeliest to be interrupted. Startup now sweeps `~/.usage` and its direct `*.d` children, deleting only regular files that match the `mkstemp` name shape and have gone untouched for 24 hours — long enough that a second usage process cannot lose a temp file it is still writing. Symlinks and directories are skipped no matter how well their name matches."
+            }
+          ]
+        },
         {
           "version": "0.28.19",
           "period": "2026-07-23",
@@ -896,69 +1044,6 @@
                 "ko": "Windows에서 Usage의 할당량 패널을 지켜본다면, 세션을 유지하려고 틈틈이 손으로 조작할 필요가 없어졌다. 시스템 트레이(tray, Windows 오른쪽 아래에 상주 프로그램 아이콘을 모아 두는 곳)에도 macOS에 있던 ‘5시간 세션 자동 시작’ 스위치가 생겼다. 트레이 메뉴나 HTML 패널 메뉴에서 켜면, 새로 고칠 때마다 기존 window_keeper 자동 ping 기능이 이어져 그 5시간 세션을 유지한다. 주차 미터기에 자동 연장을 켜 두고 옆에서 버튼을 계속 누르지 않아도 되는 것과 같다. Windows가 백그라운드 실행을 막으면 화면에서 ‘설정 → 전원 및 배터리’로 가는 활성화 방법도 안내한다. 또 `claude`와 `agy` 실행 파일(명령어로 프로그램을 시작하게 하는 파일)의 Windows에서 흔한 설치 위치를 위한 대체 경로도 더해, 프로그램을 찾지 못할 일이 줄었다."
               },
               "original": "**Windows tray now has the same \"Auto-start 5-hour session\" toggle macOS has had.** Wires the existing `window_keeper` auto-ping logic into `wintray.py`, firing after each refresh; the toggle is in both the tray menu and the HTML panel menu, with Windows-specific enable instructions (Settings → Power & battery) across all five languages. Also adds real-world Windows install-path fallbacks for the `claude`/`agy` binaries."
-            }
-          ]
-        },
-        {
-          "version": "0.28.18",
-          "period": "2026-07-22",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Antigravity 額度卡不再卡在錯誤百分比",
-                "zh-CN": "Antigravity 额度卡不再卡在错误百分比",
-                "en": "Antigravity quota card no longer gets stuck on a wrong percentage",
-                "ja": "Antigravity のクオータカードが誤った割合で止まらなくなった",
-                "ko": "Antigravity 할당량 카드가 잘못된 퍼센트에 멈추지 않는다"
-              },
-              "body": {
-                "zh-TW": "你在 usage 看 Antigravity 額度時，卡片終於會跟官方 CLI 的 `/quota` 顯示對上。Antigravity CLI 1.1.5 後把 OAuth 憑證（證明你已授權登入的通行證）從硬碟上的普通檔案，搬進 macOS Keychain（Mac 替應用程式保管密碼與登入資料的鑰匙圈）。同時查額度的後端（真正處理查詢的伺服器）也換了地址。卡片卻仍翻舊 token（授權令牌）的檔案；它雖會悄悄更新，拿到的卻是過期授權算出的數字，於是百分比卡住。現在它先讀 Keychain 中 `gemini`／`antigravity` 的資料，找不到才回頭讀舊檔，並改連新版後端。像銀行把帳本搬進保險庫又換了櫃台，舊看板仍對著廢櫃台抄數字；現在先到保險庫、再去正確櫃台，額度才會和 CLI 一致。",
-                "zh-CN": "你在 usage 看 Antigravity 额度时，卡片终于会跟官方 CLI 的 `/quota` 显示对上。Antigravity CLI 1.1.5 后把 OAuth 凭证（证明你已授权登录的通行证）从硬盘上的普通文件，搬进 macOS Keychain（Mac 替应用程序保管密码和登录资料的钥匙串）。同时查询额度的后端（真正处理查询的服务器）也换了地址。卡片却仍在翻旧 token（授权令牌）文件；它虽然会悄悄更新，拿到的却是过期授权算出的数字，于是百分比卡住。现在它先读 Keychain 里 `gemini`／`antigravity` 的资料，找不到才回头读旧文件，并改连新版后端。像银行把账本搬进保险库又换了柜台，旧看板仍对着废柜台抄数字；现在先到保险库、再去正确柜台，额度才会和 CLI 一致。",
-                "en": "When you check Antigravity quota in usage, its card should finally agree with the official CLI's `/quota` result. Since Antigravity CLI 1.1.5, the OAuth credential (proof that you authorized the sign-in) moved from an ordinary disk file into macOS Keychain, where Macs keep passwords and login data. Its quota backend—the server handling the lookup—also moved. The card kept reading the old token file; it could refresh that abandoned credential, but received numbers based on a stale grant, leaving the percentage stuck and wrong. It now checks the `gemini` / `antigravity` Keychain entry first, falls back to the legacy file only when needed, and calls the new backend. It is like a bank moving its ledger into a vault and changing counters while an old display board still copies figures from the closed counter; now it visits the vault and the right counter first.",
-                "ja": "usage で Antigravity のクオータを見るとき、カードの表示が公式 CLI の `/quota` とようやく一致する。Antigravity CLI 1.1.5 以降、OAuth クレデンシャル（ログインを許可した証明）は普通のディスクファイルから、Mac がパスワードやログイン情報を保管する macOS Keychain へ移った。クオータを照会するバックエンド（問い合わせを処理するサーバー）も移転している。それでもカードは古いトークンファイルを読んでいたため、更新できても期限切れの許可に基づく数値を受け取り、割合が誤ったまま止まっていた。今は `gemini`／`antigravity` の Keychain 項目を先に読み、なければ旧ファイルへ戻り、新しいバックエンドにも接続する。銀行が帳簿を金庫へ移し窓口も変えたのに、古い掲示板だけが閉じた窓口を見ていた状態から、正しい金庫と窓口を確認する状態への変更である。",
-                "ko": "usage에서 Antigravity 할당량을 볼 때 카드 표시가 이제 공식 CLI의 `/quota` 결과와 맞는다. Antigravity CLI 1.1.5부터 OAuth 자격 증명(로그인을 허가했다는 증명)은 일반 디스크 파일에서 Mac이 암호와 로그인 정보를 보관하는 macOS Keychain으로 옮겨 갔다. 할당량 조회를 처리하는 백엔드(조회 요청을 처리하는 서버)도 바뀌었다. 하지만 카드는 계속 옛 token 파일을 읽었다. 그 버려진 자격 증명도 갱신은 됐지만 만료된 권한을 바탕으로 한 숫자를 돌려줘 퍼센트가 틀린 채 멈췄다. 이제 `gemini`／`antigravity` Keychain 항목을 먼저 읽고, 없을 때만 옛 파일을 읽으며 새 백엔드에 연결한다. 은행이 장부를 금고로 옮기고 창구도 바꿨는데 낡은 전광판만 문 닫은 창구의 숫자를 베끼던 상황에서, 이제 금고와 올바른 창구를 먼저 확인하는 것과 같다."
-              },
-              "original": "**Antigravity quota showed a stuck, wrong percentage since the CLI's 1.1.5 update.** The Antigravity CLI moved its OAuth credential from a plain file on disk into the macOS Keychain (`security` service `gemini`, account `antigravity`, `go-keyring-base64:`-wrapped JSON) and switched its quota backend from `cloudcode-pa.googleapis.com` to `daily-cloudcode-pa.googleapis.com`. The card kept reading the now-abandoned token file, which silently refreshed against a stale grant and returned numbers that no longer matched the CLI's own `/quota` output. It now reads the Keychain entry first (falling back to the legacy file), and posts to the current backend."
-            }
-          ]
-        },
-        {
-          "version": "0.28.17",
-          "period": "2026-07-21",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "狀態警告變長，Claude 卡片不再被切掉",
-                "zh-CN": "状态警告变长，Claude 卡片不再被截掉",
-                "en": "Long status warnings no longer crop the Claude card",
-                "ja": "長い状態警告でも Claude カードが切れなくなった",
-                "ko": "상태 경고가 길어도 Claude 카드가 잘리지 않는다."
-              },
-              "body": {
-                "zh-TW": "你打開 Classic popover（浮在畫面上的小面板）查看 Claude 用量時，底部跳出很長的警告也不怕最重要的一列消失。以前像 hook 壞掉（特定事件發生時會觸發的小程式）或需要重新啟動這類狀態訊息一變成兩行，面板固定的高度沒有多留約 30 像素，底部狀態提示就會擠壓 Claude 卡片；卡片又設定成超出範圍不顯示，於是每週重設日期被硬生生切掉。現在面板會替第二行警告留出空間。這像行李箱多塞了一件外套，從前拉鍊一拉就把裡面的行程表夾住；現在箱子會跟著撐開，該看的日期仍完整露在外面。",
-                "zh-CN": "当你打开 Classic popover（浮在画面上的小面板）查看 Claude 用量时，底部跳出很长的警告也不怕最重要的一行消失。以前像 hook 损坏（特定事件发生时会触发的小程序）或需要重新启动这类状态消息一变成两行，面板固定的高度没有多留约 30 像素，底部状态提示就会挤压 Claude 卡片；卡片又设置成超出范围不显示，于是每周重置日期被硬生生截掉。现在面板会替第二行警告留出空间。这像行李箱多塞了一件外套，从前拉链一拉就把里面的行程表夹住；现在箱子会跟着撑开，该看的日期仍完整露在外面。",
-                "en": "When you open the Classic popover to check Claude, a long warning at the bottom will no longer hide the line you came for. Warnings such as a broken hook or a needed restart can wrap onto two lines. The popover's fixed height had not allowed for the extra roughly 30 pixels, so its footer squeezed the Claude card; because overflow was hidden, the weekly reset row got cropped. The panel now makes room for that second line. It is like packing one extra sweater into a suitcase: the old zipper caught the itinerary inside, while the new case expands and keeps the date visible.",
-                "ja": "Classic popover（画面上に浮かぶ小さなパネル）を開いて Claude の利用状況を見るとき、下部の警告が長くても肝心の行が消えなくなった。hook の破損や再起動を促す警告が二行になると、以前は固定されたパネルの高さに約30ピクセル分の余地がなく、下部の状態表示が Claude カードを圧迫していた。カードは範囲外を隠す設定のため、毎週のリセット日時が切れていたのである。今は二行目のための場所を確保する。スーツケースに上着を一枚足したとき、以前はファスナーが中の旅程表を挟んだが、今はケースが少し広がり、日付まで見えるようなものだ。",
-                "ko": "Classic popover(화면 위에 뜨는 작은 패널)를 열어 Claude 사용량을 볼 때, 아래쪽 경고가 길어져도 정작 필요한 줄이 사라지지 않는다. hook 고장이나 재시작 경고가 두 줄이 되면 예전에는 고정된 패널 높이에 약 30픽셀의 여유가 없어 아래 상태 표시가 Claude 카드를 눌렀다. 카드는 넘치는 내용을 숨기도록 되어 있어 주간 재설정 행이 잘렸다. 이제 패널은 두 번째 경고 줄의 자리를 마련한다. 여행 가방에 겉옷 한 벌을 더 넣었을 때 예전 지퍼는 안의 일정표를 끼웠지만, 이제 가방이 조금 늘어나 날짜까지 보이는 것과 같다."
-              },
-              "original": "**Classic popover no longer clips the Claude card when the footer status wraps to two lines.** Long status warnings (e.g. hook broken/restart) push the footer status pill onto a second line, adding roughly 30px the fixed popover height never accounted for; flex then squeezed the overflow-hidden Claude card and clipped its weekly reset row."
-            },
-            {
-              "title": {
-                "zh-TW": "5 小時自動工作階段不再錯過額度重設",
-                "zh-CN": "5 小时自动工作会话不再错过额度重置",
-                "en": "Five-hour auto sessions no longer miss a quota reset",
-                "ja": "5時間の自動セッションが利用枠リセットを逃さなくなった",
-                "ko": "5시간 자동 세션이 사용 한도 재설정을 놓치지 않는다."
-              },
-              "body": {
-                "zh-TW": "你把 Auto-start 5-hour Session（每五小時自動維持一次連線的工作階段）交給它跑，現在不會因為時間慢慢飄掉而白白錯過新的額度。原本背後維持連線的 keeper，會用上一次 ping（定時送出的短訊號）的時間開始算五小時；但那個時間可能和真正的額度重設邊界不同步，偶爾便整次略過 ping，下一個使用時段得等你親自跟 Claude 說話才會啟動。現在它改以真正的重設邊界來判斷是否已送過訊號，而不是只看經過多久，所以時鐘漂移不會再漏掉一次。像是每班公車依站牌時刻發車，從前卻拿上一班乘客的下車時間重新計時；現在直接看站牌，下一班便能準時開出。",
-                "zh-CN": "你把 Auto-start 5-hour Session（每五小时自动维持一次连接的工作会话）交给它运行，现在不会因为时间慢慢漂移而白白错过新的额度。原本 keeper 用上一次 ping（定时送出的短信号）的时间开始算五小时；但那个时间可能和真正的额度重置边界不同步，偶尔便整次略过 ping，下一段使用时间得等你亲自跟 Claude 说话才会启动。现在它改以真正的重置边界来判断是否已送过信号，而不是只看经过多久，所以时钟漂移不会再漏掉一次。像是每班公交车依站牌时刻发车，从前却拿上一班乘客的下车时间重新计时；现在直接看站牌，下一班便能准时开出。",
-                "en": "If you let Auto-start 5-hour Session keep a session alive, it will no longer miss a fresh quota window because its timing slowly drifts. The keeper used to measure its five-hour throttle from the previous ping's timestamp. That timestamp could fall out of step with the real quota reset boundary, occasionally skipping a ping altogether; the next window then started only after you spoke to Claude yourself. It now deduplicates pings against the actual reset boundary, not simply elapsed time, so drift cannot cause a miss. Think of a bus that used to schedule its next departure from the last passenger's exit time; it now follows the timetable at the stop.",
-                "ja": "Auto-start 5-hour Session（5時間ごとに接続を自動維持するセッション）に任せているなら、時刻のずれで新しい利用枠を逃すことがなくなった。以前の keeper は、前回の ping（定期的に送る短い信号）の時刻から5時間を数えていた。しかしその時刻は本当の利用枠リセット境界とずれることがあり、ときには ping を丸ごと送らず、次の時間帯は自分で Claude に話しかけるまで始まらなかった。今は経過時間ではなく実際のリセット境界で送信済みかを判定するため、ずれで取りこぼさない。前の乗客が降りた時刻から次の便を決めていたバスが、今は停留所の時刻表に従うようなものである。",
-                "ko": "Auto-start 5-hour Session(5시간마다 연결을 자동으로 유지하는 세션)에 맡겨 두면, 시간이 조금씩 어긋나 새 사용 한도를 놓치는 일이 없어진다. 예전 keeper는 이전 ping(정기적으로 보내는 짧은 신호)의 시각부터 5시간을 셌다. 하지만 그 시각은 실제 사용 한도 재설정 경계와 어긋날 수 있었고, 가끔 ping 하나를 통째로 건너뛰어 다음 시간대는 사용자가 Claude에게 직접 말을 걸어야 시작됐다. 이제는 흐른 시간만 보지 않고 실제 재설정 경계를 기준으로 이미 신호를 보냈는지 판단하므로, 시간 차이 때문에 빠뜨리지 않는다. 앞 승객이 내린 시각으로 다음 출발을 정하던 버스가 이제 정류장 시간표를 따르는 것과 같다."
-              },
-              "original": "**Auto-start 5-hour Session could silently skip a reset boundary.** The keeper's fixed 5-hour self-throttle was measured from the last ping's own timestamp, which could drift out of sync with the real quota reset boundary and occasionally skip a ping entirely — leaving the next window to start only once you talked to Claude yourself. It now dedupes by the actual reset boundary instead of elapsed time, so drift can no longer cause a miss."
             }
           ]
         }
