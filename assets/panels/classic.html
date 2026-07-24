@@ -465,6 +465,11 @@
       margin-bottom: 8px;
     }
 
+    [data-footer="service-alerts"] {
+      display: grid;
+      gap: 4px;
+    }
+
     .today {
       margin-top: 8px;
       padding-top: 8px;
@@ -643,7 +648,7 @@
     </section>
 
     <section class="footer">
-      <div class="service-alert" data-footer="service-alert" hidden></div>
+      <div data-footer="service-alerts" hidden></div>
       <div class="meta">
         <div data-footer="rate">Rate: --</div>
         <div data-footer="status">Status: Loading</div>
@@ -955,13 +960,19 @@
       const rate = document.querySelector('[data-footer="rate"]');
       const status = document.querySelector('[data-footer="status"]');
       const today = document.querySelector('[data-footer="today"]');
-      const serviceAlert = document.querySelector('[data-footer="service-alert"]');
+      const serviceAlerts = document.querySelector('[data-footer="service-alerts"]');
       if (rate) rate.textContent = state.footer.rate || t("rate_text", { value: "--" });
       if (status) status.textContent = state.footer.status || t("status_text", { value: "--" });
       if (today) today.textContent = state.footer.today || t("today_text", { cost: "0.00", tokens: "0" });
-      if (serviceAlert) {
-        serviceAlert.textContent = state.footer.serviceAlert || "";
-        serviceAlert.hidden = !state.footer.serviceAlert;
+      if (serviceAlerts) {
+        const alerts = state.footer.serviceAlerts || [];
+        serviceAlerts.replaceChildren(...alerts.slice(0, 2).map((alert) => {
+          const item = document.createElement("div");
+          item.className = "service-alert";
+          item.textContent = alert;
+          return item;
+        }));
+        serviceAlerts.hidden = alerts.length === 0;
       }
     };
 
@@ -1048,7 +1059,7 @@
       projects30d: [],
       projectsAll: [],
       statusline: {},
-      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", serviceAlert: "", showInstall: false }
+      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", serviceAlerts: [], showInstall: false }
     });
   </script>
 </body>

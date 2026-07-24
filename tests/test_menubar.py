@@ -22,8 +22,8 @@ import menubar_prefs
 import menubar_state
 import panels
 import statusline_settings
-from anthropic_status import AnthropicStatus
 from burn_rate import BurnRateTracker
+from service_status import ServiceStatus
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
 
@@ -134,7 +134,7 @@ def _build_popover_state(
     delegate: menubar.AppDelegate,
     outcome: PollOutcome,
     codex_rows: tuple[menubar_state.QuotaRowState, menubar_state.QuotaRowState],
-    service_status: AnthropicStatus | None = None,
+    service_statuses: tuple[ServiceStatus, ...] = (),
 ) -> menubar_state.PopoverState:
     hide_claude = menubar._hide_claude_enabled()
     return menubar_state.build_popover_state(
@@ -164,7 +164,7 @@ def _build_popover_state(
         hide_agy=True,
         codex_stale=None,
         agy_stale=None,
-        service_status=service_status,
+        service_statuses=service_statuses,
     )
 
 
@@ -2225,7 +2225,7 @@ def test_state_from_outcome_translates_awaiting_rate_limits_message(
     assert state.status_text == "狀態：請對 Claude Code 發送一句訊息以同步配額"
 
 
-def test_popover_state_hides_service_alert_without_status(
+def test_popover_state_has_no_service_alerts_without_status(
     state_delegate: menubar.AppDelegate,
 ) -> None:
     state = _build_popover_state(
@@ -2234,10 +2234,10 @@ def test_popover_state_hides_service_alert_without_status(
         _codex_rows(state_delegate)[0],
     )
 
-    assert state.service_alert == ""
+    assert state.service_alerts == ()
 
 
-def test_popover_state_translates_degraded_service_alert(
+def test_popover_state_translates_multiple_service_alerts(
     state_delegate: menubar.AppDelegate,
 ) -> None:
     state_delegate.language = "en"
@@ -2245,15 +2245,48 @@ def test_popover_state_translates_degraded_service_alert(
         state_delegate,
         PollOutcome(state=PollState.LOADING),
         _codex_rows(state_delegate)[0],
-        AnthropicStatus(
-            is_abnormal=True,
-            status="degraded_performance",
-            description="for logs only",
-            source="fetched",
+        (
+            ServiceStatus(
+                service_name="Claude",
+                is_abnormal=True,
+                status="degraded_performance",
+                description="for logs only",
+                source="fetched",
+            ),
+            ServiceStatus(
+                service_name="Codex",
+                is_abnormal=True,
+                status="partial_outage",
+                description="for logs only",
+                source="fetched",
+            ),
         ),
     )
 
-    assert state.service_alert == "⚠ Claude service issue: Degraded performance"
+    assert state.service_alerts == (
+        "⚠ Claude service issue: Degraded performance",
+        "⚠ Codex service issue: Partial outage",
+    )
+
+
+def test_popover_state_hides_service_alert_for_hidden_tool(
+    monkeypatch: pytest.MonkeyPatch, state_delegate: menubar.AppDelegate
+) -> None:
+    state_delegate.language = "en"
+    monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: True)
+    monkeypatch.setattr(menubar, "_hide_codex_enabled", lambda: False)
+
+    state = _build_popover_state(
+        state_delegate,
+        PollOutcome(state=PollState.LOADING),
+        _codex_rows(state_delegate)[0],
+        (
+            ServiceStatus("Claude", True, "major_outage", "for logs only", "fetched"),
+            ServiceStatus("Codex", True, "major_outage", "for logs only", "fetched"),
+        ),
+    )
+
+    assert state.service_alerts == ("⚠ Codex service issue: Major outage",)
 
 
 def test_state_from_outcome_translates_hook_broken_message(

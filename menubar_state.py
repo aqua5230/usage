@@ -17,11 +17,11 @@ from pathlib import Path
 from typing import TypedDict
 
 import codex_loader
-from anthropic_status import AnthropicStatus
 from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
 from history_loader import CLAUDE_PROJECTS_DIR, UsageEntry
 from i18n import _t
 from pricing import calculate_cost
+from service_status import ServiceStatus
 from time_utils import parse_iso8601_utc_or_raise
 from usage_client import PollOutcome, PollState
 from usage_rate import GROUP_NAMES
@@ -120,7 +120,7 @@ class PopoverState:
     status_text: str
     today_text: str
     statusline: dict[str, object]
-    service_alert: str = ""
+    service_alerts: tuple[str, ...] = ()
     show_install_button: bool = False
     status_long: bool = False
     hide_claude: bool = False
@@ -679,7 +679,7 @@ def build_popover_state(
     agy_stale: AgyStaleState | None,
     card_order: tuple[str, ...] = ("claude", "codex", "agy"),
     history_error: HistoryLoadErrorState | None = None,
-    service_status: AnthropicStatus | None = None,
+    service_statuses: tuple[ServiceStatus, ...] = (),
 ) -> PopoverState:
     now = time.time()
     group_name = _group_name(group, language)
@@ -751,19 +751,21 @@ def build_popover_state(
         "partial_outage": "service_partial_outage",
         "major_outage": "service_major_outage",
     }
-    service_alert_key = (
-        service_alert_keys.get(service_status.status)
-        if service_status is not None and service_status.is_abnormal
-        else None
-    )
-    service_alert = (
+    hidden_services = {
+        "Claude": hide_claude,
+        "Codex": hide_codex,
+    }
+    service_alerts = tuple(
         _t(
             language,
             "service_alert",
+            tool=service_status.service_name,
             status=_t(language, service_alert_key),
         )
-        if service_alert_key is not None
-        else ""
+        for service_status in service_statuses
+        if service_status.is_abnormal
+        and not hidden_services.get(service_status.service_name, False)
+        and (service_alert_key := service_alert_keys.get(service_status.status)) is not None
     )
 
     return PopoverState(
@@ -783,7 +785,7 @@ def build_popover_state(
         status_text=status_text,
         today_text=today_text,
         statusline=statusline,
-        service_alert=service_alert,
+        service_alerts=service_alerts,
         show_install_button=show_install_button,
         status_long=status_long,
         hide_claude=hide_claude,

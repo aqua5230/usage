@@ -69,7 +69,6 @@ import update_checker
 import update_gate
 import usage_diagnosis_snapshot
 import window_keeper
-from anthropic_status import get_anthropic_status
 from burn_rate import BurnRateTracker
 from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from history_loader import (
@@ -132,6 +131,7 @@ from panels.base import (
 )
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost, warm_up_pricing
+from service_status import CLAUDE_STATUS, CODEX_STATUS, get_service_status
 from statusline_settings import (
     _claude_settings_path as _claude_settings_path,
 )
@@ -1591,7 +1591,10 @@ class AppDelegate(NSObject):
                     and outcome.state == PollState.TOKEN_ERROR
                     and self._statusline_setup_available()
                 )
-                service_status = get_anthropic_status()
+                service_statuses = (
+                    get_service_status(CLAUDE_STATUS),
+                    get_service_status(CODEX_STATUS),
+                )
                 group = self.tracker.group()
                 state = menubar_state.build_popover_state(
                     outcome=outcome,
@@ -1618,7 +1621,7 @@ class AppDelegate(NSObject):
                     history_error=menubar_state.history_load_error_state(
                         self._history_load_error_key, self.language
                     ),
-                    service_status=service_status,
+                    service_statuses=service_statuses,
                 )
                 if outcome.snapshot is not None:
                     window_keeper.maybe_ping(
@@ -2262,7 +2265,7 @@ def _empty_state(language: str = "en") -> PopoverState:
         status_text=_t(language, "status_text", value=_t(language, "status_loading")),
         today_text=_t(language, "today_text", cost="0.00", tokens="0"),
         statusline=_statusline_payload(language),
-        service_alert="",
+        service_alerts=(),
         show_install_button=False,
         hide_claude=_hide_claude_enabled(),
         hide_codex=_hide_codex_enabled(),
