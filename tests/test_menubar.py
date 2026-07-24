@@ -1067,6 +1067,22 @@ def test_popover_size_has_positive_dimensions() -> None:
     assert size.height > 0
 
 
+def test_popover_size_grows_with_service_alerts() -> None:
+    one_state = menubar._empty_state()
+    one_state.service_alerts = ("claude",)
+    two_state = menubar._empty_state()
+    two_state.service_alerts = ("claude", "codex")
+
+    base = menubar._popover_size(menubar._empty_state())
+    one = menubar._popover_size(one_state)
+    two = menubar._popover_size(two_state)
+
+    assert one.height - base.height == menubar.SERVICE_ALERT_HEIGHT
+    assert two.height - base.height == (
+        menubar.SERVICE_ALERT_HEIGHT * 2 + menubar.SERVICE_ALERT_GAP
+    )
+
+
 def test_hide_claude_enabled_reads_preferences(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         menubar_prefs,
