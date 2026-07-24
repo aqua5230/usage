@@ -505,6 +505,23 @@
       -webkit-backdrop-filter: blur(8px);
     }
 
+    .service-alert {
+      padding: 3px 8px;
+      border-radius: 6px;
+      background: rgba(255, 107, 107, 0.18);
+      border: 1px solid rgba(255, 107, 107, 0.6);
+      color: #ffd36a;
+      font-size: 12px;
+      line-height: 16px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    [data-footer="service-alerts"] {
+      display: grid;
+      gap: 4px;
+    }
+
     .meta {
       position: relative;
       z-index: 1;
@@ -652,6 +669,7 @@
       <div style="flex:1"></div>
 
       <section class="footer">
+        <div data-footer="service-alerts" hidden></div>
         <div class="meta">
           <span data-footer="rate">Rate: --</span>
           <span>|</span>
@@ -898,9 +916,20 @@
     function applyFooter(footer) {
       const rate = document.querySelector('[data-footer="rate"]');
       const status = document.querySelector('[data-footer="status"]');
+      const serviceAlerts = document.querySelector('[data-footer="service-alerts"]');
       const install = document.querySelector('[data-action="install"]');
       if (rate) rate.textContent = footer.rate || t("rate_text", { value: "--" });
       if (status) status.textContent = footer.status || t("status_text", { value: "--" });
+      if (serviceAlerts) {
+        const alerts = footer.serviceAlerts || [];
+        serviceAlerts.replaceChildren(...alerts.slice(0, 2).map((alert) => {
+          const item = document.createElement("div");
+          item.className = "service-alert";
+          item.textContent = alert;
+          return item;
+        }));
+        serviceAlerts.hidden = alerts.length === 0;
+      }
       if (install) install.dataset.visible = footer.showInstall === true ? "true" : "false";
     }
 
@@ -1407,7 +1436,7 @@
         { name: "obsidian00", tokens: 6188719, tokensText: "6,188,719", costText: "$8.74" },
       ],
       statusline: {},
-      footer: { rate: "速率：高負載", status: "狀態：✓ 已同步", today: "今日：$140.82 (175,369,967 tokens)", showInstall: false },
+      footer: { rate: "速率：高負載", status: "狀態：✓ 已同步", today: "今日：$140.82 (175,369,967 tokens)", serviceAlerts: [], showInstall: false },
     });
   </script>
 </body>

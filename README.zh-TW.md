@@ -41,6 +41,7 @@ brew install --cask aqua5230/usage/usage
 
 - **常駐監控：** 額度常駐選單列，顏色標示警戒級別（綠到紅）。點開能看 Session、Weekly 與各專案用量細節。
 - **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在每一款面板。數字直接向官方額度 API 查詢，用的是 Antigravity CLI 本來就存在你機器上的登入身分——每幾分鐘自動刷新，重置倒數即時遞減。
+- **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅。只讀取官方公開的 Statuspage.io 服務狀態頁，絕不呼叫 LLM 用量 API；服務正常時不顯示。Antigravity 因沒有可用的公開狀態頁，暫不支援。
 - **上下文提醒與系統通知：** Context Window 達 70% 時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
 - **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex 或 Antigravity 從選單列及面板上徹底隱藏。
 
@@ -150,6 +151,7 @@ Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示
 | macOS 選單列 | ✅ | — | ✅ |
 | Claude Code 與 Codex 支援 | ✅ | 僅 Claude | ✅ |
 | Antigravity（Gemini）支援 | ✅ | — | — |
+| Claude Code 與 Codex 服務狀態警示 | ✅ | — | — |
 | HTML 深度報告與 UI 面板 | ✅ | ✅ | — |
 | AI 人才市場 | ✅ | — | — |
 | AI 更新日報 | ✅ | — | — |

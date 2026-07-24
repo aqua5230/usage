@@ -23,6 +23,7 @@ import menubar_state
 import panels
 import statusline_settings
 from burn_rate import BurnRateTracker
+from service_status import ServiceStatus
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
 
@@ -133,6 +134,7 @@ def _build_popover_state(
     delegate: menubar.AppDelegate,
     outcome: PollOutcome,
     codex_rows: tuple[menubar_state.QuotaRowState, menubar_state.QuotaRowState],
+    service_statuses: tuple[ServiceStatus, ...] = (),
 ) -> menubar_state.PopoverState:
     hide_claude = menubar._hide_claude_enabled()
     return menubar_state.build_popover_state(
@@ -162,6 +164,7 @@ def _build_popover_state(
         hide_agy=True,
         codex_stale=None,
         agy_stale=None,
+        service_statuses=service_statuses,
     )
 
 
@@ -1064,6 +1067,23 @@ def test_popover_size_has_positive_dimensions() -> None:
     assert size.height > 0
 
 
+def test_popover_size_grows_with_service_alerts() -> None:
+    one_state = menubar._empty_state()
+    one_state.service_alerts = ("claude",)
+    two_state = menubar._empty_state()
+    two_state.service_alerts = ("claude", "codex")
+
+    panel = panels.get_panel("matrix")
+    base = menubar._popover_size(menubar._empty_state(), panel)
+    one = menubar._popover_size(one_state, panel)
+    two = menubar._popover_size(two_state, panel)
+
+    assert one.height - base.height == panel.service_alert_height
+    assert two.height - base.height == (
+        panel.service_alert_height * 2 + menubar.SERVICE_ALERT_GAP
+    )
+
+
 def test_hide_claude_enabled_reads_preferences(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         menubar_prefs,
@@ -1083,6 +1103,7 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
         claude_card_height = 100.0
         codex_card_height = 60.0
         agy_card_height = 40.0
+        service_alert_height = 0.0
 
         def build_view(self, delegate: Any) -> Any:
             return object()
@@ -2220,6 +2241,70 @@ def test_state_from_outcome_translates_awaiting_rate_limits_message(
     )
 
     assert state.status_text == "狀態：請對 Claude Code 發送一句訊息以同步配額"
+
+
+def test_popover_state_has_no_service_alerts_without_status(
+    state_delegate: menubar.AppDelegate,
+) -> None:
+    state = _build_popover_state(
+        state_delegate,
+        PollOutcome(state=PollState.LOADING),
+        _codex_rows(state_delegate)[0],
+    )
+
+    assert state.service_alerts == ()
+
+
+def test_popover_state_translates_multiple_service_alerts(
+    state_delegate: menubar.AppDelegate,
+) -> None:
+    state_delegate.language = "en"
+    state = _build_popover_state(
+        state_delegate,
+        PollOutcome(state=PollState.LOADING),
+        _codex_rows(state_delegate)[0],
+        (
+            ServiceStatus(
+                service_name="Claude",
+                is_abnormal=True,
+                status="degraded_performance",
+                description="for logs only",
+                source="fetched",
+            ),
+            ServiceStatus(
+                service_name="Codex",
+                is_abnormal=True,
+                status="partial_outage",
+                description="for logs only",
+                source="fetched",
+            ),
+        ),
+    )
+
+    assert state.service_alerts == (
+        "⚠ Claude service issue: Degraded performance",
+        "⚠ Codex service issue: Partial outage",
+    )
+
+
+def test_popover_state_hides_service_alert_for_hidden_tool(
+    monkeypatch: pytest.MonkeyPatch, state_delegate: menubar.AppDelegate
+) -> None:
+    state_delegate.language = "en"
+    monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: True)
+    monkeypatch.setattr(menubar, "_hide_codex_enabled", lambda: False)
+
+    state = _build_popover_state(
+        state_delegate,
+        PollOutcome(state=PollState.LOADING),
+        _codex_rows(state_delegate)[0],
+        (
+            ServiceStatus("Claude", True, "major_outage", "for logs only", "fetched"),
+            ServiceStatus("Codex", True, "major_outage", "for logs only", "fetched"),
+        ),
+    )
+
+    assert state.service_alerts == ("⚠ Codex service issue: Major outage",)
 
 
 def test_state_from_outcome_translates_hook_broken_message(

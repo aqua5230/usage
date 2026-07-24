@@ -64,6 +64,10 @@ class AgyUsageEntry:
             + self.thinking_tokens
         )
 
+    @property
+    def active_tokens(self) -> int:
+        return self.input_tokens + self.output_tokens + self.thinking_tokens
+
 
 @dataclass(frozen=True, slots=True)
 class AgyLoadResult:

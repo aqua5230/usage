@@ -131,6 +131,7 @@ from panels.base import (
 )
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost, warm_up_pricing
+from service_status import CLAUDE_STATUS, CODEX_STATUS, get_service_status
 from statusline_settings import (
     _claude_settings_path as _claude_settings_path,
 )
@@ -191,6 +192,7 @@ __all__ = [
 
 BUTTON_HEIGHT = 32.0
 INSTALL_BUTTON_EXTRA_HEIGHT = BUTTON_HEIGHT + 10.0
+SERVICE_ALERT_GAP = 4.0
 UPDATE_DISMISS_SECONDS = 24 * 3600
 UPDATE_ALERT_BODY_LIMIT = 2000
 SLOW_POLL_INTERVAL_S = 300.0
@@ -1590,6 +1592,10 @@ class AppDelegate(NSObject):
                     and outcome.state == PollState.TOKEN_ERROR
                     and self._statusline_setup_available()
                 )
+                service_statuses = (
+                    get_service_status(CLAUDE_STATUS),
+                    get_service_status(CODEX_STATUS),
+                )
                 group = self.tracker.group()
                 state = menubar_state.build_popover_state(
                     outcome=outcome,
@@ -1616,6 +1622,7 @@ class AppDelegate(NSObject):
                     history_error=menubar_state.history_load_error_state(
                         self._history_load_error_key, self.language
                     ),
+                    service_statuses=service_statuses,
                 )
                 if outcome.snapshot is not None:
                     window_keeper.maybe_ping(
@@ -2220,11 +2227,17 @@ def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
         if active_panel.id == "classic" and state.codex_credits is not None and not state.hide_codex
         else 0.0
     )
+    service_alert_height = getattr(active_panel, "service_alert_height", 0.0)
+    alert_count = len(state.service_alerts) if service_alert_height else 0
+    service_alert_extra = service_alert_height * alert_count + SERVICE_ALERT_GAP * max(
+        alert_count - 1, 0
+    )
     height = (
         base_height
         + install_extra
         + status_extra
         + codex_credits_extra
+        + service_alert_extra
         - claude_deduct
         - codex_deduct
         - codex_row_deduct
@@ -2259,6 +2272,7 @@ def _empty_state(language: str = "en") -> PopoverState:
         status_text=_t(language, "status_text", value=_t(language, "status_loading")),
         today_text=_t(language, "today_text", cost="0.00", tokens="0"),
         statusline=_statusline_payload(language),
+        service_alerts=(),
         show_install_button=False,
         hide_claude=_hide_claude_enabled(),
         hide_codex=_hide_codex_enabled(),

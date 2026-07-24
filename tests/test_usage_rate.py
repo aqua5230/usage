@@ -62,10 +62,10 @@ def test_group_reads_force_group_env(
 @pytest.mark.parametrize(
     ("tokens", "expected_group"),
     [
-        (49, 0),
-        (50, 1),
-        (250, 2),
-        (1000, 3),
+        (499, 0),
+        (500, 1),
+        (2500, 2),
+        (6000, 3),
     ],
 )
 def test_group_burn_rate_buckets(
@@ -78,13 +78,32 @@ def test_group_burn_rate_buckets(
     assert usage_rate.UsageRateTracker().group() == expected_group
 
 
+def test_group_excludes_cache_read_tokens(monkeypatch: pytest.MonkeyPatch) -> None:
+    entry = UsageEntry(
+        timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+        session_id="session",
+        message_id="message",
+        request_id="request",
+        model="claude-sonnet",
+        input_tokens=100,
+        output_tokens=100,
+        cache_creation_tokens=0,
+        cache_read_tokens=5_000_000,
+        cost_usd=None,
+        project="project",
+    )
+    monkeypatch.setattr(usage_rate, "load_entries", lambda hours_back: [entry])
+
+    assert usage_rate.UsageRateTracker().group() == 0
+
+
 def test_group_caches_result(monkeypatch: pytest.MonkeyPatch) -> None:
     calls = 0
 
     def fake_load_entries(hours_back: int) -> list[UsageEntry]:
         nonlocal calls
         calls += 1
-        return [_entry(100)]
+        return [_entry(1000)]
 
     monkeypatch.setattr(usage_rate, "load_entries", fake_load_entries)
     tracker = usage_rate.UsageRateTracker()
@@ -95,6 +114,6 @@ def test_group_caches_result(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_group_uses_custom_loader() -> None:
-    tracker = usage_rate.UsageRateTracker(load=lambda hours_back: [_entry(300)])
+    tracker = usage_rate.UsageRateTracker(load=lambda hours_back: [_entry(3000)])
 
     assert tracker.group() == 2

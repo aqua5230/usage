@@ -78,6 +78,10 @@ class UsageEntry:
             + self.cache_read_tokens
         )
 
+    @property
+    def active_tokens(self) -> int:
+        return self.input_tokens + self.output_tokens + self.cache_creation_tokens
+
 
 def load_entries(
     hours_back: int = 0,
