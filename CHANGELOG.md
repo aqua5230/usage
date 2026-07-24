@@ -5,6 +5,20 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.28.21] - 2026-07-24
+
+### Added
+- **Service-status banners for Claude Code, Claude API, and Codex API incidents.** `usage` reads the public Claude and Codex Statuspage.io status pages and shows an orange-red warning banner at the bottom of a panel only when an affected service has an outage or degraded performance. It never calls an LLM usage API.
+- **Service-status banners work across every panel with a footer.** Each panel uses warning colors matched to its own theme, and a banner for a tool is not shown when that tool's card is hidden.
+- **Service-status banner text is available in all five UI languages.** Antigravity is not supported because it has no usable public status page.
+
+### Changed
+- **Rate and status information now sit side by side in the footers of all eight themed panels.** They now match the default panel instead of being stacked vertically.
+
+### Fixed
+- **Live usage-rate categories can distinguish heavy use again.** Heavy users previously remained permanently in Heavy because burn rate counted `cache_read`—a near-free prompt-cache reread that reflects conversation length rather than usage intensity—in its numerator. It now excludes `cache_read`, and the Idle / Normal / Active / Heavy thresholds have been recalibrated from 50 / 250 / 1000 to 500 / 2500 / 6000 tokens per minute.
+- **Popover height now accounts for the service-status banner.** When the banner appears, the panel grows enough to contain it instead of squeezing its content.
+
 ## [0.28.20] - 2026-07-24
 
 ### Fixed

@@ -41,6 +41,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 - **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
 - **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every panel. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns.
+- **Service Status Alerts:** When Claude Code, Claude API, or Codex API has an outage or degraded performance, an orange-red banner appears at the bottom of the relevant panel. It reads only their public Statuspage.io status pages, never an LLM usage API; normal services show no banner. Antigravity is not supported because it has no usable public status page.
 - **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
 - **Hide Sections:** Only use one or two of the tools? Hide the Claude Code, Codex, or Antigravity section from the menu bar and panels completely with a single click.
 
@@ -150,6 +151,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | macOS menu bar | ✅ | — | ✅ |
 | Claude Code & Codex usage | ✅ | Claude only | ✅ |
 | Antigravity (Gemini) usage | ✅ | — | — |
+| Claude Code & Codex service-status alerts | ✅ | — | — |
 | HTML deep reports & UI | ✅ | ✅ | — |
 | AI Talent Market | ✅ | — | — |
 | AI Update Daily | ✅ | — | — |
