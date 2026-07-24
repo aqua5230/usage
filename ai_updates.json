@@ -523,6 +523,250 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.145.0",
+          "period": "2026-07-21",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "對話記錄終於能翻、找、接著做",
+                "zh-CN": "对话记录终于能翻、找、接着做",
+                "en": "Thread history you can browse, search, and resume",
+                "ja": "会話履歴をめくり、探し、続きから再開できる",
+                "ko": "대화 기록을 넘기고 찾고 이어서 할 수 있다"
+              },
+              "body": {
+                "zh-TW": "做了一半的長對話，最怕隔天想回頭找某段結論，卻得從頭捲到尾。實驗中的分頁對話歷史把記錄切成好翻的頁面，讓你有效率地接續工作、搜尋內容，名稱也會保存下來；它還支援子代理與記憶。這像把一疊散落的會議筆記裝進有索引的活頁夾：你不只找得到那一頁，還能從原處繼續寫下去。仍標示為 experimental，表示功能在試行，介面或行為可能再調整。",
+                "zh-CN": "长对话做到一半，隔天想找某个结论，过去往往得从头翻到尾。实验性的分页对话历史把记录切成好翻的页，支持高效续接、搜索和保存名称，也支持子代理与记忆。它像给散乱会议笔记装上索引活页夹：找到那一页后还能从原处继续写。experimental 表示仍在试行，行为可能继续调整。",
+                "en": "Long conversations no longer have to feel like one endless scroll. Experimental paginated history lets you resume efficiently, search, keep names, and work with sub-agents and memories. Think of a loose stack of meeting notes moved into an indexed binder: find the page, then continue from it. Experimental means it may still change.",
+                "ja": "長い会話の途中で過去の結論を探すなら、延々とスクロールする必要が減る。実験的なページ分け履歴では、効率よく再開・検索でき、名前も保存される。子エージェントとメモリーにも対応する。散らかった議事録を索引付きバインダーに入れるようなものだ。experimental は試行中で、今後変わり得ることを示す。",
+                "ko": "긴 대화에서 예전 결론을 찾으려고 끝없이 스크롤할 필요가 줄었다. 실험적인 페이지형 기록은 효율적인 재개와 검색, 이름 저장을 지원하며 하위 에이전트와 메모리도 다룬다. 흩어진 회의 메모를 색인 있는 바인더에 넣는 셈이다. experimental은 아직 바뀔 수 있는 시험 기능이라는 뜻이다."
+              },
+              "original": "Added experimental paginated thread history with efficient resume, search, persisted names, sub-agent support, and memories. (#33364, #33907, #34085, #34229, #34386)"
+            },
+            {
+              "title": {
+                "zh-TW": "從 Cursor、Claude Code 搬家更完整",
+                "zh-CN": "从 Cursor、Claude Code 搬家更完整",
+                "en": "A fuller move from Cursor or Claude Code",
+                "ja": "Cursor と Claude Code からの引っ越しが充実",
+                "ko": "Cursor와 Claude Code에서 더 완전하게 옮긴다"
+              },
+              "body": {
+                "zh-TW": "換用 Codex 時，不必把舊工具的習慣一項項重建。`/import` 現在可搬入 Cursor 與 Claude Code 的設定、MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器、外掛、工作階段、指令，以及專案專屬記憶。就像新手機不只搬通訊錄，連常用捷徑與工作進度也一起帶走。你在終端機輸入 `/import` 後，才依畫面選擇來源與要遷移的內容；原文沒有保證所有設定都能完全相容。",
+                "zh-CN": "换到 Codex 时，不必把旧工具的习惯一项项重建。`/import` 现在可迁入 Cursor 和 Claude Code 的设置、MCP（让 AI 连接外部工具的协议）服务器、插件、会话、命令和项目专属记忆。它像新手机不只搬联系人，也带走常用快捷方式与进度。在终端输入 `/import` 后，再按画面选择来源和内容；原文没有保证所有设置完全兼容。",
+                "en": "Moving to Codex no longer means rebuilding every old habit. `/import` can migrate Cursor and Claude Code settings, MCP servers, plugins, sessions, commands, and project-scoped memories. It is more like moving a whole phone than just its contacts. Run `/import`, then choose the source and what to bring over; compatibility is not promised for every setting.",
+                "ja": "Codex へ移る際、以前の習慣を一つずつ作り直す手間が減る。`/import` は Cursor と Claude Code の設定、MCP サーバー、プラグイン、セッション、コマンド、プロジェクト固有メモリーを移せる。連絡先だけでなく、よく使う設定も移すスマホ移行に近い。端末で `/import` を実行し、画面で移行元と内容を選ぶ。すべての設定の互換性までは保証されない。",
+                "ko": "Codex로 옮길 때 예전 습관을 하나씩 다시 만들 필요가 줄었다. `/import`는 Cursor와 Claude Code의 설정, MCP 서버, 플러그인, 세션, 명령어, 프로젝트 범위 메모리를 옮긴다. 연락처만이 아니라 자주 쓰던 설정까지 새 휴대폰으로 옮기는 일과 가깝다. 터미널에서 `/import`를 실행하고 원본과 항목을 고르면 된다. 모든 설정의 호환성을 보장한다는 뜻은 아니다."
+              },
+              "original": "Expanded `/import` to migrate Cursor and Claude Code settings, MCP servers, plugins, sessions, commands, and project-scoped memories. (#31672, #33411, #33426, #33444)"
+            },
+            {
+              "title": {
+                "zh-TW": "Bedrock 能登入、接自訂端點，也預設 GPT-5.6 Sol",
+                "zh-CN": "Bedrock 能登录、接自定义端点，也默认 GPT-5.6 Sol",
+                "en": "Bedrock adds login, custom endpoints, and GPT-5.6 Sol",
+                "ja": "Bedrock にログイン、自前の接続先、GPT-5.6 Sol が加わる",
+                "ko": "Bedrock에 로그인, 사용자 지정 엔드포인트, GPT-5.6 Sol이 더해졌다"
+              },
+              "body": {
+                "zh-TW": "公司若透過 Amazon Bedrock 使用模型，現在多了一條可走的登入路，也能接上自訂端點（endpoint，服務接收請求的網址）與驗證方式；Bedrock 的預設模型則改為 GPT-5.6 Sol。好比辦公大樓新增了識別證入口，也允許公司接自己的專線。這些是實驗功能，適合需要把 Codex 接進既有 Bedrock 架構的人；一般直接使用 Codex 的讀者不必特別設定。",
+                "zh-CN": "公司若通过 Amazon Bedrock 使用模型，现在多了一条可走的登录路，也能接自定义端点（服务接收请求的网址）和认证方式；Bedrock 的默认模型改为 GPT-5.6 Sol。这像办公楼新增门禁入口，也允许公司接自己的专线。它仍是实验功能，适合要把 Codex 接入既有 Bedrock 架构的人。",
+                "en": "Teams using Amazon Bedrock now get experimental login, custom endpoint, and authentication support, with GPT-5.6 Sol as the default Bedrock model. It is like adding a badge entrance and allowing a company’s own phone line into the building. This matters mainly when Codex must fit an existing Bedrock setup.",
+                "ja": "Amazon Bedrock 経由でモデルを使う組織向けに、実験的なログイン、自前のエンドポイント、認証が加わり、既定モデルは GPT-5.6 Sol になった。社員証用の入口を増やし、会社専用線も通せるようにするイメージである。既存の Bedrock 構成へ Codex を組み込む人に主に関係する。",
+                "ko": "Amazon Bedrock으로 모델을 쓰는 조직에는 실험적인 로그인, 사용자 지정 엔드포인트, 인증 지원이 추가됐고 기본 Bedrock 모델은 GPT-5.6 Sol이 됐다. 사원증 출입구를 더 만들고 회사 전용선을 연결하는 모습에 가깝다. 기존 Bedrock 환경에 Codex를 넣으려는 사람에게 주로 해당한다."
+              },
+              "original": "Added experimental Amazon Bedrock login, custom endpoint and authentication support, and GPT-5.6 Sol as the default Bedrock model. (#31327, #33170, #33175, #32288, #33695)"
+            },
+            {
+              "title": {
+                "zh-TW": "能聽音檔，也能即時對話",
+                "zh-CN": "能听音频，也能实时对话",
+                "en": "Audio input and realtime conversations arrive",
+                "ja": "音声を渡せて、リアルタイム会話もできる",
+                "ko": "오디오를 넣고 실시간 대화도 할 수 있다"
+              },
+              "body": {
+                "zh-TW": "手邊是一段錄音而不是文字時，現在可以把常見本機音檔當輸入，也能在工具輸出裡取得音訊。新版另加入串流即時 V3 對話：回覆不是等全部完成才送出，而是邊產生邊傳來。它像電話通話，不必等對方把整段話錄完才聽見第一句。把音檔交給工具後，結果也可帶回音訊，讓聲音能進也能出。原文沒有列出支援格式或操作指令，因此實際可用格式仍以介面提示為準。",
+                "zh-CN": "手边是一段录音而不是文字时，现在可以把常见本地音频当输入，也能在工具输出里取得音频。新版还加入流式实时 V3 对话：回复边生成边传来，不用等完整答案。它像电话通话，不必等对方录完一段话才听到第一句。原文未列支持格式或指令，实际以界面提示为准。",
+                "en": "When the source is a recording rather than text, Codex can now take common local audio formats as input and return audio from tools. Streaming realtime V3 conversations also arrive: replies begin traveling while they are generated, like a phone call instead of a finished voicemail. Exact formats and commands are not specified here.",
+                "ja": "文字ではなく録音を渡したい場面で、一般的なローカル音声形式を入力にでき、ツール出力でも音声を受け取れる。ストリーミング型のリアルタイム V3 会話も追加され、返答は完成を待たず生成中から届く。録音を終えてから再生する留守電ではなく電話のようなものだ。対応形式と操作は画面表示を確認する。",
+                "ko": "글 대신 녹음을 건넬 때 일반적인 로컬 오디오 형식을 입력으로 쓰고 도구 출력에서도 오디오를 받을 수 있다. 스트리밍 실시간 V3 대화도 추가되어 답이 완성되기 전부터 전달된다. 다 녹음한 뒤 듣는 음성 메시지보다 전화 통화에 가깝다. 지원 형식과 명령은 화면 안내를 확인해야 한다."
+              },
+              "original": "Added audio inputs and tool outputs, including common local audio formats, and introduced streaming realtime V3 conversations. (#33261, #33856, #33932, #34080, #34385)"
+            },
+            {
+              "title": {
+                "zh-TW": "多代理協作從試用走向穩定",
+                "zh-CN": "多代理协作从试用走向稳定",
+                "en": "Multi-agent work graduates toward stability",
+                "ja": "マルチエージェント作業が安定段階へ進む",
+                "ko": "다중 에이전트 작업이 안정 단계로 나아간다"
+              },
+              "body": {
+                "zh-TW": "一件工作要分給多個代理並行處理時，這套 opt-in 多代理 V2 體驗變得更穩定。你可設定子代理使用的模型、推理強度與同時工作的數量，先前的角色也恢復，代理之間的瀏覽與切換更順手。像導演終於能替每位組員選工具、分配同時上場的人數，並清楚看見誰在做哪一幕。若任務要快或要深，可依工作性質挑不同模型與推理程度。opt-in 表示需要你主動開啟，不是所有人自動套用。",
+                "zh-CN": "一件工作要分给多个代理并行处理时，这套 opt-in 多代理 V2 体验更稳定了。你可设置子代理用的模型、推理强度和并发数量，原有角色也恢复，代理间的浏览与切换更顺手。像导演终于能给每位组员选工具、安排同时上场的人数，并看清谁在做哪一幕。opt-in 表示需主动开启。",
+                "en": "For work split across several agents, the opt-in multi-agent V2 experience is now more stable. You can configure sub-agent models, reasoning levels, and concurrency; roles return and navigation improves. It is like a director choosing each crew member’s gear and number of simultaneous tasks. Opt-in means it must be enabled deliberately.",
+                "ja": "仕事を複数のエージェントに並行で任せる場合、opt-in のマルチエージェント V2 が安定した。子エージェントのモデル、推論レベル、同時実行数を設定でき、役割も戻り、行き来もしやすい。監督が各人の道具と同時に動く人数を決められる状態に近い。opt-in は自分で有効にする方式である。",
+                "ko": "여러 에이전트에게 일을 나눠 병렬 처리할 때 opt-in 다중 에이전트 V2 경험이 더 안정됐다. 하위 에이전트의 모델, 추론 수준, 동시 작업 수를 설정할 수 있고 역할이 돌아왔으며 탐색도 좋아졌다. 감독이 각 스태프의 장비와 동시에 움직일 인원을 정하는 모습과 같다. opt-in은 직접 켜야 한다는 뜻이다."
+              },
+              "original": "Stabilized the opt-in multi-agent V2 experience with configurable sub-agent models, reasoning levels, concurrency, restored roles, and improved agent navigation. (#33550, #33631, #33657, #33841, #34383)"
+            },
+            {
+              "title": {
+                "zh-TW": "終端機裡的圖表連結可安全點開",
+                "zh-CN": "终端里的图表链接可安全点开",
+                "en": "Safe, clickable visual links in the terminal",
+                "ja": "端末内の可視化リンクを安全にクリックできる",
+                "ko": "터미널의 시각화 링크를 안전하게 클릭한다"
+              },
+              "body": {
+                "zh-TW": "看見終端機輸出的圖表或互動視覺化時，現在能直接點安全的行內連結開啟，不必複製網址再猜要貼去哪裡。這像文件裡出現一張縮小地圖，你點一下就能進入完整地圖，而不是先抄下座標。連結放在輸出文字中，閱讀結果時就能順手打開對應視覺化；終端機也不必把圖表硬塞成難讀的純文字。原文只說連結安全且可點擊，沒有承諾所有終端機、所有視覺化種類都支援。",
+                "zh-CN": "看到终端输出的图表或交互可视化时，现在能直接点开安全的行内链接，不必复制网址再猜该贴哪里。这像文件里出现一张缩小地图，点一下就进入完整地图，不必先抄坐标。原文只说链接安全且可点击，未承诺所有终端或可视化都支持。",
+                "en": "Visualizations in terminal output can now include secure, clickable inline links. Instead of copying an address and guessing where to paste it, you can open the full view from the result itself. The release only promises secure clickable links, not universal support for every terminal or visualization.",
+                "ja": "端末の出力にある可視化は、安全なインラインリンクから直接開けるようになった。URL を写して貼り先を探す代わりに、結果から完全な表示へ入れる。告知は安全でクリック可能なリンクを約束するだけで、すべての端末や可視化を保証するものではない。",
+                "ko": "터미널 출력의 시각화는 이제 안전한 인라인 링크를 눌러 바로 열 수 있다. 주소를 복사해 붙일 곳을 찾는 대신 결과에서 전체 화면으로 들어간다. 발표 내용은 안전하고 클릭 가능한 링크만 약속하며 모든 터미널과 시각화를 보장하지는 않는다."
+              },
+              "original": "Added secure, clickable inline visualization links in the terminal UI. (#33925, #34217, #34346)"
+            },
+            {
+              "title": {
+                "zh-TW": "改舊問題不會抹掉原對話",
+                "zh-CN": "改旧问题不会抹掉原对话",
+                "en": "Editing an old prompt preserves the original path",
+                "ja": "古い質問を直しても元の会話は残る",
+                "ko": "예전 질문을 고쳐도 원래 대화가 남는다"
+              },
+              "body": {
+                "zh-TW": "想把早先的提問改個字、或重試被安全機制暫緩的回合，現在不必拿整段原對話冒險。Codex 會建立帶上下文的分支，保留原本對話、附件與提及的綁定。這像在書稿影印一份後改稿：新稿能走另一條路，原稿與夾在裡面的資料仍完整留著。附件和提及的對象也會跟著原路徑保存，避免分支後還要重新交代背景。你可以比較兩種方向，而非只能覆寫前一個選擇。",
+                "zh-CN": "想把早先的提问改个字，或重试被安全机制暂缓的回合，现在不必拿整段原对话冒险。Codex 会建立带上下文的分支，保留原对话、附件和提及绑定。这像把书稿复印一份再改：新稿走另一条路，原稿与夹带资料仍在。你可比较两种方向，不必覆盖旧选择。",
+                "en": "Editing an earlier prompt or retrying a safety-buffered turn now makes a contextual branch. The original conversation, attachments, and mention bindings stay intact. It is like photocopying a manuscript before editing: the new draft can diverge while the original and its materials remain available.",
+                "ja": "以前の質問を編集したり、安全機構で保留されたターンを再試行したりすると、文脈付きの分岐が作られる。元の会話、添付、メンションの結び付きは残る。原稿を複写してから直すようなもので、新稿は別の道へ進んでも元稿と資料は失われない。",
+                "ko": "이전 질문을 고치거나 안전 장치로 보류된 턴을 다시 시도하면 문맥 있는 분기가 만들어진다. 원래 대화, 첨부 파일, 멘션 연결은 남는다. 원고를 복사한 뒤 고치는 것과 같아서 새 원고가 다른 길로 가도 원본과 자료는 사라지지 않는다."
+              },
+              "original": "Editing an earlier prompt or retrying a safety-buffered turn now creates a contextual branch, preserving the original conversation, attachments, and mention bindings. (#33201, #33207, #33211)"
+            },
+            {
+              "title": {
+                "zh-TW": "長對話少重畫，終端機更跟手",
+                "zh-CN": "长对话少重绘，终端更跟手",
+                "en": "Long terminal chats redraw less and respond faster",
+                "ja": "長い端末会話で描き直しが減り、反応が軽くなる",
+                "ko": "긴 터미널 대화에서 다시 그리기가 줄고 반응이 빨라진다"
+              },
+              "body": {
+                "zh-TW": "終端機聊久了，畫面一再重畫往往比模型回答更惱人。新版以增量 Markdown 渲染、減少重畫、快取（cache，把算過或查過的結果暫存起來直接用）與限制指令輸出大小，改善長對話和串流輸出的反應速度。它像收銀員不再每掃一件商品就重印整張明細，只補上新的一行；畫面少忙，輸入與閱讀就更順。舊結果能沿用時就不必重新算或查，串流中的新內容也不用讓整頁翻新。限制輸出也避免一條指令把整個視窗塞爆。",
+                "zh-CN": "终端聊久了，反复重绘常比回答更烦。新版用增量 Markdown 渲染、减少重绘、缓存（把算过或查过的结果暂存起来直接用）和限制命令输出大小，改善长对话与流式输出的响应。像收银员不再每扫一件商品就重印整张小票，只补新的一行；画面少忙，输入和阅读更顺。",
+                "en": "Long terminal conversations now redraw less and feel more responsive. Incremental Markdown rendering, fewer redraws, caching, and bounded command output improve long chats and streamed output. It is like a cashier adding one line to a receipt rather than reprinting the whole thing after every item. Output limits also keep one command from flooding the screen.",
+                "ja": "長い端末会話では、回答そのものより画面の描き直しが煩わしいことがある。増分 Markdown 描画、描き直しの削減、キャッシュ、コマンド出力の上限で、長い会話とストリーミング出力の反応を改善した。レジが商品ごとにレシート全体を刷り直さず、一行だけ足すようなものだ。",
+                "ko": "긴 터미널 대화에서는 답보다 화면을 계속 다시 그리는 일이 더 성가실 수 있다. 증분 Markdown 렌더링, 재그리기 감소, 캐시, 제한된 명령 출력으로 긴 대화와 스트리밍 출력의 반응을 개선했다. 계산대가 물건 하나마다 영수증 전체를 다시 인쇄하지 않고 한 줄만 더하는 모습과 같다."
+              },
+              "original": "Improved terminal responsiveness for long conversations and streamed output through incremental Markdown rendering, fewer redraws, caching, and bounded command output. (#34045, #34049, #34216, #34223, #34359)"
+            },
+            {
+              "title": {
+                "zh-TW": "MCP 連線不再被登入流程卡住",
+                "zh-CN": "MCP 连接不再被登录流程卡住",
+                "en": "MCP startup no longer gets tangled in sign-in",
+                "ja": "MCP の起動がログイン手順で詰まりにくくなる",
+                "ko": "MCP 시작이 로그인 절차에 덜 막힌다"
+              },
+              "body": {
+                "zh-TW": "外部工具很多時，MCP（Model Context Protocol，讓 AI 連接外部工具的協定）一啟動就同時登入、刷新授權，容易慢下來甚至互相衝突。新版替啟動設逾時、不讓 OAuth 探索（尋找登入授權入口的流程）阻塞整體、把刷新排隊，並安全重用工具目錄。像機場把登機口檢查分流：太久沒來的人不會堵住全隊，同一張航班看板也不用每人重新印。結果是 MCP 啟動與驗證較穩，並非新增工具功能。",
+                "zh-CN": "外部工具很多时，MCP（让 AI 连接外部工具的协议）一启动就同时登录、刷新授权，容易变慢或冲突。新版给启动设超时、不让 OAuth 发现流程堵住整体、把刷新排队，并安全复用工具目录。像机场把登机检查分流：太久没来的人不会堵住全队，同一张航班看板也不必反复印。它改善稳定性，不是新增工具功能。",
+                "en": "When many external tools start at once, MCP sign-ins and credential refreshes can collide. Startup timeouts, non-blocking OAuth discovery, serialized refreshes, and safe reuse of tool catalogs prevent slow or conflicting flows. Think of an airport that keeps one delayed passenger from blocking every gate and reuses one flight board instead of printing it repeatedly.",
+                "ja": "外部ツールが多いと、MCP 起動時のログインと認証更新がぶつかり、遅くなることがある。起動タイムアウト、全体を止めない OAuth 検出、順番待ちにした更新、安全なツール一覧の再利用でそれを防ぐ。遅れた一人が空港の全列を塞がず、案内板も何度も刷り直さないようなものだ。",
+                "ko": "외부 도구가 많으면 MCP 시작 때 로그인과 인증 갱신이 서로 부딪혀 느려질 수 있다. 시작 시간 제한, 전체를 막지 않는 OAuth 탐색, 순서대로 하는 갱신, 안전한 도구 목록 재사용으로 이를 막는다. 늦은 승객 한 명이 공항의 모든 줄을 막지 않고 안내판도 반복 인쇄하지 않는 모습과 같다."
+              },
+              "original": "Prevented slow or conflicting MCP startup and authentication flows by enforcing startup timeouts, avoiding blocking OAuth discovery, serializing refreshes, and reusing tool catalogs safely. (#32229, #32781, #32825, #33184, #33297)"
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 執行與沙盒更可靠",
+                "zh-CN": "Windows 执行与沙盒更可靠",
+                "en": "Windows execution and sandboxing get sturdier",
+                "ja": "Windows の実行とサンドボックスが堅くなる",
+                "ko": "Windows 실행과 샌드박스가 더 견고해졌다"
+              },
+              "body": {
+                "zh-TW": "在 Windows 上執行 Codex 時，這次集中補強執行與沙盒（sandbox，隔離程式可碰範圍的安全空間）可靠性：加入原生 exec-server 沙盒化、強制網路代理規則、隱藏輔助主控台，也正確處理 hook（掛鉤，特定事件發生時被觸發的小程式）指令的引號。像工地把圍籬、出入口與工作人員通訊一起整理好；你看不見的細節，正是程式能照預期跑、網路規則不被繞過的基礎。",
+                "zh-CN": "在 Windows 上运行 Codex 时，这次集中补强执行与沙盒（隔离程序可碰范围的安全空间）可靠性：加入原生 exec-server 沙盒化、强制网络代理规则、隐藏辅助控制台，也正确处理 hook（特定事件触发的小程序）命令的引号。像工地把围栏、出入口和工作人员通信一起理顺；看不见的细节，正是程序按预期运行和网络规则不被绕过的基础。",
+                "en": "Windows execution and sandbox reliability are strengthened with native exec-server sandboxing, enforced network-proxy rules, hidden helper consoles, and correctly quoted hook commands. It is like fixing a worksite’s fence, entrance, and radio protocol together: invisible details that keep the job inside its boundaries and running as intended.",
+                "ja": "Windows での実行とサンドボックスの信頼性を、ネイティブな exec-server の隔離、ネットワークプロキシ規則の強制、補助コンソールの非表示、hook コマンドの正しい引用で強化した。工事現場の柵、出入口、無線の決まりをまとめて整えるようなもので、見えない部分が境界を守り実行を安定させる。",
+                "ko": "Windows 실행과 샌드박스 신뢰성을 네이티브 exec-server 격리, 강제 네트워크 프록시 규칙, 숨겨진 보조 콘솔, 올바르게 인용된 hook 명령으로 강화했다. 공사장의 울타리, 출입구, 무전 규칙을 함께 정리하는 모습과 같으며 보이지 않는 부분이 경계를 지키고 실행을 안정시킨다."
+              },
+              "original": "Improved Windows execution and sandbox reliability, including native exec-server sandboxing, network-proxy enforcement, hidden helper consoles, and correctly quoted hook commands. (#32849, #32857, #33926, #34423)"
+            },
+            {
+              "title": {
+                "zh-TW": "安裝與版本資料少一層故障點",
+                "zh-CN": "安装与版本资料少一层故障点",
+                "en": "Installation and release metadata gain a fallback",
+                "ja": "インストールとリリース情報に予備経路ができる",
+                "ko": "설치와 릴리스 정보에 예비 경로가 생겼다"
+              },
+              "body": {
+                "zh-TW": "更新或安裝本不該因為外部宿主程式一時不可用就停住。新版修正精簡版 release metadata（發行版本的描述資料）解析與 macOS code mode 安裝；若外部 code-mode host 無法使用，會改走同一程序內的備援。像自動門的外接感應器壞了，門仍有內建按鈕可開。換句話說，原本仰賴外部元件的那一步遇到障礙，程式仍有自己完成工作的路。這是既有安裝流程的修復與備援，不代表另推出一種新安裝方式。",
+                "zh-CN": "更新或安装不该因为外部宿主程序一时不可用就停住。新版修正紧凑版 release metadata（发布版本的描述资料）解析和 macOS code mode 安装；外部 code-mode host 不可用时，改走进程内备用路径。像自动门的外接感应器坏了，门仍有内置按钮可开。这是修复与备援，不是另一种新安装方式。",
+                "en": "Installation should not stop merely because an external host is temporarily unavailable. Compact release-metadata parsing and macOS code-mode installation are fixed, with an in-process fallback when the external code-mode host cannot run. Like an automatic door retaining an internal button when its outside sensor fails, this is a repair and fallback for the existing path.",
+                "ja": "外部ホストが一時使えないだけで、更新やインストールが止まるべきではない。コンパクトなリリースメタデータ解析と macOS の code mode インストールを直し、外部 code-mode host が使えない場合は同一プロセス内の代替経路を使う。外側センサーが壊れても内側のボタンで開く自動ドアのような修正である。",
+                "ko": "외부 호스트를 잠시 못 쓴다는 이유만으로 설치나 업데이트가 멈추면 안 된다. 간결한 release metadata 해석과 macOS code mode 설치를 고쳤고 외부 code-mode host를 못 쓸 때는 프로세스 내부 대체 경로를 쓴다. 바깥 센서가 고장 나도 안쪽 버튼으로 열리는 자동문 같은 수정이다."
+              },
+              "original": "Fixed compact release-metadata parsing and macOS code-mode installation, with an in-process fallback when the external code-mode host is unavailable. (#31667, #31876, #31899)"
+            },
+            {
+              "title": {
+                "zh-TW": "危險刪除與授權判斷更一致",
+                "zh-CN": "危险删除与授权判断更一致",
+                "en": "Dangerous deletion and approval checks become consistent",
+                "ja": "危険な削除と承認判断が一貫する",
+                "ko": "위험한 삭제와 승인 판단이 더 일관돼졌다"
+              },
+              "body": {
+                "zh-TW": "工具準備執行強制 `rm` 刪除時，安全判斷更能辨認危險情況；取得完整存取權前的確認也更一致。若你拒絕某個工具的操作，拒絕原因不會在工具間遺失。這像門禁不只看「有人拿著鑰匙」，還會看他是否正要拆掉整扇門，並把你寫下的拒絕理由交接給下一位警衛。之後換另一個工具處理同件事，也能知道你先前為何說不。它強化的是防護與溝通，不是放寬刪除權限。",
+                "zh-CN": "工具准备执行强制 `rm` 删除时，安全判断更能识别危险情况；取得完整访问权前的确认也更一致。若你拒绝某个工具操作，拒绝理由不会在工具间丢失。像门禁不只看有人拿钥匙，还会看他是否要拆整扇门，并把你的拒绝理由交给下一位警卫。它强化防护与沟通，不是放宽删除权限。",
+                "en": "Safety handling now detects forced `rm` deletion more carefully, confirms full access more consistently, and preserves rejection reasons across tools. It is like a guard who notices not only a key but also an attempt to remove the whole door, then hands your refusal note to the next guard. This strengthens protection; it does not loosen deletion rights.",
+                "ja": "強制 `rm` 削除を行う際の危険検出が改善され、フルアクセス確認も一貫し、拒否理由はツール間で残る。鍵を持つ人だけでなく、扉そのものを外そうとしている人も見る警備員が、拒否メモを次の警備員へ渡すようなものだ。削除権限を緩めるのではなく、防護を強める変更である。",
+                "ko": "강제 `rm` 삭제의 위험 감지가 더 세심해지고 전체 접근 권한 확인도 일관되며 거부 이유가 도구 사이에서 남는다. 열쇠만 보는 것이 아니라 문 전체를 뜯으려는지도 살피고 거부 메모를 다음 경비원에게 넘기는 모습과 같다. 삭제 권한을 느슨하게 하는 대신 보호를 강화한 변화다."
+              },
+              "original": "Strengthened safety and approval handling with better forced-`rm` detection, consistent full-access confirmation, and preserved rejection reasons across tools. (#32989, #33464, #34400)"
+            },
+            {
+              "title": {
+                "zh-TW": "內建文件與模型選項同步 GPT-5.6",
+                "zh-CN": "内置文档与模型选项同步 GPT-5.6",
+                "en": "Bundled guidance and selections move to GPT-5.6",
+                "ja": "同梱ガイドと選択肢が GPT-5.6 へ移る",
+                "ko": "내장 안내와 선택 항목이 GPT-5.6으로 옮겨간다"
+              },
+              "body": {
+                "zh-TW": "想查 OpenAI Docs skill（協助查詢 OpenAI 文件的內建技能）或選模型時，隨附指南已更新 GPT-5.6 的模型解析、提示詞與遷移建議，涵蓋 macOS、Linux、Windows。原先打包的 GPT-5.4 選項與內部用途，也改對應到 GPT-5.6 Terra 與 Luna。這像公司更新產品型錄與貨架標籤：你依舊在挑合適的工具，但名稱與建議跟上新一代。",
+                "zh-CN": "想查 OpenAI Docs skill（协助查询 OpenAI 文档的内置技能）或选模型时，随附指南已更新 GPT-5.6 的模型解析、提示词与迁移建议，覆盖 macOS、Linux、Windows。原先打包的 GPT-5.4 选择与内部用途，也改为对应 GPT-5.6 Terra 和 Luna。像公司更新产品目录与货架标签：你仍在挑合适工具，但名称和建议跟上新一代。",
+                "en": "Bundled OpenAI Docs guidance now covers GPT-5.6 model resolution, prompting, and migration across macOS, Linux, and Windows. Packaged GPT-5.4 selections and internal uses also move to the corresponding GPT-5.6 Terra and Luna variants. It is like updating both the catalog and shelf labels so model choices reflect the current generation.",
+                "ja": "同梱の OpenAI Docs skill は、macOS、Linux、Windows にわたる GPT-5.6 のモデル解決、プロンプト、移行案内へ更新された。パッケージ済み GPT-5.4 の選択と内部利用も、対応する GPT-5.6 Terra と Luna へ移った。製品カタログと棚札を新世代に合わせて更新するようなものである。",
+                "ko": "내장 OpenAI Docs skill은 macOS, Linux, Windows에서 GPT-5.6 모델 해석, 프롬프트, 마이그레이션 안내를 다루도록 갱신됐다. 패키지된 GPT-5.4 선택과 내부 사용도 대응하는 GPT-5.6 Terra와 Luna로 옮겨갔다. 제품 카탈로그와 진열표를 새 세대에 맞춰 바꾸는 모습과 같다."
+              },
+              "original": "Updated the bundled OpenAI Docs skill with current GPT-5.6 model resolution, prompting, and migration guidance across macOS, Linux, and Windows. (#31842, #33121)\nMigrated bundled GPT-5.4 selections and internal uses to the corresponding GPT-5.6 Terra and Luna variants. (#33173)"
+            },
+            {
+              "title": {
+                "zh-TW": "啟動與大脈絡更省力，ripgrep 也更新",
+                "zh-CN": "启动与大上下文更省力，ripgrep 也更新",
+                "en": "Startup and large contexts get lighter; ripgrep updates",
+                "ja": "起動と大きな文脈が軽くなり、ripgrep も更新",
+                "ko": "시작과 큰 문맥이 가벼워지고 ripgrep도 갱신됐다"
+              },
+              "body": {
+                "zh-TW": "開啟 Codex 或處理很長的對話時，等待的來源常在背後：技能與外掛逐一被找出、遠端摘要整理太慢。新版讓技能與外掛探索並行，並改善遠端 compaction（把長對話濃縮成較短脈絡的整理）效率，降低啟動與大脈絡負擔；隨附的 ripgrep（快速搜尋檔案文字的工具）也升到 15.2.0。像廚房改成同時備料，而不是一道道排隊，最後還換了更快的食材搜尋器。",
+                "zh-CN": "打开 Codex 或处理很长的对话时，等待常来自背后：技能与插件逐一被发现、远端摘要整理太慢。新版让技能与插件发现并行，并改善远端 compaction（把长对话浓缩成较短上下文的整理）效率，降低启动和大上下文负担；随附 ripgrep（快速搜索文件文字的工具）也升到 15.2.0。像厨房改为同时备料，不再一道道排队。",
+                "en": "Startup and large-context work get lighter through concurrent skill and plugin discovery plus more efficient remote compaction. The bundled ripgrep, a fast text-search tool, also moves to 15.2.0. It is like a kitchen preparing ingredients in parallel instead of one station waiting on the next, then upgrading its fastest finder.",
+                "ja": "起動や長大な文脈処理の待ち時間を、スキルとプラグインの並列探索、より効率的なリモート compaction で減らした。同梱の高速テキスト検索ツール ripgrep も 15.2.0 になった。厨房が一工程ずつ待つのでなく、同時に下ごしらえするような改善である。",
+                "ko": "시작과 큰 문맥 처리의 부담을 스킬과 플러그인 병렬 탐색, 더 효율적인 원격 compaction으로 줄였다. 빠른 텍스트 검색 도구인 내장 ripgrep도 15.2.0으로 올랐다. 주방이 한 공정씩 기다리지 않고 동시에 재료를 준비하는 변화와 같다."
+              },
+              "original": "Reduced startup and large-context overhead with concurrent skill/plugin discovery and more efficient remote compaction. (#31566, #33369, #33423, #34431)\nUpdated the packaged ripgrep binary to 15.2.0. (#34384)"
+            }
+          ]
+        },
+        {
           "version": "0.144.6",
           "period": "2026-07-18",
           "items": [
@@ -565,29 +809,6 @@
                 "ko": "위험한 명령어를 실수로 입력했을 때 시스템이 더욱 철저하게 막아주고, 왜 실행할 수 없는지 그 이유를 분명하게 알려준다. 이번에는 위험 명령어 감지(dangerous-command detection, 파괴적인 동작을 자동으로 검사하고 차단하는 시스템) 범위가 넓어져서, `rm`(Unix 시스템에서 파일과 디렉터리를 삭제하는 명령어)을 강제로 쓰려는 다양한 형태를 더 많이 잡아낼 수 있게 되었다. 또한 명령어가 거부(denied)될 때 더 이상 애매한 오류만 던지지 않고 거부된 이유를 더 명확하게 제공한다. 예전엔 억지로 들어가려는 사람을 어쩌다 놓치기도 하고 막아설 때도 그저 \"안 돼\"라고만 하던 건물 경비원이, 이제는 더 많은 종류의 억지 돌파 요령을 꿰뚫어 보고 사람을 막아설 때 \"이 구역은 공사 중이라 들어갈 수 없습니다\"라고 구체적인 이유를 말해주는 것과 같다."
               },
               "original": "Improved dangerous-command detection, including more forced `rm` forms, and provides clearer rejection reasons when commands are denied. (#33455)\n#33455 [release/0.144] fix(core) expand is_dangerous_command @dylan-hurd-oai"
-            }
-          ]
-        },
-        {
-          "version": "0.144.2",
-          "period": "2026-07-13",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "自動程式碼審查修回正常，先前改壞的提示詞撤回了",
-                "zh-CN": "自动代码审查修回正常，先前改坏的提示词撤回了",
-                "en": "Automatic code review is back to normal after reverting the prompt change that broke it",
-                "ja": "自動コードレビューが正常に戻り、壊したプロンプト変更は取り消された",
-                "ko": "자동 코드 리뷰가 정상으로 돌아왔고, 망가뜨린 프롬프트 변경은 취소되었다."
-              },
-              "body": {
-                "zh-TW": "如果你的自動程式碼審查突然變得不對勁，這次把它修回原本的樣子了。先前一次更新不小心把 Codex 的 Guardian 自動審查功能（Guardian，像個會自動幫你檢查程式碼的 AI 審查員）改壞了——給它的提示詞（prompting，告訴 AI 該怎麼做事的指令措辭）調整後反而讓審查品質退步（regression，新版反而比舊版差的退步）。這次直接回滾（revert，把改動整個撤回、回到之前的版本），把舊版的審查政策、請求格式（request format，AI 發送需求時的訊息結構）和工具行為（tool behavior，AI 呼叫外部工具時的表現）全部恢復原狀。就像餐廳主廚試了新食譜結果常客都說變難吃，最後趕緊翻回舊食譜照原本的方式做菜。",
-                "zh-CN": "如果你的自动代码审查突然变得不对劲，这次把它修回原本的样子了。先前一次更新不小心把 Codex 的 Guardian 自动审查功能（Guardian，像个会自动帮你检查代码的 AI 审查员）改坏了——给它的提示词（prompting，告诉 AI 该怎么做事的指令措辞）调整后反而让审查质量退步（regression，新版反而比旧版差的退步）。这次直接回滚（revert，把改动整个撤回、回到之前的版本），把旧版的审查策略、请求格式（request format，AI 发送请求时的消息结构）和工具行为（tool behavior，AI 调用外部工具时的表现）全部恢复原状。就像餐厅主厨试了新食谱结果回头客都说变难吃，最后赶紧翻回旧食谱照原本的方式做菜。",
-                "en": "If your automatic code review suddenly started acting up, this release puts it back the way it was. A prior change to the prompting (the wording of the instructions telling the AI how to do its job) for Codex's Guardian auto-review (Guardian, an AI reviewer that automatically inspects your code) caused a regression (a step backward where the new version is worse than the old one). This release reverts it (undoing a change and returning to the previous version), restoring the old review policy, request format (the message structure used when the AI sends a request), and tool behavior (how the AI acts when calling external tools). Like a restaurant chef who tried a new recipe, got panned by regulars for worse food, and hurriedly dug out the old recipe to cook the original way again.",
-                "ja": "もし自動コードレビューが急におかしくなっていたなら、今回それを本来の姿に戻した。以前の変更で、Codex の Guardian 自動レビュー機能（Guardian、コードを自動で点検してくれる AI 審査員のようなもの）に与えるプロンプト（prompting、AI にどう作業すべきか伝える指示の書き方）を調整した結果、かえってレビュー品質が後退（regression、新バージョンが旧バージョンより悪くなる退歩）してしまっていた。今回はそれをリバート（revert、変更を取り消して以前の状態に戻すこと）し、旧版のレビューポリシー、リクエスト形式（request format、AI が要求を送る際のメッセージ構造）、ツール挙動（tool behavior、AI が外部ツールを呼び出す際の振る舞い）をすべて元通りにした。レストランのシェフが新しいレシピを試したら常連客に味が落ちたと不評で、慌てて古いレシピを引っ張り出して元の作り方に戻したようなものである。",
-                "ko": "자동 코드 리뷰가 갑자기 이상해졌다면, 이번에 제대로 원래 모습으로 돌려놨다. 이전의 한 번 업데이트에서 Codex의 Guardian 자동 리뷰 기능(Guardian, 코드를 자동으로 검사해 주는 AI 심사원 같은 것)을 실수로 망가뜨렸다 — 이 기능에 내리는 프롬프트(prompting, AI에게 어떻게 일할지 알려주는 지시문의 표현)를 바꾸었다가 오히려 리뷰 품질이 후퇴(regression, 새 버전이 옛 버전보다 나빠지는 퇴보)하는 일이 벌어진 것이다. 이번에는 이를 리버트(revert, 바꾼 것을 취소하고 이전 상태로 되돌리는 것)해서, 이전 버전의 리뷰 정책, 요청 형식(request format, AI가 요청을 보낼 때의 메시지 구조), 도구 동작(tool behavior, AI가 외부 도구를 호출할 때의 행동 양식)을 모두 원래대로 회복했다. 식당 주방장이 새 레시피를 시도했다가 단골 손님들에게 맛이 떨어졌다는 불만을 듣고 서둘러 옛 레시피를 찾아내 본래 요리법으로 되돌린 것과 같다."
-              },
-              "original": "Restored the previous Guardian auto-review policy, request format, and tool behavior after rolling back a prompting regression. (#32672)\n#32672 [release/0.144] Revert \"Update auto review prompting\" @dylan-hurd-oai"
             }
           ]
         }
