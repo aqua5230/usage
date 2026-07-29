@@ -474,7 +474,7 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     assert "Show in report" not in main_titles
 
 
-def test_switch_panel_cancel_closes_visible_popover(
+def test_switch_panel_cancel_keeps_the_panel_open(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FakeController:
@@ -539,9 +539,9 @@ def test_switch_panel_cancel_closes_visible_popover(
 
     menubar.AppDelegate.switchPanel_(delegate, object())
 
-    assert delegate.popover.closed == 1
-    assert delegate.popover_controller.states == []
-    assert delegate.popover.sizes == []
+    assert delegate.popover.closed == 0
+    assert delegate.popover_controller.states == [delegate.latest_state]
+    assert len(delegate.popover.sizes) == 1
     assert delegate.popover.shown == 0
 
 

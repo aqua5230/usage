@@ -1075,10 +1075,11 @@ class AppDelegate(NSObject):
         menu.addItem_(terse_item)
         self._switch_menu_action_taken = False
         menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
-        if self._switch_menu_action_taken:
-            self._resync_popover_after_menu()
-        else:
-            self._close_popover_after_menu()
+        # Dismissing the menu without picking anything used to close the panel:
+        # a transient popover was already gone by then, so closing it was just
+        # cleanup. The floating window survives the menu, so the same call would
+        # read as "cancelling the menu threw my panel away".
+        self._resync_popover_after_menu()
 
     def selectPanel_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
