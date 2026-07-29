@@ -49,8 +49,10 @@ def clamp_origin_to_visible_frames(
 
 
 def load_panel_window_origin(defaults: Any | None = None) -> Origin | None:
-    assert NSUserDefaults is not None or defaults is not None
-    store = defaults if defaults is not None else NSUserDefaults.standardUserDefaults()
+    store = defaults
+    if store is None:
+        assert NSUserDefaults is not None
+        store = NSUserDefaults.standardUserDefaults()
     value = store.arrayForKey_(PANEL_WINDOW_ORIGIN_DEFAULTS_KEY)
     if not isinstance(value, Sequence) or isinstance(value, str | bytes) or len(value) != 2:
         return None
@@ -71,8 +73,10 @@ def save_panel_window_origin(
     origin: Origin,
     defaults: Any | None = None,
 ) -> None:
-    assert NSUserDefaults is not None or defaults is not None
-    store = defaults if defaults is not None else NSUserDefaults.standardUserDefaults()
+    store = defaults
+    if store is None:
+        assert NSUserDefaults is not None
+        store = NSUserDefaults.standardUserDefaults()
     store.setObject_forKey_(
         [float(origin[0]), float(origin[1])],
         PANEL_WINDOW_ORIGIN_DEFAULTS_KEY,
