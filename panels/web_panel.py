@@ -29,6 +29,7 @@ from panels.payload import (
     _row_payload,
     _state_payload,
 )
+from panels.window_drag import inject_window_drag_script
 
 __all__ = [
     "_data_uri",
@@ -169,6 +170,9 @@ class UsageScriptBridge(NSObject):
                         parsed.get("height"), self.web_view
                     )
                     return
+                if parsed["action"] == "begin_window_drag":
+                    self.delegate.panelBeginWindowDrag_(self.web_view)
+                    return
                 if parsed["action"] == "set_card_order":
                     order = _valid_quota_card_order(parsed.get("order"))
                     if order is not None:
@@ -293,6 +297,7 @@ class WebPanelView(WKWebView):
             layer.setBackgroundColor_(
                 CGColorCreateGenericRGB(10 / 255, 15 / 255, 20 / 255, 1.0)
             )
+            layer.setMasksToBounds_(True)
         return self
 
     def webView_didFinishNavigation_(self, web_view: Any, navigation: Any) -> None:
@@ -455,6 +460,7 @@ class HTMLPanel:
             html = _load_panel_html(self.html_filename)
             if self.dynamic_height:
                 html = inject_content_height_script(html)
+            html = inject_window_drag_script(html)
             configuration = WKWebViewConfiguration.alloc().init()
             controller = WKUserContentController.alloc().init()
             configuration.setUserContentController_(controller)

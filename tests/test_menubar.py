@@ -499,24 +499,19 @@ def test_switch_panel_cancel_closes_visible_popover(
         def __init__(self) -> None:
             self.closed = 0
             self.sizes: list[object] = []
-            self.shown: list[tuple[object, object, object]] = []
+            self.shown = 0
 
-        def isShown(self) -> bool:
+        def isVisible(self) -> bool:
             return True
 
-        def performClose_(self, sender: object) -> None:
+        def close(self) -> None:
             self.closed += 1
 
-        def setContentSize_(self, size: object) -> None:
+        def setContentSizeKeepingTopLeft_(self, size: object) -> None:
             self.sizes.append(size)
 
-        def showRelativeToRect_ofView_preferredEdge_(
-            self,
-            rect: object,
-            view: object,
-            edge: object,
-        ) -> None:
-            self.shown.append((rect, view, edge))
+        def makeKeyAndOrderFront_(self, sender: object) -> None:
+            self.shown += 1
 
     class FakePanel:
         id = "classic"
@@ -547,7 +542,7 @@ def test_switch_panel_cancel_closes_visible_popover(
     assert delegate.popover.closed == 1
     assert delegate.popover_controller.states == []
     assert delegate.popover.sizes == []
-    assert delegate.popover.shown == []
+    assert delegate.popover.shown == 0
 
 
 def test_auto_update_disabled_skips_background_check(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1575,10 +1570,10 @@ def test_apply_refresh_result_pushes_state_only_when_popover_is_shown() -> None:
             self.shown = shown
             self.sizes: list[object] = []
 
-        def isShown(self) -> bool:
+        def isVisible(self) -> bool:
             return self.shown
 
-        def setContentSize_(self, size: object) -> None:
+        def setContentSizeKeepingTopLeft_(self, size: object) -> None:
             self.sizes.append(size)
 
     class FakeButton:
@@ -1724,10 +1719,10 @@ def test_apply_codex_refresh_result_updates_quota_before_full_refresh(
         def __init__(self) -> None:
             self.sizes: list[object] = []
 
-        def isShown(self) -> bool:
+        def isVisible(self) -> bool:
             return True
 
-        def setContentSize_(self, size: object) -> None:
+        def setContentSizeKeepingTopLeft_(self, size: object) -> None:
             self.sizes.append(size)
 
     class FakeButton:
@@ -1950,10 +1945,10 @@ def test_refresh_now_queues_when_refresh_is_busy() -> None:
 
 def test_apply_refresh_result_clears_busy_flag_when_ui_update_fails() -> None:
     class FailingPopover:
-        def isShown(self) -> bool:
+        def isVisible(self) -> bool:
             return False
 
-        def setContentSize_(self, size: object) -> None:
+        def setContentSizeKeepingTopLeft_(self, size: object) -> None:
             raise RuntimeError("size failed")
 
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
@@ -2011,25 +2006,20 @@ def test_switching_visible_panel_reuses_popover(monkeypatch: pytest.MonkeyPatch)
     class FakePopover:
         def __init__(self) -> None:
             self.closed = 0
-            self.shown: list[tuple[object, object, object]] = []
+            self.shown = 0
             self.sizes: list[object] = []
 
-        def isShown(self) -> bool:
+        def isVisible(self) -> bool:
             return True
 
-        def performClose_(self, sender: object) -> None:
+        def close(self) -> None:
             self.closed += 1
 
-        def setContentSize_(self, size: object) -> None:
+        def setContentSizeKeepingTopLeft_(self, size: object) -> None:
             self.sizes.append(size)
 
-        def showRelativeToRect_ofView_preferredEdge_(
-            self,
-            rect: object,
-            view: object,
-            edge: object,
-        ) -> None:
-            self.shown.append((rect, view, edge))
+        def makeKeyAndOrderFront_(self, sender: object) -> None:
+            self.shown += 1
 
     saved: list[str] = []
     monkeypatch.setattr(menubar, "save_active_panel_id", lambda panel_id: saved.append(panel_id))
@@ -2048,7 +2038,7 @@ def test_switching_visible_panel_reuses_popover(monkeypatch: pytest.MonkeyPatch)
     assert delegate.popover_controller.states == []
     assert delegate.popover.closed == 0
     assert len(delegate.popover.sizes) == 1
-    assert delegate.popover.shown == []
+    assert delegate.popover.shown == 0
 
 
 def test_toggle_talent_market_switches_back_to_previous_panel() -> None:
@@ -2095,8 +2085,8 @@ def test_daily_link_closes_popover_then_opens_browser(
     events: list[str] = []
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
     delegate.popover = SimpleNamespace(
-        isShown=lambda: True,
-        performClose_=lambda sender: events.append("close"),
+        isVisible=lambda: True,
+        close=lambda: events.append("close"),
     )
     monkeypatch.setattr("menubar.webbrowser.open", lambda url: events.append(url))
 
@@ -2118,8 +2108,8 @@ def test_discussion_action_reuses_controller_and_closes_popover() -> None:
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
     delegate._discussion_window_controller = FakeController()
     delegate.popover = SimpleNamespace(
-        isShown=lambda: True,
-        performClose_=lambda sender: events.append("close"),
+        isVisible=lambda: True,
+        close=lambda: events.append("close"),
     )
 
     menubar.AppDelegate.toggleDiscussion_(delegate, object())

@@ -21,6 +21,7 @@ from panels.base import (
 )
 from panels.dynamic_height import CONTENT_HEIGHT_SCRIPT
 from panels.web_panel import HTMLPanel
+from panels.window_drag import WINDOW_DRAG_SCRIPT
 
 
 class FakeDefaults:
@@ -346,6 +347,7 @@ def test_build_view_injects_content_height_script_when_enabled(
     view = panel.build_view(object())
 
     assert (CONTENT_HEIGHT_SCRIPT in view.loaded_html) is dynamic_height
+    assert WINDOW_DRAG_SCRIPT in view.loaded_html
 
 
 def test_evaluate_javascript_completion_handler_block_signature() -> None:

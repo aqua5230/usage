@@ -112,3 +112,19 @@ def test_bridge_forwards_measured_content_height() -> None:
     )
 
     assert calls == [(612.5, web_view)]
+
+
+def test_bridge_forwards_window_drag() -> None:
+    calls: list[object] = []
+    web_view = object()
+    delegate = SimpleNamespace(panelBeginWindowDrag_=lambda view: calls.append(view))
+    bridge = UsageScriptBridge.alloc().init()
+    bridge.delegate = delegate
+    bridge.web_view = web_view
+
+    bridge.userContentController_didReceiveScriptMessage_(
+        None,
+        SimpleNamespace(body=lambda: '{"action":"begin_window_drag"}'),
+    )
+
+    assert calls == [web_view]

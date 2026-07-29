@@ -39,10 +39,7 @@ from AppKit import (
     NSMakeSize,
     NSMenu,
     NSMenuItem,
-    NSMinYEdge,
     NSMutableAttributedString,
-    NSPopover,
-    NSPopoverBehaviorTransient,
     NSScreen,
     NSStatusBar,
     NSTextAttachment,
@@ -51,8 +48,6 @@ from AppKit import (
     NSViewController,
     NSViewHeightSizable,
     NSViewWidthSizable,
-    NSWindowCollectionBehaviorCanJoinAllSpaces,
-    NSWindowCollectionBehaviorFullScreenAuxiliary,
 )
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 from Quartz import CGColorCreateGenericRGB
@@ -122,6 +117,12 @@ from menubar_state import (
 )
 from menubar_state import (
     format_human_time as format_human_time,
+)
+from panel_window import PanelWindow
+from panel_window_state import (
+    clamp_origin_to_visible_frames,
+    load_panel_window_origin,
+    save_panel_window_origin,
 )
 from panels.base import Panel as UsagePanel
 from panels.base import (
@@ -632,6 +633,10 @@ class PopoverViewController(NSViewController):
     def preparePanelView_(self, view: Any) -> None:
         view.setFrame_(self.view().bounds() if self.view() is not None else view.frame())
         view.setAutoresizingMask_(int(NSViewWidthSizable) | int(NSViewHeightSizable))
+        view.setWantsLayer_(True)
+        layer = view.layer()
+        if layer is not None:
+            layer.setMasksToBounds_(True)
 
     def syncPanelFrames(self) -> None:
         bounds = self.view().bounds()
@@ -794,11 +799,12 @@ class AppDelegate(NSObject):
             self.active_panel,
             self,
         )
-        self.popover = NSPopover.alloc().init()
-        self.popover.setBehavior_(NSPopoverBehaviorTransient)
+        size = _popover_size(self.latest_state, self.active_panel)
+        self.popover = PanelWindow.alloc().initWithContentRect_(
+            NSMakeRect(0.0, 0.0, size.width, size.height)
+        )
+        self.popover.setRoundedContentView_(self.popover_controller.view())
         self.popover.setDelegate_(self)
-        self.popover.setContentSize_(_popover_size(self.latest_state, self.active_panel))
-        self.popover.setContentViewController_(self.popover_controller)
 
         self._request_notification_authorization()
         self._refresh()
@@ -822,9 +828,16 @@ class AppDelegate(NSObject):
         if height is None:
             return
         size = NSMakeSize(self.active_panel.preferred_size()[0], height)
-        self.popover.setContentSize_(size)
+        self._set_panel_window_size(size)
         self.popover_controller.view().setFrameSize_(size)
         self.popover_controller.syncPanelFrames()
+
+    def panelBeginWindowDrag_(self, view: Any) -> None:
+        if view is not self.popover_controller.currentContentView():
+            return
+        event = NSApplication.sharedApplication().currentEvent()
+        if event is not None:
+            self.popover.performWindowDragWithEvent_(event)
 
     def _refresh_after_pricing_warm_up(self) -> None:
         self.performSelectorOnMainThread_withObject_waitUntilDone_(
@@ -853,14 +866,23 @@ class AppDelegate(NSObject):
         if timer is not None:
             timer.invalidate()
 
-    def popoverWillShow_(self, notification: Any) -> None:
+    def _panel_window_will_show(self) -> None:
         self._reschedule_poll_timer(self.interval)
 
-    def popoverDidShow_(self, notification: Any) -> None:
+    def _panel_window_did_show(self) -> None:
         self.refreshNow_(None)
 
-    def popoverDidClose_(self, notification: Any) -> None:
+    def _panel_window_did_hide(self) -> None:
         self._reschedule_poll_timer(max(self.interval, SLOW_POLL_INTERVAL_S))
+
+    def windowDidMove_(self, notification: Any) -> None:
+        if notification.object() is self.popover and self._panel_window_is_visible():
+            self._save_panel_window_origin()
+
+    def windowWillClose_(self, notification: Any) -> None:
+        if notification.object() is self.popover:
+            self._save_panel_window_origin()
+            self._panel_window_did_hide()
 
     def refreshNow_(self, sender: Any) -> None:
         self._refresh(queue_if_busy=True)
@@ -916,6 +938,12 @@ class AppDelegate(NSObject):
         agy_loader.flush_caches_on_terminate()
         if self._discussion_window_controller is not None:
             self._discussion_window_controller.shutdown()
+        if (
+            hasattr(self, "popover")
+            and self.popover is not None
+            and self._panel_window_is_visible()
+        ):
+            self._save_panel_window_origin()
         if hasattr(self, "popover_controller") and self.popover_controller is not None:
             self.popover_controller.teardown()
 
@@ -1356,26 +1384,51 @@ class AppDelegate(NSObject):
         save_active_panel_id(panel.id)
         self.active_panel = panel
         self.popover_controller.switchToPanel_(panel)
-        self.popover.setContentSize_(_popover_size(self.latest_state, panel))
+        self._set_panel_window_size(_popover_size(self.latest_state, panel))
         if panel.id == "talent_market":
             # Talent data is fetched in the background refresh; switchToPanel_
             # injected the last (talent-less) state, so kick a refresh to fill it.
             self._refresh()
 
     def _show_popover_from_button(self, button: Any) -> None:
-        self.popover.showRelativeToRect_ofView_preferredEdge_(
-            button.bounds(),
-            button,
-            NSMinYEdge,
-        )
-        window = self.popover_controller.view().window()
-        if window is None:
+        frame = self.popover.frame()
+        size = (float(frame.size.width), float(frame.size.height))
+        origin = load_panel_window_origin()
+        if origin is None:
+            button_window = button.window()
+            button_rect = button.convertRect_toView_(button.bounds(), None)
+            screen_rect = button_window.convertRectToScreen_(button_rect)
+            origin = (
+                float(screen_rect.origin.x)
+                + (float(screen_rect.size.width) - size[0]) / 2.0,
+                float(screen_rect.origin.y) - size[1],
+            )
+        visible_frames = [
+            (
+                float(screen.visibleFrame().origin.x),
+                float(screen.visibleFrame().origin.y),
+                float(screen.visibleFrame().size.width),
+                float(screen.visibleFrame().size.height),
+            )
+            for screen in NSScreen.screens()
+        ]
+        origin = clamp_origin_to_visible_frames(origin, size, visible_frames)
+        self.popover.setFrameOrigin_(NSMakePoint(*origin))
+        self._panel_window_will_show()
+        self.popover.makeKeyAndOrderFront_(None)
+        self._panel_window_did_show()
+
+    def _set_panel_window_size(self, size: Any) -> None:
+        self.popover.setContentSizeKeepingTopLeft_(size)
+
+    def _panel_window_is_visible(self) -> bool:
+        return bool(self.popover.isVisible())
+
+    def _save_panel_window_origin(self) -> None:
+        if not hasattr(self, "popover") or self.popover is None:
             return
-        behavior = int(window.collectionBehavior())
-        behavior |= int(NSWindowCollectionBehaviorCanJoinAllSpaces)
-        behavior |= int(NSWindowCollectionBehaviorFullScreenAuxiliary)
-        window.setCollectionBehavior_(behavior)
-        window.orderFront_(None)
+        frame = self.popover.frame()
+        save_panel_window_origin((float(frame.origin.x), float(frame.origin.y)))
 
     def _mark_switch_menu_action(self) -> None:
         self._switch_menu_action_taken = True
@@ -1383,9 +1436,9 @@ class AppDelegate(NSObject):
     def _close_popover_after_menu(self) -> None:
         if not hasattr(self, "popover") or self.popover is None:
             return
-        if not self.popover.isShown():
+        if not self._panel_window_is_visible():
             return
-        self.popover.performClose_(None)
+        self.popover.close()
 
     def _resync_popover_after_menu(self) -> None:
         if not hasattr(self, "popover") or not hasattr(self, "popover_controller"):
@@ -1394,10 +1447,10 @@ class AppDelegate(NSObject):
             return
         if self.popover is None or self.popover_controller is None or self.status_item is None:
             return
-        if not self.popover.isShown():
+        if not self._panel_window_is_visible():
             return
         self.popover_controller.setState_(self.latest_state)
-        self.popover.setContentSize_(_popover_size(self.latest_state, self.active_panel))
+        self._set_panel_window_size(_popover_size(self.latest_state, self.active_panel))
 
     def animateCritters_(self, timer: Any) -> None:
         now = time.monotonic()
@@ -1468,11 +1521,11 @@ class AppDelegate(NSObject):
             timer.invalidate()
 
     def togglePopover_(self, sender: Any) -> None:
-        if self.popover.isShown():
-            self.popover.performClose_(sender)
+        if self._panel_window_is_visible():
+            self.popover.close()
             return
         self.popover_controller.setState_(self.latest_state)
-        self.popover.setContentSize_(_popover_size(self.latest_state, self.active_panel))
+        self._set_panel_window_size(_popover_size(self.latest_state, self.active_panel))
         button = self.status_item.button()
         self._show_popover_from_button(button)
 
@@ -1744,9 +1797,9 @@ class AppDelegate(NSObject):
             if animation_groups != previous_groups:
                 self._sync_critter_timer()
             self._process_quota_notifications(state)
-            if self.popover.isShown():
+            if self._panel_window_is_visible():
                 self.popover_controller.setState_(self.latest_state)
-            self.popover.setContentSize_(_popover_size(state, self.active_panel))
+            self._set_panel_window_size(_popover_size(state, self.active_panel))
             self._inject_web_language(state.language)
             self._set_button_title(state)
         finally:
@@ -1812,9 +1865,9 @@ class AppDelegate(NSObject):
         self.latest_state.codex_credits = result.get("codex_credits")
         self.codex_5h_pct = result["codex_5h_pct"]
         self.codex_model = result.get("codex_model", "unknown")
-        if self.popover.isShown():
+        if self._panel_window_is_visible():
             self.popover_controller.setState_(self.latest_state)
-        self.popover.setContentSize_(_popover_size(self.latest_state, self.active_panel))
+        self._set_panel_window_size(_popover_size(self.latest_state, self.active_panel))
         self._set_button_title(self.latest_state)
         if started_at:
             logger.debug(
