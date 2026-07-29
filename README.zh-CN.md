@@ -59,6 +59,7 @@ brew install --cask aqua5230/usage/usage
 ### 体验与自定义
 
 - **10 个视觉主题：** 可切换面板风格，包括 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026 和 Lepidoptera（蓝图）。
+- **面板自由摆放：** 面板不再固定在菜单栏图标下方。在任何空白处按住即可拖动到你想要的位置，下次打开仍保留在原位。切换到其他 App 时也不会消失，再次点击菜单栏图标或按 Esc 键才会关闭。
 - **拖拽排序：** 按住任意配额卡上下拖拽即可交换顺序——这一排列在所有主题间共享，并在重启后保留。
 - **AI 人才市场：** 将现成的 AI 团队带入 Claude Code。浏览并立即将精选子代理角色安装到 `~/.claude/agents/`。通过随附 CLI 完全在本地运行。
 - **AI 圆桌讨论：** 打开一个独立窗口，让 Claude Code、Codex、Antigravity 进行多轮讨论——自选参与者、模型与辩论风格，开始前就能看到大约会花多少 token。可以在轮间插话引导方向，共识计票看得出谁不同意，并让讨论在全体同意时提早收尾。位置可以戴上 AI 人才市场的专家角色，也能附上只读文件夹让参与者参考真实文件。
