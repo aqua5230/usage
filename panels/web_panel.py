@@ -417,6 +417,7 @@ class HTMLPanel:
     agy_card_height: float
     status_wrap_extra_height: float
     service_alert_height: float
+    dynamic_height: bool
 
     def __init__(
         self,
@@ -432,6 +433,7 @@ class HTMLPanel:
         agy_card_height: float = 0.0,
         status_wrap_extra_height: float = 0.0,
         service_alert_height: float = 0.0,
+        dynamic_height: bool = True,
     ) -> None:
         self.id = panel_id
         self.i18n_key = i18n_key
@@ -444,12 +446,15 @@ class HTMLPanel:
         self.agy_card_height = agy_card_height
         self.status_wrap_extra_height = status_wrap_extra_height
         self.service_alert_height = service_alert_height
+        self.dynamic_height = dynamic_height
 
     def build_view(self, delegate: Any) -> NSView:
         try:
             if WKUserContentController is None or WKWebViewConfiguration is None:
                 raise RuntimeError("pyobjc-framework-WebKit is unavailable")
-            html = inject_content_height_script(_load_panel_html(self.html_filename))
+            html = _load_panel_html(self.html_filename)
+            if self.dynamic_height:
+                html = inject_content_height_script(html)
             configuration = WKWebViewConfiguration.alloc().init()
             controller = WKUserContentController.alloc().init()
             configuration.setUserContentController_(controller)

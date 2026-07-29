@@ -19,6 +19,7 @@ from panels.base import (
     next_panel_eviction_id,
     save_active_panel_id,
 )
+from panels.dynamic_height import CONTENT_HEIGHT_SCRIPT
 from panels.web_panel import HTMLPanel
 
 
@@ -241,6 +242,110 @@ def test_html_panel_requires_explicit_card_heights() -> None:
         constructor("test", "panel_test", "test.html", codex_card_height=100.0)
     with pytest.raises(TypeError):
         constructor("test", "panel_test", "test.html", claude_card_height=100.0)
+
+
+def test_html_panel_dynamic_height_defaults_and_talent_market_opt_out() -> None:
+    panel = HTMLPanel(
+        "test",
+        "panel_test",
+        "test.html",
+        claude_card_height=100.0,
+        codex_card_height=100.0,
+    )
+
+    assert panel.dynamic_height is True
+    assert cast(HTMLPanel, panels.get_panel("talent_market")).dynamic_height is False
+
+
+@pytest.mark.parametrize("dynamic_height", [True, False])
+def test_build_view_injects_content_height_script_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+    dynamic_height: bool,
+) -> None:
+    import panels.web_panel as web_panel
+
+    class FakeConfiguration:
+        @classmethod
+        def alloc(cls) -> FakeConfiguration:
+            return cls()
+
+        def init(self) -> FakeConfiguration:
+            return self
+
+        def setUserContentController_(self, controller: object) -> None:
+            pass
+
+    class FakeController:
+        @classmethod
+        def alloc(cls) -> FakeController:
+            return cls()
+
+        def init(self) -> FakeController:
+            return self
+
+        def addScriptMessageHandler_name_(self, bridge: object, name: str) -> None:
+            pass
+
+    class FakeWebView:
+        @classmethod
+        def alloc(cls) -> FakeWebView:
+            return cls()
+
+        def initWithFrame_configuration_delegate_(
+            self,
+            frame: object,
+            configuration: object,
+            delegate: object,
+        ) -> FakeWebView:
+            return self
+
+        def setBridge_(self, bridge: object) -> None:
+            pass
+
+        def loadHTMLString_baseURL_(self, html: str, base_url: object | None) -> None:
+            self.loaded_html = html
+
+        def performSelector_withObject_afterDelay_(
+            self,
+            selector: str,
+            value: object | None,
+            delay: float,
+        ) -> None:
+            pass
+
+    class FakeBridge:
+        @classmethod
+        def alloc(cls) -> FakeBridge:
+            return cls()
+
+        def initWithDelegate_webView_(
+            self,
+            delegate: object,
+            web_view: object,
+        ) -> FakeBridge:
+            return self
+
+    monkeypatch.setattr(web_panel, "WKWebViewConfiguration", FakeConfiguration)
+    monkeypatch.setattr(web_panel, "WKUserContentController", FakeController)
+    monkeypatch.setattr(web_panel, "WebPanelView", FakeWebView)
+    monkeypatch.setattr(web_panel, "UsageScriptBridge", FakeBridge)
+    monkeypatch.setattr(
+        web_panel,
+        "_load_panel_html",
+        lambda filename: "<body><script>window.usageApplyState = function() {};</script></body>",
+    )
+    panel = HTMLPanel(
+        "test",
+        "panel_test",
+        "test.html",
+        claude_card_height=100.0,
+        codex_card_height=100.0,
+        dynamic_height=dynamic_height,
+    )
+
+    view = panel.build_view(object())
+
+    assert (CONTENT_HEIGHT_SCRIPT in view.loaded_html) is dynamic_height
 
 
 def test_evaluate_javascript_completion_handler_block_signature() -> None:

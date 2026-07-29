@@ -131,6 +131,7 @@ def all_panels() -> tuple[Panel, ...]:
             height=812.0,
             claude_card_height=0.0,
             codex_card_height=0.0,
+            dynamic_height=False,
         ),
     )
 
