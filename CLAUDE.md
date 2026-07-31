@@ -59,32 +59,21 @@ Claude Code ──stdin──> usage_statusline.py (hook) ──write──> ~/.
 
 ### Module map
 
+Only modules with a **gotcha** are listed — things you cannot learn by opening the file. Everything else in the repo is self-explanatory; don't add a row just to describe what a module does.
+
 | Module | Role |
 |---|---|
-| `main.py` | argparse + entry point; dispatches to `menubar.run_app`, `run_tui`, or `setup_hook.setup/unsetup`. |
 | `usage_client.py` | Reads the Claude Code status JSON, builds a `UsageSnapshot`. Async interface preserved for the polling loop even though reads are sync. |
 | `codex_loader.py` | Parses Codex JSONL session logs for both rate-limits and per-message token usage. Also reads `~/.codex/state_5.sqlite` (read-only) for thread→model mapping. |
-| `history_loader.py` | Parses Claude Code's per-project JSONL logs under `~/.claude/projects/` for token totals and cost. |
 | `pricing.py` | Cost estimation. Downloads LiteLLM's `model_prices_and_context_window.json` once, caches to `~/.usage/pricing_cache.json` (TTL 7 days; 10-min TTL on fallback so offline-then-online recovers; `~/.claude/pricing_cache.json` is a legacy read-only fallback). |
 | `service_status.py` | Reads Claude and Codex **public service-status pages** (`status.claude.com/api/v2/summary.json`, `status.openai.com/api/v2/summary.json`) so the panel can flag outages; caches to `~/.usage/anthropic_status_cache.json` and `~/.usage/openai_status_cache.json` (TTL 5 min, 60s backoff after a failure), mirroring `pricing.py`'s fetch/cache shape. Inspects **only** Claude's `Claude Code` and `Claude API (api.anthropic.com)`, plus Codex's `Codex API` — never either page's overall `indicator` or OpenAI shared components, which can reflect unrelated incidents and would false-alarm. A status page is **not a usage API**; this does not violate the no-LLM-usage-API invariant. |
 | `usage_rate.py` | Burn-rate classifier (Idle/Normal/Active/Heavy) — drives sprite animation speed in TUI. Burn rate deliberately excludes `cache_read` (see `UsageEntry.active_tokens`): cache reads are near-free re-sends of the whole context and would pin every heavy user at Heavy. |
-| `burn_rate.py` | Burn-rate prediction core used by `menubar.py`. |
-| `menubar.py` | PyObjC menu bar + popover UI. `# mypy: disable-error-code="import-untyped,misc"` is intentional (PyObjC has no stubs). UI layout constants near the top of the file are part of the visual design — don't tweak casually. **Growth policy: this file has regrown to ~2000 lines twice. New feature logic must land in a leaf module (like `menubar_state.py` / `update_gate.py`); only the thin ObjC dispatch shell goes here.** |
+| `menubar.py` | PyObjC menu bar + popover UI. `# mypy: disable-error-code="import-untyped,misc"` is intentional (PyObjC has no stubs). UI layout constants near the top of the file are part of the visual design — don't tweak casually. **Growth policy: logic has been split out of this file twice and it has grown back past 2000 lines each time (2485 at v0.29.9 — the policy is currently being ignored). New feature logic must land in a leaf module (like `menubar_state.py` / `update_gate.py`); only the thin ObjC dispatch shell goes here.** |
 | `menubar_state.py` | Pure history/state projections consumed by `menubar.py` — kept PyObjC-free so the logic stays unit-testable. |
-| `tui.py`, `tui_sprite.py` | `rich`-based terminal renderer. |
-| `usage_cli.py` | Standalone terminal analytics CLI (`python3 usage_cli.py report`) — drives the `adapters/analyzer/ui` report subsystem without the menu bar. |
-| `doctor.py` | Renders the `python3 main.py --doctor` environment/hook-state diagnostic report. |
-| `usage_lang.py` | Detects `USAGE_LANG` / system locale. |
 | `setup_hook.py` | Idempotent install/uninstall of the Claude Code statusLine hook, including migration of v0.1.x `usag-*` artifacts. Backs up any pre-existing `statusLine` under `settings["usage"]["previousStatusLine"]`. Also owns the shared low-level settings/TOML editing helpers that `session_hooks.py` builds on. |
 | `session_hooks.py` | Install/enable/disable/self-heal for the session companion hooks (session resume, terse mode, terse reminder, Codex terse) — split out of `setup_hook.py`. Depends one-way on `setup_hook.py`; never the reverse. |
-| `usage_statusline.py` | The hook itself. **Stdlib-only** so it can run under macOS's bundled `/usr/bin/python3` (3.9) — that's why `tool.ruff.lint.per-file-ignores` excludes `UP017` (`datetime.UTC`) for this one file; use `timezone.utc` here. |
-| `usage_statusline_forwarder.py` | Multi-hook fan-out. **Stdlib-only** so it can run under macOS's bundled `/usr/bin/python3` (3.9), with the same constraints as `usage_statusline.py`. |
-| `usage_session_resume.py` | SessionStart hook script — injects "where you left off" context into a new Claude Code session. **Stdlib-only** under macOS's bundled `/usr/bin/python3` (3.9), same `UP017` constraint as `usage_statusline.py`. |
-| `update_checker.py` | GitHub Releases update check added in v0.11.0. |
-| `login_item.py` | Login item toggle for launching at login. |
-| `panels/` | HTML panel logic and `NSPopover` / `WKWebView` integration. |
+| `usage_statusline.py`, `usage_statusline_forwarder.py`, `usage_session_resume.py` | The three hook scripts, which run outside the venv: statusLine writer, multi-hook fan-out, SessionStart resume injector. All three are **stdlib-only** so they can run under macOS's bundled `/usr/bin/python3` (3.9) — that's why `tool.ruff.lint.per-file-ignores` excludes `UP017` (`datetime.UTC`) for them; use `timezone.utc` in these files. |
 | `talent_market_bridge.py` | JS↔Python bridge for the AI Talent Market panel (`assets/panels/talent_market.html`) — installs Claude Code subagent persona teams into `~/.claude/agents/` via a bundled `vendor/instate-cli` binary (built by the separate, private `instate` project; gitignored, fetched by `scripts/build_app.sh`). |
-| `adapters/`, `analyzer/`, `ui/` | HTML report subsystem. |
 | `setup_app.py` | `py2app` build script invoked by `scripts/build_app.sh`. Bundles `usage_statusline.py` and asset webps as `Resources/`. |
 
 ### Naming invariant
