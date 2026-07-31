@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-29",
+  "generated_at": "2026-07-31",
   "tools": [
     {
       "id": "claude_code",
@@ -1149,6 +1149,86 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.29.9",
+          "period": "2026-07-29",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "面板能隨你擺放，切換視窗也不會消失",
+                "zh-CN": "面板可随你摆放，切换窗口也不会消失",
+                "en": "Put the panel where you want, and keep it there",
+                "ja": "パネルを好きな場所へ置き、ほかのアプリに切り替えても残せる",
+                "ko": "패널을 원하는 곳에 놓고 다른 앱을 봐도 그대로 둔다"
+              },
+              "body": {
+                "zh-TW": "想把用量面板挪到螢幕邊角，現在直接拖曳空白處就行。它不再只能黏在選單列圖示旁、別的 app 取得焦點就收起，而是無邊框的浮動面板：放到哪裡，下次就從哪裡打開，圓角和陰影也照留著。檢查其他 app 時它仍待在原處；再按一次選單列圖示或按 Escape 才會關。拖曳不會搶走按鈕與捲動區的操作，內容高度變動時也固定左上角，因此不會像量尺從底端拉長般跳來跳去。",
+                "zh-CN": "想把用量面板挪到屏幕边角，现在直接拖动空白处就行。它不再只能黏在菜单栏图标旁、别的 app 获得焦点就收起，而是无边框的浮动面板：放到哪里，下次就从哪里打开，圆角和阴影也照样保留。查看其他 app 时它仍待在原处；再按一次菜单栏图标或按 Escape 才会关闭。拖动不会抢走按钮与滚动区的操作，内容高度变化时也固定左上角，因此不会像尺子从底端拉长般跳来跳去。",
+                "en": "Want the usage panel in a screen corner? Drag any empty spot on it. It is no longer a popover stuck to the menu-bar icon that vanishes when another app gets focus; it is a borderless floating panel that reopens where you left it, with its rounded corners and shadow intact. It stays put while you check another app, and closes only when you click the menu-bar icon again or press Escape. Dragging leaves buttons and scrollable areas alone, while resizing holds the top-left corner still so the panel does not jump like a ruler stretching from its bottom edge.",
+                "ja": "使用量パネルを画面の隅へ置きたいなら、何もない場所をそのままドラッグすればよい。メニューバーのアイコンにしか留まれず、別のアプリにフォーカスが移ると閉じる一時的な表示ではなくなった。枠のないフローティングパネルとなり、置いた場所で再び開き、角丸と影も残る。他のアプリを確認してもそこに留まり、メニューバーのアイコンをもう一度押すか Escape を押したときだけ閉じる。ドラッグはボタンやスクロール領域を奪わず、高さが変わっても左上を固定するため、下端から伸びる定規のように飛び跳ねないのである。",
+                "ko": "사용량 패널을 화면 구석에 놓고 싶다면 빈 곳을 그대로 끌면 된다. 다른 앱이 초점을 받으면 닫히고 메뉴 막대 아이콘에만 붙어 있던 임시 창이 아니라, 테두리 없는 떠 있는 패널이 되었다. 놓은 자리에서 다시 열리고 둥근 모서리와 그림자도 남는다. 다른 앱을 확인해도 제자리에 있으며, 메뉴 막대 아이콘을 한 번 더 누르거나 Escape를 눌러야 닫힌다. 끌기는 버튼과 스크롤 영역을 건드리지 않고, 높이가 바뀌어도 왼쪽 위를 고정하므로 아래쪽에서 늘어나는 자처럼 패널이 펄쩍 뛰지 않는다."
+              },
+              "original": "**The panel can now be placed anywhere on screen**: it was an `NSPopover`, which AppKit anchors to the status item and dismisses the moment focus moves elsewhere, so where it sat was never yours to choose. It is now a borderless floating panel: drag it from any empty spot, and it reopens where you left it. It stays put when another app takes focus — a second click on the menu bar icon, or Escape, closes it. Rounded corners and the drop shadow came free with the popover and are now drawn by the window itself. Dragging travels over the existing JS bridge: an injected script reports a mousedown that landed outside any interactive or scrollable element, and the window hands the gesture to `performWindowDragWithEvent:` so the system drives it. Resizing pins the top-left corner, because a window's origin is its bottom-left and the panel would otherwise appear to jump every time its height tracked a fresh content measurement."
+            },
+            {
+              "title": {
+                "zh-TW": "AI 人才市集面板不再縮成一條",
+                "zh-CN": "AI 人才市场面板不再缩成一条",
+                "en": "The AI Talent Market panel no longer squashes itself flat",
+                "ja": "AI Talent Market のパネルが細い一列に潰れなくなった",
+                "ko": "AI Talent Market 패널이 납작한 줄 하나로 찌그러지지 않는다"
+              },
+              "body": {
+                "zh-TW": "AI 人才市集面板有時一打開只剩標題那一條，隊伍清單像被折進抽屜底部；現在不會了。問題不在資料消失，而是它量高度時暫時放開限制，內部採固定高度、自己捲動的清單剛好被量成零高；又因量測時間不同，才會時好時壞。新版讓各面板決定是否參加這個自動量測。人才市集本來就該固定高度、在裡面捲動，現在跳過自動量測，打開就能看到完整隊伍清單。",
+                "zh-CN": "AI 人才市场面板有时一打开只剩标题那一条，队伍清单像被折进抽屉底部；现在不会了。问题不在数据消失，而是它量高度时暂时放开限制，内部采用固定高度、自己滚动的清单刚好被量成零高；又因测量时间不同，才会时好时坏。新版让各面板决定是否参加这个自动测量。人才市场本来就该固定高度、在里面滚动，现在跳过测量，打开就能看到完整清单。",
+                "en": "The AI Talent Market panel sometimes opened as little more than its header, as if the team list had been folded into the bottom of a drawer. That list was not gone: while the app measured content height, it temporarily released layout constraints, and this fixed-height, internally scrolling list could collapse to zero. Timing made the failure intermittent. Panels can now opt out of that automatic measurement. AI Talent Market was always meant to keep a fixed height and scroll inside it, so it skips the measurement and opens with the full list visible.",
+                "ja": "AI Talent Market のパネルを開くと、時々見出し一行だけになり、チーム一覧が引き出しの底へ折り畳まれたように消えていた。データが消えたのではない。高さを測る間にレイアウトの制限を一時的に外すと、固定の高さで内部スクロールするこの一覧は高さゼロまで縮むことがあった。測定のタイミング次第だったため、起きたり起きなかったりしたのである。今後は各パネルがこの自動測定に参加するか選べる。AI Talent Market は元から固定の高さで中をスクロールする設計なので、測定を飛ばし、完全な一覧を表示して開く。",
+                "ko": "AI Talent Market 패널은 가끔 제목 줄만 남아 팀 목록이 서랍 바닥으로 접혀 들어간 듯 보였다. 데이터가 사라진 것은 아니다. 앱이 내용 높이를 잴 때 배치 제한을 잠시 풀면, 고정 높이 안에서 스스로 스크롤하는 이 목록이 높이 0으로 접힐 수 있었다. 측정 순간에 따라 달라져서 간헐적으로 나타난 문제였다. 이제 각 패널은 이 자동 측정에 참여할지 고를 수 있다. AI Talent Market은 원래 고정 높이 안에서 스크롤하도록 만든 패널이므로 측정을 건너뛰고 전체 목록을 보인 채 열린다."
+              },
+              "original": "**The AI Talent Market panel no longer collapses into a squashed strip**: the panel intermittently opened at roughly the height of its own header, cutting off the team list. The dynamic content-height probe releases the layout's height constraints before measuring, and this panel builds its list as an absolutely positioned layer inside a `flex: 1` body — with the constraints released, that body collapsed to zero and the probe reported little more than the header, which the clamp then rounded up to the minimum panel height. Whether it happened came down to measurement timing, hence the intermittency. Panels now carry a switch for the probe, and this one — a fixed-height design that scrolls internally and never needed measuring — opts out."
+            },
+            {
+              "title": {
+                "zh-TW": "切換面板選單收起時，不再連面板一起關",
+                "zh-CN": "切换面板菜单收起时，不再连面板一起关",
+                "en": "Closing the Switch Panel menu no longer closes the panel too",
+                "ja": "Switch Panel メニューを閉じても、パネルまで閉じなくなった",
+                "ko": "Switch Panel 메뉴를 닫아도 패널까지 함께 닫히지 않는다"
+              },
+              "body": {
+                "zh-TW": "點開「切換面板」選單後，想回去看面板卻把整張面板關掉的烏龍沒了。以前選單打開時，原本的彈出式選單已經消失；清理它的動作卻誤把浮動面板當成也該收掉的東西。因此你按 Escape、點面板或點到別處，選單消失的同時面板也消失。現在清理只會關選單，浮動面板仍會安穩地繼續留在原處，像收起工具抽屜旁的小選單，桌上的工作紙不會一起被掃走。",
+                "zh-CN": "点开“切换面板”菜单后，想回去看面板却把整张面板关掉的乌龙没了。以前菜单打开时，原本的弹出式菜单已经消失；清理它的动作却误把浮动面板当成也该收掉的东西。因此你按 Escape、点面板或点到别处，菜单消失的同时面板也消失。现在清理只会关菜单，浮动面板会留着，像收起工具抽屉旁的小菜单，桌上的工作纸不会一起被扫走。",
+                "en": "The awkward moment when opening the “Switch Panel” menu made the whole panel disappear is gone. Previously, the temporary popover was already finished once the menu took focus, but its cleanup treated the floating panel as something to dismiss too. So pressing Escape, clicking the panel, or clicking elsewhere hid both the menu and the panel. Now cleanup closes only the menu. The floating panel stays, like folding away the little menu beside a tool drawer without sweeping the papers off your desk.",
+                "ja": "「Switch Panel」メニューを開いた後、パネルへ戻ろうとしてパネル全体まで消してしまう事故がなくなった。以前はメニューにフォーカスが移る時点で一時的なポップオーバーはすでに役目を終えていたが、その後始末がフローティングパネルまで閉じる対象として扱っていた。そのため Escape を押す、パネルをクリックする、ほかの場所をクリックすると、メニューと同時にパネルも消えた。今は後始末が閉じるのはメニューだけである。道具箱脇の小さなメニューを畳んでも、机上の作業用紙まで掃き落とさないようなものである。",
+                "ko": "“Switch Panel” 메뉴를 연 뒤 패널로 돌아가려다 패널 전체를 닫아 버리던 일이 사라졌다. 예전에는 메뉴가 초점을 받을 때 임시 팝오버가 이미 제 역할을 마쳤는데, 그 뒷정리가 떠 있는 패널까지 닫을 대상으로 여겼다. 그래서 Escape를 누르거나 패널을 누르거나 다른 곳을 누르면 메뉴와 패널이 함께 사라졌다. 이제 뒷정리는 메뉴만 닫는다. 도구 서랍 옆의 작은 메뉴를 접어도 책상 위 작업지를 쓸어 버리지는 않는 것과 같다."
+              },
+              "original": "**Dismissing the switch-panel menu no longer closes the panel**: opening \"Switch Panel\" and then clicking the panel itself, pressing Escape, or clicking away closed the whole panel. A transient popover was already gone by the time the menu took focus, so closing it was merely cleanup; the floating panel survives the menu, which turned the same cleanup into a mistouch that threw the panel away."
+            }
+          ]
+        },
+        {
+          "version": "0.29.8",
+          "period": "2026-07-29",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "切換面板不再把視窗送回主螢幕",
+                "zh-CN": "切换面板不再把窗口送回主屏",
+                "en": "Panel switching keeps your window on its monitor",
+                "ja": "パネルを切り替えてもウィンドウが主モニターへ戻らない",
+                "ko": "패널을 바꿔도 창이 주 모니터로 돌아가지 않는다"
+              },
+              "body": {
+                "zh-TW": "你把 Usage 的面板（跳出的浮動小視窗）拖到第二台螢幕，換個面板樣式或主題後，它終於不會又跳回主螢幕。以前 Windows 只把主螢幕可用範圍交給程式，程式每次重新定位面板時便拿錯尺，硬把第二台螢幕上的視窗推回去；現在會依面板目前或記住的位置，找出它所在螢幕的可用範圍再定位，所以換樣式後仍留在原處。單螢幕也一併修好：面板切換時會暫留前一種樣式量到的高度，等真正高度測完，不再先用接近全螢幕的假高度把你拖好的位置往上擠。像搬家工人終於先看你住哪一棟，再把家具放回那一棟，而不是一律送回一樓。",
+                "zh-CN": "你把 Usage 的面板（弹出的浮动小窗口）拖到第二块屏幕后，切换面板样式或主题，它终于不会再跳回主屏。以前 Windows 只把主屏可用范围交给程序，程序每次重新定位面板时便拿错尺子，硬把第二块屏幕上的窗口推回去；现在会按面板当前或记住的位置，找出它所在屏幕的可用范围再定位，因此切换样式后仍留在原处。单屏也一并修好：切换面板时会暂留前一种样式量到的高度，等真正高度测完，不再先用接近全屏的假高度把你拖好的位置往上挤。像搬家工人终于先看你住哪一栋，再把家具放回那一栋，而不是一律送回一楼。",
+                "en": "After you drag Usage's panel (a small floating pop-up) to a second monitor, switching its style or theme will finally leave it there. Windows had only handed the app the primary display's usable area, so each reposition used the wrong ruler and shoved the panel back onto the primary monitor. It now identifies the usable area for the display containing the panel's current or remembered position. On a single monitor, it also retains the previous style's measured height while the new one is measured, instead of briefly using a near-fullscreen placeholder that pushes your window upward. Like movers checking which building you live in before returning furniture, rather than always dumping it in the lobby.",
+                "ja": "Usage のパネル（画面上に浮かぶ小さなウィンドウ）を二台目のモニターへドラッグした後、パネルの見た目やテーマを切り替えても、主モニターへ戻されなくなった。以前は Windows が主モニターの使える範囲しかアプリに渡さず、パネルを置き直すたびに物差しを取り違えて二台目から押し戻していた。今はパネルの現在位置または記憶した位置があるモニターの範囲を調べて配置するため、切り替え後もその場に残る。一台だけの環境でも、見た目の切り替え中は前の高さを仮に使い、本当の高さを測る前に全画面に近い仮の高さでウィンドウを上へ押しやらない。引っ越し屋が住んでいる棟を確かめて家具を戻し、いつも一階へ運び込まないようなものである。",
+                "ko": "Usage 패널(화면 위에 떠 있는 작은 창)을 두 번째 모니터로 끌어 놓은 뒤 패널 모양이나 테마를 바꿔도, 이제 주 모니터로 되돌아가지 않는다. 예전에는 Windows가 주 모니터의 사용 가능한 범위만 앱에 알려 주었고, 앱은 패널 위치를 다시 잡을 때마다 엉뚱한 자를 대 두 번째 모니터의 창을 밀어냈다. 이제는 패널의 현재 위치나 기억해 둔 위치가 있는 모니터의 범위를 찾아 배치하므로, 전환 뒤에도 그대로 남는다. 모니터 한 대만 쓸 때도 이전 모양에서 재 둔 높이를 새 높이가 측정될 때까지 임시로 유지해, 거의 전체 화면 크기의 임시 높이가 창을 위로 떠밀지 않는다. 이삿짐센터가 어느 동에 사는지 확인하고 가구를 되돌려 주며, 늘 1층에만 내려놓지 않는 것과 같다."
+              },
+              "original": "**The Windows panel no longer snaps back to the primary monitor on every panel switch**: dragging the popover onto a second display and then switching panel style (or theme) forced it right back onto the primary monitor. Windows' `SPI_GETWORKAREA` API only ever reports the *primary* monitor's work area, and the window was clamped against that single rectangle on every reposition regardless of which monitor it actually lived on — so a window dragged onto a secondary display got clamped straight back onto the primary one the next time the panel reloaded. Placement now looks up the work area of whichever monitor the window's current (or saved) position falls on via `MonitorFromPoint`/`GetMonitorInfoW`, so a window on a secondary display stays there across panel switches. A related issue on a single monitor is fixed alongside it: switching panels reset the remembered content height to `None`, so the window was briefly clamped against each panel's near-fullscreen placeholder height (`PANEL_HEIGHTS`) before its real height was measured, which could shove a dragged window toward the top of the screen; the previous panel's measured height is now kept as the transitional estimate instead."
+            }
+          ]
+        },
+        {
           "version": "0.29.7",
           "period": "2026-07-29",
           "items": [
@@ -1168,52 +1248,6 @@
                 "ko": "Usage 패널을 열어 Codex의 주간 할당량을 볼 때 아래쪽에 이유 없는 빈 띠가 남지 않는다. 예전에는 패널 높이를 고정된 기본값으로 정했다. Codex가 주간 기간만 보고하고 5시간 데이터가 없으면 할당량 카드에서 한 줄이 사라져도 남는 높이는 그대로였다. 이제 새로 고칠 때마다 패널이 자기 내용의 자연스러운 높이를 재고, 창도 내용에 맞춰 크기를 바꾼다. 사용할 수 있는 화면 범위는 넘지 않으며, 측정할 수 없을 때는 기존 값을 백업으로 쓴다. 맞춤옷의 단처럼 내용이 한 줄 줄면 길이도 한 줄 줄어드는 셈이다. 단, World Cup의 경기장 테마는 전체 창 배경을 일부러 남겨야 하므로 그 영역을 표시해 원래 높이를 유지한다."
               },
               "original": "**The panel no longer leaves an empty strip at the bottom**: panel height came from a fixed per-panel constant, so any layout that rendered shorter than the registered value left dead space below the footer. The common trigger is Codex reporting only a weekly window with no 5-hour data, which drops a quota row from the card. The panel now measures its own natural height after each refresh and the window resizes to match, clamped to the usable screen area; the registered constants stay as the pre-measurement default and as the fallback when a measurement is unusable. A panel that deliberately leaves room for a full-window backdrop — World Cup's pitch is the only one — marks that region so it keeps its designed height instead of collapsing while the measurement releases the layout's height constraints."
-            }
-          ]
-        },
-        {
-          "version": "0.29.6",
-          "period": "2026-07-29",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Windows 狀態列不再永遠空白",
-                "zh-CN": "Windows 状态栏不再永远空白",
-                "en": "Windows status line no longer stays blank forever",
-                "ja": "Windowsのステータス行がずっと空白のままにならない",
-                "ko": "Windows 상태 표시줄이 더는 계속 비어 있지 않다."
-              },
-              "body": {
-                "zh-TW": "Windows 電腦沒裝 Python 時，Claude Code 面板不會再永遠只顯示「--」。安裝程式原本只看 PATH（告訴電腦去哪找程式的搜尋名單）裡有沒有 `python` 或 `py`，卻沒確認它能不能跑；Windows 10、11 內建的 App Execution Alias 只是引你去 Microsoft Store 安裝的假 `python.exe`，也會被誤認。於是 statusLine hook（顯示在終端機最底下狀態列的掛鉤小程式）每次更新都靜悄悄失敗，`usage-status.json` 沒寫出來，面板便一直空白。現在安裝程式會先用 `--version` 實測候選程式，不能執行就跳過。像插座看似有孔、裡頭卻沒接電；現在會先試亮測電筆，才把線接上。",
-                "zh-CN": "Windows 电脑没装 Python 时，Claude Code 面板不会再永远只显示“--”。安装程序原本只看 PATH（告诉电脑去哪里找程序的搜索名单）里有没有 `python` 或 `py`，却没确认它能不能运行；Windows 10、11 内置的 App Execution Alias 只是把人引去 Microsoft Store 安装的假 `python.exe`，也会被误认。于是 statusLine hook（显示在终端最底部状态栏的挂钩小程序）每次刷新都悄悄失败，`usage-status.json` 没有写出来，面板便一直空白。现在安装程序会先用 `--version` 实测候选程序，不能执行就跳过。像插座看似有孔、里面却没接电；现在会先用测电笔验过，才把线接上。",
-                "en": "On a Windows PC without Python, the Claude Code panel will no longer show `--` forever. The installer used to trust any `python` or `py` found on PATH (the list of places Windows searches for programs) without checking whether it could run. Windows 10 and 11 ship an App Execution Alias: a placeholder `python.exe` that only sends you to Microsoft Store, yet it was mistaken for Python. The statusLine hook, a small program that updates the bottom status line, then failed silently on every refresh, so `usage-status.json` was never written. Now each candidate must pass `--version` first. It is like testing an outlet before plugging in the appliance.",
-                "ja": "Windows で Python を入れていない場合でも、Claude Code のパネルが `--` のまま永遠に空白になることはなくなった。以前のインストーラーは、PATH（プログラムを探す場所の一覧）にある `python` や `py` を、実行できるか確かめずに採用していた。Windows 10／11 の App Execution Alias は Microsoft Store の導入画面へ送るだけの仮の `python.exe` だが、これも本物と取り違えられていた。その結果、statusLine hook（端末の最下部にある状態行を更新する小さなプログラム）が更新のたびに黙って失敗し、`usage-status.json` が作られず、パネルは空白のままだった。今は候補ごとに `--version` を実行し、動かなければ飛ばす。差し込む前にコンセントへ検電器を当てるような修正である。",
-                "ko": "Windows에 Python을 설치하지 않았어도 Claude Code 패널이 `--`만 보인 채 계속 비어 있지는 않는다. 설치 프로그램은 원래 PATH(컴퓨터가 프로그램을 찾는 위치 목록)에서 찾은 `python`이나 `py`가 실제로 실행되는지 확인하지 않고 골랐다. Windows 10과 11에 기본으로 있는 App Execution Alias는 Microsoft Store 설치 화면으로 보내기만 하는 가짜 `python.exe`인데도 진짜 Python으로 잘못 판단됐다. 그 결과 statusLine hook(터미널 맨 아래 상태 표시줄을 갱신하는 작은 프로그램)이 매번 조용히 실패했고, `usage-status.json`이 만들어지지 않아 패널이 빈 채로 남았다. 이제는 후보마다 `--version`을 먼저 실행해 보고, 실행되지 않으면 건너뛴다. 전자제품을 꽂기 전에 콘센트에 전기가 오는지 검사하는 것과 같다."
-              },
-              "original": "**Claude Code panel no longer stays blank forever on Windows**: the installer picked whichever `python`/`py` `shutil.which()` found on `PATH` without checking it actually ran, so on any Windows machine without a real Python install, it silently wired the statusLine hook to Windows' non-functional \"App Execution Alias\" stub (the placeholder `python.exe`/`python3.exe` that Windows 10/11 ships by default to prompt a Microsoft Store install). The hook then failed silently on every refresh, `usage-status.json` was never written, and the Claude Code panel showed `--` permanently — not a first-run loading state. The installer now actually runs each candidate with `--version` before trusting it, and skips any that don't execute."
-            }
-          ]
-        },
-        {
-          "version": "0.29.5",
-          "period": "2026-07-27",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "AI Council 少帶一箱工具，Claude 額度更省",
-                "zh-CN": "AI Council 少带一箱工具，Claude 额度更省",
-                "en": "AI Council stops hauling unused tools into every Claude turn",
-                "ja": "AI Council が不要な道具箱を持ち込まず、Claude の利用枠を節約",
-                "ko": "AI Council이 매 차례 쓸데없는 도구 상자를 빼고 Claude 사용량을 아낀다"
-              },
-              "body": {
-                "zh-TW": "AI Council 裡的 Claude 成員明明被要求只討論，卻每回合還背著一整箱用不到的工具，會白佔你的 Claude 額度。先前在沒有附上專案資料夾時，`claude -p` 沒有傳入 `--tools`，Claude Code 仍會把 Bash、Edit、Write 等內建工具（讓 AI 能執行終端機、編輯與寫入檔案的能力）整套塞進每回合的輸入。現在此情況會明確傳入 `--tools \"\"`，把工具箱留在門外。每次 Claude 呼叫也會加上 `--exclude-dynamic-system-prompt-sections`，讓系統提示詞（AI 每回合先讀的固定規則）開頭在各回合維持位元組完全一致，較有機會命中 Anthropic 的自動提示詞快取（把已處理內容暫存直接沿用），少花重複額度。這只影響 Claude；Codex 和 Antigravity 成員不變。",
-                "zh-CN": "AI Council 里的 Claude 成员明明被要求只讨论，却每回合还背着一整箱用不到的工具，会白占你的 Claude 额度。此前没有附上项目文件夹时，`claude -p` 没有传入 `--tools`，Claude Code 仍会把 Bash、Edit、Write 等内置工具（让 AI 能执行终端、编辑与写入文件的能力）整套塞进每回合的输入。现在这种情况会明确传入 `--tools \"\"`，把工具箱留在门外。每次 Claude 调用也会加上 `--exclude-dynamic-system-prompt-sections`，让系统提示词（AI 每回合先读的固定规则）开头在各回合维持字节完全一致，更有机会命中 Anthropic 的自动提示词缓存（把已处理内容暂存后直接沿用），少花重复额度。这只影响 Claude；Codex 和 Antigravity 成员不变。",
-                "en": "In AI Council, Claude participants are told to discuss rather than use tools, yet they used to carry a whole unused toolbox into every turn, consuming Claude quota. When `claude -p` ran without an attached project folder, it omitted `--tools`, so Claude Code still packed its built-in tools—Bash, Edit, Write, and more—into each turn's input. It now explicitly sends `--tools \"\"` in that case, leaving the toolbox outside. Every Claude call also adds `--exclude-dynamic-system-prompt-sections`, keeping the system-prompt prefix byte-for-byte stable across turns and giving Anthropic's automatic prompt cache a better chance to reuse it. Codex and Antigravity participants are unchanged.",
-                "ja": "AI Council の Claude 参加者は議論だけをするよう指示されているのに、毎ターン使わない道具箱まで抱え、Claude の利用枠を余計に使っていた。プロジェクトフォルダを付けずに `claude -p` を実行すると、以前は `--tools` が渡されず、Claude Code が Bash、Edit、Write などの内蔵ツール（AI が端末操作やファイル編集・書き込みを行うための機能）を毎ターンの入力に丸ごと入れていた。今はこの場合に `--tools \"\"` を明示し、道具箱を外に置く。さらに全 Claude 呼び出しで `--exclude-dynamic-system-prompt-sections` を加え、システムプロンプト（AI が各ターンの前に読む固定ルール）の先頭をターン間でバイト単位まで同一に保つ。これにより Anthropic の自動プロンプトキャッシュが再利用できる可能性が高まる。Codex と Antigravity の参加者は変わらない。",
-                "ko": "AI Council의 Claude 참여자는 토론만 하라는 지시를 받는데도, 매 차례 쓰지도 않을 도구 상자를 들고 와 Claude 사용량을 괜히 차지하곤 했다. 프로젝트 폴더를 붙이지 않고 `claude -p`를 실행하면 예전에는 `--tools`가 빠져, Claude Code가 Bash, Edit, Write 등 내장 도구(AI가 터미널을 실행하고 파일을 편집·작성하는 기능)를 매 차례 입력에 통째로 넣었다. 이제 이 경우 `--tools \"\"`를 명시해 도구 상자를 문밖에 둔다. 모든 Claude 호출에는 `--exclude-dynamic-system-prompt-sections`도 추가한다. 이로써 시스템 프롬프트(AI가 매 차례 먼저 읽는 고정 규칙)의 앞부분이 차례마다 바이트 단위까지 같아져 Anthropic의 자동 프롬프트 캐시가 다시 쓸 가능성이 커진다. Codex와 Antigravity 참여자는 영향이 없다."
-              },
-              "original": "**AI Council spends less Claude quota per turn**: `claude -p` calls without an attached project folder used to omit `--tools` entirely, so Claude Code loaded its full built-in toolset — Bash, Edit, Write, and the rest — into every turn's input even though the council prompt already tells participants not to call tools. Calls now pass `--tools \"\"` when no project folder is attached, and every Claude call adds `--exclude-dynamic-system-prompt-sections` to keep the system prompt prefix byte-stable across turns for a better shot at Anthropic's automatic prompt caching. Codex and Antigravity participants are unaffected."
             }
           ]
         }
