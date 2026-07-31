@@ -14,17 +14,22 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from datetime import time as datetime_time
 from pathlib import Path
-from typing import TypedDict
+from typing import TYPE_CHECKING, TypedDict
 
 import codex_loader
 from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
-from history_loader import CLAUDE_PROJECTS_DIR, UsageEntry
+from history_loader import CLAUDE_PROJECTS_DIR, UsageEntry, load_entries
 from i18n import _t
+from menubar_prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order
 from pricing import calculate_cost
 from service_status import ServiceStatus
+from statusline_settings import _statusline_enabled
 from time_utils import parse_iso8601_utc_or_raise
 from usage_client import PollOutcome, PollState
 from usage_rate import GROUP_NAMES
+
+if TYPE_CHECKING:
+    from panels.base import Panel as UsagePanel
 
 FILE_EVENT_REFRESH_MIN_INTERVAL_S = 30.0
 HISTORY_FULL_SCAN_INTERVAL_S = 15 * 60.0
@@ -88,6 +93,9 @@ WEEKLY_FORECAST_WINDOW_SECONDS = 30 * 60
 WEEKLY_FORECAST_MIN_SPAN_SECONDS = 30 * 60
 SESSION_WINDOW_SECONDS = 5 * 3600
 WEEKLY_WINDOW_SECONDS = 7 * 86400
+BUTTON_HEIGHT = 32.0
+INSTALL_BUTTON_EXTRA_HEIGHT = BUTTON_HEIGHT + 10.0
+SERVICE_ALERT_GAP = 4.0
 
 
 def _bar_color(pct: float, brand: tuple[float, float, float]) -> tuple[float, float, float]:
@@ -885,3 +893,147 @@ def _format_percent(value: float) -> str:
     if value.is_integer():
         return str(int(value))
     return f"{value:.1f}"
+
+
+def popover_dimensions(
+    state: PopoverState, panel: UsagePanel | None = None
+) -> tuple[float, float]:
+    # Imported here, not at module scope: panels pulls in PyObjC, and this
+    # module stays importable without the ObjC runtime so the projections
+    # above remain unit-testable.
+    import panels
+
+    active_panel = panel if panel is not None else panels.get_panel("classic")
+    width, base_height = active_panel.preferred_size()
+    claude_deduct = active_panel.claude_card_height if state.hide_claude else 0.0
+    codex_deduct = active_panel.codex_card_height if state.hide_codex else 0.0
+    codex_missing_rows = sum(
+        not row.title for row in (state.codex_session, state.codex_weekly)
+    )
+    codex_row_deduct = (
+        getattr(active_panel, "codex_row_height", 0.0) * codex_missing_rows
+        if not state.hide_codex and active_panel.codex_card_height > 0
+        else 0.0
+    )
+    agy_card_height = getattr(active_panel, "agy_card_height", 0.0)
+    agy_deduct = agy_card_height if state.hide_agy else 0.0
+    install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
+    status_extra = (
+        getattr(active_panel, "status_wrap_extra_height", 0.0)
+        if state.status_long
+        else 0.0
+    )
+    codex_credits_extra = (
+        24.0
+        if active_panel.id == "classic" and state.codex_credits is not None and not state.hide_codex
+        else 0.0
+    )
+    service_alert_height = getattr(active_panel, "service_alert_height", 0.0)
+    alert_count = len(state.service_alerts) if service_alert_height else 0
+    service_alert_extra = service_alert_height * alert_count + SERVICE_ALERT_GAP * max(
+        alert_count - 1, 0
+    )
+    height = (
+        base_height
+        + install_extra
+        + status_extra
+        + codex_credits_extra
+        + service_alert_extra
+        - claude_deduct
+        - codex_deduct
+        - codex_row_deduct
+        - agy_deduct
+    )
+    return width, height
+
+
+def _classify_history_load_error(exc: Exception) -> str:
+    if isinstance(exc, OSError):
+        return "history_load_error_file"
+    if isinstance(exc, (ValueError, KeyError, TypeError)):
+        return "history_load_error_parse"
+    return "history_load_error_unknown"
+
+
+def _empty_state(language: str = "en") -> PopoverState:
+    import menubar_agy
+
+    return PopoverState(
+        language=language,
+        claude_session=_missing_row(_t(language, "session_label"), CLAUDE_COLOR, language),
+        claude_weekly=_missing_row(_t(language, "weekly_label"), CLAUDE_COLOR, language),
+        codex_session=_missing_row(_t(language, "session_label"), CODEX_COLOR, language),
+        codex_weekly=_missing_row(_t(language, "weekly_label"), CODEX_COLOR, language),
+        agy_session=_missing_row(_t(language, "session_label"), AGY_COLOR, language),
+        agy_weekly=_missing_row(_t(language, "weekly_label"), AGY_COLOR, language),
+        agy_group_name="",
+        projects=[],
+        projects_7d=[],
+        projects_30d=[],
+        projects_all=[],
+        rate_text=_t(language, "rate_text", value="--"),
+        status_text=_t(language, "status_text", value=_t(language, "status_loading")),
+        today_text=_t(language, "today_text", cost="0.00", tokens="0"),
+        statusline=_statusline_payload(language),
+        service_alerts=(),
+        show_install_button=False,
+        hide_claude=_hide_claude_enabled(),
+        hide_codex=_hide_codex_enabled(),
+        # Keep the card mounted while the first background probe is running.
+        # Otherwise startup shows the shorter layout until agy finishes, which
+        # looks like the integration never loaded even though the child process
+        # is already active.
+        hide_agy=menubar_agy.find_agy() is None,
+        card_order=_quota_card_order(),
+    )
+
+
+def _error_state(message: str, mock: bool, language: str = "en") -> PopoverState:
+    state = _empty_state(language)
+    state.status_text = _t(
+        language,
+        "status_text",
+        value=_t(language, "status_error", message=message),
+    )
+    state.today_text = _today_title(mock, language)
+    state.show_install_button = False
+    return state
+
+
+def _statusline_payload(language: str) -> dict[str, object]:
+    return {
+        "enabled": _statusline_enabled(),
+        "enabledText": _t(language, "cli_enabled"),
+        "disabledText": _t(language, "cli_disabled"),
+    }
+
+
+def _today_title(
+    mock: bool = False,
+    language: str = "en",
+    entries: list[UsageEntry] | None = None,
+) -> str:
+    if mock:
+        return _t(language, "today_text", cost="45.20", tokens="50,193,442")
+
+    try:
+        today = datetime.now().astimezone().date()
+        total_tokens = 0
+        total_cost = 0.0
+
+        all_entries = (
+            entries
+            if entries is not None
+            else list(load_entries(hours_back=24)) + codex_loader.load_entries(hours_back=24)
+        )
+        for entry in all_entries:
+            if entry.timestamp.astimezone().date() != today:
+                continue
+            total_tokens += entry.total_tokens
+            total_cost += calculate_cost(entry)
+    except Exception:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("today totals load failed", exc_info=True)
+        return _t(language, "today_text", cost="0.00", tokens="0")
+
+    return _t(language, "today_text", cost=f"{total_cost:.2f}", tokens=f"{total_tokens:,}")

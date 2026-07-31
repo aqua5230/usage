@@ -344,7 +344,7 @@ def test_today_title_returns_zero_fallback_when_loaders_fail(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        menubar,
+        menubar_state,
         "load_entries",
         lambda *, hours_back=24: (_ for _ in ()).throw(OSError),
     )

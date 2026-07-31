@@ -101,6 +101,9 @@ from menubar_state import (
     DANGER_COLOR as DANGER_COLOR,
 )
 from menubar_state import (
+    SERVICE_ALERT_GAP as SERVICE_ALERT_GAP,
+)
+from menubar_state import (
     WARN_COLOR as WARN_COLOR,
 )
 from menubar_state import (
@@ -116,10 +119,25 @@ from menubar_state import (
     _bar_color as _bar_color,
 )
 from menubar_state import (
+    _classify_history_load_error as _classify_history_load_error,
+)
+from menubar_state import (
+    _empty_state as _empty_state,
+)
+from menubar_state import (
+    _error_state as _error_state,
+)
+from menubar_state import (
     _format_percent as _format_percent,
 )
 from menubar_state import (
     _group_name as _group_name,
+)
+from menubar_state import (
+    _statusline_payload as _statusline_payload,
+)
+from menubar_state import (
+    _today_title as _today_title,
 )
 from menubar_state import (
     format_human_time as format_human_time,
@@ -138,7 +156,7 @@ from panels.base import (
 )
 from panels.dynamic_height import clamp_content_height
 from prefs import _load_preferences, _save_preferences
-from pricing import calculate_cost, warm_up_pricing
+from pricing import warm_up_pricing
 from service_status import CLAUDE_STATUS, CODEX_STATUS, get_service_status
 from statusline_settings import (
     _claude_settings_path as _claude_settings_path,
@@ -198,9 +216,6 @@ __all__ = [
     "_window_keeper_enabled",
 ]
 
-BUTTON_HEIGHT = 32.0
-INSTALL_BUTTON_EXTRA_HEIGHT = BUTTON_HEIGHT + 10.0
-SERVICE_ALERT_GAP = 4.0
 UPDATE_DISMISS_SECONDS = 24 * 3600
 UPDATE_ALERT_BODY_LIMIT = 2000
 SLOW_POLL_INTERVAL_S = 300.0
@@ -2169,107 +2184,8 @@ def _analysis_period_from_project_range(project_range: str) -> str:
 
 
 def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
-    active_panel = panel if panel is not None else panels.get_panel("classic")
-    width, base_height = active_panel.preferred_size()
-    claude_deduct = active_panel.claude_card_height if state.hide_claude else 0.0
-    codex_deduct = active_panel.codex_card_height if state.hide_codex else 0.0
-    codex_missing_rows = sum(
-        not row.title for row in (state.codex_session, state.codex_weekly)
-    )
-    codex_row_deduct = (
-        getattr(active_panel, "codex_row_height", 0.0) * codex_missing_rows
-        if not state.hide_codex and active_panel.codex_card_height > 0
-        else 0.0
-    )
-    agy_card_height = getattr(active_panel, "agy_card_height", 0.0)
-    agy_deduct = agy_card_height if state.hide_agy else 0.0
-    install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
-    status_extra = (
-        getattr(active_panel, "status_wrap_extra_height", 0.0)
-        if state.status_long
-        else 0.0
-    )
-    codex_credits_extra = (
-        24.0
-        if active_panel.id == "classic" and state.codex_credits is not None and not state.hide_codex
-        else 0.0
-    )
-    service_alert_height = getattr(active_panel, "service_alert_height", 0.0)
-    alert_count = len(state.service_alerts) if service_alert_height else 0
-    service_alert_extra = service_alert_height * alert_count + SERVICE_ALERT_GAP * max(
-        alert_count - 1, 0
-    )
-    height = (
-        base_height
-        + install_extra
-        + status_extra
-        + codex_credits_extra
-        + service_alert_extra
-        - claude_deduct
-        - codex_deduct
-        - codex_row_deduct
-        - agy_deduct
-    )
+    width, height = menubar_state.popover_dimensions(state, panel)
     return NSMakeSize(width, height)
-
-
-def _classify_history_load_error(exc: Exception) -> str:
-    if isinstance(exc, OSError):
-        return "history_load_error_file"
-    if isinstance(exc, (ValueError, KeyError, TypeError)):
-        return "history_load_error_parse"
-    return "history_load_error_unknown"
-
-
-def _empty_state(language: str = "en") -> PopoverState:
-    return PopoverState(
-        language=language,
-        claude_session=_missing_row(_t(language, "session_label"), CLAUDE_COLOR, language),
-        claude_weekly=_missing_row(_t(language, "weekly_label"), CLAUDE_COLOR, language),
-        codex_session=_missing_row(_t(language, "session_label"), CODEX_COLOR, language),
-        codex_weekly=_missing_row(_t(language, "weekly_label"), CODEX_COLOR, language),
-        agy_session=_missing_row(_t(language, "session_label"), menubar_state.AGY_COLOR, language),
-        agy_weekly=_missing_row(_t(language, "weekly_label"), menubar_state.AGY_COLOR, language),
-        agy_group_name="",
-        projects=[],
-        projects_7d=[],
-        projects_30d=[],
-        projects_all=[],
-        rate_text=_t(language, "rate_text", value="--"),
-        status_text=_t(language, "status_text", value=_t(language, "status_loading")),
-        today_text=_t(language, "today_text", cost="0.00", tokens="0"),
-        statusline=_statusline_payload(language),
-        service_alerts=(),
-        show_install_button=False,
-        hide_claude=_hide_claude_enabled(),
-        hide_codex=_hide_codex_enabled(),
-        # Keep the card mounted while the first background probe is running.
-        # Otherwise startup shows the shorter layout until agy finishes, which
-        # looks like the integration never loaded even though the child process
-        # is already active.
-        hide_agy=menubar_agy.find_agy() is None,
-        card_order=_quota_card_order(),
-    )
-
-
-def _error_state(message: str, mock: bool, language: str = "en") -> PopoverState:
-    state = _empty_state(language)
-    state.status_text = _t(
-        language,
-        "status_text",
-        value=_t(language, "status_error", message=message),
-    )
-    state.today_text = _today_title(mock, language)
-    state.show_install_button = False
-    return state
-
-
-def _statusline_payload(language: str) -> dict[str, object]:
-    return {
-        "enabled": _statusline_enabled(),
-        "enabledText": _t(language, "cli_enabled"),
-        "disabledText": _t(language, "cli_disabled"),
-    }
 
 
 def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
@@ -2312,34 +2228,3 @@ def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("forwarder prompt dismissal failed", exc_info=True)
-
-
-def _today_title(
-    mock: bool = False,
-    language: str = "en",
-    entries: list[UsageEntry] | None = None,
-) -> str:
-    if mock:
-        return _t(language, "today_text", cost="45.20", tokens="50,193,442")
-
-    try:
-        today = datetime.now().astimezone().date()
-        total_tokens = 0
-        total_cost = 0.0
-
-        all_entries = (
-            entries
-            if entries is not None
-            else list(load_entries(hours_back=24)) + codex_loader.load_entries(hours_back=24)
-        )
-        for entry in all_entries:
-            if entry.timestamp.astimezone().date() != today:
-                continue
-            total_tokens += entry.total_tokens
-            total_cost += calculate_cost(entry)
-    except Exception:
-        if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("today totals load failed", exc_info=True)
-        return _t(language, "today_text", cost="0.00", tokens="0")
-
-    return _t(language, "today_text", cost=f"{total_cost:.2f}", tokens=f"{total_tokens:,}")
