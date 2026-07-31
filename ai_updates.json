@@ -557,6 +557,233 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.146.0",
+          "period": "2026-07-29",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "對話能命名、釘選，也能岔出去再回來",
+                "zh-CN": "对话能命名、置顶，也能岔出去再回来",
+                "en": "Name, pin, and branch your conversations",
+                "ja": "会話に名前を付け、固定し、脇道にもそれる",
+                "ko": "대화 이름을 붙이고 고정하며 옆길로 샐 수 있다"
+              },
+              "body": {
+                "zh-TW": "做專案做到一半，常會想另問一個題外問題，又怕把原本脈絡沖淡。現在可用 `/new` 或 `/clear` 替新工作階段命名，把重要執行緒釘在清單上，也能切到旁支對話後保留原對話。名稱、釘選與切換各做各的，原本的內容不必為了岔題收掉。它像桌上幾張貼著標籤的便條：急著處理的那張別壓到最底下，臨時寫的岔題也不用把主筆記塗得滿頁都是。下次回來時，還找得到原本做到哪裡。",
+                "zh-CN": "项目做到一半，常会想另问一个题外问题，又怕冲淡原来的脉络。现在可用 `/new` 或 `/clear` 给新会话命名，把重要线程置顶，也能切到旁支对话后保留原对话。它像桌上几张贴着标签的便签：急着处理的那张别压到最底下，临时写的岔题也不用把主笔记涂得满页都是。下次回来时，仍找得到原本做到哪里。",
+                "en": "Mid-project, you may need to ask a side question without muddying the main thread. `/new` and `/clear` can name a new session, important threads can be pinned, and side conversations can be opened without closing the original one. Think of labeled notes on a desk: keep the urgent one visible and put the detour on its own sheet, so you can return to the work where you left it.",
+                "ja": "作業の途中で脇の質問をしたくなっても、元の流れを濁さずに済む。`/new` と `/clear` で新しいセッションに名前を付け、重要なスレッドを固定し、元の会話を閉じずに脇道の会話へ移れる。机上の付箋のように、急ぎの一枚を埋もれさせず、脱線は別の紙に書ける。戻ったとき、作業の続きが見つかるのである。",
+                "ko": "작업 중에 딴 질문이 떠올라도 원래 흐름을 흐리지 않아도 된다. `/new`와 `/clear`로 새 세션에 이름을 붙이고, 중요한 스레드를 고정하며, 원래 대화를 닫지 않고 곁가지 대화로 옮길 수 있다. 책상 위의 이름표 붙은 메모처럼 급한 메모는 눈앞에 두고 샛길은 별도 종이에 적는 셈이다. 돌아왔을 때 하던 일을 다시 찾을 수 있다."
+              },
+              "original": "Name new sessions with `/new` or `/clear`, pin important threads, and switch between side conversations without closing them. (#34605, #34840, #35011)"
+            },
+            {
+              "title": {
+                "zh-TW": "代理外掛可發佈，也多了兩個市集入口",
+                "zh-CN": "代理插件可发布，也多了两个市场入口",
+                "en": "Publish agent plugins and reach more marketplaces",
+                "ja": "エージェント用プラグインを公開し、市場の入口も増える",
+                "ko": "에이전트 플러그인을 올리고 더 많은 마켓을 쓴다"
+              },
+              "body": {
+                "zh-TW": "你替團隊做了一個讓代理照固定流程做事的外掛，現在有更正式的包裝與發佈路徑。Codex 支援 Agent Plugins 的 manifest（描述外掛內容與用法的清單檔），可從工作區發佈，Amazon Bedrock 與 Claude Code 的額外外掛市集也能使用。這像替自己做的工具補上產品標籤、放上共同貨架；別人知道它是什麼，才能找到並安裝它。",
+                "zh-CN": "你替团队做了一个让代理按固定流程做事的插件，现在有更正式的包装与发布路径。Codex 支持 Agent Plugins 的 manifest（描述插件内容与用法的清单文件），可从工作区发布，Amazon Bedrock 与 Claude Code 的额外插件市场也能使用。这像给自己做的工具补上产品标签、放上共同货架；别人知道它是什么，才能找到并安装它。",
+                "en": "If your team built an add-on that guides an agent through a repeatable job, it now has a clearer way to be packaged and shared. Codex supports Agent Plugin manifests, workspace publishing, and extra plugin marketplaces for Amazon Bedrock and Claude Code. It is like putting a label on a tool you made and placing it on a shared shelf: people can identify it, find it, and install it.",
+                "ja": "チーム向けに、エージェントへ決まった仕事をさせる追加部品を作ったなら、より正式な梱包と公開の道ができた。Codex は Agent Plugins の manifest、ワークスペースからの公開、Amazon Bedrock と Claude Code 向け追加マーケットプレイスを扱える。自作の道具に品札を付け、共用の棚に載せるようなものだ。何の道具か分かれば、人が見つけて導入できるのである。",
+                "ko": "팀이 에이전트에게 정해진 일을 시키는 추가 도구를 만들었다면, 이제 더 분명하게 꾸리고 공개할 길이 생겼다. Codex는 Agent Plugins manifest와 작업 공간 게시를 지원하고 Amazon Bedrock 및 Claude Code용 추가 플러그인 마켓도 쓸 수 있다. 직접 만든 도구에 설명표를 붙여 공동 선반에 올리는 일과 같다. 다른 사람이 무엇인지 알아야 찾아 설치할 수 있다."
+              },
+              "original": "Support Agent Plugins manifests, workspace plugin publishing, and additional plugin marketplaces for Amazon Bedrock and Claude Code. (#35105, #35254, #34931, #34979)"
+            },
+            {
+              "title": {
+                "zh-TW": "想實驗另一條路，可複製對話分岔",
+                "zh-CN": "想试另一条路，可复制对话分叉",
+                "en": "Fork a conversation to try another path",
+                "ja": "会話を分岐して別の道を試せる",
+                "ko": "대화를 갈라 다른 길을 시험할 수 있다"
+              },
+              "body": {
+                "zh-TW": "同一段對話有兩種做法想比較時，不必倒帶或另開一段失去前情。現在可把執行緒 fork（分岔複本，從同一段前情各走各的）出去，連很長、分頁載入的歷史也能帶走；暫時分岔還可不出現在執行緒清單。清單只留你想長期看的分岔，短暫測試不會把首頁塞滿，也不必手動清掉。像小說家把同一章影印兩份，A 版讓主角往左走、B 版往右走，原稿依然留在桌上。",
+                "zh-CN": "同一段对话有两种做法想比较时，不必倒带或另开一段而丢失前情。现在可把线程 fork（分叉副本，从同一段前情各走各的）出去，连很长、分页加载的历史也能带走；临时分叉还可不出现在线程列表。像小说家把同一章复印两份，A 版让主角往左走、B 版往右走，原稿仍留在桌上。",
+                "en": "When one conversation suggests two approaches, you no longer need to rewind or start over without its context. You can fork a thread, carrying even a long paginated history into each branch; a temporary fork can stay out of the thread list. It is like photocopying a chapter of a novel: send the character left in version A and right in version B while the original stays on the desk.",
+                "ja": "同じ会話で二つの進め方を比べたいとき、巻き戻したり前提を失って新規に始めたりする必要がない。スレッドを fork して、ページ分けされた長い履歴も分岐先へ持っていける。一時的な分岐は一覧に出さないこともできる。小説の一章を二部コピーし、A では主人公を左へ、B では右へ進ませ、原稿は机に残すようなものだ。",
+                "ko": "한 대화에서 두 가지 방법을 비교하고 싶을 때, 되감거나 맥락 없이 새로 시작할 필요가 없다. 스레드를 fork해 긴 페이지식 기록까지 각 갈래에 가져갈 수 있으며, 임시 갈래는 목록에 보이지 않게 할 수 있다. 소설 한 장을 두 부 복사해 A판 주인공은 왼쪽으로, B판은 오른쪽으로 보내고 원고는 책상에 두는 일과 같다."
+              },
+              "original": "Fork threads with paginated history, including temporary forks that do not appear in thread listings. (#35220, #35251)"
+            },
+            {
+              "title": {
+                "zh-TW": "app-server 可連遠端 Code Mode，自訂模型可獨立搜尋",
+                "zh-CN": "app-server 可连接远程 Code Mode，自定义模型可独立搜索",
+                "en": "app-server connects to remote Code Mode; custom models search independently",
+                "ja": "app-server は遠隔 Code Mode へ接続、カスタムモデルは単独でウェブ検索",
+                "ko": "app-server는 원격 Code Mode에 연결, 맞춤 모델은 독립 웹 검색"
+              },
+              "body": {
+                "zh-TW": "程式實際跑在遠端主機，畫面卻在你手邊時，現在 app-server 可透過 WebSocket（讓兩端持續互傳訊息的連線）接到遠端 Code Mode 主機。另一邊，支援相容介面的自訂模型供應商，也可單獨開啟 web search（網路搜尋）。像你坐在控制室，能一直和遠方工作台通話；換了供應商的模型，也不必因此失去查網頁的能力。",
+                "zh-CN": "程序实际跑在远端主机，画面却在你手边时，现在 app-server 可通过 WebSocket（让两端持续互传消息的连接）接到远端 Code Mode 主机。另一边，支持兼容接口的自定义模型供应商，也可单独开启 web search（网络搜索）。像你坐在控制室，能一直和远方工作台通话；换了供应商的模型，也不必因此失去查网页的能力。",
+                "en": "When code runs on a remote host while the interface is in front of you, app-server can now connect to a remote Code Mode host through WebSocket, a connection that keeps both ends exchanging messages. Compatible custom model providers can also enable standalone web search. It is like staying in a control room with an open line to a distant workbench; using another model provider need not take web search away.",
+                "ja": "コードは遠隔ホストで動かし、画面は手元で使いたい場合、app-server は WebSocket を通じて遠隔の Code Mode ホストへつなげられるようになった。対応するカスタムモデル提供元では、単独のウェブ検索も有効にできる。管制室から遠い作業台と通話をつなぎ続けるようなものだ。モデルの提供元を替えても、ウェブ検索を手放さずに済むのである。",
+                "ko": "코드는 원격 호스트에서 돌리고 화면은 손앞에서 쓸 때, app-server가 WebSocket을 통해 원격 Code Mode 호스트에 연결할 수 있다. 호환되는 맞춤 모델 제공자는 독립 웹 검색도 켤 수 있다. 관제실에서 멀리 있는 작업대와 계속 통화하는 모습과 같다. 모델 제공자를 바꿔도 웹 검색을 포기할 필요가 없다."
+              },
+              "original": "Connect app-server to remote Code Mode hosts over WebSocket. (#35078, #35098)\nEnable standalone web search for compatible custom model providers. (#34846)"
+            },
+            {
+              "title": {
+                "zh-TW": "外部執行器帶來的技能，能先安全查看",
+                "zh-CN": "外部执行器带来的技能，能先安全查看",
+                "en": "Safely inspect skills supplied by an executor",
+                "ja": "実行元が渡すスキルを安全に確認できる",
+                "ko": "실행기가 준 기술을 안전하게 살펴본다"
+              },
+              "body": {
+                "zh-TW": "有人替你接上一個執行器，裡面附了可用技能與說明資源，現在 Codex 會發現它們，並安全讀取對應內容；你明確選取的技能也在範圍內。技能（把特定工作步驟與知識包成可呼叫說明）不是看到名字就直接亂用，而是先能讀到附帶資源，知道它提供哪些資料與操作邊界，再選合適的技能。這像借到一箱工具時先翻說明書與安全標籤，知道每件工具做什麼再動手。",
+                "zh-CN": "有人替你接上一个执行器，里面附了可用技能与说明资源，现在 Codex 会发现它们，并安全读取对应内容；你明确选取的技能也在范围内。技能（把特定工作步骤与知识包成可调用说明）不是看到名字就直接乱用，而是先能读到附带资源。这像借到一箱工具时先翻说明书与安全标签，知道每件工具做什么再动手。",
+                "en": "An executor connected for you may come with skills and supporting resources. Codex can now discover those skills and safely read the associated material, including skills you explicitly selected. A skill is a reusable set of instructions and knowledge for a particular job; seeing its name is not enough. This is like opening the manuals and safety labels in a borrowed toolbox before picking up a tool.",
+                "ja": "誰かが接続した実行元には、使えるスキルと説明用リソースが付いていることがある。Codex はそれらを見つけ、明示的に選んだスキルを含めて関連資料を安全に読める。スキルは特定の仕事の手順と知識をまとめた再利用可能な説明であり、名前だけ見て使うものではない。借りた工具箱の説明書と安全表示を先に読むようなものだ。",
+                "ko": "누군가 연결한 실행기에는 쓸 수 있는 기술과 설명 자료가 딸려올 수 있다. Codex는 이런 기술을 찾아 관련 자료를 안전하게 읽으며, 사용자가 분명히 고른 기술도 포함한다. 기술은 특정 작업의 절차와 지식을 묶은 재사용 설명이다. 이름만 보고 쓰는 것이 아니라, 빌린 공구함의 설명서와 안전표를 먼저 읽는 일과 같다."
+              },
+              "original": "Discover executor-provided skills and securely read their associated resources, including explicitly selected skills. (#35184, #35198)"
+            },
+            {
+              "title": {
+                "zh-TW": "代理網路走代理伺服器，文件也說清楚規矩",
+                "zh-CN": "代理网络走代理服务器，文档也说清楚规矩",
+                "en": "Proxy settings now follow requests end to end",
+                "ja": "プロキシ設定が通信の端から端まで届く",
+                "ko": "프록시 설정이 통신 전체에 적용된다"
+              },
+              "body": {
+                "zh-TW": "公司網路要求經由 proxy（代理伺服器，代你轉送網路請求的中繼站）上網時，最怕只有登入能過、下載或遠端執行卻卡住。現在設定的代理會一路套到驗證、外掛下載、MCP 授權、遠端執行、WebSocket、重新導向和 LM Studio 連線。官方也補上共用 HTTP 用戶端、懂代理的連線池與安全對外請求的說明。它像門禁卡終於能開整棟大樓，不會只開正門。",
+                "zh-CN": "公司网络要求经由 proxy（代理服务器，代你转送网络请求的中继站）上网时，最怕只有登录能过、下载或远端执行却卡住。现在配置的代理会一路套到验证、插件下载、MCP 授权、远端执行、WebSocket、重定向和 LM Studio 连接。官方也补上共享 HTTP 客户端、懂代理的连接池与安全对外请求的说明。它像门禁卡终于能开整栋大楼，不会只开正门。",
+                "en": "On a company network that requires a proxy, it is frustrating when sign-in works but downloads or remote runs fail. Configured proxies now apply to authentication, plugin downloads, MCP authorization, remote execution, WebSockets, redirects, and LM Studio connections. Documentation also covers shared HTTP clients, proxy-aware connection pools, and safe outbound requests. It is like an access card that now opens the whole building rather than only the front door.",
+                "ja": "会社のネットワークでプロキシを通す必要があると、ログインだけ通ってダウンロードや遠隔実行が止まるのは困る。設定したプロキシは、認証、プラグイン取得、MCP 認可、遠隔実行、WebSocket、リダイレクト、LM Studio 接続まで届く。共用 HTTP クライアント、プロキシ対応の接続プール、安全な外向きリクエストの文書も加わった。入館証が正門だけでなく建物全体を開けるようなものだ。",
+                "ko": "회사망에서 프록시를 거쳐야 할 때 로그인만 되고 내려받기나 원격 실행이 막히면 곤란하다. 설정한 프록시는 인증, 플러그인 내려받기, MCP 승인, 원격 실행, WebSocket, 리디렉션, LM Studio 연결까지 적용된다. 공유 HTTP 클라이언트, 프록시를 아는 연결 풀, 안전한 외부 요청 문서도 추가됐다. 출입증이 정문만이 아니라 건물 전체를 여는 모습과 같다."
+              },
+              "original": "Honor configured proxies across authentication, plugin downloads, MCP authorization, remote execution, WebSockets, redirects, and LM Studio connections. (#34479, #34509, #34655, #34678, #35023, #35056, #35239)\nDocument shared HTTP-client usage, proxy-aware connection pooling, and safe outbound request handling. (#34669)"
+            },
+            {
+              "title": {
+                "zh-TW": "MCP 與 Apps 改設定後，連線會自己對齊",
+                "zh-CN": "MCP 与 Apps 改设置后，连接会自己对齐",
+                "en": "MCP and Apps connections catch up with changes",
+                "ja": "MCP と Apps の接続が変更に追いつく",
+                "ko": "MCP와 Apps 연결이 변경을 따라간다"
+              },
+              "body": {
+                "zh-TW": "剛改完登入或工具設定，卻得重開整個程式才能用，是很掃興的等待。現在 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）連線與 Apps 工具會跟著驗證或設定變動更新；已關閉的伺服器會重新連線，健康的連線不用陪著重啟。變動只影響該更新的連線，不把其餘可用工具一起打斷。像調整家裡路由器後，斷線的房間自己接回網路，正在通話的房間則繼續說下去。",
+                "zh-CN": "刚改完登录或工具设置，却得重开整个程序才能用，是很扫兴的等待。现在 MCP（Model Context Protocol，让 AI 连接外部工具的协议）连接与 Apps 工具会跟着认证或配置变动更新；已关闭的服务器会重新连接，正常的连接不用陪着重启。像调整家里路由器后，断线的房间自己接回网络，正在通话的房间则继续说下去。",
+                "en": "Changing a sign-in or tool setting and then restarting everything is an irritating pause. MCP connections and Apps tools now update when authentication or configuration changes. Closed servers reconnect, while healthy connections keep running. It is like adjusting a home router: rooms that lost the network reconnect themselves, and a room already on a call does not have to hang up.",
+                "ja": "ログインやツール設定を変えたあと、使うためにアプリ全体を再起動するのは待たされる。MCP 接続と Apps ツールは、認証や設定の変更に合わせて更新される。閉じたサーバーは再接続し、正常な接続まで巻き添えで再起動しない。家庭のルーターを調整した後、切れた部屋だけが自分でネットへ戻り、通話中の部屋は話し続けるようなものだ。",
+                "ko": "로그인이나 도구 설정을 바꾼 뒤 쓰려면 프로그램 전체를 다시 열어야 하는 기다림이 줄었다. MCP 연결과 Apps 도구는 인증이나 설정 변경을 따라 갱신된다. 닫힌 서버는 다시 연결하고, 정상 연결은 함께 재시작하지 않는다. 집 공유기를 조정한 뒤 끊긴 방만 스스로 인터넷에 다시 붙고 통화 중인 방은 계속 말하는 모습과 같다."
+              },
+              "original": "Keep MCP connections and Apps tools current when authentication or configuration changes, reconnecting closed servers without restarting healthy connections. (#34952, #34957, #35028, #35144, #35146, #35151)"
+            },
+            {
+              "title": {
+                "zh-TW": "中斷、重播、匯入後，對話不再少一頁",
+                "zh-CN": "中断、重放、导入后，对话不再少一页",
+                "en": "Conversation state survives interruptions and replays",
+                "ja": "中断や再生の後も会話の記録を保つ",
+                "ko": "중단과 재생 뒤에도 대화 기록을 지킨다"
+              },
+              "body": {
+                "zh-TW": "長回答剛送出就中斷，最難受的是不知道哪一段還留著。這版保留已提交訊息、最終回答、失敗回合的錯誤、匯入時間戳與核准設定，涵蓋中斷、重播、匯入和分岔。就算失敗，也留住錯誤紀錄，讓你知道當時卡在哪裡，重播時也不必猜測前一回合或重設核准選擇。它像剪輯影片時突然停電：已經放進時間軸的片段、標記的時間與權限選擇都還在，開機後不用憑記憶拼回去。",
+                "zh-CN": "长回答刚送出就中断，最难受的是不知道哪一段还留着。这版保留已提交消息、最终回答、失败回合的错误、导入时间戳与批准设置，涵盖中断、重放、导入和分叉。它像剪辑视频时突然停电：已经放进时间轴的片段、标记的时间与权限选择都还在，开机后不用凭记忆拼回去。",
+                "en": "When a long response is interrupted, the worst part is not knowing what survived. This release preserves submitted messages, final responses, failed-turn errors, imported timestamps, and approval settings through interruptions, replay, imports, and forks. It is like a power cut during video editing: clips already on the timeline, their time markers, and permission choices remain when you reopen the project.",
+                "ja": "長い応答が途中で切れたとき、どこまで残ったか分からないのがつらい。この版では、送信済みメッセージ、最終応答、失敗したターンのエラー、取り込んだ時刻、承認設定を、中断、再生、取り込み、分岐の後にも残す。動画編集の最中に停電しても、タイムラインへ置いた素材、時刻の印、権限の選択が再起動後に残るようなものだ。",
+                "ko": "긴 응답이 중간에 끊기면 무엇이 남았는지 모르는 일이 가장 답답하다. 이 버전은 보낸 메시지, 최종 응답, 실패한 차례의 오류, 가져온 시각, 승인 설정을 중단, 재생, 가져오기, 갈래 나누기 뒤에도 보존한다. 영상 편집 중 정전이 나도 시간표에 올린 장면, 시간 표시, 권한 선택이 다시 열었을 때 남는 모습과 같다."
+              },
+              "original": "Preserve submitted messages, final responses, failed-turn errors, imported timestamps, and approval settings across interruptions, replay, imports, and forks. (#34839, #34777, #35524, #34989, #34664)"
+            },
+            {
+              "title": {
+                "zh-TW": "窄螢幕操作終端機，打斷與連結都更順手",
+                "zh-CN": "窄屏操作终端，打断与链接都更顺手",
+                "en": "Terminal controls and rendering feel more responsive",
+                "ja": "端末の操作と表示がより軽快になる",
+                "ko": "터미널 조작과 표시가 더 경쾌해진다"
+              },
+              "body": {
+                "zh-TW": "你在小筆電或分割視窗裡盯著終端機，最不想遇到按鍵沒反應、畫面擠壞或想中斷卻只能等。這版改善終端機回應與顯示：可不阻塞地中斷、鍵盤處理更穩、窄版面更能閱讀，超連結與提及結果也會刷新。等待回答時可以操作中斷，畫面資訊也持續保持可讀，提及結果也不會停在舊畫面。它像把狹窄駕駛艙的按鈕重新排好；需要煞車時按得到，儀表也不因空間小而看不清。",
+                "zh-CN": "你在小笔电或分割窗口里盯着终端，最不想遇到按键没反应、画面挤坏或想中断却只能等。这版改善终端响应与显示：可非阻塞地中断、键盘处理更稳、窄版面更能阅读，超链接与提及结果也会刷新。它像把狭窄驾驶舱的按钮重新排好；需要刹车时按得到，仪表也不因空间小而看不清。",
+                "en": "In a small laptop window or split pane, you do not want unresponsive keys, a crushed layout, or an interrupt that makes you wait. Terminal responsiveness and rendering improve here: interrupts need not block, keyboard handling is steadier, narrow layouts read better, and hyperlinks and mention results refresh. It is like rearranging a cramped cockpit so the brake is reachable and the instruments remain legible.",
+                "ja": "小さなノート PC や分割ウィンドウで端末を見るなら、キーが効かず、表示が潰れ、中断したくても待つのは困る。この版では端末の反応と描画が改善され、止める操作はブロックせず、キー操作は安定し、狭い表示でも読みやすくなる。リンクとメンション結果も更新される。狭い操縦席のボタンを並べ直し、ブレーキに手が届き、計器も読めるようにする感じである。",
+                "ko": "작은 노트북 창이나 분할 창에서 터미널을 볼 때 키가 먹지 않거나 화면이 찌그러지고, 멈추고 싶은데 기다려야 하면 곤란하다. 이 버전은 터미널 반응과 표시를 고쳤다. 중단은 막히지 않고, 키보드 처리는 더 안정적이며, 좁은 화면도 읽기 좋아지고 링크와 언급 결과도 갱신된다. 비좁은 조종석의 단추를 다시 놓아 브레이크에 손이 닿고 계기도 읽히게 하는 일과 같다."
+              },
+              "original": "Improve terminal responsiveness and rendering, including nonblocking interrupts, keyboard handling, narrow layouts, hyperlinks, and refreshed mention results. (#35000, #35021, #34775, #34778, #35365, #35375)"
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 路徑與沙箱結束程序，少留後患",
+                "zh-CN": "Windows 路径与沙箱结束进程，少留后患",
+                "en": "Windows paths and sandbox shutdowns behave predictably",
+                "ja": "Windows のパスとサンドボックス終了が予測しやすくなる",
+                "ko": "Windows 경로와 샌드박스 종료가 예측 가능해진다"
+              },
+              "body": {
+                "zh-TW": "Windows 使用者在資料夾間移動或停掉受限程序時，現在較少遇到這些惱人的問題。導覽按鍵修好，`PathUri` 的磁碟機代號該怎麼轉成標準形式也說清楚；沙箱（隔離執行的安全空間）內的程序樹能可靠結束。安全審查期間的 proxy 設定也會保留，不會因檢查而消失。像清場時不只關掉前台的燈，連後台接著跑的設備都能關妥，地址牌也不再各寫各的。",
+                "zh-CN": "Windows 用户在文件夹间移动或停掉受限程序时，现在较少遇到这些恼人的问题。导航按键修好，`PathUri` 的磁盘代号该怎么转成标准形式也说清楚；沙箱（隔离执行的安全空间）内的进程树能可靠结束。安全审查期间的 proxy 设置也会保留。像清场时不只关掉前台的灯，连后台接着跑的设备都能关妥，地址牌也不再各写各的。",
+                "en": "Windows users get fewer awkward edge cases when moving around folders or stopping restricted work. Navigation keys are fixed, the standard form for drive letters in `PathUri` is clarified, and process trees inside a sandbox can be terminated reliably. Proxy settings also survive security reviews. It is like closing a venue: not just the lobby lights, but the equipment still running backstage is shut down, and every address sign follows the same convention.",
+                "ja": "Windows でフォルダーを移動したり、制限された処理を止めたりする際の例外が減る。ナビゲーションキーを直し、`PathUri` のドライブ文字を標準形にする方法を明確にし、サンドボックス内のプロセスツリーを確実に終了できる。セキュリティ審査中もプロキシ設定は残る。会場を閉めるとき、ロビーの灯りだけでなく舞台裏で動く機材まで止め、住所表示も統一するようなものだ。",
+                "ko": "Windows에서 폴더를 오가거나 제한된 작업을 멈출 때의 예외가 줄었다. 탐색 키를 고쳤고 `PathUri`의 드라이브 문자를 표준 형태로 바꾸는 법도 분명해졌다. 샌드박스 안의 프로세스 나무도 믿고 끝낼 수 있으며, 보안 검토 중에도 프록시 설정이 남는다. 공연장을 닫을 때 로비 불만 끄지 않고 무대 뒤에서 도는 장비까지 끄며 주소 표지도 통일하는 일과 같다."
+              },
+              "original": "Fix Windows navigation keys, reliably terminate sandboxed process trees, and preserve proxy settings during security reviews. (#34625, #34624, #35036)\nClarify Windows drive-letter canonicalization for `PathUri` values. (#34667)"
+            },
+            {
+              "title": {
+                "zh-TW": "內容額度緊時，技能清單盡量不被截斷",
+                "zh-CN": "内容额度紧时，技能清单尽量不被截断",
+                "en": "Keep more skills visible when context is tight",
+                "ja": "文脈の余裕が少なくても、より多くのスキルを残す",
+                "ko": "문맥 여유가 적어도 더 많은 기술을 남긴다"
+              },
+              "body": {
+                "zh-TW": "對話累積很長時，內容額度（context budget，模型一次能帶著看的內容空間）會吃緊，技能目錄可能得縮短。這版盡量保留更多可用技能，真的必須截斷時也會警告你。警告不是多餘通知，而是告訴你目前看到的目錄可能不完整。它像旅行箱快塞滿時，先努力把常用工具留在最上層；若有工具放不下，會直接告訴你缺了哪一區，而不是讓你以為整箱都帶齊。",
+                "zh-CN": "对话累积很长时，内容额度（context budget，模型一次能带着看的内容空间）会吃紧，技能目录可能得缩短。这版尽量保留更多可用技能，真的必须截断时也会警告你。它像旅行箱快塞满时，先努力把常用工具留在最上层；若有工具放不下，会直接告诉你少了哪一部分，而不是让你以为整箱都带齐。",
+                "en": "As a conversation grows, its context budget — the space a model can carry forward at once — can become tight, and the skill catalog may need shortening. This release retains more available skills and warns when truncation is unavoidable. It is like a suitcase nearing capacity: keep the useful tools on top, and clearly say what could not fit instead of pretending the whole kit made the trip.",
+                "ja": "会話が長くなると、モデルが一度に持ち運べる文脈の余裕が狭くなり、スキル一覧を短くする必要が出る。この版では利用可能なスキルをより多く残し、どうしても切り詰めるときは警告する。旅行かばんが満杯に近いとき、よく使う道具を上に残し、入らなかった物を黙って隠さず知らせるようなものだ。",
+                "ko": "대화가 길어지면 모델이 한 번에 들고 볼 수 있는 문맥 여유가 모자라 기술 목록을 줄여야 할 수 있다. 이 버전은 가능한 기술을 더 많이 남기고, 꼭 잘라야 할 때는 경고한다. 여행 가방이 꽉 찰 때 자주 쓰는 도구를 위에 남기고, 못 넣은 물건을 숨기지 않고 알려 주는 모습과 같다."
+              },
+              "original": "Retain more available skills under tight context budgets and warn when skill catalogs must be truncated. (#34732, #34738, #34997)"
+            },
+            {
+              "title": {
+                "zh-TW": "更新檔案從官方通路送達，Mac 輔助程式也先驗身分",
+                "zh-CN": "更新文件从官方渠道送达，Mac 辅助程序也先验身份",
+                "en": "Updates have a hosted route, and Mac helpers are verified",
+                "ja": "更新は公式経路で届き、Mac の補助実行ファイルも検証される",
+                "ko": "업데이트는 공식 경로로 오고 Mac 도우미도 검증된다"
+              },
+              "body": {
+                "zh-TW": "安裝或更新工具時，背後不只是一個下載連結。發行檔、頻道資訊與安裝器別名現在可經 OpenAI 託管的發行基礎設施提供，GitHub 則當作備援；打包前也會替 macOS 的內附輔助執行檔簽署並公證。這些改動處理的是檔案交付與輔助程式驗證。像包裹優先走官方物流線，主線暫時不通才改走備用路；Mac 收到的零件還先有身分封條可驗。",
+                "zh-CN": "安装或更新工具时，背后不只是一个下载链接。发行文件、频道信息与安装器别名现在可经 OpenAI 托管的发行基础设施提供，GitHub 则作为备用；打包前也会替 macOS 的内附辅助可执行文件签名并公证。像包裹优先走官方物流线，主线暂时不通才改走备用路；Mac 收到的零件还先有身份封条可验。",
+                "en": "Installing or updating a tool is more than following one download link. Release artifacts, channel metadata, and installer aliases can now be served through OpenAI-hosted release infrastructure, with GitHub as fallback. Bundled macOS helper executables are also signed and notarized before packaging. It is like sending a parcel through an official delivery route first, then a backup route if needed, with a seal that lets a Mac verify the included part.",
+                "ja": "ツールの導入や更新は、単なる一つのダウンロードリンクではない。リリース成果物、チャンネル情報、インストーラーの別名は OpenAI が運用する配布基盤から提供でき、GitHub は予備経路になる。macOS に同梱する補助実行ファイルも、梱包前に署名と公証を受ける。荷物をまず公式の配送路へ流し、必要なときだけ予備路へ回し、Mac が中の部品の封印を確かめられるようなものだ。",
+                "ko": "도구를 설치하거나 업데이트할 때는 내려받기 링크 하나만 있는 일이 아니다. 출시 파일, 채널 정보, 설치기 별칭은 OpenAI가 운영하는 배포 기반에서 제공하고 GitHub는 예비 경로로 쓸 수 있다. macOS에 묶어 넣는 도우미 실행 파일도 포장 전에 서명과 공증을 받는다. 소포를 먼저 공식 배송길로 보내고 필요할 때만 예비길을 쓰며, Mac이 안의 부품 봉인을 확인하는 모습과 같다."
+              },
+              "original": "Publish release artifacts, channel metadata, and installer aliases through OpenAI-hosted release infrastructure, with GitHub fallback. (#34505, #34508, #34729, #34910)\nSign and notarize bundled macOS helper executables before packaging. (#35264)"
+            },
+            {
+              "title": {
+                "zh-TW": "app-server 少搬資料，企業更新可由管理員管",
+                "zh-CN": "app-server 少搬数据，企业更新可由管理员管",
+                "en": "Lighter app-server work and enterprise update controls",
+                "ja": "app-server の無駄を減らし、企業更新を管理できる",
+                "ko": "app-server의 헛일을 줄이고 기업 업데이트를 관리한다"
+              },
+              "body": {
+                "zh-TW": "企業裡的 Codex 更新不能只看有沒有新版，還要知道方案資格與誰能控制。這版加入企業方案辨識與應用內更新的管理員控制；同時 app-server 減少序列化負擔與建立請求時不必要的記憶體配置。前者把更新的決定權交給管理員，後者則減少處理請求時不必要的資料工作。它像寄貨前少做幾次重複打包，資料處理更省力；也像公司大樓的更新公告有管理室把關，知道哪些樓層適用、誰能決定何時換。",
+                "zh-CN": "企业里的 Codex 更新不能只看有没有新版，还要知道方案资格与谁能控制。这版加入企业方案识别与应用内更新的管理员控制；同时 app-server 减少序列化负担与构建请求时不必要的内存分配。后者像寄货前少做几次重复打包，数据处理更省力；前者像公司大楼的更新公告有管理室把关，知道哪些楼层适用、谁能决定何时换。",
+                "en": "For Codex updates in an enterprise, it matters not only whether a release exists, but which plan qualifies and who controls it. This release adds enterprise-plan recognition and administrator controls for in-app updates. It also reduces app-server serialization overhead and unnecessary request-building allocations. One change is like avoiding repeated packing before a shipment; the other is like a building manager deciding which floors receive an update and when.",
+                "ja": "企業での Codex 更新は、新版があるかだけでなく、どの契約が対象か、誰が制御するかも重要になる。この版では企業プランの認識と、アプリ内更新の管理者制御を加えた。同時に app-server のシリアライズ負荷と、不要なリクエスト組み立ての割り当ても減らした。後者は発送前の重複した梱包を省くようなもので、前者はビル管理者がどの階へいつ更新を配るか決めるようなものだ。",
+                "ko": "기업에서 Codex를 업데이트할 때는 새 버전이 있는지만이 아니라 어떤 요금제가 대상인지, 누가 통제하는지도 중요하다. 이 버전은 기업 요금제 인식과 앱 안 업데이트의 관리자 제어를 더했다. 또한 app-server의 직렬화 부담과 불필요한 요청 만들기 할당을 줄였다. 하나는 배송 전 반복 포장을 덜 하는 일이고, 다른 하나는 건물 관리실이 어느 층에 언제 업데이트를 줄지 정하는 일과 같다."
+              },
+              "original": "Reduce app-server serialization overhead and unnecessary request-building allocations. (#34761, #34766, #34825)\nAdd enterprise-plan recognition and administrator controls for in-app updates. (#35238, #35537)"
+            }
+          ]
+        },
+        {
           "version": "0.145.0",
           "period": "2026-07-21",
           "items": [
@@ -820,29 +1047,6 @@
                 "ko": "긴 기획서, 회의록, 코드를 한꺼번에 Codex에 맡기려 할 때 가장 궁금한 것은 얼마나 많은 내용을 기억할 수 있느냐이다. 이번 버전은 GPT-5.6 Sol, Terra, Luna에 함께 제공되는 사용 안내를 새로 고치고, 세 모델의 context window(한 번의 대화에서 보관할 수 있는 내용의 용량)를 272,000 token으로 바로잡았다. token은 AI가 글을 처리할 때 쓰는 단위이다. 한 작업대에 올려둘 수 있는 종이 수라고 생각하면 된다. 작업대 크기가 정확히 표시되어야 자료를 알맞게 올려둘 수 있다. 이어진 두 변경은 이 모델 정보와 프롬프트 수정을 0.144에 되돌린 것이며, 대상은 GPT-5.6뿐이고 세 모델의 새 기능을 알린 것은 아니다."
               },
               "original": "Refreshed bundled instructions for GPT-5.6 Sol, Terra, and Luna, and corrected their context windows to 272,000 tokens. (#33972, #34009)\n#33972 Backport refreshed bundled model metadata to 0.144 @sayan-oai\n#34009 Narrow 0.144 hotfix to GPT-5.6 prompts and context @sayan-oai"
-            }
-          ]
-        },
-        {
-          "version": "0.144.5",
-          "period": "2026-07-16",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "刪檔案不再怕手滑，系統擋下危險指令還會跟你說原因",
-                "zh-CN": "删文件不再怕手滑，系统挡下危险指令还会跟你说原因",
-                "en": "Accidental deletions are blocked better, with clearer explanations when commands are rejected",
-                "ja": "誤ったファイル削除をより確実に防ぎ、コマンド拒否の理由も明確になった",
-                "ko": "실수로 파일을 삭제하는 일을 더 잘 막아주고, 명령어 거부 사유를 명확히 알려준다."
-              },
-              "body": {
-                "zh-TW": "現在當你手滑下錯危險指令時，系統能更嚴密地把你攔下來，而且會清楚告訴你為什麼不讓你執行。這次擴充了危險指令偵測（dangerous-command detection，系統自動檢查並攔截破壞性動作的機制）的範圍，能抓出更多種刻意強硬使用 `rm`（Unix 系統中用來刪除檔案與目錄的指令）的寫法。而且，一旦你的指令被拒絕（denied），系統不再只丟出含糊的錯誤，而是會給出更清楚的拒絕理由。就像大樓的門衛，以前有人硬闖時可能偶爾會被他們漏看，而且擋下你時只會說「不行」；現在他們不但能識破更多種硬闖的假動作，把你攔下來時還會明確告訴你「因為這區在施工，所以禁止進入」。",
-                "zh-CN": "现在当你手滑下错危险指令时，系统能更严密地把你拦下来，而且会清楚告诉你为什么不让你执行。这次扩充了危险指令侦测（dangerous-command detection，系统自动检查并拦截破坏性动作的机制）的范围，能抓出更多种刻意强硬使用 `rm`（Unix 系统中用来删除文件与目录的指令）的写法。而且，一旦你的指令被拒绝（denied），系统不再只丢出含糊的错误，而是会给出更清楚的拒绝理由。就像大楼的门卫，以前有人硬闯时可能偶尔会被他们漏看，而且挡下你时只会说「不行」；现在他们不但能识破更多种硬闯的假动作，把你拦下来时还会明确告诉你「因为这区在施工，所以禁止进入」。",
-                "en": "When you accidentally type a destructive command, the system now stops you more reliably and explains exactly why it blocked you. This update expands dangerous-command detection (the safeguard that blocks destructive actions) to catch more variations of forced `rm` (the Unix command used to remove files and directories) forms. Furthermore, when your command is denied, it no longer just gives a vague error, but provides clearer rejection reasons. It's like a building security guard who used to occasionally miss people trying to force their way in and would only say \"no\" when stopping you; now they can spot more sneaky attempts to bypass security, and when they stop you, they explicitly tell you, \"You can't enter because this area is under construction.\"",
-                "ja": "危険なコマンドをうっかり入力してしまった際、システムがより厳重に阻止し、なぜ実行できないのかを明確に教えてくれるようになった。今回は危険コマンド検出（dangerous-command detection、破壊的な動作を自動的に検査し阻止する仕組み）の範囲が拡張され、`rm`（Unix システムでファイルやディレクトリを削除するためのコマンド）を強制的に実行しようとする書き方をより多く見つけ出せるようになった。また、コマンドが拒否（denied）された際、単に曖昧なエラーを返すのではなく、より明確な拒否の理由を提示するようになっている。以前は強引に立ち入ろうとする人を見逃すこともあり、止める時もただ「ダメだ」としか言わなかったビルの警備員が、今ではより多くの強行突破のフェイントを見破れるようになり、引き留める際も「ここは工事中だから入れない」と具体的に理由を言ってくれるようになったようなものである。",
-                "ko": "위험한 명령어를 실수로 입력했을 때 시스템이 더욱 철저하게 막아주고, 왜 실행할 수 없는지 그 이유를 분명하게 알려준다. 이번에는 위험 명령어 감지(dangerous-command detection, 파괴적인 동작을 자동으로 검사하고 차단하는 시스템) 범위가 넓어져서, `rm`(Unix 시스템에서 파일과 디렉터리를 삭제하는 명령어)을 강제로 쓰려는 다양한 형태를 더 많이 잡아낼 수 있게 되었다. 또한 명령어가 거부(denied)될 때 더 이상 애매한 오류만 던지지 않고 거부된 이유를 더 명확하게 제공한다. 예전엔 억지로 들어가려는 사람을 어쩌다 놓치기도 하고 막아설 때도 그저 \"안 돼\"라고만 하던 건물 경비원이, 이제는 더 많은 종류의 억지 돌파 요령을 꿰뚫어 보고 사람을 막아설 때 \"이 구역은 공사 중이라 들어갈 수 없습니다\"라고 구체적인 이유를 말해주는 것과 같다."
-              },
-              "original": "Improved dangerous-command detection, including more forced `rm` forms, and provides clearer rejection reasons when commands are denied. (#33455)\n#33455 [release/0.144] fix(core) expand is_dangerous_command @dylan-hurd-oai"
             }
           ]
         }
