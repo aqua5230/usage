@@ -33,6 +33,9 @@ jobs:
       - name: Run bilingual doc parity check
         run: uv run python scripts/check_doc_parity.py
 
+      - name: Run file size ceiling check
+        run: uv run python scripts/check_file_size.py
+
       - name: Run pytest
         run: uv run pytest -v
 
