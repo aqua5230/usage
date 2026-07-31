@@ -18,6 +18,7 @@ import codex_loader
 import history_loader
 import menubar
 import menubar_agy
+import menubar_chrome
 import menubar_prefs
 import menubar_state
 import panels
@@ -878,7 +879,7 @@ def test_forwarder_prompt_keep_sets_ack_once(
         calls["setup"] += 1
         return 0
 
-    monkeypatch.setattr(menubar, "NSAlert", FakeAlert)
+    monkeypatch.setattr(menubar_chrome, "NSAlert", FakeAlert)
     monkeypatch.setattr(setup_hook, "setup", fake_setup)
 
     menubar.show_forwarder_mode_prompt_if_needed(language="en")
@@ -933,7 +934,7 @@ def test_forwarder_prompt_enable_calls_forwarder_setup(
         calls.append(force_forwarder)
         return 0
 
-    monkeypatch.setattr(menubar, "NSAlert", FakeAlert)
+    monkeypatch.setattr(menubar_chrome, "NSAlert", FakeAlert)
     monkeypatch.setattr(setup_hook, "setup", fake_setup)
 
     menubar.show_forwarder_mode_prompt_if_needed(language="en")
@@ -955,9 +956,9 @@ def test_make_alert_falls_back_when_nsalert_returns_none(
         def init(cls) -> None:
             return None
 
-    monkeypatch.setattr(menubar, "NSAlert", FakeAlert)
+    monkeypatch.setattr(menubar_chrome, "NSAlert", FakeAlert)
 
-    alert = menubar._make_alert()
+    alert = menubar_chrome._make_alert()
 
     alert.setMessageText_("ignored")
     alert.setInformativeText_("ignored")
@@ -978,10 +979,10 @@ def test_make_alert_ignores_icon_failure(monkeypatch: pytest.MonkeyPatch) -> Non
         def setIcon_(self, value: object) -> None:
             raise RuntimeError("icon failed")
 
-    monkeypatch.setattr(menubar, "NSAlert", FakeAlert)
-    monkeypatch.setattr(menubar, "_alert_icon", lambda: object())
+    monkeypatch.setattr(menubar_chrome, "NSAlert", FakeAlert)
+    monkeypatch.setattr(menubar_chrome, "_alert_icon", lambda: object())
 
-    assert isinstance(menubar._make_alert(), FakeAlert)
+    assert isinstance(menubar_chrome._make_alert(), FakeAlert)
 
 
 def test_statusline_action_in_background_returns_failure_output(
