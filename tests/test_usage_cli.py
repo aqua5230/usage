@@ -15,9 +15,21 @@ from typing import Any
 
 import pytest
 
-from adapters.types import AgentInfo, RateLimits, UsageEntry
+import i18n
+from adapters.types import AgentInfo, RateLimits, SessionStats, UsageEntry
+from ui import html_report, tables
 
 usage_cli: Any = import_module("usage_cli")
+
+
+@pytest.fixture(autouse=True)
+def _stub_persona_profile(monkeypatch: pytest.MonkeyPatch) -> None:
+    profile = usage_cli.persona_loader.PersonaProfile([0] * 24, [], [], 0, 0)
+    monkeypatch.setattr(
+        usage_cli.persona_loader,
+        "load_profile",
+        lambda days_back=30: profile,
+    )
 
 
 def _entry() -> UsageEntry:
@@ -35,6 +47,133 @@ def _entry() -> UsageEntry:
         project="project",
         agent_id="codex",
     )
+
+
+def _session(session_id: str) -> SessionStats:
+    start = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    return SessionStats(
+        session_id=session_id,
+        project="usage",
+        model="claude-test",
+        start_time=start,
+        end_time=start,
+        duration_minutes=0,
+    )
+
+
+def test_load_session_titles_uses_30_day_profile(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[int] = []
+    profile = usage_cli.persona_loader.PersonaProfile(
+        [0] * 24,
+        [],
+        [],
+        0,
+        0,
+        {"session-1": "Fix dashboard"},
+    )
+    monkeypatch.setattr(
+        usage_cli.persona_loader,
+        "load_profile",
+        lambda days_back: calls.append(days_back) or profile,
+    )
+
+    assert usage_cli._load_session_titles() == {"session-1": "Fix dashboard"}
+    assert calls == [30]
+
+
+def test_load_session_titles_returns_none_on_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def fail(_days_back: int) -> None:
+        raise OSError("unavailable")
+
+    monkeypatch.setattr(usage_cli.persona_loader, "load_profile", fail)
+
+    assert usage_cli._load_session_titles() is None
+
+
+def test_recent_titles_section_tolerates_missing_key() -> None:
+    assert html_report._render_recent_titles_section(
+        {"persona": {"hour_histogram": []}},
+        "en",
+    ) == ""
+
+
+def test_recent_titles_section_masks_and_escapes_each_title() -> None:
+    rendered = html_report._render_recent_titles_section(
+        {"persona": {"recent_titles": ["Fix <table>", "Review & ship"]}},
+        "en",
+    )
+
+    assert "What you worked on" in rendered
+    assert rendered.count('class="recent-title" data-mask') == 2
+    assert "Fix &lt;table&gt;" in rendered
+    assert "Review &amp; ship" in rendered
+    assert "Fix <table>" not in rendered
+
+
+def test_recent_sessions_shows_topic_and_blank_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    printed: list[Any] = []
+    monkeypatch.setattr(tables, "_width_mode", lambda: "medium")
+    monkeypatch.setattr(tables, "t", lambda key, **kwargs: key)
+    monkeypatch.setattr(tables.console, "print", printed.append)
+
+    tables._render_recent_sessions(
+        [_session("known"), _session("missing")],
+        session_titles={"known": "Known topic"},
+    )
+
+    table = printed[0]
+    headers = [str(column.header) for column in table.columns]
+    topic_index = headers.index("col_session_title")
+    assert headers[topic_index - 1] == "col_project"
+    assert table.columns[topic_index].max_width == 20
+    assert list(table.columns[topic_index].cells) == ["Known topic", ""]
+
+
+def test_recent_sessions_hides_topic_in_compact_mode(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    printed: list[Any] = []
+    monkeypatch.setattr(tables, "_width_mode", lambda: "compact")
+    monkeypatch.setattr(tables, "t", lambda key, **kwargs: key)
+    monkeypatch.setattr(tables.console, "print", printed.append)
+
+    tables._render_recent_sessions(
+        [_session("known")],
+        session_titles={"known": "Hidden topic"},
+    )
+
+    table = printed[0]
+    assert "col_session_title" not in [str(column.header) for column in table.columns]
+    assert "Hidden topic" not in [
+        str(cell)
+        for column in table.columns
+        for cell in column.cells
+    ]
+
+
+@pytest.mark.parametrize(
+    ("lang", "heading", "column"),
+    [
+        ("zh-TW", "最近在做什麼", "在做什麼"),
+        ("zh-CN", "最近在做什么", "在做什么"),
+        ("en", "What you worked on", "Topic"),
+        ("ja", "最近の作業", "作業内容"),
+        ("ko", "최근 작업", "작업 내용"),
+    ],
+)
+def test_session_title_translations(
+    lang: str,
+    heading: str,
+    column: str,
+) -> None:
+    assert i18n._t(lang, "report_recent_titles_heading") == heading
+    assert i18n._t(lang, "col_session_title") == column
 
 
 def test_parse_sort_args_extracts_major_flags() -> None:

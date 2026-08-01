@@ -269,3 +269,36 @@ def test_noise_only_attachment_returns_empty_profile(
     assert profile.recent_titles == []
     assert profile.total_sessions == 0
     assert profile.total_messages == 0
+
+
+def test_profile_carries_titles_by_session(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    _write_jsonl(
+        projects_dir / "project-a" / "a.jsonl",
+        [
+            _title_row("session-1", "First topic"),
+            _row(timestamp=datetime.now(UTC), session_id="session-1"),
+            _title_row("session-2", "Second topic"),
+        ],
+    )
+
+    profile = persona_loader.load_profile()
+
+    assert profile.titles_by_session == {
+        "session-1": "First topic",
+        "session-2": "Second topic",
+    }
+
+
+def test_empty_profile_has_empty_titles_by_session() -> None:
+    assert persona_loader._empty_profile().titles_by_session == {}
+
+
+def test_persona_profile_positional_construction_keeps_title_map_default() -> None:
+    profile = persona_loader.PersonaProfile([0] * 24, [], [], 0, 0)
+
+    assert profile.titles_by_session == {}

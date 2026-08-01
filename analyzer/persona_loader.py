@@ -10,7 +10,7 @@ import logging
 import os
 import time
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -33,6 +33,7 @@ class PersonaProfile:
     recent_titles: list[str]
     total_sessions: int
     total_messages: int
+    titles_by_session: dict[str, str] = field(default_factory=dict)
 
 
 @dataclass(slots=True)
@@ -127,6 +128,7 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
         recent_titles=recent_titles,
         total_sessions=len(message_sessions),
         total_messages=total_messages,
+        titles_by_session=titles_by_session,
     )
 
 
@@ -137,6 +139,7 @@ def _empty_profile() -> PersonaProfile:
         recent_titles=[],
         total_sessions=0,
         total_messages=0,
+        titles_by_session={},
     )
 
 

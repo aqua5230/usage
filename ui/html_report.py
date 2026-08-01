@@ -683,6 +683,27 @@ def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
     return _section(_t(lang, "contribution_section"), body, "contribution-section")
 
 
+def _render_recent_titles_section(data: Mapping[str, Any], lang: str) -> str:
+    persona = data.get("persona")
+    if not isinstance(persona, Mapping):
+        return ""
+    raw_titles = persona.get("recent_titles", [])
+    if not isinstance(raw_titles, list):
+        return ""
+    titles = [title for title in raw_titles if isinstance(title, str) and title.strip()]
+    if not titles:
+        return ""
+    rows = "".join(
+        f'<div class="recent-title" data-mask>→ {_escape(title)}</div>'
+        for title in titles
+    )
+    return _section(
+        _t(lang, "recent_titles_heading"),
+        f'<div class="recent-titles">{rows}</div>',
+        "recent-titles-section",
+    )
+
+
 def _render_wrapped_section(data: Mapping[str, Any], lang: str) -> str:
     wrapped = data.get("wrapped")
     if not isinstance(wrapped, dict):
@@ -854,7 +875,7 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
   {_render_model_section(report_data, lang)}
   {_render_trend_section(report_data, lang)}
   {_render_contribution_section(report_data, lang)}
-  {_render_persona_section(report_data, lang)}
+  {_render_recent_titles_section(report_data, lang)}{_render_persona_section(report_data, lang)}
   {_render_session_section(report_data, lang)}
   {_render_sponsor_section(lang)}
 </main>

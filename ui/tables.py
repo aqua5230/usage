@@ -300,6 +300,7 @@ def render_dashboard(
     session_limit: int = 10,
     top_margin: bool = True,
     session_title: str | None = None,
+    session_titles: dict[str, str] | None = None,
 ) -> None:
     if not daily_stats:
         console.print(f"[{_S.warn}]{t('no_data')}[/{_S.warn}]")
@@ -347,7 +348,11 @@ def render_dashboard(
 
     # --- 最近会话 ---
     if sessions and session_limit > 0:
-        _render_recent_sessions(sessions[:session_limit], title=session_title)
+        _render_recent_sessions(
+            sessions[:session_limit],
+            title=session_title,
+            session_titles=session_titles,
+        )
 
     console.print()
 
@@ -378,7 +383,11 @@ def _render_month_overview(month: MonthlyStats, last_month: MonthlyStats | None 
     console.print(lines)
 
 
-def _render_recent_sessions(stats: list[SessionStats], title: str | None = None) -> None:
+def _render_recent_sessions(
+    stats: list[SessionStats],
+    title: str | None = None,
+    session_titles: dict[str, str] | None = None,
+) -> None:
     multi_agent = _is_multi_agent(stats)
     mode = _width_mode()
     table = Table(
@@ -393,6 +402,7 @@ def _render_recent_sessions(stats: list[SessionStats], title: str | None = None)
         table.add_column(t("col_source"), no_wrap=True)
     table.add_column(t("col_project"), no_wrap=True, max_width=14)
     if mode != "compact":
+        table.add_column(t("col_session_title"), no_wrap=True, max_width=20)
         table.add_column(t("col_model"), style=_S.cost, no_wrap=True)
     table.add_column("Input", justify="right")
     table.add_column("Output", justify="right")
@@ -406,6 +416,7 @@ def _render_recent_sessions(stats: list[SessionStats], title: str | None = None)
             row.append(AGENT_SHORT.get(s.agent_id, s.agent_id))
         row.append(_project_short(s.project))
         if mode != "compact":
+            row.append((session_titles or {}).get(s.session_id, ""))
             row.append(_model_short(s.model))
         row += [
             _fmt_tokens(s.input_tokens),

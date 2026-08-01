@@ -17,6 +17,7 @@ from adapters.registry import detect_agents
 from adapters.types import AgentInfo, RateLimits
 from analyzer.aggregator import aggregate_daily, aggregate_monthly, aggregate_sessions, aggregate_weekly
 from analyzer.blocks import analyze_blocks, calculate_p90
+from analyzer import persona_loader
 from setup_hook import is_claude_setup, is_codex_setup, is_setup, setup, unsetup
 from session_hooks import disable_session_resume, disable_terse_mode
 from i18n import t
@@ -341,11 +342,20 @@ def _build_agent_data(agent_id: str, agent_name: str) -> dict[str, Any] | None:
     has_limits = rate_limits and (rate_limits.five_hour_pct is not None or rate_limits.seven_day_pct is not None)
     if not has_limits:
         p90 = calculate_p90(daily)
+    session_titles = _load_session_titles()
     return dict(
         daily_stats=daily, weekly_stats=weekly, monthly_stats=monthly,
         sessions=sessions, blocks=blocks, rate_limits=rate_limits,
-        p90=p90, agents=[agent_name],
+        p90=p90, agents=[agent_name], session_titles=session_titles,
     )
+
+
+def _load_session_titles() -> dict[str, str] | None:
+    try:
+        titles = persona_loader.load_profile(30).titles_by_session
+    except Exception:
+        return None
+    return titles or None
 
 
 def _initial_agent_index(agents: list[AgentInfo]) -> int:
