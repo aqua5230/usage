@@ -266,6 +266,74 @@ def test_quota_row_clamps_percent_to_range() -> None:
     assert low.percent_text == "0% 已用"
 
 
+def test_quota_row_shows_imminent_reset_with_30_seconds_remaining() -> None:
+    row = menubar._quota_row(
+        "Session", 50.0, 1_030.0, 1_000.0, menubar.CODEX_COLOR, language="zh-TW"
+    )
+
+    assert row.reset_text == "即將重置"
+    assert row.warning is False
+
+
+def test_quota_row_shows_imminent_reset_at_zero_seconds() -> None:
+    row = menubar._quota_row(
+        "Session", 50.0, 1_000.0, 1_000.0, menubar.CODEX_COLOR, language="zh-TW"
+    )
+
+    assert row.reset_text == "即將重置"
+    assert row.warning is False
+
+
+def test_quota_row_shows_imminent_reset_after_reset_time() -> None:
+    row = menubar._quota_row(
+        "Session", 50.0, 970.0, 1_000.0, menubar.CODEX_COLOR, language="zh-TW"
+    )
+
+    assert row.reset_text == "即將重置"
+    assert row.warning is False
+
+
+def test_quota_row_keeps_reset_text_at_exactly_60_seconds() -> None:
+    row = menubar._quota_row(
+        "Session", 50.0, 1_060.0, 1_000.0, menubar.CODEX_COLOR, language="zh-TW"
+    )
+
+    assert row.reset_text == "重置 1分鐘"
+    assert row.warning is False
+
+
+def test_quota_row_imminent_reset_suppresses_burn_warning() -> None:
+    row = menubar._quota_row(
+        "Session",
+        82.0,
+        1_030.0,
+        1_000.0,
+        menubar.CODEX_COLOR,
+        language="zh-TW",
+        forecast_seconds=18.0,
+    )
+
+    assert row.reset_text == "即將重置"
+    assert row.warning is False
+
+
+@pytest.mark.parametrize(
+    ("language", "expected"),
+    [
+        ("zh-CN", "即将重置"),
+        ("en", "Reset imminent"),
+        ("ja", "まもなくリセット"),
+        ("ko", "곧 초기화"),
+    ],
+)
+def test_quota_row_imminent_reset_translations(language: str, expected: str) -> None:
+    row = menubar._quota_row(
+        "Session", 50.0, 1_030.0, 1_000.0, menubar.CODEX_COLOR, language=language
+    )
+
+    assert row.reset_text == expected
+
+
 def test_missing_row() -> None:
     row = menubar._missing_row("Weekly", menubar.CLAUDE_COLOR, language="zh-TW")
 

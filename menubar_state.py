@@ -845,24 +845,32 @@ def _quota_row(
         return _missing_row(title, color, language)
     pct = max(0.0, min(100.0, float(pct)))
     time_to_reset = resets_at - now
-    warning_seconds: float | None = None
-    if (
-        forecast_seconds is not None
-        and 0 < forecast_seconds < time_to_reset
-        and (warning_max_seconds is None or forecast_seconds < warning_max_seconds)
-        and pct >= WARNING_PERCENT_FLOOR
-    ):
-        warning_seconds = forecast_seconds
-    warning = warning_seconds is not None
-    if warning_seconds is not None:
-        reset_text = _t(
-            language,
-            "burn_warning",
-            empty=format_human_time(warning_seconds, language),
-            reset=format_human_time(time_to_reset, language),
-        )
+    if time_to_reset < 60:
+        reset_text = _t(language, "reset_imminent")
+        warning = False
     else:
-        reset_text = _t(language, "reset_in", time=format_human_time(time_to_reset, language))
+        warning_seconds: float | None = None
+        if (
+            forecast_seconds is not None
+            and 0 < forecast_seconds < time_to_reset
+            and (warning_max_seconds is None or forecast_seconds < warning_max_seconds)
+            and pct >= WARNING_PERCENT_FLOOR
+        ):
+            warning_seconds = forecast_seconds
+        warning = warning_seconds is not None
+        if warning_seconds is not None:
+            reset_text = _t(
+                language,
+                "burn_warning",
+                empty=format_human_time(warning_seconds, language),
+                reset=format_human_time(time_to_reset, language),
+            )
+        else:
+            reset_text = _t(
+                language,
+                "reset_in",
+                time=format_human_time(time_to_reset, language),
+            )
     return QuotaRowState(
         title=title,
         percent=pct,
