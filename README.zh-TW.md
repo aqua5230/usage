@@ -53,7 +53,7 @@ brew install --cask aqua5230/usage/usage
 
 ### 報告與洞察
 
-- **深度 HTML 報告：** 視覺化呈現每日與每週趨勢、專案排行與成本，包含帶有貢獻熱力圖與 Wrapped 摘要的 Year in Review。一鍵另存 .html／.csv／.png 分享，全程離線、可選擇隱藏專案名稱。
+- **深度 HTML 報告：** 視覺化呈現每日與每週趨勢、專案排行與成本，包含帶有貢獻熱力圖與 Wrapped 摘要的 Year in Review。「最近在做什麼」一區列出 Claude Code 為你近期對話取的名字，讓數字有脈絡可對。一鍵另存 .html／.csv／.png 分享，全程離線、可選擇隱藏專案名稱，這些標題也一併遮蔽。
 - **TUI 與 CLI 支援：** 偏好終端機的話，可用 `python3 main.py --tui` 開 Rich TUI 面板，或用 `python3 usage_cli.py report` 產出深度分析報告。
 
 ### 體驗與客製化

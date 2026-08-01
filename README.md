@@ -53,7 +53,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 ### Reporting & Insight
 
-- **Deep HTML Reports:** Shareable HTML reports of daily and weekly token trends, project rankings, and cost — including a Year in Review with a contribution heatmap and "Wrapped" summary. Export as .html, .csv, or .png, fully offline, with optional project-name masking.
+- **Deep HTML Reports:** Shareable HTML reports of daily and weekly token trends, project rankings, and cost — including a Year in Review with a contribution heatmap and "Wrapped" summary. A "What you worked on" section lists the names Claude Code gave your recent conversations, so the numbers arrive with context. Export as .html, .csv, or .png, fully offline, with optional project-name masking that covers those titles too.
 - **TUI & CLI:** Prefer the terminal? Run the rich TUI dashboard with `python3 main.py --tui`, or generate deep analytics with `python3 usage_cli.py report`.
 
 ### Experience & Customization

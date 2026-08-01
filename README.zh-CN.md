@@ -53,7 +53,7 @@ brew install --cask aqua5230/usage/usage
 
 ### 报告与洞察
 
-- **深入 HTML 报告：** 可分享的 HTML 深度报告，展示每日和每周 token 趋势、项目排名和费用——包含带有贡献热图和“Wrapped”摘要的年度回顾。可导出为 .html、.csv 或 .png，完全离线，并可选择遮蔽项目名称。
+- **深入 HTML 报告：** 可分享的 HTML 深度报告，展示每日和每周 token 趋势、项目排名和费用——包含带有贡献热图和“Wrapped”摘要的年度回顾。“最近在做什么”一区列出 Claude Code 为你近期对话取的名字，让数字有脉络可对。可导出为 .html、.csv 或 .png，完全离线，并可选择遮蔽项目名称，这些标题也会一并遮蔽。
 - **TUI 与 CLI：** 更偏好终端？运行功能丰富的 TUI 仪表板：`python3 main.py --tui`，或通过 `python3 usage_cli.py report` 生成深度分析。
 
 ### 体验与自定义

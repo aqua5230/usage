@@ -5,6 +5,15 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.11] - 2026-08-01
+
+### Added
+- **The report and the terminal's session list now show what each conversation was about.** Claude Code names every conversation and writes that name into its transcript. `usage` had been parsing those names all along and carrying them into the report payload, where the renderer ignored them — the snapshot fixture still read `"Ignore in current renderer"`. The HTML report gained a "What you worked on" section under the contribution heatmap, and the TUI's recent-session table gained a column, so three rows from the same project are no longer indistinguishable. Titles carry `data-mask`, so the existing project-name masking covers them before a report is shared. Sessions without a title stay blank rather than falling back to the project name, which would read as a title that isn't one.
+
+### Fixed
+- **A rate-limited Antigravity quota probe now waits as long as the server asked, instead of retrying every five minutes.** That probe is the only external API call in the project. It and the token refresh both folded `HTTPError` into the same `except` clause as connection failures, so a 429 reached the caller as a bare `None` — the status code and the `Retry-After` header were discarded together, and the next cache expiry sent another request at a server that had already said to wait. Each now catches `HTTPError` separately, reads `Retry-After` in either the seconds or the HTTP-date form, and holds off until it elapses. A missing or unparseable header falls back to sixty seconds, and the delay is capped at an hour so an oversized value cannot strand the card.
+- **The last minute before a quota resets no longer reads "0m".** Under sixty seconds the countdown's minute arithmetic rounds to zero, and the already-expired case printed the same string, so one line meant both "forty seconds left" and "the window has already turned". The card now reads "Reset imminent", in all five languages. The fix sits at the call site rather than in the shared duration formatter, which also renders the "will run out in" half of the burn warning — changing it there would have produced "will run out in reset imminent".
+
 ## [0.29.10] - 2026-07-31
 
 ### Changed
