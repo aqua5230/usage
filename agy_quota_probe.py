@@ -28,9 +28,10 @@ from binascii import Error as Base64Error
 from contextlib import suppress
 from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from email.utils import parsedate_to_datetime
 from pathlib import Path
 from typing import Any
-from urllib.error import URLError
+from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
 CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_quota_cache.json"))
@@ -46,6 +47,10 @@ _QUOTA_URL = "https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQ
 # Antigravity's installed-app public client constants (same values quotio ships).
 _CLIENT_ID = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com"
 _CLIENT_SECRET = "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"
+
+_DEFAULT_RETRY_AFTER_SECONDS = 60.0
+_MAX_RETRY_AFTER_SECONDS = 3600.0
+_rate_limit_until_monotonic = 0.0
 
 
 def _user_agent() -> str:
@@ -119,6 +124,8 @@ def load_quota(max_age_minutes: float = 5) -> AgyQuotaResult | None:
     """Return fresh cached quota, otherwise probe and preserve stale fallback."""
     cached = _read_cache()
     if cached is not None and _is_fresh(cached, max_age_minutes):
+        return cached
+    if time.monotonic() < _rate_limit_until_monotonic:
         return cached
 
     probed = probe_quota()
@@ -331,6 +338,9 @@ def _refresh_token(refresh_token: str, timeout: float) -> tuple[str, int] | None
     try:
         with urlopen(request, timeout=timeout) as response:
             payload = json.load(response)
+    except HTTPError as exc:
+        _handle_http_error(exc)
+        return None
     except (URLError, OSError, ValueError):
         return None
     if not isinstance(payload, dict):
@@ -359,8 +369,44 @@ def _post_json(url: str, access_token: str, body: dict[str, object], timeout: fl
     try:
         with urlopen(request, timeout=timeout) as response:
             return json.load(response)
+    except HTTPError as exc:
+        _handle_http_error(exc)
+        return None
     except (URLError, OSError, ValueError):
         return None
+
+
+def _handle_http_error(exc: HTTPError) -> None:
+    """Start a bounded in-memory backoff after an HTTP 429 response."""
+    if exc.code != 429:
+        return
+    retry_after = exc.headers.get("Retry-After") if exc.headers is not None else None
+    _set_rate_limit_backoff(retry_after)
+
+
+def _set_rate_limit_backoff(retry_after: str | None) -> None:
+    global _rate_limit_until_monotonic
+
+    _rate_limit_until_monotonic = time.monotonic() + _parse_retry_after(retry_after)
+
+
+def _parse_retry_after(retry_after: str | None) -> float:
+    """Convert Retry-After seconds or an HTTP-date to a bounded delay."""
+    delay = _DEFAULT_RETRY_AFTER_SECONDS
+    if isinstance(retry_after, str):
+        value = retry_after.strip()
+        if value.isdigit():
+            with suppress(ValueError, OverflowError):
+                delay = float(value)
+        elif value:
+            try:
+                retry_at = parsedate_to_datetime(value)
+                if retry_at.tzinfo is None:
+                    retry_at = retry_at.replace(tzinfo=UTC)
+                delay = (retry_at.astimezone(UTC) - datetime.now(UTC)).total_seconds()
+            except (TypeError, ValueError, OverflowError):
+                pass
+    return max(0.0, min(delay, _MAX_RETRY_AFTER_SECONDS))
 
 
 def _extract_groups(raw: object) -> list[dict[str, object]] | None:
