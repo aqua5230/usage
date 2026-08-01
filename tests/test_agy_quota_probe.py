@@ -8,9 +8,11 @@ import os
 import platform
 import shutil
 import sys
+import time
 from base64 import b64encode
 from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta
+from email.message import Message
 from email.utils import format_datetime
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -77,7 +79,9 @@ def _build_http_error_urlopen(
 
     def fake(request: Request, timeout: float = 0.0) -> _FakeResponse:  # noqa: ARG001
         visited.append((request.full_url, request.get_header("Authorization")))
-        headers = {} if retry_after is None else {"Retry-After": retry_after}
+        headers = Message()
+        if retry_after is not None:
+            headers["Retry-After"] = retry_after
         raise HTTPError(request.full_url, code, "HTTP error", headers, None)
 
     return fake, visited
@@ -306,7 +310,7 @@ def test_post_json_429_uses_retry_after_seconds(
 ) -> None:
     urlopen, visited = _build_http_error_urlopen(429, "120")
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
-    monkeypatch.setattr(agy_quota_probe.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(time, "monotonic",lambda: 1000.0)
 
     assert agy_quota_probe._post_json(_QUOTA_URL, "token", {}, 15.0) is None
     assert agy_quota_probe._rate_limit_until_monotonic == 1120.0
@@ -322,7 +326,7 @@ def test_post_json_429_uses_retry_after_http_date(
         format_datetime(retry_at, usegmt=True),
     )
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
-    monkeypatch.setattr(agy_quota_probe.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(time, "monotonic",lambda: 1000.0)
 
     assert agy_quota_probe._post_json(_QUOTA_URL, "token", {}, 15.0) is None
     assert agy_quota_probe._rate_limit_until_monotonic == pytest.approx(
@@ -336,7 +340,7 @@ def test_post_json_429_without_retry_after_uses_default(
 ) -> None:
     urlopen, _visited = _build_http_error_urlopen(429)
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
-    monkeypatch.setattr(agy_quota_probe.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(time, "monotonic",lambda: 1000.0)
 
     assert agy_quota_probe._post_json(_QUOTA_URL, "token", {}, 15.0) is None
     assert agy_quota_probe._rate_limit_until_monotonic == 1060.0
@@ -347,7 +351,7 @@ def test_post_json_429_with_invalid_retry_after_uses_default(
 ) -> None:
     urlopen, _visited = _build_http_error_urlopen(429, "not-a-date")
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
-    monkeypatch.setattr(agy_quota_probe.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(time, "monotonic",lambda: 1000.0)
 
     assert agy_quota_probe._post_json(_QUOTA_URL, "token", {}, 15.0) is None
     assert agy_quota_probe._rate_limit_until_monotonic == 1060.0
@@ -358,7 +362,7 @@ def test_post_json_429_caps_retry_after_at_one_hour(
 ) -> None:
     urlopen, _visited = _build_http_error_urlopen(429, "999999")
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
-    monkeypatch.setattr(agy_quota_probe.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(time, "monotonic",lambda: 1000.0)
 
     assert agy_quota_probe._post_json(_QUOTA_URL, "token", {}, 15.0) is None
     assert agy_quota_probe._rate_limit_until_monotonic == 4600.0
@@ -374,7 +378,7 @@ def test_load_quota_does_not_request_during_backoff(
     agy_quota_probe._write_cache(stale)
     urlopen, visited = _build_urlopen({})
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
-    monkeypatch.setattr(agy_quota_probe.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(time, "monotonic",lambda: 1000.0)
     agy_quota_probe._rate_limit_until_monotonic = 1060.0
 
     assert agy_quota_probe.load_quota(max_age_minutes=15) == stale
@@ -397,7 +401,7 @@ def test_load_quota_requests_after_backoff_expires(
     )
     urlopen, visited = _build_urlopen({_QUOTA_URL: quota_payload})
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
-    monkeypatch.setattr(agy_quota_probe.time, "monotonic", lambda: 1060.0)
+    monkeypatch.setattr(time, "monotonic",lambda: 1060.0)
     agy_quota_probe._rate_limit_until_monotonic = 1060.0
 
     result = agy_quota_probe.load_quota(max_age_minutes=15)
@@ -411,7 +415,7 @@ def test_post_json_non_429_http_error_does_not_set_backoff(
 ) -> None:
     urlopen, _visited = _build_http_error_urlopen(500, "120")
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
-    monkeypatch.setattr(agy_quota_probe.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(time, "monotonic",lambda: 1000.0)
 
     assert agy_quota_probe._post_json(_QUOTA_URL, "token", {}, 15.0) is None
     assert agy_quota_probe._rate_limit_until_monotonic == 0.0
@@ -420,7 +424,7 @@ def test_post_json_non_429_http_error_does_not_set_backoff(
 def test_refresh_token_429_sets_backoff(monkeypatch: pytest.MonkeyPatch) -> None:
     urlopen, visited = _build_http_error_urlopen(429, "90")
     monkeypatch.setattr(agy_quota_probe, "urlopen", urlopen)
-    monkeypatch.setattr(agy_quota_probe.time, "monotonic", lambda: 1000.0)
+    monkeypatch.setattr(time, "monotonic",lambda: 1000.0)
 
     assert agy_quota_probe._refresh_token("rt", 15.0) is None
     assert agy_quota_probe._rate_limit_until_monotonic == 1090.0

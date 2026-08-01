@@ -73,11 +73,11 @@ def test_load_session_titles_uses_30_day_profile(
         0,
         {"session-1": "Fix dashboard"},
     )
-    monkeypatch.setattr(
-        usage_cli.persona_loader,
-        "load_profile",
-        lambda days_back: calls.append(days_back) or profile,
-    )
+    def fake_load_profile(days_back: int) -> usage_cli.persona_loader.PersonaProfile:
+        calls.append(days_back)
+        return profile
+
+    monkeypatch.setattr(usage_cli.persona_loader, "load_profile", fake_load_profile)
 
     assert usage_cli._load_session_titles() == {"session-1": "Fix dashboard"}
     assert calls == [30]
