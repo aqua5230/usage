@@ -1,91 +1,22 @@
-# CLAUDE.md
+# usage
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+A macOS menu bar / TUI usage monitor. Reads Claude Code and Codex usage from local files; never calls an LLM usage API.
 
-## Project
+## Gotchas
 
-`usage` is a macOS menu bar (and TUI) app that pins Claude Code + Codex quota usage to the screen. Python 3.13, PyObjC for the menu bar UI, `rich` for the TUI. **No Anthropic/OpenAI APIs are ever called** — all numbers come from files on disk (a statusLine hook Claude Code writes, and Codex's `~/.codex/sessions/*.jsonl` logs).
-
-## Commands
-
-Environment is managed with `uv` in CI and a plain `.venv` locally (both work; `uv.lock` is the source of truth).
-
-```bash
-# Setup (one-time)
-python3 -m venv .venv && source .venv/bin/activate && pip install -e .
-# or: uv sync --frozen --group dev
-
-# Run (menu bar mode, default)
-python3 main.py
-python3 main.py --mock                  # preview with fake data
-python3 main.py --tui                   # terminal TUI mode
-python3 main.py --setup / --unsetup     # (un)install Claude Code statusLine hook
-USAGE_DEBUG=1 python3 main.py           # surface swallowed exceptions
-
-# Pre-PR checks — all three must pass (CI runs identical commands)
-uv run ruff check
-uv run mypy .
-uv run pytest -v
-
-# Single test
-uv run pytest tests/test_usage_client.py::test_name -v
-
-# Build .app bundle (output: dist/usage.app)
-./scripts/build_app.sh
-```
-
-Tests **must not** touch real `~/.claude/` or `~/.codex/` files — patch the path constants with `monkeypatch` (see existing tests for the pattern). All three checks (`ruff`, `mypy --strict`, `pytest`) are gated by `.github/workflows/check.yml`.
-
-## Architecture
-
-### Data flow — how quota numbers get on screen
-
-Two separate input channels feed one UI:
-
-```
-Claude Code ──stdin──> usage_statusline.py (hook) ──write──> ~/.claude/usage-status.json
-                                                                       │
-~/.codex/sessions/*.jsonl  (Codex writes these natively) ──┐           │
-                                                            ▼           ▼
-                                              codex_loader.py    usage_client.py
-                                                            └────┬──────┘
-                                                                 ▼
-                                                   menubar.py  /  tui.py
-```
-
-- **Claude Code side**: `usage_statusline.py` is installed into `~/.claude/usage-statusline.py` by `setup_hook.py` and wired into `~/.claude/settings.json`'s `statusLine`. Every time Claude Code refreshes its status line, it pipes the session JSON to the hook on stdin; the hook atomically writes it to `~/.claude/usage-status.json`. The UI reads that file — never the network.
-- **Codex side**: no hook is possible (Codex CLI has no equivalent), so `codex_loader.py` scans `~/.codex/sessions/**/*.jsonl` and pulls `rate_limits` straight from the conversation logs.
-- **Read priority** in `usage_client.py`: the newest usable data from `usage-status.json` → `usag-status.json` (v0.1.x legacy) → `tt-status.json` (compat fallback for users migrating from the third-party tool `stormzhang/token-tracker`) or Claude Code's `~/.claude.json` `cachedUsageUtilization` fallback; **no `token-tracker` module or source exists in this repository**.
-
-### Module map
-
-Only modules with a **gotcha** are listed — things you cannot learn by opening the file. Everything else in the repo is self-explanatory; don't add a row just to describe what a module does.
-
-| Module | Role |
-|---|---|
-| `usage_client.py` | Reads the Claude Code status JSON, builds a `UsageSnapshot`. Async interface preserved for the polling loop even though reads are sync. |
-| `codex_loader.py` | Parses Codex JSONL session logs for both rate-limits and per-message token usage. Also reads `~/.codex/state_5.sqlite` (read-only) for thread→model mapping. |
-| `pricing.py` | Cost estimation. Downloads LiteLLM's `model_prices_and_context_window.json` once, caches to `~/.usage/pricing_cache.json` (TTL 7 days; 10-min TTL on fallback so offline-then-online recovers; `~/.claude/pricing_cache.json` is a legacy read-only fallback). |
-| `service_status.py` | Reads Claude and Codex **public service-status pages** (`status.claude.com/api/v2/summary.json`, `status.openai.com/api/v2/summary.json`) so the panel can flag outages; caches to `~/.usage/anthropic_status_cache.json` and `~/.usage/openai_status_cache.json` (TTL 5 min, 60s backoff after a failure), mirroring `pricing.py`'s fetch/cache shape. Inspects **only** Claude's `Claude Code` and `Claude API (api.anthropic.com)`, plus Codex's `Codex API` — never either page's overall `indicator` or OpenAI shared components, which can reflect unrelated incidents and would false-alarm. A status page is **not a usage API**; this does not violate the no-LLM-usage-API invariant. |
-| `usage_rate.py` | Burn-rate classifier (Idle/Normal/Active/Heavy) — drives sprite animation speed in TUI. Burn rate deliberately excludes `cache_read` (see `UsageEntry.active_tokens`): cache reads are near-free re-sends of the whole context and would pin every heavy user at Heavy. |
-| `menubar.py` | PyObjC menu bar + popover UI. `# mypy: disable-error-code="import-untyped,misc"` is intentional (PyObjC has no stubs). UI layout constants near the top of the file are part of the visual design — don't tweak casually. **Growth policy: logic has been split out of this file twice and grew back past 2000 lines both times, so the ceiling in `scripts/check_file_size.py` now fails CI instead of relying on discipline. New feature logic must land in a leaf module (like `menubar_state.py` / `menubar_chrome.py`); only the thin ObjC dispatch shell goes here. Lower the ceiling when a cut lands; never raise it to go green.** |
-| `menubar_state.py` | Pure history/state projections consumed by `menubar.py` — **kept PyObjC-free so the logic stays unit-testable, and that means transitively**: `panels` and `menubar_agy` are imported inside the functions that need them, not at module scope. Importing this module must not pull in `objc`. |
-| `setup_hook.py` | Idempotent install/uninstall of the Claude Code statusLine hook, including migration of v0.1.x `usag-*` artifacts. Backs up any pre-existing `statusLine` under `settings["usage"]["previousStatusLine"]`. Also owns the shared low-level settings/TOML editing helpers that `session_hooks.py` builds on. |
-| `session_hooks.py` | Install/enable/disable/self-heal for the session companion hooks (session resume, terse mode, terse reminder, Codex terse) — split out of `setup_hook.py`. Depends one-way on `setup_hook.py`; never the reverse. |
-| `usage_statusline.py`, `usage_statusline_forwarder.py`, `usage_session_resume.py` | The three hook scripts, which run outside the venv: statusLine writer, multi-hook fan-out, SessionStart resume injector. All three are **stdlib-only** so they can run under macOS's bundled `/usr/bin/python3` (3.9) — that's why `tool.ruff.lint.per-file-ignores` excludes `UP017` (`datetime.UTC`) for them; use `timezone.utc` in these files. |
-| `talent_market_bridge.py` | JS↔Python bridge for the AI Talent Market panel (`assets/panels/talent_market.html`) — installs Claude Code subagent persona teams into `~/.claude/agents/` via a bundled `vendor/instate-cli` binary (built by the separate, private `instate` project; gitignored, fetched by `scripts/build_app.sh`). |
-| `setup_app.py` | `py2app` build script invoked by `scripts/build_app.sh`. Bundles `usage_statusline.py` and asset webps as `Resources/`. |
-
-### Naming invariant
-
-Everything user-facing and on-disk uses the `usage` prefix: bundle id `com.lollapalooza.usage`, LaunchAgent label, hook filename, status filename, settings backup key. The `usag-*` form is **legacy v0.1.x only** — kept as a read-fallback for migration, never written. Don't reintroduce it.
-
-### i18n rule
-
-All user-visible strings in panels and UI **must** be looked up from `i18n.json` via the `_t()` helper (or the JS `t()` function in HTML panels). Never hardcode any language's text directly in Python, HTML, or TUI code. When adding a new panel or new UI strings, add the key to all five language sections in `i18n.json` (`zh-TW`, `zh-CN`, `en`, `ja`, `ko`) before shipping.
-
-### Release / changelog
-
-- This project is **fully bilingual**, and every doc follows **one convention**: the default `.md` is **English** (so GitHub's landing page and community tabs — README, Contributing, Security, Changelog — are English for international visitors) and Traditional Chinese lives alongside it as `.zh-TW.md`. This applies uniformly to README, CONTRIBUTING, SECURITY, CHANGELOG, and `docs/DEVELOPMENT`. Any user-facing doc change must update both files. (GitHub only surfaces the suffix-less `CONTRIBUTING.md` / `SECURITY.md` in its tabs, never `*.zh-TW.md`, which is why English must be the default.) **README only** additionally ships three more UI-matching language variants — `README.zh-CN.md`, `README.ja.md`, `README.ko.md` — mirroring the same structure/heading count as `README.md`; `scripts/check_doc_parity.py` only enforces English↔zh-TW parity (the `DOC_PAIRS` tuple), so these three are not gated by CI and must be kept in sync by hand when README content changes.
-- Version is bumped in `pyproject.toml`; CI builds `usage.app.zip` and attaches it on `v*` tags (`.github/workflows/release.yml`).
-- The `.app` build flow renames `dist/main.app` → `dist/usage.app` (see `scripts/build_app.sh`) — this is expected, not a bug.
+- Claude usage is written atomically to `~/.claude/usage-status.json` by the statusLine hook. Read order: that file, the legacy `usag-status.json`, the migration-only `tt-status.json`, and finally `cachedUsageUtilization` in `~/.claude.json`. `usag-*` may be read for migration only — never written again.
+- Codex has no hook. `codex_loader.py` reads `~/.codex/sessions/**/*.jsonl` and opens `~/.codex/state_5.sqlite` read-only for the thread→model mapping.
+- Tests must never touch the real `~/.claude/` or `~/.codex/`; override the path constants with `monkeypatch`.
+- When `setup_hook.py` installs or removes the hook, any existing statusLine is backed up under `settings["usage"]["previousStatusLine"]`. Do not change this to overwrite it away.
+- `usage_statusline.py`, `usage_statusline_forwarder.py`, and `usage_session_resume.py` run outside the venv under macOS `/usr/bin/python3` 3.9. They must stay stdlib-only and use `timezone.utc`, never `datetime.UTC`.
+- Every user-visible string goes through `_t()` from `i18n.json`, or `t()` in HTML. A new key must be added to `zh-TW`, `zh-CN`, `en`, `ja`, and `ko` at once.
+- The PyObjC mypy ignores in `menubar.py` are deliberate; put new feature logic in a leaf module. `scripts/check_file_size.py` enforces the ceilings — lower one after a split, never raise it to get CI green.
+- `menubar_state.py` must stay PyObjC-free. `panels` and `menubar_agy` are imported inside functions; a top-level import must never pull in `objc`.
+- `session_hooks.py` may depend on `setup_hook.py`, never the reverse.
+- Burn rate excludes `cache_read_tokens`. Counting them lets a resent context mark heavy users as Heavy indefinitely.
+- The price table is downloaded only from `https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json` and cached in `~/.usage/pricing_cache.json` for 7 days. A fallback retries after 10 minutes; the old `~/.claude/pricing_cache.json` is read-only.
+- Service status reads only Claude Code / Claude API from `https://status.claude.com/api/v2/summary.json` and Codex API from `https://status.openai.com/api/v2/summary.json`. Do not switch to the overall indicator or to OpenAI's shared components — both cause false alarms. Cached under `~/.usage/` with a 5-minute TTL and a 60-second backoff after a failure.
+- Public docs default to English, with Traditional Chinese as `.zh-TW.md`. README also has `zh-CN`, `ja`, and `ko`, which CI does not enforce — sync them by hand when README changes. `scripts/check_doc_parity.py` only checks English ↔ Traditional Chinese.
+- `talent_market_bridge.py` wires the AI Talent Market's `assets/panels/talent_market.html` to Python and gets the gitignored `vendor/instate-cli` via `scripts/build_app.sh`. That binary is an artifact of the private `instate` project.
+- Everything user-visible and everything on disk uses the `usage` prefix, including `com.lollapalooza.usage`. `usag-*` exists only for reading older installs.
+- The build script renames `dist/main.app` to `dist/usage.app`. That is expected.
