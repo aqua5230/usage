@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-31",
+  "generated_at": "2026-08-02",
   "tools": [
     {
       "id": "claude_code",
@@ -1336,105 +1336,105 @@
       "name": "Usage",
       "versions": [
         {
-          "version": "0.29.10",
-          "period": "2026-07-31",
+          "version": "0.29.14",
+          "period": "2026-08-02",
           "items": [
             {
               "title": {
-                "zh-TW": "看不見的整理：選單列程式分家，尺寸規則自動把關",
-                "zh-CN": "看不见的整理：菜单栏代码分家，尺寸规则自动把关",
-                "en": "Invisible housekeeping: menu bar code gets divided up and size limits get enforced",
-                "ja": "見えない整理：メニューバーのコードを分け、サイズ制限を自動で守る",
-                "ko": "보이지 않는 정리: 메뉴 막대 코드를 나누고 크기 제한을 자동으로 지킨다"
+                "zh-TW": "面板記住位置與高度，開啟不再位移拉伸",
+                "zh-CN": "面板记住位置与高度，打开不再位移拉伸",
+                "en": "Panels remember their position and height instead of shifting or stretching open",
+                "ja": "パネルが位置と高さを覚え、開くたびにずれたり伸びたりしなくなった",
+                "ko": "패널이 위치와 높이를 기억해 열 때마다 밀리거나 늘어나지 않는다."
               },
               "body": {
-                "zh-TW": "這版選單列畫面不變，整理藏在牆裡。`menubar.py` 已膨脹到 2,485 行，第三次超過 2,000 行。圖示與警示的輔助程式搬到 `menubar_chrome.py`，狀態建立程式移至 `menubar_state.py`，主檔降至 2,230 行。只移動檔案直屬函式。PyObjC（讓 Python 接上 macOS Objective-C 的橋樑）靠 `AppDelegate` 的方法名稱連接控制項，搬動它會令對應控制項失靈；`_popover_size` 則拆成計算函式，留三行外殼，讓無 ObjC 執行環境的單元測試仍能跑。接著，CI（自動檢查流程）開始替檔案尺寸守門，超限就讓建置失敗；切割檔案時降上限，別為通過檢查抬高它。CLAUDE.md 的模組地圖從 24 列縮到 12 列，只留會踩雷的說明。像整理屋內管線，表面不變，日後維修不必再越鑿越大。",
-                "zh-CN": "打开这版后，菜单栏不会多长出按钮或画面；这是一场藏在墙里的整理。原本的 `menubar.py` 已膨胀到 2,485 行，第三次超过 2,000 行。这次把图标与提醒的辅助程序搬到 `menubar_chrome.py`，状态创建程序放进 `menubar_state.py`，让主文件降到 2,230 行。只移动直接写在文件里的函数。PyObjC（让 Python 接上 macOS Objective-C 的桥梁）靠 `AppDelegate` 方法名称连接控件，搬动它会让对应控件悄悄失灵；`_popover_size` 则拆成计算函数，留下三行外壳，让不加载 ObjC 运行环境的单元测试仍能运行。接着，CI（每次修改都自动检查的流程）开始替文件尺寸守门，超过上限就让构建失败；切割文件时要降上限，不能为了通过检查把它抬高。最后，CLAUDE.md 的模块地图从 24 行缩到 12 行，只留真正会踩坑的说明。像整理房子里的管线，住的人看不见新摆设，日后维修却不会再把墙越凿越大。",
-                "en": "Nothing new appears in the menu bar in this release; the work is behind the wall. `menubar.py` had grown to 2,485 lines and crossed 2,000 for the third time. Icon and alert helpers now live in `menubar_chrome.py`, while state constructors moved to `menubar_state.py`, bringing the original file down to 2,230 lines. Only file-level functions moved: PyObjC, the bridge between Python and macOS Objective-C, connects controls through `AppDelegate` method names, so moving one would silently break its control. `_popover_size` was split into a calculation function with a three-line shell left behind, keeping `menubar_state.py` testable without the ObjC runtime. CI, the automatic check run on changes, now fails a build when a guarded file exceeds its limit; after a cut, lower the limit rather than raising it to pass. CLAUDE.md's module map also shrank from 24 rows to 12, keeping only warnings that are not obvious from opening each module. It is like reorganizing plumbing: no new fixture appears, but later repairs need not keep breaking through a larger wall.",
-                "ja": "この版でメニューバーに新しいボタンや画面は現れない。壁の中で行う整理である。`menubar.py` は 2,485 行まで膨らみ、2,000 行を超えるのは三度目だった。アイコンと警告の補助関数を `menubar_chrome.py` へ、状態を作る関数を `menubar_state.py` へ移し、元のファイルを 2,230 行に減らした。移したのはファイル直下の関数だけである。PyObjC は Python と macOS の Objective-C をつなぐ橋であり、`AppDelegate` のメソッド名で操作部品を結ぶため、それを移すと対応する部品が黙って動かなくなる。`_popover_size` は計算関数に分け、三行の殻を残したので、ObjC の実行環境なしでも `menubar_state.py` を単体テストできる。CI は変更ごとに自動確認する仕組みであり、対象ファイルが上限を超えるとビルドを失敗させる。分割したら上限を下げ、通すために上げない。CLAUDE.md のモジュール地図も 24 行から 12 行へ縮め、開けば分かる説明を外した。家の配管を整理するように、見た目は変わらなくても後の修理で壁を余計に壊さずに済むのである。",
-                "ko": "이번 판을 열어도 메뉴 막대에 새 버튼이나 화면이 생기지는 않는다. 벽 안쪽에서 하는 정리다. `menubar.py`는 2,485줄까지 불어나 세 번째로 2,000줄을 넘겼다. 아이콘과 알림 보조 함수는 `menubar_chrome.py`로, 상태를 만드는 함수는 `menubar_state.py`로 옮겨 원래 파일을 2,230줄까지 줄였다. 파일 맨 위에 직접 쓴 함수만 옮겼다. PyObjC는 Python과 macOS의 Objective-C를 잇는 다리이며 `AppDelegate` 메서드 이름으로 조작 부품을 연결하므로, 그것을 옮기면 해당 부품이 소리 없이 작동을 멈춘다. `_popover_size`는 계산 함수로 나누고 세 줄짜리 껍데기를 남겨 ObjC 실행 환경 없이도 `menubar_state.py`를 단위 테스트할 수 있게 했다. CI는 변경 때마다 자동 검사하는 절차로, 대상 파일이 한도를 넘으면 빌드를 실패시킨다. 파일을 나눴다면 한도를 낮추며, 통과하려고 올리지는 않는다. CLAUDE.md의 모듈 지도도 24줄에서 12줄로 줄여 파일을 열면 알 수 있는 설명을 뺐다. 집 배관을 정리하듯 겉모습은 같아도 나중 수리 때 벽을 더 크게 뜯지 않게 한다."
+                "zh-TW": "每次打開又關閉面板後，若你已把它拖到順手位置，現在它不會一回比一回往下滑。之前它像掛歪的相框：儲存位置抓左下角，調整內容大小卻固定上緣；程式自己因高度改變移動視窗時，又誤當成你拖動，於是把偏移記下來。現在兩邊都認上緣，尺寸變動不會覆蓋你選的位置。舊版存下的位置也會經遷移（把舊資料換成新格式的轉換）讀取，不必重設。面板量過高度後，開啟不再先矮後拉長；尚未量過時仍以估算值作備援。內容真的變高或變矮時，仍會再調整一次。",
+                "zh-CN": "每次打开又关闭面板后，如果你已经把它拖到顺手的位置，现在它不会一次比一次往下滑。以前它像挂歪的相框：保存位置抓左下角，调整内容大小却固定上缘；程序因高度变化自己移动窗口时，又误当成你拖动，于是把偏移记下来。现在两边都认上缘，尺寸变化不会覆盖你选的位置。旧版存下的位置也会经迁移（把旧数据换成新格式的转换）读取，不必重设。面板量过高度后，打开不再先矮后拉长；尚未量过时仍以估算值作备用。内容真的变高或变矮时，仍会再调整一次。",
+                "en": "After you drag a panel where you want it, opening and closing it will no longer make it creep lower each time. It was like a crooked picture frame: the saved position used its bottom-left corner, while resizing held its top edge; when the app moved the window for a height change, it mistook that move for your drag and saved the offset. Both sides now use the top edge, so resizing cannot overwrite your chosen spot. Older saved positions are migrated rather than reset. A measured panel no longer opens short and then stretches; an estimate remains the fallback before measurement. It still adjusts when content truly changes size.",
+                "ja": "パネルを使いやすい位置へドラッグした後、開閉するたびに少しずつ下へずれることはなくなった。以前は額縁が傾くような状態だった。保存する位置は左下の角を基準にする一方、サイズ変更は上端を固定していたため、高さの変更でアプリ自身が窓を動かすと、それをユーザーのドラッグと誤認してずれを保存していた。今は両方とも上端を基準にするので、サイズ変更で選んだ位置は上書きされない。旧版の保存位置も移行して読み込まれ、リセットは不要である。実測済みのパネルは、低く開いてから伸びなくなる。未測定なら推定値を予備に使う。内容の高さが実際に変われば、そのときだけ調整する。",
+                "ko": "패널을 편한 자리로 끌어 놓았다면 이제 열고 닫을 때마다 조금씩 아래로 밀려나지 않는다. 예전에는 비뚤어진 액자와 같았다. 저장 위치는 왼쪽 아래 모서리를 기준으로 삼는데 크기 조절은 위쪽 가장자리를 붙들었고, 높이가 바뀌어 앱이 창을 움직인 일을 사용자가 끈 것으로 잘못 알아들어 그 어긋남을 저장했다. 이제 양쪽 모두 위쪽 가장자리를 기준으로 써서 크기 조절이 고른 위치를 덮어쓰지 않는다. 예전 버전의 저장 위치도 옮겨 읽으므로 다시 잡을 필요가 없다. 실제 높이를 잰 패널은 낮게 열렸다가 늘어나지 않으며, 아직 재지 않았다면 추정값을 예비로 쓴다. 내용 높이가 정말 바뀔 때는 다시 조절한다."
               },
-              "original": "**Nothing changes on screen in this release — it is housekeeping on the menu bar code.** `menubar.py` had reached 2485 lines, creeping past 2000 for the third time after being split apart twice. The icon and alert helpers moved into a new `menubar_chrome.py`, and the state constructors joined `menubar_state.py`, taking the file down to 2230. Only module-level functions moved: PyObjC binds `AppDelegate` methods by selector name, so relocating one would silently stop the matching control from working. `_popover_size` was split rather than moved, because it ends in `NSMakeSize` and `menubar_state.py` has to stay importable without the ObjC runtime for its projections to be unit-testable — the arithmetic moved as `popover_dimensions()` and a three-line shell stayed behind.\n**The growth policy behind that cleanup is now enforced by CI rather than by discipline.** `scripts/check_file_size.py` fails the build when a guarded file passes its ceiling. The rule had been written in CLAUDE.md all along; nothing checked it, and the file grew back twice. Lower a ceiling when a cut lands, never raise it to go green.\n**CLAUDE.md's module map lists only modules with a gotcha.** Half its rows restated what opening the file would tell you, and three separate rows repeated the same stdlib-only constraint. It went from 24 rows to 12."
+              "original": "**The panel no longer creeps downward every time you open and close it.** Dragging it into place used to hold for one cycle at most: each reopen landed it a little lower than the last. Two anchors disagreed. The saved position was the window's bottom-left corner, but `setContentSizeKeepingTopLeft_` — added in 0.29.9 precisely so the panel would not appear to jump while resizing — holds the *top* edge. To hold that edge it calls `setFrameOrigin_`, and macOS posts `NSWindowDidMoveNotification` for a programmatic move just as it does for a drag, so `windowDidMove_` recorded a resize as though the user had dragged the window. Every open re-measured the content height, the bottom-left corner dropped by the difference, and that drop was saved as the new position. The anchor is now the top edge on both sides, so resizing cannot change the stored value. Positions saved by earlier versions are read through a migration path and are not reset.\n**Opening the panel no longer starts short and then stretches.** Two height systems were computing the same number and disagreeing: `popover_dimensions` estimates from a panel's base height by arithmetic (subtract a card when Claude or Codex is hidden, subtract a row when Codex has no data, add for a wrapped status line or an install button), while the script in `panels/dynamic_height.py` measures the rendered content and reports it back. The window opened at the estimate and jumped to the measurement. The gap was widest with cards hidden, where the most terms are subtracted. The measured height is now remembered per panel and used on open, leaving the estimate as a fallback for a panel that has never been measured. The arithmetic constants were deliberately left alone — tuning them is whack-a-mole, since every new UI element needs another adjustment. The panel still adjusts once when the content genuinely changes size."
+            },
+            {
+              "title": {
+                "zh-TW": "狀態檔讀到壞編碼，不再讓 usage 中斷",
+                "zh-CN": "状态文件读到坏编码，不再让 usage 中断",
+                "en": "A damaged state file no longer stops usage cold",
+                "ja": "壊れた文字コードの状態ファイルで usage が止まらなくなった",
+                "ko": "깨진 인코딩의 상태 파일 때문에 usage가 멈추지 않는다."
+              },
+              "body": {
+                "zh-TW": "某次電腦突然關機或檔案只寫到一半時，usage 的狀態檔（存偏好和上次連線資料的檔案）若混進不能用 UTF-8 的位元組，程式現在不會直接報錯中斷。它會把這份無法讀取的檔案當作暫時不可用，安靜改走備援處理。先前程式只攔住作業系統讀檔錯誤與 JSON 格式錯誤，卻漏了不合法 UTF-8 造成的解碼錯誤；三個載入偏好、連線狀態與上次連線時間的地方因此可能把錯誤一路丟出。這像讀到被水泡爛的便條：看不清就先放下，不讓整個工作台停擺。",
+                "zh-CN": "某次电脑突然关机或文件只写到一半时，usage 的状态文件（存偏好和上次连接资料的文件）如果混进不能用 UTF-8 的字节，程序现在不会直接报错中断。它会把这份无法读取的文件当作暂时不可用，安静改走备用处理。先前程序只拦住操作系统读文件错误与 JSON 格式错误，却漏了不合法 UTF-8 造成的解码错误；三个加载偏好、连接状态与上次连接时间的地方因此可能把错误一路抛出。这像读到被水泡烂的便条：看不清就先放下，不让整个工作台停摆。",
+                "en": "If a computer shuts down suddenly or a file is written only halfway, a usage state file can contain bytes that are not valid UTF-8. That no longer throws an error and stops the app. The unreadable file is treated as temporarily unusable and the app falls back quietly. Previously it caught operating-system read errors and malformed JSON, but missed decoding errors from invalid UTF-8; three loaders for preferences, connection state, and last connection time could let that error escape. It is like finding a note soaked through with water: set it aside when you cannot read it, instead of shutting down the whole workbench.",
+                "ja": "突然の電源断や書き込み途中の中断で、usage の状態ファイルに UTF-8 として読めないバイト列が混じることがある。今後はそれでエラーが出てアプリ全体が止まることはない。読めないファイルは一時的に使えないものとして扱い、静かに予備の処理へ回る。以前は OS の読み取りエラーや壊れた JSON は捕捉していたが、不正な UTF-8 によるデコードエラーを見落としていた。このため、設定、接続状態、最終接続時刻を読む三つの処理からエラーが漏れる可能性があった。水浸しで読めないメモを見つけたら、作業台全体を止めずに脇へ置くような修正である。",
+                "ko": "컴퓨터가 갑자기 꺼지거나 파일을 쓰다 멈추면 usage의 상태 파일에 UTF-8로 읽을 수 없는 바이트가 섞일 수 있다. 이제 그런 파일 때문에 오류가 나고 앱 전체가 멈추지 않는다. 읽을 수 없는 파일은 잠시 쓸 수 없는 것으로 보고 조용히 예비 처리로 넘어간다. 예전에는 운영체제의 파일 읽기 오류와 잘못된 JSON은 잡았지만, 잘못된 UTF-8 때문에 생기는 해독 오류는 놓쳤다. 그래서 환경 설정, 연결 상태, 마지막 연결 시각을 읽는 세 곳에서 오류가 밖으로 새어 나올 수 있었다. 물에 젖어 읽을 수 없는 메모를 발견하면 작업대 전체를 멈추지 않고 옆에 두는 것과 같다."
+              },
+              "original": "**A state file corrupted into non-UTF-8 bytes no longer raises instead of degrading.** `_load_preferences`, `_load_ping_state` and `_load_last_ping` each catch `OSError` and `json.JSONDecodeError` around a `read_text(encoding=\"utf-8\")` — but a file containing invalid UTF-8 raises `UnicodeDecodeError`, which is a sibling of `JSONDecodeError` under `ValueError`, not a subclass of it. All three are contracted to fall back quietly when their file is unusable, and a half-written or damaged file broke that contract by propagating the exception."
+            },
+            {
+              "title": {
+                "zh-TW": "通知程式拆開、共用讀檔工具補上測試",
+                "zh-CN": "通知程序拆开、共用读文件工具补上测试",
+                "en": "Notification code is separated and shared file readers get direct tests",
+                "ja": "通知コードを分離し、共通のファイル読み込み処理に直接テストを加えた",
+                "ko": "알림 코드를 분리하고 공용 파일 읽기 도구에 직접 테스트를 더했다."
+              },
+              "body": {
+                "zh-TW": "你收到通知、或開發者修改共用讀檔工具時，這版沒有添畫面上的新按鈕，卻把容易藏錯的角落收好。macOS 的通知橋接程式（把 app 與系統通知中心接起來的程式碼）從龐大的選單列檔拆到獨立檔案；更新通知的冷卻時間也移到管理其他更新時機的地方。通知的判斷邏輯仍不依賴 macOS 專用元件，因此可在沒有 macOS 執行環境下測試。另一邊，讀 JSONL（每行一筆 JSON 資料的檔案格式）與時間的共用工具補上直接單元測試：空白行、壞行和不是物件的資料怎麼處理都被固定下來；未指定錯誤處理時，遇到壞 UTF-8 仍會報錯，決定權留給呼叫它的地方。像把工具櫃裡常用尺和螺絲起子逐件驗過，往後修其他東西時較不易誤踩壞掉的工具。",
+                "zh-CN": "你收到通知、或开发者修改共用读文件工具时，这版没有添画面上的新按钮，却把容易藏错的角落收好。macOS 的通知桥接程序（把 app 与系统通知中心接起来的代码）从庞大的菜单栏文件拆到独立文件；更新通知的冷却时间也移到管理其他更新时间的地方。通知的判断逻辑仍不依赖 macOS 专用组件，因此可在没有 macOS 运行环境下测试。另一边，读 JSONL（每行一笔 JSON 数据的文件格式）与时间的共用工具补上直接单元测试：空白行、坏行和不是对象的数据怎么处理都被固定下来；未指定错误处理时，遇到坏 UTF-8 仍会报错，决定权留给调用它的地方。像把工具柜里常用尺和螺丝刀逐件验过，往后修其他东西时较不易误踩坏掉的工具。",
+                "en": "If you receive notifications or maintain shared file-reading code, this release adds no visible button but tidies places where bugs can hide. The macOS notification bridge, which connects the app to the system notification center, moves out of the huge menu-bar file into its own file; update-dismissal timing joins the other update timing rules. The decision logic still avoids macOS-only pieces, so it can be tested without that runtime. Meanwhile, the shared JSONL and time utilities get direct unit tests. Their behavior for blank lines, malformed rows, and non-object values is now pinned down; invalid UTF-8 still raises when the caller has not asked for error handling, leaving that choice to the caller. It is like checking each ruler and screwdriver in a tool cabinet before repairing something else.",
+                "ja": "通知を受け取る人や共通のファイル読み込み処理を保守する人にとって、この版は画面上の新しいボタンを増やすものではないが、バグが潜みやすい場所を整えている。アプリとシステムの通知センターをつなぐ macOS の通知ブリッジは、巨大なメニューバー用ファイルから独立したファイルへ移った。更新通知を閉じた後の待機時間も、ほかの更新時機を管理する場所へ集められた。通知の判断ロジックは macOS 専用部品に依存しないため、その実行環境なしでもテストできる。一方、JSONL と時刻を扱う共通ツールには直接の単体テストを追加した。空行、壊れた行、オブジェクトでない値の扱いを固定し、呼び出し側がエラー処理を指定しない場合は壊れた UTF-8 を引き続きエラーにする。工具箱の定規とドライバーを一本ずつ点検してから別の修理を始めるような変更である。",
+                "ko": "알림을 받거나 공용 파일 읽기 도구를 고치는 사람에게 이번 버전은 화면의 새 단추를 더하지는 않지만, 오류가 숨어들기 쉬운 곳을 정리한다. 앱과 시스템 알림 센터를 잇는 macOS 알림 연결 코드는 커다란 메뉴 막대 파일에서 별도 파일로 옮겼고, 업데이트 알림을 닫은 뒤의 대기 시간도 다른 업데이트 시점을 관리하는 곳으로 모았다. 알림 판단 로직은 macOS 전용 부품에 기대지 않아 그 실행 환경 없이도 시험할 수 있다. 한편 JSONL과 시간을 다루는 공용 도구에는 직접 단위 시험을 더했다. 빈 줄, 망가진 줄, 객체가 아닌 값의 처리를 고정했고, 호출하는 쪽이 오류 처리를 정하지 않았다면 잘못된 UTF-8은 계속 오류로 낸다. 공구함의 자와 드라이버를 하나씩 점검한 뒤 다른 수리를 시작하는 것과 같다."
+              },
+              "original": "**The macOS notification bridge moved out of `menubar.py` into `menubar_notify.py`.** The six module-level functions that talk to `UNUserNotificationCenter` had no reason to live in a 2230-line file. They were not folded into `usage_notifications.py`, which stays free of PyObjC so its decision logic remains testable without the ObjC runtime — these functions call `objc.registerMetaDataForSelector`. The update-dismissal cooldown joined `update_gate.py`, where the other update-timing constants already were. `menubar.py` is down to 2139 lines and its ceiling followed.\n**`jsonl_utils` and `time_utils` gained direct unit tests.** Both are shared by several loaders and had only incidental coverage through the modules above them. The JSONL reader's tolerance for blank lines, malformed rows and non-object values is now pinned, including the deliberate choice to raise on invalid UTF-8 when no `errors` argument is given — that decision belongs to the caller."
             }
           ]
         },
         {
-          "version": "0.29.9",
-          "period": "2026-07-29",
+          "version": "0.29.13",
+          "period": "2026-08-02",
           "items": [
             {
               "title": {
-                "zh-TW": "面板能隨你擺放，切換視窗也不會消失",
-                "zh-CN": "面板可随你摆放，切换窗口也不会消失",
-                "en": "Put the panel where you want, and keep it there",
-                "ja": "パネルを好きな場所へ置き、ほかのアプリに切り替えても残せる",
-                "ko": "패널을 원하는 곳에 놓고 다른 앱을 봐도 그대로 둔다"
+                "zh-TW": "移除 usage 不誤刪狀態列，讀壞掛鉤檔就停手",
+                "zh-CN": "移除 usage 不误删状态栏，读坏钩子文件就停手",
+                "en": "Removing usage preserves your status line, and unreadable hooks stop safely",
+                "ja": "usage を外しても状態表示を誤削除せず、壊れたフックファイルには手を出さない",
+                "ko": "usage를 지워도 상태 줄을 잘못 지우지 않고, 읽을 수 없는 훅 파일에는 손대지 않는다"
               },
               "body": {
-                "zh-TW": "想把用量面板挪到螢幕邊角，現在直接拖曳空白處就行。它不再只能黏在選單列圖示旁、別的 app 取得焦點就收起，而是無邊框的浮動面板：放到哪裡，下次就從哪裡打開，圓角和陰影也照留著。檢查其他 app 時它仍待在原處；再按一次選單列圖示或按 Escape 才會關。拖曳不會搶走按鈕與捲動區的操作，內容高度變動時也固定左上角，因此不會像量尺從底端拉長般跳來跳去。",
-                "zh-CN": "想把用量面板挪到屏幕边角，现在直接拖动空白处就行。它不再只能黏在菜单栏图标旁、别的 app 获得焦点就收起，而是无边框的浮动面板：放到哪里，下次就从哪里打开，圆角和阴影也照样保留。查看其他 app 时它仍待在原处；再按一次菜单栏图标或按 Escape 才会关闭。拖动不会抢走按钮与滚动区的操作，内容高度变化时也固定左上角，因此不会像尺子从底端拉长般跳来跳去。",
-                "en": "Want the usage panel in a screen corner? Drag any empty spot on it. It is no longer a popover stuck to the menu-bar icon that vanishes when another app gets focus; it is a borderless floating panel that reopens where you left it, with its rounded corners and shadow intact. It stays put while you check another app, and closes only when you click the menu-bar icon again or press Escape. Dragging leaves buttons and scrollable areas alone, while resizing holds the top-left corner still so the panel does not jump like a ruler stretching from its bottom edge.",
-                "ja": "使用量パネルを画面の隅へ置きたいなら、何もない場所をそのままドラッグすればよい。メニューバーのアイコンにしか留まれず、別のアプリにフォーカスが移ると閉じる一時的な表示ではなくなった。枠のないフローティングパネルとなり、置いた場所で再び開き、角丸と影も残る。他のアプリを確認してもそこに留まり、メニューバーのアイコンをもう一度押すか Escape を押したときだけ閉じる。ドラッグはボタンやスクロール領域を奪わず、高さが変わっても左上を固定するため、下端から伸びる定規のように飛び跳ねないのである。",
-                "ko": "사용량 패널을 화면 구석에 놓고 싶다면 빈 곳을 그대로 끌면 된다. 다른 앱이 초점을 받으면 닫히고 메뉴 막대 아이콘에만 붙어 있던 임시 창이 아니라, 테두리 없는 떠 있는 패널이 되었다. 놓은 자리에서 다시 열리고 둥근 모서리와 그림자도 남는다. 다른 앱을 확인해도 제자리에 있으며, 메뉴 막대 아이콘을 한 번 더 누르거나 Escape를 눌러야 닫힌다. 끌기는 버튼과 스크롤 영역을 건드리지 않고, 높이가 바뀌어도 왼쪽 위를 고정하므로 아래쪽에서 늘어나는 자처럼 패널이 펄쩍 뛰지 않는다."
+                "zh-TW": "你曾把自己設定的終端機狀態列（終端機最底下顯示目前狀況的地方）留著，卻在移除 usage 加上的 Codex 狀態列時擔心它一起消失嗎？現在移除動作會逐字核對，只有完全等於 `CODEX_STATUS_LINE` 的那一列才會動；備份檔壞掉或內容型別不對時，設定和備份都原封不動。另一道保護留給掛鉤（特定事件發生時被觸發的小程式）：`~/.codex/hooks.json` 不可讀時，usage 會中止，不再把它當空檔重寫，避免清掉你全部掛鉤，也不會留下半套安裝。像收走租來的衣架，先認準自己的標籤；看不清置物櫃裡的東西，就先不碰。",
+                "zh-CN": "你保留着自己设置的终端状态栏（终端最底下显示当前状况的地方），移除 usage 加上的 Codex 状态栏时，过去可能担心它也会一起消失。现在移除动作会逐字核对，只有完全等于 `CODEX_STATUS_LINE` 的那一行才会动；备份文件损坏或内容类型不对时，设置和备份都会原封不动。另一道保护留给钩子（特定事件发生时被触发的小程序）：`~/.codex/hooks.json` 无法读取时，usage 会中止，不再把它当空文件重写，避免清掉全部钩子，也不会留下半套安装。像收走租来的衣架，先认准自己的标签；看不清储物柜里的东西，就先不碰。",
+                "en": "If you kept your own terminal status line, removing the Codex line added by usage used to risk taking yours with it. Removal now compares the text exactly and touches only a line equal to `CODEX_STATUS_LINE`; if its backup is corrupt or has the wrong type, both the configuration and backup stay untouched. A second safeguard covers hooks (small programs triggered by particular events): when `~/.codex/hooks.json` cannot be read, usage stops instead of treating it as empty and writing it back. That protects every hook and avoids leaving a half-installed state. It is like collecting rented coat hangers only after checking their labels; if you cannot see inside a locker, you leave it alone.",
+                "ja": "自分で設定した端末の状態表示を残しているなら、usage が加えた Codex の状態表示を外す際に、それまで一緒に消えるおそれがあった。今は文字列を完全一致で照合し、`CODEX_STATUS_LINE` と一致する行だけを操作する。バックアップが壊れているか型が違う場合も、設定とバックアップはそのまま残る。もう一つの保護対象はフック（特定の出来事で動く小さなプログラム）である。`~/.codex/hooks.json` を読めないとき、usage は空のファイルと見なして書き戻さず中止するため、全フックを消したり中途半端な導入状態を残したりしない。借りたハンガーを回収するときは自分の札を確かめ、ロッカーの中が見えなければ触らないようなものである。",
+                "ko": "직접 설정한 터미널 상태 줄을 남겨 두었다면, usage가 추가한 Codex 상태 줄을 지울 때 그것까지 함께 사라질 위험이 있었다. 이제 제거 작업은 글자를 정확히 대조해 `CODEX_STATUS_LINE`과 완전히 같은 줄만 건드린다. 백업 파일이 깨졌거나 내용 형식이 맞지 않아도 설정과 백업은 그대로 둔다. 또 다른 보호 장치는 훅(특정 일이 일어날 때 실행되는 작은 프로그램)이다. `~/.codex/hooks.json`을 읽을 수 없으면 usage는 이를 빈 파일로 보고 다시 쓰지 않고 중단하므로, 훅 전체를 지우거나 반쯤 설치된 상태를 남기지 않는다. 빌린 옷걸이를 거둘 때 자기 이름표를 먼저 확인하고, 사물함 안이 보이지 않으면 손대지 않는 것과 같다."
               },
-              "original": "**The panel can now be placed anywhere on screen**: it was an `NSPopover`, which AppKit anchors to the status item and dismisses the moment focus moves elsewhere, so where it sat was never yours to choose. It is now a borderless floating panel: drag it from any empty spot, and it reopens where you left it. It stays put when another app takes focus — a second click on the menu bar icon, or Escape, closes it. Rounded corners and the drop shadow came free with the popover and are now drawn by the window itself. Dragging travels over the existing JS bridge: an injected script reports a mousedown that landed outside any interactive or scrollable element, and the window hands the gesture to `performWindowDragWithEvent:` so the system drives it. Resizing pins the top-left corner, because a window's origin is its bottom-left and the panel would otherwise appear to jump every time its height tracked a fresh content measurement."
-            },
-            {
-              "title": {
-                "zh-TW": "AI 人才市集面板不再縮成一條",
-                "zh-CN": "AI 人才市场面板不再缩成一条",
-                "en": "The AI Talent Market panel no longer squashes itself flat",
-                "ja": "AI Talent Market のパネルが細い一列に潰れなくなった",
-                "ko": "AI Talent Market 패널이 납작한 줄 하나로 찌그러지지 않는다"
-              },
-              "body": {
-                "zh-TW": "AI 人才市集面板有時一打開只剩標題那一條，隊伍清單像被折進抽屜底部；現在不會了。問題不在資料消失，而是它量高度時暫時放開限制，內部採固定高度、自己捲動的清單剛好被量成零高；又因量測時間不同，才會時好時壞。新版讓各面板決定是否參加這個自動量測。人才市集本來就該固定高度、在裡面捲動，現在跳過自動量測，打開就能看到完整隊伍清單。",
-                "zh-CN": "AI 人才市场面板有时一打开只剩标题那一条，队伍清单像被折进抽屉底部；现在不会了。问题不在数据消失，而是它量高度时暂时放开限制，内部采用固定高度、自己滚动的清单刚好被量成零高；又因测量时间不同，才会时好时坏。新版让各面板决定是否参加这个自动测量。人才市场本来就该固定高度、在里面滚动，现在跳过测量，打开就能看到完整清单。",
-                "en": "The AI Talent Market panel sometimes opened as little more than its header, as if the team list had been folded into the bottom of a drawer. That list was not gone: while the app measured content height, it temporarily released layout constraints, and this fixed-height, internally scrolling list could collapse to zero. Timing made the failure intermittent. Panels can now opt out of that automatic measurement. AI Talent Market was always meant to keep a fixed height and scroll inside it, so it skips the measurement and opens with the full list visible.",
-                "ja": "AI Talent Market のパネルを開くと、時々見出し一行だけになり、チーム一覧が引き出しの底へ折り畳まれたように消えていた。データが消えたのではない。高さを測る間にレイアウトの制限を一時的に外すと、固定の高さで内部スクロールするこの一覧は高さゼロまで縮むことがあった。測定のタイミング次第だったため、起きたり起きなかったりしたのである。今後は各パネルがこの自動測定に参加するか選べる。AI Talent Market は元から固定の高さで中をスクロールする設計なので、測定を飛ばし、完全な一覧を表示して開く。",
-                "ko": "AI Talent Market 패널은 가끔 제목 줄만 남아 팀 목록이 서랍 바닥으로 접혀 들어간 듯 보였다. 데이터가 사라진 것은 아니다. 앱이 내용 높이를 잴 때 배치 제한을 잠시 풀면, 고정 높이 안에서 스스로 스크롤하는 이 목록이 높이 0으로 접힐 수 있었다. 측정 순간에 따라 달라져서 간헐적으로 나타난 문제였다. 이제 각 패널은 이 자동 측정에 참여할지 고를 수 있다. AI Talent Market은 원래 고정 높이 안에서 스크롤하도록 만든 패널이므로 측정을 건너뛰고 전체 목록을 보인 채 열린다."
-              },
-              "original": "**The AI Talent Market panel no longer collapses into a squashed strip**: the panel intermittently opened at roughly the height of its own header, cutting off the team list. The dynamic content-height probe releases the layout's height constraints before measuring, and this panel builds its list as an absolutely positioned layer inside a `flex: 1` body — with the constraints released, that body collapsed to zero and the probe reported little more than the header, which the clamp then rounded up to the minimum panel height. Whether it happened came down to measurement timing, hence the intermittency. Panels now carry a switch for the probe, and this one — a fixed-height design that scrolls internally and never needed measuring — opts out."
-            },
-            {
-              "title": {
-                "zh-TW": "切換面板選單收起時，不再連面板一起關",
-                "zh-CN": "切换面板菜单收起时，不再连面板一起关",
-                "en": "Closing the Switch Panel menu no longer closes the panel too",
-                "ja": "Switch Panel メニューを閉じても、パネルまで閉じなくなった",
-                "ko": "Switch Panel 메뉴를 닫아도 패널까지 함께 닫히지 않는다"
-              },
-              "body": {
-                "zh-TW": "點開「切換面板」選單後，想回去看面板卻把整張面板關掉的烏龍沒了。以前選單打開時，原本的彈出式選單已經消失；清理它的動作卻誤把浮動面板當成也該收掉的東西。因此你按 Escape、點面板或點到別處，選單消失的同時面板也消失。現在清理只會關選單，浮動面板仍會安穩地繼續留在原處，像收起工具抽屜旁的小選單，桌上的工作紙不會一起被掃走。",
-                "zh-CN": "点开“切换面板”菜单后，想回去看面板却把整张面板关掉的乌龙没了。以前菜单打开时，原本的弹出式菜单已经消失；清理它的动作却误把浮动面板当成也该收掉的东西。因此你按 Escape、点面板或点到别处，菜单消失的同时面板也消失。现在清理只会关菜单，浮动面板会留着，像收起工具抽屉旁的小菜单，桌上的工作纸不会一起被扫走。",
-                "en": "The awkward moment when opening the “Switch Panel” menu made the whole panel disappear is gone. Previously, the temporary popover was already finished once the menu took focus, but its cleanup treated the floating panel as something to dismiss too. So pressing Escape, clicking the panel, or clicking elsewhere hid both the menu and the panel. Now cleanup closes only the menu. The floating panel stays, like folding away the little menu beside a tool drawer without sweeping the papers off your desk.",
-                "ja": "「Switch Panel」メニューを開いた後、パネルへ戻ろうとしてパネル全体まで消してしまう事故がなくなった。以前はメニューにフォーカスが移る時点で一時的なポップオーバーはすでに役目を終えていたが、その後始末がフローティングパネルまで閉じる対象として扱っていた。そのため Escape を押す、パネルをクリックする、ほかの場所をクリックすると、メニューと同時にパネルも消えた。今は後始末が閉じるのはメニューだけである。道具箱脇の小さなメニューを畳んでも、机上の作業用紙まで掃き落とさないようなものである。",
-                "ko": "“Switch Panel” 메뉴를 연 뒤 패널로 돌아가려다 패널 전체를 닫아 버리던 일이 사라졌다. 예전에는 메뉴가 초점을 받을 때 임시 팝오버가 이미 제 역할을 마쳤는데, 그 뒷정리가 떠 있는 패널까지 닫을 대상으로 여겼다. 그래서 Escape를 누르거나 패널을 누르거나 다른 곳을 누르면 메뉴와 패널이 함께 사라졌다. 이제 뒷정리는 메뉴만 닫는다. 도구 서랍 옆의 작은 메뉴를 접어도 책상 위 작업지를 쓸어 버리지는 않는 것과 같다."
-              },
-              "original": "**Dismissing the switch-panel menu no longer closes the panel**: opening \"Switch Panel\" and then clicking the panel itself, pressing Escape, or clicking away closed the whole panel. A transient popover was already gone by the time the menu took focus, so closing it was merely cleanup; the floating panel survives the menu, which turned the same cleanup into a mistouch that threw the panel away."
+              "original": "**Removing the Codex status line no longer deletes one that `usage` never installed.** `_unsetup_codex()` only checked whether a `tui.status_line` existed at all, not whether it was ours. Anyone who had configured their own status line and then ran the removal lost it. Worse, a corrupt backup file made the restore path overwrite the config with an empty list and then delete the only backup, losing both at once. Removal now acts only when the status line matches `CODEX_STATUS_LINE` exactly, and an unreadable or wrong-typed backup leaves both the config and the backup untouched.\n**A corrupt `~/.codex/hooks.json` is no longer treated as an empty one.** `_load_codex_hooks()` returned `{}` for \"file missing\" and \"file exists but won't parse\" alike; terse mode then rebuilt from that empty dict and wrote it back, permanently erasing every Codex hook the user had, with no backup and no message. Codex writing that file while `usage` reads it is enough to trigger this. The unreadable case now aborts before anything is copied or written, so a failed run can no longer leave a half-installed state either."
             }
           ]
         },
         {
-          "version": "0.29.8",
-          "period": "2026-07-29",
+          "version": "0.29.12",
+          "period": "2026-08-02",
           "items": [
             {
               "title": {
-                "zh-TW": "切換面板不再把視窗送回主螢幕",
-                "zh-CN": "切换面板不再把窗口送回主屏",
-                "en": "Panel switching keeps your window on its monitor",
-                "ja": "パネルを切り替えてもウィンドウが主モニターへ戻らない",
-                "ko": "패널을 바꿔도 창이 주 모니터로 돌아가지 않는다"
+                "zh-TW": "工程人才多 25 位，啟動角色少一步",
+                "zh-CN": "工程人才多 25 位，启动角色少一步",
+                "en": "25 more engineering roles, with fewer steps to launch one",
+                "ja": "エンジニア職が25増え、役割の起動は一手少なくなった",
+                "ko": "엔지니어 역할 25개가 늘고, 실행 단계는 하나 줄었다"
               },
               "body": {
-                "zh-TW": "你把 Usage 的面板（跳出的浮動小視窗）拖到第二台螢幕，換個面板樣式或主題後，它終於不會又跳回主螢幕。以前 Windows 只把主螢幕可用範圍交給程式，程式每次重新定位面板時便拿錯尺，硬把第二台螢幕上的視窗推回去；現在會依面板目前或記住的位置，找出它所在螢幕的可用範圍再定位，所以換樣式後仍留在原處。單螢幕也一併修好：面板切換時會暫留前一種樣式量到的高度，等真正高度測完，不再先用接近全螢幕的假高度把你拖好的位置往上擠。像搬家工人終於先看你住哪一棟，再把家具放回那一棟，而不是一律送回一樓。",
-                "zh-CN": "你把 Usage 的面板（弹出的浮动小窗口）拖到第二块屏幕后，切换面板样式或主题，它终于不会再跳回主屏。以前 Windows 只把主屏可用范围交给程序，程序每次重新定位面板时便拿错尺子，硬把第二块屏幕上的窗口推回去；现在会按面板当前或记住的位置，找出它所在屏幕的可用范围再定位，因此切换样式后仍留在原处。单屏也一并修好：切换面板时会暂留前一种样式量到的高度，等真正高度测完，不再先用接近全屏的假高度把你拖好的位置往上挤。像搬家工人终于先看你住哪一栋，再把家具放回那一栋，而不是一律送回一楼。",
-                "en": "After you drag Usage's panel (a small floating pop-up) to a second monitor, switching its style or theme will finally leave it there. Windows had only handed the app the primary display's usable area, so each reposition used the wrong ruler and shoved the panel back onto the primary monitor. It now identifies the usable area for the display containing the panel's current or remembered position. On a single monitor, it also retains the previous style's measured height while the new one is measured, instead of briefly using a near-fullscreen placeholder that pushes your window upward. Like movers checking which building you live in before returning furniture, rather than always dumping it in the lobby.",
-                "ja": "Usage のパネル（画面上に浮かぶ小さなウィンドウ）を二台目のモニターへドラッグした後、パネルの見た目やテーマを切り替えても、主モニターへ戻されなくなった。以前は Windows が主モニターの使える範囲しかアプリに渡さず、パネルを置き直すたびに物差しを取り違えて二台目から押し戻していた。今はパネルの現在位置または記憶した位置があるモニターの範囲を調べて配置するため、切り替え後もその場に残る。一台だけの環境でも、見た目の切り替え中は前の高さを仮に使い、本当の高さを測る前に全画面に近い仮の高さでウィンドウを上へ押しやらない。引っ越し屋が住んでいる棟を確かめて家具を戻し、いつも一階へ運び込まないようなものである。",
-                "ko": "Usage 패널(화면 위에 떠 있는 작은 창)을 두 번째 모니터로 끌어 놓은 뒤 패널 모양이나 테마를 바꿔도, 이제 주 모니터로 되돌아가지 않는다. 예전에는 Windows가 주 모니터의 사용 가능한 범위만 앱에 알려 주었고, 앱은 패널 위치를 다시 잡을 때마다 엉뚱한 자를 대 두 번째 모니터의 창을 밀어냈다. 이제는 패널의 현재 위치나 기억해 둔 위치가 있는 모니터의 범위를 찾아 배치하므로, 전환 뒤에도 그대로 남는다. 모니터 한 대만 쓸 때도 이전 모양에서 재 둔 높이를 새 높이가 측정될 때까지 임시로 유지해, 거의 전체 화면 크기의 임시 높이가 창을 위로 떠밀지 않는다. 이삿짐센터가 어느 동에 사는지 확인하고 가구를 되돌려 주며, 늘 1층에만 내려놓지 않는 것과 같다."
+                "zh-TW": "網站缺前端、後台缺 API（讓軟體互相傳資料的介面）專長時，AI Talent Market 新增七組、共 25 個工程角色。角色涵蓋前端、後端、雲端維運、品質、AI、程式維護與應用程式開發；React、Next.js、SQL、Python、Docker、DevOps、Swift、Electron、重構、相依套件與提示詞工程也各有專家。既有的行銷包加入 SEO 角色，電商包加入付款整合角色；每位都有繁中、簡中、英文、日文、韓文人設。挑好角色後，卡片直接顯示「Launch」：未安裝才會先把一個 `.md` 檔寫進 `~/.claude/agents/`，接著啟動；安裝失敗便停下並報錯，不會開空終端機。手動改過的角色仍可按「Restore」還原。像人才仲介先把專長排好，帶你選到人便直接牽線。",
+                "zh-CN": "网站缺前端、后台缺 API（让软件互相传递数据的接口）专长时，AI Talent Market 新增七组、共 25 个工程角色。角色涵盖前端、后端、云端运维、质量、AI、代码维护与应用开发；React、Next.js、SQL、Python、Docker、DevOps、Swift、Electron、重构、依赖包与提示词工程也各有专家。既有营销包加入 SEO 角色，电商包加入支付整合角色；每位都有繁中、简中、英文、日文、韩文人设。挑好角色后，卡片直接显示「Launch」：未安装才会先把一个 `.md` 文件写进 `~/.claude/agents/`，接着启动；安装失败便停下并报错，不会打开空终端。手动改过的角色仍可按「Restore」还原。像人才中介先把专长排好，带你选到人便直接牵线。",
+                "en": "Need someone to build a page, design an API, or untangle a dependency? The AI Talent Market adds 25 engineering roles across seven new packs. They cover frontend, backend, cloud operations, quality, AI, code maintenance, and app development, with specialists in React, Next.js, SQL, Python, Docker, DevOps, Swift, Electron, refactoring, dependencies, and prompt engineering. Marketing also gains SEO, while ecommerce gains payment integration; every role comes with zh-TW, zh-CN, English, Japanese, and Korean personas. After choosing one, its card now says \"Launch\". If needed, it first writes one `.md` file to `~/.claude/agents/`, then starts; a failed install stops and reports its error instead of opening an empty terminal. Hand-edited roles still keep their \"Restore\" button. Think of a recruiter who sorts the specialties first, then introduces you straight to the right person.",
+                "ja": "Web ページのフロントエンドを任せたい、API（ソフトウェア同士が情報を渡す接点）を設計したい。そんなときに AI Talent Market へ七つの新パック、計25のエンジニア職が加わった。フロントエンド、バックエンド、クラウド運用、品質、AI、コード保守、アプリ開発を扱い、React、Next.js、SQL、Python、Docker、DevOps、Swift、Electron、リファクタリング、依存関係、プロンプト設計にも専門家がいる。既存のマーケティングパックには SEO、EC パックには決済統合の役割も加わり、各役割は繁体字中国語、簡体字中国語、英語、日本語、韓国語の人格を備える。役割を選ぶとカードはすぐ「Launch」と表示する。未導入なら `.md` ファイルを `~/.claude/agents/` に一つ書き込んでから起動し、導入に失敗した場合は空の端末を開かず、そこでエラーを知らせる。手で編集した役割の「Restore」は従来どおり使える。専門分野を並べた人材紹介所が、選んだ相手へそのまま取り次ぐようなものだ。",
+                "ko": "웹 페이지의 프런트엔드를 맡기거나 API(소프트웨어끼리 정보를 주고받는 접점)를 설계할 사람이 필요할 때, AI Talent Market에 새 패키지 일곱 개와 엔지니어 역할 25개가 추가됐다. 프런트엔드, 백엔드, 클라우드 운영, 품질, AI, 코드 유지 보수, 앱 개발을 다루며 React, Next.js, SQL, Python, Docker, DevOps, Swift, Electron, 리팩터링, 의존성, 프롬프트 엔지니어링 전문가도 포함한다. 기존 마케팅 패키지에는 SEO 역할이, 전자상거래 패키지에는 결제 통합 역할이 더해졌고, 모든 역할은 zh-TW, zh-CN, 영어, 일본어, 한국어 페르소나를 갖춘다. 역할을 고르면 카드에는 곧바로 \"Launch\"가 보인다. 아직 설치되지 않았다면 `.md` 파일 하나를 `~/.claude/agents/`에 쓴 뒤 시작하며, 설치가 실패하면 빈 터미널을 열지 않고 그 자리에서 오류를 알린다. 손으로 고친 역할의 \"Restore\" 버튼은 그대로다. 전문 분야를 정리한 인재 소개소가 고른 사람에게 바로 연결해 주는 셈이다."
               },
-              "original": "**The Windows panel no longer snaps back to the primary monitor on every panel switch**: dragging the popover onto a second display and then switching panel style (or theme) forced it right back onto the primary monitor. Windows' `SPI_GETWORKAREA` API only ever reports the *primary* monitor's work area, and the window was clamped against that single rectangle on every reposition regardless of which monitor it actually lived on — so a window dragged onto a secondary display got clamped straight back onto the primary one the next time the panel reloaded. Placement now looks up the work area of whichever monitor the window's current (or saved) position falls on via `MonitorFromPoint`/`GetMonitorInfoW`, so a window on a secondary display stays there across panel switches. A related issue on a single monitor is fixed alongside it: switching panels reset the remembered content height to `None`, so the window was briefly clamped against each panel's near-fullscreen placeholder height (`PANEL_HEIGHTS`) before its real height was measured, which could shove a dragged window toward the top of the screen; the previous panel's measured height is now kept as the transitional estimate instead."
+              "original": "**The AI Talent Market gained 25 engineering roles across seven new packs.** Frontend, backend, cloud ops, quality, AI, code maintenance and app development — React and Next.js specialists, API designers, SQL and Python pros, cloud architects, Docker and DevOps engineers, Swift and Electron experts, refactoring and dependency specialists, prompt engineers, and more. Every role ships the full zh-TW/zh-CN/en/ja/ko persona set. Two existing packs also absorbed a role each: SEO into marketing, payment integration into ecommerce.\n**Hiring a role is now one click instead of two.** A role card used to show \"Install\", and only after that did it turn into \"Launch\" — but installing is an implementation detail (writing one `.md` file into `~/.claude/agents/`) that no one needed to see. Every card now shows \"Launch\" directly; if the role isn't installed yet, it gets installed first and then starts. A failed install stops there and reports the error rather than opening an empty terminal. The \"Restore\" button for hand-edited roles is unchanged."
             }
           ]
         }
