@@ -60,6 +60,7 @@ class ToolCall:
     tool_name: str
     target_path: str
     result_size_chars: int
+    result_tokens: int = 0
 
 
 @dataclass(slots=True)
@@ -251,6 +252,7 @@ def _parse_assistant_tool_uses(
             tool_name=tool_name,
             target_path=target,
             result_size_chars=0,
+            result_tokens=0,
         )
 
 
@@ -273,7 +275,9 @@ def _parse_user_results(
         call = pending.pop(tool_id, None)
         if call is None:
             continue
-        call.result_size_chars = _content_size(part.get("content"))
+        content = part.get("content")
+        call.result_size_chars = _content_size(content)
+        call.result_tokens = _content_tokens(content)
         tool_calls.append(call)
 
 
@@ -351,6 +355,49 @@ def _content_size(content: object) -> int:
     return 0
 
 
+def _content_tokens(content: object) -> int:
+    if isinstance(content, str):
+        return _estimate_tokens(content)
+    if isinstance(content, list):
+        total = 0
+        for item in content:
+            if isinstance(item, str):
+                total += _estimate_tokens(item)
+                continue
+            if not isinstance(item, dict):
+                continue
+            text = item.get("text") or item.get("content")
+            if isinstance(text, str):
+                total += _estimate_tokens(text)
+        return total
+    return 0
+
+
+def _estimate_tokens(text: str) -> int:
+    cjk_chars = sum(_is_cjk(char) for char in text)
+    return cjk_chars + (len(text) - cjk_chars) // 4
+
+
+def _is_cjk(char: str) -> bool:
+    codepoint = ord(char)
+    return (
+        0x1100 <= codepoint <= 0x11FF  # Hangul Jamo
+        or 0x3040 <= codepoint <= 0x309F  # Hiragana
+        or 0x30A0 <= codepoint <= 0x30FF  # Katakana
+        or 0x3130 <= codepoint <= 0x318F  # Hangul Compatibility Jamo
+        or 0x31F0 <= codepoint <= 0x31FF  # Katakana Phonetic Extensions
+        or 0x3400 <= codepoint <= 0x4DBF  # CJK Unified Ideographs Extension A
+        or 0x4E00 <= codepoint <= 0x9FFF  # CJK Unified Ideographs
+        or 0xA960 <= codepoint <= 0xA97F  # Hangul Jamo Extended-A
+        or 0xAC00 <= codepoint <= 0xD7AF  # Hangul Syllables and Extended-B
+        or 0xF900 <= codepoint <= 0xFAFF  # CJK Compatibility Ideographs
+        or 0x1AFF0 <= codepoint <= 0x1AFFF  # Kana Extended-B
+        or 0x1B000 <= codepoint <= 0x1B16F  # Kana Supplement and Extensions
+        or 0x20000 <= codepoint <= 0x2EE5D  # CJK Unified Ideographs Extensions B-I
+        or 0x30000 <= codepoint <= 0x323AF  # CJK Unified Ideographs Extensions G-H
+    )
+
+
 def _find_repeated_reads(tool_calls: list[ToolCall]) -> DiagnosisFinding | None:
     grouped: dict[str, list[ToolCall]] = defaultdict(list)
     for call in tool_calls:
@@ -363,8 +410,7 @@ def _find_repeated_reads(tool_calls: list[ToolCall]) -> DiagnosisFinding | None:
     for path, calls in sorted(grouped.items(), key=lambda item: len(item[1]), reverse=True):
         if len(calls) < 10:
             continue
-        average_size = sum(call.result_size_chars for call in calls) / len(calls)
-        estimated_tokens = int(len(calls) * average_size / 4)
+        estimated_tokens = sum(call.result_tokens for call in calls)
         cost = _tokens_to_usd(estimated_tokens)
         total_cost += cost
         total_tokens += estimated_tokens
@@ -393,7 +439,9 @@ def _find_repeated_reads(tool_calls: list[ToolCall]) -> DiagnosisFinding | None:
 
 
 def _find_polluter_dirs(tool_calls: list[ToolCall]) -> tuple[DiagnosisFinding | None, set[str]]:
-    stats: dict[str, dict[str, int]] = defaultdict(lambda: {"count": 0, "chars": 0})
+    stats: dict[str, dict[str, int]] = defaultdict(
+        lambda: {"count": 0, "chars": 0, "tokens": 0}
+    )
     for call in tool_calls:
         if call.tool_name not in {"Read", "Edit"}:
             continue
@@ -402,6 +450,7 @@ def _find_polluter_dirs(tool_calls: list[ToolCall]) -> tuple[DiagnosisFinding | 
             continue
         stats[polluter]["count"] += 1
         stats[polluter]["chars"] += call.result_size_chars
+        stats[polluter]["tokens"] += call.result_tokens
 
     items = [
         {
@@ -409,8 +458,8 @@ def _find_polluter_dirs(tool_calls: list[ToolCall]) -> tuple[DiagnosisFinding | 
             "stat": "diag_item_read_times",
             "n": values["count"],
             "size_bytes": values["chars"],
-            "cost": round(_tokens_to_usd(values["chars"] // 4), 4),
-            "estimated_waste_tokens": values["chars"] // 4,
+            "cost": round(_tokens_to_usd(values["tokens"]), 4),
+            "estimated_waste_tokens": values["tokens"],
         }
         for name, values in sorted(
             stats.items(),
@@ -421,8 +470,8 @@ def _find_polluter_dirs(tool_calls: list[ToolCall]) -> tuple[DiagnosisFinding | 
     if not items:
         return None, set()
 
-    total_cost = sum(_tokens_to_usd(values["chars"] // 4) for values in stats.values())
-    total_tokens = sum(values["chars"] // 4 for values in stats.values())
+    total_cost = sum(_tokens_to_usd(values["tokens"]) for values in stats.values())
+    total_tokens = sum(values["tokens"] for values in stats.values())
     return (
         DiagnosisFinding(
             severity="critical" if total_cost >= CRITICAL_WASTE_USD else "info",
@@ -513,8 +562,8 @@ def _find_noisy_bash(tool_calls: list[ToolCall]) -> DiagnosisFinding | None:
     estimated_waste_usd = 0.0
     estimated_waste_tokens = 0
     for call in calls[:5]:
-        cost = round(_tokens_to_usd(call.result_size_chars // 4), 4)
-        tokens = call.result_size_chars // 4
+        cost = round(_tokens_to_usd(call.result_tokens), 4)
+        tokens = call.result_tokens
         items.append(
             {
                 "label": call.target_path[:80],

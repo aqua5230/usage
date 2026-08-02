@@ -84,6 +84,19 @@ def _patch_claude_dirs(monkeypatch: pytest.MonkeyPatch, base: Path) -> None:
     monkeypatch.setattr(claude, "CLAUDE_DIRS", [str(base)])
 
 
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("abcdefgh", 2),
+        ("中文測試", 4),
+        ("abcd中文", 3),
+        ("", 0),
+    ],
+)
+def test_estimate_tokens_handles_ascii_and_cjk(text: str, expected: int) -> None:
+    assert diagnoser._estimate_tokens(text) == expected
+
+
 def test_analyze_without_jsonl_dir_returns_no_data(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -402,4 +415,3 @@ def test_repeated_bash_ignores_command_below_threshold(
 
     findings = [finding for finding in result.findings if finding.kind == "repeated_bash"]
     assert findings == []
-
