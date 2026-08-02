@@ -4,6 +4,17 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.29.14] - 2026-08-02
+
+### 修正
+- **面板不再每開關一次就往下掉一截。** 拖到定位最多撐一個回合，再開就比上次低一點。原因是兩個錨點對不上：儲存位置存的是視窗左下角，但 `setContentSizeKeepingTopLeft_`（0.29.9 加的，本來就是為了讓面板調整大小時看起來不跳）保持的是**頂邊**。它為了固定頂邊得呼叫 `setFrameOrigin_`，而 macOS 對程式化的移動一樣會送出 `NSWindowDidMoveNotification`，`windowDidMove_` 便把「改變大小」當成「使用者拖曳」記了下來。每次開啟都會重新量內容高度，左下角就往下掉一段差值，那個掉下去的位置又被存成新位置。現在兩邊都以頂邊為錨點，改變大小不會再改動儲存值。舊版存的位置會走遷移路徑讀取，不會被重置。
+- **開啟面板不再先矮一截再拉長。** 有兩套高度系統在算同一個數字而結果不一致：`popover_dimensions` 從面板基準高度做加減法估算（隱藏 Claude 或 Codex 卡就扣一塊、Codex 沒資料再扣一列、狀態列換行或有安裝按鈕就加），而 `panels/dynamic_height.py` 的腳本量的是實際渲染出來的內容並回報。視窗先用估算值開，再跳到實測值。卡片隱藏得越多、扣減項越多，差距越大。現在實測高度會按面板分別記住並在開啟時直接採用，估算只留給從未量過的面板當備援。那些加減常數刻意沒動——每多一個 UI 元素就要重調一次，是打地鼠。內容真的變大變小時，面板仍會調整一次。
+- **狀態檔損毀成非 UTF-8 時，不再直接拋例外而是安靜退回。** `_load_preferences`、`_load_ping_state`、`_load_last_ping` 都在 `read_text(encoding="utf-8")` 外面接了 `OSError` 與 `json.JSONDecodeError`，但含有無效 UTF-8 的檔案拋的是 `UnicodeDecodeError`——它和 `JSONDecodeError` 同為 `ValueError` 的子類，彼此卻沒有繼承關係，所以接不到。這三個函式的契約都是「檔案不能用就安靜回空值」，寫到一半或損毀的檔案卻讓例外一路往上炸，破壞了這個契約。
+
+### 變更
+- **macOS 通知橋接從 `menubar.py` 搬進 `menubar_notify.py`。** 那六個跟 `UNUserNotificationCenter` 打交道的模組層級函式，沒有理由住在一個 2230 行的檔案裡。它們沒有併進 `usage_notifications.py`——那個模組刻意不碰 PyObjC，裡面的決策邏輯才能在沒有 ObjC 執行期的環境下測試，而這幾支函式會呼叫 `objc.registerMetaDataForSelector`。更新提醒的冷卻判斷則併進 `update_gate.py`，其他更新時間常數本來就在那裡。`menubar.py` 降到 2139 行，上限跟著調低。
+- **`jsonl_utils` 與 `time_utils` 補上直接的單元測試。** 這兩個模組被多個載入器共用，先前只有透過上層模組取得的間接覆蓋。JSONL 讀取器對空行、壞掉的資料列與非物件值的容忍度現在被鎖住了，包括「沒有給 `errors` 參數時遇到無效 UTF-8 就拋出」這個刻意的設計——那個決定屬於呼叫端。
+
 ## [0.29.13] - 2026-08-02
 
 ### 修正
