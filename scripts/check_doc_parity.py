@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: AGPL-3.0-only
-"""Guard bilingual public docs from drifting out of sync."""
+"""Guard public docs from drifting out of sync."""
 
 from __future__ import annotations
 
@@ -15,26 +15,33 @@ CHANGELOG_VERSION_RE = re.compile(r"^## \[([^\]]+)\]", re.MULTILINE)
 
 
 @dataclass(frozen=True)
-class DocPair:
+class DocGroup:
     label: str
     english: str
-    traditional_chinese: str
+    translations: tuple[str, ...]
 
 
-DOC_PAIRS = (
-    DocPair("README", "README.md", "README.zh-TW.md"),
-    DocPair("CHANGELOG", "CHANGELOG.md", "CHANGELOG.zh-TW.md"),
-    DocPair("CONTRIBUTING", "CONTRIBUTING.md", "CONTRIBUTING.zh-TW.md"),
-    DocPair("SECURITY", "SECURITY.md", "SECURITY.zh-TW.md"),
-    DocPair("docs/DEVELOPMENT", "docs/DEVELOPMENT.md", "docs/DEVELOPMENT.zh-TW.md"),
+DOC_GROUPS = (
+    DocGroup(
+        "README",
+        "README.md",
+        ("README.zh-TW.md", "README.zh-CN.md", "README.ja.md", "README.ko.md"),
+    ),
+    DocGroup("CHANGELOG", "CHANGELOG.md", ("CHANGELOG.zh-TW.md",)),
+    DocGroup("CONTRIBUTING", "CONTRIBUTING.md", ("CONTRIBUTING.zh-TW.md",)),
+    DocGroup("SECURITY", "SECURITY.md", ("SECURITY.zh-TW.md",)),
+    DocGroup(
+        "docs/DEVELOPMENT",
+        "docs/DEVELOPMENT.md",
+        ("docs/DEVELOPMENT.zh-TW.md",),
+    ),
 )
 
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Check that English public docs and Traditional Chinese translations "
-            "stay in lockstep."
+            "Check that English public docs and translations stay in lockstep."
         )
     )
     parser.add_argument(
@@ -57,48 +64,64 @@ def latest_changelog_version(path: Path) -> str | None:
     return match.group(1)
 
 
-def check_pair(root: Path, pair: DocPair) -> list[str]:
+def translation_language(path: str) -> str:
+    language_names = {
+        "zh-TW": "Traditional Chinese",
+        "zh-CN": "Simplified Chinese",
+        "ja": "Japanese",
+        "ko": "Korean",
+    }
+    language_code = Path(path).stem.rsplit(".", maxsplit=1)[-1]
+    return language_names.get(language_code, "translation")
+
+
+def check_group(root: Path, group: DocGroup) -> list[str]:
     errors: list[str] = []
-    english_path = root / pair.english
-    chinese_path = root / pair.traditional_chinese
+    english_path = root / group.english
+    translation_paths = [(path, root / path) for path in group.translations]
 
     english_exists = english_path.is_file()
-    chinese_exists = chinese_path.is_file()
-    if not english_exists or not chinese_exists:
-        if not english_exists:
-            errors.append(f"{pair.label}: missing English file {pair.english}")
-        if not chinese_exists:
+    if not english_exists:
+        errors.append(f"{group.label}: missing English file {group.english}")
+
+    for translation, translation_path in translation_paths:
+        if not translation_path.is_file():
             errors.append(
-                f"{pair.label}: missing Traditional Chinese file {pair.traditional_chinese}"
+                f"{group.label}: missing {translation_language(translation)} file {translation}"
             )
+
+    if not english_exists:
         return errors
 
     english_sections = count_primary_sections(english_path)
-    chinese_sections = count_primary_sections(chinese_path)
-    if english_sections != chinese_sections:
-        errors.append(
-            f"{pair.label}: section count mismatch at ## headings "
-            f"({pair.english}={english_sections}, {pair.traditional_chinese}={chinese_sections})"
-        )
+    for translation, translation_path in translation_paths:
+        if not translation_path.is_file():
+            continue
+        translation_sections = count_primary_sections(translation_path)
+        if english_sections != translation_sections:
+            errors.append(
+                f"{group.label}: section count mismatch at ## headings "
+                f"({group.english}={english_sections}, {translation}={translation_sections})"
+            )
 
-    if pair.label == "CHANGELOG":
+    if group.label == "CHANGELOG":
         english_version = latest_changelog_version(english_path)
-        chinese_version = latest_changelog_version(chinese_path)
         if english_version is None:
-            errors.append(f"{pair.label}: could not find a version heading in {pair.english}")
-        if chinese_version is None:
-            errors.append(
-                f"{pair.label}: could not find a version heading in {pair.traditional_chinese}"
-            )
-        if (
-            english_version is not None
-            and chinese_version is not None
-            and english_version != chinese_version
-        ):
-            errors.append(
-                f"{pair.label}: latest version mismatch "
-                f"({pair.english}={english_version}, {pair.traditional_chinese}={chinese_version})"
-            )
+            errors.append(f"{group.label}: could not find a version heading in {group.english}")
+        else:
+            for translation, translation_path in translation_paths:
+                if not translation_path.is_file():
+                    continue
+                translation_version = latest_changelog_version(translation_path)
+                if translation_version is None:
+                    errors.append(
+                        f"{group.label}: could not find a version heading in {translation}"
+                    )
+                elif english_version != translation_version:
+                    errors.append(
+                        f"{group.label}: latest version mismatch "
+                        f"({group.english}={english_version}, {translation}={translation_version})"
+                    )
 
     return errors
 
@@ -107,8 +130,8 @@ def main() -> int:
     args = parse_args()
     root = args.root.resolve()
     errors: list[str] = []
-    for pair in DOC_PAIRS:
-        errors.extend(check_pair(root, pair))
+    for group in DOC_GROUPS:
+        errors.extend(check_group(root, group))
 
     if errors:
         print("FAIL: bilingual document parity check failed")
