@@ -12,45 +12,141 @@ import sqlite3
 import sys
 import tomllib
 from collections.abc import Callable
+from dataclasses import dataclass
 from datetime import UTC, datetime
 from importlib import metadata
 from pathlib import Path
+from typing import Final
 
 import setup_hook
 from i18n import packaged_resource_path
 
 SEPARATOR = "-" * 29
+RATE_LIMIT_FRESH_SECONDS: Final = 15 * 60
+
+STATUS_FILE: Final = "status_file"
+CODEX_SESSIONS: Final = "codex_sessions"
+CODEX_STATE: Final = "codex_state"
+HOOK_STATE: Final = "hook_state"
+HOOK_VERSION: Final = "hook_version"
+HOOK_SCRIPT: Final = "hook_script"
+STATUS_COMMAND: Final = "status_command"
+FORWARDER_SCRIPT: Final = "forwarder_script"
+FORWARDER_PROMPT: Final = "forwarder_prompt"
+EXTERNAL_HOOKS: Final = "external_hooks"
+CODEX_LOGS: Final = "codex_logs"
+CODEX_RATE_LIMITS: Final = "codex_rate_limits"
+
+CHECK_LABELS: Final = {
+    STATUS_FILE: "status file",
+    CODEX_SESSIONS: "codex jsonl",
+    CODEX_STATE: "codex state",
+    HOOK_STATE: "hook state",
+    HOOK_VERSION: "hook version",
+    HOOK_SCRIPT: "hook script",
+    STATUS_COMMAND: "status command",
+    FORWARDER_SCRIPT: "forwarder script",
+    FORWARDER_PROMPT: "forwarder prompt",
+    EXTERNAL_HOOKS: "external hooks",
+    CODEX_LOGS: "codex logs",
+    CODEX_RATE_LIMITS: "codex rate limits",
+}
 
 
-def render() -> str:
-    lines = [
-        f"usage v{_field(_current_version)}",
-        SEPARATOR,
-        "[core]",
-        f"status file:       {_field(_status_file)}",
-        f"codex jsonl:       {_field(_codex_sessions)}",
-        f"codex state:       {_field(_codex_state)}",
-        SEPARATOR,
-        "[hook]",
-        f"hook state:        {_field(_hook_state)}",
-        f"hook version:      {_field(_hook_version)}",
-        f"hook script:       {_script_status(setup_hook.HOOK_TARGET)}",
-        f"status command:    {_field(_status_command)}",
-        SEPARATOR,
-        "[optional]",
-        f"forwarder script:  {_forwarder_script_status()}",
-        f"forwarder prompt:  {_field(_forwarder_prompt)}",
-        f"external hooks:    {_field(_external_hooks)}",
-        f"codex logs:        {_field(_codex_logs)}",
-        f"codex rate limits: {_field(_codex_rate_limits)}",
-        SEPARATOR,
-        "self-heal log (last 5):",
-        *_self_heal_log_lines(),
+@dataclass(slots=True)
+class CheckResult:
+    code: str
+    status: str
+    detail: str
+
+
+@dataclass(slots=True)
+class DoctorReport:
+    version: str
+    checks: list[tuple[str, CheckResult]]
+    self_heal_log: list[str]
+
+
+def collect() -> DoctorReport:
+    checks = [
+        ("core", _field(STATUS_FILE, _status_file)),
+        ("core", _field(CODEX_SESSIONS, _codex_sessions)),
+        ("core", _field(CODEX_STATE, _codex_state)),
+        ("hook", _field(HOOK_STATE, _hook_state)),
+        ("hook", _field(HOOK_VERSION, _hook_version)),
+        ("hook", _field(HOOK_SCRIPT, lambda: _script_status(setup_hook.HOOK_TARGET))),
+        ("hook", _field(STATUS_COMMAND, _status_command)),
+        ("optional", _field(FORWARDER_SCRIPT, _forwarder_script_status)),
+        ("optional", _field(FORWARDER_PROMPT, _forwarder_prompt)),
+        ("optional", _field(EXTERNAL_HOOKS, _external_hooks)),
+        ("optional", _field(CODEX_LOGS, _codex_logs)),
+        ("optional", _field(CODEX_RATE_LIMITS, _codex_rate_limits)),
     ]
+    return DoctorReport(
+        version=_text_field(_current_version),
+        checks=checks,
+        self_heal_log=_self_heal_log_lines(),
+    )
+
+
+def render(report: DoctorReport | None = None) -> str:
+    current = report if report is not None else collect()
+    lines = [
+        f"usage v{current.version}",
+        SEPARATOR,
+    ]
+    for section in ("core", "hook", "optional"):
+        lines.append(f"[{section}]")
+        lines.extend(
+            f"{(CHECK_LABELS[check.code] + ':'):<19}{check.detail}"
+            for check_section, check in current.checks
+            if check_section == section
+        )
+        lines.append(SEPARATOR)
+    lines.extend(["self-heal log (last 5):", *current.self_heal_log])
     return "\n".join(lines) + "\n"
 
 
-def _field(func: Callable[[], str]) -> str:
+def render_json(report: DoctorReport | None = None) -> str:
+    import json
+
+    current = report if report is not None else collect()
+    summary = {"ok": 0, "warn": 0, "error": 0}
+    checks = []
+    for section, check in current.checks:
+        summary[check.status] += 1
+        checks.append(
+            {
+                "section": section,
+                "code": check.code,
+                "status": check.status,
+                "detail": check.detail,
+            }
+        )
+    return json.dumps(
+        {
+            "version": current.version,
+            "checks": checks,
+            "self_heal_log": current.self_heal_log,
+            "summary": summary,
+        },
+        ensure_ascii=False,
+        indent=2,
+    ) + "\n"
+
+
+def exit_code(report: DoctorReport) -> int:
+    return int(any(check.status == "error" for _, check in report.checks))
+
+
+def _field(code: str, func: Callable[[], CheckResult]) -> CheckResult:
+    try:
+        return func()
+    except Exception as exc:
+        return CheckResult(code=code, status="error", detail=f"error: {exc}")
+
+
+def _text_field(func: Callable[[], str]) -> str:
     try:
         return func()
     except Exception as exc:
@@ -71,86 +167,118 @@ def _current_version() -> str:
         raise RuntimeError("project.version missing from pyproject.toml") from None
 
 
-def _hook_state() -> str:
-    return setup_hook._detect_current_state()
+def _hook_state() -> CheckResult:
+    state = setup_hook._detect_current_state()
+    status = "ok" if state in {"us-direct", "us-forwarder"} else "warn"
+    return CheckResult(code=HOOK_STATE, status=status, detail=state)
 
 
-def _hook_version() -> str:
+def _hook_version() -> CheckResult:
     installed = setup_hook._installed_hook_version()
     if installed is None:
-        return f"not installed (current {setup_hook.HOOK_VERSION})"
+        return CheckResult(
+            code=HOOK_VERSION,
+            status="warn",
+            detail=f"not installed (current {setup_hook.HOOK_VERSION})",
+        )
     suffix = (
         "current"
         if installed == setup_hook.HOOK_VERSION
         else f"current {setup_hook.HOOK_VERSION}"
     )
-    return f"{installed} ({suffix})"
+    status = "ok" if installed == setup_hook.HOOK_VERSION else "warn"
+    return CheckResult(code=HOOK_VERSION, status=status, detail=f"{installed} ({suffix})")
 
 
-def _script_status(path: Path) -> str:
-    try:
-        display = _display_path(path)
-        status = "ok" if path.exists() else "missing"
-        return f"{display}  [{status}]"
-    except Exception as exc:
-        return f"error: {exc}"
+def _script_status(path: Path) -> CheckResult:
+    display = _display_path(path)
+    exists = path.exists()
+    return CheckResult(
+        code=HOOK_SCRIPT,
+        status="ok" if exists else "warn",
+        detail=f"{display}  [{'ok' if exists else 'missing'}]",
+    )
 
 
-def _forwarder_script_status() -> str:
-    try:
-        path = setup_hook.FORWARDER_TARGET
-        display = _display_path(path)
-        if path.exists():
-            return f"{display}  [ok]"
-        state = setup_hook._detect_current_state()
-        status = "missing" if state == "us-forwarder" else f"not needed in {state} mode"
-        return f"{display}  [{status}]"
-    except Exception as exc:
-        return f"error: {exc}"
+def _forwarder_script_status() -> CheckResult:
+    path = setup_hook.FORWARDER_TARGET
+    display = _display_path(path)
+    if path.exists():
+        return CheckResult(
+            code=FORWARDER_SCRIPT,
+            status="ok",
+            detail=f"{display}  [ok]",
+        )
+    state = setup_hook._detect_current_state()
+    status = "warn" if state == "us-forwarder" else "ok"
+    detail = "missing" if state == "us-forwarder" else f"not needed in {state} mode"
+    return CheckResult(
+        code=FORWARDER_SCRIPT,
+        status=status,
+        detail=f"{display}  [{detail}]",
+    )
 
 
-def _status_file() -> str:
+def _status_file() -> CheckResult:
     path = setup_hook.STATUS_FILE
     display = _display_path(path)
     if not path.exists():
-        return f"{display}  [missing]"
-    return f"{display}  (wrote {_ago(path.stat().st_mtime)} ago)"
+        return CheckResult(code=STATUS_FILE, status="warn", detail=f"{display}  [missing]")
+    return CheckResult(
+        code=STATUS_FILE,
+        status="ok",
+        detail=f"{display}  (wrote {_ago(path.stat().st_mtime)} ago)",
+    )
 
 
-def _status_command() -> str:
+def _status_command() -> CheckResult:
     settings = setup_hook._load_settings()
     sl = settings.get("statusLine")
     command = sl.get("command") if isinstance(sl, dict) else None
     if not isinstance(command, str):
-        return "not configured"
+        return CheckResult(code=STATUS_COMMAND, status="warn", detail="not configured")
     if (
         sys.platform == "win32"
         and "usage-statusline" in command
         and "\\" in command
     ):
-        return "Windows Git Bash-incompatible paths; run usage --setup, then restart Claude Code"
-    return "ok"
+        return CheckResult(
+            code=STATUS_COMMAND,
+            status="warn",
+            detail=(
+                "Windows Git Bash-incompatible paths; run usage --setup, then restart Claude Code"
+            ),
+        )
+    return CheckResult(code=STATUS_COMMAND, status="ok", detail="ok")
 
 
-def _external_hooks() -> str:
+def _external_hooks() -> CheckResult:
     state = setup_hook._detect_current_state()
     if state != "external":
-        return "none detected"
+        return CheckResult(code=EXTERNAL_HOOKS, status="ok", detail="none detected")
     settings = setup_hook._load_settings()
     sl = settings.get("statusLine")
     command = sl.get("command") if isinstance(sl, dict) else None
     if not isinstance(command, str):
-        return "external (unrecognized)"
+        return CheckResult(
+            code=EXTERNAL_HOOKS,
+            status="warn",
+            detail="external (unrecognized)",
+        )
     keyword = _external_keyword(command)
-    return keyword if keyword else "external (unrecognized)"
+    return CheckResult(
+        code=EXTERNAL_HOOKS,
+        status="warn",
+        detail=keyword if keyword else "external (unrecognized)",
+    )
 
 
-def _forwarder_prompt() -> str:
+def _forwarder_prompt() -> CheckResult:
     settings = setup_hook._load_settings()
     usage = settings.get(setup_hook.BACKUP_KEY)
     if isinstance(usage, dict) and usage.get("forwarderModePromptDismissed") is True:
-        return "acked"
-    return "not acked"
+        return CheckResult(code=FORWARDER_PROMPT, status="ok", detail="acked")
+    return CheckResult(code=FORWARDER_PROMPT, status="ok", detail="not acked")
 
 
 def _self_heal_log_lines() -> list[str]:
@@ -173,12 +301,16 @@ def _self_heal_log_lines() -> list[str]:
         return [f"  error: {exc}"]
 
 
-def _codex_sessions() -> str:
+def _codex_sessions() -> CheckResult:
     import codex_loader
 
     sessions_dir = codex_loader.SESSIONS_DIR
     if not sessions_dir.is_dir():
-        return "0 files, missing sessions dir"
+        return CheckResult(
+            code=CODEX_SESSIONS,
+            status="warn",
+            detail="0 files, missing sessions dir",
+        )
     count = 0
     newest_mtime = 0.0
     for path in sessions_dir.rglob("*.jsonl"):
@@ -188,18 +320,34 @@ def _codex_sessions() -> str:
         except OSError:
             continue
     if newest_mtime <= 0:
-        return f"{count} files, no readable mtimes"
-    return f"{count} files, latest wrote {_ago(newest_mtime)} ago"
+        return CheckResult(
+            code=CODEX_SESSIONS,
+            status="warn",
+            detail=f"{count} files, no readable mtimes",
+        )
+    return CheckResult(
+        code=CODEX_SESSIONS,
+        status="ok",
+        detail=f"{count} files, latest wrote {_ago(newest_mtime)} ago",
+    )
 
 
-def _codex_logs() -> str:
+def _codex_logs() -> CheckResult:
     import codex_loader
 
     logs_db = codex_loader.LOGS_DB
     if not logs_db.exists():
-        return f"{_display_path(logs_db)}  [missing], rate_limit rows: 0"
+        return CheckResult(
+            code=CODEX_LOGS,
+            status="warn",
+            detail=f"{_display_path(logs_db)}  [missing], rate_limit rows: 0",
+        )
     rows = _codex_rate_limit_log_count(logs_db)
-    return f"{_display_path(logs_db)}  [ok], rate_limit rows: {rows}"
+    return CheckResult(
+        code=CODEX_LOGS,
+        status="ok",
+        detail=f"{_display_path(logs_db)}  [ok], rate_limit rows: {rows}",
+    )
 
 
 def _codex_rate_limit_log_count(logs_db: Path) -> int:
@@ -213,24 +361,46 @@ def _codex_rate_limit_log_count(logs_db: Path) -> int:
     return int(value)
 
 
-def _codex_state() -> str:
+def _codex_state() -> CheckResult:
     import codex_loader
 
     state_db = codex_loader.STATE_DB
-    status = "ok" if state_db.exists() else "missing"
-    return f"{_display_path(state_db)}  [{status}]"
+    exists = state_db.exists()
+    return CheckResult(
+        code=CODEX_STATE,
+        status="ok" if exists else "warn",
+        detail=f"{_display_path(state_db)}  [{'ok' if exists else 'missing'}]",
+    )
 
 
-def _codex_rate_limits() -> str:
+def _codex_rate_limits() -> CheckResult:
     import codex_loader
 
     rate_limits = codex_loader.load_rate_limits()
     if rate_limits is None:
-        return "none"
+        return CheckResult(code=CODEX_RATE_LIMITS, status="warn", detail="none")
     five = "yes" if rate_limits.five_hour_pct is not None else "no"
     weekly = "yes" if rate_limits.seven_day_pct is not None else "no"
     updated = _rate_limits_updated_age(rate_limits.updated_at)
-    return f"5h: {five}, weekly: {weekly}, updated: {updated}"
+    has_limit = rate_limits.five_hour_pct is not None or rate_limits.seven_day_pct is not None
+    status = "ok" if has_limit and _rate_limits_are_fresh(rate_limits.updated_at) else "warn"
+    return CheckResult(
+        code=CODEX_RATE_LIMITS,
+        status=status,
+        detail=f"5h: {five}, weekly: {weekly}, updated: {updated}",
+    )
+
+
+def _rate_limits_are_fresh(updated_at: str) -> bool:
+    if not updated_at:
+        return False
+    timestamp = datetime.fromisoformat(updated_at.replace("Z", "+00:00"))
+    if timestamp.tzinfo is None:
+        timestamp = timestamp.replace(tzinfo=UTC)
+    else:
+        timestamp = timestamp.astimezone(UTC)
+    age_seconds = datetime.now(UTC).timestamp() - timestamp.timestamp()
+    return 0 <= age_seconds <= RATE_LIMIT_FRESH_SECONDS
 
 
 def _rate_limits_updated_age(updated_at: str) -> str:

@@ -207,3 +207,64 @@ def test_doctor_reports_codex_diagnostics(
     assert "codex state:" in output
     assert "[ok]" in output
     assert "codex rate limits: 5h: no, weekly: yes, updated:" in output
+
+
+def test_render_json_has_structured_checks() -> None:
+    payload = json.loads(doctor.render_json())
+
+    assert isinstance(payload["version"], str)
+    assert set(payload) == {"version", "checks", "self_heal_log", "summary"}
+    assert payload["summary"] == {"ok": 3, "warn": 9, "error": 0}
+    expected_codes = {
+        "status_file",
+        "codex_sessions",
+        "codex_state",
+        "hook_state",
+        "hook_version",
+        "hook_script",
+        "status_command",
+        "forwarder_script",
+        "forwarder_prompt",
+        "external_hooks",
+        "codex_logs",
+        "codex_rate_limits",
+    }
+    checks = payload["checks"]
+    assert {check["code"] for check in checks} == expected_codes
+    assert all(
+        set(check) == {"section", "code", "status", "detail"}
+        and check["status"] in {"ok", "warn", "error"}
+        for check in checks
+    )
+
+
+def test_render_json_isolates_check_errors(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail() -> doctor.CheckResult:
+        raise RuntimeError("broken status file")
+
+    monkeypatch.setattr(doctor, "_status_file", fail)
+
+    payload = json.loads(doctor.render_json())
+    checks = {check["code"]: check for check in payload["checks"]}
+
+    assert checks["status_file"]["status"] == "error"
+    assert checks["status_file"]["detail"] == "error: broken status file"
+    assert all(
+        check["status"] != "error" for code, check in checks.items() if code != "status_file"
+    )
+
+
+def test_exit_code_is_zero_without_errors_and_one_with_errors() -> None:
+    healthy = doctor.DoctorReport(
+        version="1.0.0",
+        checks=[("core", doctor.CheckResult("status_file", "ok", "ok"))],
+        self_heal_log=[],
+    )
+    unhealthy = doctor.DoctorReport(
+        version="1.0.0",
+        checks=[("core", doctor.CheckResult("status_file", "error", "error: broken"))],
+        self_heal_log=[],
+    )
+
+    assert doctor.exit_code(healthy) == 0
+    assert doctor.exit_code(unhealthy) == 1

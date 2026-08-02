@@ -62,12 +62,9 @@ def _import_module_with_oserror_retry(name: str) -> Any:
 
 
 def _setup_logging() -> None:
-    level = logging.DEBUG if os.environ.get("USAGE_DEBUG") == "1" else logging.WARNING
-    logging.basicConfig(
-        level=level,
-        format="%(asctime)s %(name)s %(levelname)s: %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
-    )
+    import usage_logging
+
+    usage_logging.setup_logging()
 
 
 def _i18n_text(language: str, key: str) -> str:
@@ -229,6 +226,11 @@ def parse_args() -> argparse.Namespace:
         action="store_true",
         help=argparse.SUPPRESS,
     )
+    parser.add_argument(
+        "--json",
+        action="store_true",
+        help=argparse.SUPPRESS,
+    )
     args = parser.parse_args()
     args.interval = max(30, args.interval)
     return args
@@ -308,8 +310,10 @@ def main() -> None:
     if args.doctor:
         import doctor
 
-        print(doctor.render(), end="")
-        raise SystemExit(0)
+        report = doctor.collect()
+        output = doctor.render_json(report) if args.json else doctor.render(report)
+        print(output, end="")
+        raise SystemExit(doctor.exit_code(report))
     if args.setup:
         import session_hooks
         from setup_hook import setup
