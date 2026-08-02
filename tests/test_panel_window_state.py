@@ -3,12 +3,12 @@
 
 from __future__ import annotations
 
+import sys
 from types import SimpleNamespace
 from typing import cast
 
 import pytest
 
-import menubar
 from panel_window_state import (
     PANEL_WINDOW_ORIGIN_DEFAULTS_KEY,
     PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY,
@@ -96,9 +96,12 @@ def test_load_top_left_rejects_non_finite_coordinates() -> None:
     assert load_panel_window_top_left(Defaults([12, float("inf")])) is None
 
 
+@pytest.mark.skipif(sys.platform != "darwin", reason="menubar imports PyObjC")
 def test_top_left_anchor_is_stable_when_content_height_changes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    import menubar
+
     top_left = (240.0, 800.0)
     first_height = 400.0
     second_height = 560.0
