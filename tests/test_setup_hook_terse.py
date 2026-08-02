@@ -182,6 +182,30 @@ def test_enable_installs_codex_when_present(terse_paths: TerseHookPaths) -> None
     assert terse_paths.codex_terse_target.as_posix() in hook["command"]
 
 
+def test_setup_codex_terse_keeps_unreadable_hooks_json_unchanged(
+    terse_paths: TerseHookPaths,
+) -> None:
+    terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
+    terse_paths.codex_hooks_json.write_bytes(b"\xff\xfe{")
+    config_before = terse_paths.codex_config.read_bytes()
+    hooks_before = terse_paths.codex_hooks_json.read_bytes()
+
+    session_hooks._setup_codex_terse()
+
+    assert terse_paths.codex_config.read_bytes() == config_before
+    assert terse_paths.codex_hooks_json.read_bytes() == hooks_before
+    assert not terse_paths.codex_terse_target.exists()
+
+
+def test_setup_codex_terse_creates_missing_hooks_json(terse_paths: TerseHookPaths) -> None:
+    terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
+
+    session_hooks._setup_codex_terse()
+
+    assert terse_paths.codex_hooks_json.exists()
+    assert len(_codex_terse_entries(terse_paths.codex_hooks_json)) == 1
+
+
 def test_enable_idempotent_on_codex_features_and_entries(terse_paths: TerseHookPaths) -> None:
     terse_paths.codex_config.write_text('model = "gpt-5"\n', encoding="utf-8")
 

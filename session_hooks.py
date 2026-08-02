@@ -515,14 +515,14 @@ def _codex_terse_command() -> str:
     return f"{_shell_arg(python)} {_shell_arg(str(CODEX_TERSE_HOOK_TARGET))}"
 
 
-def _load_codex_hooks() -> dict[str, Any]:
+def _load_codex_hooks() -> dict[str, Any] | None:
     if not CODEX_HOOKS_JSON.exists():
         return {}
     try:
         data = json.loads(CODEX_HOOKS_JSON.read_text(encoding="utf-8"))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        return {}
-    return data if isinstance(data, dict) else {}
+        return None
+    return data if isinstance(data, dict) else None
 
 
 def _save_codex_hooks(data: dict[str, Any]) -> None:
@@ -540,7 +540,10 @@ def _codex_session_start_list(data: dict[str, Any]) -> list[Any] | None:
 
 
 def _is_codex_terse_installed() -> bool:
-    entries = _codex_session_start_list(_load_codex_hooks())
+    data = _load_codex_hooks()
+    if data is None:
+        return False
+    entries = _codex_session_start_list(data)
     if not entries:
         return False
     return any(_is_terse_entry(e) for e in entries)
@@ -563,6 +566,10 @@ def _setup_codex_terse() -> None:
     if result is None:
         return
     content, parsed = result
+    data = _load_codex_hooks()
+    if data is None:
+        print(_t("terse_codex_hooks_unreadable"))
+        return
     _copy_codex_terse_script()
 
     features = parsed.get("features")
@@ -573,7 +580,6 @@ def _setup_codex_terse() -> None:
         if new_content != content:
             _atomic_write_text(CODEX_CONFIG, new_content)
 
-    data = _load_codex_hooks()
     hooks = data.get("hooks")
     if not isinstance(hooks, dict):
         hooks = {}
@@ -598,21 +604,22 @@ def _teardown_codex_terse() -> None:
     """Remove only usage's own Codex SessionStart entry; leave ``[features] hooks = true``
     and any user-installed Codex hooks intact. Deletes hooks.json when nothing remains."""
     data = _load_codex_hooks()
-    entries = _codex_session_start_list(data)
-    if entries is not None:
-        kept = [e for e in (_strip_terse_hooks(e) for e in entries) if e is not None]
-        hooks = data.get("hooks")
-        if isinstance(hooks, dict):
-            if kept:
-                hooks["SessionStart"] = kept
+    if data is not None:
+        entries = _codex_session_start_list(data)
+        if entries is not None:
+            kept = [e for e in (_strip_terse_hooks(e) for e in entries) if e is not None]
+            hooks = data.get("hooks")
+            if isinstance(hooks, dict):
+                if kept:
+                    hooks["SessionStart"] = kept
+                else:
+                    hooks.pop("SessionStart", None)
+                if not hooks:
+                    data.pop("hooks", None)
+            if data:
+                _save_codex_hooks(data)
             else:
-                hooks.pop("SessionStart", None)
-            if not hooks:
-                data.pop("hooks", None)
-        if data:
-            _save_codex_hooks(data)
-        else:
-            CODEX_HOOKS_JSON.unlink(missing_ok=True)
+                CODEX_HOOKS_JSON.unlink(missing_ok=True)
     CODEX_TERSE_HOOK_TARGET.unlink(missing_ok=True)
 
 

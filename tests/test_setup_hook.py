@@ -440,7 +440,13 @@ def test_unsetup_codex_removes_only_tui_status_line_without_backup(
 status_line = ["external"]
 
 [tui]
-status_line = ["old"]
+status_line = [
+    "project",
+    "five-hour-limit",
+    "weekly-limit",
+    "context-remaining",
+    "model-with-reasoning",
+]
 
 [another]
 status_line = ["keep"]
@@ -466,7 +472,10 @@ def test_unsetup_codex_keeps_backup_when_restore_write_fails(
     codex_backup = tmp_path / ".codex" / "usage-backup.json"
     legacy_backup = tmp_path / ".codex" / "tt-backup.json"
     codex_config.parent.mkdir()
-    codex_config.write_text('[tui]\nstatus_line = ["old"]\n', encoding="utf-8")
+    codex_config.write_text(
+        f'[tui]\nstatus_line = {json.dumps(setup_hook.CODEX_STATUS_LINE)}\n',
+        encoding="utf-8",
+    )
     codex_backup.write_text(json.dumps({"status_line": ["original"]}), encoding="utf-8")
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
     monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
@@ -510,24 +519,70 @@ def test_setup_codex_warns_when_existing_config_is_unreadable(
     assert "Codex" in capsys.readouterr().out
 
 
-def test_unsetup_codex_bad_utf8_backup_falls_back_to_empty_status_line(
+def test_unsetup_codex_bad_utf8_backup_keeps_config_and_backup(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     codex_config = tmp_path / ".codex" / "config.toml"
     codex_backup = tmp_path / ".codex" / "usage-backup.json"
     legacy_backup = tmp_path / ".codex" / "tt-backup.json"
     codex_config.parent.mkdir()
-    codex_config.write_text('[tui]\nstatus_line = ["old"]\n', encoding="utf-8")
+    codex_config.write_text(
+        f'[tui]\nstatus_line = {json.dumps(setup_hook.CODEX_STATUS_LINE)}\n',
+        encoding="utf-8",
+    )
     codex_backup.write_bytes(b"\xff\xfe{")
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+    monkeypatch.setattr(setup_hook, "LEGACY_CODEX_BACKUP", legacy_backup)
+
+    config_before = codex_config.read_bytes()
+    backup_before = codex_backup.read_bytes()
+
+    setup_hook._unsetup_codex()
+
+    assert codex_config.read_bytes() == config_before
+    assert codex_backup.read_bytes() == backup_before
+
+
+def test_unsetup_codex_keeps_foreign_status_line_unchanged(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    legacy_backup = tmp_path / ".codex" / "tt-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_bytes(b'[tui]\nstatus_line = ["personal"]\n')
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+    monkeypatch.setattr(setup_hook, "LEGACY_CODEX_BACKUP", legacy_backup)
+    config_before = codex_config.read_bytes()
+
+    setup_hook._unsetup_codex()
+
+    assert codex_config.read_bytes() == config_before
+
+
+def test_unsetup_codex_restores_valid_backup(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    legacy_backup = tmp_path / ".codex" / "tt-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_text(
+        f'[tui]\nstatus_line = {json.dumps(setup_hook.CODEX_STATUS_LINE)}\n',
+        encoding="utf-8",
+    )
+    codex_backup.write_text(json.dumps({"status_line": ["original"]}), encoding="utf-8")
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
     monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
     monkeypatch.setattr(setup_hook, "LEGACY_CODEX_BACKUP", legacy_backup)
 
     setup_hook._unsetup_codex()
 
-    content = codex_config.read_text(encoding="utf-8")
-    assert "status_line = []" in content
-    assert tomllib.loads(content)["tui"]["status_line"] == []
+    assert tomllib.loads(codex_config.read_text(encoding="utf-8"))["tui"]["status_line"] == [
+        "original"
+    ]
     assert not codex_backup.exists()
 
 

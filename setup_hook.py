@@ -561,15 +561,20 @@ def _unsetup_codex() -> None:
         return
     content, parsed = result
 
-    if _codex_status_line(parsed) is None:
+    if _codex_status_line(parsed) != CODEX_STATUS_LINE:
+        print(_t("setup_codex_unsetup_foreign"))
         return
 
     backup_path = CODEX_BACKUP if CODEX_BACKUP.exists() else LEGACY_CODEX_BACKUP
     if backup_path.exists():
         try:
-            old_items = json.loads(backup_path.read_text(encoding="utf-8")).get("status_line", [])
+            old_items = json.loads(backup_path.read_text(encoding="utf-8")).get("status_line")
         except (OSError, UnicodeDecodeError, json.JSONDecodeError, AttributeError):
-            old_items = []
+            print(_t("setup_codex_backup_invalid"))
+            return
+        if not isinstance(old_items, list):
+            print(_t("setup_codex_backup_invalid"))
+            return
         content = _replace_tui_status_line(content, _status_line_toml(old_items))
         # Write the restored config before deleting the backup: if the write fails, the
         # backup must survive so a later retry can still recover the original status line.
