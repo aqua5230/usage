@@ -18,6 +18,8 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
+from cache_quarantine import quarantine
+
 logger = logging.getLogger(__name__)
 
 _FileCache = OrderedDict[Path, Any]
@@ -63,9 +65,16 @@ def seed_caches(
     try:
         with cache_path.open(encoding="utf-8") as f:
             cache = json.load(f)
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        if isinstance(exc, UnicodeDecodeError):
+            quarantine(cache_path, "decode-error")
+        elif isinstance(exc, json.JSONDecodeError):
+            quarantine(cache_path, "json-error")
         return
-    if not isinstance(cache, dict) or cache.get("schema_version") != schema_version:
+    if not isinstance(cache, dict):
+        quarantine(cache_path, "not-a-mapping")
+        return
+    if cache.get("schema_version") != schema_version:
         return
     files = cache.get("files")
     if not isinstance(files, dict):

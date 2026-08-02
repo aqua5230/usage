@@ -9,6 +9,9 @@ from collections import OrderedDict
 from datetime import UTC, datetime
 from pathlib import Path
 
+import pytest
+
+import cache_quarantine
 import codex_disk_cache
 import codex_loader
 import history_disk_cache
@@ -85,7 +88,9 @@ def test_history_flush_changes_only_the_affected_shard(tmp_path: Path) -> None:
     assert second_shard.stat().st_mtime_ns == 2_000_000_000
 
 
-def test_history_corrupt_shard_is_skipped_and_rebuilt(tmp_path: Path) -> None:
+def test_history_corrupt_shard_is_skipped_and_rebuilt(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     cache_path = tmp_path / "history.json"
     first, second = _distinct_paths(history_disk_cache._shard_index)
     original = OrderedDict([(first, _history_entry(first)), (second, _history_entry(second))])
@@ -95,6 +100,7 @@ def test_history_corrupt_shard_is_skipped_and_rebuilt(tmp_path: Path) -> None:
     )
     corrupt_shard.write_text("broken", encoding="utf-8")
     seeded: OrderedDict[Path, history_loader._FileCacheEntry] = OrderedDict()
+    monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", tmp_path / "quarantine")
 
     history_disk_cache.seed_caches(cache_path, 2, 4096, seeded)
 
@@ -151,7 +157,9 @@ def test_codex_flush_changes_only_the_affected_shard(tmp_path: Path) -> None:
     assert second_shard.stat().st_mtime_ns == 2_000_000_000
 
 
-def test_codex_corrupt_shard_is_skipped_and_rebuilt(tmp_path: Path) -> None:
+def test_codex_corrupt_shard_is_skipped_and_rebuilt(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     cache_path = tmp_path / "codex.json"
     first, second = _distinct_paths(codex_disk_cache._shard_index)
     original, info = _codex_caches(first, second)
@@ -163,6 +171,7 @@ def test_codex_corrupt_shard_is_skipped_and_rebuilt(tmp_path: Path) -> None:
     corrupt_shard.write_text("broken", encoding="utf-8")
     seeded: OrderedDict[Path, codex_loader._JsonlCacheEntry] = OrderedDict()
     seeded_info: OrderedDict[Path, tuple[float, int, _SessionFileInfo]] = OrderedDict()
+    monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", tmp_path / "quarantine")
 
     codex_disk_cache.seed_caches(cache_path, 4, 4096, seeded, seeded_info, sqlite_cache)
 

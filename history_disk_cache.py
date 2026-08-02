@@ -19,6 +19,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from cache_quarantine import quarantine
+
 if TYPE_CHECKING:
     from history_loader import UsageEntry
 
@@ -84,7 +86,11 @@ def _load_shard(path: Path, schema_version: int) -> dict[str, Any] | None:
     try:
         with path.open(encoding="utf-8") as file:
             payload = json.load(file)
-        if not isinstance(payload, dict) or payload.get("schema_version") != schema_version:
+        if not isinstance(payload, dict):
+            quarantine(path, "not-a-mapping")
+            path.unlink(missing_ok=True)
+            return None
+        if payload.get("schema_version") != schema_version:
             path.unlink(missing_ok=True)
             return None
         files = payload.get("files")
@@ -92,7 +98,15 @@ def _load_shard(path: Path, schema_version: int) -> dict[str, Any] | None:
             path.unlink(missing_ok=True)
             return None
         return files
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+        if isinstance(exc, UnicodeDecodeError):
+            quarantine(path, "decode-error")
+        else:
+            quarantine(path, "json-error")
+        with contextlib.suppress(OSError):
+            path.unlink()
+        return None
+    except OSError:
         with contextlib.suppress(OSError):
             path.unlink()
         return None

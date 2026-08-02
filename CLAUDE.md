@@ -6,7 +6,8 @@ A macOS menu bar / TUI usage monitor. Reads Claude Code and Codex usage from loc
 
 - Claude usage is written atomically to `~/.claude/usage-status.json` by the statusLine hook. Read order: that file, the legacy `usag-status.json`, the migration-only `tt-status.json`, and finally `cachedUsageUtilization` in `~/.claude.json`. `usag-*` may be read for migration only — never written again.
 - Codex has no hook. `codex_loader.py` reads `~/.codex/sessions/**/*.jsonl` and opens `~/.codex/state_5.sqlite` read-only for the thread→model mapping.
-- Tests must never touch the real `~/.claude/` or `~/.codex/`; override the path constants with `monkeypatch`.
+- Tests must never touch the real `~/.claude/` or `~/.codex/`; override the path constants with `monkeypatch`. A test that feeds a disk cache a corrupt file must also `monkeypatch` `cache_quarantine.QUARANTINE_DIR`, or it writes into the real `~/.usage/quarantine/`.
+- A disk cache file that fails to decode or parse is moved to `~/.usage/quarantine/` by `cache_quarantine.py` before the caller deletes it, keeping the evidence for diagnosis. A stale `schema_version` is not quarantined — that is a normal upgrade, and quarantining it would flush the directory's 10-file budget on every version bump.
 - When `setup_hook.py` installs or removes the hook, any existing statusLine is backed up under `settings["usage"]["previousStatusLine"]`. Do not change this to overwrite it away.
 - `usage_statusline.py`, `usage_statusline_forwarder.py`, and `usage_session_resume.py` run outside the venv under macOS `/usr/bin/python3` 3.9. They must stay stdlib-only and use `timezone.utc`, never `datetime.UTC`.
 - Every user-visible string goes through `_t()` from `i18n.json`, or `t()` in HTML. A new key must be added to `zh-TW`, `zh-CN`, `en`, `ja`, and `ko` at once.
