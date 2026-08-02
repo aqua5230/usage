@@ -267,6 +267,7 @@ def test_reset_panel_position_clears_preference_and_repositions_visible_window(
 
 def test_switch_panel_keeps_dragged_position_before_new_height_is_measured(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     # Regression: switch_panel() used to reset _content_height to None, so
     # on_loaded() clamped the just-dragged position against PANEL_HEIGHTS'
@@ -285,6 +286,7 @@ def test_switch_panel_keeps_dragged_position_before_new_height_is_measured(
         evaluate_js=lambda code: None,
     )
     controller = wintray._WindowsTrayController(mock=True, interval=60)
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
     controller.window = window
     controller.visible = True
     controller.active_panel_id = "world_cup"
@@ -307,6 +309,7 @@ def test_switch_panel_keeps_dragged_position_before_new_height_is_measured(
 
 def test_switch_panel_keeps_dragged_position_on_secondary_monitor(
     monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
 ) -> None:
     # Regression: _working_area() only ever reports the *primary* monitor's
     # work area (that's what SPI_GETWORKAREA returns). Clamping a dragged
@@ -333,6 +336,7 @@ def test_switch_panel_keeps_dragged_position_on_secondary_monitor(
         evaluate_js=lambda code: None,
     )
     controller = wintray._WindowsTrayController(mock=True, interval=60)
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
     controller.window = window
     controller.visible = True
     controller.active_panel_id = "world_cup"
