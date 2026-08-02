@@ -834,37 +834,27 @@
         const actions = document.createElement("div");
         actions.className = "tm-role-actions";
 
-        if (role.installed) {
-          const launch = document.createElement("button");
-          launch.className = "tm-btn tm-btn-primary";
-          launch.type = "button";
-          launch.dataset.action = "launch_role";
-          launch.dataset.roleId = role.id || "";
-          launch.textContent = "▸ " + t("talent_launch");
-          actions.appendChild(launch);
+        const launch = document.createElement("button");
+        launch.className = "tm-btn tm-btn-primary";
+        launch.type = "button";
+        launch.dataset.action = "launch_role";
+        launch.dataset.roleId = role.id || "";
+        launch.textContent = "▸ " + t("talent_launch");
+        actions.appendChild(launch);
 
-          if (role.drifted) {
-            const drifted = document.createElement("span");
-            drifted.className = "tm-badge";
-            drifted.textContent = t("talent_drifted");
-            actions.appendChild(drifted);
+        if (role.drifted) {
+          const drifted = document.createElement("span");
+          drifted.className = "tm-badge";
+          drifted.textContent = t("talent_drifted");
+          actions.appendChild(drifted);
 
-            const restore = document.createElement("button");
-            restore.className = "tm-btn";
-            restore.type = "button";
-            restore.dataset.action = "restore_role";
-            restore.dataset.roleId = role.id || "";
-            restore.textContent = t("talent_restore");
-            actions.appendChild(restore);
-          }
-        } else {
-          const install = document.createElement("button");
-          install.className = "tm-btn tm-btn-primary";
-          install.type = "button";
-          install.dataset.action = "install_role";
-          install.dataset.roleId = role.id || "";
-          install.textContent = t("talent_install");
-          actions.appendChild(install);
+          const restore = document.createElement("button");
+          restore.className = "tm-btn";
+          restore.type = "button";
+          restore.dataset.action = "restore_role";
+          restore.dataset.roleId = role.id || "";
+          restore.textContent = t("talent_restore");
+          actions.appendChild(restore);
         }
 
         const folderBtn = document.createElement("button");
