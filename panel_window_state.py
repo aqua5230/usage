@@ -17,6 +17,7 @@ else:
     NSUserDefaults = None
 
 PANEL_WINDOW_ORIGIN_DEFAULTS_KEY = "usage.panelWindowOrigin"
+PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY = "usage.panelWindowTopLeft"
 
 Origin = tuple[float, float]
 Size = tuple[float, float]
@@ -69,8 +70,8 @@ def load_panel_window_origin(defaults: Any | None = None) -> Origin | None:
     return (float(x), float(y))
 
 
-def save_panel_window_origin(
-    origin: Origin,
+def save_panel_window_top_left(
+    top_left: Origin,
     defaults: Any | None = None,
 ) -> None:
     store = defaults
@@ -78,6 +79,27 @@ def save_panel_window_origin(
         assert NSUserDefaults is not None
         store = NSUserDefaults.standardUserDefaults()
     store.setObject_forKey_(
-        [float(origin[0]), float(origin[1])],
-        PANEL_WINDOW_ORIGIN_DEFAULTS_KEY,
+        [float(top_left[0]), float(top_left[1])],
+        PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY,
     )
+
+
+def load_panel_window_top_left(defaults: Any | None = None) -> Origin | None:
+    store = defaults
+    if store is None:
+        assert NSUserDefaults is not None
+        store = NSUserDefaults.standardUserDefaults()
+    value = store.arrayForKey_(PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY)
+    if not isinstance(value, Sequence) or isinstance(value, str | bytes) or len(value) != 2:
+        return None
+    x, y = value
+    if (
+        isinstance(x, bool)
+        or isinstance(y, bool)
+        or not isinstance(x, int | float)
+        or not isinstance(y, int | float)
+        or not math.isfinite(float(x))
+        or not math.isfinite(float(y))
+    ):
+        return None
+    return (float(x), float(y))

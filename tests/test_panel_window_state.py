@@ -3,10 +3,19 @@
 
 from __future__ import annotations
 
+from types import SimpleNamespace
+from typing import cast
+
+import pytest
+
+import menubar
 from panel_window_state import (
     PANEL_WINDOW_ORIGIN_DEFAULTS_KEY,
+    PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY,
     clamp_origin_to_visible_frames,
     load_panel_window_origin,
+    load_panel_window_top_left,
+    save_panel_window_top_left,
 )
 
 
@@ -14,6 +23,19 @@ class EmptyDefaults:
     def arrayForKey_(self, key: str) -> None:
         assert key == PANEL_WINDOW_ORIGIN_DEFAULTS_KEY
         return None
+
+
+class Defaults:
+    def __init__(self, value: object) -> None:
+        self.value = value
+        self.saved: tuple[object, str] | None = None
+
+    def arrayForKey_(self, key: str) -> object:
+        assert key == PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY
+        return self.value
+
+    def setObject_forKey_(self, value: object, key: str) -> None:
+        self.saved = (value, key)
 
 
 def test_clamp_origin_pulls_fully_offscreen_window_back() -> None:
@@ -45,3 +67,65 @@ def test_clamp_origin_uses_nearest_visible_frame() -> None:
 
 def test_load_origin_returns_none_when_never_saved() -> None:
     assert load_panel_window_origin(EmptyDefaults()) is None
+
+
+def test_save_top_left_stores_float_coordinates() -> None:
+    defaults = Defaults(None)
+
+    save_panel_window_top_left((12, 34.5), defaults)
+
+    assert defaults.saved == ([12.0, 34.5], PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY)
+
+
+def test_load_top_left_returns_float_coordinates() -> None:
+    assert load_panel_window_top_left(Defaults([12, 34.5])) == (12.0, 34.5)
+
+
+def test_load_top_left_rejects_wrong_length() -> None:
+    assert load_panel_window_top_left(Defaults([12])) is None
+
+
+def test_load_top_left_rejects_wrong_types_including_bool() -> None:
+    assert load_panel_window_top_left(Defaults(["12", 34])) is None
+    assert load_panel_window_top_left(Defaults([True, 34])) is None
+    assert load_panel_window_top_left(Defaults([12, False])) is None
+
+
+def test_load_top_left_rejects_non_finite_coordinates() -> None:
+    assert load_panel_window_top_left(Defaults([float("nan"), 34])) is None
+    assert load_panel_window_top_left(Defaults([12, float("inf")])) is None
+
+
+def test_top_left_anchor_is_stable_when_content_height_changes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    top_left = (240.0, 800.0)
+    first_height = 400.0
+    second_height = 560.0
+    first_origin = (top_left[0], top_left[1] - first_height)
+    second_origin = (top_left[0], top_left[1] - second_height)
+    saved: list[tuple[float, float]] = []
+    monkeypatch.setattr(menubar, "save_panel_window_top_left", saved.append)
+    delegate = cast(
+        menubar.AppDelegate,
+        SimpleNamespace(
+            popover=SimpleNamespace(
+                frame=lambda: SimpleNamespace(
+                    origin=SimpleNamespace(x=top_left[0], y=first_origin[1]),
+                    size=SimpleNamespace(height=first_height),
+                )
+            ),
+        ),
+    )
+
+    menubar.AppDelegate._save_panel_window_top_left(delegate)
+    delegate.popover.frame = lambda: SimpleNamespace(
+        origin=SimpleNamespace(x=top_left[0], y=second_origin[1]),
+        size=SimpleNamespace(height=second_height),
+    )
+    menubar.AppDelegate._save_panel_window_top_left(delegate)
+
+    assert saved == [top_left, top_left]
+    assert first_origin != second_origin
+    assert first_origin[1] + first_height == top_left[1]
+    assert second_origin[1] + second_height == top_left[1]

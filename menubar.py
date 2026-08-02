@@ -147,7 +147,8 @@ from panel_window import PanelWindow
 from panel_window_state import (
     clamp_origin_to_visible_frames,
     load_panel_window_origin,
-    save_panel_window_origin,
+    load_panel_window_top_left,
+    save_panel_window_top_left,
 )
 from panels.base import Panel as UsagePanel
 from panels.base import (
@@ -657,11 +658,11 @@ class AppDelegate(NSObject):
 
     def windowDidMove_(self, notification: Any) -> None:
         if notification.object() is self.popover and self._panel_window_is_visible():
-            self._save_panel_window_origin()
+            self._save_panel_window_top_left()
 
     def windowWillClose_(self, notification: Any) -> None:
         if notification.object() is self.popover:
-            self._save_panel_window_origin()
+            self._save_panel_window_top_left()
             self._panel_window_did_hide()
 
     def refreshNow_(self, sender: Any) -> None:
@@ -723,7 +724,7 @@ class AppDelegate(NSObject):
             and self.popover is not None
             and self._panel_window_is_visible()
         ):
-            self._save_panel_window_origin()
+            self._save_panel_window_top_left()
         if hasattr(self, "popover_controller") and self.popover_controller is not None:
             self.popover_controller.teardown()
 
@@ -1174,7 +1175,10 @@ class AppDelegate(NSObject):
     def _show_popover_from_button(self, button: Any) -> None:
         frame = self.popover.frame()
         size = (float(frame.size.width), float(frame.size.height))
-        origin = load_panel_window_origin()
+        if (top_left := load_panel_window_top_left()) is not None:
+            origin: tuple[float, float] | None = (top_left[0], top_left[1] - size[1])
+        else:
+            origin = load_panel_window_origin()
         if origin is None:
             button_window = button.window()
             button_rect = button.convertRect_toView_(button.bounds(), None)
@@ -1205,11 +1209,12 @@ class AppDelegate(NSObject):
     def _panel_window_is_visible(self) -> bool:
         return bool(self.popover.isVisible())
 
-    def _save_panel_window_origin(self) -> None:
+    def _save_panel_window_top_left(self) -> None:
         if not hasattr(self, "popover") or self.popover is None:
             return
         frame = self.popover.frame()
-        save_panel_window_origin((float(frame.origin.x), float(frame.origin.y)))
+        top_left = (float(frame.origin.x), float(frame.origin.y) + float(frame.size.height))
+        save_panel_window_top_left(top_left)
 
     def _mark_switch_menu_action(self) -> None:
         self._switch_menu_action_taken = True
