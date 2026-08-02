@@ -55,6 +55,7 @@ import codex_loader
 import critter_frames
 import login_item
 import menubar_agy
+import menubar_notify
 import menubar_state
 import panels
 import talent_market_bridge
@@ -216,7 +217,6 @@ __all__ = [
     "_window_keeper_enabled",
 ]
 
-UPDATE_DISMISS_SECONDS = 24 * 3600
 UPDATE_ALERT_BODY_LIMIT = 2000
 SLOW_POLL_INTERVAL_S = 300.0
 
@@ -248,101 +248,6 @@ def _terse_mode_enabled() -> bool:
         return session_hooks.is_terse_mode_enabled()
     except Exception:
         return False
-
-
-def _user_notification_center() -> tuple[Any, dict[str, int]]:
-    from UserNotifications import (
-        UNAuthorizationOptionAlert,
-        UNAuthorizationOptionBadge,
-        UNAuthorizationOptionSound,
-        UNUserNotificationCenter,
-    )
-    _register_user_notification_block_metadata()
-
-    return (
-        UNUserNotificationCenter.currentNotificationCenter(),
-        {
-            "alert": int(UNAuthorizationOptionAlert),
-            "badge": int(UNAuthorizationOptionBadge),
-            "sound": int(UNAuthorizationOptionSound),
-        },
-    )
-
-
-def _user_notification_classes() -> tuple[Any, Any, Any]:
-    _register_user_notification_block_metadata()
-    from UserNotifications import (
-        UNMutableNotificationContent,
-        UNNotificationRequest,
-        UNNotificationSound,
-    )
-
-    return UNMutableNotificationContent, UNNotificationRequest, UNNotificationSound
-
-
-def _register_user_notification_block_metadata() -> None:
-    objc.registerMetaDataForSelector(
-        b"UNUserNotificationCenter",
-        b"requestAuthorizationWithOptions:completionHandler:",
-        {
-            "arguments": {
-                3: {
-                    "callable": {
-                        "retval": {"type": b"v"},
-                        "arguments": {
-                            0: {"type": b"^v"},
-                            1: {"type": b"Z"},
-                            2: {"type": b"@"},
-                        },
-                    },
-                },
-            },
-        },
-    )
-    objc.registerMetaDataForSelector(
-        b"UNUserNotificationCenter",
-        b"addNotificationRequest:withCompletionHandler:",
-        {
-            "arguments": {
-                3: {
-                    "callable": {
-                        "retval": {"type": b"v"},
-                        "arguments": {
-                            0: {"type": b"^v"},
-                            1: {"type": b"@"},
-                        },
-                    },
-                },
-            },
-        },
-    )
-
-
-def _notification_tool(channel: str) -> str:
-    return "Claude" if channel.startswith("claude_") else "Codex"
-
-
-def _notification_scope(language: str, channel: str) -> str:
-    if channel.endswith("_session"):
-        return _t(language, "session_label")
-    return _t(language, "weekly_label")
-
-
-def _notification_row(state: PopoverState, channel: str) -> QuotaRowState:
-    rows = {
-        "claude_session": state.claude_session,
-        "claude_weekly": state.claude_weekly,
-        "codex_session": state.codex_session,
-        "codex_weekly": state.codex_weekly,
-    }
-    return rows[channel]
-
-
-def _update_dismissed_recently(prefs: dict[str, Any]) -> bool:
-    dismissed_at = prefs.get("update_dismissed_at")
-    if isinstance(dismissed_at, int | float):
-        return (time.time() - float(dismissed_at)) < UPDATE_DISMISS_SECONDS
-    return False
 
 
 def _current_version() -> str:
@@ -1178,7 +1083,7 @@ class AppDelegate(NSObject):
         if not manual and not update_gate.auto_check_is_due(prefs):
             return
 
-        if not ignore_cooldown and _update_dismissed_recently(prefs):
+        if not ignore_cooldown and update_gate.dismissed_recently(prefs):
             return
 
         try:
@@ -1755,7 +1660,7 @@ class AppDelegate(NSObject):
         if self.mock or not _quota_notifications_enabled():
             return
         try:
-            center, constants = _user_notification_center()
+            center, constants = menubar_notify.user_notification_center()
             options = constants["badge"] | constants["sound"] | constants["alert"]
             center.requestAuthorizationWithOptions_completionHandler_(
                 options,
@@ -1787,9 +1692,9 @@ class AppDelegate(NSObject):
 
     def _send_quota_notification(self, event: NotificationEvent, state: PopoverState) -> None:
         try:
-            center, _constants = _user_notification_center()
-            content_cls, request_cls, sound_cls = _user_notification_classes()
-            row = _notification_row(state, event.channel)
+            center, _constants = menubar_notify.user_notification_center()
+            content_cls, request_cls, sound_cls = menubar_notify.user_notification_classes()
+            row = menubar_notify.notification_row(state, event.channel)
             title_key = f"notif_{event.kind}_title"
             body_key = f"notif_{event.kind}_body"
             content = content_cls.alloc().init()
@@ -1798,10 +1703,11 @@ class AppDelegate(NSObject):
                 _t(
                     self.language,
                     body_key,
-                    tool=_notification_tool(event.channel),
+                    tool=menubar_notify.notification_tool(event.channel),
                     # row.title carries the window-aware label (e.g. Codex free
                     # plan shows "Monthly"); fall back to the slot's scope text.
-                    scope=row.title or _notification_scope(self.language, event.channel),
+                    scope=row.title
+                    or menubar_notify.notification_scope(self.language, event.channel),
                     pct=_format_percent(row.percent or event.threshold or 0.0),
                     reset=row.reset_text,
                 )

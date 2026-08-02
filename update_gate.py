@@ -12,6 +12,14 @@ from typing import Any
 import update_checker
 
 AUTO_CHECK_TTL_SECONDS = 24 * 60 * 60
+UPDATE_DISMISS_SECONDS = 24 * 3600
+
+
+def dismissed_recently(prefs: dict[str, Any]) -> bool:
+    dismissed_at = prefs.get("update_dismissed_at")
+    if isinstance(dismissed_at, int | float):
+        return (time.time() - float(dismissed_at)) < UPDATE_DISMISS_SECONDS
+    return False
 
 
 def auto_check_is_due(prefs: dict[str, Any]) -> bool:
