@@ -21,11 +21,21 @@ import menubar_agy
 import menubar_chrome
 import menubar_prefs
 import menubar_state
+import panel_window_state
 import panels
 import statusline_settings
 from burn_rate import BurnRateTracker
 from service_status import ServiceStatus
 from usage_client import PollOutcome, PollState, UsageSnapshot
+
+
+@pytest.fixture(autouse=True)
+def _use_estimated_panel_height(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        panel_window_state,
+        "load_panel_content_height",
+        lambda panel_id, defaults=None: None,
+    )
 
 
 class _FakeMenu:

@@ -10,11 +10,15 @@ from typing import cast
 import pytest
 
 from panel_window_state import (
+    PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY,
     PANEL_WINDOW_ORIGIN_DEFAULTS_KEY,
     PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY,
     clamp_origin_to_visible_frames,
+    load_panel_content_height,
     load_panel_window_origin,
     load_panel_window_top_left,
+    resolve_panel_size,
+    save_panel_content_height,
     save_panel_window_top_left,
 )
 
@@ -36,6 +40,19 @@ class Defaults:
 
     def setObject_forKey_(self, value: object, key: str) -> None:
         self.saved = (value, key)
+
+
+class ContentHeightDefaults:
+    def __init__(self, value: object) -> None:
+        self.value = value
+
+    def objectForKey_(self, key: str) -> object:
+        assert key == PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY
+        return self.value
+
+    def setObject_forKey_(self, value: object, key: str) -> None:
+        assert key == PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY
+        self.value = value
 
 
 def test_clamp_origin_pulls_fully_offscreen_window_back() -> None:
@@ -94,6 +111,52 @@ def test_load_top_left_rejects_wrong_types_including_bool() -> None:
 def test_load_top_left_rejects_non_finite_coordinates() -> None:
     assert load_panel_window_top_left(Defaults([float("nan"), 34])) is None
     assert load_panel_window_top_left(Defaults([12, float("inf")])) is None
+
+
+def test_save_content_height_round_trips() -> None:
+    defaults = ContentHeightDefaults({})
+
+    save_panel_content_height("classic", 456, defaults)
+
+    assert load_panel_content_height("classic", defaults) == 456.0
+
+
+def test_content_heights_are_separate_per_panel() -> None:
+    defaults = ContentHeightDefaults({})
+
+    save_panel_content_height("classic", 456.0, defaults)
+    save_panel_content_height("matrix", 789.0, defaults)
+
+    assert load_panel_content_height("classic", defaults) == 456.0
+    assert load_panel_content_height("matrix", defaults) == 789.0
+
+
+@pytest.mark.parametrize(
+    "value",
+    ["broken", {"classic": "456"}, {"classic": float("nan")},
+     {"classic": float("inf")}, {"classic": -1}, {"classic": True}],
+)
+def test_content_height_rejects_invalid_values_and_save_recovers(value: object) -> None:
+    defaults = ContentHeightDefaults(value)
+
+    assert load_panel_content_height("classic", defaults) is None
+    save_panel_content_height("classic", 456.0, defaults)
+
+    assert load_panel_content_height("classic", defaults) == 456.0
+
+
+def test_resolve_panel_size_uses_saved_height_or_estimate(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import menubar_state
+
+    panel = SimpleNamespace(id="classic")
+    state = object()
+    defaults = ContentHeightDefaults({"classic": 456.0})
+    monkeypatch.setattr(menubar_state, "popover_dimensions", lambda state, panel: (320.0, 500.0))
+
+    assert resolve_panel_size(state, panel, defaults) == (320.0, 456.0)
+    assert resolve_panel_size(state, panel, ContentHeightDefaults({})) == (320.0, 500.0)
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="menubar imports PyObjC")

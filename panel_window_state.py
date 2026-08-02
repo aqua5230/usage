@@ -18,6 +18,7 @@ else:
 
 PANEL_WINDOW_ORIGIN_DEFAULTS_KEY = "usage.panelWindowOrigin"
 PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY = "usage.panelWindowTopLeft"
+PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY = "usage.panelContentHeights"
 
 Origin = tuple[float, float]
 Size = tuple[float, float]
@@ -103,3 +104,53 @@ def load_panel_window_top_left(defaults: Any | None = None) -> Origin | None:
     ):
         return None
     return (float(x), float(y))
+
+
+def save_panel_content_height(
+    panel_id: str,
+    height: float,
+    defaults: Any | None = None,
+) -> None:
+    store = defaults
+    if store is None:
+        assert NSUserDefaults is not None
+        store = NSUserDefaults.standardUserDefaults()
+    value = store.objectForKey_(PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY)
+    heights = dict(value) if isinstance(value, dict) else {}
+    heights[panel_id] = float(height)
+    store.setObject_forKey_(heights, PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY)
+
+
+def load_panel_content_height(
+    panel_id: str,
+    defaults: Any | None = None,
+) -> float | None:
+    store = defaults
+    if store is None:
+        assert NSUserDefaults is not None
+        store = NSUserDefaults.standardUserDefaults()
+    heights = store.objectForKey_(PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY)
+    if not isinstance(heights, dict):
+        return None
+    value = heights.get(panel_id)
+    if (
+        isinstance(value, bool)
+        or not isinstance(value, int | float)
+        or not math.isfinite(float(value))
+        or value <= 0
+    ):
+        return None
+    return float(value)
+
+
+def resolve_panel_size(
+    state: Any,
+    panel: Any | None,
+    defaults: Any | None = None,
+) -> Size:
+    import menubar_state
+
+    width, height = menubar_state.popover_dimensions(state, panel)
+    if panel is not None and (saved_height := load_panel_content_height(panel.id, defaults)):
+        height = saved_height
+    return (width, height)

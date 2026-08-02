@@ -57,6 +57,7 @@ import login_item
 import menubar_agy
 import menubar_notify
 import menubar_state
+import panel_window_state
 import panels
 import talent_market_bridge
 import update_checker
@@ -144,12 +145,7 @@ from menubar_state import (
     format_human_time as format_human_time,
 )
 from panel_window import PanelWindow
-from panel_window_state import (
-    clamp_origin_to_visible_frames,
-    load_panel_window_origin,
-    load_panel_window_top_left,
-    save_panel_window_top_left,
-)
+from panel_window_state import save_panel_window_top_left
 from panels.base import Panel as UsagePanel
 from panels.base import (
     load_active_panel_id,
@@ -608,6 +604,7 @@ class AppDelegate(NSObject):
         height = clamp_content_height(value, maximum)
         if height is None:
             return
+        panel_window_state.save_panel_content_height(self.active_panel.id, height)
         size = NSMakeSize(self.active_panel.preferred_size()[0], height)
         self._set_panel_window_size(size)
         self.popover_controller.view().setFrameSize_(size)
@@ -1175,10 +1172,10 @@ class AppDelegate(NSObject):
     def _show_popover_from_button(self, button: Any) -> None:
         frame = self.popover.frame()
         size = (float(frame.size.width), float(frame.size.height))
-        if (top_left := load_panel_window_top_left()) is not None:
+        if (top_left := panel_window_state.load_panel_window_top_left()) is not None:
             origin: tuple[float, float] | None = (top_left[0], top_left[1] - size[1])
         else:
-            origin = load_panel_window_origin()
+            origin = panel_window_state.load_panel_window_origin()
         if origin is None:
             button_window = button.window()
             button_rect = button.convertRect_toView_(button.bounds(), None)
@@ -1197,7 +1194,9 @@ class AppDelegate(NSObject):
             )
             for screen in NSScreen.screens()
         ]
-        origin = clamp_origin_to_visible_frames(origin, size, visible_frames)
+        origin = panel_window_state.clamp_origin_to_visible_frames(
+            origin, size, visible_frames
+        )
         self.popover.setFrameOrigin_(NSMakePoint(*origin))
         self._panel_window_will_show()
         self.popover.makeKeyAndOrderFront_(None)
@@ -2095,8 +2094,7 @@ def _analysis_period_from_project_range(project_range: str) -> str:
 
 
 def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
-    width, height = menubar_state.popover_dimensions(state, panel)
-    return NSMakeSize(width, height)
+    return NSMakeSize(*panel_window_state.resolve_panel_size(state, panel))
 
 
 def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
