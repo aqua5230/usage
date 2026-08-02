@@ -27,6 +27,19 @@ collect_ignore = (
 )
 
 
+@pytest.fixture(autouse=True)
+def _isolate_log_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Keep every test out of the real ~/Library/Logs/usage directory.
+
+    ``main.main()`` calls ``_setup_logging()``, so any test that exercises it
+    attaches a RotatingFileHandler to the root logger. Without this the handler
+    points at the user's real log file and every later test writes into it.
+    """
+    import usage_logging
+
+    monkeypatch.setattr(usage_logging, "LOG_DIR", tmp_path / "logs")
+
+
 @pytest.fixture
 def patch_setup_hook_paths(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
