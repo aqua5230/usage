@@ -19,6 +19,7 @@ import history_loader
 import menubar
 import menubar_agy
 import menubar_chrome
+import menubar_menu
 import menubar_prefs
 import menubar_state
 import panel_window_state
@@ -486,6 +487,9 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
 
     monkeypatch.setattr(menubar, "NSMenu", _FakeMenu)
     monkeypatch.setattr(menubar, "NSMenuItem", _FakeMenuItem)
+    # build_menu_item lives in menubar_menu and imports NSMenuItem itself, so the
+    # patch above does not reach it. Patch the helper module too.
+    monkeypatch.setattr(menubar_menu, "NSMenuItem", _FakeMenuItem)
     monkeypatch.setattr("menubar.panels.all_panels", lambda: panels)
     monkeypatch.setattr("menubar.login_item.is_enabled", lambda: False)
     monkeypatch.setattr(
@@ -610,6 +614,9 @@ def test_switch_panel_cancel_keeps_the_panel_open(
 
     monkeypatch.setattr(menubar, "NSMenu", _FakeMenu)
     monkeypatch.setattr(menubar, "NSMenuItem", _FakeMenuItem)
+    # build_menu_item lives in menubar_menu and imports NSMenuItem itself, so the
+    # patch above does not reach it. Patch the helper module too.
+    monkeypatch.setattr(menubar_menu, "NSMenuItem", _FakeMenuItem)
     monkeypatch.setattr(
         "menubar.panels.all_panels",
         lambda: [SimpleNamespace(id="classic", i18n_key="panel_default_name")],

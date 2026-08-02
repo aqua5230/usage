@@ -224,10 +224,6 @@ def _detect_language() -> str:
     return detect_lang()
 
 
-def _panel_title(panel: UsagePanel, language: str) -> str:
-    return _t(language, panel.i18n_key)
-
-
 def _session_resume_enabled() -> bool:
     # State lives in ~/.claude/settings.json (a hook), not in usage's prefs file.
     try:
@@ -726,28 +722,26 @@ class AppDelegate(NSObject):
             self.popover_controller.teardown()
 
     def switchPanel_(self, sender: Any) -> None:
+        from menubar_menu import build_menu_item
+
         menu = NSMenu.alloc().initWithTitle_(_t(self.language, "switch_panel"))
         # AI 人才市場 is a feature panel, not a cosmetic skin — it gets its own
         # top-level row instead of hiding inside "面板主題 ▸" next to Matrix/Win95.
-        talent_market_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "panel_talent_market"),
-            "toggleTalentMarket:",
-            "",
+        menu.addItem_(
+            build_menu_item(
+                self.language, "panel_talent_market", "toggleTalentMarket:", target=self,
+                represented="talent_market",
+                state=self.active_panel.id == "talent_market",
+            )
         )
-        talent_market_item.setTarget_(self)
-        talent_market_item.setRepresentedObject_("talent_market")
-        talent_market_item.setState_(1 if self.active_panel.id == "talent_market" else 0)
-        menu.addItem_(talent_market_item)
-        discussion_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "discussion_window_title"), "toggleDiscussion:", ""
+        menu.addItem_(
+            build_menu_item(
+                self.language, "discussion_window_title", "toggleDiscussion:", target=self
+            )
         )
-        discussion_item.setTarget_(self)
-        menu.addItem_(discussion_item)
-        ai_daily_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "panel_ai_daily"), "toggleAiDaily:", ""
+        menu.addItem_(
+            build_menu_item(self.language, "panel_ai_daily", "toggleAiDaily:", target=self)
         )
-        ai_daily_item.setTarget_(self)
-        menu.addItem_(ai_daily_item)
         menu.addItem_(NSMenuItem.separatorItem())
         # Panel themes live in a submenu so the menu stays short — one "面板主題 ▸"
         # row that expands on demand instead of nine inline rows. talent_market is
@@ -756,15 +750,13 @@ class AppDelegate(NSObject):
         for panel in panels.all_panels():
             if panel.id == "talent_market":
                 continue
-            item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-                _panel_title(panel, self.language),
-                "selectPanel:",
-                "",
+            panel_submenu.addItem_(
+                build_menu_item(
+                    self.language, panel.i18n_key, "selectPanel:", target=self,
+                    represented=panel.id,
+                    state=panel.id == self.active_panel.id,
+                )
             )
-            item.setTarget_(self)
-            item.setRepresentedObject_(panel.id)
-            item.setState_(1 if panel.id == self.active_panel.id else 0)
-            panel_submenu.addItem_(item)
         panel_parent = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             _t(self.language, "switch_panel"), "", ""
         )
@@ -774,30 +766,24 @@ class AppDelegate(NSObject):
         # with the panel-themes submenu: both are drill-in rows that shape what
         # the popover shows.
         hide_submenu = NSMenu.alloc().initWithTitle_(_t(self.language, "hide_sections_menu"))
-        hide_claude_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "claude_name"),
-            "toggleHideClaude:",
-            "",
+        hide_submenu.addItem_(
+            build_menu_item(
+                self.language, "claude_name", "toggleHideClaude:", target=self,
+                state=_hide_claude_enabled(),
+            )
         )
-        hide_claude_item.setTarget_(self)
-        hide_claude_item.setState_(1 if _hide_claude_enabled() else 0)
-        hide_submenu.addItem_(hide_claude_item)
-        hide_codex_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "codex_name"),
-            "toggleHideCodex:",
-            "",
+        hide_submenu.addItem_(
+            build_menu_item(
+                self.language, "codex_name", "toggleHideCodex:", target=self,
+                state=_hide_codex_enabled(),
+            )
         )
-        hide_codex_item.setTarget_(self)
-        hide_codex_item.setState_(1 if _hide_codex_enabled() else 0)
-        hide_submenu.addItem_(hide_codex_item)
-        hide_agy_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "agy_name"),
-            "toggleHideAgy:",
-            "",
+        hide_submenu.addItem_(
+            build_menu_item(
+                self.language, "agy_name", "toggleHideAgy:", target=self,
+                state=_hide_agy_enabled(),
+            )
         )
-        hide_agy_item.setTarget_(self)
-        hide_agy_item.setState_(1 if _hide_agy_enabled() else 0)
-        hide_submenu.addItem_(hide_agy_item)
         hide_parent = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
             _t(self.language, "hide_sections_menu"), "", ""
         )
@@ -805,52 +791,42 @@ class AppDelegate(NSObject):
         menu.addItem_(hide_parent)
         # Plain on/off switches sit together in the second group.
         menu.addItem_(NSMenuItem.separatorItem())
-        launch_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "launch_at_login"),
-            "toggleLaunchAtLogin:",
-            "",
+        menu.addItem_(
+            build_menu_item(
+                self.language, "launch_at_login", "toggleLaunchAtLogin:", target=self,
+                state=login_item.is_enabled(),
+            )
         )
-        launch_item.setTarget_(self)
-        launch_item.setState_(1 if login_item.is_enabled() else 0)
-        menu.addItem_(launch_item)
-        quota_notifications_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "quota_notifications_menu"),
-            "toggleQuotaNotifications:",
-            "",
+        menu.addItem_(
+            build_menu_item(
+                self.language, "quota_notifications_menu", "toggleQuotaNotifications:", target=self,
+                state=_quota_notifications_enabled(),
+            )
         )
-        quota_notifications_item.setTarget_(self)
-        quota_notifications_item.setState_(1 if _quota_notifications_enabled() else 0)
-        menu.addItem_(quota_notifications_item)
-        window_keeper_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "window_keeper_menu"),
-            "toggleWindowKeeper:",
-            "",
+        menu.addItem_(
+            build_menu_item(
+                self.language, "window_keeper_menu", "toggleWindowKeeper:", target=self,
+                state=_window_keeper_enabled(),
+                tooltip_key="window_keeper_tooltip",
+            )
         )
-        window_keeper_item.setTarget_(self)
-        window_keeper_item.setState_(1 if _window_keeper_enabled() else 0)
-        window_keeper_item.setToolTip_(_t(self.language, "window_keeper_tooltip"))
-        menu.addItem_(window_keeper_item)
         # Project Butler: one toggle that hands last session's progress to the next
         # one. Tooltip carries the full explanation so the menu line stays short.
         menu.addItem_(NSMenuItem.separatorItem())
-        butler_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "project_butler"),
-            "toggleSessionResume:",
-            "",
+        menu.addItem_(
+            build_menu_item(
+                self.language, "project_butler", "toggleSessionResume:", target=self,
+                state=_session_resume_enabled(),
+                tooltip_key="project_butler_tooltip",
+            )
         )
-        butler_item.setTarget_(self)
-        butler_item.setState_(1 if _session_resume_enabled() else 0)
-        butler_item.setToolTip_(_t(self.language, "project_butler_tooltip"))
-        menu.addItem_(butler_item)
-        terse_item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "terse_mode_menu"),
-            "toggleTerseMode:",
-            "",
+        menu.addItem_(
+            build_menu_item(
+                self.language, "terse_mode_menu", "toggleTerseMode:", target=self,
+                state=_terse_mode_enabled(),
+                tooltip_key="terse_mode_tooltip",
+            )
         )
-        terse_item.setTarget_(self)
-        terse_item.setState_(1 if _terse_mode_enabled() else 0)
-        terse_item.setToolTip_(_t(self.language, "terse_mode_tooltip"))
-        menu.addItem_(terse_item)
         self._switch_menu_action_taken = False
         menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
         # Dismissing the menu without picking anything used to close the panel:
