@@ -20,6 +20,24 @@ import doctor
 import setup_hook
 
 
+@pytest.fixture(autouse=True)
+def _patch_doctor_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    claude_dir = tmp_path / ".claude"
+    codex_dir = tmp_path / ".codex"
+    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", claude_dir / "settings.json")
+    monkeypatch.setattr(setup_hook, "HOOK_TARGET", claude_dir / "usage-statusline.py")
+    monkeypatch.setattr(
+        setup_hook,
+        "FORWARDER_TARGET",
+        claude_dir / "usage-statusline-forwarder.py",
+    )
+    monkeypatch.setattr(setup_hook, "STATUS_FILE", claude_dir / "usage-status.json")
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", codex_dir / "sessions")
+    monkeypatch.setattr(codex_loader, "LOGS_DB", codex_dir / "logs_2.sqlite")
+    monkeypatch.setattr(codex_loader, "STATE_DB", codex_dir / "state_5.sqlite")
+    monkeypatch.setattr(codex_loader, "load_rate_limits", lambda: None)
+
+
 def test_doctor_handles_missing_settings_and_status_file(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -37,11 +55,53 @@ def test_doctor_handles_missing_settings_and_status_file(
     monkeypatch.setattr(codex_loader, "load_rate_limits", lambda: None)
 
     output = doctor.render()
+    lines = output.splitlines()
 
     assert "usage v" in output
+    assert lines[2] == "[core]"
+    assert [line.split(":", 1)[0] for line in lines[3:6]] == [
+        "status file",
+        "codex jsonl",
+        "codex state",
+    ]
+    assert lines[6] == doctor.SEPARATOR
+    assert lines[7] == "[hook]"
+    assert lines[12] == doctor.SEPARATOR
+    assert lines[13] == "[optional]"
     assert "hook state:        none" in output
+    forwarder_line = next(line for line in lines if line.startswith("forwarder script:"))
+    assert forwarder_line.endswith("[not needed in none mode]")
     assert "status file:" in output
     assert "self-heal log (last 5):\n  none" in output
+
+
+def test_doctor_flags_missing_forwarder_in_forwarder_mode(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    claude_dir = tmp_path / ".claude"
+    claude_dir.mkdir()
+    settings = claude_dir / "settings.json"
+    settings.write_text(
+        json.dumps(
+            {
+                "statusLine": {
+                    "type": "command",
+                    "command": "python usage-statusline-forwarder.py",
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
+
+    output = doctor.render()
+    forwarder_line = next(
+        line for line in output.splitlines() if line.startswith("forwarder script:")
+    )
+
+    assert "hook state:        us-forwarder" in output
+    assert forwarder_line.endswith("[missing]")
 
 
 def test_doctor_reports_external_hook_keyword(

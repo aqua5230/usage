@@ -26,21 +26,26 @@ def render() -> str:
     lines = [
         f"usage v{_field(_current_version)}",
         SEPARATOR,
+        "[core]",
+        f"status file:       {_field(_status_file)}",
+        f"codex jsonl:       {_field(_codex_sessions)}",
+        f"codex state:       {_field(_codex_state)}",
+        SEPARATOR,
+        "[hook]",
         f"hook state:        {_field(_hook_state)}",
         f"hook version:      {_field(_hook_version)}",
         f"hook script:       {_script_status(setup_hook.HOOK_TARGET)}",
-        f"forwarder script:  {_script_status(setup_hook.FORWARDER_TARGET)}",
-        f"status file:       {_field(_status_file)}",
         f"status command:    {_field(_status_command)}",
-        f"external hooks:    {_field(_external_hooks)}",
+        SEPARATOR,
+        "[optional]",
+        f"forwarder script:  {_forwarder_script_status()}",
         f"forwarder prompt:  {_field(_forwarder_prompt)}",
+        f"external hooks:    {_field(_external_hooks)}",
+        f"codex logs:        {_field(_codex_logs)}",
+        f"codex rate limits: {_field(_codex_rate_limits)}",
+        SEPARATOR,
         "self-heal log (last 5):",
         *_self_heal_log_lines(),
-        SEPARATOR,
-        f"codex jsonl:       {_field(_codex_sessions)}",
-        f"codex logs:        {_field(_codex_logs)}",
-        f"codex state:       {_field(_codex_state)}",
-        f"codex rate limits: {_field(_codex_rate_limits)}",
     ]
     return "\n".join(lines) + "\n"
 
@@ -86,6 +91,19 @@ def _script_status(path: Path) -> str:
     try:
         display = _display_path(path)
         status = "ok" if path.exists() else "missing"
+        return f"{display}  [{status}]"
+    except Exception as exc:
+        return f"error: {exc}"
+
+
+def _forwarder_script_status() -> str:
+    try:
+        path = setup_hook.FORWARDER_TARGET
+        display = _display_path(path)
+        if path.exists():
+            return f"{display}  [ok]"
+        state = setup_hook._detect_current_state()
+        status = "missing" if state == "us-forwarder" else f"not needed in {state} mode"
         return f"{display}  [{status}]"
     except Exception as exc:
         return f"error: {exc}"
