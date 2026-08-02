@@ -234,6 +234,16 @@ def test_panel_position_is_clamped_and_persisted_on_hide(
     assert prefs._load_preferences()["usage.windowPosition"] == {"x": 123, "y": 234}
 
 
+def test_load_preferences_non_utf8(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_path = tmp_path / "usage-preferences.json"
+    preferences_path.write_bytes(b"\xff\xfe\x00bad")
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
+
+    assert prefs._load_preferences() == {}
+
+
 def test_reset_panel_position_clears_preference_and_repositions_visible_window(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

@@ -132,6 +132,11 @@ def test_load_last_ping_tolerates_corrupt_json(isolated_state: Path) -> None:
     assert agy_window_keeper._load_last_ping() is None
 
 
+def test_load_last_ping_non_utf8(isolated_state: Path) -> None:
+    isolated_state.write_bytes(b"\xff\xfe\x00bad")
+    assert agy_window_keeper._load_last_ping() is None
+
+
 @pytest.mark.parametrize("value", [True, "soon", None, []])
 def test_load_last_ping_rejects_invalid_values(
     isolated_state: Path, value: object

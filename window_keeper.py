@@ -113,7 +113,7 @@ def _load_ping_state(
         return None, None
     try:
         data = json.loads(state_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return None, None
     if not isinstance(data, dict):
         return None, None

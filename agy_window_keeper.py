@@ -66,7 +66,7 @@ def _load_last_ping(path: Path | None = None) -> float | None:
         return None
     try:
         data = json.loads(state_path.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return None
     if not isinstance(data, dict):
         return None

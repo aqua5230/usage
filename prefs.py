@@ -22,7 +22,7 @@ def _load_preferences(path: Path | None = None) -> dict[str, Any]:
         return {}
     try:
         data = json.loads(preferences_file.read_text(encoding="utf-8"))
-    except (OSError, json.JSONDecodeError):
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
         return {}
     return data if isinstance(data, dict) else {}
 

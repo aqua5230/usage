@@ -236,6 +236,11 @@ def test_load_ping_state_corrupt_json(isolated_state: Path) -> None:
     assert window_keeper._load_ping_state() == (None, None)
 
 
+def test_load_ping_state_non_utf8(isolated_state: Path) -> None:
+    isolated_state.write_bytes(b"\xff\xfe\x00bad")
+    assert window_keeper._load_ping_state() == (None, None)
+
+
 def test_load_ping_state_rejects_non_numeric(isolated_state: Path) -> None:
     isolated_state.write_text(
         json.dumps({"last_pinged_reset_at": "soon"}), encoding="utf-8"
