@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-02",
+  "generated_at": "2026-08-03",
   "tools": [
     {
       "id": "claude_code",
@@ -1336,6 +1336,188 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.29.16",
+          "period": "2026-08-02",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "日誌會輪替，測試也不再污染真實紀錄",
+                "zh-CN": "日志会轮换，测试也不再污染真实记录",
+                "en": "Logs now rotate, and tests stop polluting the real record",
+                "ja": "ログがローテーションし、テストも本物の記録を汚さなくなった",
+                "ko": "로그가 순환하고 테스트도 실제 기록을 더럽히지 않는다"
+              },
+              "body": {
+                "zh-TW": "電腦常駐幾個月時，日誌檔（log，記錄程式運作過程的文字檔）若只由 launchd 轉存，就會像永遠不換頁的筆記本，只增不減。這個選單列小程式原本由 launchd 轉存輸出到 `~/Library/Logs/usage/usage.log`，沒有大小限制。launchd（macOS 用來在背景啟動程式的服務）只負責轉送。現在 Usage 在旁邊自己管理日誌：每份最多 2 MB，保留三份舊檔；就算建立目錄失敗，也照常啟動並保留主控台輸出。macOS 寫進 `~/Library/Logs/usage/`，其他平台則寫 `~/.usage/logs/`。連測試也改把日誌導去暫存目錄，不會再把測試警告混進真正用來診斷的 `usage-app.log`；Windows 系統匣測試曾在前一版修過同類問題。",
+                "zh-CN": "电脑常驻几个月时，日志文件（log，记录程序运行过程的文本文件）若只由 launchd 转存，就像永远不换页的笔记本，只增不减。launchd（macOS 用来在后台启动程序的服务）原本把输出写进 `~/Library/Logs/usage/usage.log`，没有大小限制。现在 Usage 会在旁边自己管理日志：每份最多 2 MB，保留三份旧文件；即使创建目录失败，也照常启动并保留控制台输出。macOS 写进 `~/Library/Logs/usage/`，其他平台则写 `~/.usage/logs/`。连测试也改把日志导去临时目录，不会再把测试警告混进真正用来诊断的 `usage-app.log`。",
+                "en": "When a computer stays on for months, a log file can become a notebook that never turns a page: it only grows. launchd, macOS's background service launcher, had been redirecting output to `~/Library/Logs/usage/usage.log` with no size limit. Usage now manages its own nearby log: each file is capped at 2 MB and three old copies are retained; even if it cannot create the directory, the app still starts and keeps console output. macOS uses `~/Library/Logs/usage/`; other platforms use `~/.usage/logs/`. Tests now write logs to a temporary directory too, so their warnings no longer mingle with the real `usage-app.log` used for diagnosis.",
+                "ja": "数か月つけっぱなしのコンピューターでは、ログファイル（プログラムの動作を記録するテキスト）が、ページをめくらないノートのように増え続けることがある。macOS のバックグラウンド起動サービスである launchd は、容量制限なしで `~/Library/Logs/usage/usage.log` に出力を書いていた。Usage は今後、隣で自分のログを管理し、1 ファイルを 2 MB までにして古いものを 3 個残す。ディレクトリを作れなくてもアプリは起動し、コンソール出力は残る。macOS は `~/Library/Logs/usage/`、他の環境は `~/.usage/logs/` を使う。テストも一時ディレクトリへ書くため、診断用の本物の `usage-app.log` に警告が混ざらない。",
+                "ko": "몇 달씩 켜 둔 컴퓨터에서는 로그 파일(프로그램 작동 과정을 기록한 텍스트 파일)이 페이지를 넘기지 않는 공책처럼 계속 커질 수 있다. macOS의 백그라운드 실행 서비스인 launchd는 용량 제한 없이 `~/Library/Logs/usage/usage.log`에 출력을 썼다. 이제 Usage는 곁에서 자체 로그를 관리해 파일 하나를 2 MB로 제한하고 이전 파일 세 개를 남긴다. 디렉터리를 만들지 못해도 앱은 정상 시작하며 콘솔 출력은 유지한다. macOS는 `~/Library/Logs/usage/`를, 다른 환경은 `~/.usage/logs/`를 쓴다. 테스트도 임시 디렉터리에 로그를 쓰므로 진단용 실제 `usage-app.log`에 경고가 섞이지 않는다."
+              },
+              "original": "**The file log is bounded and rotates.** The only log on disk was whatever launchd redirected into `~/Library/Logs/usage/usage.log`, and a redirect has no size limit — for a menu bar app that stays open for months, that file only ever grows. Python now owns a log of its own beside it, capped at 2 MB with three archives kept. Building the handler is best-effort: if the directory cannot be created the app keeps its console output and starts normally, because a logging subsystem must never be the thing that stops the program from running. macOS keeps the `~/Library/Logs/usage/` convention; every other platform writes under `~/.usage/logs/` next to the disk caches, since `~/Library/Logs` means nothing on Windows and `_setup_logging()` runs before the platform branch.\n**The test suite wrote into the developer's real log file.** `tests/test_main.py` exercises `main()`, whose first action is `_setup_logging()` — so the run attached a rotating file handler pointed at the actual `~/Library/Logs/usage/usage-app.log`, and every warning logged by every later test landed in it. One full run deposited 8 KB containing pytest's temporary directory paths, which is worse than noise: it makes the log untrustworthy the day someone reads it for a real diagnosis. An autouse fixture now redirects the log directory to `tmp_path`, matching the existing rule for `cache_quarantine.QUARANTINE_DIR`. Curiously the same class of bug was fixed one version earlier in the Windows tray tests."
+            },
+            {
+              "title": {
+                "zh-TW": "除錯可只看指定區塊，不必淹沒所有訊息",
+                "zh-CN": "调试可只看指定部分，不必淹没所有消息",
+                "en": "Debugging can now target selected parts instead of flooding everything",
+                "ja": "デバッグは必要な部分だけ見られ、全メッセージに埋もれない",
+                "ko": "디버그는 필요한 부분만 보고 모든 메시지에 묻히지 않는다"
+              },
+              "body": {
+                "zh-TW": "想查價格載入出了什麼事，卻被四十多處 debug 輸出淹沒嗎？USAGE_DEBUG（除錯開關，用來要求程式多印診斷訊息）不再只是全開或全關。在啟動前的環境變數（給程式的外部設定值）填 `USAGE_DEBUG=codex_loader,pricing`，就只看這兩個子系統；填 `1`、`all` 或 `*`，仍維持原本全部開啟。若填 `a.b`，它也會涵蓋 `a.b.c`，因為 Python 的 logger hierarchy（記錄器會由上層名稱管到下層名稱的結構）本來就這樣繼承。像開演唱會的控台，現在可只打亮兩位表演者，不必把整座舞台的燈全開。",
+                "zh-CN": "想查价格加载出了什么事，却被四十多处 debug 输出淹没吗？USAGE_DEBUG（调试开关，用来要求程序多打印诊断消息）不再只是全开或全关。在启动前的环境变量（给程序的外部设置值）填 `USAGE_DEBUG=codex_loader,pricing`，就只看这两个子系统；填 `1`、`all` 或 `*`，仍保持原本全部开启。若填 `a.b`，它也会涵盖 `a.b.c`，因为 Python 的 logger hierarchy（记录器会由上层名称管到下层名称的结构）本来就这样继承。像演唱会的控台，现在可只打亮两位表演者，不必把整座舞台的灯全开。",
+                "en": "Trying to find out why pricing loaded oddly used to mean drowning in output from more than forty debug sites. `USAGE_DEBUG`, the switch that asks the program to print diagnostic messages, is no longer only all on or all off. Set the environment variable before launch to `USAGE_DEBUG=codex_loader,pricing` and only those two subsystems speak up; `1`, `all`, and `*` still enable everything. Setting `a.b` also covers `a.b.c`, because Python's logger hierarchy already passes settings from a parent name to its children. It is like a concert board that can light only two performers instead of every lamp on the stage.",
+                "ja": "価格の読み込みで何が起きたか調べたいだけなのに、40 か所以上の debug 出力に埋もれていた。診断メッセージを多く出させるスイッチである USAGE_DEBUG は、もう全オンか全オフだけではない。起動前の環境変数に `USAGE_DEBUG=codex_loader,pricing` と入れれば、この二つのサブシステムだけを見る。`1`、`all`、`*` は従来どおり全体を有効にする。`a.b` は `a.b.c` も対象にする。Python の logger hierarchy が親の名前から子へ設定を受け継ぐ仕組みだからである。コンサートの操作卓で、舞台全体ではなく二人だけを照らすようなものだ。",
+                "ko": "가격 로딩에서 무슨 일이 났는지 알아보려면 전에는 마흔 곳이 넘는 debug 출력에 파묻혔다. 진단 메시지를 더 찍게 하는 스위치인 USAGE_DEBUG는 이제 전체 켜기와 끄기만 고르는 기능이 아니다. 실행 전 환경 변수에 `USAGE_DEBUG=codex_loader,pricing`를 넣으면 이 두 하위 시스템만 메시지를 낸다. `1`, `all`, `*`는 여전히 전체를 켠다. `a.b`를 넣으면 `a.b.c`도 포함한다. Python의 logger hierarchy가 상위 이름의 설정을 하위 이름에 물려주기 때문이다. 공연장 조명판에서 무대 전체가 아니라 두 사람만 비추는 모습과 같다."
+              },
+              "original": "**`USAGE_DEBUG` selects subsystems instead of switching everything on.** It was a boolean, so diagnosing one loader meant turning on all forty-odd debug sites and reading the result through the noise. It now takes a comma-separated list — `USAGE_DEBUG=codex_loader,pricing` raises only those two. Prefix matching comes free from Python's logger hierarchy rather than a hand-written comparison: setting `a.b` covers `a.b.c` because that is how logger inheritance already works. `1`, `all` and `*` keep the previous global behaviour."
+            },
+            {
+              "title": {
+                "zh-TW": "健康檢查可交給程式比對，不只剩截圖",
+                "zh-CN": "健康检查可交给程序比对，不只剩截图",
+                "en": "Health checks can now be compared by programs, not just screenshots",
+                "ja": "健全性チェックをスクリーンショットだけでなくプログラムで比較できる",
+                "ko": "상태 점검을 스크린샷뿐 아니라 프로그램으로 비교할 수 있다"
+              },
+              "body": {
+                "zh-TW": "有人請你交出 Usage 的健康檢查結果時，`usage --doctor --json` 現在給的是可讀取的資料，而不只是一段得靠截圖保存的文字。每項檢查都有固定代碼（stable code，讓程式每次都能辨認同一項檢查的名稱），例如 `hook_state`、`codex_sessions`，並標成三種狀態；只要有 `error`，指令就用非零結束碼（告訴其他程式這次執行失敗的數字）結束，其他工具便能比較兩次結果或自動判斷哪項失敗。邊界不清時它選 `warn`，不誤報成 `error`。像健檢表換上固定欄位，電腦和人都能對照。",
+                "zh-CN": "有人请你交出 Usage 的健康检查结果时，`usage --doctor --json` 现在给的是可读取的数据，而不只是一段得靠截图保存的文字。每项检查都有固定代码（stable code，让程序每次都能辨认同一项检查的名称），例如 `hook_state`、`codex_sessions`，并标成三种状态；只要有 `error`，命令就用非零退出码（告诉其他程序这次执行失败的数字）结束，其他工具便能比较两次结果或自动判断哪项失败。边界不清时它选 `warn`，不误报成 `error`。像体检表换上固定字段，电脑和人都能对照。",
+                "en": "When someone asks for Usage's health-check result, `usage --doctor --json` now returns data a program can read rather than a block of text that needs a screenshot. Each check has a stable code, such as `hook_state` or `codex_sessions`, and one of three states. If any check is an `error`, the command ends with a non-zero exit code, so other tools can compare two reports or determine which check failed automatically. When the boundary is unclear, it chooses `warn` instead of falsely calling it an `error`. It is like a medical form with fixed columns: people and computers can both line up the results.",
+                "ja": "Usage の健全性チェック結果を誰かに渡すとき、`usage --doctor --json` は、スクリーンショットが必要な文章の塊ではなく、プログラムが読めるデータを返すようになった。各チェックには `hook_state` や `codex_sessions` のような固定コードと三つの状態がある。どれかが `error` なら、コマンドはゼロ以外の終了コードで終わるため、別のツールが二つの報告を比べたり、失敗した項目を自動判定したりできる。境界が曖昧なら `error` と誤報せず `warn` を選ぶ。固定欄のある健診表なら、人もコンピューターも結果を並べられるのと同じである。",
+                "ko": "누군가 Usage의 상태 점검 결과를 달라고 할 때 `usage --doctor --json`은 이제 스크린샷이 필요한 긴 글 대신 프로그램이 읽을 수 있는 데이터를 돌려준다. 각 점검에는 `hook_state`, `codex_sessions`처럼 고정 코드와 세 가지 상태가 붙는다. 어느 하나가 `error`이면 명령은 0이 아닌 종료 코드로 끝나므로 다른 도구가 두 보고서를 비교하거나 실패한 항목을 자동으로 판단할 수 있다. 경계가 모호하면 `error`로 잘못 알리지 않고 `warn`을 고른다. 고정 칸이 있는 건강검진표라면 사람과 컴퓨터가 모두 결과를 나란히 볼 수 있는 것과 같다."
+              },
+              "original": "**`--doctor --json` emits the report as data with stable codes.** The report was a block of text, so a user could only screenshot it and the reader had to scan by eye — nothing could compare two reports or decide programmatically which check failed. Each check now carries a fixed code (`hook_state`, `codex_sessions`, …) and one of three states, the process exits non-zero when any check is in error, and the human-readable output is unchanged to the character. Ambiguous cases resolve to `warn` rather than `error`: a false alarm that fails a health check costs more than a missed warning."
+            },
+            {
+              "title": {
+                "zh-TW": "選單項目集中組裝，綁定的方法仍留在原地",
+                "zh-CN": "菜单项目集中组装，绑定的方法仍留在原处",
+                "en": "Menu items are assembled in one place while the bound method stays put",
+                "ja": "メニュー項目を一か所で組み立て、結び付いたメソッドは元の場所に残す",
+                "ko": "메뉴 항목은 한곳에서 만들고 연결된 메서드는 원래 자리에 둔다"
+              },
+              "body": {
+                "zh-TW": "維護 macOS 選單列時，麻煩的往往不是加新選項，而是十幾個選項都重複同一套組裝動作。`switchPanel_` 現在交給 `menubar_menu.build_menu_item()` 幫手函式（helper function，把重複步驟集中在一處的小函式）建立項目，建立項目、設定目標、狀態、提示，再加入選單的步驟只寫一次。`switchPanel_` 本身沒有搬家，因為 AppDelegate（macOS 應用程式的協調者）會用 selector 綁定它。selector（依方法名稱連接功能的機制）若失去原方法就會斷掉。這次省下的是 24 行重複內容，不是看起來像 80 行的數字遊戲；舊測試也改為在幫手模組補上 `NSMenuItem` 的替換，不再加模組層級轉接。像把十幾張便條收進同一本簿子，項目仍在原處，只有抄寫不再重複。",
+                "zh-CN": "维护 macOS 菜单栏时，麻烦的往往不是加新选项，而是十几个选项都重复同一套组装动作。`switchPanel_` 现在交给 `menubar_menu.build_menu_item()` 帮手函数（helper function，把重复步骤集中在一处的小函数）建立项目，建立项目、设置目标、状态、提示，再加入菜单的步骤只写一次。`switchPanel_` 本身没有搬家，因为 AppDelegate（macOS 应用程序的协调者）会用 selector 绑定它。selector（依方法名称连接功能的机制）若失去原方法就会断掉。这次省下的是 24 行重复内容，不是看起来像 80 行的数字游戏；旧测试也改为在帮手模块补上 `NSMenuItem` 的替换，不再加模块层级转接。像把十几张便条收进同一本簿子，项目仍在原处，只有抄写不再重复。",
+                "en": "When maintaining a macOS menu bar, the trouble is often not adding a new option but repeating the same assembly steps for a dozen of them. `switchPanel_` now uses `menubar_menu.build_menu_item()`, a helper function that gathers repeated steps in one place, to create the items; target, state, tooltip, and adding the item are written once. `switchPanel_` itself stays where it is because AppDelegate binds it through a selector, the mechanism that connects a feature by method name. Move the original method and that connection breaks. This removes 24 repeated lines, not the 80-line illusion suggested by the count. The old test now also replaces `NSMenuItem` in the helper module instead of adding module-level indirection. It is like gathering a dozen sticky notes into one notebook: the items stay put, but copying stops repeating.",
+                "ja": "macOS のメニューバーを保守するとき、厄介なのは新しい項目を足すことより、十数個の項目に同じ組み立て作業を繰り返すことである。`switchPanel_` は今、重複した手順を一か所に集める helper function である `menubar_menu.build_menu_item()` を使って項目を作る。対象、状態、ツールチップ、メニューへの追加は一度だけ書けばよい。`switchPanel_` 自体は移していない。AppDelegate が selector、つまりメソッド名で機能を結び付ける仕組みを通じてこれを束縛しており、元のメソッドを移すと接続が切れるからである。減ったのは見かけ上の 80 行ではなく、24 行の重複である。古いテストも helper モジュールで `NSMenuItem` を置き換えるようにし、モジュール単位の仲介を足さない。十数枚の付箋を一冊のノートに集めても、項目は元の場所にあり、写し書きだけが減るようなものである。",
+                "ko": "macOS 메뉴 막대를 관리할 때 어려운 일은 새 항목을 더하는 것보다 열두 개가 넘는 항목에 같은 조립 작업을 되풀이하는 데 있다. `switchPanel_`는 이제 반복 단계를 한곳에 모은 helper function인 `menubar_menu.build_menu_item()`로 항목을 만든다. 대상, 상태, 도움말, 메뉴에 넣는 작업은 한 번만 쓴다. `switchPanel_` 자체는 옮기지 않았다. AppDelegate가 selector, 즉 메서드 이름으로 기능을 연결하는 장치로 이를 묶고 있어 원래 메서드를 옮기면 연결이 끊기기 때문이다. 줄어든 것은 줄 수가 보여 주는 80줄이 아니라 중복된 24줄이다. 기존 테스트도 모듈 단계의 우회를 더하지 않고 helper 모듈에서 `NSMenuItem`을 바꾸도록 했다. 열두 장이 넘는 메모지를 한 권의 공책에 모아도 항목은 제자리에 있고 베껴 쓰기만 줄어드는 모습과 같다."
+              },
+              "original": "**`switchPanel_` builds its items through a helper.** A dozen menu entries each repeated the same five to seven lines — allocate the item, set the target, set the state, set the tooltip, add it — and `menubar.py` had two lines left under its ceiling. `menubar_menu.build_menu_item()` absorbs that shape. It lives in a new module rather than in `menubar_state.py`, which stays free of PyObjC. `switchPanel_` itself does not move: an AppDelegate method is bound by selector, and relocating one breaks the binding. The saving is smaller than it looks — 24 lines, not the 80 the line count suggested, because keyword arguments wrap across lines and give much of it back. The gain is the removed repetition, not the arithmetic. Moving the helper out also broke a test that patched `NSMenuItem` on the `menubar` module only; the fix was to patch the helper module too, never to add module-level indirection so the old patch keeps reaching."
+            }
+          ]
+        },
+        {
+          "version": "0.29.15",
+          "period": "2026-08-02",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "中文、日文、韓文的用量估算不再少算四倍",
+                "zh-CN": "中文、日文、韩文的用量估算不再少算四倍",
+                "en": "Usage estimates no longer count CJK text at one quarter of its size",
+                "ja": "中日韓テキストの使用量見積もりが 4 分の 1 にならなくなった",
+                "ko": "중국어·일본어·한국어 사용량 추정치가 4분의 1로 줄어들지 않는다"
+              },
+              "body": {
+                "zh-TW": "你拿中文、日文或韓文檔案檢查浪費的用量時，以前看到的數字其實少算了四倍。診斷工具把所有文字都當成四個字元才算一個 token（AI 處理文字量的單位），這套演算法適合 ASCII 文字，卻不適合 CJK 文字：一個中日韓字大約就是一個 token。現在它會把中日韓字逐一計算，其餘文字仍以四個字元估算，所以浪費的 token 與由此算出的費用不會再縮成四分之一。這像秤蔬菜時把每四顆番茄才當一顆，秤重結果當然偏低；秤法改正後，數字才接近實際重量。工具仍在離線運作，沒有為了追求細微的取整誤差加入特定模型的 tokenizer。",
+                "zh-CN": "你拿中文、日文或韩文文件检查浪费的用量时，以前看到的数字其实少算了四倍。诊断工具把所有文字都当成四个字符才算一个 token（AI 处理文字量的单位），这套算法适合英文，却不适合 CJK 文字：一个中日韩字大约就是一个 token。现在它会把中日韩字逐一计算，其余文字仍以四个字符估算，所以浪费的 token 与由此算出的费用不会再缩成四分之一。这像称蔬菜时把每四颗番茄才当一颗，称重结果当然偏低；称法改正后，数字才接近实际重量。工具仍在离线运行，没有为了追求细微的取整误差加入特定模型的 tokenizer。",
+                "en": "If you use Chinese, Japanese, or Korean files to diagnose waste, the old figures were four times too small. The diagnostic treated every four characters as one token (the unit an AI uses to measure text). That works for ASCII text, but a CJK character is roughly one token. It now counts each CJK codepoint as one token and keeps the four-characters-per-token estimate for everything else, so reported waste and the cost based on it no longer shrink to a quarter of their real estimate. It was like weighing tomatoes but recording only one for every four on the scale. The tool remains offline; it does not add a model-specific tokenizer just to chase tiny rounding differences.",
+                "ja": "中国語、日本語、韓国語のファイルで無駄な使用量を調べるなら、これまでの数字は実際の見積もりの 4 分の 1 だった。診断はすべての文字を四文字で一 token（AI が文字量を数える単位）としていた。この比率は ASCII 文字には合うが、中日韓の一文字はおよそ一 token である。今後は CJK の各コードポイントを一 token、それ以外を四文字で一 token として数えるため、無駄な token とそこから出す費用が 4 分の 1 に縮むことはない。トマトを量るのに四個ごとに一個だけ記録していた秤を直すようなものだ。道具は引き続きオフラインで動き、わずかな丸め誤差のために特定モデル用 tokenizer は追加しない。",
+                "ko": "중국어·일본어·한국어 파일로 낭비된 사용량을 점검했다면, 예전 수치는 실제 추정치의 4분의 1에 불과했다. 진단 도구가 모든 문자 네 개를 token(AI가 글자량을 세는 단위) 하나로 계산했기 때문이다. 이 비율은 ASCII 문자에는 맞지만, 한중일 문자 하나는 대략 token 하나다. 이제는 CJK 코드포인트를 하나씩 token 하나로 세고 나머지는 네 글자당 하나로 계산하므로, 낭비된 token과 거기서 계산한 비용이 4분의 1로 줄어들지 않는다. 토마토 네 개를 저울에 올리고 한 개만 적어 두던 계량을 고친 셈이다. 이 도구는 계속 오프라인으로 작동하며, 미세한 반올림 차이 때문에 특정 모델용 tokenizer를 추가하지 않는다."
+              },
+              "original": "**Token estimates no longer undercount CJK text by a factor of four.** Six places in the waste diagnosis converted characters to tokens with `chars // 4`, which is the ASCII ratio. A CJK character is roughly one token, not a quarter of one, so every figure the diagnosis reported for a Chinese, Japanese or Korean file — wasted tokens and the cost derived from them — came out at a quarter of the truth. This project reads its own `i18n.json`, `CLAUDE.md` and `README.zh-TW.md` often enough to hit this on itself. The estimate now counts CJK codepoints as one token each and everything else at four characters per token. No tokenizer dependency was added: this is an offline tool, and pulling in a model-specific tokenizer to chase rounding-level accuracy is not a trade worth making."
+            },
+            {
+              "title": {
+                "zh-TW": "壞掉的快取先隔離，留下查問題的線索",
+                "zh-CN": "损坏的缓存先隔离，留下查问题的线索",
+                "en": "A damaged cache is quarantined instead of erased",
+                "ja": "壊れたキャッシュを消さずに隔離して、調査の手掛かりを残す",
+                "ko": "망가진 캐시는 지우지 않고 격리해 원인을 남긴다"
+              },
+              "body": {
+                "zh-TW": "某次用量數字看起來不對時，壞掉的快取（把查過結果暫存起來直接用的資料）現在不會立刻被刪光。Antigravity、Codex 與 history 三種快取遇到讀不懂的檔案，仍會重新計算以便繼續使用，但會先把原檔移到 `~/.usage/quarantine/`，讓你日後還能檢查出了什麼問題。每個檔名帶毫秒時間戳，第二次故障不會蓋掉第一次；隔離區最多留十個檔案，每個最多 5 MB。這像醫院把破損的檢體先放進證物袋，再重新採樣，而不是直接丟進垃圾桶。只有過期的 `schema_version` 不會被隔離，因為那是正常升級；每個快取有 32 個分片，一次升版若全送進隔離區，反而會擠掉真正的故障證據。",
+                "zh-CN": "某次用量数字看起来不对时，损坏的缓存（把查过结果暂存起来直接用的数据）现在不会立刻被删光。Antigravity、Codex 与 history 三种缓存遇到读不懂的文件，仍会重新计算以便继续使用，但会先把原文件移到 `~/.usage/quarantine/`，让你日后还能检查出了什么问题。每个文件名带毫秒时间戳，第二次故障不会盖掉第一次；隔离区最多留十个文件，每个最多 5 MB。这像医院把破损的样本先放进证物袋，再重新采样，而不是直接丢进垃圾桶。只有过期的 `schema_version` 不会被隔离，因为那是正常升级；每个缓存有 32 个分片，一次升级若全送进隔离区，反而会挤掉真正的故障证据。",
+                "en": "When a usage number looks wrong, a damaged cache (stored results reused instead of recomputed) will no longer vanish immediately. Antigravity, Codex, and history caches still recover by recomputing an unreadable file, but first move the original into `~/.usage/quarantine/` so there is something to inspect later. Names include a millisecond timestamp, so a second failure cannot replace the first; the folder holds at most ten files, up to 5 MB each. It is like bagging a damaged lab sample before taking a new one instead of throwing away the only clue. An old `schema_version` is excluded because it is a normal upgrade. With 32 shards per cache, quarantining an entire version bump would crowd out the evidence from a real failure.",
+                "ja": "使用量の数字がおかしく見えたとき、壊れたキャッシュ（調べた結果を一時保存して再利用するデータ）は、もう直ちに消えない。Antigravity、Codex、history の三つのキャッシュは読めないファイルを再計算して復旧するが、その前に元のファイルを `~/.usage/quarantine/` へ移すため、後から原因を調べられる。名前にはミリ秒の時刻が付き、二度目の失敗が一度目を上書きしない。隔離場所は十ファイルまで、各 5 MB までである。壊れた検体を捨てる前に証拠袋へ入れてから採り直すようなものだ。古い `schema_version` は通常の更新なので隔離しない。各キャッシュに 32 個の断片があるため、更新分を全て入れると本当の故障の証拠を押し出してしまう。",
+                "ko": "사용량 숫자가 이상해 보일 때, 망가진 캐시(살펴본 결과를 잠시 저장해 다시 쓰는 데이터)를 이제 바로 지우지 않는다. Antigravity, Codex, history의 세 캐시는 읽을 수 없는 파일을 다시 계산해 복구하지만, 먼저 원본을 `~/.usage/quarantine/`으로 옮겨 나중에 원인을 살필 수 있게 한다. 이름에 밀리초 시각을 넣어 두 번째 고장이 첫 번째 것을 덮어쓰지 못하게 했고, 격리 장소에는 파일 열 개까지만 두며 파일 하나는 5 MB까지다. 망가진 검체를 버리기 전에 증거 봉투에 넣고 새로 채취하는 것과 같다. 오래된 `schema_version`은 정상적인 업그레이드라 격리하지 않는다. 캐시마다 조각이 32개이므로 버전 갱신분을 전부 넣으면 진짜 고장의 증거가 밀려난다."
+              },
+              "original": "**A corrupt disk cache is preserved instead of being deleted outright.** All three caches — Antigravity, Codex and history — dealt with an unreadable file by removing it and recomputing. That is the right recovery, but it also destroys the only evidence of what went wrong, so a later report of \"my numbers look off\" has nothing left to inspect. A damaged file is now moved to `~/.usage/quarantine/` first, named with a millisecond timestamp so a second failure cannot overwrite the first, capped at ten files and 5 MB each. A stale `schema_version` is *not* quarantined: that is an ordinary upgrade, and with 32 shards per cache one version bump would flush the whole budget and push the real evidence out. The quarantine helper swallows every error it can hit — it is a side service and must never take the caller down with it."
+            },
+            {
+              "title": {
+                "zh-TW": "`--doctor` 會分清楚「缺檔」與「根本用不到」",
+                "zh-CN": "`--doctor` 会分清“缺文件”和“根本用不到”",
+                "en": "`--doctor` separates a missing file from one you do not need",
+                "ja": "`--doctor` が「不足」と「不要」を区別するようになった",
+                "ko": "`--doctor`가 없는 파일과 필요 없는 파일을 구분한다"
+              },
+              "body": {
+                "zh-TW": "跑 `--doctor` 檢查安裝狀態時，看到 `forwarder script: [missing]` 不必再先以為出錯。以前報告把十四項檢查攤成一張清單，即使你目前的模式根本不用 forwarder script（負責轉送資料的腳本），它也照樣標成 missing。現在結果分成 `[core]`、`[hook]` 與 `[optional]` 三組；不需要轉送腳本的模式會直接寫 `[not needed in <state> mode]`。這像健康檢查把必做檢驗、加選檢驗和不適用項目分欄，而不是把所有未做項目都標紅。檢查的判斷規則沒有改，改的是報告把情境講清楚的方式；真正缺少目前模式會用到的檔案，仍會顯示為問題。",
+                "zh-CN": "跑 `--doctor` 检查安装状态时，看到 `forwarder script: [missing]` 不必再先以为出错。以前报告把十四项检查摊成一张清单，即使你当前的模式根本不用 forwarder script（负责转送数据的脚本），它也照样标成 missing。现在结果分成 `[core]`、`[hook]` 与 `[optional]` 三组；不需要转送脚本的模式会直接写 `[not needed in <state> mode]`。这像体检把必做检查、加选检查和不适用项目分栏，而不是把所有未做项目都标红。检查的判断规则没有改，改的是报告把情境讲清楚的方式；真正缺少当前模式会用到的文件，仍会显示为问题。",
+                "en": "When you run `--doctor` to check an installation, `forwarder script: [missing]` no longer automatically means trouble. The report used to flatten fourteen checks into one list, so it showed a missing forwarder script even in a mode that never uses one. A forwarder script is simply a script that passes data along. Results are now separated into `[core]`, `[hook]`, and `[optional]`; a mode that does not need the script says `[not needed in <state> mode]`. It is like a health report separating required tests, elective tests, and tests that do not apply instead of marking every absent test red. The checking logic itself did not change; a file required by the current mode is still reported as missing.",
+                "ja": "インストール状態を `--doctor` で調べるとき、`forwarder script: [missing]` と出ても、すぐに異常だと思わなくてよくなった。以前の報告は十四項目を一つの一覧に並べていたため、現在のモードで使わない forwarder script（データを転送するスクリプト）まで missing と表示していた。これからは結果を `[core]`、`[hook]`、`[optional]` に分け、不要なモードでは `[not needed in <state> mode]` と明記する。必須検査、任意検査、対象外を分けず、未実施を全て赤字にする健康診断票を直すようなものだ。検査の判定自体は変わらず、今のモードで必要なファイルがない場合は引き続き missing と報告する。",
+                "ko": "설치 상태를 `--doctor`로 확인할 때 `forwarder script: [missing]`가 보여도 곧바로 문제라고 생각할 필요가 없다. 예전 보고서는 열네 가지 검사를 한 목록에 늘어놓아, 현재 모드가 전혀 쓰지 않는 forwarder script(데이터를 넘겨주는 스크립트)도 missing으로 표시했다. 이제 결과를 `[core]`, `[hook]`, `[optional]`로 나누고, 필요 없는 모드에서는 `[not needed in <state> mode]`라고 적는다. 필수 검사, 선택 검사, 대상 아님을 나누지 않고 하지 않은 검사를 모두 빨갛게 표시하던 건강검진표를 고치는 셈이다. 검사 기준 자체는 바뀌지 않았으므로, 현재 모드에 필요한 파일이 없으면 계속 missing으로 보고한다."
+              },
+              "original": "**`--doctor` no longer reports a missing file that the current mode does not use.** The report listed fourteen checks as one flat list, so `forwarder script: [missing]` read as a fault even when the installed mode never needs that script. It is now grouped into `[core]`, `[hook]` and `[optional]`, and the forwarder line says `[not needed in <state> mode]` when that is the case. None of the check logic changed."
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 的系統匣測試會寫入真實偏好設定",
+                "zh-CN": "Windows 的系统托盘测试会写入真实偏好设置",
+                "en": "Windows tray tests write to your real preferences",
+                "ja": "Windows のトレイテストが実際の設定に書き込む",
+                "ko": "Windows 트레이 시험이 실제 환경 설정에 쓴다"
+              },
+              "body": {
+                "zh-TW": "Windows 開發者跑系統匣（Windows 工作列角落放背景程式圖示的區域）測試後，自己的面板偏好曾被悄悄改掉。兩個測試都會呼叫 `switch_panel()` 切換面板；這個動作接著透過 `_save_active_panel_id()` 寫入偏好檔，但測試沒有把 `prefs.PREFERENCES_FILE` 改指向暫存位置，於是實際碰到的是 `~/.claude/usage-preferences.json`。換句話說，測試本來該在模型屋裡搬家具，卻走進你的家改了客廳。",
+                "zh-CN": "Windows 开发者跑系统托盘（Windows 任务栏角落放后台程序图标的区域）测试后，自己的面板偏好曾被悄悄改掉。两个测试都会调用 `switch_panel()` 切换面板；这个动作接着通过 `_save_active_panel_id()` 写入偏好文件，但测试没有把 `prefs.PREFERENCES_FILE` 改指向临时位置，于是实际碰到的是 `~/.claude/usage-preferences.json`。换句话说，测试本来该在样板房里搬家具，却走进你的家改了客厅。",
+                "en": "After a Windows developer ran tray tests, their own panel preference changed in silence. The tray is the corner of the Windows taskbar where background-app icons live. Two tests call `switch_panel()`, which then writes preferences through `_save_active_panel_id()`. But the tests did not redirect `prefs.PREFERENCES_FILE` to a temporary location, so they wrote to the real `~/.claude/usage-preferences.json`. The tests were meant to rearrange furniture in a model home, yet walked into your living room instead.",
+                "ja": "Windows の開発者がシステムトレイ（タスクバーの隅に常駐アプリのアイコンが並ぶ場所）のテストを実行したあと、自分のパネル設定が黙って変わっていた。二つのテストは `switch_panel()` を呼び、そこから `_save_active_panel_id()` を通じて設定を書き込む。しかしテストは `prefs.PREFERENCES_FILE` を一時的な場所へ差し替えておらず、実際の `~/.claude/usage-preferences.json` に書き込んでいた。モデルルームの家具を動かすはずの試験が、自宅の居間へ入ってしまったようなものだ。",
+                "ko": "Windows 개발자가 시스템 트레이(작업 표시줄 구석에서 백그라운드 앱 아이콘을 보여 주는 곳) 시험을 돌린 뒤 자신의 패널 선택이 조용히 바뀌었다. 두 시험은 `switch_panel()`을 호출하고, 이 동작은 `_save_active_panel_id()`을 거쳐 환경 설정을 쓴다. 그러나 시험은 `prefs.PREFERENCES_FILE`을 임시 위치로 돌려놓지 않아 실제 `~/.claude/usage-preferences.json`을 건드렸다. 견본 주택의 가구를 옮겨야 할 시험이 자기 집 거실에 들어간 셈이다."
+              },
+              "original": "**Two Windows tray tests wrote into the real `~/.claude/usage-preferences.json`.** Both call `switch_panel()`, which persists through `_save_active_panel_id()`, and neither patched `prefs.PREFERENCES_FILE` — so running the suite silently changed the developer's own active panel."
+            },
+            {
+              "title": {
+                "zh-TW": "四種 README 翻譯都有人守，不再只盯繁中",
+                "zh-CN": "四种 README 翻译都有人守，不再只盯繁中",
+                "en": "Documentation checks now watch all four README translations",
+                "ja": "README の四言語すべてを翻訳漏れチェックの対象にした",
+                "ko": "README 네 번역본 모두를 동기화 검사에 넣었다"
+              },
+              "body": {
+                "zh-TW": "英文 README 多加一節時，簡體中文、日文和韓文版現在也會被檢查有沒有跟上。原本 `check_doc_parity.py` 只比對英文與繁中 README，其他三份翻譯沒有自動守門員，只能靠 `CLAUDE.md` 裡的手動提醒。現在每一種翻譯各自和英文比較，若落後，錯誤訊息會直接點出是哪個檔案。它比的是 `##` 標題的數量，不是標題文字本身：譯者仍可用自然的語言改寫標題，不必逐字照翻。這像展覽入口只數每個語言版有沒有同樣多扇展廳門，而不強迫門牌翻成同一串字；少了一扇門才提醒你回頭補。",
+                "zh-CN": "英文 README 多加一节时，简体中文、日文和韩文版现在也会被检查有没有跟上。原本 `check_doc_parity.py` 只比对英文与繁中 README，其他三份翻译没有自动守门员，只能靠 `CLAUDE.md` 里的手动提醒。现在每一种翻译各自和英文比较，若落后，错误信息会直接点出是哪个文件。它比的是 `##` 标题的数量，不是标题文字本身：译者仍可用自然的语言改写标题，不必逐字照翻。这像展览入口只数每个语言版有没有同样多扇展厅门，而不强迫门牌翻成同一串字；少了一扇门才提醒你回头补。",
+                "en": "When the English README gains a section, the Simplified Chinese, Japanese, and Korean versions are now checked for keeping up too. `check_doc_parity.py` used to compare English only with Traditional Chinese, leaving the other three translations guarded only by a hand-written reminder in `CLAUDE.md`. Each translation is now compared with English on its own, and a failure names the file that drifted. The check counts `##` headings rather than matching their wording, so translators can still write natural headings instead of copying English word for word. It is like checking that every language edition of an exhibition has the same number of gallery doors, without forcing all the signs to use identical words.",
+                "ja": "英語版 README に節が増えたとき、簡体字中国語、日本語、韓国語版も追いついているか確認されるようになった。`check_doc_parity.py` は以前、英語と繁体字中国語だけを比べ、残る三翻訳は `CLAUDE.md` の手作業の注意書きに頼っていた。今後は各翻訳を英語と個別に比べ、ずれた場合はどのファイルかをエラーに表示する。比べるのは `##` 見出しの個数であり、見出しの文言そのものではない。翻訳者は英語を一語ずつ写さず、自然な見出しを書ける。各言語版の展示に同じ数の展示室の扉があるかを見るだけで、扉の札まで同じ言葉に強制しないような検査である。",
+                "ko": "영문 README에 절이 하나 늘어나면 이제 간체 중국어·일본어·한국어판도 따라왔는지 검사한다. `check_doc_parity.py`는 예전에는 영문과 번체 중국어만 비교했고, 나머지 세 번역은 `CLAUDE.md`의 수동 메모에만 기대고 있었다. 이제 각 번역본을 영문과 따로 비교하며, 어긋나면 오류 메시지가 해당 파일을 짚어 준다. 이 검사는 `##` 제목의 개수만 세고 제목 문구를 맞추지는 않는다. 번역자는 영어를 한 단어씩 베끼지 않고 자연스러운 제목을 쓸 수 있다. 언어별 전시에 전시실 문이 같은 수만큼 있는지 확인하되, 문패 문구까지 똑같이 강요하지 않는 검사와 같다."
+              },
+              "original": "**The documentation parity check covers Simplified Chinese, Japanese and Korean.** `check_doc_parity.py` only compared English against Traditional Chinese, leaving the other three README translations unwatched; `CLAUDE.md` had to carry a note to sync them by hand. Each translation is now compared on its own and the failure message names the file that drifted. The comparison is still a count of `##` headings rather than their text — matching text would force translators to mirror English headings word for word, which is what makes translated docs read badly."
+            },
+            {
+              "title": {
+                "zh-TW": "本機安裝有了腳本，選單列不再默默跑舊版",
+                "zh-CN": "本地安装有了脚本，菜单栏不再默默跑旧版",
+                "en": "A local-install script keeps the menu bar from quietly running an old build",
+                "ja": "ローカルインストールをスクリプト化し、メニューバーが古い版のまま動くのを防ぐ",
+                "ko": "로컬 설치 스크립트로 메뉴 막대가 옛 빌드를 실행하는 일을 막는다"
+              },
+              "body": {
+                "zh-TW": "你剛做完本機 build（編譯完成、可執行的程式版本），標上 release tag 並不會自動換掉 `/Applications` 裡正在跑的 App。過去這一步只寫在檢查清單，曾讓選單列連續六個版本仍開著舊 build。現在要在本機安裝時，直接執行 `scripts/install_local.sh`：它先確認 build 存在，印出新舊兩個版本，等待正在執行的 App 結束，再替換檔案，最後核對已安裝版本是否相同。這像買了新燈泡卻只把盒子放在門口；打上標籤不等於已裝進燈座。腳本把拆舊燈、裝新燈和開燈確認串起來，讓本機副本跟著更新。",
+                "zh-CN": "你刚做完本地 build（编译完成、可执行的程序版本），标上 release tag 并不会自动换掉 `/Applications` 里正在跑的 App。过去这一步只写在检查清单，曾让菜单栏连续六个版本仍开着旧 build。现在要在本地安装时，直接执行 `scripts/install_local.sh`：它先确认 build 存在，打印出新旧两个版本，等待正在运行的 App 结束，再替换文件，最后核对已安装版本是否相同。这像买了新灯泡却只把盒子放在门口；打上标签不等于已装进灯座。脚本把拆旧灯、装新灯和开灯确认串起来，让本地副本跟着更新。",
+                "en": "After you make a local build (a compiled, runnable version of the app), adding a release tag does not replace the copy already running from `/Applications`. That final step used to live only in a checklist, and the menu bar once kept running a build six versions old. For a local install, run `scripts/install_local.sh`. It confirms the build exists, prints both versions, waits for the running app to exit, swaps the files, and verifies that the installed version matches. Buying a new light bulb is not the same as putting it in the socket. The script links removing the old bulb, fitting the new one, and checking that the light turns on, so the local copy actually catches up.",
+                "ja": "ローカル build（コンパイル済みで実行できるアプリの版）を作って release tag を付けても、`/Applications` で動いているコピーは自動では置き換わらない。この最後の作業は以前チェックリストにしかなく、メニューバーが六版前の build を動かしていたことがある。ローカルへ入れるときは `scripts/install_local.sh` を実行する。このスクリプトは build の存在を確認し、新旧の版を表示し、実行中の App が終了するのを待ってから入れ替え、インストール済みの版が一致するか確かめる。新しい電球を買って玄関に箱を置くだけでは、灯具は新しくならない。古い電球を外し、新しいものを付け、点灯を確かめるまでを一続きにする作業である。",
+                "ko": "로컬 build(컴파일을 마쳐 실행할 수 있는 앱 버전)를 만들고 release tag를 붙여도 `/Applications`에서 실행 중인 복사본은 저절로 바뀌지 않는다. 이 마지막 작업은 예전에는 점검표에만 적혀 있었고, 메뉴 막대가 여섯 버전 전 build를 실행한 적도 있다. 로컬에 설치하려면 `scripts/install_local.sh`를 실행하면 된다. 이 스크립트는 build가 있는지 확인하고 새 버전과 옛 버전을 표시한 뒤, 실행 중인 App이 끝나기를 기다리고 파일을 바꾸며, 설치된 버전이 일치하는지 확인한다. 새 전구를 사서 상자만 현관에 놓는다고 등기구가 바뀌지는 않는다. 낡은 전구를 빼고 새 전구를 끼운 뒤 불이 켜지는지 확인하는 과정을 이어 주는 작업이다."
+              },
+              "original": "**`scripts/install_local.sh` replaces the hand-typed steps for installing a build locally.** Releasing does not touch `/Applications`: the tag drives CI, and the local copy keeps running whatever was already there. That last step lived only in a checklist, and the menu bar once ran a stale build for six versions before anyone noticed. The script checks the build exists, prints both versions, waits for the running app to exit, swaps it, and verifies the installed version matches."
+            }
+          ]
+        },
+        {
           "version": "0.29.14",
           "period": "2026-08-02",
           "items": [
@@ -1389,52 +1571,6 @@
                 "ko": "알림을 받거나 공용 파일 읽기 도구를 고치는 사람에게 이번 버전은 화면의 새 단추를 더하지는 않지만, 오류가 숨어들기 쉬운 곳을 정리한다. 앱과 시스템 알림 센터를 잇는 macOS 알림 연결 코드는 커다란 메뉴 막대 파일에서 별도 파일로 옮겼고, 업데이트 알림을 닫은 뒤의 대기 시간도 다른 업데이트 시점을 관리하는 곳으로 모았다. 알림 판단 로직은 macOS 전용 부품에 기대지 않아 그 실행 환경 없이도 시험할 수 있다. 한편 JSONL과 시간을 다루는 공용 도구에는 직접 단위 시험을 더했다. 빈 줄, 망가진 줄, 객체가 아닌 값의 처리를 고정했고, 호출하는 쪽이 오류 처리를 정하지 않았다면 잘못된 UTF-8은 계속 오류로 낸다. 공구함의 자와 드라이버를 하나씩 점검한 뒤 다른 수리를 시작하는 것과 같다."
               },
               "original": "**The macOS notification bridge moved out of `menubar.py` into `menubar_notify.py`.** The six module-level functions that talk to `UNUserNotificationCenter` had no reason to live in a 2230-line file. They were not folded into `usage_notifications.py`, which stays free of PyObjC so its decision logic remains testable without the ObjC runtime — these functions call `objc.registerMetaDataForSelector`. The update-dismissal cooldown joined `update_gate.py`, where the other update-timing constants already were. `menubar.py` is down to 2139 lines and its ceiling followed.\n**`jsonl_utils` and `time_utils` gained direct unit tests.** Both are shared by several loaders and had only incidental coverage through the modules above them. The JSONL reader's tolerance for blank lines, malformed rows and non-object values is now pinned, including the deliberate choice to raise on invalid UTF-8 when no `errors` argument is given — that decision belongs to the caller."
-            }
-          ]
-        },
-        {
-          "version": "0.29.13",
-          "period": "2026-08-02",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "移除 usage 不誤刪狀態列，讀壞掛鉤檔就停手",
-                "zh-CN": "移除 usage 不误删状态栏，读坏钩子文件就停手",
-                "en": "Removing usage preserves your status line, and unreadable hooks stop safely",
-                "ja": "usage を外しても状態表示を誤削除せず、壊れたフックファイルには手を出さない",
-                "ko": "usage를 지워도 상태 줄을 잘못 지우지 않고, 읽을 수 없는 훅 파일에는 손대지 않는다"
-              },
-              "body": {
-                "zh-TW": "你曾把自己設定的終端機狀態列（終端機最底下顯示目前狀況的地方）留著，卻在移除 usage 加上的 Codex 狀態列時擔心它一起消失嗎？現在移除動作會逐字核對，只有完全等於 `CODEX_STATUS_LINE` 的那一列才會動；備份檔壞掉或內容型別不對時，設定和備份都原封不動。另一道保護留給掛鉤（特定事件發生時被觸發的小程式）：`~/.codex/hooks.json` 不可讀時，usage 會中止，不再把它當空檔重寫，避免清掉你全部掛鉤，也不會留下半套安裝。像收走租來的衣架，先認準自己的標籤；看不清置物櫃裡的東西，就先不碰。",
-                "zh-CN": "你保留着自己设置的终端状态栏（终端最底下显示当前状况的地方），移除 usage 加上的 Codex 状态栏时，过去可能担心它也会一起消失。现在移除动作会逐字核对，只有完全等于 `CODEX_STATUS_LINE` 的那一行才会动；备份文件损坏或内容类型不对时，设置和备份都会原封不动。另一道保护留给钩子（特定事件发生时被触发的小程序）：`~/.codex/hooks.json` 无法读取时，usage 会中止，不再把它当空文件重写，避免清掉全部钩子，也不会留下半套安装。像收走租来的衣架，先认准自己的标签；看不清储物柜里的东西，就先不碰。",
-                "en": "If you kept your own terminal status line, removing the Codex line added by usage used to risk taking yours with it. Removal now compares the text exactly and touches only a line equal to `CODEX_STATUS_LINE`; if its backup is corrupt or has the wrong type, both the configuration and backup stay untouched. A second safeguard covers hooks (small programs triggered by particular events): when `~/.codex/hooks.json` cannot be read, usage stops instead of treating it as empty and writing it back. That protects every hook and avoids leaving a half-installed state. It is like collecting rented coat hangers only after checking their labels; if you cannot see inside a locker, you leave it alone.",
-                "ja": "自分で設定した端末の状態表示を残しているなら、usage が加えた Codex の状態表示を外す際に、それまで一緒に消えるおそれがあった。今は文字列を完全一致で照合し、`CODEX_STATUS_LINE` と一致する行だけを操作する。バックアップが壊れているか型が違う場合も、設定とバックアップはそのまま残る。もう一つの保護対象はフック（特定の出来事で動く小さなプログラム）である。`~/.codex/hooks.json` を読めないとき、usage は空のファイルと見なして書き戻さず中止するため、全フックを消したり中途半端な導入状態を残したりしない。借りたハンガーを回収するときは自分の札を確かめ、ロッカーの中が見えなければ触らないようなものである。",
-                "ko": "직접 설정한 터미널 상태 줄을 남겨 두었다면, usage가 추가한 Codex 상태 줄을 지울 때 그것까지 함께 사라질 위험이 있었다. 이제 제거 작업은 글자를 정확히 대조해 `CODEX_STATUS_LINE`과 완전히 같은 줄만 건드린다. 백업 파일이 깨졌거나 내용 형식이 맞지 않아도 설정과 백업은 그대로 둔다. 또 다른 보호 장치는 훅(특정 일이 일어날 때 실행되는 작은 프로그램)이다. `~/.codex/hooks.json`을 읽을 수 없으면 usage는 이를 빈 파일로 보고 다시 쓰지 않고 중단하므로, 훅 전체를 지우거나 반쯤 설치된 상태를 남기지 않는다. 빌린 옷걸이를 거둘 때 자기 이름표를 먼저 확인하고, 사물함 안이 보이지 않으면 손대지 않는 것과 같다."
-              },
-              "original": "**Removing the Codex status line no longer deletes one that `usage` never installed.** `_unsetup_codex()` only checked whether a `tui.status_line` existed at all, not whether it was ours. Anyone who had configured their own status line and then ran the removal lost it. Worse, a corrupt backup file made the restore path overwrite the config with an empty list and then delete the only backup, losing both at once. Removal now acts only when the status line matches `CODEX_STATUS_LINE` exactly, and an unreadable or wrong-typed backup leaves both the config and the backup untouched.\n**A corrupt `~/.codex/hooks.json` is no longer treated as an empty one.** `_load_codex_hooks()` returned `{}` for \"file missing\" and \"file exists but won't parse\" alike; terse mode then rebuilt from that empty dict and wrote it back, permanently erasing every Codex hook the user had, with no backup and no message. Codex writing that file while `usage` reads it is enough to trigger this. The unreadable case now aborts before anything is copied or written, so a failed run can no longer leave a half-installed state either."
-            }
-          ]
-        },
-        {
-          "version": "0.29.12",
-          "period": "2026-08-02",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "工程人才多 25 位，啟動角色少一步",
-                "zh-CN": "工程人才多 25 位，启动角色少一步",
-                "en": "25 more engineering roles, with fewer steps to launch one",
-                "ja": "エンジニア職が25増え、役割の起動は一手少なくなった",
-                "ko": "엔지니어 역할 25개가 늘고, 실행 단계는 하나 줄었다"
-              },
-              "body": {
-                "zh-TW": "網站缺前端、後台缺 API（讓軟體互相傳資料的介面）專長時，AI Talent Market 新增七組、共 25 個工程角色。角色涵蓋前端、後端、雲端維運、品質、AI、程式維護與應用程式開發；React、Next.js、SQL、Python、Docker、DevOps、Swift、Electron、重構、相依套件與提示詞工程也各有專家。既有的行銷包加入 SEO 角色，電商包加入付款整合角色；每位都有繁中、簡中、英文、日文、韓文人設。挑好角色後，卡片直接顯示「Launch」：未安裝才會先把一個 `.md` 檔寫進 `~/.claude/agents/`，接著啟動；安裝失敗便停下並報錯，不會開空終端機。手動改過的角色仍可按「Restore」還原。像人才仲介先把專長排好，帶你選到人便直接牽線。",
-                "zh-CN": "网站缺前端、后台缺 API（让软件互相传递数据的接口）专长时，AI Talent Market 新增七组、共 25 个工程角色。角色涵盖前端、后端、云端运维、质量、AI、代码维护与应用开发；React、Next.js、SQL、Python、Docker、DevOps、Swift、Electron、重构、依赖包与提示词工程也各有专家。既有营销包加入 SEO 角色，电商包加入支付整合角色；每位都有繁中、简中、英文、日文、韩文人设。挑好角色后，卡片直接显示「Launch」：未安装才会先把一个 `.md` 文件写进 `~/.claude/agents/`，接着启动；安装失败便停下并报错，不会打开空终端。手动改过的角色仍可按「Restore」还原。像人才中介先把专长排好，带你选到人便直接牵线。",
-                "en": "Need someone to build a page, design an API, or untangle a dependency? The AI Talent Market adds 25 engineering roles across seven new packs. They cover frontend, backend, cloud operations, quality, AI, code maintenance, and app development, with specialists in React, Next.js, SQL, Python, Docker, DevOps, Swift, Electron, refactoring, dependencies, and prompt engineering. Marketing also gains SEO, while ecommerce gains payment integration; every role comes with zh-TW, zh-CN, English, Japanese, and Korean personas. After choosing one, its card now says \"Launch\". If needed, it first writes one `.md` file to `~/.claude/agents/`, then starts; a failed install stops and reports its error instead of opening an empty terminal. Hand-edited roles still keep their \"Restore\" button. Think of a recruiter who sorts the specialties first, then introduces you straight to the right person.",
-                "ja": "Web ページのフロントエンドを任せたい、API（ソフトウェア同士が情報を渡す接点）を設計したい。そんなときに AI Talent Market へ七つの新パック、計25のエンジニア職が加わった。フロントエンド、バックエンド、クラウド運用、品質、AI、コード保守、アプリ開発を扱い、React、Next.js、SQL、Python、Docker、DevOps、Swift、Electron、リファクタリング、依存関係、プロンプト設計にも専門家がいる。既存のマーケティングパックには SEO、EC パックには決済統合の役割も加わり、各役割は繁体字中国語、簡体字中国語、英語、日本語、韓国語の人格を備える。役割を選ぶとカードはすぐ「Launch」と表示する。未導入なら `.md` ファイルを `~/.claude/agents/` に一つ書き込んでから起動し、導入に失敗した場合は空の端末を開かず、そこでエラーを知らせる。手で編集した役割の「Restore」は従来どおり使える。専門分野を並べた人材紹介所が、選んだ相手へそのまま取り次ぐようなものだ。",
-                "ko": "웹 페이지의 프런트엔드를 맡기거나 API(소프트웨어끼리 정보를 주고받는 접점)를 설계할 사람이 필요할 때, AI Talent Market에 새 패키지 일곱 개와 엔지니어 역할 25개가 추가됐다. 프런트엔드, 백엔드, 클라우드 운영, 품질, AI, 코드 유지 보수, 앱 개발을 다루며 React, Next.js, SQL, Python, Docker, DevOps, Swift, Electron, 리팩터링, 의존성, 프롬프트 엔지니어링 전문가도 포함한다. 기존 마케팅 패키지에는 SEO 역할이, 전자상거래 패키지에는 결제 통합 역할이 더해졌고, 모든 역할은 zh-TW, zh-CN, 영어, 일본어, 한국어 페르소나를 갖춘다. 역할을 고르면 카드에는 곧바로 \"Launch\"가 보인다. 아직 설치되지 않았다면 `.md` 파일 하나를 `~/.claude/agents/`에 쓴 뒤 시작하며, 설치가 실패하면 빈 터미널을 열지 않고 그 자리에서 오류를 알린다. 손으로 고친 역할의 \"Restore\" 버튼은 그대로다. 전문 분야를 정리한 인재 소개소가 고른 사람에게 바로 연결해 주는 셈이다."
-              },
-              "original": "**The AI Talent Market gained 25 engineering roles across seven new packs.** Frontend, backend, cloud ops, quality, AI, code maintenance and app development — React and Next.js specialists, API designers, SQL and Python pros, cloud architects, Docker and DevOps engineers, Swift and Electron experts, refactoring and dependency specialists, prompt engineers, and more. Every role ships the full zh-TW/zh-CN/en/ja/ko persona set. Two existing packs also absorbed a role each: SEO into marketing, payment integration into ecommerce.\n**Hiring a role is now one click instead of two.** A role card used to show \"Install\", and only after that did it turn into \"Launch\" — but installing is an implementation detail (writing one `.md` file into `~/.claude/agents/`) that no one needed to see. Every card now shows \"Launch\" directly; if the role isn't installed yet, it gets installed first and then starts. A failed install stops there and reports the error rather than opening an empty terminal. The \"Restore\" button for hand-edited roles is unchanged."
             }
           ]
         }
