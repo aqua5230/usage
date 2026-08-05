@@ -50,20 +50,17 @@ from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 from Quartz import CGColorCreateGenericRGB
 
 import agy_loader
-import agy_window_keeper
 import codex_loader
 import critter_frames
 import login_item
-import menubar_agy
 import menubar_notify
+import menubar_refresh
 import menubar_state
 import panel_window_state
 import panels
-import talent_market_bridge
 import update_checker
 import update_gate
 import usage_diagnosis_snapshot
-import window_keeper
 from burn_rate import BurnRateTracker
 from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from history_loader import (
@@ -155,7 +152,6 @@ from panels.base import (
 from panels.dynamic_height import clamp_content_height
 from prefs import _load_preferences, _save_preferences
 from pricing import warm_up_pricing
-from service_status import CLAUDE_STATUS, CODEX_STATUS, get_service_status
 from statusline_settings import (
     _claude_settings_path as _claude_settings_path,
 )
@@ -183,7 +179,7 @@ from statusline_settings import (
 from statusline_settings import (
     _toggle_statusline_settings as _toggle_statusline_settings,
 )
-from usage_client import ClaudeUsageClient, PollOutcome, PollState
+from usage_client import ClaudeUsageClient, PollOutcome
 from usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
 from usage_rate import UsageRateTracker
@@ -1331,193 +1327,16 @@ class AppDelegate(NSObject):
 
     def _refresh_in_background(self) -> None:
         submitted = False
-        debug_timing = os.environ.get("USAGE_DEBUG") == "1"
-        animation_groups = (
-            int(getattr(self, "critter_group", 0)),
-            int(getattr(self, "dragon_group", 0)),
-            int(getattr(self, "lion_group", 0)),
-        )
-
-        def measure(stage: str, started_at: float) -> None:
-            if debug_timing:
-                elapsed_ms = (time.monotonic() - started_at) * 1000
-                logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", stage, elapsed_ms)
-
         try:
-            started_at = time.monotonic() if debug_timing else 0.0
-            codex_result = self._load_codex_refresh_result()
-            history_scan = codex_result.get("_history_scan")
-            measure("codex_load", started_at)
-            started_at = time.monotonic() if debug_timing else 0.0
-            agy_result = menubar_agy.load_refresh_result(self.language)
-            measure("agy_load", started_at)
-            agy_projection = agy_result.projection or menubar_agy.fallback_projection(
-                self.language
-            )
-            started_at = time.monotonic() if debug_timing else 0.0
+            sources = menubar_refresh.load_sources(self)
+            started_at = time.monotonic() if sources.debug_timing else 0.0
             self.performSelectorOnMainThread_withObject_waitUntilDone_(
                 "_applyCodexRefreshResult:",
-                codex_result,
+                sources.codex_result,
                 True,
             )
-            measure("main_apply_codex", started_at)
-            fallback_state = getattr(self, "latest_state", _empty_state(self.language))
-            project_rows = list(fallback_state.projects)
-            project_rows_7d = list(fallback_state.projects_7d)
-            project_rows_30d = list(fallback_state.projects_30d)
-            project_rows_all = list(fallback_state.projects_all)
-            today_text = fallback_state.today_text
-            statusline = fallback_state.statusline
-            hide_claude = fallback_state.hide_claude
-            hide_codex = fallback_state.hide_codex
-            hide_agy = agy_result.hide_agy or _hide_agy_enabled()
-            card_order = _quota_card_order()
-            try:
-                started_at = time.monotonic() if debug_timing else 0.0
-                if isinstance(history_scan, menubar_state.HistorySourceScan):
-                    all_entries = self._load_history_entries(scan=history_scan)
-                else:
-                    all_entries = self._load_history_entries()
-                measure("history_load", started_at)
-                started_at = time.monotonic() if debug_timing else 0.0
-                if self.mock:
-                    project_rows = self._project_rows(hours_back=24, entries=all_entries)
-                    project_rows_7d = self._project_rows(hours_back=168, entries=all_entries)
-                    project_rows_30d = self._project_rows(hours_back=720, entries=all_entries)
-                    project_rows_all = self._project_rows(hours_back=0, entries=all_entries)
-                else:
-                    (
-                        project_rows,
-                        project_rows_7d,
-                        project_rows_30d,
-                        project_rows_all,
-                    ) = menubar_state.project_rows_for_windows(all_entries)
-                measure("project_rows_windows", started_at)
-                today_text = _today_title(self.mock, self.language, entries=all_entries)
-                statusline = _statusline_payload(self.language)
-                hide_claude = _hide_claude_enabled()
-                hide_codex = _hide_codex_enabled()
-                hide_agy = agy_result.hide_agy or _hide_agy_enabled()
-            except Exception:
-                if os.environ.get("USAGE_DEBUG") == "1":
-                    logger.warning("local usage refresh failed", exc_info=True)
-            try:
-                started_at = time.monotonic() if debug_timing else 0.0
-                outcome = asyncio.run(self._fetch())
-                measure("fetch", started_at)
-                codex_rows = codex_result["codex_rows"]
-                codex_5h_pct = codex_result["codex_5h_pct"]
-                codex_model = codex_result.get("codex_model", "unknown")
-                codex_stale = codex_result.get("codex_stale")
-                codex_credits = codex_result.get("codex_credits")
-                show_install_button = (
-                    not hide_claude
-                    and outcome.state == PollState.TOKEN_ERROR
-                    and self._statusline_setup_available()
-                )
-                service_statuses = (
-                    get_service_status(CLAUDE_STATUS),
-                    get_service_status(CODEX_STATUS),
-                )
-                group = int(self.tracker.group())
-                try:
-                    codex_group = int(self.codex_tracker.group())
-                except Exception:
-                    codex_group = 0
-                    if os.environ.get("USAGE_DEBUG") == "1":
-                        logger.warning("Codex animation group load failed", exc_info=True)
-                try:
-                    agy_group = int(self.agy_tracker.group())
-                except Exception:
-                    agy_group = 0
-                    if os.environ.get("USAGE_DEBUG") == "1":
-                        logger.warning("Antigravity animation group load failed", exc_info=True)
-                animation_groups = (
-                    group,
-                    codex_group,
-                    agy_group,
-                )
-                state = menubar_state.build_popover_state(
-                    outcome=outcome,
-                    codex_rows=codex_rows,
-                    agy_rows=(agy_projection.session, agy_projection.weekly),
-                    agy_group_name=agy_projection.group_name,
-                    projects=project_rows,
-                    projects_7d=project_rows_7d,
-                    projects_30d=project_rows_30d,
-                    projects_all=project_rows_all,
-                    language=self.language,
-                    group=group,
-                    burn_rate_trackers=self.burn_rate_trackers,
-                    today_text=today_text,
-                    statusline=statusline,
-                    show_install_button=show_install_button,
-                    hide_claude=hide_claude,
-                    hide_codex=hide_codex,
-                    hide_agy=hide_agy,
-                    codex_stale=codex_stale,
-                    codex_credits=codex_credits,
-                    agy_stale=agy_projection.stale,
-                    card_order=card_order,
-                    history_error=menubar_state.history_load_error_state(
-                        self._history_load_error_key, self.language
-                    ),
-                    service_statuses=service_statuses,
-                )
-                if outcome.snapshot is not None:
-                    window_keeper.maybe_ping(
-                        outcome.snapshot.current_reset_at,
-                        outcome.snapshot.current_percent,
-                        outcome.snapshot.data_source,
-                        self.mock,
-                    )
-                agy_window_keeper.maybe_ping(agy_result, self.mock)
-            except Exception as exc:
-                if os.environ.get("USAGE_DEBUG") == "1":
-                    logger.warning("refresh failed", exc_info=True)
-                codex_rows = codex_result["codex_rows"]
-                codex_5h_pct = codex_result["codex_5h_pct"]
-                codex_model = codex_result.get("codex_model", "unknown")
-                state = _error_state(type(exc).__name__, self.mock, self.language)
-                state.codex_session = codex_rows[0]
-                state.codex_weekly = codex_rows[1]
-                state.codex_stale = codex_result.get("codex_stale")
-                state.agy_session = agy_projection.session
-                state.agy_weekly = agy_projection.weekly
-                state.agy_group_name = agy_projection.group_name
-                state.agy_stale = agy_projection.stale
-                state.history_error = menubar_state.history_load_error_state(
-                    self._history_load_error_key, self.language
-                )
-                state.projects = project_rows
-                state.projects_7d = project_rows_7d
-                state.projects_30d = project_rows_30d
-                state.projects_all = project_rows_all
-                state.today_text = today_text
-                state.statusline = statusline
-                state.hide_claude = hide_claude
-                state.hide_codex = hide_codex
-                state.hide_agy = hide_agy
-                state.card_order = card_order
-
-            # Talent-market data is panel-local (no quota numbers). Fetch it
-            # only when that panel is active so classic/matrix users never pay
-            # the subprocess cost. list_state already swallows CLI errors and
-            # returns {ok:False,...}, so the panel shows its empty state.
-            active_panel = getattr(self, "active_panel", None)
-            if active_panel is not None and active_panel.id == "talent_market":
-                try:
-                    state.talent = talent_market_bridge.list_state(self.language)
-                except Exception:
-                    if os.environ.get("USAGE_DEBUG") == "1":
-                        logger.warning("talent market state load failed", exc_info=True)
-
-            result = {
-                "state": state,
-                "codex_5h_pct": codex_5h_pct,
-                "codex_model": codex_model,
-                "animation_groups": animation_groups,
-            }
+            sources.measure("main_apply_codex", started_at)
+            result = menubar_refresh.build_result(self, sources)
             self.performSelectorOnMainThread_withObject_waitUntilDone_(
                 "_applyRefreshResult:",
                 result,

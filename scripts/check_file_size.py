@@ -14,7 +14,7 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parent.parent
 
 CEILINGS = {
-    "menubar.py": 2120,
+    "menubar.py": 1934,
 }
 
 
