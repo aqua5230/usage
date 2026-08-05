@@ -157,8 +157,8 @@ def test_calculate_cost_accepts_analyzer_usage_entry(monkeypatch: pytest.MonkeyP
         "get_pricing",
         lambda: {
             "claude-opus-4-7": {
-                "input_cost_per_token": 15e-6,
-                "output_cost_per_token": 75e-6,
+                "input_cost_per_token": 5e-6,
+                "output_cost_per_token": 25e-6,
             }
         },
     )
@@ -177,7 +177,7 @@ def test_calculate_cost_accepts_analyzer_usage_entry(monkeypatch: pytest.MonkeyP
         agent_id="claude-code",
     )
 
-    assert pricing.calculate_cost(entry) == 90.0
+    assert pricing.calculate_cost(entry) == 30.0
     assert entry.cost_usd is None
 
 
@@ -278,20 +278,21 @@ def test_fallback_pricing_contains_expected_models() -> None:
     fallback = pricing._fallback_pricing()
 
     assert "claude-opus-4-7" in fallback
+    assert "claude-opus-5" in fallback
     assert "claude-sonnet-4-6" in fallback
     assert "claude-sonnet-5" in fallback
     assert "claude-haiku-4-5-20251001" in fallback
     assert fallback["claude-opus-4-6"] == {
-        "input_cost_per_token": 15e-6,
-        "output_cost_per_token": 75e-6,
-        "cache_creation_input_token_cost": 18.75e-6,
-        "cache_read_input_token_cost": 1.5e-6,
+        "input_cost_per_token": 5e-6,
+        "output_cost_per_token": 25e-6,
+        "cache_creation_input_token_cost": 6.25e-6,
+        "cache_read_input_token_cost": 0.5e-6,
     }
     assert fallback["claude-opus-4-7"] == {
-        "input_cost_per_token": 15e-6,
-        "output_cost_per_token": 75e-6,
-        "cache_creation_input_token_cost": 18.75e-6,
-        "cache_read_input_token_cost": 1.5e-6,
+        "input_cost_per_token": 5e-6,
+        "output_cost_per_token": 25e-6,
+        "cache_creation_input_token_cost": 6.25e-6,
+        "cache_read_input_token_cost": 0.5e-6,
     }
     assert fallback["claude-sonnet-5"] == {
         "input_cost_per_token": 2e-6,

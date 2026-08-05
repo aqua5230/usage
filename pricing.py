@@ -357,18 +357,24 @@ def _normalize_model_name(model: str) -> str:
 def _fallback_pricing() -> PricingTable:
     return {
         "claude-opus-4-6": {
-            "input_cost_per_token": 15e-6,
-            "output_cost_per_token": 75e-6,
-            "cache_creation_input_token_cost": 18.75e-6,
-            "cache_read_input_token_cost": 1.5e-6,
+            "input_cost_per_token": 5e-6,
+            "output_cost_per_token": 25e-6,
+            "cache_creation_input_token_cost": 6.25e-6,
+            "cache_read_input_token_cost": 0.5e-6,
         },
         "claude-opus-4-7": {
-            "input_cost_per_token": 15e-6,
-            "output_cost_per_token": 75e-6,
-            "cache_creation_input_token_cost": 18.75e-6,
-            "cache_read_input_token_cost": 1.5e-6,
+            "input_cost_per_token": 5e-6,
+            "output_cost_per_token": 25e-6,
+            "cache_creation_input_token_cost": 6.25e-6,
+            "cache_read_input_token_cost": 0.5e-6,
         },
         "claude-opus-4-8": {
+            "input_cost_per_token": 5e-6,
+            "output_cost_per_token": 25e-6,
+            "cache_creation_input_token_cost": 6.25e-6,
+            "cache_read_input_token_cost": 0.5e-6,
+        },
+        "claude-opus-5": {
             "input_cost_per_token": 5e-6,
             "output_cost_per_token": 25e-6,
             "cache_creation_input_token_cost": 6.25e-6,
@@ -393,10 +399,10 @@ def _fallback_pricing() -> PricingTable:
             "cache_read_input_token_cost": 1e-6,
         },
         "claude-haiku-4-5-20251001": {
-            "input_cost_per_token": 0.8e-6,
-            "output_cost_per_token": 4e-6,
-            "cache_creation_input_token_cost": 1e-6,
-            "cache_read_input_token_cost": 0.08e-6,
+            "input_cost_per_token": 1e-6,
+            "output_cost_per_token": 5e-6,
+            "cache_creation_input_token_cost": 1.25e-6,
+            "cache_read_input_token_cost": 0.1e-6,
         },
     }
 
