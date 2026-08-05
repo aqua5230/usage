@@ -4,6 +4,12 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.29.18] - 2026-08-06
+
+### 修正
+- **面板視窗會在兩個高度之間來回跳。** 打開的瞬間先跳一次，之後還會不時再跳。面板高度有兩個來源：`popover_dimensions()` 在 Python 端從註冊的基準值加減各卡片的增減量算出估算值，而網頁在版面排好之後會量出自己真正的高度回報回來。實測值本該勝出——它會存進 `NSUserDefaults`，下一輪由 `resolve_panel_size()` 讀回來採用。它從來沒有勝出過。`NSUserDefaults.objectForKey_()` 交給 PyObjC 的是 Objective-C 的 `__NSDictionaryI`，對它做 `isinstance(value, dict)` 的結果是 `False`，於是那道守門每一次都把存好的 `{classic: 974}` 判為無效、退回 1004 這個估算值。寫入端用的是同一道守門，因此每存一個面板的高度，就會把其他面板已存的高度整份丟掉。這個錯之所以難看見，在於存得進去而讀不出來：`defaults read com.lollapalooza.usage` 從頭到尾都顯示 974 好端端躺在磁碟上，從外面看資料是健康的。兩個值相差的 30 點恰好等於 `status_wrap_extra_height`，那是個該忽略的巧合——造成來回跳的不是估算值算得不準，而是實測值被拒收。兩道守門現在都改收 `collections.abc.Mapping`。估算值仍然在用，但只用在永遠不可能回報實測值的面板上——`ErrorPanelView` 沒有 JavaScript 橋，等下去只會讓它永遠停在錯的尺寸。回歸測試用 `MappingProxyType` 當替身，它跟 `NSDictionary` 一樣是 `Mapping` 卻不是 `dict`；用普通 `dict` 做的測試替身，無論這個錯在不在都會通過。
+- **日文與韓文語系各有六十三個標籤是空白的。** 上一版標記出來，這版修掉。兩個語系的 489 個鍵一個不缺，所以 `test_every_language_has_the_same_keys` 比對鍵集合、發現完全一致、順利通過——而 `loading`、`no_data`、`session_title`、`col_time`、`model_breakdown` 對任何以這兩種語言執行的使用者來說，畫面上就是一片空白。鍵在、值是空的，這種情況先天就在鍵一致性檢查的視線之外，而那正是上一版那五十二個簡體字能在正體中文語系裡待到被抓出來的同一個死角。現在兩條斷言把它補上：翻譯值不得為空白，且每個值的 `{佔位符}` 集合必須與英文完全相同。第二條防的是第一條看不見的失敗——譯文漏掉或改名一個佔位符，在檔案裡看起來毫無異狀，卻會在使用者面前於 `format` 時炸開。Rich markup（`[dim]`）、格式規格（`{m:02d}`）與指令名稱一律保留英文原樣。
+
 ## [0.29.17] - 2026-08-06
 
 ### 修正
