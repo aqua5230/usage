@@ -452,6 +452,7 @@ class HTMLPanel:
         self.status_wrap_extra_height = status_wrap_extra_height
         self.service_alert_height = service_alert_height
         self.dynamic_height = dynamic_height
+        self._content_height_reports_available = False
 
     def build_view(self, delegate: Any) -> NSView:
         try:
@@ -475,8 +476,10 @@ class HTMLPanel:
             web_view._html = html
             web_view.loadHTMLString_baseURL_(html, None)
             web_view.performSelector_withObject_afterDelay_("renderTimeoutElapsed:", None, 4.0)
+            self._content_height_reports_available = self.dynamic_height
             return web_view
         except Exception as exc:
+            self._content_height_reports_available = False
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("panel build failed", exc_info=True)
             return self._error_view(delegate, exc)

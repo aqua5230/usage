@@ -4,7 +4,7 @@
 from __future__ import annotations
 
 import sys
-from types import SimpleNamespace
+from types import MappingProxyType, SimpleNamespace
 from typing import cast
 
 import pytest
@@ -157,6 +157,40 @@ def test_resolve_panel_size_uses_saved_height_or_estimate(
 
     assert resolve_panel_size(state, panel, defaults) == (320.0, 456.0)
     assert resolve_panel_size(state, panel, ContentHeightDefaults({})) == (320.0, 500.0)
+
+
+def test_resolve_panel_size_reads_objc_mapping_measurement() -> None:
+    import menubar_state
+
+    state = menubar_state._empty_state()
+    state.hide_agy = False
+    panel = SimpleNamespace(
+        id="classic",
+        preferred_size=lambda: (364.0, 1004.0),
+        claude_card_height=192.0,
+        codex_card_height=192.0,
+        codex_row_height=0.0,
+        agy_card_height=192.0,
+        status_wrap_extra_height=30.0,
+        service_alert_height=32.0,
+    )
+    defaults = ContentHeightDefaults(MappingProxyType({"classic": 974.0}))
+
+    assert menubar_state.popover_dimensions(state, panel) == (364.0, 1004.0)
+    assert resolve_panel_size(state, panel, defaults) == (364.0, 974.0)
+
+
+def test_resolve_panel_size_estimates_without_content_height_reports(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import menubar_state
+
+    state = object()
+    panel = SimpleNamespace(id="classic", _content_height_reports_available=False)
+    defaults = ContentHeightDefaults(MappingProxyType({"classic": 974.0}))
+    monkeypatch.setattr(menubar_state, "popover_dimensions", lambda state, panel: (364.0, 1004.0))
+
+    assert resolve_panel_size(state, panel, defaults) == (364.0, 1004.0)
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="menubar imports PyObjC")

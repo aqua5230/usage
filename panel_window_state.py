@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import math
 import sys
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 if sys.platform == "darwin":
@@ -116,7 +116,7 @@ def save_panel_content_height(
         assert NSUserDefaults is not None
         store = NSUserDefaults.standardUserDefaults()
     value = store.objectForKey_(PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY)
-    heights = dict(value) if isinstance(value, dict) else {}
+    heights = dict(value) if isinstance(value, Mapping) else {}
     heights[panel_id] = float(height)
     store.setObject_forKey_(heights, PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY)
 
@@ -130,7 +130,7 @@ def load_panel_content_height(
         assert NSUserDefaults is not None
         store = NSUserDefaults.standardUserDefaults()
     heights = store.objectForKey_(PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY)
-    if not isinstance(heights, dict):
+    if not isinstance(heights, Mapping):
         return None
     value = heights.get(panel_id)
     if (
@@ -151,6 +151,9 @@ def resolve_panel_size(
     import menubar_state
 
     width, height = menubar_state.popover_dimensions(state, panel)
-    if panel is not None and (saved_height := load_panel_content_height(panel.id, defaults)):
+    measurement_available = getattr(panel, "_content_height_reports_available", True)
+    if measurement_available and panel is not None and (
+        saved_height := load_panel_content_height(panel.id, defaults)
+    ):
         height = saved_height
     return (width, height)
