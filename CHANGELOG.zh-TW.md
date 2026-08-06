@@ -4,7 +4,7 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## [Unreleased]
+## [0.29.19] - 2026-08-06
 
 ### 修正
 - **app 叫 Homebrew 安裝的使用者去執行一個不可能成功的指令。** 磁碟上還沒有狀態檔時，彈窗底部寫的是「請執行 `python3 main.py --setup` 並打開一次 Claude Code」——那是寫給 clone 原始碼的人看的。用 cask 裝的人沒有原始碼目錄，於是最自然的下一步就是翻進 app 套件裡找，而 `main.py` 確實在裡面：py2app 會把它複製到 `Contents/Resources/`。用系統的 `python3` 執行那一份，會炸在 `ImportError: cannot import name 'packaged_resource_path' from 'i18n'`，而這行錯誤指的方向完全是另一回事。`main.py` 要 import 的模組被編進 `lib/python313.zip`，只有 app 內建的直譯器才會把它放進 `sys.path`；真正的 `i18n.py` 構不到，於是使用者 site-packages 裡另一個剛好也叫 `i18n` 的 PyPI 套件接下了這個 import。兩句底部訊息現在都改為指名「設定狀態列」按鈕——它做的是同一件事、只要點一下，而且不管用哪種方式安裝都有。打包版的 `main.py` 另外加了一道守門：在沒有 py2app 的 `RESOURCEPATH` 時直接帶著說明結束，讓這條死路自己講清楚它是死路，而不是丟出例外。（#92，@kyang-06 回報）
