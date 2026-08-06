@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from datetime import time as datetime_time
 from pathlib import Path
-from typing import TYPE_CHECKING, TypedDict
+from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
 
 import codex_loader
 from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
@@ -383,6 +383,109 @@ def history_source_scan() -> HistorySourceScan:
 
 def history_sources_fingerprint() -> tuple[tuple[str, int, float], ...]:
     return history_source_scan().fingerprint
+
+
+class _HistoryApp(Protocol):
+    mock: bool
+    _history_source_tracker: Any
+    _history_entries_cache: list[UsageEntry] | None
+    _history_entries_cache_fingerprint: tuple[tuple[str, int, float], ...] | None
+    _history_load_error_key: str | None
+
+    def _history_source_scan(self) -> HistorySourceScan: ...
+
+
+def app_history_sources_fingerprint(app: _HistoryApp) -> tuple[tuple[str, int, float], ...]:
+    return app._history_source_scan().fingerprint
+
+
+def app_history_source_scan(app: _HistoryApp) -> HistorySourceScan:
+    return cast(HistorySourceScan, app._history_source_tracker.scan())
+
+
+def app_load_history_entries(
+    app: _HistoryApp,
+    *,
+    scan: HistorySourceScan | None = None,
+) -> list[UsageEntry]:
+    if app.mock:
+        return []
+    if scan is None:
+        scan = app._history_source_scan()
+    fingerprint = scan.fingerprint
+    if (
+        app._history_entries_cache is not None
+        and app._history_entries_cache_fingerprint == fingerprint
+    ):
+        return list(app._history_entries_cache)
+
+    entries: list[UsageEntry] = []
+    error_key: str | None = None
+    try:
+        entries.extend(load_entries(hours_back=0, jsonl_paths=scan.claude_paths))
+    except Exception as exc:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("Claude project usage load failed", exc_info=True)
+        error_key = _classify_history_load_error(exc)
+    try:
+        entries.extend(codex_loader.load_entries(hours_back=0, jsonl_paths=scan.codex_paths))
+    except Exception as exc:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("Codex project usage load failed", exc_info=True)
+        error_key = _classify_history_load_error(exc)
+    app._history_load_error_key = error_key
+    app._history_entries_cache = list(entries)
+    app._history_entries_cache_fingerprint = fingerprint
+    return entries
+
+
+def app_project_rows(
+    app: _HistoryApp,
+    hours_back: int = 24,
+    entries: list[UsageEntry] | None = None,
+) -> list[tuple[str, int, float | None]]:
+    if app.mock:
+        if hours_back <= 0:
+            return [
+                ("usage", 624_000_000, 361.00),
+                ("FinMind", 172_800_000, 100.24),
+                ("AI客服", 44_000_000, 26.40),
+            ]
+        if hours_back <= 24:
+            return [
+                ("usage", 11_200_000, 6.47),
+                ("FinMind", 3_100_000, 1.82),
+                ("AI客服", 800_000, 0.48),
+            ]
+        if hours_back <= 168:
+            return [
+                ("usage", 78_400_000, 45.20),
+                ("FinMind", 21_700_000, 12.74),
+                ("AI客服", 5_600_000, 3.36),
+            ]
+        return [
+            ("usage", 312_000_000, 180.50),
+            ("FinMind", 86_400_000, 50.12),
+            ("AI客服", 22_000_000, 13.20),
+        ]
+
+    if entries is None:
+        try:
+            resolved = load_entries(hours_back=hours_back)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("project usage load failed", exc_info=True)
+            return []
+    else:
+        if hours_back == 24:
+            today = datetime.now().astimezone().date()
+            resolved = [e for e in entries if e.timestamp.astimezone().date() == today]
+        elif hours_back > 0:
+            cutoff = datetime.now(tz=UTC) - timedelta(hours=hours_back)
+            resolved = [e for e in entries if e.timestamp >= cutoff]
+        else:
+            resolved = entries
+    return project_rows(resolved)
 
 
 def project_rows(entries: list[UsageEntry]) -> list[tuple[str, int, float | None]]:

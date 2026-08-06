@@ -9,8 +9,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
-import io
 import json
 import logging
 import os
@@ -18,7 +16,6 @@ import threading
 import time
 import tomllib
 import webbrowser
-from datetime import UTC, datetime, timedelta
 from importlib import metadata
 from pathlib import Path
 from typing import Any, cast
@@ -35,8 +32,6 @@ from AppKit import (
     NSMakePoint,
     NSMakeRect,
     NSMakeSize,
-    NSMenu,
-    NSMenuItem,
     NSMutableAttributedString,
     NSScreen,
     NSStatusBar,
@@ -53,19 +48,20 @@ import agy_loader
 import codex_loader
 import critter_frames
 import login_item
+import menubar_actions
+import menubar_menu
 import menubar_notify
 import menubar_refresh
 import menubar_state
+import menubar_update
 import panel_window_state
 import panels
 import update_checker
 import update_gate
-import usage_diagnosis_snapshot
 from burn_rate import BurnRateTracker
 from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from history_loader import (
     UsageEntry,
-    load_entries,
 )
 from history_loader import (
     flush_caches_on_terminate as flush_history_cache,
@@ -718,118 +714,7 @@ class AppDelegate(NSObject):
             self.popover_controller.teardown()
 
     def switchPanel_(self, sender: Any) -> None:
-        from menubar_menu import build_menu_item
-
-        menu = NSMenu.alloc().initWithTitle_(_t(self.language, "switch_panel"))
-        # AI 人才市場 is a feature panel, not a cosmetic skin — it gets its own
-        # top-level row instead of hiding inside "面板主題 ▸" next to Matrix/Win95.
-        menu.addItem_(
-            build_menu_item(
-                self.language, "panel_talent_market", "toggleTalentMarket:", target=self,
-                represented="talent_market",
-                state=self.active_panel.id == "talent_market",
-            )
-        )
-        menu.addItem_(
-            build_menu_item(
-                self.language, "discussion_window_title", "toggleDiscussion:", target=self
-            )
-        )
-        menu.addItem_(
-            build_menu_item(self.language, "panel_ai_daily", "toggleAiDaily:", target=self)
-        )
-        menu.addItem_(NSMenuItem.separatorItem())
-        # Panel themes live in a submenu so the menu stays short — one "面板主題 ▸"
-        # row that expands on demand instead of nine inline rows. talent_market is
-        # excluded here since it already has its own top-level row above.
-        panel_submenu = NSMenu.alloc().initWithTitle_(_t(self.language, "switch_panel"))
-        for panel in panels.all_panels():
-            if panel.id == "talent_market":
-                continue
-            panel_submenu.addItem_(
-                build_menu_item(
-                    self.language, panel.i18n_key, "selectPanel:", target=self,
-                    represented=panel.id,
-                    state=panel.id == self.active_panel.id,
-                )
-            )
-        panel_parent = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "switch_panel"), "", ""
-        )
-        panel_parent.setSubmenu_(panel_submenu)
-        menu.addItem_(panel_parent)
-        # Provider visibility lives in one "Hide Sections ▸" submenu row, grouped
-        # with the panel-themes submenu: both are drill-in rows that shape what
-        # the popover shows.
-        hide_submenu = NSMenu.alloc().initWithTitle_(_t(self.language, "hide_sections_menu"))
-        hide_submenu.addItem_(
-            build_menu_item(
-                self.language, "claude_name", "toggleHideClaude:", target=self,
-                state=_hide_claude_enabled(),
-            )
-        )
-        hide_submenu.addItem_(
-            build_menu_item(
-                self.language, "codex_name", "toggleHideCodex:", target=self,
-                state=_hide_codex_enabled(),
-            )
-        )
-        hide_submenu.addItem_(
-            build_menu_item(
-                self.language, "agy_name", "toggleHideAgy:", target=self,
-                state=_hide_agy_enabled(),
-            )
-        )
-        hide_parent = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
-            _t(self.language, "hide_sections_menu"), "", ""
-        )
-        hide_parent.setSubmenu_(hide_submenu)
-        menu.addItem_(hide_parent)
-        # Plain on/off switches sit together in the second group.
-        menu.addItem_(NSMenuItem.separatorItem())
-        menu.addItem_(
-            build_menu_item(
-                self.language, "launch_at_login", "toggleLaunchAtLogin:", target=self,
-                state=login_item.is_enabled(),
-            )
-        )
-        menu.addItem_(
-            build_menu_item(
-                self.language, "quota_notifications_menu", "toggleQuotaNotifications:", target=self,
-                state=_quota_notifications_enabled(),
-            )
-        )
-        menu.addItem_(
-            build_menu_item(
-                self.language, "window_keeper_menu", "toggleWindowKeeper:", target=self,
-                state=_window_keeper_enabled(),
-                tooltip_key="window_keeper_tooltip",
-            )
-        )
-        # Project Butler: one toggle that hands last session's progress to the next
-        # one. Tooltip carries the full explanation so the menu line stays short.
-        menu.addItem_(NSMenuItem.separatorItem())
-        menu.addItem_(
-            build_menu_item(
-                self.language, "project_butler", "toggleSessionResume:", target=self,
-                state=_session_resume_enabled(),
-                tooltip_key="project_butler_tooltip",
-            )
-        )
-        menu.addItem_(
-            build_menu_item(
-                self.language, "terse_mode_menu", "toggleTerseMode:", target=self,
-                state=_terse_mode_enabled(),
-                tooltip_key="terse_mode_tooltip",
-            )
-        )
-        self._switch_menu_action_taken = False
-        menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
-        # Dismissing the menu without picking anything used to close the panel:
-        # a transient popover was already gone by then, so closing it was just
-        # cleanup. The floating window survives the menu, so the same call would
-        # read as "cancelling the menu threw my panel away".
-        self._resync_popover_after_menu()
+        menubar_menu.build_switch_menu(self, sender)
 
     def selectPanel_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -940,31 +825,7 @@ class AppDelegate(NSObject):
         thread.start()
 
     def _toggle_session_resume_in_background(self) -> None:
-        import session_hooks
-
-        output = io.StringIO()
-        ok = True
-        enabled = False
-        try:
-            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-                if session_hooks.is_resume_enabled():
-                    session_hooks.disable_session_resume()
-                else:
-                    ok = session_hooks.enable_session_resume() == 0
-                    enabled = ok
-        except SystemExit as exc:
-            if exc.code:
-                ok = False
-                print(exc.code, file=output)
-        except Exception as exc:
-            ok = False
-            print(f"{type(exc).__name__}: {exc}", file=output)
-
-        self.performSelectorOnMainThread_withObject_waitUntilDone_(
-            "_finishSessionResume:",
-            {"ok": ok, "enabled": enabled, "output": output.getvalue().strip()},
-            False,
-        )
+        menubar_actions.toggle_session_resume_in_background(self)
 
     def _finishSessionResume_(self, result: dict[str, Any]) -> None:
         alert = _make_alert()
@@ -983,31 +844,7 @@ class AppDelegate(NSObject):
         thread.start()
 
     def _toggle_terse_mode_in_background(self) -> None:
-        import session_hooks
-
-        output = io.StringIO()
-        ok = True
-        enabled = False
-        try:
-            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-                if session_hooks.is_terse_mode_enabled():
-                    session_hooks.disable_terse_mode()
-                else:
-                    ok = session_hooks.enable_terse_mode() == 0
-                    enabled = ok
-        except SystemExit as exc:
-            if exc.code:
-                ok = False
-                print(exc.code, file=output)
-        except Exception as exc:
-            ok = False
-            print(f"{type(exc).__name__}: {exc}", file=output)
-
-        self.performSelectorOnMainThread_withObject_waitUntilDone_(
-            "_finishTerseMode:",
-            {"ok": ok, "enabled": enabled, "output": output.getvalue().strip()},
-            False,
-        )
+        menubar_actions.toggle_terse_mode_in_background(self)
 
     def _finishTerseMode_(self, result: dict[str, Any]) -> None:
         alert = _make_alert()
@@ -1021,23 +858,10 @@ class AppDelegate(NSObject):
         self._refresh()
 
     def _clear_stale_update_cache(self) -> None:
-        try:
-            current_version = _current_version()
-            prefs = _load_preferences()
-            updated_cache = update_gate.stale_cache_reset(prefs, current_version)
-            if updated_cache is not None:
-                prefs["last_update_check"] = updated_cache
-                _save_preferences(prefs)
-        except Exception:
-            pass
+        menubar_update.clear_stale_update_cache()
 
     def _maybe_check_update_in_background(self) -> None:
-        usage_diagnosis_snapshot.maybe_schedule_refresh()
-        self._check_update_in_background(
-            manual=False,
-            ignore_cooldown=False,
-            ignore_skipped=False,
-        )
+        menubar_update.maybe_check_update_in_background(self)
 
     def _check_update_in_background(
         self,
@@ -1046,59 +870,11 @@ class AppDelegate(NSObject):
         ignore_cooldown: bool,
         ignore_skipped: bool,
     ) -> None:
-        prefs = _load_preferences()
-        if not manual and not _auto_update_check_enabled(prefs):
-            return
-
-        if not manual and not update_gate.auto_check_is_due(prefs):
-            return
-
-        if not ignore_cooldown and update_gate.dismissed_recently(prefs):
-            return
-
-        try:
-            current_version = _current_version()
-            check_result = update_checker.check_latest_release_result(current_version)
-        except Exception:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("update check failed", exc_info=True)
-            if manual:
-                self.performSelectorOnMainThread_withObject_waitUntilDone_(
-                    "_showUpdateCheckFailed:",
-                    None,
-                    False,
-                )
-            return
-
-        if check_result.failed:
-            if manual:
-                self.performSelectorOnMainThread_withObject_waitUntilDone_(
-                    "_showUpdateCheckFailed:",
-                    None,
-                    False,
-                )
-            return
-
-        release = check_result.release
-        prefs["last_update_check"] = update_gate.build_check_cache_entry(current_version, release)
-        _save_preferences(prefs)
-
-        if release is None:
-            if manual:
-                self.performSelectorOnMainThread_withObject_waitUntilDone_(
-                    "_showNoUpdateAvailable:",
-                    None,
-                    False,
-                )
-            return
-
-        if not ignore_skipped and prefs.get("update_skipped_version") == release.version:
-            return
-
-        self.performSelectorOnMainThread_withObject_waitUntilDone_(
-            "_showUpdateAlert:",
-            release,
-            False,
+        menubar_update.check_update_in_background(
+            self,
+            manual=manual,
+            ignore_cooldown=ignore_cooldown,
+            ignore_skipped=ignore_skipped,
         )
 
     def _showUpdateAlert_(self, release: update_checker.ReleaseInfo) -> None:
@@ -1535,32 +1311,7 @@ class AppDelegate(NSObject):
         self.popover_controller.panelDidFirstPaint_(view)
 
     def _install_hook_in_background(self) -> None:
-        output = io.StringIO()
-        exit_code = 1
-        try:
-            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-                import session_hooks
-                import setup_hook
-
-                exit_code = setup_hook.setup()
-                if exit_code == 0:
-                    session_hooks._migrate_bundled_python_commands_if_needed()
-        except SystemExit as exc:
-            exit_code = exc.code if isinstance(exc.code, int) else 1
-            if exc.code:
-                print(exc.code, file=output)
-        except Exception as exc:
-            print(f"{type(exc).__name__}: {exc}", file=output)
-
-        result = {
-            "success": exit_code == 0,
-            "message": output.getvalue().strip(),
-        }
-        self.performSelectorOnMainThread_withObject_waitUntilDone_(
-            "_finishHookInstall:",
-            result,
-            False,
-        )
+        menubar_actions.install_hook_in_background(self)
 
     def _finishHookInstall_(self, result: dict[str, Any]) -> None:
         alert = _make_alert()
@@ -1578,29 +1329,7 @@ class AppDelegate(NSObject):
         self._statusline_action_in_background("toggle")
 
     def _statusline_action_in_background(self, action: str) -> None:
-        output = io.StringIO()
-        ok = True
-        try:
-            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-                if action == "toggle":
-                    _toggle_statusline_settings()
-                elif action == "uninstall":
-                    _disable_statusline_settings()
-                else:
-                    _enable_statusline_settings()
-        except SystemExit as exc:
-            if exc.code:
-                ok = False
-                print(exc.code, file=output)
-        except Exception as exc:
-            ok = False
-            print(f"{type(exc).__name__}: {exc}", file=output)
-
-        self.performSelectorOnMainThread_withObject_waitUntilDone_(
-            "_finishStatuslineAction:",
-            {"ok": ok, "action": action, "output": output.getvalue().strip()},
-            False,
-        )
+        menubar_actions.statusline_action_in_background(self, action)
 
     def _finishStatuslineAction_(self, result: dict[str, Any]) -> None:
         self._refresh()
@@ -1617,19 +1346,7 @@ class AppDelegate(NSObject):
         self.popover_controller.setState_(self.latest_state)
 
     def _analyze_usage_in_background(self, period: str) -> None:
-        result: dict[str, str | bool]
-        try:
-            saved = _generate_analysis_report(period=period, language=self.language)
-            result = {"success": True, "message": saved}
-        except Exception as exc:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("analysis report failed", exc_info=True)
-            result = {"success": False, "message": f"{type(exc).__name__}: {exc}"}
-        self.performSelectorOnMainThread_withObject_waitUntilDone_(
-            "_finishAnalyzeUsage:",
-            result,
-            False,
-        )
+        menubar_actions.analyze_usage_in_background(self, period)
 
     def _finishAnalyzeUsage_(self, result: dict[str, Any]) -> None:
         if result["success"]:
@@ -1651,93 +1368,24 @@ class AppDelegate(NSObject):
             return False
 
     def _history_sources_fingerprint(self) -> tuple[tuple[str, int, float], ...]:
-        return self._history_source_scan().fingerprint
+        return menubar_state.app_history_sources_fingerprint(self)
 
     def _history_source_scan(self) -> menubar_state.HistorySourceScan:
-        return cast(menubar_state.HistorySourceScan, self._history_source_tracker.scan())
+        return menubar_state.app_history_source_scan(self)
 
     def _load_history_entries(
         self,
         *,
         scan: menubar_state.HistorySourceScan | None = None,
     ) -> list[UsageEntry]:
-        if self.mock:
-            return []
-        if scan is None:
-            scan = self._history_source_scan()
-        fingerprint = scan.fingerprint
-        if (
-            self._history_entries_cache is not None
-            and self._history_entries_cache_fingerprint == fingerprint
-        ):
-            return list(self._history_entries_cache)
-
-        entries: list[UsageEntry] = []
-        error_key: str | None = None
-        try:
-            entries.extend(load_entries(hours_back=0, jsonl_paths=scan.claude_paths))
-        except Exception as exc:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("Claude project usage load failed", exc_info=True)
-            error_key = _classify_history_load_error(exc)
-        try:
-            entries.extend(codex_loader.load_entries(hours_back=0, jsonl_paths=scan.codex_paths))
-        except Exception as exc:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("Codex project usage load failed", exc_info=True)
-            error_key = _classify_history_load_error(exc)
-        self._history_load_error_key = error_key
-        self._history_entries_cache = list(entries)
-        self._history_entries_cache_fingerprint = fingerprint
-        return entries
+        return menubar_state.app_load_history_entries(self, scan=scan)
 
     def _project_rows(
         self,
         hours_back: int = 24,
         entries: list[UsageEntry] | None = None,
     ) -> list[tuple[str, int, float | None]]:
-        if self.mock:
-            if hours_back <= 0:
-                return [
-                    ("usage", 624_000_000, 361.00),
-                    ("FinMind", 172_800_000, 100.24),
-                    ("AI客服", 44_000_000, 26.40),
-                ]
-            if hours_back <= 24:
-                return [
-                    ("usage", 11_200_000, 6.47),
-                    ("FinMind", 3_100_000, 1.82),
-                    ("AI客服", 800_000, 0.48),
-                ]
-            if hours_back <= 168:
-                return [
-                    ("usage", 78_400_000, 45.20),
-                    ("FinMind", 21_700_000, 12.74),
-                    ("AI客服", 5_600_000, 3.36),
-                ]
-            return [
-                ("usage", 312_000_000, 180.50),
-                ("FinMind", 86_400_000, 50.12),
-                ("AI客服", 22_000_000, 13.20),
-            ]
-
-        if entries is None:
-            try:
-                resolved = load_entries(hours_back=hours_back)
-            except Exception:
-                if os.environ.get("USAGE_DEBUG") == "1":
-                    logger.warning("project usage load failed", exc_info=True)
-                return []
-        else:
-            if hours_back == 24:
-                today = datetime.now().astimezone().date()
-                resolved = [e for e in entries if e.timestamp.astimezone().date() == today]
-            elif hours_back > 0:
-                cutoff = datetime.now(tz=UTC) - timedelta(hours=hours_back)
-                resolved = [e for e in entries if e.timestamp >= cutoff]
-            else:
-                resolved = entries
-        return menubar_state.project_rows(resolved)
+        return menubar_state.app_project_rows(self, hours_back=hours_back, entries=entries)
 
     def _menubar_text_string(self, text: str) -> Any:
         cached = self._menubar_text_cache.get(text)

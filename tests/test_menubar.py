@@ -14,17 +14,22 @@ from typing import Any, cast
 
 import pytest
 
+import agy_window_keeper
 import codex_loader
 import history_loader
 import menubar
+import menubar_actions
 import menubar_agy
 import menubar_chrome
 import menubar_menu
 import menubar_prefs
+import menubar_refresh
 import menubar_state
+import menubar_update
 import panel_window_state
 import panels
 import statusline_settings
+import window_keeper
 from burn_rate import BurnRateTracker
 from service_status import ServiceStatus
 from usage_client import PollOutcome, PollState, UsageSnapshot
@@ -485,13 +490,10 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
         SimpleNamespace(id="talent_market", i18n_key="panel_talent_market"),
     ]
 
-    monkeypatch.setattr(menubar, "NSMenu", _FakeMenu)
-    monkeypatch.setattr(menubar, "NSMenuItem", _FakeMenuItem)
-    # build_menu_item lives in menubar_menu and imports NSMenuItem itself, so the
-    # patch above does not reach it. Patch the helper module too.
+    monkeypatch.setattr(menubar_menu, "NSMenu", _FakeMenu)
     monkeypatch.setattr(menubar_menu, "NSMenuItem", _FakeMenuItem)
-    monkeypatch.setattr("menubar.panels.all_panels", lambda: panels)
-    monkeypatch.setattr("menubar.login_item.is_enabled", lambda: False)
+    monkeypatch.setattr("panels.all_panels", lambda: panels)
+    monkeypatch.setattr("menubar_menu.login_item.is_enabled", lambda: False)
     monkeypatch.setattr(
         menubar_prefs,
         "_load_preferences",
@@ -612,16 +614,13 @@ def test_switch_panel_cancel_keeps_the_panel_open(
     delegate.popover = FakePopover()
     delegate.status_item = FakeStatusItem()
 
-    monkeypatch.setattr(menubar, "NSMenu", _FakeMenu)
-    monkeypatch.setattr(menubar, "NSMenuItem", _FakeMenuItem)
-    # build_menu_item lives in menubar_menu and imports NSMenuItem itself, so the
-    # patch above does not reach it. Patch the helper module too.
+    monkeypatch.setattr(menubar_menu, "NSMenu", _FakeMenu)
     monkeypatch.setattr(menubar_menu, "NSMenuItem", _FakeMenuItem)
     monkeypatch.setattr(
-        "menubar.panels.all_panels",
+        "panels.all_panels",
         lambda: [SimpleNamespace(id="classic", i18n_key="panel_default_name")],
     )
-    monkeypatch.setattr("menubar.login_item.is_enabled", lambda: False)
+    monkeypatch.setattr("menubar_menu.login_item.is_enabled", lambda: False)
 
     menubar.AppDelegate.switchPanel_(delegate, object())
 
@@ -719,7 +718,7 @@ def test_background_daily_maintenance_schedules_diagnosis_snapshot(
     calls: list[object] = []
 
     monkeypatch.setattr(
-        "menubar.usage_diagnosis_snapshot.maybe_schedule_refresh",
+        "menubar_update.usage_diagnosis_snapshot.maybe_schedule_refresh",
         lambda: calls.append("snapshot"),
     )
     fake_self = SimpleNamespace(
@@ -736,13 +735,13 @@ def test_background_daily_maintenance_schedules_diagnosis_snapshot(
 
 def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.MonkeyPatch) -> None:
     saved: list[dict[str, Any]] = []
-    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": True})
-    monkeypatch.setattr(menubar, "_save_preferences", lambda d: saved.append(dict(d)))
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": True})
+    monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr("update_gate.time.time", lambda: 1700000000.0)
     fake_release = SimpleNamespace(version="0.12.0", html_url="https://x/v0.12.0", body="")
     monkeypatch.setattr(
-        "menubar.update_checker.check_latest_release_result",
+        "menubar_update.update_checker.check_latest_release_result",
         lambda v: SimpleNamespace(failed=False, release=fake_release),
     )
     fake_self = SimpleNamespace(
@@ -766,12 +765,12 @@ def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.Monkey
 
 def test_check_update_writes_cache_when_no_release(monkeypatch: pytest.MonkeyPatch) -> None:
     saved: list[dict[str, Any]] = []
-    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": True})
-    monkeypatch.setattr(menubar, "_save_preferences", lambda d: saved.append(dict(d)))
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": True})
+    monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr("update_gate.time.time", lambda: 1700000000.0)
     monkeypatch.setattr(
-        "menubar.update_checker.check_latest_release_result",
+        "menubar_update.update_checker.check_latest_release_result",
         lambda v: SimpleNamespace(failed=False, release=None),
     )
 
@@ -820,8 +819,8 @@ def test_clear_stale_update_cache_clears_after_upgrade(
             "release_url": "https://x/v0.15.0",
         }
     }
-    monkeypatch.setattr(menubar, "_load_preferences", lambda: prefs)
-    monkeypatch.setattr(menubar, "_save_preferences", lambda d: saved.append(dict(d)))
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: prefs)
+    monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.15.0")
 
     menubar.AppDelegate._clear_stale_update_cache(cast(Any, object()))
@@ -1084,7 +1083,7 @@ def test_statusline_action_in_background_returns_failure_output(
             captured["wait"] = wait
 
     monkeypatch.setattr(
-        menubar,
+        menubar_actions,
         "_enable_statusline_settings",
         lambda: (_ for _ in ()).throw(RuntimeError("setup failed")),
     )
@@ -1297,7 +1296,7 @@ def test_compose_title_codex_placeholder_when_claude_hidden(
 
 def test_project_rows_empty(monkeypatch: pytest.MonkeyPatch) -> None:
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
-    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=24: [])
+    monkeypatch.setattr(menubar_state, "load_entries", lambda *, hours_back=24: [])
 
     assert delegate._project_rows(hours_back=24) == []
 
@@ -1338,12 +1337,12 @@ def test_load_history_entries_includes_codex_entries(monkeypatch: pytest.MonkeyP
     )
     monkeypatch.setattr(delegate, "_history_source_scan", lambda: scan)
     monkeypatch.setattr(
-        menubar,
+        menubar_state,
         "load_entries",
         lambda *, hours_back, jsonl_paths=None: [claude_entry],
     )
     monkeypatch.setattr(
-        "menubar.codex_loader.load_entries",
+        "menubar_state.codex_loader.load_entries",
         lambda *, hours_back, jsonl_paths=None: [codex_entry],
     )
 
@@ -1409,7 +1408,7 @@ def test_load_history_entries_reuses_cache_when_sources_do_not_change(
         return [codex_entry]
 
     monkeypatch.setattr(delegate, "_history_source_scan", lambda: scan)
-    monkeypatch.setattr(menubar, "load_entries", fake_claude_entries)
+    monkeypatch.setattr(menubar_state, "load_entries", fake_claude_entries)
     monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
 
     first = delegate._load_history_entries()
@@ -1458,7 +1457,9 @@ def test_load_history_entries_refreshes_cache_when_sources_change(
         return entries
 
     monkeypatch.setattr(delegate, "_history_source_scan", lambda: next(scans))
-    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
+    monkeypatch.setattr(
+        menubar_state, "load_entries", lambda *, hours_back=0, jsonl_paths=None: []
+    )
     monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
 
     assert delegate._load_history_entries() == entries
@@ -1489,18 +1490,22 @@ def test_load_history_entries_records_error_key_on_failure_and_clears_on_success
         )
     )
     monkeypatch.setattr(delegate, "_history_source_scan", lambda: next(scans))
-    monkeypatch.setattr(codex_loader, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
+    monkeypatch.setattr(
+        codex_loader, "load_entries", lambda *, hours_back=0, jsonl_paths=None: []
+    )
 
     def failing_load_entries(
         *, hours_back: int = 0, jsonl_paths: tuple[Path, ...] | None = None
     ) -> list[history_loader.UsageEntry]:
         raise OSError("cannot read jsonl")
 
-    monkeypatch.setattr(menubar, "load_entries", failing_load_entries)
+    monkeypatch.setattr(menubar_state, "load_entries", failing_load_entries)
     delegate._load_history_entries()
     assert delegate._history_load_error_key == "history_load_error_file"
 
-    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
+    monkeypatch.setattr(
+        menubar_state, "load_entries", lambda *, hours_back=0, jsonl_paths=None: []
+    )
     delegate._load_history_entries()
     assert delegate._history_load_error_key is None
 
@@ -1577,7 +1582,7 @@ def test_project_rows_top3(monkeypatch: pytest.MonkeyPatch) -> None:
         ),
     ]
 
-    monkeypatch.setattr(menubar, "load_entries", lambda *, hours_back=24: entries)
+    monkeypatch.setattr(menubar_state, "load_entries", lambda *, hours_back=24: entries)
 
     rows = delegate._project_rows(hours_back=24)
 
@@ -2017,6 +2022,126 @@ def test_refresh_error_preserves_project_usage(monkeypatch: pytest.MonkeyPatch) 
     assert state.projects_30d == [("Eric-Tools", 165, 0.01)]
     assert state.projects_all == [("Eric-Tools", 165, 0.01)]
     assert "165 tokens" in state.today_text
+
+
+def test_refresh_success_builds_popover_state_and_pings_window_keeper(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    session = menubar_state.QuotaRowState(
+        title="Session",
+        percent=18.5,
+        percent_text="18.5% used",
+        reset_text="Resets in 2h",
+        color=menubar.CODEX_COLOR,
+    )
+    weekly = menubar_state.QuotaRowState(
+        title="Weekly",
+        percent=34.0,
+        percent_text="34% used",
+        reset_text="Resets in 6d",
+        color=menubar.CODEX_COLOR,
+    )
+    entries = [
+        history_loader.UsageEntry(
+            timestamp=datetime.now(tz=UTC),
+            session_id="session",
+            message_id="message",
+            request_id="request",
+            model="gpt-5-codex",
+            input_tokens=100,
+            output_tokens=50,
+            cache_creation_tokens=10,
+            cache_read_tokens=5,
+            cost_usd=0.01,
+            project="Eric-Tools",
+        )
+    ]
+    pings: list[tuple[float, int | None, str, bool]] = []
+    monkeypatch.setattr(menubar_refresh, "_hide_claude_enabled", lambda: False)
+    monkeypatch.setattr(menubar_refresh, "_hide_codex_enabled", lambda: False)
+    monkeypatch.setattr(menubar_refresh, "_hide_agy_enabled", lambda: True)
+    monkeypatch.setattr(menubar_refresh, "_quota_card_order", lambda: ("claude", "codex", "agy"))
+    monkeypatch.setattr(
+        menubar_refresh,
+        "get_service_status",
+        lambda config: ServiceStatus(config.service_name, False, "operational", "", "cache"),
+    )
+    monkeypatch.setattr(
+        window_keeper,
+        "maybe_ping",
+        lambda reset_at, percent, source, mock: pings.append((reset_at, percent, source, mock)),
+    )
+    monkeypatch.setattr(agy_window_keeper, "maybe_ping", lambda *args: None)
+    monkeypatch.setattr(
+        menubar_state,
+        "_statusline_payload",
+        lambda language: {"enabled": False, "language": language},
+    )
+
+    class Delegate:
+        mock = False
+        language = "en"
+        latest_state = menubar_state._empty_state(language="en")
+        tracker = SimpleNamespace(group=lambda: 2)
+        codex_tracker = SimpleNamespace(group=lambda: 3)
+        agy_tracker = SimpleNamespace(group=lambda: 4)
+        burn_rate_trackers = {
+            "claude_session": BurnRateTracker(),
+            "claude_weekly": BurnRateTracker(),
+            "codex_session": BurnRateTracker(),
+            "codex_weekly": BurnRateTracker(),
+        }
+        _history_load_error_key = None
+        active_panel = None
+
+        def _load_history_entries(
+            self, *, scan: menubar_state.HistorySourceScan | None = None
+        ) -> list[history_loader.UsageEntry]:
+            assert scan is None
+            return entries
+
+        def _statusline_setup_available(self) -> bool:
+            return False
+
+        async def _fetch(self) -> PollOutcome:
+            return PollOutcome(
+                PollState.SUCCESS,
+                UsageSnapshot(
+                    current_percent=12,
+                    current_reset_at=2_000_000_000.0,
+                    weekly_percent=34,
+                    weekly_reset_at=2_000_100_000.0,
+                    current_status="active",
+                    polled_at=1_999_990_000.0,
+                ),
+            )
+
+    agy_result = menubar_agy.AgyRefreshResult(projection=None, hide_agy=True)
+    sources = menubar_refresh.RefreshSources(
+        codex_result={
+            "codex_rows": (session, weekly),
+            "codex_5h_pct": 18.5,
+            "codex_model": "gpt-test",
+            "codex_stale": None,
+        },
+        history_scan=None,
+        agy_result=agy_result,
+        agy_projection=menubar_agy.fallback_projection("en"),
+        animation_groups=(0, 0, 0),
+        debug_timing=False,
+    )
+
+    result = menubar_refresh.build_result(cast(Any, Delegate()), sources)
+
+    state = result["state"]
+    assert isinstance(state, menubar_state.PopoverState)
+    assert state.claude_session.percent == 12.0
+    assert state.codex_session == session
+    assert state.projects == [("Eric-Tools", 165, 0.01)]
+    assert result["codex_5h_pct"] == 18.5
+    assert result["codex_model"] == "gpt-test"
+    assert result["animation_groups"] == (2, 3, 4)
+    assert pings == [(2_000_000_000.0, 12, "hook", False)]
 
 
 def test_refresh_now_queues_when_refresh_is_busy() -> None:
