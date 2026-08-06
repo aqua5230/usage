@@ -135,7 +135,8 @@ UIから直接 **10種類のビジュアルテーマ**を切り替えられま�
 
 | 症状 | 考えられる原因 | 対処法 |
 |---------|--------------|-----|
-| メニューバーに `--` と表示される | データがまだない、またはClaude Code hookが更新されていない | Codexで会話を一度実行します。Claude Codeでは「Set Up Status Line」をクリックするか、`python3 main.py --setup` を実行します |
+| メニューバーに `--` と表示される | データがまだない、またはClaude Code hookが更新されていない | Codexで会話を一度実行します。Claude Codeでは「ステータスラインを設定」をクリックします（ソースから実行する場合は `python3 main.py --setup`） |
+| `usage.app` 内の `main.py` を実行すると `ImportError` | バンドル版の `main.py` はアプリ内蔵のインタプリタが必要で、手動では実行できません | そのファイルは実行しないでください。アプリの「ステータスラインを設定」をクリックするか、リポジトリを clone してソースから実行します |
 | 誤って「Quit」を選んだ | プロセスが終了した | SpotlightまたはApplicationsから `usage.app` を再起動してください（`launchctl start com.lollapalooza.usage` はログイン時に起動を有効にしている場合のみ機能します）。 |
 | 状態が「N minutes stale」と表示される | Claude Codeが実行されていない | Claude Codeを開いて実行したままにします |
 | Codexセクションが空 | Codex履歴が見つからない | Codexで会話を実行してログを生成します |

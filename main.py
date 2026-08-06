@@ -18,6 +18,18 @@ from contextlib import suppress
 from pathlib import Path
 from typing import Any
 
+# Inside usage.app this file sits in Contents/Resources/ next to py2app's
+# __boot__.py, while the modules it imports live in lib/python313.zip. Running
+# it with an outside interpreter therefore fails on the first local import with
+# a confusing ImportError (a PyPI package named `i18n` even shadows ours). Bail
+# out with instructions instead. py2app's own launcher sets RESOURCEPATH.  (#92)
+if not os.environ.get("RESOURCEPATH") and (Path(__file__).parent / "__boot__.py").exists():
+    sys.exit(
+        "This main.py is part of the usage.app bundle and cannot be run directly.\n"
+        'To install the status line, open usage from the menu bar and click "Set Up Status Line".\n'
+        "To run from source instead: https://github.com/aqua5230/usage"
+    )
+
 import prefs
 from i18n import packaged_resource_path
 from i18n import t as _t

@@ -135,7 +135,8 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
-| Menu bar shows `--` | No data yet, or Claude Code hook not refreshed | Run one Codex conversation. For Claude Code, click "Set Up Status Line" or run `python3 main.py --setup` |
+| Menu bar shows `--` | No data yet, or Claude Code hook not refreshed | Run one Codex conversation. For Claude Code, click "Set Up Status Line" (from source: `python3 main.py --setup`) |
+| `ImportError` from `main.py` inside `usage.app` | The bundled `main.py` needs the bundle's own interpreter and cannot be run by hand | Don't run that copy. Click "Set Up Status Line" in the app, or clone the repo to run from source |
 | Accidentally hit "Quit" | Process terminated | Relaunch `usage.app` from Spotlight or Applications. (`launchctl start com.lollapalooza.usage` only works if you enabled Launch at Login.) |
 | Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run |
 | Codex section is empty | No Codex history found | Run a Codex conversation to generate logs |
