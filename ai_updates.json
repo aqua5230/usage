@@ -1,10 +1,186 @@
 {
-  "generated_at": "2026-08-05",
+  "generated_at": "2026-08-06",
   "tools": [
     {
       "id": "claude_code",
       "name": "Claude Code",
       "versions": [
+        {
+          "version": "2.1.223",
+          "period": "2026-08-06",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "GitHub 組織的外掛市集可整批放行或封鎖",
+                "zh-CN": "GitHub 组织的插件市场可整批放行或封锁",
+                "en": "Allow or block an entire GitHub organization's marketplaces",
+                "ja": "GitHub 組織配下のマーケットプレイスをまとめて許可・禁止できる",
+                "ko": "GitHub 조직 아래 마켓플레이스를 한꺼번에 허용하거나 차단한다"
+              },
+              "body": {
+                "zh-TW": "公司管理者不必再替 GitHub 組織底下每個外掛市集逐一開名單。現在受管設定能用 `\"owner/*\"` 這種萬用字元，`owner` 換成組織名稱，星號代表它底下所有市集。想只准公司核可的來源，可在 `strictKnownMarketplaces` 加入它；若整個組織都不能用，則放進 `blockedMarketplaces`。例如 ` {\"strictKnownMarketplaces\":[\"acme/*\"]} ` 會承認 acme 組織所有市集。這像大樓門禁直接認一整棟公司的識別證，不必替每位員工各登一筆。",
+                "zh-CN": "公司管理员不必再替 GitHub 组织下面每个插件市场逐一列名单。现在受管设置能用 `\"owner/*\"` 这种通配符，`owner` 换成组织名称，星号代表它下面所有市场。想只允许公司批准的来源，可在 `strictKnownMarketplaces` 加入它；若整个组织都不能用，则放进 `blockedMarketplaces`。例如 ` {\"strictKnownMarketplaces\":[\"acme/*\"]} ` 会承认 acme 组织所有市场。这像大楼门禁直接认一整栋公司的识别证，不必替每位员工各登一笔。",
+                "en": "An administrator no longer has to list every marketplace under a GitHub organization one by one. Managed settings now accept an owner wildcard such as `\"owner/*\"`: replace `owner` with an organization name, and the asterisk covers all of its marketplace repositories. Put it in `strictKnownMarketplaces` to allow that organization, or `blockedMarketplaces` to bar it. For example, ` {\"strictKnownMarketplaces\":[\"acme/*\"]} ` recognizes every Acme marketplace. It is like a building pass that admits an entire company's badge series instead of registering every employee separately.",
+                "ja": "会社の管理者は、GitHub 組織の配下にあるマーケットプレイスを一つずつ許可リストへ書かなくてよくなった。managed settings では `\"owner/*\"` というワイルドカードを使え、`owner` を組織名に替えると、星印がその配下の全マーケットプレイスを表す。許可するなら `strictKnownMarketplaces`、組織ごと禁止するなら `blockedMarketplaces` に入れる。例えば ` {\"strictKnownMarketplaces\":[\"acme/*\"]} ` は acme 配下をまとめて認める。ビルの入館証で、社員を一人ずつ登録せず会社全体の証票を通すようなものである。",
+                "ko": "회사 관리자는 GitHub 조직 아래의 플러그인 마켓플레이스를 하나씩 허용 목록에 적지 않아도 된다. 이제 관리형 설정에서 `\"owner/*\"` 같은 와일드카드를 쓸 수 있다. `owner` 자리에 조직 이름을 넣으면 별표가 그 아래 모든 마켓플레이스 저장소를 뜻한다. 허용하려면 `strictKnownMarketplaces`에, 조직 전체를 막으려면 `blockedMarketplaces`에 넣는다. 예를 들어 ` {\"strictKnownMarketplaces\":[\"acme/*\"]} `는 acme 아래를 모두 인정한다. 빌딩 출입증이 직원마다 따로 등록하지 않고 한 회사의 증표를 통과시키는 모습과 같다."
+              },
+              "original": "Added owner wildcard entries (`\"owner/*\"`) to the `strictKnownMarketplaces` and `blockedMarketplaces` managed settings for allowing or blocking all marketplace repos under a GitHub org"
+            },
+            {
+              "title": {
+                "zh-TW": "子代理模型受限時，會說明誰接手工作",
+                "zh-CN": "子代理模型受限时，会说明谁接手工作",
+                "en": "A warning explains when parent model takes over for a restricted subagent",
+                "ja": "子エージェント用モデルが制限された際、親モデルへの引き継ぎが分かる",
+                "ko": "하위 에이전트 모델이 제한되면 부모 모델이 맡았다고 알려 준다"
+              },
+              "body": {
+                "zh-TW": "你安排工作流程 agent（代理，能分頭處理工作的 AI 助手）、分叉的技能、斜線指令，或恢復背景代理時，可能替子代理指定某個模型；但組織政策若不准用它，原本很容易以為事情根本沒跑。現在 Claude 會跳出警告：子代理想要的模型受限，改由父代理模型執行。它沒有憑空換成別的任務，只是換了可用的腦袋。像劇團原定的演員臨時不能上台，舞台經理會明說由誰代演，觀眾不必對著陌生面孔猜半天。",
+                "zh-CN": "你安排工作流 agent（代理，能分头处理工作的 AI 助手）、分叉的技能、斜杠指令，或恢复后台代理时，可能替子代理指定某个模型；但组织政策若不准用它，原本很容易以为事情根本没跑。现在 Claude 会跳出警告：子代理想要的模型受限，改由父代理模型执行。它没有凭空换成别的任务，只是换了可用的脑袋。像剧团原定的演员临时不能上台，舞台经理会明说由谁代演，观众不必对着陌生面孔猜半天。",
+                "en": "When a workflow agent, forked skill, slash command, or resumed background agent requests a particular subagent model, an organization policy may forbid it. Previously that could look as though nothing had happened. Claude now warns that the requested model is restricted and that the parent model is running instead. The agent has not quietly become a different task; it is using an available brain. It is like a theater manager announcing a substitute actor when the scheduled performer cannot go on, rather than leaving the audience to guess why someone else appeared.",
+                "ja": "ワークフロー agent、分岐した skill、スラッシュコマンド、または再開したバックグラウンド agent で子エージェント用のモデルを指定しても、組織のポリシーがそのモデルを許さないことがある。以前は何も動かなかったように見えた。これからは、希望したモデルが制限され、親モデルが代わりに実行していると警告が出る。agent は別の仕事に勝手に変わったのではなく、使える頭脳に替わっただけである。出演予定の俳優が出られない時、舞台監督が代役を告げるようなものだ。",
+                "ko": "워크플로 agent, 분기한 skill, 슬래시 명령어 또는 다시 시작한 백그라운드 agent에서 하위 에이전트 모델을 지정했더라도 조직 정책이 이를 막을 수 있다. 예전에는 아무 일도 일어나지 않은 듯 보일 수 있었다. 이제 Claude는 요청한 모델이 제한되어 부모 모델이 대신 실행한다고 경고한다. agent가 몰래 다른 작업으로 바뀐 것이 아니라 쓸 수 있는 두뇌로 바뀐 것이다. 예정 배우가 못 나올 때 무대 감독이 대역을 알려 주는 모습과 같다."
+              },
+              "original": "Added a warning when workflow agents, forked skills, slash commands, or resumed background agents' requested subagent model is restricted and the parent model runs instead"
+            },
+            {
+              "title": {
+                "zh-TW": "雲端工作做到一半，可帶回本機接著做",
+                "zh-CN": "云端工作做到一半，可带回本机接着做",
+                "en": "Continue a cloud session on your own machine",
+                "ja": "クラウドの途中作業を自分の端末へ持ち帰って続けられる",
+                "ko": "클라우드에서 하던 작업을 내 컴퓨터에서 이어서 한다"
+              },
+              "body": {
+                "zh-TW": "在雲端 session（工作階段，一次連續的對話與工作紀錄）裡做到一半，想回自己電腦處理檔案時，畫面現在會提示 `/teleport`。照提示輸入 `claude --teleport <session id>`，就能在本機繼續那個工作階段；`<session id>` 要換成畫面給你的識別碼。這不是複製一份新對話，而是把同一段工作從雲端接到眼前。像把做到一半的拼圖從客廳桌搬到書房桌，仍接著拼同一幅圖。",
+                "zh-CN": "在云端 session（工作会话，一次连续的对话与工作记录）里做到一半，想回自己电脑处理文件时，画面现在会提示 `/teleport`。照提示输入 `claude --teleport <session id>`，就能在本机继续那个工作会话；`<session id>` 要换成画面给你的识别码。这不是复制一份新对话，而是把同一段工作从云端接到眼前。像把做到一半的拼图从客厅桌搬到书房桌，仍接着拼同一幅图。",
+                "en": "If you are halfway through a cloud session and need to return to your computer to work with local files, Claude now shows a `/teleport` hint. Run `claude --teleport <session id>` locally, replacing `<session id>` with the identifier shown in the cloud session, and continue that session on your machine. This is not a copied new chat; it carries the same work from the cloud to your computer. Like moving a half-finished puzzle from the coffee table to a desk and continuing the same picture.",
+                "ja": "クラウドの session（作業セッション、連続した会話と作業の記録）の途中で、手元の端末にあるファイルを扱いたくなった時、画面に `/teleport` のヒントが出るようになった。表示された識別子で `<session id>` を置き換え、ローカルで `claude --teleport <session id>` と実行すれば、その session を自分の端末で続けられる。新しい会話を複製するのではなく、同じ作業をクラウドから手元へ引き継ぐ。リビングのテーブルで途中まで組んだパズルを机へ移し、同じ絵を続けて完成させるようなものである。",
+                "ko": "클라우드 session(작업 세션, 이어지는 대화와 작업 기록)을 하다가 내 컴퓨터의 파일을 다뤄야 할 때, 이제 화면이 `/teleport` 힌트를 보여 준다. 화면의 식별자로 `<session id>`를 바꿔 로컬에서 `claude --teleport <session id>`를 실행하면 그 session을 내 컴퓨터에서 이어 간다. 새 대화를 복사하는 것이 아니라 같은 작업을 클라우드에서 내 컴퓨터로 이어 온다. 거실 탁자에서 맞추던 퍼즐을 책상으로 옮겨 같은 그림을 계속 맞추는 모습과 같다."
+              },
+              "original": "Added a `/teleport` hint in cloud sessions showing how to continue locally with `claude --teleport <session id>`"
+            },
+            {
+              "title": {
+                "zh-TW": "權限檢查不再被藏起來的指令騙過",
+                "zh-CN": "权限检查不再被藏起来的指令骗过",
+                "en": "Permission checks can no longer be fooled by hidden commands",
+                "ja": "権限確認が隠されたコマンドにだまされなくなった",
+                "ko": "권한 검사가 숨겨진 명령어에 더는 속지 않는다"
+              },
+              "body": {
+                "zh-TW": "按下核准前，權限對話框現在會更可靠地露出命令全貌。有人若在 Bash 指令裡做手腳，用 tab 或看不見的 Unicode 字元遮住一段內容，檢查不再會漏看；工作流程 script 也不能靠動態 `import()` 從 workflow sandbox（工作流程沙盒，限制程式活動範圍的隔離區）外執行程式。另一個缺口也補上了：代理定義裡略過權限的 `bypassPermissions` 模式不得違反組織政策。這像工廠品管驗貨，不只看箱面標籤，還會拆開包材查隱藏內容；流水線只能在劃定工作區操作，公司訂下免檢禁令後，也不能被某張作業單推翻。",
+                "zh-CN": "按下批准前，权限对话框现在会更可靠地露出命令全貌。有人若在 Bash 指令里做手脚，用 tab 或看不见的 Unicode 字符遮住一段内容，检查不再会漏看；工作流 script 也不能靠动态 `import()` 从 workflow sandbox（工作流沙盒，限制程序活动范围的隔离区）外执行程序。另一个缺口也补上了：代理定义里略过权限的 `bypassPermissions` 模式不得违反组织政策。这像工厂质检验货，不只看箱面标签，还会拆开包装查隐藏内容；流水线只能在划定工作区操作，公司订下免检禁令后，也不能被某张作业单推翻。",
+                "en": "Before you approve a command, the permission dialog can now show its full shape more reliably. A crafted Bash command cannot hide pieces from checking, and tabs or invisible Unicode characters cannot conceal part of a command from the approval dialog. Workflow scripts also cannot use dynamic `import()` to run code outside the workflow sandbox, and an agent definition's `bypassPermissions` mode must obey an organization policy that disables permission bypasses. Think of factory quality control: inspectors open the packaging rather than checking only its label, work stays within its marked area, and no work order can override a company ban on skipping inspection.",
+                "ja": "承認を押す前に、権限ダイアログがコマンドの全体をより確実に見せるようになった。細工した Bash コマンドは検査から一部を隠せず、tab や見えない Unicode 文字も承認画面から内容を隠せない。workflow script も動的 `import()` で workflow sandbox（作業の範囲を隔離する場所）の外側のコードを実行できなくなった。さらに agent 定義の `bypassPermissions` は、権限の迂回を無効にする組織ポリシーに従う。工場の品質検査で、箱の表示だけでなく梱包を開いて中身を確かめ、作業は決められた区画内に限られ、免検禁止を一枚の作業票で覆せないようなものである。",
+                "ko": "승인을 누르기 전 권한 대화 상자가 이제 명령어의 전체 모습을 더 확실히 보여 준다. 누군가 조작한 Bash 명령어로 검사에서 일부를 숨길 수 없고, tab이나 보이지 않는 Unicode 문자도 승인 창에서 내용을 감출 수 없다. workflow script 역시 동적 `import()`로 workflow sandbox(작업 범위를 가두는 격리 구역) 밖의 코드를 실행할 수 없다. 또 agent 정의의 `bypassPermissions`는 권한 건너뛰기를 끈 조직 정책을 어길 수 없다. 공장 품질 검사가 상자 겉면만 보지 않고 포장을 열어 숨은 내용까지 확인하며, 작업은 정해진 구역 안에서만 하고, 면제 금지 규칙은 어떤 작업 지시서도 뒤집지 못하는 모습과 같다."
+              },
+              "original": "Fixed a Bash permission bypass where a crafted command could hide parts of itself from permission checks\nFixed permission prompts so commands padded with tabs or invisible Unicode can no longer hide part of the command from the approval dialog\nFixed workflow scripts being able to use dynamic `import()` to run code outside the workflow sandbox\nFixed a permission gap where an agent definition's `bypassPermissions` mode ignored the org bypass-permissions disable policy"
+            },
+            {
+              "title": {
+                "zh-TW": "中斷後回來的工作階段，較不會卡死或空白",
+                "zh-CN": "中断后回来的工作会话，较不会卡死或空白",
+                "en": "Resumed sessions are less likely to come back blank or stuck",
+                "ja": "中断後に戻ったセッションが空白や停止になりにくい",
+                "ko": "중단 뒤 다시 연 세션이 비거나 멈추는 일이 줄었다"
+              },
+              "body": {
+                "zh-TW": "你在對話中用過 `/cd` 換資料夾，之後再恢復 session（工作階段，一次連續的對話與工作紀錄），不會莫名回到空白位置。分叉的背景 agent 若在恢復時重建父提示詞失敗，也不會整場對話都被鎖成「already resuming」；歷史裡壞掉的 diagnostics attachment（診斷附件，記錄除錯資訊的附檔）則不再害每一回合失敗或讓互動程式停在沒反應的錯誤畫面。這像接力賽交棒時有三個容易掉棒的關卡：換跑道、找回前一棒的說明、檢查破損的紀錄；現在其中一關出錯，不會讓整隊永遠停在原地。",
+                "zh-CN": "你在对话中用过 `/cd` 换文件夹，之后再恢复 session（工作会话，一次连续的对话与工作记录），不会莫名回到空白位置。分叉的后台 agent 若在恢复时重建父提示词失败，也不会整场对话都被锁成“already resuming”；历史里坏掉的 diagnostics attachment（诊断附件，记录调试信息的附件）则不再害每一回合失败或让交互程序停在没反应的错误画面。这像接力赛交棒时有三个容易掉棒的关卡：换跑道、找回前一棒的说明、检查破损的记录；现在其中一关出错，不会让整队永远停在原地。",
+                "en": "If you used `/cd` to change folders during a conversation, resuming that session will no longer come back empty. A forked background agent whose parent prompt cannot be rebuilt during resume also will not remain stuck as “already resuming” for the rest of the session. And a malformed diagnostics attachment in the history will no longer make every turn fail or leave the interactive app frozen on an error screen. These are three handoff points in a relay race: changing lanes, recovering the previous runner's instructions, and checking a damaged record. One bad handoff no longer stops the team forever.",
+                "ja": "会話の途中で `/cd` を使ってフォルダを替えた後に session（作業セッション、連続した会話と作業の記録）を再開しても、空の場所へ戻ることはなくなった。分岐したバックグラウンド agent が再開時に親プロンプトを再構築できなくても、残りの session で “already resuming” のまま固まらない。履歴内の壊れた diagnostics attachment（診断用の添付記録）も、毎ターンの失敗や対話アプリの無反応なエラー画面を引き起こさなくなった。リレーで走路変更、前走者の指示回収、破れた記録の確認という三つの受け渡しを直すようなものである。",
+                "ko": "대화 중 `/cd`로 폴더를 바꾼 뒤 session(작업 세션, 이어지는 대화와 작업 기록)을 다시 열어도 빈 곳으로 돌아오지 않는다. 분기한 백그라운드 agent가 재개 중 부모 프롬프트를 다시 만들지 못해도 남은 session 내내 “already resuming”에 갇히지 않는다. 기록 속 망가진 diagnostics attachment(진단 정보를 담은 첨부 기록)도 매 차례 실패나 상호작용 앱의 멈춘 오류 화면을 만들지 않는다. 계주에서 차선 변경, 앞 주자의 지시 회수, 찢어진 기록 확인이라는 세 번의 바통 전달 중 하나가 어긋나도 팀 전체가 멈추지 않는 모습과 같다."
+              },
+              "original": "Fixed resuming a session after a mid-session `/cd` coming back empty\nFixed forked background agents getting stuck \"already resuming\" for the rest of the session when rebuilding the fork's parent prompt failed during resume\nFixed a resumed session failing every turn, or leaving the interactive app on an unresponsive error screen, when its history held a malformed diagnostics attachment"
+            },
+            {
+              "title": {
+                "zh-TW": "不同來源標記的 Claude 模型，不再認錯名字",
+                "zh-CN": "不同来源标记的 Claude 模型，不再认错名字",
+                "en": "Claude models with provider-prefixed names are recognized correctly",
+                "ja": "提供元付きの Claude モデル名を正しく認識する",
+                "ko": "제공자 접두사가 붙은 Claude 모델 이름을 제대로 인식한다"
+              },
+              "body": {
+                "zh-TW": "透過 gateway（閘道，替不同 AI 服務轉接請求的入口）找模型時，名稱前面帶供應商標記的 Claude 以前可能直接消失。例如 `vertex_ai/claude-*` 與 `bedrock/anthropic.claude-*` 現在都能被發現。同時，`modelOverrides` 裡不是 Anthropic 模型 ID 的鍵，不會再被誤當成這個 session 的正式模型 ID；文件說未知鍵應忽略，現在照做。像同名乘客在車票前多印了旅行社名稱：查票員會認出人，卻不會把旅行社名稱誤寫進護照欄位。",
+                "zh-CN": "透过 gateway（网关，替不同 AI 服务转接请求的入口）找模型时，名称前面带供应商标记的 Claude 以前可能直接消失。例如 `vertex_ai/claude-*` 与 `bedrock/anthropic.claude-*` 现在都能被发现。同时，`modelOverrides` 里不是 Anthropic 模型 ID 的键，不会再被误当成这个 session 的正式模型 ID；文档说未知键应忽略，现在照做。像同名乘客在车票前多印了旅行社名称：查票员会认出人，却不会把旅行社名称误写进护照栏。",
+                "en": "When a gateway discovers models, Claude names with a provider prefix no longer disappear. IDs such as `vertex_ai/claude-*` and `bedrock/anthropic.claude-*` are now found. Also, a key in `modelOverrides` that is not an Anthropic model ID will no longer be mistaken for the session's canonical model ID; unknown keys are ignored as the documentation says. It is like a ticket inspector recognizing a passenger whose ticket starts with a travel-agency label, without copying the agency name into the passenger's passport field.",
+                "ja": "gateway（複数の AI サービスへの要求を取り次ぐ入口）でモデルを探す時、提供元の接頭辞が付いた Claude 名が消えなくなった。`vertex_ai/claude-*` や `bedrock/anthropic.claude-*` のような ID も見つかる。同時に、`modelOverrides` 内で Anthropic のモデル ID ではないキーを session の正式なモデル ID と取り違えず、文書どおり未知のキーは無視する。旅行会社名が先頭に印字された切符でも乗客は認識し、旅行会社名をパスポート欄へ書き写さない検札のようなものである。",
+                "ko": "gateway(서로 다른 AI 서비스로 요청을 중계하는 입구)에서 모델을 찾을 때 제공자 접두사가 붙은 Claude 이름이 더는 사라지지 않는다. `vertex_ai/claude-*`와 `bedrock/anthropic.claude-*` 같은 ID도 발견한다. 또 `modelOverrides`에서 Anthropic 모델 ID가 아닌 키를 session의 공식 모델 ID로 잘못 여기지 않고, 문서대로 알 수 없는 키는 무시한다. 여행사 이름이 앞에 찍힌 승차권을 보고도 승객은 알아보되 여행사 이름을 여권 칸에 쓰지 않는 검표와 같다."
+              },
+              "original": "Fixed gateway model discovery hiding Claude models registered under provider-prefixed IDs such as `vertex_ai/claude-*` or `bedrock/anthropic.claude-*`\nFixed `modelOverrides` keys that aren't Anthropic model IDs being treated as the session's canonical model ID; unknown keys are now ignored as documented"
+            },
+            {
+              "title": {
+                "zh-TW": "管理端與本機的環境變數，現在會合併保留",
+                "zh-CN": "管理端与本机的环境变量，现在会合并保留",
+                "en": "Admin and local environment settings now merge instead of replacing each other",
+                "ja": "管理側と端末側の環境変数が、上書きではなく併合される",
+                "ko": "관리 측과 컴퓨터 측 환경 변수가 덮어쓰기 대신 합쳐진다"
+              },
+              "body": {
+                "zh-TW": "公司從伺服器發下 managed settings（受管設定，由管理者統一控制的設定）時，本機 `managed-settings.json` 或 MDM 裝置管理設定檔裡的 `env` 區塊以前可能整個失效。現在管理端的環境變數會按鍵名合併，本機設定不會因為收到另一份設定就被整段蓋掉。兩份名單都寫了不同開關時會並列保留。像總公司寄來新的值班表，不再把分店牆上原有、沒有衝突的聯絡電話全數撕掉。",
+                "zh-CN": "公司从服务器发下 managed settings（受管设置，由管理员统一控制的设置）时，本机 `managed-settings.json` 或 MDM 设备管理配置文件里的 `env` 区块以前可能整个失效。现在管理端的环境变量会按键名合并，本机设置不会因为收到另一份设置就被整段盖掉。两份名单都写了不同开关时会并列保留。像总公司寄来新的值班表，不再把分店墙上原有、没有冲突的联系电话全数撕掉。",
+                "en": "When a company delivers managed settings from its server, the `env` block in a machine-local `managed-settings.json` or an MDM profile used to risk being disabled altogether. It now merges administrator environment variables by key, so receiving another settings source does not replace the whole local block. Different switches from both lists remain present; the rules still decide what happens when the same key appears. It is like headquarters sending a new duty roster without tearing down every non-conflicting phone number already posted in a branch office.",
+                "ja": "会社がサーバーから managed settings（管理者が一括管理する設定）を配ると、端末ローカルの `managed-settings.json` や MDM profile（端末管理用の設定プロファイル）の `env` ブロックが丸ごと無効になることがあった。これからは管理側の環境変数をキーごとに併合するため、別の設定が届いてもローカルのブロック全体を上書きしない。両方のリストに別々のスイッチがあれば残り、同じキーの場合は設定の規則に従う。本社の勤務表が届いても、支店の壁にある衝突しない連絡先を全部はがさないようなものである。",
+                "ko": "회사가 서버에서 managed settings(관리자가 한꺼번에 제어하는 설정)를 내려보낼 때 컴퓨터 로컬 `managed-settings.json`이나 MDM profile(기기 관리 설정 파일)의 `env` 블록이 통째로 꺼질 수 있었다. 이제 관리자의 환경 변수는 키마다 합쳐져 다른 설정이 와도 로컬 블록 전체를 덮어쓰지 않는다. 두 목록에 서로 다른 스위치가 있으면 함께 남고, 같은 키일 때는 설정 규칙이 결과를 정한다. 본사 근무표가 왔다고 지점 벽에 있던 충돌 없는 연락처를 전부 떼어 내지 않는 모습과 같다."
+              },
+              "original": "Fixed managed settings: server-delivered settings no longer disable the env block of a machine-local `managed-settings.json` or MDM profile; admin env now merges per key"
+            },
+            {
+              "title": {
+                "zh-TW": "Linux 沙盒與罕見 Git 輸出，不再讓指令卡住",
+                "zh-CN": "Linux 沙盒与罕见 Git 输出，不再让命令卡住",
+                "en": "Linux sandboxes and unusual Git output no longer stall commands",
+                "ja": "Linux のサンドボックスと珍しい Git 出力でコマンドが止まらない",
+                "ko": "Linux 샌드박스와 드문 Git 출력이 명령어를 멈추게 하지 않는다"
+              },
+              "body": {
+                "zh-TW": "在 Linux 把工作資料夾列入 `sandbox.filesystem.denyWrite`（沙盒禁止寫入的路徑清單）後，沙盒指令以前可能連啟動都失敗，現在能正常啟動。另一個少見但惱人的停滯也修掉了：解析某些不尋常的 `git push` 輸出時，不再偶爾掛住。像倉庫的輸送線：標示禁止封箱的貨仍可上線運送；遇到格式罕見的出貨單，站員也能繼續處理，不會讓整條線停住。禁止寫入照舊，指令與 Git 則能把工作做完。",
+                "zh-CN": "在 Linux 把工作文件夹列入 `sandbox.filesystem.denyWrite`（沙盒禁止写入的路径清单）后，沙盒命令以前可能连启动都失败，现在能正常启动。另一个少见但恼人的停滞也修掉了：解析某些不寻常的 `git push` 输出时，不再偶尔挂住。像仓库的输送线：标明禁止封箱的货仍可上线运输；遇到格式罕见的出货单，工作人员也能继续处理，不会让整条线停住。禁止写入照旧，命令与 Git 则能把工作做完。",
+                "en": "On Linux, putting the working directory under `sandbox.filesystem.denyWrite` used to make a sandboxed command fail before it could start. It can now launch normally. Another rare but irritating stall is fixed too: parsing unusual `git push` output no longer occasionally hangs. Think of a warehouse conveyor: a parcel marked “do not seal” can still go onto the line, and staff can process an unusually formatted shipping slip without stopping it. Writes remain forbidden, while the command and Git can finish their work.",
+                "ja": "Linux で作業ディレクトリを `sandbox.filesystem.denyWrite`（サンドボックスで書き込みを禁じるパスの一覧）に含めると、以前はサンドボックス内のコマンドが開始すらできないことがあった。今は正常に起動する。また、珍しい `git push` の出力を解析した際にまれに固まる問題も直った。倉庫の搬送ラインのようなものである。封をしてはいけない荷物でもラインには載せられ、形式の珍しい出荷票でも作業員は処理を続けてラインを止めない。書き込み禁止は保ったまま、コマンドと Git は作業を完了できる。",
+                "ko": "Linux에서 작업 폴더를 `sandbox.filesystem.denyWrite`(샌드박스에서 쓰기를 막는 경로 목록)에 넣으면 예전에는 샌드박스 명령어가 시작조차 못 할 수 있었다. 이제는 정상으로 실행된다. 또 특이한 `git push` 출력을 읽을 때 가끔 멈추던 드문 문제도 고쳤다. 창고의 컨베이어 벨트를 떠올리면 된다. 포장 금지 표시가 붙은 물건도 벨트에는 올릴 수 있고, 형식이 드문 출하 전표도 직원이 처리해 벨트 전체를 멈추지 않는다. 쓰기 금지는 유지하면서 명령어와 Git은 일을 마칠 수 있다."
+              },
+              "original": "Fixed sandboxed commands failing to start on Linux when `sandbox.filesystem.denyWrite` covers the working directory\nFixed a rare hang when parsing unusual `git push` output"
+            },
+            {
+              "title": {
+                "zh-TW": "長對話的自動壓縮，會更嚴守模型容量",
+                "zh-CN": "长对话的自动压缩，会更严守模型容量",
+                "en": "Auto-compaction now respects model context limits more consistently",
+                "ja": "長い会話の自動圧縮が、モデルの文脈上限をより確実に守る",
+                "ko": "긴 대화의 자동 압축이 모델 문맥 한도를 더 꾸준히 지킨다"
+              },
+              "body": {
+                "zh-TW": "工作階段越堆越長時，會啟用自動壓縮（auto-compaction，把前段內容濃縮以騰出空間）。它現在會更早守住模型的 context window（上下文視窗，模型一次能記住的內容容量）。`CLAUDE_CODE_DISABLE_1M_CONTEXT` 已改成：所有原生支援 1M 視窗的 Claude 模型都會透過壓縮維持在 200K，並在沒守住時於啟動時警告。遇到不認得的模型 ID，也會假定一個容量並在超限前壓縮，不再任它長過頭。若你要恢復後一項的舊行為，請在啟動 Claude 的環境變數加入 `CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT=1`。像行李箱裝滿前先整理衣物，而不是等拉鍊裂開才發現放不下。",
+                "zh-CN": "对话越堆越长时，自动压缩（auto-compaction，把前段内容浓缩以腾出空间）现在会更早守住模型的 context window（上下文窗口，模型一次能记住的内容容量）。`CLAUDE_CODE_DISABLE_1M_CONTEXT` 已改成：所有原生支持 1M 窗口的 Claude 模型都会通过压缩维持在 200K，并在没守住时于启动时警告。遇到不认得的模型 ID，也会假定一个容量并在超限前压缩，不再任它长过头。若你要恢复后一项的旧行为，请在启动 Claude 的环境变量加入 `CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT=1`。像行李箱装满前先整理衣物，而不是等拉链裂开才发现放不下。",
+                "en": "As a conversation grows, auto-compaction now more consistently protects a model's context window: the amount of conversation it can hold at once. `CLAUDE_CODE_DISABLE_1M_CONTEXT` now keeps every Claude model with a native 1M window at 200K through compaction, and startup warns if that limit is not being held. For an unrecognized model ID, Claude now assumes a window and compacts before it is exceeded rather than allowing unchecked growth. To restore the old behavior for unrecognized IDs, add `CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT=1` to the environment that launches Claude. It is like folding clothes before a suitcase is full, not waiting for the zipper to split.",
+                "ja": "会話が長くなると、auto-compaction（前半の内容を要約して空きを作る自動圧縮）がモデルの context window（一度に覚えておける会話量）をより確実に守る。`CLAUDE_CODE_DISABLE_1M_CONTEXT` は、ネイティブで 1M の窓を持つ全 Claude モデルを圧縮により 200K に保つ仕様となり、保てない場合は起動時に警告する。未知のモデル ID にも想定上限を設け、超える前に圧縮する。未知 ID の旧挙動へ戻すには、Claude を起動する環境変数に `CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT=1` を加える。スーツケースが閉まらなくなる前に服をたたむようなものだ。",
+                "ko": "대화가 길어질수록 auto-compaction(앞부분을 요약해 공간을 만드는 자동 압축)이 모델의 context window(한 번에 기억할 수 있는 대화 용량)를 더 확실히 지킨다. `CLAUDE_CODE_DISABLE_1M_CONTEXT`는 이제 기본 1M 창을 가진 모든 Claude 모델을 압축으로 200K에 유지하며, 지키지 못하면 시작할 때 경고한다. 알 수 없는 모델 ID도 예상 용량을 두고 넘기기 전에 압축한다. 알 수 없는 ID의 예전 행동으로 돌아가려면 Claude를 시작하는 환경 변수에 `CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT=1`을 넣는다. 여행 가방 지퍼가 터진 뒤가 아니라 차기 전에 옷을 정리하는 모습과 같다."
+              },
+              "original": "Changed `CLAUDE_CODE_DISABLE_1M_CONTEXT` to hold every Claude model with a native 1M window to 200K via auto-compaction, not just a fixed list; a startup warning now appears when auto-compaction isn't holding the session to 200K\nChanged auto-compact to keep sessions on unrecognized model IDs within the assumed context window instead of letting them grow past it; set `CLAUDE_CODE_DISABLE_UNKNOWN_MODEL_WINDOW_ENFORCEMENT=1` to restore the previous behavior"
+            },
+            {
+              "title": {
+                "zh-TW": "程式碼審查指令統一，也會記住你上次要多仔細",
+                "zh-CN": "代码审查指令统一，也会记住你上次要多仔细",
+                "en": "Code review commands are unified and remember your chosen depth",
+                "ja": "コードレビューの指令が統一され、前回選んだ深さも覚える",
+                "ko": "코드 검토 명령어가 통합되고 지난 검토 깊이도 기억한다"
+              },
+              "body": {
+                "zh-TW": "準備送出改動或 PR（pull request，請人檢查並合併程式改動的請求）前，`/review` 現在就是 `/code-review` 的另一個名字。輸入 `/code-review` 可檢查目前 diff（差異，尚未合併的程式改動）或 PR；要指定深度可用 `/code-review <level> <pr#>`，例如 `/code-review ultra` 要求深入的雲端審查。第二次審查若不填 level，會沿用你上次選的程度；想改成 high，就輸入 `/code-review high`。像同一個洗衣店有兩個入口招牌，現在都通往同一張櫃台，店員還記得你上回選的是快洗還是精洗。",
+                "zh-CN": "准备提交改动或 PR（pull request，请人检查并合并代码改动的请求）前，`/review` 现在就是 `/code-review` 的另一个名字。输入 `/code-review` 可检查当前 diff（差异，尚未合并的代码改动）或 PR；要指定深度可用 `/code-review <level> <pr#>`，例如 `/code-review ultra` 要求深入的云端审查。第二次审查若不填 level，会沿用你上次选的程度；想改成 high，就输入 `/code-review high`。像同一家洗衣店有两个入口招牌，现在都通往同一张柜台，店员还记得你上回选的是快洗还是精洗。",
+                "en": "Before submitting changes or a PR, `/review` is now another name for `/code-review`. Run `/code-review` to review the current diff or a PR; use `/code-review <level> <pr#>` to choose a depth, and `/code-review ultra` for a deep cloud review. If you omit the level next time, it reuses the level you last chose. To switch to high, type `/code-review high`. It is like two signs for one laundry counter: both lead to the same service, and the clerk remembers whether you chose a quick wash or careful cleaning last time.",
+                "ja": "変更や PR（pull request、コード変更の確認と統合を頼む申請）を出す前に、`/review` は `/code-review` の別名になった。`/code-review` で現在の diff（差分、まだ統合されていない変更）または PR を確認でき、深さを指定するなら `/code-review <level> <pr#>` を使う。`/code-review ultra` は深いクラウドレビューを求める。次回 level を省けば前回の深さを再利用し、high に替えるなら `/code-review high` と打つ。同じクリーニング店の二つの入口看板が同じカウンターにつながり、店員が前回のコースを覚えているようなものである。",
+                "ko": "변경 사항이나 PR(pull request, 코드 변경을 검토하고 합쳐 달라는 요청)을 내기 전, `/review`는 이제 `/code-review`의 다른 이름이다. `/code-review`로 현재 diff(차이, 아직 합쳐지지 않은 코드 변경)나 PR을 검토하고, 깊이를 정하려면 `/code-review <level> <pr#>`를 쓴다. `/code-review ultra`는 깊은 클라우드 검토를 요청한다. 다음에 level을 빼면 지난번 수준을 이어 쓰며, high로 바꾸려면 `/code-review high`를 입력한다. 같은 세탁소의 두 입구 표지가 한 카운터로 이어지고 직원이 지난번 코스를 기억하는 모습과 같다."
+              },
+              "original": "Changed `/review` to be an alias of `/code-review`, which reviews the current diff or a PR (`/code-review <level> <pr#>`); use `/code-review ultra` for a deep cloud review\nChanged `/code-review` with no effort level to reuse the level you typed last; type a level like `/code-review high` to change it"
+            }
+          ]
+        },
         {
           "version": "2.1.222",
           "period": "2026-08-04",
@@ -441,199 +617,6 @@
               "original": "Changed the Gateway `model` field validation: non-string values are rejected with a 400 instead of being forwarded\nRemoved the repeated \"Permission mode changed while the auto-mode classifier call was queued\" notice from approval prompts"
             }
           ]
-        },
-        {
-          "version": "2.1.219",
-          "period": "2026-07-24",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Opus 5 上線成為預設，快速模式跟著換人",
-                "zh-CN": "Opus 5 上线成为默认，快速模式跟着换人",
-                "en": "Opus 5 lands as the default, and fast mode moves with it",
-                "ja": "Opus 5 が既定になり、高速モードの対象も入れ替わった",
-                "ko": "Opus 5가 기본이 되고 빠른 모드 대상도 바뀌었다"
-              },
-              "body": {
-                "zh-TW": "新的 Claude Opus 5 接手成為預設的 Opus 模型，代號是 `claude-opus-5`。它一次能讀進一百萬 context（模型一次記得住的文字量），快速模式的計價是每百萬文字單位進 10 美元、出 50 美元。連帶兩件事也跟著調整：`/fast` 這個快速模式不再適用 Opus 4.7，改成套用在 Opus 5 和 Opus 4.8 上；`claude-api` 這份技能檔的預設模型也換成 Opus 5，並附上從 Opus 4.8 搬過來的做法。像學校換了新版教科書，開學領到的自動就是新版；但你書單上如果寫死舊版書號，訂起來就會撲空。你什麼都不用改就會用到新模型，只有手邊寫死舊模型代號的腳本，得回頭檢查。",
-                "zh-CN": "新的 Claude Opus 5 接手成为默认的 Opus 模型，代号是 `claude-opus-5`。它一次能读进一百万 context（模型一次记得住的文字量），快速模式的计价是每百万文字单位进 10 美元、出 50 美元。连带两件事也跟着调整：`/fast` 这个快速模式不再适用 Opus 4.7，改成套用在 Opus 5 和 Opus 4.8 上；`claude-api` 这份技能档的默认模型也换成 Opus 5，并附上从 Opus 4.8 搬过来的做法。像学校换了新版教科书，开学领到的自动就是新版；但你书单上如果写死旧版书号，订起来就会扑空。你什么都不用改就会用到新模型，只有手边写死旧模型代号的脚本，得回头检查。",
-                "en": "Claude Opus 5 (`claude-opus-5`) takes over as the default Opus model, with a 1M context window and fast-mode pricing of $10 in and $50 out per million tokens. Two things move with it: `/fast` no longer covers Opus 4.7 and now applies to Opus 5 and Opus 4.8, and the `claude-api` skill defaults to Opus 5 with a documented path over from Opus 4.8. A school switching to a new edition of a textbook works the same way: what you are handed at the start of term is the new one, but a reading list with the old ISBN written into it will order nothing. You get the new model without changing anything; only scripts with an older model id hard-coded need a second look.",
-                "ja": "新しい Claude Opus 5 が既定の Opus モデルを引き継いだ。識別子は `claude-opus-5` だ。一度に読み込める context（モデルが一度に覚えていられる文字量）は百万で、高速モードの料金は百万文字単位あたり入力 10 ドル、出力 50 ドルになる。あわせて二点が動く。`/fast` は Opus 4.7 の対象から外れ、Opus 5 と Opus 4.8 に適用される。`claude-api` スキルの既定も Opus 5 になり、Opus 4.8 からの移行手順が添えられた。学校の教科書が新版に切り替わるのと同じで、始業時に配られるのは自動的に新しいほうだ。ただし書名一覧に旧版の番号を書き込んだままなら、注文しても届かない。何もしなくても新しいモデルを使うことになり、見直しが要るのは古い識別子を直接書き込んだスクリプトだけだ。",
-                "ko": "새 Claude Opus 5가 기본 Opus 모델을 넘겨받았다. 식별자는 `claude-opus-5`다. 한 번에 읽어 들이는 context(모델이 한 번에 기억하는 글자 분량)는 백만이고, 빠른 모드 요금은 백만 문자 단위당 입력 10달러, 출력 50달러다. 여기에 두 가지가 함께 움직인다. `/fast`는 Opus 4.7에서 빠지고 Opus 5와 Opus 4.8에 적용된다. `claude-api` 스킬의 기본값도 Opus 5로 바뀌고 Opus 4.8에서 옮겨 오는 방법이 함께 붙었다. 학교가 교과서를 새 판으로 바꾸는 것과 같아서, 학기 초에 받는 것은 자동으로 새 판이다. 다만 도서 목록에 옛 판 번호를 박아 두었다면 주문해도 오지 않는다. 아무것도 하지 않아도 새 모델을 쓰게 되고, 되짚어 볼 것은 옛 식별자를 그대로 적어 둔 스크립트뿐이다."
-              },
-              "original": "Added Claude Opus 5 (`claude-opus-5`), now the default Opus model — 1M context, fast mode at $10/$50 per Mtok\nRemoved Opus 4.7 from fast mode; `/fast` now applies to Opus 5 and Opus 4.8\nUpdated the claude-api skill to default to Claude Opus 5, with a migration path from Opus 4.8"
-            },
-            {
-              "title": {
-                "zh-TW": "`/model` 選單的三個看走眼，一次修好",
-                "zh-CN": "`/model` 菜单的三个看走眼，一次修好",
-                "en": "Three ways the `/model` picker misled you, now fixed",
-                "ja": "`/model` の一覧で見誤る三点をまとめて直した",
-                "ko": "`/model` 목록에서 잘못 보게 되던 세 가지를 한 번에 고쳤다"
-              },
-              "body": {
-                "zh-TW": "挑模型是很快的動作，你掃一眼就按下去，所以清單寫錯特別傷。這版修掉三處：合併後的 Opus 那一列只寫「Opus」，看不出它其實是「Opus (1M context)」；Fable 那一列對明明已包含它的方案顯示「需要用量點數」，原因是舊的暫存把那句標籤烙在裡面沒更新；還有高亮，以前會標到清單中不特定的一段，現在只標最新那個模型的名字，你一眼就知道新的是哪個。像餐廳菜單把價格印錯又把招牌菜標在別道菜旁邊——菜沒問題，是菜單在誤導人。",
-                "zh-CN": "挑模型是很快的动作，你扫一眼就按下去，所以清单写错特别伤。这版修掉三处：合并后的 Opus 那一列只写「Opus」，看不出它其实是「Opus (1M context)」；Fable 那一列对明明已包含它的方案显示「需要用量点数」，原因是旧的暂存把那句标签烙在里面没更新；还有高亮，以前会标到清单中不特定的一段，现在只标最新那个模型的名字，你一眼就知道新的是哪个。像餐厅菜单把价格印错又把招牌菜标在别道菜旁边——菜没问题，是菜单在误导人。",
-                "en": "Picking a model is a glance-and-click action, which is exactly why a wrong list hurts. Three fixes here: the merged Opus row read plain \"Opus\" instead of \"Opus (1M context)\"; the Fable row claimed \"Requires usage credits\" on plans that already include it, because a stale cache had baked that label in; and the highlight, which used to mark an arbitrary subset of the list, now marks only the newest model's name so you can see at a glance which release is new. A menu with the wrong prices and the chef's-special marker next to the wrong dish — the kitchen is fine, the menu is misleading you.",
-                "ja": "モデル選びは一目見て押すだけの動作だから、一覧が誤っていると効き方が大きい。今回は三点を直した。統合された Opus の行が「Opus (1M context)」ではなく素の「Opus」と出ていた点。Fable の行が、それを含むプランに対して「利用クレジットが必要」と表示していた点。これは古いキャッシュがその文言を焼き付けたまま残っていたためだ。そして強調表示で、以前は一覧の中途半端な範囲を指していたが、今は最新モデルの名前だけを標す。どれが新しいのかが一目でわかる。値段を刷り間違え、看板料理の印を別の皿に付けた品書きのようなものだ。厨房ではなく品書きが人を惑わせていた。",
-                "ko": "모델 고르기는 한 번 훑고 누르는 동작이라 목록이 틀리면 타격이 크다. 이번에 세 군데를 고쳤다. 합쳐진 Opus 줄이 \"Opus (1M context)\"가 아니라 그냥 \"Opus\"로 나오던 것, Fable 줄이 이미 포함된 요금제에도 \"사용 크레딧 필요\"라고 알리던 것(오래된 캐시가 그 문구를 그대로 구워 둔 탓이다), 그리고 강조 표시가 예전에는 목록의 어중간한 구간을 가리켰지만 이제는 가장 새 모델의 이름만 표시한다는 것이다. 어느 쪽이 새것인지 한눈에 들어온다. 값을 잘못 찍고 대표 메뉴 표시를 엉뚱한 접시에 붙인 차림표와 같다. 주방이 아니라 차림표가 사람을 헷갈리게 하고 있었다."
-              },
-              "original": "Fixed the Fable model row showing \"Requires usage credits\" for plans that include it, when a stale cache had baked the label in\nFixed the `/model` picker showing the merged Opus row as plain \"Opus\" instead of \"Opus (1M context)\"\nChanged the `/model` picker to highlight only the newest model's name, so the highlight marks the new release rather than an arbitrary subset of the list"
-            },
-            {
-              "title": {
-                "zh-TW": "子代理可以再叫子代理，最多疊三層",
-                "zh-CN": "子代理可以再叫子代理，最多叠三层",
-                "en": "Subagents can now spawn subagents, three layers deep",
-                "ja": "サブエージェントがさらにサブエージェントを呼べる、三層まで",
-                "ko": "서브에이전트가 다시 서브에이전트를 부른다, 세 층까지"
-              },
-              "body": {
-                "zh-TW": "派一個助手去做事，它做到一半發現該再找兩個人分頭查——以前它做不到，只能自己吞下去。現在子代理預設可以往下再開子代理，最多疊到三層（原本只有一層）。不想要這種層層轉包，在環境變數設 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` 就關掉。同時，第二層以下開出來的子代理不再是黑箱：只要加上 `--forward-subagent-text`，它們的輸出會出現在 stream-json 裡，並掛在當初叫出它的那個代理底下，看得出誰是誰派的。像工班分包，以前只准分一層，現在准到三層，但每一層是誰發包的都要登記在同一張表上。",
-                "zh-CN": "派一个助手去做事，它做到一半发现该再找两个人分头查——以前它做不到，只能自己吞下去。现在子代理默认可以往下再开子代理，最多叠到三层（原本只有一层）。不想要这种层层转包，在环境变量设 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` 就关掉。同时，第二层以下开出来的子代理不再是黑箱：只要加上 `--forward-subagent-text`，它们的输出会出现在 stream-json 里，并挂在当初叫出它的那个代理底下，看得出谁是谁派的。像工班分包，以前只准分一层，现在准到三层，但每一层是谁发包的都要登记在同一张表上。",
-                "en": "You send one assistant off to do a job; halfway through it realises the work should be split between two more people — and until now it could not do that, it had to swallow the whole thing itself. Subagents can now spawn their own subagents, three levels deep by default, up from one. If you would rather not have work subcontracted down a chain, set `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` to switch nesting off. The deeper ones are no longer a black box either: with `--forward-subagent-text`, subagents spawned at depth two and below show up in stream-json, keyed to the agent `tool_use` id that spawned them, so you can see who dispatched whom. Building trades subcontract the same way — one level used to be the limit, three is now allowed, and every level is logged against whoever hired it.",
-                "ja": "助手を一人送り出したところ、途中で「これは二人に分けて調べさせるべきだ」と気づく。これまではそれができず、自分で抱え込むしかなかった。今はサブエージェントがさらにサブエージェントを立てられる。既定で三層まで、以前は一層だった。下請けが連なるのが好みでないなら、環境変数に `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1` を設定すれば入れ子は止まる。二層目以降も箱の中身が見えないままではない。`--forward-subagent-text` を付ければ、深さ二以上で立ったサブエージェントの出力が stream-json に現れ、呼び出した側のエージェントの `tool_use` id にひも付く。誰が誰を出したのかがたどれる。建設の下請けと同じ話で、以前は一次までだったのが三次まで認められ、そのかわり各段の発注元は同じ台帳に載る。",
-                "ko": "조수 하나를 내보냈는데 도중에 \"이건 둘로 나눠 알아보게 해야 한다\"고 깨닫는다. 지금까지는 그럴 수 없어서 혼자 떠안아야 했다. 이제 서브에이전트가 다시 서브에이전트를 세울 수 있다. 기본이 세 층까지이고, 예전에는 한 층이었다. 하도급이 줄줄이 이어지는 것이 싫다면 환경 변수에 `CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1`을 넣으면 중첩이 멈춘다. 두 번째 층 아래도 속이 안 보이는 상자로 남지 않는다. `--forward-subagent-text`를 붙이면 깊이 2 이상에서 생긴 서브에이전트의 출력이 stream-json에 나타나고, 자신을 부른 에이전트의 `tool_use` id에 묶인다. 누가 누구를 내보냈는지 따라갈 수 있다. 건설 하도급과 같은 이야기다. 예전에는 1차까지였던 것이 3차까지 허용되고, 대신 각 단계의 발주처가 같은 장부에 오른다."
-              },
-              "original": "Subagents can now spawn nested subagents up to depth 3 by default (was 1); set CLAUDE_CODE_MAX_SUBAGENT_SPAWN_DEPTH=1 to disable nesting\nAdded nested subagent forwarding in stream-json: subagents spawned at depth-2+ now appear when `--forward-subagent-text` is set, keyed by their spawning Agent `tool_use` id"
-            },
-            {
-              "title": {
-                "zh-TW": "動態工作流程預設收斂到 15 個代理以內，可自己改",
-                "zh-CN": "动态工作流程默认收敛到 15 个代理以内，可自己改",
-                "en": "Dynamic workflows now aim for under 15 agents by default",
-                "ja": "動的ワークフローは既定で 15 エージェント未満をめざす",
-                "ko": "동적 워크플로가 기본적으로 에이전트 15개 미만을 목표로 한다"
-              },
-              "body": {
-                "zh-TW": "交給系統自動編排的工作流程，以前沒有規模上的建議，一個任務可能被拆成幾十個代理各跑各的，你既看不出全貌也算不出成本。現在預設是中等規模，也就是「盡量少於 15 個代理」，這只是建議不是硬限制。想換規模有兩條路。臨時改：在 `/config` 裡選 Dynamic workflow size，可以挑別的大小或不設限。想固定下來：在設定檔加一行 `workflowSizeGuideline`，這樣任何設定檔都能指定，例如\n\n```\n{\"workflowSizeGuideline\": \"medium\"}\n```\n\n設定檔一旦寫了這個鍵，`/config` 裡那一列就會自動隱藏，避免兩邊講不一樣的話。另外，工作流程跑起來時，狀態列會直接顯示目前用的是哪個規模，旁邊附上去 `/config` 改的指路。像旅行團有沒有規定團員人數上限——沒規定不代表比較自由，只是你到了現場才知道來了幾個人。",
-                "zh-CN": "交给系统自动编排的工作流程，以前没有规模上的建议，一个任务可能被拆成几十个代理各跑各的，你既看不出全貌也算不出成本。现在默认是中等规模，也就是「尽量少于 15 个代理」，这只是建议不是硬限制。想换规模有两条路。临时改：在 `/config` 里选 Dynamic workflow size，可以挑别的大小或不设限。想固定下来：在配置文件加一行 `workflowSizeGuideline`，这样任何配置文件都能指定，例如\n\n```\n{\"workflowSizeGuideline\": \"medium\"}\n```\n\n配置文件一旦写了这个键，`/config` 里那一列就会自动隐藏，避免两边讲不一样的话。另外，工作流程跑起来时，状态栏会直接显示目前用的是哪个规模，旁边附上去 `/config` 改的指路。像旅行团有没有规定团员人数上限——没规定不代表比较自由，只是你到了现场才知道来了几个人。",
-                "en": "Workflows the system plans for you had no size guidance, so one task could fan out into dozens of agents running in parallel, leaving you unable to see the shape of it or estimate the cost. The default is now a medium guideline — aim for fewer than 15 agents — and it is advisory, not a hard cap. There are two ways to change it. Ad hoc: pick Dynamic workflow size in `/config` for another size or unrestricted. Permanently: set `workflowSizeGuideline` in any settings file, for example\n\n```\n{\"workflowSizeGuideline\": \"medium\"}\n```\n\nWhile a settings file specifies that key, the `/config` row hides itself so the two cannot disagree. A running workflow also shows the current size in its status line, with a pointer to `/config` if you want to change it. Think of a tour with no stated cap on group size: the absence of a limit is not freedom, it just means you find out how many people showed up when you get there.",
-                "ja": "自動で組み立てられるワークフローには規模の目安がなく、一つの依頼が数十のエージェントに分かれて並走することもあった。全体像も費用も掴めない。既定は中規模、つまり「エージェント 15 未満をめざす」になった。これは目安であって上限ではない。変え方は二通り。その場で変えるなら `/config` の Dynamic workflow size から別の規模か無制限を選ぶ。固定したいなら、任意の設定ファイルに `workflowSizeGuideline` を書く。たとえば\n\n```\n{\"workflowSizeGuideline\": \"medium\"}\n```\n\n設定ファイルがこの鍵を指定している間、`/config` の行は自動的に隠れる。両側で食い違わないためだ。実行中のワークフローでは、いま使っている規模がステータス行に出て、変更したいときの `/config` への道案内も添う。人数の上限を告げないツアーのようなものだ。上限がないのは自由ではなく、現地に着くまで何人来るかわからないというだけだ。",
-                "ko": "알아서 짜 주는 워크플로에는 규모 기준이 없어서, 요청 하나가 수십 개 에이전트로 갈라져 나란히 도는 일도 있었다. 전체 모습도 비용도 잡히지 않는다. 이제 기본은 중간 규모, 곧 \"에이전트 15개 미만을 목표로\"이며, 상한이 아니라 권고다. 바꾸는 길은 둘이다. 그때그때 바꾸려면 `/config`의 Dynamic workflow size에서 다른 규모나 무제한을 고른다. 고정하려면 아무 설정 파일에나 `workflowSizeGuideline`을 적는다. 예를 들면\n\n```\n{\"workflowSizeGuideline\": \"medium\"}\n```\n\n설정 파일이 이 키를 지정하고 있는 동안 `/config`의 그 줄은 알아서 숨는다. 양쪽이 서로 다른 말을 하지 않게 하기 위해서다. 실행 중인 워크플로에서는 지금 쓰는 규모가 상태 줄에 나오고, 바꾸고 싶을 때 갈 `/config` 안내도 함께 붙는다. 인원 상한을 알리지 않는 여행처럼, 상한이 없다는 것은 자유가 아니라 현장에 가서야 몇 명이 왔는지 안다는 뜻이다."
-              },
-              "original": "Added the `workflowSizeGuideline` settings key so the advisory Dynamic workflow size guideline can be set from any settings file; the `/config` row is hidden while one does\nChanged dynamic workflows to default to a medium size guideline (aim for fewer than 15 agents); pick another size or unrestricted with Dynamic workflow size in `/config`\nAdded the current default workflow size to the running-workflow status line, with a pointer to `/config` for changing it"
-            },
-            {
-              "title": {
-                "zh-TW": "沙箱連外網，可以設成直接擋掉不再問你",
-                "zh-CN": "沙箱连外网，可以设成直接挡掉不再问你",
-                "en": "Sandboxed commands can now block unlisted hosts silently",
-                "ja": "サンドボックスの外部接続を、訊かずに遮断する設定が入った",
-                "ko": "샌드박스의 외부 연결을 묻지 않고 막는 설정이 생겼다"
-              },
-              "body": {
-                "zh-TW": "在沙箱（把指令關在受限環境裡跑的隔離區）裡執行的指令想連某個網站，而那個網站不在你的允許清單上時，以前會跳出來問你要不要放行。跑自動化的場合沒人在鍵盤前，這一問就是整條流程停住。新的 `sandbox.network.strictAllowlist` 讓你選擇直接拒絕、連問都不問。要開的話，在設定檔加上這段：\n\n```\n{\"sandbox\": {\"network\": {\"strictAllowlist\": true}}}\n```\n\n這裡的巢狀寫法是「一層包一層」：`sandbox` 裡有 `network`，`network` 裡才是 `strictAllowlist`。像大樓門禁改成沒登記就是進不來，警衛不再打電話上樓問你要不要放行——訪客會吃閉門羹，但半夜也不會有人被吵醒。",
-                "zh-CN": "在沙箱（把命令关在受限环境里跑的隔离区）里执行的命令想连某个网站，而那个网站不在你的允许清单上时，以前会弹出来问你要不要放行。跑自动化的场合没人在键盘前，这一问就是整条流程停住。新的 `sandbox.network.strictAllowlist` 让你选择直接拒绝、连问都不问。要开的话，在配置文件加上这段：\n\n```\n{\"sandbox\": {\"network\": {\"strictAllowlist\": true}}}\n```\n\n这里的嵌套写法是「一层包一层」：`sandbox` 里有 `network`，`network` 里才是 `strictAllowlist`。像大楼门禁改成没登记就是进不来，保安不再打电话上楼问你要不要放行——访客会吃闭门羹，但半夜也不会有人被吵醒。",
-                "en": "When a command running inside the sandbox — the restricted area commands are confined to — tries to reach a host that is not on your allowlist, you used to get a prompt asking whether to permit it. In an automated run there is nobody at the keyboard, so that prompt is where the whole pipeline stops. The new `sandbox.network.strictAllowlist` setting lets you deny outright, without asking. To turn it on, add this to a settings file:\n\n```\n{\"sandbox\": {\"network\": {\"strictAllowlist\": true}}}\n```\n\nThe nesting reads as one box inside another: `sandbox` contains `network`, and `network` contains `strictAllowlist`. It is a building switching to strict door policy — unregistered visitors simply do not get in, and the guard stops phoning upstairs to ask. Some visitors are turned away, but nobody gets woken at three in the morning.",
-                "ja": "サンドボックス（コマンドを閉じ込めて動かす制限区画）の中のコマンドが、許可一覧にない相手に接続しようとすると、これまでは通してよいか尋ねる確認が出ていた。自動実行では鍵盤の前に誰もいないので、その確認で流れ全体が止まる。新しい `sandbox.network.strictAllowlist` を使えば、尋ねずにそのまま拒否できる。有効にするには設定ファイルにこう書く。\n\n```\n{\"sandbox\": {\"network\": {\"strictAllowlist\": true}}}\n```\n\n入れ子は「箱の中に箱」と読む。`sandbox` の中に `network` があり、その中に `strictAllowlist` がある。建物の入館規則を厳格側に倒すのと同じだ。登録のない来訪者はそもそも入れず、警備が上階に電話して可否を訊くこともなくなる。断られる客は出るが、深夜に起こされる人もいなくなる。",
-                "ko": "샌드박스(명령을 가둬 놓고 돌리는 제한 구역) 안의 명령이 허용 목록에 없는 상대에 접속하려 하면, 지금까지는 통과시킬지 묻는 확인이 떴다. 자동 실행에서는 자판 앞에 아무도 없으니 그 확인에서 흐름 전체가 멈춘다. 새로 들어온 `sandbox.network.strictAllowlist`를 쓰면 묻지 않고 바로 거절할 수 있다. 켜려면 설정 파일에 이렇게 적는다.\n\n```\n{\"sandbox\": {\"network\": {\"strictAllowlist\": true}}}\n```\n\n중첩은 \"상자 속의 상자\"로 읽는다. `sandbox` 안에 `network`가 있고 그 안에 `strictAllowlist`가 있다. 건물 출입 규정을 엄격한 쪽으로 돌리는 것과 같다. 등록 없는 방문자는 애초에 들어오지 못하고, 경비가 위층에 전화해 가부를 묻는 일도 없어진다. 돌아가는 손님은 생기지만 새벽에 깨는 사람도 없어진다."
-              },
-              "original": "Added `sandbox.network.strictAllowlist` setting to deny non-allowlisted hosts for sandboxed commands without prompting"
-            },
-            {
-              "title": {
-                "zh-TW": "外部工具接不上時，終於說得出哪裡出錯",
-                "zh-CN": "外部工具接不上时，终于说得出哪里出错",
-                "en": "When an MCP server fails, you finally hear why",
-                "ja": "外部ツールにつながらないとき、理由がやっと出るようになった",
-                "ko": "외부 도구에 연결되지 않을 때 이유를 드디어 알려준다"
-              },
-              "body": {
-                "zh-TW": "MCP（Model Context Protocol，讓 AI 接上外部工具的協定）伺服器連不上，以前只知道失敗，不知道為什麼。這版三處補上線索。`claude mcp list` 和 `/mcp` 現在會附上 HTTP 狀態碼和錯誤內容，是憑證過期還是位址打錯，一看就分得出來；設定值前後藏著看不見的空白時，也會出聲警告——那種錯最折磨人，因為畫面上看起來完全正常。沒有畫面的 stream-json 啟動事件則多了 `mcp_server_errors`，把 `--mcp-config` 裡因為驗證不通過而被略過的項目列出來，終端機執行時也會在開頭印警告。像寄信被退回，以前只收到一張「無法投遞」，現在退件單上寫了地址哪一行有問題。",
-                "zh-CN": "MCP（Model Context Protocol，让 AI 接上外部工具的协议）服务器连不上，以前只知道失败，不知道为什么。这版三处补上线索。`claude mcp list` 和 `/mcp` 现在会附上 HTTP 状态码和错误内容，是凭证过期还是地址打错，一看就分得出来；配置值前后藏着看不见的空白时，也会出声警告——那种错最折磨人，因为画面上看起来完全正常。没有画面的 stream-json 启动事件则多了 `mcp_server_errors`，把 `--mcp-config` 里因为验证不通过而被略过的项目列出来，终端执行时也会在开头打印警告。像寄信被退回，以前只收到一张「无法投递」，现在退件单上写了地址哪一行有问题。",
-                "en": "When an MCP server would not connect, you knew it had failed and nothing more. Three additions here. `claude mcp list` and `/mcp` now report the HTTP status and error text, so an expired credential looks different from a mistyped address; and config values with hidden leading or trailing whitespace now raise a warning — the most maddening class of error, because the screen looks entirely correct. The headless stream-json init event gained `mcp_server_errors`, listing the `--mcp-config` entries that config validation skipped, and terminal runs print a startup warning too. A returned letter used to come back stamped only \"undeliverable\"; now the slip tells you which line of the address is wrong.",
-                "ja": "MCP（AI を外部ツールにつなぐための取り決め）のサーバーにつながらないとき、失敗したことだけがわかって理由はわからなかった。今回は三点で手がかりが増えた。`claude mcp list` と `/mcp` は HTTP のステータスとエラー本文を添えるようになり、資格情報の期限切れなのか、宛先の打ち間違いなのかが見分けられる。設定値の前後に見えない空白が紛れている場合も警告が出る。画面上は正しく見えるだけに、この手の誤りがいちばん厄介だ。画面を持たない stream-json の初期化イベントには `mcp_server_errors` が加わり、`--mcp-config` の項目のうち検証で飛ばされたものを並べる。端末での実行でも起動時に警告が出る。差し戻された郵便のようなもので、以前は「配達不能」の判だけだったが、今は住所のどの行が問題かが伝票に書いてある。",
-                "ko": "MCP(AI를 외부 도구에 연결하는 약속) 서버에 연결되지 않을 때, 실패했다는 것만 알 뿐 이유는 알 수 없었다. 이번에 세 군데에서 단서가 늘었다. `claude mcp list`와 `/mcp`는 HTTP 상태와 오류 본문을 함께 알려주어, 자격 증명이 만료된 것인지 주소를 잘못 친 것인지 가려낼 수 있다. 설정값 앞뒤에 보이지 않는 공백이 섞여 있을 때도 경고가 뜬다. 화면상으로는 멀쩡해 보이기에 이런 오류가 가장 고약하다. 화면 없는 stream-json 초기화 이벤트에는 `mcp_server_errors`가 붙어, `--mcp-config` 항목 가운데 검증에서 건너뛴 것을 나열한다. 터미널 실행에서도 시작할 때 경고가 나온다. 반송된 우편과 같아서, 예전에는 \"배달 불가\" 도장만 찍혀 왔지만 이제는 주소의 어느 줄이 문제인지 전표에 적혀 있다."
-              },
-              "original": "Added `mcp_server_errors` to the headless stream-json init event, listing `--mcp-config` entries skipped by config validation; terminal runs print a startup warning\nAdded HTTP status and error text to `claude mcp list` and `/mcp` when a server fails to connect, and a warning for MCP config values with hidden leading or trailing whitespace"
-            },
-            {
-              "title": {
-                "zh-TW": "公司派下來的外部工具清單，不再被本機設定改寫",
-                "zh-CN": "公司派下来的外部工具清单，不再被本机设置改写",
-                "en": "Managed MCP lists stop reading variables from the settings file",
-                "ja": "会社が配る外部ツールの一覧が、手元の設定に書き換えられなくなった",
-                "ko": "회사가 내려보낸 외부 도구 목록이 로컬 설정에 덮이지 않는다"
-              },
-              "body": {
-                "zh-TW": "公司統一派發的 MCP 允許與拒絕清單，裡面常寫 `${VAR}` 這種變數，等實際執行時再換成真正的值。問題是以前它從設定檔裡的環境變數區塊取值——而設定檔就在使用者手上，等於管理者訂的規則，可以被本機的一行設定改掉。現在改成從啟動時的環境和受管理設定自己的環境取值，設定檔那份不再參與。像醫院的用藥規定，以前各護理站自己抄一份貼在白板上，誰都擦得掉；現在改成每次掃碼直接讀系統裡的正本。",
-                "zh-CN": "公司统一派发的 MCP 允许与拒绝清单，里面常写 `${VAR}` 这种变量，等实际执行时再换成真正的值。问题是以前它从配置文件里的环境变量区块取值——而配置文件就在用户手上，等于管理者订的规则，可以被本机的一行设置改掉。现在改成从启动时的环境和受管理设置自己的环境取值，配置文件那份不再参与。像医院的用药规定，以前各护理站自己抄一份贴在白板上，谁都擦得掉；现在改成每次扫码直接读系统里的正本。",
-                "en": "Centrally managed MCP allowlists and denylists often contain `${VAR}` entries that get substituted at run time. The catch was where the substitution read from: the env block of a settings file — a file that sits in the user's own hands, which meant a rule set by an administrator could be rewritten by one local line. Those entries now resolve from the startup environment and the managed-settings env instead, and the settings-file env no longer participates. Think of dosage rules in a hospital: they used to be copied onto a whiteboard at each nurses' station, where anyone could rub a figure out. Now they are scanned straight from the system's master copy each time.",
-                "ja": "会社がまとめて配る MCP の許可・拒否一覧には、`${VAR}` のような変数がよく書かれ、実行時に本当の値へ置き換わる。問題は置き換えの参照元だった。設定ファイルの環境変数の欄から読んでいたのだが、その設定ファイルは利用者の手元にある。つまり管理者が定めた規則を、手元の一行で書き換えられた。今は起動時の環境と、管理設定側の環境から解決するようになり、設定ファイルのものは関与しない。病院の投薬規定に似ている。以前は各詰所が白板に書き写していて、誰でも消せた。今は毎回コードを読み取って、システムの正本を直に参照する形になった。",
-                "ko": "회사가 일괄로 내려보내는 MCP 허용·거부 목록에는 `${VAR}` 같은 변수가 자주 들어가고, 실행할 때 진짜 값으로 바뀐다. 문제는 그 값을 어디서 읽어 오느냐였다. 설정 파일의 환경 변수 칸에서 읽었는데, 그 설정 파일은 사용자 손안에 있다. 관리자가 정한 규칙을 로컬의 한 줄로 다시 쓸 수 있었다는 뜻이다. 이제는 시작할 때의 환경과 관리 설정 쪽 환경에서 해결하고, 설정 파일의 것은 끼어들지 않는다. 병원의 투약 규정과 비슷하다. 예전에는 각 간호 스테이션이 화이트보드에 옮겨 적어 두어 누구든 지울 수 있었다. 이제는 매번 코드를 읽어 시스템의 원본을 그대로 참조한다."
-              },
-              "original": "Changed managed MCP allowlist/denylist `${VAR}` entries to resolve from the startup environment and managed-settings env instead of settings-file env"
-            },
-            {
-              "title": {
-                "zh-TW": "聊到一半加資料夾，掛鉤跟著醒過來",
-                "zh-CN": "聊到一半加文件夹，挂钩跟着醒过来",
-                "en": "Add a folder mid-conversation and a hook wakes up",
-                "ja": "会話の途中でフォルダを足すと、フックが目を覚ます",
-                "ko": "대화 도중 폴더를 더하면 훅이 깨어난다"
-              },
-              "body": {
-                "zh-TW": "同一個工作階段聊到一半，才想起另一個資料夾也得一起看，於是你把它加了進來。新的 DirectoryAdded 掛鉤（特定事件發生時自動觸發的小程式）就在這一刻醒過來，向周邊工具發出通知。只要輸入 `/add-dir` 指令，或是透過 SDK 發出 `register_repo_root` 控制請求來註冊新目錄，Claude Code 就會自動觸發這個掛鉤，讓周邊工具第一時間掌握目錄變更。像展覽館在展覽進行中臨時加設新展位，廣播室與服務台隨即收到連線通知，周邊服務就能馬上配合跟上。",
-                "zh-CN": "同一个工作阶段聊到一半，才想起另一个文件夹也得一起看，于是你把它加了进来。新的 DirectoryAdded 挂钩（特定事件发生时自动触发的小程序）就在这一刻醒过来，向周边工具发出通知。只要输入 `/add-dir` 命令，或是透过 SDK 发出 `register_repo_root` 控制请求来注册新目录，Claude Code 就会自动触发这个挂钩，让周边工具第一时间掌握目录变更。像展览馆在展览进行中临时加设新展位，广播室与服务台随即收到连线通知，周边服务就能马上配合跟上。",
-                "en": "Halfway through a conversation you remember that another folder needs to be in scope, so you bring it in. The new `DirectoryAdded` hook wakes up at exactly that moment and notifies the tools around you. A new `DirectoryAdded` hook fires whenever a new working directory is registered mid-session — whether you type the `/add-dir` command or issue a `register_repo_root` control request via the SDK. Secondary tools learn right away that the folder list has changed. Think of an exhibition hall opening an extra booth mid-event: the moment the new space is registered, the information desk and public address system get an instant update so services can adjust without delay.",
-                "ja": "話の途中で「あのフォルダも見せないと」と気づき、手元に取り込む。新しい DirectoryAdded フック（特定の出来事が起きると自動的に呼び出される小さなプログラム）はその瞬間に目を覚まし、周辺の自動化ツールへ通知を送る。`/add-dir` コマンドを実行するか、SDK から `register_repo_root` 制御リクエストを送ってセッション途中に新たな作業ディレクトリを登録すると、`DirectoryAdded` フック（特定イベントの発生時に動作する小プログラム）が発火する。周辺スクリプトはフォルダ構成の変更をただちに把握できる。会期中の展示場に新しいブースを急遽追加した際、案内所や放送室へ即座に連絡が入り、周辺の運用が遅滞なく連動するようなものだ。",
-                "ko": "이야기 도중에 \"저 폴더도 봐야 한다\"는 생각이 나서 끌어온다. 새 DirectoryAdded 훅(특정 사건이 일어나면 자동으로 불려 나오는 작은 프로그램)이 바로 그 순간 깨어나 주변 자동화 도구에 알린다. `/add-dir` 명령을 입력하거나 SDK에서 `register_repo_root` 제어 요청을 보내 세션 중간에 새 작업 디렉터리를 등록하면 `DirectoryAdded` 훅(특정 이벤트가 일어날 때 실행되는 소형 프로그램)이 발생한다. 주변 도구들이 폴더 목록의 변화를 곧바로 알 수 있다. 행사 도중 전시장에 새 부스를 새로 넣었을 때 안내소와 방송실로 즉시 연결 통보가 들어가 주변 서비스가 지체 없이 맞춰 움직이는 것과 같다."
-              },
-              "original": "Added `DirectoryAdded` hook that fires after `/add-dir` or the SDK `register_repo_root` control request registers a new working directory mid-session"
-            },
-            {
-              "title": {
-                "zh-TW": "複製、方向鍵、朗讀，三個按下去才發現的毛病",
-                "zh-CN": "复制、方向键、朗读，三个按下去才发现的毛病",
-                "en": "Three faults you only meet the moment you press a key",
-                "ja": "押したその瞬間にしか出会わない三つの不具合",
-                "ko": "누르는 순간에만 마주치는 세 가지 결함"
-              },
-              "body": {
-                "zh-TW": "這三個毛病都要等你手指按下去才會發現，所以特別磨人。首先是在 GNU screen 環境下劃選文字時，終端機不再印出一串 base64（將任意資料轉成純英數字串的編碼）字串，而是正常完成複製；其次是在 Vim 模式下的空白輸入列按左箭頭鍵（←），除了 INSERT 模式外，NORMAL 模式現在也能順利退回代理畫面；最後是螢幕閱讀器模式打字時只會朗讀剛輸入的字元，不會每按一下就重讀整行文字。像使用按鈕回饋錯亂的控制面板：劃選複製跳出無關字串、按返回鍵像卡住按不動、打字時語音重讀整行，都是按下去那一刻的動作與回饋對不上。",
-                "zh-CN": "这三个毛病都要等你手指按下去才会发现，所以特别磨人。首先是在 GNU screen 环境下划选文字时，终端不再打印出一串 base64（将任意数据转成纯英数字符串的编码）字符串，而是正常完成复制；其次是在 Vim 模式下的空白输入列按左箭头键（←），除了 INSERT 模式外，NORMAL 模式现在也能顺利退回代理视图；最后是屏幕阅读器模式打字时只会朗读刚输入的字符，不会每按一下就重读整行文字。像使用按钮反馈错乱的控制面板：划选复制跳出无关字符串、按返回键像卡住按不动、打字时语音重读整行，都是按下去那一刻的动作与反馈对不上。",
-                "en": "All three of these only show up at the instant your finger presses a key, which is what makes them grating. Text highlighted inside GNU screen now copies properly instead of dumping raw base64 strings into your terminal. Pressing the left arrow (←) on an empty prompt in Vim mode now returns to the agent view from NORMAL mode as well as INSERT mode. Finally, screen-reader mode echoes only the single typed character per keystroke rather than re-reading the entire input line. Like using a control panel with miswired button feedback: selecting text prints extra code, pressing back feels stuck, and typing echoes the entire line — every action produces the wrong immediate response.",
-                "ja": "この三つはいずれも、指が鍵を押したその瞬間にしか姿を見せない。だからいらだちが大きい。GNU screen 内でテキストを選択コピーした際、端末に base64（任意のデータを英数字のみに変換する符号化方式）の文字列が出力される現象が治り、正しくコピーされる。Vim モードの空プロンプトで左矢印キー（←）を押した際、INSERT モードだけでなく NORMAL モードからでもエージェント画面へ戻れる。スクリーンリーダーモードでの入力時に、キーを叩くたび行全体を読み直さず、入力した一文字だけを音読する。ボタンの反応が乱れた操作パネルを使うようなものだ。選択テキストに無関係な文字列が出力され、戻るキーが引っ掛かり、入力のたびに全文が読み上げられ、押した瞬間の応答がすべて食い違っていた。",
-                "ko": "이 셋은 모두 손가락이 자판을 누르는 그 순간에만 모습을 드러낸다. 그래서 거슬림이 크다. GNU screen 환경에서 텍스트를 드래그해 복사할 때 터미널에 base64(임의의 데이터를 영문자와 숫자로 바꾸는 인코딩) 문자열이 찍히던 현상이 사라지고 정상 복사된다. Vim 모드의 빈 프롬프트에서 왼쪽 화살표(←)를 누르면 INSERT 모드뿐 아니라 NORMAL 모드에서도 에이전트 화면으로 정상 돌아간다. 스크린 리더 모드에서 자판을 칠 때 매번 줄 전체를 다시 읽는 대신 방금 입력한 한 글자만 읽어 준다. 버튼 반응이 어긋난 조종 판넬을 쓰는 것과 같다. 텍스트를 선택하면 무관한 문자열이 찍히고, 되돌아가기 키가 걸리며, 자판을 칠 때마다 전체 문장이 낭독되어 누르는 순간의 반응이 모두 엇갈렸던 셈이다."
-              },
-              "original": "Fixed copy-on-select inside GNU screen printing base64 into the terminal instead of copying the selection\nFixed Vim mode: pressing ← on an empty prompt now returns to the agent view from NORMAL mode, not just INSERT\nFixed screen-reader mode rewriting the entire input line on every keystroke instead of echoing only the typed character"
-            },
-            {
-              "title": {
-                "zh-TW": "遙控端不再顯示過期狀態，出錯也說得出是哪個設定",
-                "zh-CN": "遥控端不再显示过期状态，出错也说得出是哪个设置",
-                "en": "No more stale remote status, and errors that name the setting",
-                "ja": "遠隔側が古い状態を映さなくなり、エラーも原因の設定を名指しする",
-                "ko": "원격 쪽이 옛 상태를 비추지 않고, 오류도 원인 설정을 짚어 준다"
-              },
-              "body": {
-                "zh-TW": "隔著一台裝置操作，最怕畫面上寫的跟實際狀況對不上。這版把遠端控制（Remote Control）的三處落差補起來。首先修復了遠端控制用戶端在切換模型、斷線重連或組織權限檢查失敗後，快速模式仍殘留舊狀態的問題；其次，當跳出「遠端控制僅支援 api.anthropic.com」的錯誤時，錯誤訊息會直接點名是哪一個設定項導致衝突；最後，執行 `claude --teleport` 遇到手邊 checkout 的專案庫與工作階段不一致時，現在會明確印出你目前 checkout 指向的是哪一個專案庫。像遠端駕駛艙的儀表板，開關狀態即時同步、故障時精準亮起對應燈號，定位不符時也會清楚顯示你實際停在哪個車庫。",
-                "zh-CN": "隔着一台设备操作，最怕画面上写的跟实际状况对不上。这版把远端控制（Remote Control）的三处落差补起来。首先修复了远端控制客户端在切换模型、断线重连或组织权限检查失败后，快速模式仍残留旧状态的问题；其次，当弹出「远端控制仅支持 api.anthropic.com」的错误时，错误信息会直接点名是哪一个设置项导致冲突；最后，执行 `claude --teleport` 遇到手边 checkout 的项目库与会话不一致时，现在会明确打印出你目前 checkout 指向的是哪一个项目库。像远端驾驶舱的仪表板，开关状态实时同步、故障时精准亮起对应灯号，定位不符时也会清楚显示你实际停在哪座车库。",
-                "en": "Operating something through another device, the thing you dread is the screen disagreeing with reality. Three such gaps in Remote Control are closed here. Remote Control clients no longer hold onto a stale fast-mode status after switching models, reconnecting, or failing an organization check. When the error \"Remote Control is only available via api.anthropic.com\" appears, the diagnostic text now explicitly names the specific setting that triggered it. Finally, running `claude --teleport` when your current checkout repository differs from the session's repository now prints which repository your current checkout actually points to. Like a remote cockpit dashboard: switch toggles update in real time, error lights pinpoint the exact faulty breaker, and location mismatches show the actual hanger where your vessel is parked.",
-                "ja": "一台挟んで操作していて怖いのは、画面の表示と実際の状況が食い違うことだ。今回はリモートコントロール（遠隔操作）のそうしたずれを三か所ふさいだ。モデル切り替えや再接続、組織権限チェックの失敗後に、リモートコントロール側で高速モードの古い状態が残る問題を解消した。また「Remote Control is only available via api.anthropic.com」のエラーが出た際、原因となった具体的設定項目を画面上で明示するように改善した。そして `claude --teleport` を実行した際、手元の checkout リポジトリがセッションのリポジトリと一致しない場合、現在どこを指しているかを明確に表示する。遠隔操縦の計器盤と同じで、スイッチの状態がリアルタイムに一致し、故障時は該当のブレーカー名を指し示し、位置が合わない時は実際にどの格納庫にいるか教えてくれる。",
-                "ko": "장치 하나를 사이에 두고 다루다 보면 가장 무서운 것은 화면에 적힌 것과 실제가 어긋나는 일이다. 이번에는 원격 제어(Remote Control)의 그런 어긋남 세 군데를 메웠다. 모델 변경이나 재연결, 조직 권한 확인 실패 후 원격 제어 클라이언트에 빠른 모드의 옛 상태가 남아 있던 문제를 고쳤다. 또한 \"Remote Control is only available via api.anthropic.com\" 에러가 뜰 때 충돌을 일으킨 특정 설정 항목 이름을 화면에 바로 찍어 준다. 그리고 `claude --teleport`를 실행할 때 로컬 checkout 저장소가 세션의 저장소와 다르면 현재 가리키는 저장소가 어디인지 명확히 출력한다. 원격 조종석의 계기판처럼 스위치 상태가 실시간으로 일치하고, 고장 시 해당 차단기 이름을 알려주며, 위치가 맞지 않을 때 실제로 어느 차고에 서 있는지 알려주는 셈이다."
-              },
-              "original": "Fixed Remote Control clients keeping a stale fast-mode status after a model switch, reconnect, or failed org check\nImproved the \"Remote Control is only available via api.anthropic.com\" error to name the specific setting that caused it\nImproved `claude --teleport` to show which repo your current checkout points at when it doesn't match the session's repo"
-            },
-            {
-              "title": {
-                "zh-TW": "無效 Git Bash 路徑改發警告，中途斷線保留已產出回答",
-                "zh-CN": "无效 Git Bash 路径改发警告，中途断线保留已产出回答",
-                "en": "Invalid Git Bash paths now raise warnings, and mid-stream errors preserve output",
-                "ja": "無効な Git Bash パスを警告して無視、応答途中のエラーでも生成済み回答を保持",
-                "ko": "잘못된 Git Bash 경로는 경고 후 무시하며, 중도 오류 발생 시에도 기존 답변을 보존한다"
-              },
-              "body": {
-                "zh-TW": "設定檔填錯與中途網路中斷這兩類突發狀況，現在都不會再一秒蒸發你的作業結果。這版做了兩項重要修復：在 Windows 上如果將 `CLAUDE_CODE_GIT_BASH_PATH` 環境變數指向非 bash 或 sh 的執行檔，以前會直接崩潰或硬當成 bash 執行，現在改為印出警告並自動忽略該無效路徑；另外，使用 `claude -p`（無畫面直接印出文字的執行模式）時，若在生成答案中途遇到 API 網路錯誤而中斷，Claude Code 不會再把已經產出的前半段回答全部丟掉，而是完整保留並印出來。像車載導航系統：填錯無效路徑時跳出警告並繼續走主幹道，就算中途訊號中斷，也完好保留已下載的前半段路線。",
-                "zh-CN": "配置文件填错与中途网络中断这两类突发状况，现在都不会再一秒蒸发你的作业结果。这版做了两项重要修复：在 Windows 上如果将 `CLAUDE_CODE_GIT_BASH_PATH` 环境变量指向非 bash 或 sh 的可执行文件，以前会直接崩溃或硬当作 bash 执行，现在改为打印出警告并自动忽略该无效路径；另外，使用 `claude -p`（无画面直接打印文字的执行模式）时，若在生成答案中途遇到 API 网络错误而中断，Claude Code 不会再把已经产出的前半段回答全部丢掉，而是完整保留并打印出来。像车载导航系统：填错无效路径时弹出警告并继续走主干道，就算中途信号中断，也完好保留已下载的前半段路线。",
-                "en": "Mistyped path settings and mid-stream network drops will no longer wipe out your progress in an instant. Two essential fixes are included: on Windows, if `CLAUDE_CODE_GIT_BASH_PATH` points to a file that is not a bash or sh binary, it no longer crashes or gets misused as bash, but instead ignores the invalid path with a warning. Furthermore, when running `claude -p` (the headless mode that prints text output), if a turn dies due to a mid-stream API network error, Claude Code no longer discards the answer already generated, but preserves and prints it completely. Think of a car navigation system: it issues a warning about an invalid shortcut while keeping you on the main highway, and even if signal drops mid-trip, it preserves the route segment already downloaded.",
-                "ja": "パス設定の誤入力や途中の回線切断が起きても、生成中の結果や実行の流れが消えてなくなる事故を防げる。重要な修正が二点入った。Windows で `CLAUDE_CODE_GIT_BASH_PATH` 環境変数が bash や sh 以外のファイルを示している場合、以前は終了するか誤作動していたが、警告を出して無効パスを無視するようになった。また画面なしでテキストを出力する `claude -p` の実行中、応答の途中で API エラーが発生して処理が中断しても、すでに生成された回答の前半部分を破棄せず保持して出力する。カーナビのようなものだ。無効なルートを指定しても警告を出して本道を走り続け、途中で電波が切れても読み込み済みの前半ルートをそのまま残してくれる。",
-                "ko": "경로 설정 오류나 도중 네트워크 중단이 발생해도 작업 결과물과 실행 흐름이 순식간에 날아가는 사고를 막아준다. 두 가지 중요한 수정이 이루어졌다. Windows에서 `CLAUDE_CODE_GIT_BASH_PATH` 환경 변수가 bash나 sh 실행 파일이 아닌 경로를 가리킬 때 이전에는 바로 종료되거나 잘못 실행되었지만, 이제는 경고를 출력하고 해당 무효 경로를 무시한다. 또한 화면 없이 텍스트를 출력하는 `claude -p` 실행 중 답변 생성 중간에 API 네트워크 에러로 중단되더라도, 이미 생성된 이전 답변을 버리지 않고 그대로 보존하여 출력한다. 네비게이션과 같다. 잘못된 경로를 넣어도 경고를 띄우며 본선 도로를 계속 달리고, 도중에 신호가 끊겨도 이미 불러온 앞쪽 경로를 그대로 남겨 준다."
-              },
-              "original": "Fixed `CLAUDE_CODE_GIT_BASH_PATH` on Windows exiting or being used as bash when the path isn't a bash/sh binary; it's now ignored with a warning\nFixed `claude -p` text output dropping the answer already produced when a turn dies on a mid-stream API error"
-            }
-          ]
         }
       ]
     },
@@ -641,6 +624,29 @@
       "id": "codex",
       "name": "Codex",
       "versions": [
+        {
+          "version": "0.146.1",
+          "period": "2026-08-05",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "資安模型的自動審查更保守，權限變動看得懂",
+                "zh-CN": "网络安全模型的自动审查更保守，权限变动看得懂",
+                "en": "Cyber-capable model reviews get safer defaults and clearer permission notices",
+                "ja": "サイバー対応モデルの自動レビューが慎重になり、権限変更も分かる",
+                "ko": "사이버 기능 모델의 자동 검토는 더 신중해지고 권한 변경도 알기 쉬워진다"
+              },
+              "body": {
+                "zh-TW": "使用具資安能力的模型（cyber-capable models，能處理網路安全工作的 AI 模型）幫忙做自動審查時，最怕看不出預設值為何改了。Codex 現在把這類模型的自動審查（automatic review，不必先手動調整的審查設定）預設改得更保守，並在終端機（terminal，用文字輸入指令的操作畫面）說明權限怎麼變動。像公司換了保全規則，門禁變嚴前後都會貼出告示；你看到權限調整時，能在操作畫面直接知道改了什麼。",
+                "zh-CN": "用具备网络安全能力的模型（cyber-capable models，能处理网络安全工作的 AI 模型）帮忙做自动审查时，最怕看不出默认值为什么变了。Codex 现在把这类模型的自动审查（automatic review，不必先手动调整的审查设置）默认改得更保守，并在终端机（terminal，用文字输入命令的操作界面）说明权限如何变动。好比公司换了安保规则，门禁变严前后都会贴出告示；看到权限调整时，你能在操作界面直接知道改了什么。",
+                "en": "When you use a cyber-capable model to review work automatically, a changed default can be hard to spot. Codex now uses more cautious automatic-review defaults for these models and explains permission changes in the terminal. Think of a company updating its security rules and posting a notice at the door: when permissions change, the command-line screen tells you what changed.",
+                "ja": "サイバーセキュリティの仕事を扱えるモデルで自動レビューをすると、既定値がなぜ変わったのか見えにくい。Codex はこの種のモデルで、自動レビューの既定値をより慎重なものにし、端末で権限がどう変わるかも説明する。会社が警備規則を変え、出入口に告知を貼るようなものだ。権限が変われば、操作画面で何が変わったか分かる。",
+                "ko": "사이버 보안 작업을 다룰 수 있는 모델로 자동 검토를 하면 기본값이 왜 바뀌었는지 알기 어렵다. Codex는 이런 모델의 자동 검토 기본값을 더 신중하게 바꾸고, 터미널에서 권한이 어떻게 달라지는지도 설명한다. 회사가 보안 규칙을 바꾸고 출입문에 안내문을 붙이는 것과 같다. 권한이 바뀌면 작업 화면에서 무엇이 달라졌는지 알 수 있다."
+              },
+              "original": "Apply safer automatic-review defaults for cyber-capable models and explain permission changes in the terminal interface. (#37057)"
+            }
+          ]
+        },
         {
           "version": "0.146.0",
           "period": "2026-07-29",
@@ -1111,29 +1117,6 @@
               "original": "Reduced startup and large-context overhead with concurrent skill/plugin discovery and more efficient remote compaction. (#31566, #33369, #33423, #34431)\nUpdated the packaged ripgrep binary to 15.2.0. (#34384)"
             }
           ]
-        },
-        {
-          "version": "0.144.6",
-          "period": "2026-07-18",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "GPT-5.6 三個模型的說明更新，對話容量校正為 27.2 萬 token",
-                "zh-CN": "GPT-5.6 三个模型说明更新，对话容量校正为 27.2 万 token",
-                "en": "GPT-5.6 model guidance refreshed, with context corrected to 272,000 tokens",
-                "ja": "GPT-5.6の3モデル向け説明を更新、文脈容量を27.2万トークンに訂正",
-                "ko": "GPT-5.6 세 모델 안내를 새로 고치고, 문맥 용량을 27만 2천 토큰으로 바로잡음"
-              },
-              "body": {
-                "zh-TW": "你正要把長企劃、會議紀錄和程式碼一起交給 Codex 時，最在意的常是它到底記得住多少內容。這版更新了 GPT-5.6 Sol、Terra 與 Luna 隨附的操作說明，並把三者的 context window（單次對話能保留的內容容量）校正為 272,000 token。token 是 AI 處理文字的計量單位；把它想成可放進同一張工作桌的紙張數，容量標對了，你才不會拿錯桌子大小來安排材料。後兩項變更也把這份模型資料和提示詞修正帶回 0.144 版，範圍只鎖定 GPT-5.6，沒有宣告三個模型新增能力。",
-                "zh-CN": "当你准备把长企划、会议记录和代码一起交给 Codex 时，最在意的往往是它究竟能记住多少内容。此版本更新了 GPT-5.6 Sol、Terra 与 Luna 附带的操作说明，并把三者的 context window（单次对话能保留的内容容量）校正为 272,000 token。token 是 AI 处理文字的计量单位；可以把它想成同一张工作桌能摆下的纸张数，容量标对了，才不会拿错桌子大小来安排材料。后两项变更也把这份模型资料和提示词修正带回 0.144 版，范围只锁定 GPT-5.6，并非宣布三个模型新增能力。",
-                "en": "When you are about to hand Codex a long plan, meeting notes, and code together, the key question is how much it can keep in view. This release refreshes bundled guidance for GPT-5.6 Sol, Terra, and Luna, and corrects each model's context window—the amount of material one conversation can hold—to 272,000 tokens. A token is a unit AI uses to process text. Think of it as the number of sheets that fit on one worktable: label the table correctly, and you can plan your pile of material properly. The two follow-up changes also backport that model-metadata and prompt correction to 0.144, limited to GPT-5.6; they do not announce new abilities for these models.",
-                "ja": "長い企画書、会議メモ、コードをまとめて Codex に渡す前に気になるのは、どれだけの内容を覚えておけるかである。今回、GPT-5.6 Sol、Terra、Luna に同梱する操作説明を更新し、3モデルの context window（1回の会話で保持できる内容の容量）を272,000 tokenに訂正した。token はAIが文章を処理する数え方の単位である。同じ作業机に置ける紙の枚数だと考えればよい。机の大きさが正しく示されれば、載せる資料も取り違えずに済む。続く2件の変更は、このモデル情報とプロンプトの訂正を0.144へ戻したもので、対象はGPT-5.6だけであり、3モデルの新機能を告知したものではない。",
-                "ko": "긴 기획서, 회의록, 코드를 한꺼번에 Codex에 맡기려 할 때 가장 궁금한 것은 얼마나 많은 내용을 기억할 수 있느냐이다. 이번 버전은 GPT-5.6 Sol, Terra, Luna에 함께 제공되는 사용 안내를 새로 고치고, 세 모델의 context window(한 번의 대화에서 보관할 수 있는 내용의 용량)를 272,000 token으로 바로잡았다. token은 AI가 글을 처리할 때 쓰는 단위이다. 한 작업대에 올려둘 수 있는 종이 수라고 생각하면 된다. 작업대 크기가 정확히 표시되어야 자료를 알맞게 올려둘 수 있다. 이어진 두 변경은 이 모델 정보와 프롬프트 수정을 0.144에 되돌린 것이며, 대상은 GPT-5.6뿐이고 세 모델의 새 기능을 알린 것은 아니다."
-              },
-              "original": "Refreshed bundled instructions for GPT-5.6 Sol, Terra, and Luna, and corrected their context windows to 272,000 tokens. (#33972, #34009)\n#33972 Backport refreshed bundled model metadata to 0.144 @sayan-oai\n#34009 Narrow 0.144 hotfix to GPT-5.6 prompts and context @sayan-oai"
-            }
-          ]
         }
       ]
     },
@@ -1489,6 +1472,103 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.29.18",
+          "period": "2026-08-06",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "面板視窗不再忽高忽低",
+                "zh-CN": "面板窗口不再忽高忽低",
+                "en": "Panel windows stop flickering between heights",
+                "ja": "パネルの高さが行ったり来たりしなくなった",
+                "ko": "패널 창 높이가 더는 오락가락하지 않는다"
+              },
+              "body": {
+                "zh-TW": "從選單列打開面板（popover，浮在其他視窗上的小視窗）時，視窗先跳一下又在兩個高度間來回閃動的問題修好了。它原本像服飾店先按尺寸表猜衣服大小，網頁排好版後再量一次實際尺寸；量到的尺寸本該存下來，供下次優先採用，卻被程式誤認為不是可讀的對照資料而丟掉，於是每次又退回舊的預估值。現在讀寫都接受 Mapping（能用鍵查值的對照資料），已量到的高度會留下來；只有不能回報尺寸的錯誤面板，才繼續使用預估值。測試也改用不是一般 dict 的對照資料，確保這個判斷不會再退回舊路。",
+                "zh-CN": "从菜单栏打开面板（popover，浮在其他窗口上的小窗口）时，窗口先跳一下、又在两个高度间来回闪动的问题修好了。它原本像服装店先按尺码表猜衣服大小，网页排好版后再量一次实际尺寸；量到的尺寸本该存下来，供下次优先采用，却被程序误认为不是可读的对照数据而丢掉，于是每次又退回旧的预估值。现在读写都接受 Mapping（能用键查值的对照数据），已量到的高度会留下来；只有不能回报尺寸的错误面板，才继续使用预估值。测试也改用不是普通 dict 的对照数据，确保这个判断不会再退回旧路。",
+                "en": "Opening a panel window from the menu bar no longer makes it snap once and then flicker between two heights. Think of a tailor who first guesses from a size chart, then measures the actual garment after it is laid out. The real measurement should have been saved and used next time, but the app mistook that saved value for unreadable data and threw it away, so it kept falling back to the estimate. Reading and writing now accept a Mapping (key-value data, even when it is not a plain Python dict), preserving measured heights. Only the error panel, which cannot report a measurement, continues to use an estimate. The regression test now uses that non-dict kind of Mapping too.",
+                "ja": "メニューバーからパネル（popover、ほかのウィンドウの上に浮く小さなウィンドウ）を開いたとき、一度跳ねた後に二つの高さを行き来していた問題が直った。服屋がサイズ表で服の大きさを先に予想し、レイアウト後に実寸を測るようなものだ。本来は実測値を保存して次回に優先するはずが、アプリがその保存値を読めないデータと誤認して捨て、毎回予想値へ戻っていた。今は読み書きとも Mapping（キーで値を引ける対応データ）を受け入れるため、実測した高さが残る。測定を報告できないエラーパネルだけは、引き続き予想値を使う。テストも通常の dict ではない Mapping を使うようになった。",
+                "ko": "메뉴 막대에서 패널(popover, 다른 창 위에 떠 있는 작은 창)을 열 때 한 번 튄 뒤 두 높이 사이를 오가던 문제가 고쳐졌다. 옷가게가 치수표로 먼저 옷 크기를 짐작하고, 배치가 끝난 뒤 실측하는 모습과 같다. 실측값은 저장돼 다음번에 먼저 써야 했지만, 앱이 저장된 값을 읽을 수 없는 데이터로 잘못 판단해 버리고 매번 추정값으로 돌아갔다. 이제 읽기와 쓰기 모두 Mapping(키로 값을 찾는 대응 데이터)을 받아들여 실측한 높이가 남는다. 측정값을 보낼 수 없는 오류 패널만 계속 추정값을 쓴다. 테스트도 일반 dict가 아닌 Mapping을 사용하도록 바뀌었다."
+              },
+              "original": "**The panel window oscillated between two heights.** Opening it snapped the window once, and it kept flicking back and forth afterwards. A panel's height has two sources: `popover_dimensions()` estimates it in Python from a registered base plus per-card adjustments, and the page measures itself for real once it has been laid out and reports the number back. The measurement is meant to win — it is saved to `NSUserDefaults` and read back by `resolve_panel_size()` on the next pass. It never was. `NSUserDefaults.objectForKey_()` hands PyObjC an Objective-C `__NSDictionaryI`, and `isinstance(value, dict)` on that is `False`, so the guard rejected the saved `{classic: 974}` every single time and fell back to the 1004 estimate. The write path had the same guard and therefore discarded every other panel's saved height whenever one was stored. What made this hard to see is that saving worked while loading did not: `defaults read com.lollapalooza.usage` showed the correct 974 sitting on disk the whole time, so the data looked healthy from the outside. The 30-point gap between the two values happens to equal `status_wrap_extra_height`, which is a coincidence worth ignoring — the estimate being wrong is not what caused the loop; the measurement being rejected is. Both guards now accept `collections.abc.Mapping`. The estimate is still used, but only for panels that can never report a measurement — `ErrorPanelView` has no JavaScript bridge, so waiting for one would leave it at the wrong size forever. The regression test substitutes a `MappingProxyType`, which like `NSDictionary` is a `Mapping` that is not a `dict`; a test double built from a plain `dict` passes whether or not the bug is present."
+            },
+            {
+              "title": {
+                "zh-TW": "日韓語介面不再有空白標籤",
+                "zh-CN": "日韩语界面不再有空白标签",
+                "en": "Japanese and Korean interfaces no longer show blank labels",
+                "ja": "日本語と韓国語の空白ラベルを解消",
+                "ko": "일본어와 한국어 화면의 빈 라벨을 없앴다"
+              },
+              "body": {
+                "zh-TW": "日文與韓文介面先前各有 63 個標籤看起來像憑空消失，現在已補上翻譯。檢查原本只核對 489 個文字鍵是否都存在，像倉庫清點到每個紙箱卻沒打開看裡面有沒有東西；因此 `loading`、`no_data`、`session_title`、`col_time` 與 `model_breakdown` 雖有鍵名，畫面仍只留下空白。新檢查會拒絕空字串，也會比對 placeholder（顯示時才填入資料的位置）是否和英文一致；少掉或改名都可能在顯示時出錯。帶格式的標記、格式寫法與指令名稱則維持英文，不會被誤譯。",
+                "zh-CN": "日文与韩文界面先前各有 63 个标签看起来像凭空消失，现在已补上翻译。检查原本只核对 489 个文字键是否都存在，像仓库清点到每个纸箱却没打开看里面有没有东西；因此 `loading`、`no_data`、`session_title`、`col_time` 与 `model_breakdown` 虽有键名，画面仍只留下空白。新检查会拒绝空字符串，也会比对 placeholder（显示时才填入数据的位置）是否和英文一致；少掉或改名都可能在显示时出错。带格式的标记、格式写法与命令名称则保持英文，不会被误译。",
+                "en": "Japanese and Korean users were each seeing 63 labels vanish into blank space; those translations are now filled in. The old check only confirmed that all 489 text keys existed, like counting every box in a warehouse without opening it to see whether it contains anything. That let `loading`, `no_data`, `session_title`, `col_time`, and `model_breakdown` exist as keys yet render blank. New checks reject empty translations and compare every placeholder (a slot filled with data at display time) with English. A missing or renamed placeholder can otherwise fail when the text is formatted. Rich markup, format specifications, and command names remain in English.",
+                "ja": "日本語と韓国語の画面では、それぞれ 63 個のラベルが空白になっていたが、翻訳を補った。以前の検査は 489 個の文字キーがあるかだけを確かめていた。倉庫の箱を数えるだけで、中身を開けて確認しないようなものだ。そのため `loading`、`no_data`、`session_title`、`col_time`、`model_breakdown` はキーとして存在しても、画面では空白になっていた。新しい検査は空の翻訳を拒み、placeholder（表示時にデータを入れる場所）が英語版と一致するかも比べる。欠落や名前変更は表示時の書式処理で失敗するおそれがあるためだ。装飾用の記法、書式指定、コマンド名は英語のまま残す。",
+                "ko": "일본어와 한국어 화면에서는 각각 63개 라벨이 빈칸으로 보였는데, 이제 번역을 채웠다. 이전 검사는 489개 문자 키가 있는지만 확인했다. 창고의 상자 수만 세고 안에 물건이 들었는지는 열어보지 않는 것과 같다. 그래서 `loading`, `no_data`, `session_title`, `col_time`, `model_breakdown`은 키로 존재해도 화면에서는 빈칸이었다. 새 검사는 빈 번역을 거부하고 placeholder(표시할 때 데이터를 넣는 자리)가 영어와 같은지도 비교한다. 빠지거나 이름이 바뀌면 표시 과정의 형식 처리에서 실패할 수 있기 때문이다. 꾸밈 표기, 형식 지정, 명령 이름은 영어로 남긴다."
+              },
+              "original": "**The Japanese and Korean locales shipped sixty-three blank labels each.** Flagged one version earlier and fixed here. Both locales carried all 489 keys, so `test_every_language_has_the_same_keys` compared key sets, found them identical, and passed — while `loading`, `no_data`, `session_title`, `col_time` and `model_breakdown` rendered as empty space for anyone running the app in either language. A present-but-empty value is invisible to a parity check by construction, which is the same blind spot that let fifty-two Simplified Chinese strings sit in the Traditional Chinese locale until last version. Two assertions now close it: no translated value may be blank, and every value's `{placeholder}` set must match English exactly. The second guards a failure the first cannot see — a translation that drops or renames a placeholder does not look wrong in the file, it raises at `format` time in front of the user. Rich markup (`[dim]`), format specs (`{m:02d}`) and command names were left in English."
+            }
+          ]
+        },
+        {
+          "version": "0.29.17",
+          "period": "2026-08-06",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "斷網時的費用估算，終於不再把價格算歪",
+                "zh-CN": "断网时的费用估算，终于不再把价格算歪",
+                "en": "Cost estimates stay accurate when you're offline",
+                "ja": "オフライン時の料金見積もりが正しい価格に戻った",
+                "ko": "인터넷이 끊겨도 비용 추정이 제값을 찾는다"
+              },
+              "body": {
+                "zh-TW": "出門沒網路卻想核對用量花多少錢，螢幕上的數字本該是你的依據，這回卻曾把 Opus 4.6、4.7 算成三倍，還把 Opus 5 算成零元。程式抓不到 LiteLLM 的價格表，或快取（把查過的結果暫存起來直接用）過期時，會改查手寫的備援價格表；它長期沒和目前表格比對，舊價格便一路留著。現在已按快取的 LiteLLM 表校正：4.6、4.7 的每百萬計費文字單位從舊的 $15/$75 改為 $5/$25，Haiku 4.5 也補回少算的兩成，原本缺席的 Opus 5 也不會再回傳 $0。像離線收銀機翻出過期價目表，現在換回正確版本；斷網時更該能信帳單。",
+                "zh-CN": "出门没网络却想核对用量花了多少钱，屏幕上的数字本该是你的依据，这次却曾把 Opus 4.6、4.7 算成三倍，还把 Opus 5 算成零元。程序抓不到 LiteLLM 的价格表，或缓存（把查过的结果暂存起来直接用）过期时，会改查手写的备用价格表；它长期没和当前表格比对，旧价格便一路留着。现在已按缓存的 LiteLLM 表校正：4.6、4.7 的每百万计费文字单位从旧的 $15/$75 改为 $5/$25，Haiku 4.5 也补回少算的两成，原本缺席的 Opus 5 也不会再返回 $0。像离线收银机翻出过期价目表，现在换回正确版本；断网时更该能信账单。",
+                "en": "When you are away from the internet and checking what your usage cost, the number on screen needs to be dependable. It was not: Opus 4.6 and 4.7 were priced at three times their rate, while Opus 5 appeared to cost nothing. If LiteLLM's price table could not be downloaded, or its cache (saved lookup results kept for reuse) had expired, the app used a hand-maintained fallback table that had drifted from the current one. It is now reconciled with LiteLLM's cached table: 4.6 and 4.7 move from $15/$75 to $5/$25 per million billing units, Haiku 4.5 regains its missing twenty percent, and Opus 5 no longer returns $0. Think of an offline checkout pulling out an old price sheet; it now has the right sheet when you need it most.",
+                "ja": "外出先で回線がなく、利用料金を確かめたいとき、画面の数字は頼りにならなければならない。ところが Opus 4.6 と 4.7 は三倍、Opus 5 は無料と計算されていた。LiteLLM の価格表を取得できない、またはキャッシュ（調べた結果を一時保存して再利用する仕組み）が期限切れの場合、手書きの予備価格表を使っていたが、現行表との照合が長く行われず古い価格が残っていた。キャッシュ済み LiteLLM 表と照合し直し、4.6 と 4.7 は百万課金単位あたり $15/$75 から $5/$25 に、Haiku 4.5 の二割不足も直し、抜けていた Opus 5 も $0 を返さなくなった。オフラインのレジが古い値札を出してしまう場面で、正しい値札に替わったようなものである。",
+                "ko": "밖에서 인터넷 없이 사용 요금을 확인할 때 화면 숫자는 믿을 만해야 한다. 하지만 Opus 4.6과 4.7은 세 배로, Opus 5는 무료로 계산되고 있었다. LiteLLM 가격표를 내려받지 못하거나 캐시(찾아본 결과를 잠시 저장해 다시 쓰는 방식)가 만료되면 손으로 적은 예비 가격표를 썼는데, 현재 표와 대조하지 않아 옛 가격이 남아 있었다. 이제 캐시된 LiteLLM 표와 맞춰 4.6과 4.7은 백만 과금 단위당 $15/$75에서 $5/$25로 고쳤고, Haiku 4.5의 부족한 20%와 빠져 있던 Opus 5의 $0 계산도 바로잡았다. 오프라인 계산대가 낡은 가격표를 꺼내던 상황에서 올바른 가격표로 바꾼 셈이다."
+              },
+              "original": "**The offline price table overcharged Opus 4.6 and 4.7 threefold, and valued Opus 5 at nothing.** `_fallback_pricing()` is what the cost estimate falls back on when the LiteLLM table cannot be downloaded or its cache has expired. It is written by hand and nothing ever reconciled it against the live table, so it drifted in silence: `claude-opus-4-6` and `claude-opus-4-7` still carried the Opus 4.1-era $15/$75 per Mtok long after Anthropic dropped Opus to $5/$25, `claude-haiku-4-5-20251001` was twenty percent low, and `claude-opus-5` was missing outright — and a missing key makes `calculate_cost()` return `0.0`, so Opus 5 usage was reported as costing nothing. The corrected figures come from reconciling against the cached LiteLLM table rather than from the changelog: Claude Code 2.1.219 announced Opus 5 at `$10/$50 per Mtok`, but that is the fast-mode price, not the standard one. What makes this class of bug worth naming is when it surfaces — only offline, which is exactly the moment nobody thinks to doubt the number on screen."
+            },
+            {
+              "title": {
+                "zh-TW": "繁中介面混入 52 處簡體字，這次修正",
+                "zh-CN": "繁中界面混入 52 处简体字，这次修正",
+                "en": "Traditional Chinese screens had 52 Simplified Chinese strings mixed in, now fixed",
+                "ja": "繁体字画面に簡体字が52件混入、今回修正",
+                "ko": "번체 중국어 화면에 간체 52개가 섞여 있어 수정했다"
+              },
+              "body": {
+                "zh-TW": "你選繁體中文開啟文字介面（TUI，用文字排成、在終端機操作的畫面）或報表，卻看到「检测到」「时间」這種簡體字，像一本校對到一半的書。問題出在 52 個字串直接從簡中 `zh-CN` 複製過來，沒有轉換。先前靠人工列簡體字清單，只抓到一部分，連「来」和「项」都漏了；這次把每個值交給 OpenCC 的 `s2twp` 逐一轉換，再逐項檢視差異。轉換器想把原本正確的「發送」改成「傳送」等九處，則沒有採用。實際改動的兩個 HTML 測試畫面也只補那兩句，免得連固定的時間與版本都被重生。日文、韓文各有 63 個空字串是尚未翻譯，這次沒有假裝修好它們。",
+                "zh-CN": "你选择繁体中文打开文字界面（TUI，用文字排成、在终端操作的画面）或报告，却看到“检测到”“时间”这类简体字，像一本校对到一半的书。问题出在 52 个字符串直接从简中 `zh-CN` 复制过来，没有转换。此前靠人工列简体字清单，只抓到一部分，连“来”和“项”都漏了；这次把每个值交给 OpenCC 的 `s2twp` 逐一转换，再逐项查看差异。转换器想把原本正确的“發送”改成“傳送”等九处，则没有采用。实际改动的两个 HTML 测试画面也只补那两句，避免连固定的时间和版本都被重新生成。日文、韩文各有 63 个空字符串是尚未翻译，这次没有假装修好它们。",
+                "en": "If you chose Traditional Chinese and opened the text interface (TUI, a screen operated in a terminal with text), you could meet Simplified Chinese such as `检测到` and `时间`—like opening a book only half proofread. Fifty-two strings had been copied from the Simplified Chinese `zh-CN` locale without conversion. A hand-written list of Simplified characters had caught only some of them, missing even `来` and `项`. Every value now went through OpenCC's `s2twp` conversion and each difference was reviewed. Nine suggested replacements, including `發送` to `傳送`, were left alone because the existing text was already correct. Only two changed strings in the HTML test snapshot were patched, preserving its fixed timestamp and version. Japanese and Korean each still have sixty-three empty strings; those are missing translations, not this bug, so they remain for later work.",
+                "ja": "繁体字中国語を選んで文字画面（TUI、端末で文字を使って操作する画面）やレポートを開いたのに、`检测到` や `时间` のような簡体字が見える。校正途中の本を開くような状態である。52 個の文字列が簡体字中国語の `zh-CN` から変換なしでコピーされていた。手作業の簡体字リストでは一部しか見つからず、`来` と `项` まで漏れていたため、全ての値を OpenCC の `s2twp` で変換し、差分を一つずつ確認した。すでに正しい `發送` を `傳送` に替えるなど九件の提案は採用していない。HTML テスト画面では変化した二つの文字列だけを直し、固定された日時と版番号を守った。日本語と韓国語の各 63 個の空文字列は未翻訳であり、今回の対象ではない。",
+                "ko": "번체 중국어를 골라 문자 인터페이스(TUI, 터미널에서 글자로 조작하는 화면)나 보고서를 열었는데 `检测到`, `时间` 같은 간체가 보였다면, 교정하다 만 책을 펼친 꼴이었다. 52개 문자열이 간체 중국어 `zh-CN`에서 변환 없이 복사된 것이 원인이다. 사람이 만든 간체 목록은 일부만 찾아 `来`와 `项`도 놓쳤다. 이제 모든 값을 OpenCC의 `s2twp`로 변환한 뒤 차이를 하나씩 검토했다. 이미 맞는 `發送`을 `傳送`으로 바꾸려는 등 아홉 제안은 받아들이지 않았다. HTML 테스트 화면도 바뀐 두 문자열만 고쳐 고정된 시각과 버전을 보존했다. 일본어와 한국어에 각각 남은 빈 문자열 63개는 오역이 아니라 미번역이므로 이번에는 건드리지 않았다."
+              },
+              "original": "**Fifty-two keys in the Traditional Chinese locale contained Simplified Chinese.** The TUI and report strings had been copied across from `zh-CN` without conversion, so a Traditional Chinese user opening the TUI read `检测到`, `时间`, `来源`, `项目` and `消息`. A hand-written list of Simplified characters found only some of them — it missed `来` and `项` — so every value was instead run through OpenCC's `s2twp` and the differences reviewed one by one. Nine of those differences were the converter overreaching on text that was already correct (`發送`→`傳送`, `吹回`→`吹迴`, `連接詞`→`連線詞`) and were left alone. The golden HTML snapshot was patched for the two strings that actually changed rather than regenerated, because regenerating it would also replace the frozen timestamp and version the test asserts on. The same region of `ja` and `ko` holds sixty-three empty strings each; those are missing translations rather than wrong ones and are left for a separate change."
+            },
+            {
+              "title": {
+                "zh-TW": "選單列更新工作搬家，畫面行為照舊",
+                "zh-CN": "菜单栏更新工作搬家，画面行为照旧",
+                "en": "Menu-bar refresh work moves house without changing behavior",
+                "ja": "メニューバー更新の仕事を移し、動作は変えなかった",
+                "ko": "메뉴 막대 새로고침 일을 옮기되 동작은 바꾸지 않았다"
+              },
+              "body": {
+                "zh-TW": "你會看到選單列照常更新，只是背後那段 203 行的工作搬了家。`menubar.py` 已經拆過又長回來兩次，原先離檔案長度上限只差四行；與其把上限往上推，開發者把背景更新的資料處理拆到 `menubar_refresh.py`，分成 `load_sources()` 和 `build_result()`。畫面相關的三次 `performSelectorOnMainThread` 呼叫與所有 selector（靠名稱找到要執行方法的標記）留在原檔，因為 AppDelegate 的方法就是按名稱綁定，搬走會斷線。新檔透過 `typing.Protocol` 描述需要的 App 介面，完全不載入 PyObjC。像把塞爆的廚房分出備料間：接客的窗口不動，備料移到隔壁，送餐流程仍照原本走。六個更新計時階段、降級路徑的 15 次狀態寫入，以及失敗後避免卡死的保護，都逐行比對確認沒變。",
+                "zh-CN": "这张不是新增按钮：你仍会看到原本的菜单栏更新，只是背后那段 203 行的工作搬了家。`menubar.py` 已经拆过又长回来两次，原先离文件长度上限只差四行；与其把上限往上推，开发者把后台更新的数据处理拆到 `menubar_refresh.py`，分成 `load_sources()` 和 `build_result()`。画面相关的三次 `performSelectorOnMainThread` 调用与所有 selector（靠名称找到要执行方法的标记）留在原文件，因为 AppDelegate 的方法就是按名称绑定，搬走会断线。新文件通过 `typing.Protocol` 描述需要的 App 接口，完全不加载 PyObjC。像把塞爆的厨房分出备料间：接客的窗口不动，备料移到隔壁，送餐流程仍照原本走。六个更新时间阶段、降级路径的 15 次状态写入，以及失败后避免卡死的保护，都逐行对照确认没变。",
+                "en": "This is not a new button: your menu-bar refresh still looks the same, but its 203-line back-room job has moved. `menubar.py` had been split apart twice and then grown again, leaving only four lines below its size limit. Instead of raising that limit, the data work of the background refresh moved to `menubar_refresh.py`, divided into `load_sources()` and `build_result()`. The three `performSelectorOnMainThread` calls and every selector (a name used to locate a method to run) stay in the original file, because AppDelegate methods are bound by name and moving them would break that connection. The new module describes the App it needs through `typing.Protocol` and imports no PyObjC. It is like moving prep work from an overcrowded kitchen into a side room: the service window stays put and meals follow the same path. Six timing stages, fifteen degraded-path state assignments, and the guard against a failed refresh getting stuck were compared line by line.",
+                "ja": "これは新しいボタンではない。メニューバーの更新はこれまで通り見えるが、裏側の 203 行の仕事だけが引っ越した。`menubar.py` は二度分割して再び膨らみ、行数上限まで残り四行だった。上限を上げる代わりに、背景更新のデータ処理を `menubar_refresh.py` へ移し、`load_sources()` と `build_result()` に分けた。画面に関わる三つの `performSelectorOnMainThread` 呼び出しと全 selector（実行するメソッドを名前で探す目印）は元のファイルに残した。AppDelegate のメソッドは名前で結び付くため、移すと接続が切れるからである。新しいモジュールは `typing.Protocol` で必要な App の形を示し、PyObjC を読み込まない。混んだ厨房から下ごしらえを隣室へ移し、受け渡し窓と料理の流れはそのままにするようなものだ。六つの計時段階、低下経路での 15 回の状態代入、失敗時に更新が詰まらない保護も一行ずつ照合した。",
+                "ko": "새 버튼이 생긴 것은 아니다. 메뉴 막대 새로고침은 전과 같이 보이지만, 뒤에서 하던 203줄짜리 일만 이사했다. `menubar.py`는 두 번 쪼갰다가 다시 커졌고 파일 길이 한도까지 네 줄만 남았다. 한도를 올리는 대신 백그라운드 새로고침의 데이터 작업을 `menubar_refresh.py`로 옮겨 `load_sources()`와 `build_result()`로 나눴다. 화면과 관련된 세 번의 `performSelectorOnMainThread` 호출과 모든 selector(실행할 메서드를 이름으로 찾는 표지)는 원래 파일에 남겼다. AppDelegate 메서드는 이름으로 묶여 있어 옮기면 연결이 끊기기 때문이다. 새 모듈은 `typing.Protocol`로 필요한 App 모양을 설명하고 PyObjC를 전혀 불러오지 않는다. 붐비는 주방에서 손질 작업을 옆방으로 옮기되, 음식 나가는 창구와 흐름은 그대로 두는 일과 같다. 여섯 새로고침 시간 단계, 저하 경로의 상태 대입 15회, 실패 뒤 새로고침이 멈추지 않게 하는 보호도 한 줄씩 대조했다."
+              },
+              "original": "**`_refresh_in_background` moved into `menubar_refresh.py`.** At 203 lines it was the largest method in `menubar.py`, which had four lines left under its ceiling — and a ceiling exists on that file precisely because it has been split apart and grown back twice. Only three lines of the method touch PyObjC, the three `performSelectorOnMainThread` calls, and those stay behind along with every selector: an AppDelegate method is bound by name, so relocating one breaks the binding. What moved is the data work between them, split into `load_sources()` and `build_result()`, with the app passed in behind a `typing.Protocol` so the new module imports no PyObjC at all — the same rule that keeps `menubar_state.py` clean. `menubar.py` goes from 2116 lines to 1934 and the ceiling was lowered to match rather than raised, since raising it to get CI green would dismantle the only thing stopping the file from growing back a third time. Behaviour is unchanged, and that was verified rather than assumed: the six `refresh_timing` stages, the fifteen state assignments on the degraded path, and the `submitted`/`finally` guard that keeps a failed refresh from wedging the app were each compared line by line against the original."
+            }
+          ]
+        },
+        {
           "version": "0.29.16",
           "period": "2026-08-02",
           "items": [
@@ -1559,171 +1639,6 @@
                 "ko": "macOS 메뉴 막대를 관리할 때 어려운 일은 새 항목을 더하는 것보다 열두 개가 넘는 항목에 같은 조립 작업을 되풀이하는 데 있다. `switchPanel_`는 이제 반복 단계를 한곳에 모은 helper function인 `menubar_menu.build_menu_item()`로 항목을 만든다. 대상, 상태, 도움말, 메뉴에 넣는 작업은 한 번만 쓴다. `switchPanel_` 자체는 옮기지 않았다. AppDelegate가 selector, 즉 메서드 이름으로 기능을 연결하는 장치로 이를 묶고 있어 원래 메서드를 옮기면 연결이 끊기기 때문이다. 줄어든 것은 줄 수가 보여 주는 80줄이 아니라 중복된 24줄이다. 기존 테스트도 모듈 단계의 우회를 더하지 않고 helper 모듈에서 `NSMenuItem`을 바꾸도록 했다. 열두 장이 넘는 메모지를 한 권의 공책에 모아도 항목은 제자리에 있고 베껴 쓰기만 줄어드는 모습과 같다."
               },
               "original": "**`switchPanel_` builds its items through a helper.** A dozen menu entries each repeated the same five to seven lines — allocate the item, set the target, set the state, set the tooltip, add it — and `menubar.py` had two lines left under its ceiling. `menubar_menu.build_menu_item()` absorbs that shape. It lives in a new module rather than in `menubar_state.py`, which stays free of PyObjC. `switchPanel_` itself does not move: an AppDelegate method is bound by selector, and relocating one breaks the binding. The saving is smaller than it looks — 24 lines, not the 80 the line count suggested, because keyword arguments wrap across lines and give much of it back. The gain is the removed repetition, not the arithmetic. Moving the helper out also broke a test that patched `NSMenuItem` on the `menubar` module only; the fix was to patch the helper module too, never to add module-level indirection so the old patch keeps reaching."
-            }
-          ]
-        },
-        {
-          "version": "0.29.15",
-          "period": "2026-08-02",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "中文、日文、韓文的用量估算不再少算四倍",
-                "zh-CN": "中文、日文、韩文的用量估算不再少算四倍",
-                "en": "Usage estimates no longer count CJK text at one quarter of its size",
-                "ja": "中日韓テキストの使用量見積もりが 4 分の 1 にならなくなった",
-                "ko": "중국어·일본어·한국어 사용량 추정치가 4분의 1로 줄어들지 않는다"
-              },
-              "body": {
-                "zh-TW": "你拿中文、日文或韓文檔案檢查浪費的用量時，以前看到的數字其實少算了四倍。診斷工具把所有文字都當成四個字元才算一個 token（AI 處理文字量的單位），這套演算法適合 ASCII 文字，卻不適合 CJK 文字：一個中日韓字大約就是一個 token。現在它會把中日韓字逐一計算，其餘文字仍以四個字元估算，所以浪費的 token 與由此算出的費用不會再縮成四分之一。這像秤蔬菜時把每四顆番茄才當一顆，秤重結果當然偏低；秤法改正後，數字才接近實際重量。工具仍在離線運作，沒有為了追求細微的取整誤差加入特定模型的 tokenizer。",
-                "zh-CN": "你拿中文、日文或韩文文件检查浪费的用量时，以前看到的数字其实少算了四倍。诊断工具把所有文字都当成四个字符才算一个 token（AI 处理文字量的单位），这套算法适合英文，却不适合 CJK 文字：一个中日韩字大约就是一个 token。现在它会把中日韩字逐一计算，其余文字仍以四个字符估算，所以浪费的 token 与由此算出的费用不会再缩成四分之一。这像称蔬菜时把每四颗番茄才当一颗，称重结果当然偏低；称法改正后，数字才接近实际重量。工具仍在离线运行，没有为了追求细微的取整误差加入特定模型的 tokenizer。",
-                "en": "If you use Chinese, Japanese, or Korean files to diagnose waste, the old figures were four times too small. The diagnostic treated every four characters as one token (the unit an AI uses to measure text). That works for ASCII text, but a CJK character is roughly one token. It now counts each CJK codepoint as one token and keeps the four-characters-per-token estimate for everything else, so reported waste and the cost based on it no longer shrink to a quarter of their real estimate. It was like weighing tomatoes but recording only one for every four on the scale. The tool remains offline; it does not add a model-specific tokenizer just to chase tiny rounding differences.",
-                "ja": "中国語、日本語、韓国語のファイルで無駄な使用量を調べるなら、これまでの数字は実際の見積もりの 4 分の 1 だった。診断はすべての文字を四文字で一 token（AI が文字量を数える単位）としていた。この比率は ASCII 文字には合うが、中日韓の一文字はおよそ一 token である。今後は CJK の各コードポイントを一 token、それ以外を四文字で一 token として数えるため、無駄な token とそこから出す費用が 4 分の 1 に縮むことはない。トマトを量るのに四個ごとに一個だけ記録していた秤を直すようなものだ。道具は引き続きオフラインで動き、わずかな丸め誤差のために特定モデル用 tokenizer は追加しない。",
-                "ko": "중국어·일본어·한국어 파일로 낭비된 사용량을 점검했다면, 예전 수치는 실제 추정치의 4분의 1에 불과했다. 진단 도구가 모든 문자 네 개를 token(AI가 글자량을 세는 단위) 하나로 계산했기 때문이다. 이 비율은 ASCII 문자에는 맞지만, 한중일 문자 하나는 대략 token 하나다. 이제는 CJK 코드포인트를 하나씩 token 하나로 세고 나머지는 네 글자당 하나로 계산하므로, 낭비된 token과 거기서 계산한 비용이 4분의 1로 줄어들지 않는다. 토마토 네 개를 저울에 올리고 한 개만 적어 두던 계량을 고친 셈이다. 이 도구는 계속 오프라인으로 작동하며, 미세한 반올림 차이 때문에 특정 모델용 tokenizer를 추가하지 않는다."
-              },
-              "original": "**Token estimates no longer undercount CJK text by a factor of four.** Six places in the waste diagnosis converted characters to tokens with `chars // 4`, which is the ASCII ratio. A CJK character is roughly one token, not a quarter of one, so every figure the diagnosis reported for a Chinese, Japanese or Korean file — wasted tokens and the cost derived from them — came out at a quarter of the truth. This project reads its own `i18n.json`, `CLAUDE.md` and `README.zh-TW.md` often enough to hit this on itself. The estimate now counts CJK codepoints as one token each and everything else at four characters per token. No tokenizer dependency was added: this is an offline tool, and pulling in a model-specific tokenizer to chase rounding-level accuracy is not a trade worth making."
-            },
-            {
-              "title": {
-                "zh-TW": "壞掉的快取先隔離，留下查問題的線索",
-                "zh-CN": "损坏的缓存先隔离，留下查问题的线索",
-                "en": "A damaged cache is quarantined instead of erased",
-                "ja": "壊れたキャッシュを消さずに隔離して、調査の手掛かりを残す",
-                "ko": "망가진 캐시는 지우지 않고 격리해 원인을 남긴다"
-              },
-              "body": {
-                "zh-TW": "某次用量數字看起來不對時，壞掉的快取（把查過結果暫存起來直接用的資料）現在不會立刻被刪光。Antigravity、Codex 與 history 三種快取遇到讀不懂的檔案，仍會重新計算以便繼續使用，但會先把原檔移到 `~/.usage/quarantine/`，讓你日後還能檢查出了什麼問題。每個檔名帶毫秒時間戳，第二次故障不會蓋掉第一次；隔離區最多留十個檔案，每個最多 5 MB。這像醫院把破損的檢體先放進證物袋，再重新採樣，而不是直接丟進垃圾桶。只有過期的 `schema_version` 不會被隔離，因為那是正常升級；每個快取有 32 個分片，一次升版若全送進隔離區，反而會擠掉真正的故障證據。",
-                "zh-CN": "某次用量数字看起来不对时，损坏的缓存（把查过结果暂存起来直接用的数据）现在不会立刻被删光。Antigravity、Codex 与 history 三种缓存遇到读不懂的文件，仍会重新计算以便继续使用，但会先把原文件移到 `~/.usage/quarantine/`，让你日后还能检查出了什么问题。每个文件名带毫秒时间戳，第二次故障不会盖掉第一次；隔离区最多留十个文件，每个最多 5 MB。这像医院把破损的样本先放进证物袋，再重新采样，而不是直接丢进垃圾桶。只有过期的 `schema_version` 不会被隔离，因为那是正常升级；每个缓存有 32 个分片，一次升级若全送进隔离区，反而会挤掉真正的故障证据。",
-                "en": "When a usage number looks wrong, a damaged cache (stored results reused instead of recomputed) will no longer vanish immediately. Antigravity, Codex, and history caches still recover by recomputing an unreadable file, but first move the original into `~/.usage/quarantine/` so there is something to inspect later. Names include a millisecond timestamp, so a second failure cannot replace the first; the folder holds at most ten files, up to 5 MB each. It is like bagging a damaged lab sample before taking a new one instead of throwing away the only clue. An old `schema_version` is excluded because it is a normal upgrade. With 32 shards per cache, quarantining an entire version bump would crowd out the evidence from a real failure.",
-                "ja": "使用量の数字がおかしく見えたとき、壊れたキャッシュ（調べた結果を一時保存して再利用するデータ）は、もう直ちに消えない。Antigravity、Codex、history の三つのキャッシュは読めないファイルを再計算して復旧するが、その前に元のファイルを `~/.usage/quarantine/` へ移すため、後から原因を調べられる。名前にはミリ秒の時刻が付き、二度目の失敗が一度目を上書きしない。隔離場所は十ファイルまで、各 5 MB までである。壊れた検体を捨てる前に証拠袋へ入れてから採り直すようなものだ。古い `schema_version` は通常の更新なので隔離しない。各キャッシュに 32 個の断片があるため、更新分を全て入れると本当の故障の証拠を押し出してしまう。",
-                "ko": "사용량 숫자가 이상해 보일 때, 망가진 캐시(살펴본 결과를 잠시 저장해 다시 쓰는 데이터)를 이제 바로 지우지 않는다. Antigravity, Codex, history의 세 캐시는 읽을 수 없는 파일을 다시 계산해 복구하지만, 먼저 원본을 `~/.usage/quarantine/`으로 옮겨 나중에 원인을 살필 수 있게 한다. 이름에 밀리초 시각을 넣어 두 번째 고장이 첫 번째 것을 덮어쓰지 못하게 했고, 격리 장소에는 파일 열 개까지만 두며 파일 하나는 5 MB까지다. 망가진 검체를 버리기 전에 증거 봉투에 넣고 새로 채취하는 것과 같다. 오래된 `schema_version`은 정상적인 업그레이드라 격리하지 않는다. 캐시마다 조각이 32개이므로 버전 갱신분을 전부 넣으면 진짜 고장의 증거가 밀려난다."
-              },
-              "original": "**A corrupt disk cache is preserved instead of being deleted outright.** All three caches — Antigravity, Codex and history — dealt with an unreadable file by removing it and recomputing. That is the right recovery, but it also destroys the only evidence of what went wrong, so a later report of \"my numbers look off\" has nothing left to inspect. A damaged file is now moved to `~/.usage/quarantine/` first, named with a millisecond timestamp so a second failure cannot overwrite the first, capped at ten files and 5 MB each. A stale `schema_version` is *not* quarantined: that is an ordinary upgrade, and with 32 shards per cache one version bump would flush the whole budget and push the real evidence out. The quarantine helper swallows every error it can hit — it is a side service and must never take the caller down with it."
-            },
-            {
-              "title": {
-                "zh-TW": "`--doctor` 會分清楚「缺檔」與「根本用不到」",
-                "zh-CN": "`--doctor` 会分清“缺文件”和“根本用不到”",
-                "en": "`--doctor` separates a missing file from one you do not need",
-                "ja": "`--doctor` が「不足」と「不要」を区別するようになった",
-                "ko": "`--doctor`가 없는 파일과 필요 없는 파일을 구분한다"
-              },
-              "body": {
-                "zh-TW": "跑 `--doctor` 檢查安裝狀態時，看到 `forwarder script: [missing]` 不必再先以為出錯。以前報告把十四項檢查攤成一張清單，即使你目前的模式根本不用 forwarder script（負責轉送資料的腳本），它也照樣標成 missing。現在結果分成 `[core]`、`[hook]` 與 `[optional]` 三組；不需要轉送腳本的模式會直接寫 `[not needed in <state> mode]`。這像健康檢查把必做檢驗、加選檢驗和不適用項目分欄，而不是把所有未做項目都標紅。檢查的判斷規則沒有改，改的是報告把情境講清楚的方式；真正缺少目前模式會用到的檔案，仍會顯示為問題。",
-                "zh-CN": "跑 `--doctor` 检查安装状态时，看到 `forwarder script: [missing]` 不必再先以为出错。以前报告把十四项检查摊成一张清单，即使你当前的模式根本不用 forwarder script（负责转送数据的脚本），它也照样标成 missing。现在结果分成 `[core]`、`[hook]` 与 `[optional]` 三组；不需要转送脚本的模式会直接写 `[not needed in <state> mode]`。这像体检把必做检查、加选检查和不适用项目分栏，而不是把所有未做项目都标红。检查的判断规则没有改，改的是报告把情境讲清楚的方式；真正缺少当前模式会用到的文件，仍会显示为问题。",
-                "en": "When you run `--doctor` to check an installation, `forwarder script: [missing]` no longer automatically means trouble. The report used to flatten fourteen checks into one list, so it showed a missing forwarder script even in a mode that never uses one. A forwarder script is simply a script that passes data along. Results are now separated into `[core]`, `[hook]`, and `[optional]`; a mode that does not need the script says `[not needed in <state> mode]`. It is like a health report separating required tests, elective tests, and tests that do not apply instead of marking every absent test red. The checking logic itself did not change; a file required by the current mode is still reported as missing.",
-                "ja": "インストール状態を `--doctor` で調べるとき、`forwarder script: [missing]` と出ても、すぐに異常だと思わなくてよくなった。以前の報告は十四項目を一つの一覧に並べていたため、現在のモードで使わない forwarder script（データを転送するスクリプト）まで missing と表示していた。これからは結果を `[core]`、`[hook]`、`[optional]` に分け、不要なモードでは `[not needed in <state> mode]` と明記する。必須検査、任意検査、対象外を分けず、未実施を全て赤字にする健康診断票を直すようなものだ。検査の判定自体は変わらず、今のモードで必要なファイルがない場合は引き続き missing と報告する。",
-                "ko": "설치 상태를 `--doctor`로 확인할 때 `forwarder script: [missing]`가 보여도 곧바로 문제라고 생각할 필요가 없다. 예전 보고서는 열네 가지 검사를 한 목록에 늘어놓아, 현재 모드가 전혀 쓰지 않는 forwarder script(데이터를 넘겨주는 스크립트)도 missing으로 표시했다. 이제 결과를 `[core]`, `[hook]`, `[optional]`로 나누고, 필요 없는 모드에서는 `[not needed in <state> mode]`라고 적는다. 필수 검사, 선택 검사, 대상 아님을 나누지 않고 하지 않은 검사를 모두 빨갛게 표시하던 건강검진표를 고치는 셈이다. 검사 기준 자체는 바뀌지 않았으므로, 현재 모드에 필요한 파일이 없으면 계속 missing으로 보고한다."
-              },
-              "original": "**`--doctor` no longer reports a missing file that the current mode does not use.** The report listed fourteen checks as one flat list, so `forwarder script: [missing]` read as a fault even when the installed mode never needs that script. It is now grouped into `[core]`, `[hook]` and `[optional]`, and the forwarder line says `[not needed in <state> mode]` when that is the case. None of the check logic changed."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 的系統匣測試會寫入真實偏好設定",
-                "zh-CN": "Windows 的系统托盘测试会写入真实偏好设置",
-                "en": "Windows tray tests write to your real preferences",
-                "ja": "Windows のトレイテストが実際の設定に書き込む",
-                "ko": "Windows 트레이 시험이 실제 환경 설정에 쓴다"
-              },
-              "body": {
-                "zh-TW": "Windows 開發者跑系統匣（Windows 工作列角落放背景程式圖示的區域）測試後，自己的面板偏好曾被悄悄改掉。兩個測試都會呼叫 `switch_panel()` 切換面板；這個動作接著透過 `_save_active_panel_id()` 寫入偏好檔，但測試沒有把 `prefs.PREFERENCES_FILE` 改指向暫存位置，於是實際碰到的是 `~/.claude/usage-preferences.json`。換句話說，測試本來該在模型屋裡搬家具，卻走進你的家改了客廳。",
-                "zh-CN": "Windows 开发者跑系统托盘（Windows 任务栏角落放后台程序图标的区域）测试后，自己的面板偏好曾被悄悄改掉。两个测试都会调用 `switch_panel()` 切换面板；这个动作接着通过 `_save_active_panel_id()` 写入偏好文件，但测试没有把 `prefs.PREFERENCES_FILE` 改指向临时位置，于是实际碰到的是 `~/.claude/usage-preferences.json`。换句话说，测试本来该在样板房里搬家具，却走进你的家改了客厅。",
-                "en": "After a Windows developer ran tray tests, their own panel preference changed in silence. The tray is the corner of the Windows taskbar where background-app icons live. Two tests call `switch_panel()`, which then writes preferences through `_save_active_panel_id()`. But the tests did not redirect `prefs.PREFERENCES_FILE` to a temporary location, so they wrote to the real `~/.claude/usage-preferences.json`. The tests were meant to rearrange furniture in a model home, yet walked into your living room instead.",
-                "ja": "Windows の開発者がシステムトレイ（タスクバーの隅に常駐アプリのアイコンが並ぶ場所）のテストを実行したあと、自分のパネル設定が黙って変わっていた。二つのテストは `switch_panel()` を呼び、そこから `_save_active_panel_id()` を通じて設定を書き込む。しかしテストは `prefs.PREFERENCES_FILE` を一時的な場所へ差し替えておらず、実際の `~/.claude/usage-preferences.json` に書き込んでいた。モデルルームの家具を動かすはずの試験が、自宅の居間へ入ってしまったようなものだ。",
-                "ko": "Windows 개발자가 시스템 트레이(작업 표시줄 구석에서 백그라운드 앱 아이콘을 보여 주는 곳) 시험을 돌린 뒤 자신의 패널 선택이 조용히 바뀌었다. 두 시험은 `switch_panel()`을 호출하고, 이 동작은 `_save_active_panel_id()`을 거쳐 환경 설정을 쓴다. 그러나 시험은 `prefs.PREFERENCES_FILE`을 임시 위치로 돌려놓지 않아 실제 `~/.claude/usage-preferences.json`을 건드렸다. 견본 주택의 가구를 옮겨야 할 시험이 자기 집 거실에 들어간 셈이다."
-              },
-              "original": "**Two Windows tray tests wrote into the real `~/.claude/usage-preferences.json`.** Both call `switch_panel()`, which persists through `_save_active_panel_id()`, and neither patched `prefs.PREFERENCES_FILE` — so running the suite silently changed the developer's own active panel."
-            },
-            {
-              "title": {
-                "zh-TW": "四種 README 翻譯都有人守，不再只盯繁中",
-                "zh-CN": "四种 README 翻译都有人守，不再只盯繁中",
-                "en": "Documentation checks now watch all four README translations",
-                "ja": "README の四言語すべてを翻訳漏れチェックの対象にした",
-                "ko": "README 네 번역본 모두를 동기화 검사에 넣었다"
-              },
-              "body": {
-                "zh-TW": "英文 README 多加一節時，簡體中文、日文和韓文版現在也會被檢查有沒有跟上。原本 `check_doc_parity.py` 只比對英文與繁中 README，其他三份翻譯沒有自動守門員，只能靠 `CLAUDE.md` 裡的手動提醒。現在每一種翻譯各自和英文比較，若落後，錯誤訊息會直接點出是哪個檔案。它比的是 `##` 標題的數量，不是標題文字本身：譯者仍可用自然的語言改寫標題，不必逐字照翻。這像展覽入口只數每個語言版有沒有同樣多扇展廳門，而不強迫門牌翻成同一串字；少了一扇門才提醒你回頭補。",
-                "zh-CN": "英文 README 多加一节时，简体中文、日文和韩文版现在也会被检查有没有跟上。原本 `check_doc_parity.py` 只比对英文与繁中 README，其他三份翻译没有自动守门员，只能靠 `CLAUDE.md` 里的手动提醒。现在每一种翻译各自和英文比较，若落后，错误信息会直接点出是哪个文件。它比的是 `##` 标题的数量，不是标题文字本身：译者仍可用自然的语言改写标题，不必逐字照翻。这像展览入口只数每个语言版有没有同样多扇展厅门，而不强迫门牌翻成同一串字；少了一扇门才提醒你回头补。",
-                "en": "When the English README gains a section, the Simplified Chinese, Japanese, and Korean versions are now checked for keeping up too. `check_doc_parity.py` used to compare English only with Traditional Chinese, leaving the other three translations guarded only by a hand-written reminder in `CLAUDE.md`. Each translation is now compared with English on its own, and a failure names the file that drifted. The check counts `##` headings rather than matching their wording, so translators can still write natural headings instead of copying English word for word. It is like checking that every language edition of an exhibition has the same number of gallery doors, without forcing all the signs to use identical words.",
-                "ja": "英語版 README に節が増えたとき、簡体字中国語、日本語、韓国語版も追いついているか確認されるようになった。`check_doc_parity.py` は以前、英語と繁体字中国語だけを比べ、残る三翻訳は `CLAUDE.md` の手作業の注意書きに頼っていた。今後は各翻訳を英語と個別に比べ、ずれた場合はどのファイルかをエラーに表示する。比べるのは `##` 見出しの個数であり、見出しの文言そのものではない。翻訳者は英語を一語ずつ写さず、自然な見出しを書ける。各言語版の展示に同じ数の展示室の扉があるかを見るだけで、扉の札まで同じ言葉に強制しないような検査である。",
-                "ko": "영문 README에 절이 하나 늘어나면 이제 간체 중국어·일본어·한국어판도 따라왔는지 검사한다. `check_doc_parity.py`는 예전에는 영문과 번체 중국어만 비교했고, 나머지 세 번역은 `CLAUDE.md`의 수동 메모에만 기대고 있었다. 이제 각 번역본을 영문과 따로 비교하며, 어긋나면 오류 메시지가 해당 파일을 짚어 준다. 이 검사는 `##` 제목의 개수만 세고 제목 문구를 맞추지는 않는다. 번역자는 영어를 한 단어씩 베끼지 않고 자연스러운 제목을 쓸 수 있다. 언어별 전시에 전시실 문이 같은 수만큼 있는지 확인하되, 문패 문구까지 똑같이 강요하지 않는 검사와 같다."
-              },
-              "original": "**The documentation parity check covers Simplified Chinese, Japanese and Korean.** `check_doc_parity.py` only compared English against Traditional Chinese, leaving the other three README translations unwatched; `CLAUDE.md` had to carry a note to sync them by hand. Each translation is now compared on its own and the failure message names the file that drifted. The comparison is still a count of `##` headings rather than their text — matching text would force translators to mirror English headings word for word, which is what makes translated docs read badly."
-            },
-            {
-              "title": {
-                "zh-TW": "本機安裝有了腳本，選單列不再默默跑舊版",
-                "zh-CN": "本地安装有了脚本，菜单栏不再默默跑旧版",
-                "en": "A local-install script keeps the menu bar from quietly running an old build",
-                "ja": "ローカルインストールをスクリプト化し、メニューバーが古い版のまま動くのを防ぐ",
-                "ko": "로컬 설치 스크립트로 메뉴 막대가 옛 빌드를 실행하는 일을 막는다"
-              },
-              "body": {
-                "zh-TW": "你剛做完本機 build（編譯完成、可執行的程式版本），標上 release tag 並不會自動換掉 `/Applications` 裡正在跑的 App。過去這一步只寫在檢查清單，曾讓選單列連續六個版本仍開著舊 build。現在要在本機安裝時，直接執行 `scripts/install_local.sh`：它先確認 build 存在，印出新舊兩個版本，等待正在執行的 App 結束，再替換檔案，最後核對已安裝版本是否相同。這像買了新燈泡卻只把盒子放在門口；打上標籤不等於已裝進燈座。腳本把拆舊燈、裝新燈和開燈確認串起來，讓本機副本跟著更新。",
-                "zh-CN": "你刚做完本地 build（编译完成、可执行的程序版本），标上 release tag 并不会自动换掉 `/Applications` 里正在跑的 App。过去这一步只写在检查清单，曾让菜单栏连续六个版本仍开着旧 build。现在要在本地安装时，直接执行 `scripts/install_local.sh`：它先确认 build 存在，打印出新旧两个版本，等待正在运行的 App 结束，再替换文件，最后核对已安装版本是否相同。这像买了新灯泡却只把盒子放在门口；打上标签不等于已装进灯座。脚本把拆旧灯、装新灯和开灯确认串起来，让本地副本跟着更新。",
-                "en": "After you make a local build (a compiled, runnable version of the app), adding a release tag does not replace the copy already running from `/Applications`. That final step used to live only in a checklist, and the menu bar once kept running a build six versions old. For a local install, run `scripts/install_local.sh`. It confirms the build exists, prints both versions, waits for the running app to exit, swaps the files, and verifies that the installed version matches. Buying a new light bulb is not the same as putting it in the socket. The script links removing the old bulb, fitting the new one, and checking that the light turns on, so the local copy actually catches up.",
-                "ja": "ローカル build（コンパイル済みで実行できるアプリの版）を作って release tag を付けても、`/Applications` で動いているコピーは自動では置き換わらない。この最後の作業は以前チェックリストにしかなく、メニューバーが六版前の build を動かしていたことがある。ローカルへ入れるときは `scripts/install_local.sh` を実行する。このスクリプトは build の存在を確認し、新旧の版を表示し、実行中の App が終了するのを待ってから入れ替え、インストール済みの版が一致するか確かめる。新しい電球を買って玄関に箱を置くだけでは、灯具は新しくならない。古い電球を外し、新しいものを付け、点灯を確かめるまでを一続きにする作業である。",
-                "ko": "로컬 build(컴파일을 마쳐 실행할 수 있는 앱 버전)를 만들고 release tag를 붙여도 `/Applications`에서 실행 중인 복사본은 저절로 바뀌지 않는다. 이 마지막 작업은 예전에는 점검표에만 적혀 있었고, 메뉴 막대가 여섯 버전 전 build를 실행한 적도 있다. 로컬에 설치하려면 `scripts/install_local.sh`를 실행하면 된다. 이 스크립트는 build가 있는지 확인하고 새 버전과 옛 버전을 표시한 뒤, 실행 중인 App이 끝나기를 기다리고 파일을 바꾸며, 설치된 버전이 일치하는지 확인한다. 새 전구를 사서 상자만 현관에 놓는다고 등기구가 바뀌지는 않는다. 낡은 전구를 빼고 새 전구를 끼운 뒤 불이 켜지는지 확인하는 과정을 이어 주는 작업이다."
-              },
-              "original": "**`scripts/install_local.sh` replaces the hand-typed steps for installing a build locally.** Releasing does not touch `/Applications`: the tag drives CI, and the local copy keeps running whatever was already there. That last step lived only in a checklist, and the menu bar once ran a stale build for six versions before anyone noticed. The script checks the build exists, prints both versions, waits for the running app to exit, swaps it, and verifies the installed version matches."
-            }
-          ]
-        },
-        {
-          "version": "0.29.14",
-          "period": "2026-08-02",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "面板記住位置與高度，開啟不再位移拉伸",
-                "zh-CN": "面板记住位置与高度，打开不再位移拉伸",
-                "en": "Panels remember their position and height instead of shifting or stretching open",
-                "ja": "パネルが位置と高さを覚え、開くたびにずれたり伸びたりしなくなった",
-                "ko": "패널이 위치와 높이를 기억해 열 때마다 밀리거나 늘어나지 않는다."
-              },
-              "body": {
-                "zh-TW": "每次打開又關閉面板後，若你已把它拖到順手位置，現在它不會一回比一回往下滑。之前它像掛歪的相框：儲存位置抓左下角，調整內容大小卻固定上緣；程式自己因高度改變移動視窗時，又誤當成你拖動，於是把偏移記下來。現在兩邊都認上緣，尺寸變動不會覆蓋你選的位置。舊版存下的位置也會經遷移（把舊資料換成新格式的轉換）讀取，不必重設。面板量過高度後，開啟不再先矮後拉長；尚未量過時仍以估算值作備援。內容真的變高或變矮時，仍會再調整一次。",
-                "zh-CN": "每次打开又关闭面板后，如果你已经把它拖到顺手的位置，现在它不会一次比一次往下滑。以前它像挂歪的相框：保存位置抓左下角，调整内容大小却固定上缘；程序因高度变化自己移动窗口时，又误当成你拖动，于是把偏移记下来。现在两边都认上缘，尺寸变化不会覆盖你选的位置。旧版存下的位置也会经迁移（把旧数据换成新格式的转换）读取，不必重设。面板量过高度后，打开不再先矮后拉长；尚未量过时仍以估算值作备用。内容真的变高或变矮时，仍会再调整一次。",
-                "en": "After you drag a panel where you want it, opening and closing it will no longer make it creep lower each time. It was like a crooked picture frame: the saved position used its bottom-left corner, while resizing held its top edge; when the app moved the window for a height change, it mistook that move for your drag and saved the offset. Both sides now use the top edge, so resizing cannot overwrite your chosen spot. Older saved positions are migrated rather than reset. A measured panel no longer opens short and then stretches; an estimate remains the fallback before measurement. It still adjusts when content truly changes size.",
-                "ja": "パネルを使いやすい位置へドラッグした後、開閉するたびに少しずつ下へずれることはなくなった。以前は額縁が傾くような状態だった。保存する位置は左下の角を基準にする一方、サイズ変更は上端を固定していたため、高さの変更でアプリ自身が窓を動かすと、それをユーザーのドラッグと誤認してずれを保存していた。今は両方とも上端を基準にするので、サイズ変更で選んだ位置は上書きされない。旧版の保存位置も移行して読み込まれ、リセットは不要である。実測済みのパネルは、低く開いてから伸びなくなる。未測定なら推定値を予備に使う。内容の高さが実際に変われば、そのときだけ調整する。",
-                "ko": "패널을 편한 자리로 끌어 놓았다면 이제 열고 닫을 때마다 조금씩 아래로 밀려나지 않는다. 예전에는 비뚤어진 액자와 같았다. 저장 위치는 왼쪽 아래 모서리를 기준으로 삼는데 크기 조절은 위쪽 가장자리를 붙들었고, 높이가 바뀌어 앱이 창을 움직인 일을 사용자가 끈 것으로 잘못 알아들어 그 어긋남을 저장했다. 이제 양쪽 모두 위쪽 가장자리를 기준으로 써서 크기 조절이 고른 위치를 덮어쓰지 않는다. 예전 버전의 저장 위치도 옮겨 읽으므로 다시 잡을 필요가 없다. 실제 높이를 잰 패널은 낮게 열렸다가 늘어나지 않으며, 아직 재지 않았다면 추정값을 예비로 쓴다. 내용 높이가 정말 바뀔 때는 다시 조절한다."
-              },
-              "original": "**The panel no longer creeps downward every time you open and close it.** Dragging it into place used to hold for one cycle at most: each reopen landed it a little lower than the last. Two anchors disagreed. The saved position was the window's bottom-left corner, but `setContentSizeKeepingTopLeft_` — added in 0.29.9 precisely so the panel would not appear to jump while resizing — holds the *top* edge. To hold that edge it calls `setFrameOrigin_`, and macOS posts `NSWindowDidMoveNotification` for a programmatic move just as it does for a drag, so `windowDidMove_` recorded a resize as though the user had dragged the window. Every open re-measured the content height, the bottom-left corner dropped by the difference, and that drop was saved as the new position. The anchor is now the top edge on both sides, so resizing cannot change the stored value. Positions saved by earlier versions are read through a migration path and are not reset.\n**Opening the panel no longer starts short and then stretches.** Two height systems were computing the same number and disagreeing: `popover_dimensions` estimates from a panel's base height by arithmetic (subtract a card when Claude or Codex is hidden, subtract a row when Codex has no data, add for a wrapped status line or an install button), while the script in `panels/dynamic_height.py` measures the rendered content and reports it back. The window opened at the estimate and jumped to the measurement. The gap was widest with cards hidden, where the most terms are subtracted. The measured height is now remembered per panel and used on open, leaving the estimate as a fallback for a panel that has never been measured. The arithmetic constants were deliberately left alone — tuning them is whack-a-mole, since every new UI element needs another adjustment. The panel still adjusts once when the content genuinely changes size."
-            },
-            {
-              "title": {
-                "zh-TW": "狀態檔讀到壞編碼，不再讓 usage 中斷",
-                "zh-CN": "状态文件读到坏编码，不再让 usage 中断",
-                "en": "A damaged state file no longer stops usage cold",
-                "ja": "壊れた文字コードの状態ファイルで usage が止まらなくなった",
-                "ko": "깨진 인코딩의 상태 파일 때문에 usage가 멈추지 않는다."
-              },
-              "body": {
-                "zh-TW": "某次電腦突然關機或檔案只寫到一半時，usage 的狀態檔（存偏好和上次連線資料的檔案）若混進不能用 UTF-8 的位元組，程式現在不會直接報錯中斷。它會把這份無法讀取的檔案當作暫時不可用，安靜改走備援處理。先前程式只攔住作業系統讀檔錯誤與 JSON 格式錯誤，卻漏了不合法 UTF-8 造成的解碼錯誤；三個載入偏好、連線狀態與上次連線時間的地方因此可能把錯誤一路丟出。這像讀到被水泡爛的便條：看不清就先放下，不讓整個工作台停擺。",
-                "zh-CN": "某次电脑突然关机或文件只写到一半时，usage 的状态文件（存偏好和上次连接资料的文件）如果混进不能用 UTF-8 的字节，程序现在不会直接报错中断。它会把这份无法读取的文件当作暂时不可用，安静改走备用处理。先前程序只拦住操作系统读文件错误与 JSON 格式错误，却漏了不合法 UTF-8 造成的解码错误；三个加载偏好、连接状态与上次连接时间的地方因此可能把错误一路抛出。这像读到被水泡烂的便条：看不清就先放下，不让整个工作台停摆。",
-                "en": "If a computer shuts down suddenly or a file is written only halfway, a usage state file can contain bytes that are not valid UTF-8. That no longer throws an error and stops the app. The unreadable file is treated as temporarily unusable and the app falls back quietly. Previously it caught operating-system read errors and malformed JSON, but missed decoding errors from invalid UTF-8; three loaders for preferences, connection state, and last connection time could let that error escape. It is like finding a note soaked through with water: set it aside when you cannot read it, instead of shutting down the whole workbench.",
-                "ja": "突然の電源断や書き込み途中の中断で、usage の状態ファイルに UTF-8 として読めないバイト列が混じることがある。今後はそれでエラーが出てアプリ全体が止まることはない。読めないファイルは一時的に使えないものとして扱い、静かに予備の処理へ回る。以前は OS の読み取りエラーや壊れた JSON は捕捉していたが、不正な UTF-8 によるデコードエラーを見落としていた。このため、設定、接続状態、最終接続時刻を読む三つの処理からエラーが漏れる可能性があった。水浸しで読めないメモを見つけたら、作業台全体を止めずに脇へ置くような修正である。",
-                "ko": "컴퓨터가 갑자기 꺼지거나 파일을 쓰다 멈추면 usage의 상태 파일에 UTF-8로 읽을 수 없는 바이트가 섞일 수 있다. 이제 그런 파일 때문에 오류가 나고 앱 전체가 멈추지 않는다. 읽을 수 없는 파일은 잠시 쓸 수 없는 것으로 보고 조용히 예비 처리로 넘어간다. 예전에는 운영체제의 파일 읽기 오류와 잘못된 JSON은 잡았지만, 잘못된 UTF-8 때문에 생기는 해독 오류는 놓쳤다. 그래서 환경 설정, 연결 상태, 마지막 연결 시각을 읽는 세 곳에서 오류가 밖으로 새어 나올 수 있었다. 물에 젖어 읽을 수 없는 메모를 발견하면 작업대 전체를 멈추지 않고 옆에 두는 것과 같다."
-              },
-              "original": "**A state file corrupted into non-UTF-8 bytes no longer raises instead of degrading.** `_load_preferences`, `_load_ping_state` and `_load_last_ping` each catch `OSError` and `json.JSONDecodeError` around a `read_text(encoding=\"utf-8\")` — but a file containing invalid UTF-8 raises `UnicodeDecodeError`, which is a sibling of `JSONDecodeError` under `ValueError`, not a subclass of it. All three are contracted to fall back quietly when their file is unusable, and a half-written or damaged file broke that contract by propagating the exception."
-            },
-            {
-              "title": {
-                "zh-TW": "通知程式拆開、共用讀檔工具補上測試",
-                "zh-CN": "通知程序拆开、共用读文件工具补上测试",
-                "en": "Notification code is separated and shared file readers get direct tests",
-                "ja": "通知コードを分離し、共通のファイル読み込み処理に直接テストを加えた",
-                "ko": "알림 코드를 분리하고 공용 파일 읽기 도구에 직접 테스트를 더했다."
-              },
-              "body": {
-                "zh-TW": "你收到通知、或開發者修改共用讀檔工具時，這版沒有添畫面上的新按鈕，卻把容易藏錯的角落收好。macOS 的通知橋接程式（把 app 與系統通知中心接起來的程式碼）從龐大的選單列檔拆到獨立檔案；更新通知的冷卻時間也移到管理其他更新時機的地方。通知的判斷邏輯仍不依賴 macOS 專用元件，因此可在沒有 macOS 執行環境下測試。另一邊，讀 JSONL（每行一筆 JSON 資料的檔案格式）與時間的共用工具補上直接單元測試：空白行、壞行和不是物件的資料怎麼處理都被固定下來；未指定錯誤處理時，遇到壞 UTF-8 仍會報錯，決定權留給呼叫它的地方。像把工具櫃裡常用尺和螺絲起子逐件驗過，往後修其他東西時較不易誤踩壞掉的工具。",
-                "zh-CN": "你收到通知、或开发者修改共用读文件工具时，这版没有添画面上的新按钮，却把容易藏错的角落收好。macOS 的通知桥接程序（把 app 与系统通知中心接起来的代码）从庞大的菜单栏文件拆到独立文件；更新通知的冷却时间也移到管理其他更新时间的地方。通知的判断逻辑仍不依赖 macOS 专用组件，因此可在没有 macOS 运行环境下测试。另一边，读 JSONL（每行一笔 JSON 数据的文件格式）与时间的共用工具补上直接单元测试：空白行、坏行和不是对象的数据怎么处理都被固定下来；未指定错误处理时，遇到坏 UTF-8 仍会报错，决定权留给调用它的地方。像把工具柜里常用尺和螺丝刀逐件验过，往后修其他东西时较不易误踩坏掉的工具。",
-                "en": "If you receive notifications or maintain shared file-reading code, this release adds no visible button but tidies places where bugs can hide. The macOS notification bridge, which connects the app to the system notification center, moves out of the huge menu-bar file into its own file; update-dismissal timing joins the other update timing rules. The decision logic still avoids macOS-only pieces, so it can be tested without that runtime. Meanwhile, the shared JSONL and time utilities get direct unit tests. Their behavior for blank lines, malformed rows, and non-object values is now pinned down; invalid UTF-8 still raises when the caller has not asked for error handling, leaving that choice to the caller. It is like checking each ruler and screwdriver in a tool cabinet before repairing something else.",
-                "ja": "通知を受け取る人や共通のファイル読み込み処理を保守する人にとって、この版は画面上の新しいボタンを増やすものではないが、バグが潜みやすい場所を整えている。アプリとシステムの通知センターをつなぐ macOS の通知ブリッジは、巨大なメニューバー用ファイルから独立したファイルへ移った。更新通知を閉じた後の待機時間も、ほかの更新時機を管理する場所へ集められた。通知の判断ロジックは macOS 専用部品に依存しないため、その実行環境なしでもテストできる。一方、JSONL と時刻を扱う共通ツールには直接の単体テストを追加した。空行、壊れた行、オブジェクトでない値の扱いを固定し、呼び出し側がエラー処理を指定しない場合は壊れた UTF-8 を引き続きエラーにする。工具箱の定規とドライバーを一本ずつ点検してから別の修理を始めるような変更である。",
-                "ko": "알림을 받거나 공용 파일 읽기 도구를 고치는 사람에게 이번 버전은 화면의 새 단추를 더하지는 않지만, 오류가 숨어들기 쉬운 곳을 정리한다. 앱과 시스템 알림 센터를 잇는 macOS 알림 연결 코드는 커다란 메뉴 막대 파일에서 별도 파일로 옮겼고, 업데이트 알림을 닫은 뒤의 대기 시간도 다른 업데이트 시점을 관리하는 곳으로 모았다. 알림 판단 로직은 macOS 전용 부품에 기대지 않아 그 실행 환경 없이도 시험할 수 있다. 한편 JSONL과 시간을 다루는 공용 도구에는 직접 단위 시험을 더했다. 빈 줄, 망가진 줄, 객체가 아닌 값의 처리를 고정했고, 호출하는 쪽이 오류 처리를 정하지 않았다면 잘못된 UTF-8은 계속 오류로 낸다. 공구함의 자와 드라이버를 하나씩 점검한 뒤 다른 수리를 시작하는 것과 같다."
-              },
-              "original": "**The macOS notification bridge moved out of `menubar.py` into `menubar_notify.py`.** The six module-level functions that talk to `UNUserNotificationCenter` had no reason to live in a 2230-line file. They were not folded into `usage_notifications.py`, which stays free of PyObjC so its decision logic remains testable without the ObjC runtime — these functions call `objc.registerMetaDataForSelector`. The update-dismissal cooldown joined `update_gate.py`, where the other update-timing constants already were. `menubar.py` is down to 2139 lines and its ceiling followed.\n**`jsonl_utils` and `time_utils` gained direct unit tests.** Both are shared by several loaders and had only incidental coverage through the modules above them. The JSONL reader's tolerance for blank lines, malformed rows and non-object values is now pinned, including the deliberate choice to raise on invalid UTF-8 when no `errors` argument is given — that decision belongs to the caller."
             }
           ]
         }
