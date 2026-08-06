@@ -10,6 +10,7 @@
 
 [繁體中文](README.zh-TW.md) · 简体中文 · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介绍页](https://aqua5230.github.io/usage/)
 
+[![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![持续集成](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![最新版本](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
@@ -54,7 +55,6 @@ brew install --cask aqua5230/usage/usage
 ### 报告与洞察
 
 - **深入 HTML 报告：** 可分享的 HTML 深度报告，展示每日和每周 token 趋势、项目排名和费用——包含带有贡献热图和“Wrapped”摘要的年度回顾。“最近在做什么”一区列出 Claude Code 为你近期对话取的名字，让数字有脉络可对。可导出为 .html、.csv 或 .png，完全离线，并可选择遮蔽项目名称，这些标题也会一并遮蔽。
-- **TUI 与 CLI：** 更偏好终端？运行功能丰富的 TUI 仪表板：`python3 main.py --tui`，或通过 `python3 usage_cli.py report` 生成深度分析。
 
 ### 体验与自定义
 
@@ -165,15 +165,9 @@ Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托
 
 ## 开发
 
-想运行终端 TUI、配置自定义代理或自行构建 App？请查看**[开发文档](docs/DEVELOPMENT.md)**。
+从源码构建、配置自定义 Agent 或运行终端 TUI？请参阅**[开发文档](docs/DEVELOPMENT.md)**。
 
 ## 许可证
 
 采用 AGPL-3.0-only 许可证（见 [LICENSE](LICENSE)）。如你 fork 或重新分发修改后的版本，请注明原作者并链接回：
 https://github.com/aqua5230/usage
-
-## Star 历史
-
-<a href="https://star-history.com/#aqua5230/usage&Date">
-  <img src="https://api.star-history.com/svg?repos=aqua5230/usage&type=Date" alt="usage Star 历史图表" width="600">
-</a>

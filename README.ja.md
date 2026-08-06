@@ -10,6 +10,7 @@
 
 [繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](README.md) · 日本語 · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [公式サイト](https://aqua5230.github.io/usage/)
 
+[![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![最新リリース](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
@@ -54,7 +55,6 @@ Applicationsフォルダに自動でインストールされます。Gatekeeper�
 ### レポートとインサイト
 
 - **詳細HTMLレポート：** 日次・週次のtoken推移、プロジェクトランキング、コストを示す共有可能なHTML詳細レポートです。コントリビューションヒートマップおよび「Wrapped」サマリーを含むYear in Reviewを搭載しています。「最近の作業」セクションには、Claude Codeが直近の会話に付けた名前が並ぶため、数値を文脈とともに読めます。.html、.csv、または.pngとしてエクスポートでき、完全オフラインで、プロジェクト名のマスキングも任意で可能です（これらのタイトルも一緒に隠れます）。
-- **TUIとCLI：** ターミナルを使いたいですか？ `python3 main.py --tui` で高機能なTUIダッシュボードを実行するか、`python3 usage_cli.py report` で詳細分析を生成できます。
 
 ### 体験とカスタマイズ
 
@@ -165,15 +165,9 @@ UIから直接 **10種類のビジュアルテーマ**を切り替えられま�
 
 ## 開発
 
-ターミナルTUIの実行、カスタムエージェントの設定、またはAppのビルドを自分で行いたいですか？ **[開発ドキュメント](docs/DEVELOPMENT.md)**をご覧ください。
+ソースからのビルド、カスタムエージェントの設定、またはターミナルTUIの実行については、**[開発ドキュメント](docs/DEVELOPMENT.md)**をご覧ください。
 
 ## ライセンス
 
 AGPL-3.0-onlyの下でライセンスされています（[LICENSE](LICENSE)を参照）。フォークまたは変更版を再配布する場合は、原作者を明記し、次へのリンクを付けてください。
 https://github.com/aqua5230/usage
-
-## Star履歴
-
-<a href="https://star-history.com/#aqua5230/usage&Date">
-  <img src="https://api.star-history.com/svg?repos=aqua5230/usage&type=Date" alt="usage Star履歴チャート" width="600">
-</a>

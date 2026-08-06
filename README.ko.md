@@ -10,6 +10,7 @@
 
 [繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](README.md) · [日本語](README.ja.md) · 한국어 &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [공식 사이트](https://aqua5230.github.io/usage/)
 
+[![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![최신 릴리스](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
@@ -54,7 +55,6 @@ Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려�
 ### 보고서와 인사이트
 
 - **심층 HTML 보고서:** 일간 및 주간 token 추세, 프로젝트 순위, 비용을 보여 주는 공유 가능한 HTML 심층 보고서입니다. 기여 히트맵 및 "Wrapped" 요약을 담은 Year in Review가 포함됩니다. "최근 작업" 섹션에는 Claude Code가 최근 대화에 붙인 이름이 나열되어 숫자를 맥락과 함께 볼 수 있습니다. .html, .csv 또는 .png로 내보낼 수 있으며 완전히 오프라인에서 작동하고 프로젝트 이름 마스킹도 선택할 수 있습니다(이 제목들도 함께 가려집니다).
-- **TUI 및 CLI:** 터미널을 선호하나요? `python3 main.py --tui`로 풍부한 TUI 대시보드를 실행하거나 `python3 usage_cli.py report`로 심층 분석을 생성하세요.
 
 ### 경험과 사용자화
 
@@ -165,15 +165,9 @@ UI에서 직접 **10가지 시각 테마**를 전환하세요.
 
 ## 개발
 
-터미널 TUI 실행, 사용자 지정 에이전트 구성 또는 App 직접 빌드를 원하나요? **[개발 문서](docs/DEVELOPMENT.md)**를 확인하세요.
+소스에서 빌드, 사용자 지정 에이전트 구성 또는 터미널 TUI 실행 방법은 **[개발 문서](docs/DEVELOPMENT.md)**를 확인하세요.
 
 ## 라이선스
 
 AGPL-3.0-only로 라이선스됩니다([LICENSE](LICENSE) 참고). 수정한 버전을 fork하거나 재배포하는 경우, 원저자를 표기하고 다음 링크를 포함해 주세요.
 https://github.com/aqua5230/usage
-
-## Star 기록
-
-<a href="https://star-history.com/#aqua5230/usage&Date">
-  <img src="https://api.star-history.com/svg?repos=aqua5230/usage&type=Date" alt="usage Star 기록 차트" width="600">
-</a>
