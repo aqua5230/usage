@@ -6,7 +6,7 @@
 
 ### macOS 메뉴 막대와 Windows 시스템 트레이에서 Claude Code, Codex, Antigravity 할당량을 확인하세요.
 
-작업하는 동안 Claude Code, Codex, Antigravity 할당량을 계속 확인하세요. `usage`는 세션 한도, 주간 한도, 비용 정보를 macOS 메뉴 막대 또는 Windows 시스템 트레이에 표시하므로 세션이 중단되기 전에 사용량을 관리할 수 있습니다.
+세션 중간에 할당량이 소진되면 비용이 큽니다. 특히 Claude Code에 의존하는 긴 리팩터링이나 디버깅 작업에서는 더욱 그렇습니다. `usage`는 한도에 도달하기 *전에* 5시간 및 주간 한도를 표시하고, 작업 내내 계속 보이게 합니다. 실행할 명령이나 열 페이지가 없습니다. 이미 보고 있는 곳에 답이 표시됩니다.
 
 [繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](README.md) · [日本語](README.ja.md) · 한국어 &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [공식 사이트](https://aqua5230.github.io/usage/)
 
@@ -22,11 +22,7 @@
   <img src="docs/showcase.en.png" alt="usage — macOS 메뉴 막대에 고정된 Claude Code, Codex, Antigravity 할당량" width="820">
 </p>
 
-`usage`는 화면 오른쪽 상단에 **Claude Code, Codex, Antigravity** 할당량을 고정하고, 경고 수준을 한눈에 파악하도록 색상으로 구분합니다. Claude Code와 Codex의 수치는 이미 컴퓨터에 있는 로컬 파일에서 수동적으로 읽으며, 이를 읽을 때 **Anthropic 또는 OpenAI의 LLM API를 호출하지 않습니다**——그래서 할당량을 보는 것 자체가 token 사용량을 늘리지 않습니다. Antigravity 할당량은 Antigravity CLI가 이미 로컬에 저장해 둔 로그인 정보를 사용해 Google의 공식 할당량 엔드포인트에서 가져옵니다.
-
-## 왜 usage인가요?
-
-세션 중간에 할당량이 소진되면 비용이 큽니다. 특히 Claude Code에 의존하는 긴 리팩터링이나 디버깅 작업에서는 더욱 그렇습니다. `usage`는 한도에 도달하기 *전에* 5시간 및 주간 한도를 표시하고, 작업 내내 계속 보이게 합니다. 실행할 명령이나 열 페이지가 없습니다. 이미 보고 있는 곳에 답이 표시됩니다.
+Claude Code와 Codex 수치는 이미 컴퓨터에 있는 로그 파일에서 수동적으로 읽어오므로, **할당량을 확인하는 과정에서 Anthropic이나 OpenAI의 LLM API를 호출하지 않으며** token도 전혀 소비하지 않습니다. 유일한 예외인 Antigravity 할당량은 Antigravity CLI가 이미 로컬에 저장해 둔 로그인 정보를 사용해 Google의 공식 할당량 엔드포인트에서 가져오지만, 이 역시 메타데이터 조회일 뿐 모델 할당량을 소비하지 않습니다.
 
 ## 빠른 시작
 
@@ -49,8 +45,14 @@ Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려�
 ### 워크플로 도우미
 
 - **진행 상황 컨시어지:** 새 Claude Code 세션을 열면 `usage`가 마지막 요청, 커밋하지 않은 변경 사항, 미완료 todo를 포함한 이전 진행 상황을 바로 AI에 전달합니다. `/resume`도, 요약도 필요 없습니다. 완전히 로컬에서 작동하며 기본값은 꺼짐입니다.
-- **Token 절약기:** 메뉴 막대 토글은 Claude Code와 Codex에 해당 세션 동안 더 간결하게 답하도록 요청하여, 코드와 오류 메시지는 바이트 단위로 그대로 유지하면서 출력 token을 절약합니다. 가벼운 메시지별 알림이 긴 대화에서 답변이 다시 장황해지는 것을 막습니다——테스트 결과 대화 후반의 답변도 약 40% 더 짧게 유지됩니다.
+- **Token 절약기:** 메뉴 막대 토글은 Claude Code와 Codex에 해당 세션 동안 더 간결하게 답하도록 요청하여, 코드와 오류 메시지는 바이트 단위로 그대로 유지하면서 출력 token을 절약합니다. 가벼운 메시지별 알림이 긴 대화에서 답변이 다시 장황해지는 것을 막습니다——실제 세션의 A/B 테스트에서 대화 후반 답변이 84% 길어지는 대신 약 40% 더 짧게 유지되었습니다.
 - **Token 낭비 상태 점검:** 매일 백그라운드 진단이 로그를 검사해 반복 파일 읽기, 오염 디렉터리, 장황한 Bash 출력 등을 포함한 낭비를 찾습니다. 문제가 발견되면 한 줄 알림이 표시됩니다. AI에게 "show me"라고 말하면 해결 방법을 안내합니다.
+
+### AI 팀워크
+
+- **AI 인재 마켓:** 준비된 AI 팀을 Claude Code에 추가하세요. 엄선된 하위 에이전트 페르소나를 찾아 `~/.claude/agents/`에 즉시 설치할 수 있습니다. 번들 CLI를 통해 완전히 로컬에서 실행됩니다.
+- **AI 원탁 토론:** 전용 창을 열어 Claude Code, Codex, Antigravity 간의 다중 라운드 토론을 진행합니다. 참여자, 모델, 토론 스타일을 선택할 수 있으며 시작 전에 token 예상치가 표시됩니다. 라운드 간에 토론 방향을 유도하고, 합의 집계에서 누구 반대하는지 확인하며, 전원이 동의하면 토론을 조기 종료할 수 있습니다. 각 자리에 AI 인재 마켓 페르소나를 부여하고 옵션인 읽기 전용 폴더를 통해 실제 파일을 참조할 수 있습니다.
+- **AI 업데이트 일보:** 매일 자동 업데이트되는 공개 [웹 페이지](https://aqua5230.github.io/ai-updates/)를 열어 Claude Code, Codex, Antigravity의 업데이트를 다루고 전체 기록을 보존합니다. 심사가 완료된 업데이트는 5개 언어의 알기 쉬운 요약을, 미심사 항목은 공식 원문을 보여줍니다.
 
 ### 보고서와 인사이트
 
@@ -61,9 +63,6 @@ Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려�
 - **10가지 시각 테마:** Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera(blueprint)를 포함한 패널 스타일을 전환할 수 있습니다.
 - **패널 자유 배치:** 패널이 더 이상 메뉴 막대 아이콘 아래에 고정되지 않습니다. 빈 공간을 드래그해 원하는 위치로 이동할 수 있으며, 다음에 열 때도 그 위치가 유지됩니다. 다른 앱으로 포커스가 이동해도 사라지지 않으며, 메뉴 막대 아이콘을 다시 클릭하거나 Esc 키를 눌러야 닫힙니다.
 - **드래그로 순서 변경:** 아무 할당량 카드나 잡고 위아래로 드래그하면 순서를 바꿀 수 있습니다. 배치는 모든 테마에서 공유되며 다시 시작해도 유지됩니다.
-- **AI 인재 마켓:** 준비된 AI 팀을 Claude Code에 추가하세요. 엄선된 하위 에이전트 페르소나를 찾아 `~/.claude/agents/`에 즉시 설치할 수 있습니다. 번들 CLI를 통해 완전히 로컬에서 실행됩니다.
-- **AI 원탁 토론:** 전용 창을 열어 Claude Code, Codex, Antigravity 간의 다중 라운드 토론을 진행합니다. 참여자, 모델, 토론 스타일을 선택할 수 있으며 시작 전에 token 예상치가 표시됩니다. 라운드 간에 토론 방향을 유도하고, 합의 집계에서 누구 반대하는지 확인하며, 전원이 동의하면 토론을 조기 종료할 수 있습니다. 각 자리에 AI 인재 마켓 페르소나를 부여하고 옵션인 읽기 전용 폴더를 통해 실제 파일을 참조할 수 있습니다.
-- **AI 업데이트 일보:** 매일 자동 업데이트되는 공개 [웹 페이지](https://aqua5230.github.io/ai-updates/)를 열어 Claude Code, Codex, Antigravity의 업데이트를 다루고 전체 기록을 보존합니다. 심사가 완료된 업데이트는 5개 언어의 알기 쉬운 요약을, 미심사 항목은 공식 원문을 보여줍니다.
 - **영적 동반자:** 작은 흰색 애니메이션 실루엣이 사용률 옆에 표시됩니다. Claude에는 불사조, Codex에는 용, Antigravity에는 사자가 함께하며 각자 해당 도구의 token 소모 속도가 올라갈수록 동작도 더 빨라집니다.
 - **자동 현지화:** UI 텍스트는 번체 중국어, 간체 중국어, 영어, 일본어, 한국어로 제공되며 시스템 설정에 맞춰 자동으로 전환됩니다.
 
@@ -99,7 +98,7 @@ brew install --cask aqua5230/usage/usage
 
 ## Windows 지원
 
-Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다. TUI, Claude Code 상태 줄 hook, Codex 기록 분석을 지원합니다.[최신 GitHub Release](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 내려받아 압축을 풀고 `usage.exe`를 실행하면 됩니다. 설치는 필요하지 않습니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10/11에 이미 포함되어 있습니다.
+Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다. 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석을 지원합니다.[최신 GitHub Release](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 내려받아 압축을 풀고 `usage.exe`를 실행하면 됩니다. 설치는 필요하지 않습니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10/11에 이미 포함되어 있습니다.
 
 시스템 트레이 아이콘은 Claude 할당량 비율에 따라 업데이트되고, 도구 설명에는 Claude와 Codex의 각 창 요약이 표시됩니다. 왼쪽 클릭하면 WebView2에서 macOS와 같은 10개 테마 패널(Classic과 나머지 9개)을 열고, 오른쪽 클릭 메뉴에서는 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인, 종료를 할 수 있습니다.
 
@@ -143,7 +142,6 @@ UI에서 직접 **10가지 시각 테마**를 전환하세요.
 | 오늘 비용이 $0.00으로 표시 | 모델 가격 정보 없음 | `~/.usage/pricing_cache.json`을 삭제하거나 `USAGE_DEBUG=1`을 확인하세요 |
 | Antigravity 카드가 표시되지 않음 | Antigravity CLI가 설치되지 않았거나 로그인되지 않음 | Antigravity CLI를 설치하고 로그인하세요. 백그라운드 할당량 조회가 성공하면 카드가 자동으로 나타납니다 |
 | App이 열리지 않음 | macOS Gatekeeper가 차단함 | Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → Open |
-| App이 즉시 충돌함(arm64) | 이전 버전의 py2app 번들링 bug | **v0.11.1 이상**으로 업그레이드하세요 |
 
 ## 비교
 

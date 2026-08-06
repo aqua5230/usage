@@ -6,7 +6,7 @@
 
 ### 在 macOS 菜单栏和 Windows 系统托盘中查看 Claude Code、Codex 和 Antigravity 配额。
 
-工作时持续查看 Claude Code、Codex 和 Antigravity 配额。`usage` 将会话限额、每周限额和费用背景信息显示在 macOS 菜单栏或 Windows 系统托盘中，让你能在配额中断会话前主动管理使用量。
+在会话中途耗尽配额的代价很高，尤其是在依赖 Claude Code 的长时间重构或调试期间。`usage` 会在你触及限额前显示 5 小时和每周限额，并始终保持可见。无需运行命令，也无需打开页面；答案就在你平时已经会看的位置。
 
 [繁體中文](README.zh-TW.md) · 简体中文 · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介绍页](https://aqua5230.github.io/usage/)
 
@@ -22,11 +22,7 @@
   <img src="docs/showcase.en.png" alt="usage — 固定在 macOS 菜单栏中的 Claude Code、Codex 与 Antigravity 配额" width="820">
 </p>
 
-`usage` 将你的 **Claude Code、Codex 和 Antigravity** 配额固定显示在屏幕右上角，并以颜色区分，让你一眼辨识警示等级。Claude Code 和 Codex 的数值以被动方式从你电脑上已有的本地文件读取，读取这些数值**不会调用 Anthropic 或 OpenAI 的 LLM API**——所以查看配额本身永远不会增加你的 token 使用量。Antigravity 配额则来自 Google 官方配额接口，使用的是 Antigravity CLI 本就保存在本机的登录身份。
-
-## 为什么选择 usage？
-
-在会话中途耗尽配额的代价很高，尤其是在依赖 Claude Code 的长时间重构或调试期间。`usage` 会在你触及限额前显示 5 小时和每周限额，并始终保持可见。无需运行命令，也无需打开页面；答案就在你平时已经会看的位置。
+Claude Code 和 Codex 的数值以被动方式从你电脑上已有的日志文件读取，因此**查看配额永远不会调用 Anthropic 或 OpenAI 的 LLM API**，也永远不会消耗你的 token。Antigravity 是唯一的例外：它的配额来自 Google 官方配额接口，使用的是 Antigravity CLI 本就保存在本机的登录身份——这只是一次元数据查询，同样不会消耗你的模型配额。
 
 ## 快速开始
 
@@ -49,8 +45,14 @@ brew install --cask aqua5230/usage/usage
 ### 工作流辅助
 
 - **进度管家：** 打开新的 Claude Code 会话时，`usage` 会直接把你上次的进度交给 AI，包括上次请求、未提交的变更和未完成的待办事项。无需 `/resume`，无需回顾。完全本地运行，默认关闭。
-- **Token 节省器：** 菜单栏开关会要求 Claude Code 和 Codex 在当前会话中更简洁地回答，在保持代码和错误信息逐字节不变的同时节省输出 token。轻量的逐消息提醒能避免长对话中的回复逐渐变得冗长——实测对话后期回复可缩短约 40%。
+- **Token 节省器：** 菜单栏开关会要求 Claude Code 和 Codex 在当前会话中更简洁地回答，在保持代码和错误信息逐字节不变的同时节省输出 token。轻量的逐消息提醒能避免长对话中的回复逐渐变得冗长——在真实会话的 A/B 测试中，对话后期回复维持缩短约 40%，而不是漂移变长 84%。
 - **Token 浪费健康检查：** 每日后台诊断会扫描日志中的浪费问题，包括重复读取文件、污染目录和冗长的 Bash 输出。发现问题时会显示一行提示；对 AI 说“show me”，它会引导你完成修复。
+
+### AI 协作
+
+- **AI 人才市场：** 将现成的 AI 团队带入 Claude Code。浏览并立即将精选子代理角色安装到 `~/.claude/agents/`。通过随附 CLI 完全在本地运行。
+- **AI 圆桌讨论：** 打开一个独立窗口，让 Claude Code、Codex、Antigravity 进行多轮讨论——自选参与者、模型与辩论风格，开始前就能看到大约会花多少 token。可以在轮间插话引导方向，共识计票看得出谁不同意，并让讨论在全体同意时提早收尾。位置可以戴上 AI 人才市场的专家角色，也能附上只读文件夹让参与者参考真实文件。
+- **AI 更新日报：** 打开每天自动更新的公开[网页](https://aqua5230.github.io/ai-updates/)，涵盖 Claude Code、Codex、Antigravity 三套工具，保留完整历史。已审核的更新显示五语白话版，未审核的显示官方原文。
 
 ### 报告与洞察
 
@@ -61,9 +63,6 @@ brew install --cask aqua5230/usage/usage
 - **10 个视觉主题：** 可切换面板风格，包括 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026 和 Lepidoptera（蓝图）。
 - **面板自由摆放：** 面板不再固定在菜单栏图标下方。在任何空白处按住即可拖动到你想要的位置，下次打开仍保留在原位。切换到其他 App 时也不会消失，再次点击菜单栏图标或按 Esc 键才会关闭。
 - **拖拽排序：** 按住任意配额卡上下拖拽即可交换顺序——这一排列在所有主题间共享，并在重启后保留。
-- **AI 人才市场：** 将现成的 AI 团队带入 Claude Code。浏览并立即将精选子代理角色安装到 `~/.claude/agents/`。通过随附 CLI 完全在本地运行。
-- **AI 圆桌讨论：** 打开一个独立窗口，让 Claude Code、Codex、Antigravity 进行多轮讨论——自选参与者、模型与辩论风格，开始前就能看到大约会花多少 token。可以在轮间插话引导方向，共识计票看得出谁不同意，并让讨论在全体同意时提早收尾。位置可以戴上 AI 人才市场的专家角色，也能附上只读文件夹让参与者参考真实文件。
-- **AI 更新日报：** 打开每天自动更新的公开[网页](https://aqua5230.github.io/ai-updates/)，涵盖 Claude Code、Codex、Antigravity 三套工具，保留完整历史。已审核的更新显示五语白话版，未审核的显示官方原文。
 - **灵伴：** 一个小型动态白色剪影会出现在使用百分比旁边：Claude 是凤凰，Codex 是龙，Antigravity 是狮子。每个伙伴都会随各自工具的 token 消耗速率上升而动态加速。
 - **自动本地化：** 界面文本提供繁体中文、简体中文、英语、日语和韩语，并自动匹配系统设置。
 
@@ -99,7 +98,7 @@ brew install --cask aqua5230/usage/usage
 
 ## Windows 支持
 
-Windows 原生支持完整核心功能：TUI、Claude Code 状态栏 hook 和 Codex 记录解析均可使用。从[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后直接运行 `usage.exe`，无需安装。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
+Windows 原生支持完整核心功能：系统托盘 UI、Claude Code 状态栏 hook 和 Codex 记录解析均可使用。从[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后直接运行 `usage.exe`，无需安装。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
 
 系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 10 款主题面板（Classic 加另外九款）；右键可切换面板、刷新、设置开机自启、检查更新和退出。
 
@@ -143,7 +142,6 @@ Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托
 | 今日费用显示 $0.00 | 缺少模型价格 | 删除 `~/.usage/pricing_cache.json`，或检查 `USAGE_DEBUG=1` |
 | Antigravity 卡片未显示 | 未安装或未登录 Antigravity CLI | 安装并登录 Antigravity CLI；后台配额查询成功后卡片会自动出现 |
 | App 无法打开 | macOS Gatekeeper 阻止了它 | 在 Finder 中右键 `usage.app` → Open |
-| App 立即崩溃（arm64） | 旧版本中的 py2app 打包 bug | 升级到 **v0.11.1 或更高版本** |
 
 ## 对比
 
