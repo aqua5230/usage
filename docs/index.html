@@ -4,10 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
-<title>usage — pin your Claude Code &amp; Codex quota to the menu bar</title>
-<meta name="description" data-i18n-attr="content:meta_desc" content="macOS menu bar tracker for Claude Code &amp; Codex quota, tokens, and cost. Reads your local files directly — never connects to Anthropic or OpenAI. HTML reports, 10 visual themes, AGPL-3.0." />
-<meta property="og:title" content="usage — pin your Claude Code & Codex quota to the menu bar" />
-<meta property="og:description" content="macOS menu bar tracker for Claude Code & Codex quota, tokens, and cost. Reads your local files directly — never connects to Anthropic or OpenAI." />
+<title>usage — pin your Claude Code, Codex &amp; Antigravity quota to the menu bar</title>
+<meta name="description" data-i18n-attr="content:meta_desc" content="macOS menu bar and Windows tray tracker for Claude Code, Codex, and Antigravity quota, tokens, and cost. No LLM API calls — watching your quota never costs you tokens. HTML reports, 10 visual themes, AGPL-3.0." />
+<meta property="og:title" content="usage — pin your Claude Code, Codex & Antigravity quota to the menu bar" />
+<meta property="og:description" content="macOS menu bar and Windows tray tracker for Claude Code, Codex, and Antigravity quota, tokens, and cost. No LLM API calls — watching your quota never costs you tokens." />
 <meta property="og:image" content="https://aqua5230.github.io/usage/logo.png" />
 <meta property="og:url" content="https://aqua5230.github.io/usage/" />
 <meta property="og:type" content="website" />
@@ -274,7 +274,8 @@ section .subtitle {
 
 /* Install */
 .install { background: var(--bg-soft); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.install-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+.install-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+@media (max-width: 980px) { .install-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 720px) { .install-row { grid-template-columns: 1fr; } }
 .install-card {
   background: var(--bg-card);
@@ -393,9 +394,9 @@ footer .kofi:hover { background: #ff7572; }
 
 <section class="hero">
   <div class="wrap">
-    <span class="eyebrow" data-i18n="eyebrow">macOS · open source · AGPL-3.0</span>
-    <h1 data-i18n="h1">Pin your <span class="accent">Claude Code</span> &amp; <span class="accent">Codex</span><br>quota to the menu bar.</h1>
-    <p class="lead" data-i18n="lead">A tiny macOS menu bar app that shows how much of your AI quota is left — like a battery percentage for tokens. Reads your local files directly — never phones home to Anthropic or OpenAI.</p>
+    <span class="eyebrow" data-i18n="eyebrow">macOS &amp; Windows · open source · AGPL-3.0</span>
+    <h1 data-i18n="h1">Pin your <span class="accent">Claude Code</span>, <span class="accent">Codex</span> &amp; <span class="accent">Antigravity</span><br>quota to the menu bar.</h1>
+    <p class="lead" data-i18n="lead">A tiny menu bar app for macOS — and system tray app for Windows — that shows how much of your AI quota is left, like a battery percentage for tokens. No LLM API calls, so watching your quota never costs you tokens.</p>
     <div class="cta">
       <a class="btn btn-primary" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="cta_download">↓ Download .app</a>
       <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener" data-i18n="cta_star">★ Star on GitHub</a>
@@ -408,8 +409,8 @@ footer .kofi:hover { background: #ff7572; }
 
 <div class="strip">
   <div class="wrap">
-    <div class="item"><span class="dot"></span><span data-i18n="strip_1"><strong>Reads your local files</strong> — never connects to Anthropic or OpenAI</span></div>
-    <div class="item"><span class="dot"></span><span data-i18n="strip_2"><strong>Local-only</strong> — reads files on your disk</span></div>
+    <div class="item"><span class="dot"></span><span data-i18n="strip_1"><strong>No LLM API calls</strong> — watching quota never costs tokens</span></div>
+    <div class="item"><span class="dot"></span><span data-i18n="strip_2"><strong>Local-first</strong> — Claude Code &amp; Codex read straight from your disk</span></div>
     <div class="item"><span class="dot"></span><span data-i18n="strip_3"><strong>No telemetry</strong>, no accounts, no cloud</span></div>
   </div>
 </div>
@@ -426,13 +427,13 @@ footer .kofi:hover { background: #ff7572; }
       </div>
       <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>
-        <h3 data-i18n="card2_h">Claude Code + Codex, one app</h3>
-        <p data-i18n="card2_p">Track Anthropic and OpenAI quota side by side. Codex auto-detected from <code>~/.codex/sessions/</code> with no setup.</p>
+        <h3 data-i18n="card2_h">Claude Code, Codex &amp; Antigravity, one app</h3>
+        <p data-i18n="card2_p">Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.</p>
       </div>
       <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
-        <h3 data-i18n="card3_h">Local-only by design</h3>
-        <p data-i18n="card3_p">Reads a status file written by an installed statusLine hook + Codex session JSONL logs. Never connects to Anthropic or OpenAI to check usage. Doesn't touch your Keychain.</p>
+        <h3 data-i18n="card3_h">Local-first by design</h3>
+        <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk — a statusLine hook status file plus Codex session JSONL logs — with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.</p>
       </div>
       <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-3"/></svg></span>
@@ -526,6 +527,12 @@ footer .kofi:hover { background: #ff7572; }
         <p data-i18n="install_p_app">Latest <code>usage.app.zip</code> from GitHub Releases — unzip, drag to <code>/Applications</code>.</p>
         <a class="btn btn-secondary" style="width: 100%; justify-content: center;" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="install_btn_releases">→ Open Releases page</a>
       </div>
+      <div class="install-card">
+        <div class="label" data-i18n="install_label_win">WINDOWS</div>
+        <h3 data-i18n="install_h_win">System tray</h3>
+        <p data-i18n="install_p_win">Latest <code>usage-windows.zip</code> from GitHub Releases — unzip and run <code>usage.exe</code>.</p>
+        <a class="btn btn-secondary" style="width: 100%; justify-content: center;" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="install_btn_releases">→ Open Releases page</a>
+      </div>
     </div>
   </div>
 </section>
@@ -574,28 +581,28 @@ footer .kofi:hover { background: #ff7572; }
 const T = {
   'en': {
     _label: 'EN',
-    meta_title: 'usage — pin your Claude Code & Codex quota to the menu bar',
-    meta_desc: 'macOS menu bar tracker for Claude Code & Codex quota, tokens, and cost. Reads your local files directly — never connects to Anthropic or OpenAI. HTML reports, 10 visual themes, AGPL-3.0.',
+    meta_title: 'usage — pin your Claude Code, Codex & Antigravity quota to the menu bar',
+    meta_desc: 'macOS menu bar and Windows tray tracker for Claude Code, Codex, and Antigravity quota, tokens, and cost. No LLM API calls — watching your quota never costs you tokens. HTML reports, 10 visual themes, AGPL-3.0.',
     nav_features: 'Features',
     nav_resume: 'Resume',
     nav_install: 'Install',
     nav_screenshots: 'Panels',
-    eyebrow: 'macOS · open source · AGPL-3.0',
-    h1: 'Pin your <span class="accent">Claude Code</span> &amp; <span class="accent">Codex</span><br>quota to the menu bar.',
-    lead: 'A tiny macOS menu bar app that shows how much of your AI quota is left — like a battery percentage for tokens. Reads your local files directly — never phones home to Anthropic or OpenAI.',
+    eyebrow: 'macOS &amp; Windows · open source · AGPL-3.0',
+    h1: 'Pin your <span class="accent">Claude Code</span>, <span class="accent">Codex</span> &amp; <span class="accent">Antigravity</span><br>quota to the menu bar.',
+    lead: 'A tiny menu bar app for macOS — and system tray app for Windows — that shows how much of your AI quota is left, like a battery percentage for tokens. No LLM API calls, so watching your quota never costs you tokens.',
     cta_download: '↓ Download .app',
     cta_star: '★ Star on GitHub',
-    strip_1: '<strong>Reads your local files</strong> — never connects to Anthropic or OpenAI',
-    strip_2: '<strong>Local-only</strong> — reads files on your disk',
+    strip_1: '<strong>No LLM API calls</strong> — watching quota never costs tokens',
+    strip_2: '<strong>Local-first</strong> — Claude Code &amp; Codex read straight from your disk',
     strip_3: '<strong>No telemetry</strong>, no accounts, no cloud',
     features_h2: 'Built for developers who burn tokens.',
     features_sub: "Stop guessing if you're about to hit the rate limit mid-refactor.",
     card1_h: '5-hour &amp; 7-day quota at a glance',
     card1_p: 'Both Claude Code session (5h) and weekly (7d) percentages live in the menu bar. Click for a full popover with per-project usage and cost.',
-    card2_h: 'Claude Code + Codex, one app',
-    card2_p: 'Track Anthropic and OpenAI quota side by side. Codex auto-detected from <code>~/.codex/sessions/</code> with no setup.',
-    card3_h: 'Local-only by design',
-    card3_p: "Reads a status file written by an installed statusLine hook + Codex session JSONL logs. Never connects to Anthropic or OpenAI to check usage. Doesn't touch your Keychain.",
+    card2_h: 'Claude Code, Codex &amp; Antigravity, one app',
+    card2_p: 'Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.',
+    card3_h: 'Local-first by design',
+    card3_p: 'Claude Code and Codex numbers come from files already on your disk — a statusLine hook status file plus Codex session JSONL logs — with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.',
     card4_h: 'One-click HTML reports',
     card4_p: 'Today, week, month, or all-time — get a shareable HTML report with token / cost trends, top projects, and model breakdown. Project names hide by default for client-safe sharing.',
     card5_h: '10 visual panel themes',
@@ -626,13 +633,16 @@ const T = {
     resume_img_alt: 'Resume restoring your last session in the CLI',
     mascot_alt: 'The usage butler cat, your progress concierge',
     install_h2: 'Install in 10 seconds.',
-    install_sub: 'Two ways to get it running. Both free, both AGPL-3.0.',
+    install_sub: 'Three ways to get it running. All free, all AGPL-3.0.',
     install_label_rec: 'RECOMMENDED',
     install_h_brew: 'Homebrew',
     install_p_brew: 'One command. <code>brew upgrade</code> keeps it current.',
     install_label_dir: 'DIRECT',
     install_h_app: 'Download .app',
     install_p_app: 'Latest <code>usage.app.zip</code> from GitHub Releases — unzip, drag to <code>/Applications</code>.',
+    install_label_win: 'WINDOWS',
+    install_h_win: 'System tray',
+    install_p_win: 'Latest <code>usage-windows.zip</code> from GitHub Releases — unzip and run <code>usage.exe</code>.',
     install_btn_releases: '→ Open Releases page',
     screen_h2: 'Pick a panel that fits your mood.',
     screen_sub: 'Ten built-in themes. Change anytime from the popover toolbar.',
@@ -648,28 +658,28 @@ const T = {
   },
   'zh-TW': {
     _label: '繁中',
-    meta_title: 'usage — 把 Claude Code 和 Codex 的用量釘在 menu bar',
-    meta_desc: 'macOS menu bar 工具，監控 Claude Code 和 Codex 的配額、token 用量與成本。直接讀本機紀錄，不連到 Anthropic 或 OpenAI。HTML 報告、10 款主題、AGPL-3.0。',
+    meta_title: 'usage — 把 Claude Code、Codex 和 Antigravity 的用量釘在 menu bar',
+    meta_desc: 'macOS menu bar 與 Windows 系統匣工具，監控 Claude Code、Codex 和 Antigravity 的配額、token 用量與成本。不呼叫任何 LLM API——看配額永遠不會消耗你的 token。HTML 報告、10 款主題、AGPL-3.0。',
     nav_features: '功能',
     nav_resume: '進度管家',
     nav_install: '安裝',
     nav_screenshots: '面板',
-    eyebrow: 'macOS · 開源 · AGPL-3.0',
-    h1: '把 <span class="accent">Claude Code</span> 和 <span class="accent">Codex</span><br>的用量釘在 menu bar。',
-    lead: '一個迷你的 macOS menu bar 小工具，把你 AI 配額剩多少顯示在螢幕右上角——像電池百分比一樣直觀。直接讀本機紀錄，不連到服務端查用量。',
+    eyebrow: 'macOS 與 Windows · 開源 · AGPL-3.0',
+    h1: '把 <span class="accent">Claude Code</span>、<span class="accent">Codex</span> 和 <span class="accent">Antigravity</span><br>的用量釘在 menu bar。',
+    lead: '一個迷你的 macOS menu bar 小工具（Windows 則常駐在系統匣），把你 AI 配額剩多少顯示在螢幕角落——像電池百分比一樣直觀。不呼叫任何 LLM API，看配額永遠不會消耗你的 token。',
     cta_download: '↓ 下載 .app',
     cta_star: '★ 給個星星',
-    strip_1: '<strong>直接讀本機紀錄</strong>，不連 Anthropic 或 OpenAI 查用量',
-    strip_2: '<strong>本地讀取</strong>——只看你磁碟上的檔案',
+    strip_1: '<strong>不呼叫 LLM API</strong>——看配額永遠不花 token',
+    strip_2: '<strong>本地優先</strong>——Claude Code 與 Codex 直接讀你磁碟上的檔案',
     strip_3: '<strong>無遙測</strong>、無帳號、無雲端',
     features_h2: '為燒 token 的開發者打造。',
     features_sub: '別再憑感覺猜還剩多少配額了。',
     card1_h: '5 小時與 7 天配額一覽',
     card1_p: 'Claude Code 的 5 小時和 7 天百分比同時顯示在 menu bar。點開可看完整 popover、各專案用量與成本。',
-    card2_h: 'Claude Code + Codex 一個 app 搞定',
-    card2_p: 'Anthropic 跟 OpenAI 的配額並排顯示。Codex 從 <code>~/.codex/sessions/</code> 自動偵測，不需設定。',
+    card2_h: 'Claude Code、Codex、Antigravity 一個 app 搞定',
+    card2_p: 'Anthropic、OpenAI 與 Google 的配額並排顯示。Codex 從 <code>~/.codex/sessions/</code> 自動偵測，不需設定；Antigravity 則用它自己的 CLI 已經存好的登入身分。',
     card3_h: '天生本地優先',
-    card3_p: '讀取已安裝 statusLine hook 寫入的狀態檔，加上 Codex session JSONL log。不連到 Anthropic 或 OpenAI 查用量，也不碰 Keychain。',
+    card3_p: 'Claude Code 與 Codex 的數字來自你磁碟上既有的檔案——狀態列 hook 寫入的狀態檔，加上 Codex session JSONL log——完全不需連網。Antigravity 額度則是用它自己的 CLI 存好的憑證向 Google 取得。所有對外連線都列在 SECURITY.md。',
     card4_h: '一鍵 HTML 報告',
     card4_p: '今日、本週、本月或全部——產出可分享的 HTML 報告，內含 token / 成本走勢、各專案排行與模型分布。預設隱藏專案名稱，安全分享給客戶。',
     card5_h: '10 款視覺面板主題',
@@ -700,13 +710,16 @@ const T = {
     resume_img_alt: '進度管家把上次進度接回 CLI 的示意',
     mascot_alt: 'usage 管家貓，你的進度管家',
     install_h2: '10 秒安裝完成。',
-    install_sub: '兩種方式都免費、都 AGPL-3.0。',
+    install_sub: '三種方式都免費、都 AGPL-3.0。',
     install_label_rec: '推薦',
     install_h_brew: 'Homebrew',
     install_p_brew: '一行指令搞定。日後 <code>brew upgrade</code> 自動更新。',
     install_label_dir: '直接',
     install_h_app: '下載 .app',
     install_p_app: '從 GitHub Releases 抓最新的 <code>usage.app.zip</code>——解壓縮、拖到 <code>/Applications</code>。',
+    install_label_win: 'WINDOWS',
+    install_h_win: '系統匣',
+    install_p_win: '從 GitHub Releases 抓最新的 <code>usage-windows.zip</code>——解壓縮後執行 <code>usage.exe</code>。',
     install_btn_releases: '→ 開啟 Releases 頁面',
     screen_h2: '挑一個你喜歡的面板。',
     screen_sub: '10 款內建主題。隨時從 popover 工具列切換。',
@@ -722,28 +735,28 @@ const T = {
   },
   'zh-CN': {
     _label: '简中',
-    meta_title: 'usage — 把 Claude Code 和 Codex 的用量钉在 menu bar',
-    meta_desc: 'macOS menu bar 工具，监控 Claude Code 和 Codex 的额度、token 用量与花费。直接读本机记录，不连到 Anthropic 或 OpenAI。HTML 报告、10 款主题、AGPL-3.0。',
+    meta_title: 'usage — 把 Claude Code、Codex 和 Antigravity 的用量钉在 menu bar',
+    meta_desc: 'macOS menu bar 与 Windows 系统托盘工具，监控 Claude Code、Codex 和 Antigravity 的额度、token 用量与花费。不调用任何 LLM API——看额度永远不会消耗你的 token。HTML 报告、10 款主题、AGPL-3.0。',
     nav_features: '功能',
     nav_resume: '进度管家',
     nav_install: '安装',
     nav_screenshots: '面板',
-    eyebrow: 'macOS · 开源 · AGPL-3.0',
-    h1: '把 <span class="accent">Claude Code</span> 和 <span class="accent">Codex</span><br>的用量钉在 menu bar。',
-    lead: '一个迷你的 macOS menu bar 小工具，把你 AI 额度剩多少显示在屏幕右上角——像电池百分比一样直观。直接读本机记录，不连到服务端查用量。',
+    eyebrow: 'macOS 与 Windows · 开源 · AGPL-3.0',
+    h1: '把 <span class="accent">Claude Code</span>、<span class="accent">Codex</span> 和 <span class="accent">Antigravity</span><br>的用量钉在 menu bar。',
+    lead: '一个迷你的 macOS menu bar 小工具（Windows 则常驻在系统托盘），把你 AI 额度剩多少显示在屏幕角落——像电池百分比一样直观。不调用任何 LLM API，看额度永远不会消耗你的 token。',
     cta_download: '↓ 下载 .app',
     cta_star: '★ 给个星星',
-    strip_1: '<strong>直接读本机记录</strong>，不连 Anthropic 或 OpenAI 查用量',
-    strip_2: '<strong>本地读取</strong>——只看你磁盘上的文件',
+    strip_1: '<strong>不调用 LLM API</strong>——看额度永远不花 token',
+    strip_2: '<strong>本地优先</strong>——Claude Code 与 Codex 直接读你磁盘上的文件',
     strip_3: '<strong>无遥测</strong>、无账号、无云端',
     features_h2: '为烧 token 的开发者打造。',
     features_sub: '别再凭感觉猜还剩多少额度了。',
     card1_h: '5 小时与 7 天额度一览',
     card1_p: 'Claude Code 的 5 小时和 7 天百分比同时显示在 menu bar。点开可看完整 popover、各项目用量与花费。',
-    card2_h: 'Claude Code + Codex 一个 app 搞定',
-    card2_p: 'Anthropic 跟 OpenAI 的额度并排显示。Codex 从 <code>~/.codex/sessions/</code> 自动检测，无需配置。',
+    card2_h: 'Claude Code、Codex、Antigravity 一个 app 搞定',
+    card2_p: 'Anthropic、OpenAI 与 Google 的额度并排显示。Codex 从 <code>~/.codex/sessions/</code> 自动检测，无需配置；Antigravity 则使用它自己的 CLI 已保存的登录身份。',
     card3_h: '天生本地优先',
-    card3_p: '读取已安装 statusLine hook 写入的状态文件，加上 Codex session JSONL log。不连到 Anthropic 或 OpenAI 查用量，也不读 Keychain。',
+    card3_p: 'Claude Code 与 Codex 的数字来自你磁盘上现有的文件——状态栏 hook 写入的状态文件，加上 Codex session JSONL log——完全不需要联网。Antigravity 额度则是用它自己的 CLI 保存的凭据向 Google 获取。所有对外连接都列在 SECURITY.md。',
     card4_h: '一键 HTML 报告',
     card4_p: '今日、本周、本月或全部——生成可分享的 HTML 报告，内含 token / 花费趋势、项目排行与模型分布。默认隐藏项目名称，安全分享给客户。',
     card5_h: '10 款视觉面板主题',
@@ -774,13 +787,16 @@ const T = {
     resume_img_alt: '进度管家把上次进度接回 CLI 的示意',
     mascot_alt: 'usage 管家猫，你的进度管家',
     install_h2: '10 秒内安装完成。',
-    install_sub: '两种方式都免费、都 AGPL-3.0。',
+    install_sub: '三种方式都免费、都 AGPL-3.0。',
     install_label_rec: '推荐',
     install_h_brew: 'Homebrew',
     install_p_brew: '一行命令搞定。以后 <code>brew upgrade</code> 自动更新。',
     install_label_dir: '直接',
     install_h_app: '下载 .app',
     install_p_app: '从 GitHub Releases 拉最新的 <code>usage.app.zip</code>——解压、拖到 <code>/Applications</code>。',
+    install_label_win: 'WINDOWS',
+    install_h_win: '系统托盘',
+    install_p_win: '从 GitHub Releases 拉最新的 <code>usage-windows.zip</code>——解压后运行 <code>usage.exe</code>。',
     install_btn_releases: '→ 打开 Releases 页面',
     screen_h2: '挑一个你喜欢的面板。',
     screen_sub: '10 款内建主题。随时从 popover 工具栏切换。',
@@ -796,28 +812,28 @@ const T = {
   },
   'ja': {
     _label: '日本語',
-    meta_title: 'usage — Claude Code と Codex のクォータをメニューバーに固定',
-    meta_desc: 'macOS メニューバーで Claude Code と Codex のクォータ、トークン使用量、コストを監視。ローカルの記録を直接読み取り、Anthropic や OpenAI には接続しません。HTML レポート、10 種テーマ、AGPL-3.0。',
+    meta_title: 'usage — Claude Code、Codex、Antigravity のクォータをメニューバーに固定',
+    meta_desc: 'macOS メニューバーと Windows システムトレイで Claude Code、Codex、Antigravity のクォータ、トークン使用量、コストを監視。LLM API を呼び出さないため、クォータを確認してもトークンを消費しません。HTML レポート、10 種テーマ、AGPL-3.0。',
     nav_features: '機能',
     nav_resume: '続きから',
     nav_install: 'インストール',
     nav_screenshots: 'パネル',
-    eyebrow: 'macOS · オープンソース · AGPL-3.0',
-    h1: '<span class="accent">Claude Code</span> と <span class="accent">Codex</span> の<br>クォータをメニューバーに。',
-    lead: 'AI クォータの残量を画面右上に常に表示する、小さな macOS メニューバーアプリ。バッテリー残量のようにひと目で分かります。ローカルの記録を直接読み取り、Anthropic や OpenAI には接続しません。',
+    eyebrow: 'macOS &amp; Windows · オープンソース · AGPL-3.0',
+    h1: '<span class="accent">Claude Code</span>、<span class="accent">Codex</span> &amp; <span class="accent">Antigravity</span> の<br>クォータをメニューバーに。',
+    lead: 'AI クォータの残量をひと目で表示する、小さな macOS メニューバーアプリ（Windows ではシステムトレイに常駐）。バッテリー残量のように分かります。LLM API を呼び出さないため、クォータを確認してもトークンを消費しません。',
     cta_download: '↓ .app をダウンロード',
     cta_star: '★ GitHub でスター',
-    strip_1: '<strong>ローカルの記録を直接読み取り</strong>、Anthropic や OpenAI には接続しない',
-    strip_2: '<strong>ローカル読み取り</strong>のみ — ディスク上のファイルだけ',
+    strip_1: '<strong>LLM API 呼び出しなし</strong> — クォータの確認でトークンは消費されません',
+    strip_2: '<strong>ローカルファースト</strong> — Claude Code と Codex はディスク上のファイルを直接読み取り',
     strip_3: '<strong>テレメトリなし</strong>、アカウント不要、クラウド不要',
     features_h2: 'トークンを燃やす開発者のために。',
     features_sub: 'リファクタリング中にレート制限に達するかどうか、もう推測しなくていい。',
     card1_h: '5 時間 & 7 日のクォータをひと目で',
     card1_p: 'Claude Code のセッション (5h) と週間 (7d) のパーセンテージをメニューバーに常時表示。クリックでプロジェクト別使用量とコストの詳細ポップオーバーを表示。',
-    card2_h: 'Claude Code + Codex、1 つのアプリで',
-    card2_p: 'Anthropic と OpenAI のクォータを並べて追跡。Codex は <code>~/.codex/sessions/</code> から設定不要で自動検出。',
-    card3_h: '設計上ローカル専用',
-    card3_p: '導入された statusLine hook が書き込むステータスファイルと Codex セッション JSONL ログを読み取ります。使用状況の確認に Anthropic / OpenAI へ接続せず、Keychain も触りません。',
+    card2_h: 'Claude Code、Codex、Antigravity を 1 つのアプリで',
+    card2_p: 'Anthropic、OpenAI、Google のクォータを並べて追跡。Codex は <code>~/.codex/sessions/</code> から設定不要で自動検出。Antigravity は CLI が保存済みのサインイン情報を利用します。',
+    card3_h: '設計段階からローカルファースト',
+    card3_p: 'Claude Code と Codex の数値は、statusLine hook が書き込むステータスファイルと Codex セッション JSONL ログという、すでにディスク上にあるファイルから取得するため、ネットワーク通信は一切行いません。Antigravity のクォータは、CLI が保存した認証情報を使って Google から取得します。すべての外部リクエストは SECURITY.md に記載しています。',
     card4_h: 'ワンクリック HTML レポート',
     card4_p: '今日・週・月・全期間で、トークン / コスト推移、トッププロジェクト、モデル分布を含む共有可能な HTML レポートを生成。プロジェクト名はデフォルトで非表示。',
     card5_h: '10 種のビジュアルパネル',
@@ -848,13 +864,16 @@ const T = {
     resume_img_alt: '前回の続きを CLI に引き継ぐ様子',
     mascot_alt: 'usage の執事ネコ、あなたの進捗コンシェルジュ',
     install_h2: '10 秒でインストール。',
-    install_sub: '2 つの方法、どちらも無料・AGPL-3.0。',
+    install_sub: '3 つの方法、いずれも無料・AGPL-3.0。',
     install_label_rec: 'おすすめ',
     install_h_brew: 'Homebrew',
     install_p_brew: 'コマンド 1 行。<code>brew upgrade</code> で常に最新。',
     install_label_dir: '直接',
     install_h_app: '.app をダウンロード',
     install_p_app: 'GitHub Releases から最新の <code>usage.app.zip</code> を取得 — 解凍して <code>/Applications</code> へ。',
+    install_label_win: 'WINDOWS',
+    install_h_win: 'システムトレイ',
+    install_p_win: 'GitHub Releases から最新の <code>usage-windows.zip</code> を取得 — 解凍して <code>usage.exe</code> を実行。',
     install_btn_releases: '→ Releases ページを開く',
     screen_h2: '気分に合うパネルを選んで。',
     screen_sub: '10 種の内蔵テーマ。ポップオーバーのツールバーからいつでも切り替え可能。',
@@ -870,28 +889,28 @@ const T = {
   },
   'ko': {
     _label: '한국어',
-    meta_title: 'usage — Claude Code와 Codex의 한도를 메뉴 바에 고정',
-    meta_desc: 'macOS 메뉴 바에서 Claude Code와 Codex의 한도, 토큰 사용량, 비용을 모니터링. 로컬 기록을 직접 읽고 Anthropic이나 OpenAI에 연결하지 않음. HTML 보고서, 10가지 테마, AGPL-3.0.',
+    meta_title: 'usage — Claude Code, Codex, Antigravity의 한도를 메뉴 바에 고정',
+    meta_desc: 'macOS 메뉴 바와 Windows 시스템 트레이에서 Claude Code, Codex, Antigravity의 한도, 토큰 사용량, 비용을 모니터링. LLM API를 호출하지 않아 한도를 확인해도 토큰이 소비되지 않음. HTML 보고서, 10가지 테마, AGPL-3.0.',
     nav_features: '기능',
     nav_resume: '이어하기',
     nav_install: '설치',
     nav_screenshots: '패널',
-    eyebrow: 'macOS · 오픈소스 · AGPL-3.0',
-    h1: '<span class="accent">Claude Code</span>와 <span class="accent">Codex</span>의<br>한도를 메뉴 바에 고정.',
-    lead: 'AI 한도가 얼마나 남았는지 화면 오른쪽 상단에 표시하는 작은 macOS 메뉴 바 앱. 배터리 퍼센트처럼 한눈에 확인. 로컬 기록을 직접 읽고 Anthropic이나 OpenAI에 연결하지 않아요.',
+    eyebrow: 'macOS &amp; Windows · 오픈소스 · AGPL-3.0',
+    h1: '<span class="accent">Claude Code</span>, <span class="accent">Codex</span> &amp; <span class="accent">Antigravity</span>의<br>한도를 메뉴 바에 고정.',
+    lead: 'AI 한도가 얼마나 남았는지 보여주는 작은 macOS 메뉴 바 앱(Windows에서는 시스템 트레이에 상주). 배터리 퍼센트처럼 한눈에 확인. LLM API를 호출하지 않아 한도를 확인해도 토큰이 소비되지 않아요.',
     cta_download: '↓ .app 다운로드',
     cta_star: '★ GitHub에서 스타',
-    strip_1: '<strong>로컬 기록을 직접 읽고</strong> Anthropic이나 OpenAI에 연결 안 함',
-    strip_2: '<strong>로컬 전용</strong> — 디스크 파일만 읽음',
+    strip_1: '<strong>LLM API 호출 없음</strong> — 한도를 확인해도 토큰이 소비되지 않음',
+    strip_2: '<strong>로컬 우선</strong> — Claude Code와 Codex는 디스크 파일을 직접 읽음',
     strip_3: '<strong>텔레메트리 없음</strong>, 계정 없음, 클라우드 없음',
     features_h2: '토큰 태우는 개발자를 위한 도구.',
     features_sub: '리팩토링 중에 한도에 도달할지 추측하지 마세요.',
     card1_h: '5시간과 7일 한도 한눈에',
     card1_p: 'Claude Code의 세션(5h)과 주간(7d) 퍼센트를 메뉴 바에 동시 표시. 클릭하면 프로젝트별 사용량과 비용을 보여주는 팝오버.',
-    card2_h: 'Claude Code + Codex, 한 앱에서',
-    card2_p: 'Anthropic과 OpenAI 한도를 나란히 추적. Codex는 <code>~/.codex/sessions/</code>에서 설정 없이 자동 감지.',
-    card3_h: '설계상 로컬 전용',
-    card3_p: '설치된 statusLine 훅이 쓴 상태 파일과 Codex 세션 JSONL 로그를 읽습니다. 사용량 확인을 위해 Anthropic이나 OpenAI에 연결하지 않고 Keychain도 건드리지 않습니다.',
+    card2_h: 'Claude Code, Codex, Antigravity를 한 앱에서',
+    card2_p: 'Anthropic, OpenAI, Google 한도를 나란히 추적. Codex는 <code>~/.codex/sessions/</code>에서 설정 없이 자동 감지되고, Antigravity는 자체 CLI가 이미 저장해 둔 로그인 정보를 사용합니다.',
+    card3_h: '설계상 로컬 우선',
+    card3_p: 'Claude Code와 Codex 수치는 statusLine 훅이 쓴 상태 파일과 Codex 세션 JSONL 로그처럼 이미 디스크에 있는 파일에서 가져오므로 네트워크 연결이 전혀 필요 없습니다. Antigravity 한도는 자체 CLI가 저장한 자격 증명으로 Google에서 가져옵니다. 모든 외부 요청은 SECURITY.md에 정리되어 있습니다.',
     card4_h: '원클릭 HTML 보고서',
     card4_p: '오늘, 주간, 월간, 전체 기간 — 토큰/비용 추세, 상위 프로젝트, 모델 분포가 포함된 공유 가능한 HTML 보고서. 프로젝트 이름은 기본 숨김 처리됩니다.',
     card5_h: '10가지 시각 패널 테마',
@@ -922,13 +941,16 @@ const T = {
     resume_img_alt: '지난 작업을 CLI로 이어주는 모습',
     mascot_alt: 'usage 집사 고양이, 당신의 진행 관리자',
     install_h2: '10초 안에 설치 완료.',
-    install_sub: '두 가지 방법 모두 무료, AGPL-3.0.',
+    install_sub: '세 가지 방법 모두 무료, AGPL-3.0.',
     install_label_rec: '추천',
     install_h_brew: 'Homebrew',
     install_p_brew: '한 줄 명령. <code>brew upgrade</code>로 최신 유지.',
     install_label_dir: '직접',
     install_h_app: '.app 다운로드',
     install_p_app: 'GitHub Releases에서 최신 <code>usage.app.zip</code>을 받아 압축을 풀고 <code>/Applications</code>로 이동.',
+    install_label_win: 'WINDOWS',
+    install_h_win: '시스템 트레이',
+    install_p_win: 'GitHub Releases에서 최신 <code>usage-windows.zip</code>을 받아 압축을 풀고 <code>usage.exe</code> 실행.',
     install_btn_releases: '→ Releases 페이지 열기',
     screen_h2: '마음에 드는 패널을 골라보세요.',
     screen_sub: '10가지 내장 테마. 팝오버 툴바에서 언제든 전환 가능.',
