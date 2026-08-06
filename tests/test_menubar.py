@@ -22,9 +22,11 @@ import menubar_actions
 import menubar_agy
 import menubar_chrome
 import menubar_menu
+import menubar_popover
 import menubar_prefs
 import menubar_refresh
 import menubar_state
+import menubar_title
 import menubar_update
 import panel_window_state
 import panels
@@ -690,8 +692,8 @@ def test_manual_update_check_ignores_ttl(monkeypatch: pytest.MonkeyPatch) -> Non
         called = True
         return SimpleNamespace(failed=False, release=None)
 
-    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"last_update_check": {}})
-    monkeypatch.setattr(menubar, "_save_preferences", lambda prefs: None)
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"last_update_check": {}})
+    monkeypatch.setattr(menubar_update, "_save_preferences", lambda prefs: None)
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr("menubar.update_gate.auto_check_is_due", lambda prefs: False)
     monkeypatch.setattr(
@@ -789,8 +791,8 @@ def test_check_update_writes_cache_when_no_release(monkeypatch: pytest.MonkeyPat
 
 def test_check_update_skips_cache_on_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     saved: list[dict[str, Any]] = []
-    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": True})
-    monkeypatch.setattr(menubar, "_save_preferences", lambda d: saved.append(dict(d)))
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": True})
+    monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr(
         "menubar.update_checker.check_latest_release_result",
@@ -1145,7 +1147,7 @@ def test_error_state_uses_message_and_mock_today_title() -> None:
 
 
 def test_popover_size_has_positive_dimensions() -> None:
-    size = menubar._popover_size(menubar._empty_state())
+    size = menubar_popover._popover_size(menubar._empty_state())
 
     assert size.width > 0
     assert size.height > 0
@@ -1158,9 +1160,9 @@ def test_popover_size_grows_with_service_alerts() -> None:
     two_state.service_alerts = ("claude", "codex")
 
     panel = panels.get_panel("matrix")
-    base = menubar._popover_size(menubar._empty_state(), panel)
-    one = menubar._popover_size(one_state, panel)
-    two = menubar._popover_size(two_state, panel)
+    base = menubar_popover._popover_size(menubar._empty_state(), panel)
+    one = menubar_popover._popover_size(one_state, panel)
+    two = menubar_popover._popover_size(two_state, panel)
 
     assert one.height - base.height == panel.service_alert_height
     assert two.height - base.height == (
@@ -1203,13 +1205,13 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
     state.hide_agy = False
     panel = FakePanel()
 
-    assert menubar._popover_size(state, panel).height == 500.0
+    assert menubar_popover._popover_size(state, panel).height == 500.0
     state.hide_claude = True
-    assert menubar._popover_size(state, panel).height == 400.0
+    assert menubar_popover._popover_size(state, panel).height == 400.0
     state.hide_codex = True
-    assert menubar._popover_size(state, panel).height == 340.0
+    assert menubar_popover._popover_size(state, panel).height == 340.0
     state.hide_agy = True
-    assert menubar._popover_size(state, panel).height == 300.0
+    assert menubar_popover._popover_size(state, panel).height == 300.0
 
 
 def test_popover_size_deducts_one_missing_codex_row(
@@ -1219,11 +1221,11 @@ def test_popover_size_deducts_one_missing_codex_row(
     monkeypatch.setattr(menubar_agy, "find_agy", lambda: None)
     state = menubar._empty_state()
     panel = panels.get_panel("classic")
-    full_height = menubar._popover_size(state, panel).height
+    full_height = menubar_popover._popover_size(state, panel).height
 
     state.codex_session.title = ""
 
-    assert menubar._popover_size(state, panel).height == full_height - 64.0
+    assert menubar_popover._popover_size(state, panel).height == full_height - 64.0
 
 
 def test_popover_size_adds_status_wrap_height_only_where_meta_wraps(
@@ -1240,14 +1242,14 @@ def test_popover_size_adds_status_wrap_height_only_where_meta_wraps(
     aquarium = panels.get_panel("aquarium")
 
     state.status_long = False
-    classic_short = menubar._popover_size(state, classic).height
-    matrix_short = menubar._popover_size(state, matrix).height
-    aquarium_short = menubar._popover_size(state, aquarium).height
+    classic_short = menubar_popover._popover_size(state, classic).height
+    matrix_short = menubar_popover._popover_size(state, matrix).height
+    aquarium_short = menubar_popover._popover_size(state, aquarium).height
     state.status_long = True
 
-    assert menubar._popover_size(state, classic).height == classic_short + 30.0
-    assert menubar._popover_size(state, matrix).height == matrix_short + 32.0
-    assert menubar._popover_size(state, aquarium).height == aquarium_short
+    assert menubar_popover._popover_size(state, classic).height == classic_short + 30.0
+    assert menubar_popover._popover_size(state, matrix).height == matrix_short + 32.0
+    assert menubar_popover._popover_size(state, aquarium).height == aquarium_short
 
 
 def test_empty_state_keeps_agy_card_visible_during_initial_probe(
@@ -1273,13 +1275,13 @@ def test_compose_title_hides_providers(monkeypatch: pytest.MonkeyPatch) -> None:
     state = menubar._empty_state()
     state.claude_session.percent = 50.0
 
-    assert delegate._compose_title(state) == "🐾 50% · 📜 12%"
+    assert menubar_title._compose_title(delegate, state) == "🐾 50% · 📜 12%"
     state.hide_claude = True
-    assert delegate._compose_title(state) == "📜 12%"
+    assert menubar_title._compose_title(delegate, state) == "📜 12%"
     state.hide_codex = True
-    assert delegate._compose_title(state) == "🐾"
+    assert menubar_title._compose_title(delegate, state) == "🐾"
     state.hide_claude = False
-    assert delegate._compose_title(state) == "🐾 50%"
+    assert menubar_title._compose_title(delegate, state) == "🐾 50%"
 
 
 def test_compose_title_codex_placeholder_when_claude_hidden(
@@ -1291,7 +1293,7 @@ def test_compose_title_codex_placeholder_when_claude_hidden(
     state = menubar._empty_state()
     state.hide_claude = True
 
-    assert delegate._compose_title(state) == "📜 --"
+    assert menubar_title._compose_title(delegate, state) == "📜 --"
 
 
 def test_project_rows_empty(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1744,16 +1746,16 @@ def test_set_button_title_skips_unchanged_visible_state(
     button = FakeButton()
     delegate.status_item = FakeStatusItem(button)
     delegate.codex_5h_pct = 12
-    monkeypatch.setattr(delegate, "_menubar_attributed_title", lambda current: object())
+    monkeypatch.setattr(menubar_title, "_menubar_attributed_title", lambda app, current: object())
 
-    delegate._set_button_title(state)
-    delegate._set_button_title(state)
+    menubar_title._set_button_title(delegate, state)
+    menubar_title._set_button_title(delegate, state)
 
     assert len(button.titles) == 1
     assert len(button.attributed_titles) == 1
 
     delegate.codex_5h_pct = 13
-    delegate._set_button_title(state)
+    menubar_title._set_button_title(delegate, state)
 
     assert len(button.titles) == 2
     assert len(button.attributed_titles) == 2
@@ -1786,11 +1788,11 @@ def test_set_button_title_updates_for_animation_frame(
     button = FakeButton()
     delegate.status_item = FakeStatusItem(button)
     delegate.codex_5h_pct = 12
-    monkeypatch.setattr(delegate, "_menubar_attributed_title", lambda current: object())
+    monkeypatch.setattr(menubar_title, "_menubar_attributed_title", lambda app, current: object())
 
-    delegate._set_button_title(state)
+    menubar_title._set_button_title(delegate, state)
     delegate.dragon_frame += 1
-    delegate._set_button_title(state)
+    menubar_title._set_button_title(delegate, state)
 
     assert len(button.attributed_titles) == 2
 

@@ -22,27 +22,17 @@ from typing import Any, cast
 
 import objc
 from AppKit import (
-    NSAnimationContext,
     NSApp,
     NSApplication,
     NSApplicationActivationPolicyAccessory,
-    NSAttributedString,
-    NSFont,
-    NSFontAttributeName,
     NSMakePoint,
     NSMakeRect,
     NSMakeSize,
-    NSMutableAttributedString,
     NSScreen,
     NSStatusBar,
     NSVariableStatusItemLength,
-    NSView,
-    NSViewController,
-    NSViewHeightSizable,
-    NSViewWidthSizable,
 )
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
-from Quartz import CGColorCreateGenericRGB
 
 import agy_loader
 import codex_loader
@@ -53,6 +43,7 @@ import menubar_menu
 import menubar_notify
 import menubar_refresh
 import menubar_state
+import menubar_title
 import menubar_update
 import panel_window_state
 import panels
@@ -68,14 +59,9 @@ from history_loader import (
 )
 from i18n import _t, packaged_resource_path
 from menubar_chrome import (
-    _agy_menubar_icon,
-    _claude_menubar_icon,
-    _codex_menubar_icon,
-    _critter_frame_image,
-    _critter_icon_attachment_string,
     _make_alert,
-    _menubar_icon_attachment_string,
 )
+from menubar_popover import PopoverViewController, _popover_size
 from menubar_prefs import (
     _auto_update_check_enabled,
     _hide_agy_enabled,
@@ -139,10 +125,8 @@ from menubar_state import (
 )
 from panel_window import PanelWindow
 from panel_window_state import save_panel_window_top_left
-from panels.base import Panel as UsagePanel
 from panels.base import (
     load_active_panel_id,
-    next_panel_eviction_id,
     save_active_panel_id,
 )
 from panels.dynamic_height import clamp_content_height
@@ -250,207 +234,6 @@ def _current_version() -> str:
 
 
 _APP_DELEGATE: AppDelegate | None = None
-MAX_CACHED_PANEL_VIEWS = 6
-PANEL_TRANSITION_TIMEOUT_SECONDS = 1.5
-PANEL_TRANSITION_FADE_SECONDS = 0.18
-
-
-class PopoverViewController(NSViewController):
-    content_view = objc.ivar()
-    panel = objc.ivar()
-    delegate = objc.ivar()
-    panel_views = objc.ivar()
-    panel_lru = objc.ivar()
-    transition_overlays = objc.ivar()
-    latest_state = objc.ivar()
-    pending_panel_evictions = objc.ivar()
-
-    def initWithPanel_delegate_(self, panel: UsagePanel, delegate: Any) -> PopoverViewController:
-        self = objc.super(PopoverViewController, self).init()
-        if self is None:
-            return None
-        self.panel = panel
-        self.delegate = delegate
-        self.panel_views = {}
-        self.panel_lru = []
-        self.transition_overlays = {}
-        self.pending_panel_evictions = set()
-        self.latest_state = None
-        self.content_view = panel.build_view(delegate)
-        container = NSView.alloc().initWithFrame_(self.content_view.frame())
-        container.setWantsLayer_(True)
-        self.setView_(container)
-        self.preparePanelView_(self.content_view)
-        container.addSubview_(self.content_view)
-        # Only cache a real web view; a failed build (ErrorPanelView, no JS
-        # bridge) is shown but left uncached so a later switch rebuilds it.
-        if hasattr(self.content_view, "evaluateJavaScript_completionHandler_"):
-            self.panel_views[panel.id] = self.content_view
-            self.panel_lru.append(panel.id)
-        return self
-
-    def setState_(self, state: PopoverState) -> None:
-        self.latest_state = state
-        self.view().setFrameSize_(_popover_size(state, self.panel))
-        self.syncPanelFrames()
-        self.panel.apply_state(self.content_view, state)
-
-    def switchToPanel_(self, panel: UsagePanel) -> None:
-        previous = self.content_view
-        self.panel = panel
-        content_view = self.panel_views.get(panel.id)
-        if content_view is None:
-            content_view = panel.build_view(self.delegate)
-            content_view.setHidden_(True)
-            self.preparePanelView_(content_view)
-            self.view().addSubview_(content_view)
-            # Only cache a real web view. A failed build returns ErrorPanelView
-            # (no JS bridge); caching it would pin the error even after the file
-            # recovers, so leave it uncached and rebuild on the next switch.
-            if hasattr(content_view, "evaluateJavaScript_completionHandler_"):
-                self.panel_views[panel.id] = content_view
-                self.beginPanelTransitionForPanelId_view_(panel.id, content_view)
-        # Drop the previously shown view if it was an uncached error fallback,
-        # so it doesn't linger stacked in the container behind the new panel.
-        if (
-            previous is not None
-            and previous is not content_view
-            and previous not in self.panel_views.values()
-        ):
-            if hasattr(previous, "teardown"):
-                previous.teardown()
-            previous.removeFromSuperview()
-        self.content_view = content_view
-        if panel.id in self.panel_views:
-            self.markPanelUsed_(panel.id)
-        for panel_id, view in list(self.panel_views.items()):
-            view.setHidden_(panel_id != panel.id)
-        content_view.setHidden_(False)
-        if self.latest_state is not None:
-            self.setState_(self.latest_state)
-        self.evictPanelViewsIfNeeded()
-
-    def currentContentView(self) -> Any:
-        return self.content_view
-
-    def panelDidFirstPaint_(self, view: Any) -> None:
-        if view is self.content_view:
-            self.endPanelTransitionForPanelView_(view)
-
-    def beginPanelTransitionForPanelId_view_(self, panel_id: str, view: Any) -> None:
-        self.removeTransitionOverlay_(panel_id)
-        overlay = NSView.alloc().initWithFrame_(view.bounds())
-        overlay.setWantsLayer_(True)
-        overlay.setAlphaValue_(1.0)
-        overlay.setAutoresizingMask_(int(NSViewWidthSizable) | int(NSViewHeightSizable))
-        layer = overlay.layer()
-        if layer is not None:
-            layer.setBackgroundColor_(
-                CGColorCreateGenericRGB(10 / 255, 15 / 255, 20 / 255, 1.0)
-            )
-        view.addSubview_(overlay)
-        self.transition_overlays[panel_id] = overlay
-        self.performSelector_withObject_afterDelay_(
-            "transitionTimeoutElapsed:",
-            overlay,
-            PANEL_TRANSITION_TIMEOUT_SECONDS,
-        )
-
-    def transitionTimeoutElapsed_(self, overlay: Any) -> None:
-        # Match by the overlay object itself, not the panel id: if this panel was
-        # evicted and rebuilt, a stale timer must not fade the new overlay. A timer
-        # whose overlay is already gone from the map simply finds nothing and stops.
-        for panel_id, current_overlay in list(self.transition_overlays.items()):
-            if current_overlay is overlay:
-                self.endPanelTransitionForPanelId_(panel_id)
-                return
-
-    def endPanelTransitionForPanelView_(self, view: Any) -> None:
-        for panel_id, panel_view in list(self.panel_views.items()):
-            if panel_view is view:
-                self.endPanelTransitionForPanelId_(panel_id)
-                return
-
-    def endPanelTransitionForPanelId_(self, panel_id: str) -> None:
-        overlay = self.transition_overlays.pop(panel_id, None)
-        if overlay is None:
-            return
-
-        def _fade(context: Any) -> None:
-            context.setDuration_(PANEL_TRANSITION_FADE_SECONDS)
-            overlay.animator().setAlphaValue_(0.0)
-
-        def _remove() -> None:
-            overlay.removeFromSuperview()
-
-        NSAnimationContext.runAnimationGroup_completionHandler_(_fade, _remove)
-
-    def teardown(self) -> None:
-        for panel_id, view in list(self.panel_views.items()):
-            self.removeTransitionOverlay_(panel_id)
-            if hasattr(view, "teardown"):
-                view.teardown()
-            view.removeFromSuperview()
-        self.panel_views.clear()
-        self.panel_lru.clear()
-        self.content_view = None
-
-    def preparePanelView_(self, view: Any) -> None:
-        view.setFrame_(self.view().bounds() if self.view() is not None else view.frame())
-        view.setAutoresizingMask_(int(NSViewWidthSizable) | int(NSViewHeightSizable))
-        view.setWantsLayer_(True)
-        layer = view.layer()
-        if layer is not None:
-            layer.setMasksToBounds_(True)
-
-    def syncPanelFrames(self) -> None:
-        bounds = self.view().bounds()
-        for view in self.panel_views.values():
-            view.setFrame_(bounds)
-
-    def markPanelUsed_(self, panel_id: str) -> None:
-        self.panel_lru = [cached_id for cached_id in self.panel_lru if cached_id != panel_id]
-        self.panel_lru.append(panel_id)
-
-    def evictPanelViewsIfNeeded(self) -> None:
-        self._schedulePanelEvictionIfNeeded()
-
-    def _schedulePanelEvictionIfNeeded(self) -> None:
-        if self.panel is None or len(self.panel_views) <= MAX_CACHED_PANEL_VIEWS:
-            return
-        evict_id = next_panel_eviction_id(
-            self.panel_lru,
-            self.panel.id,
-            self.pending_panel_evictions,
-        )
-        if evict_id is None:
-            return
-        self.pending_panel_evictions.add(evict_id)
-        self.performSelector_withObject_afterDelay_("evictPanelViewForId:", evict_id, 0.0)
-
-    def evictPanelViewForId_(self, panel_id: str) -> None:
-        self.pending_panel_evictions.discard(panel_id)
-        # A user can return to this panel before the next run-loop turn. In
-        # that case it remains live; schedule another LRU candidate instead.
-        if self.panel is None or panel_id == self.panel.id:
-            self._schedulePanelEvictionIfNeeded()
-            return
-        view = self.panel_views.get(panel_id)
-        if view is None:
-            self._schedulePanelEvictionIfNeeded()
-            return
-        self.panel_lru = [cached_id for cached_id in self.panel_lru if cached_id != panel_id]
-        self.panel_views.pop(panel_id, None)
-        self.removeTransitionOverlay_(panel_id)
-        if hasattr(view, "teardown"):
-            view.teardown()
-        view.removeFromSuperview()
-        self._schedulePanelEvictionIfNeeded()
-
-    def removeTransitionOverlay_(self, panel_id: str) -> None:
-        overlay = self.transition_overlays.pop(panel_id, None)
-        if overlay is not None:
-            overlay.removeFromSuperview()
 
 
 class AppDelegate(NSObject):
@@ -767,7 +550,7 @@ class AppDelegate(NSObject):
             sender.setState_(1 if enabled else 0)
         self.latest_state.hide_claude = enabled
         self.popover_controller.setState_(self.latest_state)
-        self._set_button_title(self.latest_state)
+        menubar_title._set_button_title(self, self.latest_state)
 
     def toggleHideCodex_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -779,7 +562,7 @@ class AppDelegate(NSObject):
             sender.setState_(1 if enabled else 0)
         self.latest_state.hide_codex = enabled
         self.popover_controller.setState_(self.latest_state)
-        self._set_button_title(self.latest_state)
+        menubar_title._set_button_title(self, self.latest_state)
 
     def toggleHideAgy_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -791,7 +574,7 @@ class AppDelegate(NSObject):
             sender.setState_(1 if enabled else 0)
         self.latest_state.hide_agy = enabled
         self.popover_controller.setState_(self.latest_state)
-        self._set_button_title(self.latest_state)
+        menubar_title._set_button_title(self, self.latest_state)
 
     def toggleQuotaNotifications_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -1013,7 +796,7 @@ class AppDelegate(NSObject):
             ) % len(critter_frames.LION_FRAMES)
             self.lion_last_advanced_at = previous[2] + intervals[2]
         if any(tick.advance):
-            self._set_button_title(self.latest_state)
+            menubar_title._set_button_title(self, self.latest_state)
 
     def _critter_intervals(self) -> tuple[float, float, float]:
         return (
@@ -1157,7 +940,7 @@ class AppDelegate(NSObject):
                 self.popover_controller.setState_(self.latest_state)
             self._set_panel_window_size(_popover_size(state, self.active_panel))
             self._inject_web_language(state.language)
-            self._set_button_title(state)
+            menubar_title._set_button_title(self, state)
         finally:
             should_refresh_again = bool(self._refresh_queued)
             self._refresh_queued = False
@@ -1224,7 +1007,7 @@ class AppDelegate(NSObject):
         if self._panel_window_is_visible():
             self.popover_controller.setState_(self.latest_state)
         self._set_panel_window_size(_popover_size(self.latest_state, self.active_panel))
-        self._set_button_title(self.latest_state)
+        menubar_title._set_button_title(self, self.latest_state)
         if started_at:
             logger.debug(
                 "refresh_timing stage=main_apply_codex_ui elapsed_ms=%.1f",
@@ -1387,125 +1170,6 @@ class AppDelegate(NSObject):
     ) -> list[tuple[str, int, float | None]]:
         return menubar_state.app_project_rows(self, hours_back=hours_back, entries=entries)
 
-    def _menubar_text_string(self, text: str) -> Any:
-        cached = self._menubar_text_cache.get(text)
-        if cached is not None:
-            return cached
-        attributed = NSAttributedString.alloc().initWithString_attributes_(
-            text,
-            {NSFontAttributeName: NSFont.menuBarFontOfSize_(0)},
-        )
-        self._menubar_text_cache[text] = attributed
-        return attributed
-
-    def _menubar_attributed_title(self, state: PopoverState) -> Any:
-        title = NSMutableAttributedString.alloc().init()
-        phoenix_frame = int(self.critter_frame) % len(critter_frames.PHOENIX_FRAMES)
-        dragon_frame = int(self.dragon_frame) % len(critter_frames.DRAGON_FRAMES)
-        lion_frame = int(self.lion_frame) % len(critter_frames.LION_FRAMES)
-        if not state.hide_claude:
-            claude_percent = (
-                "--"
-                if state.claude_session.percent is None
-                else f"{_format_percent(state.claude_session.percent)}%"
-            )
-            title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
-            title.appendAttributedString_(self._menubar_text_string(f" {claude_percent}"))
-            phoenix_path = critter_frames.PHOENIX_FRAMES[phoenix_frame]
-            phoenix = _critter_frame_image(phoenix_path)
-            if phoenix is not None:
-                title.appendAttributedString_(self._menubar_text_string(" "))
-                title.appendAttributedString_(
-                    _critter_icon_attachment_string(phoenix_path, phoenix)
-                )
-        if not state.hide_codex and (self.codex_5h_pct is not None or state.hide_claude):
-            codex_percent = (
-                "--"
-                if self.codex_5h_pct is None
-                else f"{_format_percent(float(self.codex_5h_pct))}%"
-            )
-            if not state.hide_claude:
-                title.appendAttributedString_(self._menubar_text_string(" · "))
-            title.appendAttributedString_(_menubar_icon_attachment_string(_codex_menubar_icon()))
-            title.appendAttributedString_(self._menubar_text_string(f" {codex_percent}"))
-            dragon_path = critter_frames.DRAGON_FRAMES[dragon_frame]
-            dragon = _critter_frame_image(dragon_path)
-            if dragon is not None:
-                title.appendAttributedString_(self._menubar_text_string(" "))
-                title.appendAttributedString_(
-                    _critter_icon_attachment_string(dragon_path, dragon)
-                )
-        agy_session_percent = state.agy_session.percent
-        agy_visible = not state.hide_agy and agy_session_percent is not None
-        if agy_visible:
-            assert agy_session_percent is not None
-            agy_percent = f"{_format_percent(agy_session_percent)}%"
-            if title.length() > 0:
-                title.appendAttributedString_(self._menubar_text_string(" · "))
-            title.appendAttributedString_(_menubar_icon_attachment_string(_agy_menubar_icon()))
-            title.appendAttributedString_(self._menubar_text_string(f" {agy_percent}"))
-            lion_path = critter_frames.LION_FRAMES[lion_frame]
-            lion = _critter_frame_image(lion_path)
-            if lion is not None:
-                title.appendAttributedString_(self._menubar_text_string(" "))
-                title.appendAttributedString_(
-                    _critter_icon_attachment_string(lion_path, lion)
-                )
-        if title.length() == 0:
-            # Both providers hidden: keep a recognizable, clickable status item.
-            title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
-        return title
-
-    def _set_button_title(self, state: PopoverState) -> None:
-        title = self._compose_title(state)
-        phoenix_frame = int(self.critter_frame) if not state.hide_claude else None
-        dragon_visible = not state.hide_codex and (
-            self.codex_5h_pct is not None or state.hide_claude
-        )
-        dragon_frame = int(self.dragon_frame) if dragon_visible else None
-        lion_visible = not state.hide_agy and state.agy_session.percent is not None
-        lion_frame = int(self.lion_frame) if lion_visible else None
-        title_key = (title, phoenix_frame, dragon_frame, lion_frame)
-        if self._last_button_title_key == title_key:
-            return
-
-        button = self.status_item.button()
-        # setTitle: forces a full NSStatusItem relayout (_adjustLength) that
-        # cascades into the popover's frame/corner-mask recompute even while
-        # it's hidden. attributedTitle is what's actually rendered, so during
-        # critter/dragon/lion animation (their frame values changing every
-        # 0.10-0.18s) only push the plain title when its own text changed —
-        # not on every sprite frame — to avoid paying that relayout per frame.
-        plain_key = (title,)
-        if self._last_plain_title_key != plain_key:
-            button.setTitle_(title)
-            self._last_plain_title_key = plain_key
-        button.setAttributedTitle_(self._menubar_attributed_title(state))
-        self._last_button_title_key = title_key
-
-    def _compose_title(self, state: PopoverState) -> str:
-        parts: list[str] = []
-        if not state.hide_claude:
-            claude = (
-                "--"
-                if state.claude_session.percent is None
-                else f"{_format_percent(state.claude_session.percent)}%"
-            )
-            parts.append(f"🐾 {claude}")
-        if not state.hide_codex and (self.codex_5h_pct is not None or state.hide_claude):
-            codex = (
-                "--"
-                if self.codex_5h_pct is None
-                else f"{_format_percent(float(self.codex_5h_pct))}%"
-            )
-            parts.append(f"📜 {codex}")
-        if not state.hide_agy and state.agy_session.percent is not None:
-            agy = f"{_format_percent(state.agy_session.percent)}%"
-            parts.append(f"🦁 {agy}")
-        # Both providers hidden: keep a recognizable, clickable status item.
-        return " · ".join(parts) if parts else "🐾"
-
-
 def run_app(mock: bool = False, interval: int = 60) -> None:
     global _APP_DELEGATE
     app = NSApplication.sharedApplication()
@@ -1534,10 +1198,6 @@ def _analysis_period_from_project_range(project_range: str) -> str:
     if project_range == "all":
         return "all"
     return "month"
-
-
-def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
-    return NSMakeSize(*panel_window_state.resolve_panel_size(state, panel))
 
 
 def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
