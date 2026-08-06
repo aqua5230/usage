@@ -25,8 +25,8 @@ class FakeResponse:
     def __exit__(self, *args: object) -> None:
         return None
 
-    def read(self) -> bytes:
-        return self.body
+    def read(self, amount: int | None = None) -> bytes:
+        return self.body[:amount]
 
 
 def test_compare_versions_orders_numeric_versions() -> None:

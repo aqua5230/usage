@@ -20,11 +20,15 @@ jobs:
     steps:
       - name: Resolve ref
         id: ref
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          GIT_REF: ${{ github.ref }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "ref=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "ref=$INPUT_TAG" >> "$GITHUB_OUTPUT"
           else
-            echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
+            echo "ref=$GIT_REF" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -57,13 +61,18 @@ jobs:
     steps:
       - name: Resolve ref and tag
         id: ref
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          GIT_REF: ${{ github.ref }}
+          GIT_REF_NAME: ${{ github.ref_name }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "ref=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
-            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "ref=$INPUT_TAG" >> "$GITHUB_OUTPUT"
+            echo "tag=$INPUT_TAG" >> "$GITHUB_OUTPUT"
           else
-            echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
-            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "ref=$GIT_REF" >> "$GITHUB_OUTPUT"
+            echo "tag=$GIT_REF_NAME" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -129,8 +138,9 @@ jobs:
 
       - name: Extract release notes from CHANGELOG.md
         id: notes
+        env:
+          TAG: ${{ steps.ref.outputs.tag }}
         run: |
-          TAG="${{ steps.ref.outputs.tag }}"
           VERSION="${TAG#v}"
           NOTES_FILE="$(mktemp)"
           awk -v v="$VERSION" '
@@ -146,19 +156,23 @@ jobs:
       - name: Ensure release exists
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ref.outputs.tag }}
+          TARGET_SHA: ${{ github.sha }}
+          NOTES_PATH: ${{ steps.notes.outputs.path }}
         run: |
-          if ! gh release view "${{ steps.ref.outputs.tag }}" >/dev/null 2>&1; then
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
             gh release create \
-              "${{ steps.ref.outputs.tag }}" \
-              --target "${{ github.sha }}" \
-              --title "${{ steps.ref.outputs.tag }}" \
-              --notes-file "${{ steps.notes.outputs.path }}"
+              "$TAG" \
+              --target "$TARGET_SHA" \
+              --title "$TAG" \
+              --notes-file "$NOTES_PATH"
           fi
 
       - name: Upload to release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${{ steps.ref.outputs.tag }}" dist/usage.app.zip dist/usage.app.zip.sha256 --clobber
+          TAG: ${{ steps.ref.outputs.tag }}
+        run: gh release upload "$TAG" dist/usage.app.zip dist/usage.app.zip.sha256 --clobber
 
   build-windows:
     needs: build
@@ -170,13 +184,18 @@ jobs:
       - name: Resolve ref
         id: ref
         shell: bash
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          GIT_REF: ${{ github.ref }}
+          GIT_REF_NAME: ${{ github.ref_name }}
         run: |
-          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-            echo "ref=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
-            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "ref=$INPUT_TAG" >> "$GITHUB_OUTPUT"
+            echo "tag=$INPUT_TAG" >> "$GITHUB_OUTPUT"
           else
-            echo "ref=${{ github.ref }}" >> "$GITHUB_OUTPUT"
-            echo "tag=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "ref=$GIT_REF" >> "$GITHUB_OUTPUT"
+            echo "tag=$GIT_REF_NAME" >> "$GITHUB_OUTPUT"
           fi
 
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -206,8 +225,9 @@ jobs:
       - name: Upload to release
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.ref.outputs.tag }}
         shell: bash
-        run: gh release upload "${{ steps.ref.outputs.tag }}" dist/usage-windows.zip dist/usage-windows.zip.sha256 --clobber
+        run: gh release upload "$TAG" dist/usage-windows.zip dist/usage-windows.zip.sha256 --clobber
 
   bump-homebrew:
     needs: build
@@ -231,15 +251,17 @@ jobs:
       - name: Download release checksum
         env:
           GH_TOKEN: ${{ github.token }}
+          TAG: ${{ needs.build.outputs.tag }}
         run: |
-          gh release download "${{ needs.build.outputs.tag }}" \
+          gh release download "$TAG" \
             --repo aqua5230/usage \
             --pattern usage.app.zip.sha256 \
             --output checksum.txt
 
       - name: Update cask
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
         run: |
-          TAG="${{ needs.build.outputs.tag }}"
           VERSION="${TAG#v}"
           SHA="$(awk '{print $1}' checksum.txt)"
           if [[ -z "$SHA" ]]; then
@@ -254,6 +276,8 @@ jobs:
             Casks/usage.rb
 
       - name: Commit and push
+        env:
+          TAG: ${{ needs.build.outputs.tag }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
@@ -262,5 +286,5 @@ jobs:
             exit 0
           fi
           git add Casks/usage.rb
-          git commit -m "usage ${{ needs.build.outputs.tag }}"
+          git commit -m "usage $TAG"
           git push

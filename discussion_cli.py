@@ -66,7 +66,8 @@ ANSI_ESCAPE_RE = re.compile(
 )
 CONTROL_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 SENSITIVE_ENV_NAME_RE = re.compile(
-    r"(?:TOKEN|KEY|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH)",
+    # PAT excludes PATH: redacting the PATH value would gut every error message.
+    r"(?:TOKEN|KEY|SECRET|PASSWORD|PASSWD|CREDENTIAL|AUTH|COOKIE|PRIVATE|PAT(?!H))",
     re.IGNORECASE,
 )
 

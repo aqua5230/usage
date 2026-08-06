@@ -50,8 +50,8 @@ class _FakeResponse:
     def __exit__(self, *_exc: object) -> None:
         return None
 
-    def read(self) -> bytes:
-        return self._data
+    def read(self, amount: int | None = None) -> bytes:
+        return self._data[:amount]
 
 
 def _build_urlopen(

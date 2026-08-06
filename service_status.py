@@ -32,6 +32,9 @@ MONITORING_SETTLED_SECONDS = 4 * 3600
 OBSERVED_STALE_SECONDS = 24 * 3600
 SUPPRESSIBLE_STATUSES = ("degraded_performance",)
 USER_AGENT = "usage/0.9"
+# Statuspage summaries are tens of KB; cap the read so a broken endpoint cannot
+# make us buffer an unbounded response.
+MAX_RESPONSE_BYTES = 4 * 1024 * 1024
 ALERT_STATE_PATH = Path(os.path.expanduser("~/.usage/service_alert_state.json"))
 
 StatusSource = Literal["fetched", "cache", "stale", "fallback"]
@@ -272,8 +275,11 @@ def _fetch_status(config: ServiceStatusConfig) -> dict[str, Any] | None:
     request = urllib.request.Request(config.status_url, headers={"User-Agent": USER_AGENT})
     try:
         with urllib.request.urlopen(request, timeout=10) as response:
-            payload = json.loads(response.read().decode("utf-8"))
-    except (OSError, TimeoutError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raw = response.read(MAX_RESPONSE_BYTES + 1)
+        if len(raw) > MAX_RESPONSE_BYTES:
+            raise ValueError("status response exceeds the size limit")
+        payload = json.loads(raw.decode("utf-8"))
+    except (OSError, TimeoutError, UnicodeDecodeError, ValueError) as exc:
         logger.warning(
             "failed to fetch %s status from %s: %s",
             config.service_name,

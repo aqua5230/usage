@@ -44,6 +44,9 @@ _KEYRING_BASE64_PREFIX = "go-keyring-base64:"
 
 _TOKEN_URL = "https://oauth2.googleapis.com/token"
 _QUOTA_URL = "https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary"
+# Both endpoints return small JSON objects; cap the read so a broken endpoint
+# cannot make us buffer an unbounded response.
+_MAX_RESPONSE_BYTES = 4 * 1024 * 1024
 # Antigravity's installed-app public client constants (same values quotio ships).
 # Plain text on purpose: RFC 8252 installed apps cannot keep a client secret
 # confidential, so this is a public client, not a security boundary. It is not
@@ -344,7 +347,10 @@ def _refresh_token(refresh_token: str, timeout: float) -> tuple[str, int] | None
     )
     try:
         with urlopen(request, timeout=timeout) as response:
-            payload = json.load(response)
+            raw = response.read(_MAX_RESPONSE_BYTES + 1)
+        if len(raw) > _MAX_RESPONSE_BYTES:
+            raise ValueError("token response exceeds the size limit")
+        payload = json.loads(raw)
     except HTTPError as exc:
         _handle_http_error(exc)
         return None
@@ -375,7 +381,10 @@ def _post_json(url: str, access_token: str, body: dict[str, object], timeout: fl
     )
     try:
         with urlopen(request, timeout=timeout) as response:
-            return json.load(response)
+            raw = response.read(_MAX_RESPONSE_BYTES + 1)
+        if len(raw) > _MAX_RESPONSE_BYTES:
+            raise ValueError("quota response exceeds the size limit")
+        return json.loads(raw)
     except HTTPError as exc:
         _handle_http_error(exc)
         return None

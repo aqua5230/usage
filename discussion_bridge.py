@@ -982,14 +982,17 @@ class DiscussionBridge:
         snapshot: dict[str, object],
     ) -> None:
         try:
-            DISCUSSIONS_DIRECTORY.mkdir(parents=True, exist_ok=True)
+            # Transcripts carry full conversation text and project paths; keep them
+            # owner-only like the neutral workspace in discussion_cli.
+            DISCUSSIONS_DIRECTORY.mkdir(mode=0o700, parents=True, exist_ok=True)
             base = DISCUSSIONS_DIRECTORY / session_id
-            base.with_suffix(".json").write_text(
-                json.dumps(snapshot, ensure_ascii=False, indent=2), encoding="utf-8"
-            )
-            base.with_suffix(".md").write_text(
-                _render_discussion_markdown(snapshot), encoding="utf-8"
-            )
+            for suffix, payload in (
+                (".json", json.dumps(snapshot, ensure_ascii=False, indent=2)),
+                (".md", _render_discussion_markdown(snapshot)),
+            ):
+                path = base.with_suffix(suffix)
+                path.write_text(payload, encoding="utf-8")
+                path.chmod(0o600)
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("failed to archive discussion %s", session_id, exc_info=True)

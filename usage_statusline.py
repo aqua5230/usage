@@ -522,6 +522,11 @@ def fmt_duration(seconds: float) -> str:
     return f"{int(seconds)}s"
 
 
+def safe_text(value: str) -> str:
+    """Drop control characters so untrusted names cannot rewrite the status line."""
+    return "".join(ch for ch in value if ch.isprintable())
+
+
 def git_branch(cwd: str) -> str:
     path = os.path.abspath(cwd)
     while True:
@@ -661,8 +666,8 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
     line1: List[str] = []
     project = _as_dict(data.get("workspace")).get("project_dir", "")
     if isinstance(project, str) and project:
-        name = os.path.basename(project)
-        branch = git_branch(project)
+        name = safe_text(os.path.basename(project))
+        branch = safe_text(git_branch(project))
         if branch:
             line1.append(f"{C['green']}{name}{C['reset']}({C['magenta']}{branch}{C['reset']})")
         else:
@@ -742,14 +747,17 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             model_name += f"/{effort_label}"
         if data.get("fast_mode"):
             model_name += f" {_t('fast_mode')}"
-        line3.append(f"{C['dim']}{C['magenta']}{model_name}{C['reset']}")
+        line3.append(f"{C['dim']}{C['magenta']}{safe_text(model_name)}{C['reset']}")
 
     if vlen(" | ".join(line3)) > width and duration_part:
         line3 = [p for p in line3 if p != duration_part]
 
     update_version = _read_update_hint(now.timestamp())
     if update_version and (line1 or line3):
-        line3.append(f"{C['cyan']}🆕 v{update_version} {_t('update_available_suffix')}{C['reset']}")
+        line3.append(
+            f"{C['cyan']}🆕 v{safe_text(update_version)} "
+            f"{_t('update_available_suffix')}{C['reset']}"
+        )
 
     output = [" | ".join(line) for line in (line1, line3) if line]
     warning = _heavy_warning(data, now.timestamp())

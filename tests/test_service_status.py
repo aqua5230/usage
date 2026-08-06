@@ -27,8 +27,8 @@ class FakeResponse:
     def __exit__(self, *args: object) -> None:
         return None
 
-    def read(self) -> bytes:
-        return self._body
+    def read(self, amount: int | None = None) -> bytes:
+        return self._body[:amount]
 
 
 @pytest.fixture(autouse=True)
