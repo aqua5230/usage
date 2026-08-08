@@ -297,7 +297,7 @@ def test_switch_panel_keeps_dragged_position_before_new_height_is_measured(
     controller.handle_panel_message(json.dumps({"action": "content_height", "height": 700}))
     window.x, window.y = 300, 200  # simulates the user dragging the window here
 
-    controller.switch_panel("cloud_observation")  # PANEL_HEIGHTS[...] == 1023
+    controller.switch_panel("cloud_observation")  # PANEL_HEIGHTS[...] == 1006
     controller.on_loaded()
 
     assert moves[-1] == (300, 200)

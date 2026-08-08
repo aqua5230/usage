@@ -66,16 +66,21 @@ WINDOWS_PANELS = (
     ("lepidoptera", "panel_lepidoptera", "lepidoptera.html"),
     ("world_cup", "panel_world_cup", "world_cup.html"),
 )
+# These are only the initial-placeholder fallback used before the WebView
+# reports its real content height (see panel_height()); kept in sync with
+# panels/__init__.py's Mac heights from 64a7c0b (Recalibrate HTML panel
+# heights and status-wrap growth) so the brief pre-measurement window isn't
+# ~17-24pt too tall.
 PANEL_HEIGHTS = {
     "classic": 1004,
-    "matrix": 1070,
-    "win95": 1079,
-    "newspaper": 1073,
-    "cloud_observation": 1023,
-    "aquarium": 1023,
-    "prism_arcade": 1023,
-    "black_hole": 1023,
-    "lepidoptera": 1070,
+    "matrix": 1046,
+    "win95": 1055,
+    "newspaper": 1051,
+    "cloud_observation": 1006,
+    "aquarium": 1006,
+    "prism_arcade": 1006,
+    "black_hole": 1006,
+    "lepidoptera": 1046,
     "world_cup": 812,
 }
 

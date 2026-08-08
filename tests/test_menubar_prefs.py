@@ -49,7 +49,6 @@ def test_quota_card_order_validates_preferences() -> None:
     invalid_values = (
         None,
         "agy",
-        ["agy", "claude"],
         ["agy", "claude", "claude"],
         ["agy", "claude", "unknown"],
     )
@@ -59,6 +58,16 @@ def test_quota_card_order_validates_preferences() -> None:
             "codex",
             "agy",
         )
+
+
+def test_quota_card_order_pads_missing_cards_after_upgrade() -> None:
+    # Simulates a preference saved before a new quota card existed: the
+    # user's existing order is kept and the newcomer is appended, not wiped.
+    assert menubar_prefs._quota_card_order({"quota_card_order": ["agy", "claude"]}) == (
+        "agy",
+        "claude",
+        "codex",
+    )
 
 
 def test_save_quota_card_order_ignores_invalid_values(
