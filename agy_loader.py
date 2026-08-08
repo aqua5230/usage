@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import logging
 import os
 import sqlite3
@@ -20,6 +19,13 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
 from agy_disk_cache import flush_caches, seed_caches
+from disk_cache_lifecycle import (
+    flush_caches_if_due,
+    needs_cache_seed,
+)
+from disk_cache_lifecycle import (
+    flush_caches_on_terminate as _flush_caches_on_terminate,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -143,7 +149,7 @@ def load_entries_with_stats(hours_back: int = 0) -> AgyLoadResult:
 def _seed_caches_from_disk() -> None:
     global _disk_cache_seeded
 
-    if _disk_cache_seeded:
+    if not needs_cache_seed(_disk_cache_seeded):
         return
     _disk_cache_seeded = True
     seed_caches(AGY_CACHE_PATH, _AGY_DB_CACHE_SCHEMA, _FILE_CACHE_MAXSIZE, _file_cache)
@@ -152,24 +158,19 @@ def _seed_caches_from_disk() -> None:
 def _flush_caches_to_disk(*, force: bool = False) -> None:
     global _disk_cache_dirty, _last_disk_cache_flush_at
 
-    if not _disk_cache_dirty:
-        return
-    now = _monotonic()
-    if (
-        not force
-        and _last_disk_cache_flush_at is not None
-        and now - _last_disk_cache_flush_at < _DISK_CACHE_FLUSH_INTERVAL_S
-    ):
-        return
-    flush_caches(AGY_CACHE_PATH, _AGY_DB_CACHE_SCHEMA, _file_cache)
-    _last_disk_cache_flush_at = now
-    _disk_cache_dirty = False
+    _disk_cache_dirty, _last_disk_cache_flush_at = flush_caches_if_due(
+        _disk_cache_dirty,
+        _last_disk_cache_flush_at,
+        _monotonic,
+        _DISK_CACHE_FLUSH_INTERVAL_S,
+        lambda: flush_caches(AGY_CACHE_PATH, _AGY_DB_CACHE_SCHEMA, _file_cache),
+        force=force,
+    )
 
 
 def flush_caches_on_terminate() -> None:
     """Best-effort persistence of cache changes still waiting for the throttle."""
-    with contextlib.suppress(Exception):
-        _flush_caches_to_disk(force=True)
+    _flush_caches_on_terminate(lambda: _flush_caches_to_disk(force=True))
 
 
 def recent_input_output_tokens(hours_back: int) -> int:

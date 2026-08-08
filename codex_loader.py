@@ -6,7 +6,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import hashlib
 import json
 import logging
@@ -21,12 +20,6 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from codex_disk_cache import (  # noqa: F401  (de)serializers re-exported for tests
-    _deserialize_usage_entry as _deserialize_usage_entry,
-)
-from codex_disk_cache import (
-    _serialize_usage_entry as _serialize_usage_entry,
-)
 from codex_disk_cache import (
     flush_caches,
     seed_caches,
@@ -56,6 +49,13 @@ from codex_fork_replay import (
     _ReplayCacheKey,
     _ReplayLookupKey,
     _token_usage_events_after_embedded_parent,
+)
+from disk_cache_lifecycle import (
+    flush_caches_if_due,
+    needs_cache_seed,
+)
+from disk_cache_lifecycle import (
+    flush_caches_on_terminate as _flush_caches_on_terminate,
 )
 from history_loader import UsageEntry
 from project_resolver import resolve_project_name
@@ -186,7 +186,7 @@ def _seed_caches_from_disk() -> None:
     """Seed in-memory caches from disk exactly once. Silently fails on any error."""
     global _disk_cache_seeded
 
-    if _disk_cache_seeded:
+    if not needs_cache_seed(_disk_cache_seeded):
         return
     _disk_cache_seeded = True
     seed_caches(
@@ -203,30 +203,25 @@ def _flush_caches_to_disk(*, force: bool = False) -> None:
     """Atomically write current in-memory caches to disk."""
     global _disk_cache_dirty, _last_disk_cache_flush_at
 
-    if not _disk_cache_dirty:
-        return
-    now = _monotonic()
-    if (
-        not force
-        and _last_disk_cache_flush_at is not None
-        and now - _last_disk_cache_flush_at < _DISK_CACHE_FLUSH_INTERVAL_S
-    ):
-        return
-    flush_caches(
-        JSONL_CACHE_PATH,
-        _CODEX_JSONL_CACHE_SCHEMA,
-        _jsonl_cache,
-        _file_info_cache,
-        _sqlite_log_cache,
+    _disk_cache_dirty, _last_disk_cache_flush_at = flush_caches_if_due(
+        _disk_cache_dirty,
+        _last_disk_cache_flush_at,
+        _monotonic,
+        _DISK_CACHE_FLUSH_INTERVAL_S,
+        lambda: flush_caches(
+            JSONL_CACHE_PATH,
+            _CODEX_JSONL_CACHE_SCHEMA,
+            _jsonl_cache,
+            _file_info_cache,
+            _sqlite_log_cache,
+        ),
+        force=force,
     )
-    _last_disk_cache_flush_at = now
-    _disk_cache_dirty = False
 
 
 def flush_caches_on_terminate() -> None:
     """Best-effort persistence of cache changes still waiting for the throttle."""
-    with contextlib.suppress(Exception):
-        _flush_caches_to_disk(force=True)
+    _flush_caches_on_terminate(lambda: _flush_caches_to_disk(force=True))
 
 
 def load_entries(

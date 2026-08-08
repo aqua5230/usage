@@ -367,7 +367,7 @@ def _write_terse_sidecar() -> None:
         )
 
 
-def _is_resume_entry(entry: object) -> bool:
+def _is_hook_entry(entry: object, markers: tuple[str, ...]) -> bool:
     if not isinstance(entry, dict):
         return False
     hooks = entry.get("hooks")
@@ -376,9 +376,35 @@ def _is_resume_entry(entry: object) -> bool:
     return any(
         isinstance(h, dict)
         and isinstance(h.get("command"), str)
-        and any(marker in h["command"] for marker in _RESUME_MARKERS)
+        and any(marker in h["command"] for marker in markers)
         for h in hooks
     )
+
+
+def _strip_hook_entries(entry: object, markers: tuple[str, ...]) -> object | None:
+    if not isinstance(entry, dict):
+        return entry
+    hooks = entry.get("hooks")
+    if not isinstance(hooks, list):
+        return entry
+    kept = [
+        h
+        for h in hooks
+        if not (
+            isinstance(h, dict)
+            and isinstance(h.get("command"), str)
+            and any(marker in h["command"] for marker in markers)
+        )
+    ]
+    if len(kept) == len(hooks):
+        return entry
+    if not kept:
+        return None
+    return {**entry, "hooks": kept}
+
+
+def _is_resume_entry(entry: object) -> bool:
+    return _is_hook_entry(entry, _RESUME_MARKERS)
 
 
 def _strip_resume_hooks(entry: object) -> object | None:
@@ -389,61 +415,15 @@ def _strip_resume_hooks(entry: object) -> object | None:
     ``None`` when nothing but our hook was in the entry, ``entry`` unchanged when it
     held no resume hook.
     """
-    if not isinstance(entry, dict):
-        return entry
-    hooks = entry.get("hooks")
-    if not isinstance(hooks, list):
-        return entry
-    kept = [
-        h
-        for h in hooks
-        if not (
-            isinstance(h, dict)
-            and isinstance(h.get("command"), str)
-            and any(marker in h["command"] for marker in _RESUME_MARKERS)
-        )
-    ]
-    if len(kept) == len(hooks):
-        return entry
-    if not kept:
-        return None
-    return {**entry, "hooks": kept}
+    return _strip_hook_entries(entry, _RESUME_MARKERS)
 
 
 def _is_terse_entry(entry: object) -> bool:
-    if not isinstance(entry, dict):
-        return False
-    hooks = entry.get("hooks")
-    if not isinstance(hooks, list):
-        return False
-    return any(
-        isinstance(h, dict)
-        and isinstance(h.get("command"), str)
-        and any(marker in h["command"] for marker in _TERSE_MARKERS)
-        for h in hooks
-    )
+    return _is_hook_entry(entry, _TERSE_MARKERS)
 
 
 def _strip_terse_hooks(entry: object) -> object | None:
-    if not isinstance(entry, dict):
-        return entry
-    hooks = entry.get("hooks")
-    if not isinstance(hooks, list):
-        return entry
-    kept = [
-        h
-        for h in hooks
-        if not (
-            isinstance(h, dict)
-            and isinstance(h.get("command"), str)
-            and any(marker in h["command"] for marker in _TERSE_MARKERS)
-        )
-    ]
-    if len(kept) == len(hooks):
-        return entry
-    if not kept:
-        return None
-    return {**entry, "hooks": kept}
+    return _strip_hook_entries(entry, _TERSE_MARKERS)
 
 
 def _user_prompt_submit_list(settings: dict[str, Any]) -> list[Any] | None:
@@ -455,39 +435,11 @@ def _user_prompt_submit_list(settings: dict[str, Any]) -> list[Any] | None:
 
 
 def _is_terse_reminder_entry(entry: object) -> bool:
-    if not isinstance(entry, dict):
-        return False
-    hooks = entry.get("hooks")
-    if not isinstance(hooks, list):
-        return False
-    return any(
-        isinstance(h, dict)
-        and isinstance(h.get("command"), str)
-        and any(marker in h["command"] for marker in _TERSE_REMINDER_MARKERS)
-        for h in hooks
-    )
+    return _is_hook_entry(entry, _TERSE_REMINDER_MARKERS)
 
 
 def _strip_terse_reminder_hooks(entry: object) -> object | None:
-    if not isinstance(entry, dict):
-        return entry
-    hooks = entry.get("hooks")
-    if not isinstance(hooks, list):
-        return entry
-    kept = [
-        h
-        for h in hooks
-        if not (
-            isinstance(h, dict)
-            and isinstance(h.get("command"), str)
-            and any(marker in h["command"] for marker in _TERSE_REMINDER_MARKERS)
-        )
-    ]
-    if len(kept) == len(hooks):
-        return entry
-    if not kept:
-        return None
-    return {**entry, "hooks": kept}
+    return _strip_hook_entries(entry, _TERSE_REMINDER_MARKERS)
 
 
 def _register_terse_reminder(settings: dict[str, Any]) -> None:

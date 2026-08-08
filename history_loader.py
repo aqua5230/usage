@@ -6,7 +6,6 @@
 
 from __future__ import annotations
 
-import contextlib
 import hashlib
 import json
 import logging
@@ -20,6 +19,13 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from disk_cache_lifecycle import (
+    flush_caches_if_due,
+    needs_cache_seed,
+)
+from disk_cache_lifecycle import (
+    flush_caches_on_terminate as _flush_caches_on_terminate,
+)
 from history_disk_cache import flush_caches, seed_caches
 from project_resolver import project_from_encoded_path, resolve_project_name
 from time_utils import parse_optional_iso8601_utc
@@ -134,7 +140,7 @@ def load_entries(
 def _seed_caches_from_disk() -> None:
     global _disk_cache_seeded
 
-    if _disk_cache_seeded:
+    if not needs_cache_seed(_disk_cache_seeded):
         return
     _disk_cache_seeded = True
     seed_caches(
@@ -148,28 +154,23 @@ def _seed_caches_from_disk() -> None:
 def _flush_caches_to_disk(*, force: bool = False) -> None:
     global _disk_cache_dirty, _last_disk_cache_flush_at
 
-    if not _disk_cache_dirty:
-        return
-    now = _monotonic()
-    if (
-        not force
-        and _last_disk_cache_flush_at is not None
-        and now - _last_disk_cache_flush_at < _DISK_CACHE_FLUSH_INTERVAL_S
-    ):
-        return
-    flush_caches(
-        HISTORY_CACHE_PATH,
-        _HISTORY_JSONL_CACHE_SCHEMA,
-        _file_cache,
+    _disk_cache_dirty, _last_disk_cache_flush_at = flush_caches_if_due(
+        _disk_cache_dirty,
+        _last_disk_cache_flush_at,
+        _monotonic,
+        _DISK_CACHE_FLUSH_INTERVAL_S,
+        lambda: flush_caches(
+            HISTORY_CACHE_PATH,
+            _HISTORY_JSONL_CACHE_SCHEMA,
+            _file_cache,
+        ),
+        force=force,
     )
-    _last_disk_cache_flush_at = now
-    _disk_cache_dirty = False
 
 
 def flush_caches_on_terminate() -> None:
     """Best-effort persistence of cache changes still waiting for the throttle."""
-    with contextlib.suppress(Exception):
-        _flush_caches_to_disk(force=True)
+    _flush_caches_on_terminate(lambda: _flush_caches_to_disk(force=True))
 
 
 def _load_file(

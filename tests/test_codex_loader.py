@@ -18,6 +18,7 @@ import pytest
 
 import codex_disk_cache
 import codex_loader
+import disk_cache_common
 from history_loader import UsageEntry
 from tests.helpers import write_codex_session as _write_session
 from tests.helpers import (
@@ -2270,8 +2271,8 @@ def test_usage_entry_round_trip() -> None:
         project="/tmp/demo",
     )
 
-    serialized = codex_loader._serialize_usage_entry(original)
-    deserialized = codex_loader._deserialize_usage_entry(serialized)
+    serialized = disk_cache_common._serialize_usage_entry(original)
+    deserialized = disk_cache_common._deserialize_usage_entry(serialized)
 
     # All fields must be equal
     assert deserialized == original

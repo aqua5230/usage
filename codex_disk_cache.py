@@ -8,32 +8,32 @@
 
 from __future__ import annotations
 
-import contextlib
-import hashlib
-import json
 import logging
 import os
-import tempfile
 from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
-from cache_quarantine import quarantine
 from codex_events import _SessionFileInfo, _TokenUsage
-from history_disk_cache import _deserialize_usage_entry, _serialize_usage_entry
+from disk_cache_common import (
+    _SHARD_COUNT,
+    _cache_dir,
+    _deserialize_usage_entry,
+    _encoded_payload,
+    _load_payload,
+    _remove_legacy_cache,
+    _serialize_usage_entry,
+    _shard_index,
+    _shard_path,
+    _write_if_changed,
+)
 
 logger = logging.getLogger(__name__)
 
-__all__ = [
-    "_deserialize_usage_entry",
-    "_serialize_usage_entry",
-    "flush_caches",
-    "seed_caches",
-]
+__all__ = ["_shard_index", "_shard_path", "flush_caches", "seed_caches"]
 
 _JsonlCache = OrderedDict[Path, Any]
 _FileInfoCache = OrderedDict[Path, tuple[float, int, _SessionFileInfo]]
-_SHARD_COUNT = 32
 
 
 def _serialize_token_usage(value: _TokenUsage | None) -> dict[str, int] | None:
@@ -59,84 +59,8 @@ def _deserialize_token_usage(value: Any) -> _TokenUsage | None:
         return None
 
 
-def _cache_dir(cache_path: Path) -> Path:
-    return cache_path.with_suffix(f"{cache_path.suffix}.d")
-
-
-def _shard_index(path: Path) -> int:
-    digest = hashlib.sha256(str(path).encode("utf-8", errors="surrogatepass")).digest()
-    return digest[0] % _SHARD_COUNT
-
-
-def _shard_path(cache_path: Path, index: int) -> Path:
-    return _cache_dir(cache_path) / f"files-{index:02x}.json"
-
-
 def _sqlite_log_path(cache_path: Path) -> Path:
     return _cache_dir(cache_path) / "sqlite-log.json"
-
-
-def _remove_legacy_cache(cache_path: Path) -> None:
-    with contextlib.suppress(OSError):
-        cache_path.unlink()
-
-
-def _load_payload(path: Path, schema_version: int) -> dict[str, Any] | None:
-    try:
-        with path.open(encoding="utf-8") as file:
-            payload = json.load(file)
-        if not isinstance(payload, dict):
-            quarantine(path, "not-a-mapping")
-            path.unlink(missing_ok=True)
-            return None
-        if payload.get("schema_version") != schema_version:
-            path.unlink(missing_ok=True)
-            return None
-        return payload
-    except (UnicodeDecodeError, json.JSONDecodeError) as exc:
-        if isinstance(exc, UnicodeDecodeError):
-            quarantine(path, "decode-error")
-        else:
-            quarantine(path, "json-error")
-        with contextlib.suppress(OSError):
-            path.unlink()
-        return None
-    except OSError:
-        with contextlib.suppress(OSError):
-            path.unlink()
-        return None
-
-
-def _encoded_payload(payload: dict[str, Any]) -> bytes:
-    return json.dumps(
-        payload,
-        ensure_ascii=False,
-        separators=(",", ":"),
-        sort_keys=True,
-    ).encode("utf-8")
-
-
-def _write_if_changed(path: Path, payload: bytes) -> None:
-    try:
-        if path.read_bytes() == payload:
-            return
-    except OSError:
-        pass
-
-    tmp_path: str | None = None
-    try:
-        path.parent.mkdir(parents=True, exist_ok=True)
-        fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
-        with os.fdopen(fd, "wb") as file:
-            file.write(payload)
-            file.flush()
-            os.fsync(file.fileno())
-        os.replace(tmp_path, path)
-        tmp_path = None
-    finally:
-        if tmp_path:
-            with contextlib.suppress(OSError):
-                os.unlink(tmp_path)
 
 
 def seed_caches(
