@@ -88,7 +88,7 @@ def test_history_sources_fingerprint_uses_claude_projects_dir(
     monkeypatch.setattr(codex_loader, "LOGS_DB", home / ".codex" / "logs_2.sqlite")
     monkeypatch.setattr(codex_loader, "STATE_DB", home / ".codex" / "state_5.sqlite")
 
-    fingerprint = menubar_state.history_sources_fingerprint()
+    fingerprint = menubar_state.history_source_scan().fingerprint
 
     assert fingerprint[0][0] == str(projects_dir)
     assert fingerprint[0][1] == 1

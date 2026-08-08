@@ -10,7 +10,6 @@ from rich.style import Style
 from rich.text import Text
 
 ORANGE = "#d97757"
-SHADOW = "#a85a3e"
 EYE = "#1A1A1A"
 
 Pixel = str | None

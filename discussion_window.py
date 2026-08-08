@@ -443,17 +443,6 @@ def _parse_discussion_personas(raw: object) -> dict[str, str | None]:
     return personas
 
 
-def estimate_cli_calls(
-    participant_count: int,
-    total_rounds: int = 2,
-    include_summary: bool = True,
-) -> int:
-    """Return the maximum calls shown before a discussion starts."""
-    if participant_count <= 0:
-        return 0
-    return participant_count * min(5, max(1, total_rounds)) + int(include_summary)
-
-
 def serialize_javascript_call(function_name: str, payload: object) -> str:
     encoded = json.dumps(payload, ensure_ascii=False, separators=(",", ":"))
     return f"window.{function_name}({encoded})"

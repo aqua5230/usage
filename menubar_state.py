@@ -91,8 +91,6 @@ WARN_COLOR = (255 / 255, 196 / 255, 57 / 255)
 DANGER_COLOR = (255 / 255, 69 / 255, 58 / 255)
 WEEKLY_FORECAST_WINDOW_SECONDS = 30 * 60
 WEEKLY_FORECAST_MIN_SPAN_SECONDS = 30 * 60
-SESSION_WINDOW_SECONDS = 5 * 3600
-WEEKLY_WINDOW_SECONDS = 7 * 86400
 BUTTON_HEIGHT = 32.0
 INSTALL_BUTTON_EXTRA_HEIGHT = BUTTON_HEIGHT + 10.0
 SERVICE_ALERT_GAP = 4.0
@@ -379,10 +377,6 @@ def _history_scan_from_index(index: HistorySourceIndex) -> HistorySourceScan:
 
 def history_source_scan() -> HistorySourceScan:
     return _history_scan_from_index(_build_history_source_index(time.monotonic()))
-
-
-def history_sources_fingerprint() -> tuple[tuple[str, int, float], ...]:
-    return history_source_scan().fingerprint
 
 
 class _HistoryApp(Protocol):

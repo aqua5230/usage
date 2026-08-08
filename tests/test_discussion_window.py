@@ -340,14 +340,6 @@ def test_parse_action_rejects_bad_parameters(payload: object) -> None:
         discussion_window.parse_discussion_action(json.dumps(payload))
 
 
-@pytest.mark.parametrize(
-    ("participant_count", "expected"),
-    [(-1, 0), (0, 0), (1, 3), (2, 5), (3, 7), (5, 11)],
-)
-def test_estimate_cli_calls(participant_count: int, expected: int) -> None:
-    assert discussion_window.estimate_cli_calls(participant_count) == expected
-
-
 def test_javascript_serialization_keeps_untrusted_text_as_json_data() -> None:
     payload = {"text": '"; alert(1); //\n</script>'}
 
