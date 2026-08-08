@@ -1,11 +1,12 @@
 # usage
 
-A macOS menu bar / TUI usage monitor. Reads Claude Code and Codex usage from local files; never calls an LLM usage API.
+A macOS menu bar / TUI usage monitor. Reads Claude Code and Codex usage from local files and Antigravity quota from its official endpoint; never calls an LLM usage API.
 
 ## Gotchas
 
 - Claude usage is written atomically to `~/.claude/usage-status.json` by the statusLine hook. Read order: that file, the legacy `usag-status.json`, the migration-only `tt-status.json`, and finally `cachedUsageUtilization` in `~/.claude.json`. `usag-*` may be read for migration only — never written again.
-- Codex has no hook. `codex_loader.py` reads `~/.codex/sessions/**/*.jsonl` and opens `~/.codex/state_5.sqlite` read-only for the thread→model mapping.
+- Codex has no usage hook. `codex_loader.py` reads `~/.codex/sessions/**/*.jsonl` and `~/.codex/archived_sessions/`, and opens two SQLite files read-only: `state_5.sqlite` for the thread→model mapping and `logs_2.sqlite` for token entries and rate limits. Both go through `_readonly_sqlite_uri()` — `mode=ro` is not optional, Codex may be writing to them. (Codex does have a session hook at `~/.codex/hooks.json`; `session_hooks.py` uses it for resume, not for usage.)
+- Antigravity quota has no local file. `agy_quota_probe.py` reads the Antigravity CLI's own OAuth credential, exchanges it for an access token, and queries Google's quota endpoint; `agy_loader.py` parses local conversations for token counts. This is a quota API, not an LLM API — the invariant is intact, but do not describe the project as "never touches the network".
 - Tests must never touch the real `~/.claude/` or `~/.codex/`; override the path constants with `monkeypatch`. A test that feeds a disk cache a corrupt file must also `monkeypatch` `cache_quarantine.QUARANTINE_DIR`, or it writes into the real `~/.usage/quarantine/`.
 - The autouse `_isolate_log_dir` fixture in `tests/conftest.py` points `usage_logging.LOG_DIR` at `tmp_path`. Do not remove it. `main.main()` calls `_setup_logging()`, so any test that exercises it attaches a `RotatingFileHandler` to the root logger; without the fixture that handler targets the user's real `~/Library/Logs/usage/usage-app.log` and every later test writes into it.
 - A disk cache file that fails to decode or parse is moved to `~/.usage/quarantine/` by `cache_quarantine.py` before the caller deletes it, keeping the evidence for diagnosis. A stale `schema_version` is not quarantined — that is a normal upgrade, and quarantining it would flush the directory's 10-file budget on every version bump.
