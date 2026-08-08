@@ -67,7 +67,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -202,12 +202,12 @@ STATUSLINE_TRANSLATIONS = {
     },
 }
 C = {
-    "green": "\033[32m",
+    "green": "\033[38;5;80m",
     "yellow": "\033[33m",
     "red": "\033[31m",
     "cyan": "\033[36m",
-    "blue": "\033[34m",
-    "magenta": "\033[35m",
+    "blue": "\033[38;5;39m",
+    "magenta": "\033[38;5;111m",
     "peach": "\033[38;5;216m",
     "dim": "\033[2m",
     "reset": "\033[0m",
