@@ -45,6 +45,7 @@ from setup_hook import (
     setup,
     update_hook,
 )
+from usage_statusline import _exclusive_lock
 
 CLAUDE_SETTINGS = setup_hook.CLAUDE_SETTINGS
 CODEX_CONFIG = setup_hook.CODEX_CONFIG
@@ -1059,25 +1060,38 @@ def _recent_claude_dir_changes(limit: int = 6) -> str:
 
 
 def _append_self_heal_log(action: str, detail: str) -> None:
-    settings = _load_settings()
-    usage_settings = settings.get(BACKUP_KEY)
-    if not isinstance(usage_settings, dict):
-        usage_settings = {}
-        settings[BACKUP_KEY] = usage_settings
-    log = usage_settings.get("selfHealLog")
-    if not isinstance(log, list):
-        log = []
-    log.append(
-        {
-            "timestamp": (
-                datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
-            ),
-            "action": action,
-            "detail": detail,
-        }
-    )
-    usage_settings["selfHealLog"] = log[-20:]
-    _save_settings(settings)
+    target_dir = CLAUDE_SETTINGS.parent
+    # Not usage-status.lock: that one guards the high-frequency statusline
+    # writes to a different file, and sharing it would serialize them here.
+    lock_file = target_dir / "usage-settings.lock"
+    target_dir.mkdir(parents=True, exist_ok=True)
+    lock_fd = os.open(lock_file, os.O_CREAT | os.O_RDWR, 0o600)
+    try:
+        with _exclusive_lock(lock_fd):
+            settings = _load_settings()
+            usage_settings = settings.get(BACKUP_KEY)
+            if not isinstance(usage_settings, dict):
+                usage_settings = {}
+                settings[BACKUP_KEY] = usage_settings
+            log = usage_settings.get("selfHealLog")
+            if not isinstance(log, list):
+                log = []
+            log.append(
+                {
+                    "timestamp": (
+                        datetime.now(UTC)
+                        .replace(microsecond=0)
+                        .isoformat()
+                        .replace("+00:00", "Z")
+                    ),
+                    "action": action,
+                    "detail": detail,
+                }
+            )
+            usage_settings["selfHealLog"] = log[-20:]
+            _save_settings(settings)
+    finally:
+        os.close(lock_fd)
 
 
 def _run_quietly(func: Any, *args: Any, **kwargs: Any) -> Any:

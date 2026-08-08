@@ -10,7 +10,8 @@ import json
 import shutil
 import sys
 import tomllib
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -165,6 +166,45 @@ def test_load_settings_bad_utf8_raises_system_exit(setup_paths: SetupHookPaths) 
 
     with pytest.raises(SystemExit, match="settings.json"):
         setup_hook._load_settings()
+
+
+def test_save_settings_preserves_symlink_and_updates_target(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    settings_link = tmp_path / ".claude" / "settings.json"
+    settings_target = tmp_path / "dotfiles" / "settings.json"
+    settings_link.parent.mkdir()
+    settings_target.parent.mkdir()
+    settings_target.write_text('{"original": true}\n', encoding="utf-8")
+    settings_link.symlink_to(settings_target)
+    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings_link)
+
+    setup_hook._save_settings({"updated": True})
+
+    assert settings_link.is_symlink()
+    assert json.loads(settings_target.read_text(encoding="utf-8")) == {"updated": True}
+
+
+def test_append_self_heal_log_writes_under_settings_lock(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+) -> None:
+    lock_fds: list[int] = []
+
+    @contextmanager
+    def record_lock(lock_fd: int) -> Iterator[None]:
+        lock_fds.append(lock_fd)
+        yield
+
+    monkeypatch.setattr(session_hooks, "_exclusive_lock", record_lock)
+
+    session_hooks._append_self_heal_log("test_action", "test detail")
+
+    data = json.loads(setup_paths.settings.read_text(encoding="utf-8"))
+    assert lock_fds
+    assert (setup_paths.settings.parent / "usage-settings.lock").exists()
+    assert data["usage"]["selfHealLog"][-1]["action"] == "test_action"
 
 
 @pytest.mark.skipif(

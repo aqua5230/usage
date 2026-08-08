@@ -841,6 +841,18 @@ def test_sensitive_environment_values_are_redacted_from_errors(
     assert errors == ["request failed for [REDACTED]"]
 
 
+def test_redact_environment_values_skips_short_sensitive_values() -> None:
+    message = "attempt 1 failed after 10 seconds"
+
+    assert discussion_cli._redact_environment_values(message, {"SERVICE_KEY": "1"}) == message
+
+
+def test_redact_environment_values_redacts_long_sensitive_values() -> None:
+    assert discussion_cli._redact_environment_values(
+        "request failed for secret-value", {"SERVICE_TOKEN": "secret-value"}
+    ) == "request failed for [REDACTED]"
+
+
 def test_stream_output_limit_appends_visible_marker(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

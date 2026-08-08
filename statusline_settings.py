@@ -10,9 +10,10 @@ import contextlib
 import json
 import os
 import shlex
-import tempfile
 from pathlib import Path
 from typing import Any
+
+from setup_hook import _atomic_write_text
 
 
 def _claude_settings_path() -> Path:
@@ -32,23 +33,13 @@ def _load_claude_settings() -> dict[str, Any]:
 
 def _save_claude_settings(settings: dict[str, Any]) -> None:
     settings_path = _claude_settings_path()
-    settings_path.parent.mkdir(parents=True, exist_ok=True)
     trailing_newline = True
     with contextlib.suppress(OSError):
         trailing_newline = settings_path.read_bytes().endswith(b"\n")
-    tmp_path: str | None = None
-    try:
-        fd, tmp_path = tempfile.mkstemp(dir=settings_path.parent, suffix=".tmp")
-        with os.fdopen(fd, "w", encoding="utf-8") as file:
-            json.dump(settings, file, indent=2, ensure_ascii=False)
-            if trailing_newline:
-                file.write("\n")
-        os.replace(tmp_path, settings_path)
-        tmp_path = None
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            with contextlib.suppress(OSError):
-                os.unlink(tmp_path)
+    content = json.dumps(settings, indent=2, ensure_ascii=False)
+    if trailing_newline:
+        content += "\n"
+    _atomic_write_text(settings_path, content)
 
 
 def _statusline_command_target_exists(statusline: object) -> bool:

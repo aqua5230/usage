@@ -60,6 +60,8 @@ STDERR_TAIL_LINES = 50
 MAX_STREAM_OUTPUT_CHARS = 40_000
 TRUNCATION_MARKER = "\n[內容已截斷]"
 POLL_INTERVAL_SECONDS = 0.02
+# Short values are too likely to occur in ordinary output and cause false redactions.
+MIN_REDACTED_ENV_VALUE_LENGTH = 8
 
 ANSI_ESCAPE_RE = re.compile(
     r"\x1b(?:\[[0-?]*[ -/]*[@-~]|\][^\x07]*(?:\x07|\x1b\\))"
@@ -837,6 +839,6 @@ def _clean_text(text: str) -> str:
 def _redact_environment_values(message: str, environment: Mapping[str, str]) -> str:
     redacted = message
     for name, value in environment.items():
-        if value and SENSITIVE_ENV_NAME_RE.search(name):
+        if len(value) >= MIN_REDACTED_ENV_VALUE_LENGTH and SENSITIVE_ENV_NAME_RE.search(name):
             redacted = redacted.replace(value, "[REDACTED]")
     return redacted

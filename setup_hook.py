@@ -383,13 +383,14 @@ def _load_settings() -> dict[str, Any]:
 
 
 def _atomic_write_text(path: Path, content: str, encoding: str = "utf-8") -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    resolved_path = path.resolve()
+    resolved_path.parent.mkdir(parents=True, exist_ok=True)
     tmp_path: str | None = None
     try:
-        fd, tmp_path = tempfile.mkstemp(dir=path.parent, suffix=".tmp")
+        fd, tmp_path = tempfile.mkstemp(dir=resolved_path.parent, suffix=".tmp")
         with os.fdopen(fd, "w", encoding=encoding) as f:
             f.write(content)
-        os.replace(tmp_path, path)
+        os.replace(tmp_path, resolved_path)
         tmp_path = None
     finally:
         if tmp_path and os.path.exists(tmp_path):
