@@ -17,8 +17,8 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
 
 import codex_loader
-from codex_paths import codex_home
 from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
+from codex_paths import codex_home
 from history_loader import CLAUDE_PROJECTS_DIR, UsageEntry, load_entries
 from i18n import _t
 from menubar_prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order

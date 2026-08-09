@@ -24,7 +24,6 @@ from codex_disk_cache import (
     flush_caches,
     seed_caches,
 )
-from codex_paths import codex_home
 from codex_events import (
     _as_dict,
     _as_int,
@@ -51,6 +50,7 @@ from codex_fork_replay import (
     _ReplayLookupKey,
     _token_usage_events_after_embedded_parent,
 )
+from codex_paths import codex_home
 from disk_cache_lifecycle import (
     flush_caches_if_due,
     needs_cache_seed,

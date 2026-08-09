@@ -49,21 +49,21 @@ def test_codex_paths_follow_codex_home_environment(
     importlib.reload(codex_loader)
     importlib.reload(codex_adapter)
 
-    assert codex_loader.SESSIONS_DIR == custom_home / "sessions"
-    assert codex_loader.ARCHIVED_SESSIONS_DIR == custom_home / "archived_sessions"
-    assert codex_loader.STATE_DB == custom_home / "state_5.sqlite"
-    assert codex_loader.LOGS_DB == custom_home / "logs_2.sqlite"
-    assert codex_adapter.CODEX_DIR == str(custom_home)
-    assert codex_adapter.SESSIONS_DIR == str(custom_home / "sessions")
-    assert codex_adapter.STATE_DB == str(custom_home / "state_5.sqlite")
+    assert custom_home / "sessions" == codex_loader.SESSIONS_DIR
+    assert custom_home / "archived_sessions" == codex_loader.ARCHIVED_SESSIONS_DIR
+    assert custom_home / "state_5.sqlite" == codex_loader.STATE_DB
+    assert custom_home / "logs_2.sqlite" == codex_loader.LOGS_DB
+    assert str(custom_home) == codex_adapter.CODEX_DIR
+    assert str(custom_home / "sessions") == codex_adapter.SESSIONS_DIR
+    assert str(custom_home / "state_5.sqlite") == codex_adapter.STATE_DB
 
     monkeypatch.delenv("CODEX_HOME")
     importlib.reload(codex_loader)
     importlib.reload(codex_adapter)
 
     default_home = Path(os.path.expanduser("~/.codex"))
-    assert codex_loader.SESSIONS_DIR == default_home / "sessions"
-    assert codex_adapter.CODEX_DIR == str(default_home)
+    assert default_home / "sessions" == codex_loader.SESSIONS_DIR
+    assert str(default_home) == codex_adapter.CODEX_DIR
 
 
 def test_codex_session_token_totals_match_between_delta_and_session_loaders(
