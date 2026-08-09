@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-08",
+  "generated_at": "2026-08-09",
   "tools": [
     {
       "id": "claude_code",
@@ -1336,6 +1336,154 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.29.21",
+          "period": "2026-08-09",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Windows 額度面板不再高出一截",
+                "zh-CN": "Windows 配额面板不再高出一截",
+                "en": "Windows quota panels no longer stand too tall",
+                "ja": "Windows の利用枠パネルが不必要に高くならない",
+                "ko": "Windows 할당량 패널이 쓸데없이 높지 않다"
+              },
+              "body": {
+                "zh-TW": "Windows 使用者打開額度面板時，畫面不會再像穿了大一號外套。面板（popover，浮在原畫面上的小視窗）曾沿用舊的高度數字；在網頁內容回報實際高度前，八個面板會高出 17 到 24 點。現在 Windows 的備援高度表已對齊 Mac 的重新校準結果，程式也留下數字來源註記，之後調整不易漏改。就像先拿錯尺寸的相框，照片尺寸一量到才換掉；現在相框一開始就合身。",
+                "zh-CN": "Windows 用户打开配额面板时，画面不会再像穿了大一号外套。面板（popover，浮在原画面上的小窗口）曾沿用旧的高度数字；在网页内容报告实际高度前，八个面板会高出 17 到 24 点。现在 Windows 的默认高度已对齐 Mac 的重新校准结果，程序也留下数字来源注释，之后调整不容易漏改。就像先拿错尺寸的相框，照片尺寸一量到才换掉；现在相框从一开始就合身。",
+                "en": "On Windows, quota panels no longer look like they put on a coat one size too big. The popovers — small panels that float above the main screen — still used old height values, so eight of them stood 17 to 24 points too tall until their web content reported its real height. Their Windows defaults now match Mac's recalibrated values, and a comment records where those numbers came from so a later recalibration is less likely to miss them. It is like starting with the right-sized picture frame instead of swapping it after measuring the photo.",
+                "ja": "Windows で利用枠パネルを開いても、もう一回り大きい服を着たようには見えない。ポップオーバー（popover、元の画面の上に浮く小さなパネル）が古い高さの数値を使っていたため、ウェブ内容が実際の高さを知らせるまで、八つのパネルが 17〜24 ポイント高く表示されていた。Windows の初期値は Mac で再調整した数値にそろい、数値の出所を示すコメントも残った。写真を測ってから額縁を替えるのではなく、最初から寸法の合う額縁を選ぶような変更である。",
+                "ko": "Windows에서 할당량 패널을 열어도 이제 한 치수 큰 옷을 입은 듯 보이지 않는다. 팝오버(popover, 원래 화면 위에 뜨는 작은 패널)가 예전 높이 값을 쓰고 있어서, 웹 내용이 실제 높이를 알리기 전에는 여덟 패널이 17~24포인트 높게 그려졌다. 이제 Windows 기본 높이는 Mac에서 다시 맞춘 값과 같고, 숫자가 나온 곳을 적은 주석도 남겼다. 사진을 재고 나서 액자를 바꾸는 대신 처음부터 맞는 액자를 고르는 것과 같다."
+              },
+              "original": "**Windows quota panels opened taller than their content.** `wintray.py`'s `PANEL_HEIGHTS` still held the numbers from before 64a7c0b recalibrated the Mac panel heights; that commit missed the Windows fallback table, so eight panels rendered 17–24pt too tall for the brief window before the WebView reports its real content height. The numbers now match, with a comment recording where they come from so the next recalibration doesn't miss this table too."
+            },
+            {
+              "title": {
+                "zh-TW": "新增額度卡，原本排序照樣保留",
+                "zh-CN": "新增配额卡，原有排序照样保留",
+                "en": "A new quota card no longer resets your order",
+                "ja": "利用枠カードを追加しても並び順が戻らない",
+                "ko": "새 할당량 카드를 더해도 기존 순서가 돌아가지 않는다"
+              },
+              "body": {
+                "zh-TW": "你排好額度卡片的順序後，新增來源不會把整份排序洗回預設。額度卡（quota card，顯示各項使用額度的卡片）原先要求已儲存順序的長度和預設清單完全一致；多一張新卡時，舊順序就被當成無效。現在只拒絕重複或不存在的識別碼（id，用來辨認項目的代號）；少掉的新卡會接在原順序最後。像書架多買一本書，不必把整櫃重排，只把新書放到最後。",
+                "zh-CN": "你排好配额卡片的顺序后，新增来源不会把整份排序洗回默认。配额卡（quota card，显示各项使用配额的卡片）原先要求已保存顺序的长度和默认列表完全一致；多一张新卡时，旧顺序就被当成无效。现在只拒绝重复或不存在的识别码（id，用来辨认项目的代号）；少掉的新卡会接在原顺序最后。像书架多买一本书，不必把整柜重排，只把新书放到最后。",
+                "en": "After you arrange your quota cards, adding another source will not wash the whole order back to the default. A quota card is a card showing one usage allowance. Previously, the saved order had to be exactly as long as the default list, so one new card made the old order look invalid. Now only duplicate or unknown ids — identifiers for the cards — are rejected; a newly missing card joins the end of your order. It is like buying one more book for a shelf: you add it at the end instead of rearranging the whole bookcase.",
+                "ja": "利用枠カードの並びを整えた後に新しい利用枠の出所が増えても、並び全体が初期状態へ戻らなくなった。利用枠カード（quota card、項目ごとの利用枠を示すカード）は、以前は保存済みの順番が初期リストと同じ長さでなければ無効と見なされていた。そのため一枚増えるだけで以前の順番が捨てられた。今は重複または存在しない id（項目を見分けるための番号）だけを拒み、新しいカードは元の順番の末尾に足される。本棚に一冊増えたら、棚全部を並べ直さず最後に置くようなものである。",
+                "ko": "할당량 카드 순서를 정해 둔 뒤 새 출처가 더해져도 전체 순서가 기본값으로 돌아가지 않는다. 할당량 카드(quota card, 항목별 사용 할당량을 보여 주는 카드)는 예전에는 저장한 순서의 길이가 기본 목록과 꼭 같아야 했다. 카드가 한 장만 늘어도 기존 순서가 잘못된 것으로 처리된 이유다. 이제는 중복되거나 없는 id(항목을 구별하는 이름)만 거부하고, 새 카드는 기존 순서의 맨 끝에 붙인다. 책장에 책 한 권을 더 샀을 때 책장 전체를 다시 정리하지 않고 마지막에 꽂는 것과 같다."
+              },
+              "original": "**Adding a new quota card silently reset everyone's saved card order.** `_valid_quota_card_order()` required the saved order's length to match the current default list exactly, so a newly added card (a fourth quota source, say) made every existing saved order look invalid and quietly fall back to default. It now only rejects duplicate or unknown ids; an order that's missing a newer card gets that card appended instead of the whole preference being discarded."
+            },
+            {
+              "title": {
+                "zh-TW": "命令列狀態列換上青綠與藍色",
+                "zh-CN": "命令行状态栏换上青绿与蓝色",
+                "en": "CLI status line gets a teal-and-blue palette",
+                "ja": "コマンドラインのステータス行が青緑と青に変わる",
+                "ko": "명령줄 상태 줄이 청록과 파랑으로 바뀐다"
+              },
+              "body": {
+                "zh-TW": "看命令列（CLI，用文字指令操作的介面）時，專案名稱、分支和數值標籤換成青綠與藍的配色。使用百分比依嚴重程度顯示的顏色沒有改。這不是功能或判斷方式改了，而是同一張儀表板換了表面：你讀到的資訊與警示顏色都照舊，只有原本綠、藍、洋紅混用的幾個標籤改成了新的色調。因此看見青綠與藍時，不代表數值的嚴重程度跟著改變；百分比的顏色規則仍和之前相同。",
+                "zh-CN": "看命令行（CLI，用文字指令操作的界面）时，项目名称、分支和数值标签换成青绿与蓝的配色。使用百分比依严重程度显示的颜色没有改。这不是功能或判断方式变了，而是同一张仪表板换了表面：你读到的信息与警示颜色都照旧，只有原本绿、蓝、洋红混用的几个标签改成了新的色调。",
+                "en": "When you look at the command-line interface, or CLI — the text-based place where you enter commands — project names, branches, and metric labels now use teal and blue. The colors for usage percentages at different severity levels have not changed. This is not a new feature or a new way of judging usage; it is the same dashboard with a different face. Its information and warning colors stay put, while the labels that once mixed green, blue, and magenta take on the new shades.",
+                "ja": "文字でコマンドを入力する画面、コマンドライン（CLI）を見ると、プロジェクト名、ブランチ、指標ラベルが青緑と青の配色になっている。使用率を重大度別に示す色は変わらない。機能や判定方法が変わったのではなく、同じ計器盤の表面を替えた変更である。読める情報と警告の色はそのままに、これまで緑、青、マゼンタを混ぜていたラベルだけが新しい色調になる。",
+                "ko": "글자로 명령을 넣는 명령줄 인터페이스, 즉 CLI를 볼 때 프로젝트 이름, 브랜치, 지표 라벨이 청록과 파랑으로 표시된다. 사용률을 심각도에 따라 보여 주는 색은 바뀌지 않았다. 기능이나 판단 방식이 달라진 것이 아니라 같은 계기판의 겉모습만 바꾼 셈이다. 읽는 정보와 경고 색은 그대로이고, 예전에 초록·파랑·자홍을 섞어 쓴 몇 라벨만 새 색조를 입는다."
+              },
+              "original": "**The CLI status line moved to a cooler color palette.** The project name, branch, and metric labels shifted from the original green/blue/magenta mix to a teal-and-blue variant; usage-percentage colors by severity are unchanged."
+            }
+          ]
+        },
+        {
+          "version": "0.29.20",
+          "period": "2026-08-08",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "設定檔的捷徑不再被存檔動作換掉",
+                "zh-CN": "保存设置时不再换掉配置文件的快捷方式",
+                "en": "Saving settings no longer replaces your config shortcut",
+                "ja": "設定保存で設定ファイルへの近道が消えなくなった",
+                "ko": "설정을 저장해도 설정 파일 바로가기가 사라지지 않는다"
+              },
+              "body": {
+                "zh-TW": "你若把 `~/.claude/settings.json` 或 `~/.codex/config.toml` 放進 dotfiles（集中管理個人設定檔的儲存庫），這次不用再怕存個設定就和儲存庫走散。這些檔案常做成符號連結（指向另一個位置的捷徑檔）；舊做法先寫暫存檔，再用 `os.replace()` 蓋過目標，原本是防止程式中斷留下半份檔案，卻會把捷徑檔換成普通檔。之後設定雖然存得進去，儲存庫那份卻不再更新。現在會先找到實際的檔案位置，並在同一處建立暫存檔，避免跨檔案系統搬動失敗。像要替住址改收件資料，從前竟把門口的指路牌拆掉；如今信件會送到收件地址。`settings.json`、`config.toml` 和 `hooks.json` 都共用同一套處理。",
+                "zh-CN": "如果你把 `~/.claude/settings.json` 或 `~/.codex/config.toml` 放进 dotfiles（集中管理个人配置文件的仓库），现在保存设置不会再让它和仓库走散。这些文件常做成符号链接（指向另一个位置的快捷文件）；旧做法先写临时文件，再用 `os.replace()` 覆盖目标，本意是防止程序中断留下半份文件，却会把快捷文件换成普通文件。之后设置虽然存得进去，仓库那份却不再更新。现在会先找到实际的文件位置，并在同一处创建临时文件，避免跨文件系统移动失败。像要替住址改收件资料，从前竟把门口的指路牌拆掉；如今信件会送到收件地址。`settings.json`、`config.toml` 和 `hooks.json` 都共用同一套处理。",
+                "en": "If you keep `~/.claude/settings.json` or `~/.codex/config.toml` in a dotfiles repository, saving a setting will no longer quietly split it from that repository. These files are often symlinks, shortcut files that point elsewhere. The old safe-save routine wrote a temporary file and used `os.replace()` to prevent a crash from leaving half a file, but that replacement swapped out the shortcut itself for a plain file. Settings still saved, while the repository copy stopped changing. It now resolves the real target first and creates the temporary file beside it, avoiding a failed move across filesystems. It was like replacing an address sign instead of delivering mail to the address; now the delivery reaches the real place. `settings.json`, `config.toml`, and `hooks.json` use the same helper.",
+                "ja": "`~/.claude/settings.json` や `~/.codex/config.toml` を dotfiles（個人設定ファイルをまとめて管理するリポジトリ）で管理しているなら、設定を保存してもリポジトリとのつながりが黙って切れなくなった。これらは別の場所を指す近道ファイルであるシンボリックリンクにしていることがある。以前の安全な保存処理は、途中で落ちても半端なファイルを残さないため一時ファイルを書いて `os.replace()` で置き換えていたが、近道そのものを通常ファイルに替えてしまっていた。設定は保存されてもリポジトリ側は更新されなかった。今は先に本当の場所を調べ、同じ場所に一時ファイルを作るので、別のファイルシステムをまたぐ移動も避ける。住所への郵便の代わりに案内板を外していたようなもので、今は本当の住所へ届く。`settings.json`、`config.toml`、`hooks.json` は同じ処理を使う。",
+                "ko": "`~/.claude/settings.json`이나 `~/.codex/config.toml`을 dotfiles(개인 설정 파일을 모아 관리하는 저장소)로 관리한다면, 설정을 저장해도 저장소와의 연결이 조용히 끊어지지 않는다. 이런 파일은 다른 위치를 가리키는 바로가기 파일인 심볼릭 링크로 만들기도 한다. 예전의 안전 저장 방식은 중간에 프로그램이 멈춰도 반쪽 파일이 남지 않게 임시 파일을 쓴 뒤 `os.replace()`로 바꿨지만, 바로가기 자체를 일반 파일로 바꿔 버렸다. 설정은 저장돼도 저장소 사본은 더는 갱신되지 않았다. 이제는 먼저 실제 위치를 찾고 그 옆에 임시 파일을 만들므로 파일 시스템을 건너는 이동 실패도 피한다. 주소로 우편을 보내야 하는데 현관의 안내판을 떼어 내던 셈이다. 이제 `settings.json`, `config.toml`, `hooks.json`은 같은 처리로 실제 주소에 반영된다."
+              },
+              "original": "**Saving a setting turned a symlinked config file into a regular one.** Every settings write goes through `_atomic_write_text()`, which writes a temporary file and then `os.replace()`s it over the target — the standard way to make sure a crash mid-write cannot leave half a file behind. `os.replace()` does not follow symlinks, though, so for anyone who manages `~/.claude/settings.json` or `~/.codex/config.toml` from a dotfiles repository, the symlink was silently replaced by a plain file: the repository copy stopped receiving updates, nothing warned, and the divergence only showed up the next time those dotfiles were deployed somewhere else. The target is now resolved to its real path before the replace, and the temporary file is created next to that real path rather than next to the link — putting it beside the link would move the rename across filesystems, which fails outright with `Invalid cross-device link` and would have traded one silent breakage for a louder one. The atomic write itself is unchanged. `statusline_settings.py` had grown its own copy of this sequence and now calls the shared helper, so `settings.json`, `config.toml` and `hooks.json` are all covered by one implementation."
+            },
+            {
+              "title": {
+                "zh-TW": "自動修復記錄不再蓋掉剛授權的設定",
+                "zh-CN": "自愈记录不再覆盖刚授权的设置",
+                "en": "Self-heal logging no longer overwrites fresh permissions",
+                "ja": "自動修復ログが新しい許可設定を上書きしなくなった",
+                "ko": "자동 복구 기록이 새로 허용한 설정을 덮어쓰지 않는다"
+              },
+              "body": {
+                "zh-TW": "剛允許一項權限，設定卻莫名消失的狀況少了一個來源。自動修復記錄會讀取 `settings.json`、加上一筆紀錄，再把整份檔案寫回去；若 Claude Code 正好在這個空檔寫入新的 `permissions.allow`，舊的記憶體副本便會把它蓋掉。空檔只有幾毫秒，才特別像難以重現的怪問題。現在這段讀取、修改、寫回會拿 `flock`（讓同一檔案一次只給一個人改的鎖）保護。它另用 `usage-settings.lock`，不與每則訊息都會寫入的狀態列鎖共用。像兩位職員同時改同一張表格，先拿走舊副本的人以前會把後來新增的核准欄蓋掉；現在先鎖住表格，輪到誰就由誰寫完。",
+                "zh-CN": "刚允许一项权限，设置却莫名消失的情况少了一个来源。自愈记录会读取 `settings.json`、加上一条记录，再把整份文件写回去；如果 Claude Code 正好在这个空档写入新的 `permissions.allow`，旧的内存副本便会把它覆盖。空档只有几毫秒，才特别像难以重现的怪问题。现在这段读取、修改、写回会用 `flock`（让同一文件一次只给一个人修改的锁）保护。它另用 `usage-settings.lock`，不与每条消息都会写入的状态栏锁共用。像两位职员同时改同一张表格，先拿走旧副本的人以前会把后来新增的批准栏盖掉；现在先锁住表格，轮到谁就由谁写完。",
+                "en": "A newly allowed permission should no longer disappear for no obvious reason. The self-heal log reads `settings.json`, adds an entry, and writes back the full file. If Claude Code wrote a new `permissions.allow` entry in the tiny gap, the logger's older in-memory copy could overwrite it. The gap lasts milliseconds, which made the bug look mysterious. That read-modify-write sequence now uses `flock`, a lock that lets only one writer change the file at a time. It has its own `usage-settings.lock`, separate from the status-line lock that protects a different file written on every message. Picture two clerks editing one form: the clerk holding an old copy used to erase a newly approved field. Now the form is locked until each clerk finishes their turn.",
+                "ja": "許可したばかりの権限が理由もなく消える問題に、一つ原因がなくなった。自動修復ログは `settings.json` を読み、記録を足してファイル全体を書き戻す。ごく短い間に Claude Code が新しい `permissions.allow` を書くと、ログ側がメモリに持つ古い内容でそれを上書きしていた。間隔は数ミリ秒なので、再現しにくい怪現象に見えた。今はこの読み取り、変更、書き戻しを `flock`、一度に一人だけが同じファイルを変えられるようにするロックで守る。毎回のメッセージで別のファイルを書くステータスラインのロックとは分け、`usage-settings.lock` を使う。二人の事務員が同じ用紙を直す際、古い写しを持つ人が新しい許可欄を消していたようなものだが、今は一人ずつ書き終える。",
+                "ko": "방금 허용한 권한이 이유 없이 사라지는 문제의 한 원인이 사라졌다. 자동 복구 기록은 `settings.json`을 읽고 기록을 하나 더한 뒤 파일 전체를 다시 쓴다. 아주 짧은 틈에 Claude Code가 새 `permissions.allow` 항목을 쓰면, 기록기가 메모리에 들고 있던 이전 사본이 그것을 덮어쓸 수 있었다. 그 틈은 몇 밀리초뿐이라 재현하기 어려운 이상 현상처럼 보였다. 이제 이 읽기, 수정, 다시 쓰기는 `flock`, 같은 파일을 한 번에 한 사람만 바꾸게 하는 잠금으로 보호된다. 매 메시지마다 다른 파일을 쓰는 상태 표시줄 잠금과는 분리해 `usage-settings.lock`을 쓴다. 두 직원이 같은 서류를 고칠 때 옛 사본을 든 직원이 새 승인 칸을 지우던 것과 같았지만, 이제는 한 사람씩 차례로 끝낸다."
+              },
+              "original": "**The self-heal log could discard settings Claude Code had just written.** `_append_self_heal_log()` reads `settings.json`, appends an entry and writes the whole file back. Claude Code writes the same file, and anything it stored between that read and that write — a newly granted `permissions.allow` entry, for instance — was overwritten by the older copy still held in memory. The window is milliseconds wide, which is exactly why it would have been diagnosed as a mystery rather than as a race. The read-modify-write is now held under a `flock`, reusing the lock helper the status line already uses. It takes its own `usage-settings.lock` rather than sharing the status line's `usage-status.lock`: that one guards a different file written on every message, and sharing it would serialise two unrelated things for no benefit."
+            },
+            {
+              "title": {
+                "zh-TW": "短敏感值不再把整段紀錄塗滿",
+                "zh-CN": "短敏感值不再涂满整段记录",
+                "en": "Short sensitive values no longer blot out whole transcripts",
+                "ja": "短い機密値が記録全体を塗りつぶさなくなった",
+                "ko": "짧은 민감값이 기록 전체를 가리지 않는다"
+              },
+              "body": {
+                "zh-TW": "查看使用紀錄時，時間、token（AI 處理與計費的文字單位）數或錯誤碼不會再因一個過短的敏感值變成一片 `[REDACTED]`。程式會從逐字稿隱藏符合敏感名稱的環境變數（程式啟動前預先塞進去的隱藏值）；以前它以子字串替換，若值剛好是 `1`，訊息裡每個 `1` 都被遮掉。現在少於八個字元的值不再列入遮蔽，因為這種敏感值本就不值得保護，硬遮只會毀掉周圍文字。像拿油漆滾筒遮住一個門牌號碼，從前連所有含 `1` 的門牌都一起刷黑；現在只處理足夠長、確實需要保密的內容。",
+                "zh-CN": "查看使用记录时，时间、token（AI 处理与计费的文字单位）数或错误码不会再因为一个过短的敏感值变成一片 `[REDACTED]`。程序会从逐字稿隐藏符合敏感名称的环境变量（程序启动前预先塞进去的隐藏值）；以前它按子字符串替换，如果值刚好是 `1`，消息里的每个 `1` 都被遮掉。现在少于八个字符的值不再列入遮蔽，因为这种敏感值本就不值得保护，硬遮只会毁掉周围文字。像拿油漆滚筒遮住一个门牌号码，从前连所有含 `1` 的门牌都一起刷黑；现在只处理足够长、确实需要保密的内容。",
+                "en": "When you inspect a transcript, timestamps, token counts, and error codes should no longer turn into `[REDACTED]` because of a very short secret. The program hides sensitive-named environment variables, hidden values supplied before a program starts, by replacing matching substrings. Previously, if a value happened to be `1`, every `1` in the message was hidden. Values shorter than eight characters are now skipped: such a sensitive value is not worth protecting, while masking it destroys surrounding text. It was like using a paint roller to hide one house number and blacking out every address containing `1`; now the roller is reserved for values long enough to need it.",
+                "ja": "記録を確認するとき、短すぎる秘密値のせいで時刻、token 数、エラーコードまで `[REDACTED]` だらけになることがなくなった。プログラムは、起動前に渡す隠し値である環境変数のうち、敏感な名前に合うものを記録から隠す。以前は部分一致を置き換えていたため、値がたまたま `1` なら文中のすべての `1` を消していた。今は八文字未満の値を遮蔽しない。この程度の機密値は守る価値がなく、周囲の文章を壊すほうが問題だからである。一つの番地を隠すためにペンキを塗り、`1` を含む全住所まで黒くしていたようなもので、今は十分長い値だけを隠す。",
+                "ko": "기록을 볼 때 아주 짧은 비밀값 때문에 시각, token 수, 오류 코드까지 `[REDACTED]`로 가득 차는 일이 없어진다. 프로그램은 시작 전에 넣는 숨은 값인 환경 변수 가운데 민감한 이름에 맞는 값을 기록에서 가린다. 예전에는 부분 문자열을 바꿨으므로 값이 우연히 `1`이면 메시지 안의 모든 `1`이 가려졌다. 이제 여덟 글자보다 짧은 값은 가리지 않는다. 그런 민감값은 보호할 가치가 없고 주변 글자를 망가뜨리기 때문이다. 한 집의 번지를 가리려고 페인트를 칠하다가 `1`이 든 모든 번지까지 검게 칠하던 셈이며, 이제는 충분히 긴 값만 가린다."
+              },
+              "original": "**A short secret redacted every occurrence of its characters.** `_redact_environment_values()` masks sensitive environment values out of transcripts by substring replacement. Nothing bounded how short a value could be, so an environment variable matching the sensitive-name pattern whose value happened to be `1` turned every `1` in the message into `[REDACTED]` — timestamps, token counts, error codes. Values shorter than eight characters are now skipped; a secret that short is not one worth protecting, and treating it as one destroys the surrounding text."
+            },
+            {
+              "title": {
+                "zh-TW": "打包的 instate 工具多了驗貨關卡",
+                "zh-CN": "打包的 instate 工具多了验货关卡",
+                "en": "Bundled instate tool now gets a verification check",
+                "ja": "同梱する instate ツールに検品工程が加わった",
+                "ko": "묶어 넣는 instate 도구에 검품 단계가 생겼다"
+              },
+              "body": {
+                "zh-TW": "從原始碼製作 App、電腦又沒有本機 instate 專案時，下載來的 instate CLI（命令列工具，在終端機用文字指令操作的程式）現在先驗過才會被包進 App。過去 `scripts/build_app.sh` 會抓 release 裡的執行檔後直接使用，若下載檔被替換或損壞，沒有檢查能發現。現在會拿 `scripts/instate-cli.sha256` 裡固定的 SHA-256（把檔案算成一串可核對的指紋）比對；不相符便停止建置並刪掉下載檔，不留下可在下次重用的可疑檔案。這份指紋放在此儲存庫，而非和 release 檔放一起，因為能換掉執行檔的人也能一起改旁邊的指紋。下載完全失敗仍只記警告並繼續，少的是面板，不是把不可信的檔案放進去。像收貨時拿店內留存的驗貨單核對封條，而不是相信包裹自己附的紙條。",
+                "zh-CN": "从源代码制作 App、电脑又没有本地 instate 项目时，下载来的 instate CLI（命令行工具，在终端里用文字指令操作的程序）现在会先验过才打包进 App。过去 `scripts/build_app.sh` 抓取 release 里的可执行文件后直接使用，如果下载文件被替换或损坏，没有检查能发现。现在会拿 `scripts/instate-cli.sha256` 里固定的 SHA-256（把文件算成一串可核对的指纹）比对；不相符便停止构建并删掉下载文件，不留下可在下次重用的可疑文件。这份指纹放在此仓库，而非和 release 文件放一起，因为能换掉可执行文件的人也能一起改旁边的指纹。下载完全失败仍只记警告并继续，少的是面板，不是把不可信的文件放进去。像收货时拿店内留存的验货单核对封条，而不是相信包裹自己附的纸条。",
+                "en": "When building the App from source without a local instate project, the downloaded instate CLI now has to pass inspection before it is bundled. `scripts/build_app.sh` previously downloaded a release binary and used it as-is, so a substituted or corrupted file had no check to catch it. The build now compares it with the fixed SHA-256 in `scripts/instate-cli.sha256`, a fingerprint calculated from a file. A mismatch stops the build and deletes the download, so no suspect binary waits around for the next build. The fingerprint lives in this repository rather than beside the release asset: someone able to replace the binary could replace its neighboring checksum too. A download that fails completely still logs a warning and continues; that means a missing panel, not an untrusted binary. It is like checking a package seal against an inspection sheet kept in the store, not a note inside the package.",
+                "ja": "ソースから App を作るとき、ローカルに instate プロジェクトがなければ、ダウンロードした instate CLI（端末で文字の命令を使って操作するツール）は App に入る前に検品される。以前の `scripts/build_app.sh` は release の実行ファイルを取ってそのまま使っており、差し替えや破損を検出できなかった。今は `scripts/instate-cli.sha256` に固定した SHA-256、ファイルから計算する照合用の指紋と比べる。一致しなければビルドを止め、ダウンロードも消すので、次回使われる怪しいファイルを残さない。指紋を release の横でなくこのリポジトリに置くのは、実行ファイルを替えられる人なら横の指紋も替えられるためである。ダウンロード自体が失敗した場合は警告だけで続ける。欠けるのはパネルであり、不審な実行ファイルではない。店に保管した検品票で封を確かめるのと同じである。",
+                "ko": "소스에서 App을 만들 때 로컬 instate 프로젝트가 없다면, 내려받은 instate CLI(터미널에서 글자 명령으로 조작하는 도구)는 App에 묶이기 전에 검사를 통과해야 한다. 예전 `scripts/build_app.sh`는 release의 실행 파일을 받아 그대로 썼으므로 바뀌었거나 손상된 파일을 찾아낼 검사가 없었다. 이제 `scripts/instate-cli.sha256`에 고정한 SHA-256, 파일에서 계산하는 대조용 지문과 비교한다. 맞지 않으면 빌드를 멈추고 내려받은 파일도 지워 다음 빌드에 의심스러운 파일이 남지 않는다. 지문을 release 파일 옆이 아니라 이 저장소에 두는 까닭은 실행 파일을 바꿀 수 있는 사람은 옆의 지문도 바꿀 수 있기 때문이다. 다운로드 자체가 실패하면 경고만 기록하고 계속한다. 빠지는 것은 패널일 뿐, 믿을 수 없는 실행 파일을 넣는 일은 없다. 가게에 보관한 검품표로 포장 봉인을 확인하는 것과 같다."
+              },
+              "original": "**The vendored instate CLI was bundled and executed without being verified.** `scripts/build_app.sh` downloads the binary from a release when the local `instate` project is not present, then packages it into the `.app` as-is. There was nothing to detect a substituted or corrupted download. The build now pins the expected SHA-256 in `scripts/instate-cli.sha256` and refuses to continue when the downloaded binary does not match, deleting it rather than leaving a suspect file behind for the next run to reuse. The fingerprint is committed to this repository rather than published beside the release asset on purpose: a checksum stored next to the binary can be rewritten by whoever rewrites the binary, which verifies nothing. A download that fails outright still logs a warning and continues — that is a missing panel, not a compromised one."
+            },
+            {
+              "title": {
+                "zh-TW": "共用快取管線收好，沒用的程式碼也清掉",
+                "zh-CN": "收好共用缓存管线，也清掉没用的代码",
+                "en": "Shared cache plumbing was gathered up and dead code removed",
+                "ja": "共通のキャッシュ処理をまとめ、不要コードも片付けた",
+                "ko": "공통 캐시 처리와 죽은 코드를 정리했다"
+              },
+              "body": {
+                "zh-TW": "這次也整理了看不見的後台線路，目標是讓日後修改不必在多處重複動刀。Claude 與 Codex 的分片磁碟快取（把算過／查過的結果暫存起來直接用）原有 63 行相同程式碼，現在把序列化、分片路徑與索引、清除過期快取、讀寫資料搬到共同模組；三個載入器仍各自解析不同格式。它們共通的啟動檢查、延後寫入和結束時盡力寫入，也另收成一個模組；單一 JSON 檔的 agy 快取沒有硬塞進來。另把六個 hook（特定事件發生時被觸發的小程式）判斷與清除函式改成共用邏輯，但保留原名稱作薄包裝。整體刪掉 218 行且行為不變。還移除了死常數、兩個未用函式與 13 個孤兒翻譯鍵；檢查時沒有誤刪動態組出的鍵，也保留外部腳本仍會呼叫的函式。像整理機房線路：共用的線收到同一束，三台不同設備仍接自己的插頭。",
+                "zh-CN": "这次也整理了看不见的后台线路，目标是让日后修改不必在多处重复动刀。Claude 与 Codex 的分片磁盘缓存（把算过／查过的结果暂存起来直接用）原有 63 行相同代码，现在把序列化、分片路径与索引、清除过期缓存、读写数据搬到共同模块；三个加载器仍各自解析不同格式。它们共通的启动检查、延后写入和结束时尽力写入，也另收成一个模块；单一 JSON 文件的 agy 缓存没有硬塞进来。另把六个 hook 判断与清除函数改成共用逻辑，但保留原名称作薄包装。整体删掉 218 行且行为不变。还移除了死常量、两个未用函数与 13 个孤儿翻译键；检查时没有误删动态组出的键，也保留外部脚本仍会调用的函数。像整理机房线路：共用的线收到同一束，三台不同设备仍接自己的插头。",
+                "en": "Some invisible back-room wiring was tidied so future changes do not require the same edit in several places. Claude and Codex's sharded disk caches, stored results reused directly, had 63 identical lines. Serialization, shard paths and index, stale-cache removal, and payload read/write now live in a common module, while the three loaders still parse their own unrelated formats. Their shared startup check, delayed flush, and best-effort flush at shutdown moved to another module; agy's single-JSON cache was not forced into that shape. Six hook check-and-strip functions now share logic while retaining their original names as thin wrappers. This removes 218 lines with no behavior change. Dead constants, two unused functions, and 13 orphaned translation keys also went away, without deleting runtime-built keys or a function called by an outside script. Like sorting a server room's cables: shared wires go in one bundle, while three different devices keep their own plugs.",
+                "ja": "見えない裏方の配線も整理し、今後同じ修正を何か所にも重ねずに済むようにした。Claude と Codex の分割されたディスクキャッシュ（計算や検索済みの結果を一時保存して直接使うもの）には同じ 63 行があり、直列化、分割先のパスと索引、古いキャッシュの削除、データの読み書きを共通モジュールへ移した。三つのローダーは無関係な形式を読むため、解析は別のままである。起動時の確認、間を空けた書き込み、終了時に可能な限り書く処理も別モジュールへまとめた。単一 JSON の agy キャッシュは無理に合わせていない。六つの hook 判定・除去関数も共通化しつつ、元の名前は薄い呼び出し口として残した。動作を変えずに 218 行を減らし、死んだ定数、未使用関数二つ、孤立した翻訳キー 13 個も削除した。動的に作るキーや外部スクリプトが呼ぶ関数は残している。機械室で共通の配線を一束にし、三台の機器は各自の差込口を保つような整理である。",
+                "ko": "보이지 않는 뒷단의 배선도 정리해 앞으로 같은 수정을 여러 곳에 되풀이하지 않게 했다. Claude와 Codex의 조각난 디스크 캐시(계산하거나 찾은 결과를 잠시 저장해 바로 쓰는 것)에는 같은 코드 63줄이 있었고, 직렬화, 조각 경로와 색인, 오래된 캐시 제거, 데이터 읽기와 쓰기를 공통 모듈로 옮겼다. 세 로더는 서로 다른 형식을 해석하므로 그 부분은 따로 남겼다. 공통인 시작 확인, 늦춰 쓰기, 종료 시 가능한 만큼 쓰기도 별도 모듈로 모았다. 단일 JSON 파일인 agy 캐시는 억지로 같은 모양에 넣지 않았다. 여섯 hook 판별·제거 함수도 공통 로직을 쓰되 원래 이름은 얇은 호출부로 남겼다. 동작을 바꾸지 않고 218줄을 줄였고, 죽은 상수, 쓰이지 않는 함수 둘, 고아 번역 키 13개도 지웠다. 실행 중 만들어지는 키와 외부 스크립트가 부르는 함수는 남겨 두었다. 기계실에서 공용 선은 한 묶음으로 정리하고 서로 다른 세 장비는 각자 플러그를 유지하는 것과 같다."
+              },
+              "original": "**Three passages of duplicated code were extracted.** The sharded disk caches for Claude and Codex history held sixty-three identical lines, and `codex_disk_cache.py` reached across to import `history_disk_cache.py`'s private serialisers and re-export them under its own `__all__` — a detour that made the real owner of that code impossible to see. Serialisation, shard paths and index, stale-cache removal and the payload read/write now live in `disk_cache_common.py`. The disk-cache lifecycle shared verbatim by all three loaders — the one-time seed check, the throttled flush and the best-effort flush on termination — moved to `disk_cache_lifecycle.py`. The loaders themselves are still three separate modules and stay that way; they parse three unrelated formats, and only the cache plumbing around them was ever the same. In `session_hooks.py`, three pairs of `_is_X_entry`/`_strip_X_hooks` differing only in a marker constant were parameterised, with the six original names kept as thin wrappers. `agy_disk_cache.py` was deliberately left out: it is a single JSON file with no sharding, and forcing it into the shared shape would have meant changing its behaviour to fit. Net 218 lines removed, with no behavioural change.\n**Dead constants, two unused functions and thirteen orphaned translation keys were removed.** The keys came from renames and from the AI-updates feature moving to its own repository. Finding them took more care than the count suggests: a plain text search over the source reported 159 orphans, of which 146 were false. Keys are frequently assembled at runtime rather than written out — `discussion.html` builds `discussion_status_round1_running` by lowercasing a `SessionStatus` value, and `ui/html_report.py` prepends `report_` to every key it looks up, so four live `report_wrapped_beast_*` entries appear nowhere in the source under their full names. `agy_loader.recent_input_output_tokens()` looks equally dead from inside this repository and was kept: its only caller is a script outside it."
+            }
+          ]
+        },
+        {
           "version": "0.29.18",
           "period": "2026-08-06",
           "items": [
@@ -1372,137 +1520,6 @@
                 "ko": "일본어와 한국어 화면에서는 각각 63개 라벨이 빈칸으로 보였는데, 이제 번역을 채웠다. 이전 검사는 489개 문자 키가 있는지만 확인했다. 창고의 상자 수만 세고 안에 물건이 들었는지는 열어보지 않는 것과 같다. 그래서 `loading`, `no_data`, `session_title`, `col_time`, `model_breakdown`은 키로 존재해도 화면에서는 빈칸이었다. 새 검사는 빈 번역을 거부하고 placeholder(표시할 때 데이터를 넣는 자리)가 영어와 같은지도 비교한다. 빠지거나 이름이 바뀌면 표시 과정의 형식 처리에서 실패할 수 있기 때문이다. 꾸밈 표기, 형식 지정, 명령 이름은 영어로 남긴다."
               },
               "original": "**The Japanese and Korean locales shipped sixty-three blank labels each.** Flagged one version earlier and fixed here. Both locales carried all 489 keys, so `test_every_language_has_the_same_keys` compared key sets, found them identical, and passed — while `loading`, `no_data`, `session_title`, `col_time` and `model_breakdown` rendered as empty space for anyone running the app in either language. A present-but-empty value is invisible to a parity check by construction, which is the same blind spot that let fifty-two Simplified Chinese strings sit in the Traditional Chinese locale until last version. Two assertions now close it: no translated value may be blank, and every value's `{placeholder}` set must match English exactly. The second guards a failure the first cannot see — a translation that drops or renames a placeholder does not look wrong in the file, it raises at `format` time in front of the user. Rich markup (`[dim]`), format specs (`{m:02d}`) and command names were left in English."
-            }
-          ]
-        },
-        {
-          "version": "0.29.17",
-          "period": "2026-08-06",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "斷網時的費用估算，終於不再把價格算歪",
-                "zh-CN": "断网时的费用估算，终于不再把价格算歪",
-                "en": "Cost estimates stay accurate when you're offline",
-                "ja": "オフライン時の料金見積もりが正しい価格に戻った",
-                "ko": "인터넷이 끊겨도 비용 추정이 제값을 찾는다"
-              },
-              "body": {
-                "zh-TW": "出門沒網路卻想核對用量花多少錢，螢幕上的數字本該是你的依據，這回卻曾把 Opus 4.6、4.7 算成三倍，還把 Opus 5 算成零元。程式抓不到 LiteLLM 的價格表，或快取（把查過的結果暫存起來直接用）過期時，會改查手寫的備援價格表；它長期沒和目前表格比對，舊價格便一路留著。現在已按快取的 LiteLLM 表校正：4.6、4.7 的每百萬計費文字單位從舊的 $15/$75 改為 $5/$25，Haiku 4.5 也補回少算的兩成，原本缺席的 Opus 5 也不會再回傳 $0。像離線收銀機翻出過期價目表，現在換回正確版本；斷網時更該能信帳單。",
-                "zh-CN": "出门没网络却想核对用量花了多少钱，屏幕上的数字本该是你的依据，这次却曾把 Opus 4.6、4.7 算成三倍，还把 Opus 5 算成零元。程序抓不到 LiteLLM 的价格表，或缓存（把查过的结果暂存起来直接用）过期时，会改查手写的备用价格表；它长期没和当前表格比对，旧价格便一路留着。现在已按缓存的 LiteLLM 表校正：4.6、4.7 的每百万计费文字单位从旧的 $15/$75 改为 $5/$25，Haiku 4.5 也补回少算的两成，原本缺席的 Opus 5 也不会再返回 $0。像离线收银机翻出过期价目表，现在换回正确版本；断网时更该能信账单。",
-                "en": "When you are away from the internet and checking what your usage cost, the number on screen needs to be dependable. It was not: Opus 4.6 and 4.7 were priced at three times their rate, while Opus 5 appeared to cost nothing. If LiteLLM's price table could not be downloaded, or its cache (saved lookup results kept for reuse) had expired, the app used a hand-maintained fallback table that had drifted from the current one. It is now reconciled with LiteLLM's cached table: 4.6 and 4.7 move from $15/$75 to $5/$25 per million billing units, Haiku 4.5 regains its missing twenty percent, and Opus 5 no longer returns $0. Think of an offline checkout pulling out an old price sheet; it now has the right sheet when you need it most.",
-                "ja": "外出先で回線がなく、利用料金を確かめたいとき、画面の数字は頼りにならなければならない。ところが Opus 4.6 と 4.7 は三倍、Opus 5 は無料と計算されていた。LiteLLM の価格表を取得できない、またはキャッシュ（調べた結果を一時保存して再利用する仕組み）が期限切れの場合、手書きの予備価格表を使っていたが、現行表との照合が長く行われず古い価格が残っていた。キャッシュ済み LiteLLM 表と照合し直し、4.6 と 4.7 は百万課金単位あたり $15/$75 から $5/$25 に、Haiku 4.5 の二割不足も直し、抜けていた Opus 5 も $0 を返さなくなった。オフラインのレジが古い値札を出してしまう場面で、正しい値札に替わったようなものである。",
-                "ko": "밖에서 인터넷 없이 사용 요금을 확인할 때 화면 숫자는 믿을 만해야 한다. 하지만 Opus 4.6과 4.7은 세 배로, Opus 5는 무료로 계산되고 있었다. LiteLLM 가격표를 내려받지 못하거나 캐시(찾아본 결과를 잠시 저장해 다시 쓰는 방식)가 만료되면 손으로 적은 예비 가격표를 썼는데, 현재 표와 대조하지 않아 옛 가격이 남아 있었다. 이제 캐시된 LiteLLM 표와 맞춰 4.6과 4.7은 백만 과금 단위당 $15/$75에서 $5/$25로 고쳤고, Haiku 4.5의 부족한 20%와 빠져 있던 Opus 5의 $0 계산도 바로잡았다. 오프라인 계산대가 낡은 가격표를 꺼내던 상황에서 올바른 가격표로 바꾼 셈이다."
-              },
-              "original": "**The offline price table overcharged Opus 4.6 and 4.7 threefold, and valued Opus 5 at nothing.** `_fallback_pricing()` is what the cost estimate falls back on when the LiteLLM table cannot be downloaded or its cache has expired. It is written by hand and nothing ever reconciled it against the live table, so it drifted in silence: `claude-opus-4-6` and `claude-opus-4-7` still carried the Opus 4.1-era $15/$75 per Mtok long after Anthropic dropped Opus to $5/$25, `claude-haiku-4-5-20251001` was twenty percent low, and `claude-opus-5` was missing outright — and a missing key makes `calculate_cost()` return `0.0`, so Opus 5 usage was reported as costing nothing. The corrected figures come from reconciling against the cached LiteLLM table rather than from the changelog: Claude Code 2.1.219 announced Opus 5 at `$10/$50 per Mtok`, but that is the fast-mode price, not the standard one. What makes this class of bug worth naming is when it surfaces — only offline, which is exactly the moment nobody thinks to doubt the number on screen."
-            },
-            {
-              "title": {
-                "zh-TW": "繁中介面混入 52 處簡體字，這次修正",
-                "zh-CN": "繁中界面混入 52 处简体字，这次修正",
-                "en": "Traditional Chinese screens had 52 Simplified Chinese strings mixed in, now fixed",
-                "ja": "繁体字画面に簡体字が52件混入、今回修正",
-                "ko": "번체 중국어 화면에 간체 52개가 섞여 있어 수정했다"
-              },
-              "body": {
-                "zh-TW": "你選繁體中文開啟文字介面（TUI，用文字排成、在終端機操作的畫面）或報表，卻看到「检测到」「时间」這種簡體字，像一本校對到一半的書。問題出在 52 個字串直接從簡中 `zh-CN` 複製過來，沒有轉換。先前靠人工列簡體字清單，只抓到一部分，連「来」和「项」都漏了；這次把每個值交給 OpenCC 的 `s2twp` 逐一轉換，再逐項檢視差異。轉換器想把原本正確的「發送」改成「傳送」等九處，則沒有採用。實際改動的兩個 HTML 測試畫面也只補那兩句，免得連固定的時間與版本都被重生。日文、韓文各有 63 個空字串是尚未翻譯，這次沒有假裝修好它們。",
-                "zh-CN": "你选择繁体中文打开文字界面（TUI，用文字排成、在终端操作的画面）或报告，却看到“检测到”“时间”这类简体字，像一本校对到一半的书。问题出在 52 个字符串直接从简中 `zh-CN` 复制过来，没有转换。此前靠人工列简体字清单，只抓到一部分，连“来”和“项”都漏了；这次把每个值交给 OpenCC 的 `s2twp` 逐一转换，再逐项查看差异。转换器想把原本正确的“發送”改成“傳送”等九处，则没有采用。实际改动的两个 HTML 测试画面也只补那两句，避免连固定的时间和版本都被重新生成。日文、韩文各有 63 个空字符串是尚未翻译，这次没有假装修好它们。",
-                "en": "If you chose Traditional Chinese and opened the text interface (TUI, a screen operated in a terminal with text), you could meet Simplified Chinese such as `检测到` and `时间`—like opening a book only half proofread. Fifty-two strings had been copied from the Simplified Chinese `zh-CN` locale without conversion. A hand-written list of Simplified characters had caught only some of them, missing even `来` and `项`. Every value now went through OpenCC's `s2twp` conversion and each difference was reviewed. Nine suggested replacements, including `發送` to `傳送`, were left alone because the existing text was already correct. Only two changed strings in the HTML test snapshot were patched, preserving its fixed timestamp and version. Japanese and Korean each still have sixty-three empty strings; those are missing translations, not this bug, so they remain for later work.",
-                "ja": "繁体字中国語を選んで文字画面（TUI、端末で文字を使って操作する画面）やレポートを開いたのに、`检测到` や `时间` のような簡体字が見える。校正途中の本を開くような状態である。52 個の文字列が簡体字中国語の `zh-CN` から変換なしでコピーされていた。手作業の簡体字リストでは一部しか見つからず、`来` と `项` まで漏れていたため、全ての値を OpenCC の `s2twp` で変換し、差分を一つずつ確認した。すでに正しい `發送` を `傳送` に替えるなど九件の提案は採用していない。HTML テスト画面では変化した二つの文字列だけを直し、固定された日時と版番号を守った。日本語と韓国語の各 63 個の空文字列は未翻訳であり、今回の対象ではない。",
-                "ko": "번체 중국어를 골라 문자 인터페이스(TUI, 터미널에서 글자로 조작하는 화면)나 보고서를 열었는데 `检测到`, `时间` 같은 간체가 보였다면, 교정하다 만 책을 펼친 꼴이었다. 52개 문자열이 간체 중국어 `zh-CN`에서 변환 없이 복사된 것이 원인이다. 사람이 만든 간체 목록은 일부만 찾아 `来`와 `项`도 놓쳤다. 이제 모든 값을 OpenCC의 `s2twp`로 변환한 뒤 차이를 하나씩 검토했다. 이미 맞는 `發送`을 `傳送`으로 바꾸려는 등 아홉 제안은 받아들이지 않았다. HTML 테스트 화면도 바뀐 두 문자열만 고쳐 고정된 시각과 버전을 보존했다. 일본어와 한국어에 각각 남은 빈 문자열 63개는 오역이 아니라 미번역이므로 이번에는 건드리지 않았다."
-              },
-              "original": "**Fifty-two keys in the Traditional Chinese locale contained Simplified Chinese.** The TUI and report strings had been copied across from `zh-CN` without conversion, so a Traditional Chinese user opening the TUI read `检测到`, `时间`, `来源`, `项目` and `消息`. A hand-written list of Simplified characters found only some of them — it missed `来` and `项` — so every value was instead run through OpenCC's `s2twp` and the differences reviewed one by one. Nine of those differences were the converter overreaching on text that was already correct (`發送`→`傳送`, `吹回`→`吹迴`, `連接詞`→`連線詞`) and were left alone. The golden HTML snapshot was patched for the two strings that actually changed rather than regenerated, because regenerating it would also replace the frozen timestamp and version the test asserts on. The same region of `ja` and `ko` holds sixty-three empty strings each; those are missing translations rather than wrong ones and are left for a separate change."
-            },
-            {
-              "title": {
-                "zh-TW": "選單列更新工作搬家，畫面行為照舊",
-                "zh-CN": "菜单栏更新工作搬家，画面行为照旧",
-                "en": "Menu-bar refresh work moves house without changing behavior",
-                "ja": "メニューバー更新の仕事を移し、動作は変えなかった",
-                "ko": "메뉴 막대 새로고침 일을 옮기되 동작은 바꾸지 않았다"
-              },
-              "body": {
-                "zh-TW": "你會看到選單列照常更新，只是背後那段 203 行的工作搬了家。`menubar.py` 已經拆過又長回來兩次，原先離檔案長度上限只差四行；與其把上限往上推，開發者把背景更新的資料處理拆到 `menubar_refresh.py`，分成 `load_sources()` 和 `build_result()`。畫面相關的三次 `performSelectorOnMainThread` 呼叫與所有 selector（靠名稱找到要執行方法的標記）留在原檔，因為 AppDelegate 的方法就是按名稱綁定，搬走會斷線。新檔透過 `typing.Protocol` 描述需要的 App 介面，完全不載入 PyObjC。像把塞爆的廚房分出備料間：接客的窗口不動，備料移到隔壁，送餐流程仍照原本走。六個更新計時階段、降級路徑的 15 次狀態寫入，以及失敗後避免卡死的保護，都逐行比對確認沒變。",
-                "zh-CN": "这张不是新增按钮：你仍会看到原本的菜单栏更新，只是背后那段 203 行的工作搬了家。`menubar.py` 已经拆过又长回来两次，原先离文件长度上限只差四行；与其把上限往上推，开发者把后台更新的数据处理拆到 `menubar_refresh.py`，分成 `load_sources()` 和 `build_result()`。画面相关的三次 `performSelectorOnMainThread` 调用与所有 selector（靠名称找到要执行方法的标记）留在原文件，因为 AppDelegate 的方法就是按名称绑定，搬走会断线。新文件通过 `typing.Protocol` 描述需要的 App 接口，完全不加载 PyObjC。像把塞爆的厨房分出备料间：接客的窗口不动，备料移到隔壁，送餐流程仍照原本走。六个更新时间阶段、降级路径的 15 次状态写入，以及失败后避免卡死的保护，都逐行对照确认没变。",
-                "en": "This is not a new button: your menu-bar refresh still looks the same, but its 203-line back-room job has moved. `menubar.py` had been split apart twice and then grown again, leaving only four lines below its size limit. Instead of raising that limit, the data work of the background refresh moved to `menubar_refresh.py`, divided into `load_sources()` and `build_result()`. The three `performSelectorOnMainThread` calls and every selector (a name used to locate a method to run) stay in the original file, because AppDelegate methods are bound by name and moving them would break that connection. The new module describes the App it needs through `typing.Protocol` and imports no PyObjC. It is like moving prep work from an overcrowded kitchen into a side room: the service window stays put and meals follow the same path. Six timing stages, fifteen degraded-path state assignments, and the guard against a failed refresh getting stuck were compared line by line.",
-                "ja": "これは新しいボタンではない。メニューバーの更新はこれまで通り見えるが、裏側の 203 行の仕事だけが引っ越した。`menubar.py` は二度分割して再び膨らみ、行数上限まで残り四行だった。上限を上げる代わりに、背景更新のデータ処理を `menubar_refresh.py` へ移し、`load_sources()` と `build_result()` に分けた。画面に関わる三つの `performSelectorOnMainThread` 呼び出しと全 selector（実行するメソッドを名前で探す目印）は元のファイルに残した。AppDelegate のメソッドは名前で結び付くため、移すと接続が切れるからである。新しいモジュールは `typing.Protocol` で必要な App の形を示し、PyObjC を読み込まない。混んだ厨房から下ごしらえを隣室へ移し、受け渡し窓と料理の流れはそのままにするようなものだ。六つの計時段階、低下経路での 15 回の状態代入、失敗時に更新が詰まらない保護も一行ずつ照合した。",
-                "ko": "새 버튼이 생긴 것은 아니다. 메뉴 막대 새로고침은 전과 같이 보이지만, 뒤에서 하던 203줄짜리 일만 이사했다. `menubar.py`는 두 번 쪼갰다가 다시 커졌고 파일 길이 한도까지 네 줄만 남았다. 한도를 올리는 대신 백그라운드 새로고침의 데이터 작업을 `menubar_refresh.py`로 옮겨 `load_sources()`와 `build_result()`로 나눴다. 화면과 관련된 세 번의 `performSelectorOnMainThread` 호출과 모든 selector(실행할 메서드를 이름으로 찾는 표지)는 원래 파일에 남겼다. AppDelegate 메서드는 이름으로 묶여 있어 옮기면 연결이 끊기기 때문이다. 새 모듈은 `typing.Protocol`로 필요한 App 모양을 설명하고 PyObjC를 전혀 불러오지 않는다. 붐비는 주방에서 손질 작업을 옆방으로 옮기되, 음식 나가는 창구와 흐름은 그대로 두는 일과 같다. 여섯 새로고침 시간 단계, 저하 경로의 상태 대입 15회, 실패 뒤 새로고침이 멈추지 않게 하는 보호도 한 줄씩 대조했다."
-              },
-              "original": "**`_refresh_in_background` moved into `menubar_refresh.py`.** At 203 lines it was the largest method in `menubar.py`, which had four lines left under its ceiling — and a ceiling exists on that file precisely because it has been split apart and grown back twice. Only three lines of the method touch PyObjC, the three `performSelectorOnMainThread` calls, and those stay behind along with every selector: an AppDelegate method is bound by name, so relocating one breaks the binding. What moved is the data work between them, split into `load_sources()` and `build_result()`, with the app passed in behind a `typing.Protocol` so the new module imports no PyObjC at all — the same rule that keeps `menubar_state.py` clean. `menubar.py` goes from 2116 lines to 1934 and the ceiling was lowered to match rather than raised, since raising it to get CI green would dismantle the only thing stopping the file from growing back a third time. Behaviour is unchanged, and that was verified rather than assumed: the six `refresh_timing` stages, the fifteen state assignments on the degraded path, and the `submitted`/`finally` guard that keeps a failed refresh from wedging the app were each compared line by line against the original."
-            }
-          ]
-        },
-        {
-          "version": "0.29.16",
-          "period": "2026-08-02",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "日誌會輪替，測試也不再污染真實紀錄",
-                "zh-CN": "日志会轮换，测试也不再污染真实记录",
-                "en": "Logs now rotate, and tests stop polluting the real record",
-                "ja": "ログがローテーションし、テストも本物の記録を汚さなくなった",
-                "ko": "로그가 순환하고 테스트도 실제 기록을 더럽히지 않는다"
-              },
-              "body": {
-                "zh-TW": "電腦常駐幾個月時，日誌檔（log，記錄程式運作過程的文字檔）若只由 launchd 轉存，就會像永遠不換頁的筆記本，只增不減。這個選單列小程式原本由 launchd 轉存輸出到 `~/Library/Logs/usage/usage.log`，沒有大小限制。launchd（macOS 用來在背景啟動程式的服務）只負責轉送。現在 Usage 在旁邊自己管理日誌：每份最多 2 MB，保留三份舊檔；就算建立目錄失敗，也照常啟動並保留主控台輸出。macOS 寫進 `~/Library/Logs/usage/`，其他平台則寫 `~/.usage/logs/`。連測試也改把日誌導去暫存目錄，不會再把測試警告混進真正用來診斷的 `usage-app.log`；Windows 系統匣測試曾在前一版修過同類問題。",
-                "zh-CN": "电脑常驻几个月时，日志文件（log，记录程序运行过程的文本文件）若只由 launchd 转存，就像永远不换页的笔记本，只增不减。launchd（macOS 用来在后台启动程序的服务）原本把输出写进 `~/Library/Logs/usage/usage.log`，没有大小限制。现在 Usage 会在旁边自己管理日志：每份最多 2 MB，保留三份旧文件；即使创建目录失败，也照常启动并保留控制台输出。macOS 写进 `~/Library/Logs/usage/`，其他平台则写 `~/.usage/logs/`。连测试也改把日志导去临时目录，不会再把测试警告混进真正用来诊断的 `usage-app.log`。",
-                "en": "When a computer stays on for months, a log file can become a notebook that never turns a page: it only grows. launchd, macOS's background service launcher, had been redirecting output to `~/Library/Logs/usage/usage.log` with no size limit. Usage now manages its own nearby log: each file is capped at 2 MB and three old copies are retained; even if it cannot create the directory, the app still starts and keeps console output. macOS uses `~/Library/Logs/usage/`; other platforms use `~/.usage/logs/`. Tests now write logs to a temporary directory too, so their warnings no longer mingle with the real `usage-app.log` used for diagnosis.",
-                "ja": "数か月つけっぱなしのコンピューターでは、ログファイル（プログラムの動作を記録するテキスト）が、ページをめくらないノートのように増え続けることがある。macOS のバックグラウンド起動サービスである launchd は、容量制限なしで `~/Library/Logs/usage/usage.log` に出力を書いていた。Usage は今後、隣で自分のログを管理し、1 ファイルを 2 MB までにして古いものを 3 個残す。ディレクトリを作れなくてもアプリは起動し、コンソール出力は残る。macOS は `~/Library/Logs/usage/`、他の環境は `~/.usage/logs/` を使う。テストも一時ディレクトリへ書くため、診断用の本物の `usage-app.log` に警告が混ざらない。",
-                "ko": "몇 달씩 켜 둔 컴퓨터에서는 로그 파일(프로그램 작동 과정을 기록한 텍스트 파일)이 페이지를 넘기지 않는 공책처럼 계속 커질 수 있다. macOS의 백그라운드 실행 서비스인 launchd는 용량 제한 없이 `~/Library/Logs/usage/usage.log`에 출력을 썼다. 이제 Usage는 곁에서 자체 로그를 관리해 파일 하나를 2 MB로 제한하고 이전 파일 세 개를 남긴다. 디렉터리를 만들지 못해도 앱은 정상 시작하며 콘솔 출력은 유지한다. macOS는 `~/Library/Logs/usage/`를, 다른 환경은 `~/.usage/logs/`를 쓴다. 테스트도 임시 디렉터리에 로그를 쓰므로 진단용 실제 `usage-app.log`에 경고가 섞이지 않는다."
-              },
-              "original": "**The file log is bounded and rotates.** The only log on disk was whatever launchd redirected into `~/Library/Logs/usage/usage.log`, and a redirect has no size limit — for a menu bar app that stays open for months, that file only ever grows. Python now owns a log of its own beside it, capped at 2 MB with three archives kept. Building the handler is best-effort: if the directory cannot be created the app keeps its console output and starts normally, because a logging subsystem must never be the thing that stops the program from running. macOS keeps the `~/Library/Logs/usage/` convention; every other platform writes under `~/.usage/logs/` next to the disk caches, since `~/Library/Logs` means nothing on Windows and `_setup_logging()` runs before the platform branch.\n**The test suite wrote into the developer's real log file.** `tests/test_main.py` exercises `main()`, whose first action is `_setup_logging()` — so the run attached a rotating file handler pointed at the actual `~/Library/Logs/usage/usage-app.log`, and every warning logged by every later test landed in it. One full run deposited 8 KB containing pytest's temporary directory paths, which is worse than noise: it makes the log untrustworthy the day someone reads it for a real diagnosis. An autouse fixture now redirects the log directory to `tmp_path`, matching the existing rule for `cache_quarantine.QUARANTINE_DIR`. Curiously the same class of bug was fixed one version earlier in the Windows tray tests."
-            },
-            {
-              "title": {
-                "zh-TW": "除錯可只看指定區塊，不必淹沒所有訊息",
-                "zh-CN": "调试可只看指定部分，不必淹没所有消息",
-                "en": "Debugging can now target selected parts instead of flooding everything",
-                "ja": "デバッグは必要な部分だけ見られ、全メッセージに埋もれない",
-                "ko": "디버그는 필요한 부분만 보고 모든 메시지에 묻히지 않는다"
-              },
-              "body": {
-                "zh-TW": "想查價格載入出了什麼事，卻被四十多處 debug 輸出淹沒嗎？USAGE_DEBUG（除錯開關，用來要求程式多印診斷訊息）不再只是全開或全關。在啟動前的環境變數（給程式的外部設定值）填 `USAGE_DEBUG=codex_loader,pricing`，就只看這兩個子系統；填 `1`、`all` 或 `*`，仍維持原本全部開啟。若填 `a.b`，它也會涵蓋 `a.b.c`，因為 Python 的 logger hierarchy（記錄器會由上層名稱管到下層名稱的結構）本來就這樣繼承。像開演唱會的控台，現在可只打亮兩位表演者，不必把整座舞台的燈全開。",
-                "zh-CN": "想查价格加载出了什么事，却被四十多处 debug 输出淹没吗？USAGE_DEBUG（调试开关，用来要求程序多打印诊断消息）不再只是全开或全关。在启动前的环境变量（给程序的外部设置值）填 `USAGE_DEBUG=codex_loader,pricing`，就只看这两个子系统；填 `1`、`all` 或 `*`，仍保持原本全部开启。若填 `a.b`，它也会涵盖 `a.b.c`，因为 Python 的 logger hierarchy（记录器会由上层名称管到下层名称的结构）本来就这样继承。像演唱会的控台，现在可只打亮两位表演者，不必把整座舞台的灯全开。",
-                "en": "Trying to find out why pricing loaded oddly used to mean drowning in output from more than forty debug sites. `USAGE_DEBUG`, the switch that asks the program to print diagnostic messages, is no longer only all on or all off. Set the environment variable before launch to `USAGE_DEBUG=codex_loader,pricing` and only those two subsystems speak up; `1`, `all`, and `*` still enable everything. Setting `a.b` also covers `a.b.c`, because Python's logger hierarchy already passes settings from a parent name to its children. It is like a concert board that can light only two performers instead of every lamp on the stage.",
-                "ja": "価格の読み込みで何が起きたか調べたいだけなのに、40 か所以上の debug 出力に埋もれていた。診断メッセージを多く出させるスイッチである USAGE_DEBUG は、もう全オンか全オフだけではない。起動前の環境変数に `USAGE_DEBUG=codex_loader,pricing` と入れれば、この二つのサブシステムだけを見る。`1`、`all`、`*` は従来どおり全体を有効にする。`a.b` は `a.b.c` も対象にする。Python の logger hierarchy が親の名前から子へ設定を受け継ぐ仕組みだからである。コンサートの操作卓で、舞台全体ではなく二人だけを照らすようなものだ。",
-                "ko": "가격 로딩에서 무슨 일이 났는지 알아보려면 전에는 마흔 곳이 넘는 debug 출력에 파묻혔다. 진단 메시지를 더 찍게 하는 스위치인 USAGE_DEBUG는 이제 전체 켜기와 끄기만 고르는 기능이 아니다. 실행 전 환경 변수에 `USAGE_DEBUG=codex_loader,pricing`를 넣으면 이 두 하위 시스템만 메시지를 낸다. `1`, `all`, `*`는 여전히 전체를 켠다. `a.b`를 넣으면 `a.b.c`도 포함한다. Python의 logger hierarchy가 상위 이름의 설정을 하위 이름에 물려주기 때문이다. 공연장 조명판에서 무대 전체가 아니라 두 사람만 비추는 모습과 같다."
-              },
-              "original": "**`USAGE_DEBUG` selects subsystems instead of switching everything on.** It was a boolean, so diagnosing one loader meant turning on all forty-odd debug sites and reading the result through the noise. It now takes a comma-separated list — `USAGE_DEBUG=codex_loader,pricing` raises only those two. Prefix matching comes free from Python's logger hierarchy rather than a hand-written comparison: setting `a.b` covers `a.b.c` because that is how logger inheritance already works. `1`, `all` and `*` keep the previous global behaviour."
-            },
-            {
-              "title": {
-                "zh-TW": "健康檢查可交給程式比對，不只剩截圖",
-                "zh-CN": "健康检查可交给程序比对，不只剩截图",
-                "en": "Health checks can now be compared by programs, not just screenshots",
-                "ja": "健全性チェックをスクリーンショットだけでなくプログラムで比較できる",
-                "ko": "상태 점검을 스크린샷뿐 아니라 프로그램으로 비교할 수 있다"
-              },
-              "body": {
-                "zh-TW": "有人請你交出 Usage 的健康檢查結果時，`usage --doctor --json` 現在給的是可讀取的資料，而不只是一段得靠截圖保存的文字。每項檢查都有固定代碼（stable code，讓程式每次都能辨認同一項檢查的名稱），例如 `hook_state`、`codex_sessions`，並標成三種狀態；只要有 `error`，指令就用非零結束碼（告訴其他程式這次執行失敗的數字）結束，其他工具便能比較兩次結果或自動判斷哪項失敗。邊界不清時它選 `warn`，不誤報成 `error`。像健檢表換上固定欄位，電腦和人都能對照。",
-                "zh-CN": "有人请你交出 Usage 的健康检查结果时，`usage --doctor --json` 现在给的是可读取的数据，而不只是一段得靠截图保存的文字。每项检查都有固定代码（stable code，让程序每次都能辨认同一项检查的名称），例如 `hook_state`、`codex_sessions`，并标成三种状态；只要有 `error`，命令就用非零退出码（告诉其他程序这次执行失败的数字）结束，其他工具便能比较两次结果或自动判断哪项失败。边界不清时它选 `warn`，不误报成 `error`。像体检表换上固定字段，电脑和人都能对照。",
-                "en": "When someone asks for Usage's health-check result, `usage --doctor --json` now returns data a program can read rather than a block of text that needs a screenshot. Each check has a stable code, such as `hook_state` or `codex_sessions`, and one of three states. If any check is an `error`, the command ends with a non-zero exit code, so other tools can compare two reports or determine which check failed automatically. When the boundary is unclear, it chooses `warn` instead of falsely calling it an `error`. It is like a medical form with fixed columns: people and computers can both line up the results.",
-                "ja": "Usage の健全性チェック結果を誰かに渡すとき、`usage --doctor --json` は、スクリーンショットが必要な文章の塊ではなく、プログラムが読めるデータを返すようになった。各チェックには `hook_state` や `codex_sessions` のような固定コードと三つの状態がある。どれかが `error` なら、コマンドはゼロ以外の終了コードで終わるため、別のツールが二つの報告を比べたり、失敗した項目を自動判定したりできる。境界が曖昧なら `error` と誤報せず `warn` を選ぶ。固定欄のある健診表なら、人もコンピューターも結果を並べられるのと同じである。",
-                "ko": "누군가 Usage의 상태 점검 결과를 달라고 할 때 `usage --doctor --json`은 이제 스크린샷이 필요한 긴 글 대신 프로그램이 읽을 수 있는 데이터를 돌려준다. 각 점검에는 `hook_state`, `codex_sessions`처럼 고정 코드와 세 가지 상태가 붙는다. 어느 하나가 `error`이면 명령은 0이 아닌 종료 코드로 끝나므로 다른 도구가 두 보고서를 비교하거나 실패한 항목을 자동으로 판단할 수 있다. 경계가 모호하면 `error`로 잘못 알리지 않고 `warn`을 고른다. 고정 칸이 있는 건강검진표라면 사람과 컴퓨터가 모두 결과를 나란히 볼 수 있는 것과 같다."
-              },
-              "original": "**`--doctor --json` emits the report as data with stable codes.** The report was a block of text, so a user could only screenshot it and the reader had to scan by eye — nothing could compare two reports or decide programmatically which check failed. Each check now carries a fixed code (`hook_state`, `codex_sessions`, …) and one of three states, the process exits non-zero when any check is in error, and the human-readable output is unchanged to the character. Ambiguous cases resolve to `warn` rather than `error`: a false alarm that fails a health check costs more than a missed warning."
-            },
-            {
-              "title": {
-                "zh-TW": "選單項目集中組裝，綁定的方法仍留在原地",
-                "zh-CN": "菜单项目集中组装，绑定的方法仍留在原处",
-                "en": "Menu items are assembled in one place while the bound method stays put",
-                "ja": "メニュー項目を一か所で組み立て、結び付いたメソッドは元の場所に残す",
-                "ko": "메뉴 항목은 한곳에서 만들고 연결된 메서드는 원래 자리에 둔다"
-              },
-              "body": {
-                "zh-TW": "維護 macOS 選單列時，麻煩的往往不是加新選項，而是十幾個選項都重複同一套組裝動作。`switchPanel_` 現在交給 `menubar_menu.build_menu_item()` 幫手函式（helper function，把重複步驟集中在一處的小函式）建立項目，建立項目、設定目標、狀態、提示，再加入選單的步驟只寫一次。`switchPanel_` 本身沒有搬家，因為 AppDelegate（macOS 應用程式的協調者）會用 selector 綁定它。selector（依方法名稱連接功能的機制）若失去原方法就會斷掉。這次省下的是 24 行重複內容，不是看起來像 80 行的數字遊戲；舊測試也改為在幫手模組補上 `NSMenuItem` 的替換，不再加模組層級轉接。像把十幾張便條收進同一本簿子，項目仍在原處，只有抄寫不再重複。",
-                "zh-CN": "维护 macOS 菜单栏时，麻烦的往往不是加新选项，而是十几个选项都重复同一套组装动作。`switchPanel_` 现在交给 `menubar_menu.build_menu_item()` 帮手函数（helper function，把重复步骤集中在一处的小函数）建立项目，建立项目、设置目标、状态、提示，再加入菜单的步骤只写一次。`switchPanel_` 本身没有搬家，因为 AppDelegate（macOS 应用程序的协调者）会用 selector 绑定它。selector（依方法名称连接功能的机制）若失去原方法就会断掉。这次省下的是 24 行重复内容，不是看起来像 80 行的数字游戏；旧测试也改为在帮手模块补上 `NSMenuItem` 的替换，不再加模块层级转接。像把十几张便条收进同一本簿子，项目仍在原处，只有抄写不再重复。",
-                "en": "When maintaining a macOS menu bar, the trouble is often not adding a new option but repeating the same assembly steps for a dozen of them. `switchPanel_` now uses `menubar_menu.build_menu_item()`, a helper function that gathers repeated steps in one place, to create the items; target, state, tooltip, and adding the item are written once. `switchPanel_` itself stays where it is because AppDelegate binds it through a selector, the mechanism that connects a feature by method name. Move the original method and that connection breaks. This removes 24 repeated lines, not the 80-line illusion suggested by the count. The old test now also replaces `NSMenuItem` in the helper module instead of adding module-level indirection. It is like gathering a dozen sticky notes into one notebook: the items stay put, but copying stops repeating.",
-                "ja": "macOS のメニューバーを保守するとき、厄介なのは新しい項目を足すことより、十数個の項目に同じ組み立て作業を繰り返すことである。`switchPanel_` は今、重複した手順を一か所に集める helper function である `menubar_menu.build_menu_item()` を使って項目を作る。対象、状態、ツールチップ、メニューへの追加は一度だけ書けばよい。`switchPanel_` 自体は移していない。AppDelegate が selector、つまりメソッド名で機能を結び付ける仕組みを通じてこれを束縛しており、元のメソッドを移すと接続が切れるからである。減ったのは見かけ上の 80 行ではなく、24 行の重複である。古いテストも helper モジュールで `NSMenuItem` を置き換えるようにし、モジュール単位の仲介を足さない。十数枚の付箋を一冊のノートに集めても、項目は元の場所にあり、写し書きだけが減るようなものである。",
-                "ko": "macOS 메뉴 막대를 관리할 때 어려운 일은 새 항목을 더하는 것보다 열두 개가 넘는 항목에 같은 조립 작업을 되풀이하는 데 있다. `switchPanel_`는 이제 반복 단계를 한곳에 모은 helper function인 `menubar_menu.build_menu_item()`로 항목을 만든다. 대상, 상태, 도움말, 메뉴에 넣는 작업은 한 번만 쓴다. `switchPanel_` 자체는 옮기지 않았다. AppDelegate가 selector, 즉 메서드 이름으로 기능을 연결하는 장치로 이를 묶고 있어 원래 메서드를 옮기면 연결이 끊기기 때문이다. 줄어든 것은 줄 수가 보여 주는 80줄이 아니라 중복된 24줄이다. 기존 테스트도 모듈 단계의 우회를 더하지 않고 helper 모듈에서 `NSMenuItem`을 바꾸도록 했다. 열두 장이 넘는 메모지를 한 권의 공책에 모아도 항목은 제자리에 있고 베껴 쓰기만 줄어드는 모습과 같다."
-              },
-              "original": "**`switchPanel_` builds its items through a helper.** A dozen menu entries each repeated the same five to seven lines — allocate the item, set the target, set the state, set the tooltip, add it — and `menubar.py` had two lines left under its ceiling. `menubar_menu.build_menu_item()` absorbs that shape. It lives in a new module rather than in `menubar_state.py`, which stays free of PyObjC. `switchPanel_` itself does not move: an AppDelegate method is bound by selector, and relocating one breaks the binding. The saving is smaller than it looks — 24 lines, not the 80 the line count suggested, because keyword arguments wrap across lines and give much of it back. The gain is the removed repetition, not the arithmetic. Moving the helper out also broke a test that patched `NSMenuItem` on the `menubar` module only; the fix was to patch the helper module too, never to add module-level indirection so the old patch keeps reaching."
             }
           ]
         }
