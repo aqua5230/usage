@@ -41,6 +41,12 @@ jobs:
 
       - run: uv sync --frozen --group dev
 
+      - name: Guard against non-monotonic version tag
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: uv run python scripts/check_release_version.py "${{ github.repository }}" "${{ github.ref_name }}"
+
       - name: Run ruff
         run: uv run ruff check .
 
