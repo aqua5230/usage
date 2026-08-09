@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.22] - 2026-08-10
+
+### Fixed
+- **Codex data was unreadable for anyone with a custom `CODEX_HOME`.** Every path into Codex's local data (`codex_loader.py`, `adapters/codex.py`, `session_hooks.py`, `setup_hook.py`, `fsevents_watch.py`, `menubar_state.py`, `analyzer/subscription.py`) was hardcoded to `~/.codex/...`, so anyone who set the `CODEX_HOME` environment variable — multiple accounts, containerized setups — got an empty Codex section with no explanation. All of them now resolve through a single `codex_paths.codex_home()` helper that honors `CODEX_HOME` and falls back to `~/.codex/` when it's unset.
+
 ## [0.29.21] - 2026-08-09
 
 ### Fixed

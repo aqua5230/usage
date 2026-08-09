@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.29.22] - 2026-08-10
+
+### 修正
+- **自訂過 `CODEX_HOME` 的使用者讀不到 Codex 資料。** 所有讀取 Codex 本機資料的路徑（`codex_loader.py`、`adapters/codex.py`、`session_hooks.py`、`setup_hook.py`、`fsevents_watch.py`、`menubar_state.py`、`analyzer/subscription.py`）都寫死指向 `~/.codex/...`，於是任何設定過 `CODEX_HOME` 環境變數的使用者（多帳號、容器化跑法）都會看到 Codex 區塊空白，也不知道為什麼。現在全部改成透過統一的 `codex_paths.codex_home()` 讀取，設定了 `CODEX_HOME` 就用它，沒設定則沿用 `~/.codex/`。
+
 ## [0.29.21] - 2026-08-09
 
 ### 修正
