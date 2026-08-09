@@ -18,8 +18,10 @@ import json
 from pathlib import Path
 from typing import Any
 
+from codex_paths import codex_home
+
 CLAUDE_CONFIG = Path.home() / ".claude.json"
-CODEX_AUTH = Path.home() / ".codex" / "auth.json"
+CODEX_AUTH = codex_home() / "auth.json"
 
 _CLAUDE_PLAN_NAMES = {
     "claude_pro": "Claude Pro",

@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+import importlib
+import os
 import shutil
 from collections.abc import Sequence
 from pathlib import Path
@@ -36,6 +38,32 @@ def _clear_loader_caches(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Non
 
 def _sum_field(entries: Sequence[object], field: str) -> int:
     return sum(int(getattr(entry, field)) for entry in entries)
+
+
+def test_codex_paths_follow_codex_home_environment(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    custom_home = tmp_path / "custom-codex"
+    monkeypatch.setenv("CODEX_HOME", str(custom_home))
+    importlib.reload(codex_loader)
+    importlib.reload(codex_adapter)
+
+    assert codex_loader.SESSIONS_DIR == custom_home / "sessions"
+    assert codex_loader.ARCHIVED_SESSIONS_DIR == custom_home / "archived_sessions"
+    assert codex_loader.STATE_DB == custom_home / "state_5.sqlite"
+    assert codex_loader.LOGS_DB == custom_home / "logs_2.sqlite"
+    assert codex_adapter.CODEX_DIR == str(custom_home)
+    assert codex_adapter.SESSIONS_DIR == str(custom_home / "sessions")
+    assert codex_adapter.STATE_DB == str(custom_home / "state_5.sqlite")
+
+    monkeypatch.delenv("CODEX_HOME")
+    importlib.reload(codex_loader)
+    importlib.reload(codex_adapter)
+
+    default_home = Path(os.path.expanduser("~/.codex"))
+    assert codex_loader.SESSIONS_DIR == default_home / "sessions"
+    assert codex_adapter.CODEX_DIR == str(default_home)
 
 
 def test_codex_session_token_totals_match_between_delta_and_session_loaders(

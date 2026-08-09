@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 import setup_hook
+from codex_paths import codex_home
 from i18n import t as _t
 from setup_hook import (
     BACKUP_KEY,
@@ -75,8 +76,8 @@ _TERSE_MARKER = "usage-terse-mode"
 _TERSE_MARKERS = (_TERSE_MARKER, "usage_terse_mode")
 # Codex CLI shares the same terse-mode script (its SessionStart hook I/O schema matches Claude
 # Code's). Installed into the user-global ~/.codex so one toggle covers both tools.
-CODEX_TERSE_HOOK_TARGET = Path(os.path.expanduser("~/.codex/usage-terse-mode.py"))
-CODEX_HOOKS_JSON = Path(os.path.expanduser("~/.codex/hooks.json"))
+CODEX_TERSE_HOOK_TARGET = codex_home() / "usage-terse-mode.py"
+CODEX_HOOKS_JSON = codex_home() / "hooks.json"
 CODEX_TERSE_MATCHER = "startup|resume|clear"
 _FEATURES_HOOKS_REGEX = re.compile(r"(?m)^[ \t]*hooks\s*=\s*[A-Za-z0-9_]+")
 # Per-message tail reminder — a UserPromptSubmit hook installed alongside the SessionStart

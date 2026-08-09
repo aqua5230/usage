@@ -17,6 +17,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
 
 import codex_loader
+from codex_paths import codex_home
 from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
 from history_loader import CLAUDE_PROJECTS_DIR, UsageEntry, load_entries
 from i18n import _t
@@ -264,11 +265,12 @@ def _history_directory_sources() -> tuple[Path, Path, Path]:
 
 
 def _history_file_sources() -> tuple[Path, Path, Path, Path]:
+    codex_dir = codex_home()
     return (
         codex_loader.LOGS_DB,
-        Path.home() / ".codex" / "logs_2.sqlite-wal",
+        codex_dir / "logs_2.sqlite-wal",
         codex_loader.STATE_DB,
-        Path.home() / ".codex" / "state_5.sqlite-wal",
+        codex_dir / "state_5.sqlite-wal",
     )
 
 

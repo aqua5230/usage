@@ -24,6 +24,7 @@ from codex_disk_cache import (
     flush_caches,
     seed_caches,
 )
+from codex_paths import codex_home
 from codex_events import (
     _as_dict,
     _as_int,
@@ -129,10 +130,10 @@ _thread_metadata_cache: dict[str, _ThreadMetadata] = {}
 _sqlite_rate_limits_cache_key: _SqliteFileFingerprint | None = None
 _sqlite_rate_limits_rows_cache: list[tuple[Any, Any]] = []
 
-SESSIONS_DIR = Path(os.path.expanduser("~/.codex/sessions"))
-ARCHIVED_SESSIONS_DIR = Path(os.path.expanduser("~/.codex/archived_sessions"))
-STATE_DB = Path(os.path.expanduser("~/.codex/state_5.sqlite"))
-LOGS_DB = Path(os.path.expanduser("~/.codex/logs_2.sqlite"))
+SESSIONS_DIR = codex_home() / "sessions"
+ARCHIVED_SESSIONS_DIR = codex_home() / "archived_sessions"
+STATE_DB = codex_home() / "state_5.sqlite"
+LOGS_DB = codex_home() / "logs_2.sqlite"
 
 
 def _readonly_sqlite_uri(path: Path) -> str:

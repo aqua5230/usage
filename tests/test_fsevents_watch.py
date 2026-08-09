@@ -21,6 +21,7 @@ def test_usage_watch_paths_only_includes_existing_history_directories(
     (tmp_path / ".codex" / "cache").mkdir()
 
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / ".codex"))
 
     assert fsevents_watch.usage_watch_paths() == [
         claude_projects,
@@ -36,6 +37,7 @@ def test_usage_watch_paths_omits_missing_history_directories(
     codex_sessions = tmp_path / ".codex" / "sessions"
     codex_sessions.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", classmethod(lambda cls: tmp_path))
+    monkeypatch.setenv("CODEX_HOME", str(tmp_path / ".codex"))
 
     assert fsevents_watch.usage_watch_paths() == [codex_sessions]
 

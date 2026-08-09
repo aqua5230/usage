@@ -15,6 +15,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+from codex_paths import codex_home
+
 logger = logging.getLogger(__name__)
 
 # --- FSEvents (ctypes) for event-driven UI refresh ---
@@ -114,12 +116,13 @@ def classify_file_events(paths: Iterable[str], flags: Iterable[int]) -> FileEven
 def usage_watch_paths() -> list[Path]:
     """Return existing agent directories that contain usage history records."""
     home = Path.home()
+    codex_dir = codex_home()
     return [
         path
         for path in (
             home / ".claude" / "projects",
-            home / ".codex" / "sessions",
-            home / ".codex" / "archived_sessions",
+            codex_dir / "sessions",
+            codex_dir / "archived_sessions",
         )
         if path.exists()
     ]
