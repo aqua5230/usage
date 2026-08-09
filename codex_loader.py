@@ -774,6 +774,9 @@ def _load_sqlite_log_entries(
 
     if not LOGS_DB.exists():
         return []
+    # Codex CLI <=0.14x wrote token-usage rows under this target; current versions
+    # don't (verified 2026-08-10: zero hits, no gap vs jsonl on an up-to-date CLI).
+    # Kept for users still holding old-format history in logs_2.sqlite.
     query = (
         "SELECT id, ts, ts_nanos, feedback_log_body FROM logs "
         "WHERE target = 'codex_otel.trace_safe' "
