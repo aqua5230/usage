@@ -310,6 +310,10 @@ td:first-child{color:var(--warn)}
 .contribution-cell.level-2{background:var(--contrib-2)}
 .contribution-cell.level-3{background:var(--contrib-3)}
 .contribution-cell.level-4{background:var(--contrib-4)}
+.contribution-cell.snake-body{background:var(--token);border-color:var(--token)}
+.contribution-cell.snake-head{background:#fff;border-color:#fff;box-shadow:0 0 14px 4px var(--token);transform:scale(1.35);position:relative;z-index:1}
+.contribution-section .prompt{cursor:pointer;user-select:none;transition:color .2s}
+.contribution-section .prompt:hover{color:var(--token)}
 .contribution-legend{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:12px;color:var(--muted);font-size:.72rem}
 .contribution-legend .contribution-cell{width:12px;min-width:12px;height:12px;aspect-ratio:auto}
 .contribution-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}

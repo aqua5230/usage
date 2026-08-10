@@ -369,6 +369,15 @@ def test_generate_html_matches_golden_snapshot(
     assert html_report.generate_html(data, language=language) == expected
 
 
+def test_generate_html_contains_snake_easter_egg() -> None:
+    html = html_report.generate_html(_empty_report_data(), language="en")
+
+    assert "snake-head" in html
+    assert "snake-body" in html
+    assert ".contribution-section .prompt" in html
+    assert "snakeClickTimes" in html
+
+
 def test_sprite_data_uri_reads_py2app_resourcepath_layout(
     tmp_path: Path,
     monkeypatch: pytest.MonkeyPatch,

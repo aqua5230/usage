@@ -1,7 +1,6 @@
-"""JS template for the HTML usage report. Extracted verbatim from html_report.
+"""JS template for the HTML usage report.
 
-Braces are doubled for str.format(); the three placeholders below are filled
-by html_report._render_scripts.
+The three placeholders below are replaced by html_report._render_scripts.
 """
 
 HTML_TO_IMAGE_UMD = (
@@ -71,8 +70,75 @@ function buildShareFilename(ext) {
   return `usage-report-${new Date().toISOString().slice(0, 10)}.${ext}`;
 }
 
+let snakeTimer = null;
+let snakeCells = [];
+let snakeOriginalClasses = [];
+let snakeClickTimes = [];
+
+function stopSnakeAndRestore() {
+  if (snakeTimer !== null) {
+    window.clearInterval(snakeTimer);
+    snakeTimer = null;
+  }
+  snakeCells.forEach((cell, i) => {
+    cell.className = snakeOriginalClasses[i];
+  });
+  snakeCells = [];
+  snakeOriginalClasses = [];
+}
+
+function runSnake() {
+  if (snakeTimer !== null || window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    return;
+  }
+  const grid = document.querySelector('.contribution-grid');
+  if (!grid) return;
+
+  const cells = Array.from(grid.children);
+  if (!cells.length) return;
+
+  snakeCells = cells;
+  snakeOriginalClasses = cells.map((cell) => cell.className);
+  const path = [];
+  const weeks = Math.floor(cells.length / 7);
+  // Skip the leading run of empty weeks: on a mostly-idle year the snake would
+  // otherwise spend most of its run crawling over level-0 cells with nothing to eat.
+  const firstActive = cells.findIndex((cell) => /level-[1-4]/.test(cell.className));
+  const startWeek = firstActive < 0 ? 0 : Math.max(0, Math.floor(firstActive / 7) - 1);
+  for (let week = startWeek; week < weeks; week += 1) {
+    const column = cells.slice(week * 7, week * 7 + 7);
+    path.push(...((week - startWeek) % 2 ? column.reverse() : column));
+  }
+
+  let head = 0;
+  const snakeLength = 10;
+  grid.scrollIntoView({behavior: 'smooth', block: 'center'});
+  snakeTimer = window.setInterval(() => {
+    snakeCells.forEach((cell) => cell.classList.remove('snake-body', 'snake-head'));
+    const eaten = path[head - snakeLength];
+    if (eaten) eaten.className = 'contribution-cell level-0';
+    for (let i = 0; i < snakeLength; i += 1) {
+      const cell = path[head - i];
+      if (cell) cell.classList.add(i === 0 ? 'snake-head' : 'snake-body');
+    }
+    head += 1;
+    if (head >= path.length + snakeLength) stopSnakeAndRestore();
+  }, 90);
+}
+
+document.querySelector('.contribution-section .prompt')?.addEventListener('click', () => {
+  const now = Date.now();
+  snakeClickTimes = snakeClickTimes.filter((time) => now - time <= 1500);
+  snakeClickTimes.push(now);
+  if (snakeClickTimes.length >= 3) {
+    snakeClickTimes = [];
+    runSnake();
+  }
+});
+
 async function withShareableReport(maskProjects, callback) {
   closeShareModal();
+  stopSnakeAndRestore();
   const restores = [];
   const detached = [];
   if (maskProjects) {
