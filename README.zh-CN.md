@@ -32,12 +32,14 @@ brew install --cask aqua5230/usage/usage
 
 它会自动安装到 Applications 文件夹。先右键点击一次 **Open** 以通过 Gatekeeper，然后点击菜单栏图标。想直接下载或查看完整设置流程？请参见下方的[安装](#安装)。
 
+**快速跳转：** [功能一览](#功能一览) · [隐私与数据来源](#隐私与数据来源) · [系统要求](#系统要求) · [安装](#安装) · [Windows 支持](#windows-支持) · [主题图库](#主题图库) · [故障排除](#故障排除) · [对比](#对比) · [不适合谁](#不适合谁) · [开发](#开发)
+
 ## 功能一览
 
 ### 实时可见
 
 - **常驻监视器：** 配额常驻菜单栏，以绿色到红色的颜色编码显示。需要完整的会话、每周和各项目明细时，点击即可查看。
-- **Antigravity 支持：** Antigravity（Gemini）的会话与每周配额以第三张卡片出现在每一款面板。数值直接向官方配额 API 查询，使用的是 Antigravity CLI 本就保存在你机器上的登录身份——每隔几分钟自动刷新，重置倒计时实时递减。
+- **Antigravity 支持：** Antigravity（Gemini）的会话与每周配额以第三张卡片出现在除了 World Cup 2026 以外的每一款面板（该款维持两队对战 HUD）。数值直接向官方配额 API 查询，使用的是 Antigravity CLI 本就保存在你机器上的登录身份——每隔几分钟自动刷新，重置倒计时实时递减。
 - **服务状态警示：** Claude Code、Claude API 或 Codex API 发生故障或性能降级时，相关面板底部会显示橘红警示横幅，数值仅读取官方公开的 Statuspage.io 状态页——绝不调用 LLM 使用量 API。Antigravity 因没有可用的公开状态页，暂不支持。
 - **上下文提醒与通知：** 当上下文窗口达到 70% 时，状态栏会提示你使用 `/clear` 或 `/compact`，避免浪费 token。你也可以选择接收关于配额限额和恢复的系统通知。
 - **隐藏区块：** 没全都用？点击一次即可从菜单栏和面板中完全隐藏 Claude Code、Codex 或 Antigravity 区块。
@@ -62,7 +64,7 @@ brew install --cask aqua5230/usage/usage
 
 - **10 个视觉主题：** 可切换面板风格，包括 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026 和 Lepidoptera（蓝图）。
 - **面板自由摆放：** 面板不再固定在菜单栏图标下方。在任何空白处按住即可拖动到你想要的位置，下次打开仍保留在原位。切换到其他 App 时也不会消失，再次点击菜单栏图标或按 Esc 键才会关闭。
-- **拖拽排序：** 按住任意配额卡上下拖拽即可交换顺序——这一排列在所有主题间共享，并在重启后保留。
+- **拖拽排序：** 按住任意配额卡上下拖拽即可交换顺序——这一排列在所有包含配额卡的主题间共享（除 World Cup 2026 之外），并在重启后保留。
 - **灵伴：** 一个小型动态白色剪影会出现在使用百分比旁边：Claude 是凤凰，Codex 是龙，Antigravity 是狮子。每个伙伴都会随各自工具的 token 消耗速率上升而动态加速。
 - **自动本地化：** 界面文本提供繁体中文、简体中文、英语、日语和韩语，并自动匹配系统设置。
 
@@ -120,12 +122,16 @@ Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托
 直接在界面中切换 **10 个视觉主题**：
 
 <p align="center">
+  <img src="docs/classic.en.png" width="32%" alt="Classic 主题" />
   <img src="docs/matrix.en.png" width="32%" alt="Matrix 主题" />
   <img src="docs/win95.en.png" width="32%" alt="Windows 95 主题" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD 主题" />
   <img src="docs/newspaper.en.png" width="32%" alt="Newspaper 主题" />
+  <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observation 主题" />
   <img src="docs/aquarium.en.png" width="32%" alt="Aquarium 主题" />
+  <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcade 主题" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole 主题" />
+  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD 主题" />
+  <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera 主题" />
 </p>
 
 ## 故障排除
@@ -160,6 +166,12 @@ Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托
 | Token 浪费健康检查 | ✅ | — | — |
 | 读取配额时不调用 LLM API | ✅ | ✅ | ✅ |
 | 开源许可证 | AGPL-3.0 | MIT | — |
+
+## 不适合谁
+
+- 你完全生活在终端中，不想要任何后台运行的菜单栏图标——单次执行的 CLI 工具会更适合你。
+- 你没有在使用 Claude Code、Codex 或 Antigravity——因为这样 `usage` 就没有可以读取的本地使用数据。
+- 你使用的是 Linux——目前仅支持 macOS 和 Windows。
 
 ## 开发
 

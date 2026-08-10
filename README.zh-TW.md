@@ -32,12 +32,14 @@ brew install --cask aqua5230/usage/usage
 
 安裝後會自動進入「應用程式」資料夾。先右鍵**「打開」**一次讓 Gatekeeper 放行，再點選單列圖示即可。想直接下載，或想看完整設定流程？見下方 [安裝](#安裝)。
 
+**快速跳轉：** [你會得到什麼](#你會得到什麼) · [隱私與資料來源](#隱私與資料來源) · [環境需求](#環境需求) · [安裝](#安裝) · [Windows 支援](#windows-支援) · [主題展示](#主題展示) · [常見問題排查](#常見問題排查) · [跟其他工具比較](#跟其他工具比較) · [不適合誰](#不適合誰) · [開發](#開發)
+
 ## 你會得到什麼
 
 ### 即時可見性
 
 - **常駐監控：** 額度常駐選單列，顏色標示警戒級別（綠到紅）。點開能看 Session、Weekly 與各專案用量細節。
-- **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在每一款面板。數字直接向官方額度 API 查詢，用的是 Antigravity CLI 本來就存在你機器上的登入身分——每幾分鐘自動刷新，重置倒數即時遞減。
+- **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在除了 World Cup 2026 以外的每一款面板（該款維持兩隊對戰 HUD）。數字直接向官方額度 API 查詢，用的是 Antigravity CLI 本來就存在你機器上的登入身分——每幾分鐘自動刷新，重置倒數即時遞減。
 - **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅，數字只讀官方公開的 Statuspage.io 狀態頁——絕不呼叫 LLM 用量 API。Antigravity 因沒有可用的公開狀態頁，暫不支援。
 - **上下文提醒與系統通知：** Context Window 達 70% 時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
 - **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex 或 Antigravity 從選單列及面板上徹底隱藏。
@@ -62,7 +64,7 @@ brew install --cask aqua5230/usage/usage
 
 - **10 款視覺面板：** 可在 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026 與 Lepidoptera（藍曬圖）之間切換。
 - **面板自由擺放：** 面板不再釘在選單列圖示下方。在任何空白處按住就能拖到你想要的位置，下次打開還在原地。點到別的 App 也不會消失，要再點一次選單列圖示或按 Esc 才關。
-- **拖曳排序：** 按住任何一張額度卡上下拖曳就能交換順序，排法在所有主題間共用、重開也會記住。
+- **拖曳排序：** 按住任何一張額度卡上下拖曳就能交換順序，排法在所有包含額度卡的主題間共用（除 World Cup 2026 之外），重開也會記住。
 - **神獸夥伴：** 百分比旁常駐一隻小型白色動畫神獸（Claude 是鳳凰，Codex 是飛龍，Antigravity 是獅子），各自跟著自家工具的 token 燃燒率動態加速。
 - **自動多語言 (i18n)：** 介面支援繁中、簡中、英、日、韓，自動跟隨系統語言設定。
 
@@ -120,12 +122,16 @@ Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示
 內建 **10 款可切換的視覺主題**，可直接在 UI 中切換：
 
 <p align="center">
+  <img src="docs/classic.png" width="32%" alt="Classic 主題" />
   <img src="docs/matrix.png" width="32%" alt="Matrix 主題" />
   <img src="docs/win95.png" width="32%" alt="Windows 95 主題" />
-  <img src="docs/world_cup.png" width="32%" alt="世界盃 HUD 主題" />
   <img src="docs/newspaper.png" width="32%" alt="復古報紙主題" />
+  <img src="docs/cloud_observation.png" width="32%" alt="雲圖觀測主題" />
   <img src="docs/aquarium.png" width="32%" alt="深夜水族箱主題" />
+  <img src="docs/prism_arcade.png" width="32%" alt="Prism Arcade 主題" />
   <img src="docs/black_hole.png" width="32%" alt="黑洞主題" />
+  <img src="docs/world_cup.png" width="32%" alt="世界盃 HUD 主題" />
+  <img src="docs/lepidoptera.png" width="32%" alt="Lepidoptera 主題" />
 </p>
 
 ## 常見問題排查
@@ -139,7 +145,7 @@ Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示
 | 不小心按到「結束」 | 程式已終止 | 透過 Spotlight 或應用程式重新開啟 `usage.app`。（`launchctl start com.lollapalooza.usage` 只在你開啟過「開機自啟」時才有作用。） |
 | 顯示「N 分鐘未更新」 | Claude Code 未執行 | 打開 Claude Code 跑一下就會更新 |
 | Codex 區塊空白 | 找不到 Codex 紀錄 | 用 Codex 跑一次對話 |
-| 今日花費是 $0.00 | 價格表對不上或抓取失敗 | 刪掉 `~/.usage/pricing_cache.json` 重新抓取 |
+| 今日花費是 $0.00 | 價格表對不上或抓取失敗 | 刪掉 `~/.usage/pricing_cache.json` 重新抓取，或檢查 `USAGE_DEBUG=1` |
 | Antigravity 卡片沒出現 | 未安裝或未登入 Antigravity CLI | 安裝並登入 Antigravity CLI，背景額度查詢成功後卡片會自動出現 |
 | App 打不開 | Gatekeeper 擋住 | Finder → 找到 `usage.app` → 按右鍵 → 打開 |
 
@@ -160,6 +166,12 @@ Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示
 | Token 浪費健檢 | ✅ | — | — |
 | 讀取額度時不呼叫 LLM API | ✅ | ✅ | ✅ |
 | 開源授權 | AGPL-3.0 | MIT | — |
+
+## 不適合誰
+
+- 你完全生活在終端機裡，不想要任何背景執行的選單列圖示——單次執行的 CLI 工具會更適合你。
+- 你沒有在使用 Claude Code、Codex 或 Antigravity——因為這樣 `usage` 就沒有可以讀取的本機用量資料。
+- 你使用的是 Linux——目前只支援 macOS 與 Windows。
 
 ## 開發
 

@@ -117,11 +117,11 @@ python3 main.py
   <img src="menubar.png" alt="menu bar 上方顯示樣式" width="240">
 
 - **點一下會展開 popover**，分四塊：
-  1. 上面兩張卡片分別是 Claude Code 跟 Codex；每張各有 Session 跟 Weekly 兩條進度條
+  1. Claude Code 跟 Codex 的卡片，登入 Antigravity CLI 後還會出現第三張 Antigravity 卡片；每張各有 Session 跟 Weekly 兩條進度條
   2. 專案用量卡：列出近期用量前三名的專案，可點右上角按鈕在「今日 / 7 日 / 月」三段之間切換
   3. 最下面那張小卡是目前速率、同步狀態、今日 token 用量與成本估算（Claude 若 log 有提供實際金額則直接顯示；Codex 成本為依 token 數估算）
   4. 兩顆按鈕：「立即更新」、「結束」
-- **面板**：點右上角「更換面板」按鈕可切換面板樣式。目前內建九款面板——「預設」（簡潔白色卡片）、「駭客任務」（黑底螢光綠＋數位雨動畫）、「視窗 95」（Windows 95 復古介面）、「復古報紙」（米黃報紙風）、「雲圖觀測」（氣象風玻璃卡片）、「午夜水族箱」（深海動畫）、「稜鏡街機」（彩虹全息動畫）、「黑洞視界」（旋轉吸積盤）、以及全新「世界盃 2026」——FIFA 轉播 HUD 風格，鮮綠球場、棒人球員追球踢球互動動畫、雙向對戰記分條。
+- **面板**：點右上角「更換面板」按鈕可切換面板樣式。目前內建十款面板——「預設」（簡潔白色卡片）、「駭客任務」（黑底螢光綠＋數位雨動畫）、「視窗 95」（Windows 95 復古介面）、「復古報紙」（米黃報紙風）、「雲圖觀測」（氣象風玻璃卡片）、「午夜水族箱」（深海動畫）、「稜鏡街機」（彩虹全息動畫）、「黑洞視界」（旋轉吸積盤）、「世界盃 2026」——FIFA 轉播 HUD 風格，鮮綠球場、棒人球員追球踢球互動動畫、雙向對戰記分條——以及「蝶類圖鑑」，帶有飄動翅膀動畫的藍曬圖風格蝴蝶標本板。World Cup 2026 僅包含 Claude 與 Codex，沒有 Antigravity 卡片也無法拖曳排序。
 
   <p align="center">
     <img src="matrix.png" alt="駭客任務面板" width="220">
@@ -263,7 +263,7 @@ USAGE_LANG=zh-CN python3 main.py   # 簡體中文
 
 ## 一些行為說明
 
-- usage 只讀 `~/.claude/usage-status.json`、v0.1.x 留下的 `~/.claude/usag-status.json`、`~/.claude/tt-status.json`，以及 Codex 的 session 檔。不呼叫 Anthropic / OpenAI API、不讀 Keychain。會連網的情況有兩個：(a) 首次估算 Codex 成本時下載 LiteLLM 價格表（快取 7 天，離線也能用 fallback）；(b) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關閉）。
+- usage 只在本機讀取 `~/.claude/usage-status.json`、v0.1.x 留下的 `~/.claude/usag-status.json`、`~/.claude/tt-status.json`，以及 Codex 的 session 檔，且絕不為了讀取這些資料呼叫 Anthropic 或 OpenAI 的 API。除此之外會連網的情況：(a) 如果你有使用 Antigravity，其額度來自 Google 的官方額度端點，使用 Antigravity CLI 已儲存的 OAuth 憑證——依據 CLI 版本讀自 macOS Keychain、Windows 認證管理員或本機 token 檔——這是一次元資料呼叫，不消耗模型額度；(b) 讀取公開的 Claude 與 Codex Statuspage.io 頁面來標示故障；(c) 首次估算成本時下載 LiteLLM 價格表（快取 7 天，離線也能用 fallback）；(d) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關閉）。
 - Claude Code 沒在跑的時候，狀態檔不會更新；但因為實際用量也不會變（除非重置時間到了），所以顯示的數字仍然是有效的；重置時間過了會自動歸零。
 - 如果狀態檔超過 6 小時沒被更新過，會在狀態訊息標註 `⚠ usage stale Nm`（N 為實際分鐘數），提示資料可能過時。
 

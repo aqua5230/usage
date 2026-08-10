@@ -32,12 +32,14 @@ brew install --cask aqua5230/usage/usage
 
 Applicationsフォルダに自動でインストールされます。Gatekeeperを通すために一度右クリックして **Open** を選び、その後メニューバーのアイコンをクリックしてください。直接ダウンロードしたい場合や、設定の全手順を確認したい場合は、下の[インストール](#インストール)をご覧ください。
 
+**クイックジャンプ：** [主な機能](#主な機能) · [プライバシーとデータソース](#プライバシーとデータソース) · [必要環境](#必要環境) · [インストール](#インストール) · [Windows対応](#windows対応) · [テーマギャラリー](#テーマギャラリー) · [トラブルシューティング](#トラブルシューティング) · [比較](#比較) · [対象外となるケース](#対象外となるケース) · [開発](#開発)
+
 ## 主な機能
 
 ### 常時可視化
 
 - **常時表示モニター：** クォータをメニューバーに常時表示し、緑から赤への色分けで示します。セッション、週ごと、プロジェクトごとの詳細を見たいときはクリックしてください。
-- **Antigravityサポート：** Antigravity（Gemini）のセッションと週ごとのクォータが、すべてのパネルで3枚目のカードとして表示されます。数値は、Antigravity CLIがすでにあなたのマシンに保存しているサインイン情報を使って公式クォータAPIから直接取得します。数分ごとに自動更新され、リセットまでのカウントダウンもリアルタイムに減っていきます。
+- **Antigravityサポート：** Antigravity（Gemini）のセッションと週ごとのクォータが、World Cup 2026 を除くすべてのパネルで3枚目のカードとして表示されます（World Cup 2026 は2チームの HUD のままです）。数値は、Antigravity CLIがすでにあなたのマシンに保存しているサインイン情報を使って公式クォータAPIから直接取得します。数分ごとに自動更新され、リセットまでのカウントダウンもリアルタイムに減っていきます。
 - **サービスステータスアラート：** Claude Code、Claude API、またはCodex APIで障害やパフォーマンス低下が発生した場合、関連パネルの底部にオレンジ赤色の警告バナーが表示されます。数値は公式の公開Statuspage.ioページからのみ読み取られ、LLM使用量APIを呼び出すことは決してありません。Antigravityは公開ステータスページがないため対象外です。
 - **コンテキストの通知と通知センター：** コンテキストウィンドウが70%に達すると、ステータスラインが `/clear` または `/compact` を促し、tokenの無駄を防ぎます。クォータ上限と回復についてのシステム通知を受け取ることもできます。
 - **セクションを隠す：** 一部のツールしか使わない場合は、ワンクリックでClaude Code、Codex、またはAntigravityのセクションをメニューバーとパネルから完全に隠せます。
@@ -62,7 +64,7 @@ Applicationsフォルダに自動でインストールされます。Gatekeeper�
 
 - **10種類のビジュアルテーマ：** Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、Lepidoptera（blueprint）を含むパネルスタイルを切り替えられます。
 - **パネルを自由に配置：** パネルはメニューバーアイコンの下に固定されなくなりました。空白部分をドラッグして好きな場所に移動でき、次回開いたときもその位置を保持します。他のアプリにフォーカスが移っても消えず、メニューバーアイコンをもう一度クリックするかEscキーを押すと閉じます。
-- **ドラッグで並べ替え：** 任意のクォータカードをつかんで上下にドラッグすると順序を入れ替えられます。並び順はすべてのテーマで共有され、再起動後も維持されます。
+- **ドラッグで並べ替え：** 任意のクォータカードをつかんで上下にドラッグすると順序を入れ替えられます。並び順はクォータカードを含むすべてのテーマ（World Cup 2026 を除く）で共有され、再起動後も維持されます。
 - **スピリットコンパニオン：** 使用率のそばに小さなアニメーション付きの白いシルエットが現れます。Claudeには不死鳥、Codexにはドラゴン、Antigravityにはライオンです。それぞれのツールのtoken消費率が上がると動きも動的に速くなります。
 - **自動ローカライズ：** UIテキストは繁体字中国語、簡体字中国語、英語、日本語、韓国語で利用でき、システム設定に自動的に合わせます。
 
@@ -120,12 +122,16 @@ Codexを使用したことがある場合、`usage` はその履歴を自動で�
 UIから直接 **10種類のビジュアルテーマ**を切り替えられます。
 
 <p align="center">
+  <img src="docs/classic.en.png" width="32%" alt="Classicテーマ" />
   <img src="docs/matrix.en.png" width="32%" alt="Matrixテーマ" />
   <img src="docs/win95.en.png" width="32%" alt="Windows 95テーマ" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUDテーマ" />
   <img src="docs/newspaper.en.png" width="32%" alt="Newspaperテーマ" />
+  <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observationテーマ" />
   <img src="docs/aquarium.en.png" width="32%" alt="Aquariumテーマ" />
+  <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcadeテーマ" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Holeテーマ" />
+  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUDテーマ" />
+  <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidopteraテーマ" />
 </p>
 
 ## トラブルシューティング
@@ -160,6 +166,12 @@ UIから直接 **10種類のビジュアルテーマ**を切り替えられま�
 | Token浪費ヘルスチェック | ✅ | — | — |
 | クォータ読取時のLLM API呼び出しなし | ✅ | ✅ | ✅ |
 | オープンソースライセンス | AGPL-3.0 | MIT | — |
+
+## 対象外となるケース
+
+- ターミナルでのみ作業しており、バックグラウンドでメニューバーアイコンを実行したくない場合——単発で確認できる CLI ツールのほうが適しています。
+- Claude Code、Codex、Antigravity のいずれも使用していない場合——`usage` が読み取るためのローカル使用量データが存在しません。
+- Linux を使用している場合——現在は macOS と Windows のみサポートしています。
 
 ## 開発
 

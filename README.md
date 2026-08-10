@@ -32,12 +32,14 @@ brew install --cask aqua5230/usage/usage
 
 It lands in your Applications folder automatically. Right-click **Open** once to pass Gatekeeper, then click the menu bar icon. Prefer a direct download or want the full setup flow? See [Install](#install) below.
 
+**Jump to:** [What You Get](#what-you-get) · [Privacy](#privacy--data-sources) · [Requirements](#requirements) · [Install](#install) · [Windows](#windows-support) · [Themes](#theme-gallery) · [Troubleshooting](#troubleshooting) · [Comparison](#comparison) · [Not a Fit?](#when-usage-isnt-the-right-fit) · [Development](#development)
+
 ## What You Get
 
 ### Live Visibility
 
 - **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
-- **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every panel. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns.
+- **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every theme except World Cup 2026, which stays a two-team HUD. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns.
 - **Service Status Alerts:** An orange-red banner appears when Claude Code, Claude API, or Codex API has an outage or degraded performance, read from their public Statuspage.io pages — never an LLM usage API. Antigravity isn't covered; it has no public status page.
 - **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
 - **Hide Sections:** Only use one or two of the tools? Hide the Claude Code, Codex, or Antigravity section from the menu bar and panels completely with a single click.
@@ -62,7 +64,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 - **10 Visual Themes:** Switch between panel styles including Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, and Lepidoptera (blueprint).
 - **Place the Panel Anywhere:** The panel is no longer pinned under the menu bar icon. Drag it from any empty spot to wherever you want it, and it reopens there next time. It stays put when another app takes focus — a second click on the menu bar icon, or Escape, closes it.
-- **Drag to Reorder:** Grab any quota card and drag it up or down to swap the order — the arrangement is shared across every theme and survives restarts.
+- **Drag to Reorder:** Grab any quota card and drag it up or down to swap the order — the arrangement is shared across every theme with quota cards (all except World Cup 2026) and survives restarts.
 - **Spirit Companions:** A small animated white silhouette lives beside your usage percentages — a phoenix for Claude, a dragon for Codex, a lion for Antigravity. Each accelerates dynamically as its own tool's token burn rate climbs.
 - **Automatic Localization:** UI text is available in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
 
@@ -120,12 +122,16 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 Switch between **10 visual themes** directly from the UI:
 
 <p align="center">
+  <img src="docs/classic.en.png" width="32%" alt="Classic theme" />
   <img src="docs/matrix.en.png" width="32%" alt="Matrix theme" />
   <img src="docs/win95.en.png" width="32%" alt="Windows 95 theme" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD theme" />
   <img src="docs/newspaper.en.png" width="32%" alt="Newspaper theme" />
-  <img src="docs/aquarium.en.png" width="32%" alt="Aquarium theme" />
+  <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observation theme" />
+  <img src="docs/aquarium.en.png" width="32%" alt="Midnight Aquarium theme" />
+  <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcade theme" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole theme" />
+  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD theme" />
+  <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera theme" />
 </p>
 
 ## Troubleshooting
@@ -160,6 +166,12 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Token-waste Health Check | ✅ | — | — |
 | No LLM API calls to read quota | ✅ | ✅ | ✅ |
 | Open-source license | AGPL-3.0 | MIT | — |
+
+## When usage Isn't the Right Fit
+
+- You only live in the terminal and don't want another menu bar icon running in the background — a one-off CLI check fits better.
+- You don't use Claude Code, Codex, or Antigravity — there's no local usage data for `usage` to read.
+- You're on Linux — only macOS and Windows are supported today.
 
 ## Development
 

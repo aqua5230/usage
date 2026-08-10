@@ -32,12 +32,14 @@ brew install --cask aqua5230/usage/usage
 
 Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려면 한 번 마우스 오른쪽 버튼으로 클릭해 **Open**을 선택한 뒤 메뉴 막대 아이콘을 클릭하세요. 직접 다운로드하거나 전체 설정 과정을 보고 싶다면 아래 [설치](#설치)를 참고하세요.
 
+**빠른 이동:** [제공 기능](#제공-기능) · [개인정보 보호와 데이터 소스](#개인정보-보호와-데이터-소스) · [요구 사항](#요구-사항) · [설치](#설치) · [Windows 지원](#windows-지원) · [테마 갤러리](#테마-갤러리) · [문제 해결](#문제-해결) · [비교](#비교) · [적합하지 않은 경우](#적합하지-않은-경우) · [개발](#개발)
+
 ## 제공 기능
 
 ### 실시간 가시성
 
 - **상시 모니터:** 할당량이 메뉴 막대에 상시 표시되며, 녹색부터 빨간색까지 색상으로 구분됩니다. 전체 세션, 주간, 프로젝트별 내역이 필요하면 클릭하세요.
-- **Antigravity 지원:** Antigravity(Gemini)의 세션 및 주간 할당량이 모든 패널에서 세 번째 카드로 나타납니다. 수치는 Antigravity CLI가 이미 컴퓨터에 저장해 둔 로그인 정보를 사용해 공식 할당량 API에서 직접 가져옵니다. 몇 분마다 자동 갱신되며 리셋 카운트다운도 실시간으로 줄어듭니다.
+- **Antigravity 지원:** Antigravity(Gemini)의 세션 및 주간 할당량이 World Cup 2026을 제외한 모든 패널에서 세 번째 카드로 나타납니다(World Cup 2026은 양 팀 HUD로 유지됨). 수치는 Antigravity CLI가 이미 컴퓨터에 저장해 둔 로그인 정보를 사용해 공식 할당량 API에서 직접 가져옵니다. 몇 분마다 자동 갱신되며 리셋 카운트다운도 실시간으로 줄어듭니다.
 - **서비스 상태 경고:** Claude Code, Claude API 또는 Codex API에 장애나 성능 저하가 발생하면 관련 패널 하단에 주황색/빨간색 경고 배너가 표시되며, 수치는 공식 공개 Statuspage.io 페이지에서만 읽어옵니다(LLM 사용량 API는 절대 호출하지 않음). Antigravity는 공개 상태 페이지가 없으므로 지원되지 않습니다.
 - **컨텍스트 알림 및 알림 센터:** 컨텍스트 창이 70%에 도달하면 상태 줄이 `/clear` 또는 `/compact`를 안내해 token 낭비를 막습니다. 할당량 한도와 복구에 관한 시스템 알림도 선택해 받을 수 있습니다.
 - **섹션 숨기기:** 일부 도구만 사용하나요? 클릭 한 번으로 Claude Code, Codex 또는 Antigravity 섹션을 메뉴 막대와 패널에서 완전히 숨길 수 있습니다.
@@ -62,7 +64,7 @@ Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려�
 
 - **10가지 시각 테마:** Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera(blueprint)를 포함한 패널 스타일을 전환할 수 있습니다.
 - **패널 자유 배치:** 패널이 더 이상 메뉴 막대 아이콘 아래에 고정되지 않습니다. 빈 공간을 드래그해 원하는 위치로 이동할 수 있으며, 다음에 열 때도 그 위치가 유지됩니다. 다른 앱으로 포커스가 이동해도 사라지지 않으며, 메뉴 막대 아이콘을 다시 클릭하거나 Esc 키를 눌러야 닫힙니다.
-- **드래그로 순서 변경:** 아무 할당량 카드나 잡고 위아래로 드래그하면 순서를 바꿀 수 있습니다. 배치는 모든 테마에서 공유되며 다시 시작해도 유지됩니다.
+- **드래그로 순서 변경:** 아무 할당량 카드나 잡고 위아래로 드래그하면 순서를 바꿀 수 있습니다. 배치는 할당량 카드가 있는 모든 테마(World Cup 2026 제외)에서 공유되며 다시 시작해도 유지됩니다.
 - **영적 동반자:** 작은 흰색 애니메이션 실루엣이 사용률 옆에 표시됩니다. Claude에는 불사조, Codex에는 용, Antigravity에는 사자가 함께하며 각자 해당 도구의 token 소모 속도가 올라갈수록 동작도 더 빨라집니다.
 - **자동 현지화:** UI 텍스트는 번체 중국어, 간체 중국어, 영어, 일본어, 한국어로 제공되며 시스템 설정에 맞춰 자동으로 전환됩니다.
 
@@ -120,12 +122,16 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 UI에서 직접 **10가지 시각 테마**를 전환하세요.
 
 <p align="center">
+  <img src="docs/classic.en.png" width="32%" alt="Classic 테마" />
   <img src="docs/matrix.en.png" width="32%" alt="Matrix 테마" />
   <img src="docs/win95.en.png" width="32%" alt="Windows 95 테마" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD 테마" />
   <img src="docs/newspaper.en.png" width="32%" alt="Newspaper 테마" />
+  <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observation 테마" />
   <img src="docs/aquarium.en.png" width="32%" alt="Aquarium 테마" />
+  <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcade 테마" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole 테마" />
+  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD 테마" />
+  <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera 테마" />
 </p>
 
 ## 문제 해결
@@ -160,6 +166,12 @@ UI에서 직접 **10가지 시각 테마**를 전환하세요.
 | Token 낭비 상태 점검 | ✅ | — | — |
 | 할당량 조회 시 LLM API 호출 없음 | ✅ | ✅ | ✅ |
 | 오픈 소스 라이선스 | AGPL-3.0 | MIT | — |
+
+## 적합하지 않은 경우
+
+- 항상 터미널에서 작업하며 백그라운드에 메뉴 막대 아이콘을 띄워두고 싶지 않은 경우 — 단일 실행 CLI 도구가 더 적합합니다.
+- Claude Code, Codex, Antigravity를 사용하지 않는 경우 — `usage`가 읽어올 로컬 사용량 데이터가 없기 때문입니다.
+- Linux를 사용하는 경우 — 현재는 macOS와 Windows만 지원합니다.
 
 ## 개발
 

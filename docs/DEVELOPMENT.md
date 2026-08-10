@@ -115,11 +115,11 @@ python3 main.py
   <img src="menubar.png" alt="menu bar display" width="240">
 
 - **Click the icon to expand the popover.** It has four sections:
-  1. Two cards for Claude Code and Codex. Each shows Session and Weekly progress bars with reset countdowns.
+  1. Cards for Claude Code and Codex, plus a third Antigravity card once you've signed in to the Antigravity CLI. Each shows Session and Weekly progress bars with reset countdowns.
   2. A projects card listing the top three projects by usage. Click the button in the top-right corner to cycle between today / 7-day / monthly views.
   3. A footer card showing current rate, sync status, and today's token usage and cost estimate (Claude uses the actual `costUSD` from its log when available; Codex cost is estimated from token count × pricing table).
   4. Two buttons: "Refresh now" and "Quit".
-- **Panel**: click the **Switch Panel** button in the top-right corner to change panel styles. Nine built-in panels are available — **Classic** (clean light cards), **Matrix** (neon green digital rain), **Windows 95** (retro Win95 interface), **Newspaper** (aged newsprint), **Cloud Observation** (weather-station glass cards), **Midnight Aquarium** (deep-sea animation), **Prism Arcade** (rainbow holographic animation), **Black Hole** (rotating accretion disk), and the brand-new **World Cup 2026** — FIFA broadcast HUD with a green pitch, stick-figure players that chase and kick the ball, and bidirectional duel bars instead of standard progress bars.
+- **Panel**: click the **Switch Panel** button in the top-right corner to change panel styles. Ten built-in panels are available — **Classic** (clean light cards), **Matrix** (neon green digital rain), **Windows 95** (retro Win95 interface), **Newspaper** (aged newsprint), **Cloud Observation** (weather-station glass cards), **Midnight Aquarium** (deep-sea animation), **Prism Arcade** (rainbow holographic animation), **Black Hole** (rotating accretion disk), **World Cup 2026** — FIFA broadcast HUD with a green pitch, stick-figure players that chase and kick the ball, and bidirectional duel bars instead of standard progress bars — and **Lepidoptera**, a blueprint-style butterfly specimen board with drifting wing animations. World Cup 2026 is Claude-vs-Codex only and has no Antigravity card or drag-to-reorder.
 
   <p align="center">
     <img src="matrix.en.png" alt="matrix panel" width="220">
@@ -261,7 +261,7 @@ USAGE_LANG=zh-CN python3 main.py   # Simplified Chinese
 
 ## Behaviour notes
 
-- usage only reads `~/.claude/usage-status.json`, the v0.1.x legacy `~/.claude/usag-status.json`, `~/.claude/tt-status.json`, and Codex's session files. It does not call the Anthropic / OpenAI API and does not read the Keychain. Network activity is limited to two things: (a) a one-time download of the LiteLLM pricing table for Codex cost estimates (cached for 7 days; offline fallback available); (b) starting in v0.11.0, an at-most-daily ping to the GitHub Releases API to check for new versions (toggleable from the "Switch Panel" menu).
+- usage reads `~/.claude/usage-status.json`, the v0.1.x legacy `~/.claude/usag-status.json`, `~/.claude/tt-status.json`, and Codex's session files locally, and never calls the Anthropic or OpenAI LLM APIs to do it. Network activity beyond that: (a) if you use Antigravity, its quota comes from Google's official quota endpoint using the OAuth credential the Antigravity CLI already stores — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version — a metadata call that doesn't consume model quota; (b) public Claude and Codex Statuspage.io pages to flag outages; (c) a one-time download of the LiteLLM pricing table for cost estimates (cached for 7 days; offline fallback available); (d) starting in v0.11.0, an at-most-daily ping to the GitHub Releases API to check for new versions (toggleable from the "Switch Panel" menu).
 - When Claude Code isn't running, the status file isn't updated — but actual usage isn't changing either (until reset time), so the displayed value is still accurate. After reset time passes, it auto-resets to zero.
 - If the status file hasn't been updated for more than 6 hours, the status message shows `⚠ usage stale Nm` (where N is the actual minute count) to flag potentially out-of-date numbers.
 
