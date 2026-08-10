@@ -14,6 +14,8 @@ from typing import TYPE_CHECKING, Any
 if TYPE_CHECKING:
     from menubar_state import PopoverState, QuotaRowState
 
+CORE_SCRIPT_FILENAME = "panels/panel_core.js"
+
 
 def resolve_resource(name: str) -> str:
     resource_root = os.environ.get("RESOURCEPATH")
@@ -60,8 +62,14 @@ def _load_panel_html(filename: str) -> str:
     return (
         html.replace("{{CLAUDE_ICON}}", _data_uri("claude.webp"))
         .replace("{{CODEX_ICON}}", _data_uri("codex.webp"))
+        .replace("{{CORE_SCRIPT}}", _load_core_script())
         .replace("{{I18N_BUNDLE}}", json.dumps(_load_i18n_bundle(), ensure_ascii=False))
     )
+
+
+@lru_cache(maxsize=1)
+def _load_core_script() -> str:
+    return Path(resolve_resource(CORE_SCRIPT_FILENAME)).read_text(encoding="utf-8")
 
 
 @lru_cache(maxsize=1)

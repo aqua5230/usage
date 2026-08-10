@@ -23,6 +23,18 @@ from panels.dynamic_height import CONTENT_HEIGHT_SCRIPT
 from panels.web_panel import HTMLPanel
 from panels.window_drag import WINDOW_DRAG_SCRIPT
 
+CARD_PANEL_FILENAMES = (
+    "aquarium.html",
+    "black_hole.html",
+    "classic.html",
+    "cloud_observation.html",
+    "lepidoptera.html",
+    "matrix.html",
+    "newspaper.html",
+    "prism_arcade.html",
+    "win95.html",
+)
+
 
 class FakeDefaults:
     def __init__(self) -> None:
@@ -113,40 +125,43 @@ def test_html_panels_place_analyze_and_cli_in_project_header() -> None:
 
 
 def test_html_panel_rows_are_initialized_once() -> None:
-    panel_dir = Path(__file__).resolve().parent.parent / "assets" / "panels"
+    from panels.payload import _load_panel_html
 
-    for panel_path in sorted(panel_dir.glob("*.html")):
-        html = panel_path.read_text(encoding="utf-8")
-        if "function renderRow(" not in html:
-            continue
-
-        assert 'el.dataset.rowReady !== "true"' in html, panel_path.name
-        assert 'el.dataset.rowReady = "true"' in html, panel_path.name
+    for filename in CARD_PANEL_FILENAMES:
+        html = _load_panel_html(filename)
+        assert 'el.dataset.rowReady !== "true"' in html, filename
+        assert 'el.dataset.rowReady = "true"' in html, filename
 
 
 def test_quota_panels_hide_absent_codex_rows_with_dom_api() -> None:
-    panel_dir = Path(__file__).resolve().parent.parent / "assets" / "panels"
-    quota_panels = [
-        path for path in sorted(panel_dir.glob("*.html"))
-        if "function renderRow(" in path.read_text(encoding="utf-8")
-    ]
+    from panels.payload import _load_panel_html
 
-    assert len(quota_panels) == 9
-    for panel_path in quota_panels:
-        html = panel_path.read_text(encoding="utf-8")
-        assert 'el.hidden = card === "codex" && !row;' in html, panel_path.name
+    for filename in CARD_PANEL_FILENAMES:
+        html = _load_panel_html(filename)
+        assert 'el.hidden = card === "codex" && !row;' in html, filename
 
 
 def test_classic_panel_renders_codex_credits_with_dom_api() -> None:
-    panel_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / "classic.html"
+    core_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / "panel_core.js"
+    core_script = core_path.read_text(encoding="utf-8")
+
+    assert "function renderCodexCredits(credits)" in core_script
+    assert 'document.createElement("div")' in core_script
+    assert "if (!credits)" in core_script
+    assert "existing.remove()" in core_script
+    assert 't("codex_credits_unlimited")' in core_script
+    assert 't("codex_credits", { balance: credits.balance || "--" })' in core_script
+
+
+@pytest.mark.parametrize("filename", CARD_PANEL_FILENAMES)
+def test_card_panels_use_shared_core_script(filename: str) -> None:
+    panel_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / filename
     html = panel_path.read_text(encoding="utf-8")
 
-    assert "function renderCodexCredits(credits)" in html
-    assert 'document.createElement("div")' in html
-    assert "if (!credits)" in html
-    assert "existing.remove()" in html
-    assert 't("codex_credits_unlimited")' in html
-    assert 't("codex_credits", { balance: credits.balance || "--" })' in html
+    assert html.count("{{CORE_SCRIPT}}") == 1
+    assert "function renderRow(" not in html
+    assert "function usageApplyState(" not in html
+    assert "function renderCodexStale(" not in html
 
 
 def test_state_payload_omits_codex_rows_with_empty_titles(
@@ -215,23 +230,26 @@ def test_load_panel_html_caches_assembled_markup(monkeypatch: pytest.MonkeyPatch
     import panels.payload as payload
 
     reads: list[str] = []
-    panel_html = "{{CLAUDE_ICON}} {{CODEX_ICON}} {{I18N_BUNDLE}}"
+    panel_html = "{{CLAUDE_ICON}} {{CODEX_ICON}} {{CORE_SCRIPT}}"
+    core_script = "{{I18N_BUNDLE}}"
 
     def read_text(self: Path, *, encoding: str) -> str:
         reads.append(str(self))
-        return panel_html
+        return core_script if self.name == "panel_core.js" else panel_html
 
     monkeypatch.setattr(payload, "resolve_resource", lambda name: f"/tmp/{name}")
     monkeypatch.setattr(Path, "read_text", read_text)
     monkeypatch.setattr(payload, "_data_uri", lambda name: f"data:{name}")
     monkeypatch.setattr(payload, "_load_i18n_bundle", lambda: {"en": {"title": "Usage"}})
     payload._load_panel_html.cache_clear()
+    payload._load_core_script.cache_clear()
 
     try:
         assert payload._load_panel_html("classic.html") == payload._load_panel_html("classic.html")
-        assert reads == ["/tmp/panels/classic.html"]
+        assert reads == ["/tmp/panels/classic.html", "/tmp/panels/panel_core.js"]
     finally:
         payload._load_panel_html.cache_clear()
+        payload._load_core_script.cache_clear()
 
 
 def test_html_panel_requires_explicit_card_heights() -> None:

@@ -235,14 +235,36 @@ def test_load_year_data_cached_rebuilds_schema_mismatch(
 
 
 def test_html_panels_expose_analyze_action() -> None:
+    import panels.payload as payload
+
     panels_dir = ROOT / "assets" / "panels"
+    # Card-based panels (aquarium/black_hole/classic/cloud_observation/lepidoptera/
+    # matrix/newspaper/prism_arcade/win95) share their data-binding logic via
+    # panel_core.js, injected at load time through {{CORE_SCRIPT}}; their raw
+    # source no longer contains these strings directly, so those must be checked
+    # against the resolved (placeholder-substituted) markup instead.
+    card_panel_filenames = {
+        "aquarium.html",
+        "black_hole.html",
+        "classic.html",
+        "cloud_observation.html",
+        "lepidoptera.html",
+        "matrix.html",
+        "newspaper.html",
+        "prism_arcade.html",
+        "win95.html",
+    }
 
     for path in panels_dir.glob("*.html"):
         # talent_market is a non-quota marketplace panel; it has no analyze/CLI
         # affordances, only talent-pack/role actions.
         if path.name == "talent_market.html":
             continue
-        html = path.read_text(encoding="utf-8")
+        html = (
+            payload._load_panel_html(path.name)
+            if path.name in card_panel_filenames
+            else path.read_text(encoding="utf-8")
+        )
         assert 'data-action="analyze"' in html, path.name
         assert 'data-i18n="analyze_usage"' in html, path.name
         assert "analyze_all" not in html, path.name

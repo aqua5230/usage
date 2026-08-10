@@ -1032,7 +1032,11 @@ def popover_dimensions(
     )
     codex_credits_extra = (
         24.0
-        if active_panel.id == "classic" and state.codex_credits is not None and not state.hide_codex
+        if (
+            active_panel.codex_card_height > 0
+            and state.codex_credits is not None
+            and not state.hide_codex
+        )
         else 0.0
     )
     service_alert_height = getattr(active_panel, "service_alert_height", 0.0)

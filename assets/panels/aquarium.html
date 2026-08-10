@@ -480,6 +480,13 @@
       display: none;
     }
 
+    .codex-credits {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
     .codex-stale-info {
       position: relative;
       display: inline-flex;
@@ -747,6 +754,13 @@
           <div class="header-copy">
             <h1 data-i18n="codex_name">Codex</h1>
           </div>
+          <div class="codex-stale" data-codex-stale hidden>
+            <span aria-hidden="true">⚠</span>
+            <span data-codex-stale-age></span>
+            <span class="codex-stale-info" aria-hidden="true">ⓘ
+              <span class="codex-stale-tooltip" data-codex-stale-tooltip></span>
+            </span>
+          </div>
         </header>
         <div class="row" data-row="session"></div>
         <div class="row" data-row="weekly"></div>
@@ -776,6 +790,13 @@
           <div class="header-copy">
             <h1 data-i18n="projects_title">Project Usage</h1>
           </div>
+          <div class="codex-stale" data-history-error hidden>
+            <span aria-hidden="true">⚠</span>
+            <span data-history-error-text></span>
+            <span class="codex-stale-info" aria-hidden="true">ⓘ
+              <span class="codex-stale-tooltip" data-history-error-tooltip></span>
+            </span>
+          </div>
           <button class="range-chip" data-action="toggle-project-range">Today</button>
           <button class="range-chip" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
           <button class="range-chip" data-action="toggle-statusline" data-i18n="cli">CLI</button>
@@ -800,350 +821,36 @@
     </main>
   </div>
 
-  <script type="application/json" id="i18n-data">{{I18N_BUNDLE}}</script>
   <script>
-    function loadI18nBundle() {
-      const fallback = {
-        en: {
-          claude_name: "Claude Code",
-          codex_name: "Codex",
-          projects_title: "Project Usage",
-          switch_panel: "Switch Panel",
-          refresh_now: "Refresh",
-          install_hook: "Install Hook",
-          quit: "Quit",
-          project_range_1d: "Today",
-          project_range_7d: "7 Days",
-          project_range_30d: "Month",
-          session_label: "Session",
-          weekly_label: "Weekly",
-          projects_empty: "No records",
-          reset_placeholder: "Resets in --",
-          rate_text: "Rate: {value}",
-          status_text: "Status: {value}",
-          today_text: "Today: ${cost} ({tokens} tokens)",
-        },
-      };
-      const node = document.getElementById("i18n-data");
-      const raw = node ? node.textContent.trim() : "";
-      if (!raw || raw.startsWith("{{")) return fallback;
-      try {
-        return JSON.parse(raw);
-      } catch (_error) {
-        return fallback;
-      }
-    }
-
-    const I18N = loadI18nBundle();
-    const FALLBACK_LANGUAGE = "en";
-    const root = document.documentElement;
-    let currentLanguage = "en";
-    let projectRange = "1d";
-    let latestState = null;
-
-    function languageTable(language) {
-      return I18N[language] || I18N[FALLBACK_LANGUAGE] || {};
-    }
-
-    function t(key, params = {}) {
-      const template = languageTable(currentLanguage)[key] || languageTable(FALLBACK_LANGUAGE)[key] || key;
-      return template.replace(/\{(\w+)\}/g, (_, name) => `${params[name] ?? ""}`);
-    }
-
-    function labels() {
-      return {
-        session: t("session_label"),
-        weekly: t("weekly_label"),
-      };
-    }
-
-    function projectRangeLabel(range) {
-      if (range === "7d") return t("project_range_7d");
-      if (range === "30d") return t("project_range_30d");
-      if (range === "all") return t("project_range_all");
-      return t("project_range_1d");
-    }
-
-    function applyStaticText() {
-      document.documentElement.lang = currentLanguage === "zh-TW" ? "zh-Hant" : currentLanguage;
-      document.querySelectorAll("[data-i18n]").forEach((node) => {
-        const key = node.dataset.i18n;
-        if (key) node.textContent = t(key);
-      });
-      const rangeButton = document.querySelector('[data-action="toggle-project-range"]');
-      if (rangeButton) rangeButton.textContent = projectRangeLabel(projectRange);
-    }
-
-    window.usageSetLanguage = function usageSetLanguage(language) {
-      currentLanguage = I18N[language] ? language : FALLBACK_LANGUAGE;
-      applyStaticText();
-      if (latestState) {
-        window.usageApplyState({ ...latestState, language: currentLanguage });
-      }
+    window.PanelHooks = {
+      applyFillVisual(fillEl, { available, percent, color }) {
+        fillEl.style.width = available ? `${Math.max(0, Math.min(100, percent))}%` : "0%";
+        fillEl.style.background = color;
+      },
+      renderProjectRow(project, index) {
+        const row = document.createElement("div");
+        const topline = document.createElement("div");
+        const rank = document.createElement("span");
+        const name = document.createElement("span");
+        const tokens = document.createElement("span");
+        const cost = document.createElement("span");
+        row.className = "proj-row";
+        topline.className = "proj-topline";
+        rank.className = "proj-rank";
+        name.className = "proj-name";
+        tokens.className = "proj-tokens";
+        cost.className = "proj-cost";
+        rank.textContent = `${index + 1}`;
+        name.textContent = project.name || "";
+        tokens.textContent = project.tokensText || "";
+        cost.textContent = project.costText || "";
+        topline.append(rank, name);
+        row.append(topline, tokens, cost);
+        return row;
+      },
+      switchButtonStrategy() {},
+      pointerdownExcludeSelector: "button, a, .codex-stale-info, .stale-info",
     };
-
-    function cssVar(name) {
-      return getComputedStyle(root).getPropertyValue(name).trim();
-    }
-
-    function colorFor(percent, fallback) {
-      if (typeof percent !== "number") return fallback;
-      if (percent >= 80) return cssVar("--danger");
-      if (percent >= 50) return cssVar("--warn");
-      return fallback;
-    }
-
-    function renderRow(card, key, row) {
-      const el = document.querySelector(`[data-card="${card}"] [data-row="${key}"]`);
-      if (!el) return;
-      el.hidden = card === "codex" && !row;
-      if (el.hidden) return;
-      const cardEl = el.closest(".card");
-      if (!cardEl) return;
-      const data = row || {
-        percent: null,
-        percentText: "--",
-        resetText: t("reset_placeholder"),
-        warning: false,
-        available: false,
-      };
-      const available = data.available === true && typeof data.percent === "number";
-      const accent = getComputedStyle(cardEl).getPropertyValue("--accent").trim();
-      const color = colorFor(data.percent, accent);
-      el.dataset.available = available ? "true" : "false";
-      if (el.dataset.rowReady !== "true") {
-        el.innerHTML = `
-          <div class="row-head">
-            <div class="row-title"></div>
-            <div class="percent"></div>
-          </div>
-          <div class="track"><div class="fill"></div></div>
-          <div class="reset"></div>
-        `;
-        el.dataset.rowReady = "true";
-      }
-      const title = el.querySelector(".row-title");
-      const percent = el.querySelector(".percent");
-      const reset = el.querySelector(".reset");
-      const fill = el.querySelector(".fill");
-      if (!title || !percent || !reset || !fill) return;
-      title.textContent = data.title != null ? data.title : labels()[key];
-      percent.textContent = data.percentText || "--";
-      reset.textContent = data.resetText || t("reset_placeholder");
-      reset.dataset.warning = data.warning === true ? "true" : "false";
-      percent.style.color = available ? color : "";
-      fill.style.width = available ? `${Math.max(0, Math.min(100, data.percent))}%` : "0%";
-      fill.style.background = color;
-    }
-
-    function applyCard(name, rows) {
-      renderRow(name, "session", rows && rows.session);
-      renderRow(name, "weekly", rows && rows.weekly);
-    }
-
-    function renderAgy(agy) {
-      applyCard("agy", agy);
-      const staleEl = document.querySelector("[data-agy-stale]");
-      const ageEl = document.querySelector("[data-agy-stale-age]");
-      const tooltipEl = document.querySelector("[data-agy-stale-tooltip]");
-      if (!staleEl || !ageEl || !tooltipEl) return;
-      if (agy && agy.stale && agy.stale.ageText) {
-        ageEl.textContent = agy.stale.ageText;
-        tooltipEl.textContent = t("agy_stale_tooltip");
-        staleEl.hidden = false;
-        return;
-      }
-      ageEl.textContent = "";
-      tooltipEl.textContent = "";
-      staleEl.hidden = true;
-    }
-
-    function projectMarkup(project, index) {
-      const row = document.createElement("div");
-      const topline = document.createElement("div");
-      const rank = document.createElement("span");
-      const name = document.createElement("span");
-      const tokens = document.createElement("span");
-      const cost = document.createElement("span");
-      row.className = "proj-row";
-      topline.className = "proj-topline";
-      rank.className = "proj-rank";
-      name.className = "proj-name";
-      tokens.className = "proj-tokens";
-      cost.className = "proj-cost";
-      rank.textContent = `${index + 1}`;
-      name.textContent = project.name || "";
-      tokens.textContent = project.tokensText || "";
-      cost.textContent = project.costText || "";
-      topline.append(rank, name);
-      row.append(topline, tokens, cost);
-      return row;
-    }
-
-    function renderProjects(projects) {
-      const list = document.querySelector("[data-project-list]");
-      if (!list) return;
-      list.replaceChildren();
-      const items = (projects || []).slice(0, 3);
-      if (items.length === 0) {
-        const empty = document.createElement("div");
-        empty.className = "empty-state";
-        empty.textContent = t("projects_empty");
-        list.append(empty);
-        return;
-      }
-      items.forEach((project, index) => {
-        const row = projectMarkup(project, index);
-        list.append(row);
-      });
-    }
-
-    function applyFooter(footer) {
-      const rate = document.querySelector('[data-footer="rate"]');
-      const status = document.querySelector('[data-footer="status"]');
-      const today = document.querySelector('[data-footer="today"]');
-      const serviceAlerts = document.querySelector('[data-footer="service-alerts"]');
-      const install = document.querySelector('[data-action="install"]');
-      if (rate) rate.textContent = footer.rate || t("rate_text", { value: "--" });
-      if (status) status.textContent = footer.status || t("status_text", { value: "--" });
-      if (today) today.textContent = footer.today || t("today_text", { cost: "0.00", tokens: "0" });
-      if (serviceAlerts) {
-        const alerts = footer.serviceAlerts || [];
-        serviceAlerts.replaceChildren(...alerts.slice(0, 2).map((alert) => {
-          const item = document.createElement("div");
-          item.className = "service-alert";
-          item.textContent = alert;
-          return item;
-        }));
-        serviceAlerts.hidden = alerts.length === 0;
-      }
-      if (install) install.dataset.visible = footer.showInstall === true ? "true" : "false";
-    }
-
-
-
-
-
-    function renderStatusline(statusline) {
-      const data = statusline || {};
-      const button = document.querySelector('[data-action="toggle-statusline"]');
-      if (button) {
-        const enabled = data.enabled === true;
-        button.dataset.active = enabled ? "true" : "false";
-        button.textContent = enabled ? t("cli_enabled") : t("cli_disabled");
-      }
-    }
-
-    const QUOTA_CARD_IDS = ["claude", "codex", "agy"];
-
-    function applyCardOrder(order) {
-      if (cardDrag && cardDrag.dragging) return;
-      if (!Array.isArray(order) || order.length !== QUOTA_CARD_IDS.length || new Set(order).size !== QUOTA_CARD_IDS.length || !order.every((id) => QUOTA_CARD_IDS.includes(id))) return;
-      const wrap = document.querySelector("main.wrap");
-      const projects = document.querySelector('[data-card="projects"]');
-      if (!wrap || !projects) return;
-      const currentOrder = [...wrap.querySelectorAll(':scope > [data-card]')]
-        .filter((card) => QUOTA_CARD_IDS.includes(card.dataset.card))
-        .map((card) => card.dataset.card);
-      if (order.every((id, index) => currentOrder[index] === id)) return;
-      order.forEach((id) => {
-        const card = document.querySelector(`[data-card="${id}"]`);
-        if (card) wrap.insertBefore(card, projects);
-      });
-    }
-
-    window.usageApplyState = function usageApplyState(state) {
-      document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
-      document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
-      document.documentElement.classList.toggle('hide-agy', !!state.hideAgy);
-      applyCardOrder(state.cardOrder);
-      currentLanguage = I18N[state.language] ? state.language : currentLanguage;
-      applyStaticText();
-      applyCard("claude", state.claude);
-      applyCard("codex", state.codex);
-      renderAgy(state.agy);
-      latestState = state;
-      renderProjects(
-        projectRange === "1d" ? state.projects
-        : projectRange === "7d" ? state.projects7d
-        : projectRange === "30d" ? state.projects30d
-        : projectRange === "all" ? state.projectsAll
-        : state.projects
-      );
-      renderStatusline(state.statusline || {});
-      applyFooter(state.footer || {});
-    };
-
-    document.addEventListener("click", (event) => {
-      const button = event.target.closest("[data-action]");
-      if (!button) return;
-      if (button.dataset.action === "toggle-project-range") {
-        projectRange = projectRange === "1d" ? "7d" : projectRange === "7d" ? "30d" : projectRange === "30d" ? "all" : "1d";
-        button.textContent = projectRangeLabel(projectRange);
-        if (latestState) {
-          renderProjects(
-            projectRange === "1d" ? latestState.projects
-            : projectRange === "7d" ? latestState.projects7d
-            : projectRange === "30d" ? latestState.projects30d
-            : projectRange === "all" ? latestState.projectsAll
-            : latestState.projects
-          );
-        }
-        return;
-      }
-      const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
-      if (bridge && typeof bridge.postMessage === "function") {
-        bridge.postMessage(button.dataset.action);
-      }
-    });
-
-    let cardDrag = null;
-
-    document.addEventListener("pointerdown", (event) => {
-      const card = event.target.closest('[data-card="claude"], [data-card="codex"], [data-card="agy"]');
-      if (!card || event.button !== 0 || event.target.closest("button, a, .codex-stale-info")) return;
-      cardDrag = { card, pointerId: event.pointerId, startY: event.clientY, dragging: false };
-      card.setPointerCapture(event.pointerId);
-    });
-
-    document.addEventListener("pointermove", (event) => {
-      if (!cardDrag || event.pointerId !== cardDrag.pointerId) return;
-      if (!cardDrag.dragging) {
-        if (Math.abs(event.clientY - cardDrag.startY) <= 4) return;
-        cardDrag.dragging = true;
-        cardDrag.card.classList.add("is-dragging");
-        document.documentElement.classList.add("is-card-dragging");
-      }
-      event.preventDefault();
-      const cards = [...document.querySelectorAll('[data-card="claude"], [data-card="codex"], [data-card="agy"]')]
-        .filter((card) => card.offsetParent !== null);
-      const target = cards.find((card) => card !== cardDrag.card && event.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2);
-      if (target) target.parentElement.insertBefore(cardDrag.card, target);
-      else {
-        const projects = document.querySelector('[data-card="projects"]');
-        if (projects) projects.parentElement.insertBefore(cardDrag.card, projects);
-      }
-    });
-
-    function finishCardDrag(event) {
-      if (!cardDrag || event.pointerId !== cardDrag.pointerId) return;
-      const { card, dragging } = cardDrag;
-      if (card.hasPointerCapture(event.pointerId)) card.releasePointerCapture(event.pointerId);
-      card.classList.remove("is-dragging");
-      document.documentElement.classList.remove("is-card-dragging");
-      cardDrag = null;
-      if (!dragging) return;
-      const order = [...document.querySelectorAll('main.wrap > [data-card]')]
-        .filter((item) => QUOTA_CARD_IDS.includes(item.dataset.card))
-        .map((item) => item.dataset.card);
-      const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
-      if (bridge && typeof bridge.postMessage === "function") {
-        bridge.postMessage(JSON.stringify({ action: "set_card_order", order }));
-      }
-    }
-
-    document.addEventListener("pointerup", finishCardDrag);
-    document.addEventListener("pointercancel", finishCardDrag);
 
     const canvas = document.querySelector(".bubble-canvas");
     const ctx = canvas.getContext("2d");
@@ -1223,21 +930,8 @@
     window.addEventListener("resize", resizeCanvas);
     resizeCanvas();
     window.requestAnimationFrame(animate);
-
-    window.usageApplyState({
-      language: "en",
-      claude: { session: {}, weekly: {} },
-      codex: { session: {}, weekly: {} },
-      agy: { session: {}, weekly: {}, groupName: "" },
-      cardOrder: ["claude", "codex", "agy"],
-      hideAgy: true,
-      projects: [],
-      projects7d: [],
-      projects30d: [],
-      projectsAll: [],
-      statusline: {},
-      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", serviceAlerts: [], showInstall: false }
-    });
   </script>
+  <script>
+{{CORE_SCRIPT}}  </script>
 </body>
 </html>
