@@ -65,6 +65,8 @@ WINDOWS_PANELS = (
     ("black_hole", "panel_black_hole", "black_hole.html"),
     ("lepidoptera", "panel_lepidoptera", "lepidoptera.html"),
     ("world_cup", "panel_world_cup", "world_cup.html"),
+    ("stained_glass", "panel_stained_glass", "stained_glass.html"),
+    ("origami", "panel_origami", "origami.html"),
 )
 # These are only the initial-placeholder fallback used before the WebView
 # reports its real content height (see panel_height()); kept in sync with
@@ -82,6 +84,8 @@ PANEL_HEIGHTS = {
     "black_hole": 1006,
     "lepidoptera": 1046,
     "world_cup": 812,
+    "stained_glass": 1004,
+    "origami": 1004,
 }
 
 JS_SHIM = """

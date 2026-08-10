@@ -14,6 +14,7 @@ import pytest
 
 import menubar_prefs
 import menubar_state
+import panels
 import prefs
 import win_login_item
 import wintray
@@ -873,3 +874,12 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
     menu = wintray._menu(controller)  # type: ignore[arg-type]
 
     assert menu is not None
+
+
+def test_windows_panel_registry_stays_in_sync_with_macos() -> None:
+    # Regression: stained_glass and origami landed in panels/__init__.py
+    # without being added here, so Windows users couldn't select them and
+    # PANEL_HEIGHTS[panel_id] would have raised KeyError on first use.
+    mac_ids = {p for p in panels.panel_ids() if p != "talent_market"}
+    assert {panel[0] for panel in wintray.WINDOWS_PANELS} == mac_ids
+    assert set(wintray.PANEL_HEIGHTS) == mac_ids

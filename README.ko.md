@@ -62,7 +62,7 @@ Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려�
 
 ### 경험과 사용자화
 
-- **10가지 시각 테마:** Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera(blueprint)를 포함한 패널 스타일을 전환할 수 있습니다.
+- **12가지 시각 테마:** Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera(blueprint), 스테인드글라스, 종이접기를 포함한 패널 스타일을 전환할 수 있습니다.
 - **패널 자유 배치:** 패널이 더 이상 메뉴 막대 아이콘 아래에 고정되지 않습니다. 빈 공간을 드래그해 원하는 위치로 이동할 수 있으며, 다음에 열 때도 그 위치가 유지됩니다. 다른 앱으로 포커스가 이동해도 사라지지 않으며, 메뉴 막대 아이콘을 다시 클릭하거나 Esc 키를 눌러야 닫힙니다.
 - **드래그로 순서 변경:** 아무 할당량 카드나 잡고 위아래로 드래그하면 순서를 바꿀 수 있습니다. 배치는 할당량 카드가 있는 모든 테마(World Cup 2026 제외)에서 공유되며 다시 시작해도 유지됩니다.
 - **영적 동반자:** 작은 흰색 애니메이션 실루엣이 사용률 옆에 표시됩니다. Claude에는 불사조, Codex에는 용, Antigravity에는 사자가 함께하며 각자 해당 도구의 token 소모 속도가 올라갈수록 동작도 더 빨라집니다.
@@ -102,7 +102,7 @@ brew install --cask aqua5230/usage/usage
 
 Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다. 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석을 지원합니다.[최신 GitHub Release](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 내려받아 압축을 풀고 `usage.exe`를 실행하면 됩니다. 설치는 필요하지 않습니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10/11에 이미 포함되어 있습니다.
 
-시스템 트레이 아이콘은 Claude 할당량 비율에 따라 업데이트되고, 도구 설명에는 Claude와 Codex의 각 창 요약이 표시됩니다. 왼쪽 클릭하면 WebView2에서 macOS와 같은 10개 테마 패널(Classic과 나머지 9개)을 열고, 오른쪽 클릭 메뉴에서는 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인, 종료를 할 수 있습니다.
+시스템 트레이 아이콘은 Claude 할당량 비율에 따라 업데이트되고, 도구 설명에는 Claude와 Codex의 각 창 요약이 표시됩니다. 왼쪽 클릭하면 WebView2에서 macOS와 같은 12개 테마 패널(Classic과 나머지 11개)을 열고, 오른쪽 클릭 메뉴에서는 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인, 종료를 할 수 있습니다.
 
 Windows의 차이점: 패널은 트레이 아이콘 옆이 아니라 작업 영역 오른쪽 아래에 열립니다. 업데이트 알림은 시스템 Yes/No 대화 상자를 사용합니다. AI Talent Market 및 AI 원탁 토론 패널은 macOS 전용입니다.
 
@@ -119,7 +119,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 
 ## 테마 갤러리
 
-UI에서 직접 **10가지 시각 테마**를 전환하세요.
+UI에서 직접 **12가지 시각 테마**를 전환하세요.
 
 <p align="center">
   <img src="docs/classic.en.png" width="32%" alt="Classic 테마" />
