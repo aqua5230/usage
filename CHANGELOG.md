@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.24] - 2026-08-11
+
+### Added
+- **A Catppuccin panel theme.** Same blueprint layout (drafting grid, ruler-tick progress bars, drafting-paper corner marks) recolored with the official [Catppuccin](https://github.com/catppuccin/catppuccin) palette — Latte, Frappé, Macchiato, and Mocha, switchable from four swatches at the bottom of the panel. The choice is saved to preferences (not `localStorage`, which WebKit blocks under the panel's null-origin load) and applies on both macOS and the Windows tray.
+
 ## [0.29.23] - 2026-08-10
 
 ### Added

@@ -11,6 +11,8 @@ from collections.abc import Mapping
 from prefs import _load_preferences, _save_preferences
 
 DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy")
+DEFAULT_PANEL_FLAVOR = "mocha"
+PANEL_FLAVORS = ("latte", "frappe", "macchiato", "mocha")
 
 
 def _resolved_preferences(prefs: Mapping[str, object] | None = None) -> Mapping[str, object]:
@@ -35,6 +37,28 @@ def _hide_codex_enabled(prefs: Mapping[str, object] | None = None) -> bool:
 def _hide_agy_enabled(prefs: Mapping[str, object] | None = None) -> bool:
     data = _resolved_preferences(prefs)
     return data.get("hide_agy_section") is True
+
+
+def _panel_flavor(prefs: Mapping[str, object] | None = None) -> str:
+    data = _resolved_preferences(prefs)
+    flavor = _valid_panel_flavor(data.get("panel_flavor"))
+    return DEFAULT_PANEL_FLAVOR if flavor is None else flavor
+
+
+def _save_panel_flavor(flavor: object) -> bool:
+    valid_flavor = _valid_panel_flavor(flavor)
+    if valid_flavor is None:
+        return False
+    prefs = _load_preferences()
+    prefs["panel_flavor"] = valid_flavor
+    _save_preferences(prefs)
+    return True
+
+
+def _valid_panel_flavor(value: object) -> str | None:
+    if not isinstance(value, str) or value not in PANEL_FLAVORS:
+        return None
+    return value
 
 
 def _quota_card_order(prefs: Mapping[str, object] | None = None) -> tuple[str, ...]:

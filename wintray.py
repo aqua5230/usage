@@ -31,9 +31,11 @@ from menubar_prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
+    _panel_flavor,
     _quota_card_order,
     _quota_notification_thresholds,
     _quota_notifications_enabled,
+    _save_panel_flavor,
     _window_keeper_enabled,
 )
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
@@ -67,6 +69,7 @@ WINDOWS_PANELS = (
     ("world_cup", "panel_world_cup", "world_cup.html"),
     ("stained_glass", "panel_stained_glass", "stained_glass.html"),
     ("origami", "panel_origami", "origami.html"),
+    ("catppuccin", "panel_catppuccin", "catppuccin.html"),
 )
 # These are only the initial-placeholder fallback used before the WebView
 # reports its real content height (see panel_height()); kept in sync with
@@ -86,6 +89,7 @@ PANEL_HEIGHTS = {
     "world_cup": 812,
     "stained_glass": 1004,
     "origami": 1004,
+    "catppuccin": 1038,
 }
 
 JS_SHIM = """
@@ -370,7 +374,9 @@ def draw_tray_icon(used_percent: float | None) -> Image:
 
 
 def panel_html(filename: str) -> str:
-    html = inject_content_height_script(_load_panel_html(filename))
+    html = _load_panel_html(filename)
+    html = html.replace("{{PANEL_FLAVOR}}", _panel_flavor())
+    html = inject_content_height_script(html)
     marker = "<head>"
     return html.replace(marker, f"{marker}\n{JS_SHIM}", 1)
 
@@ -1164,6 +1170,8 @@ class _WindowsTrayController:
                     preferences = _load_preferences()
                     preferences["quota_card_order"] = order
                     _save_preferences(preferences)
+            elif action == "set_panel_flavor":
+                _save_panel_flavor(payload.get("flavor"))
             elif action == "switch_panel":
                 panel_id = payload.get("panel_id")
                 if isinstance(panel_id, str):

@@ -96,6 +96,28 @@ def test_bridge_saves_valid_card_order_and_ignores_invalid_input(
     assert prefs._load_preferences()["quota_card_order"] == ["agy", "claude", "codex"]
 
 
+def test_bridge_saves_valid_panel_flavor_and_ignores_invalid_input(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_file = tmp_path / "usage-preferences.json"
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_file)
+    bridge = UsageScriptBridge.alloc().init()
+
+    bridge.userContentController_didReceiveScriptMessage_(
+        None,
+        SimpleNamespace(
+            body=lambda: '{"action":"set_panel_flavor","flavor":"macchiato"}'
+        ),
+    )
+    assert prefs._load_preferences()["panel_flavor"] == "macchiato"
+
+    bridge.userContentController_didReceiveScriptMessage_(
+        None,
+        SimpleNamespace(body=lambda: '{"action":"set_panel_flavor","flavor":"latte "}'),
+    )
+    assert prefs._load_preferences()["panel_flavor"] == "macchiato"
+
+
 def test_bridge_forwards_measured_content_height() -> None:
     calls: list[tuple[object, object]] = []
     web_view = object()

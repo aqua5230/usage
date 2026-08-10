@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.29.24] - 2026-08-11
+
+### 新增
+- **新增 Catppuccin 面板主題。** 沿用工程藍圖版面（製圖網格、尺規刻度進度條、圖紙四角標記），改套官方 [Catppuccin](https://github.com/catppuccin/catppuccin) 配色——Latte、Frappé、Macchiato、Mocha 四款，可在面板底部四顆色票即時切換。選擇存進偏好設定（不是 `localStorage`，面板以 null-origin 載入，WebKit 會擋掉），macOS 與 Windows 系統匣皆支援。
+
 ## [0.29.23] - 2026-08-10
 
 ### 新增

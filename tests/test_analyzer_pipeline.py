@@ -246,6 +246,7 @@ def test_html_panels_expose_analyze_action() -> None:
     card_panel_filenames = {
         "aquarium.html",
         "black_hole.html",
+        "catppuccin.html",
         "classic.html",
         "cloud_observation.html",
         "lepidoptera.html",

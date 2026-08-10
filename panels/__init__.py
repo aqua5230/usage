@@ -159,6 +159,19 @@ def all_panels() -> tuple[Panel, ...]:
             codex_card_height=0.0,
             dynamic_height=False,
         ),
+        # 1038 = classic's 1004 + roughly 34px for the flavor swatches.
+        # This is estimated, not measured; verify clipping visually after packaging.
+        HTMLPanel(
+            "catppuccin",
+            "panel_catppuccin",
+            "catppuccin.html",
+            height=1038.0,
+            claude_card_height=192.0,
+            codex_card_height=192.0,
+            agy_card_height=192.0,
+            status_wrap_extra_height=30.0,
+            service_alert_height=32.0,
+        ),
     )
 
 

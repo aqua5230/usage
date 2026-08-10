@@ -26,6 +26,7 @@ from panels.window_drag import WINDOW_DRAG_SCRIPT
 CARD_PANEL_FILENAMES = (
     "aquarium.html",
     "black_hole.html",
+    "catppuccin.html",
     "classic.html",
     "cloud_observation.html",
     "lepidoptera.html",
@@ -70,6 +71,7 @@ def test_registered_panel_ids_are_unique() -> None:
         "lepidoptera",
         "world_cup",
         "talent_market",
+        "catppuccin",
     )
     assert len(ids) == len(set(ids))
 
@@ -91,6 +93,7 @@ def test_registered_panel_i18n_keys() -> None:
         "panel_lepidoptera",
         "panel_world_cup",
         "panel_talent_market",
+        "panel_catppuccin",
     ]
 
 
@@ -98,6 +101,26 @@ def test_classic_panel_preferred_size() -> None:
     panel = panels.get_panel("classic")
 
     assert panel.preferred_size() == (364.0, 1004.0)
+
+
+def test_catppuccin_panel_preferred_size() -> None:
+    panel = panels.get_panel("catppuccin")
+
+    assert panel.preferred_size() == (364.0, 1038.0)
+
+
+def test_catppuccin_flavor_is_resolved_after_cached_html_load(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import prefs
+    import wintray
+
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
+
+    html = wintray.panel_html("catppuccin.html")
+
+    assert "{{PANEL_FLAVOR}}" not in html
+    assert 'data-flavor="mocha"' in html
 
 
 def test_win95_panel_preferred_size() -> None:
@@ -354,10 +377,15 @@ def test_build_view_injects_content_height_script_when_enabled(
     monkeypatch.setattr(web_panel, "WKUserContentController", FakeController)
     monkeypatch.setattr(web_panel, "WebPanelView", FakeWebView)
     monkeypatch.setattr(web_panel, "UsageScriptBridge", FakeBridge)
+    monkeypatch.setattr(web_panel, "_panel_flavor", lambda: "mocha")
     monkeypatch.setattr(
         web_panel,
         "_load_panel_html",
-        lambda filename: "<body><script>window.usageApplyState = function() {};</script></body>",
+        lambda filename: (
+            '<html data-flavor="{{PANEL_FLAVOR}}"><body><script>'
+            "window.usageApplyState = function() {};"
+            "</script></body></html>"
+        ),
     )
     panel = HTMLPanel(
         "test",
@@ -372,6 +400,8 @@ def test_build_view_injects_content_height_script_when_enabled(
 
     assert (CONTENT_HEIGHT_SCRIPT in view.loaded_html) is dynamic_height
     assert WINDOW_DRAG_SCRIPT in view.loaded_html
+    assert "{{PANEL_FLAVOR}}" not in view.loaded_html
+    assert 'data-flavor="mocha"' in view.loaded_html
 
 
 def test_evaluate_javascript_completion_handler_block_signature() -> None:

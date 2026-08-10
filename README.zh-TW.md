@@ -62,7 +62,7 @@ brew install --cask aqua5230/usage/usage
 
 ### 體驗與客製化
 
-- **12 款視覺面板：** 可在 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、Lepidoptera（藍曬圖）、彩繪玻璃與摺紙之間切換。
+- **13 款視覺面板：** 可在 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、Lepidoptera（藍曬圖）、彩繪玻璃、摺紙與 Catppuccin（官方配色，四款 flavor 全支援）之間切換。
 - **面板自由擺放：** 面板不再釘在選單列圖示下方。在任何空白處按住就能拖到你想要的位置，下次打開還在原地。點到別的 App 也不會消失，要再點一次選單列圖示或按 Esc 才關。
 - **拖曳排序：** 按住任何一張額度卡上下拖曳就能交換順序，排法在所有包含額度卡的主題間共用（除 World Cup 2026 之外），重開也會記住。
 - **神獸夥伴：** 百分比旁常駐一隻小型白色動畫神獸（Claude 是鳳凰，Codex 是飛龍，Antigravity 是獅子），各自跟著自家工具的 token 燃燒率動態加速。
@@ -102,7 +102,7 @@ brew install --cask aqua5230/usage/usage
 
 Windows 可完整使用核心功能：系統匣 UI、Claude Code 狀態列 hook 與 Codex 記錄解析都原生支援。從[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下載 `usage-windows.zip`，解壓後執行 `usage.exe` 即可，無須安裝程式。系統匣 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
 
-系統匣圖示會隨 Claude 額度百分比更新；提示文字摘要 Claude 與 Codex 的各視窗。左鍵會用 WebView2 開啟與 macOS 相同的 12 款主題面板（Classic 加另外十一款）；右鍵可切換面板、重新整理、設定開機自啟、檢查更新與結束。
+系統匣圖示會隨 Claude 額度百分比更新；提示文字摘要 Claude 與 Codex 的各視窗。左鍵會用 WebView2 開啟與 macOS 相同的 13 款主題面板（Classic 加另外十二款）；右鍵可切換面板、重新整理、設定開機自啟、檢查更新與結束。
 
 Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示；更新提示使用系統 Yes/No 對話框；AI 人才市場與 AI 圓桌討論面板僅提供 macOS。
 
@@ -119,7 +119,7 @@ Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示
 
 ## 主題展示
 
-內建 **12 款可切換的視覺主題**，可直接在 UI 中切換：
+內建 **13 款可切換的視覺主題**，可直接在 UI 中切換：
 
 <p align="center">
   <img src="docs/classic.png" width="32%" alt="Classic 主題" />

@@ -80,3 +80,25 @@ def test_save_quota_card_order_ignores_invalid_values(
     assert prefs._load_preferences()["quota_card_order"] == ["agy", "claude", "codex"]
     assert menubar_prefs._save_quota_card_order(["agy", "claude", "claude"]) is False
     assert prefs._load_preferences()["quota_card_order"] == ["agy", "claude", "codex"]
+
+
+def test_panel_flavor_round_trip(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    preferences_file = tmp_path / "usage-preferences.json"
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_file)
+
+    assert menubar_prefs._panel_flavor() == "mocha"
+    assert menubar_prefs._save_panel_flavor("latte") is True
+    assert menubar_prefs._panel_flavor() == "latte"
+    assert prefs._load_preferences()["panel_flavor"] == "latte"
+
+
+@pytest.mark.parametrize("flavor", ["latte ", "LATTE", 123, None, ["mocha"]])
+def test_save_panel_flavor_rejects_invalid_values(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, flavor: object
+) -> None:
+    preferences_file = tmp_path / "usage-preferences.json"
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_file)
+
+    assert menubar_prefs._save_panel_flavor(flavor) is False
+    assert preferences_file.exists() is False
+    assert menubar_prefs._panel_flavor() == "mocha"
