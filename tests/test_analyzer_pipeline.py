@@ -239,7 +239,7 @@ def test_html_panels_expose_analyze_action() -> None:
 
     panels_dir = ROOT / "assets" / "panels"
     # Card-based panels (aquarium/black_hole/classic/cloud_observation/lepidoptera/
-    # matrix/newspaper/prism_arcade/stained_glass/win95) share their data-binding logic via
+    # matrix/newspaper/origami/prism_arcade/stained_glass/win95) share their data-binding logic via
     # panel_core.js, injected at load time through {{CORE_SCRIPT}}; their raw
     # source no longer contains these strings directly, so those must be checked
     # against the resolved (placeholder-substituted) markup instead.
@@ -251,6 +251,7 @@ def test_html_panels_expose_analyze_action() -> None:
         "lepidoptera.html",
         "matrix.html",
         "newspaper.html",
+        "origami.html",
         "prism_arcade.html",
         "stained_glass.html",
         "win95.html",
