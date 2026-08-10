@@ -876,6 +876,10 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
     assert menu is not None
 
 
+@pytest.mark.skipif(
+    sys.platform != "darwin",
+    reason="panels.panel_ids() lazily imports the PyObjC-backed HTMLPanel",
+)
 def test_windows_panel_registry_stays_in_sync_with_macos() -> None:
     # Regression: stained_glass and origami landed in panels/__init__.py
     # without being added here, so Windows users couldn't select them and
