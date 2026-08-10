@@ -32,6 +32,7 @@ CARD_PANEL_FILENAMES = (
     "matrix.html",
     "newspaper.html",
     "prism_arcade.html",
+    "stained_glass.html",
     "win95.html",
 )
 
@@ -62,6 +63,7 @@ def test_registered_panel_ids_are_unique() -> None:
         "cloud_observation",
         "aquarium",
         "prism_arcade",
+        "stained_glass",
         "black_hole",
         "lepidoptera",
         "world_cup",
@@ -81,6 +83,7 @@ def test_registered_panel_i18n_keys() -> None:
         "panel_cloud_observation",
         "panel_aquarium",
         "panel_prism_arcade",
+        "panel_stained_glass",
         "panel_black_hole",
         "panel_lepidoptera",
         "panel_world_cup",
@@ -443,8 +446,13 @@ def test_build_view_falls_back_to_error_panel_on_failure(
     # that view must satisfy the injectState_/teardown surface the controller
     # drives it with. Failing inside _load_panel_html (before the WKWebView is
     # instantiated) keeps this independent of a window server.
+    from Quartz import CGMainDisplayID
+
     import panels.web_panel as web_panel
     from panels.web_panel import ErrorPanelView
+
+    if CGMainDisplayID() == 0:
+        pytest.skip("no window server (headless) — cannot instantiate ErrorPanelView")
 
     def boom(_filename: str) -> str:
         raise RuntimeError("kaboom")
