@@ -1489,6 +1489,29 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.29.22",
+          "period": "2026-08-10",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "自訂 Codex 資料夾不再變成空白頁",
+                "zh-CN": "自定义 Codex 数据文件夹不再变成空白页",
+                "en": "Custom Codex data folders no longer look empty",
+                "ja": "自分で指定した Codex のデータフォルダが空扱いされなくなった",
+                "ko": "사용자 지정 Codex 데이터 폴더가 빈 것으로 처리되지 않는다"
+              },
+              "body": {
+                "zh-TW": "你把 Codex 資料放到另一個地方時，usage 原本可能把它當成不存在，畫面只留空白的 Codex 區塊，還不告訴你原因。問題出在 `CODEX_HOME` 環境變數（程式啟動前交給它的隱藏設定）：它本來能指定 Codex 資料夾，適合多個帳號或容器化設定，但 usage 裡讀取資料的七個入口仍死盯著預設的 `~/.codex/`。像搬家後把新住址寫在信封上，七位送件員卻全往舊址跑。現在它們先交給同一個 `codex_paths.codex_home()` 幫手確認地址；有 `CODEX_HOME` 就照它找，沒設才回到 `~/.codex/`。因此自訂資料夾的使用者能重新看到 Codex 資料。",
+                "zh-CN": "当你把 Codex 数据放到别处，usage 以前可能把它当成不存在，界面只留下空白的 Codex 区块，也不说明原因。问题出在 `CODEX_HOME` 环境变量（程序启动前交给它的隐藏设置）：它本来可以指定 Codex 数据文件夹，适合多个账号或容器化设置，但 usage 中读取数据的七个入口仍死盯着默认的 `~/.codex/`。这像搬家后把新地址写在信封上，七位投递员却全跑去旧址。现在它们先交给同一个 `codex_paths.codex_home()` 助手确认地址；设了 `CODEX_HOME` 就按它寻找，没设才回到 `~/.codex/`。因此使用自定义文件夹的人又能看到 Codex 数据。",
+                "en": "If you keep Codex data somewhere other than its default folder, usage could previously treat it as nonexistent: the Codex section appeared empty, with no explanation. The culprit was the `CODEX_HOME` environment variable, a hidden setting supplied before a program starts. It can point to a Codex data folder for multiple accounts or containerized setups, but seven places in usage that read the data were still hardcoded to `~/.codex/`. It was like moving house, updating your address, and having seven delivery drivers continue to visit the old one. They now all ask the same `codex_paths.codex_home()` helper for directions: use `CODEX_HOME` when set, otherwise fall back to `~/.codex/`. Your custom-folder data can show up again.",
+                "ja": "Codex のデータを標準以外の場所に置くと、usage は以前それを存在しないものとして扱い、理由も示さず Codex の欄を空白にしていた。原因は `CODEX_HOME` 環境変数である。これはプログラム起動前に渡す隠し設定で、複数アカウントやコンテナ化した環境では Codex のデータフォルダを指定できる。しかし usage でデータを読む七つの入口は、なお `~/.codex/` に固定されていた。引っ越して新住所を届けたのに、七人の配達員が皆まだ旧住所へ向かうようなものだった。今は全員が `codex_paths.codex_home()` に住所を確認し、`CODEX_HOME` があればそれを使い、なければ `~/.codex/` へ戻る。自分で指定したフォルダのデータも再び表示される。",
+                "ko": "Codex 데이터를 기본 위치 아닌 다른 곳에 두면, usage는 예전에는 그 데이터를 없는 것으로 여겨 이유 설명 없이 Codex 영역을 빈칸으로 남겼다. 원인은 `CODEX_HOME` 환경 변수였다. 이는 프로그램을 시작하기 전에 전달하는 숨은 설정으로, 여러 계정이나 컨테이너 환경에서 Codex 데이터 폴더를 지정할 수 있다. 하지만 usage에서 데이터를 읽는 일곱 경로는 여전히 `~/.codex/`만 고정해 보고 있었다. 이사 후 새 주소를 알렸는데 일곱 명 배달원이 모두 옛집으로 가는 셈이었다. 이제 모두 `codex_paths.codex_home()` 도우미에게 주소를 물어본다. `CODEX_HOME`이 있으면 그곳을 쓰고, 없을 때만 `~/.codex/`로 돌아간다. 직접 지정한 폴더의 Codex 데이터도 다시 표시된다."
+              },
+              "original": "**Codex data was unreadable for anyone with a custom `CODEX_HOME`.** Every path into Codex's local data (`codex_loader.py`, `adapters/codex.py`, `session_hooks.py`, `setup_hook.py`, `fsevents_watch.py`, `menubar_state.py`, `analyzer/subscription.py`) was hardcoded to `~/.codex/...`, so anyone who set the `CODEX_HOME` environment variable — multiple accounts, containerized setups — got an empty Codex section with no explanation. All of them now resolve through a single `codex_paths.codex_home()` helper that honors `CODEX_HOME` and falls back to `~/.codex/` when it's unset."
+            }
+          ]
+        },
+        {
           "version": "0.29.21",
           "period": "2026-08-09",
           "items": [
@@ -1633,29 +1656,6 @@
                 "ko": "보이지 않는 뒷단의 배선도 정리해 앞으로 같은 수정을 여러 곳에 되풀이하지 않게 했다. Claude와 Codex의 조각난 디스크 캐시(계산하거나 찾은 결과를 잠시 저장해 바로 쓰는 것)에는 같은 코드 63줄이 있었고, 직렬화, 조각 경로와 색인, 오래된 캐시 제거, 데이터 읽기와 쓰기를 공통 모듈로 옮겼다. 세 로더는 서로 다른 형식을 해석하므로 그 부분은 따로 남겼다. 공통인 시작 확인, 늦춰 쓰기, 종료 시 가능한 만큼 쓰기도 별도 모듈로 모았다. 단일 JSON 파일인 agy 캐시는 억지로 같은 모양에 넣지 않았다. 여섯 hook 판별·제거 함수도 공통 로직을 쓰되 원래 이름은 얇은 호출부로 남겼다. 동작을 바꾸지 않고 218줄을 줄였고, 죽은 상수, 쓰이지 않는 함수 둘, 고아 번역 키 13개도 지웠다. 실행 중 만들어지는 키와 외부 스크립트가 부르는 함수는 남겨 두었다. 기계실에서 공용 선은 한 묶음으로 정리하고 서로 다른 세 장비는 각자 플러그를 유지하는 것과 같다."
               },
               "original": "**Three passages of duplicated code were extracted.** The sharded disk caches for Claude and Codex history held sixty-three identical lines, and `codex_disk_cache.py` reached across to import `history_disk_cache.py`'s private serialisers and re-export them under its own `__all__` — a detour that made the real owner of that code impossible to see. Serialisation, shard paths and index, stale-cache removal and the payload read/write now live in `disk_cache_common.py`. The disk-cache lifecycle shared verbatim by all three loaders — the one-time seed check, the throttled flush and the best-effort flush on termination — moved to `disk_cache_lifecycle.py`. The loaders themselves are still three separate modules and stay that way; they parse three unrelated formats, and only the cache plumbing around them was ever the same. In `session_hooks.py`, three pairs of `_is_X_entry`/`_strip_X_hooks` differing only in a marker constant were parameterised, with the six original names kept as thin wrappers. `agy_disk_cache.py` was deliberately left out: it is a single JSON file with no sharding, and forcing it into the shared shape would have meant changing its behaviour to fit. Net 218 lines removed, with no behavioural change.\n**Dead constants, two unused functions and thirteen orphaned translation keys were removed.** The keys came from renames and from the AI-updates feature moving to its own repository. Finding them took more care than the count suggests: a plain text search over the source reported 159 orphans, of which 146 were false. Keys are frequently assembled at runtime rather than written out — `discussion.html` builds `discussion_status_round1_running` by lowercasing a `SessionStatus` value, and `ui/html_report.py` prepends `report_` to every key it looks up, so four live `report_wrapped_beast_*` entries appear nowhere in the source under their full names. `agy_loader.recent_input_output_tokens()` looks equally dead from inside this repository and was kept: its only caller is a script outside it."
-            }
-          ]
-        },
-        {
-          "version": "0.29.19",
-          "period": "2026-08-06",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Homebrew 安裝後，設定狀態列不再走錯路",
-                "zh-CN": "Homebrew 安装后，设置状态栏不再走错路",
-                "en": "Homebrew installs now point you to the right status-line setup",
-                "ja": "Homebrew版でも、ステータスラインの設定で迷わない",
-                "ko": "Homebrew 설치 후 상태 표시줄 설정에서 더는 길을 잃지 않는다"
-              },
-              "body": {
-                "zh-TW": "你用 Homebrew 安裝 Usage，卻看到「跑 `python3 main.py --setup`」時，現在不會再被帶進死巷。Homebrew（macOS 的套件安裝工具）裝的是應用程式，沒有原始碼資料夾；以前畫面下方的提示仍叫你照原始碼使用者的方式跑指令。你若翻進應用程式包裡執行 `main.py`，還會撞上看似無關的 `ImportError`，因為它必須由 py2app（把 Python 程式包成 macOS App 的工具）隨附的解譯器啟動。現在兩種提示都改指向「Set Up Status Line」按鈕，按一下就能設定顯示在終端機最底下的狀態列；直接誤跑內附的 `main.py` 時，也會明說為何不能這樣開。像買了組裝好的咖啡機，說明書不再叫你拆機找零件，而是帶你按面板上的設定鍵。",
-                "zh-CN": "你用 Homebrew 安装 Usage，却看到「运行 `python3 main.py --setup`」时，现在不会再被带进死胡同。Homebrew（macOS 的软件包安装工具）装的是应用，没有源代码文件夹；以前界面下方的提示仍叫你按源代码用户的方式运行命令。你若翻进应用程序包里执行 `main.py`，还会撞上看似无关的 `ImportError`，因为它必须由 py2app（把 Python 程序打包成 macOS App 的工具）自带的解释器启动。现在两种提示都改为指向「Set Up Status Line」按钮，点一下就能设置显示在终端机最底下的状态栏；直接误运行内附的 `main.py` 时，也会说明为何不能这样打开。像买了组装好的咖啡机，说明书不再叫你拆机找零件，而是带你按面板上的设置键。",
-                "en": "If you installed Usage through Homebrew and saw `python3 main.py --setup`, that instruction no longer sends you down a dead end. Homebrew installs an app, not a source-code folder, but the footer once gave cask users the directions meant for people who cloned the repository. Digging into the app bundle and running its `main.py` only produced a misleading `ImportError`, because it needs the interpreter packaged by py2app. Both messages now point to the “Set Up Status Line” button, which does the job in one click for every type of install. And if the bundled `main.py` is launched directly, it explains why it cannot run that way. It is like buying an assembled coffee machine: the manual now points to its setup button instead of telling you to open the casing and hunt for parts.",
-                "ja": "Homebrew で Usage を入れたのに `python3 main.py --setup` と表示されても、もう行き止まりへ誘導されない。Homebrew が入れるのはアプリであり、ソースコードのフォルダではない。しかし以前は、画面下の案内がリポジトリを複製した人向けの手順のままであった。アプリのバンドル内にある `main.py` を直接動かすと、py2app（Python プログラムを macOS App にまとめる仕組み）が同梱したインタープリタで起動すべきため、関係なさそうな `ImportError` にぶつかっていた。今はどちらの案内も「Set Up Status Line」ボタンを指し、どの導入方法でも一度の操作で端末最下部のステータスラインを設定できる。内蔵の `main.py` を直接起動した場合も、なぜ動かないかを説明して終了する。組み立て済みのコーヒーメーカーで、説明書が分解して部品を探せではなく、操作パネルの設定ボタンを押せと案内するようなものである。",
-                "ko": "Homebrew로 Usage를 설치한 뒤 `python3 main.py --setup`이라는 안내를 봐도 이제 막다른 길로 들어가지 않는다. Homebrew는 소스 코드 폴더가 아니라 앱을 설치하지만, 예전 화면 아래 안내는 저장소를 복제한 사람용 명령을 그대로 보여 주었다. 앱 번들 안의 `main.py`를 직접 실행하면 py2app(Python 프로그램을 macOS App으로 묶는 도구)가 함께 넣은 인터프리터로 시작해야 하므로, 엉뚱해 보이는 `ImportError`를 만났다. 이제 두 안내 모두 “Set Up Status Line” 버튼을 가리키며, 어떤 설치 방식이든 한 번 눌러 터미널 맨 아래 상태 표시줄을 설정할 수 있다. 내장된 `main.py`를 직접 실행해도 왜 그 방식으로는 작동하지 않는지 설명하고 끝난다. 조립된 커피 머신의 설명서가 뚜껑을 열어 부품을 찾으라 하지 않고, 조작판의 설정 버튼을 누르라고 알려 주는 것과 같다."
-              },
-              "original": "**The app told Homebrew users to run a command that cannot work.** With no status file on disk, the popover footer said `Run python3 main.py --setup and open Claude Code once` — an instruction written for people who cloned the repo. Someone who installed the cask has no repo, so the natural next move is to look inside the bundle, and `main.py` really is in there: py2app copies it to `Contents/Resources/`. Running that copy with the system `python3` dies on `ImportError: cannot import name 'packaged_resource_path' from 'i18n'`, which points at the wrong thing entirely. The modules `main.py` imports are compiled into `lib/python313.zip`, and only the bundle's own interpreter has that on `sys.path`; with the real `i18n.py` unreachable, an unrelated PyPI package also named `i18n` in the user's site-packages answers the import instead. Both footer messages now name the \"Set Up Status Line\" button, which does the same job in one click and exists in every install regardless of how it was obtained. The bundled `main.py` additionally exits with an explanation when it is started without py2app's `RESOURCEPATH`, so the dead end says what it is instead of raising. (#92, reported by @kyang-06)"
             }
           ]
         }
