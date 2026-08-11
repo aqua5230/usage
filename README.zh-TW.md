@@ -111,6 +111,8 @@ Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示
 如果你用過 Codex，它會自動讀到資料。若是 Claude Code，請點選單彈窗內的**「設定狀態列 (Set Up Status Line)」**按鈕來安裝同步 hook。
 完成後請重開相關工具（將 Claude Code 用 Cmd+Q 完全結束後重開）。
 
+同一顆按鈕在你裝了 Antigravity CLI 時，也會一併幫它設定狀態列；沒裝的話什麼都不會寫入。你自己在那邊設定過的狀態列會先備份起來，關掉開關時還原。
+
 設定完成後，Claude Code 視窗底部會出現這樣的狀態列：
 
 <p align="center">

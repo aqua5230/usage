@@ -111,6 +111,8 @@ Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托
 如果你用过 Codex，`usage` 会自动读取其历史记录。对于 Claude Code，请在应用弹出面板中点击 **“Set Up Status Line”** 按钮以安装同步 hook。
 之后重启相应工具（完全退出 Claude Code：Cmd+Q，然后重新打开）。
 
+同一颗按钮在你装了 Antigravity CLI 时，也会一并帮它设置状态栏；没装的话什么都不会写入。你自己在那边设置过的状态栏会先备份起来，关掉开关时还原。
+
 设置完成后，Claude Code 窗口底部会显示如下状态栏：
 
 <p align="center">

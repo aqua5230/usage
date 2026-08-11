@@ -5,6 +5,20 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.25] - 2026-08-11
+
+### Added
+- **The status line switch now covers the Antigravity CLI too.** The panel's single switch has always installed Claude Code's status line; it now mirrors the same quota display onto Antigravity when its CLI is installed. The hook is copied to `~/.gemini/antigravity-cli/` and runs under macOS's built-in `/usr/bin/python3`, so it stays stdlib-only and independent of the app's virtual environment. A status line you configured yourself is backed up to a sidecar file first and restored when the switch is turned off; the deployed script is deliberately left behind, because deleting it races with any CLI that is starting and would leave that session showing a status line error for its whole lifetime. A machine without the Antigravity CLI is untouched — no directory and no file is created, and the switch keeps working for Claude Code exactly as before.
+- **Startup self-healing keeps the Antigravity status line current.** Installing it only on the switch's rising edge would have hidden the feature from everyone whose switch was already on, and would have frozen the deployed script at whatever version first installed it. Self-heal now reinstalls it when it is missing and re-copies it when its bytes differ from the bundled source, both gated on the switch being on — so turning the switch off keeps it off. The Antigravity branch is isolated from the rest of self-heal and only records a log entry when the install actually succeeds.
+
+### Fixed
+- **A short burst no longer classifies you as a heavy user.** Burn-rate classification divided tokens by an elapsed span as small as one minute, so a single message's cache-creation tokens could produce a rate high enough for Heavy on their own. The minimum span is now five minutes, matching the forecast floor `burn_rate.py` already used.
+- **`pip` and `uv` installs ship the Antigravity hook.** `usage_statusline_agy` was missing from `py-modules`, so a non-bundle install could not resolve the script and the switch silently did nothing for Antigravity.
+- **Non-macOS platforms no longer touch Antigravity's settings.** The Windows tray shares the same toggle, and `~/.gemini/antigravity-cli/settings.json` expands there too, so a Windows user with the CLI would have had `/usr/bin/python3` written into their configuration. The sync is now a no-op off macOS.
+
+### Changed
+- The menu's two toggles are grouped together without the separator that used to sit between them; both are plain on/off switches, so the divider implied a distinction that does not exist.
+
 ## [0.29.24] - 2026-08-11
 
 ### Added

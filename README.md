@@ -111,6 +111,8 @@ Windows differences: the panel opens at the bottom-right of the working area rat
 If you've used Codex, `usage` picks up its history automatically. For Claude Code, click the **"Set Up Status Line"** button in the app popover to install the sync hook.
 Restart the relevant tool afterward (fully Cmd+Q Claude Code and re-open it).
 
+The same button also sets up a status line for the Antigravity CLI when it is installed on your machine, and does nothing at all when it isn't. Any status line you configured there yourself is backed up first and restored when you turn the switch off.
+
 Once set up, the bottom of the Claude Code window will show a status line like this:
 
 <p align="center">

@@ -4,6 +4,20 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.29.25] - 2026-08-11
+
+### 新增
+- **狀態列開關現在也涵蓋 Antigravity CLI。** 面板上那顆開關原本只裝 Claude Code 的狀態列，現在同一顆開關也會把相同的額度顯示裝進 Antigravity——前提是你裝了它的 CLI。hook 會複製到 `~/.gemini/antigravity-cli/`，用 macOS 內建的 `/usr/bin/python3` 執行，維持純標準函式庫、不依賴 app 的虛擬環境。你自己設定過的狀態列會先備份到 sidecar 檔案，關掉開關時還原；已部署的腳本則刻意留著不刪，因為刪除會跟正在啟動的 CLI 搶時間，害那個 session 整場顯示狀態列錯誤。沒裝 Antigravity CLI 的機器完全不受影響——不建目錄、不建檔案，開關對 Claude Code 的行為也跟以前一模一樣。
+- **啟動自癒會讓 Antigravity 狀態列保持最新。** 只在開關被按下的瞬間安裝，等於讓開關本來就開著的人完全看不到這個功能，已部署的腳本也會永遠停在初次安裝的版本。自癒現在會在它不存在時重新安裝、在它的內容與內建來源不同時重新複製，兩者都以「開關是開著的」為前提——所以你主動關掉之後，它不會自己裝回來。Antigravity 這段與自癒其他步驟互相隔離，而且只有真的安裝成功才會寫下一筆紀錄。
+
+### 修正
+- **短時間爆量不再被判成重度使用。** 燃燒速率分類會拿短到一分鐘的跨度去除 token，單一則訊息的快取建立 token 就足以自己撐出 Heavy 等級。最小跨度改為五分鐘，與 `burn_rate.py` 早就採用的預測下限一致。
+- **`pip` 與 `uv` 安裝會帶上 Antigravity hook。** `py-modules` 漏了 `usage_statusline_agy`，非打包安裝解析不到腳本，開關對 Antigravity 靜默無作用。
+- **非 macOS 平台不再碰 Antigravity 的設定。** Windows 系統匣共用同一顆開關，`~/.gemini/antigravity-cli/settings.json` 在那邊也展開得出來，裝了 CLI 的 Windows 使用者會被寫進 `/usr/bin/python3`。這段同步在 macOS 以外現在直接跳過。
+
+### 變更
+- 選單裡的兩個開關合併成同一組，拿掉中間那條分隔線；兩者同屬純 ON/OFF 切換，分隔線暗示了不存在的分類。
+
 ## [0.29.24] - 2026-08-11
 
 ### 新增
