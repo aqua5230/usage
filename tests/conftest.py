@@ -40,6 +40,17 @@ def _isolate_log_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(usage_logging, "LOG_DIR", tmp_path / "logs")
 
 
+@pytest.fixture(autouse=True)
+def _isolate_codex_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Prevent self_heal and related paths from writing a user's real ~/.codex."""
+    import setup_hook
+
+    codex_dir = tmp_path / "codex"
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_dir / "config.toml")
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_dir / "usage-backup.json")
+    monkeypatch.setattr(setup_hook, "LEGACY_CODEX_BACKUP", codex_dir / "tt-backup.json")
+
+
 @pytest.fixture
 def patch_setup_hook_paths(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path

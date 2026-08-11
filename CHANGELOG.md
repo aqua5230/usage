@@ -5,6 +5,17 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.26] - 2026-08-12
+
+### Changed
+- **Codex's status line now shows the Git branch and the session's token count.** The segment set usage writes into `~/.codex/config.toml` grew from five entries to seven, adding `git-branch` and `used-tokens`, so a session reads `usage · main · 5h 39% left · weekly 50% left · Context 95% left · 12.3K used · gpt-5.6-sol high`. Codex's status line accepts only its own built-in segments — there is no command hook like Claude Code's, which is why the wording, the colors and the ` · ` separator are Codex's own and why a progress bar or a reset countdown cannot be rendered on that side. The `5h` segment is omitted until Codex holds a rate-limit snapshot that actually contains a five-hour window.
+
+### Fixed
+- **Upgrading the segments no longer files usage's own older set as your original status line.** `_setup_codex()` backed up whatever it found before overwriting, which was correct for a status line you configured yourself but wrong for one an earlier version of usage installed: changing the segment set would have written the previous usage-installed list into `~/.codex/usage-backup.json`, and a later removal would have "restored" that instead of your real configuration — silently overwriting the only copy of it. Segment sets that usage has shipped are now recognized as its own and upgraded in place, leaving any existing backup untouched.
+- **Removing the Codex status line works on installs still holding an older segment set.** The removal path required an exact match against the current segments, so anyone who had not re-run setup was told the status line was not usage's and nothing happened. Every set usage has shipped is now accepted; the restore sequence itself is unchanged, including writing the recovered configuration before deleting the backup.
+- **The new segments apply without pressing anything.** Startup self-healing upgrades a status line that still holds a set from an earlier version of usage. It only ever matches those sets — a status line you configured yourself, and one already on the current set, are both left alone.
+- **Tests can no longer reach the real `~/.codex/config.toml`.** The self-healing path above reads that file, and no test overrode the path constant, so a full test run on a developer's machine rewrote their own Codex configuration and made an unrelated assertion about the self-heal log depend on the state of that machine. An autouse fixture now points the Codex configuration and both backup paths at a temporary directory, matching how the log directory is already isolated.
+
 ## [0.29.25] - 2026-08-11
 
 ### Added

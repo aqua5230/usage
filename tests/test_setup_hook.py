@@ -447,6 +447,49 @@ note = """
     assert '"five-hour-limit"' in content
 
 
+@pytest.mark.parametrize("backup_before", [None, b'{"status_line": ["original"]}\n'])
+def test_setup_codex_upgrades_legacy_status_line_without_changing_backup(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, backup_before: bytes | None
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_text(
+        f'[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n',
+        encoding="utf-8",
+    )
+    if backup_before is not None:
+        codex_backup.write_bytes(backup_before)
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+
+    setup_hook._setup_codex()
+
+    parsed = tomllib.loads(codex_config.read_text(encoding="utf-8"))
+    assert parsed["tui"]["status_line"] == setup_hook.CODEX_STATUS_LINE
+    if backup_before is None:
+        assert not codex_backup.exists()
+    else:
+        assert codex_backup.read_bytes() == backup_before
+
+
+def test_setup_codex_backs_up_custom_status_line(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_text('[tui]\nstatus_line = ["model"]\n', encoding="utf-8")
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+
+    setup_hook._setup_codex()
+
+    parsed = tomllib.loads(codex_config.read_text(encoding="utf-8"))
+    assert parsed["tui"]["status_line"] == setup_hook.CODEX_STATUS_LINE
+    assert json.loads(codex_backup.read_text(encoding="utf-8")) == {"status_line": ["model"]}
+
+
 def test_setup_preserves_initial_backup_on_reinstall(
     setup_paths: SetupHookPaths,
 ) -> None:
@@ -503,6 +546,30 @@ status_line = ["keep"]
     assert '[other]\nstatus_line = ["external"]' in content
     assert '[another]\nstatus_line = ["keep"]' in content
     assert "[tui]\nstatus_line" not in content
+
+
+def test_unsetup_codex_restores_backup_from_legacy_status_line(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    legacy_backup = tmp_path / ".codex" / "tt-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_text(
+        f'[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n',
+        encoding="utf-8",
+    )
+    codex_backup.write_text(json.dumps({"status_line": ["original"]}), encoding="utf-8")
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+    monkeypatch.setattr(setup_hook, "LEGACY_CODEX_BACKUP", legacy_backup)
+
+    setup_hook._unsetup_codex()
+
+    assert tomllib.loads(codex_config.read_text(encoding="utf-8"))["tui"]["status_line"] == [
+        "original"
+    ]
+    assert not codex_backup.exists()
 
 
 def test_unsetup_codex_keeps_backup_when_restore_write_fails(
@@ -624,6 +691,62 @@ def test_unsetup_codex_restores_valid_backup(
         "original"
     ]
     assert not codex_backup.exists()
+
+
+def test_is_codex_setup_recognizes_legacy_status_line(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_config.parent.mkdir()
+    codex_config.write_text(
+        f'[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+
+    assert setup_hook.is_codex_setup()
+
+
+def test_self_heal_upgrades_only_legacy_codex_status_line(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+    tmp_path: Path,
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_config.parent.mkdir()
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(session_hooks, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(session_hooks, "_load_settings", lambda: {"statusLine": {}})
+    monkeypatch.setattr(session_hooks, "_detect_current_state", lambda *_args: "us-direct")
+    monkeypatch.setattr(session_hooks, "is_setup", lambda: True)
+    monkeypatch.setattr(session_hooks, "needs_update", lambda: False)
+    monkeypatch.setattr(session_hooks, "_statusline_command_target_exists", lambda: True)
+    monkeypatch.setattr(session_hooks, "_self_heal_resume", lambda: None)
+    monkeypatch.setattr(session_hooks, "_self_heal_terse_mode", lambda: None)
+    monkeypatch.setattr(setup_hook, "AGY_SETTINGS", tmp_path / ".gemini" / "settings.json")
+    logs: list[tuple[str, str]] = []
+    monkeypatch.setattr(
+        session_hooks, "_append_self_heal_log", lambda action, detail: logs.append((action, detail))
+    )
+    codex_config.write_text(
+        f'[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n',
+        encoding="utf-8",
+    )
+
+    session_hooks.self_heal()
+
+    parsed = tomllib.loads(codex_config.read_text(encoding="utf-8"))
+    assert parsed["tui"]["status_line"] == setup_hook.CODEX_STATUS_LINE
+    assert logs == [("setup_codex", "upgraded Codex status line segments")]
+
+    codex_config.write_text('[tui]\nstatus_line = ["model"]\n', encoding="utf-8")
+    config_before = codex_config.read_bytes()
+    logs.clear()
+
+    session_hooks.self_heal()
+
+    assert codex_config.read_bytes() == config_before
+    assert logs == []
 
 
 def test_self_heal_installs_when_no_statusline(setup_paths: SetupHookPaths) -> None:

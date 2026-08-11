@@ -1122,6 +1122,24 @@ def self_heal() -> None:
         _debug_self_heal_failure("setup_agy", exc)
 
     try:
+        result = _read_codex_config() if setup_hook.CODEX_CONFIG.is_file() else None
+        if (
+            result is not None
+            and setup_hook._codex_status_line(result[1]) in setup_hook.LEGACY_CODEX_STATUS_LINES
+        ):
+            setup_hook._setup_codex()
+            result = _read_codex_config()
+            if (
+                result is not None
+                and setup_hook._codex_status_line(result[1]) == setup_hook.CODEX_STATUS_LINE
+            ):
+                _append_self_heal_log("setup_codex", "upgraded Codex status line segments")
+    except BaseException as exc:
+        if isinstance(exc, KeyboardInterrupt):
+            raise
+        _debug_self_heal_failure("setup_codex", exc)
+
+    try:
         _self_heal_resume()
     except BaseException as exc:
         if isinstance(exc, KeyboardInterrupt):

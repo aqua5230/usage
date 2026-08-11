@@ -55,10 +55,21 @@ CODEX_BACKUP = codex_home() / "usage-backup.json"
 LEGACY_CODEX_BACKUP = codex_home() / "tt-backup.json"
 CODEX_STATUS_LINE = [
     "project",
+    "git-branch",
     "five-hour-limit",
     "weekly-limit",
     "context-remaining",
+    "used-tokens",
     "model-with-reasoning",
+]
+LEGACY_CODEX_STATUS_LINES: list[list[str]] = [
+    [
+        "project",
+        "five-hour-limit",
+        "weekly-limit",
+        "context-remaining",
+        "model-with-reasoning",
+    ]
 ]
 LEGACY_NAME = "usag"
 LEGACY_HOOK_TARGET = Path(os.path.expanduser(f"~/.claude/{LEGACY_NAME}-statusline.py"))
@@ -668,6 +679,10 @@ def _codex_status_line(parsed: dict[str, Any]) -> object:
     return tui.get("status_line") if isinstance(tui, dict) else None
 
 
+def _is_our_codex_status_line(value: object) -> bool:
+    return value == CODEX_STATUS_LINE or value in LEGACY_CODEX_STATUS_LINES
+
+
 def _setup_codex() -> None:
     result = _read_codex_config()
     if not result:
@@ -681,7 +696,9 @@ def _setup_codex() -> None:
         print(_t("setup_codex_already_configured"))
         return
 
-    if old is not None:
+    if old in LEGACY_CODEX_STATUS_LINES:
+        content = _replace_tui_status_line(content, _status_line_toml(CODEX_STATUS_LINE))
+    elif old is not None:
         CODEX_BACKUP.parent.mkdir(parents=True, exist_ok=True)
         CODEX_BACKUP.write_text(
             json.dumps({"status_line": old}, indent=2, ensure_ascii=False) + "\n",
@@ -695,7 +712,7 @@ def _setup_codex() -> None:
 
     _atomic_write_text(CODEX_CONFIG, content)
     print(_t("setup_codex_configured"))
-    if old is not None:
+    if old is not None and old not in LEGACY_CODEX_STATUS_LINES:
         print(_t("setup_codex_backup_written", path=CODEX_BACKUP))
     print(_t("setup_codex_restart_required"))
 
@@ -706,7 +723,7 @@ def _unsetup_codex() -> None:
         return
     content, parsed = result
 
-    if _codex_status_line(parsed) != CODEX_STATUS_LINE:
+    if not _is_our_codex_status_line(_codex_status_line(parsed)):
         print(_t("setup_codex_unsetup_foreign"))
         return
 
@@ -771,7 +788,7 @@ def is_setup() -> bool:
         if not result:
             return False
         _, parsed = result
-        if _codex_status_line(parsed) != CODEX_STATUS_LINE:
+        if not _is_our_codex_status_line(_codex_status_line(parsed)):
             return False
 
     return True
@@ -792,7 +809,7 @@ def is_codex_setup() -> bool:
     if not result:
         return False
     _, parsed = result
-    return _codex_status_line(parsed) == CODEX_STATUS_LINE
+    return _is_our_codex_status_line(_codex_status_line(parsed))
 
 
 def _install_forwarder(settings: dict[str, Any]) -> None:
