@@ -6,24 +6,31 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
 import usage_rate
 from history_loader import UsageEntry
 
+START_TIME = datetime(2026, 1, 1, tzinfo=UTC)
 
-def _entry(total_tokens: int) -> UsageEntry:
+
+def _entry(
+    input_tokens: int,
+    *,
+    timestamp: datetime = START_TIME,
+    cache_creation_tokens: int = 0,
+) -> UsageEntry:
     return UsageEntry(
-        timestamp=datetime(2026, 1, 1, tzinfo=UTC),
+        timestamp=timestamp,
         session_id="session",
         message_id="message",
         request_id="request",
         model="claude-sonnet",
-        input_tokens=total_tokens,
+        input_tokens=input_tokens,
         output_tokens=0,
-        cache_creation_tokens=0,
+        cache_creation_tokens=cache_creation_tokens,
         cache_read_tokens=0,
         cost_usd=None,
         project="project",
@@ -73,9 +80,45 @@ def test_group_burn_rate_buckets(
     tokens: int,
     expected_group: int,
 ) -> None:
-    monkeypatch.setattr(usage_rate, "load_entries", lambda hours_back: [_entry(tokens)])
+    total_tokens = tokens * 5
+    entries = [
+        _entry(total_tokens // 2),
+        _entry(
+            total_tokens - total_tokens // 2,
+            timestamp=START_TIME + timedelta(minutes=5),
+        ),
+    ]
+    monkeypatch.setattr(usage_rate, "load_entries", lambda hours_back: entries)
 
     assert usage_rate.UsageRateTracker().group() == expected_group
+
+
+def test_group_short_cache_creation_burst_does_not_trigger_heavy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    entries = [
+        _entry(100),
+        _entry(
+            0,
+            timestamp=START_TIME + timedelta(seconds=30),
+            cache_creation_tokens=6000,
+        ),
+    ]
+    monkeypatch.setattr(usage_rate, "load_entries", lambda hours_back: entries)
+
+    assert usage_rate.UsageRateTracker().group() == 1
+
+
+def test_group_sustained_high_burn_rate_is_heavy(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    entries = [
+        _entry(21_000),
+        _entry(21_000, timestamp=START_TIME + timedelta(minutes=6)),
+    ]
+    monkeypatch.setattr(usage_rate, "load_entries", lambda hours_back: entries)
+
+    assert usage_rate.UsageRateTracker().group() == 3
 
 
 def test_group_excludes_cache_read_tokens(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -103,7 +146,7 @@ def test_group_caches_result(monkeypatch: pytest.MonkeyPatch) -> None:
     def fake_load_entries(hours_back: int) -> list[UsageEntry]:
         nonlocal calls
         calls += 1
-        return [_entry(1000)]
+        return [_entry(2500)]
 
     monkeypatch.setattr(usage_rate, "load_entries", fake_load_entries)
     tracker = usage_rate.UsageRateTracker()
@@ -114,6 +157,6 @@ def test_group_caches_result(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 def test_group_uses_custom_loader() -> None:
-    tracker = usage_rate.UsageRateTracker(load=lambda hours_back: [_entry(3000)])
+    tracker = usage_rate.UsageRateTracker(load=lambda hours_back: [_entry(12_500)])
 
     assert tracker.group() == 2

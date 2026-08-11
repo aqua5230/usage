@@ -56,7 +56,9 @@ class UsageRateTracker:
 
         active_tokens = sum(entry.active_tokens for entry in entries)
         elapsed_seconds = (entries[-1].timestamp - entries[0].timestamp).total_seconds()
-        elapsed_minutes = max(elapsed_seconds / 60.0, 1.0)
+        # Match burn_rate's 5-minute floor: a single cache-creation burst should
+        # not trigger Heavy on its own.
+        elapsed_minutes = max(elapsed_seconds / 60.0, 5.0)
         burn_rate = active_tokens / min(elapsed_minutes, 60.0)
 
         if burn_rate < BURN_RATE_THRESH_NORMAL:
