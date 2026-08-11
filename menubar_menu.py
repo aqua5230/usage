@@ -144,7 +144,8 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     )
     # Project Butler: one toggle that hands last session's progress to the next
     # one. Tooltip carries the full explanation so the menu line stays short.
-    menu.addItem_(NSMenuItem.separatorItem())
+    # Grouped with the plain switches above it — a separate section here just
+    # added a divider with no real category difference.
     menu.addItem_(
         build_menu_item(
             app.language, "project_butler", "toggleSessionResume:", target=app,
