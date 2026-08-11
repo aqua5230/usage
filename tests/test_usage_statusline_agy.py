@@ -210,6 +210,7 @@ def test_self_heal_installs_and_updates_agy_statusline(
     source.write_bytes(b"new hook\n")
     logs: list[tuple[str, str]] = []
     _patch_claude_self_heal(monkeypatch)
+    monkeypatch.setattr("setup_hook.sys.platform", "darwin")
     monkeypatch.setattr(setup_hook, "_resolve_agy_hook_source", lambda: source)
     monkeypatch.setattr(statusline_settings, "_statusline_enabled", lambda: True)
     monkeypatch.setattr(
@@ -236,6 +237,7 @@ def test_self_heal_agy_does_nothing_without_cli_settings(
     settings, target, previous = _patch_agy_paths(monkeypatch, tmp_path)
     calls: list[None] = []
     _patch_claude_self_heal(monkeypatch)
+    monkeypatch.setattr("setup_hook.sys.platform", "darwin")
     monkeypatch.setattr(statusline_settings, "_statusline_enabled", lambda: True)
 
     def setup_agy() -> bool:
@@ -260,6 +262,7 @@ def test_self_heal_agy_stays_disabled_and_failure_does_not_block_resume(
     settings.write_text("{}", encoding="utf-8")
     calls: list[str] = []
     _patch_claude_self_heal(monkeypatch)
+    monkeypatch.setattr("setup_hook.sys.platform", "darwin")
     monkeypatch.setattr(statusline_settings, "_statusline_enabled", lambda: False)
 
     def setup_agy() -> bool:
