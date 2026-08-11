@@ -10,6 +10,7 @@ import contextlib
 import json
 import os
 import shlex
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -78,6 +79,8 @@ def _sync_agy_statusline(enable: bool) -> None:
     or unwritable ~/.gemini config must never stop Claude's own status line from
     being toggled.
     """
+    if sys.platform != "darwin":
+        return
     import setup_hook
 
     with contextlib.suppress(Exception):
@@ -129,7 +132,10 @@ def _enable_statusline_settings() -> int:
 
     import setup_hook
 
-    return setup_hook.setup()
+    exit_code = setup_hook.setup()
+    if exit_code != 0 and setup_hook.is_agy_setup():
+        return 0
+    return exit_code
 
 
 def _toggle_statusline_settings() -> tuple[str, int]:
@@ -143,4 +149,12 @@ def _statusline_enabled() -> bool:
         settings = _load_claude_settings()
     except (OSError, ValueError, json.JSONDecodeError):
         return False
-    return "statusLine" in settings
+    if "statusLine" in settings:
+        return True
+    if sys.platform != "darwin":
+        return False
+    with contextlib.suppress(Exception):
+        import setup_hook
+
+        return setup_hook.is_agy_setup()
+    return False

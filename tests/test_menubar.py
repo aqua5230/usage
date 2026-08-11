@@ -906,6 +906,7 @@ def test_toggle_statusline_preserves_forwarder_settings(
     settings.write_text(json.dumps(original, indent=2, ensure_ascii=False), encoding="utf-8")
     original_text = settings.read_text(encoding="utf-8")
     monkeypatch.setattr("menubar.os.path.expanduser", lambda value: str(settings))
+    monkeypatch.setattr("setup_hook.is_agy_setup", lambda: False)
 
     action, exit_code = menubar._toggle_statusline_settings()
 
@@ -1154,8 +1155,16 @@ def test_statusline_switch_mirrors_onto_agy(
 
     monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
     monkeypatch.setattr(setup_hook, "setup", lambda: 0)
-    monkeypatch.setattr(setup_hook, "_setup_agy", lambda: calls.append("setup") or True)
-    monkeypatch.setattr(setup_hook, "_unsetup_agy", lambda: calls.append("unsetup") or True)
+    def setup_agy() -> bool:
+        calls.append("setup")
+        return True
+
+    def unsetup_agy() -> bool:
+        calls.append("unsetup")
+        return True
+
+    monkeypatch.setattr(setup_hook, "_setup_agy", setup_agy)
+    monkeypatch.setattr(setup_hook, "_unsetup_agy", unsetup_agy)
 
     assert menubar._disable_statusline_settings() == 0
     assert menubar._enable_statusline_settings() == 0

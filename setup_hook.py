@@ -119,6 +119,16 @@ def _resolve_agy_hook_source() -> Path | None:
     return next((path for path in paths if path.exists()), None)
 
 
+def _agy_hook_script_is_stale() -> bool:
+    """Return whether the deployed Antigravity hook differs from its source."""
+    source = _resolve_agy_hook_source()
+    if source is None:
+        return False
+    if not AGY_HOOK_TARGET.is_file():
+        return True
+    return AGY_HOOK_TARGET.read_bytes() != source.read_bytes()
+
+
 def _statusline_command() -> str:
     # Prefer a standalone system python, not a venv; the hook is stdlib-only.
     python = _find_system_python()

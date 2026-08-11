@@ -1107,6 +1107,21 @@ def self_heal() -> None:
         _debug_self_heal_failure("restore_hook_scripts", exc)
 
     try:
+        import statusline_settings
+
+        if (
+            setup_hook.AGY_SETTINGS.is_file()
+            and statusline_settings._statusline_enabled()
+            and (not setup_hook.is_agy_setup() or setup_hook._agy_hook_script_is_stale())
+            and setup_hook._setup_agy()
+        ):
+            _append_self_heal_log("setup_agy", "installed or updated Antigravity status line")
+    except BaseException as exc:
+        if isinstance(exc, KeyboardInterrupt):
+            raise
+        _debug_self_heal_failure("setup_agy", exc)
+
+    try:
         _self_heal_resume()
     except BaseException as exc:
         if isinstance(exc, KeyboardInterrupt):
