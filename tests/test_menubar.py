@@ -1139,6 +1139,49 @@ def test_enable_statusline_ignores_missing_previous_command(
     assert updated == {"env": {"KEEP": "1"}}
 
 
+def test_statusline_switch_mirrors_onto_agy(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    import setup_hook
+
+    settings = tmp_path / "settings.json"
+    settings.write_text(
+        json.dumps({"statusLine": {"type": "command", "command": "python3 hook.py"}}),
+        encoding="utf-8",
+    )
+    calls: list[str] = []
+
+    monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
+    monkeypatch.setattr(setup_hook, "setup", lambda: 0)
+    monkeypatch.setattr(setup_hook, "_setup_agy", lambda: calls.append("setup") or True)
+    monkeypatch.setattr(setup_hook, "_unsetup_agy", lambda: calls.append("unsetup") or True)
+
+    assert menubar._disable_statusline_settings() == 0
+    assert menubar._enable_statusline_settings() == 0
+    assert calls == ["unsetup", "setup"]
+
+
+def test_statusline_switch_survives_agy_failure(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """A broken ~/.gemini config must not block Claude's own status line."""
+    import setup_hook
+
+    settings = tmp_path / "settings.json"
+    settings.write_text(json.dumps({"env": {"KEEP": "1"}}), encoding="utf-8")
+
+    def explode() -> bool:
+        raise OSError("~/.gemini is unreadable")
+
+    monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
+    monkeypatch.setattr(setup_hook, "setup", lambda: 0)
+    monkeypatch.setattr(setup_hook, "_setup_agy", explode)
+
+    assert menubar._enable_statusline_settings() == 0
+
+
 def test_error_state_uses_message_and_mock_today_title() -> None:
     state = menubar._error_state("boom", mock=True, language="zh-TW")
 

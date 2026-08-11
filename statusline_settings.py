@@ -71,7 +71,24 @@ def _set_forwarder_mode_prompt_dismissed() -> None:
     setup_hook._save_settings(settings)
 
 
+def _sync_agy_statusline(enable: bool) -> None:
+    """Mirror the switch onto Antigravity's status line when its CLI is installed.
+
+    Antigravity is a side effect of the one switch the panel shows, so a missing
+    or unwritable ~/.gemini config must never stop Claude's own status line from
+    being toggled.
+    """
+    import setup_hook
+
+    with contextlib.suppress(Exception):
+        if enable:
+            setup_hook._setup_agy()
+        else:
+            setup_hook._unsetup_agy()
+
+
 def _disable_statusline_settings() -> int:
+    _sync_agy_statusline(False)
     settings = _load_claude_settings()
     if "statusLine" not in settings:
         return 0
@@ -86,6 +103,7 @@ def _disable_statusline_settings() -> int:
 
 
 def _enable_statusline_settings() -> int:
+    _sync_agy_statusline(True)
     settings = _load_claude_settings()
     if "statusLine" in settings:
         return 0

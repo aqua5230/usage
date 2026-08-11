@@ -39,6 +39,13 @@ CLAUDE_SETTINGS = Path(os.path.expanduser("~/.claude/settings.json"))
 HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-statusline.py"))
 FORWARDER_TARGET = Path(os.path.expanduser("~/.claude/usage-statusline-forwarder.py"))
 STATUS_FILE = Path(os.path.expanduser("~/.claude/usage-status.json"))
+AGY_SETTINGS = Path(os.path.expanduser("~/.gemini/antigravity-cli/settings.json"))
+AGY_HOOK_TARGET = Path(
+    os.path.expanduser("~/.gemini/antigravity-cli/usage-statusline-agy.py")
+)
+AGY_PREVIOUS_STATUSLINE = Path(
+    os.path.expanduser("~/.gemini/antigravity-cli/usage-previous-statusline.json")
+)
 CODEX_CONFIG = codex_home() / "config.toml"
 CODEX_BACKUP = codex_home() / "usage-backup.json"
 # LEGACY_TT_* / tokenTracker / tt-* below are MIGRATION-ONLY constants for users
@@ -102,6 +109,14 @@ def _resolve_forwarder_source() -> Path:
             return path
     tried = ", ".join(str(path) for path in paths)
     raise SystemExit(_t("setup_forwarder_source_missing", tried=tried))
+
+
+def _resolve_agy_hook_source() -> Path | None:
+    paths = [
+        Path(__file__).resolve().parent / "usage_statusline_agy.py",
+        Path(sys.executable).resolve().parent.parent / "Resources" / "usage_statusline_agy.py",
+    ]
+    return next((path for path in paths if path.exists()), None)
 
 
 def _statusline_command() -> str:
@@ -402,6 +417,118 @@ def _atomic_write_text(path: Path, content: str, encoding: str = "utf-8") -> Non
 def _save_settings(data: dict[str, Any]) -> None:
     payload = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     _atomic_write_text(CLAUDE_SETTINGS, payload)
+
+
+def _agy_statusline_command() -> str:
+    return f"/usr/bin/python3 {_shell_arg(str(AGY_HOOK_TARGET))}"
+
+
+def _is_agy_usage_hook(status_line: object) -> bool:
+    if not isinstance(status_line, dict):
+        return False
+    command = status_line.get("command")
+    return isinstance(command, str) and "usage-statusline-agy.py" in command
+
+
+def _load_agy_json(path: Path) -> object | None:
+    try:
+        return cast(object, json.loads(path.read_text(encoding="utf-8")))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+
+
+def _setup_agy() -> bool:
+    """Install Antigravity's status line without creating an absent settings file."""
+    if not AGY_SETTINGS.is_file():
+        return False
+    settings = _load_agy_json(AGY_SETTINGS)
+    if not isinstance(settings, dict):
+        return False
+    source = _resolve_agy_hook_source()
+    if source is None:
+        return False
+
+    existing = settings.get("statusLine")
+    if AGY_PREVIOUS_STATUSLINE.exists():
+        if _load_agy_json(AGY_PREVIOUS_STATUSLINE) is None:
+            return False
+    elif existing is not None and not _is_agy_usage_hook(existing):
+        try:
+            _atomic_write_text(
+                AGY_PREVIOUS_STATUSLINE,
+                json.dumps(existing, indent=2, ensure_ascii=False) + "\n",
+            )
+        except OSError:
+            return False
+
+    try:
+        AGY_HOOK_TARGET.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, AGY_HOOK_TARGET)
+        AGY_HOOK_TARGET.chmod(
+            AGY_HOOK_TARGET.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+        )
+        settings["statusLine"] = {
+            "type": "command",
+            "command": _agy_statusline_command(),
+            "enabled": True,
+        }
+        _atomic_write_text(
+            AGY_SETTINGS,
+            json.dumps(settings, indent=2, ensure_ascii=False) + "\n",
+        )
+    except OSError:
+        return False
+    return True
+
+
+def _unsetup_agy() -> bool:
+    """Remove usage's Antigravity status line and restore its sidecar backup."""
+    if not AGY_SETTINGS.is_file():
+        return False
+    settings = _load_agy_json(AGY_SETTINGS)
+    if not isinstance(settings, dict):
+        return False
+    if not _is_agy_usage_hook(settings.get("statusLine")):
+        return False
+
+    previous: object | None = None
+    if AGY_PREVIOUS_STATUSLINE.exists():
+        previous = _load_agy_json(AGY_PREVIOUS_STATUSLINE)
+        if previous is None:
+            return False
+        settings["statusLine"] = previous
+    else:
+        settings.pop("statusLine", None)
+
+    try:
+        _atomic_write_text(
+            AGY_SETTINGS,
+            json.dumps(settings, indent=2, ensure_ascii=False) + "\n",
+        )
+        AGY_PREVIOUS_STATUSLINE.unlink(missing_ok=True)
+    except OSError:
+        return False
+    # AGY_HOOK_TARGET is deliberately left in place. Antigravity reads its
+    # settings once at startup, so deleting the script races with any CLI that
+    # is launching, and that session shows "Statusline Error: No such file"
+    # for its whole lifetime. An unreferenced copy costs nothing.
+    return True
+
+
+def is_agy_setup() -> bool:
+    """Return whether usage's Antigravity status line is fully installed."""
+    if not AGY_SETTINGS.is_file() or not AGY_HOOK_TARGET.is_file():
+        return False
+    settings = _load_agy_json(AGY_SETTINGS)
+    if not isinstance(settings, dict):
+        return False
+    status_line = settings.get("statusLine")
+    return (
+        isinstance(status_line, dict)
+        and status_line.get("type") == "command"
+        and status_line.get("command") == _agy_statusline_command()
+        and status_line.get("enabled") is True
+    )
 
 
 def _copy_hook_script() -> None:

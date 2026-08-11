@@ -63,6 +63,7 @@ if __name__ == "__main__":
             "i18n.json",
             "pyproject.toml",
             "usage_statusline.py",
+            "usage_statusline_agy.py",
             "usage_statusline_forwarder.py",
             "usage_session_resume.py",
             "usage_terse_mode.py",
