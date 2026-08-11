@@ -449,6 +449,8 @@ def _load_agy_json(path: Path) -> object | None:
 
 def _setup_agy() -> bool:
     """Install Antigravity's status line without creating an absent settings file."""
+    if sys.platform != "darwin":
+        return False
     if not AGY_SETTINGS.is_file():
         return False
     settings = _load_agy_json(AGY_SETTINGS)
@@ -493,6 +495,8 @@ def _setup_agy() -> bool:
 
 def _unsetup_agy() -> bool:
     """Remove usage's Antigravity status line and restore its sidecar backup."""
+    if sys.platform != "darwin":
+        return False
     if not AGY_SETTINGS.is_file():
         return False
     settings = _load_agy_json(AGY_SETTINGS)
@@ -527,6 +531,8 @@ def _unsetup_agy() -> bool:
 
 def is_agy_setup() -> bool:
     """Return whether usage's Antigravity status line is fully installed."""
+    if sys.platform != "darwin":
+        return False
     if not AGY_SETTINGS.is_file() or not AGY_HOOK_TARGET.is_file():
         return False
     settings = _load_agy_json(AGY_SETTINGS)

@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -92,6 +93,10 @@ def _patch_agy_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[P
     return settings, target, previous
 
 
+@pytest.mark.skipif(
+    sys.platform != "darwin",
+    reason="the Antigravity status line is installed on macOS only",
+)
 def test_setup_and_unsetup_agy_preserve_settings_and_restore_statusline(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -147,6 +152,24 @@ def test_setup_agy_refuses_missing_or_invalid_settings(
         assert not settings.exists()
     else:
         assert settings.read_text(encoding="utf-8") == content
+    assert not target.exists()
+    assert not previous.exists()
+
+
+def test_agy_install_paths_are_noops_off_macos(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    """self_heal calls _setup_agy directly, so the guard cannot live in its caller."""
+    settings, target, previous = _patch_agy_paths(monkeypatch, tmp_path)
+    original = json.dumps({"statusLine": {"type": "command", "command": "own.py"}})
+    settings.write_text(original, encoding="utf-8")
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+
+    assert not setup_hook._setup_agy()
+    assert not setup_hook._unsetup_agy()
+    assert not setup_hook.is_agy_setup()
+    assert settings.read_text(encoding="utf-8") == original
     assert not target.exists()
     assert not previous.exists()
 
@@ -263,6 +286,10 @@ def test_self_heal_agy_stays_disabled_and_failure_does_not_block_resume(
     assert calls == ["resume", "setup", "resume"]
 
 
+@pytest.mark.skipif(
+    sys.platform != "darwin",
+    reason="the Antigravity status line is installed on macOS only",
+)
 def test_agy_only_statusline_toggle_is_enabled_and_removable(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
