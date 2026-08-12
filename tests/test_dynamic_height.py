@@ -27,7 +27,10 @@ def test_script_wraps_state_application_and_measures_without_height_constraints(
     assert 'element.style.minHeight = "0"' in CONTENT_HEIGHT_SCRIPT
     assert "wrap.getBoundingClientRect()" in CONTENT_HEIGHT_SCRIPT
     assert 'action: "content_height"' in CONTENT_HEIGHT_SCRIPT
-    assert "requestAnimationFrame" not in CONTENT_HEIGHT_SCRIPT
+    assert "requestAnimationFrame" in CONTENT_HEIGHT_SCRIPT
+    assert "MutationObserver" in CONTENT_HEIGHT_SCRIPT
+    assert "ResizeObserver" in CONTENT_HEIGHT_SCRIPT
+    assert "requestContentHeight();" in CONTENT_HEIGHT_SCRIPT
     # Panels draw their edges with padding on whichever layer wraps .wrap, and
     # the viewport-based panels nest an extra padded .viewport in between, so
     # the whole ancestor chain has to be released and measured — assuming a

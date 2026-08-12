@@ -1967,6 +1967,68 @@ def test_load_rate_limits_picks_most_recent_valid(monkeypatch: pytest.MonkeyPatc
     assert result.updated_at == new_ts
 
 
+def test_load_rate_limits_prefers_general_limit_over_newer_model_limit(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    general = {
+        "limit_id": "codex",
+        "primary": {"used_percent": 72, "window_minutes": 10080, "resets_at": 9_999_999_999},
+        "secondary": None,
+    }
+    model_specific = {
+        "limit_id": "codex_bengalfox",
+        "primary": {"used_percent": 0, "window_minutes": 10080, "resets_at": 9_999_999_999},
+        "secondary": None,
+    }
+    _write_rate_limit_session(sessions_dir / "general.jsonl", "2026-08-12T02:24:00+00:00", general, 100)
+    _write_rate_limit_session(sessions_dir / "spark.jsonl", "2026-08-12T02:39:00+00:00", model_specific, 200)
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.limit_id == "codex"
+    assert result.seven_day_pct == 72.0
+
+
+def test_load_rate_limits_prefers_general_limit_within_same_session(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    path = sessions_dir / "mixed.jsonl"
+    general = {
+        "limit_id": "codex",
+        "primary": {"used_percent": 72, "window_minutes": 10080, "resets_at": 9_999_999_999},
+    }
+    model_specific = {
+        "limit_id": "codex_bengalfox",
+        "primary": {"used_percent": 0, "window_minutes": 10080, "resets_at": 9_999_999_999},
+    }
+    _write_session(
+        path,
+        session_id="mixed",
+        timestamp="2026-08-12T02:24:00+00:00",
+        rate_limits=general,
+        mtime=200,
+    )
+    with path.open("a", encoding="utf-8") as file:
+        file.write("\n" + json.dumps({
+            "type": "event_msg",
+            "timestamp": "2026-08-12T02:39:00+00:00",
+            "payload": {"type": "token_count", "rate_limits": model_specific},
+        }))
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.limit_id == "codex"
+    assert result.seven_day_pct == 72.0
+
+
 def test_recent_jsonl_files_sorts_visible_sessions_by_mtime(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

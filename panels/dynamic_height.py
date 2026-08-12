@@ -12,6 +12,8 @@ CONTENT_HEIGHT_SCRIPT = """
 (function() {
   var applyState = window.usageApplyState;
   if (typeof applyState !== "function") return;
+  var scheduled = false;
+  var lastPostedHeight = null;
   function naturalContentHeight() {
     var wrap = document.querySelector(".wrap");
     if (!wrap) return null;
@@ -76,17 +78,48 @@ CONTENT_HEIGHT_SCRIPT = """
       });
     }
   }
-  window.usageApplyState = function usageApplyStateWithDynamicHeight(state) {
-    var result = applyState.apply(this, arguments);
+  function reportContentHeight() {
+    scheduled = false;
     var height = naturalContentHeight();
     var bridge = window.webkit && window.webkit.messageHandlers
       && window.webkit.messageHandlers.usage;
-    if (Number.isFinite(height) && height > 0 && bridge
+    if (Number.isFinite(height) && height > 0 && height !== lastPostedHeight && bridge
         && typeof bridge.postMessage === "function") {
+      lastPostedHeight = height;
       bridge.postMessage(JSON.stringify({ action: "content_height", height: height }));
     }
+  }
+  function requestContentHeight() {
+    if (scheduled) return;
+    scheduled = true;
+    // Measure after the browser has committed DOM, font, and layout changes.
+    // A second frame catches WebView2's first visible layout without relying
+    // on a user clicking another control.
+    requestAnimationFrame(function() {
+      requestAnimationFrame(reportContentHeight);
+    });
+  }
+  window.usageRequestContentHeight = requestContentHeight;
+  window.usageApplyState = function usageApplyStateWithDynamicHeight(state) {
+    var result = applyState.apply(this, arguments);
+    requestContentHeight();
     return result;
   };
+  var wrap = document.querySelector(".wrap");
+  if (wrap && typeof MutationObserver === "function") {
+    new MutationObserver(requestContentHeight).observe(wrap, {
+      childList: true,
+      characterData: true,
+      subtree: true
+    });
+  }
+  if (wrap && typeof ResizeObserver === "function") {
+    new ResizeObserver(requestContentHeight).observe(wrap);
+  }
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(requestContentHeight);
+  }
+  requestContentHeight();
 })();
 </script>
 """.strip()

@@ -226,6 +226,17 @@ def test_classic_project_header_expands_for_action_row() -> None:
     assert "margin-bottom: 10px;" in project_brand_css
 
 
+def test_shared_core_prioritizes_codex_title_when_switch_moves_into_header() -> None:
+    core = (
+        Path(__file__).resolve().parent.parent / "assets" / "panels" / "panel_core.js"
+    ).read_text(encoding="utf-8")
+
+    assert 'host.classList.add("usage-switch-host")' in core
+    assert '.usage-switch-host > h1' in core
+    assert '.usage-switch-host > .header-copy' in core
+    assert '.usage-switch-host > [data-codex-stale]' in core
+
+
 def test_missing_panel_id_falls_back_to_classic() -> None:
     panel = panels.get_panel("missing")
 

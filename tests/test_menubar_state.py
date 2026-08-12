@@ -374,25 +374,33 @@ def test_project_rows_for_windows_matches_window_boundaries() -> None:
             project=project,
         )
 
-    rows_24h, rows_7d, rows_30d, rows_all = menubar_state.project_rows_for_windows(
+    rows_24h, rows_yesterday, rows_7d, rows_30d, rows_all = (
+        menubar_state.project_rows_for_windows(
         [
             entry("today", now, 4),
+            entry("yesterday", now - timedelta(days=1), 5),
             entry("week", now - timedelta(days=2), 3),
             entry("month", now - timedelta(days=10), 2),
             entry("old", now - timedelta(days=40), 1),
         ],
         now=now,
+        )
     )
 
     assert rows_24h == [("today", 4, 4.0)]
-    assert rows_7d == [("today", 4, 4.0), ("week", 3, 3.0)]
-    assert rows_30d == [
+    assert rows_yesterday == [("yesterday", 5, 5.0)]
+    assert rows_7d == [
+        ("yesterday", 5, 5.0),
         ("today", 4, 4.0),
         ("week", 3, 3.0),
-        ("month", 2, 2.0),
+    ]
+    assert rows_30d == [
+        ("yesterday", 5, 5.0),
+        ("today", 4, 4.0),
+        ("week", 3, 3.0),
     ]
     assert rows_all == [
+        ("yesterday", 5, 5.0),
         ("today", 4, 4.0),
         ("week", 3, 3.0),
-        ("month", 2, 2.0),
     ]

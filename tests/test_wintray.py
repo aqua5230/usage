@@ -70,12 +70,14 @@ def _state() -> menubar_state.PopoverState:
         agy_weekly=weekly,
         agy_group_name="",
         projects=[],
+        projects_yesterday=[],
         projects_7d=[],
         projects_30d=[],
         projects_all=[],
         rate_text="",
         status_text="",
         today_text="",
+        yesterday_text="",
         statusline={},
     )
 
@@ -178,6 +180,7 @@ def test_content_height_message_resizes_visible_panel_with_work_area_clamp(
     controller.visible = True
     calls: list[str] = []
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
+    monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: None)
     monkeypatch.setattr(controller, "_place_window", lambda: calls.append("place"))
 
     controller.handle_panel_message(
@@ -383,7 +386,7 @@ def test_switch_panel_message_returns_menu_instead_of_cycling(
     menu = controller.handle_panel_message("switch")
 
     assert isinstance(menu, list)
-    assert menu[2]["i18nKey"] == "switch_panel"
+    assert menu[3]["i18nKey"] == "switch_panel"
     assert switched_to == []
 
 
@@ -425,6 +428,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.language = "en"
+    controller.language_preference = "en"
     controller.active_panel_id = "matrix"
     monkeypatch.setattr(wintray, "_hide_claude_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_hide_codex_enabled", lambda: False)
@@ -444,9 +448,11 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     }
     assert [entry.get("i18nKey", entry.get("type")) for entry in menu] == [
         "panel_ai_daily",
+        "reset_panel_position",
         "separator",
         "switch_panel",
         "hide_sections_menu",
+        "language_menu",
         "separator",
         "launch_at_login",
         "quota_notifications_menu",
@@ -456,17 +462,22 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "terse_mode_menu",
         "separator",
         "refresh_now",
+        "check_update",
+        "quit",
     ]
-    panels = cast(list[dict[str, object]], menu[2]["children"])
-    hidden_sections = cast(list[dict[str, object]], menu[3]["children"])
+    panels = cast(list[dict[str, object]], menu[3]["children"])
+    hidden_sections = cast(list[dict[str, object]], menu[4]["children"])
+    languages = cast(list[dict[str, object]], menu[5]["children"])
     assert panels[1]["panelId"] == "matrix"
     assert panels[1]["checked"] is True
     assert [item["checked"] for item in hidden_sections] == [True, False, True]
-    assert menu[5]["checked"] is True
-    assert menu[6]["checked"] is False
+    assert [item["languageCode"] for item in languages] == list(wintray.LANGUAGE_OPTIONS)
+    assert [item["checked"] for item in languages] == [False, False, False, True, False, False]
     assert menu[7]["checked"] is True
+    assert menu[8]["checked"] is False
     assert menu[9]["checked"] is True
-    assert menu[10]["checked"] is False
+    assert menu[11]["checked"] is True
+    assert menu[12]["checked"] is False
 
 
 @pytest.mark.parametrize(
@@ -486,6 +497,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         ({"action": "toggle_window_keeper"}, "toggle_window_keeper", ()),
         ({"action": "toggle_session_resume"}, "toggle_session_resume", ()),
         ({"action": "toggle_terse_mode"}, "toggle_terse_mode", ()),
+        ({"action": "set_language", "language_code": "zh-CN"}, "set_language", ("zh-CN",)),
         ({"action": "check_update"}, "check_update", ()),
         ({"action": "quit"}, "quit", ()),
     ],
@@ -503,6 +515,38 @@ def test_panel_menu_actions_dispatch_to_controller_methods(
     controller.handle_panel_message(json.dumps(payload))
 
     assert calls == [expected]
+
+
+def test_set_language_persists_and_updates_visible_panel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    preferences: dict[str, object] = {"unrelated": True}
+    evaluated: list[str] = []
+    refreshed: list[str] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    controller.window = SimpleNamespace(evaluate_js=evaluated.append)
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences.copy())
+    monkeypatch.setattr(wintray, "_save_preferences", lambda value: preferences.update(value))
+    monkeypatch.setattr(controller, "refresh", lambda: refreshed.append("refresh"))
+
+    controller.set_language("zh-CN")
+
+    assert preferences == {"unrelated": True, "usage.language": "zh-CN"}
+    assert controller.language_preference == "zh-CN"
+    assert controller.language == "zh-CN"
+    assert evaluated == ['window.usageSetLanguage("zh-CN")']
+    assert refreshed == ["refresh"]
+
+
+def test_set_language_rejects_unknown_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    saved: list[dict[str, object]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    monkeypatch.setattr(wintray, "_save_preferences", saved.append)
+
+    controller.set_language("de")
+
+    assert saved == []
 
 
 @pytest.mark.parametrize("panel_id", ["matrix", "aquarium", "win95"])
@@ -855,8 +899,10 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
     pytest.importorskip("pystray", reason="pystray is a Windows-only extra")
     controller = SimpleNamespace(
         language="en",
+        language_preference="auto",
         active_panel_id="classic",
         switch_panel=lambda panel_id: None,
+        set_language=lambda code: None,
         show_panel=lambda: None,
         reset_panel_position=lambda: None,
         refresh=lambda: None,

@@ -12,7 +12,7 @@ import time
 import tomllib
 import webbrowser
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 from importlib import metadata
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
@@ -56,6 +56,8 @@ logger = logging.getLogger(__name__)
 SLOW_POLL_INTERVAL_S = 300
 HISTORY_SCAN_CACHE_SECONDS = 30.0
 PANEL_WIDTH = 380
+LANGUAGE_PREFERENCE_KEY = "usage.language"
+LANGUAGE_OPTIONS = ("auto", "zh-CN", "zh-TW", "en", "ja", "ko")
 WINDOWS_PANELS = (
     ("classic", "panel_default_name", "classic.html"),
     ("matrix", "panel_matrix", "matrix.html"),
@@ -157,7 +159,8 @@ window.webkit.messageHandlers.usage = {
     row.textContent = (item.checked ? '✓  ' : '    ') + item.label;
     row.addEventListener('click', function() {
       var extra = item.panelId ? { panel_id: item.panelId } :
-        item.preferenceKey ? { preference_key: item.preferenceKey } : undefined;
+        item.preferenceKey ? { preference_key: item.preferenceKey } :
+        item.languageCode ? { language_code: item.languageCode } : undefined;
       post(item.action, extra);
       closeMenu();
     });
@@ -393,6 +396,16 @@ def _save_active_panel_id(panel_id: str) -> None:
     _save_preferences(preferences)
 
 
+def _language_preference() -> str:
+    value = _load_preferences().get(LANGUAGE_PREFERENCE_KEY, "auto")
+    return str(value) if value in LANGUAGE_OPTIONS else "auto"
+
+
+def _resolved_language(preference: str | None = None) -> str:
+    selected = _language_preference() if preference is None else preference
+    return detect_lang() if selected == "auto" else selected
+
+
 def _current_version() -> str:
     try:
         return metadata.version("usage")
@@ -426,7 +439,19 @@ def _today_text(entries: list[UsageEntry], language: str) -> str:
     )
 
 
+def _yesterday_text(entries: list[UsageEntry], language: str) -> str:
+    yesterday = datetime.now().astimezone().date() - timedelta(days=1)
+    selected = [entry for entry in entries if entry.timestamp.astimezone().date() == yesterday]
+    return _t(
+        language,
+        "yesterday_text",
+        cost=f"{sum(calculate_cost(entry) for entry in selected):.2f}",
+        tokens=f"{sum(entry.total_tokens for entry in selected):,}",
+    )
+
+
 def _mock_projects() -> tuple[
+    list[tuple[str, int, float | None]],
     list[tuple[str, int, float | None]],
     list[tuple[str, int, float | None]],
     list[tuple[str, int, float | None]],
@@ -434,6 +459,7 @@ def _mock_projects() -> tuple[
 ]:
     return (
         [("usage", 11_200_000, 6.47), ("FinMind", 3_100_000, 1.82), ("AI客服", 800_000, 0.48)],
+        [("usage", 10_800_000, 6.21), ("FinMind", 2_900_000, 1.70)],
         [("usage", 78_400_000, 45.20), ("FinMind", 21_700_000, 12.74), ("AI客服", 5_600_000, 3.36)],
         [
             ("usage", 312_000_000, 180.50),
@@ -471,7 +497,10 @@ class _WindowsTrayController:
     def __init__(self, mock: bool, interval: int) -> None:
         self.mock = mock
         self.interval = max(30, interval)
-        self.language = detect_lang()
+        self.language_preference = _language_preference()
+        self.language = _resolved_language(self.language_preference)
+        self._language_revision = 0
+        self._refresh_pending = False
         self.active_panel_id = _active_panel_id()
         self._switch_pending: bool = False
         self.latest_state = self._empty_state()
@@ -524,12 +553,14 @@ class _WindowsTrayController:
             ),
             agy_group_name="",
             projects=[],
+            projects_yesterday=[],
             projects_7d=[],
             projects_30d=[],
             projects_all=[],
             rate_text=_t(self.language, "rate_text", value="--"),
             status_text=_t(self.language, "status_text", value=_t(self.language, "status_loading")),
             today_text=_t(self.language, "today_text", cost="0.00", tokens="0"),
+            yesterday_text=_t(self.language, "yesterday_text", cost="0.00", tokens="0"),
             statusline=_statusline_payload(self.language),
             hide_claude=_hide_claude_enabled(),
             hide_codex=_hide_codex_enabled(),
@@ -544,7 +575,8 @@ class _WindowsTrayController:
         return self._content_height or PANEL_HEIGHTS[self.active_panel_id]
 
     def _apply_content_height(self, value: object) -> None:
-        work_area = self._working_area()
+        anchor = self._current_window_position() or self._saved_window_position()
+        work_area = self._work_area_for_point(anchor) or self._working_area()
         maximum = (
             float(work_area[3] - work_area[1] - 24)
             if work_area is not None
@@ -735,10 +767,12 @@ class _WindowsTrayController:
 
     def refresh(self) -> None:
         if not self.refresh_lock.acquire(blocking=False):
+            self._refresh_pending = True
             return
         threading.Thread(target=self._refresh_worker, daemon=True).start()
 
     def _refresh_worker(self) -> None:
+        language_revision = self._language_revision
         debug_timing = os.environ.get("USAGE_DEBUG") == "1"
 
         def measure(stage: str, started_at: float) -> None:
@@ -747,7 +781,10 @@ class _WindowsTrayController:
                 logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", stage, elapsed_ms)
 
         try:
-            self.latest_state = self._build_state(measure=measure, debug_timing=debug_timing)
+            state = self._build_state(measure=measure, debug_timing=debug_timing)
+            if language_revision != self._language_revision:
+                return
+            self.latest_state = state
             self._process_quota_notifications(self.latest_state)
             started_at = time.monotonic() if debug_timing else 0.0
             self._update_tray()
@@ -761,6 +798,9 @@ class _WindowsTrayController:
                 logger.warning("Windows tray refresh failed", exc_info=True)
         finally:
             self.refresh_lock.release()
+            if self._refresh_pending:
+                self._refresh_pending = False
+                self.refresh()
 
     def _load_entries(self, scan: menubar_state.HistorySourceScan) -> _RefreshData:
         if self.mock:
@@ -852,9 +892,10 @@ class _WindowsTrayController:
             agy_rows=(agy.session, agy.weekly),
             agy_group_name=agy.group_name,
             projects=projects[0],
-            projects_7d=projects[1],
-            projects_30d=projects[2],
-            projects_all=projects[3],
+            projects_yesterday=projects[1],
+            projects_7d=projects[2],
+            projects_30d=projects[3],
+            projects_all=projects[4],
             language=self.language,
             group=self.tracker.group(),
             burn_rate_trackers=self.burn_rate_trackers,
@@ -862,6 +903,11 @@ class _WindowsTrayController:
                 _t(self.language, "today_text", cost="45.20", tokens="50,193,442")
                 if self.mock
                 else _today_text(history.entries, self.language)
+            ),
+            yesterday_text=(
+                _t(self.language, "yesterday_text", cost="41.10", tokens="48,200,000")
+                if self.mock
+                else _yesterday_text(history.entries, self.language)
             ),
             statusline=_statusline_payload(self.language),
             show_install_button=outcome.state == PollState.TOKEN_ERROR,
@@ -985,11 +1031,29 @@ class _WindowsTrayController:
                 checked=_hide_agy_enabled(),
             ),
         ]
+        language_items = [
+            item(
+                {
+                    "auto": "language_auto",
+                    "zh-CN": "language_zh_cn",
+                    "zh-TW": "language_zh_tw",
+                    "en": "language_en",
+                    "ja": "language_ja",
+                    "ko": "language_ko",
+                }[code],
+                "set_language",
+                languageCode=code,
+                checked=self.language_preference == code,
+            )
+            for code in LANGUAGE_OPTIONS
+        ]
         return [
             item("panel_ai_daily", "open_ai_daily"),
+            item("reset_panel_position", "reset_panel_position"),
             {"type": "separator"},
             item("switch_panel", "", children=panels),
             item("hide_sections_menu", "", children=hidden_sections),
+            item("language_menu", "", children=language_items),
             {"type": "separator"},
             item("launch_at_login", "toggle_login", checked=win_login_item.is_enabled()),
             item(
@@ -1007,7 +1071,28 @@ class _WindowsTrayController:
             item("terse_mode_menu", "toggle_terse_mode", checked=_terse_mode_enabled()),
             {"type": "separator"},
             item("refresh_now", "refresh"),
+            item("check_update", "check_update"),
+            item("quit", "quit"),
         ]
+
+    def set_language(self, language_code: object) -> None:
+        if not isinstance(language_code, str) or language_code not in LANGUAGE_OPTIONS:
+            return
+        preferences = _load_preferences()
+        preferences[LANGUAGE_PREFERENCE_KEY] = language_code
+        _save_preferences(preferences)
+        self.language_preference = language_code
+        self.language = _resolved_language(language_code)
+        self._language_revision += 1
+        if self.visible and self.window is not None:
+            encoded = json.dumps(self.language, ensure_ascii=False)
+            self.window.evaluate_js(f"window.usageSetLanguage({encoded})")
+        if self.icon is not None:
+            self.icon.menu = _menu(self)
+            update_menu = getattr(self.icon, "update_menu", None)
+            if callable(update_menu):
+                update_menu()
+        self.refresh()
 
     def toggle_login(self, _icon: Any = None, _item: Any = None) -> None:
         win_login_item.disable() if win_login_item.is_enabled() else win_login_item.enable()
@@ -1184,6 +1269,8 @@ class _WindowsTrayController:
                     "hide_agy_section",
                 }:
                     self.toggle_hide_section(preference_key)
+            elif action == "set_language":
+                self.set_language(payload.get("language_code"))
             elif action == "open_ai_daily":
                 self.open_ai_daily()
             elif action == "reset_panel_position":
@@ -1272,6 +1359,22 @@ def _menu(controller: _WindowsTrayController) -> Any:
         )
         for panel_id, key, _filename in available_panels()
     )
+    language_items = tuple(
+        pystray.MenuItem(
+            _t(controller.language, key),
+            lambda _icon, _item, *, code=code: controller.set_language(code),
+            checked=lambda _item, code=code: controller.language_preference == code,
+            radio=True,
+        )
+        for code, key in (
+            ("auto", "language_auto"),
+            ("zh-CN", "language_zh_cn"),
+            ("zh-TW", "language_zh_tw"),
+            ("en", "language_en"),
+            ("ja", "language_ja"),
+            ("ko", "language_ko"),
+        )
+    )
     return pystray.Menu(
         pystray.MenuItem("Open", controller.show_panel, default=True, visible=False),
         pystray.MenuItem(_t(controller.language, "panel_ai_daily"), controller.open_ai_daily),
@@ -1300,6 +1403,7 @@ def _menu(controller: _WindowsTrayController) -> Any:
                 ),
             ),
         ),
+        pystray.MenuItem(_t(controller.language, "language_menu"), pystray.Menu(*language_items)),
         pystray.Menu.SEPARATOR,
         pystray.MenuItem(_t(controller.language, "refresh_now"), lambda i, x: controller.refresh()),
         pystray.MenuItem(

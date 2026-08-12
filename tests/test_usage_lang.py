@@ -112,3 +112,15 @@ def test_detect_lang_env_var_beats_windows_ui_language(
     _fake_windll(monkeypatch, 1028)
 
     assert detect_lang() == "ja"
+
+
+def test_detect_lang_ignores_posix_lang_on_windows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.delenv("USAGE_LANG", raising=False)
+    monkeypatch.delenv("TT_LANG", raising=False)
+    monkeypatch.setenv("LANG", "C.UTF-8")
+    monkeypatch.setattr(sys, "platform", "win32")
+    _fake_windll(monkeypatch, 2052)
+
+    assert detect_lang() == "zh-CN"

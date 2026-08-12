@@ -165,6 +165,7 @@ def _build_popover_state(
         ),
         agy_group_name="",
         projects=[],
+        projects_yesterday=[],
         projects_7d=[],
         projects_30d=[],
         projects_all=[],
@@ -172,6 +173,7 @@ def _build_popover_state(
         group=delegate.tracker.group(),
         burn_rate_trackers=delegate.burn_rate_trackers,
         today_text=menubar._today_title(delegate.mock, delegate.language),
+        yesterday_text=menubar_state._yesterday_title(delegate.mock, delegate.language),
         statusline=menubar._statusline_payload(delegate.language),
         show_install_button=(
             not hide_claude

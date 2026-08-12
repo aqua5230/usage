@@ -64,7 +64,11 @@ def _detect_windows_lang() -> str:
 
 def detect_lang(env: Mapping[str, str] | None = None) -> str:
     source = os.environ if env is None else env
-    for key in ("USAGE_LANG", "TT_LANG", "LANG"):
+    override_keys = ("USAGE_LANG", "TT_LANG", "LANG") if env is not None else (
+        "USAGE_LANG",
+        "TT_LANG",
+    )
+    for key in override_keys:
         value = source.get(key, "").strip()
         if value:
             return _normalize_lang(value)
