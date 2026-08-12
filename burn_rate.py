@@ -15,9 +15,6 @@ RESET_DROP_PERCENT = 5.0
 MIN_FORECAST_SAMPLES = 5
 MIN_FORECAST_SPAN_SECONDS = 5 * 60
 WARNING_PERCENT_FLOOR = 50.0
-# A 0.5 alpha gives the newest interval meaningful influence while still
-# dampening single-interval endpoint noise in the irregular polling stream.
-BURN_EMA_ALPHA = 0.5
 
 
 @dataclass(slots=True)
@@ -63,19 +60,7 @@ class BurnRateTracker:
         if elapsed <= 0:
             return None
 
-        ema_rate: float | None = None
-        for previous, current in zip(selected, selected[1:], strict=False):
-            interval_seconds = current.timestamp - previous.timestamp
-            if interval_seconds <= 0:
-                continue
-            rate = (current.percent - previous.percent) / interval_seconds
-            if ema_rate is None:
-                ema_rate = rate
-            else:
-                ema_rate = (
-                    BURN_EMA_ALPHA * rate + (1.0 - BURN_EMA_ALPHA) * ema_rate
-                )
-        slope_per_second = ema_rate if ema_rate is not None else 0.0
+        slope_per_second = (latest.percent - first.percent) / elapsed
         if slope_per_second <= 0:
             return None
 

@@ -35,7 +35,7 @@ def test_forecast_uses_recent_samples() -> None:
     assert tracker.forecast_seconds() == pytest.approx(600.0)
 
 
-def test_forecast_ema_responds_to_accelerating_burn() -> None:
+def test_forecast_uses_window_average_slope() -> None:
     tracker = BurnRateTracker()
     samples = [
         (0.0, 10.0),
@@ -49,16 +49,26 @@ def test_forecast_ema_responds_to_accelerating_burn() -> None:
 
     first_timestamp, first_percent = samples[0]
     latest_timestamp, latest_percent = samples[-1]
-    old_two_point_slope = (latest_percent - first_percent) / (
+    expected_slope = (latest_percent - first_percent) / (
         latest_timestamp - first_timestamp
     )
-    old_two_point_forecast = (100.0 - latest_percent) / old_two_point_slope
+    expected_forecast = (100.0 - latest_percent) / expected_slope
 
-    ema_forecast = tracker.forecast_seconds(min_span_seconds=300.0)
+    assert tracker.forecast_seconds(min_span_seconds=300.0) == pytest.approx(
+        expected_forecast
+    )
 
-    assert ema_forecast is not None
-    assert ema_forecast == pytest.approx(566.6666666667)
-    assert ema_forecast < old_two_point_forecast * 0.75
+
+def test_forecast_window_average_ignores_short_interval_spike() -> None:
+    tracker = BurnRateTracker()
+    for timestamp in range(0, 481, 60):
+        tracker.record(float(timestamp), 50.0)
+    tracker.record(510.0, 53.0)
+
+    forecast = tracker.forecast_seconds()
+
+    assert forecast is not None
+    assert 7_200.0 < forecast < 9_000.0
 
 
 def test_forecast_default_allows_six_minute_span() -> None:
