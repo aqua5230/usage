@@ -106,6 +106,17 @@ Windows 可完整使用核心功能：系統匣 UI、Claude Code 狀態列 hook 
 
 Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示；更新提示使用系統 Yes/No 對話框；AI 人才市場與 AI 圓桌討論面板僅提供 macOS。
 
+### 程式碼簽章政策
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+團隊角色：
+
+- 提交者與審查者：[aqua5230](https://github.com/aqua5230)
+- 批准者：[aqua5230](https://github.com/aqua5230)
+
+隱私權政策：除非使用者或安裝、操作此程式的人員明確要求，否則本程式不會將任何資訊傳輸至其他網路系統。關於 `usage` 替你發出的網路呼叫及如何避免，請參閱[隱私與資料來源](#隱私與資料來源)。
+
 ### 首次打開：設定狀態列
 
 如果你用過 Codex，它會自動讀到資料。若是 Claude Code，請點選單彈窗內的**「設定狀態列 (Set Up Status Line)」**按鈕來安裝同步 hook。

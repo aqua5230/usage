@@ -14,12 +14,16 @@ Remove-Item $BuildDir -Recurse -Force -ErrorAction SilentlyContinue
 
 Push-Location $RepoRoot
 try {
+    $VersionFile = Join-Path $SpecDir "usage-version-info.txt"
+    uv run --no-sync python scripts/make_version_file.py $VersionFile
+
     uv run --no-sync python -m PyInstaller `
         --noconfirm `
         --clean `
         --windowed `
         --onedir `
         --name usage `
+        --version-file $VersionFile `
         --distpath $DistRoot `
         --workpath $BuildDir `
         --specpath $SpecDir `

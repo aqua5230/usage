@@ -185,6 +185,7 @@ jobs:
     runs-on: windows-latest
     permissions:
       contents: write
+      actions: read
 
     steps:
       - name: Resolve ref
@@ -217,14 +218,43 @@ jobs:
           uv sync --frozen --group dev --extra windows
           uv pip install pyinstaller
 
+      - name: Resolve version
+        id: version
+        shell: bash
+        run: |
+          version=$(uv run --no-sync python -c \
+            'import tomllib,pathlib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
       - name: Build Windows executable
         shell: pwsh
         run: ./scripts/build_windows.ps1
 
+      - name: Upload unsigned bundle for signing
+        id: upload-unsigned-artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: usage-windows-unsigned
+          path: dist
+
+      - name: Submit signing request
+        uses: signpath/github-action-submit-signing-request@b9d91eadd323de506c0c81cf0c7fe7438f3360fd # v2
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: usage
+          signing-policy-slug: test-signing
+          github-artifact-id: ${{ steps.upload-unsigned-artifact.outputs.artifact-id }}
+          wait-for-completion: true
+          wait-for-completion-timeout-in-seconds: 1800
+          output-artifact-directory: dist/signed
+          parameters: |
+            version: ${{ toJSON(steps.version.outputs.version) }}
+
       - name: Zip Windows bundle
         shell: pwsh
         run: |
-          Compress-Archive -Path dist/usage-windows -DestinationPath dist/usage-windows.zip
+          Compress-Archive -Path dist/signed/usage-windows -DestinationPath dist/usage-windows.zip
           $hash = (Get-FileHash dist/usage-windows.zip -Algorithm SHA256).Hash.ToLower()
           "$hash  usage-windows.zip" | Out-File -FilePath dist/usage-windows.zip.sha256 -Encoding ascii -NoNewline
 

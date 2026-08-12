@@ -106,6 +106,17 @@ Windows 原生支持完整核心功能：系统托盘 UI、Claude Code 状态栏
 
 Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托盘图标；更新提示使用系统 Yes/No 对话框；AI 人才市场与 AI 圆桌讨论面板仅限 macOS。
 
+### 代码签名政策
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+团队角色：
+
+- 提交者与审查者：[aqua5230](https://github.com/aqua5230)
+- 批准者：[aqua5230](https://github.com/aqua5230)
+
+隐私政策：除非用户或安装、操作此程序的人员明确要求，否则本程序不会将任何信息传输至其他网络系统。有关 `usage` 代你发出的网络调用及如何避免，请参阅[隐私与数据来源](#隐私与数据来源)。
+
 ### 首次启动：设置状态栏
 
 如果你用过 Codex，`usage` 会自动读取其历史记录。对于 Claude Code，请在应用弹出面板中点击 **“Set Up Status Line”** 按钮以安装同步 hook。

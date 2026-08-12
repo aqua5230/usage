@@ -106,6 +106,17 @@ Windowsでも主要機能をすべてネイティブで利用できます。シ�
 
 Windowsでの相違点：パネルはトレイアイコンの隣ではなく作業領域の右下に開きます。更新通知はシステムのYes/Noダイアログです。AI Talent MarketおよびAI円卓会議パネルはmacOS専用です。
 
+### コード署名ポリシー
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+チームの役割：
+
+- コミッターおよびレビュアー：[aqua5230](https://github.com/aqua5230)
+- 承認者：[aqua5230](https://github.com/aqua5230)
+
+プライバシーポリシー：本プログラムは、ユーザーまたはプログラムをインストールもしくは操作する人が明確に要求しない限り、他のネットワークシステムにいかなる情報も転送しません。`usage` があなたの代わりに行うネットワーク呼び出しと、それを避ける方法については、[プライバシーとデータソース](#プライバシーとデータソース)をご覧ください。
+
 ### 初回起動：ステータスラインを設定
 
 Codexを使用したことがある場合、`usage` はその履歴を自動で取得します。Claude Codeの場合は、アプリのポップオーバーで **「Set Up Status Line」** ボタンをクリックし、同期hookをインストールしてください。

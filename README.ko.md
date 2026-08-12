@@ -106,6 +106,17 @@ Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니
 
 Windows의 차이점: 패널은 트레이 아이콘 옆이 아니라 작업 영역 오른쪽 아래에 열립니다. 업데이트 알림은 시스템 Yes/No 대화 상자를 사용합니다. AI Talent Market 및 AI 원탁 토론 패널은 macOS 전용입니다.
 
+### 코드 서명 정책
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+팀 역할:
+
+- 커미터 및 리뷰어: [aqua5230](https://github.com/aqua5230)
+- 승인자: [aqua5230](https://github.com/aqua5230)
+
+개인정보 처리방침: 본 프로그램은 사용자나 설치 또는 조작하는 사람의 명시적인 요청이 없는 한, 어떤 정보도 다른 네트워크 시스템으로 전송하지 않습니다. `usage`가 귀하를 대신하여 수행하는 네트워크 호출 및 이를 피하는 방법에 대해서는 [개인정보 보호와 데이터 소스](#개인정보-보호와-데이터-소스)를 참조하세요.
+
 ### 첫 실행: 상태 줄 설정
 
 Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵니다. Claude Code의 경우 앱 팝오버에서 **"Set Up Status Line"** 버튼을 클릭하여 동기화 hook을 설치하세요.
