@@ -158,6 +158,13 @@ def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
     assert "window.pywebview.api.postMessage(message)" in html
     assert "pywebview-drag-region" in html
     assert "usage-window-drag-handle" in html
+    assert "usage-window-controls" in html
+    assert "dataset.usageWindowAction = 'hide'" in html
+    assert "dataset.i18nTitle = 'close_to_tray'" in html
+    assert "minimize_to_tray" not in html
+    assert "window.usagePostPanelAction = post" in html
+    assert "window.usagePostPanelAction('hide_panel')" in html
+    assert "window.addEventListener('blur'" in html
     assert "post('open_menu')" in html
     assert "usage-panel-menu-backdrop" in html
     assert "usage-panel-menu-accordion" in html
@@ -498,6 +505,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         ({"action": "toggle_session_resume"}, "toggle_session_resume", ()),
         ({"action": "toggle_terse_mode"}, "toggle_terse_mode", ()),
         ({"action": "set_language", "language_code": "zh-CN"}, "set_language", ("zh-CN",)),
+        ({"action": "hide_panel"}, "hide_panel", ()),
         ({"action": "check_update"}, "check_update", ()),
         ({"action": "quit"}, "quit", ()),
     ],
@@ -682,6 +690,23 @@ def test_show_panel_places_window_before_showing(
 
     assert controller.visible is True
     assert calls == ["place", "show", "inject:True", "refresh"]
+
+
+def test_hide_panel_saves_position_and_hides_window(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    calls: list[str] = []
+    controller.window = SimpleNamespace(hide=lambda: calls.append("hide"))
+    monkeypatch.setattr(controller, "_save_window_position", lambda: calls.append("save"))
+
+    controller.hide_panel()
+    controller.hide_panel()
+
+    assert controller.visible is False
+    assert controller._positioned_this_show is False
+    assert calls == ["save", "hide"]
 
 
 def test_tray_update_skips_unchanged_values(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -195,6 +195,7 @@ window.webkit.messageHandlers.usage = {
   document.addEventListener('keydown', function(event) {
     if (event.key === 'Escape') closeMenu();
   });
+  window.usagePostPanelAction = post;
 })();
 
 // Panel assets register their card reorder handler in the bubbling phase. This
@@ -229,6 +230,31 @@ document.addEventListener('DOMContentLoaded', function() {
   handle.className = 'usage-window-drag-handle pywebview-drag-region';
   handle.setAttribute('aria-hidden', 'true');
   document.body.appendChild(handle);
+
+  var controls = document.createElement('div');
+  controls.className = 'usage-window-controls';
+  var button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'usage-window-control';
+  button.textContent = '×';
+  button.dataset.usageWindowAction = 'hide';
+  button.dataset.i18nTitle = 'close_to_tray';
+  controls.appendChild(button);
+  document.body.appendChild(controls);
+});
+
+document.addEventListener('click', function(event) {
+  var button = event.target.closest && event.target.closest('[data-usage-window-action="hide"]');
+  if (!button) return;
+  event.preventDefault();
+  event.stopImmediatePropagation();
+  window.usagePostPanelAction('hide_panel');
+}, true);
+
+window.addEventListener('blur', function() {
+  window.setTimeout(function() {
+    if (!document.hasFocus()) window.usagePostPanelAction('hide_panel');
+  }, 120);
 });
 </script>
 <style>
@@ -253,6 +279,30 @@ document.addEventListener('DOMContentLoaded', function() {
 .usage-window-drag-handle:active,
 .usage-card-window-dragging {
   cursor: grabbing;
+}
+.usage-window-controls {
+  position: fixed;
+  top: 5px;
+  right: 8px;
+  z-index: 2147483647;
+  display: flex;
+  gap: 3px;
+}
+.usage-window-control {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: rgba(127, 127, 127, .14);
+  color: currentColor;
+  font: 700 16px/20px system-ui, sans-serif;
+  cursor: pointer;
+}
+.usage-window-control:hover,
+.usage-window-control:focus-visible {
+  background: rgba(127, 127, 127, .32);
+  outline: none;
 }
 .usage-panel-menu-backdrop {
   position: fixed;
@@ -951,16 +1001,21 @@ class _WindowsTrayController:
 
     def show_panel(self, _icon: Any = None, _item: Any = None) -> None:
         if self.visible:
-            self._save_window_position()
-            self.visible = False
-            self._positioned_this_show = False
-            self.window.hide()
+            self.hide_panel()
             return
         self.visible = True
         self._place_window()
         self.window.show()
         self.inject_state(force=True)
         self.refresh()
+
+    def hide_panel(self) -> None:
+        if not self.visible or self.window is None:
+            return
+        self._save_window_position()
+        self.visible = False
+        self._positioned_this_show = False
+        self.window.hide()
 
     def switch_panel(self, panel_id: str) -> None:
         self.active_panel_id = panel_id
@@ -1271,6 +1326,8 @@ class _WindowsTrayController:
                     self.toggle_hide_section(preference_key)
             elif action == "set_language":
                 self.set_language(payload.get("language_code"))
+            elif action == "hide_panel":
+                self.hide_panel()
             elif action == "open_ai_daily":
                 self.open_ai_daily()
             elif action == "reset_panel_position":

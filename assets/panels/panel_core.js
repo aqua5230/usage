@@ -121,6 +121,13 @@
         const key = node.dataset.i18n;
         if (key) node.textContent = t(key);
       });
+      document.querySelectorAll("[data-i18n-title]").forEach((node) => {
+        const key = node.dataset.i18nTitle;
+        if (!key) return;
+        const text = t(key);
+        node.title = text;
+        node.setAttribute("aria-label", text);
+      });
       const rangeButton = document.querySelector('[data-action="toggle-project-range"]');
       if (rangeButton) rangeButton.textContent = projectRangeLabel(projectRange);
     }
