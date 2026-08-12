@@ -12,6 +12,14 @@ message in the background to start a fresh window. The ping is the cheapest
 possible Claude call; it does NOT touch any Anthropic quota API — it only shells
 out to the user's local ``claude`` CLI.
 
+Known-unreliable, cause unidentified: on 2026-08-12 two pings ran with
+indistinguishable requests (same version, entrypoint, model, token shape) and
+only one opened a window. The 06:33 ping lines up with an 11:30 reset; the 17:00
+one did not open anything — the next window began only when the user typed into
+Claude Code at 18:30. The user confirmed no claude.ai/mobile activity that
+morning, so the 06:33 window is not explained away by another device. Not a
+model issue (the docs say plan windows are shared across all models).
+
 That ping runs headless, so Claude Code's statusLine hook never fires and
 ``usage-status.json`` keeps reporting the boundary we already handled. A
 cooldown clock therefore re-arms the keeper independently of the payload, so a
