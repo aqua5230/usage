@@ -1459,9 +1459,11 @@ def test_build_state_fetches_relevant_service_feeds_and_builds_banner(
         wintray.service_status.CLAUDE_STATUS,
         wintray.service_status.CODEX_STATUS,
     ]
-    assert calls[0].status_url == "https://status.claude.com/api/v2/summary.json"
+    # components.json, not summary.json — the summary payload is truncated to the
+    # first 25 components and silently omits Codex API. See test_service_status.py.
+    assert calls[0].status_url == "https://status.claude.com/api/v2/components.json"
     assert calls[0].component_names == ("Claude Code", "Claude API (api.anthropic.com)")
-    assert calls[1].status_url == "https://status.openai.com/api/v2/summary.json"
+    assert calls[1].status_url == "https://status.openai.com/api/v2/components.json"
     assert calls[1].component_names == ("Codex API",)
     assert state.service_alerts == ("⚠ Claude service issue: Major outage",)
 
