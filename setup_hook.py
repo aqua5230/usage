@@ -82,6 +82,9 @@ LEGACY_TT_BACKUP_KEY = "tokenTracker"
 LEGACY_BACKUP_KEY = LEGACY_NAME
 PREV_SL_KEY = "previousStatusLine"
 HOOK_VERSION = "1.1"
+# Antigravity's Go runner hands its status-line command to cmd.exe unquoted, so
+# every character cmd.exe treats specially has to be kept out of the path.
+_CMD_UNSAFE_CHARACTERS = '"&|^<>()'
 _SL_REGEX = re.compile(r"(?m)^[ \t]*status_line\s*=\s*\[.*?\]", re.DOTALL)
 _TABLE_REGEX = re.compile(r"(?m)^[ \t]*\[[^\]\n]+\][ \t]*(?:#.*)?$")
 
@@ -247,33 +250,43 @@ def _get_windows_short_path(value: str) -> str:
         size = written + 1
 
 
+def _cmd_unsafe_reason(value: str) -> str | None:
+    """Say why ``value`` cannot sit unquoted in a cmd.exe command line."""
+    problems = []
+    if " " in value:
+        problems.append("spaces")
+    unsafe = sorted({char for char in value if char in _CMD_UNSAFE_CHARACTERS})
+    if unsafe:
+        problems.append(
+            "unsafe cmd.exe characters " + ", ".join(repr(char) for char in unsafe)
+        )
+    return " and ".join(problems) or None
+
+
 def _agy_windows_command_path(value: str, description: str) -> str:
     """Make a path safe for Antigravity's cmd.exe status-line runner."""
     value = value.replace("/", "\\")
-    if '"' in value:
-        raise RuntimeError(
-            f"Antigravity cannot use the {description} because its path contains a "
-            f'double quote: {value!r}. Move it to a Windows path without double quotes.'
-        )
-    if " " not in value:
+    reason = _cmd_unsafe_reason(value)
+    if reason is None:
         return value
 
     try:
         short_path = _get_windows_short_path(value).replace("/", "\\")
     except OSError as exc:
         raise RuntimeError(
-            f"Antigravity cannot use the {description} because its path contains spaces "
+            f"Antigravity cannot use the {description} because its path contains {reason} "
             f"and Windows could not obtain an 8.3 short path for {value!r}. Ensure the "
             "file exists and enable or create 8.3 short names for this volume/path, or "
-            "move it to a path without spaces, then retry."
+            "move it to a path without spaces or unsafe cmd.exe characters, then retry."
         ) from exc
 
-    if " " in short_path or '"' in short_path:
+    short_reason = _cmd_unsafe_reason(short_path)
+    if short_reason is not None:
         raise RuntimeError(
-            f"Antigravity cannot use the {description} because its path contains spaces "
-            f"and Windows returned no usable 8.3 short path for {value!r}. Enable or "
-            "create 8.3 short names for this volume/path, or move it to a path without "
-            "spaces, then retry."
+            f"Antigravity cannot use the {description} because its path contains {reason} "
+            f"and Windows returned no usable 8.3 short path: {short_path!r} still contains "
+            f"{short_reason}. Enable or create 8.3 short names for this volume/path, or "
+            "move it to a path without spaces or unsafe cmd.exe characters, then retry."
         )
     return short_path
 

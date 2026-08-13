@@ -34,7 +34,7 @@ usage **不呼叫任何 LLM API**——看額度這件事本身永遠不會消�
 |---|---|---|
 | Antigravity 額度 | `https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary` | app 執行期間定期取得，且僅在 Antigravity 已登入時 |
 | Antigravity token 更新 | `https://oauth2.googleapis.com/token` | 本機存的 access token 過期時 |
-| 服務狀態警示 | `https://status.claude.com/api/v2/components.json`<br>`https://status.openai.com/api/v2/components.json` | 每 5 分鐘 |
+| 服務狀態警示 | `https://status.claude.com/api/v2/components.json`<br>`https://status.openai.com/api/v2/components.json`<br>`https://status.claude.com/api/v2/incidents.json`<br>`https://status.openai.com/api/v2/incidents.json` | 每 5 分鐘；只有相關元件異常時才讀取事件列表 |
 | Token 價目表 | `https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json` | 首次需要時，之後每 7 天 |
 | 更新檢查 | `https://api.github.com/repos/aqua5230/usage/releases/latest` | 最多每 24 小時一次，可從選單關閉 |
 

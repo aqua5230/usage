@@ -362,6 +362,27 @@ def test_windows_hook_commands_use_double_quotes(monkeypatch: pytest.MonkeyPatch
     )
 
 
+def test_agy_windows_command_path_converts_ampersand_path_to_short_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    value = r"C:\Users\R&D\Python\python.exe"
+    short_path = r"C:\Users\R~1\PYTHON~1\python.exe"
+    monkeypatch.setattr(setup_hook, "_get_windows_short_path", lambda _path: short_path)
+
+    assert setup_hook._agy_windows_command_path(value, "Python interpreter") == short_path
+
+
+def test_agy_windows_command_path_rejects_unsafe_short_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    value = r"C:\Users\R&D\Python\python.exe"
+    short_path = r"C:\Users\R&D\PYTHON~1\python.exe"
+    monkeypatch.setattr(setup_hook, "_get_windows_short_path", lambda _path: short_path)
+
+    with pytest.raises(RuntimeError, match=r"still contains unsafe cmd\.exe characters '&'"):
+        setup_hook._agy_windows_command_path(value, "Python interpreter")
+
+
 def test_windows_statusline_migration_rewrites_legacy_backslash_paths(
     monkeypatch: pytest.MonkeyPatch,
     setup_paths: SetupHookPaths,
