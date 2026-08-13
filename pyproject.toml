@@ -55,6 +55,7 @@ py-modules = [
     "login_item",
     "win_login_item",
     "wintray",
+    "wintray_menu",
     "usage_client",
     "codex_loader",
     "agy_loader",
