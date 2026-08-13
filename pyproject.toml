@@ -35,7 +35,7 @@ environments = [
 ]
 
 [build-system]
-requires = ["setuptools>=83.0.0"]
+requires = ["setuptools>=84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
@@ -86,7 +86,7 @@ include = ["adapters*", "analyzer*", "panels*", "ui*"]
 
 [dependency-groups]
 dev = [
-    "ruff>=0.16.1",
+    "ruff>=0.16.2",
     "mypy>=2.3.0",
     "pytest>=9.1.1",
 ]
