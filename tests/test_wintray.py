@@ -668,7 +668,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "project_butler",
         "terse_mode_menu",
         "separator",
-        "refresh_now",
+        "check_update",
     ]
     panels = cast(list[dict[str, object]], menu[2]["children"])
     hidden_sections = cast(list[dict[str, object]], menu[3]["children"])
@@ -680,6 +680,72 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     assert menu[7]["checked"] is True
     assert menu[8]["checked"] is True
     assert menu[9]["checked"] is False
+
+
+def test_panel_and_tray_menus_render_the_shared_model(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeMenuItem:
+        def __init__(self, label: str, action: object, **kwargs: object) -> None:
+            self.label = label
+            self.action = action
+            self.kwargs = kwargs
+
+    class FakeMenu:
+        SEPARATOR = object()
+
+        def __init__(self, *items: object) -> None:
+            self.items = items
+
+    fake_pystray = SimpleNamespace(Menu=FakeMenu, MenuItem=FakeMenuItem)
+    monkeypatch.setitem(sys.modules, "pystray", fake_pystray)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    quit_calls: list[str] = []
+    monkeypatch.setattr(controller, "quit", lambda *_args: quit_calls.append("quit"))
+
+    model = wintray._menu_model()
+    panel_model = wintray.wintray_menu.entries_for_surface(
+        model, wintray.wintray_menu.PANEL
+    )
+    tray_model = wintray.wintray_menu.entries_for_surface(model, wintray.wintray_menu.TRAY)
+    panel_payload = controller._panel_menu_data()
+    tray_menu = wintray._menu(controller)
+
+    def model_keys(entries: tuple[wintray.wintray_menu.MenuEntry, ...]) -> list[str]:
+        return [
+            "separator"
+            if isinstance(entry, wintray.wintray_menu.MenuSeparator)
+            else entry.i18n_key
+            for entry in entries
+        ]
+
+    assert [entry.get("i18nKey", entry.get("type")) for entry in panel_payload] == model_keys(
+        panel_model
+    )
+    assert [
+        "separator" if item is FakeMenu.SEPARATOR else item.label
+        for item in tray_menu.items[1:]
+    ] == [
+        "separator"
+        if isinstance(entry, wintray.wintray_menu.MenuSeparator)
+        else wintray._t("en", entry.i18n_key)
+        for entry in tray_model
+    ]
+    assert model_keys(tray_model) == ["reset_panel_position", "separator", "quit"]
+    assert tray_menu.items[0].kwargs == {"default": True, "visible": False}
+    tray_menu.items[-1].action(None, None)
+    assert quit_calls == ["quit"]
+
+
+@pytest.mark.parametrize("_panel_id,_key,filename", wintray.available_panels())
+def test_panel_body_keeps_refresh_and_quit_escape_controls(
+    _panel_id: str, _key: str, filename: str
+) -> None:
+    html = wintray.panel_html(filename)
+
+    assert 'data-action="refresh"' in html
+    assert 'data-action="quit"' in html
 
 
 @pytest.mark.parametrize(

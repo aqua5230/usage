@@ -30,6 +30,7 @@ import menubar_state
 import update_checker
 import win_login_item
 import window_keeper
+import wintray_menu
 from burn_rate import BurnRateTracker
 from history_loader import UsageEntry, load_entries
 from i18n import _t
@@ -1256,66 +1257,8 @@ class _WindowsTrayController:
 
     def _panel_menu_data(self) -> list[dict[str, object]]:
         """Return fresh, localized data for the HTML panel menu."""
-
-        def item(key: str, action: str, **extra: object) -> dict[str, object]:
-            return {
-                "i18nKey": key,
-                "label": _t(self.language, key),
-                "action": action,
-                **extra,
-            }
-
-        panels = [
-            item(
-                key,
-                "switch_panel",
-                panelId=panel_id,
-                checked=self.active_panel_id == panel_id,
-            )
-            for panel_id, key, _filename in available_panels()
-        ]
-        hidden_sections = [
-            item(
-                "claude_name",
-                "toggle_hide_section",
-                preferenceKey="hide_claude_section",
-                checked=_hide_claude_enabled(),
-            ),
-            item(
-                "codex_name",
-                "toggle_hide_section",
-                preferenceKey="hide_codex_section",
-                checked=_hide_codex_enabled(),
-            ),
-            item(
-                "agy_name",
-                "toggle_hide_section",
-                preferenceKey="hide_agy_section",
-                checked=_hide_agy_enabled(),
-            ),
-        ]
-        return [
-            item("panel_ai_daily", "open_ai_daily"),
-            {"type": "separator"},
-            item("switch_panel", "", children=panels),
-            item("hide_sections_menu", "", children=hidden_sections),
-            {"type": "separator"},
-            item("launch_at_login", "toggle_login", checked=win_login_item.is_enabled()),
-            item(
-                "quota_notifications_menu",
-                "toggle_quota_notifications",
-                checked=_quota_notifications_enabled(),
-            ),
-            item(
-                "window_keeper_menu",
-                "toggle_window_keeper",
-                checked=_window_keeper_enabled(),
-            ),
-            item("project_butler", "toggle_session_resume", checked=_session_resume_enabled()),
-            item("terse_mode_menu", "toggle_terse_mode", checked=_terse_mode_enabled()),
-            {"type": "separator"},
-            item("refresh_now", "refresh"),
-        ]
+        entries = wintray_menu.entries_for_surface(_menu_model(), wintray_menu.PANEL)
+        return [_panel_menu_entry(self, entry) for entry in entries]
 
     def toggle_login(self, _icon: Any = None, _item: Any = None) -> None:
         win_login_item.disable() if win_login_item.is_enabled() else win_login_item.enable()
@@ -1571,76 +1514,79 @@ class _WindowsTrayController:
 def _menu(controller: _WindowsTrayController) -> Any:
     import pystray
 
-    panel_items = tuple(
-        pystray.MenuItem(
-            _t(controller.language, key),
-            # pystray rejects actions whose co_argcount isn't 0/1/2, so the
-            # panel_id binding must be keyword-only.
-            lambda _icon, _item, *, panel_id=panel_id: controller.switch_panel(panel_id),
-            checked=lambda _item, panel_id=panel_id: controller.active_panel_id == panel_id,
-            radio=True,
-        )
-        for panel_id, key, _filename in available_panels()
+    entries = wintray_menu.entries_for_surface(_menu_model(), wintray_menu.TRAY)
+    recovery_items = tuple(
+        _tray_menu_entry(pystray, controller, entry) for entry in entries
     )
     return pystray.Menu(
         pystray.MenuItem("Open", controller.show_panel, default=True, visible=False),
-        pystray.MenuItem(_t(controller.language, "panel_ai_daily"), controller.open_ai_daily),
-        pystray.MenuItem(
-            _t(controller.language, "reset_panel_position"), controller.reset_panel_position
-        ),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(_t(controller.language, "switch_panel"), pystray.Menu(*panel_items)),
-        pystray.MenuItem(
-            _t(controller.language, "hide_sections_menu"),
-            pystray.Menu(
-                pystray.MenuItem(
-                    _t(controller.language, "claude_name"),
-                    lambda _icon, _item: controller.toggle_hide_section("hide_claude_section"),
-                    checked=lambda _item: _hide_claude_enabled(),
-                ),
-                pystray.MenuItem(
-                    _t(controller.language, "codex_name"),
-                    lambda _icon, _item: controller.toggle_hide_section("hide_codex_section"),
-                    checked=lambda _item: _hide_codex_enabled(),
-                ),
-                pystray.MenuItem(
-                    _t(controller.language, "agy_name"),
-                    lambda _icon, _item: controller.toggle_hide_section("hide_agy_section"),
-                    checked=lambda _item: _hide_agy_enabled(),
-                ),
-            ),
-        ),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(_t(controller.language, "refresh_now"), lambda i, x: controller.refresh()),
-        pystray.MenuItem(
-            _t(controller.language, "launch_at_login"),
-            controller.toggle_login,
-            checked=lambda _item: win_login_item.is_enabled(),
-        ),
-        pystray.MenuItem(
-            _t(controller.language, "quota_notifications_menu"),
-            controller.toggle_quota_notifications,
-            checked=lambda _item: _quota_notifications_enabled(),
-        ),
-        pystray.MenuItem(
-            _t(controller.language, "window_keeper_menu"),
-            controller.toggle_window_keeper,
-            checked=lambda _item: _window_keeper_enabled(),
-        ),
-        pystray.MenuItem(
-            _t(controller.language, "project_butler"),
-            controller.toggle_session_resume,
-            checked=lambda _item: _session_resume_enabled(),
-        ),
-        pystray.MenuItem(
-            _t(controller.language, "terse_mode_menu"),
-            controller.toggle_terse_mode,
-            checked=lambda _item: _terse_mode_enabled(),
-        ),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(_t(controller.language, "check_update"), controller.check_update),
-        pystray.MenuItem(_t(controller.language, "quit"), controller.quit),
+        *recovery_items,
     )
+
+
+def _menu_model() -> tuple[wintray_menu.MenuEntry, ...]:
+    return wintray_menu.windows_menu_model(available_panels())
+
+
+def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCommand) -> bool:
+    checks = {
+        "active_panel": lambda: controller.active_panel_id == entry.argument_value,
+        "hide_claude": _hide_claude_enabled,
+        "hide_codex": _hide_codex_enabled,
+        "hide_agy": _hide_agy_enabled,
+        "launch_at_login": win_login_item.is_enabled,
+        "quota_notifications": _quota_notifications_enabled,
+        "window_keeper": _window_keeper_enabled,
+        "session_resume": _session_resume_enabled,
+        "terse_mode": _terse_mode_enabled,
+    }
+    return checks[entry.checked_by]() if entry.checked_by is not None else False
+
+
+def _panel_menu_entry(
+    controller: _WindowsTrayController, entry: wintray_menu.MenuEntry
+) -> dict[str, object]:
+    if isinstance(entry, wintray_menu.MenuSeparator):
+        return {"type": "separator"}
+    data: dict[str, object] = {
+        "i18nKey": entry.i18n_key,
+        "label": _t(controller.language, entry.i18n_key),
+    }
+    if isinstance(entry, wintray_menu.MenuGroup):
+        data["action"] = ""
+        data["children"] = [_panel_menu_entry(controller, child) for child in entry.children]
+        return data
+    data["action"] = entry.action
+    if entry.checked_by is not None:
+        data["checked"] = _menu_checked(controller, entry)
+    if entry.argument_name is not None:
+        data[entry.argument_name] = entry.argument_value
+    return data
+
+
+def _tray_menu_entry(
+    pystray: Any,
+    controller: _WindowsTrayController,
+    entry: wintray_menu.MenuEntry,
+) -> Any:
+    if isinstance(entry, wintray_menu.MenuSeparator):
+        return pystray.Menu.SEPARATOR
+    if isinstance(entry, wintray_menu.MenuGroup):
+        children = tuple(_tray_menu_entry(pystray, controller, child) for child in entry.children)
+        return pystray.MenuItem(
+            _t(controller.language, entry.i18n_key), pystray.Menu(*children)
+        )
+    action = getattr(controller, entry.action)
+    kwargs: dict[str, object] = {"radio": entry.radio}
+    if entry.checked_by is not None:
+        kwargs["checked"] = lambda _item: _menu_checked(controller, entry)
+    if entry.argument_value is not None:
+        value = entry.argument_value
+
+        def action(_icon: Any, _item: Any, *, value: str = value) -> Any:
+            return getattr(controller, entry.action)(value)
+
+    return pystray.MenuItem(_t(controller.language, entry.i18n_key), action, **kwargs)
 
 
 def _session_resume_enabled() -> bool:
