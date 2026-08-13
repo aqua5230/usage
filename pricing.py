@@ -32,6 +32,12 @@ CACHE_TTL_DAYS = 7
 FALLBACK_RETRY_SECONDS = 600
 MISSING_MODEL_REFRESH_SECONDS = FALLBACK_RETRY_SECONDS
 USER_AGENT = "usage/0.9"
+# The date when the hard-coded fallback table was last manually checked upstream.
+FALLBACK_PRICING_AS_OF: str = "2026-08-14"
+# Anthropic's official cache write/read prices relative to input pricing. These
+# are only fallbacks for missing upstream fields and may be wrong for other providers.
+CACHE_WRITE_COST_MULTIPLIER = 1.25
+CACHE_READ_COST_MULTIPLIER = 0.1
 # The upstream table is a few MB; cap the read so a broken or hostile mirror
 # cannot make us buffer an unbounded response.
 MAX_RESPONSE_BYTES = 16 * 1024 * 1024
@@ -56,6 +62,8 @@ _pricing_miss_refresh_at: float | None = None
 _pricing_miss_refresh_lock = threading.Lock()
 _model_key_cache_lock = threading.Lock()
 _model_key_cache: dict[int, tuple[PricingTable, dict[str, str | None]]] = {}
+_fallback_warning_lock = threading.Lock()
+_fallback_warning_emitted = False
 
 
 class _CostEntry(Protocol):
@@ -82,9 +90,12 @@ def calculate_cost(entry: _CostEntry) -> float:
     output_cost = model_pricing.get("output_cost_per_token", 0.0)
     cache_creation_cost = model_pricing.get(
         "cache_creation_input_token_cost",
-        input_cost * 1.25,
+        input_cost * CACHE_WRITE_COST_MULTIPLIER,
     )
-    cache_read_cost = model_pricing.get("cache_read_input_token_cost", input_cost * 0.1)
+    cache_read_cost = model_pricing.get(
+        "cache_read_input_token_cost",
+        input_cost * CACHE_READ_COST_MULTIPLIER,
+    )
 
     cost = (
         entry.input_tokens * input_cost
@@ -225,11 +236,13 @@ def _get_pricing_cache_for_test() -> tuple[PricingTable, PricingSource, float] |
 
 
 def _reset_pricing_warm_up_for_test() -> None:
-    global _pricing_warm_up_in_progress, _pricing_miss_refresh_at
+    global _fallback_warning_emitted, _pricing_miss_refresh_at, _pricing_warm_up_in_progress
     with _pricing_cache_lock:
         _pricing_warm_up_in_progress = False
     with _pricing_miss_refresh_lock:
         _pricing_miss_refresh_at = None
+    with _fallback_warning_lock:
+        _fallback_warning_emitted = False
 
 
 def _load_pricing() -> PricingTable:
@@ -246,7 +259,20 @@ def _load_pricing_with_source() -> tuple[PricingTable, PricingSource]:
     if stale_cached:
         return stale_cached, "stale"
 
+    _warn_fallback_pricing_once()
     return _fallback_pricing(), "fallback"
+
+
+def _warn_fallback_pricing_once() -> None:
+    global _fallback_warning_emitted
+    with _fallback_warning_lock:
+        if _fallback_warning_emitted:
+            return
+        _fallback_warning_emitted = True
+        logger.warning(
+            "using offline fallback pricing table last verified %s",
+            FALLBACK_PRICING_AS_OF,
+        )
 
 
 def _read_cache(*, allow_stale: bool = False) -> PricingTable | None:

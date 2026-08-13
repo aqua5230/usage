@@ -9,6 +9,8 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
+import runpy
 import threading
 import time
 import urllib.request
@@ -21,6 +23,11 @@ import pytest
 import pricing
 from adapters.types import UsageEntry as AnalyzerUsageEntry
 from history_loader import UsageEntry
+
+CHECK_FALLBACK_PRICING = runpy.run_path(
+    str(Path(__file__).parents[1] / "scripts" / "check_fallback_pricing.py"),
+    run_name="check_fallback_pricing_test",
+)
 
 
 @pytest.fixture(autouse=True)
@@ -149,6 +156,31 @@ def test_calculate_cost_sums_all_token_types(monkeypatch: pytest.MonkeyPatch) ->
         )
         == 30.0
     )
+
+
+def test_calculate_cost_uses_named_cache_multipliers_when_prices_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        pricing,
+        "get_pricing",
+        lambda: {
+            "claude-sonnet": {
+                "input_cost_per_token": 2.0,
+                "output_cost_per_token": 3.0,
+            }
+        },
+    )
+
+    assert pricing.calculate_cost(
+        _entry(
+            model="claude-sonnet",
+            input_tokens=1,
+            output_tokens=2,
+            cache_creation_tokens=3,
+            cache_read_tokens=4,
+        )
+    ) == 2.0 + 6.0 + (3 * 2.0 * 1.25) + (4 * 2.0 * 0.1)
 
 
 def test_calculate_cost_accepts_analyzer_usage_entry(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -300,6 +332,85 @@ def test_fallback_pricing_contains_expected_models() -> None:
         "cache_creation_input_token_cost": 2.5e-6,
         "cache_read_input_token_cost": 0.2e-6,
     }
+
+
+def test_fallback_pricing_as_of_has_iso_date_format() -> None:
+    assert isinstance(pricing.FALLBACK_PRICING_AS_OF, str)
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}", pricing.FALLBACK_PRICING_AS_OF)
+
+
+def test_load_pricing_warns_once_when_fallback_is_used(
+    monkeypatch: pytest.MonkeyPatch,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    monkeypatch.setattr(pricing, "_read_cache", lambda *, allow_stale=False: None)
+
+    with caplog.at_level(logging.WARNING):
+        pricing._load_pricing_with_source()
+        pricing._load_pricing_with_source()
+
+    matching_records = [
+        record
+        for record in caplog.records
+        if pricing.FALLBACK_PRICING_AS_OF in record.getMessage()
+        and "offline fallback pricing table" in record.getMessage()
+    ]
+    assert len(matching_records) == 1
+
+
+def test_compare_fallback_pricing_reports_all_difference_categories() -> None:
+    fallback: pricing.PricingTable = {
+        "claude-opus-5": {
+            "input_cost_per_token": 1.0,
+            "output_cost_per_token": 2.0,
+            "cache_creation_input_token_cost": 3.0,
+            "cache_read_input_token_cost": 4.0,
+        },
+        "claude-fable-5": {
+            "input_cost_per_token": 5.0,
+            "output_cost_per_token": 6.0,
+            "cache_creation_input_token_cost": 7.0,
+            "cache_read_input_token_cost": 8.0,
+        },
+    }
+    upstream: pricing.PricingTable = {
+        "claude-opus-5": {
+            "input_cost_per_token": 1.0,
+            "output_cost_per_token": 9.0,
+            "cache_creation_input_token_cost": 3.0,
+            "cache_read_input_token_cost": 4.0,
+        },
+        "claude-sonnet-5": {"input_cost_per_token": 1.0},
+        "anthropic/claude-haiku-5": {"input_cost_per_token": 1.0},
+    }
+
+    result = CHECK_FALLBACK_PRICING["compare_pricing"](fallback, upstream)
+
+    assert [
+        (mismatch.model, mismatch.field, mismatch.upstream, mismatch.local)
+        for mismatch in result.mismatches
+    ] == [("claude-opus-5", "output_cost_per_token", 9.0, 2.0)]
+    assert result.missing_upstream == ("claude-fable-5",)
+    assert result.missing_fallback == ("claude-sonnet-5",)
+    assert result.has_differences is True
+
+
+def test_compare_fallback_pricing_accepts_matching_tables() -> None:
+    table: pricing.PricingTable = {
+        "claude-opus-5": {
+            "input_cost_per_token": 1.0,
+            "output_cost_per_token": 2.0,
+            "cache_creation_input_token_cost": 3.0,
+            "cache_read_input_token_cost": 4.0,
+        }
+    }
+
+    result = CHECK_FALLBACK_PRICING["compare_pricing"](table, table)
+
+    assert result.mismatches == ()
+    assert result.missing_upstream == ()
+    assert result.missing_fallback == ()
+    assert result.has_differences is False
 
 
 def test_read_cache_missing_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
