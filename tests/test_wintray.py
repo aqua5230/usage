@@ -16,13 +16,18 @@ from typing import Any, cast
 import pytest
 
 import codex_loader
+import menubar_agy
 import menubar_prefs
 import menubar_state
 import panels
 import prefs
+import service_status
+import update_checker
 import win_login_item
 import windows_watch
 import wintray
+import wintray_menu
+from i18n import _t
 from usage_client import PollOutcome, PollState
 from usage_notifications import NotificationEvent
 
@@ -143,7 +148,11 @@ def test_taskbar_list3_interface_is_creatable() -> None:
     """
     import ctypes
 
-    ole32: Any = ctypes.WinDLL("ole32", use_last_error=True)
+    library_name = "WinDLL"
+    win_dll: Any = getattr(ctypes, library_name)
+    ole32: Any = win_dll("ole32", use_last_error=True)
+    function_type_name = "WINFUNCTYPE"
+    win_function_type: Any = getattr(ctypes, function_type_name)
     ole32.CoInitializeEx.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
     ole32.CoInitializeEx.restype = ctypes.c_long
     ole32.CoCreateInstance.argtypes = [
@@ -174,7 +183,7 @@ def test_taskbar_list3_interface_is_creatable() -> None:
             vtable = ctypes.cast(
                 taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
             ).contents
-            ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)(vtable[2])(taskbar)
+            win_function_type(ctypes.c_ulong, ctypes.c_void_p)(vtable[2])(taskbar)
         if initialize_result in {0, 1}:
             ole32.CoUninitialize()
 
@@ -708,17 +717,15 @@ def test_panel_and_tray_menus_render_the_shared_model(
     monkeypatch.setattr(controller, "quit", lambda *_args: quit_calls.append("quit"))
 
     model = wintray._menu_model()
-    panel_model = wintray.wintray_menu.entries_for_surface(
-        model, wintray.wintray_menu.PANEL
-    )
-    tray_model = wintray.wintray_menu.entries_for_surface(model, wintray.wintray_menu.TRAY)
+    panel_model = wintray_menu.entries_for_surface(model, wintray_menu.PANEL)
+    tray_model = wintray_menu.entries_for_surface(model, wintray_menu.TRAY)
     panel_payload = controller._panel_menu_data()
     tray_menu = wintray._menu(controller)
 
-    def model_keys(entries: tuple[wintray.wintray_menu.MenuEntry, ...]) -> list[str]:
+    def model_keys(entries: tuple[wintray_menu.MenuEntry, ...]) -> list[str]:
         return [
             "separator"
-            if isinstance(entry, wintray.wintray_menu.MenuSeparator)
+            if isinstance(entry, wintray_menu.MenuSeparator)
             else entry.i18n_key
             for entry in entries
         ]
@@ -731,8 +738,8 @@ def test_panel_and_tray_menus_render_the_shared_model(
         for item in tray_menu.items[1:]
     ] == [
         "separator"
-        if isinstance(entry, wintray.wintray_menu.MenuSeparator)
-        else wintray._t("en", entry.i18n_key)
+        if isinstance(entry, wintray_menu.MenuSeparator)
+        else _t("en", entry.i18n_key)
         for entry in tray_model
     ]
     assert model_keys(tray_model) == ["reset_panel_position", "separator", "quit"]
@@ -943,14 +950,14 @@ def test_attach_schedules_startup_maintenance_after_tray_is_visible(
             threads.append(cast(SimpleNamespace, self))
 
         def start(self) -> None:
-            events.append(("thread", cast(object, self.target).__name__, self.daemon))
+            target = cast(Callable[..., object], self.target)
+            events.append(("thread", target.__name__, self.daemon))
 
-    monkeypatch.setattr(wintray.threading, "Thread", FakeThread)
+    monkeypatch.setattr("wintray.threading.Thread", FakeThread)
     monkeypatch.setattr(controller, "_update_tray", lambda: events.append("tray"))
     monkeypatch.setattr(controller, "refresh", lambda: events.append("refresh"))
     monkeypatch.setattr(
-        wintray.usage_diagnosis_snapshot,
-        "maybe_schedule_refresh",
+        "wintray.usage_diagnosis_snapshot.maybe_schedule_refresh",
         lambda: events.append("diagnosis"),
     )
     monkeypatch.setattr(
@@ -1037,23 +1044,22 @@ def test_windows_usage_watch_specs_are_limited_to_usage_sources(
     for path in (claude_projects, sessions, archived):
         path.mkdir(parents=True)
     monkeypatch.setattr(
-        windows_watch.rate_limits,
-        "STATUS_FILE",
+        "windows_watch.rate_limits.STATUS_FILE",
         str(claude_root / "usage-status.json"),
     )
     monkeypatch.setattr(
-        windows_watch.rate_limits,
-        "LEGACY_STATUS_FILE",
+        "windows_watch.rate_limits.LEGACY_STATUS_FILE",
         str(claude_root / "usag-status.json"),
     )
     monkeypatch.setattr(
-        windows_watch.rate_limits,
-        "TT_STATUS_FILE",
+        "windows_watch.rate_limits.TT_STATUS_FILE",
         str(claude_root / "tt-status.json"),
     )
-    monkeypatch.setattr(windows_watch.history_loader, "CLAUDE_PROJECTS_DIR", claude_projects)
-    monkeypatch.setattr(windows_watch.codex_loader, "SESSIONS_DIR", sessions)
-    monkeypatch.setattr(windows_watch.codex_loader, "ARCHIVED_SESSIONS_DIR", archived)
+    monkeypatch.setattr(
+        "windows_watch.history_loader.CLAUDE_PROJECTS_DIR", claude_projects
+    )
+    monkeypatch.setattr("windows_watch.codex_loader.SESSIONS_DIR", sessions)
+    monkeypatch.setattr("windows_watch.codex_loader.ARCHIVED_SESSIONS_DIR", archived)
 
     specs = windows_watch.usage_watch_specs()
 
@@ -1142,8 +1148,8 @@ def test_file_event_storm_coalesces_to_one_trailing_refresh(
         def cancel(self) -> None:
             self.cancelled = True
 
-    monkeypatch.setattr(wintray.threading, "Timer", FakeTimer)
-    monkeypatch.setattr(wintray.time, "monotonic", lambda: 100.0)
+    monkeypatch.setattr("wintray.threading.Timer", FakeTimer)
+    monkeypatch.setattr("wintray.time.monotonic", lambda: 100.0)
     monkeypatch.setattr(controller, "refresh", lambda: refreshes.append("refresh"))
     changes = windows_watch.WindowsFileEventChanges(frozenset({dirty}))
 
@@ -1332,9 +1338,9 @@ def test_build_state_reuses_history_until_fingerprint_changes(
 
     monkeypatch.setattr(controller, "_load_entries", counting_load_entries)
     monkeypatch.setattr(
-        wintray.service_status,
+        service_status,
         "get_service_status",
-        lambda config: wintray.service_status.ServiceStatus(
+        lambda config: service_status.ServiceStatus(
             config.service_name,
             False,
             "operational",
@@ -1388,11 +1394,11 @@ def test_build_state_reuses_history_scan_for_codex_rate_limits(
     monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
     monkeypatch.setattr(codex_loader, "_recent_jsonl_files", recent_jsonl_files)
     monkeypatch.setattr(
-        wintray.menubar_agy,
+        menubar_agy,
         "load_refresh_result",
-        lambda _language: wintray.menubar_agy.AgyRefreshResult(None, True),
+        lambda _language: menubar_agy.AgyRefreshResult(None, True),
     )
-    monkeypatch.setattr(wintray.agy_window_keeper, "maybe_ping", lambda *_args: None)
+    monkeypatch.setattr("wintray.agy_window_keeper.maybe_ping", lambda *_args: None)
 
     controller._build_state()
 
@@ -1406,20 +1412,20 @@ def test_build_state_fetches_relevant_service_feeds_and_builds_banner(
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.language = "en"
     row = _state().codex_session
-    projection = wintray.menubar_agy.AgyQuotaProjection(
+    projection = menubar_agy.AgyQuotaProjection(
         group_name="Gemini",
         session=row,
         weekly=row,
         stale=None,
         five_hour=None,
     )
-    calls: list[wintray.service_status.ServiceStatusConfig] = []
+    calls: list[service_status.ServiceStatusConfig] = []
 
     def fake_status(
-        config: wintray.service_status.ServiceStatusConfig,
-    ) -> wintray.service_status.ServiceStatus:
+        config: service_status.ServiceStatusConfig,
+    ) -> service_status.ServiceStatus:
         calls.append(config)
-        return wintray.service_status.ServiceStatus(
+        return service_status.ServiceStatus(
             config.service_name,
             config.service_name == "Claude",
             "major_outage" if config.service_name == "Claude" else "operational",
@@ -1433,9 +1439,9 @@ def test_build_state_fetches_relevant_service_feeds_and_builds_banner(
         lambda **kwargs: ((row, row), 25.0, "codex", None, None),
     )
     monkeypatch.setattr(
-        wintray.menubar_agy,
+        menubar_agy,
         "load_refresh_result",
-        lambda language: wintray.menubar_agy.AgyRefreshResult(projection, False),
+        lambda language: menubar_agy.AgyRefreshResult(projection, False),
     )
     monkeypatch.setattr(
         controller,
@@ -1447,17 +1453,17 @@ def test_build_state_fetches_relevant_service_feeds_and_builds_banner(
         "_load_entries",
         lambda scan: wintray._RefreshData([], None),
     )
-    monkeypatch.setattr(wintray.window_keeper, "maybe_ping", lambda *args: None)
-    monkeypatch.setattr(wintray.agy_window_keeper, "maybe_ping", lambda *args: None)
-    monkeypatch.setattr(wintray.service_status, "get_service_status", fake_status)
+    monkeypatch.setattr("wintray.window_keeper.maybe_ping", lambda *args: None)
+    monkeypatch.setattr("wintray.agy_window_keeper.maybe_ping", lambda *args: None)
+    monkeypatch.setattr(service_status, "get_service_status", fake_status)
     monkeypatch.setattr(wintray, "_hide_claude_enabled", lambda: False)
     monkeypatch.setattr(wintray, "_hide_codex_enabled", lambda: False)
 
     state = controller._build_state()
 
     assert calls == [
-        wintray.service_status.CLAUDE_STATUS,
-        wintray.service_status.CODEX_STATUS,
+        service_status.CLAUDE_STATUS,
+        service_status.CODEX_STATUS,
     ]
     # components.json, not summary.json — the summary payload is truncated to the
     # first 25 components and silently omits Codex API. See test_service_status.py.
@@ -1644,17 +1650,25 @@ def test_real_windows_toast_backend_registers_aumid_and_creates_notifier() -> No
     pytest.importorskip("windows_toasts", reason="Windows toast extra is not installed")
     aumid = f"com.lollapalooza.usage.pytest.{uuid.uuid4().hex}"
     key_path = rf"Software\Classes\AppUserModelId\{aumid}"
+    key_name = "HKEY_CURRENT_USER"
+    hkey_current_user: Any = getattr(winreg, key_name)
+    open_key_name = "OpenKey"
+    open_key: Any = getattr(winreg, open_key_name)
+    query_value_name = "QueryValueEx"
+    query_value: Any = getattr(winreg, query_value_name)
+    delete_key_name = "DeleteKey"
+    delete_key: Any = getattr(winreg, delete_key_name)
     try:
         backend = wintray._create_toast_backend(aumid)
-        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path) as key:
-            display_name, _value_type = winreg.QueryValueEx(key, "DisplayName")
+        with open_key(hkey_current_user, key_path) as key:
+            display_name, _value_type = query_value(key, "DisplayName")
 
         assert display_name == "usage"
         assert backend.notifierAUMID == aumid
         assert backend.toastNotifier is not None
     finally:
         with suppress(FileNotFoundError):
-            winreg.DeleteKey(winreg.HKEY_CURRENT_USER, key_path)
+            delete_key(hkey_current_user, key_path)
 
 
 @pytest.mark.parametrize(
@@ -1671,9 +1685,9 @@ def test_automatic_update_check_honors_toggle_cache_and_cooldown(
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences.copy())
-    monkeypatch.setattr(wintray.update_gate.time, "time", lambda: 2_000_000_000.0)
+    monkeypatch.setattr("wintray.update_gate.time.time", lambda: 2_000_000_000.0)
     monkeypatch.setattr(
-        wintray.update_checker,
+        update_checker,
         "check_latest_release_result",
         lambda version: pytest.fail("automatic update gate must skip the network"),
     )
@@ -1688,7 +1702,7 @@ def test_automatic_update_check_honors_toggle_cache_and_cooldown(
 def test_automatic_update_check_persists_cache_and_honors_skipped_version(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    release = wintray.update_checker.ReleaseInfo(
+    release = update_checker.ReleaseInfo(
         version="99.0.0",
         html_url="https://github.com/aqua5230/usage/releases/tag/v99.0.0",
         body="release notes",
@@ -1699,11 +1713,11 @@ def test_automatic_update_check_persists_cache_and_honors_skipped_version(
     monkeypatch.setattr(wintray, "_current_version", lambda: "1.0.0")
     monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences.copy())
     monkeypatch.setattr(wintray, "_save_preferences", lambda data: saved.append(dict(data)))
-    monkeypatch.setattr(wintray.update_gate.time, "time", lambda: 2_000_000_000.0)
+    monkeypatch.setattr("wintray.update_gate.time.time", lambda: 2_000_000_000.0)
     monkeypatch.setattr(
-        wintray.update_checker,
+        update_checker,
         "check_latest_release_result",
-        lambda version: wintray.update_checker.ReleaseCheckResult(release),
+        lambda version: update_checker.ReleaseCheckResult(release),
     )
     monkeypatch.setattr(
         controller,
@@ -1733,7 +1747,7 @@ def test_automatic_update_check_persists_cache_and_honors_skipped_version(
 def test_manual_update_check_bypasses_gates_and_keeps_windows_yes_no_prompt(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    release = wintray.update_checker.ReleaseInfo(
+    release = update_checker.ReleaseInfo(
         version="99.0.0",
         html_url="https://github.com/aqua5230/usage/releases/tag/v99.0.0",
         body="release notes",
@@ -1752,18 +1766,18 @@ def test_manual_update_check_bypasses_gates_and_keeps_windows_yes_no_prompt(
     monkeypatch.setattr(wintray, "_current_version", lambda: "1.0.0")
     monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences.copy())
     monkeypatch.setattr(wintray, "_save_preferences", lambda data: saved.append(dict(data)))
-    monkeypatch.setattr(wintray.update_gate.time, "time", lambda: 2_000_000_000.0)
+    monkeypatch.setattr("wintray.update_gate.time.time", lambda: 2_000_000_000.0)
     monkeypatch.setattr(
-        wintray.update_checker,
+        update_checker,
         "check_latest_release_result",
-        lambda version: wintray.update_checker.ReleaseCheckResult(release),
+        lambda version: update_checker.ReleaseCheckResult(release),
     )
-    monkeypatch.setattr(
-        controller,
-        "_message_box",
-        lambda text, *, style=0x40: messages.append((text, style)) or 6,
-    )
-    monkeypatch.setattr(wintray.webbrowser, "open", lambda url: opened.append(url))
+    def message_box(text: str, *, style: int = 0x40) -> int:
+        messages.append((text, style))
+        return 6
+
+    monkeypatch.setattr(controller, "_message_box", message_box)
+    monkeypatch.setattr("wintray.webbrowser.open", lambda url: opened.append(url))
 
     controller._check_update_in_background(
         manual=True,

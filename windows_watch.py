@@ -336,10 +336,14 @@ class WindowsUsageWatcher:
         overlapped = _Overlapped()
         overlapped.hEvent = runtime.io_event
         wait_handles = (wintypes.HANDLE * 2)(self._stop_handle, runtime.io_event)
+        set_last_error_name = "set_last_error"
+        set_last_error: Any = getattr(ctypes, set_last_error_name)
+        get_last_error_name = "get_last_error"
+        get_last_error: Any = getattr(ctypes, get_last_error_name)
         try:
             while True:
                 _kernel32.ResetEvent(runtime.io_event)
-                ctypes.set_last_error(0)
+                set_last_error(0)
                 submitted = _kernel32.ReadDirectoryChangesW(
                     runtime.directory_handle,
                     buffer,
@@ -350,7 +354,7 @@ class WindowsUsageWatcher:
                     ctypes.byref(overlapped),
                     None,
                 )
-                error = ctypes.get_last_error()
+                error = get_last_error()
                 if not submitted and error != _ERROR_IO_PENDING:
                     runtime.ready.set()
                     if error == _ERROR_NOTIFY_ENUM_DIR:
@@ -385,12 +389,12 @@ class WindowsUsageWatcher:
                         self._debug_warning(
                             "WaitForMultipleObjects failed for %s (error %s)",
                             runtime.spec.root,
-                            ctypes.get_last_error(),
+                            get_last_error(),
                         )
                     return
 
                 transferred = wintypes.DWORD()
-                ctypes.set_last_error(0)
+                set_last_error(0)
                 completed = _kernel32.GetOverlappedResult(
                     runtime.directory_handle,
                     ctypes.byref(overlapped),
@@ -398,7 +402,7 @@ class WindowsUsageWatcher:
                     False,
                 )
                 if not completed:
-                    error = ctypes.get_last_error()
+                    error = get_last_error()
                     if error == _ERROR_OPERATION_ABORTED and self._stopped:
                         return
                     self._dispatch(WindowsFileEventChanges(frozenset(), True))

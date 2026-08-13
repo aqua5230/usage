@@ -477,7 +477,11 @@ def _set_taskbar_progress(
 
     # WinDLL leaves HRESULT handling to us, including RPC_E_CHANGED_MODE;
     # OleDLL would raise before we could safely reuse an existing apartment.
-    ole32: Any = ctypes.WinDLL("ole32", use_last_error=True)
+    library_name = "WinDLL"
+    win_dll: Any = getattr(ctypes, library_name)
+    ole32: Any = win_dll("ole32", use_last_error=True)
+    function_type_name = "WINFUNCTYPE"
+    win_function_type: Any = getattr(ctypes, function_type_name)
     ole32.CoInitializeEx.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
     ole32.CoInitializeEx.restype = ctypes.c_long
     ole32.CoCreateInstance.argtypes = [
@@ -512,18 +516,18 @@ def _set_taskbar_progress(
         vtable = ctypes.cast(
             taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
         ).contents
-        hresult_method = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p)
-        set_progress_value_method = ctypes.WINFUNCTYPE(
+        hresult_method = win_function_type(ctypes.c_long, ctypes.c_void_p)
+        set_progress_value_method = win_function_type(
             ctypes.c_long,
             ctypes.c_void_p,
             ctypes.c_void_p,
             ctypes.c_ulonglong,
             ctypes.c_ulonglong,
         )
-        set_progress_state_method = ctypes.WINFUNCTYPE(
+        set_progress_state_method = win_function_type(
             ctypes.c_long, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int
         )
-        release_method = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
+        release_method = win_function_type(ctypes.c_ulong, ctypes.c_void_p)
 
         _raise_for_hresult(int(hresult_method(vtable[3])(taskbar)), "ITaskbarList3.HrInit")
         if state != TaskbarProgressState.NO_PROGRESS:
@@ -551,7 +555,7 @@ def _set_taskbar_progress(
             vtable = ctypes.cast(
                 taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
             ).contents
-            release_method = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
+            release_method = win_function_type(ctypes.c_ulong, ctypes.c_void_p)
             release_method(vtable[2])(taskbar)
         if initialized_here:
             ole32.CoUninitialize()

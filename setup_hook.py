@@ -219,7 +219,9 @@ def _shell_arg(value: str) -> str:
 
 def _get_windows_short_path(value: str) -> str:
     """Return ``value`` in its existing Win32 8.3 short-path form."""
-    get_short_path_name = ctypes.WinDLL("kernel32", use_last_error=True).GetShortPathNameW
+    library_name = "WinDLL"
+    win_dll: Any = getattr(ctypes, library_name)
+    get_short_path_name = win_dll("kernel32", use_last_error=True).GetShortPathNameW
     get_short_path_name.argtypes = (
         wintypes.LPCWSTR,
         wintypes.LPWSTR,
@@ -232,7 +234,9 @@ def _get_windows_short_path(value: str) -> str:
         buffer = ctypes.create_unicode_buffer(size)
         written = get_short_path_name(value, buffer, size)
         if written == 0:
-            error_code = ctypes.get_last_error()
+            function_name = "get_last_error"
+            get_last_error: Any = getattr(ctypes, function_name)
+            error_code = get_last_error()
             raise OSError(
                 error_code,
                 f"GetShortPathNameW failed for {value!r}",

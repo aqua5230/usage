@@ -150,7 +150,7 @@ def test_setup_and_unsetup_agy_on_windows_use_discovered_python_and_sidecar(
     short_python = r"C:\PROGRA~1\Python\python.exe"
     monkeypatch.setattr("setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
-    monkeypatch.setattr(setup_hook.shutil, "which", lambda _name: None)
+    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
     monkeypatch.setattr(
         setup_hook,
         "_get_windows_short_path",
@@ -192,7 +192,7 @@ def test_agy_windows_command_shortens_both_spaced_paths_without_quotes(
     }
     monkeypatch.setattr("setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
-    monkeypatch.setattr(setup_hook.shutil, "which", lambda _name: None)
+    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
     monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", target)
     monkeypatch.setattr(
         setup_hook, "_get_windows_short_path", lambda value: short_paths[value]
@@ -216,7 +216,7 @@ def test_agy_windows_command_prefers_working_space_free_interpreter(
     monkeypatch.setattr("setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
     monkeypatch.setattr(
-        setup_hook.shutil, "which", lambda name: launcher if name == "py" else None
+        "setup_hook.shutil.which", lambda name: launcher if name == "py" else None
     )
     monkeypatch.setattr(setup_hook, "_is_working_python", lambda value: value == launcher)
     monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", target)
@@ -233,7 +233,7 @@ def test_agy_windows_command_rejects_unchanged_spaced_short_path(
     python = r"C:\Program Files\Python311\python.EXE"
     monkeypatch.setattr("setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
-    monkeypatch.setattr(setup_hook.shutil, "which", lambda _name: None)
+    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
     monkeypatch.setattr(setup_hook, "_get_windows_short_path", lambda value: value)
 
     with pytest.raises(RuntimeError, match=r"no usable 8\.3 short path") as exc_info:
@@ -250,7 +250,7 @@ def test_agy_windows_command_reports_short_path_lookup_failure(
     python = r"C:\Missing Python\python.exe"
     monkeypatch.setattr("setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
-    monkeypatch.setattr(setup_hook.shutil, "which", lambda _name: None)
+    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
 
     def fail_short_path(_value: str) -> str:
         raise OSError(2, "file not found")
