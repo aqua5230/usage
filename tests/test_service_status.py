@@ -368,3 +368,47 @@ def test_corrupt_alert_state_is_treated_as_first_observation(
     assert json.loads(state_path.read_text(encoding="utf-8"))["Codex"]["status"] == (
         "degraded_performance"
     )
+
+
+@pytest.mark.parametrize("config", [service_status.CLAUDE_STATUS, service_status.CODEX_STATUS])
+def test_configured_feeds_use_components_not_the_truncated_summary(
+    config: service_status.ServiceStatusConfig,
+) -> None:
+    """Statuspage's summary payload is capped at the first 25 components.
+
+    OpenAI publishes 34, so "Codex API" (position 27) never appears there and
+    _build_status() could only ever return "unknown" — silently, because an
+    absent component is indistinguishable from a healthy one to the caller.
+    Mocked payload tests cannot catch picking the wrong endpoint, so pin it.
+    """
+    assert config.status_url.endswith("/api/v2/components.json")
+    assert "summary.json" not in config.status_url
+
+
+@pytest.mark.parametrize("config", [service_status.CLAUDE_STATUS, service_status.CODEX_STATUS])
+def test_live_feed_actually_publishes_every_watched_component(
+    config: service_status.ServiceStatusConfig,
+) -> None:
+    """Hit the real endpoint so a renamed or dropped component fails loudly.
+
+    Every other test here feeds a hand-written payload, so the allowlist can
+    drift away from what the vendor actually publishes without any test noticing
+    — which is exactly how the Codex banner went dark.
+    """
+    try:
+        with urllib.request.urlopen(config.status_url, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, OSError) as error:
+        pytest.skip(f"status feed unreachable: {error}")
+
+    published = {
+        component["name"]
+        for component in payload.get("components", [])
+        if isinstance(component, dict) and isinstance(component.get("name"), str)
+    }
+    missing = [name for name in config.component_names if name not in published]
+
+    assert not missing, (
+        f"{config.service_name} no longer publishes {missing}; "
+        f"the banner will silently report 'unknown'. Published: {sorted(published)}"
+    )

@@ -56,17 +56,26 @@ class ServiceStatusConfig:
     cache_path: Path
 
 
+# Both feeds use components.json, not summary.json. Statuspage's summary payload
+# is truncated to the first 25 components by position: OpenAI publishes 34, so
+# "Codex API" (position 27) is silently absent from it and _build_status() can
+# only ever report "unknown". components.json returns the full list and carries
+# the same top-level "components" key, so the parser is unchanged. Anthropic
+# publishes 6 today and is unaffected, but it uses the same endpoint so a future
+# component of theirs cannot quietly fall off the end either.
 CLAUDE_STATUS = ServiceStatusConfig(
     service_name="Claude",
-    status_url="https://status.claude.com/api/v2/summary.json",
+    status_url="https://status.claude.com/api/v2/components.json",
     component_names=("Claude Code", "Claude API (api.anthropic.com)"),
     cache_path=Path(os.path.expanduser("~/.usage/anthropic_status_cache.json")),
 )
 CODEX_STATUS = ServiceStatusConfig(
     service_name="Codex",
-    status_url="https://status.openai.com/api/v2/summary.json",
+    status_url="https://status.openai.com/api/v2/components.json",
     # Do not include shared OpenAI API components (for example Responses): they
-    # affect all API users and do not necessarily affect the Codex CLI.
+    # affect all API users and do not necessarily affect the Codex CLI. Nor the
+    # "Codex Web" / "Codex in ChatGPT Desktop" components, which track surfaces
+    # the CLI does not use.
     component_names=("Codex API",),
     cache_path=Path(os.path.expanduser("~/.usage/openai_status_cache.json")),
 )
