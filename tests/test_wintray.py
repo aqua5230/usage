@@ -232,6 +232,7 @@ def test_panel_position_is_clamped_and_persisted_on_hide(
         resize=lambda *args: None,
         move=lambda x, y: moves.append((x, y)),
         hide=lambda: None,
+        minimize=lambda: None,
     )
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.window = window
@@ -623,7 +624,9 @@ def test_run_app_wires_pystray_and_pywebview(
             events.append("loaded_handler")
             return self
 
-    window = SimpleNamespace(events=SimpleNamespace(loaded=Event()))
+    window = SimpleNamespace(
+        events=SimpleNamespace(loaded=Event(), minimized=Event(), restored=Event())
+    )
 
     def create_window(*args: object, **kwargs: object) -> object:
         events.append(
@@ -649,6 +652,8 @@ def test_run_app_wires_pystray_and_pywebview(
 
     assert events == [
         ("window", "usage", True, "#eef2f7"),
+        "loaded_handler",
+        "loaded_handler",
         "loaded_handler",
         ("icon", "usage"),
         "run_detached",
@@ -685,13 +690,15 @@ def test_show_panel_places_window_before_showing(
     )
     monkeypatch.setattr(controller, "refresh", lambda: calls.append("refresh"))
     controller.window = SimpleNamespace(
-        show=lambda: calls.append("show"), hide=lambda: calls.append("hide")
+        restore=lambda: calls.append("restore"),
+        show=lambda: calls.append("show"),
+        hide=lambda: calls.append("hide"),
     )
 
     controller.show_panel()
 
     assert controller.visible is True
-    assert calls == ["place", "show", "inject:True", "refresh"]
+    assert calls == ["place", "restore", "show", "inject:True", "refresh"]
 
 
 def test_hide_panel_saves_position_and_hides_window(
@@ -700,7 +707,7 @@ def test_hide_panel_saves_position_and_hides_window(
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.visible = True
     calls: list[str] = []
-    controller.window = SimpleNamespace(hide=lambda: calls.append("hide"))
+    controller.window = SimpleNamespace(minimize=lambda: calls.append("minimize"))
     monkeypatch.setattr(controller, "_save_window_position", lambda: calls.append("save"))
 
     controller.hide_panel()
@@ -708,7 +715,25 @@ def test_hide_panel_saves_position_and_hides_window(
 
     assert controller.visible is False
     assert controller._positioned_this_show is False
-    assert calls == ["save", "hide"]
+    assert calls == ["save", "minimize"]
+
+
+def test_native_minimize_and_restore_keep_controller_state_in_sync(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[str] = []
+    monkeypatch.setattr(controller, "_place_window", lambda: calls.append("place"))
+    monkeypatch.setattr(
+        controller, "inject_state", lambda *, force=False: calls.append(f"inject:{force}")
+    )
+
+    controller.on_minimized()
+    assert controller.visible is False
+    controller.on_restored()
+
+    assert controller.visible is True
+    assert calls == ["place", "inject:True"]
 
 
 def test_tray_update_skips_unchanged_values(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -741,8 +766,10 @@ def test_inject_state_skips_duplicate_but_forces_after_panel_reopens(
     injected: list[str] = []
     controller.window = SimpleNamespace(
         evaluate_js=injected.append,
+        restore=lambda: None,
         show=lambda: None,
         hide=lambda: None,
+        minimize=lambda: None,
     )
     monkeypatch.setattr(controller, "_place_window", lambda: None)
     monkeypatch.setattr(controller, "refresh", lambda: None)
@@ -881,14 +908,12 @@ def test_session_hook_toggles_run_in_background_helpers(
     assert calls == ["enable_resume", "disable_terse"]
 
 
-def test_run_app_bails_out_when_another_instance_holds_the_lock(
+def test_run_app_bails_out_silently_when_another_instance_is_activated(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     # Regression: a second tray instance used to fight the first over the
     # WebView2 user-data directory and linger as a bare white window.
-    notices: list[str] = []
     monkeypatch.setattr(wintray, "_acquire_single_instance_lock", lambda: False)
-    monkeypatch.setattr(wintray, "_show_already_running_notice", lambda: notices.append("shown"))
     fake_webview = SimpleNamespace(
         create_window=lambda *args, **kwargs: pytest.fail("window must not be created"),
         start=lambda **kwargs: pytest.fail("webview must not start"),
@@ -897,7 +922,24 @@ def test_run_app_bails_out_when_another_instance_holds_the_lock(
 
     wintray.run_app(mock=True, interval=60)
 
-    assert notices == ["shown"]
+
+
+def test_activate_panel_opens_hidden_or_restores_visible(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[str] = []
+    controller.window = SimpleNamespace(
+        restore=lambda: calls.append("restore"), show=lambda: calls.append("show")
+    )
+    monkeypatch.setattr(controller, "show_panel", lambda: calls.append("open"))
+    monkeypatch.setattr(controller, "_place_window", lambda: calls.append("place"))
+
+    controller.activate_panel()
+    controller.visible = True
+    controller.activate_panel()
+
+    assert calls == ["open", "restore", "show", "place"]
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows named mutex")

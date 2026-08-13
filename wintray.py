@@ -654,8 +654,19 @@ class _WindowsTrayController:
         self.icon = icon
         self.window = window
         self._update_tray()
+        threading.Thread(target=self._activation_loop, daemon=True).start()
         threading.Thread(target=self._poll_loop, daemon=True).start()
         self.refresh()
+
+    def _activation_loop(self) -> None:
+        if _activation_event_handle is None or os.name != "nt":
+            return
+        import ctypes
+
+        windll: Any = getattr(ctypes, "windll")
+        while not self.stopping.is_set():
+            if windll.kernel32.WaitForSingleObject(_activation_event_handle, 500) == 0:
+                self.activate_panel()
 
     def on_loaded(self) -> None:
         # pywebview's resize()/move() call SetWindowPos with SWP_SHOWWINDOW,
@@ -665,6 +676,15 @@ class _WindowsTrayController:
         if self.visible:
             self._place_window()
             self.inject_state(force=True)
+
+    def on_minimized(self) -> None:
+        self.visible = False
+        self._positioned_this_show = False
+
+    def on_restored(self) -> None:
+        self.visible = True
+        self._place_window()
+        self.inject_state(force=True)
 
     def _working_area(self) -> tuple[int, int, int, int] | None:
         """Return the primary monitor work area (without taskbar)."""
@@ -1013,9 +1033,18 @@ class _WindowsTrayController:
             return
         self.visible = True
         self._place_window()
+        self.window.restore()
         self.window.show()
         self.inject_state(force=True)
         self.refresh()
+
+    def activate_panel(self) -> None:
+        if not self.visible:
+            self.show_panel()
+            return
+        self.window.restore()
+        self.window.show()
+        self._place_window()
 
     def hide_panel(self) -> None:
         if not self.visible or self.window is None:
@@ -1023,7 +1052,7 @@ class _WindowsTrayController:
         self._save_window_position()
         self.visible = False
         self._positioned_this_show = False
-        self.window.hide()
+        self.window.minimize()
 
     def switch_panel(self, panel_id: str) -> None:
         self.active_panel_id = panel_id
@@ -1524,6 +1553,21 @@ def _terse_mode_enabled() -> bool:
 _SINGLE_INSTANCE_MUTEX = "usage-windows-tray-single-instance"
 _ERROR_ALREADY_EXISTS = 183
 _single_instance_handle: int | None = None
+_activation_event_handle: int | None = None
+
+
+def _activation_event_name() -> str:
+    return f"{_SINGLE_INSTANCE_MUTEX}-activate"
+
+
+def _signal_existing_instance() -> None:
+    import ctypes
+
+    windll: Any = getattr(ctypes, "windll")
+    handle = windll.kernel32.OpenEventW(0x0002, False, _activation_event_name())
+    if handle:
+        windll.kernel32.SetEvent(handle)
+        windll.kernel32.CloseHandle(handle)
 
 
 def _acquire_single_instance_lock() -> bool:
@@ -1532,7 +1576,7 @@ def _acquire_single_instance_lock() -> bool:
     Two tray instances fight over the same WebView2 user-data directory: the
     loser's panel fails to initialize and lingers as a bare white window.
     """
-    global _single_instance_handle
+    global _activation_event_handle, _single_instance_handle
     import ctypes
 
     library_name = "windll"
@@ -1542,13 +1586,17 @@ def _acquire_single_instance_lock() -> bool:
         return True
     if windll.kernel32.GetLastError() == _ERROR_ALREADY_EXISTS:
         windll.kernel32.CloseHandle(handle)
+        _signal_existing_instance()
         return False
     _single_instance_handle = handle
+    _activation_event_handle = windll.kernel32.CreateEventW(
+        None, False, False, _activation_event_name()
+    )
     return True
 
 
 def _release_single_instance_lock() -> None:
-    global _single_instance_handle
+    global _activation_event_handle, _single_instance_handle
     if _single_instance_handle is None:
         return
     import ctypes
@@ -1557,19 +1605,13 @@ def _release_single_instance_lock() -> None:
     windll: Any = getattr(ctypes, library_name)
     windll.kernel32.CloseHandle(_single_instance_handle)
     _single_instance_handle = None
-
-
-def _show_already_running_notice() -> None:
-    import ctypes
-
-    library_name = "windll"
-    windll: Any = getattr(ctypes, library_name)
-    windll.user32.MessageBoxW(0, _t(detect_lang(), "wintray_already_running"), "usage", 0x40)
+    if _activation_event_handle is not None:
+        windll.kernel32.CloseHandle(_activation_event_handle)
+        _activation_event_handle = None
 
 
 def run_app(mock: bool = False, interval: int = 60) -> None:
     if not _acquire_single_instance_lock():
-        _show_already_running_notice()
         return
 
     import pystray
@@ -1591,6 +1633,8 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
     if window is None:
         raise RuntimeError("pywebview did not create a window")
     window.events.loaded += controller.on_loaded
+    window.events.minimized += controller.on_minimized
+    window.events.restored += controller.on_restored
     icon = pystray.Icon("usage", draw_tray_icon(None), "usage", _menu(controller))
     controller.attach(icon, window)
     icon.run_detached()
