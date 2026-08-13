@@ -112,3 +112,13 @@ def test_detect_lang_env_var_beats_windows_ui_language(
     _fake_windll(monkeypatch, 1028)
 
     assert detect_lang() == "ja"
+
+
+def test_detect_lang_ignores_inherited_lang_on_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    assert detect_lang({"LANG": "zh_TW.UTF-8"}) == "en"
+
+
+def test_detect_lang_still_honours_usage_lang_on_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    assert detect_lang({"USAGE_LANG": "ja", "LANG": "zh_TW.UTF-8"}) == "ja"
