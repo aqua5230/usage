@@ -230,14 +230,33 @@ jobs:
         shell: pwsh
         run: ./scripts/build_windows.ps1
 
+      # SignPath is opt-in: the credentials are configured per repository, and a
+      # fork or a not-yet-onboarded main repo must still be able to ship a
+      # Windows build rather than fail the whole release on a missing secret.
+      - name: Resolve signing availability
+        id: signing
+        shell: bash
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+        run: |
+          if [[ -n "$SIGNPATH_API_TOKEN" && -n "$SIGNPATH_ORGANIZATION_ID" ]]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SignPath credentials are not configured; shipping an unsigned Windows bundle."
+          fi
+
       - name: Upload unsigned bundle for signing
         id: upload-unsigned-artifact
+        if: steps.signing.outputs.enabled == 'true'
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: usage-windows-unsigned
           path: dist
 
       - name: Submit signing request
+        if: steps.signing.outputs.enabled == 'true'
         uses: signpath/github-action-submit-signing-request@b9d91eadd323de506c0c81cf0c7fe7438f3360fd # v2
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -253,8 +272,11 @@ jobs:
 
       - name: Zip Windows bundle
         shell: pwsh
+        env:
+          SIGNED: ${{ steps.signing.outputs.enabled }}
         run: |
-          Compress-Archive -Path dist/signed/usage-windows -DestinationPath dist/usage-windows.zip
+          $source = if ($env:SIGNED -eq 'true') { 'dist/signed/usage-windows' } else { 'dist/usage-windows' }
+          Compress-Archive -Path $source -DestinationPath dist/usage-windows.zip
           $hash = (Get-FileHash dist/usage-windows.zip -Algorithm SHA256).Hash.ToLower()
           "$hash  usage-windows.zip" | Out-File -FilePath dist/usage-windows.zip.sha256 -Encoding ascii -NoNewline
 

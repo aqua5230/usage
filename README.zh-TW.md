@@ -102,7 +102,7 @@ brew install --cask aqua5230/usage/usage
 
 Windows 可完整使用核心功能：系統匣 UI、Claude Code 狀態列 hook 與 Codex 記錄解析都原生支援。從[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下載 `usage-windows.zip`，解壓後執行 `usage.exe` 即可，無須安裝程式。系統匣 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
 
-系統匣圖示會隨 Claude 額度百分比更新；提示文字摘要 Claude 與 Codex 的各視窗。左鍵會用 WebView2 開啟與 macOS 相同的 13 款主題面板（Classic 加另外十二款）；右鍵可切換面板、重新整理、設定開機自啟、檢查更新與結束。
+系統匣圖示會隨 Claude 額度百分比更新；提示文字摘要 Claude 與 Codex 的各視窗。左鍵會用 WebView2 開啟與 macOS 相同的 13 款主題面板（Classic 加另外十二款）；右鍵只有「重設面板位置」與「結束」；面板切換、重新整理、開機自啟與檢查更新都在面板選單。
 
 Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示；更新提示使用系統 Yes/No 對話框；AI 人才市場與 AI 圓桌討論面板僅提供 macOS。
 

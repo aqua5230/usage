@@ -5,6 +5,25 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.27] - 2026-08-13
+
+### Added
+- **Windows now keeps usage current when Claude Code or Codex files change.** A native file watcher refreshes the tray percentage, panel, quota notifications, and Window Keeper shortly after the underlying files change instead of leaving them up to five minutes behind; overlapping refresh requests are merged and run once more when the current refresh finishes, so clicking Refresh Now or opening the panel no longer loses the request during a background refresh.
+- **Windows now runs the same daily quota-waste check, service-outage banner, and automatic update check as macOS.** The daily diagnosis snapshot is scheduled after the tray starts, the panel receives Claude and Codex service status, and background update checks respect the existing daily cache, dismissal cooldown, and skipped-version choice; manual checks still run immediately.
+- **Windows quota alerts can stay in Action Center and open the panel.** Notifications now use an interactive Windows toast with an action button; if Windows' toast support is unavailable, usage falls back to the previous tray balloon without interrupting refreshes.
+- **Windows supports the Antigravity status line.** Turning on the existing status-line switch now installs and maintains Antigravity's quota display on Windows too, including the packaged executable.
+- **Windows shows remaining quota on the panel's taskbar button.** Its progress bar uses the same severity colors as the tray icon and disappears when the panel is closed, so the tray app does not gain an unwanted extra taskbar entry.
+- **Windows builds now have usage's paw icon and stay sharp on high-DPI displays.** The executable carries the app icon instead of PyInstaller's default, and Per-Monitor-v2 DPI awareness prevents Windows from bitmap-stretching the panel on high-resolution or mixed-scale monitors.
+
+### Changed
+- **Windows moved everyday controls into the panel menu and leaves the tray menu for recovery.** Right-clicking the tray icon now exposes Reset Panel Position and Quit, while panel switching, refresh, launch at login, notification settings, update checks, and the other controls are available from the panel's own menu; both surfaces are generated from the same menu definition so they no longer drift apart.
+
+### Fixed
+- **Windows places and resizes the panel correctly on scaled and multi-monitor setups.** Positioning now consistently uses the logical coordinates expected by WebView2 and sends all geometry changes through its UI thread, avoiding a panel on the wrong display, beyond a screen edge, or changed from the wrong thread.
+- **Antigravity status-line setup on Windows no longer silently installs a command that cannot run.** It selects an unquoted, Windows-safe Python path for `cmd.exe`, rejects unsupported paths with a clear action to take, and handles special path characters safely; macOS's Claude and Antigravity command paths are unchanged.
+- **Usage forecasts no longer overreact to one sudden token jump.** On macOS and Windows, the forecast now weights each recent interval by its duration, so a short polling interval containing one large Claude update no longer predicts that quota will run out implausibly soon.
+- **Claude and Codex outage banners now recover and suppress alerts correctly on macOS and Windows.** Codex API status is read from the complete component list instead of a truncated summary, and alert suppression again fetches incident state only when an affected component needs it; this restores a regression for Claude and makes Codex's previously ineffective suppression work for the first time.
+
 ## [0.29.26] - 2026-08-12
 
 ### Changed

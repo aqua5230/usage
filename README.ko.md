@@ -102,7 +102,7 @@ brew install --cask aqua5230/usage/usage
 
 Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다. 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석을 지원합니다.[최신 GitHub Release](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 내려받아 압축을 풀고 `usage.exe`를 실행하면 됩니다. 설치는 필요하지 않습니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10/11에 이미 포함되어 있습니다.
 
-시스템 트레이 아이콘은 Claude 할당량 비율에 따라 업데이트되고, 도구 설명에는 Claude와 Codex의 각 창 요약이 표시됩니다. 왼쪽 클릭하면 WebView2에서 macOS와 같은 13개 테마 패널(Classic과 나머지 12개)을 열고, 오른쪽 클릭 메뉴에서는 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인, 종료를 할 수 있습니다.
+시스템 트레이 아이콘은 Claude 할당량 비율에 따라 업데이트되고, 도구 설명에는 Claude와 Codex의 각 창 요약이 표시됩니다. 왼쪽 클릭하면 WebView2에서 macOS와 같은 13개 테마 패널(Classic과 나머지 12개)을 열고, 오른쪽 클릭 메뉴에는 '패널 위치 재설정'과 '종료'만 있고, 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인은 패널 메뉴에 있습니다.
 
 Windows의 차이점: 패널은 트레이 아이콘 옆이 아니라 작업 영역 오른쪽 아래에 열립니다. 업데이트 알림은 시스템 Yes/No 대화 상자를 사용합니다. AI Talent Market 및 AI 원탁 토론 패널은 macOS 전용입니다.
 

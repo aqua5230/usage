@@ -102,7 +102,7 @@ brew install --cask aqua5230/usage/usage
 
 Windows 原生支持完整核心功能：系统托盘 UI、Claude Code 状态栏 hook 和 Codex 记录解析均可使用。从[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后直接运行 `usage.exe`，无需安装。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
 
-系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 13 款主题面板（Classic 加另外十二款）；右键可切换面板、刷新、设置开机自启、检查更新和退出。
+系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 13 款主题面板（Classic 加另外十二款）；右键只有「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
 
 Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托盘图标；更新提示使用系统 Yes/No 对话框；AI 人才市场与 AI 圆桌讨论面板仅限 macOS。
 

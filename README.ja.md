@@ -102,7 +102,7 @@ brew install --cask aqua5230/usage/usage
 
 Windowsでも主要機能をすべてネイティブで利用できます。システムトレイUI、Claude Codeのステータスラインhook、Codex履歴の解析に対応しています。[最新のGitHub Release](https://github.com/aqua5230/usage/releases/latest)から`usage-windows.zip`をダウンロードし、展開して`usage.exe`を実行してください。インストールは不要です。システムトレイUIにはMicrosoft Edge WebView2 Runtimeが必要ですが、通常はWindows 10/11に含まれています。
 
-システムトレイのアイコンはClaudeのクォータ率に合わせて更新され、ツールチップにはClaudeとCodexの各ウィンドウの概要が表示されます。左クリックでWebView2上にmacOSと同じ13種類のテーマパネル（Classicと他の12テーマ）を開き、右クリックではパネル切替、更新、ログイン時に起動、更新確認、終了を行えます。
+システムトレイのアイコンはClaudeのクォータ率に合わせて更新され、ツールチップにはClaudeとCodexの各ウィンドウの概要が表示されます。左クリックでWebView2上にmacOSと同じ13種類のテーマパネル（Classicと他の12テーマ）を開き、右クリックでは「パネルの位置をリセット」と「終了」のみで、パネル切替、更新、ログイン時に起動、更新確認はパネル側のメニューにあります。
 
 Windowsでの相違点：パネルはトレイアイコンの隣ではなく作業領域の右下に開きます。更新通知はシステムのYes/Noダイアログです。AI Talent MarketおよびAI円卓会議パネルはmacOS専用です。
 
