@@ -42,13 +42,21 @@ def _isolate_log_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
 
 @pytest.fixture(autouse=True)
 def _isolate_codex_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """Prevent self_heal and related paths from writing a user's real ~/.codex."""
+    """Prevent self_heal from writing a user's real Codex or Antigravity config."""
     import setup_hook
 
     codex_dir = tmp_path / "codex"
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_dir / "config.toml")
     monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_dir / "usage-backup.json")
     monkeypatch.setattr(setup_hook, "LEGACY_CODEX_BACKUP", codex_dir / "tt-backup.json")
+    agy_dir = tmp_path / "antigravity-cli"
+    monkeypatch.setattr(setup_hook, "AGY_SETTINGS", agy_dir / "settings.json")
+    monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", agy_dir / "usage-statusline-agy.py")
+    monkeypatch.setattr(
+        setup_hook,
+        "AGY_PREVIOUS_STATUSLINE",
+        agy_dir / "usage-previous-statusline.json",
+    )
 
 
 @pytest.fixture

@@ -31,6 +31,7 @@ try {
         --add-data "$(Join-Path $RepoRoot 'pyproject.toml');." `
         --add-data "$(Join-Path $RepoRoot 'assets');assets" `
         --add-data "$(Join-Path $RepoRoot 'usage_statusline.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_statusline_agy.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_statusline_forwarder.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_session_resume.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_terse_mode.py');." `

@@ -79,7 +79,7 @@ def _sync_agy_statusline(enable: bool) -> None:
     or unwritable ~/.gemini config must never stop Claude's own status line from
     being toggled.
     """
-    if sys.platform != "darwin":
+    if sys.platform not in {"darwin", "win32"}:
         return
     import setup_hook
 
@@ -151,7 +151,7 @@ def _statusline_enabled() -> bool:
         return False
     if "statusLine" in settings:
         return True
-    if sys.platform != "darwin":
+    if sys.platform not in {"darwin", "win32"}:
         return False
     with contextlib.suppress(Exception):
         import setup_hook

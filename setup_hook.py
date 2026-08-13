@@ -441,7 +441,8 @@ def _save_settings(data: dict[str, Any]) -> None:
 
 
 def _agy_statusline_command() -> str:
-    return f"/usr/bin/python3 {_shell_arg(str(AGY_HOOK_TARGET))}"
+    python = _find_system_python() if sys.platform == "win32" else "/usr/bin/python3"
+    return f"{_shell_arg(python)} {_shell_arg(str(AGY_HOOK_TARGET))}"
 
 
 def _is_agy_usage_hook(status_line: object) -> bool:
@@ -460,7 +461,7 @@ def _load_agy_json(path: Path) -> object | None:
 
 def _setup_agy() -> bool:
     """Install Antigravity's status line without creating an absent settings file."""
-    if sys.platform != "darwin":
+    if sys.platform not in {"darwin", "win32"}:
         return False
     if not AGY_SETTINGS.is_file():
         return False
@@ -506,7 +507,7 @@ def _setup_agy() -> bool:
 
 def _unsetup_agy() -> bool:
     """Remove usage's Antigravity status line and restore its sidecar backup."""
-    if sys.platform != "darwin":
+    if sys.platform not in {"darwin", "win32"}:
         return False
     if not AGY_SETTINGS.is_file():
         return False
@@ -542,7 +543,7 @@ def _unsetup_agy() -> bool:
 
 def is_agy_setup() -> bool:
     """Return whether usage's Antigravity status line is fully installed."""
-    if sys.platform != "darwin":
+    if sys.platform not in {"darwin", "win32"}:
         return False
     if not AGY_SETTINGS.is_file() or not AGY_HOOK_TARGET.is_file():
         return False
