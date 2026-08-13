@@ -46,6 +46,7 @@ try {
         --hidden-import analyzer.reporter `
         --hidden-import ui.html_report `
         --collect-all pystray `
+        --collect-all windows_toasts `
         --collect-all webview `
         main.py
 
