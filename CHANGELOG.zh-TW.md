@@ -4,6 +4,18 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.29.28] - 2026-08-14
+
+### 新增
+- **`usage status` 會印出你的配額給其他工具讀。** 在此之前，要把配額拿出 usage 只能從 Python 匯入它的內部函式。`usage status` 給一行摘要，`usage status --json` 給帶版本號的 JSON，兩者都只讀選單列本來就在讀的本機檔案，不做網路呼叫。[開發文件](docs/DEVELOPMENT.zh-TW.md)附了可直接複製的 Starship 與 tmux 設定。
+- **發行版現在附上建置來源證明與 SBOM。** 每個 macOS 與 Windows 產物都帶有簽章過的 SLSA build provenance，可用 `gh attestation verify <檔案> --repo aqua5230/usage` 驗證；macOS 發行版另外附上 CycloneDX 軟體物料清單，列出所有打包進去的相依套件。
+
+### 變更
+- **離線價目表現在會說自己多舊。** 抓不到上游價目表時，usage 會退回內建的那份；這份表現在會記錄最後一次與上游人工核對的日期，並在被採用時記一筆警告，讓過時的價格能被發現，而不是無聲地讓成本總計失準。
+
+### 修正
+- **把 usage 當 Python 套件安裝不再缺模組。** 打包白名單只涵蓋 74 個頂層模組裡的 39 個，裝起來會出現 `ModuleNotFoundError`。清單已補齊，並加了測試確保它不再脫節。
+
 ## [0.29.27] - 2026-08-13
 
 ### 新增

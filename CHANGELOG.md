@@ -5,6 +5,18 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.28] - 2026-08-14
+
+### Added
+- **`usage status` prints your quota for other tools to read.** Until now the only way to get quota out of usage was to import its internals from Python. `usage status` gives a one-line summary, `usage status --json` gives a versioned JSON payload, and both read the same local files as the menu bar — no network call. The [development docs](docs/DEVELOPMENT.md) include ready-made Starship and tmux snippets.
+- **Releases now ship build provenance and an SBOM.** Every macOS and Windows artifact carries a signed SLSA build-provenance attestation, verifiable with `gh attestation verify <file> --repo aqua5230/usage`, and the macOS release includes a CycloneDX software bill of materials listing every bundled dependency.
+
+### Changed
+- **The offline price table now says how old it is.** When the upstream price list can't be reached, usage falls back to a built-in table; that table now records the date it was last checked against upstream and logs a warning when it is used, so a silently outdated price can be spotted instead of quietly skewing your cost totals.
+
+### Fixed
+- **Installing usage as a Python package no longer leaves modules behind.** The packaging allowlist covered 39 of the 74 top-level modules, so an installed copy crashed with `ModuleNotFoundError`. The list is complete now and a test keeps it that way.
+
 ## [0.29.27] - 2026-08-13
 
 ### Added

@@ -184,6 +184,63 @@ python3 usage_cli.py monthly
 
 HTML 報告包含：每日 / 週 / 月 token 與成本走勢、各專案排名、Top 模型分布。右上角的「分享」按鈕可另存 `.html` 或複製檔案路徑，透過 AirDrop / Mail / Slack / iMessage 把報告傳給同事或主管；對方瀏覽器打開即可閱讀。報告內含「隱藏專案名稱」勾選框（預設打勾，隱私優先），勾選後另存的 HTML 會把所有專案名稱替換成 `Project 1 / Project 2 / ...`，不影響當前螢幕顯示。
 
+## 給其他工具讀的配額狀態（`usage status`）
+
+`usage status` 會印出目前 Claude Code 與 Codex 的配額，讓其他工具接得上。它只讀選單列本來就在讀的那些本機檔案，不做任何網路呼叫；Antigravity 的配額需要連網才拿得到，所以刻意不放進來。
+
+```bash
+# 一行人類看的摘要
+usage status
+# claude-code 5h=41.0% 7d=65.0% | codex 5h=? 7d=21.0%
+
+# 機器讀的格式
+usage status --json
+```
+
+JSON 帶有 `schema_version`，之後格式若有變動，接的人可以據此防呆：
+
+```json
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T07:00:00Z",
+  "agents": {
+    "claude-code": {
+      "available": true,
+      "five_hour": { "used_percent": 41.0, "resets_at": 1786676400 },
+      "seven_day": { "used_percent": 65.0, "resets_at": 1786788000 },
+      "model": "claude-opus-5",
+      "updated_at": "2026-08-14T06:52:00Z"
+    },
+    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910 }, "model": "", "updated_at": "2026-08-14T06:52:23Z" }
+  }
+}
+```
+
+還讀不到資料的 agent 會回 `"available": false` 加一整組 null，指令本身仍然 exit `0`——沒資料不算錯誤。廠商沒回報的那個視窗會是 `null` 而不是整個欄位消失，接的人不用為了「key 不存在」多寫防呆。
+
+從原始碼安裝的話，可以直接跑 `python3 usage_cli.py status --json`，或先跑一次 `uv sync` 把 `usage` 指令裝進 PATH。
+
+### Starship
+
+需要 [`jq`](https://jqlang.github.io/jq/)。加進 `~/.config/starship.toml`：
+
+```toml
+[custom.claude_quota]
+command = 'usage status --json | jq -r ".agents[\"claude-code\"].seven_day.used_percent // \"?\""'
+when = true
+format = "claude [$output%]($style) "
+style = "bold yellow"
+```
+
+### tmux
+
+加進 `~/.tmux.conf`：
+
+```tmux
+set -g status-interval 60
+set -g status-right '#(usage status --json | jq -r ".agents[\"claude-code\"].seven_day.used_percent")%% '
+```
+
 ## 開機自動啟動
 
 LaunchAgent 是 macOS 內建的背景服務管理器（負責「使用者登入後要幫忙啟動哪些程式」），可以讓 usage 在你登入時自動跑起來，不用每次手動啟動。

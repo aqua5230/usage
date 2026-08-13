@@ -182,6 +182,63 @@ python3 usage_cli.py monthly
 
 The HTML report covers daily / weekly / monthly token + cost trends, per-project rankings, and top-model distribution. The top-right Share button lets you save a copy as `.html` or copy the file path to send via AirDrop / Mail / Slack / iMessage — recipients open it in any browser. The built-in "Hide project names" toggle (on by default, privacy-first) swaps every project name to `Project 1 / Project 2 / ...` before the file is saved, while the on-screen view is unaffected.
 
+## Quota status for other tools (`usage status`)
+
+`usage status` prints the current Claude Code and Codex quota so other tools can read it. It only reads the same local files the menu bar uses — no network call, and Antigravity is deliberately excluded because its quota needs one.
+
+```bash
+# One-line human-readable summary
+usage status
+# claude-code 5h=41.0% 7d=65.0% | codex 5h=? 7d=21.0%
+
+# Machine-readable
+usage status --json
+```
+
+The JSON carries a `schema_version` so consumers can guard against future changes:
+
+```json
+{
+  "schema_version": 1,
+  "generated_at": "2026-08-14T07:00:00Z",
+  "agents": {
+    "claude-code": {
+      "available": true,
+      "five_hour": { "used_percent": 41.0, "resets_at": 1786676400 },
+      "seven_day": { "used_percent": 65.0, "resets_at": 1786788000 },
+      "model": "claude-opus-5",
+      "updated_at": "2026-08-14T06:52:00Z"
+    },
+    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910 }, "model": "", "updated_at": "2026-08-14T06:52:23Z" }
+  }
+}
+```
+
+An agent with no readable data yet reports `"available": false` with null fields, and the command still exits `0` — missing data is not an error. A window that the provider doesn't report is `null` rather than absent, so consumers never have to guard against a missing key.
+
+If you installed from source, either run it as `python3 usage_cli.py status --json` or `uv sync` once to get the `usage` command on your PATH.
+
+### Starship
+
+Requires [`jq`](https://jqlang.github.io/jq/). Add to `~/.config/starship.toml`:
+
+```toml
+[custom.claude_quota]
+command = 'usage status --json | jq -r ".agents[\"claude-code\"].seven_day.used_percent // \"?\""'
+when = true
+format = "claude [$output%]($style) "
+style = "bold yellow"
+```
+
+### tmux
+
+Add to `~/.tmux.conf`:
+
+```tmux
+set -g status-interval 60
+set -g status-right '#(usage status --json | jq -r ".agents[\"claude-code\"].seven_day.used_percent")%% '
+```
+
 ## Auto-start on login
 
 A LaunchAgent (the macOS service that handles "what should start when this user logs in") makes usage start automatically.
