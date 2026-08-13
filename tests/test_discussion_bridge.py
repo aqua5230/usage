@@ -1338,7 +1338,9 @@ def test_shutdown_is_bounded_when_runner_is_stuck(
     elapsed = time.monotonic() - before
     release.set()
 
-    assert elapsed < 0.2
+    # 卡住的 runner 要 2 秒才會自己醒,所以只要遠低於它就證明 shutdown 有界。
+    # 門檻不能貼著 shutdown(0.05) 抓,CI runner 的排程抖動就足以超過。
+    assert elapsed < 1.0
     assert bridge.snapshot()["status"] == "CANCELLED"
 
 
