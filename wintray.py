@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import ctypes
 import importlib
 import json
 import logging
@@ -16,9 +17,11 @@ from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from enum import IntEnum
 from importlib import metadata
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from uuid import UUID
 
 import agy_window_keeper
 import codex_loader
@@ -94,6 +97,44 @@ PANEL_HEIGHTS = {
     "origami": 1004,
     "catppuccin": 1038,
 }
+
+TRAY_UNKNOWN_COLOR = (110, 118, 129, 255)
+TRAY_NORMAL_COLOR = (244, 145, 100, 255)
+TRAY_PAUSED_COLOR = (255, 196, 57, 255)
+TRAY_ERROR_COLOR = (255, 69, 58, 255)
+
+
+class TaskbarProgressState(IntEnum):
+    """TBPFLAG values used by ITaskbarList3::SetProgressState."""
+
+    NO_PROGRESS = 0x0
+    NORMAL = 0x2
+    ERROR = 0x4
+    PAUSED = 0x8
+
+
+class _GUID(ctypes.Structure):
+    _fields_ = [
+        ("data1", ctypes.c_uint32),
+        ("data2", ctypes.c_ushort),
+        ("data3", ctypes.c_ushort),
+        ("data4", ctypes.c_ubyte * 8),
+    ]
+
+    @classmethod
+    def from_string(cls, value: str) -> _GUID:
+        parsed = UUID(value)
+        return cls(
+            parsed.time_low,
+            parsed.time_mid,
+            parsed.time_hi_version,
+            (ctypes.c_ubyte * 8)(*parsed.bytes[8:]),
+        )
+
+
+_CLSID_TASKBAR_LIST = _GUID.from_string("56FDF344-FD6D-11D0-958A-006097C9A090")
+_IID_ITASKBAR_LIST3 = _GUID.from_string("EA1AFB91-9E28-4B86-90E9-9E9F8A5EEA84")
+_RPC_E_CHANGED_MODE = -2147417850
 
 JS_SHIM = """
 <script>
@@ -352,15 +393,140 @@ def available_panels() -> tuple[tuple[str, str, str], ...]:
 
 def tray_icon_style(used_percent: float | None) -> tuple[str, tuple[int, int, int, int]]:
     if used_percent is None:
-        return ("--", (110, 118, 129, 255))
+        return ("--", TRAY_UNKNOWN_COLOR)
     remaining = max(0, min(100, round(100.0 - used_percent)))
     if remaining <= 20:
-        color = (255, 69, 58, 255)
+        color = TRAY_ERROR_COLOR
     elif remaining <= 50:
-        color = (255, 196, 57, 255)
+        color = TRAY_PAUSED_COLOR
     else:
-        color = (244, 145, 100, 255)
+        color = TRAY_NORMAL_COLOR
     return (str(remaining), color)
+
+
+def taskbar_progress_state(used_percent: float | None) -> TaskbarProgressState:
+    """Map the tray icon's existing quota color tier to a taskbar progress state."""
+    if used_percent is None:
+        return TaskbarProgressState.NO_PROGRESS
+    _text, color = tray_icon_style(used_percent)
+    if color == TRAY_ERROR_COLOR:
+        return TaskbarProgressState.ERROR
+    if color == TRAY_PAUSED_COLOR:
+        return TaskbarProgressState.PAUSED
+    return TaskbarProgressState.NORMAL
+
+
+def _taskbar_window_handle(window: Any) -> int | None:
+    """Return the pywebview WinForms HWND only when it owns a taskbar button."""
+    try:
+        native = window.native
+        if not native.ShowInTaskbar:
+            return None
+        handle = native.Handle
+        to_int64 = getattr(handle, "ToInt64", None)
+        value = to_int64() if callable(to_int64) else handle
+        hwnd = int(value)
+        return hwnd or None
+    except (AttributeError, TypeError, ValueError, OverflowError):
+        return None
+
+
+def _raise_for_hresult(result: int, operation: str) -> None:
+    if result < 0:
+        code = result & 0xFFFFFFFF
+        raise OSError(f"{operation} failed with HRESULT 0x{code:08X}")
+
+
+def _set_taskbar_progress(
+    hwnd: int,
+    completed: int,
+    total: int,
+    state: TaskbarProgressState,
+) -> None:
+    """Apply taskbar progress with a thread-local, short-lived ITaskbarList3."""
+    if os.name != "nt":
+        return
+
+    # WinDLL leaves HRESULT handling to us, including RPC_E_CHANGED_MODE;
+    # OleDLL would raise before we could safely reuse an existing apartment.
+    ole32: Any = ctypes.WinDLL("ole32", use_last_error=True)
+    ole32.CoInitializeEx.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+    ole32.CoInitializeEx.restype = ctypes.c_long
+    ole32.CoCreateInstance.argtypes = [
+        ctypes.POINTER(_GUID),
+        ctypes.c_void_p,
+        ctypes.c_ulong,
+        ctypes.POINTER(_GUID),
+        ctypes.POINTER(ctypes.c_void_p),
+    ]
+    ole32.CoCreateInstance.restype = ctypes.c_long
+    ole32.CoUninitialize.argtypes = []
+    ole32.CoUninitialize.restype = None
+
+    initialize_result = int(ole32.CoInitializeEx(None, 0x2))  # COINIT_APARTMENTTHREADED
+    initialized_here = initialize_result in {0, 1}  # S_OK or S_FALSE
+    if initialize_result < 0 and initialize_result != _RPC_E_CHANGED_MODE:
+        _raise_for_hresult(initialize_result, "CoInitializeEx")
+
+    taskbar = ctypes.c_void_p()
+    try:
+        result = int(
+            ole32.CoCreateInstance(
+                ctypes.byref(_CLSID_TASKBAR_LIST),
+                None,
+                0x1,  # CLSCTX_INPROC_SERVER
+                ctypes.byref(_IID_ITASKBAR_LIST3),
+                ctypes.byref(taskbar),
+            )
+        )
+        _raise_for_hresult(result, "CoCreateInstance(CLSID_TaskbarList)")
+
+        vtable = ctypes.cast(
+            taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
+        ).contents
+        hresult_method = ctypes.WINFUNCTYPE(ctypes.c_long, ctypes.c_void_p)
+        set_progress_value_method = ctypes.WINFUNCTYPE(
+            ctypes.c_long,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_ulonglong,
+            ctypes.c_ulonglong,
+        )
+        set_progress_state_method = ctypes.WINFUNCTYPE(
+            ctypes.c_long, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int
+        )
+        release_method = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
+
+        _raise_for_hresult(int(hresult_method(vtable[3])(taskbar)), "ITaskbarList3.HrInit")
+        if state != TaskbarProgressState.NO_PROGRESS:
+            _raise_for_hresult(
+                int(
+                    set_progress_value_method(vtable[9])(
+                        taskbar,
+                        ctypes.c_void_p(hwnd),
+                        completed,
+                        total,
+                    )
+                ),
+                "ITaskbarList3.SetProgressValue",
+            )
+        _raise_for_hresult(
+            int(
+                set_progress_state_method(vtable[10])(
+                    taskbar, ctypes.c_void_p(hwnd), int(state)
+                )
+            ),
+            "ITaskbarList3.SetProgressState",
+        )
+    finally:
+        if taskbar.value:
+            vtable = ctypes.cast(
+                taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
+            ).contents
+            release_method = ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)
+            release_method(vtable[2])(taskbar)
+        if initialized_here:
+            ole32.CoUninitialize()
 
 
 def build_tooltip(state: menubar_state.PopoverState) -> str:
@@ -607,6 +773,9 @@ class _WindowsTrayController:
         if self.visible and not self.stopping.is_set():
             self._place_window()
             self.inject_state(force=True)
+            # A panel reload can recreate its taskbar button. Reapply the
+            # latest value once the visible native window has loaded.
+            self._update_taskbar_progress(self.latest_state.claude_session.percent)
 
     @staticmethod
     def _screen_rectangle(value: object) -> tuple[int, int, int, int] | None:
@@ -992,9 +1161,10 @@ class _WindowsTrayController:
         return await self.usage_client.fetch_once()
 
     def _update_tray(self) -> None:
+        percent = self.latest_state.claude_session.percent
+        self._update_taskbar_progress(percent)
         if self.icon is None:
             return
-        percent = self.latest_state.claude_session.percent
         tooltip = build_tooltip(self.latest_state)
         if percent == self._last_tray_percent and tooltip == self._last_tray_tooltip:
             return
@@ -1002,6 +1172,26 @@ class _WindowsTrayController:
         self.icon.title = tooltip
         self._last_tray_percent = percent
         self._last_tray_tooltip = tooltip
+
+    def _update_taskbar_progress(self, used_percent: float | None) -> None:
+        # ITaskbarList3 targets a window's taskbar button, not the pystray icon.
+        # This popover has such a button only while its WinForms Form is visible.
+        if not self.visible or self.window is None:
+            return
+        hwnd = _taskbar_window_handle(self.window)
+        if hwnd is None:
+            return
+        completed = 0 if used_percent is None else max(0, min(100, round(used_percent)))
+        try:
+            _set_taskbar_progress(
+                hwnd,
+                completed,
+                100,
+                taskbar_progress_state(used_percent),
+            )
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows taskbar progress update failed", exc_info=True)
 
     def inject_state(self, *, force: bool = False) -> None:
         if self.window is None:
@@ -1031,6 +1221,7 @@ class _WindowsTrayController:
         self.visible = True
         self._place_window()
         self.window.show()
+        self._update_taskbar_progress(self.latest_state.claude_session.percent)
         self.inject_state(force=True)
         self.refresh()
 
