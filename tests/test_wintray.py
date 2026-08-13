@@ -164,6 +164,8 @@ def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
     assert "minimize_to_tray" not in html
     assert "window.usagePostPanelAction = post" in html
     assert "window.usagePostPanelAction('hide_panel')" in html
+    assert "usagePanelFocusedAt = Date.now()" in html
+    assert "Date.now() - usagePanelFocusedAt < 300" in html
     assert "window.addEventListener('blur'" in html
     assert "post('open_menu')" in html
     assert "usage-panel-menu-backdrop" in html

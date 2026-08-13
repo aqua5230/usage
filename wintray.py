@@ -251,7 +251,15 @@ document.addEventListener('click', function(event) {
   window.usagePostPanelAction('hide_panel');
 }, true);
 
+var usagePanelFocusedAt = 0;
+window.addEventListener('focus', function() {
+  usagePanelFocusedAt = Date.now();
+});
 window.addEventListener('blur', function() {
+  // Clicking the tray icon causes a transient focus hand-off while show()
+  // activates the WebView. Ignore that startup blur; only a panel that has
+  // held focus can be dismissed by clicking elsewhere.
+  if (!usagePanelFocusedAt || Date.now() - usagePanelFocusedAt < 300) return;
   window.setTimeout(function() {
     if (!document.hasFocus()) window.usagePostPanelAction('hide_panel');
   }, 120);
