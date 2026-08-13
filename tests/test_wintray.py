@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import sys
 import threading
+from collections.abc import Callable
 from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
@@ -176,9 +177,13 @@ def test_content_height_message_resizes_visible_panel_with_work_area_clamp(
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.visible = True
+    controller.window = SimpleNamespace(x=0, y=0)
     calls: list[str] = []
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
-    monkeypatch.setattr(controller, "_place_window", lambda: calls.append("place"))
+    monkeypatch.setattr(
+        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
+    )
+    monkeypatch.setattr(controller, "_place_window_on_ui_thread", lambda: calls.append("place"))
 
     controller.handle_panel_message(
         json.dumps({"action": "content_height", "height": 510.4})
@@ -233,6 +238,108 @@ def test_panel_position_is_clamped_and_persisted_on_hide(
     window.x, window.y = 123, 234
     controller.show_panel()
     assert prefs._load_preferences()["usage.windowPosition"] == {"x": 123, "y": 234}
+
+
+def test_dpi_scaled_monitor_placement_uses_logical_coordinates(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    screens = [
+        SimpleNamespace(
+            x=0,
+            y=0,
+            width=1536,
+            height=864,
+            frame=SimpleNamespace(Left=0, Top=0, Right=1536, Bottom=824),
+            scale=1.25,
+        ),
+        SimpleNamespace(
+            x=1536,
+            y=0,
+            width=1280,
+            height=720,
+            frame=SimpleNamespace(Left=1536, Top=0, Right=2816, Bottom=680),
+            scale=1.5,
+        ),
+    ]
+    monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
+    mutations: list[tuple[str, int, int]] = []
+    window = SimpleNamespace(
+        x=2700,
+        y=600,
+        resize=lambda width, height: mutations.append(("resize", width, height)),
+        move=lambda x, y: mutations.append(("move", x, y)),
+    )
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = window
+    controller._content_height = 400
+    controller._positioned_this_show = True
+
+    controller._place_window()
+
+    assert mutations == [("resize", 380, 400), ("move", 2424, 268)]
+
+
+def test_content_height_clamps_to_panels_current_monitor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    screens = [
+        SimpleNamespace(
+            x=0,
+            y=0,
+            width=1536,
+            height=1080,
+            frame=SimpleNamespace(Left=0, Top=0, Right=1536, Bottom=1040),
+        ),
+        SimpleNamespace(
+            x=1536,
+            y=0,
+            width=1280,
+            height=720,
+            frame=SimpleNamespace(Left=1536, Top=0, Right=2816, Bottom=700),
+        ),
+    ]
+    monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(x=1700, y=100)
+
+    controller._apply_content_height(1000)
+
+    assert controller.panel_height() == 676
+
+
+def test_background_window_mutation_is_dispatched_to_ui_thread(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    main_thread_id = threading.get_ident()
+    mutation_threads: list[int] = []
+    scheduling_threads: list[int] = []
+    scheduled_drains: list[Callable[[], None]] = []
+
+    def begin_invoke(callback: Callable[[], None]) -> None:
+        scheduling_threads.append(threading.get_ident())
+        scheduled_drains.append(callback)
+
+    native = SimpleNamespace(InvokeRequired=True, BeginInvoke=begin_invoke)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        native=native,
+        resize=lambda _width, _height: mutation_threads.append(threading.get_ident()),
+        move=lambda _x, _y: mutation_threads.append(threading.get_ident()),
+    )
+    monkeypatch.setitem(sys.modules, "System", SimpleNamespace(Action=lambda callback: callback))
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
+    monkeypatch.setattr(
+        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
+    )
+    worker = threading.Thread(target=controller._place_window)
+    worker.start()
+    worker.join()
+
+    assert mutation_threads == []
+    assert len(scheduling_threads) == 1
+    assert scheduling_threads[0] != main_thread_id
+    scheduled_drains.pop()()
+    assert mutation_threads == [main_thread_id, main_thread_id]
 
 
 def test_load_preferences_non_utf8(
