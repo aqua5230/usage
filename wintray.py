@@ -58,6 +58,17 @@ HISTORY_SCAN_CACHE_SECONDS = 30.0
 PANEL_WIDTH = 380
 LANGUAGE_PREFERENCE_KEY = "usage.language"
 LANGUAGE_OPTIONS = ("auto", "zh-CN", "zh-TW", "en", "ja", "ko")
+
+
+def _logical_work_area(
+    work_area: tuple[int, int, int, int], dpi: int,
+) -> tuple[int, int, int, int]:
+    scale = max(96, dpi) / 96.0
+    values = (round(value / scale) for value in work_area)
+    left, top, right, bottom = values
+    return (left, top, right, bottom)
+
+
 WINDOWS_PANELS = (
     ("classic", "panel_default_name", "classic.html"),
     ("matrix", "panel_matrix", "matrix.html"),
@@ -251,19 +262,6 @@ document.addEventListener('click', function(event) {
   window.usagePostPanelAction('hide_panel');
 }, true);
 
-var usagePanelFocusedAt = 0;
-window.addEventListener('focus', function() {
-  usagePanelFocusedAt = Date.now();
-});
-window.addEventListener('blur', function() {
-  // Clicking the tray icon causes a transient focus hand-off while show()
-  // activates the WebView. Ignore that startup blur; only a panel that has
-  // held focus can be dismissed by clicking elsewhere.
-  if (!usagePanelFocusedAt || Date.now() - usagePanelFocusedAt < 300) return;
-  window.setTimeout(function() {
-    if (!document.hasFocus()) window.usagePostPanelAction('hide_panel');
-  }, 120);
-});
 </script>
 <style>
 .usage-window-drag-handle {
@@ -633,8 +631,7 @@ class _WindowsTrayController:
         return self._content_height or PANEL_HEIGHTS[self.active_panel_id]
 
     def _apply_content_height(self, value: object) -> None:
-        anchor = self._current_window_position() or self._saved_window_position()
-        work_area = self._work_area_for_point(anchor) or self._working_area()
+        work_area = self._working_area()
         maximum = (
             float(work_area[3] - work_area[1] - 24)
             if work_area is not None
@@ -704,7 +701,10 @@ class _WindowsTrayController:
         library_name = "windll"
         user32: Any = getattr(ctypes, library_name).user32
         if user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0):
-            return (rect.left, rect.top, rect.right, rect.bottom)
+            dpi = int(user32.GetDpiForSystem()) if hasattr(user32, "GetDpiForSystem") else 96
+            return _logical_work_area(
+                (rect.left, rect.top, rect.right, rect.bottom), dpi
+            )
         return None
 
     def _work_area_for_point(
@@ -792,7 +792,7 @@ class _WindowsTrayController:
         left, top, right, bottom = work_area
         return (max(left + 12, right - PANEL_WIDTH - 12), max(top + 12, bottom - height - 12))
 
-    def _place_window(self, *, force_default: bool = False) -> None:
+    def _place_window(self, *, force_default: bool = True) -> None:
         if self.window is None:
             return
         primary_work_area = self._working_area()
@@ -1049,7 +1049,6 @@ class _WindowsTrayController:
     def hide_panel(self) -> None:
         if not self.visible or self.window is None:
             return
-        self._save_window_position()
         self.visible = False
         self._positioned_this_show = False
         self.window.minimize()

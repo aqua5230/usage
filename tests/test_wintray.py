@@ -164,9 +164,7 @@ def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
     assert "minimize_to_tray" not in html
     assert "window.usagePostPanelAction = post" in html
     assert "window.usagePostPanelAction('hide_panel')" in html
-    assert "usagePanelFocusedAt = Date.now()" in html
-    assert "Date.now() - usagePanelFocusedAt < 300" in html
-    assert "window.addEventListener('blur'" in html
+    assert "window.addEventListener('blur'" not in html
     assert "post('open_menu')" in html
     assert "usage-panel-menu-backdrop" in html
     assert "usage-panel-menu-accordion" in html
@@ -217,7 +215,7 @@ def test_invalid_content_height_keeps_registered_fallback(
     assert controller.panel_height() == fallback
 
 
-def test_panel_position_is_clamped_and_persisted_on_hide(
+def test_panel_position_defaults_to_bottom_right_and_is_not_persisted_on_hide(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     preferences_path = tmp_path / "usage-preferences.json"
@@ -242,10 +240,10 @@ def test_panel_position_is_clamped_and_persisted_on_hide(
 
     controller._place_window()
 
-    assert moves == [(608, 12)]
+    assert moves == [(608, 64)]
     window.x, window.y = 123, 234
     controller.show_panel()
-    assert prefs._load_preferences()["usage.windowPosition"] == {"x": 123, "y": 234}
+    assert prefs._load_preferences()["usage.windowPosition"] == {"x": 5000, "y": -100}
 
 
 def test_load_preferences_non_utf8(
@@ -279,7 +277,7 @@ def test_reset_panel_position_clears_preference_and_repositions_visible_window(
     assert calls == [True]
 
 
-def test_switch_panel_keeps_dragged_position_before_new_height_is_measured(
+def test_switch_panel_reanchors_to_primary_bottom_right_after_height_measurement(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -314,14 +312,14 @@ def test_switch_panel_keeps_dragged_position_before_new_height_is_measured(
     controller.switch_panel("cloud_observation")  # PANEL_HEIGHTS[...] == 1006
     controller.on_loaded()
 
-    assert moves[-1] == (300, 200)
+    assert moves[-1] == (1528, 368)
 
     controller.handle_panel_message(json.dumps({"action": "content_height", "height": 650}))
 
-    assert moves[-1] == (300, 200)
+    assert moves[-1] == (1528, 418)
 
 
-def test_switch_panel_keeps_dragged_position_on_secondary_monitor(
+def test_switch_panel_ignores_stale_secondary_position(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -364,7 +362,7 @@ def test_switch_panel_keeps_dragged_position_on_secondary_monitor(
     controller.switch_panel("cloud_observation")
     controller.on_loaded()
 
-    assert moves[-1] == (2200, 300)
+    assert moves[-1] == (1528, 368)
 
 
 def test_js_api_forwards_panel_message() -> None:
@@ -599,6 +597,10 @@ def test_card_order_persists_into_the_next_loaded_panel(
     assert json.loads(payload)["cardOrder"] == order
 
 
+def test_physical_work_area_is_converted_to_pywebview_logical_coordinates() -> None:
+    assert wintray._logical_work_area((0, 0, 2560, 1528), 144) == (0, 0, 1707, 1019)
+
+
 def test_run_app_wires_pystray_and_pywebview(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -627,7 +629,6 @@ def test_run_app_wires_pystray_and_pywebview(
     window = SimpleNamespace(
         events=SimpleNamespace(loaded=Event(), minimized=Event(), restored=Event())
     )
-
     def create_window(*args: object, **kwargs: object) -> object:
         events.append(
             ("window", args[0], kwargs["hidden"], kwargs["background_color"])
@@ -701,21 +702,20 @@ def test_show_panel_places_window_before_showing(
     assert calls == ["place", "restore", "show", "inject:True", "refresh"]
 
 
-def test_hide_panel_saves_position_and_hides_window(
+def test_hide_panel_minimizes_window(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.visible = True
     calls: list[str] = []
     controller.window = SimpleNamespace(minimize=lambda: calls.append("minimize"))
-    monkeypatch.setattr(controller, "_save_window_position", lambda: calls.append("save"))
 
     controller.hide_panel()
     controller.hide_panel()
 
     assert controller.visible is False
     assert controller._positioned_this_show is False
-    assert calls == ["save", "minimize"]
+    assert calls == ["minimize"]
 
 
 def test_native_minimize_and_restore_keep_controller_state_in_sync(
@@ -723,7 +723,11 @@ def test_native_minimize_and_restore_keep_controller_state_in_sync(
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     calls: list[str] = []
-    monkeypatch.setattr(controller, "_place_window", lambda: calls.append("place"))
+    monkeypatch.setattr(
+        controller,
+        "_place_window",
+        lambda *, force_default=True: calls.append(f"place:{force_default}"),
+    )
     monkeypatch.setattr(
         controller, "inject_state", lambda *, force=False: calls.append(f"inject:{force}")
     )
@@ -733,7 +737,7 @@ def test_native_minimize_and_restore_keep_controller_state_in_sync(
     controller.on_restored()
 
     assert controller.visible is True
-    assert calls == ["place", "inject:True"]
+    assert calls == ["place:True", "inject:True"]
 
 
 def test_tray_update_skips_unchanged_values(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -933,13 +937,17 @@ def test_activate_panel_opens_hidden_or_restores_visible(
         restore=lambda: calls.append("restore"), show=lambda: calls.append("show")
     )
     monkeypatch.setattr(controller, "show_panel", lambda: calls.append("open"))
-    monkeypatch.setattr(controller, "_place_window", lambda: calls.append("place"))
+    monkeypatch.setattr(
+        controller,
+        "_place_window",
+        lambda *, force_default=True: calls.append(f"place:{force_default}"),
+    )
 
     controller.activate_panel()
     controller.visible = True
     controller.activate_panel()
 
-    assert calls == ["open", "restore", "show", "place"]
+    assert calls == ["open", "restore", "show", "place:True"]
 
 
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows named mutex")
