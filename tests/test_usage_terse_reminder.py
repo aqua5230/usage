@@ -17,12 +17,6 @@ import pytest
 import usage_terse_reminder as mod
 
 
-@pytest.fixture
-def posix_platform(monkeypatch: pytest.MonkeyPatch) -> None:
-    """LANG 只在非 Windows 平台納入判斷，固定平台結果才不會隨 runner 改變。"""
-    monkeypatch.setattr(sys, "platform", "darwin")
-
-
 def test_detect_lang_uses_windows_system_lang_when_env_is_empty(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -82,11 +76,10 @@ class _FakeStdin:
         return self._data
 
 
-@pytest.mark.usefixtures("posix_platform")
 def test_main_reads_sidecar_reminder(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    monkeypatch.setenv("USAGE_LANG", "en")
     _sidecar(tmp_path, monkeypatch)
     monkeypatch.setattr("sys.stdin", _FakeStdin(json.dumps({"prompt": "hi"})))
 
@@ -96,11 +89,10 @@ def test_main_reads_sidecar_reminder(
     assert out["hookSpecificOutput"]["additionalContext"] == "REMINDER::EN"
 
 
-@pytest.mark.usefixtures("posix_platform")
 def test_main_falls_back_to_default_when_sidecar_missing(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    monkeypatch.setenv("USAGE_LANG", "en")
     monkeypatch.setattr(mod, "PROMPT_SIDECAR", tmp_path / "missing.json")
     monkeypatch.setattr("sys.stdin", _FakeStdin(json.dumps({"prompt": "hi"})))
 
@@ -124,11 +116,10 @@ def test_main_uses_detected_language(
     assert out["hookSpecificOutput"]["additionalContext"] == "提醒::繁中"
 
 
-@pytest.mark.usefixtures("posix_platform")
 def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    monkeypatch.setenv("USAGE_LANG", "en")
     _sidecar(tmp_path, monkeypatch)
     payload = json.dumps(
         {"cwd": r"C:\\Users\\USER\\Desktop\\GitHub專案\\usage"}, ensure_ascii=False
@@ -150,11 +141,10 @@ def test_main_is_silent_on_invalid_json(
     assert capsys.readouterr().out == ""
 
 
-@pytest.mark.usefixtures("posix_platform")
 def test_main_emits_reminder_for_empty_payload(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
-    monkeypatch.setenv("LANG", "en_US.UTF-8")
+    monkeypatch.setenv("USAGE_LANG", "en")
     _sidecar(tmp_path, monkeypatch)
     monkeypatch.setattr("sys.stdin", _FakeStdin("{}"))
 
