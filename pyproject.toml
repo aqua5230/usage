@@ -22,6 +22,9 @@ windows = [
     "windows-toasts>=1.3.1; sys_platform == 'win32'",
 ]
 
+[project.scripts]
+usage = "usage_cli:main"
+
 [tool.uv]
 # Lock for every platform we ship on, not just whichever one runs `uv lock`.
 # Without this, uv resolves against the running interpreter's environment and
@@ -79,6 +82,41 @@ py-modules = [
     "discussion_cli",
     "discussion_session",
     "discussion_window",
+    "agy_window_keeper",
+    "cache_quarantine",
+    "codex_disk_cache",
+    "codex_events",
+    "codex_fork_replay",
+    "codex_paths",
+    "discussion_usage",
+    "disk_cache_common",
+    "disk_cache_lifecycle",
+    "fsevents_watch",
+    "history_disk_cache",
+    "jsonl_utils",
+    "menubar_actions",
+    "menubar_agy",
+    "menubar_chrome",
+    "menubar_menu",
+    "menubar_notify",
+    "menubar_popover",
+    "menubar_refresh",
+    "menubar_title",
+    "menubar_update",
+    "panel_window",
+    "panel_window_state",
+    "prefs",
+    "service_status",
+    "setup_app",
+    "statusline_settings",
+    "talent_market_bridge",
+    "time_utils",
+    "update_gate",
+    "usage_diagnosis_snapshot",
+    "usage_dir_sweeper",
+    "usage_logging",
+    "usage_terse_reminder",
+    "window_keeper",
 ]
 
 [tool.setuptools.packages.find]

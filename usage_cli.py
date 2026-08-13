@@ -5,8 +5,10 @@
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
 import csv
+import json
 import sys
 from collections.abc import Callable
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -89,6 +91,15 @@ Options:
   --monthly   Export monthly usage
   --sessions  Export session usage
   --out PATH  Save to a specific path
+  -h, --help  Show this help
+"""
+
+STATUS_HELP = """Usage: usage status [--json]
+
+Show local Claude Code and Codex quota status.
+
+Options:
+  --json      Print machine-readable JSON
   -h, --help  Show this help
 """
 
@@ -279,6 +290,75 @@ def _write_export_csv(stats: list[Any], export_type: str, out_path: str | None) 
     for stat in stats:
         writer.writerow(_csv_row(stat, fields))
     return None
+
+
+def _status_agent(rate_limits: RateLimits | None) -> dict[str, Any]:
+    if rate_limits is None:
+        return {
+            "available": False,
+            "five_hour": {"used_percent": None, "resets_at": None},
+            "seven_day": {"used_percent": None, "resets_at": None},
+            "model": None,
+            "updated_at": None,
+        }
+    return {
+        "available": True,
+        "five_hour": {
+            "used_percent": rate_limits.five_hour_pct,
+            "resets_at": rate_limits.five_hour_resets_at,
+        },
+        "seven_day": {
+            "used_percent": rate_limits.seven_day_pct,
+            "resets_at": rate_limits.seven_day_resets_at,
+        },
+        "model": rate_limits.model,
+        "updated_at": rate_limits.updated_at,
+    }
+
+
+def _status_payload() -> dict[str, Any]:
+    agents: dict[str, dict[str, Any]] = {}
+    for agent_id in ("claude-code", "codex"):
+        try:
+            rate_limits = RATE_LIMIT_LOADERS[agent_id]()
+        except Exception:
+            rate_limits = None
+        agents[agent_id] = _status_agent(rate_limits)
+    return {
+        "schema_version": 1,
+        "generated_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
+        "agents": agents,
+    }
+
+
+def _status_summary(payload: dict[str, Any]) -> str:
+    summaries = []
+    for agent_id, status in payload["agents"].items():
+        if not status["available"]:
+            summaries.append(f"{agent_id} available=false")
+            continue
+        five_hour = status["five_hour"]["used_percent"]
+        seven_day = status["seven_day"]["used_percent"]
+        five_hour_text = "?" if five_hour is None else f"{five_hour}%"
+        seven_day_text = "?" if seven_day is None else f"{seven_day}%"
+        summaries.append(f"{agent_id} 5h={five_hour_text} 7d={seven_day_text}")
+    return " | ".join(summaries)
+
+
+def _run_status(args: list[str]) -> None:
+    if any(arg in {"-h", "--help"} for arg in args):
+        print(STATUS_HELP)
+        return
+    unknown = next((arg for arg in args if arg != "--json"), None)
+    if unknown is not None:
+        print(f"Error: unknown status option: {unknown}", file=sys.stderr)
+        sys.exit(1)
+
+    payload = _status_payload()
+    if "--json" in args:
+        print(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
+    else:
+        print(_status_summary(payload))
 
 
 def _apply_sort(stats: list[Any], sort_key: str | None, descending: bool, default_attr: str, default_reverse: bool) -> None:
@@ -617,6 +697,9 @@ def main() -> None:
         return
     if command == "export" and any(arg in {"-h", "--help"} for arg in args[1:]):
         console.print(EXPORT_HELP)
+        return
+    if command == "status":
+        _run_status(args[1:])
         return
     if command == "setup":
         setup()

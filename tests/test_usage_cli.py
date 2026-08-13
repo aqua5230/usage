@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from datetime import UTC, datetime
 from importlib import import_module
@@ -256,6 +257,171 @@ def test_cli_codex_rate_limits_use_shared_loader_conversion(
         model="gpt-test",
         updated_at="2026-01-01T00:00:00+00:00",
     )
+
+
+def test_main_status_json_outputs_both_local_agents(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
+    monkeypatch.setattr(
+        usage_cli,
+        "RATE_LIMIT_LOADERS",
+        {
+            "claude-code": lambda: RateLimits(
+                five_hour_pct=41.0,
+                five_hour_resets_at=1_786_676_400,
+                seven_day_pct=65.0,
+                seven_day_resets_at=1_786_788_000,
+                model="claude-opus-5",
+                updated_at="2026-08-14T06:52:00Z",
+            ),
+            "codex": lambda: RateLimits(
+                seven_day_pct=21.0,
+                seven_day_resets_at=1_787_196_910,
+                updated_at="2026-08-14T06:52:23Z",
+            ),
+        },
+    )
+    monkeypatch.setattr(
+        usage_cli,
+        "detect_agents",
+        lambda: pytest.fail("status should not detect agents"),
+    )
+
+    usage_cli.main()
+
+    captured = capsys.readouterr()
+    payload = json.loads(captured.out)
+    assert captured.err == ""
+    assert payload["schema_version"] == 1
+    assert datetime.fromisoformat(payload["generated_at"].replace("Z", "+00:00")).tzinfo == UTC
+    assert payload["agents"] == {
+        "claude-code": {
+            "available": True,
+            "five_hour": {"used_percent": 41.0, "resets_at": 1_786_676_400},
+            "seven_day": {"used_percent": 65.0, "resets_at": 1_786_788_000},
+            "model": "claude-opus-5",
+            "updated_at": "2026-08-14T06:52:00Z",
+        },
+        "codex": {
+            "available": True,
+            "five_hour": {"used_percent": None, "resets_at": None},
+            "seven_day": {"used_percent": 21.0, "resets_at": 1_787_196_910},
+            "model": "",
+            "updated_at": "2026-08-14T06:52:23Z",
+        },
+    }
+
+
+def test_main_status_json_marks_none_loader_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
+    monkeypatch.setattr(
+        usage_cli,
+        "RATE_LIMIT_LOADERS",
+        {
+            "claude-code": lambda: None,
+            "codex": lambda: RateLimits(seven_day_pct=12.0),
+        },
+    )
+
+    usage_cli.main()
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["agents"]["claude-code"] == {
+        "available": False,
+        "five_hour": {"used_percent": None, "resets_at": None},
+        "seven_day": {"used_percent": None, "resets_at": None},
+        "model": None,
+        "updated_at": None,
+    }
+    assert payload["agents"]["codex"]["available"] is True
+
+
+def test_main_status_json_isolates_loader_exception(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    def fail() -> RateLimits:
+        raise OSError("unavailable")
+
+    monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
+    monkeypatch.setattr(
+        usage_cli,
+        "RATE_LIMIT_LOADERS",
+        {
+            "claude-code": lambda: RateLimits(five_hour_pct=3.0),
+            "codex": fail,
+        },
+    )
+
+    usage_cli.main()
+
+    payload = json.loads(capsys.readouterr().out)
+    assert payload["agents"]["claude-code"]["available"] is True
+    assert payload["agents"]["codex"]["available"] is False
+
+
+def test_main_status_json_succeeds_when_both_loaders_return_none(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
+    monkeypatch.setattr(
+        usage_cli,
+        "RATE_LIMIT_LOADERS",
+        {"claude-code": lambda: None, "codex": lambda: None},
+    )
+
+    usage_cli.main()
+
+    payload = json.loads(capsys.readouterr().out)
+    assert all(not status["available"] for status in payload["agents"].values())
+
+
+def test_main_status_without_json_prints_one_line(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["usage", "status"])
+    monkeypatch.setattr(
+        usage_cli,
+        "RATE_LIMIT_LOADERS",
+        {
+            "claude-code": lambda: RateLimits(five_hour_pct=41.0, seven_day_pct=65.0),
+            "codex": lambda: None,
+        },
+    )
+
+    usage_cli.main()
+
+    assert capsys.readouterr().out == (
+        "claude-code 5h=41.0% 7d=65.0% | codex available=false\n"
+    )
+
+
+@pytest.mark.parametrize("flag", ["-h", "--help"])
+def test_main_status_help_does_not_load_agents(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    flag: str,
+) -> None:
+    monkeypatch.setattr(sys, "argv", ["usage", "status", flag])
+    monkeypatch.setattr(
+        usage_cli,
+        "RATE_LIMIT_LOADERS",
+        {
+            "claude-code": lambda: pytest.fail("status help should not load quotas"),
+            "codex": lambda: pytest.fail("status help should not load quotas"),
+        },
+    )
+
+    usage_cli.main()
+
+    assert "Usage: usage status [--json]" in capsys.readouterr().out
 
 
 def test_main_daily_sort_flag_controls_render_order(monkeypatch: pytest.MonkeyPatch) -> None:
