@@ -7,6 +7,7 @@ $OutputDir = Join-Path $DistRoot "usage-windows"
 $PyInstallerOutput = Join-Path $DistRoot "usage"
 $BuildDir = Join-Path $RepoRoot "build/pyinstaller-windows"
 $SpecDir = Join-Path $RepoRoot "build/pyinstaller-spec"
+$IconPath = Join-Path $RepoRoot "assets/usage.ico"
 
 Remove-Item $OutputDir -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item $PyInstallerOutput -Recurse -Force -ErrorAction SilentlyContinue
@@ -20,6 +21,7 @@ try {
         --windowed `
         --onedir `
         --name usage `
+        --icon $IconPath `
         --distpath $DistRoot `
         --workpath $BuildDir `
         --specpath $SpecDir `
