@@ -920,6 +920,68 @@ def test_show_panel_places_window_before_showing(
     assert calls == ["place", "show", "inject:True", "refresh"]
 
 
+def test_attach_schedules_startup_maintenance_after_tray_is_visible(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    events: list[object] = []
+    threads: list[SimpleNamespace] = []
+
+    class FakeThread:
+        def __init__(
+            self,
+            *,
+            target: object,
+            daemon: bool,
+            kwargs: dict[str, object] | None = None,
+        ) -> None:
+            self.target = target
+            self.kwargs = kwargs or {}
+            self.daemon = daemon
+            threads.append(cast(SimpleNamespace, self))
+
+        def start(self) -> None:
+            events.append(("thread", cast(object, self.target).__name__, self.daemon))
+
+    monkeypatch.setattr(wintray.threading, "Thread", FakeThread)
+    monkeypatch.setattr(controller, "_update_tray", lambda: events.append("tray"))
+    monkeypatch.setattr(controller, "refresh", lambda: events.append("refresh"))
+    monkeypatch.setattr(
+        wintray.usage_diagnosis_snapshot,
+        "maybe_schedule_refresh",
+        lambda: events.append("diagnosis"),
+    )
+    monkeypatch.setattr(
+        controller,
+        "_clear_stale_update_cache",
+        lambda: events.append("clear-update-cache"),
+    )
+    monkeypatch.setattr(
+        controller,
+        "_check_update_in_background",
+        lambda **kwargs: events.append(("update", kwargs)),
+    )
+
+    controller.attach(SimpleNamespace(), SimpleNamespace())
+
+    assert events == [
+        "tray",
+        ("thread", "_startup_maintenance", True),
+        ("thread", "_poll_loop", True),
+        "refresh",
+    ]
+    startup = next(thread for thread in threads if thread.target == controller._startup_maintenance)
+    startup.target(**startup.kwargs)
+    assert events[-3:] == [
+        "diagnosis",
+        "clear-update-cache",
+        (
+            "update",
+            {"manual": False, "ignore_cooldown": False, "ignore_skipped": False},
+        ),
+    ]
+
+
 def test_tray_update_skips_unchanged_values(monkeypatch: pytest.MonkeyPatch) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.latest_state = _state()
@@ -1031,6 +1093,17 @@ def test_build_state_reuses_history_until_fingerprint_changes(
         return original(scan)
 
     monkeypatch.setattr(controller, "_load_entries", counting_load_entries)
+    monkeypatch.setattr(
+        wintray.service_status,
+        "get_service_status",
+        lambda config: wintray.service_status.ServiceStatus(
+            config.service_name,
+            False,
+            "operational",
+            "Relevant components are operational.",
+            "cache",
+        ),
+    )
     now = 100.0
     monkeypatch.setattr("wintray.time.monotonic", lambda: now)
 
@@ -1087,6 +1160,72 @@ def test_build_state_reuses_history_scan_for_codex_rate_limits(
 
     assert history_scan_calls == 1
     assert rate_limit_scans == [candidates]
+
+
+def test_build_state_fetches_relevant_service_feeds_and_builds_banner(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    row = _state().codex_session
+    projection = wintray.menubar_agy.AgyQuotaProjection(
+        group_name="Gemini",
+        session=row,
+        weekly=row,
+        stale=None,
+        five_hour=None,
+    )
+    calls: list[wintray.service_status.ServiceStatusConfig] = []
+
+    def fake_status(
+        config: wintray.service_status.ServiceStatusConfig,
+    ) -> wintray.service_status.ServiceStatus:
+        calls.append(config)
+        return wintray.service_status.ServiceStatus(
+            config.service_name,
+            config.service_name == "Claude",
+            "major_outage" if config.service_name == "Claude" else "operational",
+            "test",
+            "fetched",
+        )
+
+    monkeypatch.setattr(
+        menubar_state,
+        "codex_rows",
+        lambda **kwargs: ((row, row), 25.0, "codex", None, None),
+    )
+    monkeypatch.setattr(
+        wintray.menubar_agy,
+        "load_refresh_result",
+        lambda language: wintray.menubar_agy.AgyRefreshResult(projection, False),
+    )
+    monkeypatch.setattr(
+        controller,
+        "_history_source_scan",
+        lambda: menubar_state.HistorySourceScan((), (), ()),
+    )
+    monkeypatch.setattr(
+        controller,
+        "_load_entries",
+        lambda scan: wintray._RefreshData([], None),
+    )
+    monkeypatch.setattr(wintray.window_keeper, "maybe_ping", lambda *args: None)
+    monkeypatch.setattr(wintray.agy_window_keeper, "maybe_ping", lambda *args: None)
+    monkeypatch.setattr(wintray.service_status, "get_service_status", fake_status)
+    monkeypatch.setattr(wintray, "_hide_claude_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_hide_codex_enabled", lambda: False)
+
+    state = controller._build_state()
+
+    assert calls == [
+        wintray.service_status.CLAUDE_STATUS,
+        wintray.service_status.CODEX_STATUS,
+    ]
+    assert calls[0].status_url == "https://status.claude.com/api/v2/summary.json"
+    assert calls[0].component_names == ("Claude Code", "Claude API (api.anthropic.com)")
+    assert calls[1].status_url == "https://status.openai.com/api/v2/summary.json"
+    assert calls[1].component_names == ("Codex API",)
+    assert state.service_alerts == ("⚠ Claude service issue: Major outage",)
 
 
 def test_history_source_scan_is_cached_between_tray_ticks(
@@ -1276,6 +1415,130 @@ def test_real_windows_toast_backend_registers_aumid_and_creates_notifier() -> No
     finally:
         with suppress(FileNotFoundError):
             winreg.DeleteKey(winreg.HKEY_CURRENT_USER, key_path)
+
+
+@pytest.mark.parametrize(
+    "preferences",
+    [
+        {"auto_update_check": False},
+        {"last_update_check": {"checked_at": 2_000_000_000.0}},
+        {"update_dismissed_at": 2_000_000_000.0},
+    ],
+)
+def test_automatic_update_check_honors_toggle_cache_and_cooldown(
+    monkeypatch: pytest.MonkeyPatch,
+    preferences: dict[str, object],
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences.copy())
+    monkeypatch.setattr(wintray.update_gate.time, "time", lambda: 2_000_000_000.0)
+    monkeypatch.setattr(
+        wintray.update_checker,
+        "check_latest_release_result",
+        lambda version: pytest.fail("automatic update gate must skip the network"),
+    )
+
+    controller._check_update_in_background(
+        manual=False,
+        ignore_cooldown=False,
+        ignore_skipped=False,
+    )
+
+
+def test_automatic_update_check_persists_cache_and_honors_skipped_version(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    release = wintray.update_checker.ReleaseInfo(
+        version="99.0.0",
+        html_url="https://github.com/aqua5230/usage/releases/tag/v99.0.0",
+        body="release notes",
+    )
+    preferences: dict[str, object] = {"update_skipped_version": release.version}
+    saved: list[dict[str, object]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    monkeypatch.setattr(wintray, "_current_version", lambda: "1.0.0")
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences.copy())
+    monkeypatch.setattr(wintray, "_save_preferences", lambda data: saved.append(dict(data)))
+    monkeypatch.setattr(wintray.update_gate.time, "time", lambda: 2_000_000_000.0)
+    monkeypatch.setattr(
+        wintray.update_checker,
+        "check_latest_release_result",
+        lambda version: wintray.update_checker.ReleaseCheckResult(release),
+    )
+    monkeypatch.setattr(
+        controller,
+        "_show_update_alert",
+        lambda value: pytest.fail("a skipped release must not show an automatic dialog"),
+    )
+
+    controller._check_update_in_background(
+        manual=False,
+        ignore_cooldown=False,
+        ignore_skipped=False,
+    )
+
+    assert saved == [
+        {
+            "update_skipped_version": "99.0.0",
+            "last_update_check": {
+                "checked_at": 2_000_000_000.0,
+                "current_version": "1.0.0",
+                "latest_version": "99.0.0",
+                "release_url": release.html_url,
+            },
+        }
+    ]
+
+
+def test_manual_update_check_bypasses_gates_and_keeps_windows_yes_no_prompt(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    release = wintray.update_checker.ReleaseInfo(
+        version="99.0.0",
+        html_url="https://github.com/aqua5230/usage/releases/tag/v99.0.0",
+        body="release notes",
+    )
+    preferences: dict[str, object] = {
+        "auto_update_check": False,
+        "update_skipped_version": release.version,
+        "update_dismissed_at": 2_000_000_000.0,
+        "last_update_check": {"checked_at": 2_000_000_000.0},
+    }
+    saved: list[dict[str, object]] = []
+    messages: list[tuple[str, int]] = []
+    opened: list[str] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    monkeypatch.setattr(wintray, "_current_version", lambda: "1.0.0")
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences.copy())
+    monkeypatch.setattr(wintray, "_save_preferences", lambda data: saved.append(dict(data)))
+    monkeypatch.setattr(wintray.update_gate.time, "time", lambda: 2_000_000_000.0)
+    monkeypatch.setattr(
+        wintray.update_checker,
+        "check_latest_release_result",
+        lambda version: wintray.update_checker.ReleaseCheckResult(release),
+    )
+    monkeypatch.setattr(
+        controller,
+        "_message_box",
+        lambda text, *, style=0x40: messages.append((text, style)) or 6,
+    )
+    monkeypatch.setattr(wintray.webbrowser, "open", lambda url: opened.append(url))
+
+    controller._check_update_in_background(
+        manual=True,
+        ignore_cooldown=True,
+        ignore_skipped=True,
+    )
+
+    assert saved[-1]["last_update_check"] == {
+        "checked_at": 2_000_000_000.0,
+        "current_version": "1.0.0",
+        "latest_version": "99.0.0",
+        "release_url": release.html_url,
+    }
+    assert messages == [("New Version 99.0.0 Available\n\nrelease notes", 0x44)]
+    assert opened == [release.html_url]
 
 
 def test_session_hook_toggles_run_in_background_helpers(
