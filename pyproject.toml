@@ -55,6 +55,7 @@ py-modules = [
     "login_item",
     "win_login_item",
     "wintray",
+    "windows_watch",
     "usage_client",
     "codex_loader",
     "agy_loader",
