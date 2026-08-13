@@ -94,6 +94,38 @@ def test_tray_icon_style(used: float | None, text: str, color: tuple[int, ...]) 
     assert wintray.tray_icon_style(used) == (text, color)
 
 
+@pytest.mark.parametrize(
+    ("used", "state"),
+    [
+        (None, wintray.TaskbarProgressState.NO_PROGRESS),
+        (0.0, wintray.TaskbarProgressState.NORMAL),
+        (49.4, wintray.TaskbarProgressState.NORMAL),
+        (49.5, wintray.TaskbarProgressState.PAUSED),
+        (79.4, wintray.TaskbarProgressState.PAUSED),
+        (79.5, wintray.TaskbarProgressState.ERROR),
+        (150.0, wintray.TaskbarProgressState.ERROR),
+    ],
+)
+def test_taskbar_progress_state(
+    used: float | None, state: wintray.TaskbarProgressState
+) -> None:
+    assert wintray.taskbar_progress_state(used) == state
+
+
+@pytest.mark.parametrize(("show_in_taskbar", "expected"), [(True, 1234), (False, None)])
+def test_taskbar_window_handle_requires_real_taskbar_button(
+    show_in_taskbar: bool, expected: int | None
+) -> None:
+    window = SimpleNamespace(
+        native=SimpleNamespace(
+            ShowInTaskbar=show_in_taskbar,
+            Handle=SimpleNamespace(ToInt64=lambda: 1234),
+        )
+    )
+
+    assert wintray._taskbar_window_handle(window) == expected
+
+
 def test_draw_tray_icon_and_tooltip(monkeypatch: pytest.MonkeyPatch) -> None:
     image = SimpleNamespace(size=(64, 64))
     draw = SimpleNamespace(
@@ -661,6 +693,51 @@ def test_tray_update_skips_unchanged_values(monkeypatch: pytest.MonkeyPatch) -> 
 
     assert images == [25.0, 26.0]
     assert icon.icon is not first_image
+
+
+def test_tray_update_passes_same_percent_to_taskbar_seam(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = _state()
+    controller.icon = SimpleNamespace(icon=None, title=None)
+    controller.visible = True
+    controller.window = SimpleNamespace(
+        native=SimpleNamespace(
+            ShowInTaskbar=True,
+            Handle=SimpleNamespace(ToInt64=lambda: 4321),
+        )
+    )
+    calls: list[tuple[int, int, int, wintray.TaskbarProgressState]] = []
+    monkeypatch.setattr(wintray, "draw_tray_icon", lambda percent: object())
+    monkeypatch.setattr(
+        wintray,
+        "_set_taskbar_progress",
+        lambda hwnd, completed, total, state: calls.append((hwnd, completed, total, state)),
+    )
+
+    controller._update_tray()
+
+    assert calls == [(4321, 25, 100, wintray.TaskbarProgressState.NORMAL)]
+
+
+def test_taskbar_progress_failure_is_nonfatal(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    controller.window = SimpleNamespace(
+        native=SimpleNamespace(
+            ShowInTaskbar=True,
+            Handle=SimpleNamespace(ToInt64=lambda: 4321),
+        )
+    )
+    monkeypatch.delenv("USAGE_DEBUG", raising=False)
+
+    def fail(*args: object) -> None:
+        raise OSError("taskbar unavailable")
+
+    monkeypatch.setattr(wintray, "_set_taskbar_progress", fail)
+
+    controller._update_taskbar_progress(60.0)
 
 
 def test_inject_state_skips_duplicate_but_forces_after_panel_reopens(
