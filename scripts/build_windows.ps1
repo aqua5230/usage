@@ -23,6 +23,7 @@ try {
         --windowed `
         --onedir `
         --name usage `
+        --icon "$(Join-Path $RepoRoot 'assets/usage.ico')" `
         --version-file $VersionFile `
         --distpath $DistRoot `
         --workpath $BuildDir `
