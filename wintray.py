@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import asyncio
+import importlib
 import json
 import logging
 import os
@@ -11,6 +12,8 @@ import threading
 import time
 import tomllib
 import webbrowser
+from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from importlib import metadata
@@ -519,6 +522,9 @@ class _WindowsTrayController:
         self._history_scan: menubar_state.HistorySourceScan | None = None
         self._history_scan_at: float | None = None
         self._content_height: int | None = None
+        self._window_mutations: deque[Callable[[], None]] = deque()
+        self._window_mutation_lock = threading.Lock()
+        self._window_mutation_scheduled = False
 
     def _empty_state(self) -> menubar_state.PopoverState:
         missing = menubar_state._missing_row
@@ -564,7 +570,13 @@ class _WindowsTrayController:
         return self._content_height or PANEL_HEIGHTS[self.active_panel_id]
 
     def _apply_content_height(self, value: object) -> None:
-        work_area = self._working_area()
+        self._dispatch_window_mutation(lambda: self._apply_content_height_on_ui_thread(value))
+
+    def _apply_content_height_on_ui_thread(self, value: object) -> None:
+        if self.stopping.is_set():
+            return
+        current_position = self._current_window_position()
+        work_area = self._work_area_for_point(current_position) or self._working_area()
         maximum = (
             float(work_area[3] - work_area[1] - 24)
             if work_area is not None
@@ -578,7 +590,7 @@ class _WindowsTrayController:
             return
         self._content_height = rounded
         if self.visible:
-            self._place_window()
+            self._place_window_on_ui_thread()
 
     def attach(self, icon: Any, window: Any) -> None:
         self.icon = icon
@@ -592,74 +604,88 @@ class _WindowsTrayController:
         # so placing the window while it is hidden would drag the bare panel
         # onto the screen. Placement happens in show_panel() instead; here it
         # only re-applies after a visible panel switch reloads the document.
-        if self.visible:
+        if self.visible and not self.stopping.is_set():
             self._place_window()
             self.inject_state(force=True)
 
-    def _working_area(self) -> tuple[int, int, int, int] | None:
-        """Return the primary monitor work area (without taskbar)."""
-        if os.name != "nt":
+    @staticmethod
+    def _screen_rectangle(value: object) -> tuple[int, int, int, int] | None:
+        """Return a pywebview/WinForms rectangle as logical left/top/right/bottom."""
+        left = getattr(value, "Left", getattr(value, "x", None))
+        top = getattr(value, "Top", getattr(value, "y", None))
+        right = getattr(value, "Right", None)
+        bottom = getattr(value, "Bottom", None)
+        if right is None:
+            width = getattr(value, "Width", getattr(value, "width", None))
+            right = (
+                left + width
+                if isinstance(left, int | float) and isinstance(width, int | float)
+                else None
+            )
+        if bottom is None:
+            height = getattr(value, "Height", getattr(value, "height", None))
+            bottom = (
+                top + height
+                if isinstance(top, int | float) and isinstance(height, int | float)
+                else None
+            )
+        coordinates = (left, top, right, bottom)
+        if any(isinstance(item, bool) or not isinstance(item, int | float) for item in coordinates):
             return None
-        import ctypes
+        assert isinstance(left, int | float)
+        assert isinstance(top, int | float)
+        assert isinstance(right, int | float)
+        assert isinstance(bottom, int | float)
+        return (int(left), int(top), int(right), int(bottom))
 
-        class Rect(ctypes.Structure):
-            _fields_ = [
-                ("left", ctypes.c_long),
-                ("top", ctypes.c_long),
-                ("right", ctypes.c_long),
-                ("bottom", ctypes.c_long),
-            ]
+    def _logical_screens(
+        self,
+    ) -> list[tuple[tuple[int, int, int, int], tuple[int, int, int, int]]]:
+        """Return pywebview screen bounds and work areas, all in logical pixels."""
+        try:
+            webview = importlib.import_module("webview")
+            screens = webview.screens
+        except Exception:
+            return []
 
-        rect = Rect()
-        library_name = "windll"
-        user32: Any = getattr(ctypes, library_name).user32
-        if user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0):
-            return (rect.left, rect.top, rect.right, rect.bottom)
-        return None
+        result = []
+        for screen in screens:
+            bounds = self._screen_rectangle(screen)
+            work_area = self._screen_rectangle(getattr(screen, "frame", None)) or bounds
+            if bounds is not None and work_area is not None:
+                result.append((bounds, work_area))
+        return result
+
+    def _working_area(self) -> tuple[int, int, int, int] | None:
+        """Return the primary monitor work area in pywebview logical pixels."""
+        screens = self._logical_screens()
+        for bounds, work_area in screens:
+            left, top, right, bottom = bounds
+            if left <= 0 < right and top <= 0 < bottom:
+                return work_area
+        return screens[0][1] if screens else None
 
     def _work_area_for_point(
         self, point: tuple[int, int] | None
     ) -> tuple[int, int, int, int] | None:
-        """Work area of the monitor nearest ``point``, falling back to the primary monitor.
-
-        SPI_GETWORKAREA (``_working_area``) only ever reports the primary
-        monitor, so clamping a dragged window against it snaps the window
-        back onto the primary monitor every time the panel is switched,
-        even when the user deliberately dragged it onto a secondary display.
-        """
-        if point is None or os.name != "nt":
+        """Logical work area of the pywebview monitor nearest ``point``."""
+        if point is None:
             return self._working_area()
-        import ctypes
+        screens = self._logical_screens()
+        if not screens:
+            return None
+        for bounds, work_area in screens:
+            left, top, right, bottom = bounds
+            if left <= point[0] < right and top <= point[1] < bottom:
+                return work_area
 
-        class Rect(ctypes.Structure):
-            _fields_ = [
-                ("left", ctypes.c_long),
-                ("top", ctypes.c_long),
-                ("right", ctypes.c_long),
-                ("bottom", ctypes.c_long),
-            ]
+        def distance(bounds: tuple[int, int, int, int]) -> int:
+            left, top, right, bottom = bounds
+            dx = max(left - point[0], 0, point[0] - (right - 1))
+            dy = max(top - point[1], 0, point[1] - (bottom - 1))
+            return dx * dx + dy * dy
 
-        class MonitorInfo(ctypes.Structure):
-            _fields_ = [
-                ("cbSize", ctypes.c_ulong),
-                ("rcMonitor", Rect),
-                ("rcWork", Rect),
-                ("dwFlags", ctypes.c_ulong),
-            ]
-
-        class Point(ctypes.Structure):
-            _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
-
-        MONITOR_DEFAULTTONEAREST = 2
-        library_name = "windll"
-        user32: Any = getattr(ctypes, library_name).user32
-        handle = user32.MonitorFromPoint(Point(point[0], point[1]), MONITOR_DEFAULTTONEAREST)
-        info = MonitorInfo()
-        info.cbSize = ctypes.sizeof(MonitorInfo)
-        if handle and user32.GetMonitorInfoW(handle, ctypes.byref(info)):
-            work = info.rcWork
-            return (work.left, work.top, work.right, work.bottom)
-        return self._working_area()
+        return min(screens, key=lambda screen: distance(screen[0]))[1]
 
     def _saved_window_position(self) -> tuple[int, int] | None:
         value = _load_preferences().get("usage.windowPosition")
@@ -703,7 +729,12 @@ class _WindowsTrayController:
         return (max(left + 12, right - PANEL_WIDTH - 12), max(top + 12, bottom - height - 12))
 
     def _place_window(self, *, force_default: bool = False) -> None:
-        if self.window is None:
+        self._dispatch_window_mutation(
+            lambda: self._place_window_on_ui_thread(force_default=force_default)
+        )
+
+    def _place_window_on_ui_thread(self, *, force_default: bool = False) -> None:
+        if self.window is None or self.stopping.is_set():
             return
         primary_work_area = self._working_area()
         if primary_work_area is None:
@@ -732,6 +763,63 @@ class _WindowsTrayController:
         self.window.move(*self._clamp_window_position(position, work_area, height))
         self._positioned_this_show = True
 
+    def _dispatch_window_mutation(self, mutation: Callable[[], None]) -> None:
+        """Serialize geometry mutations onto the native WinForms UI thread."""
+        if self.stopping.is_set():
+            return
+        with self._window_mutation_lock:
+            self._window_mutations.append(mutation)
+            if self._window_mutation_scheduled:
+                return
+            self._window_mutation_scheduled = True
+
+        if self._schedule_window_mutation_drain():
+            return
+        with self._window_mutation_lock:
+            self._window_mutation_scheduled = False
+
+    def _schedule_window_mutation_drain(self) -> bool:
+        window = self.window
+        if window is None:
+            return False
+        if not hasattr(window, "native"):
+            # Lightweight test doubles have no native control and execute synchronously.
+            self._drain_window_mutations()
+            return True
+        native = window.native
+        if native is None:
+            # The tray can receive a click before pywebview has created its Form.
+            # Leave the work queued; on_loaded() will schedule another drain.
+            return False
+        try:
+            if native.InvokeRequired:
+                system = importlib.import_module("System")
+                native.BeginInvoke(system.Action(self._drain_window_mutations))
+            else:
+                self._drain_window_mutations()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Failed to dispatch window mutation", exc_info=True)
+            return False
+        return True
+
+    def _drain_window_mutations(self) -> None:
+        while True:
+            with self._window_mutation_lock:
+                if self.stopping.is_set():
+                    self._window_mutations.clear()
+                    self._window_mutation_scheduled = False
+                    return
+                if not self._window_mutations:
+                    self._window_mutation_scheduled = False
+                    return
+                mutation = self._window_mutations.popleft()
+            try:
+                mutation()
+            except Exception:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning("Window mutation failed", exc_info=True)
+
     def _save_window_position(self) -> None:
         position = self._current_window_position()
         if position is None:
@@ -741,6 +829,8 @@ class _WindowsTrayController:
         _save_preferences(preferences)
 
     def reset_panel_position(self, _icon: Any = None, _item: Any = None) -> None:
+        if self.stopping.is_set():
+            return
         preferences = _load_preferences()
         preferences.pop("usage.windowPosition", None)
         _save_preferences(preferences)
@@ -930,6 +1020,8 @@ class _WindowsTrayController:
         self._last_injected_state = encoded
 
     def show_panel(self, _icon: Any = None, _item: Any = None) -> None:
+        if self.stopping.is_set():
+            return
         if self.visible:
             self._save_window_position()
             self.visible = False
@@ -1171,6 +1263,8 @@ class _WindowsTrayController:
         return int(windll.user32.MessageBoxW(0, text, "usage", style))
 
     def handle_panel_message(self, message: object) -> list[dict[str, object]] | None:
+        if self.stopping.is_set():
+            return None
         payload: object = message
         if isinstance(message, str) and message.startswith("{"):
             try:
@@ -1449,4 +1543,8 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
     icon = pystray.Icon("usage", draw_tray_icon(None), "usage", _menu(controller))
     controller.attach(icon, window)
     icon.run_detached()
-    webview.start(gui="edgechromium", debug=os.environ.get("USAGE_DEBUG") == "1")
+    try:
+        webview.start(gui="edgechromium", debug=os.environ.get("USAGE_DEBUG") == "1")
+    finally:
+        controller.stopping.set()
+        _release_single_instance_lock()
