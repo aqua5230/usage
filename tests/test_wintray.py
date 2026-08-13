@@ -715,6 +715,10 @@ def test_panel_and_tray_menus_render_the_shared_model(
     controller.language = "en"
     quit_calls: list[str] = []
     monkeypatch.setattr(controller, "quit", lambda *_args: quit_calls.append("quit"))
+    # The panel payload resolves every check eagerly (it is serialized JSON, not
+    # a callback), so building it reaches win_login_item -> winreg. Stub it the
+    # way the other panel-menu test does, or this cannot run on the macOS CI.
+    monkeypatch.setattr(win_login_item, "is_enabled", lambda: True)
 
     model = wintray._menu_model()
     panel_model = wintray_menu.entries_for_surface(model, wintray_menu.PANEL)

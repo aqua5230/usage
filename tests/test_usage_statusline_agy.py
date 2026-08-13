@@ -163,9 +163,13 @@ def test_setup_and_unsetup_agy_on_windows_use_discovered_python_and_sidecar(
     assert {key: installed[key] for key in original if key != "statusLine"} == {
         key: value for key, value in original.items() if key != "statusLine"
     }
+    # The command is built for cmd.exe, so the hook path is emitted with native
+    # backslashes. On Windows tmp_path already uses them and this is a no-op; on
+    # the macOS CI runner it is what makes the expectation platform-independent.
+    expected_target = str(target).replace("/", "\\")
     assert installed["statusLine"] == {
         "type": "command",
-        "command": f"{short_python} {target}",
+        "command": f"{short_python} {expected_target}",
         "enabled": True,
     }
     assert '"' not in installed["statusLine"]["command"]
