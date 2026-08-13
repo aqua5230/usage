@@ -18,6 +18,7 @@ and restored by unsetup.
 from __future__ import annotations
 
 import contextlib
+import ctypes
 import json
 import os
 import re
@@ -28,6 +29,7 @@ import subprocess
 import sys
 import tempfile
 import tomllib
+from ctypes import wintypes
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
@@ -213,6 +215,80 @@ def _shell_arg(value: str) -> str:
             raise SystemExit(_t("setup_windows_non_ascii_command_path", path=value))
         return subprocess.list2cmdline([value])
     return shlex.quote(value)
+
+
+def _get_windows_short_path(value: str) -> str:
+    """Return ``value`` in its existing Win32 8.3 short-path form."""
+    get_short_path_name = ctypes.WinDLL("kernel32", use_last_error=True).GetShortPathNameW
+    get_short_path_name.argtypes = (
+        wintypes.LPCWSTR,
+        wintypes.LPWSTR,
+        wintypes.DWORD,
+    )
+    get_short_path_name.restype = wintypes.DWORD
+
+    size = 260
+    while True:
+        buffer = ctypes.create_unicode_buffer(size)
+        written = get_short_path_name(value, buffer, size)
+        if written == 0:
+            error_code = ctypes.get_last_error()
+            raise OSError(
+                error_code,
+                f"GetShortPathNameW failed for {value!r}",
+                value,
+            )
+        if written < size:
+            return buffer.value
+        size = written + 1
+
+
+def _agy_windows_command_path(value: str, description: str) -> str:
+    """Make a path safe for Antigravity's cmd.exe status-line runner."""
+    value = value.replace("/", "\\")
+    if '"' in value:
+        raise RuntimeError(
+            f"Antigravity cannot use the {description} because its path contains a "
+            f'double quote: {value!r}. Move it to a Windows path without double quotes.'
+        )
+    if " " not in value:
+        return value
+
+    try:
+        short_path = _get_windows_short_path(value).replace("/", "\\")
+    except OSError as exc:
+        raise RuntimeError(
+            f"Antigravity cannot use the {description} because its path contains spaces "
+            f"and Windows could not obtain an 8.3 short path for {value!r}. Ensure the "
+            "file exists and enable or create 8.3 short names for this volume/path, or "
+            "move it to a path without spaces, then retry."
+        ) from exc
+
+    if " " in short_path or '"' in short_path:
+        raise RuntimeError(
+            f"Antigravity cannot use the {description} because its path contains spaces "
+            f"and Windows returned no usable 8.3 short path for {value!r}. Enable or "
+            "create 8.3 short names for this volume/path, or move it to a path without "
+            "spaces, then retry."
+        )
+    return short_path
+
+
+def _find_agy_python() -> str:
+    """Prefer a working space-free interpreter for Antigravity on Windows."""
+    python = _find_system_python()
+    if sys.platform != "win32" or " " not in python:
+        return python
+    for name in ("python", "py"):
+        candidate = shutil.which(name)
+        if (
+            candidate
+            and " " not in candidate
+            and _is_ascii_path(candidate)
+            and _is_working_python(candidate)
+        ):
+            return candidate
+    return python
 
 
 def _forwarder_command() -> str:
@@ -443,7 +519,13 @@ def _save_settings(data: dict[str, Any]) -> None:
 
 
 def _agy_statusline_command() -> str:
-    python = _find_system_python() if sys.platform == "win32" else "/usr/bin/python3"
+    python = _find_agy_python() if sys.platform == "win32" else "/usr/bin/python3"
+    if sys.platform == "win32":
+        python = _agy_windows_command_path(python, "Python interpreter")
+        hook_target = _agy_windows_command_path(
+            str(AGY_HOOK_TARGET), "status-line hook"
+        )
+        return f"{python} {hook_target}"
     return f"{_shell_arg(python)} {_shell_arg(str(AGY_HOOK_TARGET))}"
 
 

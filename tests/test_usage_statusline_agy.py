@@ -147,8 +147,15 @@ def test_setup_and_unsetup_agy_on_windows_use_discovered_python_and_sidecar(
         "statusLine": original_statusline,
     }
     python = r"C:\Program Files\Python\python.exe"
+    short_python = r"C:\PROGRA~1\Python\python.exe"
     monkeypatch.setattr("setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr(setup_hook.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(
+        setup_hook,
+        "_get_windows_short_path",
+        lambda value: short_python if value == python else value,
+    )
     settings.write_text(json.dumps(original), encoding="utf-8")
 
     assert setup_hook._setup_agy()
@@ -158,12 +165,10 @@ def test_setup_and_unsetup_agy_on_windows_use_discovered_python_and_sidecar(
     }
     assert installed["statusLine"] == {
         "type": "command",
-        "command": (
-            f'"C:/Program Files/Python/python.exe" '
-            f'{setup_hook._shell_arg(str(target))}'
-        ),
+        "command": f"{short_python} {target}",
         "enabled": True,
     }
+    assert '"' not in installed["statusLine"]["command"]
     assert json.loads(previous.read_text(encoding="utf-8")) == original_statusline
     source = Path(setup_hook.__file__).parent / "usage_statusline_agy.py"
     assert target.read_bytes() == source.read_bytes()
@@ -174,6 +179,88 @@ def test_setup_and_unsetup_agy_on_windows_use_discovered_python_and_sidecar(
     assert target.exists()
     assert not previous.exists()
     assert not setup_hook.is_agy_setup()
+
+
+def test_agy_windows_command_shortens_both_spaced_paths_without_quotes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    python = r"C:\Program Files\Python311\python.EXE"
+    target = Path(r"C:\Users\Test User\.gemini\usage-statusline-agy.py")
+    short_paths = {
+        python: r"C:\PROGRA~1\PYTHON~1\python.EXE",
+        str(target): r"C:\Users\TESTUS~1\.gemini\usage-statusline-agy.py",
+    }
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr(setup_hook.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", target)
+    monkeypatch.setattr(
+        setup_hook, "_get_windows_short_path", lambda value: short_paths[value]
+    )
+
+    command = setup_hook._agy_statusline_command()
+
+    assert command == (
+        r"C:\PROGRA~1\PYTHON~1\python.EXE "
+        r"C:\Users\TESTUS~1\.gemini\usage-statusline-agy.py"
+    )
+    assert '"' not in command
+
+
+def test_agy_windows_command_prefers_working_space_free_interpreter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    python = r"C:\Program Files\Python311\python.EXE"
+    launcher = r"C:\Windows\py.exe"
+    target = Path(r"C:\Users\test\.gemini\usage-statusline-agy.py")
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr(
+        setup_hook.shutil, "which", lambda name: launcher if name == "py" else None
+    )
+    monkeypatch.setattr(setup_hook, "_is_working_python", lambda value: value == launcher)
+    monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", target)
+
+    command = setup_hook._agy_statusline_command()
+
+    assert command == rf"{launcher} {target}"
+    assert '"' not in command
+
+
+def test_agy_windows_command_rejects_unchanged_spaced_short_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    python = r"C:\Program Files\Python311\python.EXE"
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr(setup_hook.shutil, "which", lambda _name: None)
+    monkeypatch.setattr(setup_hook, "_get_windows_short_path", lambda value: value)
+
+    with pytest.raises(RuntimeError, match=r"no usable 8\.3 short path") as exc_info:
+        setup_hook._agy_statusline_command()
+
+    message = str(exc_info.value)
+    assert "Enable or create 8.3 short names" in message
+    assert "path without spaces" in message
+
+
+def test_agy_windows_command_reports_short_path_lookup_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    python = r"C:\Missing Python\python.exe"
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr(setup_hook.shutil, "which", lambda _name: None)
+
+    def fail_short_path(_value: str) -> str:
+        raise OSError(2, "file not found")
+
+    monkeypatch.setattr(setup_hook, "_get_windows_short_path", fail_short_path)
+
+    with pytest.raises(RuntimeError, match=r"could not obtain an 8\.3 short path") as exc_info:
+        setup_hook._agy_statusline_command()
+
+    assert "Ensure the file exists" in str(exc_info.value)
 
 
 def test_setup_agy_on_windows_preserves_existing_sidecar_backup(
