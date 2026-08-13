@@ -190,7 +190,7 @@ def _find_system_python() -> str:
         for candidate in (shutil.which("python"), shutil.which("py")):
             if candidate and _is_ascii_path(candidate) and _is_working_python(candidate):
                 return candidate
-        return "python"
+        raise SystemExit(_t("setup_windows_python_missing"))
     if os.path.exists("/usr/bin/python3"):
         return "/usr/bin/python3"
     executable = sys.executable
@@ -209,6 +209,8 @@ def _shell_arg(value: str) -> str:
         # installed.  Backslashes are escape characters there, while forward
         # slashes also work in PowerShell, so emit the portable Windows form.
         value = value.replace("\\", "/")
+        if not _is_ascii_path(value):
+            raise SystemExit(_t("setup_windows_non_ascii_command_path", path=value))
         return subprocess.list2cmdline([value])
     return shlex.quote(value)
 
