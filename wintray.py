@@ -58,6 +58,11 @@ from usage_client import ClaudeUsageClient, PollState
 from usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
 from usage_rate import UsageRateTracker
+from windows_watch import (
+    WindowsFileEventChanges,
+    WindowsUsageWatcher,
+    setup_windows_watcher,
+)
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -700,6 +705,16 @@ class _WindowsTrayController:
         self._positioned_this_show = False
         self.stopping = threading.Event()
         self.refresh_lock = threading.Lock()
+        self._refresh_in_flight = False
+        self._refresh_queued = False
+        self._refresh_thread: threading.Thread | None = None
+        self._poll_thread: threading.Thread | None = None
+        self._watcher_lock = threading.Lock()
+        self._windows_watcher: WindowsUsageWatcher | None = None
+        self._file_event_lock = threading.Lock()
+        self._file_event_refresh_timer: threading.Timer | None = None
+        self._last_file_event_refresh_started_at: float | None = None
+        self._history_source_tracker = menubar_state.HistorySourceTracker()
         self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
         self.usage_client = ClaudeUsageClient(mock=mock)
         self._last_tray_percent: float | None = None
@@ -1042,17 +1057,84 @@ class _WindowsTrayController:
             self._place_window(force_default=True)
 
     def _poll_loop(self) -> None:
-        while not self.stopping.wait(
-            self.interval if self.visible else max(self.interval, SLOW_POLL_INTERVAL_S)
-        ):
+        current_thread = threading.current_thread()
+        self._poll_thread = current_thread
+        try:
+            while not self.stopping.wait(
+                self.interval if self.visible else max(self.interval, SLOW_POLL_INTERVAL_S)
+            ):
+                self.refresh()
+        finally:
+            if self._poll_thread is current_thread:
+                self._poll_thread = None
+
+    def _ensure_windows_watcher(self) -> None:
+        if self.mock or self.stopping.is_set():
+            return
+        with self._watcher_lock:
+            if self._windows_watcher is not None or self.stopping.is_set():
+                return
+            watcher = setup_windows_watcher(self._refresh_from_file_event)
+            if watcher is not None:
+                self._windows_watcher = watcher
+                self._history_source_tracker.set_incremental_enabled(True)
+
+    def _refresh_from_file_event(self, changes: WindowsFileEventChanges) -> None:
+        self._history_source_tracker.record_changes(
+            set(changes.paths),
+            needs_full_scan=changes.needs_full_scan,
+        )
+        refresh_now = False
+        timer_to_start: threading.Timer | None = None
+        with self._file_event_lock:
+            if self.stopping.is_set():
+                return
+            now = time.monotonic()
+            decision = menubar_state.file_event_refresh_decision(
+                now,
+                self._last_file_event_refresh_started_at,
+                self._file_event_refresh_timer is not None,
+            )
+            if decision.refresh_now:
+                self._last_file_event_refresh_started_at = now
+                refresh_now = True
+            elif decision.trailing_delay is not None:
+                timer_to_start = threading.Timer(
+                    decision.trailing_delay,
+                    self._refresh_from_trailing_file_event,
+                )
+                timer_to_start.daemon = True
+                self._file_event_refresh_timer = timer_to_start
+        if timer_to_start is not None:
+            timer_to_start.start()
+        if refresh_now:
             self.refresh()
 
+    def _refresh_from_trailing_file_event(self) -> None:
+        with self._file_event_lock:
+            self._file_event_refresh_timer = None
+            if self.stopping.is_set():
+                return
+            self._last_file_event_refresh_started_at = time.monotonic()
+        self.refresh()
+
     def refresh(self) -> None:
-        if not self.refresh_lock.acquire(blocking=False):
-            return
-        threading.Thread(target=self._refresh_worker, daemon=True).start()
+        with self.refresh_lock:
+            if self.stopping.is_set():
+                return
+            if self._refresh_in_flight:
+                self._refresh_queued = True
+                return
+            self._refresh_in_flight = True
+            self._refresh_thread = threading.Thread(
+                target=self._refresh_worker,
+                name="usage-refresh",
+                daemon=True,
+            )
+            self._refresh_thread.start()
 
     def _refresh_worker(self) -> None:
+        self._ensure_windows_watcher()
         debug_timing = os.environ.get("USAGE_DEBUG") == "1"
 
         def measure(stage: str, started_at: float) -> None:
@@ -1060,21 +1142,32 @@ class _WindowsTrayController:
                 elapsed_ms = (time.monotonic() - started_at) * 1000
                 logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", stage, elapsed_ms)
 
-        try:
-            self.latest_state = self._build_state(measure=measure, debug_timing=debug_timing)
-            self._process_quota_notifications(self.latest_state)
-            started_at = time.monotonic() if debug_timing else 0.0
-            self._update_tray()
-            measure("update_tray", started_at)
-            if self.visible:
+        while True:
+            try:
+                self.latest_state = self._build_state(
+                    measure=measure,
+                    debug_timing=debug_timing,
+                )
+                self._process_quota_notifications(self.latest_state)
                 started_at = time.monotonic() if debug_timing else 0.0
-                self.inject_state()
-                measure("inject_state", started_at)
-        except Exception:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("Windows tray refresh failed", exc_info=True)
-        finally:
-            self.refresh_lock.release()
+                self._update_tray()
+                measure("update_tray", started_at)
+                if self.visible:
+                    started_at = time.monotonic() if debug_timing else 0.0
+                    self.inject_state()
+                    measure("inject_state", started_at)
+            except Exception:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning("Windows tray refresh failed", exc_info=True)
+
+            with self.refresh_lock:
+                if self._refresh_queued and not self.stopping.is_set():
+                    self._refresh_queued = False
+                    continue
+                self._refresh_queued = False
+                self._refresh_in_flight = False
+                self._refresh_thread = None
+                return
 
     def _load_entries(self, scan: menubar_state.HistorySourceScan) -> _RefreshData:
         if self.mock:
@@ -1097,6 +1190,8 @@ class _WindowsTrayController:
 
     def _history_source_scan(self) -> menubar_state.HistorySourceScan:
         """Avoid recursively statting every session JSONL on each tray tick."""
+        if self._windows_watcher is not None:
+            return self._history_source_tracker.scan()
         now = time.monotonic()
         if (
             self._history_scan is not None
@@ -1684,6 +1779,23 @@ class _WindowsTrayController:
 
     def quit(self, _icon: Any = None, _item: Any = None) -> None:
         self.stopping.set()
+        with self._file_event_lock:
+            timer = self._file_event_refresh_timer
+            self._file_event_refresh_timer = None
+        if timer is not None:
+            timer.cancel()
+        with self._watcher_lock:
+            watcher = self._windows_watcher
+            self._windows_watcher = None
+        if watcher is not None:
+            watcher.stop()
+
+        current_thread = threading.current_thread()
+        with self.refresh_lock:
+            refresh_thread = self._refresh_thread
+        for worker in (self._poll_thread, refresh_thread):
+            if worker is not None and worker is not current_thread:
+                worker.join(3.0)
         if self.icon is not None:
             self.icon.stop()
         if self.window is not None:

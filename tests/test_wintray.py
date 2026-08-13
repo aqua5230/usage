@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import sys
 import threading
+import time
 from collections.abc import Callable
 from contextlib import suppress
 from pathlib import Path
@@ -20,6 +21,7 @@ import menubar_state
 import panels
 import prefs
 import win_login_item
+import windows_watch
 import wintray
 from usage_client import PollOutcome, PollState
 from usage_notifications import NotificationEvent
@@ -979,6 +981,242 @@ def test_attach_schedules_startup_maintenance_after_tray_is_visible(
             "update",
             {"manual": False, "ignore_cooldown": False, "ignore_skipped": False},
         ),
+    ]
+
+
+def test_refresh_requested_while_busy_runs_once_after_current_refresh(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    first_started = threading.Event()
+    release_first = threading.Event()
+    second_finished = threading.Event()
+    calls = 0
+
+    def build_state(**_kwargs: object) -> menubar_state.PopoverState:
+        nonlocal calls
+        calls += 1
+        if calls == 1:
+            first_started.set()
+            assert release_first.wait(2)
+        elif calls == 2:
+            second_finished.set()
+        return _state()
+
+    monkeypatch.setattr(controller, "_build_state", build_state)
+    monkeypatch.setattr(controller, "_process_quota_notifications", lambda _state: None)
+    monkeypatch.setattr(controller, "_update_tray", lambda: None)
+
+    controller.refresh()
+    assert first_started.wait(2)
+    controller.refresh()
+    controller.refresh()
+    controller.refresh()
+    release_first.set()
+
+    assert second_finished.wait(2)
+    for _ in range(200):
+        with controller.refresh_lock:
+            if not controller._refresh_in_flight:
+                break
+        time.sleep(0.01)
+
+    assert calls == 2
+    assert controller._refresh_in_flight is False
+    assert controller._refresh_queued is False
+
+
+def test_windows_usage_watch_specs_are_limited_to_usage_sources(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    claude_root = tmp_path / ".claude"
+    claude_projects = claude_root / "projects"
+    sessions = tmp_path / ".codex" / "sessions"
+    archived = tmp_path / ".codex" / "archived_sessions"
+    for path in (claude_projects, sessions, archived):
+        path.mkdir(parents=True)
+    monkeypatch.setattr(
+        windows_watch.rate_limits,
+        "STATUS_FILE",
+        str(claude_root / "usage-status.json"),
+    )
+    monkeypatch.setattr(
+        windows_watch.rate_limits,
+        "LEGACY_STATUS_FILE",
+        str(claude_root / "usag-status.json"),
+    )
+    monkeypatch.setattr(
+        windows_watch.rate_limits,
+        "TT_STATUS_FILE",
+        str(claude_root / "tt-status.json"),
+    )
+    monkeypatch.setattr(windows_watch.history_loader, "CLAUDE_PROJECTS_DIR", claude_projects)
+    monkeypatch.setattr(windows_watch.codex_loader, "SESSIONS_DIR", sessions)
+    monkeypatch.setattr(windows_watch.codex_loader, "ARCHIVED_SESSIONS_DIR", archived)
+
+    specs = windows_watch.usage_watch_specs()
+
+    assert [spec.root for spec in specs] == [
+        claude_root,
+        claude_projects,
+        sessions,
+        archived,
+    ]
+    assert specs[0].recursive is False
+    assert specs[0].filenames == frozenset(
+        {"usage-status.json", "usag-status.json", "tt-status.json"}
+    )
+    assert all(spec.recursive and spec.history_jsonl for spec in specs[1:])
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="requires ReadDirectoryChangesW")
+def test_windows_watcher_observes_real_filesystem_change_and_refreshes(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    sessions = tmp_path / "sessions"
+    nested = sessions / "2026" / "08" / "13"
+    nested.mkdir(parents=True)
+    target = nested / "session.jsonl"
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    received: list[windows_watch.WindowsFileEventChanges] = []
+    changed = threading.Event()
+    refreshed = threading.Event()
+
+    monkeypatch.setattr(controller, "refresh", refreshed.set)
+
+    def on_change(changes: windows_watch.WindowsFileEventChanges) -> None:
+        received.append(changes)
+        controller._refresh_from_file_event(changes)
+        if target in changes.paths:
+            changed.set()
+
+    watcher = windows_watch.setup_windows_watcher(
+        on_change,
+        specs=[
+            windows_watch.WindowsWatchSpec(
+                sessions,
+                recursive=True,
+                history_jsonl=True,
+            )
+        ],
+    )
+    assert watcher is not None
+    try:
+        target.write_text('{"type":"event"}\n', encoding="utf-8")
+        assert changed.wait(5.0)
+        assert refreshed.wait(5.0)
+    finally:
+        watcher.stop()
+        controller.quit()
+
+    assert any(target in changes.paths for changes in received)
+    assert all(
+        runtime.thread is None or not runtime.thread.is_alive()
+        for runtime in watcher._runtimes
+    )
+
+
+def test_file_event_storm_coalesces_to_one_trailing_refresh(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    refreshes: list[str] = []
+    timers: list[FakeTimer] = []
+    dirty = tmp_path / ".codex" / "sessions" / "session.jsonl"
+
+    class FakeTimer:
+        def __init__(self, delay: float, callback: object) -> None:
+            self.delay = delay
+            self.callback = cast(Any, callback)
+            self.daemon = False
+            self.started = False
+            self.cancelled = False
+            timers.append(self)
+
+        def start(self) -> None:
+            self.started = True
+
+        def cancel(self) -> None:
+            self.cancelled = True
+
+    monkeypatch.setattr(wintray.threading, "Timer", FakeTimer)
+    monkeypatch.setattr(wintray.time, "monotonic", lambda: 100.0)
+    monkeypatch.setattr(controller, "refresh", lambda: refreshes.append("refresh"))
+    changes = windows_watch.WindowsFileEventChanges(frozenset({dirty}))
+
+    controller._refresh_from_file_event(changes)
+    for _ in range(50):
+        controller._refresh_from_file_event(changes)
+
+    assert refreshes == ["refresh"]
+    assert len(timers) == 1
+    assert timers[0].started is True
+    assert timers[0].delay == menubar_state.FILE_EVENT_REFRESH_MIN_INTERVAL_S
+
+    timers[0].callback()
+
+    assert refreshes == ["refresh", "refresh"]
+    assert controller._file_event_refresh_timer is None
+
+
+def test_windows_history_watcher_uses_dirty_paths_and_full_scan_fallback(
+    tmp_path: Path,
+) -> None:
+    spec = windows_watch.WindowsWatchSpec(
+        tmp_path / "sessions",
+        recursive=True,
+        history_jsonl=True,
+    )
+    dirty = spec.root / "nested" / "session.jsonl"
+
+    changed = spec.classify(dirty, windows_watch._FILE_ACTION_MODIFIED)
+    removed_directory = spec.classify(
+        spec.root / "removed-directory",
+        windows_watch._FILE_ACTION_REMOVED,
+    )
+
+    assert changed == windows_watch.WindowsFileEventChanges(frozenset({dirty}))
+    assert removed_directory == windows_watch.WindowsFileEventChanges(
+        frozenset(),
+        needs_full_scan=True,
+    )
+
+
+def test_quit_cancels_file_timer_stops_watcher_and_joins_workers() -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[str] = []
+    controller._file_event_refresh_timer = cast(
+        Any,
+        SimpleNamespace(cancel=lambda: calls.append("cancel_timer")),
+    )
+    controller._windows_watcher = cast(
+        Any,
+        SimpleNamespace(stop=lambda: calls.append("stop_watcher")),
+    )
+    controller._poll_thread = cast(
+        Any,
+        SimpleNamespace(join=lambda timeout: calls.append(f"join_poll:{timeout}")),
+    )
+    controller._refresh_thread = cast(
+        Any,
+        SimpleNamespace(join=lambda timeout: calls.append(f"join_refresh:{timeout}")),
+    )
+    controller.icon = SimpleNamespace(stop=lambda: calls.append("stop_icon"))
+    controller.window = SimpleNamespace(destroy=lambda: calls.append("destroy_window"))
+
+    controller.quit()
+
+    assert controller.stopping.is_set()
+    assert calls == [
+        "cancel_timer",
+        "stop_watcher",
+        "join_poll:3.0",
+        "join_refresh:3.0",
+        "stop_icon",
+        "destroy_window",
     ]
 
 
