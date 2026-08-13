@@ -12,12 +12,14 @@ from typing import cast
 
 import pytest
 
+import codex_loader
 import menubar_prefs
 import menubar_state
 import panels
 import prefs
 import win_login_item
 import wintray
+from usage_client import PollOutcome, PollState
 from usage_notifications import NotificationEvent
 
 
@@ -713,6 +715,53 @@ def test_build_state_reuses_history_until_fingerprint_changes(
     controller._build_state()
 
     assert calls == [1, 1]
+
+
+def test_build_state_reuses_history_scan_for_codex_rate_limits(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=False, interval=60)
+    candidates = ((Path("C:/codex/sessions/session.jsonl"), 123.0),)
+    scan = menubar_state.HistorySourceScan(
+        (("history", 1, 10.0),),
+        (),
+        (),
+        candidates,
+    )
+    history_scan_calls = 0
+    rate_limit_scans: list[tuple[tuple[Path, float], ...] | None] = []
+
+    def history_source_scan() -> menubar_state.HistorySourceScan:
+        nonlocal history_scan_calls
+        history_scan_calls += 1
+        return scan
+
+    def recent_jsonl_files(
+        *, jsonl_candidates: tuple[tuple[Path, float], ...] | None = None
+    ) -> list[Path]:
+        rate_limit_scans.append(jsonl_candidates)
+        return []
+
+    async def fetch() -> PollOutcome:
+        return PollOutcome(state=PollState.LOADING)
+
+    monkeypatch.setattr(controller, "_history_source_scan", history_source_scan)
+    monkeypatch.setattr(controller, "_load_entries", lambda _scan: wintray._RefreshData([], None))
+    monkeypatch.setattr(controller, "_fetch", fetch)
+    monkeypatch.setattr(codex_loader, "_load_sqlite_rate_limits", lambda: None)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    monkeypatch.setattr(codex_loader, "_recent_jsonl_files", recent_jsonl_files)
+    monkeypatch.setattr(
+        wintray.menubar_agy,
+        "load_refresh_result",
+        lambda _language: wintray.menubar_agy.AgyRefreshResult(None, True),
+    )
+    monkeypatch.setattr(wintray.agy_window_keeper, "maybe_ping", lambda *_args: None)
+
+    controller._build_state()
+
+    assert history_scan_calls == 1
+    assert rate_limit_scans == [candidates]
 
 
 def test_history_source_scan_is_cached_between_tray_ticks(

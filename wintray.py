@@ -801,10 +801,12 @@ class _WindowsTrayController:
         debug_timing: bool = False,
     ) -> menubar_state.PopoverState:
         started_at = time.monotonic() if debug_timing else 0.0
+        scan = self._history_source_scan()
         codex_rows, _codex_pct, _model, codex_stale, codex_credits = menubar_state.codex_rows(
             mock=self.mock,
             language=self.language,
             burn_rate_trackers=self.burn_rate_trackers,
+            jsonl_candidates=scan.codex_rate_limit_candidates,
         )
         measure("codex_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
@@ -812,7 +814,6 @@ class _WindowsTrayController:
         agy = agy_result.projection or menubar_agy.fallback_projection(self.language)
         measure("agy_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
-        scan = self._history_source_scan()
         if menubar_state.history_cache_needs_reload(
             self._history_fingerprint,
             scan.fingerprint,
