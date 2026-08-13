@@ -31,8 +31,9 @@ class _Key:
 
 class FakeWinreg:
     HKEY_CURRENT_USER = object()
+    REG_DWORD = 4
 
-    def __init__(self, value: int = 1, error: Exception | None = None) -> None:
+    def __init__(self, value: object = 1, error: Exception | None = None) -> None:
         self.value = value
         self.error = error
 
@@ -41,7 +42,7 @@ class FakeWinreg:
             raise self.error
         return _Key()
 
-    def QueryValueEx(self, key: object, name: str) -> tuple[int, int]:  # noqa: N802
+    def QueryValueEx(self, key: object, name: str) -> tuple[object, int]:  # noqa: N802
         return (self.value, 4)
 
 
@@ -147,6 +148,32 @@ def test_system_background_color_falls_back_on_error(
     )
 
     assert wintray._system_background_color() == "#eef2f7"
+
+
+def test_system_accent_color_reads_dwm_dword(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(wintray, "_winreg", lambda: FakeWinreg(value=0xFFD77800))
+
+    assert wintray._system_accent_color() == "#0078d7"
+
+
+def test_system_accent_color_returns_none_for_missing_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        wintray,
+        "_winreg",
+        lambda: FakeWinreg(error=FileNotFoundError("missing DWM key")),
+    )
+
+    assert wintray._system_accent_color() is None
+
+
+def test_system_accent_color_returns_none_for_malformed_value(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(wintray, "_winreg", lambda: FakeWinreg(value="not-a-dword"))
+
+    assert wintray._system_accent_color() is None
 
 
 def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
@@ -674,6 +701,7 @@ def test_inject_state_skips_duplicate_but_forces_after_panel_reopens(
     )
     monkeypatch.setattr(controller, "_place_window", lambda: None)
     monkeypatch.setattr(controller, "refresh", lambda: None)
+    monkeypatch.setattr(wintray, "_system_accent_color", lambda: "#0078d7")
 
     controller.inject_state()
     controller.inject_state()
@@ -683,6 +711,7 @@ def test_inject_state_skips_duplicate_but_forces_after_panel_reopens(
     controller.show_panel()
 
     assert len(injected) == 4
+    assert '"system_accent_color":"#0078d7"' in injected[0]
 
 
 def test_build_state_reuses_history_until_fingerprint_changes(

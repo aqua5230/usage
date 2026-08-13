@@ -322,6 +322,26 @@ def _system_background_color() -> str:
     return "#eef2f7"
 
 
+def _system_accent_color() -> str | None:
+    try:
+        winreg = _winreg()
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\DWM",
+        ) as key:
+            value, value_type = winreg.QueryValueEx(key, "AccentColor")
+        if (
+            value_type != winreg.REG_DWORD
+            or isinstance(value, bool)
+            or not isinstance(value, int)
+            or not 0 <= value <= 0xFFFFFFFF
+        ):
+            return None
+    except Exception:
+        return None
+    return f"#{value & 0xFF:02x}{value >> 8 & 0xFF:02x}{value >> 16 & 0xFF:02x}"
+
+
 def available_panels() -> tuple[tuple[str, str, str], ...]:
     """Windows excludes talent_market because its vendored CLI is macOS-only."""
     return tuple(panel for panel in WINDOWS_PANELS if panel[0] != "talent_market")
@@ -896,7 +916,12 @@ class _WindowsTrayController:
         if self.window is None:
             return
         encoded = json.dumps(
-            _state_payload(self.latest_state), ensure_ascii=False, separators=(",", ":")
+            _state_payload(
+                self.latest_state,
+                system_accent_color=_system_accent_color(),
+            ),
+            ensure_ascii=False,
+            separators=(",", ":"),
         )
         if not force and encoded == self._last_injected_state:
             return
