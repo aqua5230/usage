@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -18,6 +19,20 @@ import statusline_settings
 import usage_statusline_agy
 
 FIXTURE = Path(__file__).parent / "fixtures" / "agy_statusline_input.json"
+
+
+def test_statusline_detect_lang_ignores_lang_on_windows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+
+    assert usage_statusline_agy._statusline_detect_lang({"LANG": "zh_TW.UTF-8"}) == "en"
+    assert (
+        usage_statusline_agy._statusline_detect_lang(
+            {"USAGE_LANG": "ja", "LANG": "zh_TW.UTF-8"}
+        )
+        == "ja"
+    )
 
 
 def _fixture_data() -> dict[str, Any]:

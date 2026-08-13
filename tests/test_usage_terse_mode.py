@@ -8,12 +8,19 @@ from __future__ import annotations
 
 import io
 import json
+import sys
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
 
 import usage_terse_mode as mod
+
+
+@pytest.fixture
+def posix_platform(monkeypatch: pytest.MonkeyPatch) -> None:
+    """LANG 只在非 Windows 平台納入判斷，固定平台結果才不會隨 runner 改變。"""
+    monkeypatch.setattr(sys, "platform", "darwin")
 
 
 def test_detect_lang_uses_windows_system_lang_when_env_is_empty(
@@ -32,6 +39,18 @@ def test_detect_lang_prefers_usage_lang_over_windows_system_lang(
     monkeypatch.setenv("USAGE_LANG", "ja")
     monkeypatch.setattr(mod, "_windows_system_lang", lambda: "zh_TW")
 
+    assert mod._detect_lang() == "ja"
+
+
+def test_detect_lang_ignores_lang_on_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in ("USAGE_LANG", "TT_LANG"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(mod, "_windows_system_lang", lambda: "zh_TW")
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+
+    assert mod._detect_lang() == "zh-TW"
+    monkeypatch.setenv("USAGE_LANG", "ja")
     assert mod._detect_lang() == "ja"
 
 
@@ -63,6 +82,7 @@ class _FakeStdin:
         return self._data
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_main_reads_sidecar_instruction(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -76,6 +96,7 @@ def test_main_reads_sidecar_instruction(
     assert out["hookSpecificOutput"]["additionalContext"] == "TERSE::EN"
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_main_falls_back_to_default_when_sidecar_missing(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -101,6 +122,7 @@ def test_main_uses_detected_language(
     assert out["hookSpecificOutput"]["additionalContext"] == "精簡::繁中"
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -126,6 +148,7 @@ def test_main_is_silent_on_invalid_json(
     assert capsys.readouterr().out == ""
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_main_emits_instruction_for_empty_payload(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -138,6 +161,7 @@ def test_main_emits_instruction_for_empty_payload(
     assert out["hookSpecificOutput"]["additionalContext"] == "TERSE::EN"
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_main_handles_codex_style_payload(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:

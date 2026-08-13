@@ -85,7 +85,11 @@ def _windows_system_lang() -> str:
 
 
 def _detect_lang() -> str:
-    for key in ("USAGE_LANG", "TT_LANG", "LANG"):
+    # Windows 上的 LANG 多半是 Git Bash / MSYS 帶進來的，不代表使用者的系統語言。
+    keys = (
+        ("USAGE_LANG", "TT_LANG") if sys.platform == "win32" else ("USAGE_LANG", "TT_LANG", "LANG")
+    )
+    for key in keys:
         value = os.environ.get(key, "").strip()
         if value:
             return _normalize_lang(value)

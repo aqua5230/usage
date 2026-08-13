@@ -19,6 +19,12 @@ import pytest
 import usage_session_resume as mod
 
 
+@pytest.fixture
+def posix_platform(monkeypatch: pytest.MonkeyPatch) -> None:
+    """LANG 只在非 Windows 平台納入判斷，固定平台結果才不會隨 runner 改變。"""
+    monkeypatch.setattr(sys, "platform", "darwin")
+
+
 def test_detect_lang_uses_windows_system_lang_when_env_is_empty(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -35,6 +41,18 @@ def test_detect_lang_prefers_usage_lang_over_windows_system_lang(
     monkeypatch.setenv("USAGE_LANG", "ja")
     monkeypatch.setattr(mod, "_windows_system_lang", lambda: "zh_TW")
 
+    assert mod._detect_lang() == "ja"
+
+
+def test_detect_lang_ignores_lang_on_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    for key in ("USAGE_LANG", "TT_LANG"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(mod, "_windows_system_lang", lambda: "zh_TW")
+    monkeypatch.setenv("LANG", "en_US.UTF-8")
+
+    assert mod._detect_lang() == "zh-TW"
+    monkeypatch.setenv("USAGE_LANG", "ja")
     assert mod._detect_lang() == "ja"
 
 
@@ -222,6 +240,7 @@ def test_clean_request_keeps_structured_text() -> None:
     assert mod._clean_request("fix menubar.py") == "fix menubar.py"
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_reads_previous_session(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -250,6 +269,7 @@ def test_build_prompt_reads_previous_session(
     assert "fix: the thing" in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_includes_uncommitted_git_changes(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -280,6 +300,7 @@ def test_build_prompt_includes_uncommitted_git_changes(
     assert "usage_session_resume.py, i18n.json" in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_omits_uncommitted_line_when_git_dirty_returns_none(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -308,6 +329,7 @@ def test_build_prompt_omits_uncommitted_line_when_git_dirty_returns_none(
     assert "dirty branch=" not in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_includes_pending_todos(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -330,6 +352,7 @@ def test_build_prompt_includes_pending_todos(
     assert "write changelog" in prompt and "tag the version" in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_reads_last_prompt_entry(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -363,6 +386,7 @@ def test_build_prompt_reads_last_prompt_entry(
     assert "refactor the parser" in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_uses_first_substantive_task_not_trailing_reaction(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -407,6 +431,7 @@ def test_build_prompt_uses_first_substantive_task_not_trailing_reaction(
     assert "huh" not in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_greets_when_only_current_transcript(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -424,6 +449,7 @@ def test_build_prompt_greets_when_only_current_transcript(
     assert prompt == "GREETING::"
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_greets_when_previous_is_stale(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -445,6 +471,7 @@ def test_build_prompt_greets_when_previous_is_stale(
     assert prompt == "GREETING::"
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_greets_when_no_signal(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -466,6 +493,7 @@ def test_build_prompt_greets_when_no_signal(
     assert prompt == "GREETING::"
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_falls_back_to_default_when_sidecar_missing(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -535,6 +563,7 @@ def test_build_prompt_uses_detected_language(
     assert "加一個深色模式" in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_main_emits_additional_context(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -558,6 +587,7 @@ def test_main_emits_additional_context(
     assert "wire up the new endpoint" in out["hookSpecificOutput"]["additionalContext"]
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_main_emits_greeting_when_no_progress(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -575,6 +605,7 @@ def test_main_emits_greeting_when_no_progress(
     assert out["hookSpecificOutput"]["additionalContext"] == "GREETING::"
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -629,6 +660,7 @@ def test_main_with_empty_stdin_is_silent(
     assert capsys.readouterr().out == ""
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_skips_corrupt_latest_and_uses_previous(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -659,6 +691,7 @@ def test_build_prompt_skips_corrupt_latest_and_uses_previous(
     assert "feat: real work" in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_handles_naive_timestamp(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -692,6 +725,7 @@ class _FakeStdin:
         return self._data
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_done_falls_back_to_edited_files_when_no_commits(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -724,6 +758,7 @@ def test_done_falls_back_to_edited_files_when_no_commits(
     assert done_items.count("parser.py") == 1
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_done_prefers_commits_over_edited_files(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -749,6 +784,7 @@ def test_done_prefers_commits_over_edited_files(
     assert "theme.py" not in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_surfaces_recent_requests_newest_first(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -788,6 +824,7 @@ def test_build_prompt_surfaces_recent_requests_newest_first(
     )
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_skips_meta_entries_and_dedupes_non_adjacent_repeats(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -830,6 +867,7 @@ def test_build_prompt_skips_meta_entries_and_dedupes_non_adjacent_repeats(
     assert prompt.count("evaluate repo X") == 1
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_skips_diagnosis_reminder_when_waste_below_threshold(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -858,6 +896,7 @@ def test_build_prompt_skips_diagnosis_reminder_when_waste_below_threshold(
     assert "Health check:" not in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_skips_diagnosis_reminder_during_cooldown(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -883,6 +922,7 @@ def test_build_prompt_skips_diagnosis_reminder_during_cooldown(
     assert "Health check:" not in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_injects_diagnosis_reminder_when_fingerprint_changes(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -915,6 +955,7 @@ def test_build_prompt_injects_diagnosis_reminder_when_fingerprint_changes(
     assert "修" in prompt
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_uses_explain_reminder_when_nothing_fixable(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -954,6 +995,7 @@ def test_build_prompt_uses_explain_reminder_when_nothing_fixable(
     assert state_data["last_fingerprint"] == "fp-new"
 
 
+@pytest.mark.usefixtures("posix_platform")
 def test_build_prompt_skips_diagnosis_reminder_when_snapshot_is_stale(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

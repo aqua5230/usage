@@ -97,6 +97,18 @@ def test_statusline_detect_lang_prefers_usage_lang_over_windows_system_lang(
     assert usage_statusline._statusline_detect_lang({"USAGE_LANG": "ja"}) == "ja"
 
 
+def test_statusline_detect_lang_ignores_lang_on_windows(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+
+    assert usage_statusline._statusline_detect_lang({"LANG": "zh_TW.UTF-8"}) == "en"
+    assert (
+        usage_statusline._statusline_detect_lang({"USAGE_LANG": "ja", "LANG": "zh_TW.UTF-8"})
+        == "ja"
+    )
+
+
 def test_statusline_windows_system_lang_is_empty_off_windows(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
