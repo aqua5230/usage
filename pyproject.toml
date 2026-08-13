@@ -19,6 +19,7 @@ windows = [
     "pystray>=0.19.5; sys_platform == 'win32'",
     "pillow>=11.0.0; sys_platform == 'win32'",
     "pywebview>=5.4; sys_platform == 'win32'",
+    "windows-toasts>=1.3.1; sys_platform == 'win32'",
 ]
 
 [tool.uv]
@@ -55,6 +56,8 @@ py-modules = [
     "login_item",
     "win_login_item",
     "wintray",
+    "wintray_menu",
+    "windows_watch",
     "usage_client",
     "codex_loader",
     "agy_loader",
@@ -120,7 +123,7 @@ pretty = true
 exclude = "^(build|dist|release-win)/"
 
 [[tool.mypy.overrides]]
-module = ["rich.*", "PIL.*", "pystray.*", "webview.*"]
+module = ["rich.*", "PIL.*", "pystray.*", "webview.*", "windows_toasts.*"]
 ignore_missing_imports = true
 
 # PyObjC C-extension frameworks ship without type stubs / py.typed marker.

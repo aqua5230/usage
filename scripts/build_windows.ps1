@@ -7,6 +7,7 @@ $OutputDir = Join-Path $DistRoot "usage-windows"
 $PyInstallerOutput = Join-Path $DistRoot "usage"
 $BuildDir = Join-Path $RepoRoot "build/pyinstaller-windows"
 $SpecDir = Join-Path $RepoRoot "build/pyinstaller-spec"
+$ManifestFile = Join-Path $PSScriptRoot "usage.manifest"
 
 Remove-Item $OutputDir -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item $PyInstallerOutput -Recurse -Force -ErrorAction SilentlyContinue
@@ -23,7 +24,9 @@ try {
         --windowed `
         --onedir `
         --name usage `
+        --icon "$(Join-Path $RepoRoot 'assets/usage.ico')" `
         --version-file $VersionFile `
+        --manifest $ManifestFile `
         --distpath $DistRoot `
         --workpath $BuildDir `
         --specpath $SpecDir `
@@ -31,6 +34,7 @@ try {
         --add-data "$(Join-Path $RepoRoot 'pyproject.toml');." `
         --add-data "$(Join-Path $RepoRoot 'assets');assets" `
         --add-data "$(Join-Path $RepoRoot 'usage_statusline.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_statusline_agy.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_statusline_forwarder.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_session_resume.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_terse_mode.py');." `
@@ -46,6 +50,7 @@ try {
         --hidden-import analyzer.reporter `
         --hidden-import ui.html_report `
         --collect-all pystray `
+        --collect-all windows_toasts `
         --collect-all webview `
         main.py
 

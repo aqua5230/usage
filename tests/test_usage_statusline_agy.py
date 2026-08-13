@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import json
-import sys
 from pathlib import Path
 from typing import Any
 
@@ -93,15 +92,12 @@ def _patch_agy_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[P
     return settings, target, previous
 
 
-@pytest.mark.skipif(
-    sys.platform != "darwin",
-    reason="the Antigravity status line is installed on macOS only",
-)
-def test_setup_and_unsetup_agy_preserve_settings_and_restore_statusline(
+def test_setup_and_unsetup_agy_on_macos_preserve_settings_and_restore_statusline(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
     settings, target, previous = _patch_agy_paths(monkeypatch, tmp_path)
+    monkeypatch.setattr("setup_hook.sys.platform", "darwin")
     original_statusline = {"type": "command", "command": "echo original", "enabled": True}
     original = {
         "permissions": {"allow": ["read"]},
@@ -119,7 +115,7 @@ def test_setup_and_unsetup_agy_preserve_settings_and_restore_statusline(
     }
     assert installed["statusLine"] == {
         "type": "command",
-        "command": f"/usr/bin/python3 {target}",
+        "command": f"/usr/bin/python3 {setup_hook._shell_arg(str(target))}",
         "enabled": True,
     }
     assert json.loads(previous.read_text(encoding="utf-8")) == original_statusline
@@ -135,6 +131,163 @@ def test_setup_and_unsetup_agy_preserve_settings_and_restore_statusline(
     assert target.exists()
     assert not previous.exists()
     assert not setup_hook.is_agy_setup()
+
+
+def test_setup_and_unsetup_agy_on_windows_use_discovered_python_and_sidecar(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    settings, target, previous = _patch_agy_paths(monkeypatch, tmp_path)
+    original_statusline = {"type": "command", "command": "echo original", "enabled": True}
+    original = {
+        "permissions": {"allow": ["read"]},
+        "trustedWorkspaces": [r"C:\project"],
+        "model": "Gemini 3.6 Flash",
+        "toolPermission": "ask",
+        "statusLine": original_statusline,
+    }
+    python = r"C:\Program Files\Python\python.exe"
+    short_python = r"C:\PROGRA~1\Python\python.exe"
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
+    monkeypatch.setattr(
+        setup_hook,
+        "_get_windows_short_path",
+        lambda value: short_python if value == python else value,
+    )
+    settings.write_text(json.dumps(original), encoding="utf-8")
+
+    assert setup_hook._setup_agy()
+    installed = json.loads(settings.read_text(encoding="utf-8"))
+    assert {key: installed[key] for key in original if key != "statusLine"} == {
+        key: value for key, value in original.items() if key != "statusLine"
+    }
+    # The command is built for cmd.exe, so the hook path is emitted with native
+    # backslashes. On Windows tmp_path already uses them and this is a no-op; on
+    # the macOS CI runner it is what makes the expectation platform-independent.
+    expected_target = str(target).replace("/", "\\")
+    assert installed["statusLine"] == {
+        "type": "command",
+        "command": f"{short_python} {expected_target}",
+        "enabled": True,
+    }
+    assert '"' not in installed["statusLine"]["command"]
+    assert json.loads(previous.read_text(encoding="utf-8")) == original_statusline
+    source = Path(setup_hook.__file__).parent / "usage_statusline_agy.py"
+    assert target.read_bytes() == source.read_bytes()
+    assert setup_hook.is_agy_setup()
+
+    assert setup_hook._unsetup_agy()
+    assert json.loads(settings.read_text(encoding="utf-8")) == original
+    assert target.exists()
+    assert not previous.exists()
+    assert not setup_hook.is_agy_setup()
+
+
+def test_agy_windows_command_shortens_both_spaced_paths_without_quotes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    python = r"C:\Program Files\Python311\python.EXE"
+    target = Path(r"C:\Users\Test User\.gemini\usage-statusline-agy.py")
+    short_paths = {
+        python: r"C:\PROGRA~1\PYTHON~1\python.EXE",
+        str(target): r"C:\Users\TESTUS~1\.gemini\usage-statusline-agy.py",
+    }
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
+    monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", target)
+    monkeypatch.setattr(
+        setup_hook, "_get_windows_short_path", lambda value: short_paths[value]
+    )
+
+    command = setup_hook._agy_statusline_command()
+
+    assert command == (
+        r"C:\PROGRA~1\PYTHON~1\python.EXE "
+        r"C:\Users\TESTUS~1\.gemini\usage-statusline-agy.py"
+    )
+    assert '"' not in command
+
+
+def test_agy_windows_command_prefers_working_space_free_interpreter(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    python = r"C:\Program Files\Python311\python.EXE"
+    launcher = r"C:\Windows\py.exe"
+    target = Path(r"C:\Users\test\.gemini\usage-statusline-agy.py")
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr(
+        "setup_hook.shutil.which", lambda name: launcher if name == "py" else None
+    )
+    monkeypatch.setattr(setup_hook, "_is_working_python", lambda value: value == launcher)
+    monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", target)
+
+    command = setup_hook._agy_statusline_command()
+
+    assert command == rf"{launcher} {target}"
+    assert '"' not in command
+
+
+def test_agy_windows_command_rejects_unchanged_spaced_short_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    python = r"C:\Program Files\Python311\python.EXE"
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
+    monkeypatch.setattr(setup_hook, "_get_windows_short_path", lambda value: value)
+
+    with pytest.raises(RuntimeError, match=r"no usable 8\.3 short path") as exc_info:
+        setup_hook._agy_statusline_command()
+
+    message = str(exc_info.value)
+    assert "Enable or create 8.3 short names" in message
+    assert "path without spaces" in message
+
+
+def test_agy_windows_command_reports_short_path_lookup_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    python = r"C:\Missing Python\python.exe"
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
+    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
+
+    def fail_short_path(_value: str) -> str:
+        raise OSError(2, "file not found")
+
+    monkeypatch.setattr(setup_hook, "_get_windows_short_path", fail_short_path)
+
+    with pytest.raises(RuntimeError, match=r"could not obtain an 8\.3 short path") as exc_info:
+        setup_hook._agy_statusline_command()
+
+    assert "Ensure the file exists" in str(exc_info.value)
+
+
+def test_setup_agy_on_windows_preserves_existing_sidecar_backup(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    settings, _target, previous = _patch_agy_paths(monkeypatch, tmp_path)
+    saved_statusline = {"type": "command", "command": "echo saved", "enabled": True}
+    replacement_statusline = {
+        "type": "command",
+        "command": "echo replacement",
+        "enabled": True,
+    }
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: r"C:\Python\python.exe")
+    settings.write_text(json.dumps({"statusLine": replacement_statusline}), encoding="utf-8")
+    previous.write_text(json.dumps(saved_statusline), encoding="utf-8")
+
+    assert setup_hook._setup_agy()
+    assert json.loads(previous.read_text(encoding="utf-8")) == saved_statusline
+    assert setup_hook._unsetup_agy()
+    restored = json.loads(settings.read_text(encoding="utf-8"))
+    assert restored["statusLine"] == saved_statusline
 
 
 @pytest.mark.parametrize("content", [None, "{broken", "[]"])
@@ -156,7 +309,7 @@ def test_setup_agy_refuses_missing_or_invalid_settings(
     assert not previous.exists()
 
 
-def test_agy_install_paths_are_noops_off_macos(
+def test_agy_install_paths_are_noops_on_unsupported_platforms(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
@@ -164,7 +317,7 @@ def test_agy_install_paths_are_noops_off_macos(
     settings, target, previous = _patch_agy_paths(monkeypatch, tmp_path)
     original = json.dumps({"statusLine": {"type": "command", "command": "own.py"}})
     settings.write_text(original, encoding="utf-8")
-    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr("setup_hook.sys.platform", "linux")
 
     assert not setup_hook._setup_agy()
     assert not setup_hook._unsetup_agy()
@@ -188,6 +341,32 @@ def test_agy_hook_script_staleness_detects_missing_and_changed_target(
     assert setup_hook._agy_hook_script_is_stale()
     target.write_bytes(b"new hook\n")
     assert not setup_hook._agy_hook_script_is_stale()
+
+
+def test_self_heal_updates_stale_agy_statusline_on_windows(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    settings, target, _previous = _patch_agy_paths(monkeypatch, tmp_path)
+    settings.write_text("{}", encoding="utf-8")
+    source = tmp_path / "usage_statusline_agy.py"
+    source.write_bytes(b"new hook\n")
+    target.write_bytes(b"old hook\n")
+    logs: list[tuple[str, str]] = []
+    _patch_claude_self_heal(monkeypatch)
+    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_system_python", lambda: r"C:\Python\python.exe")
+    monkeypatch.setattr(setup_hook, "_resolve_agy_hook_source", lambda: source)
+    monkeypatch.setattr(statusline_settings, "_statusline_enabled", lambda: True)
+    monkeypatch.setattr(
+        session_hooks, "_append_self_heal_log", lambda action, detail: logs.append((action, detail))
+    )
+
+    session_hooks.self_heal()
+
+    assert target.read_bytes() == source.read_bytes()
+    assert setup_hook.is_agy_setup()
+    assert logs == [("setup_agy", "installed or updated Antigravity status line")]
 
 
 def _patch_claude_self_heal(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -289,15 +468,14 @@ def test_self_heal_agy_stays_disabled_and_failure_does_not_block_resume(
     assert calls == ["resume", "setup", "resume"]
 
 
-@pytest.mark.skipif(
-    sys.platform != "darwin",
-    reason="the Antigravity status line is installed on macOS only",
-)
+@pytest.mark.parametrize("platform", ["darwin", "win32"])
 def test_agy_only_statusline_toggle_is_enabled_and_removable(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
+    platform: str,
 ) -> None:
     state = {"enabled": False}
+    monkeypatch.setattr("statusline_settings.sys.platform", platform)
     monkeypatch.setattr(
         statusline_settings, "_claude_settings_path", lambda: tmp_path / "settings.json"
     )
@@ -316,9 +494,11 @@ def test_agy_only_statusline_toggle_is_enabled_and_removable(
     assert not statusline_settings._statusline_enabled()
 
 
-def test_agy_sync_and_state_are_noops_off_macos(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_agy_sync_and_state_are_noops_on_unsupported_platforms(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     calls: list[str] = []
-    monkeypatch.setattr("statusline_settings.sys.platform", "win32")
+    monkeypatch.setattr("statusline_settings.sys.platform", "linux")
 
     def setup_agy() -> bool:
         calls.append("setup")

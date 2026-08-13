@@ -18,6 +18,7 @@ and restored by unsetup.
 from __future__ import annotations
 
 import contextlib
+import ctypes
 import json
 import os
 import re
@@ -28,6 +29,7 @@ import subprocess
 import sys
 import tempfile
 import tomllib
+from ctypes import wintypes
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
@@ -80,6 +82,9 @@ LEGACY_TT_BACKUP_KEY = "tokenTracker"
 LEGACY_BACKUP_KEY = LEGACY_NAME
 PREV_SL_KEY = "previousStatusLine"
 HOOK_VERSION = "1.1"
+# Antigravity's Go runner hands its status-line command to cmd.exe unquoted, so
+# every character cmd.exe treats specially has to be kept out of the path.
+_CMD_UNSAFE_CHARACTERS = '"&|^<>()'
 _SL_REGEX = re.compile(r"(?m)^[ \t]*status_line\s*=\s*\[.*?\]", re.DOTALL)
 _TABLE_REGEX = re.compile(r"(?m)^[ \t]*\[[^\]\n]+\][ \t]*(?:#.*)?$")
 
@@ -190,7 +195,7 @@ def _find_system_python() -> str:
         for candidate in (shutil.which("python"), shutil.which("py")):
             if candidate and _is_ascii_path(candidate) and _is_working_python(candidate):
                 return candidate
-        return "python"
+        raise SystemExit(_t("setup_windows_python_missing"))
     if os.path.exists("/usr/bin/python3"):
         return "/usr/bin/python3"
     executable = sys.executable
@@ -209,8 +214,98 @@ def _shell_arg(value: str) -> str:
         # installed.  Backslashes are escape characters there, while forward
         # slashes also work in PowerShell, so emit the portable Windows form.
         value = value.replace("\\", "/")
+        if not _is_ascii_path(value):
+            raise SystemExit(_t("setup_windows_non_ascii_command_path", path=value))
         return subprocess.list2cmdline([value])
     return shlex.quote(value)
+
+
+def _get_windows_short_path(value: str) -> str:
+    """Return ``value`` in its existing Win32 8.3 short-path form."""
+    library_name = "WinDLL"
+    win_dll: Any = getattr(ctypes, library_name)
+    get_short_path_name = win_dll("kernel32", use_last_error=True).GetShortPathNameW
+    get_short_path_name.argtypes = (
+        wintypes.LPCWSTR,
+        wintypes.LPWSTR,
+        wintypes.DWORD,
+    )
+    get_short_path_name.restype = wintypes.DWORD
+
+    size = 260
+    while True:
+        buffer = ctypes.create_unicode_buffer(size)
+        written = get_short_path_name(value, buffer, size)
+        if written == 0:
+            function_name = "get_last_error"
+            get_last_error: Any = getattr(ctypes, function_name)
+            error_code = get_last_error()
+            raise OSError(
+                error_code,
+                f"GetShortPathNameW failed for {value!r}",
+                value,
+            )
+        if written < size:
+            return buffer.value
+        size = written + 1
+
+
+def _cmd_unsafe_reason(value: str) -> str | None:
+    """Say why ``value`` cannot sit unquoted in a cmd.exe command line."""
+    problems = []
+    if " " in value:
+        problems.append("spaces")
+    unsafe = sorted({char for char in value if char in _CMD_UNSAFE_CHARACTERS})
+    if unsafe:
+        problems.append(
+            "unsafe cmd.exe characters " + ", ".join(repr(char) for char in unsafe)
+        )
+    return " and ".join(problems) or None
+
+
+def _agy_windows_command_path(value: str, description: str) -> str:
+    """Make a path safe for Antigravity's cmd.exe status-line runner."""
+    value = value.replace("/", "\\")
+    reason = _cmd_unsafe_reason(value)
+    if reason is None:
+        return value
+
+    try:
+        short_path = _get_windows_short_path(value).replace("/", "\\")
+    except OSError as exc:
+        raise RuntimeError(
+            f"Antigravity cannot use the {description} because its path contains {reason} "
+            f"and Windows could not obtain an 8.3 short path for {value!r}. Ensure the "
+            "file exists and enable or create 8.3 short names for this volume/path, or "
+            "move it to a path without spaces or unsafe cmd.exe characters, then retry."
+        ) from exc
+
+    short_reason = _cmd_unsafe_reason(short_path)
+    if short_reason is not None:
+        raise RuntimeError(
+            f"Antigravity cannot use the {description} because its path contains {reason} "
+            f"and Windows returned no usable 8.3 short path: {short_path!r} still contains "
+            f"{short_reason}. Enable or create 8.3 short names for this volume/path, or "
+            "move it to a path without spaces or unsafe cmd.exe characters, then retry."
+        )
+    return short_path
+
+
+def _find_agy_python() -> str:
+    """Prefer a working space-free interpreter for Antigravity on Windows."""
+    python = _find_system_python()
+    if sys.platform != "win32" or " " not in python:
+        return python
+    for name in ("python", "py"):
+        candidate = shutil.which(name)
+        if (
+            candidate
+            and " " not in candidate
+            and _is_ascii_path(candidate)
+            and _is_working_python(candidate)
+        ):
+            return candidate
+    return python
 
 
 def _forwarder_command() -> str:
@@ -441,7 +536,14 @@ def _save_settings(data: dict[str, Any]) -> None:
 
 
 def _agy_statusline_command() -> str:
-    return f"/usr/bin/python3 {_shell_arg(str(AGY_HOOK_TARGET))}"
+    python = _find_agy_python() if sys.platform == "win32" else "/usr/bin/python3"
+    if sys.platform == "win32":
+        python = _agy_windows_command_path(python, "Python interpreter")
+        hook_target = _agy_windows_command_path(
+            str(AGY_HOOK_TARGET), "status-line hook"
+        )
+        return f"{python} {hook_target}"
+    return f"{_shell_arg(python)} {_shell_arg(str(AGY_HOOK_TARGET))}"
 
 
 def _is_agy_usage_hook(status_line: object) -> bool:
@@ -460,7 +562,7 @@ def _load_agy_json(path: Path) -> object | None:
 
 def _setup_agy() -> bool:
     """Install Antigravity's status line without creating an absent settings file."""
-    if sys.platform != "darwin":
+    if sys.platform not in {"darwin", "win32"}:
         return False
     if not AGY_SETTINGS.is_file():
         return False
@@ -506,7 +608,7 @@ def _setup_agy() -> bool:
 
 def _unsetup_agy() -> bool:
     """Remove usage's Antigravity status line and restore its sidecar backup."""
-    if sys.platform != "darwin":
+    if sys.platform not in {"darwin", "win32"}:
         return False
     if not AGY_SETTINGS.is_file():
         return False
@@ -542,7 +644,7 @@ def _unsetup_agy() -> bool:
 
 def is_agy_setup() -> bool:
     """Return whether usage's Antigravity status line is fully installed."""
-    if sys.platform != "darwin":
+    if sys.platform not in {"darwin", "win32"}:
         return False
     if not AGY_SETTINGS.is_file() or not AGY_HOOK_TARGET.is_file():
         return False

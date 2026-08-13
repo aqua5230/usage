@@ -307,6 +307,35 @@ def test_find_system_python_avoids_non_ascii_windows_interpreter(
     assert setup_hook._find_system_python() == r"C:\\Program Files\\Python\\python.exe"
 
 
+def test_setup_fails_when_no_windows_python_is_available(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(shutil, "which", lambda _name: None)
+
+    with pytest.raises(SystemExit, match="Python"):
+        setup_hook.setup()
+
+    assert not setup_paths.settings.exists()
+
+
+def test_setup_fails_for_non_ascii_windows_hook_target(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    hook_target = tmp_path / "使用者" / ".claude" / "usage-statusline.py"
+    monkeypatch.setattr(setup_hook, "HOOK_TARGET", hook_target)
+
+    with pytest.raises(SystemExit, match="ASCII"):
+        setup_hook.setup()
+
+    assert not setup_paths.settings.exists()
+
+
 def test_windows_hook_commands_use_double_quotes(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setattr(
@@ -331,6 +360,27 @@ def test_windows_hook_commands_use_double_quotes(monkeypatch: pytest.MonkeyPatch
         '"C:/Program Files/Python/python.exe" '
         '"C:/Users/test user/.claude/usage-statusline-forwarder.py"'
     )
+
+
+def test_agy_windows_command_path_converts_ampersand_path_to_short_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    value = r"C:\Users\R&D\Python\python.exe"
+    short_path = r"C:\Users\R~1\PYTHON~1\python.exe"
+    monkeypatch.setattr(setup_hook, "_get_windows_short_path", lambda _path: short_path)
+
+    assert setup_hook._agy_windows_command_path(value, "Python interpreter") == short_path
+
+
+def test_agy_windows_command_path_rejects_unsafe_short_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    value = r"C:\Users\R&D\Python\python.exe"
+    short_path = r"C:\Users\R&D\PYTHON~1\python.exe"
+    monkeypatch.setattr(setup_hook, "_get_windows_short_path", lambda _path: short_path)
+
+    with pytest.raises(RuntimeError, match=r"still contains unsafe cmd\.exe characters '&'"):
+        setup_hook._agy_windows_command_path(value, "Python interpreter")
 
 
 def test_windows_statusline_migration_rewrites_legacy_backslash_paths(

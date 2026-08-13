@@ -47,6 +47,7 @@ def _config(
     return service_status.ServiceStatusConfig(
         config.service_name,
         config.status_url,
+        config.incidents_url,
         config.component_names,
         cache_dir / config.cache_path.name,
     )
@@ -98,10 +99,14 @@ def _mock_response(
     payload: dict[str, object],
 ) -> None:
     def fake_urlopen(request: urllib.request.Request, timeout: int) -> FakeResponse:
-        assert request.full_url == config.status_url
+        if request.full_url == config.status_url:
+            response_payload = payload
+        else:
+            assert request.full_url == config.incidents_url
+            response_payload = {"incidents": payload.get("incidents", [])}
         assert request.get_header("User-agent") == service_status.USER_AGENT
         assert timeout == 10
-        return FakeResponse(payload)
+        return FakeResponse(response_payload)
 
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
 
@@ -240,6 +245,106 @@ def test_settled_monitoring_incident_suppresses_degraded_status(
     assert "monitoring" in result.description
 
 
+def test_components_payload_fetches_incidents_for_settled_monitoring_suppression(
+    isolated_cache: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = _config(service_status.CODEX_STATUS, isolated_cache)
+    components_payload: dict[str, object] = {
+        "components": [{"name": "Codex API", "status": "degraded_performance"}]
+    }
+    incidents = [_incident("monitoring", hours_ago=5)]
+    requested_urls: list[str] = []
+
+    def fake_urlopen(request: urllib.request.Request, timeout: int) -> FakeResponse:
+        requested_urls.append(request.full_url)
+        assert request.get_header("User-agent") == service_status.USER_AGENT
+        assert timeout == 10
+        if request.full_url == config.status_url:
+            return FakeResponse(components_payload)
+        assert request.full_url == config.incidents_url
+        return FakeResponse({"incidents": incidents})
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+
+    result = service_status.get_service_status(config)
+
+    assert requested_urls == [config.status_url, config.incidents_url]
+    assert result.is_abnormal is False
+    assert "monitoring" in result.description
+    assert json.loads(config.cache_path.read_text(encoding="utf-8"))["incidents"] == incidents
+
+
+def test_resolved_incidents_are_filtered_out_of_the_feed(
+    isolated_cache: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = _config(service_status.CODEX_STATUS, isolated_cache)
+    settled = _incident("monitoring", hours_ago=5)
+    closed = [_incident("resolved", hours_ago=1), _incident("postmortem", hours_ago=2)]
+
+    def fake_urlopen(request: urllib.request.Request, timeout: int) -> FakeResponse:
+        if request.full_url == config.status_url:
+            return FakeResponse(
+                {"components": [{"name": "Codex API", "status": "degraded_performance"}]}
+            )
+        assert request.full_url == config.incidents_url
+        return FakeResponse({"incidents": [*closed, settled]})
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+
+    result = service_status.get_service_status(config)
+
+    # Without the filter the closed entries would break the "all monitoring"
+    # test and the settled alert would never be suppressed.
+    assert result.is_abnormal is False
+    assert "monitoring" in result.description
+    assert json.loads(config.cache_path.read_text(encoding="utf-8"))["incidents"] == [settled]
+
+
+def test_operational_components_do_not_fetch_incidents(
+    isolated_cache: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = _config(service_status.CODEX_STATUS, isolated_cache)
+    requested_urls: list[str] = []
+
+    def fake_urlopen(request: urllib.request.Request, timeout: int) -> FakeResponse:
+        requested_urls.append(request.full_url)
+        assert request.full_url == config.status_url
+        assert timeout == 10
+        return FakeResponse({"components": [{"name": "Codex API", "status": "operational"}]})
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+
+    result = service_status.get_service_status(config)
+
+    assert result.is_abnormal is False
+    assert requested_urls == [config.status_url]
+
+
+def test_incidents_fetch_failure_keeps_component_status(
+    isolated_cache: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    config = _config(service_status.CODEX_STATUS, isolated_cache)
+
+    def fake_urlopen(request: urllib.request.Request, timeout: int) -> FakeResponse:
+        assert timeout == 10
+        if request.full_url == config.status_url:
+            return FakeResponse(
+                {"components": [{"name": "Codex API", "status": "degraded_performance"}]}
+            )
+        assert request.full_url == config.incidents_url
+        raise urllib.error.URLError("offline")
+
+    monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
+
+    result = service_status.get_service_status(config)
+
+    assert result == service_status.ServiceStatus(
+        "Codex", True, "degraded_performance", "Codex API: degraded_performance.", "fetched"
+    )
+    assert "incidents" not in json.loads(config.cache_path.read_text(encoding="utf-8"))
+    assert service_status._last_failure_at == {}
+
+
 def test_recent_monitoring_incident_keeps_degraded_status_abnormal(
     isolated_cache: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
@@ -367,4 +472,73 @@ def test_corrupt_alert_state_is_treated_as_first_observation(
     assert result.is_abnormal is True
     assert json.loads(state_path.read_text(encoding="utf-8"))["Codex"]["status"] == (
         "degraded_performance"
+    )
+
+
+@pytest.mark.parametrize("config", [service_status.CLAUDE_STATUS, service_status.CODEX_STATUS])
+def test_configured_feeds_use_components_not_the_truncated_summary(
+    config: service_status.ServiceStatusConfig,
+) -> None:
+    """Statuspage's summary payload is capped at the first 25 components.
+
+    OpenAI publishes 34, so "Codex API" (position 27) never appears there and
+    _build_status() could only ever return "unknown" — silently, because an
+    absent component is indistinguishable from a healthy one to the caller.
+    Mocked payload tests cannot catch picking the wrong endpoint, so pin it.
+    """
+    assert config.status_url.endswith("/api/v2/components.json")
+    assert "summary.json" not in config.status_url
+    assert config.incidents_url.endswith("/api/v2/incidents.json")
+    assert "unresolved" not in config.incidents_url
+
+
+@pytest.mark.parametrize("config", [service_status.CLAUDE_STATUS, service_status.CODEX_STATUS])
+def test_live_feed_actually_publishes_every_watched_component(
+    config: service_status.ServiceStatusConfig,
+) -> None:
+    """Hit the real endpoint so a renamed or dropped component fails loudly.
+
+    Every other test here feeds a hand-written payload, so the allowlist can
+    drift away from what the vendor actually publishes without any test noticing
+    — which is exactly how the Codex banner went dark.
+    """
+    try:
+        with urllib.request.urlopen(config.status_url, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, OSError) as error:
+        pytest.skip(f"status feed unreachable: {error}")
+
+    published = {
+        component["name"]
+        for component in payload.get("components", [])
+        if isinstance(component, dict) and isinstance(component.get("name"), str)
+    }
+    missing = [name for name in config.component_names if name not in published]
+
+    assert not missing, (
+        f"{config.service_name} no longer publishes {missing}; "
+        f"the banner will silently report 'unknown'. Published: {sorted(published)}"
+    )
+
+
+@pytest.mark.parametrize("config", [service_status.CLAUDE_STATUS, service_status.CODEX_STATUS])
+def test_live_incident_feed_answers_with_an_incidents_key(
+    config: service_status.ServiceStatusConfig,
+) -> None:
+    """Hit the real incident feed so a dead endpoint fails loudly.
+
+    `incidents/unresolved.json` looks like the obvious choice and Anthropic
+    serves it, but OpenAI answers 404 — and `_fetch_incidents()` swallows that
+    into `None`, which silently turns the 4-hour monitoring suppression back
+    off. Only a live request can catch this.
+    """
+    try:
+        with urllib.request.urlopen(config.incidents_url, timeout=20) as response:
+            payload = json.loads(response.read().decode("utf-8"))
+    except (urllib.error.URLError, TimeoutError, OSError) as error:
+        pytest.skip(f"incident feed unreachable: {error}")
+
+    assert isinstance(payload.get("incidents"), list), (
+        f"{config.service_name} no longer publishes incidents at {config.incidents_url}; "
+        "alert suppression will silently stop working"
     )

@@ -182,6 +182,17 @@ def test_classic_panel_renders_codex_credits_with_dom_api() -> None:
     assert 't("codex_credits", { balance: credits.balance || "--" })' in core_script
 
 
+def test_shared_core_exposes_optional_system_accent_as_css_variable() -> None:
+    core_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / "panel_core.js"
+    core_script = core_path.read_text(encoding="utf-8")
+
+    assert (
+        'root.style.setProperty("--usage-system-accent", state.system_accent_color)'
+        in core_script
+    )
+    assert 'root.style.removeProperty("--usage-system-accent")' in core_script
+
+
 @pytest.mark.parametrize("filename", CARD_PANEL_FILENAMES)
 def test_card_panels_use_shared_core_script(filename: str) -> None:
     panel_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / filename

@@ -299,6 +299,11 @@
     }
 
     window.usageApplyState = function usageApplyState(state) {
+      if (typeof state.system_accent_color === "string" && state.system_accent_color) {
+        root.style.setProperty("--usage-system-accent", state.system_accent_color);
+      } else {
+        root.style.removeProperty("--usage-system-accent");
+      }
       document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
       document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
       document.documentElement.classList.toggle('hide-agy', !!state.hideAgy);

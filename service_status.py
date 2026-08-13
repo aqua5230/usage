@@ -31,6 +31,7 @@ FAILURE_RETRY_SECONDS = 60
 MONITORING_SETTLED_SECONDS = 4 * 3600
 OBSERVED_STALE_SECONDS = 24 * 3600
 SUPPRESSIBLE_STATUSES = ("degraded_performance",)
+_CLOSED_INCIDENTS = frozenset({"resolved", "postmortem"})
 USER_AGENT = "usage/0.9"
 # Statuspage summaries are tens of KB; cap the read so a broken endpoint cannot
 # make us buffer an unbounded response.
@@ -52,21 +53,33 @@ class ServiceStatusConfig:
 
     service_name: str
     status_url: str
+    incidents_url: str
     component_names: tuple[str, ...]
     cache_path: Path
 
 
+# Both feeds use components.json, not summary.json. Statuspage's summary payload
+# is truncated to the first 25 components by position: OpenAI publishes 34, so
+# "Codex API" (position 27) is silently absent from it and _build_status() can
+# only ever report "unknown". components.json returns the full list and carries
+# the same top-level "components" key, so the parser is unchanged. Anthropic
+# publishes 6 today and is unaffected, but it uses the same endpoint so a future
+# component of theirs cannot quietly fall off the end either.
 CLAUDE_STATUS = ServiceStatusConfig(
     service_name="Claude",
-    status_url="https://status.claude.com/api/v2/summary.json",
+    status_url="https://status.claude.com/api/v2/components.json",
+    incidents_url="https://status.claude.com/api/v2/incidents.json",
     component_names=("Claude Code", "Claude API (api.anthropic.com)"),
     cache_path=Path(os.path.expanduser("~/.usage/anthropic_status_cache.json")),
 )
 CODEX_STATUS = ServiceStatusConfig(
     service_name="Codex",
-    status_url="https://status.openai.com/api/v2/summary.json",
+    status_url="https://status.openai.com/api/v2/components.json",
+    incidents_url="https://status.openai.com/api/v2/incidents.json",
     # Do not include shared OpenAI API components (for example Responses): they
-    # affect all API users and do not necessarily affect the Codex CLI.
+    # affect all API users and do not necessarily affect the Codex CLI. Nor the
+    # "Codex Web" / "Codex in ChatGPT Desktop" components, which track surfaces
+    # the CLI does not use.
     component_names=("Codex API",),
     cache_path=Path(os.path.expanduser("~/.usage/openai_status_cache.json")),
 )
@@ -98,9 +111,14 @@ def get_service_status(config: ServiceStatusConfig) -> ServiceStatus:
 
     payload = _fetch_status(config)
     if payload is not None:
+        status = _build_component_status(config, payload, "fetched")
+        if status.is_abnormal and status.status in SUPPRESSIBLE_STATUSES:
+            incidents = _fetch_incidents(config)
+            if incidents is not None:
+                payload["incidents"] = incidents
         _write_cache(config, payload)
         _clear_failure_retry(config)
-        return _build_status(config, payload, "fetched")
+        return _apply_alert_suppression(config, payload, status)
 
     _record_failure(config)
     return _status_from_stale_or_fallback(config, stale_cached)
@@ -115,6 +133,13 @@ def _status_from_stale_or_fallback(
 
 
 def _build_status(
+    config: ServiceStatusConfig, payload: dict[str, Any], source: StatusSource
+) -> ServiceStatus:
+    status = _build_component_status(config, payload, source)
+    return _apply_alert_suppression(config, payload, status)
+
+
+def _build_component_status(
     config: ServiceStatusConfig, payload: dict[str, Any], source: StatusSource
 ) -> ServiceStatus:
     components = payload.get("components")
@@ -153,7 +178,7 @@ def _build_status(
             f"{', '.join(affected)}: {worst_status}.",
             source,
         )
-    return _apply_alert_suppression(config, payload, status)
+    return status
 
 
 def _apply_alert_suppression(
@@ -288,6 +313,44 @@ def _fetch_status(config: ServiceStatusConfig) -> dict[str, Any] | None:
         )
         return None
     return payload if isinstance(payload, dict) else None
+
+
+# Both feeds use incidents.json, not incidents/unresolved.json: OpenAI's status
+# page answers 404 for the unresolved endpoint (verified 2026-08-13), and its
+# summary.json has no "incidents" key at all, so this is the only incident
+# source that works for Codex. Anthropic serves both; using one endpoint for
+# both keeps a single payload shape.
+def _fetch_incidents(config: ServiceStatusConfig) -> list[Any] | None:
+    """Fetch unresolved incidents without affecting component-status availability."""
+    request = urllib.request.Request(config.incidents_url, headers={"User-Agent": USER_AGENT})
+    try:
+        with urllib.request.urlopen(request, timeout=10) as response:
+            raw = response.read(MAX_RESPONSE_BYTES + 1)
+        if len(raw) > MAX_RESPONSE_BYTES:
+            raise ValueError("incidents response exceeds the size limit")
+        payload = json.loads(raw.decode("utf-8"))
+    except (OSError, TimeoutError, UnicodeDecodeError, ValueError) as exc:
+        logger.debug(
+            "failed to fetch %s unresolved incidents from %s: %s",
+            config.service_name,
+            config.incidents_url,
+            exc,
+        )
+        return None
+    if not isinstance(payload, dict):
+        return None
+    incidents = payload.get("incidents")
+    if not isinstance(incidents, list):
+        return None
+    # incidents.json carries resolved history too. Drop the closed ones by
+    # denylist rather than keeping an allowlist of open states: an unfamiliar
+    # status then survives the filter and blocks suppression, which errs
+    # towards showing the banner.
+    return [
+        incident
+        for incident in incidents
+        if not (isinstance(incident, dict) and incident.get("status") in _CLOSED_INCIDENTS)
+    ]
 
 
 def _write_cache(config: ServiceStatusConfig, payload: dict[str, Any]) -> None:

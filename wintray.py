@@ -4,6 +4,8 @@
 from __future__ import annotations
 
 import asyncio
+import ctypes
+import importlib
 import json
 import logging
 import os
@@ -11,23 +13,32 @@ import threading
 import time
 import tomllib
 import webbrowser
+from collections import deque
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
+from enum import IntEnum
 from importlib import metadata
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
+from uuid import UUID
 
 import agy_window_keeper
 import codex_loader
 import menubar_agy
 import menubar_state
+import service_status
 import update_checker
+import update_gate
+import usage_diagnosis_snapshot
 import win_login_item
 import window_keeper
+import wintray_menu
 from burn_rate import BurnRateTracker
 from history_loader import UsageEntry, load_entries
 from i18n import _t
 from menubar_prefs import (
+    _auto_update_check_enabled,
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
@@ -47,6 +58,11 @@ from usage_client import ClaudeUsageClient, PollState
 from usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
 from usage_rate import UsageRateTracker
+from windows_watch import (
+    WindowsFileEventChanges,
+    WindowsUsageWatcher,
+    setup_windows_watcher,
+)
 
 if TYPE_CHECKING:
     from PIL.Image import Image
@@ -55,7 +71,10 @@ logger = logging.getLogger(__name__)
 
 SLOW_POLL_INTERVAL_S = 300
 HISTORY_SCAN_CACHE_SECONDS = 30.0
+UPDATE_ALERT_BODY_LIMIT = 2000
 PANEL_WIDTH = 380
+_TOAST_AUMID = "com.lollapalooza.usage"
+_TOAST_OPEN_PANEL_ACTION = "open_panel"
 WINDOWS_PANELS = (
     ("classic", "panel_default_name", "classic.html"),
     ("matrix", "panel_matrix", "matrix.html"),
@@ -91,6 +110,44 @@ PANEL_HEIGHTS = {
     "origami": 1004,
     "catppuccin": 1038,
 }
+
+TRAY_UNKNOWN_COLOR = (110, 118, 129, 255)
+TRAY_NORMAL_COLOR = (244, 145, 100, 255)
+TRAY_PAUSED_COLOR = (255, 196, 57, 255)
+TRAY_ERROR_COLOR = (255, 69, 58, 255)
+
+
+class TaskbarProgressState(IntEnum):
+    """TBPFLAG values used by ITaskbarList3::SetProgressState."""
+
+    NO_PROGRESS = 0x0
+    NORMAL = 0x2
+    ERROR = 0x4
+    PAUSED = 0x8
+
+
+class _GUID(ctypes.Structure):
+    _fields_ = [
+        ("data1", ctypes.c_uint32),
+        ("data2", ctypes.c_ushort),
+        ("data3", ctypes.c_ushort),
+        ("data4", ctypes.c_ubyte * 8),
+    ]
+
+    @classmethod
+    def from_string(cls, value: str) -> _GUID:
+        parsed = UUID(value)
+        return cls(
+            parsed.time_low,
+            parsed.time_mid,
+            parsed.time_hi_version,
+            (ctypes.c_ubyte * 8)(*parsed.bytes[8:]),
+        )
+
+
+_CLSID_TASKBAR_LIST = _GUID.from_string("56FDF344-FD6D-11D0-958A-006097C9A090")
+_IID_ITASKBAR_LIST3 = _GUID.from_string("EA1AFB91-9E28-4B86-90E9-9E9F8A5EEFAF")
+_RPC_E_CHANGED_MODE = -2147417850
 
 JS_SHIM = """
 <script>
@@ -307,6 +364,21 @@ def _winreg() -> Any:
     return winreg
 
 
+def _register_toast_aumid(aumid: str = _TOAST_AUMID) -> None:
+    """Register the unpackaged tray app as a Windows toast sender."""
+    winreg = _winreg()
+    key_path = rf"Software\Classes\AppUserModelId\{aumid}"
+    with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, key_path) as key:
+        winreg.SetValueEx(key, "DisplayName", 0, winreg.REG_SZ, "usage")
+
+
+def _create_toast_backend(aumid: str = _TOAST_AUMID) -> Any:
+    _register_toast_aumid(aumid)
+    from windows_toasts import InteractableWindowsToaster
+
+    return InteractableWindowsToaster("usage", notifierAUMID=aumid)
+
+
 def _system_background_color() -> str:
     try:
         winreg = _winreg()
@@ -322,6 +394,26 @@ def _system_background_color() -> str:
     return "#eef2f7"
 
 
+def _system_accent_color() -> str | None:
+    try:
+        winreg = _winreg()
+        with winreg.OpenKey(
+            winreg.HKEY_CURRENT_USER,
+            r"Software\Microsoft\Windows\DWM",
+        ) as key:
+            value, value_type = winreg.QueryValueEx(key, "AccentColor")
+        if (
+            value_type != winreg.REG_DWORD
+            or isinstance(value, bool)
+            or not isinstance(value, int)
+            or not 0 <= value <= 0xFFFFFFFF
+        ):
+            return None
+    except Exception:
+        return None
+    return f"#{value & 0xFF:02x}{value >> 8 & 0xFF:02x}{value >> 16 & 0xFF:02x}"
+
+
 def available_panels() -> tuple[tuple[str, str, str], ...]:
     """Windows excludes talent_market because its vendored CLI is macOS-only."""
     return tuple(panel for panel in WINDOWS_PANELS if panel[0] != "talent_market")
@@ -329,15 +421,144 @@ def available_panels() -> tuple[tuple[str, str, str], ...]:
 
 def tray_icon_style(used_percent: float | None) -> tuple[str, tuple[int, int, int, int]]:
     if used_percent is None:
-        return ("--", (110, 118, 129, 255))
+        return ("--", TRAY_UNKNOWN_COLOR)
     remaining = max(0, min(100, round(100.0 - used_percent)))
     if remaining <= 20:
-        color = (255, 69, 58, 255)
+        color = TRAY_ERROR_COLOR
     elif remaining <= 50:
-        color = (255, 196, 57, 255)
+        color = TRAY_PAUSED_COLOR
     else:
-        color = (244, 145, 100, 255)
+        color = TRAY_NORMAL_COLOR
     return (str(remaining), color)
+
+
+def taskbar_progress_state(used_percent: float | None) -> TaskbarProgressState:
+    """Map the tray icon's existing quota color tier to a taskbar progress state."""
+    if used_percent is None:
+        return TaskbarProgressState.NO_PROGRESS
+    _text, color = tray_icon_style(used_percent)
+    if color == TRAY_ERROR_COLOR:
+        return TaskbarProgressState.ERROR
+    if color == TRAY_PAUSED_COLOR:
+        return TaskbarProgressState.PAUSED
+    return TaskbarProgressState.NORMAL
+
+
+def _taskbar_window_handle(window: Any) -> int | None:
+    """Return the pywebview WinForms HWND only when it owns a taskbar button."""
+    try:
+        native = window.native
+        if not native.ShowInTaskbar:
+            return None
+        handle = native.Handle
+        to_int64 = getattr(handle, "ToInt64", None)
+        value = to_int64() if callable(to_int64) else handle
+        hwnd = int(value)
+        return hwnd or None
+    except (AttributeError, TypeError, ValueError, OverflowError):
+        return None
+
+
+def _raise_for_hresult(result: int, operation: str) -> None:
+    if result < 0:
+        code = result & 0xFFFFFFFF
+        raise OSError(f"{operation} failed with HRESULT 0x{code:08X}")
+
+
+def _set_taskbar_progress(
+    hwnd: int,
+    completed: int,
+    total: int,
+    state: TaskbarProgressState,
+) -> None:
+    """Apply taskbar progress with a thread-local, short-lived ITaskbarList3."""
+    if os.name != "nt":
+        return
+
+    # WinDLL leaves HRESULT handling to us, including RPC_E_CHANGED_MODE;
+    # OleDLL would raise before we could safely reuse an existing apartment.
+    library_name = "WinDLL"
+    win_dll: Any = getattr(ctypes, library_name)
+    ole32: Any = win_dll("ole32", use_last_error=True)
+    function_type_name = "WINFUNCTYPE"
+    win_function_type: Any = getattr(ctypes, function_type_name)
+    ole32.CoInitializeEx.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+    ole32.CoInitializeEx.restype = ctypes.c_long
+    ole32.CoCreateInstance.argtypes = [
+        ctypes.POINTER(_GUID),
+        ctypes.c_void_p,
+        ctypes.c_ulong,
+        ctypes.POINTER(_GUID),
+        ctypes.POINTER(ctypes.c_void_p),
+    ]
+    ole32.CoCreateInstance.restype = ctypes.c_long
+    ole32.CoUninitialize.argtypes = []
+    ole32.CoUninitialize.restype = None
+
+    initialize_result = int(ole32.CoInitializeEx(None, 0x2))  # COINIT_APARTMENTTHREADED
+    initialized_here = initialize_result in {0, 1}  # S_OK or S_FALSE
+    if initialize_result < 0 and initialize_result != _RPC_E_CHANGED_MODE:
+        _raise_for_hresult(initialize_result, "CoInitializeEx")
+
+    taskbar = ctypes.c_void_p()
+    try:
+        result = int(
+            ole32.CoCreateInstance(
+                ctypes.byref(_CLSID_TASKBAR_LIST),
+                None,
+                0x1,  # CLSCTX_INPROC_SERVER
+                ctypes.byref(_IID_ITASKBAR_LIST3),
+                ctypes.byref(taskbar),
+            )
+        )
+        _raise_for_hresult(result, "CoCreateInstance(CLSID_TaskbarList)")
+
+        vtable = ctypes.cast(
+            taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
+        ).contents
+        hresult_method = win_function_type(ctypes.c_long, ctypes.c_void_p)
+        set_progress_value_method = win_function_type(
+            ctypes.c_long,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_ulonglong,
+            ctypes.c_ulonglong,
+        )
+        set_progress_state_method = win_function_type(
+            ctypes.c_long, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_int
+        )
+        release_method = win_function_type(ctypes.c_ulong, ctypes.c_void_p)
+
+        _raise_for_hresult(int(hresult_method(vtable[3])(taskbar)), "ITaskbarList3.HrInit")
+        if state != TaskbarProgressState.NO_PROGRESS:
+            _raise_for_hresult(
+                int(
+                    set_progress_value_method(vtable[9])(
+                        taskbar,
+                        ctypes.c_void_p(hwnd),
+                        completed,
+                        total,
+                    )
+                ),
+                "ITaskbarList3.SetProgressValue",
+            )
+        _raise_for_hresult(
+            int(
+                set_progress_state_method(vtable[10])(
+                    taskbar, ctypes.c_void_p(hwnd), int(state)
+                )
+            ),
+            "ITaskbarList3.SetProgressState",
+        )
+    finally:
+        if taskbar.value:
+            vtable = ctypes.cast(
+                taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
+            ).contents
+            release_method = win_function_type(ctypes.c_ulong, ctypes.c_void_p)
+            release_method(vtable[2])(taskbar)
+        if initialized_here:
+            ole32.CoUninitialize()
 
 
 def build_tooltip(state: menubar_state.PopoverState) -> str:
@@ -488,17 +709,32 @@ class _WindowsTrayController:
         self._positioned_this_show = False
         self.stopping = threading.Event()
         self.refresh_lock = threading.Lock()
+        self._refresh_in_flight = False
+        self._refresh_queued = False
+        self._refresh_thread: threading.Thread | None = None
+        self._poll_thread: threading.Thread | None = None
+        self._watcher_lock = threading.Lock()
+        self._windows_watcher: WindowsUsageWatcher | None = None
+        self._file_event_lock = threading.Lock()
+        self._file_event_refresh_timer: threading.Timer | None = None
+        self._last_file_event_refresh_started_at: float | None = None
+        self._history_source_tracker = menubar_state.HistorySourceTracker()
         self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
         self.usage_client = ClaudeUsageClient(mock=mock)
         self._last_tray_percent: float | None = None
         self._last_tray_tooltip: str | None = None
         self._last_injected_state: str | None = None
+        self._toast_backend: Any = None
+        self._toast_backend_attempted = False
         self._history_fingerprint: tuple[tuple[str, int, float], ...] | None = None
         self._cached_history: _RefreshData | None = None
         self._cached_projects: tuple[list[tuple[str, int, float | None]], ...] | None = None
         self._history_scan: menubar_state.HistorySourceScan | None = None
         self._history_scan_at: float | None = None
         self._content_height: int | None = None
+        self._window_mutations: deque[Callable[[], None]] = deque()
+        self._window_mutation_lock = threading.Lock()
+        self._window_mutation_scheduled = False
 
     def _empty_state(self) -> menubar_state.PopoverState:
         missing = menubar_state._missing_row
@@ -544,7 +780,13 @@ class _WindowsTrayController:
         return self._content_height or PANEL_HEIGHTS[self.active_panel_id]
 
     def _apply_content_height(self, value: object) -> None:
-        work_area = self._working_area()
+        self._dispatch_window_mutation(lambda: self._apply_content_height_on_ui_thread(value))
+
+    def _apply_content_height_on_ui_thread(self, value: object) -> None:
+        if self.stopping.is_set():
+            return
+        current_position = self._current_window_position()
+        work_area = self._work_area_for_point(current_position) or self._working_area()
         maximum = (
             float(work_area[3] - work_area[1] - 24)
             if work_area is not None
@@ -558,88 +800,115 @@ class _WindowsTrayController:
             return
         self._content_height = rounded
         if self.visible:
-            self._place_window()
+            self._place_window_on_ui_thread()
 
     def attach(self, icon: Any, window: Any) -> None:
         self.icon = icon
         self.window = window
         self._update_tray()
+        threading.Thread(target=self._startup_maintenance, daemon=True).start()
         threading.Thread(target=self._poll_loop, daemon=True).start()
         self.refresh()
+
+    def _startup_maintenance(self) -> None:
+        usage_diagnosis_snapshot.maybe_schedule_refresh()
+        self._clear_stale_update_cache()
+        self._check_update_in_background(
+            manual=False,
+            ignore_cooldown=False,
+            ignore_skipped=False,
+        )
 
     def on_loaded(self) -> None:
         # pywebview's resize()/move() call SetWindowPos with SWP_SHOWWINDOW,
         # so placing the window while it is hidden would drag the bare panel
         # onto the screen. Placement happens in show_panel() instead; here it
         # only re-applies after a visible panel switch reloads the document.
-        if self.visible:
+        if self.visible and not self.stopping.is_set():
             self._place_window()
             self.inject_state(force=True)
+            # A panel reload can recreate its taskbar button. Reapply the
+            # latest value once the visible native window has loaded.
+            self._update_taskbar_progress(self.latest_state.claude_session.percent)
+
+    @staticmethod
+    def _screen_rectangle(value: object) -> tuple[int, int, int, int] | None:
+        """Return a pywebview/WinForms rectangle as logical left/top/right/bottom."""
+        left = getattr(value, "Left", getattr(value, "x", None))
+        top = getattr(value, "Top", getattr(value, "y", None))
+        right = getattr(value, "Right", None)
+        bottom = getattr(value, "Bottom", None)
+        if right is None:
+            width = getattr(value, "Width", getattr(value, "width", None))
+            right = (
+                left + width
+                if isinstance(left, int | float) and isinstance(width, int | float)
+                else None
+            )
+        if bottom is None:
+            height = getattr(value, "Height", getattr(value, "height", None))
+            bottom = (
+                top + height
+                if isinstance(top, int | float) and isinstance(height, int | float)
+                else None
+            )
+        coordinates = (left, top, right, bottom)
+        if any(isinstance(item, bool) or not isinstance(item, int | float) for item in coordinates):
+            return None
+        assert isinstance(left, int | float)
+        assert isinstance(top, int | float)
+        assert isinstance(right, int | float)
+        assert isinstance(bottom, int | float)
+        return (int(left), int(top), int(right), int(bottom))
+
+    def _logical_screens(
+        self,
+    ) -> list[tuple[tuple[int, int, int, int], tuple[int, int, int, int]]]:
+        """Return pywebview screen bounds and work areas, all in logical pixels."""
+        try:
+            webview = importlib.import_module("webview")
+            screens = webview.screens
+        except Exception:
+            return []
+
+        result = []
+        for screen in screens:
+            bounds = self._screen_rectangle(screen)
+            work_area = self._screen_rectangle(getattr(screen, "frame", None)) or bounds
+            if bounds is not None and work_area is not None:
+                result.append((bounds, work_area))
+        return result
 
     def _working_area(self) -> tuple[int, int, int, int] | None:
-        """Return the primary monitor work area (without taskbar)."""
-        if os.name != "nt":
-            return None
-        import ctypes
-
-        class Rect(ctypes.Structure):
-            _fields_ = [
-                ("left", ctypes.c_long),
-                ("top", ctypes.c_long),
-                ("right", ctypes.c_long),
-                ("bottom", ctypes.c_long),
-            ]
-
-        rect = Rect()
-        library_name = "windll"
-        user32: Any = getattr(ctypes, library_name).user32
-        if user32.SystemParametersInfoW(0x0030, 0, ctypes.byref(rect), 0):
-            return (rect.left, rect.top, rect.right, rect.bottom)
-        return None
+        """Return the primary monitor work area in pywebview logical pixels."""
+        screens = self._logical_screens()
+        for bounds, work_area in screens:
+            left, top, right, bottom = bounds
+            if left <= 0 < right and top <= 0 < bottom:
+                return work_area
+        return screens[0][1] if screens else None
 
     def _work_area_for_point(
         self, point: tuple[int, int] | None
     ) -> tuple[int, int, int, int] | None:
-        """Work area of the monitor nearest ``point``, falling back to the primary monitor.
-
-        SPI_GETWORKAREA (``_working_area``) only ever reports the primary
-        monitor, so clamping a dragged window against it snaps the window
-        back onto the primary monitor every time the panel is switched,
-        even when the user deliberately dragged it onto a secondary display.
-        """
-        if point is None or os.name != "nt":
+        """Logical work area of the pywebview monitor nearest ``point``."""
+        if point is None:
             return self._working_area()
-        import ctypes
+        screens = self._logical_screens()
+        if not screens:
+            return None
+        for bounds, work_area in screens:
+            left, top, right, bottom = bounds
+            if left <= point[0] < right and top <= point[1] < bottom:
+                return work_area
 
-        class Rect(ctypes.Structure):
-            _fields_ = [
-                ("left", ctypes.c_long),
-                ("top", ctypes.c_long),
-                ("right", ctypes.c_long),
-                ("bottom", ctypes.c_long),
-            ]
+        def distance(bounds: tuple[int, int, int, int]) -> int:
+            left, top, right, bottom = bounds
+            dx = max(left - point[0], 0, point[0] - (right - 1))
+            dy = max(top - point[1], 0, point[1] - (bottom - 1))
+            return dx * dx + dy * dy
 
-        class MonitorInfo(ctypes.Structure):
-            _fields_ = [
-                ("cbSize", ctypes.c_ulong),
-                ("rcMonitor", Rect),
-                ("rcWork", Rect),
-                ("dwFlags", ctypes.c_ulong),
-            ]
-
-        class Point(ctypes.Structure):
-            _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
-
-        MONITOR_DEFAULTTONEAREST = 2
-        library_name = "windll"
-        user32: Any = getattr(ctypes, library_name).user32
-        handle = user32.MonitorFromPoint(Point(point[0], point[1]), MONITOR_DEFAULTTONEAREST)
-        info = MonitorInfo()
-        info.cbSize = ctypes.sizeof(MonitorInfo)
-        if handle and user32.GetMonitorInfoW(handle, ctypes.byref(info)):
-            work = info.rcWork
-            return (work.left, work.top, work.right, work.bottom)
-        return self._working_area()
+        return min(screens, key=lambda screen: distance(screen[0]))[1]
 
     def _saved_window_position(self) -> tuple[int, int] | None:
         value = _load_preferences().get("usage.windowPosition")
@@ -683,7 +952,12 @@ class _WindowsTrayController:
         return (max(left + 12, right - PANEL_WIDTH - 12), max(top + 12, bottom - height - 12))
 
     def _place_window(self, *, force_default: bool = False) -> None:
-        if self.window is None:
+        self._dispatch_window_mutation(
+            lambda: self._place_window_on_ui_thread(force_default=force_default)
+        )
+
+    def _place_window_on_ui_thread(self, *, force_default: bool = False) -> None:
+        if self.window is None or self.stopping.is_set():
             return
         primary_work_area = self._working_area()
         if primary_work_area is None:
@@ -712,6 +986,63 @@ class _WindowsTrayController:
         self.window.move(*self._clamp_window_position(position, work_area, height))
         self._positioned_this_show = True
 
+    def _dispatch_window_mutation(self, mutation: Callable[[], None]) -> None:
+        """Serialize geometry mutations onto the native WinForms UI thread."""
+        if self.stopping.is_set():
+            return
+        with self._window_mutation_lock:
+            self._window_mutations.append(mutation)
+            if self._window_mutation_scheduled:
+                return
+            self._window_mutation_scheduled = True
+
+        if self._schedule_window_mutation_drain():
+            return
+        with self._window_mutation_lock:
+            self._window_mutation_scheduled = False
+
+    def _schedule_window_mutation_drain(self) -> bool:
+        window = self.window
+        if window is None:
+            return False
+        if not hasattr(window, "native"):
+            # Lightweight test doubles have no native control and execute synchronously.
+            self._drain_window_mutations()
+            return True
+        native = window.native
+        if native is None:
+            # The tray can receive a click before pywebview has created its Form.
+            # Leave the work queued; on_loaded() will schedule another drain.
+            return False
+        try:
+            if native.InvokeRequired:
+                system = importlib.import_module("System")
+                native.BeginInvoke(system.Action(self._drain_window_mutations))
+            else:
+                self._drain_window_mutations()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Failed to dispatch window mutation", exc_info=True)
+            return False
+        return True
+
+    def _drain_window_mutations(self) -> None:
+        while True:
+            with self._window_mutation_lock:
+                if self.stopping.is_set():
+                    self._window_mutations.clear()
+                    self._window_mutation_scheduled = False
+                    return
+                if not self._window_mutations:
+                    self._window_mutation_scheduled = False
+                    return
+                mutation = self._window_mutations.popleft()
+            try:
+                mutation()
+            except Exception:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning("Window mutation failed", exc_info=True)
+
     def _save_window_position(self) -> None:
         position = self._current_window_position()
         if position is None:
@@ -721,6 +1052,8 @@ class _WindowsTrayController:
         _save_preferences(preferences)
 
     def reset_panel_position(self, _icon: Any = None, _item: Any = None) -> None:
+        if self.stopping.is_set():
+            return
         preferences = _load_preferences()
         preferences.pop("usage.windowPosition", None)
         _save_preferences(preferences)
@@ -728,17 +1061,84 @@ class _WindowsTrayController:
             self._place_window(force_default=True)
 
     def _poll_loop(self) -> None:
-        while not self.stopping.wait(
-            self.interval if self.visible else max(self.interval, SLOW_POLL_INTERVAL_S)
-        ):
+        current_thread = threading.current_thread()
+        self._poll_thread = current_thread
+        try:
+            while not self.stopping.wait(
+                self.interval if self.visible else max(self.interval, SLOW_POLL_INTERVAL_S)
+            ):
+                self.refresh()
+        finally:
+            if self._poll_thread is current_thread:
+                self._poll_thread = None
+
+    def _ensure_windows_watcher(self) -> None:
+        if self.mock or self.stopping.is_set():
+            return
+        with self._watcher_lock:
+            if self._windows_watcher is not None or self.stopping.is_set():
+                return
+            watcher = setup_windows_watcher(self._refresh_from_file_event)
+            if watcher is not None:
+                self._windows_watcher = watcher
+                self._history_source_tracker.set_incremental_enabled(True)
+
+    def _refresh_from_file_event(self, changes: WindowsFileEventChanges) -> None:
+        self._history_source_tracker.record_changes(
+            set(changes.paths),
+            needs_full_scan=changes.needs_full_scan,
+        )
+        refresh_now = False
+        timer_to_start: threading.Timer | None = None
+        with self._file_event_lock:
+            if self.stopping.is_set():
+                return
+            now = time.monotonic()
+            decision = menubar_state.file_event_refresh_decision(
+                now,
+                self._last_file_event_refresh_started_at,
+                self._file_event_refresh_timer is not None,
+            )
+            if decision.refresh_now:
+                self._last_file_event_refresh_started_at = now
+                refresh_now = True
+            elif decision.trailing_delay is not None:
+                timer_to_start = threading.Timer(
+                    decision.trailing_delay,
+                    self._refresh_from_trailing_file_event,
+                )
+                timer_to_start.daemon = True
+                self._file_event_refresh_timer = timer_to_start
+        if timer_to_start is not None:
+            timer_to_start.start()
+        if refresh_now:
             self.refresh()
 
+    def _refresh_from_trailing_file_event(self) -> None:
+        with self._file_event_lock:
+            self._file_event_refresh_timer = None
+            if self.stopping.is_set():
+                return
+            self._last_file_event_refresh_started_at = time.monotonic()
+        self.refresh()
+
     def refresh(self) -> None:
-        if not self.refresh_lock.acquire(blocking=False):
-            return
-        threading.Thread(target=self._refresh_worker, daemon=True).start()
+        with self.refresh_lock:
+            if self.stopping.is_set():
+                return
+            if self._refresh_in_flight:
+                self._refresh_queued = True
+                return
+            self._refresh_in_flight = True
+            self._refresh_thread = threading.Thread(
+                target=self._refresh_worker,
+                name="usage-refresh",
+                daemon=True,
+            )
+            self._refresh_thread.start()
 
     def _refresh_worker(self) -> None:
+        self._ensure_windows_watcher()
         debug_timing = os.environ.get("USAGE_DEBUG") == "1"
 
         def measure(stage: str, started_at: float) -> None:
@@ -746,21 +1146,32 @@ class _WindowsTrayController:
                 elapsed_ms = (time.monotonic() - started_at) * 1000
                 logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", stage, elapsed_ms)
 
-        try:
-            self.latest_state = self._build_state(measure=measure, debug_timing=debug_timing)
-            self._process_quota_notifications(self.latest_state)
-            started_at = time.monotonic() if debug_timing else 0.0
-            self._update_tray()
-            measure("update_tray", started_at)
-            if self.visible:
+        while True:
+            try:
+                self.latest_state = self._build_state(
+                    measure=measure,
+                    debug_timing=debug_timing,
+                )
+                self._process_quota_notifications(self.latest_state)
                 started_at = time.monotonic() if debug_timing else 0.0
-                self.inject_state()
-                measure("inject_state", started_at)
-        except Exception:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("Windows tray refresh failed", exc_info=True)
-        finally:
-            self.refresh_lock.release()
+                self._update_tray()
+                measure("update_tray", started_at)
+                if self.visible:
+                    started_at = time.monotonic() if debug_timing else 0.0
+                    self.inject_state()
+                    measure("inject_state", started_at)
+            except Exception:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning("Windows tray refresh failed", exc_info=True)
+
+            with self.refresh_lock:
+                if self._refresh_queued and not self.stopping.is_set():
+                    self._refresh_queued = False
+                    continue
+                self._refresh_queued = False
+                self._refresh_in_flight = False
+                self._refresh_thread = None
+                return
 
     def _load_entries(self, scan: menubar_state.HistorySourceScan) -> _RefreshData:
         if self.mock:
@@ -783,6 +1194,8 @@ class _WindowsTrayController:
 
     def _history_source_scan(self) -> menubar_state.HistorySourceScan:
         """Avoid recursively statting every session JSONL on each tray tick."""
+        if self._windows_watcher is not None:
+            return self._history_source_tracker.scan()
         now = time.monotonic()
         if (
             self._history_scan is not None
@@ -801,10 +1214,12 @@ class _WindowsTrayController:
         debug_timing: bool = False,
     ) -> menubar_state.PopoverState:
         started_at = time.monotonic() if debug_timing else 0.0
+        scan = self._history_source_scan()
         codex_rows, _codex_pct, _model, codex_stale, codex_credits = menubar_state.codex_rows(
             mock=self.mock,
             language=self.language,
             burn_rate_trackers=self.burn_rate_trackers,
+            jsonl_candidates=scan.codex_rate_limit_candidates,
         )
         measure("codex_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
@@ -812,7 +1227,6 @@ class _WindowsTrayController:
         agy = agy_result.projection or menubar_agy.fallback_projection(self.language)
         measure("agy_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
-        scan = self._history_source_scan()
         if menubar_state.history_cache_needs_reload(
             self._history_fingerprint,
             scan.fingerprint,
@@ -838,6 +1252,7 @@ class _WindowsTrayController:
         started_at = time.monotonic() if debug_timing else 0.0
         outcome = asyncio.run(self._fetch())
         measure("fetch", started_at)
+        service_statuses = self._service_statuses()
         if outcome.snapshot is not None:
             window_keeper.maybe_ping(
                 outcome.snapshot.current_reset_at,
@@ -875,15 +1290,31 @@ class _WindowsTrayController:
             history_error=menubar_state.history_load_error_state(
                 history.history_error_key, self.language
             ),
+            service_statuses=service_statuses,
         )
+
+    def _service_statuses(self) -> tuple[service_status.ServiceStatus, ...]:
+        statuses: list[service_status.ServiceStatus] = []
+        for config in (service_status.CLAUDE_STATUS, service_status.CODEX_STATUS):
+            try:
+                statuses.append(service_status.get_service_status(config))
+            except Exception:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning(
+                        "Windows %s service status refresh failed",
+                        config.service_name,
+                        exc_info=True,
+                    )
+        return tuple(statuses)
 
     async def _fetch(self) -> Any:
         return await self.usage_client.fetch_once()
 
     def _update_tray(self) -> None:
+        percent = self.latest_state.claude_session.percent
+        self._update_taskbar_progress(percent)
         if self.icon is None:
             return
-        percent = self.latest_state.claude_session.percent
         tooltip = build_tooltip(self.latest_state)
         if percent == self._last_tray_percent and tooltip == self._last_tray_tooltip:
             return
@@ -892,11 +1323,36 @@ class _WindowsTrayController:
         self._last_tray_percent = percent
         self._last_tray_tooltip = tooltip
 
+    def _update_taskbar_progress(self, used_percent: float | None) -> None:
+        # ITaskbarList3 targets a window's taskbar button, not the pystray icon.
+        # This popover has such a button only while its WinForms Form is visible.
+        if not self.visible or self.window is None:
+            return
+        hwnd = _taskbar_window_handle(self.window)
+        if hwnd is None:
+            return
+        completed = 0 if used_percent is None else max(0, min(100, round(used_percent)))
+        try:
+            _set_taskbar_progress(
+                hwnd,
+                completed,
+                100,
+                taskbar_progress_state(used_percent),
+            )
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows taskbar progress update failed", exc_info=True)
+
     def inject_state(self, *, force: bool = False) -> None:
         if self.window is None:
             return
         encoded = json.dumps(
-            _state_payload(self.latest_state), ensure_ascii=False, separators=(",", ":")
+            _state_payload(
+                self.latest_state,
+                system_accent_color=_system_accent_color(),
+            ),
+            ensure_ascii=False,
+            separators=(",", ":"),
         )
         if not force and encoded == self._last_injected_state:
             return
@@ -904,6 +1360,8 @@ class _WindowsTrayController:
         self._last_injected_state = encoded
 
     def show_panel(self, _icon: Any = None, _item: Any = None) -> None:
+        if self.stopping.is_set():
+            return
         if self.visible:
             self._save_window_position()
             self.visible = False
@@ -913,8 +1371,18 @@ class _WindowsTrayController:
         self.visible = True
         self._place_window()
         self.window.show()
+        self._update_taskbar_progress(self.latest_state.claude_session.percent)
         self.inject_state(force=True)
         self.refresh()
+
+    def _activate_panel(self) -> None:
+        """Show or foreground the existing tray panel without toggling it closed."""
+        if self.window is None:
+            return
+        if not self.visible:
+            self.show_panel()
+            return
+        self.window.show()
 
     def switch_panel(self, panel_id: str) -> None:
         self.active_panel_id = panel_id
@@ -947,67 +1415,8 @@ class _WindowsTrayController:
 
     def _panel_menu_data(self) -> list[dict[str, object]]:
         """Return fresh, localized data for the HTML panel menu."""
-
-        def item(key: str, action: str, **extra: object) -> dict[str, object]:
-            return {
-                "i18nKey": key,
-                "label": _t(self.language, key),
-                "action": action,
-                **extra,
-            }
-
-        panels = [
-            item(
-                key,
-                "switch_panel",
-                panelId=panel_id,
-                checked=self.active_panel_id == panel_id,
-            )
-            for panel_id, key, _filename in available_panels()
-        ]
-        hidden_sections = [
-            item(
-                "claude_name",
-                "toggle_hide_section",
-                preferenceKey="hide_claude_section",
-                checked=_hide_claude_enabled(),
-            ),
-            item(
-                "codex_name",
-                "toggle_hide_section",
-                preferenceKey="hide_codex_section",
-                checked=_hide_codex_enabled(),
-            ),
-            item(
-                "agy_name",
-                "toggle_hide_section",
-                preferenceKey="hide_agy_section",
-                checked=_hide_agy_enabled(),
-            ),
-        ]
-        return [
-            item("panel_ai_daily", "open_ai_daily"),
-            {"type": "separator"},
-            item("switch_panel", "", children=panels),
-            item("hide_sections_menu", "", children=hidden_sections),
-            {"type": "separator"},
-            item("launch_at_login", "toggle_login", checked=win_login_item.is_enabled()),
-            item(
-                "quota_notifications_menu",
-                "toggle_quota_notifications",
-                checked=_quota_notifications_enabled(),
-            ),
-            item(
-                "window_keeper_menu",
-                "toggle_window_keeper",
-                checked=_window_keeper_enabled(),
-            ),
-            {"type": "separator"},
-            item("project_butler", "toggle_session_resume", checked=_session_resume_enabled()),
-            item("terse_mode_menu", "toggle_terse_mode", checked=_terse_mode_enabled()),
-            {"type": "separator"},
-            item("refresh_now", "refresh"),
-        ]
+        entries = wintray_menu.entries_for_surface(_menu_model(), wintray_menu.PANEL)
+        return [_panel_menu_entry(self, entry) for entry in entries]
 
     def toggle_login(self, _icon: Any = None, _item: Any = None) -> None:
         win_login_item.disable() if win_login_item.is_enabled() else win_login_item.enable()
@@ -1098,8 +1507,6 @@ class _WindowsTrayController:
     def _send_quota_notification(
         self, event: NotificationEvent, state: menubar_state.PopoverState
     ) -> None:
-        if self.icon is None or not hasattr(self.icon, "notify"):
-            return
         rows = {
             "claude_session": state.claude_session,
             "claude_weekly": state.claude_weekly,
@@ -1118,25 +1525,147 @@ class _WindowsTrayController:
             pct=f"{round(row.percent or event.threshold or 0.0):g}",
             reset=row.reset_text,
         )
-        self.icon.notify(message, _t(self.language, f"notif_{event.kind}_title"))
+        title = _t(self.language, f"notif_{event.kind}_title")
+        if not self._show_interactive_toast(title, message):
+            self._show_balloon_notification(title, message)
+
+    def _toast_toaster(self) -> Any:
+        if self._toast_backend_attempted:
+            return self._toast_backend
+        self._toast_backend_attempted = True
+        try:
+            self._toast_backend = _create_toast_backend()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows interactive toast backend unavailable", exc_info=True)
+        return self._toast_backend
+
+    def _show_interactive_toast(self, title: str, message: str) -> bool:
+        toaster = self._toast_toaster()
+        if toaster is None:
+            return False
+        try:
+            from windows_toasts import Toast, ToastButton
+
+            toast = Toast(text_fields=[title, message])
+            toast.AddAction(
+                ToastButton(
+                    content=_t(self.language, "usage_title"),
+                    arguments=_TOAST_OPEN_PANEL_ACTION,
+                )
+            )
+            toast.on_activated = self._on_toast_activated
+            toaster.show_toast(toast)
+            return True
+        except Exception:
+            self._toast_backend = None
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows interactive toast failed", exc_info=True)
+            return False
+
+    def _on_toast_activated(self, event_args: Any) -> None:
+        if getattr(event_args, "arguments", None) != _TOAST_OPEN_PANEL_ACTION:
+            return
+        try:
+            self._activate_panel()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows toast panel activation failed", exc_info=True)
+
+    def _show_balloon_notification(self, title: str, message: str) -> None:
+        if self.icon is None or not hasattr(self.icon, "notify"):
+            return
+        try:
+            self.icon.notify(message, title)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows balloon notification failed", exc_info=True)
 
     def check_update(self, _icon: Any = None, _item: Any = None) -> None:
-        def worker() -> None:
-            result = update_checker.check_latest_release_result(_current_version())
-            if result.release is not None:
-                release = result.release
-                title = _t(self.language, "update_alert_title", version=release.version)
-                if self._message_box(f"{title}\n\n{release.body[:2000]}", style=0x44) == 6:
-                    webbrowser.open(release.html_url)
-            else:
-                self._message_box(
-                    _t(
-                        self.language,
-                        "update_check_failed" if result.failed else "update_no_new_version",
-                    )
-                )
+        threading.Thread(
+            target=self._check_update_in_background,
+            kwargs={
+                "manual": True,
+                "ignore_cooldown": True,
+                "ignore_skipped": True,
+            },
+            daemon=True,
+        ).start()
 
-        threading.Thread(target=worker, daemon=True).start()
+    def _clear_stale_update_cache(self) -> None:
+        try:
+            current_version = _current_version()
+            preferences = _load_preferences()
+            updated_cache = update_gate.stale_cache_reset(preferences, current_version)
+            if updated_cache is not None:
+                preferences["last_update_check"] = updated_cache
+                _save_preferences(preferences)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows stale update cache reset failed", exc_info=True)
+
+    def _check_update_in_background(
+        self,
+        *,
+        manual: bool,
+        ignore_cooldown: bool,
+        ignore_skipped: bool,
+    ) -> None:
+        preferences = _load_preferences()
+        if not manual and not _auto_update_check_enabled(preferences):
+            return
+        if not manual and not update_gate.auto_check_is_due(preferences):
+            return
+        if not ignore_cooldown and update_gate.dismissed_recently(preferences):
+            return
+
+        try:
+            current_version = _current_version()
+            result = update_checker.check_latest_release_result(current_version)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows update check failed", exc_info=True)
+            if manual:
+                self._message_box(_t(self.language, "update_check_failed"))
+            return
+
+        if result.failed:
+            if manual:
+                self._message_box(_t(self.language, "update_check_failed"))
+            return
+
+        release = result.release
+        preferences["last_update_check"] = update_gate.build_check_cache_entry(
+            current_version, release
+        )
+        _save_preferences(preferences)
+
+        if release is None:
+            if manual:
+                self._message_box(_t(self.language, "update_no_new_version"))
+            return
+        if not ignore_skipped and preferences.get("update_skipped_version") == release.version:
+            return
+        self._show_update_alert(release)
+
+    def _show_update_alert(self, release: update_checker.ReleaseInfo) -> None:
+        title = _t(self.language, "update_alert_title", version=release.version)
+        result = self._message_box(
+            f"{title}\n\n{release.body[:UPDATE_ALERT_BODY_LIMIT]}", style=0x44
+        )
+        action, preference_updates = update_gate.resolve_alert_choice(
+            1000 if result == 6 else 1001,
+            release.version,
+        )
+        if action == "open":
+            webbrowser.open(release.html_url)
+            return
+
+        preferences = _load_preferences()
+        preferences.update(preference_updates)
+        if action == "dismiss":
+            preferences["update_dismissed_at"] = time.time()
+        _save_preferences(preferences)
 
     def _message_box(self, text: str, *, style: int = 0x40) -> int:
         import ctypes
@@ -1146,6 +1675,8 @@ class _WindowsTrayController:
         return int(windll.user32.MessageBoxW(0, text, "usage", style))
 
     def handle_panel_message(self, message: object) -> list[dict[str, object]] | None:
+        if self.stopping.is_set():
+            return None
         payload: object = message
         if isinstance(message, str) and message.startswith("{"):
             try:
@@ -1252,6 +1783,23 @@ class _WindowsTrayController:
 
     def quit(self, _icon: Any = None, _item: Any = None) -> None:
         self.stopping.set()
+        with self._file_event_lock:
+            timer = self._file_event_refresh_timer
+            self._file_event_refresh_timer = None
+        if timer is not None:
+            timer.cancel()
+        with self._watcher_lock:
+            watcher = self._windows_watcher
+            self._windows_watcher = None
+        if watcher is not None:
+            watcher.stop()
+
+        current_thread = threading.current_thread()
+        with self.refresh_lock:
+            refresh_thread = self._refresh_thread
+        for worker in (self._poll_thread, refresh_thread):
+            if worker is not None and worker is not current_thread:
+                worker.join(3.0)
         if self.icon is not None:
             self.icon.stop()
         if self.window is not None:
@@ -1261,77 +1809,79 @@ class _WindowsTrayController:
 def _menu(controller: _WindowsTrayController) -> Any:
     import pystray
 
-    panel_items = tuple(
-        pystray.MenuItem(
-            _t(controller.language, key),
-            # pystray rejects actions whose co_argcount isn't 0/1/2, so the
-            # panel_id binding must be keyword-only.
-            lambda _icon, _item, *, panel_id=panel_id: controller.switch_panel(panel_id),
-            checked=lambda _item, panel_id=panel_id: controller.active_panel_id == panel_id,
-            radio=True,
-        )
-        for panel_id, key, _filename in available_panels()
+    entries = wintray_menu.entries_for_surface(_menu_model(), wintray_menu.TRAY)
+    recovery_items = tuple(
+        _tray_menu_entry(pystray, controller, entry) for entry in entries
     )
     return pystray.Menu(
         pystray.MenuItem("Open", controller.show_panel, default=True, visible=False),
-        pystray.MenuItem(_t(controller.language, "panel_ai_daily"), controller.open_ai_daily),
-        pystray.MenuItem(
-            _t(controller.language, "reset_panel_position"), controller.reset_panel_position
-        ),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(_t(controller.language, "switch_panel"), pystray.Menu(*panel_items)),
-        pystray.MenuItem(
-            _t(controller.language, "hide_sections_menu"),
-            pystray.Menu(
-                pystray.MenuItem(
-                    _t(controller.language, "claude_name"),
-                    lambda _icon, _item: controller.toggle_hide_section("hide_claude_section"),
-                    checked=lambda _item: _hide_claude_enabled(),
-                ),
-                pystray.MenuItem(
-                    _t(controller.language, "codex_name"),
-                    lambda _icon, _item: controller.toggle_hide_section("hide_codex_section"),
-                    checked=lambda _item: _hide_codex_enabled(),
-                ),
-                pystray.MenuItem(
-                    _t(controller.language, "agy_name"),
-                    lambda _icon, _item: controller.toggle_hide_section("hide_agy_section"),
-                    checked=lambda _item: _hide_agy_enabled(),
-                ),
-            ),
-        ),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(_t(controller.language, "refresh_now"), lambda i, x: controller.refresh()),
-        pystray.MenuItem(
-            _t(controller.language, "launch_at_login"),
-            controller.toggle_login,
-            checked=lambda _item: win_login_item.is_enabled(),
-        ),
-        pystray.MenuItem(
-            _t(controller.language, "quota_notifications_menu"),
-            controller.toggle_quota_notifications,
-            checked=lambda _item: _quota_notifications_enabled(),
-        ),
-        pystray.MenuItem(
-            _t(controller.language, "window_keeper_menu"),
-            controller.toggle_window_keeper,
-            checked=lambda _item: _window_keeper_enabled(),
-        ),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(
-            _t(controller.language, "project_butler"),
-            controller.toggle_session_resume,
-            checked=lambda _item: _session_resume_enabled(),
-        ),
-        pystray.MenuItem(
-            _t(controller.language, "terse_mode_menu"),
-            controller.toggle_terse_mode,
-            checked=lambda _item: _terse_mode_enabled(),
-        ),
-        pystray.Menu.SEPARATOR,
-        pystray.MenuItem(_t(controller.language, "check_update"), controller.check_update),
-        pystray.MenuItem(_t(controller.language, "quit"), controller.quit),
+        *recovery_items,
     )
+
+
+def _menu_model() -> tuple[wintray_menu.MenuEntry, ...]:
+    return wintray_menu.windows_menu_model(available_panels())
+
+
+def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCommand) -> bool:
+    checks = {
+        "active_panel": lambda: controller.active_panel_id == entry.argument_value,
+        "hide_claude": _hide_claude_enabled,
+        "hide_codex": _hide_codex_enabled,
+        "hide_agy": _hide_agy_enabled,
+        "launch_at_login": win_login_item.is_enabled,
+        "quota_notifications": _quota_notifications_enabled,
+        "window_keeper": _window_keeper_enabled,
+        "session_resume": _session_resume_enabled,
+        "terse_mode": _terse_mode_enabled,
+    }
+    return checks[entry.checked_by]() if entry.checked_by is not None else False
+
+
+def _panel_menu_entry(
+    controller: _WindowsTrayController, entry: wintray_menu.MenuEntry
+) -> dict[str, object]:
+    if isinstance(entry, wintray_menu.MenuSeparator):
+        return {"type": "separator"}
+    data: dict[str, object] = {
+        "i18nKey": entry.i18n_key,
+        "label": _t(controller.language, entry.i18n_key),
+    }
+    if isinstance(entry, wintray_menu.MenuGroup):
+        data["action"] = ""
+        data["children"] = [_panel_menu_entry(controller, child) for child in entry.children]
+        return data
+    data["action"] = entry.action
+    if entry.checked_by is not None:
+        data["checked"] = _menu_checked(controller, entry)
+    if entry.argument_name is not None:
+        data[entry.argument_name] = entry.argument_value
+    return data
+
+
+def _tray_menu_entry(
+    pystray: Any,
+    controller: _WindowsTrayController,
+    entry: wintray_menu.MenuEntry,
+) -> Any:
+    if isinstance(entry, wintray_menu.MenuSeparator):
+        return pystray.Menu.SEPARATOR
+    if isinstance(entry, wintray_menu.MenuGroup):
+        children = tuple(_tray_menu_entry(pystray, controller, child) for child in entry.children)
+        return pystray.MenuItem(
+            _t(controller.language, entry.i18n_key), pystray.Menu(*children)
+        )
+    action = getattr(controller, entry.action)
+    kwargs: dict[str, object] = {"radio": entry.radio}
+    if entry.checked_by is not None:
+        kwargs["checked"] = lambda _item: _menu_checked(controller, entry)
+    if entry.argument_value is not None:
+        value = entry.argument_value
+
+        def action(_icon: Any, _item: Any, *, value: str = value) -> Any:
+            return getattr(controller, entry.action)(value)
+
+    return pystray.MenuItem(_t(controller.language, entry.i18n_key), action, **kwargs)
 
 
 def _session_resume_enabled() -> bool:
@@ -1425,4 +1975,8 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
     icon = pystray.Icon("usage", draw_tray_icon(None), "usage", _menu(controller))
     controller.attach(icon, window)
     icon.run_detached()
-    webview.start(gui="edgechromium", debug=os.environ.get("USAGE_DEBUG") == "1")
+    try:
+        webview.start(gui="edgechromium", debug=os.environ.get("USAGE_DEBUG") == "1")
+    finally:
+        controller.stopping.set()
+        _release_single_instance_lock()

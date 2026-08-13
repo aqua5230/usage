@@ -100,7 +100,9 @@ def _row_payload(row: QuotaRowState) -> dict[str, object]:
     }
 
 
-def _state_payload(state: PopoverState) -> dict[str, object]:
+def _state_payload(
+    state: PopoverState, *, system_accent_color: str | None = None
+) -> dict[str, object]:
     codex_rows = {
         key: _row_payload(row)
         for key, row in (("session", state.codex_session), ("weekly", state.codex_weekly))
@@ -119,7 +121,7 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
                 for name, tokens, cost in rows
             ]
         )
-    return {
+    payload: dict[str, object] = {
         "language": state.language,
         "claude": {
             "session": _row_payload(state.claude_session),
@@ -155,6 +157,9 @@ def _state_payload(state: PopoverState) -> dict[str, object]:
             "showInstall": state.show_install_button,
         },
     }
+    if system_accent_color is not None:
+        payload["system_accent_color"] = system_accent_color
+    return payload
 
 
 def _fmt_tokens(tokens: int) -> str:
