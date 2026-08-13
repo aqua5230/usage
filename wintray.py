@@ -63,6 +63,8 @@ logger = logging.getLogger(__name__)
 SLOW_POLL_INTERVAL_S = 300
 HISTORY_SCAN_CACHE_SECONDS = 30.0
 PANEL_WIDTH = 380
+_TOAST_AUMID = "com.lollapalooza.usage"
+_TOAST_OPEN_PANEL_ACTION = "open_panel"
 WINDOWS_PANELS = (
     ("classic", "panel_default_name", "classic.html"),
     ("matrix", "panel_matrix", "matrix.html"),
@@ -350,6 +352,21 @@ def _winreg() -> Any:
     import winreg
 
     return winreg
+
+
+def _register_toast_aumid(aumid: str = _TOAST_AUMID) -> None:
+    """Register the unpackaged tray app as a Windows toast sender."""
+    winreg = _winreg()
+    key_path = rf"Software\Classes\AppUserModelId\{aumid}"
+    with winreg.CreateKeyEx(winreg.HKEY_CURRENT_USER, key_path) as key:
+        winreg.SetValueEx(key, "DisplayName", 0, winreg.REG_SZ, "usage")
+
+
+def _create_toast_backend(aumid: str = _TOAST_AUMID) -> Any:
+    _register_toast_aumid(aumid)
+    from windows_toasts import InteractableWindowsToaster
+
+    return InteractableWindowsToaster("usage", notifierAUMID=aumid)
 
 
 def _system_background_color() -> str:
@@ -683,6 +700,8 @@ class _WindowsTrayController:
         self._last_tray_percent: float | None = None
         self._last_tray_tooltip: str | None = None
         self._last_injected_state: str | None = None
+        self._toast_backend: Any = None
+        self._toast_backend_attempted = False
         self._history_fingerprint: tuple[tuple[str, int, float], ...] | None = None
         self._cached_history: _RefreshData | None = None
         self._cached_projects: tuple[list[tuple[str, int, float | None]], ...] | None = None
@@ -1226,6 +1245,15 @@ class _WindowsTrayController:
         self.inject_state(force=True)
         self.refresh()
 
+    def _activate_panel(self) -> None:
+        """Show or foreground the existing tray panel without toggling it closed."""
+        if self.window is None:
+            return
+        if not self.visible:
+            self.show_panel()
+            return
+        self.window.show()
+
     def switch_panel(self, panel_id: str) -> None:
         self.active_panel_id = panel_id
         # Deliberately keep the previous panel's measured height instead of
@@ -1349,8 +1377,6 @@ class _WindowsTrayController:
     def _send_quota_notification(
         self, event: NotificationEvent, state: menubar_state.PopoverState
     ) -> None:
-        if self.icon is None or not hasattr(self.icon, "notify"):
-            return
         rows = {
             "claude_session": state.claude_session,
             "claude_weekly": state.claude_weekly,
@@ -1369,7 +1395,61 @@ class _WindowsTrayController:
             pct=f"{round(row.percent or event.threshold or 0.0):g}",
             reset=row.reset_text,
         )
-        self.icon.notify(message, _t(self.language, f"notif_{event.kind}_title"))
+        title = _t(self.language, f"notif_{event.kind}_title")
+        if not self._show_interactive_toast(title, message):
+            self._show_balloon_notification(title, message)
+
+    def _toast_toaster(self) -> Any:
+        if self._toast_backend_attempted:
+            return self._toast_backend
+        self._toast_backend_attempted = True
+        try:
+            self._toast_backend = _create_toast_backend()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows interactive toast backend unavailable", exc_info=True)
+        return self._toast_backend
+
+    def _show_interactive_toast(self, title: str, message: str) -> bool:
+        toaster = self._toast_toaster()
+        if toaster is None:
+            return False
+        try:
+            from windows_toasts import Toast, ToastButton
+
+            toast = Toast(text_fields=[title, message])
+            toast.AddAction(
+                ToastButton(
+                    content=_t(self.language, "usage_title"),
+                    arguments=_TOAST_OPEN_PANEL_ACTION,
+                )
+            )
+            toast.on_activated = self._on_toast_activated
+            toaster.show_toast(toast)
+            return True
+        except Exception:
+            self._toast_backend = None
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows interactive toast failed", exc_info=True)
+            return False
+
+    def _on_toast_activated(self, event_args: Any) -> None:
+        if getattr(event_args, "arguments", None) != _TOAST_OPEN_PANEL_ACTION:
+            return
+        try:
+            self._activate_panel()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows toast panel activation failed", exc_info=True)
+
+    def _show_balloon_notification(self, title: str, message: str) -> None:
+        if self.icon is None or not hasattr(self.icon, "notify"):
+            return
+        try:
+            self.icon.notify(message, title)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows balloon notification failed", exc_info=True)
 
     def check_update(self, _icon: Any = None, _item: Any = None) -> None:
         def worker() -> None:

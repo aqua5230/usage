@@ -7,6 +7,7 @@ import json
 import sys
 import threading
 from collections.abc import Callable
+from contextlib import suppress
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
@@ -1138,16 +1139,115 @@ def test_hide_section_updates_preferences_and_visible_panel(
     assert injected == ["state"]
 
 
-def test_quota_notifications_use_pystray_notify_and_existing_i18n(
+@pytest.mark.parametrize(
+    ("event", "expected_title", "expected_body"),
+    [
+        (
+            NotificationEvent("warn", "claude_session", 90.0),
+            "🐾 Almost out",
+            "Claude Session is 25% used. Time to wrap up?",
+        ),
+        (
+            NotificationEvent("depleted", "codex_weekly", None),
+            "🐾 Quota is empty",
+            "Codex Weekly quota is drained. Back after Resets in 1d",
+        ),
+        (
+            NotificationEvent("restored", "claude_weekly", None),
+            "🐾 Quota is back",
+            "Claude Weekly is ready to go again 🚀",
+        ),
+    ],
+)
+def test_quota_notifications_use_interactive_toast_and_existing_i18n(
+    monkeypatch: pytest.MonkeyPatch,
+    event: NotificationEvent,
+    expected_title: str,
+    expected_body: str,
+) -> None:
+    class FakeToast:
+        def __init__(self, *, text_fields: list[str]) -> None:
+            self.text_fields = text_fields
+            self.actions: list[object] = []
+            self.on_activated: object | None = None
+
+        def AddAction(self, action: object) -> None:  # noqa: N802 - library contract
+            self.actions.append(action)
+
+    class FakeToastButton:
+        def __init__(self, *, content: str, arguments: str) -> None:
+            self.content = content
+            self.arguments = arguments
+
+    shown: list[FakeToast] = []
+    fake_toaster = SimpleNamespace(show_toast=shown.append)
+    monkeypatch.setitem(
+        sys.modules,
+        "windows_toasts",
+        SimpleNamespace(Toast=FakeToast, ToastButton=FakeToastButton),
+    )
+    monkeypatch.setattr(wintray, "_create_toast_backend", lambda: fake_toaster)
+    controller = wintray._WindowsTrayController(mock=False, interval=60)
+    controller.language = "en"
+    controller.icon = SimpleNamespace(notify=lambda *_args: pytest.fail("unexpected fallback"))
+
+    controller._send_quota_notification(event, _state())
+
+    assert len(shown) == 1
+    assert shown[0].text_fields == [expected_title, expected_body]
+    assert len(shown[0].actions) == 1
+    action = cast(FakeToastButton, shown[0].actions[0])
+    assert action.content == "Usage"
+    assert action.arguments == wintray._TOAST_OPEN_PANEL_ACTION
+
+
+def test_quota_toast_action_activates_panel(monkeypatch: pytest.MonkeyPatch) -> None:
+    class FakeToast:
+        def __init__(self, *, text_fields: list[str]) -> None:
+            self.text_fields = text_fields
+            self.on_activated: object | None = None
+
+        def AddAction(self, action: object) -> None:  # noqa: N802 - library contract
+            return None
+
+    shown: list[FakeToast] = []
+    fake_module = SimpleNamespace(
+        Toast=FakeToast,
+        ToastButton=lambda **kwargs: SimpleNamespace(**kwargs),
+    )
+    monkeypatch.setitem(sys.modules, "windows_toasts", fake_module)
+    monkeypatch.setattr(
+        wintray,
+        "_create_toast_backend",
+        lambda: SimpleNamespace(show_toast=shown.append),
+    )
+    controller = wintray._WindowsTrayController(mock=False, interval=60)
+    activated: list[str] = []
+    monkeypatch.setattr(controller, "_activate_panel", lambda: activated.append("panel"))
+
+    controller._send_quota_notification(
+        NotificationEvent("warn", "claude_session", 90.0), _state()
+    )
+    callback = shown[0].on_activated
+    assert callable(callback)
+    callback(SimpleNamespace(arguments=wintray._TOAST_OPEN_PANEL_ACTION))
+
+    assert activated == ["panel"]
+
+
+def test_quota_notification_falls_back_to_pystray_when_toast_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    def unavailable() -> object:
+        raise ModuleNotFoundError("windows_toasts")
+
+    monkeypatch.setattr(wintray, "_create_toast_backend", unavailable)
     controller = wintray._WindowsTrayController(mock=False, interval=60)
     controller.language = "en"
     notices: list[tuple[str, str]] = []
     controller.icon = SimpleNamespace(
         notify=lambda message, title: notices.append((message, title))
     )
-    monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: True)
     state = _state()
 
     controller._send_quota_notification(
@@ -1155,6 +1255,27 @@ def test_quota_notifications_use_pystray_notify_and_existing_i18n(
     )
 
     assert notices == [("Claude Session is 25% used. Time to wrap up?", "🐾 Almost out")]
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows toast registration and WinRT")
+def test_real_windows_toast_backend_registers_aumid_and_creates_notifier() -> None:
+    import uuid
+    import winreg
+
+    pytest.importorskip("windows_toasts", reason="Windows toast extra is not installed")
+    aumid = f"com.lollapalooza.usage.pytest.{uuid.uuid4().hex}"
+    key_path = rf"Software\Classes\AppUserModelId\{aumid}"
+    try:
+        backend = wintray._create_toast_backend(aumid)
+        with winreg.OpenKey(winreg.HKEY_CURRENT_USER, key_path) as key:
+            display_name, _value_type = winreg.QueryValueEx(key, "DisplayName")
+
+        assert display_name == "usage"
+        assert backend.notifierAUMID == aumid
+        assert backend.toastNotifier is not None
+    finally:
+        with suppress(FileNotFoundError):
+            winreg.DeleteKey(winreg.HKEY_CURRENT_USER, key_path)
 
 
 def test_session_hook_toggles_run_in_background_helpers(
