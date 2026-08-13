@@ -8,7 +8,7 @@ import sys
 import threading
 from pathlib import Path
 from types import SimpleNamespace
-from typing import cast
+from typing import Any, cast
 
 import pytest
 
@@ -124,6 +124,52 @@ def test_taskbar_window_handle_requires_real_taskbar_button(
     )
 
     assert wintray._taskbar_window_handle(window) == expected
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="ITaskbarList3 is a Windows shell interface")
+def test_taskbar_list3_interface_is_creatable() -> None:
+    """Catch a wrong IID/CLSID, which every mocked taskbar test happily accepts.
+
+    A transposed GUID digit still passes the seam-level tests above but makes
+    CoCreateInstance return E_NOINTERFACE at runtime, silently disabling the
+    progress bar. Only really asking the shell for the interface proves it.
+    """
+    import ctypes
+
+    ole32: Any = ctypes.WinDLL("ole32", use_last_error=True)
+    ole32.CoInitializeEx.argtypes = [ctypes.c_void_p, ctypes.c_ulong]
+    ole32.CoInitializeEx.restype = ctypes.c_long
+    ole32.CoCreateInstance.argtypes = [
+        ctypes.POINTER(wintray._GUID),
+        ctypes.c_void_p,
+        ctypes.c_ulong,
+        ctypes.POINTER(wintray._GUID),
+        ctypes.POINTER(ctypes.c_void_p),
+    ]
+    ole32.CoCreateInstance.restype = ctypes.c_long
+
+    initialize_result = int(ole32.CoInitializeEx(None, 0x2))
+    taskbar = ctypes.c_void_p()
+    try:
+        result = int(
+            ole32.CoCreateInstance(
+                ctypes.byref(wintray._CLSID_TASKBAR_LIST),
+                None,
+                0x1,
+                ctypes.byref(wintray._IID_ITASKBAR_LIST3),
+                ctypes.byref(taskbar),
+            )
+        )
+        assert result == 0, f"CoCreateInstance(ITaskbarList3) returned 0x{result & 0xFFFFFFFF:08X}"
+        assert taskbar.value
+    finally:
+        if taskbar.value:
+            vtable = ctypes.cast(
+                taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
+            ).contents
+            ctypes.WINFUNCTYPE(ctypes.c_ulong, ctypes.c_void_p)(vtable[2])(taskbar)
+        if initialize_result in {0, 1}:
+            ole32.CoUninitialize()
 
 
 def test_draw_tray_icon_and_tooltip(monkeypatch: pytest.MonkeyPatch) -> None:
