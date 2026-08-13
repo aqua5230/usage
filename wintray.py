@@ -21,13 +21,17 @@ import agy_window_keeper
 import codex_loader
 import menubar_agy
 import menubar_state
+import service_status
 import update_checker
+import update_gate
+import usage_diagnosis_snapshot
 import win_login_item
 import window_keeper
 from burn_rate import BurnRateTracker
 from history_loader import UsageEntry, load_entries
 from i18n import _t
 from menubar_prefs import (
+    _auto_update_check_enabled,
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
@@ -55,6 +59,7 @@ logger = logging.getLogger(__name__)
 
 SLOW_POLL_INTERVAL_S = 300
 HISTORY_SCAN_CACHE_SECONDS = 30.0
+UPDATE_ALERT_BODY_LIMIT = 2000
 PANEL_WIDTH = 380
 WINDOWS_PANELS = (
     ("classic", "panel_default_name", "classic.html"),
@@ -564,8 +569,18 @@ class _WindowsTrayController:
         self.icon = icon
         self.window = window
         self._update_tray()
+        threading.Thread(target=self._startup_maintenance, daemon=True).start()
         threading.Thread(target=self._poll_loop, daemon=True).start()
         self.refresh()
+
+    def _startup_maintenance(self) -> None:
+        usage_diagnosis_snapshot.maybe_schedule_refresh()
+        self._clear_stale_update_cache()
+        self._check_update_in_background(
+            manual=False,
+            ignore_cooldown=False,
+            ignore_skipped=False,
+        )
 
     def on_loaded(self) -> None:
         # pywebview's resize()/move() call SetWindowPos with SWP_SHOWWINDOW,
@@ -838,6 +853,7 @@ class _WindowsTrayController:
         started_at = time.monotonic() if debug_timing else 0.0
         outcome = asyncio.run(self._fetch())
         measure("fetch", started_at)
+        service_statuses = self._service_statuses()
         if outcome.snapshot is not None:
             window_keeper.maybe_ping(
                 outcome.snapshot.current_reset_at,
@@ -875,7 +891,22 @@ class _WindowsTrayController:
             history_error=menubar_state.history_load_error_state(
                 history.history_error_key, self.language
             ),
+            service_statuses=service_statuses,
         )
+
+    def _service_statuses(self) -> tuple[service_status.ServiceStatus, ...]:
+        statuses: list[service_status.ServiceStatus] = []
+        for config in (service_status.CLAUDE_STATUS, service_status.CODEX_STATUS):
+            try:
+                statuses.append(service_status.get_service_status(config))
+            except Exception:
+                if os.environ.get("USAGE_DEBUG") == "1":
+                    logger.warning(
+                        "Windows %s service status refresh failed",
+                        config.service_name,
+                        exc_info=True,
+                    )
+        return tuple(statuses)
 
     async def _fetch(self) -> Any:
         return await self.usage_client.fetch_once()
@@ -1121,22 +1152,90 @@ class _WindowsTrayController:
         self.icon.notify(message, _t(self.language, f"notif_{event.kind}_title"))
 
     def check_update(self, _icon: Any = None, _item: Any = None) -> None:
-        def worker() -> None:
-            result = update_checker.check_latest_release_result(_current_version())
-            if result.release is not None:
-                release = result.release
-                title = _t(self.language, "update_alert_title", version=release.version)
-                if self._message_box(f"{title}\n\n{release.body[:2000]}", style=0x44) == 6:
-                    webbrowser.open(release.html_url)
-            else:
-                self._message_box(
-                    _t(
-                        self.language,
-                        "update_check_failed" if result.failed else "update_no_new_version",
-                    )
-                )
+        threading.Thread(
+            target=self._check_update_in_background,
+            kwargs={
+                "manual": True,
+                "ignore_cooldown": True,
+                "ignore_skipped": True,
+            },
+            daemon=True,
+        ).start()
 
-        threading.Thread(target=worker, daemon=True).start()
+    def _clear_stale_update_cache(self) -> None:
+        try:
+            current_version = _current_version()
+            preferences = _load_preferences()
+            updated_cache = update_gate.stale_cache_reset(preferences, current_version)
+            if updated_cache is not None:
+                preferences["last_update_check"] = updated_cache
+                _save_preferences(preferences)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows stale update cache reset failed", exc_info=True)
+
+    def _check_update_in_background(
+        self,
+        *,
+        manual: bool,
+        ignore_cooldown: bool,
+        ignore_skipped: bool,
+    ) -> None:
+        preferences = _load_preferences()
+        if not manual and not _auto_update_check_enabled(preferences):
+            return
+        if not manual and not update_gate.auto_check_is_due(preferences):
+            return
+        if not ignore_cooldown and update_gate.dismissed_recently(preferences):
+            return
+
+        try:
+            current_version = _current_version()
+            result = update_checker.check_latest_release_result(current_version)
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("Windows update check failed", exc_info=True)
+            if manual:
+                self._message_box(_t(self.language, "update_check_failed"))
+            return
+
+        if result.failed:
+            if manual:
+                self._message_box(_t(self.language, "update_check_failed"))
+            return
+
+        release = result.release
+        preferences["last_update_check"] = update_gate.build_check_cache_entry(
+            current_version, release
+        )
+        _save_preferences(preferences)
+
+        if release is None:
+            if manual:
+                self._message_box(_t(self.language, "update_no_new_version"))
+            return
+        if not ignore_skipped and preferences.get("update_skipped_version") == release.version:
+            return
+        self._show_update_alert(release)
+
+    def _show_update_alert(self, release: update_checker.ReleaseInfo) -> None:
+        title = _t(self.language, "update_alert_title", version=release.version)
+        result = self._message_box(
+            f"{title}\n\n{release.body[:UPDATE_ALERT_BODY_LIMIT]}", style=0x44
+        )
+        action, preference_updates = update_gate.resolve_alert_choice(
+            1000 if result == 6 else 1001,
+            release.version,
+        )
+        if action == "open":
+            webbrowser.open(release.html_url)
+            return
+
+        preferences = _load_preferences()
+        preferences.update(preference_updates)
+        if action == "dismiss":
+            preferences["update_dismissed_at"] = time.time()
+        _save_preferences(preferences)
 
     def _message_box(self, text: str, *, style: int = 0x40) -> int:
         import ctypes

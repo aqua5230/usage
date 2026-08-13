@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import sys
 from collections.abc import Callable
+from dataclasses import replace
 from pathlib import Path
 from typing import Any
 
@@ -38,6 +39,43 @@ def _isolate_log_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     import usage_logging
 
     monkeypatch.setattr(usage_logging, "LOG_DIR", tmp_path / "logs")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Keep shared startup workers out of the user's real config directories."""
+    import prefs
+    import service_status
+    import usage_diagnosis_snapshot
+
+    state_dir = tmp_path / "user-state"
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", state_dir / "usage-preferences.json")
+    monkeypatch.setattr(
+        usage_diagnosis_snapshot,
+        "SNAPSHOT_PATH",
+        state_dir / "usage-diagnosis.json",
+    )
+    monkeypatch.setattr(
+        service_status,
+        "ALERT_STATE_PATH",
+        state_dir / "service-alert-state.json",
+    )
+    monkeypatch.setattr(
+        service_status,
+        "CLAUDE_STATUS",
+        replace(
+            service_status.CLAUDE_STATUS,
+            cache_path=state_dir / "anthropic-status-cache.json",
+        ),
+    )
+    monkeypatch.setattr(
+        service_status,
+        "CODEX_STATUS",
+        replace(
+            service_status.CODEX_STATUS,
+            cache_path=state_dir / "openai-status-cache.json",
+        ),
+    )
 
 
 @pytest.fixture(autouse=True)
