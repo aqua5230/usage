@@ -307,6 +307,35 @@ def test_find_system_python_avoids_non_ascii_windows_interpreter(
     assert setup_hook._find_system_python() == r"C:\\Program Files\\Python\\python.exe"
 
 
+def test_setup_fails_when_no_windows_python_is_available(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(shutil, "which", lambda _name: None)
+
+    with pytest.raises(SystemExit, match="Python"):
+        setup_hook.setup()
+
+    assert not setup_paths.settings.exists()
+
+
+def test_setup_fails_for_non_ascii_windows_hook_target(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+    tmp_path: Path,
+) -> None:
+    monkeypatch.setattr(sys, "platform", "win32")
+    hook_target = tmp_path / "使用者" / ".claude" / "usage-statusline.py"
+    monkeypatch.setattr(setup_hook, "HOOK_TARGET", hook_target)
+
+    with pytest.raises(SystemExit, match="ASCII"):
+        setup_hook.setup()
+
+    assert not setup_paths.settings.exists()
+
+
 def test_windows_hook_commands_use_double_quotes(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setattr(
