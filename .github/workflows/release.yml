@@ -223,7 +223,7 @@ jobs:
         shell: bash
         run: |
           version=$(uv run --no-sync python -c \
-            'import tomllib,pathlib; print(tomllib.loads(pathlib.Path("pyproject.toml").read_text())["project"]["version"])')
+            'import tomllib,pathlib; print(tomllib.load(pathlib.Path("pyproject.toml").open("rb"))["project"]["version"])')
           echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - name: Build Windows executable
