@@ -61,6 +61,8 @@ jobs:
     runs-on: macos-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
     outputs:
       tag: ${{ steps.ref.outputs.tag }}
 
@@ -142,6 +144,9 @@ jobs:
         run: |
           cd dist && shasum -a 256 usage.app.zip | tee usage.app.zip.sha256
 
+      - name: Generate CycloneDX SBOM
+        run: uvx --from cyclonedx-bom cyclonedx-py environment --output-format JSON --output-file dist/usage-sbom.cdx.json .venv/bin/python
+
       - name: Extract release notes from CHANGELOG.md
         id: notes
         env:
@@ -178,13 +183,22 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           TAG: ${{ steps.ref.outputs.tag }}
-        run: gh release upload "$TAG" dist/usage.app.zip dist/usage.app.zip.sha256 --clobber
+        run: gh release upload "$TAG" dist/usage.app.zip dist/usage.app.zip.sha256 dist/usage-sbom.cdx.json --clobber
+
+      # Attest last: provenance is an add-on, and a failure here must not strand
+      # a release with no artifacts attached.
+      - name: Attest macOS build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/usage.app.zip
 
   build-windows:
     needs: build
     runs-on: windows-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
       actions: read
 
     steps:
@@ -286,6 +300,12 @@ jobs:
           TAG: ${{ steps.ref.outputs.tag }}
         shell: bash
         run: gh release upload "$TAG" dist/usage-windows.zip dist/usage-windows.zip.sha256 --clobber
+
+      # Attest last, for the same reason as the macOS job.
+      - name: Attest Windows build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/usage-windows.zip
 
   bump-homebrew:
     needs: build
