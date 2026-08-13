@@ -22,19 +22,25 @@ def _fake_windll(monkeypatch: pytest.MonkeyPatch, lang_id: int) -> None:
     monkeypatch.setattr(ctypes, "windll", windll, raising=False)
 
 
+@pytest.fixture
+def posix_platform(monkeypatch: pytest.MonkeyPatch) -> None:
+    """LANG 只在非 Windows 平台納入判斷,固定平台結果才不會隨 runner 改變。"""
+    monkeypatch.setattr(sys, "platform", "darwin")
+
+
 def test_detect_lang_defaults_to_en_without_environment() -> None:
     assert detect_lang({}) == "en"
 
 
-def test_detect_lang_reads_lang_zh_tw_locale() -> None:
+def test_detect_lang_reads_lang_zh_tw_locale(posix_platform: None) -> None:
     assert detect_lang({"LANG": "zh_TW.UTF-8"}) == "zh-TW"
 
 
-def test_detect_lang_reads_zh_hant_locale() -> None:
+def test_detect_lang_reads_zh_hant_locale(posix_platform: None) -> None:
     assert detect_lang({"LANG": "zh-Hant-TW"}) == "zh-TW"
 
 
-def test_detect_lang_reads_zh_hk_locale_as_traditional() -> None:
+def test_detect_lang_reads_zh_hk_locale_as_traditional(posix_platform: None) -> None:
     assert detect_lang({"LANG": "zh_HK.UTF-8"}) == "zh-TW"
 
 
@@ -50,12 +56,12 @@ def test_detect_lang_prefers_usage_lang_over_tt_lang() -> None:
     assert detect_lang({"USAGE_LANG": "ko", "TT_LANG": "ja"}) == "ko"
 
 
-def test_detect_lang_prefers_usage_lang_over_tt_lang_and_lang() -> None:
+def test_detect_lang_prefers_usage_lang_over_tt_lang_and_lang(posix_platform: None) -> None:
     env = {"USAGE_LANG": "ja", "TT_LANG": "ko", "LANG": "zh_TW.UTF-8"}
     assert detect_lang(env) == "ja"
 
 
-def test_detect_lang_unknown_code_falls_back_to_en() -> None:
+def test_detect_lang_unknown_code_falls_back_to_en(posix_platform: None) -> None:
     assert detect_lang({"LANG": "de_DE.UTF-8"}) == "en"
 
 
