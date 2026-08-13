@@ -627,7 +627,9 @@ def test_run_app_wires_pystray_and_pywebview(
             return self
 
     window = SimpleNamespace(
-        events=SimpleNamespace(loaded=Event(), minimized=Event(), restored=Event())
+        events=SimpleNamespace(
+            loaded=Event(), minimized=Event(), restored=Event(), closing=Event()
+        )
     )
     def create_window(*args: object, **kwargs: object) -> object:
         events.append(
@@ -653,6 +655,7 @@ def test_run_app_wires_pystray_and_pywebview(
 
     assert events == [
         ("window", "usage", True, "#eef2f7"),
+        "loaded_handler",
         "loaded_handler",
         "loaded_handler",
         "loaded_handler",
@@ -702,20 +705,34 @@ def test_show_panel_places_window_before_showing(
     assert calls == ["place", "restore", "show", "inject:True", "refresh"]
 
 
-def test_hide_panel_minimizes_window(
+def test_hide_panel_hides_window_to_tray(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.visible = True
     calls: list[str] = []
-    controller.window = SimpleNamespace(minimize=lambda: calls.append("minimize"))
+    controller.window = SimpleNamespace(hide=lambda: calls.append("hide"))
 
     controller.hide_panel()
     controller.hide_panel()
 
     assert controller.visible is False
     assert controller._positioned_this_show is False
-    assert calls == ["minimize"]
+    assert calls == ["hide"]
+
+
+def test_native_close_hides_to_tray_and_only_quit_allows_destroy() -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[str] = []
+    controller.visible = True
+    controller.window = SimpleNamespace(hide=lambda: calls.append("hide"))
+
+    assert controller.on_closing() is False
+    assert controller.visible is False
+    assert calls == ["hide"]
+
+    controller.stopping.set()
+    assert controller.on_closing() is True
 
 
 def test_native_minimize_and_restore_keep_controller_state_in_sync(

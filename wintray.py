@@ -683,6 +683,13 @@ class _WindowsTrayController:
         self._place_window()
         self.inject_state(force=True)
 
+    def on_closing(self) -> bool:
+        """Keep the WebView alive unless the tray's Quit action is running."""
+        if self.stopping.is_set():
+            return True
+        self.hide_panel()
+        return False
+
     def _working_area(self) -> tuple[int, int, int, int] | None:
         """Return the primary monitor work area (without taskbar)."""
         if os.name != "nt":
@@ -1051,7 +1058,7 @@ class _WindowsTrayController:
             return
         self.visible = False
         self._positioned_this_show = False
-        self.window.minimize()
+        self.window.hide()
 
     def switch_panel(self, panel_id: str) -> None:
         self.active_panel_id = panel_id
@@ -1634,6 +1641,7 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
     window.events.loaded += controller.on_loaded
     window.events.minimized += controller.on_minimized
     window.events.restored += controller.on_restored
+    window.events.closing += controller.on_closing
     icon = pystray.Icon("usage", draw_tray_icon(None), "usage", _menu(controller))
     controller.attach(icon, window)
     icon.run_detached()
