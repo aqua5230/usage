@@ -451,7 +451,6 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "launch_at_login",
         "quota_notifications_menu",
         "window_keeper_menu",
-        "separator",
         "project_butler",
         "terse_mode_menu",
         "separator",
@@ -465,8 +464,8 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     assert menu[5]["checked"] is True
     assert menu[6]["checked"] is False
     assert menu[7]["checked"] is True
-    assert menu[9]["checked"] is True
-    assert menu[10]["checked"] is False
+    assert menu[8]["checked"] is True
+    assert menu[9]["checked"] is False
 
 
 @pytest.mark.parametrize(

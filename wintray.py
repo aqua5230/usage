@@ -1002,7 +1002,6 @@ class _WindowsTrayController:
                 "toggle_window_keeper",
                 checked=_window_keeper_enabled(),
             ),
-            {"type": "separator"},
             item("project_butler", "toggle_session_resume", checked=_session_resume_enabled()),
             item("terse_mode_menu", "toggle_terse_mode", checked=_terse_mode_enabled()),
             {"type": "separator"},
@@ -1317,7 +1316,6 @@ def _menu(controller: _WindowsTrayController) -> Any:
             controller.toggle_window_keeper,
             checked=lambda _item: _window_keeper_enabled(),
         ),
-        pystray.Menu.SEPARATOR,
         pystray.MenuItem(
             _t(controller.language, "project_butler"),
             controller.toggle_session_resume,
