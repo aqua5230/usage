@@ -58,6 +58,9 @@ from history_loader import (
     flush_caches_on_terminate as flush_history_cache,
 )
 from i18n import _t, packaged_resource_path
+from menubar_actions import (
+    show_forwarder_mode_prompt_if_needed as show_forwarder_mode_prompt_if_needed,
+)
 from menubar_chrome import (
     _make_alert,
 )
@@ -146,9 +149,6 @@ from statusline_settings import (
 )
 from statusline_settings import (
     _save_claude_settings as _save_claude_settings,
-)
-from statusline_settings import (
-    _set_forwarder_mode_prompt_dismissed as _set_forwarder_mode_prompt_dismissed,
 )
 from statusline_settings import (
     _statusline_command_target_exists as _statusline_command_target_exists,
@@ -1199,45 +1199,3 @@ def _analysis_period_from_project_range(project_range: str) -> str:
     if project_range == "all":
         return "all"
     return "month"
-
-
-def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
-    import setup_hook
-
-    try:
-        settings = setup_hook._load_settings()
-        usage_settings = settings.get(setup_hook.BACKUP_KEY)
-        dismissed = (
-            isinstance(usage_settings, dict)
-            and usage_settings.get("forwarderModePromptDismissed") is True
-        )
-        if dismissed or setup_hook._detect_current_state(settings) != "external":
-            return
-    except Exception:
-        if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("forwarder prompt check failed", exc_info=True)
-        return
-
-    lang = language or detect_lang()
-    alert = _make_alert()
-    alert.setMessageText_(_t(lang, "alert_forwarder_title"))
-    alert.setInformativeText_(_t(lang, "alert_forwarder_body"))
-    alert.addButtonWithTitle_(_t(lang, "alert_forwarder_enable"))
-    alert.addButtonWithTitle_(_t(lang, "alert_forwarder_keep"))
-    result = int(alert.runModal())
-
-    try:
-        if result == 1000:
-            import session_hooks
-
-            setup_hook.setup(force_forwarder=True)
-            session_hooks._migrate_bundled_python_commands_if_needed()
-    except Exception:
-        if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("forwarder setup failed", exc_info=True)
-    finally:
-        try:
-            _set_forwarder_mode_prompt_dismissed()
-        except Exception:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("forwarder prompt dismissal failed", exc_info=True)

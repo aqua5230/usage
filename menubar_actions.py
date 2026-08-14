@@ -14,11 +14,17 @@ import logging
 import os
 from typing import Any, Protocol
 
+import session_hooks
+import setup_hook
+from i18n import _t
+from menubar_chrome import _make_alert
 from statusline_settings import (
     _disable_statusline_settings,
     _enable_statusline_settings,
+    _set_forwarder_mode_prompt_dismissed,
     _toggle_statusline_settings,
 )
+from usage_lang import detect_lang
 
 logger = logging.getLogger(__name__)
 
@@ -158,3 +164,41 @@ def analyze_usage_in_background(app: _ActionApp, period: str) -> None:
         result,
         False,
     )
+
+
+def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
+    try:
+        settings = setup_hook._load_settings()
+        usage_settings = settings.get(setup_hook.BACKUP_KEY)
+        dismissed = (
+            isinstance(usage_settings, dict)
+            and usage_settings.get("forwarderModePromptDismissed") is True
+        )
+        if dismissed or setup_hook._detect_current_state(settings) != "external":
+            return
+    except Exception:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("forwarder prompt check failed", exc_info=True)
+        return
+
+    lang = language or detect_lang()
+    alert = _make_alert()
+    alert.setMessageText_(_t(lang, "alert_forwarder_title"))
+    alert.setInformativeText_(_t(lang, "alert_forwarder_body"))
+    alert.addButtonWithTitle_(_t(lang, "alert_forwarder_enable"))
+    alert.addButtonWithTitle_(_t(lang, "alert_forwarder_keep"))
+    result = int(alert.runModal())
+
+    try:
+        if result == 1000:
+            setup_hook.setup(force_forwarder=True)
+            session_hooks._migrate_bundled_python_commands_if_needed()
+    except Exception:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("forwarder setup failed", exc_info=True)
+    finally:
+        try:
+            _set_forwarder_mode_prompt_dismissed()
+        except Exception:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("forwarder prompt dismissal failed", exc_info=True)
