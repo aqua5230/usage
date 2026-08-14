@@ -159,6 +159,7 @@ from statusline_settings import (
 from statusline_settings import (
     _toggle_statusline_settings as _toggle_statusline_settings,
 )
+from update_release_notes import format_release_notes
 from usage_client import ClaudeUsageClient, PollOutcome
 from usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
@@ -663,7 +664,7 @@ class AppDelegate(NSObject):
     def _showUpdateAlert_(self, release: update_checker.ReleaseInfo) -> None:
         alert = _make_alert()
         alert.setMessageText_(_t(self.language, "update_alert_title", version=release.version))
-        alert.setInformativeText_(release.body[:UPDATE_ALERT_BODY_LIMIT])
+        alert.setInformativeText_(format_release_notes(release.body, UPDATE_ALERT_BODY_LIMIT))
         alert.addButtonWithTitle_(_t(self.language, "update_btn_download"))
         alert.addButtonWithTitle_(_t(self.language, "update_btn_later"))
         alert.addButtonWithTitle_(_t(self.language, "update_btn_skip"))
