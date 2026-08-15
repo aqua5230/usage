@@ -5,6 +5,19 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.30] - 2026-08-15
+
+### Added
+- **Cards trace a warning light around their border at 90%.** When a Session or weekly row crosses 90%, a red arc travels around that card's edge once every 2.6 seconds, on the Claude, Codex, and Antigravity cards alike. The Default panel carries it today; other panels are unchanged.
+- **Progress tracks now mark the 80% threshold.** A tick sits where the bar turns red, so how much headroom is left reads at a glance instead of only from the percentage text.
+
+### Fixed
+- **The rate label now falls back after you stop working.** Burn rate divided by the span between the first and last usage entry, which left idle time out of the denominator — a ten-minute burst followed by a forty-minute break stayed pinned at "Heavy" until those entries aged out of the one-hour window. It now divides by the time elapsed since the first entry, so the rate decays while you are away. Thresholds and the cache-read exclusion are unchanged.
+
+### Changed
+- **Numeric readouts line up.** Project token counts, costs, and percentages use tabular figures, so the columns stop shifting as the digits change.
+- **Keyboard focus is visible on the Default panel**, and its buttons now animate between hover states instead of snapping. Both respect the system's reduced-motion setting.
+
 ## [0.29.29] - 2026-08-15
 
 ### Changed
