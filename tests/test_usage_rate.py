@@ -37,6 +37,10 @@ def _entry(
     )
 
 
+def _freeze_utc_now(monkeypatch: pytest.MonkeyPatch, now: datetime) -> None:
+    monkeypatch.setattr(usage_rate, "_utc_now", lambda: now)
+
+
 def test_group_returns_forced_group() -> None:
     assert usage_rate.UsageRateTracker(forced_group=2).group() == 2
 
@@ -89,6 +93,7 @@ def test_group_burn_rate_buckets(
         ),
     ]
     monkeypatch.setattr(usage_rate, "load_entries", lambda hours_back: entries)
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=5))
 
     assert usage_rate.UsageRateTracker().group() == expected_group
 
@@ -105,6 +110,7 @@ def test_group_short_cache_creation_burst_does_not_trigger_heavy(
         ),
     ]
     monkeypatch.setattr(usage_rate, "load_entries", lambda hours_back: entries)
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(seconds=30))
 
     assert usage_rate.UsageRateTracker().group() == 1
 
@@ -117,6 +123,7 @@ def test_group_sustained_high_burn_rate_is_heavy(
         _entry(21_000, timestamp=START_TIME + timedelta(minutes=6)),
     ]
     monkeypatch.setattr(usage_rate, "load_entries", lambda hours_back: entries)
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=6))
 
     assert usage_rate.UsageRateTracker().group() == 3
 
@@ -136,6 +143,7 @@ def test_group_excludes_cache_read_tokens(monkeypatch: pytest.MonkeyPatch) -> No
         project="project",
     )
     monkeypatch.setattr(usage_rate, "load_entries", lambda hours_back: [entry])
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=5))
 
     assert usage_rate.UsageRateTracker().group() == 0
 
@@ -149,6 +157,7 @@ def test_group_caches_result(monkeypatch: pytest.MonkeyPatch) -> None:
         return [_entry(2500)]
 
     monkeypatch.setattr(usage_rate, "load_entries", fake_load_entries)
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=5))
     tracker = usage_rate.UsageRateTracker()
 
     assert tracker.group() == 1
@@ -156,7 +165,29 @@ def test_group_caches_result(monkeypatch: pytest.MonkeyPatch) -> None:
     assert calls == 1
 
 
-def test_group_uses_custom_loader() -> None:
+def test_group_uses_custom_loader(monkeypatch: pytest.MonkeyPatch) -> None:
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=5))
     tracker = usage_rate.UsageRateTracker(load=lambda hours_back: [_entry(12_500)])
+
+    assert tracker.group() == 2
+
+
+def test_group_decays_after_usage_stops(monkeypatch: pytest.MonkeyPatch) -> None:
+    entries = [
+        _entry(50_000),
+        _entry(50_000, timestamp=START_TIME + timedelta(minutes=10)),
+    ]
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=10))
+
+    assert usage_rate.UsageRateTracker(load=lambda hours_back: entries).group() == 3
+
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=50))
+
+    assert usage_rate.UsageRateTracker(load=lambda hours_back: entries).group() == 1
+
+
+def test_group_keeps_five_minute_floor(monkeypatch: pytest.MonkeyPatch) -> None:
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=2))
+    tracker = usage_rate.UsageRateTracker(load=lambda hours_back: [_entry(20_000)])
 
     assert tracker.group() == 2

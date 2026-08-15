@@ -9,6 +9,7 @@ from __future__ import annotations
 import os
 import time
 from collections.abc import Callable
+from datetime import datetime, timezone
 
 from history_loader import UsageEntry, load_entries
 
@@ -17,6 +18,10 @@ BURN_RATE_THRESH_ACTIVE = 2500.0
 BURN_RATE_THRESH_HEAVY = 6000.0
 
 GROUP_NAMES = ["Idle", "Normal", "Active", "Heavy"]
+
+
+def _utc_now() -> datetime:
+    return datetime.now(timezone.utc)  # noqa: UP017 - keep timezone.utc explicit.
 
 
 class UsageRateTracker:
@@ -55,7 +60,7 @@ class UsageRateTracker:
             return result
 
         active_tokens = sum(entry.active_tokens for entry in entries)
-        elapsed_seconds = (entries[-1].timestamp - entries[0].timestamp).total_seconds()
+        elapsed_seconds = (_utc_now() - entries[0].timestamp).total_seconds()
         # Match burn_rate's 5-minute floor: a single cache-creation burst should
         # not trigger Heavy on its own.
         elapsed_minutes = max(elapsed_seconds / 60.0, 5.0)
