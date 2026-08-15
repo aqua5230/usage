@@ -115,6 +115,9 @@
       return getComputedStyle(root).getPropertyValue(name).trim();
     }
 
+    // Panels may draw a critical halo past this; colorFor's 80% only turns text red.
+    const CRITICAL_PERCENT = 90;
+
     function colorFor(percent, fallback) {
       if (typeof percent !== "number") return fallback;
       if (percent >= 80) return cssVar("--danger");
@@ -167,9 +170,21 @@
       window.PanelHooks.applyFillVisual(fill, { available, percent: data.percent, color });
     }
 
+    function isCriticalRow(row) {
+      return Boolean(row)
+        && row.available === true
+        && typeof row.percent === "number"
+        && row.percent >= CRITICAL_PERCENT;
+    }
+
     function applyCard(name, rows) {
       renderRow(name, "session", rows && rows.session);
       renderRow(name, "weekly", rows && rows.weekly);
+      const cardEl = document.querySelector(`.card[data-card="${name}"]`);
+      if (!cardEl) return;
+      const critical = isCriticalRow(rows && rows.session)
+        || isCriticalRow(rows && rows.weekly);
+      cardEl.dataset.critical = critical ? "true" : "false";
     }
 
     function renderCodexStale(stale) {

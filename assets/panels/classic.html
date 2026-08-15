@@ -117,6 +117,45 @@
       box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
     }
 
+    /* Chasing halo. No box-shadow anywhere: the effect is a conic gradient
+       clipped to the card's own border ring, so it cannot bleed past the box
+       even on the codex/agy cards, which are overflow:visible for tooltips. */
+    @property --halo-angle {
+      syntax: "<angle>";
+      initial-value: 0deg;
+      inherits: false;
+    }
+
+    .card[data-critical="true"]::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      padding: 2px;
+      pointer-events: none;
+      background: conic-gradient(from var(--halo-angle),
+          transparent 0deg 232deg,
+          color-mix(in srgb, var(--danger) 30%, transparent) 286deg,
+          var(--danger) 334deg,
+          color-mix(in srgb, var(--danger) 30%, transparent) 352deg,
+          transparent 360deg);
+      -webkit-mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      -webkit-mask-composite: xor;
+      mask:
+        linear-gradient(#000 0 0) content-box,
+        linear-gradient(#000 0 0);
+      mask-composite: exclude;
+      animation: halo-spin 2.6s linear infinite;
+    }
+
+    @keyframes halo-spin {
+      to {
+        --halo-angle: 360deg;
+      }
+    }
+
     .brand {
       display: flex;
       align-items: center;
@@ -552,6 +591,11 @@
       .switch,
       .fill {
         transition: none;
+      }
+
+      .card[data-critical="true"]::after {
+        animation: none;
+        background: color-mix(in srgb, var(--danger) 72%, transparent);
       }
     }
 
