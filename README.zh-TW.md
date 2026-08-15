@@ -16,7 +16,7 @@
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/aqua5230/usage/releases/latest)
 [![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
-[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
+[![OpenSSF 最佳實踐](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
   <img src="docs/showcase.en.png" alt="usage — 把 Claude Code、Codex 與 Antigravity 的額度釘在 macOS 選單列" width="820">
@@ -32,7 +32,7 @@ brew install --cask aqua5230/usage/usage
 
 安裝後會自動進入「應用程式」資料夾。先右鍵**「打開」**一次讓 Gatekeeper 放行，再點選單列圖示即可。想直接下載，或想看完整設定流程？見下方 [安裝](#安裝)。
 
-**快速跳轉：** [你會得到什麼](#你會得到什麼) · [隱私與資料來源](#隱私與資料來源) · [環境需求](#環境需求) · [安裝](#安裝) · [Windows 支援](#windows-支援) · [主題展示](#主題展示) · [常見問題排查](#常見問題排查) · [跟其他工具比較](#跟其他工具比較) · [不適合誰](#不適合誰) · [開發](#開發)
+**快速跳轉：** [你會得到什麼](#你會得到什麼) · [隱私與資料來源](#隱私與資料來源) · [環境需求](#環境需求) · [安裝](#安裝) · [設定狀態列](#首次打開設定狀態列) · [Windows 支援](#windows-支援) · [主題展示](#主題展示) · [常見問題排查](#常見問題排查) · [跟其他工具比較](#跟其他工具比較) · [不適合誰](#不適合誰) · [開發](#開發)
 
 ## 你會得到什麼
 
@@ -40,7 +40,7 @@ brew install --cask aqua5230/usage/usage
 
 - **常駐監控：** 額度常駐選單列，顏色標示警戒級別（綠到紅）。點開能看 Session、Weekly 與各專案用量細節。
 - **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在除了 World Cup 2026 以外的每一款面板（該款維持兩隊對戰 HUD）。數字直接向官方額度 API 查詢，用的是 Antigravity CLI 本來就存在你機器上的登入身分——每幾分鐘自動刷新，重置倒數即時遞減。
-- **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅，數字只讀官方公開的 Statuspage.io 狀態頁——絕不呼叫 LLM 用量 API。Antigravity 因沒有可用的公開狀態頁，暫不支援。
+- **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅，狀態資訊只讀官方公開的 Statuspage.io 狀態頁——絕不呼叫 LLM 用量 API。Antigravity 因沒有可用的公開狀態頁，暫不支援。
 - **上下文提醒與系統通知：** Context Window 達 70% 時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
 - **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex 或 Antigravity 從選單列及面板上徹底隱藏。
 
@@ -48,7 +48,7 @@ brew install --cask aqua5230/usage/usage
 
 - **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用重講一遍進度。完全本機、預設關閉。
 - **省 token 模式 (Token Saver)：** 一鍵讓 Claude Code 與 Codex 講話更精簡，省下輸出 token，但程式碼與錯誤訊息保證一個字都不縮水。輕聲提醒維持精簡，長對話也不走鐘——在真實 Session 的 A/B 測試中，對話後段回覆維持少約 40%，而不是走鐘變長 84%。
-- **終端機整合：** `usage status --json` 把 Claude Code 與 Codex 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案，不做網路呼叫。[現成的設定片段](docs/DEVELOPMENT.zh-TW.md)。
+- **終端機整合：** `usage status --json` 把 Claude Code 與 Codex 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案，不做網路呼叫。[現成的設定片段](docs/DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **Token 浪費健檢：** 每日背景診斷重複讀取檔案、污染目錄與雜訊輸出。當發現浪費時會有一行提示，AI 也能帶你看懂問題並給出改善建議。
 
 ### AI 協作
@@ -63,7 +63,7 @@ brew install --cask aqua5230/usage/usage
 
 ### 體驗與客製化
 
-- **13 款視覺面板：** 可在 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、Lepidoptera（藍曬圖）、彩繪玻璃、摺紙與 Catppuccin（官方配色，四款 flavor 全支援）之間切換。
+- **13 款視覺面板：** 可在 Classic、Matrix、Windows 95、復古報紙（Newspaper）、雲圖觀測（Cloud Observation）、深夜水族箱（Midnight Aquarium）、Prism Arcade、黑洞（Black Hole）、World Cup 2026、藍曬圖（Lepidoptera）、彩繪玻璃（Stained Glass）、摺紙（Origami）與 Catppuccin（官方配色，四款 flavor 全支援）之間切換。
 - **面板自由擺放：** 面板不再釘在選單列圖示下方。在任何空白處按住就能拖到你想要的位置，下次打開還在原地。點到別的 App 也不會消失，要再點一次選單列圖示或按 Esc 才關。
 - **拖曳排序：** 按住任何一張額度卡上下拖曳就能交換順序，排法在所有包含額度卡的主題間共用（除 World Cup 2026 之外），重開也會記住。
 - **神獸夥伴：** 百分比旁常駐一隻小型白色動畫神獸（Claude 是鳳凰，Codex 是飛龍，Antigravity 是獅子），各自跟著自家工具的 token 燃燒率動態加速。
@@ -99,6 +99,19 @@ brew install --cask aqua5230/usage/usage
 2. 解壓縮，將 `usage.app` 拖進「應用程式」資料夾。
 3. 第一次開啟：在 Finder 對 `usage.app` 按右鍵 → **打開** → 確認打開。
 
+## 首次打開：設定狀態列
+
+如果你用過 Codex，它會自動讀到資料。若是 Claude Code，請點選單彈窗內的**「設定狀態列 (Set Up Status Line)」**按鈕來安裝同步 hook。
+完成後請重開相關工具（macOS 請將 Claude Code 用 Cmd+Q 完全結束後重開；Windows 請重啟終端機或重開對話）。
+
+同一顆按鈕在你裝了 Antigravity CLI 時，也會一併幫它設定狀態列；沒裝的話什麼都不會寫入。你自己在那邊設定過的狀態列會先備份起來，關掉開關時還原。
+
+設定完成後，Claude Code 視窗底部會出現這樣的狀態列：
+
+<p align="center">
+  <img src="docs/statusline.png" alt="Claude Code statusLine 顯示樣式（繁中）" width="640">
+</p>
+
 ## Windows 支援
 
 Windows 可完整使用核心功能：系統匣 UI、Claude Code 狀態列 hook 與 Codex 記錄解析都原生支援。從[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下載 `usage-windows.zip`，解壓後執行 `usage.exe` 即可，無須安裝程式。系統匣 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
@@ -117,19 +130,6 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 - 批准者：[aqua5230](https://github.com/aqua5230)
 
 隱私權政策：除非使用者或安裝、操作此程式的人員明確要求，否則本程式不會將任何資訊傳輸至其他網路系統。關於 `usage` 替你發出的網路呼叫及如何避免，請參閱[隱私與資料來源](#隱私與資料來源)。
-
-### 首次打開：設定狀態列
-
-如果你用過 Codex，它會自動讀到資料。若是 Claude Code，請點選單彈窗內的**「設定狀態列 (Set Up Status Line)」**按鈕來安裝同步 hook。
-完成後請重開相關工具（將 Claude Code 用 Cmd+Q 完全結束後重開）。
-
-同一顆按鈕在你裝了 Antigravity CLI 時，也會一併幫它設定狀態列；沒裝的話什麼都不會寫入。你自己在那邊設定過的狀態列會先備份起來，關掉開關時還原。
-
-設定完成後，Claude Code 視窗底部會出現這樣的狀態列：
-
-<p align="center">
-  <img src="docs/statusline.png" alt="Claude Code statusLine 顯示樣式（繁中）" width="640">
-</p>
 
 ## 主題展示
 
@@ -168,7 +168,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | 功能 | usage | ccusage | TokenTracker |
 |------|:-----:|:-------:|:------------:|
 | 一直在螢幕上 | ✅ | — | ✅ |
-| macOS 選單列 | ✅ | — | ✅ |
+| macOS 選單列與 Windows 系統匣 | ✅ | — | 僅 macOS |
 | Claude Code 與 Codex 支援 | ✅ | 僅 Claude | ✅ |
 | Antigravity（Gemini）支援 | ✅ | — | — |
 | Claude Code 與 Codex 服務狀態警示 | ✅ | — | — |

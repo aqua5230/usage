@@ -32,7 +32,7 @@ brew install --cask aqua5230/usage/usage
 
 它会自动安装到 Applications 文件夹。先右键点击一次 **Open** 以通过 Gatekeeper，然后点击菜单栏图标。想直接下载或查看完整设置流程？请参见下方的[安装](#安装)。
 
-**快速跳转：** [功能一览](#功能一览) · [隐私与数据来源](#隐私与数据来源) · [系统要求](#系统要求) · [安装](#安装) · [Windows 支持](#windows-支持) · [主题图库](#主题图库) · [故障排除](#故障排除) · [对比](#对比) · [不适合谁](#不适合谁) · [开发](#开发)
+**快速跳转：** [功能一览](#功能一览) · [隐私与数据来源](#隐私与数据来源) · [系统要求](#系统要求) · [安装](#安装) · [设置状态栏](#首次启动设置状态栏) · [Windows 支持](#windows-支持) · [主题图库](#主题图库) · [故障排除](#故障排除) · [对比](#对比) · [不适合谁](#不适合谁) · [开发](#开发)
 
 ## 功能一览
 
@@ -48,7 +48,7 @@ brew install --cask aqua5230/usage/usage
 
 - **进度管家：** 打开新的 Claude Code 会话时，`usage` 会直接把你上次的进度交给 AI，包括上次请求、未提交的变更和未完成的待办事项。无需 `/resume`，无需回顾。完全本地运行，默认关闭。
 - **Token 节省器：** 菜单栏开关会要求 Claude Code 和 Codex 在当前会话中更简洁地回答，在保持代码和错误信息逐字节不变的同时节省输出 token。轻量的逐消息提醒能避免长对话中的回复逐渐变得冗长——在真实会话的 A/B 测试中，对话后期回复维持缩短约 40%，而不是漂移变长 84%。
-- **终端集成：** `usage status --json` 会将你的 Claude Code 和 Codex 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件，无网络请求。[现成的片段](docs/DEVELOPMENT.md)。
+- **终端集成：** `usage status --json` 会将你的 Claude Code 和 Codex 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件，无网络请求。[现成的片段](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **Token 浪费健康检查：** 每日后台诊断会扫描日志中的浪费问题，包括重复读取文件、污染目录和冗长的 Bash 输出。发现问题时会显示一行提示；对 AI 说“show me”，它会引导你完成修复。
 
 ### AI 协作
@@ -99,6 +99,19 @@ brew install --cask aqua5230/usage/usage
 2. 解压后，将 `usage.app` 拖入 Applications 文件夹。
 3. 首次启动：在 Finder 中右键 `usage.app` → **Open** → 确认 Open。
 
+## 首次启动：设置状态栏
+
+如果你用过 Codex，`usage` 会自动读取其历史记录。对于 Claude Code，请在应用弹出面板中点击 **“Set Up Status Line”** 按钮以安装同步 hook。
+之后重启相应工具（macOS 请将 Claude Code 用 Cmd+Q 完全退出后重新打开；Windows 请重启终端或重新开启会话）。
+
+同一颗按钮在你装了 Antigravity CLI 时，也会一并帮它设置状态栏；没装的话什么都不会写入。你自己在那边设置过的状态栏会先备份起来，关掉开关时还原。
+
+设置完成后，Claude Code 窗口底部会显示如下状态栏：
+
+<p align="center">
+  <img src="docs/statusline.en.png" alt="Claude Code 状态栏显示（英文）" width="640">
+</p>
+
 ## Windows 支持
 
 Windows 原生支持完整核心功能：系统托盘 UI、Claude Code 状态栏 hook 和 Codex 记录解析均可使用。从[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后直接运行 `usage.exe`，无需安装。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
@@ -117,19 +130,6 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 - 批准者：[aqua5230](https://github.com/aqua5230)
 
 隐私政策：除非用户或安装、操作此程序的人员明确要求，否则本程序不会将任何信息传输至其他网络系统。有关 `usage` 代你发出的网络调用及如何避免，请参阅[隐私与数据来源](#隐私与数据来源)。
-
-### 首次启动：设置状态栏
-
-如果你用过 Codex，`usage` 会自动读取其历史记录。对于 Claude Code，请在应用弹出面板中点击 **“Set Up Status Line”** 按钮以安装同步 hook。
-之后重启相应工具（完全退出 Claude Code：Cmd+Q，然后重新打开）。
-
-同一颗按钮在你装了 Antigravity CLI 时，也会一并帮它设置状态栏；没装的话什么都不会写入。你自己在那边设置过的状态栏会先备份起来，关掉开关时还原。
-
-设置完成后，Claude Code 窗口底部会显示如下状态栏：
-
-<p align="center">
-  <img src="docs/statusline.en.png" alt="Claude Code 状态栏显示（英文）" width="640">
-</p>
 
 ## 主题图库
 
@@ -168,7 +168,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | 功能 | usage | ccusage | TokenTracker |
 |---------|:-----:|:-------:|:------------:|
 | 始终显示在屏幕上 | ✅ | — | ✅ |
-| macOS 菜单栏 | ✅ | — | ✅ |
+| macOS 菜单栏与 Windows 系统托盘 | ✅ | — | 仅限 macOS |
 | Claude Code 与 Codex 用量 | ✅ | 仅 Claude | ✅ |
 | Antigravity（Gemini）用量 | ✅ | — | — |
 | Claude Code 与 Codex 服务状态警示 | ✅ | — | — |

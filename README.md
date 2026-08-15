@@ -32,7 +32,7 @@ brew install --cask aqua5230/usage/usage
 
 It lands in your Applications folder automatically. Right-click **Open** once to pass Gatekeeper, then click the menu bar icon. Prefer a direct download or want the full setup flow? See [Install](#install) below.
 
-**Jump to:** [What You Get](#what-you-get) · [Privacy](#privacy--data-sources) · [Requirements](#requirements) · [Install](#install) · [Windows](#windows-support) · [Themes](#theme-gallery) · [Troubleshooting](#troubleshooting) · [Comparison](#comparison) · [Not a Fit?](#when-usage-isnt-the-right-fit) · [Development](#development)
+**Jump to:** [What You Get](#what-you-get) · [Privacy](#privacy--data-sources) · [Requirements](#requirements) · [Install](#install) · [Status Line](#first-launch-set-up-the-status-line) · [Windows](#windows-support) · [Themes](#theme-gallery) · [Troubleshooting](#troubleshooting) · [Comparison](#comparison) · [Not a Fit?](#when-usage-isnt-the-right-fit) · [Development](#development)
 
 ## What You Get
 
@@ -48,7 +48,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 - **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI, including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. Fully local, off by default.
 - **Token Saver:** A menu-bar toggle asks Claude Code and Codex to answer more tersely, saving output tokens while keeping code and error messages byte-exact. A light reminder keeps long conversations from drifting back to verbose — in an A/B test on real sessions, late replies stayed ~40% shorter instead of drifting 84% longer.
-- **Terminal Integration:** `usage status --json` hands your Claude Code and Codex quota to any tool that can run a command — Starship, tmux, or your own scripts. Reads the same local files as the menu bar, no network call. [Ready-made snippets](docs/DEVELOPMENT.md).
+- **Terminal Integration:** `usage status --json` hands your Claude Code and Codex quota to any tool that can run a command — Starship, tmux, or your own scripts. Reads the same local files as the menu bar, no network call. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **Token-waste Health Check:** A daily background diagnosis scans your logs for waste, including repeated file reads, polluter directories, and noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
 
 ### AI Teamwork
@@ -99,6 +99,19 @@ brew install --cask aqua5230/usage/usage
 2. Unzip it and drag `usage.app` into your Applications folder.
 3. First launch: in Finder, right-click `usage.app` → **Open** → confirm Open.
 
+## First Launch: Set Up the Status Line
+
+If you've used Codex, `usage` picks up its history automatically. For Claude Code, click the **"Set Up Status Line"** button in the app popover to install the sync hook.
+Restart the relevant tool afterward (on macOS, fully Cmd+Q Claude Code and re-open it; on Windows, restart your terminal or start a new session).
+
+The same button also sets up a status line for the Antigravity CLI when it is installed on your machine, and does nothing at all when it isn't. Any status line you configured there yourself is backed up first and restored when you turn the switch off.
+
+Once set up, the bottom of the Claude Code window will show a status line like this:
+
+<p align="center">
+  <img src="docs/statusline.en.png" alt="Claude Code statusLine display (English)" width="640">
+</p>
+
 ## Windows Support
 
 Windows has the full core experience: the system-tray UI, Claude Code status-line hook, and Codex history parsing all work natively. Download `usage-windows.zip` from the [latest GitHub Release](https://github.com/aqua5230/usage/releases/latest), unzip it, then run `usage.exe`—no installer is needed. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
@@ -117,19 +130,6 @@ Team roles:
 - Approvers: [aqua5230](https://github.com/aqua5230)
 
 Privacy policy: this program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. See [Privacy & Data Sources](#privacy--data-sources) for the network calls `usage` makes on your behalf and how to avoid them.
-
-### First Launch: Set Up the Status Line
-
-If you've used Codex, `usage` picks up its history automatically. For Claude Code, click the **"Set Up Status Line"** button in the app popover to install the sync hook.
-Restart the relevant tool afterward (fully Cmd+Q Claude Code and re-open it).
-
-The same button also sets up a status line for the Antigravity CLI when it is installed on your machine, and does nothing at all when it isn't. Any status line you configured there yourself is backed up first and restored when you turn the switch off.
-
-Once set up, the bottom of the Claude Code window will show a status line like this:
-
-<p align="center">
-  <img src="docs/statusline.en.png" alt="Claude Code statusLine display (English)" width="640">
-</p>
 
 ## Theme Gallery
 
@@ -168,7 +168,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Feature | usage | ccusage | TokenTracker |
 |---------|:-----:|:-------:|:------------:|
 | Always on screen | ✅ | — | ✅ |
-| macOS menu bar | ✅ | — | ✅ |
+| macOS menu bar & Windows system tray | ✅ | — | macOS only |
 | Claude Code & Codex usage | ✅ | Claude only | ✅ |
 | Antigravity (Gemini) usage | ✅ | — | — |
 | Claude Code & Codex service-status alerts | ✅ | — | — |

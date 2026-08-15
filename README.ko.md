@@ -32,7 +32,7 @@ brew install --cask aqua5230/usage/usage
 
 Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려면 한 번 마우스 오른쪽 버튼으로 클릭해 **Open**을 선택한 뒤 메뉴 막대 아이콘을 클릭하세요. 직접 다운로드하거나 전체 설정 과정을 보고 싶다면 아래 [설치](#설치)를 참고하세요.
 
-**빠른 이동:** [제공 기능](#제공-기능) · [개인정보 보호와 데이터 소스](#개인정보-보호와-데이터-소스) · [요구 사항](#요구-사항) · [설치](#설치) · [Windows 지원](#windows-지원) · [테마 갤러리](#테마-갤러리) · [문제 해결](#문제-해결) · [비교](#비교) · [적합하지 않은 경우](#적합하지-않은-경우) · [개발](#개발)
+**빠른 이동:** [제공 기능](#제공-기능) · [개인정보 보호와 데이터 소스](#개인정보-보호와-데이터-소스) · [요구 사항](#요구-사항) · [설치](#설치) · [상태 줄 설정](#첫-실행-상태-줄-설정) · [Windows 지원](#windows-지원) · [테마 갤러리](#테마-갤러리) · [문제 해결](#문제-해결) · [비교](#비교) · [적합하지 않은 경우](#적합하지-않은-경우) · [개발](#개발)
 
 ## 제공 기능
 
@@ -48,7 +48,7 @@ Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려�
 
 - **진행 상황 컨시어지:** 새 Claude Code 세션을 열면 `usage`가 마지막 요청, 커밋하지 않은 변경 사항, 미완료 todo를 포함한 이전 진행 상황을 바로 AI에 전달합니다. `/resume`도, 요약도 필요 없습니다. 완전히 로컬에서 작동하며 기본값은 꺼짐입니다.
 - **Token 절약기:** 메뉴 막대 토글은 Claude Code와 Codex에 해당 세션 동안 더 간결하게 답하도록 요청하여, 코드와 오류 메시지는 바이트 단위로 그대로 유지하면서 출력 token을 절약합니다. 가벼운 메시지별 알림이 긴 대화에서 답변이 다시 장황해지는 것을 막습니다——실제 세션의 A/B 테스트에서 대화 후반 답변은 약 40% 더 짧게 유지되었으며, 84% 길어지는 현상은 나타나지 않았습니다.
-- **터미널 통합:** `usage status --json`은 명령을 실행할 수 있는 모든 도구——Starship, tmux 또는 자체 스크립트——에 Claude Code 및 Codex 할당량을 전달합니다. 메뉴 막대와 동일한 로컬 파일을 읽으며, 네트워크 호출이 없습니다. [미리 준비된 스니펫](docs/DEVELOPMENT.md).
+- **터미널 통합:** `usage status --json`은 명령을 실행할 수 있는 모든 도구——Starship, tmux 또는 자체 스크립트——에 Claude Code 및 Codex 할당량을 전달합니다. 메뉴 막대와 동일한 로컬 파일을 읽으며, 네트워크 호출이 없습니다. [미리 준비된 스니펫](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **Token 낭비 상태 점검:** 매일 백그라운드 진단이 로그를 검사해 반복 파일 읽기, 오염 디렉터리, 장황한 Bash 출력 등을 포함한 낭비를 찾습니다. 문제가 발견되면 한 줄 알림이 표시됩니다. AI에게 "show me"라고 말하면 해결 방법을 안내합니다.
 
 ### AI 팀워크
@@ -99,6 +99,19 @@ brew install --cask aqua5230/usage/usage
 2. 압축을 풀고 `usage.app`을 Applications 폴더로 드래그합니다.
 3. 첫 실행: Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → **Open** → Open을 확인합니다.
 
+## 첫 실행: 상태 줄 설정
+
+Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵니다. Claude Code의 경우 앱 팝오버에서 **"Set Up Status Line"** 버튼을 클릭하여 동기화 hook을 설치하세요.
+그런 다음 해당 도구를 다시 시작하세요(macOS에서는 Claude Code를 Cmd+Q로 완전히 종료한 뒤 다시 열고, Windows에서는 터미널을 다시 시작하거나 새 세션을 시작합니다).
+
+동일한 버튼은 Antigravity CLI가 설치되어 있을 때 상태 줄도 함께 설정하며, 설치되어 있지 않으면 아무것도 기록하지 않습니다. 직접 설정해 둔 상태 줄은 먼저 백업되며 스위치를 끌 때 복원됩니다.
+
+설정이 완료되면 Claude Code 창 하단에 다음과 같은 상태 줄이 표시됩니다.
+
+<p align="center">
+  <img src="docs/statusline.en.png" alt="Claude Code 상태 줄 표시(영어)" width="640">
+</p>
+
 ## Windows 지원
 
 Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다. 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석을 지원합니다.[최신 GitHub Release](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 내려받아 압축을 풀고 `usage.exe`를 실행하면 됩니다. 설치는 필요하지 않습니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10/11에 이미 포함되어 있습니다.
@@ -117,19 +130,6 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 - 승인자: [aqua5230](https://github.com/aqua5230)
 
 개인정보 처리방침: 본 프로그램은 사용자나 설치 또는 조작하는 사람의 명시적인 요청이 없는 한, 어떤 정보도 다른 네트워크 시스템으로 전송하지 않습니다. `usage`가 귀하를 대신하여 수행하는 네트워크 호출 및 이를 피하는 방법에 대해서는 [개인정보 보호와 데이터 소스](#개인정보-보호와-데이터-소스)를 참조하세요.
-
-### 첫 실행: 상태 줄 설정
-
-Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵니다. Claude Code의 경우 앱 팝오버에서 **"Set Up Status Line"** 버튼을 클릭하여 동기화 hook을 설치하세요.
-그런 다음 해당 도구를 다시 시작하세요(Claude Code를 Cmd+Q로 완전히 종료한 뒤 다시 엽니다).
-
-동일한 버튼은 Antigravity CLI가 설치되어 있을 때 상태 줄도 함께 설정하며, 설치되어 있지 않으면 아무것도 기록하지 않습니다. 직접 설정해 둔 상태 줄은 먼저 백업되며 스위치를 끌 때 복원됩니다.
-
-설정이 완료되면 Claude Code 창 하단에 다음과 같은 상태 줄이 표시됩니다.
-
-<p align="center">
-  <img src="docs/statusline.en.png" alt="Claude Code 상태 줄 표시(영어)" width="640">
-</p>
 
 ## 테마 갤러리
 
@@ -168,7 +168,7 @@ UI에서 직접 **13가지 시각 테마**를 전환하세요.
 | 기능 | usage | ccusage | TokenTracker |
 |---------|:-----:|:-------:|:------------:|
 | 화면에 항상 표시 | ✅ | — | ✅ |
-| macOS 메뉴 막대 | ✅ | — | ✅ |
+| macOS 메뉴 막대 및 Windows 시스템 트레이 | ✅ | — | macOS 전용 |
 | Claude Code 및 Codex 사용량 | ✅ | Claude 전용 | ✅ |
 | Antigravity(Gemini) 사용량 | ✅ | — | — |
 | Claude Code 및 Codex 서비스 상태 경고 | ✅ | — | — |
