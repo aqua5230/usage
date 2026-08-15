@@ -13,6 +13,7 @@
       --text: rgba(255, 255, 255, 0.94);
       --muted: rgba(255, 255, 255, 0.58);
       --track: rgba(255, 255, 255, 0.07);
+      --tick: rgba(255, 255, 255, 0.30);
       --button: rgba(255, 255, 255, 0.08);
       --button-border: rgba(255, 255, 255, 0.18);
       --button-hover: rgba(255, 255, 255, 0.13);
@@ -23,6 +24,8 @@
       --warn: #ffc439;
       --danger: #ff453a;
       --radius: 8px;
+      /* Numeric readouts use the system mono face; no webfont, panel stays offline. */
+      --mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, monospace;
     }
 
     @media (prefers-color-scheme: light) {
@@ -34,6 +37,7 @@
         --text: rgba(12, 18, 26, 0.9);
         --muted: rgba(12, 18, 26, 0.55);
         --track: rgba(12, 18, 26, 0.06);
+        --tick: rgba(12, 18, 26, 0.26);
         --button: rgba(12, 18, 26, 0.05);
         --button-border: rgba(12, 18, 26, 0.14);
         --button-hover: rgba(12, 18, 26, 0.10);
@@ -109,8 +113,8 @@
       position: absolute;
       inset: 0 auto 0 0;
       width: 3px;
-      background: linear-gradient(180deg, var(--accent), transparent 72%);
-      opacity: 0.72;
+      background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 22%, transparent));
+      box-shadow: 0 0 10px color-mix(in srgb, var(--accent) 45%, transparent);
     }
 
     .brand {
@@ -300,20 +304,27 @@
       font-weight: 800;
       color: var(--accent);
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
 
     .track {
       height: 8px;
       border-radius: 99px;
       overflow: hidden;
-      background: var(--track);
+      /* Tick marks the 80% danger threshold from usage_rate's colorFor(). */
+      background:
+        linear-gradient(90deg,
+          transparent 0 calc(80% - 1px),
+          var(--tick) calc(80% - 1px) 80%,
+          transparent 80%),
+        var(--track);
       box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.18);
     }
 
     .fill {
       width: 0%;
       height: 100%;
-      min-width: 0;
+      min-width: 4px;
       border-radius: inherit;
       background: var(--fill-color, var(--accent));
       background-image: linear-gradient(180deg, color-mix(in srgb, var(--fill-color, var(--accent)) 100%, white 12%), var(--fill-color, var(--accent)));
@@ -329,6 +340,7 @@
       font-weight: 600;
       text-align: right;
       white-space: nowrap;
+      font-variant-numeric: tabular-nums;
     }
 
     .reset[data-warning="true"] {
@@ -342,6 +354,11 @@
 
     .row[data-available="false"] .fill {
       width: 0%;
+    }
+
+    /* min-width keeps a sub-1% bar visible; a genuine 0% must stay empty. */
+    .fill[style*="width: 0%"] {
+      min-width: 0;
     }
 
     .proj-row {
@@ -393,13 +410,19 @@
       font-weight: 700;
       white-space: nowrap;
       text-align: right;
-      min-width: 84px;
+      min-width: 92px;
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
     }
 
     .proj-cost {
       color: color-mix(in srgb, var(--muted) 70%, transparent);
       font-size: 12px;
       white-space: nowrap;
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.3px;
     }
 
     .proj-bar {
@@ -481,6 +504,8 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      font-variant-numeric: tabular-nums;
+      letter-spacing: -0.2px;
     }
 
     .actions {
@@ -506,7 +531,28 @@
 
     .action,
     .switch {
-      transition: filter 80ms ease-out, transform 80ms ease-out;
+      transition:
+        filter 80ms ease-out,
+        transform 80ms ease-out,
+        background 160ms ease-out,
+        background-color 160ms ease-out,
+        border-color 160ms ease-out,
+        color 160ms ease-out;
+    }
+
+    .action:focus-visible,
+    .switch:focus-visible {
+      outline: 2px solid var(--accent, #58d6e6);
+      outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+
+      .action,
+      .switch,
+      .fill {
+        transition: none;
+      }
     }
 
     .action:active,
