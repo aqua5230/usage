@@ -36,6 +36,9 @@ jobs:
       - name: Run file size ceiling check
         run: uv run python scripts/check_file_size.py
 
+      - name: Run panel parity check
+        run: uv run python scripts/check_panel_parity.py
+
       - name: Run pytest
         run: uv run pytest -v
 
