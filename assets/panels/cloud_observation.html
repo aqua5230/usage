@@ -20,7 +20,7 @@
       --warn: #d08b3d;
       --danger: #c76854;
       --tick: rgba(255, 255, 255, 0.42);
-      --shadow: 0 22px 44px rgba(119, 150, 178, 0.18);
+      --shadow: 0 16px 36px rgba(64, 104, 141, 0.28);
     }
 
     * {
@@ -37,7 +37,7 @@
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
       color: var(--text);
-      background: linear-gradient(180deg, #b8d6f0 0%, #d5e7f6 46%, #eaf3fb 100%);
+      background: linear-gradient(180deg, #6aa6d6 0%, #93c0e4 46%, #b6d7ef 100%);
       -webkit-font-smoothing: antialiased;
       text-rendering: optimizeLegibility;
       overscroll-behavior: none;
@@ -53,7 +53,7 @@
 
     body::before {
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.34), transparent 32%, rgba(255, 255, 255, 0.2) 100%);
-      opacity: 0.8;
+      opacity: 0.42;
     }
 
     body::after {
@@ -61,7 +61,7 @@
         radial-gradient(circle at 16% 20%, rgba(255, 255, 255, 0.32), transparent 22%),
         radial-gradient(circle at 78% 12%, rgba(255, 255, 255, 0.22), transparent 18%),
         radial-gradient(circle at 62% 64%, rgba(255, 255, 255, 0.18), transparent 20%);
-      opacity: 0.55;
+      opacity: 0.4;
     }
 
     @keyframes driftA {
@@ -176,11 +176,11 @@
       position: relative;
       overflow: hidden;
       border: 1px solid rgba(255, 255, 255, 0.55);
-      background: linear-gradient(180deg, rgba(255, 255, 255, 0.35), rgba(234, 244, 251, 0.3));
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(234, 244, 251, 0.16));
       box-shadow: var(--shadow);
       border-radius: 24px;
-      backdrop-filter: blur(18px) saturate(1.1);
-      -webkit-backdrop-filter: blur(18px) saturate(1.1);
+      backdrop-filter: blur(9px) saturate(1.15);
+      -webkit-backdrop-filter: blur(9px) saturate(1.15);
     }
 
     .card::before,
