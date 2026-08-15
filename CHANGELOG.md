@@ -5,6 +5,16 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.29] - 2026-08-15
+
+### Changed
+- **usage has a new icon: an ink-brush cat.** The menu bar glyph and the app icon both use it.
+- **The Matrix and Cloud Observation panels let their backgrounds through.** Matrix cards are more translucent, so the falling glyphs read as a moving backdrop instead of a barely visible texture. Cloud Observation's sky is deeper and its cards are lighter, so the drifting clouds pass behind the quota rows rather than washing the whole panel white.
+
+### Fixed
+- **Origami panel reset times are readable again.** The reset line sat on the dark blue folded corner in the same blue as the paper, leaving almost no contrast. It now uses a darker weight with a faint halo, so it reads on any part of the fold — and the second row on the Claude card is no longer clipped by the card's bottom edge.
+- **Update notifications no longer show raw Markdown.** Release notes rendered in the update dialog kept their `**` and `` ` `` markers.
+
 ## [0.29.28] - 2026-08-14
 
 ### Added
