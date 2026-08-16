@@ -109,7 +109,7 @@ The same button also sets up a status line for the Antigravity CLI when it is in
 Once set up, the bottom of the Claude Code window will show a status line like this:
 
 <p align="center">
-  <img src="docs/statusline.en.png" alt="Claude Code statusLine display (English)" width="640">
+  <img src="docs/statusline.en.gif" alt="Claude Code statusLine display (English)" width="640">
 </p>
 
 ## Windows Support
