@@ -339,8 +339,8 @@ def _status_summary(payload: dict[str, Any]) -> str:
             continue
         five_hour = status["five_hour"]["used_percent"]
         seven_day = status["seven_day"]["used_percent"]
-        five_hour_text = "?" if five_hour is None else f"{five_hour}%"
-        seven_day_text = "?" if seven_day is None else f"{seven_day}%"
+        five_hour_text = "?" if five_hour is None else f"{five_hour:.1f}%"
+        seven_day_text = "?" if seven_day is None else f"{seven_day:.1f}%"
         summaries.append(f"{agent_id} 5h={five_hour_text} 7d={seven_day_text}")
     return " | ".join(summaries)
 
