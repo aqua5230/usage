@@ -109,7 +109,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 설정이 완료되면 Claude Code 창 하단에 다음과 같은 상태 줄이 표시됩니다.
 
 <p align="center">
-  <img src="docs/statusline.en.gif" alt="Claude Code 상태 줄 표시(영어)" width="640">
+  <img src="docs/statusline.en.gif" alt="Claude Code 상태 줄 표시(영어)" width="900">
 </p>
 
 ## Windows 지원

@@ -109,7 +109,7 @@ brew install --cask aqua5230/usage/usage
 設定完成後，Claude Code 視窗底部會出現這樣的狀態列：
 
 <p align="center">
-  <img src="docs/statusline.gif" alt="Claude Code statusLine 顯示樣式（繁中）" width="640">
+  <img src="docs/statusline.gif" alt="Claude Code statusLine 顯示樣式（繁中）" width="900">
 </p>
 
 ## Windows 支援
