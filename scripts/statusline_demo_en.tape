@@ -3,8 +3,8 @@
 Output docs/statusline.en.gif
 
 Set Shell bash
-Set FontSize 20
-Set Width 920
+Set FontSize 18
+Set Width 1300
 Set Height 200
 Set Padding 20
 Set TypingSpeed 60ms

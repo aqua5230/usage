@@ -18,11 +18,13 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+_REPO_ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(_REPO_ROOT))
 
 import usage_statusline  # noqa: E402
 
 _PAYLOAD = {
+    "workspace": {"project_dir": str(_REPO_ROOT)},
     "model": {"display_name": "Opus 5"},
     "effort": {"level": "high"},
     "context_window": {
@@ -37,13 +39,14 @@ _PAYLOAD = {
             "output_tokens": 890,
         },
     },
-    "rate_limits": {
-        "five_hour": {"used_percentage": 88},
-        "seven_day": {"used_percentage": 32},
-    },
     "cost": {"total_cost_usd": 12.34, "total_duration_ms": 3_723_000},
 }
 
 if __name__ == "__main__":
     os.environ.setdefault("TT_LANG", "en")
-    print(usage_statusline.render(_PAYLOAD, datetime.now(timezone.utc)))
+    now = datetime.now(timezone.utc)
+    _PAYLOAD["rate_limits"] = {
+        "five_hour": {"used_percentage": 88, "resets_at": now.timestamp() + 4 * 3600 + 23 * 60},
+        "seven_day": {"used_percentage": 32, "resets_at": now.timestamp() + 5 * 86400 + 19 * 3600},
+    }
+    print(usage_statusline.render(_PAYLOAD, now))
