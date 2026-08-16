@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import os
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
@@ -44,7 +44,7 @@ _PAYLOAD = {
 
 if __name__ == "__main__":
     os.environ.setdefault("TT_LANG", "en")
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     _PAYLOAD["rate_limits"] = {
         "five_hour": {"used_percentage": 88, "resets_at": now.timestamp() + 4 * 3600 + 23 * 60},
         "seven_day": {"used_percentage": 32, "resets_at": now.timestamp() + 5 * 86400 + 19 * 3600},

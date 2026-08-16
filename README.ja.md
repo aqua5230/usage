@@ -109,7 +109,7 @@ Codexを使用したことがある場合、`usage` はその履歴を自動で�
 設定が完了すると、Claude Codeウィンドウ下部に次のようなステータスラインが表示されます。
 
 <p align="center">
-  <img src="docs/statusline.en.gif" alt="Claude Codeのステータスライン表示（英語）" width="900">
+  <img src="docs/statusline.ja.gif" alt="Claude Codeのステータスライン表示（日本語）" width="900">
 </p>
 
 ## Windows対応
