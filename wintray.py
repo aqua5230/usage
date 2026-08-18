@@ -54,6 +54,7 @@ from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
 from statusline_settings import _statusline_enabled, _toggle_statusline_settings
+from update_release_notes import format_release_notes
 from usage_client import ClaudeUsageClient, PollState
 from usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
@@ -563,17 +564,25 @@ def _set_taskbar_progress(
 
 def build_tooltip(state: menubar_state.PopoverState) -> str:
     def line(name: str, row: menubar_state.QuotaRowState) -> str:
-        remaining = "--" if row.percent is None else str(max(0, round(100 - row.percent)))
-        return f"{name} {row.title}: {remaining}%"
-
-    return "\n".join(
-        (
-            line("Claude", state.claude_session),
-            line("Claude", state.claude_weekly),
-            f"{line('Codex', state.codex_session)} · "
-            f"{line('Codex', state.codex_weekly).removeprefix('Codex ')}",
+        used = (
+            "--"
+            if row.percent is None
+            else str(min(100, max(0, round(row.percent))))
         )
-    )
+        return f"{name} {row.title}: {used}%"
+
+    lines = [
+        f"{line('Claude', state.claude_session)} · "
+        f"{line('Claude', state.claude_weekly).removeprefix('Claude ')}",
+        f"{line('Codex', state.codex_session)} · "
+        f"{line('Codex', state.codex_weekly).removeprefix('Codex ')}",
+    ]
+    if not state.hide_agy:
+        lines.append(
+            f"{line('Antigravity', state.agy_session)} · "
+            f"{line('Antigravity', state.agy_weekly).removeprefix('Antigravity ')}"
+        )
+    return "\n".join(lines)
 
 
 def draw_tray_icon(used_percent: float | None) -> Image:
@@ -1650,9 +1659,8 @@ class _WindowsTrayController:
 
     def _show_update_alert(self, release: update_checker.ReleaseInfo) -> None:
         title = _t(self.language, "update_alert_title", version=release.version)
-        result = self._message_box(
-            f"{title}\n\n{release.body[:UPDATE_ALERT_BODY_LIMIT]}", style=0x44
-        )
+        body = format_release_notes(release.body, UPDATE_ALERT_BODY_LIMIT)
+        result = self._message_box(f"{title}\n\n{body}", style=0x44)
         action, preference_updates = update_gate.resolve_alert_choice(
             1000 if result == 6 else 1001,
             release.version,
