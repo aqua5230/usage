@@ -9,6 +9,7 @@ import threading
 import time
 from collections.abc import Callable
 from contextlib import suppress
+from dataclasses import replace
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
@@ -206,10 +207,28 @@ def test_draw_tray_icon_and_tooltip(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert icon_image.size == (64, 64)
     assert wintray.build_tooltip(_state()).splitlines() == [
-        "Claude Session: 75%",
-        "Claude Weekly: 40%",
-        "Codex Session: 75% · Weekly: 40%",
+        "Claude Session: 25%",
+        "Claude Weekly: 60%",
+        "Codex Session: 25% · Weekly: 60%",
     ]
+
+
+def test_build_tooltip_includes_antigravity_when_visible() -> None:
+    base_state = _state()
+    state = replace(
+        base_state,
+        hide_agy=False,
+        agy_session=replace(base_state.agy_session, percent=25.0),
+        agy_weekly=replace(base_state.agy_weekly, percent=60.0),
+    )
+
+    assert wintray.build_tooltip(state).splitlines() == [
+        "Claude Session: 25%",
+        "Claude Weekly: 60%",
+        "Codex Session: 25% · Weekly: 60%",
+        "Antigravity Session: 25% · Weekly: 60%",
+    ]
+    assert "Antigravity" not in wintray.build_tooltip(_state())
 
 
 def test_windows_panels_exclude_talent_market() -> None:

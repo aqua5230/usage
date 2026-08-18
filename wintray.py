@@ -563,17 +563,25 @@ def _set_taskbar_progress(
 
 def build_tooltip(state: menubar_state.PopoverState) -> str:
     def line(name: str, row: menubar_state.QuotaRowState) -> str:
-        remaining = "--" if row.percent is None else str(max(0, round(100 - row.percent)))
-        return f"{name} {row.title}: {remaining}%"
-
-    return "\n".join(
-        (
-            line("Claude", state.claude_session),
-            line("Claude", state.claude_weekly),
-            f"{line('Codex', state.codex_session)} · "
-            f"{line('Codex', state.codex_weekly).removeprefix('Codex ')}",
+        used = (
+            "--"
+            if row.percent is None
+            else str(min(100, max(0, round(row.percent))))
         )
-    )
+        return f"{name} {row.title}: {used}%"
+
+    lines = [
+        line("Claude", state.claude_session),
+        line("Claude", state.claude_weekly),
+        f"{line('Codex', state.codex_session)} · "
+        f"{line('Codex', state.codex_weekly).removeprefix('Codex ')}",
+    ]
+    if not state.hide_agy:
+        lines.append(
+            f"{line('Antigravity', state.agy_session)} · "
+            f"{line('Antigravity', state.agy_weekly).removeprefix('Antigravity ')}"
+        )
+    return "\n".join(lines)
 
 
 def draw_tray_icon(used_percent: float | None) -> Image:
