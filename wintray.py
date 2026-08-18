@@ -54,6 +54,7 @@ from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
 from statusline_settings import _statusline_enabled, _toggle_statusline_settings
+from update_release_notes import format_release_notes
 from usage_client import ClaudeUsageClient, PollState
 from usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
@@ -1650,9 +1651,8 @@ class _WindowsTrayController:
 
     def _show_update_alert(self, release: update_checker.ReleaseInfo) -> None:
         title = _t(self.language, "update_alert_title", version=release.version)
-        result = self._message_box(
-            f"{title}\n\n{release.body[:UPDATE_ALERT_BODY_LIMIT]}", style=0x44
-        )
+        body = format_release_notes(release.body, UPDATE_ALERT_BODY_LIMIT)
+        result = self._message_box(f"{title}\n\n{body}", style=0x44)
         action, preference_updates = update_gate.resolve_alert_choice(
             1000 if result == 6 else 1001,
             release.version,
