@@ -5,6 +5,20 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.31] - 2026-08-18
+
+### Fixed
+- **`usage status` no longer prints floating-point noise in percentages.** Session and weekly percentages were interpolated straight into the string, so a value like 42.30000000000001 could appear instead of 42.3. Both are now formatted to one decimal place.
+- **The Windows tray tooltip shows the same numbers as the panel, and no longer omits Antigravity.** It displayed *remaining* percent (100 minus used) while every panel shows *used* percent; the tooltip now matches, and adds its own Antigravity line when that card isn't hidden. The Claude line was also reformatted to match Codex and Antigravity's single-line "Session · Weekly" layout.
+- **Windows update notifications no longer show raw Markdown.** The GitHub Release body's `##`, `**`, and `` ` `` markers rendered literally in the update dialog; macOS fixed this in 0.29.28 but the fix never reached Windows. Both platforms now share the same formatter.
+- **The public website's mobile navigation and shareable anchors are fixed.** Below 640px the navigation disappeared entirely — a labeled Sections menu now expands in its place. Switching language no longer overwrites a shared anchor like `#install` with `#<lang>`, so links copied before a language switch keep working. Footer text now meets AA contrast, images lazy-load, and tap targets are at least 24px (44px in the main mobile nav).
+- **The website's theme count was corrected from 12 to 13** — Catppuccin, shipped in 0.29.23, wasn't being counted — across all five languages.
+
+### Changed
+- **The social preview image reflects Windows support and reuses the site's own visuals.** It used to say "macOS Menu Bar App"; the new 1200×630 image pairs the brand and title with an actual panel screenshot (Claude, Codex, Antigravity) in the site's own colors, and dropped from 573KB to 96KB.
+- **README status-line screenshots are now recorded animations**, one per language instead of borrowed from English, made legible at README width.
+- **Status-line setup is now its own README section** instead of a subsection buried under Windows Support, so macOS users don't skip it, with terminology filled in for both platforms and Traditional Chinese.
+
 ## [0.29.30] - 2026-08-15
 
 ### Added
