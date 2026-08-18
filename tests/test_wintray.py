@@ -1818,6 +1818,30 @@ def test_manual_update_check_bypasses_gates_and_keeps_windows_yes_no_prompt(
     assert opened == [release.html_url]
 
 
+def test_update_alert_strips_markdown_from_release_notes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    release = update_checker.ReleaseInfo(
+        version="99.0.0",
+        html_url="https://github.com/aqua5230/usage/releases/tag/v99.0.0",
+        body="### Added\n- **Faster** startup via `usage status`.",
+    )
+    messages: list[tuple[str, int]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    monkeypatch.setattr(controller, "_message_box", lambda text, **kw: messages.append(
+        (text, kw.get("style", 0x40))
+    ) or 6)
+    monkeypatch.setattr("wintray.update_gate.resolve_alert_choice", lambda *a: ("dismiss", {}))
+
+    controller._show_update_alert(release)
+
+    assert messages == [
+        ("New Version 99.0.0 Available\n\nAdded\n\n• Faster startup via usage status.", 0x44)
+    ]
+    assert not any(marker in messages[0][0] for marker in ("#", "**", "`"))
+
+
 def test_session_hook_toggles_run_in_background_helpers(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
