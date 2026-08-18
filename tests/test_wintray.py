@@ -207,8 +207,7 @@ def test_draw_tray_icon_and_tooltip(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert icon_image.size == (64, 64)
     assert wintray.build_tooltip(_state()).splitlines() == [
-        "Claude Session: 25%",
-        "Claude Weekly: 60%",
+        "Claude Session: 25% · Weekly: 60%",
         "Codex Session: 25% · Weekly: 60%",
     ]
 
@@ -223,8 +222,7 @@ def test_build_tooltip_includes_antigravity_when_visible() -> None:
     )
 
     assert wintray.build_tooltip(state).splitlines() == [
-        "Claude Session: 25%",
-        "Claude Weekly: 60%",
+        "Claude Session: 25% · Weekly: 60%",
         "Codex Session: 25% · Weekly: 60%",
         "Antigravity Session: 25% · Weekly: 60%",
     ]

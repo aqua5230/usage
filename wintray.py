@@ -572,8 +572,8 @@ def build_tooltip(state: menubar_state.PopoverState) -> str:
         return f"{name} {row.title}: {used}%"
 
     lines = [
-        line("Claude", state.claude_session),
-        line("Claude", state.claude_weekly),
+        f"{line('Claude', state.claude_session)} · "
+        f"{line('Claude', state.claude_weekly).removeprefix('Claude ')}",
         f"{line('Codex', state.codex_session)} · "
         f"{line('Codex', state.codex_weekly).removeprefix('Codex ')}",
     ]
