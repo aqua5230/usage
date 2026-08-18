@@ -1827,9 +1827,11 @@ def test_update_alert_strips_markdown_from_release_notes(
     messages: list[tuple[str, int]] = []
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.language = "en"
-    monkeypatch.setattr(controller, "_message_box", lambda text, **kw: messages.append(
-        (text, kw.get("style", 0x40))
-    ) or 6)
+    def message_box(text: str, *, style: int = 0x40) -> int:
+        messages.append((text, style))
+        return 6
+
+    monkeypatch.setattr(controller, "_message_box", message_box)
     monkeypatch.setattr("wintray.update_gate.resolve_alert_choice", lambda *a: ("dismiss", {}))
 
     controller._show_update_alert(release)
