@@ -1095,8 +1095,9 @@ def test_import_attachment_file_copies_supported_rejects_others(
     assert copied.is_file()
     assert copied.parent == directory
     assert copied.read_bytes() == b"png"
-    assert copied.stat().st_mode & 0o777 == 0o600
-    assert directory.stat().st_mode & 0o777 == 0o700
+    if sys.platform != "win32":  # POSIX file modes; Windows chmod only flips read-only
+        assert copied.stat().st_mode & 0o777 == 0o600
+        assert directory.stat().st_mode & 0o777 == 0o700
 
     assert (
         discussion_window.import_attachment_file(str(unsupported), directory=directory)
