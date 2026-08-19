@@ -5,6 +5,23 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.32] - 2026-08-20
+
+### Security
+- **The "mask project names" option now applies to the entire shared file.** An exported HTML report previously still carried the unmasked dataset alongside the masked one, so masking hid the names on screen without removing them from the file. The unmasked copy is now dropped from the export. If you shared a masked report from an earlier version, treat those files as unmasked.
+- **The donut legend and project-naming insights are covered by the mask as well.** Both previously kept showing real project names; insights now read `Project N`, matching the numbering already used by the project table.
+- **Local files are created with owner-only permissions.** Attachments, exported reports and logs under `~/.usage/`, `~/.usage-reports/` and `~/Library/Logs/usage/` were created with permissions that allowed other local accounts on the same machine to read them. New files are now `0600` and their directories `0700`. Attachment import no longer copies the source file's permissions along with the file.
+- **The quarantine directory is created with an explicit mode.** Files moved into it already kept owner-only permissions; the directory itself did not.
+
+Upgrading does not change permissions on files already on disk. To tighten existing ones:
+
+```
+chmod -R go-rwx ~/.usage ~/.usage-reports ~/Library/Logs/usage
+```
+
+### Fixed
+- **An oversized line in a JSONL history file no longer exhausts memory.** Lines are read against a 64 MiB ceiling, set from a measured 23 MB real-world maximum, and skipped cleanly when they exceed it. Deeply nested JSON that raises `RecursionError` is treated as an invalid line.
+
 ## [0.29.31] - 2026-08-18
 
 ### Fixed
