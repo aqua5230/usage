@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import logging
+import sys
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -55,7 +56,8 @@ def test_parse_debug_flags_is_case_insensitive() -> None:
 def test_setup_logging_rotates_files(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, isolated_root_logger: logging.Logger
 ) -> None:
-    monkeypatch.setattr(usage_logging, "LOG_DIR", tmp_path)
+    log_dir = tmp_path / "logs"
+    monkeypatch.setattr(usage_logging, "LOG_DIR", log_dir)
     monkeypatch.setattr(usage_logging, "MAX_BYTES", 128)
     monkeypatch.setenv("USAGE_DEBUG", "1")
 
@@ -66,9 +68,13 @@ def test_setup_logging_rotates_files(
     for handler in isolated_root_logger.handlers:
         handler.flush()
 
-    backups = list(tmp_path.glob(f"{usage_logging.LOG_FILENAME}.*"))
+    backups = list(log_dir.glob(f"{usage_logging.LOG_FILENAME}.*"))
     assert backups
     assert len(backups) <= usage_logging.BACKUP_COUNT
+    if sys.platform != "win32":  # POSIX file modes; Windows chmod only toggles the read-only bit
+        assert log_dir.stat().st_mode & 0o777 == 0o700
+        assert (log_dir / usage_logging.LOG_FILENAME).stat().st_mode & 0o777 == 0o600
+        assert all(backup.stat().st_mode & 0o777 == 0o600 for backup in backups)
 
 
 def test_setup_logging_keeps_console_when_directory_creation_fails(

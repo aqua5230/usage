@@ -524,23 +524,29 @@ def _render_tools_section(data: Mapping[str, Any], lang: str) -> str:
     return _section(_t(lang, "tools_section"), tools_body, "tools-section")
 
 
-def _render_insight_note(component: dict[str, Any], lang: str) -> str:
+def _render_insight_note(
+    component: dict[str, Any], lang: str, mask_labels: Mapping[str, str]
+) -> str:
     return (
         '<div class="insight-note">'
-        f'{_t(lang, component["key"], **_insight_kwargs(component))}'
+        f'{_t(lang, component["key"], **_insight_kwargs(component, mask_labels))}'
         '</div>'
     )
 
 
-def _render_insight_action(component: dict[str, Any], lang: str) -> str:
+def _render_insight_action(
+    component: dict[str, Any], lang: str, mask_labels: Mapping[str, str]
+) -> str:
     return (
         '<div class="insight-action">'
-        f'{_t(lang, component["key"], **_insight_kwargs(component))}'
+        f'{_t(lang, component["key"], **_insight_kwargs(component, mask_labels))}'
         '</div>'
     )
 
 
-def _insight_kwargs(component: dict[str, Any]) -> dict[str, object]:
+def _insight_kwargs(
+    component: dict[str, Any], mask_labels: Mapping[str, str]
+) -> dict[str, object]:
     kwargs: dict[str, object] = {}
     for key, value in component.items():
         if key in {"key", "type", "direction", "delta_pct"}:
@@ -549,7 +555,13 @@ def _insight_kwargs(component: dict[str, Any]) -> dict[str, object]:
             kwargs[key] = _fmt_tokens(int(value))
         elif key == "cost_usd":
             kwargs[key] = _fmt_cost(float(value))
-        elif key in {"project", "model", "date"}:
+        elif key == "project":
+            kwargs[key] = (
+                f'<span class="insight-project" '
+                f'data-mask-as="{_escape(mask_labels.get(str(value), "Project"))}">'
+                f"{_escape(value)}</span>"
+            )
+        elif key in {"model", "date"}:
             kwargs[key] = _escape(value)
         else:
             kwargs[key] = value
@@ -560,6 +572,10 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
     from analyzer.insights import build_insights
 
     components = build_insights(dict(data))
+    mask_labels = {
+        str(project["project"]): f"Project {index}"
+        for index, project in enumerate(data.get("by_project", []), start=1)
+    }
     quiet = f'<div class="insight-note">{_t(lang, "insights_quiet")}</div>'
     if not components:
         return _section(_t(lang, "insights_section"), quiet, "insights-section")
@@ -572,7 +588,7 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
         "action": _render_insight_action,
     }
     body = "".join(
-        renderer(component, lang)
+        renderer(component, lang, mask_labels)
         for component in components
         if (renderer := renderers.get(str(component.get("type")))) is not None
     )
@@ -831,16 +847,10 @@ def _render_styles() -> str:
     return REPORT_CSS
 
 
-def _render_scripts(share_config_json: str, csv_data_json: str, masked_csv_data_json: str) -> str:
+def _render_scripts(share_config_json: str) -> str:
     return f"{HTML_TO_IMAGE_UMD}\n" + REPORT_JS_TEMPLATE.replace(
         "__SHARE_CONFIG_JSON__",
         share_config_json,
-    ).replace(
-        "__CSV_DATA_JSON__",
-        csv_data_json,
-    ).replace(
-        "__MASKED_CSV_DATA_JSON__",
-        masked_csv_data_json,
     )
 
 
@@ -879,8 +889,10 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
   {_render_session_section(report_data, lang)}
   {_render_sponsor_section(lang)}
 </main>
+<script type="application/json" id="usage-csv-data">{csv_data_json}</script>
+<script type="application/json" id="usage-masked-csv-data">{masked_csv_data_json}</script>
 <script>
-{_render_scripts(share_config_json, csv_data_json, masked_csv_data_json)}
+{_render_scripts(share_config_json)}
 </script>
 </body>
 </html>
@@ -897,11 +909,12 @@ def save_and_open(
         display_path = str(path.expanduser())
     else:
         reports_dir = Path.home() / ".usage-reports"
-        reports_dir.mkdir(parents=True, exist_ok=True)
+        reports_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
         path = reports_dir / f"usage-report-{datetime.now().strftime('%Y%m%d-%H%M%S')}.html"
         display_path = f"~/.usage-reports/{path.name}"
-    path.parent.mkdir(parents=True, exist_ok=True)
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     path.write_text(generate_html(data, language=language), encoding="utf-8")
+    path.chmod(0o600)
     if out_path is None:
         if sys.platform == "darwin":
             subprocess.run(["/usr/bin/open", str(path.resolve())], check=False)

@@ -59,6 +59,7 @@ from disk_cache_lifecycle import (
     flush_caches_on_terminate as _flush_caches_on_terminate,
 )
 from history_loader import UsageEntry
+from jsonl_limits import read_bounded_jsonl_line
 from project_resolver import resolve_project_name
 from time_utils import parse_optional_iso8601_utc
 
@@ -354,9 +355,15 @@ def _session_total_tokens(entries: list[UsageEntry]) -> int:
 
 def _read_session_file_info_uncached(path: Path) -> _SessionFileInfo:
     try:
-        with path.open(encoding="utf-8") as file:
-            for line in file:
-                data = _load_json_line(line)
+        with path.open("rb") as file:
+            while True:
+                raw_line, too_long = read_bounded_jsonl_line(file)
+                if too_long:
+                    logger.warning("skipping oversized JSONL line in codex session %s", path)
+                    continue
+                if not raw_line:
+                    break
+                data = _load_json_line(raw_line.decode("utf-8"))
                 if data is None or data.get("type") != "session_meta":
                     continue
                 payload = _as_dict(data.get("payload"))
@@ -931,9 +938,15 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
     session_model = "unknown"
     last_rate_limits: tuple[dict[str, Any], str] | None = None
     try:
-        with path.open(encoding="utf-8") as file:
-            for line in file:
-                data = _load_json_line(line)
+        with path.open("rb") as file:
+            while True:
+                raw_line, too_long = read_bounded_jsonl_line(file)
+                if too_long:
+                    logger.warning("skipping oversized JSONL line in codex session %s", path)
+                    continue
+                if not raw_line:
+                    break
+                data = _load_json_line(raw_line.decode("utf-8"))
                 if data is None:
                     continue
                 if data.get("type") == "session_meta":
@@ -1107,7 +1120,11 @@ def _parse_linear_jsonl_bytes(
 ) -> int:
     while True:
         line_start = int(file.tell())
-        line = file.readline()
+        line, too_long = read_bounded_jsonl_line(file)
+        if too_long:
+            logger.warning("skipping oversized JSONL line in codex session %s", session_id)
+            confirmed_offset = int(file.tell())
+            continue
         if not line:
             return confirmed_offset
         data = _load_json_line(line.decode("utf-8", errors="replace"))
@@ -1297,9 +1314,17 @@ def _parse_jsonl(
     previous_usage: _TokenUsage | None = None
     token_count_index = 0
     try:
-        with path.open(encoding="utf-8") as file:
-            for line_number, line in enumerate(file, start=1):
-                data = _load_json_line(line)
+        with path.open("rb") as file:
+            line_number = 0
+            while True:
+                raw_line, too_long = read_bounded_jsonl_line(file)
+                if not raw_line and not too_long:
+                    break
+                line_number += 1
+                if too_long:
+                    logger.warning("skipping oversized JSONL line in codex session %s", path)
+                    continue
+                data = _load_json_line(raw_line.decode("utf-8"))
                 if data is None:
                     continue
                 if data.get("type") == "session_meta":

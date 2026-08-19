@@ -1074,6 +1074,9 @@ def test_save_attachment_bytes_writes_timestamped_names_and_prunes(
 
     assert first.is_file() and second.is_file()
     assert first.parent == directory
+    if sys.platform != "win32":  # POSIX file modes; Windows chmod only toggles the read-only bit
+        assert first.stat().st_mode & 0o777 == 0o600
+        assert directory.stat().st_mode & 0o777 == 0o700
     assert re.fullmatch(r"\d{8}-\d{6}-\d+\.png", first.name)
     assert second != first
 
@@ -1092,6 +1095,8 @@ def test_import_attachment_file_copies_supported_rejects_others(
     assert copied.is_file()
     assert copied.parent == directory
     assert copied.read_bytes() == b"png"
+    assert copied.stat().st_mode & 0o777 == 0o600
+    assert directory.stat().st_mode & 0o777 == 0o700
 
     assert (
         discussion_window.import_attachment_file(str(unsupported), directory=directory)

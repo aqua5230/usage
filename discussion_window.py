@@ -69,9 +69,10 @@ def save_attachment_bytes(
     directory: Path = ATTACHMENTS_DIR,
 ) -> Path:
     """Persist raw image bytes under the managed directory and prune old files."""
-    directory.mkdir(parents=True, exist_ok=True)
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     target = _next_attachment_path(suffix, directory)
     target.write_bytes(data)
+    target.chmod(0o600)
     prune_attachments(directory=directory)
     return target
 
@@ -84,9 +85,10 @@ def import_attachment_file(
     path = Path(src)
     if not path.is_file() or path.suffix.lower() not in ATTACHMENT_SUFFIXES:
         return None
-    directory.mkdir(parents=True, exist_ok=True)
+    directory.mkdir(mode=0o700, parents=True, exist_ok=True)
     target = _next_attachment_path(path.suffix.lower(), directory)
-    shutil.copy2(path, target)
+    shutil.copy(path, target)
+    target.chmod(0o600)
     prune_attachments(directory=directory)
     return target
 

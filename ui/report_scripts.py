@@ -1,7 +1,4 @@
-"""JS template for the HTML usage report.
-
-The three placeholders below are replaced by html_report._render_scripts.
-"""
+"""JS template for the HTML usage report."""
 
 HTML_TO_IMAGE_UMD = (
     "/* html-to-image v1.11.13 | MIT License | vendored from a local file. */\n"
@@ -9,8 +6,9 @@ HTML_TO_IMAGE_UMD = (
 )
 
 REPORT_JS_TEMPLATE = """const shareConfig = __SHARE_CONFIG_JSON__;
-const csvData = __CSV_DATA_JSON__;
-const maskedCsvData = __MASKED_CSV_DATA_JSON__;
+const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
+const csvDataNode = document.querySelector('#usage-csv-data');
+const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
 const reportRoot = document.querySelector('.wrap');
 const shareDialog = document.querySelector('[data-share-dialog]');
 const shareFileMask = document.querySelector('[data-share-file-mask]');
@@ -150,10 +148,23 @@ async function withShareableReport(maskProjects, callback) {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
+    document.querySelectorAll('.project-section .lg-name').forEach((el, i) => {
+      restores.push({el, original: el.textContent});
+      el.textContent = `Project ${i + 1}`;
+    });
+    document.querySelectorAll('[data-mask-as]').forEach((el) => {
+      restores.push({el, original: el.textContent});
+      el.textContent = el.getAttribute('data-mask-as');
+    });
     document.querySelectorAll('[data-mask]').forEach((el) => {
       restores.push({el, original: el.textContent});
       el.textContent = '—';
     });
+    const csvDataNode = document.querySelector('#usage-csv-data');
+    if (csvDataNode) {
+      detached.push({el: csvDataNode, parent: csvDataNode.parentNode, next: csvDataNode.nextSibling});
+      csvDataNode.remove();
+    }
   }
   document.querySelectorAll('[data-share-dialog], [data-share-open]').forEach((el) => {
     detached.push({el, parent: el.parentNode, next: el.nextSibling});

@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+import jsonl_limits
 from jsonl_utils import iter_jsonl_dicts
 
 
@@ -59,3 +60,24 @@ def test_iter_jsonl_dicts_raises_for_invalid_utf8_by_default(tmp_path: Path) -> 
 
     with pytest.raises(UnicodeDecodeError):
         list(iter_jsonl_dicts(path))
+
+
+def test_iter_jsonl_dicts_skips_oversized_line_and_continues(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    path = tmp_path / "records.jsonl"
+    path.write_bytes(b"x" * 1_025 + b"\n{\"kept\": true}\n")
+    monkeypatch.setattr(jsonl_limits, "MAX_JSONL_LINE_BYTES", 1_024)
+
+    assert list(iter_jsonl_dicts(path)) == [{"kept": True}]
+    assert "oversized JSONL line" in caplog.text
+
+
+def test_iter_jsonl_dicts_skips_recursively_nested_lines(tmp_path: Path) -> None:
+    path = tmp_path / "records.jsonl"
+    nested = "{" * 2_000 + "0" + "}" * 2_000
+    path.write_bytes(nested.encode() + b"\n{\"kept\": true}\n")
+
+    assert list(iter_jsonl_dicts(path)) == [{"kept": True}]

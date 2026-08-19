@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -25,6 +26,8 @@ def test_quarantine_moves_a_cache_file(
     backup = quarantine_dir / "cache.json.1754132400123.bak"
     assert not source.exists()
     assert backup.read_text(encoding="utf-8") == "broken"
+    if sys.platform != "win32":  # POSIX file modes; Windows chmod only toggles the read-only bit
+        assert quarantine_dir.stat().st_mode & 0o777 == 0o700
 
 
 def test_quarantine_skips_files_larger_than_five_megabytes(

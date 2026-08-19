@@ -68,7 +68,7 @@ def _token_usage_from_payload(usage: dict[str, Any]) -> _TokenUsage:
 def _load_json_line(line: str) -> dict[str, Any] | None:
     try:
         data = json.loads(line)
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, RecursionError):
         return None
     return data if isinstance(data, dict) else None
 

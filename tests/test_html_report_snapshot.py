@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import base64
+import re
+import sys
 from datetime import UTC, datetime, tzinfo
 from pathlib import Path
 from typing import Any
@@ -376,6 +378,53 @@ def test_generate_html_contains_snake_easter_egg() -> None:
     assert "snake-body" in html
     assert ".contribution-section .prompt" in html
     assert "snakeClickTimes" in html
+
+
+def test_masked_html_export_removes_unmasked_csv_data() -> None:
+    data = _full_report_data()
+    html = html_report.generate_html(data, language="en")
+    unmasked_node = html.split('<script type="application/json" id="usage-csv-data">', 1)[1]
+    unmasked_data, remainder = unmasked_node.split("</script>", 1)
+    masked_data = remainder.split(
+        '<script type="application/json" id="usage-masked-csv-data">', 1
+    )[1].split("</script>", 1)[0]
+
+    assert "project,usage" in unmasked_data
+    assert "project,usage" not in masked_data
+    assert (
+        "const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;"
+        in html
+    )
+    assert "csvDataNode.remove();" in html
+
+
+def test_insight_naming_a_project_masks_only_the_name() -> None:
+    """A project-naming insight keeps its sentence; only the name is swapped."""
+    sentinel = "Zzz-Sentinel-Project"
+    data = _full_report_data()
+    data["by_project"][0]["project"] = sentinel
+    html = html_report.generate_html(data, language="en")
+
+    spans = re.findall(
+        r'<span class="insight-project" data-mask-as="([^"]*)">([^<]*)</span>', html
+    )
+    assert spans, "expected the project name to be wrapped for masking"
+    assert all(name == sentinel for _, name in spans)
+    # by_project[0] -> Project 1, matching the project table and donut legend.
+    assert all(label == "Project 1" for label, _ in spans)
+
+    notes = re.findall(r'<div class="insight-note">(.*?)</div>', html, re.S)
+    assert any("insight-project" not in note for note in notes), (
+        "masking must be selective, not applied to every insight"
+    )
+
+def test_save_and_open_sets_private_permissions_for_custom_path(tmp_path: Path) -> None:
+    path = tmp_path / "reports" / "report.html"
+
+    assert html_report.save_and_open(_empty_report_data(), out_path=str(path)) == str(path)
+    if sys.platform != "win32":  # POSIX file modes; Windows chmod only flips read-only
+        assert path.stat().st_mode & 0o777 == 0o600
+        assert path.parent.stat().st_mode & 0o777 == 0o700
 
 
 def test_sprite_data_uri_reads_py2app_resourcepath_layout(

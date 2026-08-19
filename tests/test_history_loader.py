@@ -64,6 +64,31 @@ def test_history_cache_terminate_flush_is_best_effort(monkeypatch: pytest.Monkey
     assert history_loader._disk_cache_dirty is True
 
 
+def test_load_entries_skips_oversized_line_and_continues(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    path = tmp_path / "history.jsonl"
+    path.write_bytes(b"x" * 1_025 + b"\n" + _line().encode())
+    monkeypatch.setattr("jsonl_limits.MAX_JSONL_LINE_BYTES", 1_024)
+
+    entries = history_loader.load_entries(jsonl_paths=[path])
+
+    assert [entry.message_id for entry in entries] == ["message"]
+    assert "oversized JSONL line" in caplog.text
+
+
+def test_load_entries_skips_recursively_nested_lines(tmp_path: Path) -> None:
+    path = tmp_path / "history.jsonl"
+    nested = "{" * 2_000 + "0" + "}" * 2_000
+    path.write_bytes(nested.encode() + b"\n" + _line().encode())
+
+    entries = history_loader.load_entries(jsonl_paths=[path])
+
+    assert [entry.message_id for entry in entries] == ["message"]
+
+
 def _line(
     *,
     timestamp: str | None = "2026-01-01T00:00:00Z",

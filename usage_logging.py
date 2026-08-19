@@ -8,6 +8,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import os
 import sys
@@ -27,6 +28,16 @@ BACKUP_COUNT = 3
 LOG_FORMAT = "%(asctime)s %(name)s %(levelname)s: %(message)s"
 DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
 _GLOBAL_DEBUG_FLAGS = {"1", "all", "*"}
+
+
+class _PrivateRotatingFileHandler(RotatingFileHandler):
+    """Keep the active log private when creation and rotation open a new file."""
+
+    def _open(self):  # type: ignore[no-untyped-def]
+        stream = super()._open()
+        with contextlib.suppress(OSError):
+            os.chmod(self.baseFilename, 0o600)
+        return stream
 
 
 def parse_debug_flags(raw: str | None) -> tuple[bool, list[str]]:
@@ -49,8 +60,8 @@ def setup_logging() -> None:
         logging.getLogger(name).setLevel(logging.DEBUG)
 
     try:
-        LOG_DIR.mkdir(parents=True, exist_ok=True)
-        file_handler = RotatingFileHandler(
+        LOG_DIR.mkdir(mode=0o700, parents=True, exist_ok=True)
+        file_handler = _PrivateRotatingFileHandler(
             LOG_DIR / LOG_FILENAME,
             maxBytes=MAX_BYTES,
             backupCount=BACKUP_COUNT,

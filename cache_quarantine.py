@@ -29,7 +29,7 @@ def quarantine(path: Path, reason: str) -> None:
             return
 
         quarantine_dir = QUARANTINE_DIR
-        quarantine_dir.mkdir(parents=True, exist_ok=True)
+        quarantine_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
         timestamp_ms = time.time_ns() // 1_000_000
         backup_path = quarantine_dir / f"{path.name}.{timestamp_ms}.bak"
         try:
