@@ -182,6 +182,7 @@ class CodexRateLimits:
     has_credits: bool = False
     credit_balance: str | None = None
     credits_unlimited: bool = False
+    limit_id: str = ""
 
 
 def _seed_caches_from_disk() -> None:
@@ -423,11 +424,16 @@ def _load_jsonl_rate_limits(
         return None
     models = _load_thread_models()
     # scan 30 recent sessions because short/interrupted Codex sessions write null rate_limits
+    fallback: CodexRateLimits | None = None
     for path in _recent_jsonl_files(jsonl_candidates=jsonl_candidates):
         rate_limits = _extract_rate_limits(path, models)
-        if rate_limits is not None:
+        if rate_limits is None:
+            continue
+        if rate_limits.limit_id == "codex":
             return rate_limits
-    return None
+        if fallback is None:
+            fallback = rate_limits
+    return fallback
 
 
 def _rate_limits_timestamp(rate_limits: CodexRateLimits) -> datetime:
@@ -476,6 +482,7 @@ def _merge_rate_limits(
         has_credits=newer.has_credits,
         credit_balance=newer.credit_balance,
         credits_unlimited=newer.credits_unlimited,
+        limit_id=jsonl_limits.limit_id or sqlite_limits.limit_id,
     )
 
 
@@ -937,6 +944,7 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
     session_id = ""
     session_model = "unknown"
     last_rate_limits: tuple[dict[str, Any], str] | None = None
+    last_general_rate_limits: tuple[dict[str, Any], str] | None = None
     try:
         with path.open("rb") as file:
             while True:
@@ -964,9 +972,12 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
                 rate_limits = _as_dict(payload.get("rate_limits"))
                 if rate_limits:
                     last_rate_limits = (rate_limits, _as_str(data.get("timestamp")))
+                    if rate_limits.get("limit_id") == "codex":
+                        last_general_rate_limits = last_rate_limits
     except (OSError, UnicodeDecodeError) as exc:
         logger.warning("failed to read codex session %s: %s", path, exc)
         return None
+    last_rate_limits = last_general_rate_limits or last_rate_limits
     if last_rate_limits is None:
         return None
     rate_limits, updated_at = last_rate_limits
@@ -1010,6 +1021,7 @@ def _extract_rate_limits(path: Path, models: dict[str, str]) -> CodexRateLimits 
         has_credits=credits.get("has_credits") is True,
         credit_balance=_as_str(credits.get("balance")) or None,
         credits_unlimited=credits.get("unlimited") is True,
+        limit_id=_as_str(rate_limits.get("limit_id")),
     )
 
 

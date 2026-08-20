@@ -109,7 +109,13 @@ def _state_payload(
         if row.title
     }
     project_payloads = []
-    for rows in (state.projects, state.projects_7d, state.projects_30d, state.projects_all):
+    for rows in (
+        state.projects,
+        state.projects_yesterday,
+        state.projects_7d,
+        state.projects_30d,
+        state.projects_all,
+    ):
         project_payloads.append(
             [
                 {
@@ -139,9 +145,10 @@ def _state_payload(
             "stale": state.agy_stale,
         },
         "projects": project_payloads[0],
-        "projects7d": project_payloads[1],
-        "projects30d": project_payloads[2],
-        "projectsAll": project_payloads[3],
+        "projectsYesterday": project_payloads[1],
+        "projects7d": project_payloads[2],
+        "projects30d": project_payloads[3],
+        "projectsAll": project_payloads[4],
         "hideClaude": state.hide_claude,
         "hideCodex": state.hide_codex,
         "hideAgy": state.hide_agy,
@@ -153,6 +160,7 @@ def _state_payload(
             "rate": state.rate_text,
             "status": state.status_text,
             "today": state.today_text,
+            "yesterday": state.yesterday_text,
             "serviceAlerts": list(state.service_alerts),
             "showInstall": state.show_install_button,
         },

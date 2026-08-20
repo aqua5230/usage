@@ -87,6 +87,7 @@
     }
 
     function projectRangeLabel(range) {
+      if (range === "yesterday") return t("project_range_yesterday");
       if (range === "7d") return t("project_range_7d");
       if (range === "30d") return t("project_range_30d");
       if (range === "all") return t("project_range_all");
@@ -277,6 +278,14 @@
       });
     }
 
+    function renderPeriodTotal(state) {
+      const total = document.querySelector('[data-footer="today"]');
+      if (!total) return;
+      total.textContent = projectRange === "yesterday"
+        ? (state.footer.yesterday || t("yesterday_text", { cost: "0.00", tokens: "0" }))
+        : (state.footer.today || t("today_text", { cost: "0.00", tokens: "0" }));
+    }
+
 
 
 
@@ -335,6 +344,7 @@
       latestState = state;
       renderProjects(
         projectRange === "1d" ? state.projects
+        : projectRange === "yesterday" ? state.projectsYesterday
         : projectRange === "7d" ? state.projects7d
         : projectRange === "30d" ? state.projects30d
         : projectRange === "all" ? state.projectsAll
@@ -343,12 +353,11 @@
       renderStatusline(state.statusline || {});
       const rate = document.querySelector('[data-footer="rate"]');
       const status = document.querySelector('[data-footer="status"]');
-      const today = document.querySelector('[data-footer="today"]');
       const serviceAlerts = document.querySelector('[data-footer="service-alerts"]');
       const install = document.querySelector('[data-action="install"]');
       if (rate) rate.textContent = state.footer.rate || t("rate_text", { value: "--" });
       if (status) status.textContent = state.footer.status || t("status_text", { value: "--" });
-      if (today) today.textContent = state.footer.today || t("today_text", { cost: "0.00", tokens: "0" });
+      renderPeriodTotal(state);
       if (install) install.dataset.visible = state.footer.showInstall === true ? "true" : "false";
       if (serviceAlerts) {
         const alerts = state.footer.serviceAlerts || [];
@@ -366,16 +375,21 @@
       const button = event.target.closest("[data-action]");
       if (!button) return;
       if (button.dataset.action === "toggle-project-range") {
-        projectRange = projectRange === "1d" ? "7d" : projectRange === "7d" ? "30d" : projectRange === "30d" ? "all" : "1d";
+        projectRange = projectRange === "1d" ? "yesterday" : projectRange === "yesterday" ? "7d" : projectRange === "7d" ? "30d" : projectRange === "30d" ? "all" : "1d";
         button.textContent = projectRangeLabel(projectRange);
         if (latestState) {
           renderProjects(
             projectRange === "1d" ? latestState.projects
+            : projectRange === "yesterday" ? latestState.projectsYesterday
             : projectRange === "7d" ? latestState.projects7d
             : projectRange === "30d" ? latestState.projects30d
             : projectRange === "all" ? latestState.projectsAll
             : latestState.projects
           );
+          renderPeriodTotal(latestState);
+          if (typeof window.usageRequestContentHeight === "function") {
+            window.usageRequestContentHeight();
+          }
         }
         return;
       }
@@ -441,9 +455,10 @@
       cardOrder: ["claude", "codex", "agy"],
       hideAgy: true,
       projects: [],
+      projectsYesterday: [],
       projects7d: [],
       projects30d: [],
       projectsAll: [],
       statusline: {},
-      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", serviceAlerts: [], showInstall: false }
+      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", yesterday: "Yesterday: $0.00 (0 tokens)", serviceAlerts: [], showInstall: false }
     });

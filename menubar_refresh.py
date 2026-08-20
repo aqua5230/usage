@@ -117,10 +117,12 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     animation_groups = sources.animation_groups
     fallback_state = getattr(app, "latest_state", menubar_state._empty_state(app.language))
     project_rows = list(fallback_state.projects)
+    project_rows_yesterday = list(fallback_state.projects_yesterday)
     project_rows_7d = list(fallback_state.projects_7d)
     project_rows_30d = list(fallback_state.projects_30d)
     project_rows_all = list(fallback_state.projects_all)
     today_text = fallback_state.today_text
+    yesterday_text = fallback_state.yesterday_text
     statusline = fallback_state.statusline
     hide_claude = fallback_state.hide_claude
     hide_codex = fallback_state.hide_codex
@@ -136,18 +138,23 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         started_at = time.monotonic() if sources.debug_timing else 0.0
         if app.mock:
             project_rows = app._project_rows(hours_back=24, entries=all_entries)
+            project_rows_yesterday = project_rows
             project_rows_7d = app._project_rows(hours_back=168, entries=all_entries)
             project_rows_30d = app._project_rows(hours_back=720, entries=all_entries)
             project_rows_all = app._project_rows(hours_back=0, entries=all_entries)
         else:
             (
                 project_rows,
+                project_rows_yesterday,
                 project_rows_7d,
                 project_rows_30d,
                 project_rows_all,
             ) = menubar_state.project_rows_for_windows(all_entries)
         sources.measure("project_rows_windows", started_at)
         today_text = menubar_state._today_title(app.mock, app.language, entries=all_entries)
+        yesterday_text = menubar_state._yesterday_title(
+            app.mock, app.language, entries=all_entries
+        )
         statusline = menubar_state._statusline_payload(app.language)
         hide_claude = _hide_claude_enabled()
         hide_codex = _hide_codex_enabled()
@@ -197,6 +204,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             agy_rows=(agy_projection.session, agy_projection.weekly),
             agy_group_name=agy_projection.group_name,
             projects=project_rows,
+            projects_yesterday=project_rows_yesterday,
             projects_7d=project_rows_7d,
             projects_30d=project_rows_30d,
             projects_all=project_rows_all,
@@ -204,6 +212,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             group=group,
             burn_rate_trackers=app.burn_rate_trackers,
             today_text=today_text,
+            yesterday_text=yesterday_text,
             statusline=statusline,
             show_install_button=show_install_button,
             hide_claude=hide_claude,
@@ -244,10 +253,12 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             app._history_load_error_key, app.language
         )
         state.projects = project_rows
+        state.projects_yesterday = project_rows_yesterday
         state.projects_7d = project_rows_7d
         state.projects_30d = project_rows_30d
         state.projects_all = project_rows_all
         state.today_text = today_text
+        state.yesterday_text = yesterday_text
         state.statusline = statusline
         state.hide_claude = hide_claude
         state.hide_codex = hide_codex

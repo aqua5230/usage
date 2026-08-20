@@ -16,7 +16,7 @@ import webbrowser
 from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from enum import IntEnum
 from importlib import metadata
 from pathlib import Path
@@ -656,7 +656,19 @@ def _today_text(entries: list[UsageEntry], language: str) -> str:
     )
 
 
+def _yesterday_text(entries: list[UsageEntry], language: str) -> str:
+    yesterday = datetime.now().astimezone().date() - timedelta(days=1)
+    selected = [entry for entry in entries if entry.timestamp.astimezone().date() == yesterday]
+    return _t(
+        language,
+        "yesterday_text",
+        cost=f"{sum(calculate_cost(entry) for entry in selected):.2f}",
+        tokens=f"{sum(entry.total_tokens for entry in selected):,}",
+    )
+
+
 def _mock_projects() -> tuple[
+    list[tuple[str, int, float | None]],
     list[tuple[str, int, float | None]],
     list[tuple[str, int, float | None]],
     list[tuple[str, int, float | None]],
@@ -664,6 +676,7 @@ def _mock_projects() -> tuple[
 ]:
     return (
         [("usage", 11_200_000, 6.47), ("FinMind", 3_100_000, 1.82), ("AI客服", 800_000, 0.48)],
+        [("usage", 10_800_000, 6.21), ("FinMind", 2_900_000, 1.70)],
         [("usage", 78_400_000, 45.20), ("FinMind", 21_700_000, 12.74), ("AI客服", 5_600_000, 3.36)],
         [
             ("usage", 312_000_000, 180.50),
@@ -736,6 +749,7 @@ class _WindowsTrayController:
         self._toast_backend: Any = None
         self._toast_backend_attempted = False
         self._history_fingerprint: tuple[tuple[str, int, float], ...] | None = None
+        self._history_cache_date: date | None = None
         self._cached_history: _RefreshData | None = None
         self._cached_projects: tuple[list[tuple[str, int, float | None]], ...] | None = None
         self._history_scan: menubar_state.HistorySourceScan | None = None
@@ -769,12 +783,14 @@ class _WindowsTrayController:
             ),
             agy_group_name="",
             projects=[],
+            projects_yesterday=[],
             projects_7d=[],
             projects_30d=[],
             projects_all=[],
             rate_text=_t(self.language, "rate_text", value="--"),
             status_text=_t(self.language, "status_text", value=_t(self.language, "status_loading")),
             today_text=_t(self.language, "today_text", cost="0.00", tokens="0"),
+            yesterday_text=_t(self.language, "yesterday_text", cost="0.00", tokens="0"),
             statusline=_statusline_payload(self.language),
             hide_claude=_hide_claude_enabled(),
             hide_codex=_hide_codex_enabled(),
@@ -1236,7 +1252,8 @@ class _WindowsTrayController:
         agy = agy_result.projection or menubar_agy.fallback_projection(self.language)
         measure("agy_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
-        if menubar_state.history_cache_needs_reload(
+        local_date = datetime.now().astimezone().date()
+        if self._history_cache_date != local_date or menubar_state.history_cache_needs_reload(
             self._history_fingerprint,
             scan.fingerprint,
             has_cached_result=(
@@ -1254,6 +1271,7 @@ class _WindowsTrayController:
             self._history_fingerprint = (
                 scan.fingerprint if self._cached_history.history_error_key is None else None
             )
+            self._history_cache_date = local_date
         history = self._cached_history
         projects = self._cached_projects
         assert history is not None and projects is not None
@@ -1276,9 +1294,10 @@ class _WindowsTrayController:
             agy_rows=(agy.session, agy.weekly),
             agy_group_name=agy.group_name,
             projects=projects[0],
-            projects_7d=projects[1],
-            projects_30d=projects[2],
-            projects_all=projects[3],
+            projects_yesterday=projects[1],
+            projects_7d=projects[2],
+            projects_30d=projects[3],
+            projects_all=projects[4],
             language=self.language,
             group=self.tracker.group(),
             burn_rate_trackers=self.burn_rate_trackers,
@@ -1286,6 +1305,11 @@ class _WindowsTrayController:
                 _t(self.language, "today_text", cost="45.20", tokens="50,193,442")
                 if self.mock
                 else _today_text(history.entries, self.language)
+            ),
+            yesterday_text=(
+                _t(self.language, "yesterday_text", cost="41.10", tokens="48,200,000")
+                if self.mock
+                else _yesterday_text(history.entries, self.language)
             ),
             statusline=_statusline_payload(self.language),
             show_install_button=outcome.state == PollState.TOKEN_ERROR,

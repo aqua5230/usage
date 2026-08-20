@@ -1578,6 +1578,7 @@ def test_merge_rate_limits_keeps_old_session_with_new_weekly_slot() -> None:
         seven_day_window_minutes=10080.0,
         model="new",
         updated_at="2026-07-13T00:05:00+00:00",
+        limit_id="codex",
     )
 
     result = codex_loader._merge_rate_limits(old, new)
@@ -1586,6 +1587,7 @@ def test_merge_rate_limits_keeps_old_session_with_new_weekly_slot() -> None:
     assert result.five_hour_pct == 20.0
     assert result.seven_day_pct == 7.0
     assert result.model == "new"
+    assert result.limit_id == "codex"
 
 
 def test_merge_rate_limits_uses_credits_from_newer_source() -> None:
@@ -1994,6 +1996,101 @@ def test_load_rate_limits_picks_most_recent_valid(monkeypatch: pytest.MonkeyPatc
 
     assert result is not None
     assert result.updated_at == new_ts
+
+
+def test_load_rate_limits_prefers_general_limit_over_first_model_specific_session(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    general = {
+        "limit_id": "codex",
+        "primary": {"used_percent": 72, "resets_at": 9_999_999_999},
+        "secondary": None,
+    }
+    model_specific = {
+        "limit_id": "codex_bengalfox",
+        "primary": {"used_percent": 3, "resets_at": 9_999_999_999},
+        "secondary": None,
+    }
+    _write_rate_limit_session(
+        sessions_dir / "general.jsonl", "2026-08-12T02:24:00+00:00", general, 100
+    )
+    _write_rate_limit_session(
+        sessions_dir / "model.jsonl", "2026-08-12T02:39:00+00:00", model_specific, 200
+    )
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.limit_id == "codex"
+    assert result.five_hour_pct == 72.0
+
+
+def test_load_rate_limits_falls_back_to_first_model_specific_session(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    first = {
+        "limit_id": "codex_bengalfox",
+        "primary": {"used_percent": 3, "resets_at": 9_999_999_999},
+        "secondary": None,
+    }
+    second = {
+        "limit_id": "codex_spark",
+        "primary": {"used_percent": 44, "resets_at": 9_999_999_999},
+        "secondary": None,
+    }
+    _write_rate_limit_session(
+        sessions_dir / "first.jsonl", "2026-08-12T02:39:00+00:00", first, 200
+    )
+    _write_rate_limit_session(
+        sessions_dir / "second.jsonl", "2026-08-12T02:24:00+00:00", second, 100
+    )
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.limit_id == "codex_bengalfox"
+    assert result.five_hour_pct == 3.0
+
+
+def test_load_rate_limits_prefers_general_limit_within_same_session(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    sessions_dir = tmp_path / "sessions"
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
+    monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
+    path = sessions_dir / "mixed.jsonl"
+    general = {
+        "limit_id": "codex",
+        "primary": {"used_percent": 72, "resets_at": 9_999_999_999},
+    }
+    model_specific = {
+        "limit_id": "codex_bengalfox",
+        "primary": {"used_percent": 3, "resets_at": 9_999_999_999},
+    }
+    _write_rate_limit_session(path, "2026-08-12T02:24:00+00:00", general, 200)
+    with path.open("a", encoding="utf-8") as file:
+        file.write(
+            "\n"
+            + json.dumps(
+                {
+                    "type": "event_msg",
+                    "timestamp": "2026-08-12T02:39:00+00:00",
+                    "payload": {"type": "token_count", "rate_limits": model_specific},
+                }
+            )
+        )
+
+    result = codex_loader.load_rate_limits()
+
+    assert result is not None
+    assert result.limit_id == "codex"
+    assert result.five_hour_pct == 72.0
 
 
 def test_recent_jsonl_files_sorts_visible_sessions_by_mtime(

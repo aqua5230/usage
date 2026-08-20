@@ -165,6 +165,7 @@ def _build_popover_state(
         ),
         agy_group_name="",
         projects=[],
+        projects_yesterday=[],
         projects_7d=[],
         projects_30d=[],
         projects_all=[],
@@ -172,6 +173,7 @@ def _build_popover_state(
         group=delegate.tracker.group(),
         burn_rate_trackers=delegate.burn_rate_trackers,
         today_text=menubar._today_title(delegate.mock, delegate.language),
+        yesterday_text=menubar_state._yesterday_title(delegate.mock, delegate.language),
         statusline=menubar._statusline_payload(delegate.language),
         show_install_button=(
             not hide_claude
@@ -464,6 +466,26 @@ def test_today_title_does_not_reload_codex_when_entries_are_provided(
     )
 
 
+def test_yesterday_title_uses_provided_entries() -> None:
+    entry = history_loader.UsageEntry(
+        timestamp=datetime.now(tz=UTC) - timedelta(days=1),
+        session_id="codex",
+        message_id="m1",
+        request_id="r1",
+        model="gpt",
+        input_tokens=100,
+        output_tokens=50,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=0.01,
+        project="usage",
+    )
+
+    assert menubar_state._yesterday_title(False, "en", entries=[entry]) == (
+        "Yesterday: $0.01 (150 tokens)"
+    )
+
+
 def test_empty_state() -> None:
     state = menubar._empty_state()
     rows = (
@@ -475,11 +497,13 @@ def test_empty_state() -> None:
 
     assert all(row.available is False for row in rows)
     assert state.projects == []
+    assert state.projects_yesterday == []
     assert state.projects_7d == []
     assert state.projects_30d == []
     assert state.projects_all == []
     assert isinstance(state.statusline["enabled"], bool)
     assert state.show_install_button is False
+    assert state.yesterday_text == "Yesterday: $0.00 (0 tokens)"
 
 
 def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2072,6 +2096,7 @@ def test_refresh_error_preserves_project_usage(monkeypatch: pytest.MonkeyPatch) 
     state = result["state"]
     assert isinstance(state, menubar_state.PopoverState)
     assert state.projects == [("Eric-Tools", 165, 0.01)]
+    assert state.projects_yesterday == []
     assert state.projects_7d == [("Eric-Tools", 165, 0.01)]
     assert state.projects_30d == [("Eric-Tools", 165, 0.01)]
     assert state.projects_all == [("Eric-Tools", 165, 0.01)]

@@ -144,12 +144,14 @@ class PopoverState:
     agy_weekly: QuotaRowState
     agy_group_name: str
     projects: list[tuple[str, int, float | None]]
+    projects_yesterday: list[tuple[str, int, float | None]]
     projects_7d: list[tuple[str, int, float | None]]
     projects_30d: list[tuple[str, int, float | None]]
     projects_all: list[tuple[str, int, float | None]]
     rate_text: str
     status_text: str
     today_text: str
+    yesterday_text: str
     statusline: dict[str, object]
     service_alerts: tuple[str, ...] = ()
     show_install_button: bool = False
@@ -517,8 +519,9 @@ def project_rows_for_windows(
     list[tuple[str, int, float | None]],
     list[tuple[str, int, float | None]],
     list[tuple[str, int, float | None]],
+    list[tuple[str, int, float | None]],
 ]:
-    """Aggregate the four project windows in one pass over the history."""
+    """Aggregate the five project windows in one pass over the history."""
     current_time = datetime.now(UTC) if now is None else now
     local_now = current_time.astimezone()
     local_today = local_now.date()
@@ -530,9 +533,13 @@ def project_rows_for_windows(
     tomorrow_start = datetime.combine(
         local_today + timedelta(days=1), datetime_time.min, tzinfo=local_tz
     ).astimezone(UTC)
+    yesterday_start = datetime.combine(
+        local_today - timedelta(days=1), datetime_time.min, tzinfo=local_tz
+    ).astimezone(UTC)
     cutoff_7d = current_time - timedelta(hours=168)
     cutoff_30d = current_time - timedelta(hours=720)
     aggregates_24h: dict[str, list[float]] = {}
+    aggregates_yesterday: dict[str, list[float]] = {}
     aggregates_7d: dict[str, list[float]] = {}
     aggregates_30d: dict[str, list[float]] = {}
     aggregates_all: dict[str, list[float]] = {}
@@ -547,9 +554,12 @@ def project_rows_for_windows(
             _add_project_usage(aggregates_7d, entry.project, tokens, cost)
         if today_start <= entry.timestamp < tomorrow_start:
             _add_project_usage(aggregates_24h, entry.project, tokens, cost)
+        elif yesterday_start <= entry.timestamp < today_start:
+            _add_project_usage(aggregates_yesterday, entry.project, tokens, cost)
 
     return (
         _rank_project_rows(aggregates_24h),
+        _rank_project_rows(aggregates_yesterday),
         _rank_project_rows(aggregates_7d),
         _rank_project_rows(aggregates_30d),
         _rank_project_rows(aggregates_all),
@@ -793,6 +803,7 @@ def build_popover_state(
     agy_rows: tuple[QuotaRowState, QuotaRowState],
     agy_group_name: str,
     projects: list[tuple[str, int, float | None]],
+    projects_yesterday: list[tuple[str, int, float | None]],
     projects_7d: list[tuple[str, int, float | None]],
     projects_30d: list[tuple[str, int, float | None]],
     projects_all: list[tuple[str, int, float | None]],
@@ -800,6 +811,7 @@ def build_popover_state(
     group: int,
     burn_rate_trackers: dict[str, BurnRateTracker],
     today_text: str,
+    yesterday_text: str,
     statusline: dict[str, object],
     show_install_button: bool,
     hide_claude: bool,
@@ -909,12 +921,14 @@ def build_popover_state(
         agy_weekly=agy_rows[1],
         agy_group_name=agy_group_name,
         projects=projects,
+        projects_yesterday=projects_yesterday,
         projects_7d=projects_7d,
         projects_30d=projects_30d,
         projects_all=projects_all,
         rate_text=_t(language, "rate_text", value=group_name),
         status_text=status_text,
         today_text=today_text,
+        yesterday_text=yesterday_text,
         statusline=statusline,
         service_alerts=service_alerts,
         show_install_button=show_install_button,
@@ -1079,12 +1093,14 @@ def _empty_state(language: str = "en") -> PopoverState:
         agy_weekly=_missing_row(_t(language, "weekly_label"), AGY_COLOR, language),
         agy_group_name="",
         projects=[],
+        projects_yesterday=[],
         projects_7d=[],
         projects_30d=[],
         projects_all=[],
         rate_text=_t(language, "rate_text", value="--"),
         status_text=_t(language, "status_text", value=_t(language, "status_loading")),
         today_text=_t(language, "today_text", cost="0.00", tokens="0"),
+        yesterday_text=_t(language, "yesterday_text", cost="0.00", tokens="0"),
         statusline=_statusline_payload(language),
         service_alerts=(),
         show_install_button=False,
@@ -1107,6 +1123,7 @@ def _error_state(message: str, mock: bool, language: str = "en") -> PopoverState
         value=_t(language, "status_error", message=message),
     )
     state.today_text = _today_title(mock, language)
+    state.yesterday_text = _yesterday_title(mock, language)
     state.show_install_button = False
     return state
 
@@ -1148,3 +1165,36 @@ def _today_title(
         return _t(language, "today_text", cost="0.00", tokens="0")
 
     return _t(language, "today_text", cost=f"{total_cost:.2f}", tokens=f"{total_tokens:,}")
+
+
+def _yesterday_title(
+    mock: bool = False,
+    language: str = "en",
+    entries: list[UsageEntry] | None = None,
+) -> str:
+    if mock:
+        return _t(language, "yesterday_text", cost="41.10", tokens="48,200,000")
+
+    try:
+        yesterday = datetime.now().astimezone().date() - timedelta(days=1)
+        all_entries = (
+            entries
+            if entries is not None
+            else list(load_entries(hours_back=48)) + codex_loader.load_entries(hours_back=48)
+        )
+        selected = [
+            entry for entry in all_entries if entry.timestamp.astimezone().date() == yesterday
+        ]
+        total_tokens = sum(entry.total_tokens for entry in selected)
+        total_cost = sum(calculate_cost(entry) for entry in selected)
+    except Exception:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("yesterday totals load failed", exc_info=True)
+        return _t(language, "yesterday_text", cost="0.00", tokens="0")
+
+    return _t(
+        language,
+        "yesterday_text",
+        cost=f"{total_cost:.2f}",
+        tokens=f"{total_tokens:,}",
+    )

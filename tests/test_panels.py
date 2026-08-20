@@ -193,6 +193,16 @@ def test_shared_core_exposes_optional_system_accent_as_css_variable() -> None:
     assert 'root.style.removeProperty("--usage-system-accent")' in core_script
 
 
+def test_shared_core_cycles_through_yesterday_and_updates_footer() -> None:
+    core_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / "panel_core.js"
+    core_script = core_path.read_text(encoding="utf-8")
+
+    assert 'range === "yesterday"' in core_script
+    assert 'state.projectsYesterday' in core_script
+    assert 'state.footer.yesterday' in core_script
+    assert 'window.usageRequestContentHeight()' in core_script
+
+
 @pytest.mark.parametrize("filename", CARD_PANEL_FILENAMES)
 def test_card_panels_use_shared_core_script(filename: str) -> None:
     panel_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / filename

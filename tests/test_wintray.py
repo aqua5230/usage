@@ -10,6 +10,7 @@ import time
 from collections.abc import Callable
 from contextlib import suppress
 from dataclasses import replace
+from datetime import timedelta
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any, cast
@@ -83,12 +84,14 @@ def _state() -> menubar_state.PopoverState:
         agy_weekly=weekly,
         agy_group_name="",
         projects=[],
+        projects_yesterday=[],
         projects_7d=[],
         projects_30d=[],
         projects_all=[],
         rate_text="",
         status_text="",
         today_text="",
+        yesterday_text="",
         statusline={},
     )
 
@@ -1375,6 +1378,40 @@ def test_build_state_reuses_history_until_fingerprint_changes(
     controller._build_state()
     controller._build_state()
     now += wintray.HISTORY_SCAN_CACHE_SECONDS
+    controller._build_state()
+
+    assert calls == [1, 1]
+
+
+def test_build_state_reloads_cached_projects_when_local_date_changes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    scan = menubar_state.HistorySourceScan((("history", 1, 10.0),), (), ())
+    calls: list[int] = []
+    original = controller._load_entries
+
+    def counting_load_entries(scan: menubar_state.HistorySourceScan) -> wintray._RefreshData:
+        calls.append(1)
+        return original(scan)
+
+    monkeypatch.setattr(controller, "_history_source_scan", lambda: scan)
+    monkeypatch.setattr(controller, "_load_entries", counting_load_entries)
+    monkeypatch.setattr(
+        service_status,
+        "get_service_status",
+        lambda config: service_status.ServiceStatus(
+            config.service_name,
+            False,
+            "operational",
+            "Relevant components are operational.",
+            "cache",
+        ),
+    )
+
+    controller._build_state()
+    assert controller._history_cache_date is not None
+    controller._history_cache_date -= timedelta(days=1)
     controller._build_state()
 
     assert calls == [1, 1]

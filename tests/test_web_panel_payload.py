@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from types import SimpleNamespace
+from typing import cast
 
 import pytest
 
@@ -48,6 +49,9 @@ def test_state_payload_includes_agy_card_data() -> None:
 
     assert payload["hideAgy"] is False
     assert payload["cardOrder"] == ["claude", "codex", "agy"]
+    assert payload["projectsYesterday"] == []
+    footer = cast(dict[str, object], payload["footer"])
+    assert footer["yesterday"] == "Yesterday: $0.00 (0 tokens)"
     assert payload["agy"] == {
         "session": {
             "percent": 25.0,
