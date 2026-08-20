@@ -31,6 +31,8 @@ Claude Code and Codex numbers are read passively from log files already on your 
 brew install --cask aqua5230/usage/usage
 ```
 
+**Not on macOS?** `uvx usage-cli` runs the terminal interface anywhere, Linux included — no install, no menu bar.
+
 It lands in your Applications folder automatically. Right-click **Open** once to pass Gatekeeper, then click the menu bar icon. Prefer a direct download or want the full setup flow? See [Install](#install) below.
 
 **Jump to:** [What You Get](#what-you-get) · [Privacy](#privacy--data-sources) · [Requirements](#requirements) · [Install](#install) · [Status Line](#first-launch-set-up-the-status-line) · [Windows](#windows-support) · [Themes](#theme-gallery) · [Troubleshooting](#troubleshooting) · [Comparison](#comparison) · [Not a Fit?](#when-usage-isnt-the-right-fit) · [Development](#development)

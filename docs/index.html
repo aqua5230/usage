@@ -396,8 +396,8 @@ section .subtitle {
 
 /* Install */
 .install { background: var(--bg-soft); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
-.install-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
-@media (max-width: 980px) { .install-row { grid-template-columns: 1fr 1fr; } }
+.install-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; }
+@media (max-width: 1180px) { .install-row { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 720px) { .install-row { grid-template-columns: 1fr; } }
 .install-card {
   background: var(--bg-card);
@@ -411,6 +411,15 @@ section .subtitle {
 .install-card .label { font-size: 12px; font-family: var(--mono); color: var(--accent); margin-bottom: 8px; letter-spacing: 0.04em; }
 .install-card h3 { font-size: 20px; margin-bottom: 8px; }
 .install-card p { color: var(--fg-dim); font-size: 14px; margin-bottom: 16px; }
+/* Four columns leave each card too narrow to scroll a long command usefully.
+   Wrap instead, and shrink the type just enough that `brew install --cask`
+   stays on one line rather than splitting across the flag. */
+.install-card pre {
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  font-size: 12px;
+  padding: 14px;
+}
 pre {
   background: var(--bg);
   border: 1px solid var(--border);
@@ -639,7 +648,7 @@ body::before {
 <section id="install" class="install">
   <div class="wrap">
     <h2 data-i18n="install_h2">Install in 10 seconds.</h2>
-    <p class="subtitle" data-i18n="install_sub">Three ways to get it running. All free, all AGPL-3.0.</p>
+    <p class="subtitle" data-i18n="install_sub">Four ways to get it running. All free, all AGPL-3.0.</p>
     <div class="install-row">
       <div class="install-card">
         <div class="label" data-i18n="install_label_rec">RECOMMENDED</div>
@@ -658,6 +667,12 @@ body::before {
         <h3 data-i18n="install_h_win">System tray</h3>
         <p data-i18n="install_p_win">Latest <code>usage-windows.zip</code> from GitHub Releases — unzip and run <code>usage.exe</code>.</p>
         <a class="btn btn-secondary" style="width: 100%; justify-content: center;" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="install_btn_releases">→ Open Releases page</a>
+      </div>
+      <div class="install-card">
+        <div class="label" data-i18n="install_label_any">ANY OS</div>
+        <h3 data-i18n="install_h_uvx">uvx (no install)</h3>
+        <p data-i18n="install_p_uvx">Terminal interface only — no menu bar or tray. Works on Linux too; uv brings its own Python.</p>
+<pre><code>uvx usage-cli</code></pre>
       </div>
     </div>
   </div>
@@ -754,7 +769,7 @@ const T = {
     resume_img_alt: 'Resume restoring your last session in the CLI',
     mascot_alt: 'The usage butler cat, your progress concierge',
     install_h2: 'Install in 10 seconds.',
-    install_sub: 'Three ways to get it running. All free, all AGPL-3.0.',
+    install_sub: 'Four ways to get it running. All free, all AGPL-3.0.',
     install_label_rec: 'RECOMMENDED',
     install_h_brew: 'Homebrew',
     install_p_brew: 'One command. <code>brew upgrade</code> keeps it current.',
@@ -764,6 +779,9 @@ const T = {
     install_label_win: 'WINDOWS',
     install_h_win: 'System tray',
     install_p_win: 'Latest <code>usage-windows.zip</code> from GitHub Releases — unzip and run <code>usage.exe</code>.',
+    install_label_any: 'ANY OS',
+    install_h_uvx: 'uvx (no install)',
+    install_p_uvx: 'Terminal interface only — no menu bar or tray. Works on Linux too; uv brings its own Python.',
     install_btn_releases: '→ Open Releases page',
     screen_h2: 'Pick a panel that fits your mood.',
     screen_sub: 'Thirteen built-in themes. Change anytime from the popover toolbar.',
@@ -825,7 +843,7 @@ const T = {
     resume_img_alt: '進度管家把上次進度接回 CLI 的示意',
     mascot_alt: 'usage 管家貓，你的進度管家',
     install_h2: '10 秒安裝完成。',
-    install_sub: '三種方式都免費、都 AGPL-3.0。',
+    install_sub: '四種方式都免費、都 AGPL-3.0。',
     install_label_rec: '推薦',
     install_h_brew: 'Homebrew',
     install_p_brew: '一行指令搞定。日後 <code>brew upgrade</code> 自動更新。',
@@ -835,6 +853,9 @@ const T = {
     install_label_win: 'WINDOWS',
     install_h_win: '系統匣',
     install_p_win: '從 GitHub Releases 抓最新的 <code>usage-windows.zip</code>——解壓縮後執行 <code>usage.exe</code>。',
+    install_label_any: '跨平台',
+    install_h_uvx: 'uvx（零安裝）',
+    install_p_uvx: '只有終端機介面，沒有選單列或系統匣。Linux 也能跑，uv 會自備 Python。',
     install_btn_releases: '→ 開啟 Releases 頁面',
     screen_h2: '挑一個你喜歡的面板。',
     screen_sub: '13 款內建主題。隨時從 popover 工具列切換。',
@@ -896,7 +917,7 @@ const T = {
     resume_img_alt: '进度管家把上次进度接回 CLI 的示意',
     mascot_alt: 'usage 管家猫，你的进度管家',
     install_h2: '10 秒内安装完成。',
-    install_sub: '三种方式都免费、都 AGPL-3.0。',
+    install_sub: '四种方式都免费、都 AGPL-3.0。',
     install_label_rec: '推荐',
     install_h_brew: 'Homebrew',
     install_p_brew: '一行命令搞定。以后 <code>brew upgrade</code> 自动更新。',
@@ -906,6 +927,9 @@ const T = {
     install_label_win: 'WINDOWS',
     install_h_win: '系统托盘',
     install_p_win: '从 GitHub Releases 拉最新的 <code>usage-windows.zip</code>——解压后运行 <code>usage.exe</code>。',
+    install_label_any: '跨平台',
+    install_h_uvx: 'uvx（零安装）',
+    install_p_uvx: '只有终端界面，没有菜单栏或系统托盘。Linux 也能跑，uv 会自备 Python。',
     install_btn_releases: '→ 打开 Releases 页面',
     screen_h2: '挑一个你喜欢的面板。',
     screen_sub: '13 款内建主题。随时从 popover 工具栏切换。',
@@ -967,7 +991,7 @@ const T = {
     resume_img_alt: '前回の続きを CLI に引き継ぐ様子',
     mascot_alt: 'usage の執事ネコ、あなたの進捗コンシェルジュ',
     install_h2: '10 秒でインストール。',
-    install_sub: '3 つの方法、いずれも無料・AGPL-3.0。',
+    install_sub: '4 つの方法、いずれも無料・AGPL-3.0。',
     install_label_rec: 'おすすめ',
     install_h_brew: 'Homebrew',
     install_p_brew: 'コマンド 1 行。<code>brew upgrade</code> で常に最新。',
@@ -977,6 +1001,9 @@ const T = {
     install_label_win: 'WINDOWS',
     install_h_win: 'システムトレイ',
     install_p_win: 'GitHub Releases から最新の <code>usage-windows.zip</code> を取得 — 解凍して <code>usage.exe</code> を実行。',
+    install_label_any: '全OS対応',
+    install_h_uvx: 'uvx（インストール不要）',
+    install_p_uvx: 'ターミナルインターフェースのみ。メニューバーもトレイもありません。Linuxでも動作し、uvがPythonを用意します。',
     install_btn_releases: '→ Releases ページを開く',
     screen_h2: '気分に合うパネルを選んで。',
     screen_sub: '13 種の内蔵テーマ。ポップオーバーのツールバーからいつでも切り替え可能。',
@@ -1038,7 +1065,7 @@ const T = {
     resume_img_alt: '지난 작업을 CLI로 이어주는 모습',
     mascot_alt: 'usage 집사 고양이, 당신의 진행 관리자',
     install_h2: '10초 안에 설치 완료.',
-    install_sub: '세 가지 방법 모두 무료, AGPL-3.0.',
+    install_sub: '네 가지 방법 모두 무료, AGPL-3.0.',
     install_label_rec: '추천',
     install_h_brew: 'Homebrew',
     install_p_brew: '한 줄 명령. <code>brew upgrade</code>로 최신 유지.',
@@ -1048,6 +1075,9 @@ const T = {
     install_label_win: 'WINDOWS',
     install_h_win: '시스템 트레이',
     install_p_win: 'GitHub Releases에서 최신 <code>usage-windows.zip</code>을 받아 압축을 풀고 <code>usage.exe</code> 실행.',
+    install_label_any: '모든 OS',
+    install_h_uvx: 'uvx(설치 없음)',
+    install_p_uvx: '터미널 인터페이스만 제공하며 메뉴 막대나 트레이는 없습니다. Linux에서도 작동하고 uv가 Python을 준비합니다.',
     install_btn_releases: '→ Releases 페이지 열기',
     screen_h2: '마음에 드는 패널을 골라보세요.',
     screen_sub: '13가지 내장 테마. 팝오버 툴바에서 언제든 전환 가능.',
