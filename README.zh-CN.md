@@ -108,6 +108,8 @@ brew install --cask aqua5230/usage/usage
 
 若要持续安装命令，执行 `uv tool install usage-cli`，之后使用 `usage`（例如 `usage status --json`）。这种安装方式只有 CLI（命令行界面），不含菜单栏 App。
 
+Linux 上运行 `usage setup` 也能装好 Claude Code 的状态栏，配额会像 macOS 与 Windows 一样显示在提示符下方，CI 会在 Ubuntu 上验证这条路径。菜单栏与系统托盘 App 仍然只有 macOS 与 Windows 才有。
+
 ## 首次启动：设置状态栏
 
 如果你用过 Codex，`usage` 会自动读取其历史记录。对于 Claude Code，请在应用弹出面板中点击 **“Set Up Status Line”** 按钮以安装同步 hook。

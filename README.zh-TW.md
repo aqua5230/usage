@@ -108,6 +108,8 @@ brew install --cask aqua5230/usage/usage
 
 若要持續安裝指令，執行 `uv tool install usage-cli`，之後使用 `usage`（例如 `usage status --json`）。這種安裝方式只有 CLI（命令列介面），不含選單列 App。
 
+Linux 上跑 `usage setup` 也能裝好 Claude Code 的狀態列，配額會像 macOS 與 Windows 一樣顯示在提示字元底下，CI 會在 Ubuntu 上驗證這條路。選單列與系統匣 App 仍然只有 macOS 與 Windows 才有。
+
 ## 首次打開：設定狀態列
 
 如果你用過 Codex，它會自動讀到資料。若是 Claude Code，請點選單彈窗內的**「設定狀態列 (Set Up Status Line)」**按鈕來安裝同步 hook。

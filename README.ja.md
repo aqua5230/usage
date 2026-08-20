@@ -108,6 +108,8 @@ brew install --cask aqua5230/usage/usage
 
 コマンドを常設したい場合は `uv tool install usage-cli` を実行し、以降は `usage` を使います（例：`usage status --json`）。このインストール方法ではCLIのみが提供され、メニューバーAppは含まれません。
 
+Linuxでも `usage setup` でClaude Codeのステータスラインをインストールでき、macOSやWindowsと同じようにプロンプトの下にクォータが表示されます。CIがUbuntuでこの経路を検証しています。メニューバーとシステムトレイのAppは引き続きmacOSとWindows専用です。
+
 ## 初回起動：ステータスラインを設定
 
 Codexを使用したことがある場合、`usage` はその履歴を自動で取得します。Claude Codeの場合は、アプリのポップオーバーで **「Set Up Status Line」** ボタンをクリックし、同期hookをインストールしてください。

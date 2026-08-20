@@ -108,6 +108,8 @@ Run `uvx usage-cli` to open the terminal interface directly. uv automatically pr
 
 For a persistent command, run `uv tool install usage-cli`, then use `usage` (for example, `usage status --json`). This installation path provides the CLI only, not the menu bar app.
 
+On Linux, `usage setup` installs the Claude Code status line as well, so quota shows up under your prompt the same way it does on macOS and Windows. CI verifies this on Ubuntu. The menu bar and system tray apps remain macOS- and Windows-only.
+
 ## First Launch: Set Up the Status Line
 
 If you've used Codex, `usage` picks up its history automatically. For Claude Code, click the **"Set Up Status Line"** button in the app popover to install the sync hook.

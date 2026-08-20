@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **The Claude Code status line is now verified on Linux.** The hook is stdlib-only and `usage setup` never gated the Claude path on macOS or Windows, so it already worked there — nothing tested it, so it went undocumented. CI now installs the hook against a throwaway `HOME` on Ubuntu and feeds it a real statusLine payload.
 - **`uvx usage-cli` runs the terminal interface without installing anything.** The CLI is now published to PyPI as `usage-cli`, so Linux and Windows users can try `usage status --json`, the dashboard, and the reports without downloading the macOS app; uv prepares Python 3.13 on its own. `uv tool install usage-cli` keeps the command around as `usage`. The distribution name is `usage-cli` because `usage` was already taken on PyPI in 2016; both `usage` and `usage-cli` are installed as commands. This path ships the CLI only — the menu bar and system tray apps are unchanged and still come from the release downloads.
 
 ## [0.29.32] - 2026-08-20

@@ -108,6 +108,8 @@ brew install --cask aqua5230/usage/usage
 
 명령을 계속 사용하려면 `uv tool install usage-cli`를 실행한 뒤 `usage`를 사용합니다(예: `usage status --json`). 이 설치 방식은 CLI만 제공하며 메뉴 막대 App은 포함하지 않습니다.
 
+Linux에서도 `usage setup`으로 Claude Code 상태 줄을 설치할 수 있어 macOS나 Windows와 마찬가지로 프롬프트 아래에 할당량이 표시됩니다. CI가 Ubuntu에서 이 경로를 검증합니다. 메뉴 막대와 시스템 트레이 App은 계속 macOS와 Windows 전용입니다.
+
 ## 첫 실행: 상태 줄 설정
 
 Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵니다. Claude Code의 경우 앱 팝오버에서 **"Set Up Status Line"** 버튼을 클릭하여 동기화 hook을 설치하세요.

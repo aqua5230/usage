@@ -87,3 +87,25 @@ jobs:
           cd "$RUNNER_TEMP/smoke"
           "$RUNNER_TEMP/smoke/.venv/bin/usage" --version
           "$RUNNER_TEMP/smoke/.venv/bin/usage" status --json | "$RUNNER_TEMP/smoke/.venv/bin/python" -c 'import json, sys; json.load(sys.stdin)'
+
+      # The status line is the one feature beyond the reports that Linux can
+      # actually run: the hook is stdlib-only and `usage setup` has no macOS or
+      # Windows gate on the Claude path. Nothing verified that, so this installs
+      # the hook against a throwaway HOME and feeds it a real statusLine payload.
+      - name: Smoke-test status-line hook against a throwaway HOME
+        shell: bash
+        env:
+          HOME: ${{ runner.temp }}/fake-home
+        run: |
+          mkdir -p "$HOME/.claude"
+          echo '{}' > "$HOME/.claude/settings.json"
+          "$RUNNER_TEMP/smoke/.venv/bin/usage" setup
+          test -x "$HOME/.claude/usage-statusline.py"
+          "$RUNNER_TEMP/smoke/.venv/bin/python" - <<'PY'
+          import json, pathlib, os
+          settings = json.loads((pathlib.Path(os.environ["HOME"]) / ".claude/settings.json").read_text())
+          command = settings["statusLine"]["command"]
+          assert "usage-statusline.py" in command, command
+          PY
+          printf '%s' '{"model":{"display_name":"Opus 5"},"workspace":{"project_dir":"/tmp/demo"},"context_window":{"used_percentage":24.0},"rate_limits":{"five_hour":{"used_percentage":33.0},"seven_day":{"used_percentage":88.0}}}' \
+            | python3 "$HOME/.claude/usage-statusline.py" | grep -q '33%'
