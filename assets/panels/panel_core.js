@@ -66,6 +66,27 @@
     const I18N = {{I18N_BUNDLE}};
     const FALLBACK_LANGUAGE = "en";
     const root = document.documentElement;
+    const switchHostStyle = document.createElement("style");
+    switchHostStyle.textContent = `
+      [data-card="codex"] .usage-switch-host > h1,
+      [data-card="codex"] .usage-switch-host > .header-copy {
+        flex: 0 0 auto !important;
+        min-width: max-content !important;
+        overflow: visible !important;
+      }
+      [data-card="codex"] .usage-switch-host > [data-codex-stale] {
+        flex: 1 1 0 !important;
+        min-width: 0 !important;
+        overflow: hidden !important;
+      }
+      [data-card="codex"] .usage-switch-host [data-codex-stale-age] {
+        display: block;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    `;
+    document.head.appendChild(switchHostStyle);
     let currentLanguage = "en";
     let projectRange = "1d";
     let latestState = null;
@@ -301,7 +322,15 @@
     }
 
     function relocateSwitchButton(state) {
+      document.querySelectorAll(".usage-switch-host").forEach((host) => {
+        host.classList.remove("usage-switch-host");
+      });
       window.PanelHooks.switchButtonStrategy(state);
+      const button = document.querySelector('[data-action="switch"]');
+      const host = button && button.parentElement;
+      if (host && host.closest('[data-card="codex"]')) {
+        host.classList.add("usage-switch-host");
+      }
     }
 
     const QUOTA_CARD_IDS = ["claude", "codex", "agy"];

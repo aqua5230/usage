@@ -242,6 +242,22 @@
       margin-left: auto;
     }
 
+    .card[data-card="codex"] .brand.usage-switch-host h1 {
+      flex: none;
+      overflow: visible;
+    }
+
+    .card[data-card="codex"] .brand.usage-switch-host .codex-stale {
+      flex: 1 1 0;
+      overflow: hidden;
+    }
+
+    .card[data-card="codex"] .brand.usage-switch-host [data-codex-stale-age] {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     .codex-stale-info {
       position: relative;
       display: inline-flex;
