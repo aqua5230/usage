@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import sysconfig
 from functools import lru_cache
 from pathlib import Path
 
@@ -28,7 +29,9 @@ def packaged_resource_path(filename: str, source_mode_path: Path) -> Path:
     resolves to ``lib/python313.zip/i18n.json`` — an invalid path through
     the zipfile that raises ``NotADirectoryError`` at first read. In source
     mode (and tests) ``RESOURCEPATH`` is unset and the source-adjacent
-    fallback path is correct.
+    fallback path is correct. Wheels installed by pip or uvx place data files
+    under the interpreter's sysconfig data directory, so that location is
+    checked before the source fallback.
 
     The callers pass the source-mode path explicitly (as the literal
     ``Path(__file__).with_name("...")``) so that
@@ -45,6 +48,9 @@ def packaged_resource_path(filename: str, source_mode_path: Path) -> Path:
         bundled = Path(frozen_root) / filename
         if bundled.exists():
             return bundled
+    wheel_data = Path(sysconfig.get_path("data")) / "share" / "usage" / filename
+    if wheel_data.exists():
+        return wheel_data
     return source_mode_path
 
 

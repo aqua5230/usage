@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
 
       - run: uv python install 3.13
 
@@ -48,7 +48,7 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
 
       - run: uv python install 3.13
 
@@ -62,3 +62,28 @@ jobs:
 
       - name: Run pytest
         run: uv run pytest -v
+
+  zero-install:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+
+      - run: uv python install 3.13
+
+      - run: uv build --wheel
+
+      - name: Smoke-test installed wheel outside repository
+        shell: bash
+        run: |
+          mkdir -p "$RUNNER_TEMP/smoke"
+          uv venv "$RUNNER_TEMP/smoke/.venv" --python 3.13
+          uv pip install --python "$RUNNER_TEMP/smoke/.venv/bin/python" "$GITHUB_WORKSPACE"/dist/*.whl
+          cd "$RUNNER_TEMP/smoke"
+          "$RUNNER_TEMP/smoke/.venv/bin/usage" --version
+          "$RUNNER_TEMP/smoke/.venv/bin/usage" status --json | "$RUNNER_TEMP/smoke/.venv/bin/python" -c 'import json, sys; json.load(sys.stdin)'

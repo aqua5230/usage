@@ -99,6 +99,12 @@ brew install --cask aqua5230/usage/usage
 2. Unzip it and drag `usage.app` into your Applications folder.
 3. First launch: in Finder, right-click `usage.app` → **Open** → confirm Open.
 
+### 3. uvx (zero install, any OS)
+
+Run `uvx usage-cli` to open the terminal interface directly. uv automatically prepares Python 3.13, so no separate Python installation is needed.
+
+For a persistent command, run `uv tool install usage-cli`, then use `usage` (for example, `usage status --json`). This installation path provides the CLI only, not the menu bar app.
+
 ## First Launch: Set Up the Status Line
 
 If you've used Codex, `usage` picks up its history automatically. For Claude Code, click the **"Set Up Status Line"** button in the app popover to install the sync hook.
