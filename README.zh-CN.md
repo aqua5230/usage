@@ -13,6 +13,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![持续集成](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![最新版本](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
+[![PyPI](https://img.shields.io/pypi/v/usage-cli)](https://pypi.org/project/usage-cli/)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![平台](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/aqua5230/usage/releases/latest)
 [![许可证：AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
@@ -98,6 +99,12 @@ brew install --cask aqua5230/usage/usage
 1. 从 [GitHub Releases 页面](https://github.com/aqua5230/usage/releases/latest)下载最新的 `usage.app.zip`。
 2. 解压后，将 `usage.app` 拖入 Applications 文件夹。
 3. 首次启动：在 Finder 中右键 `usage.app` → **Open** → 确认 Open。
+
+### 3. uvx（零安装，跨平台）
+
+执行 `uvx usage-cli` 即可直接打开终端界面。uv 会自动准备 Python 3.13，无需另行安装 Python。
+
+若要持续安装命令，执行 `uv tool install usage-cli`，之后使用 `usage`（例如 `usage status --json`）。这种安装方式只有 CLI（命令行界面），不含菜单栏 App。
 
 ## 首次启动：设置状态栏
 

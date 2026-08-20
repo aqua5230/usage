@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 新增
+- **`uvx usage-cli` 不必安裝任何東西就能開終端機介面。** CLI 現在以 `usage-cli` 的名稱發布到 PyPI，Linux 與 Windows 使用者不必下載 macOS App 也能試 `usage status --json`、儀表板與報表，uv 會自行準備 Python 3.13。跑 `uv tool install usage-cli` 則會把指令留下來，名稱是 `usage`。發行名之所以是 `usage-cli`，是因為 `usage` 早在 2016 年就被 PyPI 上的另一個套件佔用；`usage` 與 `usage-cli` 兩個指令都會裝好。這條路只提供 CLI，選單列與系統匣 App 沒有變動，仍然從發行頁下載。
+
 ## [0.29.32] - 2026-08-20
 
 ### 資安
