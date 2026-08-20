@@ -682,7 +682,7 @@ _read_key = _read_key_win if sys.platform == "win32" else _read_key_unix
 
 def _get_version() -> str:
     from importlib.metadata import version
-    return version("usage")
+    return version("usage-cli")
 
 
 def main() -> None:

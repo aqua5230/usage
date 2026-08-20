@@ -155,7 +155,7 @@ def _text_field(func: Callable[[], str]) -> str:
 
 def _current_version() -> str:
     try:
-        return metadata.version("usage")
+        return metadata.version("usage-cli")
     except metadata.PackageNotFoundError:
         pyproject = packaged_resource_path(
             "pyproject.toml", Path(__file__).with_name("pyproject.toml")

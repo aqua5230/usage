@@ -71,7 +71,7 @@ def _fmt_int(value: int) -> str:
 
 def _version() -> str:
     try:
-        return version("usage")
+        return version("usage-cli")
     except PackageNotFoundError:
         return "dev"
 

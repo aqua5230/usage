@@ -625,7 +625,7 @@ def _save_active_panel_id(panel_id: str) -> None:
 
 def _current_version() -> str:
     try:
-        return metadata.version("usage")
+        return metadata.version("usage-cli")
     except metadata.PackageNotFoundError:
         from i18n import packaged_resource_path
 

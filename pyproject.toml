@@ -1,5 +1,5 @@
 [project]
-name = "usage"
+name = "usage-cli"
 version = "0.29.32"
 description = "usage — 在 macOS menu bar 與 Windows 系統匣顯示 Claude Code、Codex、Antigravity 用量的小工具（也提供終端機 TUI）"
 readme = "README.md"
@@ -24,6 +24,7 @@ windows = [
 
 [project.scripts]
 usage = "usage_cli:main"
+usage-cli = "usage_cli:main"
 
 [tool.uv]
 # Lock for every platform we ship on, not just whichever one runs `uv lock`.
@@ -123,6 +124,10 @@ py-modules = [
 
 [tool.setuptools.packages.find]
 include = ["adapters*", "analyzer*", "panels*", "ui*"]
+
+# Top-level modules cannot collect adjacent data files via package-data.
+[tool.setuptools.data-files]
+"share/usage" = ["i18n.json"]
 
 [dependency-groups]
 dev = [

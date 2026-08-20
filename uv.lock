@@ -573,7 +573,7 @@ wheels = [
 ]
 
 [[package]]
-name = "usage"
+name = "usage-cli"
 version = "0.29.32"
 source = { editable = "." }
 dependencies = [

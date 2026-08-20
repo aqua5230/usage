@@ -99,6 +99,12 @@ brew install --cask aqua5230/usage/usage
 2. 解壓縮，將 `usage.app` 拖進「應用程式」資料夾。
 3. 第一次開啟：在 Finder 對 `usage.app` 按右鍵 → **打開** → 確認打開。
 
+### 3. uvx（零安裝，跨平台）
+
+執行 `uvx usage-cli` 即可直接開啟終端機介面。uv 會自動準備 Python 3.13，不必另行安裝 Python。
+
+若要持續安裝指令，執行 `uv tool install usage-cli`，之後使用 `usage`（例如 `usage status --json`）。這種安裝方式只有 CLI（命令列介面），不含選單列 App。
+
 ## 首次打開：設定狀態列
 
 如果你用過 Codex，它會自動讀到資料。若是 Claude Code，請點選單彈窗內的**「設定狀態列 (Set Up Status Line)」**按鈕來安裝同步 hook。
