@@ -349,11 +349,12 @@ def test_load_entries_takes_first_cwd_and_handles_escapes(
         steps_payloads=[payload1, payload2],
     )
     resolved: list[str] = []
-    monkeypatch.setattr(
-        agy_loader,
-        "resolve_project_name",
-        lambda cwd: (resolved.append(cwd), "first/project")[1],
-    )
+
+    def _fake_resolve_project_name(cwd: str) -> str:
+        resolved.append(cwd)
+        return "first/project"
+
+    monkeypatch.setattr(agy_loader, "resolve_project_name", _fake_resolve_project_name)
     entries = agy_loader.load_entries()
     assert len(entries) == 1
     assert entries[0].project == "first/project"
