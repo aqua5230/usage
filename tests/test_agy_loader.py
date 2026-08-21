@@ -72,7 +72,12 @@ def _trajectory_blob(timestamp: datetime) -> bytes:
     return _message_field(2, _timestamp_blob(timestamp))
 
 
-def _write_database(path: Path, rows: list[bytes], session_timestamp: datetime) -> None:
+def _write_database(
+    path: Path,
+    rows: list[bytes],
+    session_timestamp: datetime,
+    steps_payloads: list[bytes] | None = None,
+) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(path) as connection:
         connection.executescript(
@@ -87,6 +92,14 @@ def _write_database(path: Path, rows: list[bytes], session_timestamp: datetime) 
             "INSERT INTO trajectory_metadata_blob (data) VALUES (?)",
             (_trajectory_blob(session_timestamp),),
         )
+        if steps_payloads is not None:
+            connection.execute(
+                "CREATE TABLE steps (idx INTEGER PRIMARY KEY, step_payload BLOB);"
+            )
+            connection.executemany(
+                "INSERT INTO steps (idx, step_payload) VALUES (?, ?)",
+                [(index, payload) for index, payload in enumerate(steps_payloads)],
+            )
 
 
 @pytest.fixture
@@ -281,3 +294,67 @@ def test_load_entries_reuses_disk_cache_after_reseed(
     monkeypatch.setattr(sqlite3, "connect", _unexpected_connect)
 
     assert agy_loader.load_entries_with_stats() == expected
+
+
+def test_load_entries_resolves_project_from_steps_cwd(
+    monkeypatch: pytest.MonkeyPatch, sessions_dir: Path
+) -> None:
+    now = datetime.now(UTC)
+    payload = (
+        b'{"CommandLine":"git status --porcelain",'
+        b'"Cwd":"/Users/lollapalooza/Developer/my-project"}'
+    )
+    _write_database(
+        sessions_dir / "project.db",
+        [_generation_blob(timestamp=now, dedup_key="project-test")],
+        now,
+        steps_payloads=[b"{}", payload],
+    )
+    monkeypatch.setattr(
+        agy_loader,
+        "resolve_project_name",
+        lambda cwd: "my-project"
+        if cwd == "/Users/lollapalooza/Developer/my-project"
+        else "unexpected",
+    )
+    entries = agy_loader.load_entries()
+    assert len(entries) == 1
+    assert entries[0].project == "my-project"
+
+
+def test_load_entries_falls_back_to_empty_project_when_steps_table_missing(
+    sessions_dir: Path,
+) -> None:
+    now = datetime.now(UTC)
+    _write_database(
+        sessions_dir / "no_steps.db",
+        [_generation_blob(timestamp=now, dedup_key="no-steps")],
+        now,
+    )
+    entries = agy_loader.load_entries()
+    assert len(entries) == 1
+    assert entries[0].project == ""
+
+
+def test_load_entries_takes_first_cwd_and_handles_escapes(
+    monkeypatch: pytest.MonkeyPatch, sessions_dir: Path
+) -> None:
+    now = datetime.now(UTC)
+    payload1 = b'{"CommandLine":"ls","Cwd":"/path/to/first\\/project"}'
+    payload2 = b'{"CommandLine":"git status","Cwd":"/path/to/second"}'
+    _write_database(
+        sessions_dir / "multi.db",
+        [_generation_blob(timestamp=now, dedup_key="multi")],
+        now,
+        steps_payloads=[payload1, payload2],
+    )
+    resolved: list[str] = []
+    monkeypatch.setattr(
+        agy_loader,
+        "resolve_project_name",
+        lambda cwd: (resolved.append(cwd), "first/project")[1],
+    )
+    entries = agy_loader.load_entries()
+    assert len(entries) == 1
+    assert entries[0].project == "first/project"
+    assert resolved == ["/path/to/first/project"]

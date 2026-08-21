@@ -15,7 +15,7 @@ import agy_loader
 import cache_quarantine
 
 
-def _agy_entry(session_id: str) -> agy_loader.AgyUsageEntry:
+def _agy_entry(session_id: str, project: str = "test-project") -> agy_loader.AgyUsageEntry:
     return agy_loader.AgyUsageEntry(
         timestamp=datetime(2026, 1, 1, tzinfo=UTC),
         model="test-model",
@@ -25,6 +25,7 @@ def _agy_entry(session_id: str) -> agy_loader.AgyUsageEntry:
         thinking_tokens=4,
         dedup_key=f"{session_id}:dedup",
         session_id=session_id,
+        project=project,
     )
 
 
@@ -48,6 +49,7 @@ def test_roundtrip_flush_then_seed(tmp_path: Path) -> None:
 
     assert path in seeded
     assert seeded[path] == cache[path]
+    assert seeded[path].entries[0].project == "test-project"
 
 
 def test_schema_version_mismatch_is_miss_not_quarantined(
@@ -210,3 +212,4 @@ def test_seed_skips_malformed_entry_but_keeps_other_files(tmp_path: Path) -> Non
     assert bad_path not in seeded
     assert good_path in seeded
     assert seeded[good_path].entries[0].dedup_key == "good:dedup"
+    assert seeded[good_path].entries[0].project == ""

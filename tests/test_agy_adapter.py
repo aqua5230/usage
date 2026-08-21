@@ -52,6 +52,7 @@ def test_load_entries_maps_usage_without_precomputing_cost(
             thinking_tokens=40,
             dedup_key="request-1",
             session_id="session-1",
+            project="my-project",
         ),
         agy_loader.AgyUsageEntry(
             timestamp=datetime(2026, 7, 12, 1, tzinfo=UTC),
@@ -62,6 +63,7 @@ def test_load_entries_maps_usage_without_precomputing_cost(
             thinking_tokens=0,
             dedup_key="request-2",
             session_id="session-2",
+            project="",
         ),
     ]
     calls: dict[str, int] = {}
@@ -84,8 +86,9 @@ def test_load_entries_maps_usage_without_precomputing_cost(
     assert entries[0].request_id == ""
     assert entries[0].cache_creation_tokens == 0
     assert entries[0].cost_usd is None
-    assert entries[0].project == "Antigravity"
+    assert entries[0].project == "my-project"
     assert entries[0].agent_id == "antigravity"
+    assert entries[1].project == "Antigravity"
 
 
 def test_normalize_model_covers_tokscale_aliases() -> None:

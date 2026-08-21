@@ -35,6 +35,7 @@ def _serialize_entry(entry: Any) -> dict[str, Any]:
         "thinking_tokens": entry.thinking_tokens,
         "dedup_key": entry.dedup_key,
         "session_id": entry.session_id,
+        "project": entry.project,
     }
 
 
@@ -50,6 +51,7 @@ def _deserialize_entry(data: dict[str, Any]) -> Any:
         thinking_tokens=int(data["thinking_tokens"]),
         dedup_key=str(data["dedup_key"]),
         session_id=str(data["session_id"]),
+        project=str(data.get("project", "")),
     )
 
 

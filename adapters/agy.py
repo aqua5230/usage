@@ -59,7 +59,7 @@ def _to_usage_entry(entry: shared_agy_loader.AgyUsageEntry) -> UsageEntry:
         cache_creation_tokens=0,
         cache_read_tokens=entry.cache_read_tokens,
         cost_usd=None,
-        project=_PROJECT_NAME,
+        project=entry.project or _PROJECT_NAME,
         agent_id="antigravity",
     )
 

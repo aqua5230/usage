@@ -8,8 +8,10 @@
 
 from __future__ import annotations
 
+import json
 import logging
 import os
+import re
 import sqlite3
 import time
 from collections import OrderedDict
@@ -26,6 +28,7 @@ from disk_cache_lifecycle import (
 from disk_cache_lifecycle import (
     flush_caches_on_terminate as _flush_caches_on_terminate,
 )
+from project_resolver import resolve_project_name
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +38,7 @@ AGY_SESSIONS_DIR = Path(os.path.expanduser("~/.gemini/antigravity-cli/conversati
 # below that count evicts databases parsed during the prior refresh, causing a
 # permanent full SQLite/protobuf reparse on every load (LRU thrashing).
 _FILE_CACHE_MAXSIZE = 4096
-_AGY_DB_CACHE_SCHEMA = 1
+_AGY_DB_CACHE_SCHEMA = 2
 AGY_CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_db_cache.json"))
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
@@ -60,6 +63,7 @@ class AgyUsageEntry:
     thinking_tokens: int
     dedup_key: str
     session_id: str
+    project: str = ""
 
     @property
     def total_tokens(self) -> int:
@@ -237,6 +241,7 @@ def _parse_database(path: Path) -> tuple[list[AgyUsageEntry], int] | None:
     try:
         with sqlite3.connect(_readonly_sqlite_uri(path), uri=True) as connection:
             session_timestamp = _session_timestamp(connection, path)
+            project = _session_project(connection)
             rows = connection.execute("SELECT data FROM gen_metadata ORDER BY idx")
             entries: list[AgyUsageEntry] = []
             skipped_missing_dedup_key = 0
@@ -248,6 +253,7 @@ def _parse_database(path: Path) -> tuple[list[AgyUsageEntry], int] | None:
                     path.stem,
                     session_timestamp,
                     set(),
+                    project=project,
                 )
                 skipped_missing_dedup_key += missing_dedup_key
                 if entry is not None:
@@ -275,11 +281,35 @@ def _session_timestamp(connection: sqlite3.Connection, path: Path) -> datetime:
         return datetime.fromtimestamp(0, UTC)
 
 
+def _session_project(connection: sqlite3.Connection) -> str:
+    try:
+        row = connection.execute(
+            "SELECT step_payload FROM steps "
+            "WHERE step_payload LIKE '%\"Cwd\":\"%' "
+            "ORDER BY idx LIMIT 1"
+        ).fetchone()
+    except sqlite3.Error:
+        return ""
+    if row is None or not isinstance(row[0], bytes):
+        return ""
+    match = re.search(rb'"Cwd":"((?:[^"\\]|\\.)*)"', row[0])
+    if match is None:
+        return ""
+    try:
+        cwd = json.loads('"' + match.group(1).decode("utf-8", "replace") + '"')
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        return ""
+    if not isinstance(cwd, str) or not cwd:
+        return ""
+    return resolve_project_name(cwd)
+
+
 def _parse_generation(
     blob: bytes,
     session_id: str,
     session_timestamp: datetime,
     seen_dedup_keys: set[str],
+    project: str = "",
 ) -> tuple[AgyUsageEntry | None, int]:
     chat_model = _message_field(blob, 1)
     if chat_model is None:
@@ -322,6 +352,7 @@ def _parse_generation(
             thinking_tokens=thinking_tokens,
             dedup_key=dedup_key,
             session_id=session_id,
+            project=project,
         ),
         0,
     )
