@@ -10,6 +10,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - **The Claude Code status line is now verified on Linux.** The hook is stdlib-only and `usage setup` never gated the Claude path on macOS or Windows, so it already worked there — nothing tested it, so it went undocumented. CI now installs the hook against a throwaway `HOME` on Ubuntu and feeds it a real statusLine payload.
 - **`uvx usage-cli` runs the terminal interface without installing anything.** The CLI is now published to PyPI as `usage-cli`, so Linux and Windows users can try `usage status --json`, the dashboard, and the reports without downloading the macOS app; uv prepares Python 3.13 on its own. `uv tool install usage-cli` keeps the command around as `usage`. The distribution name is `usage-cli` because `usage` was already taken on PyPI in 2016; both `usage` and `usage-cli` are installed as commands. This path ships the CLI only — the menu bar and system tray apps are unchanged and still come from the release downloads.
+- **Antigravity (agy) usage is now attributed to the project you were actually working in.** Every agy entry previously recorded a fixed `"Antigravity"` project name, so the project usage ranking couldn't show which folder the tokens were spent in. Entries now resolve the working directory from the session's recorded shell commands, falling back to `"Antigravity"` only when none is found.
 
 ## [0.29.32] - 2026-08-20
 

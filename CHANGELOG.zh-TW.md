@@ -9,6 +9,7 @@
 ### 新增
 - **Claude Code 狀態列現在有 Linux 的驗證。** hook 本來就只用標準函式庫，`usage setup` 的 Claude 路徑也從未擋掉 macOS 與 Windows 以外的系統，所以它一直是能動的——只是沒有測試涵蓋，因此也沒寫進文件。CI 現在會在 Ubuntu 上用拋棄式 `HOME` 安裝 hook，並餵給它真實的狀態列輸入。
 - **`uvx usage-cli` 不必安裝任何東西就能開終端機介面。** CLI 現在以 `usage-cli` 的名稱發布到 PyPI，Linux 與 Windows 使用者不必下載 macOS App 也能試 `usage status --json`、儀表板與報表，uv 會自行準備 Python 3.13。跑 `uv tool install usage-cli` 則會把指令留下來，名稱是 `usage`。發行名之所以是 `usage-cli`，是因為 `usage` 早在 2016 年就被 PyPI 上的另一個套件佔用；`usage` 與 `usage-cli` 兩個指令都會裝好。這條路只提供 CLI，選單列與系統匣 App 沒有變動，仍然從發行頁下載。
+- **Antigravity (agy) 的用量現在會歸到你實際工作的專案。** 過去每筆 agy 用量的專案名稱都寫死成「Antigravity」，專案用量排行榜看不出 token 實際花在哪個資料夾。現在會從 session 記錄的終端機指令還原工作目錄，找不到才 fallback 回「Antigravity」。
 
 ## [0.29.32] - 2026-08-20
 
