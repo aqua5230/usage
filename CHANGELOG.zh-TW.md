@@ -7,6 +7,7 @@
 ## [Unreleased]
 
 ### 變更
+- **README 的主題圖庫補齊十三個面板，也不再露出任何人的真實用量。** 五份 README 都在寫著十三款的標題底下放十張截圖——`stained_glass` 和 `origami` 從來沒被拍過，`catppuccin` 只有中文那張。舊圖還是在真機上手動截的，於是把實際的專案名稱與金額帶上了公開頁面，而且拍攝時間早於 Antigravity 卡片、根本沒有它。現在每一張都由 `scripts/make_panel_shots.py` 重新產生，用的是官網那份相同的示範資料，尺寸取自面板自己的 `preferred_size()`。GitHub 會把 Markdown 裡的腳本與 iframe 濾掉，所以 README 維持靜態圖片；會動的那個在官網。
 - **官網的面板區從十張截圖換成十三個活的面板。** 原本的圖庫放十張靜態圖，`origami` 和 `stained_glass` 從來沒被拍過，`catppuccin` 只有中文那一張——於是標題寫著十三款、底下只看得到十款。現在它把真正的面板 HTML 放進框裡跑，餵一份手寫的示範資料，主題清單直接來自 `panels.all_panels()`，所以日後第十四個面板只要跑一次 `scripts/make_panel_demo.py` 就會出現在官網，不必記得再去補兩張截圖。在官網切語言，面板也跟著切，五種語言都是，因為官網原本的 `applyLang()` 會把語言轉發進去。面板只供觀看——它的「更換面板」與「結束」在網頁上沒有原生端可以回應。舊的截圖留在 `docs/` 底下，五份 README 仍然連著它們。
 
 ### 內部

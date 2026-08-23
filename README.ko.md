@@ -154,9 +154,12 @@ UI에서 직접 **13가지 시각 테마**를 전환하세요.
   <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observation 테마" />
   <img src="docs/aquarium.en.png" width="32%" alt="Aquarium 테마" />
   <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcade 테마" />
+  <img src="docs/stained_glass.en.png" width="32%" alt="Stained Glass 테마" />
+  <img src="docs/origami.en.png" width="32%" alt="Origami 테마" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole 테마" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD 테마" />
   <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera 테마" />
+  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD 테마" />
+  <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccin 테마" />
 </p>
 
 ## 문제 해결

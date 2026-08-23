@@ -154,9 +154,12 @@ UIから直接 **13種類のビジュアルテーマ**を切り替えられま�
   <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observationテーマ" />
   <img src="docs/aquarium.en.png" width="32%" alt="Aquariumテーマ" />
   <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcadeテーマ" />
+  <img src="docs/stained_glass.en.png" width="32%" alt="Stained Glassテーマ" />
+  <img src="docs/origami.en.png" width="32%" alt="Origamiテーマ" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Holeテーマ" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUDテーマ" />
   <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidopteraテーマ" />
+  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUDテーマ" />
+  <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccinテーマ" />
 </p>
 
 ## トラブルシューティング

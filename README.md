@@ -154,9 +154,12 @@ Switch between **13 visual themes** directly from the UI:
   <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observation theme" />
   <img src="docs/aquarium.en.png" width="32%" alt="Midnight Aquarium theme" />
   <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcade theme" />
+  <img src="docs/stained_glass.en.png" width="32%" alt="Stained Glass theme" />
+  <img src="docs/origami.en.png" width="32%" alt="Origami theme" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole theme" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD theme" />
   <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera theme" />
+  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD theme" />
+  <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccin theme" />
 </p>
 
 ## Troubleshooting
