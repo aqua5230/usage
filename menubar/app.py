@@ -34,8 +34,6 @@ from AppKit import (
 )
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 
-import agy_loader
-import codex_loader
 import critter_frames
 import login_item
 import panel_window_state
@@ -44,13 +42,14 @@ import update_checker
 import update_gate
 from burn_rate import BurnRateTracker
 from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
-from history_loader import (
+from i18n import _t, packaged_resource_path
+from loaders import agy_loader, codex_loader
+from loaders.history_loader import (
     UsageEntry,
 )
-from history_loader import (
+from loaders.history_loader import (
     flush_caches_on_terminate as flush_history_cache,
 )
-from i18n import _t, packaged_resource_path
 from menubar import actions as menubar_actions
 from menubar import menu as menubar_menu
 from menubar import notify as menubar_notify

@@ -48,7 +48,6 @@ py-modules = [
     "usage_notifications",
     "tui",
     "pricing",
-    "history_loader",
     "usage_rate",
     "usage_statusline",
     "usage_statusline_agy",
@@ -60,10 +59,6 @@ py-modules = [
     "wintray_menu",
     "windows_watch",
     "usage_client",
-    "codex_loader",
-    "agy_loader",
-    "agy_disk_cache",
-    "agy_quota_probe",
     "critter_frames",
     "tui_sprite",
     "i18n",
@@ -82,18 +77,8 @@ py-modules = [
     "discussion_session",
     "discussion_window",
     "agy_window_keeper",
-    "cache_quarantine",
-    "codex_disk_cache",
-    "codex_events",
-    "codex_fork_replay",
-    "codex_paths",
     "discussion_usage",
-    "disk_cache_common",
-    "disk_cache_lifecycle",
     "fsevents_watch",
-    "history_disk_cache",
-    "jsonl_limits",
-    "jsonl_utils",
     "panel_window",
     "panel_window_state",
     "prefs",
@@ -111,7 +96,7 @@ py-modules = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["adapters*", "analyzer*", "menubar*", "panels*", "ui*"]
+include = ["adapters*", "analyzer*", "loaders*", "menubar*", "panels*", "ui*"]
 
 # Top-level modules cannot collect adjacent data files via package-data.
 [tool.setuptools.data-files]

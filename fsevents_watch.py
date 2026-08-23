@@ -15,7 +15,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from codex_paths import codex_home
+from loaders.codex_paths import codex_home
 
 logger = logging.getLogger(__name__)
 

@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 
-import codex_loader
 from adapters import codex as codex_adapter
+from loaders import codex_loader
 
 FIXTURE = Path(__file__).parent / "fixtures" / "codex_session_golden.jsonl"
 

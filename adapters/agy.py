@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-import agy_loader as shared_agy_loader
+from loaders import agy_loader as shared_agy_loader
 
 from i18n import t
 

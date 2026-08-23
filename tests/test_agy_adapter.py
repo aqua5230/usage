@@ -12,10 +12,10 @@ from pathlib import Path
 import pytest
 
 import adapters.registry as registry
-import agy_loader
 from adapters import agy
 from adapters.types import AgentInfo
 from i18n import t
+from loaders import agy_loader
 
 
 @pytest.fixture

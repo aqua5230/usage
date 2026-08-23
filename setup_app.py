@@ -85,8 +85,6 @@ if __name__ == "__main__":
             "usage_client",
             "usage_rate",
             "critter_frames",
-            "codex_loader",
-            "history_loader",
             "pricing",
             "setup_hook",
             "session_hooks",
@@ -118,6 +116,7 @@ if __name__ == "__main__":
             # corrupted local file header surfaces as "bad local file header".
             "adapters",
             "analyzer",
+            "loaders",
             "menubar",
             "ui",
         ],

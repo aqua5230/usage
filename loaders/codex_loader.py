@@ -20,11 +20,11 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from codex_disk_cache import (
+from loaders.codex_disk_cache import (
     flush_caches,
     seed_caches,
 )
-from codex_events import (
+from loaders.codex_events import (
     _as_dict,
     _as_int,
     _as_optional_float,
@@ -36,13 +36,13 @@ from codex_events import (
     _token_usage_from_payload,
     _TokenUsage,
 )
-from codex_events import (
+from loaders.codex_events import (
     _SessionFileInfo as _SessionFileInfo,
 )
-from codex_events import (
+from loaders.codex_events import (
     _ThreadMetadata as _ThreadMetadata,
 )
-from codex_fork_replay import (
+from loaders.codex_fork_replay import (
     _common_prefix_length,
     _fork_replay_lookup_key,
     _raw_token_usage_sequence,
@@ -50,16 +50,16 @@ from codex_fork_replay import (
     _ReplayLookupKey,
     _token_usage_events_after_embedded_parent,
 )
-from codex_paths import codex_home
-from disk_cache_lifecycle import (
+from loaders.codex_paths import codex_home
+from loaders.disk_cache_lifecycle import (
     flush_caches_if_due,
     needs_cache_seed,
 )
-from disk_cache_lifecycle import (
+from loaders.disk_cache_lifecycle import (
     flush_caches_on_terminate as _flush_caches_on_terminate,
 )
-from history_loader import UsageEntry
-from jsonl_limits import read_bounded_jsonl_line
+from loaders.history_loader import UsageEntry
+from loaders.jsonl_limits import read_bounded_jsonl_line
 from project_resolver import resolve_project_name
 from time_utils import parse_optional_iso8601_utc
 

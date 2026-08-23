@@ -16,9 +16,8 @@ from unittest.mock import Mock
 
 import pytest
 
-import history_disk_cache
-import history_loader
 import project_resolver
+from loaders import history_disk_cache, history_loader
 
 
 @pytest.fixture(autouse=True)
@@ -71,7 +70,7 @@ def test_load_entries_skips_oversized_line_and_continues(
 ) -> None:
     path = tmp_path / "history.jsonl"
     path.write_bytes(b"x" * 1_025 + b"\n" + _line().encode())
-    monkeypatch.setattr("jsonl_limits.MAX_JSONL_LINE_BYTES", 1_024)
+    monkeypatch.setattr("loaders.jsonl_limits.MAX_JSONL_LINE_BYTES", 1_024)
 
     entries = history_loader.load_entries(jsonl_paths=[path])
 

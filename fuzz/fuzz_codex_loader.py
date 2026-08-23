@@ -11,8 +11,8 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import codex_loader  # noqa: E402
-from history_loader import UsageEntry  # noqa: E402
+from loaders import codex_loader  # noqa: E402
+from loaders.history_loader import UsageEntry  # noqa: E402
 
 
 def _test_one_input(data: bytes) -> None:

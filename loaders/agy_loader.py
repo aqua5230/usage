@@ -20,12 +20,12 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
-from agy_disk_cache import flush_caches, seed_caches
-from disk_cache_lifecycle import (
+from loaders.agy_disk_cache import flush_caches, seed_caches
+from loaders.disk_cache_lifecycle import (
     flush_caches_if_due,
     needs_cache_seed,
 )
-from disk_cache_lifecycle import (
+from loaders.disk_cache_lifecycle import (
     flush_caches_on_terminate as _flush_caches_on_terminate,
 )
 from project_resolver import resolve_project_name

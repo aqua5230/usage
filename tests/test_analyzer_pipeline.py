@@ -14,10 +14,9 @@ from typing import Any
 
 import pytest
 
-import codex_loader
-import history_loader
 from adapters.types import AgentInfo, UsageEntry
 from analyzer import persona_loader, reporter
+from loaders import codex_loader, history_loader
 from menubar import app as menubar
 
 ROOT = Path(__file__).resolve().parents[1]

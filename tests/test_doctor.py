@@ -15,9 +15,9 @@ from pathlib import Path
 
 import pytest
 
-import codex_loader
 import doctor
 import setup_hook
+from loaders import codex_loader
 
 
 @pytest.fixture(autouse=True)

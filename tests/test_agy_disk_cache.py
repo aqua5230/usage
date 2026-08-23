@@ -10,9 +10,7 @@ from pathlib import Path
 
 import pytest
 
-import agy_disk_cache
-import agy_loader
-import cache_quarantine
+from loaders import agy_disk_cache, agy_loader, cache_quarantine
 
 
 def _agy_entry(session_id: str, project: str = "test-project") -> agy_loader.AgyUsageEntry:

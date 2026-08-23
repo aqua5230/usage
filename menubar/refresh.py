@@ -20,7 +20,7 @@ import agy_window_keeper
 import talent_market_bridge
 import window_keeper
 from burn_rate import BurnRateTracker
-from history_loader import UsageEntry
+from loaders.history_loader import UsageEntry
 from menubar import agy as menubar_agy
 from menubar import state as menubar_state
 from menubar.prefs import (

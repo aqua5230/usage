@@ -18,7 +18,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from cache_quarantine import quarantine
+from loaders.cache_quarantine import quarantine
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ def _serialize_entry(entry: Any) -> dict[str, Any]:
 
 
 def _deserialize_entry(data: dict[str, Any]) -> Any:
-    from agy_loader import AgyUsageEntry
+    from loaders.agy_loader import AgyUsageEntry
 
     return AgyUsageEntry(
         timestamp=datetime.fromisoformat(data["timestamp"]),
@@ -62,7 +62,7 @@ def seed_caches(
     file_cache: _FileCache,
 ) -> None:
     """Seed the given in-memory cache from disk. Silently fails on any error."""
-    from agy_loader import _FileCacheEntry
+    from loaders.agy_loader import _FileCacheEntry
 
     try:
         with cache_path.open(encoding="utf-8") as f:

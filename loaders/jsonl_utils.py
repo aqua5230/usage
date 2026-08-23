@@ -6,7 +6,7 @@ from collections.abc import Iterator
 from pathlib import Path
 from typing import Any
 
-from jsonl_limits import read_bounded_jsonl_line
+from loaders.jsonl_limits import read_bounded_jsonl_line
 
 logger = logging.getLogger(__name__)
 

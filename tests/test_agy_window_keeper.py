@@ -13,7 +13,7 @@ from typing import Any, cast
 import pytest
 
 import agy_window_keeper
-from agy_quota_probe import AgyQuotaWindow
+from loaders.agy_quota_probe import AgyQuotaWindow
 from menubar import agy as menubar_agy
 from menubar.state import AgyStaleState, QuotaRowState
 

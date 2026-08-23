@@ -24,7 +24,6 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import agy_window_keeper
-import codex_loader
 import service_status
 import update_checker
 import update_gate
@@ -33,8 +32,9 @@ import win_login_item
 import window_keeper
 import wintray_menu
 from burn_rate import BurnRateTracker
-from history_loader import UsageEntry, load_entries
 from i18n import _t
+from loaders import codex_loader
+from loaders.history_loader import UsageEntry, load_entries
 from menubar import agy as menubar_agy
 from menubar import state as menubar_state
 from menubar.prefs import (

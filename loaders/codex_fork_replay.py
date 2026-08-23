@@ -18,7 +18,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-from codex_events import (
+from loaders.codex_events import (
     _as_dict,
     _as_str,
     _load_json_line,

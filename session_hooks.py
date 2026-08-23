@@ -21,8 +21,8 @@ from pathlib import Path
 from typing import Any
 
 import setup_hook
-from codex_paths import codex_home
 from i18n import t as _t
+from loaders.codex_paths import codex_home
 from setup_hook import (
     BACKUP_KEY,
     HOOK_VERSION,

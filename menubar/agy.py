@@ -12,16 +12,16 @@ import time
 from dataclasses import dataclass
 from typing import cast
 
-from agy_quota_probe import (
+from i18n import _t
+from loaders.agy_quota_probe import (
     AgyQuotaGroup,
     AgyQuotaResult,
     AgyQuotaWindow,
     load_quota,
 )
-from agy_quota_probe import (
+from loaders.agy_quota_probe import (
     find_agy as find_agy,
 )
-from i18n import _t
 from menubar.state import (
     AGY_COLOR,
     AgyStaleState,

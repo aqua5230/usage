@@ -9,7 +9,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import history_loader  # noqa: E402
+from loaders import history_loader  # noqa: E402
 
 
 def _test_one_input(data: bytes) -> None:

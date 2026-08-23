@@ -20,13 +20,13 @@ from urllib.request import Request
 
 import pytest
 
-import agy_quota_probe
-from agy_quota_probe import (
+from loaders import agy_quota_probe
+from loaders.agy_quota_probe import (
     AgyQuotaGroup,
     AgyQuotaResult,
     AgyQuotaWindow,
 )
-from agy_quota_probe import (
+from loaders.agy_quota_probe import (
     find_agy as find_agy,
 )
 

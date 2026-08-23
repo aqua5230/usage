@@ -11,7 +11,7 @@ from datetime import UTC, datetime, timedelta
 import pytest
 
 import usage_rate
-from history_loader import UsageEntry
+from loaders.history_loader import UsageEntry
 
 START_TIME = datetime(2026, 1, 1, tzinfo=UTC)
 

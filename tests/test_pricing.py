@@ -22,7 +22,7 @@ import pytest
 
 import pricing
 from adapters.types import UsageEntry as AnalyzerUsageEntry
-from history_loader import UsageEntry
+from loaders.history_loader import UsageEntry
 
 CHECK_FALLBACK_PRICING = runpy.run_path(
     str(Path(__file__).parents[1] / "scripts" / "check_fallback_pricing.py"),

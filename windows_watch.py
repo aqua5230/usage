@@ -21,9 +21,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import codex_loader
-import history_loader
 from adapters import rate_limits
+from loaders import codex_loader, history_loader
 
 logger = logging.getLogger(__name__)
 

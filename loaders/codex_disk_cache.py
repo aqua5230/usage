@@ -14,8 +14,8 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
-from codex_events import _SessionFileInfo, _TokenUsage
-from disk_cache_common import (
+from loaders.codex_events import _SessionFileInfo, _TokenUsage
+from loaders.disk_cache_common import (
     _SHARD_COUNT,
     _cache_dir,
     _deserialize_usage_entry,
@@ -72,7 +72,7 @@ def seed_caches(
     sqlite_log_cache: Any,
 ) -> None:
     """Seed valid shards, skipping only corrupt or stale shards."""
-    from codex_loader import _JsonlCacheEntry, _JsonlParseState
+    from loaders.codex_loader import _JsonlCacheEntry, _JsonlParseState
 
     _remove_legacy_cache(cache_path)
     sqlite_payload = _load_payload(_sqlite_log_path(cache_path), schema_version)

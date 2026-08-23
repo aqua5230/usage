@@ -14,7 +14,7 @@ from collections import OrderedDict
 from pathlib import Path
 from typing import Any
 
-from disk_cache_common import (
+from loaders.disk_cache_common import (
     _SHARD_COUNT,
     _deserialize_usage_entry,
     _encoded_payload,
@@ -50,7 +50,7 @@ def seed_caches(
     maxsize: int,
     file_cache: _FileCache,
 ) -> None:
-    from history_loader import _FileCacheEntry
+    from loaders.history_loader import _FileCacheEntry
 
     _remove_legacy_cache(cache_path)
     for index in range(_SHARD_COUNT):

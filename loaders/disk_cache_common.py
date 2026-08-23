@@ -17,7 +17,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from cache_quarantine import quarantine
+from loaders.cache_quarantine import quarantine
 
 _SHARD_COUNT = 32
 
@@ -39,7 +39,7 @@ def _serialize_usage_entry(entry: Any) -> dict[str, Any]:
 
 
 def _deserialize_usage_entry(data: dict[str, Any]) -> Any:
-    from history_loader import UsageEntry
+    from loaders.history_loader import UsageEntry
 
     return UsageEntry(
         timestamp=datetime.fromisoformat(data["timestamp"]),

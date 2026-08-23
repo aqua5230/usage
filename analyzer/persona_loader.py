@@ -15,7 +15,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from jsonl_utils import iter_jsonl_dicts
+from loaders.jsonl_utils import iter_jsonl_dicts
 from project_resolver import project_from_encoded_path, resolve_project_name
 from time_utils import parse_optional_iso8601_utc
 

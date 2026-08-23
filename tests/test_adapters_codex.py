@@ -11,8 +11,8 @@ from pathlib import Path
 
 import pytest
 
-import codex_loader
 from adapters import codex
+from loaders import codex_loader
 from tests.helpers import write_codex_session as _write_session
 from tests.helpers import (
     write_codex_session_with_turn_context_model as _write_session_with_turn_context_model,

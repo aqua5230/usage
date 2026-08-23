@@ -19,15 +19,15 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
-from disk_cache_lifecycle import (
+from loaders.disk_cache_lifecycle import (
     flush_caches_if_due,
     needs_cache_seed,
 )
-from disk_cache_lifecycle import (
+from loaders.disk_cache_lifecycle import (
     flush_caches_on_terminate as _flush_caches_on_terminate,
 )
-from history_disk_cache import flush_caches, seed_caches
-from jsonl_limits import read_bounded_jsonl_line
+from loaders.history_disk_cache import flush_caches, seed_caches
+from loaders.jsonl_limits import read_bounded_jsonl_line
 from project_resolver import project_from_encoded_path, resolve_project_name
 from time_utils import parse_optional_iso8601_utc
 

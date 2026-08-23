@@ -15,7 +15,7 @@ from typing import Any
 
 from adapters import claude
 from adapters.types import UsageEntry
-from jsonl_utils import iter_jsonl_dicts
+from loaders.jsonl_utils import iter_jsonl_dicts
 
 TOOLS = {"Read", "Edit", "Bash", "Grep", "Glob", "LS"}
 # Below this estimated waste a finding stays "info": cents must not outrank

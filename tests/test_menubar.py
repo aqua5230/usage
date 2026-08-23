@@ -15,13 +15,12 @@ from typing import Any, cast
 import pytest
 
 import agy_window_keeper
-import codex_loader
-import history_loader
 import panel_window_state
 import panels
 import statusline_settings
 import window_keeper
 from burn_rate import BurnRateTracker
+from loaders import codex_loader, history_loader
 from menubar import actions as menubar_actions
 from menubar import agy as menubar_agy
 from menubar import app as menubar

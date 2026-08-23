@@ -11,7 +11,7 @@ import time
 from collections.abc import Callable
 from datetime import datetime, timezone
 
-from history_loader import UsageEntry, load_entries
+from loaders.history_loader import UsageEntry, load_entries
 
 BURN_RATE_THRESH_NORMAL = 500.0  # tokens/min
 BURN_RATE_THRESH_ACTIVE = 2500.0

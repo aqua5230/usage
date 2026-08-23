@@ -16,10 +16,8 @@ from unittest.mock import Mock
 
 import pytest
 
-import codex_disk_cache
-import codex_loader
-import disk_cache_common
-from history_loader import UsageEntry
+from loaders import codex_disk_cache, codex_loader, disk_cache_common
+from loaders.history_loader import UsageEntry
 from tests.helpers import write_codex_session as _write_session
 from tests.helpers import (
     write_codex_session_with_turn_context_model as _write_session_with_turn_context_model,
@@ -1015,7 +1013,7 @@ def test_parse_jsonl_skips_oversized_line_and_continues(
         + b"\n"
         + json.dumps({"type": "session_meta", "payload": {"id": "s1"}}).encode()
     )
-    monkeypatch.setattr("jsonl_limits.MAX_JSONL_LINE_BYTES", 1_024)
+    monkeypatch.setattr("loaders.jsonl_limits.MAX_JSONL_LINE_BYTES", 1_024)
 
     assert codex_loader._parse_jsonl(path, {}, None) == []
     assert "oversized JSONL line" in caplog.text
@@ -2381,7 +2379,7 @@ def test_load_rate_limits_uses_turn_context_model_when_state_db_missing(
 
 def test_usage_entry_round_trip() -> None:
     """Test that UsageEntry serialization/deserialization is lossless."""
-    from history_loader import UsageEntry
+    from loaders.history_loader import UsageEntry
 
     original = UsageEntry(
         timestamp=datetime(2026, 6, 24, 12, 0, 0, tzinfo=UTC),

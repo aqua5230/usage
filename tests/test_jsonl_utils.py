@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-import jsonl_limits
-from jsonl_utils import iter_jsonl_dicts
+from loaders import jsonl_limits
+from loaders.jsonl_utils import iter_jsonl_dicts
 
 
 def test_iter_jsonl_dicts_returns_dicts_in_file_order(tmp_path: Path) -> None:

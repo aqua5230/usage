@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-import cache_quarantine
+from loaders import cache_quarantine
 
 
 def test_quarantine_moves_a_cache_file(
@@ -19,7 +19,9 @@ def test_quarantine_moves_a_cache_file(
     source = tmp_path / "cache.json"
     source.write_text("broken", encoding="utf-8")
     monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", quarantine_dir)
-    monkeypatch.setattr("cache_quarantine.time.time_ns", lambda: 1_754_132_400_123_000_000)
+    monkeypatch.setattr(
+        "loaders.cache_quarantine.time.time_ns", lambda: 1_754_132_400_123_000_000
+    )
 
     cache_quarantine.quarantine(source, "json-error")
 
@@ -57,7 +59,9 @@ def test_quarantine_keeps_only_ten_backups(
     source = tmp_path / "cache.json"
     source.write_text("broken", encoding="utf-8")
     monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", quarantine_dir)
-    monkeypatch.setattr("cache_quarantine.time.time_ns", lambda: 1_754_132_400_123_000_000)
+    monkeypatch.setattr(
+        "loaders.cache_quarantine.time.time_ns", lambda: 1_754_132_400_123_000_000
+    )
 
     cache_quarantine.quarantine(source, "json-error")
 

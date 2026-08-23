@@ -17,7 +17,6 @@ from typing import Any, cast
 
 import pytest
 
-import codex_loader
 import panels
 import prefs
 import service_status
@@ -27,6 +26,7 @@ import windows_watch
 import wintray
 import wintray_menu
 from i18n import _t
+from loaders import codex_loader
 from menubar import agy as menubar_agy
 from menubar import prefs as menubar_prefs
 from menubar import state as menubar_state

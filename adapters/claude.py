@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from jsonl_utils import iter_jsonl_dicts
+from loaders.jsonl_utils import iter_jsonl_dicts
 
 from .types import AgentInfo, UsageEntry
 

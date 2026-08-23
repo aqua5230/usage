@@ -19,7 +19,7 @@ import tempfile
 import time
 from typing import Any, NotRequired, TypedDict, cast
 
-import codex_loader
+from loaders import codex_loader
 from analyzer import persona_loader
 from analyzer import subscription
 from adapters import agy, claude, codex

@@ -302,7 +302,7 @@ def _self_heal_log_lines() -> list[str]:
 
 
 def _codex_sessions() -> CheckResult:
-    import codex_loader
+    from loaders import codex_loader
 
     sessions_dir = codex_loader.SESSIONS_DIR
     if not sessions_dir.is_dir():
@@ -333,7 +333,7 @@ def _codex_sessions() -> CheckResult:
 
 
 def _codex_logs() -> CheckResult:
-    import codex_loader
+    from loaders import codex_loader
 
     logs_db = codex_loader.LOGS_DB
     if not logs_db.exists():
@@ -362,7 +362,7 @@ def _codex_rate_limit_log_count(logs_db: Path) -> int:
 
 
 def _codex_state() -> CheckResult:
-    import codex_loader
+    from loaders import codex_loader
 
     state_db = codex_loader.STATE_DB
     exists = state_db.exists()
@@ -374,7 +374,7 @@ def _codex_state() -> CheckResult:
 
 
 def _codex_rate_limits() -> CheckResult:
-    import codex_loader
+    from loaders import codex_loader
 
     rate_limits = codex_loader.load_rate_limits()
     if rate_limits is None:

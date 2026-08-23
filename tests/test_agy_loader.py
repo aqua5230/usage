@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-import agy_loader
+from loaders import agy_loader
 
 
 def _varint(value: int) -> bytes:

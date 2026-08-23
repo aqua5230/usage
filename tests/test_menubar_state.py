@@ -11,9 +11,9 @@ from pathlib import Path
 
 import pytest
 
-import codex_loader
 from burn_rate import BurnRateTracker
-from history_loader import UsageEntry
+from loaders import codex_loader
+from loaders.history_loader import UsageEntry
 from menubar import state as menubar_state
 
 
