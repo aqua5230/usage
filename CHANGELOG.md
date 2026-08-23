@@ -7,6 +7,16 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.29.34] - 2026-08-23
+
+### Changed
+- **The menu bar percentages are now bold.** They were drawn at the menu bar's own point size in regular weight, which left them lighter than everything around them — hard to read at a glance over a light wallpaper. Same size, bold weight; the strip grows by about 5 points.
+- **The provider marks in the menu bar are now monochrome and follow the menu bar's own appearance.** The color art had to work against whatever wallpaper was behind it, and the Codex mark in particular collapsed into an indistinct blob at menu bar size because its detail came from color rather than shape. The marks are now template images — the system tints them black on a light menu bar and white on a dark one, so they stay legible everywhere, and they match the critters, which have always been drawn this way. They are also 14 to 16 points now.
+
+### Internal
+- **The 77 modules that sat loose in the repository root are now grouped into packages.** `menubar/`, `loaders/`, `wintray/`, `discussion/`, `tui/`, and `updates/` absorbed 42 of them; the root is down to 35. Nothing moved that runs outside the virtualenv — the status line hooks are still plain files at the top level, because `usage setup` copies them into the user's home directory to run under the system Python. Behavior is unchanged; only import paths moved.
+- **A test now guards the modules that `main.py` loads by name.** Those loads are plain strings, so no search finds them and a moved module leaves the string pointing at nothing while the whole suite still passes and the app fails to launch. The test reads `main.py` and checks every attribute it calls on such a module against that module's actual contents.
+
 ## [0.29.33] - 2026-08-22
 
 ### Added
