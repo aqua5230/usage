@@ -455,6 +455,51 @@ pre {
   font-size: 12px;
   font-family: var(--mono);
 }
+.panel-picker {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+}
+.panel-chips { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+.panel-chip {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--fg-dim);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font: inherit;
+  font-size: 13px;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: background 120ms ease, color 120ms ease, border-color 120ms ease;
+}
+.panel-chip:hover { color: var(--fg); border-color: rgba(255, 255, 255, 0.2); }
+.panel-chip[aria-pressed="true"] {
+  background: var(--accent);
+  border-color: transparent;
+  color: #0a0a0a;
+}
+.panel-stage {
+  /* 364px 是面板的真實寬度，來自 panels.all_panels()。不要換成百分比：
+     放進 grid 的 auto 欄時百分比會回頭依賴欄寬，面板被壓窄到文字截斷。 */
+  width: 364px;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.5);
+}
+/* 面板裡的「更換面板」「結束」在網頁上沒有原生端可以回應，
+   擋掉指標事件，讓左邊的名稱是唯一的操作面。 */
+.panel-stage iframe { width: 100%; height: 1004px; border: 0; display: block; pointer-events: none; }
+@media (max-width: 760px) {
+  .panel-picker { gap: 24px; width: 100%; }
+  /* flex column 底下百分比不會像 grid auto 欄那樣塌縮，這裡用 min() 安全。
+     面板量到 330px 以上都不會截斷；更窄的螢幕讓這格自己橫捲。 */
+  .panel-stage { width: min(364px, 100%); overflow-x: auto; }
+}
 
 /* Report block */
 .report {
@@ -682,17 +727,9 @@ body::before {
   <div class="wrap">
     <h2 data-i18n="screen_h2">Pick a panel that fits your mood.</h2>
     <p class="subtitle" data-i18n="screen_sub">Thirteen built-in themes. Change anytime from the popover toolbar.</p>
-    <div class="gallery">
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="matrix.en.png" data-img-en="matrix.en.png" data-img-cjk="matrix.png" alt="Matrix theme" /><span class="caption">matrix</span></div>
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="win95.en.png" data-img-en="win95.en.png" data-img-cjk="win95.png" alt="Windows 95 theme" /><span class="caption">win95</span></div>
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="newspaper.en.png" data-img-en="newspaper.en.png" data-img-cjk="newspaper.png" alt="Newspaper theme" /><span class="caption">newspaper</span></div>
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="cloud_observation.en.png" data-img-en="cloud_observation.en.png" data-img-cjk="cloud_observation.png" alt="Cloud Observation theme" /><span class="caption">cloud_observation</span></div>
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="aquarium.en.png" data-img-en="aquarium.en.png" data-img-cjk="aquarium.png" alt="Aquarium theme" /><span class="caption">aquarium</span></div>
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="prism_arcade.en.png" data-img-en="prism_arcade.en.png" data-img-cjk="prism_arcade.png" alt="Prism Arcade theme" /><span class="caption">prism_arcade</span></div>
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="black_hole.en.png" data-img-en="black_hole.en.png" data-img-cjk="black_hole.png" alt="Black Hole theme" /><span class="caption">black_hole</span></div>
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="world_cup.en.png" data-img-en="world_cup.en.png" data-img-cjk="world_cup.png" alt="World Cup theme" /><span class="caption">world_cup</span></div>
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="lepidoptera.en.png" data-img-en="lepidoptera.en.png" data-img-cjk="lepidoptera.png" alt="Lepidoptera theme" /><span class="caption">lepidoptera</span></div>
-      <div class="tile"><img loading="lazy" decoding="async" data-shot src="classic.en.png" data-img-en="classic.en.png" data-img-cjk="classic.png" alt="Classic theme" /><span class="caption">classic</span></div>
+    <div class="panel-picker">
+      <div class="panel-chips" id="panel-chips" role="group" data-i18n-attr="aria-label:screen_h2" aria-label="Pick a panel that fits your mood."></div>
+      <div class="panel-stage"><iframe id="panel-stage" title="usage panel preview" loading="lazy" scrolling="no"></iframe></div>
     </div>
     <div class="report" style="margin-top: 56px;">
       <h3 data-i18n="report_h">Your AI usage, in one shareable page.</h3>
@@ -1157,6 +1194,8 @@ function applyLang(lang) {
     if (src && img.getAttribute('src') !== src) img.setAttribute('src', src);
   });
 
+  if (typeof window.usagePanelsSetLanguage === 'function') window.usagePanelsSetLanguage(lang);
+
   const cur = document.getElementById('lang-current');
   if (cur) cur.textContent = t._label;
 
@@ -1249,6 +1288,58 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
     document.documentElement.classList.remove('motion-ready');
   }
 }
+
+// 面板展示：清單來自 docs/panels/panels.json，由 scripts/make_panel_demo.py
+// 從 panels.all_panels() 產生，新增面板不必動這裡。
+(function () {
+  const stage = document.getElementById('panel-stage');
+  const chips = document.getElementById('panel-chips');
+  if (!stage || !chips) return;
+  let panels = [];
+  let language = 'en';
+
+  // 面板自己量出的自然高度，透過 make_panel_demo.py 補的假 webkit 橋接傳過來。
+  window.addEventListener('message', function (event) {
+    const height = event.data && event.data.usagePanelHeight;
+    if (height) stage.style.height = height + 'px';
+  });
+
+  function show(id) {
+    const panel = panels.find(p => p.id === id);
+    if (panel) stage.style.height = panel.height + 'px';
+    stage.src = 'panels/' + id + '.html';
+    stage.addEventListener('load', function once() {
+      stage.removeEventListener('load', once);
+      stage.contentWindow.postMessage({ usageDemoLanguage: language }, '*');
+    });
+    for (const button of chips.children) {
+      button.setAttribute('aria-pressed', String(button.dataset.id === id));
+    }
+  }
+
+  window.usagePanelsSetLanguage = function (next) {
+    language = next;
+    for (const button of chips.children) {
+      const panel = panels.find(p => p.id === button.dataset.id);
+      if (panel && panel.names[next]) button.textContent = panel.names[next];
+    }
+    if (stage.contentWindow) stage.contentWindow.postMessage({ usageDemoLanguage: next }, '*');
+  };
+
+  fetch('panels/panels.json').then(r => r.json()).then(function (data) {
+    panels = data;
+    panels.forEach(function (panel) {
+      const button = document.createElement('button');
+      button.className = 'panel-chip';
+      button.type = 'button';
+      button.dataset.id = panel.id;
+      button.textContent = panel.names[language] || panel.names.en;
+      button.addEventListener('click', function () { show(panel.id); });
+      chips.append(button);
+    });
+    show(panels[0].id);
+  }).catch(function () { /* 面板展示載不到就留空，不影響頁面其他部分 */ });
+})();
 
 applyLang(detectLang());
 </script>

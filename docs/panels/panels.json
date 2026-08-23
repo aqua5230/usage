@@ -1,0 +1,158 @@
+[
+  {
+    "id": "classic",
+    "width": 364.0,
+    "height": 1004.0,
+    "names": {
+      "en": "Default",
+      "zh-TW": "預設",
+      "zh-CN": "默认",
+      "ja": "デフォルト",
+      "ko": "기본"
+    }
+  },
+  {
+    "id": "matrix",
+    "width": 364.0,
+    "height": 1046.0,
+    "names": {
+      "en": "Matrix",
+      "zh-TW": "駭客任務",
+      "zh-CN": "黑客任务",
+      "ja": "マトリックス",
+      "ko": "매트릭스"
+    }
+  },
+  {
+    "id": "win95",
+    "width": 364.0,
+    "height": 1055.0,
+    "names": {
+      "en": "Windows 95",
+      "zh-TW": "視窗 95",
+      "zh-CN": "Windows 95",
+      "ja": "Windows 95",
+      "ko": "윈도우 95"
+    }
+  },
+  {
+    "id": "newspaper",
+    "width": 364.0,
+    "height": 1051.0,
+    "names": {
+      "en": "Vintage Newspaper",
+      "zh-TW": "復古報紙",
+      "zh-CN": "复古报纸",
+      "ja": "レトロ新聞",
+      "ko": "복고 신문"
+    }
+  },
+  {
+    "id": "cloud_observation",
+    "width": 364.0,
+    "height": 1006.0,
+    "names": {
+      "en": "Cloud Observation",
+      "zh-TW": "雲圖觀測",
+      "zh-CN": "云图观测",
+      "ja": "雲観測",
+      "ko": "구름 관측"
+    }
+  },
+  {
+    "id": "aquarium",
+    "width": 364.0,
+    "height": 1006.0,
+    "names": {
+      "en": "Midnight Aquarium",
+      "zh-TW": "午夜水族箱",
+      "zh-CN": "午夜水族箱",
+      "ja": "真夜中の水族館",
+      "ko": "한밤의 수족관"
+    }
+  },
+  {
+    "id": "prism_arcade",
+    "width": 364.0,
+    "height": 1006.0,
+    "names": {
+      "en": "Prism Arcade",
+      "zh-TW": "稜鏡街機",
+      "zh-CN": "棱镜街机",
+      "ja": "プリズムアーケード",
+      "ko": "프리즘 아케이드"
+    }
+  },
+  {
+    "id": "stained_glass",
+    "width": 364.0,
+    "height": 1004.0,
+    "names": {
+      "en": "Stained Glass",
+      "zh-TW": "彩繪玻璃",
+      "zh-CN": "彩绘玻璃",
+      "ja": "ステンドグラス",
+      "ko": "스테인드글라스"
+    }
+  },
+  {
+    "id": "origami",
+    "width": 364.0,
+    "height": 1004.0,
+    "names": {
+      "en": "Origami",
+      "zh-TW": "摺紙",
+      "zh-CN": "折纸",
+      "ja": "折り紙",
+      "ko": "종이접기"
+    }
+  },
+  {
+    "id": "black_hole",
+    "width": 364.0,
+    "height": 1006.0,
+    "names": {
+      "en": "Black Hole",
+      "zh-TW": "黑洞視界",
+      "zh-CN": "黑洞视界",
+      "ja": "ブラックホール",
+      "ko": "블랙홀"
+    }
+  },
+  {
+    "id": "lepidoptera",
+    "width": 364.0,
+    "height": 1046.0,
+    "names": {
+      "en": "Lepidoptera",
+      "zh-TW": "蝶類圖鑑",
+      "zh-CN": "蝶类图鉴",
+      "ja": "蝶の図鑑",
+      "ko": "나비 도감"
+    }
+  },
+  {
+    "id": "world_cup",
+    "width": 364.0,
+    "height": 812.0,
+    "names": {
+      "en": "World Cup 2026",
+      "zh-TW": "世界盃 2026",
+      "zh-CN": "世界杯 2026",
+      "ja": "ワールドカップ 2026",
+      "ko": "월드컵 2026"
+    }
+  },
+  {
+    "id": "catppuccin",
+    "width": 364.0,
+    "height": 1038.0,
+    "names": {
+      "en": "Catppuccin",
+      "zh-TW": "Catppuccin",
+      "zh-CN": "Catppuccin",
+      "ja": "Catppuccin",
+      "ko": "Catppuccin"
+    }
+  }
+]

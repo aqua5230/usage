@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- **The website now shows all thirteen panels, live, instead of ten screenshots.** The gallery held ten static images; `origami` and `stained_glass` had never been photographed at all, and `catppuccin` only in Chinese — so the page showed ten themes under a heading that said thirteen. It now renders the real panel HTML in a frame with a hand-written demo payload, and the theme list comes from `panels.all_panels()`, so a fourteenth panel appears on the site by running `scripts/make_panel_demo.py` rather than by remembering to take two more screenshots. Picking a language on the site switches the panel too, in all five languages, because the site's existing `applyLang()` forwards to it. The panel is display-only — its Switch Panel and Quit buttons have no native side to answer them on a web page. The old screenshots stay in `docs/`; the READMEs still link to them.
+
 ### Internal
 - **Seven more modules moved out of the repository root.** `panel_window` and `panel_window_state` joined `panels/`, `critter_frames` joined `menubar/`, and a new `installer/` package took `setup_hook`, `session_hooks`, `statusline_settings`, and `login_item` — the four modules that install usage into the user's system. The root is down to 28 Python files. The package is named `installer` rather than `setup` because the repository root is on `sys.path` and a top-level `setup` package would shadow the bare `import setup` that setuptools and py2app perform during a build — a failure that only surfaces when packaging, never in the test suite. The four modules that resolve the hook scripts by walking up from `__file__` now walk up one extra level, since those scripts stay at the root to run under the system Python.
 
