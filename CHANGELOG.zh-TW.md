@@ -4,6 +4,20 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.29.36] - 2026-08-24
+
+### 新增
+- **Antigravity 額度現在會發通知了，跟 Claude Code、Codex 一樣。** `agy_session` 與 `agy_weekly` 這兩個頻道從來沒被加進通知的允許清單，於是 Antigravity 那兩列可以一路燒到見底卻一聲不吭。Antigravity 的額度是唯一一份來自網路端點、背後靠本機快取撐著的資料，不是磁碟上的檔案，所以 `QuotaRowState.available` 寫死成 `True`；現在資料陳舊時改傳 `available=False`，過期的快取就不會再宣告「額度用完了」。
+- **Antigravity 那兩列現在會在額度見底前先警告，而不是燒完才說。** 它們從來沒接上 burn rate（消耗速率）預測，`warning` 永遠是 `False`——Claude 與 Codex 都會在重置前提前警告，只有 Antigravity 一路安靜到觸底。現在兩列各自註冊了 tracker。取樣的時間戳改用快照自己的 `fetched_at`，不用系統時鐘：Antigravity 的快照五分鐘才換一次，輪詢會反覆讀到同一份資料，混進真實時鐘就會捏造出一條假的斜率。兩列都用 3600 秒的視窗：五分鐘一筆的取樣密度，配上預設的十分鐘視窗永遠湊不滿 `MIN_FORECAST_SAMPLES`，等於根本沒在預測。資料陳舊時一律不預測，比照 `agy_window_keeper` 既有的做法。
+- **`usage doctor` 現在抓得到會讓 token 數字無聲歸零的 Codex 歷史遷移。** Codex 已經開始寫入 `rollout_migration_state` 這類資料表，一旦遷移真的啟動、`.jsonl` 停止寫入，`loaders/codex_loader.py` 會回傳零，而且哪裡都不會報錯。這條檢查會在 session 的 `.jsonl` 近七天沒有任何 entry、而 `thread_history_1.sqlite` 卻有近七天的 `thread_turns` 時發出警告。
+- **`usage doctor` 現在會拿官方的 Claude 成本跟自己算的對帳。** 它把 `usage-status.json` 裡的 `cost.total_cost_usd` 跟 usage 自算的金額比對，相對差超過 20% 且絕對差超過 $1 時警告。在寫這段的機器上兩者差了 46.4%，根因是價格表把 `claude-opus-5` 的單價寫成實際的一半——這正是離線備用價目表最容易藏住的那種脫節。
+
+### 修正
+- **專案用量卡片在 WIN95 與復古報紙面板不再被裁切。** 面板量自己的自然高度時，會把整條 `height: 100%` 的祖先鏈暫時放開成 `auto`。這兩款面板的專案卡都寫成 `flex: 1`，也就是彈性基準為零，而卡片自身的 `overflow: hidden`——復古視窗邊框正是靠它——又讓原本能撐住卡片的「自動內容最小尺寸」失效。於是量測期間那張卡塌成只剩標題列，回報的高度剛好少掉整批專案列：WIN95 量到 877 像素、復古報紙 876，而結構完全相同的預設面板是 923。現在量測時會把這類會撐開的子元素暫時固定成 `flex: 0 0 auto`，量完立刻還原，各面板的視覺設計一點都沒動。
+
+### 內部
+- **再有八個模組搬離倉庫根目錄。** `quota/` 收下 `burn_rate`、`usage_rate`、`window_keeper`、`agy_window_keeper`；`usage_common/` 收下 `time_utils`、`usage_logging`、`usage_lang`、`usage_dir_sweeper`。共用工具那包取名 `usage_common` 而不是 `common`，是因為 `uvx usage-cli` 的入口會把頂層套件裝進共用的 `site-packages`，而 `common` 大概是整個生態裡最容易撞名的名字。沒有留任何相容 shim——全 repo 的 import 一次改完，`pyproject.toml` 移除那八項 `py-modules` 並加入兩個新套件，`setup_app.py` 同步跟上。行為零改變。
+
 ## [0.29.35] - 2026-08-23
 
 ### 新增

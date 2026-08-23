@@ -5,6 +5,20 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.36] - 2026-08-24
+
+### Added
+- **Antigravity quota now raises notifications, the way Claude Code and Codex already did.** The `agy_session` and `agy_weekly` channels were missing from the notification allow-list, so the two Antigravity rows could run to the floor without ever saying so. Antigravity quota is the one source that comes from a network endpoint behind a local cache rather than a file on disk, so `QuotaRowState.available` is hard-coded to `True`; a stale snapshot now passes `available=False` instead, so an expired cache can no longer announce that the quota has run out.
+- **The Antigravity rows now warn before the quota is gone, not after.** They had never been wired to the burn-rate forecast, so their `warning` flag was permanently `False` — Claude and Codex warned ahead of a reset and Antigravity stayed silent until it hit the floor. Both rows now register their own tracker. Samples are timestamped with the snapshot's own `fetched_at` rather than the wall clock, because the Antigravity snapshot only changes every five minutes and polling would otherwise read the same payload again and invent a slope out of it. Both rows use a 3600-second window: at one sample per five minutes the default ten-minute window never collects `MIN_FORECAST_SAMPLES`, which is the same as not forecasting at all. A stale snapshot suppresses the forecast entirely, matching what `agy_window_keeper` already does.
+- **`usage doctor` now catches a Codex history migration that would silently zero the token counts.** Codex has begun writing tables such as `rollout_migration_state`, and if that migration lands and the `.jsonl` files stop being written, `loaders/codex_loader.py` returns zero without an error anywhere. The check warns when the session `.jsonl` files hold no entry from the last seven days while `thread_history_1.sqlite` does hold `thread_turns` from that window.
+- **`usage doctor` now reconciles its own Claude cost against the official one.** It compares `cost.total_cost_usd` from `usage-status.json` with the figure usage calculates itself and warns when they differ by more than 20% and more than $1. On the machine this was written on they differed by 46.4%, because the price table listed `claude-opus-5` at half its real rate — exactly the kind of drift the offline fallback table is known to hide.
+
+### Fixed
+- **The project usage card no longer clips its rows on the WIN95 and Newspaper panels.** A panel measures its own natural height by releasing the whole `height: 100%` chain to `auto`. Both panels write their project card as `flex: 1`, which means a flex basis of zero, and the card's own `overflow: hidden` — the retro window chrome depends on it — suppresses the automatic content-based minimum size that would otherwise hold the card open. The card therefore collapsed to its title bar during the measurement, and the reported height was short by exactly the project rows: 877 pixels for WIN95 and 876 for Newspaper against 923 for the structurally identical Classic. The measurement now pins such stretching children to `flex: 0 0 auto` while it measures and restores them afterwards, so no panel's visual design changes.
+
+### Internal
+- **Eight more modules moved out of the repository root.** `quota/` took `burn_rate`, `usage_rate`, `window_keeper`, and `agy_window_keeper`; `usage_common/` took `time_utils`, `usage_logging`, `usage_lang`, and `usage_dir_sweeper`. The shared-utility package is named `usage_common` rather than `common` because the `uvx usage-cli` entry point installs top-level packages into a shared `site-packages`, where `common` is about the most collision-prone name available. No compatibility shims were left behind — every import in the repository was updated in one pass, `pyproject.toml` dropped the eight `py-modules` entries and added the two packages, and `setup_app.py` followed. Behavior is unchanged.
+
 ## [0.29.35] - 2026-08-23
 
 ### Added
