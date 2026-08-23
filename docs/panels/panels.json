@@ -96,6 +96,18 @@
     }
   },
   {
+    "id": "migration",
+    "width": 364.0,
+    "height": 1004.0,
+    "names": {
+      "en": "Migration",
+      "zh-TW": "候鳥遷徙",
+      "zh-CN": "候鸟迁徙",
+      "ja": "渡り鳥",
+      "ko": "철새 이동"
+    }
+  },
+  {
     "id": "origami",
     "width": 364.0,
     "height": 1004.0,

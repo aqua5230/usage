@@ -108,6 +108,19 @@ def all_panels() -> tuple[Panel, ...]:
             status_wrap_extra_height=30.0,
             service_alert_height=32.0,
         ),
+        # Reuse classic's measured values because migration keeps its DOM structure;
+        # remeasure if a future render shows clipping.
+        HTMLPanel(
+            "migration",
+            "panel_migration",
+            "migration.html",
+            height=1004.0,
+            claude_card_height=192.0,
+            codex_card_height=192.0,
+            agy_card_height=192.0,
+            status_wrap_extra_height=30.0,
+            service_alert_height=32.0,
+        ),
         # Reuse classic's measured values because the DOM structure is identical;
         # remeasure if a future render shows clipping.
         HTMLPanel(

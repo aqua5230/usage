@@ -4,11 +4,15 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## [Unreleased]
+## [0.29.35] - 2026-08-23
+
+### 新增
+- **「候鳥遷徙」成為第十四款視覺面板。** 暮色天空鋪著經緯網格，三群 V 字隊形的候鳥以不同速度飛過，翅膀隨之擺動，旁邊以 `ROUTE. 7` 這類航線編號標記旅程；做法承襲 Lepidoptera 面板的圖鑑風格。
 
 ### 變更
 - **README 的主題圖庫改用示範資料重做，排版也對齊了。** 五份 README 都在寫著十三款的標題底下放十張截圖——`stained_glass` 和 `origami` 從來沒被拍過，`catppuccin` 只有中文那張。舊圖還是在真機上手動截的，於是把實際的專案名稱與金額帶上了公開頁面，而且拍攝時間早於 Antigravity 卡片、根本沒有它。現在每一張都由 `scripts/make_panel_shots.py` 重新產生，用的是官網那份相同的示範資料。圖庫一行放三張，只要有一張比鄰居矮，整個格線就會歪掉；因此所有截圖都改用最高那個面板的高度來拍，而 `world_cup` 是寬版 HUD、天生就比其他面板矮了 243 像素，這次不放進圖庫。十二張圖、剛好四行。十三個面板在官網都還在，而且是各自單獨、按自己的尺寸顯示。GitHub 會把 Markdown 裡的腳本與 iframe 濾掉，所以 README 維持靜態圖片。
 - **官網的面板區從十張截圖換成十三個活的面板。** 原本的圖庫放十張靜態圖，`origami` 和 `stained_glass` 從來沒被拍過，`catppuccin` 只有中文那一張——於是標題寫著十三款、底下只看得到十款。現在它把真正的面板 HTML 放進框裡跑，餵一份手寫的示範資料，主題清單直接來自 `panels.all_panels()`，所以日後第十四個面板只要跑一次 `scripts/make_panel_demo.py` 就會出現在官網，不必記得再去補兩張截圖。在官網切語言，面板也跟著切，五種語言都是，因為官網原本的 `applyLang()` 會把語言轉發進去。面板只供觀看——它的「更換面板」與「結束」在網頁上沒有原生端可以回應。舊的截圖留在 `docs/` 底下，五份 README 仍然連著它們。
+- **彩繪玻璃現在會像萬花筒般轉動。** 原有的 `sunlightSweep` 保留，碎片分層以 `kaleidoscopeTurn` 反向轉動，光掃則用 `kaleidoscopeSweep` 跟著旋轉；id 與名稱不變，因此這是既有面板的視覺升級，不是新主題。
 
 ### 內部
 - **再有七個模組搬離倉庫根目錄。** `panel_window` 與 `panel_window_state` 收進 `panels/`，`critter_frames` 收進 `menubar/`，另外新開一個 `installer/` 套件收下 `setup_hook`、`session_hooks`、`statusline_settings`、`login_item`——這四個模組負責把 usage 安裝進使用者的系統。根目錄的 Python 檔降到 28 個。套件取名 `installer` 而不是 `setup`，是因為倉庫根目錄在 `sys.path` 上，一個頂層的 `setup` 套件會遮蔽 setuptools 與 py2app 在打包時執行的裸 `import setup`——這種失敗只在打包時浮現，測試永遠看不到。那四個靠 `__file__` 往上走來定位 hook 腳本的模組現在多走一層，因為那些腳本要留在根目錄、由系統的 Python 執行。

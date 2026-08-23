@@ -66,7 +66,7 @@ Applicationsフォルダに自動でインストールされます。Gatekeeper�
 
 ### 体験とカスタマイズ
 
-- **13種類のビジュアルテーマ：** Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、Lepidoptera（blueprint）、ステンドグラス、折り紙、Catppuccin（公式パレット、4種のflavorすべてに対応）を含むパネルスタイルを切り替えられます。
+- **14種類のビジュアルテーマ：** Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、Lepidoptera（blueprint）、渡り鳥（Migration）、ステンドグラス、折り紙、Catppuccin（公式パレット、4種のflavorすべてに対応）を含むパネルスタイルを切り替えられます。
 - **パネルを自由に配置：** パネルはメニューバーアイコンの下に固定されなくなりました。空白部分をドラッグして好きな場所に移動でき、次回開いたときもその位置を保持します。他のアプリにフォーカスが移っても消えず、メニューバーアイコンをもう一度クリックするかEscキーを押すと閉じます。
 - **ドラッグで並べ替え：** 任意のクォータカードをつかんで上下にドラッグすると順序を入れ替えられます。並び順はクォータカードを含むすべてのテーマ（World Cup 2026 を除く）で共有され、再起動後も維持されます。
 - **スピリットコンパニオン：** 使用率のそばに小さなアニメーション付きの白いシルエットが現れます。Claudeには不死鳥、Codexにはドラゴン、Antigravityにはライオンです。それぞれのツールのtoken消費率が上がると動きも動的に速くなります。
@@ -127,7 +127,7 @@ Codexを使用したことがある場合、`usage` はその履歴を自動で�
 
 Windowsでも主要機能をすべてネイティブで利用できます。システムトレイUI、Claude Codeのステータスラインhook、Codex履歴の解析に対応しています。[最新のGitHub Release](https://github.com/aqua5230/usage/releases/latest)から`usage-windows.zip`をダウンロードし、展開して`usage.exe`を実行してください。インストールは不要です。システムトレイUIにはMicrosoft Edge WebView2 Runtimeが必要ですが、通常はWindows 10/11に含まれています。
 
-システムトレイのアイコンはClaudeのクォータ率に合わせて更新され、ツールチップにはClaudeとCodexの各ウィンドウの概要が表示されます。左クリックでWebView2上にmacOSと同じ13種類のテーマパネル（Classicと他の12テーマ）を開き、右クリックでは「パネルの位置をリセット」と「終了」のみで、パネル切替、更新、ログイン時に起動、更新確認はパネル側のメニューにあります。
+システムトレイのアイコンはClaudeのクォータ率に合わせて更新され、ツールチップにはClaudeとCodexの各ウィンドウの概要が表示されます。左クリックでWebView2上にmacOSと同じ14種類のテーマパネル（Classicと他の13テーマ）を開き、右クリックでは「パネルの位置をリセット」と「終了」のみで、パネル切替、更新、ログイン時に起動、更新確認はパネル側のメニューにあります。
 
 Windowsでの相違点：パネルはトレイアイコンの隣ではなく作業領域の右下に開きます。更新通知はシステムのYes/Noダイアログです。AI Talent MarketおよびAI円卓会議パネルはmacOS専用です。
 
@@ -144,7 +144,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 
 ## テーマギャラリー
 
-UIから直接 **13種類のビジュアルテーマ**を切り替えられます。
+UIから直接 **14種類のビジュアルテーマ**を切り替えられます。
 
 <p align="center">
   <img src="docs/classic.en.png" width="32%" alt="Classicテーマ" />
@@ -158,6 +158,7 @@ UIから直接 **13種類のビジュアルテーマ**を切り替えられま�
   <img src="docs/origami.en.png" width="32%" alt="Origamiテーマ" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Holeテーマ" />
   <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidopteraテーマ" />
+  <img src="docs/migration.png" width="32%" alt="渡り鳥テーマ" />
   <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccinテーマ" />
 </p>
 

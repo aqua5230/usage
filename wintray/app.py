@@ -88,6 +88,7 @@ WINDOWS_PANELS = (
     ("lepidoptera", "panel_lepidoptera", "lepidoptera.html"),
     ("world_cup", "panel_world_cup", "world_cup.html"),
     ("stained_glass", "panel_stained_glass", "stained_glass.html"),
+    ("migration", "panel_migration", "migration.html"),
     ("origami", "panel_origami", "origami.html"),
     ("catppuccin", "panel_catppuccin", "catppuccin.html"),
 )
@@ -108,6 +109,7 @@ PANEL_HEIGHTS = {
     "lepidoptera": 1046,
     "world_cup": 812,
     "stained_glass": 1004,
+    "migration": 1004,
     "origami": 1004,
     "catppuccin": 1038,
 }

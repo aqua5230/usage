@@ -66,7 +66,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 ### Experience & Customization
 
-- **13 Visual Themes:** Switch between panel styles including Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera (blueprint), Stained Glass, Origami, and Catppuccin (official palette, all four flavors).
+- **14 Visual Themes:** Switch between panel styles including Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera (blueprint), Migration, Stained Glass, Origami, and Catppuccin (official palette, all four flavors).
 - **Place the Panel Anywhere:** The panel is no longer pinned under the menu bar icon. Drag it from any empty spot to wherever you want it, and it reopens there next time. It stays put when another app takes focus — a second click on the menu bar icon, or Escape, closes it.
 - **Drag to Reorder:** Grab any quota card and drag it up or down to swap the order — the arrangement is shared across every theme with quota cards (all except World Cup 2026) and survives restarts.
 - **Spirit Companions:** A small animated white silhouette lives beside your usage percentages — a phoenix for Claude, a dragon for Codex, a lion for Antigravity. Each accelerates dynamically as its own tool's token burn rate climbs.
@@ -127,7 +127,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 
 Windows has the full core experience: the system-tray UI, Claude Code status-line hook, and Codex history parsing all work natively. Download `usage-windows.zip` from the [latest GitHub Release](https://github.com/aqua5230/usage/releases/latest), unzip it, then run `usage.exe`—no installer is needed. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
 
-The system-tray icon updates with your Claude quota percentage; its tooltip summarizes the Claude and Codex windows. Left-click opens the same 13 quota themes available on macOS (Classic plus the other twelve) in WebView2. Right-click provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
+The system-tray icon updates with your Claude quota percentage; its tooltip summarizes the Claude and Codex windows. Left-click opens the same 14 quota themes available on macOS (Classic plus the other thirteen) in WebView2. Right-click provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
 
 Windows differences: the panel opens at the bottom-right of the working area rather than next to the tray icon; update prompts use a system Yes/No dialog; and the AI Talent Market and AI Council panels are macOS-only.
 
@@ -144,7 +144,7 @@ Privacy policy: this program will not transfer any information to other networke
 
 ## Theme Gallery
 
-Switch between **13 visual themes** directly from the UI:
+Switch between **14 visual themes** directly from the UI:
 
 <p align="center">
   <img src="docs/classic.en.png" width="32%" alt="Classic theme" />
@@ -158,6 +158,7 @@ Switch between **13 visual themes** directly from the UI:
   <img src="docs/origami.en.png" width="32%" alt="Origami theme" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole theme" />
   <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera theme" />
+  <img src="docs/migration.en.png" width="32%" alt="Migration theme" />
   <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccin theme" />
 </p>
 

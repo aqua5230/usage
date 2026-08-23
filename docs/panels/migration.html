@@ -4,6 +4,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
+    /* Hallmark · pre-emit critique: P4 H4 E5 S5 R4 V5 */
+    /* Hallmark · macrostructure: Workbench · tone: migratory-field-guide · anchor hue: dusk-coral */
     :root {
       color-scheme: dark light;
       --bg: #080d12;
@@ -696,9 +698,187 @@
     .card[data-card="agy"] { cursor: grab; }
     .card.is-dragging { cursor: grabbing; opacity: 0.72; box-shadow: 0 12px 24px rgba(0, 0, 0, 0.24); transform: translateY(-2px); }
     .is-card-dragging, .is-card-dragging * { user-select: none; }
+    :root {
+      --bg: #2b1743;
+      --paper: rgba(61, 31, 76, 0.64);
+      --paper-soft: rgba(49, 25, 65, 0.92);
+      --paper-edge: rgba(246, 178, 126, 0.42);
+      --line: rgba(246, 190, 143, 0.30);
+      --text: #fff0e8;
+      --muted: #d8a8c6;
+      --claude: #ffac78;
+      --codex: #f4c06d;
+      --agy: #d89be8;
+      --projects: #ffd5a1;
+      --warn: #ffd166;
+      --danger: #ff8a70;
+      --mono: "SFMono-Regular", "JetBrains Mono", "Menlo", "Consolas", monospace;
+    }
+
+    html, body {
+      color-scheme: dark;
+      font-family: Georgia, "Times New Roman", "Noto Serif TC", "Songti TC", serif;
+      font-size: 15px;
+      line-height: 1.3;
+      letter-spacing: 0.01em;
+    }
+
+    body {
+      padding: 10px;
+      position: relative;
+      background:
+        radial-gradient(circle at 17% 9%, rgba(255, 176, 106, 0.28), transparent 31%),
+        radial-gradient(circle at 84% 88%, rgba(119, 58, 151, 0.34), transparent 37%),
+        linear-gradient(180deg, #8b3c5a 0%, #4d285f 46%, #241439 100%);
+      background-color: var(--bg);
+    }
+
+    body::before, body::after {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    body::before {
+      opacity: 0.60;
+      background:
+        repeating-linear-gradient(0deg, rgba(255, 215, 179, 0.16) 0 1px, transparent 1px 72px),
+        repeating-linear-gradient(90deg, rgba(255, 215, 179, 0.16) 0 1px, transparent 1px 72px),
+        repeating-linear-gradient(0deg, rgba(255, 215, 179, 0.07) 0 1px, transparent 1px 14.4px),
+        repeating-linear-gradient(90deg, rgba(255, 215, 179, 0.07) 0 1px, transparent 1px 14.4px);
+    }
+
+    body::after {
+      opacity: 0.50;
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 196, 129, 0.16), transparent 60%),
+        radial-gradient(circle at 50% 100%, rgba(28, 12, 48, 0.62), transparent 55%);
+    }
+
+    .migration-drift, .migration-drift * { pointer-events: none; }
+    .migration-drift { position: fixed; inset: 0; overflow: hidden; z-index: 5; }
+    .cloud {
+      position: absolute; width: 140px; height: 140px; border-radius: 50%;
+      background: radial-gradient(ellipse, rgba(255, 221, 202, 0.20) 0%, rgba(245, 174, 195, 0.06) 42%, transparent 72%);
+      filter: blur(2px); opacity: 0.40; animation: cloudFloat 18s ease-in-out infinite;
+      transform: translate3d(0, 0, 0);
+    }
+    .cloud-a { top: 18px; right: 24px; animation-delay: -4s; }
+    .cloud-b { bottom: 56px; left: 8px; width: 110px; height: 110px; animation-duration: 22s; }
+    .cloud-c { top: 142px; left: 118px; width: 90px; height: 90px; animation-duration: 20s; animation-delay: -8s; }
+    .flock { position: absolute; opacity: 0.70; transform: translate3d(0, 0, 0); animation: flockDriftA 18s linear infinite; will-change: transform, opacity; }
+    .flock svg { display: block; overflow: visible; filter: drop-shadow(0 0 4px rgba(255, 181, 120, 0.30)); }
+    .flock .bird { transform-box: fill-box; transform-origin: center; animation: wingBeat 1.9s ease-in-out infinite; }
+    .flock-a { top: 34px; left: 24px; width: 104px; height: 84px; }
+    .flock-b { right: 12px; bottom: 132px; width: 90px; height: 74px; opacity: 0.58; animation-name: flockDriftB; animation-duration: 21s; animation-delay: -9s; }
+    .flock-b .bird { animation-duration: 2.05s; }
+    .flock-c { top: 196px; left: 188px; width: 82px; height: 66px; opacity: 0.50; animation-name: flockDriftC; animation-duration: 24s; animation-delay: -5s; }
+    .flock-c .bird { animation-duration: 2.3s; }
+    .flock-num { position: absolute; left: -16px; bottom: -5px; font-family: var(--mono); font-size: 10px; font-weight: 600; color: rgba(255, 218, 185, 0.78); letter-spacing: 0.04em; }
+    .flock-num::before { content: "ROUTE."; margin-right: 2px; opacity: 0.70; }
+
+    .wrap { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 10px; height: 100%; width: 100%; }
+    .wrap::before { content: ""; position: absolute; inset: 10px; border: 1px solid rgba(246, 190, 143, 0.22); pointer-events: none; }
+    .wrap::after { content: "+"; position: absolute; top: 0; left: 50%; transform: translateX(-50%); color: rgba(255, 213, 177, 0.70); font-family: var(--mono); font-size: 15px; line-height: 1; pointer-events: none; }
+
+    .card, .footer {
+      position: relative; flex: none;
+      background: linear-gradient(180deg, rgba(91, 44, 81, 0.72), rgba(43, 23, 62, 0.78)), var(--paper);
+      border: 1px solid var(--paper-edge);
+      box-shadow: inset 0 0 0 1px rgba(255, 208, 169, 0.12), 0 6px 16px rgba(29, 10, 39, 0.34);
+      border-radius: 8px; overflow: hidden;
+    }
+    .card::before, .footer::before { content: ""; position: absolute; inset: 5px; width: auto; border: 1px dashed rgba(255, 202, 163, 0.26); border-radius: 5px; background: none; box-shadow: none; pointer-events: none; }
+    .card::after, .footer::after { content: none; }
+    .card { padding: 7px 13px 10px; }
+    .card[data-card="codex"], .card[data-card="agy"] { overflow: hidden; z-index: auto; }
+    .card[data-card="projects"] { flex: 1; min-height: 0; }
+
+    .brand { display: flex; align-items: center; min-height: 32px; height: auto; gap: 8px; margin: 0 0 7px; padding: 4px 0 6px; background: none; color: var(--text); font-weight: 700; border: 0; border-bottom: 1px solid var(--line); position: relative; }
+    .brand::after { content: "+"; position: absolute; right: 0; top: -2px; color: rgba(255, 207, 169, 0.50); font-family: var(--mono); font-size: 13px; }
+    .brand img { width: 24px; height: 24px; object-fit: cover; flex: none; border-radius: 5px; filter: saturate(1.05) contrast(1.02); box-shadow: 0 0 0 1px rgba(255, 207, 169, 0.55), 0 0 7px rgba(255, 171, 116, 0.35); opacity: 1; }
+    .brand-icon { width: 22px; height: 22px; font-size: 13px; display: flex; align-items: center; justify-content: center; flex: none; color: var(--text); line-height: 1; border-radius: 0; background: none; box-shadow: none; }
+    .brand-icon svg, .card[data-card="agy"] .brand-icon svg { width: 22px; height: 22px; }
+    .brand h1 { margin: 0; min-width: 0; flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); font-size: 16px; line-height: 1.2; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; font-variant: small-caps; }
+    .card[data-card="claude"] .brand h1 { color: #ffc09a; }
+    .card[data-card="codex"] .brand h1 { color: #ffe090; }
+    .card[data-card="agy"] .brand h1 { color: #e6b7f5; }
+    .card[data-card="projects"] .brand h1 { color: #ffe2b8; }
+
+    .card[data-card="projects"] .brand { display: grid; grid-template-columns: 22px minmax(0, 1fr); align-items: center; min-height: 0; column-gap: 8px; row-gap: 10px; margin-bottom: 10px; }
+    .card[data-card="projects"] .brand-icon { grid-column: 1; grid-row: 1; justify-self: start; }
+    .card[data-card="projects"] h1 { grid-column: 2; grid-row: 1; flex: none; overflow: visible; text-overflow: clip; white-space: normal; }
+    .project-actions { grid-column: 1 / 3; grid-row: 2; display: flex; justify-content: space-between; gap: 0; }
+    .project-actions .switch { width: calc((100% - 16px) / 3); }
+
+    .switch, .action { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; height: auto; padding: 3px 9px; background: rgba(41, 20, 57, 0.50); color: var(--text); font-family: inherit; font-size: 12px; line-height: 1.1; font-weight: 700; border: 1px solid rgba(255, 202, 163, 0.50); box-shadow: inset 0 0 0 1px rgba(255, 202, 163, 0.08); border-radius: 5px; white-space: nowrap; transition: transform 120ms ease-out, background-color 120ms ease-out, border-color 120ms ease-out; }
+    .switch:hover, .action:hover { background: rgba(104, 49, 84, 0.70); border-color: rgba(255, 225, 190, 0.78); }
+    .action:active, .switch:active { transform: translateY(1px); background: rgba(35, 15, 48, 0.80); filter: none; }
+    .switch[data-active="true"] { background: linear-gradient(180deg, rgba(255, 196, 126, 0.95), var(--accent)); color: #321d35; border-color: rgba(255, 225, 190, 0.90); }
+
+    .row, [data-project-list] { padding: 0 2px 4px; position: relative; }
+    .row + .row { border-top: 1px dashed var(--line); margin-top: 8px; padding-top: 8px; }
+    .card[data-card="claude"] .row:last-child, .card[data-card="codex"] .row:last-child, .card[data-card="agy"] .row:last-child { padding-bottom: 10px; }
+    .row-head { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+    .row-title { font-size: 15px; line-height: 1.3; font-weight: 700; color: var(--text); }
+    .percent { font-family: var(--mono); font-size: 14px; line-height: 1.3; font-weight: 700; color: var(--accent); white-space: nowrap; }
+    .track { position: relative; height: 12px; overflow: hidden; background: rgba(29, 12, 42, 0.66); border: 1px solid rgba(255, 202, 163, 0.40); box-shadow: inset 0 1px 3px rgba(18, 5, 29, 0.50); border-radius: 4px; padding: 2px; }
+    .track::before { content: ""; position: absolute; inset: 2px; border-radius: inherit; background: repeating-linear-gradient(90deg, rgba(255, 202, 163, 0.12) 0 1px, transparent 1px 10px); opacity: 0.60; pointer-events: none; z-index: 2; }
+    .fill { width: 0%; height: 100%; min-width: 0; position: relative; z-index: 1; border-radius: inherit; background: linear-gradient(90deg, rgba(255, 202, 163, 0.50), var(--fill-color, var(--accent)) 34%, var(--fill-color, var(--accent)) 100%); box-shadow: inset 0 0 0 1px rgba(255, 232, 208, 0.22), 0 0 8px rgba(255, 176, 116, 0.34); transition: width 140ms ease-out, background-color 140ms ease-out; }
+    .fill::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(180deg, rgba(255,255,255,0.26), transparent 70%); opacity: 0.70; }
+    .reset { margin-top: 4px; padding-right: 2px; color: var(--muted); font-family: var(--mono); font-size: 11px; line-height: 1.3; font-weight: 400; text-align: right; white-space: nowrap; }
+
+    .proj-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; padding: 6px 2px; font-size: 14px; line-height: 1.3; }
+    .proj-rank { width: 18px; height: auto; color: var(--muted); font-family: var(--mono); font-weight: 700; flex: none; background: none; }
+    .proj-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .proj-tokens { color: var(--accent); font-family: var(--mono); font-weight: 700; white-space: nowrap; min-width: 0; }
+    .proj-cost { color: var(--muted); font-family: var(--mono); font-size: 12px; white-space: nowrap; }
+    .proj-bar { flex: 0 0 100%; width: 100%; height: 4px; margin-top: 6px; align-self: end; overflow: hidden; border-radius: 999px; background: rgba(29, 12, 42, 0.60); box-shadow: inset 0 0 0 1px rgba(255, 202, 163, 0.16); }
+    .proj-bar-fill { width: 0%; height: 100%; border-radius: inherit; background: linear-gradient(90deg, rgba(255, 202, 163, 0.50), var(--projects)); opacity: 0.92; }
+    .proj-row:first-child .proj-bar { height: 4.5px; }
+    .proj-row:first-child .proj-bar-fill { opacity: 1; }
+    .proj-row:last-child .proj-bar { margin-bottom: 2px; }
+
+    .footer { min-height: 128px; padding: 11px 12px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 14px; color: var(--text); font-size: 14px; line-height: 1.3; font-weight: 400; }
+    .meta > div { padding: 0; border: 0; border-radius: 0; background: none; color: inherit; font-size: inherit; line-height: inherit; font-weight: inherit; }
+    .today { margin-top: 6px; padding-top: 6px; border-top: 1px dashed var(--line); color: var(--text); font-family: var(--mono); font-size: 14px; line-height: 1.3; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .actions { display: flex; gap: 10px; margin-top: 10px; }
+    .action { min-height: 32px; font-size: 13px; line-height: 1; padding: 4px 10px; flex: 1; }
+    .action.primary { color: #321d35; background: linear-gradient(180deg, #ffcb99, #ec8d6e); border-color: rgba(255, 225, 190, 0.90); box-shadow: none; }
+    .action.primary:hover { background: linear-gradient(180deg, #ffd8af, #f5a080); color: #26122e; }
+    .attribution { font-size: 10px; color: var(--muted); text-align: center; margin-top: 6px; }
+
+    .blueprint-frame { position: fixed; inset: 0; pointer-events: none; z-index: 4; }
+    .sky-corner { position: absolute; width: 13px; height: 13px; }
+    .sky-corner.tl { top: 5px; left: 5px; border-top: 1.5px solid rgba(255, 213, 177, 0.62); border-left: 1.5px solid rgba(255, 213, 177, 0.62); }
+    .sky-corner.tr { top: 5px; right: 5px; border-top: 1.5px solid rgba(255, 213, 177, 0.62); border-right: 1.5px solid rgba(255, 213, 177, 0.62); }
+    .sky-corner.bl { bottom: 5px; left: 5px; border-bottom: 1.5px solid rgba(255, 213, 177, 0.62); border-left: 1.5px solid rgba(255, 213, 177, 0.62); }
+    .sky-corner.br { bottom: 5px; right: 5px; border-bottom: 1.5px solid rgba(255, 213, 177, 0.62); border-right: 1.5px solid rgba(255, 213, 177, 0.62); }
+    .sky-title { position: absolute; left: 1px; top: 50%; transform-origin: left center; transform: rotate(-90deg) translate(-50%, 0); font-family: var(--mono); font-size: 8px; letter-spacing: 0.32em; color: rgba(255, 210, 174, 0.50); white-space: nowrap; }
+
+    @keyframes wingBeat { 0%, 100% { transform: scaleY(0.82) rotate(2deg); } 50% { transform: scaleY(1.18) rotate(-3deg); } }
+    @keyframes flockDriftA { 0% { transform: translate3d(-6px,0,0) rotate(-5deg); opacity: .18; } 12% { opacity: .85; } 24% { transform: translate3d(58px,20px,0) rotate(3deg); } 48% { transform: translate3d(166px,-10px,0) rotate(-6deg); } 72% { transform: translate3d(228px,38px,0) rotate(4deg); } 88% { opacity: .85; } 100% { transform: translate3d(302px,14px,0) rotate(-4deg); opacity: .12; } }
+    @keyframes flockDriftB { 0% { transform: translate3d(0,0,0) rotate(7deg); opacity: .10; } 16% { opacity: .74; } 38% { transform: translate3d(-72px,-18px,0) rotate(-2deg); } 64% { transform: translate3d(-154px,22px,0) rotate(6deg); } 84% { opacity: .74; } 100% { transform: translate3d(-224px,-8px,0) rotate(-5deg); opacity: .05; } }
+    @keyframes flockDriftC { 0% { transform: translate3d(0,0,0) rotate(4deg); opacity: .06; } 14% { opacity: .72; } 36% { transform: translate3d(-44px,54px,0) rotate(-6deg); } 60% { transform: translate3d(30px,122px,0) rotate(5deg); } 84% { opacity: .68; } 100% { transform: translate3d(-18px,208px,0) rotate(-3deg); opacity: .04; } }
+    @keyframes cloudFloat { 0%,100% { transform: translate3d(0,0,0); opacity: .20; } 50% { transform: translate3d(12px,-8px,0); opacity: .38; } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
   </style>
 </head>
 <body>
+  <div class="blueprint-frame" aria-hidden="true">
+    <span class="sky-corner tl"></span><span class="sky-corner tr"></span><span class="sky-corner bl"></span><span class="sky-corner br"></span>
+    <span class="sky-title">MIGRATION CHART · DUSK ROUTE · SCALE 1:1</span>
+  </div>
+  <div class="migration-drift" aria-hidden="true">
+    <span class="cloud cloud-a"></span><span class="cloud cloud-b"></span><span class="cloud cloud-c"></span>
+    <div class="flock flock-a"><svg viewBox="0 0 104 84" xmlns="http://www.w3.org/2000/svg"><g class="bird" fill="none" stroke="#ffe6d1" stroke-width="1.5" stroke-linecap="round"><path d="M8 41Q15 31 22 41Q29 31 36 41M35 30Q42 20 49 30Q56 20 63 30M62 42Q69 32 76 42Q83 32 90 42"/><path d="M24 58Q30 50 36 58Q42 50 48 58M56 62Q62 54 68 62Q74 54 80 62" opacity=".74"/></g><path d="M12 69H92" stroke="#ffd1a4" stroke-width=".7" stroke-dasharray="3 4" opacity=".55"/></svg><span class="flock-num">9</span></div>
+    <div class="flock flock-b"><svg viewBox="0 0 90 74" xmlns="http://www.w3.org/2000/svg"><g class="bird" fill="none" stroke="#ffe6d1" stroke-width="1.45" stroke-linecap="round"><path d="M7 35Q13 26 19 35Q25 26 31 35M28 24Q34 15 40 24Q46 15 52 24M49 37Q55 28 61 37Q67 28 73 37M24 52Q30 44 36 52Q42 44 48 52"/></g><path d="M9 62H79" stroke="#ffd1a4" stroke-width=".7" stroke-dasharray="3 4" opacity=".55"/></svg><span class="flock-num">3</span></div>
+    <div class="flock flock-c"><svg viewBox="0 0 82 66" xmlns="http://www.w3.org/2000/svg"><g class="bird" fill="none" stroke="#ffe6d1" stroke-width="1.35" stroke-linecap="round"><path d="M5 31Q11 23 17 31Q23 23 29 31M27 20Q33 12 39 20Q45 12 51 20M47 34Q53 26 59 34Q65 26 71 34M17 48Q23 41 29 48Q35 41 41 48"/></g><path d="M7 57H74" stroke="#ffd1a4" stroke-width=".7" stroke-dasharray="3 4" opacity=".55"/></svg><span class="flock-num">7</span></div>
+  </div>
+
   <main class="wrap">
     <section class="card" data-card="claude" style="--accent: var(--claude)">
       <header class="brand">
@@ -779,6 +959,9 @@
     </section>
   </main>
 
+  <script>
+    window.PanelHooks = {};
+  </script>
   <script>
     const defaultPanelHooks = {
       accentFallback(cardEl, computedAccent) {
@@ -1405,3 +1588,4 @@ window.webkit = { messageHandlers: { usage: { postMessage: function(raw) {
 </script>
 <script>window.usageDemoPayloads={"en": {"language": "en", "claude": {"session": {"percent": 62.0, "percentText": "62% used", "resetText": "Resets in 2h 14m", "warning": false, "available": true, "title": "Session"}, "weekly": {"percent": 38.0, "percentText": "38% used", "resetText": "Resets in 3d 6h", "warning": false, "available": true, "title": "Weekly"}}, "codex": {"session": {"percent": 45.0, "percentText": "45% used", "resetText": "Resets in 1h 48m", "warning": false, "available": true, "title": "Session"}, "weekly": {"percent": 27.0, "percentText": "27% used", "resetText": "Resets in 4d 2h", "warning": false, "available": true, "title": "Weekly"}, "stale": null, "credits": null}, "agy": {"session": {"percent": 18.0, "percentText": "18% used", "resetText": "Resets in 3h 30m", "warning": false, "available": true, "title": "Session"}, "weekly": {"percent": 12.0, "percentText": "12% used", "resetText": "Resets in 5d 9h", "warning": false, "available": true, "title": "Weekly"}, "groupName": "GEMINI MODELS", "stale": null}, "projects": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsYesterday": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects7d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects30d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsAll": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "hideClaude": false, "hideCodex": false, "hideAgy": false, "cardOrder": ["claude", "codex", "agy"], "historyError": null, "statusline": {"enabled": true, "enabledText": "Terminal ✓", "disabledText": "Terminal"}, "talent": null, "footer": {"rate": "Rate: Active", "status": "Status: ✓ Synced", "today": "Today: $28.51 (11,150,000 tokens)", "yesterday": "Yesterday: $19.84 (7,420,000 tokens)", "serviceAlerts": [], "showInstall": false}}, "zh-TW": {"language": "zh-TW", "claude": {"session": {"percent": 62.0, "percentText": "62% 已用", "resetText": "重置 2小時 14分鐘", "warning": false, "available": true, "title": "Session"}, "weekly": {"percent": 38.0, "percentText": "38% 已用", "resetText": "重置 3天 6小時", "warning": false, "available": true, "title": "本週"}}, "codex": {"session": {"percent": 45.0, "percentText": "45% 已用", "resetText": "重置 1小時 48分鐘", "warning": false, "available": true, "title": "Session"}, "weekly": {"percent": 27.0, "percentText": "27% 已用", "resetText": "重置 4天 2小時", "warning": false, "available": true, "title": "本週"}, "stale": null, "credits": null}, "agy": {"session": {"percent": 18.0, "percentText": "18% 已用", "resetText": "重置 3小時 30分鐘", "warning": false, "available": true, "title": "Session"}, "weekly": {"percent": 12.0, "percentText": "12% 已用", "resetText": "重置 5天 9小時", "warning": false, "available": true, "title": "本週"}, "groupName": "GEMINI MODELS", "stale": null}, "projects": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsYesterday": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects7d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects30d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsAll": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "hideClaude": false, "hideCodex": false, "hideAgy": false, "cardOrder": ["claude", "codex", "agy"], "historyError": null, "statusline": {"enabled": true, "enabledText": "終端 ✓", "disabledText": "終端"}, "talent": null, "footer": {"rate": "速率：活躍", "status": "狀態：✓ 已同步", "today": "今日：$28.51 (11,150,000 tokens)", "yesterday": "昨日：$19.84 (7,420,000 tokens)", "serviceAlerts": [], "showInstall": false}}, "zh-CN": {"language": "zh-CN", "claude": {"session": {"percent": 62.0, "percentText": "62% 已用", "resetText": "重置 2小时 14分钟", "warning": false, "available": true, "title": "Session"}, "weekly": {"percent": 38.0, "percentText": "38% 已用", "resetText": "重置 3天 6小时", "warning": false, "available": true, "title": "本周"}}, "codex": {"session": {"percent": 45.0, "percentText": "45% 已用", "resetText": "重置 1小时 48分钟", "warning": false, "available": true, "title": "Session"}, "weekly": {"percent": 27.0, "percentText": "27% 已用", "resetText": "重置 4天 2小时", "warning": false, "available": true, "title": "本周"}, "stale": null, "credits": null}, "agy": {"session": {"percent": 18.0, "percentText": "18% 已用", "resetText": "重置 3小时 30分钟", "warning": false, "available": true, "title": "Session"}, "weekly": {"percent": 12.0, "percentText": "12% 已用", "resetText": "重置 5天 9小时", "warning": false, "available": true, "title": "本周"}, "groupName": "GEMINI MODELS", "stale": null}, "projects": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsYesterday": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects7d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects30d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsAll": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "hideClaude": false, "hideCodex": false, "hideAgy": false, "cardOrder": ["claude", "codex", "agy"], "historyError": null, "statusline": {"enabled": true, "enabledText": "终端 ✓", "disabledText": "终端"}, "talent": null, "footer": {"rate": "速率：活跃", "status": "状态：✓ 已同步", "today": "今日：$28.51 (11,150,000 tokens)", "yesterday": "昨天：$19.84 (7,420,000 tokens)", "serviceAlerts": [], "showInstall": false}}, "ja": {"language": "ja", "claude": {"session": {"percent": 62.0, "percentText": "62% 使用済み", "resetText": "2時間 14分後にリセット", "warning": false, "available": true, "title": "セッション"}, "weekly": {"percent": 38.0, "percentText": "38% 使用済み", "resetText": "3日 6時間後にリセット", "warning": false, "available": true, "title": "週間"}}, "codex": {"session": {"percent": 45.0, "percentText": "45% 使用済み", "resetText": "1時間 48分後にリセット", "warning": false, "available": true, "title": "セッション"}, "weekly": {"percent": 27.0, "percentText": "27% 使用済み", "resetText": "4日 2時間後にリセット", "warning": false, "available": true, "title": "週間"}, "stale": null, "credits": null}, "agy": {"session": {"percent": 18.0, "percentText": "18% 使用済み", "resetText": "3時間 30分後にリセット", "warning": false, "available": true, "title": "セッション"}, "weekly": {"percent": 12.0, "percentText": "12% 使用済み", "resetText": "5日 9時間後にリセット", "warning": false, "available": true, "title": "週間"}, "groupName": "GEMINI MODELS", "stale": null}, "projects": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsYesterday": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects7d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects30d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsAll": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "hideClaude": false, "hideCodex": false, "hideAgy": false, "cardOrder": ["claude", "codex", "agy"], "historyError": null, "statusline": {"enabled": true, "enabledText": "ターミナル ✓", "disabledText": "ターミナル"}, "talent": null, "footer": {"rate": "レート: アクティブ", "status": "状態: ✓ 同期済み", "today": "今日: $28.51 (11,150,000 tokens)", "yesterday": "昨日: $19.84 (7,420,000 tokens)", "serviceAlerts": [], "showInstall": false}}, "ko": {"language": "ko", "claude": {"session": {"percent": 62.0, "percentText": "62% 사용됨", "resetText": "2시간 14분 후 초기화", "warning": false, "available": true, "title": "세션"}, "weekly": {"percent": 38.0, "percentText": "38% 사용됨", "resetText": "3일 6시간 후 초기화", "warning": false, "available": true, "title": "주간"}}, "codex": {"session": {"percent": 45.0, "percentText": "45% 사용됨", "resetText": "1시간 48분 후 초기화", "warning": false, "available": true, "title": "세션"}, "weekly": {"percent": 27.0, "percentText": "27% 사용됨", "resetText": "4일 2시간 후 초기화", "warning": false, "available": true, "title": "주간"}, "stale": null, "credits": null}, "agy": {"session": {"percent": 18.0, "percentText": "18% 사용됨", "resetText": "3시간 30분 후 초기화", "warning": false, "available": true, "title": "세션"}, "weekly": {"percent": 12.0, "percentText": "12% 사용됨", "resetText": "5일 9시간 후 초기화", "warning": false, "available": true, "title": "주간"}, "groupName": "GEMINI MODELS", "stale": null}, "projects": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsYesterday": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects7d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projects30d": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "projectsAll": [{"name": "aurora-api", "tokens": 4820000, "tokensText": "4,820,000", "costText": "$12.40"}, {"name": "mobile-client", "tokens": 3115000, "tokensText": "3,115,000", "costText": "$8.05"}, {"name": "data-pipeline", "tokens": 1940000, "tokensText": "1,940,000", "costText": "$4.92"}, {"name": "docs-site", "tokens": 860000, "tokensText": "860,000", "costText": "$2.11"}, {"name": "infra-scripts", "tokens": 415000, "tokensText": "415,000", "costText": "$1.03"}], "hideClaude": false, "hideCodex": false, "hideAgy": false, "cardOrder": ["claude", "codex", "agy"], "historyError": null, "statusline": {"enabled": true, "enabledText": "터미널 ✓", "disabledText": "터미널"}, "talent": null, "footer": {"rate": "소비율: 활성", "status": "상태: ✓ 동기화됨", "today": "오늘: $28.51 (11,150,000 tokens)", "yesterday": "어제: $19.84 (7,420,000 tokens)", "serviceAlerts": [], "showInstall": false}}};window.usageDemoLanguage="en";window.usageDemoSetLanguage=function(language){  var payload=window.usageDemoPayloads[language];  if(!payload)return;  window.usageDemoLanguage=language;  if(typeof window.usageSetLanguage==='function')window.usageSetLanguage(language);  window.usageApplyState(payload);};window.addEventListener('message',function(event){  var language=event.data&&event.data.usageDemoLanguage;  if(language)window.usageDemoSetLanguage(language);});document.addEventListener('DOMContentLoaded',function(){  window.usageDemoSetLanguage(window.usageDemoLanguage);});</script></body>
 </html>
+
