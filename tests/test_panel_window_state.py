@@ -9,7 +9,7 @@ from typing import cast
 
 import pytest
 
-from panel_window_state import (
+from panels.panel_window_state import (
     PANEL_CONTENT_HEIGHTS_DEFAULTS_KEY,
     PANEL_WINDOW_ORIGIN_DEFAULTS_KEY,
     PANEL_WINDOW_TOP_LEFT_DEFAULTS_KEY,

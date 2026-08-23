@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-import critter_frames
+from menubar import critter_frames
 
 
 def test_critter_frame_paths_have_five_frames() -> None:

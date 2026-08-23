@@ -18,7 +18,7 @@ from AppKit import (
     NSMutableAttributedString,
 )
 
-import critter_frames
+from menubar import critter_frames
 from menubar.chrome import (
     _agy_menubar_icon,
     _claude_menubar_icon,

@@ -50,11 +50,7 @@ py-modules = [
     "usage_rate",
     "usage_statusline",
     "usage_statusline_agy",
-    "setup_hook",
-    "session_hooks",
-    "login_item",
     "usage_client",
-    "critter_frames",
     "i18n",
     "usage_cli",
     "burn_rate",
@@ -66,12 +62,9 @@ py-modules = [
     "doctor",
     "agy_window_keeper",
     "fsevents_watch",
-    "panel_window",
-    "panel_window_state",
     "prefs",
     "service_status",
     "setup_app",
-    "statusline_settings",
     "talent_market_bridge",
     "time_utils",
     "usage_diagnosis_snapshot",
@@ -82,7 +75,7 @@ py-modules = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["adapters*", "analyzer*", "discussion*", "loaders*", "menubar*", "panels*", "tui*", "ui*", "updates*", "wintray*"]
+include = ["adapters*", "analyzer*", "discussion*", "installer*", "loaders*", "menubar*", "panels*", "tui*", "ui*", "updates*", "wintray*"]
 
 # Top-level modules cannot collect adjacent data files via package-data.
 [tool.setuptools.data-files]

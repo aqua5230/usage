@@ -14,16 +14,15 @@ import logging
 import os
 from typing import Any, Protocol
 
-import session_hooks
-import setup_hook
 from i18n import _t
-from menubar.chrome import _make_alert
-from statusline_settings import (
+from installer import session_hooks, setup_hook
+from installer.statusline_settings import (
     _disable_statusline_settings,
     _enable_statusline_settings,
     _set_forwarder_mode_prompt_dismissed,
     _toggle_statusline_settings,
 )
+from menubar.chrome import _make_alert
 from usage_lang import detect_lang
 
 logger = logging.getLogger(__name__)
@@ -38,7 +37,7 @@ class _ActionApp(Protocol):
 
 
 def toggle_session_resume_in_background(app: _ActionApp) -> None:
-    import session_hooks
+    from installer import session_hooks
 
     output = io.StringIO()
     ok = True
@@ -66,7 +65,7 @@ def toggle_session_resume_in_background(app: _ActionApp) -> None:
 
 
 def toggle_terse_mode_in_background(app: _ActionApp) -> None:
-    import session_hooks
+    from installer import session_hooks
 
     output = io.StringIO()
     ok = True
@@ -98,8 +97,7 @@ def install_hook_in_background(app: _ActionApp) -> None:
     exit_code = 1
     try:
         with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-            import session_hooks
-            import setup_hook
+            from installer import session_hooks, setup_hook
 
             exit_code = setup_hook.setup()
             if exit_code == 0:

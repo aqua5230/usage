@@ -7,8 +7,8 @@ from pathlib import Path
 import pytest
 
 import main
-import session_hooks
 import usage_dir_sweeper
+from installer import session_hooks
 from usage_dir_sweeper import STALE_TEMP_AGE_SECONDS, sweep_stale_temp_files
 
 

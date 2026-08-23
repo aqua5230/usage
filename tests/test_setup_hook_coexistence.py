@@ -18,9 +18,9 @@ from typing import Any
 import pytest
 
 import main
-import setup_hook
 import usage_client
 import usage_statusline_forwarder
+from installer import setup_hook
 from tests.helpers import SetupHookPaths, expected_statusline_command
 
 

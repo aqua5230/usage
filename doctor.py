@@ -18,8 +18,8 @@ from importlib import metadata
 from pathlib import Path
 from typing import Final
 
-import setup_hook
 from i18n import packaged_resource_path
+from installer import setup_hook
 
 SEPARATOR = "-" * 29
 RATE_LIMIT_FRESH_SECONDS: Final = 15 * 60

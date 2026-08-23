@@ -1898,7 +1898,8 @@ def test_session_hook_toggles_run_in_background_helpers(
         enable_terse_mode=lambda: record("enable_terse"),
         disable_terse_mode=lambda: record("disable_terse"),
     )
-    monkeypatch.setitem(sys.modules, "session_hooks", hooks)
+    monkeypatch.setitem(sys.modules, "installer.session_hooks", hooks)
+    monkeypatch.setattr("installer.session_hooks", hooks)
     controller = wintray._WindowsTrayController(mock=True, interval=60)
 
     controller._toggle_session_resume_in_background()

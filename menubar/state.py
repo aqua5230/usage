@@ -18,13 +18,13 @@ from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
 
 from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
 from i18n import _t
+from installer.statusline_settings import _statusline_enabled
 from loaders import codex_loader
 from loaders.codex_paths import codex_home
 from loaders.history_loader import CLAUDE_PROJECTS_DIR, UsageEntry, load_entries
 from menubar.prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order
 from pricing import calculate_cost
 from service_status import ServiceStatus
-from statusline_settings import _statusline_enabled
 from time_utils import parse_iso8601_utc_or_raise
 from usage_client import PollOutcome, PollState
 from usage_rate import GROUP_NAMES

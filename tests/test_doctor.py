@@ -16,7 +16,7 @@ from pathlib import Path
 import pytest
 
 import doctor
-import setup_hook
+from installer import setup_hook
 from loaders import codex_loader
 
 

@@ -116,7 +116,7 @@ def _user_dismissed_repair_today() -> bool:
 
 def _is_our_hook_in_settings() -> bool:
     try:
-        import setup_hook
+        from installer import setup_hook
 
         return setup_hook._detect_current_state() in {"us-direct", "us-forwarder"}
     except Exception:
@@ -127,8 +127,8 @@ def _is_our_hook_in_settings() -> bool:
 
 def _is_first_run() -> bool:
     try:
-        import setup_hook
         import usage_client
+        from installer import setup_hook
 
         return not setup_hook.HOOK_TARGET.exists() and not Path(usage_client.STATUS_FILE).exists()
     except Exception:
@@ -173,8 +173,7 @@ def health_check() -> None:
 
     choice = _show_repair_dialog()
     if choice == "repair":
-        import session_hooks
-        import setup_hook
+        from installer import session_hooks, setup_hook
 
         setup_hook.setup(force_forwarder=True)
         session_hooks._migrate_bundled_python_commands_if_needed()
@@ -186,7 +185,7 @@ def health_check() -> None:
 
 def _self_heal() -> None:
     try:
-        import session_hooks
+        from installer import session_hooks
 
         session_hooks.self_heal()
     except Exception:
@@ -327,16 +326,16 @@ def main() -> None:
         print(output, end="")
         raise SystemExit(doctor.exit_code(report))
     if args.setup:
-        import session_hooks
-        from setup_hook import setup
+        from installer import session_hooks
+        from installer.setup_hook import setup
 
         exit_code = setup()
         if exit_code == 0:
             session_hooks._migrate_bundled_python_commands_if_needed()
         raise SystemExit(exit_code)
     if args.unsetup:
-        from session_hooks import disable_session_resume, disable_terse_mode
-        from setup_hook import unsetup
+        from installer.session_hooks import disable_session_resume, disable_terse_mode
+        from installer.setup_hook import unsetup
 
         disable_session_resume()
         disable_terse_mode()

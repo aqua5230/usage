@@ -13,10 +13,8 @@ from typing import Any
 
 import pytest
 
-import session_hooks
-import setup_hook
-import statusline_settings
 import usage_statusline_agy
+from installer import session_hooks, setup_hook, statusline_settings
 
 FIXTURE = Path(__file__).parent / "fixtures" / "agy_statusline_input.json"
 
@@ -112,7 +110,7 @@ def test_setup_and_unsetup_agy_on_macos_preserve_settings_and_restore_statusline
     tmp_path: Path,
 ) -> None:
     settings, target, previous = _patch_agy_paths(monkeypatch, tmp_path)
-    monkeypatch.setattr("setup_hook.sys.platform", "darwin")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "darwin")
     original_statusline = {"type": "command", "command": "echo original", "enabled": True}
     original = {
         "permissions": {"allow": ["read"]},
@@ -134,7 +132,7 @@ def test_setup_and_unsetup_agy_on_macos_preserve_settings_and_restore_statusline
         "enabled": True,
     }
     assert json.loads(previous.read_text(encoding="utf-8")) == original_statusline
-    source = Path(setup_hook.__file__).parent / "usage_statusline_agy.py"
+    source = Path(setup_hook.__file__).parent.parent / "usage_statusline_agy.py"
     assert target.read_bytes() == source.read_bytes()
     assert setup_hook.is_agy_setup()
 
@@ -163,9 +161,9 @@ def test_setup_and_unsetup_agy_on_windows_use_discovered_python_and_sidecar(
     }
     python = r"C:\Program Files\Python\python.exe"
     short_python = r"C:\PROGRA~1\Python\python.exe"
-    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
-    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
+    monkeypatch.setattr("installer.setup_hook.shutil.which", lambda _name: None)
     monkeypatch.setattr(
         setup_hook,
         "_get_windows_short_path",
@@ -189,7 +187,7 @@ def test_setup_and_unsetup_agy_on_windows_use_discovered_python_and_sidecar(
     }
     assert '"' not in installed["statusLine"]["command"]
     assert json.loads(previous.read_text(encoding="utf-8")) == original_statusline
-    source = Path(setup_hook.__file__).parent / "usage_statusline_agy.py"
+    source = Path(setup_hook.__file__).parent.parent / "usage_statusline_agy.py"
     assert target.read_bytes() == source.read_bytes()
     assert setup_hook.is_agy_setup()
 
@@ -209,9 +207,9 @@ def test_agy_windows_command_shortens_both_spaced_paths_without_quotes(
         python: r"C:\PROGRA~1\PYTHON~1\python.EXE",
         str(target): r"C:\Users\TESTUS~1\.gemini\usage-statusline-agy.py",
     }
-    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
-    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
+    monkeypatch.setattr("installer.setup_hook.shutil.which", lambda _name: None)
     monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", target)
     monkeypatch.setattr(
         setup_hook, "_get_windows_short_path", lambda value: short_paths[value]
@@ -232,10 +230,10 @@ def test_agy_windows_command_prefers_working_space_free_interpreter(
     python = r"C:\Program Files\Python311\python.EXE"
     launcher = r"C:\Windows\py.exe"
     target = Path(r"C:\Users\test\.gemini\usage-statusline-agy.py")
-    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
     monkeypatch.setattr(
-        "setup_hook.shutil.which", lambda name: launcher if name == "py" else None
+        "installer.setup_hook.shutil.which", lambda name: launcher if name == "py" else None
     )
     monkeypatch.setattr(setup_hook, "_is_working_python", lambda value: value == launcher)
     monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", target)
@@ -250,9 +248,9 @@ def test_agy_windows_command_rejects_unchanged_spaced_short_path(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     python = r"C:\Program Files\Python311\python.EXE"
-    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
-    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
+    monkeypatch.setattr("installer.setup_hook.shutil.which", lambda _name: None)
     monkeypatch.setattr(setup_hook, "_get_windows_short_path", lambda value: value)
 
     with pytest.raises(RuntimeError, match=r"no usable 8\.3 short path") as exc_info:
@@ -267,9 +265,9 @@ def test_agy_windows_command_reports_short_path_lookup_failure(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     python = r"C:\Missing Python\python.exe"
-    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
-    monkeypatch.setattr("setup_hook.shutil.which", lambda _name: None)
+    monkeypatch.setattr("installer.setup_hook.shutil.which", lambda _name: None)
 
     def fail_short_path(_value: str) -> str:
         raise OSError(2, "file not found")
@@ -293,7 +291,7 @@ def test_setup_agy_on_windows_preserves_existing_sidecar_backup(
         "command": "echo replacement",
         "enabled": True,
     }
-    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: r"C:\Python\python.exe")
     settings.write_text(json.dumps({"statusLine": replacement_statusline}), encoding="utf-8")
     previous.write_text(json.dumps(saved_statusline), encoding="utf-8")
@@ -332,7 +330,7 @@ def test_agy_install_paths_are_noops_on_unsupported_platforms(
     settings, target, previous = _patch_agy_paths(monkeypatch, tmp_path)
     original = json.dumps({"statusLine": {"type": "command", "command": "own.py"}})
     settings.write_text(original, encoding="utf-8")
-    monkeypatch.setattr("setup_hook.sys.platform", "linux")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "linux")
 
     assert not setup_hook._setup_agy()
     assert not setup_hook._unsetup_agy()
@@ -369,7 +367,7 @@ def test_self_heal_updates_stale_agy_statusline_on_windows(
     target.write_bytes(b"old hook\n")
     logs: list[tuple[str, str]] = []
     _patch_claude_self_heal(monkeypatch)
-    monkeypatch.setattr("setup_hook.sys.platform", "win32")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "win32")
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: r"C:\Python\python.exe")
     monkeypatch.setattr(setup_hook, "_resolve_agy_hook_source", lambda: source)
     monkeypatch.setattr(statusline_settings, "_statusline_enabled", lambda: True)
@@ -404,7 +402,7 @@ def test_self_heal_installs_and_updates_agy_statusline(
     source.write_bytes(b"new hook\n")
     logs: list[tuple[str, str]] = []
     _patch_claude_self_heal(monkeypatch)
-    monkeypatch.setattr("setup_hook.sys.platform", "darwin")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "darwin")
     monkeypatch.setattr(setup_hook, "_resolve_agy_hook_source", lambda: source)
     monkeypatch.setattr(statusline_settings, "_statusline_enabled", lambda: True)
     monkeypatch.setattr(
@@ -431,7 +429,7 @@ def test_self_heal_agy_does_nothing_without_cli_settings(
     settings, target, previous = _patch_agy_paths(monkeypatch, tmp_path)
     calls: list[None] = []
     _patch_claude_self_heal(monkeypatch)
-    monkeypatch.setattr("setup_hook.sys.platform", "darwin")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "darwin")
     monkeypatch.setattr(statusline_settings, "_statusline_enabled", lambda: True)
 
     def setup_agy() -> bool:
@@ -456,7 +454,7 @@ def test_self_heal_agy_stays_disabled_and_failure_does_not_block_resume(
     settings.write_text("{}", encoding="utf-8")
     calls: list[str] = []
     _patch_claude_self_heal(monkeypatch)
-    monkeypatch.setattr("setup_hook.sys.platform", "darwin")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "darwin")
     monkeypatch.setattr(statusline_settings, "_statusline_enabled", lambda: False)
 
     def setup_agy() -> bool:
@@ -490,7 +488,7 @@ def test_agy_only_statusline_toggle_is_enabled_and_removable(
     platform: str,
 ) -> None:
     state = {"enabled": False}
-    monkeypatch.setattr("statusline_settings.sys.platform", platform)
+    monkeypatch.setattr("installer.statusline_settings.sys.platform", platform)
     monkeypatch.setattr(
         statusline_settings, "_claude_settings_path", lambda: tmp_path / "settings.json"
     )
@@ -513,7 +511,7 @@ def test_agy_sync_and_state_are_noops_on_unsupported_platforms(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[str] = []
-    monkeypatch.setattr("statusline_settings.sys.platform", "linux")
+    monkeypatch.setattr("installer.statusline_settings.sys.platform", "linux")
 
     def setup_agy() -> bool:
         calls.append("setup")

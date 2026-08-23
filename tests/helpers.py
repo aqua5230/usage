@@ -9,8 +9,7 @@ from typing import Any
 
 import pytest
 
-import session_hooks
-import setup_hook
+from installer import session_hooks, setup_hook
 
 
 def expected_statusline_command(target: Path) -> str:

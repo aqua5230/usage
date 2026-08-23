@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-import session_hooks
+from installer import session_hooks
 from tests.helpers import ResumeHookPaths
 
 

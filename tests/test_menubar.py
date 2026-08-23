@@ -15,11 +15,10 @@ from typing import Any, cast
 import pytest
 
 import agy_window_keeper
-import panel_window_state
 import panels
-import statusline_settings
 import window_keeper
 from burn_rate import BurnRateTracker
+from installer import statusline_settings
 from loaders import codex_loader, history_loader
 from menubar import actions as menubar_actions
 from menubar import agy as menubar_agy
@@ -32,6 +31,7 @@ from menubar import refresh as menubar_refresh
 from menubar import state as menubar_state
 from menubar import title as menubar_title
 from menubar import update as menubar_update
+from panels import panel_window_state
 from service_status import ServiceStatus
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
@@ -931,7 +931,7 @@ def test_toggle_statusline_preserves_forwarder_settings(
     settings.write_text(json.dumps(original, indent=2, ensure_ascii=False), encoding="utf-8")
     original_text = settings.read_text(encoding="utf-8")
     monkeypatch.setattr("menubar.app.os.path.expanduser", lambda value: str(settings))
-    monkeypatch.setattr("setup_hook.is_agy_setup", lambda: False)
+    monkeypatch.setattr("installer.setup_hook.is_agy_setup", lambda: False)
 
     action, exit_code = menubar._toggle_statusline_settings()
 
@@ -950,7 +950,7 @@ def test_forwarder_prompt_keep_sets_ack_once(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import setup_hook
+    from installer import setup_hook
 
     claude_dir = tmp_path / ".claude"
     claude_dir.mkdir()
@@ -1006,7 +1006,7 @@ def test_forwarder_prompt_enable_calls_forwarder_setup(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import setup_hook
+    from installer import setup_hook
 
     claude_dir = tmp_path / ".claude"
     claude_dir.mkdir()
@@ -1129,7 +1129,7 @@ def test_enable_statusline_ignores_missing_previous_command(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import setup_hook
+    from installer import setup_hook
 
     settings = tmp_path / "settings.json"
     missing_hook = tmp_path / "missing-statusline.py"
@@ -1169,7 +1169,7 @@ def test_statusline_switch_mirrors_onto_agy(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    import setup_hook
+    from installer import setup_hook
 
     settings = tmp_path / "settings.json"
     settings.write_text(
@@ -1201,7 +1201,7 @@ def test_statusline_switch_survives_agy_failure(
     tmp_path: Path,
 ) -> None:
     """A broken ~/.gemini config must not block Claude's own status line."""
-    import setup_hook
+    from installer import setup_hook
 
     settings = tmp_path / "settings.json"
     settings.write_text(json.dumps({"env": {"KEEP": "1"}}), encoding="utf-8")

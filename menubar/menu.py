@@ -10,8 +10,8 @@ from typing import Any, Protocol
 
 from AppKit import NSMakePoint, NSMenu, NSMenuItem
 
-import login_item
 from i18n import _t
+from installer import login_item
 from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,

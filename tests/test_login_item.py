@@ -15,7 +15,7 @@ from typing import get_type_hints
 
 import pytest
 
-import login_item
+from installer import login_item
 
 
 def _configure_login_item_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
@@ -108,8 +108,8 @@ def test_enable_bootstrap_returncode_0_keeps_plist_and_uses_safe_subprocess(
         calls.append((cmd, capture_output, text, check, timeout))
         return _completed(cmd, 0)
 
-    monkeypatch.setattr("login_item.os.getuid", fake_getuid)
-    monkeypatch.setattr("login_item.subprocess.run", fake_run)
+    monkeypatch.setattr("installer.login_item.os.getuid", fake_getuid)
+    monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
 
     login_item.enable()
 
@@ -143,7 +143,7 @@ def test_enable_bootstrap_returncode_17_keeps_plist_without_error(
         _ = capture_output, text, check, timeout
         return _completed(cmd, 17, "Bootstrap failed: 17: File exists")
 
-    monkeypatch.setattr("login_item.subprocess.run", fake_run)
+    monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
 
     login_item.enable()
 
@@ -168,8 +168,8 @@ def test_enable_bootstrap_unexpected_returncode_warns_and_keeps_plist(
         _ = capture_output, text, check, timeout
         return _completed(cmd, 5, "permission denied")
 
-    monkeypatch.setattr("login_item.subprocess.run", fake_run)
-    caplog.set_level(logging.WARNING, logger="login_item")
+    monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
+    caplog.set_level(logging.WARNING, logger="installer.login_item")
 
     login_item.enable()
 
@@ -205,8 +205,8 @@ def test_enable_bootstrap_subprocess_exception_warns_and_keeps_plist(
         _ = cmd, capture_output, text, check, timeout
         raise side_effect
 
-    monkeypatch.setattr("login_item.subprocess.run", fake_run)
-    caplog.set_level(logging.WARNING, logger="login_item")
+    monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
+    caplog.set_level(logging.WARNING, logger="installer.login_item")
 
     login_item.enable()
 
@@ -238,8 +238,8 @@ def test_disable_bootout_returncode_0_removes_plist_and_uses_safe_subprocess(
         calls.append((cmd, capture_output, text, check, timeout))
         return _completed(cmd, 0)
 
-    monkeypatch.setattr("login_item.os.getuid", fake_getuid)
-    monkeypatch.setattr("login_item.subprocess.run", fake_run)
+    monkeypatch.setattr("installer.login_item.os.getuid", fake_getuid)
+    monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
 
     login_item.disable()
 
@@ -275,7 +275,7 @@ def test_disable_bootout_returncode_113_removes_plist_without_error(
         _ = capture_output, text, check, timeout
         return _completed(cmd, 113, "could not find specified service")
 
-    monkeypatch.setattr("login_item.subprocess.run", fake_run)
+    monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
 
     login_item.disable()
 
@@ -302,8 +302,8 @@ def test_disable_bootout_unexpected_returncode_warns_and_removes_plist(
         _ = capture_output, text, check, timeout
         return _completed(cmd, 5, "bad service")
 
-    monkeypatch.setattr("login_item.subprocess.run", fake_run)
-    caplog.set_level(logging.WARNING, logger="login_item")
+    monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
+    caplog.set_level(logging.WARNING, logger="installer.login_item")
 
     login_item.disable()
 
@@ -333,8 +333,8 @@ def test_disable_bootout_file_not_found_warns_and_removes_plist(
         _ = cmd, capture_output, text, check, timeout
         raise FileNotFoundError("launchctl missing")
 
-    monkeypatch.setattr("login_item.subprocess.run", fake_run)
-    caplog.set_level(logging.WARNING, logger="login_item")
+    monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
+    caplog.set_level(logging.WARNING, logger="installer.login_item")
 
     login_item.disable()
 
@@ -354,6 +354,6 @@ def test_launchctl_domain_target_uses_gui_uid(monkeypatch: pytest.MonkeyPatch) -
     def fake_getuid() -> int:
         return 501
 
-    monkeypatch.setattr("login_item.os.getuid", fake_getuid)
+    monkeypatch.setattr("installer.login_item.os.getuid", fake_getuid)
 
     assert login_item._launchctl_domain_target() == "gui/501"

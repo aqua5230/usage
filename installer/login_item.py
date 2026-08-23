@@ -56,7 +56,8 @@ def _program_context() -> tuple[list[str], str | None]:
         bundle_path = _bundle_value(bundle, "bundlePath")
         if bundle_path:
             return ["/usr/bin/open", bundle_path], None
-    project_dir = Path(__file__).resolve().parent
+    # installer/ is one level below the repo root, where main.py remains.
+    project_dir = Path(__file__).resolve().parent.parent
     main_py = project_dir / "main.py"
     return [sys.executable, str(main_py)], str(project_dir)
 

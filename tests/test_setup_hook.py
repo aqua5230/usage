@@ -17,8 +17,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import session_hooks
-import setup_hook
+from installer import session_hooks, setup_hook
 from tests.helpers import SetupHookPaths, expected_statusline_command
 
 LEGACY_NAME = "usag"
@@ -245,7 +244,7 @@ def test_find_system_python_prefers_usr_bin_over_bundled_app_python(
     monkeypatch.setattr(sys, "platform", "darwin")
     monkeypatch.setattr(sys, "executable", "/Applications/usage.app/Contents/MacOS/python")
     monkeypatch.setattr(
-        "setup_hook.os.path.exists",
+        "installer.setup_hook.os.path.exists",
         lambda path: path == "/usr/bin/python3",
     )
 

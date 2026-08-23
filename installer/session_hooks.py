@@ -20,10 +20,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-import setup_hook
 from i18n import t as _t
-from loaders.codex_paths import codex_home
-from setup_hook import (
+from installer import setup_hook
+from installer.setup_hook import (
     BACKUP_KEY,
     HOOK_VERSION,
     _atomic_write_text,
@@ -46,6 +45,7 @@ from setup_hook import (
     setup,
     update_hook,
 )
+from loaders.codex_paths import codex_home
 from usage_statusline import _exclusive_lock
 
 CLAUDE_SETTINGS = setup_hook.CLAUDE_SETTINGS
@@ -194,8 +194,9 @@ def _migrate_bundled_python_commands_if_needed(
 
 
 def _resolve_resume_source() -> Path:
+    # installer/ is one level below the repo root, where the hook scripts remain.
     paths = [
-        Path(__file__).resolve().parent / "usage_session_resume.py",
+        Path(__file__).resolve().parent.parent / "usage_session_resume.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_session_resume.py",
     ]
     for path in paths:
@@ -207,7 +208,7 @@ def _resolve_resume_source() -> Path:
 
 def _resolve_terse_source() -> Path:
     paths = [
-        Path(__file__).resolve().parent / "usage_terse_mode.py",
+        Path(__file__).resolve().parent.parent / "usage_terse_mode.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_terse_mode.py",
     ]
     for path in paths:
@@ -219,7 +220,7 @@ def _resolve_terse_source() -> Path:
 
 def _resolve_terse_reminder_source() -> Path:
     paths = [
-        Path(__file__).resolve().parent / "usage_terse_reminder.py",
+        Path(__file__).resolve().parent.parent / "usage_terse_reminder.py",
         (
             Path(sys.executable).resolve().parent.parent
             / "Resources"
@@ -1107,7 +1108,7 @@ def self_heal() -> None:
         _debug_self_heal_failure("restore_hook_scripts", exc)
 
     try:
-        import statusline_settings
+        from installer import statusline_settings
 
         if (
             setup_hook.AGY_SETTINGS.is_file()

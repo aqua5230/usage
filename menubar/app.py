@@ -34,13 +34,35 @@ from AppKit import (
 )
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 
-import critter_frames
-import login_item
-import panel_window_state
 import panels
 from burn_rate import BurnRateTracker
 from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from i18n import _t, packaged_resource_path
+from installer import login_item
+from installer.statusline_settings import (
+    _claude_settings_path as _claude_settings_path,
+)
+from installer.statusline_settings import (
+    _disable_statusline_settings as _disable_statusline_settings,
+)
+from installer.statusline_settings import (
+    _enable_statusline_settings as _enable_statusline_settings,
+)
+from installer.statusline_settings import (
+    _load_claude_settings as _load_claude_settings,
+)
+from installer.statusline_settings import (
+    _save_claude_settings as _save_claude_settings,
+)
+from installer.statusline_settings import (
+    _statusline_command_target_exists as _statusline_command_target_exists,
+)
+from installer.statusline_settings import (
+    _statusline_enabled as _statusline_enabled,
+)
+from installer.statusline_settings import (
+    _toggle_statusline_settings as _toggle_statusline_settings,
+)
 from loaders import agy_loader, codex_loader
 from loaders.history_loader import (
     UsageEntry,
@@ -49,6 +71,7 @@ from loaders.history_loader import (
     flush_caches_on_terminate as flush_history_cache,
 )
 from menubar import actions as menubar_actions
+from menubar import critter_frames
 from menubar import menu as menubar_menu
 from menubar import notify as menubar_notify
 from menubar import refresh as menubar_refresh
@@ -123,39 +146,16 @@ from menubar.state import (
 from menubar.state import (
     format_human_time as format_human_time,
 )
-from panel_window import PanelWindow
-from panel_window_state import save_panel_window_top_left
+from panels import panel_window_state
 from panels.base import (
     load_active_panel_id,
     save_active_panel_id,
 )
 from panels.dynamic_height import clamp_content_height
+from panels.panel_window import PanelWindow
+from panels.panel_window_state import save_panel_window_top_left
 from prefs import _load_preferences, _save_preferences
 from pricing import warm_up_pricing
-from statusline_settings import (
-    _claude_settings_path as _claude_settings_path,
-)
-from statusline_settings import (
-    _disable_statusline_settings as _disable_statusline_settings,
-)
-from statusline_settings import (
-    _enable_statusline_settings as _enable_statusline_settings,
-)
-from statusline_settings import (
-    _load_claude_settings as _load_claude_settings,
-)
-from statusline_settings import (
-    _save_claude_settings as _save_claude_settings,
-)
-from statusline_settings import (
-    _statusline_command_target_exists as _statusline_command_target_exists,
-)
-from statusline_settings import (
-    _statusline_enabled as _statusline_enabled,
-)
-from statusline_settings import (
-    _toggle_statusline_settings as _toggle_statusline_settings,
-)
 from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import format_release_notes
@@ -203,7 +203,7 @@ def _detect_language() -> str:
 def _session_resume_enabled() -> bool:
     # State lives in ~/.claude/settings.json (a hook), not in usage's prefs file.
     try:
-        import session_hooks
+        from installer import session_hooks
 
         return session_hooks.is_resume_enabled()
     except Exception:
@@ -212,7 +212,7 @@ def _session_resume_enabled() -> bool:
 
 def _terse_mode_enabled() -> bool:
     try:
-        import session_hooks
+        from installer import session_hooks
 
         return session_hooks.is_terse_mode_enabled()
     except Exception:
@@ -1176,7 +1176,7 @@ class AppDelegate(NSObject):
 
     def _statusline_setup_available(self) -> bool:
         try:
-            import setup_hook
+            from installer import setup_hook
 
             return setup_hook.CLAUDE_SETTINGS.parent.exists() or setup_hook.CODEX_CONFIG.exists()
         except Exception:

@@ -29,6 +29,7 @@ import usage_diagnosis_snapshot
 import window_keeper
 from burn_rate import BurnRateTracker
 from i18n import _t
+from installer.statusline_settings import _statusline_enabled, _toggle_statusline_settings
 from loaders import codex_loader
 from loaders.history_loader import UsageEntry, load_entries
 from menubar import agy as menubar_agy
@@ -49,7 +50,6 @@ from panels.dynamic_height import clamp_content_height, inject_content_height_sc
 from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
-from statusline_settings import _statusline_enabled, _toggle_statusline_settings
 from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import format_release_notes
@@ -1488,7 +1488,7 @@ class _WindowsTrayController:
         threading.Thread(target=self._toggle_session_resume_in_background, daemon=True).start()
 
     def _toggle_session_resume_in_background(self) -> None:
-        import session_hooks
+        from installer import session_hooks
 
         try:
             if session_hooks.is_resume_enabled():
@@ -1503,7 +1503,7 @@ class _WindowsTrayController:
         threading.Thread(target=self._toggle_terse_mode_in_background, daemon=True).start()
 
     def _toggle_terse_mode_in_background(self) -> None:
-        import session_hooks
+        from installer import session_hooks
 
         try:
             if session_hooks.is_terse_mode_enabled():
@@ -1797,8 +1797,7 @@ class _WindowsTrayController:
         self.refresh()
 
     def _install_hook(self) -> None:
-        import session_hooks
-        import setup_hook
+        from installer import session_hooks, setup_hook
 
         if setup_hook.setup() == 0:
             session_hooks._migrate_bundled_python_commands_if_needed()
@@ -1918,7 +1917,7 @@ def _tray_menu_entry(
 
 def _session_resume_enabled() -> bool:
     try:
-        import session_hooks
+        from installer import session_hooks
 
         return session_hooks.is_resume_enabled()
     except Exception:
@@ -1927,7 +1926,7 @@ def _session_resume_enabled() -> bool:
 
 def _terse_mode_enabled() -> bool:
     try:
-        import session_hooks
+        from installer import session_hooks
 
         return session_hooks.is_terse_mode_enabled()
     except Exception:

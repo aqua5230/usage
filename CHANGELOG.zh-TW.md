@@ -6,6 +6,9 @@
 
 ## [Unreleased]
 
+### 內部
+- **再有七個模組搬離倉庫根目錄。** `panel_window` 與 `panel_window_state` 收進 `panels/`，`critter_frames` 收進 `menubar/`，另外新開一個 `installer/` 套件收下 `setup_hook`、`session_hooks`、`statusline_settings`、`login_item`——這四個模組負責把 usage 安裝進使用者的系統。根目錄的 Python 檔降到 28 個。套件取名 `installer` 而不是 `setup`，是因為倉庫根目錄在 `sys.path` 上，一個頂層的 `setup` 套件會遮蔽 setuptools 與 py2app 在打包時執行的裸 `import setup`——這種失敗只在打包時浮現，測試永遠看不到。那四個靠 `__file__` 往上走來定位 hook 腳本的模組現在多走一層，因為那些腳本要留在根目錄、由系統的 Python 執行。
+
 ## [0.29.34] - 2026-08-23
 
 ### 變更

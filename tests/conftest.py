@@ -81,7 +81,7 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
 @pytest.fixture(autouse=True)
 def _isolate_codex_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Prevent self_heal from writing a user's real Codex or Antigravity config."""
-    import setup_hook
+    from installer import setup_hook
 
     codex_dir = tmp_path / "codex"
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_dir / "config.toml")

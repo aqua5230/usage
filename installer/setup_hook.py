@@ -100,8 +100,9 @@ def configure_windows_utf8_output() -> None:
 
 
 def _resolve_hook_source() -> Path:
+    # installer/ is one level below the repo root, where the hook scripts remain.
     paths = [
-        Path(__file__).resolve().parent / "usage_statusline.py",
+        Path(__file__).resolve().parent.parent / "usage_statusline.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_statusline.py",
     ]
     for path in paths:
@@ -113,7 +114,7 @@ def _resolve_hook_source() -> Path:
 
 def _resolve_forwarder_source() -> Path:
     paths = [
-        Path(__file__).resolve().parent / "usage_statusline_forwarder.py",
+        Path(__file__).resolve().parent.parent / "usage_statusline_forwarder.py",
         (
             Path(sys.executable).resolve().parent.parent
             / "Resources"
@@ -129,7 +130,7 @@ def _resolve_forwarder_source() -> Path:
 
 def _resolve_agy_hook_source() -> Path | None:
     paths = [
-        Path(__file__).resolve().parent / "usage_statusline_agy.py",
+        Path(__file__).resolve().parent.parent / "usage_statusline_agy.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_statusline_agy.py",
     ]
     return next((path for path in paths if path.exists()), None)

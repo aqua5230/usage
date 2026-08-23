@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Internal
+- **Seven more modules moved out of the repository root.** `panel_window` and `panel_window_state` joined `panels/`, `critter_frames` joined `menubar/`, and a new `installer/` package took `setup_hook`, `session_hooks`, `statusline_settings`, and `login_item` — the four modules that install usage into the user's system. The root is down to 28 Python files. The package is named `installer` rather than `setup` because the repository root is on `sys.path` and a top-level `setup` package would shadow the bare `import setup` that setuptools and py2app perform during a build — a failure that only surfaces when packaging, never in the test suite. The four modules that resolve the hook scripts by walking up from `__file__` now walk up one extra level, since those scripts stay at the root to run under the system Python.
+
 ## [0.29.34] - 2026-08-23
 
 ### Changed

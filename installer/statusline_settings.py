@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from setup_hook import _atomic_write_text
+from installer.setup_hook import _atomic_write_text
 
 
 def _claude_settings_path() -> Path:
@@ -61,7 +61,7 @@ def _statusline_command_target_exists(statusline: object) -> bool:
 
 
 def _set_forwarder_mode_prompt_dismissed() -> None:
-    import setup_hook
+    from installer import setup_hook
 
     settings = setup_hook._load_settings()
     usage_settings = settings.get(setup_hook.BACKUP_KEY)
@@ -81,7 +81,7 @@ def _sync_agy_statusline(enable: bool) -> None:
     """
     if sys.platform not in {"darwin", "win32"}:
         return
-    import setup_hook
+    from installer import setup_hook
 
     with contextlib.suppress(Exception):
         if enable:
@@ -120,7 +120,7 @@ def _enable_statusline_settings() -> int:
             if not usage_settings:
                 del settings["usage"]
             _save_claude_settings(settings)
-            import setup_hook
+            from installer import setup_hook
 
             return setup_hook.setup()
         settings["statusLine"] = previous
@@ -130,7 +130,7 @@ def _enable_statusline_settings() -> int:
         _save_claude_settings(settings)
         return 0
 
-    import setup_hook
+    from installer import setup_hook
 
     exit_code = setup_hook.setup()
     if exit_code != 0 and setup_hook.is_agy_setup():
@@ -154,7 +154,7 @@ def _statusline_enabled() -> bool:
     if sys.platform not in {"darwin", "win32"}:
         return False
     with contextlib.suppress(Exception):
-        import setup_hook
+        from installer import setup_hook
 
         return setup_hook.is_agy_setup()
     return False
