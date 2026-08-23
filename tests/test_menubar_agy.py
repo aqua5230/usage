@@ -7,6 +7,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
+from burn_rate import BurnRateTracker
 from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
 from menubar import agy as menubar_agy
 
@@ -32,6 +33,35 @@ def _group(
             resets_in=None,
             resets_in_minutes=weekly_reset_minutes,
         ),
+    )
+
+
+def _burn_rate_trackers() -> dict[str, BurnRateTracker]:
+    return {
+        "agy_session": BurnRateTracker(),
+        "agy_weekly": BurnRateTracker(),
+    }
+
+
+def _quota_snapshot(
+    fetched_at: datetime,
+    *,
+    session_used: float,
+    weekly_used: float = 0.0,
+    session_reset_minutes: int = 90,
+    weekly_reset_minutes: int = 7 * 24 * 60,
+) -> AgyQuotaResult:
+    return AgyQuotaResult(
+        groups=[
+            _group(
+                "GEMINI MODELS",
+                session_remaining=100.0 - session_used,
+                weekly_remaining=100.0 - weekly_used,
+                session_reset_minutes=session_reset_minutes,
+                weekly_reset_minutes=weekly_reset_minutes,
+            )
+        ],
+        fetched_at=fetched_at.isoformat(),
     )
 
 
@@ -204,3 +234,158 @@ def test_project_quota_countdown_clamps_to_one_minute_when_overdue() -> None:
 
     assert projection is not None
     assert projection.session.reset_text == "Resets in 1m"
+
+
+def test_project_quota_warns_when_session_will_empty_before_reset() -> None:
+    trackers = _burn_rate_trackers()
+    started_at = datetime(2026, 1, 1, tzinfo=UTC)
+    projection = None
+
+    for index, used in enumerate((50.0, 58.0, 66.0, 74.0, 82.0, 90.0)):
+        fetched_at = started_at + timedelta(minutes=5 * index)
+        projection = menubar_agy.project_quota(
+            _quota_snapshot(fetched_at, session_used=used),
+            "en",
+            now=fetched_at.timestamp(),
+            burn_rate_trackers=trackers,
+        )
+
+    assert projection is not None
+    assert projection.session.warning is True
+    assert projection.session.reset_text == (
+        "⚠ At current pace, empty in 6m (resets in 1h 30m)"
+    )
+
+
+def test_project_quota_deduplicates_identical_snapshot_timestamps() -> None:
+    trackers = _burn_rate_trackers()
+    fetched_at = datetime(2026, 1, 1, tzinfo=UTC)
+    projection = None
+
+    for _ in range(10):
+        projection = menubar_agy.project_quota(
+            _quota_snapshot(fetched_at, session_used=50.0),
+            "en",
+            now=fetched_at.timestamp(),
+            burn_rate_trackers=trackers,
+        )
+
+    assert projection is not None
+    assert trackers["agy_session"].last_timestamp == fetched_at.timestamp()
+    assert projection.session.warning is False
+
+    for index, used in enumerate((60.0, 70.0, 80.0), start=1):
+        next_fetched_at = fetched_at + timedelta(minutes=5 * index)
+        projection = menubar_agy.project_quota(
+            _quota_snapshot(next_fetched_at, session_used=used),
+            "en",
+            now=next_fetched_at.timestamp(),
+            burn_rate_trackers=trackers,
+        )
+
+    assert projection is not None
+    assert projection.session.warning is False
+
+
+def test_project_quota_does_not_forecast_stale_snapshot() -> None:
+    trackers = _burn_rate_trackers()
+    started_at = datetime(2026, 1, 1, tzinfo=UTC)
+    projection = None
+
+    for index, used in enumerate((50.0, 58.0, 66.0, 74.0, 82.0, 90.0)):
+        fetched_at = started_at + timedelta(minutes=5 * index)
+        projection = menubar_agy.project_quota(
+            _quota_snapshot(fetched_at, session_used=used),
+            "en",
+            now=fetched_at.timestamp(),
+            burn_rate_trackers=trackers,
+        )
+    assert projection is not None
+    assert projection.session.warning is True
+
+    stale_fetched_at = started_at + timedelta(minutes=30)
+    projection = menubar_agy.project_quota(
+        _quota_snapshot(stale_fetched_at, session_used=95.0),
+        "en",
+        now=(
+            stale_fetched_at + timedelta(seconds=menubar_agy.AGY_STALE_SECONDS + 1)
+        ).timestamp(),
+        burn_rate_trackers=trackers,
+    )
+
+    assert projection is not None
+    assert projection.stale is not None
+    assert projection.session.warning is False
+
+
+def test_project_quota_does_not_forecast_invalid_fetched_at() -> None:
+    trackers = _burn_rate_trackers()
+    started_at = datetime(2026, 1, 1, tzinfo=UTC)
+    projection = None
+
+    for index, used in enumerate((50.0, 58.0, 66.0, 74.0, 82.0, 90.0)):
+        fetched_at = started_at + timedelta(minutes=5 * index)
+        projection = menubar_agy.project_quota(
+            _quota_snapshot(fetched_at, session_used=used),
+            "en",
+            now=fetched_at.timestamp(),
+            burn_rate_trackers=trackers,
+        )
+    assert projection is not None
+    assert projection.session.warning is True
+
+    valid_quota = _quota_snapshot(started_at, session_used=95.0)
+    invalid_quota = AgyQuotaResult(
+        groups=valid_quota.groups,
+        fetched_at="not-a-timestamp",
+    )
+    projection = menubar_agy.project_quota(
+        invalid_quota,
+        "en",
+        now=started_at.timestamp(),
+        burn_rate_trackers=trackers,
+    )
+
+    assert projection is not None
+    assert projection.session.warning is False
+
+
+def test_project_quota_does_not_warn_below_percent_floor() -> None:
+    trackers = _burn_rate_trackers()
+    started_at = datetime(2026, 1, 1, tzinfo=UTC)
+    projection = None
+
+    for index, used in enumerate((10.0, 14.0, 18.0, 22.0, 26.0, 30.0)):
+        fetched_at = started_at + timedelta(minutes=5 * index)
+        projection = menubar_agy.project_quota(
+            _quota_snapshot(
+                fetched_at,
+                session_used=used,
+                session_reset_minutes=180,
+            ),
+            "en",
+            now=fetched_at.timestamp(),
+            burn_rate_trackers=trackers,
+        )
+
+    assert projection is not None
+    assert projection.session.percent == 30.0
+    assert projection.session.warning is False
+
+
+def test_project_quota_warns_for_weekly_window_after_thirty_minute_span() -> None:
+    trackers = _burn_rate_trackers()
+    started_at = datetime(2026, 1, 1, tzinfo=UTC)
+    projection = None
+
+    for index, used in enumerate((50.0, 57.0, 64.0, 71.0, 78.0, 85.0, 92.0)):
+        fetched_at = started_at + timedelta(minutes=5 * index)
+        projection = menubar_agy.project_quota(
+            _quota_snapshot(fetched_at, session_used=0.0, weekly_used=used),
+            "en",
+            now=fetched_at.timestamp(),
+            burn_rate_trackers=trackers,
+        )
+
+    assert projection is not None
+    assert projection.weekly.warning is True

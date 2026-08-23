@@ -93,7 +93,7 @@ def load_sources(app: _RefreshApp) -> RefreshSources:
         elapsed_ms = (time.monotonic() - started_at) * 1000
         logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", "codex_load", elapsed_ms)
     started_at = time.monotonic() if debug_timing else 0.0
-    agy_result = menubar_agy.load_refresh_result(app.language)
+    agy_result = menubar_agy.load_refresh_result(app.language, app.burn_rate_trackers)
     if debug_timing:
         elapsed_ms = (time.monotonic() - started_at) * 1000
         logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", "agy_load", elapsed_ms)

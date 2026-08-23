@@ -726,6 +726,8 @@ class _WindowsTrayController:
             "claude_weekly": BurnRateTracker(),
             "codex_session": BurnRateTracker(),
             "codex_weekly": BurnRateTracker(),
+            "agy_session": BurnRateTracker(),
+            "agy_weekly": BurnRateTracker(),
         }
         self.icon: Any = None
         self.window: Any = None
@@ -1250,7 +1252,9 @@ class _WindowsTrayController:
         )
         measure("codex_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
-        agy_result = menubar_agy.load_refresh_result(self.language)
+        agy_result = menubar_agy.load_refresh_result(
+            self.language, self.burn_rate_trackers
+        )
         agy = agy_result.projection or menubar_agy.fallback_projection(self.language)
         measure("agy_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0

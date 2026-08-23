@@ -2083,12 +2083,13 @@ def test_refresh_error_preserves_codex_quota(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(
         menubar_agy,
         "load_refresh_result",
-        lambda _: menubar_agy.AgyRefreshResult(projection=None, hide_agy=True),
+        lambda _, __: menubar_agy.AgyRefreshResult(projection=None, hide_agy=True),
     )
 
     class Delegate:
         mock = False
         language = "en"
+        burn_rate_trackers: dict[str, BurnRateTracker] = {}
         _history_load_error_key = None
 
         def _load_codex_refresh_result(self) -> dict[str, object]:
@@ -2160,12 +2161,13 @@ def test_refresh_error_preserves_project_usage(monkeypatch: pytest.MonkeyPatch) 
     monkeypatch.setattr(
         menubar_agy,
         "load_refresh_result",
-        lambda _: menubar_agy.AgyRefreshResult(projection=None, hide_agy=True),
+        lambda _, __: menubar_agy.AgyRefreshResult(projection=None, hide_agy=True),
     )
 
     class Delegate:
         mock = False
         language = "en"
+        burn_rate_trackers: dict[str, BurnRateTracker] = {}
         latest_state = menubar._empty_state(language="en")
         _history_load_error_key = None
 

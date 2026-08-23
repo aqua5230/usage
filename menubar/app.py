@@ -314,6 +314,8 @@ class AppDelegate(NSObject):
             "claude_weekly": BurnRateTracker(),
             "codex_session": BurnRateTracker(),
             "codex_weekly": BurnRateTracker(),
+            "agy_session": BurnRateTracker(),
+            "agy_weekly": BurnRateTracker(),
         }
         self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
         self._refresh_in_flight = False

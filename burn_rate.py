@@ -27,6 +27,10 @@ class BurnRateTracker:
     def __init__(self) -> None:
         self._samples: deque[BurnSample] = deque()
 
+    @property
+    def last_timestamp(self) -> float | None:
+        return self._samples[-1].timestamp if self._samples else None
+
     def record(self, now: float, percent: float) -> None:
         sample = BurnSample(timestamp=float(now), percent=float(percent))
         previous = self._samples[-1] if self._samples else None

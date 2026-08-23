@@ -1454,7 +1454,7 @@ def test_build_state_reuses_history_scan_for_codex_rate_limits(
     monkeypatch.setattr(
         menubar_agy,
         "load_refresh_result",
-        lambda _language: menubar_agy.AgyRefreshResult(None, True),
+        lambda _language, _trackers: menubar_agy.AgyRefreshResult(None, True),
     )
     monkeypatch.setattr("wintray.app.agy_window_keeper.maybe_ping", lambda *_args: None)
 
@@ -1499,7 +1499,7 @@ def test_build_state_fetches_relevant_service_feeds_and_builds_banner(
     monkeypatch.setattr(
         menubar_agy,
         "load_refresh_result",
-        lambda language: menubar_agy.AgyRefreshResult(projection, False),
+        lambda language, _trackers: menubar_agy.AgyRefreshResult(projection, False),
     )
     monkeypatch.setattr(
         controller,
