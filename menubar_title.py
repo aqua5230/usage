@@ -10,7 +10,13 @@ from __future__ import annotations
 
 from typing import Any, Protocol
 
-from AppKit import NSAttributedString, NSFont, NSFontAttributeName, NSMutableAttributedString
+from AppKit import (
+    NSAttributedString,
+    NSFont,
+    NSFontAttributeName,
+    NSFontWeightBold,
+    NSMutableAttributedString,
+)
 
 import critter_frames
 from menubar_chrome import (
@@ -35,13 +41,26 @@ class _TitleApp(Protocol):
     status_item: Any
 
 
+_MENUBAR_FONT: Any = None
+
+
+def _menubar_font() -> Any:
+    # Bold at the menu bar's own point size: the percentages have to carry the
+    # strip on their own, against any wallpaper.
+    global _MENUBAR_FONT
+    if _MENUBAR_FONT is None:
+        base = NSFont.menuBarFontOfSize_(0)
+        _MENUBAR_FONT = NSFont.systemFontOfSize_weight_(base.pointSize(), NSFontWeightBold)
+    return _MENUBAR_FONT
+
+
 def _menubar_text_string(app: _TitleApp, text: str) -> Any:
     cached = app._menubar_text_cache.get(text)
     if cached is not None:
         return cached
     attributed = NSAttributedString.alloc().initWithString_attributes_(
         text,
-        {NSFontAttributeName: NSFont.menuBarFontOfSize_(0)},
+        {NSFontAttributeName: _menubar_font()},
     )
     app._menubar_text_cache[text] = attributed
     return attributed
