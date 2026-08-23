@@ -14,10 +14,9 @@ from typing import Any, cast
 
 import pytest
 
-import agy_window_keeper
 import panels
-import window_keeper
-from burn_rate import BurnRateTracker
+import quota.agy_window_keeper as agy_window_keeper
+import quota.window_keeper as window_keeper
 from installer import statusline_settings
 from loaders import codex_loader, history_loader
 from menubar import actions as menubar_actions
@@ -32,6 +31,7 @@ from menubar import state as menubar_state
 from menubar import title as menubar_title
 from menubar import update as menubar_update
 from panels import panel_window_state
+from quota.burn_rate import BurnRateTracker
 from service_status import ServiceStatus
 from usage_client import PollOutcome, PollState, UsageSnapshot
 

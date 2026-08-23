@@ -34,9 +34,9 @@ import prefs
 from i18n import packaged_resource_path
 from i18n import t as _t
 from prefs import PREFERENCES_FILE as PREFERENCES_FILE
+from quota.usage_rate import UsageRateTracker
 from usage_client import ClaudeUsageClient, PollOutcome, PollState
-from usage_lang import detect_lang
-from usage_rate import UsageRateTracker
+from usage_common.usage_lang import detect_lang
 
 SPRITE_INTERVAL_S = [2.0, 0.8, 0.4, 0.15]  # idle/normal/active/heavy
 IMPORT_RETRY_ATTEMPTS = 6
@@ -74,7 +74,7 @@ def _import_module_with_oserror_retry(name: str) -> Any:
 
 
 def _setup_logging() -> None:
-    import usage_logging
+    import usage_common.usage_logging as usage_logging
 
     usage_logging.setup_logging()
 
@@ -193,7 +193,7 @@ def _self_heal() -> None:
             logger.warning("self-heal failed", exc_info=True)
 
     try:
-        from usage_dir_sweeper import sweep_stale_temp_files
+        from usage_common.usage_dir_sweeper import sweep_stale_temp_files
 
         sweep_stale_temp_files()
     except Exception:

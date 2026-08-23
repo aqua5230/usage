@@ -12,7 +12,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from usage_lang import _detect_windows_lang, detect_lang
+from usage_common.usage_lang import _detect_windows_lang, detect_lang
 
 
 def _fake_windll(monkeypatch: pytest.MonkeyPatch, lang_id: int) -> None:

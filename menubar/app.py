@@ -35,7 +35,6 @@ from AppKit import (
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 
 import panels
-from burn_rate import BurnRateTracker
 from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from i18n import _t, packaged_resource_path
 from installer import login_item
@@ -156,13 +155,14 @@ from panels.panel_window import PanelWindow
 from panels.panel_window_state import save_panel_window_top_left
 from prefs import _load_preferences, _save_preferences
 from pricing import warm_up_pricing
+from quota.burn_rate import BurnRateTracker
+from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import format_release_notes
 from usage_client import ClaudeUsageClient, PollOutcome
-from usage_lang import detect_lang
+from usage_common.usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
-from usage_rate import UsageRateTracker
 
 __all__ = [
     "CLAUDE_COLOR",

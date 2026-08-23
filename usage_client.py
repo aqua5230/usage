@@ -19,7 +19,7 @@ from typing import Any
 
 from i18n import _t
 from installer.setup_hook import current_hook_state
-from usage_lang import detect_lang
+from usage_common.usage_lang import detect_lang
 
 logger = logging.getLogger(__name__)
 

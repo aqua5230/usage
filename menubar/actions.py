@@ -23,7 +23,7 @@ from installer.statusline_settings import (
     _toggle_statusline_settings,
 )
 from menubar.chrome import _make_alert
-from usage_lang import detect_lang
+from usage_common.usage_lang import detect_lang
 
 logger = logging.getLogger(__name__)
 

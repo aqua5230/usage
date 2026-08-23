@@ -9,7 +9,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Literal
 
-from burn_rate import RESET_DROP_PERCENT
+from quota.burn_rate import RESET_DROP_PERCENT
 
 NotificationKind = Literal["warn", "depleted", "restored"]
 

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import pytest
 
-from burn_rate import BurnRateTracker
+from quota.burn_rate import BurnRateTracker
 
 
 def test_forecast_none_for_empty_buffer() -> None:

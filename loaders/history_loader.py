@@ -29,7 +29,7 @@ from loaders.disk_cache_lifecycle import (
 from loaders.history_disk_cache import flush_caches, seed_caches
 from loaders.jsonl_limits import read_bounded_jsonl_line
 from project_resolver import project_from_encoded_path, resolve_project_name
-from time_utils import parse_optional_iso8601_utc
+from usage_common.time_utils import parse_optional_iso8601_utc
 
 logger = logging.getLogger(__name__)
 

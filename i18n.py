@@ -13,7 +13,7 @@ import sysconfig
 from functools import lru_cache
 from pathlib import Path
 
-from usage_lang import detect_lang
+from usage_common.usage_lang import detect_lang
 
 
 def packaged_resource_path(filename: str, source_mode_path: Path) -> Path:

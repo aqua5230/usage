@@ -16,10 +16,9 @@ from collections.abc import Coroutine
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-import agy_window_keeper
+import quota.agy_window_keeper as agy_window_keeper
+import quota.window_keeper as window_keeper
 import talent_market_bridge
-import window_keeper
-from burn_rate import BurnRateTracker
 from loaders.history_loader import UsageEntry
 from menubar import agy as menubar_agy
 from menubar import state as menubar_state
@@ -29,9 +28,10 @@ from menubar.prefs import (
     _hide_codex_enabled,
     _quota_card_order,
 )
+from quota.burn_rate import BurnRateTracker
+from quota.usage_rate import UsageRateTracker
 from service_status import CLAUDE_STATUS, CODEX_STATUS, get_service_status
 from usage_client import PollOutcome, PollState
-from usage_rate import UsageRateTracker
 
 logger = logging.getLogger(__name__)
 

@@ -19,7 +19,7 @@ import pytest
 
 import usage_client
 from i18n import _t
-from usage_lang import detect_lang
+from usage_common.usage_lang import detect_lang
 
 LEGACY_NAME = "usag"
 

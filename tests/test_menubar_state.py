@@ -11,10 +11,10 @@ from pathlib import Path
 
 import pytest
 
-from burn_rate import BurnRateTracker
 from loaders import codex_loader
 from loaders.history_loader import UsageEntry
 from menubar import state as menubar_state
+from quota.burn_rate import BurnRateTracker
 
 
 def test_critter_animation_tick_handles_different_intervals() -> None:

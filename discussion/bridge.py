@@ -52,7 +52,7 @@ from discussion.session import (
 )
 from discussion.usage import TurnUsage
 from i18n import _t
-from usage_lang import detect_lang
+from usage_common.usage_lang import detect_lang
 
 logger = logging.getLogger(__name__)
 

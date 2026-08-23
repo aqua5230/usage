@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 
 import main
-import usage_dir_sweeper
+import usage_common.usage_dir_sweeper as usage_dir_sweeper
 from installer import session_hooks
-from usage_dir_sweeper import STALE_TEMP_AGE_SECONDS, sweep_stale_temp_files
+from usage_common.usage_dir_sweeper import STALE_TEMP_AGE_SECONDS, sweep_stale_temp_files
 
 
 def _make_old(path: Path, now: float) -> None:

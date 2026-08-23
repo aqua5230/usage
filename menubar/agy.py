@@ -12,8 +12,7 @@ import time
 from dataclasses import dataclass
 from typing import cast
 
-import burn_rate
-from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
+import quota.burn_rate as burn_rate
 from i18n import _t
 from loaders.agy_quota_probe import (
     AgyQuotaGroup,
@@ -32,7 +31,8 @@ from menubar.state import (
     _format_percent,
     format_human_time,
 )
-from time_utils import parse_iso8601_utc_or_raise
+from quota.burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
+from usage_common.time_utils import parse_iso8601_utc_or_raise
 
 AGY_STALE_SECONDS = 20 * 60
 AGY_SESSION_FORECAST_MIN_SPAN_SECONDS = 15 * 60

@@ -22,7 +22,7 @@ from rich.text import Text
 from i18n import packaged_resource_path
 from tui.sprite import render_sprite
 from usage_client import PollState, UsageSnapshot
-from usage_lang import detect_lang
+from usage_common.usage_lang import detect_lang
 
 BG = "#000000"
 PANEL = "#1f1f1e"

@@ -18,7 +18,7 @@ from pathlib import Path
 from typing import Any
 
 from analyzer import diagnoser, reporter
-from time_utils import parse_optional_iso8601_utc
+from usage_common.time_utils import parse_optional_iso8601_utc
 
 SNAPSHOT_PATH = Path(os.path.expanduser("~/.claude/usage-diagnosis.json"))
 _LOOKBACK_DAYS = 7

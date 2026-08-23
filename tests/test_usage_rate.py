@@ -10,7 +10,7 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-import usage_rate
+import quota.usage_rate as usage_rate
 from loaders.history_loader import UsageEntry
 
 START_TIME = datetime(2026, 1, 1, tzinfo=UTC)

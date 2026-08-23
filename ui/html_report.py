@@ -30,7 +30,7 @@ from analyzer.reporter import (
 )
 
 from i18n import _t as _i18n_t, packaged_resource_path
-from usage_lang import detect_lang
+from usage_common.usage_lang import detect_lang
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE
 from ui.report_styles import REPORT_CSS
 

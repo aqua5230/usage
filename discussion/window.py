@@ -35,7 +35,7 @@ from discussion.session import DebateStyle
 from i18n import _load_i18n_bundle, _t, packaged_resource_path
 from panels.payload import _data_uri
 from talent_market_bridge import list_personas, pick_folder, pick_image_file
-from usage_lang import detect_lang
+from usage_common.usage_lang import detect_lang
 
 ATTACHMENTS_DIR = Path(os.path.expanduser("~/.usage/discussion_attachments"))
 ATTACHMENT_MAX_FILES = 50

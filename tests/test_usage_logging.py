@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-import usage_logging
+import usage_common.usage_logging as usage_logging
 
 
 @pytest.fixture

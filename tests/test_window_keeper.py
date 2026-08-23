@@ -12,7 +12,7 @@ from typing import Any
 
 import pytest
 
-import window_keeper
+import quota.window_keeper as window_keeper
 
 
 def test_resolve_claude_bin_uses_windows_fallback(monkeypatch: pytest.MonkeyPatch) -> None:

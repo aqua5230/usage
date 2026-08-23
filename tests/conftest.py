@@ -36,7 +36,7 @@ def _isolate_log_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     attaches a RotatingFileHandler to the root logger. Without this the handler
     points at the user's real log file and every later test writes into it.
     """
-    import usage_logging
+    import usage_common.usage_logging as usage_logging
 
     monkeypatch.setattr(usage_logging, "LOG_DIR", tmp_path / "logs")
 

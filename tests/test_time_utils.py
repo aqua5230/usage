@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 
 import pytest
 
-from time_utils import parse_iso8601_utc_or_raise, parse_optional_iso8601_utc
+from usage_common.time_utils import parse_iso8601_utc_or_raise, parse_optional_iso8601_utc
 
 
 def test_parse_optional_iso8601_utc_accepts_z_suffix() -> None:

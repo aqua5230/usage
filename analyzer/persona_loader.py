@@ -17,7 +17,7 @@ from typing import Any
 
 from loaders.jsonl_utils import iter_jsonl_dicts
 from project_resolver import project_from_encoded_path, resolve_project_name
-from time_utils import parse_optional_iso8601_utc
+from usage_common.time_utils import parse_optional_iso8601_utc
 
 logger = logging.getLogger(__name__)
 
