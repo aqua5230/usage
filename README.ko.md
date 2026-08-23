@@ -158,7 +158,6 @@ UI에서 직접 **13가지 시각 테마**를 전환하세요.
   <img src="docs/origami.en.png" width="32%" alt="Origami 테마" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole 테마" />
   <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera 테마" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD 테마" />
   <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccin 테마" />
 </p>
 

@@ -92,11 +92,16 @@ def main() -> int:
     out_dir.mkdir(parents=True, exist_ok=True)
     panels = json.loads(index_path.read_text(encoding="utf-8"))
 
+    # README 用 width="32%" 把截圖三張並排，高度不一就會錯位、留下大片空白
+    # （world_cup 812 對上 win95 1055 差了 243px）。全部截成最高的那個尺寸，
+    # 面板的 body 是 height: 100vh，拉高後自己的背景會填滿多出來的部分。
+    shot_height = max(int(panel["height"]) for panel in panels)
+
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
         for panel in panels:
             width = int(panel["width"])
-            height = int(panel["height"])
+            height = shot_height
             for language, suffix in LANGUAGE_SUFFIXES.items():
                 wrapper = tmp_dir / f"{panel['id']}{suffix or '.zh'}.html"
                 wrapper.write_text(

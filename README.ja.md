@@ -158,7 +158,6 @@ UIから直接 **13種類のビジュアルテーマ**を切り替えられま�
   <img src="docs/origami.en.png" width="32%" alt="Origamiテーマ" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Holeテーマ" />
   <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidopteraテーマ" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUDテーマ" />
   <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccinテーマ" />
 </p>
 

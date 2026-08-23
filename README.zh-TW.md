@@ -158,7 +158,6 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
   <img src="docs/origami.png" width="32%" alt="摺紙主題" />
   <img src="docs/black_hole.png" width="32%" alt="黑洞主題" />
   <img src="docs/lepidoptera.png" width="32%" alt="Lepidoptera 主題" />
-  <img src="docs/world_cup.png" width="32%" alt="世界盃 HUD 主題" />
   <img src="docs/catppuccin.png" width="32%" alt="Catppuccin 主題" />
 </p>
 

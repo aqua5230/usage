@@ -158,7 +158,6 @@ Switch between **13 visual themes** directly from the UI:
   <img src="docs/origami.en.png" width="32%" alt="Origami theme" />
   <img src="docs/black_hole.en.png" width="32%" alt="Black Hole theme" />
   <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera theme" />
-  <img src="docs/world_cup.en.png" width="32%" alt="World Cup HUD theme" />
   <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccin theme" />
 </p>
 
