@@ -32,6 +32,7 @@ SHOT_VIEWPORT_WIDTH = 900
 # 既有截圖的命名慣例：英文帶 .en，繁中不帶。
 LANGUAGE_SUFFIXES = {"en": ".en", "zh-TW": ""}
 
+# iframe 須固定為傳入高度：面板 body 的 100vh 填滿背景；隨自然高度縮會露出透明 wrapper，截圖成白邊。
 WRAPPER = """<!doctype html>
 <html><head><meta charset="utf-8"><style>
   html, body {{ margin: 0; height: 100%; background: transparent; }}
@@ -40,10 +41,6 @@ WRAPPER = """<!doctype html>
 </style></head>
 <body><iframe src="{src}" scrolling="no"></iframe>
 <script>
-  window.addEventListener("message", function (event) {{
-    var height = event.data && event.data.usagePanelHeight;
-    if (height) document.querySelector("iframe").style.height = height + "px";
-  }});
   document.querySelector("iframe").addEventListener("load", function () {{
     this.contentWindow.postMessage({{ usageDemoLanguage: "{language}" }}, "*");
   }});
