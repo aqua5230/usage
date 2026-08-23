@@ -104,6 +104,7 @@ py-modules = [
     "menubar_notify",
     "menubar_popover",
     "menubar_refresh",
+    "menubar_stacked",
     "menubar_title",
     "menubar_update",
     "panel_window",
