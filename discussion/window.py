@@ -29,9 +29,9 @@ from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Literal, cast
 
-from discussion_bridge import DiscussionBridge, ParticipantSpec
-from discussion_cli import DetectionResult
-from discussion_session import DebateStyle
+from discussion.bridge import DiscussionBridge, ParticipantSpec
+from discussion.cli import DetectionResult
+from discussion.session import DebateStyle
 from i18n import _load_i18n_bundle, _t, packaged_resource_path
 from panels.payload import _data_uri
 from talent_market_bridge import list_personas, pick_folder, pick_image_file
@@ -482,7 +482,7 @@ def serialize_event_batch(
 def _load_discussion_html(language: str | None = None) -> str:
     path = packaged_resource_path(
         "windows/discussion.html",
-        Path(__file__).with_name("assets") / "windows" / "discussion.html",
+        Path(__file__).resolve().parent.parent / "assets" / "windows" / "discussion.html",
     )
     html = path.read_text(encoding="utf-8")
     return (
@@ -673,7 +673,7 @@ class DiscussionWindowController:
         self.window.setContentView_(self.webview)
         html_path = packaged_resource_path(
             "windows/discussion.html",
-            Path(__file__).with_name("assets") / "windows" / "discussion.html",
+            Path(__file__).resolve().parent.parent / "assets" / "windows" / "discussion.html",
         )
         base_url = NSURL.fileURLWithPath_(str(html_path.parent))
         self.webview.loadHTMLString_baseURL_(_load_discussion_html(self._language), base_url)

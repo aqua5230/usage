@@ -16,7 +16,7 @@ from enum import StrEnum
 from typing import Any
 from uuid import uuid4
 
-from discussion_usage import TurnUsage
+from discussion.usage import TurnUsage
 
 MAX_TURN_TEXT_CHARS = 40_000
 MAX_SESSION_TEXT_CHARS = 200_000

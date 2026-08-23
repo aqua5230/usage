@@ -20,8 +20,8 @@ from typing import Any
 
 import pytest
 
-import discussion_cli
-from discussion_cli import (
+from discussion import cli as discussion_cli
+from discussion.cli import (
     AgyAdapter,
     ClaudeAdapter,
     CLIAdapter,
@@ -29,7 +29,7 @@ from discussion_cli import (
     Invocation,
     NeutralWorkingDirectoryError,
 )
-from discussion_usage import TurnUsage
+from discussion.usage import TurnUsage
 
 # An absolute path to a real, always-present executable these tests use as a
 # stand-in wherever they only need CLI detection to succeed and never actually

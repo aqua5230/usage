@@ -22,7 +22,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Literal
 
-from discussion_cli import (
+from discussion.cli import (
     DEFAULT_TIMEOUT_SECONDS,
     AgyAdapter,
     ClaudeAdapter,
@@ -38,7 +38,7 @@ from discussion_cli import (
     run_streaming,
     validate_project_working_directory,
 )
-from discussion_session import (
+from discussion.session import (
     ConsensusCount,
     DebateStyle,
     DiscussionEvent,
@@ -50,7 +50,7 @@ from discussion_session import (
     build_round2_prompt,
     truncate_guidance,
 )
-from discussion_usage import TurnUsage
+from discussion.usage import TurnUsage
 from i18n import _t
 from usage_lang import detect_lang
 

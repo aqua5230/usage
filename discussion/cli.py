@@ -23,7 +23,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Literal, Protocol, cast
 
-from discussion_usage import TurnUsage
+from discussion.usage import TurnUsage
 
 DetectionSource = Literal["which", "candidate_dir", "user_configured", "not_found"]
 

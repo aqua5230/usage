@@ -92,13 +92,9 @@ if __name__ == "__main__":
             "i18n",
             "usage_cli",
             "talent_market_bridge",
-            # discussion_window is lazy-imported inside menubar.toggleDiscussion_,
+            # discussion.window is lazy-imported inside menubar.toggleDiscussion_,
             # so py2app's dependency graph can't reach it (or the three core
             # modules it pulls in) from main.py — list them explicitly.
-            "discussion_session",
-            "discussion_cli",
-            "discussion_bridge",
-            "discussion_window",
             "rich",
             "rich.align",
             "rich.console",
@@ -116,6 +112,7 @@ if __name__ == "__main__":
             # corrupted local file header surfaces as "bad local file header".
             "adapters",
             "analyzer",
+            "discussion",
             "loaders",
             "menubar",
             "ui",

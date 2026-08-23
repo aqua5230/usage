@@ -534,7 +534,7 @@ class AppDelegate(NSObject):
         webbrowser.open("https://aqua5230.github.io/ai-updates/")
 
     def toggleDiscussion_(self, sender: Any) -> None:
-        from discussion_window import DiscussionWindowController
+        from discussion.window import DiscussionWindowController
 
         self._mark_switch_menu_action()
         if self._discussion_window_controller is None:

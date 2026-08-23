@@ -68,12 +68,7 @@ py-modules = [
     "usage_terse_mode",
     "project_resolver",
     "doctor",
-    "discussion_bridge",
-    "discussion_cli",
-    "discussion_session",
-    "discussion_window",
     "agy_window_keeper",
-    "discussion_usage",
     "fsevents_watch",
     "panel_window",
     "panel_window_state",
@@ -92,7 +87,7 @@ py-modules = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["adapters*", "analyzer*", "loaders*", "menubar*", "panels*", "ui*", "wintray*"]
+include = ["adapters*", "analyzer*", "discussion*", "loaders*", "menubar*", "panels*", "ui*", "wintray*"]
 
 # Top-level modules cannot collect adjacent data files via package-data.
 [tool.setuptools.data-files]
@@ -160,7 +155,7 @@ warn_unused_ignores = false
 # reasoning as usage_cli above. tests/test_discussion_cli.py asserts against
 # signal.SIGKILL, which is POSIX-only too.
 [[tool.mypy.overrides]]
-module = ["discussion_cli", "tests.test_discussion_cli"]
+module = ["discussion.cli", "tests.test_discussion_cli"]
 warn_unused_ignores = false
 
 [tool.pytest.ini_options]

@@ -12,11 +12,11 @@ from dataclasses import asdict
 
 import pytest
 
-import discussion_bridge
-import discussion_session
-import discussion_window
-from discussion_bridge import DiscussionBridge
-from discussion_session import (
+from discussion import bridge as discussion_bridge
+from discussion import session as discussion_session
+from discussion import window as discussion_window
+from discussion.bridge import DiscussionBridge
+from discussion.session import (
     ConsensusCount,
     DebateStyle,
     DiscussionSession,
@@ -27,7 +27,7 @@ from discussion_session import (
     TurnStatus,
     count_stance_consensus,
 )
-from discussion_usage import TurnUsage
+from discussion.usage import TurnUsage
 
 
 def _participants() -> list[Participant]:

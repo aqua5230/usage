@@ -19,8 +19,8 @@ from typing import Any, cast
 
 import pytest
 
-import discussion_window
-from discussion_session import DebateStyle
+from discussion import window as discussion_window
+from discussion.session import DebateStyle
 
 HTML_PATH = Path(__file__).resolve().parents[1] / "assets" / "windows" / "discussion.html"
 I18N_PATH = Path(__file__).resolve().parents[1] / "i18n.json"
