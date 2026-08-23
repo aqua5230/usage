@@ -57,11 +57,14 @@ def _alert_icon() -> Any:
     return _ALERT_ICON
 
 
-def _load_menubar_color_icon(filename: str) -> Any:
+def _load_menubar_brand_icon(filename: str) -> Any:
+    # Monochrome brand marks drawn black-on-clear: as template images the status
+    # bar button tints them for the light and dark menu bar, so they never wash
+    # out against a wallpaper the way the color art does.
     image = NSImage.alloc().initWithContentsOfFile_(resolve_resource(filename))
     if image is not None:
-        image.setTemplate_(False)
-        image.setSize_(NSMakeSize(14, 14))
+        image.setTemplate_(True)
+        image.setSize_(NSMakeSize(16, 16))
     return image
 
 
@@ -70,7 +73,7 @@ def _claude_menubar_icon() -> Any:
     if not _CLAUDE_MENUBAR_ICON_LOADED:
         _CLAUDE_MENUBAR_ICON_LOADED = True
         try:
-            _CLAUDE_MENUBAR_ICON = _load_menubar_color_icon("claude_color_menubar.png")
+            _CLAUDE_MENUBAR_ICON = _load_menubar_brand_icon("claude_mono_menubar.png")
         except Exception:
             _CLAUDE_MENUBAR_ICON = None
             if os.environ.get("USAGE_DEBUG") == "1":
@@ -83,7 +86,7 @@ def _codex_menubar_icon() -> Any:
     if not _CODEX_MENUBAR_ICON_LOADED:
         _CODEX_MENUBAR_ICON_LOADED = True
         try:
-            _CODEX_MENUBAR_ICON = _load_menubar_color_icon("codex_color_menubar.png")
+            _CODEX_MENUBAR_ICON = _load_menubar_brand_icon("codex_mono_menubar.png")
         except Exception:
             _CODEX_MENUBAR_ICON = None
             if os.environ.get("USAGE_DEBUG") == "1":
@@ -96,7 +99,7 @@ def _agy_menubar_icon() -> Any:
     if not _AGY_MENUBAR_ICON_LOADED:
         _AGY_MENUBAR_ICON_LOADED = True
         try:
-            _AGY_MENUBAR_ICON = _load_menubar_color_icon("agy_color_menubar.png")
+            _AGY_MENUBAR_ICON = _load_menubar_brand_icon("agy_mono_menubar.png")
         except Exception:
             _AGY_MENUBAR_ICON = None
             if os.environ.get("USAGE_DEBUG") == "1":
@@ -107,7 +110,7 @@ def _agy_menubar_icon() -> Any:
 def _menubar_icon_attachment_string(image: Any) -> Any:
     attachment = NSTextAttachment.alloc().init()
     attachment.setImage_(image)
-    attachment.setBounds_(NSMakeRect(0, -2.5, 14, 14))
+    attachment.setBounds_(NSMakeRect(0, -3.5, 16, 16))
     return NSAttributedString.attributedStringWithAttachment_(attachment)
 
 
