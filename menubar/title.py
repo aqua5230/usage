@@ -19,7 +19,6 @@ from AppKit import (
 )
 
 import critter_frames
-from menubar import stacked as menubar_stacked
 from menubar.chrome import (
     _agy_menubar_icon,
     _claude_menubar_icon,
@@ -37,16 +36,7 @@ class _TitleApp(Protocol):
     dragon_frame: int
     lion_frame: int
     codex_5h_pct: float | None
-    _last_button_title_key: (
-        tuple[
-            str,
-            int | None,
-            int | None,
-            int | None,
-            tuple[float | None, float | None, float | None],
-        ]
-        | None
-    )
+    _last_button_title_key: tuple[str, int | None, int | None, int | None] | None
     _last_plain_title_key: tuple[str] | None
     status_item: Any
 
@@ -76,16 +66,6 @@ def _menubar_text_string(app: _TitleApp, text: str) -> Any:
     return attributed
 
 
-def _percent_string(app: _TitleApp, session_text: str, weekly: float | None) -> Any:
-    # No weekly number to stack under it (provider missing, or a row that never
-    # loaded): keep that provider on the single line rather than showing "--".
-    if weekly is None:
-        return _menubar_text_string(app, session_text)
-    return menubar_stacked.stacked_percent_string(
-        session_text, f"{_format_percent(weekly)}%"
-    )
-
-
 def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
     title = NSMutableAttributedString.alloc().init()
     phoenix_frame = int(app.critter_frame) % len(critter_frames.PHOENIX_FRAMES)
@@ -98,10 +78,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
             else f"{_format_percent(state.claude_session.percent)}%"
         )
         title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
-        title.appendAttributedString_(_menubar_text_string(app, " "))
-        title.appendAttributedString_(
-            _percent_string(app, claude_percent, state.claude_weekly.percent)
-        )
+        title.appendAttributedString_(_menubar_text_string(app, f" {claude_percent}"))
         phoenix_path = critter_frames.PHOENIX_FRAMES[phoenix_frame]
         phoenix = _critter_frame_image(phoenix_path)
         if phoenix is not None:
@@ -118,10 +95,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
         if not state.hide_claude:
             title.appendAttributedString_(_menubar_text_string(app, " · "))
         title.appendAttributedString_(_menubar_icon_attachment_string(_codex_menubar_icon()))
-        title.appendAttributedString_(_menubar_text_string(app, " "))
-        title.appendAttributedString_(
-            _percent_string(app, codex_percent, state.codex_weekly.percent)
-        )
+        title.appendAttributedString_(_menubar_text_string(app, f" {codex_percent}"))
         dragon_path = critter_frames.DRAGON_FRAMES[dragon_frame]
         dragon = _critter_frame_image(dragon_path)
         if dragon is not None:
@@ -137,10 +111,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
         if title.length() > 0:
             title.appendAttributedString_(_menubar_text_string(app, " · "))
         title.appendAttributedString_(_menubar_icon_attachment_string(_agy_menubar_icon()))
-        title.appendAttributedString_(_menubar_text_string(app, " "))
-        title.appendAttributedString_(
-            _percent_string(app, agy_percent, state.agy_weekly.percent)
-        )
+        title.appendAttributedString_(_menubar_text_string(app, f" {agy_percent}"))
         lion_path = critter_frames.LION_FRAMES[lion_frame]
         lion = _critter_frame_image(lion_path)
         if lion is not None:
@@ -163,15 +134,7 @@ def _set_button_title(app: _TitleApp, state: PopoverState) -> None:
     dragon_frame = int(app.dragon_frame) if dragon_visible else None
     lion_visible = not state.hide_agy and state.agy_session.percent is not None
     lion_frame = int(app.lion_frame) if lion_visible else None
-    # The weekly numbers only exist in the attributed title, so they have to be
-    # in the key too — _compose_title carries the 5h percents alone, and a weekly
-    # move with a flat 5h percent would otherwise never repaint.
-    weekly = (
-        state.claude_weekly.percent,
-        state.codex_weekly.percent,
-        state.agy_weekly.percent,
-    )
-    title_key = (title, phoenix_frame, dragon_frame, lion_frame, weekly)
+    title_key = (title, phoenix_frame, dragon_frame, lion_frame)
     if app._last_button_title_key == title_key:
         return
 
