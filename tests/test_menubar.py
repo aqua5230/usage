@@ -765,7 +765,7 @@ def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.Monkey
     monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": True})
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
-    monkeypatch.setattr("update_gate.time.time", lambda: 1700000000.0)
+    monkeypatch.setattr("updates.gate.time.time", lambda: 1700000000.0)
     fake_release = SimpleNamespace(version="0.12.0", html_url="https://x/v0.12.0", body="")
     monkeypatch.setattr(
         "menubar.update.update_checker.check_latest_release_result",
@@ -795,7 +795,7 @@ def test_check_update_writes_cache_when_no_release(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": True})
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
-    monkeypatch.setattr("update_gate.time.time", lambda: 1700000000.0)
+    monkeypatch.setattr("updates.gate.time.time", lambda: 1700000000.0)
     monkeypatch.setattr(
         "menubar.update.update_checker.check_latest_release_result",
         lambda v: SimpleNamespace(failed=False, release=None),

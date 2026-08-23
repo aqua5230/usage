@@ -8,7 +8,7 @@ import json
 import subprocess
 import sys
 
-from update_checker import compare_versions
+from updates.checker import compare_versions
 
 
 def _published_versions(repo: str) -> list[str]:

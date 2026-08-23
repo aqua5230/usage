@@ -46,7 +46,6 @@ build-backend = "setuptools.build_meta"
 py-modules = [
     "main",
     "usage_notifications",
-    "tui",
     "pricing",
     "usage_rate",
     "usage_statusline",
@@ -56,13 +55,10 @@ py-modules = [
     "login_item",
     "usage_client",
     "critter_frames",
-    "tui_sprite",
     "i18n",
     "usage_cli",
     "burn_rate",
-    "update_checker",
     "usage_lang",
-    "update_release_notes",
     "usage_statusline_forwarder",
     "usage_session_resume",
     "usage_terse_mode",
@@ -78,7 +74,6 @@ py-modules = [
     "statusline_settings",
     "talent_market_bridge",
     "time_utils",
-    "update_gate",
     "usage_diagnosis_snapshot",
     "usage_dir_sweeper",
     "usage_logging",
@@ -87,7 +82,7 @@ py-modules = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["adapters*", "analyzer*", "discussion*", "loaders*", "menubar*", "panels*", "ui*", "wintray*"]
+include = ["adapters*", "analyzer*", "discussion*", "loaders*", "menubar*", "panels*", "tui*", "ui*", "updates*", "wintray*"]
 
 # Top-level modules cannot collect adjacent data files via package-data.
 [tool.setuptools.data-files]

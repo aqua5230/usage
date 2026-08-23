@@ -4,8 +4,8 @@ from typing import Any
 
 import pytest
 
-import update_checker
-import update_gate
+from updates import checker as update_checker
+from updates import gate as update_gate
 
 
 def test_auto_check_is_due_for_missing_or_invalid_timestamp() -> None:
@@ -15,7 +15,7 @@ def test_auto_check_is_due_for_missing_or_invalid_timestamp() -> None:
 
 def test_auto_check_is_due_only_after_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
     now = 1_700_000_000.0
-    monkeypatch.setattr("update_gate.time.time", lambda: now)
+    monkeypatch.setattr("updates.gate.time.time", lambda: now)
 
     assert update_gate.auto_check_is_due(
         {"last_update_check": {"checked_at": now - update_gate.AUTO_CHECK_TTL_SECONDS + 1}},
@@ -59,7 +59,7 @@ def test_stale_cache_reset_returns_none_for_pending_update() -> None:
 
 
 def test_build_check_cache_entry_with_release(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("update_gate.time.time", lambda: 1700000000.0)
+    monkeypatch.setattr("updates.gate.time.time", lambda: 1700000000.0)
 
     result = update_gate.build_check_cache_entry(
         "0.11.3",
@@ -75,7 +75,7 @@ def test_build_check_cache_entry_with_release(monkeypatch: pytest.MonkeyPatch) -
 
 
 def test_build_check_cache_entry_without_release(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr("update_gate.time.time", lambda: 1700000000.0)
+    monkeypatch.setattr("updates.gate.time.time", lambda: 1700000000.0)
 
     result = update_gate.build_check_cache_entry("0.11.3", None)
 

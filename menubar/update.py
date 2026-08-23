@@ -12,11 +12,11 @@ import logging
 import os
 from typing import Any, Protocol
 
-import update_checker
-import update_gate
 import usage_diagnosis_snapshot
 from menubar.prefs import _auto_update_check_enabled
 from prefs import _load_preferences, _save_preferences
+from updates import checker as update_checker
+from updates import gate as update_gate
 
 logger = logging.getLogger(__name__)
 

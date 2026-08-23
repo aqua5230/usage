@@ -9,7 +9,7 @@ from __future__ import annotations
 import time
 from typing import Any
 
-import update_checker
+from updates import checker as update_checker
 
 AUTO_CHECK_TTL_SECONDS = 24 * 60 * 60
 UPDATE_DISMISS_SECONDS = 24 * 3600

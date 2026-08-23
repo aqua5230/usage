@@ -12,7 +12,7 @@ from typing import Any
 
 import pytest
 
-import update_checker
+from updates import checker as update_checker
 
 
 class FakeResponse:

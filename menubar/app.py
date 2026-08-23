@@ -38,8 +38,6 @@ import critter_frames
 import login_item
 import panel_window_state
 import panels
-import update_checker
-import update_gate
 from burn_rate import BurnRateTracker
 from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from i18n import _t, packaged_resource_path
@@ -158,7 +156,9 @@ from statusline_settings import (
 from statusline_settings import (
     _toggle_statusline_settings as _toggle_statusline_settings,
 )
-from update_release_notes import format_release_notes
+from updates import checker as update_checker
+from updates import gate as update_gate
+from updates.release_notes import format_release_notes
 from usage_client import ClaudeUsageClient, PollOutcome
 from usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier

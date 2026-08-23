@@ -276,7 +276,7 @@ def _apply_outcome(state: Any, outcome: PollOutcome) -> None:
 
 
 async def run_tui(mock: bool, interval: int, force_group: int | None = None) -> None:
-    tui = _import_module_with_oserror_retry("tui")
+    tui = _import_module_with_oserror_retry("tui.app")
     Console, Live = _load_rich()
     console = Console()
     state = tui.AppViewState()

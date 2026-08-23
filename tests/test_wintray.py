@@ -20,12 +20,12 @@ import pytest
 import panels
 import prefs
 import service_status
-import update_checker
 from i18n import _t
 from loaders import codex_loader
 from menubar import agy as menubar_agy
 from menubar import prefs as menubar_prefs
 from menubar import state as menubar_state
+from updates import checker as update_checker
 from usage_client import PollOutcome, PollState
 from usage_notifications import NotificationEvent
 from wintray import app as wintray

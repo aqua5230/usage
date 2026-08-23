@@ -9,7 +9,7 @@ from __future__ import annotations
 import pytest
 from rich.text import Text
 
-from tui_sprite import render_sprite
+from tui.sprite import render_sprite
 
 
 @pytest.mark.parametrize("phase", range(6))

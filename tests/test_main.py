@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 import main
-from tui import AppViewState
+from tui.app import AppViewState
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
 

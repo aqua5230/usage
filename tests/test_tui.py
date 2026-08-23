@@ -12,7 +12,7 @@ from pathlib import Path
 import pytest
 from rich.panel import Panel
 
-import tui
+from tui import app as tui
 from usage_client import PollState, UsageSnapshot
 
 

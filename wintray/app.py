@@ -25,8 +25,6 @@ from uuid import UUID
 
 import agy_window_keeper
 import service_status
-import update_checker
-import update_gate
 import usage_diagnosis_snapshot
 import window_keeper
 from burn_rate import BurnRateTracker
@@ -52,7 +50,9 @@ from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
 from statusline_settings import _statusline_enabled, _toggle_statusline_settings
-from update_release_notes import format_release_notes
+from updates import checker as update_checker
+from updates import gate as update_gate
+from updates.release_notes import format_release_notes
 from usage_client import ClaudeUsageClient, PollState
 from usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier

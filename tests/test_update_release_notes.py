@@ -4,7 +4,7 @@ from typing import cast
 
 import pytest
 
-from update_release_notes import format_release_notes
+from updates.release_notes import format_release_notes
 
 
 def test_formats_changelog_style_release_notes() -> None:
