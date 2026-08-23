@@ -234,6 +234,20 @@ def _current_version() -> str:
         raise RuntimeError("project.version missing from pyproject.toml") from exc
 
 
+def _invalidate_restored_content_height(panel: Any, view: Any) -> None:
+    if not getattr(panel, "_content_height_reports_available", True):
+        return
+    if panel_window_state.load_panel_content_height(panel.id) is None:
+        return
+    if not hasattr(view, "evaluateJavaScript_completionHandler_"):
+        return
+    view.evaluateJavaScript_completionHandler_(
+        "typeof window.usageInvalidateContentHeight === \"function\" && "
+        "window.usageInvalidateContentHeight()",
+        None,
+    )
+
+
 _APP_DELEGATE: AppDelegate | None = None
 
 
@@ -695,7 +709,7 @@ class AppDelegate(NSObject):
         save_active_panel_id(panel.id)
         self.active_panel = panel
         self.popover_controller.switchToPanel_(panel)
-        self._set_panel_window_size(_popover_size(self.latest_state, panel))
+        self._set_panel_window_size(_popover_size(self.latest_state, panel), restored=True)
         if panel.id == "talent_market":
             # Talent data is fetched in the background refresh; switchToPanel_
             # injected the last (talent-less) state, so kick a refresh to fill it.
@@ -734,8 +748,20 @@ class AppDelegate(NSObject):
         self.popover.makeKeyAndOrderFront_(None)
         self._panel_window_did_show()
 
-    def _set_panel_window_size(self, size: Any) -> None:
+    def _set_panel_window_size(self, size: Any, restored: bool = False) -> None:
         self.popover.setContentSizeKeepingTopLeft_(size)
+        if not restored:
+            return
+        controller = self.popover_controller
+        view = (
+            controller.currentContentView()
+            if hasattr(controller, "currentContentView")
+            else None
+        )
+        _invalidate_restored_content_height(
+            self.active_panel,
+            view,
+        )
 
     def _panel_window_is_visible(self) -> bool:
         return bool(self.popover.isVisible())
@@ -767,7 +793,9 @@ class AppDelegate(NSObject):
         if not self._panel_window_is_visible():
             return
         self.popover_controller.setState_(self.latest_state)
-        self._set_panel_window_size(_popover_size(self.latest_state, self.active_panel))
+        self._set_panel_window_size(
+            _popover_size(self.latest_state, self.active_panel), restored=True
+        )
 
     def animateCritters_(self, timer: Any) -> None:
         now = time.monotonic()
@@ -842,7 +870,9 @@ class AppDelegate(NSObject):
             self.popover.close()
             return
         self.popover_controller.setState_(self.latest_state)
-        self._set_panel_window_size(_popover_size(self.latest_state, self.active_panel))
+        self._set_panel_window_size(
+            _popover_size(self.latest_state, self.active_panel), restored=True
+        )
         button = self.status_item.button()
         self._show_popover_from_button(button)
 
@@ -939,7 +969,7 @@ class AppDelegate(NSObject):
             self._process_quota_notifications(state)
             if self._panel_window_is_visible():
                 self.popover_controller.setState_(self.latest_state)
-            self._set_panel_window_size(_popover_size(state, self.active_panel))
+            self._set_panel_window_size(_popover_size(state, self.active_panel), restored=True)
             self._inject_web_language(state.language)
             menubar_title._set_button_title(self, state)
         finally:
@@ -1007,7 +1037,9 @@ class AppDelegate(NSObject):
         self.codex_model = result.get("codex_model", "unknown")
         if self._panel_window_is_visible():
             self.popover_controller.setState_(self.latest_state)
-        self._set_panel_window_size(_popover_size(self.latest_state, self.active_panel))
+        self._set_panel_window_size(
+            _popover_size(self.latest_state, self.active_panel), restored=True
+        )
         menubar_title._set_button_title(self, self.latest_state)
         if started_at:
             logger.debug(

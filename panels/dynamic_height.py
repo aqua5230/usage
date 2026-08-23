@@ -100,6 +100,10 @@ CONTENT_HEIGHT_SCRIPT = """
     });
   }
   window.usageRequestContentHeight = requestContentHeight;
+  window.usageInvalidateContentHeight = function() {
+    lastPostedHeight = null;
+    requestContentHeight();
+  };
   window.usageApplyState = function usageApplyStateWithDynamicHeight(state) {
     var result = applyState.apply(this, arguments);
     requestContentHeight();

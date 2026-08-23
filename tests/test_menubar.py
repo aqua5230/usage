@@ -1229,6 +1229,117 @@ def test_popover_size_has_positive_dimensions() -> None:
     assert size.height > 0
 
 
+def test_restored_panel_window_size_invalidates_webview_measurement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, object]] = []
+    panel = SimpleNamespace(id="classic", _content_height_reports_available=True)
+    view = SimpleNamespace(
+        evaluateJavaScript_completionHandler_=lambda script, completion: calls.append(
+            (script, completion)
+        )
+    )
+    delegate = SimpleNamespace(
+        popover=SimpleNamespace(setContentSizeKeepingTopLeft_=lambda size: None),
+        active_panel=panel,
+        popover_controller=SimpleNamespace(currentContentView=lambda: view),
+    )
+    monkeypatch.setattr(
+        panel_window_state,
+        "load_panel_content_height",
+        lambda panel_id, defaults=None: 456.0,
+    )
+
+    menubar.AppDelegate._set_panel_window_size(
+        cast(menubar.AppDelegate, delegate), object(), restored=True
+    )
+
+    assert calls == [
+        (
+            'typeof window.usageInvalidateContentHeight === "function" && '
+            "window.usageInvalidateContentHeight()",
+            None,
+        )
+    ]
+
+
+def test_js_reported_content_height_does_not_invalidate_webview_measurement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, object]] = []
+    view = SimpleNamespace(
+        evaluateJavaScript_completionHandler_=lambda script, completion: calls.append(
+            (script, completion)
+        )
+    )
+    panel = SimpleNamespace(
+        id="classic",
+        _content_height_reports_available=True,
+        preferred_size=lambda: (400.0, 300.0),
+    )
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.popover = SimpleNamespace(setContentSizeKeepingTopLeft_=lambda size: None)
+    delegate.active_panel = panel
+    delegate.popover_controller = SimpleNamespace(
+        currentContentView=lambda: view,
+        view=lambda: SimpleNamespace(setFrameSize_=lambda size: None),
+        syncPanelFrames=lambda: None,
+    )
+    monkeypatch.setattr(menubar, "NSScreen", SimpleNamespace(mainScreen=lambda: None))
+
+    delegate.panelContentHeight_forView_(456.0, view)
+
+    assert calls == []
+
+
+def test_saved_content_height_invalidates_webview_measurement(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, object]] = []
+    panel = SimpleNamespace(id="classic", _content_height_reports_available=True)
+    view = SimpleNamespace(
+        evaluateJavaScript_completionHandler_=lambda script, completion: calls.append(
+            (script, completion)
+        )
+    )
+    monkeypatch.setattr(
+        panel_window_state,
+        "load_panel_content_height",
+        lambda panel_id, defaults=None: 456.0,
+    )
+
+    menubar._invalidate_restored_content_height(panel, view)
+
+    assert calls == [
+        (
+            'typeof window.usageInvalidateContentHeight === "function" && '
+            "window.usageInvalidateContentHeight()",
+            None,
+        )
+    ]
+
+
+def test_saved_content_height_skips_panels_without_measurements(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, object]] = []
+    panel = SimpleNamespace(id="talent_market", _content_height_reports_available=False)
+    view = SimpleNamespace(
+        evaluateJavaScript_completionHandler_=lambda script, completion: calls.append(
+            (script, completion)
+        )
+    )
+    monkeypatch.setattr(
+        panel_window_state,
+        "load_panel_content_height",
+        lambda panel_id, defaults=None: 456.0,
+    )
+
+    menubar._invalidate_restored_content_height(panel, view)
+
+    assert calls == []
+
+
 def test_popover_size_grows_with_service_alerts() -> None:
     one_state = menubar._empty_state()
     one_state.service_alerts = ("claude",)
