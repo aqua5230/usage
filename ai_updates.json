@@ -1584,6 +1584,63 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.1.19",
+          "period": "2026-08-23",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "遠端控制啟動時會改用空著的連接埠",
+                "zh-CN": "远程控制启动时会改用空闲端口",
+                "en": "Remote control now finds an open port when starting",
+                "ja": "リモート操作は起動時に空いているポートを使う",
+                "ko": "원격 제어는 시작할 때 빈 포트를 사용한다"
+              },
+              "body": {
+                "zh-TW": "要以 `--remote-control` 開啟遠端控制（remote control，讓另一端連入操作的功能）時，連接埠若已有人使用，工具原本會拒絕啟動。現在它會請作業系統提供可用的連接埠。⟦這像計程車到停靠處發現已有車佔著，不必取消行程，而是由調度員帶它去空位。⟧ 對需要啟動遠端控制的人來說，連接埠被占用不再直接使它無法開始。",
+                "zh-CN": "用 `--remote-control` 打开远程控制（remote control，让另一端连入操作的功能）时，如果端口已被占用，工具原本会拒绝启动。现在它会让操作系统提供可用端口。⟦这像出租车到了停靠处发现已有车占着，不必取消行程，而是由调度员带它去空位。⟧ 对需要启动远程控制的人来说，端口被占用不再直接让它无法开始。",
+                "en": "When you start remote control with `--remote-control`, the tool used to refuse to start if its port was already taken. It now asks the operating system for an available port. ⟦It is like a taxi reaching its stand, finding another cab there, and being directed to an open space instead of cancelling the trip.⟧ A taken port no longer stops remote control from getting started.",
+                "ja": "`--remote-control` でリモート操作（remote control、別の場所から接続して操作する機能）を始める際、ポートがすでに使われていると以前は起動を拒否していた。今はオペレーティングシステムに空いているポートを求める。⟦タクシーが乗り場に着いて先客を見つけても、運行を取りやめず係員が空いた場所へ案内するようなものだ。⟧ ポートの使用中だけでリモート操作を始められなくなることはない。",
+                "ko": "`--remote-control`로 원격 제어(remote control, 다른 곳에서 연결해 조작하는 기능)를 시작할 때 포트가 이미 사용 중이면 도구가 예전에는 시작을 거부했다. 이제는 운영체제에 사용 가능한 포트를 요청한다. ⟦택시가 승강장에 도착해 다른 차가 자리를 차지한 것을 봐도 운행을 취소하지 않고 안내원이 빈자리로 데려가는 것과 같다.⟧ 포트가 사용 중이라는 이유만으로 원격 제어를 시작하지 못하지는 않는다."
+              },
+              "original": "Fixed `--remote-control` refusing to start whenever port was taken, so it now takes a free port from the operating system."
+            },
+            {
+              "title": {
+                "zh-TW": "終端機太窄時可隱藏開頭標誌圖案",
+                "zh-CN": "终端机太窄时可隐藏开头标志图案",
+                "en": "Hide banner art when it gets in the way",
+                "ja": "邪魔になるバナーのロゴを隠せるようになった",
+                "ko": "방해되는 배너 로고 그림을 숨길 수 있다"
+              },
+              "body": {
+                "zh-TW": "在窄終端機查看輸出、用螢幕閱讀器讀內容或準備錄影時，若開頭橫幅的標誌圖案擋住資訊，設定 `AGY_CLI_HIDE_LOGO`。這個環境變數（程式在啟動時收到的設定）會在這次啟動隱藏橫幅上的標誌圖案，版本和帳號資訊仍會照原樣保留顯示。⟦這像把窄公告欄上佔位的海報取下；版本與帳號資訊仍留著。⟧ 它不會連版本和帳號資訊一起隱藏。",
+                "zh-CN": "在狭窄终端机查看输出、用屏幕阅读器读内容或准备录制时，如果开头横幅的标志图案挡住信息，设置 `AGY_CLI_HIDE_LOGO`。环境变量（启动时交给程序的设置）会在这次启动隐藏图案。⟦这像把狭窄公告栏上占位的海报取下；版本和账号信息仍留着。⟧ 它不会连版本和账号信息一起隐藏。",
+                "en": "When banner art blocks information in a narrow terminal, a screen reader, or a recording, set `AGY_CLI_HIDE_LOGO`. This environment variable (a setting passed to a program when it starts) hides the art for that launch. ⟦It is like taking an oversized poster off a cramped noticeboard while leaving the version and account notices in place.⟧ The version and account lines remain visible.",
+                "ja": "狭い端末で出力を確認するとき、スクリーンリーダーで内容を読むとき、または録画を始めるときにロゴ画像が情報を遮るなら、`AGY_CLI_HIDE_LOGO` を設定する。環境変数（起動時にプログラムへ渡す設定）により、その起動では画像が隠れる。⟦狭い掲示板を占めるポスターだけを外し、バージョンとアカウントの情報は残すようなものだ。⟧ バージョンとアカウントの情報までは隠れない。",
+                "ko": "좁은 터미널에서 출력을 확인하거나 스크린 리더로 내용을 읽거나 녹화를 시작할 때 로고 그림이 정보를 가리면, `AGY_CLI_HIDE_LOGO`를 설정한다. 환경 변수(시작할 때 프로그램에 전달하는 설정)에 따라 그 실행에서 그림을 숨긴다. ⟦좁은 게시판을 차지한 포스터만 떼고 버전과 계정 정보는 남기는 것과 같다.⟧ 버전과 계정 정보까지 숨기지는 않는다."
+              },
+              "original": "Added the `AGY_CLI_HIDE_LOGO` environment variable for narrow terminals, screen readers and recordings where the banner's logo art gets in the way; setting it suppresses the art while keeping the version and account lines."
+            },
+            {
+              "title": {
+                "zh-TW": "可略過終端機畫面的繪製最佳化",
+                "zh-CN": "可跳过终端机画面的绘制优化",
+                "en": "A switch to bypass terminal rendering optimizations",
+                "ja": "端末画面の描画最適化を省ける",
+                "ko": "터미널 화면의 그리기 최적화를 건너뛸 수 있다"
+              },
+              "body": {
+                "zh-TW": "Antigravity 的渲染器（把文字畫到終端機畫面的部分）通常會使用兩項最佳化。它先以 diffing 最佳化（比對新舊內容差異）找出變動區域，接著以 dirty-rectangle 最佳化重畫。後者只繪製變動區域。當終端機畫面不如預期，想不用這兩項最佳化來檢查時，設定 `AGY_CLI_DISABLE_ESCAPE_SEQUENCE_OPTIMIZATIONS`。這會在這次啟動略過兩者。⟦這像修補壁畫，先核對新舊草稿找出變色格子，再補畫那些格子；這個開關容許不走這套修補流程。⟧",
+                "zh-CN": "Antigravity 的渲染器（把文字画到终端机画面的部分）通常会使用两项优化。它先以 diffing 优化（比对新旧内容差异）找出变化区域，接着以 dirty-rectangle 优化重画。后者只绘制变化区域。当终端机画面不如预期，想不用这两项优化来检查时，设置 `AGY_CLI_DISABLE_ESCAPE_SEQUENCE_OPTIMIZATIONS`。这会在这次启动跳过两者。⟦这像修补壁画，先核对新旧草稿找出变色格子，再补画那些格子；这个开关允许不走这套修补流程。⟧",
+                "en": "Antigravity's renderer (the part that draws text in the terminal) uses two optimizations. It first uses diffing optimization (comparing old and new content) to find changed areas, then uses dirty-rectangle optimization to redraw them. The latter redraws only changed areas. When terminal output does not look right and you want to check it without either optimization, set `AGY_CLI_DISABLE_ESCAPE_SEQUENCE_OPTIMIZATIONS`. This bypasses both for that launch. ⟦It is like restoring a mural by comparing the old and new sketches to find changed tiles, then repainting those tiles; this switch allows that restoration routine to be bypassed.⟧",
+                "ja": "Antigravity のレンダラー（文字を端末画面に描く部分）は、通常二つの最適化を使う。まず diffing 最適化（新旧の内容を比べて変化した領域を見つける処理）を行い、その後 dirty-rectangle 最適化で描き直す。後者は変化した領域だけを描く。端末画面が期待どおりに見えず、両方を使わず確認したいときは、`AGY_CLI_DISABLE_ESCAPE_SEQUENCE_OPTIMIZATIONS` を設定する。これにより、その起動では両方を省ける。⟦壁画の修復で新旧の下絵を照合して変色したマスを見つけ、それからそのマスを塗るようなものだ。この切り替えではその修復手順を通らない。⟧",
+                "ko": "Antigravity의 렌더러(텍스트를 터미널 화면에 그리는 부분)는 보통 두 최적화를 사용한다. 먼저 diffing 최적화(새 내용과 옛 내용을 비교해 바뀐 영역을 찾는 처리)를 하고, 이어 dirty-rectangle 최적화로 다시 그린다. 후자는 바뀐 영역만 그린다. 터미널 화면이 기대와 다르게 보이고 두 최적화 없이 확인하고 싶을 때는 `AGY_CLI_DISABLE_ESCAPE_SEQUENCE_OPTIMIZATIONS`를 설정한다. 그러면 그 실행에서는 둘 다 건너뛴다. ⟦벽화를 복원할 때 새 밑그림과 옛 밑그림을 대조해 변색된 칸을 찾고, 그 칸을 다시 칠하는 것과 같다. 이 설정은 그 복원 절차를 거치지 않게 한다.⟧"
+              },
+              "original": "Added `AGY_CLI_DISABLE_ESCAPE_SEQUENCE_OPTIMIZATIONS` to bypass the renderer's dirty-rectangle and diffing optimizations."
+            }
+          ]
+        },
+        {
           "version": "1.1.18",
           "period": "2026-08-22",
           "items": [
@@ -1866,267 +1923,6 @@
               "original": "Fixed attaching Ogg audio and video files such as `.ogg`, `.opus` and `.ogv`, which the model rejected because they were sent as the generic `application/ogg`."
             }
           ]
-        },
-        {
-          "version": "1.1.16",
-          "period": "2026-08-20",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "MCP 伺服器可用子命令管理",
-                "zh-CN": "MCP 服务器可用子命令管理",
-                "en": "Manage MCP servers with subcommands",
-                "ja": "MCP サーバーをサブコマンドで管理できる",
-                "ko": "MCP 서버를 하위 명령으로 관리한다"
-              },
-              "body": {
-                "zh-TW": "要替 AI 接上外部工具時，MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器設定不必再手改 `mcp_config.json`。你可用 `mcp add`、`mcp remove`、`mcp list`、`mcp enable`、`mcp disable` 管理使用者層級的伺服器，並透過 `--type`、`--env`、`--header` 處理 stdio 與 HTTP 類型。⟦像替配電箱的每個開關貼好標籤；要新增、移除、查看、開啟或停用，都直接操作對應開關，不必拆開牆面重接電線。⟧",
-                "zh-CN": "要给 AI 接上外部工具时，MCP（Model Context Protocol，让 AI 连接外部工具的协议）服务器设置不用再手改 `mcp_config.json`。你可用 `mcp add`、`mcp remove`、`mcp list`、`mcp enable`、`mcp disable` 管理用户级服务器，并通过 `--type`、`--env`、`--header` 处理 stdio 和 HTTP 类型。⟦像替配电箱的每个开关贴好标签；要新增、移除、查看、启用或停用，都直接操作对应开关，不必拆开墙面重接电线。⟧",
-                "en": "When you connect AI to outside tools, MCP (a protocol for connecting AI to external tools) server settings no longer require hand-editing `mcp_config.json`. Use `mcp add`, `mcp remove`, `mcp list`, `mcp enable`, and `mcp disable` for user-level servers; `--type`, `--env`, and `--header` cover stdio and HTTP. ⟦It is like labelling every breaker in a panel: add, remove, inspect, enable, or disable a connection at its switch rather than opening a wall to rewire it.⟧",
-                "ja": "AI に外部ツールをつなぐ MCP（Model Context Protocol、AI と外部ツールを接続するための規約）のサーバー設定で、`mcp_config.json` を手で編集する必要がなくなった。`mcp add`、`mcp remove`、`mcp list`、`mcp enable`、`mcp disable` でユーザーレベルのサーバーを管理でき、`--type`、`--env`、`--header` で stdio と HTTP を扱う。⟦配電盤の各スイッチに札を付けるようなものだ。追加、削除、確認、有効化、無効化を、壁を開けて配線し直さず対応するスイッチで行える。⟧",
-                "ko": "AI에 외부 도구를 연결할 때 MCP(Model Context Protocol, AI와 외부 도구를 연결하는 규약) 서버 설정을 `mcp_config.json`에서 손으로 고칠 필요가 없어졌다. `mcp add`, `mcp remove`, `mcp list`, `mcp enable`, `mcp disable`로 사용자 수준 서버를 관리하고 `--type`, `--env`, `--header`로 stdio와 HTTP를 다룬다. ⟦배전반의 각 스위치에 이름표를 붙이는 일과 같다. 추가, 제거, 확인, 활성화, 비활성화를 벽을 뜯어 배선하지 않고 해당 스위치에서 처리한다.⟧"
-              },
-              "original": "Added `mcp` subcommands (`add`, `remove`, `list`, `enable`, `disable`) for managing MCP servers in your user-level `mcp_config.json` without hand-editing it, covering both stdio and HTTP servers through `--type`, `--env` and `--header`.\nFixed the `/mcp` panel dropping `enabledTools`, `timeoutSeconds`, `url` and `tools.eager` from `mcp_config.json` when you toggled a server on or off; it now preserves any field it does not recognize, so configuration written by a newer client survives an edit."
-            },
-            {
-              "title": {
-                "zh-TW": "`/mcp` 啟停伺服器時保留設定欄位",
-                "zh-CN": "`/mcp` 启停服务器时保留配置字段",
-                "en": "`/mcp` retains configuration fields when toggling servers",
-                "ja": "`/mcp` でサーバーを切り替えても設定項目を残す",
-                "ko": "`/mcp`에서 서버를 켜고 꺼도 설정 항목을 보존한다"
-              },
-              "body": {
-                "zh-TW": "在 `/mcp` 面板啟停伺服器時，先前可能讓 `mcp_config.json` 裡的 `enabledTools`、`timeoutSeconds`、`url`、`tools.eager` 消失。現在面板編輯時會保留它們，也會保留新版客戶端寫入而它還不認得的欄位。⟦像文書人員更新表格時，只改你指定的勾選欄，不會抹掉其他已填好的資料；連暫時看不懂的新欄位也原樣留下。⟧ 因此，較新客戶端寫下的設定經過面板啟停後仍能存活。",
-                "zh-CN": "在 `/mcp` 面板启停服务器时，之前可能让 `mcp_config.json` 里的 `enabledTools`、`timeoutSeconds`、`url`、`tools.eager` 消失。现在面板编辑时会保留它们，也会保留新版客户端写入而它还不认识的字段。⟦像文书人员更新表格时，只改你指定的勾选栏，不会抹掉其他已填好的资料；连暂时看不懂的新字段也原样留下。⟧ 因此，较新客户端写下的配置经过面板启停后仍能保留。",
-                "en": "When you toggle a server in the `/mcp` panel, it previously could drop `enabledTools`, `timeoutSeconds`, `url`, and `tools.eager` from `mcp_config.json`. The panel now retains them during an edit and also keeps fields written by a newer client that it does not recognize. ⟦It is like a clerk updating a form by changing only the box you named, not erasing other completed fields; even a new field the clerk cannot yet read stays untouched.⟧ Settings written by a newer client therefore survive a toggle in the panel.",
-                "ja": "`/mcp` パネルでサーバーをオンオフすると、以前は `mcp_config.json` の `enabledTools`、`timeoutSeconds`、`url`、`tools.eager` が消えることがあった。今はパネルで編集してもそれらを残し、新しいクライアントが書いた未認識の項目も保持する。⟦書類係が指定されたチェック欄だけを書き換え、記入済みの他の項目を消さないようなものだ。まだ読めない新しい項目もそのまま残す。⟧ 新しいクライアントが書いた設定も、パネルで切り替えた後に残る。",
-                "ko": "`/mcp` 패널에서 서버를 켜거나 끌 때 예전에는 `mcp_config.json`의 `enabledTools`, `timeoutSeconds`, `url`, `tools.eager`가 사라질 수 있었다. 이제 패널에서 편집해도 이를 보존하고, 더 새 클라이언트가 썼지만 아직 알지 못하는 항목도 남긴다. ⟦서류 담당자가 지정한 체크칸만 바꾸고 이미 채운 다른 칸을 지우지 않는 모습과 같다. 아직 읽지 못하는 새 항목도 그대로 둔다.⟧ 따라서 새 클라이언트가 쓴 설정도 패널에서 켜고 끈 뒤에 남는다."
-              },
-              "original": "Added `mcp` subcommands (`add`, `remove`, `list`, `enable`, `disable`) for managing MCP servers in your user-level `mcp_config.json` without hand-editing it, covering both stdio and HTTP servers through `--type`, `--env` and `--header`.\nFixed the `/mcp` panel dropping `enabledTools`, `timeoutSeconds`, `url` and `tools.eager` from `mcp_config.json` when you toggled a server on or off; it now preserves any field it does not recognize, so configuration written by a newer client survives an edit."
-            },
-            {
-              "title": {
-                "zh-TW": "大型工作區找檔更快，也會略過忽略清單",
-                "zh-CN": "大型工作区找文件更快，也会略过忽略清单",
-                "en": "File search is faster in large workspaces and respects ignore rules",
-                "ja": "大きな作業領域でのファイル検索が速くなり、無視設定も守る",
-                "ko": "큰 작업 공간에서 파일 찾기가 빨라지고 무시 목록도 지킨다"
-              },
-              "body": {
-                "zh-TW": "專案很大時，在提示列輸入 `@` 找檔不必再看著結果慢慢跟上。查找改由內建的 ripgrep 執行，並會等你按鍵停下再查；檔名正好符合查詢的檔案，也會排在只是包含它的資料夾或產生檔之前。⟦這像在倉庫喊出物品名稱，管理員先等你講完，再把標籤完全相同的箱子遞到最前面。⟧而且 `.antigravityignore` 已列出的檔案不會再出現在 `@` 路徑補全裡。",
-                "zh-CN": "项目很大时，在提示栏输入 `@` 找文件不用再看着结果慢慢跟上。查找改由内置 ripgrep 执行，并会等你按键停下再查；文件名正好符合查询的文件，也会排在只是包含它的文件夹或生成产物之前。⟦这像在仓库喊出物品名称，管理员先等你说完，再把标签完全相同的箱子递到最前面。⟧而且 `.antigravityignore` 已列出的文件不会再出现在 `@` 路径补全里。",
-                "en": "In a large project, typing `@` to find a file no longer means watching results struggle to catch up. Lookup now uses bundled ripgrep and waits for your keystrokes to pause; an exact filename ranks above a directory or generated artifact that merely contains the query. ⟦It is like calling an item name in a warehouse: the clerk waits until you finish speaking, then brings the exactly labelled box to the front.⟧ Files listed in `.antigravityignore` also stop appearing in `@` path completion.",
-                "ja": "大きなプロジェクトで `@` を入力してファイルを探すとき、候補を待たされにくくなった。検索は内蔵 ripgrep が担当し、キー入力が止まってから行う。名前が完全に一致するファイルは、名前に文字列を含むだけのフォルダや生成物より上に出る。⟦倉庫で品名を呼ぶと、係員が言い終わるのを待って、同じラベルの箱を先に出すようなものだ。⟧`.antigravityignore` に入れたファイルも `@` の補完に出なくなる。",
-                "ko": "큰 프로젝트에서 `@`를 입력해 파일을 찾을 때 결과가 따라오기를 기다릴 일이 줄었다. 내장 ripgrep이 찾기를 맡고 키 입력이 멈춘 뒤 검색한다. 이름이 정확히 맞는 파일은 이름에 검색어만 들어 있는 폴더나 생성 산출물보다 먼저 나온다. ⟦창고에서 물건 이름을 부르면 직원이 말을 끝까지 듣고 같은 라벨 상자를 먼저 내주는 일과 같다.⟧`.antigravityignore`에 넣은 파일도 `@` 경로 완성에 더는 나타나지 않는다."
-              },
-              "original": "Improved `@` file path completion in large workspaces by running the lookup through the bundled `ripgrep` and debouncing keystrokes, and by ranking a file whose name matches your query above a directory or generated artifact that merely contains it.\nFixed `@` file path completion showing files that were in your `.antigravityignore`."
-            },
-            {
-              "title": {
-                "zh-TW": "Gemini API Key 也能調推理力度，窄終端機不再擠字",
-                "zh-CN": "Gemini API Key 也能调推理力度，窄终端不再挤字",
-                "en": "Gemini API keys can tune reasoning effort, without cramped picker text",
-                "ja": "Gemini API キーでも推論の強さを調整でき、狭い端末で説明があふれない",
-                "ko": "Gemini API 키로도 추론 강도를 조절하고 좁은 터미널에서 글자가 넘치지 않는다"
-              },
-              "body": {
-                "zh-TW": "用 Gemini API key 登入後，Gemini 3.6 Flash 與 Gemini 3.7 Flash 終於能用 `/effort` 調整 reasoning effort（推理力度，模型回答前投入多少思考）。這條登入路徑以前誤說兩個模型不能調，其他登入方式卻早已可調。挑選 `/effort` 或 `/model` 時，窄終端機裡時間軸量表下方的推理力度說明若放不下，現在會省略，讓量表保持可讀。⟦旋鈕原本鎖住又貼滿擠在一起的說明，現在能轉動，讀數也看得清楚。⟧",
-                "zh-CN": "用 Gemini API key 登录后，Gemini 3.6 Flash 与 Gemini 3.7 Flash 终于能用 `/effort` 调整 reasoning effort（推理力度，模型回答前投入多少思考）。这条登录路径以前误说两个模型不能调，其他登录方式却早已可调。挑选 `/effort` 或 `/model` 时，窄终端里时间轴量表下方的推理力度说明若放不下，现在会省略，让量表保持可读。⟦旋钮原本锁住又贴满挤在一起的说明，现在能转动，读数也看得清楚。⟧",
-                "en": "After signing in with a Gemini API key, Gemini 3.6 Flash and Gemini 3.7 Flash can finally have their reasoning effort adjusted with `/effort`—how much thought a model uses before answering. That sign-in route had wrongly called them unadjustable while other routes allowed it. In narrow terminals, the reasoning-effort description beneath the timeline gauge in `/effort` and `/model` is now omitted when it would overflow, keeping the gauge readable. ⟦A dial that was locked and crowded by its label can now turn, and its reading remains visible.⟧",
-                "ja": "Gemini API キーでログインした後、Gemini 3.6 Flash と Gemini 3.7 Flash の reasoning effort（回答前にモデルが使う思考量）を `/effort` で調整できるようになった。この経路だけは以前、他のログイン方法では調整できた両モデルを調整不可と誤表示していた。狭い端末で `/effort` や `/model` を選ぶ場合、タイムライン目盛りの下の説明が収まらなければ省かれ、目盛りを読める。⟦鍵のかかったつまみと詰まり過ぎた説明が、今は回せて数字も読める状態になったのである。⟧",
-                "ko": "Gemini API 키로 로그인한 뒤 Gemini 3.6 Flash와 Gemini 3.7 Flash의 reasoning effort(답하기 전 모델이 쓰는 생각의 양)를 `/effort`에서 조절할 수 있게 됐다. 이 로그인 경로는 다른 경로에서는 조절되던 두 모델을 예전에는 조절할 수 없다고 잘못 표시했다. 좁은 터미널에서 `/effort`나 `/model`을 고를 때 시간축 눈금 아래 설명이 넘치면 이제 생략해 눈금을 읽을 수 있다. ⟦잠겨 있고 설명이 빽빽하던 다이얼이 이제 돌아가며 숫자도 보이는 셈이다.⟧"
-              },
-              "original": "Improved `/effort` so it adjusts reasoning effort for Gemini 3.6 Flash and Gemini 3.7 Flash when you sign in with a Gemini API key, a route that previously reported those models as not adjustable even though the same models were adjustable on every other sign-in path.\nFixed the reasoning-effort description under the timeline gauge in the `/effort` and `/model` pickers overflowing on narrow terminals, where it is now omitted so the gauge stays readable."
-            },
-            {
-              "title": {
-                "zh-TW": "不支援 OSC 8 時，連結不再印出控制碼",
-                "zh-CN": "不支持 OSC 8 时，链接不再印出控制码",
-                "en": "Unsupported OSC 8 terminals no longer print raw link controls",
-                "ja": "OSC 8 非対応の端末でリンクの制御文字が出なくなる",
-                "ko": "OSC 8을 지원하지 않는 터미널에서 링크 제어 문자가 사라진다"
-              },
-              "body": {
-                "zh-TW": "若你用的終端機不支援 OSC 8 超連結，例如 Terminal.app，畫面不會再把控制碼原樣印成文字。這類終端機原本無法解讀控制碼，會把它照字面顯示；現在程式先偵測支援情況，避免送出這些控制碼。偵測也延伸到指令輸出與提醒訊息，兩處以前仍不管終端機是否支援就送出超連結。⟦像印刷廠發現讀者沒有隱形墨水閱讀器，便改印可讀文字，不會讓一串標記留在紙上。⟧現在三處都會先辨識是否能處理 OSC 8。",
-                "zh-CN": "若你用的终端不支持 OSC 8 超链接，例如 Terminal.app，画面不会再把控制码原样印成文字。这类终端原本无法解读控制码，会把它按字面显示；现在程序会先检测是否支持，避免发出这些控制码。检测也延伸到命令输出和提醒消息，两处以前仍不管终端是否支持就发出超链接。⟦像印刷厂发现读者没有隐形墨水阅读器，便改印可读文字，不会让一串标记留在纸上。⟧现在三处都会先辨识是否能处理 OSC 8。",
-                "en": "If your terminal lacks OSC 8 hyperlinks, such as Terminal.app, control sequences no longer print as literal text. Such terminals originally could not interpret control sequences and displayed them literally; the program now checks support first to avoid sending them. Detection now also covers command output and alert bodies, which had still emitted hyperlinks regardless of support. ⟦It is like a printer finding that readers lack an invisible-ink viewer, then using readable ink instead of leaving markings on the page.⟧ All three places now check whether OSC 8 can be handled first.",
-                "ja": "Terminal.app のように OSC 8 ハイパーリンクに対応しない端末では、制御文字が文字のまま表示されなくなった。この種の端末は元来制御文字を解釈できず、文字どおりに表示していた。現在はプログラムが対応状況を先に判定し、これらの制御文字を送らないようにしている。判定はコマンド出力と警告文にも広がり、以前は対応の有無にかかわらずリンクを出していた。⟦印刷所が読者に透明インクを見る道具がないと知り、紙に記号を残さず読めるインクで刷るようなものだ。⟧三つの場所すべてが OSC 8 を処理できるか先に確認する。",
-                "ko": "Terminal.app처럼 OSC 8 하이퍼링크를 지원하지 않는 터미널에서는 제어 문자열이 글자 그대로 찍히지 않는다. 이런 터미널은 원래 제어 문자열을 해석하지 못해 글자 그대로 표시했다. 이제 프로그램이 지원 여부를 먼저 감지해 이런 제어 문자열을 보내지 않는다. 이 감지는 명령 출력과 알림 본문에도 적용돼, 이전처럼 지원 여부와 무관하게 링크를 내보내지 않는다. ⟦인쇄소가 독자에게 투명 잉크를 읽을 도구가 없음을 알고 종이에 표식을 남기지 않도록 읽을 수 있는 잉크로 인쇄하는 것과 같다.⟧세 곳 모두 OSC 8을 처리할 수 있는지 먼저 확인한다."
-              },
-              "original": "Fixed links printing as raw escape sequences on terminals that do not implement OSC 8 hyperlinks, such as Terminal.app, and extended the same detection to command output and alert bodies, which still emitted hyperlinks unconditionally."
-            },
-            {
-              "title": {
-                "zh-TW": "不支援 Kitty 鍵盤協定時，提示列不再累積等號",
-                "zh-CN": "不支持 Kitty 键盘协议时，提示栏不再累积等号",
-                "en": "Unsupported Kitty keyboard protocol no longer adds equals signs to prompts",
-                "ja": "Kitty キーボード規約非対応でもプロンプトに等号がたまらない",
-                "ko": "Kitty 키보드 규약을 지원하지 않아도 프롬프트에 등호가 쌓이지 않는다"
-              },
-              "body": {
-                "zh-TW": "終端機不支援 Kitty 鍵盤協定（讓終端機辨識鍵盤輸入方式）時，提示列不會再每隔幾秒多出一個 `=`。原本 renderer（負責畫面顯示的程式部分）會定期重新啟用該協定，但終端機沒有把控制訊號當作協定內容解讀，反而把它印成文字。⟦像每隔幾秒替教室重設投影機的控制訊號，沒有被機器接收，反而一遍遍寫到白板上。⟧現在不支援時，重新啟用協定不會留下等號。",
-                "zh-CN": "终端不支持 Kitty 键盘协议（让终端识别键盘输入方式）时，提示栏不会再每隔几秒多出一个 `=`。原本 renderer（负责画面显示的程序部分）会定期重新启用该协议，但终端没有把控制信号当作协议内容解读，反而把它印成文字。⟦像每隔几秒替教室重设投影机的控制信号，没有被机器接收，反而一遍遍写到白板上。⟧现在不支持时，重新启用协议不会留下等号。",
-                "en": "On a terminal without the Kitty keyboard protocol—the way a terminal interprets keyboard input—the prompt no longer gains a `=` every couple of seconds. The renderer, the part that draws the display, periodically re-armed the protocol, but the terminal printed that control signal as text instead of interpreting it. ⟦It is like resetting a classroom projector every few seconds when its control signal is not received and is written onto the whiteboard instead.⟧ Re-arming no longer leaves equals signs on unsupported terminals.",
-                "ja": "Kitty キーボード規約（端末がキーボード入力の方式を解釈するしくみ）に対応しない端末では、プロンプトに数秒ごとに `=` が一つずつ増えなくなった。画面を描く renderer は定期的にこの規約を再有効化していたが、端末は制御信号として解釈せず文字として印字していた。⟦数秒ごとに教室のプロジェクターを再設定する信号が、機器に届かず黒板へ何度も書き込まれるようなものだ。⟧未対応の端末では再有効化しても等号を残さない。",
-                "ko": "Kitty 키보드 규약(터미널이 키보드 입력 방식을 해석하는 방식)을 지원하지 않는 터미널에서는 프롬프트에 몇 초마다 `=`가 하나씩 더해지지 않는다. 화면을 그리는 부분인 renderer가 이 규약을 주기적으로 다시 활성화했지만 터미널은 제어 신호로 해석하지 않고 글자로 찍었다. ⟦몇 초마다 교실 프로젝터를 다시 설정하는 신호가 기기에 전달되지 않고 칠판에 반복해서 적히는 것과 같다.⟧지원하지 않는 터미널에서는 다시 활성화해도 등호가 남지 않는다."
-              },
-              "original": "Fixed a `=` character accumulating in the prompt every couple of seconds on terminals that do not implement the Kitty keyboard protocol, where the renderer's periodic re-arming of that protocol was printed as literal text instead of being interpreted."
-            },
-            {
-              "title": {
-                "zh-TW": "產物檔名有空格時，清單、預覽與標題終於一致",
-                "zh-CN": "产物文件名有空格时，列表、预览与标题终于一致",
-                "en": "Artifact names with spaces now match in list, preview, and header",
-                "ja": "空白を含む成果物名が一覧、プレビュー、見出しで一致する",
-                "ko": "공백이 든 산출물 이름이 목록, 미리 보기, 제목에서 일치한다"
-              },
-              "body": {
-                "zh-TW": "你打開名稱含空格的產物時，清單列、內嵌預覽與詳細標題現在會寫同一個檔名。以前它可能顯示 `quarterly%20plan.md`，把空格寫成百分比跳脫字元，讀起來像另一個檔案。⟦這像同一部電影在片頭、海報與節目單各處，都一致使用真正的片名。⟧名稱中的空格會正常顯示。因此從清單點進預覽或詳細頁，不必猜眼前的名稱是不是同一份產物。",
-                "zh-CN": "你打开名称含空格的产物时，列表行、内嵌预览与详情标题现在会写同一个文件名。以前它可能显示 `quarterly%20plan.md`，把空格写成百分号转义字符，读起来像另一个文件。⟦这像同一部电影在片头、海报与节目单都使用真正片名。⟧因此从列表点进预览或详情页，不用猜眼前名称是不是同一份产物。",
-                "en": "When an artifact name contains a space, its list row, inline preview, and detail header now spell it the same way. It could previously appear as `quarterly%20plan.md`, replacing the space with a percent-escape and making it look like another file. ⟦It is like one film using its real title in the opening credits, poster, and programme.⟧ Moving from list to preview or detail no longer makes you wonder whether it is the same artifact.",
-                "ja": "空白を含む成果物を開くと、一覧行、埋め込みプレビュー、詳細見出しが同じ名前を表示するようになった。以前は `quarterly%20plan.md` のように空白がパーセントエスケープになり、別のファイルに見えることがあった。⟦同じ映画が冒頭のクレジット、ポスター、上映プログラムのすべてで本当の題名を使うようなものだ。⟧一覧からプレビューや詳細へ進んでも、同じ成果物かを迷わない。",
-                "ko": "이름에 공백이 있는 산출물을 열면 이제 목록 행, 인라인 미리 보기, 상세 제목이 같은 파일명을 쓴다. 예전에는 `quarterly%20plan.md`처럼 공백을 퍼센트 이스케이프로 보여 다른 파일처럼 보일 수 있었다. ⟦같은 영화가 시작 자막, 포스터, 상영 안내문 모두에 본래 제목을 쓰는 것과 같다.⟧목록에서 미리 보기나 상세 화면으로 가도 같은 산출물인지 추측할 필요가 없다."
-              },
-              "original": "Fixed the artifact list showing a percent-escaped filename such as `quarterly%20plan.md` for artifacts whose name contains a space, so the list row, the inline preview and the detail header all spell the name the same way."
-            },
-            {
-              "title": {
-                "zh-TW": "文字換行後，提示列游標不再走錯位置",
-                "zh-CN": "文字换行后，提示栏光标不再走错位置",
-                "en": "Prompt cursor stays aligned after text wraps",
-                "ja": "文字が折り返してもプロンプトのカーソルがずれない",
-                "ko": "글이 줄바꿈되어도 프롬프트 커서가 어긋나지 않는다"
-              },
-              "body": {
-                "zh-TW": "在提示列輸入較長文字、內容換到下一行後，游標現在會留在正確位置。先前編輯器算錯換行後的座標，游標看起來可能指著一處，實際插入文字卻落在另一處。⟦像用尺在折過的紙上量位置，折線以前讓刻度接不上；現在尺會沿著紙面繼續量。⟧這在反覆修改長句時尤其容易察覺，也不再誤導你。你在長提示中移動、補字或刪字時，眼睛看到的位置便能對上正在編輯的位置。",
-                "zh-CN": "在提示栏输入较长文字、内容换到下一行后，光标现在会留在正确位置。先前编辑器算错换行后的坐标，光标看起来可能指着一处，实际插入文字却落在另一处。⟦像用尺在折过的纸上量位置，折线以前让刻度接不上；现在尺会沿着纸面继续量。⟧你在长提示中移动、补字或删字时，眼睛看到的位置便能对上正在编辑的位置。",
-                "en": "After long text wraps in the prompt editor, the cursor now stays in the right place. The editor had miscalculated positions after a wrap, so the cursor could point at one spot while inserted text landed elsewhere. ⟦It is like measuring a folded sheet with a ruler: the fold once broke the scale, but now the ruler continues along the paper.⟧ When you move, add, or delete text in a long prompt, the visible position matches the edit position.",
-                "ja": "プロンプト編集欄で長い文字が次の行へ折り返されても、カーソルは正しい位置に残る。以前は編集欄が折り返し後の座標を誤算し、カーソルの位置と文字が入る位置が違うことがあった。⟦折った紙を定規で測るとき、以前は折り目で目盛りが途切れたが、今は紙に沿って測り続けられるようなものだ。⟧長いプロンプトで移動、追加、削除をしても、見える位置と編集位置が一致する。",
-                "ko": "프롬프트 편집기에서 긴 글이 다음 줄로 넘어가도 커서가 올바른 위치에 남는다. 이전에는 편집기가 줄바꿈 뒤 좌표를 잘못 계산해 커서가 가리키는 곳과 글자가 들어가는 곳이 다를 수 있었다. ⟦접은 종이를 자로 잴 때 접힌 선에서 눈금이 끊기던 것이 이제 종이를 따라 계속 재는 것과 같다.⟧긴 프롬프트에서 이동하거나 글자를 넣고 지워도 보이는 위치와 편집 위치가 맞는다."
-              },
-              "original": "Fixed the prompt editor's cursor becoming misaligned when text wrapped."
-            },
-            {
-              "title": {
-                "zh-TW": "MCP 讀取 PDF、音訊等二進位資源不再被丟掉",
-                "zh-CN": "MCP 读取 PDF、音频等二进制资源不再被丢掉",
-                "en": "MCP can now keep PDFs, audio, and other binary resources",
-                "ja": "MCP が PDF や音声などのバイナリ資源を捨てなくなる",
-                "ko": "MCP가 PDF, 오디오 등 이진 자원을 더는 버리지 않는다"
-              },
-              "body": {
-                "zh-TW": "MCP 伺服器回傳 PDF、音訊或其他非圖片二進位內容時，`read_resource` 不會再悄悄把它們丟掉。現在每個 blob 都會先卸到磁碟，只有小型文字與圖片資源會直接嵌進回應。⟦像博物館先把每件藏品放進庫房，展板只嵌小幅文字與圖片；大件也不會因此被丟棄。⟧因此大型 PDF、音訊與其他二進位資源能被使用，而非在讀取途中消失。",
-                "zh-CN": "MCP 服务器返回 PDF、音频或其他非图片二进制内容时，`read_resource` 不会再悄悄把它们丢掉。现在每个 blob 都会先卸到磁盘，只有小型文本与图片资源会直接嵌进响应。⟦像博物馆先把每件藏品放进库房，展板只嵌小幅文本与图片；大件也不会因此被丢弃。⟧因此大型 PDF、音频与其他二进制资源能被使用，而非在读取途中消失。",
-                "en": "When an MCP server returns a PDF, audio file, or other non-image binary content, `read_resource` no longer silently drops it. Every blob is now offloaded to disk, while only small text and image resources are inlined in the response. ⟦It is like a museum placing every object in storage, while its display board embeds only small text and images; larger pieces are not discarded.⟧ Large PDFs, audio, and other binary resources remain usable instead of disappearing during reading.",
-                "ja": "MCP サーバーが PDF、音声、そのほかの非画像バイナリ内容を返す場合、`read_resource` はそれを黙って捨てなくなった。すべての blob はディスクへ退避し、小さなテキストと画像だけを応答に埋め込む。⟦博物館がすべての収蔵品を保管庫に置き、展示板には小さなテキストと画像だけを埋め込むようなものだ。大きなものも捨てられない。⟧大きな PDF、音声、その他のバイナリ資源を読んでも使える。",
-                "ko": "MCP 서버가 PDF, 오디오 또는 이미지가 아닌 이진 내용을 돌려줄 때 `read_resource`가 더는 조용히 버리지 않는다. 모든 blob은 디스크에 내리고 작은 텍스트와 이미지 자원만 응답에 넣는다. ⟦박물관이 모든 소장품을 수장고에 두고 전시판에는 작은 글과 그림만 넣는 모습과 같다. 큰 물건도 버리지 않는다.⟧큰 PDF, 오디오와 다른 이진 자원을 읽는 중에 잃지 않고 사용할 수 있다."
-              },
-              "original": "Fixed `read_resource` discarding non-image binary content returned by an MCP server, which now offloads every blob to disk and inlines only small text and image resources, so large PDFs, audio and other binary resources are usable instead of silently dropped."
-            },
-            {
-              "title": {
-                "zh-TW": "Workforce Identity Federation 登入不再頻繁失效",
-                "zh-CN": "Workforce Identity Federation 登录不再频繁失效",
-                "en": "Workforce Identity Federation sign-in stops expiring unexpectedly",
-                "ja": "Workforce Identity Federation のログインが頻繁に切れなくなる",
-                "ko": "Workforce Identity Federation 로그인이 자주 풀리지 않는다"
-              },
-              "body": {
-                "zh-TW": "使用 Workforce Identity Federation 登入時，不會再因為更新 token（授權令牌，證明登入仍有效的憑據）走錯端點而被登出。問題原本出在更新程序跑到標準登入端點，而不是聯邦登入端點，導致登入狀態大約每小時反覆失效。⟦這像門禁證定時換發有效印章，更新資料卻送到另一棟大樓的發卡機；現在它會送回對應的機器。⟧你用這種聯邦身分登入後，更新授權令牌會留在正確的登入流程中。",
-                "zh-CN": "使用 Workforce Identity Federation 登录时，不会再因为刷新 token（授权令牌，证明登录仍有效的凭据）走错端点而被登出。问题原本出在刷新程序跑到标准登录端点，而不是联邦登录端点，导致登录状态大约每小时反复失效。⟦这像门禁证定时换发有效印章，更新资料却送到另一栋大楼的发卡机；现在它会送回对应的机器。⟧你用这种联邦身份登录后，刷新授权令牌会留在正确的登录流程中。",
-                "en": "With Workforce Identity Federation sign-in, refreshing a token—the credential that keeps a login valid—no longer sends you out through the wrong endpoint. The refresh had gone to the standard sign-in endpoint instead of the federated one, repeatedly invalidating the session roughly every hour. ⟦It is like sending a badge for its scheduled validity stamp to the issuing machine in another building; now it returns to the matching machine.⟧ Token refresh remains in the correct federated sign-in flow.",
-                "ja": "Workforce Identity Federation でログインすると、token（ログインが有効であることを示す認可証明）の更新が誤った端点へ行ってログアウトすることがなくなった。更新処理が連合ログイン用ではなく標準ログイン用の端点へ進み、およそ一時間ごとにログイン状態を失わせていた。⟦入館証の有効印を定期的に更新するのに、更新情報を別棟の発行機へ送ってしまうようなものだった。今は対応する機械へ送られる。⟧認可証明の更新は正しい連合ログインの流れに残る。",
-                "ko": "Workforce Identity Federation으로 로그인하면 token(로그인이 여전히 유효함을 증명하는 인증 표식)을 갱신할 때 잘못된 끝점으로 가서 로그아웃되는 일이 없다. 갱신 절차가 연동 로그인 끝점이 아닌 표준 로그인 끝점으로 가면서 로그인 상태가 약 한 시간마다 풀리고 있었다. ⟦출입증의 유효 도장을 정기적으로 갱신해야 하는데 갱신 정보를 다른 건물의 발급기에 보내던 것과 같다. 이제 맞는 기계로 보낸다.⟧인증 표식 갱신은 올바른 연동 로그인 흐름에 남는다."
-              },
-              "original": "Fixed Workforce Identity Federation sign-in signing you out roughly every hour, because the token refresh went to the standard sign-in endpoint rather than the federated one."
-            },
-            {
-              "title": {
-                "zh-TW": "內建 skills 會被正確標示與分組",
-                "zh-CN": "内置 skills 会被正确标记与分组",
-                "en": "Built-in skills are now labelled and grouped correctly",
-                "ja": "組み込み skills が正しく表示、分類される",
-                "ko": "내장 skills가 올바르게 표시되고 묶인다"
-              },
-              "body": {
-                "zh-TW": "查看 `/skills` 時，隨 CLI 一起提供的 skills 現在會正確被認成內建項目。以前它們被誤報為非內建，導致 `--output-format json` 的 `builtin` 旗標不正確，`/skills` 面板分組也跟著放錯。⟦像店裡自有品牌商品被貼成外來寄賣品，貨架自然擺錯區；現在標籤與貨架都回到正確位置。⟧若你用 JSON 輸出供其他工具讀取，或直接在面板瀏覽，兩種呈現會對上。",
-                "zh-CN": "查看 `/skills` 时，随 CLI 一起提供的 skills 现在会正确被认成内置项目。以前它们被误报为非内置，导致 `--output-format json` 的 `builtin` 标记不正确，`/skills` 面板分组也跟着放错。⟦像店里自有品牌商品被贴成外来寄卖品，货架自然摆错区；现在标签与货架都回到正确位置。⟧若你用 JSON 输出供其他工具读取，或直接在面板浏览，两种呈现会对上。",
-                "en": "In `/skills`, skills shipped with the CLI are now correctly identified as built in. They had been reported as not built in, making the `builtin` flag in `--output-format json` wrong and placing them in the wrong `/skills` panel group. ⟦It is like a store's own-brand goods being labelled as consignment stock, then shelved in the wrong aisle; labels and shelves now match.⟧ JSON output for other tools and the panel view now agree.",
-                "ja": "`/skills` では、CLI に同梱される skills が組み込みとして正しく認識されるようになった。以前は組み込みではないと誤表示され、`--output-format json` の `builtin` 旗標と `/skills` パネルの分類が誤っていた。⟦店の自社商品に委託品の札が貼られ、違う棚に置かれるようなものだった。今は札と棚が合う。⟧他のツール向け JSON 出力とパネル表示も一致する。",
-                "ko": "`/skills`에서 CLI와 함께 제공되는 skills가 이제 내장 항목으로 올바르게 표시된다. 예전에는 내장이 아니라고 잘못 보고돼 `--output-format json`의 `builtin` 표식과 `/skills` 패널의 묶음이 틀렸다. ⟦매장 자체 상품에 위탁 상품 딱지가 붙어 엉뚱한 진열대에 놓이던 것과 같다. 이제 딱지와 진열대가 맞는다.⟧다른 도구가 읽는 JSON 출력과 패널 화면도 일치한다."
-              },
-              "original": "Fixed skills that ship with the CLI being reported as not built-in, so the `builtin` flag in the `/skills` listing under `--output-format json` is accurate and the `/skills` panel groups them correctly."
-            },
-            {
-              "title": {
-                "zh-TW": "自訂或 SDK 代理也能問 /btw，失敗會顯示真實錯誤",
-                "zh-CN": "自定义或 SDK 代理也能问 /btw，失败会显示真实错误",
-                "en": "Custom and SDK agents can use /btw, with real failure messages",
-                "ja": "カスタムや SDK の agent でも /btw を使え、失敗理由も正しく出る",
-                "ko": "사용자 지정과 SDK agent도 /btw를 쓰고 실제 오류를 본다"
-              },
-              "body": {
-                "zh-TW": "對話進行到一半想岔問一件小事時，`/btw` 不再因為你正在使用自訂或 SDK 定義的 agent（代理，代替你執行特定任務的 AI 設定）而報 planner 設定錯誤。側問可在任何正在執行的 agent 下運作。若側問本身失敗，畫面也不會一律猜成 `model returned an empty response`；有自己的錯誤時，會顯示那個錯誤。⟦像問診單可交給不同科別的醫師處理，不會因身分欄位不同退回；若檢查失敗，報告會寫真正的異常。⟧",
-                "zh-CN": "对话进行到一半想岔问一件小事时，`/btw` 不再因为你正在使用自定义或 SDK 定义的 agent（代理，代替你执行特定任务的 AI 设置）而报 planner 配置错误。侧问可在任何正在运行的 agent 下工作。若侧问本身失败，画面也不会一律猜成 `model returned an empty response`；有自己的错误时，会显示那个错误。⟦像问诊单可交给不同科别的医生处理，不会因身份栏目不同退回；若检查失败，报告会写真正的异常。⟧",
-                "en": "When a small side question occurs to you mid-conversation, `/btw` no longer fails with a planner configuration error because you are using a custom or SDK-defined agent—an AI setup that performs a particular task for you. Side questions work with whichever agent is running. If one fails, the card no longer blindly says `model returned an empty response`; when there is its own error, that error is shown. ⟦It is like a medical form being handled by doctors in different specialties without being returned for its identity field; if an examination fails, its report gives the real abnormality.⟧",
-                "ja": "会話の途中で小さな脇質問をしたいとき、カスタムまたは SDK 定義の agent（特定の作業を代行する AI の設定）を使っていても `/btw` は planner 設定エラーで失敗しなくなった。どの agent の会話でも脇質問が使える。脇質問自体が失敗した場合も、常に `model returned an empty response` と推測表示せず、固有のエラーがあればそれを出す。⟦問診票は診療科が違っても身分欄を理由に返されず、検査が失敗すれば報告書は本当の異常を書くようなものだ。⟧",
-                "ko": "대화 중 작은 곁질문이 떠오르면 사용자 지정 또는 SDK로 정의한 agent(특정 일을 대신 수행하는 AI 설정)를 쓰는 중에도 `/btw`가 planner 설정 오류로 실패하지 않는다. 어떤 agent를 실행하든 곁질문을 쓸 수 있다. 곁질문 자체가 실패해도 항상 `model returned an empty response`라고 짐작해 표시하지 않고, 자체 오류가 있으면 그 오류를 보인다. ⟦문진표가 진료과가 달라도 신원 칸을 이유로 되돌아오지 않고, 검사가 실패하면 보고서가 실제 이상을 쓰는 것과 같다.⟧"
-              },
-              "original": "Fixed `/btw` failing with a planner configuration error in conversations driven by a custom or SDK-defined agent, so side questions work regardless of which agent you are running.\nFixed a failed `/btw` side question always reporting `model returned an empty response`, which was a hardcoded guess rather than the real failure; the card now shows the side question's own error when there is one."
-            },
-            {
-              "title": {
-                "zh-TW": "已完成背景任務不再留在進行中清單",
-                "zh-CN": "已完成后台任务不再留在进行中列表",
-                "en": "Finished background tasks no longer linger as active",
-                "ja": "完了したバックグラウンド作業が進行中一覧に残らない",
-                "ko": "끝난 백그라운드 작업이 진행 중 목록에 남지 않는다"
-              },
-              "body": {
-                "zh-TW": "背景任務做完後，狀態列、active-items 清單與 `/tasks` 面板不會再繼續把它當成進行中。過去任務明明結束，三個位置的資訊卻沒有同步移除，容易讓人以為還要等待。⟦像火車已到站，月台看板卻仍寫著行駛中；現在三塊看板會一同更新。⟧你查看狀態列、active-items 或 `/tasks` 時，看到的會是仍在背景執行的任務。",
-                "zh-CN": "后台任务做完后，状态栏、active-items 列表与 `/tasks` 面板不会再继续把它当成进行中。过去任务明明结束，三个位置的信息却没有同步移除，容易让人以为还要等待。⟦像火车已到站，站台看板却仍写着行驶中；现在三块看板会一同更新。⟧你查看状态栏、active-items 或 `/tasks` 时，看到的是仍在后台运行的任务。",
-                "en": "After a background task finishes, the status line, active-items list, and `/tasks` panel no longer keep calling it active. A task could already be done while all three views failed to remove it, making you think you still had to wait. ⟦It is like a train reaching its station while the platform board still says in transit; now all three boards update together.⟧ These views show tasks that are still running in the background.",
-                "ja": "バックグラウンド作業が終わると、状態行、active-items 一覧、`/tasks` パネルはそれを進行中として残さなくなった。作業が終わっているのに三つの表示から消えず、まだ待つ必要があるように見えていた。⟦列車が駅に着いたのにホームの案内板が走行中のままなのが、今は三つとも更新されるようなものだ。⟧これらの表示には、まだバックグラウンドで動く作業が出る。",
-                "ko": "백그라운드 작업이 끝나면 상태 줄, active-items 목록, `/tasks` 패널이 이를 더는 진행 중으로 남기지 않는다. 작업은 끝났는데 세 화면에서 사라지지 않아 아직 기다려야 하는 것처럼 보였다. ⟦열차가 역에 도착했는데 승강장 안내판은 계속 운행 중이라고 쓰던 것이 이제 세 안내판 모두 갱신되는 것과 같다.⟧이 화면들은 아직 백그라운드에서 실행 중인 작업을 보여 준다."
-              },
-              "original": "Fixed the status line, the active-items list and the `/tasks` panel continuing to show background tasks that had already finished."
-            },
-            {
-              "title": {
-                "zh-TW": "壞掉的 settings.json 不會再被預設值覆蓋",
-                "zh-CN": "损坏的 settings.json 不会再被默认值覆盖",
-                "en": "An unreadable settings.json is no longer overwritten with defaults",
-                "ja": "読めない settings.json を既定値で上書きしなくなる",
-                "ko": "읽을 수 없는 settings.json을 기본값으로 덮어쓰지 않는다"
-              },
-              "body": {
-                "zh-TW": "如果 `settings.json` 因格式錯誤而無法解析，CLI 現在拒絕儲存，卻不會把它覆蓋成預設設定。以前只要之後有任何內容被儲存，所有原有設定都可能被默默還原；現在拒絕儲存時，檔案會維持逐位元組相同，狀態列也會點名是哪個檔案。⟦像發現契約有一頁看不懂時，櫃台不再把整份換成空白範本，而是原封放回去讓你手動修好。⟧原有內容不會被抹掉。",
-                "zh-CN": "如果 `settings.json` 因格式错误而无法解析，CLI 现在拒绝保存，却不会把它覆盖成默认设置。以前只要之后有任何内容被保存，所有原有设置都可能被悄悄还原；现在拒绝保存时，文件会保持逐字节相同，状态栏也会点名是哪个文件。⟦像发现合同有一页看不懂时，柜台不再把整份换成空白模板，而是原样放回去让你手动修好。⟧",
-                "en": "If `settings.json` cannot be parsed because its format is broken, the CLI now refuses to save without overwriting it with default settings. Previously, saving anything later could silently revert every existing setting. On a refused save, the file remains byte-for-byte identical and the status line names it. ⟦It is like a counter finding an unreadable page in a contract and returning the original for repair instead of replacing the whole document with a blank template.⟧",
-                "ja": "形式が壊れて `settings.json` を解析できない場合、CLI は保存を拒否するが、既定の設定で上書きしなくなった。以前は後で何かを保存すると、すべての元の設定が黙って戻されることがあった。保存を拒否したときファイルは一バイトも変わらず、状態行は該当ファイル名を示す。⟦契約書の読めないページを見つけた窓口が、白紙のひな形に全体を替えるのでなく、原本を返して手で直せるようにするものだ。⟧",
-                "ko": "형식이 깨져 `settings.json`을 해석할 수 없으면 CLI는 이제 저장을 거절하지만 기본 설정으로 덮어쓰지 않는다. 예전에는 나중에 무엇이든 저장하면 기존 설정 전체가 조용히 되돌아갈 수 있었다. 저장을 거절할 때 파일은 바이트 단위로 그대로이고 상태 줄이 해당 파일을 이름으로 알려 준다. ⟦계약서에서 읽지 못하는 쪽을 발견한 창구가 문서 전체를 빈 양식으로 바꾸지 않고 원본을 돌려줘 손으로 고치게 하는 것과 같다.⟧"
-              },
-              "original": "Fixed the CLI overwriting a `settings.json` it could not parse with default settings, which silently reverted every setting the next time anything was saved; a refused save now leaves the file byte-identical so you can repair it by hand, and the status line names the file."
-            },
-            {
-              "title": {
-                "zh-TW": "父代理沒指定模型時，inherit 子代理仍能啟動",
-                "zh-CN": "父代理没指定模型时，inherit 子代理仍能启动",
-                "en": "An inherit subagent starts even when its parent has no model",
-                "ja": "親 agent にモデルがなくても inherit の子 agent が起動する",
-                "ko": "부모 agent에 모델이 없어도 inherit 하위 agent가 시작한다"
-              },
-              "body": {
-                "zh-TW": "你把子代理的 `model` 留成 `inherit` 時，即使父代理本身沒有模型，子代理現在仍能開始工作。舊行為會在啟動時失敗，因為它沒有可繼承的模型。現在會改用預設的快速層級。⟦像接力隊找不到前一棒交來的棒子，不會整隊停在起跑線，而是拿起備用接力棒繼續跑。⟧因此 `inherit` 的意思仍優先沿用父代理；父代理沒有模型時，才落到預設快速層級。",
-                "zh-CN": "你把子代理的 `model` 留成 `inherit` 时，即使父代理本身没有模型，子代理现在仍能开始工作。旧行为会在启动时失败，因为它没有可继承的模型。现在会改用默认的快速层级。⟦像接力队找不到前一棒交来的棒子，不会整队停在起跑线，而是拿起备用接力棒继续跑。⟧因此 `inherit` 的意思仍优先沿用父代理；父代理没有模型时，才落到默认快速层级。",
-                "en": "When a subagent leaves `model` as `inherit`, it now starts even if its parent has no model of its own. The old behavior failed because there was nothing to inherit. It now falls back to the default fast tier. ⟦A relay team that cannot find the baton from the previous runner does not remain at the start; it picks up a spare baton and keeps running.⟧ `inherit` still prefers the parent model, falling back only when that model is absent.",
-                "ja": "子 agent の `model` を `inherit` のままにした場合、親 agent 自身にモデルがなくても子 agent は起動できるようになった。以前は継承するモデルがないため開始に失敗していた。今は既定の高速層へフォールバックする。⟦リレーで前の走者のバトンが見つからなくても、チーム全員が出発線で止まらず、予備のバトンを取って走り出すようなものだ。⟧`inherit` は引き続き親のモデルを優先し、ない場合だけ既定の高速層を使う。",
-                "ko": "하위 agent의 `model`을 `inherit`로 두면 부모 agent에게 자체 모델이 없어도 이제 시작할 수 있다. 예전에는 물려받을 모델이 없어 시작에 실패했다. 이제 기본 빠른 계층으로 대체한다. ⟦릴레이에서 앞 주자의 바통을 찾지 못해도 팀 전체가 출발선에 멈추지 않고 예비 바통을 들고 달리는 것과 같다.⟧`inherit`는 여전히 부모 모델을 먼저 쓰며, 없을 때만 기본 빠른 계층을 쓴다."
-              },
-              "original": "Fixed a subagent whose definition leaves `model` at `inherit` failing to start when the parent agent has no model of its own, which now falls back to the default fast tier."
-            }
-          ]
         }
       ]
     },
@@ -2134,6 +1930,46 @@
       "id": "usage",
       "name": "Usage",
       "versions": [
+        {
+          "version": "0.29.34",
+          "period": "2026-08-23",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "選單列數字與供應商標記更容易辨認",
+                "zh-CN": "菜单栏数字与供应商标记更容易辨认",
+                "en": "Menu bar numbers and provider marks are easier to read",
+                "ja": "メニューバーの数字と提供元マークを見分けやすく",
+                "ko": "메뉴 막대 숫자와 제공업체 표시를 더 알아보기 쉽게"
+              },
+              "body": {
+                "zh-TW": "⟦把選單列（menu bar，畫面頂端顯示資訊的一條列）想成放在不同牆色前的指示牌：文字和標記得靠粗細與輪廓看清楚，不能只靠原本顏色。⟧百分比維持原有點數，但改為粗體，整條列約增加 5 點；在淺色桌布前也較容易一眼讀到。供應商標記（provider marks，標示服務來源的小圖樣）則改成單色範本影像，會跟著選單列外觀變化：淺色時顯黑，深色時顯白。它們不再倚賴顏色細節，Codex 標記不會在選單列大小縮成模糊一團；也與一向採同樣畫法的 critters 相符。標記大小現在為 14 至 16 點。",
+                "zh-CN": "⟦把菜单栏（menu bar，屏幕顶部显示信息的一条栏）想成放在不同墙色前的指示牌：文字和标记得靠粗细与轮廓看清，不能只靠原本颜色。⟧百分比保持原有点数，但改成粗体，整条栏约增加 5 点；在浅色壁纸前也更容易一眼读到。供应商标记（provider marks，标示服务来源的小图样）则改成单色模板图像，会随菜单栏外观变化：浅色时显黑，深色时显白。它们不再依赖颜色细节，Codex 标记不会在菜单栏大小缩成模糊一团；也与一向采用同样画法的 critters 相符。标记大小现在为 14 至 16 点。",
+                "en": "⟦Think of the menu bar as a sign against changing wall colors: both letters and marks need weight and shape, not color alone, to stay readable.⟧Percentages keep their point size but are now bold, making the strip about 5 points taller and easier to read over light wallpaper. Provider marks, the small images that identify a service, are now monochrome template images. They turn black on a light menu bar and white on a dark one. Shape now does the work that color detail once did, so the Codex mark does not collapse into a blur at menu-bar size; the marks also match the critters, which have always been drawn this way. They are now 14 to 16 points tall.",
+                "ja": "⟦メニューバー（menu bar、画面上部に情報を表示する細い列）は、壁の色が変わっても読める案内板だと考えるとよい。文字もマークも、元の色だけでなく太さと輪郭で見分けられる必要がある。⟧百分率は同じポイントサイズのまま太字になり、列は約 5 ポイント高くなった。明るい壁紙の上でもひと目で読める。提供元マーク（provider marks、サービスの出所を示す小さな図柄）は単色のテンプレート画像になり、明るいメニューバーでは黒、暗いメニューバーでは白になる。色の細部ではなく形で判別できるため、Codex のマークはメニューバーの大きさでぼやけた塊にならない。従来から同じ方式の critters ともそろい、サイズは 14 から 16 ポイントである。",
+                "ko": "⟦메뉴 막대(menu bar, 화면 위쪽에 정보를 보여 주는 가는 줄)는 벽 색이 바뀌어도 읽혀야 하는 안내판과 같다. 글자와 표시는 원래 색만이 아니라 굵기와 윤곽으로도 구분되어야 한다.⟧백분율은 같은 포인트 크기를 유지하면서 굵게 바뀌고, 줄 전체는 약 5포인트 높아졌다. 밝은 배경 화면에서도 한눈에 읽기 쉽다. 제공업체 표시(provider marks, 서비스 출처를 알리는 작은 그림)는 단색 템플릿 이미지가 되어 밝은 메뉴 막대에서는 검게, 어두운 메뉴 막대에서는 하얗게 보인다. 이제 색의 세부 사항 대신 모양으로 구분하므로 Codex 표시는 메뉴 막대 크기에서 흐릿한 덩어리가 되지 않는다. 원래 같은 방식으로 그려진 critters와도 맞으며, 크기는 이제 14에서 16포인트이다."
+              },
+              "original": "**The menu bar percentages are now bold.** They were drawn at the menu bar's own point size in regular weight, which left them lighter than everything around them — hard to read at a glance over a light wallpaper. Same size, bold weight; the strip grows by about 5 points.\n**The provider marks in the menu bar are now monochrome and follow the menu bar's own appearance.** The color art had to work against whatever wallpaper was behind it, and the Codex mark in particular collapsed into an indistinct blob at menu bar size because its detail came from color rather than shape. The marks are now template images — the system tints them black on a light menu bar and white on a dark one, so they stay legible everywhere, and they match the critters, which have always been drawn this way. They are also 14 to 16 points now."
+            },
+            {
+              "title": {
+                "zh-TW": "程式搬進分區後，也逐項核對啟動清單",
+                "zh-CN": "程序搬进分区后，也逐项核对启动清单",
+                "en": "Moved modules now come with a launch-list check",
+                "ja": "モジュールの整理と起動リストの照合を一緒に実施",
+                "ko": "모듈을 정리하고 실행 목록도 하나씩 확인"
+              },
+              "body": {
+                "zh-TW": "⟦整理倉庫，搬盒子進分區後仍得核對出貨清單與新架位，否則開門後才發現找不到貨。⟧散在 repository root 的 77 個模組，歸進 packages（套件，程式的可匯入資料夾）。`menubar/`、`loaders/`、`wintray/`、`discussion/`、`tui/`、`updates/` 六個資料夾收進 42 個，root 剩 35 個。這只改 import paths（匯入路徑，程式尋找其他程式碼的位置）。行為不變。虛擬環境外的檔案沒搬；狀態列 hooks（掛鉤，特定事件發生時被觸發的小程式）仍留頂層，因為 `usage setup` 會複製到家目錄，由系統 Python 執行。`main.py` 以字串載入模組，搜尋找不到；搬走後，字串可能指向空處，測試仍通過，App 卻無法啟動。新增測試讀取 `main.py`，比對呼叫的模組屬性與內容。",
+                "zh-CN": "⟦整理仓库时，光把盒子从门口搬进分区还不够；出货清单也得逐项核对新货架，否则开门后才发现找不到货。⟧原本散在 repository root 的 77 个模块，现在归进 packages（包，把相关程序放进同一个可导入的文件夹）。`menubar/`、`loaders/`、`wintray/`、`discussion/`、`tui/`、`updates/` 六个文件夹吸收其中 42 个，根目录剩 35 个。这只改 import paths（导入路径，程序寻找其他代码的位置）。行为不变。在虚拟环境外运行的文件也没有搬动。状态栏 hooks（钩子，在特定时机会被调用执行的文件）仍留在顶层，因为 `usage setup` 会把它们复制到用户主目录，由系统 Python 执行。`main.py` 用文字指定要加载的模块，搜索找不到这些文字；模块搬走后，文字可能仍指向空处，整套测试仍会通过但 App 无法启动。现在新增测试会读取 `main.py`，并把它调用的每个模块属性逐一对照该模块内容。",
+                "en": "⟦Tidying a warehouse takes more than moving boxes from the doorway into sections: the shipping list must also be checked against each new shelf, or opening day reveals missing stock.⟧The 77 modules that had been loose in the repository root are now grouped into packages, folders that hold related importable code. `menubar/`, `loaders/`, `wintray/`, `discussion/`, `tui/`, and `updates/` absorbed 42 of them, leaving 35 at the root. Only import paths, where code looks for other code, changed; behavior did not. Files that run outside the virtualenv stayed put: status-line hooks, files called at particular moments, remain at the top level because `usage setup` copies them to the user's home directory for the system Python. `main.py` names modules with plain strings, which search cannot find. A moved module could leave one pointing nowhere, while the test suite still passes and the app fails to launch. A new test reads `main.py` and checks every module attribute it calls against that module's contents.",
+                "ja": "⟦倉庫を整理するなら、箱を入口から区画へ移すだけでは足りない。出荷表も新しい棚の場所と一つずつ照合しなければ、開店後に品物が見つからない。⟧repository root に散らばっていた 77 個のモジュールは、packages（関連する読み込み可能なプログラムをまとめるフォルダ）へ移された。`menubar/`、`loaders/`、`wintray/`、`discussion/`、`tui/`、`updates/` の六つが 42 個を受け入れ、root には 35 個が残る。変わったのは import paths（ほかのプログラムを探す場所）だけで、動作は変わらない。仮想環境の外で動くファイルは移しておらず、status line hooks（特定の時点で呼び出して実行するファイル）は最上層に残る。`usage setup` がそれらを利用者のホームディレクトリへコピーし、システム Python で動かすためである。`main.py` は読み込むモジュールを文字列で指定するため、検索ではその指定を見つけられない。モジュールを移すと文字列が空の場所を指してもテスト一式は通り、App が起動しないおそれがある。新しいテストは `main.py` を読み、呼び出すすべてのモジュール属性を実際の内容と照合する。",
+                "ko": "⟦창고를 정리할 때 상자를 입구에서 구역으로 옮기는 것만으로는 부족하다. 출고 목록도 새 선반 위치와 하나씩 맞춰 보지 않으면 문을 연 뒤 물건을 찾지 못한다.⟧repository root에 흩어져 있던 77개 모듈은 packages(함께 불러올 수 있는 관련 프로그램을 모아 둔 폴더)로 옮겼다. `menubar/`, `loaders/`, `wintray/`, `discussion/`, `tui/`, `updates/` 여섯 폴더가 그중 42개를 받아 root에는 35개가 남는다. 바뀐 것은 import paths(프로그램이 다른 코드를 찾는 위치)뿐이며 동작은 바뀌지 않는다. 가상 환경 밖에서 실행되는 파일은 옮기지 않았고, status line hooks(특정 시점에 불려 실행되는 파일)는 최상위에 남는다. `usage setup`이 이를 사용자의 홈 디렉터리로 복사해 시스템 Python에서 실행하기 때문이다. `main.py`는 불러올 모듈을 일반 문자열로 지정하므로 검색으로는 그 지정을 찾을 수 없다. 모듈을 옮긴 뒤 문자열이 빈 곳을 가리켜도 전체 테스트는 통과하고 App은 실행되지 않을 수 있다. 새 테스트는 `main.py`를 읽고, 거기서 호출하는 모든 모듈 속성을 실제 모듈 내용과 대조한다."
+              },
+              "original": "**The 77 modules that sat loose in the repository root are now grouped into packages.** `menubar/`, `loaders/`, `wintray/`, `discussion/`, `tui/`, and `updates/` absorbed 42 of them; the root is down to 35. Nothing moved that runs outside the virtualenv — the status line hooks are still plain files at the top level, because `usage setup` copies them into the user's home directory to run under the system Python. Behavior is unchanged; only import paths moved.\n**A test now guards the modules that `main.py` loads by name.** Those loads are plain strings, so no search finds them and a moved module leaves the string pointing at nothing while the whole suite still passes and the app fails to launch. The test reads `main.py` and checks every attribute it calls on such a module against that module's actual contents."
+            }
+          ]
+        },
         {
           "version": "0.29.33",
           "period": "2026-08-22",
@@ -2245,165 +2081,6 @@
                 "ko": "이제 JSONL(한 줄마다 JSON 데이터 한 건을 담는 파일 형식) 기록 파일에 비정상적으로 긴 행이 있어도 메모리가 바닥나 읽기 전체가 멈추지 않는다. usage 는 실제 환경에서 측정된 최댓값 23 MB 를 바탕으로 설정된 64 MiB 상한에 맞춰 각 행을 읽으며, 이 한도를 넘어서는 행은 바로 건너뛰고 처리를 이어간다. 중첩이 지나치게 깊어 재귀 오류(`RecursionError`)를 일으키는 JSON 데이터 역시 유효하지 않은 행으로 간주하여 처리한다. ⟦화물 분류선 입구에 두 가지 검사를 두는 것과 같다. 너무 큰 화물과 포장이 너무 여러 겹이라 검사하기 어려운 화물은 곁길로 바로 보내고, 나머지는 계속 통과시킨다.⟧ 이를 통해 64 MiB를 초과하는 행이나 중첩이 너무 깊어 RecursionError를 일으키는 JSON 데이터가 읽기 과정을 가로막지 않는다."
               },
               "original": "**An oversized line in a JSONL history file no longer exhausts memory.** Lines are read against a 64 MiB ceiling, set from a measured 23 MB real-world maximum, and skipped cleanly when they exceed it. Deeply nested JSON that raises `RecursionError` is treated as an invalid line."
-            }
-          ]
-        },
-        {
-          "version": "0.29.31",
-          "period": "2026-08-18",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "usage status 消除百分比雜訊，統一保留一位小數",
-                "zh-CN": "usage status 消除百分比小数噪声，统一保留一位小数",
-                "en": "usage status removes floating-point noise from percentage outputs",
-                "ja": "usage status のパーセント表示から浮動小数点ノイズを解消",
-                "ko": "usage status 백분율 출력에서 부동 소수점 잡음 제거"
-              },
-              "body": {
-                "zh-TW": "在終端機執行 `usage status` 查詢額度時，工作階段（session，單次使用的時間區段）與每週百分比數值不再出現多餘的小數雜訊。過去程式將數值直接拼進字串，導致畫面上可能出現如 42.30000000000001 這類冗長的小數。⟦這就像電子磅秤把原本因感應過敏而跳出的一長串零碎小數抹平，在螢幕上整齊收攏到小數點後一位。⟧現在這兩項百分比都統一格式化為一位小數（例如 42.3），讓輸出的資訊乾淨俐落。",
-                "zh-CN": "在终端运行 `usage status` 查询额度时，会话（session，单次使用的时间区间）与每周百分比数值不再出现多余的小数噪声。过去程序将数值直接拼进字符串，导致画面上可能出现如 42.30000000000001 这类冗长的小数。⟦这就像电子秤把原本因感应过敏而跳出的一长串零碎小数抹平，在屏幕上整齐收拢到小数点后一位。⟧现在这两项百分比都统一格式化为一位小数（例如 42.3），让输出的信息干净利落。",
-                "en": "Running `usage status` to inspect your quotas will no longer spit out messy floating-point noise in session and weekly percentages. The tool previously interpolated raw numerical values directly into output strings, producing cluttered readouts like 42.30000000000001 instead of a clean 42.3. ⟦It is like a digital scale rounding off jittery multi-digit fractions to show a single steady decimal on its display.⟧ Both session and weekly metrics are now strictly formatted to one decimal place, keeping terminal output predictable and tidy.",
-                "ja": "端末で `usage status` を実行して利用枠を確認する際、セッション（session、一連の作業単位）および週間パーセンテージに余分な小数点のゴミが出なくなった。以前は数値をそのまま文字列に埋め込んでいたため、42.3 ではなく 42.30000000000001 のような長い端数が表示される場合があった。⟦電子はかりが細かな端数ノイズを丸め、画面にすっきりと小数点以下 1 桁で数値を収めるようなものである。⟧現在は両方の数値が小数点以下 1 桁に統一して整形され、表示が見やすくなった。",
-                "ko": "터미널에서 `usage status` 명령으로 잔여량을 확인할 때 세션(session, 한 번의 작업 구간) 및 주간 사용률에서 지저분한 소수점 잡음이 사라졌다. 예전에는 계산된 숫자를 문자열에 그대로 끼워 넣어 42.3 대신 42.30000000000001 같은 긴 소수가 화면에 찍히곤 했다. ⟦전자저울이 미세한 센서 떨림으로 튀던 긴 자릿수를 정리해 화면에 소수점 아래 한 자리로 깔끔하게 띄워 주는 것과 같다.⟧ 이제 두 항목 모두 소수점 첫째 자리까지 깔끔하게 정리되어 출력된다."
-              },
-              "original": "**`usage status` no longer prints floating-point noise in percentages.** Session and weekly percentages were interpolated straight into the string, so a value like 42.30000000000001 could appear instead of 42.3. Both are now formatted to one decimal place."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 系統匣提示對齊面板數值，納入 Antigravity",
-                "zh-CN": "Windows 系统托盘提示对齐面板数值，纳入 Antigravity",
-                "en": "Windows tray tooltip aligns with panel values and includes Antigravity",
-                "ja": "Windows 通知領域のツールチップがパネルと同期し Antigravity にも対応",
-                "ko": "Windows 트레이 툴팁 수치가 패널과 일치하고 Antigravity 항목 추가"
-              },
-              "body": {
-                "zh-TW": "把游標移到 Windows 系統匣（tray，工作列右側的常駐圖示區）圖示上方時，浮動提示文字顯示的數值現在與面板完全一致，而且不再漏掉 Antigravity。過去提示文字顯示的是「剩餘」百分比（以 100 減去已用量），而各個面板顯示的都是「已使用」百分比，兩邊數字對不起來。⟦這如同把公告欄的各項用量改用同一個已使用標準，補上漏列的 Antigravity，並把 Claude 條目整理成和其餘項目相同的一行格式。⟧現在提示文字統一改為已使用百分比，並在 Antigravity 卡片未隱藏時補上專屬一行；Claude 的顯示行也同步重構為與 Codex 和 Antigravity 一致的單行「工作階段 · 每週」排版。",
-                "zh-CN": "把光标移到 Windows 系统托盘（tray，任务栏右侧的常驻图标区）图标上方时，浮动提示文字显示的数值现在与面板完全一致，而且不再漏掉 Antigravity。过去提示文字显示的是「剩余」百分比（以 100 减去已用量），而各个面板显示的都是「已使用」百分比，两边数字对不起来。⟦这如同把公告栏的各项用量改用同一个已使用标准，补上漏列的 Antigravity，并把 Claude 条目整理成和其余项目相同的单行格式。⟧现在提示文字统一改为已使用百分比，并在 Antigravity 卡片未隐藏时补上专属一行；Claude 的显示行也同步重构为与 Codex 和 Antigravity 一致的单行「会话 · 每周」排版。",
-                "en": "Hovering over the Windows system tray icon now reveals tooltip figures that perfectly match what you see inside the main panel, while no longer skipping Antigravity. The tooltip previously showed the *remaining* percentage (calculated as 100 minus used) while every panel displays the *used* percentage, creating unnecessary confusion. ⟦It is like giving every line on a noticeboard one used-amount standard, restoring the missing Antigravity line, and setting the Claude entry in the same one-line format as the rest.⟧ The tooltip now reports used percentages across the board, adds an Antigravity row whenever that card is visible, and reformats the Claude entry to match Codex and Antigravity's single-line \"Session · Weekly\" layout.",
-                "ja": "Windows の通知領域（タスクトレイ）でアイコンにマウスを重ねた際のツールチップが、パネルと同じ数値を表示するようになり、Antigravity も省略されなくなった。以前は各パネルが「使用済み」割合を表示するのに対し、ツールチップは「残り」割合（100 から使用量を引いた値）を表示していた。⟦掲示板の各項目を同じ使用済みの基準に揃え、抜けていた Antigravity の行を足し、Claude も他と同じ 1 行形式に整えるようなものだ。⟧現在はツールチップも使用済み割合に揃えられ、Antigravity のカードが表示されている場合はその行も追加される。Claude の行も Codex や Antigravity と同様に 1 行の「Session · Weekly」形式へ統一された。",
-                "ko": "Windows 시스템 트레이 아이콘 위에 마우스를 올렸을 때 나타나는 툴팁 수치가 이제 패널 화면과 정확히 일치하며 Antigravity 항목도 빠지지 않는다. 이전에는 모든 패널이 '사용량' 백분율을 보여주는 반면 툴팁은 '남은 양'(100에서 사용량을 뺀 값)을 표시해 혼란을 주었다. ⟦게시판의 모든 항목을 같은 사용량 기준으로 맞추고, 빠졌던 Antigravity 줄을 보태며, Claude 항목도 다른 항목과 같은 한 줄 형식으로 정리한 셈이다.⟧ 이제 툴팁도 사용량 기준으로 통일되었고 Antigravity 카드가 숨겨져 있지 않으면 해당 줄도 표시된다. Claude 표시 줄 또한 Codex 및 Antigravity와 동일하게 한 줄짜리 'Session · Weekly' 배치로 정리되었다."
-              },
-              "original": "**The Windows tray tooltip shows the same numbers as the panel, and no longer omits Antigravity.** It displayed *remaining* percent (100 minus used) while every panel shows *used* percent; the tooltip now matches, and adds its own Antigravity line when that card isn't hidden. The Claude line was also reformatted to match Codex and Antigravity's single-line \"Session · Weekly\" layout."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 更新通知去除原始 Markdown 標記",
-                "zh-CN": "Windows 更新通知去除原始 Markdown 标记",
-                "en": "Windows update notifications strip raw Markdown markers",
-                "ja": "Windows の更新通知で生の Markdown 記号が表示されなくなる",
-                "ko": "Windows 업데이트 알림에서 가공되지 않은 Markdown 기호 제거"
-              },
-              "body": {
-                "zh-TW": "當 Windows 跳出新版本更新通知時，說明視窗不再直接印出未解析的 Markdown（以特殊符號標示粗體或標題的排版語法）原始標記。先前來自 GitHub Release 內文的 `##` 標題、`**` 粗體與 `` ` `` 程式碼符號，在更新對話框中都會被原樣渲染出來。這項問題在 macOS 平台已於 0.29.28 版解決，但修復一直未同步至 Windows 平台；現在兩個系統已共用同一套格式化處理器。⟦這好比印刷廠在樣品書送達各分店前先將排版標記擦拭乾淨，讓讀者看見精緻排版而非編輯痕跡。⟧",
-                "zh-CN": "当 Windows 弹出新版本更新通知时，说明窗口不再直接打印出未解析的 Markdown（以特殊符号标示粗体或标题的排版语法）原始标记。此前来自 GitHub Release 正文的 `##` 标题、`**` 粗体与 `` ` `` 代码符号，在更新对话框中都会被原样渲染出来。这项问题在 macOS 平台已于 0.29.28 版解决，但修复一直未同步至 Windows 平台；现在两个系统已共享同一套格式化处理器。⟦这好比印刷厂在样品书送达各分店前先将排版标记擦拭干净，让读者看见精致排版而非编辑痕迹。⟧",
-                "en": "Update dialogs on Windows will no longer greet you with unformatted Markdown markup when a new version drops. Release descriptions pulled from GitHub previously rendered literal `##`, `**`, and `` ` `` tokens directly inside the notification window. While macOS resolved this display glitch in version 0.29.28, the corresponding fix had not made its way to Windows until now. Both platforms now route release text through the shared formatter. ⟦It is like a printing press stripping proofreading marks before handing books to readers across every branch store.⟧",
-                "ja": "Windows で更新通知が表示された際、ダイアログに Markdown（太字や見出しを記号で指定する記法）の生データがそのまま出なくなった。以前は GitHub Release の本文に含まれる `##`、`**`、`` ` `` などの記号が更新画面にそのまま描画されていた。macOS では 0.29.28 で修正されていたが Windows 側への適用が漏れていたもので、現在は両 OS で共通の整形処理が使われるようになった。⟦校正刷りの記号を読者に見せることなく、きれいに仕上がった本文だけを届けるような仕上がりである。⟧",
-                "ko": "Windows에서 새 버전 업데이트 알림이 뜰 때 대화상자에 Markdown(특수 기호로 굵은 글씨나 제목을 지정하는 서식) 기호가 그대로 노출되지 않는다. 이전에는 GitHub Release 본문에 적힌 `##`, `**`, `` ` `` 같은 서식 기호가 업데이트 창에 글자 그대로 나타났다. macOS에서는 0.29.28 버전에서 이미 수정되었으나 Windows에는 반영되지 않았던 부분으로, 이제 두 플랫폼 모두 같은 서식 처리기를 공유한다. ⟦서적을 배포하기 전에 교정 부호를 말끔히 지우고 정돈된 본문만을 보여 주는 것과 다름없다.⟧"
-              },
-              "original": "**Windows update notifications no longer show raw Markdown.** The GitHub Release body's `##`, `**`, and `` ` `` markers rendered literally in the update dialog; macOS fixed this in 0.29.28 but the fix never reached Windows. Both platforms now share the same formatter."
-            },
-            {
-              "title": {
-                "zh-TW": "官網修復行動版導覽與分享錨點",
-                "zh-CN": "官网修复移动端导航与分享锚点",
-                "en": "Website fixes mobile navigation and shareable anchors",
-                "ja": "公式サイトのモバイルナビゲーションと共有アンカーを修正",
-                "ko": "웹사이트 모바일 내비게이션과 공유 앵커 수정"
-              },
-              "body": {
-                "zh-TW": "用手機瀏覽 usage 官方網站時，窄螢幕不會再失去導覽方向。在螢幕寬度低於 640px 時，原本整條消失的導覽列現在改由標示 Sections 的展開選單替代。⟦好比登山步道的窄入口設有可展開路線牌，改走其他語言路線時，原本標記的位置仍保留下來。⟧切換語言也不再把 `#install` 等分享錨點改寫為 `#<lang>`，因此在切換前複製的連結仍能開啟原先位置。",
-                "zh-CN": "用手机浏览 usage 官方网站时，窄屏幕不再会失去导航方向。在屏幕宽度低于 640px 时，原本整条消失的导航栏现在改由标示 Sections 的展开菜单替代。⟦好比狭窄登山步道的入口设有可展开的路线牌，改走其他语言路线时，原先标记的位置仍被保留。⟧切换语言也不再把 `#install` 等分享锚点改写为 `#<lang>`，因此在切换前复制的链接仍能打开原先位置。",
-                "en": "On the public website, a narrow mobile screen will no longer leave you without a way to navigate. Below 640px, the navigation bar that previously disappeared entirely is replaced by a labeled, expandable Sections menu. ⟦It is like a narrow trailhead gaining an expandable route board that keeps your marked location when you switch to another language route.⟧ Switching languages also no longer rewrites shared anchors such as `#install` to `#<lang>`, so links copied before a language switch still open at their original location.",
-                "ja": "スマートフォンで usage の公式サイトを閲覧する際、狭い画面でナビゲーションが失われることはなくなった。画面幅が 640px 未満では、以前は完全に消えていたナビゲーションの代わりに、Sections と明記された展開式メニューが表示される。⟦狭い登山道の入口に展開式の案内板を置き、別の言語の経路へ切り替えても元の現在地の印を保つようなものだ。⟧言語を切り替えても `#install` のような共有アンカーが `#<lang>` へ書き換えられなくなり、切り替え前にコピーしたリンクも元の位置を開き続ける。",
-                "ko": "모바일 기기로 usage 공식 웹사이트를 볼 때 좁은 화면에서 내비게이션을 잃지 않게 되었다. 화면 너비가 640px 미만이면 이전에는 완전히 사라지던 내비게이션 바 대신 Sections라고 표시된 펼침 메뉴가 나타난다. ⟦좁은 등산로 입구에 펼칠 수 있는 경로 안내판을 두고 다른 언어 경로로 바꿔도 기존 위치 표시는 남겨 두는 것과 같다.⟧ 언어를 바꿔도 `#install` 같은 공유 앵커가 `#<lang>`으로 다시 쓰이지 않아, 전환 전에 복사한 링크도 원래 위치를 계속 연다."
-              },
-              "original": "**The public website's mobile navigation and shareable anchors are fixed.** Below 640px the navigation disappeared entirely — a labeled Sections menu now expands in its place. Switching language no longer overwrites a shared anchor like `#install` with `#<lang>`, so links copied before a language switch keep working. Footer text now meets AA contrast, images lazy-load, and tap targets are at least 24px (44px in the main mobile nav)."
-            },
-            {
-              "title": {
-                "zh-TW": "官網補強頁尾可讀性、圖片載入與點擊操作",
-                "zh-CN": "官网改善页脚可读性、图片加载与点击操作",
-                "en": "Website improves footer readability, image loading, and tap targets",
-                "ja": "公式サイトがフッターの可読性と画像読み込み、タップ領域を改善",
-                "ko": "웹사이트가 바닥글 가독성, 이미지 로딩, 터치 영역을 개선"
-              },
-              "body": {
-                "zh-TW": "網站在手機上顯示時，容易被忽略的可讀性與操作細節也一併補齊。頁尾文字現在符合 AA 級對比要求，前景與背景的差異足以辨識；圖片改為需要顯示時才讀取。⟦這像候車資訊換成人人看得清楚的字，月台畫面接近時才亮起，按鈕與連結的可點擊區域也留出足夠空間。⟧各個點擊目標至少為 24px，行動版主導覽則為 44px，手指操作更不容易按偏。",
-                "zh-CN": "网站在手机上显示时，容易被忽略的可读性与操作细节也一并补齐。页脚文字现在符合 AA 级对比要求，前景与背景的差异足以辨识；图片改为需要显示时才加载。⟦这像候车信息换成人人都看得清的字，站台画面接近时才亮起，按钮与链接的可点击区域也留出足够空间。⟧各个点击目标至少为 24px，移动端主导航则为 44px，手指操作更不容易按偏。",
-                "en": "On mobile, the public website now also covers readability and interaction details that are easy to overlook. Footer text meets AA contrast requirements, making foreground and background easier to distinguish, while images lazy-load only when needed. ⟦It is like making station information readable to everyone, lighting up platform displays only as you approach, and leaving enough room for the clickable areas of buttons and links.⟧ Every tap target measures at least 24px, with the primary mobile navigation reaching 44px to make finger input less error-prone.",
-                "ja": "モバイルで公式サイトを表示する際、見落とされやすい読みやすさと操作性の細部も補われた。フッターの文字は AA 基準のコントラストを満たし、前景と背景を区別しやすくなった。画像は必要な時点で遅延読み込みされる。⟦駅の案内表示を誰もが読み取れる文字にし、ホームの表示は近づいた時にだけ点灯させ、ボタンやリンクのクリック領域にも十分な余白を取るようなものだ。⟧タップ領域はすべて少なくとも 24px であり、モバイルのメインナビゲーションでは 44px となる。",
-                "ko": "모바일에서 공식 웹사이트를 볼 때 놓치기 쉬운 가독성과 조작 세부 사항도 함께 보완되었다. 바닥글 글자는 AA 대비 기준을 충족해 전경과 배경을 구분하기 쉬워졌으며, 이미지는 필요할 때 지연 로딩된다. ⟦역 안내 정보를 누구나 읽기 쉬운 글자로 바꾸고, 승강장 화면은 가까이 갈 때만 켜며, 버튼과 링크의 클릭 영역에도 충분한 공간을 두는 것과 같다.⟧ 모든 터치 영역은 최소 24px이고 모바일 주 내비게이션은 44px이다."
-              },
-              "original": "**The public website's mobile navigation and shareable anchors are fixed.** Below 640px the navigation disappeared entirely — a labeled Sections menu now expands in its place. Switching language no longer overwrites a shared anchor like `#install` with `#<lang>`, so links copied before a language switch keep working. Footer text now meets AA contrast, images lazy-load, and tap targets are at least 24px (44px in the main mobile nav)."
-            },
-            {
-              "title": {
-                "zh-TW": "官網主題總數校正為 13 款，補齊 Catppuccin 計數",
-                "zh-CN": "官网主题总数校正为 13 款，补齐 Catppuccin 计数",
-                "en": "Website theme count updated from 12 to 13 to include Catppuccin",
-                "ja": "公式サイトのテーマ総数を 12 から 13 へ修正し Catppuccin を反映",
-                "ko": "웹사이트 테마 수를 12개에서 13개로 수정하여 Catppuccin 반영"
-              },
-              "body": {
-                "zh-TW": "瀏覽官方網站的主題清單時，頁面上標示的主題總數已在全部五種語言版本中統一由 12 款修正為 13 款。先前在 0.29.23 版推出的 Catppuccin 主題配色一直未被計入網站的統計數字中，這次更新在所有語系頁面中如實補上了這項遺漏。⟦這像展示櫃明明陳列了 13 款特色商品，外頭目錄清單卻少算了一款，如今目錄將漏掉的款式如實補上，讓各語系型錄的標示與架上款式完全一致。⟧現在造訪官網不同語言版本，所見的主題統計都能正確反映當前完整的 13 種配色。",
-                "zh-CN": "浏览官方网站的主题清单时，页面上标示的主题总数已在全部五种语言版本中统一由 12 款修正为 13 款。此前在 0.29.23 版推出的 Catppuccin 主题配色一直未被计入网站的统计数字中，这次更新在所有语系页面中如实补上了这项遗漏。⟦这像展示柜明明陈列了 13 款特色商品，外头目录清单却少算了一款，如今目录将漏掉的款式如实补上，让各语言版本的目录标示与展示柜中的款式完全一致。⟧现在造访官网不同语言版本，所见的主题统计都能正确反映当前完整的 13 种配色。",
-                "en": "The theme counter across all five language versions of the public website has been updated from 12 to 13. The Catppuccin color scheme introduced in version 0.29.23 had been left out of the site's tally, causing the displayed figure to lag behind reality. ⟦This is like a showroom featuring 13 distinct models while the printed catalog mistakenly tallies 12 until an update fixes the count.⟧ Every localized version of the website now accurately showcases the full lineup of 13 themes.",
-                "ja": "公式サイトに記載されているテーマの総数が、全 5 言語において 12 種類から 13 種類へと修正された。バージョン 0.29.23 で追加された Catppuccin テーマがサイト上のカウントから漏れていたため、今回の更新で正しく反映された。⟦店頭に 13 種類の製品が並んでいるにもかかわらず、目録の数字だけが 1 つ少なく表記されていたのを正しく改めたようなものだ。⟧どの言語のページを開いても、現在提供されている全 13 種類のテーマが正しく確認できる。",
-                "ko": "공식 웹사이트 5개 언어 전체에서 안내되던 테마 총수가 12개에서 13개로 바로잡혔다. 0.29.23 버전에서 추가되었던 Catppuccin 테마가 웹사이트의 집계에서 누락되어 있었는데, 이번 변경을 통해 모든 언어 페이지에서 누락이 해결되었다. ⟦진열대에는 13개 제품이 놓여 있는데 카탈로그의 숫자 표기만 하나 빠져 있던 것을 정상적으로 맞춘 조치와 같다.⟧ 이제 어느 언어로 접속하든 현재 지원되는 13가지 테마가 올바르게 표시된다."
-              },
-              "original": "**The website's theme count was corrected from 12 to 13** — Catppuccin, shipped in 0.29.23, wasn't being counted — across all five languages."
-            },
-            {
-              "title": {
-                "zh-TW": "社群預覽圖反映 Windows 支援，體積縮小更輕量",
-                "zh-CN": "社交预览图反映 Windows 支持，体积缩小更轻量",
-                "en": "Social preview image reflects Windows support and shrinks in size",
-                "ja": "SNS プレビュー画像が Windows 対応を反映し軽量化",
-                "ko": "소셜 미리보기 이미지에 Windows 지원을 반영하고 용량 경량화"
-              },
-              "body": {
-                "zh-TW": "在社群平台分享官方網站連結時，縮圖卡片（social preview image，社群預覽圖片）已全面翻新。過去圖片標題寫著「macOS Menu Bar App」，現在全新的 1200×630 圖片將品牌與標題結合網站原生配色的實際面板截圖（涵蓋 Claude、Codex 與 Antigravity），清楚展現對 Windows 的支援。此外，圖片檔案大小也從原本的 573KB 大幅縮減至 96KB，讓分享預覽圖檔案更輕量。⟦像車站指示牌原本只標示 macOS，現加入 Windows、放上實際服務面板，並換成更輕薄的材質。⟧",
-                "zh-CN": "在社交平台分享官方网站链接时，缩略图卡片（social preview image，社交预览图片）已全面翻新。过去图片标题写着「macOS Menu Bar App」，现在全新的 1200×630 图片将品牌与标题结合网站原生配色的实际面板截图（涵盖 Claude、Codex 与 Antigravity），清楚展现对 Windows 的支持。此外，图片文件大小也从原本的 573KB 大幅缩减至 96KB，让分享预览图文件更轻量。⟦像车站指示牌原本只标示 macOS，如今加入 Windows、放上实际服务面板，并换成更轻薄的材质。⟧",
-                "en": "Sharing website links on social platforms now generates an updated preview card that reflects Windows availability alongside macOS. The old image labeled the project strictly as a \"macOS Menu Bar App\", whereas the new 1200×630 visual pairs the brand and title with an authentic panel screenshot (featuring Claude, Codex, and Antigravity) rendered in the site's distinct color palette. File size dropped dramatically from 573KB down to 96KB, with the smaller preview file size. ⟦It is like a station sign that previously listed only macOS, now adding Windows and an authentic service-panel image on lighter material.⟧",
-                "ja": "SNS で公式サイトのリンクを共有した際に表示されるプレビュー画像が刷新された。以前の画像には「macOS Menu Bar App」と記載されていたが、新しい 1200×630 の画像ではブランドロゴやタイトルとともに、サイトの配色に合わせた実際のパネル画面（Claude、Codex、Antigravity）が並び、Windows 対応が明示されるようになった。ファイルサイズも 573KB から 96KB へと大幅に削減された。⟦macOS 対応だけを示す駅の案内板に Windows を加え、実際のサービスパネルを載せ、より軽い素材へ替えるようなものだ。⟧",
-                "ko": "소셜 플랫폼에서 공식 웹사이트 링크를 공유할 때 나타나는 미리보기 카드가 새롭게 개편되었다. 이전 이미지에는 'macOS Menu Bar App'이라는 문구만 적혀 있었으나, 새로운 1200×630 이미지는 브랜드 및 제목과 함께 사이트 고유 색상의 실제 패널 스크린샷(Claude, Codex, Antigravity)을 담아 Windows 지원을 명확히 보여준다. 이미지 용량 또한 573KB에서 96KB로 크게 줄었다. ⟦macOS 지원만 적힌 역 안내판에 Windows와 실제 서비스 패널을 더하고 더 가벼운 소재로 바꾸는 것과 같다.⟧"
-              },
-              "original": "**The social preview image reflects Windows support and reuses the site's own visuals.** It used to say \"macOS Menu Bar App\"; the new 1200×630 image pairs the brand and title with an actual panel screenshot (Claude, Codex, Antigravity) in the site's own colors, and dropped from 573KB to 96KB."
-            },
-            {
-              "title": {
-                "zh-TW": "README 狀態列截圖升級為多語言動態展示",
-                "zh-CN": "README 状态栏截图升级为多语言动态展示",
-                "en": "README status-line screenshots upgraded to localized animations",
-                "ja": "README のステータス行プレビューが各言語のアニメーションに刷新",
-                "ko": "README 상태 줄 미리보기가 언어별 맞춤 애니메이션으로 개편"
-              },
-              "body": {
-                "zh-TW": "查閱 README 說明文件時，狀態列（status line，顯示在終端機底部的即時資訊列）展示畫面已升級為動態錄製的動畫。過去非英文語系都是借用英文版的靜態截圖，現在每一種語言版本都配備了專屬的錄製動圖。⟦如同健身教室不再讓所有學員看同一張英文姿勢照片，而是依各語言播放專屬的動態示範。⟧所有動圖都針對 README 的版面寬度進行了最佳化調整，確保文字在各語言環境下都能清晰易讀。",
-                "zh-CN": "查阅 README 说明文件时，状态栏（status line，显示在终端底部的实时信息栏）展示画面已升级为动态录制的动画。过去非英文语系都是借用英文版的静态截图，现在每一种语言版本都配备了专属的录制动图。⟦如同健身教室不再让所有学员看同一张英文姿势照片，而是按各语言播放专属的动态示范。⟧所有动图都针对 README 的版面宽度进行了优化调整，确保文字在各语言环境下都能清晰易读。",
-                "en": "Viewing the status-line previews in the README now presents fully recorded animations tailored to each language. Non-English translations previously borrowed static screenshots from the English README. ⟦It is like a fitness class no longer showing every learner the same English posture photo, but playing a dedicated moving demonstration for each language.⟧ Every supported language now features its own animated recording, scaled to stay sharp and legible within the standard README reading width.",
-                "ja": "README の解説を読む際、ステータス行のプレビューが録画されたアニメーションへと更新された。以前は英語以外の言語版でも英語の静止画が流用されていたが、現在は各言語ごとに個別の録画アニメーションが用意されている。⟦フィットネス教室が全員に同じ英語の姿勢写真を見せるのをやめ、言語ごとに専用の動く実演を流すようなものだ。⟧すべてのアニメーションは README の表示幅に合わせて調整され、どの言語でも文字が鮮明に読める。",
-                "ko": "README 문서를 확인할 때 상태 줄 미리보기가 움직이는 녹화 애니메이션으로 업그레이드되었다. 이전에는 영어가 아닌 다른 언어 문서에서도 영어 스크린샷을 그대로 빌려와 사용했으나, 이제 각 언어마다 맞춤 녹화된 전용 애니메이션이 제공된다. ⟦운동 교실이 모든 수강생에게 같은 영어 자세 사진을 보여 주는 대신 언어별 전용 동작 시연을 재생하는 것과 같다.⟧ 모든 애니메이션은 README 본문 너비에 맞춰 조정되어 어떤 언어에서도 글씨를 또렷하게 읽을 수 있다."
-              },
-              "original": "**README status-line screenshots are now recorded animations**, one per language instead of borrowed from English, made legible at README width."
-            },
-            {
-              "title": {
-                "zh-TW": "狀態列設定升格為 README 獨立章節，補齊平台術語",
-                "zh-CN": "状态栏设置升格为 README 独立章节，补齐平台术语",
-                "en": "Status-line setup becomes a dedicated README section with platform terms",
-                "ja": "ステータス行の設定が README の独立セクションへ昇格",
-                "ko": "상태 줄 설정 가이드가 README 독립 섹션으로 분리되고 용어 보강"
-              },
-              "body": {
-                "zh-TW": "想在終端機配置狀態列的讀者，現在能在 README 中直接找到專屬的設定章節。過去這段教學作為子章節被埋在 Windows Support（Windows 支援）底下，導致 macOS 使用者容易直接錯過；現在它被獨立成頂層章節，並完整補齊了兩大平台與繁體中文的專業術語對照。⟦彷彿將熱門服務台從特定附錄搬到大廳正中央，並補齊多系統與繁體中文標籤，讓所有訪客一進門就能找到指引。⟧無論你在哪種作業系統上使用 usage，都能順暢依照母語術語完成狀態列設定。",
-                "zh-CN": "想在终端配置状态栏的读者，现在能在 README 中直接找到专属的设置章节。过去这段教程作为子章节被埋在 Windows Support（Windows 支持）底下，导致 macOS 用户容易直接错过；现在它被独立成顶层章节，并完整补齐了两大平台与繁体中文的专业术语对照。⟦这好比将热门服务台从特定附录搬到大厅正中央，并补齐多系统与繁体中文标签，让所有访客一进门就能找到指引。⟧无论你在哪种操作系统上使用 usage，都能顺畅依照母语术语完成状态栏设置。",
-                "en": "Finding setup instructions for terminal status-lines in the README is now immediate and straightforward. The guide was formerly tucked away as a sub-topic under Windows Support, causing macOS users to overlook it entirely. It now commands its own dedicated section, complete with terminology aligned for both platforms and Traditional Chinese. ⟦As if moving a popular information desk from a remote corner annex to the main lobby so visitors on every path spot it right away.⟧ Users across operating systems can now easily locate relevant setup steps and terminology.",
-                "ja": "端末でステータス行を設定したい利用者が、README 内で専用の解説セクションをすぐ見つけられるようになった。これまでは Windows Support（Windows サポート）の下層に埋もれていたため、macOS の利用者が設定手順を見落とす原因となっていた。現在は独立したセクションへ昇格し、両プラットフォームおよび繁体中国語の用語対応も補完された。⟦人気の案内窓口を特定フロアの奥から中央ロビーへ移設し、各言語の案内標識を整えて誰もが見つけられるようにしたような改善である。⟧どの環境の利用者でも迷わず設定手順を参照できる。",
-                "ko": "터미널 상태 줄을 설정하려는 사용자가 README에서 전용 안내 단락을 바로 찾을 수 있게 되었다. 이전에는 해당 설명이 Windows Support(Windows 지원) 하위 항목에 묻혀 있어 macOS 사용자가 그냥 지나치기 쉬웠다. 이제 독립된 최상위 섹션으로 승격되었으며, 두 운영체제 플랫폼 및 번체 중국어에 맞춘 용어 대조도 함께 채워졌다. ⟦인기 안내 데스크를 구석진 부속 건물에서 중앙 로비로 옮겨 누구나 쉽게 발견할 수 있도록 개선한 변화와 같다.⟧ 어떤 운영체제를 쓰든 필요한 설정 정보를 한눈에 찾아볼 수 있다."
-              },
-              "original": "**Status-line setup is now its own README section** instead of a subsection buried under Windows Support, so macOS users don't skip it, with terminology filled in for both platforms and Traditional Chinese."
             }
           ]
         }
