@@ -5,7 +5,7 @@ from __future__ import annotations
 
 import pytest
 
-import win_login_item
+from wintray import login_item as win_login_item
 
 
 class _Key:

@@ -28,9 +28,7 @@ import service_status
 import update_checker
 import update_gate
 import usage_diagnosis_snapshot
-import win_login_item
 import window_keeper
-import wintray_menu
 from burn_rate import BurnRateTracker
 from i18n import _t
 from loaders import codex_loader
@@ -59,7 +57,9 @@ from usage_client import ClaudeUsageClient, PollState
 from usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
 from usage_rate import UsageRateTracker
-from windows_watch import (
+from wintray import login_item as win_login_item
+from wintray import menu as wintray_menu
+from wintray.watch import (
     WindowsFileEventChanges,
     WindowsUsageWatcher,
     setup_windows_watcher,

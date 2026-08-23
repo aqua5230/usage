@@ -54,10 +54,6 @@ py-modules = [
     "setup_hook",
     "session_hooks",
     "login_item",
-    "win_login_item",
-    "wintray",
-    "wintray_menu",
-    "windows_watch",
     "usage_client",
     "critter_frames",
     "tui_sprite",
@@ -96,7 +92,7 @@ py-modules = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["adapters*", "analyzer*", "loaders*", "menubar*", "panels*", "ui*"]
+include = ["adapters*", "analyzer*", "loaders*", "menubar*", "panels*", "ui*", "wintray*"]
 
 # Top-level modules cannot collect adjacent data files via package-data.
 [tool.setuptools.data-files]

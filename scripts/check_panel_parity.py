@@ -62,7 +62,7 @@ def parse_windows_definitions(
 
 def load_windows_definitions() -> tuple[tuple[tuple[str, str, str], ...], dict[str, float]]:
     try:
-        wintray = importlib.import_module("wintray")
+        wintray = importlib.import_module("wintray.app")
     except Exception:
         source = (Path(__file__).resolve().parent.parent / "wintray.py").read_text(
             encoding="utf-8"

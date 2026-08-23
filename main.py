@@ -353,7 +353,7 @@ def main() -> None:
         menubar.run_app(mock=args.mock, interval=args.interval)
     elif sys.platform == "win32":
         try:
-            wintray = importlib.import_module("wintray")
+            wintray = importlib.import_module("wintray.app")
         except ModuleNotFoundError as exc:
             # Any missing module — wintray itself, an optional GUI package, or a
             # transitive import — must degrade to the TUI; a bare raise would exit

@@ -119,6 +119,7 @@ if __name__ == "__main__":
             "loaders",
             "menubar",
             "ui",
+            "wintray",
         ],
         "excludes": [
             # Test suites and build tooling that py2app's module graph drags in

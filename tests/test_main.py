@@ -136,7 +136,7 @@ def _patch_main_for_win32(monkeypatch: Any, calls: list[dict[str, Any]]) -> None
 
 def _raise_module_not_found(missing: str) -> Any:
     def fake_import(name: str) -> Any:
-        assert name == "wintray"
+        assert name == "wintray.app"
         raise ModuleNotFoundError(f"No module named '{missing}'", name=missing)
 
     return fake_import

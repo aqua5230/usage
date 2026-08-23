@@ -113,7 +113,7 @@ def test_catppuccin_flavor_is_resolved_after_cached_html_load(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     import prefs
-    import wintray
+    from wintray import app as wintray
 
     monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
 

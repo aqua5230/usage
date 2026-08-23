@@ -20,7 +20,7 @@ def _winreg() -> Any:
 def _command() -> str:
     if getattr(sys, "frozen", False):
         return f'"{Path(sys.executable)}"'
-    return f'"{Path(sys.executable)}" "{Path(__file__).resolve().with_name("main.py")}"'
+    return f'"{Path(sys.executable)}" "{Path(__file__).resolve().parent.parent / "main.py"}"'
 
 
 def is_enabled() -> bool:
