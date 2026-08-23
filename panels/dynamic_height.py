@@ -40,6 +40,19 @@ CONTENT_HEIGHT_SCRIPT = """
     for (var element = wrap; element; element = element.parentElement) {
       chain.push(element);
     }
+    // A card written as `flex: 1` has a zero flex-basis, and its automatic
+    // content-based minimum size is suppressed by the card's own
+    // `overflow: hidden` (win95 and newspaper both need that for their chrome).
+    // Releasing the height chain then lets such a card collapse to its header,
+    // so the measured height misses every project row. Pin those stretchers to
+    // their content size while measuring.
+    var stretchers = [];
+    Array.prototype.forEach.call(wrap.children, function(child) {
+      var childStyle = window.getComputedStyle(child);
+      if (parseFloat(childStyle.flexGrow) > 0 && parseFloat(childStyle.flexBasis) === 0) {
+        stretchers.push({ element: child, flex: child.style.flex });
+      }
+    });
     var properties = ["height", "minHeight", "maxHeight"];
     var saved = chain.map(function(element) {
       return properties.map(function(property) { return element.style[property]; });
@@ -49,6 +62,9 @@ CONTENT_HEIGHT_SCRIPT = """
         element.style.height = "auto";
         element.style.minHeight = "0";
         element.style.maxHeight = "none";
+      });
+      stretchers.forEach(function(stretcher) {
+        stretcher.element.style.flex = "0 0 auto";
       });
       floors.forEach(function(floor) {
         floor.element.style.minHeight = floor.height + "px";
@@ -68,6 +84,9 @@ CONTENT_HEIGHT_SCRIPT = """
       });
       return Math.ceil(total);
     } finally {
+      stretchers.forEach(function(stretcher) {
+        stretcher.element.style.flex = stretcher.flex;
+      });
       chain.forEach(function(element, elementIndex) {
         properties.forEach(function(property, propertyIndex) {
           element.style[property] = saved[elementIndex][propertyIndex];
