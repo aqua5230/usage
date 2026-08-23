@@ -17,7 +17,7 @@ import pytest
 
 import doctor
 from installer import setup_hook
-from loaders import codex_loader
+from loaders import codex_loader, history_loader
 
 
 @pytest.fixture(autouse=True)
@@ -35,6 +35,7 @@ def _patch_doctor_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", codex_dir / "sessions")
     monkeypatch.setattr(codex_loader, "LOGS_DB", codex_dir / "logs_2.sqlite")
     monkeypatch.setattr(codex_loader, "STATE_DB", codex_dir / "state_5.sqlite")
+    monkeypatch.setattr(codex_loader, "THREAD_HISTORY_DB", codex_dir / "thread_history_1.sqlite")
     monkeypatch.setattr(codex_loader, "load_rate_limits", lambda: None)
 
 
@@ -59,15 +60,16 @@ def test_doctor_handles_missing_settings_and_status_file(
 
     assert "usage v" in output
     assert lines[2] == "[core]"
-    assert [line.split(":", 1)[0] for line in lines[3:6]] == [
+    assert [line.split(":", 1)[0] for line in lines[3:7]] == [
         "status file",
         "codex jsonl",
         "codex state",
+        "codex history",
     ]
-    assert lines[6] == doctor.SEPARATOR
-    assert lines[7] == "[hook]"
-    assert lines[12] == doctor.SEPARATOR
-    assert lines[13] == "[optional]"
+    assert lines[7] == doctor.SEPARATOR
+    assert lines[8] == "[hook]"
+    assert lines[13] == doctor.SEPARATOR
+    assert lines[14] == "[optional]"
     assert "hook state:        none" in output
     forwarder_line = next(line for line in lines if line.startswith("forwarder script:"))
     assert forwarder_line.endswith("[not needed in none mode]")
@@ -209,12 +211,125 @@ def test_doctor_reports_codex_diagnostics(
     assert "codex rate limits: 5h: no, weekly: yes, updated:" in output
 
 
+def test_doctor_warns_when_recent_sqlite_history_has_no_jsonl_entries(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    history_db = tmp_path / ".codex" / "thread_history_1.sqlite"
+    history_db.parent.mkdir()
+    with sqlite3.connect(history_db) as conn:
+        conn.execute("CREATE TABLE thread_turns (started_at REAL, completed_at REAL)")
+        conn.execute("INSERT INTO thread_turns VALUES (?, NULL)", (datetime.now(UTC).timestamp(),))
+    monkeypatch.setattr(codex_loader, "THREAD_HISTORY_DB", history_db)
+
+    report = doctor.collect()
+    check = next(check for _, check in report.checks if check.code == doctor.CODEX_HISTORY)
+
+    assert check.status == "warn"
+    assert "Codex may have moved conversation history to SQLite" in check.detail
+
+
+def _claude_entry(session_id: str, model: str = "claude-test") -> history_loader.UsageEntry:
+    return history_loader.UsageEntry(
+        timestamp=datetime.now(UTC),
+        session_id=session_id,
+        message_id="message",
+        request_id="request",
+        model=model,
+        input_tokens=0,
+        output_tokens=0,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=None,
+        project="test",
+    )
+
+
+def test_claude_cost_warns_for_large_difference(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    setup_hook.STATUS_FILE.parent.mkdir()
+    setup_hook.STATUS_FILE.write_text(
+        json.dumps({"cost": {"total_cost_usd": 10.0}, "session_id": "current"}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(
+        history_loader,
+        "load_entries",
+        lambda: [_claude_entry("current", model="missing-model")],
+    )
+    monkeypatch.setattr("pricing.calculate_cost", lambda entry: 5.0)
+    monkeypatch.setattr("pricing.is_model_priced", lambda model: False)
+
+    check = doctor._claude_cost()
+
+    assert check.status == "warn"
+    assert (
+        check.detail
+        == "official $10.00, usage $5.00, difference 50.0%; unpriced models: missing-model"
+    )
+
+
+def test_claude_cost_is_ok_within_difference_threshold(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    setup_hook.STATUS_FILE.parent.mkdir()
+    setup_hook.STATUS_FILE.write_text(
+        json.dumps({"cost": {"total_cost_usd": 10.0}, "session_id": "current"}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(history_loader, "load_entries", lambda: [_claude_entry("current")])
+    monkeypatch.setattr("pricing.calculate_cost", lambda entry: 8.5)
+    monkeypatch.setattr("pricing.is_model_priced", lambda model: True)
+
+    check = doctor._claude_cost()
+
+    assert check.status == "ok"
+    assert check.detail == "official $10.00, usage $8.50, difference 15.0%"
+
+
+def test_claude_cost_skips_when_status_file_is_missing() -> None:
+    check = doctor._claude_cost()
+
+    assert check.status == "ok"
+    assert check.detail == "unavailable"
+
+
+def test_claude_cost_skips_when_official_cost_is_zero() -> None:
+    setup_hook.STATUS_FILE.parent.mkdir()
+    setup_hook.STATUS_FILE.write_text(
+        json.dumps({"cost": {"total_cost_usd": 0}, "session_id": "current"}),
+        encoding="utf-8",
+    )
+
+    check = doctor._claude_cost()
+
+    assert check.status == "ok"
+    assert check.detail == "unavailable"
+
+
+def test_claude_cost_skips_when_session_has_no_entries(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    setup_hook.STATUS_FILE.parent.mkdir()
+    setup_hook.STATUS_FILE.write_text(
+        json.dumps({"cost": {"total_cost_usd": 10.0}, "session_id": "current"}),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(history_loader, "load_entries", lambda: [_claude_entry("other")])
+
+    check = doctor._claude_cost()
+
+    assert check.status == "ok"
+    assert check.detail == "unavailable"
+
+
 def test_render_json_has_structured_checks() -> None:
     payload = json.loads(doctor.render_json())
 
     assert isinstance(payload["version"], str)
     assert set(payload) == {"version", "checks", "self_heal_log", "summary"}
-    assert payload["summary"] == {"ok": 3, "warn": 9, "error": 0}
+    assert payload["summary"] == {"ok": 5, "warn": 9, "error": 0}
     expected_codes = {
         "status_file",
         "codex_sessions",
@@ -228,6 +343,8 @@ def test_render_json_has_structured_checks() -> None:
         "external_hooks",
         "codex_logs",
         "codex_rate_limits",
+        "codex_history",
+        "claude_cost",
     }
     checks = payload["checks"]
     assert {check["code"] for check in checks} == expected_codes

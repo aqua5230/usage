@@ -1071,6 +1071,14 @@ class AppDelegate(NSObject):
                     "claude_weekly": (state.claude_weekly.percent, state.claude_weekly.available),
                     "codex_session": (state.codex_session.percent, state.codex_session.available),
                     "codex_weekly": (state.codex_weekly.percent, state.codex_weekly.available),
+                    "agy_session": (
+                        state.agy_session.percent,
+                        state.agy_session.available and state.agy_stale is None,
+                    ),
+                    "agy_weekly": (
+                        state.agy_weekly.percent,
+                        state.agy_weekly.available and state.agy_stale is None,
+                    ),
                 }
             )
             for event in events:

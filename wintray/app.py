@@ -1530,6 +1530,14 @@ class _WindowsTrayController:
                     ),
                     "codex_session": (state.codex_session.percent, state.codex_session.available),
                     "codex_weekly": (state.codex_weekly.percent, state.codex_weekly.available),
+                    "agy_session": (
+                        state.agy_session.percent,
+                        state.agy_session.available and state.agy_stale is None,
+                    ),
+                    "agy_weekly": (
+                        state.agy_weekly.percent,
+                        state.agy_weekly.available and state.agy_stale is None,
+                    ),
                 }
             )
             if _quota_notifications_enabled() and not self.mock:
@@ -1547,15 +1555,24 @@ class _WindowsTrayController:
             "claude_weekly": state.claude_weekly,
             "codex_session": state.codex_session,
             "codex_weekly": state.codex_weekly,
+            "agy_session": state.agy_session,
+            "agy_weekly": state.agy_weekly,
         }
         row = rows[event.channel]
         scope = row.title or _t(
             self.language, "session_label" if event.channel.endswith("_session") else "weekly_label"
         )
+        tool = (
+            "Claude"
+            if event.channel.startswith("claude_")
+            else "Antigravity"
+            if event.channel.startswith("agy_")
+            else "Codex"
+        )
         message = _t(
             self.language,
             f"notif_{event.kind}_body",
-            tool="Claude" if event.channel.startswith("claude_") else "Codex",
+            tool=tool,
             scope=scope,
             pct=f"{round(row.percent or event.threshold or 0.0):g}",
             reset=row.reset_text,

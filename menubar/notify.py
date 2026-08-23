@@ -83,7 +83,11 @@ def register_user_notification_block_metadata() -> None:
 
 
 def notification_tool(channel: str) -> str:
-    return "Claude" if channel.startswith("claude_") else "Codex"
+    if channel.startswith("claude_"):
+        return "Claude"
+    if channel.startswith("agy_"):
+        return "Antigravity"
+    return "Codex"
 
 
 def notification_scope(language: str, channel: str) -> str:
@@ -98,5 +102,7 @@ def notification_row(state: PopoverState, channel: str) -> QuotaRowState:
         "claude_weekly": state.claude_weekly,
         "codex_session": state.codex_session,
         "codex_weekly": state.codex_weekly,
+        "agy_session": state.agy_session,
+        "agy_weekly": state.agy_weekly,
     }
     return rows[channel]

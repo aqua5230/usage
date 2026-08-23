@@ -36,6 +36,8 @@ FORWARDER_PROMPT: Final = "forwarder_prompt"
 EXTERNAL_HOOKS: Final = "external_hooks"
 CODEX_LOGS: Final = "codex_logs"
 CODEX_RATE_LIMITS: Final = "codex_rate_limits"
+CODEX_HISTORY: Final = "codex_history"
+CLAUDE_COST: Final = "claude_cost"
 
 CHECK_LABELS: Final = {
     STATUS_FILE: "status file",
@@ -50,6 +52,8 @@ CHECK_LABELS: Final = {
     EXTERNAL_HOOKS: "external hooks",
     CODEX_LOGS: "codex logs",
     CODEX_RATE_LIMITS: "codex rate limits",
+    CODEX_HISTORY: "codex history",
+    CLAUDE_COST: "claude cost",
 }
 
 
@@ -72,6 +76,7 @@ def collect() -> DoctorReport:
         ("core", _field(STATUS_FILE, _status_file)),
         ("core", _field(CODEX_SESSIONS, _codex_sessions)),
         ("core", _field(CODEX_STATE, _codex_state)),
+        ("core", _field(CODEX_HISTORY, _codex_history)),
         ("hook", _field(HOOK_STATE, _hook_state)),
         ("hook", _field(HOOK_VERSION, _hook_version)),
         ("hook", _field(HOOK_SCRIPT, lambda: _script_status(setup_hook.HOOK_TARGET))),
@@ -81,6 +86,7 @@ def collect() -> DoctorReport:
         ("optional", _field(EXTERNAL_HOOKS, _external_hooks)),
         ("optional", _field(CODEX_LOGS, _codex_logs)),
         ("optional", _field(CODEX_RATE_LIMITS, _codex_rate_limits)),
+        ("optional", _field(CLAUDE_COST, _claude_cost)),
     ]
     return DoctorReport(
         version=_text_field(_current_version),
@@ -373,6 +379,25 @@ def _codex_state() -> CheckResult:
     )
 
 
+def _codex_history() -> CheckResult:
+    from loaders import codex_loader
+
+    has_jsonl_entries = codex_loader.has_recent_jsonl_entries(hours_back=7 * 24)
+    has_sqlite_turns = codex_loader.has_recent_thread_history_turns(hours_back=7 * 24)
+    if has_jsonl_entries is False and has_sqlite_turns is True:
+        return CheckResult(
+            code=CODEX_HISTORY,
+            status="warn",
+            detail=(
+                "Codex may have moved conversation history to SQLite; "
+                "usage's jsonl source may no longer be valid"
+            ),
+        )
+    if has_jsonl_entries is None or has_sqlite_turns is None:
+        return CheckResult(code=CODEX_HISTORY, status="ok", detail="unavailable")
+    return CheckResult(code=CODEX_HISTORY, status="ok", detail="jsonl active")
+
+
 def _codex_rate_limits() -> CheckResult:
     from loaders import codex_loader
 
@@ -389,6 +414,52 @@ def _codex_rate_limits() -> CheckResult:
         status=status,
         detail=f"5h: {five}, weekly: {weekly}, updated: {updated}",
     )
+
+
+def _claude_cost() -> CheckResult:
+    import json
+
+    import pricing
+    from loaders import history_loader
+
+    try:
+        status_data = json.loads(setup_hook.STATUS_FILE.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return CheckResult(code=CLAUDE_COST, status="ok", detail="unavailable")
+
+    cost = status_data.get("cost") if isinstance(status_data, dict) else None
+    official_cost = cost.get("total_cost_usd") if isinstance(cost, dict) else None
+    session_id = status_data.get("session_id") if isinstance(status_data, dict) else None
+    if (
+        not isinstance(official_cost, int | float)
+        or official_cost <= 0
+        or not isinstance(session_id, str)
+        or not session_id
+    ):
+        return CheckResult(code=CLAUDE_COST, status="ok", detail="unavailable")
+
+    entries = [
+        entry
+        for entry in history_loader.load_entries()
+        if entry.session_id == session_id
+    ]
+    if not entries:
+        return CheckResult(code=CLAUDE_COST, status="ok", detail="unavailable")
+
+    calculated_cost = sum(pricing.calculate_cost(entry) for entry in entries)
+    absolute_difference = abs(official_cost - calculated_cost)
+    relative_difference = absolute_difference / official_cost
+    unpriced_models = sorted(
+        {entry.model for entry in entries if not pricing.is_model_priced(entry.model)}
+    )
+    detail = (
+        f"official ${official_cost:.2f}, usage ${calculated_cost:.2f}, "
+        f"difference {relative_difference:.1%}"
+    )
+    if unpriced_models:
+        detail += f"; unpriced models: {', '.join(unpriced_models)}"
+    status = "warn" if relative_difference > 0.2 and absolute_difference > 1.0 else "ok"
+    return CheckResult(code=CLAUDE_COST, status=status, detail=detail)
 
 
 def _rate_limits_are_fresh(updated_at: str) -> bool:

@@ -19,6 +19,8 @@ VALID_CHANNELS = frozenset(
         "claude_weekly",
         "codex_session",
         "codex_weekly",
+        "agy_session",
+        "agy_weekly",
     }
 )
 
@@ -62,6 +64,8 @@ class QuotaNotifier:
     ) -> list[NotificationEvent]:
         state = self._channels[channel]
         events: list[NotificationEvent] = []
+        if not available:
+            return events
         current = float(percent) if percent is not None else None
 
         reset = (

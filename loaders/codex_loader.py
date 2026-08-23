@@ -135,6 +135,7 @@ SESSIONS_DIR = codex_home() / "sessions"
 ARCHIVED_SESSIONS_DIR = codex_home() / "archived_sessions"
 STATE_DB = codex_home() / "state_5.sqlite"
 LOGS_DB = codex_home() / "logs_2.sqlite"
+THREAD_HISTORY_DB = codex_home() / "thread_history_1.sqlite"
 
 
 def _readonly_sqlite_uri(path: Path) -> str:
@@ -244,6 +245,34 @@ def load_entries(
     entries.extend(_load_sqlite_log_entries(metadata, cutoff, latest_jsonl_ts_by_session))
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
+
+
+def has_recent_jsonl_entries(hours_back: int) -> bool | None:
+    """Return whether parsed JSONL usage entries exist in the recent window."""
+    try:
+        cutoff = datetime.now(UTC) - timedelta(hours=hours_back)
+        metadata = _load_thread_metadata()
+        models = {session_id: data.model for session_id, data in metadata.items()}
+        return bool(_load_jsonl_entries(SESSIONS_DIR, models, cutoff))
+    except OSError:
+        return None
+
+
+def has_recent_thread_history_turns(hours_back: int) -> bool | None:
+    """Return whether Codex's SQLite thread history has recent turns."""
+    if not THREAD_HISTORY_DB.exists():
+        return False
+    cutoff = datetime.now(UTC).timestamp() - (hours_back * 60 * 60)
+    try:
+        with closing(sqlite3.connect(_readonly_sqlite_uri(THREAD_HISTORY_DB), uri=True)) as conn:
+            row = conn.execute(
+                "SELECT 1 FROM thread_turns "
+                "WHERE started_at >= ? OR completed_at >= ? LIMIT 1",
+                (cutoff, cutoff),
+            ).fetchone()
+    except (OSError, sqlite3.Error):
+        return None
+    return row is not None
 
 
 def _session_roots(primary_dir: Path) -> list[Path]:

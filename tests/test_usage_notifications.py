@@ -82,3 +82,23 @@ def test_restored_does_not_trigger_for_non_depleted_reset() -> None:
     notifier.update({"codex_session": (80.0, True)})
 
     assert notifier.update({"codex_session": (10.0, True)}) == []
+
+
+def test_agy_channels_send_threshold_notifications() -> None:
+    notifier = QuotaNotifier()
+
+    assert notifier.update({"agy_session": (89.0, True), "agy_weekly": (89.0, True)}) == []
+    events = notifier.update({"agy_session": (90.0, True), "agy_weekly": (90.0, True)})
+
+    assert [(event.channel, event.kind, event.threshold) for event in events] == [
+        ("agy_session", "warn", 90.0),
+        ("agy_weekly", "warn", 90.0),
+    ]
+
+
+def test_agy_stale_data_does_not_send_notifications() -> None:
+    notifier = QuotaNotifier()
+
+    notifier.update({"agy_session": (89.0, True)})
+
+    assert notifier.update({"agy_session": (100.0, False)}) == []
