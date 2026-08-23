@@ -16,9 +16,9 @@ import pytest
 
 import codex_loader
 import history_loader
-import menubar
 from adapters.types import AgentInfo, UsageEntry
 from analyzer import persona_loader, reporter
+from menubar import app as menubar
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -356,7 +356,7 @@ def test_app_analyze_uses_project_range_period(
             self.target(*self.args)
 
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
-    monkeypatch.setattr("menubar.threading.Thread", InlineThread)
+    monkeypatch.setattr("menubar.app.threading.Thread", InlineThread)
 
     def fake_generate_analysis_report(
         period: str = "month",

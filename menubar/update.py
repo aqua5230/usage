@@ -15,7 +15,7 @@ from typing import Any, Protocol
 import update_checker
 import update_gate
 import usage_diagnosis_snapshot
-from menubar_prefs import _auto_update_check_enabled
+from menubar.prefs import _auto_update_check_enabled
 from prefs import _load_preferences, _save_preferences
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,7 @@ class _UpdateApp(Protocol):
 
 
 def clear_stale_update_cache() -> None:
-    from menubar import _current_version
+    from menubar.app import _current_version
 
     try:
         current_version = _current_version()
@@ -65,7 +65,7 @@ def check_update_in_background(
     ignore_cooldown: bool,
     ignore_skipped: bool,
 ) -> None:
-    from menubar import _current_version
+    from menubar.app import _current_version
 
     prefs = _load_preferences()
     if not manual and not _auto_update_check_enabled(prefs):

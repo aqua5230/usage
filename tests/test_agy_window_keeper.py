@@ -13,9 +13,9 @@ from typing import Any, cast
 import pytest
 
 import agy_window_keeper
-import menubar_agy
 from agy_quota_probe import AgyQuotaWindow
-from menubar_state import AgyStaleState, QuotaRowState
+from menubar import agy as menubar_agy
+from menubar.state import AgyStaleState, QuotaRowState
 
 
 class _SyncThread:

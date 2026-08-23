@@ -19,7 +19,7 @@ from Foundation import NSObject
 from Quartz import CGColorCreateGenericRGB
 
 import talent_market_bridge
-from menubar_prefs import (
+from menubar.prefs import (
     _panel_flavor,
     _save_panel_flavor,
     _save_quota_card_order,
@@ -79,7 +79,7 @@ objc.registerMetaDataForSelector(
 logger = logging.getLogger(__name__)
 
 if TYPE_CHECKING:
-    from menubar import PopoverState
+    from menubar.app import PopoverState
 
 PANEL_WIDTH = 364.0
 PANEL_HEIGHT = 812.0

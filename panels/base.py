@@ -17,7 +17,7 @@ else:
     NSUserDefaults = None
 
 if TYPE_CHECKING:
-    from menubar import PopoverState
+    from menubar.app import PopoverState
 
 ACTIVE_PANEL_DEFAULTS_KEY = "usage.activePanelId"
 

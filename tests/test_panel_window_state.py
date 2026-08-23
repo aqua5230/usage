@@ -148,7 +148,7 @@ def test_content_height_rejects_invalid_values_and_save_recovers(value: object) 
 def test_resolve_panel_size_uses_saved_height_or_estimate(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import menubar_state
+    from menubar import state as menubar_state
 
     panel = SimpleNamespace(id="classic")
     state = object()
@@ -160,7 +160,7 @@ def test_resolve_panel_size_uses_saved_height_or_estimate(
 
 
 def test_resolve_panel_size_reads_objc_mapping_measurement() -> None:
-    import menubar_state
+    from menubar import state as menubar_state
 
     state = menubar_state._empty_state()
     state.hide_agy = False
@@ -183,7 +183,7 @@ def test_resolve_panel_size_reads_objc_mapping_measurement() -> None:
 def test_resolve_panel_size_estimates_without_content_height_reports(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import menubar_state
+    from menubar import state as menubar_state
 
     state = object()
     panel = SimpleNamespace(id="classic", _content_height_reports_available=False)
@@ -197,7 +197,7 @@ def test_resolve_panel_size_estimates_without_content_height_reports(
 def test_top_left_anchor_is_stable_when_content_height_changes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import menubar
+    from menubar import app as menubar
 
     top_left = (240.0, 800.0)
     first_height = 400.0

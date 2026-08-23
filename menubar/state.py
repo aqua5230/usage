@@ -21,7 +21,7 @@ from burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
 from codex_paths import codex_home
 from history_loader import CLAUDE_PROJECTS_DIR, UsageEntry, load_entries
 from i18n import _t
-from menubar_prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order
+from menubar.prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order
 from pricing import calculate_cost
 from service_status import ServiceStatus
 from statusline_settings import _statusline_enabled
@@ -1081,7 +1081,7 @@ def _classify_history_load_error(exc: Exception) -> str:
 
 
 def _empty_state(language: str = "en") -> PopoverState:
-    import menubar_agy
+    from menubar import agy as menubar_agy
 
     return PopoverState(
         language=language,

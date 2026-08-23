@@ -25,8 +25,6 @@ from uuid import UUID
 
 import agy_window_keeper
 import codex_loader
-import menubar_agy
-import menubar_state
 import service_status
 import update_checker
 import update_gate
@@ -37,7 +35,9 @@ import wintray_menu
 from burn_rate import BurnRateTracker
 from history_loader import UsageEntry, load_entries
 from i18n import _t
-from menubar_prefs import (
+from menubar import agy as menubar_agy
+from menubar import state as menubar_state
+from menubar.prefs import (
     _auto_update_check_enabled,
     _hide_agy_enabled,
     _hide_claude_enabled,

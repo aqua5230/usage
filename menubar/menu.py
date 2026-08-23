@@ -12,7 +12,7 @@ from AppKit import NSMakePoint, NSMenu, NSMenuItem
 
 import login_item
 from i18n import _t
-from menubar_prefs import (
+from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
@@ -54,7 +54,7 @@ def build_menu_item(
 
 def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     import panels
-    from menubar import _session_resume_enabled, _terse_mode_enabled
+    from menubar.app import _session_resume_enabled, _terse_mode_enabled
 
     menu = NSMenu.alloc().initWithTitle_(_t(app.language, "switch_panel"))
     # AI 人才市場 is a feature panel, not a cosmetic skin — it gets its own

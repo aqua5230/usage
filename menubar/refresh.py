@@ -17,13 +17,13 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import agy_window_keeper
-import menubar_agy
-import menubar_state
 import talent_market_bridge
 import window_keeper
 from burn_rate import BurnRateTracker
 from history_loader import UsageEntry
-from menubar_prefs import (
+from menubar import agy as menubar_agy
+from menubar import state as menubar_state
+from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,

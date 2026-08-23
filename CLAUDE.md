@@ -13,8 +13,8 @@ A macOS menu bar / TUI usage monitor. Reads Claude Code and Codex usage from loc
 - When `setup_hook.py` installs or removes the hook, any existing statusLine is backed up under `settings["usage"]["previousStatusLine"]`. Do not change this to overwrite it away.
 - `usage_statusline.py`, `usage_statusline_forwarder.py`, and `usage_session_resume.py` run outside the venv under macOS `/usr/bin/python3` 3.9. They must stay stdlib-only and use `timezone.utc`, never `datetime.UTC`.
 - Every user-visible string goes through `_t()` from `i18n.json`, or `t()` in HTML. A new key must be added to `zh-TW`, `zh-CN`, `en`, `ja`, and `ko` at once.
-- The PyObjC mypy ignores in `menubar.py` are deliberate; put new feature logic in a leaf module. `scripts/check_file_size.py` enforces the ceilings — lower one after a split, never raise it to get CI green.
-- `menubar_state.py` must stay PyObjC-free. `panels` and `menubar_agy` are imported inside functions; a top-level import must never pull in `objc`.
+- The PyObjC mypy ignores in `menubar/app.py` are deliberate; put new feature logic in a leaf module. `scripts/check_file_size.py` enforces the ceilings — lower one after a split, never raise it to get CI green.
+- `menubar/state.py` must stay PyObjC-free. `panels` and `menubar.agy` are imported inside functions; a top-level import must never pull in `objc`.
 - `session_hooks.py` may depend on `setup_hook.py`, never the reverse.
 - Burn rate excludes `cache_read_tokens`. Counting them lets a resent context mark heavy users as Heavy indefinitely.
 - The price table is downloaded only from `https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json` and cached in `~/.usage/pricing_cache.json` for 7 days. A fallback retries after 10 minutes; the old `~/.claude/pricing_cache.json` is read-only.

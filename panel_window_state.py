@@ -148,7 +148,7 @@ def resolve_panel_size(
     panel: Any | None,
     defaults: Any | None = None,
 ) -> Size:
-    import menubar_state
+    from menubar import state as menubar_state
 
     width, height = menubar_state.popover_dimensions(state, panel)
     measurement_available = getattr(panel, "_content_height_reports_available", True)

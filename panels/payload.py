@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from menubar_state import PopoverState, QuotaRowState
+    from menubar.state import PopoverState, QuotaRowState
 
 CORE_SCRIPT_FILENAME = "panels/panel_core.js"
 

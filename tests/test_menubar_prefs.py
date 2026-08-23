@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-import menubar_prefs
 import prefs
+from menubar import prefs as menubar_prefs
 
 
 def test_quota_notification_thresholds_default() -> None:

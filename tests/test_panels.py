@@ -217,9 +217,9 @@ def test_card_panels_use_shared_core_script(filename: str) -> None:
 def test_state_payload_omits_codex_rows_with_empty_titles(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    import menubar
-    import menubar_agy
     import panels.web_panel as web_panel
+    from menubar import agy as menubar_agy
+    from menubar import app as menubar
 
     monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
     monkeypatch.setattr(menubar_agy, "find_agy", lambda: None)

@@ -17,22 +17,22 @@ import pytest
 import agy_window_keeper
 import codex_loader
 import history_loader
-import menubar
-import menubar_actions
-import menubar_agy
-import menubar_chrome
-import menubar_menu
-import menubar_popover
-import menubar_prefs
-import menubar_refresh
-import menubar_state
-import menubar_title
-import menubar_update
 import panel_window_state
 import panels
 import statusline_settings
 import window_keeper
 from burn_rate import BurnRateTracker
+from menubar import actions as menubar_actions
+from menubar import agy as menubar_agy
+from menubar import app as menubar
+from menubar import chrome as menubar_chrome
+from menubar import menu as menubar_menu
+from menubar import popover as menubar_popover
+from menubar import prefs as menubar_prefs
+from menubar import refresh as menubar_refresh
+from menubar import state as menubar_state
+from menubar import title as menubar_title
+from menubar import update as menubar_update
 from service_status import ServiceStatus
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
@@ -457,7 +457,7 @@ def test_today_title_does_not_reload_codex_when_entries_are_provided(
         project="usage",
     )
     monkeypatch.setattr(
-        "menubar.codex_loader.load_entries",
+        "menubar.app.codex_loader.load_entries",
         lambda *, hours_back=24: pytest.fail("Codex should already be included"),
     )
 
@@ -519,7 +519,7 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     monkeypatch.setattr(menubar_menu, "NSMenu", _FakeMenu)
     monkeypatch.setattr(menubar_menu, "NSMenuItem", _FakeMenuItem)
     monkeypatch.setattr("panels.all_panels", lambda: panels)
-    monkeypatch.setattr("menubar_menu.login_item.is_enabled", lambda: False)
+    monkeypatch.setattr("menubar.menu.login_item.is_enabled", lambda: False)
     monkeypatch.setattr(
         menubar_prefs,
         "_load_preferences",
@@ -646,7 +646,7 @@ def test_switch_panel_cancel_keeps_the_panel_open(
         "panels.all_panels",
         lambda: [SimpleNamespace(id="classic", i18n_key="panel_default_name")],
     )
-    monkeypatch.setattr("menubar_menu.login_item.is_enabled", lambda: False)
+    monkeypatch.setattr("menubar.menu.login_item.is_enabled", lambda: False)
 
     menubar.AppDelegate.switchPanel_(delegate, object())
 
@@ -665,7 +665,9 @@ def test_auto_update_disabled_skips_background_check(monkeypatch: pytest.MonkeyP
         return None
 
     monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": False})
-    monkeypatch.setattr("menubar.update_checker.check_latest_release", fake_check_latest_release)
+    monkeypatch.setattr(
+        "menubar.app.update_checker.check_latest_release", fake_check_latest_release
+    )
 
     menubar.AppDelegate._check_update_in_background(
         cast(Any, object()),
@@ -691,9 +693,9 @@ def test_fresh_auto_update_check_skips_network_request(monkeypatch: pytest.Monke
         "_load_preferences",
         lambda: {"auto_update_check": True, "last_update_check": {"checked_at": 1.0}},
     )
-    monkeypatch.setattr("menubar.update_gate.auto_check_is_due", lambda prefs: False)
+    monkeypatch.setattr("menubar.app.update_gate.auto_check_is_due", lambda prefs: False)
     monkeypatch.setattr(
-        "menubar.update_checker.check_latest_release_result",
+        "menubar.app.update_checker.check_latest_release_result",
         fake_check_latest_release_result,
     )
 
@@ -719,9 +721,9 @@ def test_manual_update_check_ignores_ttl(monkeypatch: pytest.MonkeyPatch) -> Non
     monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"last_update_check": {}})
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda prefs: None)
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
-    monkeypatch.setattr("menubar.update_gate.auto_check_is_due", lambda prefs: False)
+    monkeypatch.setattr("menubar.app.update_gate.auto_check_is_due", lambda prefs: False)
     monkeypatch.setattr(
-        "menubar.update_checker.check_latest_release_result",
+        "menubar.app.update_checker.check_latest_release_result",
         fake_check_latest_release_result,
     )
     fake_self = SimpleNamespace(
@@ -744,7 +746,7 @@ def test_background_daily_maintenance_schedules_diagnosis_snapshot(
     calls: list[object] = []
 
     monkeypatch.setattr(
-        "menubar_update.usage_diagnosis_snapshot.maybe_schedule_refresh",
+        "menubar.update.usage_diagnosis_snapshot.maybe_schedule_refresh",
         lambda: calls.append("snapshot"),
     )
     fake_self = SimpleNamespace(
@@ -767,7 +769,7 @@ def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.Monkey
     monkeypatch.setattr("update_gate.time.time", lambda: 1700000000.0)
     fake_release = SimpleNamespace(version="0.12.0", html_url="https://x/v0.12.0", body="")
     monkeypatch.setattr(
-        "menubar_update.update_checker.check_latest_release_result",
+        "menubar.update.update_checker.check_latest_release_result",
         lambda v: SimpleNamespace(failed=False, release=fake_release),
     )
     fake_self = SimpleNamespace(
@@ -796,7 +798,7 @@ def test_check_update_writes_cache_when_no_release(monkeypatch: pytest.MonkeyPat
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr("update_gate.time.time", lambda: 1700000000.0)
     monkeypatch.setattr(
-        "menubar_update.update_checker.check_latest_release_result",
+        "menubar.update.update_checker.check_latest_release_result",
         lambda v: SimpleNamespace(failed=False, release=None),
     )
 
@@ -819,7 +821,7 @@ def test_check_update_skips_cache_on_failure(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr(
-        "menubar.update_checker.check_latest_release_result",
+        "menubar.app.update_checker.check_latest_release_result",
         lambda v: SimpleNamespace(failed=True, release=None),
     )
 
@@ -889,7 +891,7 @@ def test_statusline_enabled_detects_usage_hook(
         json.dumps({"statusLine": {"type": "command", "command": "python3 usage-statusline.py"}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr("menubar.os.path.expanduser", lambda value: str(settings))
+    monkeypatch.setattr("menubar.app.os.path.expanduser", lambda value: str(settings))
 
     assert menubar._statusline_enabled() is True
 
@@ -906,7 +908,7 @@ def test_statusline_enabled_detects_external_hook(
         json.dumps({"statusLine": {"type": "command", "command": f"python3 {legacy_name}"}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr("menubar.os.path.expanduser", lambda value: str(settings))
+    monkeypatch.setattr("menubar.app.os.path.expanduser", lambda value: str(settings))
 
     assert menubar._statusline_enabled() is True
 
@@ -929,7 +931,7 @@ def test_toggle_statusline_preserves_forwarder_settings(
     }
     settings.write_text(json.dumps(original, indent=2, ensure_ascii=False), encoding="utf-8")
     original_text = settings.read_text(encoding="utf-8")
-    monkeypatch.setattr("menubar.os.path.expanduser", lambda value: str(settings))
+    monkeypatch.setattr("menubar.app.os.path.expanduser", lambda value: str(settings))
     monkeypatch.setattr("setup_hook.is_agy_setup", lambda: False)
 
     action, exit_code = menubar._toggle_statusline_settings()
@@ -1531,7 +1533,7 @@ def test_load_history_entries_includes_codex_entries(monkeypatch: pytest.MonkeyP
         lambda *, hours_back, jsonl_paths=None: [claude_entry],
     )
     monkeypatch.setattr(
-        "menubar_state.codex_loader.load_entries",
+        "menubar.state.codex_loader.load_entries",
         lambda *, hours_back, jsonl_paths=None: [codex_entry],
     )
 
@@ -2489,7 +2491,7 @@ def test_daily_link_closes_popover_then_opens_browser(
         isVisible=lambda: True,
         close=lambda: events.append("close"),
     )
-    monkeypatch.setattr("menubar.webbrowser.open", lambda url: events.append(url))
+    monkeypatch.setattr("menubar.app.webbrowser.open", lambda url: events.append(url))
 
     menubar.AppDelegate.toggleAiDaily_(delegate, object())
 

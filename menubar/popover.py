@@ -22,7 +22,7 @@ from AppKit import (
 from Quartz import CGColorCreateGenericRGB
 
 import panel_window_state
-from menubar_state import PopoverState
+from menubar.state import PopoverState
 from panels.base import Panel as UsagePanel
 from panels.base import next_panel_eviction_id
 

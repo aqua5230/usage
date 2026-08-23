@@ -9,10 +9,10 @@ from typing import cast
 
 import pytest
 
-import menubar
-import menubar_agy
 import prefs
 from agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
+from menubar import agy as menubar_agy
+from menubar import app as menubar
 from panels.web_panel import UsageScriptBridge, _state_payload
 
 

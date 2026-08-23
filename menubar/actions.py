@@ -17,7 +17,7 @@ from typing import Any, Protocol
 import session_hooks
 import setup_hook
 from i18n import _t
-from menubar_chrome import _make_alert
+from menubar.chrome import _make_alert
 from statusline_settings import (
     _disable_statusline_settings,
     _enable_statusline_settings,
@@ -149,7 +149,7 @@ def statusline_action_in_background(app: _ActionApp, action: str) -> None:
 
 
 def analyze_usage_in_background(app: _ActionApp, period: str) -> None:
-    from menubar import _generate_analysis_report
+    from menubar.app import _generate_analysis_report
 
     result: dict[str, str | bool]
     try:

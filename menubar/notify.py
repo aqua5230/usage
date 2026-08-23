@@ -11,7 +11,7 @@ from typing import Any
 import objc
 
 from i18n import _t
-from menubar_state import PopoverState, QuotaRowState
+from menubar.state import PopoverState, QuotaRowState
 
 
 def user_notification_center() -> tuple[Any, dict[str, int]]:

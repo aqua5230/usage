@@ -45,9 +45,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 py-modules = [
     "main",
-    "menubar",
-    "menubar_prefs",
-    "menubar_state",
     "usage_notifications",
     "tui",
     "pricing",
@@ -97,16 +94,6 @@ py-modules = [
     "history_disk_cache",
     "jsonl_limits",
     "jsonl_utils",
-    "menubar_actions",
-    "menubar_agy",
-    "menubar_chrome",
-    "menubar_menu",
-    "menubar_notify",
-    "menubar_popover",
-    "menubar_refresh",
-    "menubar_stacked",
-    "menubar_title",
-    "menubar_update",
     "panel_window",
     "panel_window_state",
     "prefs",
@@ -124,7 +111,7 @@ py-modules = [
 ]
 
 [tool.setuptools.packages.find]
-include = ["adapters*", "analyzer*", "panels*", "ui*"]
+include = ["adapters*", "analyzer*", "menubar*", "panels*", "ui*"]
 
 # Top-level modules cannot collect adjacent data files via package-data.
 [tool.setuptools.data-files]

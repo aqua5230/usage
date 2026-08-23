@@ -38,13 +38,6 @@ import agy_loader
 import codex_loader
 import critter_frames
 import login_item
-import menubar_actions
-import menubar_menu
-import menubar_notify
-import menubar_refresh
-import menubar_state
-import menubar_title
-import menubar_update
 import panel_window_state
 import panels
 import update_checker
@@ -58,14 +51,21 @@ from history_loader import (
     flush_caches_on_terminate as flush_history_cache,
 )
 from i18n import _t, packaged_resource_path
-from menubar_actions import (
+from menubar import actions as menubar_actions
+from menubar import menu as menubar_menu
+from menubar import notify as menubar_notify
+from menubar import refresh as menubar_refresh
+from menubar import state as menubar_state
+from menubar import title as menubar_title
+from menubar import update as menubar_update
+from menubar.actions import (
     show_forwarder_mode_prompt_if_needed as show_forwarder_mode_prompt_if_needed,
 )
-from menubar_chrome import (
+from menubar.chrome import (
     _make_alert,
 )
-from menubar_popover import PopoverViewController, _popover_size
-from menubar_prefs import (
+from menubar.popover import PopoverViewController, _popover_size
+from menubar.prefs import (
     _auto_update_check_enabled,
     _hide_agy_enabled,
     _hide_claude_enabled,
@@ -75,22 +75,22 @@ from menubar_prefs import (
     _quota_notifications_enabled,
     _window_keeper_enabled,
 )
-from menubar_state import (
+from menubar.state import (
     CLAUDE_COLOR as CLAUDE_COLOR,
 )
-from menubar_state import (
+from menubar.state import (
     CODEX_COLOR as CODEX_COLOR,
 )
-from menubar_state import (
+from menubar.state import (
     DANGER_COLOR as DANGER_COLOR,
 )
-from menubar_state import (
+from menubar.state import (
     SERVICE_ALERT_GAP as SERVICE_ALERT_GAP,
 )
-from menubar_state import (
+from menubar.state import (
     WARN_COLOR as WARN_COLOR,
 )
-from menubar_state import (
+from menubar.state import (
     WEEKLY_FORECAST_MIN_SPAN_SECONDS,
     WEEKLY_FORECAST_WINDOW_SECONDS,
     CodexStaleState,
@@ -99,31 +99,31 @@ from menubar_state import (
     _missing_row,
     _quota_row,
 )
-from menubar_state import (
+from menubar.state import (
     _bar_color as _bar_color,
 )
-from menubar_state import (
+from menubar.state import (
     _classify_history_load_error as _classify_history_load_error,
 )
-from menubar_state import (
+from menubar.state import (
     _empty_state as _empty_state,
 )
-from menubar_state import (
+from menubar.state import (
     _error_state as _error_state,
 )
-from menubar_state import (
+from menubar.state import (
     _format_percent as _format_percent,
 )
-from menubar_state import (
+from menubar.state import (
     _group_name as _group_name,
 )
-from menubar_state import (
+from menubar.state import (
     _statusline_payload as _statusline_payload,
 )
-from menubar_state import (
+from menubar.state import (
     _today_title as _today_title,
 )
-from menubar_state import (
+from menubar.state import (
     format_human_time as format_human_time,
 )
 from panel_window import PanelWindow

@@ -12,9 +12,9 @@ from pathlib import Path
 import pytest
 
 import codex_loader
-import menubar_state
 from burn_rate import BurnRateTracker
 from history_loader import UsageEntry
+from menubar import state as menubar_state
 
 
 def test_critter_animation_tick_handles_different_intervals() -> None:

@@ -19,8 +19,8 @@ from AppKit import (
 )
 
 import critter_frames
-import menubar_stacked
-from menubar_chrome import (
+from menubar import stacked as menubar_stacked
+from menubar.chrome import (
     _agy_menubar_icon,
     _claude_menubar_icon,
     _codex_menubar_icon,
@@ -28,7 +28,7 @@ from menubar_chrome import (
     _critter_icon_attachment_string,
     _menubar_icon_attachment_string,
 )
-from menubar_state import PopoverState, _format_percent
+from menubar.state import PopoverState, _format_percent
 
 
 class _TitleApp(Protocol):

@@ -22,7 +22,7 @@ from agy_quota_probe import (
     find_agy as find_agy,
 )
 from i18n import _t
-from menubar_state import (
+from menubar.state import (
     AGY_COLOR,
     AgyStaleState,
     QuotaRowState,

@@ -7,8 +7,8 @@ from datetime import UTC, datetime, timedelta
 
 import pytest
 
-import menubar_agy
 from agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
+from menubar import agy as menubar_agy
 
 
 def _group(
@@ -134,7 +134,7 @@ def test_project_quota_marks_cached_result_stale_after_twenty_minutes() -> None:
 def test_load_refresh_result_hides_card_when_agy_is_unavailable(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    monkeypatch.setattr("menubar_agy.find_agy", lambda: None)
+    monkeypatch.setattr("menubar.agy.find_agy", lambda: None)
     monkeypatch.setattr(
         menubar_agy,
         "load_quota",
@@ -152,7 +152,7 @@ def test_load_refresh_result_projects_mocked_quota(monkeypatch: pytest.MonkeyPat
         groups=[_group("GEMINI MODELS", session_remaining=75, weekly_remaining=50)],
         fetched_at="2026-01-01T00:00:00+00:00",
     )
-    monkeypatch.setattr("menubar_agy.find_agy", lambda: "/usr/local/bin/agy")
+    monkeypatch.setattr("menubar.agy.find_agy", lambda: "/usr/local/bin/agy")
     monkeypatch.setattr(menubar_agy, "load_quota", lambda: quota)
 
     result = menubar_agy.load_refresh_result("en")

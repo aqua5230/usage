@@ -79,7 +79,6 @@ if __name__ == "__main__":
             "WebKit",
             "UserNotifications",
             "objc",
-            "menubar",
             "usage_notifications",
             "tui",
             "tui_sprite",
@@ -119,6 +118,7 @@ if __name__ == "__main__":
             # corrupted local file header surfaces as "bad local file header".
             "adapters",
             "analyzer",
+            "menubar",
             "ui",
         ],
         "excludes": [
