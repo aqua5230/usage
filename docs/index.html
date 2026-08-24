@@ -432,6 +432,21 @@ pre {
   color: var(--fg);
   line-height: 1.5;
 }
+.copy-wrap { display: flex; flex-direction: column; align-items: flex-end; }
+.copy-wrap pre { width: 100%; }
+.copy-btn {
+  margin-top: 8px;
+  padding: 6px 12px;
+  min-height: 32px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--fg-dim);
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+}
+.copy-btn:hover { color: var(--fg); border-color: var(--accent); }
 
 /* Screenshot gallery */
 .gallery {
@@ -679,7 +694,7 @@ body::before {
     <h2 data-i18n="resume_h2">Now your CLI picks up where you left off</h2>
     <p class="subtitle" data-i18n="resume_lead">The web and desktop apps keep your history automatically — close them, reopen, it's all there. The CLI keeps it too, but you need to know the command to pull it back up. Resume makes that automatic: open a new session and it picks up where you left off, no command to remember, no re-explaining. It now also runs a daily health check on your logs — when it spots token waste, the handoff adds a one-line heads-up; say "show me" for the findings and fixes. Reads local files only — never connects to any API.</p>
     <div class="shot">
-      <img src="hero.png" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="Resume restoring your last session in the CLI" />
+      <img src="resume.webp" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="Resume restoring your last session in the CLI" />
     </div>
   </div>
   <div class="strip" style="margin-top: 40px;">
@@ -700,7 +715,10 @@ body::before {
         <div class="label" data-i18n="install_label_rec">RECOMMENDED</div>
         <h3 data-i18n="install_h_brew">Homebrew</h3>
         <p data-i18n="install_p_brew">One command. <code>brew upgrade</code> keeps it current.</p>
+        <div class="copy-wrap">
 <pre><code>brew install --cask aqua5230/usage/usage</code></pre>
+  <button class="copy-btn" type="button" data-i18n="copy_btn">Copy</button>
+        </div>
       </div>
       <div class="install-card">
         <div class="label" data-i18n="install_label_dir">DIRECT</div>
@@ -718,7 +736,10 @@ body::before {
         <div class="label" data-i18n="install_label_any">ANY OS</div>
         <h3 data-i18n="install_h_uvx">uvx (no install)</h3>
         <p data-i18n="install_p_uvx">Terminal interface only — no menu bar or tray. Works on Linux too; uv brings its own Python.</p>
+        <div class="copy-wrap">
 <pre><code>uvx usage-cli</code></pre>
+  <button class="copy-btn" type="button" data-i18n="copy_btn">Copy</button>
+        </div>
       </div>
     </div>
   </div>
@@ -756,7 +777,7 @@ body::before {
   </div>
 </footer>
 
-<img class="mascot-pet" src="mascot.png" loading="lazy" data-i18n-attr="alt:mascot_alt" alt="The usage butler cat, your progress concierge" />
+<img class="mascot-pet" src="mascot.webp" loading="lazy" data-i18n-attr="alt:mascot_alt" alt="The usage butler cat, your progress concierge" />
 
 <script>
 const T = {
@@ -822,6 +843,8 @@ const T = {
     install_h_uvx: 'uvx (no install)',
     install_p_uvx: 'Terminal interface only — no menu bar or tray. Works on Linux too; uv brings its own Python.',
     install_btn_releases: '→ Open Releases page',
+    copy_btn: 'Copy',
+    copy_done: 'Copied',
     screen_h2: 'Pick a panel that fits your mood.',
     screen_sub: 'Fourteen built-in themes. Change anytime from the popover toolbar.',
     report_h: 'Your AI usage, in one shareable page.',
@@ -897,12 +920,14 @@ const T = {
     install_h_uvx: 'uvx（零安裝）',
     install_p_uvx: '只有終端機介面，沒有選單列或系統匣。Linux 也能跑，uv 會自備 Python。',
     install_btn_releases: '→ 開啟 Releases 頁面',
+    copy_btn: '複製',
+    copy_done: '已複製',
     screen_h2: '挑一個你喜歡的面板。',
     screen_sub: '14 款內建主題。隨時從 popover 工具列切換。',
     report_h: '你的 AI 用量，一頁可分享。',
     report_p: '產出 HTML 報告，內含 token 開銷、成本、專案排行、模型分布，外加一份 AI Tool Update Digest 摘要最近工具更新，還有年度回顧頁——GitHub 風格貢獻熱力圖，加一張「Wrapped」卡。傳給主管、附在客戶請款裡都行。預設隱藏專案名稱。',
     footer_tag_pre: '作者：',
-    footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
+    footer_tag_post: '· AGPL-3.0 · 不上雲、不追蹤，只屬於你。',
     footer_releases: 'Releases',
     footer_changelog: 'Changelog',
     footer_license: 'License',
@@ -972,12 +997,14 @@ const T = {
     install_h_uvx: 'uvx（零安装）',
     install_p_uvx: '只有终端界面，没有菜单栏或系统托盘。Linux 也能跑，uv 会自备 Python。',
     install_btn_releases: '→ 打开 Releases 页面',
+    copy_btn: '复制',
+    copy_done: '已复制',
     screen_h2: '挑一个你喜欢的面板。',
     screen_sub: '14 款内建主题。随时从 popover 工具栏切换。',
     report_h: '你的 AI 用量，一页可分享。',
     report_p: '生成 HTML 报告，内含 token 开销、花费、项目排行、模型分布，外加一份 AI Tool Update Digest 摘要最近工具更新，还有年度回顾页——GitHub 风格贡献热力图，加一张「Wrapped」卡。发给老板、附在客户发票里都行。默认隐藏项目名称。',
     footer_tag_pre: '作者：',
-    footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
+    footer_tag_post: '· AGPL-3.0 · 不上云、不追踪，只属于你。',
     footer_releases: 'Releases',
     footer_changelog: 'Changelog',
     footer_license: 'License',
@@ -1047,12 +1074,14 @@ const T = {
     install_h_uvx: 'uvx（インストール不要）',
     install_p_uvx: 'ターミナルインターフェースのみ。メニューバーもトレイもありません。Linuxでも動作し、uvがPythonを用意します。',
     install_btn_releases: '→ Releases ページを開く',
+    copy_btn: 'コピー',
+    copy_done: 'コピー済み',
     screen_h2: '気分に合うパネルを選んで。',
     screen_sub: '14 種の内蔵テーマ。ポップオーバーのツールバーからいつでも切り替え可能。',
     report_h: 'あなたの AI 使用量を、共有可能な 1 ページに。',
     report_p: 'トークン支出、コスト、トッププロジェクト、モデル分布を含む HTML レポートを生成——さらに最近の変更をまとめる AI Tool Update Digest と、GitHub 風のコントリビューションヒートマップと「Wrapped」カード付きの年間振り返りページも。マネージャーへの送付、クライアントへの請求添付など。プロジェクト名はデフォルトで非表示。',
     footer_tag_pre: '制作：',
-    footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
+    footer_tag_post: '· AGPL-3.0 · クラウドなし、トラッキングなし。あなただけのもの。',
     footer_releases: 'Releases',
     footer_changelog: 'Changelog',
     footer_license: 'License',
@@ -1122,12 +1151,14 @@ const T = {
     install_h_uvx: 'uvx(설치 없음)',
     install_p_uvx: '터미널 인터페이스만 제공하며 메뉴 막대나 트레이는 없습니다. Linux에서도 작동하고 uv가 Python을 준비합니다.',
     install_btn_releases: '→ Releases 페이지 열기',
+    copy_btn: '복사',
+    copy_done: '복사됨',
     screen_h2: '마음에 드는 패널을 골라보세요.',
     screen_sub: '14가지 내장 테마. 팝오버 툴바에서 언제든 전환 가능.',
     report_h: '당신의 AI 사용량을, 공유 가능한 한 페이지로.',
     report_p: '토큰 지출, 비용, 상위 프로젝트, 모델 분포가 포함된 HTML 보고서를 생성 — 최근 변경을 요약한 AI Tool Update Digest와 GitHub 스타일 기여 히트맵, "Wrapped" 카드가 담긴 연말 결산 페이지도 함께. 매니저에게 전송하거나 고객 청구서 첨부로 활용. 프로젝트 이름은 기본 숨김.',
     footer_tag_pre: '제작:',
-    footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
+    footer_tag_post: '· AGPL-3.0 · 클라우드 없음, 추적 없음. 온전히 당신의 것.',
     footer_releases: 'Releases',
     footer_changelog: 'Changelog',
     footer_license: 'License',
@@ -1346,6 +1377,26 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
     show(panels[0].id);
   }).catch(function () { /* 面板展示載不到就留空，不影響頁面其他部分 */ });
 })();
+
+// 複製按鈕：指令文字直接取自同一個容器裡的 <code>，不另外寫死字串。
+document.querySelectorAll('.copy-btn').forEach(function (button) {
+  button.addEventListener('click', async function () {
+    const code = button.closest('.copy-wrap').querySelector('code');
+    if (!code) return;
+    try {
+      await navigator.clipboard.writeText(code.textContent);
+    } catch (e) {
+      return;
+    }
+    const lang = document.documentElement.lang;
+    const done = (T[lang] && T[lang].copy_done) || T.en.copy_done;
+    button.textContent = done;
+    setTimeout(function () {
+      const t = T[lang] || T.en;
+      button.textContent = t.copy_btn;
+    }, 2000);
+  });
+});
 
 applyLang(detectLang());
 </script>
