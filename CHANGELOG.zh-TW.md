@@ -4,6 +4,12 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.29.37] - 2026-08-25
+
+### 修正
+- **Windows 版 v0.29.34 到 v0.29.36 一啟動就崩潰。** 0.29.34 那次重構把 `wintray.py` 搬成 `wintray/app.py`、`tui.py` 搬成 `tui/app.py`，但 `scripts/build_windows.ps1` 仍以舊的頂層模組名做 hidden-import。兩個套件的 `__init__.py` 都是空的，PyInstaller 因此只打包到空殼，連帶把整棵 `wintray` 依賴樹（`panels.*`、`updates.*` 等）都漏掉——每個下載者都會撞到 `ModuleNotFoundError: No module named 'wintray.app'`，而 TUI 的備援機制也因為 `tui.app` 同樣缺席而一起失效。macOS 不受影響：`setup_app.py` 是用 py2app 依套件名整包收進去，重構後名稱仍然對得上。
+- **Windows 打包腳本現在會確認 exe 裡真的含有 `wintray.app` 與 `tui.app`。** 它先前只檢查 exe 檔案有沒有生出來，這正是前面三個壞版本能悄悄出貨的原因——檔案確實在，只是少了使用者需要的模組。`build_windows.ps1` 現在會用 `archive_viewer` 讀出 PyInstaller 封存的實際內容，缺任一進入點模組就 throw，讓未來的回歸直接擋在發版關卡，而不是把壞掉的產物送出去。
+
 ## [0.29.36] - 2026-08-24
 
 ### 新增

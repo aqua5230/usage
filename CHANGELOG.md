@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.37] - 2026-08-25
+
+### Fixed
+- **Windows crashed on startup in v0.29.34 through v0.29.36.** The 0.29.34 refactor moved `wintray.py` to `wintray/app.py` and `tui.py` to `tui/app.py`, but `scripts/build_windows.ps1` still hidden-imported the old top-level module names. Both packages' `__init__.py` are empty, so PyInstaller packaged only empty shells and dropped the whole `wintray` dependency tree (`panels.*`, `updates.*`, and more) along with it — every downloader hit `ModuleNotFoundError: No module named 'wintray.app'`, and the TUI fallback failed the same way since `tui.app` was missing too. macOS was unaffected; `setup_app.py` collects the whole package by name via py2app, and the names still matched after the rename.
+- **The Windows build script now verifies the packaged exe actually contains `wintray.app` and `tui.app`.** It previously only checked that an exe file existed, which is why the three broken releases above shipped without anyone noticing — the file was there, just missing the modules users needed. `build_windows.ps1` now reads the PyInstaller archive contents with `archive_viewer` and throws if either entry-point module is missing, so a future regression fails the release job instead of shipping a broken artifact.
+
 ## [0.29.36] - 2026-08-24
 
 ### Added
