@@ -6,6 +6,29 @@
       "name": "Claude Code",
       "versions": [
         {
+          "version": "2.1.245",
+          "period": "2026-08-25",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Linux 啟動崩潰已修好",
+                "zh-CN": "Linux 启动崩溃已修好",
+                "en": "Startup crash fixed on affected Linux distributions",
+                "ja": "対象の Linux ディストリビューションで起動クラッシュを修正",
+                "ko": "영향받은 Linux 배포판의 시작 충돌 수정"
+              },
+              "body": {
+                "zh-TW": "剛把 Claude Code 開起來卻立刻關掉，連畫面都還沒來得及用嗎？這個啟動時崩潰的問題，已在採用 glibc 2.44（Linux 程式共用的基礎函式庫）的 Linux 發行版修好。Arch Linux、CachyOS 與 Fedora Rawhide 都是更新說明點名的例子；若你使用其中之一，現在可以再試著啟動。⟦這像門鎖明明配了正確的鑰匙，門卻在轉開前自己彈回；門鎖修好後，鑰匙便能把門打開。⟧",
+                "zh-CN": "刚打开 Claude Code 就立刻退出，连界面都还没来得及用吗？这个启动时崩溃的问题，已经在采用 glibc 2.44（Linux 程序共用的基础函数库）的 Linux 发行版上修好。Arch Linux、CachyOS 和 Fedora Rawhide 都是更新说明点名的例子；如果你使用其中之一，现在可以再试着启动。⟦这像门锁明明配了正确的钥匙，门却在转开前自己弹回；门锁修好后，钥匙便能把门打开。⟧",
+                "en": "Does Claude Code close as soon as you try to open it, before you can even use the window? That startup crash is fixed for Linux distributions using glibc 2.44 (a shared foundation library for Linux programs). Arch Linux, CachyOS, and Fedora Rawhide are the examples named in the update, so users of those distributions can try starting it again. ⟦It is like a door lock that springs back just before a matching key can turn; after the lock is repaired, the key can open the door.⟧",
+                "ja": "Claude Code を開こうとした直後に落ち、画面を使う前に閉じてしまうことがある。その起動クラッシュは、glibc 2.44（Linux プログラムが共用する基礎ライブラリ）を採用する Linux ディストリビューションで修正された。更新では Arch Linux、CachyOS、Fedora Rawhide が例として挙げられており、これらを使っているなら改めて起動を試せる。⟦正しい鍵を差しても、回る直前に鍵穴が跳ね返してしまう扉のようなものだ。鍵穴が直れば、鍵は扉を開けられるのである。⟧",
+                "ko": "Claude Code를 켜자마자 종료되어 화면을 쓰기도 전에 닫히는 일이 있었는가? 이 시작 충돌은 glibc 2.44(Linux 프로그램이 함께 쓰는 기초 라이브러리)을 사용하는 Linux 배포판에서 수정됐다. 업데이트는 Arch Linux, CachyOS, Fedora Rawhide를 예로 들었으므로, 이 배포판을 쓴다면 다시 시작해 볼 수 있다. ⟦맞는 열쇠를 꽂아도 돌아가기 직전에 자물쇠가 도로 튕겨 내던 문과 같다. 자물쇠를 고치면 열쇠로 문을 열 수 있다.⟧"
+              },
+              "original": "Fixed a crash on startup on Linux distributions that ship glibc 2.44 (for example Arch Linux, CachyOS and Fedora Rawhide)"
+            }
+          ]
+        },
+        {
           "version": "2.1.239",
           "period": "2026-08-21",
           "items": [
@@ -832,46 +855,6 @@
               "original": "Updated the bundled `claude-api` skill for the Managed Agents Aug 19 release: web search/fetch domain settings and memory stores on self-hosted sandboxes"
             }
           ]
-        },
-        {
-          "version": "2.1.237",
-          "period": "2026-08-20",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "修復 LLM 閘道與自訂網址連線，提示詞快取正常重用",
-                "zh-CN": "修复 LLM 网关与自定义网址连接，提示词缓存正常重用",
-                "en": "Prompt caching restored for LLM gateways and custom base URLs",
-                "ja": "LLM ゲートウェイやカスタム base URL のプロンプトキャッシュを修正",
-                "ko": "LLM 게이트웨이 및 사용자 지정 base URL의 프롬프트 캐시 오류 수정"
-              },
-              "body": {
-                "zh-TW": "⟦像透過企業收發室代轉公文，收發窗口現在會妥善重用上次留存的複本，不再每次轉發都把厚厚的前情提要全部重印一次。⟧使用 LLM 閘道（LLM gateway，集中管理模型請求的中繼服務）或自訂基礎網址的工作階段，提示詞快取現在已恢復正常。過去這類工作階段的快取（cache，把先前處理過的文字暫存起來直接用）功能會失效，導致每次對話都得重新計算重複的前文。現在能順暢重用已暫存的內容，替每一次請求省下重複解析的時間與成本。",
-                "zh-CN": "⟦像透过企业收发室代转公文，收发窗口现在会妥善重用上次留存的复本，不再每次转发都把厚厚的前情提要全部重印一次。⟧使用 LLM 网关（LLM gateway，集中管理模型请求的中继服务）或自定义基础网址的会话，提示词缓存现在已恢复正常。过去这类会话的缓存（cache，把先前处理过的文本暂存起来直接用）功能会失效，导致每次对话都必须从头重新计算重复的前文。现在能顺畅重用已暂存的内容，替每一次请求省下重复解析的时间与成本。",
-                "en": "⟦It is like a corporate mailroom reusing archived document copies instead of photocopying the entire thick dossier for every forwarded parcel.⟧Prompt caching is now fully functional for sessions using an LLM gateway or custom base URL. Previously, routing your traffic through an intermediate gateway or custom endpoint broke prompt cache reuse, forcing subsequent API turns to re-process identical prompt prefixes from scratch. That cache invalidation issue has now been resolved, allowing sessions using an LLM gateway or custom base URL to save tokens and latency on repeated context.",
-                "ja": "⟦社内の書類受付窓口が過去の控えを適切に再利用し、転送のたびに分厚い前提資料を丸ごとコピーし直さなくなったようなものである。⟧LLM ゲートウェイやカスタム base URL を使って接続するセッションにおいて、プロンプトキャッシュ（prompt caching、計算結果を一時保存して再利用する機能）が正常に機能するよう修正された。以前はプロンプトキャッシュが無効化され、同じ会話の文脈であっても毎回最初からトークンを計算し直していたが、現在はキャッシュが保持される。これにより、LLM ゲートウェイやカスタム base URL を使用する場合でも、無駄な計算や遅延を抑えてセッションを継続できる。",
-                "ko": "⟦사내 문서 접수처가 보관된 사본을 알맞게 재사용하여, 문서를 전달할 때마다 두꺼운 사전 배경 서류를 전부 새로 복사하지 않는 것과 같다.⟧LLM 게이트웨이나 사용자 지정 base URL을 사용하는 경우에도 프롬프트 캐시(prompt caching, 처리 결과를 임시 저장하여 재활용하는 기능)가 제대로 동작하도록 수정되었다. 이전에는 이런 경우 캐시가 무효화되어 매 대화마다 동일한 앞선 문맥을 처음부터 다시 계산해야 했다. 이제는 캐시가 안전하게 유지되어 불필요한 비용과 지연을 줄일 수 있다."
-              },
-              "original": "Fixed prompt caching for sessions using an LLM gateway or custom base URL"
-            },
-            {
-              "title": {
-                "zh-TW": "內建 Concise 精簡輸出風格，直出成果不講廢話",
-                "zh-CN": "内置 Concise 精简输出风格，直奔结果不讲套话",
-                "en": "Built-in \"Concise\" output style leads with results and skips narration",
-                "ja": "組み込みの「Concise」出力スタイルを追加、前置きや実況を省いて結果を直伝",
-                "ko": "내장된 \"Concise\" 출력 스타일 추가, 서론과 중계를 건너뛰고 결과를 먼저 제시"
-              },
-              "body": {
-                "zh-TW": "如果你討厭 AI 每次回話都先講一大串客套前言或碎碎念的工作進度，現在有了更乾淨俐落的回答方式。新版本在設定中加入了內建的「Concise」輸出風格。開啟後，Claude 會直接先給出具體結果，並省略開頭的前言寒暄與多餘的過程旁白，但背後的分析與執行工作依然一樣徹底仔細。想切換這個風格，只要在終端機輸入 `/config` 指令，並在「Output style」選項下選取「Concise」即可。⟦像找資深師傅維修設備，他默默把所有零件仔細檢修完成，接著直接把成果交到你手上，省去每做一步就要在旁邊逐一解說的冗長對話。⟧",
-                "zh-CN": "如果你讨厌 AI 每次回复都先讲一大串客套前言或碎碎念的工作进度，现在有了更干净利落的回答方式。新版本在设置中加入了内置的「Concise」输出风格。开启后，Claude 会直接先给出具体结果，并省略开头的客套前言与多余的过程旁白，但背后的分析与执行工作依然一样彻底仔细。想切换这个风格，只要在终端输入 `/config` 指令，并在「Output style」选项下选择「Concise」即可。⟦像找资深师傅维修设备，他默默把所有零件仔细检修完成，接着直接把成果交到你手上，省去每做一步就要在旁边逐一解说的冗长对话。⟧",
-                "en": "You can now choose a cleaner, to-the-point response style if you prefer answers without filler commentary. This update adds a built-in \"Concise\" output style: Claude leads directly with concrete results while skipping preamble greetings and step-by-step narration, without compromising the thoroughness of the underlying work. To switch to this mode, run `/config` and select \"Concise\" under the \"Output style\" menu. ⟦It is like a seasoned repair technician who thoroughly inspects and fixes every component in silence, then hands you the completed work directly without narrating every turn of the wrench.⟧",
-                "ja": "前置きの挨拶や作業経過の長々とした実況を省き、要点だけを素早く確認したいユーザー向けに、新しい出力スタイルが追加された。設定に組み込みの「Concise」出力スタイルが加わり、これを選ぶと Claude は作業の徹底さを一切落とすことなく、前置きや経過説明を省略して結果を真っ先に提示する。このスタイルを利用するには、`/config` を実行して「Output style」の中から「Concise」を選択すればよい。⟦熟練の職人が無駄口を挟まずに隅々まで丁寧に修理を終え、作業の実況を省いて完成品だけをすっと手渡してくれるようなものである。⟧",
-                "ko": "불필요한 인사말이나 작업 진행 상황에 대한 중간 중계를 건너뛰고 핵심만 빠르게 받아보고 싶다면 새로운 출력 스타일을 사용할 수 있다. 이번 업데이트에는 내장된 \"Concise\" 출력 스타일이 추가되었다. 이 모드를 선택하면 Claude는 기존처럼 꼼꼼하게 작업을 처리하면서도, 서론과 과정 설명을 생략하고 결과를 가장 먼저 보여준다. 해당 스타일을 적용하려면 터미널에서 `/config`를 입력한 뒤 \"Output style\" 항목에서 \"Concise\"를 선택하면 된다. ⟦숙련된 기술자가 불필요한 잡담 없이 구석구석 꼼꼼하게 수리를 마친 뒤, 매 단계마다 일일이 설명하지 않고 완성된 결과물만 곧바로 건네주는 것과 같다.⟧"
-              },
-              "original": "Added a built-in \"Concise\" output style: Claude leads with results and skips preamble and narration, while doing the work just as thoroughly. Select it under Output style in /config."
-            }
-          ]
         }
       ]
     },
@@ -1584,6 +1567,165 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.1.20",
+          "period": "2026-08-25",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "技能有了圖示，終端機清單仍排得整齊",
+                "zh-CN": "技能有了图标，终端清单仍排得整齐",
+                "en": "Skills gain icons without throwing terminal lists out of line",
+                "ja": "スキルにアイコンが付き、端末の一覧も整列したままである",
+                "ko": "스킬에 아이콘이 생겨도 터미널 목록은 가지런하다"
+              },
+              "body": {
+                "zh-TW": "打開 `/skills` 尋找常用技能時，現在能先看見每個 skill（可重複使用的工作說明）自己宣告的 emoji 圖示。圖示寫在 `SKILL.md` 檔案開頭的 `metadata.icon`；它會出現在 `/skills` 目錄清單、查看細節的標題，以及輸入斜線指令時跳出的自動完成選單。⟦這像在工具箱每個抽屜貼上小圖案，找東西時先靠眼睛定位。⟧終端機也會正確計算 emoji 這類多位元字元占多少寬度，因此圖示出現後，各欄文字不會歪成一團。",
+                "zh-CN": "打开 `/skills` 寻找常用技能时，现在能先看见每个 skill（可重复使用的工作说明）自己声明的 emoji 图标。图标写在 `SKILL.md` 文件开头的 `metadata.icon`；它会出现在 `/skills` 目录列表、查看详情的标题，以及输入斜杠命令时弹出的自动补全菜单。⟦这像在工具箱每个抽屉贴上小图案，找东西时先靠眼睛定位。⟧终端也会正确计算 emoji 这类多字节字符占多少宽度，因此图标出现后，各栏文字不会歪成一团。",
+                "en": "When you open `/skills` to find a familiar skill (a reusable set of work instructions), each one can now show the emoji icon it declares. The icon lives in `metadata.icon` at the top of its `SKILL.md` file. It appears in the `/skills` catalog, detail headers, and slash-command autocomplete popups. ⟦It is like putting a small picture on every drawer in a toolbox, so your eyes find the right one first.⟧ The terminal also calculates the display width of multi-byte Unicode characters correctly, keeping the columns aligned after icons arrive.",
+                "ja": "`/skills` を開いてよく使うスキル（繰り返し使える作業手順）を探すとき、各スキルが宣言した emoji アイコンを先に見られるようになった。アイコンは `SKILL.md` の先頭にある `metadata.icon` に書く。`/skills` のカタログ、詳細画面の見出し、スラッシュコマンドの自動補完ポップアップに表示される。⟦工具箱の引き出しごとに小さな絵を貼り、目で先に目的の引き出しを探すようなものだ。⟧端末は emoji のような複数バイトの Unicode 文字の表示幅も正しく計算するため、アイコンを置いても列がずれないのである。",
+                "ko": "`/skills`를 열어 자주 쓰는 스킬(반복해서 쓸 수 있는 작업 안내)을 찾을 때, 이제 각 스킬이 선언한 emoji 아이콘을 먼저 볼 수 있다. 아이콘은 `SKILL.md` 맨 앞의 `metadata.icon`에 적는다. `/skills` 카탈로그, 세부 정보 제목, 슬래시 명령어 자동 완성 팝업에 나타난다. ⟦공구함의 서랍마다 작은 그림을 붙여 눈으로 먼저 필요한 서랍을 찾는 것과 같다.⟧터미널은 emoji 같은 여러 바이트 Unicode 문자의 표시 너비도 올바르게 계산하므로 아이콘이 들어와도 열이 어긋나지 않는다."
+              },
+              "original": "Added skill icon and visual branding support across the CLI, displaying emoji icons declared under `metadata.icon` in `SKILL.md` frontmatter across the `/skills` catalog list view, detail inspection headers, and slash command autocompletion popups, with proper multi-byte Unicode display width calculation to maintain terminal layout alignment."
+            },
+            {
+              "title": {
+                "zh-TW": "@ 補檔案路徑時，空資料夾也找得到",
+                "zh-CN": "@ 补文件路径时，空文件夹也找得到",
+                "en": "@ path completion can now find empty folders too",
+                "ja": "@ のパス補完で空のフォルダも見つけられる",
+                "ko": "@ 경로 자동 완성으로 빈 폴더도 찾는다"
+              },
+              "body": {
+                "zh-TW": "在提示裡打 `@` 想指定一個檔案位置，卻只記得它放在哪個空資料夾嗎？路徑自動完成現在會把空目錄也一起建立索引，不再只看搜尋結果裡已有檔案的地方。這也涵蓋只有資料夾、尚未放進內容的工作區結構；你可以在完成清單中找到它，再繼續往下走，不必先在裡面建立一個檔案來讓搜尋看見它。⟦像查商場樓層圖時，連還沒進駐店家的空櫃位都標出來，路就不會走到一半消失。⟧",
+                "zh-CN": "在提示里打 `@` 想指定一个文件位置，却只记得它放在哪个空文件夹吗？路径自动补全现在会把空目录也一起建立索引，不再只看搜索结果里已有文件的地方。这也涵盖只有文件夹、尚未放进内容的工作区结构；你可以在补全列表中找到它，再继续往下走。⟦像查商场楼层图时，连还没进驻店家的空铺位都标出来，路就不会走到一半消失。⟧",
+                "en": "Typing `@` to name a file path but remembering only its empty folder used to leave you stranded. Path autocomplete now indexes empty directories too, instead of seeing only places where search results already contain files. This includes workspace structures made up solely of folders with no contents yet, so you can find the directory in the completion list and keep navigating. ⟦It is like a mall map that labels vacant units as well as open shops, so the route does not vanish halfway there.⟧",
+                "ja": "プロンプトで `@` を入力してファイルの場所を指定したいのに、空のフォルダしか覚えていないことがある。パスの自動補完は、検索結果に既存ファイルがある場所だけでなく、空のディレクトリも索引に入れるようになった。中身のないフォルダだけで構成されたワークスペースでも、そのディレクトリを候補一覧で見つけて先へ進める。⟦商業施設の案内図に営業中の店だけでなく空き区画も載っていて、途中で道筋が消えないようなものだ。⟧",
+                "ko": "프롬프트에서 `@`를 입력해 파일 위치를 지정하려는데 빈 폴더만 기억나는 때가 있다. 경로 자동 완성은 이제 검색 결과에 파일이 있는 곳만 보지 않고 빈 디렉터리도 색인에 넣는다. 내용물이 없는 폴더만으로 된 작업 공간에서도 그 디렉터리를 완성 목록에서 찾아 더 들어갈 수 있다. ⟦쇼핑몰 안내도에 영업 중인 가게뿐 아니라 빈 점포도 표시되어 길이 중간에 사라지지 않는 것과 같다.⟧"
+              },
+              "original": "Improved `@` file path autocompletion by indexing empty directories alongside files in ripgrep search results, allowing unpopulated and directory-only workspace structures to be discovered and traversed during path completion."
+            },
+            {
+              "title": {
+                "zh-TW": "預設檢視工作區，讀檔不再反覆問同意",
+                "zh-CN": "默认查看工作区，读文件不再反复问同意",
+                "en": "Default review mode stops repeatedly asking to read workspace files",
+                "ja": "標準レビュー時の作業領域の閲覧で、確認を繰り返さなくなった",
+                "ko": "기본 검토 모드에서 작업 공간 읽기를 거듭 묻지 않는다"
+              },
+              "body": {
+                "zh-TW": "只是想讓工具在工作區根目錄讀檔或列出檔案，卻一直跳出批准詢問，會把檢查工作切得零碎。預設的 review mode（檢視模式，只檢查內容）現在會自動授予工作區範圍的讀取權限，因此這兩種動作不用重複確認。⟦這像進圖書館查書時，先拿到閱覽證，就能翻閱館內書目和書頁。⟧界線沒有因此放寬：要修改檔案，或要接觸工作區以外的位置，仍會照常要求確認。",
+                "zh-CN": "只是想让工具在工作区根目录读文件或列出文件，却一直跳出批准询问，会把检查工作切得零碎。默认的 review mode（查看模式，只检查内容）现在会自动授予工作区范围的读取权限，因此这两种动作不用重复确认。⟦这像进图书馆查书时，先拿到阅览证，就能翻阅馆内书目和书页。⟧边界没有因此放宽：要修改文件，或要接触工作区以外的位置，仍会照常要求确认。",
+                "en": "Repeated approval prompts can break up a simple inspection when a tool only needs to read or list files under the workspace root. Default review mode (a mode for examining content) now automatically grants workspace-scoped read access, so those two actions no longer need repeated confirmation. ⟦It is like getting a library reading pass before checking the catalog and turning the pages inside.⟧ The boundary remains: changing files or accessing anything outside the workspace still asks for confirmation.",
+                "ja": "作業領域のルート内でファイルを読むか一覧にするだけなのに、承認を何度も求められると確認作業が途切れる。標準の review mode（内容を確認するモード）は、作業領域の範囲で読む権限を自動で与えるようになり、その二つの操作に繰り返しの確認は要らない。⟦図書館で本を調べる前に閲覧証を受け取り、館内の目録とページを見られるようなものだ。⟧ただし境界は変わらず、ファイルの変更や作業領域の外部へのアクセスには確認が求められるのである。",
+                "ko": "작업 공간 루트 아래의 파일을 읽거나 목록으로 볼 뿐인데 승인 창이 계속 뜨면 검토가 끊긴다. 기본 review mode(내용을 살피는 모드)는 이제 작업 공간 범위의 읽기 권한을 자동으로 주므로 이 두 동작은 반복 확인이 필요 없다. ⟦도서관에서 책을 찾기 전에 열람증을 받아 관내 목록과 책장을 볼 수 있게 되는 것과 같다.⟧다만 경계는 그대로여서 파일을 고치거나 작업 공간 밖에 접근할 때는 여전히 확인을 요구한다."
+              },
+              "original": "Improved permission management by automatically granting workspace-scoped read access under the default review mode, eliminating repetitive approval prompts for reading or listing files within the workspace root while strictly maintaining confirmation prompts for file modifications and external access."
+            },
+            {
+              "title": {
+                "zh-TW": "含子模組的 Git 專案，查看狀態少等一段",
+                "zh-CN": "含子模块的 Git 项目，查看状态少等一段",
+                "en": "Git status checks avoid an extra sweep through submodule worktrees",
+                "ja": "サブモジュール付き Git の状態確認が余分な走査を省く",
+                "ko": "서브모듈이 있는 Git 상태 확인에서 불필요한 훑기를 뺀다"
+              },
+              "body": {
+                "zh-TW": "在含有 submodule（嵌在專案裡、各自有版本紀錄的子專案）的 Git 儲存庫查看狀態時，等待往往不是你改了什麼，而是工具又把子模組的工作樹一路遞迴掃過。現在 Git 檢查會跳過這種遞迴掃描，以免狀態顯示延遲；子模組指向的提交版本若更新，仍會持續追蹤。⟦這像核對一棟公寓的信箱時，只看每戶門牌是否換了，不必每次都走進每戶房間翻查。⟧",
+                "zh-CN": "在含有 submodule（嵌在项目里、各自有版本记录的子项目）的 Git 仓库查看状态时，等待往往不是你改了什么，而是工具又把子模块的工作树一路递归扫过。现在 Git 检查会跳过这种递归扫描，以免状态显示延迟；子模块指向的提交版本若更新，仍会持续跟踪。⟦这像核对一栋公寓的信箱时，只看每户门牌是否换了，不必每次都走进每户房间翻查。⟧",
+                "en": "In a Git repository with submodules (nested projects that keep their own version history), a status check can spend its time recursively scanning each submodule worktree. Repository inspection now skips that sweep to remove status latency, while still tracking updates to the commit pointer each submodule uses. ⟦It is like checking an apartment building's mailboxes by seeing whether each door label changed, without entering every apartment on every visit.⟧",
+                "ja": "submodule（独自の履歴を持つ、プロジェクト内の子プロジェクト）を含む Git リポジトリで状態を見るとき、待ち時間は変更内容ではなく、子モジュールの worktree を再帰的に走査することに使われる場合がある。リポジトリの検査はこの走査を省き、状態表示の遅れをなくす。一方で、各子モジュールが指すコミットの更新は追跡し続ける。⟦集合住宅の郵便受けを確認するとき、各部屋の表札が変わったかだけを見て、毎回すべての部屋に入らないようなものだ。⟧",
+                "ko": "submodule(각자 버전 기록을 가진 프로젝트 안의 하위 프로젝트)이 있는 Git 저장소에서 상태를 볼 때, 기다림은 변경 내용보다 하위 모듈 worktree를 재귀로 훑는 데서 생길 수 있다. 이제 저장소 검사는 이 훑기를 건너뛰어 상태 표시 지연을 없앤다. 대신 각 하위 모듈이 가리키는 커밋 포인터의 갱신은 계속 추적한다. ⟦아파트 우편함을 확인할 때 매번 모든 집 안에 들어가지 않고 각 집 문패가 바뀌었는지만 보는 것과 같다.⟧"
+              },
+              "original": "Improved Git repository inspection performance by skipping recursive submodule worktree scans while continuing to track commit pointer updates to eliminate status latency in repositories with submodules."
+            },
+            {
+              "title": {
+                "zh-TW": "列印模式遇到小錯，不再把整次執行判失敗",
+                "zh-CN": "打印模式遇到小错，不再把整次执行判失败",
+                "en": "Print mode no longer marks a run failed over benign tool errors",
+                "ja": "印字モードは軽微なツールエラーで実行全体を失敗にしない",
+                "ko": "출력 모드는 가벼운 도구 오류로 전체 실행을 실패 처리하지 않는다"
+              },
+              "body": {
+                "zh-TW": "把 CLI 放進自動流程時，`-p` 或 `--print` 的列印模式若遇到無害的工具錯誤或權限拒絕，過去會把整次執行當成失敗，並回傳非零的結束碼。現在即使用 `--output-format json` 或 `stream-json`，也只會在 cascade-level failure（錯誤一路傳到整體流程）時回傳失敗結束碼，行為會和互動工作階段一致。⟦像外送訂單少了一張餐巾紙，不能因此把整筆訂單標成沒有送達。⟧這讓不開互動介面的執行結果，不再被局部狀況誤判。",
+                "zh-CN": "把 CLI 放进自动流程时，`-p` 或 `--print` 的打印模式若遇到无害的工具错误或权限拒绝，过去会把整次执行当成失败，并返回非零的退出码。现在即使用 `--output-format json` 或 `stream-json`，也只会在 cascade-level failure（错误一路传到整体流程）时返回失败退出码，行为会和交互会话一致。⟦像外送订单少了一张餐巾纸，不能因此把整笔订单标成没有送达。⟧这让不打开交互界面的执行结果，不再被局部状况误判。",
+                "en": "When you put the CLI into an automated flow, print mode with `-p` or `--print` used to mark the whole run as failed and return a non-zero exit code for benign tool errors or permission denials. That is now fixed for `--output-format json` and `stream-json` too. A non-interactive run reports failure only for a cascade-level failure (one that reaches the overall run), matching an interactive session. ⟦A delivery should not be marked undelivered merely because one napkin is missing.⟧ Local trouble no longer mislabels the whole result.",
+                "ja": "CLI を自動処理に入れたとき、`-p` または `--print` の印字モードは、無害なツールエラーや権限拒否でも実行全体を失敗として非ゼロの終了コードを返していた。`--output-format json` と `stream-json` を使う場合も、これが直った。対話なしの実行は、cascade-level failure（エラーが全体の実行まで伝わる状態）のときだけ失敗の終了コードを返し、対話セッションと同じ振る舞いになる。⟦配達でナプキンが一枚足りないからといって、注文全体を未配達にはしないようなものだ。⟧局所的な問題で結果全体が誤判定されなくなるのである。",
+                "ko": "CLI를 자동 흐름에 넣을 때 `-p` 또는 `--print` 출력 모드는 무해한 도구 오류나 권한 거부를 만나도 전체 실행을 실패로 처리하고 0이 아닌 종료 코드를 돌려주곤 했다. `--output-format json`과 `stream-json`에서도 이 문제가 고쳐졌다. 비대화형 실행은 cascade-level failure(오류가 전체 실행까지 번진 상태)일 때만 실패 종료 코드를 내어 대화형 세션과 행동을 맞춘다. ⟦배달 주문에 냅킨 한 장이 빠졌다고 주문 전체를 미배달로 표시하지 않는 것과 같다.⟧부분적인 문제가 전체 결과를 잘못 판정하지 않게 된다."
+              },
+              "original": "Fixed print mode (`-p`/`--print`, including `--output-format json` and `stream-json`) treating benign tool execution errors and permission denials as fatal run failures with non-zero exit codes, ensuring headless exit codes reflect only cascade-level failures and match interactive session behavior."
+            },
+            {
+              "title": {
+                "zh-TW": "設定檔有看不懂的值，也不會被啟動時截斷",
+                "zh-CN": "配置文件有看不懂的值，也不会被启动时截断",
+                "en": "Startup no longer truncates settings it cannot parse",
+                "ja": "起動時に読めない設定があっても設定ファイルを切り詰めない",
+                "ko": "시작할 때 읽지 못한 설정이 있어도 설정 파일을 잘라 버리지 않는다"
+              },
+              "body": {
+                "zh-TW": "自己維護 `settings.json` 時，最怕某個新設定值或語法寫錯，程式一開就把原本的內容覆寫掉。現在啟動時若遇到無法辨識的設定值或語法錯誤，CLI 會保留磁碟上既有的設定檔，不再存回一份被截斷的版本。⟦這像收銀員看不懂帳本裡的一行註記時，先把原帳本留在桌上，而不是撕掉讀不懂以外的頁面。⟧你可以回頭修正那個項目，不必先從殘缺檔案救回其他設定。",
+                "zh-CN": "自己维护 `settings.json` 时，最怕某个新设置值或语法写错，程序一开就把原本的内容覆盖掉。现在启动时若遇到无法识别的设置值或语法错误，CLI 会保留磁盘上原有的配置文件，不再存回一份被截断的版本。⟦这像收银员看不懂账本里的一行注记时，先把原账本留在桌上，而不是撕掉读不懂以外的页面。⟧你可以回头修正那个项目，不必先从残缺文件救回其他设置。",
+                "en": "If you maintain `settings.json` yourself, an unrecognized setting value or syntax mistake should not make startup overwrite what was already there. On encountering either one, the CLI now preserves the existing file on disk instead of saving a truncated version. ⟦It is like a cashier who cannot read one note in a ledger leaving the original ledger on the desk, rather than tearing out every page except the puzzling one.⟧ You can return to fix that entry without first rescuing the rest of your settings from a damaged file.",
+                "ja": "`settings.json` を自分で管理していると、新しい設定値や構文の書き間違いで、起動時に元の内容が上書きされるのが怖い。CLI は認識できない設定値または構文エラーに出会っても、ディスク上の既存ファイルを保ち、切り詰めた版を保存しなくなった。⟦レジ係が帳簿の一行を読めないとき、元の帳簿を机に残し、読めない部分以外のページを破らないようなものだ。⟧その項目を後で直せるため、ほかの設定を壊れたファイルから先に救い出す必要はないのである。",
+                "ko": "`settings.json`을 직접 관리할 때 새 설정값이나 문법을 잘못 적었다고 시작 과정에서 원래 내용이 덮어써지면 곤란하다. CLI는 알아보지 못하는 설정값이나 문법 오류를 만나도 디스크에 있던 설정 파일을 보존하고 잘린 버전을 저장하지 않는다. ⟦계산원이 장부의 한 줄을 읽지 못할 때 원래 장부를 책상에 두고, 읽을 수 없는 부분 외의 쪽을 찢어 버리지 않는 것과 같다.⟧그 항목을 나중에 고치면 되므로 다른 설정을 손상된 파일에서 먼저 구해 낼 필요가 없다."
+              },
+              "original": "Fixed the CLI overwriting and discarding unparsed configuration in `settings.json` when encountering an unrecognized setting value or syntax error on startup, preserving the existing configuration file on disk instead of saving a truncated version."
+            },
+            {
+              "title": {
+                "zh-TW": "沒指定代理設定時，內建自訂項目也列得出來",
+                "zh-CN": "没指定代理配置时，内置自定义项目也列得出来",
+                "en": "Built-in customizations appear even without an explicit agent config",
+                "ja": "明示的なエージェント設定がなくても内蔵のカスタマイズを一覧に出せる",
+                "ko": "명시한 에이전트 설정이 없어도 내장 사용자 지정을 목록에서 본다"
+              },
+              "body": {
+                "zh-TW": "沒有特別指定 agent configuration（代理的設定資料）時，輸入 `/skills`、`/plugins`、`/agents` 或 `/hooks` 卻被告知找不到自訂項目，容易誤以為內建內容不見了。現在這些列出指令會先掛載內建自訂項目，再顯示清單，因此沒有明確的代理設定也能看見它們。⟦像走進展館時，櫃台先把常設展的燈打開，才讓你知道館裡本來就有這些東西。⟧這改的是清單檢視，不是要求你先建立一份代理設定。",
+                "zh-CN": "没有特别指定 agent configuration（代理的配置资料）时，输入 `/skills`、`/plugins`、`/agents` 或 `/hooks` 却被告知找不到自定义项目，容易误以为内置内容不见了。现在这些列出命令会先挂载内置自定义项目，再显示列表，因此没有明确的代理配置也能看见它们。⟦像走进展馆时，柜台先把常设展的灯打开，才让你知道馆里本来就有这些东西。⟧这改的是列表查看，不是要求你先建立一份代理配置。",
+                "en": "Without an explicit agent configuration (the data that configures an agent), `/skills`, `/plugins`, `/agents`, and `/hooks` could say no customizations were found, making built-in content seem absent. Their listing views now mount built-in customizations before showing the list, so they appear even with no agent configuration specified. ⟦It is like a gallery desk turning on the lights for the permanent collection first, so you can see what was already in the building.⟧ This changes the listing view; it does not require you to create an agent config.",
+                "ja": "明示的な agent configuration（エージェントを設定するためのデータ）がない状態では、`/skills`、`/plugins`、`/agents`、`/hooks` がカスタマイズなしと報告し、内蔵の内容まで消えたように見えていた。これらの一覧画面は、リストを出す前に内蔵カスタマイズをマウントするようになり、エージェント設定を指定しなくても表示される。⟦展示館の受付が常設展の照明を先に点け、もともと館内にあるものを見せるようなものだ。⟧変わるのは一覧表示であり、エージェント設定の作成を求める変更ではない。",
+                "ko": "명시한 agent configuration(에이전트를 설정하는 자료)이 없을 때 `/skills`, `/plugins`, `/agents`, `/hooks`는 사용자 지정이 없다고 알려 내장 내용까지 사라진 듯 보였다. 이제 이 목록 화면은 목록을 보이기 전에 내장 사용자 지정을 마운트하므로 에이전트 설정을 따로 지정하지 않아도 나타난다. ⟦전시관 안내대가 상설 전시의 불을 먼저 켜서 원래 안에 있던 것을 보게 하는 것과 같다.⟧바뀌는 것은 목록 보기이며 에이전트 설정을 새로 만들라는 뜻은 아니다."
+              },
+              "original": "Fixed `/skills`, `/plugins`, `/agents`, and `/hooks` commands reporting that no customizations were found when invoked without an explicit agent configuration by mounting built-in customizations in listing views."
+            },
+            {
+              "title": {
+                "zh-TW": "中日韓草稿串流時，不再憑空插入空格",
+                "zh-CN": "中日韩草稿流式显示时，不再凭空插入空格",
+                "en": "Streaming CJK drafts stop gaining stray spaces",
+                "ja": "中日韓の下書きはストリーミング中に余計な空白を挟まない",
+                "ko": "중일한 초안은 스트리밍 중에 쓸데없는 공백이 끼지 않는다"
+              },
+              "body": {
+                "zh-TW": "主提示區正在串流顯示中日韓草稿時，字與字之間偶爾被插進不該有的空格，讀起來就像句子被拆散。這次會在更新逐字稿的邊界整理空白字元，避免 CJK（中文、日文與韓文）文字被多塞空格。它處理的是更新交界，不是把你的草稿內容重新改寫。⟦彷彿排版員在接續紙條前先把接縫抹平，字句便不會突然被拉開。⟧修正針對的是主提示區的串流更新，讓草稿依原本的字距呈現。",
+                "zh-CN": "主提示区正在流式显示中日韩草稿时，字与字之间偶尔被插进不该有的空格，读起来就像句子被拆散。这次会在更新逐字稿的边界整理空白字符，避免 CJK（中文、日文与韩文）文字被多塞空格。⟦仿佛排版员在接续纸条前先把接缝抹平，字句便不会突然被拉开。⟧修正针对的是主提示区的流式更新，让草稿依原本的字距呈现。",
+                "en": "While a CJK draft (Chinese, Japanese, or Korean text) streams into the main prompt, stray spaces could appear between characters and make the sentence look pulled apart. Streaming transcript updates now normalize whitespace at their boundaries, preventing those unwanted inserts. ⟦It is as though a typesetter smooths the join before attaching the next strip of paper, so the letters do not suddenly spread apart.⟧ The fix applies to streaming updates in the main prompt and keeps the draft at its intended spacing.",
+                "ja": "メインプロンプトに中日韓の下書きがストリーミング表示されると、文字の間に不要な空白が入り、文がばらばらに見えることがあった。ストリーミングの逐語記録を更新する境目で空白を正規化し、CJK（中国語、日本語、韓国語）の文字に余計な空白を入れないようにした。⟦組版係が次の紙片をつなぐ前に継ぎ目をならし、文字間が急に開かないようにするようなものだ。⟧対象はメインプロンプトのストリーミング更新であり、下書きは本来の字間で表示されるのである。",
+                "ko": "메인 프롬프트에 중일한 초안이 스트리밍으로 나타날 때 글자 사이에 원치 않는 공백이 들어가 문장이 흩어진 듯 보일 수 있었다. 스트리밍 대화 기록 갱신의 경계에서 공백 문자를 정리해 CJK(중국어, 일본어, 한국어) 문자에 여분의 공백이 끼지 않게 했다. ⟦조판사가 다음 종이 조각을 잇기 전에 이음새를 고르게 펴서 글자 사이가 갑자기 벌어지지 않게 하는 것과 같다.⟧이 수정은 메인 프롬프트의 스트리밍 갱신에 적용되어 초안을 원래 글자 간격으로 보인다."
+              },
+              "original": "Fixed CJK draft jitter in the main prompt by normalizing boundary whitespace in streaming transcript updates, preventing unwanted spaces from being inserted characters."
+            },
+            {
+              "title": {
+                "zh-TW": "對話結束後，背景轉圈不再空轉喚醒 CPU",
+                "zh-CN": "对话结束后，后台转圈不再空转唤醒 CPU",
+                "en": "The conversation spinner stops waking the CPU after a turn ends",
+                "ja": "会話終了後に背景のスピナーが CPU を起こし続けない",
+                "ko": "대화가 끝난 뒤 배경 스피너가 CPU를 계속 깨우지 않는다"
+              },
+              "body": {
+                "zh-TW": "一輪對話已經結束，畫面上的 spinner（表示處理中的轉圈動畫）本該停下，卻仍在背景持續跳動。這個迴圈現在會在回合完成後停止，因此 CLI 閒置時不再因為它產生不必要的 CPU 喚醒。尤其你暫時不輸入下一個要求時，背景不會再為這個已結束的回合空轉。⟦像店家打烊後，門口的叫號燈不再空亮、也不再反覆啟動裡頭的設備。⟧你不必做任何設定；修正的是完成回合後仍持續運作的背景動畫。",
+                "zh-CN": "一轮对话已经结束，画面上的 spinner（表示处理中的转圈动画）本该停下，却仍在后台持续跳动。这个循环现在会在回合完成后停止，因此 CLI 闲置时不再因为它产生不必要的 CPU 唤醒。⟦像店家打烊后，门口的叫号灯不再空亮、也不再反复启动里头的设备。⟧你不必做任何设置；修正的是完成回合后仍持续运行的后台动画。",
+                "en": "After a conversation turn had already finished, the spinner (the rotating animation that signals processing) could keep ticking in the background. That loop now stops when the turn completes, so an idle CLI no longer causes unnecessary CPU wakeups from it. ⟦It is like a shop's queue light going dark after closing instead of glowing pointlessly and repeatedly starting equipment inside.⟧ No setting is required; the fix is for the background animation that kept running after completion.",
+                "ja": "会話のターンが終わった後も、spinner（処理中を示す回転アニメーション）が背景で動き続けることがあった。このループはターンの完了時に止まり、CLI がアイドル中に不要な CPU の起動を生まなくなる。⟦店が閉店した後、入口の呼び出し灯が空しく点き続けたり、店内の機器を何度も起動したりしないようなものだ。⟧設定は不要であり、完了後も動き続けていた背景アニメーションを直したのである。",
+                "ko": "대화 한 차례가 이미 끝난 뒤에도 spinner(처리 중임을 알리는 회전 애니메이션)가 배경에서 계속 움직일 수 있었다. 이 반복은 이제 차례가 완료되면 멈추므로 CLI가 쉬는 동안 그것 때문에 불필요하게 CPU를 깨우지 않는다. ⟦가게가 문을 닫은 뒤 입구의 호출 등이 헛되이 켜져 있거나 안의 장비를 거듭 켜지 않는 것과 같다.⟧설정할 것은 없으며 완료 뒤에도 돌던 배경 애니메이션을 고친 것이다."
+              },
+              "original": "Fixed the conversation spinner animation loop continuing to tick indefinitely in the background after turns completed, eliminating unnecessary CPU wakeups while the CLI is idle."
+            }
+          ]
+        },
+        {
           "version": "1.1.19",
           "period": "2026-08-23",
           "items": [
@@ -1847,80 +1989,6 @@
                 "ko": "특정 터미널에서 글을 쓸 때 몇 초마다 프롬프트에 엉뚱한 글자가 툭 튀어나와 타이핑 흐름을 끊곤 했다. 이는 CLI가 입력 모드를 주기적으로 재설정하는 과정에서 일부 터미널이 그 제어 신호를 일반 텍스트로 찍어버렸기 때문이다. 실제로 뒤에서 입력 모드를 건드리는 것은 터미널 멀티플렉서(terminal multiplexer, tmux처럼 한 창에서 여러 가상 터미널을 다루는 도구)뿐이다. 따라서 재설정 신호를 멀티플렉서 환경 안에서만 보내도록 제한하여 일반 터미널에서 잡음 글자가 나타나는 문제를 해결했다. ⟦회의실 인터폰이 멀티 오디오 믹서에 연결되었을 때만 연결 확인 신호를 보내 일반 스피커에서 불필요한 잡음이 반복해서 나지 않도록 한 것과 같다.⟧"
               },
               "original": "Fixed a stray character appearing in the prompt every couple of seconds on terminals that print the CLI's periodic input-mode re-arming as literal text; the re-arm now happens only inside a terminal multiplexer, which is the only thing that resets those modes behind the CLI's back."
-            }
-          ]
-        },
-        {
-          "version": "1.1.17",
-          "period": "2026-08-21",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "代理程式改走同一路，工具行為更一致",
-                "zh-CN": "代理程序改走同一路，工具行为更一致",
-                "en": "One execution route makes agent behavior more consistent",
-                "ja": "実行経路を一本化し、エージェントの動きをそろえる",
-                "ko": "실행 경로를 하나로 모아 에이전트 동작을 더 일관되게 한다"
-              },
-              "body": {
-                "zh-TW": "同一件事交給代理程式（agent，能代你執行工作的程式）處理時，最怕換個入口就得到不同結果。這次把它的執行架構收斂成單一路徑，不論從哪裡啟動，都會經過同一套流程。⟦這像車站把分散月台的列車導回同一條主線，調度規則終於一致。⟧工具（讓它執行動作的功能）的行為會更一致。hook（掛鉤，特定事件發生時被觸發的小程式）也走這條路。提示（prompt，交代給它的工作說明）同樣如此。當你在不同操作中安排同樣的工作，入口不同帶來的差異會減少。",
-                "zh-CN": "把同一件事交给代理程序（agent，能代你执行工作的程序）处理时，最怕换个入口就得到不同结果。这次把它的执行架构收拢为单一路径，不论从哪里启动，都会经过同一套流程。⟦这像车站把分散站台的列车导回同一条主线，调度规则终于一致。⟧工具（让它执行动作的功能）的行为会更一致。hook（挂钩，特定事件发生时被触发的小程序）也走这条路。提示（prompt，交代给它的工作说明）同样如此。当你在不同操作中安排同样的工作，入口不同带来的差异会减少。",
-                "en": "When an agent handles the same job through different entry points, differing results are a nuisance. Its execution harness now follows one path, so every starting point goes through the same process. ⟦It is like routing trains from scattered platforms onto one main line, where the dispatch rules finally match.⟧ Tool behavior is therefore more consistent. Hooks, small programs triggered by particular events, use that route too. Prompts, the instructions you give the agent, do as well. The same work should vary less just because you began it differently.",
-                "ja": "同じ仕事をエージェント（agent、代わりに作業を実行するプログラム）に任せるなら、入口ごとに結果が変わるのは困る。今回、実行を支える仕組みを一つの経路にまとめ、どこから始めても同じ流れを通るようにした。⟦散らばったホームの列車を一本の本線へ導き、運行規則をそろえる駅のようなものだ。⟧ツール（作業を実行させる機能）の振る舞いもそろう。hook（特定の出来事で動く小さなプログラム）もこの経路を使う。prompt（作業内容を伝える指示）も同様である。始め方が違うだけで仕事の動きが変わる場面を減らす変更である。",
-                "ko": "같은 일을 에이전트(agent, 대신 작업을 실행하는 프로그램)에게 맡길 때 시작점에 따라 결과가 달라지면 곤란하다. 이번에는 실행을 떠받치는 구조를 하나의 경로로 모아, 어디서 시작해도 같은 흐름을 거치게 했다. ⟦흩어진 승강장의 열차를 한 본선으로 모아 운행 규칙을 맞추는 역과 같다.⟧도구(작업을 실행하게 하는 기능)의 동작도 더 일관된다. hook(특정 일이 일어나면 실행되는 작은 프로그램)도 이 경로를 쓴다. prompt(작업 내용을 전달하는 지시)도 마찬가지다. 시작 방식만 달라서 작업의 움직임이 달라지는 일을 줄이는 변경이다."
-              },
-              "original": "Improved the agent execution harness by consolidating onto a single execution path, giving more consistent tool, hook, and prompt behavior."
-            },
-            {
-              "title": {
-                "zh-TW": "斜線指令不再憑空消失",
-                "zh-CN": "斜杠命令不再凭空消失",
-                "en": "Slash commands no longer vanish",
-                "ja": "スラッシュコマンドが消えなくなった",
-                "ko": "슬래시 명령어가 더는 사라지지 않는다"
-              },
-              "body": {
-                "zh-TW": "想開啟團隊協作預覽時，指令卻從清單消失，會讓人以為功能根本不存在。⟦這像常用的遙控器按鍵突然從面板上掉下來，設備還在，卻找不到叫它動的方法。⟧現在 `/teamwork-preview` 與部分其他斜線指令（slash command，輸入 `/` 後可直接叫出的功能）不會再對某些使用者消失。需要用這些指令時，清單應能保留它們，讓你照原本的方式叫出對應功能。",
-                "zh-CN": "想开启团队协作预览时，命令却从列表消失，会让人以为功能根本不存在。⟦这像常用的遥控器按键突然从面板上掉下来，设备还在，却找不到让它动起来的方法。⟧现在 `/teamwork-preview` 与部分其他斜杠命令（slash command，输入 `/` 后可直接叫出的功能）不会再对某些用户消失。需要用这些命令时，列表应能保留它们，让你照原本的方式叫出对应功能。",
-                "en": "When you want the teamwork preview but its command has vanished from the list, it can seem as though the feature does not exist. ⟦It is like a familiar button falling off a remote: the device remains, but you cannot tell it what to do.⟧ `/teamwork-preview` and some other slash commands, commands you call by typing `/`, no longer disappear for some users. When you need them, they should remain in the list so you can call their features as before.",
-                "ja": "チームワークのプレビューを開きたいのにコマンドが一覧から消えると、機能そのものがないように見えてしまう。⟦よく使うリモコンのボタンだけがパネルから抜け落ち、機器はあるのに動かす方法が見つからない状態に似ている。⟧`/teamwork-preview` と一部のスラッシュコマンド（slash command、`/` を入力して呼び出す機能）は、特定のユーザーから消えなくなった。必要なときは一覧に残り、これまでどおり対応する機能を呼び出せるのである。",
-                "ko": "팀워크 미리보기를 열려는데 명령어가 목록에서 사라지면, 기능 자체가 없는 듯 보인다. ⟦자주 쓰던 리모컨 버튼이 패널에서 빠져 장치는 있어도 움직일 방법을 찾지 못하는 것과 같다.⟧`/teamwork-preview`와 일부 슬래시 명령어(slash command, `/`를 입력해 바로 부르는 기능)는 더 이상 일부 사용자에게서 사라지지 않는다. 필요할 때 목록에 남아 있으므로, 전처럼 해당 기능을 불러올 수 있다."
-              },
-              "original": "Fixed `/teamwork-preview` and some other slash commands disappearing for some users."
-            },
-            {
-              "title": {
-                "zh-TW": "Vim 輸入時按 Enter，也能開啟進行中的任務",
-                "zh-CN": "Vim 输入时按 Enter，也能打开进行中的任务",
-                "en": "Enter opens active work even while typing in Vim mode",
-                "ja": "Vim 入力中でも Enter で進行中の作業を開ける",
-                "ko": "Vim 입력 중에도 Enter로 진행 중인 작업을 연다"
-              },
-              "body": {
-                "zh-TW": "你正用 Vim 插入模式（直接把文字輸入提示列的狀態）寫指令，想查看仍在執行的工作時，按 Enter 原本不會帶你進去。⟦這像你正在記事本上寫字，卻按不開旁邊亮著的待辦事項；按鈕明明在眼前，手卻碰不到。⟧現在提示列處於 Vim 插入模式時，Enter 能開啟進行中的背景任務（不佔著眼前操作、在後方持續執行的工作）。也能開啟子代理（subagent，由主代理分派工作的代理程式）。你不用先離開正在輸入的狀態，便能查看已啟動的工作。",
-                "zh-CN": "你正用 Vim 插入模式（直接把文字输入提示栏的状态）写命令，想查看仍在执行的工作时，按 Enter 原本不会带你进去。⟦这像你正在记事本上写字，却按不开旁边亮着的待办事项；按钮明明在眼前，手却碰不到。⟧现在提示栏处于 Vim 插入模式时，Enter 能打开进行中的后台任务（不占着眼前操作、在后方持续执行的工作）。也能打开子代理（subagent，由主代理分派工作的代理程序）。你不用先离开正在输入的状态，便能查看已启动的工作。",
-                "en": "While typing a command in Vim insert mode, the state where text goes directly into the prompt, you might want to inspect work that is still running. Enter previously would not open it. ⟦It was like writing in a notebook while the lit-up to-do item beside it could not be opened; the button was visible but out of reach.⟧ Now Enter opens an active background task, work that keeps running behind your current action. It also opens a subagent, an agent assigned work by another agent. You can inspect that work without first leaving insert mode.",
-                "ja": "Vim の挿入モード（プロンプトに文字を直接入力する状態）でコマンドを書いている最中、まだ動いている仕事を確認したくなることがある。以前は Enter を押しても開けなかった。⟦ノートに書き込みながら、横で光っている予定表を開けないような状態だった。ボタンは見えているのに手が届かない。⟧プロンプトが Vim の挿入モードでも、Enter で進行中のバックグラウンドタスク（目の前の操作を占有せず後ろで動き続ける仕事）を開けるようになった。サブエージェント（subagent、別のエージェントから仕事を割り当てられたもの）も開ける。入力状態を抜けずに、開始済みの仕事を確認できるのである。",
-                "ko": "Vim 삽입 모드(프롬프트에 글자를 바로 입력하는 상태)에서 명령어를 쓰다가 아직 실행 중인 일을 확인하고 싶을 수 있다. 예전에는 Enter를 눌러도 열리지 않았다. ⟦노트에 쓰는 중인데 옆에서 빛나는 할 일 항목은 열 수 없는 상황과 같다. 버튼이 보여도 손이 닿지 않는다.⟧이제 프롬프트가 Vim 삽입 모드여도 Enter로 진행 중인 백그라운드 작업(눈앞의 조작을 차지하지 않고 뒤에서 계속 실행되는 일)을 열 수 있다. 서브에이전트(subagent, 다른 에이전트가 일을 맡긴 에이전트)도 연다. 입력 상태를 벗어나지 않고 이미 시작한 일을 확인한다."
-              },
-              "original": "Fixed `Enter` not opening an active background task or subagent while the prompt was in Vim insert mode."
-            },
-            {
-              "title": {
-                "zh-TW": "Ogg 音訊與影片檔可正常附加",
-                "zh-CN": "Ogg 音频与视频文件可正常附加",
-                "en": "Ogg audio and video files can now be attached",
-                "ja": "Ogg の音声・動画ファイルを添付できる",
-                "ko": "Ogg 오디오와 동영상 파일을 첨부할 수 있다"
-              },
-              "body": {
-                "zh-TW": "要把錄好的音訊或影片交給模型（讀取檔案並回應的 AI）時，副檔名明明是支援的格式，卻被拒收，特別讓人摸不著頭緒。⟦這像寄件人把不同內容的包裹都貼成同一張過於籠統的標籤，收件處只好退回。⟧現在可附加 `.ogg`、`.opus` 與 `.ogv` 檔案。先前它們都被當成通用的 `application/ogg` 類型送出，因此遭模型拒絕；這個附加問題已修正。下次你有這些 Ogg 音訊或影片，不必再因為送出時的檔案類型標記而卡住。",
-                "zh-CN": "要把录好的音频或视频交给模型（读取文件并回应的 AI）时，扩展名明明是支持的格式，却被拒收，尤其让人摸不着头绪。⟦这像寄件人把不同内容的包裹都贴成同一张过于笼统的标签，收件处只好退回。⟧现在可附加 `.ogg`、`.opus` 与 `.ogv` 文件。此前它们都被当成通用的 `application/ogg` 类型发出，因此遭模型拒绝；这个附加问题已修正。下次你有这些 Ogg 音频或视频，不必再因为发出时的文件类型标记而卡住。",
-                "en": "When you give a recorded audio or video file to the model, the AI that reads files and responds, it is baffling to have a supported extension rejected. ⟦It was like putting the same overly general shipping label on packages with different contents, leaving the receiving desk to send them back.⟧ You can now attach `.ogg`, `.opus`, and `.ogv` files. They had all been sent as the generic `application/ogg` type, which made the model reject them; that attachment problem is fixed. Your Ogg audio and video no longer get stopped by that file-type label on the way in.",
-                "ja": "録音した音声や動画をモデル（ファイルを読み取り応答する AI）に渡そうとして、対応しているはずの拡張子なのに拒否されると理由が分かりにくい。⟦中身の違う荷物にすべて同じ大ざっぱな送り状を貼り、受け取り窓口が返送するしかないようなものだ。⟧`.ogg`、`.opus`、`.ogv` のファイルを添付できるようになった。以前はどれも汎用の `application/ogg` として送られ、モデルに拒否されていた。この添付の問題は修正済みである。これらの Ogg 音声や動画は、送信時のファイル種別の印で止められなくなる。",
-                "ko": "녹음한 오디오나 동영상을 모델(파일을 읽고 응답하는 AI)에 맡기려는데, 지원되는 확장자처럼 보여도 거부되면 이유를 알기 어렵다. ⟦내용이 다른 소포에 모두 너무 포괄적인 같은 배송표를 붙여 접수처가 되돌려 보낼 수밖에 없는 상황과 같다.⟧이제 `.ogg`, `.opus`, `.ogv` 파일을 첨부할 수 있다. 이전에는 모두 일반적인 `application/ogg` 유형으로 전송되어 모델이 거부했다. 이 첨부 문제를 고쳤다. 이런 Ogg 오디오와 동영상은 전송할 때 붙는 파일 유형 표기 때문에 더는 막히지 않는다."
-              },
-              "original": "Fixed attaching Ogg audio and video files such as `.ogg`, `.opus` and `.ogv`, which the model rejected because they were sent as the generic `application/ogg`."
             }
           ]
         }
