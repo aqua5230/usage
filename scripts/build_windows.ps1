@@ -39,11 +39,11 @@ try {
         --add-data "$(Join-Path $RepoRoot 'usage_session_resume.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_terse_mode.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_terse_reminder.py');." `
-        --hidden-import wintray `
+        --hidden-import wintray.app `
         --hidden-import pystray `
         --hidden-import webview `
         --hidden-import webview.platforms.edgechromium `
-        --hidden-import tui `
+        --hidden-import tui.app `
         --hidden-import session_hooks `
         --hidden-import setup_hook `
         --hidden-import adapters.registry `
