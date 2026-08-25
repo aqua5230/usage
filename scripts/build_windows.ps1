@@ -63,3 +63,15 @@ $Executable = Join-Path $OutputDir "usage.exe"
 if (-not (Test-Path $Executable -PathType Leaf)) {
     throw "PyInstaller did not produce $Executable"
 }
+
+# The exe existing is not proof it works: v0.29.34-36 shipped bundles whose
+# hidden-import names still pointed at pre-refactor top-level modules, so the
+# packages collected nothing and the app died on launch. Assert the two
+# dynamically imported entry modules are actually inside the archive.
+$RequiredModules = @('wintray.app', 'tui.app')
+$ArchiveToc = uv run --no-sync python -m PyInstaller.utils.cliutils.archive_viewer -l -r $Executable
+foreach ($Module in $RequiredModules) {
+    if (-not ($ArchiveToc | Select-String -SimpleMatch -Quiet "'$Module'")) {
+        throw "packaged exe is missing module: $Module"
+    }
+}
