@@ -24,6 +24,7 @@ from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
 import quota.agy_window_keeper as agy_window_keeper
+import quota.codex_window_keeper as codex_window_keeper
 import quota.window_keeper as window_keeper
 import service_status
 import usage_diagnosis_snapshot
@@ -1306,6 +1307,7 @@ class _WindowsTrayController:
                 self.mock,
             )
         agy_window_keeper.maybe_ping(agy_result, self.mock)
+        codex_window_keeper.maybe_ping(self.mock)
         return menubar_state.build_popover_state(
             outcome=outcome,
             codex_rows=codex_rows,

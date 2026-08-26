@@ -17,6 +17,7 @@ from dataclasses import dataclass
 from typing import Any, Protocol
 
 import quota.agy_window_keeper as agy_window_keeper
+import quota.codex_window_keeper as codex_window_keeper
 import quota.window_keeper as window_keeper
 import talent_market_bridge
 from loaders.history_loader import UsageEntry
@@ -254,6 +255,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
                 app.mock,
             )
         agy_window_keeper.maybe_ping(agy_result, app.mock)
+        codex_window_keeper.maybe_ping(app.mock)
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("refresh failed", exc_info=True)
