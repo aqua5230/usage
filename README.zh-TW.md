@@ -43,9 +43,10 @@ brew install --cask aqua5230/usage/usage
 
 - **常駐監控：** 額度常駐選單列，顏色標示警戒級別（綠到紅）。點開能看 Session、Weekly 與各專案用量細節。
 - **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在除了 World Cup 2026 以外的每一款面板（該款維持兩隊對戰 HUD）。數字直接向官方額度 API 查詢，用的是 Antigravity CLI 本來就存在你機器上的登入身分——每幾分鐘自動刷新，重置倒數即時遞減。
+- **Grok CLI 支援：** 第四張卡片直接讀 Grok CLI 自己寫在本機的除錯紀錄檔算出每週額度百分比，不做任何網路呼叫。Grok CLI 沒有提供 Session 或燃燒率資料，所以這張卡片只顯示一條每週進度條；但它的逐次 token 用量一樣會算進今日花費與各專案總計，跟 Claude Code、Codex 一樣。
 - **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅，狀態資訊只讀官方公開的 Statuspage.io 狀態頁——絕不呼叫 LLM 用量 API。Antigravity 因沒有可用的公開狀態頁，暫不支援。
 - **上下文提醒與系統通知：** Context Window 達 70% 時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
-- **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex 或 Antigravity 從選單列及面板上徹底隱藏。
+- **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex、Grok CLI 或 Antigravity 從選單列及面板上徹底隱藏。
 
 ### 工作流程輔助
 
@@ -185,6 +186,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | macOS 選單列與 Windows 系統匣 | ✅ | — | 僅 macOS |
 | Claude Code 與 Codex 支援 | ✅ | 僅 Claude | ✅ |
 | Antigravity（Gemini）支援 | ✅ | — | — |
+| Grok CLI 支援 | ✅ | — | — |
 | Claude Code 與 Codex 服務狀態警示 | ✅ | — | — |
 | HTML 深度報告與 UI 面板 | ✅ | ✅ | — |
 | AI 人才市場 | 僅 macOS | — | — |

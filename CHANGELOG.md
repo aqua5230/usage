@@ -5,6 +5,21 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.0] - 2026-08-26
+
+### Added
+- **Grok CLI is now available as a fourth local quota card.** Reads the weekly credit percentage Grok CLI already writes to its own local debug log (`~/.grok/logs/unified.jsonl`), so the card needs no network call and starts/spawns nothing. No session/burn-rate data is available from that source, so unlike Claude, Codex, and Antigravity, the card shows a single weekly bar. Wired into the macOS popover, all 13 compatible panel themes (with per-theme icon styling matched to each theme's existing badge conventions), Windows tray, and i18n across all five languages.
+- **Grok CLI's per-request tokens now count toward today's cost and spend.** Grok CLI already writes per-turn prompt/completion/cached/reasoning token counts to its local debug log (`shell.turn.inference_done` events), correlated by session id with model-changed and session-created events for model and project attribution. This adds a loader that turns those into `UsageEntry` rows, so Grok activity now counts toward the popover's "today" cost/token total and project rows, same as Claude and Codex already do — still zero network calls. Also added Grok's log to the history fingerprint's always-restat file sources, so a Grok-only session between refreshes doesn't go stale.
+- **Codex CLI now auto-starts a 5-hour session keeper.** $20 plans hit a 5-hour rate limit window; $100/$200 plans don't. The keeper only pings when the local rate-limit data has ever reported a `five_hour_window_minutes` value, so unlimited plans stay untouched.
+
+### Fixed
+- **Grok's icon sizing is fixed on WebKit and it is added to the Hide Sections toggle.** Five panel themes (`classic`, `catppuccin`, `origami`, `stained_glass`, `prism_arcade`) only scoped their SVG icon sizing/color rules to Antigravity's card, so the unscoped Grok icon rendered at WebKit's default intrinsic size of zero — invisible in the real app despite looking fine under Chromium-based testing. Extended those rules to cover Grok's own icon container. Also wires Grok into the "Hide Sections" menu (macOS and Windows) so it can be manually hidden like the other three providers, not just auto-hidden when no data is available.
+- **Grok now uses its own monochrome accent instead of Antigravity's purple.** Grok's brand is black and white, but its cards shipped with a hardcoded purple hex in all 13 themes — close enough to Antigravity's blue that the two providers read as variants of one another. Replaced with a per-theme `--grok` token (mirroring Antigravity's existing per-theme accent structure), matched to each theme's own visual language.
+- **Grok is now included in the demo panels so README screenshots no longer omit it.** The panel demo generator never got a Grok row when the card shipped, so every theme screenshot in the README showed three providers instead of four. Added the demo row and regenerated all panel screenshots.
+
+### Changed
+- **The yearly Wrapped card has a new glow, badge, and overflow fix.** Adds a radial-gradient glow behind the beast art in the HTML report's "年度 Wrapped" section, gives the WRAPPED badge a layered gradient with an inset highlight, and lets the art spill past its grid column so it doesn't read as dead space. Pure CSS, no functional change.
+
 ## [0.29.37] - 2026-08-25
 
 ### Fixed

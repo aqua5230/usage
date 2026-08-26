@@ -43,9 +43,10 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 - **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
 - **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every theme except World Cup 2026, which stays a two-team HUD. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns.
+- **Grok CLI Support:** A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Grok CLI doesn't expose session or burn-rate data, so the card shows a single weekly bar; its per-request token usage still counts toward today's cost and project totals like Claude Code and Codex.
 - **Service Status Alerts:** An orange-red banner appears when Claude Code, Claude API, or Codex API has an outage or degraded performance, read from their public Statuspage.io pages — never an LLM usage API. Antigravity isn't covered; it has no public status page.
 - **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
-- **Hide Sections:** Only use one or two of the tools? Hide the Claude Code, Codex, or Antigravity section from the menu bar and panels completely with a single click.
+- **Hide Sections:** Only use one or two of the tools? Hide the Claude Code, Codex, Grok CLI, or Antigravity section from the menu bar and panels completely with a single click.
 
 ### Workflow Helpers
 
@@ -185,6 +186,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | macOS menu bar & Windows system tray | ✅ | — | macOS only |
 | Claude Code & Codex usage | ✅ | Claude only | ✅ |
 | Antigravity (Gemini) usage | ✅ | — | — |
+| Grok CLI usage | ✅ | — | — |
 | Claude Code & Codex service-status alerts | ✅ | — | — |
 | HTML deep reports & UI | ✅ | ✅ | — |
 | AI Talent Market | macOS only | — | — |

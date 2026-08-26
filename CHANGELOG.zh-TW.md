@@ -4,6 +4,21 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.0] - 2026-08-26
+
+### 新增
+- **新增 Grok CLI 作為第四張本機額度卡。** 讀取 Grok CLI 本來就會寫進自帶本機 debug log (`~/.grok/logs/unified.jsonl`) 的每週額度百分比，因此這張卡不需要網路呼叫，也不會啟動或衍生任何行程。該來源沒有提供 session 或是消耗速率 (burn rate) 資料，所以有別於 Claude、Codex 與 Antigravity，這張卡只會顯示一條每週進度條。已接上 macOS 彈窗面板、13 款相容的面板主題（圖示樣式皆配合各主題既有的徽章慣例設計）、Windows 系統匣，以及橫跨五種語言的 i18n。
+- **Grok CLI 的單次請求 token 數現在會併入今天的成本與花費總計。** Grok CLI 原本就會在它的本機 debug log 裡（`shell.turn.inference_done` 事件）寫入單次回合的 prompt/completion/cached/reasoning token 數，並透過 session id 與模型變更、session 建立事件關聯，以標明模型與專案歸屬。這次加了一個 loader 把這些資料轉換成 `UsageEntry`，因此 Grok 的活動現在會和 Claude 與 Codex 一樣，計入彈窗的「今日」成本／token 總數與專案列中——依然零網路呼叫。同時把 Grok 的 log 加入歷史指紋的 always-restat 檔案來源中，這樣兩次重整間只有 Grok 的 session 就不會被判定為過期資料。
+- **Codex CLI 現在會自動啟動 5 小時區間的 session keeper。** $20 方案會遇到 5 小時的 rate limit 視窗限制；$100/$200 方案則不會。這個 keeper 只有在本機的 rate-limit 資料曾經回報過 `five_hour_window_minutes` 數值時才會 ping，所以無限制方案完全不受影響。
+
+### 修正
+- **修正 Grok 圖示在 WebKit 上的尺寸，並將其加入 Hide Sections 開關。** 有五款面板主題 (`classic`, `catppuccin`, `origami`, `stained_glass`, `prism_arcade`) 的 SVG 圖示尺寸與顏色規則只套用到 Antigravity 的卡片上，導致未被覆蓋的 Grok 圖示以 WebKit 預設的 0 尺寸渲染——在 Chromium 測試時看起來正常，在實際的 App 裡卻是隱形的。現在擴充了這些規則來涵蓋 Grok 自己的圖示容器。同時也把 Grok 接上「Hide Sections」選單（macOS 與 Windows），現在它可以像其他三家供應商一樣被手動隱藏，而不只是在沒資料時才自動隱藏。
+- **讓 Grok 有自己的單色點綴，不再誤用 Antigravity 的紫色。** Grok 的品牌色是黑與白，但它的卡片一開始出貨時在 13 個主題裡都寫死了紫色的 hex 色碼——這顏色和 Antigravity 的藍色太接近，導致兩家供應商看起來像同一個系列。現在改用單個主題獨立的 `--grok` token（仿效 Antigravity 現有的單個主題點綴結構），並配合各主題自己的視覺語彙。
+- **將 Grok 加入展示用面板，讓 README 的截圖不再漏掉它。** 產生展示用面板的程式在 Grok 卡片出貨時沒加上 Grok 那一列，導致 README 裡每個主題的截圖都只有三家供應商而不是四家。現在補上了展示列並重新產生了所有的面板截圖。
+
+### 變更
+- **為年度 Wrapped 卡片加上發光效果、徽章與超出範圍修正。** 在 HTML 報表的「年度 Wrapped」區塊的野獸插圖背後加上放射狀漸層發光，讓 WRAPPED 徽章多了一層帶內部亮點的漸層，並讓插圖能延伸超出其網格欄位，以免看起來像死白空間。純 CSS 調整，無功能變動。
+
 ## [0.29.37] - 2026-08-25
 
 ### 修正
