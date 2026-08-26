@@ -16,6 +16,7 @@ import threading
 import time
 import tomllib
 import webbrowser
+from collections.abc import Callable, Mapping
 from importlib import metadata
 from pathlib import Path
 from typing import Any, cast
@@ -558,53 +559,37 @@ class AppDelegate(NSObject):
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("toggle launch at login failed", exc_info=True)
 
-    def toggleHideClaude_(self, sender: Any) -> None:
+    def _toggle_hide_section(
+        self,
+        sender: Any,
+        pref_key: str,
+        state_attr: str,
+        hide_enabled_fn: Callable[[Mapping[str, Any]], bool],
+    ) -> None:
         self._mark_switch_menu_action()
         prefs = _load_preferences()
-        enabled = not _hide_claude_enabled(prefs)
-        prefs["hide_claude_section"] = enabled
+        enabled = not hide_enabled_fn(prefs)
+        prefs[pref_key] = enabled
         _save_preferences(prefs)
         if hasattr(sender, "setState_"):
             sender.setState_(1 if enabled else 0)
-        self.latest_state.hide_claude = enabled
+        setattr(self.latest_state, state_attr, enabled)
         self.popover_controller.setState_(self.latest_state)
         menubar_title._set_button_title(self, self.latest_state)
+
+    def toggleHideClaude_(self, sender: Any) -> None:
+        self._toggle_hide_section(
+            sender, "hide_claude_section", "hide_claude", _hide_claude_enabled
+        )
 
     def toggleHideCodex_(self, sender: Any) -> None:
-        self._mark_switch_menu_action()
-        prefs = _load_preferences()
-        enabled = not _hide_codex_enabled(prefs)
-        prefs["hide_codex_section"] = enabled
-        _save_preferences(prefs)
-        if hasattr(sender, "setState_"):
-            sender.setState_(1 if enabled else 0)
-        self.latest_state.hide_codex = enabled
-        self.popover_controller.setState_(self.latest_state)
-        menubar_title._set_button_title(self, self.latest_state)
+        self._toggle_hide_section(sender, "hide_codex_section", "hide_codex", _hide_codex_enabled)
 
     def toggleHideAgy_(self, sender: Any) -> None:
-        self._mark_switch_menu_action()
-        prefs = _load_preferences()
-        enabled = not _hide_agy_enabled(prefs)
-        prefs["hide_agy_section"] = enabled
-        _save_preferences(prefs)
-        if hasattr(sender, "setState_"):
-            sender.setState_(1 if enabled else 0)
-        self.latest_state.hide_agy = enabled
-        self.popover_controller.setState_(self.latest_state)
-        menubar_title._set_button_title(self, self.latest_state)
+        self._toggle_hide_section(sender, "hide_agy_section", "hide_agy", _hide_agy_enabled)
 
     def toggleHideGrok_(self, sender: Any) -> None:
-        self._mark_switch_menu_action()
-        prefs = _load_preferences()
-        enabled = not _hide_grok_enabled(prefs)
-        prefs["hide_grok_section"] = enabled
-        _save_preferences(prefs)
-        if hasattr(sender, "setState_"):
-            sender.setState_(1 if enabled else 0)
-        self.latest_state.hide_grok = enabled
-        self.popover_controller.setState_(self.latest_state)
-        menubar_title._set_button_title(self, self.latest_state)
+        self._toggle_hide_section(sender, "hide_grok_section", "hide_grok", _hide_grok_enabled)
 
     def toggleQuotaNotifications_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
