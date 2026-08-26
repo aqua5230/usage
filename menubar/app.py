@@ -89,6 +89,7 @@ from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
+    _hide_grok_enabled,
     _quota_card_order,
     _quota_notification_thresholds,
     _quota_notifications_enabled,
@@ -184,6 +185,7 @@ __all__ = [
     "_hide_agy_enabled",
     "_hide_claude_enabled",
     "_hide_codex_enabled",
+    "_hide_grok_enabled",
     "_quota_card_order",
     "_quota_notification_thresholds",
     "_quota_notifications_enabled",
@@ -589,6 +591,18 @@ class AppDelegate(NSObject):
         if hasattr(sender, "setState_"):
             sender.setState_(1 if enabled else 0)
         self.latest_state.hide_agy = enabled
+        self.popover_controller.setState_(self.latest_state)
+        menubar_title._set_button_title(self, self.latest_state)
+
+    def toggleHideGrok_(self, sender: Any) -> None:
+        self._mark_switch_menu_action()
+        prefs = _load_preferences()
+        enabled = not _hide_grok_enabled(prefs)
+        prefs["hide_grok_section"] = enabled
+        _save_preferences(prefs)
+        if hasattr(sender, "setState_"):
+            sender.setState_(1 if enabled else 0)
+        self.latest_state.hide_grok = enabled
         self.popover_controller.setState_(self.latest_state)
         menubar_title._set_button_title(self, self.latest_state)
 

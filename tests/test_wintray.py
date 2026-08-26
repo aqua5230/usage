@@ -676,6 +676,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     monkeypatch.setattr(wintray, "_hide_claude_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_hide_codex_enabled", lambda: False)
     monkeypatch.setattr(wintray, "_hide_agy_enabled", lambda: True)
+    monkeypatch.setattr(wintray, "_hide_grok_enabled", lambda: False)
     monkeypatch.setattr(win_login_item, "is_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: False)
     monkeypatch.setattr(wintray, "_window_keeper_enabled", lambda: True)
@@ -707,7 +708,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     hidden_sections = cast(list[dict[str, object]], menu[3]["children"])
     assert panels[1]["panelId"] == "matrix"
     assert panels[1]["checked"] is True
-    assert [item["checked"] for item in hidden_sections] == [True, False, True]
+    assert [item["checked"] for item in hidden_sections] == [True, False, True, False]
     assert menu[5]["checked"] is True
     assert menu[6]["checked"] is False
     assert menu[7]["checked"] is True
@@ -793,6 +794,11 @@ def test_panel_body_keeps_refresh_and_quit_escape_controls(
             {"action": "toggle_hide_section", "preference_key": "hide_codex_section"},
             "toggle_hide_section",
             ("hide_codex_section",),
+        ),
+        (
+            {"action": "toggle_hide_section", "preference_key": "hide_grok_section"},
+            "toggle_hide_section",
+            ("hide_grok_section",),
         ),
         ({"action": "refresh"}, "refresh", ()),
         ({"action": "toggle_login"}, "toggle_login", ()),
@@ -1580,6 +1586,34 @@ def test_hide_section_updates_preferences_and_visible_panel(
     assert preferences == {"hide_claude_section": True}
     assert saved == [preferences]
     assert controller.latest_state.hide_claude is True
+    assert injected == ["state"]
+
+
+def test_hide_grok_section_updates_preferences_and_visible_panel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    preferences: dict[str, object] = {}
+    saved: list[dict[str, object]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    injected: list[str] = []
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences)
+    monkeypatch.setattr(wintray, "_save_preferences", lambda value: saved.append(dict(value)))
+    monkeypatch.setattr(wintray, "_hide_claude_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_hide_codex_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_hide_agy_enabled", lambda: False)
+    monkeypatch.setattr(
+        wintray,
+        "_hide_grok_enabled",
+        lambda: preferences.get("hide_grok_section") is True,
+    )
+    monkeypatch.setattr(controller, "inject_state", lambda: injected.append("state"))
+
+    controller.toggle_hide_section("hide_grok_section")
+
+    assert preferences == {"hide_grok_section": True}
+    assert saved == [preferences]
+    assert controller.latest_state.hide_grok is True
     assert injected == ["state"]
 
 

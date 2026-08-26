@@ -566,16 +566,23 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     # Provider hide toggles are collapsed into one "Hide Sections" submenu, with
     # the checkmark reflecting the stored preference.
     assert "Hide Sections" in main_titles
-    assert [item.title for item in hide_submenu.items] == ["Claude Code", "Codex", "Antigravity"]
+    assert [item.title for item in hide_submenu.items] == [
+        "Claude Code",
+        "Codex",
+        "Antigravity",
+        "Grok",
+    ]
     hide_parent = next(item for item in main_menu.items if item.submenu is hide_submenu)
     assert hide_parent.title == "Hide Sections"
-    claude_item, codex_item, agy_item = hide_submenu.items
+    claude_item, codex_item, agy_item, grok_item = hide_submenu.items
     assert claude_item.action == "toggleHideClaude:"
     assert claude_item.state == 0
     assert codex_item.action == "toggleHideCodex:"
     assert codex_item.state == 1
     assert agy_item.action == "toggleHideAgy:"
     assert agy_item.state == 0
+    assert grok_item.action == "toggleHideGrok:"
+    assert grok_item.state == 0
 
     # Resume Last Session is a single tooltip-backed toggle (no group header, no indent).
     butler = next(item for item in main_menu.items if item.action == "toggleSessionResume:")
@@ -1372,6 +1379,47 @@ def test_hide_claude_enabled_reads_preferences(monkeypatch: pytest.MonkeyPatch) 
     assert menubar._hide_claude_enabled() is True
     assert menubar._hide_claude_enabled({"hide_claude_section": False}) is False
     assert menubar._hide_claude_enabled({}) is False
+
+
+def test_hide_grok_enabled_reads_preferences(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        menubar_prefs,
+        "_load_preferences",
+        lambda: {"hide_grok_section": True},
+    )
+
+    assert menubar._hide_grok_enabled() is True
+    assert menubar._hide_grok_enabled({"hide_grok_section": False}) is False
+    assert menubar._hide_grok_enabled({}) is False
+
+
+def test_toggle_hide_grok_persists_preference_and_updates_state(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeController:
+        def __init__(self) -> None:
+            self.states: list[menubar.PopoverState] = []
+
+        def setState_(self, state: menubar.PopoverState) -> None:
+            self.states.append(state)
+
+    sender = _FakeMenuItem()
+    preferences: dict[str, object] = {}
+    saved: list[dict[str, object]] = []
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.latest_state = menubar._empty_state(language="en")
+    delegate.popover_controller = FakeController()
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: preferences)
+    monkeypatch.setattr(menubar, "_save_preferences", lambda value: saved.append(dict(value)))
+    monkeypatch.setattr(menubar_title, "_set_button_title", lambda _app, _state: None)
+
+    delegate.toggleHideGrok_(sender)
+
+    assert preferences == {"hide_grok_section": True}
+    assert saved == [preferences]
+    assert sender.state == 1
+    assert delegate.latest_state.hide_grok is True
+    assert delegate.popover_controller.states == [delegate.latest_state]
 
 
 def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2261,6 +2309,7 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
     monkeypatch.setattr(menubar_refresh, "_hide_claude_enabled", lambda: False)
     monkeypatch.setattr(menubar_refresh, "_hide_codex_enabled", lambda: False)
     monkeypatch.setattr(menubar_refresh, "_hide_agy_enabled", lambda: True)
+    monkeypatch.setattr(menubar_refresh, "_hide_grok_enabled", lambda: True)
     monkeypatch.setattr(menubar_refresh, "_quota_card_order", lambda: ("claude", "codex", "agy"))
     monkeypatch.setattr(
         menubar_refresh,
@@ -2318,7 +2367,7 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
             )
 
     agy_result = menubar_agy.AgyRefreshResult(projection=None, hide_agy=True)
-    grok_result = menubar_grok.GrokRefreshResult(projection=None, hide_grok=True)
+    grok_result = menubar_grok.GrokRefreshResult(projection=None, hide_grok=False)
     sources = menubar_refresh.RefreshSources(
         codex_result={
             "codex_rows": (session, weekly),
@@ -2345,6 +2394,7 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
     assert result["codex_5h_pct"] == 18.5
     assert result["codex_model"] == "gpt-test"
     assert result["animation_groups"] == (2, 3, 4)
+    assert state.hide_grok is True
     assert pings == [(2_000_000_000.0, 12, "hook", False)]
 
 

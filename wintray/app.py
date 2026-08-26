@@ -39,6 +39,7 @@ from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
+    _hide_grok_enabled,
     _panel_flavor,
     _quota_card_order,
     _quota_notification_thresholds,
@@ -1334,7 +1335,7 @@ class _WindowsTrayController:
             hide_claude=_hide_claude_enabled(),
             hide_codex=_hide_codex_enabled(),
             hide_agy=agy_result.hide_agy or _hide_agy_enabled(),
-            hide_grok=grok_result.hide_grok,
+            hide_grok=grok_result.hide_grok or _hide_grok_enabled(),
             codex_stale=codex_stale,
             codex_credits=codex_credits,
             agy_stale=agy.stale,
@@ -1484,6 +1485,7 @@ class _WindowsTrayController:
         self.latest_state.hide_claude = _hide_claude_enabled()
         self.latest_state.hide_codex = _hide_codex_enabled()
         self.latest_state.hide_agy = _hide_agy_enabled()
+        self.latest_state.hide_grok = _hide_grok_enabled()
         if self.visible:
             self.inject_state()
 
@@ -1782,6 +1784,7 @@ class _WindowsTrayController:
                     "hide_claude_section",
                     "hide_codex_section",
                     "hide_agy_section",
+                    "hide_grok_section",
                 }:
                     self.toggle_hide_section(preference_key)
             elif action == "open_ai_daily":
@@ -1897,6 +1900,7 @@ def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCo
         "hide_claude": _hide_claude_enabled,
         "hide_codex": _hide_codex_enabled,
         "hide_agy": _hide_agy_enabled,
+        "hide_grok": _hide_grok_enabled,
         "launch_at_login": win_login_item.is_enabled,
         "quota_notifications": _quota_notifications_enabled,
         "window_keeper": _window_keeper_enabled,

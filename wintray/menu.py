@@ -14,6 +14,7 @@ type CheckKey = Literal[
     "hide_claude",
     "hide_codex",
     "hide_agy",
+    "hide_grok",
     "launch_at_login",
     "quota_notifications",
     "window_keeper",
@@ -88,6 +89,13 @@ def windows_menu_model(panels: tuple[Panel, ...]) -> tuple[MenuEntry, ...]:
             checked_by="hide_agy",
             argument_name="preferenceKey",
             argument_value="hide_agy_section",
+        ),
+        MenuCommand(
+            "grok_name",
+            "toggle_hide_section",
+            checked_by="hide_grok",
+            argument_name="preferenceKey",
+            argument_value="hide_grok_section",
         ),
     )
     return (

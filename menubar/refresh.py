@@ -27,6 +27,7 @@ from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
+    _hide_grok_enabled,
     _quota_card_order,
 )
 from quota.burn_rate import BurnRateTracker
@@ -140,7 +141,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     hide_claude = fallback_state.hide_claude
     hide_codex = fallback_state.hide_codex
     hide_agy = agy_result.hide_agy or _hide_agy_enabled()
-    hide_grok = grok_result.hide_grok
+    hide_grok = grok_result.hide_grok or _hide_grok_enabled()
     card_order = _quota_card_order()
     try:
         started_at = time.monotonic() if sources.debug_timing else 0.0
@@ -173,7 +174,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         hide_claude = _hide_claude_enabled()
         hide_codex = _hide_codex_enabled()
         hide_agy = agy_result.hide_agy or _hide_agy_enabled()
-        hide_grok = grok_result.hide_grok
+        hide_grok = grok_result.hide_grok or _hide_grok_enabled()
     except Exception:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("local usage refresh failed", exc_info=True)
