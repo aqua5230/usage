@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.1] - 2026-08-27
+
+### 修正
+- **雲圖觀測的 Grok 過期提示不再把整張卡吃掉。** Grok 的過期提示列複製進 `cloud_observation.html` 時，沿用了 `codex-stale`／`codex-stale-info`／`codex-stale-tooltip`，但這個面板定義的是 `.stale`／`.stale-info`／`.stale-tooltip`。名稱對不上，沒有任何樣式生效，於是原本該浮在滑鼠上的提示變成一般內文，而失去樣式的那一列也丟掉了 `flex: none`／`white-space: nowrap`，把 `Grok` 標題擠成零寬度。只有雲圖觀測受影響，其餘 12 款主題的 class 本來就對得上。
+
 ## [0.30.0] - 2026-08-26
 
 ### 新增
