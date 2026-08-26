@@ -88,6 +88,7 @@ logger = logging.getLogger(__name__)
 CLAUDE_COLOR = (244 / 255, 145 / 255, 100 / 255)
 CODEX_COLOR = (88 / 255, 214 / 255, 230 / 255)
 AGY_COLOR = (107 / 255, 154 / 255, 1.0)
+GROK_COLOR = (167 / 255, 139 / 255, 250 / 255)
 WARN_COLOR = (255 / 255, 196 / 255, 57 / 255)
 DANGER_COLOR = (255 / 255, 69 / 255, 58 / 255)
 WEEKLY_FORECAST_WINDOW_SECONDS = 30 * 60
@@ -124,6 +125,10 @@ class AgyStaleState(TypedDict):
     ageText: str
 
 
+class GrokStaleState(TypedDict):
+    ageText: str
+
+
 class HistoryLoadErrorState(TypedDict):
     reasonText: str
 
@@ -143,6 +148,7 @@ class PopoverState:
     agy_session: QuotaRowState
     agy_weekly: QuotaRowState
     agy_group_name: str
+    grok_weekly: QuotaRowState
     projects: list[tuple[str, int, float | None]]
     projects_yesterday: list[tuple[str, int, float | None]]
     projects_7d: list[tuple[str, int, float | None]]
@@ -159,10 +165,12 @@ class PopoverState:
     hide_claude: bool = False
     hide_codex: bool = False
     hide_agy: bool = True
+    hide_grok: bool = True
     codex_stale: CodexStaleState | None = None
     codex_credits: CodexCreditsState | None = None
     agy_stale: AgyStaleState | None = None
-    card_order: tuple[str, ...] = ("claude", "codex", "agy")
+    grok_stale: GrokStaleState | None = None
+    card_order: tuple[str, ...] = ("claude", "codex", "agy", "grok")
     history_error: HistoryLoadErrorState | None = None
     # Talent-market panel payload (None for non-talent panels). Fetched from the
     # external instate-cli by talent_market_bridge, only when the active panel
@@ -802,6 +810,7 @@ def build_popover_state(
     codex_rows: tuple[QuotaRowState, QuotaRowState],
     agy_rows: tuple[QuotaRowState, QuotaRowState],
     agy_group_name: str,
+    grok_row: QuotaRowState,
     projects: list[tuple[str, int, float | None]],
     projects_yesterday: list[tuple[str, int, float | None]],
     projects_7d: list[tuple[str, int, float | None]],
@@ -817,10 +826,12 @@ def build_popover_state(
     hide_claude: bool,
     hide_codex: bool,
     hide_agy: bool,
+    hide_grok: bool,
     codex_stale: CodexStaleState | None,
     codex_credits: CodexCreditsState | None = None,
     agy_stale: AgyStaleState | None,
-    card_order: tuple[str, ...] = ("claude", "codex", "agy"),
+    grok_stale: GrokStaleState | None,
+    card_order: tuple[str, ...] = ("claude", "codex", "agy", "grok"),
     history_error: HistoryLoadErrorState | None = None,
     service_statuses: tuple[ServiceStatus, ...] = (),
 ) -> PopoverState:
@@ -920,6 +931,7 @@ def build_popover_state(
         agy_session=agy_rows[0],
         agy_weekly=agy_rows[1],
         agy_group_name=agy_group_name,
+        grok_weekly=grok_row,
         projects=projects,
         projects_yesterday=projects_yesterday,
         projects_7d=projects_7d,
@@ -936,9 +948,11 @@ def build_popover_state(
         hide_claude=hide_claude,
         hide_codex=hide_codex,
         hide_agy=hide_agy,
+        hide_grok=hide_grok,
         codex_stale=codex_stale,
         codex_credits=codex_credits,
         agy_stale=agy_stale,
+        grok_stale=grok_stale,
         card_order=card_order,
         history_error=history_error,
     )
@@ -1038,6 +1052,8 @@ def popover_dimensions(
     )
     agy_card_height = getattr(active_panel, "agy_card_height", 0.0)
     agy_deduct = agy_card_height if state.hide_agy else 0.0
+    grok_card_height = getattr(active_panel, "grok_card_height", 0.0)
+    grok_deduct = grok_card_height if state.hide_grok else 0.0
     install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
     status_extra = (
         getattr(active_panel, "status_wrap_extra_height", 0.0)
@@ -1068,6 +1084,7 @@ def popover_dimensions(
         - codex_deduct
         - codex_row_deduct
         - agy_deduct
+        - grok_deduct
     )
     return width, height
 
@@ -1092,6 +1109,7 @@ def _empty_state(language: str = "en") -> PopoverState:
         agy_session=_missing_row(_t(language, "session_label"), AGY_COLOR, language),
         agy_weekly=_missing_row(_t(language, "weekly_label"), AGY_COLOR, language),
         agy_group_name="",
+        grok_weekly=_missing_row(_t(language, "weekly_label"), GROK_COLOR, language),
         projects=[],
         projects_yesterday=[],
         projects_7d=[],
@@ -1111,6 +1129,7 @@ def _empty_state(language: str = "en") -> PopoverState:
         # looks like the integration never loaded even though the child process
         # is already active.
         hide_agy=menubar_agy.find_agy() is None,
+        hide_grok=True,
         card_order=_quota_card_order(),
     )
 

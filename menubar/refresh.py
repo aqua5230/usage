@@ -21,6 +21,7 @@ import quota.window_keeper as window_keeper
 import talent_market_bridge
 from loaders.history_loader import UsageEntry
 from menubar import agy as menubar_agy
+from menubar import grok as menubar_grok
 from menubar import state as menubar_state
 from menubar.prefs import (
     _hide_agy_enabled,
@@ -70,6 +71,8 @@ class RefreshSources:
     history_scan: menubar_state.HistorySourceScan | None
     agy_result: menubar_agy.AgyRefreshResult
     agy_projection: menubar_agy.AgyQuotaProjection
+    grok_result: menubar_grok.GrokRefreshResult
+    grok_projection: menubar_grok.GrokQuotaProjection
     animation_groups: tuple[int, int, int]
     debug_timing: bool
 
@@ -98,6 +101,12 @@ def load_sources(app: _RefreshApp) -> RefreshSources:
         elapsed_ms = (time.monotonic() - started_at) * 1000
         logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", "agy_load", elapsed_ms)
     agy_projection = agy_result.projection or menubar_agy.fallback_projection(app.language)
+    started_at = time.monotonic() if debug_timing else 0.0
+    grok_result = menubar_grok.load_refresh_result(app.language)
+    if debug_timing:
+        elapsed_ms = (time.monotonic() - started_at) * 1000
+        logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", "grok_load", elapsed_ms)
+    grok_projection = grok_result.projection or menubar_grok.fallback_projection(app.language)
     return RefreshSources(
         codex_result=codex_result,
         history_scan=(
@@ -105,6 +114,8 @@ def load_sources(app: _RefreshApp) -> RefreshSources:
         ),
         agy_result=agy_result,
         agy_projection=agy_projection,
+        grok_result=grok_result,
+        grok_projection=grok_projection,
         animation_groups=animation_groups,
         debug_timing=debug_timing,
     )
@@ -114,6 +125,8 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     codex_result = sources.codex_result
     agy_result = sources.agy_result
     agy_projection = sources.agy_projection
+    grok_result = sources.grok_result
+    grok_projection = sources.grok_projection
     animation_groups = sources.animation_groups
     fallback_state = getattr(app, "latest_state", menubar_state._empty_state(app.language))
     project_rows = list(fallback_state.projects)
@@ -127,6 +140,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     hide_claude = fallback_state.hide_claude
     hide_codex = fallback_state.hide_codex
     hide_agy = agy_result.hide_agy or _hide_agy_enabled()
+    hide_grok = grok_result.hide_grok
     card_order = _quota_card_order()
     try:
         started_at = time.monotonic() if sources.debug_timing else 0.0
@@ -159,6 +173,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         hide_claude = _hide_claude_enabled()
         hide_codex = _hide_codex_enabled()
         hide_agy = agy_result.hide_agy or _hide_agy_enabled()
+        hide_grok = grok_result.hide_grok
     except Exception:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("local usage refresh failed", exc_info=True)
@@ -203,6 +218,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             codex_rows=codex_rows,
             agy_rows=(agy_projection.session, agy_projection.weekly),
             agy_group_name=agy_projection.group_name,
+            grok_row=grok_projection.weekly,
             projects=project_rows,
             projects_yesterday=project_rows_yesterday,
             projects_7d=project_rows_7d,
@@ -218,9 +234,11 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             hide_claude=hide_claude,
             hide_codex=hide_codex,
             hide_agy=hide_agy,
+            hide_grok=hide_grok,
             codex_stale=codex_stale,
             codex_credits=codex_credits,
             agy_stale=agy_projection.stale,
+            grok_stale=grok_projection.stale,
             card_order=card_order,
             history_error=menubar_state.history_load_error_state(
                 app._history_load_error_key, app.language
@@ -249,6 +267,8 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         state.agy_weekly = agy_projection.weekly
         state.agy_group_name = agy_projection.group_name
         state.agy_stale = agy_projection.stale
+        state.grok_weekly = grok_projection.weekly
+        state.grok_stale = grok_projection.stale
         state.history_error = menubar_state.history_load_error_state(
             app._history_load_error_key, app.language
         )
@@ -263,6 +283,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         state.hide_claude = hide_claude
         state.hide_codex = hide_codex
         state.hide_agy = hide_agy
+        state.hide_grok = hide_grok
         state.card_order = card_order
 
     # Talent-market data is panel-local (no quota numbers). Fetch it

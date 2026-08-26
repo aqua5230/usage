@@ -10,7 +10,7 @@ from collections.abc import Mapping
 
 from prefs import _load_preferences, _save_preferences
 
-DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy")
+DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy", "grok")
 DEFAULT_PANEL_FLAVOR = "mocha"
 PANEL_FLAVORS = ("latte", "frappe", "macchiato", "mocha")
 

@@ -23,6 +23,7 @@ from menubar import actions as menubar_actions
 from menubar import agy as menubar_agy
 from menubar import app as menubar
 from menubar import chrome as menubar_chrome
+from menubar import grok as menubar_grok
 from menubar import menu as menubar_menu
 from menubar import popover as menubar_popover
 from menubar import prefs as menubar_prefs
@@ -163,6 +164,7 @@ def _build_popover_state(
             menubar._missing_row("Weekly", menubar_state.AGY_COLOR),
         ),
         agy_group_name="",
+        grok_row=menubar._missing_row("Weekly", menubar_state.GROK_COLOR),
         projects=[],
         projects_yesterday=[],
         projects_7d=[],
@@ -182,8 +184,10 @@ def _build_popover_state(
         hide_claude=hide_claude,
         hide_codex=menubar._hide_codex_enabled(),
         hide_agy=True,
+        hide_grok=True,
         codex_stale=None,
         agy_stale=None,
+        grok_stale=None,
         service_statuses=service_statuses,
     )
 
@@ -1377,6 +1381,7 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
         claude_card_height = 100.0
         codex_card_height = 60.0
         agy_card_height = 40.0
+        grok_card_height = 30.0
         service_alert_height = 0.0
 
         def build_view(self, delegate: Any) -> Any:
@@ -1391,6 +1396,7 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
     monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
     state = menubar._empty_state()
     state.hide_agy = False
+    state.hide_grok = False
     panel = FakePanel()
 
     assert menubar_popover._popover_size(state, panel).height == 500.0
@@ -1400,6 +1406,8 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
     assert menubar_popover._popover_size(state, panel).height == 340.0
     state.hide_agy = True
     assert menubar_popover._popover_size(state, panel).height == 300.0
+    state.hide_grok = True
+    assert menubar_popover._popover_size(state, panel).height == 270.0
 
 
 def test_popover_size_deducts_one_missing_codex_row(
@@ -2310,6 +2318,7 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
             )
 
     agy_result = menubar_agy.AgyRefreshResult(projection=None, hide_agy=True)
+    grok_result = menubar_grok.GrokRefreshResult(projection=None, hide_grok=True)
     sources = menubar_refresh.RefreshSources(
         codex_result={
             "codex_rows": (session, weekly),
@@ -2320,6 +2329,8 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
         history_scan=None,
         agy_result=agy_result,
         agy_projection=menubar_agy.fallback_projection("en"),
+        grok_result=grok_result,
+        grok_projection=menubar_grok.fallback_projection("en"),
         animation_groups=(0, 0, 0),
         debug_timing=False,
     )

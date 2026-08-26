@@ -103,13 +103,13 @@ def test_registered_panel_i18n_keys() -> None:
 def test_classic_panel_preferred_size() -> None:
     panel = panels.get_panel("classic")
 
-    assert panel.preferred_size() == (364.0, 1004.0)
+    assert panel.preferred_size() == (364.0, 1132.0)
 
 
 def test_catppuccin_panel_preferred_size() -> None:
     panel = panels.get_panel("catppuccin")
 
-    assert panel.preferred_size() == (364.0, 1038.0)
+    assert panel.preferred_size() == (364.0, 1166.0)
 
 
 def test_catppuccin_flavor_is_resolved_after_cached_html_load(
@@ -129,7 +129,7 @@ def test_catppuccin_flavor_is_resolved_after_cached_html_load(
 def test_win95_panel_preferred_size() -> None:
     panel = panels.get_panel("win95")
 
-    assert panel.preferred_size() == (364.0, 1055.0)
+    assert panel.preferred_size() == (364.0, 1183.0)
 
 
 def test_html_panels_place_analyze_and_cli_in_project_header() -> None:

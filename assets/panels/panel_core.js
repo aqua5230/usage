@@ -42,8 +42,10 @@
           host = document.querySelector('[data-card="codex"] .brand');
         } else if (state.hideClaude && state.hideCodex && !state.hideAgy) {
           host = document.querySelector('[data-card="agy"] .brand');
+        } else if (state.hideClaude && state.hideCodex && state.hideAgy && !state.hideGrok) {
+          host = document.querySelector('[data-card="grok"] .brand');
         }
-        if (!host || (state.hideClaude && state.hideCodex && state.hideAgy)) {
+        if (!host || (state.hideClaude && state.hideCodex && state.hideAgy && state.hideGrok)) {
           host = document.querySelector(".footer .actions");
           className = "action";
         }
@@ -85,6 +87,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      [data-card="grok"] { cursor: grab; }
     `;
     document.head.appendChild(switchHostStyle);
     let currentLanguage = "en";
@@ -261,6 +264,23 @@
       staleEl.hidden = true;
     }
 
+    function renderGrok(grok) {
+      applyCard("grok", grok);
+      const staleEl = document.querySelector("[data-grok-stale]");
+      const ageEl = document.querySelector("[data-grok-stale-age]");
+      const tooltipEl = document.querySelector("[data-grok-stale-tooltip]");
+      if (!staleEl || !ageEl || !tooltipEl) return;
+      if (grok && grok.stale && grok.stale.ageText) {
+        ageEl.textContent = grok.stale.ageText;
+        tooltipEl.textContent = t("grok_stale_tooltip");
+        staleEl.hidden = false;
+        return;
+      }
+      ageEl.textContent = "";
+      tooltipEl.textContent = "";
+      staleEl.hidden = true;
+    }
+
     function renderHistoryLoadError(err) {
       const el = document.querySelector("[data-history-error]");
       const textEl = document.querySelector("[data-history-error-text]");
@@ -333,7 +353,7 @@
       }
     }
 
-    const QUOTA_CARD_IDS = ["claude", "codex", "agy"];
+    const QUOTA_CARD_IDS = ["claude", "codex", "agy", "grok"];
 
     function applyCardOrder(order) {
       if (cardDrag && cardDrag.dragging) return;
@@ -360,6 +380,7 @@
       document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
       document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
       document.documentElement.classList.toggle('hide-agy', !!state.hideAgy);
+      document.documentElement.classList.toggle('hide-grok', !!state.hideGrok);
       applyCardOrder(state.cardOrder);
       relocateSwitchButton(state);
       currentLanguage = I18N[state.language] ? state.language : currentLanguage;
@@ -369,6 +390,7 @@
       renderCodexStale(state.codex && state.codex.stale);
       renderCodexCredits(state.codex && state.codex.credits);
       renderAgy(state.agy);
+      renderGrok(state.grok);
       renderHistoryLoadError(state.historyError);
       latestState = state;
       renderProjects(
@@ -431,7 +453,7 @@
     let cardDrag = null;
 
     document.addEventListener("pointerdown", (event) => {
-      const card = event.target.closest('[data-card="claude"], [data-card="codex"], [data-card="agy"]');
+      const card = event.target.closest('[data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]');
       if (!card || event.button !== 0 || event.target.closest(window.PanelHooks.pointerdownExcludeSelector)) return;
       cardDrag = { card, pointerId: event.pointerId, startY: event.clientY, dragging: false };
       card.setPointerCapture(event.pointerId);
@@ -446,7 +468,7 @@
         document.documentElement.classList.add("is-card-dragging");
       }
       event.preventDefault();
-      const cards = [...document.querySelectorAll('[data-card="claude"], [data-card="codex"], [data-card="agy"]')]
+      const cards = [...document.querySelectorAll('[data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]')]
         .filter((card) => card.offsetParent !== null);
       const target = cards.find((card) => card !== cardDrag.card && event.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2);
       if (target) target.parentElement.insertBefore(cardDrag.card, target);
@@ -481,8 +503,10 @@
       claude: { session: {}, weekly: {} },
       codex: { session: {}, weekly: {} },
       agy: { session: {}, weekly: {}, groupName: "" },
-      cardOrder: ["claude", "codex", "agy"],
+      grok: { weekly: {} },
+      cardOrder: ["claude", "codex", "agy", "grok"],
       hideAgy: true,
+      hideGrok: true,
       projects: [],
       projectsYesterday: [],
       projects7d: [],

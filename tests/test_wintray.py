@@ -83,6 +83,7 @@ def _state() -> menubar_state.PopoverState:
         agy_session=row,
         agy_weekly=weekly,
         agy_group_name="",
+        grok_weekly=weekly,
         projects=[],
         projects_yesterday=[],
         projects_7d=[],
@@ -851,10 +852,10 @@ def test_card_order_persists_into_the_next_loaded_panel(
     controller.on_loaded()
 
     assert preferences["quota_card_order"] == order
-    assert controller.latest_state.card_order == tuple(order)
+    assert controller.latest_state.card_order == (*order, "grok")
     assert len(loaded) == 1
     payload = injected[-1].removeprefix("window.usageApplyState(").removesuffix(")")
-    assert json.loads(payload)["cardOrder"] == order
+    assert json.loads(payload)["cardOrder"] == [*order, "grok"]
 
 
 def test_run_app_wires_pystray_and_pywebview(

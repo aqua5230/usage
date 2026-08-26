@@ -32,6 +32,7 @@ from installer.statusline_settings import _statusline_enabled, _toggle_statuslin
 from loaders import codex_loader
 from loaders.history_loader import UsageEntry, load_entries
 from menubar import agy as menubar_agy
+from menubar import grok as menubar_grok
 from menubar import state as menubar_state
 from menubar.prefs import (
     _auto_update_check_enabled,
@@ -98,20 +99,20 @@ WINDOWS_PANELS = (
 # heights and status-wrap growth) so the brief pre-measurement window isn't
 # ~17-24pt too tall.
 PANEL_HEIGHTS = {
-    "classic": 1004,
-    "matrix": 1046,
-    "win95": 1055,
-    "newspaper": 1051,
-    "cloud_observation": 1006,
-    "aquarium": 1006,
-    "prism_arcade": 1006,
-    "black_hole": 1006,
-    "lepidoptera": 1046,
+    "classic": 1132,
+    "matrix": 1174,
+    "win95": 1183,
+    "newspaper": 1179,
+    "cloud_observation": 1134,
+    "aquarium": 1134,
+    "prism_arcade": 1134,
+    "black_hole": 1134,
+    "lepidoptera": 1174,
     "world_cup": 812,
-    "stained_glass": 1004,
-    "migration": 1004,
-    "origami": 1004,
-    "catppuccin": 1038,
+    "stained_glass": 1132,
+    "migration": 1132,
+    "origami": 1132,
+    "catppuccin": 1166,
 }
 
 TRAY_UNKNOWN_COLOR = (110, 118, 129, 255)
@@ -584,6 +585,8 @@ def build_tooltip(state: menubar_state.PopoverState) -> str:
             f"{line('Antigravity', state.agy_session)} · "
             f"{line('Antigravity', state.agy_weekly).removeprefix('Antigravity ')}"
         )
+    if not state.hide_grok:
+        lines.append(line("Grok", state.grok_weekly))
     return "\n".join(lines)
 
 
@@ -786,6 +789,9 @@ class _WindowsTrayController:
                 _t(self.language, "weekly_label"), menubar_state.AGY_COLOR, self.language
             ),
             agy_group_name="",
+            grok_weekly=missing(
+                _t(self.language, "weekly_label"), menubar_state.GROK_COLOR, self.language
+            ),
             projects=[],
             projects_yesterday=[],
             projects_7d=[],
@@ -799,6 +805,7 @@ class _WindowsTrayController:
             hide_claude=_hide_claude_enabled(),
             hide_codex=_hide_codex_enabled(),
             hide_agy=_hide_agy_enabled(),
+            hide_grok=True,
             card_order=_quota_card_order(),
         )
 
@@ -1258,6 +1265,10 @@ class _WindowsTrayController:
         agy = agy_result.projection or menubar_agy.fallback_projection(self.language)
         measure("agy_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
+        grok_result = menubar_grok.load_refresh_result(self.language)
+        grok = grok_result.projection or menubar_grok.fallback_projection(self.language)
+        measure("grok_load", started_at)
+        started_at = time.monotonic() if debug_timing else 0.0
         local_date = datetime.now().astimezone().date()
         if self._history_cache_date != local_date or menubar_state.history_cache_needs_reload(
             self._history_fingerprint,
@@ -1299,6 +1310,7 @@ class _WindowsTrayController:
             codex_rows=codex_rows,
             agy_rows=(agy.session, agy.weekly),
             agy_group_name=agy.group_name,
+            grok_row=grok.weekly,
             projects=projects[0],
             projects_yesterday=projects[1],
             projects_7d=projects[2],
@@ -1322,9 +1334,11 @@ class _WindowsTrayController:
             hide_claude=_hide_claude_enabled(),
             hide_codex=_hide_codex_enabled(),
             hide_agy=agy_result.hide_agy or _hide_agy_enabled(),
+            hide_grok=grok_result.hide_grok,
             codex_stale=codex_stale,
             codex_credits=codex_credits,
             agy_stale=agy.stale,
+            grok_stale=grok.stale,
             card_order=_quota_card_order(),
             history_error=menubar_state.history_load_error_state(
                 history.history_error_key, self.language

@@ -428,6 +428,7 @@ class HTMLPanel:
     codex_card_height: float
     codex_row_height: float
     agy_card_height: float
+    grok_card_height: float
     status_wrap_extra_height: float
     service_alert_height: float
     dynamic_height: bool
@@ -444,6 +445,7 @@ class HTMLPanel:
         codex_card_height: float,
         codex_row_height: float = 64.0,
         agy_card_height: float = 0.0,
+        grok_card_height: float = 0.0,
         status_wrap_extra_height: float = 0.0,
         service_alert_height: float = 0.0,
         dynamic_height: bool = True,
@@ -457,6 +459,7 @@ class HTMLPanel:
         self.codex_card_height = codex_card_height
         self.codex_row_height = codex_row_height
         self.agy_card_height = agy_card_height
+        self.grok_card_height = grok_card_height
         self.status_wrap_extra_height = status_wrap_extra_height
         self.service_alert_height = service_alert_height
         self.dynamic_height = dynamic_height
