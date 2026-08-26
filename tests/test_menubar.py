@@ -18,7 +18,7 @@ import panels
 import quota.agy_window_keeper as agy_window_keeper
 import quota.window_keeper as window_keeper
 from installer import statusline_settings
-from loaders import codex_loader, history_loader
+from loaders import codex_loader, grok_loader, history_loader
 from menubar import actions as menubar_actions
 from menubar import agy as menubar_agy
 from menubar import app as menubar
@@ -1591,8 +1591,77 @@ def test_load_history_entries_includes_codex_entries(monkeypatch: pytest.MonkeyP
         "menubar.state.codex_loader.load_entries",
         lambda *, hours_back, jsonl_paths=None: [codex_entry],
     )
+    monkeypatch.setattr(
+        "menubar.state.grok_loader.load_entries",
+        lambda hours_back=0: [],
+    )
 
     assert delegate._load_history_entries() == [claude_entry, codex_entry]
+
+
+def test_load_history_entries_includes_grok_entries(monkeypatch: pytest.MonkeyPatch) -> None:
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(False, 60)
+    claude_entry = history_loader.UsageEntry(
+        timestamp=datetime(2026, 5, 21, tzinfo=UTC),
+        session_id="claude",
+        message_id="m1",
+        request_id="r1",
+        model="claude",
+        input_tokens=1,
+        output_tokens=2,
+        cache_creation_tokens=3,
+        cache_read_tokens=4,
+        cost_usd=0.1,
+        project="usage",
+    )
+    codex_entry = history_loader.UsageEntry(
+        timestamp=datetime(2026, 5, 21, tzinfo=UTC),
+        session_id="codex",
+        message_id="m2",
+        request_id="r2",
+        model="gpt",
+        input_tokens=5,
+        output_tokens=6,
+        cache_creation_tokens=7,
+        cache_read_tokens=8,
+        cost_usd=0.2,
+        project="usage",
+    )
+    grok_entry = history_loader.UsageEntry(
+        timestamp=datetime(2026, 5, 21, tzinfo=UTC),
+        session_id="grok",
+        message_id="m3",
+        request_id="r3",
+        model="grok-4.6",
+        input_tokens=9,
+        output_tokens=10,
+        cache_creation_tokens=0,
+        cache_read_tokens=11,
+        cost_usd=None,
+        project="usage",
+    )
+
+    scan = menubar_state.HistorySourceScan(
+        fingerprint=(("same", 1, 1.0),),
+        claude_paths=(),
+        codex_paths=(),
+    )
+    monkeypatch.setattr(delegate, "_history_source_scan", lambda: scan)
+    monkeypatch.setattr(
+        menubar_state,
+        "load_entries",
+        lambda *, hours_back, jsonl_paths=None: [claude_entry],
+    )
+    monkeypatch.setattr(
+        "menubar.state.codex_loader.load_entries",
+        lambda *, hours_back, jsonl_paths=None: [codex_entry],
+    )
+    monkeypatch.setattr(
+        "menubar.state.grok_loader.load_entries",
+        lambda hours_back=0: [grok_entry],
+    )
+
+    assert delegate._load_history_entries() == [claude_entry, codex_entry, grok_entry]
 
 
 def test_load_history_entries_reuses_cache_when_sources_do_not_change(
@@ -1656,6 +1725,7 @@ def test_load_history_entries_reuses_cache_when_sources_do_not_change(
     monkeypatch.setattr(delegate, "_history_source_scan", lambda: scan)
     monkeypatch.setattr(menubar_state, "load_entries", fake_claude_entries)
     monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
+    monkeypatch.setattr(grok_loader, "load_entries", lambda hours_back=0: [])
 
     first = delegate._load_history_entries()
     second = delegate._load_history_entries()
@@ -1707,6 +1777,7 @@ def test_load_history_entries_refreshes_cache_when_sources_change(
         menubar_state, "load_entries", lambda *, hours_back=0, jsonl_paths=None: []
     )
     monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
+    monkeypatch.setattr(grok_loader, "load_entries", lambda hours_back=0: [])
 
     assert delegate._load_history_entries() == entries
     assert delegate._load_history_entries() == entries
@@ -1739,6 +1810,7 @@ def test_load_history_entries_records_error_key_on_failure_and_clears_on_success
     monkeypatch.setattr(
         codex_loader, "load_entries", lambda *, hours_back=0, jsonl_paths=None: []
     )
+    monkeypatch.setattr(grok_loader, "load_entries", lambda hours_back=0: [])
 
     def failing_load_entries(
         *, hours_back: int = 0, jsonl_paths: tuple[Path, ...] | None = None

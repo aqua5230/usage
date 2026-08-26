@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from loaders import codex_loader
+from loaders import codex_loader, grok_loader
 from loaders.history_loader import UsageEntry
 from menubar import state as menubar_state
 from quota.burn_rate import BurnRateTracker
@@ -66,6 +66,7 @@ def _patch_history_sources(
     monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", archived)
     monkeypatch.setattr(codex_loader, "LOGS_DB", home / ".codex" / "logs_2.sqlite")
     monkeypatch.setattr(codex_loader, "STATE_DB", home / ".codex" / "state_5.sqlite")
+    monkeypatch.setattr(grok_loader, "GROK_LOG_PATH", home / ".grok" / "logs" / "unified.jsonl")
     return claude, sessions, archived
 
 
@@ -151,7 +152,15 @@ def test_history_source_tracker_only_stats_dirty_file(
     tracker.record_changes({dirty})
     second = tracker.scan(now=1.0)
 
-    assert [path for path in calls if path.suffix == ".jsonl"] == [dirty]
+    # File sources outside the FSEvents-watched directories (Codex's sqlite
+    # files, Grok's log) are always re-stat'd on every scan regardless of
+    # dirty tracking, so exclude them here: this assertion is only about the
+    # directory-watched jsonl sources.
+    always_restat = set(menubar_state._history_file_sources())
+    directory_jsonl_calls = [
+        path for path in calls if path.suffix == ".jsonl" and path not in always_restat
+    ]
+    assert directory_jsonl_calls == [dirty]
     assert first.fingerprint != second.fingerprint
     assert set(second.claude_paths) == {dirty, unchanged}
 

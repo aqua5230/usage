@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
 
 from i18n import _t
 from installer.statusline_settings import _statusline_enabled
-from loaders import codex_loader
+from loaders import codex_loader, grok_loader
 from loaders.codex_paths import codex_home
 from loaders.history_loader import CLAUDE_PROJECTS_DIR, UsageEntry, load_entries
 from menubar.prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order
@@ -274,13 +274,14 @@ def _history_directory_sources() -> tuple[Path, Path, Path]:
     )
 
 
-def _history_file_sources() -> tuple[Path, Path, Path, Path]:
+def _history_file_sources() -> tuple[Path, ...]:
     codex_dir = codex_home()
     return (
         codex_loader.LOGS_DB,
         codex_dir / "logs_2.sqlite-wal",
         codex_loader.STATE_DB,
         codex_dir / "state_5.sqlite-wal",
+        grok_loader.GROK_LOG_PATH,
     )
 
 
@@ -438,6 +439,12 @@ def app_load_history_entries(
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("Codex project usage load failed", exc_info=True)
+        error_key = _classify_history_load_error(exc)
+    try:
+        entries.extend(grok_loader.load_entries(hours_back=0))
+    except Exception as exc:
+        if os.environ.get("USAGE_DEBUG") == "1":
+            logger.warning("Grok project usage load failed", exc_info=True)
         error_key = _classify_history_load_error(exc)
     app._history_load_error_key = error_key
     app._history_entries_cache = list(entries)
