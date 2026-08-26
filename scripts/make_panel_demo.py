@@ -75,6 +75,8 @@ def _demo_state(language: str) -> PopoverState:
     state.agy_weekly = _row(language, "weekly_label", 12.0, 464_400)
     state.agy_group_name = "GEMINI MODELS"
     state.hide_agy = False
+    state.grok_weekly = _row(language, "weekly_label", 38.0, 544_800)
+    state.hide_grok = False
     state.projects = list(DEMO_PROJECTS)
     state.projects_yesterday = list(DEMO_PROJECTS)
     state.projects_7d = list(DEMO_PROJECTS)
