@@ -103,6 +103,8 @@ def _launchctl_bootstrap() -> None:
             cmd,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
             timeout=5,
         )
@@ -135,6 +137,8 @@ def _launchctl_bootout() -> None:
             cmd,
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             check=False,
             timeout=5,
         )

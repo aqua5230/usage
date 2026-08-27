@@ -92,7 +92,7 @@ def test_enable_bootstrap_returncode_0_keeps_plist_and_uses_safe_subprocess(
     tmp_path: Path,
 ) -> None:
     plist_path = _configure_login_item_paths(monkeypatch, tmp_path)
-    calls: list[tuple[list[str], bool, bool, bool, int]] = []
+    calls: list[tuple[list[str], bool, bool, str, str, bool, int]] = []
 
     def fake_getuid() -> int:
         return 501
@@ -102,10 +102,12 @@ def test_enable_bootstrap_returncode_0_keeps_plist_and_uses_safe_subprocess(
         *,
         capture_output: bool,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
-        calls.append((cmd, capture_output, text, check, timeout))
+        calls.append((cmd, capture_output, text, encoding, errors, check, timeout))
         return _completed(cmd, 0)
 
     monkeypatch.setattr("installer.login_item.os.getuid", fake_getuid)
@@ -119,6 +121,8 @@ def test_enable_bootstrap_returncode_0_keeps_plist_and_uses_safe_subprocess(
             ["launchctl", "bootstrap", "gui/501", str(plist_path)],
             True,
             True,
+            "utf-8",
+            "replace",
             False,
             5,
         )
@@ -137,6 +141,8 @@ def test_enable_bootstrap_returncode_17_keeps_plist_without_error(
         *,
         capture_output: bool,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
@@ -162,6 +168,8 @@ def test_enable_bootstrap_unexpected_returncode_warns_and_keeps_plist(
         *,
         capture_output: bool,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
@@ -199,6 +207,8 @@ def test_enable_bootstrap_subprocess_exception_warns_and_keeps_plist(
         *,
         capture_output: bool,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
@@ -222,7 +232,7 @@ def test_disable_bootout_returncode_0_removes_plist_and_uses_safe_subprocess(
     plist_path = _configure_login_item_paths(monkeypatch, tmp_path)
     plist_path.parent.mkdir(parents=True)
     plist_path.write_text("plist", encoding="utf-8")
-    calls: list[tuple[list[str], bool, bool, bool, int]] = []
+    calls: list[tuple[list[str], bool, bool, str, str, bool, int]] = []
 
     def fake_getuid() -> int:
         return 501
@@ -232,10 +242,12 @@ def test_disable_bootout_returncode_0_removes_plist_and_uses_safe_subprocess(
         *,
         capture_output: bool,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
-        calls.append((cmd, capture_output, text, check, timeout))
+        calls.append((cmd, capture_output, text, encoding, errors, check, timeout))
         return _completed(cmd, 0)
 
     monkeypatch.setattr("installer.login_item.os.getuid", fake_getuid)
@@ -249,6 +261,8 @@ def test_disable_bootout_returncode_0_removes_plist_and_uses_safe_subprocess(
             ["launchctl", "bootout", f"gui/501/{login_item.LABEL}"],
             True,
             True,
+            "utf-8",
+            "replace",
             False,
             5,
         )
@@ -269,6 +283,8 @@ def test_disable_bootout_returncode_113_removes_plist_without_error(
         *,
         capture_output: bool,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
@@ -296,6 +312,8 @@ def test_disable_bootout_unexpected_returncode_warns_and_removes_plist(
         *,
         capture_output: bool,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
@@ -327,6 +345,8 @@ def test_disable_bootout_file_not_found_warns_and_removes_plist(
         *,
         capture_output: bool,
         text: bool,
+        encoding: str,
+        errors: str,
         check: bool,
         timeout: int,
     ) -> subprocess.CompletedProcess[str]:
