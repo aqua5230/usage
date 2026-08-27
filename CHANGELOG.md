@@ -5,14 +5,20 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## [0.30.2] - 2026-08-28
 
 ### Fixed
+- **Panels that are too tall for the screen now scale down instead of clipping.** `clamp_content_height()` used the visible frame as its ceiling, leaving rows beyond that height unreachable. `panels/panel_scale.py` now calculates a fit scale, no lower than `MIN_PANEL_SCALE`, and macOS's `PopoverViewController.applyPanelScale()` and Windows's `_WindowsTrayController._apply_panel_zoom()` apply it to the whole panel through `window.usageApplyPanelZoom()`.
+- **Codex status lines now install and remove correctly when `config.toml` has no bare `[tui]` header.** Configurations that declare `tui` only through `[tui.*]` subtables or top-level dotted keys previously made the setup and unsetup paths silently write nothing while reporting success. `_insert_table_line()`, `_remove_table_line()`, and `_replace_table_line()` now handle both forms, validate every candidate with `tomllib.loads`, and report failure when no change can be safely made.
+- **Windows builds now point their hidden imports at the installer modules' current paths.** The v0.29.37 fix restored the missing `wintray.app` and `tui.app` entry points; after a separate refactor, `scripts/build_windows.ps1` still named `session_hooks` and `setup_hook` as obsolete top-level modules. The bundle was never broken — `main.py` imports both statically — but the flags were dead configuration of exactly the kind that shipped the unusable v0.29.34–36 builds. They now name `installer.session_hooks` and `installer.setup_hook`, so PyInstaller can diagnose a future omission.
+- **Toggling the macOS login item no longer fails when the app was opened by double-clicking.** Without `LANG`, `subprocess.run(..., text=True)` used ASCII and could raise `UnicodeDecodeError` while reading `launchctl` or `gh` output containing non-ASCII text. Those reads now explicitly use UTF-8 with replacement for invalid bytes.
+- **Claude cost totals now include advisor iterations and one-hour cache writes.** The Claude parsers now read `usage.iterations` and `usage.cache_creation.ephemeral_1h_input_tokens`; only `advisor_message` iterations get separate entries, avoiding double-counting ordinary messages. One-hour cache writes are priced at twice the base input rate, and the history cache schema is bumped so existing entries are reparsed.
 - **Dragging the Grok card no longer moves the panel differently from the other three on Windows.** The tray's WebKit shim turns a quota card's empty area into a native `pywebview` drag region, but its selector listed only Claude, Codex and Antigravity. Grok fell through to the shared card-reorder handler instead, so the same gesture that moved the window from the first three cards did something else from the fourth. The selector now matches all four, as `panel_core.js` already did on macOS.
 
 ### Changed
 - Moved public contribution and security guides to `.github/` and localized README and changelog files to `docs/`, cleaning up the repository root and updating all links.
 - Backfilled the Grok CLI card into the Simplified Chinese, Japanese and Korean READMEs, which had missed the feature list entry, the Hide Sections list and the comparison-table row.
+- Bumped PyObjC to 12.2.2 and ruff to 0.16.4, closing five separately raised dependency updates in a single lockfile change.
 
 ## [0.30.1] - 2026-08-27
 

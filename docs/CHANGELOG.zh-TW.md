@@ -4,14 +4,20 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## Unreleased
+## [0.30.2] - 2026-08-28
 
 ### 修正
+- **超出螢幕高度的面板現在會縮小，不再裁掉內容。** `clamp_content_height()` 原本以可見畫面高度當上限，超出去的列會變得無法使用。`panels/panel_scale.py` 現在計算剛好放得下的縮放比例，最低不小於 `MIN_PANEL_SCALE`，macOS 的 `PopoverViewController.applyPanelScale()` 與 Windows 的 `_WindowsTrayController._apply_panel_zoom()` 則透過 `window.usageApplyPanelZoom()` 縮放整張面板。
+- **沒有獨立 `[tui]` 標頭的 `config.toml`，Codex 狀態列現在能正確安裝與移除。** 只用 `[tui.*]` 子表或頂層點記法鍵值宣告 `tui` 的設定，過去會讓安裝與移除悄悄沒寫入任何內容，卻回報成功。`_insert_table_line()`、`_remove_table_line()` 與 `_replace_table_line()` 現在都能處理兩種形式，每次修改前以 `tomllib.loads` 驗證，無法安全修改時會回報失敗。
+- **Windows 建置的 hidden-import 現在指向搬遷後的 installer 模組路徑。** v0.29.37 修的是遺漏的 `wintray.app` 與 `tui.app` 進入點；另一次重構後，`scripts/build_windows.ps1` 卻仍把 `session_hooks` 與 `setup_hook` 寫成已不存在的頂層模組。打包結果從未壞掉——`main.py` 本來就靜態匯入這兩個模組——但那兩個旗標正是當初讓 v0.29.34–36 出貨成無法啟動版本的那種失效設定。現在改指向 `installer.session_hooks` 與 `installer.setup_hook`，日後再漏掉模組 PyInstaller 才抓得到。
+- **從 Finder 雙擊開啟 App 後，切換 macOS 登入項目不再失敗。** 缺少 `LANG` 時，`subprocess.run(..., text=True)` 會使用 ASCII；讀取含有非 ASCII 文字的 `launchctl` 或 `gh` 輸出就可能拋出 `UnicodeDecodeError`。這些讀取現在明確使用 UTF-8，無效位元組以替代字元處理。
+- **Claude 成本總計現在會算進 advisor 迭代與一小時快取寫入。** Claude 兩個解析器現在讀取 `usage.iterations` 與 `usage.cache_creation.ephemeral_1h_input_tokens`；只有 `advisor_message` 迭代會另建一筆，避免把一般訊息重複計費。一小時快取寫入按基礎輸入費率的兩倍計價，歷史快取 schema 也已升版，讓既有資料重新解析。
 - **Windows 上拖曳 Grok 卡片，行為不再跟另外三張不一樣。** 系統匣的 WebKit shim 會把額度卡的空白區域變成 `pywebview` 的原生視窗拖曳區，但它的選擇器只列了 Claude、Codex 與 Antigravity。Grok 沒被選中，改而落入共用的卡片排序處理器，於是同一個手勢在前三張會移動視窗、在第四張卻是別的行為。選擇器現在四張都涵蓋，與 macOS 的 `panel_core.js` 一致。
 
 ### 變更
 - 將公開的貢獻與安全指南移至 `.github/`，各語言 README 與 CHANGELOG 移至 `docs/`，清理根目錄並更新所有連結。
 - 補上簡體中文、日文、韓文 README 漏掉的 Grok CLI 卡片說明：功能條目、隱藏區塊的工具列舉、以及功能比較表那一列。
+- PyObjC 升到 12.2.2、ruff 升到 0.16.4，把五個分開送上來的相依套件更新併成同一筆鎖定檔變更。
 
 ## [0.30.1] - 2026-08-27
 
