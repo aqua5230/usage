@@ -6,6 +6,7 @@ from __future__ import annotations
 import math
 
 MIN_PANEL_HEIGHT = 240.0
+MAX_PANEL_CONTENT_HEIGHT = 4000.0
 
 CONTENT_HEIGHT_SCRIPT = """
 <script>
@@ -15,8 +16,14 @@ CONTENT_HEIGHT_SCRIPT = """
   var scheduled = false;
   var lastPostedHeight = null;
   function naturalContentHeight() {
+    var root = document.documentElement;
+    var zoom = root.style.zoom;
+    root.style.zoom = "normal";
     var wrap = document.querySelector(".wrap");
-    if (!wrap) return null;
+    if (!wrap) {
+      root.style.zoom = zoom;
+      return null;
+    }
     // A panel can explicitly mark a flexible region whose current laid-out
     // height is part of the design (for example, world_cup's empty pitch).
     // Preserve only those declared floors while releasing the viewport height
@@ -95,6 +102,7 @@ CONTENT_HEIGHT_SCRIPT = """
       floors.forEach(function(floor) {
         floor.element.style.minHeight = floor.minHeight;
       });
+      root.style.zoom = zoom;
     }
   }
   function reportContentHeight() {
@@ -122,6 +130,12 @@ CONTENT_HEIGHT_SCRIPT = """
   window.usageInvalidateContentHeight = function() {
     lastPostedHeight = null;
     requestContentHeight();
+  };
+  window.usageApplyPanelZoom = function(scale) {
+    var value = Number(scale);
+    document.documentElement.style.zoom =
+      Number.isFinite(value) && value > 0 && value !== 1 ? String(value) : "normal";
+    return true;
   };
   window.usageApplyState = function usageApplyStateWithDynamicHeight(state) {
     var result = applyState.apply(this, arguments);
@@ -153,11 +167,11 @@ def inject_content_height_script(html: str) -> str:
     return html.replace("</body>", f"{CONTENT_HEIGHT_SCRIPT}\n</body>", 1)
 
 
-def clamp_content_height(height: object, maximum: float) -> float | None:
-    """Validate an untrusted JS measurement and clamp it to the usable screen."""
+def clamp_content_height(height: object) -> float | None:
+    """Validate an untrusted JS measurement and clamp it to a sensible content size."""
     if isinstance(height, bool) or not isinstance(height, (int, float)):
         return None
     value = float(height)
-    if not math.isfinite(value) or value <= 0 or maximum < MIN_PANEL_HEIGHT:
+    if not math.isfinite(value) or value <= 0:
         return None
-    return min(max(value, MIN_PANEL_HEIGHT), maximum)
+    return min(max(value, MIN_PANEL_HEIGHT), MAX_PANEL_CONTENT_HEIGHT)

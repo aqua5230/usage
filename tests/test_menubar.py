@@ -238,6 +238,34 @@ def test_format_percent() -> None:
     assert menubar._format_percent(0.0) == "0"
 
 
+def test_apply_panel_scale_caches_only_after_successful_javascript(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[tuple[str, Any]] = []
+    panel = SimpleNamespace(id="classic")
+    view = SimpleNamespace(
+        evaluateJavaScript_completionHandler_=lambda script, completion: calls.append(
+            (script, completion)
+        )
+    )
+    controller = menubar_popover.PopoverViewController.alloc().init()
+    controller.latest_state = object()
+    controller.panel = panel
+    controller.panel_scales = {}
+    controller.content_view = view
+
+    monkeypatch.setattr(menubar_popover, "panel_scale", lambda state, active_panel: 0.7785)
+    menubar_popover.PopoverViewController.applyPanelScale(controller)
+    calls[-1][1](False, None)
+
+    assert controller.panel_scales == {}
+
+    menubar_popover.PopoverViewController.applyPanelScale(controller)
+    calls[-1][1](True, None)
+
+    assert controller.panel_scales == {"classic": 0.7785}
+
+
 def test_bar_color_thresholds() -> None:
     brand = (0.1, 0.2, 0.3)
 
@@ -1297,7 +1325,7 @@ def test_js_reported_content_height_does_not_invalidate_webview_measurement(
         view=lambda: SimpleNamespace(setFrameSize_=lambda size: None),
         syncPanelFrames=lambda: None,
     )
-    monkeypatch.setattr(menubar, "NSScreen", SimpleNamespace(mainScreen=lambda: None))
+    monkeypatch.setattr(menubar, "_popover_size", lambda state, panel: object())
 
     delegate.panelContentHeight_forView_(456.0, view)
 

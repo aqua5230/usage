@@ -13,7 +13,9 @@ from typing import Any
 import objc
 from AppKit import (
     NSAnimationContext,
+    NSApp,
     NSMakeSize,
+    NSScreen,
     NSView,
     NSViewController,
     NSViewHeightSizable,
@@ -25,6 +27,7 @@ from menubar.state import PopoverState
 from panels import panel_window_state
 from panels.base import Panel as UsagePanel
 from panels.base import next_panel_eviction_id
+from panels.panel_scale import fit_panel_size, fit_scale
 
 MAX_CACHED_PANEL_VIEWS = 6
 PANEL_TRANSITION_TIMEOUT_SECONDS = 1.5
@@ -40,6 +43,7 @@ class PopoverViewController(NSViewController):
     transition_overlays = objc.ivar()
     latest_state = objc.ivar()
     pending_panel_evictions = objc.ivar()
+    panel_scales = objc.ivar()
 
     def initWithPanel_delegate_(self, panel: UsagePanel, delegate: Any) -> PopoverViewController:
         self = objc.super(PopoverViewController, self).init()
@@ -51,6 +55,7 @@ class PopoverViewController(NSViewController):
         self.panel_lru = []
         self.transition_overlays = {}
         self.pending_panel_evictions = set()
+        self.panel_scales = {}
         self.latest_state = None
         self.content_view = panel.build_view(delegate)
         container = NSView.alloc().initWithFrame_(self.content_view.frame())
@@ -77,6 +82,7 @@ class PopoverViewController(NSViewController):
         content_view = self.panel_views.get(panel.id)
         if content_view is None:
             content_view = panel.build_view(self.delegate)
+            self.panel_scales.pop(panel.id, None)
             content_view.setHidden_(True)
             self.preparePanelView_(content_view)
             self.view().addSubview_(content_view)
@@ -111,6 +117,9 @@ class PopoverViewController(NSViewController):
 
     def panelDidFirstPaint_(self, view: Any) -> None:
         if view is self.content_view:
+            if self.panel is not None:
+                self.panel_scales.pop(self.panel.id, None)
+            self.applyPanelScale()
             self.endPanelTransitionForPanelView_(view)
 
     def beginPanelTransitionForPanelId_view_(self, panel_id: str, view: Any) -> None:
@@ -183,6 +192,34 @@ class PopoverViewController(NSViewController):
         bounds = self.view().bounds()
         for view in self.panel_views.values():
             view.setFrame_(bounds)
+        self.applyPanelScale()
+
+    def applyPanelScale(self) -> None:
+        if self.latest_state is None or self.panel is None:
+            return
+        scale = panel_scale(self.latest_state, self.panel)
+        panel_id = self.panel.id
+        if self.panel_scales.get(panel_id) == scale:
+            return
+        view = self.content_view
+        if not hasattr(view, "evaluateJavaScript_completionHandler_"):
+            return
+
+        def _completed(value: Any, error: Any) -> None:
+            if (
+                value
+                and error is None
+                and self.panel is not None
+                and self.panel.id == panel_id
+                and self.content_view is view
+            ):
+                self.panel_scales[panel_id] = scale
+
+        view.evaluateJavaScript_completionHandler_(
+            "typeof window.usageApplyPanelZoom === 'function' ? "
+            f"window.usageApplyPanelZoom({scale}) : false",
+            _completed,
+        )
 
     def markPanelUsed_(self, panel_id: str) -> None:
         self.panel_lru = [cached_id for cached_id in self.panel_lru if cached_id != panel_id]
@@ -217,6 +254,7 @@ class PopoverViewController(NSViewController):
             return
         self.panel_lru = [cached_id for cached_id in self.panel_lru if cached_id != panel_id]
         self.panel_views.pop(panel_id, None)
+        self.panel_scales.pop(panel_id, None)
         self.removeTransitionOverlay_(panel_id)
         if hasattr(view, "teardown"):
             view.teardown()
@@ -229,5 +267,16 @@ class PopoverViewController(NSViewController):
             overlay.removeFromSuperview()
 
 
+def panel_scale(state: PopoverState, panel: UsagePanel | None = None) -> float:
+    _, height = panel_window_state.resolve_panel_size(state, panel)
+    screen = None if NSApp() is None else NSScreen.mainScreen()
+    maximum = height if screen is None else float(screen.visibleFrame().size.height) - 24.0
+    return fit_scale(height, maximum)
+
+
 def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
-    return NSMakeSize(*panel_window_state.resolve_panel_size(state, panel))
+    width, height = panel_window_state.resolve_panel_size(state, panel)
+    screen = None if NSApp() is None else NSScreen.mainScreen()
+    maximum = height if screen is None else float(screen.visibleFrame().size.height) - 24.0
+    fitted_width, fitted_height, _ = fit_panel_size(width, height, maximum)
+    return NSMakeSize(fitted_width, fitted_height)

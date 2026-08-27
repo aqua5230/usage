@@ -49,6 +49,7 @@ from menubar.prefs import (
     _window_keeper_enabled,
 )
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
+from panels.panel_scale import fit_panel_size, fit_scale
 from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
@@ -831,15 +832,26 @@ class _WindowsTrayController:
             if work_area is not None
             else float(PANEL_HEIGHTS[self.active_panel_id])
         )
-        height = clamp_content_height(value, maximum)
+        height = clamp_content_height(value)
         if height is None:
             return
         rounded = int(round(height))
         if rounded == self._content_height:
             return
         self._content_height = rounded
+        self._apply_panel_zoom(fit_scale(height, maximum))
         if self.visible:
             self._place_window_on_ui_thread()
+
+    def _apply_panel_zoom(self, scale: float) -> None:
+        if self.window is not None and hasattr(self.window, "evaluate_js"):
+            try:
+                self.window.evaluate_js(
+                    "typeof window.usageApplyPanelZoom === 'function' && "
+                    f"window.usageApplyPanelZoom({scale})"
+                )
+            except Exception:
+                logger.exception("Unable to apply panel zoom")
 
     def attach(self, icon: Any, window: Any) -> None:
         self.icon = icon
@@ -975,20 +987,20 @@ class _WindowsTrayController:
 
     @staticmethod
     def _clamp_window_position(
-        position: tuple[int, int], work_area: tuple[int, int, int, int], height: int
+        position: tuple[int, int], work_area: tuple[int, int, int, int], width: int, height: int
     ) -> tuple[int, int]:
         left, top, right, bottom = work_area
         return (
-            min(max(position[0], left + 12), max(left + 12, right - PANEL_WIDTH - 12)),
+            min(max(position[0], left + 12), max(left + 12, right - width - 12)),
             min(max(position[1], top + 12), max(top + 12, bottom - height - 12)),
         )
 
     @staticmethod
     def _default_window_position(
-        work_area: tuple[int, int, int, int], height: int
+        work_area: tuple[int, int, int, int], width: int, height: int
     ) -> tuple[int, int]:
         left, top, right, bottom = work_area
-        return (max(left + 12, right - PANEL_WIDTH - 12), max(top + 12, bottom - height - 12))
+        return (max(left + 12, right - width - 12), max(top + 12, bottom - height - 12))
 
     def _place_window(self, *, force_default: bool = False) -> None:
         self._dispatch_window_mutation(
@@ -1017,12 +1029,17 @@ class _WindowsTrayController:
 
         work_area = self._work_area_for_point(anchor) or primary_work_area
         left, top, right, bottom = work_area
-        height = min(self.panel_height(), max(240, bottom - top - 24))
-        self.window.resize(PANEL_WIDTH, height)
+        maximum = float(bottom - top - 24)
+        natural_height = self.panel_height()
+        fitted_width, fitted_height, scale = fit_panel_size(PANEL_WIDTH, natural_height, maximum)
+        width = int(round(fitted_width))
+        height = int(round(fitted_height))
+        self._apply_panel_zoom(scale)
+        self.window.resize(width, height)
         position = anchor if anchor is not None else self._default_window_position(
-            work_area, height
+            work_area, width, height
         )
-        self.window.move(*self._clamp_window_position(position, work_area, height))
+        self.window.move(*self._clamp_window_position(position, work_area, width, height))
         self._positioned_this_show = True
 
     def _dispatch_window_mutation(self, mutation: Callable[[], None]) -> None:

@@ -28,7 +28,6 @@ from AppKit import (
     NSApplicationActivationPolicyAccessory,
     NSMakePoint,
     NSMakeRect,
-    NSMakeSize,
     NSScreen,
     NSStatusBar,
     NSVariableStatusItemLength,
@@ -385,17 +384,11 @@ class AppDelegate(NSObject):
     def panelContentHeight_forView_(self, value: object, view: Any) -> None:
         if view is not self.popover_controller.currentContentView():
             return
-        screen = NSScreen.mainScreen()
-        maximum = (
-            self.active_panel.preferred_size()[1]
-            if screen is None
-            else float(screen.visibleFrame().size.height) - 24.0
-        )
-        height = clamp_content_height(value, maximum)
+        height = clamp_content_height(value)
         if height is None:
             return
         panel_window_state.save_panel_content_height(self.active_panel.id, height)
-        size = NSMakeSize(self.active_panel.preferred_size()[0], height)
+        size = _popover_size(self.latest_state, self.active_panel)
         self._set_panel_window_size(size)
         self.popover_controller.view().setFrameSize_(size)
         self.popover_controller.syncPanelFrames()

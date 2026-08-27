@@ -35,6 +35,8 @@ def test_script_wraps_state_application_and_measures_without_height_constraints(
     assert "requestContentHeight();" in CONTENT_HEIGHT_SCRIPT
     assert "window.usageInvalidateContentHeight" in CONTENT_HEIGHT_SCRIPT
     assert "lastPostedHeight = null;" in CONTENT_HEIGHT_SCRIPT
+    assert 'root.style.zoom = "normal"' in CONTENT_HEIGHT_SCRIPT
+    assert "window.usageApplyPanelZoom" in CONTENT_HEIGHT_SCRIPT
     # Panels draw their edges with padding on whichever layer wraps .wrap, and
     # the viewport-based panels nest an extra padded .viewport in between, so
     # the whole ancestor chain has to be released and measured — assuming a
@@ -53,16 +55,16 @@ def test_world_cup_declares_its_pitch_height_floor() -> None:
 
 
 @pytest.mark.parametrize(
-    ("value", "maximum", "expected"),
+    ("value", "expected"),
     [
-        (100, 900.0, 240.0),
-        (550.5, 900.0, 550.5),
-        (1200, 900.0, 900.0),
-        (True, 900.0, None),
-        ("550", 900.0, None),
-        (math.inf, 900.0, None),
-        (550, 200.0, None),
+        (100, 240.0),
+        (550.5, 550.5),
+        (1200, 1200.0),
+        (5000, 4000.0),
+        (True, None),
+        ("550", None),
+        (math.inf, None),
     ],
 )
-def test_clamp_content_height(value: object, maximum: float, expected: float | None) -> None:
-    assert clamp_content_height(value, maximum) == expected
+def test_clamp_content_height(value: object, expected: float | None) -> None:
+    assert clamp_content_height(value) == expected

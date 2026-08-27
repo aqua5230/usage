@@ -321,7 +321,7 @@ def test_native_drag_region_covers_every_quota_card() -> None:
         assert f'[data-card="{card}"]' in shim
 
 
-def test_content_height_message_resizes_visible_panel_with_work_area_clamp(
+def test_content_height_message_resizes_visible_panel_with_natural_height(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
@@ -341,7 +341,7 @@ def test_content_height_message_resizes_visible_panel_with_work_area_clamp(
         json.dumps({"action": "content_height", "height": 5000})
     )
 
-    assert controller.panel_height() == 776
+    assert controller.panel_height() == 4000
     assert calls == ["place", "place"]
 
 
@@ -383,7 +383,7 @@ def test_panel_position_is_clamped_and_persisted_on_hide(
 
     controller._place_window()
 
-    assert moves == [(608, 12)]
+    assert moves == [(634, 12)]
     window.x, window.y = 123, 234
     controller.show_panel()
     assert prefs._load_preferences()["usage.windowPosition"] == {"x": 123, "y": 234}
@@ -428,7 +428,7 @@ def test_dpi_scaled_monitor_placement_uses_logical_coordinates(
     assert mutations == [("resize", 380, 400), ("move", 2424, 268)]
 
 
-def test_content_height_clamps_to_panels_current_monitor(
+def test_content_height_keeps_the_panels_natural_height(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     screens = [
@@ -453,7 +453,7 @@ def test_content_height_clamps_to_panels_current_monitor(
 
     controller._apply_content_height(1000)
 
-    assert controller.panel_height() == 676
+    assert controller.panel_height() == 1000
 
 
 def test_background_window_mutation_is_dispatched_to_ui_thread(
