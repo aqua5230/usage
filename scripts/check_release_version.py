@@ -17,6 +17,8 @@ def _published_versions(repo: str) -> list[str]:
         capture_output=True,
         check=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     releases = json.loads(result.stdout)
     versions = []
