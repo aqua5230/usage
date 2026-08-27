@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/readme-logo.png" alt="usage 로고" width="128">
+  <img src="readme-logo.png" alt="usage 로고" width="128">
 </p>
 
 # usage
@@ -8,7 +8,7 @@
 
 세션 중간에 할당량이 소진되면 비용이 큽니다. 특히 Claude Code에 의존하는 긴 리팩터링이나 디버깅 작업에서는 더욱 그렇습니다. `usage`는 한도에 도달하기 *전에* 5시간 및 주간 한도를 표시하고, 작업 내내 계속 보이게 합니다. 실행할 명령이나 열 페이지가 없습니다. 이미 보고 있는 곳에 답이 표시됩니다.
 
-[繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](README.md) · [日本語](README.ja.md) · 한국어 &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [공식 사이트](https://aqua5230.github.io/usage/)
+[繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · 한국어 &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [공식 사이트](https://aqua5230.github.io/usage/)
 
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
@@ -16,11 +16,11 @@
 [![PyPI](https://img.shields.io/pypi/v/usage-cli)](https://pypi.org/project/usage-cli/)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![플랫폼](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/aqua5230/usage/releases/latest)
-[![라이선스: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![라이선스: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](../LICENSE)
 [![OpenSSF 모범 사례](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="docs/showcase.en.png" alt="usage — macOS 메뉴 막대에 고정된 Claude Code, Codex, Antigravity 할당량" width="820">
+  <img src="showcase.en.png" alt="usage — macOS 메뉴 막대에 고정된 Claude Code, Codex, Antigravity 할당량" width="820">
 </p>
 
 Claude Code와 Codex 수치는 이미 컴퓨터에 있는 로그 파일에서 수동적으로 읽어오므로, **할당량을 확인하는 과정에서 Anthropic이나 OpenAI의 LLM API를 호출하지 않으며** token도 전혀 소비하지 않습니다. 유일한 예외인 Antigravity 할당량은 Antigravity CLI가 이미 로컬에 저장해 둔 로그인 정보를 사용해 Google의 공식 할당량 엔드포인트에서 가져오지만, 이 역시 메타데이터 조회일 뿐 모델 할당량을 소비하지 않습니다.
@@ -43,15 +43,16 @@ Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려�
 
 - **상시 모니터:** 할당량이 메뉴 막대에 상시 표시되며, 녹색부터 빨간색까지 색상으로 구분됩니다. 전체 세션, 주간, 프로젝트별 내역이 필요하면 클릭하세요.
 - **Antigravity 지원:** Antigravity(Gemini)의 세션 및 주간 할당량이 World Cup 2026을 제외한 모든 패널에서 세 번째 카드로 나타납니다(World Cup 2026은 양 팀 HUD로 유지됨). 수치는 Antigravity CLI가 이미 컴퓨터에 저장해 둔 로그인 정보를 사용해 공식 할당량 API에서 직접 가져옵니다. 몇 분마다 자동 갱신되며 리셋 카운트다운도 실시간으로 줄어듭니다.
+- **Grok CLI 지원:** 네 번째 카드는 Grok CLI 자체 로컬 디버그 로그에서 주간 크레딧 비율을 직접 읽어옵니다——네트워크 호출이 없습니다. Grok CLI는 세션이나 소진율 데이터를 제공하지 않으므로 카드에는 단일 주간 막대만 표시됩니다. 하지만 요청별 token 사용량은 Claude Code 및 Codex와 마찬가지로 오늘 비용과 프로젝트 총계에 그대로 반영됩니다.
 - **서비스 상태 경고:** Claude Code, Claude API 또는 Codex API에 장애나 성능 저하가 발생하면 관련 패널 하단에 주황색/빨간색 경고 배너가 표시되며, 수치는 공식 공개 Statuspage.io 페이지에서만 읽어옵니다(LLM 사용량 API는 절대 호출하지 않음). Antigravity는 공개 상태 페이지가 없으므로 지원되지 않습니다.
 - **컨텍스트 알림 및 알림 센터:** 컨텍스트 창이 70%에 도달하면 상태 줄이 `/clear` 또는 `/compact`를 안내해 token 낭비를 막습니다. 할당량 한도와 복구에 관한 시스템 알림도 선택해 받을 수 있습니다.
-- **섹션 숨기기:** 일부 도구만 사용하나요? 클릭 한 번으로 Claude Code, Codex 또는 Antigravity 섹션을 메뉴 막대와 패널에서 완전히 숨길 수 있습니다.
+- **섹션 숨기기:** 일부 도구만 사용하나요? 클릭 한 번으로 Claude Code, Codex, Grok CLI 또는 Antigravity 섹션을 메뉴 막대와 패널에서 완전히 숨길 수 있습니다.
 
 ### 워크플로 도우미
 
 - **진행 상황 컨시어지:** 새 Claude Code 세션을 열면 `usage`가 마지막 요청, 커밋하지 않은 변경 사항, 미완료 todo를 포함한 이전 진행 상황을 바로 AI에 전달합니다. `/resume`도, 요약도 필요 없습니다. 완전히 로컬에서 작동하며 기본값은 꺼짐입니다.
 - **Token 절약기:** 메뉴 막대 토글은 Claude Code와 Codex에 해당 세션 동안 더 간결하게 답하도록 요청하여, 코드와 오류 메시지는 바이트 단위로 그대로 유지하면서 출력 token을 절약합니다. 가벼운 메시지별 알림이 긴 대화에서 답변이 다시 장황해지는 것을 막습니다——실제 세션의 A/B 테스트에서 대화 후반 답변은 약 40% 더 짧게 유지되었으며, 84% 길어지는 현상은 나타나지 않았습니다.
-- **터미널 통합:** `usage status --json`은 명령을 실행할 수 있는 모든 도구——Starship, tmux 또는 자체 스크립트——에 Claude Code 및 Codex 할당량을 전달합니다. 메뉴 막대와 동일한 로컬 파일을 읽으며, 네트워크 호출이 없습니다. [미리 준비된 스니펫](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
+- **터미널 통합:** `usage status --json`은 명령을 실행할 수 있는 모든 도구——Starship, tmux 또는 자체 스크립트——에 Claude Code 및 Codex 할당량을 전달합니다. 메뉴 막대와 동일한 로컬 파일을 읽으며, 네트워크 호출이 없습니다. [미리 준비된 스니펫](DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **Token 낭비 상태 점검:** 매일 백그라운드 진단이 로그를 검사해 반복 파일 읽기, 오염 디렉터리, 장황한 Bash 출력 등을 포함한 낭비를 찾습니다. 문제가 발견되면 한 줄 알림이 표시됩니다. AI에게 "show me"라고 말하면 해결 방법을 안내합니다.
 
 ### AI 팀워크
@@ -120,7 +121,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 설정이 완료되면 Claude Code 창 하단에 다음과 같은 상태 줄이 표시됩니다.
 
 <p align="center">
-  <img src="docs/statusline.ko.gif" alt="Claude Code 상태 줄 표시(한국어)" width="900">
+  <img src="statusline.ko.gif" alt="Claude Code 상태 줄 표시(한국어)" width="900">
 </p>
 
 ## Windows 지원
@@ -147,19 +148,19 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 UI에서 직접 **14가지 시각 테마**를 전환하세요.
 
 <p align="center">
-  <img src="docs/classic.en.png" width="32%" alt="Classic 테마" />
-  <img src="docs/matrix.en.png" width="32%" alt="Matrix 테마" />
-  <img src="docs/win95.en.png" width="32%" alt="Windows 95 테마" />
-  <img src="docs/newspaper.en.png" width="32%" alt="Newspaper 테마" />
-  <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observation 테마" />
-  <img src="docs/aquarium.en.png" width="32%" alt="Aquarium 테마" />
-  <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcade 테마" />
-  <img src="docs/stained_glass.en.png" width="32%" alt="Stained Glass 테마" />
-  <img src="docs/origami.en.png" width="32%" alt="Origami 테마" />
-  <img src="docs/black_hole.en.png" width="32%" alt="Black Hole 테마" />
-  <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera 테마" />
-  <img src="docs/migration.png" width="32%" alt="철새 이동 테마" />
-  <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccin 테마" />
+  <img src="classic.en.png" width="32%" alt="Classic 테마" />
+  <img src="matrix.en.png" width="32%" alt="Matrix 테마" />
+  <img src="win95.en.png" width="32%" alt="Windows 95 테마" />
+  <img src="newspaper.en.png" width="32%" alt="Newspaper 테마" />
+  <img src="cloud_observation.en.png" width="32%" alt="Cloud Observation 테마" />
+  <img src="aquarium.en.png" width="32%" alt="Aquarium 테마" />
+  <img src="prism_arcade.en.png" width="32%" alt="Prism Arcade 테마" />
+  <img src="stained_glass.en.png" width="32%" alt="Stained Glass 테마" />
+  <img src="origami.en.png" width="32%" alt="Origami 테마" />
+  <img src="black_hole.en.png" width="32%" alt="Black Hole 테마" />
+  <img src="lepidoptera.en.png" width="32%" alt="Lepidoptera 테마" />
+  <img src="migration.png" width="32%" alt="철새 이동 테마" />
+  <img src="catppuccin.en.png" width="32%" alt="Catppuccin 테마" />
 </p>
 
 ## 문제 해결
@@ -185,6 +186,7 @@ UI에서 직접 **14가지 시각 테마**를 전환하세요.
 | macOS 메뉴 막대 및 Windows 시스템 트레이 | ✅ | — | macOS 전용 |
 | Claude Code 및 Codex 사용량 | ✅ | Claude 전용 | ✅ |
 | Antigravity(Gemini) 사용량 | ✅ | — | — |
+| Grok CLI 사용량 | ✅ | — | — |
 | Claude Code 및 Codex 서비스 상태 경고 | ✅ | — | — |
 | HTML 심층 보고서 및 UI | ✅ | ✅ | — |
 | AI 인재 마켓 | macOS 전용 | — | — |
@@ -203,9 +205,9 @@ UI에서 직접 **14가지 시각 테마**를 전환하세요.
 
 ## 개발
 
-소스에서 빌드, 사용자 지정 에이전트 구성 또는 터미널 TUI 실행 방법은 **[개발 문서](docs/DEVELOPMENT.md)**를 확인하세요.
+소스에서 빌드, 사용자 지정 에이전트 구성 또는 터미널 TUI 실행 방법은 **[개발 문서](DEVELOPMENT.md)**를 확인하세요.
 
 ## 라이선스
 
-AGPL-3.0-only로 라이선스됩니다([LICENSE](LICENSE) 참고). 수정한 버전을 fork하거나 재배포하는 경우, 원저자를 표기하고 다음 링크를 포함해 주세요.
+AGPL-3.0-only로 라이선스됩니다([LICENSE](../LICENSE) 참고). 수정한 버전을 fork하거나 재배포하는 경우, 원저자를 표기하고 다음 링크를 포함해 주세요.
 https://github.com/aqua5230/usage

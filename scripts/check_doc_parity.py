@@ -25,11 +25,11 @@ DOC_GROUPS = (
     DocGroup(
         "README",
         "README.md",
-        ("README.zh-TW.md", "README.zh-CN.md", "README.ja.md", "README.ko.md"),
+        ("docs/README.zh-TW.md", "docs/README.zh-CN.md", "docs/README.ja.md", "docs/README.ko.md"),
     ),
-    DocGroup("CHANGELOG", "CHANGELOG.md", ("CHANGELOG.zh-TW.md",)),
-    DocGroup("CONTRIBUTING", "CONTRIBUTING.md", ("CONTRIBUTING.zh-TW.md",)),
-    DocGroup("SECURITY", "SECURITY.md", ("SECURITY.zh-TW.md",)),
+    DocGroup("CHANGELOG", "CHANGELOG.md", ("docs/CHANGELOG.zh-TW.md",)),
+    DocGroup("CONTRIBUTING", ".github/CONTRIBUTING.md", (".github/CONTRIBUTING.zh-TW.md",)),
+    DocGroup("SECURITY", ".github/SECURITY.md", (".github/SECURITY.zh-TW.md",)),
     DocGroup(
         "docs/DEVELOPMENT",
         "docs/DEVELOPMENT.md",

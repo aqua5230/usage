@@ -1,8 +1,17 @@
 # 變更紀錄 (Changelog)
 
-繁體中文 · [English](CHANGELOG.md)
+繁體中文 · [English](../CHANGELOG.md)
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
+
+## Unreleased
+
+### 修正
+- **Windows 上拖曳 Grok 卡片，行為不再跟另外三張不一樣。** 系統匣的 WebKit shim 會把額度卡的空白區域變成 `pywebview` 的原生視窗拖曳區，但它的選擇器只列了 Claude、Codex 與 Antigravity。Grok 沒被選中，改而落入共用的卡片排序處理器，於是同一個手勢在前三張會移動視窗、在第四張卻是別的行為。選擇器現在四張都涵蓋，與 macOS 的 `panel_core.js` 一致。
+
+### 變更
+- 將公開的貢獻與安全指南移至 `.github/`，各語言 README 與 CHANGELOG 移至 `docs/`，清理根目錄並更新所有連結。
+- 補上簡體中文、日文、韓文 README 漏掉的 Grok CLI 卡片說明：功能條目、隱藏區塊的工具列舉、以及功能比較表那一列。
 
 ## [0.30.1] - 2026-08-27
 
@@ -131,7 +140,7 @@ chmod -R go-rwx ~/.usage ~/.usage-reports ~/Library/Logs/usage
 ## [0.29.28] - 2026-08-14
 
 ### 新增
-- **`usage status` 會印出你的配額給其他工具讀。** 在此之前，要把配額拿出 usage 只能從 Python 匯入它的內部函式。`usage status` 給一行摘要，`usage status --json` 給帶版本號的 JSON，兩者都只讀選單列本來就在讀的本機檔案，不做網路呼叫。[開發文件](docs/DEVELOPMENT.zh-TW.md)附了可直接複製的 Starship 與 tmux 設定。
+- **`usage status` 會印出你的配額給其他工具讀。** 在此之前，要把配額拿出 usage 只能從 Python 匯入它的內部函式。`usage status` 給一行摘要，`usage status --json` 給帶版本號的 JSON，兩者都只讀選單列本來就在讀的本機檔案，不做網路呼叫。[開發文件](DEVELOPMENT.zh-TW.md)附了可直接複製的 Starship 與 tmux 設定。
 - **發行版現在附上建置來源證明與 SBOM。** 每個 macOS 與 Windows 產物都帶有簽章過的 SLSA build provenance，可用 `gh attestation verify <檔案> --repo aqua5230/usage` 驗證；macOS 發行版另外附上 CycloneDX 軟體物料清單，列出所有打包進去的相依套件。
 
 ### 變更

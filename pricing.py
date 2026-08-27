@@ -37,6 +37,7 @@ FALLBACK_PRICING_AS_OF: str = "2026-08-14"
 # Anthropic's official cache write/read prices relative to input pricing. These
 # are only fallbacks for missing upstream fields and may be wrong for other providers.
 CACHE_WRITE_COST_MULTIPLIER = 1.25
+CACHE_WRITE_1H_COST_MULTIPLIER = 2.0
 CACHE_READ_COST_MULTIPLIER = 0.1
 # The upstream table is a few MB; cap the read so a broken or hostile mirror
 # cannot make us buffer an unbounded response.
@@ -96,11 +97,14 @@ def calculate_cost(entry: _CostEntry) -> float:
         "cache_read_input_token_cost",
         input_cost * CACHE_READ_COST_MULTIPLIER,
     )
+    cache_creation_1h_tokens = getattr(entry, "cache_creation_1h_tokens", 0)
+    cache_creation_5m_tokens = max(0, entry.cache_creation_tokens - cache_creation_1h_tokens)
 
     cost = (
         entry.input_tokens * input_cost
         + entry.output_tokens * output_cost
-        + entry.cache_creation_tokens * cache_creation_cost
+        + cache_creation_5m_tokens * cache_creation_cost
+        + cache_creation_1h_tokens * input_cost * CACHE_WRITE_1H_COST_MULTIPLIER
         + entry.cache_read_tokens * cache_read_cost
     )
     return cost

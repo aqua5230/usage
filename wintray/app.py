@@ -264,7 +264,8 @@ window.webkit.messageHandlers.usage = {
 document.addEventListener('pointerdown', function(event) {
   var target = event.target;
   var card = target && target.closest && target.closest(
-    '[data-card="claude"], [data-card="codex"], [data-card="agy"]'
+    '[data-card="claude"], [data-card="codex"], [data-card="agy"], '
+    + '[data-card="grok"]'
   );
   var interactive = target && target.closest && target.closest(
     'button, a, input, select, textarea, label, summary, [contenteditable], '

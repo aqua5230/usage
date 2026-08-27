@@ -2,11 +2,11 @@
 
 繁體中文 · [English](DEVELOPMENT.md)
 
-從原始碼執行 usage、跑 TUI / CLI、設定可偵測的 agent、打包 `.app` 的完整說明。一般使用者只想裝來用的話，看 [README](../README.zh-TW.md) 就夠了。
+從原始碼執行 usage、跑 TUI / CLI、設定可偵測的 agent、打包 `.app` 的完整說明。一般使用者只想裝來用的話，看 [README](README.zh-TW.md) 就夠了。
 
 ## 它怎麼拿到你的用量數字
 
-Claude Code 跟 Codex 的數字來自這兩個工具本來就在你本機留下的檔案，不呼叫 Anthropic / OpenAI 的 API。Antigravity 是例外：它的額度不在磁碟上，所以 usage 會用 Antigravity CLI 存下的 OAuth 憑證（macOS Keychain／Windows 認證管理員）向 Google 的額度端點取得，access token 過期時透過 `https://oauth2.googleapis.com/token` 更新。除此之外，會連網的只有三件事：(1) 估算 Codex 成本時需要 token 單價表，如果本機沒有快取（`~/.usage/pricing_cache.json`），會先用內建 fallback 價格立即顯示成本估算，再在背景嘗試從公開的 [LiteLLM 價格表](https://github.com/BerriAI/litellm) 下載並快取，7 天後過期再抓；下載失敗不影響用量百分比顯示，網路恢復後會自動更新價格表；(2) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關掉）；(3) 每 5 分鐘讀取 Claude 與 Codex 的公開 Statuspage 摘要，用來顯示服務狀態警示。完整的對外連線清單見 [SECURITY.md](../SECURITY.md)。
+Claude Code 跟 Codex 的數字來自這兩個工具本來就在你本機留下的檔案，不呼叫 Anthropic / OpenAI 的 API。Antigravity 是例外：它的額度不在磁碟上，所以 usage 會用 Antigravity CLI 存下的 OAuth 憑證（macOS Keychain／Windows 認證管理員）向 Google 的額度端點取得，access token 過期時透過 `https://oauth2.googleapis.com/token` 更新。除此之外，會連網的只有三件事：(1) 估算 Codex 成本時需要 token 單價表，如果本機沒有快取（`~/.usage/pricing_cache.json`），會先用內建 fallback 價格立即顯示成本估算，再在背景嘗試從公開的 [LiteLLM 價格表](https://github.com/BerriAI/litellm) 下載並快取，7 天後過期再抓；下載失敗不影響用量百分比顯示，網路恢復後會自動更新價格表；(2) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關掉）；(3) 每 5 分鐘讀取 Claude 與 Codex 的公開 Statuspage 摘要，用來顯示服務狀態警示。完整的對外連線清單見 [SECURITY.md](../.github/SECURITY.md)。
 
 ### Claude Code 用量
 
