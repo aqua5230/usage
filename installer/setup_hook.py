@@ -710,10 +710,49 @@ def _table_section(content: str, table: re.Match[str]) -> tuple[int, int]:
 
 
 def _insert_table_line(content: str, name: str, line: str) -> str:
+    def validated(candidate: str) -> str:
+        try:
+            tomllib.loads(candidate)
+        except tomllib.TOMLDecodeError:
+            return content
+        return candidate
+
     table = _find_table(content, name)
     if table is None:
-        return content
-    return content[: table.end()] + f"\n{line}" + content[table.end() :]
+        subtable = re.compile(rf"(?m)^[ \t]*\[{re.escape(name)}\.").search(content)
+        new_table = f"[{name}]\n{line}\n"
+        if subtable is not None:
+            candidate = (
+                content[: subtable.start()] + new_table + "\n" + content[subtable.start() :]
+            )
+            return validated(candidate)
+
+        first_table = _TABLE_REGEX.search(content)
+        top_level_end = len(content) if first_table is None else first_table.start()
+        dotted_key = re.compile(
+            rf"(?m)^[ \t]*{re.escape(name)}\.[A-Za-z0-9_-]+[ \t]*=[^\n]*(?:\n|$)"
+        )
+        dotted_keys = list(dotted_key.finditer(content, 0, top_level_end))
+        if dotted_keys:
+            last_key = dotted_keys[-1]
+            try:
+                tomllib.loads(last_key.group().strip())
+            except tomllib.TOMLDecodeError:
+                return content
+            separator = "" if content[: last_key.end()].endswith("\n") else "\n"
+            dotted_line = f"{name}.{line}"
+            candidate = (
+                content[: last_key.end()]
+                + separator
+                + dotted_line
+                + "\n"
+                + content[last_key.end() :]
+            )
+            return validated(candidate)
+        candidate = content.rstrip() + f"\n\n{new_table}"
+        return validated(candidate)
+    candidate = content[: table.end()] + f"\n{line}" + content[table.end() :]
+    return validated(candidate)
 
 
 def _replace_table_line(
@@ -793,6 +832,7 @@ def _setup_codex() -> None:
             print(_t("setup_codex_config_unreadable"))
         return
     content, parsed = result
+    original_content = content
 
     old = _codex_status_line(parsed)
     if old == CODEX_STATUS_LINE:
@@ -813,6 +853,9 @@ def _setup_codex() -> None:
     else:
         content += f"\n[tui]\n{_status_line_toml(CODEX_STATUS_LINE)}\n"
 
+    if content == original_content:
+        print(_t("setup_codex_config_unreadable"))
+        return
     _atomic_write_text(CODEX_CONFIG, content)
     print(_t("setup_codex_configured"))
     if old is not None and old not in LEGACY_CODEX_STATUS_LINES:

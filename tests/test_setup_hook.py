@@ -468,6 +468,102 @@ status_line = ["keep"]
     assert '"five-hour-limit"' in content
 
 
+def test_setup_codex_adds_tui_before_existing_subtable(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_text(
+        "[tui.model_availability_nux]\nseen = true\n", encoding="utf-8"
+    )
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+
+    setup_hook._setup_codex()
+
+    content = codex_config.read_text(encoding="utf-8")
+    parsed = tomllib.loads(content)
+    assert content.index("[tui]") < content.index("[tui.model_availability_nux]")
+    assert parsed["tui"]["status_line"] == setup_hook.CODEX_STATUS_LINE
+    assert parsed["tui"]["model_availability_nux"]["seen"] is True
+    assert setup_hook.is_codex_setup()
+
+
+def test_setup_codex_inserts_into_existing_tui_table(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    codex_config = tmp_path / ".codex" / "config.toml"
+    codex_backup = tmp_path / ".codex" / "usage-backup.json"
+    codex_config.parent.mkdir()
+    codex_config.write_text("[tui]\nanimations = false\n", encoding="utf-8")
+    monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
+    monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
+
+    setup_hook._setup_codex()
+
+    content = codex_config.read_text(encoding="utf-8")
+    parsed = tomllib.loads(content)
+    assert content.count("[tui]") == 1
+    assert parsed["tui"]["animations"] is False
+    assert parsed["tui"]["status_line"] == setup_hook.CODEX_STATUS_LINE
+    assert setup_hook.is_codex_setup()
+
+
+def test_insert_tui_status_line_after_top_level_dotted_key() -> None:
+    content = "tui.animations = false\n"
+
+    updated = setup_hook._insert_tui_status_line(
+        content, setup_hook._status_line_toml(setup_hook.CODEX_STATUS_LINE)
+    )
+
+    parsed = tomllib.loads(updated)
+    assert parsed["tui"]["animations"] is False
+    assert parsed["tui"]["status_line"] == setup_hook.CODEX_STATUS_LINE
+
+
+def test_insert_tui_status_line_before_table_after_dotted_key() -> None:
+    content = "tui.animations = false\n\n[features]\nhooks = true\n"
+
+    updated = setup_hook._insert_tui_status_line(
+        content, setup_hook._status_line_toml(setup_hook.CODEX_STATUS_LINE)
+    )
+
+    parsed = tomllib.loads(updated)
+    assert updated.index("tui.status_line") < updated.index("[features]")
+    assert parsed["tui"]["animations"] is False
+    assert parsed["tui"]["status_line"] == setup_hook.CODEX_STATUS_LINE
+    assert parsed["features"]["hooks"] is True
+
+
+def test_insert_tui_status_line_before_subtable_after_other_table() -> None:
+    content = (
+        "[features]\nhooks = true\n"
+        "[tui.model_availability_nux]\nseen = true\n"
+    )
+
+    updated = setup_hook._insert_tui_status_line(
+        content, setup_hook._status_line_toml(setup_hook.CODEX_STATUS_LINE)
+    )
+
+    parsed = tomllib.loads(updated)
+    assert updated.index("[tui]") < updated.index("[tui.model_availability_nux]")
+    assert parsed["features"]["hooks"] is True
+    assert parsed["tui"]["status_line"] == setup_hook.CODEX_STATUS_LINE
+    assert parsed["tui"]["model_availability_nux"]["seen"] is True
+
+
+def test_insert_tui_status_line_keeps_quoted_dotted_key_unchanged() -> None:
+    content = 'tui."my key" = 1\n'
+
+    updated = setup_hook._insert_tui_status_line(
+        content, setup_hook._status_line_toml(setup_hook.CODEX_STATUS_LINE)
+    )
+
+    tomllib.loads(updated)
+    assert updated == content
+
+
 def test_setup_codex_ignores_tui_text_outside_table(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
