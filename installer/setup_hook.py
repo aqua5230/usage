@@ -709,6 +709,17 @@ def _table_section(content: str, table: re.Match[str]) -> tuple[int, int]:
     return table.end(), section_end
 
 
+def _find_top_level_dotted_line(
+    content: str, name: str, line_regex: re.Pattern[str]
+) -> re.Match[str] | None:
+    """Find ``name.<key>`` before the first TOML table header."""
+    first_table = _TABLE_REGEX.search(content)
+    top_level_end = len(content) if first_table is None else first_table.start()
+    line_pattern = line_regex.pattern.removeprefix("(?m)").removeprefix(r"^[ \t]*")
+    dotted_line = re.compile(rf"^[ \t]*{re.escape(name)}\.{line_pattern}", line_regex.flags)
+    return dotted_line.search(content, 0, top_level_end)
+
+
 def _insert_table_line(content: str, name: str, line: str) -> str:
     def validated(candidate: str) -> str:
         try:
@@ -758,21 +769,54 @@ def _insert_table_line(content: str, name: str, line: str) -> str:
 def _replace_table_line(
     content: str, name: str, line_regex: re.Pattern[str], replacement: str
 ) -> str:
+    def validated(candidate: str) -> str:
+        try:
+            tomllib.loads(candidate)
+        except tomllib.TOMLDecodeError:
+            return content
+        return candidate
+
     table = _find_table(content, name)
     if table is None:
-        return content
+        dotted_line = _find_top_level_dotted_line(content, name, line_regex)
+        if dotted_line is None:
+            return content
+        matched = dotted_line.group()
+        indent = matched[: len(matched) - len(matched.lstrip(" \t"))]
+        candidate = (
+            content[: dotted_line.start()]
+            + f"{indent}{name}.{replacement}"
+            + content[dotted_line.end() :]
+        )
+        return validated(candidate)
     start, end = _table_section(content, table)
     section = content[start:end]
-    return content[:start] + line_regex.sub(replacement, section, count=1) + content[end:]
+    candidate = content[:start] + line_regex.sub(replacement, section, count=1) + content[end:]
+    return validated(candidate)
 
 
 def _remove_table_line(content: str, name: str, line_regex: re.Pattern[str]) -> str:
+    def validated(candidate: str) -> str:
+        try:
+            tomllib.loads(candidate)
+        except tomllib.TOMLDecodeError:
+            return content
+        return candidate
+
     table = _find_table(content, name)
     if table is None:
-        return content
+        dotted_line = _find_top_level_dotted_line(content, name, line_regex)
+        if dotted_line is None:
+            return content
+        line_end = dotted_line.end()
+        if line_end < len(content) and content[line_end] == "\n":
+            line_end += 1
+        candidate = content[: dotted_line.start()] + content[line_end:]
+        return validated(candidate)
     start, end = _table_section(content, table)
     section = content[start:end]
-    return content[:start] + line_regex.sub("", section, count=1) + content[end:]
+    candidate = content[:start] + line_regex.sub("", section, count=1) + content[end:]
+    return validated(candidate)
 
 
 def _ensure_table_line(
@@ -854,7 +898,7 @@ def _setup_codex() -> None:
         content += f"\n[tui]\n{_status_line_toml(CODEX_STATUS_LINE)}\n"
 
     if content == original_content:
-        print(_t("setup_codex_config_unreadable"))
+        print(_t("setup_codex_config_unmodifiable"))
         return
     _atomic_write_text(CODEX_CONFIG, content)
     print(_t("setup_codex_configured"))
@@ -868,6 +912,7 @@ def _unsetup_codex() -> None:
     if not result:
         return
     content, parsed = result
+    original_content = content
 
     if not _is_our_codex_status_line(_codex_status_line(parsed)):
         print(_t("setup_codex_unsetup_foreign"))
@@ -884,6 +929,9 @@ def _unsetup_codex() -> None:
             print(_t("setup_codex_backup_invalid"))
             return
         content = _replace_tui_status_line(content, _status_line_toml(old_items))
+        if content == original_content:
+            print(_t("setup_codex_config_unmodifiable"))
+            return
         # Write the restored config before deleting the backup: if the write fails, the
         # backup must survive so a later retry can still recover the original status line.
         _atomic_write_text(CODEX_CONFIG, content)
@@ -891,6 +939,9 @@ def _unsetup_codex() -> None:
         print(_t("setup_codex_restored"))
     else:
         content = _remove_tui_status_line(content)
+        if content == original_content:
+            print(_t("setup_codex_config_unmodifiable"))
+            return
         _atomic_write_text(CODEX_CONFIG, content)
         print(_t("setup_codex_removed"))
 
