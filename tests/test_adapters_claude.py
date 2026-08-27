@@ -122,3 +122,60 @@ def test_load_entries_converts_numeric_string_cost_usd_to_float(
     assert len(entries) == 1
     assert entries[0].cost_usd == 0.05
     assert isinstance(entries[0].cost_usd, float)
+
+
+def test_load_entries_tracks_1h_cache_and_only_bills_advisor_iterations(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    _write_assistant_log(
+        projects_dir / "demo" / "entry.jsonl",
+        timestamp=datetime.now(UTC).isoformat(),
+        usage={
+            "input_tokens": 4,
+            "output_tokens": 625,
+            "cache_creation_input_tokens": 3_526,
+            "cache_read_input_tokens": 205_601,
+            "cache_creation": {"ephemeral_1h_input_tokens": 3_526},
+            "iterations": [
+                {"type": "message", "input_tokens": 2, "output_tokens": 157},
+                {
+                    "type": "advisor_message",
+                    "model": "claude-opus-5",
+                    "input_tokens": 104_982,
+                    "output_tokens": 7_883,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 0,
+                },
+                {"type": "message", "input_tokens": 2, "output_tokens": 468},
+            ],
+        },
+        cost_usd=0.01,
+    )
+    monkeypatch.setattr(claude, "CLAUDE_DIRS", [str(projects_dir)])
+
+    entries = claude.load_entries()
+
+    assert [(entry.request_id, entry.input_tokens, entry.output_tokens) for entry in entries] == [
+        ("request-1", 4, 625),
+        ("request-1#advisor1", 104_982, 7_883),
+    ]
+    assert entries[0].cache_creation_1h_tokens == 3_526
+    assert entries[1].model == "claude-opus-5"
+    assert entries[1].cost_usd is None
+
+
+def test_load_entries_without_iterations_keeps_single_entry(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    _write_assistant_log(
+        projects_dir / "demo" / "entry.jsonl",
+        timestamp=datetime.now(UTC).isoformat(),
+        usage={"input_tokens": 1},
+    )
+    monkeypatch.setattr(claude, "CLAUDE_DIRS", [str(projects_dir)])
+
+    assert len(claude.load_entries()) == 1

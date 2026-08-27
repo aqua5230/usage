@@ -60,6 +60,7 @@ def _entry(
     output_tokens: int = 0,
     cache_creation_tokens: int = 0,
     cache_read_tokens: int = 0,
+    cache_creation_1h_tokens: int = 0,
     cost_usd: float | None = None,
 ) -> UsageEntry:
     return UsageEntry(
@@ -74,6 +75,7 @@ def _entry(
         cache_read_tokens=cache_read_tokens,
         cost_usd=cost_usd,
         project="project",
+        cache_creation_1h_tokens=cache_creation_1h_tokens,
     )
 
 
@@ -181,6 +183,28 @@ def test_calculate_cost_uses_named_cache_multipliers_when_prices_missing(
             cache_read_tokens=4,
         )
     ) == 2.0 + 6.0 + (3 * 2.0 * 1.25) + (4 * 2.0 * 0.1)
+
+
+def test_calculate_cost_uses_distinct_cache_write_ttls(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(
+        pricing,
+        "get_pricing",
+        lambda: {
+            "claude-opus-5": {
+                "input_cost_per_token": 5e-6,
+                "output_cost_per_token": 25e-6,
+                "cache_creation_input_token_cost": 6.25e-6,
+            }
+        },
+    )
+
+    assert pricing.calculate_cost(
+        _entry(
+            model="claude-opus-5",
+            cache_creation_tokens=2_000_000,
+            cache_creation_1h_tokens=1_000_000,
+        )
+    ) == 16.25
 
 
 def test_calculate_cost_accepts_analyzer_usage_entry(monkeypatch: pytest.MonkeyPatch) -> None:

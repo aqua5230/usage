@@ -54,7 +54,7 @@ _file_cache: OrderedDict[Path, _FileCacheEntry] = OrderedDict()
 
 CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 HISTORY_CACHE_PATH = Path(os.path.expanduser("~/.usage/history_jsonl_cache.json"))
-_HISTORY_JSONL_CACHE_SCHEMA = 2
+_HISTORY_JSONL_CACHE_SCHEMA = 3
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
 _disk_cache_dirty = False
@@ -75,6 +75,7 @@ class UsageEntry:
     cache_read_tokens: int
     cost_usd: float | None
     project: str
+    cache_creation_1h_tokens: int = 0
 
     @property
     def total_tokens(self) -> int:
@@ -307,16 +308,16 @@ def _parse_complete_lines(
             continue
         if not line:
             return confirmed_offset
-        parsed_entry = _parse_line(line.decode("utf-8", errors="replace"), project)
-        if not line.endswith(b"\n") and parsed_entry is None:
+        parsed_entries_for_line = _parse_line(line.decode("utf-8", errors="replace"), project)
+        if not line.endswith(b"\n") and parsed_entries_for_line is None:
             return line_start
         digest.update(line)
         confirmed_offset = int(file.tell())
-        if parsed_entry is not None:
-            parsed_entries.append(parsed_entry)
+        if parsed_entries_for_line is not None:
+            parsed_entries.extend(parsed_entries_for_line)
 
 
-def _parse_line(line: str, project: str) -> UsageEntry | None:
+def _parse_line(line: str, project: str) -> list[UsageEntry] | None:
     try:
         data = json.loads(line)
     except (json.JSONDecodeError, RecursionError):
@@ -341,26 +342,80 @@ def _parse_line(line: str, project: str) -> UsageEntry | None:
     output_tokens = _as_int(usage.get("output_tokens"))
     cache_creation_tokens = _as_int(usage.get("cache_creation_input_tokens"))
     cache_read_tokens = _as_int(usage.get("cache_read_input_tokens"))
-    if input_tokens + output_tokens + cache_creation_tokens + cache_read_tokens == 0:
-        return None
+    cache_creation_details = usage.get("cache_creation")
+    cache_creation_1h_tokens = (
+        _as_int(cache_creation_details.get("ephemeral_1h_input_tokens"))
+        if isinstance(cache_creation_details, dict)
+        else 0
+    )
 
     cwd = data.get("cwd")
     if isinstance(cwd, str) and cwd:
         project = _project_from_cwd(cwd)
 
-    return UsageEntry(
-        timestamp=timestamp,
-        session_id=_as_str(data.get("sessionId")),
-        message_id=_as_str(message.get("id")),
-        request_id=_as_str(data.get("requestId")),
-        model=_as_str(message.get("model")) or "unknown",
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        cache_creation_tokens=cache_creation_tokens,
-        cache_read_tokens=cache_read_tokens,
-        cost_usd=_as_optional_float(data.get("costUSD")),
-        project=project,
-    )
+    session_id = _as_str(data.get("sessionId"))
+    message_id = _as_str(message.get("id"))
+    request_id = _as_str(data.get("requestId"))
+    model = _as_str(message.get("model")) or "unknown"
+    entries: list[UsageEntry] = []
+    if input_tokens + output_tokens + cache_creation_tokens + cache_read_tokens:
+        entries.append(
+            UsageEntry(
+                timestamp=timestamp,
+                session_id=session_id,
+                message_id=message_id,
+                request_id=request_id,
+                model=model,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                cache_creation_tokens=cache_creation_tokens,
+                cache_read_tokens=cache_read_tokens,
+                cost_usd=_as_optional_float(data.get("costUSD")),
+                project=project,
+                cache_creation_1h_tokens=cache_creation_1h_tokens,
+            )
+        )
+
+    iterations = usage.get("iterations")
+    if isinstance(iterations, list):
+        for index, iteration in enumerate(iterations):
+            if not isinstance(iteration, dict) or iteration.get("type") != "advisor_message":
+                continue
+            advisor_input_tokens = _as_int(iteration.get("input_tokens"))
+            advisor_output_tokens = _as_int(iteration.get("output_tokens"))
+            advisor_cache_creation_tokens = _as_int(iteration.get("cache_creation_input_tokens"))
+            advisor_cache_read_tokens = _as_int(iteration.get("cache_read_input_tokens"))
+            advisor_cache_creation_details = iteration.get("cache_creation")
+            advisor_cache_creation_1h_tokens = (
+                _as_int(advisor_cache_creation_details.get("ephemeral_1h_input_tokens"))
+                if isinstance(advisor_cache_creation_details, dict)
+                else 0
+            )
+            if not (
+                advisor_input_tokens
+                + advisor_output_tokens
+                + advisor_cache_creation_tokens
+                + advisor_cache_read_tokens
+            ):
+                continue
+            entries.append(
+                UsageEntry(
+                    timestamp=timestamp,
+                    session_id=session_id,
+                    message_id=message_id,
+                    request_id=f"{request_id}#advisor{index}",
+                    model=_as_str(iteration.get("model")) or model,
+                    input_tokens=advisor_input_tokens,
+                    output_tokens=advisor_output_tokens,
+                    cache_creation_tokens=advisor_cache_creation_tokens,
+                    cache_read_tokens=advisor_cache_read_tokens,
+                    cost_usd=None,
+                    project=project,
+                    cache_creation_1h_tokens=advisor_cache_creation_1h_tokens,
+                )
+            )
+
+    return entries or None
 
 
 def _parse_timestamp(value: Any) -> datetime | None:

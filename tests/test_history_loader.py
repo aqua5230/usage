@@ -97,6 +97,8 @@ def _line(
     output_tokens: int = 2,
     cache_creation_tokens: int = 3,
     cache_read_tokens: int = 4,
+    cache_creation: dict[str, Any] | None = None,
+    iterations: list[dict[str, Any]] | None = None,
     cwd: str | None = None,
     cost_usd: Any = 0.01,
 ) -> str:
@@ -120,6 +122,10 @@ def _line(
         data["timestamp"] = timestamp
     if cwd is not None:
         data["cwd"] = cwd
+    if cache_creation is not None:
+        data["message"]["usage"]["cache_creation"] = cache_creation
+    if iterations is not None:
+        data["message"]["usage"]["iterations"] = iterations
     return json.dumps(data)
 
 
@@ -179,7 +185,7 @@ def test_parse_line_rejects_zero_tokens() -> None:
 
 
 def test_parse_line_accepts_digit_string_tokens() -> None:
-    entry = history_loader._parse_line(
+    entries = history_loader._parse_line(
         _line(
             input_tokens="1",  # type: ignore[arg-type]
             output_tokens="2",  # type: ignore[arg-type]
@@ -189,13 +195,13 @@ def test_parse_line_accepts_digit_string_tokens() -> None:
         "project",
     )
 
-    assert entry is not None
-    assert entry.total_tokens == 10
+    assert entries is not None
+    assert entries[0].total_tokens == 10
 
 
 def test_parse_line_treats_non_ascii_digit_tokens_as_zero() -> None:
     # "²" is str.isdigit() True but int("²") raises; must not crash, must be 0.
-    entry = history_loader._parse_line(
+    entries = history_loader._parse_line(
         _line(
             input_tokens="²",  # type: ignore[arg-type]
             output_tokens=7,
@@ -205,15 +211,16 @@ def test_parse_line_treats_non_ascii_digit_tokens_as_zero() -> None:
         "project",
     )
 
-    assert entry is not None
-    assert entry.input_tokens == 0
-    assert entry.output_tokens == 7
+    assert entries is not None
+    assert entries[0].input_tokens == 0
+    assert entries[0].output_tokens == 7
 
 
 def test_parse_line_parses_valid_entry_and_cwd_project() -> None:
-    entry = history_loader._parse_line(_line(cwd="/tmp/work/my-project"), "fallback")
+    entries = history_loader._parse_line(_line(cwd="/tmp/work/my-project"), "fallback")
 
-    assert entry is not None
+    assert entries is not None
+    entry = entries[0]
     assert entry.timestamp == datetime(2026, 1, 1, tzinfo=UTC)
     assert entry.session_id == "session"
     assert entry.message_id == "message"
@@ -231,10 +238,10 @@ def test_as_optional_float_accepts_finite_numeric_strings() -> None:
 
 
 def test_parse_line_accepts_numeric_string_cost_usd() -> None:
-    entry = history_loader._parse_line(_line(cost_usd="0.05"), "project")
+    entries = history_loader._parse_line(_line(cost_usd="0.05"), "project")
 
-    assert entry is not None
-    assert entry.cost_usd == 0.05
+    assert entries is not None
+    assert entries[0].cost_usd == 0.05
 
 
 def test_parse_line_uses_main_worktree_project_for_cwd(
@@ -250,10 +257,66 @@ def test_parse_line_uses_main_worktree_project_for_cwd(
     )
     monkeypatch.setattr("project_resolver.subprocess.run", run)
 
-    entry = history_loader._parse_line(_line(cwd="/tmp/work/my-project-feature"), "fallback")
+    entries = history_loader._parse_line(_line(cwd="/tmp/work/my-project-feature"), "fallback")
 
-    assert entry is not None
-    assert entry.project == "my-project"
+    assert entries is not None
+    assert entries[0].project == "my-project"
+
+
+def test_parse_line_tracks_1h_cache_and_only_bills_advisor_iterations() -> None:
+    entries = history_loader._parse_line(
+        _line(
+            input_tokens=4,
+            output_tokens=625,
+            cache_creation_tokens=3_526,
+            cache_read_tokens=205_601,
+            cache_creation={
+                "ephemeral_5m_input_tokens": 0,
+                "ephemeral_1h_input_tokens": 3_526,
+            },
+            iterations=[
+                {
+                    "type": "message",
+                    "input_tokens": 2,
+                    "output_tokens": 157,
+                    "cache_creation_input_tokens": 1_499,
+                    "cache_read_input_tokens": 102_051,
+                },
+                {
+                    "type": "advisor_message",
+                    "model": "claude-opus-5",
+                    "input_tokens": 104_982,
+                    "output_tokens": 7_883,
+                    "cache_creation_input_tokens": 0,
+                    "cache_read_input_tokens": 0,
+                },
+                {
+                    "type": "message",
+                    "input_tokens": 2,
+                    "output_tokens": 468,
+                    "cache_creation_input_tokens": 2_027,
+                    "cache_read_input_tokens": 103_550,
+                },
+            ],
+        ),
+        "project",
+    )
+
+    assert entries is not None
+    assert [(entry.request_id, entry.input_tokens, entry.output_tokens) for entry in entries] == [
+        ("request", 4, 625),
+        ("request#advisor1", 104_982, 7_883),
+    ]
+    assert entries[0].cache_creation_1h_tokens == 3_526
+    assert entries[1].model == "claude-opus-5"
+    assert entries[1].cost_usd is None
+
+
+def test_parse_line_without_iterations_keeps_single_entry() -> None:
+    entries = history_loader._parse_line(_line(), "project")
+
+    assert entries is not None
+    assert len(entries) == 1
 
 
 @pytest.mark.parametrize(

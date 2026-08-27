@@ -8,13 +8,40 @@ import math
 import os
 import sys
 from collections import OrderedDict
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 from loaders.jsonl_utils import iter_jsonl_dicts
 
-from .types import AgentInfo, UsageEntry
+from .types import AgentInfo
+
+
+@dataclass
+class UsageEntry:
+    timestamp: datetime
+    session_id: str
+    message_id: str
+    request_id: str
+    model: str
+    input_tokens: int
+    output_tokens: int
+    cache_creation_tokens: int
+    cache_read_tokens: int
+    cost_usd: float | None
+    project: str
+    agent_id: str
+    cache_creation_1h_tokens: int = 0
+    message_count: int = 1
+
+    @property
+    def total_tokens(self) -> int:
+        return self.input_tokens + self.output_tokens + self.cache_creation_tokens + self.cache_read_tokens
+
+    @property
+    def dedup_key(self) -> str:
+        return f"{self.message_id}:{self.request_id}"
 
 CLAUDE_DIRS = [
     os.path.expanduser("~/.claude/projects"),
@@ -97,7 +124,7 @@ def extract_project_from_dir(jsonl_path: Path, base: Path) -> str:
 def parse_jsonl(
     path: Path,
     project: str,
-    entries: list[UsageEntry],
+    entries: list[Any],
     seen: set[str],
     cutoff: datetime | None,
 ) -> None:
@@ -119,10 +146,7 @@ def parse_jsonl(
                 if data.get("type") != "assistant":
                     continue
 
-                entry = _parse_assistant_entry(data, project)
-                if entry is None:
-                    continue
-                parsed_entries.append(entry)
+                parsed_entries.extend(_parse_assistant_entry(data, project))
         except (OSError, PermissionError, UnicodeDecodeError) as exc:
             _debug_file_error("failed to read Claude log", path, exc)
             return
@@ -142,28 +166,31 @@ def parse_jsonl(
         entries.append(entry)
 
 
-def _parse_assistant_entry(data: dict[str, Any], project: str) -> UsageEntry | None:
+def _parse_assistant_entry(data: dict[str, Any], project: str) -> list[UsageEntry]:
     message = data.get("message")
     if not message or not isinstance(message, dict):
-        return None
+        return []
 
     usage = message.get("usage")
     if not usage or not isinstance(usage, dict):
-        return None
+        return []
 
     input_tokens = _as_int(usage.get("input_tokens"))
     output_tokens = _as_int(usage.get("output_tokens"))
     cache_creation = _as_int(usage.get("cache_creation_input_tokens"))
     cache_read = _as_int(usage.get("cache_read_input_tokens"))
-
-    if input_tokens == 0 and output_tokens == 0 and cache_creation == 0 and cache_read == 0:
-        return None
+    cache_creation_details = usage.get("cache_creation")
+    cache_creation_1h_tokens = (
+        _as_int(cache_creation_details.get("ephemeral_1h_input_tokens"))
+        if isinstance(cache_creation_details, dict)
+        else 0
+    )
 
     timestamp_str = data.get("timestamp", "")
     try:
         ts = datetime.fromisoformat(timestamp_str.replace("Z", "+00:00"))
     except (ValueError, AttributeError):
-        return None
+        return []
 
     message_id = message.get("id", "")
     request_id = data.get("requestId") or ""
@@ -175,20 +202,67 @@ def _parse_assistant_entry(data: dict[str, Any], project: str) -> UsageEntry | N
     if cwd:
         project = project_from_cwd(cwd)
 
-    return UsageEntry(
-        timestamp=ts,
-        session_id=session_id,
-        message_id=message_id,
-        request_id=request_id,
-        model=model,
-        input_tokens=input_tokens,
-        output_tokens=output_tokens,
-        cache_creation_tokens=cache_creation,
-        cache_read_tokens=cache_read,
-        cost_usd=cost_usd,
-        project=project,
-        agent_id="claude-code",
-    )
+    entries: list[UsageEntry] = []
+    if input_tokens or output_tokens or cache_creation or cache_read:
+        entries.append(
+            UsageEntry(
+                timestamp=ts,
+                session_id=session_id,
+                message_id=message_id,
+                request_id=request_id,
+                model=model,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                cache_creation_tokens=cache_creation,
+                cache_read_tokens=cache_read,
+                cost_usd=cost_usd,
+                project=project,
+                agent_id="claude-code",
+                cache_creation_1h_tokens=cache_creation_1h_tokens,
+            )
+        )
+
+    iterations = usage.get("iterations")
+    if isinstance(iterations, list):
+        for index, iteration in enumerate(iterations):
+            if not isinstance(iteration, dict) or iteration.get("type") != "advisor_message":
+                continue
+            advisor_input_tokens = _as_int(iteration.get("input_tokens"))
+            advisor_output_tokens = _as_int(iteration.get("output_tokens"))
+            advisor_cache_creation_tokens = _as_int(iteration.get("cache_creation_input_tokens"))
+            advisor_cache_read_tokens = _as_int(iteration.get("cache_read_input_tokens"))
+            advisor_cache_creation_details = iteration.get("cache_creation")
+            advisor_cache_creation_1h_tokens = (
+                _as_int(advisor_cache_creation_details.get("ephemeral_1h_input_tokens"))
+                if isinstance(advisor_cache_creation_details, dict)
+                else 0
+            )
+            if not (
+                advisor_input_tokens
+                or advisor_output_tokens
+                or advisor_cache_creation_tokens
+                or advisor_cache_read_tokens
+            ):
+                continue
+            entries.append(
+                UsageEntry(
+                    timestamp=ts,
+                    session_id=session_id,
+                    message_id=message_id,
+                    request_id=f"{request_id}#advisor{index}",
+                    model=_as_str(iteration.get("model")) or model,
+                    input_tokens=advisor_input_tokens,
+                    output_tokens=advisor_output_tokens,
+                    cache_creation_tokens=advisor_cache_creation_tokens,
+                    cache_read_tokens=advisor_cache_read_tokens,
+                    cost_usd=None,
+                    project=project,
+                    agent_id="claude-code",
+                    cache_creation_1h_tokens=advisor_cache_creation_1h_tokens,
+                )
+            )
+
+    return entries
 
 
 def _debug_file_error(action: str, path: Path, exc: Exception) -> None:
@@ -213,3 +287,7 @@ def _as_int(value: Any) -> int:
     if number is None:
         return 0
     return int(number)
+
+
+def _as_str(value: Any) -> str:
+    return value if isinstance(value, str) else ""
