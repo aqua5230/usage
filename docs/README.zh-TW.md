@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/readme-logo.png" alt="usage logo" width="128">
+  <img src="readme-logo.png" alt="usage logo" width="128">
 </p>
 
 # usage
@@ -8,7 +8,7 @@
 
 長時間重構或除錯若依賴 Claude Code，無預警撞到額度上限代價很高。`usage` 讓你在撞牆前就先看到 5 小時與每週限額，並且全程留在畫面上——不用停下來跑指令、也不用另外開頁面，答案就在你本來就在看的地方。
 
-繁體中文 · [简体中文](README.zh-CN.md) · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介紹頁](https://aqua5230.github.io/usage/)
+繁體中文 · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介紹頁](https://aqua5230.github.io/usage/)
 
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
@@ -16,11 +16,11 @@
 [![PyPI](https://img.shields.io/pypi/v/usage-cli)](https://pypi.org/project/usage-cli/)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/aqua5230/usage/releases/latest)
-[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](../LICENSE)
 [![OpenSSF 最佳實踐](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="docs/showcase.en.png" alt="usage — 把 Claude Code、Codex 與 Antigravity 的額度釘在 macOS 選單列" width="820">
+  <img src="showcase.en.png" alt="usage — 把 Claude Code、Codex 與 Antigravity 的額度釘在 macOS 選單列" width="820">
 </p>
 
 Claude Code 與 Codex 的數字是被動讀自你機器上原本就在寫的紀錄檔，因此**看額度這件事永遠不會呼叫 Anthropic 或 OpenAI 的 LLM API**，也不會消耗你的任何 token。Antigravity 是唯一的例外：它的額度來自 Google 官方額度端點，用的是 Antigravity CLI 本來就存在本機的登入身分——這只是一次元資料查詢，同樣不會消耗你的模型額度。
@@ -52,7 +52,7 @@ brew install --cask aqua5230/usage/usage
 
 - **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用重講一遍進度。完全本機、預設關閉。
 - **省 token 模式 (Token Saver)：** 一鍵讓 Claude Code 與 Codex 講話更精簡，省下輸出 token，但程式碼與錯誤訊息保證一個字都不縮水。輕聲提醒維持精簡，長對話也不走鐘——在真實 Session 的 A/B 測試中，對話後段回覆維持少約 40%，而不是走鐘變長 84%。
-- **終端機整合：** `usage status --json` 把 Claude Code 與 Codex 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案，不做網路呼叫。[現成的設定片段](docs/DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
+- **終端機整合：** `usage status --json` 把 Claude Code 與 Codex 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案，不做網路呼叫。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **Token 浪費健檢：** 每日背景診斷重複讀取檔案、污染目錄與雜訊輸出。當發現浪費時會有一行提示，AI 也能帶你看懂問題並給出改善建議。
 
 ### AI 協作
@@ -121,7 +121,7 @@ Linux 上跑 `usage setup` 也能裝好 Claude Code 的狀態列，配額會像 
 設定完成後，Claude Code 視窗底部會出現這樣的狀態列：
 
 <p align="center">
-  <img src="docs/statusline.gif" alt="Claude Code statusLine 顯示樣式（繁中）" width="900">
+  <img src="statusline.gif" alt="Claude Code statusLine 顯示樣式（繁中）" width="900">
 </p>
 
 ## Windows 支援
@@ -148,19 +148,19 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 內建 **14 款可切換的視覺主題**，可直接在 UI 中切換：
 
 <p align="center">
-  <img src="docs/classic.png" width="32%" alt="Classic 主題" />
-  <img src="docs/matrix.png" width="32%" alt="Matrix 主題" />
-  <img src="docs/win95.png" width="32%" alt="Windows 95 主題" />
-  <img src="docs/newspaper.png" width="32%" alt="復古報紙主題" />
-  <img src="docs/cloud_observation.png" width="32%" alt="雲圖觀測主題" />
-  <img src="docs/aquarium.png" width="32%" alt="深夜水族箱主題" />
-  <img src="docs/prism_arcade.png" width="32%" alt="Prism Arcade 主題" />
-  <img src="docs/stained_glass.png" width="32%" alt="彩繪玻璃主題" />
-  <img src="docs/origami.png" width="32%" alt="摺紙主題" />
-  <img src="docs/black_hole.png" width="32%" alt="黑洞主題" />
-  <img src="docs/lepidoptera.png" width="32%" alt="Lepidoptera 主題" />
-  <img src="docs/migration.png" width="32%" alt="候鳥遷徙主題" />
-  <img src="docs/catppuccin.png" width="32%" alt="Catppuccin 主題" />
+  <img src="classic.png" width="32%" alt="Classic 主題" />
+  <img src="matrix.png" width="32%" alt="Matrix 主題" />
+  <img src="win95.png" width="32%" alt="Windows 95 主題" />
+  <img src="newspaper.png" width="32%" alt="復古報紙主題" />
+  <img src="cloud_observation.png" width="32%" alt="雲圖觀測主題" />
+  <img src="aquarium.png" width="32%" alt="深夜水族箱主題" />
+  <img src="prism_arcade.png" width="32%" alt="Prism Arcade 主題" />
+  <img src="stained_glass.png" width="32%" alt="彩繪玻璃主題" />
+  <img src="origami.png" width="32%" alt="摺紙主題" />
+  <img src="black_hole.png" width="32%" alt="黑洞主題" />
+  <img src="lepidoptera.png" width="32%" alt="Lepidoptera 主題" />
+  <img src="migration.png" width="32%" alt="候鳥遷徙主題" />
+  <img src="catppuccin.png" width="32%" alt="Catppuccin 主題" />
 </p>
 
 ## 常見問題排查
@@ -205,9 +205,9 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 
 ## 開發
 
-從原始碼建置、設定自訂 agent 或執行終端機 TUI？請參閱 **[開發文件 (docs/DEVELOPMENT.zh-TW.md)](docs/DEVELOPMENT.zh-TW.md)**。
+從原始碼建置、設定自訂 agent 或執行終端機 TUI？請參閱 **[開發文件 (docs/DEVELOPMENT.zh-TW.md)](DEVELOPMENT.zh-TW.md)**。
 
 ## 授權
 
-採用 AGPL-3.0-only（見 [LICENSE](LICENSE)）。若 fork 或發佈衍生版本，請標注原作者與專案連結：
+採用 AGPL-3.0-only（見 [LICENSE](../LICENSE)）。若 fork 或發佈衍生版本，請標注原作者與專案連結：
 https://github.com/aqua5230/usage

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/readme-logo.png" alt="usage 标志" width="128">
+  <img src="readme-logo.png" alt="usage 标志" width="128">
 </p>
 
 # usage
@@ -8,7 +8,7 @@
 
 在会话中途耗尽配额的代价很高，尤其是在依赖 Claude Code 的长时间重构或调试期间。`usage` 会在你触及限额前显示 5 小时和每周限额，并始终保持可见。无需运行命令，也无需打开页面；答案就在你平时已经会看的位置。
 
-[繁體中文](README.zh-TW.md) · 简体中文 · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介绍页](https://aqua5230.github.io/usage/)
+[繁體中文](README.zh-TW.md) · 简体中文 · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介绍页](https://aqua5230.github.io/usage/)
 
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![持续集成](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
@@ -16,11 +16,11 @@
 [![PyPI](https://img.shields.io/pypi/v/usage-cli)](https://pypi.org/project/usage-cli/)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![平台](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/aqua5230/usage/releases/latest)
-[![许可证：AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![许可证：AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](../LICENSE)
 [![OpenSSF 最佳实践](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="docs/showcase.en.png" alt="usage — 固定在 macOS 菜单栏中的 Claude Code、Codex 与 Antigravity 配额" width="820">
+  <img src="showcase.en.png" alt="usage — 固定在 macOS 菜单栏中的 Claude Code、Codex 与 Antigravity 配额" width="820">
 </p>
 
 Claude Code 和 Codex 的数值以被动方式从你电脑上已有的日志文件读取，因此**查看配额永远不会调用 Anthropic 或 OpenAI 的 LLM API**，也永远不会消耗你的 token。Antigravity 是唯一的例外：它的配额来自 Google 官方配额接口，使用的是 Antigravity CLI 本就保存在本机的登录身份——这只是一次元数据查询，同样不会消耗你的模型配额。
@@ -43,15 +43,16 @@ brew install --cask aqua5230/usage/usage
 
 - **常驻监视器：** 配额常驻菜单栏，以绿色到红色的颜色编码显示。需要完整的会话、每周和各项目明细时，点击即可查看。
 - **Antigravity 支持：** Antigravity（Gemini）的会话与每周配额以第三张卡片出现在除了 World Cup 2026 以外的每一款面板（该款维持两队对战 HUD）。数值直接向官方配额 API 查询，使用的是 Antigravity CLI 本就保存在你机器上的登录身份——每隔几分钟自动刷新，重置倒计时实时递减。
+- **Grok CLI 支持：** 第四张卡片直接读取 Grok CLI 自己写在本地的调试日志算出每周配额百分比，不做任何网络调用。Grok CLI 没有提供会话或燃烧率数据，所以这张卡片只显示一条每周进度条；但它的逐次 token 用量一样会算进今日花费与各项目总计，跟 Claude Code、Codex 一样。
 - **服务状态警示：** Claude Code、Claude API 或 Codex API 发生故障或性能降级时，相关面板底部会显示橘红警示横幅，数值仅读取官方公开的 Statuspage.io 状态页——绝不调用 LLM 使用量 API。Antigravity 因没有可用的公开状态页，暂不支持。
 - **上下文提醒与通知：** 当上下文窗口达到 70% 时，状态栏会提示你使用 `/clear` 或 `/compact`，避免浪费 token。你也可以选择接收关于配额限额和恢复的系统通知。
-- **隐藏区块：** 没全都用？点击一次即可从菜单栏和面板中完全隐藏 Claude Code、Codex 或 Antigravity 区块。
+- **隐藏区块：** 没全都用？点击一次即可从菜单栏和面板中完全隐藏 Claude Code、Codex、Grok CLI 或 Antigravity 区块。
 
 ### 工作流辅助
 
 - **进度管家：** 打开新的 Claude Code 会话时，`usage` 会直接把你上次的进度交给 AI，包括上次请求、未提交的变更和未完成的待办事项。无需 `/resume`，无需回顾。完全本地运行，默认关闭。
 - **Token 节省器：** 菜单栏开关会要求 Claude Code 和 Codex 在当前会话中更简洁地回答，在保持代码和错误信息逐字节不变的同时节省输出 token。轻量的逐消息提醒能避免长对话中的回复逐渐变得冗长——在真实会话的 A/B 测试中，对话后期回复维持缩短约 40%，而不是漂移变长 84%。
-- **终端集成：** `usage status --json` 会将你的 Claude Code 和 Codex 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件，无网络请求。[现成的片段](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
+- **终端集成：** `usage status --json` 会将你的 Claude Code 和 Codex 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件，无网络请求。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **Token 浪费健康检查：** 每日后台诊断会扫描日志中的浪费问题，包括重复读取文件、污染目录和冗长的 Bash 输出。发现问题时会显示一行提示；对 AI 说“show me”，它会引导你完成修复。
 
 ### AI 协作
@@ -120,7 +121,7 @@ Linux 上运行 `usage setup` 也能装好 Claude Code 的状态栏，配额会�
 设置完成后，Claude Code 窗口底部会显示如下状态栏：
 
 <p align="center">
-  <img src="docs/statusline.zh-CN.gif" alt="Claude Code 状态栏显示（简体）" width="900">
+  <img src="statusline.zh-CN.gif" alt="Claude Code 状态栏显示（简体）" width="900">
 </p>
 
 ## Windows 支持
@@ -147,19 +148,19 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 直接在界面中切换 **14 个视觉主题**：
 
 <p align="center">
-  <img src="docs/classic.en.png" width="32%" alt="Classic 主题" />
-  <img src="docs/matrix.en.png" width="32%" alt="Matrix 主题" />
-  <img src="docs/win95.en.png" width="32%" alt="Windows 95 主题" />
-  <img src="docs/newspaper.en.png" width="32%" alt="Newspaper 主题" />
-  <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observation 主题" />
-  <img src="docs/aquarium.en.png" width="32%" alt="Aquarium 主题" />
-  <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcade 主题" />
-  <img src="docs/stained_glass.en.png" width="32%" alt="Stained Glass 主题" />
-  <img src="docs/origami.en.png" width="32%" alt="Origami 主题" />
-  <img src="docs/black_hole.en.png" width="32%" alt="Black Hole 主题" />
-  <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera 主题" />
-  <img src="docs/migration.png" width="32%" alt="候鸟迁徙主题" />
-  <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccin 主题" />
+  <img src="classic.en.png" width="32%" alt="Classic 主题" />
+  <img src="matrix.en.png" width="32%" alt="Matrix 主题" />
+  <img src="win95.en.png" width="32%" alt="Windows 95 主题" />
+  <img src="newspaper.en.png" width="32%" alt="Newspaper 主题" />
+  <img src="cloud_observation.en.png" width="32%" alt="Cloud Observation 主题" />
+  <img src="aquarium.en.png" width="32%" alt="Aquarium 主题" />
+  <img src="prism_arcade.en.png" width="32%" alt="Prism Arcade 主题" />
+  <img src="stained_glass.en.png" width="32%" alt="Stained Glass 主题" />
+  <img src="origami.en.png" width="32%" alt="Origami 主题" />
+  <img src="black_hole.en.png" width="32%" alt="Black Hole 主题" />
+  <img src="lepidoptera.en.png" width="32%" alt="Lepidoptera 主题" />
+  <img src="migration.png" width="32%" alt="候鸟迁徙主题" />
+  <img src="catppuccin.en.png" width="32%" alt="Catppuccin 主题" />
 </p>
 
 ## 故障排除
@@ -185,6 +186,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | macOS 菜单栏与 Windows 系统托盘 | ✅ | — | 仅限 macOS |
 | Claude Code 与 Codex 用量 | ✅ | 仅 Claude | ✅ |
 | Antigravity（Gemini）用量 | ✅ | — | — |
+| Grok CLI 用量 | ✅ | — | — |
 | Claude Code 与 Codex 服务状态警示 | ✅ | — | — |
 | HTML 深度报告与界面 | ✅ | ✅ | — |
 | AI 人才市场 | 仅限 macOS | — | — |
@@ -203,9 +205,9 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 
 ## 开发
 
-从源码构建、配置自定义 Agent 或运行终端 TUI？请参阅**[开发文档](docs/DEVELOPMENT.md)**。
+从源码构建、配置自定义 Agent 或运行终端 TUI？请参阅**[开发文档](DEVELOPMENT.md)**。
 
 ## 许可证
 
-采用 AGPL-3.0-only 许可证（见 [LICENSE](LICENSE)）。如你 fork 或重新分发修改后的版本，请注明原作者并链接回：
+采用 AGPL-3.0-only 许可证（见 [LICENSE](../LICENSE)）。如你 fork 或重新分发修改后的版本，请注明原作者并链接回：
 https://github.com/aqua5230/usage

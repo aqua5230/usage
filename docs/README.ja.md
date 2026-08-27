@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/readme-logo.png" alt="usage ロゴ" width="128">
+  <img src="readme-logo.png" alt="usage ロゴ" width="128">
 </p>
 
 # usage
@@ -8,7 +8,7 @@
 
 セッションの途中でクォータが尽きると大きな損失になります。特に、Claude Code に依存する長時間のリファクタリングやデバッグではなおさらです。`usage` は上限に達する*前に*5時間ごとと週ごとの上限を表示し、常に見える状態に保ちます。コマンドを実行する必要も、ページを開く必要もありません。答えは、いつも見る場所に表示されています。
 
-[繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](README.md) · 日本語 · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [公式サイト](https://aqua5230.github.io/usage/)
+[繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · 日本語 · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [公式サイト](https://aqua5230.github.io/usage/)
 
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
@@ -16,11 +16,11 @@
 [![PyPI](https://img.shields.io/pypi/v/usage-cli)](https://pypi.org/project/usage-cli/)
 [![Python](https://img.shields.io/badge/python-3.13-blue.svg)](https://www.python.org/)
 [![プラットフォーム](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/aqua5230/usage/releases/latest)
-[![ライセンス：AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![ライセンス：AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](../LICENSE)
 [![OpenSSF ベストプラクティス](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="docs/showcase.en.png" alt="usage — macOSメニューバーに固定されたClaude Code、Codex、Antigravityのクォータ" width="820">
+  <img src="showcase.en.png" alt="usage — macOSメニューバーに固定されたClaude Code、Codex、Antigravityのクォータ" width="820">
 </p>
 
 Claude CodeとCodexの数値は、すでにマシンにあるログファイルから受動的に読み取られるため、**クォータの確認で Anthropic や OpenAI の LLM API を呼び出すことはなく**、tokenを消費することもありません。唯一の例外である Antigravity のクォータは、Antigravity CLI がすでにローカルに保存しているサインイン情報を使って Google の公式クォータエンドポイントから取得されますが、これもメタデータの取得に過ぎず、モデルクォータを消費することはありません。
@@ -43,15 +43,16 @@ Applicationsフォルダに自動でインストールされます。Gatekeeper�
 
 - **常時表示モニター：** クォータをメニューバーに常時表示し、緑から赤への色分けで示します。セッション、週ごと、プロジェクトごとの詳細を見たいときはクリックしてください。
 - **Antigravityサポート：** Antigravity（Gemini）のセッションと週ごとのクォータが、World Cup 2026 を除くすべてのパネルで3枚目のカードとして表示されます（World Cup 2026 は2チームの HUD のままです）。数値は、Antigravity CLIがすでにあなたのマシンに保存しているサインイン情報を使って公式クォータAPIから直接取得します。数分ごとに自動更新され、リセットまでのカウントダウンもリアルタイムに減っていきます。
+- **Grok CLIサポート：** 4枚目のカードがGrok CLI自身のローカルデバッグログから直接週ごとのクレジット割合を読み取ります——ネットワーク呼び出しは行いません。Grok CLIはセッションやバーンレートのデータを公開していないため、カードには1本の週間バーのみが表示されますが、リクエストごとのtoken使用量はClaude CodeやCodexと同様に今日のコストやプロジェクト合計にカウントされます。
 - **サービスステータスアラート：** Claude Code、Claude API、またはCodex APIで障害やパフォーマンス低下が発生した場合、関連パネルの底部にオレンジ赤色の警告バナーが表示されます。数値は公式の公開Statuspage.ioページからのみ読み取られ、LLM使用量APIを呼び出すことは決してありません。Antigravityは公開ステータスページがないため対象外です。
 - **コンテキストの通知と通知センター：** コンテキストウィンドウが70%に達すると、ステータスラインが `/clear` または `/compact` を促し、tokenの無駄を防ぎます。クォータ上限と回復についてのシステム通知を受け取ることもできます。
-- **セクションを隠す：** 一部のツールしか使わない場合は、ワンクリックでClaude Code、Codex、またはAntigravityのセクションをメニューバーとパネルから完全に隠せます。
+- **セクションを隠す：** 一部のツールしか使わない場合は、ワンクリックでClaude Code、Codex、Grok CLI、またはAntigravityのセクションをメニューバーとパネルから完全に隠せます。
 
 ### ワークフロー支援
 
 - **進捗コンシェルジュ：** 新しいClaude Codeセッションを開くと、`usage` は前回のリクエスト、未コミットの変更、未完了のtodoを含む最後の進捗をそのままAIに渡します。`/resume` も振り返りも不要です。完全にローカルで動作し、デフォルトではオフです。
 - **Token セーバー：** メニューバーのトグルで、Claude CodeとCodexにセッション中はより簡潔に応答するよう求めます。コードとエラーメッセージはバイト単位でそのままに、出力tokenを節約します。メッセージごとの控えめなリマインダーにより、長い会話でも回答が冗長に戻るのを防ぎます——実際のセッションでのA/Bテストでは、会話後半の回答も約40%短い状態を維持し、84%長くなるような冗長化は起きませんでした。
-- **ターミナル統合：** `usage status --json` は、コマンドを実行できるあらゆるツール——Starship、tmux、または独自のスクリプト——に Claude Code および Codex のクオータを渡します。メニューバーと同じローカルファイルを読み込み、ネットワーク呼び出しは行いません。[既製のスニペット](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
+- **ターミナル統合：** `usage status --json` は、コマンドを実行できるあらゆるツール——Starship、tmux、または独自のスクリプト——に Claude Code および Codex のクオータを渡します。メニューバーと同じローカルファイルを読み込み、ネットワーク呼び出しは行いません。[既製のスニペット](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **Token浪費ヘルスチェック：** 毎日のバックグラウンド診断がログをスキャンし、ファイルの繰り返し読み込み、汚染ディレクトリ、冗長なBash出力などの無駄を検出します。問題が見つかると一行の通知を表示します。「show me」と言えば、AIが修正手順を案内します。
 
 ### AIチームワーク
@@ -120,7 +121,7 @@ Codexを使用したことがある場合、`usage` はその履歴を自動で�
 設定が完了すると、Claude Codeウィンドウ下部に次のようなステータスラインが表示されます。
 
 <p align="center">
-  <img src="docs/statusline.ja.gif" alt="Claude Codeのステータスライン表示（日本語）" width="900">
+  <img src="statusline.ja.gif" alt="Claude Codeのステータスライン表示（日本語）" width="900">
 </p>
 
 ## Windows対応
@@ -147,19 +148,19 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 UIから直接 **14種類のビジュアルテーマ**を切り替えられます。
 
 <p align="center">
-  <img src="docs/classic.en.png" width="32%" alt="Classicテーマ" />
-  <img src="docs/matrix.en.png" width="32%" alt="Matrixテーマ" />
-  <img src="docs/win95.en.png" width="32%" alt="Windows 95テーマ" />
-  <img src="docs/newspaper.en.png" width="32%" alt="Newspaperテーマ" />
-  <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observationテーマ" />
-  <img src="docs/aquarium.en.png" width="32%" alt="Aquariumテーマ" />
-  <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcadeテーマ" />
-  <img src="docs/stained_glass.en.png" width="32%" alt="Stained Glassテーマ" />
-  <img src="docs/origami.en.png" width="32%" alt="Origamiテーマ" />
-  <img src="docs/black_hole.en.png" width="32%" alt="Black Holeテーマ" />
-  <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidopteraテーマ" />
-  <img src="docs/migration.png" width="32%" alt="渡り鳥テーマ" />
-  <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccinテーマ" />
+  <img src="classic.en.png" width="32%" alt="Classicテーマ" />
+  <img src="matrix.en.png" width="32%" alt="Matrixテーマ" />
+  <img src="win95.en.png" width="32%" alt="Windows 95テーマ" />
+  <img src="newspaper.en.png" width="32%" alt="Newspaperテーマ" />
+  <img src="cloud_observation.en.png" width="32%" alt="Cloud Observationテーマ" />
+  <img src="aquarium.en.png" width="32%" alt="Aquariumテーマ" />
+  <img src="prism_arcade.en.png" width="32%" alt="Prism Arcadeテーマ" />
+  <img src="stained_glass.en.png" width="32%" alt="Stained Glassテーマ" />
+  <img src="origami.en.png" width="32%" alt="Origamiテーマ" />
+  <img src="black_hole.en.png" width="32%" alt="Black Holeテーマ" />
+  <img src="lepidoptera.en.png" width="32%" alt="Lepidopteraテーマ" />
+  <img src="migration.png" width="32%" alt="渡り鳥テーマ" />
+  <img src="catppuccin.en.png" width="32%" alt="Catppuccinテーマ" />
 </p>
 
 ## トラブルシューティング
@@ -185,6 +186,7 @@ UIから直接 **14種類のビジュアルテーマ**を切り替えられま�
 | macOSメニューバーとWindowsシステムトレイ | ✅ | — | macOS専用 |
 | Claude CodeとCodexの使用量 | ✅ | Claudeのみ | ✅ |
 | Antigravity（Gemini）の使用量 | ✅ | — | — |
+| Grok CLIの使用量 | ✅ | — | — |
 | Claude CodeとCodexのサービスステータスアラート | ✅ | — | — |
 | HTML詳細レポートとUI | ✅ | ✅ | — |
 | AIタレントマーケット | macOS専用 | — | — |
@@ -203,9 +205,9 @@ UIから直接 **14種類のビジュアルテーマ**を切り替えられま�
 
 ## 開発
 
-ソースからのビルド、カスタムエージェントの設定、またはターミナルTUIの実行については、**[開発ドキュメント](docs/DEVELOPMENT.md)**をご覧ください。
+ソースからのビルド、カスタムエージェントの設定、またはターミナルTUIの実行については、**[開発ドキュメント](DEVELOPMENT.md)**をご覧ください。
 
 ## ライセンス
 
-AGPL-3.0-onlyの下でライセンスされています（[LICENSE](LICENSE)を参照）。フォークまたは変更版を再配布する場合は、原作者を明記し、次へのリンクを付けてください。
+AGPL-3.0-onlyの下でライセンスされています（[LICENSE](../LICENSE)を参照）。フォークまたは変更版を再配布する場合は、原作者を明記し、次へのリンクを付けてください。
 https://github.com/aqua5230/usage

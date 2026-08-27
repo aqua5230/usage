@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
@@ -11,8 +12,10 @@ import pytest
 
 import prefs
 from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
+from loaders.grok_quota_probe import GrokQuotaResult
 from menubar import agy as menubar_agy
 from menubar import app as menubar
+from menubar import grok as menubar_grok
 from panels.web_panel import UsageScriptBridge, _state_payload
 
 
@@ -76,6 +79,63 @@ def test_state_payload_includes_agy_card_data() -> None:
     grok_payload = cast(dict[str, object], payload["grok"])
     grok_weekly = cast(dict[str, object], grok_payload["weekly"])
     assert grok_weekly["available"] is False
+
+
+def test_state_payload_includes_available_grok_card_data() -> None:
+    projection = menubar_grok.project_quota(
+        GrokQuotaResult(
+            used_percent=18.0,
+            period_end="2026-09-01T15:50:08+00:00",
+            fetched_at="2026-08-26T09:13:58+00:00",
+            subscription_tier="SuperGrok Lite",
+        ),
+        "en",
+        now=datetime(2026, 8, 26, 9, 13, 58, tzinfo=UTC).timestamp(),
+    )
+    assert projection is not None
+    state = menubar._empty_state("en")
+    state.grok_weekly = projection.weekly
+    state.grok_stale = projection.stale
+    state.hide_grok = False
+
+    payload = _state_payload(state)
+
+    grok_payload = cast(dict[str, object], payload["grok"])
+    grok_weekly = cast(dict[str, object], grok_payload["weekly"])
+    assert payload["hideGrok"] is False
+    assert grok_weekly["available"] is True
+    assert grok_weekly["percent"] == 18.0
+    assert grok_weekly.keys() == {
+        "percent",
+        "percentText",
+        "resetText",
+        "warning",
+        "available",
+        "title",
+    }
+
+
+def test_state_payload_includes_stale_grok_card_data() -> None:
+    projection = menubar_grok.project_quota(
+        GrokQuotaResult(
+            used_percent=18.0,
+            period_end="2026-09-01T15:50:08+00:00",
+            fetched_at="2026-08-26T09:13:58+00:00",
+            subscription_tier="SuperGrok Lite",
+        ),
+        "en",
+        now=datetime(2026, 8, 26, 12, 13, 58, tzinfo=UTC).timestamp(),
+    )
+    assert projection is not None
+    state = menubar._empty_state("en")
+    state.grok_weekly = projection.weekly
+    state.grok_stale = projection.stale
+    state.hide_grok = False
+
+    payload = _state_payload(state)
+
+    grok_payload = cast(dict[str, object], payload["grok"])
+    assert grok_payload["stale"] == {"ageText": "about 3 hours ago"}
 
 
 def test_bridge_saves_valid_card_order_and_ignores_invalid_input(

@@ -312,6 +312,15 @@ def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
     assert "usageApplyStateWithDynamicHeight" in html
 
 
+def test_native_drag_region_covers_every_quota_card() -> None:
+    """The Windows shim must offer the same drag area as the shared panel core."""
+    html = wintray.panel_html("classic.html")
+    shim = html.split("Panel assets register their card reorder handler")[1]
+
+    for card in ("claude", "codex", "agy", "grok"):
+        assert f'[data-card="{card}"]' in shim
+
+
 def test_content_height_message_resizes_visible_panel_with_work_area_clamp(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

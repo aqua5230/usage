@@ -1,9 +1,18 @@
 # Changelog
 
-[繁體中文](CHANGELOG.zh-TW.md) · English
+[繁體中文](docs/CHANGELOG.zh-TW.md) · English
 
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
+
+## Unreleased
+
+### Fixed
+- **Dragging the Grok card no longer moves the panel differently from the other three on Windows.** The tray's WebKit shim turns a quota card's empty area into a native `pywebview` drag region, but its selector listed only Claude, Codex and Antigravity. Grok fell through to the shared card-reorder handler instead, so the same gesture that moved the window from the first three cards did something else from the fourth. The selector now matches all four, as `panel_core.js` already did on macOS.
+
+### Changed
+- Moved public contribution and security guides to `.github/` and localized README and changelog files to `docs/`, cleaning up the repository root and updating all links.
+- Backfilled the Grok CLI card into the Simplified Chinese, Japanese and Korean READMEs, which had missed the feature list entry, the Hide Sections list and the comparison-table row.
 
 ## [0.30.1] - 2026-08-27
 

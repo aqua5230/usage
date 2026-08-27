@@ -217,6 +217,17 @@ def test_card_panels_use_shared_core_script(filename: str) -> None:
     assert "function renderCodexStale(" not in html
 
 
+@pytest.mark.parametrize("filename", CARD_PANEL_FILENAMES)
+def test_card_panels_expose_grok_dom_contract(filename: str) -> None:
+    panel_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / filename
+    html = panel_path.read_text(encoding="utf-8")
+
+    assert '<section class="card" data-card="grok"' in html
+    assert "data-grok-stale" in html
+    assert "data-grok-stale-age" in html
+    assert "data-grok-stale-tooltip" in html
+
+
 def test_state_payload_omits_codex_rows_with_empty_titles(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
