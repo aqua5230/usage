@@ -44,8 +44,8 @@ try {
         --hidden-import webview `
         --hidden-import webview.platforms.edgechromium `
         --hidden-import tui.app `
-        --hidden-import session_hooks `
-        --hidden-import setup_hook `
+        --hidden-import installer.session_hooks `
+        --hidden-import installer.setup_hook `
         --hidden-import adapters.registry `
         --hidden-import analyzer.reporter `
         --hidden-import ui.html_report `
