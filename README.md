@@ -51,7 +51,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 ### Workflow Helpers
 
 - **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI, including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. Fully local, off by default.
-- **Token Saver:** A menu-bar toggle asks Claude Code and Codex to answer more tersely, saving output tokens while keeping code and error messages byte-exact. A light reminder keeps long conversations from drifting back to verbose — in an A/B test on real sessions, late replies stayed ~40% shorter instead of drifting 84% longer.
+- **Token Saver:** A menu-bar toggle asks Claude Code and Codex to answer more tersely and in plainer language, saving output tokens while keeping code and error messages byte-exact. A light reminder keeps long conversations from drifting back to verbose — in an A/B test on real sessions, late replies stayed ~40% shorter instead of drifting 84% longer.
 - **Terminal Integration:** `usage status --json` hands your Claude Code and Codex quota to any tool that can run a command — Starship, tmux, or your own scripts. Reads the same local files as the menu bar, no network call. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **Token-waste Health Check:** A daily background diagnosis scans your logs for waste, including repeated file reads, polluter directories, and noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
 

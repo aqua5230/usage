@@ -59,6 +59,9 @@ def test_enable_registers_hook_and_writes_sidecar(terse_paths: TerseHookPaths) -
     bundle = json.loads(terse_paths.sidecar.read_text(encoding="utf-8"))
     assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
     assert "Terse mode is on for this entire conversation" in bundle["en"]["instruction"]
+    assert "plain is the style" in bundle["en"]["instruction"]
+    assert "白話是風格" in bundle["zh-TW"]["instruction"]
+    assert "plain-spoken" in bundle["en"]["reminder"]
 
 
 def test_enable_is_idempotent(terse_paths: TerseHookPaths) -> None:
@@ -155,7 +158,9 @@ def test_self_heal_updates_old_version(terse_paths: TerseHookPaths) -> None:
 
     data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
     assert data["usage"]["selfHealLog"][-1]["action"] == "update_terse_hook"
-    assert data["usage"]["selfHealLog"][-1]["detail"] == "0.1 -> 1.0"
+    assert (
+        data["usage"]["selfHealLog"][-1]["detail"] == f"0.1 -> {session_hooks.TERSE_HOOK_VERSION}"
+    )
 
 
 def test_self_heal_noop_when_disabled(terse_paths: TerseHookPaths) -> None:

@@ -44,25 +44,25 @@ PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-terse-prompt.json"))
 
 _DEFAULT_REMINDER: dict[str, str] = {
     "zh-TW": (
-        "[精簡模式仍生效：這則回覆保持精簡；程式碼、指令、路徑、錯誤訊息照舊一字不改；"
-        "安全警示與不可逆操作確認仍要講完整。]"
+        "[精簡模式仍生效：這則回覆保持精簡、用白話；程式碼、指令、路徑、錯誤訊息照舊一字不改；安全"
+        "警示與不可逆操作確認仍要講完整。]"
     ),
     "en": (
-        "[Terse mode is still on: keep this reply brief; code, commands, paths, and "
-        "error messages stay byte-exact; security warnings and irreversible-action "
+        "[Terse mode is still on: keep this reply brief and plain-spoken; code, commands, paths, "
+        "and error messages stay byte-exact; security warnings and irreversible-action "
         "confirmations must still be written out in full.]"
     ),
     "zh-CN": (
-        "[精简模式仍生效：这则回复保持精简；代码、指令、路径、错误信息照旧一字不改；"
-        "安全警示与不可逆操作确认仍要讲完整。]"
+        "[精简模式仍生效：这则回复保持精简、用白话；代码、指令、路径、错误信息照旧一字不改；安全警"
+        "示与不可逆操作确认仍要讲完整。]"
     ),
     "ja": (
-        "[簡潔モードは引き続き有効：この返信は簡潔に；コード、コマンド、パス、エラー"
-        "メッセージは一字そのまま；セキュリティ警告と不可逆操作の確認は引き続き完全に"
-        "記述すること。]"
+        "[簡潔モードは引き続き有効：この返信は簡潔に、平易な言葉で；コード、コマンド、パス、エラー"
+        "メッセージは一字そのまま；セキュリティ警告と不可逆操作の確認は引き続き完全に記述すること。"
+        "]"
     ),
     "ko": (
-        "[간결 모드 계속 적용 중: 이 답변은 짧게; 코드, 명령어, 경로, 오류 메시지는 한 "
+        "[간결 모드 계속 적용 중: 이 답변은 짧게, 쉬운 말로; 코드, 명령어, 경로, 오류 메시지는 한 "
         "글자 그대로; 보안 경고와 되돌릴 수 없는 작업 확인은 여전히 완전히 적을 것.]"
     ),
 }
