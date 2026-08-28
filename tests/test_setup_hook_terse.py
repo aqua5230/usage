@@ -376,6 +376,22 @@ def test_self_heal_backfills_reminder_for_legacy_user(terse_paths: TerseHookPath
     assert heal["usage"]["selfHealLog"][-1]["detail"] == "missing=script,entry"
 
 
+def test_self_heal_updates_old_reminder_version(terse_paths: TerseHookPaths) -> None:
+    session_hooks.enable_terse_mode()
+    terse_paths.terse_reminder_target.write_text('__version__ = "1.0"\n', encoding="utf-8")
+
+    session_hooks._self_heal_terse_mode()
+
+    assert session_hooks._installed_terse_reminder_version() == (
+        session_hooks.TERSE_REMINDER_HOOK_VERSION
+    )
+    data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    assert data["usage"]["selfHealLog"][-1]["action"] == "update_terse_reminder_hook"
+    assert data["usage"]["selfHealLog"][-1]["detail"] == (
+        f"1.0 -> {session_hooks.TERSE_REMINDER_HOOK_VERSION}"
+    )
+
+
 def test_self_heal_reminder_noop_when_disabled(terse_paths: TerseHookPaths) -> None:
     session_hooks._self_heal_terse_mode()
     assert not terse_paths.terse_reminder_target.exists()

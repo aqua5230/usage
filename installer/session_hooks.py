@@ -85,6 +85,7 @@ _FEATURES_HOOKS_REGEX = re.compile(r"(?m)^[ \t]*hooks\s*=\s*[A-Za-z0-9_]+")
 # terse hook. Re-injects a one-line nudge on every prompt so the terse style holds across a
 # long conversation. Claude Code only — Codex CLI has no UserPromptSubmit equivalent.
 TERSE_REMINDER_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-terse-reminder.py"))
+TERSE_REMINDER_HOOK_VERSION = "1.1"
 TERSE_REMINDER_MATCHER = ""
 _TERSE_REMINDER_MARKER = "usage-terse-reminder"
 _TERSE_REMINDER_MARKERS = (_TERSE_REMINDER_MARKER, "usage_terse_reminder")
@@ -811,6 +812,17 @@ def _installed_terse_version() -> str | None:
     return None
 
 
+def _installed_terse_reminder_version() -> str | None:
+    try:
+        with TERSE_REMINDER_HOOK_TARGET.open(encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("__version__"):
+                    return line.split("=", 1)[1].strip().strip("\"'")
+    except OSError:
+        pass
+    return None
+
+
 def _self_heal_resume() -> None:
     """Keep the opt-in resume hook healthy *only if already enabled* — restore a missing
     script/sidecar and update a stale script. Never enables it on its own."""
@@ -862,21 +874,29 @@ def _self_heal_terse_mode() -> None:
 def _self_heal_terse_reminder() -> None:
     """Backfill the per-message reminder hook when terse mode is on but the
     UserPromptSubmit entry or its script is missing — e.g. a user who enabled terse
-    mode before this hook existed upgrades and self-heal installs it."""
+    mode before this hook existed upgrades and self-heal installs it. A script that is
+    present but stale is replaced too, the same way the SessionStart hook is kept current."""
     script_missing = not TERSE_REMINDER_HOOK_TARGET.exists()
     entry_missing = not is_terse_reminder_enabled()
-    if not (script_missing or entry_missing):
+    if script_missing or entry_missing:
+        _copy_terse_reminder_script()
+        settings = _load_settings()
+        _register_terse_reminder(settings)
+        _save_settings(settings)
+        parts: list[str] = []
+        if script_missing:
+            parts.append("script")
+        if entry_missing:
+            parts.append("entry")
+        _append_self_heal_log("restore_terse_reminder_hook", f"missing={','.join(parts)}")
         return
-    _copy_terse_reminder_script()
-    settings = _load_settings()
-    _register_terse_reminder(settings)
-    _save_settings(settings)
-    parts: list[str] = []
-    if script_missing:
-        parts.append("script")
-    if entry_missing:
-        parts.append("entry")
-    _append_self_heal_log("restore_terse_reminder_hook", f"missing={','.join(parts)}")
+    old = _installed_terse_reminder_version()
+    if old != TERSE_REMINDER_HOOK_VERSION:
+        _copy_terse_reminder_script()
+        _append_self_heal_log(
+            "update_terse_reminder_hook",
+            f"{old or 'unknown'} -> {TERSE_REMINDER_HOOK_VERSION}",
+        )
 
 
 def _migrate_resume_command_if_needed() -> None:

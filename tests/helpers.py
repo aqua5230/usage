@@ -202,9 +202,12 @@ def patch_terse_hook_paths(
     tmp_path: Path,
     *,
     source_name: str = "usage_terse_mode.py",
-    source_text: str = '__version__ = "1.0"\nprint("terse")\n',
+    # 版本跟著常數走，否則自我修復每次都判定「裝好的是舊版」而多記一筆更新紀錄。
+    source_text: str = f'__version__ = "{session_hooks.TERSE_HOOK_VERSION}"\nprint("terse")\n',
     reminder_source_name: str = "usage_terse_reminder.py",
-    reminder_source_text: str = '__version__ = "1.0"\nprint("terse-reminder")\n',
+    reminder_source_text: str = (
+        f'__version__ = "{session_hooks.TERSE_REMINDER_HOOK_VERSION}"\nprint("terse-reminder")\n'
+    ),
 ) -> TerseHookPaths:
     claude_dir = tmp_path / ".claude"
     claude_dir.mkdir(exist_ok=True)
