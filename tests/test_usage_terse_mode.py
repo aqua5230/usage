@@ -18,13 +18,38 @@ import usage_terse_mode as mod
 
 
 def test_detect_lang_uses_windows_system_lang_when_env_is_empty(
-    monkeypatch: pytest.MonkeyPatch,
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     for key in ("USAGE_LANG", "TT_LANG", "LANG"):
         monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(mod, "PROMPT_SIDECAR", tmp_path / "missing.json")
     monkeypatch.setattr(mod, "_windows_system_lang", lambda: "zh_TW")
 
     assert mod._detect_lang() == "zh-TW"
+
+
+def test_detect_lang_uses_sidecar_lang_when_env_is_empty(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    for key in ("USAGE_LANG", "TT_LANG", "LANG"):
+        monkeypatch.delenv(key, raising=False)
+    sidecar = tmp_path / "usage-terse-prompt.json"
+    sidecar.write_text(json.dumps({"lang": "zh-TW"}), encoding="utf-8")
+    monkeypatch.setattr(mod, "PROMPT_SIDECAR", sidecar)
+    monkeypatch.setattr(mod, "_windows_system_lang", lambda: "ja")
+
+    assert mod._detect_lang() == "zh-TW"
+
+
+def test_detect_lang_returns_en_when_sidecar_is_missing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    for key in ("USAGE_LANG", "TT_LANG", "LANG"):
+        monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(mod, "PROMPT_SIDECAR", tmp_path / "missing.json")
+    monkeypatch.setattr(mod, "_windows_system_lang", lambda: "")
+
+    assert mod._detect_lang() == "en"
 
 
 def test_detect_lang_prefers_usage_lang_over_windows_system_lang(
@@ -36,9 +61,12 @@ def test_detect_lang_prefers_usage_lang_over_windows_system_lang(
     assert mod._detect_lang() == "ja"
 
 
-def test_detect_lang_ignores_lang_on_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_detect_lang_ignores_lang_on_windows(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     for key in ("USAGE_LANG", "TT_LANG"):
         monkeypatch.delenv(key, raising=False)
+    monkeypatch.setattr(mod, "PROMPT_SIDECAR", tmp_path / "missing.json")
     monkeypatch.setattr(sys, "platform", "win32")
     monkeypatch.setattr(mod, "_windows_system_lang", lambda: "zh_TW")
     monkeypatch.setenv("LANG", "en_US.UTF-8")

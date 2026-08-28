@@ -38,8 +38,11 @@ def _codex_terse_entries(hooks_json: Path) -> list[dict[str, object]]:
     return [e for e in data["hooks"]["SessionStart"] if session_hooks._is_terse_entry(e)]
 
 
-def test_enable_registers_hook_and_writes_sidecar(terse_paths: TerseHookPaths) -> None:
+def test_enable_registers_hook_and_writes_sidecar(
+    terse_paths: TerseHookPaths, monkeypatch: pytest.MonkeyPatch
+) -> None:
     settings = terse_paths.settings
+    monkeypatch.setattr(session_hooks, "detect_lang", lambda: "zh-TW")
 
     assert session_hooks.enable_terse_mode() == 0
     assert session_hooks.is_terse_mode_enabled()
@@ -57,6 +60,7 @@ def test_enable_registers_hook_and_writes_sidecar(terse_paths: TerseHookPaths) -
     assert isinstance(command, str)
     assert terse_paths.terse_target.as_posix() in command
     bundle = json.loads(terse_paths.sidecar.read_text(encoding="utf-8"))
+    assert bundle["lang"] == "zh-TW"
     assert {"zh-TW", "en", "ja", "ko", "zh-CN"} <= set(bundle)
     assert "Terse mode is on for this entire conversation" in bundle["en"]["instruction"]
     assert "plain is the style" in bundle["en"]["instruction"]

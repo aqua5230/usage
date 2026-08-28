@@ -46,6 +46,7 @@ from installer.setup_hook import (
     update_hook,
 )
 from loaders.codex_paths import codex_home
+from usage_common.usage_lang import detect_lang
 from usage_statusline import _exclusive_lock
 
 CLAUDE_SETTINGS = setup_hook.CLAUDE_SETTINGS
@@ -69,7 +70,7 @@ _RESUME_DIAGNOSIS_CAUSE_KEYS = (
 )
 TERSE_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-terse-mode.py"))
 TERSE_PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-terse-prompt.json"))
-TERSE_HOOK_VERSION = "1.1"
+TERSE_HOOK_VERSION = "1.2"
 TERSE_MATCHER = "startup|clear"
 TERSE_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
 _TERSE_MARKER = "usage-terse-mode"
@@ -351,7 +352,7 @@ def _write_terse_sidecar() -> None:
         return
     en_raw = bundle.get("en")
     en: dict[str, Any] = en_raw if isinstance(en_raw, dict) else {}
-    out: dict[str, dict[str, str]] = {}
+    out: dict[str, str | dict[str, str]] = {"lang": detect_lang()}
     for lang in TERSE_LANGS:
         table_raw = bundle.get(lang)
         table: dict[str, Any] = table_raw if isinstance(table_raw, dict) else {}

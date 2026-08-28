@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
-__version__ = "1.0"
+__version__ = "1.1"
 
 
 def _read_stdin_utf8() -> str:
@@ -41,6 +41,7 @@ def _read_stdin_utf8() -> str:
 
 
 PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-terse-prompt.json"))
+_SIDECAR_UNSET = object()
 
 _DEFAULT_REMINDER: dict[str, str] = {
     "zh-TW": (
@@ -84,7 +85,14 @@ def _windows_system_lang() -> str:
         return ""
 
 
-def _detect_lang() -> str:
+def _read_sidecar() -> Any:
+    try:
+        return json.loads(PROMPT_SIDECAR.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+
+
+def _detect_lang(sidecar: Any = _SIDECAR_UNSET) -> str:
     # Windows 上的 LANG 多半是 Git Bash / MSYS 帶進來的，不代表使用者的系統語言。
     keys = (
         ("USAGE_LANG", "TT_LANG") if sys.platform == "win32" else ("USAGE_LANG", "TT_LANG", "LANG")
@@ -93,6 +101,11 @@ def _detect_lang() -> str:
         value = os.environ.get(key, "").strip()
         if value:
             return _normalize_lang(value)
+    raw = _read_sidecar() if sidecar is _SIDECAR_UNSET else sidecar
+    if isinstance(raw, dict):
+        lang = raw.get("lang")
+        if isinstance(lang, str):
+            return _normalize_lang(lang)
     return _normalize_lang(_windows_system_lang())
 
 
@@ -111,11 +124,8 @@ def _normalize_lang(code: str) -> str:
     return "en"
 
 
-def _load_reminder(lang: str) -> str:
-    try:
-        raw = json.loads(PROMPT_SIDECAR.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        raw = None
+def _load_reminder(lang: str, sidecar: Any = _SIDECAR_UNSET) -> str:
+    raw = _read_sidecar() if sidecar is _SIDECAR_UNSET else sidecar
     if isinstance(raw, dict):
         table = raw.get(lang)
         if isinstance(table, dict):
@@ -140,7 +150,7 @@ def main() -> int:
     output: dict[str, Any] = {
         "hookSpecificOutput": {
             "hookEventName": "UserPromptSubmit",
-            "additionalContext": _load_reminder(_detect_lang()),
+            "additionalContext": _load_reminder(_detect_lang(sidecar := _read_sidecar()), sidecar),
         }
     }
     print(json.dumps(output, ensure_ascii=False))

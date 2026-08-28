@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 
 def _read_stdin_utf8() -> str:
@@ -40,6 +40,7 @@ def _read_stdin_utf8() -> str:
 
 
 PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-terse-prompt.json"))
+_SIDECAR_UNSET = object()
 
 _DEFAULT_INSTRUCTION: dict[str, str] = {
     "zh-TW": (
@@ -52,7 +53,8 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "例如「修」不要「針對這個問題實作解決方案」）。精簡是預算，白話是風格：短不等於難懂。挑最口"
         "語的說法，能用日常字就不要用術語（例如「先存檔」不要「先持久化」）。非用不可的技術詞，第一"
         "次出現時在後面補十個字以內的白話解釋，之後直接用。不要比喻、不要為了親切多寫。收尾就三件事"
-        "：做了什麼、成功沒、下一步做什麼。不用裝飾性表格或表情符號，也不要旁白工具呼叫的過程。不要"
+        "：做了什麼、成功沒、下一步做什麼。不用裝飾性表格；除了開頭那句招呼，內文不放表情符號。不要"
+        "複述工具名稱或呼叫過程，但開工具前用一句話說明要做什麼是可以的。不要"
         "自創縮寫（例如「設定」別縮成「設」、「函式」別縮成「函」）——這類縮寫斷詞長度跟完整詞一樣，"
         "省不到字數，反而讓讀者要多想一下，直接用完整詞更省事也更清楚。程式碼、指令、檔案路徑、錯誤"
         "訊息一個字都不能省略或改寫。遇到安全警示、不可逆操作的確認、或多步驟中省略連接詞會有誤讀風"
@@ -73,8 +75,10 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         'mean cryptic. Pick the everyday word over the jargon one ("save it first", not '
         '"persist it first"). When a technical term is unavoidable, gloss it once on first use '
         "in eight words or fewer, then just use it. No analogies, no warmth padding. Close with "
-        "what you did, whether it worked, and what to do next. No decorative tables, emoji, or "
-        "tool-call narration. Never invent abbreviations (cfg/impl/req/res) — the tokenizer splits "
+        "what you did, whether it worked, and what to do next. No decorative tables, and no emoji "
+        "in the body beyond the opening greeting. Don't recite tool names or narrate calls — but "
+        "one line of intent before running a tool is fine. Never invent abbreviations "
+        "(cfg/impl/req/res) — the tokenizer splits "
         "them the same as the full word, so nothing is saved and the reader still has to decode "
         "it; use the full word instead. Code, commands, file paths, and error messages must stay "
         "byte-exact, never trimmed or rewritten. Drop terseness for security warnings, "
@@ -94,7 +98,8 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "例如「修」不要「针对这个问题实现解决方案」）。精简是预算，白话是风格：短不等于难懂。挑最口"
         "语的说法，能用日常字就不要用术语（例如「先保存」不要「先持久化」）。非用不可的技术词，第一"
         "次出现时在后面补十个字以内的白话解释，之后直接用。不要比喻、不要为了亲切多写。收尾就三件事"
-        "：做了什么、成功没、下一步做什么。不用装饰性表格或表情符号，也不要旁白工具调用的过程。不要"
+        "：做了什么、成功没、下一步做什么。不用装饰性表格；除了开头那句招呼，正文不放表情符号。不要"
+        "复述工具名称或调用过程，但开工具前用一句话说明要做什么是可以的。不要"
         "自创缩写（例如「配置」别缩成「配」、「函数」别缩成「函」）——这类缩写分词长度跟完整词一样，"
         "省不到字数，反而让读者要多想一下，直接用完整词更省事也更清楚。代码、指令、文件路径、错误信"
         "息一个字都不能省略或改写。遇到安全警示、不可逆操作的确认、或多步骤中省略连接词会有误读风险"
@@ -115,8 +120,10 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "的な言葉を選んでください（例：「先に永続化する」ではなく「先に保存する」）。どうしても専門"
         "用語が必要な場合は、最初の使用時に10文字以内で平易な説明を補足し、以後はそのまま使用してく"
         "ださい。比喩や、親しみやすさを出すための余分な言葉は不要です。最後は、何をしたか、成功した"
-        "か、次に何をするかの3点だけで締めくくってください。装飾的な表や絵文字、ツール呼び出しの実"
-        "況も不要です。独自の省略語は作らないでください（例:「設定」を「設」に略すなど）——トークナ"
+        "か、次に何をするかの3点だけで締めくくってください。装飾的な表は不要です。冒頭の挨拶を除き、"
+        "本文に絵文字は入れないでください。ツール名や呼び出し過程の実況は不要ですが、ツールを使う前に"
+        "何をするかを一言添えるのは構いません。独自の省略語は作らないでください（例:「設定」を「設」"
+        "に略すなど）——トークナ"
         "イザー上は完全な語と同じ長さになり、何も節約にならず読み手が余計に解読する手間が増えるだけ"
         "なので、完全な語のままの方が得です。コード、コマンド、ファイルパス、エラーメッセージは一文"
         "字たりとも省略・書き換えしないこと。セキュリティ警告、不可逆操作の確認、接続詞を省くと誤読"
@@ -139,7 +146,10 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         '단어를 고르세요(예: "먼저 영속화하다" 대신 "먼저 저장하다"). 전문 용어를 꼭 써야 '
         "한다면, 처음 사용할 때 10글자 이내로 쉬운 설명을 덧붙이고 그 뒤로는 그냥 쓰세요. 비유나 "
         "친근감을 주기 위한 군더더기는 빼주세요. 마무리는 무엇을 했는지, 성공했는지, 다음에 무엇을 "
-        "할 것인지 이 3가지만 적으세요.장식용 표나 이모지, 도구 호출 중계는 넣지 마세요. 임의로 "
+        "할 것인지 이 3가지만 적으세요.장식용 표는 넣지 마세요. 첫 인사말을 제외하면 본문에 "
+        "이모지는 넣지 마세요. 도구 이름이나 호출 과정을 중계할 필요는 없지만, 도구를 쓰기 전에 "
+        "무엇을 할지 한 "
+        "줄로 말하는 것은 괜찮습니다. 임의로 "
         '줄임말을 만들지 마세요 (예: "설정"을 "설"로 줄이는 식) — 토크나이저 상으로는 완전한 '
         "단어와 길이가 같아서 절약되는 게 없고 읽는 사람만 더 해석해야 하니, 완전한 단어를 쓰는 "
         "편이 더 낫습니다. 코드, 명령어, 파일 경로, 오류 메시지는 한 글자도 생략하거나 바꾸면 안 "
@@ -167,7 +177,14 @@ def _windows_system_lang() -> str:
         return ""
 
 
-def _detect_lang() -> str:
+def _read_sidecar() -> Any:
+    try:
+        return json.loads(PROMPT_SIDECAR.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return None
+
+
+def _detect_lang(sidecar: Any = _SIDECAR_UNSET) -> str:
     # Windows 上的 LANG 多半是 Git Bash / MSYS 帶進來的，不代表使用者的系統語言。
     keys = (
         ("USAGE_LANG", "TT_LANG") if sys.platform == "win32" else ("USAGE_LANG", "TT_LANG", "LANG")
@@ -176,6 +193,11 @@ def _detect_lang() -> str:
         value = os.environ.get(key, "").strip()
         if value:
             return _normalize_lang(value)
+    raw = _read_sidecar() if sidecar is _SIDECAR_UNSET else sidecar
+    if isinstance(raw, dict):
+        lang = raw.get("lang")
+        if isinstance(lang, str):
+            return _normalize_lang(lang)
     return _normalize_lang(_windows_system_lang())
 
 
@@ -194,11 +216,8 @@ def _normalize_lang(code: str) -> str:
     return "en"
 
 
-def _load_instruction(lang: str) -> str:
-    try:
-        raw = json.loads(PROMPT_SIDECAR.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        raw = None
+def _load_instruction(lang: str, sidecar: Any = _SIDECAR_UNSET) -> str:
+    raw = _read_sidecar() if sidecar is _SIDECAR_UNSET else sidecar
     if isinstance(raw, dict):
         table = raw.get(lang)
         if isinstance(table, dict):
@@ -223,7 +242,9 @@ def main() -> int:
     output: dict[str, Any] = {
         "hookSpecificOutput": {
             "hookEventName": "SessionStart",
-            "additionalContext": _load_instruction(_detect_lang()),
+            "additionalContext": _load_instruction(
+                _detect_lang(sidecar := _read_sidecar()), sidecar
+            ),
         }
     }
     print(json.dumps(output, ensure_ascii=False))
