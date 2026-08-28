@@ -1,6 +1,6 @@
 [project]
 name = "usage-cli"
-version = "0.30.2"
+version = "0.30.3"
 description = "usage — 在 macOS menu bar 與 Windows 系統匣顯示 Claude Code、Codex、Antigravity 用量的小工具（也提供終端機 TUI）"
 readme = "README.md"
 requires-python = ">=3.13"

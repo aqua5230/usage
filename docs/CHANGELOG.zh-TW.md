@@ -4,6 +4,15 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.3] - 2026-08-28
+
+### 變更
+- **Token Saver 現在讓短回覆依然容易看懂。** `usage_terse_mode.py` 的 `_DEFAULT_INSTRUCTION` 現在把白話與精簡並列，要求無法避免的技術詞首次出現時補一次解釋，並在回覆結尾交代結果與下一步；`usage_terse_reminder.py` 的 `_DEFAULT_REMINDER` 也同步提醒這項規則。`installer/session_hooks.py` 的 `TERSE_HOOK_VERSION` 已升版，讓 `_self_heal_terse_mode()` 會更新既有的 sidecar，而不是保留舊說法。
+
+### 修正
+- **Token Saver 的指示現在不再互相矛盾，也會用你的語言開始。** `usage_terse_mode.py` 的 `_DEFAULT_INSTRUCTION` 現在允許開頭招呼使用表情符號，也允許執行工具前先用一行說明意圖，同時仍禁止它們出現在回覆內文。`installer/session_hooks.py` 的 `_write_terse_sidecar()` 會在 `lang` 寫入 `detect_lang()`；兩個 hook 腳本的 `_read_sidecar()`／`_detect_lang()` 會在環境變數覆蓋後讀取它，沒有語言變數的工作階段不再預設用較長的英文提示。sidecar 遺失或損毀時仍會安全地退回英文。
+- **已安裝的 Token Saver 提醒 hook 現在會更新，不再停在舊版。** `installer/session_hooks.py` 的 `_self_heal_terse_reminder()` 原本只補回遺失的腳本或註冊項目，已安裝的舊腳本不會變更。`TERSE_REMINDER_HOOK_VERSION` 與 `_installed_terse_reminder_version()` 現在會比較版本並替換過期副本，且記錄 `update_terse_reminder_hook` 供診斷。
+
 ## [0.30.2] - 2026-08-28
 
 ### 修正

@@ -5,6 +5,15 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.3] - 2026-08-28
+
+### Changed
+- **Token Saver now keeps short replies easy to understand.** `usage_terse_mode.py`'s `_DEFAULT_INSTRUCTION` now makes plain language the style alongside brevity, adds a one-time gloss for unavoidable technical terms, and asks replies to close with the result and next step; `usage_terse_reminder.py`'s `_DEFAULT_REMINDER` reinforces the same rule. `TERSE_HOOK_VERSION` in `installer/session_hooks.py` was bumped so `_self_heal_terse_mode()` replaces existing sidecars instead of leaving them on the old wording.
+
+### Fixed
+- **Token Saver's guidance now agrees with itself and starts in your language.** `usage_terse_mode.py`'s `_DEFAULT_INSTRUCTION` now permits the opening-greeting emoji and a one-line tool intent while still excluding them from the reply body. `_write_terse_sidecar()` in `installer/session_hooks.py` records `detect_lang()` under `lang`, and `_read_sidecar()` / `_detect_lang()` in both hook scripts read it after environment overrides, so sessions without language variables no longer default to the longer English prompt; missing or corrupt sidecars still safely fall back to English.
+- **Existing Token Saver reminder hooks now update instead of staying stale.** `_self_heal_terse_reminder()` in `installer/session_hooks.py` previously restored only a missing script or registration, leaving an installed older script unchanged. `TERSE_REMINDER_HOOK_VERSION` and `_installed_terse_reminder_version()` now compare versions and replace stale copies, recording `update_terse_reminder_hook` for diagnosis.
+
 ## [0.30.2] - 2026-08-28
 
 ### Fixed
