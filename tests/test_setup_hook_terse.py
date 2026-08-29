@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import re
 import tomllib
 from collections.abc import Callable
 from pathlib import Path
@@ -65,6 +66,32 @@ def test_enable_registers_hook_and_writes_sidecar(
     assert "Terse mode is on for this entire conversation" in bundle["en"]["instruction"]
     assert "plain is the style" in bundle["en"]["instruction"]
     assert "白話是風格" in bundle["zh-TW"]["instruction"]
+    assert (
+        "名詞化還原成動詞：進行修改→改、做出決定→決定。刪只預告不給資訊的句子：接下來我要說明、值"
+        "得注意的是、在深入之前。每句先已知後新知。"
+        in bundle["zh-TW"]["instruction"]
+    )
+    assert (
+        "名词化还原成动词：进行修改→改、做出决定→决定。删只预告不给信息的句子：接下来我要说明、值"
+        "得注意的是、在深入之前。每句先已知后新知。"
+        in bundle["zh-CN"]["instruction"]
+    )
+    assert (
+        "Zombie nouns to verbs: \"make a decision\" to \"decide\". Cut metadiscourse: \"Let me ex"
+        "plain\", \"It's worth noting\", \"Before diving in\". Given info first in a sentence, ne"
+        "w info last. "
+        in bundle["en"]["instruction"]
+    )
+    assert (
+        "名詞化は動詞に戻す（修正を行う→修正する）。予告だけの文は削る（「これから説明します」「"
+        "注目すべきは」）。各文は既知が先、新情報が後。"
+        in bundle["ja"]["instruction"]
+    )
+    assert (
+        "명사화는 동사로 (수정을 진행한다 → 고친다). 예고만 하는 문장은 삭제 (\"이제 설명하겠습니"
+        "다\", \"주목할 점은\"). 각 문장은 아는 것 먼저, 새 정보 나중. "
+        in bundle["ko"]["instruction"]
+    )
     assert "plain-spoken" in bundle["en"]["reminder"]
 
 
@@ -395,3 +422,21 @@ def test_self_heal_updates_old_reminder_version(terse_paths: TerseHookPaths) -> 
 def test_self_heal_reminder_noop_when_disabled(terse_paths: TerseHookPaths) -> None:
     session_hooks._self_heal_terse_mode()
     assert not terse_paths.terse_reminder_target.exists()
+
+def test_terse_script_version_matches_hook_constant() -> None:
+    """The self-heal compares the installed script's __version__ against
+    TERSE_HOOK_VERSION. If the two drift apart the comparison never matches and
+    every session rewrites the sidecar, so keep them in lockstep."""
+    source = (Path(__file__).resolve().parents[1] / "usage_terse_mode.py").read_text(
+        encoding="utf-8"
+    )
+    match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
+    assert match, "usage_terse_mode.py has no __version__ line"
+    assert match.group(1) == session_hooks.TERSE_HOOK_VERSION
+
+    reminder = (Path(__file__).resolve().parents[1] / "usage_terse_reminder.py").read_text(
+        encoding="utf-8"
+    )
+    reminder_match = re.search(r'^__version__ = "([^"]+)"$', reminder, re.M)
+    assert reminder_match, "usage_terse_reminder.py has no __version__ line"
+    assert reminder_match.group(1) == session_hooks.TERSE_REMINDER_HOOK_VERSION

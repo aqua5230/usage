@@ -70,7 +70,7 @@ _RESUME_DIAGNOSIS_CAUSE_KEYS = (
 )
 TERSE_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-terse-mode.py"))
 TERSE_PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-terse-prompt.json"))
-TERSE_HOOK_VERSION = "1.2"
+TERSE_HOOK_VERSION = "1.3"
 TERSE_MATCHER = "startup|clear"
 TERSE_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
 _TERSE_MARKER = "usage-terse-mode"
