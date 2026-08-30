@@ -31,7 +31,7 @@ from analyzer.reporter import (
 
 from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
-from ui.report_charts import render_share_bar, render_trend_bar
+from ui.report_charts import render_daily_sparkline, render_share_bar, render_trend_bar
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE
 from ui.report_styles import REPORT_CSS
 
@@ -600,7 +600,9 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
 
 
 def _render_trend_section(data: Mapping[str, Any], lang: str) -> str:
-    return _section(_t(lang, "trend_section"), _trend_ascii(data.get("daily_trend", []), lang))
+    daily = data.get("daily_trend", [])
+    sparkline = render_daily_sparkline(daily, _t(lang, "trend_section"))
+    return _section(_t(lang, "trend_section"), sparkline + _trend_ascii(daily, lang))
 
 
 def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
