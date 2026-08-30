@@ -274,7 +274,7 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
     return f'<div class="trend">{trend_rows}{summary}</div>'
 
 
-def _hour_histogram_html(histogram: list[int]) -> str:
+def _hour_histogram_html(histogram: list[int], lang: str) -> str:
     values = [max(0, int(value)) for value in histogram[:24]]
     if len(values) < 24:
         values.extend([0] * (24 - len(values)))
@@ -291,7 +291,12 @@ def _hour_histogram_html(histogram: list[int]) -> str:
             f'<em>{hour:02d}</em>'
             "</div>"
         )
-    return f'<div class="persona-hours">{"".join(bars)}</div>'
+    peak = (
+        f'<div class="persona-peak">{_escape(_t(lang, "persona_peak", count=max_count))}</div>'
+        if max_count
+        else ""
+    )
+    return f'<div class="persona-hours">{"".join(bars)}</div>{peak}'
 
 
 def _one_pass_card(persona: Mapping[str, object], lang: str) -> str:
@@ -382,7 +387,7 @@ def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:
         '<div class="persona-card">'
         f'<h3>{_escape(_t(lang, "persona_active_hours"))}</h3>'
         f'<p class="persona-caption">{_escape(caption)}</p>'
-        f'{_hour_histogram_html(values)}'
+        f'{_hour_histogram_html(values, lang)}'
         '</div>'
     )
     return active_hours + _one_pass_card(persona, lang)
@@ -880,8 +885,12 @@ def _render_persona_section(data: Mapping[str, Any], lang: str) -> str:
 
 
 def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
+    sessions = list(data.get("top_sessions", []))
+    max_tokens = max((int(session["tokens"]) for session in sessions), default=0)
     session_rows = []
-    for idx, session in enumerate(data.get("top_sessions", []), 1):
+    for idx, session in enumerate(sessions, 1):
+        tokens = int(session["tokens"])
+        share = tokens / max_tokens * 100 if max_tokens else 0.0
         session_rows.append(f"""
         <tr>
           <td>#{idx}</td>
@@ -889,7 +898,8 @@ def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
           <td class="name">{_escape(_display_name(session["project"], lang))}</td>
           <td>{_escape(_display_name(session["model"], lang))}</td>
           <td>{_fmt_duration(float(session["duration_min"]))}</td>
-          <td>{_fmt_tokens(int(session["tokens"]))}</td>
+          <td class="tokens-cell">{_fmt_tokens(tokens)}\
+{render_share_bar(share, _model_share_color(session["model"]))}</td>
           <td>{_fmt_cost(float(session["cost"]))}</td>
         </tr>""")
     session_body = (

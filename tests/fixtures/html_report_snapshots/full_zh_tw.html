@@ -133,6 +133,11 @@ h1{
 .section{
   background:var(--panel);border-radius:12px;margin-top:20px;padding:24px 20px;border:1px solid var(--card-border);box-shadow:0 8px 32px 0 var(--card-shadow)
 }
+/* Reading rhythm: insights and the heatmap are what people came for, so they sit
+   slightly forward; the two reference sections recede. Shadow and border only —
+   changing background or padding would make section heights jump. */
+.insights-section,.contribution-section{box-shadow:0 12px 40px 0 var(--card-shadow)}
+.recent-titles-section,.tools-section{box-shadow:0 4px 18px 0 var(--card-shadow);border-color:var(--faint)}
 .prompt{font-size:.95rem;color:var(--text);margin-bottom:6px;font-weight:600;display:flex;align-items:center;gap:8px}
 .rule{font-size:0;height:1px;background:linear-gradient(90deg,var(--card-border),transparent);margin-bottom:16px;border:none}
 .rank-list{display:grid;gap:4px}
@@ -181,6 +186,8 @@ h1{
 .persona-card+.persona-card{margin-top:16px}
 .persona-card h3{margin:0 0 14px;color:var(--text);font-size:.95rem;font-weight:700}
 .persona-caption{margin:0 0 16px;color:var(--text-soft);font-size:.88rem;line-height:1.5}
+.persona-peak{margin-top:10px;text-align:right;color:var(--muted);font-size:.72rem;font-variant-numeric:tabular-nums}
+.tokens-cell .share-bar{margin-top:5px;height:3px;max-width:96px;margin-left:auto}
 .persona-hours{display:grid;grid-template-columns:repeat(24,minmax(8px,1fr));gap:4px;align-items:end;height:176px;padding-top:8px}
 .persona-hour{display:grid;grid-template-rows:1fr auto;gap:7px;align-items:end;min-width:0;height:100%}
 .persona-hour span{display:block;width:100%;min-height:1.5px;border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,var(--cost),var(--accent-purple))}
@@ -498,7 +505,7 @@ td:first-child{color:var(--warn)}
     <section class="section persona-section">
       <div class="prompt"><span>[usage]&gt;</span> 使用習慣</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="persona-card"><h3>活躍時段</h3><p class="persona-caption">你最常在 14:00 和 21:00 與 AI 協作</p><div class="persona-hours"><div class="persona-hour" title="00:00 0" aria-label="00:00 0"><span style="height:0%"></span><em>00</em></div><div class="persona-hour" title="01:00 0" aria-label="01:00 0"><span style="height:0%"></span><em>01</em></div><div class="persona-hour" title="02:00 0" aria-label="02:00 0"><span style="height:0%"></span><em>02</em></div><div class="persona-hour" title="03:00 0" aria-label="03:00 0"><span style="height:0%"></span><em>03</em></div><div class="persona-hour" title="04:00 0" aria-label="04:00 0"><span style="height:0%"></span><em>04</em></div><div class="persona-hour" title="05:00 0" aria-label="05:00 0"><span style="height:0%"></span><em>05</em></div><div class="persona-hour" title="06:00 0" aria-label="06:00 0"><span style="height:0%"></span><em>06</em></div><div class="persona-hour" title="07:00 0" aria-label="07:00 0"><span style="height:0%"></span><em>07</em></div><div class="persona-hour" title="08:00 0" aria-label="08:00 0"><span style="height:0%"></span><em>08</em></div><div class="persona-hour" title="09:00 2" aria-label="09:00 2"><span style="height:29%"></span><em>09</em></div><div class="persona-hour" title="10:00 0" aria-label="10:00 0"><span style="height:0%"></span><em>10</em></div><div class="persona-hour" title="11:00 0" aria-label="11:00 0"><span style="height:0%"></span><em>11</em></div><div class="persona-hour" title="12:00 0" aria-label="12:00 0"><span style="height:0%"></span><em>12</em></div><div class="persona-hour" title="13:00 0" aria-label="13:00 0"><span style="height:0%"></span><em>13</em></div><div class="persona-hour is-peak" title="14:00 7" aria-label="14:00 7"><span style="height:100%"></span><em>14</em></div><div class="persona-hour" title="15:00 0" aria-label="15:00 0"><span style="height:0%"></span><em>15</em></div><div class="persona-hour" title="16:00 0" aria-label="16:00 0"><span style="height:0%"></span><em>16</em></div><div class="persona-hour" title="17:00 0" aria-label="17:00 0"><span style="height:0%"></span><em>17</em></div><div class="persona-hour" title="18:00 0" aria-label="18:00 0"><span style="height:0%"></span><em>18</em></div><div class="persona-hour" title="19:00 0" aria-label="19:00 0"><span style="height:0%"></span><em>19</em></div><div class="persona-hour" title="20:00 0" aria-label="20:00 0"><span style="height:0%"></span><em>20</em></div><div class="persona-hour" title="21:00 5" aria-label="21:00 5"><span style="height:71%"></span><em>21</em></div><div class="persona-hour" title="22:00 0" aria-label="22:00 0"><span style="height:0%"></span><em>22</em></div><div class="persona-hour" title="23:00 0" aria-label="23:00 0"><span style="height:0%"></span><em>23</em></div></div></div>
+      <div class="persona-card"><h3>活躍時段</h3><p class="persona-caption">你最常在 14:00 和 21:00 與 AI 協作</p><div class="persona-hours"><div class="persona-hour" title="00:00 0" aria-label="00:00 0"><span style="height:0%"></span><em>00</em></div><div class="persona-hour" title="01:00 0" aria-label="01:00 0"><span style="height:0%"></span><em>01</em></div><div class="persona-hour" title="02:00 0" aria-label="02:00 0"><span style="height:0%"></span><em>02</em></div><div class="persona-hour" title="03:00 0" aria-label="03:00 0"><span style="height:0%"></span><em>03</em></div><div class="persona-hour" title="04:00 0" aria-label="04:00 0"><span style="height:0%"></span><em>04</em></div><div class="persona-hour" title="05:00 0" aria-label="05:00 0"><span style="height:0%"></span><em>05</em></div><div class="persona-hour" title="06:00 0" aria-label="06:00 0"><span style="height:0%"></span><em>06</em></div><div class="persona-hour" title="07:00 0" aria-label="07:00 0"><span style="height:0%"></span><em>07</em></div><div class="persona-hour" title="08:00 0" aria-label="08:00 0"><span style="height:0%"></span><em>08</em></div><div class="persona-hour" title="09:00 2" aria-label="09:00 2"><span style="height:29%"></span><em>09</em></div><div class="persona-hour" title="10:00 0" aria-label="10:00 0"><span style="height:0%"></span><em>10</em></div><div class="persona-hour" title="11:00 0" aria-label="11:00 0"><span style="height:0%"></span><em>11</em></div><div class="persona-hour" title="12:00 0" aria-label="12:00 0"><span style="height:0%"></span><em>12</em></div><div class="persona-hour" title="13:00 0" aria-label="13:00 0"><span style="height:0%"></span><em>13</em></div><div class="persona-hour is-peak" title="14:00 7" aria-label="14:00 7"><span style="height:100%"></span><em>14</em></div><div class="persona-hour" title="15:00 0" aria-label="15:00 0"><span style="height:0%"></span><em>15</em></div><div class="persona-hour" title="16:00 0" aria-label="16:00 0"><span style="height:0%"></span><em>16</em></div><div class="persona-hour" title="17:00 0" aria-label="17:00 0"><span style="height:0%"></span><em>17</em></div><div class="persona-hour" title="18:00 0" aria-label="18:00 0"><span style="height:0%"></span><em>18</em></div><div class="persona-hour" title="19:00 0" aria-label="19:00 0"><span style="height:0%"></span><em>19</em></div><div class="persona-hour" title="20:00 0" aria-label="20:00 0"><span style="height:0%"></span><em>20</em></div><div class="persona-hour" title="21:00 5" aria-label="21:00 5"><span style="height:71%"></span><em>21</em></div><div class="persona-hour" title="22:00 0" aria-label="22:00 0"><span style="height:0%"></span><em>22</em></div><div class="persona-hour" title="23:00 0" aria-label="23:00 0"><span style="height:0%"></span><em>23</em></div></div><div class="persona-peak">峰值 7 則</div></div>
     </section>
     
   
@@ -516,7 +523,7 @@ td:first-child{color:var(--warn)}
           <td class="name">usage</td>
           <td>claude-sonnet-4</td>
           <td>2h 5m</td>
-          <td>98.8K</td>
+          <td class="tokens-cell">98.8K<span class="share-bar" aria-hidden="true"><span style="width:100.00%;background:#5abfa0"></span></span></td>
           <td>$8.91</td>
         </tr>
         <tr>
@@ -525,7 +532,7 @@ td:first-child{color:var(--warn)}
           <td class="name">client&lt;portal&gt;</td>
           <td>gpt-5-codex</td>
           <td>35m</td>
-          <td>45.7K</td>
+          <td class="tokens-cell">45.7K<span class="share-bar" aria-hidden="true"><span style="width:46.25%;background:#e0885a"></span></span></td>
           <td>$4.56</td>
         </tr></tbody>
           </table>

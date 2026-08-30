@@ -133,6 +133,11 @@ h1{
 .section{
   background:var(--panel);border-radius:12px;margin-top:20px;padding:24px 20px;border:1px solid var(--card-border);box-shadow:0 8px 32px 0 var(--card-shadow)
 }
+/* Reading rhythm: insights and the heatmap are what people came for, so they sit
+   slightly forward; the two reference sections recede. Shadow and border only —
+   changing background or padding would make section heights jump. */
+.insights-section,.contribution-section{box-shadow:0 12px 40px 0 var(--card-shadow)}
+.recent-titles-section,.tools-section{box-shadow:0 4px 18px 0 var(--card-shadow);border-color:var(--faint)}
 .prompt{font-size:.95rem;color:var(--text);margin-bottom:6px;font-weight:600;display:flex;align-items:center;gap:8px}
 .rule{font-size:0;height:1px;background:linear-gradient(90deg,var(--card-border),transparent);margin-bottom:16px;border:none}
 .rank-list{display:grid;gap:4px}
@@ -181,6 +186,8 @@ h1{
 .persona-card+.persona-card{margin-top:16px}
 .persona-card h3{margin:0 0 14px;color:var(--text);font-size:.95rem;font-weight:700}
 .persona-caption{margin:0 0 16px;color:var(--text-soft);font-size:.88rem;line-height:1.5}
+.persona-peak{margin-top:10px;text-align:right;color:var(--muted);font-size:.72rem;font-variant-numeric:tabular-nums}
+.tokens-cell .share-bar{margin-top:5px;height:3px;max-width:96px;margin-left:auto}
 .persona-hours{display:grid;grid-template-columns:repeat(24,minmax(8px,1fr));gap:4px;align-items:end;height:176px;padding-top:8px}
 .persona-hour{display:grid;grid-template-rows:1fr auto;gap:7px;align-items:end;min-width:0;height:100%}
 .persona-hour span{display:block;width:100%;min-height:1.5px;border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,var(--cost),var(--accent-purple))}
