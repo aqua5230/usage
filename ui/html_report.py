@@ -393,7 +393,10 @@ def _tools_body(
     return f'<div class="tools">{head}{"".join(rows)}</div>'
 
 
-def _narrative(data: ReportData, lang: str) -> str:
+def _narrative(data: ReportData, lang: str, is_empty: bool) -> str:
+    if is_empty:
+        return _t(lang, "empty_state_hint")
+
     summary = data["summary"]
     daily = data.get("daily_trend", [])
     peak_date = data.get("date_to", "---- -- --")
@@ -439,12 +442,12 @@ def _summary_cards(summary: SummaryReportData, lang: str) -> list[tuple[str, str
     ]
 
 
-def _render_header(data: ReportData, lang: str, title: str, generated_at: str) -> str:
+def _render_header(data: ReportData, lang: str, title: str, generated_at: str, is_empty: bool) -> str:
     return f"""<header>
     <div>
       <div class="eyebrow"><span>$ usage report</span> --period {html.escape(str(data["period_label"]))}<span class="cursor">_</span></div>
       <h1>{html.escape(title)}</h1>
-      <p class="narrative">{html.escape(_narrative(data, lang))}</p>
+      <p class="narrative">{html.escape(_narrative(data, lang, is_empty))}</p>
     </div>
     <div class="header-actions">
       <div class="meta">{html.escape(_t(lang, "generated"))} {html.escape(generated_at)}<br>usage {_escape(_t(lang, "version"))} {_escape(_version())}</div>
@@ -863,11 +866,27 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
     lang = language or _detect_lang()
     generated_at = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
     cards = _summary_cards(report_data["summary"], lang)
+    is_empty = (
+        int(report_data["summary"]["total_tokens"]) <= 0
+        and int(report_data["summary"]["messages"]) <= 0
+    )
     share_config_json = _share_config_json(lang)
     csv_data_json = json.dumps(_build_csv_data(report_data, lang), ensure_ascii=False).replace("</", "<\\/")
     masked_csv_data_json = json.dumps(_build_csv_data(report_data, lang, mask_projects=True), ensure_ascii=False).replace("</", "<\\/")
     title = _t(lang, "title")
-    insight_surface = _render_insight_surface(report_data, lang)
+    detail_sections = ""
+    if not is_empty:
+        insight_surface = _render_insight_surface(report_data, lang)
+        detail_sections = (
+            f"  {_render_wrapped_section(report_data, lang)}\n"
+            f"{insight_surface}  {_render_tools_section(report_data, lang)}\n"
+            f"  {_render_project_section(report_data, lang)}\n"
+            f"  {_render_model_section(report_data, lang)}\n"
+            f"  {_render_trend_section(report_data, lang)}\n"
+            f"  {_render_contribution_section(report_data, lang)}\n"
+            f"  {_render_recent_titles_section(report_data, lang)}{_render_persona_section(report_data, lang)}\n"
+            f"  {_render_session_section(report_data, lang)}\n"
+        )
     return f"""<!doctype html>
 <html lang="{html.escape(lang)}">
 <head>
@@ -880,18 +899,10 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
 </head>
 <body>
 <main class="wrap">
-  {_render_header(report_data, lang, title, generated_at)}
+  {_render_header(report_data, lang, title, generated_at, is_empty)}
   {_render_share_dialog(lang)}
   {_render_cards_section(cards)}
-  {_render_wrapped_section(report_data, lang)}
-{insight_surface}  {_render_tools_section(report_data, lang)}
-  {_render_project_section(report_data, lang)}
-  {_render_model_section(report_data, lang)}
-  {_render_trend_section(report_data, lang)}
-  {_render_contribution_section(report_data, lang)}
-  {_render_recent_titles_section(report_data, lang)}{_render_persona_section(report_data, lang)}
-  {_render_session_section(report_data, lang)}
-  {_render_sponsor_section(lang)}
+{detail_sections}  {_render_sponsor_section(lang)}
 </main>
 <script type="application/json" id="usage-csv-data">{csv_data_json}</script>
 <script type="application/json" id="usage-masked-csv-data">{masked_csv_data_json}</script>
