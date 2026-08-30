@@ -5,6 +5,15 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.4] - 2026-08-30
+
+### Fixed
+- **Scaled Windows panels now show all their content, with no blank strip below the footer.** `_WindowsTrayController._apply_panel_zoom()` now calls `window.usageApplyPanelZoom()` from a background thread before passing only resize and move work to the UI thread, avoiding a WebView2 deadlock. `usageApplyPanelZoom()` receives the natural height, expands `body` before applying CSS `zoom`, and `naturalContentHeight()` temporarily removes that compensation while measuring, so the scaled layout has enough space instead of clipping cards.
+- **Windows now counts Grok CLI activity in today's cost, token total, and project list.** `_WindowsTrayController._load_entries()` now calls `grok_loader.load_entries()` alongside the Claude and Codex loaders. If reading the Grok log fails, its matching error handling leaves the Claude and Codex entries already collected intact.
+
+### Changed
+- **Token Saver now gives short replies three concrete rules for plainer language.** The `terse_mode_instruction` strings in `i18n.json` and their standalone copies in `usage_terse_mode.py`'s `_DEFAULT_INSTRUCTION` now turn nominalizations back into verbs, cut sentences that announce without informing, and put known information before new information, in all five languages. `TERSE_HOOK_VERSION` in `installer/session_hooks.py` and `__version__` in `usage_terse_mode.py` both move to 1.3, so `_installed_terse_version()` keeps installed sidecars current instead of rewriting them on every session.
+
 ## [0.30.3] - 2026-08-28
 
 ### Changed

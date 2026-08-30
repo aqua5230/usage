@@ -4,6 +4,15 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.4] - 2026-08-30
+
+### 修正
+- **Windows 縮小面板後，現在會顯示完整內容，footer 下方也不再留白。** `_WindowsTrayController._apply_panel_zoom()` 現在會在背景執行緒呼叫 `window.usageApplyPanelZoom()`，只把調整尺寸與移動交給 UI 執行緒，避開 WebView2 死結。`usageApplyPanelZoom()` 會接收自然高度，在套用 CSS `zoom` 前先撐開 `body`；`naturalContentHeight()` 量測時則暫時解除這項補償，縮小後的版面就有足夠空間，不再裁掉卡片。
+- **Windows 現在會把 Grok CLI 活動算進今日成本、token 總數與專案列表。** `_WindowsTrayController._load_entries()` 現在和 Claude、Codex 的 loader 一起呼叫 `grok_loader.load_entries()`。讀取 Grok log 失敗時，對應的錯誤處理仍會保留已收集的 Claude 與 Codex entries。
+
+### 變更
+- **Token Saver 現在用三條具體規則，讓短回覆更白話。** `i18n.json` 的 `terse_mode_instruction` 與 `usage_terse_mode.py` 的 `_DEFAULT_INSTRUCTION` 這兩份各自獨立的文案，現在都會把名詞化改回動詞、刪除只預告不給資訊的句子，並讓每句先放已知資訊、再放新資訊，五種語言全數同步。`installer/session_hooks.py` 的 `TERSE_HOOK_VERSION` 與 `usage_terse_mode.py` 的 `__version__` 都升至 1.3，讓 `_installed_terse_version()` 保持已安裝 sidecar 為最新版本，不再每個工作階段都重寫。
+
 ## [0.30.3] - 2026-08-28
 
 ### 變更
