@@ -139,6 +139,8 @@ h1{
 .rank-line:last-child{box-shadow:none}
 .arrow{color:var(--warn)}
 .name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.share-bar{display:block;height:4px;margin-top:6px;overflow:hidden;border-radius:999px;background:var(--faint)}
+.share-bar span{display:block;height:100%;border-radius:inherit;background:var(--cost)}
 .pct{color:var(--text-soft)}
 .cost{color:var(--cost)}
 .tokens,.cost,.pct{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}

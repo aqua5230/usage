@@ -31,7 +31,7 @@ from analyzer.reporter import (
 
 from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
-from ui.report_charts import render_trend_bar
+from ui.report_charts import render_share_bar, render_trend_bar
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE
 from ui.report_styles import REPORT_CSS
 
@@ -122,7 +122,7 @@ def _empty_line(label: str) -> str:
 def _rank_line(name: str, pct: float, tokens: int, cost: float | None, lang: str) -> str:
     return (
         '<div class="rank-line">'
-        f'<span class="arrow">→</span><span class="name">{html.escape(name)}</span>'
+        f'<span class="arrow">→</span><span class="name">{html.escape(name)}{render_share_bar(pct)}</span>'
         f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">{pct:>5.1f}%</span>'
         f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
         f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(cost)}</span>'
@@ -294,10 +294,10 @@ def _donut_svg(items: list[tuple[str, int]], lang: str, *, total: int) -> str:
     data_total = sum(tok for _, tok in data)
     if total <= 0 or total < data_total:
         total = data_total
-    shown = data[:6]
-    rest = total - sum(tok for _, tok in shown)
+    shown = [(name, tok, False) for name, tok in data[:6]]
+    rest = total - sum(tok for _, tok, _is_other in shown)
     if rest > 0:
-        shown = [*shown, (_t(lang, "chart_other"), rest)]
+        shown = [*shown, (_t(lang, "chart_other"), rest, True)]
 
     cx = cy = 80.0
     radius = 60.0
@@ -305,10 +305,10 @@ def _donut_svg(items: list[tuple[str, int]], lang: str, *, total: int) -> str:
     segs: list[str] = []
     legend: list[str] = []
     offset = 0.0
-    for idx, (name, tok) in enumerate(shown):
+    for idx, (name, tok, is_other) in enumerate(shown):
         frac = tok / total
         seg_len = circ * frac
-        color = _PALETTE[idx % len(_PALETTE)]
+        color = "#8b8577" if is_other else _PALETTE[idx % len(_PALETTE)]
         segs.append(
             f'<circle cx="{cx}" cy="{cy}" r="{radius}" fill="none" stroke="{color}" '
             f'stroke-width="22" stroke-dasharray="{seg_len:.2f} {circ - seg_len:.2f}" '

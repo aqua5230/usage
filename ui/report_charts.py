@@ -16,3 +16,12 @@ def render_trend_bar(tokens: int, max_tokens: int) -> str:
         f'<div style="width:{width:.2f}%"></div>'
         "</div>"
     )
+
+
+def render_share_bar(pct: float) -> str:
+    width = max(2.0, min(100.0, pct)) if pct > 0 else 0.0
+    return (
+        '<span class="share-bar" aria-hidden="true">'
+        f'<span style="width:{width:.2f}%"></span>'
+        "</span>"
+    )
