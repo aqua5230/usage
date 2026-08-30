@@ -30,7 +30,7 @@ import service_status
 import usage_diagnosis_snapshot
 from i18n import _t
 from installer.statusline_settings import _statusline_enabled, _toggle_statusline_settings
-from loaders import codex_loader
+from loaders import codex_loader, grok_loader
 from loaders.history_loader import UsageEntry, load_entries
 from menubar import agy as menubar_agy
 from menubar import grok as menubar_grok
@@ -1242,6 +1242,12 @@ class _WindowsTrayController:
             error_key = "history_load_error_parse"
         try:
             entries.extend(codex_loader.load_entries(hours_back=0, jsonl_paths=scan.codex_paths))
+        except OSError:
+            error_key = "history_load_error_file"
+        except (ValueError, KeyError, TypeError):
+            error_key = "history_load_error_parse"
+        try:
+            entries.extend(grok_loader.load_entries(hours_back=0))
         except OSError:
             error_key = "history_load_error_file"
         except (ValueError, KeyError, TypeError):
