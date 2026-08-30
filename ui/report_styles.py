@@ -89,7 +89,7 @@ h1{
   white-space:nowrap;
   color:var(--text);
 }
-.eyebrow,.meta,.empty,footer,.cursor,.prompt,.share-trigger,.share-close,.share-action,.tokens,.cost,.pct,.trend-row .week,.trend-row b,.trend-row em,.delta,.donut-total,.donut-sub,.sub-plan,.sub-since,.ai-update-version,.ai-update-period,th,td,.wrapped-kicker,.wrapped-total-label,.contribution-months,.contribution-days,.contribution-legend{
+.eyebrow,.meta,.empty,footer,.cursor,.prompt,.share-trigger,.share-close,.share-action,.tokens,.cost,.pct,.trend-row .week,.trend-row em,.delta,.donut-total,.donut-sub,.sub-plan,.sub-since,.ai-update-version,.ai-update-period,th,td,.wrapped-kicker,.wrapped-total-label,.contribution-months,.contribution-days,.contribution-legend{
   font-family:ui-monospace,SFMono-Regular,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
 }
 .eyebrow,.meta,.empty,footer{color:var(--muted)}
@@ -146,7 +146,8 @@ h1{
 .trend-row{display:grid;grid-template-columns:56px minmax(0,1fr) 76px 84px;gap:16px;align-items:center;padding:10px 12px;border:1px solid transparent;border-radius:10px;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
 .trend-row:hover{transform:translateY(-1px);background:rgba(255,255,255,.03);border-color:var(--card-border);box-shadow:0 8px 22px rgba(0,0,0,.12)}
 .trend-row .week{color:var(--muted);font-size:.78rem;line-height:1.4}
-.trend-row b{font-weight:400;white-space:nowrap;overflow:hidden;display:block;color:var(--text-soft);letter-spacing:.08em;line-height:1}
+.trend-bar{height:10px;overflow:hidden;border-radius:999px;background:var(--faint)}
+.trend-bar div{height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--cost),var(--accent-purple))}
 .trend-row em{font-style:normal;text-align:right;color:var(--text-soft);font-size:.82rem;font-variant-numeric:tabular-nums}
 .delta{color:var(--muted);white-space:nowrap;text-align:right;justify-self:end;font-size:.78rem;font-weight:600;font-variant-numeric:tabular-nums}
 .delta.up{color:var(--cost)}

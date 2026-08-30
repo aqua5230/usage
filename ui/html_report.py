@@ -31,6 +31,7 @@ from analyzer.reporter import (
 
 from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
+from ui.report_charts import render_trend_bar
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE
 from ui.report_styles import REPORT_CSS
 
@@ -214,8 +215,6 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str) -> str:
     rows = []
     for idx, week in enumerate(weekly):
         tokens = int(week["tokens"])
-        filled = max(1, round(tokens / max_tokens * 12)) if max_tokens and tokens else 0
-        bar = "█" * filled
         delta_html = '<span class="delta flat"></span>'
         if idx > 0:
             delta_class, delta_label = _trend_delta(tokens, int(weekly[idx - 1]["tokens"]), lang)
@@ -223,7 +222,7 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str) -> str:
         rows.append(
             '<div class="trend-row">'
             f'<span class="week">W{int(week["week"])}</span>'
-            f'<b>{bar}</b>'
+            f'{render_trend_bar(tokens, max_tokens)}'
             f'<em>{_fmt_tokens(tokens)}</em>'
             f"{delta_html}"
             "</div>"
@@ -288,13 +287,15 @@ def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:
     )
 
 
-def _donut_svg(items: list[tuple[str, int]], lang: str) -> str:
+def _donut_svg(items: list[tuple[str, int]], lang: str, *, total: int) -> str:
     data = [(name, tok) for name, tok in items if tok > 0]
     if not data:
         return ""
-    total = sum(tok for _, tok in data)
+    data_total = sum(tok for _, tok in data)
+    if total <= 0 or total < data_total:
+        total = data_total
     shown = data[:6]
-    rest = sum(tok for _, tok in data[6:])
+    rest = total - sum(tok for _, tok in shown)
     if rest > 0:
         shown = [*shown, (_t(lang, "chart_other"), rest)]
 
@@ -487,6 +488,7 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
     project_donut = _donut_svg(
         [(_display_name(project["project"], lang), int(project["tokens"])) for project in data.get("by_project", [])],
         lang,
+        total=int(data["summary"]["total_tokens"]),
     )
     project_body = (
         project_donut
