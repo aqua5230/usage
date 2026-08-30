@@ -67,7 +67,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.2"
+__version__ = "1.3"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -110,7 +110,6 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "本輪",
         "cached": "快取:",
         "cache_hit": "快取:",
-        "cache_cold_suffix": "後冷",
         "cost": "花費:",
         "session_dur": "會話時長:",
         "remaining_prefix": "剩",
@@ -132,7 +131,6 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "本轮",
         "cached": "缓存:",
         "cache_hit": "缓存:",
-        "cache_cold_suffix": "后变冷",
         "cost": "花费:",
         "session_dur": "会话时长:",
         "remaining_prefix": "剩",
@@ -154,7 +152,6 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "this turn",
         "cached": "Cached:",
         "cache_hit": "Cache:",
-        "cache_cold_suffix": "until cold",
         "cost": "Cost:",
         "session_dur": "Session:",
         "remaining_prefix": "left",
@@ -176,7 +173,6 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "今回",
         "cached": "キャッシュ:",
         "cache_hit": "キャッシュ:",
-        "cache_cold_suffix": "後に冷却",
         "cost": "費用:",
         "session_dur": "セッション時間:",
         "remaining_prefix": "残り",
@@ -198,7 +194,6 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "이번 턴",
         "cached": "캐시:",
         "cache_hit": "캐시:",
-        "cache_cold_suffix": "후 만료",
         "cost": "비용:",
         "session_dur": "세션 시간:",
         "remaining_prefix": "남음",
@@ -791,9 +786,9 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
                 remain = int(expires_at) - int(now.timestamp())
                 if remain > 0:
                     if lang in ("zh-TW", "zh-CN"):
-                        cache_countdown = f" ({fmt_duration(remain)}{_t('cache_cold_suffix')})"
+                        cache_countdown = f" ({_t('remaining_prefix')}{fmt_duration(remain)})"
                     else:
-                        cache_countdown = f" ({fmt_duration(remain)} {_t('cache_cold_suffix')})"
+                        cache_countdown = f" ({fmt_duration(remain)} {_t('remaining_prefix')})"
             cache_part = cache_bar_part + (
                 f"{C['dim']}{C['magenta']}{cache_countdown}{C['reset']}"
                 if cache_countdown

@@ -624,7 +624,7 @@ def test_render_shows_prompt_cache_hit_with_countdown(
     line3 = output.splitlines()[0]
     assert "快取:" in line3
     assert "91%" in line3
-    assert "(43min後冷)" in line3
+    assert "(剩43min)" in line3
     assert "\033[38;5;42m" in line3
 
 
@@ -670,7 +670,7 @@ def test_render_keeps_prompt_cache_bar_when_expired(
 
     assert "Cache:" in output
     assert "91%" in output
-    assert "until cold" not in output
+    assert "left" not in output
     assert "(" not in output
 
 
@@ -714,7 +714,7 @@ def test_render_prompt_cache_degrades_for_narrow_widths(
     bar_only = usage_statusline.render(payload, now)
     assert "Session:" not in bar_only
     assert "Cache:" in bar_only
-    assert "until cold" not in bar_only
+    assert "43min" not in bar_only
 
     monkeypatch.setattr(usage_statusline, "get_width", lambda: 18)
     without_cache = usage_statusline.render(payload, now)
