@@ -28,7 +28,7 @@ import tempfile
 import time
 from contextlib import contextmanager, suppress
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Any, Callable, Dict, List, Optional, Tuple, cast
 
 
 def _configure_windows_utf8_output() -> None:
@@ -109,6 +109,8 @@ STATUSLINE_TRANSLATIONS = {
         "out_short": "答:",
         "this_turn": "本輪",
         "cached": "快取:",
+        "cache_hit": "快取:",
+        "cache_cold_suffix": "後冷",
         "cost": "花費:",
         "session_dur": "會話時長:",
         "remaining_prefix": "剩",
@@ -129,6 +131,8 @@ STATUSLINE_TRANSLATIONS = {
         "out_short": "答:",
         "this_turn": "本轮",
         "cached": "缓存:",
+        "cache_hit": "缓存:",
+        "cache_cold_suffix": "后变冷",
         "cost": "花费:",
         "session_dur": "会话时长:",
         "remaining_prefix": "剩",
@@ -149,6 +153,8 @@ STATUSLINE_TRANSLATIONS = {
         "out_short": "out:",
         "this_turn": "this turn",
         "cached": "Cached:",
+        "cache_hit": "Cache:",
+        "cache_cold_suffix": "until cold",
         "cost": "Cost:",
         "session_dur": "Session:",
         "remaining_prefix": "left",
@@ -169,6 +175,8 @@ STATUSLINE_TRANSLATIONS = {
         "out_short": "出:",
         "this_turn": "今回",
         "cached": "キャッシュ:",
+        "cache_hit": "キャッシュ:",
+        "cache_cold_suffix": "後に冷却",
         "cost": "費用:",
         "session_dur": "セッション時間:",
         "remaining_prefix": "残り",
@@ -189,6 +197,8 @@ STATUSLINE_TRANSLATIONS = {
         "out_short": "출:",
         "this_turn": "이번 턴",
         "cached": "캐시:",
+        "cache_hit": "캐시:",
+        "cache_cold_suffix": "후 만료",
         "cost": "비용:",
         "session_dur": "세션 시간:",
         "remaining_prefix": "남음",
@@ -486,6 +496,14 @@ def color_by_pct(pct: float) -> str:
     return "\033[38;5;160m"
 
 
+def color_by_pct_inverted(pct: float) -> str:
+    if pct >= 80:
+        return "\033[38;5;42m"
+    if pct >= 50:
+        return "\033[38;5;214m"
+    return "\033[38;5;160m"
+
+
 def fmt_tokens(n: Any) -> str:
     try:
         value = int(n)
@@ -498,7 +516,11 @@ def fmt_tokens(n: Any) -> str:
     return str(value)
 
 
-def progress_bar(value: Any, bar_width: int = 8) -> str:
+def progress_bar(
+    value: Any,
+    bar_width: int = 8,
+    color_func: Callable[[float], str] = color_by_pct,
+) -> str:
     filled_char = "■"
     empty_char = "□"
     if value is None:
@@ -506,9 +528,9 @@ def progress_bar(value: Any, bar_width: int = 8) -> str:
     pct = max(0.0, min(100.0, float(value)))
     filled = round(pct / 100 * bar_width)
     return (
-        f"{color_by_pct(pct)}{filled_char * filled}{C['reset']}"
+        f"{color_func(pct)}{filled_char * filled}{C['reset']}"
         f"{empty_char * (bar_width - filled)} "
-        f"{color_by_pct(pct)}{pct:.0f}%{C['reset']}"
+        f"{color_func(pct)}{pct:.0f}%{C['reset']}"
     )
 
 
@@ -753,8 +775,38 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             model_name += f" {_t('fast_mode')}"
         line3.append(f"{C['dim']}{C['magenta']}{safe_text(model_name)}{C['reset']}")
 
+    cache_part = ""
+    cache_bar_part = ""
+    prompt_cache = _as_dict(data.get("prompt_cache"))
+    if prompt_cache.get("caching_observed") is True:
+        hit_ratio = _as_float(prompt_cache.get("hit_ratio"))
+        if hit_ratio is not None:
+            cache_bar_part = (
+                f"{C['dim']}{C['magenta']}{_t('cache_hit')}{C['reset']}"
+                f"{progress_bar(hit_ratio * 100, bar_w, color_by_pct_inverted)}"
+            )
+            cache_countdown = ""
+            expires_at = _as_float(prompt_cache.get("expires_at"))
+            if expires_at is not None:
+                remain = int(expires_at) - int(now.timestamp())
+                if remain > 0:
+                    if lang in ("zh-TW", "zh-CN"):
+                        cache_countdown = f" ({fmt_duration(remain)}{_t('cache_cold_suffix')})"
+                    else:
+                        cache_countdown = f" ({fmt_duration(remain)} {_t('cache_cold_suffix')})"
+            cache_part = cache_bar_part + (
+                f"{C['dim']}{C['magenta']}{cache_countdown}{C['reset']}"
+                if cache_countdown
+                else ""
+            )
+            line3.append(cache_part)
+
     if vlen(" | ".join(line3)) > width and duration_part:
         line3 = [p for p in line3 if p != duration_part]
+    if vlen(" | ".join(line3)) > width and cache_part:
+        line3 = [cache_bar_part if p == cache_part else p for p in line3]
+    if vlen(" | ".join(line3)) > width and cache_bar_part:
+        line3 = [p for p in line3 if p != cache_bar_part]
 
     update_version = _read_update_hint(now.timestamp())
     if update_version and (line1 or line3):

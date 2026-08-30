@@ -603,6 +603,125 @@ def test_render_outputs_multiline_colored_statusline(
     assert "$" not in output  # cost line removed in v0.10.0
 
 
+def test_render_shows_prompt_cache_hit_with_countdown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "zh_TW")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    payload = {
+        "model": {"display_name": "Opus 5"},
+        "cost": {"total_duration_ms": 720000},
+        "prompt_cache": {
+            "caching_observed": True,
+            "hit_ratio": 0.9072975151245158,
+            "expires_at": now.timestamp() + 43 * 60,
+        },
+    }
+
+    output = usage_statusline.render(payload, now)
+
+    line3 = output.splitlines()[0]
+    assert "快取:" in line3
+    assert "91%" in line3
+    assert "(43min後冷)" in line3
+    assert "\033[38;5;42m" in line3
+
+
+@pytest.mark.parametrize(
+    "prompt_cache",
+    (None, {"caching_observed": False, "hit_ratio": 0.91}),
+)
+def test_render_omits_prompt_cache_when_not_observed(
+    monkeypatch: pytest.MonkeyPatch,
+    prompt_cache: dict[str, object] | None,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    payload: dict[str, object] = {
+        "model": {"display_name": "Opus 5"},
+        "cost": {"total_duration_ms": 720000},
+    }
+    if prompt_cache is not None:
+        payload["prompt_cache"] = prompt_cache
+
+    output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
+
+    assert output == (
+        "\033[2m\033[38;5;111mSession: 12min\033[0m | "
+        "\033[2m\033[38;5;111mOpus 5\033[0m"
+    )
+
+
+def test_render_keeps_prompt_cache_bar_when_expired(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+
+    output = usage_statusline.render({
+        "prompt_cache": {
+            "caching_observed": True,
+            "hit_ratio": 0.91,
+            "expires_at": now.timestamp() - 1,
+        },
+    }, now)
+
+    assert "Cache:" in output
+    assert "91%" in output
+    assert "until cold" not in output
+    assert "(" not in output
+
+
+@pytest.mark.parametrize(
+    ("hit_ratio", "color"),
+    ((0.91, "\033[38;5;42m"), (0.3, "\033[38;5;160m")),
+)
+def test_render_prompt_cache_uses_inverted_colors(
+    monkeypatch: pytest.MonkeyPatch,
+    hit_ratio: float,
+    color: str,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+
+    output = usage_statusline.render({
+        "prompt_cache": {"caching_observed": True, "hit_ratio": hit_ratio},
+    }, datetime(2026, 1, 1, tzinfo=UTC))
+
+    assert color in output
+    if hit_ratio == 0.91:
+        assert "\033[38;5;160m" not in output
+
+
+def test_render_prompt_cache_degrades_for_narrow_widths(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "en")
+    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
+    payload = {
+        "model": {"display_name": "Opus 5"},
+        "cost": {"total_duration_ms": 720000},
+        "prompt_cache": {
+            "caching_observed": True,
+            "hit_ratio": 0.91,
+            "expires_at": now.timestamp() + 43 * 60,
+        },
+    }
+
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 29)
+    bar_only = usage_statusline.render(payload, now)
+    assert "Session:" not in bar_only
+    assert "Cache:" in bar_only
+    assert "until cold" not in bar_only
+
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 18)
+    without_cache = usage_statusline.render(payload, now)
+    assert "Session:" not in without_cache
+    assert "Cache:" not in without_cache
+
+
 def test_render_skips_bad_rate_limit_percentage_without_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
