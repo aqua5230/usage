@@ -37,6 +37,10 @@ def test_script_wraps_state_application_and_measures_without_height_constraints(
     assert "lastPostedHeight = null;" in CONTENT_HEIGHT_SCRIPT
     assert 'root.style.zoom = "normal"' in CONTENT_HEIGHT_SCRIPT
     assert "window.usageApplyPanelZoom" in CONTENT_HEIGHT_SCRIPT
+    assert "function(scale, naturalHeight)" in CONTENT_HEIGHT_SCRIPT
+    assert 'body.style.height = ""' in CONTENT_HEIGHT_SCRIPT
+    assert 'String(height) + "px"' in CONTENT_HEIGHT_SCRIPT
+    assert "innerHeight /" not in CONTENT_HEIGHT_SCRIPT
     # Panels draw their edges with padding on whichever layer wraps .wrap, and
     # the viewport-based panels nest an extra padded .viewport in between, so
     # the whole ancestor chain has to be released and measured — assuming a
@@ -46,6 +50,10 @@ def test_script_wraps_state_application_and_measures_without_height_constraints(
     assert "paddingBottom" in CONTENT_HEIGHT_SCRIPT
     assert 'querySelectorAll("[data-usage-height-floor]")' in CONTENT_HEIGHT_SCRIPT
     assert 'floor.element.style.minHeight = floor.height + "px"' in CONTENT_HEIGHT_SCRIPT
+    # Measuring must release the Chromium-only height compensation before it
+    # reads the natural layout, then put it back before the next paint.
+    assert "var bodyHeight = body ? body.style.height" in CONTENT_HEIGHT_SCRIPT
+    assert "body.style.height = bodyHeight" in CONTENT_HEIGHT_SCRIPT
 
 
 def test_world_cup_declares_its_pitch_height_floor() -> None:

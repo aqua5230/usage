@@ -198,8 +198,10 @@ class PopoverViewController(NSViewController):
         if self.latest_state is None or self.panel is None:
             return
         scale = panel_scale(self.latest_state, self.panel)
+        _, natural_height = panel_window_state.resolve_panel_size(self.latest_state, self.panel)
         panel_id = self.panel.id
-        if self.panel_scales.get(panel_id) == scale:
+        target = (scale, natural_height)
+        if self.panel_scales.get(panel_id) == target:
             return
         view = self.content_view
         if not hasattr(view, "evaluateJavaScript_completionHandler_"):
@@ -213,11 +215,11 @@ class PopoverViewController(NSViewController):
                 and self.panel.id == panel_id
                 and self.content_view is view
             ):
-                self.panel_scales[panel_id] = scale
+                self.panel_scales[panel_id] = target
 
         view.evaluateJavaScript_completionHandler_(
             "typeof window.usageApplyPanelZoom === 'function' ? "
-            f"window.usageApplyPanelZoom({scale}) : false",
+            f"window.usageApplyPanelZoom({scale}, {natural_height}) : false",
             _completed,
         )
 

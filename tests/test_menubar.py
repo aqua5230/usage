@@ -255,6 +255,11 @@ def test_apply_panel_scale_caches_only_after_successful_javascript(
     controller.content_view = view
 
     monkeypatch.setattr(menubar_popover, "panel_scale", lambda state, active_panel: 0.7785)
+    monkeypatch.setattr(
+        panel_window_state,
+        "resolve_panel_size",
+        lambda state, active_panel: (320.0, 1000.0),
+    )
     menubar_popover.PopoverViewController.applyPanelScale(controller)
     calls[-1][1](False, None)
 
@@ -263,7 +268,8 @@ def test_apply_panel_scale_caches_only_after_successful_javascript(
     menubar_popover.PopoverViewController.applyPanelScale(controller)
     calls[-1][1](True, None)
 
-    assert controller.panel_scales == {"classic": 0.7785}
+    assert controller.panel_scales == {"classic": (0.7785, 1000.0)}
+    assert "usageApplyPanelZoom(0.7785, 1000.0)" in calls[-1][0]
 
 
 def test_bar_color_thresholds() -> None:

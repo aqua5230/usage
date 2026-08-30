@@ -456,11 +456,50 @@ def test_content_height_keeps_the_panels_natural_height(
     assert controller.panel_height() == 1000
 
 
+def test_failed_panel_zoom_does_not_resize_window_to_scaled_height(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mutations: list[tuple[str, int, int]] = []
+    zoom_ready = False
+
+    javascript: list[str] = []
+
+    def evaluate_js(code: str) -> bool:
+        javascript.append(code)
+        return zoom_ready
+
+    window = SimpleNamespace(
+        x=0,
+        y=0,
+        evaluate_js=evaluate_js,
+        resize=lambda width, height: mutations.append(("resize", width, height)),
+        move=lambda x, y: mutations.append(("move", x, y)),
+    )
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = window
+    controller._content_height = 1000
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
+    monkeypatch.setattr(
+        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
+    )
+
+    controller._place_window()
+
+    assert mutations == []
+    assert "usageApplyPanelZoom(0.776, 1000)" in javascript[-1]
+
+    zoom_ready = True
+    controller._place_window()
+
+    assert mutations == [("resize", 295, 776), ("move", 693, 12)]
+
+
 def test_background_window_mutation_is_dispatched_to_ui_thread(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     main_thread_id = threading.get_ident()
     mutation_threads: list[int] = []
+    javascript_threads: list[int] = []
     scheduling_threads: list[int] = []
     scheduled_drains: list[Callable[[], None]] = []
 
@@ -468,10 +507,15 @@ def test_background_window_mutation_is_dispatched_to_ui_thread(
         scheduling_threads.append(threading.get_ident())
         scheduled_drains.append(callback)
 
+    def evaluate_js(_code: str) -> bool:
+        javascript_threads.append(threading.get_ident())
+        return True
+
     native = SimpleNamespace(InvokeRequired=True, BeginInvoke=begin_invoke)
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.window = SimpleNamespace(
         native=native,
+        evaluate_js=evaluate_js,
         resize=lambda _width, _height: mutation_threads.append(threading.get_ident()),
         move=lambda _x, _y: mutation_threads.append(threading.get_ident()),
     )
@@ -485,10 +529,12 @@ def test_background_window_mutation_is_dispatched_to_ui_thread(
     worker.join()
 
     assert mutation_threads == []
+    assert javascript_threads == [worker.ident]
     assert len(scheduling_threads) == 1
     assert scheduling_threads[0] != main_thread_id
     scheduled_drains.pop()()
     assert mutation_threads == [main_thread_id, main_thread_id]
+    assert javascript_threads == [worker.ident]
 
 
 def test_load_preferences_non_utf8(
