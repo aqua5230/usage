@@ -1594,6 +1594,9 @@ def test_compose_title_shows_grok_last(monkeypatch: pytest.MonkeyPatch) -> None:
     state.claude_session.percent = 50.0
     state.agy_session.percent = 25.0
     state.grok_weekly.percent = 47.0
+    # _empty_state() derives hide_agy from find_agy(), so a machine without
+    # Antigravity installed would drop the middle segment.
+    state.hide_agy = False
     state.hide_grok = False
 
     assert menubar_title._compose_title(delegate, state) == "50% · 12% · 25% · 47%"
