@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 import sys
 import tomllib
@@ -1126,3 +1127,15 @@ def test_self_heal_keeps_correct_python_commands_unchanged(
     assert data["statusLine"]["command"] == f"/usr/bin/python3 {hook_target}"
     assert data["hooks"]["SessionStart"][0]["hooks"][0]["command"] == resume_command
     assert "usage" not in data
+
+
+def test_statusline_script_version_matches_hook_constant() -> None:
+    """needs_update() compares the installed script's __version__ against
+    HOOK_VERSION. If the two drift apart the comparison always matches and the
+    installed copy is never refreshed, so keep them in lockstep."""
+    source = (Path(__file__).resolve().parents[1] / "usage_statusline.py").read_text(
+        encoding="utf-8"
+    )
+    match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
+    assert match, "usage_statusline.py has no __version__ line"
+    assert match.group(1) == setup_hook.HOOK_VERSION
