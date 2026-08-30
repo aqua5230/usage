@@ -9,12 +9,13 @@ from __future__ import annotations
 import base64
 import re
 import sys
-from datetime import UTC, datetime, tzinfo
+from datetime import UTC, date, datetime, tzinfo
 from pathlib import Path
 from typing import Any
 
 import pytest
 
+from analyzer.reporter import DailyTrendPoint
 from ui import html_report
 
 SNAPSHOT_DIR = Path(__file__).resolve().parent / "fixtures" / "html_report_snapshots"
@@ -93,6 +94,8 @@ def _full_report_data() -> dict[str, Any]:
         ],
     ]
     return {
+        "date_from": "2026-05-01",
+        "date_to": "2026-05-24",
         "period_label": "2026-05-01 -> 2026-05-23",
         "summary": {
             "total_tokens": 2345678,
@@ -308,6 +311,8 @@ def _full_report_data() -> dict[str, Any]:
 
 def _empty_report_data() -> dict[str, Any]:
     return {
+        "date_from": "2026-05-18",
+        "date_to": "2026-05-24",
         "period_label": "empty-window",
         "summary": {
             "total_tokens": 0,
@@ -539,3 +544,94 @@ def test_build_csv_data_shows_dash_for_unpriced_models() -> None:
 
     assert "model,claude-opus-4-8,60.0,100000,1.50\r\n" in csv_text
     assert "model,glm-5.2,40.0,50000,—\r\n" in csv_text
+
+
+def test_trend_ascii_marks_an_unfinished_final_week_without_a_delta() -> None:
+    daily: list[DailyTrendPoint] = [
+        {"date": "2026-08-17", "tokens": 100, "cost": 0.0},
+        {"date": "2026-08-24", "tokens": 200, "cost": 0.0},
+        {"date": "2026-08-31", "tokens": 3, "cost": 0.0},
+    ]
+
+    html = html_report._trend_ascii(daily, "en", date(2026, 8, 31))
+
+    last_row = html.split('<span class="week">W36</span>', 1)[1].split(
+        '</div><div class="trend-summary">', 1
+    )[0]
+    assert "in progress" in last_row
+    assert "↘" not in last_row
+    assert '<span class="delta flat">in progress</span>' in last_row
+
+
+def test_trend_ascii_shows_delta_when_final_week_ends_on_sunday() -> None:
+    daily: list[DailyTrendPoint] = [
+        {"date": "2026-08-17", "tokens": 100, "cost": 0.0},
+        {"date": "2026-08-24", "tokens": 200, "cost": 0.0},
+        {"date": "2026-08-31", "tokens": 3, "cost": 0.0},
+    ]
+
+    html = html_report._trend_ascii(daily, "en", date(2026, 9, 6))
+
+    assert '<span class="delta down">↘ -98%</span>' in html
+
+
+def test_trend_summary_excludes_an_unfinished_final_week() -> None:
+    weekly = [
+        {"year": 2026, "week": 34, "tokens": 100, "cost": 0.0},
+        {"year": 2026, "week": 35, "tokens": 200, "cost": 0.0},
+        {"year": 2026, "week": 36, "tokens": 3, "cost": 0.0},
+    ]
+
+    assert html_report._trend_summary(weekly, "en", date(2026, 8, 31)) == (
+        "→ This week is 2.0× of last week."
+    )
+
+
+def test_trend_summary_returns_first_week_copy_without_two_completed_weeks() -> None:
+    weekly = [
+        {"year": 2026, "week": 35, "tokens": 200, "cost": 0.0},
+        {"year": 2026, "week": 36, "tokens": 3, "cost": 0.0},
+    ]
+
+    assert html_report._trend_summary(weekly, "en", date(2026, 8, 31)) == (
+        "→ First week of this period."
+    )
+
+
+def test_project_share_bar_uses_the_donut_color() -> None:
+    data = {
+        "summary": {"total_tokens": 300},
+        "by_project": [
+            {"project": "alpha", "pct": 66.7, "tokens": 200, "cost": 1.0},
+            {"project": "beta", "pct": 33.3, "tokens": 100, "cost": 0.5},
+        ],
+    }
+
+    html = html_report._render_project_section(data, "en")
+
+    assert 'stroke="#5abfa0"' in html
+    assert (
+        'alpha<span class="share-bar" aria-hidden="true">'
+        '<span style="width:66.70%;background:#5abfa0"></span>'
+    ) in html
+
+
+@pytest.mark.parametrize(
+    ("model", "color"),
+    [
+        ("claude-opus-5", "#5abfa0"),
+        ("gemini-3.7-flash", "#8f86c9"),
+        ("gpt-5.6-terra", "#e0885a"),
+        ("unknown-model", "#8b8577"),
+    ],
+)
+def test_model_share_bar_uses_provider_color(model: str, color: str) -> None:
+    data = {
+        "by_model": [
+            {"model": model, "pct": 100.0, "tokens": 100, "cost": 1.0},
+        ]
+    }
+
+    html = html_report._render_model_section(data, "en")
+
+    assert f'background:{color}' in html

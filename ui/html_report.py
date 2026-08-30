@@ -119,10 +119,17 @@ def _empty_line(label: str) -> str:
     return f'<div class="empty">→ {html.escape(label)}</div>'
 
 
-def _rank_line(name: str, pct: float, tokens: int, cost: float | None, lang: str) -> str:
+def _rank_line(
+    name: str,
+    pct: float,
+    tokens: int,
+    cost: float | None,
+    lang: str,
+    color: str | None = None,
+) -> str:
     return (
         '<div class="rank-line">'
-        f'<span class="arrow">→</span><span class="name">{html.escape(name)}{render_share_bar(pct)}</span>'
+        f'<span class="arrow">→</span><span class="name">{html.escape(name)}{render_share_bar(pct, color)}</span>'
         f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">{pct:>5.1f}%</span>'
         f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
         f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(cost)}</span>'
@@ -170,12 +177,19 @@ def _weekly_trend(daily: list[DailyTrendPoint]) -> list[dict[str, int | float]]:
     return [weekly[key] for key in sorted(weekly)]
 
 
-def _trend_summary(weekly: list[dict[str, int | float]], lang: str) -> str:
-    if len(weekly) < 2:
+def _week_is_in_progress(week: Mapping[str, int | float], date_to: date) -> bool:
+    return date.fromisocalendar(int(week["year"]), int(week["week"]), 7) > date_to
+
+
+def _trend_summary(
+    weekly: list[dict[str, int | float]], lang: str, date_to: date
+) -> str:
+    completed = weekly[:-1] if weekly and _week_is_in_progress(weekly[-1], date_to) else weekly
+    if len(completed) < 2:
         return f"→ {_t(lang, 'trend_compare_first')}"
 
-    current = int(weekly[-1]["tokens"])
-    previous = int(weekly[-2]["tokens"])
+    current = int(completed[-1]["tokens"])
+    previous = int(completed[-2]["tokens"])
     if previous == 0:
         if current == 0:
             return f"→ {_t(lang, 'trend_compare_flat')}"
@@ -195,6 +209,29 @@ _PALETTE = [
 ]
 
 
+def _project_share_colors(items: list[tuple[str, int]]) -> list[str]:
+    colors = ["#8b8577"] * len(items)
+    shown = 0
+    for index, (_name, tokens) in enumerate(items):
+        if tokens <= 0:
+            continue
+        if shown < 6:
+            colors[index] = _PALETTE[shown % len(_PALETTE)]
+        shown += 1
+    return colors
+
+
+def _model_share_color(model: object) -> str:
+    name = str(model).lower()
+    if name.startswith("claude"):
+        return "#5abfa0"
+    if name.startswith("gemini"):
+        return "#8f86c9"
+    if name.startswith("gpt"):
+        return "#e0885a"
+    return "#8b8577"
+
+
 def _trend_delta(current: int, previous: int, lang: str) -> tuple[str, str]:
     if previous == 0:
         if current == 0:
@@ -209,14 +246,16 @@ def _trend_delta(current: int, previous: int, lang: str) -> tuple[str, str]:
     return "down", f"↘ {pct}%"
 
 
-def _trend_ascii(daily: list[DailyTrendPoint], lang: str) -> str:
+def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
     weekly = _weekly_trend(daily)
     max_tokens = max((int(week["tokens"]) for week in weekly), default=0)
     rows = []
     for idx, week in enumerate(weekly):
         tokens = int(week["tokens"])
         delta_html = '<span class="delta flat"></span>'
-        if idx > 0:
+        if idx == len(weekly) - 1 and _week_is_in_progress(week, date_to):
+            delta_html = f'<span class="delta flat">{_escape(_t(lang, "trend_week_in_progress"))}</span>'
+        elif idx > 0:
             delta_class, delta_label = _trend_delta(tokens, int(weekly[idx - 1]["tokens"]), lang)
             delta_html = f'<span class="delta {delta_class}">{_escape(delta_label)}</span>'
         rows.append(
@@ -231,7 +270,7 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str) -> str:
         return _empty_line(_t(lang, "empty_daily"))
 
     trend_rows = "".join(rows)
-    summary = f'<div class="trend-summary">{_escape(_trend_summary(weekly, lang))}</div>'
+    summary = f'<div class="trend-summary">{_escape(_trend_summary(weekly, lang, date_to))}</div>'
     return f'<div class="trend">{trend_rows}{summary}</div>'
 
 
@@ -298,6 +337,7 @@ def _donut_svg(items: list[tuple[str, int]], lang: str, *, total: int) -> str:
     rest = total - sum(tok for _, tok, _is_other in shown)
     if rest > 0:
         shown = [*shown, (_t(lang, "chart_other"), rest, True)]
+    colors = _project_share_colors(data)
 
     cx = cy = 80.0
     radius = 60.0
@@ -308,7 +348,7 @@ def _donut_svg(items: list[tuple[str, int]], lang: str, *, total: int) -> str:
     for idx, (name, tok, is_other) in enumerate(shown):
         frac = tok / total
         seg_len = circ * frac
-        color = "#8b8577" if is_other else _PALETTE[idx % len(_PALETTE)]
+        color = "#8b8577" if is_other else colors[idx]
         segs.append(
             f'<circle cx="{cx}" cy="{cy}" r="{radius}" fill="none" stroke="{color}" '
             f'stroke-width="22" stroke-dasharray="{seg_len:.2f} {circ - seg_len:.2f}" '
@@ -477,6 +517,10 @@ def _render_share_dialog(lang: str) -> str:
 
 
 def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
+    projects = data.get("by_project", [])
+    colors = _project_share_colors(
+        [(_display_name(project["project"], lang), int(project["tokens"])) for project in projects]
+    )
     project_rows = [
         _rank_line(
             _display_name(project["project"], lang),
@@ -484,12 +528,13 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
             int(project["tokens"]),
             float(project["cost"]),
             lang,
+            colors[index],
         )
-        for project in data.get("by_project", [])
+        for index, project in enumerate(projects)
     ]
     project_rows_html = "".join(project_rows)
     project_donut = _donut_svg(
-        [(_display_name(project["project"], lang), int(project["tokens"])) for project in data.get("by_project", [])],
+        [(_display_name(project["project"], lang), int(project["tokens"])) for project in projects],
         lang,
         total=int(data["summary"]["total_tokens"]),
     )
@@ -511,6 +556,7 @@ def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
             int(model["tokens"]),
             None if not model.get("cost_known", True) else float(model["cost"]),
             lang,
+            _model_share_color(model["model"]),
         )
         for model in data.get("by_model", [])
     ]
@@ -602,10 +648,10 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
     return _section(_t(lang, "insights_section"), body, "insights-section")
 
 
-def _render_trend_section(data: Mapping[str, Any], lang: str) -> str:
+def _render_trend_section(data: Mapping[str, Any], lang: str, date_to: date) -> str:
     daily = data.get("daily_trend", [])
     sparkline = render_daily_sparkline(daily, _t(lang, "trend_section"))
-    return _section(_t(lang, "trend_section"), sparkline + _trend_ascii(daily, lang))
+    return _section(_t(lang, "trend_section"), sparkline + _trend_ascii(daily, lang, date_to))
 
 
 def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
@@ -864,6 +910,7 @@ def _render_scripts(share_config_json: str) -> str:
 def generate_html(data: ReportData | Mapping[str, Any], language: str | None = None) -> str:
     report_data = cast(ReportData, data)
     lang = language or _detect_lang()
+    date_to = _parse_daily_date(report_data["date_to"])
     generated_at = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
     cards = _summary_cards(report_data["summary"], lang)
     is_empty = (
@@ -882,7 +929,7 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
             f"{insight_surface}  {_render_tools_section(report_data, lang)}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_model_section(report_data, lang)}\n"
-            f"  {_render_trend_section(report_data, lang)}\n"
+            f"  {_render_trend_section(report_data, lang, date_to)}\n"
             f"  {_render_contribution_section(report_data, lang)}\n"
             f"  {_render_recent_titles_section(report_data, lang)}{_render_persona_section(report_data, lang)}\n"
             f"  {_render_session_section(report_data, lang)}\n"

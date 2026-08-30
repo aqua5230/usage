@@ -65,10 +65,11 @@ def render_trend_bar(tokens: int, max_tokens: int) -> str:
     )
 
 
-def render_share_bar(pct: float) -> str:
+def render_share_bar(pct: float, color: str | None = None) -> str:
     width = max(2.0, min(100.0, pct)) if pct > 0 else 0.0
+    color_style = f";background:{html.escape(color, quote=True)}" if color else ""
     return (
         '<span class="share-bar" aria-hidden="true">'
-        f'<span style="width:{width:.2f}%"></span>'
+        f'<span style="width:{width:.2f}%{color_style}"></span>'
         "</span>"
     )
