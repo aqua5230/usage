@@ -110,8 +110,6 @@ source .venv/bin/activate
 python3 main.py
 ```
 
-- **Menu bar format:** `🐾 37%`. If Codex usage is also detected, a Codex suffix is appended: `🐾 37% · 📜 10%`.
-
   <img src="menubar.png" alt="menu bar display" width="240">
 
 - **Click the icon to expand the popover.** It has four sections:

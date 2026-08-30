@@ -17,39 +17,6 @@ from menubar import state as menubar_state
 from quota.burn_rate import BurnRateTracker
 
 
-def test_critter_animation_tick_handles_different_intervals() -> None:
-    tick = menubar_state.critter_animation_tick(
-        now=1.0,
-        intervals=(0.18, 0.14, 0.10),
-        last_advanced_at=(0.81, 0.90, 0.91),
-    )
-
-    assert tick.advance == (True, False, False)
-    assert tick.timer_interval == 0.10
-
-
-def test_critter_animation_tick_ignores_idle_critter() -> None:
-    tick = menubar_state.critter_animation_tick(
-        now=1.0,
-        intervals=(0.0, 0.14, 0.10),
-        last_advanced_at=(0.0, 0.80, 0.91),
-    )
-
-    assert tick.advance == (False, True, False)
-    assert tick.timer_interval == 0.10
-
-
-def test_critter_animation_tick_stops_when_all_idle() -> None:
-    tick = menubar_state.critter_animation_tick(
-        now=1.0,
-        intervals=(0.0, 0.0, 0.0),
-        last_advanced_at=(0.0, 0.0, 0.0),
-    )
-
-    assert tick.advance == (False, False, False)
-    assert tick.timer_interval == 0.0
-
-
 def _patch_history_sources(
     monkeypatch: pytest.MonkeyPatch,
     home: Path,

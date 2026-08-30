@@ -70,7 +70,6 @@ brew install --cask aqua5230/usage/usage
 - **14 款視覺面板：** 可在 Classic、Matrix、Windows 95、復古報紙（Newspaper）、雲圖觀測（Cloud Observation）、深夜水族箱（Midnight Aquarium）、Prism Arcade、黑洞（Black Hole）、World Cup 2026、藍曬圖（Lepidoptera）、候鳥遷徙（Migration）、彩繪玻璃（Stained Glass）、摺紙（Origami）與 Catppuccin（官方配色，四款 flavor 全支援）之間切換。
 - **面板自由擺放：** 面板不再釘在選單列圖示下方。在任何空白處按住就能拖到你想要的位置，下次打開還在原地。點到別的 App 也不會消失，要再點一次選單列圖示或按 Esc 才關。
 - **拖曳排序：** 按住任何一張額度卡上下拖曳就能交換順序，排法在所有包含額度卡的主題間共用（除 World Cup 2026 之外），重開也會記住。
-- **神獸夥伴：** 百分比旁常駐一隻小型白色動畫神獸（Claude 是鳳凰，Codex 是飛龍，Antigravity 是獅子），各自跟著自家工具的 token 燃燒率動態加速。
 - **自動多語言 (i18n)：** 介面支援繁中、簡中、英、日、韓，自動跟隨系統語言設定。
 
 ## 隱私與資料來源
