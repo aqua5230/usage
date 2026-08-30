@@ -1445,6 +1445,52 @@ def test_build_state_reuses_history_until_fingerprint_changes(
     assert calls == [1, 1]
 
 
+def test_load_entries_includes_grok_entries(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=False, interval=60)
+    scan = menubar_state.HistorySourceScan((), (), ())
+    claude_entry = SimpleNamespace(source="claude")
+    codex_entry = SimpleNamespace(source="codex")
+    grok_entry = SimpleNamespace(source="grok")
+    monkeypatch.setattr(wintray, "load_entries", lambda **_kwargs: [claude_entry])
+    monkeypatch.setattr(codex_loader, "load_entries", lambda **_kwargs: [codex_entry])
+    monkeypatch.setattr("wintray.app.grok_loader.load_entries", lambda **_kwargs: [grok_entry])
+
+    result = controller._load_entries(scan)
+
+    assert result.entries == [claude_entry, codex_entry, grok_entry]
+    assert result.history_error_key is None
+
+
+@pytest.mark.parametrize(
+    ("error", "expected_error_key"),
+    [
+        (OSError("Grok log unavailable"), "history_load_error_file"),
+        (ValueError("Grok log malformed"), "history_load_error_parse"),
+    ],
+)
+def test_load_entries_keeps_other_entries_when_grok_load_fails(
+    monkeypatch: pytest.MonkeyPatch,
+    error: Exception,
+    expected_error_key: str,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=False, interval=60)
+    scan = menubar_state.HistorySourceScan((), (), ())
+    claude_entry = SimpleNamespace(source="claude")
+    codex_entry = SimpleNamespace(source="codex")
+    monkeypatch.setattr(wintray, "load_entries", lambda **_kwargs: [claude_entry])
+    monkeypatch.setattr(codex_loader, "load_entries", lambda **_kwargs: [codex_entry])
+
+    def fail_grok_load(**_kwargs: object) -> list[object]:
+        raise error
+
+    monkeypatch.setattr("wintray.app.grok_loader.load_entries", fail_grok_load)
+
+    result = controller._load_entries(scan)
+
+    assert result.entries == [claude_entry, codex_entry]
+    assert result.history_error_key == expected_error_key
+
+
 def test_build_state_reloads_cached_projects_when_local_date_changes(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
