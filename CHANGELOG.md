@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.5] - 2026-08-30
+
+### Removed
+- **The menu bar no longer shows animated spirit companions; Grok now uses their space.** `menubar/critter_frames.py`, the shared NSTimer and `animateCritters_` selector, `critter_animation_tick()`, and `refresh.py`'s `animation_groups` data flow were removed, together with the 15 animation frames and `assets/critters/lion/`. `assets/grok_mono_menubar.png` and `_grok_menubar_icon()` now add Grok after Antigravity in `_menubar_attributed_title()` and `_compose_title()` when `not hide_grok` and `grok_weekly.percent is not None`, preserving the existing separator behavior; `hide_grok` remains `True` by default.
+
 ## [0.30.4] - 2026-08-30
 
 ### Fixed

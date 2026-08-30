@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.5] - 2026-08-30
+
+### 移除
+- **選單列不再顯示動畫神獸，空出的位置改給 Grok。** `menubar/critter_frames.py`、共用 NSTimer 與 `animateCritters_` selector、`critter_animation_tick()`、`refresh.py` 的 `animation_groups` 資料流，以及 15 張動畫幀與 `assets/critters/lion/` 都已移除。`assets/grok_mono_menubar.png` 與 `_grok_menubar_icon()` 現在會在 `_menubar_attributed_title()` 和 `_compose_title()` 中於 Antigravity 後面加入 Grok；條件是 `not hide_grok` 且 `grok_weekly.percent is not None`，並維持既有分隔號行為；`hide_grok` 預設仍為 `True`。
+
 ## [0.30.4] - 2026-08-30
 
 ### 修正
