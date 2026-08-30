@@ -70,7 +70,6 @@ from loaders.history_loader import (
     flush_caches_on_terminate as flush_history_cache,
 )
 from menubar import actions as menubar_actions
-from menubar import critter_frames
 from menubar import menu as menubar_menu
 from menubar import notify as menubar_notify
 from menubar import refresh as menubar_refresh
@@ -282,17 +281,6 @@ class AppDelegate(NSObject):
     _pre_talent_panel_id = objc.ivar()
     _discussion_window_controller = objc.ivar()
     _usage_client = objc.ivar()
-    critter_timer = objc.ivar()
-    critter_frame = objc.ivar()
-    critter_interval = objc.ivar()
-    critter_group = objc.ivar()
-    critter_last_advanced_at = objc.ivar()
-    dragon_frame = objc.ivar()
-    dragon_group = objc.ivar()
-    dragon_last_advanced_at = objc.ivar()
-    lion_frame = objc.ivar()
-    lion_group = objc.ivar()
-    lion_last_advanced_at = objc.ivar()
     language = objc.ivar()
 
     def initWithMock_interval_(self, mock: bool, interval: int) -> AppDelegate:
@@ -333,19 +321,8 @@ class AppDelegate(NSObject):
         self._pre_talent_panel_id = None
         self._discussion_window_controller = None
         self._usage_client = ClaudeUsageClient(mock=mock)
-        self.critter_timer = None
-        self.critter_frame = 0
-        self.critter_interval = 0.0
-        self.critter_group = 0
-        self.critter_last_advanced_at = 0.0
-        self.dragon_frame = 0
-        self.dragon_group = 0
-        self.dragon_last_advanced_at = 0.0
-        self.lion_frame = 0
-        self.lion_group = 0
-        self.lion_last_advanced_at = 0.0
         self._menubar_text_cache: dict[str, Any] = {}
-        self._last_button_title_key: tuple[str, int | None, int | None, int | None] | None = None
+        self._last_button_title_key: tuple[str] | None = None
         self._last_plain_title_key: tuple[str] | None = None
         return self
 
@@ -357,7 +334,7 @@ class AppDelegate(NSObject):
         # Do not change this string; it is the stable identity for saved menu bar position.
         self.status_item.setAutosaveName_("usage")
         button = self.status_item.button()
-        button.setTitle_("🐾 ...")
+        button.setTitle_("...")
         button.setTarget_(self)
         button.setAction_("togglePopover:")
 
@@ -489,7 +466,6 @@ class AppDelegate(NSObject):
         self._stop_poll_timer()
         cleanup_fsevents(self._fs_stream)
         self._fs_stream = None
-        self._stop_critter_timer()
         asyncio.run(self._usage_client.aclose())
         if self._file_event_refresh_timer is not None:
             self._file_event_refresh_timer.invalidate()
@@ -790,74 +766,6 @@ class AppDelegate(NSObject):
             _popover_size(self.latest_state, self.active_panel), restored=True
         )
 
-    def animateCritters_(self, timer: Any) -> None:
-        now = time.monotonic()
-        intervals = self._critter_intervals()
-        previous = (
-            float(self.critter_last_advanced_at),
-            float(self.dragon_last_advanced_at),
-            float(self.lion_last_advanced_at),
-        )
-        tick = menubar_state.critter_animation_tick(now, intervals, previous)
-        if tick.timer_interval <= 0:
-            self._stop_critter_timer()
-            return
-        if tick.advance[0]:
-            self.critter_frame = (
-                int(self.critter_frame) + 1
-            ) % len(critter_frames.PHOENIX_FRAMES)
-            self.critter_last_advanced_at = previous[0] + intervals[0]
-        if tick.advance[1]:
-            self.dragon_frame = (
-                int(self.dragon_frame) + 1
-            ) % len(critter_frames.DRAGON_FRAMES)
-            self.dragon_last_advanced_at = previous[1] + intervals[1]
-        if tick.advance[2]:
-            self.lion_frame = (
-                int(self.lion_frame) + 1
-            ) % len(critter_frames.LION_FRAMES)
-            self.lion_last_advanced_at = previous[2] + intervals[2]
-        if any(tick.advance):
-            menubar_title._set_button_title(self, self.latest_state)
-
-    def _critter_intervals(self) -> tuple[float, float, float]:
-        return (
-            critter_frames.group_to_interval(int(self.critter_group)),
-            critter_frames.group_to_interval(int(self.dragon_group)),
-            critter_frames.group_to_interval(int(self.lion_group)),
-        )
-
-    def _sync_critter_timer(self) -> None:
-        intervals = self._critter_intervals()
-        interval = min((value for value in intervals if value > 0), default=0.0)
-        now = time.monotonic()
-        self.critter_last_advanced_at = now
-        self.dragon_last_advanced_at = now
-        self.lion_last_advanced_at = now
-        if intervals[0] <= 0:
-            self.critter_frame = 0
-        if intervals[1] <= 0:
-            self.dragon_frame = 0
-        if intervals[2] <= 0:
-            self.lion_frame = 0
-        if interval <= 0:
-            self._stop_critter_timer()
-            return
-        if self.critter_timer is not None and self.critter_interval == interval:
-            return
-        self._stop_critter_timer()
-        self.critter_interval = interval
-        scheduled_timer = NSTimer.scheduledTimerWithTimeInterval_target_selector_userInfo_repeats_
-        self.critter_timer = scheduled_timer(interval, self, "animateCritters:", None, True)
-        NSRunLoop.currentRunLoop().addTimer_forMode_(self.critter_timer, NSRunLoopCommonModes)
-
-    def _stop_critter_timer(self) -> None:
-        timer = self.critter_timer
-        self.critter_timer = None
-        self.critter_interval = 0.0
-        if timer is not None:
-            timer.invalidate()
-
     def togglePopover_(self, sender: Any) -> None:
         if self._panel_window_is_visible():
             self.popover.close()
@@ -944,21 +852,6 @@ class AppDelegate(NSObject):
             self.codex_5h_pct = codex_5h_pct
             self.codex_model = codex_model
             self.latest_state = state
-            animation_groups = tuple(
-                int(group)
-                for group in result.get(
-                    "animation_groups",
-                    (self.critter_group, self.dragon_group, self.lion_group),
-                )
-            )
-            previous_groups = (
-                int(self.critter_group),
-                int(self.dragon_group),
-                int(self.lion_group),
-            )
-            self.critter_group, self.dragon_group, self.lion_group = animation_groups
-            if animation_groups != previous_groups:
-                self._sync_critter_timer()
             self._process_quota_notifications(state)
             if self._panel_window_is_visible():
                 self.popover_controller.setState_(self.latest_state)

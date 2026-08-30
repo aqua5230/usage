@@ -60,6 +60,7 @@ if __name__ == "__main__":
             "assets/claude_mono_menubar.png",
             "assets/codex_mono_menubar.png",
             "assets/agy_mono_menubar.png",
+            "assets/grok_mono_menubar.png",
             "assets/critters",
             "assets/panels",
             "assets/windows",

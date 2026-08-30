@@ -75,7 +75,6 @@ class RefreshSources:
     agy_projection: menubar_agy.AgyQuotaProjection
     grok_result: menubar_grok.GrokRefreshResult
     grok_projection: menubar_grok.GrokQuotaProjection
-    animation_groups: tuple[int, int, int]
     debug_timing: bool
 
     def measure(self, stage: str, started_at: float) -> None:
@@ -86,11 +85,6 @@ class RefreshSources:
 
 def load_sources(app: _RefreshApp) -> RefreshSources:
     debug_timing = os.environ.get("USAGE_DEBUG") == "1"
-    animation_groups = (
-        int(getattr(app, "critter_group", 0)),
-        int(getattr(app, "dragon_group", 0)),
-        int(getattr(app, "lion_group", 0)),
-    )
     started_at = time.monotonic() if debug_timing else 0.0
     codex_result = app._load_codex_refresh_result()
     history_scan = codex_result.get("_history_scan")
@@ -118,7 +112,6 @@ def load_sources(app: _RefreshApp) -> RefreshSources:
         agy_projection=agy_projection,
         grok_result=grok_result,
         grok_projection=grok_projection,
-        animation_groups=animation_groups,
         debug_timing=debug_timing,
     )
 
@@ -129,7 +122,6 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     agy_projection = sources.agy_projection
     grok_result = sources.grok_result
     grok_projection = sources.grok_projection
-    animation_groups = sources.animation_groups
     fallback_state = getattr(app, "latest_state", menubar_state._empty_state(app.language))
     project_rows = list(fallback_state.projects)
     project_rows_yesterday = list(fallback_state.projects_yesterday)
@@ -198,23 +190,6 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             get_service_status(CODEX_STATUS),
         )
         group = int(app.tracker.group())
-        try:
-            codex_group = int(app.codex_tracker.group())
-        except Exception:
-            codex_group = 0
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("Codex animation group load failed", exc_info=True)
-        try:
-            agy_group = int(app.agy_tracker.group())
-        except Exception:
-            agy_group = 0
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("Antigravity animation group load failed", exc_info=True)
-        animation_groups = (
-            group,
-            codex_group,
-            agy_group,
-        )
         state = menubar_state.build_popover_state(
             outcome=outcome,
             codex_rows=codex_rows,
@@ -305,5 +280,4 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         "state": state,
         "codex_5h_pct": codex_5h_pct,
         "codex_model": codex_model,
-        "animation_groups": animation_groups,
     }

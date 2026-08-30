@@ -19,8 +19,8 @@ _CODEX_MENUBAR_ICON: Any = None
 _CODEX_MENUBAR_ICON_LOADED = False
 _AGY_MENUBAR_ICON: Any = None
 _AGY_MENUBAR_ICON_LOADED = False
-_CRITTER_IMAGE_CACHE: dict[str, Any] = {}
-_CRITTER_ATTACHMENT_STRING_CACHE: dict[str, Any] = {}
+_GROK_MENUBAR_ICON: Any = None
+_GROK_MENUBAR_ICON_LOADED = False
 
 
 class _NoopAlert:
@@ -107,35 +107,24 @@ def _agy_menubar_icon() -> Any:
     return _AGY_MENUBAR_ICON
 
 
+def _grok_menubar_icon() -> Any:
+    global _GROK_MENUBAR_ICON, _GROK_MENUBAR_ICON_LOADED
+    if not _GROK_MENUBAR_ICON_LOADED:
+        _GROK_MENUBAR_ICON_LOADED = True
+        try:
+            _GROK_MENUBAR_ICON = _load_menubar_brand_icon("grok_mono_menubar.png")
+        except Exception:
+            _GROK_MENUBAR_ICON = None
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("load Grok menubar icon failed", exc_info=True)
+    return _GROK_MENUBAR_ICON
+
+
 def _menubar_icon_attachment_string(image: Any) -> Any:
     attachment = NSTextAttachment.alloc().init()
     attachment.setImage_(image)
     attachment.setBounds_(NSMakeRect(0, -3.5, 16, 16))
     return NSAttributedString.attributedStringWithAttachment_(attachment)
-
-
-def _critter_icon_attachment_string(path: str, image: Any) -> Any:
-    cached = _CRITTER_ATTACHMENT_STRING_CACHE.get(path)
-    if cached is not None:
-        return cached
-    attachment = NSTextAttachment.alloc().init()
-    attachment.setImage_(image)
-    attachment.setBounds_(NSMakeRect(0, -4.0, 18, 18))
-    attributed = NSAttributedString.attributedStringWithAttachment_(attachment)
-    _CRITTER_ATTACHMENT_STRING_CACHE[path] = attributed
-    return attributed
-
-
-def _critter_frame_image(path: str) -> Any:
-    cached = _CRITTER_IMAGE_CACHE.get(path)
-    if cached is not None:
-        return cached
-    image = NSImage.alloc().initWithContentsOfFile_(resolve_resource(path))
-    if image is not None:
-        image.setTemplate_(True)
-        image.setSize_(NSMakeSize(18, 18))
-    _CRITTER_IMAGE_CACHE[path] = image
-    return image
 
 
 def _make_alert() -> Any:

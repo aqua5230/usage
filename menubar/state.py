@@ -42,30 +42,6 @@ class FileEventRefreshDecision:
     trailing_delay: float | None
 
 
-@dataclass(frozen=True, slots=True)
-class CritterAnimationTick:
-    advance: tuple[bool, bool, bool]
-    timer_interval: float
-
-
-def critter_animation_tick(
-    now: float,
-    intervals: tuple[float, float, float],
-    last_advanced_at: tuple[float, float, float],
-) -> CritterAnimationTick:
-    """Choose which critters advance on a shared animation timer tick."""
-    active_intervals = tuple(interval for interval in intervals if interval > 0)
-    timer_interval = min(active_intervals, default=0.0)
-    advance = tuple(
-        interval > 0 and now - previous + 1e-9 >= interval
-        for interval, previous in zip(intervals, last_advanced_at, strict=True)
-    )
-    return CritterAnimationTick(
-        advance=(advance[0], advance[1], advance[2]),
-        timer_interval=timer_interval,
-    )
-
-
 def file_event_refresh_decision(
     now: float,
     last_refresh_started_at: float | None,

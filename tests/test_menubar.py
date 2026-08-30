@@ -1553,13 +1553,13 @@ def test_compose_title_hides_providers(monkeypatch: pytest.MonkeyPatch) -> None:
     state = menubar._empty_state()
     state.claude_session.percent = 50.0
 
-    assert menubar_title._compose_title(delegate, state) == "🐾 50% · 📜 12%"
+    assert menubar_title._compose_title(delegate, state) == "50% · 12%"
     state.hide_claude = True
-    assert menubar_title._compose_title(delegate, state) == "📜 12%"
+    assert menubar_title._compose_title(delegate, state) == "12%"
     state.hide_codex = True
-    assert menubar_title._compose_title(delegate, state) == "🐾"
+    assert menubar_title._compose_title(delegate, state) == "usage"
     state.hide_claude = False
-    assert menubar_title._compose_title(delegate, state) == "🐾 50%"
+    assert menubar_title._compose_title(delegate, state) == "50%"
 
 
 def test_compose_title_codex_placeholder_when_claude_hidden(
@@ -1571,7 +1571,59 @@ def test_compose_title_codex_placeholder_when_claude_hidden(
     state = menubar._empty_state()
     state.hide_claude = True
 
-    assert menubar_title._compose_title(delegate, state) == "📜 --"
+    assert menubar_title._compose_title(delegate, state) == "--"
+
+
+def test_compose_title_hides_grok_when_enabled(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    state = menubar._empty_state()
+    state.hide_claude = True
+    state.hide_codex = True
+    state.hide_agy = True
+    state.grok_weekly.percent = 47.0
+
+    assert menubar_title._compose_title(delegate, state) == "usage"
+
+
+def test_compose_title_shows_grok_last(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.codex_5h_pct = 12.0
+    state = menubar._empty_state()
+    state.claude_session.percent = 50.0
+    state.agy_session.percent = 25.0
+    state.grok_weekly.percent = 47.0
+    state.hide_grok = False
+
+    assert menubar_title._compose_title(delegate, state) == "50% · 12% · 25% · 47%"
+
+
+def test_compose_title_omits_grok_without_percent(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    state = menubar._empty_state()
+    state.hide_claude = True
+    state.hide_codex = True
+    state.hide_agy = True
+    state.hide_grok = False
+
+    assert menubar_title._compose_title(delegate, state) == "usage"
+
+
+def test_compose_title_grok_only_has_no_leading_separator(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    state = menubar._empty_state()
+    state.hide_claude = True
+    state.hide_codex = True
+    state.hide_agy = True
+    state.hide_grok = False
+    state.grok_weekly.percent = 47.0
+
+    assert menubar_title._compose_title(delegate, state) == "47%"
 
 
 def test_project_rows_empty(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2111,42 +2163,6 @@ def test_set_button_title_skips_unchanged_visible_state(
     assert len(button.attributed_titles) == 2
 
 
-def test_set_button_title_updates_for_animation_frame(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    class FakeButton:
-        def __init__(self) -> None:
-            self.attributed_titles: list[object] = []
-
-        def setTitle_(self, title: str) -> None:
-            pass
-
-        def setAttributedTitle_(self, value: object) -> None:
-            self.attributed_titles.append(value)
-
-    class FakeStatusItem:
-        def __init__(self, button: FakeButton) -> None:
-            self._button = button
-
-        def button(self) -> FakeButton:
-            return self._button
-
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
-    monkeypatch.setattr(menubar, "_hide_codex_enabled", lambda: False)
-    monkeypatch.setattr(menubar, "_hide_claude_enabled", lambda: False)
-    state = menubar._empty_state(language="en")
-    button = FakeButton()
-    delegate.status_item = FakeStatusItem(button)
-    delegate.codex_5h_pct = 12
-    monkeypatch.setattr(menubar_title, "_menubar_attributed_title", lambda app, current: object())
-
-    menubar_title._set_button_title(delegate, state)
-    delegate.dragon_frame += 1
-    menubar_title._set_button_title(delegate, state)
-
-    assert len(button.attributed_titles) == 2
-
-
 def test_apply_codex_refresh_result_updates_quota_before_full_refresh(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -2439,8 +2455,6 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
         language = "en"
         latest_state = menubar_state._empty_state(language="en")
         tracker = SimpleNamespace(group=lambda: 2)
-        codex_tracker = SimpleNamespace(group=lambda: 3)
-        agy_tracker = SimpleNamespace(group=lambda: 4)
         burn_rate_trackers = {
             "claude_session": BurnRateTracker(),
             "claude_weekly": BurnRateTracker(),
@@ -2486,7 +2500,6 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
         agy_projection=menubar_agy.fallback_projection("en"),
         grok_result=grok_result,
         grok_projection=menubar_grok.fallback_projection("en"),
-        animation_groups=(0, 0, 0),
         debug_timing=False,
     )
 
@@ -2499,7 +2512,6 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
     assert state.projects == [("Eric-Tools", 165, 0.01)]
     assert result["codex_5h_pct"] == 18.5
     assert result["codex_model"] == "gpt-test"
-    assert result["animation_groups"] == (2, 3, 4)
     assert state.hide_grok is True
     assert pings == [(2_000_000_000.0, 12, "hook", False)]
 
