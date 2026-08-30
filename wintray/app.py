@@ -820,38 +820,41 @@ class _WindowsTrayController:
         return self._content_height or PANEL_HEIGHTS[self.active_panel_id]
 
     def _apply_content_height(self, value: object) -> None:
-        self._dispatch_window_mutation(lambda: self._apply_content_height_on_ui_thread(value))
+        self._apply_content_height_now(value)
 
-    def _apply_content_height_on_ui_thread(self, value: object) -> None:
+    def _apply_content_height_now(self, value: object) -> None:
         if self.stopping.is_set():
             return
-        current_position = self._current_window_position()
-        work_area = self._work_area_for_point(current_position) or self._working_area()
-        maximum = (
-            float(work_area[3] - work_area[1] - 24)
-            if work_area is not None
-            else float(PANEL_HEIGHTS[self.active_panel_id])
-        )
         height = clamp_content_height(value)
         if height is None:
             return
         rounded = int(round(height))
         if rounded == self._content_height:
+            # A newly loaded panel can have the same natural height as the
+            # previous one. Its first placement may have arrived before the
+            # page installed usageApplyPanelZoom, so give that document one
+            # more chance to converge when it reports its own height.
+            if self.visible:
+                self._place_window()
             return
         self._content_height = rounded
-        self._apply_panel_zoom(fit_scale(height, maximum))
         if self.visible:
-            self._place_window_on_ui_thread()
+            self._place_window()
 
-    def _apply_panel_zoom(self, scale: float) -> None:
+    def _apply_panel_zoom(self, scale: float) -> bool:
         if self.window is not None and hasattr(self.window, "evaluate_js"):
             try:
-                self.window.evaluate_js(
+                result = self.window.evaluate_js(
                     "typeof window.usageApplyPanelZoom === 'function' && "
-                    f"window.usageApplyPanelZoom({scale})"
+                    f"window.usageApplyPanelZoom({scale}, {self.panel_height()})"
                 )
+                return result is True
             except Exception:
                 logger.exception("Unable to apply panel zoom")
+            return False
+        # Lightweight window doubles do not embed a browser. There is no DOM
+        # to scale, so geometry-only tests can proceed normally.
+        return self.window is not None
 
     def attach(self, icon: Any, window: Any) -> None:
         self.icon = icon
@@ -1003,9 +1006,23 @@ class _WindowsTrayController:
         return (max(left + 12, right - width - 12), max(top + 12, bottom - height - 12))
 
     def _place_window(self, *, force_default: bool = False) -> None:
-        self._dispatch_window_mutation(
-            lambda: self._place_window_on_ui_thread(force_default=force_default)
+        current_position = self._current_window_position()
+        work_area = self._work_area_for_point(current_position) or self._working_area()
+        maximum = (
+            float(work_area[3] - work_area[1] - 24)
+            if work_area is not None
+            else float(PANEL_HEIGHTS[self.active_panel_id])
         )
+        scale = fit_scale(self.panel_height(), maximum)
+        zoom_applied = self._apply_panel_zoom(scale)
+        if scale < 1.0 and not zoom_applied:
+            return
+        if force_default:
+            self._dispatch_window_mutation(
+                lambda: self._place_window_on_ui_thread(force_default=True)
+            )
+        else:
+            self._dispatch_window_mutation(self._place_window_on_ui_thread)
 
     def _place_window_on_ui_thread(self, *, force_default: bool = False) -> None:
         if self.window is None or self.stopping.is_set():
@@ -1034,7 +1051,6 @@ class _WindowsTrayController:
         fitted_width, fitted_height, scale = fit_panel_size(PANEL_WIDTH, natural_height, maximum)
         width = int(round(fitted_width))
         height = int(round(fitted_height))
-        self._apply_panel_zoom(scale)
         self.window.resize(width, height)
         position = anchor if anchor is not None else self._default_window_position(
             work_area, width, height
