@@ -2985,6 +2985,86 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.30.5",
+          "period": "2026-08-30",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "選單列移除動態精靈夥伴，騰出空間顯示 Grok 用量",
+                "zh-CN": "菜单栏移除动态精灵伴侣，腾出空间显示 Grok 用量",
+                "en": "Menu bar removes animated companions and allocates their space to Grok",
+                "ja": "メニューバーの動的コンパニオンを廃止し Grok の表示領域へ移行",
+                "ko": "메뉴 막대의 움직이는 동반자 애니메이션을 제거하고 Grok 공간으로 전환"
+              },
+              "body": {
+                "zh-TW": "⟦公仔換燈。⟧ 選單列移除動態精靈同伴，`menubar/critter_frames.py`、共用 NSTimer、`animateCritters_`、`critter_animation_tick()` 與 `refresh.py` 的 `animation_groups`，與 15 個影格及 `assets/critters/lion/` 移除。當 `not hide_grok` 且 `grok_weekly.percent is not None`，由 `assets/grok_mono_menubar.png`、`_grok_menubar_icon()` 在 `_menubar_attributed_title()` 與 `_compose_title()` 兩處把 Grok 加在 Antigravity 後，保留分隔符；`hide_grok` 預設開啟。",
+                "zh-CN": "⟦拆除仪表板上的玩偶底座，空位改装警示灯。⟧ 菜单栏移除动态精灵伴侣，`menubar/critter_frames.py`、共用 NSTimer、`animateCritters_`、`critter_animation_tick()` 与 `refresh.py` 的 `animation_groups` 连同 15 帧动画及 `assets/critters/lion/` 文件夹全移除。Grok 接收该位置，在 `not hide_grok` 且 `grok_weekly.percent is not None` 时，通过 `assets/grok_mono_menubar.png` 与 `_grok_menubar_icon()` 在 `_menubar_attributed_title()` 与 `_compose_title()` 两处缀在 Antigravity 后并保留分隔符行为；`hide_grok` 默认维持 `True`。",
+                "en": "⟦Like removing a bobblehead figurine and its motorized timer base from a car dashboard to free up a mounting slot for a warning indicator light.⟧ The menu bar no longer displays animated spirit companions, as `menubar/critter_frames.py`, the shared NSTimer, the `animateCritters_` selector, `critter_animation_tick()`, and `refresh.py`'s `animation_groups` data flow have all been removed alongside the 15 animation frames and the `assets/critters/lion/` directory. Grok now takes over that space: when `not hide_grok` and `grok_weekly.percent is not None`, `_menubar_attributed_title()` and `_compose_title()` use `assets/grok_mono_menubar.png` and `_grok_menubar_icon()` to insert Grok right after Antigravity while preserving the existing separator behavior. The `hide_grok` setting remains `True` by default.",
+                "ja": "⟦車のダッシュボードから首振り人形とぜんまいタイマーの台座を取り外し、空いた場所を警告インジケーター用のスロットへ改装するようなものだ。⟧ メニューバーでアニメーション表示されていた精霊コンパニオンが廃止され、専用の `menubar/critter_frames.py`、共有 NSTimer、`animateCritters_` セレクタ、`critter_animation_tick()`、および `refresh.py` の `animation_groups` データフローが、15 枚のアニメーションフレームや `assets/critters/lion/` ディレクトリとともに削除された。その空き領域は Grok が引き継ぎ、`not hide_grok` かつ `grok_weekly.percent is not None` の条件下で、`_menubar_attributed_title()` と `_compose_title()` が `assets/grok_mono_menubar.png` と `_grok_menubar_icon()` を用いて Antigravity の後ろに Grok を配置する。既存の区切り文字の動作は維持され、`hide_grok` はデフォルトで `True` のまま維持される。",
+                "ko": "⟦차량 대시보드에서 흔들 인형과 태엽 타이머 받침대를 떼어내고, 비워진 자리를 경고 표시등용 소켓으로 개조하는 것과 같다.⟧ 메뉴 막대에서 움직이던 정령 동반자 기능이 빠지면서, 관련 `menubar/critter_frames.py`, 공유 NSTimer, `animateCritters_` 셀렉터, `critter_animation_tick` 함수, `refresh.py`의 `animation_groups` 데이터 흐름이 15개 애니메이션 프레임 및 `assets/critters/lion/` 디렉터리와 함께 모두 삭제되었다. 이제 해당 공간은 Grok이 넘겨받으며, `not hide_grok`이고 `grok_weekly.percent is not None`일 때 `_menubar_attributed_title` 및 `_compose_title` 함수가 `assets/grok_mono_menubar.png`와 `_grok_menubar_icon` 함수를 통해 Antigravity 바로 뒤에 Grok을 배치한다. 기존 구분 기호 동작은 그대로 유지되며, `hide_grok` 설정은 기본값으로 `True`를 유지한다."
+              },
+              "original": "**The menu bar no longer shows animated spirit companions; Grok now uses their space.** `menubar/critter_frames.py`, the shared NSTimer and `animateCritters_` selector, `critter_animation_tick()`, and `refresh.py`'s `animation_groups` data flow were removed, together with the 15 animation frames and `assets/critters/lion/`. `assets/grok_mono_menubar.png` and `_grok_menubar_icon()` now add Grok after Antigravity in `_menubar_attributed_title()` and `_compose_title()` when `not hide_grok` and `grok_weekly.percent is not None`, preserving the existing separator behavior; `hide_grok` remains `True` by default."
+            }
+          ]
+        },
+        {
+          "version": "0.30.4",
+          "period": "2026-08-30",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Windows 面板縮放完整呈現，消弭底部空白且防範死結",
+                "zh-CN": "Windows 面板缩放完整呈现，消除底部空白且防范死锁",
+                "en": "Scaled Windows panels show full content without footer gaps or deadlocks",
+                "ja": "Windows のスケールされたパネルが完全表示、余白とデッドロックを解消",
+                "ko": "크기가 조정된 Windows 패널이 온전히 표시되고 하단 여백과 교착 상태를 해소"
+              },
+              "body": {
+                "zh-TW": "⟦就像裁縫師在布料縮水前先預留延伸長度，量測尺寸時暫時扣除這段預留值，處理完後版型恰好合身，既不緊繃也不拖地。⟧ Windows 上的經過縮放的面板能完整顯示所有內容，頁尾下方不再殘留空白條帶。控制器 `_WindowsTrayController._apply_panel_zoom()` 改由背景執行緒呼叫 `window.usageApplyPanelZoom()`，隨後僅將調整大小與位移交給 UI 執行緒，避開了 WebView2 的死結（deadlock，處理序互相等待而卡住）。函式 `usageApplyPanelZoom()` 接收自然高度並在套用 CSS `zoom` 前擴展 `body`，而 `naturalContentHeight()` 量測時會暫時移除該補償，確保縮放版面有足夠空間而不裁切卡片。",
+                "zh-CN": "⟦就像裁缝师在面料缩水前先预留延伸长度，测量尺寸时暂时扣除这段预留值，处理完后版型恰好合身，既不紧绷也不拖地。⟧ Windows 上经过缩放的面板能完整显示所有内容，页脚下方不再残留空白条带。控制器 `_WindowsTrayController._apply_panel_zoom()` 改由后台线程调用 `window.usageApplyPanelZoom()`，随后仅将调整大小与位移交给 UI 线程，避开了 WebView2 的死锁（deadlock，程序互相等待而卡住）。函数 `usageApplyPanelZoom()` 接收自然高度并在应用 CSS `zoom` 前扩展 `body`，而 `naturalContentHeight()` 测量时会暂时移除该补偿，确保缩放版面有足够空间而不裁剪卡片。",
+                "en": "⟦Like a tailor allowing extra length for fabric shrinkage and temporarily deducting that allowance during measurements, ensuring the finished garment fits neatly without being cropped or dragging.⟧ Scaled Windows panels now display all their content completely, eliminating the blank strip below the footer. `_WindowsTrayController._apply_panel_zoom()` now invokes `window.usageApplyPanelZoom()` from a background thread before delegating only resize and move work to the UI thread, avoiding a WebView2 deadlock. The `usageApplyPanelZoom()` function receives natural height and expands `body` before applying CSS `zoom`, while `naturalContentHeight()` temporarily removes that compensation during measurements so the scaled layout preserves ample space instead of clipping cards.",
+                "ja": "⟦洗濯による縮みを想定してあらかじめ生地を広めに裁断し、採寸時はその余白を一時的に差し引くことで、仕上がりが切り詰められず余計な余白も出ないように合わせる仕立て直しのようなものだ。⟧ Windows でスケールされたパネルにおいて、すべての内容が表示されフッター下の空白帯も解消された。`_WindowsTrayController._apply_panel_zoom()` はサイズ変更と移動の処理のみを UI スレッドへ渡す前にバックグラウンドスレッドから `window.usageApplyPanelZoom()` を呼び出し、WebView2 のデッドロック（deadlock、処理同士が互いを待ち合って停止する状態）を回避する。`usageApplyPanelZoom()` は元の高さを受け取って CSS の `zoom` を適用する前に `body` を拡張し、`naturalContentHeight()` が測定時にその補正を一時的に外すことで、スケール後の配置に十分な領域を確保してカードの端が切り取られるのを防ぐ。",
+                "ko": "⟦세탁 후 수축을 감안하여 천을 미리 넉넉하게 재단하고 치수를 잴 때는 여유분을 잠시 제외하여, 완성된 옷이 잘려 나가지도 않고 밑단이 남지도 않도록 맞추는 재단 작업과 같다.⟧ Windows에서 크기가 조정된 패널이 모든 내용을 온전히 보여주며 바닥글 아래의 빈 띠가 사라졌다. `_WindowsTrayController._apply_panel_zoom` 메서드는 크기 조정과 이동 작업만 UI 스레드로 넘기기 전에 백그라운드 스레드에서 `window.usageApplyPanelZoom` 함수를 먼저 호출하여 WebView2의 교착 상태(deadlock, 스레드들이 서로 대기하며 멈추는 현상)를 방지한다. `usageApplyPanelZoom` 함수는 본래 높이를 전달받아 CSS `zoom` 속성을 적용하기 전에 `body` 영역을 확장하며, `naturalContentHeight` 함수가 측정 중에 해당 보정치를 일시적으로 제거하여 크기가 조정된 레이아웃이 카드를 자르지 않고 충분한 공간을 확보하도록 한다."
+              },
+              "original": "**Scaled Windows panels now show all their content, with no blank strip below the footer.** `_WindowsTrayController._apply_panel_zoom()` now calls `window.usageApplyPanelZoom()` from a background thread before passing only resize and move work to the UI thread, avoiding a WebView2 deadlock. `usageApplyPanelZoom()` receives the natural height, expands `body` before applying CSS `zoom`, and `naturalContentHeight()` temporarily removes that compensation while measuring, so the scaled layout has enough space instead of clipping cards."
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 納入 Grok CLI 用量統計，日誌讀取失敗不影響既有紀錄",
+                "zh-CN": "Windows 纳入 Grok CLI 用量统计，日志读取失败不影响既有记录",
+                "en": "Windows tracks Grok CLI activity with fault-isolated log loaders",
+                "ja": "Windows で Grok CLI の利用実績を集計、ログ読み込み失敗時も既存データを保護",
+                "ko": "Windows에서 Grok CLI 사용량을 집계하고 로그 오류 시 기존 기록을 보존"
+              },
+              "body": {
+                "zh-TW": "在 Windows 開啟今日用量面板查看費用、token（AI 計費與文字計量單位）總數與專案清單時，Grok CLI 紀錄會一併出現。控制器 `_WindowsTrayController._load_entries()` 在載入既有的 Claude 與 Codex 資料時，會一併呼叫 `grok_loader.load_entries()` 讀取記錄。若 Grok 日誌讀取失敗，對應的錯誤處理機制會保留已收集的 Claude 與 Codex 項目。⟦像三條獨立水管流進同一個水槽，第三條堵住時，前兩條已流入的水仍留在槽裡。⟧",
+                "zh-CN": "在 Windows 打开今日用量面板查看费用、token（AI 计费与文字计量单位）总数和项目列表时，Grok CLI 记录也会一同出现。控制器 `_WindowsTrayController._load_entries()` 在加载既有的 Claude 与 Codex 数据时，会一并调用 `grok_loader.load_entries()` 读取记录。若 Grok 日志读取失败，对应的错误处理机制会保留已收集的 Claude 与 Codex 条目。⟦像三条独立水管流进同一个水槽，第三条堵住时，前两条已流入的水仍留在槽里。⟧",
+                "en": "When you open today's usage panel on Windows to check costs, token totals, and the project list, Grok CLI records now appear too. Inside `_WindowsTrayController._load_entries()`, the controller calls `grok_loader.load_entries()` alongside the existing Claude and Codex loaders. If reading the Grok log fails, dedicated error handling preserves the Claude and Codex entries already collected. ⟦Like three separate pipes feeding one tank, a blockage in the third pipe leaves the water from the first two in place.⟧",
+                "ja": "Windows で今日の利用量パネルを開き、費用、トークン合計、プロジェクト一覧を確認すると、Grok CLI の記録も一緒に表示される。`_WindowsTrayController._load_entries()` は既存の Claude と Codex のローダーと並んで `grok_loader.load_entries()` を呼び出す。Grok のログ読み込みに失敗しても、対応するエラー処理によってすでに収集された Claude と Codex の記録はそのまま保持される。⟦3 本の独立した水路が一つの水槽に注がれ、3 本目の流れが止まっても、先に入った 2 本分の水は残るようなものだ。⟧",
+                "ko": "Windows에서 오늘 사용량 패널을 열어 비용, 토큰 총합, 프로젝트 목록을 확인하면 Grok CLI 기록도 함께 표시된다. `_WindowsTrayController._load_entries` 메서드는 기존 Claude 및 Codex 로더와 함께 `grok_loader.load_entries` 메서드를 호출한다. Grok 로그를 읽지 못해도 전용 오류 처리가 이미 수집한 Claude와 Codex 항목을 그대로 보존한다. ⟦세 개의 독립된 물관이 하나의 물통으로 이어져 있어 세 번째 물관이 막혀도 앞의 두 물관에서 들어온 물은 남아 있는 것과 같다.⟧"
+              },
+              "original": "**Windows now counts Grok CLI activity in today's cost, token total, and project list.** `_WindowsTrayController._load_entries()` now calls `grok_loader.load_entries()` alongside the Claude and Codex loaders. If reading the Grok log fails, its matching error handling leaves the Claude and Codex entries already collected intact."
+            },
+            {
+              "title": {
+                "zh-TW": "Token Saver 導入三項白話寫作規則，版號升級免除重複重寫",
+                "zh-CN": "Token Saver 导入三项白话写作规则，版本号升级免除重复重写",
+                "en": "Token Saver enforces three plain-language rules with versioned sidecars",
+                "ja": "Token Saver が 3 つの平易化規則を導入、版数管理で再書き込みを防止",
+                "ko": "Token Saver에 3가지 일상어 작성 규칙 도입 및 판올림으로 재작성 방지"
+              },
+              "body": {
+                "zh-TW": "你請 Token Saver 把一段回覆縮短時，這 3 條規則會套用。在 `i18n.json` 的 `terse_mode_instruction`，以及其在 `_DEFAULT_INSTRUCTION` 中的獨立副本裡，5 種語言皆要求將名詞化還原為動詞、刪除只報幕不提供資訊的句子，並先放已知資訊，再放新資訊。同時 `installer/session_hooks.py` 的 `TERSE_HOOK_VERSION` 與 `usage_terse_mode.py` 的 `__version__` 皆升至 1.3，讓 `_installed_terse_version()` 維持已安裝 sidecar（隨附輔助檔）最新，免於每個工作階段重寫。⟦像一台有三個調整鈕的機器，三種寫法依設定一起運作；標記升至 1.3 時，只替已裝好的小模組換新版。⟧",
+                "zh-CN": "你请 Token Saver 把一段回复缩短时，这 3 条规则会应用。在 `i18n.json` 的 `terse_mode_instruction` 以及其在 `usage_terse_mode.py` 的 `_DEFAULT_INSTRUCTION` 中的独立副本里，5 种语言都要求将名词化还原为动词、删除只报幕不提供信息的句子，并先放已知信息，再放新信息。同时 `installer/session_hooks.py` 的 `TERSE_HOOK_VERSION` 与 `usage_terse_mode.py` 的 `__version__` 都升至 1.3，让 `_installed_terse_version()` 保持已安装 sidecar（附随辅助文件）最新，免于在每个会话重复重写。⟦像一台有三个调节钮的机器，三种写法按设定一起运作；标记升至 1.3 时，只替装好的小模块换新版。⟧",
+                "en": "When you ask Token Saver to shorten a reply, these three rules apply. Across all five languages, `terse_mode_instruction` in `i18n.json` and its standalone copies in `usage_terse_mode.py`'s `_DEFAULT_INSTRUCTION` turn nominalizations back into verbs, cut sentences that announce without informing, and put known information before new information. Meanwhile, `TERSE_HOOK_VERSION` in `installer/session_hooks.py` and `__version__` in `usage_terse_mode.py` both move to 1.3, so `_installed_terse_version()` keeps installed sidecars current instead of rewriting them on every session. ⟦Like a machine with three adjustment knobs, the three writing rules work together; when its marker reaches 1.3, only the installed small module is swapped for the new version.⟧",
+                "ja": "Token Saver に返信の一部を短くするよう頼むと、この 3 つの規則が適用される。`i18n.json` の `terse_mode_instruction` と、`usage_terse_mode.py` の `_DEFAULT_INSTRUCTION` 内にあるその独立したコピーでは、全 5 言語で名詞化を動詞へ戻し、情報を伝えない告知文を削り、既知の情報を新しい情報より前に置く。また `installer/session_hooks.py` の `TERSE_HOOK_VERSION` と `usage_terse_mode.py` の `__version__` がともに 1.3 に進み、`_installed_terse_version()` がセッションごとに書き直さず、導入済みサイドカー設定ファイルを最新に保つ。⟦3 つの調整つまみを備えた機械のように、3 種類の書き方の規則がそろって働く。印が 1.3 になると、取り付け済みの小さな部品だけを新版へ差し替える。⟧",
+                "ko": "Token Saver에게 답변 일부를 짧게 해 달라고 하면 이 3가지 규칙이 적용된다. `i18n.json`의 `terse_mode_instruction` 문자열과 `usage_terse_mode.py`의 `_DEFAULT_INSTRUCTION`에 있는 별도 사본은 5개 언어 모두에서 명사화를 동사로 되돌리고, 정보 없이 알림만 하는 문장을 삭제하며, 아는 정보를 새로운 정보 앞에 배치한다. 아울러 `installer/session_hooks.py`의 `TERSE_HOOK_VERSION`과 `usage_terse_mode.py`의 `__version__`이 모두 1.3으로 올라가, `_installed_terse_version` 함수가 매 세션마다 파일을 다시 쓰지 않고 설치된 사이드카 설정 파일을 최신 상태로 유지한다. ⟦세 개의 조절 손잡이가 있는 기계처럼 세 가지 작성 규칙이 함께 작동하며, 표시가 1.3이 되면 설치된 작은 모듈만 새 판으로 교체한다.⟧"
+              },
+              "original": "**Token Saver now gives short replies three concrete rules for plainer language.** The `terse_mode_instruction` strings in `i18n.json` and their standalone copies in `usage_terse_mode.py`'s `_DEFAULT_INSTRUCTION` now turn nominalizations back into verbs, cut sentences that announce without informing, and put known information before new information, in all five languages. `TERSE_HOOK_VERSION` in `installer/session_hooks.py` and `__version__` in `usage_terse_mode.py` both move to 1.3, so `_installed_terse_version()` keeps installed sidecars current instead of rewriting them on every session."
+            }
+          ]
+        },
+        {
           "version": "0.30.3",
           "period": "2026-08-28",
           "items": [
@@ -3038,188 +3118,6 @@
                 "ko": "usage를 업그레이드한 후, 기존 Token Saver 리마인더 훅이 최신 버전으로 자동 동기화된다. 이전에는 `installer/session_hooks.py`의 자가 복구 함수인 `_self_heal_terse_reminder`가 스크립트나 등록 정보가 완전히 누락된 경우에만 복원하여, 이미 설치된 구버전 스크립트는 그대로 방치되었다. 이제 시스템이 `TERSE_REMINDER_HOOK_VERSION`과 `_installed_terse_reminder_version`으로 버전을 대조하여 오래된 사본을 최신 스크립트로 능동 교체하고 진단용으로 `update_terse_reminder_hook`을 기록한다. ⟦건물의 안내 방송 스피커를 점검할 때, 예전에는 장비가 완전히 사라졌을 때만 새로 달아주고 낡은 기기는 그대로 두었던 반면, 이제는 모델 번호를 확인하여 구형 기기를 새것으로 교체하고 점검 일지에 교체 명세를 남기는 것과 같다.⟧"
               },
               "original": "**Existing Token Saver reminder hooks now update instead of staying stale.** `_self_heal_terse_reminder()` in `installer/session_hooks.py` previously restored only a missing script or registration, leaving an installed older script unchanged. `TERSE_REMINDER_HOOK_VERSION` and `_installed_terse_reminder_version()` now compare versions and replace stale copies, recording `update_terse_reminder_hook` for diagnosis."
-            }
-          ]
-        },
-        {
-          "version": "0.30.2",
-          "period": "2026-08-28",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "過高面板自動等比縮放，畫面完整呈現不被截斷",
-                "zh-CN": "过高面板自动等比缩放，画面完整呈现不被截断",
-                "en": "Oversized panels scale down to fit screen instead of clipping",
-                "ja": "画面からはみ出る長大なパネルが自動縮小、端が切れずに収まる",
-                "ko": "화면보다 긴 패널이 잘리지 않고 알맞은 비율로 축소"
-              },
-              "body": {
-                "zh-TW": "⟦像用相機拍攝高聳建築時自動切換廣角，把整棟大樓等比縮進觀景窗，而不是直接裁掉屋頂。⟧ 當螢幕直向空間不足而面板（popover）內容過長時，視窗現在會等比縮小而非裁切畫面。過去 `clamp_content_height()` 直接以可見畫面高度為上限，超出高度的資料列完全無法看見也點不到。新模組 `panels/panel_scale.py` 會計算適應螢幕的縮放比例，且不低於保底的 `MIN_PANEL_SCALE`；macOS 的 `PopoverViewController.applyPanelScale()` 與 Windows 的 `_WindowsTrayController._apply_panel_zoom()` 則透過 `window.usageApplyPanelZoom()` 將比例套用至整個面板，確保所有列完整呈現。",
-                "zh-CN": "⟦像用相机拍摄高耸建筑时自动切换广角，把整栋大楼等比缩进取景框，而不是直接裁掉屋顶。⟧ 当屏幕纵向空间不足而面板（popover，弹出式的浮动窗口）内容过长时，窗口现在会等比缩小而非裁切画面。过去 `clamp_content_height()` 直接以可见画面高度为上限，超出高度的数据行完全无法看见也点不到。新模块 `panels/panel_scale.py` 会计算适应屏幕的缩放比例，且不低于保底的 `MIN_PANEL_SCALE`；macOS 的 `PopoverViewController.applyPanelScale()` 与 Windows 的 `_WindowsTrayController._apply_panel_zoom()` 则通过 `window.usageApplyPanelZoom()` 将比例应用至整个面板，确保所有行完整呈现。",
-                "en": "⟦Like a camera automatically zooming out to wide-angle when capturing a tall skyscraper, fitting the entire building proportionally into the viewfinder instead of slicing off the roof.⟧ When a popover grows too tall for the screen, it now scales down proportionally rather than getting clipped. Previously, `clamp_content_height()` capped height strictly to the visible screen frame, leaving any lower rows unreachable and invisible. The new `panels/panel_scale.py` module computes a fit scale that stays above `MIN_PANEL_SCALE`, and macOS's `PopoverViewController.applyPanelScale()` together with Windows's `_WindowsTrayController._apply_panel_zoom()` apply it across the entire panel using `window.usageApplyPanelZoom()`.",
-                "ja": "⟦高層ビルをカメラで撮影する際、屋上を切り落とす代わりに自動で広角に切り替えて建物全体をファインダーに収めるようなものだ。⟧ 画面の縦幅に対してパネル（popover、画面上に浮き出る表示枠）が長すぎる場合、端が切り取られるのではなく全体が等倍で縮小表示されるようになった。以前は `clamp_content_height()` が可視領域の高さをそのまま上限にしていたため、枠外へ溢れた行は見えず操作もできなかった。現在は `panels/panel_scale.py` が `MIN_PANEL_SCALE` 以上の最適な縮小率を算出し、macOS の `PopoverViewController.applyPanelScale()` と Windows の `_WindowsTrayController._apply_panel_zoom()` が `window.usageApplyPanelZoom()` 経由でパネル全体へ反映する。",
-                "ko": "⟦높은 건물을 카메라로 찍을 때 지붕을 잘라내는 대신 자동으로 광각으로 전환하여 건물 전체를 뷰파인더에 알맞게 담아내는 것과 같다.⟧ 화면의 세로 공간보다 팝오버(popover, 화면 위에 뜨는 작은 창) 내용이 길 경우, 화면이 잘려 나가는 대신 전체 창이 일정한 비율로 축소된다. 이전에는 `clamp_content_height()`가 화면에 보이는 영역만을 최대 높이로 제한하여 범위를 벗어난 행은 볼 수도 누를 수도 없었다. 이제 `panels/panel_scale.py`가 최소 `MIN_PANEL_SCALE` 이상의 축소 비율을 계산하고, macOS의 `PopoverViewController.applyPanelScale()`과 Windows의 `_WindowsTrayController._apply_panel_zoom()`이 `window.usageApplyPanelZoom()`을 통해 패널 전체에 이를 적용한다."
-              },
-              "original": "**Panels that are too tall for the screen now scale down instead of clipping.** `clamp_content_height()` used the visible frame as its ceiling, leaving rows beyond that height unreachable. `panels/panel_scale.py` now calculates a fit scale, no lower than `MIN_PANEL_SCALE`, and macOS's `PopoverViewController.applyPanelScale()` and Windows's `_WindowsTrayController._apply_panel_zoom()` apply it to the whole panel through `window.usageApplyPanelZoom()`."
-            },
-            {
-              "title": {
-                "zh-TW": "Codex 狀態列支援點記法設定，安裝與移除不再靜默失敗",
-                "zh-CN": "Codex 状态栏支持点记法设置，安装与移除不再静默失败",
-                "en": "Codex status lines install cleanly on dotted and subtable configs",
-                "ja": "Codex ステータス行がサブテーブル設定に対応し、インストールが失敗しない",
-                "ko": "Codex 상태 표시줄이 점 표기법 설정을 지원하여 설치와 제거가 실패하지 않는다"
-              },
-              "body": {
-                "zh-TW": "在 Codex 設定檔 `config.toml` 未使用獨立 `[tui]` 區段標頭時，安裝與移除狀態列（status line，終端機最底下的即時資訊列）的功能現在能正確運作。以前若設定檔僅透過 `[tui.*]` 子表格或頂層點記法鍵值宣告，設定與解除流程會靜默跳過寫入卻回報成功。現在 `_insert_table_line()`、`_remove_table_line()` 與 `_replace_table_line()` 同時支援這兩種結構，每次修改皆透過 `tomllib.loads` 驗證語法，並在無法安全變更時明確回報失敗。⟦這好比水電師傅查驗配電箱：不論總標籤寫在總開關還是分路子面板上都能正確接線，送電前以電表驗證，無法安全施工時便明確告知而非假裝完工。⟧",
-                "zh-CN": "在 Codex 配置文件 `config.toml` 未使用独立 `[tui]` 区段标头时，安装与移除状态栏（status line，终端底部的即时信息条）的功能现在能正确运行。以前若配置文件仅通过 `[tui.*]` 子表或顶层点记法键值声明，设置与解除流程会静默跳过写入却谎报成功。现在 `_insert_table_line()`、`_remove_table_line()` 与 `_replace_table_line()` 同时支持这两种结构，每次修改皆通过 `tomllib.loads` 验证语法，并在无法安全变更时明确报告失败。⟦这好比电工师傅查验配电箱：不论总标签写在总开关还是分路子面板上都能正确接线，送电前以电表验证，无法安全施工时便明确告知而非假装完工。⟧",
-                "en": "Codex status lines now install and remove reliably even when `config.toml` lacks a bare `[tui]` header. Configurations declaring `tui` solely through `[tui.*]` subtables or top-level dotted keys previously caused setup and removal routines to write nothing while falsely claiming success. Helper functions `_insert_table_line()`, `_remove_table_line()`, and `_replace_table_line()` now support both config structures, parse and validate every proposed edit with `tomllib.loads`, and raise a clear failure when no change can be made safely. ⟦It is like an electrician inspecting a breaker box: wiring connections correctly whether the label sits on the main switch or individual branch circuits, testing voltages before power-up, and flagging faults instead of pretending everything is installed.⟧",
-                "ja": "Codex の設定ファイル `config.toml` に単独の `[tui]` ヘッダーがない場合でも、ステータス行の追加と削除が正常に行えるようになった。以前は `[tui.*]` サブテーブルや最上位のドット区切りキーのみで `tui` が宣言されていると、セットアップや解除の処理が何も書き込まずに成功と偽って報告していた。現在は `_insert_table_line()`、`_remove_table_line()`、`_replace_table_line()` が両方の記法に対応し、変更候補を `tomllib.loads` で構文検証したうえで安全に変更できない場合は明確に失敗を報告する。⟦これは配電盤の工事で、メインスイッチにラベルがあっても個別ブレーカーにあっても正しく配線し、通電前にテスターで確認して安全に工事できない時は作業完了と偽らず報告するようなものだ。⟧",
-                "ko": "Codex 설정 파일인 `config.toml`에 독립된 `[tui]` 헤더가 없는 경우에도 상태 표시줄 추가 및 제거가 올바르게 작동한다. 이전에는 `[tui.*]` 하위 테이블이나 최상위 점 표기법 키로만 `tui`를 선언한 설정의 경우, 설정 및 해제 경로가 아무것도 쓰지 않으면서 성공했다고 거짓으로 보고했다. 이제 `_insert_table_line`, `_remove_table_line`, `_replace_table_line` 함수가 두 형식을 모두 지원하며, 변경 후보를 `tomllib.loads`로 검증하고 안전하게 수정할 수 없을 때는 명확히 실패를 보고한다. ⟦배전반을 점검할 때 메인 스위치나 개별 분전 패널 어디에 라벨이 붙어 있든 정상적으로 전선을 연결하고, 통전 전에 계측기로 확인하여 안전하지 않을 때는 작업을 완료한 척하지 않고 즉시 알리는 것과 같다.⟧"
-              },
-              "original": "**Codex status lines now install and remove correctly when `config.toml` has no bare `[tui]` header.** Configurations that declare `tui` only through `[tui.*]` subtables or top-level dotted keys previously made the setup and unsetup paths silently write nothing while reporting success. `_insert_table_line()`, `_remove_table_line()`, and `_replace_table_line()` now handle both forms, validate every candidate with `tomllib.loads`, and report failure when no change can be safely made."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 建置校正隱藏匯入路徑，清除無效模組設定",
-                "zh-CN": "Windows 构建校正隐藏导入路径，清除无效模块设置",
-                "en": "Windows builds point hidden imports to current installer modules",
-                "ja": "Windows ビルドの隠蔽インポートを現行モジュールへ修正、無効設定を排除",
-                "ko": "Windows 빌드의 숨은 임포트 경로를 현재 모듈로 바로잡아 무효 설정을 정리"
-              },
-              "body": {
-                "zh-TW": "Windows 建置腳本修復了打包設定中的過期模組路徑。先前 v0.29.37 修復了遺漏的 `wintray.app` 與 `tui.app` 進入點；但在獨立重構後，`scripts/build_windows.ps1` 仍將 `session_hooks` 與 `setup_hook` 列為舊版頂層模組。雖然 `main.py` 靜態匯入了兩者而未影響執行檔運作，但這些旗標屬於無效設定，正是過去導致 v0.29.34 至 v0.29.36 版無法啟動的同類隱患。現在旗標已更正為 `installer.session_hooks` 與 `installer.setup_hook`，讓 PyInstaller 未來能及早診斷遺漏。⟦宛如物流清單上的備忘地址：將舊門牌更新為正確路徑，才能在未來漏載時第一時間示警。⟧",
-                "zh-CN": "Windows 构建脚本修复了打包设置中的过期模块路径。此前 v0.29.37 恢复了缺失的 `wintray.app` 与 `tui.app` 入口点；但在独立重构后，`scripts/build_windows.ps1` 仍将 `session_hooks` 与 `setup_hook` 列为旧版顶层模块。虽然 `main.py` 静态导入了两者而未影响运行文件运作，但这些参数属于无效设置，正是过去导致 v0.29.34 至 v0.29.36 版无法启动的同类隐患。现在参数已更正为 `installer.session_hooks` 与 `installer.setup_hook`，让 PyInstaller 未来能及早诊断遗漏。⟦宛如物流清单上的备忘地址：将旧门牌更新为正确路径，才能在未来漏装时第一时间示警。⟧",
-                "en": "Windows build scripts now direct their hidden import flags to the current installer module paths. The v0.29.37 update restored the missing `wintray.app` and `tui.app` entry points; after a separate code refactor, `scripts/build_windows.ps1` still pointed to `session_hooks` and `setup_hook` as obsolete top-level modules. The packaged executable was never broken because `main.py` imports both statically, but the outdated flags were dead configuration of the exact kind that previously caused broken v0.29.34–36 builds. They now properly specify `installer.session_hooks` and `installer.setup_hook`, enabling PyInstaller to diagnose any future omissions. ⟦It is like updating warehouse addresses on a shipping checklist: keeping the registry accurate ensures the system catches a missing crate before trucks leave the dock.⟧",
-                "ja": "Windows ビルド用スクリプトにおいて、隠蔽インポートの設定が最新のモジュール配置へ修正された。v0.29.37 で欠落していた `wintray.app` と `tui.app` のエントリポイントが復旧したものの、別のリファクタリング後も `scripts/build_windows.ps1` は `session_hooks` と `setup_hook` を古い最上位モジュール名のまま指定していた。`main.py` が両者を静的にインポートしているため実行ファイル自体は壊れていなかったが、この指定は v0.29.34 から v0.29.36 の起動不能版を出荷した原因と同種の不要な設定だった。現在は `installer.session_hooks` と `installer.setup_hook` を指すようになり、PyInstaller が将来の指定漏れを正しく検知できる。⟦配送表の住所を最新にするようなもので、伝票を正しく更新しておくことで将来の積み忘れを即座に防げる。⟧",
-                "ko": "Windows 빌드 스크립트에서 숨은 임포트 설정이 최신 모듈 경로를 가리키도록 수정되었다. v0.29.37에서 누락되었던 `wintray.app`과 `tui.app` 진입점이 복구되었으나, 별도의 코드 정리 이후에도 `scripts/build_windows.ps1`은 `session_hooks`와 `setup_hook`을 예전 최상위 모듈 이름으로 지정하고 있었다. `main.py`가 두 모듈을 정적으로 가져오고 있어 실행 파일 자체가 손상되지는 않았지만, 이는 과거 v0.29.34부터 v0.29.36까지의 실행 불가 빌드를 낳았던 것과 동일한 무효 설정이었다. 이제 `installer.session_hooks` 및 `installer.setup_hook`을 정확히 지정하여 향후 모듈 누락이 생겼을 때 PyInstaller가 즉시 진단할 수 있도록 했다. ⟦배송 명단의 주소를 갱신하는 것과 같아서, 전표를 올바르게 적어 두어야 향후 물품 누락을 미리 발견할 수 있는 셈이다.⟧"
-              },
-              "original": "**Windows builds now point their hidden imports at the installer modules' current paths.** The v0.29.37 fix restored the missing `wintray.app` and `tui.app` entry points; after a separate refactor, `scripts/build_windows.ps1` still named `session_hooks` and `setup_hook` as obsolete top-level modules. The bundle was never broken — `main.py` imports both statically — but the flags were dead configuration of exactly the kind that shipped the unusable v0.29.34–36 builds. They now name `installer.session_hooks` and `installer.setup_hook`, so PyInstaller can diagnose a future omission."
-            },
-            {
-              "title": {
-                "zh-TW": "macOS 雙擊啟動改用萬國碼讀取，切換開機項目不再崩潰",
-                "zh-CN": "macOS 双击启动改用万国码读取，切换开机项不再崩溃",
-                "en": "Double-clicked macOS app toggles login items safely with UTF-8",
-                "ja": "macOS でダブルクリック起動しても UTF-8 読み込みでログイン項目が正しく動作",
-                "ko": "macOS에서 더블 클릭으로 실행해도 UTF-8 읽기로 로그인 항목 전환 가능"
-              },
-              "body": {
-                "zh-TW": "⟦就像快遞員開箱驗貨：以前若沒人提醒語言就預設只認純英文字母，遇上外文標籤便當場罷工；現在一律配備萬國碼字典，遇到損壞字元自動替換並繼續派送。⟧ 在 macOS 上透過滑鼠連點開啟 App 時，切換開機啟動項目不再無預警失敗。雙擊啟動時環境中常缺少 `LANG` 變數，導致子行程（subprocess，由主程式分支出來處理特定任務的背景程序）呼叫 `subprocess.run(..., text=True)` 時預設採用 ASCII 編碼，讀取 `launchctl` 或 `gh` 產生的非 ASCII 文字時會拋出 `UnicodeDecodeError` 錯誤。現在這些讀取動作一律明確指定使用 UTF-8 編碼，並對無效位元組進行容錯替換。",
-                "zh-CN": "⟦就像快递员开箱验货：以前若没人提醒语言就默认只认纯英文字母，遇上外文标签便当场罢工；现在一律配备万国码字典，遇到损坏字符自动替换并继续派送。⟧ 在 macOS 上通过鼠标双击打开 App 时，切换开机启动项不再无预警失败。双击启动时环境中常缺少 `LANG` 变量，导致子进程（subprocess，由主程序分支出去处理特定任务的后台程序）调用 `subprocess.run(..., text=True)` 时默认采用 ASCII 编码，读取 `launchctl` 或 `gh` 产生的非 ASCII 文本时会抛出 `UnicodeDecodeError` 错误。现在这些读取动作一律明确指定使用 UTF-8 编码，并对无效字节进行容错替换。",
-                "en": "⟦Like a customs inspector who once defaulted to English-only and rejected any foreign package, now equipped with a universal dictionary to replace unreadable symbols and keep shipments moving.⟧ Toggling login items on macOS no longer fails when the app is launched via double-click. Without the `LANG` environment variable, `subprocess.run(..., text=True)` defaulted to ASCII, causing a `UnicodeDecodeError` whenever `launchctl` or `gh` outputs contained non-ASCII characters. These process outputs are now explicitly parsed using UTF-8 encoding, safely substituting replacement characters for any invalid byte sequences.",
-                "ja": "⟦税関の検査官が以前は英語表記しか受け付けず外国語の荷物を拒絶していたのを、万国共通の辞書を用意して読めない文字だけ置き換えて通関させるようになったようなものだ。⟧ macOS でアプリをダブルクリックして起動した場合でも、ログイン項目の切り替えが失敗しなくなった。ダブルクリック起動では環境変数 `LANG` が渡されないことが多く、`subprocess.run(..., text=True)` が ASCII 扱いとなって `launchctl` や `gh` の非 ASCII 出力を読み込む際に `UnicodeDecodeError` を起こしていた。現在はこれらの出力を明示的に UTF-8 で読み込み、無効なバイト列を代替文字へ置き換えて処理を継続する。",
-                "ko": "⟦통관 검사관이 이전에는 영문 라벨만 인정하여 외국어 화물을 거부하다가, 만국 공통 사전을 갖추고 깨진 글자만 대체 문자로 바꾸어 통관을 계속 진행하는 것과 같다.⟧ macOS에서 앱을 더블 클릭하여 실행했을 때 로그인 항목 켜고 끄기가 실패하지 않는다. 더블 클릭으로 실행하면 환경 변수 `LANG`이 누락되는 경우가 많아 `subprocess.run(..., text=True)`가 ASCII 방식으로 동작하면서 `launchctl`이나 `gh`의 비 ASCII 출력을 읽을 때 `UnicodeDecodeError`를 일으켰다. 이제 해당 출력을 명시적으로 UTF-8로 읽고 유효하지 않은 바이트는 대체 문자로 처리하도록 개선되었다."
-              },
-              "original": "**Toggling the macOS login item no longer fails when the app was opened by double-clicking.** Without `LANG`, `subprocess.run(..., text=True)` used ASCII and could raise `UnicodeDecodeError` while reading `launchctl` or `gh` output containing non-ASCII text. Those reads now explicitly use UTF-8 with replacement for invalid bytes."
-            },
-            {
-              "title": {
-                "zh-TW": "Claude 費用納入顧問迭代與 1 小時快取，歷史紀錄重算更精準",
-                "zh-CN": "Claude 费用计入顾问迭代与 1 小时缓存，历史记录重算更精准",
-                "en": "Claude cost totals add advisor iterations and one-hour cache writes",
-                "ja": "Claude 費用にアドバイザー反復と 1 時間キャッシュ書き込みが反映",
-                "ko": "Claude 비용에 어드바이저 반복과 1시간 캐시 쓰기가 반영되어 정밀 재계산"
-              },
-              "body": {
-                "zh-TW": "查看 Claude 的花費總額時，現在已完整納入顧問迭代與 1 小時快取寫入費用。解析器新增讀取 `usage.iterations` 與 `usage.cache_creation.ephemeral_1h_input_tokens` 欄位；其中僅有 `advisor_message` 迭代會拆分為獨立資料列，避免重複計算普通訊息。1 小時快取（cache，將資料暫存以加速讀取的機制）寫入則依基礎輸入費率的 2 倍計價，且歷史快取架構版本已同步更新，讓過往既有紀錄能自動重算。⟦這如同會計事務所升級審計帳本：把特別顧問的諮詢與專用保鮮費列入報銷，依雙倍費率計價並重審舊單據，避免多算也絕不漏計。⟧",
-                "zh-CN": "查看 Claude 的花费总额时，现在已完整计入顾问迭代与 1 小时缓存写入费用。解析器新增读取 `usage.iterations` 与 `usage.cache_creation.ephemeral_1h_input_tokens` 字段；其中仅有 `advisor_message` 迭代会拆分为独立数据行，避免重复计算普通消息。1 小时缓存（cache，将数据暂存以加速读取的机制）写入则按基础输入费率的 2 倍计价，且历史缓存架构版本已同步更新，让过往既有记录能自动重算。⟦这如同会计事务所升级审计账本：把特别顾问的咨询与专用保鲜费列入报销，按双倍费率计价并重审旧单据，避免多算也绝不漏记。⟧",
-                "en": "Claude cost totals now accurately capture advisor iterations and one-hour cache write expenses. Claude usage parsers now inspect `usage.iterations` and `usage.cache_creation.ephemeral_1h_input_tokens`, creating separate breakdown rows solely for `advisor_message` iterations to avoid double-counting regular turns. One-hour cache writes are priced at twice the base input token rate, and the history cache schema version has been bumped so past sessions are reparsed automatically. ⟦It is like an accounting firm updating its audit ledgers: billing special advisor consults and short-term secure storage at double rates, while auditing archived receipts to guarantee nothing is missed or duplicated.⟧",
-                "ja": "Claude の消費総額において、アドバイザーの反復処理と 1 時間キャッシュ書き込みの費用が正しく計算されるようになった。解析処理が `usage.iterations` と `usage.cache_creation.ephemeral_1h_input_tokens` を読み取るようになり、通常メッセージの重複計上を防ぐため `advisor_message` の反復のみを別項目として扱う。1 時間キャッシュの書き込みは基本入力レートの 2 倍で計算され、履歴キャッシュのスキーマが更新されたことで過去の記録も自動で再解析される。⟦会計事務所が監査台帳を刷新し、特別顧問への相談料や短期保管料を倍額レートで計上しつつ過去の領収書を再点検して二重計上や漏れを防ぐようなものだ。⟧",
-                "ko": "Claude 비용 합산 시 어드바이저 반복과 1시간 캐시 쓰기 비용이 정확히 반영된다. Claude 구문 분석기가 `usage.iterations` 및 `usage.cache_creation.ephemeral_1h_input_tokens` 필드를 읽도록 개선되었으며, 일반 메시지의 중복 집계를 방지하기 위해 `advisor_message` 반복만 별도 항목으로 분리한다. 1시간 캐시 쓰기는 기본 입력 토큰 단가의 2배로 계산되며, 기록 캐시 스키마 버전을 올려 기존 세션 데이터도 자동으로 다시 계산한다. ⟦회계 법인이 장부를 개편하여 특별 자문료와 단기 보관 비용을 2배 요율로 청구하면서 이전 영수증까지 재검토해 누락이나 중복을 없애는 것과 같다.⟧"
-              },
-              "original": "**Claude cost totals now include advisor iterations and one-hour cache writes.** The Claude parsers now read `usage.iterations` and `usage.cache_creation.ephemeral_1h_input_tokens`; only `advisor_message` iterations get separate entries, avoiding double-counting ordinary messages. One-hour cache writes are priced at twice the base input rate, and the history cache schema is bumped so existing entries are reparsed."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 系統匣拖曳 Grok 卡片修正，視窗移動行為全數統一",
-                "zh-CN": "Windows 托盘拖动 Grok 卡片修正，窗口移动行为全数统一",
-                "en": "Dragging Grok card on Windows moves panel consistently with others",
-                "ja": "Windows トレイで Grok カードをドラッグした際の移動挙動を統一",
-                "ko": "Windows 트레이에서 Grok 카드 드래그 동작을 다른 카드와 동일하게 통일"
-              },
-              "body": {
-                "zh-TW": "在 Windows 系統匣（tray，工作列右下角常駐圖示區）拖曳 Grok 額度卡片時，視窗移動行為不再與其他三家卡片不同步。系統匣的 WebKit 墊片原先會將額度卡片的空白區域轉為 `pywebview` 原生拖曳區，但其選取器過去僅列出 Claude、Codex 與 Antigravity。這導致 Grok 卡片掉入共用的卡片排序處理器，在第四張卡片上做出與前三張相同的拖曳手勢時卻引發不同反應。現在選取器已涵蓋全部四家服務商，與 macOS 上的 `panel_core.js` 保持一致。⟦如同控制台上的四組手把：前三組能平移整座台面，第四組因未貼標籤而只能移動自身；補齊設定後，四組操作手感完全一致。⟧",
-                "zh-CN": "在 Windows 托盘（tray，任务栏右下角常驻图标区）拖动 Grok 额度卡片时，窗口移动行为不再与其他三家卡片不同步。托盘的 WebKit 垫片原先会将额度卡片的空白区域转为 `pywebview` 原生拖拽区，但其选择器过去仅列出 Claude、Codex 与 Antigravity。这导致 Grok 卡片掉入共用的卡片排序处理器，在第四张卡片上做出与前三张相同的拖拽手势时却引发不同反应。现在选择器已涵盖全部四家服务商，与 macOS 上的 `panel_core.js` 保持一致。⟦如同控制台上的四组把手：前三组能平移整座台面，第四组因未贴标签而只能移动自身；补齐设置后，四组操作手感完全一致。⟧",
-                "en": "Dragging the Grok card in the Windows tray now moves the entire panel smoothly, just like the other three provider cards. The tray's WebKit shim converts empty space on quota cards into native `pywebview` drag handles, but its element selector previously named only Claude, Codex, and Antigravity. As a result, dragging Grok fell through to the shared card-reordering logic, causing the fourth card to reorder itself rather than moving the window. The drag selector now includes all four providers, matching behavior already established in `panel_core.js` on macOS. ⟦It is like a control board with four grab handles: three shifted the entire deck while the fourth slipped because it missed a grip pad; outfitting all four ensures consistent handling everywhere.⟧",
-                "ja": "Windows トレイにおいて Grok の利用枠カードをドラッグした際、他の 3 社のカードと同様にパネル全体が正しく移動するようになった。トレイの WebKit 連携機能はカード余白を `pywebview` のドラッグ領域に変換するが、対象セレクターに Claude、Codex、Antigravity の 3 社しか列挙されていなかった。そのため Grok だけが共通のカード並び替え処理へ流れてしまい、同じドラッグ操作で異なる挙動を起こしていた。セレクターが 4 社すべてに対応し、macOS の `panel_core.js` と同じ挙動へ統一された。⟦操作盤にある 4 つの持ち手のうち、3 つは盤面ごと動かせるのに 4 つ目だけ部品の認識漏れで単体移動していたのを、すべて同じ操作感に揃えたようなものだ。⟧",
-                "ko": "Windows 트레이에서 Grok 한도 카드를 드래그할 때 다른 세 제공업체 카드와 마찬가지로 패널 전체가 매끄럽게 이동한다. 트레이의 WebKit 보정 기능은 한도 카드의 빈 공간을 `pywebview` 네이티브 드래그 영역으로 변환하지만, 선택기 목록에 Claude, Codex, Antigravity만 들어 있었다. 이로 인해 Grok 카드는 공용 카드 순서 변경 처리기로 넘어가 창을 움직이는 대신 카드가 재배치되는 혼선이 있었다. 이제 선택기가 4개 제공업체 모두를 포함하도록 수정되어 macOS의 `panel_core.js`와 동일하게 작동한다. ⟦조작판의 네 손잡이 중 세 개는 판 전체를 옮기는데 네 번째만 센서가 빠져 제자리에서 헛돌던 것을 고쳐, 네 손잡이 모두 동일하게 움직이도록 맞춘 것과 같다.⟧"
-              },
-              "original": "**Dragging the Grok card no longer moves the panel differently from the other three on Windows.** The tray's WebKit shim turns a quota card's empty area into a native `pywebview` drag region, but its selector listed only Claude, Codex and Antigravity. Grok fell through to the shared card-reorder handler instead, so the same gesture that moved the window from the first three cards did something else from the fourth. The selector now matches all four, as `panel_core.js` already did on macOS."
-            },
-            {
-              "title": {
-                "zh-TW": "指南移至專屬目錄且整理說明文件，專案根目錄全面整潔",
-                "zh-CN": "指南移至专属目录且整理说明文件，项目根目录全面整洁",
-                "en": "Contribution guides and localized docs move to dedicated folders",
-                "ja": "ガイドと多言語ドキュメントを専用フォルダへ移し、ルートを整理",
-                "ko": "기여 가이드와 다국어 문서를 전용 디렉터리로 옮겨 루트 정리"
-              },
-              "body": {
-                "zh-TW": "⟦像圖書館整頓大廳：將讀者規約歸檔至管理處，把各語系導覽手冊移入閱覽室，讓大廳井然有序且指示牌一目了然。⟧ 專案根目錄進行了結構整理與檔案搬移。公開的貢獻指南與安全政策文件已移至 `.github/` 資料夾。各語言版本的說明文件（README，專案首頁介紹檔）與更新日誌 changelog 則統一集中至 `docs/` 目錄。這項整理清空了專案根目錄的雜亂檔案，並同步更新了所有相互參照的超連結。",
-                "zh-CN": "⟦像图书馆整顿大厅：将读者规约归档至管理处，把各语系导览手册移入阅览室，让大厅井然有序且指示牌一目了然。⟧ 项目根目录进行了结构整理与文件迁移。公开的贡献指南与安全政策文件已移至 `.github/` 文件夹。各语言版本的说明文件（README，项目主页介绍文件）与更新日志 changelog 则统一集中至 `docs/` 目录。这项整理清空了项目根目录的杂乱文件，并同步更新了所有相互引用的超链接。",
-                "en": "⟦Like a library tidying its lobby: filing reader policies into administrative offices and shelving multilingual guides in study rooms so the entrance stays clutter-free with clear signposts.⟧ The repository root has been cleaned up and reorganized. Public contribution guidelines and security policies have been relocated into `.github/`. Multilingual README documentation and changelog history files are now consolidated under `docs/`. This housekeeping cleans up the root directory and updates all internal navigation links across the project.",
-                "ja": "⟦図書館のロビーを整理し、利用規約を管理室へ保管して多言語案内パンフレットを書架へ移し、エントランスを整えて案内看板を更新したようなものだ。⟧ リポジトリのルート階層が整理され、ファイルの配置が見直された。公開用の貢献ガイドやセキュリティポリシーは `.github/` フォルダへ移動した。多言語版の README 説明書や changelog 更新履歴は `docs/` ディレクトリへ集約された。この整理によりプロジェクトのルートが整然とし、関連するすべてのハイパーリンクが更新された。",
-                "ko": "⟦도서관 로비 안내대를 정리하여 이용 규정을 관리실로 보관하고 다국어 안내 책자를 열람실로 옮겨, 입구를 깔끔하게 정돈하고 이정표를 갱신한 것과 같다.⟧ 저장소 루트 디렉터리의 구조를 깔끔하게 재정비했다. 공개 기여 가이드와 보안 정책 문서는 `.github/` 폴더로 자리를 옮겼다. 다국어 README 설명 문서와 changelog 변경 기록 파일은 `docs/` 디렉터리로 통합되었다. 이번 정리를 통해 저장소 루트의 어수선함을 덜어내고 모든 상호 링크를 일괄 갱신했다."
-              },
-              "original": "Moved public contribution and security guides to `.github/` and localized README and changelog files to `docs/`, cleaning up the repository root and updating all links."
-            },
-            {
-              "title": {
-                "zh-TW": "簡中日韓說明文件補齊 Grok 介紹，功能清單與比較表全面同步",
-                "zh-CN": "简中日韩说明文件补齐 Grok 介绍，功能清单与对比表全面同步",
-                "en": "Simplified Chinese, Japanese, and Korean READMEs backfill Grok CLI",
-                "ja": "簡体字・日本語・韓国語の README に Grok CLI の記述を追補",
-                "ko": "간체 중국어, 일본어, 한국어 README에 Grok CLI 내용 보강"
-              },
-              "body": {
-                "zh-TW": "查閱非英文的專案說明文件時，各語言讀者現在都能獲得完整的 Grok CLI 功能介紹。先前在簡體中文、日文與韓文的說明文件（README，專案首頁介紹檔）中，遺漏了 Grok CLI 卡片於功能清單、「隱藏區塊」設定項目以及跨工具比較表中的資料列。本次更新將這三處缺漏逐一回填至三種語言的說明文件中，確保不同語系的使用者都能查閱到一致的規格與選項說明。⟦這恰似多國語言的商品目錄改版：為簡中、日語及韓語版本補印新產品的特色條目、選配開關與規格比較表，使所有語系的型錄內容完全同步。⟧",
-                "zh-CN": "查阅非英文的项目说明文件时，各语言读者现在都能获得完整的 Grok CLI 功能介绍。此前在简体中文、日文与韩文的说明文件（README，项目主页介绍文件）中，遗漏了 Grok CLI 卡片于功能清单、“隐藏区块”设置项以及跨工具对比表中的数据行。本次更新将这三处遗漏逐一回填至三种语言的说明文件中，确保不同语系的用户都能查阅到一致的规格与选项说明。⟦这恰似多国语言的商品目录改版：为简中、日语及韩语版本补印新产品的特色条目、选配开关与规格对比表，使所有语系的型录内容完全同步。⟧",
-                "en": "Readers consulting localized documentation will now find complete coverage for the Grok CLI card. The Simplified Chinese, Japanese, and Korean README files previously missed mentions of the Grok card in their feature lists, the Hide Sections toggle documentation, and the provider comparison tables. This update backfills all three missing entries across all three translations, ensuring readers across every supported language have access to the exact same feature overviews and settings details. ⟦It is like updating international product catalogs: reprinting feature summaries, accessory switches, and comparison charts for localized editions so every market receives identical documentation.⟧",
-                "ja": "英語以外のドキュメントを参照する際にも、Grok CLI に関する完全な機能説明を確認できるようになった。以前の簡体字中国語、日本語、韓国語の README 説明書では、機能一覧、「セクションを非表示」の項目一覧、プロバイダー比較表の各行から Grok CLI の記載が抜け落ちていた。今回の更新でこれら 3 言語のドキュメントに漏れていた記載をすべて追補し、どの言語の利用者でも共通の機能概要と設定一覧を確認できるようにした。⟦多言語の製品カタログを改訂し、日本語や韓国語の版にも新製品の特徴や比較表を漏れなく追記して全言語の内容を揃えたようなものだ。⟧",
-                "ko": "영문 이외의 프로젝트 문서를 살펴볼 때도 Grok CLI에 대한 완전한 설명을 확인할 수 있다. 이전의 간체 중국어, 일본어, 한국어 README 설명 문서에서는 기능 특징 목록, '섹션 숨기기' 설정 목록, 제공업체 비교 표에서 Grok CLI 카드 항목이 누락되어 있었다. 이번 업데이트에서 3개 언어 문서의 누락된 세 부분을 모두 채워 넣어, 어떤 언어의 사용자라도 동일한 기능 요약과 설정 설명을 찾아볼 수 있도록 했다. ⟦다국어 제품 카탈로그를 개정할 때 한국어와 일본어 판에도 신제품의 특징, 옵션 스위치, 비교 표를 빠짐없이 인쇄하여 모든 언어의 안내 내용을 일치시킨 것과 같다.⟧"
-              },
-              "original": "Backfilled the Grok CLI card into the Simplified Chinese, Japanese and Korean READMEs, which had missed the feature list entry, the Hide Sections list and the comparison-table row."
-            },
-            {
-              "title": {
-                "zh-TW": "升級 PyObjC 與 ruff 工具，單次鎖定檔結案五項相依更新",
-                "zh-CN": "升级 PyObjC 与 ruff 工具，单次锁定文件结案五项依赖更新",
-                "en": "Bump PyObjC to 12.2.2 and ruff to 0.16.4 across dependency updates",
-                "ja": "PyObjC を 12.2.2、ruff を 0.16.4 に更新し依存関係を整理",
-                "ko": "PyObjC 12.2.2 및 ruff 0.16.4 판올림으로 5개 의존성 갱신 완료"
-              },
-              "body": {
-                "zh-TW": "專案相依套件與程式碼檢查工具進行了例行升級。本次將 macOS 系統橋接套件 PyObjC 升級至 12.2.2，並將靜態檢查工具 ruff 更新至 0.16.4。這項調整在單次鎖定檔（lockfile，記錄精確套件版本的設定檔）變更中，一次結案了先前分別提出的 5 項相依套件更新提案，確保建置環境與開發工具鏈維持在最新穩定狀態。⟦這宛若工廠保養時彙整五張零件更換單，統一升級操作面板元件與校準測量尺，一次鎖定新版規格而無須分批停機。⟧",
-                "zh-CN": "项目依赖包与代码检查工具进行了例行升级。本次将 macOS 系统桥接包 PyObjC 升级至 12.2.2，并将静态检查工具 ruff 更新至 0.16.4。这项调整在单次锁定文件（lockfile，记录精确依赖版本的配置文件）变更中，一次结案了此前分别提出的 5 项依赖更新提案，确保构建环境与开发工具链维持在最新稳定状态。⟦这宛若工厂保养时汇总五张零件更换单，统一升级操作面板元件与校准测量尺，一次锁定新版规格而无需分批停机。⟧",
-                "en": "Project dependencies and linting toolchains have been upgraded to their latest releases. This update bumps the macOS system bridge PyObjC to 12.2.2 and the static analysis linter ruff to 0.16.4. By consolidating these version bumps into a single lockfile commit, the release cleanly resolves five separate dependency update requests at once, keeping the development environment and automated checks current. ⟦It is like factory maintenance consolidating five separate work orders into one shift, upgrading control circuits and calibrating measurement tools in a single scheduled pass without recurring downtime.⟧",
-                "ja": "プロジェクトの依存パッケージとコード解析ツールが最新版へ更新された。macOS のシステム連携パッケージである PyObjC を 12.2.2 へ、静的解析ツール ruff を 0.16.4 へ更新した。今回の調整では単一のロックファイル更新によって個別に提出されていた 5 件の依存関係更新を一括で完了させ、ビルド環境とツールチェーンを最新の安定状態に維持している。⟦工場の定期点検で 5 枚の部品交換伝票をまとめ、操作パネルの部品交換と計測器の校正を一度の作業で済ませて稼働停止を最小限に抑えるようなものだ。⟧",
-                "ko": "프로젝트 의존성 패키지와 코드 분석 도구가 최신 버전으로 판올림되었다. macOS 시스템 브리지 패키지인 PyObjC를 12.2.2로, 정적 검사 도구인 ruff를 0.16.4로 올렸다. 이번 변경은 단일 락파일 수정을 통해 개별적으로 올라온 5건의 의존성 업데이트 요청을 한 번에 마무리하여 빌드 환경과 도구 모음을 최신 안정 상태로 유지한다. ⟦공장 정기 점검 시 다섯 건의 부품 교체 요청서를 모아 조작 패널 부품 교체와 측정기 보정을 한 번에 끝내어 가동 중단 일정을 줄이는 것과 같다.⟧"
-              },
-              "original": "Bumped PyObjC to 12.2.2 and ruff to 0.16.4, closing five separately raised dependency updates in a single lockfile change."
-            }
-          ]
-        },
-        {
-          "version": "0.30.1",
-          "period": "2026-08-27",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "「Cloud Observation」主題修正 Grok 過期提示，標題不再被擠壓至寬度歸零",
-                "zh-CN": "“Cloud Observation”主题修正 Grok 过期提示，标题不再被挤压至宽度归零",
-                "en": "Cloud Observation theme fixes Grok staleness notice without squeezing the header",
-                "ja": "Cloud Observation テーマで Grok の更新遅延通知を修正、見出しが非表示にならない",
-                "ko": "Cloud Observation 테마에서 Grok 지연 알림을 수정하여 제목이 사라지지 않는다"
-              },
-              "body": {
-                "zh-TW": "切換至「Cloud Observation」面板主題查看 Grok 額度時，卡片標題不再被過期提示擠壓消失。該主題範本 `cloud_observation.html` 貼入 Grok 過期提示列時誤帶了 `codex-stale`、`codex-stale-info` 與 `codex-stale-tooltip`，但該面板定義的是 `.stale`、`.stale-info` 與 `.stale-tooltip`。因名稱不符，懸停提示掉成一般內文，未排版的列失去 `flex: none` 與 `white-space: nowrap`，將「Grok」標題擠成零寬度。修正後該主題已恢復正常，其餘 12 款主題先前早已正確對應。⟦這好比標籤貼錯代碼致使樣式失效，隱藏說明攤在門面把「Grok」招牌擠到看不見；更正後版面即恢復整齊。⟧",
-                "zh-CN": "切换至“Cloud Observation”面板主题查看 Grok 额度时，卡片标题不再被过期提示挤压消失。该主题模板 `cloud_observation.html` 贴入 Grok 过期提示行时误带了 `codex-stale`、`codex-stale-info` 与 `codex-stale-tooltip`，但该面板定义的是 `.stale`、`.stale-info` 与 `.stale-tooltip`。因名称不符，悬停提示掉成一般正文，未排版的行失去 `flex: none` 与 `white-space: nowrap`，将“Grok”标题挤成零宽度。修正后该主题已恢复正常，其余 12 款主题先前早已正确对应。⟦这好比标签贴错代码致使样式失效，隐藏说明摊在门面把“Grok”招牌挤到看不见；更正后版面即恢复整齐。⟧",
-                "en": "When viewing Grok usage under the Cloud Observation panel theme, the card heading will no longer be squeezed out of sight by the staleness notice. The Grok stale row was previously pasted into `cloud_observation.html` carrying `codex-stale`, `codex-stale-info`, and `codex-stale-tooltip`, but that panel defines `.stale`, `.stale-info`, and `.stale-tooltip`. Because nothing matched, the hover tooltip rendered as plain inline body text, and the unstyled row lost its `flex: none` and `white-space: nowrap` layout properties, squeezing the `Grok` heading down to zero width. This release updates the template's class names, bringing Cloud Observation in line with the other twelve themes that already resolved their classes. ⟦It is like pasting an inventory label with the wrong department code onto a display plaque, causing the styling rules to miss it so that the hidden note sprawled across the front and crushed the \"Grok\" store sign down to nothing; aligning the class names restores the neat layout and floating popup.⟧",
-                "ja": "Cloud Observation パネルテーマで Grok の利用枠を確認する際、更新遅延の通知によってカードの見出しが押し潰される問題が解消された。以前は `cloud_observation.html` に Grok の遅延通知行を貼り付けた際、`codex-stale`、`codex-stale-info`、`codex-stale-tooltip` というクラス名が残っていたが、このパネルでは `.stale`、`.stale-info`、`.stale-tooltip` と定義されていた。クラス名が一致しなかったため、マウスを重ねた際のツールチップが通常の本文テキストとして展開され、未適用の行から `flex: none` や `white-space: nowrap` の指定が外れて `Grok` の見出し幅が 0 に縮んでいた。今回クラス名が修正され、すでに正しく定義されていた他の 12 テーマと同様に正常な表示へ揃えられた。⟦これは展示プレートに別部門のコード付きラベルを貼ったせいで装飾ルールが当たらず、隠れるはずの注記が表に溢れて「Grok」の店名看板を完全に押し潰したようなものだ。名前を揃えたことで、他の 12 テーマと同様に整った表示に戻った。⟧",
-                "ko": "Cloud Observation 패널 테마에서 Grok 사용량을 확인할 때, 데이터 지연 알림 때문에 카드 제목이 찌그러져 사라지는 문제가 해결되었다. 이전에는 `cloud_observation.html`에 Grok 지연 알림 행을 붙여넣으면서 `codex-stale`, `codex-stale-info`, `codex-stale-tooltip` 클래스명이 그대로 남았으나, 해당 패널에는 `.stale`, `.stale-info`, `.stale-tooltip`으로 정의되어 있었다. 이름이 맞지 않아 마우스를 올렸을 때 떠야 할 툴팁이 일반 본문 텍스트로 펼쳐졌고, 스타일이 빠진 행에서 `flex: none` 및 `white-space: nowrap` 속성이 누락되어 `Grok` 제목 너비가 0으로 압축되었다. 이번 수정으로 클래스명이 정상 반영되어, 이미 올바르게 지정되어 있던 다른 12개 테마와 동일하게 깔끔한 화면을 보여준다. ⟦전시 팻말에 다른 부서의 식별 코드가 붙은 라벨을 붙여 스타일 규칙이 적용되지 않는 바람에, 숨겨져 있어야 할 설명 메모가 겉으로 튀어나와 'Grok' 간판을 완전히 찌그러뜨린 것과 같다. 클래스 이름을 일치시키면서 다른 12개 테마처럼 깔끔한 레이아웃과 도움말 안내로 정상 복구되었다.⟧"
-              },
-              "original": "**Cloud Observation's Grok staleness notice no longer swallows the card.** The Grok stale row was copy-pasted into `cloud_observation.html` carrying `codex-stale` / `codex-stale-info` / `codex-stale-tooltip`, but that panel defines `.stale` / `.stale-info` / `.stale-tooltip`. Nothing matched, so the hover tooltip rendered as inline body text, and the unstyled row lost `flex: none` / `white-space: nowrap` and squeezed the `Grok` heading to zero width. Cloud Observation was the only affected theme; the other twelve already resolved their classes."
             }
           ]
         }
