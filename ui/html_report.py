@@ -619,15 +619,15 @@ def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
         return ""
 
     month_labels: list[str] = []
-    seen_month: int | None = None
+    labeled_month: int | None = None
     last_label_col = -3
     for col, week in enumerate(weeks):
-        parsed = _parse_daily_date(week[0].get("date", ""))
+        parsed = _parse_daily_date(week[3].get("date", ""))
         label = ""
-        if parsed.month != seen_month and col - last_label_col >= 3:
+        if parsed.month != labeled_month and col - last_label_col >= 3:
             label = _month_label(parsed.month, lang)
             last_label_col = col
-        seen_month = parsed.month
+            labeled_month = parsed.month
         month_labels.append(label)
 
     grid_cells: list[str] = []
