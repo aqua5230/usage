@@ -675,7 +675,7 @@ body::before {
       <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
         <h3 data-i18n="card10_h">Notifications before you hit the wall</h3>
-        <p data-i18n="card10_p">When your context window hits 70%, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.</p>
+        <p data-i18n="card10_p">When your context window hits 70%, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.</p>
       </div>
       <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h9a2 2 0 0 1 2 2V12a2 2 0 0 1-2 2H10l-3 2.5V14H6a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z"/><path d="M17 9h1a2 2 0 0 1 2 2v3.5a2 2 0 0 1-2 2h-.5v2l-2.2-2H13"/></svg></span>
@@ -755,7 +755,7 @@ body::before {
     </div>
     <div class="report" style="margin-top: 56px;">
       <h3 data-i18n="report_h">Your AI usage, in one shareable page.</h3>
-      <p data-i18n="report_p">Generate an HTML report with token spend, cost, top projects, and model distribution — plus an AI Tool Update Digest summarizing recent changes, and a year-in-review page with a GitHub-style contribution heatmap and a "Wrapped" card. Send to your manager. Use as a client invoice attachment. Project names hide by default.</p>
+      <p data-i18n="report_p">Generate an HTML report with token spend, cost, top projects, and model distribution — plus a year-in-review page with a GitHub-style contribution heatmap and a "Wrapped" card. Send to your manager. Use as a client invoice attachment. Project names hide by default.</p>
       <img loading="lazy" decoding="async" data-shot src="report.en.png" data-img-en="report.en.png" data-img-cjk="report.png" alt="HTML usage report" />
     </div>
   </div>
@@ -817,7 +817,7 @@ const T = {
     card8_h: 'Terse Mode',
     card8_p: "A menu-bar toggle that asks Claude Code — and Codex CLI too, if it's installed — to answer more tersely for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact.",
     card10_h: 'Notifications before you hit the wall',
-    card10_p: 'When your context window hits 70%, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.',
+    card10_p: 'When your context window hits 70%, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.',
     card13_h: 'AI Council',
     card13_p: 'Run a multi-round discussion between Claude Code, Codex, and Antigravity on one topic. Pick who joins, which model each one uses, and how many rounds — with a token estimate shown before you start.',
     resume_label: 'PROGRESS CONCIERGE',
@@ -848,7 +848,7 @@ const T = {
     screen_h2: 'Pick a panel that fits your mood.',
     screen_sub: 'Fourteen built-in themes. Change anytime from the popover toolbar.',
     report_h: 'Your AI usage, in one shareable page.',
-    report_p: 'Generate an HTML report with token spend, cost, top projects, and model distribution — plus an AI Tool Update Digest summarizing recent changes, and a year-in-review page with a GitHub-style contribution heatmap and a "Wrapped" card. Send to your manager. Use as a client invoice attachment. Project names hide by default.',
+    report_p: 'Generate an HTML report with token spend, cost, top projects, and model distribution — plus a year-in-review page with a GitHub-style contribution heatmap and a "Wrapped" card. Send to your manager. Use as a client invoice attachment. Project names hide by default.',
     footer_tag_pre: 'Built by',
     footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
     footer_releases: 'Releases',
@@ -894,7 +894,7 @@ const T = {
     card8_h: '精簡模式',
     card8_p: '選單列開關，讓 Claude Code——連同裝好的 Codex CLI——整個對話回答更簡短：內容不變、字變少，但程式碼、指令、錯誤訊息一個字都不會被縮減。',
     card10_h: '撞牆前先提醒你',
-    card10_p: '上下文窗用到 70% 時，狀態列會提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪費 token；你也能另外開啟配額門檻與恢復通知的系統提醒。',
+    card10_p: '上下文窗用到 70% 時，狀態列會提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪費 token；你也能另外開啟配額門檻與恢復通知的系統提醒。狀態列也會顯示 prompt cache 命中率與過期倒數，讓你判斷現在收尾還能不能沿用已快取的內容。',
     card13_h: 'AI 圓桌討論',
     card13_p: '讓 Claude Code、Codex、Antigravity 針對同一個題目進行多輪討論。自選誰加入、各自用哪個模型、討論幾輪——開始前就看得到大約會花多少 token。',
     resume_label: '進度管家',
@@ -925,7 +925,7 @@ const T = {
     screen_h2: '挑一個你喜歡的面板。',
     screen_sub: '14 款內建主題。隨時從 popover 工具列切換。',
     report_h: '你的 AI 用量，一頁可分享。',
-    report_p: '產出 HTML 報告，內含 token 開銷、成本、專案排行、模型分布，外加一份 AI Tool Update Digest 摘要最近工具更新，還有年度回顧頁——GitHub 風格貢獻熱力圖，加一張「Wrapped」卡。傳給主管、附在客戶請款裡都行。預設隱藏專案名稱。',
+    report_p: '產出 HTML 報告，內含 token 開銷、成本、專案排行、模型分布，外加年度回顧頁——GitHub 風格貢獻熱力圖，加一張「Wrapped」卡。傳給主管、附在客戶請款裡都行。預設隱藏專案名稱。',
     footer_tag_pre: '作者：',
     footer_tag_post: '· AGPL-3.0 · 不上雲、不追蹤，只屬於你。',
     footer_releases: 'Releases',
@@ -971,7 +971,7 @@ const T = {
     card8_h: '精简模式',
     card8_p: '菜单栏开关，让 Claude Code——连同装好的 Codex CLI——整个对话回答更简短：内容不变、字变少，但代码、命令、错误消息一个字都不会被缩减。',
     card10_h: '撞墙前先提醒你',
-    card10_p: '上下文窗口用到 70% 时，状态栏会提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪费 token；你也可以另外开启额度门槛与恢复通知的系统提醒。',
+    card10_p: '上下文窗口用到 70% 时，状态栏会提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪费 token；你也可以另外开启额度门槛与恢复通知的系统提醒。状态栏也会显示 prompt cache 命中率与过期倒计时，让你判断现在收尾还能不能沿用已缓存的内容。',
     card13_h: 'AI 圆桌讨论',
     card13_p: '让 Claude Code、Codex、Antigravity 针对同一个题目进行多轮讨论。自选谁加入、各自用哪个模型、讨论几轮——开始前就能看到大约会花多少 token。',
     resume_label: '进度管家',
@@ -1002,7 +1002,7 @@ const T = {
     screen_h2: '挑一个你喜欢的面板。',
     screen_sub: '14 款内建主题。随时从 popover 工具栏切换。',
     report_h: '你的 AI 用量，一页可分享。',
-    report_p: '生成 HTML 报告，内含 token 开销、花费、项目排行、模型分布，外加一份 AI Tool Update Digest 摘要最近工具更新，还有年度回顾页——GitHub 风格贡献热力图，加一张「Wrapped」卡。发给老板、附在客户发票里都行。默认隐藏项目名称。',
+    report_p: '生成 HTML 报告，内含 token 开销、花费、项目排行、模型分布，外加年度回顾页——GitHub 风格贡献热力图，加一张「Wrapped」卡。发给老板、附在客户发票里都行。默认隐藏项目名称。',
     footer_tag_pre: '作者：',
     footer_tag_post: '· AGPL-3.0 · 不上云、不追踪，只属于你。',
     footer_releases: 'Releases',
@@ -1048,7 +1048,7 @@ const T = {
     card8_h: '簡潔モード',
     card8_p: 'メニューバーのスイッチ一つで、Claude Code（導入済みなら Codex CLI にも）に会話全体をより簡潔に答えるよう依頼——内容はそのまま、文字数だけ減り、コード・コマンド・エラーメッセージは一切省略されません。',
     card10_h: '壁にぶつかる前に通知',
-    card10_p: 'コンテキストウィンドウが 70% に達すると、ステータスラインが <code>/clear</code> または <code>/compact</code> を促してトークン浪費を防ぎます。さらに、クォータ制限や回復のシステム通知も任意で有効化できます。',
+    card10_p: 'コンテキストウィンドウが 70% に達すると、ステータスラインが <code>/clear</code> または <code>/compact</code> を促してトークン浪費を防ぎます。さらに、クォータ制限や回復のシステム通知も任意で有効化できます。ステータスラインには prompt cache ヒット率と有効期限へのカウントダウンも表示され、今すぐ終わらせてもキャッシュされた内容を使い回せるか判断できます。',
     card13_h: 'AI円卓会議',
     card13_p: 'Claude Code、Codex、Antigravityに同じトピックで複数ラウンドの議論をさせます。参加者、使うモデル、ラウンド数を自分で選べ、開始前にtoken見積もりが表示されます。',
     resume_label: '続きから',
@@ -1079,7 +1079,7 @@ const T = {
     screen_h2: '気分に合うパネルを選んで。',
     screen_sub: '14 種の内蔵テーマ。ポップオーバーのツールバーからいつでも切り替え可能。',
     report_h: 'あなたの AI 使用量を、共有可能な 1 ページに。',
-    report_p: 'トークン支出、コスト、トッププロジェクト、モデル分布を含む HTML レポートを生成——さらに最近の変更をまとめる AI Tool Update Digest と、GitHub 風のコントリビューションヒートマップと「Wrapped」カード付きの年間振り返りページも。マネージャーへの送付、クライアントへの請求添付など。プロジェクト名はデフォルトで非表示。',
+    report_p: 'トークン支出、コスト、トッププロジェクト、モデル分布を含む HTML レポートを生成——さらに GitHub 風のコントリビューションヒートマップと「Wrapped」カード付きの年間振り返りページも。マネージャーへの送付、クライアントへの請求添付など。プロジェクト名はデフォルトで非表示。',
     footer_tag_pre: '制作：',
     footer_tag_post: '· AGPL-3.0 · クラウドなし、トラッキングなし。あなただけのもの。',
     footer_releases: 'Releases',
@@ -1125,7 +1125,7 @@ const T = {
     card8_h: '간결 모드',
     card8_p: '메뉴 바 스위치 하나로 Claude Code — 설치되어 있다면 Codex CLI까지 — 대화 전체를 더 간결하게 답하도록 요청합니다. 내용은 그대로, 글자 수만 줄고 코드·명령어·오류 메시지는 한 글자도 줄지 않습니다.',
     card10_h: '한도에 닿기 전에 알림',
-    card10_p: '컨텍스트 창이 70%에 도달하면 상태 줄이 <code>/clear</code> 또는 <code>/compact</code> 를 권해 토큰 낭비를 막아 줍니다. 한도 경고와 회복 알림용 시스템 알림도 따로 켤 수 있어요.',
+    card10_p: '컨텍스트 창이 70%에 도달하면 상태 줄이 <code>/clear</code> 또는 <code>/compact</code> 를 권해 토큰 낭비를 막아 줍니다. 한도 경고와 회복 알림용 시스템 알림도 따로 켤 수 있어요. 상태 줄에는 prompt cache 적중률과 만료 카운트다운도 표시되어, 지금 마무리해도 캐시된 컨텍스트를 재사용할 수 있는지 판단할 수 있습니다.',
     card13_h: 'AI 원탁 토론',
     card13_p: 'Claude Code, Codex, Antigravity가 같은 주제로 여러 라운드에 걸쳐 토론하게 합니다. 참여자, 사용할 모델, 라운드 수를 직접 선택할 수 있으며 시작 전에 token 예상치가 표시됩니다.',
     resume_label: '이어서 계속',
@@ -1156,7 +1156,7 @@ const T = {
     screen_h2: '마음에 드는 패널을 골라보세요.',
     screen_sub: '14가지 내장 테마. 팝오버 툴바에서 언제든 전환 가능.',
     report_h: '당신의 AI 사용량을, 공유 가능한 한 페이지로.',
-    report_p: '토큰 지출, 비용, 상위 프로젝트, 모델 분포가 포함된 HTML 보고서를 생성 — 최근 변경을 요약한 AI Tool Update Digest와 GitHub 스타일 기여 히트맵, "Wrapped" 카드가 담긴 연말 결산 페이지도 함께. 매니저에게 전송하거나 고객 청구서 첨부로 활용. 프로젝트 이름은 기본 숨김.',
+    report_p: '토큰 지출, 비용, 상위 프로젝트, 모델 분포가 포함된 HTML 보고서를 생성 — GitHub 스타일 기여 히트맵, "Wrapped" 카드가 담긴 연말 결산 페이지도 함께. 매니저에게 전송하거나 고객 청구서 첨부로 활용. 프로젝트 이름은 기본 숨김.',
     footer_tag_pre: '제작:',
     footer_tag_post: '· AGPL-3.0 · 클라우드 없음, 추적 없음. 온전히 당신의 것.',
     footer_releases: 'Releases',

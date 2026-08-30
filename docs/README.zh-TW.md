@@ -46,6 +46,7 @@ brew install --cask aqua5230/usage/usage
 - **Grok CLI 支援：** 第四張卡片直接讀 Grok CLI 自己寫在本機的除錯紀錄檔算出每週額度百分比，不做任何網路呼叫。Grok CLI 沒有提供 Session 或燃燒率資料，所以這張卡片只顯示一條每週進度條；但它的逐次 token 用量一樣會算進今日花費與各專案總計，跟 Claude Code、Codex 一樣。
 - **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅，狀態資訊只讀官方公開的 Statuspage.io 狀態頁——絕不呼叫 LLM 用量 API。Antigravity 因沒有可用的公開狀態頁，暫不支援。
 - **上下文提醒與系統通知：** Context Window 達 70% 時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
+- **快取健康度：** 狀態列會顯示 Claude Code 的 prompt cache 命中率與過期倒數，讓你一眼判斷現在收尾還能沿用已快取的內容，還是快要冷掉、得整份重送。需要 Claude Code 2.1.251 以上；舊版不會出現這一段。
 - **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex、Grok CLI 或 Antigravity 從選單列及面板上徹底隱藏。
 
 ### 工作流程輔助
