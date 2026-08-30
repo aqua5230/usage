@@ -632,6 +632,7 @@ def test_build_report_data_includes_serialized_persona(monkeypatch: Any) -> None
     assert data["persona"] == {
         "hour_histogram": histogram,
         "recent_titles": ["Ship HTML report"],
+        "one_pass": None,
     }
     assert len(data["persona"]["hour_histogram"]) == 24
     assert isinstance(data["persona"]["recent_titles"], list)

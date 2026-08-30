@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import os
+import re
 import time
 from collections import Counter
 from dataclasses import dataclass, field
@@ -27,6 +28,27 @@ _cache: dict[int, tuple[float, PersonaProfile]] = {}
 
 
 @dataclass(slots=True)
+class OnePassModelStats:
+    model: str
+    turns: int
+    interruptions: int
+    denied_tools: int
+    pass_rate: float
+
+
+@dataclass(slots=True)
+class OnePassStats:
+    total_sessions: int
+    total_turns: int
+    interruptions: int
+    denied_tools: int
+    pass_rate: float
+    by_model: list[OnePassModelStats]
+    unattributed_interruptions: int
+    unattributed_denied_tools: int
+
+
+@dataclass(slots=True)
 class PersonaProfile:
     hour_histogram: list[int]
     top_projects: list[tuple[str, int]]
@@ -34,6 +56,7 @@ class PersonaProfile:
     total_sessions: int
     total_messages: int
     titles_by_session: dict[str, str] = field(default_factory=dict)
+    one_pass: OnePassStats | None = None
 
 
 @dataclass(slots=True)
@@ -43,6 +66,15 @@ class _MetadataLine:
     session_id: str
     cwd: str
     title: str
+
+
+@dataclass(slots=True)
+class _UserTurn:
+    session_id: str
+    is_recent: bool
+    model: str = ""
+    saw_assistant: bool = False
+    failed: bool = False
 
 
 def load_profile(days_back: int = 30) -> PersonaProfile:
@@ -68,6 +100,15 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
     message_sessions: set[str] = set()
     session_last_message_at: dict[str, datetime] = {}
     titles_by_session: dict[str, str] = {}
+    assistant_by_message_id: dict[str, str] = {}
+    assistant_by_uuid: dict[str, str] = {}
+    model_turns: Counter[str] = Counter()
+    model_failed_turns: Counter[str] = Counter()
+    model_interruptions: Counter[str] = Counter()
+    model_denied_tools: Counter[str] = Counter()
+    one_pass_sessions: set[str] = set()
+    unattributed_interruptions = 0
+    unattributed_denied_tools = 0
     total_messages = 0
 
     cutoff = datetime.now(UTC) - timedelta(days=max(0, days_back))
@@ -76,16 +117,13 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
     if not CLAUDE_PROJECTS_DIR.is_dir():
         return _empty_profile()
 
-    for jsonl_path in CLAUDE_PROJECTS_DIR.rglob("*.jsonl"):
-        try:
-            if jsonl_path.stat().st_mtime < cutoff_ts:
-                continue
-        except OSError as exc:
-            logger.warning("failed to stat Claude project log %s: %s", jsonl_path, exc)
-            continue
+    jsonl_paths = _recent_jsonl_paths(cutoff_ts)
+    assistant_by_message_id, assistant_by_uuid = _build_assistant_indexes(jsonl_paths)
 
-        fallback_project = _project_from_path(jsonl_path)
+    for jsonl_path in jsonl_paths:
+        current_turn: _UserTurn | None = None
         try:
+            fallback_project = _project_from_path(jsonl_path)
             for data in iter_jsonl_dicts(jsonl_path, errors="replace"):
                 parsed = _parse_metadata_line(data)
                 if parsed is None:
@@ -98,7 +136,43 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
                         titles_by_session[session_id] = title
 
                 timestamp = parsed.timestamp
-                if timestamp is None or timestamp < cutoff:
+                is_recent = timestamp is not None and timestamp >= cutoff
+                if parsed.type == "assistant":
+                    if current_turn is not None and not current_turn.saw_assistant:
+                        current_turn.model = _assistant_model(data)
+                        current_turn.saw_assistant = True
+                elif parsed.type == "user":
+                    if is_recent and "interruptedMessageId" in data:
+                        model = assistant_by_message_id.get(
+                            _as_str(data.get("interruptedMessageId"))
+                        )
+                        if model is None:
+                            unattributed_interruptions += 1
+                        elif _is_reportable_model(model):
+                            model_interruptions[model] += 1
+                        if current_turn is not None:
+                            current_turn.failed = True
+
+                    denied_tools = _denied_tool_count(data) if is_recent else 0
+                    if denied_tools:
+                        model = assistant_by_uuid.get(_as_str(data.get("parentUuid")))
+                        if model is None:
+                            unattributed_denied_tools += denied_tools
+                        elif _is_reportable_model(model):
+                            model_denied_tools[model] += denied_tools
+                        if current_turn is not None:
+                            current_turn.failed = True
+
+                    if _is_user_turn_start(data):
+                        _finish_turn(
+                            current_turn,
+                            model_turns,
+                            model_failed_turns,
+                            one_pass_sessions,
+                        )
+                        current_turn = _UserTurn(session_id=session_id, is_recent=is_recent)
+
+                if not is_recent or timestamp is None:
                     continue
 
                 is_message = parsed.type in {"user", "assistant"}
@@ -115,12 +189,27 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
                         session_last_message_at[session_id] = timestamp
         except OSError as exc:
             logger.warning("failed to read Claude project log %s: %s", jsonl_path, exc)
+        _finish_turn(
+            current_turn,
+            model_turns,
+            model_failed_turns,
+            one_pass_sessions,
+        )
 
     project_counts = Counter(
         {project: len(session_ids) for project, session_ids in sessions_by_project.items()}
     )
     top_projects = sorted(project_counts.items(), key=lambda item: (-item[1], item[0]))[:5]
     recent_titles = _recent_unique_titles(titles_by_session, session_last_message_at)
+    one_pass = _build_one_pass_stats(
+        total_sessions=len(one_pass_sessions),
+        model_turns=model_turns,
+        model_failed_turns=model_failed_turns,
+        model_interruptions=model_interruptions,
+        model_denied_tools=model_denied_tools,
+        unattributed_interruptions=unattributed_interruptions,
+        unattributed_denied_tools=unattributed_denied_tools,
+    )
 
     return PersonaProfile(
         hour_histogram=histogram,
@@ -129,6 +218,7 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
         total_sessions=len(message_sessions),
         total_messages=total_messages,
         titles_by_session=titles_by_session,
+        one_pass=one_pass,
     )
 
 
@@ -140,7 +230,160 @@ def _empty_profile() -> PersonaProfile:
         total_sessions=0,
         total_messages=0,
         titles_by_session={},
+        one_pass=None,
     )
+
+
+def _build_one_pass_stats(
+    *,
+    total_sessions: int,
+    model_turns: Counter[str],
+    model_failed_turns: Counter[str],
+    model_interruptions: Counter[str],
+    model_denied_tools: Counter[str],
+    unattributed_interruptions: int,
+    unattributed_denied_tools: int,
+) -> OnePassStats | None:
+    total_turns = sum(model_turns.values())
+    if len(model_turns) < 2 or total_turns < 30:
+        return None
+
+    interruption_count = sum(model_interruptions.values()) + unattributed_interruptions
+    denied_tool_count = sum(model_denied_tools.values()) + unattributed_denied_tools
+    by_model = [
+        OnePassModelStats(
+            model=model,
+            turns=turns,
+            interruptions=model_interruptions[model],
+            denied_tools=model_denied_tools[model],
+            pass_rate=_pass_rate(turns, model_failed_turns[model]),
+        )
+        for model, turns in sorted(model_turns.items(), key=lambda item: (-item[1], item[0]))
+    ]
+    return OnePassStats(
+        total_sessions=total_sessions,
+        total_turns=total_turns,
+        interruptions=interruption_count,
+        denied_tools=denied_tool_count,
+        pass_rate=_pass_rate(total_turns, sum(model_failed_turns.values())),
+        by_model=by_model,
+        unattributed_interruptions=unattributed_interruptions,
+        unattributed_denied_tools=unattributed_denied_tools,
+    )
+
+
+def _pass_rate(turns: int, failed_turns: int) -> float:
+    if turns <= 0:
+        return 0.0
+    rate = (turns - failed_turns) / turns * 100
+    return round(max(0.0, min(100.0, rate)), 1)
+
+
+def _assistant_model(data: dict[str, Any]) -> str:
+    message = data.get("message")
+    if not isinstance(message, dict):
+        return ""
+    return _as_str(message.get("model")).strip()
+
+
+def _assistant_message_id(data: dict[str, Any]) -> str:
+    message = data.get("message")
+    if not isinstance(message, dict):
+        return ""
+    return _as_str(message.get("id"))
+
+
+def _recent_jsonl_paths(cutoff_ts: float) -> list[Path]:
+    paths: list[Path] = []
+    for jsonl_path in CLAUDE_PROJECTS_DIR.rglob("*.jsonl"):
+        try:
+            if jsonl_path.stat().st_mtime >= cutoff_ts:
+                paths.append(jsonl_path)
+        except OSError as exc:
+            logger.warning("failed to stat Claude project log %s: %s", jsonl_path, exc)
+    return paths
+
+
+def _build_assistant_indexes(
+    jsonl_paths: list[Path],
+) -> tuple[dict[str, str], dict[str, str]]:
+    by_message_id: dict[str, str] = {}
+    by_uuid: dict[str, str] = {}
+    for jsonl_path in jsonl_paths:
+        try:
+            for data in iter_jsonl_dicts(jsonl_path, errors="replace"):
+                if _as_str(data.get("type")) != "assistant":
+                    continue
+                model = _assistant_model(data)
+                message_id = _assistant_message_id(data)
+                if message_id:
+                    by_message_id.setdefault(message_id, model)
+                uuid = _as_str(data.get("uuid"))
+                if uuid:
+                    by_uuid.setdefault(uuid, model)
+        except OSError as exc:
+            logger.warning("failed to index Claude project log %s: %s", jsonl_path, exc)
+    return by_message_id, by_uuid
+
+
+def _finish_turn(
+    turn: _UserTurn | None,
+    model_turns: Counter[str],
+    model_failed_turns: Counter[str],
+    one_pass_sessions: set[str],
+) -> None:
+    if turn is None or not turn.is_recent or not _is_reportable_model(turn.model):
+        return
+    model_turns[turn.model] += 1
+    if turn.failed:
+        model_failed_turns[turn.model] += 1
+    if turn.session_id:
+        one_pass_sessions.add(turn.session_id)
+
+
+def _is_reportable_model(model: str) -> bool:
+    return bool(model) and re.fullmatch(r"<.*>", model) is None
+
+
+def _is_user_turn_start(data: dict[str, Any]) -> bool:
+    if _as_str(data.get("type")) != "user":
+        return False
+    message = data.get("message")
+    if not isinstance(message, dict):
+        return True
+    content = message.get("content")
+    if not isinstance(content, list) or not content:
+        return True
+    first = content[0]
+    if not isinstance(first, dict):
+        return True
+    if first.get("type") == "tool_result":
+        return False
+    return not (
+        first.get("type") == "text"
+        and _as_str(first.get("text")).strip() == "[Request interrupted by user]"
+    )
+
+
+def _denied_tool_count(data: dict[str, Any]) -> int:
+    message = data.get("message")
+    if not isinstance(message, dict):
+        return 0
+    content = message.get("content")
+    if not isinstance(content, list):
+        return 0
+    count = 0
+    for item in content:
+        if not isinstance(item, dict) or item.get("type") != "tool_result":
+            continue
+        result = item.get("content")
+        if (
+            isinstance(result, str)
+            and result.startswith("Permission to use ")
+            and " has been denied" in result
+        ):
+            count += 1
+    return count
 
 
 def _parse_metadata_line(data: dict[str, Any]) -> _MetadataLine | None:

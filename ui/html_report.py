@@ -294,6 +294,67 @@ def _hour_histogram_html(histogram: list[int]) -> str:
     return f'<div class="persona-hours">{"".join(bars)}</div>'
 
 
+def _one_pass_card(persona: Mapping[str, object], lang: str) -> str:
+    raw_stats = persona.get("one_pass")
+    if not isinstance(raw_stats, Mapping):
+        return ""
+    raw_total = raw_stats.get("total")
+    raw_models = raw_stats.get("models")
+    if not isinstance(raw_total, Mapping) or not isinstance(raw_models, list):
+        return ""
+
+    models: list[tuple[str, int, float]] = []
+    for raw_model in raw_models:
+        if not isinstance(raw_model, Mapping):
+            continue
+        model = str(raw_model.get("model") or "unknown")
+        turns = _nonnegative_int(raw_model.get("turns"))
+        pass_rate = _bounded_pct(raw_model.get("pass_rate"))
+        if turns > 0:
+            models.append((model, turns, pass_rate))
+    models.sort(key=lambda item: (-item[1], item[0]))
+    if not models:
+        return ""
+
+    rows = []
+    for model, turns, pass_rate in models[:5]:
+        rows.append(
+            '<div class="one-pass-row">'
+            f'<span class="name">{_escape(_display_name(model, lang))}'
+            f'{render_share_bar(pass_rate, _model_share_color(model))}</span>'
+            f'<span class="turns">{_escape(_t(lang, "persona_one_pass_turns", turns=turns))}</span>'
+            f'<strong>{pass_rate:.1f}%</strong>'
+            "</div>"
+        )
+
+    summary = _t(
+        lang,
+        "persona_one_pass_summary",
+        sessions=_nonnegative_int(raw_total.get("sessions")),
+        interruptions=_nonnegative_int(raw_total.get("interruptions")),
+        denied_tools=_nonnegative_int(raw_total.get("denied_tools")),
+    )
+    return (
+        '<div class="persona-card one-pass-card">'
+        f'<h3>{_escape(_t(lang, "persona_one_pass_title"))}</h3>'
+        f'<p class="persona-caption">{_escape(summary)}</p>'
+        f'<div class="one-pass-list">{"".join(rows)}</div>'
+        "</div>"
+    )
+
+
+def _nonnegative_int(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return 0
+    return max(0, int(value))
+
+
+def _bounded_pct(value: object) -> float:
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return 0.0
+    return max(0.0, min(100.0, float(value)))
+
+
 def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:
     if persona is None:
         return _empty_line(_t(lang, "persona_empty"))
@@ -317,13 +378,14 @@ def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:
         else ""
     )
     caption = _t(lang, "persona_caption", h1=h1, h2=h2)
-    return (
+    active_hours = (
         '<div class="persona-card">'
         f'<h3>{_escape(_t(lang, "persona_active_hours"))}</h3>'
         f'<p class="persona-caption">{_escape(caption)}</p>'
         f'{_hour_histogram_html(values)}'
         '</div>'
     )
+    return active_hours + _one_pass_card(persona, lang)
 
 
 def _donut_svg(items: list[tuple[str, int]], lang: str, *, total: int) -> str:
@@ -612,7 +674,7 @@ def _insight_kwargs(
                 f'data-mask-as="{_escape(mask_labels.get(str(value), "Project"))}">'
                 f"{_escape(value)}</span>"
             )
-        elif key in {"model", "date"}:
+        elif key in {"model", "higher_model", "lower_model", "date"}:
             kwargs[key] = _escape(value)
         else:
             kwargs[key] = value

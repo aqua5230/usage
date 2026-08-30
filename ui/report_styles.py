@@ -173,6 +173,7 @@ h1{
 .insight-note{background:rgba(90,191,160,.06);border-left:3px solid var(--cost);color:var(--text-soft)}
 .insight-action{background:rgba(224,136,90,.06);border-left:3px solid var(--warn);color:var(--text-soft);margin-bottom:0}
 .persona-card{border:1px solid var(--card-border);border-radius:12px;background:var(--soft);padding:18px;min-width:0}
+.persona-card+.persona-card{margin-top:16px}
 .persona-card h3{margin:0 0 14px;color:var(--text);font-size:.95rem;font-weight:700}
 .persona-caption{margin:0 0 16px;color:var(--text-soft);font-size:.88rem;line-height:1.5}
 .persona-hours{display:grid;grid-template-columns:repeat(24,minmax(8px,1fr));gap:4px;align-items:end;height:176px;padding-top:8px}
@@ -180,6 +181,12 @@ h1{
 .persona-hour span{display:block;width:100%;min-height:1.5px;border-radius:4px 4px 1px 1px;background:linear-gradient(180deg,var(--cost),var(--accent-purple))}
 .persona-hour.is-peak span{background:linear-gradient(180deg,var(--cost),var(--text-soft));box-shadow:0 0 12px rgba(90,191,160,.4)}
 .persona-hour em{font-style:normal;color:var(--muted);font-size:.58rem;text-align:center;overflow:hidden}
+.one-pass-list{display:grid;gap:12px}
+.one-pass-row{display:grid;grid-template-columns:minmax(0,1fr) 128px 64px;gap:16px;align-items:center;color:var(--text-soft);font-size:.84rem}
+.one-pass-row .name{min-width:0;overflow-wrap:anywhere;color:var(--text)}
+.one-pass-row .turns,.one-pass-row strong{text-align:right;font-variant-numeric:tabular-nums}
+.one-pass-row .turns{color:var(--muted);font-weight:500}
+.one-pass-row strong{color:var(--text);font-size:.88rem}
 .table-wrap{overflow-x:auto}
 table{width:100%;border-collapse:collapse;min-width:760px}
 th,td{padding:12px 16px;text-align:left;font-size:.95rem}
@@ -360,6 +367,7 @@ td:first-child{color:var(--warn)}
   .rank-line .pct,.rank-line .tokens,.rank-line .cost,.tool-row .pct,.tool-row .tokens,.tool-row .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}
   .rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before,.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{content:attr(data-label);color:var(--muted);font-weight:500}
   .trend-row{grid-template-columns:52px minmax(0,1fr) 72px 80px;gap:12px;padding:10px}
+  .one-pass-row{grid-template-columns:minmax(0,1fr) 104px 56px;gap:10px}
   .tool-row{grid-template-columns:1fr;gap:8px}
   .tool-row .pct:empty,.tool-row .tokens:empty,.tool-row .cost:empty{display:none}
   .wrapped-card{grid-template-columns:1fr;gap:16px}

@@ -44,6 +44,10 @@ def build_insights(data: dict[str, Any]) -> list[dict[str, Any]]:
     if shift is not None:
         components.append(shift)
 
+    one_pass_gap = _build_one_pass_gap(data)
+    if one_pass_gap is not None:
+        components.append(one_pass_gap)
+
     action = _build_action(change, spike, data)
     if action is not None:
         components.append(action)
@@ -141,6 +145,39 @@ def _build_model_shift(data: dict[str, Any]) -> dict[str, Any] | None:
         "model": model,
         "prev_pct": _round_pct(prev_pct),
         "pct": _round_pct(pct),
+    }
+
+
+def _build_one_pass_gap(data: dict[str, Any]) -> dict[str, Any] | None:
+    persona = _mapping_value(data.get("persona"))
+    one_pass = _mapping_value(persona.get("one_pass")) if persona else None
+    if one_pass is None:
+        return None
+
+    rates: list[tuple[str, float]] = []
+    for raw_model in _list_value(one_pass.get("models")):
+        model = _mapping_value(raw_model)
+        if model is None:
+            continue
+        name = _str_value(model.get("model"), "")
+        turns = _int_value(model.get("turns"))
+        rate = _float_value(model.get("pass_rate"))
+        if name and turns > 0 and 0.0 <= rate <= 100.0:
+            rates.append((name, rate))
+    if len(rates) < 2:
+        return None
+
+    higher_model, higher_rate = sorted(rates, key=lambda item: (-item[1], item[0]))[0]
+    lower_model, lower_rate = sorted(rates, key=lambda item: (item[1], item[0]))[0]
+    gap = higher_rate - lower_rate
+    if gap <= 15.0:
+        return None
+    return {
+        "type": "pace_note",
+        "key": "insights_one_pass_gap",
+        "higher_model": higher_model,
+        "lower_model": lower_model,
+        "gap": _round_pct(gap),
     }
 
 

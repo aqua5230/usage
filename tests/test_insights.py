@@ -265,3 +265,46 @@ def test_action_spike_share_is_used_when_quota_watch_does_not_apply() -> None:
         "date": "2026-05-15",
         "share": 86,
     }
+
+
+def test_one_pass_gap_emits_only_above_fifteen_percentage_points() -> None:
+    payload = _payload()
+    payload["persona"] = {
+        "one_pass": {
+            "models": [
+                {"model": "claude-sonnet-4", "turns": 20, "pass_rate": 96.0},
+                {"model": "gpt-5-codex", "turns": 15, "pass_rate": 80.0},
+            ]
+        }
+    }
+
+    insight = next(
+        component
+        for component in build_insights(payload)
+        if component["key"] == "insights_one_pass_gap"
+    )
+
+    assert insight == {
+        "type": "pace_note",
+        "key": "insights_one_pass_gap",
+        "higher_model": "claude-sonnet-4",
+        "lower_model": "gpt-5-codex",
+        "gap": 16.0,
+    }
+
+
+def test_one_pass_gap_stays_silent_at_fifteen_percentage_points() -> None:
+    payload = _payload()
+    payload["persona"] = {
+        "one_pass": {
+            "models": [
+                {"model": "claude-sonnet-4", "turns": 20, "pass_rate": 95.0},
+                {"model": "gpt-5-codex", "turns": 15, "pass_rate": 80.0},
+            ]
+        }
+    }
+
+    assert not any(
+        component["key"] == "insights_one_pass_gap"
+        for component in build_insights(payload)
+    )

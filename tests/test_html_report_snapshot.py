@@ -635,3 +635,55 @@ def test_model_share_bar_uses_provider_color(model: str, color: str) -> None:
     html = html_report._render_model_section(data, "en")
 
     assert f'background:{color}' in html
+
+
+def test_one_pass_card_hides_when_stats_are_empty() -> None:
+    histogram = [0] * 24
+    histogram[9] = 1
+
+    html = html_report._persona_body(
+        {"hour_histogram": histogram, "one_pass": None},
+        "en",
+    )
+
+    assert "Active hours" in html
+    assert "One-pass rate" not in html
+    assert "one-pass-card" not in html
+
+
+def test_one_pass_card_shows_top_five_models_with_provider_colors() -> None:
+    histogram = [0] * 24
+    histogram[9] = 30
+    models = [
+        {
+            "model": f"claude-model-{index}",
+            "turns": turns,
+            "interruptions": 0,
+            "denied_tools": 0,
+            "pass_rate": 90.0 + index,
+        }
+        for index, turns in enumerate([10, 60, 50, 40, 30, 20])
+    ]
+    html = html_report._persona_body(
+        {
+            "hour_histogram": histogram,
+            "one_pass": {
+                "total": {
+                    "sessions": 7,
+                    "turns": 210,
+                    "interruptions": 2,
+                    "denied_tools": 3,
+                    "pass_rate": 97.6,
+                },
+                "models": models,
+            },
+        },
+        "en",
+    )
+
+    assert "This period: 7 sessions, 2 interruptions, and 3 blocked tool calls." in html
+    assert html.count('class="one-pass-row"') == 5
+    assert "claude-model-0" not in html
+    assert "claude-model-1" in html
+    assert "User turns: 60" in html
+    assert "background:#5abfa0" in html

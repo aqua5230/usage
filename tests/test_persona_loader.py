@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Sequence
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -56,6 +57,73 @@ def _title_row(session_id: str, ai_title: str) -> dict[str, Any]:
         "sessionId": session_id,
         "aiTitle": ai_title,
     }
+
+
+def _assistant_row(
+    *,
+    timestamp: datetime,
+    model: str | None,
+    index: int,
+) -> dict[str, Any]:
+    return {
+        "type": "assistant",
+        "timestamp": timestamp.isoformat(),
+        "sessionId": f"session-{index % 3}",
+        "uuid": f"uuid-{index}",
+        "message": {"id": f"message-{index}", "model": model, "content": []},
+    }
+
+
+def _user_row(*, timestamp: datetime, index: int) -> dict[str, Any]:
+    return {
+        "type": "user",
+        "timestamp": timestamp.isoformat(),
+        "sessionId": f"session-{index % 3}",
+        "uuid": f"user-{index}",
+        "message": {"content": f"prompt {index}"},
+    }
+
+
+def _conversation_rows(
+    timestamp: datetime,
+    models: Sequence[str | None],
+) -> list[dict[str, Any]]:
+    rows: list[dict[str, Any]] = []
+    for index, model in enumerate(models):
+        rows.extend(
+            [
+                _user_row(timestamp=timestamp, index=index),
+                _assistant_row(timestamp=timestamp, model=model, index=index),
+            ]
+        )
+    return rows
+
+
+def _signal_row(
+    *,
+    timestamp: datetime,
+    interrupted_message_id: str | None = None,
+    denied_parent_uuid: str | None = None,
+) -> dict[str, Any]:
+    row: dict[str, Any] = {
+        "type": "user",
+        "timestamp": timestamp.isoformat(),
+        "sessionId": "signal-session",
+        "message": {"content": []},
+    }
+    if interrupted_message_id is not None:
+        row["interruptedMessageId"] = interrupted_message_id
+    if denied_parent_uuid is not None:
+        row["parentUuid"] = denied_parent_uuid
+        row["message"] = {
+            "content": [
+                {
+                    "type": "tool_result",
+                    "content": "Permission to use Bash has been denied by the user",
+                }
+            ]
+        }
+    return row
 
 
 def test_profile_cache_keeps_each_period_within_ttl(
@@ -302,3 +370,182 @@ def test_persona_profile_positional_construction_keeps_title_map_default() -> No
     profile = persona_loader.PersonaProfile([0] * 24, [], [], 0, 0)
 
     assert profile.titles_by_session == {}
+
+
+def test_one_pass_multiple_interruptions_only_fail_one_user_turn(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    now = datetime.now(UTC)
+    rows: list[dict[str, Any]] = []
+    for index, model in enumerate(["claude-sonnet-4"] * 18 + ["gpt-5-codex"] * 12):
+        rows.extend(
+            [
+                _user_row(timestamp=now, index=index),
+                _assistant_row(timestamp=now, model=model, index=index),
+            ]
+        )
+        if index == 0:
+            rows.extend(
+                [
+                    _signal_row(timestamp=now, interrupted_message_id="message-0"),
+                    _signal_row(timestamp=now, interrupted_message_id="message-0"),
+                ]
+            )
+    _write_jsonl(projects_dir / "project-a" / "a.jsonl", rows)
+
+    stats = persona_loader.load_profile().one_pass
+
+    assert stats is not None
+    assert stats.total_turns == 30
+    assert stats.interruptions == 2
+    assert stats.denied_tools == 0
+    assert stats.pass_rate == 96.7
+    assert [
+        (item.model, item.turns, item.interruptions, item.denied_tools, item.pass_rate)
+        for item in stats.by_model
+    ] == [
+        ("claude-sonnet-4", 18, 2, 0, 94.4),
+        ("gpt-5-codex", 12, 0, 0, 100.0),
+    ]
+
+
+def test_tool_results_do_not_start_new_user_turns(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    now = datetime.now(UTC)
+    rows: list[dict[str, Any]] = []
+    for index, model in enumerate(["claude-sonnet-4"] * 15 + ["gpt-5-codex"] * 15):
+        rows.extend(
+            [
+                _user_row(timestamp=now, index=index),
+                _assistant_row(timestamp=now, model=model, index=index),
+            ]
+        )
+        if index == 0:
+            rows.extend(
+                _signal_row(timestamp=now, denied_parent_uuid="uuid-0")
+                for _ in range(3)
+            )
+    _write_jsonl(projects_dir / "project-a" / "a.jsonl", rows)
+
+    stats = persona_loader.load_profile().one_pass
+
+    assert stats is not None
+    assert stats.total_turns == 30
+    assert stats.denied_tools == 3
+    assert stats.pass_rate == 96.7
+    assert stats.by_model[0].pass_rate == 93.3
+
+
+def test_synthetic_empty_and_none_models_are_excluded(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    now = datetime.now(UTC)
+    models: list[str | None] = ["claude-sonnet-4"] * 15
+    models.extend(["gpt-5-codex"] * 15)
+    models.extend(["<synthetic>", "<internal marker>", "", None])
+    _write_jsonl(
+        projects_dir / "project-a" / "a.jsonl",
+        _conversation_rows(now, models),
+    )
+
+    stats = persona_loader.load_profile().one_pass
+
+    assert stats is not None
+    assert stats.total_turns == 30
+    assert [item.model for item in stats.by_model] == [
+        "claude-sonnet-4",
+        "gpt-5-codex",
+    ]
+
+
+def test_unmatched_signals_stay_unattributed_but_fail_current_turn(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    now = datetime.now(UTC)
+    rows: list[dict[str, Any]] = []
+    for index, model in enumerate(["claude-sonnet-4"] * 15 + ["gpt-5-codex"] * 15):
+        rows.extend(
+            [
+                _user_row(timestamp=now, index=index),
+                _assistant_row(timestamp=now, model=model, index=index),
+            ]
+        )
+        if index == 15:
+            rows.extend(
+                [
+                    _signal_row(timestamp=now, interrupted_message_id="missing-message"),
+                    _signal_row(timestamp=now, denied_parent_uuid="missing-uuid"),
+                ]
+            )
+    _write_jsonl(projects_dir / "project-a" / "a.jsonl", rows)
+
+    stats = persona_loader.load_profile().one_pass
+
+    assert stats is not None
+    assert stats.unattributed_interruptions == 1
+    assert stats.unattributed_denied_tools == 1
+    assert all(item.interruptions == 0 for item in stats.by_model)
+    assert all(item.denied_tools == 0 for item in stats.by_model)
+    assert stats.pass_rate == 96.7
+    assert stats.by_model[1].pass_rate == 93.3
+
+
+def test_signal_can_resolve_to_assistant_in_later_file(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    now = datetime.now(UTC)
+    rows = _conversation_rows(
+        now,
+        ["claude-sonnet-4"] * 15 + ["gpt-5-codex"] * 15,
+    )
+    rows.append(_signal_row(timestamp=now, interrupted_message_id="message-999"))
+    _write_jsonl(projects_dir / "project-a" / "a-signal.jsonl", rows)
+    _write_jsonl(
+        projects_dir / "project-a" / "z-target.jsonl",
+        [_assistant_row(timestamp=now, model="gpt-5-codex", index=999)],
+    )
+
+    stats = persona_loader.load_profile().one_pass
+
+    assert stats is not None
+    assert stats.unattributed_interruptions == 0
+    assert stats.by_model[1].interruptions == 1
+
+
+@pytest.mark.parametrize(
+    "models",
+    [
+        ["claude-sonnet-4"] * 30,
+        ["claude-sonnet-4"] * 15 + ["gpt-5-codex"] * 14,
+    ],
+)
+def test_one_pass_stats_are_empty_below_comparison_thresholds(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    models: list[str],
+) -> None:
+    projects_dir = tmp_path / "projects"
+    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    now = datetime.now(UTC)
+    _write_jsonl(
+        projects_dir / "project-a" / "a.jsonl",
+        _conversation_rows(now, models),
+    )
+
+    assert persona_loader.load_profile().one_pass is None

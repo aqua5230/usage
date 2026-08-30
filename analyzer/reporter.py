@@ -119,6 +119,7 @@ class ComparisonReportData(TypedDict):
 class PersonaReportData(TypedDict):
     hour_histogram: list[int]
     recent_titles: list[str]
+    one_pass: dict[str, Any] | None
     top_projects: NotRequired[list[tuple[str, int]]]
 
 
@@ -321,9 +322,37 @@ def _load_persona_for_period(period: str) -> PersonaReportData | None:
         profile = persona_loader.load_profile(days_back)
     except Exception:
         return None
+    one_pass = profile.one_pass
     return {
         "hour_histogram": list(profile.hour_histogram),
         "recent_titles": list(profile.recent_titles),
+        "one_pass": (
+            {
+                "total": {
+                    "sessions": one_pass.total_sessions,
+                    "turns": one_pass.total_turns,
+                    "interruptions": one_pass.interruptions,
+                    "denied_tools": one_pass.denied_tools,
+                    "pass_rate": one_pass.pass_rate,
+                },
+                "models": [
+                    {
+                        "model": item.model,
+                        "turns": item.turns,
+                        "interruptions": item.interruptions,
+                        "denied_tools": item.denied_tools,
+                        "pass_rate": item.pass_rate,
+                    }
+                    for item in one_pass.by_model
+                ],
+                "unattributed": {
+                    "interruptions": one_pass.unattributed_interruptions,
+                    "denied_tools": one_pass.unattributed_denied_tools,
+                },
+            }
+            if one_pass is not None
+            else None
+        ),
     }
 
 
