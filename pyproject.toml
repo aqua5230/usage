@@ -139,6 +139,13 @@ warn_unused_ignores = false
 module = ["discussion.cli", "tests.test_discussion_cli"]
 warn_unused_ignores = false
 
+# tests/test_usage_statusline.py forks a child to contend the POSIX file lock;
+# os.fork does not exist on Windows, so its `type: ignore` is only "used" when
+# mypy runs there. Same reasoning as usage_cli above.
+[[tool.mypy.overrides]]
+module = "tests.test_usage_statusline"
+warn_unused_ignores = false
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --strict-markers"

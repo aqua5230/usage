@@ -201,7 +201,9 @@ def test_exclusive_lock_times_out_when_another_process_holds_it(
     fcntl = vars(usage_statusline).get("fcntl")
     assert fcntl is not None
     ready_read, ready_write = os.pipe()
-    child_pid = os.fork()
+    # os.fork is POSIX-only; this test is skipped on Windows, but mypy still
+    # type-checks the line there.
+    child_pid = os.fork()  # type: ignore[attr-defined]
     if child_pid == 0:
         os.close(ready_read)
         lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
