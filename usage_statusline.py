@@ -67,7 +67,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.4"
+__version__ = "1.5"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -320,8 +320,7 @@ def _acquire_msvcrt_lock(lock_fd: int) -> bool:
     msvcrt has no blocking-with-timeout mode: LK_LOCK retries on a fixed
     one-second granularity, and LK_NBLCK gives up instantly. Poll LK_NBLCK so a
     contended lock is waited out rather than silently skipped — dropping the
-    lock would run save()'s read-modify-write unsynchronized, which fcntl.flock
-    never does on POSIX.
+    lock would run save()'s read-modify-write unsynchronized.
     """
     deadline = time.monotonic() + _LOCK_TIMEOUT_S
     while True:
@@ -345,11 +344,22 @@ def _acquire_msvcrt_lock(lock_fd: int) -> bool:
 def _exclusive_lock(lock_fd: int) -> Any:
     """Use the native lock when available; preserve atomic writes without one."""
     if fcntl is not None:
-        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        locked = False
+        deadline = time.monotonic() + _LOCK_TIMEOUT_S
+        while True:
+            try:
+                fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                locked = True
+                break
+            except OSError as exc:
+                if exc.errno not in (errno.EACCES, errno.EAGAIN) or time.monotonic() >= deadline:
+                    break
+                time.sleep(_LOCK_POLL_INTERVAL_S)
         try:
             yield
         finally:
-            fcntl.flock(lock_fd, fcntl.LOCK_UN)
+            if locked:
+                fcntl.flock(lock_fd, fcntl.LOCK_UN)
         return
 
     locked = _acquire_msvcrt_lock(lock_fd) if msvcrt is not None else False

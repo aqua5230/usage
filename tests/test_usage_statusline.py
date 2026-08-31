@@ -12,6 +12,7 @@ import json
 import os
 import sys
 import tempfile
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
@@ -186,6 +187,44 @@ def test_save_works_without_fcntl_or_msvcrt(
     usage_statusline.save({"rate_limits": {"status": "ok"}}, datetime.now(UTC))
 
     assert status_file.exists()
+
+
+@pytest.mark.skipif(
+    vars(usage_statusline).get("fcntl") is None,
+    reason="requires POSIX fcntl",
+)
+def test_exclusive_lock_times_out_when_another_process_holds_it(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    lock_path = tmp_path / "usage-status.lock"
+    fcntl = vars(usage_statusline).get("fcntl")
+    assert fcntl is not None
+    ready_read, ready_write = os.pipe()
+    child_pid = os.fork()
+    if child_pid == 0:
+        os.close(ready_read)
+        lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+        fcntl.flock(lock_fd, fcntl.LOCK_EX)
+        os.write(ready_write, b"1")
+        time.sleep(0.3)
+        os._exit(0)
+
+    os.close(ready_write)
+    try:
+        assert os.read(ready_read, 1) == b"1"
+        monkeypatch.setattr(usage_statusline, "_LOCK_TIMEOUT_S", 0.01)
+        lock_fd = os.open(lock_path, os.O_CREAT | os.O_RDWR, 0o600)
+        try:
+            started = time.monotonic()
+            with usage_statusline._exclusive_lock(lock_fd):
+                pass
+            assert time.monotonic() - started < 0.15
+        finally:
+            os.close(lock_fd)
+    finally:
+        os.close(ready_read)
+        os.waitpid(child_pid, 0)
 
 
 def test_acquire_msvcrt_lock_waits_out_a_contended_lock(
