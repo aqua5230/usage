@@ -146,7 +146,7 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
                         model = assistant_by_message_id.get(
                             _as_str(data.get("interruptedMessageId"))
                         )
-                        if model is None:
+                        if model is None or not _is_reportable_model(model):
                             unattributed_interruptions += 1
                         elif _is_reportable_model(model):
                             model_interruptions[model] += 1
@@ -156,7 +156,7 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
                     denied_tools = _denied_tool_count(data) if is_recent else 0
                     if denied_tools:
                         model = assistant_by_uuid.get(_as_str(data.get("parentUuid")))
-                        if model is None:
+                        if model is None or not _is_reportable_model(model):
                             unattributed_denied_tools += denied_tools
                         elif _is_reportable_model(model):
                             model_denied_tools[model] += denied_tools

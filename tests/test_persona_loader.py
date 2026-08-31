@@ -503,6 +503,33 @@ def test_unmatched_signals_stay_unattributed_but_fail_current_turn(
     assert stats.by_model[1].pass_rate == 93.3
 
 
+def test_interruption_of_assistant_without_model_stays_unattributed(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    projects_dir = tmp_path / "projects"
+    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    now = datetime.now(UTC)
+    rows = _conversation_rows(
+        now,
+        ["claude-sonnet-4"] * 15 + ["gpt-5-codex"] * 15,
+    )
+    missing_model = _assistant_row(timestamp=now, model=None, index=999)
+    del missing_model["message"]["model"]
+    rows.extend(
+        [
+            missing_model,
+            _signal_row(timestamp=now, interrupted_message_id="message-999"),
+        ]
+    )
+    _write_jsonl(projects_dir / "project-a" / "a.jsonl", rows)
+
+    stats = persona_loader.load_profile().one_pass
+
+    assert stats is not None
+    assert stats.unattributed_interruptions == 1
+
+
 def test_signal_can_resolve_to_assistant_in_later_file(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
