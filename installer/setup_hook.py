@@ -1283,4 +1283,7 @@ def unsetup() -> int:
     if CODEX_CONFIG.exists():
         _unsetup_codex()
 
+    if GROK_SETTINGS.exists():
+        _unsetup_grok()
+
     return 0

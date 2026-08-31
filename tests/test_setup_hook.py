@@ -83,6 +83,27 @@ def test_setup_backs_up_existing_statusline_and_is_idempotent(
     assert setup_hook.FORWARDER_TARGET.exists()
 
 
+def test_unsetup_restores_grok_status_line(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+) -> None:
+    original = (
+        '[ui]\n'
+        'theme = "dark"\n'
+        '\n'
+        '[ui.status_line]\n'
+        'type = "builtin"\n'
+        'items = ["cwd", "model"]\n'
+    )
+    setup_hook.GROK_SETTINGS.parent.mkdir(parents=True)
+    setup_hook.GROK_SETTINGS.write_text(original, encoding="utf-8")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "darwin")
+
+    assert setup_hook._setup_grok()
+    assert setup_hook.unsetup() == 0
+    assert setup_hook.GROK_SETTINGS.read_text(encoding="utf-8") == original
+
+
 def test_unsetup_restores_backup_and_removes_hook_files(setup_paths: SetupHookPaths) -> None:
     settings = setup_paths.settings
     hook_target = setup_paths.hook_target
