@@ -67,6 +67,29 @@ def test_enable_registers_hook_and_writes_sidecar(
     assert "plain is the style" in bundle["en"]["instruction"]
     assert "白話是風格" in bundle["zh-TW"]["instruction"]
     assert (
+        "工具或子代理的輸出不要原文轉貼：先讀懂再用白話重寫成結論，只有程式碼、指令、路徑、錯誤"
+        "訊息照原文保留。" in bundle["zh-TW"]["instruction"]
+    )
+    assert (
+        "Never paste a tool's or subagent's output verbatim: read it, then rewrite it as a "
+        "plain-language conclusion — only code, commands, paths, and error messages stay "
+        "verbatim." in bundle["en"]["instruction"]
+    )
+    assert (
+        "工具或子代理的输出不要原文转贴：先读懂再用白话重写成结论，只有代码、指令、路径、错误"
+        "信息照原文保留。" in bundle["zh-CN"]["instruction"]
+    )
+    assert (
+        "ツールやサブエージェントの出力をそのまま貼り付けないこと。まず理解し、平易な言葉で結"
+        "論として書き直す。原文のまま残すのはコード、コマンド、パス、エラーメッセージだけ。"
+        in bundle["ja"]["instruction"]
+    )
+    assert (
+        "도구나 서브에이전트의 출력을 그대로 붙여넣지 말 것: 먼저 이해한 뒤 쉬운 말로 결론으로 "
+        "다시 쓰고, 코드·명령어·경로·오류 메시지만 원문 그대로 둔다."
+        in bundle["ko"]["instruction"]
+    )
+    assert (
         "名詞化還原成動詞：進行修改→改、做出決定→決定。刪只預告不給資訊的句子：接下來我要說明、值"
         "得注意的是、在深入之前。每句先已知後新知。"
         in bundle["zh-TW"]["instruction"]
