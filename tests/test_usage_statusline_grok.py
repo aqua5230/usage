@@ -175,7 +175,10 @@ def test_setup_and_unsetup_grok_restore_existing_status_line_verbatim(
     assert setup_hook._setup_grok()
     installed = settings.read_text(encoding="utf-8")
     assert '[ui.status_line]\ntype = "command"' in installed
-    assert f'command = "/usr/bin/python3 {target}"' in installed
+    # The path is shell-quoted and then TOML-escaped, and a Windows tmp_path
+    # needs both, so build the expected literal the same way the writer does.
+    expected_command = json.dumps(f"/usr/bin/python3 {setup_hook._shell_arg(str(target))}")
+    assert f"command = {expected_command}" in installed
     assert previous.read_text(encoding="utf-8") == (
         '[ui.status_line] # previous row\ntype = "builtin"\nitems = ["cwd", "model"]\n\n'
     )
