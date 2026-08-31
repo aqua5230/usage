@@ -143,6 +143,47 @@ def test_unsetup_without_install_is_safe_and_is_usage_hook_detects_commands(
     assert not setup_hook._is_usage_hook({"command": "python3 /tmp/other.py"})
 
 
+def test_usage_hook_detection_does_not_match_third_party_filename(
+    setup_paths: SetupHookPaths,
+) -> None:
+    _ = setup_paths
+    status_line = {"type": "command", "command": "python3 /opt/foo/usage-statusline-pro.py"}
+
+    assert not setup_hook._is_usage_hook(status_line)
+    assert setup_hook._detect_current_state({"statusLine": status_line}) == "external"
+
+
+def test_setup_backs_up_third_party_usage_statusline_filename(
+    setup_paths: SetupHookPaths,
+) -> None:
+    external = {"type": "command", "command": "python3 /opt/foo/usage-statusline-pro.py"}
+    setup_paths.settings.write_text(json.dumps({"statusLine": external}), encoding="utf-8")
+
+    assert setup_hook.setup() == 0
+
+    data = json.loads(setup_paths.settings.read_text(encoding="utf-8"))
+    assert data["usage"]["previousStatusLine"] == external
+
+
+def test_detect_current_state_recognizes_complete_usage_hook_filenames(
+    setup_paths: SetupHookPaths,
+) -> None:
+    _ = setup_paths
+
+    assert setup_hook._detect_current_state(
+        {"statusLine": {"command": f"python3 {setup_hook.HOOK_TARGET}"}}
+    ) == "us-direct"
+    assert setup_hook._detect_current_state(
+        {"statusLine": {"command": f"python3 {setup_hook.FORWARDER_TARGET}"}}
+    ) == "us-forwarder"
+    assert setup_hook._detect_current_state(
+        {"statusLine": {"command": f"python3 {setup_hook.LEGACY_TT_HOOK_TARGET}"}}
+    ) == "legacy-tt"
+    assert setup_hook._detect_current_state(
+        {"statusLine": {"command": r"python.exe C:\\Users\\test\\.claude\\usage-statusline.py"}}
+    ) == "us-direct"
+
+
 def test_migration_removes_legacy_files_and_moves_backup(setup_paths: SetupHookPaths) -> None:
     settings = setup_paths.settings
     legacy_hook = setup_hook.LEGACY_HOOK_TARGET

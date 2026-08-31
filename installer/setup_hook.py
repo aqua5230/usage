@@ -359,9 +359,9 @@ def _migrate_windows_statusline_command_if_needed(
     command = sl.get("command")
     if not isinstance(command, str) or ("\\" not in command and command.isascii()):
         return
-    if "usage-statusline-forwarder" in command:
+    if _command_references(command, FORWARDER_TARGET.name):
         new_command = _forwarder_command()
-    elif "usage-statusline" in command:
+    elif _command_references(command, HOOK_TARGET.name):
         new_command = _statusline_command()
     else:
         return
@@ -407,13 +407,13 @@ def _migrate_bundled_python_commands_if_needed(
     if isinstance(sl, dict):
         command = sl.get("command")
         if isinstance(command, str) and _uses_bundled_app_python(command):
-            if "usage-statusline-forwarder" in command:
+            if _command_references(command, FORWARDER_TARGET.name):
                 new_command = _forwarder_command()
                 if command != new_command:
                     sl["command"] = new_command
                     changed = True
                     details.append("statusLine=forwarder")
-            elif "usage-statusline" in command:
+            elif _command_references(command, HOOK_TARGET.name):
                 new_command = _statusline_command()
                 if command != new_command:
                     sl["command"] = new_command
@@ -426,18 +426,27 @@ def _migrate_bundled_python_commands_if_needed(
     _append_hook_repair_log("migrate_bundled_python", ", ".join(details))
 
 
+def _command_references(command: str, filename: str) -> bool:
+    return bool(
+        re.search(rf"(?:^|[\s/\\'\"]){re.escape(filename)}(?=$|[\s'\"])", command)
+    )
+
+
 def _is_usage_hook(sl: object) -> bool:
     if not isinstance(sl, dict):
         return False
     cmd = sl.get("command")
-    return isinstance(cmd, str) and "usage-statusline" in cmd
+    return isinstance(cmd, str) and (
+        _command_references(cmd, FORWARDER_TARGET.name)
+        or _command_references(cmd, HOOK_TARGET.name)
+    )
 
 
 def _is_legacy_tt_hook(sl: object) -> bool:
     if not isinstance(sl, dict):
         return False
     cmd = sl.get("command")
-    return isinstance(cmd, str) and "tt-statusline" in cmd
+    return isinstance(cmd, str) and _command_references(cmd, LEGACY_TT_HOOK_TARGET.name)
 
 
 def _detect_current_state(settings: dict[str, Any] | None = None) -> str:
@@ -449,11 +458,11 @@ def _detect_current_state(settings: dict[str, Any] | None = None) -> str:
     cmd = sl.get("command")
     if not isinstance(cmd, str) or not cmd.strip():
         return "none"
-    if "usage-statusline-forwarder" in cmd:
+    if _command_references(cmd, FORWARDER_TARGET.name):
         return "us-forwarder"
-    if "usage-statusline" in cmd:
+    if _command_references(cmd, HOOK_TARGET.name):
         return "us-direct"
-    if "tt-statusline" in cmd:
+    if _command_references(cmd, LEGACY_TT_HOOK_TARGET.name):
         return "legacy-tt"
     return "external"
 
@@ -493,7 +502,7 @@ def _migrate_from_legacy_usage() -> None:
             if (
                 isinstance(cmd, str)
                 and f"{LEGACY_NAME}-statusline" in cmd
-                and "usage-statusline" not in cmd
+                and not _command_references(cmd, HOOK_TARGET.name)
             ):
                 settings.pop("statusLine", None)
                 changed = True
