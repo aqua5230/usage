@@ -67,7 +67,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.3"
+__version__ = "1.4"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
