@@ -214,9 +214,12 @@ C = {
     "blue": "\033[38;5;39m",
     "magenta": "\033[38;5;111m",
     "peach": "\033[38;5;216m",
+    "grey": "\033[38;5;240m",
     "dim": "\033[2m",
     "reset": "\033[0m",
 }
+# A separator only marks a break; it should not compete with the numbers.
+SEP = f" {C['grey']}|{C['reset']} "
 
 
 def _windows_system_lang() -> str:
@@ -492,8 +495,10 @@ def color_by_pct(pct: float) -> str:
 
 
 def color_by_pct_inverted(pct: float) -> str:
+    # Line 2 is secondary info: a healthy cache stays as quiet as its neighbours,
+    # only a degraded one is allowed to draw the eye.
     if pct >= 80:
-        return "\033[38;5;42m"
+        return f"{C['dim']}{C['magenta']}"
     if pct >= 50:
         return "\033[38;5;214m"
     return "\033[38;5;160m"
@@ -519,12 +524,12 @@ def progress_bar(
     filled_char = "■"
     empty_char = "□"
     if value is None:
-        return empty_char * bar_width + " n/a"
+        return f"{C['grey']}{empty_char * bar_width}{C['reset']} n/a"
     pct = max(0.0, min(100.0, float(value)))
     filled = round(pct / 100 * bar_width)
     return (
         f"{color_func(pct)}{filled_char * filled}{C['reset']}"
-        f"{empty_char * (bar_width - filled)} "
+        f"{C['grey']}{empty_char * (bar_width - filled)}{C['reset']} "
         f"{color_func(pct)}{pct:.0f}%{C['reset']}"
     )
 
@@ -727,17 +732,17 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
         size = ctx.get("context_window_size", 0)
         ctx_parts = [
             f"{C['blue']}{_t('context')}:{C['reset']}"
-            f"{progress_bar(ctx_pct, bar_w)} / {fmt_tokens(size)}",
+            f"{progress_bar(ctx_pct, bar_w)} {C['dim']}/ {fmt_tokens(size)}{C['reset']}",
             f"{C['blue']}{_t('context')}:{C['reset']}{ctx_pct:.0f}%",
         ]
 
     full = line1 + [p[0] for p in rl_parts] + (ctx_parts[:1] if ctx_parts else [])
-    candidate = " | ".join(full)
+    candidate = SEP.join(full)
     if vlen(candidate) <= width:
         line1 = full
     else:
         no_reset = line1 + [p[1] for p in rl_parts] + (ctx_parts[:1] if ctx_parts else [])
-        candidate = " | ".join(no_reset)
+        candidate = SEP.join(no_reset)
         if vlen(candidate) <= width:
             line1 = no_reset
         else:
@@ -796,11 +801,11 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             )
             line3.append(cache_part)
 
-    if vlen(" | ".join(line3)) > width and duration_part:
+    if vlen(SEP.join(line3)) > width and duration_part:
         line3 = [p for p in line3 if p != duration_part]
-    if vlen(" | ".join(line3)) > width and cache_part:
+    if vlen(SEP.join(line3)) > width and cache_part:
         line3 = [cache_bar_part if p == cache_part else p for p in line3]
-    if vlen(" | ".join(line3)) > width and cache_bar_part:
+    if vlen(SEP.join(line3)) > width and cache_bar_part:
         line3 = [p for p in line3 if p != cache_bar_part]
 
     update_version = _read_update_hint(now.timestamp())
@@ -810,7 +815,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             f"{_t('update_available_suffix')}{C['reset']}"
         )
 
-    output = [" | ".join(line) for line in (line1, line3) if line]
+    output = [SEP.join(line) for line in (line1, line3) if line]
     warning = _heavy_warning(data, now.timestamp())
     if warning:
         output.append(warning)

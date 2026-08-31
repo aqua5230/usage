@@ -625,7 +625,7 @@ def test_render_shows_prompt_cache_hit_with_countdown(
     assert "快取:" in line3
     assert "91%" in line3
     assert "(剩43min)" in line3
-    assert "\033[38;5;42m" in line3
+    assert "\033[2m\033[38;5;111m" in line3
 
 
 @pytest.mark.parametrize(
@@ -648,7 +648,7 @@ def test_render_omits_prompt_cache_when_not_observed(
     output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
 
     assert output == (
-        "\033[2m\033[38;5;111mSession: 12min\033[0m | "
+        "\033[2m\033[38;5;111mSession: 12min\033[0m \033[38;5;240m|\033[0m "
         "\033[2m\033[38;5;111mOpus 5\033[0m"
     )
 
@@ -676,7 +676,7 @@ def test_render_keeps_prompt_cache_bar_when_expired(
 
 @pytest.mark.parametrize(
     ("hit_ratio", "color"),
-    ((0.91, "\033[38;5;42m"), (0.3, "\033[38;5;160m")),
+    ((0.91, "\033[2m\033[38;5;111m"), (0.3, "\033[38;5;160m")),
 )
 def test_render_prompt_cache_uses_inverted_colors(
     monkeypatch: pytest.MonkeyPatch,
