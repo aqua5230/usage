@@ -78,7 +78,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
             else f"{_format_percent(float(app.codex_5h_pct))}%"
         )
         if not state.hide_claude:
-            title.appendAttributedString_(_menubar_text_string(app, "   "))
+            title.appendAttributedString_(_menubar_text_string(app, "  "))
         title.appendAttributedString_(_menubar_icon_attachment_string(_codex_menubar_icon()))
         title.appendAttributedString_(_menubar_text_string(app, f" {codex_percent}"))
     agy_session_percent = state.agy_session.percent
@@ -87,7 +87,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
         assert agy_session_percent is not None
         agy_percent = f"{_format_percent(agy_session_percent)}%"
         if title.length() > 0:
-            title.appendAttributedString_(_menubar_text_string(app, "   "))
+            title.appendAttributedString_(_menubar_text_string(app, "  "))
         title.appendAttributedString_(_menubar_icon_attachment_string(_agy_menubar_icon()))
         title.appendAttributedString_(_menubar_text_string(app, f" {agy_percent}"))
     grok_weekly_percent = state.grok_weekly.percent
@@ -96,7 +96,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
         assert grok_weekly_percent is not None
         grok_percent = f"{_format_percent(grok_weekly_percent)}%"
         if title.length() > 0:
-            title.appendAttributedString_(_menubar_text_string(app, "   "))
+            title.appendAttributedString_(_menubar_text_string(app, "  "))
         title.appendAttributedString_(_menubar_icon_attachment_string(_grok_menubar_icon()))
         title.appendAttributedString_(_menubar_text_string(app, f" {grok_percent}"))
     if title.length() == 0:
