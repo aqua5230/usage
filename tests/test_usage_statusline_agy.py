@@ -49,7 +49,7 @@ def test_render_fixture_contains_expected_status(monkeypatch: pytest.MonkeyPatch
     assert "60%" in output
     assert "Context:" in output
     assert "0%" in output
-    assert "Gemini 3.6 Flash (Low)" in output
+    assert "Gemini 3.6 Flash/Quick" in output
     assert "\n" not in output
 
 
@@ -83,7 +83,10 @@ def test_render_selects_quota_bucket_for_model(
     assert expected_weekly in output
 
 
-def test_render_degrades_when_quota_and_context_are_missing() -> None:
+def test_render_degrades_when_quota_and_context_are_missing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
     data = _fixture_data()
     data["quota"] = {}
     data["context_window"] = None
@@ -91,7 +94,7 @@ def test_render_degrades_when_quota_and_context_are_missing() -> None:
     output = usage_statusline_agy.render(data)
 
     assert "project" in output
-    assert "Gemini 3.6 Flash (Low)" in output
+    assert "Gemini 3.6 Flash/Quick" in output
 
 
 def _patch_agy_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[Path, Path, Path]:

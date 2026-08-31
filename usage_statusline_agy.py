@@ -309,6 +309,16 @@ def _quota_parts(data: Dict[str, Any], bar_width: int) -> List[Tuple[str, str, s
     return parts
 
 
+_EFFORT_SUFFIXES = {"(low)": "low", "(medium)": "medium", "(high)": "high"}
+
+
+def _split_effort_suffix(name: str) -> Tuple[str, Optional[str]]:
+    """Antigravity 的 display_name 自帶英文 "(High)"，等級由下面用當地語言另外標。"""
+    head, sep, tail = name.rpartition(" ")
+    effort = _EFFORT_SUFFIXES.get(tail.lower()) if sep else None
+    return (head, effort) if effort else (name, None)
+
+
 def _render_core(data: Dict[str, Any]) -> str:
     width = _terminal_width(data.get("terminal_width"))
     bar_width = 8 if width >= 100 else 6 if width >= 60 else 4
@@ -342,7 +352,10 @@ def _render_core(data: Dict[str, Any]) -> str:
     model = _as_dict(data.get("model"))
     model_name = model.get("display_name") or model.get("id")
     if isinstance(model_name, str) and model_name:
+        model_name, suffix_effort = _split_effort_suffix(model_name)
         effort = model.get("effort")
+        if not (isinstance(effort, str) and effort):
+            effort = suffix_effort
         if isinstance(effort, str) and effort:
             effort_label = {
                 "low": _t("effort_low"),
