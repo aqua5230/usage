@@ -116,7 +116,7 @@ Linux 上跑 `usage setup` 也能裝好 Claude Code 的狀態列，配額會像 
 如果你用過 Codex，它會自動讀到資料。若是 Claude Code，請點選單彈窗內的**「設定狀態列 (Set Up Status Line)」**按鈕來安裝同步 hook。
 完成後請重開相關工具（macOS 請將 Claude Code 用 Cmd+Q 完全結束後重開；Windows 請重啟終端機或重開對話）。
 
-同一顆按鈕在你裝了 Antigravity CLI 時，也會一併幫它設定狀態列；沒裝的話什麼都不會寫入。你自己在那邊設定過的狀態列會先備份起來，關掉開關時還原。
+同一顆按鈕在你裝了 Antigravity CLI 與 Grok CLI 時，也會一併幫它們設定狀態列；沒裝的話什麼都不會寫入。你自己在那邊設定過的狀態列會先備份起來，關掉開關時還原。
 
 設定完成後，Claude Code 視窗底部會出現這樣的狀態列：
 

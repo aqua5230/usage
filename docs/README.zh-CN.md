@@ -116,7 +116,7 @@ Linux 上运行 `usage setup` 也能装好 Claude Code 的状态栏，配额会�
 如果你用过 Codex，`usage` 会自动读取其历史记录。对于 Claude Code，请在应用弹出面板中点击 **“Set Up Status Line”** 按钮以安装同步 hook。
 之后重启相应工具（macOS 请将 Claude Code 用 Cmd+Q 完全退出后重新打开；Windows 请重启终端或重新开启会话）。
 
-同一颗按钮在你装了 Antigravity CLI 时，也会一并帮它设置状态栏；没装的话什么都不会写入。你自己在那边设置过的状态栏会先备份起来，关掉开关时还原。
+同一颗按钮在你装了 Antigravity CLI 与 Grok CLI 时，也会一并帮它们设置状态栏；没装的话什么都不会写入。你自己在那边设置过的状态栏会先备份起来，关掉开关时还原。
 
 设置完成后，Claude Code 窗口底部会显示如下状态栏：
 
