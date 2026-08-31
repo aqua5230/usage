@@ -80,7 +80,7 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
 
 @pytest.fixture(autouse=True)
 def _isolate_codex_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    """Prevent self_heal from writing a user's real Codex or Antigravity config."""
+    """Prevent self_heal from writing a user's real Codex, Antigravity or Grok config."""
     from installer import setup_hook
 
     codex_dir = tmp_path / "codex"
@@ -94,6 +94,14 @@ def _isolate_codex_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> No
         setup_hook,
         "AGY_PREVIOUS_STATUSLINE",
         agy_dir / "usage-previous-statusline.json",
+    )
+    grok_dir = tmp_path / "grok"
+    monkeypatch.setattr(setup_hook, "GROK_SETTINGS", grok_dir / "config.toml")
+    monkeypatch.setattr(setup_hook, "GROK_HOOK_TARGET", grok_dir / "usage-statusline-grok.py")
+    monkeypatch.setattr(
+        setup_hook,
+        "GROK_PREVIOUS_STATUSLINE",
+        grok_dir / "usage-previous-statusline-grok.json",
     )
 
 

@@ -90,8 +90,22 @@ def _sync_agy_statusline(enable: bool) -> None:
             setup_hook._unsetup_agy()
 
 
+def _sync_grok_statusline(enable: bool) -> None:
+    """Mirror the switch onto Grok's status line when its CLI is installed."""
+    if sys.platform not in {"darwin", "win32"}:
+        return
+    from installer import setup_hook
+
+    with contextlib.suppress(Exception):
+        if enable:
+            setup_hook._setup_grok()
+        else:
+            setup_hook._unsetup_grok()
+
+
 def _disable_statusline_settings() -> int:
     _sync_agy_statusline(False)
+    _sync_grok_statusline(False)
     settings = _load_claude_settings()
     if "statusLine" not in settings:
         return 0
@@ -107,6 +121,7 @@ def _disable_statusline_settings() -> int:
 
 def _enable_statusline_settings() -> int:
     _sync_agy_statusline(True)
+    _sync_grok_statusline(True)
     settings = _load_claude_settings()
     if "statusLine" in settings:
         return 0

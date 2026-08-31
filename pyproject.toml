@@ -49,6 +49,7 @@ py-modules = [
     "pricing",
     "usage_statusline",
     "usage_statusline_agy",
+    "usage_statusline_grok",
     "usage_client",
     "i18n",
     "usage_cli",

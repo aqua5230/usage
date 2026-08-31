@@ -1,0 +1,23 @@
+{
+  "cwd": "/tmp/project",
+  "session_id": "grok-test",
+  "model": {
+    "id": "grok-4.6",
+    "display_name": "Grok 4.6 (High)"
+  },
+  "workspace": {
+    "current_dir": "/tmp/project/subdir",
+    "repo_root": "/tmp/project",
+    "branch": "main"
+  },
+  "cost": {
+    "total_duration_ms": 1200000
+  },
+  "context_window": {
+    "context_window_size": 2000000,
+    "used_percentage": 8
+  },
+  "effort": {
+    "level": "high"
+  }
+}

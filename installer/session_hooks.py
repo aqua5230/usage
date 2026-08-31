@@ -1144,6 +1144,21 @@ def self_heal() -> None:
         _debug_self_heal_failure("setup_agy", exc)
 
     try:
+        from installer import statusline_settings
+
+        if (
+            setup_hook.GROK_SETTINGS.is_file()
+            and statusline_settings._statusline_enabled()
+            and (not setup_hook.is_grok_setup() or setup_hook._grok_hook_script_is_stale())
+            and setup_hook._setup_grok()
+        ):
+            _append_self_heal_log("setup_grok", "installed or updated Grok status line")
+    except BaseException as exc:
+        if isinstance(exc, KeyboardInterrupt):
+            raise
+        _debug_self_heal_failure("setup_grok", exc)
+
+    try:
         result = _read_codex_config() if setup_hook.CODEX_CONFIG.is_file() else None
         if (
             result is not None
