@@ -213,6 +213,27 @@ def test_strip_hook_entries_removes_usage_command() -> None:
     assert session_hooks._strip_hook_entries(entry, session_hooks._TERSE_MARKERS) is None
 
 
+def test_migration_keeps_custom_terse_substring_command(terse_paths: TerseHookPaths) -> None:
+    command = "python3 /Users/test/usage-terse-mode-backup.py --custom"
+    terse_paths.settings.write_text(
+        json.dumps(
+            {
+                "hooks": {
+                    "SessionStart": [
+                        {"hooks": [{"type": "command", "command": command}]}
+                    ]
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    session_hooks._migrate_bundled_python_commands_if_needed()
+
+    data = json.loads(terse_paths.settings.read_text(encoding="utf-8"))
+    assert data["hooks"]["SessionStart"][0]["hooks"][0]["command"] == command
+
+
 def test_self_heal_restores_missing_script_when_enabled(terse_paths: TerseHookPaths) -> None:
     session_hooks.enable_terse_mode()
     terse_paths.terse_target.unlink()
@@ -256,6 +277,56 @@ def test_installed_resume_version_returns_none_for_truncated_version(
     monkeypatch.setattr(session_hooks, "RESUME_HOOK_TARGET", resume_target)
 
     assert session_hooks._installed_resume_version() is None
+
+
+def test_installed_codex_terse_version_returns_none_for_truncated_version(
+    terse_paths: TerseHookPaths,
+) -> None:
+    terse_paths.codex_terse_target.write_text("__version__\n", encoding="utf-8")
+
+    assert session_hooks._installed_codex_terse_version() is None
+
+
+def test_installed_terse_reminder_version_returns_none_for_truncated_version(
+    terse_paths: TerseHookPaths,
+) -> None:
+    terse_paths.terse_reminder_target.write_text("__version__\n", encoding="utf-8")
+
+    assert session_hooks._installed_terse_reminder_version() is None
+
+
+def test_installed_resume_version_returns_none_for_non_utf8_content(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    resume_target = tmp_path / "usage-session-resume.py"
+    resume_target.write_bytes(b"\xff")
+    monkeypatch.setattr(session_hooks, "RESUME_HOOK_TARGET", resume_target)
+
+    assert session_hooks._installed_resume_version() is None
+
+
+def test_installed_terse_version_returns_none_for_non_utf8_content(
+    terse_paths: TerseHookPaths,
+) -> None:
+    terse_paths.terse_target.write_bytes(b"\xff")
+
+    assert session_hooks._installed_terse_version() is None
+
+
+def test_installed_codex_terse_version_returns_none_for_non_utf8_content(
+    terse_paths: TerseHookPaths,
+) -> None:
+    terse_paths.codex_terse_target.write_bytes(b"\xff")
+
+    assert session_hooks._installed_codex_terse_version() is None
+
+
+def test_installed_terse_reminder_version_returns_none_for_non_utf8_content(
+    terse_paths: TerseHookPaths,
+) -> None:
+    terse_paths.terse_reminder_target.write_bytes(b"\xff")
+
+    assert session_hooks._installed_terse_reminder_version() is None
 
 
 def test_missing_terse_artifacts_includes_invalid_sidecar(terse_paths: TerseHookPaths) -> None:

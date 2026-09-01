@@ -129,8 +129,8 @@ def _migrate_bundled_python_commands_if_needed(
                 if not isinstance(hook, dict):
                     continue
                 command = hook.get("command")
-                if not isinstance(command, str) or not any(
-                    marker in command for marker in _RESUME_MARKERS
+                if not isinstance(command, str) or not _command_owns_script(
+                    command, _RESUME_MARKERS
                 ):
                     continue
                 if command != new_command:
@@ -152,8 +152,8 @@ def _migrate_bundled_python_commands_if_needed(
                 if not isinstance(hook, dict):
                     continue
                 command = hook.get("command")
-                if not isinstance(command, str) or not any(
-                    marker in command for marker in _TERSE_MARKERS
+                if not isinstance(command, str) or not _command_owns_script(
+                    command, _TERSE_MARKERS
                 ):
                     continue
                 if command != new_command:
@@ -178,8 +178,8 @@ def _migrate_bundled_python_commands_if_needed(
                 if not isinstance(hook, dict):
                     continue
                 command = hook.get("command")
-                if not isinstance(command, str) or not any(
-                    marker in command for marker in _TERSE_REMINDER_MARKERS
+                if not isinstance(command, str) or not _command_owns_script(
+                    command, _TERSE_REMINDER_MARKERS
                 ):
                     continue
                 if command != new_command:
@@ -947,7 +947,7 @@ def _migrate_resume_command_if_needed() -> None:
             command = hook.get("command")
             if (
                 not isinstance(command, str)
-                or not any(marker in command for marker in _RESUME_MARKERS)
+                or not _command_owns_script(command, _RESUME_MARKERS)
                 or command == new_command
             ):
                 continue
