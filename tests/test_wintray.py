@@ -1836,6 +1836,44 @@ def test_quota_notification_falls_back_to_pystray_when_toast_unavailable(
     assert notices == [("Claude Session is 25% used. Time to wrap up?", "🐾 Almost out")]
 
 
+def test_quota_notification_falls_back_when_toast_show_raises(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeToast:
+        def __init__(self, *, text_fields: list[str]) -> None:
+            self.text_fields = text_fields
+
+        def AddAction(self, action: object) -> None:  # noqa: N802 - library contract
+            return None
+
+    def show_toast(_toast: object) -> None:
+        raise OSError("toast delivery failed")
+
+    monkeypatch.setitem(
+        sys.modules,
+        "windows_toasts",
+        SimpleNamespace(Toast=FakeToast, ToastButton=lambda **kwargs: SimpleNamespace(**kwargs)),
+    )
+    monkeypatch.setattr(
+        wintray,
+        "_create_toast_backend",
+        lambda: SimpleNamespace(show_toast=show_toast),
+    )
+    controller = wintray._WindowsTrayController(mock=False, interval=60)
+    controller.language = "en"
+    notices: list[tuple[str, str]] = []
+    controller.icon = SimpleNamespace(
+        notify=lambda message, title: notices.append((message, title))
+    )
+
+    controller._send_quota_notification(
+        NotificationEvent("warn", "claude_session", 90.0), _state()
+    )
+
+    assert notices == [("Claude Session is 25% used. Time to wrap up?", "🐾 Almost out")]
+    assert controller._toast_backend is None
+
+
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows toast registration and WinRT")
 def test_real_windows_toast_backend_registers_aumid_and_creates_notifier() -> None:
     import uuid

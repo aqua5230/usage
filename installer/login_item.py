@@ -32,7 +32,6 @@ def build_plist(program_args: list[str], working_dir: str | None) -> str:
         "StandardOutPath": f"{log_dir}/usage.log",
         "StandardErrorPath": f"{log_dir}/usage.err.log",
         "ThrottleInterval": 15,
-        "StartDelay": 10,
         "ProcessType": "Interactive",
     }
     if working_dir is None:

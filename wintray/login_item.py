@@ -28,7 +28,9 @@ def is_enabled() -> bool:
     try:
         with winreg.OpenKey(winreg.HKEY_CURRENT_USER, RUN_KEY) as key:
             value, _value_type = winreg.QueryValueEx(key, VALUE_NAME)
-    except FileNotFoundError:
+    except OSError:
+        # Menu construction calls this to render a checkbox; a registry access
+        # error (e.g. PermissionError) here must not take down the whole menu.
         return False
     return bool(value == _command())
 

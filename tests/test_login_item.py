@@ -10,7 +10,9 @@ import inspect
 import logging
 import plistlib
 import subprocess
+import sys
 from pathlib import Path
+from types import SimpleNamespace
 from typing import get_type_hints
 
 import pytest
@@ -62,6 +64,38 @@ def test_build_plist_for_source_context() -> None:
     assert payload["ProgramArguments"] == ["/usr/bin/python3", "/tmp/usage/main.py"]
     assert payload["WorkingDirectory"] == "/tmp/usage"
     assert payload["KeepAlive"] == {"SuccessfulExit": False}
+
+
+def test_program_context_for_app_bundle_preserves_space_in_bundle_path(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle_path = "/Applications/Usage Monitor.app"
+    bundle = SimpleNamespace(
+        bundleIdentifier=lambda: login_item.LABEL,
+        bundlePath=lambda: bundle_path,
+    )
+    monkeypatch.setattr(login_item, "NSBundle", SimpleNamespace(mainBundle=lambda: bundle))
+
+    program_args, working_dir = login_item._program_context()
+
+    assert program_args == ["/usr/bin/open", bundle_path]
+    assert working_dir is None
+
+
+def test_program_context_for_source_tree_uses_main_py_and_project_dir(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    bundle = SimpleNamespace(
+        bundleIdentifier=lambda: "com.example.other-app",
+        bundlePath=lambda: "/Applications/Other.app",
+    )
+    monkeypatch.setattr(login_item, "NSBundle", SimpleNamespace(mainBundle=lambda: bundle))
+    project_dir = Path(login_item.__file__).resolve().parent.parent
+
+    program_args, working_dir = login_item._program_context()
+
+    assert program_args == [str(sys.executable), str(project_dir / "main.py")]
+    assert working_dir == str(project_dir)
 
 
 def test_is_enabled_uses_plist_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

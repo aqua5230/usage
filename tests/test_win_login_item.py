@@ -3,6 +3,9 @@
 
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import pytest
 
 from wintray import login_item as win_login_item
@@ -61,5 +64,36 @@ def test_win_login_item_detects_different_command(monkeypatch: pytest.MonkeyPatc
     fake.values[win_login_item.VALUE_NAME] = '"old-usage.exe"'
     monkeypatch.setattr(win_login_item, "_winreg", lambda: fake)
     monkeypatch.setattr(win_login_item, "_command", lambda: '"usage.exe"')
+
+    assert win_login_item.is_enabled() is False
+
+
+def test_command_for_frozen_app_uses_executable_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    executable = "C:/Program Files/usage/usage.exe"
+    monkeypatch.setattr(sys, "executable", executable)
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+
+    assert win_login_item._command() == f'"{Path(executable)}"'
+
+
+def test_command_for_source_tree_uses_python_and_main_py(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    executable = "C:/Program Files/Python/python.exe"
+    monkeypatch.setattr(sys, "executable", executable)
+    monkeypatch.delattr(sys, "frozen", raising=False)
+    main_py = Path(win_login_item.__file__).resolve().parent.parent / "main.py"
+
+    assert win_login_item._command() == f'"{Path(executable)}" "{main_py}"'
+
+
+def test_win_login_item_is_enabled_false_on_registry_permission_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _DeniedWinreg(FakeWinreg):
+        def OpenKey(self, *args: object) -> _Key:  # noqa: N802 - winreg contract
+            raise PermissionError
+
+    monkeypatch.setattr(win_login_item, "_winreg", lambda: _DeniedWinreg())
 
     assert win_login_item.is_enabled() is False
