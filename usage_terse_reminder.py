@@ -153,7 +153,10 @@ def main() -> int:
             "additionalContext": _load_reminder(_detect_lang(sidecar := _read_sidecar()), sidecar),
         }
     }
-    print(json.dumps(output, ensure_ascii=False))
+    try:
+        print(json.dumps(output, ensure_ascii=True))
+    except OSError:
+        return 0
     return 0
 
 

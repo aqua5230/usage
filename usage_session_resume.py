@@ -277,7 +277,10 @@ def main() -> int:
             "additionalContext": prompt,
         }
     }
-    print(json.dumps(output, ensure_ascii=False))
+    try:
+        print(json.dumps(output, ensure_ascii=True))
+    except OSError:
+        return 0
     return 0
 
 

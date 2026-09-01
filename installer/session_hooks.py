@@ -385,6 +385,12 @@ def _is_hook_entry(entry: object, markers: tuple[str, ...]) -> bool:
     )
 
 
+def _command_owns_script(command: str, markers: tuple[str, ...]) -> bool:
+    escaped = "|".join(re.escape(marker) for marker in markers)
+    pattern = re.compile(r"""(?:^|[\\/"'\s])(?:""" + escaped + r""")\.py(?:["'\s]|$)""")
+    return bool(pattern.search(command))
+
+
 def _strip_hook_entries(entry: object, markers: tuple[str, ...]) -> object | None:
     if not isinstance(entry, dict):
         return entry
@@ -397,7 +403,7 @@ def _strip_hook_entries(entry: object, markers: tuple[str, ...]) -> object | Non
         if not (
             isinstance(h, dict)
             and isinstance(h.get("command"), str)
-            and any(marker in h["command"] for marker in markers)
+            and _command_owns_script(h["command"], markers)
         )
     ]
     if len(kept) == len(hooks):
@@ -585,8 +591,11 @@ def _installed_codex_terse_version() -> str | None:
         with CODEX_TERSE_HOOK_TARGET.open(encoding="utf-8") as f:
             for line in f:
                 if line.startswith("__version__"):
-                    return line.split("=", 1)[1].strip().strip("\"'")
-    except OSError:
+                    _, sep, value = line.partition("=")
+                    if not sep:
+                        return None
+                    return value.strip().strip("\"'")
+    except (OSError, UnicodeDecodeError):
         pass
     return None
 
@@ -795,8 +804,11 @@ def _installed_resume_version() -> str | None:
         with RESUME_HOOK_TARGET.open(encoding="utf-8") as f:
             for line in f:
                 if line.startswith("__version__"):
-                    return line.split("=", 1)[1].strip().strip("\"'")
-    except OSError:
+                    _, sep, value = line.partition("=")
+                    if not sep:
+                        return None
+                    return value.strip().strip("\"'")
+    except (OSError, UnicodeDecodeError):
         pass
     return None
 
@@ -806,8 +818,11 @@ def _installed_terse_version() -> str | None:
         with TERSE_HOOK_TARGET.open(encoding="utf-8") as f:
             for line in f:
                 if line.startswith("__version__"):
-                    return line.split("=", 1)[1].strip().strip("\"'")
-    except OSError:
+                    _, sep, value = line.partition("=")
+                    if not sep:
+                        return None
+                    return value.strip().strip("\"'")
+    except (OSError, UnicodeDecodeError):
         pass
     return None
 
@@ -817,8 +832,11 @@ def _installed_terse_reminder_version() -> str | None:
         with TERSE_REMINDER_HOOK_TARGET.open(encoding="utf-8") as f:
             for line in f:
                 if line.startswith("__version__"):
-                    return line.split("=", 1)[1].strip().strip("\"'")
-    except OSError:
+                    _, sep, value = line.partition("=")
+                    if not sep:
+                        return None
+                    return value.strip().strip("\"'")
+    except (OSError, UnicodeDecodeError):
         pass
     return None
 
@@ -842,11 +860,22 @@ def _self_heal_resume() -> None:
         _append_self_heal_log("update_resume_hook", f"{old or 'unknown'} -> {RESUME_HOOK_VERSION}")
 
 
+def _terse_sidecar_is_valid() -> bool:
+    try:
+        data = json.loads(TERSE_PROMPT_SIDECAR.read_text(encoding="utf-8"))
+    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
+        return False
+    if not isinstance(data, dict):
+        return False
+    en = data.get("en")
+    return isinstance(en, dict) and bool(en.get("instruction"))
+
+
 def _missing_terse_artifacts() -> list[str]:
     missing: list[str] = []
     if not TERSE_HOOK_TARGET.exists():
         missing.append("script")
-    if not TERSE_PROMPT_SIDECAR.exists():
+    if not _terse_sidecar_is_valid():
         missing.append("sidecar")
     return missing
 

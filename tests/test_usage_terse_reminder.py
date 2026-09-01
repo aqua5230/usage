@@ -161,6 +161,21 @@ def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
     assert out["hookSpecificOutput"]["additionalContext"] == "REMINDER::EN"
 
 
+def test_main_returns_zero_when_stdout_uses_cp950(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "zh-TW")
+    _sidecar(tmp_path, monkeypatch)
+    monkeypatch.setattr("sys.stdin", _FakeStdin(json.dumps({"prompt": "hi"})))
+    stdout = io.TextIOWrapper(io.BytesIO(), encoding="cp950")
+    monkeypatch.setattr(sys, "stdout", stdout)
+
+    assert mod.main() == 0
+    stdout.flush()
+    out = json.loads(stdout.buffer.getvalue().decode("ascii"))
+    assert out["hookSpecificOutput"]["additionalContext"] == "提醒::繁中"
+
+
 def test_main_is_silent_on_invalid_json(
     monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
 ) -> None:

@@ -720,6 +720,26 @@ def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
     assert out["hookSpecificOutput"]["hookEventName"] == "SessionStart"
 
 
+def test_main_returns_zero_when_stdout_uses_cp950(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "zh-TW")
+    _sidecar(tmp_path, monkeypatch)
+    project = _project_dir(tmp_path)
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+    monkeypatch.setattr(
+        "sys.stdin",
+        _FakeStdin(json.dumps({"transcript_path": str(current), "cwd": "/tmp/demo"})),
+    )
+    stdout = io.TextIOWrapper(io.BytesIO(), encoding="cp950")
+    monkeypatch.setattr(sys, "stdout", stdout)
+
+    assert mod.main() == 0
+    stdout.flush()
+    json.loads(stdout.buffer.getvalue().decode("ascii"))
+
+
 def test_extract_commit_title_handles_heredoc_forms() -> None:
     # `git commit -F - <<'EOF'` has no `cat` prefix — the most common form, previously missed.
     assert (

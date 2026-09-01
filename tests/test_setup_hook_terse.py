@@ -190,6 +190,29 @@ def test_disable_preserves_user_hook_in_shared_entry(terse_paths: TerseHookPaths
     assert shared == [{"type": "command", "command": "echo my-own-hook"}]
 
 
+def test_strip_hook_entries_keeps_user_backup_command() -> None:
+    entry = {
+        "hooks": [
+            {"type": "command", "command": "python3 /opt/my-usage-terse-mode-backup.py"}
+        ]
+    }
+
+    assert session_hooks._strip_hook_entries(entry, session_hooks._TERSE_MARKERS) == entry
+
+
+def test_strip_hook_entries_removes_usage_command() -> None:
+    entry = {
+        "hooks": [
+            {
+                "type": "command",
+                "command": "/usr/bin/python3 /Users/me/.claude/usage-terse-mode.py",
+            }
+        ]
+    }
+
+    assert session_hooks._strip_hook_entries(entry, session_hooks._TERSE_MARKERS) is None
+
+
 def test_self_heal_restores_missing_script_when_enabled(terse_paths: TerseHookPaths) -> None:
     session_hooks.enable_terse_mode()
     terse_paths.terse_target.unlink()
@@ -215,6 +238,31 @@ def test_self_heal_updates_old_version(terse_paths: TerseHookPaths) -> None:
     assert (
         data["usage"]["selfHealLog"][-1]["detail"] == f"0.1 -> {session_hooks.TERSE_HOOK_VERSION}"
     )
+
+
+def test_installed_terse_version_returns_none_for_truncated_version(
+    terse_paths: TerseHookPaths,
+) -> None:
+    terse_paths.terse_target.write_text("__version__\n", encoding="utf-8")
+
+    assert session_hooks._installed_terse_version() is None
+
+
+def test_installed_resume_version_returns_none_for_truncated_version(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    resume_target = tmp_path / "usage-session-resume.py"
+    resume_target.write_text("__version__\n", encoding="utf-8")
+    monkeypatch.setattr(session_hooks, "RESUME_HOOK_TARGET", resume_target)
+
+    assert session_hooks._installed_resume_version() is None
+
+
+def test_missing_terse_artifacts_includes_invalid_sidecar(terse_paths: TerseHookPaths) -> None:
+    session_hooks.enable_terse_mode()
+    terse_paths.sidecar.write_text("{", encoding="utf-8")
+
+    assert "sidecar" in session_hooks._missing_terse_artifacts()
 
 
 def test_self_heal_noop_when_disabled(terse_paths: TerseHookPaths) -> None:
