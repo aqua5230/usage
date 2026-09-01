@@ -648,6 +648,11 @@ body::before {
         <p data-i18n="card2_p">Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.</p>
       </div>
       <div class="card">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="1.5"/><path d="M7 9l3 3-3 3"/><path d="M12 15h5"/></svg></span>
+        <h3 data-i18n="card14_h">Grok CLI, too</h3>
+        <p data-i18n="card14_p">A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Its per-request token usage still counts toward today's cost and project totals, just like Claude Code and Codex.</p>
+      </div>
+      <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
         <h3 data-i18n="card3_h">Local-first by design</h3>
         <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk — a statusLine hook status file plus Codex session JSONL logs — with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.</p>
@@ -806,6 +811,8 @@ const T = {
     card1_p: 'Both Claude Code session (5h) and weekly (7d) percentages live in the menu bar. Click for a full popover with per-project usage and cost.',
     card2_h: 'Claude Code, Codex &amp; Antigravity, one app',
     card2_p: 'Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.',
+    card14_h: 'Grok CLI, too',
+    card14_p: "A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Its per-request token usage still counts toward today's cost and project totals, just like Claude Code and Codex.",
     card3_h: 'Local-first by design',
     card3_p: 'Claude Code and Codex numbers come from files already on your disk — a statusLine hook status file plus Codex session JSONL logs — with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.',
     card4_h: 'One-click HTML reports',
@@ -883,6 +890,8 @@ const T = {
     card1_p: 'Claude Code 的 5 小時和 7 天百分比同時顯示在 menu bar。點開可看完整 popover、各專案用量與成本。',
     card2_h: 'Claude Code、Codex、Antigravity 一個 app 搞定',
     card2_p: 'Anthropic、OpenAI 與 Google 的配額並排顯示。Codex 從 <code>~/.codex/sessions/</code> 自動偵測，不需設定；Antigravity 則用它自己的 CLI 已經存好的登入身分。',
+    card14_h: 'Grok CLI 也算進來',
+    card14_p: '第四張卡片直接讀 Grok CLI 自己的本地除錯 log 算出週配額百分比，不連網。它的逐次 token 用量一樣會算進今日花費和各專案總計，跟 Claude Code、Codex 一樣。',
     card3_h: '天生本地優先',
     card3_p: 'Claude Code 與 Codex 的數字來自你磁碟上既有的檔案——狀態列 hook 寫入的狀態檔，加上 Codex session JSONL log——完全不需連網。Antigravity 額度則是用它自己的 CLI 存好的憑證向 Google 取得。所有對外連線都列在 SECURITY.md。',
     card4_h: '一鍵 HTML 報告',
@@ -960,6 +969,8 @@ const T = {
     card1_p: 'Claude Code 的 5 小时和 7 天百分比同时显示在 menu bar。点开可看完整 popover、各项目用量与花费。',
     card2_h: 'Claude Code、Codex、Antigravity 一个 app 搞定',
     card2_p: 'Anthropic、OpenAI 与 Google 的额度并排显示。Codex 从 <code>~/.codex/sessions/</code> 自动检测，无需配置；Antigravity 则使用它自己的 CLI 已保存的登录身份。',
+    card14_h: 'Grok CLI 也算进来',
+    card14_p: '第四张卡片直接读 Grok CLI 自己的本地调试 log 算出周额度百分比，不联网。它的逐次 token 用量一样会算进今日花费和各项目总计，跟 Claude Code、Codex 一样。',
     card3_h: '天生本地优先',
     card3_p: 'Claude Code 与 Codex 的数字来自你磁盘上现有的文件——状态栏 hook 写入的状态文件，加上 Codex session JSONL log——完全不需要联网。Antigravity 额度则是用它自己的 CLI 保存的凭据向 Google 获取。所有对外连接都列在 SECURITY.md。',
     card4_h: '一键 HTML 报告',
@@ -1037,6 +1048,8 @@ const T = {
     card1_p: 'Claude Code のセッション (5h) と週間 (7d) のパーセンテージをメニューバーに常時表示。クリックでプロジェクト別使用量とコストの詳細ポップオーバーを表示。',
     card2_h: 'Claude Code、Codex、Antigravity を 1 つのアプリで',
     card2_p: 'Anthropic、OpenAI、Google のクォータを並べて追跡。Codex は <code>~/.codex/sessions/</code> から設定不要で自動検出。Antigravity は CLI が保存済みのサインイン情報を利用します。',
+    card14_h: 'Grok CLI にも対応',
+    card14_p: '4枚目のカードは Grok CLI 自身のローカルデバッグログから週間クレジット率を読み取ります — ネットワーク通信なし。トークン使用量は Claude Code や Codex と同様、当日のコストとプロジェクト合計にも反映されます。',
     card3_h: '設計段階からローカルファースト',
     card3_p: 'Claude Code と Codex の数値は、statusLine hook が書き込むステータスファイルと Codex セッション JSONL ログという、すでにディスク上にあるファイルから取得するため、ネットワーク通信は一切行いません。Antigravity のクォータは、CLI が保存した認証情報を使って Google から取得します。すべての外部リクエストは SECURITY.md に記載しています。',
     card4_h: 'ワンクリック HTML レポート',
@@ -1114,6 +1127,8 @@ const T = {
     card1_p: 'Claude Code의 세션(5h)과 주간(7d) 퍼센트를 메뉴 바에 동시 표시. 클릭하면 프로젝트별 사용량과 비용을 보여주는 팝오버.',
     card2_h: 'Claude Code, Codex, Antigravity를 한 앱에서',
     card2_p: 'Anthropic, OpenAI, Google 한도를 나란히 추적. Codex는 <code>~/.codex/sessions/</code>에서 설정 없이 자동 감지되고, Antigravity는 자체 CLI가 이미 저장해 둔 로그인 정보를 사용합니다.',
+    card14_h: 'Grok CLI도 지원',
+    card14_p: '네 번째 카드는 Grok CLI 자체의 로컬 디버그 로그에서 주간 크레딧 비율을 바로 읽어옵니다 — 네트워크 호출 없음. 토큰 사용량은 Claude Code, Codex와 마찬가지로 오늘의 비용과 프로젝트 합계에도 반영됩니다.',
     card3_h: '설계상 로컬 우선',
     card3_p: 'Claude Code와 Codex 수치는 statusLine 훅이 쓴 상태 파일과 Codex 세션 JSONL 로그처럼 이미 디스크에 있는 파일에서 가져오므로 네트워크 연결이 전혀 필요 없습니다. Antigravity 한도는 자체 CLI가 저장한 자격 증명으로 Google에서 가져옵니다. 모든 외부 요청은 SECURITY.md에 정리되어 있습니다.',
     card4_h: '원클릭 HTML 보고서',
