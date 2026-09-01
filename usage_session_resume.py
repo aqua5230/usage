@@ -402,7 +402,7 @@ def _git_dirty(cwd: str) -> tuple[str, int, list[str]] | None:
             path = line[3:].strip() if len(line) > 3 else line.strip()
             if " -> " in path:
                 path = path.rsplit(" -> ", 1)[1]
-            base = os.path.basename(path.strip('"'))
+            base = os.path.basename(path.strip('"').rstrip("/"))
             if base and base not in files:
                 files.append(base)
             if len(files) >= _MAX_UNCOMMITTED_FILES:
@@ -551,7 +551,13 @@ def _substantive_len(text: str) -> int:
 
 
 def _has_structural_signal(text: str) -> bool:
-    return any(marker in text for marker in ("/", "\\", ".", "_", "-", "#", ":", "`", "(", ")"))
+    markers = ("/", "\\", ".", "_", "-", "#", ":", "`", "(", ")")
+    for index, char in enumerate(text):
+        if char not in markers or index == 0 or index == len(text) - 1:
+            continue
+        if text[index - 1].isalnum() and text[index + 1].isalnum():
+            return True
+    return False
 
 
 def _pending_todos(items: list[Any]) -> list[str]:
@@ -668,12 +674,13 @@ def _build_diagnosis_instruction(
         cause=cause,
         path=str(DIAGNOSIS_SNAPSHOT),
     )
-    _write_diagnosis_state(
-        {
-            "last_fingerprint": fingerprint,
-            "last_reminded_at": _format_utc_timestamp(now),
-        }
-    )
+    with contextlib.suppress(OSError):
+        _write_diagnosis_state(
+            {
+                "last_fingerprint": fingerprint,
+                "last_reminded_at": _format_utc_timestamp(now),
+            }
+        )
     return (
         "(At the end of your first reply in this session, add exactly one line: "
         + json.dumps(reminder_line, ensure_ascii=False)

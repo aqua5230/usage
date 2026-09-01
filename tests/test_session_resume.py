@@ -9,6 +9,7 @@ from __future__ import annotations
 import io
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -230,8 +231,49 @@ def test_clean_request_rejects_punctuation_only(value: str) -> None:
     assert mod._clean_request(value) == ""
 
 
+@pytest.mark.parametrize("value", ["ok.", "/clear"])
+def test_clean_request_rejects_short_punctuation_noise(value: str) -> None:
+    assert mod._clean_request(value) == ""
+
+
 def test_clean_request_keeps_structured_text() -> None:
     assert mod._clean_request("fix menubar.py") == "fix menubar.py"
+
+
+def test_has_structural_signal_requires_alphanumeric_neighbors() -> None:
+    assert mod._has_structural_signal("menubar.py") is True
+    assert mod._has_structural_signal("ok.") is False
+    assert mod._has_structural_signal("/clear") is False
+
+
+def test_git_dirty_includes_untracked_directory_and_keeps_other_paths(tmp_path: Path) -> None:
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    for command in (
+        ["git", "init"],
+        ["git", "config", "user.email", "test@example.com"],
+        ["git", "config", "user.name", "Test User"],
+    ):
+        subprocess.run(command, cwd=repo, check=True)
+    (repo / "tracked.py").write_text("before\n", encoding="utf-8")
+    (repo / "old-name.py").write_text("old\n", encoding="utf-8")
+    subprocess.run(["git", "add", "."], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-m", "initial"], cwd=repo, check=True)
+
+    (repo / "tracked.py").write_text("after\n", encoding="utf-8")
+    subprocess.run(["git", "mv", "old-name.py", "new-name.py"], cwd=repo, check=True)
+    untracked_dir = repo / "new-feature"
+    untracked_dir.mkdir()
+    (untracked_dir / "work.py").write_text("new\n", encoding="utf-8")
+
+    dirty = mod._git_dirty(str(repo))
+
+    assert dirty is not None
+    _branch, count, files = dirty
+    assert count == 3
+    assert "tracked.py" in files
+    assert "new-name.py" in files
+    assert "new-feature" in files
 
 
 def test_build_prompt_reads_previous_session(
@@ -995,6 +1037,43 @@ def test_build_prompt_injects_diagnosis_reminder_when_fingerprint_changes(
 
     assert "Health check: about 2% waste came from scanning generated folders." in prompt
     assert "修" in prompt
+
+
+def test_build_prompt_keeps_report_when_diagnosis_state_write_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    snapshot, _state = _diagnosis_paths(tmp_path, monkeypatch)
+    now = datetime.now().astimezone()
+    _write_diagnosis_snapshot(
+        snapshot,
+        generated_at=now,
+        waste_pct=2.0,
+        fingerprint="fp-new",
+        severity="critical",
+    )
+
+    def fail_write_state(_data: object) -> None:
+        raise OSError("disk full")
+
+    monkeypatch.setattr(mod, "_write_diagnosis_state", fail_write_state)
+    project = _project_dir(tmp_path)
+    _write_session(
+        project / "prev.jsonl",
+        when=now - timedelta(hours=1),
+        request="finish the parser cleanup",
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert prompt.startswith("LEAD:: ")
+    assert "req=finish the parser cleanup" in prompt
+    assert "Health check: about 2% waste came from scanning generated folders." in prompt
 
 
 def test_build_prompt_uses_explain_reminder_when_nothing_fixable(
