@@ -24,6 +24,9 @@ import usage_terse_mode as mod
         ("koala", "en"),
         ("zh_TW@variant", "zh-TW"),
         ("zh-HK-x-private", "zh-TW"),
+        ("zh-Hantasy", "en"),
+        ("zh-Hansard", "en"),
+        ("zh-SG-x-private", "zh-CN"),
         ("ja", "ja"),
         ("ja_JP", "ja"),
         ("ko", "ko"),
@@ -121,6 +124,11 @@ class _FakeStdin:
         return self._data
 
 
+class _RaisingStdout:
+    def write(self, text: str) -> int:
+        raise OSError("stdout closed")
+
+
 def test_main_reads_sidecar_instruction(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
 ) -> None:
@@ -189,6 +197,16 @@ def test_main_returns_zero_when_stdout_uses_cp950(
     stdout.flush()
     out = json.loads(stdout.buffer.getvalue().decode("ascii"))
     assert out["hookSpecificOutput"]["additionalContext"] == "精簡::繁中"
+
+
+def test_main_returns_zero_when_stdout_write_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _sidecar(tmp_path, monkeypatch)
+    monkeypatch.setattr("sys.stdin", _FakeStdin(json.dumps({"cwd": "/tmp/demo"})))
+    monkeypatch.setattr(sys, "stdout", _RaisingStdout())
+
+    assert mod.main() == 0
 
 
 def test_main_is_silent_on_invalid_json(

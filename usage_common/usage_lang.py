@@ -17,11 +17,11 @@ def _normalize_lang(code: str | None) -> str:
     normalized = code.split(".")[0].split("@")[0].strip().lower().replace("_", "-")
 
     if normalized in {"zh-tw", "zh-hk", "zh-hant"} or normalized.startswith(
-        ("zh-tw-", "zh-hk-", "zh-hant")
+        ("zh-tw-", "zh-hk-", "zh-hant-")
     ):
         return "zh-TW"
     if normalized in {"zh-cn", "zh-sg", "zh-hans", "zh"} or normalized.startswith(
-        ("zh-cn-", "zh-hans")
+        ("zh-cn-", "zh-hans-", "zh-sg-")
     ):
         return "zh-CN"
     if normalized == "en" or normalized.startswith("en-"):

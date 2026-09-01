@@ -261,7 +261,7 @@ def main() -> int:
     _configure_windows_utf8_output()
     try:
         payload = json.loads(_read_stdin_utf8() or "{}")
-    except (json.JSONDecodeError, ValueError):
+    except (OSError, json.JSONDecodeError, ValueError):
         return 0
     if not isinstance(payload, dict):
         return 0
@@ -498,7 +498,7 @@ def _parse_session(path: Path) -> tuple[datetime, str, list[str], list[str], lis
                 if not isinstance(content, list):
                     continue
                 _collect_tools(content, commits, todos, edited_files)
-    except OSError:
+    except (OSError, UnicodeDecodeError):
         return None
 
     if last_ts is None or not (requests or commits or todos or edited_files):
@@ -822,11 +822,11 @@ def _detect_lang() -> str:
 def _normalize_lang(code: str) -> str:
     normalized = code.split(".")[0].split("@")[0].strip().lower().replace("_", "-")
     if normalized in {"zh-tw", "zh-hk", "zh-hant"} or normalized.startswith(
-        ("zh-tw-", "zh-hk-", "zh-hant")
+        ("zh-tw-", "zh-hk-", "zh-hant-")
     ):
         return "zh-TW"
     if normalized in {"zh-cn", "zh-sg", "zh-hans", "zh"} or normalized.startswith(
-        ("zh-cn-", "zh-hans")
+        ("zh-cn-", "zh-hans-", "zh-sg-")
     ):
         return "zh-CN"
     if normalized == "ja" or normalized.startswith("ja-"):

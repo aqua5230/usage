@@ -27,6 +27,9 @@ import usage_session_resume as mod
         ("koala", "en"),
         ("zh_TW@variant", "zh-TW"),
         ("zh-HK-x-private", "zh-TW"),
+        ("zh-Hantasy", "en"),
+        ("zh-Hansard", "en"),
+        ("zh-SG-x-private", "zh-CN"),
         ("ja", "ja"),
         ("ja_JP", "ja"),
         ("ko", "ko"),
@@ -757,6 +760,22 @@ def test_main_returns_zero_when_stdout_uses_cp950(
     json.loads(stdout.buffer.getvalue().decode("ascii"))
 
 
+def test_main_returns_zero_when_stdout_write_fails(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _sidecar(tmp_path, monkeypatch)
+    project = _project_dir(tmp_path)
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+    monkeypatch.setattr(
+        "sys.stdin",
+        _FakeStdin(json.dumps({"transcript_path": str(current), "cwd": "/tmp/demo"})),
+    )
+    monkeypatch.setattr(sys, "stdout", _RaisingStdout())
+
+    assert mod.main() == 0
+
+
 def test_extract_commit_title_handles_heredoc_forms() -> None:
     # `git commit -F - <<'EOF'` has no `cat` prefix — the most common form, previously missed.
     assert (
@@ -790,6 +809,11 @@ def test_main_with_empty_stdin_is_silent(
     assert capsys.readouterr().out == ""
 
 
+def test_main_returns_zero_when_stdin_read_fails(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("sys.stdin", _RaisingStdin())
+    assert mod.main() == 0
+
+
 def test_build_prompt_skips_corrupt_latest_and_uses_previous(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -808,6 +832,36 @@ def test_build_prompt_skips_corrupt_latest_and_uses_previous(
     )
     empty = project / "newer_empty.jsonl"
     empty.write_text("", encoding="utf-8")
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+    os.utime(valid, (now.timestamp() - 3600, now.timestamp() - 3600))  # older mtime
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "resume the real task" in prompt
+    assert "feat: real work" in prompt
+
+
+def test_build_prompt_skips_non_utf8_latest_and_uses_previous(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # The freshest log has invalid UTF-8 bytes; the butler must fall back to the older
+    # valid session instead of letting the decode error go silent.
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    project = _project_dir(tmp_path)
+    now = datetime.now().astimezone()
+    valid = project / "older_valid.jsonl"
+    _write_session(
+        valid,
+        when=now - timedelta(hours=3),
+        request="resume the real task",
+        commits=["feat: real work"],
+    )
+    broken = project / "newer_broken.jsonl"
+    broken.write_bytes(b'{"type": "user", "message": {"content": "\xff\xfebad"}}\n')
     current = project / "current.jsonl"
     current.write_text("", encoding="utf-8")
     os.utime(valid, (now.timestamp() - 3600, now.timestamp() - 3600))  # older mtime
@@ -851,6 +905,16 @@ class _FakeStdin:
 
     def read(self) -> str:
         return self._data
+
+
+class _RaisingStdin:
+    def read(self) -> str:
+        raise OSError("stdin closed")
+
+
+class _RaisingStdout:
+    def write(self, text: str) -> int:
+        raise OSError("stdout closed")
 
 
 def test_done_falls_back_to_edited_files_when_no_commits(
