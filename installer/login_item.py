@@ -143,15 +143,27 @@ def _launchctl_bootout() -> None:
             timeout=5,
         )
     except FileNotFoundError as exc:
-        _log_launchctl_error("bootout", str(exc))
+        _log_launchctl_error(
+            "bootout",
+            f"{exc}; plist will still be removed, "
+            "a dev-mode KeepAlive process may keep running until quit or reboot",
+        )
         return
     except subprocess.TimeoutExpired as exc:
-        _log_launchctl_error("bootout", f"timed out after {exc.timeout} seconds")
+        _log_launchctl_error(
+            "bootout",
+            f"timed out after {exc.timeout} seconds; plist will still be removed, "
+            "a dev-mode KeepAlive process may keep running until quit or reboot",
+        )
         return
 
     if result.returncode not in (0, 113):
         stderr = _stderr_summary(result.stderr)
-        _log_launchctl_error("bootout", f"returncode={result.returncode} stderr={stderr!r}")
+        _log_launchctl_error(
+            "bootout",
+            f"returncode={result.returncode} stderr={stderr!r}; plist will still be removed, "
+            "a dev-mode KeepAlive process may keep running until quit or reboot",
+        )
 
 
 def disable() -> None:
