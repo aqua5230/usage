@@ -17,6 +17,23 @@ import pytest
 import usage_terse_mode as mod
 
 
+@pytest.mark.parametrize(
+    ("code", "expected"),
+    [
+        ("jargon", "en"),
+        ("koala", "en"),
+        ("zh_TW@variant", "zh-TW"),
+        ("zh-HK-x-private", "zh-TW"),
+        ("ja", "ja"),
+        ("ja_JP", "ja"),
+        ("ko", "ko"),
+        ("ko_KR", "ko"),
+    ],
+)
+def test_normalize_lang_handles_boundaries_and_posix_modifiers(code: str, expected: str) -> None:
+    assert mod._normalize_lang(code) == expected
+
+
 def test_detect_lang_uses_windows_system_lang_when_env_is_empty(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

@@ -12,7 +12,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from usage_common.usage_lang import _detect_windows_lang, detect_lang
+from usage_common.usage_lang import _detect_windows_lang, _normalize_lang, detect_lang
 
 
 def _fake_windll(monkeypatch: pytest.MonkeyPatch, lang_id: int) -> None:
@@ -30,6 +30,26 @@ def posix_platform(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def test_detect_lang_defaults_to_en_without_environment() -> None:
     assert detect_lang({}) == "en"
+
+
+@pytest.mark.parametrize(
+    ("code", "expected"),
+    [
+        ("jargon", "en"),
+        ("koala", "en"),
+        ("zh_TW@variant", "zh-TW"),
+        ("zh-HK-x-private", "zh-TW"),
+        ("ja", "ja"),
+        ("ja_JP", "ja"),
+        ("ko", "ko"),
+        ("ko_KR", "ko"),
+        (None, "en"),
+    ],
+)
+def test_normalize_lang_handles_boundaries_and_posix_modifiers(
+    code: str | None, expected: str
+) -> None:
+    assert _normalize_lang(code) == expected
 
 
 def test_detect_lang_reads_lang_zh_tw_locale(posix_platform: None) -> None:

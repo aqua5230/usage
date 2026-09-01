@@ -14,21 +14,21 @@ from collections.abc import Mapping
 def _normalize_lang(code: str | None) -> str:
     if not code:
         return "en"
-    normalized = code.split(".")[0].strip().lower().replace("_", "-")
+    normalized = code.split(".")[0].split("@")[0].strip().lower().replace("_", "-")
 
     if normalized in {"zh-tw", "zh-hk", "zh-hant"} or normalized.startswith(
-        ("zh-tw-", "zh-hant")
+        ("zh-tw-", "zh-hk-", "zh-hant")
     ):
         return "zh-TW"
     if normalized in {"zh-cn", "zh-sg", "zh-hans", "zh"} or normalized.startswith(
         ("zh-cn-", "zh-hans")
     ):
         return "zh-CN"
-    if normalized.startswith("en"):
+    if normalized == "en" or normalized.startswith("en-"):
         return "en"
-    if normalized.startswith("ja"):
+    if normalized == "ja" or normalized.startswith("ja-"):
         return "ja"
-    if normalized.startswith("ko"):
+    if normalized == "ko" or normalized.startswith("ko-"):
         return "ko"
     return "en"
 
