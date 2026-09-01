@@ -583,9 +583,8 @@ def _collect_tools(
         if name == "TodoWrite":
             items = raw_input.get("todos")
             if isinstance(items, list):
-                pending = _pending_todos(items)
-                if pending:
-                    todos[:] = pending  # latest TodoWrite wins — it is the current state
+                # Latest TodoWrite wins, even when it clears the list — everything got done.
+                todos[:] = _pending_todos(items)
         elif name == "Bash":
             command = raw_input.get("command")
             if isinstance(command, str) and "git commit" in command:

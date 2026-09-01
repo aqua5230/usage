@@ -342,6 +342,76 @@ def test_build_prompt_includes_pending_todos(
     assert "write changelog" in prompt and "tag the version" in prompt
 
 
+def test_build_prompt_todo_write_all_done_clears_stale_pending(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    project = _project_dir(tmp_path)
+    when = datetime.now().astimezone() - timedelta(hours=1)
+    # First TodoWrite leaves two items pending; a later TodoWrite in the same
+    # session marks both done. The done state must win, not the stale pending one.
+    (project / "prev.jsonl").write_text(
+        "\n".join(
+            json.dumps(line)
+            for line in [
+                {
+                    "type": "user",
+                    "timestamp": when.isoformat(),
+                    "message": {"content": "ship the release"},
+                },
+                {
+                    "type": "assistant",
+                    "timestamp": when.isoformat(),
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_use",
+                                "name": "TodoWrite",
+                                "input": {
+                                    "todos": [
+                                        {"content": "write changelog", "status": "pending"},
+                                        {"content": "tag the version", "status": "pending"},
+                                    ]
+                                },
+                            }
+                        ]
+                    },
+                },
+                {
+                    "type": "assistant",
+                    "timestamp": when.isoformat(),
+                    "message": {
+                        "content": [
+                            {
+                                "type": "tool_use",
+                                "name": "TodoWrite",
+                                "input": {
+                                    "todos": [
+                                        {"content": "write changelog", "status": "completed"},
+                                        {"content": "tag the version", "status": "completed"},
+                                    ]
+                                },
+                            }
+                        ]
+                    },
+                },
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+
+    prompt = mod._build_prompt(
+        {"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
+
+    assert "write changelog" not in prompt
+    assert "todos=(none)" in prompt
+
+
 def test_build_prompt_reads_last_prompt_entry(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
