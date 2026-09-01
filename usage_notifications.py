@@ -87,13 +87,13 @@ class QuotaNotifier:
             state.depleted = True
         elif current is not None:
             previous = state.last_percent
-            if previous is not None:
-                for threshold in self.thresholds:
-                    crossed = previous < threshold <= current
-                    if crossed and threshold not in state.warned_thresholds:
-                        events.append(NotificationEvent("warn", channel, threshold))
-                        state.warned_thresholds.add(threshold)
-            state.depleted = False
+            for threshold in self.thresholds:
+                crossed = (
+                    threshold <= current if previous is None else previous < threshold <= current
+                )
+                if crossed and threshold not in state.warned_thresholds:
+                    events.append(NotificationEvent("warn", channel, threshold))
+                    state.warned_thresholds.add(threshold)
 
         if current is not None:
             state.last_percent = current

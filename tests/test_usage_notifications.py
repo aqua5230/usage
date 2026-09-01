@@ -76,6 +76,28 @@ def test_restored_triggers_after_depleted_reset() -> None:
     ]
 
 
+def test_depleted_memory_survives_small_drop_until_reset() -> None:
+    notifier = QuotaNotifier()
+
+    notifier.update({"claude_session": (100.0, True)})
+    assert notifier.update({"claude_session": (99.0, True)}) == []
+
+    events = notifier.update({"claude_session": (5.0, True)})
+    assert [(event.kind, event.channel, event.threshold) for event in events] == [
+        ("restored", "claude_session", None)
+    ]
+
+
+def test_first_reading_above_threshold_sends_warning() -> None:
+    notifier = QuotaNotifier()
+
+    events = notifier.update({"claude_session": (95.0, True)})
+
+    assert [(event.kind, event.channel, event.threshold) for event in events] == [
+        ("warn", "claude_session", 90.0)
+    ]
+
+
 def test_restored_does_not_trigger_for_non_depleted_reset() -> None:
     notifier = QuotaNotifier()
 
