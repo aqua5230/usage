@@ -147,14 +147,20 @@ def test_windows_output_tolerates_replaced_streams(monkeypatch: pytest.MonkeyPat
 
 
 @pytest.fixture(autouse=True)
-def _isolate_context_burn_file(
+def _isolate_context_burn_and_preferences_files(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    """Isolate the context-burn and preferences files for each test."""
     monkeypatch.setattr(
         usage_statusline,
         "CONTEXT_BURN_FILE",
         str(tmp_path / "usage-context-burn.json"),
+    )
+    monkeypatch.setattr(
+        usage_statusline,
+        "PREFERENCES_FILE",
+        str(tmp_path / "usage-preferences.json"),
     )
 
 
