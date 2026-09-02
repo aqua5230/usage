@@ -4,7 +4,7 @@
 
 # usage
 
-### Quota visibility for Claude Code, Codex, and Antigravity, built into the macOS menu bar and Windows system tray.
+### Quota visibility for Claude Code, Codex, Antigravity, and Grok CLI, built into the macOS menu bar and Windows system tray.
 
 Running out of quota mid-session is expensive — especially during a long refactor or debugging run that depends on Claude Code. `usage` surfaces 5-hour and weekly limits *before* you hit the wall, and keeps them visible the whole time. There's no command to run and no page to open; the answer is just there, where you already look.
 

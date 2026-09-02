@@ -4,7 +4,7 @@
 
 # usage
 
-### 把 Claude Code、Codex 與 Antigravity 額度直接放進 macOS 選單列與 Windows 系統匣
+### 把 Claude Code、Codex、Antigravity 與 Grok CLI 額度直接放進 macOS 選單列與 Windows 系統匣
 
 長時間重構或除錯若依賴 Claude Code，無預警撞到額度上限代價很高。`usage` 讓你在撞牆前就先看到 5 小時與每週限額，並且全程留在畫面上——不用停下來跑指令、也不用另外開頁面，答案就在你本來就在看的地方。
 

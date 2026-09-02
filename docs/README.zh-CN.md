@@ -4,7 +4,7 @@
 
 # usage
 
-### 在 macOS 菜单栏和 Windows 系统托盘中查看 Claude Code、Codex 和 Antigravity 配额。
+### 在 macOS 菜单栏和 Windows 系统托盘中查看 Claude Code、Codex、Antigravity 和 Grok CLI 配额。
 
 在会话中途耗尽配额的代价很高，尤其是在依赖 Claude Code 的长时间重构或调试期间。`usage` 会在你触及限额前显示 5 小时和每周限额，并始终保持可见。无需运行命令，也无需打开页面；答案就在你平时已经会看的位置。
 

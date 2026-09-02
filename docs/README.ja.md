@@ -4,7 +4,7 @@
 
 # usage
 
-### macOSのメニューバーとWindowsのシステムトレイでClaude Code、Codex、Antigravityのクォータを確認。
+### macOSのメニューバーとWindowsのシステムトレイでClaude Code、Codex、Antigravity、Grok CLIのクォータを確認。
 
 セッションの途中でクォータが尽きると大きな損失になります。特に、Claude Code に依存する長時間のリファクタリングやデバッグではなおさらです。`usage` は上限に達する*前に*5時間ごとと週ごとの上限を表示し、常に見える状態に保ちます。コマンドを実行する必要も、ページを開く必要もありません。答えは、いつも見る場所に表示されています。
 

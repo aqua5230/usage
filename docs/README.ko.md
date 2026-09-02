@@ -4,7 +4,7 @@
 
 # usage
 
-### macOS 메뉴 막대와 Windows 시스템 트레이에서 Claude Code, Codex, Antigravity 할당량을 확인하세요.
+### macOS 메뉴 막대와 Windows 시스템 트레이에서 Claude Code, Codex, Antigravity, Grok CLI 할당량을 확인하세요.
 
 세션 중간에 할당량이 소진되면 비용이 큽니다. 특히 Claude Code에 의존하는 긴 리팩터링이나 디버깅 작업에서는 더욱 그렇습니다. `usage`는 한도에 도달하기 *전에* 5시간 및 주간 한도를 표시하고, 작업 내내 계속 보이게 합니다. 실행할 명령이나 열 페이지가 없습니다. 이미 보고 있는 곳에 답이 표시됩니다.
 
