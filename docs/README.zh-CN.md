@@ -45,7 +45,7 @@ brew install --cask aqua5230/usage/usage
 - **Antigravity 支持：** Antigravity（Gemini）的会话与每周配额以第三张卡片出现在除了 World Cup 2026 以外的每一款面板（该款维持两队对战 HUD）。数值直接向官方配额 API 查询，使用的是 Antigravity CLI 本就保存在你机器上的登录身份——每隔几分钟自动刷新，重置倒计时实时递减。
 - **Grok CLI 支持：** 第四张卡片直接读取 Grok CLI 自己写在本地的调试日志算出每周配额百分比，不做任何网络调用。Grok CLI 没有提供会话或燃烧率数据，所以这张卡片只显示一条每周进度条；但它的逐次 token 用量一样会算进今日花费与各项目总计，跟 Claude Code、Codex 一样。
 - **服务状态警示：** Claude Code、Claude API 或 Codex API 发生故障或性能降级时，相关面板底部会显示橘红警示横幅，数值仅读取官方公开的 Statuspage.io 状态页——绝不调用 LLM 使用量 API。Antigravity 因没有可用的公开状态页，暂不支持。
-- **上下文提醒与通知：** 当上下文窗口达到 70% 时，状态栏会提示你使用 `/clear` 或 `/compact`，避免浪费 token。你也可以选择接收关于配额限额和恢复的系统通知。
+- **上下文提醒与通知：** 当上下文窗口达到 70%（填得快时会提前）时，状态栏会提示你使用 `/clear` 或 `/compact`，避免浪费 token。你也可以选择接收关于配额限额和恢复的系统通知。
 - **缓存健康度：** 状态栏会显示 Claude Code 的 prompt cache 命中率与过期倒计时，让你一眼判断现在收尾还能沿用已缓存的内容，还是快要冷掉、得整份重新发送。需要 Claude Code 2.1.251 以上；旧版不会出现这一段。
 - **隐藏区块：** 没全都用？点击一次即可从菜单栏和面板中完全隐藏 Claude Code、Codex、Grok CLI 或 Antigravity 区块。
 
@@ -68,7 +68,7 @@ brew install --cask aqua5230/usage/usage
 
 ### 体验与自定义
 
-- **14 个视觉主题：** 可切换面板风格，包括 Classic、Matrix、Windows 95、Newspaper、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、Lepidoptera（蓝图）、候鸟迁徙（Migration）、彩绘玻璃、折纸和 Catppuccin（官方配色，四款 flavor 全支持）。
+- **14 个视觉主题：** 可切换面板风格，包括默认（Default）、Matrix、Windows 95、复古报纸（Newspaper）、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、蝶类图鉴（Lepidoptera）、候鸟迁徙（Migration）、彩绘玻璃、折纸和 Catppuccin（官方配色，四款 flavor 全支持）。
 - **面板自由摆放：** 面板不再固定在菜单栏图标下方。在任何空白处按住即可拖动到你想要的位置，下次打开仍保留在原位。切换到其他 App 时也不会消失，再次点击菜单栏图标或按 Esc 键才会关闭。
 - **拖拽排序：** 按住任意配额卡上下拖拽即可交换顺序——这一排列在所有包含配额卡的主题间共享（除 World Cup 2026 之外），并在重启后保留。
 - **自动本地化：** 界面文本提供繁体中文、简体中文、英语、日语和韩语，并自动匹配系统设置。
@@ -128,7 +128,7 @@ Linux 上运行 `usage setup` 也能装好 Claude Code 的状态栏，配额会�
 
 Windows 原生支持完整核心功能：系统托盘 UI、Claude Code 状态栏 hook 和 Codex 记录解析均可使用。从[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后直接运行 `usage.exe`，无需安装。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
 
-系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 14 款主题面板（Classic 加另外十三款）；右键只有「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
+系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 14 款主题面板（默认加另外十三款）；右键只有「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
 
 Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托盘图标；更新提示使用系统 Yes/No 对话框；AI 人才市场与 AI 圆桌讨论面板仅限 macOS。
 

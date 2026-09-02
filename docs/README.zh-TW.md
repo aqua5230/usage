@@ -45,7 +45,7 @@ brew install --cask aqua5230/usage/usage
 - **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在除了 World Cup 2026 以外的每一款面板（該款維持兩隊對戰 HUD）。數字直接向官方額度 API 查詢，用的是 Antigravity CLI 本來就存在你機器上的登入身分——每幾分鐘自動刷新，重置倒數即時遞減。
 - **Grok CLI 支援：** 第四張卡片直接讀 Grok CLI 自己寫在本機的除錯紀錄檔算出每週額度百分比，不做任何網路呼叫。Grok CLI 沒有提供 Session 或燃燒率資料，所以這張卡片只顯示一條每週進度條；但它的逐次 token 用量一樣會算進今日花費與各專案總計，跟 Claude Code、Codex 一樣。
 - **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅，狀態資訊只讀官方公開的 Statuspage.io 狀態頁——絕不呼叫 LLM 用量 API。Antigravity 因沒有可用的公開狀態頁，暫不支援。
-- **上下文提醒與系統通知：** Context Window 達 70% 時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
+- **上下文提醒與系統通知：** Context Window 達 70%（填得快時會提早）時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
 - **快取健康度：** 狀態列會顯示 Claude Code 的 prompt cache 命中率與過期倒數，讓你一眼判斷現在收尾還能沿用已快取的內容，還是快要冷掉、得整份重送。需要 Claude Code 2.1.251 以上；舊版不會出現這一段。
 - **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex、Grok CLI 或 Antigravity 從選單列及面板上徹底隱藏。
 
@@ -68,7 +68,7 @@ brew install --cask aqua5230/usage/usage
 
 ### 體驗與客製化
 
-- **14 款視覺面板：** 可在 Classic、Matrix、Windows 95、復古報紙（Newspaper）、雲圖觀測（Cloud Observation）、深夜水族箱（Midnight Aquarium）、Prism Arcade、黑洞（Black Hole）、World Cup 2026、藍曬圖（Lepidoptera）、候鳥遷徙（Migration）、彩繪玻璃（Stained Glass）、摺紙（Origami）與 Catppuccin（官方配色，四款 flavor 全支援）之間切換。
+- **14 款視覺面板：** 可在預設（Default）、Matrix、Windows 95、復古報紙（Newspaper）、雲圖觀測（Cloud Observation）、午夜水族箱（Midnight Aquarium）、Prism Arcade、黑洞視界（Black Hole）、World Cup 2026、蝶類圖鑑（Lepidoptera）、候鳥遷徙（Migration）、彩繪玻璃（Stained Glass）、摺紙（Origami）與 Catppuccin（官方配色，四款 flavor 全支援）之間切換。
 - **面板自由擺放：** 面板不再釘在選單列圖示下方。在任何空白處按住就能拖到你想要的位置，下次打開還在原地。點到別的 App 也不會消失，要再點一次選單列圖示或按 Esc 才關。
 - **拖曳排序：** 按住任何一張額度卡上下拖曳就能交換順序，排法在所有包含額度卡的主題間共用（除 World Cup 2026 之外），重開也會記住。
 - **自動多語言 (i18n)：** 介面支援繁中、簡中、英、日、韓，自動跟隨系統語言設定。
@@ -128,7 +128,7 @@ Linux 上跑 `usage setup` 也能裝好 Claude Code 的狀態列，配額會像 
 
 Windows 可完整使用核心功能：系統匣 UI、Claude Code 狀態列 hook 與 Codex 記錄解析都原生支援。從[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下載 `usage-windows.zip`，解壓後執行 `usage.exe` 即可，無須安裝程式。系統匣 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
 
-系統匣圖示會隨 Claude 額度百分比更新；提示文字摘要 Claude 與 Codex 的各視窗。左鍵會用 WebView2 開啟與 macOS 相同的 14 款主題面板（Classic 加另外十三款）；右鍵只有「重設面板位置」與「結束」；面板切換、重新整理、開機自啟與檢查更新都在面板選單。
+系統匣圖示會隨 Claude 額度百分比更新；提示文字摘要 Claude 與 Codex 的各視窗。左鍵會用 WebView2 開啟與 macOS 相同的 14 款主題面板（預設加另外十三款）；右鍵只有「重設面板位置」與「結束」；面板切換、重新整理、開機自啟與檢查更新都在面板選單。
 
 Windows 的差異：面板開在工作區右下角，而非貼齊系統匣圖示；更新提示使用系統 Yes/No 對話框；AI 人才市場與 AI 圓桌討論面板僅提供 macOS。
 

@@ -770,7 +770,7 @@ body::before {
       <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
         <h3 data-i18n="card10_h">Notifications before you hit the wall</h3>
-        <p data-i18n="card10_p">When your context window hits 70%, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.</p>
+        <p data-i18n="card10_p">When your context window hits 70% — or earlier when it is filling fast — the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.</p>
       </div>
       <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h9a2 2 0 0 1 2 2V12a2 2 0 0 1-2 2H10l-3 2.5V14H6a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z"/><path d="M17 9h1a2 2 0 0 1 2 2v3.5a2 2 0 0 1-2 2h-.5v2l-2.2-2H13"/></svg></span>
@@ -914,7 +914,7 @@ const T = {
     card8_h: 'Terse Mode',
     card8_p: "A menu-bar toggle that asks Claude Code — and Codex CLI too, if it's installed — to answer more tersely for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact.",
     card10_h: 'Notifications before you hit the wall',
-    card10_p: 'When your context window hits 70%, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.',
+    card10_p: 'When your context window hits 70% — or earlier when it is filling fast — the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.',
     card13_h: 'AI Council',
     card13_p: 'Run a multi-round discussion between Claude Code, Codex, and Antigravity on one topic. Pick who joins, which model each one uses, and how many rounds — with a token estimate shown before you start.',
     resume_label: 'PROGRESS CONCIERGE',
@@ -993,7 +993,7 @@ const T = {
     card8_h: '精簡模式',
     card8_p: '選單列開關，讓 Claude Code——連同裝好的 Codex CLI——整個對話回答更簡短：內容不變、字變少，但程式碼、指令、錯誤訊息一個字都不會被縮減。',
     card10_h: '撞牆前先提醒你',
-    card10_p: '上下文窗用到 70% 時，狀態列會提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪費 token；你也能另外開啟配額門檻與恢復通知的系統提醒。狀態列也會顯示 prompt cache 命中率與過期倒數，讓你判斷現在收尾還能不能沿用已快取的內容。',
+    card10_p: '上下文窗用到 70%（填得快時會提早）時，狀態列會提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪費 token；你也能另外開啟配額門檻與恢復通知的系統提醒。狀態列也會顯示 prompt cache 命中率與過期倒數，讓你判斷現在收尾還能不能沿用已快取的內容。',
     card13_h: 'AI 圓桌討論',
     card13_p: '讓 Claude Code、Codex、Antigravity 針對同一個題目進行多輪討論。自選誰加入、各自用哪個模型、討論幾輪——開始前就看得到大約會花多少 token。',
     resume_label: '進度管家',
@@ -1072,7 +1072,7 @@ const T = {
     card8_h: '精简模式',
     card8_p: '菜单栏开关，让 Claude Code——连同装好的 Codex CLI——整个对话回答更简短：内容不变、字变少，但代码、命令、错误消息一个字都不会被缩减。',
     card10_h: '撞墙前先提醒你',
-    card10_p: '上下文窗口用到 70% 时，状态栏会提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪费 token；你也可以另外开启额度门槛与恢复通知的系统提醒。状态栏也会显示 prompt cache 命中率与过期倒计时，让你判断现在收尾还能不能沿用已缓存的内容。',
+    card10_p: '上下文窗口用到 70%（填得快时会提前）时，状态栏会提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪费 token；你也可以另外开启额度门槛与恢复通知的系统提醒。状态栏也会显示 prompt cache 命中率与过期倒计时，让你判断现在收尾还能不能沿用已缓存的内容。',
     card13_h: 'AI 圆桌讨论',
     card13_p: '让 Claude Code、Codex、Antigravity 针对同一个题目进行多轮讨论。自选谁加入、各自用哪个模型、讨论几轮——开始前就能看到大约会花多少 token。',
     resume_label: '进度管家',
@@ -1151,7 +1151,7 @@ const T = {
     card8_h: '簡潔モード',
     card8_p: 'メニューバーのスイッチ一つで、Claude Code（導入済みなら Codex CLI にも）に会話全体をより簡潔に答えるよう依頼——内容はそのまま、文字数だけ減り、コード・コマンド・エラーメッセージは一切省略されません。',
     card10_h: '壁にぶつかる前に通知',
-    card10_p: 'コンテキストウィンドウが 70% に達すると、ステータスラインが <code>/clear</code> または <code>/compact</code> を促してトークン浪費を防ぎます。さらに、クォータ制限や回復のシステム通知も任意で有効化できます。ステータスラインには prompt cache ヒット率と有効期限へのカウントダウンも表示され、今すぐ終わらせてもキャッシュされた内容を使い回せるか判断できます。',
+    card10_p: 'コンテキストウィンドウが 70%（埋まるのが速い場合はもっと早く）に達すると、ステータスラインが <code>/clear</code> または <code>/compact</code> を促してトークン浪費を防ぎます。さらに、クォータ制限や回復のシステム通知も任意で有効化できます。ステータスラインには prompt cache ヒット率と有効期限へのカウントダウンも表示され、今すぐ終わらせてもキャッシュされた内容を使い回せるか判断できます。',
     card13_h: 'AI円卓会議',
     card13_p: 'Claude Code、Codex、Antigravityに同じトピックで複数ラウンドの議論をさせます。参加者、使うモデル、ラウンド数を自分で選べ、開始前にtoken見積もりが表示されます。',
     resume_label: '続きから',
@@ -1230,7 +1230,7 @@ const T = {
     card8_h: '간결 모드',
     card8_p: '메뉴 바 스위치 하나로 Claude Code — 설치되어 있다면 Codex CLI까지 — 대화 전체를 더 간결하게 답하도록 요청합니다. 내용은 그대로, 글자 수만 줄고 코드·명령어·오류 메시지는 한 글자도 줄지 않습니다.',
     card10_h: '한도에 닿기 전에 알림',
-    card10_p: '컨텍스트 창이 70%에 도달하면 상태 줄이 <code>/clear</code> 또는 <code>/compact</code> 를 권해 토큰 낭비를 막아 줍니다. 한도 경고와 회복 알림용 시스템 알림도 따로 켤 수 있어요. 상태 줄에는 prompt cache 적중률과 만료 카운트다운도 표시되어, 지금 마무리해도 캐시된 컨텍스트를 재사용할 수 있는지 판단할 수 있습니다.',
+    card10_p: '컨텍스트 창이 70%(빠르게 채워지면 더 일찍)에 도달하면 상태 줄이 <code>/clear</code> 또는 <code>/compact</code> 를 권해 토큰 낭비를 막아 줍니다. 한도 경고와 회복 알림용 시스템 알림도 따로 켤 수 있어요. 상태 줄에는 prompt cache 적중률과 만료 카운트다운도 표시되어, 지금 마무리해도 캐시된 컨텍스트를 재사용할 수 있는지 판단할 수 있습니다.',
     card13_h: 'AI 원탁 토론',
     card13_p: 'Claude Code, Codex, Antigravity가 같은 주제로 여러 라운드에 걸쳐 토론하게 합니다. 참여자, 사용할 모델, 라운드 수를 직접 선택할 수 있으며 시작 전에 token 예상치가 표시됩니다.',
     resume_label: '이어서 계속',

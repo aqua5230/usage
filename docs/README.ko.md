@@ -45,7 +45,7 @@ Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려�
 - **Antigravity 지원:** Antigravity(Gemini)의 세션 및 주간 할당량이 World Cup 2026을 제외한 모든 패널에서 세 번째 카드로 나타납니다(World Cup 2026은 양 팀 HUD로 유지됨). 수치는 Antigravity CLI가 이미 컴퓨터에 저장해 둔 로그인 정보를 사용해 공식 할당량 API에서 직접 가져옵니다. 몇 분마다 자동 갱신되며 리셋 카운트다운도 실시간으로 줄어듭니다.
 - **Grok CLI 지원:** 네 번째 카드는 Grok CLI 자체 로컬 디버그 로그에서 주간 크레딧 비율을 직접 읽어옵니다——네트워크 호출이 없습니다. Grok CLI는 세션이나 소진율 데이터를 제공하지 않으므로 카드에는 단일 주간 막대만 표시됩니다. 하지만 요청별 token 사용량은 Claude Code 및 Codex와 마찬가지로 오늘 비용과 프로젝트 총계에 그대로 반영됩니다.
 - **서비스 상태 경고:** Claude Code, Claude API 또는 Codex API에 장애나 성능 저하가 발생하면 관련 패널 하단에 주황색/빨간색 경고 배너가 표시되며, 수치는 공식 공개 Statuspage.io 페이지에서만 읽어옵니다(LLM 사용량 API는 절대 호출하지 않음). Antigravity는 공개 상태 페이지가 없으므로 지원되지 않습니다.
-- **컨텍스트 알림 및 알림 센터:** 컨텍스트 창이 70%에 도달하면 상태 줄이 `/clear` 또는 `/compact`를 안내해 token 낭비를 막습니다. 할당량 한도와 복구에 관한 시스템 알림도 선택해 받을 수 있습니다.
+- **컨텍스트 알림 및 알림 센터:** 컨텍스트 창이 70%(빠르게 채워지면 더 일찍)에 도달하면 상태 줄이 `/clear` 또는 `/compact`를 안내해 token 낭비를 막습니다. 할당량 한도와 복구에 관한 시스템 알림도 선택해 받을 수 있습니다.
 - **캐시 건강 상태:** 상태 줄에는 Claude Code의 prompt cache 적중률과 만료 카운트다운이 표시되어, 지금 마무리해도 캐시된 컨텍스트를 재사용할 수 있는지, 아니면 캐시가 식어서 전체를 다시 보내야 하는지 한눈에 파악할 수 있습니다. Claude Code 2.1.251 이상이 필요하며, 구버전에서는 이 섹션이 나타나지 않습니다.
 - **섹션 숨기기:** 일부 도구만 사용하나요? 클릭 한 번으로 Claude Code, Codex, Grok CLI 또는 Antigravity 섹션을 메뉴 막대와 패널에서 완전히 숨길 수 있습니다.
 
@@ -68,7 +68,7 @@ Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려�
 
 ### 경험과 사용자화
 
-- **14가지 시각 테마:** Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera(blueprint), 철새 이동(Migration), 스테인드글라스, 종이접기, Catppuccin(공식 팔레트, 4가지 flavor 모두 지원)을 포함한 패널 스타일을 전환할 수 있습니다.
+- **14가지 시각 테마:** 기본(Default), Matrix, Windows 95, 복고 신문(Newspaper), Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, 나비 도감(Lepidoptera), 철새 이동(Migration), 스테인드글라스, 종이접기, Catppuccin(공식 팔레트, 4가지 flavor 모두 지원)을 포함한 패널 스타일을 전환할 수 있습니다.
 - **패널 자유 배치:** 패널이 더 이상 메뉴 막대 아이콘 아래에 고정되지 않습니다. 빈 공간을 드래그해 원하는 위치로 이동할 수 있으며, 다음에 열 때도 그 위치가 유지됩니다. 다른 앱으로 포커스가 이동해도 사라지지 않으며, 메뉴 막대 아이콘을 다시 클릭하거나 Esc 키를 눌러야 닫힙니다.
 - **드래그로 순서 변경:** 아무 할당량 카드나 잡고 위아래로 드래그하면 순서를 바꿀 수 있습니다. 배치는 할당량 카드가 있는 모든 테마(World Cup 2026 제외)에서 공유되며 다시 시작해도 유지됩니다.
 - **자동 현지화:** UI 텍스트는 번체 중국어, 간체 중국어, 영어, 일본어, 한국어로 제공되며 시스템 설정에 맞춰 자동으로 전환됩니다.
@@ -128,7 +128,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 
 Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다. 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석을 지원합니다.[최신 GitHub Release](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 내려받아 압축을 풀고 `usage.exe`를 실행하면 됩니다. 설치는 필요하지 않습니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10/11에 이미 포함되어 있습니다.
 
-시스템 트레이 아이콘은 Claude 할당량 비율에 따라 업데이트되고, 도구 설명에는 Claude와 Codex의 각 창 요약이 표시됩니다. 왼쪽 클릭하면 WebView2에서 macOS와 같은 14개 테마 패널(Classic과 나머지 13개)을 열고, 오른쪽 클릭 메뉴에는 '패널 위치 재설정'과 '종료'만 있고, 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인은 패널 메뉴에 있습니다.
+시스템 트레이 아이콘은 Claude 할당량 비율에 따라 업데이트되고, 도구 설명에는 Claude와 Codex의 각 창 요약이 표시됩니다. 왼쪽 클릭하면 WebView2에서 macOS와 같은 14개 테마 패널(기본과 나머지 13개)을 열고, 오른쪽 클릭 메뉴에는 '패널 위치 재설정'과 '종료'만 있고, 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인은 패널 메뉴에 있습니다.
 
 Windows의 차이점: 패널은 트레이 아이콘 옆이 아니라 작업 영역 오른쪽 아래에 열립니다. 업데이트 알림은 시스템 Yes/No 대화 상자를 사용합니다. AI Talent Market 및 AI 원탁 토론 패널은 macOS 전용입니다.
 

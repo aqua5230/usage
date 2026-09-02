@@ -45,7 +45,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 - **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every theme except World Cup 2026, which stays a two-team HUD. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns.
 - **Grok CLI Support:** A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Grok CLI doesn't expose session or burn-rate data, so the card shows a single weekly bar; its per-request token usage still counts toward today's cost and project totals like Claude Code and Codex.
 - **Service Status Alerts:** An orange-red banner appears when Claude Code, Claude API, or Codex API has an outage or degraded performance, read from their public Statuspage.io pages — never an LLM usage API. Antigravity isn't covered; it has no public status page.
-- **Context Nudges & Notifications:** When your context window hits 70%, the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
+- **Context Nudges & Notifications:** When your context window hits 70% — or earlier when it is filling fast — the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
 - **Prompt Cache Health:** The status line shows Claude Code's prompt cache hit rate with a countdown to expiry, so you can tell at a glance whether finishing now still reuses the cached context or lets it go cold and re-sends everything. Needs Claude Code 2.1.251 or newer; on older versions the segment simply doesn't appear.
 - **Hide Sections:** Only use one or two of the tools? Hide the Claude Code, Codex, Grok CLI, or Antigravity section from the menu bar and panels completely with a single click.
 
@@ -68,7 +68,7 @@ It lands in your Applications folder automatically. Right-click **Open** once to
 
 ### Experience & Customization
 
-- **14 Visual Themes:** Switch between panel styles including Classic, Matrix, Windows 95, Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera (blueprint), Migration, Stained Glass, Origami, and Catppuccin (official palette, all four flavors).
+- **14 Visual Themes:** Switch between panel styles including Default, Matrix, Windows 95, Vintage Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera, Migration, Stained Glass, Origami, and Catppuccin (official palette, all four flavors).
 - **Place the Panel Anywhere:** The panel is no longer pinned under the menu bar icon. Drag it from any empty spot to wherever you want it, and it reopens there next time. It stays put when another app takes focus — a second click on the menu bar icon, or Escape, closes it.
 - **Drag to Reorder:** Grab any quota card and drag it up or down to swap the order — the arrangement is shared across every theme with quota cards (all except World Cup 2026) and survives restarts.
 - **Automatic Localization:** UI text is available in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
@@ -128,7 +128,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 
 Windows has the full core experience: the system-tray UI, Claude Code status-line hook, and Codex history parsing all work natively. Download `usage-windows.zip` from the [latest GitHub Release](https://github.com/aqua5230/usage/releases/latest), unzip it, then run `usage.exe`—no installer is needed. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
 
-The system-tray icon updates with your Claude quota percentage; its tooltip summarizes the Claude and Codex windows. Left-click opens the same 14 quota themes available on macOS (Classic plus the other thirteen) in WebView2. Right-click provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
+The system-tray icon updates with your Claude quota percentage; its tooltip summarizes the Claude and Codex windows. Left-click opens the same 14 quota themes available on macOS (Default plus the other thirteen) in WebView2. Right-click provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
 
 Windows differences: the panel opens at the bottom-right of the working area rather than next to the tray icon; update prompts use a system Yes/No dialog; and the AI Talent Market and AI Council panels are macOS-only.
 
