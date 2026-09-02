@@ -264,3 +264,23 @@ def test_self_heal_installs_grok_statusline(
     assert target.exists()
     assert setup_hook.is_grok_setup()
     assert logs == [("setup_grok", "installed or updated Grok status line")]
+
+
+def test_render_shows_zero_quota_when_percent_is_omitted(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    log = tmp_path / ".grok" / "logs" / "unified.jsonl"
+    log.parent.mkdir(parents=True)
+    log.write_text(
+        '{"msg":"billing: fetched credits config","ctx":{"config":'
+        '{"currentPeriod":{"end":"2099-09-01T15:50:08.729634+00:00"},"historyLen":0}}}\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(usage_statusline_grok, "GROK_LOG_PATH", log)
+    monkeypatch.setenv("USAGE_LANG", "zh-TW")
+    monkeypatch.setenv("COLUMNS", "300")
+
+    output = _visible(usage_statusline_grok.render(_fixture_data()))
+
+    assert "週配額:□□□□□□□□ 0%" in output

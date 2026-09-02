@@ -110,7 +110,9 @@ def _result_from_line(line: bytes) -> GrokQuotaResult | None:
     config = context.get("config")
     if not isinstance(config, dict):
         return None
-    used_percent = config.get("creditUsagePercent")
+    # xAI drops creditUsagePercent from the snapshot when the weekly usage is
+    # exactly zero, which is what a freshly reset week looks like.
+    used_percent = config.get("creditUsagePercent", 0.0)
     period = config.get("currentPeriod")
     if (
         isinstance(used_percent, bool)

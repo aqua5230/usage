@@ -90,3 +90,37 @@ def test_load_quota_skips_malformed_json_lines(grok_log: Path) -> None:
 
     assert result is not None
     assert result.used_percent == 44.0
+
+
+# The Grok CLI's own log line right after a weekly reset: xAI leaves
+# creditUsagePercent out of the snapshot when the used percentage is zero.
+_RESET_WEEK_BILLING = (
+    '{"ts":"2026-09-02T09:19:32.423Z","src":"shell","pid":83108,"ver":"1.0.13",'
+    '"lvl":"info","msg":"billing: fetched credits config","ctx":{"config":'
+    '{"currentPeriod":{"type":"USAGE_PERIOD_TYPE_WEEKLY",'
+    '"start":"2026-09-01T15:50:08.729634+00:00","end":"2026-09-08T15:50:08.729634+00:00"},'
+    '"onDemandCap":{"val":0},"onDemandUsed":{"val":0},"prepaidBalance":{"val":0},'
+    '"isUnifiedBillingUser":true,"billingPeriodStart":"2026-09-01T15:50:08.729634+00:00",'
+    '"billingPeriodEnd":"2026-09-08T15:50:08.729634+00:00","historyLen":0},'
+    '"onDemandEnabled":null,"subscriptionTier":"SuperGrok Lite"}}'
+)
+
+
+def test_load_quota_reads_reset_week_snapshot_without_percent(grok_log: Path) -> None:
+    grok_log.write_text(_RESET_WEEK_BILLING + "\n", encoding="utf-8")
+
+    result = grok_quota_probe.load_quota(_NOW)
+
+    assert result is not None
+    assert result.used_percent == 0.0
+    assert result.period_end == "2026-09-08T15:50:08.729634+00:00"
+
+
+def test_load_quota_ignores_truncated_billing_snapshot(grok_log: Path) -> None:
+    grok_log.write_text(
+        '{"ts":"2026-08-25T15:38:22.946Z","msg":"billing: fetched credits config",'
+        '"ctx":{"config":{"historyLen":0}}}\n',
+        encoding="utf-8",
+    )
+
+    assert grok_quota_probe.load_quota(_NOW) is None

@@ -284,7 +284,9 @@ def _read_weekly_quota() -> Optional[Tuple[float, float]]:
             if not isinstance(payload, dict) or payload.get("msg") != _BILLING_MESSAGE:
                 continue
             config = _as_dict(_as_dict(payload.get("ctx")).get("config"))
-            used = _as_float(config.get("creditUsagePercent"))
+            # xAI drops creditUsagePercent from the snapshot when the weekly
+            # usage is exactly zero, which is what a freshly reset week looks like.
+            used = _as_float(config.get("creditUsagePercent", 0.0))
             period = _as_dict(config.get("currentPeriod"))
             end = period.get("end")
             if used is None or not 0.0 <= used <= 100.0 or not isinstance(end, str):
