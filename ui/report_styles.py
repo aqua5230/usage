@@ -111,11 +111,10 @@ h1{
   .share-trigger:hover{border-color:var(--text-soft)}
 }
 .share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
-.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:20px 0 16px}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:20px 0 16px}
 .card{
   background:var(--card-bg);padding:20px 18px 18px;border-radius:12px;min-height:132px;min-width:0;display:grid;grid-template-rows:minmax(2.2em,auto) auto minmax(1.5em,auto);align-content:start;border:1px solid var(--card-border);box-shadow:0 8px 32px 0 var(--card-shadow);transition:transform .25s cubic-bezier(.4,0,.2,1),border-color .25s cubic-bezier(.4,0,.2,1),box-shadow .25s cubic-bezier(.4,0,.2,1)
 }
-.card:nth-child(-n+2){grid-column:span 2}
 .card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.2);box-shadow:0 12px 40px 0 var(--hover-glow)}
 .card span{display:block;color:var(--muted);font-size:.78rem;font-weight:600;line-height:1.4;text-transform:uppercase;letter-spacing:.08em;padding-bottom:10px}
 .card b{display:block;min-width:0;max-width:100%;font-size:clamp(1.35rem,3vw,2rem);color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.12;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -364,8 +363,6 @@ td:first-child{color:var(--warn)}
   header{display:block}
   .meta{text-align:left;margin-top:16px}
   .header-actions{align-items:flex-start;justify-self:start;min-width:0;margin-top:16px}
-  .cards{grid-template-columns:repeat(2,1fr)}
-  .card:nth-child(-n+2){grid-column:auto}
   .rank-head,.tools-head{display:none}
   .rank-list{display:grid;gap:12px}
   .rank-line{display:grid;grid-template-columns:1fr;gap:8px;padding:16px;border:1px solid var(--card-border);border-radius:10px;background:var(--soft);box-shadow:none}
@@ -386,7 +383,7 @@ td:first-child{color:var(--warn)}
 @media (max-width:480px){
   .wrap{padding:24px 12px 32px}
   h1{white-space:normal}
-  .cards{grid-template-columns:repeat(2,1fr);gap:10px}
+  .cards{gap:10px}
   .card{min-height:104px;padding:16px 14px 14px}
   .share-dialog{width:100%;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}
   .share-modal{min-height:100dvh;padding:20px 16px}

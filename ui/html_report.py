@@ -26,7 +26,6 @@ from analyzer.reporter import (
     AgentReportRow,
     DailyTrendPoint,
     ReportData,
-    SummaryReportData,
 )
 
 from i18n import _t as _i18n_t, packaged_resource_path
@@ -500,18 +499,21 @@ def _tools_body(
     return f'<div class="tools">{head}{"".join(rows)}</div>'
 
 
+def _peak_day(daily: list[DailyTrendPoint]) -> tuple[str, int] | None:
+    if not daily:
+        return None
+    peak = max(daily, key=lambda day: int(day["tokens"]))
+    return str(peak["date"]), int(peak["tokens"])
+
+
 def _narrative(data: ReportData, lang: str, is_empty: bool) -> str:
     if is_empty:
         return _t(lang, "empty_state_hint")
 
     summary = data["summary"]
-    daily = data.get("daily_trend", [])
-    peak_date = data.get("date_to", "---- -- --")
-    peak_tokens = 0
-    if daily:
-        peak = max(daily, key=lambda day: int(day["tokens"]))
-        peak_date = peak["date"]
-        peak_tokens = peak["tokens"]
+    peak = _peak_day(data.get("daily_trend", []))
+    peak_date = peak[0] if peak else data.get("date_to", "---- -- --")
+    peak_tokens = peak[1] if peak else 0
     top_model = data.get("by_model", [{}])[0].get("model", _t(lang, "unknown")) if data.get("by_model") else _t(lang, "unknown")
     return _t(
         lang,
@@ -534,19 +536,48 @@ def _render_cards_section(cards: list[tuple[str, str, str]]) -> str:
     return f"""<section class="cards">{''.join(f'<div class="card"><span>{html.escape(label)}</span><b>{html.escape(value)}</b>' + (f'<i>{html.escape(sub)}</i>' if sub else '') + '</div>' for label, value, sub in cards)}</section>"""
 
 
-def _summary_cards(summary: SummaryReportData, lang: str) -> list[tuple[str, str, str]]:
+def _delta_sub(current: float, prev: float, vs_prev_label: str) -> str:
+    if prev <= 0:
+        return ""
+    pct = round((current - prev) / prev * 100)
+    arrow = "↑" if pct >= 0 else "↓"
+    return f"{arrow}{abs(pct)}% {vs_prev_label}"
+
+
+def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
+    summary = data["summary"]
+    comparison = data["comparison"]
     total_tokens = int(summary["total_tokens"])
-    messages = int(summary["messages"])
-    cost_main, cost_sub = _cost_value(float(summary["cost_usd"]), lang)
-    tokens_per_msg = total_tokens // messages if messages else 0
-    return [
-        (_t(lang, "kpi_tokens"), f"{total_tokens:,}", f"≈ {_fmt_tokens(total_tokens)}"),
+    cost_usd = float(summary["cost_usd"])
+    total_days = int(summary["total_days"])
+    cost_main, cost_sub = _cost_value(cost_usd, lang)
+    tokens_sub = f"≈ {_fmt_tokens(total_tokens)}"
+
+    if comparison.get("has_prev"):
+        vs_prev_key = "kpi_vs_prev_month" if comparison.get("period") == "month" else "kpi_vs_prev_week"
+        vs_prev_label = _t(lang, vs_prev_key)
+        tokens_delta = _delta_sub(total_tokens, float(comparison.get("prev_tokens", 0)), vs_prev_label)
+        if tokens_delta:
+            tokens_sub = f"{tokens_sub} · {tokens_delta}"
+        cost_delta = _delta_sub(cost_usd, float(comparison.get("prev_cost", 0)), vs_prev_label)
+        if cost_delta:
+            cost_sub = f"{cost_sub} · {cost_delta}" if cost_sub else cost_delta
+
+    cards = [
+        (_t(lang, "kpi_tokens"), f"{total_tokens:,}", tokens_sub),
         (_t(lang, "kpi_cost"), cost_main, cost_sub),
-        (_t(lang, "kpi_sessions"), f'{int(summary["sessions"]):,}', ""),
-        (_t(lang, "kpi_messages"), f'{messages:,}', ""),
-        (_t(lang, "kpi_active"), f'{int(summary["active_days"])}/{int(summary["total_days"])}', ""),
-        (_t(lang, "kpi_productivity"), f"{tokens_per_msg:,}", _t(lang, "kpi_productivity_unit")),
     ]
+
+    if total_days > 1:
+        cards.append(
+            (_t(lang, "kpi_active"), f'{int(summary["active_days"])}/{total_days}', "")
+        )
+        peak = _peak_day(data.get("daily_trend", []))
+        if peak is not None:
+            peak_date, peak_tokens = peak
+            cards.append((_t(lang, "kpi_peak_day"), peak_date, f"{_fmt_tokens(peak_tokens)} {_t(lang, 'tokens')}"))
+
+    return cards
 
 
 def _render_header(data: ReportData, lang: str, title: str, generated_at: str, is_empty: bool) -> str:
@@ -984,7 +1015,7 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
     lang = language or _detect_lang()
     date_to = _parse_daily_date(report_data["date_to"])
     generated_at = datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S %Z")
-    cards = _summary_cards(report_data["summary"], lang)
+    cards = _summary_cards(report_data, lang)
     is_empty = (
         int(report_data["summary"]["total_tokens"]) <= 0
         and int(report_data["summary"]["messages"]) <= 0
