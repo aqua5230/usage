@@ -115,9 +115,9 @@ def _quota_notification_thresholds(prefs: Mapping[str, object] | None = None) ->
     data = _resolved_preferences(prefs)
     raw = data.get("quota_notification_thresholds")
     if not isinstance(raw, list):
-        return [90.0]
+        return [50.0, 90.0]
     thresholds: list[float] = []
     for value in raw:
         if isinstance(value, int | float) and 0 < float(value) <= 100:
             thresholds.append(float(value))
-    return thresholds or [90.0]
+    return thresholds or [50.0, 90.0]

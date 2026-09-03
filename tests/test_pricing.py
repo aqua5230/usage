@@ -293,6 +293,37 @@ def test_resolve_model_key_uses_strict_prefix_match_deterministically() -> None:
     assert pricing._resolve_model_key("openai/gpt-5", pricing_table) == "gpt-5-pro"
 
 
+def test_resolve_model_key_does_not_fall_back_to_a_newer_version() -> None:
+    pricing_table: pricing.PricingTable = {
+        "claude-opus-4-6": {},
+    }
+
+    assert pricing._resolve_model_key("claude-opus-4-20250514", pricing_table) is None
+    assert pricing._resolve_model_key("claude-opus-4", pricing_table) is None
+
+
+def test_resolve_model_key_maps_a_version_less_name_to_the_newest_version() -> None:
+    pricing_table: pricing.PricingTable = {
+        "claude-sonnet-4": {},
+        "claude-sonnet-4-6": {},
+        "claude-sonnet-5": {},
+    }
+
+    assert pricing._resolve_model_key("claude-sonnet", pricing_table) == "claude-sonnet-5"
+    assert pricing._resolve_model_key("bedrock/claude-sonnet", pricing_table) == "claude-sonnet-5"
+
+
+def test_resolve_model_key_strips_bedrock_version_suffix() -> None:
+    pricing_table: pricing.PricingTable = {
+        "claude-sonnet-4-5": {},
+    }
+
+    assert (
+        pricing._resolve_model_key("claude-sonnet-4-5-20250929-v1:0", pricing_table)
+        == "claude-sonnet-4-5"
+    )
+
+
 def test_resolve_model_key_does_not_match_partial_token_prefix() -> None:
     pricing_table: pricing.PricingTable = {
         "gpt-4o-mini": {},
@@ -338,6 +369,12 @@ def test_fallback_pricing_contains_expected_models() -> None:
     assert "claude-sonnet-4-6" in fallback
     assert "claude-sonnet-5" in fallback
     assert "claude-haiku-4-5-20251001" in fallback
+    assert fallback["claude-fable-5-1"] == {
+        "input_cost_per_token": 10e-6,
+        "output_cost_per_token": 50e-6,
+        "cache_creation_input_token_cost": 12.5e-6,
+        "cache_read_input_token_cost": 0.25e-6,
+    }
     assert fallback["claude-opus-4-6"] == {
         "input_cost_per_token": 5e-6,
         "output_cost_per_token": 25e-6,

@@ -33,7 +33,7 @@ FALLBACK_RETRY_SECONDS = 600
 MISSING_MODEL_REFRESH_SECONDS = FALLBACK_RETRY_SECONDS
 USER_AGENT = "usage/0.9"
 # The date when the hard-coded fallback table was last manually checked upstream.
-FALLBACK_PRICING_AS_OF: str = "2026-08-14"
+FALLBACK_PRICING_AS_OF: str = "2026-09-04"
 # Anthropic's official cache write/read prices relative to input pricing. These
 # are only fallbacks for missing upstream fields and may be wrong for other providers.
 CACHE_WRITE_COST_MULTIPLIER = 1.25
@@ -52,6 +52,8 @@ PROVIDER_PREFIXES = (
     "google/",
 )
 DATE_SUFFIX_RE = re.compile(r"-(?:\d{8}|\d{4}-\d{2}-\d{2})$")
+# Bedrock appends its own model version, e.g. claude-sonnet-4-5-20250929-v1:0.
+BEDROCK_VERSION_SUFFIX_RE = re.compile(r"-v\d+:\d+$")
 
 PricingTable = dict[str, dict[str, float]]
 PricingSource = Literal["cache", "stale", "fetched", "fallback"]
@@ -368,14 +370,27 @@ def _resolve_model_key(model: str, pricing: PricingTable) -> str | None:
     if normalized in pricing:
         return normalized
 
-    prefix_matches = [
+    dated_matches = [key for key in pricing if DATE_SUFFIX_RE.sub("", key) == normalized]
+    if dated_matches:
+        return sorted(dated_matches, key=lambda key: (len(key), key))[0]
+
+    # Once a query carries its own version (claude-opus-4), a candidate that only
+    # appends another number is a different model, not a variant: claude-opus-4
+    # must not fall back to claude-opus-4-6 pricing. A version-less query
+    # (claude-sonnet) still resolves to a numbered key.
+    prefix = f"{normalized}-"
+    versioned = normalized[-1:].isdigit()
+    candidates = [
         key
         for key in pricing
-        if key.startswith(normalized)
-        and (len(key) == len(normalized) or key[len(normalized)] == "-")
+        if key.startswith(prefix)
+        and len(key) > len(prefix)
+        and not (versioned and key[len(prefix)].isdigit())
     ]
-    if prefix_matches:
-        return sorted(prefix_matches, key=lambda key: (len(key), key))[0]
+    if candidates:
+        shortest = min(len(key) for key in candidates)
+        # Among equally specific keys, prefer the newest version.
+        return max(key for key in candidates if len(key) == shortest)
 
     logger.debug("pricing: no match for model=%s", model)
     return None
@@ -387,11 +402,30 @@ def _normalize_model_name(model: str) -> str:
         if normalized.startswith(prefix):
             normalized = normalized[len(prefix) :]
             break
+    normalized = BEDROCK_VERSION_SUFFIX_RE.sub("", normalized)
     return DATE_SUFFIX_RE.sub("", normalized)
 
 
 def _fallback_pricing() -> PricingTable:
     return {
+        "claude-opus-4": {
+            "input_cost_per_token": 15e-6,
+            "output_cost_per_token": 75e-6,
+            "cache_creation_input_token_cost": 18.75e-6,
+            "cache_read_input_token_cost": 1.5e-6,
+        },
+        "claude-opus-4-1": {
+            "input_cost_per_token": 15e-6,
+            "output_cost_per_token": 75e-6,
+            "cache_creation_input_token_cost": 18.75e-6,
+            "cache_read_input_token_cost": 1.5e-6,
+        },
+        "claude-opus-4-5": {
+            "input_cost_per_token": 5e-6,
+            "output_cost_per_token": 25e-6,
+            "cache_creation_input_token_cost": 6.25e-6,
+            "cache_read_input_token_cost": 0.5e-6,
+        },
         "claude-opus-4-6": {
             "input_cost_per_token": 5e-6,
             "output_cost_per_token": 25e-6,
@@ -416,6 +450,18 @@ def _fallback_pricing() -> PricingTable:
             "cache_creation_input_token_cost": 6.25e-6,
             "cache_read_input_token_cost": 0.5e-6,
         },
+        "claude-sonnet-4": {
+            "input_cost_per_token": 3e-6,
+            "output_cost_per_token": 15e-6,
+            "cache_creation_input_token_cost": 3.75e-6,
+            "cache_read_input_token_cost": 0.3e-6,
+        },
+        "claude-sonnet-4-5": {
+            "input_cost_per_token": 3e-6,
+            "output_cost_per_token": 15e-6,
+            "cache_creation_input_token_cost": 3.75e-6,
+            "cache_read_input_token_cost": 0.3e-6,
+        },
         "claude-sonnet-4-6": {
             "input_cost_per_token": 3e-6,
             "output_cost_per_token": 15e-6,
@@ -433,6 +479,12 @@ def _fallback_pricing() -> PricingTable:
             "output_cost_per_token": 50e-6,
             "cache_creation_input_token_cost": 12.5e-6,
             "cache_read_input_token_cost": 1e-6,
+        },
+        "claude-fable-5-1": {
+            "input_cost_per_token": 10e-6,
+            "output_cost_per_token": 50e-6,
+            "cache_creation_input_token_cost": 12.5e-6,
+            "cache_read_input_token_cost": 0.25e-6,
         },
         "claude-haiku-4-5-20251001": {
             "input_cost_per_token": 1e-6,

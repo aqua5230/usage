@@ -41,7 +41,7 @@ class _ChannelState:
 
 class QuotaNotifier:
     def __init__(self, thresholds: list[float] | None = None) -> None:
-        values = [90.0] if thresholds is None else thresholds
+        values = [50.0, 90.0] if thresholds is None else thresholds
         self.thresholds = sorted({float(value) for value in values})
         self._channels = {channel: _ChannelState() for channel in VALID_CHANNELS}
 
@@ -87,13 +87,18 @@ class QuotaNotifier:
             state.depleted = True
         elif current is not None:
             previous = state.last_percent
-            for threshold in self.thresholds:
-                crossed = (
-                    threshold <= current if previous is None else previous < threshold <= current
-                )
-                if crossed and threshold not in state.warned_thresholds:
-                    events.append(NotificationEvent("warn", channel, threshold))
-                    state.warned_thresholds.add(threshold)
+            crossed = [
+                threshold
+                for threshold in self.thresholds
+                if (threshold <= current if previous is None else previous < threshold <= current)
+                and threshold not in state.warned_thresholds
+            ]
+            if crossed:
+                # One reading can cross several thresholds at once — a first
+                # observation already past 90%, or a single large jump. Warn on the
+                # highest and latch the rest so one reading sends one notification.
+                state.warned_thresholds.update(crossed)
+                events.append(NotificationEvent("warn", channel, crossed[-1]))
 
         if current is not None:
             state.last_percent = current

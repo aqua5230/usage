@@ -22,7 +22,7 @@ PRICE_FIELDS = (
     "cache_creation_input_token_cost",
     "cache_read_input_token_cost",
 )
-MAINSTREAM_CLAUDE_RE = re.compile(r"^claude-(?:opus|sonnet|haiku)-(?:4|5)(?:-|$)")
+MAINSTREAM_CLAUDE_RE = re.compile(r"^claude-(?:opus|sonnet|haiku|fable)-(?:4|5)(?:-|$)")
 
 
 @dataclass(frozen=True)
@@ -52,10 +52,11 @@ def compare_pricing(
     missing_upstream: list[str] = []
 
     for model in sorted(fallback):
-        upstream_prices = upstream.get(model)
-        if upstream_prices is None:
+        upstream_key = pricing._resolve_model_key(model, upstream)
+        if upstream_key is None:
             missing_upstream.append(model)
             continue
+        upstream_prices = upstream[upstream_key]
         local_prices = fallback[model]
         for field in PRICE_FIELDS:
             upstream_value = upstream_prices.get(field)
@@ -63,8 +64,12 @@ def compare_pricing(
             if upstream_value != local_value:
                 mismatches.append(PriceMismatch(model, field, upstream_value, local_value))
 
+    # Resolve rather than diff keys: the fallback table drops date suffixes on
+    # purpose, so a raw set difference reports models that price just fine.
     missing_fallback = sorted(
-        model for model in upstream.keys() - fallback.keys() if MAINSTREAM_CLAUDE_RE.match(model)
+        model
+        for model in upstream.keys() - fallback.keys()
+        if MAINSTREAM_CLAUDE_RE.match(model) and pricing._resolve_model_key(model, fallback) is None
     )
     return ComparisonResult(
         tuple(mismatches),

@@ -11,7 +11,7 @@ from menubar import prefs as menubar_prefs
 
 
 def test_quota_notification_thresholds_default() -> None:
-    assert menubar_prefs._quota_notification_thresholds({}) == [90.0]
+    assert menubar_prefs._quota_notification_thresholds({}) == [50.0, 90.0]
 
 
 def test_quota_notification_thresholds_filters_invalid_values() -> None:
