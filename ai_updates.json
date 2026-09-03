@@ -744,6 +744,165 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.153.0",
+          "period": "2026-09-03",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Vim 模式加了復原與重做，草稿手滑也不怕",
+                "zh-CN": "Vim 模式新增撤销与重做，草稿误删也不慌",
+                "en": "Vim mode adds undo and redo to safeguard draft edits",
+                "ja": "Vim モードで元に戻すとやり直しに対応し、下書きの誤操作を防げる",
+                "ko": "Vim 모드에 실행 취소와 다시 실행이 추가되어 초안 수정 실수를 방지한다"
+              },
+              "body": {
+                "zh-TW": "你在 Vim 模式（改用鍵盤符號下指令的編輯方式，名字來自一款老牌文字編輯器）裡改草稿，手滑刪掉一整段附件說明，以前只能重打——現在按 `u` 就能復原上一步，按 `Ctrl+R` 則是反悔剛才的復原、重做回去，⟦好比用可擦筆寫稿，寫錯了擦掉重寫，擦太多了再把擦掉的字描回來，紙面痕跡都還在⟧。而且不管草稿裡貼了多少內容、掛了幾個附件，復原跟重做都會保留完整版本，不會漏東漏西，你不用擔心救回來的稿子少了一塊。",
+                "zh-CN": "你在 Vim 模式（改用键盘符号下达命令的编辑方式，名字来自一款老牌文本编辑器）中修改草稿时，如果不小心删掉了一整段附件说明，以前只能重新输入——现在按 `u` 就能撤销上一步操作，按 `Ctrl+R` 则是反悔刚才的撤销、重做恢复回去，⟦好比用可擦笔写稿，写错了擦掉重写，擦多了再把擦掉的字描补回来，纸面痕迹依然完好⟧。而且无论草稿中粘贴了多少内容、挂载了多少附件，撤销与重做都会保留完整版本，不会遗漏细节，无需担心找回的稿件缺失部分内容。",
+                "en": "When modifying drafts in Vim mode, accidentally deleting a section of attachment notes previously required retyping the whole piece. You can now press `u` to undo the last action and `Ctrl+R` to redo, reversing the undo operation. ⟦It is like writing with an erasable pen: when you make a mistake, you erase and rewrite, and if you erase too much, you can trace the erased strokes right back on the clean paper.⟧ Furthermore, regardless of how much content was pasted or how many attachments were included, undo and redo preserve the complete state without dropping parts of your draft.",
+                "ja": "Vim モード（キーボード記号でコマンド操作を行う編集方式で、名称は古くからのテキストエディタに由来）で下書きを編集中に誤って添付ファイルの説明を削除してしまった場合、従来は打ち直すしかなかった。現在は `u` を押すと直前の操作を元に戻せ、`Ctrl+R` で元に戻した操作をやり直すことができる。⟦消せるボールペンで原稿を書き、間違えたら消して書き直し、消しすぎたら消した文字をなぞって元通りに戻すような仕組みである。⟧また、下書きに貼り付けた内容の量や添付ファイルの数に関わらず、元に戻す操作ややり直し操作によって完全な状態が維持されるため、復元時にデータが欠落する心配はない。",
+                "ko": "Vim 모드(키보드 기호로 명령을 입력하는 편집 방식으로, 명칭은 오래된 텍스트 편집기에서 유래)에서 초안을 수정하다가 첨부파일 설명을 통째로 지웠을 때 이전에는 다시 작성해야 했다. 이제 `u`를 누르면 이전 단계로 실행 취소할 수 있고, `Ctrl+R`을 누르면 실행 취소를 번복해 다시 실행할 수 있다. ⟦지워지는 볼펜으로 글을 쓰다가 잘못 쓰면 지우고 다시 쓰며, 너무 많이 지웠을 때 지워진 글씨를 덧그려 복원하는 것과 같다.⟧ 또한 초안에 붙여넣은 내용이나 첨부된 파일이 아무리 많아도 실행 취소와 다시 실행 시 온전한 버전이 보존되므로 내용이 누락될 걱정이 없다."
+              },
+              "original": "Vim mode now supports undo with `u` and redo with `Ctrl+R`, preserving complete drafts including pasted content and attachments. ([#41941](https://github.com/openai/codex/pull/41941), [#42140](https://github.com/openai/codex/pull/42140))"
+            },
+            {
+              "title": {
+                "zh-TW": "外掛市集搬進指令列，查裝移除都在終端機",
+                "zh-CN": "插件市场搬进命令行，查询安装卸载均在终端内完成",
+                "en": "The plugin CLI brings remote marketplace browsing, installation, and removal to the terminal",
+                "ja": "プラグイン CLI で一覧確認・インストール・削除がターミナル上で完結する",
+                "ko": "플러그인 CLI로 마켓플레이스 조회와 설치 및 삭제를 터미널에서 처리한다"
+              },
+              "body": {
+                "zh-TW": "想幫 Codex 加裝外掛（plugin，替它補上額外功能的附加元件）？現在外掛的指令列工具直接打通遠端市集：想看有什麼可裝，打指令就能列出清單；看中哪個，一行指令裝上；用膩了，一行指令移除，全程不用離開終端機。⟦如同工具租借站把整個目錄搬上網，你在螢幕前就能查有哪些工具可借、按一下借出、用完按一下歸還，不必跑櫃檯翻紙本清單。⟧",
+                "zh-CN": "想为 Codex 安装插件（plugin，用于补充额外功能的附加组件）？现在插件的命令行工具直接打通了远程市场：想查看有哪些可用插件，输入命令即可列出清单；看中哪款，一行命令即可安装；不再需要时，一行命令即可卸载，全程无需离开终端。⟦如同工具租赁站把整个目录搬到了网上，你在屏幕前就能查询可借用的工具、点击即可租借、使用完毕点击即可归还，不必亲自前往柜台翻看纸质清单。⟧",
+                "en": "Looking to install plugins to expand Codex with extra capabilities? The plugin CLI now connects directly to remote marketplaces: you can run a command to list available plugins, install a chosen plugin with a single command, or remove it just as easily when no longer needed, all without leaving your terminal. ⟦It is like a tool rental shop putting its entire catalog online, allowing you to browse available tools on screen, check them out with a click, and return them when finished without ever flipping through paper lists at the counter.⟧",
+                "ja": "Codex にプラグイン（plugin、追加機能を提供する拡張コンポーネント）を追加したい場合、プラグインの CLI ツールからリモートマーケットプレイスに直接アクセスできるようになった。利用可能な一覧の確認、目的のプラグインのインストール、不要になったプラグインの削除まで、すべてコマンド 1 行で実行でき、ターミナルから離れる必要がない。⟦工具のレンタルステーションが目録全体をオンライン化し、手元の画面で貸出可能な道具を確認してワンクリックで借り出し、使い終わったらボタン 1 つで返却できるようにして、受付で紙の一覧をめくる手間を省いたような仕組みである。⟧",
+                "ko": "Codex에 플러그인(plugin, 추가 기능을 보완하는 확장 구성요소)을 설치하려는 경우, 플러그인 CLI 도구가 원격 마켓플레이스와 직접 연동된다. 설치 가능한 항목을 명령어로 조회하고, 원하는 플러그인을 한 줄 명령으로 설치하며, 불필요한 플러그인을 한 줄 명령으로 제거하는 전 과정을 터미널 안에서 완료할 수 있다. ⟦공구 대여소가 전체 대여 목록을 온라인으로 옮겨, 화면에서 대여 가능한 도구를 확인하고 한 번에 빌린 뒤 사용 후 버튼 하나로 반납할 수 있어 창구에서 종이 장부를 뒤적일 필요가 없는 것과 같다.⟧"
+              },
+              "original": "The plugin CLI can list, install, and remove plugins from remote marketplaces. ([#42150](https://github.com/openai/codex/pull/42150))"
+            },
+            {
+              "title": {
+                "zh-TW": "自動回顧能關掉，貼上偵測開關搬了新家",
+                "zh-CN": "自动回顾可关闭，粘贴检测配置开关迁入新路径",
+                "en": "Automatic recaps can be disabled and paste-burst settings move to nested keys",
+                "ja": "自動要約が無効化可能になり、ペースト検出設定の配置場所が変更される",
+                "ko": "자동 요약을 끌 수 있고 붙여넣기 감지 설정 위치가 변경된다"
+              },
+              "body": {
+                "zh-TW": "想關掉自動回顧摘要，或把貼上大量文字的偵測設定搬到新位置，這裡有兩個新設定鍵。Codex 原本會自動生成回顧摘要，如果你只想在打 `/recap` 時自己叫出來，設定檔加一行：\n```\n{\"tui\": {\"auto_recap\": false}}\n```\n也就是 `tui.auto_recap = false`，自動摘要關掉，手動 `/recap` 照樣能用。另一個是貼上偵測（paste burst，短時間內貼上大量文字的辨識機制）設定鍵搬家，改用巢狀寫法：\n```\n{\"tui\": {\"disable_paste_burst\": true}}\n```\n也就是 `tui.disable_paste_burst`，而舊的頂層寫法目前仍當備援繼續有效，不用急著改。⟦彷彿車上的語音路況提示，能直接在中控台整個關掉、改成按鍵才報路況，開關位置也從儀表板搬進了選單，老車主熟悉的實體按鈕暫時還留著備用。⟧",
+                "zh-CN": "若想关闭自动生成的回顾摘要，或将大段文本粘贴检测的配置迁移到新层级，此次提供了两个新的配置项。Codex 原本会自动生成回顾摘要，如果希望仅在输入 `/recap` 时手动调用，可在配置文件中添加：\n```\n{\"tui\": {\"auto_recap\": false}}\n```\n也就是将 `tui.auto_recap = false`，此时自动摘要关闭，手动 `/recap` 依然可用。另一个改动是粘贴检测（paste burst，短时间内粘贴大量文本的识别机制）配置键迁移，改用嵌套层级格式：\n```\n{\"tui\": {\"disable_paste_burst\": true}}\n```\n即 `tui.disable_paste_burst`，而旧的顶层配置目前仍作为备用配置继续有效，无需急于修改。⟦仿佛车载语音路况提示，可以直接在中控台上彻底关闭并改为按键播报，开关位置也从仪表盘移入了系统菜单，而老车主熟悉的实体按钮暂时仍保留备用。⟧",
+                "en": "This release introduces two new configuration keys for managing recap behavior and paste detection. Codex previously generated recap summaries automatically. If you prefer to trigger recaps manually with `/recap`, add the following line to your configuration file:\n```\n{\"tui\": {\"auto_recap\": false}}\n```\nThis sets `tui.auto_recap = false`, disabling automatic generation while keeping manual `/recap` invocations available. Additionally, the paste burst detection setting has moved to a nested structure:\n```\n{\"tui\": {\"disable_paste_burst\": true}}\n```\nThis introduces `tui.disable_paste_burst`, while the legacy top-level key continues to work as a fallback so immediate migration is not required. ⟦It is like a car audio traffic announcement that can be turned off entirely in favor of an on-demand button, with the toggle relocated from the physical dashboard into a digital menu while the familiar dashboard button still works as a backup.⟧",
+                "ja": "自動要約の無効化や大量テキストのペースト検出設定の移行に対応する 2 つの新しい設定項目が追加された。Codex は従来、要約を自動生成していたが、手動で `/recap` を実行した時のみ表示させたい場合は設定ファイルに以下を追加する。\n```\n{\"tui\": {\"auto_recap\": false}}\n```\nすなわち `tui.auto_recap = false` により自動要約が無効化され、手動での `/recap` はそのまま利用できる。もう 1 つはペースト検出（paste burst、短時間に大量のテキストが貼り付けられた際の検知機構）の設定キーの変更であり、ネスト構造で記述する。\n```\n{\"tui\": {\"disable_paste_burst\": true}}\n```\nこれは `tui.disable_paste_burst` を意味し、旧来のトップレベル設定もフォールバックとして引き続き有効であるため急いで移行する必要はない。⟦車載の音声交通情報案内を操作パネルでオフにしてボタン操作時のみアナウンスするように変更し、スイッチの場所もダッシュボードから画面メニュー内に移行しつつ従来の物理ボタンも予備として残しているような仕組みである。⟧",
+                "ko": "자동 요약 생성을 끄거나 대량 텍스트 붙여넣기 감지 설정을 새 위치로 옮길 수 있는 두 가지 설정 키가 추가되었다. Codex는 기본적으로 요약을 자동 생성했으나 수동으로 `/recap`을 실행할 때만 불러오고 싶다면 설정 파일에 다음을 추가한다.\n```\n{\"tui\": {\"auto_recap\": false}}\n```\n즉 `tui.auto_recap = false`로 자동 요약을 끄고 수동 `/recap`은 그대로 사용할 수 있다. 다른 하나는 붙여넣기 감지(paste burst, 짧은 시간에 대량의 텍스트가 붙여넣어지는 것을 판별하는 메커니즘) 설정 키의 위치 변경이며 중첩 형식으로 작성한다.\n```\n{\"tui\": {\"disable_paste_burst\": true}}\n```\n이는 `tui.disable_paste_burst`에 해당하며, 기존 최상위 키도 대체 방식으로 계속 작동하므로 급하게 수정할 필요는 없다. ⟦차량 내 음성 교통안내를 센터페시아에서 완전히 끄고 버튼을 누를 때만 안내받도록 변경하며 스위치 위치도 계기판에서 메뉴 내부로 이동시켰으나 기존 물리 버튼을 당분간 예비로 남겨둔 것과 같다.⟧"
+              },
+              "original": "Set `tui.auto_recap = false` to disable automatic recaps while keeping manual `/recap` available. ([#42101](https://github.com/openai/codex/pull/42101))\n`tui.disable_paste_burst` replaces the top-level setting, which remains supported as a fallback. ([#41976](https://github.com/openai/codex/pull/41976))"
+            },
+            {
+              "title": {
+                "zh-TW": "對話回頭看更清楚，改了什麼、下了什麼指令都留底",
+                "zh-CN": "对话回顾更加清晰，改动内容与执行命令均完整留存",
+                "en": "TUI history displays complete patches, background inputs, and individual commands",
+                "ja": "対話履歴の表示が詳細化され、変更内容や実行コマンドが記録される",
+                "ko": "대화 기록 조회가 개선되어 코드 수정 사항과 실행 명령이 온전히 남는다"
+              },
+              "body": {
+                "zh-TW": "回頭捲動 Codex 的終端機介面歷史紀錄時，現在看得到的東西更完整了：程式碼修改會顯示完整的補丁（patch，改動前後對照的差異紀錄），送進背景終端機視窗的輸入內容會留底，個別執行完的指令也各自獨立顯示，不會被吞掉或混成一團。⟦宛如工地的施工日誌，每天不是只寫一句「有動工」，而是附上動工前後的對照照片，還把當天下的每一道工序分開記錄，事後翻查一看就懂哪一步做了什麼。⟧",
+                "zh-CN": "回滚查看 Codex 的终端界面历史记录时，呈现的内容更加完整：代码修改会显示完整的补丁（patch，改动前后对照的差异记录），发送到后台终端窗口的输入内容会完整留存，各个独立执行完毕的命令也会分别单独显示，不会被遗漏或混杂在一起。⟦宛如工地的施工日志，每天不仅写下一句“已动工”，而是附上动工前后的对比照片，并将当天安排的每一道工序单独记录，事后翻查时每一步做了什么一目了然。⟧",
+                "en": "Scrolling back through TUI history in Codex now provides a much clearer view of past actions. Code modifications display complete patch diffs, inputs sent to background terminal sessions are fully recorded, and individual completed commands appear distinctly without being omitted or merged together. ⟦It is like a construction site log that includes before-and-after photos alongside separated step-by-step records for each task rather than just noting that work occurred, making every past change immediately obvious when reviewed.⟧",
+                "ja": "Codex の TUI 履歴をさかのぼって確認する際、表示される情報がより詳細になった。コードの修正箇所は完全な差分（patch、変更前後の差異を示す記録）として表示され、バックグラウンドのターミナルに送信された入力内容も保持され、個別に完了したコマンドも混同されることなく独立して表示される。⟦工事現場の施工日誌において単に作業実施と書くだけでなく、施工前後の対比写真を添付し当日の各工程を個別に記録することで、後から確認した際にどの段階で何が行われたかが一目で分かるような仕組みである。⟧",
+                "ko": "Codex 터미널 인터페이스 기록을 거슬러 올라가 확인할 때 제공되는 내용이 훨씬 상세해졌다. 코드 변경 사항은 온전한 패치(patch, 변경 전후의 차이를 대조하는 기록)로 표시되고 백그라운드 터미널 창으로 전송된 입력 내용도 기록되며, 개별 실행 완료된 명령어 역시 누락되거나 뒤섞이지 않고 독립적으로 표시된다. ⟦공사 현장의 시공 일지에 작업 완료라고만 적는 대신 착공 전후 비교 사진을 첨부하고 당일 진행된 각 공정을 개별 기록하여, 나중에 찾아보았을 때 어떤 단계에서 무엇을 처리했는지 한눈에 파악할 수 있는 것과 같다.⟧"
+              },
+              "original": "TUI history shows complete patches, input sent to background terminals, and individual completed commands. ([#41893](https://github.com/openai/codex/pull/41893), [#42107](https://github.com/openai/codex/pull/42107))"
+            },
+            {
+              "title": {
+                "zh-TW": "額度剩不到一半，Plus 跟 Team 會提早跟你說",
+                "zh-CN": "额度剩不到一半，Plus 与 Team 用户会提早收到通知",
+                "en": "Plus and Team plans receive earlier alerts when usage drops below half",
+                "ja": "クォータ残量が半分未満になると Plus および Team ユーザーへ早期通知される",
+                "ko": "사용량이 절반 미만으로 남으면 Plus 및 Team 사용자에게 조기 경고가 전송된다"
+              },
+              "body": {
+                "zh-TW": "用 Plus 或 Team 方案的人，額度用得快不快，現在能更早知道。以前要等額度更接近用完才會收到提醒，常常是打到一半才發現要沒了。現在只要在大約五小時一輪的用量視窗裡，額度剩不到一半，就會提早跳出警告，你就有機會提前調整步調，不必臨時改變工作方式。⟦恰似手上剩的洗衣券只剩不到一半時，機台先跳出提醒，讓你有空檔想要不要趕在額度重置前多洗一輪，而不是洗到最後一刻才發現券快用完。⟧",
+                "zh-CN": "使用 Plus 或 Team 方案的用户，现在能更早掌握额度的消耗速度。以前要等额度更接近耗尽时才会收到提醒，往往在输入到一半时才发现即将用完。现在只要在大约五小时一轮的用量周期内，额度剩不到一半，就会提早弹出警告，便于提前调整工作节奏，不必临时打乱原有的安排。⟦恰似手上的洗衣券剩不到一半时，洗衣机先弹出提醒，让你有空档考虑是否在额度重置前多洗一轮，而不是用到最后一刻才发现洗衣券快耗尽。⟧",
+                "en": "Subscribers on Plus and Team plans can now gauge their quota consumption earlier. While warnings were previously triggered only as allowances were nearly exhausted, alerts are now sent as soon as less than half of the allowance remains within an approximately five-hour usage window. This gives you time to pace your prompts without having to abruptly adjust your workflow. ⟦It is like a laundry machine displaying an early reminder when fewer than half of your laundry coupons remain, giving you time to plan an extra load before your allowance resets rather than discovering you are out of coupons at the very last moment.⟧",
+                "ja": "Plus または Team プランの利用者は、クォータの消費ペースをより早い段階で把握できるようになった。従来はクォータが上限近くまで消費されるまで通知が届かず、作業の途中で残量不足に気づくことが多かった。現在はおよそ 5 時間ごとの利用枠において、残量が半分未満になった時点で早期に警告が表示され、作業手順を急に変更することなく計画的に進めることができる。⟦手持ちの洗濯用コインが半分未満になった段階で洗濯機が早めに通知を出し、リセット前にまとめて洗うかを落ち着いて判断できるようにして、最後の瞬間にコイン不足に気づく事態を防ぐような仕組みである。⟧",
+                "ko": "Plus 또는 Team 요금제 이용자는 한도 소진 속도를 더 일찍 파악할 수 있게 되었다. 이전에는 한도가 거의 다 닳았을 때에야 안내가 표시되어 작업 중간에 소진 사실을 알게 되는 경우가 잦았다. 이제 약 5시간 주기 사용량 구간에서 잔여량이 절반 미만으로 떨어지면 경고가 조기에 표시되어 작업 흐름을 급하게 변경할 필요 없이 미리 계획을 세울 수 있다. ⟦보유한 세탁권이 절반 미만으로 남았을 때 기기에서 먼저 알림을 띄워, 마지막 순간에 세탁권이 부족함을 알게 되는 대신 사용량 초기화 전에 세탁을 더 돌릴지 여유 있게 판단할 수 있는 것과 같다.⟧"
+              },
+              "original": "Plus and Team users receive an earlier warning when less than half of their allowance remains in an approximately five-hour usage window. ([#42142](https://github.com/openai/codex/pull/42142))"
+            },
+            {
+              "title": {
+                "zh-TW": "外部連線斷了會自動接回來，未確定的動作先暫停等你看",
+                "zh-CN": "外部连接断开会自动恢复，未确认的操作先暂停待你核对",
+                "en": "External app-server drops reconnect automatically while pending submissions pause for review",
+                "ja": "外部接続が切断されても自動再接続し、未完了のアクションは一時停止して確認を待つ",
+                "ko": "외부 연결이 끊겨도 자동 복구되며 불확실한 작업은 확인 대기 상태로 일시 중지된다"
+              },
+              "body": {
+                "zh-TW": "你透過外部的 app-server（讓其他程式跟 Codex 對話的伺服器介面）連線用 Codex，這條連線如果突然斷掉，⟦就像視訊會議斷線重連，畫面接回來的時候，你正在打的訊息草稿還在、對話紀錄也沒不見，只是原本正在表決的提案先暫停，等你確認才繼續⟧。具體來說，Codex 現在會自動重新連上這個外部 app-server，草稿跟對話轉錄（transcript，逐字紀錄）都完整保留。而斷線當下還不確定有沒有送出、或是還在排隊等處理的動作，會先暫停下來，交給你重新確認過再繼續，不會替你自作主張。",
+                "zh-CN": "通过外部 app-server（允许其他程序与 Codex 通信的服务器接口）连接使用 Codex 时，如果连接意外中断，⟦就像视频会议断线重连，画面恢复时正在编辑的消息草稿还在、对话记录也没丢失，只是正在表决的议案先暂停、等待你确认后再继续⟧。具体而言，Codex 现在会自动重连外部 app-server，草稿与对话转录（transcript，逐字记录）均完整保留。而在断线时尚未确定是否发送成功或仍在排队等待处理的操作，会先暂停下来由你重新确认后再执行，不会擅自做主。",
+                "en": "When using Codex through an external app-server connection that suddenly drops, ⟦it is like a video conference reconnecting after a network drop, where your draft chat messages and previous chat logs are intact while an ongoing poll is paused until you confirm how to proceed⟧. Codex now automatically reconnects to the external app-server, preserving drafts and conversation transcripts intact. Any submissions that were in-flight or queued when the connection dropped are held in a paused state for user review before proceeding.",
+                "ja": "外部の app-server（他のプログラムが Codex と通信するためのサーバーインターフェース）経由で接続している際に通信が切断された場合、⟦ビデオ通話が切断から復帰した際に下書き中のメッセージや通話記録が残りつつ、採決中の案件のみが一時停止して確認を待つような挙動を示す⟧。具体的には、Codex が外部 app-server に自動再接続し、下書きや会話ログ（transcript、逐語記録）が完全に保持される。切断時に送信完了が未確定だった処理や待機列にあったリクエストは一時停止状態となり、利用者が再確認した上で処理が再開される。",
+                "ko": "외부 app-server(다른 프로그램이 Codex와 대화할 수 있도록 지원하는 서버 인터페이스)를 통해 연결하여 사용하다가 연결이 끊길 때, ⟦화상 회의 연결이 끊겼다가 재접속되었을 때 작성 중이던 메시지 초안과 대화 기록이 유지되고 표결 중이던 안건만 확인을 기다리며 멈춰 있는 것과 같다⟧. 구체적으로 Codex는 외부 app-server에 자동으로 다시 연결하여 초안과 대화 기록(transcript, 대화 전문 기록)을 온전히 보존한다. 연결이 끊긴 시점에 전송 여부가 불확실하거나 대기열에 있던 작업은 일시 중지되어 사용자가 다시 확인한 뒤 진행하도록 대기한다."
+              },
+              "original": "TUI sessions reconnect after an external app-server connection drops, preserving drafts and transcripts while keeping uncertain or queued submissions paused for review. ([#41911](https://github.com/openai/codex/pull/41911), [#41916](https://github.com/openai/codex/pull/41916), [#41918](https://github.com/openai/codex/pull/41918))"
+            },
+            {
+              "title": {
+                "zh-TW": "審查跳過該跳的，該顧的紀錄一樣顧著",
+                "zh-CN": "审查精准跳过非必要环节，核心安全记录依然完整保留",
+                "en": "Guardian skips unnecessary reviews while preserving history across rollbacks and forks",
+                "ja": "Guardian 審査が必要な箇所に絞り込まれ、履歴の維持と分離が強化される",
+                "ko": "Guardian 검토 절차를 간소화하고 이력 보존과 격리를 보장한다"
+              },
+              "body": {
+                "zh-TW": "Codex 的 Guardian（把關風險動作的審查機制）這次分清該管與不管的界線。用 Full Access（完全授權模式）時，遇到只需按確認的動作，Guardian 現在直接跳過審查。換成每個動作都要核准的 User approval mode，Guardian 也不再背景幫提案打分數、預先熱機，但敏感動作檢查與需要你輸入答案的請求，處理方式不變。Guardian 過去審過的紀錄也扛得住考驗：對話被壓縮、程式重啟，或你自己開了分支，紀錄都留得住，仍遵守回捲（rollback，把狀態退回先前某刻）的邊界。子代理（subagent，替它跑某段子任務的分身）的歷史也被隔開，不會混進主線程。⟦宛如社區警衛登記訪客，熟面孔的住戶刷卡就放行、不必每次登記，陌生訪客照樣得留資料才能進去；警衛室的登記簿就算搬家、換班，甚至臨時開了側門，各戶訪客紀錄還是分開保管，不會混成一本。⟧",
+                "zh-CN": "Codex 的 Guardian（把关高风险操作的安全审查机制）在本次更新中明确了审查边界。在 Full Access（完全授权模式）下，对于仅需确认的操作，Guardian 会直接跳过审查。切换到每个动作都需要批准的 User approval mode 时，Guardian 也不再于后台为提案预先评分或预热，但敏感操作检查以及请求用户输入的流程保持不变。Guardian 过去的审查记录同样更加稳固：在对话压缩、程序重启或用户手动创建分支时记录均能留存，并严格遵循回滚（rollback，把状态退回先前某刻）边界。子代理（subagent，协助执行子任务的分身进程）的执行历史也会被单独隔离，不会混入主线程。⟦宛如社区保安登记访客，熟面孔的业主刷卡直接放行、无需每次登记，陌生访客依然需要核对信息；保安室的登记册哪怕经历搬迁、交接班或临时开设侧门，各户访客记录依然分门别类妥善保管，不会混为一谈。⟧",
+                "en": "Guardian reviews in Codex now feature clearer operational boundaries. In Full Access mode, Guardian skips reviews for confirmation-only actions. When running in User approval mode, it stops background proposal scoring and prewarming while preserving existing checks for sensitive actions and user input requests. Furthermore, Guardian review histories now survive compaction, application restarts, and user-created forks while strictly respecting rollback boundaries and isolating subagent history from the main thread. ⟦It is like a residential security guard waving recognized residents through without repeated paperwork while still logging outside visitors, keeping visitor logbooks organized and isolated even across desk moves, shift changes, or side-door entries.⟧",
+                "ja": "Codex の Guardian（リスクの高い操作をチェックする審査機構）において管理対象の境界が整理された。Full Access（完全許可モード）では確認のみのアクションに対する審査がスキップされる。各操作の承認を求める User approval mode ではバックグラウンドでの提案スコアリングや事前準備が省略される一方、機密操作の確認やユーザー入力を求める処理は従来通り維持される。過去の審査履歴も対話の圧縮や再起動、ユーザー作成のフォークを越えて保持され、ロールバック（rollback、状態を過去の時点へ戻す処理）の境界も遵守される。またサブエージェント（subagent、特定タスクを分担するエージェント）の履歴も隔離され、メインスレッドに混入することはない。⟦住宅地の警備員が顔見知りの住民をカード認証で通し、見知らぬ来訪者には従来通り記帳を求めるような運用であり、警備日誌は詰所の移転や交代、通用門の増設があっても世帯ごとに分別保管される仕組みに類似している。⟧",
+                "ko": "Codex의 Guardian(위험 작업을 점검하는 검토 메커니즘)이 관리 영역을 명확히 구분하도록 개선되었다. Full Access(완전 권한 모드)에서는 단순 확인 작업에 대한 Guardian 검토를 건너뛴다. 매 동작마다 승인이 필요한 User approval mode에서는 백그라운드 제안 점수 산정과 예열 작업이 생략되지만, 민감 작업 점검과 사용자 입력 요청은 기존 방식대로 유지된다. 아울러 이전 검토 기록은 대화 압축이나 재시작, 사용자 생성 포크 후에도 유지되며 롤백(rollback, 이전 상태로 되돌리는 처리) 경계를 준수한다. 서브에이전트(subagent, 특정 하위 작업을 분담하는 보조 에이전트) 이력 역시 격리되어 메인 스레드에 섞이지 않는다. ⟦아파트 경비원이 낯익은 입주민은 카드 확인만으로 통과시키고 낯선 방문객은 인적 사항을 확인하는 것과 같으며, 경비실 기록 대장이 교대나 임시 출입문 개방 시에도 세대별로 분리 보관되어 뒤섞이지 않는 것과 유사하다.⟧"
+              },
+              "original": "Full Access skips Guardian reviews for confirmation-only actions. User approval mode skips background Guardian scoring and prewarming, while sensitive-action checks and requests for user input retain their existing handling. ([#42147](https://github.com/openai/codex/pull/42147), [#42256](https://github.com/openai/codex/pull/42256))\nGuardian review history survives compaction, restarts, and user-created forks while respecting rollback boundaries and isolating subagent history. ([#41879](https://github.com/openai/codex/pull/41879), [#42065](https://github.com/openai/codex/pull/42065))"
+            },
+            {
+              "title": {
+                "zh-TW": "上下文管理實驗模式預設關閉，開通後才會啟用新工具",
+                "zh-CN": "上下文管理实验模式默认关闭，开通后方可启用新工具",
+                "en": "Context management experimental mode is disabled by default and enables new tools when activated",
+                "ja": "コンテキスト管理の実験モードが追加され、有効化で新ツールが利用可能になる",
+                "ko": "문맥 관리 실험 모드가 추가되어 활성화 시 새로운 도구를 제공한다"
+              },
+              "body": {
+                "zh-TW": "Codex 新增了一個預設關閉的實驗設定 `features.context_management.experimental_mode`，如果你符合資格想試，在設定檔加上：\n```\n{\"features\": {\"context_management\": {\"experimental_mode\": true}}}\n```\n也就是把這個巢狀設定鍵打開。開啟後，如果你是用 Codex 後端的 ChatGPT Plus、Pro 或 Pro Lite 訂閱、而且帳號被納入資格名單，就會啟用以 token（AI 處理與計費的文字單位）預算管理上下文的機制，外加歷史筆記功能跟 `new_context` 這個工具。用 API 金鑰（一組用來證明身分、直接呼叫底層服務的密碼字串）登入的工作階段、自訂供應商，以及暫時性的結構化執行緒，則不在開放範圍內，不會啟用這些新機制。⟦有點像新開的試營運方案，只開放給符合資格、事先報名的特定會員試用新設施，臨櫃辦的訪客卡跟外接廠商暫時還用不到。⟧",
+                "zh-CN": "Codex 新增了默认禁用的实验性配置 `features.context_management.experimental_mode`，若符合资格并希望体验，可在配置文件中添加：\n```\n{\"features\": {\"context_management\": {\"experimental_mode\": true}}}\n```\n即开启该嵌套配置项。启用后，针对使用 Codex 后端且账号属于灰度资格名单的 ChatGPT Plus、Pro 或 Pro Lite 订阅会话，将激活基于 token（AI 处理与计费的文字单位）预算的上下文管理机制、历史笔记功能以及 `new_context` 工具。使用 API 密钥登录的会话、自定义供应商以及临时结构化线程均不在支持范围内，不会启用这些新特性。⟦有点像新推出的试营业方案，仅向符合资格且提前报名的特定会员开放新设施体验，临时办理的访客卡与外部合作方暂无法使用。⟧",
+                "en": "Codex introduces the disabled-by-default `features.context_management.experimental_mode` configuration setting. To try it when eligible, add the following snippet to your configuration file:\n```\n{\"features\": {\"context_management\": {\"experimental_mode\": true}}}\n```\nWhen enabled for eligible ChatGPT Plus, Pro, or Pro Lite sessions using the Codex backend, it activates token-budgeted context management, history notes, and the `new_context` tool. API-key sessions, custom providers, and temporary structured threads remain excluded from these new capabilities. ⟦It is like a pilot trial program that grants access to new amenities only to pre-registered eligible members, while day-pass visitors and outside contractors are not included yet.⟧",
+                "ja": "Codex にデフォルトで無効な実験的設定 `features.context_management.experimental_mode` が追加された。対象ユーザーが試用する場合は設定ファイルに以下を追加する。\n```\n{\"features\": {\"context_management\": {\"experimental_mode\": true}}}\n```\nCodex バックエンドを使用する対象の ChatGPT Plus、Pro、Pro Lite セッションで有効化すると、token 予算によるコンテキスト管理、履歴メモ、および `new_context` ツールが有効になる。API キー認証のセッションやカスタムプロバイダー、一時的な構造化スレッドは対象外であり本機能は有効化されない。⟦プレオープン中の施設利用プランのように、事前登録した有資格会員にのみ新設備の試用を開放し、窓口発行のビジターカードや外部委託業者は対象外としているような仕組みである。⟧",
+                "ko": "Codex에 기본 비활성화 상태인 실험적 설정 `features.context_management.experimental_mode`가 추가되었다. 자격을 갖춘 사용자가 사용해보려면 설정 파일에 다음을 추가한다.\n```\n{\"features\": {\"context_management\": {\"experimental_mode\": true}}}\n```\nCodex 백엔드를 사용하는 대상 ChatGPT Plus, Pro, Pro Lite 세션에서 활성화하면 token 예산 기반 문맥 관리와 이력 메모, `new_context` 도구가 켜진다. API 키로 로그인한 세션이나 커스텀 공급자, 임시 구조화 스레드는 지원 대상에서 제외되어 새 기능이 활성화되지 않는다. ⟦시범 운영 프로그램처럼 사전에 등록한 자격 보유 회원에게만 새 시설 체험을 개방하고, 당일 발급 방문증이나 외부 협력업체는 대상에서 제외하는 것과 같다.⟧"
+              },
+              "original": "Adds the disabled-by-default `features.context_management.experimental_mode` configuration. When enabled for eligible ChatGPT Plus, Pro, or Pro Lite sessions using the Codex backend, it activates token-budget context, history notes, and the `new_context` tool. API-key sessions, custom providers, and temporary structured threads remain excluded. ([#42385](https://github.com/openai/codex/pull/42385))"
+            },
+            {
+              "title": {
+                "zh-TW": "帳號、路徑、續接紀錄，一批後台細節一次補上",
+                "zh-CN": "账号、路径与恢复记录，一批后台细节一次补齐",
+                "en": "Refined account scoping, path handling, and session resumes across backend features",
+                "ja": "アカウント管理・パス解決・セッション再開に関する内部処理が改善",
+                "ko": "계정 범위와 경로 처리 및 재개 기록 등 백엔드 동작이 전반적으로 개선된다"
+              },
+              "body": {
+                "zh-TW": "這批修復收攏了幾項後台細節。MCP（Model Context Protocol，讓 AI 連接外部工具的協定）工具的核准記憶改成綁定帳號，換帳號不會沿用另一個帳號核准過的設定；MCP 相對路徑執行檔，在 macOS 上啟動更可靠。對話紀錄壓縮現在併入共享歷史，`codex exec resume` 依目錄續接也認得壓縮過的紀錄。工作階段的根目錄就算是符號連結（symlink，指到別處的捷徑檔），開執行緒分支照樣正常。app-server 執行緒中繼資料多了可為空值的 `model`、`reasoningEffort` 欄位，模型目錄若開放，還能用 `request_user_input_async` 結構化、非同步發問，不必卡住等你即答。⟦如同寄放行李，寄放單跟存根號碼要對得上才能領回，就算行李轉去別的置物櫃，存根照樣領得到東西，連加保險也能先發通知單，不必現場答。⟧",
+                "zh-CN": "这批修复完善了多项底层后台细节。MCP（Model Context Protocol，让 AI 连接外部工具的协议）工具的批准记忆改为绑定当前账号，切换账号不会沿用另一账号批准过的配置；MCP 相对路径可执行文件在 macOS 上的启动也更加可靠。会话记录压缩现已纳入共享历史，`codex exec resume` 按目录恢复时也能识别压缩过的记录。会话根目录即使为符号链接（symlink，指向其他位置的快捷方式），创建线程分支同样正常。app-server 线程元数据新增了可为空的 `model` 和 `reasoningEffort` 字段，若模型目录支持，还能通过 `request_user_input_async` 发起结构化异步提问，无需阻塞等待用户即时回答。⟦如同寄存行李，寄存凭条与存根编号对应才能取回，即便行李转移到了其他储物柜，凭存根依然可以顺利取件，办理追加保险也能先发送通知单，无需在现场等待即时答复。⟧",
+                "en": "This release refines several backend implementation details. Remembered MCP tool approvals are now scoped to the active account so switching accounts will not reuse permissions granted by another user, and relative MCP executable paths launch more reliably on macOS. Rollout compression now incorporates shared histories, allowing `codex exec resume` to handle compressed rollouts when resuming by working directory, while thread forks operate cleanly with symlinked session roots. Additionally, app-server thread metadata includes nullable `model` and `reasoningEffort` fields, and `request_user_input_async` enables structured asynchronous prompts when supported by the model catalog. ⟦It is like checking luggage where the claim ticket must match the account holder to retrieve bags, items remain retrievable even if moved between storage lockers, and additional insurance notices can be sent for later review without requiring an immediate answer on the spot.⟧",
+                "ja": "バックエンドの各種詳細仕様が整理された。MCP（Model Context Protocol、AI が外部ツールと接続するための規約）ツールの承認記憶が選択中のアカウントに紐付けられ、アカウント切り替え時に別の設定が引き継がれなくなった。また macOS 上で相対パスの MCP 実行ファイルの起動安定性が向上した。対話圧縮処理が共有履歴にも適用され、`codex exec resume` でディレクトリ指定による再開時も圧縮済み記録を認識できる。セッションのルートディレクトリがシンボリックリンク（symlink、別位置へのショートカット）であってもスレッド分岐が正常に動作する。app-server のスレッドメタデータに null 許容の `model` および `reasoningEffort` フィールドが追加され、モデルカタログが対応していれば `request_user_input_async` を用いた構造化非同期質問が可能になり、即答を待たずに処理を進められる。⟦手荷物預かり所で預かり証の番号が一致して初めて荷物を受け取れ、保管ロッカーが移動しても預かり証で問題なく引き取れ、追加の保険通知もその場での即答を求めず後から確認できるような仕組みである。⟧",
+                "ko": "백엔드 세부 동작이 정리되었다. MCP(Model Context Protocol, AI가 외부 도구와 연결하기 위한 규약) 도구의 승인 기억이 선택된 앱 계정에 종속되도록 변경되어, 계정을 전환해도 다른 계정의 승인 내역이 유지되지 않는다. macOS에서 상대 경로로 지정된 MCP 실행 파일의 실행 안정성이 향상되었다. 롤아웃 압축이 공유 이력에 포함되어 `codex exec resume`으로 디렉터리 기준 재개 시 압축된 기록을 정상 처리하며, 세션 루트가 심볼릭 링크(symlink, 다른 위치를 가리키는 바로가기)여도 스레드 분기가 정상 작동한다. app-server 스레드 메타데이터에 null을 허용하는 `model` 및 `reasoningEffort` 필드가 추가되었고, 모델 카탈로그에서 지원할 경우 `request_user_input_async`를 통해 구조화된 비동기 질문을 전송할 수 있어 즉답 대기 없이 처리를 이어갈 수 있다. ⟦짐 보관소에서 보관증과 영수증 번호가 맞아야 짐을 찾을 수 있고, 보관함 위치가 바뀌어도 영수증으로 물건을 찾으며 추가 보험 안내도 현장 즉답 없이 확인 가능한 것과 같다.⟧"
+              },
+              "original": "Remembered MCP tool approvals are scoped to the selected app account, and relative MCP executable paths start more reliably on macOS. ([#42133](https://github.com/openai/codex/pull/42133), [#42117](https://github.com/openai/codex/pull/42117))\nRollout compression includes shared histories, `codex exec resume` handles compressed rollouts when selecting by working directory, and thread forks work with symlinked session roots. ([#42039](https://github.com/openai/codex/pull/42039), [#42135](https://github.com/openai/codex/pull/42135))\nApp-server thread metadata includes nullable `model` and `reasoningEffort` fields. Structured asynchronous questions are supported through `request_user_input_async` when enabled by the model catalog. ([#42151](https://github.com/openai/codex/pull/42151), [#42178](https://github.com/openai/codex/pull/42178))"
+            }
+          ]
+        },
+        {
           "version": "0.152.1",
           "period": "2026-09-01",
           "items": [
@@ -767,218 +926,144 @@
           ]
         },
         {
-          "version": "0.151.0",
-          "period": "2026-08-29",
+          "version": "0.152.0",
+          "period": "2026-09-01",
           "items": [
             {
               "title": {
-                "zh-TW": "為非必要 MCP 伺服器的工具搜尋新增可自訂的寬限期",
-                "zh-CN": "为非必要 MCP 服务器的工具发现新增可配置的宽限期",
-                "en": "Add configurable grace period for optional MCP server tool discovery",
-                "ja": "オプションの MCP サーバーのツール検出に設定可能な猶予期間を追加",
-                "ko": "선택적 MCP 서버의 도구 검색을 위한 설정 가능한 유예 기간 추가"
+                "zh-TW": "Vim 模式能在草稿裡搜尋，新草稿直接能打字",
+                "zh-CN": "Vim 模式可在草稿中搜索，新草稿直接能输入",
+                "en": "Vim mode supports in-draft search and starts fresh drafts ready for typing",
+                "ja": "Vim モードで下書き内検索が可能になり、新規下書きでそのまま入力できる",
+                "ko": "Vim 모드에서 초안 내 검색을 지원하며 새 초안에서 바로 입력할 수 있다"
               },
               "body": {
-                "zh-TW": "⟦好比會議主持人給線上連線的外部專家預留彈性的報到緩衝，不會因為網路稍慢就直接跳過對方的名額。⟧在連接選用或非必要的 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器時，若外部工具啟動稍慢，搜尋流程不再立刻判定逾時。系統為非必要 MCP 伺服器的工具探索過程新增了可自訂的 grace period（寬限期，等待回應的緩衝時間）。當你掛載需要暖機或遠端連線的擴充伺服器時，可自行設定等待寬限時間，讓所有外部工具都有充裕時間完成註冊。",
-                "zh-CN": "⟦好比会议主持人给线上参会的外部专家预留弹性的签到缓冲，不会因为网络稍慢就直接跳过对方的名额。⟧在连接可选或非必要的 MCP（Model Context Protocol，让 AI 连接外部工具的协议）服务器时，若外部工具启动稍慢，发现流程不再立即判定超时。系统为非必要 MCP 服务器的工具发现过程新增了可配置的 grace period（宽限期，等待响应的缓冲时间）。挂载需要预热或远程连接的扩展服务器时，可自行设置等待宽限时间，让所有外部工具都能顺利完成注册。",
-                "en": "⟦It is like a meeting host giving remote guest speakers a brief grace period to join before moving on with the agenda.⟧ When connecting to optional MCP (Model Context Protocol) servers, tool discovery will no longer fail immediately if an external tool takes a moment to respond. Codex introduces a configurable grace period for discovering tools from optional MCP servers. This gives background or remote servers enough time to complete initialization and register their tools.",
-                "ja": "⟦会議の司会者がリモート参加の外部ゲストに少しの接続猶予時間を設け、通信の遅れですぐに順番を飛ばさないようにするようなものだ。⟧必須ではないオプションの MCP（外部ツールと連携するためのプロトコル）サーバーに接続する際、ツールの起動に時間がかかっても検出処理が即座に失敗しなくなった。オプションの MCP サーバーからツールを検出する処理に対して、設定可能な grace period（猶予期間、応答を待つための時間枠）が追加された。初期化に時間のかかる外部サーバーでもツールを確実に登録できる。",
-                "ko": "⟦회의 진행자가 원격 접속 중인 외부 전문가에게 접속 대기 시간을 넉넉히 주어 네트워크가 조금 느리다고 바로 순서를 건너뛰지 않는 모습과 같다.⟧필수가 아닌 선택적 MCP(외부 도구를 연결하는 표준 규약) 서버에 연결할 때 도구 구동이 다소 늦어져도 검색 절차가 즉시 중단되지 않는다. 선택적 MCP 서버의 도구 검색 과정에 사용자가 설정할 수 있는 grace period(유예 기간, 응답을 기다려 주는 완충 시간)가 추가되었다. 초기화에 시간이 걸리는 원격 도구 서버도 안전하게 등록을 마칠 수 있다."
+                "zh-TW": "你在 Codex 的輸入框切到 Vim 模式（改用鍵盤符號下指令與搜尋的編輯方式，名字來自一款老牌文字編輯器）改一段長草稿，想找回前面提到的某個檔名，以前得整段慢慢往回捲——現在按 `/` 往下找、`?` 往上找，符合的字會被反白標出來，找到了按 `n` 跳下一個、`N` 跳回上一個，⟦就像拿螢光筆把整篇稿子裡同一個詞全部畫記，之後沿著螢光筆的痕跡一路跳，不用逐行盯著找⟧。另外，每次開新草稿，游標現在直接能打字：不管是剛送出一則訊息，還是打完斜線指令（`/` 開頭觸發的內建指令）後接著開新的一段，都不用再手動切換才能輸入。",
+                "zh-CN": "你在 Codex 的输入框切换到 Vim 模式（改用键盘符号下达命令与搜索的编辑方式，名字来自一款老牌文本编辑器）修改长草稿时，想找回前面提到的某个文件名，以前得整段慢慢往回翻——现在按 `/` 向下找、`?` 向上找，匹配的文字会被高亮标出，找到后按 `n` 跳到下一个、`N` 跳回上一个，⟦就像拿荧光笔把整篇稿子里同一个词全部画出标记，之后顺着荧光笔的痕迹一路跳转，不用逐行盯着找⟧。此外，每次开启新草稿，光标现在直接能打字：不管是刚发送了一条消息，还是执行完斜杠命令（`/` 开头触发的内置命令）后接着写新的一段，都不用再手动切换才能输入。",
+                "en": "When editing long drafts in Vim mode within the Codex composer, finding an earlier filename no longer requires manual scrolling. You can now press `/` to search forward or `?` to search backward with highlighted matches, and navigate with `n` and `N` to jump between occurrences. ⟦It works like marking every instance of a word with a highlighter and jumping directly between highlighted marks instead of scanning line by line.⟧ Furthermore, fresh drafts now start directly ready for typing: whether you just submitted a message or ran a slash command, you can start typing immediately without manually switching modes.",
+                "ja": "Codex の入力欄で Vim モード（キーボード記号でコマンド操作や検索を行う編集方式で、名称は古くからのテキストエディタに由来）に切り替えて長い下書きを編集する際、前述のファイル名を探すのに以前は全体をスクロールして探す必要があった。現在は `/` で下方向、`?` で上方向に検索でき、一致箇所がハイライト表示され、`n` で次へ、`N` で前へジャンプできる。⟦蛍光ペンで原稿内の同じ単語をすべてマークし、1 行ずつ探さずペンの跡をたどって次々と移動するような仕組みである。⟧また、新しい下書きを開くたびにカーソルでそのまま入力可能になり、メッセージ送信後やスラッシュコマンド（`/` で呼び出す内蔵コマンド）の実行後に新しい段落を書き始める際も、手動で切り替えることなく入力できる。",
+                "ko": "Codex 입력창에서 Vim 모드(키보드 기호로 명령과 검색을 수행하는 편집 방식으로, 명칭은 오래된 텍스트 편집기에서 유래)로 긴 초안을 수정할 때 이전 파일명을 찾으려면 전체를 일일이 스크롤해야 했다. 이제 `/`로 아래로, `?`로 위로 검색할 수 있으며, 일치하는 텍스트가 강조 표시되고 `n`으로 다음, `N`으로 이전 결과로 이동할 수 있다. ⟦형광펜으로 초안 속 동일한 단어를 모두 표시해 두고 한 줄씩 살피지 않고 형광펜 자국을 따라 건너뛰며 찾는 것과 같다.⟧ 아울러 새 초안을 시작할 때마다 커서로 즉시 입력할 수 있어, 메시지를 전송한 직후나 슬래시 명령어(`/`로 실행하는 내장 명령)를 실행한 뒤에도 수동 전환 없이 바로 입력할 수 있다."
               },
-              "original": "Added a configurable grace period for discovering tools from optional MCP servers. (#41199)"
+              "original": "Vim mode supports `/` and `?` searches within drafts, highlighted matches, and repeat navigation with `n` and `N`. (#41586)\nVim-enabled composers now start fresh drafts in Insert mode, including after submitting messages or dispatching slash commands. (#41921)"
             },
             {
               "title": {
-                "zh-TW": "擴充套件可在 MCP 工具回傳結果送交模型前檢查或替換內容",
-                "zh-CN": "扩展可在 MCP 工具返回结果交付模型前检查或替换内容",
-                "en": "Extensions can inspect or replace MCP tool results before reaching the model",
-                "ja": "拡張機能が MCP ツールの結果をモデル送信前に検査・置換可能に",
-                "ko": "확장 기능이 MCP 도구 결과를 모델 전달 전에 검사하고 대체 가능"
+                "zh-TW": "用量卡住了，橫幅上直接能查能管",
+                "zh-CN": "用量达到上限时，横幅上直接能查能管",
+                "en": "Rate-limit banners let you check usage and manage limits directly",
+                "ja": "レート制限の通知バーから使用状況の確認や管理が直接可能になる",
+                "ko": "사용량 제한 알림창에서 사용량 조회와 관리를 바로 처리할 수 있다"
               },
               "body": {
-                "zh-TW": "需要過濾敏感資料或微調工具輸出格式的開發者，現在能在資料管線中精準介入。擴充套件獲得了在 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）工具執行完畢後、回傳結果尚未送交模型之前，先行檢視或替換該結果的能力。你可以藉此檢查輸出的資料結構，或在必要時抽換回傳內容，避免原始雜訊或機密資訊直接進入模型的提示詞脈絡。⟦這宛如報社的審稿編輯在記者交稿後、正式排版送印前先進行校對與篩選，確保刊登內容完全合規。⟧",
-                "zh-CN": "需要过滤敏感数据或微调工具输出格式的开发者，现在能在数据管道中精准介入。扩展获得了在 MCP（Model Context Protocol，让 AI 连接外部工具的协议）工具执行完毕后、返回结果尚未交付模型之前，先行检视或替换该结果的能力。你可以借此检查输出的数据结构，或在必要时抽换返回内容，避免原始杂讯或机密信息直接进入模型的提示词上下文。⟦这宛如报社的审稿编辑在记者交稿后、正式排版印刷前先进行校对与筛选，确保刊发内容完全合规。⟧",
-                "en": "Developers who need to sanitize tool outputs or adjust formats can now intercept data directly in the pipeline. Extensions can now inspect or replace MCP (Model Context Protocol) tool execution results before they are delivered to the model. This allows custom logic to filter out sensitive data or rewrite payload structures before the model processes them. ⟦It is like a copy editor reviewing a reporter's draft before it heads to the printing press, ensuring all published material is properly checked.⟧",
-                "ja": "ツールの出力から機密情報を除外したり形式を整えたりしたい開発者は、データ処理の途中に介入できるようになった。拡張機能は、MCP（外部ツールと連携するためのプロトコル）ツールの実行結果がモデルに届く前に、その内容を検査または置換できる。これにより不要な情報を取り除き、モデルへ渡すプロンプトの文脈を適切に制御できる。⟦記者が提出した原稿を印刷機へ送る前に校閲記者がチェックし、必要に応じて表現を差し替える工程に似ている。⟧",
-                "ko": "도구 출력에서 민감한 정보를 걸러내거나 형식을 가다듬고 싶은 개발자는 데이터 전달 과정에 직접 개입할 수 있다. 확장 기능은 MCP(외부 도구를 연결하는 표준 규약) 도구의 실행 결과가 모델에 도달하기 전에 해당 결과를 검사하거나 대체할 수 있는 권한을 얻었다. 이를 통해 불필요한 잡음을 덜어내고 모델에 주입되는 맥락을 안전하게 정돈할 수 있다.⟦기자가 작성한 기사를 인쇄기에 넘기기 전에 교열 담당자가 먼저 읽고 부적절한 내용을 교체하는 모습과 같다.⟧"
+                "zh-TW": "被限流（rate limit，用量到頂被暫時擋下）擋下來的時候，以前只會看到一條乾巴巴的橫幅告訴你現在不能用，接下來要自己想辦法。現在這條橫幅上直接放了幾個按鈕：查目前用量、管理額度、重設限制、管理訂閱方案，點哪個就辦哪件事，不必先關掉提示再去別的地方翻設定。⟦好比汽車油表亮燈時，旁邊直接排著加油站導航、加值卡餘額、延長保固幾個按鈕，不用先熄火下車才找得到辦法。⟧",
+                "zh-CN": "被限流（rate limit，用量到顶被暂时拦截）挡下来的时候，以前只会看到一条单调的横幅提示当前无法使用，接下来要自己想办法。现在这条横幅上直接提供了几个按钮：查看当前用量、管理额度、重置限制、管理订阅方案，点击哪个就办理哪项操作，不必先关闭提示再去别处翻找配置。⟦好比汽车油表亮灯时，旁边直接排列着加油站导航、充值卡余额、延长保修几个按钮，不用先熄火下车才找得到办法。⟧",
+                "en": "When hit by a rate limit, users previously saw only a plain banner stating that requests were temporarily blocked, leaving them to figure out the next step on their own. The banner now includes direct action buttons to check current usage, manage credits, reset limits, and manage subscription plans, allowing you to handle each task immediately without dismissing the alert to search through settings. ⟦It is like a low-fuel warning light on a dashboard that displays buttons for gas station navigation, prepaid card balance, and extended warranty right beside it, rather than forcing you to pull over and step out of the car to find help.⟧",
+                "ja": "レート制限（rate limit、利用上限に達して一時的に停止される状態）にかかった際、以前は利用できない旨を知らせる通知バーが表示されるだけで、その後の対応は自分で調べる必要があった。現在は通知バー上に現在の使用状況確認、クレジット管理、制限のリセット、プラン管理のボタンが配置され、通知を閉じて設定画面を探し回ることなくその場で操作できる。⟦車の燃料警告灯が点灯した際、その横にガソリンスタンド案内、プリペイドカード残高確認、保証延長のボタンが並び、車を止めて降りることなく対処できるようなものである。⟧",
+                "ko": "요청 한도 초과(rate limit, 사용량이 상한에 도달해 일시 차단된 상태)로 걸렸을 때 이전에는 사용 불가 안내만 표시되어 이후 조치를 직접 찾아야 했다. 이제 알림창에 현재 사용량 확인, 크레딧 관리, 한도 재설정, 요금제 관리 버튼이 바로 제공되어 안내를 닫고 설정을 뒤질 필요 없이 즉시 처리할 수 있다. ⟦자동차 연료등이 켜졌을 때 계기판 옆에 주유소 안내, 충전 카드 잔액, 보증 연장 버튼이 나란히 표시되어 차를 세우고 내리지 않고도 바로 해결책을 찾는 것과 같다.⟧"
               },
-              "original": "Extensions can now inspect or replace MCP tool results before they reach the model. (#41202)"
+              "original": "Rate-limit banners offer actions for checking usage, managing credits, resetting limits, and managing plans. (#41742)"
             },
             {
               "title": {
-                "zh-TW": "外掛目錄合併個別儲存庫設定，回報無效市集且不隱藏有效外掛",
-                "zh-CN": "插件目录合并各仓库配置，报告无效市场且不隐藏有效插件",
-                "en": "Plugin catalogs combine repository configs and report invalid marketplaces",
-                "ja": "プラグイン目録がリポジトリ設定を統合し無効な市場があっても正常なプラグインを表示",
-                "ko": "플러그인 카탈로그가 저장소 설정을 병합하고 유효한 플러그인을 숨기지 않음"
+                "zh-TW": "重新登入卡住不再是一片空白，進度會秀出來",
+                "zh-CN": "重新登录卡住不再是一片空白，进度会实时显示",
+                "en": "Reauthentication progress is now visible in the terminal UI and codex exec",
+                "ja": "再ログイン時の停止画面がなくなり、進捗状況が表示される",
+                "ko": "재로그인 시 멈춤 화면 대신 진행 상태가 표시된다"
               },
               "body": {
-                "zh-TW": "在專案中管理多個外掛來源時，外掛目錄的設定整合變得更加周全。外掛目錄現在會主動合併各個儲存庫（repository，存放專案程式碼與歷史紀錄的目錄）的個別設定。同時，當專案中存在格式錯誤或無法連線的無效市集（marketplace）時，系統會明確回報該問題，而不會因此隱藏其他正常可用的有效外掛。這讓你在排除特定市集故障時，依然能順暢存取其餘工具。⟦像商場把各櫃位各自提供的資料合併成一張總導覽；其中一櫃資料失效時標出問題，其他店舖仍照常列出。⟧",
-                "zh-CN": "在项目中管理多个插件来源时，插件目录的配置整合变得更加周全。插件目录现在会主动合并各个仓库（repository，存放项目代码与历史记录的文件夹）的专属配置。同时，当项目中存在格式错误或无法连接的无效市场（marketplace）时，系统会明确报告该问题，而不会因此隐藏其他正常可用的有效插件。这让你在排查特定市场故障时，依然能顺畅使用其余工具。⟦像商场把各店铺分别提供的信息合并成一张总导览；其中一家信息失效时标出问题，其他店铺仍照常列出。⟧",
-                "en": "Managing plugin sources across projects is now much more reliable. Plugin catalogs now combine per-repository configuration into their listings. Furthermore, when a project contains an invalid marketplace, the system reports the issue clearly without hiding the remaining valid plugins. You can troubleshoot broken marketplace links while continuing to use all working extensions. ⟦a mall directory combining each shop’s details into one board, flagging one invalid listing while keeping the other shops visible.⟧",
-                "ja": "複数のプラグイン配布元を扱う際のカタログ管理がより柔軟になった。プラグインカタログは、リポジトリごとの個別設定を組み合わせて読み込むようになった。さらに、プロジェクト内に無効なマーケットプレイス（marketplace、プラグインの配布市場）が存在する場合でも、エラーを報告しつつ正常なプラグインを隠さずに表示し続ける。これにより一部の設定不備があっても他のプラグインを問題なく利用できる。⟦各テナントの情報を一枚の案内板にまとめ、無効な一件には印を付けながら他の店舗は表示し続けるようなものだ。⟧",
-                "ko": "여러 플러그인 배포처를 관리할 때 카탈로그 설정의 안정성이 향상되었다. 플러그인 카탈로그는 각 저장소(repository, 프로젝트 코드와 이력을 보관하는 곳)별 설정을 통합하여 반영한다. 아울러 프로젝트에 잘못된 마켓플레이스(marketplace, 플러그인 유통 장터)가 포함되어 있어도 오류만 보고할 뿐 정상적인 플러그인을 목록에서 숨기지 않는다. 특정 장터에 문제가 생겨도 다른 플러그인을 방해 없이 사용할 수 있다.⟦각 매장이 제공한 정보를 하나의 안내판에 합치고, 잘못된 매장 하나에는 표시를 남기면서 다른 매장은 계속 보여 주는 방식이다.⟧"
+                "zh-TW": "終端機介面跟 `codex exec` 這個非互動指令，現在會即時顯示憑證（credential，證明你是合法使用者的金鑰）更新到哪一步了，連透過 Amazon Bedrock 重新認證這種比較繞的流程也一樣有進度可看。以前遇到需要重新拿授權，畫面往往就是卡住不動，你根本不知道它是在處理還是當機了。⟦彷彿機場的自助通關閘門，以前刷證件後螢幕一片黑，不知道是在核對還是壞了；現在畫面會顯示「正在核對指紋」「正在確認資料」，一步步走到綠燈放行。⟧",
+                "zh-CN": "终端界面与 `codex exec` 这个非交互命令，现在会实时显示凭证（credential，证明你是合法用户的密钥）更新到了哪一步，就连通过 Amazon Bedrock 重新认证这种较繁琐的流程也一样有进度可看。以前遇到需要重新获取授权时，画面往往卡住不动，让人无法分辨是在处理还是已经死锁。⟦仿佛机场的自助通关闸门，以前刷证件后屏幕一片黑，不知道是在核对还是故障；现在画面会显示“正在核对指纹”“正在确认资料”，一步步走到绿灯放行。⟧",
+                "en": "The terminal UI and the non-interactive `codex exec` command now display live progress when refreshing credentials, including multi-step flows like Amazon Bedrock reauthentication. Previously, reauthentication would leave the screen hanging with no feedback, making it impossible to tell whether the process was working or frozen. ⟦It is like an automated airport immigration gate where the screen previously went black after scanning an ID, but now displays step-by-step progress like \"verifying fingerprints\" and \"confirming details\" until the green light lets you through.⟧",
+                "ja": "ターミナル画面および非対話コマンドの `codex exec` で、認証情報（credential、正当な利用者であることを証明する鍵）の更新進捗がリアルタイムで表示されるようになり、Amazon Bedrock を介した再認証のような手順の多い処理でも進捗が確認できる。以前は再認証が必要な際に画面が停止したままになり、処理中なのかフリーズしたのか判断できなかった。⟦空港の自動出入国ゲートで、身分証をかざした後に以前は画面が暗転して照合中か故障か分からなかったのに対し、現在は「指紋照合中」「データ確認中」と表示されて順を追って緑ランプで通過できるような仕組みである。⟧",
+                "ko": "터미널 인터페이스와 비대화형 명령인 `codex exec`에서 인증 정보(credential, 정당한 사용자임을 증명하는 키) 갱신 진행 상태가 실시간으로 표시되며, Amazon Bedrock을 통한 재인증처럼 복잡한 과정도 동일하게 단계를 확인할 수 있다. 이전에는 권한 갱신 시 화면이 멈춘 채 유지되어 처리 중인지 먹통인지 알 수 없었다. ⟦공항 자동 출입국 게이트에서 신분증을 스캔한 뒤 화면이 꺼진 채 대조 중인지 고장인지 알 수 없었던 것과 달리, 이제는 \"지문 확인 중\", \"정보 확인 중\" 문구가 단계별로 나타나 녹색 불이 켜지며 통과하는 것과 같다.⟧"
               },
-              "original": "Plugin catalogs now combine per-repository configuration and report invalid project marketplaces without hiding valid plugins. (#41208)"
+              "original": "The terminal UI and `codex exec` show credential-refresh progress, including Amazon Bedrock reauthentication. (#41239)"
             },
             {
               "title": {
-                "zh-TW": "在終端介面中保留還原的權限設定檔，並防止 /cd 削弱沙盒限制",
-                "zh-CN": "在终端界面中保留恢复的权限配置文件，并防止 /cd 削弱沙盒限制",
-                "en": "Preserve restored permission profiles in TUI and prevent /cd sandbox weakening",
-                "ja": "TUI で復元した権限プロファイルを保持し /cd によるサンドボックス緩和を防止",
-                "ko": "TUI 대화에서 복원된 권한 프로필을 유지하고 /cd의 샌드박스 완화를 방지"
+                "zh-TW": "MCP 伺服器名字可以照套件格式取，工具輸出也能設上限",
+                "zh-CN": "MCP 服务器名称支持包命名格式，工具输出也能设上限",
+                "en": "MCP server names support package formats, and tool outputs can set limits",
+                "ja": "MCP サーバー名でパッケージ形式が使え、ツール出力の上限も設定可能になる",
+                "ko": "MCP 서버 이름에 패키지 형식을 지원하며 도구 출력 상한도 설정할 수 있다"
               },
               "body": {
-                "zh-TW": "⟦如同進入管制大樓時核發的通行證，在跨樓層走動時始終維持原有權限等級，且換到隔壁房間也絕不會意外解除安全門禁。⟧在終端機互動操作時，安全防護的連貫性獲得了加強。在 TUI（終端機使用者介面，在純文字終端裡操作的互動畫面）的多輪對話中，系統現在會妥善保留先前還原的權限設定檔。這些 permission profiles 不會在下一輪對話中遺失狀態。此外，當在對話中執行 `/cd` 指令切換目錄時，系統會嚴格防止沙盒（sandbox，隔離程式執行範圍的防護機制）的存取限制被削弱，確保邊界防護不留漏洞。",
-                "zh-CN": "⟦如同进入管制大楼时核发的通行证，在跨楼层走动时始终维持原有权限等级，且换到隔壁房间也绝不会意外解除安全门禁。⟧在终端交互操作时，安全防护的连贯性获得了加强。在 TUI（终端用户界面，在纯文本终端里操作的交互画面）的多轮对话中，系统现在会妥善保留先前恢复的权限配置文件。这些 permission profiles 不会在下一轮对话中遗失状态。此外，当在对话中执行 `/cd` 命令切换目录时，系统会严格防止沙盒（sandbox，隔离程序运行范围的防护机制）的访问限制被削弱，确保边界防护不留漏洞。",
-                "en": "⟦It is like a building security badge that maintains your verified clearance across different floors, ensuring that stepping into an adjacent room never disables door locks.⟧ Security consistency in the terminal interface is now reinforced. Restored permission profiles are properly preserved across turns in the TUI (terminal user interface). Switching directories using the `/cd` command is strictly prevented from loosening or bypassing active sandbox restrictions, keeping execution boundaries intact.",
-                "ja": "⟦管理ビルで発行された通行証がフロアを移動しても同じ権限を維持し、隣の部屋へ入ったからといってセキュリティ制限が勝手に解除されないようなものだ。⟧端末操作時の安全対策が強化された。TUI（テキスト端末上で動作する対話型インターフェース）の会話ターンをまたいでも、復元された権限プロファイルが確実に維持される。また、`/cd` コマンドで作業ディレクトリを変更した際に、サンドボックス（プログラムの実行範囲を隔離する安全機構）の制限が緩まる現象を防止した。",
-                "ko": "⟦보안 빌딩에서 발급받은 출입증이 층을 이동해도 원래 권한 등급을 유지하며, 옆방으로 건너갔다고 해서 보안문 잠금이 해제되지 않는 모습과 같다.⟧터미널 작업 환경에서 보안 정책의 일관성이 한층 단단해졌다. TUI(텍스트 터미널에서 작동하는 대화형 화면)에서 대화 턴이 바뀌어도 이전에 복원된 권한 프로필이 유실되지 않고 안전하게 유지된다. 또한 `/cd` 명령어로 디렉터리를 이동할 때 샌드박스(프로그램 실행 범위를 격리하는 보호 장치)의 접근 제한이 약화되는 문제를 차단했다."
+                "zh-TW": "MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器的名稱以前只能用簡單字元。現在可以放 `:`、`@`、`/`、`.` 這些符號，等於能照套件命名慣例取名，像 `@scope/name` 這種寫法，指令列跟認證流程全部認得。同時，個別 MCP 工具現在能設定 `output_token_limit`，限制單次輸出的 token（AI 處理與計費的文字單位）上限，而且不管你怎麼把工作階段接回來繼續用，這個截斷規則都會維持一致。⟦一如社區信箱從只能貼三碼門牌，改成可以掛完整地址加樓層，而每一格信箱的容量也能各自標好，不會有人塞爆別人的格子。⟧",
+                "zh-CN": "MCP（Model Context Protocol，让 AI 连接外部工具的协议）服务器的名称以前只能包含简单字符。现在可以包含 `:`、`@`、`/`、`.` 等符号，支持按照软件包命名惯例来命名，例如 `@scope/name` 这种格式在命令行和认证流程中均能正常识别。同时，各个 MCP 工具现在支持配置 `output_token_limit`，限制单次输出的 token（AI 处理与计费的文字单位）上限，并且无论如何恢复会话继续使用，该截断规则都会保持一致。⟦一如社区信箱从只能贴三位门牌号，改为可以标注完整地址与楼层，且每个信箱的容量也能分别标定，不会有人塞满别人的格子。⟧",
+                "en": "MCP server names were previously limited to simple characters. They can now include `:`, `@`, `/`, and `.`, enabling standard package-style naming such as `@scope/name` across all CLI commands and authentication flows. In addition, individual MCP tools now support an `output_token_limit` setting to cap output tokens per invocation, maintaining consistent truncation rules across resumed sessions. ⟦It is like apartment mailboxes upgrading from three-digit numbers to full addresses with floor numbers, while also setting individual capacity limits so no single delivery overflows someone else's box.⟧",
+                "ja": "MCP（Model Context Protocol、AI が外部ツールと接続するための規約）サーバーの名前に使用できる文字が拡張され、`:`、`@`、`/`、`.` を含められるようになった。これにより `@scope/name` のようなパッケージ命名規則が CLI コマンドや認証処理全体で認識される。同時に、個別の MCP ツールで `output_token_limit` を設定して 1 回あたりの出力 token 上限を指定できるようになり、セッションを再開しても一貫した切り捨て処理が維持される。⟦集合住宅の郵便ポストに 3 桁の部屋番号だけでなく詳細な住所や階数を表記できるようになり、各ポストの容量も個別に指定できて他人の枠を圧迫しなくなるような仕組みである。⟧",
+                "ko": "MCP(Model Context Protocol, AI가 외부 도구와 연결하기 위한 규약) 서버 이름에 `:`와 `@`, `/`, `.` 기호를 포함할 수 있게 되었다. 이에 따라 `@scope/name`과 같은 패키지 명명 규칙이 CLI 명령과 인증 과정 전반에서 온전히 인식된다. 아울러 개별 MCP 도구에 `output_token_limit`을 지정하여 1회 출력 token 상한을 제한할 수 있으며, 세션을 다시 불러와 이어 쓰더라도 동일한 자르기 규칙이 유지된다. ⟦아파트 우편함에 세 자리 호수뿐 아니라 전체 주소와 층수를 적을 수 있게 되고, 각 우편함 용량을 따로 지정해 다른 사람의 칸을 넘치게 채우지 않도록 관리하는 것과 같다.⟧"
               },
-              "original": "Preserved restored permission profiles across TUI turns and prevented `/cd` from weakening sandbox restrictions. (#41192)"
+              "original": "MCP server names can contain `:`, `@`, `/`, and `.`, supporting package-style names throughout CLI commands and authentication. (#41700)\nIndividual MCP tools support an `output_token_limit` setting, with consistent truncation across session resumes. (#41421)"
             },
             {
               "title": {
-                "zh-TW": "切換或備援至其他模型時正確維持工具可用性與推理強度",
-                "zh-CN": "切换模型或改用备用模型时正确保持工具可用性与推理设置",
-                "en": "Keep tool availability and reasoning effort correct across model switches and fallbacks",
-                "ja": "モデル切り替えや代替切り替え時にもツールの有効性と推論負荷設定を維持",
-                "ko": "모델 전환 및 대체 시 도구 가용성과 추론 수준을 정확하게 유지"
+                "zh-TW": "規劃工具改成預設關閉，要用得自己在設定裡打開",
+                "zh-CN": "规划工具改为默认关闭，使用需在配置中手动开启",
+                "en": "The planning tool is now disabled by default and requires explicit configuration",
+                "ja": "プランニングツールがデフォルトで無効化され、設定での有効化が必要になる",
+                "ko": "계획 도구가 기본적으로 비활성화되며 설정에서 직접 켜야 한다"
               },
               "body": {
-                "zh-TW": "在對話中更換使用的 AI 模型時，工具配置與推論參數不再出現錯亂。當你手動切換模型，或是觸發 fallback（備援，改用另一個模型接手）機制時，目標模型的工具可用性都會被精確維持。同時，模型進行深度思考的 reasoning effort（推理強度，思考運算量的設定）也會維持正確。這避免了切換後工具清單遺失或推論設定不相容的情況。⟦正如賽車進站更換不同特性的輪胎時，技師團隊會同步調校儀表數據與底盤設定，確保換胎後車輛操控完全精準。⟧",
-                "zh-CN": "在对话中更换使用的 AI 模型时，工具配置与推理参数不再出现错乱。当你手动切换模型，或是触发 fallback（回退，改用另一个模型接手）机制时，目标模型的工具可用性都会被精确保持。同时，模型进行深度思考的 reasoning effort（推理设置，思考计算量设置）也会保持正确。这避免了切换后工具列表遗失或推理设置不兼容的情况。⟦正如赛车进站更换不同特性的轮胎时，技师团队会同步调校仪表数据与底盘设置，确保换胎后车辆操控完全精准。⟧",
-                "en": "Switching models mid-task no longer disrupts tool setups or reasoning levels. When you manually switch models or trigger a fallback to an alternative model, Codex now keeps tool availability and reasoning effort aligned with the target model. This prevents tools from vanishing unexpectedly and ensures reasoning parameters remain valid for the active provider. ⟦It is like a pit crew changing a race car's tires while instantly recalibrating dashboard telemetry and suspension to match the new setup.⟧",
-                "ja": "対話の途中で AI モデルを変更した際、ツールの設定や推論パラメータが崩れなくなった。手動でモデルを切り替える場合や、別のモデルへ自動で fallback（別のモデルへ処理を引き継ぐ仕組み）する場合でも、移行先モデルのツール利用可否が正しく維持される。さらに、モデルの思考の深さを指定する reasoning effort（推論負荷設定）も適切に保持される。⟦レース中にタイヤを交換する際、メカニックが新しいタイヤに合わせて計器と車体設定を即座に最適化するようなものだ。⟧",
-                "ko": "작업 도중 AI 모델을 바꿀 때 도구 구성이나 추론 설정이 꼬이지 않는다. 수동으로 모델을 변경하거나 다른 모델로 fallback(다른 모델로 이어지는 방식)할 때 대상 모델에 맞춘 도구 사용 가능 여부가 올바르게 유지된다. 아울러 모델의 깊이 있는 사고를 조절하는 reasoning effort(추론 강도, 사고에 쓰는 계산량 설정)도 정확하게 맞춰진다.⟦레이싱 카가 피트인하여 타이어를 교체할 때 미케닉이 새 타이어 특성에 맞춰 계기판과 서스펜션을 즉시 조율하는 모습과 같다.⟧"
+                "zh-TW": "以前 Codex 會內建一個規劃工具，現在這個功能改成預設不啟用。如果你要用，得自己在設定檔裡加上這一段：\n\n```\n{\"tools\": {\"update_plan\": {\"enabled\": true}}}\n```\n\n也就是把 `tools.update_plan.enabled` 設成 `true`。這不是新推出的功能，而是把原本一律開著的東西收緊成選用項目。⟦有點像家電出廠時把耗電的附加功能先關掉，想用得自己翻說明書、在面板上按一下才會亮起來。⟧",
+                "zh-CN": "以前 Codex 内置了规划工具，现在该功能改为默认不启用。如果需要使用，必须在配置文件中加入以下内容：\n\n```\n{\"tools\": {\"update_plan\": {\"enabled\": true}}}\n```\n\n也就是将 `tools.update_plan.enabled` 设为 `true`。这并非新推出的功能，而是把原本默认开启的项目调整为可选配置。⟦有点像家电出厂时先关闭耗电的附加功能，想用时需要翻看说明书并在控制面板上手动开启。⟧",
+                "en": "Codex previously enabled its built-in planning tool out of the box, but the feature is now disabled by default. To use it, you must add the following snippet to your configuration file:\n\n```\n{\"tools\": {\"update_plan\": {\"enabled\": true}}}\n```\n\nThis sets `tools.update_plan.enabled` to `true`. Rather than introducing a new feature, this update makes an existing capability opt-in. ⟦It is like an appliance shipping with power-hungry optional modes turned off, requiring you to check the manual and press a button on the panel to turn them on.⟧",
+                "ja": "Codex に内蔵されていたプランニングツールが、デフォルトで無効化される仕様に変更された。利用する場合は設定ファイルに以下の記述を追加する必要がある。\n\n```\n{\"tools\": {\"update_plan\": {\"enabled\": true}}}\n```\n\nこれは `tools.update_plan.enabled` を `true` に設定することを意味する。新機能の追加ではなく、標準で有効だった機能をオプトインの選択肢に変更したものである。⟦家電製品が出荷時に消費電力の大きい付加機能をオフにしておき、使いたい場合は説明書を確認して操作パネルで明示的に有効にするような仕組みである。⟧",
+                "ko": "Codex에 내장되어 있던 계획 도구가 기본 비활성화 상태로 변경되었다. 해당 도구를 사용하려면 설정 파일에 다음 내용을 추가해야 한다.\n\n```\n{\"tools\": {\"update_plan\": {\"enabled\": true}}}\n```\n\n즉 `tools.update_plan.enabled`를 `true`로 설정해야 한다. 이는 새로운 기능이 아니라 기본 활성화되어 있던 기능을 선택 항목으로 조정한 변경이다. ⟦가전제품 출고 시 전력 소모가 큰 부가 기능을 꺼 두고, 사용하려는 사람만 설명서를 확인해 조작부에서 직접 켜도록 한 것과 같다.⟧"
               },
-              "original": "Kept tool availability and reasoning effort correct when switching models or falling back to another model. (#41195, #41206)"
+              "original": "The planning tool is disabled by default; enable it with `tools.update_plan.enabled = true`. (#41744)"
             },
             {
               "title": {
-                "zh-TW": "依據遠端執行器的家目錄、作業系統與路徑慣例強化沙盒防護",
-                "zh-CN": "依据远程执行器的家目录、操作系统与路径惯例强化沙盒防护",
-                "en": "Improve remote sandbox enforcement using actual executor environment details",
-                "ja": "リモート実行環境のホームディレクトリ・OS・パス規則に合わせたサンドボックス強化",
-                "ko": "원격 실행기의 실제 홈 디렉터리·운영체제·경로 표기법에 맞춘 샌드박스 강화"
+                "zh-TW": "自動審查不再健忘，壓縮歷史也留得住授權",
+                "zh-CN": "自动审查不再遗忘，压缩历史也能保留授权",
+                "en": "Automatic approval reviews retain longer transcripts and preserve authorizations across compaction",
+                "ja": "自動承認レビューの記憶容量が向上し、履歴圧縮後も承認情報が維持される",
+                "ko": "자동 승인 검토의 맥락 유지가 개선되어 대화 압축 후에도 권한 정보가 보존된다"
               },
               "body": {
-                "zh-TW": "在遠端主機上隔離執行指令時，沙盒的邊界檢查現在完全貼合目標環境的真實狀態。系統強化了遠端沙盒（sandbox，隔離執行範圍的安全機制）的防護。權限判定改為直接依據遠端執行器實際的家目錄（home directory）、作業系統以及路徑慣例進行計算。這消除了本機與遠端主機因斜線方向或大小寫等格式差異而產生的判定偏差。⟦彷彿海關邊檢直接依照入境國當地的法規與道路標誌核查車輛，而非套用出發地的規則，落實了精確的在地把關。⟧",
-                "zh-CN": "在远程主机上隔离运行命令时，沙盒的边界检查现在完全贴合目标环境的真实状态。系统强化了远程沙盒（sandbox，隔离运行范围的安全机制）的防护。权限判定改为直接依据远程执行器实际的家目录（home directory）、操作系统以及路径惯例进行计算。这消除了本地与远程主机因斜杠方向或大小写等格式差异而产生的判定偏差。⟦仿佛海关边检直接依照入境国当地的法规与道路标志核查车辆，而非套用出发地的规则，落实了精确的属地把关。⟧",
-                "en": "Running commands in remote environments now benefits from accurate isolation boundaries. Remote sandbox enforcement now aligns with the executor's actual home directory, operating system, and path conventions. This eliminates authorization discrepancies caused by mismatched path separators, root structures, or platform conventions between local and remote hosts. ⟦It is like a customs border checkpoint inspecting vehicles according to the destination country's road rules rather than the departure location's laws.⟧",
-                "ja": "リモート環境でコマンドを隔離実行する際、安全境界の判定が対象環境の実態に即して行われるようになった。リモートサンドボックス（安全な隔離実行領域）の制限処理が改善された。実行環境の実際のホームディレクトリ（home directory）、オペレーティングシステム、およびパスの記述規則を基準にして権限が判定される。これにより、ローカル側とリモート側の表記差による判定の不一致を防ぐ。⟦入国審査官が出発地の基準ではなく入国先の交通規則や標識に基づいて車両を検査するようなものだ。⟧",
-                "ko": "원격 환경에서 명령어를 격리 실행할 때 보안 경계 검사가 실제 대상 환경에 맞춰 동작한다. 원격 샌드박스(프로그램 실행을 안전하게 격리하는 장치)의 보호 규칙 적용 방식이 개선되었다. 원격 실행기의 실제 홈 디렉터리(home directory), 운영체제 및 경로 표기 관례를 기준으로 권한을 판정한다. 이를 통해 로컬 환경과의 경로 형식 차이로 인한 보안 판정 불일치를 해소했다.⟦세관 검사관이 출발지의 법규가 아니라 도착국의 실제 도로 규칙과 표지판에 따라 차량을 심사하는 모습과 같다.⟧"
+                "zh-TW": "自動批准的審查機制這次補強了記性。以前訊息一長、對話一多，審查能保留的內容就有限，現在可以留住更長的訊息，也能看見更大範圍的對話轉錄（transcript，對話的逐字紀錄）。更關鍵的是，就算對話因為太長被系統壓縮（compaction，把舊對話濃縮成摘要以節省空間），使用者當初下的指示、給過的答案，以及已經核可的有效授權，都不會被壓縮掉，審查時仍然找得到依據。⟦如同開庭留下的卷宗，就算檔案疊得再厚要精簡歸檔，當事人的證詞跟簽過名的授權書也不會被摘要掉，日後翻案還是查得到原文。⟧",
+                "zh-CN": "自动批准的审查机制在此次更新中增强了上下文记忆。以往当消息变长、对话变多时，审查机制能保留的内容十分有限，现在则支持保留更长的单条消息以及更完整的对话转录（transcript，对话的逐字记录）。更关键的是，即使对话因过长而被压缩（compaction，将历史对话浓缩为摘要以节省空间），用户先前下达的指令、给出的回答以及已获批准的有效授权都不会被压缩丢弃，审查时依然能找到依据。⟦如同开庭留下的卷宗，即便文件堆叠再厚需要精简归档，当事人的证词与签字的授权书也不会被摘要忽略，日后查证依然能看到原文。⟧",
+                "en": "Automatic approval reviews now retain richer conversation context. While earlier reviews were limited when handling lengthy exchanges, the system can now hold longer messages and larger conversation transcripts. Crucially, when conversations undergo history compaction to condense past turns, original user instructions, provided answers, and granted authorizations are preserved rather than compressed away, ensuring reviews retain full context. ⟦It is like a court case file where older records are archived into summaries, but key testimony and signed authorization forms are preserved intact so original records remain verifiable later.⟧",
+                "ja": "自動承認のレビュー機能において記憶保持能力が強化された。従来はメッセージが長くなり対話が増えると保持できる情報が限られていたが、現在はより長いメッセージと広範囲の会話ログ（transcript、対話の逐語記録）を保持できる。さらに、会話が長大化して圧縮処理（compaction、古い対話を要約して領域を節約する処理）が行われても、ユーザーが与えた指示や回答、承認済みの有効な権限情報は削除されず、レビュー時の根拠として維持される。⟦裁判の訴訟記録において、書類が膨大になって要約保管する際も、当事者の証言や署名入り委任状は要約で削られず原本のまま保管されて後から確認できるような仕組みである。⟧",
+                "ko": "자동 승인 검토 메커니즘의 대화 기억 범위가 강화되었다. 이전에는 메시지가 길어지고 대화가 늘어나면 검토에 참조되는 내용이 제한적이었으나, 이제 더 긴 메시지와 넓은 범위의 대화 기록(transcript, 대화 전문 기록)을 보존할 수 있다. 특히 대화가 길어져 압축(compaction, 이전 대화를 요약해 공간을 절약하는 처리)되더라도 사용자가 전달한 지시, 입력한 답변, 승인된 유효 권한은 요약되지 않고 그대로 남아 검토 근거로 유지된다. ⟦재판 기록을 정리할 때 문서가 쌓여 요약 보관하더라도 당사자의 진술서와 서명된 위임장은 요약본으로 대체되지 않고 원본 그대로 보존되어 나중에 확인 가능한 것과 같다.⟧"
               },
-              "original": "Improved remote sandbox enforcement using the executor’s actual home directory, operating system, and path conventions. (#41196, #41204, #41207, #41209)"
+              "original": "Automatic approval reviews can retain longer messages and a larger conversation transcript. (#41931)\nAutomatic approval reviews preserve user instructions, answers, and valid authorizations across history compaction. (#41660, #41846, #41852)"
             },
             {
               "title": {
-                "zh-TW": "在應用程式伺服器回應中完整保留結構化的 MCP 工具與資源錯誤",
-                "zh-CN": "在应用服务器响应中完整保留结构化的 MCP 工具与资源错误",
-                "en": "Preserve structured MCP tool and resource errors in app-server responses",
-                "ja": "アプリサーバーの応答で構造化された MCP ツール・リソースのエラー情報を維持",
-                "ko": "앱 서버 응답에서 구조화된 MCP 도구 및 리소스 오류를 온전히 보존"
+                "zh-TW": "背景動作各自照規矩來，續接、快取跟選單都更牢靠",
+                "zh-CN": "后台行为各按规则执行，恢复、缓存与菜单均更稳定",
+                "en": "Background operations refined across thread resumption, caching, and model menus",
+                "ja": "バックグラウンド処理の挙動が整理され、再開・キャッシュ・メニューが安定化",
+                "ko": "백그라운드 동작이 정돈되어 재개와 캐시 및 메뉴 선택이 안정화된다"
               },
               "body": {
-                "zh-TW": "⟦好比檢驗所回傳健康檢查報告時，完整保留了各項數值的代碼、異常指標與備註欄位，而非只丟出一張模糊的檢查失敗單據。⟧當外部服務呼叫失敗時，應用程式伺服器現在能為前端提供完整詳細的錯誤資訊。在與 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器溝通時，若工具執行或資源讀取發生例外，app-server 的回應會完整保留結構化的錯誤代碼與詳細欄位。這避免了將錯誤壓平成字串而遺失細節，讓開發者能精確定位問題發生的根源。",
-                "zh-CN": "⟦好比检验所回传体检报告时，完整保留了各项数值的代码、异常指标与备注字段，而非只丢出一张模糊的检查失败单据。⟧当外部服务调用失败时，应用服务器现在能为前端提供完整详细的错误信息。在与 MCP（Model Context Protocol，让 AI 连接外部工具的协议）服务器通信时，若工具执行或资源读取发生异常，app-server 的响应会完整保留结构化的错误代码与详细字段。这避免了将错误压平成字符串而遗失细节，让开发者能精确排查问题发生的根源。",
-                "en": "⟦It is like a medical lab report retaining specific diagnostic codes and reference ranges instead of printing a generic test failure message.⟧ When external services encounter issues, app-server responses now preserve structured MCP (Model Context Protocol) tool and resource errors. Rather than flattening error responses into plain text strings, the system keeps structured fields intact so client applications and developers can programmatically handle failures and identify root causes.",
-                "ja": "⟦検査機関が検査報告書を返す際、単なる不合格通知ではなく数値コードや詳細項目をそのまま残して渡すようなものだ。⟧外部ツールとの通信で問題が発生した際、アプリサーバーが詳細なエラー情報をそのまま維持するようになった。MCP（外部ツールと連携するためのプロトコル）サーバーのツール実行やリソース取得で例外が起きた場合、構造化されたエラー情報が保持される。エラーが単純な文字列に丸められないため、開発者は原因を迅速に特定できる。",
-                "ko": "⟦건강검진 기관이 검사 결과를 전달할 때 단순 실패 통보 대신 세부 항목별 수치 코드와 이상 지표를 그대로 남겨 주는 모습과 같다.⟧외부 도구 통신에서 문제가 발생했을 때 앱 서버가 오류 세부 정보를 온전히 유지한다. MCP(외부 도구를 연결하는 표준 규약) 서버의 도구 실행이나 리소스 조회에서 오류가 생기면 앱 서버 응답에 구조화된 오류 객체가 보존된다. 오류 메시지가 단순 문자열로 뭉개지지 않아 문제의 근본 원인을 명확히 파악할 수 있다."
+                "zh-TW": "這批修復把幾個容易在背景出包的地方一次補齊。app-server 的客戶端現在能自己設定 `thread/shellCommand` 的逾時時間，就算要等超過一小時也設得了；把之前的工作階段接回來繼續用時，沒特別指定路徑就會自動還原成上次的工作目錄，客戶端更新描述資訊也不會動到原本的檔案系統權限。MCP 工具在快取（cache，把查過的結果暫存起來直接用）更新、遠端外掛換版本時仍然能正常呼叫。認證要重試時，也會換上輔助程式剛給的新標頭（headers，請求裡帶的驗證資訊）。開模型選單重新整理清單時，原本反白選著的那個也不會跳掉。外掛推薦則是改成開機時就先載入，不用等到你打第一句才臨時去抓。⟦像看電影中途離席，回來時票根還夾在原位、放映沒斷、燈亮了位子照樣是你的；寄放的外套、預訂的爆米花、留在櫃檯的加購單也都還在，沒有哪一樣因為你走開就作廢。⟧",
+                "zh-CN": "这批修复解决了一系列后台容易异常的问题。app-server 的客户端现在可以自行配置 `thread/shellCommand` 的超时时间，即使需要等待超过一小时也能正常设置；恢复之前的会话继续使用时，未特别指定路径会自动还原为上次的工作目录，客户端更新元数据时也不会影响原有的文件系统权限。MCP 工具在缓存（cache，把查过的结果暂存起来直接用）刷新或远程插件更新版本时仍能正常调用。认证重试时，也会换上辅助程序刚提供的新请求头（headers，请求中携带的验证信息）。打开模型选择菜单刷新列表时，当前高亮选中的项目不会丢失。插件推荐则改为启动时预先加载，无需等到输入第一条消息时才临时获取。⟦像看电影中途离席，回来时票根还夹在原位、放映没断、亮灯后座位依旧是你的；寄存的外套、预订的爆米花、留在前台的加购单也都在，没有任何一项因为你走开而作废。⟧",
+                "en": "This release fixes multiple background edge cases. Clients connecting to app-server can now configure `thread/shellCommand` timeouts, including deadlines longer than one hour. Resumed threads automatically restore their previous working directory when none is specified, and client metadata updates preserve existing filesystem permissions. In addition, MCP tools remain callable during cache refreshes and remote plugin updates, while authentication retries adopt newly refreshed helper headers. Opening the model picker refreshes the model list without losing your currently selected item, and plugin recommendations begin loading at startup to minimize delays before the first prompt. ⟦It is like stepping out during a movie and returning to find your ticket stub in place, the projection running, your seat held, and your coat, pre-ordered popcorn, and counter receipt all waiting without anything expiring while you were away.⟧",
+                "ja": "バックグラウンドで問題が発生しやすかった複数の処理が一括して修正された。app-server のクライアント側で `thread/shellCommand` のタイムアウト時間を設定できるようになり、超過一時間の待機が必要な場合でも指定できる。セッション再開時にパスの指定がない場合は前回の作業ディレクトリが自動復元され、クライアントのメタデータ更新時もファイルシステムのアクセス権限が維持される。MCP ツールはキャッシュ（cache、照会結果を一時保存して再利用する仕組み）の更新やリモートプラグインの更新時も正常に呼び出せる。再認証時にはヘルパーから提供された新しいヘッダー（headers、リクエストに付与する認証情報）が適用される。モデル選択メニューを開いて一覧を更新した際も、選択中の項目が外れることはない。プラグインの推奨一覧は起動時に読み込まれ、初回入力時の待ち時間が軽減される。⟦映画の上映中に席を外しても、戻れば半券が挟まれたままで上映は続き、照明がついても自分の席が保たれ、預けた上着や予約したポップコーン、カウンターの注文票がそのまま残っているような仕組みである。⟧",
+                "ko": "백그라운드에서 발생하던 여러 오류가 정리되었다. app-server 클라이언트에서 `thread/shellCommand` 타임아웃을 설정할 수 있게 되어 한 시간 넘게 기다려야 하는 경우도 지정할 수 있다. 세션을 다시 불러올 때 별도 경로를 지정하지 않으면 이전 작업 디렉터리가 자동 복원되며, 클라이언트 메타데이터가 갱신되어도 파일 시스템 권한이 유지된다. MCP 도구는 캐시 갱신이나 원격 플러그인 버전 변경 중에도 정상 호출되며, 인증 재시도 시 헬퍼가 제공한 새 헤더(headers, 요청에 포함되는 인증 정보)를 사용한다. 모델 선택 메뉴를 열어 목록을 새로고침해도 선택 중이던 항목이 해제되지 않는다. 플러그인 추천 목록은 시작 시 미리 불러와 첫 메시지 입력 전 대기 시간을 줄인다. ⟦영화를 보다가 자리를 비워도 돌아오면 표가 제자리에 있고 상영이 이어지며 좌석도 유지되고, 맡긴 외투와 팝콘 주문 내역이 그대로 보존되는 것과 같다.⟧"
               },
-              "original": "Preserved structured MCP tool and resource errors in app-server responses. (#41196)"
+              "original": "App-server clients can configure `thread/shellCommand` timeouts, including deadlines longer than one hour. (#41384)\nResumed threads restore their saved working directory when none is supplied, and client metadata updates preserve filesystem permissions. (#41567, #41464)\nMCP tools remain available through cache refreshes and remote plugin changes; authentication retries use refreshed helper-provided headers. (#41336, #41344, #41396, #41400)\nOpening the model picker refreshes available models without losing the highlighted choice. (#41467)\nPlugin recommendations begin loading during startup, reducing delays before the first turn. (#41375)"
             },
             {
               "title": {
-                "zh-TW": "將巢狀子代理的 Token 用量納入根目標的總額度計算",
-                "zh-CN": "将嵌套子代理的 Token 用量计入根目标的总额度计算",
-                "en": "Count nested subagent token usage toward root goal budgets",
-                "ja": "ネストされたサブエージェントのトークン消費量をルート目標の予算に合算",
-                "ko": "중첩된 서브에이전트 토큰 사용량을 루트 목표 예산에 합산"
+                "zh-TW": "Windows 三個毛病修好，雲端任務也不聽陌生網址的話",
+                "zh-CN": "Windows 三个问题修好，云端任务也不听陌生网址的话",
+                "en": "Three Windows fixes resolved and cloud tasks reject untrusted URLs",
+                "ja": "Windows の 3 つの問題が修正され、クラウドタスクも未承認 URL を遮断する",
+                "ko": "Windows 세 가지 오류를 해결하고 클라우드 작업의 외부 URL 연결을 차단한다"
               },
               "body": {
-                "zh-TW": "指派多層任務讓 AI 自行拆解執行時，運算資源的控管變得更加嚴密。當主要任務委派多層巢狀子代理（subagent，分派任務的次級助手）協同作業時，其資源消耗有了統籌計算。所有子代理消耗的 token（AI 處理與計費的文字單位）用量，現在都會全數計入根目標的總預算中。這防止了底層子代理消耗過多運算資源而超出整體預算的狀況。⟦這像總承包商進行工程預算管控，底下各包商與下包工班的所有開銷，都必須逐筆即時記在總工程款帳目上一併核銷。⟧",
-                "zh-CN": "指派多层任务让 AI 自行拆解运行时，计算资源的管控变得更加严密。当主要任务委派多层嵌套子代理（subagent，分派任务的次级助手）协同作业时，其资源消耗有了统筹计算。所有子代理消耗的 token（AI 处理与计费的文字单位）用量，现在都会全数计入根目标的总预算中。这防止了底层子代理消耗过多计算资源而超出整体预算的状况。⟦这像总承包商进行工程预算管控，底下各包商与下包工班的所有开销，都必须逐笔实时记在总工程款账目上一并核销。⟧",
-                "en": "Budget tracking across multi-agent workflows is now strictly enforced. When a primary task delegates work to nested subagents across multiple tiers, token consumption from every child agent is counted toward the root goal budget. This prevents deep subagent branches from silently exceeding the project token allocation. ⟦It is like a general contractor accounting for every subcontractor and specialist on a project, ensuring all labor hours bill against the master construction budget.⟧",
-                "ja": "階層的なエージェントに作業を任せる際のコスト管理が厳格になった。メインタスクが複数階層のサブエージェント（親から作業を委譲された補助エージェント）を呼び出す処理が見直された。子エージェントが消費したトークン（AI の処理・課金単位）はすべてルート目標の予算枠に合算される。これにより、深い階層のエージェントが意図せず予算を超過する事態を防ぐ。⟦元請け業者が下請けや孫請けの経費をすべて総工事費の予算枠内でまとめて管理するようなものだ。⟧",
-                "ko": "에이전트에게 다단계 작업을 분할해 맡길 때 비용 관리가 한층 엄격해졌다. 메인 작업이 여러 단계의 서브에이전트(작업을 위임받은 하위 도우미)를 실행할 때의 집계 방식이 정돈되었다. 하위 에이전트가 소비한 토큰(AI 처리와 과금의 기본 단위) 사용량은 모두 최상위 루트 목표의 총예산에 합산된다. 이를 통해 하위 작업이 예산을 무단으로 초과하는 상황을 방지한다.⟦원청 업체가 하도급 업체의 모든 경비를 총공사비 예산 장부에 실시간으로 합산해 정산하는 방식과 같다.⟧"
+                "zh-TW": "Windows 上有三個毛病一次修掉：用 Microsoft Store 版 PowerShell 執行沙盒（sandbox，限制程式能碰哪些檔案與網路的隔離環境）會出錯、查詢終端機狀態時子行程可能整個卡住、還有舊版 JediTerm 終端機的游標顯示會花掉。另外，雲端任務現在會擋下不受信任的後端網址，也停用自動轉址，避免存好的憑證被騙去傳給不該收到的地方。⟦宛如一批同時故障的門禁刷卡機跟顯示面板，維修人員一台台拆開修好，順便把只認得掛牌廠商的規矩重新鎖緊，陌生人拿著奇怪的卡靠近也刷不開。⟧",
+                "zh-CN": "Windows 平台上的三个问题在此次更新中一并修复：使用 Microsoft Store 版 PowerShell 运行沙盒（sandbox，限制程序可访问文件与网络的隔离环境）时报错、查询终端状态时子进程可能死锁、以及旧版 JediTerm 终端的光标显示花屏。此外，云端任务现在会拦截不受信任的后端网址，并禁用了自动重定向，以防止已保存的凭证被泄露给非预期的接收方。⟦宛如一批同时出现故障的门禁刷卡机与显示面板，维修人员一台台拆开修复，顺便把只认准认证厂商的规则重新加固，陌生人拿着来源不明的卡靠近也无法刷开。⟧",
+                "en": "Three issues on Windows have been resolved in this release: sandbox execution errors with Microsoft Store PowerShell, subprocess hangs during terminal queries, and cursor-related display corruption in older JediTerm terminals. In addition, cloud task requests now reject untrusted backend URLs and disable automatic redirects to prevent saved credentials from being leaked to unintended destinations. ⟦It is like repairing a batch of malfunctioning access card readers and display panels, while tightening gate rules to only recognize certified vendors so unrecognized cards cannot open the gate.⟧",
+                "ja": "Windows 環境における 3 つの問題が一括修正された。Microsoft Store 版 PowerShell でのサンドボックス（sandbox、プログラムが触れるファイルやネットワークを制限する隔離環境）実行時のエラー、端末状態の問い合わせ時にサブプロセスが停止する不具合、古い JediTerm 端末でカーソル表示が乱れる問題が解消された。さらに、クラウドタスクのリクエストでは信頼されていないバックエンド URL を遮断し、自動リダイレクトを無効化して保存済み認証情報の意図しない送信を防ぐ。⟦故障した一連の入退室カードリーダーや表示パネルを分解修理し、認可された業者のみを受け入れるルールを再設定して、見知らぬカードをかざしても開かないようにするような仕組みである。⟧",
+                "ko": "Windows 환경에서 세 가지 문제가 수정되었다. Microsoft Store 버전 PowerShell을 통한 샌드박스(sandbox, 프로그램이 접근 가능한 파일과 네트워크를 제한하는 격리 환경) 실행 오류, 터미널 상태 조회 시 서브프로세스가 멈추는 현상, 구형 JediTerm 터미널의 커서 표시 깨짐이 해결되었다. 아울러 클라우드 작업 요청 시 신뢰할 수 없는 백엔드 URL을 거부하고 자동 리다이렉트를 비활성화하여 저장된 인증 정보가 엉뚱한 곳으로 유출되지 않도록 보호한다. ⟦동시에 고장 난 출입 카드 단말기와 안내 화면을 일일이 수리하고 등록된 업체만 승인하도록 보안 규칙을 강화해, 낯선 카드를 대도 문이 열리지 않게 한 것과 같다.⟧"
               },
-              "original": "Counted nested subagent token usage toward root goal budgets. (#41183)"
-            },
-            {
-              "title": {
-                "zh-TW": "防止權限狀態變更後因過期的 Guardian 分類結果而誤予授權",
-                "zh-CN": "防止权限状态变更后因过期的 Guardian 分类结果而误予授权",
-                "en": "Prevent stale Guardian classifications from authorizing actions after permission changes",
-                "ja": "権限変更後に古い Guardian 分類結果で処理が誤承認される問題を防止",
-                "ko": "권한 변경 후 만료된 Guardian 분류 결과로 작업이 승인되는 문제 방지"
-              },
-              "body": {
-                "zh-TW": "調整防護等級時，系統的安全閘門能即時反映最新狀態。Guardian（負責審查指令安全性並進行風險分類的防護機制）過去留存的判定結果，在使用者更改權限設定後不再被沿用。系統現在會在權限狀態變更時立即將舊判定標記為失效，嚴格防止過期（stale，不再適用於當前狀態的舊資料）分類資料在新的權限規則下誤放行危險操作。這確保了每一次安全決策都符合當前的防護規則。⟦好比銀行調降信用卡安全額度時，系統同步註銷先前簽發但尚未請款的預先授權碼，防止持卡人在新規生效後被舊核准扣款。⟧",
-                "zh-CN": "调整防护等级时，系统的安全闸门能即时反映最新状态。Guardian（负责审查命令安全性并进行风险分类的防护机制）过去留存的判定结果，在用户更改权限设置后不再被沿用。系统现在会在权限状态变更时立即将旧判定标记为失效，严格防止过期（stale，不再适用于当前状态的旧数据）分类数据在新的权限规则下误放行危险操作。这确保了每一次安全决策都符合当前的防护规则。⟦好比银行调降信用卡安全额度时，系统同步注销先前签发但尚未请款的预先授权码，防止持卡人在新规生效后被旧核准扣款。⟧",
-                "en": "Security enforcement now reacts instantly whenever authorization rules change. Previously cached classifications from Guardian (the security component that categorizes action risks) are no longer used after permission states change. The system invalidates stale classification data immediately upon permission updates, ensuring that outdated approvals cannot authorize new actions after permission state changes. ⟦It is like a bank revoking outstanding pre-authorization holds the moment a credit limit is lowered, preventing old approvals from charging against the updated cap.⟧",
-                "ja": "権限レベルを変更した際、セキュリティ機構が最新の状態を即座に反映するようになった。Guardian（コマンドの安全性を審査・分類する保護機能）による過去の判定結果が、権限状態の変更後に再利用されるのを防ぐ。権限が変更された時点で古い分類データは無効化され、新しい制限下で不正な操作が実行されるリスクを排除する。⟦クレジットカードの利用限度額を引き下げた際、以前の仮売上枠を破棄して古い承認での引き落としを防ぐようなものだ。⟧",
-                "ko": "보안 등급을 바꿀 때 검문 시스템이 최신 상태를 즉각 반영한다. Guardian(명령어의 안전성을 심사하고 위험을 분류하는 보호 장치)의 이전 판정 결과가 권한 상태 변경 후에도 유지되던 문제를 바로잡았다. 권한이 바뀌면 기존 분류 데이터를 즉시 무효화하여 변경된 새 권한 상태 아래에서 오래된 판정으로 위험 작업이 실행되는 일을 차단한다.⟦신용카드 한도를 낮추었을 때 기존 승인 번호를 취소하여 이전 승인 기록으로 결제되는 일을 막는 모습과 같다.⟧"
-              },
-              "original": "Prevented stale Guardian classifications from authorizing actions after permission state changes. (#41196)"
-            },
-            {
-              "title": {
-                "zh-TW": "為升級的標準輸入審查與遠端執行器 MCP 探索新增遙測日誌",
-                "zh-CN": "为升级的标准输入审查与远程执行器 MCP 发现新增遥测日志",
-                "en": "Add telemetry for escalated stdin reviews and remote executor MCP discovery",
-                "ja": "昇格された標準入力審査とリモート MCP 検出のテレメトリを追加",
-                "ko": "상승된 표준 입력 심사와 원격 실행기 MCP 검색을 위한 원격 측정 추가"
-              },
-              "body": {
-                "zh-TW": "⟦像維運記錄器分別記下需要升級審查的標準輸入事件，以及遠端執行器探索 MCP 伺服器的事件。⟧系統運作監控與除錯分析的涵蓋範圍在本次更新中獲得擴充。當 stdin（標準輸入，程式接收打字或指令輸入的管道）審查需要升級時，系統會自動記錄相關事件。在遠端執行器探索 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器時，也會發送對應的遙測數據。這協助維護者深入掌握安全審查與遠端工具連接的執行狀況。",
-                "zh-CN": "⟦像运维记录器分别记下需要升级审查的标准输入事件，以及远程执行器发现 MCP 服务器的事件。⟧系统运行监控与排错分析的覆盖范围在本次更新中获得扩充。当 stdin（标准输入，程序接收打字或命令输入的管道）审查需要升级时，系统会自动记录相关事件。在远程执行器发现 MCP（Model Context Protocol，让 AI 连接外部工具的协议）服务器时，也会发送对应的遥测数据。这协助维护者深入掌握安全审查与远程工具连接的运行状况。",
-                "en": "⟦a maintenance recorder separately logging escalated stdin review events and MCP discovery events from remote executors.⟧ Observability into security reviews and remote connections is now expanded. Codex introduces dedicated telemetry tracking for escalated stdin reviews whenever interactive input requires elevated approval. It also logs remote executor MCP (Model Context Protocol) discovery events, giving maintainers clearer visibility into tool registration flows.",
-                "ja": "⟦昇格した標準入力の審査イベントと、リモート実行環境による MCP 検出イベントを別々に記録する運用ログのようなものだ。⟧動作ログとトラブル解析の対象が拡大された。権限昇格を伴う stdin（標準入力、キーボードからの文字入力を受け取る仕組み）の審査が行われた際、関連イベントが自動記録される。さらに、リモート実行環境が MCP（外部ツールと連携するためのプロトコル）サーバーを検出する際にも詳細なテレメトリが収集される。これによりセキュリティ審査とツール連携の状況を正確に追跡できる。",
-                "ko": "⟦추가 승인이 필요한 표준 입력 심사 이벤트와 원격 실행기의 MCP 검색 이벤트를 각각 기록하는 운영 로그와 같다.⟧시스템 점검과 문제 분석을 위한 로그 수집 범위가 넓어졌다. 추가 승인이 필요한 stdin(표준 입력, 키보드 타이핑이나 명령 입력을 받는 통로) 심사가 진행될 때 관련 이벤트가 자동으로 기록된다. 또한 원격 실행기가 MCP(외부 도구를 연결하는 표준 규약) 서버를 검색하는 과정에서도 원격 측정 데이터가 수집된다. 이를 통해 보안 심사와 원격 도구 연결 상태를 한눈에 파악할 수 있다."
-              },
-              "original": "Added telemetry for escalated stdin reviews and remote executor MCP discovery. (#41189, #41205)"
-            },
-            {
-              "title": {
-                "zh-TW": "提升慢速與高併發持續整合環境下 Guardian WebSocket 與核心測試的穩定度",
-                "zh-CN": "提升慢速与高并发持续集成环境下 Guardian WebSocket 与核心测试的稳定性",
-                "en": "Stabilize Guardian WebSocket and core fixture tests in slow or concurrent CI",
-                "ja": "低速・高並行 CI 環境下での Guardian WebSocket とコアテストの安定化",
-                "ko": "저속 및 고동시성 CI 환경에서 Guardian WebSocket과 핵심 테스트 안정화"
-              },
-              "body": {
-                "zh-TW": "Guardian WebSocket 與核心 fixture 測試在網路延遲或高負載下較不會假性失敗，也能穩定通過。系統全面加固了 Guardian（安全審查守護模組）的通訊機制，使其 WebSocket 雙向連線更加可靠。核心 fixture（測試治具，提供測試環境與初始資料的輔助套件）測試也進行了相應的穩定化調整。⟦這如同在風雨交加或多車同時通行的跨海大橋上加裝減震結構，確保橋梁在惡劣氣候與尖峰車流下依然平穩暢通。⟧",
-                "zh-CN": "Guardian WebSocket 与核心 fixture 测试在网络延迟或高负载下较少出现假性失败，也能稳定通过。系统全面加固了 Guardian（安全审查守护模块）的通信机制，使其 WebSocket 双向连接更加可靠。核心 fixture（测试夹具，提供测试环境与初始数据的辅助组件）测试也进行了相应的稳定性调整。⟦这如同在风雨交加或多车同时通行的跨海大桥上加装减震结构，确保桥梁在恶劣气候与高峰车流下依然平稳畅通。⟧",
-                "en": "Guardian WebSocket connections and core fixture tests now run reliably under high load or network latency. Guardian WebSocket connections and core test fixtures have been hardened against timing issues. Even when test suites run on slow CI (continuous integration) runners or under heavy concurrency, core fixture tests complete predictably without false alarms. ⟦It is like reinforcing a suspension bridge with dampers so that it stays completely stable through severe storms and rush hour traffic.⟧",
-                "ja": "Guardian WebSocket とコア fixture テストで失敗が起きにくくなり、安定してパスする。Guardian（セキュリティ審査モジュール）の通信機構が強化され、WebSocket 接続の安定性が向上した。また、コア fixture（テスト環境や初期データを準備する仕組み）テストの処理も見直された。⟦強風や渋滞が重なる大橋に制震ダンパーを取り付け、過酷な条件下でも橋を揺らさず安全に保つようなものだ。⟧",
-                "ko": "Guardian WebSocket과 핵심 fixture 테스트가 안정적으로 통과한다. 속도가 느리거나 동시 작업이 몰리는 CI(지속적 통합, 자동 빌드 및 테스트 환경) 서버에서도 테스트가 안정적으로 통과한다.⟦강풍과 차량 정체가 겹치는 다리에 제진 장치를 보강하여 악천후와 출퇴근길에도 흔들림 없이 통행을 유지하는 모습과 같다.⟧"
-              },
-              "original": "Stabilized Guardian WebSocket and core fixture tests under slow or highly concurrent CI. (#41191, #41194)"
-            }
-          ]
-        },
-        {
-          "version": "0.150.1",
-          "period": "2026-08-27",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "遠端壓縮納入保留的圖片算額度，舊圖依需求自動削減",
-                "zh-CN": "远程压缩纳入保留的图片算额度，旧图按需自动削减",
-                "en": "Remote compaction counts retained images toward token budgets and reduces older ones as needed",
-                "ja": "リモート圧縮が保持画像をトークン予算に算入し、古い画像を必要に応じて削減する",
-                "ko": "원격 압축이 보존 이미지를 토큰 예산에 포함하고 오래된 이미지를 필요에 따라 줄인다"
-              },
-              "body": {
-                "zh-TW": "在長篇對話裡傳送多張截圖，⟦就像在一本厚度有限的專案剪貼簿裡貼滿照片與說明，一旦紙張有限，厚重的相片往往最容易佔滿整本手冊的配額。⟧現在 Codex 在背景執行遠端壓縮（remote compaction，在伺服器端壓縮長對話紀錄的機制）時，預設會把保留的圖片也一併算進可用配額。這項機制會把保留的圖片計入 token（AI 處理與計量的文字單位）預算，並在需要時自動削減較早傳入的舊圖片。如此一來，長篇對話就不會因為累積過多歷史圖片而悄悄撐破長度上限，同時也能確保最新的畫面資訊持續被妥善保留。",
-                "zh-CN": "在长篇对话里发送多张截图，⟦就像在一本厚度有限的项目剪贴簿里贴满照片与说明，一旦纸张有限，厚重的相片往往最容易占满整本手册的配额。⟧现在 Codex 在后台执行远程压缩（remote compaction，在服务端压缩长对话记录的机制）时，默认会把保留的图片也一并算进可用配额。这项机制会把保留的图片计入 token（AI 处理与计量的文字单位）预算，并在需要时自动削减较早传入的旧图片。如此一来，长篇对话就不会因为累积过多历史图片而悄悄撑破长度上限，同时也能确保最新的画面信息持续被妥善保留。",
-                "en": "Sending multiple screenshots in a long conversation ⟦is like pasting photos and notes into a project scrapbook of limited thickness, where bulky pictures easily eat up the binder's allowance.⟧ When Codex runs remote compaction to compress lengthy conversation histories on the server, it now counts retained images toward its token budget by default. The mechanism reduces older images as needed to keep things lean. This ensures that long discussions stay safely within context limits without silently overflowing due to accumulated image history, while preserving your most recent visual references.",
-                "ja": "長大な会話の中で複数のスクリーンショットを送ることは、⟦厚みに制限のあるプロジェクトスクラップブックに写真やメモを貼り付けるのに似ており、台紙に限りがある場合、分厚い写真は冊子の枠を圧迫しやすい。⟧現在、Codex がサーバー上で長大な対話履歴を縮約するリモート圧縮（remote compaction）を実行する際、保持された画像はデフォルトでトークン予算に算入される。システムは古い画像を必要に応じて削減する。これにより、蓄積された履歴画像によって会話全体の制限を超えてしまう事故を防ぎつつ、直近の視覚情報を適切に残せる。",
-                "ko": "긴 대화 속에서 여러 장의 스크린샷을 전송하는 것은 ⟦두께가 정해진 프로젝트 스크랩북에 사진과 메모를 붙이는 것과 같아서, 지면이 한정된 상황에서는 두꺼운 사진이 수첩의 용량을 가장 먼저 차지하기 쉽다.⟧ 이제 Codex가 서버에서 긴 대화 기록을 줄여주는 원격 압축(remote compaction)을 실행할 때, 보존된 이미지를 기본적으로 토큰 예산에 함께 계산한다. 필요한 경우 오래된 이미지를 줄인다. 이를 통해 과거 이미지가 쌓여 대화 전체의 길이 제한을 소리 없이 초과하는 사고를 막고, 가장 최근의 시각 정보를 안정적으로 유지할 수 있다."
-              },
-              "original": "Remote compaction now counts retained images toward its token budget by default, trimming older images as needed. (#41003)"
+              "original": "Fixed Windows sandbox execution with Microsoft Store PowerShell, subprocess hangs on terminal queries, and cursor-related display corruption in older JediTerm terminals. (#41227, #41436, #41673)\nCloud task requests reject untrusted backend URLs and disable redirects to protect saved credentials. (#41403)"
             }
           ]
         }
