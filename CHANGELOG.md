@@ -5,6 +5,17 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+- **Fable 5.1 has an offline price, and the fallback table's own audit no longer skips the entire Fable family.** Claude Code 2.1.257 made Fable 5.1 (`claude-fable-5-1`) the default of the Fable line, but the hard-coded fallback table only carried `claude-fable-5`, so whenever the downloaded price table was missing or stale every Fable 5.1 token was costed at $0. Its cache-read price is `0.25e-6` — a quarter of Fable 5's — so inheriting the older entry would not have been correct either. The gap went unreported because `scripts/check_fallback_pricing.py` matched only `opus|sonnet|haiku`: no `fable` model, old or new, was ever in scope for the audit that exists to catch exactly this.
+- **A dated model no longer falls back to a newer version's pricing.** `_resolve_model_key` matched any table key that started with the queried name followed by a hyphen, so `claude-opus-4-20250514` resolved to `claude-opus-4-6` and was costed at $5/M instead of $15/M — a third of the real figure — whenever the offline table was in use. A query that already carries its own version number now rejects a candidate that merely appends another digit, while a version-less name like `claude-sonnet` still resolves, and among equally specific keys the newest version wins. Named variants (`gpt-5` → `gpt-5-pro`) are unaffected. The five models still in service that the table had never carried — `claude-opus-4`, `claude-opus-4-1`, `claude-opus-4-5`, `claude-sonnet-4`, `claude-sonnet-4-5` — were added, and a Bedrock version suffix is now stripped so `claude-sonnet-4-5-20250929-v1:0` prices correctly.
+- **The fallback pricing audit reports what actually fails to resolve, instead of a list nobody could act on.** Both directions of `compare_pricing` diffed raw dictionary keys, but the fallback table drops date suffixes on purpose — so models that price perfectly well, such as `claude-haiku-4-5` and `claude-opus-4-7-20260416`, were reported as missing. Three of the twelve reported gaps were false, the script's exit code had been 1 for as long as that was true, and a real gap was indistinguishable from the noise. Both directions now resolve through `_resolve_model_key`.
+- **The usage table shows a name for Opus 5 and Fable 5.1.** `MODEL_SHORT` had no entry for either, so both were printed as their raw model IDs.
+
+### Changed
+- **Quota warnings now fire at 50% as well as 90%, and one reading sends at most one notification.** Codex 0.153.0 began warning Plus and Team users once a five-hour window is less than half remaining; usage waited until 90%, so the tool it monitors warned earlier than the monitor did. The default is now `[50.0, 90.0]` on macOS and Windows alike, still overridable through `quota_notification_thresholds`. Because a single reading can cross both thresholds at once — the app launching when quota is already at 95%, or a single large jump — only the highest crossed threshold sends a notification and the rest are latched, so one observation never produces two alerts saying the same thing.
+
 ## [0.30.7] - 2026-09-01
 
 ### Fixed
