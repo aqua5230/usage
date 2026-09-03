@@ -802,6 +802,273 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.1.25",
+          "period": "2026-09-03",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "`/resume` 新增目錄分組檢視，快速鍵切換對話清單更俐落",
+                "zh-CN": "`/resume` 新增目录分组视图，快捷键切换会话列表更利落",
+                "en": "`/resume` Adds Directory Grouping View for Toggling Conversation History",
+                "ja": "`/resume` にディレクトリ別グループ表示を追加、ショートカットキーで履歴切り替えが快適に",
+                "ko": "`/resume`에 디렉터리별 그룹 보기 추가, 단축키로 대화 목록을 깔끔하게 전환"
+              },
+              "body": {
+                "zh-TW": "你在多個專案資料夾之間切換工作時，要在歷史對話裡找回之前的討論，現在多了更清楚的分類方式。⟦像把抽屜裡混成一疊的文件，按專案資料夾分類收納，只要按一下快速鍵，就能在平鋪清單與活頁夾分組之間自由切換。⟧使用 `/resume` 指令挑選過去的對話時，新增了自由啟用的工作區分組檢視。只要按下 `Ctrl+F` 快速鍵，就能在原本平鋪的對話清單與依目錄分組的檢視之間即時切換，迅速找到特定專案底下的歷史紀錄。",
+                "zh-CN": "你在多个项目文件夹之间切换工作时，要在历史会话中找回之前的讨论，现在有了更清晰的分类方式。⟦就像把抽屉里混成一叠的文件，按项目文件夹分类收纳，只要按一下快捷键，就能在平铺列表与文件夹分组之间自由切换。⟧使用 `/resume` 命令挑选过去的会话时，新增了自由启用的工作区分组视图。只要按下 `Ctrl+F` 快捷键，就能在原本平铺的会话列表与按目录分组的视图之间即时切换，迅速找到特定项目下的历史记录。",
+                "en": "When switching between multiple project directories, finding past discussions in your conversation history is now much more organized. ⟦It is like sorting a messy pile of documents from a drawer into project folders, letting you switch between a flat list and categorized binders with a single keystroke.⟧ When using the `/resume` command to pick a past conversation, you can now opt into a workspace-grouped view. Simply press `Ctrl+F` to toggle between the flat conversation list and conversations grouped by directory, quickly locating history for a specific project.",
+                "ja": "複数のプロジェクトフォルダを行き来しながら作業する際、過去の対話履歴から以前の議論を探し出す分類方法がより明確になった。⟦引き出しの中でひとまとまりになっていた書類をプロジェクトフォルダごとに仕分け、ショートカットキーを一度押すだけでフラットな一覧とバインダーごとのグループ表示を自由に行き来するようなものだ。⟧`/resume` コマンドで過去の対話を選択する際、任意で有効化できるワークスペース別グループ表示が追加された。`Ctrl+F` キーを押すだけで、フラットな対話一覧とディレクトリごとにグループ化された表示を即座に切り替えられ、特定プロジェクトの履歴を素早く見つけ出せる。",
+                "ko": "여러 프로젝트 폴더를 오가며 작업할 때, 지난 대화 기록에서 이전 논의를 찾아내는 방식이 한층 더 깔끔해졌다. ⟦서랍 속에 한데 섞여 있던 서류를 프로젝트 폴더별로 정리해 두고, 단축키 한 번으로 펼침 목록과 바인더 그룹을 자유롭게 오가는 것과 같다.⟧ `/resume` 명령어로 지난 대화를 선택할 때 자유롭게 활성화할 수 있는 워크스페이스 그룹 보기가 추가되었다. `Ctrl+F` 단축키를 누르면 기본 펼침 대화 목록과 디렉터리별로 그룹화된 보기 사이를 즉시 전환하여 특정 프로젝트의 이전 기록을 빠르게 찾을 수 있다."
+              },
+              "original": "Added an opt-in workspace-grouped view to the `/resume` conversation picker, allowing users to toggle between a flat list and conversations grouped by directory with `Ctrl+F`."
+            },
+            {
+              "title": {
+                "zh-TW": "模型目錄收錄 Gemini 3.8 Flash，API 金鑰連線多一項輕快選擇",
+                "zh-CN": "模型目录收录 Gemini 3.8 Flash，API 密钥连接多一项轻快选择",
+                "en": "Gemini 3.8 Flash Added to Model Catalog for API Key Connections",
+                "ja": "モデルカタログに Gemini 3.8 Flash が追加、API キー接続時の軽快な選択肢が拡充",
+                "ko": "모델 카탈로그에 Gemini 3.8 Flash 추가, API 키 연결 시 가벼운 선택지 제공"
+              },
+              "body": {
+                "zh-TW": "偏好直接使用官方 API 金鑰連線的開發者，模型清單中迎來了更新的生力軍。⟦這就像在工具箱裡添置了一把高轉速的輕便電動起子，只要插上專用電池，就能隨時拿出來處理講求反應速度與俐落節奏的組裝工作。⟧只要你在環境中設定 `GEMINI_API_KEY` 連線，模型目錄中就會列出最新的 Gemini 3.8 Flash 模型。在進行日常程式碼查詢或快速編輯時，便能直接在選單中指定此模型，享有更充裕的模型調配彈性。",
+                "zh-CN": "偏好直接使用官方 API 密钥连接的开发者，模型列表中迎来了更新的生力军。⟦这就像在工具箱里添置了一把高转速的轻便电动螺丝刀，只要插上专用电池，就能随时拿出来处理讲求响应速度与利落节奏的组装工作。⟧只要你在环境中设置 `GEMINI_API_KEY` 连接，模型目录中就会列出最新的 Gemini 3.8 Flash 模型。在进行日常代码查询或快速编辑时，便能直接在菜单中指定此模型，享有更充裕的模型调配弹性。",
+                "en": "Developers who prefer connecting directly with an official API key now have a fresh, responsive option in their model list. ⟦It is like adding a high-speed, lightweight electric screwdriver to your toolbox, ready to tackle assembly tasks requiring fast reactions whenever you plug in its battery.⟧ Once you configure `GEMINI_API_KEY` in your environment, the latest Gemini 3.8 Flash model appears in the model catalog. When performing routine code lookups or quick edits, you can select this model directly from the menu to enjoy greater flexibility.",
+                "ja": "公式 API キーで直接接続する開発者向けに、モデル一覧へ新たな選択肢が加わった。⟦これは工具箱に高回転の軽量電動ドライバーを追加したようなもので、専用バッテリーを装着するだけで、素早い応答と軽快なペースが求められる組み立て作業にいつでも対応できる。⟧環境変数に `GEMINI_API_KEY` を設定して接続すると、モデルカタログに最新の Gemini 3.8 Flash モデルが表示される。日常的なコードの検索や素早い編集を行う際、メニューから直接このモデルを指定して、より柔軟にモデルを使い分けることができる。",
+                "ko": "공식 API 키로 직접 연결하는 개발자를 위해 모델 목록에 새로운 선택지가 추가되었다. ⟦공구함에 고속 경량 전동 드라이버를 하나 더 마련해 둔 것과 같아서, 전용 배터리만 연결하면 빠른 반응과 경쾌한 템포가 필요한 조립 작업에 언제든 꺼내 쓸 수 있다.⟧ 환경에 `GEMINI_API_KEY`를 설정하여 연결하면 모델 카탈로그에 최신 Gemini 3.8 Flash 모델이 표시된다. 일상적인 코드 조회나 빠른 편집을 진행할 때 메뉴에서 이 모델을 직접 지정하여 한층 유연하게 모델을 운용할 수 있다."
+              },
+              "original": "Added Gemini 3.8 Flash to the model catalog when connecting with a `GEMINI_API_KEY`."
+            },
+            {
+              "title": {
+                "zh-TW": "Markdown 自訂代理預設繼承全域資源，開箱即用周遭技能與規則",
+                "zh-CN": "Markdown 自定义代理默认继承全局资源，开箱即用周边技能与规则",
+                "en": "Markdown Custom Agents Inherit Ambient Skills, Rules, and Subagents by Default",
+                "ja": "Markdown 定義のカスタムエージェントが周辺リソースをデフォルト継承、スキルやルールを即座に利用可能",
+                "ko": "Markdown 커스텀 에이전트의 기본 환경 리소스 상속 지원, 스킬과 규칙 바로 사용"
+              },
+              "body": {
+                "zh-TW": "用 Markdown 檔案撰寫自訂代理時，現在能享有與預設代理完全一致的資源配置。過去自訂代理不會自動承接環境裡現有的各項技能、規則與子代理（subagents，分擔特定任務的輔助代理），讓自訂助理往往少了一整套基本能力；現在自訂代理一律預設繼承周遭的所有技能、規則與子代理，開箱就能直接調用環境資源。⟦這好比新到職的特助走進辦公室，桌上已自動配齊團隊現成的工具箱、作業規範與協力助手名冊，不必凡事從頭自行申請。⟧",
+                "zh-CN": "用 Markdown 文件编写自定义代理时，现在能享有与默认代理完全一致的资源配置。过去自定义代理不会自动承接环境中现有的各项技能、规则与子代理（subagents，分担特定任务的辅助代理），让自定义助理往往缺少整套基础能力；现在自定义代理一律默认继承周边的所有技能、规则与子代理，开箱就能直接调用环境资源。⟦这好比新入职的特助走进办公室，桌上已自动配齐团队现成的工具箱、作业规范与协力助手名册，不必凡事从头自行申请。⟧",
+                "en": "When defining custom agents with Markdown files, they now receive the exact same resource configuration as default agents. Previously, custom agents did not automatically inherit ambient skills, rules, and subagents (specialized auxiliary agents that handle specific tasks), often leaving them without essential capabilities. Now, custom agents inherit all surrounding skills, rules, and subagents by default, ready to use ambient resources out of the box. ⟦It is like a newly hired assistant walking into an office to find the team's standard toolkit, operating guidelines, and directory of helpers already neatly set up on their desk without having to request each one from scratch.⟧",
+                "ja": "Markdown ファイルでカスタムエージェントを作成する際、デフォルトエージェントと完全に同一のリソース構成を利用できるようになった。以前のカスタムエージェントは環境内に存在するスキル、ルール、サブエージェント（subagents、特定タスクを分担する補助エージェント）を自動で引き継がず、基本的な能力一式が不足しがちだった。現在はすべての周辺スキル、ルール、サブエージェントがデフォルトで継承され、追加設定なしで環境リソースを直接呼び出せる。⟦これは新しく着任したアシスタントがオフィスに入ると、チーム共通の道具箱や業務規程、協力スタッフの名簿がすでに机の上に揃っていて、ゼロから申請する必要がない状態に似ている。⟧",
+                "ko": "Markdown 파일로 커스텀 에이전트를 작성할 때 기본 에이전트와 동일한 리소스 구성을 그대로 활용할 수 있게 되었다. 이전에는 커스텀 에이전트가 환경 내에 존재하는 스킬, 규칙, 서브에이전트(subagents, 특정 작업을 분담하는 보조 에이전트)를 자동으로 이어받지 않아 기본 역량이 부족해지기 쉬웠다. 이제는 주변의 모든 스킬, 규칙, 서브에이전트를 기본으로 상속받아 별도 설정 없이도 환경 리소스를 즉시 호출할 수 있다. ⟦새로 입사한 비서가 사무실에 들어섰을 때 팀의 공용 도구함과 업무 지침서, 보조 인력 명단이 책상 위에 이미 갖춰져 있어 일일이 신청할 필요가 없는 것과 같다.⟧"
+              },
+              "original": "Changed custom agents defined in Markdown to inherit ambient skills, rules, and subagents by default, matching the configuration of default agents."
+            },
+            {
+              "title": {
+                "zh-TW": "修正 Markdown 自訂代理相對路徑解析，以定義檔所在目錄為基準",
+                "zh-CN": "修复 Markdown 自定义代理相对路径解析，以定义文件所在目录为基准",
+                "en": "Fixed Relative Path Resolution in Markdown Custom Agents Based on Definition Directory",
+                "ja": "Markdown 定義カスタムエージェントの相対パス解決を修正、定義ファイルの配置ディレクトリを基準に解決",
+                "ko": "Markdown 커스텀 에이전트의 상대 경로 해석 수정, 정의 파일 디렉터리 기준으로 변경"
+              },
+              "body": {
+                "zh-TW": "你在自訂代理的 Markdown 定義檔中引用周邊模組時，相對路徑不再因為執行位置不同而迷路。過去在代理定義檔中若使用相對路徑來指定子代理與外掛程式，系統常以當前執行目錄而非定義檔所在位置進行解析，導致檔案找不到；現在相對路徑一律以該代理定義檔所在的資料夾為基準正確解析。⟦這宛如依據建築平面圖找房間，說明書上的「走廊左側第三間」一律以這棟大樓的入口為基準計算，不會因為你站在不同大門外就指錯方位。⟧",
+                "zh-CN": "你在自定义代理的 Markdown 定义文件中引用周边模块时，相对路径不再因为执行位置不同而迷失。过去在代理定义文件中若使用相对路径来指定子代理与插件，系统常以当前执行目录而非定义文件所在位置进行解析，导致文件找不到；现在相对路径一律以该代理定义文件所在的文件夹为基准正确解析。⟦这宛如依据建筑平面图找房间，说明书上的「走廊左侧第三间」一律以这栋大楼的入口为基准计算，不会因为你站在不同大门外就指错方位。⟧",
+                "en": "When referencing nearby modules in a custom agent's Markdown definition file, relative paths will no longer get lost depending on where you run the tool. Previously, when specifying subagents and plugins using relative paths in an agent definition, paths were often resolved against the current working directory instead of the definition file's location, causing files to go missing. Relative paths now resolve correctly against the directory containing that agent definition file. ⟦It is like navigating a building floor plan where instructions like \"third door on the left\" are always measured from that building's main entrance, rather than pointing in the wrong direction because you happen to be standing outside another gate.⟧",
+                "ja": "カスタムエージェントの Markdown 定義ファイルから関連モジュールを参照する際、実行場所の違いによって相対パスを見失う問題が解消された。従来のエージェント定義ファイルで相対パスを用いてサブエージェントやプラグインを指定すると、定義ファイルの場所ではなく現在の実行ディレクトリを基準に解決され、ファイルが見つからない事態が発生していた。現在は相対パスが該当エージェント定義ファイルのあるディレクトリを基準として正しく解決される。⟦これはフロアマップに従って部屋を探す際、案内書の「廊下左手の3番目の部屋」という表記がその建物の入口を基準に計算され、自分が別の門の外に立っているからといって方角を誤らずに済むようなものだ。⟧",
+                "ko": "커스텀 에이전트의 Markdown 정의 파일에서 주변 모듈을 참조할 때 실행 위치에 따라 상대 경로를 잘못 찾는 문제가 해결되었다. 기존에는 에이전트 정의 파일에서 상대 경로로 서브에이전트나 플러그인을 지정하면 정의 파일 위치 대신 현재 실행 디렉터리를 기준으로 경로를 해석하여 파일을 찾지 못하는 경우가 발생했다. 이제 상대 경로가 해당 에이전트 정의 파일이 위치한 디렉터리를 기준으로 올바르게 해석된다. ⟦건물 평면도를 보고 방을 찾을 때 안내서의 \"복도 왼쪽 세 번째 방\"이라는 설명이 건물 입구를 기준으로 계산되어, 다른 출입문 바깥에 서 있다고 해서 방향이 어긋나지 않는 것과 같다.⟧"
+              },
+              "original": "Fixed relative path resolution in Markdown-defined custom agents so relative subagent and plugin paths resolve correctly against the agent definition's directory."
+            },
+            {
+              "title": {
+                "zh-TW": "MCP OAuth 支援逾千字超長授權碼，身分驗證不再受阻",
+                "zh-CN": "MCP OAuth 支持逾千字超长授权码，身份验证不再受阻",
+                "en": "MCP OAuth Now Supports Long Authorization Codes Exceeding 1024 Characters",
+                "ja": "MCP の OAuth 認証で 1024 文字超の長い認可コードに対応、ログインの失敗を解消",
+                "ko": "MCP OAuth 1024자 초과 긴 인증 코드 지원, 인증 실패 문제 해결"
+              },
+              "body": {
+                "zh-TW": "透過外部授權伺服器綁定帳號時，長序號不再卡死登入流程。使用 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）進行 OAuth 登入驗證時，如果授權伺服器回傳長度超過 1024 個字元的授權碼，過去系統會因長度限制而判定失敗；現在這項門檻限制已經修復，長度超過 1024 字元的授權碼也能順利通過驗證並完成服務連接。⟦如同大樓門禁閘門升級了感應容量，過去訪客通行證條碼超過特定字數就會讀取失敗，現在遇到長條碼也能順暢感應通關。⟧",
+                "zh-CN": "通过外部授权服务器绑定账号时，长序号不再卡死登录流程。使用 MCP（Model Context Protocol，让 AI 连接外部工具的协议）进行 OAuth 登录验证时，如果授权服务器返回长度超过 1024 个字符的授权码，过去系统会因长度限制而判定失败；现在这项门槛限制已经修复，长度超过 1024 字符的授权码也能顺利通过验证并完成服务连接。⟦如同大楼门禁闸门升级了感应容量，过去访客通行证条形码超过特定字数就会读取失败，现在遇到长条形码也能顺畅感应通关。⟧",
+                "en": "When connecting accounts via external authorization servers, lengthy tokens no longer block your sign-in flow. During MCP (Model Context Protocol) OAuth authentication, if an authorization server returned an authorization code longer than 1024 characters, the process previously failed due to a length limitation. This limit has now been fixed, allowing authorization codes exceeding 1024 characters to authenticate successfully and complete the connection. ⟦It is like upgrading an office security gate so that long visitor badge barcodes, which previously triggered scan errors, now scan and grant access without a hitch.⟧",
+                "ja": "外部認証サーバーを通じてアカウントを連携する際、長いコードによってログイン処理が停止する問題が解消された。MCP（外部ツールと AI を接続するプロトコル）で OAuth 認証を行う際、認可サーバーから 1024 文字を超える認可コードが返されると、従来の長さ制限により認証が失敗していた。今回の修正によって制限が解消され、1024 文字を超える認可コードでも正常に検証を通過してサービスへ接続できるようになった。⟦ビルのセキュリティゲートが読み取り容量を拡張し、以前は文字数が多すぎてエラーになっていた来訪者パスのバーコードも、スムーズに読み取って通過できるようになった状態と同じだ。⟧",
+                "ko": "외부 인증 서버를 통해 계정을 연동할 때 긴 문자열 때문에 로그인 과정이 막히는 현상이 사라졌다. MCP(AI가 외부 도구와 연결되도록 돕는 프로토콜)로 OAuth 인증을 진행할 때 인증 서버가 1024자를 초과하는 긴 인증 코드를 반환하면 기존에는 길이 제한으로 인해 실패로 처리되었다. 이번 수정으로 해당 제한이 해결되어 1024자가 넘는 인증 코드도 정상적으로 검증을 마치고 서비스 연동을 완료할 수 있다. ⟦건물 출입 게이트의 인식 용량을 늘려, 예전에는 글자 수가 길어 인식에 실패하던 방문증 바코드도 막힘없이 통과시키는 것과 같다.⟧"
+              },
+              "original": "Fixed MCP OAuth authentication failing when authorization servers return authorization codes longer than 1024 characters."
+            },
+            {
+              "title": {
+                "zh-TW": "修正 Windows 技能面板路徑比對，全域與工作區技能正確歸類",
+                "zh-CN": "修复 Windows 技能面板路径匹配，全局与工作区技能正确归类",
+                "en": "Fixed Windows Skill Path Matching to Properly Classify Global and Workspace Skills",
+                "ja": "Windows 環境のスキルパネルにおけるパス照合を修正、グローバルとワークスペースのスキルを正しく分類",
+                "ko": "Windows 스킬 패널의 경로 매칭 수정, 전역 및 워크스페이스 스킬 정상 분류"
+              },
+              "body": {
+                "zh-TW": "在 Windows 系統上檢視已安裝的擴充技能時，面板清單中的分類與層級變得更加精準。過去在 Windows 環境開啟 `/skills` 面板時，由於主機路徑分隔符號（反斜線 `\\`）的比對問題，導致全域技能與工作區技能經常被錯誤分類；現在路徑比對與分組邏輯已完成修正，所有技能都會依其實際路徑正確歸類到所屬群組。⟦猶如圖書館檔案室校正了索書號的辨識標籤，不再因為標籤上的斜線方向不同，就把總館的常備書籍誤標成分館專屬藏書。⟧",
+                "zh-CN": "在 Windows 系统上查看已安装的扩展技能时，面板列表中的分类与层级变得更加精准。过去在 Windows 环境开启 `/skills` 面板时，由于主机路径分隔符（反斜杠 `\\`）的匹配问题，导致全局技能与工作区技能经常被错误分类；现在路径匹配与分组逻辑已完成修复，所有技能都会依其实际路径正确归类到所属分组。⟦犹如图书馆档案室校正了索书号的识别标签，不再因为标签上的斜杠方向不同，就把总馆的常备书籍误标成分馆专属藏书。⟧",
+                "en": "When viewing installed skills on Windows, categories and groupings in the panel are now much more accurate. Previously, when opening the `/skills` panel on Windows, host path separators (the backslash `\\`) caused global and workspace skills to be misclassified due to path-matching issues. The path-matching and grouping logic has now been corrected so that all skills are properly sorted into their respective groups based on their actual paths. ⟦It is like a library archive fixing call number label recognition, ensuring books from the central library are no longer miscategorized as branch-exclusive items just because of the slash direction on the label.⟧",
+                "ja": "Windows 上でインストール済みスキルを確認する際、パネル一覧での分類と階層表示が正確になった。以前の Windows 環境で `/skills` パネルを開くと、パス区切り文字（バックスラッシュ `\\`）の照合問題によって、グローバルスキルとワークスペーススキルが誤って分類されることがあった。現在はパス照合とグループ化のロジックが修正され、すべてのスキルが実際のパスに基づいて正しいグループへ分類される。⟦これは図書館の書庫で請求記号の読み取り処理を是正し、記号内のスラッシュの向きが違うだけで本館の所蔵本を分館専用本と誤認しなくなった状態に似ている。⟧",
+                "ko": "Windows 환경에서 설치된 스킬을 확인할 때 패널 목록의 분류와 계층 구조가 한층 정확해졌다. 이전에는 Windows에서 `/skills` 패널을 열었을 때 호스트 경로 구분자(백슬래시 `\\`) 매칭 문제로 인해 전역 스킬과 워크스페이스 스킬이 잘못 분류되는 현상이 자주 발생했다. 이제 경로 매칭 및 그룹화 로직이 수정되어 모든 스킬이 실제 경로에 따라 올바른 그룹으로 정리된다. ⟦도서관 자료실에서 청구기호 인식 라벨을 바로잡아, 라벨의 슬래시 방향이 다르다는 이유로 본관 비치 도서를 분관 전용 도서로 잘못 표시하지 않게 된 것과 같다.⟧"
+              },
+              "original": "Fixed skill path matching and grouping in the `/skills` panel on Windows where host path separators (`\\`) caused global and workspace skills to be misclassified."
+            },
+            {
+              "title": {
+                "zh-TW": "排除執行期重複授權與崩潰隱患，強化 `/boost` 與摘要處理穩定度",
+                "zh-CN": "排除运行时重复授权与崩溃隐患，强化 `/boost` 与摘要处理稳定性",
+                "en": "Fixed Duplicate Permissions and Runtime Crashes to Boost `/boost` and Summary Stability",
+                "ja": "実行時の重複権限蓄積とクラッシュを解消、`/boost` と要約処理の安定性を強化",
+                "ko": "런타임 중복 권한 축적 및 충돌 문제 해결, `/boost` 및 요약 처리 안정성 강화"
+              },
+              "body": {
+                "zh-TW": "長時間執行多代理協作或重啟工作階段時，幾項影響執行階段與系統設定的底層問題已獲得修正。過去在重新載入工作階段與呼叫子代理時，設定檔會不斷累積重複的授權項目，現在已修正此累積現象。針對加速執行，改善了工作者工具配置以解決 `/boost` 在執行期失敗的問題。同時修復了背景摘要更新在軌跡關閉後因嘗試讀取快取步驟（暫存的歷史步驟）而引發的空指標嚴重崩潰。⟦這如同替工廠的自動化流水線做全面檢修，清除了多餘的重複通行許可並校準機具，還避免了抄表員在產線停機後誤查暫存紀錄而造成跳電。⟧",
+                "zh-CN": "长时间运行多代理协作或重启会话时，几项影响运行阶段与系统设置的底层问题已得到修复。过去在重新加载会话与调用子代理时，配置文件会不断累积重复的授权项，现在已修复此累积现象。针对加速运行，改善了工作者工具配置以解决 `/boost` 在运行时失败的问题。同时修复了后台摘要更新在轨迹关闭后因尝试读取缓存步骤（暂存的历史步骤）而引发的空指针严重崩溃。⟦这如同替工厂的自动化流水线做全面检修，清除了多余的重复通行许可并校准机具，还避免了抄表员在产线停机后误查暂存记录而造成跳闸。⟧",
+                "en": "When running multi-agent workflows or reloading sessions over extended periods, several underlying runtime and configuration issues have now been resolved. Previously, reloading sessions or invoking subagents caused duplicate permission grants to accumulate in settings files, which has now been eliminated. For accelerated execution, worker tool configurations have been improved to prevent `/boost` from failing at runtime. Additionally, a fatal nil pointer crash caused by background summary updates attempting to read cached steps after trajectory closure has been fixed. ⟦It is like a complete overhaul of an automated factory line, clearing redundant access passes, calibrating machinery, and preventing inspectors from checking temporary records after line shutdowns to avoid power trips.⟧",
+                "ja": "マルチエージェントの協調動作やセッションの再読み込みを長時間行う際、ランタイムや設定に影響していた複数の根本的な問題が修正された。従来はセッションの再読み込みやサブエージェントの呼び出しを繰り返すと設定ファイルに重複した権限許可が蓄積していたが、この蓄積が解消された。高速実行についてはワーカーツールの構成を改善し、実行時に `/boost` が失敗する問題を解決した。さらに、軌跡の終了後にバックグラウンドの要約更新がキャッシュされたステップを読み込もうとして発生していた深刻な nil ポインタクラッシュも修正された。⟦これは工場の自動化ラインを総点検し、重複した通行証を整理して機械を調整しつつ、ライン停止後に記録係が一時データを参照して停電を引き起こす事態を防いだようなものだ。⟧",
+                "ko": "다중 에이전트 협업을 오래 실행하거나 세션을 다시 불러올 때 런타임과 설정에 영향을 미치던 여러 근본적인 문제가 해결되었다. 기존에는 세션 재로드 및 서브에이전트 호출 시 설정 파일에 중복된 권한 허용 항목이 계속 누적되는 현상이 있었으나 이를 바로잡았다. 빠른 실행을 위해 워커 도구 구성을 개선함으로써 `/boost`가 런타임에 실패하던 문제를 해결했다. 아울러 실행 궤적이 닫힌 후 백그라운드 요약 업데이트가 캐시된 단계를 읽으려다 발생하던 심각한 nil 포인터 비정상 종료도 수정되었다。⟦공장의 자동화 생산 라인을 총점검하여 불필요한 중복 출입증을 정리하고 기계를 조율하는 한편, 라인이 멈춘 뒤 검침원이 임시 기록을 잘못 확인하여 정전이 발생하는 상황을 방지한 것과 같다.⟧"
+              },
+              "original": "Fixed duplicate permission grants accumulating in configuration settings across session reloads and subagent invocations.\nFixed /boost failing at runtime by improving worker tool configurations.\nFixed a fatal nil pointer crash in the agent runtime caused by background summary updates attempting to read cached steps after trajectory closure."
+            },
+            {
+              "title": {
+                "zh-TW": "加固 Remote Control 反向通道路由，遠端連線傳輸更安全",
+                "zh-CN": "加固 Remote Control 反向隧道路由，远程连接传输更安全",
+                "en": "Hardened Remote Control Reverse-Tunnel Routing for Safer Remote Connections",
+                "ja": "Remote Control のリバーストンネルルーティングを強化、リモート接続の安全性を向上",
+                "ko": "Remote Control 역방향 터널 라우팅 강화, 원격 연결 전송 보안 향상"
+              },
+              "body": {
+                "zh-TW": "從外部裝置遠端連線操控開發環境時，網路傳輸通道現在變得更加牢固。⟦這彷彿在總部與外勤特派員之間鋪設了加固的加密專用通道，並重新校準了路由方向，確保指令與數據往返時不會繞遠路或在中途受干擾。⟧Antigravity 提供的 Remote Control（讓使用者從遠端裝置操控本機對話的功能）依靠反向通道路由來轉發通訊；這次更新全面加固了反向通道路由的處理機制，大幅提升遠端連線時的連線穩定性與路由安全性。",
+                "zh-CN": "从外部设备远程连接操控开发环境时，网络传输通道现在变得更加牢固。⟦这仿佛在总部与外勤特派员之间铺设了加固的加密专用通道，并重新校准了路由方向，确保指令与数据往返时不会绕远路或在中途受干扰。⟧Antigravity 提供的 Remote Control（让用户从远程设备操控本地会话的功能）依靠反向隧道路由来转发通信；这次更新全面加固了反向隧道路由的处理机制，大幅提升远程连接时的连接稳定性与路由安全性。",
+                "en": "When connecting from external devices to control your development environment, network transmission channels are now significantly more resilient. ⟦It is like laying a reinforced, encrypted dedicated conduit between headquarters and field operatives while recalibrating routing directions, ensuring instructions and data travel without detours or outside interference.⟧ Antigravity's Remote Control feature relies on reverse-tunnel routing to forward communication. This update hardens the reverse-tunnel routing mechanism, substantially improving connection stability and routing security during remote sessions.",
+                "ja": "外部端末から開発環境へリモート接続して操作する際、ネットワークの通信経路がより強固になった。⟦これは本部と現場の特派員との間に暗号化された専用経路を整備し、ルーティングの向きを再調整して、送受信される指示やデータが遠回りしたり妨害されたりしないようにした状態に似ている。⟧Antigravity が提供する Remote Control（リモート端末からローカルの対話を操作する機能）は、リバーストンネルルーティングを用いて通信を転送している。今回の更新ではこのルーティング機構が全面的に強化され、リモート接続時の安定性と安全性が大幅に向上した。",
+                "ko": "외부 기기에서 원격으로 연결하여 개발 환경을 제어할 때 네트워크 전송 통로가 한층 더 견고해졌다. ⟦본부와 현장 특파원 사이에 암호화된 전용 통로를 구축하고 라우팅 방향을 재조정하여, 오가는 명령과 데이터가 우회하거나 도중에 방해받지 않도록 보장한 것과 같다.⟧ Antigravity가 제공하는 Remote Control(원격 기기에서 로컬 대화를 제어하는 기능)은 역방향 터널 라우팅을 통해 통신을 전달한다. 이번 업데이트에서는 역방향 터널 라우팅 처리 메커니즘을 전면 강화하여 원격 연결 시의 연결 안정성과 라우팅 보안을 대폭 향상했다."
+              },
+              "original": "Hardened Remote Control reverse-tunnel routing."
+            }
+          ]
+        },
+        {
+          "version": "1.1.24",
+          "period": "2026-09-02",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "`/mcp` 面板導覽更順手，方向鍵與退出鍵分工分明",
+                "zh-CN": "`/mcp` 面板导航更顺手，方向键与退出键分工明确",
+                "en": "Smoother `/mcp` Panel Navigation with Clear Arrow and Escape Key Roles",
+                "ja": "`/mcp` パネルの操作性が向上、方向キーと Esc キーの役割を明確化",
+                "ko": "`/mcp` 패널 탐색 편의성 개선, 방향키와 Esc 키 역할 명확화"
+              },
+              "body": {
+                "zh-TW": "你在 `/mcp` 面板裡挑選 MCP（讓 AI 連接外部工具的協定）伺服器與外掛時，方向鍵的職責現在劃分得一清二楚。上下方向鍵專門在各個伺服器與外掛項目之間縱向移動，左右方向鍵負責循環切換該項目的可用動作，按下 `Esc` 鍵便能退出動作模式或關閉面板。⟦這有如操作電視選單，上下鍵負責挑頻道，左右鍵切換音軌或畫質選項，按返回鍵就乾脆退回上一層，不會按錯鍵就亂跳欄位。⟧",
+                "zh-CN": "你在 `/mcp` 面板中挑选 MCP（让 AI 连接外部工具的协议）服务器与插件时，方向键的职责现在划分得一清二楚。上下方向键专门在各个服务器与插件项目之间纵向移动，左右方向键负责循环切换该项目的可用动作，按下 `Esc` 键便能退出动作模式或关闭面板。⟦这有如操作电视菜单，上下键负责挑频道，左右键切换音轨或画质选项，按返回键就干脆退回上一层，不会按错键就乱跳栏位。⟧",
+                "en": "When navigating MCP (protocol connecting AI to external tools) servers and plugins in the `/mcp` panel, the roles of arrow keys are now clearly divided. Up and down arrow keys strictly move vertically between individual servers and plugins, left and right arrow keys cycle through available actions for the selected item, and pressing `Esc` exits action mode or closes the panel. ⟦It is like navigating a TV menu: up and down keys switch channels, left and right keys adjust audio tracks or video quality, and pressing back cleanly returns to the previous level without accidentally jumping across unrelated fields.⟧",
+                "ja": "`/mcp` パネルで MCP（AI が外部ツールと連携するためのプロトコル）サーバーやプラグインを選択する際、方向キーの役割が明確に分担された。上下キーは各サーバーやプラグイン項目の間を縦方向に移動する操作に限定され、左右キーは選択項目の利用可能なアクションを順番に切り替え、`Esc` キーを押すことでアクションモードの解除やパネルの終了ができる。⟦これはテレビのメニュー操作に似ており、上下キーでチャンネルを選び、左右キーで音声や画質を切り替え、戻るボタンで確実に上の階層へ戻るように、キーの押し間違いで予期せぬ項目へ飛ばされる心配がない。⟧",
+                "ko": "`/mcp` 패널에서 MCP(AI가 외부 도구와 연동하기 위한 프로토콜) 서버와 플러그인을 고를 때 방향키의 역할이 명확하게 구분되었다. 상하 방향키는 서버 및 플러그인 항목 간 수직 이동만 담당하고, 좌우 방향키는 선택한 항목의 사용 가능한 동작을 순환 전환하며, `Esc` 키를 누르면 동작 모드를 빠져나오거나 패널을 닫을 수 있다. ⟦이는 TV 메뉴를 조작할 때 상하 키로 채널을 고르고 좌우 키로 음성이나 화질 옵션을 전환하며 뒤로가기 버튼으로 깔끔하게 이전 단계로 돌아가는 것과 같아서, 잘못 눌러 엉뚱한 항목으로 튀는 일이 없다.⟧"
+              },
+              "original": "Improved `/mcp` panel navigation so up and down arrow keys strictly navigate between MCP servers and plugins, left and right arrow keys cycle available actions, and `Esc` exits action mode or the panel."
+            },
+            {
+              "title": {
+                "zh-TW": "`/agents` 選單自動去重，跨來源不再冒出重複代理",
+                "zh-CN": "`/agents` 菜单自动去重，跨来源不再冒出重复代理",
+                "en": "Automatic Deduplication in `/agents` Picker Eliminates Duplicate Agents Across Sources",
+                "ja": "`/agents` ピッカーの自動重複排除、複数ソース間での重複エージェントを解消",
+                "ko": "`/agents` 피커 자동 중복 제거, 여러 출처의 동일 에이전트 중복 표시 해소"
+              },
+              "body": {
+                "zh-TW": "⟦當不同部門的通訊錄都登記了同一個聯絡人，聰明的手機只會合併顯示一次，而不是在選單列出一長串分身。⟧當你在多個設定來源或外掛中定義了同名代理（agent，替你執行特定任務的 AI 助手），打開 `/agents` 選單時不會再看見重複項目的干擾了。過去系統在探索時，只要從不同設定來源或外掛發現同名代理，就會把每一筆都重複列在挑選器中；現在選單已經會自動去重，確保清單乾淨清爽。",
+                "zh-CN": "⟦当不同部门的通讯录都登记了同一个联系人，智能手机只会合并显示一次，而不是在列表中排出一长串分身。⟧ 当你在多个配置来源或插件中定义了同名代理（agent，替你执行特定任务的 AI 助手），打开 `/agents` 菜单时不会再看到重复项目的干扰。过去程序在扫描发现时，只要从不同配置来源或插件找到同名代理，就会把每一项都重复列在选择器中；现在菜单已经会自动去重，确保列表干净清爽。",
+                "en": "⟦When contact books across different departments list the exact same person, a smart phone merges them into a single entry rather than cluttering your list with duplicate profiles.⟧ When you define agents (assistants that perform specific tasks) with identical names across multiple configuration sources or plugins, opening the `/agents` picker no longer shows distracting duplicates. Previously during discovery, finding an agent with the same name across different sources or plugins listed every instance in the picker; the menu now automatically deduplicates entries, keeping your selection list clean.",
+                "ja": "⟦異なる部署のアドレス帳に同一人物が登録されている場合でも、スマートな電話帳なら重複した連絡先を羅列せず 1 件に統合して表示する。⟧ 複数の設定ソースやプラグインで同名のエージェント（agent、特定のタスクをこなすアシスタント）を定義している場合、`/agents` ピッカーを開いても重複項目に煩わされることがなくなった。以前は検出時に異なる設定ソースやプラグインから同名エージェントが見つかると、選択画面にすべて重複して列挙されていたが、現在は自動で重複が排除され、すっきりとした一覧が維持される。",
+                "ko": "⟦여러 부서의 연락처에 동일 인물이 등록되어 있어도 스마트폰 주소록은 이를 하나로 합쳐서 보여줄 뿐 같은 사람을 목록에 줄줄이 늘어놓지 않는다.⟧ 여러 설정 소스나 플러그인에 같은 이름의 에이전트(agent, 특정 작업을 분담하는 비서)를 정의해 두었더라도 `/agents` 선택 메뉴를 열었을 때 중복 항목이 나타나지 않는다. 기존에는 탐색 과정에서 출처나 플러그인이 다른 동명 에이전트가 발견되면 피커 목록에 중복으로 나열되었으나, 이제는 자동으로 중복이 제거되어 깔끔한 목록을 유지한다."
+              },
+              "original": "Fixed duplicate agent entries appearing in the `/agents` picker when an agent with the same name is discovered across multiple configuration sources or plugins."
+            },
+            {
+              "title": {
+                "zh-TW": "啟動目錄失效也不怕，工具與代理初始化照常運作",
+                "zh-CN": "启动目录失效也不怕，工具与代理初始化照常运行",
+                "en": "Tool and Agent Initialization Succeeds Even from Deleted Working Directories",
+                "ja": "起動ディレクトリが無効でもツールとエージェントの初期化が正常動作",
+                "ko": "작업 디렉터리가 삭제되어도 도구 및 에이전트 초기화 정상 작동"
+              },
+              "body": {
+                "zh-TW": "⟦出門在外即使腳下的暫停點突然消失，只要隨身手冊記的是完整全球座標，導航就能照常運作。⟧就算你在一處已被刪除或無法存取的工作目錄中啟動命令列，工具初始化與代理啟動程序也不會再莫名崩潰。以前系統在處理記憶體中的參數架構時，會因目錄失效而找不到相對參照；現在全面改用絕對 URI（統一資源識別碼，以標準格式標記位置的字串）格式，確保各項工具與代理在任何目錄狀態下都能順利初始化。",
+                "zh-CN": "⟦出门在外即使脚下的停留点突然消失，只要随身手册记录的是完整全球坐标，导航就能照常运行。⟧ 就算你在已被删除或无法访问的工作目录中启动命令行，工具初始化与代理启动流程也不会再莫名崩溃。以前程序在处理内存中的参数架构时，会因目录失效而找不到相对引用；现在全面改用绝对 URI（统一资源标识符，以标准格式标记位置的字符串）格式，确保各项工具与代理在任何目录状态下都能顺利初始化。",
+                "en": "⟦Even if your temporary waypoint disappears under your feet while traveling, navigation continues smoothly as long as your guidebook records full global coordinates.⟧ Launching the command line from a working directory that has been deleted or is inaccessible will no longer cause tool initialization or agent startup to crash. Previously, parameter schemas held in memory lost relative references when the directory was invalid; switching fully to absolute URI schemes ensures all tools and agents initialize reliably regardless of directory state.",
+                "ja": "⟦旅先で足元の目印が不意に消えてしまっても、手帳に完全な地球座標が記されていればナビゲーションが狂わないのと同じである。⟧ 削除済みやアクセス不能な作業ディレクトリからコマンドラインを起動した場合でも、ツールの初期化やエージェントの起動処理がクラッシュしなくなった。以前はメモリ上のパラメータスキーマを処理する際、ディレクトリの無効化によって相対参照を見失っていたが、現在は完全な絶対 URI スキームへ切り替わり、ディレクトリの状態に関わらず各ツールやエージェントが確実に初期化される。",
+                "ko": "⟦여행 중 발밑의 임시 표지판이 사라지더라도 수첩에 완전한 전역 좌표가 적혀 있으면 내비게이션이 문제없이 길을 안내하는 것과 같다.⟧ 삭제되었거나 접근할 수 없는 작업 디렉터리에서 명령줄을 실행하더라도 도구 초기화 및 에이전트 구동 과정이 비정상 종료되지 않는다. 기존에는 메모리 내 매개변수 스키마를 처리할 때 디렉터리 무효화로 인해 상대 경로 참조를 잃어버리는 문제가 있었으나, 절대 URI 스키마 방식을 전면 적용하여 어떤 디렉터리 상태에서도 도구와 에이전트가 안정적으로 초기화된다."
+              },
+              "original": "Fixed tool initialization and agent startup failing when launched from an inaccessible or deleted working directory by using absolute URI schemes for in-memory parameter schemas."
+            },
+            {
+              "title": {
+                "zh-TW": "無頭模式輸出不再卡死，子行程自動釋放管線",
+                "zh-CN": "无头模式输出不再卡死，子进程自动释放管道",
+                "en": "Headless CLI Invocations with Pipes Exit Cleanly Without Hanging",
+                "ja": "ヘッドレスモードでのパイプ出力時に終了がフリーズする問題を修正",
+                "ko": "헤드리스 모드 파이프 출력 시 종료 지연 및 멈춤 현상 해결"
+              },
+              "body": {
+                "zh-TW": "⟦就像工人下班離開工地時主動鎖緊水閥，才不會讓水管一直通水而卡住後續的工程驗收。⟧撰寫自動化腳本時，你在無頭模式（headless，沒有終端機畫面的背景執行模式）下透過管線接收標準輸出或標準錯誤，程式結束時不再無故卡死。過去背景派生出來的子行程會持續霸佔呼叫端的管線，導致主程式遲遲無法順利關閉退出；現在系統已在保留的串流上加上 `FD_CLOEXEC` 標記，在結束時徹底釋放所有管線資源。",
+                "zh-CN": "⟦就像工人下班离开工地时主动关紧水阀，才不会让水管持续通水而卡住后续的工程验收。⟧ 编写自动化脚本时，你在无头模式（headless，没有视觉界面的后台运行模式）下通过管道接收标准输出或标准错误，程序结束时不再无故卡死。过去后台派生出来的子进程会持续霸占调用端的管道，导致主程序迟迟无法顺利关闭退出；现在程序已在保留的流上添加 `FD_CLOEXEC` 标记，在结束时彻底释放所有管道资源。",
+                "en": "⟦It is like workers shutting off the main water valve before leaving a construction site, ensuring pipes do not stay pressurized and stall subsequent inspections.⟧ When running automation scripts in headless mode (background execution without a visual interface) with piped standard output or standard error, invocations no longer hang on exit. Previously, spawned child processes kept the caller's pipes open and prevented the main process from shutting down cleanly; setting `FD_CLOEXEC` on preserved streams now ensures all pipe resources are fully released on exit.",
+                "ja": "⟦作業員が現場を離れる際に元栓をしっかり閉め、配管に水が流れ続けて後続の点検を妨げないようにする仕組みに近い。⟧ 自動化スクリプトを実行する際、ヘッドレスモード（headless、画面表示のないバックグラウンド実行）で標準出力や標準エラー出力をパイプ経由で受け取っても、プロセス終了時にフリーズしなくなった。以前はフォークされた子プロセスが呼び出し元のパイプを掴み続け、メイン処理の正常終了を妨げていたが、現在は保持されたストリームに `FD_CLOEXEC` フラグを設定し、終了時にパイプのリソースを完全に解放する。",
+                "ko": "⟦현장 작업자가 퇴근할 때 수도 밸브를 확실히 잠가 배관에 물이 계속 흘러 후속 점검이 지연되지 않도록 조치하는 것과 같다.⟧ 자동화 스크립트를 작성하여 헤드리스 모드(headless, 시각적 화면이 없는 백그라운드 실행 모드)에서 표준 출력이나 표준 에러를 파이프로 전달받을 때 프로세스 종료 시 멈추는 현상이 사라졌다. 기존에는 백그라운드 자식 프로세스가 호출자의 파이프를 계속 점유하여 메인 프로그램이 제때 종료되지 못했으나, 유지되는 스트림에 `FD_CLOEXEC` 플래그를 설정하여 종료 시 모든 파이프 자원을 완전히 해제한다."
+              },
+              "original": "Fixed headless CLI invocations with piped standard output or standard error hanging on exit by setting `FD_CLOEXEC` on the preserved streams so child processes do not keep the caller's pipes open."
+            },
+            {
+              "title": {
+                "zh-TW": "`mcp_config.json` 語法更寬容，註解與結尾逗號照單全收",
+                "zh-CN": "`mcp_config.json` 语法更宽容，注释与末尾逗号照单全收",
+                "en": "Lenient `mcp_config.json` Parsing Supports Comments and Trailing Commas",
+                "ja": "`mcp_config.json` の構文許容度が向上、コメントや末尾カンマに対応",
+                "ko": "`mcp_config.json` 파싱 유연성 향상, 주석 및 후행 쉼표 허용"
+              },
+              "body": {
+                "zh-TW": "手動編輯工具設定檔時，你不必再為隨手寫下的筆記或多打的逗號膽戰心驚了。過去在 `mcp_config.json` 檔案中加入單行註解 `//`、多行註解 `/* */` 或是在結尾多留尾隨逗號，都會導致 MCP（讓 AI 連接外部工具的協定）設定解析失敗；現在解析器已具備更佳的容錯能力，能順利讀取帶有註解與多餘逗號的設定內容。⟦這宛如一位懂通融的表單審查員，看見備註欄旁的手寫附註或句末多點的逗號，能自然看懂填表內容，不再直接退件。⟧",
+                "zh-CN": "手动编辑工具配置文件时，你不必再为随手写下的笔记或多打的逗号提心吊胆了。过去在 `mcp_config.json` 文件中加入单行注释 `//`、多行注释 `/* */` 或是在结尾多留尾随逗号，都会导致 MCP（让 AI 连接外部工具的协议）配置解析失败；现在解析器具备了更好的容错能力，能顺利读取带有注释与多余逗号的配置内容。⟦这宛如一位懂通融的表单审核员，看到备注栏旁的手写附注或句末多点的逗号，能自然看懂填表内容，不再直接退件。⟧",
+                "en": "When manually editing tool configurations, you no longer need to worry about quick notes or extra commas breaking your setup. Previously, adding single-line comments `//`, multi-line comments `/* */`, or trailing commas in `mcp_config.json` caused MCP (protocol connecting AI to external tools) configuration parsing to fail; the parser is now more forgiving and reads configurations containing comments and trailing commas smoothly. ⟦It is like an understanding form inspector who effortlessly processes notes in margins or accidental punctuation marks without rejecting the entire submission.⟧",
+                "ja": "ツールの設定ファイルを手動編集する際、書き残したメモや余分なカンマに怯える必要がなくなった。以前は `mcp_config.json` 内に単一行コメント `//`、複数行コメント `/* */`、または末尾の余分なカンマが含まれていると、MCP（AI が外部ツールと連携するためのプロトコル）の設定読み込みに失敗していたが、パーサーの耐障害性が向上し、コメントや余分なカンマを含んでいても正常に読み取れるようになった。⟦これは融通の利く書類審査官のようなもので、欄外の手書きメモや末尾の余計な句読点を見かけても内容を正しく汲み取り、門前払いにしない仕掛けに近い。⟧",
+                "ko": "도구 설정 파일을 직접 편집할 때 가볍게 적어둔 메모나 실수로 남긴 쉼표 때문에 긴장할 필요가 없어졌다. 기존에는 `mcp_config.json` 파일에 한 줄 주석 `//`이나 여러 줄 주석 `/* */`, 또는 마지막 후행 쉼표가 포함되어 있으면 MCP(AI가 외부 도구와 연동하기 위한 프로토콜) 설정 파싱에 실패했으나, 파서의 오류 허용 범위가 넓어져 주석과 여분의 쉼표가 있어도 정상적으로 읽어 들인다. ⟦이는 융통성 있는 서류 심사관과 같아서, 비고란 옆의 메모나 문장 끝에 잘못 찍힌 쉼표를 보고도 내용을 자연스럽게 파악하여 접수를 거부하지 않는 방식이다.⟧"
+              },
+              "original": "Fixed MCP configuration parsing failing when `mcp_config.json` contains single-line (`//`) comments, multi-line (`/* */`) comments, or trailing commas."
+            },
+            {
+              "title": {
+                "zh-TW": "刪除對話徹底清理，不再殘留孤立註記檔案",
+                "zh-CN": "删除对话彻底清理，不再残留孤立注释文件",
+                "en": "Deleting Conversations Thoroughly Cleans Up Orphaned Annotation Files",
+                "ja": "対話の削除時に孤立したアノテーションファイルを完全クリーンアップ",
+                "ko": "대화 삭제 시 고립된 주석 파일까지 완전히 정리"
+              },
+              "body": {
+                "zh-TW": "清理舊對話時，本機硬碟空間現在會被收拾得乾乾淨淨。以前每當你刪除對話紀錄，系統雖然移除了主對話，卻常把關聯的註記檔案遺留在本機儲存空間中，隨著時間推移默默堆積成無用的孤立檔案；這次修正補齊了刪除邏輯，會在刪掉對話的同時自動清除對應的註記檔案。⟦就像撕掉牆上的舊海報時，順手把固定在四周的雙面膠殘膠刮除乾淨，不讓碎屑在牆角日積月累。⟧",
+                "zh-CN": "清理旧对话时，本地硬盘空间现在会被收拾得干干净净。以前每当你删除对话记录，程序虽然移除了主对话，却常把关联的注释文件遗留在本地存储空间中，随着时间推移默默堆积成无用的孤立文件；这次修正补齐了删除逻辑，会在删掉对话的同时自动清除对应的注释文件。⟦就像撕掉墙上的旧海报时，顺手把固定在四周的双面胶残胶刮除干净，不让碎屑在墙角日积月累。⟧",
+                "en": "When clearing old conversations, your local disk space is now kept completely tidy. Previously, deleting a conversation removed the main chat but often left associated annotation files in local storage, gradually accumulating useless orphaned files over time; the deletion logic has been updated to automatically prune matching annotations alongside the conversation. ⟦It is like removing an old poster from a wall and scraping off the leftover adhesive tape around the edges, preventing stray scraps from piling up in corners.⟧",
+                "ja": "過去の対話履歴を整理する際、ローカルストレージが完全に整理されるようになった。以前は対話履歴を削除してもメインのチャットデータのみが削除され、関連するアノテーションファイルがローカルストレージに残存して孤立ファイルとして蓄積しがちだったが、削除処理が補全され、対話の削除と同時に対応するアノテーションファイルも自動消去されるようになった。⟦これは壁の古いポスターを剥がす際に、周囲に残った両面テープの跡も綺麗に削ぎ落とし、部屋の隅にゴミを溜めないようにする作業に似ている。⟧",
+                "ko": "오래된 대화 기록을 정리할 때 로컬 디스크 공간이 깔끔하게 정돈된다. 기존에는 대화 기록을 삭제하면 메인 대화만 지워지고 연결된 주석 파일이 로컬 저장소에 그대로 남아 불필요한 고립 파일로 쌓이곤 했으나, 삭제 로직을 보완하여 대화를 지울 때 해당 주석 파일도 함께 자동 정리하도록 개선했다. ⟦이는 벽에 붙은 낡은 포스터를 뗄 때 가장자리에 남은 양면테이프 자국까지 깨끗이 긁어내어 구석에 찌꺼기가 쌓이지 않게 만드는 것과 같다.⟧"
+              },
+              "original": "Fixed orphaned annotation files accumulating in local storage when deleting conversations."
+            },
+            {
+              "title": {
+                "zh-TW": "目標執行中隨口提問，`/btw` 不再強行推進或亂叫工具",
+                "zh-CN": "目标运行中随口提问，`/btw` 不再强行推进或乱调工具",
+                "en": "Side Questions via `/btw` No Longer Force Goal Progress or Trigger Unintended Tools",
+                "ja": "目標の実行中に `/btw` で質問しても進行の暴走や誤ったツール呼び出しが発生しないよう修正",
+                "ko": "목표 실행 중 `/btw` 질문 시 작업 강제 진행 및 의도치 않은 도구 호출 방지"
+              },
+              "body": {
+                "zh-TW": "在 AI 全力衝刺大專案的中途，你終於能安心插話問個小問題了。當你開啟 `/goal` 指令讓系統執行長期目標時，若中途打 `/btw`（順帶一提，用來向 AI 提出旁支問題的指令）插話發問，先前系統常會把這則閒聊誤當作目標的一部分強行繼續推動，甚至亂呼叫工具；現在兩者狀態已徹底拆開，插問只會解答當前疑問，絕不干擾進行中的主任務。⟦彷彿你在主廚埋頭做大菜時問一句鹽巴放哪，他轉頭答完就回歸料理，不會突然把鹽巴整罐倒進湯裡胡亂攪拌。⟧",
+                "zh-CN": "在 AI 全力冲刺大项目的中途，你终于能安心插话问个小问题了。当你开启 `/goal` 命令让程序运行长期目标时，若中途输入 `/btw`（顺带一提，用来向 AI 提出旁支问题的命令）插话发问，此前程序常会把这句闲聊误当成目标的一部分强行继续推动，甚至胡乱调用工具；现在两者的状态已彻底拆开，插问只会解答当前疑问，绝不干扰进行中的主任务。⟦仿佛你在主厨埋头做大菜时问一句盐放哪里，他转头答完就回归料理，不会突然把整罐盐倒进汤里胡乱搅拌。⟧",
+                "en": "While AI is actively working through a major project, you can now safely ask quick side questions without derailment. When running a long-term goal with `/goal`, asking a side question with `/btw` (by the way, a command for asking auxiliary questions) previously led to treating the tangent as part of the active goal, forcing unwanted progression and unintended tool calls; their execution states are now decoupled so side questions resolve your query without interrupting the main task. ⟦It is like asking a chef cooking an elaborate meal where the salt is: they answer and resume cooking immediately, rather than dumping the entire salt container into the soup.⟧",
+                "ja": "AI が大きな作業を進めている最中でも、安心してちょっとした質問を挟めるようになった。`/goal` コマンドで長期目標を実行中に `/btw`（by the way、途中で別の疑問を投げるコマンド）を挟んだ際、以前はその質問まで目標の一部と誤認して無理に処理を進めたり、意図しないツール呼び出しを行ったりしていたが、現在は双方の状態管理が完全に分離され、質問への回答のみを行い主タスクを妨げない。⟦これは大料理に取り組むシェフに塩の場所を尋ねた際、シェフが場所だけ答えてすぐに自分の調理に戻り、スープへ塩を一瓶丸ごと投げ込んでかき混ぜたりしない対応に似ている。⟧",
+                "ko": "AI가 대규모 작업을 한창 진행하는 도중에도 안심하고 간단한 질문을 던질 수 있게 되었다. `/goal` 명령어로 장기 목표를 수행하는 도중 `/btw`(by the way, 다른 질문을 덧붙이는 명령어)로 중간에 질문했을 때, 기존에는 이 대화마저 목표의 일부로 오인하여 억지로 진행을 이어가거나 엉뚱한 도구를 호출하곤 했다. 이제는 두 상태가 완전히 분리되어 질문에는 답변만 제공하고 진행 중인 메인 작업을 전혀 방해하지 않는다. ⟦이는 메인 요리에 집중하는 셰프에게 소금 위치를 물었을 때 셰프가 위치만 알려주고 곧바로 요리에 복귀하며, 국에 소금 한 통을 쏟아붓고 마구 젓지 않는 것과 같다.⟧"
+              },
+              "original": "Fixed `/btw` side questions in conversations with an active `/goal` being forced to continue and making unintended tool calls."
+            }
+          ]
+        },
+        {
           "version": "1.1.22",
           "period": "2026-08-27",
           "items": [
@@ -991,358 +1258,6 @@
                 "ko": "Windows에서 워크플로우를 이전할 때 경로를 정상적으로 찾아낸다. 내장된 `migrate-workflows` 스킬(skill, 에이전트의 특정 작업을 돕는 도구 모음)은 이전에 호환성 문제가 있었다. 이 기능은 POSIX(유닉스 계열 운영체제 표준 규격)의 홈 디렉터리와 슬래시 구분자를 전제로 작성되어 Windows에서 경로를 제대로 찾지 못했다. 이제는 Windows의 경로 형식과 홈 디렉터리를 올바르게 인식하여 경로를 정확하게 확인하고 안내한다. ⟦내비게이션이 도시마다 다른 번지수 체계를 이해하여 어느 지역의 지도에서도 길을 정확히 안내하는 것과 같다.⟧"
               },
               "original": "Fixed the built-in `migrate-workflows` skill assuming POSIX home directories and path separators, so it now resolves and reports paths correctly on Windows."
-            }
-          ]
-        },
-        {
-          "version": "1.1.21",
-          "period": "2026-08-26",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "語音聽寫直轉提示詞，支援遠端麥克風轉發",
-                "zh-CN": "语音听写直转提示词，支持远程麦克风转发",
-                "en": "Voice dictation types into prompts and supports SSH mic forwarding",
-                "ja": "音声入力でプロンプトを直接文字起こし、SSHマイク転送にも対応",
-                "ko": "음성 받아쓰기로 프롬프트 바로 입력, SSH 마이크 전달 지원"
-              },
-              "body": {
-                "zh-TW": "⟦像在辦公室用無線對講機直接口述交辦事項，走到哪講到哪，但每人名下同時只能接通一支對講機。⟧ 現在你想直接用講話代替鍵盤打字，只要按下 `f5` 鍵或輸入 `/voice` 指令，就能啟動或停止語音聽寫，將話語直接轉成提示詞。如果透過 SSH 連線到遠端機器，還能利用 `mic-serve` 子指令把本機麥克風聲音轉發過去。每個帳號同時只允許一條即時聽寫串流，若開啟第二條串流，提示訊息會清楚告知已達連線上限，不再誤報成額度（quota）耗盡。",
-                "zh-CN": "⟦就像在办公室用无线对讲机直接口述交办事项，走到哪讲到哪，但每人名下同时只能接通一部对讲机。⟧ 现在你想直接用说话代替键盘打字，只要按下 `f5` 键或输入 `/voice` 命令，就能启动或停止语音听写，将话语直接转成提示词。如果通过 SSH 连接到远端机器，还能利用 `mic-serve` 子命令把本地麦克风声音转发过去。每个账号同时只允许一条实时听写流，若开启第二条流，提示信息会明确告知已达连接上限，不再误报为额度耗尽。",
-                "en": "⟦It works like using an office walkie-talkie to speak tasks out loud on the go, with each account holding only one active line at a time.⟧ When you want to speak your thoughts instead of typing, press `f5` or run `/voice` to start and stop speech dictation straight into the prompt. When working on a remote machine over SSH, you can use the `mic-serve` subcommand to forward your local microphone. Each account is limited to one live dictation stream; attempting a second stream now explicitly explains the single-stream limit instead of falsely claiming your quota ran out.",
-                "ja": "⟦オフィスのトランシーバーで用件を直接口頭で伝え、各自が1回線だけ通話できるような仕組みである。⟧ キーボードを叩く代わりに声で入力したい場合、`f5` キーを押すか `/voice` コマンドを実行するだけで音声入力を開始・停止し、話した内容をプロンプトへ直接文字起こしできるようになった。SSH 経由でリモートマシンに接続している際も、`mic-serve` サブコマンドを使ってローカルのマイク入力を転送できる。1アカウントにつき同時に使える音声ストリームは1本のみであり、2本目を開こうとした際も、利用枠の枯渇と誤報せず接続上限であることを明快に伝えるようになった。",
-                "ko": "⟦사무실 무전기로 해야 할 일을 말로 바로 전달하되 계정당 한 번에 한 대만 연결할 수 있는 방식과 같다.⟧ 키보드로 치는 대신 말로 입력하고 싶을 때, `f5` 키를 누르거나 `/voice` 명령어를 실행하면 음성 받아쓰기를 켜고 끌 수 있으며 말이 프롬프트에 바로 텍스트로 적힌다. SSH로 원격 머신에 접속해 작업할 때도 `mic-serve` 하위 명령어로 로컬 마이크 입력을 전달할 수 있다. 한 계정당 실시간 받아쓰기 스트림은 한 개만 허용되며, 두 번째 스트림을 열려고 하면 사용량 한도가 다 떨어졌다고 잘못 보고하는 대신 동시 연결 제한에 걸렸음을 명확히 안내한다."
-              },
-              "original": "Added `/voice` dictation, which transcribes speech straight into the prompt; press `f5` or run `/voice` to start and stop it, and use the `mic-serve` subcommand to forward a local microphone to a CLI running on another machine over SSH. Only one live dictation stream is allowed per account, and a second one now says so instead of reporting an exhausted quota."
-            },
-            {
-              "title": {
-                "zh-TW": "狀態列新增成本欄位，精確呈現即時花費",
-                "zh-CN": "状态栏新增成本字段，精确呈现即时花费",
-                "en": "Status line adds cost field to display exact session spend",
-                "ja": "ステータスラインにコスト項目が追加され、リアルタイム支出を表示",
-                "ko": "상태 표시줄에 비용 필드 추가, 실시간 지출 정확히 표시"
-              },
-              "body": {
-                "zh-TW": "想在自訂介面掌握 token（AI 處理與計費的文字單位）開銷時，資訊變得更加即時而精細。狀態列（status line，終端機最底下的即時資訊列）資料模型現在新增了 `cost` 欄位，直接公開當前工作階段未經四捨五入的預估成本。這讓自訂狀態列的使用者能精確計算並顯示累積花費，不必再猜測背後消耗的額度。⟦就像計程車上的跳表機，每開一段路就即時更新累積車資，讓你隨時掌握開銷。⟧",
-                "zh-CN": "想在自定义界面掌握 token（AI 处理与计费的文本单位）开销时，信息变得更加即时与精细。状态栏（status line，终端最底部的即时信息栏）数据模型现在新增了 `cost` 字段，直接公开当前会话未经四舍五入的预估成本。这让自定义状态栏的用户能精确计算并显示累计花费，不必再猜测背后消耗的额度。⟦就像出租车上的计价器，每走一段路就实时更新累计车费，让你随时掌握开销。⟧",
-                "en": "When monitoring token spend on your own display, the numbers are now far more precise. A new `cost` field is available in the status line data model, exposing the exact, unrounded estimated cost of the current session. Custom status lines can now calculate and display ongoing token expenses in real time without guessing rounded numbers. ⟦Like a taxi meter that ticks upward with every block you travel, keeping you fully aware of the ongoing fare.⟧",
-                "ja": "カスタム画面で token（AI の処理や課金の基準となる文字単位）の消費状況を把握したい際、数値がより細かく取れるようになった。ステータスラインのデータモデルに `cost` フィールドが追加され、現在のセッションにおける丸め処理前の概算コストが取得できる。これにより自作のステータスラインで進行中の token 支出を正確に表示できるようになった。⟦タクシーのメーターが走行距離に応じてリアルタイムに加算され、いつでも運賃を把握できるようなものである。⟧",
-                "ko": "커스텀 화면에서 token(AI가 처리하고 비용을 매기는 글자 단위) 지출을 확인하고 싶을 때 수치를 훨씬 세밀하게 얻을 수 있다. 상태 표시줄 데이터 모델에 `cost` 필드가 추가되어 현재 세션의 반올림되지 않은 예상 비용을 그대로 제공한다. 덕분에 커스텀 상태 표시줄에서 실시간으로 누적되는 token 지출을 정확히 표시할 수 있게 되었다. ⟦택시 미터기가 이동 거리에 맞춰 실시간으로 요금을 올려 주어 현재 비용을 바로 알 수 있는 것과 같다.⟧"
-              },
-              "original": "Added a `cost` field to the status line data model, exposing the unrounded estimated cost of the current session so a custom status line can display running token spend."
-            },
-            {
-              "title": {
-                "zh-TW": "內建搜尋工具加速檢索，跨環境維持相同行為",
-                "zh-CN": "内置搜索工具加速检索，跨环境保持相同行为",
-                "en": "Embedded ripgrep speeds up search and guarantees consistent behavior",
-                "ja": "内蔵 ripgrep でコード検索を高速化、環境差も解消",
-                "ko": "내장 ripgrep으로 코드 검색 가속 및 일관된 동작 보장"
-              },
-              "body": {
-                "zh-TW": "搜尋專案程式碼時，速度與穩定度都大幅提升。代理現在直接透過內建的 `ripgrep` 執行檔進行程式碼搜尋，不再呼叫作業系統本身提供的外部指令。這項改進不僅加快了搜尋速度，也確保在任何沒有安裝 `ripgrep` 的主機環境下，搜尋行為與輸出格式都能完全一致，不會因為環境差異而發生錯誤。⟦這好比師傅自備原廠精密捲尺上工，不再隨手拿現場各異的尺規，量得又快又一致。⟧",
-                "zh-CN": "搜索项目代码时，速度与稳定性都大幅提升。智能体现在直接通过内置的 `ripgrep` 二进制程序进行代码搜索，不再调用操作系统本身提供的外部命令。这项改进不仅加快了搜索速度，也确保在任何未安装 `ripgrep` 的主机环境下，搜索行为与输出格式都能完全一致，不会因环境差异而产生错误。⟦这好比工匠自带原厂精密卷尺上工，不再随手借用现场各异的尺子，量得又快又准。⟧",
-                "en": "Code searches across your projects are now faster and completely consistent across machines. The agent now runs an embedded `ripgrep` binary directly rather than shelling out to whatever external search tool happens to be available on the host machine. This approach speeds up search operations and guarantees identical behavior even on systems where `ripgrep` is not installed at all. ⟦Like a carpenter bringing their own precision measuring tape to every job site instead of relying on whatever mismatched rulers happen to be lying around.⟧",
-                "ja": "プロジェクト内のコードを検索する際、処理速度と安定性が向上した。エージェントは端末環境に依存した外部コマンドを呼び出す代わりに、内部に組み込まれた `ripgrep` バイナリを直接実行してコードを検索するようになった。これにより検索処理が高速化されるとともに、`ripgrep` がインストールされていない環境でも全く同一の挙動と結果が得られる。⟦職人が現場にある不揃いな定規を借りるのをやめ、自前の精密メジャーを持参して素早く正確に測定するようなものである。⟧",
-                "ko": "프로젝트 코드를 검색할 때 속도와 안정성이 크게 향상되었다. 에이전트가 운영체제에 설치된 외부 명령어에 의존하는 대신 내장된 `ripgrep` 실행 파일을 직접 실행해 코드를 검색한다. 이로써 검색 속도가 빨라졌을 뿐만 아니라 `ripgrep`이 설치되지 않은 환경에서도 완전히 동일하게 작동하도록 보장한다. ⟦목수가 현장에 굴러다니는 제각각의 줄자를 빌려 쓰는 대신 전용 정밀 줄자를 직접 챙겨 와 빠르고 일관되게 치수를 재는 것과 같다.⟧"
-              },
-              "original": "Improved the agent's code search by running an embedded `ripgrep` binary instead of shelling out to whatever the machine provides, so searches are faster and behave identically on systems with no `ripgrep` installed."
-            },
-            {
-              "title": {
-                "zh-TW": "免確認模式放行外部工具，任務執行不再中斷",
-                "zh-CN": "免确认模式放行外部工具，任务执行不再中断",
-                "en": "Always-proceed mode auto-approves MCP tools and web reads",
-                "ja": "常時実行モードで外部ツールを自動承認、中断なく動作",
-                "ko": "무확인 모드에서 외부 도구 자동 승인, 작업 중단 해소"
-              },
-              "body": {
-                "zh-TW": "⟦如同給了管家全權通行的萬能鑰匙，說好全權處理就不該在進每間房時又停下來敲門詢問。⟧ 想完全不被打擾地連續執行任務，`always-proceed` 權限模式現在更加乾脆。過去即使開啟了這項專為免打擾而設計的模式，遇到 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）工具呼叫以及網頁讀取時，畫面依然會頻繁跳出確認提示中斷流程；現在系統會自動核准這些操作，真正做到一路順暢執行到底。",
-                "zh-CN": "⟦如同给了管家全权通行的万能钥匙，说好全权处理就不该在进每间房时又停下来敲门询问。⟧ 想完全不被打扰地连续执行任务，`always-proceed` 权限模式现在更加顺畅。过去即使开启了这项专为免打扰而设计的模式，遇到 MCP（Model Context Protocol，让 AI 连接外部工具的协议）工具调用以及网页读取时，界面依然会频繁弹出确认提示中断流程；现在系统会自动核准这些操作，真正做到一路顺畅执行到底。",
-                "en": "⟦It is like handing a trusted assistant a master key so they can handle tasks without knocking on your door at every single room.⟧ For uninterrupted workflows, the `always-proceed` permission mode now runs without friction. Previously, even though this mode was specifically designed to execute tasks without stopping, it still paused to ask for permission whenever an MCP tool call or page read occurred. Those operations are now auto-approved alongside regular actions, allowing your tasks to proceed smoothly.",
-                "ja": "⟦執事にマスターキーを渡し、全権を任せたと伝えたなら、部屋に入るたびにノックして確認を求めるべきではないのと同じである。⟧ 作業を中断させずに実行したい場合、`always-proceed` 権限モードがより徹底された。元々は途中で止まらずに動かすためのモードであるにもかかわらず、以前は MCP（外部ツールを接続する規格）のツール呼び出しやウェブページの読み込みで確認ダイアログが出て作業が止まっていたが、今後はこれらも自動承認される。",
-                "ko": "⟦집사에게 마스터키를 맡기며 알아서 처리해 달라고 해 놓고 방에 들어갈 때마다 일일이 노크하며 물어보지 않게 만든 것과 같다.⟧ 작업을 끊김 없이 이어서 처리하고 싶을 때 `always-proceed` 권한 모드가 훨씬 깔끔하게 작동한다. 이전에는 방해 없이 실행하기 위해 이 모드를 켰음에도 MCP(외부 도구를 연결하는 표준 규격) 도구 호출이나 웹 페이지 읽기를 만날 때마다 확인 창이 뜨며 흐름이 끊겼지만, 이제는 해당 작업도 자동으로 승인되어 매끄럽게 진행된다."
-              },
-              "original": "Improved the `always-proceed` permission mode to auto-approve MCP tool calls and page reads as well, which kept prompting even though the mode exists to run without interruptions."
-            },
-            {
-              "title": {
-                "zh-TW": "腳本授權鎖定特定指令，避免全專案權限外洩",
-                "zh-CN": "脚本授权锁定特定命令，避免全项目权限外泄",
-                "en": "Script permissions pin exact names instead of granting broad access",
-                "ja": "スクリプトの実行許可を個別指定、プロジェクト全体の誤許可を防止",
-                "ko": "스크립트 실행 권한을 개별 지정, 전체 허용 위험 차단"
-              },
-              "body": {
-                "zh-TW": "批准腳本執行權限時，安全防護變得更為精準嚴密。當你使用 `npm run`、`yarn`、`pnpm` 或 `cargo run` 等工具時，系統在跳出「永遠允許」的授權建議時會固定綁定特定的腳本名稱。例如當你同意讓代理執行 `npm run dev` 啟動開發伺服器時，系統只會放行該指令，不會一口氣把整個專案內所有的自訂腳本都列入免審查名單，有效防範未授權的危險指令被隨意觸發。⟦猶如保全在訪客證上清楚蓋印「僅限進入 3 樓會議室」，而不是直接發一張整棟大樓暢行無阻的總通行證。⟧",
-                "zh-CN": "批准脚本执行权限时，安全防护变得更为精准严密。当你使用 `npm run`、`yarn`、`pnpm` 或 `cargo run` 等工具时，系统在弹出「总是允许」的授权建议时会固定绑定特定的脚本名称。例如当你同意让智能体运行 `npm run dev` 启动开发服务器时，系统只会放行该命令，不会一口气把整个项目内所有的自定义脚本都列入免审查名单，有效防范未授权的危险命令被随意触发。⟦犹如安保在访客证上清楚加盖「仅限进入 3 楼会议室」，而不是直接发放一张整栋大楼畅行无阻的总通行证。⟧",
-                "en": "Granting permanent command permissions is now much safer and more precise. When you execute scripts with runners such as `npm run`, `yarn`, `pnpm`, or `cargo run`, the suggested \"always allow\" rule now pins down the specific script name. Approving `npm run dev` to start a dev server now authorizes that specific command alone, rather than granting blanket permission to run every single script in your project. ⟦Like building security stamping a visitor badge for \"Room 302 Only\" instead of handing over a master keycard to the entire building.⟧",
-                "ja": "スクリプトの実行権限を許可する際、安全管理が格段に厳密になった。`npm run`、`yarn`、`pnpm`、`cargo run` などのツールを実行する際、「常に許可」の提案が具体的なスクリプト名に限定されるようになった。たとえば `npm run dev` の実行を承認しても、そのコマンドのみが許可され、プロジェクト内のあらゆるスクリプトが一括で無条件実行できるようになるリスクを防げる。⟦警備員が入館証に「3階会議室のみ」と明記して通すように、ビル全体のフリーパスを安易に渡さない仕組みになったようなものである。⟧",
-                "ko": "스크립트 실행 권한을 줄 때 보안이 훨씬 더 꼼꼼하고 안전해졌다. `npm run`, `yarn`, `pnpm`, `cargo run` 같은 도구를 쓸 때 '항상 허용' 추천 규칙이 구체적인 스크립트 이름을 명시하도록 개선되었다. 예를 들어 `npm run dev` 실행을 승인하더라도 해당 명령어만 허용될 뿐, 프로젝트 안의 온갖 스크립트 전체에 실행 권한이 통째로 넘어가는 위험을 막아 준다. ⟦보안 요원이 방문증에 '3층 회의실 전용'이라고 도장을 찍어 주듯 건물 전체를 드나들 수 있는 마스터카드를 덜컥 내주지 않는 것과 같다.⟧"
-              },
-              "original": "Improved allow-always permission suggestions for script runners such as `npm run`, `yarn`, `pnpm` and `cargo run` by pinning the specific script name, so approving `npm run dev` no longer grants every script in the project."
-            },
-            {
-              "title": {
-                "zh-TW": "對話建立自動命名，接續選單一目了然",
-                "zh-CN": "会话创建自动命名，恢复菜单一目了然",
-                "en": "Conversations auto-name on creation for a clearer resume picker",
-                "ja": "会話作成時にタイトルを自動生成、再開一覧が見やすく改善",
-                "ko": "대화 생성 시 제목 자동 생성, 재개 목록 확인 용이"
-              },
-              "body": {
-                "zh-TW": "切換或挑選舊對話時，清單呈現的內容變得清晰好認。過去每當你建立新對話時，接續對話選單往往只會抓取第一則訊息的簡短佔位文字當作名稱，讓人難以一眼認出討論主題。現在系統在建立對話的當下，就會自動提煉出具有實質意義的完整標題，讓你在日後挑選歷史紀錄時能夠快速找到目標項目。⟦宛如圖書館管理員在書本建檔時立刻貼上清晰書名，不再暫時用第一頁第一行字當作封面標題。⟧",
-                "zh-CN": "切换或挑选旧对话时，列表呈现的内容变得清晰好认。过去每当你创建新会话时，恢复会话的选择菜单往往只会截取第一条消息的简短占位文本作为名称，让人难以一眼认出讨论主题。现在系统在创建会话的当下，就会自动生成具有实际意义的完整标题，让用家在日后挑选历史记录时能够快速定位目标项目。⟦宛如图书馆管理员在图书入库时立刻贴上清晰书名，不再临时拿第一页第一行字当作封面标题。⟧",
-                "en": "Picking up past conversations is now much easier to navigate. When a new conversation begins, the system automatically generates a concise and meaningful title right away. Instead of showing an unhelpful raw placeholder snipped from your very first message, the resume picker presents clear topic names so you can instantly spot the session you want to continue. ⟦Like a librarian labeling a newly cataloged book with an accurate title immediately rather than pasting the first sentence of page one on the cover.⟧",
-                "ja": "過去の会話を再開する際、一覧の表示が分かりやすくなった。以前は会話を新しく作成した際、最初のメッセージの冒頭を切り取っただけの仮テキストが表示され、何の話題だったのか見分けるのが難しかった。現在は会話の作成時に意味のあるタイトルが自動生成されるため、再開メニューで目的のログを一目で見つけられる。⟦図書館の司書が本を受け入れた時点で的確な書名ラベルを貼り、1ページ目の最初の1行を仮の表紙にしないようなものである。⟧",
-                "ko": "지난 대화를 다시 불러올 때 목록을 훨씬 쉽게 알아볼 수 있다. 예전에는 새 대화를 시작하면 재개 선택 메뉴에 첫 메시지의 일부를 잘라낸 임시 텍스트만 표시되어 무슨 대화였는지 한눈에 찾기 어려웠다. 이제는 대화가 만들어질 때 뜻이 명확한 제목을 자동으로 생성해 주므로, 나중에 기록을 고를 때 원하는 대화를 빠르게 찾을 수 있다. ⟦도서관 사서가 책을 등록하자마자 정확한 책 제목을 표지에 붙여 주어 1페이지 첫 줄을 임시 제목으로 쓰지 않는 것과 같다.⟧"
-              },
-              "original": "Improved conversation titles by generating them automatically when a conversation is created, so the resume picker shows a meaningful name instead of a placeholder from the first message."
-            },
-            {
-              "title": {
-                "zh-TW": "Google 憑證連線指引更清晰，快速排除外部工具授權問題",
-                "zh-CN": "Google 凭证连接指引更清晰，快速排除外部工具授权问题",
-                "en": "Clearer error guidance for MCP servers missing Google credentials",
-                "ja": "Google 認証を使う MCP サーバーのエラー表示が明快に改善",
-                "ko": "Google 자격 증명 오류 안내 개선, 외부 도구 인증 문제 신속 해결"
-              },
-              "body": {
-                "zh-TW": "⟦彷彿快遞員到府收件卻發現門牌缺少大樓通行證，櫃檯不再給出模糊通知，而是明確指引你去哪裡補齊證件。⟧ 設定使用 Google 憑證的 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器時，除錯變得更加容易。如果設定好的外部伺服器在本機找不到預設應用程式憑證（ADC，Application Default Credentials），介面現在會顯示具體清晰的錯誤引導，幫助你快速確認授權設定，省下在模糊報錯中盲目摸索的時間。",
-                "zh-CN": "⟦仿佛快递员上门取件却发现缺少大楼通行证，前台不再给出模糊通知，而是明确指引你去哪里补齐证件。⟧ 配置使用 Google 凭证的 MCP（Model Context Protocol，让 AI 连接外部工具的协议）服务器时，排查问题变得更加容易。如果配置好的外部服务器在本地找不到默认应用程序凭证（ADC，Application Default Credentials），界面现在会显示具体清晰的错误指引，帮助你快速核对授权配置，省去在模糊报错中摸索的时间。",
-                "en": "⟦It is like a courier arriving at a secure office building and being told exactly which badge is missing at reception rather than receiving a generic entry rejection.⟧ Troubleshooting MCP servers configured with Google authentication is now much more straightforward. When a server fails to locate Application Default Credentials on your local system, the CLI presents a detailed and informative error message that points you directly to the missing setup rather than displaying an ambiguous failure.",
-                "ja": "⟦宅配業者が訪問先で入館証の不足に気づいた際、受付が曖昧に断るのではなく必要な書類の取得先を案内してくれるようなものである。⟧ Google の認証情報を利用する MCP（外部ツールを接続する規格）サーバーを設定する際、問題の切り分けが格段にしやすくなった。設定済みのサーバーがローカル環境で Application Default Credentials（ADC）を見つけられない場合、原因と対処法を明示したエラーメッセージが表示され、認証設定の不備を迅速に修正できる。",
-                "ko": "⟦택배 기사가 건물에 들어서려다 출입증이 없을 때 안내 데스크에서 모호하게 거절하는 대신 어떤 서류를 챙겨 와야 하는지 알려주는 것과 같다.⟧ Google 자격 증명을 쓰도록 설정된 MCP(외부 도구를 연결하는 표준 규격) 서버를 다룰 때 문제 해결이 쉬워졌다. 설정된 서버가 로컬 환경에서 기본 애플리케이션 자격 증명(ADC)을 찾지 못할 경우, 원인을 명확히 짚어 주는 친절한 오류 메시지를 띄워 인증 설정을 빠르게 바로잡을 수 있도록 돕는다."
-              },
-              "original": "Improved the error shown when an MCP server configured for Google credentials cannot find Application Default Credentials."
-            },
-            {
-              "title": {
-                "zh-TW": "非 ASCII 檔案精準編輯，修復中文與表情符號亂碼損毀",
-                "zh-CN": "非 ASCII 文件精准编辑，修复中文与表情符号乱码损坏",
-                "en": "Precision editing for non-ASCII text fixes UTF-8 corruption",
-                "ja": "非 ASCII ファイルの編集精度が向上、日本語や絵文字の破損を修正",
-                "ko": "비 ASCII 텍스트 정밀 편집으로 한글 및 이모지 깨짐 방지"
-              },
-              "body": {
-                "zh-TW": "編輯包含中文、特殊重音符號或 emoji（表情符號）的檔案時，內容不再因為編碼計算失誤而損毀。過去代理在處理這類非 ASCII 字元檔案時，若遇到非精確字串比對，可能會在錯誤的位元組偏移處進行文字拼接，進而產生不合法的 UTF-8 編碼並改壞檔案；現在修復了這項偏移判定，確保多國語言與特殊符號都能被精準替換。⟦正如校對多國語言稿件時精準對齊字元位置，不再把中文字當成半截英文字母剪貼而弄壞整頁文章。⟧",
-                "zh-CN": "编辑包含中文、特殊重音符号或 emoji（表情符号）的文件时，内容不再因为编码计算失误而损坏。过去智能体在处理这类非 ASCII 字符文件时，若遇到非精确字符串匹配，可能会在错误的字节偏移处进行文本拼接，进而生成不合法的 UTF-8 编码并改坏文件；现在修复了这项偏移判定，确保多国语言与特殊符号都能被精准替换。⟦正如校对多语言稿件时精准对齐字符位置，不再把汉字当成半截英文字母剪贴而弄坏整页文章。⟧",
-                "en": "Editing files that contain non-ASCII text such as CJK characters, accented letters, or emoji is now completely safe from corruption. Previously, when performing an inexact string match on non-ASCII files, text splices could occur at the incorrect byte offset, producing invalid UTF-8 and mangling file contents. The offset calculation has been fixed to ensure multilingual text and special characters are spliced cleanly and accurately. ⟦Like a meticulous copy editor aligning non-English typography with precision rather than cutting through multibyte characters mid-sentence and ruining the layout.⟧",
-                "ja": "CJK（日中韓）の文字、アクセント記号付きのアルファベット、絵文字などの非 ASCII 文字を含むファイルを編集する際、ファイルが壊れる心配がなくなった。以前はそうしたファイルであいまい一致を行う際、誤ったバイト位置でテキストが挿入や置換され、不正な UTF-8 が生成されてファイルが破損することがあった。このオフセット計算が修正され、多言語テキストも安全に編集できるようになった。⟦多言語の原稿を校正する際に文字の位置を正確に揃え、全角文字を途中で分断してページ全体を崩さないようにするようなものである。⟧",
-                "ko": "한중일 문자, 악센트 기호가 붙은 알파벳, 이모지 같은 비 ASCII 문자가 포함된 파일을 편집할 때 내용이 깨지는 문제가 해결되었다. 이전에는 이러한 파일에서 정확히 일치하지 않는 문자열을 매칭할 때 잘못된 바이트 위치에서 텍스트가 끼워 넣어지면서 유효하지 않은 UTF-8 데이터가 만들어지고 파일이 손상되곤 했다. 이제 오프셋 계산이 바로잡혀 여러 언어와 특수 문자가 정확하게 수정된다. ⟦외국어 원고를 교정할 때 글자 위치를 정밀하게 맞춰 다중 바이트 문자가 중간에서 잘려 문서 전체가 망가지는 일을 방지한 것과 같다.⟧"
-              },
-              "original": "Fixed corrupted edits to files containing non-ASCII text such as CJK characters, accented letters or emoji, where an inexact match was spliced at the wrong offset and produced invalid UTF-8."
-            },
-            {
-              "title": {
-                "zh-TW": "異常編碼不再卡死串流，對話回應順暢不中斷",
-                "zh-CN": "异常编码不再卡死流传输，对话响应顺畅不中断",
-                "en": "Invalid UTF-8 no longer stalls sessions or freezes the interface",
-                "ja": "不正な UTF-8 によるストリーム中断を修正、応答のフリーズを解消",
-                "ko": "잘못된 UTF-8로 인한 세션 멈춤 및 화면 먹통 현상 해결"
-              },
-              "body": {
-                "zh-TW": "工具執行結果或檔案比對內容夾帶異常編碼時，工作階段（session）不再卡住停擺。過去只要工具回傳的內容或檔案差異（diff）中含有不合法的 UTF-8 字元，就會中斷代理背後的狀態串流傳輸，導致整個對話介面卡在回應途中無限等待；現在系統能正確消化這些異常字元，確保狀態持續傳遞，對話不中斷。⟦好比流水線輸送帶遇到破損零件時能直接過濾換新，不再讓整條產線完全卡死停擺。⟧",
-                "zh-CN": "工具运行结果或文件比对内容夹带异常编码时，会话（session）不再卡住停摆。过去只要工具返回的内容或文件差异（diff）中含有不合法的 UTF-8 字符，就会中断智能体背后的状态流传输，导致整个对话界面卡在响应途中无限等待；现在系统能正确消化这些异常字符，确保状态持续传递，对话不中断。⟦好比流水线传送带遇到破损零件时能直接过滤换新，不再让整条产线完全卡死停摆。⟧",
-                "en": "Tool outputs or file diffs containing unexpected character encoding will no longer freeze your session. Previously, if a tool result or diff payload contained invalid UTF-8 characters, it broke the agent's internal state stream, leaving the user interface hanging indefinitely mid-response. The stream parser now handles these encoding anomalies resiliently so your conversations continue without disruption. ⟦Like an automated sorting line that gracefully filters damaged packages instead of jamming the conveyor belt and halting the entire factory.⟧",
-                "ja": "ツールの実行結果や差分表示に異常なエンコードが含まれていても、セッションがフリーズしなくなった。以前はツールの出力やファイルの差分（diff）に不正な UTF-8 文字が含まれていると、エージェントの状態ストリームが途切れ、応答の途中で画面が無限に待機状態のまま固まることがあった。現在はそうした例外的なデータも安全に処理され、会話が途切れることなく継続する。⟦工場のベルトコンベアが破損した部品を検知して適切に受け流し、ライン全体を停止させないようにしたようなものである。⟧",
-                "ko": "도구 실행 결과나 파일 변경 사항(diff)에 비정상적인 인코딩이 섞여 있어도 세션이 멈추지 않는다. 이전에는 도구의 반환값이나 파일 차이점에 잘못된 UTF-8 문자가 포함되어 있으면 에이전트의 상태 스트림이 끊어지면서 응답 도중 화면이 무한정 대기 상태에 빠지는 현상이 발생했다. 이제 이러한 인코딩 예외를 안정적으로 처리하여 대화가 끊기지 않고 계속 이어진다. ⟦공장 컨베이어 벨트가 불량 부품을 만나도 전체 라인을 멈추지 않고 걸러내어 공정을 정상적으로 이어가는 것과 같다.⟧"
-              },
-              "original": "Fixed the session stalling mid-response when a tool result or file diff contained invalid UTF-8, which broke the agent state stream and left the interface waiting indefinitely."
-            },
-            {
-              "title": {
-                "zh-TW": "大型檔案寫入回傳修正，避免無謂重複存檔",
-                "zh-CN": "大型文件写入回传修正，避免无谓重复保存",
-                "en": "Accurate write reporting eliminates redundant retries on large files",
-                "ja": "大容量ファイルの保存完了判定を修正、無駄な再試行を防止",
-                "ko": "대용량 파일 저장 상태 판정 수정으로 불필요한 재시도 방지"
-              },
-              "body": {
-                "zh-TW": "⟦就像快遞已經把包裹穩穩送進倉庫，登記簿卻誤報送件失敗，導致外送員回頭重複搬運同一箱重物。⟧ 寫入大型檔案時，代理不會再白白浪費時間重複操作了。過去當代理處理像 Jupyter 筆記本（notebook）這類較大的檔案時，內容明明已經順利寫入硬碟，系統卻可能誤報寫入失敗，進而觸發無謂的重複重試流程；現在回傳狀態判定已修正，一旦寫入成功就會立刻確認並往下推進。",
-                "zh-CN": "⟦就像快递已经把包裹稳稳送进仓库，登记簿却误报送件失败，导致外送员回头重复搬运同一箱重物。⟧ 写入大型文件时，智能体不会再白白浪费时间重复操作了。过去当智能体处理像 Jupyter 笔记本（notebook）这类较大的文件时，内容明明已经顺利写入硬盘，系统却可能误报写入失败，进而触发无谓的重复重试流程；现在返回状态判定已修正，一旦写入成功就会立刻确认并继续推进。",
-                "en": "⟦It is like a courier successfully delivering a crate to the warehouse only for a bookkeeping error to log a failure, sending them back to haul the exact same cargo all over again.⟧ File write operations on large documents now report their status accurately without redundant work. Previously, saving bulky files such as Jupyter notebooks could trigger a false failure report even after the data was safely committed to disk, causing the agent to attempt unnecessary retries. The status check has been corrected so confirmed writes proceed immediately to the next task.",
-                "ja": "⟦荷物が倉庫へ無事に搬入されたにもかかわらず、伝票の記載ミスで配達失敗と記録され、配達員が同じ重い荷物を何度も運び直すようなものである。⟧ 大規模なファイルを書き込む際、エージェントが無駄な再試行を繰り返さなくなった。以前は Jupyter notebook などの大きなファイルを保存した際、データが正常にディスクへ書き込まれた後であるにもかかわらず失敗と誤って通知され、不要な書き込み再試行に陥ることがあった。完了通知の判定が修正され、正常終了した処理は速やかに次へ進む。",
-                "ko": "⟦창고에 짐이 정상적으로 들어왔는데도 장부 오류로 배송 실패로 기록되어 택배 기사가 같은 무거운 짐을 몇 번이고 다시 나르는 것과 같다.⟧ 용량이 큰 파일을 저장할 때 에이전트가 불필요한 재시도를 반복하지 않게 되었다. 이전에는 Jupyter 노트북(notebook) 같은 큰 파일을 기록할 때 디스크에 내용이 이미 다 써졌음에도 실패로 잘못 보고되어 쓸데없이 재시도를 거듭하는 문제가 있었다. 이제 완료 상태 판정이 올바르게 개선되어 저장이 끝나면 곧바로 다음 작업으로 넘어간다."
-              },
-              "original": "Fixed a file write being reported as a failure after the content had already been written to disk, which sent the agent into unnecessary retries on large files such as notebooks."
-            },
-            {
-              "title": {
-                "zh-TW": "明確指定外掛路徑優先，同名衝突不被覆蓋",
-                "zh-CN": "明确指定插件路径优先，同名冲突不被覆盖",
-                "en": "Explicit skill and plugin paths always win name collisions",
-                "ja": "スキルとプラグインの明示パスが優先、同名衝突の上書きを防止",
-                "ko": "스킬과 플러그인 명시 경로 우선 적용, 이름 충돌 시 덮어쓰기 방지"
-              },
-              "body": {
-                "zh-TW": "自訂功能遇到同名衝突時，系統現在絕對尊重你的個人設定。過去如果你在設定檔中明確指定了某個技能（skill，給 AI 的專屬工作指令包）或是外掛擴充路徑，一旦鄰近目錄中存在同名且被系統自動探索到的自訂項目，你的手動設定可能會意外被覆蓋失效。現在載入優先順序已修正，你在設定檔中明確指定的路徑一定會在命名衝突中勝出。⟦恰如私房地圖以你手動標記的路線為準，不再被沿路自動偵測到的路標蓋過去。⟧",
-                "zh-CN": "自定义功能遇到同名冲突时，系统现在绝对尊重你的个人配置。过去如果你在配置文件中明确指定了某个技能（skill，给 AI 的专属工作指令包）或是插件扩展路径，一旦邻近目录中存在同名且被系统自动发现的自定义项目，你的手动配置可能会意外被覆盖失效。现在加载优先级已修正，你在配置文件中明确指定的路径一定会在命名冲突中胜出。⟦恰如私房地图以你手动标记的路线为准，不再被沿途自动检测到的路标覆盖过去。⟧",
-                "en": "When custom extensions share identical names, the system now strictly honors your explicit configurations. Previously, if you defined a path to a skill or plugin in your config file, nearby customizations that were automatically discovered in neighboring directories could take precedence and override your settings during name collisions. The resolution order is now fixed so that any path you explicitly configure always wins. ⟦Like a navigation system strictly following your manually pinned custom route rather than being overridden by generic roadside landmarks discovered along the way.⟧",
-                "ja": "カスタム機能の名前が衝突した際、明示的な設定が最優先されるようになった。設定ファイルでスキル（skill）やプラグインのパスを明示的に指定していても、近隣のディレクトリから自動検出された同名のカスタム設定に上書きされてしまう不具合があった。読み込み順序が修正され、設定ファイルに手動で書き込んだパスが常に優先して適用されるようになった。⟦手元の地図で自分が手書きした目的地ルートが優先され、道端で自動検知した汎用の案内看板に上書きされないようなものである。⟧",
-                "ko": "사용자 지정 기능의 이름이 겹칠 때 설정 파일에 명시한 경로가 확실하게 우선 적용된다. 설정 파일에서 스킬(skill)이나 플러그인 경로를 직접 지정해 두었더라도 근처 디렉터리에서 자동으로 찾은 같은 이름의 사용자 지정 항목에 밀려 덮어써지던 문제가 있었다. 우선순위 판정이 수정되어 설정에 직접 적어 둔 경로가 이름 충돌 시 항상 이기도록 개선되었다. ⟦수동으로 꼼꼼히 표시해 둔 전용 지도 경로가 길가에서 자동으로 감지된 일반 표지판에 밀려 사라지지 않는 것과 같다.⟧"
-              },
-              "original": "Fixed explicitly configured skill and plugin paths losing to customizations discovered automatically nearby, so a path you set in your configuration now wins a name collision."
-            }
-          ]
-        },
-        {
-          "version": "1.1.20",
-          "period": "2026-08-25",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "技能有了圖示，終端機清單仍排得整齊",
-                "zh-CN": "技能有了图标，终端清单仍排得整齐",
-                "en": "Skills gain icons without throwing terminal lists out of line",
-                "ja": "スキルにアイコンが付き、端末の一覧も整列したままである",
-                "ko": "스킬에 아이콘이 생겨도 터미널 목록은 가지런하다"
-              },
-              "body": {
-                "zh-TW": "打開 `/skills` 尋找常用技能時，現在能先看見每個 skill（可重複使用的工作說明）自己宣告的 emoji 圖示。圖示寫在 `SKILL.md` 檔案開頭的 `metadata.icon`；它會出現在 `/skills` 目錄清單、查看細節的標題，以及輸入斜線指令時跳出的自動完成選單。⟦這像在工具箱每個抽屜貼上小圖案，找東西時先靠眼睛定位。⟧終端機也會正確計算 emoji 這類多位元字元占多少寬度，因此圖示出現後，各欄文字不會歪成一團。",
-                "zh-CN": "打开 `/skills` 寻找常用技能时，现在能先看见每个 skill（可重复使用的工作说明）自己声明的 emoji 图标。图标写在 `SKILL.md` 文件开头的 `metadata.icon`；它会出现在 `/skills` 目录列表、查看详情的标题，以及输入斜杠命令时弹出的自动补全菜单。⟦这像在工具箱每个抽屉贴上小图案，找东西时先靠眼睛定位。⟧终端也会正确计算 emoji 这类多字节字符占多少宽度，因此图标出现后，各栏文字不会歪成一团。",
-                "en": "When you open `/skills` to find a familiar skill (a reusable set of work instructions), each one can now show the emoji icon it declares. The icon lives in `metadata.icon` at the top of its `SKILL.md` file. It appears in the `/skills` catalog, detail headers, and slash-command autocomplete popups. ⟦It is like putting a small picture on every drawer in a toolbox, so your eyes find the right one first.⟧ The terminal also calculates the display width of multi-byte Unicode characters correctly, keeping the columns aligned after icons arrive.",
-                "ja": "`/skills` を開いてよく使うスキル（繰り返し使える作業手順）を探すとき、各スキルが宣言した emoji アイコンを先に見られるようになった。アイコンは `SKILL.md` の先頭にある `metadata.icon` に書く。`/skills` のカタログ、詳細画面の見出し、スラッシュコマンドの自動補完ポップアップに表示される。⟦工具箱の引き出しごとに小さな絵を貼り、目で先に目的の引き出しを探すようなものだ。⟧端末は emoji のような複数バイトの Unicode 文字の表示幅も正しく計算するため、アイコンを置いても列がずれないのである。",
-                "ko": "`/skills`를 열어 자주 쓰는 스킬(반복해서 쓸 수 있는 작업 안내)을 찾을 때, 이제 각 스킬이 선언한 emoji 아이콘을 먼저 볼 수 있다. 아이콘은 `SKILL.md` 맨 앞의 `metadata.icon`에 적는다. `/skills` 카탈로그, 세부 정보 제목, 슬래시 명령어 자동 완성 팝업에 나타난다. ⟦공구함의 서랍마다 작은 그림을 붙여 눈으로 먼저 필요한 서랍을 찾는 것과 같다.⟧터미널은 emoji 같은 여러 바이트 Unicode 문자의 표시 너비도 올바르게 계산하므로 아이콘이 들어와도 열이 어긋나지 않는다."
-              },
-              "original": "Added skill icon and visual branding support across the CLI, displaying emoji icons declared under `metadata.icon` in `SKILL.md` frontmatter across the `/skills` catalog list view, detail inspection headers, and slash command autocompletion popups, with proper multi-byte Unicode display width calculation to maintain terminal layout alignment."
-            },
-            {
-              "title": {
-                "zh-TW": "@ 補檔案路徑時，空資料夾也找得到",
-                "zh-CN": "@ 补文件路径时，空文件夹也找得到",
-                "en": "@ path completion can now find empty folders too",
-                "ja": "@ のパス補完で空のフォルダも見つけられる",
-                "ko": "@ 경로 자동 완성으로 빈 폴더도 찾는다"
-              },
-              "body": {
-                "zh-TW": "在提示裡打 `@` 想指定一個檔案位置，卻只記得它放在哪個空資料夾嗎？路徑自動完成現在會把空目錄也一起建立索引，不再只看搜尋結果裡已有檔案的地方。這也涵蓋只有資料夾、尚未放進內容的工作區結構；你可以在完成清單中找到它，再繼續往下走，不必先在裡面建立一個檔案來讓搜尋看見它。⟦像查商場樓層圖時，連還沒進駐店家的空櫃位都標出來，路就不會走到一半消失。⟧",
-                "zh-CN": "在提示里打 `@` 想指定一个文件位置，却只记得它放在哪个空文件夹吗？路径自动补全现在会把空目录也一起建立索引，不再只看搜索结果里已有文件的地方。这也涵盖只有文件夹、尚未放进内容的工作区结构；你可以在补全列表中找到它，再继续往下走。⟦像查商场楼层图时，连还没进驻店家的空铺位都标出来，路就不会走到一半消失。⟧",
-                "en": "Typing `@` to name a file path but remembering only its empty folder used to leave you stranded. Path autocomplete now indexes empty directories too, instead of seeing only places where search results already contain files. This includes workspace structures made up solely of folders with no contents yet, so you can find the directory in the completion list and keep navigating. ⟦It is like a mall map that labels vacant units as well as open shops, so the route does not vanish halfway there.⟧",
-                "ja": "プロンプトで `@` を入力してファイルの場所を指定したいのに、空のフォルダしか覚えていないことがある。パスの自動補完は、検索結果に既存ファイルがある場所だけでなく、空のディレクトリも索引に入れるようになった。中身のないフォルダだけで構成されたワークスペースでも、そのディレクトリを候補一覧で見つけて先へ進める。⟦商業施設の案内図に営業中の店だけでなく空き区画も載っていて、途中で道筋が消えないようなものだ。⟧",
-                "ko": "프롬프트에서 `@`를 입력해 파일 위치를 지정하려는데 빈 폴더만 기억나는 때가 있다. 경로 자동 완성은 이제 검색 결과에 파일이 있는 곳만 보지 않고 빈 디렉터리도 색인에 넣는다. 내용물이 없는 폴더만으로 된 작업 공간에서도 그 디렉터리를 완성 목록에서 찾아 더 들어갈 수 있다. ⟦쇼핑몰 안내도에 영업 중인 가게뿐 아니라 빈 점포도 표시되어 길이 중간에 사라지지 않는 것과 같다.⟧"
-              },
-              "original": "Improved `@` file path autocompletion by indexing empty directories alongside files in ripgrep search results, allowing unpopulated and directory-only workspace structures to be discovered and traversed during path completion."
-            },
-            {
-              "title": {
-                "zh-TW": "預設檢視工作區，讀檔不再反覆問同意",
-                "zh-CN": "默认查看工作区，读文件不再反复问同意",
-                "en": "Default review mode stops repeatedly asking to read workspace files",
-                "ja": "標準レビュー時の作業領域の閲覧で、確認を繰り返さなくなった",
-                "ko": "기본 검토 모드에서 작업 공간 읽기를 거듭 묻지 않는다"
-              },
-              "body": {
-                "zh-TW": "只是想讓工具在工作區根目錄讀檔或列出檔案，卻一直跳出批准詢問，會把檢查工作切得零碎。預設的 review mode（檢視模式，只檢查內容）現在會自動授予工作區範圍的讀取權限，因此這兩種動作不用重複確認。⟦這像進圖書館查書時，先拿到閱覽證，就能翻閱館內書目和書頁。⟧界線沒有因此放寬：要修改檔案，或要接觸工作區以外的位置，仍會照常要求確認。",
-                "zh-CN": "只是想让工具在工作区根目录读文件或列出文件，却一直跳出批准询问，会把检查工作切得零碎。默认的 review mode（查看模式，只检查内容）现在会自动授予工作区范围的读取权限，因此这两种动作不用重复确认。⟦这像进图书馆查书时，先拿到阅览证，就能翻阅馆内书目和书页。⟧边界没有因此放宽：要修改文件，或要接触工作区以外的位置，仍会照常要求确认。",
-                "en": "Repeated approval prompts can break up a simple inspection when a tool only needs to read or list files under the workspace root. Default review mode (a mode for examining content) now automatically grants workspace-scoped read access, so those two actions no longer need repeated confirmation. ⟦It is like getting a library reading pass before checking the catalog and turning the pages inside.⟧ The boundary remains: changing files or accessing anything outside the workspace still asks for confirmation.",
-                "ja": "作業領域のルート内でファイルを読むか一覧にするだけなのに、承認を何度も求められると確認作業が途切れる。標準の review mode（内容を確認するモード）は、作業領域の範囲で読む権限を自動で与えるようになり、その二つの操作に繰り返しの確認は要らない。⟦図書館で本を調べる前に閲覧証を受け取り、館内の目録とページを見られるようなものだ。⟧ただし境界は変わらず、ファイルの変更や作業領域の外部へのアクセスには確認が求められるのである。",
-                "ko": "작업 공간 루트 아래의 파일을 읽거나 목록으로 볼 뿐인데 승인 창이 계속 뜨면 검토가 끊긴다. 기본 review mode(내용을 살피는 모드)는 이제 작업 공간 범위의 읽기 권한을 자동으로 주므로 이 두 동작은 반복 확인이 필요 없다. ⟦도서관에서 책을 찾기 전에 열람증을 받아 관내 목록과 책장을 볼 수 있게 되는 것과 같다.⟧다만 경계는 그대로여서 파일을 고치거나 작업 공간 밖에 접근할 때는 여전히 확인을 요구한다."
-              },
-              "original": "Improved permission management by automatically granting workspace-scoped read access under the default review mode, eliminating repetitive approval prompts for reading or listing files within the workspace root while strictly maintaining confirmation prompts for file modifications and external access."
-            },
-            {
-              "title": {
-                "zh-TW": "含子模組的 Git 專案，查看狀態少等一段",
-                "zh-CN": "含子模块的 Git 项目，查看状态少等一段",
-                "en": "Git status checks avoid an extra sweep through submodule worktrees",
-                "ja": "サブモジュール付き Git の状態確認が余分な走査を省く",
-                "ko": "서브모듈이 있는 Git 상태 확인에서 불필요한 훑기를 뺀다"
-              },
-              "body": {
-                "zh-TW": "在含有 submodule（嵌在專案裡、各自有版本紀錄的子專案）的 Git 儲存庫查看狀態時，等待往往不是你改了什麼，而是工具又把子模組的工作樹一路遞迴掃過。現在 Git 檢查會跳過這種遞迴掃描，以免狀態顯示延遲；子模組指向的提交版本若更新，仍會持續追蹤。⟦這像核對一棟公寓的信箱時，只看每戶門牌是否換了，不必每次都走進每戶房間翻查。⟧",
-                "zh-CN": "在含有 submodule（嵌在项目里、各自有版本记录的子项目）的 Git 仓库查看状态时，等待往往不是你改了什么，而是工具又把子模块的工作树一路递归扫过。现在 Git 检查会跳过这种递归扫描，以免状态显示延迟；子模块指向的提交版本若更新，仍会持续跟踪。⟦这像核对一栋公寓的信箱时，只看每户门牌是否换了，不必每次都走进每户房间翻查。⟧",
-                "en": "In a Git repository with submodules (nested projects that keep their own version history), a status check can spend its time recursively scanning each submodule worktree. Repository inspection now skips that sweep to remove status latency, while still tracking updates to the commit pointer each submodule uses. ⟦It is like checking an apartment building's mailboxes by seeing whether each door label changed, without entering every apartment on every visit.⟧",
-                "ja": "submodule（独自の履歴を持つ、プロジェクト内の子プロジェクト）を含む Git リポジトリで状態を見るとき、待ち時間は変更内容ではなく、子モジュールの worktree を再帰的に走査することに使われる場合がある。リポジトリの検査はこの走査を省き、状態表示の遅れをなくす。一方で、各子モジュールが指すコミットの更新は追跡し続ける。⟦集合住宅の郵便受けを確認するとき、各部屋の表札が変わったかだけを見て、毎回すべての部屋に入らないようなものだ。⟧",
-                "ko": "submodule(각자 버전 기록을 가진 프로젝트 안의 하위 프로젝트)이 있는 Git 저장소에서 상태를 볼 때, 기다림은 변경 내용보다 하위 모듈 worktree를 재귀로 훑는 데서 생길 수 있다. 이제 저장소 검사는 이 훑기를 건너뛰어 상태 표시 지연을 없앤다. 대신 각 하위 모듈이 가리키는 커밋 포인터의 갱신은 계속 추적한다. ⟦아파트 우편함을 확인할 때 매번 모든 집 안에 들어가지 않고 각 집 문패가 바뀌었는지만 보는 것과 같다.⟧"
-              },
-              "original": "Improved Git repository inspection performance by skipping recursive submodule worktree scans while continuing to track commit pointer updates to eliminate status latency in repositories with submodules."
-            },
-            {
-              "title": {
-                "zh-TW": "列印模式遇到小錯，不再把整次執行判失敗",
-                "zh-CN": "打印模式遇到小错，不再把整次执行判失败",
-                "en": "Print mode no longer marks a run failed over benign tool errors",
-                "ja": "印字モードは軽微なツールエラーで実行全体を失敗にしない",
-                "ko": "출력 모드는 가벼운 도구 오류로 전체 실행을 실패 처리하지 않는다"
-              },
-              "body": {
-                "zh-TW": "把 CLI 放進自動流程時，`-p` 或 `--print` 的列印模式若遇到無害的工具錯誤或權限拒絕，過去會把整次執行當成失敗，並回傳非零的結束碼。現在即使用 `--output-format json` 或 `stream-json`，也只會在 cascade-level failure（錯誤一路傳到整體流程）時回傳失敗結束碼，行為會和互動工作階段一致。⟦像外送訂單少了一張餐巾紙，不能因此把整筆訂單標成沒有送達。⟧這讓不開互動介面的執行結果，不再被局部狀況誤判。",
-                "zh-CN": "把 CLI 放进自动流程时，`-p` 或 `--print` 的打印模式若遇到无害的工具错误或权限拒绝，过去会把整次执行当成失败，并返回非零的退出码。现在即使用 `--output-format json` 或 `stream-json`，也只会在 cascade-level failure（错误一路传到整体流程）时返回失败退出码，行为会和交互会话一致。⟦像外送订单少了一张餐巾纸，不能因此把整笔订单标成没有送达。⟧这让不打开交互界面的执行结果，不再被局部状况误判。",
-                "en": "When you put the CLI into an automated flow, print mode with `-p` or `--print` used to mark the whole run as failed and return a non-zero exit code for benign tool errors or permission denials. That is now fixed for `--output-format json` and `stream-json` too. A non-interactive run reports failure only for a cascade-level failure (one that reaches the overall run), matching an interactive session. ⟦A delivery should not be marked undelivered merely because one napkin is missing.⟧ Local trouble no longer mislabels the whole result.",
-                "ja": "CLI を自動処理に入れたとき、`-p` または `--print` の印字モードは、無害なツールエラーや権限拒否でも実行全体を失敗として非ゼロの終了コードを返していた。`--output-format json` と `stream-json` を使う場合も、これが直った。対話なしの実行は、cascade-level failure（エラーが全体の実行まで伝わる状態）のときだけ失敗の終了コードを返し、対話セッションと同じ振る舞いになる。⟦配達でナプキンが一枚足りないからといって、注文全体を未配達にはしないようなものだ。⟧局所的な問題で結果全体が誤判定されなくなるのである。",
-                "ko": "CLI를 자동 흐름에 넣을 때 `-p` 또는 `--print` 출력 모드는 무해한 도구 오류나 권한 거부를 만나도 전체 실행을 실패로 처리하고 0이 아닌 종료 코드를 돌려주곤 했다. `--output-format json`과 `stream-json`에서도 이 문제가 고쳐졌다. 비대화형 실행은 cascade-level failure(오류가 전체 실행까지 번진 상태)일 때만 실패 종료 코드를 내어 대화형 세션과 행동을 맞춘다. ⟦배달 주문에 냅킨 한 장이 빠졌다고 주문 전체를 미배달로 표시하지 않는 것과 같다.⟧부분적인 문제가 전체 결과를 잘못 판정하지 않게 된다."
-              },
-              "original": "Fixed print mode (`-p`/`--print`, including `--output-format json` and `stream-json`) treating benign tool execution errors and permission denials as fatal run failures with non-zero exit codes, ensuring headless exit codes reflect only cascade-level failures and match interactive session behavior."
-            },
-            {
-              "title": {
-                "zh-TW": "設定檔有看不懂的值，也不會被啟動時截斷",
-                "zh-CN": "配置文件有看不懂的值，也不会被启动时截断",
-                "en": "Startup no longer truncates settings it cannot parse",
-                "ja": "起動時に読めない設定があっても設定ファイルを切り詰めない",
-                "ko": "시작할 때 읽지 못한 설정이 있어도 설정 파일을 잘라 버리지 않는다"
-              },
-              "body": {
-                "zh-TW": "自己維護 `settings.json` 時，最怕某個新設定值或語法寫錯，程式一開就把原本的內容覆寫掉。現在啟動時若遇到無法辨識的設定值或語法錯誤，CLI 會保留磁碟上既有的設定檔，不再存回一份被截斷的版本。⟦這像收銀員看不懂帳本裡的一行註記時，先把原帳本留在桌上，而不是撕掉讀不懂以外的頁面。⟧你可以回頭修正那個項目，不必先從殘缺檔案救回其他設定。",
-                "zh-CN": "自己维护 `settings.json` 时，最怕某个新设置值或语法写错，程序一开就把原本的内容覆盖掉。现在启动时若遇到无法识别的设置值或语法错误，CLI 会保留磁盘上原有的配置文件，不再存回一份被截断的版本。⟦这像收银员看不懂账本里的一行注记时，先把原账本留在桌上，而不是撕掉读不懂以外的页面。⟧你可以回头修正那个项目，不必先从残缺文件救回其他设置。",
-                "en": "If you maintain `settings.json` yourself, an unrecognized setting value or syntax mistake should not make startup overwrite what was already there. On encountering either one, the CLI now preserves the existing file on disk instead of saving a truncated version. ⟦It is like a cashier who cannot read one note in a ledger leaving the original ledger on the desk, rather than tearing out every page except the puzzling one.⟧ You can return to fix that entry without first rescuing the rest of your settings from a damaged file.",
-                "ja": "`settings.json` を自分で管理していると、新しい設定値や構文の書き間違いで、起動時に元の内容が上書きされるのが怖い。CLI は認識できない設定値または構文エラーに出会っても、ディスク上の既存ファイルを保ち、切り詰めた版を保存しなくなった。⟦レジ係が帳簿の一行を読めないとき、元の帳簿を机に残し、読めない部分以外のページを破らないようなものだ。⟧その項目を後で直せるため、ほかの設定を壊れたファイルから先に救い出す必要はないのである。",
-                "ko": "`settings.json`을 직접 관리할 때 새 설정값이나 문법을 잘못 적었다고 시작 과정에서 원래 내용이 덮어써지면 곤란하다. CLI는 알아보지 못하는 설정값이나 문법 오류를 만나도 디스크에 있던 설정 파일을 보존하고 잘린 버전을 저장하지 않는다. ⟦계산원이 장부의 한 줄을 읽지 못할 때 원래 장부를 책상에 두고, 읽을 수 없는 부분 외의 쪽을 찢어 버리지 않는 것과 같다.⟧그 항목을 나중에 고치면 되므로 다른 설정을 손상된 파일에서 먼저 구해 낼 필요가 없다."
-              },
-              "original": "Fixed the CLI overwriting and discarding unparsed configuration in `settings.json` when encountering an unrecognized setting value or syntax error on startup, preserving the existing configuration file on disk instead of saving a truncated version."
-            },
-            {
-              "title": {
-                "zh-TW": "沒指定代理設定時，內建自訂項目也列得出來",
-                "zh-CN": "没指定代理配置时，内置自定义项目也列得出来",
-                "en": "Built-in customizations appear even without an explicit agent config",
-                "ja": "明示的なエージェント設定がなくても内蔵のカスタマイズを一覧に出せる",
-                "ko": "명시한 에이전트 설정이 없어도 내장 사용자 지정을 목록에서 본다"
-              },
-              "body": {
-                "zh-TW": "沒有特別指定 agent configuration（代理的設定資料）時，輸入 `/skills`、`/plugins`、`/agents` 或 `/hooks` 卻被告知找不到自訂項目，容易誤以為內建內容不見了。現在這些列出指令會先掛載內建自訂項目，再顯示清單，因此沒有明確的代理設定也能看見它們。⟦像走進展館時，櫃台先把常設展的燈打開，才讓你知道館裡本來就有這些東西。⟧這改的是清單檢視，不是要求你先建立一份代理設定。",
-                "zh-CN": "没有特别指定 agent configuration（代理的配置资料）时，输入 `/skills`、`/plugins`、`/agents` 或 `/hooks` 却被告知找不到自定义项目，容易误以为内置内容不见了。现在这些列出命令会先挂载内置自定义项目，再显示列表，因此没有明确的代理配置也能看见它们。⟦像走进展馆时，柜台先把常设展的灯打开，才让你知道馆里本来就有这些东西。⟧这改的是列表查看，不是要求你先建立一份代理配置。",
-                "en": "Without an explicit agent configuration (the data that configures an agent), `/skills`, `/plugins`, `/agents`, and `/hooks` could say no customizations were found, making built-in content seem absent. Their listing views now mount built-in customizations before showing the list, so they appear even with no agent configuration specified. ⟦It is like a gallery desk turning on the lights for the permanent collection first, so you can see what was already in the building.⟧ This changes the listing view; it does not require you to create an agent config.",
-                "ja": "明示的な agent configuration（エージェントを設定するためのデータ）がない状態では、`/skills`、`/plugins`、`/agents`、`/hooks` がカスタマイズなしと報告し、内蔵の内容まで消えたように見えていた。これらの一覧画面は、リストを出す前に内蔵カスタマイズをマウントするようになり、エージェント設定を指定しなくても表示される。⟦展示館の受付が常設展の照明を先に点け、もともと館内にあるものを見せるようなものだ。⟧変わるのは一覧表示であり、エージェント設定の作成を求める変更ではない。",
-                "ko": "명시한 agent configuration(에이전트를 설정하는 자료)이 없을 때 `/skills`, `/plugins`, `/agents`, `/hooks`는 사용자 지정이 없다고 알려 내장 내용까지 사라진 듯 보였다. 이제 이 목록 화면은 목록을 보이기 전에 내장 사용자 지정을 마운트하므로 에이전트 설정을 따로 지정하지 않아도 나타난다. ⟦전시관 안내대가 상설 전시의 불을 먼저 켜서 원래 안에 있던 것을 보게 하는 것과 같다.⟧바뀌는 것은 목록 보기이며 에이전트 설정을 새로 만들라는 뜻은 아니다."
-              },
-              "original": "Fixed `/skills`, `/plugins`, `/agents`, and `/hooks` commands reporting that no customizations were found when invoked without an explicit agent configuration by mounting built-in customizations in listing views."
-            },
-            {
-              "title": {
-                "zh-TW": "中日韓草稿串流時，不再憑空插入空格",
-                "zh-CN": "中日韩草稿流式显示时，不再凭空插入空格",
-                "en": "Streaming CJK drafts stop gaining stray spaces",
-                "ja": "中日韓の下書きはストリーミング中に余計な空白を挟まない",
-                "ko": "중일한 초안은 스트리밍 중에 쓸데없는 공백이 끼지 않는다"
-              },
-              "body": {
-                "zh-TW": "主提示區正在串流顯示中日韓草稿時，字與字之間偶爾被插進不該有的空格，讀起來就像句子被拆散。這次會在更新逐字稿的邊界整理空白字元，避免 CJK（中文、日文與韓文）文字被多塞空格。它處理的是更新交界，不是把你的草稿內容重新改寫。⟦彷彿排版員在接續紙條前先把接縫抹平，字句便不會突然被拉開。⟧修正針對的是主提示區的串流更新，讓草稿依原本的字距呈現。",
-                "zh-CN": "主提示区正在流式显示中日韩草稿时，字与字之间偶尔被插进不该有的空格，读起来就像句子被拆散。这次会在更新逐字稿的边界整理空白字符，避免 CJK（中文、日文与韩文）文字被多塞空格。⟦仿佛排版员在接续纸条前先把接缝抹平，字句便不会突然被拉开。⟧修正针对的是主提示区的流式更新，让草稿依原本的字距呈现。",
-                "en": "While a CJK draft (Chinese, Japanese, or Korean text) streams into the main prompt, stray spaces could appear between characters and make the sentence look pulled apart. Streaming transcript updates now normalize whitespace at their boundaries, preventing those unwanted inserts. ⟦It is as though a typesetter smooths the join before attaching the next strip of paper, so the letters do not suddenly spread apart.⟧ The fix applies to streaming updates in the main prompt and keeps the draft at its intended spacing.",
-                "ja": "メインプロンプトに中日韓の下書きがストリーミング表示されると、文字の間に不要な空白が入り、文がばらばらに見えることがあった。ストリーミングの逐語記録を更新する境目で空白を正規化し、CJK（中国語、日本語、韓国語）の文字に余計な空白を入れないようにした。⟦組版係が次の紙片をつなぐ前に継ぎ目をならし、文字間が急に開かないようにするようなものだ。⟧対象はメインプロンプトのストリーミング更新であり、下書きは本来の字間で表示されるのである。",
-                "ko": "메인 프롬프트에 중일한 초안이 스트리밍으로 나타날 때 글자 사이에 원치 않는 공백이 들어가 문장이 흩어진 듯 보일 수 있었다. 스트리밍 대화 기록 갱신의 경계에서 공백 문자를 정리해 CJK(중국어, 일본어, 한국어) 문자에 여분의 공백이 끼지 않게 했다. ⟦조판사가 다음 종이 조각을 잇기 전에 이음새를 고르게 펴서 글자 사이가 갑자기 벌어지지 않게 하는 것과 같다.⟧이 수정은 메인 프롬프트의 스트리밍 갱신에 적용되어 초안을 원래 글자 간격으로 보인다."
-              },
-              "original": "Fixed CJK draft jitter in the main prompt by normalizing boundary whitespace in streaming transcript updates, preventing unwanted spaces from being inserted characters."
-            },
-            {
-              "title": {
-                "zh-TW": "對話結束後，背景轉圈不再空轉喚醒 CPU",
-                "zh-CN": "对话结束后，后台转圈不再空转唤醒 CPU",
-                "en": "The conversation spinner stops waking the CPU after a turn ends",
-                "ja": "会話終了後に背景のスピナーが CPU を起こし続けない",
-                "ko": "대화가 끝난 뒤 배경 스피너가 CPU를 계속 깨우지 않는다"
-              },
-              "body": {
-                "zh-TW": "一輪對話已經結束，畫面上的 spinner（表示處理中的轉圈動畫）本該停下，卻仍在背景持續跳動。這個迴圈現在會在回合完成後停止，因此 CLI 閒置時不再因為它產生不必要的 CPU 喚醒。尤其你暫時不輸入下一個要求時，背景不會再為這個已結束的回合空轉。⟦像店家打烊後，門口的叫號燈不再空亮、也不再反覆啟動裡頭的設備。⟧你不必做任何設定；修正的是完成回合後仍持續運作的背景動畫。",
-                "zh-CN": "一轮对话已经结束，画面上的 spinner（表示处理中的转圈动画）本该停下，却仍在后台持续跳动。这个循环现在会在回合完成后停止，因此 CLI 闲置时不再因为它产生不必要的 CPU 唤醒。⟦像店家打烊后，门口的叫号灯不再空亮、也不再反复启动里头的设备。⟧你不必做任何设置；修正的是完成回合后仍持续运行的后台动画。",
-                "en": "After a conversation turn had already finished, the spinner (the rotating animation that signals processing) could keep ticking in the background. That loop now stops when the turn completes, so an idle CLI no longer causes unnecessary CPU wakeups from it. ⟦It is like a shop's queue light going dark after closing instead of glowing pointlessly and repeatedly starting equipment inside.⟧ No setting is required; the fix is for the background animation that kept running after completion.",
-                "ja": "会話のターンが終わった後も、spinner（処理中を示す回転アニメーション）が背景で動き続けることがあった。このループはターンの完了時に止まり、CLI がアイドル中に不要な CPU の起動を生まなくなる。⟦店が閉店した後、入口の呼び出し灯が空しく点き続けたり、店内の機器を何度も起動したりしないようなものだ。⟧設定は不要であり、完了後も動き続けていた背景アニメーションを直したのである。",
-                "ko": "대화 한 차례가 이미 끝난 뒤에도 spinner(처리 중임을 알리는 회전 애니메이션)가 배경에서 계속 움직일 수 있었다. 이 반복은 이제 차례가 완료되면 멈추므로 CLI가 쉬는 동안 그것 때문에 불필요하게 CPU를 깨우지 않는다. ⟦가게가 문을 닫은 뒤 입구의 호출 등이 헛되이 켜져 있거나 안의 장비를 거듭 켜지 않는 것과 같다.⟧설정할 것은 없으며 완료 뒤에도 돌던 배경 애니메이션을 고친 것이다."
-              },
-              "original": "Fixed the conversation spinner animation loop continuing to tick indefinitely in the background after turns completed, eliminating unnecessary CPU wakeups while the CLI is idle."
             }
           ]
         }
