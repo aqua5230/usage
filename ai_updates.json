@@ -492,6 +492,23 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.153.2",
+          "period": "2026-09-03",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "更正 GPT-6-Astra Fast 方案描述，文字標明 2 倍速度與更高用量",
+                "en": "Correct GPT-6-Astra Fast tier description to state 2x speed and increased usage"
+              },
+              "body": {
+                "zh-TW": "你在挑選模型方案時，會發現 GPT-6-Astra Fast 等級的說明文字有了修正。現在介面會明確標示為「 2x speed, increased usage 」（ 2 倍速度並提高使用量），取代先前寫著的 1.5 倍標示。這項改動純粹是介面文字顯示的勘誤，背後實際發送請求與模型運作的方式維持原樣，執行效能並沒有任何改變。⟦好比快遞門市把海報上的特快配送標籤從 1.5 倍更正為 2 倍，車隊的送貨路線與行車速度始終如一，只是把印錯的宣傳字樣換成正確內容。⟧因此看到介面數字調整時無需擔心，所有指令與請求依然維持既有方式正常運作。",
+                "en": "When selecting model tiers, you will notice an updated description for the GPT-6-Astra Fast tier. The interface now clearly displays \"2x speed, increased usage\" instead of the previous \"1.5x\" label. This update is strictly a correction to the displayed text; how requests are sent and how the model operates behind the scenes remain identical, with no change to runtime performance. ⟦It is like a courier branch correcting a poster label for express delivery from 1.5x to 2x; the fleet's delivery routes and driving speeds remain unchanged, simply replacing the misprinted promotional wording with the accurate text.⟧ Therefore, there is no need for concern when seeing the adjusted numbers in the interface, as all commands and requests continue to function normally as before."
+              },
+              "original": "Corrected the GPT-6-Astra Fast tier description to say “2x speed, increased usage” instead of “1.5x.” This changes only the displayed text, not how requests run. (#42632)"
+            }
+          ]
+        },
+        {
           "version": "0.153.0",
           "period": "2026-09-03",
           "items": [
@@ -610,100 +627,6 @@
                 "en": "⟦A lab keeps the rules for borrowing a piece of equipment on the card attached to it, and the keeper follows that card; before, the card sat there unread and the keeper went by their own old habits.⟧ Codex's Guardian approval review, the gate that decides whether an action may go ahead, now honors the Node REPL policies provided through model metadata. Metadata is the small description that travels with a model, and a Node REPL is the interactive prompt where a line of JavaScript runs the moment you type it. In other words, whether such a command is allowed through comes from the rules the model itself declares, not from what the review gate decides on its own."
               },
               "original": "Guardian approval review now honors Node REPL policies provided through model metadata."
-            }
-          ]
-        },
-        {
-          "version": "0.152.0",
-          "period": "2026-09-01",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Vim 模式能在草稿裡搜尋，新草稿直接能打字",
-                "en": "Vim mode supports in-draft search and starts fresh drafts ready for typing"
-              },
-              "body": {
-                "zh-TW": "你在 Codex 的輸入框切到 Vim 模式（改用鍵盤符號下指令與搜尋的編輯方式，名字來自一款老牌文字編輯器）改一段長草稿，想找回前面提到的某個檔名，以前得整段慢慢往回捲——現在按 `/` 往下找、`?` 往上找，符合的字會被反白標出來，找到了按 `n` 跳下一個、`N` 跳回上一個，⟦就像拿螢光筆把整篇稿子裡同一個詞全部畫記，之後沿著螢光筆的痕跡一路跳，不用逐行盯著找⟧。另外，每次開新草稿，游標現在直接能打字：不管是剛送出一則訊息，還是打完斜線指令（`/` 開頭觸發的內建指令）後接著開新的一段，都不用再手動切換才能輸入。",
-                "en": "When editing long drafts in Vim mode within the Codex composer, finding an earlier filename no longer requires manual scrolling. You can now press `/` to search forward or `?` to search backward with highlighted matches, and navigate with `n` and `N` to jump between occurrences. ⟦It works like marking every instance of a word with a highlighter and jumping directly between highlighted marks instead of scanning line by line.⟧ Furthermore, fresh drafts now start directly ready for typing: whether you just submitted a message or ran a slash command, you can start typing immediately without manually switching modes."
-              },
-              "original": "Vim mode supports `/` and `?` searches within drafts, highlighted matches, and repeat navigation with `n` and `N`. (#41586)\nVim-enabled composers now start fresh drafts in Insert mode, including after submitting messages or dispatching slash commands. (#41921)"
-            },
-            {
-              "title": {
-                "zh-TW": "用量卡住了，橫幅上直接能查能管",
-                "en": "Rate-limit banners let you check usage and manage limits directly"
-              },
-              "body": {
-                "zh-TW": "被限流（rate limit，用量到頂被暫時擋下）擋下來的時候，以前只會看到一條乾巴巴的橫幅告訴你現在不能用，接下來要自己想辦法。現在這條橫幅上直接放了幾個按鈕：查目前用量、管理額度、重設限制、管理訂閱方案，點哪個就辦哪件事，不必先關掉提示再去別的地方翻設定。⟦好比汽車油表亮燈時，旁邊直接排著加油站導航、加值卡餘額、延長保固幾個按鈕，不用先熄火下車才找得到辦法。⟧",
-                "en": "When hit by a rate limit, users previously saw only a plain banner stating that requests were temporarily blocked, leaving them to figure out the next step on their own. The banner now includes direct action buttons to check current usage, manage credits, reset limits, and manage subscription plans, allowing you to handle each task immediately without dismissing the alert to search through settings. ⟦It is like a low-fuel warning light on a dashboard that displays buttons for gas station navigation, prepaid card balance, and extended warranty right beside it, rather than forcing you to pull over and step out of the car to find help.⟧"
-              },
-              "original": "Rate-limit banners offer actions for checking usage, managing credits, resetting limits, and managing plans. (#41742)"
-            },
-            {
-              "title": {
-                "zh-TW": "重新登入卡住不再是一片空白，進度會秀出來",
-                "en": "Reauthentication progress is now visible in the terminal UI and codex exec"
-              },
-              "body": {
-                "zh-TW": "終端機介面跟 `codex exec` 這個非互動指令，現在會即時顯示憑證（credential，證明你是合法使用者的金鑰）更新到哪一步了，連透過 Amazon Bedrock 重新認證這種比較繞的流程也一樣有進度可看。以前遇到需要重新拿授權，畫面往往就是卡住不動，你根本不知道它是在處理還是當機了。⟦彷彿機場的自助通關閘門，以前刷證件後螢幕一片黑，不知道是在核對還是壞了；現在畫面會顯示「正在核對指紋」「正在確認資料」，一步步走到綠燈放行。⟧",
-                "en": "The terminal UI and the non-interactive `codex exec` command now display live progress when refreshing credentials, including multi-step flows like Amazon Bedrock reauthentication. Previously, reauthentication would leave the screen hanging with no feedback, making it impossible to tell whether the process was working or frozen. ⟦It is like an automated airport immigration gate where the screen previously went black after scanning an ID, but now displays step-by-step progress like \"verifying fingerprints\" and \"confirming details\" until the green light lets you through.⟧"
-              },
-              "original": "The terminal UI and `codex exec` show credential-refresh progress, including Amazon Bedrock reauthentication. (#41239)"
-            },
-            {
-              "title": {
-                "zh-TW": "MCP 伺服器名字可以照套件格式取，工具輸出也能設上限",
-                "en": "MCP server names support package formats, and tool outputs can set limits"
-              },
-              "body": {
-                "zh-TW": "MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器的名稱以前只能用簡單字元。現在可以放 `:`、`@`、`/`、`.` 這些符號，等於能照套件命名慣例取名，像 `@scope/name` 這種寫法，指令列跟認證流程全部認得。同時，個別 MCP 工具現在能設定 `output_token_limit`，限制單次輸出的 token（AI 處理與計費的文字單位）上限，而且不管你怎麼把工作階段接回來繼續用，這個截斷規則都會維持一致。⟦一如社區信箱從只能貼三碼門牌，改成可以掛完整地址加樓層，而每一格信箱的容量也能各自標好，不會有人塞爆別人的格子。⟧",
-                "en": "MCP server names were previously limited to simple characters. They can now include `:`, `@`, `/`, and `.`, enabling standard package-style naming such as `@scope/name` across all CLI commands and authentication flows. In addition, individual MCP tools now support an `output_token_limit` setting to cap output tokens per invocation, maintaining consistent truncation rules across resumed sessions. ⟦It is like apartment mailboxes upgrading from three-digit numbers to full addresses with floor numbers, while also setting individual capacity limits so no single delivery overflows someone else's box.⟧"
-              },
-              "original": "MCP server names can contain `:`, `@`, `/`, and `.`, supporting package-style names throughout CLI commands and authentication. (#41700)\nIndividual MCP tools support an `output_token_limit` setting, with consistent truncation across session resumes. (#41421)"
-            },
-            {
-              "title": {
-                "zh-TW": "規劃工具改成預設關閉，要用得自己在設定裡打開",
-                "en": "The planning tool is now disabled by default and requires explicit configuration"
-              },
-              "body": {
-                "zh-TW": "以前 Codex 會內建一個規劃工具，現在這個功能改成預設不啟用。如果你要用，得自己在設定檔裡加上這一段：\n\n```\n{\"tools\": {\"update_plan\": {\"enabled\": true}}}\n```\n\n也就是把 `tools.update_plan.enabled` 設成 `true`。這不是新推出的功能，而是把原本一律開著的東西收緊成選用項目。⟦有點像家電出廠時把耗電的附加功能先關掉，想用得自己翻說明書、在面板上按一下才會亮起來。⟧",
-                "en": "Codex previously enabled its built-in planning tool out of the box, but the feature is now disabled by default. To use it, you must add the following snippet to your configuration file:\n\n```\n{\"tools\": {\"update_plan\": {\"enabled\": true}}}\n```\n\nThis sets `tools.update_plan.enabled` to `true`. Rather than introducing a new feature, this update makes an existing capability opt-in. ⟦It is like an appliance shipping with power-hungry optional modes turned off, requiring you to check the manual and press a button on the panel to turn them on.⟧"
-              },
-              "original": "The planning tool is disabled by default; enable it with `tools.update_plan.enabled = true`. (#41744)"
-            },
-            {
-              "title": {
-                "zh-TW": "自動審查不再健忘，壓縮歷史也留得住授權",
-                "en": "Automatic approval reviews retain longer transcripts and preserve authorizations across compaction"
-              },
-              "body": {
-                "zh-TW": "自動批准的審查機制這次補強了記性。以前訊息一長、對話一多，審查能保留的內容就有限，現在可以留住更長的訊息，也能看見更大範圍的對話轉錄（transcript，對話的逐字紀錄）。更關鍵的是，就算對話因為太長被系統壓縮（compaction，把舊對話濃縮成摘要以節省空間），使用者當初下的指示、給過的答案，以及已經核可的有效授權，都不會被壓縮掉，審查時仍然找得到依據。⟦如同開庭留下的卷宗，就算檔案疊得再厚要精簡歸檔，當事人的證詞跟簽過名的授權書也不會被摘要掉，日後翻案還是查得到原文。⟧",
-                "en": "Automatic approval reviews now retain richer conversation context. While earlier reviews were limited when handling lengthy exchanges, the system can now hold longer messages and larger conversation transcripts. Crucially, when conversations undergo history compaction to condense past turns, original user instructions, provided answers, and granted authorizations are preserved rather than compressed away, ensuring reviews retain full context. ⟦It is like a court case file where older records are archived into summaries, but key testimony and signed authorization forms are preserved intact so original records remain verifiable later.⟧"
-              },
-              "original": "Automatic approval reviews can retain longer messages and a larger conversation transcript. (#41931)\nAutomatic approval reviews preserve user instructions, answers, and valid authorizations across history compaction. (#41660, #41846, #41852)"
-            },
-            {
-              "title": {
-                "zh-TW": "背景動作各自照規矩來，續接、快取跟選單都更牢靠",
-                "en": "Background operations refined across thread resumption, caching, and model menus"
-              },
-              "body": {
-                "zh-TW": "這批修復把幾個容易在背景出包的地方一次補齊。app-server 的客戶端現在能自己設定 `thread/shellCommand` 的逾時時間，就算要等超過一小時也設得了；把之前的工作階段接回來繼續用時，沒特別指定路徑就會自動還原成上次的工作目錄，客戶端更新描述資訊也不會動到原本的檔案系統權限。MCP 工具在快取（cache，把查過的結果暫存起來直接用）更新、遠端外掛換版本時仍然能正常呼叫。認證要重試時，也會換上輔助程式剛給的新標頭（headers，請求裡帶的驗證資訊）。開模型選單重新整理清單時，原本反白選著的那個也不會跳掉。外掛推薦則是改成開機時就先載入，不用等到你打第一句才臨時去抓。⟦像看電影中途離席，回來時票根還夾在原位、放映沒斷、燈亮了位子照樣是你的；寄放的外套、預訂的爆米花、留在櫃檯的加購單也都還在，沒有哪一樣因為你走開就作廢。⟧",
-                "en": "This release fixes multiple background edge cases. Clients connecting to app-server can now configure `thread/shellCommand` timeouts, including deadlines longer than one hour. Resumed threads automatically restore their previous working directory when none is specified, and client metadata updates preserve existing filesystem permissions. In addition, MCP tools remain callable during cache refreshes and remote plugin updates, while authentication retries adopt newly refreshed helper headers. Opening the model picker refreshes the model list without losing your currently selected item, and plugin recommendations begin loading at startup to minimize delays before the first prompt. ⟦It is like stepping out during a movie and returning to find your ticket stub in place, the projection running, your seat held, and your coat, pre-ordered popcorn, and counter receipt all waiting without anything expiring while you were away.⟧"
-              },
-              "original": "App-server clients can configure `thread/shellCommand` timeouts, including deadlines longer than one hour. (#41384)\nResumed threads restore their saved working directory when none is supplied, and client metadata updates preserve filesystem permissions. (#41567, #41464)\nMCP tools remain available through cache refreshes and remote plugin changes; authentication retries use refreshed helper-provided headers. (#41336, #41344, #41396, #41400)\nOpening the model picker refreshes available models without losing the highlighted choice. (#41467)\nPlugin recommendations begin loading during startup, reducing delays before the first turn. (#41375)"
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 三個毛病修好，雲端任務也不聽陌生網址的話",
-                "en": "Three Windows fixes resolved and cloud tasks reject untrusted URLs"
-              },
-              "body": {
-                "zh-TW": "Windows 上有三個毛病一次修掉：用 Microsoft Store 版 PowerShell 執行沙盒（sandbox，限制程式能碰哪些檔案與網路的隔離環境）會出錯、查詢終端機狀態時子行程可能整個卡住、還有舊版 JediTerm 終端機的游標顯示會花掉。另外，雲端任務現在會擋下不受信任的後端網址，也停用自動轉址，避免存好的憑證被騙去傳給不該收到的地方。⟦宛如一批同時故障的門禁刷卡機跟顯示面板，維修人員一台台拆開修好，順便把只認得掛牌廠商的規矩重新鎖緊，陌生人拿著奇怪的卡靠近也刷不開。⟧",
-                "en": "Three issues on Windows have been resolved in this release: sandbox execution errors with Microsoft Store PowerShell, subprocess hangs during terminal queries, and cursor-related display corruption in older JediTerm terminals. In addition, cloud task requests now reject untrusted backend URLs and disable automatic redirects to prevent saved credentials from being leaked to unintended destinations. ⟦It is like repairing a batch of malfunctioning access card readers and display panels, while tightening gate rules to only recognize certified vendors so unrecognized cards cannot open the gate.⟧"
-              },
-              "original": "Fixed Windows sandbox execution with Microsoft Store PowerShell, subprocess hangs on terminal queries, and cursor-related display corruption in older JediTerm terminals. (#41227, #41436, #41673)\nCloud task requests reject untrusted backend URLs and disable redirects to protect saved credentials. (#41403)"
             }
           ]
         }
@@ -1279,6 +1202,23 @@
       "name": "GitHub CLI",
       "versions": [
         {
+          "version": "2.100.0",
+          "period": "2026-09-03",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "GitHub API 流量支援自訂閘道，身分驗證與網址維持直連",
+                "en": "GitHub API Traffic Supports Custom Gateways, While Authentication and URLs Remain Direct"
+              },
+              "body": {
+                "zh-TW": "企業若需要稽核或集中管控網路流量，現在可以透過個別主機的 `api_host` 設定，將 GitHub API 請求導向自訂閘道（gateway，把流量轉去另一個位址再送出的中繼點）。這項改動只會轉發 API 呼叫，登入身分驗證、Git 遠端儲存庫操作與瀏覽器開啟網址仍會直接連線至原始主機。此功能目前仍處於實驗階段，且不是安全邊界，部分請求可能依然會送往原始主機。\n\n```\n# 設定將 github.com 的 API 流量轉發至自訂閘道\ngh config set api_host gh-gateway.example.com --host github.com\n\n# 查詢特定主機目前設定的 API 閘道位址\ngh config get api_host --host github.com\n```\n\n⟦這就像公司設立的公務收發室，員工採購與查詢資料等業務公文統一由專屬窗口轉交處理，但員工出勤打卡、私人包裹寄送與親自拜訪仍直接走大樓正門。⟧",
+                "en": "Organizations that need to audit or centrally manage network traffic can now route GitHub API requests to a custom gateway via the per-host `api_host` setting. This change only forwards API calls; login authentication, Git remote repository operations, and browser-opened URLs still connect directly to the original host. This feature is currently experimental and is not a security boundary, so some requests may still reach the original host.\n\n```\n# Set up forwarding API traffic for github.com to a custom gateway\ngh config set api_host gh-gateway.example.com --host github.com\n\n# Query the currently configured API gateway address for a specific host\ngh config get api_host --host github.com\n```\n\n⟦This is like a company mailroom for official business, where business documents such as procurement requests and data inquiries are routed through a dedicated counter, while employee clock-ins, personal parcel deliveries, and in-person visits still go directly through the building's main entrance.⟧"
+              },
+              "original": "## Experimental: Route GitHub API traffic through a custom host\n\nOrganizations can now route a GitHub host's API traffic through a gateway using the new per-host `api_host` configuration:\n\n```shell\n# Route API traffic for github.com through a gateway\ngh config set api_host gh-gateway.example.com --host github.com\n\n# Read the configured API host\ngh config get api_host --host github.com\n```\n\nThe original host remains in use for authentication, Git remotes, and browser URLs.\n\n> [!NOTE]\n> `api_host` is experimental and is not a security boundary. Requests may still reach the original host."
+            }
+          ]
+        },
+        {
           "version": "2.99.0",
           "period": "2026-09-01",
           "items": [
@@ -1518,56 +1458,6 @@
                 "en": "Dependabot configuration now includes an `aw-actions` group, while `aw-actions`, `codeql-actions`, sigstore-go, gRPC, go-containerregistry, actions/attest, azure/login, goldmark, protobuf, testify, x/crypto, lipgloss, and a compression library were updated. Go moved through 1.26.6 to 1.26.7, CI's golangci-lint reached v2.12.2, gh-aw workflows reached v0.85.4, and gh-aw-actions reached v0.87.1 with agentic workflows recompiled. ⟦It is like replacing parts from a maintenance list while updating the automatic replenishment rule and already assembled work orders too.⟧"
               },
               "original": "Add aw-actions group to dependabot configuration by @babakks in https://github.com/cli/cli/pull/14123\nchore(deps): bump github.com/sigstore/sigstore-go from 1.2.2 to 1.3.0 by @dependabot[bot] in https://github.com/cli/cli/pull/14047\nchore(deps): bump the codeql-actions group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14049\nchore(deps): bump google.golang.org/grpc from 1.82.1 to 1.83.0 by @dependabot[bot] in https://github.com/cli/cli/pull/14048\nchore(deps): bump github.com/google/go-containerregistry from 0.21.7 to 0.21.8 by @dependabot[bot] in https://github.com/cli/cli/pull/14066\nchore(deps): bump actions/attest from 4.2.1 to 4.2.2 by @dependabot[bot] in https://github.com/cli/cli/pull/14100\nchore(deps): bump azure/login from 3.0.0 to 3.0.1 by @dependabot[bot] in https://github.com/cli/cli/pull/14101\nchore(deps): bump the codeql-actions group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14091\nchore(deps): bump github/gh-aw-actions/setup-cli from 0.83.4 to 0.85.4 by @dependabot[bot] in https://github.com/cli/cli/pull/14068\nchore(deps): bump github.com/google/go-containerregistry from 0.21.8 to 0.21.9 by @dependabot[bot] in https://github.com/cli/cli/pull/14119\nchore(deps): bump github.com/klauspost/compress from 1.19.1 to 1.19.2 by @dependabot[bot] in https://github.com/cli/cli/pull/14120\nchore(deps): bump the aw-actions group with 2 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14147\nchore(deps): bump github.com/yuin/goldmark from 1.8.4 to 1.8.5 by @dependabot[bot] in https://github.com/cli/cli/pull/14029\nchore(deps): bump actions/attest from 4.2.0 to 4.2.1 by @dependabot[bot] in https://github.com/cli/cli/pull/14050\nBump golangci-lint in CI to v2.12.2 by @williammartin in https://github.com/cli/cli/pull/14102\nchore(deps): bump the aw-actions group with 2 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14124\nchore(deps): bump google.golang.org/protobuf from 1.36.11 to 1.36.12 by @dependabot[bot] in https://github.com/cli/cli/pull/14140\nUpgrade gh-aw workflows to v0.85.4 by @tidy-dev in https://github.com/cli/cli/pull/14141\nBump Go to 1.26.6 by @github-actions[bot] in https://github.com/cli/cli/pull/14143\nchore: bump go to 1.26.7 by @babakks in https://github.com/cli/cli/pull/14205\nchore(deps): bump github.com/stretchr/testify from 1.11.1 to 1.12.1 by @dependabot[bot] in https://github.com/cli/cli/pull/14204\nchore(deps): bump the codeql-actions group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14169\nchore(deps): bump golang.org/x/crypto from 0.54.0 to 0.55.0 by @dependabot[bot] in https://github.com/cli/cli/pull/14164\nchore(deps): bump charm.land/lipgloss/v2 from 2.0.5 to 2.0.6 by @dependabot[bot] in https://github.com/cli/cli/pull/14166\nBump gh-aw-actions to v0.87.1 and recompile agentic workflows by @BagToad in https://github.com/cli/cli/pull/14210"
-            }
-          ]
-        },
-        {
-          "version": "2.97.0",
-          "period": "2026-07-31",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "用名稱改 Project 項目，清單欄位也看得到名字",
-                "en": "Edit Project items by name and see named fields in lists"
-              },
-              "body": {
-                "zh-TW": "你在 GitHub Project（把工作拆成卡片和欄位的管理看板）裡找待辦事項，不必先翻出那串難記的 ID 了。`gh project item-edit` 現在能依名稱找到項目；像整理「修登入頁」這張卡時，可直接用它的名字指定對象。`gh project item-list` 也能把具名欄位列出來，清單不再只像一排沒有標籤的抽屜。搜尋某個儲存庫時，`gh search --repo` 會提示 `OWNER/REPO` 格式，文件也把依名稱編輯列為主要做法。",
-                "en": "When you are looking for a task in a GitHub Project, you no longer have to dig up its hard-to-remember ID first. `gh project item-edit` can now resolve an item by name, so you can target a card such as “Fix login page” by its name. `gh project item-list` can show named field columns too, rather than a row of unlabeled drawers. `gh search --repo` now hints at the `OWNER/REPO` format, and the docs present name-based editing as the main Project flow."
-              },
-              "original": "Add name-based resolution to `gh project item-edit` by @zwick in [#13807](https://github.com/cli/cli/pull/13807)\nAdd named field columns to `gh project item-list` by @zwick in [#13823](https://github.com/cli/cli/pull/13823)\nAdd `OWNER/REPO` format hint to the `gh search --repo` flag by @BagToad in [#13922](https://github.com/cli/cli/pull/13922)\nPresent by-name `item-edit` as the first-class project flow in docs by @Solaris-star in [#13927](https://github.com/cli/cli/pull/13927)\n@zwick made their first contribution in https://github.com/cli/cli/pull/13807\n@Solaris-star made their first contribution in https://github.com/cli/cli/pull/13927"
-            },
-            {
-              "title": {
-                "zh-TW": "`gh skill` 接上 Grok，代理清單換成 Devin",
-                "en": "`gh skill` adds Grok and swaps Windsurf for Devin"
-              },
-              "body": {
-                "zh-TW": "想讓 AI 代理幫忙檢視程式碼時，`gh skill` 的選項更新了。它新增 Grok 的 skill host 支援，也把代理清單中的 Windsurf 換成 Devin；選擇畫面過長的標籤換行問題一併修好。專案還加入 code review agent skill，也就是給代理做程式碼審查用的操作說明。像替工具箱添了新轉接頭，現在能接 Grok；舊的 Windsurf 插槽則改標 Devin，拿取時不會再被斷行的標籤絆住。",
-                "en": "If you use AI agents to review code, `gh skill` has refreshed its choices. It adds support for Grok as a skill host and replaces Windsurf with Devin in its agent list; labels that wrapped awkwardly in the picker have also been fixed. The project now includes a code-review agent skill: instructions for an agent doing code review. Think of a toolbox gaining a new adapter for Grok while the old Windsurf slot is relabeled Devin, with no wrapped label getting in the way."
-              },
-              "original": "Add Grok skill host support by @tommaso-moro in [#13864](https://github.com/cli/cli/pull/13864)\nReplace Windsurf with Devin in `gh skill` agents by @tommaso-moro in [#13987](https://github.com/cli/cli/pull/13987)\nFix skill picker label wrapping by @tommaso-moro in [#13967](https://github.com/cli/cli/pull/13967)\nAdd a code review agent skill by @BagToad in [#14003](https://github.com/cli/cli/pull/14003)"
-            },
-            {
-              "title": {
-                "zh-TW": "驗證缺根憑證不再卡死，macOS 解鎖多等一分鐘",
-                "en": "Missing verifier roots no longer halt setup; macOS keyring access gets a minute"
-              },
-              "body": {
-                "zh-TW": "開啟 GitHub CLI 時，驗證器需要的 trusted root（用來確認信任鏈起點的根憑證）若缺失，初始化失敗現在會被妥善處理，不會讓這一步變成死結。macOS 的 keyring（存放登入金鑰的地方）若跳出互動式解鎖提示，等待時間也從 3 秒延到 60 秒。這版還補上 macOS keyring 的安全文件。像進大樓時保全發現名冊少一頁，會改走可處理的流程；而你正翻包找門禁卡，櫃台願意多等一分鐘。",
-                "en": "When GitHub CLI starts, verifier initialization can fail because a trusted root—the root certificate at the start of a chain of trust—is missing. That failure is now handled gracefully instead of becoming a dead end. On macOS, an interactive keyring access prompt now gets 60 seconds rather than 3 seconds. This release also adds security documentation for the macOS keyring. It is like a guard finding a page missing from a visitor list and following a workable procedure, while the desk gives you a full minute to find your access card."
-              },
-              "original": "Gracefully handle failed GitHub verifier initialization caused by a missing trusted root by @malancas in [#13624](https://github.com/cli/cli/pull/13624)\nBump keyring operation timeout from 3s to 60s so interactive unlock prompts have time to complete by @kofuk in [#13787](https://github.com/cli/cli/pull/13787)\nAdd a macOS keyring security doc by @williammartin in [#13960](https://github.com/cli/cli/pull/13960)\n@kofuk made their first contribution in https://github.com/cli/cli/pull/13787"
-            },
-            {
-              "title": {
-                "zh-TW": "專案自動流程整理：分流 issue、部署與依賴更新",
-                "en": "Project automation tidied: issue triage, deployment, and dependency updates"
-              },
-              "body": {
-                "zh-TW": "這張卡講的是 gh 專案自己的後勤，不是你今天要輸入的新指令。團隊新增 pull request 範本、用代理分流 issue 的 workflow，也新增 Dependabot 的分流流程；issue 分流 workflow 改用 Actions token 做 Copilot 推論，並更新到 gh-aw v0.83.1。部署 workflow 加強，網站部署用的 `SITE_DEPLOY_PAT` 改由 gh-cli-site-deployer App 取代。CodeQL 的 Dependabot 更新會分組處理，Go 與多個函式庫、Actions 也陸續升版；無效的 CODEOWNERS 規則與程式、文件、註解的錯字一併清掉。像倉庫後場重新排班：分貨、交接、補貨都各自有路走，前台的 CLI 使用方式沒有因此多一道手續。",
-                "en": "This card is about the gh project's own backstage work, not a new command for you to type today. The team adds a pull-request template, an agentic issue-triage workflow, and a Dependabot-triage workflow; the issue-triage workflow uses the Actions token for Copilot inference and is refreshed to gh-aw v0.83.1. The deployment workflow is hardened, and `SITE_DEPLOY_PAT` is replaced by the gh-cli-site-deployer App. CodeQL Dependabot updates are grouped, while Go, libraries, and Actions receive updates; a dead CODEOWNERS rule and typos in code, docs, and comments are removed. It is like reorganizing a warehouse back room: sorting, handoffs, and restocking each get their own route, without adding a step to the CLI counter."
-              },
-              "original": "Bump Go to 1.26.5 by @github-actions[bot] in [#13817](https://github.com/cli/cli/pull/13817)\nEstablish a pull request template for scale by @BagToad in [#14004](https://github.com/cli/cli/pull/14004)\nAdd an agentic issue-triage workflow by @lukewar in [#13777](https://github.com/cli/cli/pull/13777)\nUse the Actions token for Copilot inference in the issue-triage workflow by @tidy-dev in [#13830](https://github.com/cli/cli/pull/13830)\nRefresh the issue-triage agentic workflow to gh-aw v0.83.1 by @alondahari in [#13949](https://github.com/cli/cli/pull/13949)\nAdd a dependabot-triage agentic workflow by @williammartin in [#13985](https://github.com/cli/cli/pull/13985)\nHarden the deployment workflow by @niik in [#13780](https://github.com/cli/cli/pull/13780)\nReplace `SITE_DEPLOY_PAT` with the gh-cli-site-deployer App by @williammartin in [#13492](https://github.com/cli/cli/pull/13492)\nGroup CodeQL Dependabot updates by @williammartin in [#13943](https://github.com/cli/cli/pull/13943)\nRemove a dead CODEOWNERS rule for the non-existent `pkg/cmd/release/attestation/` by @kobihikri in [#13886](https://github.com/cli/cli/pull/13886)\nFix typos in code and documentation by @pstoeckle in [#13940](https://github.com/cli/cli/pull/13940)\nFix duplicated-word typos in comments by @SORBELLOSTEFANIE in [#13900](https://github.com/cli/cli/pull/13900)\nchore(deps): bump charm.land/lipgloss/v2 from 2.0.4 to 2.0.5 by @dependabot in [#13790](https://github.com/cli/cli/pull/13790)\nchore(deps): bump google.golang.org/grpc from 1.81.1 to 1.82.0 by @dependabot in [#13789](https://github.com/cli/cli/pull/13789)\nchore(deps): bump https://github.com/klauspost/compress from 1.18.6 to 1.19.0 by @dependabot in [#13791](https://github.com/cli/cli/pull/13791)\nchore(deps): bump charm.land/bubbletea/v2 from 2.0.7 to 2.0.8 by @dependabot in [#13800](https://github.com/cli/cli/pull/13800)\nchore(deps): bump golang.org/x/text from 0.38.0 to 0.39.0 by @dependabot in [#13812](https://github.com/cli/cli/pull/13812)\nchore(deps): bump golang.org/x/sys from 0.46.0 to 0.47.0 by @dependabot in [#13821](https://github.com/cli/cli/pull/13821)\nchore(deps): bump github/codeql-action/analyze from 4.36.2 to 4.36.3 by @dependabot in [#13801](https://github.com/cli/cli/pull/13801)\nchore(deps): bump github/gh-aw-actions/setup from 0.81.6 to 0.82.2 by @dependabot in [#13832](https://github.com/cli/cli/pull/13832)\nchore(deps): bump charm.land/bubbles/v2 from 2.1.0 to 2.1.1 by @dependabot in [#13813](https://github.com/cli/cli/pull/13813)\nchore(deps): bump golang.org/x/sync from 0.21.0 to 0.22.0 by @dependabot in [#13822](https://github.com/cli/cli/pull/13822)\nchore(deps): bump github/gh-aw-actions/setup from 0.82.2 to 0.82.3 by @dependabot in [#13843](https://github.com/cli/cli/pull/13843)\nchore(deps): bump actions/cache/restore from 5.0.5 to 6.1.0 by @dependabot in [#13841](https://github.com/cli/cli/pull/13841)\nchore(deps): bump golang.org/x/crypto from 0.53.0 to 0.54.0 by @dependabot in [#13867](https://github.com/cli/cli/pull/13867)\nchore(deps): bump github/codeql-action/analyze from 4.36.3 to 4.37.0 by @dependabot in [#13869](https://github.com/cli/cli/pull/13869)\nchore(deps): bump github/codeql-action/upload-sarif from 4.36.2 to 4.37.0 by @dependabot in [#13868](https://github.com/cli/cli/pull/13868)\nchore(deps): bump github/codeql-action/init from 4.36.3 to 4.37.1 by @dependabot in [#13870](https://github.com/cli/cli/pull/13870)\nchore(deps): bump https://github.com/yuin/goldmark from 1.8.2 to 1.8.4 by @dependabot in [#13888](https://github.com/cli/cli/pull/13888)\nchore(deps): bump https://github.com/sigstore/sigstore-go from 1.2.1 to 1.2.2 by @dependabot in [#13842](https://github.com/cli/cli/pull/13842)\nchore(deps): bump github/gh-aw-actions/setup from 0.82.3 to 0.82.8 by @dependabot in [#13877](https://github.com/cli/cli/pull/13877)\nchore(deps): bump actions/setup-go from 6.5.0 to 7.0.0 by @dependabot in [#13933](https://github.com/cli/cli/pull/13933)\nchore(deps): bump google.golang.org/grpc from 1.82.0 to 1.82.1 by @dependabot in [#13934](https://github.com/cli/cli/pull/13934)\nchore(deps): bump actions/setup-node from 6.4.0 to 7.0.0 by @dependabot in [#13936](https://github.com/cli/cli/pull/13936)\nchore(deps): bump actions/attest from 4.1.1 to 4.2.0 by @dependabot in [#13935](https://github.com/cli/cli/pull/13935)\nchore(deps): bump https://github.com/mattn/go-isatty from 0.0.22 to 0.0.23 by @dependabot in [#13937](https://github.com/cli/cli/pull/13937)\nchore(deps): bump github/gh-aw-actions/setup from 0.82.8 to 0.82.13 by @dependabot in [#13938](https://github.com/cli/cli/pull/13938)\nchore(deps): bump actions/checkout from 7.0.0 to 7.0.1 by @dependabot in [#13941](https://github.com/cli/cli/pull/13941)\nchore(deps): bump github/codeql-action/upload-sarif from 4.37.0 to 4.37.1 by @dependabot in [#13942](https://github.com/cli/cli/pull/13942)\nchore(deps): bump https://github.com/gabriel-vasile/mimetype from 1.4.13 to 1.4.14 by @dependabot in [#13944](https://github.com/cli/cli/pull/13944)\nchore(deps): bump nodeselector/setup-apple-codesign from ab275d0 to 309922b by @dependabot in [#13878](https://github.com/cli/cli/pull/13878)\nchore(deps): bump https://github.com/klauspost/compress from 1.19.0 to 1.19.1 by @dependabot in [#13950](https://github.com/cli/cli/pull/13950)\nchore(deps): bump github/gh-aw-actions/setup from 0.82.13 to 0.82.14 by @dependabot in [#13951](https://github.com/cli/cli/pull/13951)\nchore(deps): bump the codeql-actions group with 3 updates by @dependabot in [#13965](https://github.com/cli/cli/pull/13965)\nchore(deps): bump https://github.com/mattn/go-isatty from 0.0.23 to 0.0.24 by @dependabot in [#13977](https://github.com/cli/cli/pull/13977)\nchore(deps): bump the codeql-actions group with 3 updates by @dependabot in [#13978](https://github.com/cli/cli/pull/13978)\nchore(deps): bump https://github.com/gabriel-vasile/mimetype from 1.4.14 to 1.4.15 by @dependabot in [#13976](https://github.com/cli/cli/pull/13976)\nchore(deps): bump github/gh-aw-actions/setup from 0.83.1 to 0.83.2 by @dependabot in [#13979](https://github.com/cli/cli/pull/13979)\nchore(deps): bump github/gh-aw-actions/setup-cli from 0.83.1 to 0.83.2 by @dependabot in [#13980](https://github.com/cli/cli/pull/13980)\nchore(deps): bump actions/checkout from 6 to 7 by @dependabot in [#13981](https://github.com/cli/cli/pull/13981)\nchore(deps): bump github/gh-aw-actions/setup from 0.83.2 to 0.83.3 by @dependabot in [#13995](https://github.com/cli/cli/pull/13995)\nchore(deps): bump github/gh-aw-actions/setup-cli from 0.83.2 to 0.83.3 by @dependabot in [#13996](https://github.com/cli/cli/pull/13996)\nchore(deps): bump github/gh-aw-actions/setup-cli from 0.83.3 to 0.83.4 by @dependabot in [#14018](https://github.com/cli/cli/pull/14018)\n@lukewar made their first contribution in https://github.com/cli/cli/pull/13777\n@niik made their first contribution in https://github.com/cli/cli/pull/13780\n@kobihikri made their first contribution in https://github.com/cli/cli/pull/13886\n@pstoeckle made their first contribution in https://github.com/cli/cli/pull/13940\n@SORBELLOSTEFANIE made their first contribution in https://github.com/cli/cli/pull/13900\n@alondahari made their first contribution in https://github.com/cli/cli/pull/13949"
             }
           ]
         }
