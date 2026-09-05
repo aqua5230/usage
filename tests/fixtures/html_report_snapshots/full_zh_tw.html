@@ -158,12 +158,6 @@ h1{
 .cost{color:var(--cost)}
 .tokens,.cost,.pct{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .trend{display:grid;gap:6px}
-.daily-sparkline{margin-bottom:16px}
-.daily-sparkline svg{display:block;width:100%;height:120px;overflow:visible}
-.daily-sparkline-area{fill:var(--cost);fill-opacity:.14}
-.daily-sparkline-line{fill:none;stroke:var(--cost);stroke-width:2;vector-effect:non-scaling-stroke}
-.daily-sparkline-peak{fill:var(--warn);vector-effect:non-scaling-stroke}
-.daily-sparkline-dates{display:flex;justify-content:space-between;margin-top:6px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;font-size:.72rem}
 .trend-row{display:grid;grid-template-columns:56px minmax(0,1fr) 76px 84px;gap:16px;align-items:center;padding:7px 12px;border:1px solid transparent;border-radius:10px;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
 .trend-row:hover{transform:translateY(-1px);background:rgba(255,255,255,.03);border-color:var(--card-border);box-shadow:0 8px 22px rgba(0,0,0,.12)}
 .trend-row .week{color:var(--muted);font-size:.78rem;line-height:1.4}
@@ -482,7 +476,7 @@ td:first-child{color:var(--warn)}
     <section class="section">
       <div class="prompt"><span>[usage]&gt;</span> 每週燃燒趨勢</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="daily-sparkline"><svg viewBox="0 0 600 120" preserveAspectRatio="none" role="img" aria-label="每週燃燒趨勢"><polygon class="daily-sparkline-area" points="3.00,114.00 3.00,70.80 151.50,49.20 300.00,20.40 448.50,6.00 597.00,63.60 597.00,114.00"/><polyline class="daily-sparkline-line" points="3.00,70.80 151.50,49.20 300.00,20.40 448.50,6.00 597.00,63.60"/><circle class="daily-sparkline-peak" cx="448.50" cy="6.00" r="3"/></svg><div class="daily-sparkline-dates"><span>2026-05-04</span><span>2026-05-20</span></div></div><div class="trend"><div class="trend-row"><span class="week">W19</span><div class="trend-bar" aria-hidden="true"><div style="width:53.57%"></div></div><em>300.0K</em><span class="delta flat"></span></div><div class="trend-row"><span class="week">W20</span><div class="trend-bar" aria-hidden="true"><div style="width:100.00%"></div></div><em>560.0K</em><span class="delta up">↗ +87%</span></div><div class="trend-row"><span class="week">W21</span><div class="trend-bar" aria-hidden="true"><div style="width:25.00%"></div></div><em>140.0K</em><span class="delta down">↘ -75%</span></div><div class="trend-summary">→ 本週比上週少 75%。</div></div>
+      <div class="trend"><div class="trend-row"><span class="week">W19</span><div class="trend-bar" aria-hidden="true"><div style="width:53.57%"></div></div><em>300.0K</em><span class="delta flat"></span></div><div class="trend-row"><span class="week">W20</span><div class="trend-bar" aria-hidden="true"><div style="width:100.00%"></div></div><em>560.0K</em><span class="delta up">↗ +87%</span></div><div class="trend-row"><span class="week">W21</span><div class="trend-bar" aria-hidden="true"><div style="width:25.00%"></div></div><em>140.0K</em><span class="delta down">↘ -75%</span></div><div class="trend-summary">→ 本週比上週少 75%。</div></div>
     </section>
     
   

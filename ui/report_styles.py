@@ -153,12 +153,6 @@ h1{
 .cost{color:var(--cost)}
 .tokens,.cost,.pct{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .trend{display:grid;gap:6px}
-.daily-sparkline{margin-bottom:16px}
-.daily-sparkline svg{display:block;width:100%;height:120px;overflow:visible}
-.daily-sparkline-area{fill:var(--cost);fill-opacity:.14}
-.daily-sparkline-line{fill:none;stroke:var(--cost);stroke-width:2;vector-effect:non-scaling-stroke}
-.daily-sparkline-peak{fill:var(--warn);vector-effect:non-scaling-stroke}
-.daily-sparkline-dates{display:flex;justify-content:space-between;margin-top:6px;color:var(--muted);font-family:ui-monospace,SFMono-Regular,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;font-size:.72rem}
 .trend-row{display:grid;grid-template-columns:56px minmax(0,1fr) 76px 84px;gap:16px;align-items:center;padding:7px 12px;border:1px solid transparent;border-radius:10px;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
 .trend-row:hover{transform:translateY(-1px);background:rgba(255,255,255,.03);border-color:var(--card-border);box-shadow:0 8px 22px rgba(0,0,0,.12)}
 .trend-row .week{color:var(--muted);font-size:.78rem;line-height:1.4}

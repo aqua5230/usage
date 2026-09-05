@@ -30,7 +30,7 @@ from analyzer.reporter import (
 
 from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
-from ui.report_charts import render_daily_sparkline, render_share_bar, render_trend_bar
+from ui.report_charts import render_share_bar, render_trend_bar
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE
 from ui.report_styles import REPORT_CSS
 
@@ -44,9 +44,9 @@ def _t(lang: str, key: str, **kwargs: object) -> str:
     return _i18n_t(lang, f"report_{key}", **kwargs)
 
 def _fmt_tokens(value: int) -> str:
-    if value >= 1_000_000_000:
+    if value >= 999_950_000:
         return f"{value / 1_000_000_000:.2f}B"
-    if value >= 1_000_000:
+    if value >= 999_950:
         return f"{value / 1_000_000:.1f}M"
     if value >= 1_000:
         return f"{value / 1_000:.1f}K"
@@ -748,8 +748,7 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
 
 def _render_trend_section(data: Mapping[str, Any], lang: str, date_to: date) -> str:
     daily = data.get("daily_trend", [])
-    sparkline = render_daily_sparkline(daily, _t(lang, "trend_section"))
-    return _section(_t(lang, "trend_section"), sparkline + _trend_ascii(daily, lang, date_to))
+    return _section(_t(lang, "trend_section"), _trend_ascii(daily, lang, date_to))
 
 
 def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
