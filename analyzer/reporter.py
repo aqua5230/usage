@@ -37,7 +37,7 @@ _YEAR_WEEKS = 53
 YEAR_CACHE_PATH = Path(os.path.expanduser("~/.usage/year_cache.json"))
 YEAR_LEDGER_PATH = YEAR_CACHE_PATH.with_name("year_ledger.json")
 YEAR_CACHE_TTL_SECONDS = 6 * 3600
-_YEAR_CACHE_SCHEMA = 2
+_YEAR_CACHE_SCHEMA = 3
 _YEAR_LEDGER_SCHEMA = 1
 _YEAR_LEDGER_TRIM_BUFFER_DAYS = 60
 
@@ -156,6 +156,7 @@ class ContributionReportData(TypedDict):
 
 class WrappedReportData(TypedDict):
     year_label: str
+    weeks: int
     total_tokens: int
     total_cost: float
     active_days: int
@@ -732,6 +733,7 @@ def _build_year_output_from_ledger(
     }
     wrapped: WrappedReportData = {
         "year_label": str(today.year),
+        "weeks": _YEAR_WEEKS,
         "total_tokens": total_tokens,
         "total_cost": _round_cost(total_cost),
         "active_days": active_days,

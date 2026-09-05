@@ -552,8 +552,7 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
     tokens_sub = f"≈ {_fmt_tokens(total_tokens)}"
 
     if comparison.get("has_prev"):
-        vs_prev_key = "kpi_vs_prev_month" if comparison.get("period") == "month" else "kpi_vs_prev_week"
-        vs_prev_label = _t(lang, vs_prev_key)
+        vs_prev_label = _t(lang, "kpi_vs_prev_period")
         tokens_delta = _delta_sub(total_tokens, float(comparison.get("prev_tokens", 0)), vs_prev_label)
         if tokens_delta:
             tokens_sub = f"{tokens_sub} · {tokens_delta}"
@@ -967,6 +966,7 @@ def _render_wrapped_section(data: Mapping[str, Any], lang: str) -> str:
     if beast not in {"phoenix", "dragon"}:
         return ""
 
+    weeks = wrapped.get("weeks", 53)
     beast_name = _t(lang, f"wrapped_beast_{beast}_title")
     beast_caption = _t(lang, f"wrapped_beast_{beast}_caption")
     books = _estimate_books(int(wrapped.get("total_tokens", 0)))
@@ -979,14 +979,14 @@ def _render_wrapped_section(data: Mapping[str, Any], lang: str) -> str:
         f'<h3>{_escape(beast_name)}</h3>'
         f'<p class="wrapped-beast-line">{_escape(beast_caption)}</p>'
         f'<div class="wrapped-total">{_escape(_fmt_int(int(wrapped.get("total_tokens", 0))))}</div>'
-        f'<p class="wrapped-total-label">{_escape(_t(lang, "wrapped_total_tokens"))}</p>'
+        f'<p class="wrapped-total-label">{_escape(_t(lang, "wrapped_total_tokens", weeks=weeks))}</p>'
         f'<p class="wrapped-analogy">{_escape(_t(lang, "wrapped_books_equivalent", books=_fmt_int(books)))}</p>'
         '</div>'
         '<div class="wrapped-art">'
         f'<img src="{_escape(_sprite_data_uri(str(beast)))}" alt="{_escape(beast_name)}">'
         '</div>'
         '<div class="wrapped-metrics">'
-        f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_total_cost"))}</span><b>{_escape(_fmt_cost(float(wrapped.get("total_cost", 0.0))))}</b></div>'
+        f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_total_cost", weeks=weeks))}</span><b>{_escape(_fmt_cost(float(wrapped.get("total_cost", 0.0))))}</b></div>'
         f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_active_days"))}</span><b>{_escape(_fmt_int(int(wrapped.get("active_days", 0))))}</b></div>'
         f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_longest_streak"))}</span><b>{_escape(_fmt_int(int(wrapped.get("longest_streak", 0))))} {_escape(_t(lang, "contribution_days_unit"))}</b></div>'
         f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_top_model"))}</span><b>{_escape(top_model)}</b></div>'
