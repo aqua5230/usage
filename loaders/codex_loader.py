@@ -156,7 +156,7 @@ def _sqlite_file_fingerprint(path: Path) -> _SqliteFileFingerprint:
 
 # Disk cache for JSONL parsing results. Schema version must be bumped when the
 # serialization format or parsing logic changes incompatibly.
-_CODEX_JSONL_CACHE_SCHEMA = 4
+_CODEX_JSONL_CACHE_SCHEMA = 5
 JSONL_CACHE_PATH = Path(os.path.expanduser("~/.usage/codex_jsonl_cache.json"))
 
 # Module-level flag to ensure seed loading happens exactly once.

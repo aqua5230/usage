@@ -53,6 +53,24 @@ def test_resolve_project_name_uses_first_worktree_basename(
     assert project_resolver.resolve_project_name("/work/feature") == "main-project"
 
 
+def test_resolve_project_name_removes_bare_repo_suffix(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    run = Mock(return_value=_completed(0, stdout="worktree /Users/me/git/obsidian00.git\n"))
+    monkeypatch.setattr("project_resolver.subprocess.run", run)
+
+    assert project_resolver.resolve_project_name("/work/feature") == "obsidian00"
+
+
+def test_resolve_project_name_falls_back_for_bare_repo_named_git(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    run = Mock(return_value=_completed(0, stdout="worktree /Users/me/src/.git\n"))
+    monkeypatch.setattr("project_resolver.subprocess.run", run)
+
+    assert project_resolver.resolve_project_name("/work/feature") == "feature"
+
+
 def test_resolve_project_name_falls_back_for_non_git_repo(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

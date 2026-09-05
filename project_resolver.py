@@ -54,7 +54,11 @@ def _resolve_project_name(normalized_cwd: str) -> str:
     main_path = first_line.removeprefix(prefix).strip()
     if not main_path:
         return fallback
-    return Path(main_path).name or fallback
+    # Bare repository paths end in .git.
+    name = Path(main_path).name
+    if name.endswith(".git"):
+        name = name[: -len(".git")]
+    return name or fallback
 
 
 def project_from_encoded_path(jsonl_path: Path, projects_dir: Path) -> str:

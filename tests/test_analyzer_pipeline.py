@@ -940,6 +940,66 @@ def test_read_year_ledger_preserves_older_days_without_model_tokens(
     assert ledger["days"]["2026-06-17"]["model_tokens"] == {}
 
 
+def test_read_year_ledger_merges_git_project_names(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    ledger_path = tmp_path / "year_ledger.json"
+    ledger_path.write_text(
+        json.dumps(
+            {
+                "schema_version": reporter._YEAR_LEDGER_SCHEMA,
+                "days": {
+                    "2026-06-17": {
+                        "total_tokens": 150,
+                        "cost": 1.5,
+                        "model_tokens": {"model.git": 150},
+                        "project_tokens": {"obsidian00": 100, "obsidian00.git": 50},
+                        "agent_tokens": {"agent.git": 150},
+                        "sessions": 2,
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", ledger_path)
+
+    ledger = reporter._read_year_ledger()
+
+    assert ledger["days"]["2026-06-17"]["project_tokens"] == {"obsidian00": 150}
+    assert ledger["days"]["2026-06-17"]["model_tokens"] == {"model.git": 150}
+    assert ledger["days"]["2026-06-17"]["agent_tokens"] == {"agent.git": 150}
+
+
+def test_read_year_ledger_preserves_dot_git_project_name(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    ledger_path = tmp_path / "year_ledger.json"
+    ledger_path.write_text(
+        json.dumps(
+            {
+                "schema_version": reporter._YEAR_LEDGER_SCHEMA,
+                "days": {
+                    "2026-06-17": {
+                        "total_tokens": 10,
+                        "cost": 0.0,
+                        "project_tokens": {".git": 10},
+                        "sessions": 1,
+                    },
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", ledger_path)
+
+    ledger = reporter._read_year_ledger()
+
+    assert ledger["days"]["2026-06-17"]["project_tokens"] == {".git": 10}
+
+
 def test_read_year_ledger_quarantines_invalid_json(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

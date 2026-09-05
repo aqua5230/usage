@@ -487,6 +487,14 @@ def _token_map(value: object) -> dict[str, int]:
     return tokens
 
 
+def _normalize_project_tokens(tokens: dict[str, int]) -> dict[str, int]:
+    normalized: dict[str, int] = {}
+    for key, count in tokens.items():
+        project = key.removesuffix(".git") or key
+        normalized[project] = normalized.get(project, 0) + count
+    return normalized
+
+
 def _year_day_from_json(value: object) -> _YearDay | None:
     if not isinstance(value, dict):
         return None
@@ -506,7 +514,7 @@ def _year_day_from_json(value: object) -> _YearDay | None:
         "total_tokens": total_tokens,
         "cost": float(cost),
         "model_tokens": _token_map(value.get("model_tokens")),
-        "project_tokens": _token_map(value.get("project_tokens")),
+        "project_tokens": _normalize_project_tokens(_token_map(value.get("project_tokens"))),
         "agent_tokens": _token_map(value.get("agent_tokens")),
         "sessions": sessions,
     }
