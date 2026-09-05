@@ -514,6 +514,34 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.153.4",
+          "period": "2026-09-04",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Astra 現身內建模型挑選器，未明確設定時成為預設選項",
+                "en": "Astra now visible in the bundled model picker, becomes default when unconfigured"
+              },
+              "body": {
+                "zh-TW": "當你開啟 Codex 準備寫程式時，如果沒有在設定中明確指定特定模型，現在會直接以 Astra 作為內建預設模型。過去 Astra 在內建的模型挑選器（供切換不同 AI 版本的選單）中可能無法正常看見，這次更新修復了顯示問題，讓它清楚出現在挑選清單供你點選；只要你未額外指定其他模型，它就會自動接手你的開發工作。⟦這就像走進專業工作間，出廠預設直接由全能技師接手派工，工具牆上的值班清單也正式掛出他的名牌，即使進門前沒特別指定師傅，也能直接享有標準服務。⟧這讓尚未配置偏好模型的日常操作能直接使用 Astra ，切換時也能在清單中快速找到。",
+                "en": "When you open Codex to start coding, if no specific model is explicitly configured, Astra now serves directly as the bundled default model. Previously, Astra could fail to appear properly in the bundled model picker (a menu for switching between different AI versions); this update fixes the visibility issue, so it now shows up clearly in the selection list for you to pick; as long as you haven't specified another model, it automatically takes over your development work. ⟦It's like walking into a professional workshop where, by factory default, an all-around technician takes over your job assignment, and their name is now properly posted on the duty roster on the tool wall—even if you didn't specify a technician before walking in, you still get standard service right away.⟧ This lets everyday operations without a configured preferred model use Astra directly, and it can also be found quickly in the list when switching."
+              },
+              "original": "Fixed Astra’s visibility in the bundled model picker and made it the bundled default when no model is explicitly configured. (#42874)"
+            },
+            {
+              "title": {
+                "zh-TW": "Astra 調整非同步提問指引，僅在工作階段提供工具時發問",
+                "en": "Astra's async-question guidance updated to ask only when the session provides the tool"
+              },
+              "body": {
+                "zh-TW": "交給 Astra 處理複雜任務時，它在背景發問確認的行為現在更精準。這次更新調整了 Astra 的內建指引，明確限制它只有在目前工作階段確實具備提問工具時，才能向你發起非同步提問（在背景等候回覆、不卡住手邊工作的發問機制）。以前若環境未提供相應工具，模型可能仍會嘗試發送背景問題；現在有了這層條件約束，提問動作只會在支援的環境下觸發。⟦這如同野外巡邏隊員在遇到狀況時，會先檢查隨身裝備是否配有無線電對講機，只有在通訊器材完備時才向總部回傳發問，不會對著沒有訊號的空耳機呼叫。⟧如此一來，工作階段在缺乏提問模組時能維持穩定運行，不會被不合時宜的發問中斷。",
+                "en": "When you hand Astra a complex task, its behavior of asking background confirmation questions is now more precise. This update adjusts Astra's built-in guidance, explicitly restricting it to initiate asynchronous questions to you (a mechanism that waits for a reply in the background without blocking your current work) only when the tool for questions is actually available in the current session. Previously, if the environment didn't provide the corresponding tool, the model could still attempt to send background questions; now with this condition in place, the questioning action only triggers in a supported environment. ⟦This is like a field patrol officer who, upon encountering a situation, first checks whether their gear includes a radio—only reporting back to headquarters with questions when the communication equipment is in place, rather than calling into a signal-less, empty headset.⟧ As a result, the session can keep running stably even when the questioning module is unavailable, without being interrupted by an ill-timed question."
+              },
+              "original": "Updated Astra’s guidance to use asynchronous questions only when the tool is available in the session. (#42878)"
+            }
+          ]
+        },
+        {
           "version": "0.153.3",
           "period": "2026-09-04",
           "items": [
@@ -555,23 +583,6 @@
                 "en": "When selecting model tiers, you will notice an updated description for the GPT-6-Astra Fast tier. The interface now clearly displays \"2x speed, increased usage\" instead of the previous \"1.5x\" label. This update is strictly a correction to the displayed text; how requests are sent and how the model operates behind the scenes remain identical, with no change to runtime performance. ⟦It is like a courier branch correcting a poster label for express delivery from 1.5x to 2x; the fleet's delivery routes and driving speeds remain unchanged, simply replacing the misprinted promotional wording with the accurate text.⟧ Therefore, there is no need for concern when seeing the adjusted numbers in the interface, as all commands and requests continue to function normally as before."
               },
               "original": "Corrected the GPT-6-Astra Fast tier description to say “2x speed, increased usage” instead of “1.5x.” This changes only the displayed text, not how requests run. (#42632)"
-            }
-          ]
-        },
-        {
-          "version": "0.153.1",
-          "period": "2026-09-03",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "API 支援指定 GPT-6-Astra，不改預設也不進選單",
-                "en": "Support specifying GPT-6-Astra via API without changing defaults or appearing in the picker"
-              },
-              "body": {
-                "zh-TW": "如果你透過 API 串接 Codex 跑程式，現在可以直接在呼叫時指定使用 GPT-6-Astra 模型。它既不會動到你日常使用的預設模型，也不會出現在模型挑選器（model picker，供手動切換模型的選單）裡面。這讓需要特定模型的後端腳本能順利運作，一般在介面挑模型的人看不到這個選項。⟦這就像餐廳為外燴訂單開放私房菜色，廚房能照單出菜，但大廳的常態菜單與櫃檯點餐看板依然維持原樣，不必擔心常客點餐時眼花。⟧",
-                "en": "If you connect to Codex via API to run code, you can now specify the GPT-6-Astra model directly in your API calls. It will neither modify your everyday default model nor appear in the model picker (the menu for manually switching models). This allows backend scripts requiring a specific model to run smoothly without exposing the option to users selecting models in the interface. ⟦It is like a restaurant offering off-menu specialties exclusively for catering orders: the kitchen prepares them as requested, while the dining hall's regular menu and ordering board remain unchanged, preventing regular diners from getting confused when ordering.⟧"
-              },
-              "original": "Added support for configuring GPT-6-Astra through the API without changing the default model or showing it in the model picker. (#42605)"
             }
           ]
         }
