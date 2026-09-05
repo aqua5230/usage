@@ -679,14 +679,14 @@ def _render_tools_section(data: Mapping[str, Any], lang: str) -> str:
     return _section(_t(lang, "tools_section"), tools_body, "tools-section")
 
 
-def _cache_hit_rate(row: Mapping[str, Any]) -> str:
+def _cache_hit_rate(row: Mapping[str, Any]) -> float | None:
     cache_read = int(row.get("cache_read_tokens", 0))
     context_tokens = (
         int(row.get("input_tokens", 0))
         + int(row.get("cache_creation_tokens", 0))
         + cache_read
     )
-    return "—" if context_tokens == 0 else f"{cache_read / context_tokens * 100:.1f}%"
+    return None if context_tokens == 0 else cache_read / context_tokens * 100
 
 
 def _render_composition_section(data: Mapping[str, Any], lang: str) -> str:
@@ -698,31 +698,48 @@ def _render_composition_section(data: Mapping[str, Any], lang: str) -> str:
         ("cache_read", int(summary.get("cache_read_tokens", 0))),
     ]
     total = sum(tokens for _key, tokens in parts)
-    segments = "".join(
-        f'<span style="width:{tokens / total * 100:.1f}%;background:{_PALETTE[index]}" '
-        f'title="{_escape(_t(lang, f"composition_{key}"))}: {tokens / total * 100:.1f}%">'
-        f'{tokens / total * 100:.1f}%</span>'
-        for index, (key, tokens) in enumerate(parts)
-        if tokens > 0 and total > 0
-    )
-    labels = "".join(
-        f'<span><i style="background:{_PALETTE[index]}"></i>{_escape(_t(lang, f"composition_{key}"))}</span>'
-        for index, (key, _tokens) in enumerate(parts)
-    )
-    agents = "".join(
-        '<div style="display:flex;justify-content:space-between;gap:16px">'
-        f'<span>{_escape(agent["name"])}</span>'
-        f'<span>{_escape(_t(lang, "composition_hit_rate"))} { _cache_hit_rate(agent)}</span>'
+    if total <= 0:
+        return ""
+    colors = {key: _PALETTE[index] for index, (key, _tokens) in enumerate(parts)}
+
+    # One row per class rather than a single stacked bar: cache reads dominate the
+    # total so heavily that every other segment collapses into an unreadable sliver.
+    rows = "".join(
+        '<div class="rank-line">'
+        '<span class="arrow">&rarr;</span>'
+        f'<span class="name">{_escape(_t(lang, f"composition_{key}"))}'
+        f'{render_share_bar(tokens / total * 100, colors[key])}</span>'
+        f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">'
+        f'{tokens / total * 100:>5.1f}%</span>'
+        f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">'
+        f'{_fmt_tokens(tokens)}</span>'
         "</div>"
-        for agent in data.get("by_agent", [])
+        for key, tokens in sorted(parts, key=lambda item: -item[1])
+        if tokens > 0
     )
+
+    agent_rows = []
+    for agent in sorted(
+        data.get("by_agent", []),
+        key=lambda row: (_cache_hit_rate(row) is None, -(_cache_hit_rate(row) or 0.0)),
+    ):
+        rate = _cache_hit_rate(agent)
+        agent_rows.append(
+            '<div class="rank-line">'
+            '<span class="arrow">&rarr;</span>'
+            f'<span class="name">{_escape(_display_name(agent["name"], lang))}'
+            f'{render_share_bar(rate or 0.0, _PALETTE[3])}</span>'
+            f'<span class="pct" data-label="{_escape(_t(lang, "composition_hit_rate"))}">'
+            f'{"&mdash;" if rate is None else f"{rate:>5.1f}%"}</span>'
+            "</div>"
+        )
+
     body = (
-        '<div style="display:flex;height:28px;overflow:hidden;border-radius:999px;background:var(--faint);font-size:11px;color:#fff">'
-        f"{segments}</div>"
-        '<div style="display:flex;flex-wrap:wrap;gap:8px 16px;margin:8px 0;font-size:12px">'
-        f"{labels}</div>"
-        f'<p style="margin:0 0 10px">{_escape(_t(lang, "composition_hint"))}</p>'
-        f'<div style="display:grid;gap:6px">{agents}</div>'
+        f'<div class="rank-list">{rows}</div>'
+        f'<p class="composition-hint">{_escape(_t(lang, "composition_hint"))}</p>'
+        f'<div class="rank-head"><span></span>'
+        f'<span>{_escape(_t(lang, "composition_hit_rate"))}</span></div>'
+        f'<div class="rank-list">{"".join(agent_rows)}</div>'
     )
     return _section(_t(lang, "composition_section"), body)
 

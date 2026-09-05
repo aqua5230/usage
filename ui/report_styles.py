@@ -135,6 +135,7 @@ h1{
 .prompt{font-size:.95rem;color:var(--text);margin-bottom:6px;font-weight:600;display:flex;align-items:center;gap:8px}
 .rule{font-size:0;height:1px;background:linear-gradient(90deg,var(--card-border),transparent);margin-bottom:16px;border:none}
 .rank-list{display:grid;gap:4px}
+.composition-hint{margin:10px 0 14px;color:var(--text-soft)}
 .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 92px 88px;gap:16px;align-items:center}
 .rank-head{padding:0 12px 8px;color:var(--muted);font-size:.72rem;font-weight:600;line-height:1.4;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
 .rank-head>span:nth-child(n+3){text-align:right}
