@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### Fixed
+- **互動式 dashboard 現在會顯示 Antigravity 用量，表格標題也統一使用正確名稱。** dashboard 與 `usage report` 各自維護一份 agent 到 loader 的對照表，但只有 report 那份包含 `antigravity`，所以偵測到 Antigravity 後，dashboard 分頁仍顯示 `No data`，report 指令卻能載入用量。終端機表格也漏了 Antigravity 的短名與顯示名稱，標題因而退回原始的小寫 agent id。兩份 map 原本沒有一致性檢查，第一版回歸測試又寫死三個已知 agent，沒有直接比較兩份 map，無法持續鎖住兩邊的鍵；現在改為斷言鍵集合完全相同。由 @ClarenceKuo 於 #126 回報並修正。
+
 ## [0.30.8] - 2026-09-05
 
 ### Fixed

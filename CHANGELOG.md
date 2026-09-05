@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+- **Antigravity usage now appears in the interactive dashboard with consistent labels.** The dashboard and `usage report` maintain separate agent-to-loader maps, and only the report map included `antigravity`, so a detected Antigravity installation opened a dashboard tab that rendered `No data` even though the report command could load its usage. The terminal tables also lacked Antigravity's short and display names, leaving their headings as the raw lowercase agent ID. The maps had no parity check, and the first regression test hard-coded the three known agents instead of comparing the two maps, so it could not keep their keys synchronized; it now asserts exact key equality. Reported and fixed by @ClarenceKuo in #126.
+
 ## [0.30.8] - 2026-09-05
 
 ### Fixed
