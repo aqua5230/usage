@@ -253,7 +253,7 @@ def test_project_quota_warns_when_session_will_empty_before_reset() -> None:
     assert projection is not None
     assert projection.session.warning is True
     assert projection.session.reset_text == (
-        "⚠ At current pace, empty in 6m (resets in 1h 30m)"
+        "⚠ Empty in 6m · resets in 1h 30m"
     )
 
 

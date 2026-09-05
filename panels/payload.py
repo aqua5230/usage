@@ -94,6 +94,7 @@ def _row_payload(row: QuotaRowState) -> dict[str, object]:
         "percent": row.percent,
         "percentText": row.percent_text,
         "resetText": row.reset_text,
+        "resetTextCompact": row.reset_text_compact or row.reset_text,
         "warning": row.warning,
         "available": row.available,
         "title": row.title,

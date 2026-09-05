@@ -981,19 +981,19 @@
       updateDuel(
         "session",
         claudeSession.percent ?? 0, claudeSession.percentText ?? "--",
-        claudeSession.resetText ?? t("reset_placeholder"), claudeSession.warning,
+        claudeSession.resetTextCompact ?? claudeSession.resetText ?? t("reset_placeholder"), claudeSession.warning,
         claudeSession.available,
         codexSession.percent ?? 0, codexSession.percentText ?? "--",
-        codexSession.resetText ?? t("reset_placeholder"), codexSession.warning,
+        codexSession.resetTextCompact ?? codexSession.resetText ?? t("reset_placeholder"), codexSession.warning,
         codexSession.available
       );
       updateDuel(
         "weekly",
         claudeWeekly.percent ?? 0, claudeWeekly.percentText ?? "--",
-        claudeWeekly.resetText ?? t("reset_placeholder"), claudeWeekly.warning,
+        claudeWeekly.resetTextCompact ?? claudeWeekly.resetText ?? t("reset_placeholder"), claudeWeekly.warning,
         claudeWeekly.available,
         codexWeekly.percent ?? 0, codexWeekly.percentText ?? "--",
-        codexWeekly.resetText ?? t("reset_placeholder"), codexWeekly.warning,
+        codexWeekly.resetTextCompact ?? codexWeekly.resetText ?? t("reset_placeholder"), codexWeekly.warning,
         codexWeekly.available
       );
 

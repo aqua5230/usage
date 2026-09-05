@@ -413,7 +413,8 @@ def test_quota_row_uses_burn_warning_when_forecast_exceeds_risk_threshold() -> N
     )
 
     assert row.warning is True
-    assert row.reset_text == "⚠ 按目前速度 18分鐘 就會用完(重置還要 51分鐘)"
+    assert row.reset_text == "⚠ 18分鐘後用完 · 重置 51分鐘"
+    assert row.reset_text_compact == "⚠ 18分鐘後用完"
 
 def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
     row = menubar._quota_row(
@@ -428,6 +429,7 @@ def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
 
     assert row.warning is False
     assert row.reset_text == "重置 18分鐘"
+    assert row.reset_text_compact == ""
 
 
 def test_quota_row_keeps_reset_text_when_forecast_exceeds_warning_max() -> None:
@@ -2752,7 +2754,7 @@ def test_state_from_outcome_replaces_claude_reset_with_warning(
     state = _build_popover_state(delegate, outcome, _codex_rows(delegate)[0])
 
     assert state.claude_session.warning is True
-    assert state.claude_session.reset_text == "⚠ 按目前速度 18分鐘 就會用完(重置還要 51分鐘)"
+    assert state.claude_session.reset_text == "⚠ 18分鐘後用完 · 重置 51分鐘"
 
 
 def test_codex_rows_ignores_invalid_stale_timestamp(

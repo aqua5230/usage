@@ -91,6 +91,7 @@ class QuotaRowState:
     color: tuple[float, float, float]
     warning: bool = False
     available: bool = True
+    reset_text_compact: str = ""
 
 
 class CodexStaleState(TypedDict):
@@ -955,11 +956,11 @@ def _quota_row(
         return _missing_row(title, color, language)
     pct = max(0.0, min(100.0, float(pct)))
     time_to_reset = resets_at - now
+    warning_seconds: float | None = None
     if time_to_reset < 60:
         reset_text = _t(language, "reset_imminent")
         warning = False
     else:
-        warning_seconds: float | None = None
         if (
             forecast_seconds is not None
             and 0 < forecast_seconds < time_to_reset
@@ -981,7 +982,7 @@ def _quota_row(
                 "reset_in",
                 time=format_human_time(time_to_reset, language),
             )
-    return QuotaRowState(
+    row = QuotaRowState(
         title=title,
         percent=pct,
         percent_text=_t(language, "percent_used", value=_format_percent(pct)),
@@ -990,6 +991,13 @@ def _quota_row(
         warning=warning,
         available=True,
     )
+    if warning_seconds is not None:
+        row.reset_text_compact = _t(
+            language,
+            "burn_warning_compact",
+            empty=format_human_time(warning_seconds, language),
+        )
+    return row
 
 
 def _missing_row(
