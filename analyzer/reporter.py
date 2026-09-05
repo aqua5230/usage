@@ -19,10 +19,10 @@ import tempfile
 import time
 from typing import Any, NotRequired, TypedDict, cast
 
-from loaders import codex_loader
+from loaders import cache_quarantine, codex_loader
 from analyzer import persona_loader
 from analyzer import subscription
-from adapters import agy, claude, codex
+from adapters import agy, claude, codex, grok
 from adapters.types import AgentInfo, UsageEntry
 from pricing import calculate_cost, is_model_priced
 
@@ -31,13 +31,13 @@ from . import diagnoser
 
 logger = logging.getLogger(__name__)
 
-AGENT_LOADERS = {"claude-code": claude, "codex": codex, "antigravity": agy}
+AGENT_LOADERS = {"claude-code": claude, "codex": codex, "antigravity": agy, "grok": grok}
 AGENT_NAMES = {"claude-code": "Claude Code", "codex": "Codex"}
 _YEAR_WEEKS = 53
 YEAR_CACHE_PATH = Path(os.path.expanduser("~/.usage/year_cache.json"))
 YEAR_LEDGER_PATH = YEAR_CACHE_PATH.with_name("year_ledger.json")
 YEAR_CACHE_TTL_SECONDS = 6 * 3600
-_YEAR_CACHE_SCHEMA = 1
+_YEAR_CACHE_SCHEMA = 2
 _YEAR_LEDGER_SCHEMA = 1
 _YEAR_LEDGER_TRIM_BUFFER_DAYS = 60
 
@@ -523,14 +523,22 @@ def _read_year_ledger() -> _YearLedger:
                 YEAR_LEDGER_PATH,
                 exc_info=True,
             )
+        cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger unreadable")
         return _empty_year_ledger()
 
     if not isinstance(ledger, dict):
+        cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger schema unreadable")
         return _empty_year_ledger()
     if ledger.get("schema_version") != _YEAR_LEDGER_SCHEMA:
-        return _empty_year_ledger()
+        logger.warning(
+            "year ledger schema mismatch in %s: expected %s, got %s; salvaging days",
+            YEAR_LEDGER_PATH,
+            _YEAR_LEDGER_SCHEMA,
+            ledger.get("schema_version"),
+        )
     raw_days = ledger.get("days")
     if not isinstance(raw_days, dict):
+        cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger schema unreadable")
         return _empty_year_ledger()
 
     days: dict[str, _YearDay] = {}
@@ -544,6 +552,9 @@ def _read_year_ledger() -> _YearLedger:
         day = _year_day_from_json(raw_day)
         if day is not None:
             days[day_key] = day
+    if raw_days and not days:
+        cache_quarantine.quarantine(YEAR_LEDGER_PATH, "year ledger days unparseable")
+        return _empty_year_ledger()
     return {
         "schema_version": _YEAR_LEDGER_SCHEMA,
         "days": days,

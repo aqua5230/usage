@@ -33,3 +33,6 @@ SESSION.md
 
 # Misplaced Claude auto-memory (real location is ~/.claude/projects/.../memory/)
 /memory/
+
+# 子代理每次派工的工作筆記，不進版本庫
+implementation-notes.md

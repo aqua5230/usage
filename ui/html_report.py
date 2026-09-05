@@ -36,10 +36,6 @@ from ui.report_styles import REPORT_CSS
 
 
 
-# Rough USD→TWD rate for the zh-TW cost hint only. A display estimate (prefixed
-# with ≈), not a live FX lookup — bump it if it drifts too far from reality.
-_USD_TO_TWD = 32
-
 def _t(lang: str, key: str, **kwargs: object) -> str:
     return _i18n_t(lang, f"report_{key}", **kwargs)
 
@@ -528,8 +524,7 @@ def _narrative(data: ReportData, lang: str, is_empty: bool) -> str:
 
 def _cost_value(cost_usd: float, lang: str) -> tuple[str, str]:
     main = _fmt_cost(cost_usd)
-    sub = f"≈ NT${cost_usd * _USD_TO_TWD:,.0f}" if lang == "zh-TW" else ""
-    return main, sub
+    return main, ""
 
 
 def _render_cards_section(cards: list[tuple[str, str, str]]) -> str:
@@ -562,6 +557,17 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
         cost_delta = _delta_sub(cost_usd, float(comparison.get("prev_cost", 0)), vs_prev_label)
         if cost_delta:
             cost_sub = f"{cost_sub} · {cost_delta}" if cost_sub else cost_delta
+
+    unpriced_tokens = sum(
+        int(model["tokens"])
+        for model in data["by_model"]
+        if not model.get("cost_known", True) and int(model["tokens"]) > 0
+    )
+    if unpriced_tokens:
+        cost_unpriced = _t(
+            lang, "kpi_cost_unpriced", tokens=_fmt_tokens(unpriced_tokens)
+        )
+        cost_sub = f"{cost_sub} · {cost_unpriced}" if cost_sub else cost_unpriced
 
     cards = [
         (_t(lang, "kpi_tokens"), f"{total_tokens:,}", tokens_sub),

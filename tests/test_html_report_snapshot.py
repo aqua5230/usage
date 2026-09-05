@@ -376,6 +376,34 @@ def test_generate_html_matches_golden_snapshot(
     assert html_report.generate_html(data, language=language) == expected
 
 
+def test_generate_html_omits_unpriced_cost_note_when_all_models_are_priced() -> None:
+    data = _full_report_data()
+    for model in data["by_model"]:
+        model["cost_known"] = True
+
+    html = html_report.generate_html(data, language="zh-TW")
+
+    assert "無公開價格" not in html
+
+
+def test_generate_html_shows_formatted_unpriced_cost_note() -> None:
+    data = _full_report_data()
+    data["by_model"].append(
+        {
+            "model": "grok-4",
+            "pct": 0.0,
+            "tokens": 1234567,
+            "cost": 0.0,
+            "cost_known": False,
+        }
+    )
+
+    html = html_report.generate_html(data, language="zh-TW")
+
+    assert "另有 1.2M tokens 無公開價格" in html
+    assert "另有 1234567 tokens 無公開價格" not in html
+
+
 def test_generate_html_contains_snake_easter_egg() -> None:
     html = html_report.generate_html(_empty_report_data(), language="en")
 

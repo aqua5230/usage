@@ -119,5 +119,6 @@ def test_registry_includes_antigravity(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("adapters.registry.claude.detect", lambda: None)
     monkeypatch.setattr("adapters.registry.codex.detect", lambda: None)
     monkeypatch.setattr("adapters.registry.agy.detect", lambda: info)
+    monkeypatch.setattr("adapters.registry.grok.detect", lambda: None)
 
     assert registry.detect_agents() == [info]

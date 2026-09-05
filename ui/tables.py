@@ -72,12 +72,13 @@ def _width_mode() -> str:
     return "wide"
 
 
-AGENT_SHORT = {"claude-code": "CC", "codex": "Codex", "antigravity": "AGY"}
+AGENT_SHORT = {"claude-code": "CC", "codex": "Codex", "antigravity": "AGY", "grok": "Grok"}
 
 AGENT_LABEL = {
     "claude-code": "Claude Code",
     "codex": "Codex",
     "antigravity": "Antigravity",
+    "grok": "Grok",
 }
 
 

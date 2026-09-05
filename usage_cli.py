@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from loaders import codex_loader
-from adapters import agy, claude, codex
+from adapters import agy, claude, codex, grok
 from adapters.rate_limits import load_rate_limits as load_claude_rate_limits
 from adapters.registry import detect_agents
 from adapters.types import AgentInfo, RateLimits
@@ -31,7 +31,7 @@ from ui.tables import (
 AGENT_ALIASES = {"claude": "claude-code", "codex": "codex"}
 # 「antigravity」要跟 analyzer/reporter.py 的 AGENT_LOADERS 同步——漏了它，
 # 互動式 dashboard 的 Antigravity 分頁會渲染成 "No data"（report 指令卻有資料）。
-AGENT_LOADERS = {"claude-code": claude, "codex": codex, "antigravity": agy}
+AGENT_LOADERS = {"claude-code": claude, "codex": codex, "antigravity": agy, "grok": grok}
 
 
 def _load_codex_rate_limits() -> RateLimits | None:
