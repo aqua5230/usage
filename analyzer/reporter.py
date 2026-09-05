@@ -58,6 +58,10 @@ class _YearLedger(TypedDict):
 
 class SummaryReportData(TypedDict):
     total_tokens: int
+    input_tokens: int
+    output_tokens: int
+    cache_creation_tokens: int
+    cache_read_tokens: int
     cost_usd: float
     sessions: int
     messages: int
@@ -69,6 +73,10 @@ class AgentReportRow(TypedDict):
     id: str
     name: str
     tokens: int
+    input_tokens: int
+    output_tokens: int
+    cache_creation_tokens: int
+    cache_read_tokens: int
     cost: float
     sessions: int
     messages: int
@@ -915,7 +923,18 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     total_days = (date_to - date_from).days + 1
     comparison = _build_comparison(raw_entries, entry_dates, period, date_from, date_to)
 
-    by_agent_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0, "sessions": set(), "messages": 0})
+    by_agent_totals: dict[str, dict[str, Any]] = defaultdict(
+        lambda: {
+            "tokens": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cache_creation_tokens": 0,
+            "cache_read_tokens": 0,
+            "cost": 0.0,
+            "sessions": set(),
+            "messages": 0,
+        }
+    )
     by_project_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0, "sessions": set()})
     by_model_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0})
     by_model_project: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
@@ -926,6 +945,10 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         total_cost += cost
         agent_totals = by_agent_totals[entry.agent_id or "unknown"]
         agent_totals["tokens"] += entry.total_tokens
+        agent_totals["input_tokens"] += entry.input_tokens
+        agent_totals["output_tokens"] += entry.output_tokens
+        agent_totals["cache_creation_tokens"] += entry.cache_creation_tokens
+        agent_totals["cache_read_tokens"] += entry.cache_read_tokens
         agent_totals["cost"] += cost
         agent_totals["sessions"].add(entry.session_id)
         agent_totals["messages"] += entry.message_count
@@ -952,6 +975,10 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             "id": agent_id,
             "name": agent_names.get(agent_id, AGENT_NAMES.get(agent_id, agent_id)),
             "tokens": data["tokens"],
+            "input_tokens": data["input_tokens"],
+            "output_tokens": data["output_tokens"],
+            "cache_creation_tokens": data["cache_creation_tokens"],
+            "cache_read_tokens": data["cache_read_tokens"],
             "cost": _round_cost(data["cost"]),
             "sessions": len(data["sessions"]),
             "messages": data["messages"],
@@ -1018,6 +1045,10 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         "date_to": date_to.isoformat(),
         "summary": {
             "total_tokens": total_tokens,
+            "input_tokens": sum(entry.input_tokens for entry in entries),
+            "output_tokens": sum(entry.output_tokens for entry in entries),
+            "cache_creation_tokens": sum(entry.cache_creation_tokens for entry in entries),
+            "cache_read_tokens": sum(entry.cache_read_tokens for entry in entries),
             "cost_usd": _round_cost(total_cost),
             "sessions": len(session_ids),
             "messages": sum(entry.message_count for entry in entries),

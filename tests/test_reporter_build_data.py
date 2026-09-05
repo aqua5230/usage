@@ -277,6 +277,78 @@ def test_build_report_data_week_window_includes_boundaries_and_zero_fill(
     ]
 
 
+def test_build_report_data_sums_token_composition_for_summary_and_agents(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fixed_now = datetime(2026, 5, 21, 12, tzinfo=UTC)
+    agents = [
+        AgentInfo("claude-code", "Claude Code", "~/.claude", True),
+        AgentInfo("codex", "Codex", "~/.codex", True),
+    ]
+    entries = [
+        _entry(
+            when=fixed_now,
+            session_id="claude",
+            model="claude",
+            project="usage",
+            agent_id="claude-code",
+            input_tokens=10,
+            output_tokens=20,
+            cache_creation_tokens=30,
+            cache_read_tokens=40,
+        ),
+        _entry(
+            when=fixed_now,
+            session_id="codex",
+            model="gpt",
+            project="usage",
+            agent_id="codex",
+            input_tokens=1,
+            output_tokens=2,
+            cache_creation_tokens=3,
+            cache_read_tokens=4,
+        ),
+    ]
+
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(fixed_now))
+    monkeypatch.setattr(
+        reporter,
+        "_load_agent_entries",
+        lambda agent, _hours_back=0: [entry for entry in entries if entry.agent_id == agent.id],
+    )
+
+    data = reporter.build_report_data(agents, "today")
+
+    token_keys = (
+        "input_tokens",
+        "output_tokens",
+        "cache_creation_tokens",
+        "cache_read_tokens",
+    )
+    assert {key: data["summary"][key] for key in token_keys} == {
+        "input_tokens": 11,
+        "output_tokens": 22,
+        "cache_creation_tokens": 33,
+        "cache_read_tokens": 44,
+    }
+    assert [{key: agent[key] for key in ("id", *token_keys)} for agent in data["by_agent"]] == [
+        {
+            "id": "claude-code",
+            "input_tokens": 10,
+            "output_tokens": 20,
+            "cache_creation_tokens": 30,
+            "cache_read_tokens": 40,
+        },
+        {
+            "id": "codex",
+            "input_tokens": 1,
+            "output_tokens": 2,
+            "cache_creation_tokens": 3,
+            "cache_read_tokens": 4,
+        },
+    ]
+
+
 def test_build_report_data_month_comparison_uses_previous_full_window(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -459,6 +531,10 @@ def test_build_report_data_aggregates_agent_and_model_totals(
 
     assert data["summary"] == {
         "total_tokens": 370,
+        "input_tokens": 370,
+        "output_tokens": 0,
+        "cache_creation_tokens": 0,
+        "cache_read_tokens": 0,
         "cost_usd": 5.7,
         "sessions": 3,
         "messages": 7,
@@ -470,6 +546,10 @@ def test_build_report_data_aggregates_agent_and_model_totals(
             "id": "claude-code",
             "name": "Claude Code",
             "tokens": 220,
+            "input_tokens": 220,
+            "output_tokens": 0,
+            "cache_creation_tokens": 0,
+            "cache_read_tokens": 0,
             "cost": 4.2,
             "sessions": 2,
             "messages": 4,
@@ -479,6 +559,10 @@ def test_build_report_data_aggregates_agent_and_model_totals(
             "id": "codex",
             "name": "Codex",
             "tokens": 150,
+            "input_tokens": 150,
+            "output_tokens": 0,
+            "cache_creation_tokens": 0,
+            "cache_read_tokens": 0,
             "cost": 1.5,
             "sessions": 1,
             "messages": 3,
