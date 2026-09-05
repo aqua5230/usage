@@ -136,6 +136,9 @@ jobs:
           verify_file dist/usage.app/Contents/Resources/codex.webp
           verify_file dist/usage.app/Contents/Info.plist
 
+      - name: Smoke-test the .app bundle
+        run: ./scripts/smoke_test_app.sh dist/usage.app
+
       - name: Zip .app
         run: |
           cd dist && zip -r usage.app.zip usage.app
