@@ -102,6 +102,32 @@ def test_recent_titles_section_tolerates_missing_key() -> None:
     ) == ""
 
 
+def test_every_detectable_agent_has_a_dashboard_loader(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """dashboard 的 Antigravity 分頁曾渲染成 "No data"：detect_agents() 有偵測到
+    agy，但 usage_cli.AGENT_LOADERS 漏了 "antigravity"，_load_entries() 查不到
+    loader 就回空列表。此測試模擬三個 adapter 全部偵測成功，確保 registry 能
+    偵測到的每個 agent 在 dashboard 與 reporter 的 AGENT_LOADERS 都接上 loader。"""
+    all_agents = [
+        AgentInfo("claude-code", "Claude Code", "~/.claude", True),
+        AgentInfo("codex", "Codex", "~/.codex", True),
+        AgentInfo("antigravity", "Antigravity", "~/.gemini/antigravity-cli/conversations", True),
+    ]
+    monkeypatch.setattr(usage_cli, "detect_agents", lambda: all_agents)
+
+    detected_ids = {agent.id for agent in usage_cli.detect_agents()}
+    reporter = import_module("analyzer.reporter")
+    assert detected_ids <= set(usage_cli.AGENT_LOADERS), (
+        f"agents detected but missing from usage_cli.AGENT_LOADERS: "
+        f"{sorted(detected_ids - set(usage_cli.AGENT_LOADERS))}"
+    )
+    assert detected_ids <= set(reporter.AGENT_LOADERS), (
+        f"agents detected but missing from reporter.AGENT_LOADERS: "
+        f"{sorted(detected_ids - set(reporter.AGENT_LOADERS))}"
+    )
+
+
 def test_recent_titles_section_masks_and_escapes_each_title() -> None:
     rendered = html_report._render_recent_titles_section(
         {"persona": {"recent_titles": ["Fix <table>", "Review & ship"]}},
