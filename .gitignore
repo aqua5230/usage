@@ -36,3 +36,6 @@ SESSION.md
 
 # 子代理每次派工的工作筆記，不進版本庫
 implementation-notes.md
+
+# 派工任務書（本機暫存，不進版本庫）
+.task-*.md
