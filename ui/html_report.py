@@ -302,6 +302,8 @@ def _one_pass_card(persona: Mapping[str, object], lang: str) -> str:
     raw_models = raw_stats.get("models")
     if not isinstance(raw_total, Mapping) or not isinstance(raw_models, list):
         return ""
+    if _nonnegative_int(raw_total.get("turns")) <= 0:
+        return ""
 
     models: list[tuple[str, int, float]] = []
     for raw_model in raw_models:
@@ -312,18 +314,20 @@ def _one_pass_card(persona: Mapping[str, object], lang: str) -> str:
         pass_rate = _bounded_pct(raw_model.get("pass_rate"))
         if turns > 0:
             models.append((model, turns, pass_rate))
-    models.sort(key=lambda item: (-item[1], item[0]))
+    models.sort(key=lambda item: (-item[2], item[0]))
     if not models:
         return ""
 
     rows = []
     for model, turns, pass_rate in models[:5]:
         rows.append(
-            '<div class="one-pass-row">'
+            '<div class="rank-line">'
+            '<span class="arrow">&rarr;</span>'
             f'<span class="name">{_escape(_display_name(model, lang))}'
             f'{render_share_bar(pass_rate, _model_share_color(model))}</span>'
-            f'<span class="turns">{_escape(_t(lang, "persona_one_pass_turns", turns=turns))}</span>'
-            f'<strong>{pass_rate:.1f}%</strong>'
+            f'<span class="pct" data-label="{_escape(_t(lang, "persona_one_pass_title"))}">{pass_rate:.1f}%</span>'
+            f'<span class="tokens" data-label="">'
+            f'{_escape(_t(lang, "persona_one_pass_turns", turns=turns))}</span>'
             "</div>"
         )
 
@@ -336,9 +340,8 @@ def _one_pass_card(persona: Mapping[str, object], lang: str) -> str:
     )
     return (
         '<div class="persona-card one-pass-card">'
-        f'<h3>{_escape(_t(lang, "persona_one_pass_title"))}</h3>'
         f'<p class="persona-caption">{_escape(summary)}</p>'
-        f'<div class="one-pass-list">{"".join(rows)}</div>'
+        f'<div class="rank-list">{"".join(rows)}</div>'
         "</div>"
     )
 
@@ -385,7 +388,7 @@ def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:
         f'{_hour_histogram_html(values, lang)}'
         '</div>'
     )
-    return active_hours + _one_pass_card(persona, lang)
+    return active_hours
 
 
 def _donut_svg(items: list[tuple[str, int]], lang: str, *, total: int) -> str:
@@ -582,6 +585,20 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
         if peak is not None:
             peak_date, peak_tokens = peak
             cards.append((_t(lang, "kpi_peak_day"), peak_date, f"{_fmt_tokens(peak_tokens)} {_t(lang, 'tokens')}"))
+
+    persona = data.get("persona")
+    one_pass = persona.get("one_pass") if isinstance(persona, Mapping) else None
+    total = one_pass.get("total") if isinstance(one_pass, Mapping) else None
+    turns = _nonnegative_int(total.get("turns")) if isinstance(total, Mapping) else 0
+    pass_rate = _bounded_pct(total.get("pass_rate")) if isinstance(total, Mapping) else 0.0
+    if turns > 0:
+        cards.append(
+            (
+                _t(lang, "persona_one_pass_title"),
+                f"{pass_rate:.1f}%",
+                _t(lang, "persona_one_pass_turns", turns=turns),
+            )
+        )
 
     return cards
 
@@ -985,6 +1002,16 @@ def _render_persona_section(data: Mapping[str, Any], lang: str) -> str:
     return _section(_t(lang, "persona_section"), persona_body, "persona-section")
 
 
+def _render_one_pass_section(data: Mapping[str, Any], lang: str) -> str:
+    persona = data.get("persona")
+    if not isinstance(persona, Mapping):
+        return ""
+    body = _one_pass_card(persona, lang)
+    if not body:
+        return ""
+    return _section(_t(lang, "persona_one_pass_title"), body, "one-pass-section")
+
+
 def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
     sessions = list(data.get("top_sessions", []))
     max_tokens = max((int(session["tokens"]) for session in sessions), default=0)
@@ -1099,7 +1126,8 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
         insight_surface = _render_insight_surface(report_data, lang)
         detail_sections = (
             f"  {_render_wrapped_section(report_data, lang)}\n"
-            f"{insight_surface}  {_render_tools_section(report_data, lang)}\n"
+            f"{insight_surface}{_render_one_pass_section(report_data, lang)}\n"
+            f"  {_render_tools_section(report_data, lang)}\n"
             f"  {_render_composition_section(report_data, lang)}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_model_section(report_data, lang)}\n"

@@ -438,7 +438,7 @@ td:first-child{color:var(--warn)}
       <div class="share-toast" data-share-toast role="status" aria-live="polite"></div>
     </div>
   </dialog>
-  <section class="cards"><div class="card"><span>Burned Tokens</span><b>2,345,678</b><i>≈ 2.3M · ↑56% vs last month</i></div><div class="card"><span>API equivalent</span><b>$45.68</b><i>↑52% vs last month</i></div><div class="card"><span>Active Days</span><b>18/23</b></div><div class="card"><span>Peak Day</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
+  <section class="cards"><div class="card"><span>Burned Tokens</span><b>2,345,678</b><i>≈ 2.3M · ↑56% vs last month</i></div><div class="card"><span>API equivalent</span><b>$45.68</b><i>↑52% vs last month</i></div><div class="card"><span>Active Days</span><b>18/23</b></div><div class="card"><span>Peak Day</span><b>2026-05-13</b><i>300.0K Tokens</i></div><div class="card"><span>One-pass rate</span><b>93.0%</b><i>User turns: 4460</i></div></section>
   
     <section class="section wrapped-section">
       <div class="prompt"><span>[usage]&gt;</span> Year Wrapped</div>
@@ -452,7 +452,14 @@ td:first-child{color:var(--warn)}
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
       <div class="insight-note">This period burned 2.3M tokens and $45.68 — up 56% vs last period.</div><div class="insight-note"><span class="insight-project" data-mask-as="Project 1">usage</span> is new this period and already 70.2% of usage.</div><div class="insight-action">Usage jumped hard vs last period; watch quota headroom.</div>
     </section>
-      
+    
+    <section class="section one-pass-section">
+      <div class="prompt"><span>[usage]&gt;</span> One-pass rate</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="persona-card one-pass-card"><p class="persona-caption">This period: 478 sessions, 220 interruptions, and 130 blocked tool calls.</p><div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">claude-sonnet-5<span class="share-bar" aria-hidden="true"><span style="width:94.20%;background:#5abfa0"></span></span></span><span class="pct" data-label="One-pass rate">94.2%</span><span class="tokens" data-label="">User turns: 1900</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">claude-opus-5<span class="share-bar" aria-hidden="true"><span style="width:91.90%;background:#5abfa0"></span></span></span><span class="pct" data-label="One-pass rate">91.9%</span><span class="tokens" data-label="">User turns: 2481</span></div></div></div>
+    </section>
+    
+  
     <section class="section tools-section">
       <div class="prompt"><span>[usage]&gt;</span> Your tools</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>

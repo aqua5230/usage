@@ -164,6 +164,31 @@ def _full_report_data() -> dict[str, Any]:
         "persona": {
             "hour_histogram": histogram,
             "recent_titles": ["Ship HTML report", "Ignore in current renderer"],
+            "one_pass": {
+                "total": {
+                    "sessions": 478,
+                    "turns": 4460,
+                    "interruptions": 220,
+                    "denied_tools": 130,
+                    "pass_rate": 93.0,
+                },
+                "models": [
+                    {
+                        "model": "claude-opus-5",
+                        "turns": 2481,
+                        "interruptions": 74,
+                        "denied_tools": 87,
+                        "pass_rate": 91.9,
+                    },
+                    {
+                        "model": "claude-sonnet-5",
+                        "turns": 1900,
+                        "interruptions": 45,
+                        "denied_tools": 43,
+                        "pass_rate": 94.2,
+                    },
+                ],
+            },
         },
         "top_sessions": [
             {
@@ -714,7 +739,7 @@ def test_one_pass_card_shows_top_five_models_with_provider_colors() -> None:
         }
         for index, turns in enumerate([10, 60, 50, 40, 30, 20])
     ]
-    html = html_report._persona_body(
+    html = html_report._one_pass_card(
         {
             "hour_histogram": histogram,
             "one_pass": {
@@ -732,7 +757,7 @@ def test_one_pass_card_shows_top_five_models_with_provider_colors() -> None:
     )
 
     assert "This period: 7 sessions, 2 interruptions, and 3 blocked tool calls." in html
-    assert html.count('class="one-pass-row"') == 5
+    assert html.count('class="rank-line"') == 5
     assert "claude-model-0" not in html
     assert "claude-model-1" in html
     assert "User turns: 60" in html
