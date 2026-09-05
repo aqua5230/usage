@@ -492,6 +492,34 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.153.3",
+          "period": "2026-09-04",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Amazon Bedrock 路由選單加入 GPT-6-Astra 模型",
+                "en": "Amazon Bedrock Route Picker Adds GPT-6-Astra Model"
+              },
+              "body": {
+                "zh-TW": "你在 Amazon Bedrock 雲端環境中調用 Codex 時，挑選模型有了新選項。⟦如同連鎖餐廳在特定分店的點餐機上，正式把最新招牌菜加入螢幕選單，走進指定門市的顧客直接按螢幕就能點選。⟧這項改動涵蓋 Mantle 路由，以及 Runtime 的 global 與 US 路由（route，雲端服務分配請求路徑的通道）。只要連線走這幾條途徑，你就能在模型挑選器（model picker，供手動切換不同 AI 版本的選單）中直接選取 GPT-6-Astra 模型。走 Mantle 或 Runtime 的 global／US 路由時，可在模型挑選器直接選 GPT-6-Astra。",
+                "en": "When calling Codex in the Amazon Bedrock cloud environment, you now have a new option when selecting models. ⟦Much like a chain restaurant officially adding its latest signature dish to the screen menu on ordering kiosks at specific branches, allowing customers entering designated stores to select it directly on the screen.⟧ This change covers the Mantle route as well as Runtime's global and US routes. As long as your connection uses these paths, you can directly select the GPT-6-Astra model in the model picker. When routing through Mantle or Runtime global/US, you can directly choose GPT-6-Astra in the model picker."
+              },
+              "original": "Added GPT-6-Astra to the Amazon Bedrock model picker for Mantle and Runtime global/US routes. (#42805)"
+            },
+            {
+              "title": {
+                "zh-TW": "修正 GPT-6-Astra 非同步提問指引，改用支援工具且認得純文字限制",
+                "en": "Corrected GPT-6-Astra Guidance for Asynchronous Clarifications to Use Supported Tools and Recognize Text-Only Limits"
+              },
+              "body": {
+                "zh-TW": "交給 GPT-6-Astra 的任務如果需求不明確，它在背景發問釐清的流程現在更穩定。這項改動修正了該模型提出非同步釐清問題（asynchronous clarification questions，不中斷手邊工作、在背景等候回覆的提問機制）時的內建指引。現在它會確實呼叫官方受支援的工具（supported tool，環境中明訂可用來向外部發問的功能模組），不再誤用不相容的管道。同時，它也能正確辨識該工具僅接受純文字內容，避免送出不支援的格式而引發錯誤。⟦宛如助理遇到交代不清的待辦事項時，會準確把疑問寫成便條紙投進專用留言箱，不再投錯信箱或塞進格式不符的包裹。⟧",
+                "en": "When tasks assigned to GPT-6-Astra have unclear requirements, its process for asking clarifying questions in the background is now more reliable. This change corrects the model's built-in guidance when asking asynchronous clarification questions. It now properly calls officially supported tools instead of misusing incompatible channels. At the same time, it correctly recognizes that the tool accepts only plain text, avoiding errors caused by sending unsupported formats. ⟦Much like an assistant dealing with an unclearly explained task who accurately writes questions on a memo note and drops it into a dedicated message box, rather than dropping it into the wrong mailbox or stuffing in a parcel with an incompatible format.⟧"
+              },
+              "original": "Corrected GPT-6-Astra’s guidance for asynchronous clarification questions to use the supported tool and recognize that it accepts text only. (#42809)"
+            }
+          ]
+        },
+        {
           "version": "0.153.2",
           "period": "2026-09-03",
           "items": [
@@ -509,124 +537,19 @@
           ]
         },
         {
-          "version": "0.153.0",
+          "version": "0.153.1",
           "period": "2026-09-03",
           "items": [
             {
               "title": {
-                "zh-TW": "Vim 模式加了復原與重做，草稿手滑也不怕",
-                "en": "Vim mode adds undo and redo to safeguard draft edits"
+                "zh-TW": "API 支援指定 GPT-6-Astra，不改預設也不進選單",
+                "en": "Support specifying GPT-6-Astra via API without changing defaults or appearing in the picker"
               },
               "body": {
-                "zh-TW": "你在 Vim 模式（改用鍵盤符號下指令的編輯方式，名字來自一款老牌文字編輯器）裡改草稿，手滑刪掉一整段附件說明，以前只能重打——現在按 `u` 就能復原上一步，按 `Ctrl+R` 則是反悔剛才的復原、重做回去，⟦好比用可擦筆寫稿，寫錯了擦掉重寫，擦太多了再把擦掉的字描回來，紙面痕跡都還在⟧。而且不管草稿裡貼了多少內容、掛了幾個附件，復原跟重做都會保留完整版本，不會漏東漏西，你不用擔心救回來的稿子少了一塊。",
-                "en": "When modifying drafts in Vim mode, accidentally deleting a section of attachment notes previously required retyping the whole piece. You can now press `u` to undo the last action and `Ctrl+R` to redo, reversing the undo operation. ⟦It is like writing with an erasable pen: when you make a mistake, you erase and rewrite, and if you erase too much, you can trace the erased strokes right back on the clean paper.⟧ Furthermore, regardless of how much content was pasted or how many attachments were included, undo and redo preserve the complete state without dropping parts of your draft."
+                "zh-TW": "如果你透過 API 串接 Codex 跑程式，現在可以直接在呼叫時指定使用 GPT-6-Astra 模型。它既不會動到你日常使用的預設模型，也不會出現在模型挑選器（model picker，供手動切換模型的選單）裡面。這讓需要特定模型的後端腳本能順利運作，一般在介面挑模型的人看不到這個選項。⟦這就像餐廳為外燴訂單開放私房菜色，廚房能照單出菜，但大廳的常態菜單與櫃檯點餐看板依然維持原樣，不必擔心常客點餐時眼花。⟧",
+                "en": "If you connect to Codex via API to run code, you can now specify the GPT-6-Astra model directly in your API calls. It will neither modify your everyday default model nor appear in the model picker (the menu for manually switching models). This allows backend scripts requiring a specific model to run smoothly without exposing the option to users selecting models in the interface. ⟦It is like a restaurant offering off-menu specialties exclusively for catering orders: the kitchen prepares them as requested, while the dining hall's regular menu and ordering board remain unchanged, preventing regular diners from getting confused when ordering.⟧"
               },
-              "original": "Vim mode now supports undo with `u` and redo with `Ctrl+R`, preserving complete drafts including pasted content and attachments. ([#41941](https://github.com/openai/codex/pull/41941), [#42140](https://github.com/openai/codex/pull/42140))"
-            },
-            {
-              "title": {
-                "zh-TW": "外掛市集搬進指令列，查裝移除都在終端機",
-                "en": "The plugin CLI brings remote marketplace browsing, installation, and removal to the terminal"
-              },
-              "body": {
-                "zh-TW": "想幫 Codex 加裝外掛（plugin，替它補上額外功能的附加元件）？現在外掛的指令列工具直接打通遠端市集：想看有什麼可裝，打指令就能列出清單；看中哪個，一行指令裝上；用膩了，一行指令移除，全程不用離開終端機。⟦如同工具租借站把整個目錄搬上網，你在螢幕前就能查有哪些工具可借、按一下借出、用完按一下歸還，不必跑櫃檯翻紙本清單。⟧",
-                "en": "Looking to install plugins to expand Codex with extra capabilities? The plugin CLI now connects directly to remote marketplaces: you can run a command to list available plugins, install a chosen plugin with a single command, or remove it just as easily when no longer needed, all without leaving your terminal. ⟦It is like a tool rental shop putting its entire catalog online, allowing you to browse available tools on screen, check them out with a click, and return them when finished without ever flipping through paper lists at the counter.⟧"
-              },
-              "original": "The plugin CLI can list, install, and remove plugins from remote marketplaces. ([#42150](https://github.com/openai/codex/pull/42150))"
-            },
-            {
-              "title": {
-                "zh-TW": "自動回顧能關掉，貼上偵測開關搬了新家",
-                "en": "Automatic recaps can be disabled and paste-burst settings move to nested keys"
-              },
-              "body": {
-                "zh-TW": "想關掉自動回顧摘要，或把貼上大量文字的偵測設定搬到新位置，這裡有兩個新設定鍵。Codex 原本會自動生成回顧摘要，如果你只想在打 `/recap` 時自己叫出來，設定檔加一行：\n```\n{\"tui\": {\"auto_recap\": false}}\n```\n也就是 `tui.auto_recap = false`，自動摘要關掉，手動 `/recap` 照樣能用。另一個是貼上偵測（paste burst，短時間內貼上大量文字的辨識機制）設定鍵搬家，改用巢狀寫法：\n```\n{\"tui\": {\"disable_paste_burst\": true}}\n```\n也就是 `tui.disable_paste_burst`，而舊的頂層寫法目前仍當備援繼續有效，不用急著改。⟦彷彿車上的語音路況提示，能直接在中控台整個關掉、改成按鍵才報路況，開關位置也從儀表板搬進了選單，老車主熟悉的實體按鈕暫時還留著備用。⟧",
-                "en": "This release introduces two new configuration keys for managing recap behavior and paste detection. Codex previously generated recap summaries automatically. If you prefer to trigger recaps manually with `/recap`, add the following line to your configuration file:\n```\n{\"tui\": {\"auto_recap\": false}}\n```\nThis sets `tui.auto_recap = false`, disabling automatic generation while keeping manual `/recap` invocations available. Additionally, the paste burst detection setting has moved to a nested structure:\n```\n{\"tui\": {\"disable_paste_burst\": true}}\n```\nThis introduces `tui.disable_paste_burst`, while the legacy top-level key continues to work as a fallback so immediate migration is not required. ⟦It is like a car audio traffic announcement that can be turned off entirely in favor of an on-demand button, with the toggle relocated from the physical dashboard into a digital menu while the familiar dashboard button still works as a backup.⟧"
-              },
-              "original": "Set `tui.auto_recap = false` to disable automatic recaps while keeping manual `/recap` available. ([#42101](https://github.com/openai/codex/pull/42101))\n`tui.disable_paste_burst` replaces the top-level setting, which remains supported as a fallback. ([#41976](https://github.com/openai/codex/pull/41976))"
-            },
-            {
-              "title": {
-                "zh-TW": "對話回頭看更清楚，改了什麼、下了什麼指令都留底",
-                "en": "TUI history displays complete patches, background inputs, and individual commands"
-              },
-              "body": {
-                "zh-TW": "回頭捲動 Codex 的終端機介面歷史紀錄時，現在看得到的東西更完整了：程式碼修改會顯示完整的補丁（patch，改動前後對照的差異紀錄），送進背景終端機視窗的輸入內容會留底，個別執行完的指令也各自獨立顯示，不會被吞掉或混成一團。⟦宛如工地的施工日誌，每天不是只寫一句「有動工」，而是附上動工前後的對照照片，還把當天下的每一道工序分開記錄，事後翻查一看就懂哪一步做了什麼。⟧",
-                "en": "Scrolling back through TUI history in Codex now provides a much clearer view of past actions. Code modifications display complete patch diffs, inputs sent to background terminal sessions are fully recorded, and individual completed commands appear distinctly without being omitted or merged together. ⟦It is like a construction site log that includes before-and-after photos alongside separated step-by-step records for each task rather than just noting that work occurred, making every past change immediately obvious when reviewed.⟧"
-              },
-              "original": "TUI history shows complete patches, input sent to background terminals, and individual completed commands. ([#41893](https://github.com/openai/codex/pull/41893), [#42107](https://github.com/openai/codex/pull/42107))"
-            },
-            {
-              "title": {
-                "zh-TW": "額度剩不到一半，Plus 跟 Team 會提早跟你說",
-                "en": "Plus and Team plans receive earlier alerts when usage drops below half"
-              },
-              "body": {
-                "zh-TW": "用 Plus 或 Team 方案的人，額度用得快不快，現在能更早知道。以前要等額度更接近用完才會收到提醒，常常是打到一半才發現要沒了。現在只要在大約五小時一輪的用量視窗裡，額度剩不到一半，就會提早跳出警告，你就有機會提前調整步調，不必臨時改變工作方式。⟦恰似手上剩的洗衣券只剩不到一半時，機台先跳出提醒，讓你有空檔想要不要趕在額度重置前多洗一輪，而不是洗到最後一刻才發現券快用完。⟧",
-                "en": "Subscribers on Plus and Team plans can now gauge their quota consumption earlier. While warnings were previously triggered only as allowances were nearly exhausted, alerts are now sent as soon as less than half of the allowance remains within an approximately five-hour usage window. This gives you time to pace your prompts without having to abruptly adjust your workflow. ⟦It is like a laundry machine displaying an early reminder when fewer than half of your laundry coupons remain, giving you time to plan an extra load before your allowance resets rather than discovering you are out of coupons at the very last moment.⟧"
-              },
-              "original": "Plus and Team users receive an earlier warning when less than half of their allowance remains in an approximately five-hour usage window. ([#42142](https://github.com/openai/codex/pull/42142))"
-            },
-            {
-              "title": {
-                "zh-TW": "外部連線斷了會自動接回來，未確定的動作先暫停等你看",
-                "en": "External app-server drops reconnect automatically while pending submissions pause for review"
-              },
-              "body": {
-                "zh-TW": "你透過外部的 app-server（讓其他程式跟 Codex 對話的伺服器介面）連線用 Codex，這條連線如果突然斷掉，⟦就像視訊會議斷線重連，畫面接回來的時候，你正在打的訊息草稿還在、對話紀錄也沒不見，只是原本正在表決的提案先暫停，等你確認才繼續⟧。具體來說，Codex 現在會自動重新連上這個外部 app-server，草稿跟對話轉錄（transcript，逐字紀錄）都完整保留。而斷線當下還不確定有沒有送出、或是還在排隊等處理的動作，會先暫停下來，交給你重新確認過再繼續，不會替你自作主張。",
-                "en": "When using Codex through an external app-server connection that suddenly drops, ⟦it is like a video conference reconnecting after a network drop, where your draft chat messages and previous chat logs are intact while an ongoing poll is paused until you confirm how to proceed⟧. Codex now automatically reconnects to the external app-server, preserving drafts and conversation transcripts intact. Any submissions that were in-flight or queued when the connection dropped are held in a paused state for user review before proceeding."
-              },
-              "original": "TUI sessions reconnect after an external app-server connection drops, preserving drafts and transcripts while keeping uncertain or queued submissions paused for review. ([#41911](https://github.com/openai/codex/pull/41911), [#41916](https://github.com/openai/codex/pull/41916), [#41918](https://github.com/openai/codex/pull/41918))"
-            },
-            {
-              "title": {
-                "zh-TW": "審查跳過該跳的，該顧的紀錄一樣顧著",
-                "en": "Guardian skips unnecessary reviews while preserving history across rollbacks and forks"
-              },
-              "body": {
-                "zh-TW": "Codex 的 Guardian（把關風險動作的審查機制）這次分清該管與不管的界線。用 Full Access（完全授權模式）時，遇到只需按確認的動作，Guardian 現在直接跳過審查。換成每個動作都要核准的 User approval mode，Guardian 也不再背景幫提案打分數、預先熱機，但敏感動作檢查與需要你輸入答案的請求，處理方式不變。Guardian 過去審過的紀錄也扛得住考驗：對話被壓縮、程式重啟，或你自己開了分支，紀錄都留得住，仍遵守回捲（rollback，把狀態退回先前某刻）的邊界。子代理（subagent，替它跑某段子任務的分身）的歷史也被隔開，不會混進主線程。⟦宛如社區警衛登記訪客，熟面孔的住戶刷卡就放行、不必每次登記，陌生訪客照樣得留資料才能進去；警衛室的登記簿就算搬家、換班，甚至臨時開了側門，各戶訪客紀錄還是分開保管，不會混成一本。⟧",
-                "en": "Guardian reviews in Codex now feature clearer operational boundaries. In Full Access mode, Guardian skips reviews for confirmation-only actions. When running in User approval mode, it stops background proposal scoring and prewarming while preserving existing checks for sensitive actions and user input requests. Furthermore, Guardian review histories now survive compaction, application restarts, and user-created forks while strictly respecting rollback boundaries and isolating subagent history from the main thread. ⟦It is like a residential security guard waving recognized residents through without repeated paperwork while still logging outside visitors, keeping visitor logbooks organized and isolated even across desk moves, shift changes, or side-door entries.⟧"
-              },
-              "original": "Full Access skips Guardian reviews for confirmation-only actions. User approval mode skips background Guardian scoring and prewarming, while sensitive-action checks and requests for user input retain their existing handling. ([#42147](https://github.com/openai/codex/pull/42147), [#42256](https://github.com/openai/codex/pull/42256))\nGuardian review history survives compaction, restarts, and user-created forks while respecting rollback boundaries and isolating subagent history. ([#41879](https://github.com/openai/codex/pull/41879), [#42065](https://github.com/openai/codex/pull/42065))"
-            },
-            {
-              "title": {
-                "zh-TW": "上下文管理實驗模式預設關閉，開通後才會啟用新工具",
-                "en": "Context management experimental mode is disabled by default and enables new tools when activated"
-              },
-              "body": {
-                "zh-TW": "Codex 新增了一個預設關閉的實驗設定 `features.context_management.experimental_mode`，如果你符合資格想試，在設定檔加上：\n```\n{\"features\": {\"context_management\": {\"experimental_mode\": true}}}\n```\n也就是把這個巢狀設定鍵打開。開啟後，如果你是用 Codex 後端的 ChatGPT Plus、Pro 或 Pro Lite 訂閱、而且帳號被納入資格名單，就會啟用以 token（AI 處理與計費的文字單位）預算管理上下文的機制，外加歷史筆記功能跟 `new_context` 這個工具。用 API 金鑰（一組用來證明身分、直接呼叫底層服務的密碼字串）登入的工作階段、自訂供應商，以及暫時性的結構化執行緒，則不在開放範圍內，不會啟用這些新機制。⟦有點像新開的試營運方案，只開放給符合資格、事先報名的特定會員試用新設施，臨櫃辦的訪客卡跟外接廠商暫時還用不到。⟧",
-                "en": "Codex introduces the disabled-by-default `features.context_management.experimental_mode` configuration setting. To try it when eligible, add the following snippet to your configuration file:\n```\n{\"features\": {\"context_management\": {\"experimental_mode\": true}}}\n```\nWhen enabled for eligible ChatGPT Plus, Pro, or Pro Lite sessions using the Codex backend, it activates token-budgeted context management, history notes, and the `new_context` tool. API-key sessions, custom providers, and temporary structured threads remain excluded from these new capabilities. ⟦It is like a pilot trial program that grants access to new amenities only to pre-registered eligible members, while day-pass visitors and outside contractors are not included yet.⟧"
-              },
-              "original": "Adds the disabled-by-default `features.context_management.experimental_mode` configuration. When enabled for eligible ChatGPT Plus, Pro, or Pro Lite sessions using the Codex backend, it activates token-budget context, history notes, and the `new_context` tool. API-key sessions, custom providers, and temporary structured threads remain excluded. ([#42385](https://github.com/openai/codex/pull/42385))"
-            },
-            {
-              "title": {
-                "zh-TW": "帳號、路徑、續接紀錄，一批後台細節一次補上",
-                "en": "Refined account scoping, path handling, and session resumes across backend features"
-              },
-              "body": {
-                "zh-TW": "這批修復收攏了幾項後台細節。MCP（Model Context Protocol，讓 AI 連接外部工具的協定）工具的核准記憶改成綁定帳號，換帳號不會沿用另一個帳號核准過的設定；MCP 相對路徑執行檔，在 macOS 上啟動更可靠。對話紀錄壓縮現在併入共享歷史，`codex exec resume` 依目錄續接也認得壓縮過的紀錄。工作階段的根目錄就算是符號連結（symlink，指到別處的捷徑檔），開執行緒分支照樣正常。app-server 執行緒中繼資料多了可為空值的 `model`、`reasoningEffort` 欄位，模型目錄若開放，還能用 `request_user_input_async` 結構化、非同步發問，不必卡住等你即答。⟦如同寄放行李，寄放單跟存根號碼要對得上才能領回，就算行李轉去別的置物櫃，存根照樣領得到東西，連加保險也能先發通知單，不必現場答。⟧",
-                "en": "This release refines several backend implementation details. Remembered MCP tool approvals are now scoped to the active account so switching accounts will not reuse permissions granted by another user, and relative MCP executable paths launch more reliably on macOS. Rollout compression now incorporates shared histories, allowing `codex exec resume` to handle compressed rollouts when resuming by working directory, while thread forks operate cleanly with symlinked session roots. Additionally, app-server thread metadata includes nullable `model` and `reasoningEffort` fields, and `request_user_input_async` enables structured asynchronous prompts when supported by the model catalog. ⟦It is like checking luggage where the claim ticket must match the account holder to retrieve bags, items remain retrievable even if moved between storage lockers, and additional insurance notices can be sent for later review without requiring an immediate answer on the spot.⟧"
-              },
-              "original": "Remembered MCP tool approvals are scoped to the selected app account, and relative MCP executable paths start more reliably on macOS. ([#42133](https://github.com/openai/codex/pull/42133), [#42117](https://github.com/openai/codex/pull/42117))\nRollout compression includes shared histories, `codex exec resume` handles compressed rollouts when selecting by working directory, and thread forks work with symlinked session roots. ([#42039](https://github.com/openai/codex/pull/42039), [#42135](https://github.com/openai/codex/pull/42135))\nApp-server thread metadata includes nullable `model` and `reasoningEffort` fields. Structured asynchronous questions are supported through `request_user_input_async` when enabled by the model catalog. ([#42151](https://github.com/openai/codex/pull/42151), [#42178](https://github.com/openai/codex/pull/42178))"
-            }
-          ]
-        },
-        {
-          "version": "0.152.1",
-          "period": "2026-09-01",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "批准審查會照模型帶來的 Node REPL 規定判斷",
-                "en": "Approval review now follows the Node REPL policies the model provides"
-              },
-              "body": {
-                "zh-TW": "⟦實驗室的器材借用規定寫在器材本身的說明卡上，管理員照那張卡放行；以前卡片擺在那裡卻沒人看，管理員只按自己那套老規矩辦。⟧Codex 的 Guardian 批准審查（動手做事前先判斷這件事該不該放行的關卡）現在會遵守模型 metadata 裡帶的 Node REPL 政策。metadata 是隨模型一起送來、描述它自身的一小份資料；Node REPL 則是直接輸入一行 JavaScript 就立刻執行的互動環境。換句話說，該不該放行這類指令，依據來自模型自己聲明的那份規定，而不是審查關卡自行認定。",
-                "en": "⟦A lab keeps the rules for borrowing a piece of equipment on the card attached to it, and the keeper follows that card; before, the card sat there unread and the keeper went by their own old habits.⟧ Codex's Guardian approval review, the gate that decides whether an action may go ahead, now honors the Node REPL policies provided through model metadata. Metadata is the small description that travels with a model, and a Node REPL is the interactive prompt where a line of JavaScript runs the moment you type it. In other words, whether such a command is allowed through comes from the rules the model itself declares, not from what the review gate decides on its own."
-              },
-              "original": "Guardian approval review now honors Node REPL policies provided through model metadata."
+              "original": "Added support for configuring GPT-6-Astra through the API without changing the default model or showing it in the model picker. (#42605)"
             }
           ]
         }
