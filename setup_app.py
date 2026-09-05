@@ -87,17 +87,6 @@ if __name__ == "__main__":
             "i18n",
             "usage_cli",
             "talent_market_bridge",
-            # discussion.window is lazy-imported inside menubar.toggleDiscussion_,
-            # so py2app's dependency graph can't reach it (or the three core
-            # modules it pulls in) from main.py — list them explicitly.
-            "rich",
-            "rich.align",
-            "rich.console",
-            "rich.live",
-            "rich.panel",
-            "rich.style",
-            "rich.table",
-            "rich.text",
         ],
         "packages": [
             "WebKit",
@@ -112,6 +101,12 @@ if __name__ == "__main__":
             "loaders",
             "menubar",
             "quota",
+            # discussion.window is lazy-imported inside menubar.toggleDiscussion_,
+            # and rich loads its per-version Unicode width tables through
+            # import_module() at render time, which py2app's static graph can't
+            # see — as "includes" the app shipped rich/_unicode_data/ with the
+            # tables missing and --tui crashed on the first table it drew.
+            "rich",
             "tui",
             "ui",
             "updates",

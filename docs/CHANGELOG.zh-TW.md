@@ -4,9 +4,10 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## [Unreleased]
+## [0.30.8] - 2026-09-05
 
 ### Fixed
+- **從 app 包啟動的 TUI 又能開了。** `rich` 原本列在 py2app 的 `includes`，那份清單只收靜態 import 圖掃得到的模組——但 `rich/_unicode_data/__init__.py` 是在畫面渲染當下用 `import_module()` 動態載入各版本的 Unicode 字寬表，於是打包出來的 app 只帶了 `__init__` 跟 `_versions`，`usage --tui` 一畫第一張表格就以 `ModuleNotFoundError: No module named 'rich._unicode_data.unicode17-0-0'` 崩潰。選單列模式不經過 `rich` 渲染，不受影響。現在 `rich` 改列在 `packages`，整包複製進去，而不是只收掃得到的那幾個。由 @dvakatsiienko 於 #125 回報。
 - **Fable 5.1 有離線價格了，備用價目表自己的對帳也不再整族跳過 Fable。** Claude Code 2.1.257 起 Fable 5.1（`claude-fable-5-1`）成為 Fable 系列預設，但寫死的備用價目表只有 `claude-fable-5`，所以每當下載來的價目表缺失或過期，Fable 5.1 的每一個 token 都被算成 $0。它的快取重讀價是 `0.25e-6`，是 Fable 5 的四分之一，就算沿用舊那筆也不會對。這個缺口一直沒被報出來，是因為 `scripts/check_fallback_pricing.py` 只比對 `opus|sonnet|haiku`：不論新舊，沒有任何 `fable` 模型在這個對帳腳本的偵測範圍內——而它存在的理由正是抓這種事。
 - **帶日期的模型不再退回到更新版本的價格。** `_resolve_model_key` 原本只要表裡的 key 以查詢字串加連字號開頭就算命中，於是 `claude-opus-4-20250514` 被解析成 `claude-opus-4-6`，用離線表時以 $5/M 計價而非 $15/M，只有真實數字的三分之一。現在查詢字串本身已經帶版本號時，不再接受「只是再加一個數字」的候選；沒帶版本號的泛稱（例如 `claude-sonnet`）照舊解析得到，同樣具體程度的候選則取版本較新的那個。具名變體（`gpt-5` → `gpt-5-pro`）行為不變。表裡從來沒有、但仍在服務的五個模型——`claude-opus-4`、`claude-opus-4-1`、`claude-opus-4-5`、`claude-sonnet-4`、`claude-sonnet-4-5`——一併補上，另外剝除 Bedrock 的版本尾綴，讓 `claude-sonnet-4-5-20250929-v1:0` 也算得出價格。
 - **備用價目表的對帳改成回報真正解析不出來的模型，不再給一份沒人能處理的清單。** `compare_pricing` 兩個方向都用字面 key 相減，但備用價目表本來就刻意不帶日期後綴——於是像 `claude-haiku-4-5`、`claude-opus-4-7-20260416` 這些明明算得出價的模型被報成缺漏。回報的 12 筆缺口有 3 筆是假的，腳本的 exit code 也因此長期是 1，真的缺口混在雜訊裡看不出來。現在兩個方向都改用 `_resolve_model_key` 判斷。
