@@ -325,13 +325,15 @@ def test_build_report_data_sums_token_composition_for_summary_and_agents(
         "cache_creation_tokens",
         "cache_read_tokens",
     )
-    assert {key: data["summary"][key] for key in token_keys} == {
+    summary: Any = data["summary"]
+    assert {key: summary[key] for key in token_keys} == {
         "input_tokens": 11,
         "output_tokens": 22,
         "cache_creation_tokens": 33,
         "cache_read_tokens": 44,
     }
-    assert [{key: agent[key] for key in ("id", *token_keys)} for agent in data["by_agent"]] == [
+    by_agent: list[Any] = list(data["by_agent"])
+    assert [{key: agent[key] for key in ("id", *token_keys)} for agent in by_agent] == [
         {
             "id": "claude-code",
             "input_tokens": 10,
