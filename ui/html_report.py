@@ -585,20 +585,6 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
             peak_date, peak_tokens = peak
             cards.append((_t(lang, "kpi_peak_day"), peak_date, f"{_fmt_tokens(peak_tokens)} {_t(lang, 'tokens')}"))
 
-    persona = data.get("persona")
-    one_pass = persona.get("one_pass") if isinstance(persona, Mapping) else None
-    total = one_pass.get("total") if isinstance(one_pass, Mapping) else None
-    turns = _nonnegative_int(total.get("turns")) if isinstance(total, Mapping) else 0
-    pass_rate = _bounded_pct(total.get("pass_rate")) if isinstance(total, Mapping) else 0.0
-    if turns > 0:
-        cards.append(
-            (
-                _t(lang, "persona_one_pass_title"),
-                f"{pass_rate:.1f}%",
-                _t(lang, "persona_one_pass_turns", turns=turns),
-            )
-        )
-
     return cards
 
 
