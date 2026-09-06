@@ -185,7 +185,7 @@ PARTICIPANT_LABELS = {
 }
 ALLOWED_MODELS: dict[str, frozenset[str]] = {
     "claude": frozenset({"opus", "sonnet", "haiku"}),
-    "codex": frozenset({"gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.6-sol"}),
+    "codex": frozenset({"gpt-6-astra", "gpt-5.6-terra", "gpt-5.6-luna", "gpt-5.6-sol"}),
     "agy": frozenset({"gemini-3.6-flash-high", "gemini-3.1-pro-high"}),
 }
 RUNNING_STATUSES = frozenset(
