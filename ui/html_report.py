@@ -227,6 +227,20 @@ def _model_share_color(model: object) -> str:
     return "#8b8577"
 
 
+_AGENT_COLORS = {
+    "claude-code": "#5abfa0",
+    "codex": "#e0885a",
+    "antigravity": "#8f86c9",
+    "grok": "#78cdb2",
+}
+
+
+def _agent_share_color(agent_id: object) -> str:
+    # Keyed on the tool, not its rank — the ordering is by tokens, so a palette
+    # indexed by position would repaint every tool whenever two swap places.
+    return _AGENT_COLORS.get(str(agent_id), "#8b8577")
+
+
 def _trend_delta(current: int, previous: int, lang: str) -> tuple[str, str]:
     if previous == 0:
         if current == 0:
@@ -461,10 +475,11 @@ def _tools_body(
         plan_html = f'<span class="sub-plan">{_escape(str(plan))}</span>' if plan else ""
         return plan_html + since_html
 
-    def _row(name: str, plan_html: str, stats_html: str) -> str:
+    def _row(name: str, plan_html: str, stats_html: str, share_html: str = "") -> str:
         return (
             '<div class="tool-row">'
-            f'<div class="tool-head"><span class="sub-agent">{_escape(name)}</span>{plan_html}</div>'
+            f'<div class="tool-head"><span class="sub-agent">{_escape(name)}</span>{plan_html}'
+            f"{share_html}</div>"
             f"{stats_html}"
             "</div>"
         )
@@ -477,7 +492,14 @@ def _tools_body(
             f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(int(agent["tokens"]))}</span>'
             f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(float(agent["cost"]))}</span>'
         )
-        rows.append(_row(name, _plan_html(by_name.get(str(agent["name"]))), stats_html))
+        rows.append(
+            _row(
+                name,
+                _plan_html(by_name.get(str(agent["name"]))),
+                stats_html,
+                render_share_bar(float(agent["pct"]), _agent_share_color(agent["id"])),
+            )
+        )
 
     # Subscriptions for tools that have no usage in this period still get a card.
     for sub_name, sub in by_name.items():

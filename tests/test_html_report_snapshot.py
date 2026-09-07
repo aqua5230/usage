@@ -111,6 +111,7 @@ def _full_report_data() -> dict[str, Any]:
         },
         "by_agent": [
             {
+                "id": "claude-code",
                 "name": "Claude",
                 "pct": 62.5,
                 "tokens": 1466049,
@@ -121,6 +122,7 @@ def _full_report_data() -> dict[str, Any]:
                 "cache_read_tokens": 1250000,
             },
             {
+                "id": "codex",
                 "name": "Codex",
                 "pct": 37.5,
                 "tokens": 879629,
