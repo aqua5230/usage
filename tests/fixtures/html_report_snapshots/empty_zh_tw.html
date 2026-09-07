@@ -177,7 +177,9 @@ h1{
 .insight-note,.insight-action{padding:12px 16px;border-radius:8px;margin-bottom:10px;font-size:.9rem;line-height:1.5}
 .insight-note{background:rgba(90,191,160,.06);border-left:3px solid var(--cost);color:var(--text-soft)}
 .insight-action{background:rgba(224,136,90,.06);border-left:3px solid var(--warn);color:var(--text-soft);margin-bottom:0}
-.persona-card{border:none;border-radius:12px;box-shadow:none;background:transparent;padding:18px;min-width:0}
+/* No frame left to inset from, so only the vertical padding still earns its
+   keep — the horizontal one just pushed this section 18px right of every other. */
+.persona-card{border:none;border-radius:12px;box-shadow:none;background:transparent;padding:18px 0;min-width:0}
 .persona-card+.persona-card{margin-top:16px}
 .persona-card h3{margin:0 0 14px;color:var(--text);font-size:.95rem;font-weight:700}
 .persona-caption{margin:0 0 16px;color:var(--text-soft);font-size:.88rem;line-height:1.5}
