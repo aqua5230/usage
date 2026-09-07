@@ -876,6 +876,78 @@
           ]
         },
         {
+          "version": "0.30.8",
+          "period": "2026-09-05",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "macOS 應用程式套件的文字介面又能開了，字寬表完整打包不閃退",
+                "en": "The TUI launches from the macOS app bundle again, packing complete character width tables without crashing"
+              },
+              "body": {
+                "zh-TW": "從 macOS 應用程式套件啟動終端文字介面時，畫面不再因缺漏字寬資料而當場閃退。⟦出門施工若只帶工具本體，漏掉夾層裡的零件，到現場就無法開工；整箱連同配件帶齊才不缺件。⟧打包工具 py2app 原本把 `rich` 列在 `includes`，只收集靜態引用掃得到的檔案。但 `rich/_unicode_data/__init__.py` 是在繪圖當下以 `import_module()` 動態載入各版本 Unicode 字寬表，導致打包出的 app 僅帶了 `__init__` 與 `_versions`，一畫第一張表格就當場崩潰：\n```\nusage --tui  # 拋出 ModuleNotFoundError: No module named 'rich._unicode_data.unicode17-0-0'\n```\n不經過 `rich` 渲染的選單列模式不受影響。現在 `rich` 改列在 `packages`，整包目錄直接複製而非只收掃得到的片段，文字介面（TUI，終端文字操作畫面）恢復正常。",
+                "en": "When launching the terminal text user interface from the macOS app bundle, the screen no longer crashes on the spot due to missing character width data. ⟦If you head out to a job site carrying only the main tool while leaving the parts in the compartment behind, you cannot start work once you arrive; bringing the whole case along with all accessories ensures nothing is missing.⟧ The packaging tool py2app previously listed `rich` under `includes`, collecting only files reachable by static import scans. However, `rich/_unicode_data/__init__.py` dynamically loads per-version Unicode width tables via `import_module()` at render time, causing the packaged app to carry only `__init__` and `_versions` and crash immediately upon drawing the first table:\n```\nusage --tui  # throws ModuleNotFoundError: No module named 'rich._unicode_data.unicode17-0-0'\n```\nMenu bar mode, which does not render through `rich`, is unaffected. `rich` is now listed under `packages` so the entire directory is copied directly rather than only scanned fragments, restoring the text user interface (TUI) to normal."
+              },
+              "original": "**The TUI launches from the app bundle again.** `rich` was listed in py2app's `includes`, which collects only what its static import graph can see — but `rich/_unicode_data/__init__.py` loads its per-version Unicode width tables through `import_module()` at render time, so the bundle shipped that package carrying `__init__` and `_versions` alone and `usage --tui` died with `ModuleNotFoundError: No module named 'rich._unicode_data.unicode17-0-0'` on the first table it drew. Menu bar mode, which never renders through `rich`, was unaffected. `rich` is now a `packages` entry, which copies the whole tree instead of the reachable parts of it. Reported by @dvakatsiienko in #125."
+            },
+            {
+              "title": {
+                "zh-TW": "Fable 5.1 補上離線備援價格，對帳腳本不再整族跳過",
+                "en": "Fable 5.1 gains offline fallback pricing, and the audit script no longer skips the entire family"
+              },
+              "body": {
+                "zh-TW": "Claude Code 2.1.257 起將 Fable 5.1（`claude-fable-5-1`）設為預設，離線計價缺口如今補齊。先前寫死的備援價目表只有 `claude-fable-5`，每當下載價目表缺失或過期，Fable 5.1 的每個 token（AI 計費單位）都被算成 $0。它的快取重讀價是 `0.25e-6`，只有 Fable 5 的四分之一，沿用舊資料也不正確。此缺口過去未被察覺，因 `scripts/check_fallback_pricing.py` 只比對 `opus|sonnet|haiku`，不論新舊皆跳過 Fable 家族。現在 Fable 5.1 已補上離線價格，對帳腳本也納入稽核。⟦保險費率表漏記新車的備援費率，斷線時計價直接歸零，查帳員還只抽查舊車；現在費率與稽核皆已補齊。⟧",
+                "en": "Claude Code 2.1.257 set Fable 5.1 (`claude-fable-5-1`) as the default, and the offline pricing gap is now filled. The hard-coded fallback price table previously only contained `claude-fable-5`, so whenever the downloaded price table was missing or expired, every Fable 5.1 token was costed at $0. Its cache-read price is `0.25e-6`, only a quarter of Fable 5's, so inheriting older data would also be incorrect. This gap went unnoticed in the past because `scripts/check_fallback_pricing.py` only matched `opus|sonnet|haiku`, skipping the Fable family regardless of whether models were old or new. Now Fable 5.1 has its offline price added, and the audit script includes it in checks. ⟦An insurance rate sheet missed fallback rates for new car models, resetting pricing to zero during outages while auditors only sampled old cars; now both the rates and audit coverage are complete.⟧"
+              },
+              "original": "**Fable 5.1 has an offline price, and the fallback table's own audit no longer skips the entire Fable family.** Claude Code 2.1.257 made Fable 5.1 (`claude-fable-5-1`) the default of the Fable line, but the hard-coded fallback table only carried `claude-fable-5`, so whenever the downloaded price table was missing or stale every Fable 5.1 token was costed at $0. Its cache-read price is `0.25e-6` — a quarter of Fable 5's — so inheriting the older entry would not have been correct either. The gap went unreported because `scripts/check_fallback_pricing.py` matched only `opus|sonnet|haiku`: no `fable` model, old or new, was ever in scope for the audit that exists to catch exactly this."
+            },
+            {
+              "title": {
+                "zh-TW": "帶日期模型不再退回新版價格，補齊五款服役中模型",
+                "en": "Dated models no longer fall back to newer version pricing, adding five active models"
+              },
+              "body": {
+                "zh-TW": "查詢帶日期的舊模型離線價格時，程式不再誤退回到較新版本的便宜價格。⟦公車站牌若只看開頭數字，想搭四號公車的乘客會被載上四之六號新線；現在完整對齊路線才放行。⟧先前 `_resolve_model_key` 只要鍵名以查詢字串加連字號開頭就算命中。這讓 `claude-opus-4-20250514` 被解析成 `claude-opus-4-6`，離線時每百萬 token（AI 計費單位）算 $5 而非真實的 $15，只有真實費用的三分之一。現在查詢自帶版本號時，不再接受追加尾數的候選；無版本號的泛稱如 `claude-sonnet` 照舊解析得到，同等具體程度取較新版本，具名變體（gpt-5 到 gpt-5-pro）不受影響。表裡原本缺失但仍在服務的五個模型一併補上，並剝除 Bedrock 版本後綴讓查詢正確計價：\n```\nclaude-opus-4\nclaude-opus-4-1\nclaude-opus-4-5\nclaude-sonnet-4\nclaude-sonnet-4-5\nclaude-sonnet-4-5-20250929-v1:0  # 剝除 Bedrock 後綴（v1:0）後正確計價\n```",
+                "en": "When querying offline prices for older dated models, the program no longer mistakenly falls back to the cheaper price of a newer version. ⟦If a bus stop sign only looks at the leading digit, passengers looking for Bus 4 would be carried onto the newer 4-6 line; now the full route must match before letting them board.⟧ Previously, `_resolve_model_key` counted any key starting with the query string followed by a hyphen as a hit. This caused `claude-opus-4-20250514` to resolve to `claude-opus-4-6`, costing $5 per million tokens offline instead of the actual $15—only one-third of the real cost. When a query carries its own version number, candidates with an appended trailing digit are no longer accepted. Generic names without version numbers like `claude-sonnet` still resolve as before, picking the newer version among equally specific keys, while named variants (`gpt-5` to `gpt-5-pro`) remain unaffected. Five models still in service that were previously missing from the table have been added, and Bedrock version suffixes are stripped so queries price correctly:\n```\nclaude-opus-4\nclaude-opus-4-1\nclaude-opus-4-5\nclaude-sonnet-4\nclaude-sonnet-4-5\nclaude-sonnet-4-5-20250929-v1:0  # prices correctly after stripping Bedrock suffix (v1:0)\n```"
+              },
+              "original": "**A dated model no longer falls back to a newer version's pricing.** `_resolve_model_key` matched any table key that started with the queried name followed by a hyphen, so `claude-opus-4-20250514` resolved to `claude-opus-4-6` and was costed at $5/M instead of $15/M — a third of the real figure — whenever the offline table was in use. A query that already carries its own version number now rejects a candidate that merely appends another digit, while a version-less name like `claude-sonnet` still resolves, and among equally specific keys the newest version wins. Named variants (`gpt-5` → `gpt-5-pro`) are unaffected. The five models still in service that the table had never carried — `claude-opus-4`, `claude-opus-4-1`, `claude-opus-4-5`, `claude-sonnet-4`, `claude-sonnet-4-5` — were added, and a Bedrock version suffix is now stripped so `claude-sonnet-4-5-20250929-v1:0` prices correctly."
+            },
+            {
+              "title": {
+                "zh-TW": "備援價目表對帳改採解析比對，消除誤報與常態錯誤結束代碼",
+                "en": "Fallback pricing audit switches to resolution matching, eliminating false positives and persistent error exit codes"
+              },
+              "body": {
+                "zh-TW": "檢查備援價目表的對帳腳本現在只回報解析失敗的模型，不再給出一份無人能處理的混亂清單。先前 `compare_pricing` 兩個方向都用字面鍵名相減，但備援價目表本就刻意不帶日期後綴。這讓明明算得出價格的模型（例如 `claude-haiku-4-5` 與 `claude-opus-4-7-20260416`）都被報成缺漏。回報的 12 筆缺口有 3 筆是假的，腳本的結束代碼也因此長期為 1，真的缺口混在雜訊裡看不出來。現在兩個方向都改用 `_resolve_model_key` 判斷。⟦門禁警報若死板比對整串卡號，刻意省略換證日期的合格卡全被誤報成黑名單，警示燈常亮反而掩蓋了真正的闖入者；改採對照解析後才恢復平靜。⟧",
+                "en": "The audit script checking fallback pricing tables now only reports models that actually fail to resolve, rather than outputting a confusing list that no one could act on. Previously, `compare_pricing` diffed raw literal keys in both directions, even though the fallback table deliberately omits date suffixes. This caused models that could calculate prices perfectly well (such as `claude-haiku-4-5` and `claude-opus-4-7-20260416`) to be flagged as missing. Three of the 12 reported gaps were false, keeping the script's exit code at 1 persistently and making real gaps indistinguishable from the noise. Both directions now evaluate models through `_resolve_model_key`. ⟦If an access control alarm rigidly compares full card numbers, valid cards deliberately omitting renewal dates get falsely flagged as blacklisted, and a constantly lit warning light ends up masking real intruders; switching to lookup resolution restores calm.⟧"
+              },
+              "original": "**The fallback pricing audit reports what actually fails to resolve, instead of a list nobody could act on.** Both directions of `compare_pricing` diffed raw dictionary keys, but the fallback table drops date suffixes on purpose — so models that price perfectly well, such as `claude-haiku-4-5` and `claude-opus-4-7-20260416`, were reported as missing. Three of the twelve reported gaps were false, the script's exit code had been 1 for as long as that was true, and a real gap was indistinguishable from the noise. Both directions now resolve through `_resolve_model_key`."
+            },
+            {
+              "title": {
+                "zh-TW": "用量表格顯示 Opus 5 與 Fable 5.1 簡稱，不再只印原始代號",
+                "en": "Usage table displays short names for Opus 5 and Fable 5.1 instead of raw model IDs"
+              },
+              "body": {
+                "zh-TW": "打開終端機檢視用量表格時，畫面本該為各個模型顯示簡短易讀的名稱，方便一眼掌握用量分佈。但先前簡稱字典 `MODEL_SHORT` 裡缺少了 Opus 5 與 Fable 5.1 這兩款新條目，導致表格在列出用量時，只能直接印出長串的原始模型代號（raw model IDs），讓整行排版顯得雜亂又難以閱讀。現在用量表格已補齊這兩款模型的對照設定，會端正顯示簡短名稱。⟦手機通訊錄若漏填好友姓名，來電時螢幕只能秀出一長串電話號碼；補上暱稱後，一眼就能認出是誰撥來。⟧",
+                "en": "When opening the terminal to view usage tables, the screen should display short, readable names for each model to help grasp usage distribution at a glance. However, the short-name dictionary `MODEL_SHORT` previously lacked entries for Opus 5 and Fable 5.1, forcing the table to print long raw model IDs and making the layout cluttered and difficult to read. The usage table now includes mapping entries for both models, displaying clean short names properly. ⟦If a phone contact list misses a friend's name, incoming calls only show a long phone number on the screen; once the nickname is added, you can recognize who is calling at a glance.⟧"
+              },
+              "original": "**The usage table shows a name for Opus 5 and Fable 5.1.** `MODEL_SHORT` had no entry for either, so both were printed as their raw model IDs."
+            },
+            {
+              "title": {
+                "zh-TW": "配額提醒提早至用掉一半即發送，單次讀數最多一則通知",
+                "en": "Quota warnings fire earlier at 50% usage, sending at most one notification per reading"
+              },
+              "body": {
+                "zh-TW": "你的配額通知現在會提早跳出提醒，且單次讀數絕不連續送出兩則重複通知。Codex 0.153.0 起，五小時視窗剩不到一半就會提醒 Plus 與 Team 使用者。但 `usage` 先前等到 90% 才提醒，等於被監控的工具比監控端還早出聲。預設門檻在 macOS 與 Windows 一致改為 `[50.0, 90.0]`，仍可透過 `quota_notification_thresholds` 自行調整。由於單次讀數可能一口氣跨過兩個門檻，例如 app 在配額已達 95% 時才啟動，或用量單次大跳。此時只有跨過的最高門檻會發送通知，其餘標記為已通知並鎖定，一次觀測絕不冒出兩則重複提醒。⟦河川警戒在水位達一半與九成時各廣播一次，若暴雨讓水位瞬間破九成，警報只響最緊急的紅燈，不重複播送低階警訊。⟧",
+                "en": "Your quota alerts now trigger earlier, and a single reading never sends two consecutive duplicate notifications. Starting with Codex 0.153.0, Plus and Team users are warned once less than half of the five-hour window remains. However, `usage` previously waited until 90% before alerting, meaning the monitored tool warned earlier than the monitor itself. The default threshold is now consistently set to `[50.0, 90.0]` across macOS and Windows, while remaining customizable via `quota_notification_thresholds`. A single reading can cross both thresholds at once, such as when the app launches with quota already at 95% or during a single large usage jump. In this situation, only the highest crossed threshold sends a notification while the rest are latched as notified, ensuring one observation never generates two duplicate alerts. ⟦A river warning system broadcasts once at half and once at ninety percent water levels; if a torrential storm pushes water past ninety percent instantly, only the most urgent red alert sounds without replaying lower-level warnings.⟧"
+              },
+              "original": "**Quota warnings now fire at 50% as well as 90%, and one reading sends at most one notification.** Codex 0.153.0 began warning Plus and Team users once a five-hour window is less than half remaining; usage waited until 90%, so the tool it monitors warned earlier than the monitor did. The default is now `[50.0, 90.0]` on macOS and Windows alike, still overridable through `quota_notification_thresholds`. Because a single reading can cross both thresholds at once — the app launching when quota is already at 95%, or a single large jump — only the highest crossed threshold sends a notification and the rest are latched, so one observation never produces two alerts saying the same thing."
+            }
+          ]
+        },
+        {
           "version": "0.30.7",
           "period": "2026-09-01",
           "items": [
@@ -966,199 +1038,6 @@
                 "en": "⟦A guide explains everything in words the group follows, then quotes a local speaker verbatim for one stretch and loses the group; now that stretch has to be relayed in the same plain words.⟧ Terse mode asks for plain language, but the rule used to govern only sentences Claude wrote itself. When a subagent's report or a tool's raw output was quoted directly, the mode's own prompt gave no instruction for it, so jargon inside went unexplained. A line was added after the existing \"explain a term on first use\" rule, in all five languages."
               },
               "original": "**Terse mode's plain-language rule now also covers text pasted verbatim from a subagent.** The mode's own prompt only governed sentences Claude wrote itself, leaving no instruction for handling a subagent's report or a tool's raw output when quoted directly — jargon inside it went unexplained. A line was added after the existing \"explain a term on first use\" rule, in all five languages."
-            }
-          ]
-        },
-        {
-          "version": "0.30.6",
-          "period": "2026-08-31",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Grok CLI 也有自己的用量狀態列了",
-                "en": "Grok CLI gets its own usage status line"
-              },
-              "body": {
-                "zh-TW": "⟦餐廳新開一家分店，總部把同一套點餐看板裝上去；撤店時也會把店家原本掛的那塊招牌放回原位，不是空著就走。⟧Grok CLI 支援跟 Claude Code 一樣的狀態列（statusLine，顯示在終端機最底下的資訊列）機制，所以 `usage_statusline_grok.py` 加進了既有的安裝／移除／自癒流程，用的是本來就跟 Claude Code 和 Antigravity 共用的那個開關。Grok 從標準輸入送進來的資料裡沒有用量摘要，官方文件明講了，所以腳本改去讀 `~/.grok/logs/unified.jsonl` 裡的 `creditUsagePercent` 與 `currentPeriod.end`；兩者都讀不到就整段不顯示，不會印出佔位符號。只顯示週的軸線。Grok 沒有 5 小時視窗，也不回報快取命中率，兩者都不會拿去推估。",
-                "en": "⟦A restaurant chain opens a new branch and fits it with the same order board; when the branch closes, the owner's original sign goes back up rather than being left bare.⟧ Grok CLI supports the same command-style status line mechanism as Claude Code, so `usage_statusline_grok.py` joins the existing install / remove / self-heal flow behind the switch already shared with Claude Code and Antigravity. Grok's stdin payload carries no rate-limit summary — its documentation says so explicitly — so the script tails `~/.grok/logs/unified.jsonl` for `creditUsagePercent` and `currentPeriod.end`; when neither can be read the segment is omitted rather than printed as placeholder characters. Only the weekly axis is shown, since Grok has no 5-hour window and reports no cache hit ratio, and neither is estimated."
-              },
-              "original": "**Grok CLI now gets its own `usage` status line.** Grok CLI supports the same command-style status line mechanism as Claude Code, so `usage_statusline_grok.py` joins the existing install / remove / self-heal flow behind the switch already shared with Claude Code and Antigravity. Grok's stdin payload carries no rate-limit summary (its documentation says so explicitly), so the script tails `~/.grok/logs/unified.jsonl` for `creditUsagePercent` and `currentPeriod.end`; when neither can be read the segment is omitted rather than printed as placeholder characters. Only the weekly axis is shown — Grok has no 5-hour window and reports no cache hit ratio, and neither is estimated."
-            },
-            {
-              "title": {
-                "zh-TW": "狀態列第二行看得到快取命中率與到期倒數",
-                "en": "The status line's second row shows cache hit rate and a countdown"
-              },
-              "body": {
-                "zh-TW": "Claude Code 2.1.251 在狀態列掛鉤從標準輸入收到的資料裡加了一個 `prompt_cache` 物件，`usage` 本來就把整包資料存進 `usage-status.json`，只是沒去讀它。現在第二行會顯示快取（cache，把算過的結果暫存起來直接用）命中率與到期倒數。新的 `color_by_pct_inverted()` 把配色門檻反過來，91% 的命中率讀起來是好事，不會借用額度那套紅色。`caching_observed` 不是 `True` 或比率讀不到時整段跳過，舊版 Claude Code 就安靜地不顯示；`expires_at` 過期只掉倒數、留下長條。終端機太窄還會再降兩級：先拿掉倒數，再整段收起來。⟦儀表板空間不夠時先收掉次要讀數，再收整組，而不是把數字硬擠成一團。⟧",
-                "en": "Claude Code 2.1.251 added a `prompt_cache` object to the status line hook's stdin JSON, and `usage` was already storing the whole payload in `usage-status.json` without reading it. The second row now shows the prompt cache hit rate and a countdown to expiry. A new `color_by_pct_inverted()` mirrors the thresholds, so a 91% hit rate reads as good instead of borrowing the quota palette's red, and `progress_bar()` takes an optional `color_func`, leaving existing callers unchanged. The segment is skipped entirely when `caching_observed` is not `True` or the ratio is unavailable, so older Claude Code versions silently omit it; an expired `expires_at` drops only the countdown and keeps the bar. Narrow terminals degrade in two further steps: the countdown goes first, then the whole segment. ⟦When a dashboard runs out of room it drops the secondary reading first, then the whole cluster, rather than cramming the figures together.⟧"
-              },
-              "original": "**The status line's second row now shows prompt cache hit rate and a countdown to expiry.** Claude Code 2.1.251 added a `prompt_cache` object to the status line hook's stdin JSON; `usage` was already storing the whole payload in `usage-status.json` without reading it. A new `color_by_pct_inverted()` mirrors the thresholds, so a 91% hit rate reads as good instead of borrowing the quota palette's red, and `progress_bar()` takes an optional `color_func` leaving existing callers unchanged. The segment is skipped entirely when `caching_observed` is not `True` or the ratio is unavailable, so older Claude Code versions silently omit it; an expired `expires_at` drops only the countdown and keeps the bar. Narrow terminals degrade in two further steps: the countdown goes first, then the whole segment."
-            },
-            {
-              "title": {
-                "zh-TW": "狀態列只把數字點亮，其餘壓暗",
-                "en": "The status line lights up the numbers and dims everything else"
-              },
-              "body": {
-                "zh-TW": "⟦舞台燈只打在講者身上，佈景與走道壓暗，觀眾的眼睛自然落在該看的地方。⟧空的進度格、脈絡視窗總量和 `|` 分隔線以前都是純白，比數字本身還亮。現在它們改成灰 240／暗色，用量成為唯一被點亮的元素。第二行是次要資訊，所以快取命中率在 80% 以上時採用那一行的靜音紫，低於 80% 才轉橘、低於 50% 才轉紅——好消息不需要發光。同一批也調了快取倒數的措辭：原本是把冷熱狀態直譯出來，讀起來沒有明確意思，現在改用既有的 `remaining_prefix`，英文顯示成 `(59min left)`，跟前面兩段的 5 小時與 7 天寫法一致。只用在一個地方的 `cache_cold_suffix` 被移除，五種語言不必再各自為它想一個詞。",
-                "en": "⟦Stage lights fall on the speaker while the set and the aisles go dark, so the audience looks where it should.⟧ Empty progress cells, the context window total, and the `|` separators were pure white and brighter than the figures themselves; they are now grey 240 / dim, leaving usage as the only lit element. The second row is secondary information, so a cache hit rate of 80% or better takes that row's muted purple and only turns orange below 80% and red below 50% — good news does not need to glow. The same batch reworded the cache countdown. The previous wording was a literal rendering of warm/cold that read as nothing in particular; it now reuses the existing `remaining_prefix`, giving `(59min left)` in English alongside the two segments before it. `cache_cold_suffix`, used in exactly one place, was removed, so five languages no longer need a separate word for it."
-              },
-              "original": "**The status line dims what isn't the number.** Empty progress cells, the context window total, and the `|` separators were pure white and brighter than the figures themselves; they are now grey 240 / dim, leaving usage as the only lit element. The second row is secondary information, so a cache hit rate of 80% or better takes that row's muted purple and only turns orange below 80% and red below 50% — good news does not need to glow.\n**The cache countdown now says \"left\", matching the 5-hour and 7-day segments.** The previous wording was a literal rendering of warm/cold that read as nothing in particular; it now reuses the existing `remaining_prefix`, giving `(59min left)` in English alongside the two segments before it. `cache_cold_suffix`, used in exactly one place, was removed, so five languages no longer need a separate word for it."
-            },
-            {
-              "title": {
-                "zh-TW": "別人的同名狀態列腳本不再被當成自己的接管",
-                "en": "A third-party status line with a similar name is no longer taken over"
-              },
-              "body": {
-                "zh-TW": "⟦倉庫管理員看到箱子上有「電池」兩個字就當成自家貨收走，其實那是「電池測試儀」；現在他核對整組品名相符才動手。⟧判斷一個掛鉤是不是自家的，以前靠 `\"usage-statusline\" in cmd` 這種部分比對，所以別人的 `usage-statusline-pro.py` 被當成 `usage` 裝的：沒備份就被接管，解除安裝時連他的設定一起刪掉。現在比對完整檔名，這個名字從 `HOOK_TARGET.name` 與同層檔案推出來，不再寫死字串，並要求名字兩側是路徑分隔符號、引號、空白或字串邊界。它刻意不比對完整路徑——指令字串會隨直譯器位置、引號寫法和 Windows 的反斜線改變，拿路徑比對反而會讓 `usage` 認不出自己。",
-                "en": "⟦A warehouse keeper hauls off a box because it says \"battery\", when the label reads \"battery tester\"; now the whole product name has to match before anything moves.⟧ Hook ownership was decided by the substring test `\"usage-statusline\" in cmd`, so someone else's `usage-statusline-pro.py` was treated as a `usage` installation: taken over without a backup, and its configuration deleted on uninstall. The comparison now matches the complete filename, derived from `HOOK_TARGET.name` and its siblings instead of a hardcoded string, requiring a path separator, quote, whitespace, or string boundary on each side. It deliberately does not compare full paths: the command string shifts with interpreter location, quoting, and Windows backslashes, and a path comparison would stop `usage` recognizing itself."
-              },
-              "original": "**A third-party status line with a similar name is no longer mistaken for our own.** Hook ownership was decided by the substring test `\"usage-statusline\" in cmd`, so someone else's `usage-statusline-pro.py` was treated as a `usage` installation: taken over without a backup, and its configuration deleted on uninstall. The comparison now matches the complete filename, derived from `HOOK_TARGET.name` and its siblings instead of a hardcoded string, requiring a path separator, quote, whitespace, or string boundary on each side. It deliberately does not compare full paths — the command string shifts with interpreter location, quoting, and Windows backslashes, and a path comparison would stop `usage` recognizing itself."
-            },
-            {
-              "title": {
-                "zh-TW": "狀態列的檔案鎖改成等一段時間就放行",
-                "en": "The status line's file lock times out instead of hanging"
-              },
-              "body": {
-                "zh-TW": "你每送出一則訊息，狀態列就卡住不動——因為有另一個處理程序抓著同一把鎖不放。`_exclusive_lock()` 的 POSIX 分支用的是 `flock(LOCK_EX)`，會一直等下去；Windows 分支早就有 10 秒的 `_LOCK_TIMEOUT_S` 保護。現在 POSIX 分支改用 `LOCK_EX | LOCK_NB` 輪詢，等超時就走 `msvcrt` 那條路：不拿鎖，直接做原子寫入。⟦公共洗衣機的門鎖若只等前一位用完，隊伍就一路停住；現在等一段時間仍沒動靜，就照安全程序自己開門。⟧",
-                "en": "Every message you sent left the status line stalled, because another process was holding the same lock. `_exclusive_lock()`'s POSIX branch used a plainly blocking `flock(LOCK_EX)`, while the Windows branch already had a 10-second `_LOCK_TIMEOUT_S` guard. The POSIX branch now polls with `LOCK_EX | LOCK_NB` and, on timeout, follows the `msvcrt` path: the atomic write proceeds without the lock. ⟦If a shared laundry room's door lock only ever waits for the previous user, the queue stops dead; now, after a set wait with no movement, it opens under the safe procedure.⟧"
-              },
-              "original": "**The status line's file lock now times out instead of hanging a message.** `_exclusive_lock()`'s POSIX branch used a plainly blocking `flock(LOCK_EX)` while the Windows branch already had a 10-second `_LOCK_TIMEOUT_S` guard, so a process holding the lock stalled the status line on every message. The POSIX branch now polls with `LOCK_EX | LOCK_NB` and, on timeout, follows the `msvcrt` path: the atomic write proceeds without the lock."
-            },
-            {
-              "title": {
-                "zh-TW": "已安裝的狀態列副本真的會跟著更新了",
-                "en": "Installed status line copies actually update now"
-              },
-              "body": {
-                "zh-TW": "⟦門市貼的價目表只在總表改版號時才換新，改了價卻忘了改版號，門市就一直掛著舊價。⟧`needs_update()` 拿 `~/.claude/usage-statusline.py` 裡的 `__version__` 跟 `HOOK_VERSION` 比，兩邊一樣就跳過複製。所以出貨時沒有跟著調版本號的畫面改動，永遠傳不到你已安裝的那份副本，而且過程無聲無息、不報任何錯。現在兩個常數都調高了，也補上一個偏移測試——Token Saver 掛鉤本來就有這道防護，只有狀態列漏了。",
-                "en": "⟦A shop's price board is only reprinted when the master list's revision number changes, so a price that moved without a new revision leaves the shop showing the old figure.⟧ `needs_update()` compares `__version__` in `~/.claude/usage-statusline.py` against `HOOK_VERSION` and skips the copy when they match, so rendering changes that shipped without a version bump never reached an installed copy, silently and with no error. Both constants were bumped, and a drift test was added: the Token Saver hook had that guard already; the status line was missing it."
-              },
-              "original": "**Installed status line copies now actually update.** `needs_update()` compares `__version__` in `~/.claude/usage-statusline.py` against `HOOK_VERSION` and skips the copy when they match, so rendering changes that shipped without a version bump never reached an installed copy, silently and with no error. Both constants were bumped, and a drift test was added — the Token Saver hook had that guard already; the status line was missing it."
-            },
-            {
-              "title": {
-                "zh-TW": "報表多了一項「一次過關率」，各模型分開比",
-                "en": "The report adds a first-pass rate, compared across models"
-              },
-              "body": {
-                "zh-TW": "⟦球隊除了看得分，也開始記「一次進攻就成功的比率」，同一批球員換不同打法時，這個數字看得出哪套順手。⟧報表的使用習慣區塊新增一張卡，量的是這段期間你有多少比例的回合沒被打斷、也沒有被擋下的工具呼叫，並依模型分開列。這是品質面向，不是又一個額度數字。兩個訊號都從 `~/.claude/projects` 讀出來：使用者那幾行的 `interruptedMessageId`，以及 `tool_result` 裡的權限拒絕字串，沒有任何語意上的推測。分母取使用者回合而不是助理訊息，因為一次來回會吐出十來則助理訊息，會把每個模型壓到 99.5% 以上。同一回合裡多次打斷只算一次。`<synthetic>` 這類角括號標記排除在外。被打斷的助理訊息常常還沒寫進磁碟就中止，查不出歸屬的訊號進未歸屬桶、不顯示，不硬塞給某個模型。最高與最低模型差距超過 15 分時，才會寫出那句洞察。",
-                "en": "⟦A team starts tracking not just points but the share of drives that score on the first attempt, and when the same squad tries different plays that number shows which one fits.⟧ The report's usage habits section gained a card measuring what share of your turns this period ran without an interruption and without a blocked tool call, split by model — a quality axis rather than another quota count. Both signals are structural, read from `~/.claude/projects`: `interruptedMessageId` on user lines, and permission-denial strings inside `tool_result` content; nothing is inferred semantically. The denominator is user turns rather than assistant messages, because a single exchange emits a dozen assistant messages and would compress every model above 99.5%. Multiple interruptions inside one turn count once. Angle-bracketed internal markers such as `<synthetic>` are excluded. Interrupted assistant messages are frequently aborted before reaching disk, so unresolvable signals go to an unattributed bucket and are not shown rather than being assigned to a model. The insight line is written only when the spread between the highest and lowest model exceeds 15 points. "
-              },
-              "original": "**The HTML report's usage habits section now has a first-pass rate, compared across models.** The card measures what share of your turns this period ran without an interruption and without a blocked tool call, split by model — a quality axis rather than another quota count. Both signals are structural, read from `~/.claude/projects`: `interruptedMessageId` on user lines, and permission-denial strings inside `tool_result` content; nothing is inferred semantically. The denominator is user turns rather than assistant messages, because a single exchange emits a dozen assistant messages and would compress every model above 99.5%. Multiple interruptions inside one turn count once. Angle-bracketed internal markers such as `<synthetic>` are excluded. Interrupted assistant messages are frequently aborted before reaching disk, so unresolvable signals go to an unattributed bucket and are not shown rather than being assigned to a model. The insight line is written only when the spread between the highest and lowest model exceeds 15 points."
-            },
-            {
-              "title": {
-                "zh-TW": "報表加了逐日曲線，列印出來也讀得下去",
-                "en": "The report draws a day-by-day curve and prints properly"
-              },
-              "body": {
-                "zh-TW": "報表標題早就寫著這段期間的高峰日，你卻沒有任何圖可以對照——`daily_trend` 裡放著 30 天的資料，沒有任何圖表用到它。現在週彙總上方多了一條逐日的面積線，標出最高的那一天，並且只標期間的第一天與最後一天。樣式表也加了一段 `@media print`：各區塊避免在內部斷頁、互動控制項隱藏、陰影與位移移除，顏色反轉成白底深字，這樣讀者開著深色模式時列印的 PDF 仍然讀得下去。⟦展場海報改成印刷版時，會把螢幕上的深色底換成白紙深字，互動按鈕拿掉，讓拿在手上的那份仍然清楚。⟧",
-                "en": "The report's header already named the period's peak day, but you had no chart to check it against: `daily_trend` held 30 days of data that no chart used. A daily area line now sits above the weekly rollup, marking the highest day and labelling only the period's first and last dates. The stylesheet also gained a `@media print` block: sections avoid internal page breaks, interactive controls are hidden, shadows and offsets are removed, and colors invert to dark-on-white so a PDF stays readable when the reader is in dark mode. ⟦Turning an exhibition poster into a printed handout swaps the screen's dark ground for dark type on white paper and drops the interactive buttons, so the copy in your hand still reads clearly.⟧"
-              },
-              "original": "**The report's trend section now draws a day-by-day curve for the period, and prints properly.** `daily_trend` already held 30 days of data that no chart used, leaving the peak day named in the header with nothing to check it against. A daily area line now sits above the weekly rollup, marking the highest day and labelling only the period's first and last dates. The stylesheet also gained a `@media print` block: sections avoid internal page breaks, interactive controls are hidden, shadows and offsets are removed, and colors invert to dark-on-white so a PDF stays readable when the reader is in dark mode."
-            },
-            {
-              "title": {
-                "zh-TW": "報表的表格、圖表與區塊層次都補上了",
-                "en": "The report's tables, charts, and section rhythm were filled in"
-              },
-              "body": {
-                "zh-TW": "⟦樂譜若整份都同一個力度記號，聽起來就平；標上強弱之後，同樣的音符才有了層次。⟧最重的五個工作階段本來是報表裡唯一純文字的表格，現在權杖那一欄多了一條細長條，比例以這五個裡最大的為基準，顏色沿用模型表格那套供應商配色。作息時段圖以前只有小時標籤，現在會在右下角用低調的字標出尖峰值，沒有另外加格線或 Y 軸。十個區塊本來長得一模一樣，現在洞察與熱圖採用較重的陰影，近期工作與工具兩區則較輕、用 `--faint` 邊框——只動陰影與邊框，因為人物誌那區放了兩張卡，改背景會讓它們的高度差變得刺眼。",
-                "en": "⟦A score marked at one dynamic throughout sounds flat; once the loud and soft marks go in, the same notes gain shape.⟧ The five heaviest sessions were the report's only all-text table; the tokens column now carries a thin bar scaled against the largest of the five, colored by the same provider palette the model table uses. The active-hours chart, previously hour labels alone, now marks its peak value in muted type in the lower right, with no gridlines or Y axis added. The ten sections shared one identical treatment; insights and the heatmap now carry heavier shadows while the recent-work and tools sections are lighter with `--faint` borders — shadows and borders only, since the persona section holds two cards and a background change would make their height difference conspicuous."
-              },
-              "original": "**The report's heaviest-sessions table, active-hours chart, and section rhythm were filled in.** The five heaviest sessions were the report's only all-text table; the tokens column now carries a thin bar scaled against the largest of the five, colored by the same provider palette the model table uses. The active-hours chart, previously hour labels alone, now marks its peak value in muted type in the lower right, with no gridlines or Y axis added. The ten sections shared one identical treatment; insights and the heatmap now carry heavier shadows while the recent-work and tools sections are lighter with `--faint` borders — shadows and borders only, since the persona section holds two cards and a background change would make their height difference conspicuous."
-            },
-            {
-              "title": {
-                "zh-TW": "報表的專案與模型列多了佔比條",
-                "en": "Project and model rows in the report carry share bars"
-              },
-              "body": {
-                "zh-TW": "十列疊在一起比較時，以前只能一個個讀數字。現在每個名稱下方有一條 4px 的實心比例條——選實心而不是漸層，免得顏色被誤讀成帶有其他意思。甜甜圈的「其他」那一塊以前畫的是配色裡的第七個顏色，看起來跟第一個綠色幾乎一樣；現在改成中性的 `#8b8577`，並且在 `_donut_svg` 裡由一個合成旗標挑出來，不再靠它排第幾個去猜。⟦圖書分類的書背色條若相鄰兩類幾乎同色，找書時就要逐本核對；把「其他」那一類換成灰色，一眼就能跳過。⟧",
-                "en": "Comparing ten stacked rows previously meant reading the numbers. Each name now has a 4px solid proportion bar beneath it — solid rather than gradient, so the color is not misread as carrying meaning. The donut's \"Other\" slice, which used to draw the palette's seventh color and read as nearly the same green as the first, is now a neutral `#8b8577`, selected inside `_donut_svg` by a synthetic flag rather than guessed from its index. ⟦When two adjacent shelf categories carry nearly the same spine color, finding a book means checking each one; making the \"other\" category grey lets the eye skip it at once.⟧"
-              },
-              "original": "**Project and model rows in the report now carry share bars.** Comparing ten stacked rows previously meant reading the numbers; each name now has a 4px solid proportion bar beneath it — solid rather than gradient, so the color is not misread as carrying meaning. The donut's \"Other\" slice, which used to draw the palette's seventh color and read as nearly the same green as the first, is now a neutral `#8b8577`, selected inside `_donut_svg` by a synthetic flag rather than guessed from its index."
-            },
-            {
-              "title": {
-                "zh-TW": "還沒過完的一週不再拿去跟完整的一週比",
-                "en": "A week still in progress is no longer compared against a complete one"
-              },
-              "body": {
-                "zh-TW": "⟦量體重時把還沒吃完的那一餐算進去，跟上週的完整紀錄比，數字會顯示你一夜之間輕了九成七。⟧週趨勢以前拿還沒過完的本週跟上一整週比，在 2026-08-31 那個星期一就產出「W36 ↘ −97%」，結論說本週輕了 97%。現在最後一週的星期日若落在 `date_to` 之後就標成進行中（新的 `trend_week_in_progress` 鍵，五語都加了），不顯示百分比，而 `_trend_summary()` 改比最近兩個完整的週。",
-                "en": "⟦Weighing yourself mid-meal and comparing that against last week's complete record makes the scale say you shed 97% overnight.⟧ The weekly trend measured the current partial week against the previous full one, which on Monday 2026-08-31 produced \"W36 ↘ −97%\" and the conclusion that this week was 97% lighter. The final week is now marked in progress when its Sunday falls after `date_to` (new `trend_week_in_progress` key, added in all five languages) and shows no percentage, and `_trend_summary()` compares the last two completed weeks instead. "
-              },
-              "original": "**A week still in progress is no longer compared against a complete one.** The weekly trend measured the current partial week against the previous full one, which on Monday 2026-08-31 produced \"W36 ↘ −97%\" and the conclusion that this week was 97% lighter. The final week is now marked in progress when its Sunday falls after `date_to` (new `trend_week_in_progress` key, added in all five languages) and shows no percentage, and `_trend_summary()` compares the last two completed weeks instead."
-            },
-            {
-              "title": {
-                "zh-TW": "Antigravity 的模型名不再兩種語言混寫，選單列標題也縮短",
-                "en": "The Antigravity model name stops mixing two languages, and the menu bar title tightens"
-              },
-              "body": {
-                "zh-TW": "⟦名牌上先印了英文職稱，旁邊又補一個中文職稱，同一件事寫了兩遍；現在只留讀者看得懂的那一個。⟧Antigravity 的 `display_name` 結尾本來就帶英文的強度後綴，例如 `(High)`，`usage` 又在後面接一個在地化的，同一個層級被寫了兩次、兩種語言。現在英文後綴會被拿掉，只留在地化的標籤；`display_name` 裡沒有強度欄位時，被拿掉的那個後綴就成為來源。選單列標題也收緊了：間隔號拿掉，因為供應商圖示本來就把數字分開了，圖示間距也縮成兩個空格。另外，五份 README 都在即時可見度那節補上快取健康度的說明，註明它需要 Claude Code 2.1.251 或更新版本；網站上關於 AI Tool Update Digest 的描述也移除了，那個報表區塊已經不存在。",
-                "en": "⟦A name badge printing the job title in English and then again in another language says the same thing twice; now only the one the reader understands stays.⟧ Antigravity's `display_name` already ends in an English effort suffix such as `(High)`, and `usage` appended a localized one after it, naming the same level twice in two languages. The English suffix is now stripped and only the localized label is kept; when `display_name` carries no effort field, the stripped suffix becomes the source. The menu bar title tightened up too: the interpunct separator was removed, since the provider icons already separate the figures, and icon spacing was reduced to two spaces. Separately, prompt cache health was documented in all five READMEs under real-time visibility, noting it needs Claude Code 2.1.251 or newer, and the website's description of the AI Tool Update Digest was removed, a report section that no longer exists."
-              },
-              "original": "**The Antigravity model name no longer mixes two languages.** Antigravity's `display_name` already ends in an English effort suffix such as `(High)`, and `usage` appended a localized one after it, naming the same level twice in two languages. The English suffix is now stripped and only the localized label is kept; when `display_name` carries no effort field, the stripped suffix becomes the source.\n**The menu bar title tightened up.** The interpunct separator was removed, since the provider icons already separate the figures, and icon spacing was reduced to two spaces.\nDocumented prompt cache health in all five READMEs under real-time visibility, noting it needs Claude Code 2.1.251 or newer, and removed the website's description of the AI Tool Update Digest, a report section that no longer exists."
-            },
-            {
-              "title": {
-                "zh-TW": "移除時會把 Grok 原本的狀態列放回去",
-                "en": "Uninstalling restores Grok's original status line"
-              },
-              "body": {
-                "zh-TW": "⟦租來的房子退租時，房東的原本那盞燈要裝回去；前一位房客把自己的燈拆走卻沒還原，下一位進門就只剩天花板上的線頭。⟧`unsetup()` 以前只處理 Claude Code 和 Codex，跳過了 Grok。所以你跑完 `--unsetup` 之後，`~/.grok/config.toml` 還指著一支 `usage` 的腳本，而且沒有任何正規方式回到你自己原本的 `[ui.status_line]`。這個情況現在修好了，移除時會把 Grok 原本的狀態列還原。會漏掉是因為舊的測試只走私有的 `_unsetup_grok()`，新的測試改從公開的 `unsetup()` 進去。",
-                "en": "⟦When a rented flat is handed back, the landlord's original lamp goes back up; a tenant who takes their own lamp and restores nothing leaves the next person with bare wires in the ceiling.⟧ `unsetup()` handled Claude Code and Codex but skipped Grok, so after `--unsetup` the user's `~/.grok/config.toml` still pointed at a `usage` script with no supported way back to their own `[ui.status_line]`. Uninstalling now restores Grok's original status line. The old test exercised only the private `_unsetup_grok()`, which is why this slipped through; the new one enters through the public `unsetup()`."
-              },
-              "original": "**Uninstalling now restores Grok's original status line.** `unsetup()` handled Claude Code and Codex but skipped Grok, so after `--unsetup` the user's `~/.grok/config.toml` still pointed at a `usage` script with no supported way back to their own `[ui.status_line]`. The old test exercised only the private `_unsetup_grok()`, which is why this slipped through; the new one enters through the public `unsetup()`."
-            },
-            {
-              "title": {
-                "zh-TW": "週燃燒趨勢的長條改用 CSS 漸層畫",
-                "en": "Weekly burn trend bars are now CSS gradients"
-              },
-              "body": {
-                "zh-TW": "同一頁上的甜甜圈、熱圖與作息時段圖都是畫出來的圖形，只有週趨勢的長條是用 `█` 這個字元排出來的，看起來像另一份文件貼過來的。現在這些長條改用 CSS 漸層繪製。四欄的版面與終端機風格都沒變，只是繪製的程式碼搬進新的 `ui/report_charts.py`。⟦一本畫冊裡的插圖都是印刷的，只有一頁是用打字機的符號拼出來的圖案；現在那頁也照同樣的方式印。⟧",
-                "en": "The donut, heatmap, and active-hours chart on the same page were all drawn graphics, while the weekly trend drew its bars with `█` characters, looking pasted in from another document. Those bars are now CSS gradients. The four-column layout and terminal styling are unchanged; the rendering moved into a new `ui/report_charts.py`. ⟦In an art book where every plate is printed, one page carries a picture assembled from typewriter symbols; that page is now printed the same way as the rest.⟧"
-              },
-              "original": "**Weekly burn trend bars are now CSS gradients.** The weekly trend drew its bars with `█` characters while the donut, heatmap, and active-hours chart on the same page were graphical. The four-column layout and terminal styling are unchanged; the rendering moved into a new `ui/report_charts.py`."
-            },
-            {
-              "title": {
-                "zh-TW": "熱圖不再漏標月份，甜甜圈的百分比跟表格對得上",
-                "en": "The heatmap stops skipping months, and the donut agrees with the table"
-              },
-              "body": {
-                "zh-TW": "⟦一週橫跨兩個月時，若一律用星期一那天決定它屬於哪個月，只沾到一天的舊月份就把整週收走；改看星期四，那週歸屬才符合它實際待得久的那一邊。⟧熱圖每一欄的月份以前就是從星期一取的，跨月的那一週被算給它幾乎沒沾到的舊月份，而被間距規則壓下去的標籤還會永久消失——真實輸出整個掉了九月。現在月份改從該欄的星期四讀出來，並跟上一個真正標出來的月份比對，被壓掉的月份會在下一個符合間距的欄位重新出現。另外，專案甜甜圈以前拿前十個專案的總和當分母，下方表格的百分比卻用總權杖數，所以同一個專案在圖上是 42.5%、在表格是 36.1%，中央那個數字也不是它看起來宣稱的總數。現在分母改成 `summary.total_tokens`，沒被列出來的部分（包含前十名以外的專案）併成一塊「其他」，沿用既有的 `report_chart_other` 字串。",
-                "en": "⟦When a week straddles two months, always deciding by its Monday hands the whole week to the old month it touched for a day; reading the Thursday instead puts the week on the side it actually spent longer in.⟧ A heatmap column's month was taken from its Monday, so a week spanning a month boundary was credited to the old month it barely touched, and a label suppressed by the spacing rule was lost permanently — real output dropped September entirely. The month is now read from the column's Thursday and compared against the last month actually labelled, so a suppressed month reappears at the next column that satisfies the spacing. Separately, the project donut divided by the sum of `by_project[:10]` while the table's percentage used total tokens, so one project showed 42.5% in the chart and 36.1% in the table, and the center figure read as a total it was not. The denominator is now `summary.total_tokens`, with everything not shown (including projects outside the top ten) combined into an \"Other\" slice reusing the existing `report_chart_other` string."
-              },
-              "original": "**The heatmap's month labels no longer skip or mislabel a month.** A column's month was taken from its Monday, so a week spanning a month boundary was credited to the old month it barely touched, and a label suppressed by the spacing rule was lost permanently — real output dropped September entirely. The month is now read from the column's Thursday and compared against the last month actually labelled, so a suppressed month reappears at the next column that satisfies the spacing.\n**The project donut's percentages now agree with the table beneath it.** The donut divided by the sum of `by_project[:10]` while the table's percentage used total tokens, so one project showed 42.5% in the chart and 36.1% in the table, and the center figure read as a total it was not. The denominator is now `summary.total_tokens`, with everything not shown — including projects outside the top ten — combined into an \"Other\" slice reusing the existing `report_chart_other` string."
-            },
-            {
-              "title": {
-                "zh-TW": "沒有模型名稱的打斷與被擋工具不再被丟掉",
-                "en": "Interruptions and denied tools on messages with no model name are no longer dropped"
-              },
-              "body": {
-                "zh-TW": "⟦點收貨物時，沒寫寄件人的那幾箱既不記在任何一家廠商名下，也沒放進「來源不明」那一堆，結果總數就少了幾箱。⟧帶著 `message.id` 卻沒有 `message.model` 的訊息，會被編成一個空字串，但後面的檢查只測 `model is None`。所以這些事件既沒有被歸給任何模型，也沒有被算進未歸屬那一桶，上一張卡講的那個一次過關率因此把打斷數算少了。這次修好了。",
-                "en": "⟦Checking in a delivery, the boxes with no sender written on them are filed under no supplier and never added to the \"unknown origin\" pile either, so the count comes up short.⟧ A message carrying `message.id` but no `message.model` was indexed as an empty string, while the later check tested only `model is None`. Those events were therefore neither attributed to a model nor counted as unattributed, undercounting interruptions in the first-pass rate described on the previous card. That is now fixed."
-              },
-              "original": "**Interruptions and denied tools on messages with no model name are no longer dropped.** A message carrying `message.id` but no `message.model` was indexed as an empty string, while the later check tested only `model is None` — so those events were neither attributed to a model nor counted as unattributed, undercounting interruptions in the first-pass rate."
-            },
-            {
-              "title": {
-                "zh-TW": "完全沒有用量時，報表會顯示乾淨的空狀態",
-                "en": "A report with no usage renders a clean empty state"
-              },
-              "body": {
-                "zh-TW": "用量為零時，敘述句會把零和佔位符號一起填進去，變成 `---- -- -- was the peak (0/day), main LLM 未知`，下方七個區塊全都只寫著「nothing here yet」——新使用者第一次打開看到的正是這個。現在 `total_tokens` 與 `messages` 都是零時，敘述改成 `report_empty_state_hint`，這個鍵五種語言都加了，並且只渲染標題、統計卡與贊助區塊。有資料時的輸出逐位元組相同，沒被動過的 `full_zh_tw` 與 `full_en` 快照就是證明。⟦餐廳還沒開始營業時，菜單上不該印出一排零元的品項，門口掛一塊「準備中」的牌子就夠了。⟧",
-                "en": "At zero usage the narrative sentence interpolated zeros and placeholders — \"---- -- -- was the peak (0/day), main LLM 未知\" — above seven sections each saying only \"nothing here yet\", which is what a new user saw on first open. When both `total_tokens` and `messages` are zero the narrative is now replaced by `report_empty_state_hint`, a key added in all five languages, and only the header, stat cards, and sponsor section render. Output with data is byte-identical; the untouched `full_zh_tw` and `full_en` snapshots are the proof. ⟦A restaurant not yet open for business should not print a menu full of zero-price dishes; a \"preparing\" sign on the door is enough.⟧"
-              },
-              "original": "**A report with no usage now renders a clean empty state.** At zero usage the narrative sentence interpolated zeros and placeholders — \"---- -- -- was the peak (0/day), main LLM 未知\" — above seven sections each saying only \"nothing here yet\", which is what a new user saw on first open. When both `total_tokens` and `messages` are zero the narrative is replaced by `report_empty_state_hint` (added in all five languages) and only the header, stat cards, and sponsor section render. Output with data is byte-identical; the untouched `full_zh_tw` and `full_en` snapshots are the proof."
             }
           ]
         }
