@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-06",
+  "generated_at": "2026-09-07",
   "tools": [
     {
       "id": "claude_code",
@@ -593,6 +593,100 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.1.27",
+          "period": "2026-09-05",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "`/model` 支援單次提問切換，輸入提示與啟動選單全面修正",
+                "en": "`/model` Supports Single-Prompt Model Switching with Comprehensive Fixes to Input Hints and Startup Menus"
+              },
+              "body": {
+                "zh-TW": "對話進行到一半想換個模型問一句話，現在不必更改整體設定。⟦像向主治醫師看診時，中途請隔壁專科專家進診間單獨看一張片子，問完立即回到主治醫師，不必重新辦理轉院手續。⟧新指令 `/model <name> <prompt>` 讓你用另一個模型跑單次提問，結束後工作階段（你與 AI 進行對話的一段連線）自動切回原本模型，完全不影響已儲存的預設值。寫完程式想打 `/model gemini-3.8-flash 檢查資安漏洞` 諮詢其他觀點，這正是使用時機。此外，輸入 `/model` 時會即時浮現 `[model]` 參數提示，不開求助說明也能知道用法。若工作階段已在該模型，指令改為回報 `Model already set to <name>` 而非誤報切換。在工作階段啟動完成前輸入不帶參數的 `/model`，現在也會正常開啟模型挑選器。",
+                "en": "You no longer need to change your global settings when you want to switch models for a single question mid-conversation. ⟦It is like consulting your primary physician and having a specialist step into the examination room just to review a single scan, immediately returning to your primary physician once done without undergoing hospital transfer procedures.⟧ The new `/model <name> <prompt>` command lets you run a single prompt on another model, automatically returning the session to its original model afterward without affecting your saved defaults. If you finish writing code and want to run `/model gemini-3.8-flash 檢查資安漏洞` to consult another perspective, this is the exact use case. In addition, typing `/model` now displays a real-time `[model]` argument hint so you know how to use it without opening help. If the session is already using that model, the command now reports `Model already set to <name>` instead of falsely reporting a switch. Running `/model` without arguments before the session finishes starting up also now properly opens the model picker."
+              },
+              "original": "Added `/model <name> <prompt>`, which runs a single prompt on another model and then returns the session to the model it was using, so you can consult a different model mid-conversation without disturbing your saved default.\nImproved `/model` to show a `[model]` argument hint as you type, so the command's arguments are discoverable without opening help.\nChanged `/model <name>` to report `Model already set to <name>` when the session is already using that model, instead of reporting a switch that did not happen.\nFixed `/model` with no argument doing nothing when run before the session had finished starting up, so it now opens the model picker."
+            },
+            {
+              "title": {
+                "zh-TW": "Markdown 自訂代理支援 `agents` 清單，直接宣告相依子代理路徑",
+                "en": "Custom Markdown Agents Support `agents` List to Directly Declare Dependent Subagent Paths"
+              },
+              "body": {
+                "zh-TW": "替專案設計多代理協作時，自訂代理現在能直接宣告自己專屬的下層幫手。在定義代理的 Markdown 檔案開頭，檔案標頭（frontmatter，用三條橫線包夾的設定區塊）新增了 `agents` 清單。你可以直接列出該代理依賴的各個子代理，並完全比照 `skills` 技能的定位方式，自由使用工作區相對路徑、絕對路徑或代理相對路徑：\n\n```\n---\nagents:\n  - ./researcher.md       # 代理相對路徑\n  - subagents/verifier.md # 工作區相對路徑\n  - /global/audit.md      # 絕對路徑\n---\n```\n\n當你撰寫一份資安稽核代理，希望它自動叫出專門查閱程式碼的輔助幫手，只要在定義檔開頭寫好這份清單，系統就會精準載入依賴項目。⟦好比主廚在宴席菜單頂端註明各道菜餚專屬的備料助手與冷盤學徒，後廚依名冊在開工前配齊人手，不必等客人入座後才手忙腳亂到處調派支援。⟧",
+                "en": "When designing multi-agent collaboration for a project, custom agents can now directly declare their own subordinate helpers. The Markdown frontmatter at the beginning of an agent definition file has added an `agents` list. You can directly list the subagents this agent depends on, using workspace-relative paths, absolute paths, or agent-relative paths just like `skills`:\n\n```\n---\nagents:\n  - ./researcher.md       # Agent-relative path\n  - subagents/verifier.md # Workspace-relative path\n  - /global/audit.md      # Absolute path\n---\n```\n\nWhen creating a security audit agent that needs to automatically invoke a dedicated code inspection helper, simply declaring this list at the top of the definition file ensures the system accurately loads the dependencies. ⟦Like a head chef listing dedicated prep assistants and cold-dish apprentices at the top of a banquet menu so the kitchen can staff up before work begins, rather than scrambling to dispatch helpers after guests are seated.⟧"
+              },
+              "original": "Added an `agents` list to custom agent Markdown frontmatter, letting an agent declare the subagents it depends on using the same workspace-relative, absolute, and agent-relative path rules as `skills`."
+            },
+            {
+              "title": {
+                "zh-TW": "狀態列與視窗標題腳本新增 `conversation_title`，即時同步對話重新命名",
+                "en": "Status Line and Window Title Scripts Add `conversation_title` to Synchronize Renamed Conversations in Real Time"
+              },
+              "body": {
+                "zh-TW": "想要在螢幕邊界隨時掌握當前對話，自訂腳本現在能取得更豐富的資訊。⟦如同會議室門口掛著的數位名牌，只要發起人更改專案名稱，螢幕隨即同步換上新標題，讓走進門的人一目了然。⟧傳遞給自訂狀態列（終端機最底下的即時資訊列）與視窗標題腳本的 JSON 酬載中，新增了 `conversation_title` 欄位。你的腳本可以直接讀取該欄位來顯示當前進行中的對話名稱，即使中途為對話重新命名，介面也能立即跟進最新標題，不再停留在舊名稱或預設代號：\n\n```\n{\n  \"conversation_title\": \"重構登入模組\"\n}\n```\n\n當你同時開啟多個終端機視窗處理不同專案，只要腳本讀取這個新欄位，就能清楚辨認每個視窗正在進行的任務主題。",
+                "en": "Custom scripts can now retrieve richer information to help you track active conversations at the screen edge at any time. ⟦Like a digital nameplate outside a conference room that instantly updates when the organizer renames the project, giving anyone walking in immediate clarity.⟧ The JSON payload passed to custom status line and window title scripts now includes a `conversation_title` field. Your scripts can directly read this field to display the active conversation's name, picking up renames immediately rather than staying stuck on old names or default identifiers:\n\n```\n{\n  \"conversation_title\": \"Refactor login module\"\n}\n```\n\nWhen running multiple terminal windows across different projects, having your script read this new field makes it easy to identify the task topic in each window."
+              },
+              "original": "Added a `conversation_title` field to the JSON payload passed to custom status line and window title scripts, so they can show the active conversation's name and pick up renames immediately."
+            },
+            {
+              "title": {
+                "zh-TW": "無頭與列印模式 `-p` 執行加固，未授權動作明確列出且紀錄完整落盤",
+                "en": "Hardened Execution for Headless and Print Mode `-p`: Unauthorized Actions Explicitly Listed and Records Flushed to Disk"
+              },
+              "body": {
+                "zh-TW": "把 AI 放入自動化排程背景執行，最怕工具被拒絕時毫無動靜、或者紀錄沒寫完就中途斷線。⟦宛如派出全自動無人採樣車，遇到未經授權的管制區域時不再裝作沒事直接略過，而是在日誌中白紙黑字寫明被拒絕的地點，且返航時一定等所有檢測數據完整寫入隨身碟才關閉電源。⟧以 `-p` 參數跑 headless（無頭模式，沒有終端機視窗的執行模式）時，過去系統若遇到未獲授權的工具動作，會默默跳過不執行；現在程式結束時會明確列出被拒絕的動作名稱，並在 JSON 輸出中標記為 `denied_actions`。此外，列印模式以前在工作階段尚未完成關閉前就過早退出，容易導致末尾的對話歷史紀錄還沒寫入磁碟就被丟棄；現在會確實等待工作階段完整落盤後才退出。",
+                "en": "When running AI in background automated schedules, the worst issues are silent tool rejections or dropped records due to premature disconnections. ⟦Like an autonomous sampling rover that, when encountering an unauthorized restricted zone, no longer skips past it silently but clearly logs the refused location in writing, and always waits for all telemetry to flush to storage before powering off on its return.⟧ When running headless with `-p`, the system previously skipped unauthorized tool actions silently; it now ends with a notice naming the refused actions and reports them as `denied_actions` in the JSON output. In addition, print mode previously exited before the session finished shutting down, which could drop trailing conversation history before it reached disk; it now properly waits for the session to finish writing to disk before exiting."
+              },
+              "original": "Fixed headless runs with `-p` silently skipping tool actions they were not permitted to take, which now end with a notice naming the refused actions and report them as `denied_actions` in the JSON output.\nFixed print mode (`-p`) exiting before the session finished shutting down, which could drop the run's trailing conversation history before it reached disk."
+            },
+            {
+              "title": {
+                "zh-TW": "MCP 工具呼叫嚴格核對規格，虛構參數主動拒絕並修正",
+                "en": "MCP Tool Calls Strictly Validate Schemas, Actively Rejecting and Correcting Invented Parameters"
+              },
+              "body": {
+                "zh-TW": "讓 AI 連接外部伺服器執行專屬工具，傳入參數的檢驗標準現在變得更加嚴密。過去呼叫 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器時，如果 AI 自行虛構了該伺服器規格架構中從未宣告過的額外參數，舊版系統往往會默默丟棄這些多餘參數而不提示，導致呼叫行為偏離預期。現在底層驗證機制已修正，遇到規格外的虛構參數會主動予以拒絕並要求修正，確保每次工具呼叫都嚴格符合定義。⟦這就像去銀行臨櫃填寫匯款單，如果填表人自作主張在空白處多勾選了規格從未印製的自創項目，櫃員不會裝作沒看見直接劃掉，而是會當場退單並指引你填寫合規欄位。⟧",
+                "en": "Validation standards for passing arguments have become much stricter when connecting AI to external servers for dedicated tools. When calling MCP (Model Context Protocol) servers in the past, if the AI invented extra arguments never declared in the server's schema, the system often silently dropped them without notice, causing unexpected behavior. The underlying validation mechanism is now fixed to actively reject and correct invented parameters outside the schema, ensuring every tool call strictly matches definitions. ⟦Like filling out a bank transfer slip where, if the applicant checks custom options never printed on the form, the teller will not silently cross them out, but will reject the slip on the spot and guide you to fill out valid fields.⟧"
+              },
+              "original": "Fixed tool calls to MCP servers accepting arguments the server's own schema never declared, so an invented parameter is now rejected and corrected instead of being silently dropped."
+            },
+            {
+              "title": {
+                "zh-TW": "設定面板詳述輸出詳細度，初始引導畫面按鍵提示全面標準化",
+                "en": "Settings Panel Details Verbosity Levels, and Onboarding Key Hints Are Fully Standardized"
+              },
+              "body": {
+                "zh-TW": "在終端機調整設定或初次登入時，畫面引導變得更加貼合你的使用習慣。⟦猶如在科技展廳的觸控機台前瀏覽，每當手勢移到不同選項，旁邊的動態看板就會詳細解釋功能差異，且按鈕背光會自動配合展廳色調，遇到單一通道時更會主動收起多餘的方向提示。⟧開啟 `/settings` 設定面板時，游標移到各個 Verbosity 詳細度選項上，畫面會即時展開說明文字。它會詳細描述工具呼叫、終端指令與思考推導是完整展開顯示，還是濃縮進 token（AI 處理與計費的文字單位）計量表中。此外，帳號登入與 Google Cloud 設定引導畫面全面改用命令列標準樣式的按鍵提示，能完全跟隨你的終端配色與自訂鍵位綁定，當畫面上只有單一選項可選時，系統也會主動隱藏多餘的方向導覽提示。",
+                "en": "On-screen guidance fits your habits much better when tweaking settings in the terminal or logging in for the first time. ⟦Like browsing a touchscreen kiosk in a tech showroom where highlighting different options prompts a dynamic billboard to explain functional differences, button backlights adapt to showroom colors, and navigation arrows hide when only a single path exists.⟧ When opening the `/settings` panel, highlighting each Verbosity option now expands explanatory text in real time. It describes in detail whether tool calls, terminal commands, and thoughts are shown in full or collapsed into a token metrics table. In addition, sign-in and Google Cloud setup screens now use standard styled CLI key hints that follow your terminal color scheme and custom keybindings, dropping navigation hints when only one option is available."
+              },
+              "original": "Improved the `/settings` panel so each Verbosity option explains itself as you highlight it, describing whether tool calls, commands, and thoughts are shown in full or collapsed into a token metrics table.\nImproved the sign-in and Google Cloud setup screens to use the CLI's standard styled key hints, which follow your color scheme and keybindings and drop the navigation hint when only one option is available."
+            },
+            {
+              "title": {
+                "zh-TW": "Vim 常規模式解開 `?` 按鍵衝突，行內搜尋與替換指令順暢運作",
+                "en": "Vim Normal Mode Resolves `?` Key Conflict, Restoring Inline Search and Replace Operators"
+              },
+              "body": {
+                "zh-TW": "習慣在終端機開啟 Vim 鍵位的工程師，現在於輸入列進行行內定位時不再誤觸彈出視窗。過去在 Vim Normal mode（Vim 編輯器的常規命令模式）下，只要輸入框內已經包含文字，按下 `?` 鍵就會錯誤地觸發快速鍵面板跳出，導致 `f?`、`t?` 以及 `df?` 等字元搜尋與替換操作符號全面失靈。現在這項按鍵攔截問題已經修復，當輸入列已有文字時，這些搜尋與替換指令都能順暢運作；只有在輸入列完全空白的待機狀態下，按下 `?` 才會如常開啟快速鍵說明。⟦彷彿在打字機上編修文件，當滾筒夾著稿紙且正在編輯時，按下特殊標點會精確執行行內字元搜尋、跳位與替換，只有在完全抽空稿紙的待機狀態下，同一個按鍵才會化身為叫出操作手冊的呼叫鈴。⟧",
+                "en": "Engineers used to Vim keybindings in the terminal will no longer accidentally trigger popup panels during inline navigation in the prompt. Previously in Vim Normal mode, pressing `?` while the prompt already contained text incorrectly opened the shortcuts panel, breaking character-search and replace operators such as `f?`, `t?`, and `df?`. This key intercept issue is now fixed so that search and replace commands work smoothly when the prompt has text; pressing `?` only opens shortcut help when the prompt is completely empty. ⟦Like editing on a typewriter where pressing a punctuation key performs precise inline character search, jumping, and replacement while paper is loaded, and only acts as a service bell summoning the manual when the roller is completely empty.⟧"
+              },
+              "original": "Fixed `?` in Vim Normal mode opening the shortcuts panel while the prompt already contained text, so character-search and replace operators such as `f?`, `t?`, and `df?` work; `?` still opens shortcuts on an empty prompt."
+            },
+            {
+              "title": {
+                "zh-TW": "已授權存取工作區外檔案時，讀寫跨對話產物不再跳多餘確認",
+                "en": "Reading and Writing Cross-Conversation Artifacts No Longer Prompts for Redundant Approval When Workspace Access Is Granted"
+              },
+              "body": {
+                "zh-TW": "跨對話調閱過往產出的分析文件，不必再被重複彈出的確認視窗打斷工作節奏。當使用者在對話中已經明確核准代理存取工作區以外的檔案路徑，後續若代理需要讀取或寫入另一段對話所產生的產物（artifact，獨立生成的各類文件或程式碼）檔案，過去系統仍會反覆彈出多餘的授權詢問對話框，中斷連續操作；現在這項重複提示已被徹底修復，只要先前已放行外部路徑，代理就能順暢讀寫其他對話的產物。⟦恰似入住全包式度假村，既然手腕上已經配戴了通行全區的識別手環，走進隔壁活動中心借閱其他房客留下的共享桌遊時，櫃檯就不該要求你再次出示護照並重複簽名。⟧",
+                "en": "Retrieving past analysis documents across conversations no longer interrupts your workflow with repeated confirmation popups. Once you explicitly allow an agent access to file paths outside your workspace, the system previously still prompted repeatedly for approval whenever the agent read or wrote artifact files created by another conversation; this redundant prompt is now fixed so the agent smoothly accesses artifacts from other conversations once external paths have been permitted. ⟦Like staying at an all-inclusive resort where wearing an all-access wristband means the front desk should not ask for your passport and signature again when you borrow board games from the recreation center next door.⟧"
+              },
+              "original": "Fixed a redundant approval prompt when the agent reads or writes another conversation's artifact files after you have already allowed access to files outside your workspace."
+            }
+          ]
+        },
+        {
           "version": "1.1.26",
           "period": "2026-09-04",
           "items": [
@@ -757,89 +851,6 @@
               "original": "Hardened Remote Control reverse-tunnel routing."
             }
           ]
-        },
-        {
-          "version": "1.1.24",
-          "period": "2026-09-02",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "`/mcp` 面板導覽更順手，方向鍵與退出鍵分工分明",
-                "en": "Smoother `/mcp` Panel Navigation with Clear Arrow and Escape Key Roles"
-              },
-              "body": {
-                "zh-TW": "你在 `/mcp` 面板裡挑選 MCP（讓 AI 連接外部工具的協定）伺服器與外掛時，方向鍵的職責現在劃分得一清二楚。上下方向鍵專門在各個伺服器與外掛項目之間縱向移動，左右方向鍵負責循環切換該項目的可用動作，按下 `Esc` 鍵便能退出動作模式或關閉面板。⟦這有如操作電視選單，上下鍵負責挑頻道，左右鍵切換音軌或畫質選項，按返回鍵就乾脆退回上一層，不會按錯鍵就亂跳欄位。⟧",
-                "en": "When navigating MCP (protocol connecting AI to external tools) servers and plugins in the `/mcp` panel, the roles of arrow keys are now clearly divided. Up and down arrow keys strictly move vertically between individual servers and plugins, left and right arrow keys cycle through available actions for the selected item, and pressing `Esc` exits action mode or closes the panel. ⟦It is like navigating a TV menu: up and down keys switch channels, left and right keys adjust audio tracks or video quality, and pressing back cleanly returns to the previous level without accidentally jumping across unrelated fields.⟧"
-              },
-              "original": "Improved `/mcp` panel navigation so up and down arrow keys strictly navigate between MCP servers and plugins, left and right arrow keys cycle available actions, and `Esc` exits action mode or the panel."
-            },
-            {
-              "title": {
-                "zh-TW": "`/agents` 選單自動去重，跨來源不再冒出重複代理",
-                "en": "Automatic Deduplication in `/agents` Picker Eliminates Duplicate Agents Across Sources"
-              },
-              "body": {
-                "zh-TW": "⟦當不同部門的通訊錄都登記了同一個聯絡人，聰明的手機只會合併顯示一次，而不是在選單列出一長串分身。⟧當你在多個設定來源或外掛中定義了同名代理（agent，替你執行特定任務的 AI 助手），打開 `/agents` 選單時不會再看見重複項目的干擾了。過去系統在探索時，只要從不同設定來源或外掛發現同名代理，就會把每一筆都重複列在挑選器中；現在選單已經會自動去重，確保清單乾淨清爽。",
-                "en": "⟦When contact books across different departments list the exact same person, a smart phone merges them into a single entry rather than cluttering your list with duplicate profiles.⟧ When you define agents (assistants that perform specific tasks) with identical names across multiple configuration sources or plugins, opening the `/agents` picker no longer shows distracting duplicates. Previously during discovery, finding an agent with the same name across different sources or plugins listed every instance in the picker; the menu now automatically deduplicates entries, keeping your selection list clean."
-              },
-              "original": "Fixed duplicate agent entries appearing in the `/agents` picker when an agent with the same name is discovered across multiple configuration sources or plugins."
-            },
-            {
-              "title": {
-                "zh-TW": "啟動目錄失效也不怕，工具與代理初始化照常運作",
-                "en": "Tool and Agent Initialization Succeeds Even from Deleted Working Directories"
-              },
-              "body": {
-                "zh-TW": "⟦出門在外即使腳下的暫停點突然消失，只要隨身手冊記的是完整全球座標，導航就能照常運作。⟧就算你在一處已被刪除或無法存取的工作目錄中啟動命令列，工具初始化與代理啟動程序也不會再莫名崩潰。以前系統在處理記憶體中的參數架構時，會因目錄失效而找不到相對參照；現在全面改用絕對 URI（統一資源識別碼，以標準格式標記位置的字串）格式，確保各項工具與代理在任何目錄狀態下都能順利初始化。",
-                "en": "⟦Even if your temporary waypoint disappears under your feet while traveling, navigation continues smoothly as long as your guidebook records full global coordinates.⟧ Launching the command line from a working directory that has been deleted or is inaccessible will no longer cause tool initialization or agent startup to crash. Previously, parameter schemas held in memory lost relative references when the directory was invalid; switching fully to absolute URI schemes ensures all tools and agents initialize reliably regardless of directory state."
-              },
-              "original": "Fixed tool initialization and agent startup failing when launched from an inaccessible or deleted working directory by using absolute URI schemes for in-memory parameter schemas."
-            },
-            {
-              "title": {
-                "zh-TW": "無頭模式輸出不再卡死，子行程自動釋放管線",
-                "en": "Headless CLI Invocations with Pipes Exit Cleanly Without Hanging"
-              },
-              "body": {
-                "zh-TW": "⟦就像工人下班離開工地時主動鎖緊水閥，才不會讓水管一直通水而卡住後續的工程驗收。⟧撰寫自動化腳本時，你在無頭模式（headless，沒有終端機畫面的背景執行模式）下透過管線接收標準輸出或標準錯誤，程式結束時不再無故卡死。過去背景派生出來的子行程會持續霸佔呼叫端的管線，導致主程式遲遲無法順利關閉退出；現在系統已在保留的串流上加上 `FD_CLOEXEC` 標記，在結束時徹底釋放所有管線資源。",
-                "en": "⟦It is like workers shutting off the main water valve before leaving a construction site, ensuring pipes do not stay pressurized and stall subsequent inspections.⟧ When running automation scripts in headless mode (background execution without a visual interface) with piped standard output or standard error, invocations no longer hang on exit. Previously, spawned child processes kept the caller's pipes open and prevented the main process from shutting down cleanly; setting `FD_CLOEXEC` on preserved streams now ensures all pipe resources are fully released on exit."
-              },
-              "original": "Fixed headless CLI invocations with piped standard output or standard error hanging on exit by setting `FD_CLOEXEC` on the preserved streams so child processes do not keep the caller's pipes open."
-            },
-            {
-              "title": {
-                "zh-TW": "`mcp_config.json` 語法更寬容，註解與結尾逗號照單全收",
-                "en": "Lenient `mcp_config.json` Parsing Supports Comments and Trailing Commas"
-              },
-              "body": {
-                "zh-TW": "手動編輯工具設定檔時，你不必再為隨手寫下的筆記或多打的逗號膽戰心驚了。過去在 `mcp_config.json` 檔案中加入單行註解 `//`、多行註解 `/* */` 或是在結尾多留尾隨逗號，都會導致 MCP（讓 AI 連接外部工具的協定）設定解析失敗；現在解析器已具備更佳的容錯能力，能順利讀取帶有註解與多餘逗號的設定內容。⟦這宛如一位懂通融的表單審查員，看見備註欄旁的手寫附註或句末多點的逗號，能自然看懂填表內容，不再直接退件。⟧",
-                "en": "When manually editing tool configurations, you no longer need to worry about quick notes or extra commas breaking your setup. Previously, adding single-line comments `//`, multi-line comments `/* */`, or trailing commas in `mcp_config.json` caused MCP (protocol connecting AI to external tools) configuration parsing to fail; the parser is now more forgiving and reads configurations containing comments and trailing commas smoothly. ⟦It is like an understanding form inspector who effortlessly processes notes in margins or accidental punctuation marks without rejecting the entire submission.⟧"
-              },
-              "original": "Fixed MCP configuration parsing failing when `mcp_config.json` contains single-line (`//`) comments, multi-line (`/* */`) comments, or trailing commas."
-            },
-            {
-              "title": {
-                "zh-TW": "刪除對話徹底清理，不再殘留孤立註記檔案",
-                "en": "Deleting Conversations Thoroughly Cleans Up Orphaned Annotation Files"
-              },
-              "body": {
-                "zh-TW": "清理舊對話時，本機硬碟空間現在會被收拾得乾乾淨淨。以前每當你刪除對話紀錄，系統雖然移除了主對話，卻常把關聯的註記檔案遺留在本機儲存空間中，隨著時間推移默默堆積成無用的孤立檔案；這次修正補齊了刪除邏輯，會在刪掉對話的同時自動清除對應的註記檔案。⟦就像撕掉牆上的舊海報時，順手把固定在四周的雙面膠殘膠刮除乾淨，不讓碎屑在牆角日積月累。⟧",
-                "en": "When clearing old conversations, your local disk space is now kept completely tidy. Previously, deleting a conversation removed the main chat but often left associated annotation files in local storage, gradually accumulating useless orphaned files over time; the deletion logic has been updated to automatically prune matching annotations alongside the conversation. ⟦It is like removing an old poster from a wall and scraping off the leftover adhesive tape around the edges, preventing stray scraps from piling up in corners.⟧"
-              },
-              "original": "Fixed orphaned annotation files accumulating in local storage when deleting conversations."
-            },
-            {
-              "title": {
-                "zh-TW": "目標執行中隨口提問，`/btw` 不再強行推進或亂叫工具",
-                "en": "Side Questions via `/btw` No Longer Force Goal Progress or Trigger Unintended Tools"
-              },
-              "body": {
-                "zh-TW": "在 AI 全力衝刺大專案的中途，你終於能安心插話問個小問題了。當你開啟 `/goal` 指令讓系統執行長期目標時，若中途打 `/btw`（順帶一提，用來向 AI 提出旁支問題的指令）插話發問，先前系統常會把這則閒聊誤當作目標的一部分強行繼續推動，甚至亂呼叫工具；現在兩者狀態已徹底拆開，插問只會解答當前疑問，絕不干擾進行中的主任務。⟦彷彿你在主廚埋頭做大菜時問一句鹽巴放哪，他轉頭答完就回歸料理，不會突然把鹽巴整罐倒進湯裡胡亂攪拌。⟧",
-                "en": "While AI is actively working through a major project, you can now safely ask quick side questions without derailment. When running a long-term goal with `/goal`, asking a side question with `/btw` (by the way, a command for asking auxiliary questions) previously led to treating the tangent as part of the active goal, forcing unwanted progression and unintended tool calls; their execution states are now decoupled so side questions resolve your query without interrupting the main task. ⟦It is like asking a chef cooking an elaborate meal where the salt is: they answer and resume cooking immediately, rather than dumping the entire salt container into the soup.⟧"
-              },
-              "original": "Fixed `/btw` side questions in conversations with an active `/goal` being forced to continue and making unintended tool calls."
-            }
-          ]
         }
       ]
     },
@@ -847,6 +858,23 @@
       "id": "usage",
       "name": "Usage",
       "versions": [
+        {
+          "version": "0.30.9",
+          "period": "2026-09-05",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Antigravity 用量能顯示在互動儀表板了，表格名稱不再只留小寫代號",
+                "en": "Antigravity usage now appears in the interactive dashboard, and table headers no longer stay as raw lowercase IDs"
+              },
+              "body": {
+                "zh-TW": "你在 `usage` 查詢用量時，若裝有 Antigravity，過去切到互動儀表板只會看到 `No data` 的空白分頁。⟦這就像停車場管理處明明有登錄，出口繳費機卻自備名冊且漏記新車號，讓車主在螢幕上只查到「查無資料」，欄位也只印出底盤代號。⟧問題在於儀表板與 `usage report` 各自維護代理到載入器的對照表，先前只有報表納入 `antigravity`，即便報表指令能載入用量，偵測到安裝的儀表板分頁依然只渲染出 `No data`；終端機表格也缺少 Antigravity 的簡稱與顯示名稱，欄位標題只能留著原始小寫代理 ID。兩份對照表過去缺乏一致性檢查，最初的迴歸測試（防範舊功能被改壞的自動驗證）甚至直接寫死三款已知代理而未比對雙方清單，無法維持鍵值同步；現在測試已強制要求兩邊鍵值完全相等。",
+                "en": "When checking usage with `usage`, if Antigravity was installed, switching to the interactive dashboard previously only showed a blank tab with `No data`. ⟦This is like a parking office having a vehicle registered, but the exit payment machine keeps its own roster and misses the new plate number, leaving the driver seeing \"No data\" on screen while fields only print raw chassis codes.⟧ The problem was that the dashboard and `usage report` each maintained separate agent-to-loader mapping tables. Previously, only the report included `antigravity`, so even though the report command could load usage, the dashboard tab for a detected installation still rendered `No data`. Terminal tables also lacked Antigravity's short and display names, leaving column headers stuck with the raw lowercase agent ID. The two mapping tables previously lacked consistency checks, and the initial regression tests (automated checks preventing existing features from breaking) even hard-coded three known agents instead of comparing both lists, failing to keep keys synchronized; tests now enforce exact key equality across both sides."
+              },
+              "original": "**Antigravity usage now appears in the interactive dashboard with consistent labels.** The dashboard and `usage report` maintain separate agent-to-loader maps, and only the report map included `antigravity`, so a detected Antigravity installation opened a dashboard tab that rendered `No data` even though the report command could load its usage. The terminal tables also lacked Antigravity's short and display names, leaving their headings as the raw lowercase agent ID. The maps had no parity check, and the first regression test hard-coded the three known agents instead of comparing the two maps, so it could not keep their keys synchronized; it now asserts exact key equality. Reported and fixed by @ClarenceKuo in #126."
+            }
+          ]
+        },
         {
           "version": "0.30.7",
           "period": "2026-09-01",
@@ -1131,23 +1159,6 @@
                 "en": "At zero usage the narrative sentence interpolated zeros and placeholders — \"---- -- -- was the peak (0/day), main LLM 未知\" — above seven sections each saying only \"nothing here yet\", which is what a new user saw on first open. When both `total_tokens` and `messages` are zero the narrative is now replaced by `report_empty_state_hint`, a key added in all five languages, and only the header, stat cards, and sponsor section render. Output with data is byte-identical; the untouched `full_zh_tw` and `full_en` snapshots are the proof. ⟦A restaurant not yet open for business should not print a menu full of zero-price dishes; a \"preparing\" sign on the door is enough.⟧"
               },
               "original": "**A report with no usage now renders a clean empty state.** At zero usage the narrative sentence interpolated zeros and placeholders — \"---- -- -- was the peak (0/day), main LLM 未知\" — above seven sections each saying only \"nothing here yet\", which is what a new user saw on first open. When both `total_tokens` and `messages` are zero the narrative is replaced by `report_empty_state_hint` (added in all five languages) and only the header, stat cards, and sponsor section render. Output with data is byte-identical; the untouched `full_zh_tw` and `full_en` snapshots are the proof."
-            }
-          ]
-        },
-        {
-          "version": "0.30.5",
-          "period": "2026-08-30",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "選單列移除動態精靈夥伴，騰出空間顯示 Grok 用量",
-                "en": "Menu bar removes animated companions and allocates their space to Grok"
-              },
-              "body": {
-                "zh-TW": "⟦公仔換燈。⟧ 選單列移除動態精靈同伴，`menubar/critter_frames.py`、共用 NSTimer、`animateCritters_`、`critter_animation_tick()` 與 `refresh.py` 的 `animation_groups`，與 15 個影格及 `assets/critters/lion/` 移除。當 `not hide_grok` 且 `grok_weekly.percent is not None`，由 `assets/grok_mono_menubar.png`、`_grok_menubar_icon()` 在 `_menubar_attributed_title()` 與 `_compose_title()` 兩處把 Grok 加在 Antigravity 後，保留分隔符；`hide_grok` 預設開啟。",
-                "en": "⟦Like removing a bobblehead figurine and its motorized timer base from a car dashboard to free up a mounting slot for a warning indicator light.⟧ The menu bar no longer displays animated spirit companions, as `menubar/critter_frames.py`, the shared NSTimer, the `animateCritters_` selector, `critter_animation_tick()`, and `refresh.py`'s `animation_groups` data flow have all been removed alongside the 15 animation frames and the `assets/critters/lion/` directory. Grok now takes over that space: when `not hide_grok` and `grok_weekly.percent is not None`, `_menubar_attributed_title()` and `_compose_title()` use `assets/grok_mono_menubar.png` and `_grok_menubar_icon()` to insert Grok right after Antigravity while preserving the existing separator behavior. The `hide_grok` setting remains `True` by default."
-              },
-              "original": "**The menu bar no longer shows animated spirit companions; Grok now uses their space.** `menubar/critter_frames.py`, the shared NSTimer and `animateCritters_` selector, `critter_animation_tick()`, and `refresh.py`'s `animation_groups` data flow were removed, together with the 15 animation frames and `assets/critters/lion/`. `assets/grok_mono_menubar.png` and `_grok_menubar_icon()` now add Grok after Antigravity in `_menubar_attributed_title()` and `_compose_title()` when `not hide_grok` and `grok_weekly.percent is not None`, preserving the existing separator behavior; `hide_grok` remains `True` by default."
             }
           ]
         }
