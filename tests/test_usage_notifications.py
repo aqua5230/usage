@@ -126,12 +126,13 @@ def test_agy_stale_data_does_not_send_notifications() -> None:
     assert notifier.update({"agy_session": (100.0, False)}) == []
 
 
-def test_default_thresholds_warn_at_half_and_near_full() -> None:
+def test_default_threshold_only_warns_near_full() -> None:
     notifier = QuotaNotifier()
 
-    assert notifier.thresholds == [50.0, 90.0]
-    events = notifier.update({"codex_session": (52.0, True)})
-    assert [(event.kind, event.threshold) for event in events] == [("warn", 50.0)]
+    assert notifier.thresholds == [90.0]
+    assert notifier.update({"codex_session": (52.0, True)}) == []
+    events = notifier.update({"codex_session": (92.0, True)})
+    assert [(event.kind, event.threshold) for event in events] == [("warn", 90.0)]
 
 
 def test_one_reading_crossing_two_thresholds_warns_once() -> None:
