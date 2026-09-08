@@ -22,22 +22,25 @@
 <link rel="alternate" hreflang="ko" href="https://aqua5230.github.io/usage/?lang=ko" />
 <link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/" />
 <style>
+/* Hallmark · pre-emit critique: P4 H4 E3 S4 R5 V4 · browser verification pending */
+/* Hallmark · macrostructure: Workbench · tone: restrained · anchor hue: orange */
 :root {
   --bg: #090a0f;
   --bg-soft: #11131a;
   --bg-card: rgba(20, 23, 32, 0.7);
   --fg: #f5f5f7;
   --fg-dim: #9898a0;
-  --fg-dimmer: #63636e;
-  --fg-footer: #71717a;
+  --fg-dimmer: #858590;
+  --fg-footer: #858590;
   --accent: #ff8c42;
   --accent-soft: rgba(255, 140, 66, 0.12);
+  --accent-hover: #ffa365;
   --border: rgba(255, 255, 255, 0.08);
   --green: #4ade80;
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; scroll-padding-top: 64px; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; overflow-x: clip; }
 body {
   position: relative;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans CJK TC", "Noto Sans CJK SC", "Noto Sans JP", "Noto Sans KR", Arial, sans-serif;
@@ -45,7 +48,7 @@ body {
   color: var(--fg);
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; height: auto; display: block; }
@@ -71,17 +74,6 @@ button { font-family: inherit; cursor: pointer; }
 
 .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
 @media (max-width: 640px) { .wrap { padding: 0 16px; } }
-
-/* Aurora glow behind the hero */
-.aurora {
-  position: fixed; top: -180px; left: 50%;
-  transform: translateX(-50%);
-  width: min(960px, 100vw); height: 480px; z-index: 0; pointer-events: none;
-  background: radial-gradient(60% 60% at 50% 35%, rgba(255, 140, 66, 0.16) 0%, transparent 70%),
-              radial-gradient(45% 45% at 65% 50%, rgba(255, 180, 100, 0.08) 0%, transparent 70%);
-  filter: blur(32px);
-  opacity: 0.8;
-}
 
 /* Top bar */
 .topbar {
@@ -164,10 +156,10 @@ button { font-family: inherit; cursor: pointer; }
   align-items: center;
   min-height: 36px;
   gap: 6px;
-  transition: border-color 0.15s, background 0.15s, transform 0.15s;
+  transition: border-color 0.15s, background 0.15s;
 }
-.lang-btn:hover { border-color: var(--fg-dimmer); background: var(--bg-soft); transform: translateY(-1px); }
-.lang-btn:active { transform: translateY(0); }
+.lang-btn:hover { border-color: var(--fg-dimmer); background: var(--bg-soft); }
+.lang-btn:active { background: var(--bg-soft); }
 .lang-btn[aria-expanded="true"] { border-color: var(--accent); }
 .lang-caret { font-size: 10px; color: var(--fg-dim); }
 .lang-menu {
@@ -204,8 +196,8 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--accent-soft);
 }
 
-/* Hero — Product screenshot led, Apple showcase layout */
-.hero { padding: 32px 0 36px; text-align: center; }
+/* Hero — typography and the existing product image */
+.hero { padding: 72px 0 64px; text-align: left; }
 .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -223,71 +215,38 @@ button { font-family: inherit; cursor: pointer; }
   font-weight: 650;
 }
 .hero h1 {
-  font-size: clamp(26px, 3.8vw, 40px);
-  line-height: 1.15;
+  font-size: clamp(34px, 4.5vw, 56px);
+  line-height: 1.12;
   letter-spacing: -0.035em;
   font-weight: 700;
-  margin-bottom: 10px;
-  background: linear-gradient(180deg, #ffffff 35%, #a6a6af 100%);
-  -webkit-background-clip: text; background-clip: text;
-  -webkit-text-fill-color: transparent;
+  min-width: 0;
+  max-width: 1000px;
+  margin-bottom: 24px;
+  overflow-wrap: anywhere;
 }
-.hero h1 .accent { color: var(--accent); -webkit-text-fill-color: var(--accent); text-shadow: 0 0 24px rgba(255, 140, 66, 0.28); }
+.hero h1 .accent { color: var(--accent); }
 .hero p.lead {
-  font-size: clamp(14px, 1.6vw, 15.5px);
+  font-size: clamp(16px, 1.6vw, 18px);
   color: var(--fg-dim);
-  max-width: 580px;
-  margin: 0 auto 16px;
-  line-height: 1.45;
+  max-width: 720px;
+  margin: 0 0 28px;
+  line-height: 1.65;
   text-wrap: balance;
 }
-.cta { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-bottom: 24px; }
+.cta { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; margin-bottom: 40px; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   font-size: 15px; font-weight: 550;
-  min-height: 40px;
-  padding: 0 18px;
-  border-radius: 999px;
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 8px;
   border: 1px solid transparent;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
-  transition: transform 150ms cubic-bezier(.22, 1, .36, 1), box-shadow 150ms ease, background 150ms ease, border-color 150ms ease;
+  white-space: nowrap;
+  transition: background 150ms ease, border-color 150ms ease;
 }
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 4px 14px -2px rgba(0, 0, 0, 0.4);
-}
-.btn:active {
-  transform: translateY(0) scale(.98);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 1px 2px rgba(0, 0, 0, 0.22);
-}
-.btn-primary {
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  background: linear-gradient(180deg, #ff9b57 0%, #ff8c42 100%);
-  color: #08090c;
-  font-weight: 600;
-  box-shadow: 0 2px 10px rgba(255, 140, 66, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-}
-.btn-primary::after {
-  content: '';
-  position: absolute;
-  inset: -40% auto -40% -35%;
-  width: 28%;
-  pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .32), transparent);
-  transform: translateX(-160%) skewX(-18deg);
-  transition: transform 520ms cubic-bezier(.22, 1, .36, 1);
-}
-.btn-primary:hover::after { transform: translateX(520%) skewX(-18deg); }
-.btn-primary:hover {
-  background: linear-gradient(180deg, #ffa86b 0%, #ff954e 100%);
-  box-shadow: 0 4px 18px rgba(255, 140, 66, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
-.btn-primary:active {
-  background: #ff8c42;
-  box-shadow: 0 1px 4px rgba(255, 140, 66, 0.3);
-}
+.btn-primary { background: var(--accent); color: var(--bg); font-weight: 600; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:active { background: var(--accent); }
 .btn-secondary {
   background: rgba(255, 255, 255, 0.04);
   color: var(--fg);
@@ -302,43 +261,27 @@ button { font-family: inherit; cursor: pointer; }
   background: rgba(255, 255, 255, 0.03);
 }
 .shot {
-  position: relative;
   margin: 0 auto;
-  border-radius: 14px;
+  border-radius: 10px;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #0b0d13;
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.05),
-              0 24px 64px -14px rgba(0, 0, 0, 0.75),
-              0 0 50px -10px rgba(255, 140, 66, 0.18);
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
   width: fit-content;
-  max-width: 960px;
-}
-.shot img {
   max-width: 100%;
-  height: auto;
-  max-height: min(55vh, 580px);
-  object-fit: contain;
-  display: block;
 }
+.shot img { max-width: 100%; height: auto; display: block; }
+.hero .shot { width: 100%; }
+.hero .shot img { width: 100%; }
 
-/* Floating mascot pet — placed at bottom of page, no longer blocking scroll */
+/* Static brand mascot */
 .mascot-pet {
   position: absolute;
   right: clamp(16px, 4vw, 48px);
   bottom: 24px;
   width: clamp(80px, 10vw, 130px);
-  z-index: 10;
   pointer-events: none;
-  filter: drop-shadow(0 0 20px rgba(255, 140, 66, 0.25)) drop-shadow(0 8px 16px rgba(0, 0, 0, 0.6));
-  animation: mascot-in 0.6s ease-out 0.4s both;
-}
-@keyframes mascot-in {
-  from { opacity: 0; transform: translateY(20px); }
-  to   { opacity: 1; transform: translateY(0); }
 }
 @media (max-width: 720px) { .mascot-pet { display: none; } }
-@media (prefers-reduced-motion: reduce) { .mascot-pet { animation: none; } }
 
 /* Privacy strip */
 .strip {
@@ -346,7 +289,6 @@ button { font-family: inherit; cursor: pointer; }
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   padding: 16px 0;
-  backdrop-filter: blur(12px);
 }
 .strip .wrap {
   display: flex; align-items: center; justify-content: center; gap: clamp(16px, 3.5vw, 44px);
@@ -354,109 +296,73 @@ button { font-family: inherit; cursor: pointer; }
   font-size: 15px; color: var(--fg-dim);
 }
 .strip .item { display: flex; align-items: center; gap: 8px; }
-.strip .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; box-shadow: 0 0 8px var(--accent); flex-shrink: 0; }
+.strip .dot { width: 6px; height: 6px; background: var(--accent); border-radius: 50%; flex-shrink: 0; }
 .strip .item strong { color: var(--fg); font-weight: 550; }
 
-/* Sections */
-section { padding: 48px 0; }
+/* Sections use different compositions and spacing. */
+section { padding: 80px 0; }
 section h2 {
-  font-size: clamp(24px, 3.2vw, 34px);
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.2;
   letter-spacing: -0.025em;
-  font-weight: 700;
-  margin-bottom: 10px;
-  text-align: center;
+  font-weight: 650;
+  margin-bottom: 16px;
+  text-align: left;
+  overflow-wrap: anywhere;
+  min-width: 0;
 }
 section .subtitle {
-  text-align: center;
   color: var(--fg-dim);
-  max-width: 580px;
-  margin: 0 auto 32px;
-  font-size: 15px;
-  line-height: 1.5;
+  max-width: 640px;
+  margin: 0 0 36px;
+  font-size: 16px;
+  line-height: 1.7;
 }
-#resume .subtitle { max-width: 680px; text-wrap: balance; margin-bottom: 28px; }
+#features { padding: 96px 0; }
+#resume { padding: 72px 0 0; background: var(--bg-soft); border-top: 1px solid var(--border); }
+.resume-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 56px; align-items: center; }
+#resume .subtitle { margin-bottom: 0; }
+#resume .strip { margin-top: 56px; }
+#install { padding: 56px 0 64px; background: var(--bg); }
+#install h2, #install .subtitle { text-align: center; }
+#install .subtitle { margin-left: auto; margin-right: auto; }
+#screenshots { padding: 96px 0 80px; background: var(--bg-soft); }
 
-/* Feature grid */
-.grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 18px;
+/* One full-width lead, two supporting priorities, seven complete details. */
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
+.card { min-width: 0; padding: 28px 0; border-top: 1px solid var(--border); }
+.card .icon { display: flex; align-items: center; color: var(--fg-dim); margin-bottom: 16px; }
+.card .icon svg { width: 24px; height: 24px; stroke: currentColor; }
+.card h3 { font-size: 20px; line-height: 1.35; margin-bottom: 12px; letter-spacing: -0.01em; color: var(--fg); font-weight: 600; }
+.card p { font-size: 15px; color: var(--fg-dim); line-height: 1.7; overflow-wrap: anywhere; }
+.card-lead {
+  grid-column: 1 / -1;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 48px;
+  padding: 32px; margin-bottom: 16px;
+  background: var(--bg-soft); border: 1px solid var(--border); border-top: 2px solid var(--accent); border-radius: 10px;
 }
-.card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 24px;
-  position: relative;
-  overflow: hidden;
-  isolation: isolate;
-  --mx: 50%;
-  --my: 50%;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
-  will-change: transform;
-  transition: transform 220ms cubic-bezier(.22, 1, .36, 1), border-color 180ms ease, box-shadow 220ms ease;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-}
-.card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0;
-  background: radial-gradient(200px circle at var(--mx) var(--my), rgba(255, 140, 66, .14), transparent 72%);
-  transition: opacity 180ms ease;
-}
-.card:hover {
-  border-color: rgba(255, 140, 66, 0.35);
-  transform: translateY(-3px);
-  box-shadow: 0 12px 30px -10px rgba(0, 0, 0, 0.5), 0 0 20px -6px rgba(255, 140, 66, 0.15);
-}
-.card:hover::before { opacity: 1; }
-.grid:hover .card { opacity: .5; transition: opacity .25s ease; }
-.grid:hover .card:hover { opacity: 1; }
-.card .icon {
-  width: 38px; height: 38px; border-radius: 10px;
-  background: rgba(255, 140, 66, 0.1);
-  border: 1px solid rgba(255, 140, 66, 0.22);
-  display: flex; align-items: center; justify-content: center;
-  margin-bottom: 14px; color: var(--accent);
-  box-shadow: 0 0 14px -3px rgba(255, 140, 66, 0.16);
-}
-.card .icon svg { width: 20px; height: 20px; stroke: currentColor; }
-.card h3 { font-size: 15.5px; margin-bottom: 8px; letter-spacing: -0.01em; color: #ffffff; font-weight: 600; }
-.card p { font-size: 15px; color: var(--fg-dim); line-height: 1.55; }
+.card-lead .icon { grid-column: 1 / -1; color: var(--accent); }
+.card-lead h3 { font-size: 28px; margin-bottom: 0; }
+.card-priority { padding: 24px 0 40px; border-top: 0; }
+.card-priority .icon { color: var(--accent); }
+.card-priority h3 { font-size: 24px; }
+.card:last-child { grid-column: 1 / -1; }
+.card:last-child p { max-width: 760px; }
 
-/* Motion enhancements retain visible content until JavaScript opts in. */
-.motion-ready .reveal {
-  opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 520ms ease, transform 520ms cubic-bezier(.22, 1, .36, 1);
-  transition-delay: calc(var(--i, 0) * 50ms);
-}
-.motion-ready .reveal.is-visible { opacity: 1; transform: translateY(0); }
-
-@media (hover: none), (prefers-reduced-motion: reduce) {
-  .card::before { display: none; }
-}
+/* Keep content visible even when the existing observer adds reveal classes. */
 @media (prefers-reduced-motion: reduce) {
-  .card, .btn { transition-duration: 0.01ms; }
-  .card:hover, .btn:hover, .btn:active { transform: none; }
-  .motion-ready .reveal { opacity: 1; transform: none; transition: none; }
-  .btn-primary::after { display: none; }
-  .grid:hover .card { transition-duration: 0.01ms; }
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }
 
 /* Install — Clear hierarchy with featured Recommended method */
 .install { background: var(--bg-soft); border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
 .install-row {
   display: grid;
-  grid-template-columns: 1.35fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
   align-items: stretch;
 }
-@media (max-width: 1180px) { .install-row { grid-template-columns: repeat(2, 1fr); } }
 @media (max-width: 720px) { .install-row { grid-template-columns: 1fr; } }
 .install-card {
   background: var(--bg-card);
@@ -485,8 +391,8 @@ section .subtitle {
 .install-card h3 { font-size: 17px; margin-bottom: 6px; font-weight: 600; }
 .install-card p { color: var(--fg-dim); font-size: 14.5px; margin-bottom: 14px; line-height: 1.45; flex-grow: 1; }
 .install-card pre {
-  white-space: pre-wrap;
-  overflow-wrap: break-word;
+  white-space: pre;
+  overflow-wrap: normal;
   font-size: 13px;
   padding: 10px 12px;
   background: #08090d;
@@ -523,7 +429,7 @@ pre {
   border: 1px solid var(--border);
   border-radius: 6px;
   cursor: pointer;
-  transition: all 140ms ease;
+  transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
 }
 .copy-btn:hover { color: var(--fg); border-color: var(--accent); background: var(--accent-soft); }
 
@@ -551,20 +457,14 @@ pre {
   font-family: var(--mono);
 }
 .panel-picker {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 28px;
-  max-width: 960px;
-  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 364px;
+  align-items: start;
+  gap: 64px;
+  max-width: 860px;
+  margin: 0;
 }
-.panel-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-  max-width: 760px;
-}
+.panel-chips { display: flex; flex-wrap: wrap; gap: 10px; align-content: start; }
 .panel-chip {
   appearance: none;
   border: 1px solid var(--border);
@@ -589,7 +489,6 @@ pre {
   border-color: var(--accent);
   color: #08090c;
   font-weight: 600;
-  box-shadow: 0 0 16px -2px rgba(255, 140, 66, 0.35);
 }
 .panel-stage {
   width: 364px;
@@ -597,32 +496,42 @@ pre {
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: var(--bg-card);
-  box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.7), 0 0 40px -10px rgba(255, 140, 66, 0.12);
   flex-shrink: 0;
 }
 .panel-stage iframe { width: 100%; height: 1004px; border: 0; display: block; pointer-events: none; }
 @media (max-width: 760px) {
-  .panel-picker { flex-direction: column; align-items: center; gap: 20px; width: 100%; }
+  .panel-picker { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 24px; width: 100%; }
   .panel-stage { width: min(364px, 100%); overflow-x: auto; }
 }
 
-/* Report block */
-.report {
-  text-align: center;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02) 0%, rgba(255, 140, 66, 0.06) 100%);
-  border-radius: 16px;
-  padding: 40px 24px;
-  margin-top: 36px;
-  border: 1px solid var(--border);
+/* Report: text above an uncropped, full-width document preview. */
+.report { text-align: left; padding: 48px 0 0; margin-top: 72px; border-top: 1px solid var(--border); }
+.report h3 { font-size: 28px; line-height: 1.25; margin-bottom: 16px; letter-spacing: -0.015em; font-weight: 650; }
+.report p { color: var(--fg-dim); margin-bottom: 32px; max-width: 720px; font-size: 16px; line-height: 1.7; }
+.report img { width: 100%; max-width: 100%; border-radius: 8px; border: 1px solid var(--border); }
+
+@media (max-width: 800px) {
+  .resume-layout { grid-template-columns: minmax(0, 1fr); gap: 32px; }
+  .topbar nav { gap: 16px; font-size: 14px; }
 }
-.report h3 { font-size: 22px; margin-bottom: 10px; letter-spacing: -0.015em; font-weight: 700; }
-.report p { color: var(--fg-dim); margin-bottom: 24px; max-width: 560px; margin-left: auto; margin-right: auto; font-size: 15.5px; }
-.report img {
-  margin: 0 auto;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  max-width: 780px;
-  box-shadow: 0 20px 60px -16px rgba(0, 0, 0, 0.7), 0 0 40px -15px rgba(255, 140, 66, 0.1);
+@media (max-width: 640px) {
+  .hero { padding: 40px 0; }
+  .eyebrow { font-size: 10px; letter-spacing: 0.025em; }
+  .hero h1 br { display: none; }
+  .hero .cta { gap: 8px; }
+  .hero .btn { padding: 0 12px; font-size: 14px; }
+  #features, #screenshots { padding: 56px 0; }
+  #resume { padding-top: 48px; }
+  #install { padding: 40px 0 48px; }
+  .grid, .card-lead { grid-template-columns: minmax(0, 1fr); }
+  .card-lead { padding: 24px; }
+  .card-lead h3 { margin-bottom: 16px; font-size: 26px; }
+  .card-priority { padding: 28px 0; }
+  .card-priority + .card-priority { border-top: 1px solid var(--border); }
+  .strip .wrap { justify-content: flex-start; gap: 16px; }
+  .install-card { padding: 20px 16px; }
+  .panel-chip { white-space: nowrap; padding: 8px 12px; }
+  .report { margin-top: 48px; padding-top: 32px; }
 }
 
 /* Footer */
@@ -647,21 +556,10 @@ footer .kofi {
   transition: background 150ms ease;
 }
 footer .kofi:hover { background: #ff7572; }
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9999;
-  pointer-events: none;
-  opacity: 0.03;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiB2aWV3Qm94PSIwIDAgMTgwIDE4MCI+PGZpbHRlciBpZD0ibiI+PGZlVHVyYnVsZW5jZSB0eXBlPSJmcmFjdGFsTm9pc2UiIGJhc2VGcmVxdWVuY3k9Ii45IiBudW1PY3RhdmVzPSI0IiBzdGl0Y2hUaWxlcz0ic3RpdGNoIi8+PC9maWx0ZXI+PHJlY3Qgd2lkdGg9IjEwMCUiIGhlaWdodD0iMTAwJSIgZmlsdGVyPSJ1cmwoI24pIiBvcGFjaXR5PSIuNSIvPjwvc3ZnPg==");
-}
 </style>
 </head>
 <body>
 <a class="skip-link" href="#main-content" data-i18n="skip_main">Skip to main content</a>
-<div class="aurora" aria-hidden="true"></div>
 
 <header class="topbar">
   <div class="wrap">
@@ -727,25 +625,25 @@ body::before {
     <h2 data-i18n="features_h2">Built for developers who burn tokens.</h2>
     <p class="subtitle" data-i18n="features_sub">Stop guessing if you're about to hit the rate limit mid-refactor.</p>
     <div class="grid">
-      <div class="card">
+      <div class="card card-lead">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13a8.5 8.5 0 0 1 17 0"/><path d="M12 13l3.8-2.6"/><circle cx="12" cy="13" r="1.3" fill="currentColor" stroke="none"/></svg></span>
         <h3 data-i18n="card1_h">5-hour &amp; 7-day quota at a glance</h3>
         <p data-i18n="card1_p">Both Claude Code session (5h) and weekly (7d) percentages live in the menu bar. Click for a full popover with per-project usage and cost.</p>
       </div>
-      <div class="card">
+      <div class="card card-priority">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>
         <h3 data-i18n="card2_h">Claude Code, Codex &amp; Antigravity, one app</h3>
         <p data-i18n="card2_p">Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.</p>
+      </div>
+      <div class="card card-priority">
+        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
+        <h3 data-i18n="card3_h">Local-first by design</h3>
+        <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk — a statusLine hook status file plus Codex session JSONL logs — with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.</p>
       </div>
       <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="1.5"/><path d="M7 9l3 3-3 3"/><path d="M12 15h5"/></svg></span>
         <h3 data-i18n="card14_h">Grok CLI, too</h3>
         <p data-i18n="card14_p">A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Its per-request token usage still counts toward today's cost and project totals, just like Claude Code and Codex.</p>
-      </div>
-      <div class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
-        <h3 data-i18n="card3_h">Local-first by design</h3>
-        <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk — a statusLine hook status file plus Codex session JSONL logs — with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.</p>
       </div>
       <div class="card">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-3"/></svg></span>
@@ -782,17 +680,19 @@ body::before {
 </section>
 
 <section id="resume">
-  <div class="wrap">
-    <div style="text-align: center;">
+  <div class="wrap resume-layout">
+    <div class="resume-copy">
+    <div>
       <span class="eyebrow" data-i18n="resume_label">PROGRESS CONCIERGE</span>
     </div>
     <h2 data-i18n="resume_h2">Now your CLI picks up where you left off</h2>
     <p class="subtitle" data-i18n="resume_lead">The web and desktop apps keep your history automatically — close them, reopen, it's all there. The CLI keeps it too, but you need to know the command to pull it back up. Resume makes that automatic: open a new session and it picks up where you left off, no command to remember, no re-explaining. It now also runs a daily health check on your logs — when it spots token waste, the handoff adds a one-line heads-up; say "show me" for the findings and fixes. Reads local files only — never connects to any API.</p>
+    </div>
     <div class="shot">
       <img src="resume.webp" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="Resume restoring your last session in the CLI" />
     </div>
   </div>
-  <div class="strip" style="margin-top: 40px;">
+  <div class="strip">
     <div class="wrap">
       <div class="item"><span class="dot"></span><strong data-i18n="resume_point1">Auto-resumes your last progress</strong></div>
       <div class="item"><span class="dot"></span><strong data-i18n="resume_point4">Daily health check flags token waste</strong></div>
@@ -848,7 +748,7 @@ body::before {
       <div class="panel-chips" id="panel-chips" role="group" data-i18n-attr="aria-label:screen_h2" aria-label="Pick a panel that fits your mood."></div>
       <div class="panel-stage"><iframe id="panel-stage" title="usage panel preview" loading="lazy" scrolling="no"></iframe></div>
     </div>
-    <div class="report" style="margin-top: 56px;">
+    <div class="report">
       <h3 data-i18n="report_h">Your AI usage, in one shareable page.</h3>
       <p data-i18n="report_p">Generate an HTML report with token spend, cost, top projects, and model distribution — plus a year-in-review page with a GitHub-style contribution heatmap and a "Wrapped" card. Send to your manager. Use as a client invoice attachment. Project names hide by default.</p>
       <img loading="lazy" decoding="async" data-shot src="report.en.png" data-img-en="report.en.png" data-img-cjk="report.png" alt="HTML usage report" />
