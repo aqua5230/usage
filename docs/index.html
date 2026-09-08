@@ -323,7 +323,7 @@ section .subtitle {
 .resume-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 56px; align-items: center; }
 #resume .subtitle { margin-bottom: 0; }
 #resume .strip { margin-top: 56px; }
-#install { padding: 56px 0 64px; background: var(--bg); }
+#install { padding: 56px 0 64px; }
 #install h2, #install .subtitle { text-align: center; }
 #install .subtitle { margin-left: auto; margin-right: auto; }
 #screenshots { padding: 96px 0 80px; background: var(--bg-soft); }
@@ -547,15 +547,16 @@ footer .links a { display: inline-flex; align-items: center; min-height: 24px; t
 footer .links a:hover { color: var(--fg); }
 footer .kofi {
   display: inline-block;
-  background: #ff5e5b;
-  color: white;
+  /* #ff8c42 on #090a0f = 8.55:1 (WCAG AA); hover #ffa365 on #090a0f = 10.06:1 */
+  background: var(--accent);
+  color: var(--bg);
   padding: 7px 14px;
   border-radius: 8px;
   font-size: 13.5px;
   font-weight: 550;
   transition: background 150ms ease;
 }
-footer .kofi:hover { background: #ff7572; }
+footer .kofi:hover { background: var(--accent-hover); }
 </style>
 </head>
 <body>
@@ -578,6 +579,7 @@ footer .kofi:hover { background: #ff7572; }
         <a href="#resume" data-i18n="nav_resume">Resume</a>
         <a href="#install" data-i18n="nav_install">Install</a>
         <a href="#screenshots" data-i18n="nav_screenshots">Panels</a>
+        <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
       </nav>
     </details>
     <div class="lang">
@@ -689,7 +691,7 @@ footer .kofi:hover { background: #ff7572; }
     <p class="subtitle" data-i18n="resume_lead">The web and desktop apps keep your history automatically — close them, reopen, it's all there. The CLI keeps it too, but you need to know the command to pull it back up. Resume makes that automatic: open a new session and it picks up where you left off, no command to remember, no re-explaining. It now also runs a daily health check on your logs — when it spots token waste, the handoff adds a one-line heads-up; say "show me" for the findings and fixes. Reads local files only — never connects to any API.</p>
     </div>
     <div class="shot">
-      <img src="resume.webp" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="Resume restoring your last session in the CLI" />
+      <img width="1981" height="793" src="resume.webp" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="Resume restoring your last session in the CLI" />
     </div>
   </div>
   <div class="strip">
@@ -751,7 +753,7 @@ footer .kofi:hover { background: #ff7572; }
     <div class="report">
       <h3 data-i18n="report_h">Your AI usage, in one shareable page.</h3>
       <p data-i18n="report_p">Generate an HTML report with token spend, cost, top projects, and model distribution — plus a year-in-review page with a GitHub-style contribution heatmap and a "Wrapped" card. Send to your manager. Use as a client invoice attachment. Project names hide by default.</p>
-      <img loading="lazy" decoding="async" data-shot src="report.en.png" data-img-en="report.en.png" data-img-cjk="report.png" alt="HTML usage report" />
+      <img width="976" height="1036" loading="lazy" decoding="async" data-shot data-size-en="976x1036" data-size-cjk="995x1036" src="report.en.png" data-img-en="report.en.png" data-img-cjk="report.png" alt="HTML usage report" />
     </div>
   </div>
 </section>
@@ -842,6 +844,7 @@ const T = {
     install_btn_releases: '→ Open Releases page',
     copy_btn: 'Copy',
     copy_done: 'Copied',
+    copy_fail: 'Copy failed',
     screen_h2: 'Pick a panel that fits your mood.',
     screen_sub: 'Fourteen built-in themes. Change anytime from the popover toolbar.',
     report_h: 'Your AI usage, in one shareable page.',
@@ -921,6 +924,7 @@ const T = {
     install_btn_releases: '→ 開啟 Releases 頁面',
     copy_btn: '複製',
     copy_done: '已複製',
+    copy_fail: '複製失敗',
     screen_h2: '挑一個你喜歡的面板。',
     screen_sub: '14 款內建主題。隨時從 popover 工具列切換。',
     report_h: '你的 AI 用量，一頁可分享。',
@@ -1000,6 +1004,7 @@ const T = {
     install_btn_releases: '→ 打开 Releases 页面',
     copy_btn: '复制',
     copy_done: '已复制',
+    copy_fail: '复制失败',
     screen_h2: '挑一个你喜欢的面板。',
     screen_sub: '14 款内建主题。随时从 popover 工具栏切换。',
     report_h: '你的 AI 用量，一页可分享。',
@@ -1079,6 +1084,7 @@ const T = {
     install_btn_releases: '→ Releases ページを開く',
     copy_btn: 'コピー',
     copy_done: 'コピー済み',
+    copy_fail: 'コピー失敗',
     screen_h2: '気分に合うパネルを選んで。',
     screen_sub: '14 種の内蔵テーマ。ポップオーバーのツールバーからいつでも切り替え可能。',
     report_h: 'あなたの AI 使用量を、共有可能な 1 ページに。',
@@ -1158,6 +1164,7 @@ const T = {
     install_btn_releases: '→ Releases 페이지 열기',
     copy_btn: '복사',
     copy_done: '복사됨',
+    copy_fail: '복사 실패',
     screen_h2: '마음에 드는 패널을 골라보세요.',
     screen_sub: '14가지 내장 테마. 팝오버 툴바에서 언제든 전환 가능.',
     report_h: '당신의 AI 사용량을, 공유 가능한 한 페이지로.',
@@ -1234,6 +1241,13 @@ function applyLang(lang) {
   document.querySelectorAll('[data-shot]').forEach(img => {
     const src = useEn ? img.dataset.imgEn : img.dataset.imgCjk;
     if (src && img.getAttribute('src') !== src) img.setAttribute('src', src);
+    // The CJK shot is a different pixel width, so the reserved box has to follow it.
+    const size = useEn ? img.dataset.sizeEn : img.dataset.sizeCjk;
+    if (size) {
+      const wh = size.split('x');
+      img.setAttribute('width', wh[0]);
+      img.setAttribute('height', wh[1]);
+    }
   });
 
   if (typeof window.usagePanelsSetLanguage === 'function') window.usagePanelsSetLanguage(lang);
@@ -1252,10 +1266,10 @@ function applyLang(lang) {
 const btn = document.getElementById('lang-btn');
 const menu = document.getElementById('lang-menu');
 const langOptions = [...menu.querySelectorAll('[role="option"]')];
-function closeMenu() {
+function closeMenu(restoreFocus) {
   menu.hidden = true;
   btn.setAttribute('aria-expanded', 'false');
-  btn.focus();
+  if (restoreFocus !== false) btn.focus();
 }
 function openMenu() { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); }
 function openMenuAndFocus(index) {
@@ -1289,7 +1303,7 @@ menu.addEventListener('keydown', event => {
   }
 });
 document.addEventListener('click', e => {
-  if (!menu.hidden && !e.target.closest('.lang')) closeMenu();
+  if (!menu.hidden && !e.target.closest('.lang')) closeMenu(false);
 });
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape' && !menu.hidden) closeMenu();
@@ -1388,16 +1402,16 @@ document.querySelectorAll('.copy-btn').forEach(function (button) {
   button.addEventListener('click', async function () {
     const code = button.closest('.copy-wrap').querySelector('code');
     if (!code) return;
+    const lang = document.documentElement.lang;
+    const t = T[lang] || T.en;
     try {
       await navigator.clipboard.writeText(code.textContent);
+      button.textContent = t.copy_done || T.en.copy_done;
     } catch (e) {
-      return;
+      button.textContent = t.copy_fail || T.en.copy_fail;
     }
-    const lang = document.documentElement.lang;
-    const done = (T[lang] && T[lang].copy_done) || T.en.copy_done;
-    button.textContent = done;
-    setTimeout(function () {
-      const t = T[lang] || T.en;
+    clearTimeout(button._resetTimer);
+    button._resetTimer = setTimeout(function () {
       button.textContent = t.copy_btn;
     }, 2000);
   });
