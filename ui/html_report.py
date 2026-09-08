@@ -31,7 +31,7 @@ from analyzer.reporter import (
 from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
 from ui.report_charts import render_share_bar, render_trend_bar
-from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE
+from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE, REPORT_THEME_INIT_JS
 from ui.report_styles import REPORT_CSS
 
 
@@ -619,7 +619,10 @@ def _render_header(data: ReportData, lang: str, title: str, generated_at: str, i
     </div>
     <div class="header-actions">
       <div class="meta">{html.escape(_t(lang, "generated"))} {html.escape(generated_at)}<br>usage {_escape(_t(lang, "version"))} {_escape(_version())}</div>
+      <div class="header-buttons">
+        <button class="share-trigger" type="button" data-theme-toggle data-light-label="{html.escape(_t(lang, 'theme_light'))}" data-dark-label="{html.escape(_t(lang, 'theme_dark'))}" data-light-aria="{html.escape(_t(lang, 'theme_switch_light'))}" data-dark-aria="{html.escape(_t(lang, 'theme_switch_dark'))}" aria-label="{html.escape(_t(lang, 'theme_switch_light'))}"><span data-theme-icon aria-hidden="true">☀</span><span data-theme-label>{html.escape(_t(lang, 'theme_light'))}</span></button>
       <button class="share-trigger" type="button" data-share-open><span aria-hidden="true">↗</span>{html.escape(_t(lang, "share_button_label"))}</button>
+      </div>
     </div>
   </header>"""
 
@@ -695,7 +698,7 @@ def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
         if model_rows
         else _empty_line(_t(lang, "empty_models"))
     )
-    return _section(_t(lang, "model_section"), model_body)
+    return _section(_t(lang, "model_section"), model_body, "model-section")
 
 
 def _render_tools_section(data: Mapping[str, Any], lang: str) -> str:
@@ -765,7 +768,7 @@ def _render_composition_section(data: Mapping[str, Any], lang: str) -> str:
         f'<span>{_escape(_t(lang, "composition_hit_rate"))}</span></div>'
         f'<div class="rank-list">{"".join(agent_rows)}</div>'
     )
-    return _section(_t(lang, "composition_section"), body)
+    return _section(_t(lang, "composition_section"), body, "composition-section")
 
 
 def _render_insight_note(
@@ -843,7 +846,7 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
 
 def _render_trend_section(data: Mapping[str, Any], lang: str, date_to: date) -> str:
     daily = data.get("daily_trend", [])
-    return _section(_t(lang, "trend_section"), _trend_ascii(daily, lang, date_to))
+    return _section(_t(lang, "trend_section"), _trend_ascii(daily, lang, date_to), "trend-section")
 
 
 def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
@@ -1150,6 +1153,7 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)}</title>
+<script>{REPORT_THEME_INIT_JS}</script>
 <style>
 {_render_styles()}
 </style>
