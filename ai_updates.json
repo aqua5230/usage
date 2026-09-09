@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09",
+  "generated_at": "2026-09-10",
   "tools": [
     {
       "id": "claude_code",
@@ -360,6 +360,144 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.154.0",
+          "period": "2026-09-09",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "GPT-6-Astra 上架模型挑選器與 Bedrock，官方文檔同步補上轉移指引",
+                "en": "GPT-6-Astra Arrives in Model Picker and Bedrock with Updated Migration Guides"
+              },
+              "body": {
+                "zh-TW": "開發時想嘗試最新一代模型？現在進入模型挑選器（model picker，供切換不同 AI 版本的選單）即可直接選用 GPT-6-Astra。這項更新也同步推送到 Amazon Bedrock 的服務目錄中。若你正打算將既有專案遷移過來，內建的 OpenAI Docs 技能也已全面更新，針對 GPT-6-Astra 提供專門的轉移步驟、相容性說明與提示詞撰寫指引。⟦這就像車商正式將新旗艦車款陳列在展示中心與特約經銷商的型錄上，同時隨車手冊也立即換上新版的升級指南、相容說明與駕駛操作技巧。⟧無論你透過本機選單還是雲端目錄調用，都能直接對照指引順利切換。",
+                "en": "Looking to try the latest model during development? You can now select GPT-6-Astra directly from the model picker. This update is also available in the Amazon Bedrock service catalog. If you plan to migrate existing projects, the bundled OpenAI Docs skill has been updated with dedicated migration steps, compatibility notes, and prompting guidance for GPT-6-Astra. ⟦It is like a carmaker showcasing a new flagship model in showrooms and dealership catalogs, while immediately updating the owner's manual with upgrade guides, compatibility details, and driving tips.⟧ Whether you invoke it from the local menu or cloud catalog, you can switch smoothly by following the guides."
+              },
+              "original": "GPT-6-Astra is now available in the model picker and Amazon Bedrock catalogs. (#42879, #42619)\nUpdated the bundled OpenAI Docs skill with GPT-6-Astra migration, compatibility, and prompting guidance. (#42931)"
+            },
+            {
+              "title": {
+                "zh-TW": "實驗性工作樹支援登場，獨立簽出目錄支援瀏覽與續接",
+                "en": "Experimental Worktree Support Arrives to Browse and Resume Isolated Checkouts"
+              },
+              "body": {
+                "zh-TW": "你想同時處理多條開發分支又不想弄亂現有目錄？Codex 新增了實驗性的工作樹（worktree，Git 讓同一專案平行開多份副本的功能）支援。⟦這恰似圖書館為大型研究計畫增設獨立自修室，研究員可以帶著資料副本到專用房間閉門作業，中途可以走出房間瀏覽各室進度，稍後也能重新進房接續未完的研究，完全不會佔用大廳的公共閱覽桌。⟧現在只要在啟動時加上 `--worktree` 旗標，或在對話中輸入 `/worktree` 指令，就能為全新或分支衍生出的工作階段建立彼此隔離的簽出目錄。建立之後，你還能隨心瀏覽所有存在的工作樹，並重新續接先前的工作進度。",
+                "en": "Want to work on multiple branches simultaneously without cluttering your current directory? Codex now introduces experimental worktree support. ⟦This is like a library setting up private study rooms for major research projects, allowing researchers to work behind closed doors with copies of materials, step out to browse progress across rooms, and return later to resume unfinished work without occupying shared reading tables.⟧ Simply pass the `--worktree` flag at startup or enter the `/worktree` command in a conversation to create isolated checkout directories for new or forked sessions. Once created, you can browse all existing worktrees and resume earlier progress at any time."
+              },
+              "original": "Experimental worktree support lets you create isolated checkouts for new or forked sessions using `--worktree` or `/worktree`, then browse and resume them. (#42652, #43069, #43120, #43286)"
+            },
+            {
+              "title": {
+                "zh-TW": "背景執行中直接行內回答提問，提供建議選項且不丟失草稿",
+                "en": "Answer Questions Inline While Working in Background Without Losing Drafts"
+              },
+              "body": {
+                "zh-TW": "請 Codex 寫程式的同時，你不再需要被動等待它停下才能互動。當它在背景持續運作並向你提出疑問時，現在能直接在行內（inline，直接在當前內容中插入顯示）彈出提問並即時作答。⟦宛如主廚在料理台上全神貫注烹調主菜時，助手從旁遞上調味選擇的便條，主廚能順手打勾或寫上備註，手中的主菜鍋鏟完全不需停下。⟧你可以直接點選介面給出的建議選項，也能自行輸入自訂文字回答。更重要的是，這項互動完全不會清空或影響你原本在輸入框中打到一半的主草稿，確保思緒與進度雙軌推進。",
+                "en": "You no longer have to wait idly for Codex to stop before interacting while it writes code. When Codex runs in the background and asks a question, it can now surface prompt questions inline for immediate replies. ⟦Just like an assistant handing seasoning option slips to a chef focused on cooking a main dish, allowing the chef to check boxes or jot notes without ever putting down the spatula.⟧ You can click suggested options provided by the interface or type custom text responses. Crucially, this interaction will not clear or affect your ongoing main draft in the input box, keeping both your thoughts and progress on track."
+              },
+              "original": "Answer questions inline while Codex continues working, using suggested choices or custom text without losing your main draft. (#42891, #42894, #42897)"
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 支援共享背景伺服器，提供守護行程管理指令與自動更新",
+                "en": "Windows Adds Shared Background Server with Daemon Lifecycle Commands and Managed Updates"
+              },
+              "body": {
+                "zh-TW": "在 Windows 環境上使用 Codex，多個工作階段現在能共用同一個背景運行的伺服器了。這項架構改變讓多個終端機視窗不需要重複啟動各自的引擎，大幅節省系統資源。這次更新同步引入了守護行程（daemon，在背景持續默默提供服務的常駐程式）生命週期管理指令，讓你能查詢狀態、啟動或終止背景伺服器，同時還納入了託管更新機制，確保背景服務能平順接收後續升級。⟦這好比集合式辦公大樓設置中央公用影印列印中心，各樓層辦公室共用同一組背景運轉的專業主機與管理工具，不必每張桌子都各自擺一台高耗能印表機。⟧",
+                "en": "Multiple sessions on Windows can now share a single background server. This architectural change prevents multiple terminal windows from launching redundant engines, significantly saving system resources. This update also introduces daemon lifecycle management commands to check status, start, or stop the background server, alongside managed updates to ensure background services receive future upgrades smoothly. ⟦This is like an office building setting up a central printing center where offices on each floor share the same background professional equipment and management tools, rather than placing power-hungry printers on every desk.⟧"
+              },
+              "original": "Windows sessions can now share a background Codex server, with daemon lifecycle commands and managed updates. (#42405, #42392)"
+            },
+            {
+              "title": {
+                "zh-TW": "Vim 編輯新增 R 取代模式，支援復原與重複操作並改善退出鍵",
+                "en": "Vim Editing Adds R Replace Mode with Undo, Dot-Repeat, and Reliable Escape Handling"
+              },
+              "body": {
+                "zh-TW": "習慣 Vim 鍵盤操作的開發者，在編輯草稿時手感將更加俐落。這次更新為 Vim 模式補上了經典的 `R` 取代模式，讓你可以直接覆蓋游標處的字元。進行文字替換時，你能按鍵復原（undo，回復到修改前的文字），也能利用小數點鍵重複執行上一次的取代動作。針對舊型終端機，更新也改善了 Escape 鍵的訊號處理，讓跳離編輯模式的操作更可靠，避免按鍵延遲或失靈。⟦此舉有如手寫打字機具備了即時覆蓋色帶，既能直接壓字修正錯別字，又能藉由倒退鍵復原上一步或連打重複印字，同時也把老舊按鍵卡榫徹底潤滑修好。⟧",
+                "en": "Developers accustomed to Vim keybindings will enjoy a snappier draft editing experience. This update brings the classic `R` replace mode to Vim mode, allowing you to overwrite characters directly under the cursor. During text replacement, you can undo changes and use the dot key to repeat your previous replacement action. For legacy terminals, the update improves Escape key handling, making exiting edit modes more reliable and avoiding key delays or failures. ⟦This is like a typewriter equipped with an instant correction ribbon that overwrites typos, allows backspacing to undo or repeating keystrokes, while fully lubricating worn-out mechanical key joints.⟧"
+              },
+              "original": "Vim editing gains `R` replace mode with undo and dot-repeat, plus more reliable Escape handling in legacy terminals. (#42194, #42584)"
+            },
+            {
+              "title": {
+                "zh-TW": "複製回覆保留富文字格式，/copy 指令支援狀態與欄位擷取",
+                "en": "Copying Responses Preserves Rich-Text Formatting as /copy Gains Status and Field Extraction"
+              },
+              "body": {
+                "zh-TW": "將對話產生的程式碼或說明貼到其他文書軟體時，排版不再被打亂成純文字了。現在從 Codex 複製回覆內容，貼入支援富文字（rich-text，包含粗體、標題與程式碼區塊等排版樣式）的應用程式時，會完整保留原本的格式外觀。與此同時，命令列工具的 `/copy` 指令也迎來功能強化，除了複製回覆本身，現在還能單獨複製狀態輸出，或是擷取工作階段內的特定個別欄位。⟦一如專業相機輸出照片，既能直接沖洗出帶有完整色彩與層次細節的精緻相片，也可以單獨將相機當前的拍攝數據或特定參數獨立匯出備查。⟧這讓整理文件與分享除錯資訊變得更順暢。",
+                "en": "Pasting generated code or explanations into other document apps will no longer scramble formatting into plain text. Copying responses from Codex into rich-text applications now fully preserves the original styling and appearance. Meanwhile, the command-line `/copy` command has been enhanced to copy status output or extract specific individual fields from a session in addition to the response itself. ⟦Just like a professional camera outputting photos, which can develop fine prints with full color and tonal detail, or independently export current shooting metadata and specific parameters for reference.⟧ This makes organizing documentation and sharing debugging information much smoother."
+              },
+              "original": "Copying responses preserves formatting in rich-text apps, and `/copy` can copy status output or individual session fields. (#42847, #43055)"
+            },
+            {
+              "title": {
+                "zh-TW": "現有工作階段動態辨識外掛工具，升級回捲自動重新整理",
+                "en": "Existing Sessions Dynamically Detect Plugin Tools and Refresh on Upgrades or Rollbacks"
+              },
+              "body": {
+                "zh-TW": "當你手邊的工作階段正在進行，外部外掛有了變更也不需要關掉重開。⟦這如同工廠的工具旋轉吊架，在技師開工期間若由後勤人員掛上新零件或替換工具規格，技師不必停工重開電閘，轉身就能直接拿取最新到貨的工具與操作手冊。⟧既有的工作階段現在具備動態感知能力，能在不中斷執行的情況下，即刻辨識剛安裝好的外掛工具。當外掛在外部完成升級或執行版本回捲時，當前視窗會立即重新整理相應的技能。連同內部定義的掛鉤（hook，特定事件發生時被觸發的小程式）也會一併更新，確保所有自動化流程即時生效。",
+                "en": "When your current session is running, you no longer need to restart it when external plugins change. ⟦This is like a factory rotating tool rack where logistics staff hang new parts or replace tool specifications while technicians work, allowing technicians to grab newly arrived tools and manuals without shutting down power or halting work.⟧ Existing sessions now feature dynamic detection to recognize newly installed plugin tools without interrupting execution. When plugins are upgraded or rolled back externally, the active window immediately refreshes corresponding skills. Internally defined hooks are updated as well, ensuring all automated workflows take effect immediately."
+              },
+              "original": "Existing sessions pick up newly installed plugin tools and refresh skills and hooks after external plugin upgrades or rollbacks. (#42284, #42593, #42990)"
+            },
+            {
+              "title": {
+                "zh-TW": "MCP 連線協調權杖更新與登入挑戰，舊版伺服器啟動入口退場",
+                "en": "MCP Connections Coordinate Token Refreshes and Login Challenges as Legacy Entry Point Retires"
+              },
+              "body": {
+                "zh-TW": "透過 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）串接外部服務時，授權憑證的維護現在更安全且井然有序。當多個工具連線需要更新 OAuth 授權權杖（token，用來驗證身分的授權令牌）時，Codex 會協調各方連線依序刷新，不再各自發送重複請求。若更新失敗，介面會主動跳出登入驗證挑戰提示，絕不自動重播先前已被拒絕的工具呼叫。此外，先前已被標記為棄用的 `codex mcp-server` 啟動入口也在本次更新中正式移除。⟦猶如園區更新外包廠商的門禁機制，廠商證件過期時由系統集中協調換證，換證失敗即引導人員臨櫃重新認證，絕不拿遭拒的舊卡重複硬刷閘門；同時管理處也正式封閉已張貼告示的舊側門。⟧",
+                "en": "Maintaining authorization credentials when connecting to external services via MCP is now safer and more orderly. When multiple tool connections require OAuth token refreshes, Codex coordinates connections to refresh sequentially rather than sending duplicate requests. If a refresh fails, the interface surfaces login challenges without automatically replaying previously rejected tool calls. In addition, the previously deprecated `codex mcp-server` entry point is officially removed in this release. ⟦This is like an office park updating contractor access control, where expired badges are renewed through centralized coordination, failed renewals direct personnel to service counters for re-verification without repeatedly swiping rejected cards at gates, and management seals off the deprecated side entrance.⟧"
+              },
+              "original": "MCP connections coordinate OAuth token refreshes and surface login challenges when refresh fails, without automatically replaying rejected tool calls. (#42413, #42552)\nThe deprecated `codex mcp-server` entry point is no longer available. (#42993)"
+            },
+            {
+              "title": {
+                "zh-TW": "啟動流程阻擋未信任輔助程式，macOS 沙盒嚴防終端機注入",
+                "en": "Startup Blocks Untrusted Workspace Helpers as macOS Sandbox Prevents Terminal Injection"
+              },
+              "body": {
+                "zh-TW": "開啟陌生專案目錄或在蘋果電腦上執行終端機，資安防線在開工當下就已全面就位。現在 Codex 在啟動過程中，若尚未與當前工作區建立明確的信任關係，會主動避免執行任何由工作區控制的輔助程式，杜絕惡意腳本趁虛而入。與此同時，macOS 系統下的沙盒（sandbox，隔離程式執行權限的保護層）也經過強化，能確實阻擋未經許可的終端機輸入注入攻擊。⟦這好似進入高度管制的實驗室，外部帶來的隨身器材在通過信任檢驗前一律禁止插電啟動，而隔離艙門的防護隔板也能阻擋外界未授權的按鈕信號干擾。⟧這讓你在檢視未知程式碼時能受到更周密的保護。",
+                "en": "When opening unfamiliar project directories or running terminals on Mac computers, security defenses are active right from the start. During startup, Codex actively avoids running workspace-controlled helpers before establishing trust with the current workspace, preventing malicious scripts from taking advantage. Meanwhile, the macOS sandbox has been strengthened to block unauthorized terminal input injection attacks. ⟦This is like entering a high-security laboratory where personal equipment brought from outside cannot be powered on before trust verification, while containment barriers block unauthorized external button signals.⟧ This ensures thorough protection when inspecting unknown code."
+              },
+              "original": "Startup avoids running workspace-controlled helpers before trust is established, and the macOS sandbox blocks terminal input injection. (#42324, #42590)"
+            },
+            {
+              "title": {
+                "zh-TW": "遠端續接與分支保留已存權限，新工作階段尊重預設模型",
+                "en": "Remote Resume and Fork Preserve Saved Permissions While Fresh Sessions Follow Default Models"
+              },
+              "body": {
+                "zh-TW": "透過遠端環境接續或分流既有進度時，設定與權限將維持一致。當你針對遠端工作階段執行續接（resume，接續先前中斷的進度）或分支操作時，先前已經儲存的授權與權限設定現在會完整延續，省去反覆確認授權的打擾。同時，全新開啟的工作階段以及衍生的分支，除非你在指令中明確指定其他模型，否則一律會嚴格遵守伺服器端配置的預設模型規格。⟦正如跨國企業指派主管遠端接管或分流專案小組，原有的門禁通行權限會自動跟隨繼承，而新立案的分支部門也會直接套用總部規範的標準設備，不必每次連線都重新簽呈。⟧此舉確保了跨端協同作業的權限延續性與環境規範。",
+                "en": "Configurations and permissions remain consistent when resuming or branching progress in remote environments. When performing resume or fork operations on remote sessions, previously saved authorizations and permission settings are preserved, eliminating repetitive authorization prompts. Furthermore, fresh sessions and derived forks strictly respect server-configured default models unless you explicitly specify another model in your command. ⟦Just as a multinational enterprise assigns managers to take over or split project teams remotely, existing access permissions are automatically inherited, while newly chartered branch units adopt standard equipment prescribed by headquarters without requiring new approvals for each connection.⟧ This ensures permission continuity and environmental standards during remote collaboration."
+              },
+              "original": "Remote resume and fork operations preserve saved permissions; fresh sessions and forks respect server model defaults unless explicitly overridden. (#43330, #43177, #43355)"
+            },
+            {
+              "title": {
+                "zh-TW": "跨應用程式續接對話防衝突，提供唯讀逐字紀錄且保留草稿",
+                "en": "Cross-App Conversation Resume Prevents Conflicts with Read-Only Transcripts and Draft Preservation"
+              },
+              "body": {
+                "zh-TW": "當你想接續處理某個對話，但該對話正巧在另一個應用程式中開啟時，現在不必再擔心進度衝突了。⟦彷彿走進銀行閱覽保管箱資料，若另一位共同持有者正在櫃檯查閱正本，行員會先為你提供唯讀對照副本與等候重試號碼牌，並妥善看管你正在填寫的申請表格。⟧Codex 會在介面上顯示唯讀的對話轉錄（transcript，完整對話逐字紀錄），讓你能回顧過往脈絡，並附上重新嘗試的按鈕選項。與此同時，你當前輸入框中正在撰寫的文字草稿也會受到完整保護，不會被清空或覆蓋，方便你在另一端釋放鎖定後立刻接手。",
+                "en": "You no longer have to worry about progress conflicts when resuming a conversation that happens to be open in another application. ⟦It is like visiting a bank vault to inspect documents where, if a co-owner is reviewing the original at the counter, the clerk provides a read-only reference copy and a retry ticket while safeguarding the application form you are filling out.⟧ Codex displays a read-only transcript in the interface so you can review past context, accompanied by a retry button option. Meanwhile, your ongoing text draft in the input box remains protected without being cleared or overwritten, allowing you to take over immediately once the lock is released on the other side."
+              },
+              "original": "Resuming a conversation open in another app now shows a read-only transcript with a retry option while preserving your draft. (#43253)"
+            },
+            {
+              "title": {
+                "zh-TW": "自動核准審查保留壓縮脈絡，遇新指令自動駁回失效授權",
+                "en": "Automatic Approval Reviews Preserve Compaction Context and Reject Invalidated Authorizations"
+              },
+              "body": {
+                "zh-TW": "面對需要反覆審核權限的操作流程，自動審查機制的判斷現在更加嚴謹周全。在對話歷程經歷壓縮（compaction，精簡長對話以節省記憶體的機制）後，自動核准審查機制能更完善地保留原本的授權脈絡，避免重要授權因紀錄濃縮而遺失。更重要的是，一旦使用者在後續給出了全新的指令或補充回答，只要先前的核准因此失效，審查機制就會果斷駁回該項核准，防止舊授權被錯誤套用到新情境。⟦類似於建築師審查工程變更單，即使過往會議紀錄經過摘要精簡，簽核依據依然完整留底；而只要業主中途變更了設計需求，先前簽核的舊工單就會立刻作廢重新評估。⟧",
+                "en": "When dealing with workflows that require repeated permission reviews, automatic approval mechanisms are now more rigorous. Following conversation compaction, automatic approval reviews better preserve original authorization context, preventing critical authorizations from being lost due to history condensation. More importantly, once users provide fresh instructions or supplementary answers that invalidate earlier approvals, the review mechanism promptly rejects those approvals to prevent obsolete authorizations from being misapplied in new contexts. ⟦Similar to an architect reviewing engineering change orders, where approval records remain intact even after past meeting notes are summarized, but previously signed work orders are immediately invalidated for re-evaluation whenever the owner alters design requirements midway.⟧"
+              },
+              "original": "Automatic approval reviews better preserve authorization context through compaction and reject approvals invalidated by new user instructions or answers. (#42844, #42852, #43442)"
+            }
+          ]
+        },
+        {
           "version": "0.153.4",
           "period": "2026-09-04",
           "items": [
@@ -412,23 +550,6 @@
                 "en": "When tasks assigned to GPT-6-Astra have unclear requirements, its process for asking clarifying questions in the background is now more reliable. This change corrects the model's built-in guidance when asking asynchronous clarification questions. It now properly calls officially supported tools instead of misusing incompatible channels. At the same time, it correctly recognizes that the tool accepts only plain text, avoiding errors caused by sending unsupported formats. ⟦Much like an assistant dealing with an unclearly explained task who accurately writes questions on a memo note and drops it into a dedicated message box, rather than dropping it into the wrong mailbox or stuffing in a parcel with an incompatible format.⟧"
               },
               "original": "Corrected GPT-6-Astra’s guidance for asynchronous clarification questions to use the supported tool and recognize that it accepts text only. (#42809)"
-            }
-          ]
-        },
-        {
-          "version": "0.153.2",
-          "period": "2026-09-03",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "更正 GPT-6-Astra Fast 方案描述，文字標明 2 倍速度與更高用量",
-                "en": "Correct GPT-6-Astra Fast tier description to state 2x speed and increased usage"
-              },
-              "body": {
-                "zh-TW": "你在挑選模型方案時，會發現 GPT-6-Astra Fast 等級的說明文字有了修正。現在介面會明確標示為「 2x speed, increased usage 」（ 2 倍速度並提高使用量），取代先前寫著的 1.5 倍標示。這項改動純粹是介面文字顯示的勘誤，背後實際發送請求與模型運作的方式維持原樣，執行效能並沒有任何改變。⟦好比快遞門市把海報上的特快配送標籤從 1.5 倍更正為 2 倍，車隊的送貨路線與行車速度始終如一，只是把印錯的宣傳字樣換成正確內容。⟧因此看到介面數字調整時無需擔心，所有指令與請求依然維持既有方式正常運作。",
-                "en": "When selecting model tiers, you will notice an updated description for the GPT-6-Astra Fast tier. The interface now clearly displays \"2x speed, increased usage\" instead of the previous \"1.5x\" label. This update is strictly a correction to the displayed text; how requests are sent and how the model operates behind the scenes remain identical, with no change to runtime performance. ⟦It is like a courier branch correcting a poster label for express delivery from 1.5x to 2x; the fleet's delivery routes and driving speeds remain unchanged, simply replacing the misprinted promotional wording with the accurate text.⟧ Therefore, there is no need for concern when seeing the adjusted numbers in the interface, as all commands and requests continue to function normally as before."
-              },
-              "original": "Corrected the GPT-6-Astra Fast tier description to say “2x speed, increased usage” instead of “1.5x.” This changes only the displayed text, not how requests run. (#42632)"
             }
           ]
         }
