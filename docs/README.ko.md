@@ -20,7 +20,7 @@
 [![OpenSSF 모범 사례](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="showcase.en.png" alt="usage — macOS 메뉴 막대에 고정된 Claude Code, Codex, Antigravity 할당량" width="820">
+  <img src="showcase-v3.en.png" alt="usage — macOS 메뉴 막대에 고정된 Claude Code, Codex, Antigravity 할당량" width="820">
 </p>
 
 Claude Code와 Codex 수치는 이미 컴퓨터에 있는 로그 파일에서 수동적으로 읽어오므로, **할당량을 확인하는 과정에서 Anthropic이나 OpenAI의 LLM API를 호출하지 않으며** token도 전혀 소비하지 않습니다. 유일한 예외인 Antigravity 할당량은 Antigravity CLI가 이미 로컬에 저장해 둔 로그인 정보를 사용해 Google의 공식 할당량 엔드포인트에서 가져오지만, 이 역시 메타데이터 조회일 뿐 모델 할당량을 소비하지 않습니다.

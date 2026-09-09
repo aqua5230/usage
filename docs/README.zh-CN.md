@@ -20,7 +20,7 @@
 [![OpenSSF 最佳实践](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="showcase.en.png" alt="usage — 固定在 macOS 菜单栏中的 Claude Code、Codex 与 Antigravity 配额" width="820">
+  <img src="showcase-v3.en.png" alt="usage — 固定在 macOS 菜单栏中的 Claude Code、Codex 与 Antigravity 配额" width="820">
 </p>
 
 Claude Code 和 Codex 的数值以被动方式从你电脑上已有的日志文件读取，因此**查看配额永远不会调用 Anthropic 或 OpenAI 的 LLM API**，也永远不会消耗你的 token。Antigravity 是唯一的例外：它的配额来自 Google 官方配额接口，使用的是 Antigravity CLI 本就保存在本机的登录身份——这只是一次元数据查询，同样不会消耗你的模型配额。

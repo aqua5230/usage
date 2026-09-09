@@ -1,0 +1,20 @@
+Use case: compositing.
+Asset type: updated usage macOS website hero illustration, photorealistic generated desk photograph.
+Primary request: Update the old generated product scene to match the actual current usage 0.30.10 UI. Output one finished landscape 4:3 image, high resolution, ideally 2048x1536. No webpage frame, no captions outside the scene.
+Input images in order:
+1 /Users/lollapalooza/Developer/usage/docs/showcase.en.png: EDIT TARGET, preserve this warm nighttime desk scene, black MacBook, lamp at left, plant, black coffee mug, coding editor behind the usage panel, photographic perspective and cozy lighting.
+2 /Users/lollapalooza/Developer/usage/docs/classic.en.png: AUTHORITATIVE CURRENT UI INSERT. Reproduce this complete panel with its exact six-section structure and typography, logos, colors, bars, labels, buttons, and values. It replaces the entire old panel on the right side of the laptop screen. Fit its full height inside the screen and keep text sharp and readable. The updated panel is taller than the old one; intelligently use the screen area and slightly adjust framing only if needed, without cropping the panel footer.
+3 /Users/lollapalooza/Developer/usage/assets/usage_icon.png: current application identity. Replace the old neon cartoon cat physical desk sticker with this exact ink-wash black cat on cream paper with red brush circle, as a realistic small rounded square sticker in the same physical location. This cat is still the app identity and must remain distinct from the removed menubar spirit companions.
+4 and 5: the exact monochrome menu bar brand logos for Codex and Grok respectively. For Claude use the sunburst silhouette and for Antigravity use the A silhouette visible in reference 2. These files contain black shapes on transparent background: recolor shapes white to render on the dark macOS menu bar. Use their actual silhouettes, not invented icons.
+
+Required menu bar: only four provider marks and bold percentages, in order Claude logo '62%'   Codex logo '45%'   Antigravity logo '18%'   Grok logo '38%', followed by ordinary small macOS system icons and 'Wed 9:47 PM'. All provider marks monochrome white. NO spirit companions, NO dragons, NO birds, NO animated mascots, NO little animal separators. Percentages must match the session row of their panel card, and Grok matches its weekly row.
+
+Required current panel copied from reference 2:
+Claude Code — orange sunburst badge, 'Switch Panel' button, Session '62% used', 'Resets in 2h 14m', Weekly '38% used', 'Resets in 3d 6h'.
+Codex — current lavender coding logo badge from reference 2, Session '45% used', 'Resets in 1h 48m', Weekly '27% used', 'Resets in 4d 2h'.
+Antigravity — blue A badge, Session '18% used', 'Resets in 3h 30m', Weekly '12% used', 'Resets in 5d 9h'.
+Grok — monochrome white Grok mark and white progress bar, ONLY ONE ROW: Weekly '38% used', 'Resets in 6d 7h'. Never invent a Session or 5h quota for Grok.
+Project Usage — green folder badge. Three controls 'Today', 'Report', 'Terminal ✓'. Exactly three project rows shown: 'aurora-api' '4,820,000' '$12.40'; 'mobile-client' '3,115,000' '$8.05'; 'data-pipeline' '1,940,000' '$4.92'. Green project bars, as reference.
+Footer: 'Rate: Active', 'Status: ✓ Synced', 'Today: $28.51 (11,150,000 tokens)', buttons '↻ Refresh Now', '⏻ Quit', small attribution 'based on usage by lollapalooza'.
+This UI uses dark slate cards, thin light borders, bold clean native-looking sans serif headings, colored left-edge accents, generous readable spacing, as reference 2. NOT the old translucent skinny obsolete panel. Preserve all six sections, no duplicated sections.
+Keep coding editor softly blurred and secondary, with a subtle terminal status line at bottom. The usage panel and menu bar are the sharp visual focal point. Match screen perspective and realistic screen glow, glass and warm reflections. Preserve photorealism, avoid floating UI outside laptop screen, no illustrative distortions, no added marketing words or watermark.

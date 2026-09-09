@@ -20,7 +20,7 @@
 [![OpenSSF ベストプラクティス](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="showcase.en.png" alt="usage — macOSメニューバーに固定されたClaude Code、Codex、Antigravityのクォータ" width="820">
+  <img src="showcase-v3.en.png" alt="usage — macOSメニューバーに固定されたClaude Code、Codex、Antigravityのクォータ" width="820">
 </p>
 
 Claude CodeとCodexの数値は、すでにマシンにあるログファイルから受動的に読み取られるため、**クォータの確認で Anthropic や OpenAI の LLM API を呼び出すことはなく**、tokenを消費することもありません。唯一の例外である Antigravity のクォータは、Antigravity CLI がすでにローカルに保存しているサインイン情報を使って Google の公式クォータエンドポイントから取得されますが、これもメタデータの取得に過ぎず、モデルクォータを消費することはありません。

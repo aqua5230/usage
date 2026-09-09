@@ -20,7 +20,7 @@ Running out of quota mid-session is expensive — especially during a long refac
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/13538/badge)](https://www.bestpractices.dev/projects/13538)
 
 <p align="center">
-  <img src="docs/showcase.en.png" alt="usage — Claude Code, Codex, and Antigravity quota pinned to the macOS menu bar" width="820">
+  <img src="docs/showcase-v3.en.png" alt="usage — Claude Code, Codex, and Antigravity quota pinned to the macOS menu bar" width="820">
 </p>
 
 Claude Code and Codex numbers are read passively from log files already on your machine, so **watching your quota never calls Anthropic or OpenAI's LLM APIs** and never costs you a token. Antigravity is the one exception: its quota comes from Google's official quota endpoint using the sign-in the Antigravity CLI already stores locally — a metadata call that doesn't consume your model quota either.
