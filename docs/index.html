@@ -374,12 +374,34 @@ section .subtitle {
 .card p { font-size: 15px; color: var(--fg-dim); line-height: 1.7; overflow-wrap: anywhere; }
 .card-lead {
   grid-column: 1 / -1;
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 48px;
-  padding: 32px; margin-bottom: 16px;
+  display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 56px;
+  align-items: center; padding: 32px 36px; margin-bottom: 16px;
   background: var(--bg-soft); border: 1px solid var(--border); border-top: 2px solid var(--accent); border-radius: 10px;
 }
-.card-lead .icon { grid-column: 1 / -1; color: var(--accent); }
-.card-lead h3 { font-size: 28px; margin-bottom: 0; }
+.card-lead h3 { font-size: 28px; margin-bottom: 10px; }
+/* .qrow mirrors the .row-head / .track / .fill / .reset stack in assets/panels/classic.html
+   so the site shows the same readout the app does — same labels, 80% tick, and colours. */
+.qrow + .qrow { border-top: 1px solid var(--border); margin-top: 8px; padding-top: 8px; }
+.qhead { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 5px; }
+.qtitle { font-size: 15px; line-height: 18px; font-weight: 700; color: var(--fg); }
+.qpct { font-size: 13px; line-height: 18px; font-weight: 800; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.qtrack {
+  height: 8px; border-radius: 99px; overflow: hidden;
+  background:
+    linear-gradient(90deg, transparent 0 calc(80% - 1px), rgba(255, 255, 255, 0.3) calc(80% - 1px) 80%, transparent 80%),
+    rgba(255, 255, 255, 0.07);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.18);
+}
+.qfill {
+  height: 100%; min-width: 4px; border-radius: inherit;
+  background-image: linear-gradient(180deg, color-mix(in srgb, var(--fill-color) 100%, white 12%), var(--fill-color));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--fill-color) 30%, transparent);
+}
+.qreset {
+  margin-top: 4px; color: rgba(255, 255, 255, 0.58);
+  font-size: 11px; line-height: 13px; font-weight: 600;
+  text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums;
+}
 .card-priority { padding: 24px 0 40px; border-top: 0; }
 .card-priority .icon { color: var(--accent); }
 .card-priority h3 { font-size: 24px; }
@@ -561,8 +583,8 @@ pre {
   #resume { padding-top: 48px; }
   #install { padding: 40px 0 48px; }
   .grid, .card-lead { grid-template-columns: minmax(0, 1fr); }
-  .card-lead { padding: 24px; }
-  .card-lead h3 { margin-bottom: 16px; font-size: 26px; }
+  .card-lead { padding: 24px; row-gap: 24px; }
+  .card-lead h3 { margin-bottom: 12px; font-size: 26px; }
   .card-priority { padding: 28px 0; }
   .card-priority + .card-priority { border-top: 1px solid var(--border); }
   .strip .wrap { justify-content: flex-start; gap: 16px; }
@@ -665,9 +687,22 @@ footer .kofi:hover { background: var(--accent-hover); }
     <p class="subtitle" data-i18n="features_sub">Stop guessing if you're about to hit the rate limit mid-refactor.</p>
     <div class="grid">
       <div class="card card-lead">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 13a8.5 8.5 0 0 1 17 0"/><path d="M12 13l3.8-2.6"/><circle cx="12" cy="13" r="1.3" fill="currentColor" stroke="none"/></svg></span>
-        <h3 data-i18n="card1_h">5-hour &amp; 7-day quota at a glance</h3>
-        <p data-i18n="card1_p">Both Claude Code session (5h) and weekly (7d) percentages live in the menu bar. Click for a full popover with per-project usage and cost.</p>
+        <div class="lead-txt">
+          <h3 data-i18n="card1_h">5-hour &amp; 7-day quota at a glance</h3>
+          <p data-i18n="card1_p">Both Claude Code session (5h) and weekly (7d) percentages live in the menu bar. Click for a full popover with per-project usage and cost.</p>
+        </div>
+        <div class="lead-rows" aria-hidden="true">
+          <div class="qrow">
+            <div class="qhead"><span class="qtitle" data-i18n="q_session">Session</span><span class="qpct" style="color:#ffc439" data-i18n="q_used_s">62% used</span></div>
+            <div class="qtrack"><div class="qfill" style="width:62%;--fill-color:#ffc439"></div></div>
+            <div class="qreset" data-i18n="q_reset_s">Resets in 2h 14m</div>
+          </div>
+          <div class="qrow">
+            <div class="qhead"><span class="qtitle" data-i18n="q_weekly">Weekly</span><span class="qpct" style="color:#f49164" data-i18n="q_used_w">38% used</span></div>
+            <div class="qtrack"><div class="qfill" style="width:38%;--fill-color:#f49164"></div></div>
+            <div class="qreset" data-i18n="q_reset_w">Resets in 3d 6h</div>
+          </div>
+        </div>
       </div>
       <div class="card card-priority">
         <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>
@@ -838,6 +873,12 @@ const T = {
     features_sub: "Stop guessing if you're about to hit the rate limit mid-refactor.",
     card1_h: '5-hour &amp; 7-day quota at a glance',
     card1_p: 'Both Claude Code session (5h) and weekly (7d) percentages live in the menu bar. Click for a full popover with per-project usage and cost.',
+    q_session: 'Session',
+    q_weekly: 'Weekly',
+    q_used_s: '62% used',
+    q_used_w: '38% used',
+    q_reset_s: 'Resets in 2h 14m',
+    q_reset_w: 'Resets in 3d 6h',
     card2_h: 'Claude Code, Codex &amp; Antigravity, one app',
     card2_p: 'Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.',
     card14_h: 'Grok CLI, too',
@@ -918,6 +959,12 @@ const T = {
     features_sub: '別再憑感覺猜還剩多少配額了。',
     card1_h: '5 小時與 7 天配額一覽',
     card1_p: 'Claude Code 的 5 小時和 7 天百分比同時顯示在 menu bar。點開可看完整 popover、各專案用量與成本。',
+    q_session: 'Session',
+    q_weekly: '本週',
+    q_used_s: '62% 已用',
+    q_used_w: '38% 已用',
+    q_reset_s: '重置 2小時 14分鐘',
+    q_reset_w: '重置 3天 6小時',
     card2_h: 'Claude Code、Codex、Antigravity 一個 app 搞定',
     card2_p: 'Anthropic、OpenAI 與 Google 的配額並排顯示。Codex 從 <code>~/.codex/sessions/</code> 自動偵測，不需設定；Antigravity 則用它自己的 CLI 已經存好的登入身分。',
     card14_h: 'Grok CLI 也算進來',
@@ -998,6 +1045,12 @@ const T = {
     features_sub: '别再凭感觉猜还剩多少额度了。',
     card1_h: '5 小时与 7 天额度一览',
     card1_p: 'Claude Code 的 5 小时和 7 天百分比同时显示在 menu bar。点开可看完整 popover、各项目用量与花费。',
+    q_session: 'Session',
+    q_weekly: '本周',
+    q_used_s: '62% 已用',
+    q_used_w: '38% 已用',
+    q_reset_s: '重置 2小时 14分钟',
+    q_reset_w: '重置 3天 6小时',
     card2_h: 'Claude Code、Codex、Antigravity 一个 app 搞定',
     card2_p: 'Anthropic、OpenAI 与 Google 的额度并排显示。Codex 从 <code>~/.codex/sessions/</code> 自动检测，无需配置；Antigravity 则使用它自己的 CLI 已保存的登录身份。',
     card14_h: 'Grok CLI 也算进来',
@@ -1078,6 +1131,12 @@ const T = {
     features_sub: 'リファクタリング中にレート制限に達するかどうか、もう推測しなくていい。',
     card1_h: '5 時間 & 7 日のクォータをひと目で',
     card1_p: 'Claude Code のセッション (5h) と週間 (7d) のパーセンテージをメニューバーに常時表示。クリックでプロジェクト別使用量とコストの詳細ポップオーバーを表示。',
+    q_session: 'セッション',
+    q_weekly: '週間',
+    q_used_s: '62% 使用済み',
+    q_used_w: '38% 使用済み',
+    q_reset_s: '2時間 14分後にリセット',
+    q_reset_w: '3日 6時間後にリセット',
     card2_h: 'Claude Code、Codex、Antigravity を 1 つのアプリで',
     card2_p: 'Anthropic、OpenAI、Google のクォータを並べて追跡。Codex は <code>~/.codex/sessions/</code> から設定不要で自動検出。Antigravity は CLI が保存済みのサインイン情報を利用します。',
     card14_h: 'Grok CLI にも対応',
@@ -1158,6 +1217,12 @@ const T = {
     features_sub: '리팩토링 중에 한도에 도달할지 추측하지 마세요.',
     card1_h: '5시간과 7일 한도 한눈에',
     card1_p: 'Claude Code의 세션(5h)과 주간(7d) 퍼센트를 메뉴 바에 동시 표시. 클릭하면 프로젝트별 사용량과 비용을 보여주는 팝오버.',
+    q_session: '세션',
+    q_weekly: '주간',
+    q_used_s: '62% 사용됨',
+    q_used_w: '38% 사용됨',
+    q_reset_s: '2시간 14분 후 초기화',
+    q_reset_w: '3일 6시간 후 초기화',
     card2_h: 'Claude Code, Codex, Antigravity를 한 앱에서',
     card2_p: 'Anthropic, OpenAI, Google 한도를 나란히 추적. Codex는 <code>~/.codex/sessions/</code>에서 설정 없이 자동 감지되고, Antigravity는 자체 CLI가 이미 저장해 둔 로그인 정보를 사용합니다.',
     card14_h: 'Grok CLI도 지원',
