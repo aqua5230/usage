@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
-__version__ = "1.3"
+__version__ = "1.4"
 
 
 def _read_stdin_utf8() -> str:

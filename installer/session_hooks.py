@@ -70,7 +70,7 @@ _RESUME_DIAGNOSIS_CAUSE_KEYS = (
 )
 TERSE_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-terse-mode.py"))
 TERSE_PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-terse-prompt.json"))
-TERSE_HOOK_VERSION = "1.3"
+TERSE_HOOK_VERSION = "1.4"
 TERSE_MATCHER = "startup|clear"
 TERSE_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
 _TERSE_MARKER = "usage-terse-mode"
@@ -85,7 +85,7 @@ _FEATURES_HOOKS_REGEX = re.compile(r"(?m)^[ \t]*hooks\s*=\s*[A-Za-z0-9_]+")
 # terse hook. Re-injects a one-line nudge on every prompt so the terse style holds across a
 # long conversation. Claude Code only — Codex CLI has no UserPromptSubmit equivalent.
 TERSE_REMINDER_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-terse-reminder.py"))
-TERSE_REMINDER_HOOK_VERSION = "1.1"
+TERSE_REMINDER_HOOK_VERSION = "1.2"
 TERSE_REMINDER_MATCHER = ""
 _TERSE_REMINDER_MARKER = "usage-terse-reminder"
 _TERSE_REMINDER_MARKERS = (_TERSE_REMINDER_MARKER, "usage_terse_reminder")

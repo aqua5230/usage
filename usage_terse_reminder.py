@@ -30,7 +30,7 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
-__version__ = "1.1"
+__version__ = "1.2"
 
 
 def _read_stdin_utf8() -> str:
@@ -46,25 +46,27 @@ _SIDECAR_UNSET = object()
 _DEFAULT_REMINDER: dict[str, str] = {
     "zh-TW": (
         "[精簡模式仍生效：這則回覆保持精簡、用白話；程式碼、指令、路徑、錯誤訊息照舊一字不改；安全"
-        "警示與不可逆操作確認仍要講完整。]"
+        "警示與不可逆操作確認仍要講完整；使用者明確要求詳細解說時，以使用者當下的要求為準。]"
     ),
     "en": (
         "[Terse mode is still on: keep this reply brief and plain-spoken; code, commands, paths, "
         "and error messages stay byte-exact; security warnings and irreversible-action "
-        "confirmations must still be written out in full.]"
+        "confirmations must still be written out in full; if the user explicitly asks for a "
+        "detailed walkthrough, follow that instead.]"
     ),
     "zh-CN": (
         "[精简模式仍生效：这则回复保持精简、用白话；代码、指令、路径、错误信息照旧一字不改；安全警"
-        "示与不可逆操作确认仍要讲完整。]"
+        "示与不可逆操作确认仍要讲完整；用户明确要求详细讲解时，以用户当下的要求为准。]"
     ),
     "ja": (
         "[簡潔モードは引き続き有効：この返信は簡潔に、平易な言葉で；コード、コマンド、パス、エラー"
-        "メッセージは一字そのまま；セキュリティ警告と不可逆操作の確認は引き続き完全に記述すること。"
-        "]"
+        "メッセージは一字そのまま；セキュリティ警告と不可逆操作の確認は引き続き完全に記述すること；"
+        "ユーザーが明確に詳しい解説を求めた場合は、その要求を優先してください。]"
     ),
     "ko": (
         "[간결 모드 계속 적용 중: 이 답변은 짧게, 쉬운 말로; 코드, 명령어, 경로, 오류 메시지는 한 "
-        "글자 그대로; 보안 경고와 되돌릴 수 없는 작업 확인은 여전히 완전히 적을 것.]"
+        "글자 그대로; 보안 경고와 되돌릴 수 없는 작업 확인은 여전히 완전히 적을 것; 사용자가 "
+        "자세한 설명이나 단계별 안내를 명확히 요청했다면 그 요구를 우선하세요.]"
     ),
 }
 
