@@ -203,9 +203,12 @@ h1{
 """ + _light_rules("""
   .share-bar span,.trend-bar div{opacity:.22}
 """) + """
-.insight-note,.insight-action{padding:12px 16px;border-radius:8px;margin-bottom:10px;font-size:.9rem;line-height:1.5}
-.insight-note{background:rgba(90,191,160,.06);border-left:3px solid var(--cost);color:var(--text-soft)}
-.insight-action{background:rgba(224,136,90,.06);border-left:3px solid var(--warn);color:var(--text-soft);margin-bottom:0}
+/* Square, frameless fill in the same vocabulary as .share-bar and .trend-bar.
+   The rounded box with a 3px accent rail read as a generic callout and was the
+   last framed surface left in a report that strips frames everywhere else. */
+.insight-note,.insight-action{padding:12px 14px;border-radius:0;margin-bottom:4px;font-size:.9rem;line-height:1.5}
+.insight-note{background:rgba(90,191,160,.06);color:var(--text-soft)}
+.insight-action{background:rgba(224,136,90,.06);color:var(--text-soft);margin-bottom:0}
 /* No frame left to inset from, so only the vertical padding still earns its
    keep — the horizontal one just pushed this section 18px right of every other. */
 .persona-card{border:none;border-radius:12px;box-shadow:none;background:transparent;padding:18px 0;min-width:0}
