@@ -258,9 +258,18 @@ def _trend_delta(current: int, previous: int, lang: str) -> tuple[str, str]:
 def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
     weekly = _weekly_trend(daily)
     max_tokens = max((int(week["tokens"]) for week in weekly), default=0)
+    data_start = min((_parse_daily_date(day["date"]) for day in daily), default=None)
     rows = []
     for idx, week in enumerate(weekly):
         tokens = int(week["tokens"])
+        cost = float(week["cost"])
+        week_start = date.fromisocalendar(int(week["year"]), int(week["week"]), 1)
+        week_end = min(date.fromisocalendar(int(week["year"]), int(week["week"]), 7), date_to)
+        if data_start is not None:
+            week_start = max(week_start, data_start)
+        tooltip = _escape(
+            f"{week_start.isoformat()} – {week_end.isoformat()} · {_fmt_tokens(tokens)} · {_fmt_cost(cost)}"
+        )
         delta_html = '<span class="delta flat"></span>'
         if idx == len(weekly) - 1 and _week_is_in_progress(week, date_to):
             delta_html = f'<span class="delta flat">{_escape(_t(lang, "trend_week_in_progress"))}</span>'
@@ -268,7 +277,7 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
             delta_class, delta_label = _trend_delta(tokens, int(weekly[idx - 1]["tokens"]), lang)
             delta_html = f'<span class="delta {delta_class}">{_escape(delta_label)}</span>'
         rows.append(
-            '<div class="trend-row">'
+            f'<div class="trend-row" title="{tooltip}">'
             f'<span class="week">W{int(week["week"])}</span>'
             f'{render_trend_bar(tokens, max_tokens)}'
             f'<em>{_fmt_tokens(tokens)}</em>'

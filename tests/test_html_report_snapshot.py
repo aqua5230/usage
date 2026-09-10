@@ -640,6 +640,27 @@ def test_trend_ascii_marks_an_unfinished_final_week_without_a_delta() -> None:
     assert '<span class="delta flat">in progress</span>' in last_row
 
 
+def test_trend_ascii_adds_week_range_tokens_and_cost_tooltip() -> None:
+    daily: list[DailyTrendPoint] = [
+        {"date": "2026-09-01", "tokens": 1_200_000, "cost": 3.45},
+    ]
+
+    html = html_report._trend_ascii(daily, "en", date(2026, 9, 7))
+
+    assert 'class="trend-row" title="2026-09-01 – 2026-09-06 · 1.2M · $3.45"' in html
+
+
+def test_trend_ascii_tooltip_clamps_an_unfinished_final_week_to_the_report_range() -> None:
+    daily: list[DailyTrendPoint] = [
+        {"date": "2026-09-07", "tokens": 100_000, "cost": 1.0},
+        {"date": "2026-09-09", "tokens": 200_000, "cost": 2.0},
+    ]
+
+    html = html_report._trend_ascii(daily, "en", date(2026, 9, 9))
+
+    assert 'title="2026-09-07 – 2026-09-09 · 300.0K · $3.00"' in html
+
+
 def test_trend_ascii_shows_delta_when_final_week_ends_on_sunday() -> None:
     daily: list[DailyTrendPoint] = [
         {"date": "2026-08-17", "tokens": 100, "cost": 0.0},
