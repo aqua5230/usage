@@ -368,8 +368,6 @@ section .subtitle {
 /* One full-width lead, two supporting priorities, seven complete details. */
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 32px; }
 .card { min-width: 0; padding: 28px 0; border-top: 1px solid var(--border); }
-.card .icon { display: flex; align-items: center; color: var(--fg-dim); margin-bottom: 16px; }
-.card .icon svg { width: 24px; height: 24px; stroke: currentColor; }
 .card h3 { font-size: 20px; line-height: 1.35; margin-bottom: 12px; letter-spacing: -0.01em; color: var(--fg); font-weight: 600; }
 .card p { font-size: 15px; color: var(--fg-dim); line-height: 1.7; overflow-wrap: anywhere; }
 .card-lead {
@@ -403,10 +401,12 @@ section .subtitle {
   text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums;
 }
 .card-priority { padding: 24px 0 40px; border-top: 0; }
-.card-priority .icon { color: var(--accent); }
 .card-priority h3 { font-size: 24px; }
-.card:last-child { grid-column: 1 / -1; }
-.card:last-child p { max-width: 760px; }
+.card:last-child {
+  grid-column: 1 / -1;
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); column-gap: 32px; align-items: baseline;
+}
+.card:last-child h3 { margin-bottom: 0; }
 
 /* Keep content visible even when the existing observer adds reveal classes. */
 @media (prefers-reduced-motion: reduce) {
@@ -517,12 +517,12 @@ pre {
 }
 .panel-picker {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 364px;
-  align-items: start;
-  gap: 64px;
-  max-width: 860px;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: center;
+  gap: 32px;
   margin: 0;
 }
+.panel-chips { justify-self: stretch; }
 .panel-chips { display: flex; flex-wrap: wrap; gap: 10px; align-content: start; }
 .panel-chip {
   appearance: none;
@@ -582,7 +582,8 @@ pre {
   #features, #screenshots { padding: 56px 0; }
   #resume { padding-top: 48px; }
   #install { padding: 40px 0 48px; }
-  .grid, .card-lead { grid-template-columns: minmax(0, 1fr); }
+  .grid, .card-lead, .card:last-child { grid-template-columns: minmax(0, 1fr); }
+  .card:last-child h3 { margin-bottom: 12px; }
   .card-lead { padding: 24px; row-gap: 24px; }
   .card-lead h3 { margin-bottom: 12px; font-size: 26px; }
   .card-priority { padding: 28px 0; }
@@ -705,47 +706,38 @@ footer .kofi:hover { background: var(--accent-hover); }
         </div>
       </div>
       <div class="card card-priority">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/></svg></span>
         <h3 data-i18n="card2_h">Claude Code, Codex &amp; Antigravity, one app</h3>
         <p data-i18n="card2_p">Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.</p>
       </div>
       <div class="card card-priority">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></span>
         <h3 data-i18n="card3_h">Local-first by design</h3>
         <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk — a statusLine hook status file plus Codex session JSONL logs — with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.</p>
       </div>
       <div class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="14" rx="1.5"/><path d="M7 9l3 3-3 3"/><path d="M12 15h5"/></svg></span>
         <h3 data-i18n="card14_h">Grok CLI, too</h3>
         <p data-i18n="card14_p">A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Its per-request token usage still counts toward today's cost and project totals, just like Claude Code and Codex.</p>
       </div>
       <div class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M8 17v-5"/><path d="M13 17V8"/><path d="M18 17v-3"/></svg></span>
         <h3 data-i18n="card4_h">One-click HTML reports</h3>
         <p data-i18n="card4_p">Today, week, month, or all-time — get a shareable HTML report with token / cost trends, top projects, and model breakdown. Project names hide by default for client-safe sharing.</p>
       </div>
       <div class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span>
         <h3 data-i18n="card5_h">14 visual panel themes</h3>
         <p data-i18n="card5_p">Matrix digital rain, Windows 95, retro newspaper, midnight aquarium, World Cup FIFA HUD, Lepidoptera blueprint — pick a mood for your menu bar pop-out.</p>
       </div>
       <div class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="9.5" cy="8" r="3"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.5-3.37"/><path d="M14.5 4.13a3 3 0 0 1 0 5.74"/></svg></span>
         <h3 data-i18n="card7_h">AI Talent Market</h3>
         <p data-i18n="card7_p">Install a curated team of Claude Code subagent personas — a one-person law practice, a solo software studio, and more — straight into <code>~/.claude/agents/</code>, then call one by name in your next conversation.</p>
       </div>
       <div class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6"/><path d="M20 10h-6V4"/><path d="M14 10l7-7"/><path d="M3 21l7-7"/></svg></span>
         <h3 data-i18n="card8_h">Terse Mode</h3>
         <p data-i18n="card8_p">A menu-bar toggle that asks Claude Code — and Codex CLI too, if it's installed — to answer more tersely and in plainer language for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact. A light reminder keeps long conversations from drifting back to verbose.</p>
       </div>
       <div class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
         <h3 data-i18n="card10_h">Notifications before you hit the wall</h3>
         <p data-i18n="card10_p">When your context window hits 70% — or earlier when it is filling fast — the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.</p>
       </div>
       <div class="card">
-        <span class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h9a2 2 0 0 1 2 2V12a2 2 0 0 1-2 2H10l-3 2.5V14H6a2 2 0 0 1-2-2V7.5a2 2 0 0 1 2-2z"/><path d="M17 9h1a2 2 0 0 1 2 2v3.5a2 2 0 0 1-2 2h-.5v2l-2.2-2H13"/></svg></span>
         <h3 data-i18n="card13_h">AI Council</h3>
         <p data-i18n="card13_p">Run a multi-round discussion between Claude Code, Codex, and Antigravity on one topic. Pick who joins, which model each one uses, and how many rounds — with a token estimate shown before you start.</p>
       </div>
