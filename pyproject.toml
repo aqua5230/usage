@@ -1,6 +1,6 @@
 [project]
 name = "usage-cli"
-version = "0.30.10"
+version = "0.30.11"
 description = "usage — 在 macOS menu bar 與 Windows 系統匣顯示 Claude Code、Codex、Antigravity 用量的小工具（也提供終端機 TUI）"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -62,13 +62,12 @@ py-modules = [
     "prefs",
     "service_status",
     "setup_app",
-    "talent_market_bridge",
     "usage_diagnosis_snapshot",
     "usage_terse_reminder",
 ]
 
 [tool.setuptools.packages.find]
-include = ["adapters*", "analyzer*", "discussion*", "installer*", "loaders*", "menubar*", "panels*", "quota*", "tui*", "ui*", "updates*", "usage_common*", "wintray*"]
+include = ["adapters*", "analyzer*", "installer*", "loaders*", "menubar*", "panels*", "quota*", "tui*", "ui*", "updates*", "usage_common*", "wintray*"]
 
 # Top-level modules cannot collect adjacent data files via package-data.
 [tool.setuptools.data-files]
@@ -129,14 +128,6 @@ ignore_missing_imports = true
 # for this module to keep `mypy .` green on both macOS and Windows CI.
 [[tool.mypy.overrides]]
 module = "usage_cli"
-warn_unused_ignores = false
-
-# discussion_cli's process-group termination pairs a POSIX branch
-# (os.getpgid/killpg) with a Windows branch (Popen.terminate/kill); same
-# reasoning as usage_cli above. tests/test_discussion_cli.py asserts against
-# signal.SIGKILL, which is POSIX-only too.
-[[tool.mypy.overrides]]
-module = ["discussion.cli", "tests.test_discussion_cli"]
 warn_unused_ignores = false
 
 # tests/test_usage_statusline.py forks a child to contend the POSIX file lock;

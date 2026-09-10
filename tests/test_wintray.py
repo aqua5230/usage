@@ -233,13 +233,6 @@ def test_build_tooltip_includes_antigravity_when_visible() -> None:
     assert "Antigravity" not in wintray.build_tooltip(_state())
 
 
-def test_windows_panels_exclude_talent_market() -> None:
-    ids = [panel[0] for panel in wintray.available_panels()]
-
-    assert "classic" in ids
-    assert "talent_market" not in ids
-
-
 def test_system_background_color_dark(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(wintray, "_winreg", lambda: FakeWinreg(value=0))
 
@@ -829,7 +822,7 @@ def test_panel_and_tray_menus_render_the_shared_model(
     assert quit_calls == ["quit"]
 
 
-@pytest.mark.parametrize("_panel_id,_key,filename", wintray.available_panels())
+@pytest.mark.parametrize("_panel_id,_key,filename", wintray.WINDOWS_PANELS)
 def test_panel_body_keeps_refresh_and_quit_escape_controls(
     _panel_id: str, _key: str, filename: str
 ) -> None:
@@ -2156,6 +2149,6 @@ def test_windows_panel_registry_stays_in_sync_with_macos() -> None:
     # Regression: stained_glass and origami landed in panels/__init__.py
     # without being added here, so Windows users couldn't select them and
     # PANEL_HEIGHTS[panel_id] would have raised KeyError on first use.
-    mac_ids = {p for p in panels.panel_ids() if p != "talent_market"}
+    mac_ids = set(panels.panel_ids())
     assert {panel[0] for panel in wintray.WINDOWS_PANELS} == mac_ids
     assert set(wintray.PANEL_HEIGHTS) == mac_ids

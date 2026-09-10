@@ -38,10 +38,6 @@ window.webkit = { messageHandlers: { usage: { postMessage: function(raw) {
 </script>
 """
 
-# talent_market 是功能面板不是佈景主題，官網那句 "Thirteen built-in themes"
-# 數的就是排除它之後的 13 個。清單走 all_panels()，新增面板會自己出現。
-NOT_A_THEME = frozenset({"talent_market"})
-
 DEMO_PROJECTS = [
     ("aurora-api", 4_820_000, 12.40),
     ("mobile-client", 3_115_000, 8.05),
@@ -124,7 +120,7 @@ def main() -> int:
         "</script>"
     )
 
-    themes = [panel for panel in all_panels() if panel.id not in NOT_A_THEME]
+    themes = all_panels()
     index = []
     for panel in themes:
         # Panel 這個 Protocol 只宣告 id / i18n_key / preferred_size()，

@@ -422,11 +422,6 @@ def _system_accent_color() -> str | None:
     return f"#{value & 0xFF:02x}{value >> 8 & 0xFF:02x}{value >> 16 & 0xFF:02x}"
 
 
-def available_panels() -> tuple[tuple[str, str, str], ...]:
-    """Windows excludes talent_market because its vendored CLI is macOS-only."""
-    return tuple(panel for panel in WINDOWS_PANELS if panel[0] != "talent_market")
-
-
 def tray_icon_style(used_percent: float | None) -> tuple[str, tuple[int, int, int, int]]:
     if used_percent is None:
         return ("--", TRAY_UNKNOWN_COLOR)
@@ -621,7 +616,7 @@ def panel_html(filename: str) -> str:
 
 
 def _active_panel_id() -> str:
-    panel_ids = {panel[0] for panel in available_panels()}
+    panel_ids = {panel[0] for panel in WINDOWS_PANELS}
     value = _load_preferences().get("usage.activePanelId", "classic")
     return str(value) if value in panel_ids else "classic"
 
@@ -814,7 +809,7 @@ class _WindowsTrayController:
         )
 
     def panel_filename(self) -> str:
-        return next(item[2] for item in available_panels() if item[0] == self.active_panel_id)
+        return next(item[2] for item in WINDOWS_PANELS if item[0] == self.active_panel_id)
 
     def panel_height(self) -> int:
         return self._content_height or PANEL_HEIGHTS[self.active_panel_id]
@@ -1500,7 +1495,7 @@ class _WindowsTrayController:
         self.switch_panel(panel_id)
 
     def _schedule_panel_switch(self, panel_id: str) -> None:
-        if self._switch_pending or panel_id not in {panel[0] for panel in available_panels()}:
+        if self._switch_pending or panel_id not in {panel[0] for panel in WINDOWS_PANELS}:
             return
         self._switch_pending = True
         # postMessage is a pywebview promise. Reloading the document before
@@ -1933,7 +1928,7 @@ def _menu(controller: _WindowsTrayController) -> Any:
 
 
 def _menu_model() -> tuple[wintray_menu.MenuEntry, ...]:
-    return wintray_menu.windows_menu_model(available_panels())
+    return wintray_menu.windows_menu_model(WINDOWS_PANELS)
 
 
 def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCommand) -> bool:

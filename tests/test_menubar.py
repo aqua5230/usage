@@ -552,7 +552,6 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     panels = [
         SimpleNamespace(id="classic", i18n_key="panel_default_name"),
         SimpleNamespace(id="matrix", i18n_key="panel_matrix"),
-        SimpleNamespace(id="talent_market", i18n_key="panel_talent_market"),
     ]
 
     monkeypatch.setattr(menubar_menu, "NSMenu", _FakeMenu)
@@ -580,18 +579,10 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     # The auto-update row is gone — update checks just stay on by default.
     assert "Automatically Check for Updates" not in main_titles
     assert "Usage Alert Notifications" in main_titles
-    talent_market = next(item for item in main_menu.items if item.title == "AI Talent Market")
-    assert talent_market.action == "toggleTalentMarket:"
-    assert talent_market.representedObject() == "talent_market"
-    assert talent_market.state == 0
     daily_item = next(item for item in main_menu.items if item.title == "AI Update Daily")
     assert daily_item.action == "toggleAiDaily:"
     assert daily_item.representedObject() is None
     assert daily_item.state == 0
-    discussion_item = next(item for item in main_menu.items if item.title == "AI Council")
-    assert discussion_item.action == "toggleDiscussion:"
-    assert discussion_item.representedObject() is None
-    assert discussion_item.state == 0
 
     # Panel themes are collapsed into a submenu, not listed inline on the main menu.
     assert "Default" not in main_titles
@@ -1371,7 +1362,7 @@ def test_saved_content_height_skips_panels_without_measurements(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     calls: list[tuple[str, object]] = []
-    panel = SimpleNamespace(id="talent_market", _content_height_reports_available=False)
+    panel = SimpleNamespace(id="classic", _content_height_reports_available=False)
     view = SimpleNamespace(
         evaluateJavaScript_completionHandler_=lambda script, completion: calls.append(
             (script, completion)
@@ -2629,44 +2620,6 @@ def test_switching_visible_panel_reuses_popover(monkeypatch: pytest.MonkeyPatch)
     assert delegate.popover.shown == 0
 
 
-def test_toggle_talent_market_switches_back_to_previous_panel() -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
-    delegate.active_panel = SimpleNamespace(id="matrix")
-
-    switched: list[str] = []
-
-    def fake_set_active_panel_id(panel_id: str) -> None:
-        switched.append(panel_id)
-        delegate.active_panel = SimpleNamespace(id=panel_id)
-
-    delegate._set_active_panel_id = fake_set_active_panel_id
-
-    menubar.AppDelegate.toggleTalentMarket_(delegate, object())
-    menubar.AppDelegate.toggleTalentMarket_(delegate, object())
-
-    assert switched == ["talent_market", "matrix"]
-    assert delegate._pre_talent_panel_id == "matrix"
-    assert delegate._switch_menu_action_taken is True
-
-
-def test_toggle_talent_market_falls_back_to_classic_without_previous_panel() -> None:
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
-    delegate.active_panel = SimpleNamespace(id="talent_market")
-    delegate._pre_talent_panel_id = None
-
-    switched: list[str] = []
-
-    def fake_set_active_panel_id(panel_id: str) -> None:
-        switched.append(panel_id)
-
-    delegate._set_active_panel_id = fake_set_active_panel_id
-
-    menubar.AppDelegate.toggleTalentMarket_(delegate, object())
-
-    assert switched == ["classic"]
-    assert delegate._switch_menu_action_taken is True
-
-
 def test_daily_link_closes_popover_then_opens_browser(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -2682,48 +2635,6 @@ def test_daily_link_closes_popover_then_opens_browser(
 
     assert events == ["close", "https://aqua5230.github.io/ai-updates/"]
     assert delegate._switch_menu_action_taken is True
-
-
-def test_discussion_action_reuses_controller_and_closes_popover() -> None:
-    events: list[str] = []
-
-    class FakeController:
-        def show(self, close_popover: object) -> None:
-            assert callable(close_popover)
-            close_popover()
-            events.append("show")
-
-    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
-    delegate._discussion_window_controller = FakeController()
-    delegate.popover = SimpleNamespace(
-        isVisible=lambda: True,
-        close=lambda: events.append("close"),
-    )
-
-    menubar.AppDelegate.toggleDiscussion_(delegate, object())
-
-    assert events == ["close", "show"]
-    assert delegate._switch_menu_action_taken is True
-
-
-def test_discussion_menubar_wiring_stays_thin_and_shuts_down() -> None:
-    source = Path(menubar.__file__).read_text(encoding="utf-8")
-    action_source = source.split("    def toggleDiscussion_", 1)[1].split(
-        "\n    def ",
-        1,
-    )[0]
-    terminate_source = source.split("    def applicationWillTerminate_", 1)[1].split(
-        "\n    def ",
-        1,
-    )[0]
-
-    assert "DiscussionWindowController" in action_source
-    assert ".show(" in action_source
-    assert "close_popover=self._close_popover_after_menu" in action_source
-    assert "ParticipantSpec" not in action_source
-    assert "run_streaming" not in action_source
-    assert "subprocess" not in action_source
-    assert "_discussion_window_controller.shutdown()" in terminate_source
 
 
 def test_state_from_outcome_replaces_claude_reset_with_warning(

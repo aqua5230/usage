@@ -149,11 +149,6 @@ class PopoverState:
     grok_stale: GrokStaleState | None = None
     card_order: tuple[str, ...] = ("claude", "codex", "agy", "grok")
     history_error: HistoryLoadErrorState | None = None
-    # Talent-market panel payload (None for non-talent panels). Fetched from the
-    # external instate-cli by talent_market_bridge, only when the active panel
-    # is "talent_market", so classic/matrix users never spawn that subprocess.
-    talent: dict[str, object] | None = None
-
 
 @dataclass(frozen=True, slots=True)
 class HistorySourceScan:

@@ -58,8 +58,6 @@ brew install --cask aqua5230/usage/usage
 
 ### AI 协作
 
-- **AI 人才市场：** 将现成的 AI 团队带入 Claude Code。浏览并立即将精选子代理角色安装到 `~/.claude/agents/`。通过随附 CLI 完全在本地运行。
-- **AI 圆桌讨论：** 打开一个独立窗口，让 Claude Code、Codex、Antigravity 进行多轮讨论——自选参与者、模型与辩论风格，开始前就能看到大约会花多少 token。可以在轮间插话引导方向，共识计票看得出谁不同意，并让讨论在全体同意时提早收尾。位置可以戴上 AI 人才市场的专家角色，也能附上只读文件夹让参与者参考真实文件。
 - **AI 更新日报：** 打开每天自动更新的公开[网页](https://aqua5230.github.io/ai-updates/)，涵盖 Claude Code、Codex、Antigravity 三套工具，保留完整历史。已审核的更新显示五语白话版，未审核的显示官方原文。
 
 ### 报告与洞察
@@ -130,7 +128,7 @@ Windows 原生支持完整核心功能：系统托盘 UI、Claude Code 状态栏
 
 系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 14 款主题面板（默认加另外十三款）；右键只有「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
 
-Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托盘图标；更新提示使用系统 Yes/No 对话框；AI 人才市场与 AI 圆桌讨论面板仅限 macOS。
+Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托盘图标；更新提示使用系统 Yes/No 对话框。
 
 ### 代码签名政策
 
@@ -189,8 +187,6 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | Grok CLI 用量 | ✅ | — | — |
 | Claude Code 与 Codex 服务状态警示 | ✅ | — | — |
 | HTML 深度报告与界面 | ✅ | ✅ | — |
-| AI 人才市场 | 仅限 macOS | — | — |
-| AI 圆桌讨论 | 仅限 macOS | — | — |
 | AI 更新日报 | ✅ | — | — |
 | 进度管家与 Token 节省器 | ✅ | — | — |
 | Token 浪费健康检查 | ✅ | — | — |

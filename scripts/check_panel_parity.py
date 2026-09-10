@@ -10,9 +10,6 @@ import sys
 from pathlib import Path
 from typing import Protocol, cast
 
-MAC_ONLY_PANEL_IDS = frozenset({"talent_market"})
-# talent_market depends on the macOS-only vendor/instate-cli binary.
-
 WINDOWS_PANELS_RE = re.compile(
     r"^WINDOWS_PANELS = \(\n(?P<entries>(?:    \([^\n]+\),\n)+)\)",
     re.MULTILINE,
@@ -87,7 +84,7 @@ def main() -> int:
         panel_id: (i18n_key, html_filename)
         for panel_id, i18n_key, html_filename in windows_panels
     }
-    mac_panel_ids = set(mac_by_id) - MAC_ONLY_PANEL_IDS
+    mac_panel_ids = set(mac_by_id)
     windows_panel_ids = set(windows_by_id)
     panel_height_ids = set(panel_heights)
     errors: list[str] = []

@@ -58,31 +58,14 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     from menubar.app import _session_resume_enabled, _terse_mode_enabled
 
     menu = NSMenu.alloc().initWithTitle_(_t(app.language, "switch_panel"))
-    # AI 人才市場 is a feature panel, not a cosmetic skin — it gets its own
-    # top-level row instead of hiding inside "面板主題 ▸" next to Matrix/Win95.
-    menu.addItem_(
-        build_menu_item(
-            app.language, "panel_talent_market", "toggleTalentMarket:", target=app,
-            represented="talent_market",
-            state=app.active_panel.id == "talent_market",
-        )
-    )
-    menu.addItem_(
-        build_menu_item(
-            app.language, "discussion_window_title", "toggleDiscussion:", target=app
-        )
-    )
     menu.addItem_(
         build_menu_item(app.language, "panel_ai_daily", "toggleAiDaily:", target=app)
     )
     menu.addItem_(NSMenuItem.separatorItem())
     # Panel themes live in a submenu so the menu stays short — one "面板主題 ▸"
-    # row that expands on demand instead of nine inline rows. talent_market is
-    # excluded here since it already has its own top-level row above.
+    # row that expands on demand instead of fourteen inline rows.
     panel_submenu = NSMenu.alloc().initWithTitle_(_t(app.language, "switch_panel"))
     for panel in panels.all_panels():
-        if panel.id == "talent_market":
-            continue
         panel_submenu.addItem_(
             build_menu_item(
                 app.language, panel.i18n_key, "selectPanel:", target=app,

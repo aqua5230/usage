@@ -9,7 +9,7 @@ from __future__ import annotations
 import importlib
 import tomllib
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 from setuptools import setup  # type: ignore[import-untyped]
 from setuptools.dist import Distribution  # type: ignore[import-untyped]
@@ -86,7 +86,6 @@ if __name__ == "__main__":
             "pricing",
             "i18n",
             "usage_cli",
-            "talent_market_bridge",
         ],
         "packages": [
             "WebKit",
@@ -96,13 +95,11 @@ if __name__ == "__main__":
             # corrupted local file header surfaces as "bad local file header".
             "adapters",
             "analyzer",
-            "discussion",
             "installer",
             "loaders",
             "menubar",
             "quota",
-            # discussion.window is lazy-imported inside menubar.toggleDiscussion_,
-            # and rich loads its per-version Unicode width tables through
+            # rich loads its per-version Unicode width tables through
             # import_module() at render time, which py2app's static graph can't
             # see — as "includes" the app shipped rich/_unicode_data/ with the
             # tables missing and --tui crashed on the first table it drew.
@@ -144,17 +141,6 @@ if __name__ == "__main__":
             ),
         },
     }
-
-    # Conditionally bundle the compiled instate-cli (built from the separate
-    # ~/Developer/instate project) so the talent-market panel works in the
-    # shipped .app. Appended at runtime — not in the literal list above — so the
-    # packaged-resources test (which parses the literal) stays clean on machines
-    # where vendor/instate-cli does not exist. py2app flattens a single-file
-    # resource to Resources/<basename> (Resources/instate-cli), which the bridge
-    # finds via NSBundle.pathForResource:ofType:.
-    _instate_cli = Path(__file__).with_name("vendor") / "instate-cli"
-    if _instate_cli.exists():
-        cast(list[Any], OPTIONS["resources"]).append("vendor/instate-cli")
 
     setup(
         app=APP,

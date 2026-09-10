@@ -161,7 +161,6 @@ def _state_payload(
         "cardOrder": list(state.card_order),
         "historyError": state.history_error,
         "statusline": state.statusline,
-        "talent": state.talent,
         "footer": {
             "rate": state.rate_text,
             "status": state.status_text,

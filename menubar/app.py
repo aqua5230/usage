@@ -278,8 +278,6 @@ class AppDelegate(NSObject):
     _history_load_error_key = objc.ivar()
     _quota_notifier = objc.ivar()
     _switch_menu_action_taken = objc.ivar()
-    _pre_talent_panel_id = objc.ivar()
-    _discussion_window_controller = objc.ivar()
     _usage_client = objc.ivar()
     language = objc.ivar()
 
@@ -318,8 +316,6 @@ class AppDelegate(NSObject):
         self._history_source_tracker = menubar_state.HistorySourceTracker()
         self._history_load_error_key = None
         self._switch_menu_action_taken = False
-        self._pre_talent_panel_id = None
-        self._discussion_window_controller = None
         self._usage_client = ClaudeUsageClient(mock=mock)
         self._menubar_text_cache: dict[str, Any] = {}
         self._last_button_title_key: tuple[str] | None = None
@@ -473,8 +469,6 @@ class AppDelegate(NSObject):
         flush_history_cache()
         codex_loader.flush_caches_on_terminate()
         agy_loader.flush_caches_on_terminate()
-        if self._discussion_window_controller is not None:
-            self._discussion_window_controller.shutdown()
         if (
             hasattr(self, "popover")
             and self.popover is not None
@@ -492,30 +486,10 @@ class AppDelegate(NSObject):
         panel_id = str(sender.representedObject())
         self._set_active_panel_id(panel_id)
 
-    def toggleTalentMarket_(self, sender: Any) -> None:
-        self._mark_switch_menu_action()
-        if self.active_panel.id != "talent_market":
-            self._pre_talent_panel_id = self.active_panel.id
-            self._set_active_panel_id("talent_market")
-            return
-
-        target_panel_id = self._pre_talent_panel_id or "classic"
-        self._set_active_panel_id(target_panel_id)
-
     def toggleAiDaily_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
         self._close_popover_after_menu()
         webbrowser.open("https://aqua5230.github.io/ai-updates/")
-
-    def toggleDiscussion_(self, sender: Any) -> None:
-        from discussion.window import DiscussionWindowController
-
-        self._mark_switch_menu_action()
-        if self._discussion_window_controller is None:
-            self._discussion_window_controller = DiscussionWindowController()
-        self._discussion_window_controller.show(
-            close_popover=self._close_popover_after_menu,
-        )
 
     def toggleLaunchAtLogin_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -679,10 +653,6 @@ class AppDelegate(NSObject):
         self.active_panel = panel
         self.popover_controller.switchToPanel_(panel)
         self._set_panel_window_size(_popover_size(self.latest_state, panel), restored=True)
-        if panel.id == "talent_market":
-            # Talent data is fetched in the background refresh; switchToPanel_
-            # injected the last (talent-less) state, so kick a refresh to fill it.
-            self._refresh()
 
     def _show_popover_from_button(self, button: Any) -> None:
         frame = self.popover.frame()

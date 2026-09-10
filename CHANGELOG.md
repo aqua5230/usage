@@ -5,6 +5,14 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.11] - 2026-09-10
+
+### Removed
+- **AI Talent Market.** The panel browsed a curated set of subagent personas and installed them into `~/.claude/agents/`. Claude Code has since built persona selection in itself, and the evidence against the pattern accumulated from the other side: the GPT Store showed what happens to a persona catalogue once the host platform ships its own, and three papers now report that a persona prefix measurably degrades a model's reasoning rather than sharpening it. The panel also carried the project's only vendored binary — `vendor/instate-cli`, built from a separate private project, fetched during release through a `INSTATE_CLI_TOKEN` secret that expired twice and silently shipped a 23 MB-lighter app with an empty panel. Removing the feature removes that whole chain: the checksum file, the fingerprint guard, the release upload/download dance, and the macOS-only carve-outs in the panel parity and theme-count scripts.
+- **AI Council.** A separate window ran a multi-round discussion between Claude Code, Codex and Antigravity, with a token estimate up front, consensus tallying, and read-only folder access. It was the largest subsystem in the project at roughly 3,600 lines across `discussion/`, and the thing it produced — the same question answered by two tools, side by side, ending in one pass — is something two terminal windows already do faster. A usage monitor is the wrong place to run conversations; the quota it spent was the quota it exists to protect. The parts are in git history if a stripped-down version is ever wanted.
+
+The removal takes out 10,746 lines across 60 files, including 115 i18n keys in each of the five languages, and drops the packaged app from 54 MB to 51 MB before pruning.
+
 ## [0.30.10] - 2026-09-07
 
 ### Added

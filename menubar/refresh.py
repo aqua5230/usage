@@ -19,7 +19,6 @@ from typing import Any, Protocol
 import quota.agy_window_keeper as agy_window_keeper
 import quota.codex_window_keeper as codex_window_keeper
 import quota.window_keeper as window_keeper
-import talent_market_bridge
 from loaders.history_loader import UsageEntry
 from menubar import agy as menubar_agy
 from menubar import grok as menubar_grok
@@ -263,18 +262,6 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         state.hide_agy = hide_agy
         state.hide_grok = hide_grok
         state.card_order = card_order
-
-    # Talent-market data is panel-local (no quota numbers). Fetch it
-    # only when that panel is active so classic/matrix users never pay
-    # the subprocess cost. list_state already swallows CLI errors and
-    # returns {ok:False,...}, so the panel shows its empty state.
-    active_panel = getattr(app, "active_panel", None)
-    if active_panel is not None and active_panel.id == "talent_market":
-        try:
-            state.talent = talent_market_bridge.list_state(app.language)
-        except Exception:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("talent market state load failed", exc_info=True)
 
     return {
         "state": state,

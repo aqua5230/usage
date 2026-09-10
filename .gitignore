@@ -18,9 +18,6 @@ dist/
 winbuild/
 usage-windows.zip
 usage-windows.zip.sha256
-# Compiled instate-cli binary (built from the separate ~/Developer/instate project).
-# Contains private role content — must never enter usage's public git history.
-vendor/
 .pytest_cache/
 .coverage
 .antigravitycli/

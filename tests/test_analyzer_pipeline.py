@@ -260,10 +260,6 @@ def test_html_panels_expose_analyze_action() -> None:
     }
 
     for path in panels_dir.glob("*.html"):
-        # talent_market is a non-quota marketplace panel; it has no analyze/CLI
-        # affordances, only talent-pack/role actions.
-        if path.name == "talent_market.html":
-            continue
         html = (
             payload._load_panel_html(path.name)
             if path.name in card_panel_filenames
