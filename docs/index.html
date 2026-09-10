@@ -515,15 +515,17 @@ pre {
   font-size: 13px;
   font-family: var(--mono);
 }
+/* 主題清單在左、預覽在右，兩欄併攏置中。預覽由 JS 縮到剛好塞進視窗，
+   換主題時整個面板一眼看完，不必上下捲。 */
 .panel-picker {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
-  gap: 32px;
+  grid-template-columns: 240px auto;
+  justify-content: center;
+  align-items: start;
+  gap: 64px;
   margin: 0;
 }
-.panel-chips { justify-self: stretch; }
-.panel-chips { display: flex; flex-wrap: wrap; gap: 10px; align-content: start; }
+.panel-chips { display: flex; flex-direction: column; gap: 6px; }
 .panel-chip {
   appearance: none;
   border: 1px solid var(--border);
@@ -557,9 +559,10 @@ pre {
   background: var(--bg-card);
   flex-shrink: 0;
 }
-.panel-stage iframe { width: 100%; height: 1004px; border: 0; display: block; pointer-events: none; }
+.panel-stage iframe { width: 364px; height: 1004px; border: 0; display: block; pointer-events: none; transform-origin: top left; }
 @media (max-width: 760px) {
-  .panel-picker { grid-template-columns: minmax(0, 1fr); justify-items: start; gap: 24px; width: 100%; }
+  .panel-picker { grid-template-columns: minmax(0, 1fr); justify-content: start; gap: 24px; width: 100%; }
+  .panel-chips { flex-direction: row; flex-wrap: wrap; gap: 10px; }
   .panel-stage { width: min(364px, 100%); overflow-x: auto; }
 }
 
@@ -1449,14 +1452,43 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
   let language = 'en';
 
   // 面板自己量出的自然高度，透過 make_panel_demo.py 補的假 webkit 橋接傳過來。
+  const box = stage.parentElement;
+  const topbar = document.querySelector('.topbar');
+  let naturalHeight = 0;
+
+  // 面板本身比視窗高（實測 1132–1183px），全高顯示就得捲動才看得完。
+  // 桌機縮到剛好塞進「視窗減頂欄減按鈕列」，換面板不用捲；窄螢幕維持原尺寸。
+  function fit() {
+    if (!naturalHeight) return;
+    if (window.innerWidth <= 760) {
+      stage.style.transform = '';
+      box.style.width = '';
+      box.style.height = '';
+      return;
+    }
+    const available = window.innerHeight - (topbar ? topbar.offsetHeight : 0) - 48;
+    const scale = Math.max(0.5, Math.min(1, available / naturalHeight));
+    stage.style.transform = 'scale(' + scale + ')';
+    box.style.width = Math.round(364 * scale) + 'px';
+    box.style.height = Math.round(naturalHeight * scale) + 'px';
+  }
+
+  function setNaturalHeight(height) {
+    naturalHeight = height;
+    stage.style.height = height + 'px';
+    fit();
+  }
+
+  window.addEventListener('resize', fit);
+
   window.addEventListener('message', function (event) {
     const height = event.data && event.data.usagePanelHeight;
-    if (height) stage.style.height = height + 'px';
+    if (height) setNaturalHeight(height);
   });
 
   function show(id) {
     const panel = panels.find(p => p.id === id);
-    if (panel) stage.style.height = panel.height + 'px';
+    if (panel) setNaturalHeight(panel.height);
     stage.src = 'panels/' + id + '.html';
     stage.addEventListener('load', function once() {
       stage.removeEventListener('load', once);
