@@ -59,7 +59,11 @@ def _write_log(path: Path, lines: list[str]) -> None:
 
 
 def _updates_path(log_path: Path, sid: str) -> Path:
-    path = log_path.parent.parent / "sessions" / "encoded-cwd" / sid / "updates.jsonl"
+    return _updates_path_for_cwd(log_path, sid, "encoded-cwd")
+
+
+def _updates_path_for_cwd(log_path: Path, sid: str, encoded_cwd: str) -> Path:
+    path = log_path.parent.parent / "sessions" / encoded_cwd / sid / "updates.jsonl"
     path.parent.mkdir(parents=True)
     return path
 
@@ -69,10 +73,13 @@ def _update(
     cost_ticks: int | None = None,
     *,
     method: str = "_x.ai/session/update",
+    model_usage: dict[str, dict[str, int]] | None = None,
 ) -> str:
     usage: dict[str, object] = {}
     if cost_ticks is not None:
         usage["costUsdTicks"] = cost_ticks
+    if model_usage is not None:
+        usage["modelUsage"] = model_usage
     return json.dumps(
         {
             "timestamp": ts,
@@ -529,3 +536,190 @@ def test_load_entries_ignores_updates_without_a_unified_session(
     entries = grok_loader.load_entries()
 
     assert entries[0].cost_usd is None
+
+
+def test_load_entries_restores_session_missing_from_unified_log(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(log_path, [])
+    sid = "updates-only-session"
+    _write_updates(
+        _updates_path_for_cwd(log_path, sid, "%2Ftmp%2Fusage-grok-project"),
+        [
+            _update(
+                1_777_777_777,
+                250_000_000_000,
+                model_usage={
+                    "grok-4.6-build": {
+                        "inputTokens": 100,
+                        "outputTokens": 20,
+                        "cachedReadTokens": 30,
+                        "cacheCreationTokens": 4,
+                        "costUsdTicks": 250_000_000_000,
+                    }
+                },
+            )
+        ],
+    )
+
+    entries = grok_loader.load_entries()
+
+    assert len(entries) == 1
+    entry = entries[0]
+    assert entry.message_id == f"{sid}:turn:2026-05-03T03:09:37+00:00:grok-4.6"
+    assert entry.request_id == entry.message_id
+    assert entry.model == "grok-4.6"
+    assert entry.input_tokens == 70
+    assert entry.cache_read_tokens == 30
+    assert entry.cache_creation_tokens == 4
+    assert entry.output_tokens == 20
+    assert entry.cost_usd == pytest.approx(25.0)
+    assert entry.project == "usage-grok-project"
+
+
+def test_load_entries_restores_early_updates_without_double_counting(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(
+        log_path,
+        [
+            _event("2026-08-26T10:00:00Z", _SID, "model changed", {"model": "grok-4.6"}),
+            _event(
+                "2026-08-26T10:00:10Z",
+                _SID,
+                "shell.turn.inference_done",
+                _inference_ctx(1, prompt_tokens=100, cached_prompt_tokens=0),
+            ),
+        ],
+    )
+    _write_updates(
+        _updates_path(log_path, _SID),
+        [
+            _update(
+                1_787_734_800,
+                200_000_000_000,
+                model_usage={
+                    "grok-4.6-build": {
+                        "inputTokens": 80,
+                        "outputTokens": 20,
+                        "cachedReadTokens": 10,
+                        "cacheCreationTokens": 0,
+                        "costUsdTicks": 200_000_000_000,
+                    }
+                },
+            ),
+            _update(
+                1_787_738_460,
+                300_000_000_000,
+                model_usage={
+                    "grok-4.6-build": {
+                        "inputTokens": 100,
+                        "outputTokens": 72,
+                        "cachedReadTokens": 0,
+                        "cacheCreationTokens": 0,
+                        "costUsdTicks": 300_000_000_000,
+                    }
+                },
+            ),
+        ],
+    )
+
+    entries = grok_loader.load_entries()
+
+    assert len(entries) == 2
+    assert [entry.cost_usd for entry in entries] == pytest.approx([20.0, 30.0])
+    assert sum(entry.cost_usd or 0.0 for entry in entries) == pytest.approx(50.0)
+
+
+def test_load_entries_handles_synthesized_entry_boundaries(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(log_path, [])
+    timestamp = 1_777_777_777
+    _write_updates(
+        _updates_path(log_path, "empty-model-usage"),
+        [_update(timestamp, 100_000_000_000, model_usage={})],
+    )
+    _write_updates(
+        _updates_path(log_path, "cached-over-input"),
+        [
+            _update(
+                timestamp,
+                0,
+                model_usage={
+                    "grok-4.6-build": {
+                        "inputTokens": 5,
+                        "outputTokens": 3,
+                        "cachedReadTokens": 9,
+                        "cacheCreationTokens": 2,
+                        "costUsdTicks": 0,
+                    }
+                },
+            )
+        ],
+    )
+    _write_updates(
+        _updates_path_for_cwd(log_path, "invalid-cwd", "%FF"),
+        [
+            _update(
+                timestamp,
+                100_000_000_000,
+                model_usage={
+                    "grok-4.6-build": {
+                        "inputTokens": 1,
+                        "outputTokens": 2,
+                        "cachedReadTokens": 0,
+                        "cacheCreationTokens": 0,
+                        "costUsdTicks": 100_000_000_000,
+                    }
+                },
+            )
+        ],
+    )
+    _write_updates(
+        _updates_path(log_path, "multiple-models"),
+        [
+            _update(
+                timestamp,
+                300_000_000_000,
+                model_usage={
+                    "grok-4.6-build": {
+                        "inputTokens": 10,
+                        "outputTokens": 1,
+                        "cachedReadTokens": 2,
+                        "cacheCreationTokens": 0,
+                        "costUsdTicks": 100_000_000_000,
+                    },
+                    "deepseek-chat-build": {
+                        "inputTokens": 20,
+                        "outputTokens": 4,
+                        "cachedReadTokens": 3,
+                        "cacheCreationTokens": 0,
+                        "costUsdTicks": 200_000_000_000,
+                    },
+                },
+            )
+        ],
+    )
+
+    entries = grok_loader.load_entries()
+
+    assert len(entries) == 4
+    cached = next(entry for entry in entries if entry.session_id == "cached-over-input")
+    assert cached.input_tokens == 0
+    assert cached.cache_read_tokens == 9
+    assert cached.cost_usd == 0.0
+    invalid_cwd = next(entry for entry in entries if entry.session_id == "invalid-cwd")
+    assert invalid_cwd.project == "unknown"
+    multiple = [entry for entry in entries if entry.session_id == "multiple-models"]
+    assert [(entry.model, entry.input_tokens, entry.cost_usd) for entry in multiple] == [
+        ("grok-4.6", 8, 10.0),
+        ("deepseek-chat", 17, 20.0),
+    ]
+    assert grok_loader.load_entries(hours_back=1) == []

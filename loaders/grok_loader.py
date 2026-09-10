@@ -22,6 +22,7 @@ from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any, Literal
+from urllib.parse import unquote_to_bytes
 
 from loaders.history_loader import UsageEntry
 from loaders.jsonl_limits import read_bounded_jsonl_line
@@ -112,7 +113,7 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
             )
         )
 
-    _apply_session_costs(entries)
+    entries.extend(_apply_session_costs(entries, cutoff))
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
 
@@ -232,8 +233,10 @@ def _normalize_model(model: str) -> str:
     return model.removesuffix("-build")
 
 
-def _apply_session_costs(entries: list[UsageEntry]) -> None:
-    """Attach Grok-recorded session costs to their unified-log entries."""
+def _apply_session_costs(
+    entries: list[UsageEntry], cutoff: datetime | None
+) -> list[UsageEntry]:
+    """Attach covered costs and restore updates outside unified's window."""
     entries_by_session: dict[str, list[UsageEntry]] = {}
     earliest_entry: dict[str, datetime] = {}
     for entry in entries:
@@ -244,19 +247,26 @@ def _apply_session_costs(entries: list[UsageEntry]) -> None:
 
     ticks_by_session: dict[str, int] = {}
     seen_cost_by_session: set[str] = set()
-    for path in _iter_update_paths(set(entries_by_session)):
+    restored_entries: list[UsageEntry] = []
+    for path in _iter_update_paths():
         sid = path.parent.name
-        earliest = earliest_entry[sid]
+        earliest = earliest_entry.get(sid)
+        cwd = _decode_session_cwd(path.parent.parent.name)
         try:
             lines = _iter_recent_lines(path)
             for line in lines:
-                update = _cost_update_from_line(line)
+                update = _usage_update_from_line(line)
                 if update is None:
                     continue
-                timestamp, ticks = update
+                timestamp, ticks, usage = update
                 # unified.jsonl is a shorter rolling window. Do not charge an
-                # entry for earlier turns that are no longer present there.
-                if timestamp < earliest:
+                # entry for earlier turns that are no longer present there;
+                # restore them instead as their own precise entries.
+                if earliest is None or timestamp < earliest:
+                    if cutoff is None or timestamp >= cutoff:
+                        restored_entries.extend(
+                            _entries_from_update(sid, cwd, timestamp, usage)
+                        )
                     continue
                 seen_cost_by_session.add(sid)
                 ticks_by_session[sid] = ticks_by_session.get(sid, 0) + ticks
@@ -267,19 +277,18 @@ def _apply_session_costs(entries: list[UsageEntry]) -> None:
         if sid not in seen_cost_by_session:
             continue
         _allocate_session_cost(session_entries, ticks_by_session.get(sid, 0))
+    return restored_entries
 
 
-def _iter_update_paths(session_ids: set[str]) -> Iterator[Path]:
-    """Yield bounded-session update logs that match unified-log session IDs."""
+def _iter_update_paths() -> Iterator[Path]:
+    """Yield bounded-session update logs, including unified-window history."""
     try:
-        for path in GROK_SESSIONS_DIR.glob("*/*/updates.jsonl"):
-            if path.parent.name in session_ids:
-                yield path
+        yield from GROK_SESSIONS_DIR.glob("*/*/updates.jsonl")
     except OSError:
         return
 
 
-def _cost_update_from_line(line: bytes) -> tuple[datetime, int] | None:
+def _usage_update_from_line(line: bytes) -> tuple[datetime, int, dict[str, Any]] | None:
     try:
         payload: object = json.loads(line)
     except (UnicodeDecodeError, json.JSONDecodeError, RecursionError):
@@ -300,7 +309,55 @@ def _cost_update_from_line(line: bytes) -> tuple[datetime, int] | None:
     ticks = _as_nonnegative_int(usage.get("costUsdTicks"))
     if ticks is None:
         return None
-    return timestamp, ticks
+    return timestamp, ticks, usage
+
+
+def _entries_from_update(
+    sid: str, cwd: str, timestamp: datetime, usage: dict[str, Any]
+) -> list[UsageEntry]:
+    """Build exact per-model entries from one updates.jsonl turn."""
+    model_usage = usage.get("modelUsage")
+    if not isinstance(model_usage, dict) or not model_usage:
+        return []
+
+    single_model = len(model_usage) == 1
+    entries: list[UsageEntry] = []
+    for raw_model, raw_usage in model_usage.items():
+        if not isinstance(raw_model, str) or not raw_model or not isinstance(raw_usage, dict):
+            continue
+        ticks = _as_nonnegative_int(raw_usage.get("costUsdTicks"))
+        if ticks is None and single_model:
+            ticks = _as_nonnegative_int(usage.get("costUsdTicks"))
+        if ticks is None:
+            continue
+        model = _normalize_model(raw_model)
+        input_tokens = _as_int(raw_usage.get("inputTokens"))
+        cached_read_tokens = _as_int(raw_usage.get("cachedReadTokens"))
+        entry_id = f"{sid}:turn:{timestamp.isoformat()}:{model}"
+        entries.append(
+            UsageEntry(
+                timestamp=timestamp,
+                session_id=sid,
+                message_id=entry_id,
+                request_id=entry_id,
+                model=model,
+                input_tokens=max(0, input_tokens - cached_read_tokens),
+                output_tokens=_as_int(raw_usage.get("outputTokens")),
+                cache_creation_tokens=_as_int(raw_usage.get("cacheCreationTokens")),
+                cache_read_tokens=cached_read_tokens,
+                cost_usd=ticks * _COST_USD_PER_TICK,
+                project=resolve_project_name(cwd),
+            )
+        )
+    return entries
+
+
+def _decode_session_cwd(encoded_cwd: str) -> str:
+    """Decode the URL-encoded cwd that contains each Grok session."""
+    try:
+        return unquote_to_bytes(encoded_cwd).decode("utf-8")
+    except UnicodeDecodeError:
+        return ""
 
 
 def _parse_update_timestamp(value: object) -> datetime | None:
