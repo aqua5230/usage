@@ -1,0 +1,19 @@
+# https://aqua5230.github.io/usage/
+#
+# AI 搜尋爬蟲一律放行。依各家官方文件（2026-09 查證）：
+#   OpenAI      https://platform.openai.com/docs/bots
+#   Anthropic   https://support.anthropic.com/en/articles/8896518
+#   Perplexity  https://docs.perplexity.ai/guides/perplexitybot
+#   Google      https://developers.google.com/search/docs/crawling-indexing/google-common-crawlers
+# 這些 *-SearchBot 決定的是「能不能出現在 AI 回答的來源連結」，擋掉就等於退出。
+# 訓練用爬蟲（GPTBot / ClaudeBot / Google-Extended）也放行：本站是 AGPL-3.0 的
+# 開源專案說明頁，被讀去訓練沒有損失，擋掉反而少一條曝光。
+
+User-agent: *
+Allow: /
+
+# 面板展示頁是首頁 iframe 載入的內容，不是給人直接讀的頁面。
+# 這裡刻意「不」用 Disallow：擋掉會讓 Googlebot 無法算繪首頁的 iframe。
+# 改用各該頁的 <meta name="robots" content="noindex"> 讓它們不單獨出現在結果。
+
+Sitemap: https://aqua5230.github.io/usage/sitemap.xml

@@ -15,12 +15,49 @@
 <meta name="twitter:image" content="https://aqua5230.github.io/usage/og-image.jpg" />
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="canonical" href="https://aqua5230.github.io/usage/" />
 <link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/?lang=en" />
 <link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/?lang=zh-TW" />
 <link rel="alternate" hreflang="zh-CN" href="https://aqua5230.github.io/usage/?lang=zh-CN" />
 <link rel="alternate" hreflang="ja" href="https://aqua5230.github.io/usage/?lang=ja" />
 <link rel="alternate" hreflang="ko" href="https://aqua5230.github.io/usage/?lang=ko" />
 <link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/" />
+<!--
+  結構化資料。Google 官方對生成式 AI 搜尋的說明是「結構化資料不是必要條件，也沒有
+  專為 AI 準備的 schema」，但同一頁也建議繼續使用，因為它讓頁面有資格取得一般搜尋
+  的 rich result：
+  https://developers.google.com/search/docs/fundamentals/ai-optimization-guide
+  SoftwareApplication 是 Google 目前仍支援的型別，必填 name、operatingSystem、
+  applicationCategory，以及 offers 或 aggregateRating 其中之一：
+  https://developers.google.com/search/docs/appearance/structured-data/software-app
+  這裡用 offers（免費），不放 aggregateRating——沒有真實評分資料，捏造會違反規範。
+-->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "usage",
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": "macOS 12 or later, Windows 10, Windows 11",
+  "softwareVersion": "0.30.10",
+  "description": "macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. Reading usage never calls an LLM inference API, so watching your quota never costs you tokens.",
+  "url": "https://aqua5230.github.io/usage/",
+  "downloadUrl": "https://github.com/aqua5230/usage/releases/latest",
+  "codeRepository": "https://github.com/aqua5230/usage",
+  "license": "https://www.gnu.org/licenses/agpl-3.0.html",
+  "isAccessibleForFree": true,
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "author": {
+    "@type": "Person",
+    "name": "lollapalooza",
+    "url": "https://github.com/aqua5230"
+  }
+}
+</script>
 <style>
 /* Hallmark · pre-emit critique: P4 H4 E3 S4 R5 V4 · browser verification pending */
 /* Hallmark · macrostructure: Workbench · tone: restrained · anchor hue: orange */
