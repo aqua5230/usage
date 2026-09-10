@@ -25,6 +25,7 @@ def grok_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[Path, P
     monkeypatch.setattr(grok_loader, "GROK_HOME", grok_home)
     monkeypatch.setattr(grok_loader, "GROK_LOG_PATH", log_path)
     monkeypatch.setattr(grok_loader, "GROK_CONFIG_PATH", config_path)
+    monkeypatch.setattr(grok_loader, "GROK_SESSIONS_DIR", grok_home / "sessions")
     return log_path, config_path
 
 
@@ -54,6 +55,34 @@ def _inference_ctx(
 
 
 def _write_log(path: Path, lines: list[str]) -> None:
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def _updates_path(log_path: Path, sid: str) -> Path:
+    path = log_path.parent.parent / "sessions" / "encoded-cwd" / sid / "updates.jsonl"
+    path.parent.mkdir(parents=True)
+    return path
+
+
+def _update(
+    ts: str | int,
+    cost_ticks: int | None = None,
+    *,
+    method: str = "_x.ai/session/update",
+) -> str:
+    usage: dict[str, object] = {}
+    if cost_ticks is not None:
+        usage["costUsdTicks"] = cost_ticks
+    return json.dumps(
+        {
+            "timestamp": ts,
+            "method": method,
+            "params": {"update": {"usage": usage}},
+        }
+    )
+
+
+def _write_updates(path: Path, lines: list[str]) -> None:
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
@@ -371,4 +400,132 @@ def test_load_entries_falls_back_to_unknown_without_config(
     assert len(entries) == 1
     assert entries[0].model == "unknown"
     assert isinstance(entries[0], UsageEntry)
+    assert entries[0].cost_usd is None
+
+
+def test_load_entries_allocates_session_cost_by_unified_token_share(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(
+        log_path,
+        [
+            _event("2026-08-26T10:24:27.200Z", _SID, "model changed", {"model": "grok-4.6-build"}),
+            _event(
+                "2026-08-26T10:24:38.127Z",
+                _SID,
+                "shell.turn.inference_done",
+                _inference_ctx(1, prompt_tokens=100, cached_prompt_tokens=0),
+            ),
+            _event(
+                "2026-08-26T10:25:38.127Z",
+                _SID,
+                "shell.turn.inference_done",
+                _inference_ctx(2, prompt_tokens=300, cached_prompt_tokens=0),
+            ),
+        ],
+    )
+    _write_updates(
+        _updates_path(log_path, _SID),
+        [
+            _update(
+                "2026-08-26T10:00:00Z",
+                100_000_000_000,
+                method="session/update",
+            ),
+            _update(
+                int(datetime(2026, 8, 26, 10, 25, 39, tzinfo=UTC).timestamp()),
+                30_000_000_000,
+            ),
+        ],
+    )
+
+    entries = grok_loader.load_entries()
+
+    assert [entry.model for entry in entries] == ["grok-4.6", "grok-4.6"]
+    assert sum(entry.cost_usd or 0.0 for entry in entries) == pytest.approx(3.0)
+    assert entries[0].cost_usd == pytest.approx(3.0 * 172 / 544)
+    assert entries[1].cost_usd == pytest.approx(3.0 * 372 / 544)
+
+
+def test_load_entries_leaves_cost_unset_for_empty_updates_log(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(
+        log_path,
+        [_event("2026-08-26T10:24:38.127Z", _SID, "shell.turn.inference_done", _inference_ctx(1))],
+    )
+    _updates_path(log_path, _SID).write_text("", encoding="utf-8")
+
+    entries = grok_loader.load_entries()
+
+    assert entries[0].cost_usd is None
+
+
+def test_load_entries_leaves_cost_unset_without_cost_ticks(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(
+        log_path,
+        [_event("2026-08-26T10:24:38.127Z", _SID, "shell.turn.inference_done", _inference_ctx(1))],
+    )
+    _write_updates(_updates_path(log_path, _SID), [_update("2026-08-26T10:24:39Z")])
+
+    entries = grok_loader.load_entries()
+
+    assert entries[0].cost_usd is None
+
+
+def test_load_entries_keeps_explicit_zero_cost(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(
+        log_path,
+        [_event("2026-08-26T10:24:38.127Z", _SID, "shell.turn.inference_done", _inference_ctx(1))],
+    )
+    _write_updates(_updates_path(log_path, _SID), [_update("2026-08-26T10:24:39Z", 0)])
+
+    entries = grok_loader.load_entries()
+
+    assert entries[0].cost_usd == 0.0
+
+
+def test_load_entries_falls_back_when_sessions_directory_is_missing(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(
+        log_path,
+        [_event("2026-08-26T10:24:38.127Z", _SID, "shell.turn.inference_done", _inference_ctx(1))],
+    )
+
+    entries = grok_loader.load_entries()
+
+    assert entries[0].cost_usd is None
+
+
+def test_load_entries_ignores_updates_without_a_unified_session(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(
+        log_path,
+        [_event("2026-08-26T10:24:38.127Z", _SID, "shell.turn.inference_done", _inference_ctx(1))],
+    )
+    _write_updates(
+        _updates_path(log_path, "other-session"),
+        [_update("2026-08-26T10:24:39Z", 10_000_000_000)],
+    )
+
+    entries = grok_loader.load_entries()
+
     assert entries[0].cost_usd is None

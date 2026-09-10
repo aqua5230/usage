@@ -4,11 +4,11 @@
 # Part of "usage". Free software licensed under the GNU Affero General Public
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
-"""Read per-request Grok CLI usage from its local debug log.
+"""Read per-request Grok CLI usage from local Grok CLI logs.
 
 The Grok CLI appends events to ``~/.grok/logs/unified.jsonl``. This module only
-reads that file and ``~/.grok/config.toml``; it never starts the CLI or contacts
-a network API.
+reads that file, per-session ``updates.jsonl`` files, and ``~/.grok/config.toml``;
+it never starts the CLI or contacts a network API.
 """
 
 from __future__ import annotations
@@ -33,6 +33,7 @@ logger = logging.getLogger(__name__)
 GROK_HOME = Path(os.path.expanduser("~/.grok"))
 GROK_LOG_PATH = GROK_HOME / "logs" / "unified.jsonl"
 GROK_CONFIG_PATH = GROK_HOME / "config.toml"
+GROK_SESSIONS_DIR = GROK_HOME / "sessions"
 
 _MSG_INFERENCE = "shell.turn.inference_done"
 _MSG_MODEL = "model changed"
@@ -48,6 +49,8 @@ _KIND_CREATED: _EventKind = "created"
 _MAX_READ_BYTES = 8 * 1024 * 1024
 _MAX_READ_LINES = 50_000
 _UNKNOWN_MODEL = "unknown"
+_COST_USD_PER_TICK = 1e-10
+_UPDATE_METHODS = frozenset({"session/update", "_x.ai/session/update"})
 
 
 def load_entries(hours_back: int = 0) -> list[UsageEntry]:
@@ -80,11 +83,11 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
 
         previous_model = last_model.get(sid)
         if previous_model is not None and previous_model[0] < timestamp:
-            model = previous_model[1]
+            model = _normalize_model(previous_model[1])
         else:
             if default_model is None:
                 default_model = _default_model()
-            model = default_model
+            model = _normalize_model(default_model)
 
         previous_cwd = last_cwd.get(sid)
         cwd = (
@@ -109,6 +112,7 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
             )
         )
 
+    _apply_session_costs(entries)
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
 
@@ -121,7 +125,7 @@ def _parse_events() -> Iterator[tuple[datetime, int, _EventKind, str, dict[str, 
 
 
 def _iter_recent_lines(path: Path) -> Iterator[bytes]:
-    """Yield recent JSONL lines oldest-first without buffering the entire log."""
+    """Yield recent JSONL lines oldest-first without buffering the entire file."""
     with path.open("rb") as log_file:
         log_file.seek(0, os.SEEK_END)
         size = log_file.tell()
@@ -221,6 +225,131 @@ def _default_model() -> str:
     if isinstance(default, str) and default:
         return default
     return _UNKNOWN_MODEL
+
+
+def _normalize_model(model: str) -> str:
+    """Align Grok's internal build labels with its public model names."""
+    return model.removesuffix("-build")
+
+
+def _apply_session_costs(entries: list[UsageEntry]) -> None:
+    """Attach Grok-recorded session costs to their unified-log entries."""
+    entries_by_session: dict[str, list[UsageEntry]] = {}
+    earliest_entry: dict[str, datetime] = {}
+    for entry in entries:
+        entries_by_session.setdefault(entry.session_id, []).append(entry)
+        earliest = earliest_entry.get(entry.session_id)
+        if earliest is None or entry.timestamp < earliest:
+            earliest_entry[entry.session_id] = entry.timestamp
+
+    ticks_by_session: dict[str, int] = {}
+    seen_cost_by_session: set[str] = set()
+    for path in _iter_update_paths(set(entries_by_session)):
+        sid = path.parent.name
+        earliest = earliest_entry[sid]
+        try:
+            lines = _iter_recent_lines(path)
+            for line in lines:
+                update = _cost_update_from_line(line)
+                if update is None:
+                    continue
+                timestamp, ticks = update
+                # unified.jsonl is a shorter rolling window. Do not charge an
+                # entry for earlier turns that are no longer present there.
+                if timestamp < earliest:
+                    continue
+                seen_cost_by_session.add(sid)
+                ticks_by_session[sid] = ticks_by_session.get(sid, 0) + ticks
+        except OSError:
+            continue
+
+    for sid, session_entries in entries_by_session.items():
+        if sid not in seen_cost_by_session:
+            continue
+        _allocate_session_cost(session_entries, ticks_by_session.get(sid, 0))
+
+
+def _iter_update_paths(session_ids: set[str]) -> Iterator[Path]:
+    """Yield bounded-session update logs that match unified-log session IDs."""
+    try:
+        for path in GROK_SESSIONS_DIR.glob("*/*/updates.jsonl"):
+            if path.parent.name in session_ids:
+                yield path
+    except OSError:
+        return
+
+
+def _cost_update_from_line(line: bytes) -> tuple[datetime, int] | None:
+    try:
+        payload: object = json.loads(line)
+    except (UnicodeDecodeError, json.JSONDecodeError, RecursionError):
+        return None
+    if not isinstance(payload, dict) or payload.get("method") not in _UPDATE_METHODS:
+        return None
+
+    timestamp = _parse_update_timestamp(payload.get("timestamp"))
+    params = payload.get("params")
+    if timestamp is None or not isinstance(params, dict):
+        return None
+    update = params.get("update")
+    if not isinstance(update, dict):
+        return None
+    usage = update.get("usage")
+    if not isinstance(usage, dict):
+        return None
+    ticks = _as_nonnegative_int(usage.get("costUsdTicks"))
+    if ticks is None:
+        return None
+    return timestamp, ticks
+
+
+def _parse_update_timestamp(value: object) -> datetime | None:
+    timestamp = parse_optional_iso8601_utc(value)
+    if timestamp is not None:
+        return timestamp
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        return None
+    if not math.isfinite(value):
+        return None
+    try:
+        return datetime.fromtimestamp(value, UTC)
+    except (OSError, OverflowError, ValueError):
+        return None
+
+
+def _allocate_session_cost(entries: list[UsageEntry], ticks: int) -> None:
+    """Allocate a session's exact recorded cost by unified-log token share."""
+    total_tokens = sum(entry.total_tokens for entry in entries)
+    if total_tokens > 0:
+        # updates.jsonl reports exact costs per turn, while unified.jsonl is the
+        # source of display entries and need not align turn-for-turn. Therefore
+        # per-entry values are token-weighted estimates; their session total is
+        # the exact Grok-recorded amount.
+        for entry in entries:
+            entry.cost_usd = ticks * (entry.total_tokens / total_tokens) * _COST_USD_PER_TICK
+        return
+
+    # A zero-token session has no token ratio. Keep its exact total by assigning
+    # it to the first entry instead of silently dropping a recorded charge.
+    entries[0].cost_usd = ticks * _COST_USD_PER_TICK
+    for entry in entries[1:]:
+        entry.cost_usd = 0.0
+
+
+def _as_nonnegative_int(value: Any) -> int | None:
+    if isinstance(value, bool):
+        return None
+    if isinstance(value, int):
+        return value if value >= 0 else None
+    if isinstance(value, float) and math.isfinite(value) and value >= 0 and value.is_integer():
+        return int(value)
+    if isinstance(value, str):
+        try:
+            parsed = int(value)
+        except ValueError:
+            return None
+        return parsed if parsed >= 0 else None
+    return None
 
 
 def _as_int(value: Any) -> int:
