@@ -20,6 +20,27 @@ FIXTURE = Path(__file__).parent / "fixtures" / "grok_statusline_input.json"
 _ANSI = re.compile(r"\033\[[0-9;]*m")
 
 
+@pytest.mark.parametrize(
+    ("value", "expected"),
+    [
+        (999, "999"),
+        (1_000, "1k"),
+        (999_499, "999k"),
+        (999_500, "1.0M"),
+        (999_999, "1.0M"),
+        (1_000_000, "1.0M"),
+        (1_500_000, "1.5M"),
+        (999_949_999, "999.9M"),
+        (999_950_000, "1.0B"),
+        (1_500_000_000, "1.5B"),
+        (0, "0"),
+        (-5, "-5"),
+    ],
+)
+def test_fmt_tokens_handles_unit_rounding_boundaries(value: int, expected: str) -> None:
+    assert usage_statusline_grok.fmt_tokens(value) == expected
+
+
 def _fixture_data() -> dict[str, Any]:
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
     assert isinstance(data, dict)
