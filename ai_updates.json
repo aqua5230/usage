@@ -549,6 +549,111 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.0",
+          "period": "2026-09-10",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "`remote-control` 支援註冊為系統背景服務，離線重開機皆能保持連線",
+                "en": "`remote-control` can now be registered as an OS background service, keeping connections alive across logouts and reboots"
+              },
+              "body": {
+                "zh-TW": "出門在外想從遠端連回工作主機，最怕主機登出或重開機後連線中斷。⟦好比在通訊鐵塔安裝不斷電中繼發射器，就算人員離場或總電源重啟，設備依然持續發送信號，名冊上能自訂代號且不中斷連線。⟧工具新增了 `remote-control start`、`remote-control status` 與 `remote-control stop` 子指令，可將命令列工具註冊為作業系統背景服務（常駐在系統底層運行的程序）。即使登出帳號或重新開機，主機依然保持可連線狀態。執行 `remote-control start --name <label>` 能在實體清單自訂辨識標籤，加入 `--session` 旗標則能將服務限制在當前登入的工作階段。\n\n```\n# 註冊為作業系統常駐服務，重開機或登出皆保持連線\nagy remote-control start --name \"office-mac\"\n\n# 僅限定在目前登入的工作階段\nagy remote-control start --session\n\n# 查詢服務狀態與停止服務\nagy remote-control status\nagy remote-control stop\n```",
+                "en": "When connecting back to your workstation remotely while away, the biggest headache is losing the connection after logging out or rebooting. ⟦It is like installing an uninterruptible relay transmitter on a communications tower: even if staff leave or the main power is cycled, the equipment keeps broadcasting signals with a customizable roster label without dropping the connection.⟧ The tool has added the `remote-control start`, `remote-control status`, and `remote-control stop` subcommands, allowing you to register the CLI as an operating system background service. Even if you log out of your account or restart the machine, the host remains reachable. Running `remote-control start --name <label>` lets you set a custom identification label in the instance list, while adding the `--session` flag restricts the service to your current login session.\n\n```\n# Register as an OS background service to stay reachable across reboots and logouts\nagy remote-control start --name \"office-mac\"\n\n# Scope strictly to the current login session\nagy remote-control start --session\n\n# Check service status and stop the service\nagy remote-control status\nagy remote-control stop\n```"
+              },
+              "original": "Added the `remote-control start`, `remote-control status`, and `remote-control stop` subcommands to run the CLI as a background service registered with your operating system's service manager so your machine stays reachable across logouts and reboots; `remote-control start --name <label>` sets a custom machine label in the Remote Control instance list, and `--session` scopes the service to your active login session."
+            },
+            {
+              "title": {
+                "zh-TW": "半頁捲動支援更多畫面與預設快捷鍵，唯讀面板不再誤退",
+                "en": "Half-page scrolling expands to more views with default keybindings, preventing accidental exits in read-only panels"
+              },
+              "body": {
+                "zh-TW": "在終端機中瀏覽落落長的回覆或比對異動時，畫面移動更加俐落。所有可捲動檢視全面改善了半頁捲動體驗，包含備用螢幕模式（altscreen，終端機獨立覆蓋主畫面的全螢幕互動介面）、差異比對檢視器與各類唯讀詳細資訊面板。在唯讀面板中按下 `ctrl+d` 快捷鍵，現在只會專心向下翻動半頁，不再誤觸退出確認對話框。同時新增了 `shift+up` 與 `shift+down` 作為預設的半頁導覽快捷鍵，分別對應 `navigation.half_page_up` 與 `navigation.half_page_down` 設定鍵，使用者也能依個人習慣自由重新綁定。⟦如同翻閱厚重樂譜時踩下翻頁踏板，輕踩一次就俐落捲動半頁樂譜，在只讀閱覽室裡也不會因為碰觸按鈕而突然熄燈關門。⟧\n\n```\n{\n  \"navigation\": {\n    \"half_page_up\": \"shift+up\",\n    \"half_page_down\": \"shift+down\"\n  }\n}\n```",
+                "en": "Navigating lengthy responses or inspecting diffs in the terminal is now much smoother. Half-page scrolling has been improved across all scrollable views, including altscreen mode, the diff viewer, and various read-only detail panels. Pressing `ctrl+d` in read-only panels now strictly scrolls down half a page instead of accidentally triggering the exit confirmation prompt. Additionally, `shift+up` and `shift+down` have been introduced as customizable default keybindings for half-page navigation, mapping to `navigation.half_page_up` and `navigation.half_page_down` respectively. ⟦It is like pressing a page-turn pedal while reading a heavy musical score: a single light tap neatly advances half a page, and touching a button inside a quiet reading room will no longer suddenly shut off the lights and lock the doors.⟧\n\n```\n{\n  \"navigation\": {\n    \"half_page_up\": \"shift+up\",\n    \"half_page_down\": \"shift+down\"\n  }\n}\n```"
+              },
+              "original": "Improved half-page scrolling across all scrollable views — including altscreen mode, the diff viewer, and read-only detail panels where `ctrl+d` no longer triggers the exit prompt — and set `shift+up` and `shift+down` as customizable default keybindings for half-page navigation (`navigation.half_page_up` and `navigation.half_page_down`)."
+            },
+            {
+              "title": {
+                "zh-TW": "內容安全過濾器提供明確中斷原因，告別空回覆與無效重試",
+                "en": "Content safety filters now provide clear stop reasons, eliminating empty responses and pointless retries"
+              },
+              "body": {
+                "zh-TW": "當你輸入的提示詞或模型產生的回覆觸動內容安全防線時，終端機不再用含糊的錯誤訊息讓人摸不著頭緒。⟦這宛如海關安檢人員攔下違禁包裹，過去若不發一語直接沒收、或者反覆將包裹推回輸送帶重新掃描，都會讓寄件人困惑，現在安檢處會明確開立註記違規類別的查驗單。⟧以前只要提示或生成內容被內容安全過濾器（防止有害或違規內容的審查機制）阻擋，系統常會跳出無關的 `no candidate found` 假錯誤、整輪對話靜默結束不留文字，甚至反覆重試被拒絕的輸入。現在命令列工具會直接顯示明確的 `content-filter` 停止原因，讓使用者一眼看清是哪裡觸發了安全審查。",
+                "en": "When an input prompt or model-generated response triggers safety guardrails, the terminal no longer leaves you baffled with vague errors. ⟦It is like customs security intercepting a restricted package: rather than silently confiscating it or repeatedly returning it to the conveyor belt to rescan, the inspection desk now issues an inspection slip clearly noting the violation category.⟧ Previously, when prompts or generated content were blocked by content safety filters, the system often threw spurious `no candidate found` errors, ended the entire turn silently with an empty response, or repeatedly retried rejected input. The CLI now surfaces an explicit `content-filter` stop reason, letting you clearly see what triggered the safety review."
+              },
+              "original": "Fixed prompts or model responses blocked by content safety filters failing with a spurious \"no candidate found\" error, ending silently with an empty turn, or repeatedly retrying the rejected input; the CLI now surfaces a clear content-filter stop reason."
+            },
+            {
+              "title": {
+                "zh-TW": "`scratch/` 草稿檔排除於監聽範圍外，成品面板與檢查點回歸乾淨",
+                "en": "`scratch/` drafts are now excluded from watchers, keeping artifact panels and checkpoints clean"
+              },
+              "body": {
+                "zh-TW": "讓代理人寫臨時程式碼或運算草稿時，你的工作面板與版本紀錄不再被暫存檔案洗版。當 AI 代理人在名為 `scratch/` 的草稿暫存資料夾中建立臨時工作檔案時，過去會意外觸發檔案系統的遞迴監聽機制（持續追蹤目錄內所有子檔案變動的背景監控）。這導致許多僅用於中途運算的臨時檔案，全被當成正式成果塞進成品審查面板（審視程式碼產出物的檢視介面）。存檔檢查點更因此留下一堆無關的雜訊紀錄。這次修復將草稿目錄徹底排除在監聽範圍外，讓你的成品面板只列出真正重要的產出。⟦這好似木匠在工作檯旁設置刨花收集桶，刨削過程產生的碎木屑會直接落入桶中，不會被當成精緻成品擺進展示櫃，更不會寫入最終交件清單。⟧",
+                "en": "When an agent drafts scratchpad code or intermediate computations, your workspace panels and version history will no longer be cluttered with temporary files. Previously, when an AI agent wrote temporary working files to the `scratch/` directory, it accidentally triggered recursive filesystem watchers. As a result, intermediate computational files were treated as finished deliverables and flooded into the artifact review panel. Checkpoints were also polluted with noisy, irrelevant entries. This fix thoroughly excludes the scratch directory from filesystem watchers, ensuring your artifact panel only lists truly important outputs. ⟦It is like a carpenter placing a wood shaving collector beside the workbench: discarded wood shavings fall directly into the bin instead of being displayed in the showroom as finished crafts or recorded on the final delivery manifest.⟧"
+              },
+              "original": "Fixed temporary working files written to the agent `scratch/` directory triggering recursive filesystem watchers and appearing as noisy entries in the artifact review panel and checkpoints."
+            },
+            {
+              "title": {
+                "zh-TW": "全域外掛 MCP 伺服器啟動初始化修復，工具架構放寬相容",
+                "en": "Global plugin MCP servers fix startup initialization, relaxing tool schema validation compatibility"
+              },
+              "body": {
+                "zh-TW": "擴充外部工具時，伺服器的啟動連線與工具檢驗現在更加可靠。使用 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）擴充功能時，過去安裝在全域外掛中的隨附伺服器常在命令列工具啟動時初始化失敗，在外掛啟用或停用時也無法即時同步更新運行狀態。此外，部分第三方工具的輸入規格若未明確寫出 `additionalProperties` 設定，在舊版架構驗證時會被判定不合規而無法呼叫。如今這兩項瑕疵皆已修正，全域外掛隨附的伺服器能如期啟動並隨開關切換狀態，省略該欄位的第三方工具也能正常通過檢驗。⟦有如在攝影棚組裝各廠牌的外接閃光燈，機頂熱靴通電時所有外接燈具會同步就緒且開關即時連動，就算某些副廠配件的說明書少印了一行補充宣告，接上時也能順利通過器材相容測試。⟧",
+                "en": "Expanding external tools is now much more reliable for both server startup and tool schema validation. When using MCP extensions, bundled servers inside globally installed plugins previously failed to initialize at CLI startup and failed to update their running status when plugins were enabled or disabled. Additionally, when third-party tool input schemas omitted the `additionalProperties` setting, legacy schema validation rejected them as non-compliant and blocked tool invocation. Both issues have now been resolved: bundled servers in global plugins initialize as expected while syncing state changes, and third-party tools omitting that field pass validation normally. ⟦It is like setting up multi-brand external flashes in a photography studio: when the camera hot shoe powers on, all external strobes ready up simultaneously with synced switches, and even if a third-party accessory manual misses a supplementary declaration line, it still passes equipment compatibility checks smoothly.⟧"
+              },
+              "original": "Fixed MCP servers bundled inside globally installed plugins failing to initialize at CLI startup or failing to update their running status when plugins are enabled or disabled.\nFixed third-party MCP server tools failing schema validation when their input schemas omit `additionalProperties`."
+            },
+            {
+              "title": {
+                "zh-TW": "略過非指令訊息的磁碟設定搜尋，加快代理人作答起步",
+                "en": "Bypassing disk customization discovery for non-command messages speeds up initial agent responses"
+              },
+              "body": {
+                "zh-TW": "平常在對話框裡敲入日常問題，你現在能更快看見 AI 開始作答。⟦好比顧客向超商櫃台詢問簡單路況，店員能當場開口回答，不必每次都特地跑回後方庫房翻查厚重的員工交接手冊與促銷規章。⟧過去只要使用者送出一則訊息，即使完全沒有輸入 `/` 斜線開頭的特殊指令，系統依然會在磁碟中進行客製化探索遍歷（在檔案系統逐層搜尋技能與規則設定檔的掃描程序）。這項多餘的搜尋每次都平白耗費時間，拖慢了代理人動手回應的速度。現在系統只在真正呼叫指令時才進行搜尋，有效降低了代理人開始作答前的等待延遲。",
+                "en": "When typing ordinary questions into the chat box, you will now see the AI begin responding much faster. ⟦It is like a customer asking a convenience store clerk for simple directions: the clerk answers immediately without having to run to the backroom storage to dig through thick employee handover handbooks and promotional manuals every single time.⟧ Previously, whenever a user sent a message—even one without any `/` slash command—the system still performed filesystem customization discovery walks. This redundant search wasted time on every turn, adding noticeable delay before the agent began answering. The system now performs disk searches only when a command is actually invoked, effectively reducing response startup latency."
+              },
+              "original": "Fixed unnecessary filesystem customization discovery walks running on every user message even when no slash command is invoked, reducing latency before the agent begins responding."
+            },
+            {
+              "title": {
+                "zh-TW": "`cli.log` 移除虛假錯誤前綴，背景守護行程日誌不再洗版",
+                "en": "`cli.log` removes spurious error prefixes, clearing log clutter from background daemon output"
+              },
+              "body": {
+                "zh-TW": "查看記錄檔或排查系統狀態時，滿螢幕的假警報不再干擾你的判斷。檢視 `cli.log` 記錄檔或執行背景守護程序（daemon，在系統背景運作的常駐服務）的子指令輸出時，終端機與記錄檔現在恢復了乾淨面貌。過去底層程式庫在完成初始化之前，每一行輸出的日誌文字開頭都會被強制加上 `ERROR: logging before google.Init` 這行虛假錯誤字串。這不僅把正常的運作紀錄全染成刺眼的錯誤訊息，造成記錄檔體積虛胖，更嚴重誤導了除錯方向。這次修復調整了初始化的呼叫時機，徹底拔除了這項無意義的錯誤標籤。⟦彷彿出廠檢驗員的手握號碼機卡住，在整批合格產品的外箱上都自動加蓋了「嚴重瑕疵」的紅印，如今校正了印章連動機構，唯有真正故障時才會留下警示。⟧",
+                "en": "When inspecting log files or troubleshooting system status, screens full of false alarms will no longer mislead your investigations. Viewing `cli.log` or running background daemon subcommands now presents clean output in both logs and the terminal. Previously, before the underlying library completed initialization, every logged line was forcefully prefixed with a spurious `ERROR: logging before google.Init` string. This not only painted normal runtime output as alarming error messages and bloated log file sizes, but also severely derailed debugging efforts. This fix adjusts initialization timing, completely eliminating the meaningless error prefix. ⟦It is like a factory inspector's hand-held stamper getting stuck and stamping a red \"critical defect\" mark on every box of passing products: now that the stamping linkage is recalibrated, warning marks appear only when an actual fault occurs.⟧"
+              },
+              "original": "Fixed every log line in `cli.log` and background daemon subcommand output being prefixed with a spurious `ERROR: logging before google.Init` message."
+            },
+            {
+              "title": {
+                "zh-TW": "Remote Control 修復 macOS 啟動終止與舊腳本殘留，支援付費雲端專案",
+                "en": "Remote Control fixes macOS startup termination and legacy script leftovers, adding paid cloud project support"
+              },
+              "body": {
+                "zh-TW": "在不同平台與帳號環境使用 Remote Control 背景服務時，各項運作細節現在更加穩健。⟦這宛如整修廣播電台的自動發射機房，修復了開機即跳電的故障，清空了早期舊控制器殘留的背景連線，付費會員頻道也能正常開啟轉播。⟧在 `macOS` 上由系統服務管理員啟動 `remote-control` 背景服務時，過去常在啟動後不久便異常終止，現在能穩定常駐運行。同時修正了執行 `remote-control start` 與 `remote-control stop` 時，仍會殘留舊版安裝腳本所啟動的背景服務之問題，確保背景服務乾淨交接。此外，若使用者是透過付費 `Google Cloud` 專案取得權限，先前無法開啟 `Remote Control` 設定的問題也已解決，現在能順暢啟用功能。",
+                "en": "Operating the Remote Control background service across different platforms and account environments is now much better behaved. ⟦It is like overhauling an automated broadcast transmitter room: fixing the power trip on startup, purging lingering background connections from early legacy controllers, and enabling smooth broadcasts for paid member channels.⟧ When launched by the system service manager on `macOS`, the `remote-control` background service previously terminated shortly after startup; it now runs stably in the background. Running `remote-control start` and `remote-control stop` no longer leaves background services running from legacy installer scripts, ensuring clean service handoffs. Additionally, for users whose access comes from a paid `Google Cloud` project, the previously unavailable `Remote Control` setting has been fixed, allowing straightforward feature activation."
+              },
+              "original": "Fixed the macOS `remote-control` background service terminating shortly after startup when launched by the system service manager, `remote-control start` and `remote-control stop` leaving legacy installer-script background services running, and the Remote Control setting being unavailable when your access comes from a paid Google Cloud project."
+            },
+            {
+              "title": {
+                "zh-TW": "舊版對話支援相容載入，恢復歷史紀錄不再因未知步驟中斷",
+                "en": "Legacy conversations gain backward-compatible loading, preventing resume failures on unknown steps"
+              },
+              "body": {
+                "zh-TW": "想接續幾天前或更新前留下的對話記錄時，對話歷程不再因為格式不認得而拒絕載入。以前使用恢復對話功能時，若該筆歷史紀錄是在較早版本中建立，系統常因無法辨識記錄檔裡的舊版步驟格式，而跳出 `unknown step type` 錯誤中斷載入，導致整段對話完全無法開啟。現在載入解析器強化了對舊格式的向下相容能力，即使對話中包含過去定義的步驟型別，也能順利讀取並完整還原對話現場。⟦好似翻開圖書館館藏的早期手稿，即便內頁蓋著前幾代管理員留下的舊版分類戳章，新版讀取機也能順暢辨識，不再因為印章代碼停產就拒絕翻頁。⟧",
+                "en": "When picking up past conversations from days ago or before an update, your chat history will no longer fail to load due to unrecognized formats. Previously, when resuming a conversation created in an older version, the system often failed with an `unknown step type` error because it could not recognize legacy step formats in the log, making the entire conversation unopenable. The loader parser now features improved backward compatibility for older formats, smoothly parsing legacy step types and fully restoring the conversation session. ⟦It is like opening an early archival manuscript in a library: even if internal pages bear obsolete classification stamps from earlier generations of curators, the new scanner recognizes them smoothly instead of refusing to turn the page over discontinued stamp codes.⟧"
+              },
+              "original": "Fixed older conversations failing to load with an `unknown step type` error when resumed."
+            }
+          ]
+        },
+        {
           "version": "1.1.28",
           "period": "2026-09-09",
           "items": [
@@ -733,78 +838,6 @@
                 "en": "Retrieving past analysis documents across conversations no longer interrupts your workflow with repeated confirmation popups. Once you explicitly allow an agent access to file paths outside your workspace, the system previously still prompted repeatedly for approval whenever the agent read or wrote artifact files created by another conversation; this redundant prompt is now fixed so the agent smoothly accesses artifacts from other conversations once external paths have been permitted. ⟦Like staying at an all-inclusive resort where wearing an all-access wristband means the front desk should not ask for your passport and signature again when you borrow board games from the recreation center next door.⟧"
               },
               "original": "Fixed a redundant approval prompt when the agent reads or writes another conversation's artifact files after you have already allowed access to files outside your workspace."
-            }
-          ]
-        },
-        {
-          "version": "1.1.26",
-          "period": "2026-09-04",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "產物檢視器支援快速翻半頁，Mermaid 流程圖終端圖表更清晰",
-                "en": "Artifact viewer adds half-page scrolling, clearer terminal Mermaid flowcharts"
-              },
-              "body": {
-                "zh-TW": "閱讀 AI 產出的長篇架構文件或分析報告時，畫面瀏覽與圖表呈現變得更加流暢。⟦猶如在終端機裡翻閱長篇樂譜，以前只能一行行微調捲動，現在輕按按鍵就能一次翻過半面樂譜，頁面上的流程箭頭與架構符號也排版得井然有序。⟧在產物檢視器（artifact viewer，檢視 AI 產生之獨立檔案的瀏覽視窗）中，現在支援按下 `Ctrl+D` 向下翻動半頁與 `Ctrl+U` 向上翻動半頁。同時，在對話紀錄與產物檢視器裡繪製 Mermaid 流程圖時，系統改進了終端機 ASCII 純文字圖表的渲染排版，讓方塊節點與連線更整齊易讀。",
-                "en": "Reading long architecture documents or analysis reports generated by AI is now smoother with clearer diagrams. ⟦Like flipping through a long sheet music score in a terminal where you previously had to scroll line by line, you can now turn half a page with a single keypress, while process arrows and structural symbols stay neatly aligned.⟧ The artifact viewer (a browsing window for inspecting standalone files generated by AI) now supports pressing `Ctrl+D` to scroll down half a page and `Ctrl+U` to scroll up half a page. Meanwhile, when rendering Mermaid flowcharts in conversation history and the artifact viewer, the system improves terminal ASCII plain-text diagram layouts, making box nodes and connecting lines cleaner and easier to read."
-              },
-              "original": "Added half-page scrolling with `Ctrl+D` and `Ctrl+U` to the artifact viewer.\nImproved terminal ASCII diagram rendering for Mermaid flowcharts in the artifact viewer and conversation."
-            },
-            {
-              "title": {
-                "zh-TW": "`/resume` 新增 `pickerGrouping` 設定，自由指定歷史對話預設檢視",
-                "en": "`/resume` adds `pickerGrouping` setting to customize default conversation list view"
-              },
-              "body": {
-                "zh-TW": "每次使用 `/resume` 挑選歷史對話時，現在可以依照個人偏好鎖定預設的呈現清單。⟦就像在氣象 App 裡把預設城市鎖定成台北——每次開啟就直接顯示台北的天氣頁面，不必重選；要切換成依地區分組或平鋪全部城市，只要調一次設定，日後開啟自動套用。⟧系統在 `/config` 指令與 `settings.json` 設定檔中新增了 `pickerGrouping` 設定項目。你可以將其設定為依工作區分組或是平鋪清單（flat），讓對話挑選介面一開啟就呈現你習慣的版面結構：\n\n```\n{\n  \"pickerGrouping\": \"workspace\"\n}\n```\n\n可在設定檔中指定為 workspace 或 flat。",
-                "en": "When using `/resume` to pick past conversations, you can now lock in a default list view based on personal preference. ⟦Like setting your weather app's default city to Taipei so opening the app immediately shows Taipei's weather without having to reselect, switching to grouping by region or showing all cities flat requires just one setting tweak and applies automatically thereafter.⟧ The system adds the `pickerGrouping` setting to the `/config` command and `settings.json` configuration file. You can configure it to group by workspace or display a flat list, ensuring the conversation picker opens in your preferred layout:\n\n```\n{\n  \"pickerGrouping\": \"workspace\"\n}\n```\n\nIt can be set to workspace or flat in the configuration file."
-              },
-              "original": "Added the `pickerGrouping` setting to `/config` and `settings.json` to configure the default conversation list view in `/resume` (flat or grouped by workspace)."
-            },
-            {
-              "title": {
-                "zh-TW": "`/model` 選單未指定模型預設思考力度，由低檔提升為中檔",
-                "en": "Unselected model families in `/model` picker now default to medium reasoning effort instead of low"
-              },
-              "body": {
-                "zh-TW": "在終端機使用 `/model` 挑選模型時，未特別手動指定思考深度的模型家族現在會主動投入更多推理思考。過去在互動式選單中切換模型時，未經額外設定的模型預設會採用 low（低推理努力程度）。現在預設檔位全面調整為 medium（中等推理努力程度），讓模型在處理程式碼或分析架構時進行更周全的推導。⟦就像把電風扇的預設風速從低速換成中速——插上電一啟動就直接在中速運轉，不必每次手動往上撥到慣用的檔位。⟧",
-                "en": "When selecting models via `/model` in the terminal, model families without an explicitly specified thinking depth now proactively invest more reasoning effort. Previously, when switching models in the interactive picker, models without extra configuration defaulted to low reasoning effort. The default level has now been updated to medium reasoning effort, enabling models to perform more thorough reasoning when writing code or analyzing architecture. ⟦Like changing an electric fan's default speed from low to medium—powering it on immediately runs at medium speed without needing to manually toggle up to your preferred setting every time.⟧"
-              },
-              "original": "Changed unselected model families in the interactive `/model` picker to default to medium reasoning effort instead of low."
-            },
-            {
-              "title": {
-                "zh-TW": "子代理全自動執行不再誤停，開啟詳細面板不跳授權詢問",
-                "en": "Subagents stay fully automated without stopping when opening details panel in always-proceed mode"
-              },
-              "body": {
-                "zh-TW": "放手讓子代理獨立執行任務時，查看即時進度不再意外打斷自動化流程。在啟用 always-proceed（一律放行，不逐一詢問工具授權的自動執行模式）的狀態下，過去使用者只要切換開啟子代理詳細資訊面板，原本在背景順暢運作的子代理任務會突然跳出工具執行確認視窗，中斷原本的連續作業。這項問題已經修復，現在開啟或瀏覽詳細面板時，子代理會維持全自動推進。⟦這好比在全自動洗車機旁透過透明觀景窗查看清洗進度，機械手臂不會因為有人在窗外觀看就突然煞車要求手動確認。⟧",
-                "en": "Checking live progress while letting subagents work autonomously no longer unexpectedly interrupts automated workflows. When running in always-proceed mode (an automatic execution mode that approves tool usage without prompting for each one), opening the subagent details panel previously caused subagent tasks running smoothly in the background to suddenly pop up tool approval prompts, halting continuous operations. This issue has now been resolved, so subagents continue running fully automatically when opening or viewing the details panel. ⟦Like watching a car wash's progress through a transparent observation window, where the robotic arms do not suddenly brake and demand manual confirmation just because someone is looking through the glass.⟧"
-              },
-              "original": "Fixed subagent tasks unexpectedly prompting for tool approval in always-proceed mode while viewing the subagent details panel."
-            },
-            {
-              "title": {
-                "zh-TW": "終止子代理與刪除對話自動清除孤立工作樹，釋放磁碟空間",
-                "en": "Terminating subagents and deleting conversations now cleans up orphaned Git worktrees to free disk space"
-              },
-              "body": {
-                "zh-TW": "結束多代理協作或清理舊對話時，硬碟不再默默累積暫存資料夾。⟦如同工坊在學徒收工或專案結案時，自動將臨時搭建的平行副工作台拆卸清理，不再讓廢棄支架堆滿倉庫角落。⟧系統在呼叫子代理進行平行作業時，會於 `.system_generated/worktrees` 目錄下建立 worktree（Git 讓同一專案平行開多份副本的功能）。過去在強制終止子代理或刪除歷史對話時，這些臨時工作樹常未被完全移除而變成孤立殘留檔案。現在清理機制已修正，會在結束時確實移除並釋放磁碟空間。",
-                "en": "Ending multi-agent collaboration or cleaning up old conversations no longer silently accumulates temporary folders on disk. ⟦Like a workshop automatically dismantling and clearing out temporary parallel workstations when apprentices pack up or projects wrap up, preventing discarded frames from piling up in warehouse corners.⟧ When calling subagents for parallel execution, the system creates worktrees (a Git feature that creates multiple parallel copies of the same project) under the `.system_generated/worktrees` directory. Previously, when forcefully terminating subagents or deleting conversation history, these temporary worktrees were often not fully removed, leaving behind orphaned lingering files. The cleanup mechanism is now fixed to reliably remove them upon completion and reclaim disk space."
-              },
-              "original": "Fixed orphaned Git worktrees accumulating on disk under `.system_generated/worktrees` when killing subagents or deleting conversations."
-            },
-            {
-              "title": {
-                "zh-TW": "改善登出速度並落盤中繼資料，排除暫存目錄虛假日誌",
-                "en": "Faster `/logout`, metadata flushed to disk on exit, and spurious logs eliminated for temporary directories"
-              },
-              "body": {
-                "zh-TW": "在登出帳號、結束指令與載入自訂設定時，底層的狀態處理與儲存機制進行了一批強化。使用 `/logout` 登出時，若系統金鑰圈被繞過或無法連線，系統會直接捷徑刪除檔案中的 token（授權令牌），縮短登出耗費的時間。在離開命令列介面時，系統修復了 SQLite 資料庫的預寫日誌檢查點機制，確保關閉前將最後的工作階段中繼資料完整寫入硬碟。此外，自訂功能探索機制在存取暫存目錄或工作區以外的路徑時，也不會再印出多餘的虛假錯誤日誌。⟦猶如劇院散場後的後台收尾：工作人員先把道具登記入庫，再確認燈控系統完整歸零存檔，最後閘門落鎖，不再對後台外的公共走廊誤觸警報。⟧",
-                "en": "Underlying state handling and persistence mechanisms have received a batch of enhancements during account logout, command exits, and customization loading. When logging out via `/logout`, if the system keyring is bypassed or unreachable, the system now short-circuits token removal directly to file storage, speeding up logout execution. When exiting the command-line interface, the system fixes SQLite database WAL checkpointing to ensure trailing session metadata is fully flushed to disk before shutdown. Furthermore, customization discovery no longer logs spurious errors when accessing temporary directories or paths outside the active workspace. ⟦Like backstage wrap-up after a theater show ends: staff first register props into storage, verify the lighting control system is fully reset and saved, and finally lock the gates without accidentally triggering alarms for public corridors outside the backstage area.⟧"
-              },
-              "original": "Improved `/logout` execution time by short-circuiting token removal directly to file storage when keyring storage is bypassed or unreachable.\nFixed SQLite database WAL checkpointing on CLI exit so trailing session metadata updates are flushed to disk before shutdown.\nFixed customization discovery logging spurious errors when accessing temporary directories or paths outside the active workspace."
             }
           ]
         }
