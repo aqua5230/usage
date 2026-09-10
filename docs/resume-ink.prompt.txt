@@ -1,0 +1,9 @@
+Generation method: built-in image generation, edited from the selected B concept.
+Hallmark pre-emit critique: Philosophy 4, Hierarchy 4, Execution 4, Specificity 5, Restraint 5, Variety 4. Image reviewed; browser layout not re-tested.
+
+Use case: precise-object-edit.
+Input image: three-option design comparison board. The client selected B, the MIDDLE ivory watercolor banner.
+Task: extract and finish ONLY the middle B banner as one standalone high-resolution wide image. Faithfully preserve the selected B design; do NOT reinterpret or redesign it. Output requested 2400x960 landscape, aspect ratio 2.5:1.
+Keep the exact essential composition: warm ivory washi paper background, extremely fine paper fibers, left-aligned oversized elegant black lowercase "usage" in the same sans-serif type; underneath the exact tagline "Pick up where you left off." in smaller black upright type with one slim vermilion vertical rule to its left. Right half: beautiful expressive Japanese sumi-e ink cat sitting with its back toward the viewer, looking slightly upwards, with a sweeping imperfect vermilion enso brush circle behind it. Same cat scale, pose, brush textures, and arrangement as the middle B reference. The red circle is cropped naturally at the top and right edges; retain the generous ivory space around the type and the expressive gray brushstroke ground beneath the cat.
+Refine only clarity and texture at final resolution, preserving optical balance and all accepted styling. All text must be exact, complete, legible, and unchanged. No new copy.
+The image must fill the canvas edge-to-edge. Remove the A/B/C labels and gutters completely. Do not include any portion of the top photographic design or bottom sculpture design. No frame, no outer border, no webpage, no extra panels, no new symbols, no 3D depth, no shadows behind lettering, no changes to colors, no replacement typeface, no watermark. Deliver one finished B banner, not a comparison sheet.
