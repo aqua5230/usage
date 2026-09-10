@@ -492,6 +492,46 @@ def _fallback_pricing() -> PricingTable:
             "cache_creation_input_token_cost": 1.25e-6,
             "cache_read_input_token_cost": 0.1e-6,
         },
+        "claude-mythos-5-1": {
+            "input_cost_per_token": 10e-6,
+            "output_cost_per_token": 50e-6,
+            "cache_creation_input_token_cost": 12.5e-6,
+            "cache_read_input_token_cost": 0.25e-6,
+        },
+        "gpt-6-astra": {
+            "input_cost_per_token": 10e-6,
+            "output_cost_per_token": 50e-6,
+            "cache_creation_input_token_cost": 12.5e-6,
+            "cache_read_input_token_cost": 1e-6,
+        },
+        "gpt-5.6-terra": {
+            "input_cost_per_token": 2e-6,
+            "output_cost_per_token": 12e-6,
+            "cache_creation_input_token_cost": 2.5e-6,
+            "cache_read_input_token_cost": 0.2e-6,
+        },
+        "gpt-5.6-sol": {
+            "input_cost_per_token": 4e-6,
+            "output_cost_per_token": 20e-6,
+            "cache_creation_input_token_cost": 5e-6,
+            "cache_read_input_token_cost": 0.4e-6,
+        },
+        "gpt-5.6-luna": {
+            "input_cost_per_token": 0.2e-6,
+            "output_cost_per_token": 1.2e-6,
+            "cache_creation_input_token_cost": 0.25e-6,
+            "cache_read_input_token_cost": 0.02e-6,
+        },
+        "gpt-5.5": {
+            "input_cost_per_token": 5e-6,
+            "output_cost_per_token": 30e-6,
+            "cache_read_input_token_cost": 0.5e-6,
+        },
+        "gpt-5.4-mini": {
+            "input_cost_per_token": 0.75e-6,
+            "output_cost_per_token": 4.5e-6,
+            "cache_read_input_token_cost": 0.075e-6,
+        },
     }
 
 
