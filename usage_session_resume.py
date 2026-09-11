@@ -46,7 +46,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, cast
 
-__version__ = "1.6"
+__version__ = "1.7"
 
 
 def _configure_windows_utf8_output() -> None:
