@@ -4,6 +4,16 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.12] - 2026-09-11
+
+### 修正
+- **`CLAUDE_CONFIG_DIR` 現在處處生效，不只對話紀錄**（[#129](https://github.com/aqua5230/usage/issues/129)）。把 Claude Code 設定資料夾搬走後，「設定狀態列」照樣寫進 Claude Code 根本不讀的 `~/.claude/settings.json`，於是兩條額度都停在 0%、顯示「即將重置」，備援還讀到過期的 `~/.claude.json`；從 Finder 或 Dock 開的 `.app` 又拿不到 shell 的環境變數，專案用量也一片空白。新增的 `loaders/claude_paths.py` 依序從環境變數、`launchctl getenv CLAUDE_CONFIG_DIR`、`~/.claude` 找出資料夾；逗號分隔時讀取用全部、寫入用第一個。Claude Code 擁有的檔案跟著走——`settings.json`、`.claude.json`（只要有設變數就放在資料夾裡，跟 Claude Code 同一條規則）、`projects/`。usage 自己的檔案——狀態列腳本、`usage-status.json`、偏好設定——固定留在 `~/.claude`：狀態列腳本是 Claude Code 的子程序、看得到這個變數，app 卻不一定看得到，兩邊都照變數推路徑，就可能一邊寫、一邊讀在不同地方。
+- **Token 數字在單位邊界不再顯示 `1000k`。** 三支狀態列腳本用 `value >= 1_000_000` 才升成 `M`，但 `k` 是 `:.0f`，999,500 以上會先四捨五入成 `1000k`；也沒有 `B` 級距，15 億顯示成 `1500.0M`。改成先比對進位後的門檻（k→M 用 999,500、M→B 用 999,950,000）並補上 `B` 級距，對齊 `ui/tables.py` 既有的正確寫法。
+
+### 變更
+- **報表的週趨勢長條滑過去會顯示日期區間與花費。** 原本每列只有 token 數，看不出是哪一週、花了多少。日期區間夾在報表實際範圍內，所以還沒過完的最後一週不會宣稱涵蓋七天、旁邊卻只有三天的量。
+- **報表的洞察卡片改成方角、無框的淡色整列。** 它是最後一個還有框的表面——8px 圓角加 3px 左側色條——現在跟報表其他整列填色一致。
+
 ## [0.30.11] - 2026-09-10
 
 ### 移除

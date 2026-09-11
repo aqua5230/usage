@@ -5,6 +5,16 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.12] - 2026-09-11
+
+### Fixed
+- **`CLAUDE_CONFIG_DIR` is respected everywhere, not only for transcripts** ([#129](https://github.com/aqua5230/usage/issues/129)). With a relocated Claude Code config dir, "Set Up Status Line" wrote to `~/.claude/settings.json`, which Claude Code never read, so both quota bars sat at 0% with "Reset imminent", the fallback surfaced a stale `~/.claude.json`, and Project Usage stayed empty because an `.app` launched from Finder or the Dock does not inherit the shell environment. A new `loaders/claude_paths.py` resolves the directory from the environment, then `launchctl getenv CLAUDE_CONFIG_DIR`, then `~/.claude`; comma-separated values are read in full and written to the first entry. Files Claude Code owns follow it — `settings.json`, `.claude.json` (inside the directory whenever the variable is set, the same rule Claude Code uses), and `projects/`. usage's own files — the statusline script, `usage-status.json`, prefs — stay pinned to `~/.claude`: the script runs as a Claude Code subprocess and sees the variable while the app may not, and deriving both from it would let them write and read in different places.
+- **Token counts no longer read `1000k` at a unit boundary.** The three statusline scripts promoted to `M` at `value >= 1_000_000`, but `k` is formatted `:.0f`, so anything from 999,500 rounded to `1000k` first; there was no `B` step either, so 1.5 billion read `1500.0M`. The thresholds now compare against the rounded boundary (999,500 for k→M, 999,950,000 for M→B) and a `B` step was added, matching the already-correct version in `ui/tables.py`.
+
+### Changed
+- **Weekly trend bars in the report show their date range and cost on hover.** Each row only carried a token count, with no way to tell which week it was or what it cost. The range is clamped to the report's actual span, so an unfinished last week does not claim seven days next to three days of numbers.
+- **Insight notes in the report are square, borderless tinted rows.** They were the last framed surface left — 8px corners and a 3px left stripe — and now match the report's other full-row fills.
+
 ## [0.30.11] - 2026-09-10
 
 ### Removed
