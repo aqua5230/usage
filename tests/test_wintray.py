@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import ctypes
 import json
 import sys
 import threading
@@ -231,6 +232,30 @@ def test_build_tooltip_includes_antigravity_when_visible() -> None:
         "Antigravity Session: 25% · Weekly: 60%",
     ]
     assert "Antigravity" not in wintray.build_tooltip(_state())
+
+
+def test_build_tooltip_is_safe_for_windows_sz_tip() -> None:
+    base_state = _state()
+    full_row = replace(base_state.claude_session, percent=100.0)
+    state = replace(
+        base_state,
+        hide_agy=False,
+        hide_grok=False,
+        claude_session=full_row,
+        claude_weekly=full_row,
+        codex_session=full_row,
+        codex_weekly=full_row,
+        agy_session=full_row,
+        agy_weekly=full_row,
+        grok_weekly=full_row,
+    )
+
+    tooltip = wintray.build_tooltip(state)
+
+    assert len(tooltip) <= 127
+    assert tooltip.endswith("…")
+    buffer = (ctypes.c_wchar * 128)()
+    buffer.value = tooltip
 
 
 def test_system_background_color_dark(monkeypatch: pytest.MonkeyPatch) -> None:

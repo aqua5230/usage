@@ -77,6 +77,8 @@ logger = logging.getLogger(__name__)
 SLOW_POLL_INTERVAL_S = 300
 HISTORY_SCAN_CACHE_SECONDS = 30.0
 UPDATE_ALERT_BODY_LIMIT = 2000
+# szTip is 128 WCHARs including the terminator; pystray raises ValueError past that.
+TOOLTIP_MAX_LENGTH = 127
 PANEL_WIDTH = 380
 _TOAST_AUMID = "com.lollapalooza.usage"
 _TOAST_OPEN_PANEL_ACTION = "open_panel"
@@ -586,7 +588,8 @@ def build_tooltip(state: menubar_state.PopoverState) -> str:
         )
     if not state.hide_grok:
         lines.append(line("Grok", state.grok_weekly))
-    return "\n".join(lines)
+    text = "\n".join(lines)
+    return text if len(text) <= TOOLTIP_MAX_LENGTH else text[:126] + "…"
 
 
 def draw_tray_icon(used_percent: float | None) -> Image:
