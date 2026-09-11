@@ -549,6 +549,111 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.1",
+          "period": "2026-09-12",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "自訂代理人支援精簡配置，排除預設提示詞與工具並保留掛鉤",
+                "en": "Custom agents support lean configuration, excluding default prompts and tools while preserving hooks"
+              },
+              "body": {
+                "zh-TW": "設計專精特定任務的自訂代理人時，你現在能擁有一張完全乾淨的畫布。在代理人 Markdown 檔案頂端的前言設定（在文件開頭以橫線包夾的設定區塊）加入 `excludeDefaultComponents: true`，便能選擇不載入系統預設的提示詞區段與內建工具，只留下你親自指定的行為邏輯。這項設定能避免通用指令干擾專業發揮。而任務結束後的掛鉤（在特定事件發生時被觸發的小程式）依舊完整保留，讓自訂自動化流程順暢運作。⟦宛如訂製專業賽車時選擇拆空內裝的輕量化車體，移除了預設的後座與原廠音響，只留下純粹操控配備，但底盤的安全感應線路依然維持連動。⟧\n\n```yaml\n---\nname: my-specialist\nexcludeDefaultComponents: true\n---\n```",
+                "en": "When designing custom agents tailored for specialized tasks, you now have a completely blank canvas. Adding `excludeDefaultComponents: true` to the frontmatter of an agent's Markdown file allows you to opt out of loading system default prompt sections and built-in tools, keeping only your explicitly specified behavior logic. This setting prevents general-purpose instructions from interfering with specialized capabilities. Meanwhile, post-task hooks remain fully preserved, keeping custom automated workflows running smoothly. ⟦Just like ordering a purpose-built race car with a stripped lightweight chassis, where default rear seats and factory stereo are removed to keep only pure driving controls, while the safety sensor wiring in the chassis remains connected.⟧\n\n```yaml\n---\nname: my-specialist\nexcludeDefaultComponents: true\n---\n```"
+              },
+              "original": "Added support for `excludeDefaultComponents: true` in custom agent Markdown frontmatter, allowing custom agents to opt out of default prompt sections and built-in tools while preserving post-invocation hooks."
+            },
+            {
+              "title": {
+                "zh-TW": "模型 API 強化錯誤重試機制，保留工具產出並提供清楚診斷",
+                "en": "Model API strengthens error retry mechanism, preserving tool outputs and providing clear diagnostics"
+              },
+              "body": {
+                "zh-TW": "面對遠端模型伺服器偶發的網路壅塞或限流，工具現在具備更沉著的容錯韌性。⟦宛如在自動販賣機投幣購買熱飲遇到出杯口短暫卡頓，機台會主動間隔等待並重新嘗試，妥善保留已落下的紙杯，若最終仍無法出料也會在螢幕亮起明確的缺料警示。⟧以前連線時若撞上暫時性的 `genai.APIError` 錯誤，執行流程往往直接中斷。現在無論是 `502`、`503`、`504` 伺服器異常、每分鐘觸發的 `429` 速率限制，或是傳輸串流中途中斷，程式都會在內部以指數退避（重試等待時間隨次數倍增的做法）自動重試。重試期間已完成的工具呼叫產出會完整保留，不再白白作廢。若重試後仍未能成功復原，系統會針對 `503` 與 `429` 狀況顯示清楚易懂的錯誤提示，不再丟出晦澀難懂的內部代碼。",
+                "en": "When facing occasional network congestion or rate limits from remote model servers, the tool now exhibits calmer fault resilience. ⟦Like buying a hot drink from a vending machine and encountering a brief jam at the dispenser chute: the machine automatically waits at intervals and retries, properly preserving the dropped cup, and illuminates a clear out-of-stock warning on the screen if it ultimately cannot dispense.⟧ Previously, encountering transient `genai.APIError` failures during a connection would often abort execution immediately. Now, whether dealing with `502`, `503`, or `504` server errors, per-minute `429` rate limits, or mid-stream transmission interruptions, the program automatically retries in-process using exponential backoff. Completed tool call outputs during retries are fully preserved rather than wasted. If recovery still fails after retrying, the system displays clear and understandable error messages for `503` and `429` situations instead of throwing obscure internal error codes."
+              },
+              "original": "Improved model API error resilience and diagnostics: transient `genai.APIError` failures (`502`, `503`, `504`, per-minute `429` rate limits, and mid-stream interruptions) automatically retry in-process with exponential backoff while preserving completed tool call outputs, and unrecovered `503` and `429` responses surface clear user-facing error messages."
+            },
+            {
+              "title": {
+                "zh-TW": "MCP 與工具結構驗證放寬，保留開放物件與自訂參數",
+                "en": "MCP and tool schema validation relaxed, preserving open objects and custom arguments"
+              },
+              "body": {
+                "zh-TW": "串接各類外部擴充工具時，規格檢驗不再把合法的彈性輸入擋在門外。使用 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）或各家模型提供者的擴充工具時，舊版結構驗證機制過於嚴格。即使工具規格本身允許開放物件結構描述（schema，規範資料格式與欄位型別的結構定義），例如宣告為 `{\"type\": \"object\"}` 或明確寫出 `additionalProperties: true`，系統過去仍會拒絕傳入任何未預先宣告的引數。現在檢驗邏輯全面改善，能妥善保留這些開放物件結構，讓合規允許額外參數的工具順利接收資料。⟦好比前往公證處填寫資產申報單，欄位末端若明確勾選了「其他動產」或備註允許自由補充，審查櫃台便會如實受理附帶清單，不再挑剔額外寫入的項目未列在制式表格上。⟧",
+                "en": "When integrating external extension tools, specification checks no longer lock out valid, flexible inputs. When using MCP or provider extension tools, the previous schema validation mechanism was overly strict. Even if a tool specification itself allowed open object schemas (such as declaring `{\"type\": \"object\"}` or explicitly setting `additionalProperties: true`), the system previously rejected any undeclared arguments. The validation logic is now improved to properly preserve these open object schemas, allowing tools that permit extra parameters to receive data smoothly. ⟦Just like filling out an asset declaration form at a notary office: if the end of a field explicitly checks \"other movable property\" or notes allow free additions, the review counter accepts the attached list as-is, no longer rejecting extra written items simply because they were not listed on the standard form.⟧"
+              },
+              "original": "Improved MCP and provider tool schema validation to preserve open object schemas (such as `{\"type\": \"object\"}` or explicit `additionalProperties: true`) instead of rejecting undeclared arguments on schemas that allow them."
+            },
+            {
+              "title": {
+                "zh-TW": "開啟大型對話降低記憶體佔用，每輪互動回應更敏捷",
+                "en": "Opening large conversations reduces memory usage, making per-turn responses more agile"
+              },
+              "body": {
+                "zh-TW": "重新載入累積大量歷史紀錄的長篇對話時，終端機的操作手感現在依然輕快。⟦這好比翻開一整箱厚重的工程施工藍圖，經過重新折疊與編目整理，攤在桌上不再佔滿整張辦公桌，每次翻到特定樓層做標記也隨翻隨寫、毫無延宕。⟧以前開啟對話紀錄特別長的工作階段（session，從啟動到結束的一整段對話歷程）時，龐大的歷史內容往往會迅速堆高記憶體用量。隨著對話越來越長，每輪互動的送出與回應也常因此變得遲緩。現在開啟大型對話時的每輪回應速度顯著改善，同時有效降低了記憶體消耗。即使面對篇幅極長的工作階段，每次對話往返都能維持順暢反應。",
+                "en": "When reloading lengthy conversations with accumulated history, terminal operations remain snappy. ⟦Like opening a heavy box of engineering construction blueprints that have been refolded and cataloged: spreading them out no longer occupies the entire desk, and flipping to a specific floor to make notes is immediate without any delay.⟧ Previously, opening sessions with extensive conversation histories would rapidly inflate memory usage. As conversations grew longer, sending and receiving responses per turn frequently became sluggish. Now, per-turn responsiveness when opening large conversations is significantly improved while effectively reducing memory consumption. Even in exceptionally long sessions, each conversational turn maintains smooth responsiveness."
+              },
+              "original": "Improved per-turn responsiveness and reduced memory usage when opening large conversations."
+            },
+            {
+              "title": {
+                "zh-TW": "--continue 支援階層備援搜尋，子目錄與當機後不開新對話",
+                "en": "--continue supports hierarchical fallback search, avoiding new conversations in subdirectories or after crashes"
+              },
+              "body": {
+                "zh-TW": "想要迅速接續上一回的中斷進度，恢復對話的指令現在更值得信賴。以前執行 `--continue` 旗標時，只要終端機位於專案的子目錄、先前發生過異常當機，或者同一工作區內恰好有另一個工作階段（session，從啟動到關閉的完整使用過程）正在運行，系統往往會誤判並強制開出一筆全新空白對話。這讓使用者找不到原本的上下文紀錄。現在這項缺陷已經修好，指令會啟動智慧備援（fallback，在主路徑失效時自動切換至替代方案的容錯設計）機制，自動搜尋當前工作區及其父目錄、子目錄，精準找回最近一次非空的歷史對話。⟦恰似工匠走進分流的加工側間準備繼續施工，即使方才經歷了意外跳電、或隔壁主工位正有人借用工具，他依然能在工具架的主層或鄰近抽屜裡，精準摸出最後那份尚未結案的工件繼續雕琢。⟧\n\n```\n# 接續當前工作區最近一次非空對話\nagy --continue\n```",
+                "en": "When resuming interrupted progress from a previous session, the continuation command is now much more dependable. Previously, running the `--continue` flag would often mistakenly force a brand-new blank conversation if the terminal was located in a project subdirectory, after an abnormal crash, or while another session was running in the same workspace. This left users unable to find their original context history. This flaw has now been fixed; the command initiates a fallback mechanism that automatically searches the current workspace along with its parent and child directories to accurately retrieve the most recent non-empty conversation. ⟦Much like a craftsman stepping into a branch workshop to resume work: even after a sudden power outage or while someone borrows tools at the main workstation next door, he can still reach into the tool rack's main shelf or adjacent drawers to accurately retrieve the last unfinished piece and continue carving.⟧\n\n```\n# Resume the most recent non-empty conversation in the current workspace\nagy --continue\n```"
+              },
+              "original": "Fixed `--continue` starting a brand-new conversation when launched from a subdirectory, after a crash, or while another session is open in the same workspace; it now falls back to the most recent non-empty conversation in the current workspace or its parent/child directories."
+            },
+            {
+              "title": {
+                "zh-TW": "行內模式修復全螢幕空白閃爍，捲動與清畫面視覺更平順",
+                "en": "Inline mode fixes full-screen blank flashes, smoothing scrolling and screen clearing"
+              },
+              "body": {
+                "zh-TW": "長時間在終端機中緊盯對話輸出，刺眼的畫面閃爍不再打擾你的專注。在行內模式（inline mode，直接在終端機當前游標處嵌入文字的顯示方式）下，使用者過去常常會撞見令人不適的全螢幕空白閃爍。這種刺眼的閃動特別容易發生在文字輸出首次被推入回捲緩衝區（scrollback，終端機用來保留上方歷史畫面的暫存區）的那一刻、每一輪對話即將結束的收尾瞬間，或是按下 `Ctrl+L` 快捷鍵嘗試清空螢幕之時。這個畫面閃爍問題現在已經徹底修復，各種切換情境下都能維持穩定的視覺感受。⟦彷彿在老舊放映廳看電影遇到換膠捲捲軸，以前每逢段落切換或清潔布幕時總會突然白光一閃刺傷眼睛，如今更換了數位連續放映機，轉場時畫面銜接安靜平穩。⟧",
+                "en": "When focusing on conversational output in the terminal for long periods, glaring screen flashes no longer disrupt your concentration. In inline mode, users previously often encountered jarring full-screen blank flashes. This glaring flash occurred especially when text output was first pushed into the scrollback buffer, at the closing moment of each conversation turn, or when pressing `Ctrl+L` to clear the screen. This screen flashing issue is now completely fixed, maintaining a stable visual experience across all transition scenarios. ⟦Like watching a movie in an old cinema during a film reel change: paragraph transitions or screen cleanings previously triggered a sudden flash of white light that stung the eyes, but with a new digital continuous projector, transitions now connect quietly and smoothly.⟧"
+              },
+              "original": "Fixed full-screen blank flashes in inline mode when content first pushes to scrollback, at the end of a turn, or when clearing the screen with `Ctrl+L`."
+            },
+            {
+              "title": {
+                "zh-TW": "Remote Control 隨附介面狀態修復，即時反映已登入工作階段",
+                "en": "Remote Control companion UI state fixed, instantly reflecting signed-in sessions"
+              },
+              "body": {
+                "zh-TW": "使用遠端裝置協同操作終端機時，隨附介面現在能準確同步你已登入的身分。⟦好似持智慧手環與跑步機連線同步運動數據，手環螢幕接通瞬間便會直接顯示當前登入的會員姓名，不再跳回初始歡迎頁逼你重新掃描卡片。⟧以前透過 `Remote Control` 將遠端隨附介面連線至互動式命令列工作階段（session，從啟動到結束的一整段操作歷程）時，介面端常出現異常狀況。它不會顯示當前活動工作階段的有效登入狀態，反而會錯誤彈出未通過驗證的登入畫面，阻礙使用者操作。這個狀態顯示問題現在已經修好，遠端介面連線後能直接反映正常的登入狀態。",
+                "en": "When using remote devices to collaboratively operate the terminal, the companion UI now accurately synchronizes your signed-in identity. ⟦Just like pairing a fitness tracker with a treadmill to sync workout data: the moment the tracker screen connects, it immediately displays the currently logged-in member's name instead of jumping back to the initial welcome page and forcing you to rescan your card.⟧ Previously, connecting a remote companion UI to an interactive CLI session via `Remote Control` often caused an abnormal state on the UI side. Instead of displaying the active session's authenticated sign-in state, it erroneously showed an unauthenticated sign-in screen, hindering operations. This status display issue is now fixed, allowing remote interfaces to directly reflect the normal signed-in state upon connection."
+              },
+              "original": "Fixed remote companion UIs connected to an interactive CLI session via Remote Control displaying an unauthenticated sign-in screen instead of the active session's signed-in state."
+            },
+            {
+              "title": {
+                "zh-TW": "狀態列如實反映終端機沙盒狀態，解除旗標設定下的顯示誤判",
+                "en": "Status line accurately reflects terminal sandbox state, resolving false display under flag setting"
+              },
+              "body": {
+                "zh-TW": "開啟隔離防護執行不可信指令時，底部狀態提示不再引起虛驚。當你在啟動命令列時加入了 `--sandbox` 命令列旗標，程式明明已經替該工作階段（session，從啟動到關閉的完整執行過程）啟用了終端機沙盒防護。然而畫面底部的狀態列（顯示目前模式與環境資訊的即時通知列）過去卻會錯誤回報沙盒為停用狀態，容易讓人誤以為隔離環境未生效。這個顯示問題現在已經修正，只要使用該旗標啟動，狀態列便會如實反映沙盒的啟用狀態。⟦這如同實驗室操作員戴上護目鏡並扳下通風櫥排氣閥，排風扇明明已正常抽風運轉，警示面板上的指示燈卻誤亮著「排氣已關閉」，校正接線後指示燈終於真實反映抽風狀態。⟧\n\n```\n# 以終端機沙盒防護模式啟動工作階段\nagy --sandbox\n```",
+                "en": "When enabling isolated protection to execute untrusted commands, bottom status hints no longer cause false alarms. When launching the command line with the `--sandbox` flag, the program properly enables terminal sandbox protection for that session. However, the status line at the bottom of the screen previously erroneously reported the sandbox as disabled, easily leading users to believe the isolated environment was not active. This display issue is now fixed; launching with this flag ensures the status line accurately reflects the sandbox's enabled state. ⟦Much like a lab operator putting on safety goggles and pulling the fume hood exhaust valve: while the exhaust fan is running normally, the indicator light on the warning panel mistakenly shows \"Exhaust Off\"; after correcting the wiring, the light finally accurately reflects the ventilation status.⟧\n\n```\n# Launch session with terminal sandbox protection mode\nagy --sandbox\n```"
+              },
+              "original": "Fixed the status line reporting the terminal sandbox as disabled when the session was launched with the `--sandbox` command-line flag."
+            },
+            {
+              "title": {
+                "zh-TW": "Mermaid 純文字圖表移除縮放提示，檢視器介面回歸清爽",
+                "en": "Mermaid plain-text diagrams remove zoom hints, restoring clean viewer interface"
+              },
+              "body": {
+                "zh-TW": "在終端機檢視流程圖或架構圖時，畫面控制項不再出現用不上的快捷鍵提示。當你在產出物檢視器（artifact viewer，查看程式碼或圖表等生成成果的專用檢視面板）中瀏覽 Mermaid 圖表時，若圖表是以 ASCII 純文字模式而非 Kitty 圖片模式進行算繪，終端機過去依然會顯示圖片專用的縮放按鍵提示。這導致底部的頁尾提示欄列出無效的 `Ctrl+=` 與 `Ctrl+-` 縮放快捷鍵，按下去也沒有實際縮放效果。這個介面提示問題現在已經修正，純文字圖表不再顯示多餘的圖片縮放提示。⟦宛如閱讀以純文字打字機排印的黑白公文，閱讀器底端卻跳出僅適用於高解析度相片的多點觸控手勢指引，移走無效提示後版面回歸乾淨俐落。⟧",
+                "en": "When viewing flowcharts or architecture diagrams in the terminal, UI controls no longer display unusable shortcut hints. When browsing Mermaid diagrams in the artifact viewer, if a diagram was rendered in ASCII plain-text mode rather than Kitty image mode, the terminal previously still showed image zoom key hints. This caused the bottom footer hint bar to list ineffective `Ctrl+=` and `Ctrl+-` zoom shortcuts that had no actual zooming effect when pressed. This UI hint issue is now fixed, so plain-text diagrams no longer display redundant image zoom hints. ⟦Like reading a black-and-white official document printed on a plain typewriter, only for the bottom of the reader to pop up multi-touch gesture guides meant exclusively for high-resolution photos; removing the invalid hints restores a clean, uncluttered layout.⟧"
+              },
+              "original": "Fixed image zoom keys (`Ctrl+=` and `Ctrl+-`) and the footer zoom hint appearing in the artifact viewer when a Mermaid diagram is rendered in ASCII mode instead of as a Kitty image."
+            }
+          ]
+        },
+        {
           "version": "1.2.0",
           "period": "2026-09-10",
           "items": [
@@ -746,100 +851,6 @@
               "original": "Fixed a memory leak where every finished terminal command kept internal state alive for the rest of the session; long sessions that run many commands now use significantly less memory."
             }
           ]
-        },
-        {
-          "version": "1.1.27",
-          "period": "2026-09-05",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "`/model` 支援單次提問切換，輸入提示與啟動選單全面修正",
-                "en": "`/model` Supports Single-Prompt Model Switching with Comprehensive Fixes to Input Hints and Startup Menus"
-              },
-              "body": {
-                "zh-TW": "對話進行到一半想換個模型問一句話，現在不必更改整體設定。⟦像向主治醫師看診時，中途請隔壁專科專家進診間單獨看一張片子，問完立即回到主治醫師，不必重新辦理轉院手續。⟧新指令 `/model <name> <prompt>` 讓你用另一個模型跑單次提問，結束後工作階段（你與 AI 進行對話的一段連線）自動切回原本模型，完全不影響已儲存的預設值。寫完程式想打 `/model gemini-3.8-flash 檢查資安漏洞` 諮詢其他觀點，這正是使用時機。此外，輸入 `/model` 時會即時浮現 `[model]` 參數提示，不開求助說明也能知道用法。若工作階段已在該模型，指令改為回報 `Model already set to <name>` 而非誤報切換。在工作階段啟動完成前輸入不帶參數的 `/model`，現在也會正常開啟模型挑選器。",
-                "en": "You no longer need to change your global settings when you want to switch models for a single question mid-conversation. ⟦It is like consulting your primary physician and having a specialist step into the examination room just to review a single scan, immediately returning to your primary physician once done without undergoing hospital transfer procedures.⟧ The new `/model <name> <prompt>` command lets you run a single prompt on another model, automatically returning the session to its original model afterward without affecting your saved defaults. If you finish writing code and want to run `/model gemini-3.8-flash check for security vulnerabilities` to consult another perspective, this is the exact use case. In addition, typing `/model` now displays a real-time `[model]` argument hint so you know how to use it without opening help. If the session is already using that model, the command now reports `Model already set to <name>` instead of falsely reporting a switch. Running `/model` without arguments before the session finishes starting up also now properly opens the model picker."
-              },
-              "original": "Added `/model <name> <prompt>`, which runs a single prompt on another model and then returns the session to the model it was using, so you can consult a different model mid-conversation without disturbing your saved default.\nImproved `/model` to show a `[model]` argument hint as you type, so the command's arguments are discoverable without opening help.\nChanged `/model <name>` to report `Model already set to <name>` when the session is already using that model, instead of reporting a switch that did not happen.\nFixed `/model` with no argument doing nothing when run before the session had finished starting up, so it now opens the model picker."
-            },
-            {
-              "title": {
-                "zh-TW": "Markdown 自訂代理支援 `agents` 清單，直接宣告相依子代理路徑",
-                "en": "Custom Markdown Agents Support `agents` List to Directly Declare Dependent Subagent Paths"
-              },
-              "body": {
-                "zh-TW": "替專案設計多代理協作時，自訂代理現在能直接宣告自己專屬的下層幫手。在定義代理的 Markdown 檔案開頭，檔案標頭（frontmatter，用三條橫線包夾的設定區塊）新增了 `agents` 清單。你可以直接列出該代理依賴的各個子代理，並完全比照 `skills` 技能的定位方式，自由使用工作區相對路徑、絕對路徑或代理相對路徑：\n\n```\n---\nagents:\n  - ./researcher.md       # 代理相對路徑\n  - subagents/verifier.md # 工作區相對路徑\n  - /global/audit.md      # 絕對路徑\n---\n```\n\n當你撰寫一份資安稽核代理，希望它自動叫出專門查閱程式碼的輔助幫手，只要在定義檔開頭寫好這份清單，系統就會精準載入依賴項目。⟦好比主廚在宴席菜單頂端註明各道菜餚專屬的備料助手與冷盤學徒，後廚依名冊在開工前配齊人手，不必等客人入座後才手忙腳亂到處調派支援。⟧",
-                "en": "When designing multi-agent collaboration for a project, custom agents can now directly declare their own subordinate helpers. The Markdown frontmatter at the beginning of an agent definition file has added an `agents` list. You can directly list the subagents this agent depends on, using workspace-relative paths, absolute paths, or agent-relative paths just like `skills`:\n\n```\n---\nagents:\n  - ./researcher.md       # Agent-relative path\n  - subagents/verifier.md # Workspace-relative path\n  - /global/audit.md      # Absolute path\n---\n```\n\nWhen creating a security audit agent that needs to automatically invoke a dedicated code inspection helper, simply declaring this list at the top of the definition file ensures the system accurately loads the dependencies. ⟦Like a head chef listing dedicated prep assistants and cold-dish apprentices at the top of a banquet menu so the kitchen can staff up before work begins, rather than scrambling to dispatch helpers after guests are seated.⟧"
-              },
-              "original": "Added an `agents` list to custom agent Markdown frontmatter, letting an agent declare the subagents it depends on using the same workspace-relative, absolute, and agent-relative path rules as `skills`."
-            },
-            {
-              "title": {
-                "zh-TW": "狀態列與視窗標題腳本新增 `conversation_title`，即時同步對話重新命名",
-                "en": "Status Line and Window Title Scripts Add `conversation_title` to Synchronize Renamed Conversations in Real Time"
-              },
-              "body": {
-                "zh-TW": "想要在螢幕邊界隨時掌握當前對話，自訂腳本現在能取得更豐富的資訊。⟦如同會議室門口掛著的數位名牌，只要發起人更改專案名稱，螢幕隨即同步換上新標題，讓走進門的人一目了然。⟧傳遞給自訂狀態列（終端機最底下的即時資訊列）與視窗標題腳本的 JSON 酬載中，新增了 `conversation_title` 欄位。你的腳本可以直接讀取該欄位來顯示當前進行中的對話名稱，即使中途為對話重新命名，介面也能立即跟進最新標題，不再停留在舊名稱或預設代號：\n\n```\n{\n  \"conversation_title\": \"重構登入模組\"\n}\n```\n\n當你同時開啟多個終端機視窗處理不同專案，只要腳本讀取這個新欄位，就能清楚辨認每個視窗正在進行的任務主題。",
-                "en": "Custom scripts can now retrieve richer information to help you track active conversations at the screen edge at any time. ⟦Like a digital nameplate outside a conference room that instantly updates when the organizer renames the project, giving anyone walking in immediate clarity.⟧ The JSON payload passed to custom status line and window title scripts now includes a `conversation_title` field. Your scripts can directly read this field to display the active conversation's name, picking up renames immediately rather than staying stuck on old names or default identifiers:\n\n```\n{\n  \"conversation_title\": \"Refactor login module\"\n}\n```\n\nWhen running multiple terminal windows across different projects, having your script read this new field makes it easy to identify the task topic in each window."
-              },
-              "original": "Added a `conversation_title` field to the JSON payload passed to custom status line and window title scripts, so they can show the active conversation's name and pick up renames immediately."
-            },
-            {
-              "title": {
-                "zh-TW": "無頭與列印模式 `-p` 執行加固，未授權動作明確列出且紀錄完整落盤",
-                "en": "Hardened Execution for Headless and Print Mode `-p`: Unauthorized Actions Explicitly Listed and Records Flushed to Disk"
-              },
-              "body": {
-                "zh-TW": "把 AI 放入自動化排程背景執行，最怕工具被拒絕時毫無動靜、或者紀錄沒寫完就中途斷線。⟦宛如派出全自動無人採樣車，遇到未經授權的管制區域時不再裝作沒事直接略過，而是在日誌中白紙黑字寫明被拒絕的地點，且返航時一定等所有檢測數據完整寫入隨身碟才關閉電源。⟧以 `-p` 參數跑 headless（無頭模式，沒有終端機視窗的執行模式）時，過去系統若遇到未獲授權的工具動作，會默默跳過不執行；現在程式結束時會明確列出被拒絕的動作名稱，並在 JSON 輸出中標記為 `denied_actions`。此外，列印模式以前在工作階段尚未完成關閉前就過早退出，容易導致末尾的對話歷史紀錄還沒寫入磁碟就被丟棄；現在會確實等待工作階段完整落盤後才退出。",
-                "en": "When running AI in background automated schedules, the worst issues are silent tool rejections or dropped records due to premature disconnections. ⟦Like an autonomous sampling rover that, when encountering an unauthorized restricted zone, no longer skips past it silently but clearly logs the refused location in writing, and always waits for all telemetry to flush to storage before powering off on its return.⟧ When running headless with `-p`, the system previously skipped unauthorized tool actions silently; it now ends with a notice naming the refused actions and reports them as `denied_actions` in the JSON output. In addition, print mode previously exited before the session finished shutting down, which could drop trailing conversation history before it reached disk; it now properly waits for the session to finish writing to disk before exiting."
-              },
-              "original": "Fixed headless runs with `-p` silently skipping tool actions they were not permitted to take, which now end with a notice naming the refused actions and report them as `denied_actions` in the JSON output.\nFixed print mode (`-p`) exiting before the session finished shutting down, which could drop the run's trailing conversation history before it reached disk."
-            },
-            {
-              "title": {
-                "zh-TW": "MCP 工具呼叫嚴格核對規格，虛構參數主動拒絕並修正",
-                "en": "MCP Tool Calls Strictly Validate Schemas, Actively Rejecting and Correcting Invented Parameters"
-              },
-              "body": {
-                "zh-TW": "讓 AI 連接外部伺服器執行專屬工具，傳入參數的檢驗標準現在變得更加嚴密。過去呼叫 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器時，如果 AI 自行虛構了該伺服器規格架構中從未宣告過的額外參數，舊版系統往往會默默丟棄這些多餘參數而不提示，導致呼叫行為偏離預期。現在底層驗證機制已修正，遇到規格外的虛構參數會主動予以拒絕並要求修正，確保每次工具呼叫都嚴格符合定義。⟦這就像去銀行臨櫃填寫匯款單，如果填表人自作主張在空白處多勾選了規格從未印製的自創項目，櫃員不會裝作沒看見直接劃掉，而是會當場退單並指引你填寫合規欄位。⟧",
-                "en": "Validation standards for passing arguments have become much stricter when connecting AI to external servers for dedicated tools. When calling MCP (Model Context Protocol) servers in the past, if the AI invented extra arguments never declared in the server's schema, the system often silently dropped them without notice, causing unexpected behavior. The underlying validation mechanism is now fixed to actively reject and correct invented parameters outside the schema, ensuring every tool call strictly matches definitions. ⟦Like filling out a bank transfer slip where, if the applicant checks custom options never printed on the form, the teller will not silently cross them out, but will reject the slip on the spot and guide you to fill out valid fields.⟧"
-              },
-              "original": "Fixed tool calls to MCP servers accepting arguments the server's own schema never declared, so an invented parameter is now rejected and corrected instead of being silently dropped."
-            },
-            {
-              "title": {
-                "zh-TW": "設定面板詳述輸出詳細度，初始引導畫面按鍵提示全面標準化",
-                "en": "Settings Panel Details Verbosity Levels, and Onboarding Key Hints Are Fully Standardized"
-              },
-              "body": {
-                "zh-TW": "在終端機調整設定或初次登入時，畫面引導變得更加貼合你的使用習慣。⟦在科技展廳的觸控機台前瀏覽時，每當手勢移到不同選項，旁邊的動態看板就會詳細解釋功能差異，且按鈕背光會自動配合展廳色調，遇到單一通道時更會主動收起多餘的方向提示。⟧開啟 `/settings` 設定面板時，游標移到各個 Verbosity 詳細度選項上，畫面會即時展開說明文字。它會詳細描述工具呼叫、終端指令與思考推導是完整展開顯示，還是濃縮進 token（AI 處理與計費的文字單位）計量表中。此外，帳號登入與 Google Cloud 設定引導畫面全面改用命令列標準樣式的按鍵提示，能完全跟隨你的終端配色與自訂鍵位綁定，當畫面上只有單一選項可選時，系統也會主動隱藏多餘的方向導覽提示。",
-                "en": "On-screen guidance fits your habits much better when tweaking settings in the terminal or logging in for the first time. ⟦Like browsing a touchscreen kiosk in a tech showroom where highlighting different options prompts a dynamic billboard to explain functional differences, button backlights adapt to showroom colors, and navigation arrows hide when only a single path exists.⟧ When opening the `/settings` panel, highlighting each Verbosity option now expands explanatory text in real time. It describes in detail whether tool calls, terminal commands, and thoughts are shown in full or collapsed into a token metrics table. In addition, sign-in and Google Cloud setup screens now use standard styled CLI key hints that follow your terminal color scheme and custom keybindings, dropping navigation hints when only one option is available."
-              },
-              "original": "Improved the `/settings` panel so each Verbosity option explains itself as you highlight it, describing whether tool calls, commands, and thoughts are shown in full or collapsed into a token metrics table.\nImproved the sign-in and Google Cloud setup screens to use the CLI's standard styled key hints, which follow your color scheme and keybindings and drop the navigation hint when only one option is available."
-            },
-            {
-              "title": {
-                "zh-TW": "Vim 常規模式解開 `?` 按鍵衝突，行內搜尋與替換指令順暢運作",
-                "en": "Vim Normal Mode Resolves `?` Key Conflict, Restoring Inline Search and Replace Operators"
-              },
-              "body": {
-                "zh-TW": "習慣在終端機開啟 Vim 鍵位的工程師，現在於輸入列進行行內定位時不再誤觸彈出視窗。過去在 Vim Normal mode（Vim 編輯器的常規命令模式）下，只要輸入框內已經包含文字，按下 `?` 鍵就會錯誤地觸發快速鍵面板跳出，導致 `f?`、`t?` 以及 `df?` 等字元搜尋與替換操作符全面失靈。現在這項按鍵攔截問題已經修復，當輸入列已有文字時，這些搜尋與替換指令都能順暢運作；只有在輸入列完全空白的待機狀態下，按下 `?` 才會如常開啟快速鍵說明。⟦彷彿在打字機上編修文件，當滾筒夾著稿紙且正在編輯時，按下特殊標點會精確執行行內字元搜尋、跳位與替換，只有在完全抽空稿紙的待機狀態下，同一個按鍵才會化身為叫出操作手冊的呼叫鈴。⟧",
-                "en": "Engineers used to Vim keybindings in the terminal will no longer accidentally trigger popup panels during inline navigation in the prompt. Previously in Vim Normal mode, pressing `?` while the prompt already contained text incorrectly opened the shortcuts panel, breaking character-search and replace operators such as `f?`, `t?`, and `df?`. This key intercept issue is now fixed so that search and replace commands work smoothly when the prompt has text; pressing `?` only opens shortcut help when the prompt is completely empty. ⟦Like editing on a typewriter where pressing a punctuation key performs precise inline character search, jumping, and replacement while paper is loaded, and only acts as a service bell summoning the manual when the roller is completely empty.⟧"
-              },
-              "original": "Fixed `?` in Vim Normal mode opening the shortcuts panel while the prompt already contained text, so character-search and replace operators such as `f?`, `t?`, and `df?` work; `?` still opens shortcuts on an empty prompt."
-            },
-            {
-              "title": {
-                "zh-TW": "已授權存取工作區外檔案時，讀寫跨對話產物不再跳多餘確認",
-                "en": "Reading and Writing Cross-Conversation Artifacts No Longer Prompts for Redundant Approval When Workspace Access Is Granted"
-              },
-              "body": {
-                "zh-TW": "跨對話調閱過往產出的分析文件，不必再被重複彈出的確認視窗打斷工作節奏。當使用者在對話中已經明確核准代理存取工作區以外的檔案路徑，後續若代理需要讀取或寫入另一段對話所產生的產物（artifact，獨立生成的各類文件或程式碼）檔案，過去系統仍會反覆彈出多餘的授權詢問對話框，中斷連續操作；現在這項重複提示已被徹底修復，只要先前已放行外部路徑，代理就能順暢讀寫其他對話的產物。⟦入住全包式度假村，手腕上已經配戴通行全區的識別手環，走進隔壁活動中心借閱其他房客留下的共享桌遊，櫃檯就不該要求你再次出示護照並重複簽名。⟧",
-                "en": "Retrieving past analysis documents across conversations no longer interrupts your workflow with repeated confirmation popups. Once you explicitly allow an agent access to file paths outside your workspace, the system previously still prompted repeatedly for approval whenever the agent read or wrote artifact files created by another conversation; this redundant prompt is now fixed so the agent smoothly accesses artifacts from other conversations once external paths have been permitted. ⟦Like staying at an all-inclusive resort where wearing an all-access wristband means the front desk should not ask for your passport and signature again when you borrow board games from the recreation center next door.⟧"
-              },
-              "original": "Fixed a redundant approval prompt when the agent reads or writes another conversation's artifact files after you have already allowed access to files outside your workspace."
-            }
-          ]
         }
       ]
     },
@@ -848,229 +859,141 @@
       "name": "Usage",
       "versions": [
         {
-          "version": "0.30.10",
-          "period": "2026-09-07",
+          "version": "0.30.13",
+          "period": "2026-09-12",
           "items": [
             {
               "title": {
-                "zh-TW": "Grok 登上用量報表與互動儀表板，四張對照表同步補齊",
-                "en": "Grok arrives in usage reports and the interactive dashboard with four synchronized lookup tables"
+                "zh-TW": "Windows 面板在高縮放螢幕不再貼邊，重開位置精準",
+                "en": "Windows panel no longer clings to screen edge at high scaling, reopening accurately"
               },
               "body": {
-                "zh-TW": "平時習慣呼叫 Grok 協作的開發者，現在執行 `usage report` 或切換至互動儀表板時，終於能將它的用量一併納入統計。⟦這好比商場服務台早早掛出新專櫃的會員卡，樓層指南與各收銀機名冊卻全漏記，消費者看全館總表時始終找不到它；把各處對照表補齊後才完整歸隊。⟧先前 macOS 選單列雖有 Grok 的額度卡，讀取器 `loaders/grok_loader.py` 也能吐出逐次呼叫的 token（AI 處理與計費的文字單位）明細，但轉接層缺少 `adapters/grok.py`，導致終端機報表與儀表板對它視而不見。這次除了補上轉接器，也同步了四張必須一致的對照表：註冊表的偵測清單、指令列與報表產生器的 `AGENT_LOADERS`，以及表格介面的 `AGENT_SHORT` 與 `AGENT_LABEL`。",
-                "en": "Developers who regularly collaborate with Grok can now finally include its usage in statistics when running `usage report` or switching to the interactive dashboard. ⟦This is like a mall information desk displaying membership cards for a new boutique while the floor directory and register rosters omit it entirely, leaving shoppers unable to find it on the mall-wide directory until lookup tables everywhere are completed.⟧ While the macOS menu bar previously had a Grok quota card and the loader `loaders/grok_loader.py` could produce per-call token details, the adapter layer lacked `adapters/grok.py`, leaving the terminal report and dashboard blind to it. In addition to adding the adapter, this update synchronizes the four lookup tables that must agree: the registry's detector list, `AGENT_LOADERS` in the CLI and report generator, and `AGENT_SHORT` and `AGENT_LABEL` in the table UI."
+                "zh-TW": "使用 3840x2160 高解析度螢幕並開啟 250% 縮放時，Windows 面板現在會準確開在畫面之內。⟦這好比木工師傅照著設計圖施工，助手卻誤把圖面上的公尺當成公分再放大換算，讓做好的櫃子直接卡死在牆角。⟧底層套件 `pywebview 6.2.1` 回傳的螢幕範圍明明是實體像素，卻標記成縮放 1.0。後續 `move()` 與 `resize()` 又拿視窗自身 DPI 重複相乘，使得預設水平坐標被算成 3840 − 380 − 12 = 3448，將面板釘在右下角邊緣，且該位置還被存檔讓每次重開都重演。現在程式只在主螢幕回報 1.0 且視窗 DPI 不是 96 時，才用視窗自己的 DPI 將螢幕矩形換算回邏輯像素，避免未來 `pywebview` 修好時重複換算；同時將 `window.show()` 排在擺位之後，面板絕不再閃現在舊位置。",
+                "en": "When using a 3840x2160 high-resolution display with 250% scaling, the Windows panel now opens accurately within the screen bounds. ⟦This is like a carpenter building according to blueprints, but an assistant mistakes meters for centimeters and scales them up again, leaving the finished cabinet wedged tightly against the wall corner.⟧ The underlying package `pywebview 6.2.1` returns screen bounds in physical pixels but labels them with a scale of 1.0. Subsequent `move()` and `resize()` operations then multiplied their inputs by the window's own DPI again, causing the default horizontal coordinate to be calculated as 3840 − 380 − 12 = 3448, pinning the panel to the bottom-right edge, and that position was saved so every relaunch repeated the issue. Now the program converts screen rectangles back to logical pixels using the window's own DPI only when the primary screen reports 1.0 while the window DPI is not 96, preventing double conversion if a future `pywebview` release fixes this; at the same time, `window.show()` is queued after placement, ensuring the panel never flashes at a stale position."
               },
-              "original": "**Grok now appears in the report and the interactive dashboard.** The menu bar has carried a Grok quota card for a while and `loaders/grok_loader.py` could already produce per-call token detail, but there was no `adapters/grok.py`, so both `usage report` and the dashboard were blind to it. The adapter was added along with the four lookup tables that have to agree: the registry's detector list, the `AGENT_LOADERS` maps in `usage_cli` and `reporter`, and `AGENT_SHORT` / `AGENT_LABEL` in `ui/tables`."
+              "original": "**The Windows panel opens inside the screen at high display scaling** ([#130](https://github.com/aqua5230/usage/issues/130)). pywebview 6.2.1 returns screen bounds in physical pixels but labels them as scale 1.0, while `move()` / `resize()` multiply their input by the window's DPI again. At 250% on 3840x2160 the default x came out as 3840 − 380 − 12 = 3448, pinning the panel to the bottom-right edge, and that position was saved, so every relaunch repeated it. Screen rectangles are now converted to logical pixels with the window's own DPI (only when the primary screen reports 1.0 while the window DPI is not 96, so a future pywebview that fixes this is not double-converted), and `window.show()` is queued behind the placement so the panel never appears at a stale position."
             },
             {
               "title": {
-                "zh-TW": "報表細分四類 token 並顯示快取命中率，釐清真實消耗",
-                "en": "Reports split tokens into four categories and display cache hit rates to clarify real consumption"
+                "zh-TW": "Windows 面板支援混合縮放多螢幕，重開精準回到原螢幕",
+                "en": "Windows panel supports mixed-scaling multi-monitor setups, reopening precisely on the original display"
               },
               "body": {
-                "zh-TW": "想掌握 AI 的實際消耗，過去報表頂部的「燒掉 Tokens」只把四種不同性質的數字加總成單一數值，根本看不出關鍵細節。⟦這好比水電帳單只印出一筆總度數，卻把洗澡水、澆花水與管線循環水全混在一起，讓人無法判斷用水習慣是否健康。⟧本機測試某期 2,565,454,499 個 token（AI 處理與計費的文字單位）裡，高達 93.8% 是讀取快取的舊資料。快取就是把算過或查過的結果暫存起來直接取用；模型真正生成的輸出只佔 0.7%，單看總額毫無意義。現在報表正式拆分為輸入、快取寫入、快取讀取與輸出四類，並計算各工具的快取命中率。算式以快取讀取除以三種輸入脈絡總額，排除掉生成出的輸出。高命中率代表舊脈絡以約十分之一的單價重複取用，五種語言的文案也明確引導此數值象徵體質良好而非無效重複。底層一直都記錄著這四個欄位，先前僅是報表彙整時丟棄，因此不必清理快取或升級資料格式。",
-                "en": "To understand actual AI consumption, the headline \"tokens burned\" at the top of previous reports summed four distinct numbers into a single total, obscuring key details. ⟦This is like a water bill that only prints a single total usage while lumping shower water, garden water, and recirculated pipe water together, making it impossible to judge whether consumption habits are healthy.⟧ In local testing across a period of 2,565,454,499 tokens, as much as 93.8% was cache read while only 0.7% was output the model actually generated, rendering the raw total meaningless. The report now formally breaks down usage into input, cache write, cache read, and output, while calculating cache hit rates for each tool. The formula divides cache read by the sum of the three input contexts, excluding the generated output. A high hit rate indicates that old context is reused at roughly one-tenth the unit price, and the copy across all five languages explicitly frames this metric as a sign of healthy efficiency rather than wasteful repetition. The underlying layer has always recorded all four fields and previous versions merely discarded them during report aggregation, so no cache clearing or data format upgrade is required."
+                "zh-TW": "外接不同螢幕工作的讀者，若各螢幕設定了不同的縮放比例，關閉 Windows 面板後重新開啟，它現在會老實回到當初關閉的那台螢幕。先前系統儲存面板位置時，是把實體像素除以視窗當下所在螢幕的 DPI；這導致在 225% 縮放螢幕上關閉的面板，重新開啟時卻莫名其妙彈回 100% 的主螢幕。新版改為直接儲存實體像素，等到擺放面板位置時，才搭配視窗當下的 DPI 進行換算。⟦這如同在不同比例尺的地圖之間穿梭，標記位置時若除以當前圖紙比例，重新翻開時便會走樣跳回起點；改存真實公尺距離後，在哪張地圖合上就在哪張地圖展開。⟧這項改進完全不改變偏好設定的鍵名與資料格式。",
+                "en": "For users working with external monitors configured with different scale factors, closing the Windows panel and reopening it now reliably returns it to the specific display where it was closed. Previously, the system saved the panel's position by dividing physical pixels by the DPI of whichever display the window was currently on; as a result, a panel closed on a 225% scaling display would unexpectedly jump back to the 100% primary screen upon reopening. The new version saves positions directly in physical pixels and only converts them using the window's current DPI when placing the panel. ⟦This is like navigating between maps of different scales: if marked locations are divided by the current sheet's ratio, reopening them distorts the coordinates back to the starting point; storing the actual meter distances instead ensures that whichever map you close on is where you reopen.⟧ This improvement leaves preference key names and data formats completely unchanged."
               },
-              "original": "**The report breaks tokens into four kinds and shows each tool's cache hit rate.** The headline \"tokens burned\" was one number summing four different things; locally, 93.8% of a 2,565,454,499-token period was `cache_read` and only 0.7% was output the model actually generated, so the total said nothing. `UsageEntry` has always carried all four fields and `loaders/disk_cache_common.py` serialized all four — `reporter` was dropping them when it built the summary, so no cache and no schema version had to change. Cache hit rate is `cache_read / (input + cache_creation + cache_read)`; output is excluded because it is generated, not sent in. A high rate is the healthy end — old context reused at roughly a tenth of the price instead of re-sent at full rate — and the copy in all five languages is written to keep it from being read as \"most of my tokens are wasted repeats.\""
+              "original": "**The Windows panel reopens on the display it was closed on with mixed scaling.** The saved position was physical pixels divided by the DPI of whichever monitor the window was on at that moment, so a panel closed on a 225% display reopened on the 100% primary. Positions are now saved in physical pixels and converted with the window's current DPI when placed. The preference key and shape are unchanged."
             },
             {
               "title": {
-                "zh-TW": "一次過關率獨立成報表第三區，頂部 KPI 卡不再重複顯示",
-                "en": "One-pass rate becomes an independent third section in the report, removing duplicates from top KPI cards"
+                "zh-TW": "Windows 面板放寬矮螢幕縮放下限，按鈕與狀態列不再裁切",
+                "en": "Windows panel relaxes zoom floor on short displays, preventing buttons and status row from being cut off"
               },
               "body": {
-                "zh-TW": "你想知道哪款模型最省心、最不需要你回頭反覆插手修正，「一次過關率」現在被拉升成報表第三區的獨立大板塊。這項衡量 AI 能否一次搞定任務的指標早就算好，先前卻埋在第 11 區「使用習慣」的小卡裡，多數人根本捲不到。如今它改排在洞察之後、工具之前，各模型採用排行列版面依過關率由高至低排序，直接回答哪款模型最不用重修，而非單看誰的對話輪次多。頂部關鍵績效指標（KPI，衡量核心表現的量化卡片）也同步移除了重複的一次過關率，解決過去五張卡硬塞在雙欄網格中的難看排版，而且沒有新增任何多國語系文字鍵。⟦這就像餐廳評鑑把「廚師一試成菜率」從附錄角落拉到首頁專欄，依退菜次數由少到多排列，頂部總覽區便無須再塞入重複的概括數字。⟧",
-                "en": "For those wanting to know which model requires the least intervention and fewest follow-up fixes, \"one-pass rate\" has been promoted to a standalone third section in the report. This metric measuring whether AI completes tasks on the first attempt was already computed, but previously sat buried inside a small card under section 11 \"usage habits\" where most users never scrolled. It is now positioned after Insights and before Tools, with model rows using a ranked layout sorted by pass rate from highest to lowest to directly answer which model needs the fewest revisions rather than just looking at turn count. The top key performance indicator (KPI) cards also removed the duplicate one-pass rate, fixing an awkward layout where five cards were squeezed into a two-column grid without requiring any new i18n localization keys. ⟦This is like a restaurant guide moving the \"chef first-try dish success rate\" from an appendix corner to a front-page column sorted from fewest dishes sent back to most, eliminating the need to crowd redundant overview numbers into the header.⟧"
+                "zh-TW": "把 Windows 面板開在偏矮的螢幕上時，若曾碰過重新整理或結束按鈕被切出畫面外的窘境，現在這類版面裁切問題已徹底解決。⟦這彷彿在低矮的天花板下擺放展示架，若硬性規定層架間隔不能縮小，最底層的控制旋鈕就會被地面擋住；按空間比例動態調降底線，底部按鍵才不被擠出視野。⟧過去面板設有 0.6 的縮放下限，卻未考慮視窗自身的 DPI，使得 2560x1440 搭配 225% 縮放時，面板被卡在比實際需要更大的縮放比例，導致速率與狀態列以及重新整理和結束按鈕全部掉出畫面之外。現在 Windows 將縮放下限改為 `MIN_PANEL_SCALE / window DPI scale`，確保文字顯示依然絕不小於 100% 螢幕的 0.6 倍，同時讓整張面板順利塞進螢幕內；macOS 則維持原樣不變。",
+                "en": "When opening the Windows panel on shorter screens, any issues where the Refresh or Quit buttons were cut off outside the viewport are now completely resolved. ⟦This is like placing a display rack under a low ceiling: if shelf spacing is rigidly forbidden from shrinking, the bottom control knobs get blocked by the floor; dynamically lowering the floor based on available space keeps bottom buttons from being squeezed out of view.⟧ Previously, the panel enforced a 0.6 zoom floor without accounting for the window's own DPI, causing the panel at 2560x1440 with 225% scaling to remain stuck above the zoom level it actually needed, which pushed the rate and status row as well as the Refresh and Quit buttons entirely off-screen. Windows now changes the zoom floor to `MIN_PANEL_SCALE / window DPI scale`, ensuring text rendering is still never smaller than 0.6× of a 100% display while allowing the entire panel to fit smoothly inside the screen; macOS remains unchanged."
               },
-              "original": "**\"One-pass rate\" is now a section of its own, third from the top.** Whether the AI finished without you stepping in is a measure with no pre-LLM equivalent; the data was already computed and already drawn, but it sat in a small card inside \"usage habits\" in section 11, where most people never scrolled. It is now a full section placed after Insights and before Tools, and the model rows use the report's existing rank-line layout sorted by pass rate rather than by turns — the question the section answers is which model needs the least going back over, not which one is used most. No new i18n keys were required.\n**The top KPI row no longer repeats the one-pass rate.** Five cards laid out badly in a two-column grid, and the full section below already carries the per-model detail."
+              "original": "**The bottom of the Windows panel is no longer cut off on short high-DPI screens.** The 0.6 zoom floor did not account for the window's DPI, so at 2560x1440 @225% the panel was held above the zoom it needed and lost its rate/status row and Refresh/Quit buttons. Windows now uses `MIN_PANEL_SCALE / window DPI scale` as the floor, so text still never renders smaller than 0.6× of a 100% display; macOS is unchanged."
             },
             {
               "title": {
-                "zh-TW": "AI 圓桌納入 Codex 的 Astra 預設模型，名單不再寫死",
-                "en": "AI roundtable incorporates Codex's default Astra model as the allowlist is no longer hardcoded"
+                "zh-TW": "Windows 系統匣提示限制字數，避免例外吞沒導致面板停更",
+                "en": "Windows tray tooltip enforces character limit, preventing swallowed exceptions from stalling panel updates"
               },
               "body": {
-                "zh-TW": "召開 AI 圓桌讓多款模型共同商討問題時，你現在已能指派 Codex 最新的 Astra 模型加入對話。⟦這如同會議室名單原本寫死只邀三位資深代表，當新任首席代表上任時便被警衛攔在門外；把名冊放寬後，新代表就能直接入席開會。⟧`gpt-6-astra` 是 Codex 當前的新預設模型，但圓桌先前的模型白名單寫死了 5.6 版的三款舊變體，導致新旗艦無法登場。這次放行無須更動價目表與報表：LiteLLM 的價格表早已完整收錄該模型的四項實價，報表的顏色分配也只要命中 `gpt` 前綴就能自動對應，切換選擇毫無阻礙。",
-                "en": "When convening an AI roundtable to deliberate issues across multiple models, you can now assign Codex's latest Astra model to the discussion. ⟦This is like a conference room roster that rigidly invited only three senior delegates, causing security to turn away the newly appointed chief delegate at the door until the list was opened up so the new representative could take a seat.⟧ `gpt-6-astra` is Codex's current new default model, but the roundtable's previous model allowlist hardcoded three older 5.6 variants, preventing the new flagship from appearing. Enabling it required no changes to pricing tables or reports: LiteLLM's price list already covers the model's four actual prices, and report color assignments match automatically on the `gpt` prefix, so switching works without another change."
+                "zh-TW": "開啟 Windows 系統匣觀察各家 AI 用量，開著的面板現在絕不會無聲無息地停止更新。先前新增了 Grok 欄位之後，在英文介面且每家提供商額度皆滿 100% 的極端狀況下，提示文字長度會達到 129 個字元；這讓底層圖示套件 `pystray` 拋出 `ValueError: string too long` 錯誤，但該錯誤卻被背景工作常駐程式 `_refresh_worker()` 默默吞掉，連同該輪更新畫面的 `inject_state()` 也一併跳過，導致面板看似開著卻再也不會刷新數據。現在系統匣提示文字強制限制在 127 個字元以內，徹底防範字串過長引發的崩潰。⟦這種脫節宛如展場跑馬燈因文字過長當機，值班警衛不但沒回報還順手切斷訊號線，讓大廳螢幕默默停在上一輪舊畫面。⟧",
+                "en": "When opening the Windows tray to check AI usage across providers, an open panel will no longer silently stop updating. Previously, after adding the Grok row, tooltip text reached 129 characters in the extreme case of an English interface with every provider's quota at 100%; this caused the underlying icon library `pystray` to raise a `ValueError: string too long` error, which was silently swallowed by the background worker `_refresh_worker()`, skipping that cycle's UI update `inject_state()` as well and leaving the open panel unable to refresh data. The tray tooltip text is now strictly capped at 127 characters, completely preventing crashes caused by excessively long strings. ⟦This disconnection is like an exhibition marquee crashing from text that is too long, and instead of reporting it, the duty guard casually disconnects the signal cable, leaving the lobby display quietly frozen on the previous frame.⟧"
               },
-              "original": "**The AI roundtable can pick Codex's Astra model.** `gpt-6-astra` is Codex's new default, but the roundtable's model allowlist hard-coded the three 5.6 variants. Pricing and the report needed no change: LiteLLM's table already carries real prices in all four of its fields, and the report's color assignment matches on the `gpt` prefix."
+              "original": "**The Windows tray tooltip is capped at 127 characters.** Since the Grok row was added, the English tooltip with every provider at 100% reached 129 characters; pystray raised `ValueError: string too long`, which `_refresh_worker()` swallowed along with the same iteration's `inject_state()`, so an open panel silently stopped updating."
             },
             {
               "title": {
-                "zh-TW": "「燒掉成本」更名為「API 等值」，移除新台幣換算並以副標說明差額",
-                "en": "\"Cost burned\" is renamed to \"API equivalent\", removing NTD conversion and clarifying gaps via subtitles"
+                "zh-TW": "終端機狀態列與接續提醒自動換新，補齊修復並校準版號",
+                "en": "Terminal status line and session resume hooks update automatically, incorporating fixes and aligning version numbers"
               },
               "body": {
-                "zh-TW": "每次打開報表看到「燒掉成本」這個標籤，往往讓人誤以為自己真的刷卡付出了這筆費用。這項數值僅是依照官方牌價乘出來的假設數字，對於每個月繳固定月費、邊際成本為零的包月使用者來說相當容易引起誤解。現在五種語言統一改名為「API 等值」，先前繁體中文特有的新台幣換算也一併移除，避免將假設數字再乘上匯率二次失真。該數值本身依然保留，供按量計費的 API 使用者參考。另外，由於「燒掉 Tokens」統計了所有代理工具，而「API 等值」僅能計算具備公開牌價的模型，兩張頭條卡的分母並不相同；因此只有在確實出現無牌價用量時，卡片才會顯示副標題說明兩者的差額。⟦這有如健身房月費會員查看運動手環時，熱量消耗換算出的「外食便當等值金額」僅供參考，若標示成「你今天花掉的餐費」反而會讓人誤以為荷包失血。⟧",
-                "en": "Opening the report and seeing the \"Cost burned\" label often gave the mistaken impression that one had actually paid that amount out of pocket. Because this figure is merely a hypothetical number multiplied out from official list prices, it easily misled subscription users who pay a fixed monthly fee with zero marginal cost. The label is now unified across all five languages as \"API equivalent\", and the NTD conversion previously unique to Traditional Chinese has been removed to avoid distorting an assumed number a second time through exchange rates. The value itself remains available for pay-as-you-go API users who need it. Furthermore, because \"tokens burned\" counts all agents while \"API equivalent\" can only calculate models with published list prices, the two headline cards do not share the same denominator; a subtitle now explains the gap, but only when unpriced usage actually exists. ⟦This is like a monthly gym member looking at a fitness tracker where burned calories are converted into an \"equivalent dining-out cost\" for reference, which would falsely imply wasted money if labeled as \"money spent on meals today.\"⟧"
+                "zh-TW": "先前已在電腦中安裝過狀態列與工作階段接續提醒的使用者，現在升級時會自動替換成最新版腳本。過去這兩支 hook（特定事件發生時被觸發的小程式）雖然歷經多次修改，涵蓋狀態列進位的 `1000k` 修正以及 7 月以來工作階段接續提醒的十項修正，卻因為未調升版號，讓既有安裝一直留在舊檔案。新版將狀態列升級至 1.6 版、接續提醒升級至 1.7 版，安裝程式會主動用最新副本覆蓋舊檔，並新增自動化測試確保腳本版號與安裝常數隨時步調一致。⟦這恰似圖書館借閱處更新了服務規章，封皮上的版本代號卻漏未換新，讓館員誤以為抽屜裡積滿灰塵的舊手冊仍是現行規定。⟧",
+                "en": "Users who previously installed the status line and session resume hooks on their systems will now have them automatically replaced with the latest script versions upon upgrading. In the past, although both hooks underwent numerous modifications—including the status line rounding fix for `1000k` and ten fixes to session resume since July—the lack of version bumps left existing installations stuck on older files. The new release bumps the status line to version 1.6 and session resume to 1.7, with the installer actively overwriting old files with the latest copies and adding an automated test to ensure script version numbers and installer constants stay strictly in step. ⟦This is just like a library circulation desk updating its service policies but forgetting to update the version code on the cover, leading librarians to mistakenly believe the dusty manual in the drawer is still the active rulebook.⟧"
               },
-              "original": "**\"Cost burned\" is now \"API equivalent.\"** The label presented a figure multiplied out from list prices as money actually spent, which is misleading for subscription users whose marginal cost is zero. Renamed in all five languages; the Traditional Chinese-only NTD conversion went with it, since that ran an assumed figure through an exchange rate a second time. The number itself stays — API users still need it. The two headline cards never shared a denominator: \"tokens burned\" counts every agent, while \"API equivalent\" can only count models with a published price, so a subtitle now explains the gap, and only when unpriced tokens actually exist."
-            },
-            {
-              "title": {
-                "zh-TW": "Token 組成與快取命中改採排行列，微小比例不再被壓扁",
-                "en": "Token composition and cache hit rates switch to ranked lists, preventing tiny shares from collapsing"
-              },
-              "body": {
-                "zh-TW": "當單一類別佔比超過九成時，傳統的堆疊長條圖就會變成一場排版災難。先前在快取讀取高達 93.8% 的情況下，其餘三種類別被壓成看不見的細縫，長條內的百分比文字甚至重疊成 `4.6% 0.1.93.7%` 擠在最左側，圖例色塊也缺乏尺寸樣式。輸入、快取寫入與快取讀取都屬於傳入的脈絡，而輸出是生成的文字，性質本不相同。現在改採排行列呈現，四種類別各自擁有獨立的一列與專屬欄位，且長條設有 2% 的最小寬度，讓僅佔 0.7% 的微小產出依然清晰可辨。各工具的快取命中率也套用同款版面依命中率排序，體質最差的工具直接落在最後一列。同時，測試中針對 TypedDict 型別以迴圈變數當鍵遭 mypy 拒絕的問題，也透過 `Any` 中介變數順利修復。⟦這好比大合照時體型差距懸殊、名牌全疊成一團，改成單人單列橫條後，每位成員的身形與名次才清晰可辨。⟧",
-                "en": "When a single category exceeds ninety percent, traditional stacked bar charts turn into a layout disaster. Previously, with cache reads reaching 93.8%, the other three categories collapsed into invisible slivers, in-bar percentage text overlapped into `4.6% 0.1.93.7%` at the far left edge, and legend color swatches lacked sizing styles entirely. Input, cache write, and cache read all represent incoming context while output consists of generated text, making them fundamentally distinct in nature. The presentation has now shifted to ranked lines where each of the four categories receives its own row and dedicated columns, with bars given a 2% minimum width to keep even a tiny 0.7% output clearly visible. Per-tool cache hit rates adopt the same layout sorted by hit rate, placing the worst-performing tool on the final row. Meanwhile, a test issue where mypy rejected loop variables used as keys on TypedDict types was resolved cleanly using an `Any` intermediate variable. ⟦This is like a group photo where huge differences in size cause name tags to pile on top of each other, until switching to individual single-row bars makes every member's stature and standing clear.⟧"
-              },
-              "original": "**Token composition is a ranked list instead of a stacked bar.** With one category at 93.8%, the other three collapsed into invisible slivers, the in-bar percentage labels piled up into `4.6% 0.1.93.7%` at the left edge, and the legend's swatches had no size styling at all. A stacked bar is the wrong chart once a single category passes ninety percent, and the four are not peers anyway — input, cache write and cache read are all context sent in, output is generated. Each category now gets its own row with its own columns, and the bar's 2% minimum width keeps a 0.7% share visible. Per-tool cache hit rates use the same layout, sorted by rate, so the weakest tool is the last row rather than something you have to hunt for.\n**A type error in the token composition tests.** `data[\"summary\"]` and the elements of `data[\"by_agent\"]` are TypedDicts, so mypy rejects a loop variable used as a key; the two assertions now go through an `Any` intermediate. The lines came from the composition work and were not caught earlier because that batch had not been pushed yet."
-            },
-            {
-              "title": {
-                "zh-TW": "報表資料列改為整列量條，跨區塊數值對齊同一基準線",
-                "en": "Report data rows become full-width bars, aligning values across sections to a shared baseline"
-              },
-              "body": {
-                "zh-TW": "檢視報表中不同區塊的數據時，數字與量條不再忽左忽右跳動。⟦這有如試算表裡多張工作表的直欄寬度各吹各的調，數字忽左忽右難以閱讀；重新劃定同一套格線並固定標籤顏色後，整份報表才整齊劃一。⟧過去排版存在四個獨立缺陷：兩套資料列樣式（`.rank-line` 與 `.tool-row`）因欄寬與間距相異，導致數值在各區塊落在不同的水平位置；佔比量條被限制在名稱欄內，只能畫到半列就硬生生中斷；每個區塊層層疊加了區塊、卡片與列框三層多餘邊界；更有兩處區塊缺少欄位表頭。現在資料列改為貫穿整列的進度條，工具區補上了量條元素，且工具的顏色直接綁定代理識別碼（agent id）而非排序位置，避免工具名次互換時發生整批重新塗色的混亂。",
-                "en": "When reviewing data across different report sections, numbers and bars no longer jitter unpredictably between left and right. ⟦This is like a spreadsheet where multiple sheets use mismatched column widths that scatter numbers everywhere, until establishing a unified grid and consistent label colors brings the entire report into clean alignment.⟧ The previous layout suffered from four separate defects: two row styles (`.rank-line` and `.tool-row`) used differing column widths and gaps that placed numbers at different horizontal positions across sections; share bars were trapped inside the name column and abruptly stopped halfway across the row; every section stacked three redundant borders of section, card, and row frames; and two sections lacked column headers entirely. Data rows are now full-width progress bars, the tools section adds bar elements, and tool colors are keyed directly to the agent ID rather than sort position to avoid repainting every tool whenever rankings shift."
-              },
-              "original": "**The report's data rows are filled bars, with columns that line up across every section.** Four separate problems: the two row systems (`.rank-line` and `.tool-row`) used different track widths and gaps, so numbers sat at different x positions in different sections; the share bar was a child of `.name` and capped by the name column, so it drew to about half the row and stopped; every section nested a section frame, a card frame and a row frame; and two sections used the shared layout with no column headers. The tools section had no bar element at all and now has one, with each tool's color keyed on its agent id rather than its sort position — `by_agent` is ordered by tokens, so a palette indexed by position would repaint every tool whenever two swapped places."
-            },
-            {
-              "title": {
-                "zh-TW": "報表時間週期與對比標記更明確，移除無刻度的每日折線",
-                "en": "Report timeframes and comparison markers gain clarity, removing scaleless daily line charts"
-              },
-              "body": {
-                "zh-TW": "追蹤長期消耗趨勢時，報表展示的時間跨度如今更加清晰嚴謹。每週燃燒趨勢區塊移除了原本夾帶的每日折線圖，因該折線既無刻度也無具體數值，不但對不上「每週」的標題，也無法提供任何可化為行動的有效資訊；底下的週次、數值與週增減橫條則維持不變。同時，報表明確講清楚了比較的基準期間，將「較上月」與「較上週」統合成「較前期」；年度統計區塊也正名為「近 53 週」，其週數由程式常數自動傳入，日後常數調整時文案會即時跟上。⟦這彷彿帳單收據拿掉了沒有刻度與單位的裝飾性波動圖，只保留清楚的每週明細與增減數值，並把對照週期寫得一清二楚。⟧",
-                "en": "When tracking long-term consumption trends, the report's timeframes are now clearer and more rigorous. The weekly burn trend section dropped its embedded daily line chart because it had no scale or values, failed to match the \"weekly\" heading, and provided no actionable information, while the week numbers, values, and week-over-week bars below remain unchanged. At the same time, the report clarifies its comparison baseline by unifying \"vs. last month\" and \"vs. last week\" into \"vs. previous period\", while the annual section is renamed \"last 53 weeks\" with the week count passed from program constants so the copy updates automatically if constants change. ⟦This is like a billing receipt stripping away decorative fluctuation charts lacking scales or units, keeping only clear weekly breakdowns with changes and explicitly stating the comparison period.⟧"
-              },
-              "original": "**The weekly burn section lost its daily line chart.** It had no scale and no values, did not match the \"weekly\" heading it sat under, and could not be read for anything actionable. The rows below it, carrying week number, value and week-over-week change, are unchanged.\n**The report says which span it is comparing against.** \"vs. last month\" and \"vs. last week\" became a single \"vs. previous period,\" and the annual block is now \"last 53 weeks\" with the week count supplied by `WrappedReportData.weeks` from `_YEAR_WEEKS`, so the copy follows the constant if it ever changes."
-            },
-            {
-              "title": {
-                "zh-TW": "配額警告文案精簡，完整塞入選單列面板不再被截斷",
-                "en": "Quota warning copy streamlined to fit inside menu bar panels without truncation"
-              },
-              "body": {
-                "zh-TW": "當你的模型額度即將用盡時，彈出的警告紅字現在能完整顯示於介面之中。先前那行寫死不換行的警語需要 320 到 470 像素寬度，但選單列面板（popover，點擊狀態列圖示展開的小視窗）的文字框僅有 304 至 320 像素，加上卡片外框設定了隱藏溢出內容以維持復古造型，整行紅字因此直接被切斷。實測 13 個面板在 5 種語言下的表現，日文最慘被削掉 81 至 150 像素，英文也只有三個面板能剛好裝下。現在文案在維持原意下全面縮短，左右對決的世界盃面板更提供省略重置時間的超短版本，完美適應每邊僅 151 像素的狹窄空間。⟦這如同行李吊牌框格尺寸固定，原本冗長的手寫警語硬塞進去只會被切掉後半截；換成精簡標語後，整行提示便完整呈現。⟧",
-                "en": "When your model quota is running low, the red warning text now displays fully within the interface. Previously, the hardcoded nowrap warning required 320 to 470 pixels of width, but the menu bar panel text box was only 304 to 320 pixels, and because card frames hid overflowing content to preserve a retro aesthetic, the red line was cut off directly. Across 13 panels in 5 languages, Japanese suffered the most by losing 81 to 150 pixels, and English fit in only three panels. The copy is now universally shortened while preserving its original meaning, and the head-to-head World Cup panel provides an ultra-short variant that omits the reset time, fitting neatly into the narrow 151 pixels on each side. ⟦This is like a fixed-size luggage tag where lengthy handwritten warnings get cut off at the edge, but switching to a concise message displays the full reminder cleanly.⟧"
-              },
-              "original": "**The quota warning fits inside the panels.** The red \"running out\" line was `white-space: nowrap` and needed 320–470px, but the panels' text box is 304–320px and the cards are `overflow: hidden` — deliberate retro chrome, not removable — so the sentence was cut off. Measured across 13 panels × 5 languages: Japanese lost 81–150px, and only three panels' English fit. The wording is now shorter with the same meaning. The World Cup panel gets an even shorter variant that omits the reset time, since its head-to-head layout leaves each side only 151px."
-            },
-            {
-              "title": {
-                "zh-TW": "年度帳本不再因版本不合無聲清空，歷史紀錄妥善防護",
-                "en": "Year ledger is no longer silently cleared on version mismatches, safeguarding historical records"
-              },
-              "body": {
-                "zh-TW": "累積整整一年的 AI 使用紀錄，往後再也不會因為程式升級而無聲無息被歸零蒸發。⟦這就像圖書館換了新的索書號編碼規則，不能因此把整櫃舊藏書當垃圾直接倒掉，而應先照常上架供人借閱，只有真正碎成紙屑的殘卷才移至隔離室留存。⟧年度帳本模組原本有四條路徑會直接回傳空帳本，其中最嚴重的便是資料規格版本不符；過去只要開發者微調欄位並調升版號，全球使用者累積的歷史便會靜靜歸零，且毫無備份可救。開發時實測更發現，一次升版就讓本機熱力圖從 119 天驟降至 36 天。現在版本不符時只會記錄警告，依舊逐日解析舊資料；只有在檔案完全無法讀取或結構徹底損毀時，才會先隔離備份至 `~/.usage/quarantine/` 資料夾，周全守護歷史紀錄。",
-                "en": "A full year of accumulated AI usage history will no longer vanish silently to zero due to software upgrades. ⟦This is like a library adopting new call number rules: it shouldn't discard entire shelves of older books as trash, but keep them on shelves for borrowing while reserving quarantine storage only for scrolls shredded beyond recognition.⟧ The year ledger module previously had four execution paths that returned an empty ledger, the most severe being schema version mismatches; whenever developers tweaked fields and bumped the version, users worldwide quietly lost their entire history with no backups to recover from. Testing during development revealed that a single version bump caused the local heatmap to plunge from 119 days to 36. Version mismatches now merely log a warning and continue parsing older data day by day, moving files into the `~/.usage/quarantine/` directory as isolated backups only when they are genuinely unreadable or structurally corrupted to protect historical records."
-              },
-              "original": "**The year ledger is never silently discarded.** `_read_year_ledger()` had four paths that returned an empty ledger, the worst being a `schema_version` mismatch: anyone changing a ledger field and bumping the version would have quietly zeroed every user's accumulated history, with no backup to recover from. This file exists precisely so that history survives after the raw logs rotate away, so clearing it defeats the thing it is for. Measured during development: one version bump took the local heatmap from 119 days to 36. A mismatched version now logs a warning and parses day by day anyway — `_year_day_from_json` already tolerates missing fields — and only a genuinely unreadable or structurally wrong file is moved into `~/.usage/quarantine/` before returning empty, matching what the disk cache already does."
-            },
-            {
-              "title": {
-                "zh-TW": "裸倉庫工作樹不再把同專案拆成兩筆，清理後綴並修復歷史",
-                "en": "Bare repo worktrees no longer split one project into two, cleaning suffixes and repairing history"
-              },
-              "body": {
-                "zh-TW": "在裸倉庫（沒有工作目錄的 Git 主儲存庫）中建立工作樹時，同一專案往後不再被報表拆成兩筆紀錄。先前專案名稱解析器將工作樹（Git 讓同一專案平行開多份副本的功能）路徑解回主目錄後直接取尾端名稱，讓專案名多帶了 `.git`。這使純路徑解析的 Claude 回報 `obsidian00`，其餘三組讀取器卻回報 `obsidian00.git`；本機實測達 5997 筆對 3732 筆，報表上同一專案被拆成 21.70% 與 10.80% 兩筆。三層架構已同步修復：解析器會去除結尾的 `.git`，Codex 分片快取升版以重新解析 28 個舊分片，年度帳本則在讀取時將 `.git` 摺疊併回原專案名。⟦這恰似同一家分公司只因招牌多印了副檔名，就被會計帳冊當成兩家企業分開記帳；統一歸併後數據才合而為一。⟧",
-                "en": "When creating a worktree from a bare repository, the same project will no longer be split into two separate entries in reports. Previously, the project name resolver resolved worktree paths back to the main directory and took the basename directly, leaving the project name with an unwanted `.git` suffix. This caused path-only Claude to report `obsidian00` while the other three loaders reported `obsidian00.git`; locally, this amounted to 5997 entries against 3732, splitting the same project in the report into 21.70% and 10.80%. All three architectural layers have been fixed: the resolver strips the trailing `.git`, the Codex shard cache was bumped to re-parse 28 old shards, and the year ledger folds `.git` back into the base project name at read time. ⟦This is just like a branch office being logged as two separate businesses in accounting ledgers simply because its sign had a file extension printed on it, until unified consolidation merges the figures back together.⟧"
-              },
-              "original": "**A git worktree whose main repo is bare no longer splits one project into two.** `resolve_project_name()` resolved the worktree back to its main path and took the basename, so the project name carried a `.git` suffix. `adapters/claude.py` parses paths without calling git and reported `obsidian00`, while the other three loaders went through `project_resolver` and reported `obsidian00.git`; locally that was 5997 entries against 3732, and the report listed one project twice, at 21.70% and 10.80%. The same bug sat in three layers: the resolver now strips a trailing `.git`, Codex's shard cache went from schema 4 to 5 so the 28 shards holding the old name are re-parsed, and the year ledger — which cannot be invalidated by a version bump without losing the only copy of that history — folds `X.git` back into `X` at read time instead."
-            },
-            {
-              "title": {
-                "zh-TW": "Token 單位進位不再跳級錯誤，四捨五入後自動重新校準",
-                "en": "Token units no longer miscalculate tiers on round-up, recalibrating automatically after rounding"
-              },
-              "body": {
-                "zh-TW": "當你的 token 消耗量剛好接近單位級距的邊緣時，報表上的數字與單位現在會正確跳級。⟦這就像電子磅秤在物體達九百九十九點九五公克時進位，數值跨入整數，單位標籤卻沒跟著切換而秀出「一千點零克」；重新校準級距後，便會準確切換成一公斤。⟧函式 `_fmt_tokens` 過去在格式化 token（AI 處理與計費的文字單位）數值時，先根據未縮放的原始值決定單位級距，完成縮放並執行四捨五入後，卻沒有再次檢查數字是否已經滿額進位。這導致 999,950 遭到四捨五入後被印成古怪的 `1000.0K`，而 999,950,000 也被印成 `1000.0M`。現在進位後會重新審查級距，確保單位如實躍升。",
-                "en": "When your token consumption nears the boundary of a unit tier, numbers and units on reports will now advance correctly. ⟦This is like a digital scale rounding up at 999.95 grams into a whole number but failing to switch unit labels and showing \"1000.0 grams\", until recalibrating the tier correctly flips the display to one kilogram.⟧ When formatting token values, the `_fmt_tokens` function previously selected unit tiers from unscaled raw values, but failed to re-check whether rounding pushed the number across the tier threshold after scaling. This caused 999,950 to be printed as an awkward `1000.0K` after rounding, and 999,950,000 as `1000.0M`. Unit tiers are now re-evaluated after rounding to ensure units advance properly."
-              },
-              "original": "**Token units no longer skip a tier when they round up.** `_fmt_tokens` picked the tier from the raw value and rounded afterwards without re-checking, so 999,950 printed as `1000.0K` and 999,950,000 as `1000.0M`."
+              "original": "**Installed status line and session resume hooks are replaced with the current copies.** Both scripts had changed without a version bump — the status line's `1000k` fix and ten session-resume fixes since July — so existing installs kept the old files. The status line goes to `1.6` and session resume to `1.7`, and a new test keeps the session-resume script version and installer constant in step."
             }
           ]
         },
         {
-          "version": "0.30.9",
-          "period": "2026-09-05",
+          "version": "0.30.12",
+          "period": "2026-09-11",
           "items": [
             {
               "title": {
-                "zh-TW": "Antigravity 用量能顯示在互動儀表板了，表格名稱不再只留小寫代號",
-                "en": "Antigravity usage now appears in the interactive dashboard, and table headers no longer stay as raw lowercase IDs"
+                "zh-TW": "自訂 Claude Code 設定路徑處處生效，狀態列與專案用量不再空白",
+                "en": "Custom Claude Code config paths take effect everywhere, keeping status lines and project usage from going blank"
               },
               "body": {
-                "zh-TW": "你在 `usage` 查詢用量時，若裝有 Antigravity，過去切到互動儀表板只會看到 `No data` 的空白分頁。⟦這就像停車場管理處明明有登錄，出口繳費機卻自備名冊且漏記新車號，讓車主在螢幕上只查到「查無資料」，欄位也只印出底盤代號。⟧問題在於儀表板與 `usage report` 各自維護代理到載入器的對照表，先前只有報表納入 `antigravity`，即便報表指令能載入用量，偵測到安裝的儀表板分頁依然只渲染出 `No data`；終端機表格也缺少 Antigravity 的簡稱與顯示名稱，欄位標題只能留著原始小寫代理 ID。兩份對照表過去缺乏一致性檢查，最初的迴歸測試（防範舊功能被改壞的自動驗證）甚至直接寫死三款已知代理而未比對雙方清單，無法維持鍵值同步；現在測試已強制要求兩邊鍵值完全相等。",
-                "en": "When checking usage with `usage`, if Antigravity was installed, switching to the interactive dashboard previously only showed a blank tab with `No data`. ⟦This is like a parking office having a vehicle registered, but the exit payment machine keeps its own roster and misses the new plate number, leaving the driver seeing \"No data\" on screen while fields only print raw chassis codes.⟧ The problem was that the dashboard and `usage report` each maintained separate agent-to-loader mapping tables. Previously, only the report included `antigravity`, so even though the report command could load usage, the dashboard tab for a detected installation still rendered `No data`. Terminal tables also lacked Antigravity's short and display names, leaving column headers stuck with the raw lowercase agent ID. The two mapping tables previously lacked consistency checks, and the initial regression tests (automated checks preventing existing features from breaking) even hard-coded three known agents instead of comparing both lists, failing to keep keys synchronized; tests now enforce exact key equality across both sides."
+                "zh-TW": "如果你搬移了 Claude Code 的設定資料夾，狀態列與專案用量現在處處都能正常讀取。⟦這好比工作室搬遷後，公文仍投進舊信箱，讓新辦公室的值班看板始終查無進度。⟧先前「設定狀態列」仍寫進 `~/.claude/settings.json`，Claude Code 根本不讀，兩條額度長條圖停在 0% 且標記「即將重置」；備援機制甚至翻出過期的 `~/.claude.json`，且從 Finder 或 Dock 開啟的桌面程式抓不到終端機變數，專案用量一片空白。\n\n```\n# 路徑解析順序（逗號分隔時讀取全部、寫入第一筆）：\n# 1. 環境變數 CLAUDE_CONFIG_DIR\n# 2. launchctl getenv CLAUDE_CONFIG_DIR\n# 3. 預設路徑 ~/.claude\n\n# 跟隨變數搬移：settings.json, .claude.json, projects/\n# 固定留在原處：狀態列腳本, usage-status.json, 偏好設定\n```\n\n新版 `loaders/claude_paths.py` 依序解析目錄，Claude Code 檔案跟著走，而 usage 自己的檔案固定留在原處，避免子行程與桌面端分頭讀寫造成錯位。",
+                "en": "If you relocate Claude Code's configuration directory, the status line and project usage can now be read properly everywhere. ⟦It is like moving to a new studio while official mail is still delivered to the old mailbox, leaving the duty board in the new office with no updates to display.⟧ Previously, \"Set Up Status Line\" still wrote to `~/.claude/settings.json`, which Claude Code never read, leaving both quota bars stuck at 0% with \"Reset imminent\"; the fallback mechanism even surfaced a stale `~/.claude.json`, and desktop apps launched from Finder or the Dock could not catch terminal environment variables, leaving project usage completely blank.\n\n```\n# Path resolution order (reads all when comma-separated, writes to the first entry):\n# 1. Environment variable CLAUDE_CONFIG_DIR\n# 2. launchctl getenv CLAUDE_CONFIG_DIR\n# 3. Default path ~/.claude\n\n# Moves with the variable: settings.json, .claude.json, projects/\n# Stays pinned in place: statusline script, usage-status.json, preferences\n```\n\nThe new `loaders/claude_paths.py` resolves directories in order so that Claude Code files follow the variable while usage's own files stay pinned in place, preventing misalignment from subprocesses and the desktop app reading and writing in different locations."
               },
-              "original": "**Antigravity usage now appears in the interactive dashboard with consistent labels.** The dashboard and `usage report` maintain separate agent-to-loader maps, and only the report map included `antigravity`, so a detected Antigravity installation opened a dashboard tab that rendered `No data` even though the report command could load its usage. The terminal tables also lacked Antigravity's short and display names, leaving their headings as the raw lowercase agent ID. The maps had no parity check, and the first regression test hard-coded the three known agents instead of comparing the two maps, so it could not keep their keys synchronized; it now asserts exact key equality. Reported and fixed by @ClarenceKuo in #126."
+              "original": "**`CLAUDE_CONFIG_DIR` is respected everywhere, not only for transcripts** ([#129](https://github.com/aqua5230/usage/issues/129)). With a relocated Claude Code config dir, \"Set Up Status Line\" wrote to `~/.claude/settings.json`, which Claude Code never read, so both quota bars sat at 0% with \"Reset imminent\", the fallback surfaced a stale `~/.claude.json`, and Project Usage stayed empty because an `.app` launched from Finder or the Dock does not inherit the shell environment. A new `loaders/claude_paths.py` resolves the directory from the environment, then `launchctl getenv CLAUDE_CONFIG_DIR`, then `~/.claude`; comma-separated values are read in full and written to the first entry. Files Claude Code owns follow it — `settings.json`, `.claude.json` (inside the directory whenever the variable is set, the same rule Claude Code uses), and `projects/`. usage's own files — the statusline script, `usage-status.json`, prefs — stay pinned to `~/.claude`: the script runs as a Claude Code subprocess and sees the variable while the app may not, and deriving both from it would let them write and read in different places."
+            },
+            {
+              "title": {
+                "zh-TW": "狀態列 Token 在單位邊界不再顯示 1000k，並補齊十億級距",
+                "en": "Status line token counts no longer show 1000k at unit boundaries, adding the billion step"
+              },
+              "body": {
+                "zh-TW": "在狀態列查看消耗進度時，若 Token（AI 處理與計費的文字單位）數值剛好逼近單位邊界，現在不再顯示彆扭的 `1000k`。⟦這種尷尬宛如汽車儀表板的里程計數器，在行駛累積到九百九十九點五公尺時本該跳轉為一公里，卻因提早進位而顯示出一千公尺；重新對準門檻後，大單位才會準時接棒切換。⟧過去三支狀態列腳本在數值達到 1,000,000 時才升級為 `M`，但 `k` 是整數格式化，999,500 以上會先四捨五入成 `1000k`；腳本也沒有 `B` 級距，使得 15 億被印成 `1500.0M`。現在門檻改為比對進位後的邊界（`k` 到 `M` 用 999,500、`M` 到 `B` 用 999,950,000）並補上 `B` 級距，對齊 `ui/tables.py` 既有的正確寫法。",
+                "en": "When checking usage progress in the status line, token values near unit boundaries no longer display an awkward `1000k`. ⟦This awkwardness is like a car odometer that should flip to 1 kilometer at 999.5 meters, but instead displays 1000 meters due to early rounding; readjusting the threshold ensures the larger unit takes over right on time.⟧ Previously, the three status line scripts only upgraded to `M` when reaching 1,000,000, but `k` used integer formatting, causing values of 999,500 and above to round up to `1000k` first; the scripts also lacked a `B` step, causing 1.5 billion to be printed as `1500.0M`. The thresholds now compare against rounded boundaries (999,500 for `k` to `M`, 999,950,000 for `M` to `B`) and add the `B` step, matching the existing correct implementation in `ui/tables.py`."
+              },
+              "original": "**Token counts no longer read `1000k` at a unit boundary.** The three statusline scripts promoted to `M` at `value >= 1_000_000`, but `k` is formatted `:.0f`, so anything from 999,500 rounded to `1000k` first; there was no `B` step either, so 1.5 billion read `1500.0M`. The thresholds now compare against the rounded boundary (999,500 for k→M, 999,950,000 for M→B) and a `B` step was added, matching the already-correct version in `ui/tables.py`."
+            },
+            {
+              "title": {
+                "zh-TW": "報表週趨勢長條支援懸停顯示，標註日期區間與花費",
+                "en": "Report weekly trend bars support hover display, showing date ranges and costs"
+              },
+              "body": {
+                "zh-TW": "打開用量報表查看每週趨勢長條時，滑鼠移過去現在會即時浮現日期區間與花費。⟦這有如專案白板上的進度橫條，湊近細看才能得知起訖日期與開銷明細，且剛進行三天的當週絕不會虛報成整整七天。⟧以前每列長條只標記 Token（AI 處理與計費的文字單位）數量，完全看不出那是哪一週、花了多少費用。新版在滑鼠懸停時補齊了具體時間與金額，顯示的日期區間也會嚴格限制在報表的實際範圍內，讓還沒過完的最後一週不會宣稱涵蓋七天、旁邊卻只有三天的數據。",
+                "en": "When viewing weekly trend bars in the usage report, hovering over them now reveals their date range and cost. ⟦It is like a progress bar on a project whiteboard where looking closely reveals exact start and end dates and expense details, ensuring a current week with only three days is never falsely shown as a full seven days.⟧ Previously, each row only marked token counts, with no way to tell which week it was or how much it cost. The new version provides the exact timeframe and amount on hover, and clamps the displayed date range strictly to the report's actual span so an unfinished last week does not claim seven days next to three days of numbers."
+              },
+              "original": "**Weekly trend bars in the report show their date range and cost on hover.** Each row only carried a token count, with no way to tell which week it was or what it cost. The range is clamped to the report's actual span, so an unfinished last week does not claim seven days next to three days of numbers."
+            },
+            {
+              "title": {
+                "zh-TW": "報表洞察備忘改為方角無框，對齊全列填色風格",
+                "en": "Insight notes in reports become square and borderless, matching full-row fill styling"
+              },
+              "body": {
+                "zh-TW": "報表底部的洞察備忘（提供用量趨勢與分析提醒的備忘列），現在全面改為方角、無外框的淡色整列。它們原本是整個報表介面中最後一處還帶有外框的表面，帶有 8px 圓角與 3px 左側色條，現在已改為與報表其餘整列填色完全一致的視覺風格。⟦整張介面有如筆記本排版，當所有章節內容都已換成清爽的無框滿版底色時，最後一個帶有外框與側邊色條的便簽也同步抹平框線，讓整頁閱讀動線不再突兀。⟧",
+                "en": "Insight notes at the bottom of the report are now entirely square, borderless tinted full rows. They were originally the last framed surfaces left across the entire report interface, featuring 8px rounded corners and a 3px left stripe, and have now been updated to match the visual style of the report's other full-row fills. ⟦The entire interface is like a notebook layout where, once all chapter contents have switched to clean borderless full-bleed background colors, the last sticky note with a border and side stripe also flattens its outlines so the reading flow across the page is no longer disjointed.⟧"
+              },
+              "original": "**Insight notes in the report are square, borderless tinted rows.** They were the last framed surface left — 8px corners and a 3px left stripe — and now match the report's other full-row fills."
             }
           ]
         },
         {
-          "version": "0.30.8",
-          "period": "2026-09-05",
+          "version": "0.30.11",
+          "period": "2026-09-10",
           "items": [
             {
               "title": {
-                "zh-TW": "macOS 應用程式套件的文字介面又能開了，字寬表完整打包不閃退",
-                "en": "The TUI launches from the macOS app bundle again, packing complete character width tables without crashing"
+                "zh-TW": "移除 AI 人才市場面板，簡化安裝與發版流程",
+                "en": "Remove AI Talent Market panel and simplify installation and release workflows"
               },
               "body": {
-                "zh-TW": "從 macOS 應用程式套件啟動終端文字介面時，畫面不再因缺漏字寬資料而當場閃退。⟦出門施工若只帶工具本體，漏掉夾層裡的零件，到現場就無法開工；整箱連同配件帶齊才不缺件。⟧打包工具 py2app 原本把 `rich` 列在 `includes`，只收集靜態引用掃得到的檔案。但 `rich/_unicode_data/__init__.py` 是在繪圖當下以 `import_module()` 動態載入各版本 Unicode 字寬表，導致打包出的 app 僅帶了 `__init__` 與 `_versions`，一畫第一張表格就當場崩潰：\n```\nusage --tui  # 拋出 ModuleNotFoundError: No module named 'rich._unicode_data.unicode17-0-0'\n```\n不經過 `rich` 渲染的選單列模式不受影響。現在 `rich` 改列在 `packages`，整包目錄直接複製而非只收掃得到的片段，文字介面（TUI，終端文字操作畫面）恢復正常。",
-                "en": "When launching the terminal text user interface from the macOS app bundle, the screen no longer crashes on the spot due to missing character width data. ⟦If you head out to a job site carrying only the main tool while leaving the parts in the compartment behind, you cannot start work once you arrive; bringing the whole case along with all accessories ensures nothing is missing.⟧ The packaging tool py2app previously listed `rich` under `includes`, collecting only files reachable by static import scans. However, `rich/_unicode_data/__init__.py` dynamically loads per-version Unicode width tables via `import_module()` at render time, causing the packaged app to carry only `__init__` and `_versions` and crash immediately upon drawing the first table:\n```\nusage --tui  # throws ModuleNotFoundError: No module named 'rich._unicode_data.unicode17-0-0'\n```\nMenu bar mode, which does not render through `rich`, is unaffected. `rich` is now listed under `packages` so the entire directory is copied directly rather than only scanned fragments, restoring the text user interface (TUI) to normal."
+                "zh-TW": "挑選現成的 AI 角色卡，不再需要獨立面板。⟦這就像在背包外硬加專用工具袋，原廠斷貨讓袋子成了空擺設；既然主袋本就自帶夾層，拆掉它不但減重也省去扣具保養。⟧專案正式移除了 AI 人才市場面板。該面板原本用來瀏覽精選的 subagent（子代理）角色卡並安裝至 `~/.claude/agents/` 目錄。隨著 Claude Code 內建角色選擇，加上 GPT Store 示範了平台自帶功能後的目錄命運，三篇論文也證實角色前綴會削弱推理。該面板還夾帶私有專案編譯出的唯一外部二進位檔 `vendor/instate-cli`，發版密鑰 `INSTATE_CLI_TOKEN` 曾兩度過期，悄悄出貨少了 23 MB 且面板全空的程式。移除該功能一併拆掉了校驗檔、指紋防呆、發版上傳下載流程，以及面板一致性與主題計數腳本中專屬 macOS 的特例。",
+                "en": "Choosing ready-made AI persona cards no longer requires a dedicated panel. ⟦It is like attaching a dedicated tool pouch to the outside of a backpack only for the manufacturer to discontinue it into an empty ornament; since the main bag already comes with built-in compartments, removing it not only sheds weight but also saves buckle maintenance.⟧ The project officially removed the AI Talent Market panel. The panel was originally used to browse curated subagent persona cards and install them into the `~/.claude/agents/` directory. As Claude Code built persona selection directly into the platform, and the GPT Store demonstrated the fate of catalogs once the host platform ships its own features, three papers also confirmed that persona prefixes degrade reasoning. The panel also carried the project's only external binary compiled from a private project, `vendor/instate-cli`; its release secret `INSTATE_CLI_TOKEN` expired twice, silently shipping an app that was 23 MB lighter with an empty panel. Removing this feature also eliminated the checksum file, fingerprint guards, release upload and download workflows, and macOS-specific carve-outs in the panel parity and theme-count scripts."
               },
-              "original": "**The TUI launches from the app bundle again.** `rich` was listed in py2app's `includes`, which collects only what its static import graph can see — but `rich/_unicode_data/__init__.py` loads its per-version Unicode width tables through `import_module()` at render time, so the bundle shipped that package carrying `__init__` and `_versions` alone and `usage --tui` died with `ModuleNotFoundError: No module named 'rich._unicode_data.unicode17-0-0'` on the first table it drew. Menu bar mode, which never renders through `rich`, was unaffected. `rich` is now a `packages` entry, which copies the whole tree instead of the reachable parts of it. Reported by @dvakatsiienko in #125."
+              "original": "**AI Talent Market.** The panel browsed a curated set of subagent personas and installed them into `~/.claude/agents/`. Claude Code has since built persona selection in itself, and the evidence against the pattern accumulated from the other side: the GPT Store showed what happens to a persona catalogue once the host platform ships its own, and three papers now report that a persona prefix measurably degrades a model's reasoning rather than sharpening it. The panel also carried the project's only vendored binary — `vendor/instate-cli`, built from a separate private project, fetched during release through a `INSTATE_CLI_TOKEN` secret that expired twice and silently shipped a 23 MB-lighter app with an empty panel. Removing the feature removes that whole chain: the checksum file, the fingerprint guard, the release upload/download dance, and the macOS-only carve-outs in the panel parity and theme-count scripts."
             },
             {
               "title": {
-                "zh-TW": "Fable 5.1 補上離線備援價格，對帳腳本不再整族跳過",
-                "en": "Fable 5.1 gains offline fallback pricing, and the audit script no longer skips the entire family"
+                "zh-TW": "移除 AI 圓桌討論視窗，回歸專注保護用量額度",
+                "en": "Remove AI Council window and refocus on protecting usage quota"
               },
               "body": {
-                "zh-TW": "Claude Code 2.1.257 起將 Fable 5.1（`claude-fable-5-1`）設為預設，離線計價缺口如今補齊。先前寫死的備援價目表只有 `claude-fable-5`，每當下載價目表缺失或過期，Fable 5.1 的每個 token（AI 計費單位）都被算成 $0。它的快取重讀價是 `0.25e-6`，只有 Fable 5 的四分之一，沿用舊資料也不正確。此缺口過去未被察覺，因 `scripts/check_fallback_pricing.py` 只比對 `opus|sonnet|haiku`，不論新舊皆跳過 Fable 家族。現在 Fable 5.1 已補上離線價格，對帳腳本也納入稽核。⟦保險費率表漏記新車的備援費率，斷線時計價直接歸零，查帳員還只抽查舊車；現在費率與稽核皆已補齊。⟧",
-                "en": "Claude Code 2.1.257 set Fable 5.1 (`claude-fable-5-1`) as the default, and the offline pricing gap is now filled. The hard-coded fallback price table previously only contained `claude-fable-5`, so whenever the downloaded price table was missing or expired, every Fable 5.1 token was costed at $0. Its cache-read price is `0.25e-6`, only a quarter of Fable 5's, so inheriting older data would also be incorrect. This gap went unnoticed in the past because `scripts/check_fallback_pricing.py` only matched `opus|sonnet|haiku`, skipping the Fable family regardless of whether models were old or new. Now Fable 5.1 has its offline price added, and the audit script includes it in checks. ⟦An insurance rate sheet missed fallback rates for new car models, resetting pricing to zero during outages while auditors only sampled old cars; now both the rates and audit coverage are complete.⟧"
+                "zh-TW": "想並排比較不同 AI 的回答，交給兩個終端機視窗處理得更快。專案正式移除了 AI 圓桌討論視窗。這項功能過去會在獨立視窗中，讓 Claude Code、Codex 與 Antigravity 進行多輪討論，開始前提供 token（AI 處理與計費的文字單位）預估、過程中計票共識，並支援唯讀資料夾存取。它是專案最大的子系統，在 `discussion/` 目錄佔了約 3,600 行程式碼。但它產出的成果，只是由兩款工具並排回答同一題且一次結束，開兩個終端機視窗早就更快。用量監控工具不該拿來跑對話，花掉的額度正是它存在所要保護的額度。若日後需要精簡版本，零件都仍完整留在 git 歷史紀錄中。⟦這種矛盾宛如行動電源上的電量螢幕，為了展示炫目動畫日夜長亮，耗盡的反而是出門在外最需要保留的備用電力。⟧",
+                "en": "Comparing answers from different AI tools side by side is much faster when left to two terminal windows. The project officially removed the AI Council window. This feature previously ran multi-round discussions between Claude Code, Codex, and Antigravity in a separate window, providing upfront token estimates, consensus tallying during the process, and read-only folder access. It was the project's largest subsystem, accounting for roughly 3,600 lines of code across the `discussion/` directory. Yet the output it produced was merely two tools answering the same question side by side in a single pass, which opening two terminal windows already achieved faster. A usage monitor should not be used to run conversations; the quota it consumed was the exact quota it exists to protect. If a stripped-down version is ever needed in the future, the parts remain fully intact in git history. ⟦This contradiction is like a battery indicator screen on a power bank that stays lit day and night to show flashy animations, draining the very backup power you need to preserve most when away from home.⟧"
               },
-              "original": "**Fable 5.1 has an offline price, and the fallback table's own audit no longer skips the entire Fable family.** Claude Code 2.1.257 made Fable 5.1 (`claude-fable-5-1`) the default of the Fable line, but the hard-coded fallback table only carried `claude-fable-5`, so whenever the downloaded price table was missing or stale every Fable 5.1 token was costed at $0. Its cache-read price is `0.25e-6` — a quarter of Fable 5's — so inheriting the older entry would not have been correct either. The gap went unreported because `scripts/check_fallback_pricing.py` matched only `opus|sonnet|haiku`: no `fable` model, old or new, was ever in scope for the audit that exists to catch exactly this."
-            },
-            {
-              "title": {
-                "zh-TW": "帶日期模型不再退回新版價格，補齊五款服役中模型",
-                "en": "Dated models no longer fall back to newer version pricing, adding five active models"
-              },
-              "body": {
-                "zh-TW": "查詢帶日期的舊模型離線價格時，程式不再誤退回到較新版本的便宜價格。⟦公車站牌若只看開頭數字，想搭四號公車的乘客會被載上四之六號新線；現在完整對齊路線才放行。⟧先前 `_resolve_model_key` 只要鍵名以查詢字串加連字號開頭就算命中。這讓 `claude-opus-4-20250514` 被解析成 `claude-opus-4-6`，離線時每百萬 token（AI 計費單位）算 $5 而非真實的 $15，只有真實費用的三分之一。現在查詢自帶版本號時，不再接受追加尾數的候選；無版本號的泛稱如 `claude-sonnet` 照舊解析得到，同等具體程度取較新版本，具名變體（gpt-5 到 gpt-5-pro）不受影響。表裡原本缺失但仍在服務的五個模型一併補上，並剝除 Bedrock 版本後綴讓查詢正確計價：\n```\nclaude-opus-4\nclaude-opus-4-1\nclaude-opus-4-5\nclaude-sonnet-4\nclaude-sonnet-4-5\nclaude-sonnet-4-5-20250929-v1:0  # 剝除 Bedrock 後綴（v1:0）後正確計價\n```",
-                "en": "When querying offline prices for older dated models, the program no longer mistakenly falls back to the cheaper price of a newer version. ⟦If a bus stop sign only looks at the leading digit, passengers looking for Bus 4 would be carried onto the newer 4-6 line; now the full route must match before letting them board.⟧ Previously, `_resolve_model_key` counted any key starting with the query string followed by a hyphen as a hit. This caused `claude-opus-4-20250514` to resolve to `claude-opus-4-6`, costing $5 per million tokens offline instead of the actual $15—only one-third of the real cost. When a query carries its own version number, candidates with an appended trailing digit are no longer accepted. Generic names without version numbers like `claude-sonnet` still resolve as before, picking the newer version among equally specific keys, while named variants (`gpt-5` to `gpt-5-pro`) remain unaffected. Five models still in service that were previously missing from the table have been added, and Bedrock version suffixes are stripped so queries price correctly:\n```\nclaude-opus-4\nclaude-opus-4-1\nclaude-opus-4-5\nclaude-sonnet-4\nclaude-sonnet-4-5\nclaude-sonnet-4-5-20250929-v1:0  # prices correctly after stripping Bedrock suffix (v1:0)\n```"
-              },
-              "original": "**A dated model no longer falls back to a newer version's pricing.** `_resolve_model_key` matched any table key that started with the queried name followed by a hyphen, so `claude-opus-4-20250514` resolved to `claude-opus-4-6` and was costed at $5/M instead of $15/M — a third of the real figure — whenever the offline table was in use. A query that already carries its own version number now rejects a candidate that merely appends another digit, while a version-less name like `claude-sonnet` still resolves, and among equally specific keys the newest version wins. Named variants (`gpt-5` → `gpt-5-pro`) are unaffected. The five models still in service that the table had never carried — `claude-opus-4`, `claude-opus-4-1`, `claude-opus-4-5`, `claude-sonnet-4`, `claude-sonnet-4-5` — were added, and a Bedrock version suffix is now stripped so `claude-sonnet-4-5-20250929-v1:0` prices correctly."
-            },
-            {
-              "title": {
-                "zh-TW": "備援價目表對帳改採解析比對，消除誤報與常態錯誤結束代碼",
-                "en": "Fallback pricing audit switches to resolution matching, eliminating false positives and persistent error exit codes"
-              },
-              "body": {
-                "zh-TW": "檢查備援價目表的對帳腳本現在只回報解析失敗的模型，不再給出一份無人能處理的混亂清單。先前 `compare_pricing` 兩個方向都用字面鍵名相減，但備援價目表本就刻意不帶日期後綴。這讓明明算得出價格的模型（例如 `claude-haiku-4-5` 與 `claude-opus-4-7-20260416`）都被報成缺漏。回報的 12 筆缺口有 3 筆是假的，腳本的結束代碼也因此長期為 1，真的缺口混在雜訊裡看不出來。現在兩個方向都改用 `_resolve_model_key` 判斷。⟦門禁警報若死板比對整串卡號，刻意省略換證日期的合格卡全被誤報成黑名單，警示燈常亮反而掩蓋了真正的闖入者；改採對照解析後才恢復平靜。⟧",
-                "en": "The audit script checking fallback pricing tables now only reports models that actually fail to resolve, rather than outputting a confusing list that no one could act on. Previously, `compare_pricing` diffed raw literal keys in both directions, even though the fallback table deliberately omits date suffixes. This caused models that could calculate prices perfectly well (such as `claude-haiku-4-5` and `claude-opus-4-7-20260416`) to be flagged as missing. Three of the 12 reported gaps were false, keeping the script's exit code at 1 persistently and making real gaps indistinguishable from the noise. Both directions now evaluate models through `_resolve_model_key`. ⟦If an access control alarm rigidly compares full card numbers, valid cards deliberately omitting renewal dates get falsely flagged as blacklisted, and a constantly lit warning light ends up masking real intruders; switching to lookup resolution restores calm.⟧"
-              },
-              "original": "**The fallback pricing audit reports what actually fails to resolve, instead of a list nobody could act on.** Both directions of `compare_pricing` diffed raw dictionary keys, but the fallback table drops date suffixes on purpose — so models that price perfectly well, such as `claude-haiku-4-5` and `claude-opus-4-7-20260416`, were reported as missing. Three of the twelve reported gaps were false, the script's exit code had been 1 for as long as that was true, and a real gap was indistinguishable from the noise. Both directions now resolve through `_resolve_model_key`."
-            },
-            {
-              "title": {
-                "zh-TW": "用量表格顯示 Opus 5 與 Fable 5.1 簡稱，不再只印原始代號",
-                "en": "Usage table displays short names for Opus 5 and Fable 5.1 instead of raw model IDs"
-              },
-              "body": {
-                "zh-TW": "打開終端機檢視用量表格時，畫面本該為各個模型顯示簡短易讀的名稱，方便一眼掌握用量分佈。但先前簡稱字典 `MODEL_SHORT` 裡缺少了 Opus 5 與 Fable 5.1 這兩款新條目，導致表格在列出用量時，只能直接印出長串的原始模型代號（raw model IDs），讓整行排版顯得雜亂又難以閱讀。現在用量表格已補齊這兩款模型的對照設定，會正確顯示簡短名稱。⟦手機通訊錄若漏填好友姓名，來電時螢幕只能秀出一長串電話號碼；補上暱稱後，一眼就能認出是誰撥來。⟧",
-                "en": "When opening the terminal to view usage tables, the screen should display short, readable names for each model to help grasp usage distribution at a glance. However, the short-name dictionary `MODEL_SHORT` previously lacked entries for Opus 5 and Fable 5.1, forcing the table to print long raw model IDs and making the layout cluttered and difficult to read. The usage table now includes mapping entries for both models, displaying clean short names properly. ⟦If a phone contact list misses a friend's name, incoming calls only show a long phone number on the screen; once the nickname is added, you can recognize who is calling at a glance.⟧"
-              },
-              "original": "**The usage table shows a name for Opus 5 and Fable 5.1.** `MODEL_SHORT` had no entry for either, so both were printed as their raw model IDs."
-            },
-            {
-              "title": {
-                "zh-TW": "配額提醒提早至用掉一半即發送，單次讀數最多一則通知",
-                "en": "Quota warnings fire earlier at 50% usage, sending at most one notification per reading"
-              },
-              "body": {
-                "zh-TW": "你的配額通知現在會提早跳出提醒，且單次讀數絕不連續送出兩則重複通知。Codex 0.153.0 起，五小時視窗剩不到一半就會提醒 Plus 與 Team 使用者。但 `usage` 先前等到 90% 才提醒，等於被監控的工具比監控端還早出聲。預設門檻在 macOS 與 Windows 一致改為 `[50.0, 90.0]`，仍可透過 `quota_notification_thresholds` 自行調整。單次讀數可能一口氣跨過兩個門檻，例如 app 在配額已達 95% 時才啟動，或用量單次大跳；這時只有跨過的最高門檻會發送通知，其餘標記為已通知並鎖定，一次觀測絕不冒出兩則重複提醒。⟦河川警戒在水位達一半與九成時各廣播一次，若暴雨讓水位瞬間破九成，警報只響最緊急的紅燈，不重複播送低階警訊。⟧",
-                "en": "Your quota alerts now trigger earlier, and a single reading never sends two consecutive duplicate notifications. Starting with Codex 0.153.0, Plus and Team users are warned once less than half of the five-hour window remains. However, `usage` previously waited until 90% before alerting, meaning the monitored tool warned earlier than the monitor itself. The default threshold is now consistently set to `[50.0, 90.0]` across macOS and Windows, while remaining customizable via `quota_notification_thresholds`. A single reading can cross both thresholds at once, such as when the app launches with quota already at 95% or during a single large usage jump. In this situation, only the highest crossed threshold sends a notification while the rest are latched as notified, ensuring one observation never generates two duplicate alerts. ⟦A river warning system broadcasts once at half and once at ninety percent water levels; if a torrential storm pushes water past ninety percent instantly, only the most urgent red alert sounds without replaying lower-level warnings.⟧"
-              },
-              "original": "**Quota warnings now fire at 50% as well as 90%, and one reading sends at most one notification.** Codex 0.153.0 began warning Plus and Team users once a five-hour window is less than half remaining; usage waited until 90%, so the tool it monitors warned earlier than the monitor did. The default is now `[50.0, 90.0]` on macOS and Windows alike, still overridable through `quota_notification_thresholds`. Because a single reading can cross both thresholds at once — the app launching when quota is already at 95%, or a single large jump — only the highest crossed threshold sends a notification and the rest are latched, so one observation never produces two alerts saying the same thing."
+              "original": "**AI Council.** A separate window ran a multi-round discussion between Claude Code, Codex and Antigravity, with a token estimate up front, consensus tallying, and read-only folder access. It was the largest subsystem in the project at roughly 3,600 lines across `discussion/`, and the thing it produced — the same question answered by two tools, side by side, ending in one pass — is something two terminal windows already do faster. A usage monitor is the wrong place to run conversations; the quota it spent was the quota it exists to protect. The parts are in git history if a stripped-down version is ever wanted."
             }
           ]
         }
