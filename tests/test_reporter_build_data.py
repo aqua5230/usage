@@ -137,9 +137,12 @@ def _sandbox_reporter_dependencies(
     monkeypatch.setattr(codex_loader, "STATE_DB", tmp_path / ".codex" / "state_5.sqlite")
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / ".codex" / "logs_2.sqlite")
     monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", tmp_path / ".usage" / "codex_cache.json")
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", tmp_path / ".claude" / "projects")
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", tmp_path / ".claude" / "projects")
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", tmp_path / ".claude.json")
+    claude_projects = tmp_path / ".claude" / "projects"
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [claude_projects])
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [claude_projects])
+    monkeypatch.setattr(
+        subscription, "_claude_config_path", lambda: tmp_path / ".claude.json"
+    )
     monkeypatch.setattr(subscription, "CODEX_AUTH", tmp_path / ".codex" / "auth.json")
     monkeypatch.setattr(pricing, "CACHE_PATH", tmp_path / ".usage" / "pricing_cache.json")
     monkeypatch.setattr(pricing, "LEGACY_CACHE_PATH", tmp_path / ".claude" / "pricing_cache.json")

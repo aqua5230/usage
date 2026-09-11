@@ -19,6 +19,7 @@ from typing import Any
 
 from i18n import _t
 from installer.setup_hook import current_hook_state
+from loaders.claude_paths import claude_config_dirs, claude_json_path
 from usage_common.usage_lang import detect_lang
 
 logger = logging.getLogger(__name__)
@@ -26,8 +27,6 @@ logger = logging.getLogger(__name__)
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LEGACY_STATUS_FILE = os.path.expanduser("~/.claude/usag-status.json")
 TT_STATUS_FILE = os.path.expanduser("~/.claude/tt-status.json")
-CLAUDE_JSON_FILE = os.path.expanduser("~/.claude.json")
-CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 
 # Stale files only affect hints; quota values still render.
 STALE_SECONDS = 6 * 3600
@@ -74,6 +73,14 @@ class _RecentActivityCache:
 
 
 _recent_activity_cache: _RecentActivityCache | None = None
+
+
+def _claude_json_file() -> str:
+    return str(claude_json_path())
+
+
+def _claude_projects_dirs() -> list[Path]:
+    return [path / "projects" for path in claude_config_dirs()]
 
 
 def _pct(value: Any) -> int | None:
@@ -157,9 +164,10 @@ def _source_from_path(source_path: str) -> str:
 
 def _read_claude_json_snapshot() -> UsageSnapshot | None:
     """Read Claude Code's own cached quota utilization as a fallback."""
+    claude_json_file = _claude_json_file()
     try:
-        os.stat(CLAUDE_JSON_FILE)
-        with open(CLAUDE_JSON_FILE, encoding="utf-8") as f:
+        os.stat(claude_json_file)
+        with open(claude_json_file, encoding="utf-8") as f:
             data = json.load(f)
     except (OSError, json.JSONDecodeError, UnicodeDecodeError):
         return None
@@ -242,13 +250,16 @@ def _has_recent_claude_project_activity(now: float) -> bool:
 
     result = False
     try:
-        for path in CLAUDE_PROJECTS_DIR.rglob("*.jsonl"):
-            try:
-                if now - path.stat().st_mtime <= RECENT_ACTIVITY_SECONDS:
-                    result = True
-                    break
-            except OSError:
-                continue
+        for projects_dir in _claude_projects_dirs():
+            for path in projects_dir.rglob("*.jsonl"):
+                try:
+                    if now - path.stat().st_mtime <= RECENT_ACTIVITY_SECONDS:
+                        result = True
+                        break
+                except OSError:
+                    continue
+            if result:
+                break
     except OSError:
         result = False
     _recent_activity_cache = _RecentActivityCache(checked_at=now, result=result)
@@ -417,8 +428,9 @@ class ClaudeUsageClient:
         return self._success_outcome(snapshot, mtime=mtime, source_path=source_path)
 
     def _read_claude_json_snapshot_cached(self) -> UsageSnapshot | None:
+        claude_json_file = _claude_json_file()
         try:
-            mtime = os.stat(CLAUDE_JSON_FILE).st_mtime
+            mtime = os.stat(claude_json_file).st_mtime
         except OSError:
             self._claude_json_cache_valid = False
             self._claude_json_cached_path = None
@@ -427,7 +439,7 @@ class ClaudeUsageClient:
             return None
         if (
             self._claude_json_cache_valid
-            and self._claude_json_cached_path == CLAUDE_JSON_FILE
+            and self._claude_json_cached_path == claude_json_file
             and self._claude_json_cached_mtime == mtime
         ):
             # The file may sit unchanged across a quota reset, so the expiry-derived
@@ -437,7 +449,7 @@ class ClaudeUsageClient:
             return _time_adjusted(self._claude_json_cached_snapshot)
         snapshot = _read_claude_json_snapshot()
         self._claude_json_cache_valid = True
-        self._claude_json_cached_path = CLAUDE_JSON_FILE
+        self._claude_json_cached_path = claude_json_file
         self._claude_json_cached_mtime = mtime
         self._claude_json_cached_snapshot = snapshot
         return snapshot

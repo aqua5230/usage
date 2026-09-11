@@ -13,6 +13,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from loaders.claude_paths import claude_config_dirs
 from loaders.jsonl_utils import iter_jsonl_dicts
 
 from .types import AgentInfo
@@ -43,10 +44,6 @@ class UsageEntry:
     def dedup_key(self) -> str:
         return f"{self.message_id}:{self.request_id}"
 
-CLAUDE_DIRS = [
-    os.path.expanduser("~/.claude/projects"),
-    os.path.expanduser("~/.config/claude/projects"),
-]
 _FILE_CACHE_MAXSIZE = 512
 _file_cache: OrderedDict[Path, tuple[float, int, list[UsageEntry]]] = OrderedDict()
 
@@ -84,13 +81,13 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
 
 
 def get_claude_dirs() -> list[str]:
-    dirs = list(CLAUDE_DIRS)
-    env = os.environ.get("CLAUDE_CONFIG_DIR")
-    if env:
-        for p in env.split(","):
-            projects_dir = os.path.join(p.strip(), "projects")
-            if projects_dir not in dirs:
-                dirs.insert(0, projects_dir)
+    dirs = [str(path / "projects") for path in claude_config_dirs()]
+    for projects_dir in (
+        os.path.expanduser("~/.claude/projects"),
+        os.path.expanduser("~/.config/claude/projects"),
+    ):
+        if projects_dir not in dirs:
+            dirs.append(projects_dir)
     return dirs
 
 

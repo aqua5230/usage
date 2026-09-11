@@ -117,8 +117,10 @@ def patch_setup_hook_paths(
     hook_source.write_text(hook_source_text, encoding="utf-8")
     forwarder_source.write_text(forwarder_source_text, encoding="utf-8")
     claude_dir.mkdir()
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
-    monkeypatch.setattr(session_hooks, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
+    monkeypatch.setattr(
+        session_hooks, "RESUME_HOOK_TARGET", claude_dir / "usage-session-resume.py"
+    )
     monkeypatch.setattr(session_hooks, "CODEX_CONFIG", tmp_path / ".codex" / "config.toml")
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", hook_target)
     monkeypatch.setattr(setup_hook, "FORWARDER_TARGET", forwarder_target)
@@ -171,8 +173,7 @@ def patch_resume_hook_paths(
     sidecar = claude_dir / "usage-resume-prompt.json"
     source = tmp_path / source_name
     source.write_text(source_text, encoding="utf-8")
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
-    monkeypatch.setattr(session_hooks, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
     monkeypatch.setattr(session_hooks, "RESUME_HOOK_TARGET", resume_target)
     monkeypatch.setattr(session_hooks, "RESUME_PROMPT_SIDECAR", sidecar)
     monkeypatch.setattr(session_hooks, "_resolve_resume_source", lambda: source)
@@ -224,9 +225,11 @@ def patch_terse_hook_paths(
     source.write_text(source_text, encoding="utf-8")
     reminder_source = tmp_path / reminder_source_name
     reminder_source.write_text(reminder_source_text, encoding="utf-8")
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
-    monkeypatch.setattr(session_hooks, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(
+        session_hooks, "RESUME_HOOK_TARGET", claude_dir / "usage-session-resume.py"
+    )
     monkeypatch.setattr(session_hooks, "TERSE_HOOK_TARGET", terse_target)
     monkeypatch.setattr(session_hooks, "TERSE_REMINDER_HOOK_TARGET", terse_reminder_target)
     monkeypatch.setattr(session_hooks, "TERSE_PROMPT_SIDECAR", sidecar)

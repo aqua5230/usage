@@ -35,9 +35,9 @@ from pathlib import Path
 from typing import Any, cast
 
 from i18n import t as _t
+from loaders.claude_paths import claude_home
 from loaders.codex_paths import codex_home
 
-CLAUDE_SETTINGS = Path(os.path.expanduser("~/.claude/settings.json"))
 HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-statusline.py"))
 FORWARDER_TARGET = Path(os.path.expanduser("~/.claude/usage-statusline-forwarder.py"))
 STATUS_FILE = Path(os.path.expanduser("~/.claude/usage-status.json"))
@@ -92,6 +92,20 @@ HOOK_VERSION = "1.5"
 _CMD_UNSAFE_CHARACTERS = '"&|^<>()'
 _SL_REGEX = re.compile(r"(?m)^[ \t]*status_line\s*=\s*\[.*?\]", re.DOTALL)
 _TABLE_REGEX = re.compile(r"(?m)^[ \t]*\[[^\]\n]+\][ \t]*(?:#.*)?$")
+
+
+def _claude_settings_path() -> Path:
+    return claude_home() / "settings.json"
+
+
+def _claude_install_exists() -> bool:
+    return _claude_settings_path().parent.exists() or Path(
+        os.path.expanduser("~/.claude")
+    ).exists()
+
+
+def _claude_settings_dir_exists() -> bool:
+    return _claude_settings_path().parent.exists()
 
 
 def configure_windows_utf8_output() -> None:
@@ -474,6 +488,7 @@ def current_hook_state() -> str:
 
 def _migrate_from_legacy_usage() -> None:
     changed = False
+    claude_settings = _claude_settings_path()
 
     for path in (LEGACY_HOOK_TARGET, LEGACY_STATUS_FILE):
         try:
@@ -485,13 +500,13 @@ def _migrate_from_legacy_usage() -> None:
 
     settings: dict[str, Any] | None = None
     try:
-        if CLAUDE_SETTINGS.exists():
-            with CLAUDE_SETTINGS.open(encoding="utf-8") as f:
+        if claude_settings.exists():
+            with claude_settings.open(encoding="utf-8") as f:
                 data = json.load(f)
             if isinstance(data, dict):
                 settings = data
             else:
-                print(_t("setup_legacy_settings_not_object", path=CLAUDE_SETTINGS))
+                print(_t("setup_legacy_settings_not_object", path=claude_settings))
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         print(_t("setup_legacy_settings_read_failed", error=exc))
 
@@ -540,15 +555,18 @@ def _migrate_from_legacy_usage() -> None:
 
 
 def _load_settings() -> dict[str, Any]:
-    if not CLAUDE_SETTINGS.exists():
+    claude_settings = _claude_settings_path()
+    if not claude_settings.exists():
         return {}
     try:
-        with CLAUDE_SETTINGS.open(encoding="utf-8") as f:
+        with claude_settings.open(encoding="utf-8") as f:
             data = json.load(f)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise SystemExit(_t("setup_settings_read_failed", path=CLAUDE_SETTINGS, error=exc)) from exc
+        raise SystemExit(
+            _t("setup_settings_read_failed", path=claude_settings, error=exc)
+        ) from exc
     if not isinstance(data, dict):
-        raise SystemExit(_t("setup_settings_not_object", path=CLAUDE_SETTINGS))
+        raise SystemExit(_t("setup_settings_not_object", path=claude_settings))
     return data
 
 
@@ -570,7 +588,7 @@ def _atomic_write_text(path: Path, content: str, encoding: str = "utf-8") -> Non
 
 def _save_settings(data: dict[str, Any]) -> None:
     payload = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
-    _atomic_write_text(CLAUDE_SETTINGS, payload)
+    _atomic_write_text(_claude_settings_path(), payload)
 
 
 def _agy_statusline_command() -> str:
@@ -1161,7 +1179,7 @@ def update_hook() -> None:
 
 
 def is_setup() -> bool:
-    has_claude = CLAUDE_SETTINGS.parent.exists()
+    has_claude = _claude_install_exists()
     has_codex = CODEX_CONFIG.exists()
     if not has_claude and not has_codex:
         return False
@@ -1182,7 +1200,7 @@ def is_setup() -> bool:
 
 def is_claude_setup() -> bool:
     """Check only whether the Claude hook is installed."""
-    if not CLAUDE_SETTINGS.parent.exists():
+    if not _claude_install_exists():
         return True
     return _detect_current_state() in {"us-direct", "us-forwarder"}
 
@@ -1210,13 +1228,14 @@ def _install_forwarder(settings: dict[str, Any]) -> None:
 def setup(force_forwarder: bool = False) -> int:
     configure_windows_utf8_output()
     _migrate_from_legacy_usage()
-    has_claude = CLAUDE_SETTINGS.parent.exists()
+    has_claude = _claude_install_exists()
+    can_write_claude_settings = _claude_settings_dir_exists()
     has_codex = CODEX_CONFIG.exists()
-    if not has_claude and not has_codex:
+    if not can_write_claude_settings and not has_codex:
         print(_t("setup_no_agents"), file=sys.stderr)
         return 1
 
-    if has_claude:
+    if has_claude and can_write_claude_settings:
         settings = _load_settings()
         _migrate_bundled_python_commands_if_needed(settings)
         _migrate_windows_statusline_command_if_needed(settings)
@@ -1226,7 +1245,7 @@ def setup(force_forwarder: bool = False) -> int:
             _install_forwarder(settings)
             print(_t("setup_forwarder_installed", path=FORWARDER_TARGET))
             print(_t("setup_hook_installed", path=HOOK_TARGET))
-            print(_t("setup_settings_updated", path=CLAUDE_SETTINGS))
+            print(_t("setup_settings_updated", path=_claude_settings_path()))
             print(_t("setup_claude_restart_required"))
         else:
             _copy_hook_script()
@@ -1237,7 +1256,7 @@ def setup(force_forwarder: bool = False) -> int:
                 print(_t("setup_statusline_already_usage"))
 
             print(_t("setup_hook_installed", path=HOOK_TARGET))
-            print(_t("setup_settings_updated", path=CLAUDE_SETTINGS))
+            print(_t("setup_settings_updated", path=_claude_settings_path()))
             print(_t("setup_claude_restart_required"))
 
     if has_codex:
@@ -1248,7 +1267,7 @@ def setup(force_forwarder: bool = False) -> int:
 
 def unsetup() -> int:
     configure_windows_utf8_output()
-    if CLAUDE_SETTINGS.parent.exists():
+    if _claude_install_exists():
         settings = _load_settings()
         sl = settings.get("statusLine")
 

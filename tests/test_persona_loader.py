@@ -147,7 +147,7 @@ def test_empty_directory_returns_empty_profile(
 ) -> None:
     projects_dir = tmp_path / "projects"
     projects_dir.mkdir()
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     profile = persona_loader.load_profile()
 
@@ -163,7 +163,7 @@ def test_hour_histogram_buckets_by_local_hour(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now_local = datetime.now().astimezone()
     hour_three = now_local.replace(hour=3, minute=10, second=0, microsecond=0)
     hour_twenty = now_local.replace(hour=20, minute=45, second=0, microsecond=0)
@@ -190,7 +190,7 @@ def test_non_message_rows_do_not_count_toward_histogram_or_total_messages(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now_local = datetime.now().astimezone().replace(hour=9, minute=0, second=0, microsecond=0)
     _write_jsonl(
         projects_dir / "project-a" / "a.jsonl",
@@ -215,7 +215,7 @@ def test_top_projects_count_distinct_sessions_and_sort(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     old = now - timedelta(days=31)
     recent_file = projects_dir / "encoded-project" / "recent.jsonl"
@@ -252,7 +252,7 @@ def test_project_falls_back_to_encoded_file_path_without_cwd(
     real_project = tmp_path / "Users" / "me" / "fallback-project"
     real_project.mkdir(parents=True)
     encoded_project = str(real_project).replace(os.sep, "-").replace(":", "-")
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     _write_jsonl(
         projects_dir / encoded_project / "a.jsonl",
         [
@@ -274,7 +274,7 @@ def test_recent_titles_use_session_message_time_when_ai_title_has_no_timestamp(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     rows = [
         _title_row("older", "Build panel"),
@@ -297,7 +297,7 @@ def test_same_session_uses_last_ai_title(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     _write_jsonl(
         projects_dir / "project-a" / "a.jsonl",
@@ -318,7 +318,7 @@ def test_noise_only_attachment_returns_empty_profile(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     _write_jsonl(
         projects_dir / "project-a" / "a.jsonl",
         [
@@ -344,7 +344,7 @@ def test_profile_carries_titles_by_session(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     _write_jsonl(
         projects_dir / "project-a" / "a.jsonl",
         [
@@ -377,7 +377,7 @@ def test_one_pass_multiple_interruptions_only_fail_one_user_turn(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     rows: list[dict[str, Any]] = []
     for index, model in enumerate(["claude-sonnet-4"] * 18 + ["gpt-5-codex"] * 12):
@@ -417,7 +417,7 @@ def test_tool_results_do_not_start_new_user_turns(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     rows: list[dict[str, Any]] = []
     for index, model in enumerate(["claude-sonnet-4"] * 15 + ["gpt-5-codex"] * 15):
@@ -448,7 +448,7 @@ def test_synthetic_empty_and_none_models_are_excluded(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     models: list[str | None] = ["claude-sonnet-4"] * 15
     models.extend(["gpt-5-codex"] * 15)
@@ -473,7 +473,7 @@ def test_unmatched_signals_stay_unattributed_but_fail_current_turn(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     rows: list[dict[str, Any]] = []
     for index, model in enumerate(["claude-sonnet-4"] * 15 + ["gpt-5-codex"] * 15):
@@ -508,7 +508,7 @@ def test_interruption_of_assistant_without_model_stays_unattributed(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     rows = _conversation_rows(
         now,
@@ -535,7 +535,7 @@ def test_signal_can_resolve_to_assistant_in_later_file(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     rows = _conversation_rows(
         now,
@@ -568,7 +568,7 @@ def test_one_pass_stats_are_empty_below_comparison_thresholds(
     models: list[str],
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(persona_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [projects_dir])
     now = datetime.now(UTC)
     _write_jsonl(
         projects_dir / "project-a" / "a.jsonl",

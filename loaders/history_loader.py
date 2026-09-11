@@ -19,6 +19,7 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from loaders.claude_paths import claude_config_dirs
 from loaders.disk_cache_lifecycle import (
     flush_caches_if_due,
     needs_cache_seed,
@@ -52,7 +53,6 @@ class _FileCacheEntry:
 
 _file_cache: OrderedDict[Path, _FileCacheEntry] = OrderedDict()
 
-CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 HISTORY_CACHE_PATH = Path(os.path.expanduser("~/.usage/history_jsonl_cache.json"))
 _HISTORY_JSONL_CACHE_SCHEMA = 3
 _disk_cache_seeded = False
@@ -60,6 +60,10 @@ _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
 _disk_cache_dirty = False
 _last_disk_cache_flush_at: float | None = None
 _monotonic = time.monotonic
+
+
+def _claude_projects_dirs() -> list[Path]:
+    return [path / "projects" for path in claude_config_dirs()]
 
 
 @dataclass(slots=True)
@@ -104,12 +108,13 @@ def load_entries(
     seen: set[str] = set()
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
 
-    if jsonl_paths is None and not CLAUDE_PROJECTS_DIR.is_dir():
+    projects_dirs = _claude_projects_dirs()
+    if jsonl_paths is None and not any(path.is_dir() for path in projects_dirs):
         return []
 
     cutoff_ts = cutoff.timestamp() if cutoff else None
     paths = (
-        tuple(CLAUDE_PROJECTS_DIR.rglob("*.jsonl"))
+        tuple(path for directory in projects_dirs for path in directory.rglob("*.jsonl"))
         if jsonl_paths is None
         else tuple(jsonl_paths)
     )
@@ -423,7 +428,13 @@ def _parse_timestamp(value: Any) -> datetime | None:
 
 
 def _project_from_path(jsonl_path: Path) -> str:
-    return project_from_encoded_path(jsonl_path, CLAUDE_PROJECTS_DIR)
+    for projects_dir in _claude_projects_dirs():
+        try:
+            jsonl_path.relative_to(projects_dir)
+        except ValueError:
+            continue
+        return project_from_encoded_path(jsonl_path, projects_dir)
+    return "unknown"
 
 
 def _project_from_cwd(cwd: str) -> str:

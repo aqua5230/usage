@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from dataclasses import replace
 from pathlib import Path
 from typing import Any
@@ -39,6 +39,19 @@ def _isolate_log_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     import usage_common.usage_logging as usage_logging
 
     monkeypatch.setattr(usage_logging, "LOG_DIR", tmp_path / "logs")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_claude_config(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> Iterator[None]:
+    """Keep dynamic Claude Code paths out of the user's real config directory."""
+    from loaders import claude_paths
+
+    monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(tmp_path / "claude-config"))
+    claude_paths.cache_clear()
+    yield
+    claude_paths.cache_clear()
 
 
 @pytest.fixture(autouse=True)

@@ -241,7 +241,7 @@ def test_save_settings_preserves_symlink_and_updates_target(
     settings_target.parent.mkdir()
     settings_target.write_text('{"original": true}\n', encoding="utf-8")
     settings_link.symlink_to(settings_target)
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings_link)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings_link)
 
     setup_hook._save_settings({"updated": True})
 

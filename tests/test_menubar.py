@@ -928,7 +928,7 @@ def test_statusline_enabled_detects_usage_hook(
         json.dumps({"statusLine": {"type": "command", "command": "python3 usage-statusline.py"}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr("menubar.app.os.path.expanduser", lambda value: str(settings))
+    monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
 
     assert menubar._statusline_enabled() is True
 
@@ -945,7 +945,7 @@ def test_statusline_enabled_detects_external_hook(
         json.dumps({"statusLine": {"type": "command", "command": f"python3 {legacy_name}"}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr("menubar.app.os.path.expanduser", lambda value: str(settings))
+    monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
 
     assert menubar._statusline_enabled() is True
 
@@ -968,7 +968,7 @@ def test_toggle_statusline_preserves_forwarder_settings(
     }
     settings.write_text(json.dumps(original, indent=2, ensure_ascii=False), encoding="utf-8")
     original_text = settings.read_text(encoding="utf-8")
-    monkeypatch.setattr("menubar.app.os.path.expanduser", lambda value: str(settings))
+    monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
     monkeypatch.setattr("installer.setup_hook.is_agy_setup", lambda: False)
 
     action, exit_code = menubar._toggle_statusline_settings()
@@ -997,7 +997,7 @@ def test_forwarder_prompt_keep_sets_ack_once(
         json.dumps({"statusLine": {"type": "command", "command": "python3 ccusage.py"}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
     calls = {"alerts": 0, "setup": 0}
 
     class FakeAlert:
@@ -1053,7 +1053,7 @@ def test_forwarder_prompt_enable_calls_forwarder_setup(
         json.dumps({"statusLine": {"type": "command", "command": "python3 lord-kali.py"}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
     calls: list[bool] = []
 
     class FakeAlert:

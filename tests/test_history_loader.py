@@ -338,7 +338,7 @@ def test_project_from_path(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> N
     real_project = tmp_path / "Users" / "me" / "alpha"
     real_project.mkdir(parents=True)
     encoded_project = str(real_project).replace(os.sep, "-").replace(":", "-")
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     assert history_loader._project_from_path(projects_dir / encoded_project / "a.jsonl") == "alpha"
     assert (
@@ -356,7 +356,7 @@ def test_project_from_path_resolves_existing_dash_project_dir(
     real_project = tmp_path / "Users" / "me" / "Desktop" / "claude-tutorial-video"
     real_project.mkdir(parents=True)
     encoded_project = str(real_project).replace(os.sep, "-").replace(":", "-")
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     project = history_loader._project_from_path(projects_dir / encoded_project / "a.jsonl")
 
@@ -368,7 +368,7 @@ def test_project_from_path_fallback_preserves_dash(
     tmp_path: Path,
 ) -> None:
     projects_dir = tmp_path / "projects"
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     project = history_loader._project_from_path(projects_dir / "-missing-plain-project" / "a.jsonl")
 
@@ -414,7 +414,7 @@ def test_load_entries_deduplicates_sorts_and_filters_hours_back(
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     entries = history_loader.load_entries(hours_back=1)
 
@@ -435,7 +435,7 @@ def test_load_entries_skips_bad_utf8_bytes_without_crashing(
     log_path = project_dir / "session.jsonl"
     valid_line = _line(message_id="valid", request_id="valid")
     log_path.write_bytes(valid_line.encode("utf-8") + b"\n\xff\n")
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     entries = history_loader.load_entries()
 
@@ -464,7 +464,7 @@ def test_load_entries_incremental_append_matches_full_reparse(
     projects_dir = tmp_path / "projects"
     project_dir = projects_dir / "plain-project"
     project_dir.mkdir(parents=True)
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     lines = [_line(message_id=f"m{index}", request_id=f"r{index}") for index in range(6)]
 
@@ -502,7 +502,7 @@ def test_load_entries_falls_back_to_full_reparse_when_prefix_changes(
     projects_dir = tmp_path / "projects"
     project_dir = projects_dir / "plain-project"
     project_dir.mkdir(parents=True)
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     path = project_dir / "session.jsonl"
     original_lines = [
@@ -535,7 +535,7 @@ def test_disk_cache_seed_loads_on_cold_start(
     session_path = projects_dir / "plain-project" / "session.jsonl"
     session_path.parent.mkdir(parents=True, exist_ok=True)
     monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     cache_data = (
         json.dumps(
@@ -646,7 +646,7 @@ def test_disk_cache_file_mtime_invalidates_seed(
     project_dir.mkdir(parents=True)
     session_path = project_dir / "session.jsonl"
     monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
-    monkeypatch.setattr(history_loader, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
     cache_file.write_text(
         json.dumps(

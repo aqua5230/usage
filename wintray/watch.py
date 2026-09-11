@@ -22,7 +22,8 @@ from pathlib import Path
 from typing import Any
 
 from adapters import rate_limits
-from loaders import codex_loader, history_loader
+from loaders import codex_loader
+from loaders.claude_paths import claude_config_dirs
 
 logger = logging.getLogger(__name__)
 
@@ -192,7 +193,7 @@ def usage_watch_specs() -> list[WindowsWatchSpec]:
         )
 
     for root in (
-        history_loader.CLAUDE_PROJECTS_DIR,
+        *(path / "projects" for path in claude_config_dirs()),
         codex_loader.SESSIONS_DIR,
         codex_loader.ARCHIVED_SESSIONS_DIR,
     ):

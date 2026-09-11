@@ -1135,7 +1135,7 @@ def test_windows_usage_watch_specs_are_limited_to_usage_sources(
         str(claude_root / "tt-status.json"),
     )
     monkeypatch.setattr(
-        "wintray.watch.history_loader.CLAUDE_PROJECTS_DIR", claude_projects
+        "wintray.watch.claude_config_dirs", lambda: [claude_root]
     )
     monkeypatch.setattr("wintray.watch.codex_loader.SESSIONS_DIR", sessions)
     monkeypatch.setattr("wintray.watch.codex_loader.ARCHIVED_SESSIONS_DIR", archived)

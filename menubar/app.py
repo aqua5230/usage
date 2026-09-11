@@ -1043,7 +1043,7 @@ class AppDelegate(NSObject):
         try:
             from installer import setup_hook
 
-            return setup_hook.CLAUDE_SETTINGS.parent.exists() or setup_hook.CODEX_CONFIG.exists()
+            return setup_hook._claude_install_exists() or setup_hook.CODEX_CONFIG.exists()
         except Exception:
             return False
 

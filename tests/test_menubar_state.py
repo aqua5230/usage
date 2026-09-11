@@ -28,7 +28,7 @@ def _patch_history_sources(
         root.mkdir(parents=True)
     monkeypatch.setattr(Path, "home", lambda: home)
     monkeypatch.setenv("CODEX_HOME", str(home / ".codex"))
-    monkeypatch.setattr(menubar_state, "CLAUDE_PROJECTS_DIR", claude)
+    monkeypatch.setattr(menubar_state, "claude_config_dirs", lambda: [claude.parent])
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions)
     monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", archived)
     monkeypatch.setattr(codex_loader, "LOGS_DB", home / ".codex" / "logs_2.sqlite")
@@ -52,7 +52,9 @@ def test_history_sources_fingerprint_uses_claude_projects_dir(
     (noise_dir / "noise.jsonl").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: home)
     monkeypatch.setenv("CODEX_HOME", str(home / ".codex"))
-    monkeypatch.setattr(menubar_state, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(
+        menubar_state, "claude_config_dirs", lambda: [projects_dir.parent]
+    )
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", home / ".codex" / "sessions")
     monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", archived_dir)
     monkeypatch.setattr(codex_loader, "LOGS_DB", home / ".codex" / "logs_2.sqlite")

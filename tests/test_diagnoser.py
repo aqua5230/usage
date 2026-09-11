@@ -81,7 +81,7 @@ def _user_result(tool_id: str, size: int = 1000) -> dict[str, Any]:
 
 
 def _patch_claude_dirs(monkeypatch: pytest.MonkeyPatch, base: Path) -> None:
-    monkeypatch.setattr(claude, "CLAUDE_DIRS", [str(base)])
+    monkeypatch.setattr(claude, "get_claude_dirs", lambda: [str(base)])
 
 
 @pytest.mark.parametrize(

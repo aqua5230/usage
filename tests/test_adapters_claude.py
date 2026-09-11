@@ -55,7 +55,7 @@ def test_load_entries_skips_bad_utf8_jsonl_without_crashing(
     bad_path = projects_dir / "demo" / "bad.jsonl"
     bad_path.parent.mkdir(parents=True, exist_ok=True)
     bad_path.write_bytes(b"\xff\xfe not utf-8\n")
-    monkeypatch.setattr(claude, "CLAUDE_DIRS", [str(projects_dir)])
+    monkeypatch.setattr(claude, "get_claude_dirs", lambda: [str(projects_dir)])
 
     assert claude.load_entries() == []
 
@@ -75,7 +75,7 @@ def test_load_entries_converts_numeric_string_tokens_for_pricing(
             "cache_read_input_tokens": "1",
         },
     )
-    monkeypatch.setattr(claude, "CLAUDE_DIRS", [str(projects_dir)])
+    monkeypatch.setattr(claude, "get_claude_dirs", lambda: [str(projects_dir)])
     monkeypatch.setattr(
         pricing,
         "get_pricing",
@@ -115,7 +115,7 @@ def test_load_entries_converts_numeric_string_cost_usd_to_float(
         usage={"input_tokens": 1},
         cost_usd="0.05",
     )
-    monkeypatch.setattr(claude, "CLAUDE_DIRS", [str(projects_dir)])
+    monkeypatch.setattr(claude, "get_claude_dirs", lambda: [str(projects_dir)])
 
     entries = claude.load_entries()
 
@@ -153,7 +153,7 @@ def test_load_entries_tracks_1h_cache_and_only_bills_advisor_iterations(
         },
         cost_usd=0.01,
     )
-    monkeypatch.setattr(claude, "CLAUDE_DIRS", [str(projects_dir)])
+    monkeypatch.setattr(claude, "get_claude_dirs", lambda: [str(projects_dir)])
 
     entries = claude.load_entries()
 
@@ -176,6 +176,6 @@ def test_load_entries_without_iterations_keeps_single_entry(
         timestamp=datetime.now(UTC).isoformat(),
         usage={"input_tokens": 1},
     )
-    monkeypatch.setattr(claude, "CLAUDE_DIRS", [str(projects_dir)])
+    monkeypatch.setattr(claude, "get_claude_dirs", lambda: [str(projects_dir)])
 
     assert len(claude.load_entries()) == 1

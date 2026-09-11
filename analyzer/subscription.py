@@ -18,9 +18,9 @@ import json
 from pathlib import Path
 from typing import Any
 
+from loaders.claude_paths import claude_json_path
 from loaders.codex_paths import codex_home
 
-CLAUDE_CONFIG = Path.home() / ".claude.json"
 CODEX_AUTH = codex_home() / "auth.json"
 
 _CLAUDE_PLAN_NAMES = {
@@ -29,6 +29,10 @@ _CLAUDE_PLAN_NAMES = {
     "claude_team": "Claude Team",
     "claude_enterprise": "Claude Enterprise",
 }
+
+
+def _claude_config_path() -> Path:
+    return claude_json_path()
 
 
 def _decode_jwt_payload(token: str) -> dict[str, Any]:
@@ -49,8 +53,9 @@ def _decode_jwt_payload(token: str) -> dict[str, Any]:
 
 
 def _load_claude_subscription() -> dict[str, str | None] | None:
+    config_path = _claude_config_path()
     try:
-        data = json.loads(CLAUDE_CONFIG.read_text(encoding="utf-8"))
+        data = json.loads(config_path.read_text(encoding="utf-8"))
     except (OSError, ValueError):
         return None
     if not isinstance(data, dict):

@@ -36,7 +36,7 @@ def test_claude_subscription(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
             "emailAddress": "secret@example.com",
         }
     }))
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", cfg)
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     sub = subscription._load_claude_subscription()
     assert sub == {"agent": "Claude Code", "plan": "Claude Pro", "since": "2026-04-12"}
     # never leak private fields
@@ -46,7 +46,7 @@ def test_claude_subscription(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) ->
 def test_claude_unknown_plan_is_humanised(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     cfg = tmp_path / ".claude.json"
     cfg.write_text(json.dumps({"oauthAccount": {"organizationType": "claude_max_5x"}}))
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", cfg)
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     sub = subscription._load_claude_subscription()
     assert sub is not None
     plan = sub["plan"]
@@ -91,7 +91,7 @@ def test_codex_api_key_mode_no_sub(monkeypatch: pytest.MonkeyPatch, tmp_path: Pa
 
 
 def test_missing_files_return_empty(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", tmp_path / "nope.json")
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: tmp_path / "nope.json")
     monkeypatch.setattr(subscription, "CODEX_AUTH", tmp_path / "nope2.json")
     assert subscription.load_subscriptions() == []
 
@@ -104,7 +104,7 @@ def test_load_subscriptions_combines_both(monkeypatch: pytest.MonkeyPatch, tmp_p
         "auth_mode": "chatgpt",
         "tokens": {"id_token": _make_id_token({"chatgpt_plan_type": "pro"})},
     }))
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", cfg)
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     subs = subscription.load_subscriptions()
     assert [s["agent"] for s in subs] == ["Claude Code", "Codex"]
@@ -118,7 +118,7 @@ def test_load_subscriptions_ignores_json_array_roots(
     cfg.write_text("[]")
     auth = tmp_path / "auth.json"
     auth.write_text("[]")
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", cfg)
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     assert subscription.load_subscriptions() == []
 
@@ -128,7 +128,7 @@ def test_claude_subscription_ignores_non_dict_account(
 ) -> None:
     cfg = tmp_path / ".claude.json"
     cfg.write_text(json.dumps({"oauthAccount": []}))
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", cfg)
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     assert subscription._load_claude_subscription() is None
 
 
@@ -152,7 +152,7 @@ def test_claude_subscription_non_string_fields_degrade(
             "subscriptionCreatedAt": 1717000000,
         }
     }))
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", cfg)
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     assert subscription._load_claude_subscription() is None
 
 
@@ -166,7 +166,7 @@ def test_claude_subscription_non_string_since_keeps_default_plan(
             "subscriptionCreatedAt": 1717000000,
         }
     }))
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", cfg)
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     assert subscription._load_claude_subscription() == {
         "agent": "Claude Code",
         "plan": "Claude Team",
@@ -211,7 +211,7 @@ def test_load_subscriptions_ignores_non_string_id_token(
         "tokens": {"id_token": id_token},
     }))
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", tmp_path / "nope.json")
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: tmp_path / "nope.json")
     assert subscription.load_subscriptions() == []
 
 
@@ -224,7 +224,7 @@ def test_load_subscriptions_ignores_non_dict_jwt_payload(
         "tokens": {"id_token": _make_raw_id_token(123)},
     }))
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
-    monkeypatch.setattr(subscription, "CLAUDE_CONFIG", tmp_path / "nope.json")
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: tmp_path / "nope.json")
     assert subscription.load_subscriptions() == []
 
 

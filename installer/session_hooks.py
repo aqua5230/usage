@@ -49,7 +49,6 @@ from loaders.codex_paths import codex_home
 from usage_common.usage_lang import detect_lang
 from usage_statusline import _exclusive_lock
 
-CLAUDE_SETTINGS = setup_hook.CLAUDE_SETTINGS
 CODEX_CONFIG = setup_hook.CODEX_CONFIG
 
 # Ceiling C — opt-in SessionStart hook that injects "where you left off" into a new
@@ -679,7 +678,7 @@ def is_terse_reminder_enabled() -> bool:
 
 def enable_session_resume() -> int:
     setup_hook.configure_windows_utf8_output()
-    if not CLAUDE_SETTINGS.parent.exists():
+    if not setup_hook._claude_settings_dir_exists():
         print(_t("setup_no_agents"), file=sys.stderr)
         return 1
     _copy_resume_script()
@@ -705,7 +704,7 @@ def enable_session_resume() -> int:
 
 def enable_terse_mode() -> int:
     setup_hook.configure_windows_utf8_output()
-    if not CLAUDE_SETTINGS.parent.exists():
+    if not setup_hook._claude_settings_dir_exists():
         print(_t("setup_no_agents"), file=sys.stderr)
         return 1
     _copy_terse_script()
@@ -735,7 +734,7 @@ def enable_terse_mode() -> int:
 
 def disable_session_resume() -> int:
     setup_hook.configure_windows_utf8_output()
-    if CLAUDE_SETTINGS.parent.exists():
+    if setup_hook._claude_install_exists():
         settings = _load_settings()
         session_start = _session_start_list(settings)
         if session_start is not None:
@@ -758,7 +757,7 @@ def disable_session_resume() -> int:
 
 def disable_terse_mode() -> int:
     setup_hook.configure_windows_utf8_output()
-    if CLAUDE_SETTINGS.parent.exists():
+    if setup_hook._claude_install_exists():
         settings = _load_settings()
         changed = False
 
@@ -1041,7 +1040,7 @@ def _installed_resume_command() -> str:
 
 
 def _recent_claude_dir_changes(limit: int = 6) -> str:
-    root = CLAUDE_SETTINGS.parent
+    root = RESUME_HOOK_TARGET.parent
     try:
         entries = sorted(
             (entry for entry in root.iterdir()),
@@ -1064,7 +1063,7 @@ def _recent_claude_dir_changes(limit: int = 6) -> str:
 
 
 def _append_self_heal_log(action: str, detail: str) -> None:
-    target_dir = CLAUDE_SETTINGS.parent
+    target_dir = RESUME_HOOK_TARGET.parent
     # Not usage-status.lock: that one guards the high-frequency statusline
     # writes to a different file, and sharing it would serialize them here.
     lock_file = target_dir / "usage-settings.lock"

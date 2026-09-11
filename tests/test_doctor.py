@@ -24,7 +24,9 @@ from loaders import codex_loader, history_loader
 def _patch_doctor_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     claude_dir = tmp_path / ".claude"
     codex_dir = tmp_path / ".codex"
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", claude_dir / "settings.json")
+    monkeypatch.setattr(
+        setup_hook, "_claude_settings_path", lambda: claude_dir / "settings.json"
+    )
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", claude_dir / "usage-statusline.py")
     monkeypatch.setattr(
         setup_hook,
@@ -42,7 +44,11 @@ def _patch_doctor_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
 def test_doctor_handles_missing_settings_and_status_file(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", tmp_path / ".claude" / "settings.json")
+    monkeypatch.setattr(
+        setup_hook,
+        "_claude_settings_path",
+        lambda: tmp_path / ".claude" / "settings.json",
+    )
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", tmp_path / ".claude" / "usage-statusline.py")
     monkeypatch.setattr(
         setup_hook,
@@ -95,7 +101,7 @@ def test_doctor_flags_missing_forwarder_in_forwarder_mode(
         ),
         encoding="utf-8",
     )
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
 
     output = doctor.render()
     forwarder_line = next(
@@ -116,7 +122,7 @@ def test_doctor_reports_external_hook_keyword(
         json.dumps({"statusLine": {"type": "command", "command": "node /opt/ccusage/bin/cli"}}),
         encoding="utf-8",
     )
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
     monkeypatch.setattr(setup_hook, "STATUS_FILE", claude_dir / "usage-status.json")
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", tmp_path / ".codex" / "sessions")
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / ".codex" / "logs_2.sqlite")
@@ -150,7 +156,7 @@ def test_doctor_flags_windows_backslash_statusline_command(
         encoding="utf-8",
     )
     monkeypatch.setattr(sys, "platform", "win32")
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", settings)
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
 
     output = doctor.render()
 
@@ -183,7 +189,9 @@ def test_doctor_reports_codex_diagnostics(
             ],
         )
     state_db.write_text("", encoding="utf-8")
-    monkeypatch.setattr(setup_hook, "CLAUDE_SETTINGS", claude_dir / "settings.json")
+    monkeypatch.setattr(
+        setup_hook, "_claude_settings_path", lambda: claude_dir / "settings.json"
+    )
     monkeypatch.setattr(setup_hook, "STATUS_FILE", claude_dir / "usage-status.json")
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
     monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)

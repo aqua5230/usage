@@ -27,7 +27,9 @@ LEGACY_NAME = "usag"
 @pytest.fixture(autouse=True)
 def isolate_claude_files(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
-    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(tmp_path / ".claude.json"))
+    monkeypatch.setattr(
+        usage_client, "_claude_json_file", lambda: str(tmp_path / ".claude.json")
+    )
 
 
 def _write_claude_json(path: Path, fetched_at: float) -> None:
@@ -305,7 +307,7 @@ def test_fetch_once_uses_claude_json_when_status_is_missing(
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(tmp_path / "usage-status.json"))
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
-    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
     monkeypatch.setattr("usage_client.time.time", lambda: fetched_at + 1)
     _write_claude_json(claude_json_path, fetched_at)
 
@@ -334,7 +336,7 @@ def test_fetch_once_prefers_complete_hook_over_claude_json_cache(
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
-    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
     monkeypatch.setattr("usage_client.time.time", lambda: fetched_at + 2)
     _write_complete_status(status_path, fetched_at + status_age)
     _write_claude_json(claude_json_path, fetched_at)
@@ -356,7 +358,7 @@ def test_fetch_once_uses_claude_json_when_hook_percentage_is_invalid(
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
-    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
     monkeypatch.setattr("usage_client.time.time", lambda: fetched_at + 2)
     status_path.write_text(
         json.dumps(
@@ -390,7 +392,7 @@ def test_invalid_claude_json_preserves_missing_status_error(
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(tmp_path / "usage-status.json"))
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
-    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
     claude_json_path.write_text(contents, encoding="utf-8")
 
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
@@ -406,7 +408,7 @@ def test_invalid_claude_json_preserves_incomplete_status_loading(
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
-    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
     status_path.write_text('{"foo": "bar"}', encoding="utf-8")
     claude_json_path.write_text("{}", encoding="utf-8")
 
@@ -491,7 +493,7 @@ def test_fetch_once_reuses_claude_json_snapshot_until_mtime_changes(
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(tmp_path / "missing.json"))
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt.json"))
-    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
     claude_json_path.write_text("{}", encoding="utf-8")
     calls = 0
     original = usage_client._read_claude_json_snapshot
@@ -520,7 +522,7 @@ def test_fetch_once_recomputes_stale_state_when_status_mtime_is_unchanged(
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / f"{LEGACY_NAME}.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
-    monkeypatch.setattr(usage_client, "CLAUDE_PROJECTS_DIR", tmp_path / "projects")
+    monkeypatch.setattr(usage_client, "_claude_projects_dirs", lambda: [tmp_path / "projects"])
     received_at = 1_700_000_000.0
     reset_at = received_at + 60
     status_path.write_text(
@@ -582,7 +584,7 @@ def _patch_status_paths(
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_path))
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / f"{LEGACY_NAME}.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
-    monkeypatch.setattr(usage_client, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(usage_client, "_claude_projects_dirs", lambda: [projects_dir])
     monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
     return status_path
 
@@ -705,7 +707,7 @@ def test_recent_project_activity_uses_ttl_cache(monkeypatch: pytest.MonkeyPatch)
 
     now = 1_700_000_000.0
     projects_dir = FakeProjectsDir()
-    monkeypatch.setattr(usage_client, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(usage_client, "_claude_projects_dirs", lambda: [projects_dir])
     monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
 
     assert usage_client._has_recent_claude_project_activity(now) is True
@@ -735,7 +737,7 @@ def test_recent_project_activity_rescans_after_ttl_expires(
 
     now = 1_700_000_000.0
     projects_dir = FakeProjectsDir()
-    monkeypatch.setattr(usage_client, "CLAUDE_PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(usage_client, "_claude_projects_dirs", lambda: [projects_dir])
     monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
 
     assert usage_client._has_recent_claude_project_activity(now) is True
@@ -755,7 +757,7 @@ def test_cached_claude_json_rezeroes_after_reset_passes(
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(tmp_path / "usage-status.json"))
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
-    monkeypatch.setattr(usage_client, "CLAUDE_JSON_FILE", str(claude_json_path))
+    monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
     fake_now = fetched_at + 1
     monkeypatch.setattr("usage_client.time.time", lambda: fake_now)
     _write_claude_json(claude_json_path, fetched_at)

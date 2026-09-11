@@ -7,7 +7,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import re
 import time
 from collections import Counter
@@ -16,15 +15,19 @@ from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
+from loaders.claude_paths import claude_config_dirs
 from loaders.jsonl_utils import iter_jsonl_dicts
 from project_resolver import project_from_encoded_path, resolve_project_name
 from usage_common.time_utils import parse_optional_iso8601_utc
 
 logger = logging.getLogger(__name__)
 
-CLAUDE_PROJECTS_DIR = Path(os.path.expanduser("~/.claude/projects"))
 _CACHE_TTL_SECONDS = 300.0
 _cache: dict[int, tuple[float, PersonaProfile]] = {}
+
+
+def _claude_projects_dirs() -> list[Path]:
+    return [path / "projects" for path in claude_config_dirs()]
 
 
 @dataclass(slots=True)
@@ -114,7 +117,7 @@ def _load_profile_uncached(days_back: int) -> PersonaProfile:
     cutoff = datetime.now(UTC) - timedelta(days=max(0, days_back))
     cutoff_ts = cutoff.timestamp()
 
-    if not CLAUDE_PROJECTS_DIR.is_dir():
+    if not any(path.is_dir() for path in _claude_projects_dirs()):
         return _empty_profile()
 
     jsonl_paths = _recent_jsonl_paths(cutoff_ts)
@@ -295,12 +298,13 @@ def _assistant_message_id(data: dict[str, Any]) -> str:
 
 def _recent_jsonl_paths(cutoff_ts: float) -> list[Path]:
     paths: list[Path] = []
-    for jsonl_path in CLAUDE_PROJECTS_DIR.rglob("*.jsonl"):
-        try:
-            if jsonl_path.stat().st_mtime >= cutoff_ts:
-                paths.append(jsonl_path)
-        except OSError as exc:
-            logger.warning("failed to stat Claude project log %s: %s", jsonl_path, exc)
+    for projects_dir in _claude_projects_dirs():
+        for jsonl_path in projects_dir.rglob("*.jsonl"):
+            try:
+                if jsonl_path.stat().st_mtime >= cutoff_ts:
+                    paths.append(jsonl_path)
+            except OSError as exc:
+                logger.warning("failed to stat Claude project log %s: %s", jsonl_path, exc)
     return paths
 
 
@@ -407,7 +411,13 @@ def _project_from_cwd(cwd: str) -> str:
 
 
 def _project_from_path(jsonl_path: Path) -> str:
-    return project_from_encoded_path(jsonl_path, CLAUDE_PROJECTS_DIR)
+    for projects_dir in _claude_projects_dirs():
+        try:
+            jsonl_path.relative_to(projects_dir)
+        except ValueError:
+            continue
+        return project_from_encoded_path(jsonl_path, projects_dir)
+    return "unknown"
 
 
 def _recent_unique_titles(

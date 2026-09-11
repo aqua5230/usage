@@ -15,10 +15,11 @@ from pathlib import Path
 from typing import Any
 
 from installer.setup_hook import _atomic_write_text
+from loaders.claude_paths import claude_home
 
 
 def _claude_settings_path() -> Path:
-    return Path(os.path.expanduser("~/.claude/settings.json"))
+    return claude_home() / "settings.json"
 
 
 def _load_claude_settings() -> dict[str, Any]:

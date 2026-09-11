@@ -19,8 +19,9 @@ from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
 from i18n import _t
 from installer.statusline_settings import _statusline_enabled
 from loaders import codex_loader, grok_loader
+from loaders.claude_paths import claude_config_dirs
 from loaders.codex_paths import codex_home
-from loaders.history_loader import CLAUDE_PROJECTS_DIR, UsageEntry, load_entries
+from loaders.history_loader import UsageEntry, load_entries
 from menubar.prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order
 from pricing import calculate_cost
 from quota.burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
@@ -238,9 +239,9 @@ def _jsonl_paths(root: Path) -> tuple[Path, ...]:
         return ()
 
 
-def _history_directory_sources() -> tuple[Path, Path, Path]:
+def _history_directory_sources() -> tuple[Path, ...]:
     return (
-        CLAUDE_PROJECTS_DIR,
+        *(path / "projects" for path in claude_config_dirs()),
         codex_loader.SESSIONS_DIR,
         codex_loader.ARCHIVED_SESSIONS_DIR,
     )
