@@ -45,6 +45,7 @@ def test_comma_separated_value_strips_expands_and_drops_empty_parts(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", " ~/a , , ~/b ")
 
     assert claude_paths.claude_config_dirs() == [tmp_path / "a", tmp_path / "b"]
@@ -93,6 +94,7 @@ def test_empty_or_failed_launchctl_falls_back_to_default(
     result: SimpleNamespace,
 ) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
     monkeypatch.setattr("loaders.claude_paths.sys.platform", "darwin")
     monkeypatch.setattr(
@@ -112,6 +114,7 @@ def test_launchctl_exception_falls_back_to_default(
     error: Exception,
 ) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
     monkeypatch.setattr("loaders.claude_paths.sys.platform", "darwin")
 
@@ -127,6 +130,7 @@ def test_non_darwin_does_not_call_launchctl(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
     monkeypatch.setattr("loaders.claude_paths.sys.platform", "linux")
     monkeypatch.setattr(
@@ -156,6 +160,7 @@ def test_claude_json_sits_inside_any_configured_dir_and_beside_the_default(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
     monkeypatch.setattr("loaders.claude_paths.sys.platform", "linux")
     assert claude_paths.claude_json_path() == tmp_path / ".claude.json"
@@ -178,6 +183,7 @@ def test_setup_without_config_dir_writes_default_settings(
     fixed_dir = tmp_path / ".claude"
     fixed_dir.mkdir()
     monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
     monkeypatch.setattr("loaders.claude_paths.sys.platform", "linux")
     hook_source = tmp_path / "hook-source.py"
@@ -197,7 +203,7 @@ def test_setup_without_config_dir_writes_default_settings(
     assert setup_hook.setup() == 0
 
     settings = json.loads((fixed_dir / "settings.json").read_text(encoding="utf-8"))
-    assert str(hook_target) in settings["statusLine"]["command"]
+    assert hook_target.as_posix() in settings["statusLine"]["command"]
 
 
 def test_setup_uses_relocated_settings_but_usage_reads_fixed_status_file(
@@ -210,6 +216,7 @@ def test_setup_uses_relocated_settings_but_usage_reads_fixed_status_file(
     fixed_dir.mkdir(parents=True)
     relocated_dir.mkdir()
     monkeypatch.setenv("HOME", str(user_home))
+    monkeypatch.setenv("USERPROFILE", str(user_home))
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(relocated_dir))
     claude_paths.cache_clear()
 
@@ -232,7 +239,7 @@ def test_setup_uses_relocated_settings_but_usage_reads_fixed_status_file(
 
     settings_path = relocated_dir / "settings.json"
     settings = json.loads(settings_path.read_text(encoding="utf-8"))
-    assert str(hook_target) in settings["statusLine"]["command"]
+    assert hook_target.as_posix() in settings["statusLine"]["command"]
     assert not (fixed_dir / "settings.json").exists()
 
     status_file.write_text(
@@ -266,6 +273,7 @@ def test_setup_does_not_create_a_missing_configured_directory(
     relocated_dir = tmp_path / "missing-config"
     fixed_dir.mkdir(parents=True)
     monkeypatch.setenv("HOME", str(user_home))
+    monkeypatch.setenv("USERPROFILE", str(user_home))
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(relocated_dir))
     claude_paths.cache_clear()
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", fixed_dir / "usage-statusline.py")

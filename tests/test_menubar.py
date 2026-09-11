@@ -968,6 +968,11 @@ def test_toggle_statusline_preserves_forwarder_settings(
     }
     settings.write_text(json.dumps(original, indent=2, ensure_ascii=False), encoding="utf-8")
     original_text = settings.read_text(encoding="utf-8")
+    # The forwarder target must exist, or re-enabling falls through to a fresh setup().
+    forwarder = claude_dir / ("tt" + "-statusline-usage-statusline-forward.py")
+    forwarder.write_text("", encoding="utf-8")
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
     monkeypatch.setattr("installer.setup_hook.is_agy_setup", lambda: False)
 
