@@ -203,7 +203,9 @@ def test_setup_without_config_dir_writes_default_settings(
     assert setup_hook.setup() == 0
 
     settings = json.loads((fixed_dir / "settings.json").read_text(encoding="utf-8"))
-    assert hook_target.as_posix() in settings["statusLine"]["command"]
+    command = settings["statusLine"]["command"]
+    # Windows quotes the path with backslashes or writes it with forward slashes.
+    assert str(hook_target) in command or hook_target.as_posix() in command
 
 
 def test_setup_uses_relocated_settings_but_usage_reads_fixed_status_file(
