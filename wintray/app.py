@@ -49,7 +49,7 @@ from menubar.prefs import (
     _window_keeper_enabled,
 )
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
-from panels.panel_scale import fit_panel_size, fit_scale
+from panels.panel_scale import MIN_PANEL_SCALE, fit_panel_size, fit_scale
 from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
@@ -1072,6 +1072,10 @@ class _WindowsTrayController:
         left, top, right, bottom = work_area
         return (max(left + 12, right - width - 12), max(top + 12, bottom - height - 12))
 
+    # The legibility floor uses physical pixels: CSS zoom times window DPI scale.
+    def _panel_minimum_scale(self) -> float:
+        return MIN_PANEL_SCALE / (self._window_dpi_scale() or 1.0)
+
     def _place_window(self, *, force_default: bool = False) -> None:
         current_position = self._current_window_position()
         work_area = self._work_area_for_point(current_position) or self._working_area()
@@ -1080,7 +1084,7 @@ class _WindowsTrayController:
             if work_area is not None
             else float(PANEL_HEIGHTS[self.active_panel_id])
         )
-        scale = fit_scale(self.panel_height(), maximum)
+        scale = fit_scale(self.panel_height(), maximum, self._panel_minimum_scale())
         zoom_applied = self._apply_panel_zoom(scale)
         if scale < 1.0 and not zoom_applied:
             return
@@ -1115,7 +1119,9 @@ class _WindowsTrayController:
         left, top, right, bottom = work_area
         maximum = float(bottom - top - 24)
         natural_height = self.panel_height()
-        fitted_width, fitted_height, scale = fit_panel_size(PANEL_WIDTH, natural_height, maximum)
+        fitted_width, fitted_height, scale = fit_panel_size(
+            PANEL_WIDTH, natural_height, maximum, self._panel_minimum_scale()
+        )
         width = int(round(fitted_width))
         height = int(round(fitted_height))
         self.window.resize(width, height)

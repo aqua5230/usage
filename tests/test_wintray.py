@@ -617,6 +617,80 @@ def test_physical_dpi_scaled_screens_use_logical_height_for_panel_zoom(
     assert mutations[0] == ("resize", 301, 792)
 
 
+def test_high_dpi_panel_zoom_can_fit_below_css_legibility_floor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    screens = [
+        SimpleNamespace(
+            x=0,
+            y=0,
+            width=2560,
+            height=1440,
+            frame=SimpleNamespace(Left=0, Top=0, Right=2560, Bottom=1258),
+            scale=1.0,
+        )
+    ]
+    monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
+    javascript: list[str] = []
+    mutations: list[tuple[str, int, int]] = []
+
+    def evaluate_js(code: str) -> bool:
+        javascript.append(code)
+        return True
+
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        x=0,
+        y=0,
+        evaluate_js=evaluate_js,
+        resize=lambda width, height: mutations.append(("resize", width, height)),
+        move=lambda *_args: None,
+    )
+    controller._content_height = 1064
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 2.25)
+
+    controller._place_window()
+
+    assert "usageApplyPanelZoom(0.5028195488721805, 1064)" in javascript[-1]
+    assert mutations[0] == ("resize", 191, 535)
+
+
+def test_standard_dpi_panel_zoom_keeps_css_legibility_floor(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    screens = [
+        SimpleNamespace(
+            x=0,
+            y=0,
+            width=1920,
+            height=1080,
+            frame=SimpleNamespace(Left=0, Top=0, Right=1920, Bottom=560),
+            scale=1.0,
+        )
+    ]
+    monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
+    javascript: list[str] = []
+
+    def evaluate_js(code: str) -> bool:
+        javascript.append(code)
+        return True
+
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        x=0,
+        y=0,
+        evaluate_js=evaluate_js,
+        resize=lambda *_args: None,
+        move=lambda *_args: None,
+    )
+    controller._content_height = 1064
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.0)
+
+    controller._place_window()
+
+    assert "usageApplyPanelZoom(0.6, 1064)" in javascript[-1]
+
+
 def test_content_height_keeps_the_panels_natural_height(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
