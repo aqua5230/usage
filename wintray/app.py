@@ -1021,7 +1021,8 @@ class _WindowsTrayController:
             return None
         if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
             return None
-        return (int(x), int(y))
+        scale = self._window_dpi_scale() or 1.0
+        return (int(round(x / scale)), int(round(y / scale)))
 
     def _current_window_position(self) -> tuple[int, int] | None:
         if self.window is None:
@@ -1035,6 +1036,24 @@ class _WindowsTrayController:
         if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
             return None
         return (int(x), int(y))
+
+    def _physical_window_position(self) -> tuple[int, int] | None:
+        if self.window is None:
+            return None
+        try:
+            native = self.window.native
+            x, y = native.Left, native.Top
+        except Exception:
+            x = y = None
+        if not isinstance(x, bool) and not isinstance(y, bool) and isinstance(
+            x, int | float
+        ) and isinstance(y, int | float):
+            return (int(round(x)), int(round(y)))
+        position = self._current_window_position()
+        if position is None:
+            return None
+        scale = self._window_dpi_scale() or 1.0
+        return (int(round(position[0] * scale)), int(round(position[1] * scale)))
 
     @staticmethod
     def _clamp_window_position(
@@ -1164,7 +1183,8 @@ class _WindowsTrayController:
                     logger.warning("Window mutation failed", exc_info=True)
 
     def _save_window_position(self) -> None:
-        position = self._current_window_position()
+        # Logical coordinates are tied to the window's current monitor DPI.
+        position = self._physical_window_position()
         if position is None:
             return
         preferences = _load_preferences()

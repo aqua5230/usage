@@ -382,6 +382,102 @@ def test_panel_position_is_clamped_and_persisted_on_hide(
     assert prefs._load_preferences()["usage.windowPosition"] == {"x": 123, "y": 234}
 
 
+def test_panel_position_is_saved_as_native_physical_pixels(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_path = tmp_path / "usage-preferences.json"
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        native=SimpleNamespace(Left=2520, Top=27), x=1120, y=12, hide=lambda: None
+    )
+    controller.visible = True
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 2.25)
+
+    controller.show_panel()
+
+    assert prefs._load_preferences()["usage.windowPosition"] == {"x": 2520, "y": 27}
+
+
+def test_panel_position_falls_back_to_scaled_logical_pixels(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_path = tmp_path / "usage-preferences.json"
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(x=1120, y=12, hide=lambda: None)
+    controller.visible = True
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 2.25)
+
+    controller.show_panel()
+
+    assert prefs._load_preferences()["usage.windowPosition"] == {"x": 2520, "y": 27}
+
+
+def test_physical_saved_position_returns_to_secondary_screen_after_restart(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_path = tmp_path / "usage-preferences.json"
+    preferences_path.write_text(
+        json.dumps({"usage.windowPosition": {"x": 2520, "y": 27}}), encoding="utf-8"
+    )
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
+    screens = [
+        SimpleNamespace(
+            x=0, y=0, width=1920, height=1080,
+            frame=SimpleNamespace(Left=0, Top=0, Right=1920, Bottom=1040), scale=1.0,
+        ),
+        SimpleNamespace(
+            x=1920, y=0, width=2560, height=1440,
+            frame=SimpleNamespace(Left=1920, Top=0, Right=4480, Bottom=1258), scale=1.0,
+        ),
+    ]
+    monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
+    moves: list[tuple[int, int]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        x=0, y=0, resize=lambda *_args: None, move=lambda x, y: moves.append((x, y))
+    )
+    controller._content_height = 400
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.0)
+
+    controller._place_window()
+
+    assert moves == [(2520, 27)]
+
+
+def test_physical_saved_position_uses_current_secondary_dpi_scale(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_path = tmp_path / "usage-preferences.json"
+    preferences_path.write_text(
+        json.dumps({"usage.windowPosition": {"x": 2520, "y": 27}}), encoding="utf-8"
+    )
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
+    screens = [
+        SimpleNamespace(
+            x=0, y=0, width=1920, height=1080,
+            frame=SimpleNamespace(Left=0, Top=0, Right=1920, Bottom=1040), scale=1.0,
+        ),
+        SimpleNamespace(
+            x=1920, y=0, width=2560, height=1440,
+            frame=SimpleNamespace(Left=1920, Top=0, Right=4480, Bottom=1258), scale=1.0,
+        ),
+    ]
+    monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
+    moves: list[tuple[int, int]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        x=0, y=0, resize=lambda *_args: None, move=lambda x, y: moves.append((x, y))
+    )
+    controller._content_height = 400
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 2.25)
+
+    controller._place_window()
+
+    assert moves == [(1120, 12)]
+
+
 def test_dpi_scaled_monitor_placement_uses_logical_coordinates(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -480,7 +576,7 @@ def test_physical_dpi_scaled_saved_position_is_clamped_to_logical_screen(
 
     controller._place_window()
 
-    assert moves == [(1144, 404)]
+    assert moves == [(1144, 358)]
 
 
 def test_physical_dpi_scaled_screens_use_logical_height_for_panel_zoom(
