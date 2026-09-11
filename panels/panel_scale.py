@@ -9,8 +9,10 @@ from typing import cast
 MIN_PANEL_SCALE = 0.6
 
 
-def fit_scale(natural_height: object, maximum: object) -> float:
-    """Ratio that fits natural_height into maximum, never below MIN_PANEL_SCALE."""
+def fit_scale(
+    natural_height: object, maximum: object, minimum_scale: float = MIN_PANEL_SCALE
+) -> float:
+    """Ratio that fits natural_height into maximum, never below minimum_scale."""
     if (
         isinstance(natural_height, bool)
         or isinstance(maximum, bool)
@@ -24,14 +26,17 @@ def fit_scale(natural_height: object, maximum: object) -> float:
         return 1.0
     if natural <= available:
         return 1.0
-    return max(MIN_PANEL_SCALE, available / natural)
+    return max(minimum_scale, available / natural)
 
 
 def fit_panel_size(
-    natural_width: object, natural_height: object, maximum: object
+    natural_width: object,
+    natural_height: object,
+    maximum: object,
+    minimum_scale: float = MIN_PANEL_SCALE,
 ) -> tuple[float, float, float]:
-    """Return (width, height, scale) fitted into maximum, height never exceeding it."""
-    scale = fit_scale(natural_height, maximum)
+    """Return (width, height, scale) fitted into maximum with a specified minimum scale."""
+    scale = fit_scale(natural_height, maximum, minimum_scale)
     if (
         isinstance(natural_width, bool)
         or not isinstance(natural_width, int | float)

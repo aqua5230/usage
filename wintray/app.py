@@ -49,7 +49,7 @@ from menubar.prefs import (
     _window_keeper_enabled,
 )
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
-from panels.panel_scale import fit_panel_size, fit_scale
+from panels.panel_scale import MIN_PANEL_SCALE, fit_panel_size, fit_scale
 from panels.payload import _load_panel_html, _state_payload
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
@@ -77,6 +77,8 @@ logger = logging.getLogger(__name__)
 SLOW_POLL_INTERVAL_S = 300
 HISTORY_SCAN_CACHE_SECONDS = 30.0
 UPDATE_ALERT_BODY_LIMIT = 2000
+# szTip is 128 WCHARs including the terminator; pystray raises ValueError past that.
+TOOLTIP_MAX_LENGTH = 127
 PANEL_WIDTH = 380
 _TOAST_AUMID = "com.lollapalooza.usage"
 _TOAST_OPEN_PANEL_ACTION = "open_panel"
@@ -586,7 +588,8 @@ def build_tooltip(state: menubar_state.PopoverState) -> str:
         )
     if not state.hide_grok:
         lines.append(line("Grok", state.grok_weekly))
-    return "\n".join(lines)
+    text = "\n".join(lines)
+    return text if len(text) <= TOOLTIP_MAX_LENGTH else text[:126] + "…"
 
 
 def draw_tray_icon(used_percent: float | None) -> Image:
@@ -925,8 +928,61 @@ class _WindowsTrayController:
             bounds = self._screen_rectangle(screen)
             work_area = self._screen_rectangle(getattr(screen, "frame", None)) or bounds
             if bounds is not None and work_area is not None:
-                result.append((bounds, work_area))
-        return result
+                result.append((bounds, work_area, getattr(screen, "scale", None)))
+
+        primary = next(
+            (
+                screen
+                for screen in result
+                if screen[0][0] <= 0 < screen[0][2] and screen[0][1] <= 0 < screen[0][3]
+            ),
+            result[0] if result else None,
+        )
+        window_scale = self._window_dpi_scale()
+        if (
+            primary is not None
+            and primary[2] == 1.0
+            and window_scale is not None
+            and window_scale != 1.0
+        ):
+            # pywebview 6.2.1 WinForms reports physical pixels while labeling scale as 1.
+            def scale_rectangle(
+                rectangle: tuple[int, int, int, int],
+            ) -> tuple[int, int, int, int]:
+                return (
+                    int(round(rectangle[0] / window_scale)),
+                    int(round(rectangle[1] / window_scale)),
+                    int(round(rectangle[2] / window_scale)),
+                    int(round(rectangle[3] / window_scale)),
+                )
+
+            return [
+                (
+                    scale_rectangle(bounds),
+                    scale_rectangle(work_area),
+                )
+                for bounds, work_area, _scale in result
+            ]
+        return [(bounds, work_area) for bounds, work_area, _scale in result]
+
+    def _window_dpi_scale(self) -> float | None:
+        if os.name != "nt":
+            return None
+        try:
+            library_name = "windll"
+            windll: Any = getattr(ctypes, library_name)
+            user32 = windll.user32
+            native = self.window.native
+            handle = native.Handle
+            to_int32 = getattr(handle, "ToInt32", None)
+            hwnd = to_int32() if callable(to_int32) else int(handle)
+            dpi = int(user32.GetDpiForWindow(hwnd))
+        except Exception:
+            try:
+                dpi = int(user32.GetDpiForSystem())
+            except Exception:
+                return None
+        return dpi / 96.0 if dpi > 0 else None
 
     def _working_area(self) -> tuple[int, int, int, int] | None:
         """Return the primary monitor work area in pywebview logical pixels."""
@@ -968,7 +1024,8 @@ class _WindowsTrayController:
             return None
         if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
             return None
-        return (int(x), int(y))
+        scale = self._window_dpi_scale() or 1.0
+        return (int(round(x / scale)), int(round(y / scale)))
 
     def _current_window_position(self) -> tuple[int, int] | None:
         if self.window is None:
@@ -982,6 +1039,24 @@ class _WindowsTrayController:
         if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
             return None
         return (int(x), int(y))
+
+    def _physical_window_position(self) -> tuple[int, int] | None:
+        if self.window is None:
+            return None
+        try:
+            native = self.window.native
+            x, y = native.Left, native.Top
+        except Exception:
+            x = y = None
+        if not isinstance(x, bool) and not isinstance(y, bool) and isinstance(
+            x, int | float
+        ) and isinstance(y, int | float):
+            return (int(round(x)), int(round(y)))
+        position = self._current_window_position()
+        if position is None:
+            return None
+        scale = self._window_dpi_scale() or 1.0
+        return (int(round(position[0] * scale)), int(round(position[1] * scale)))
 
     @staticmethod
     def _clamp_window_position(
@@ -1000,6 +1075,10 @@ class _WindowsTrayController:
         left, top, right, bottom = work_area
         return (max(left + 12, right - width - 12), max(top + 12, bottom - height - 12))
 
+    # The legibility floor uses physical pixels: CSS zoom times window DPI scale.
+    def _panel_minimum_scale(self) -> float:
+        return MIN_PANEL_SCALE / (self._window_dpi_scale() or 1.0)
+
     def _place_window(self, *, force_default: bool = False) -> None:
         current_position = self._current_window_position()
         work_area = self._work_area_for_point(current_position) or self._working_area()
@@ -1008,7 +1087,7 @@ class _WindowsTrayController:
             if work_area is not None
             else float(PANEL_HEIGHTS[self.active_panel_id])
         )
-        scale = fit_scale(self.panel_height(), maximum)
+        scale = fit_scale(self.panel_height(), maximum, self._panel_minimum_scale())
         zoom_applied = self._apply_panel_zoom(scale)
         if scale < 1.0 and not zoom_applied:
             return
@@ -1043,7 +1122,9 @@ class _WindowsTrayController:
         left, top, right, bottom = work_area
         maximum = float(bottom - top - 24)
         natural_height = self.panel_height()
-        fitted_width, fitted_height, scale = fit_panel_size(PANEL_WIDTH, natural_height, maximum)
+        fitted_width, fitted_height, scale = fit_panel_size(
+            PANEL_WIDTH, natural_height, maximum, self._panel_minimum_scale()
+        )
         width = int(round(fitted_width))
         height = int(round(fitted_height))
         self.window.resize(width, height)
@@ -1111,7 +1192,8 @@ class _WindowsTrayController:
                     logger.warning("Window mutation failed", exc_info=True)
 
     def _save_window_position(self) -> None:
-        position = self._current_window_position()
+        # Logical coordinates are tied to the window's current monitor DPI.
+        position = self._physical_window_position()
         if position is None:
             return
         preferences = _load_preferences()
@@ -1461,10 +1543,14 @@ class _WindowsTrayController:
             return
         self.visible = True
         self._place_window()
-        self.window.show()
+        self._dispatch_window_mutation(self._show_panel_on_ui_thread)
         self._update_taskbar_progress(self.latest_state.claude_session.percent)
         self.inject_state(force=True)
         self.refresh()
+
+    def _show_panel_on_ui_thread(self) -> None:
+        if self.visible and not self.stopping.is_set() and self.window is not None:
+            self.window.show()
 
     def _activate_panel(self) -> None:
         """Show or foreground the existing tray panel without toggling it closed."""
