@@ -29,6 +29,16 @@ def test_fit_scale(natural_height: object, maximum: object, expected: float) -> 
     assert fit_scale(natural_height, maximum) == expected
 
 
+def test_fit_scale_uses_supplied_minimum_for_high_dpi_panel() -> None:
+    minimum_scale = 0.6 / 2.25
+    assert fit_scale(1064.0, 535.0, minimum_scale=minimum_scale) == 535.0 / 1064.0
+
+
+def test_fit_scale_respects_supplied_minimum() -> None:
+    minimum_scale = 0.6 / 2.25
+    assert fit_scale(4000.0, 535.0, minimum_scale=minimum_scale) == minimum_scale
+
+
 @pytest.mark.parametrize(
     (
         "natural_width",
@@ -70,3 +80,11 @@ def test_fit_panel_size(
         assert width == expected_width
     assert height == expected_height
     assert scale == expected_scale
+
+
+def test_fit_panel_size_uses_supplied_minimum_for_high_dpi_panel() -> None:
+    minimum_scale = 0.6 / 2.25
+    width, height, scale = fit_panel_size(380.0, 1064.0, 535.0, minimum_scale)
+    assert height == 535.0
+    assert scale == 535.0 / 1064.0
+    assert width == 380.0 * scale
