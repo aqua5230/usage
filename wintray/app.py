@@ -925,8 +925,61 @@ class _WindowsTrayController:
             bounds = self._screen_rectangle(screen)
             work_area = self._screen_rectangle(getattr(screen, "frame", None)) or bounds
             if bounds is not None and work_area is not None:
-                result.append((bounds, work_area))
-        return result
+                result.append((bounds, work_area, getattr(screen, "scale", None)))
+
+        primary = next(
+            (
+                screen
+                for screen in result
+                if screen[0][0] <= 0 < screen[0][2] and screen[0][1] <= 0 < screen[0][3]
+            ),
+            result[0] if result else None,
+        )
+        window_scale = self._window_dpi_scale()
+        if (
+            primary is not None
+            and primary[2] == 1.0
+            and window_scale is not None
+            and window_scale != 1.0
+        ):
+            # pywebview 6.2.1 WinForms reports physical pixels while labeling scale as 1.
+            def scale_rectangle(
+                rectangle: tuple[int, int, int, int],
+            ) -> tuple[int, int, int, int]:
+                return (
+                    int(round(rectangle[0] / window_scale)),
+                    int(round(rectangle[1] / window_scale)),
+                    int(round(rectangle[2] / window_scale)),
+                    int(round(rectangle[3] / window_scale)),
+                )
+
+            return [
+                (
+                    scale_rectangle(bounds),
+                    scale_rectangle(work_area),
+                )
+                for bounds, work_area, _scale in result
+            ]
+        return [(bounds, work_area) for bounds, work_area, _scale in result]
+
+    def _window_dpi_scale(self) -> float | None:
+        if os.name != "nt":
+            return None
+        try:
+            library_name = "windll"
+            windll: Any = getattr(ctypes, library_name)
+            user32 = windll.user32
+            native = self.window.native
+            handle = native.Handle
+            to_int32 = getattr(handle, "ToInt32", None)
+            hwnd = to_int32() if callable(to_int32) else int(handle)
+            dpi = int(user32.GetDpiForWindow(hwnd))
+        except Exception:
+            try:
+                dpi = int(user32.GetDpiForSystem())
+            except Exception:
+                return None
+        return dpi / 96.0 if dpi > 0 else None
 
     def _working_area(self) -> tuple[int, int, int, int] | None:
         """Return the primary monitor work area in pywebview logical pixels."""
@@ -1461,10 +1514,14 @@ class _WindowsTrayController:
             return
         self.visible = True
         self._place_window()
-        self.window.show()
+        self._dispatch_window_mutation(self._show_panel_on_ui_thread)
         self._update_taskbar_progress(self.latest_state.claude_session.percent)
         self.inject_state(force=True)
         self.refresh()
+
+    def _show_panel_on_ui_thread(self) -> None:
+        if self.visible and not self.stopping.is_set() and self.window is not None:
+            self.window.show()
 
     def _activate_panel(self) -> None:
         """Show or foreground the existing tray panel without toggling it closed."""
