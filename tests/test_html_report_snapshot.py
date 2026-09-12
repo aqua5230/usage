@@ -594,7 +594,7 @@ def test_generate_html_adds_date_filter_cards_and_fixed_range_labels_for_cube() 
     assert [
         match.group(1)
         for match in re.finditer(r'<div class="card" data-card="([^"]+)"', html)
-    ] == ["tokens", "cost", "sessions", "messages", "active", "peak"]
+    ] == ["tokens", "cost", "active", "peak"]
     # 年度回顧、洞察、貢獻圖、使用習慣、最近在做什麼——五個不跟日期走的區塊
     assert html.count('class="fixed-range-tag"') == 5
     for class_name in ("trend-section", "composition-section", "session-section"):
@@ -817,7 +817,9 @@ def test_render_model_section_groups_models_and_shows_date_range() -> None:
     assert "—" in html
     styles = html_report._render_styles()
     assert ".rank-line.model-group .name{font-weight:600}" in styles
-    assert ".rank-line.model-child .name{padding-left:18px}" in styles
+    # 子列靠縮排＋壓深底色＋左側縱線跟母列區隔，三者缺一就分不出層級
+    assert "padding-left:34px" in styles
+    assert "inset 3px 0 0 var(--warn)" in styles
 
 
 def test_render_model_section_without_groups_keeps_flat_rendering() -> None:

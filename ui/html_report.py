@@ -544,7 +544,7 @@ def _cost_value(cost_usd: float, lang: str) -> tuple[str, str]:
 def _render_cards_section(
     cards: list[tuple[str, str, str]], *, interactive: bool = False
 ) -> str:
-    keys = ("tokens", "cost", "sessions", "messages", "active", "peak")
+    keys = ("tokens", "cost", "active", "peak")
     rendered = []
     for index, (label, value, sub) in enumerate(cards):
         card_key = f' data-card="{keys[index]}"' if interactive else ""
@@ -599,12 +599,10 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
     ]
 
     if isinstance(data.get("cube"), Mapping):
-        cards.extend(
-            [
-                (_t(lang, "sessions"), f'{int(summary["sessions"]):,}', ""),
-                (_t(lang, "messages"), f'{int(summary["messages"]):,}', ""),
-                (_t(lang, "kpi_active"), f'{int(summary["active_days"])}/{total_days}', ""),
-            ]
+        # 卡片維持原本四張：tokens、花費、活躍日、峰值。不要因為 cube 算得出
+        # 工作階段數與訊息數就多塞卡片，那是改版前沒有的東西。
+        cards.append(
+            (_t(lang, "kpi_active"), f'{int(summary["active_days"])}/{total_days}', "")
         )
         peak = _peak_day(data.get("daily_trend", []))
         peak_date, peak_tokens = peak if peak is not None else (str(data["date_from"]), 0)

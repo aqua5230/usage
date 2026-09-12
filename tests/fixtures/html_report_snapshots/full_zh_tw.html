@@ -220,9 +220,13 @@ h1{
 .rank-line[hidden]{display:none}
 .composition-section[hidden]{display:none}
 .rank-line.model-group .name{font-weight:600}
-.rank-line.model-child .name{padding-left:18px}
-.rank-line.model-child .model-name{padding-left:18px}
-.project-detail-caption{padding:6px 12px 2px 30px;color:var(--muted);font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
+/* 展開的子列要一眼看出「屬於上面那一列」：整段壓深底色、左側加一條縱線
+   框住，縮排拉大，長條也調淡，免得跟母列的長條搶視線。 */
+.rank-line.model-child,.project-detail-caption{
+  background:var(--soft);box-shadow:inset 3px 0 0 var(--warn)}
+.rank-line.model-child .name,.rank-line.model-child .model-name{padding-left:34px}
+.rank-line.model-child .share-bar span{opacity:.09}
+.project-detail-caption{padding:8px 12px 4px 34px;color:var(--muted);font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
 /* 可點開的列：箭頭是唯一的可展開提示，用跟裝飾性箭頭一樣的淡度會看不出來。 */
 .rank-line.model-group .arrow,.rank-line[data-project-index] .arrow{opacity:.85;font-size:1em;color:var(--text-soft)}
@@ -1656,8 +1660,6 @@ document.addEventListener('click', async (e) => {
       : '';
     updateCard('tokens', formatInteger(summary.tokens), tokenSub);
     updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join(' · '));
-    updateCard('sessions', formatInteger(summary.sessions), '');
-    updateCard('messages', formatInteger(summary.messages), '');
     updateCard('active', `${summary.activeDays}/${summary.totalDays}`, '');
     updateCard('peak', summary.peakDate, `${formatTokens(summary.peakTokens)} ${shareConfig.tokens}`);
   }

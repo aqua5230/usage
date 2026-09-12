@@ -722,8 +722,6 @@ REPORT_FILTER_JS = r"""(() => {
       : '';
     updateCard('tokens', formatInteger(summary.tokens), tokenSub);
     updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join(' · '));
-    updateCard('sessions', formatInteger(summary.sessions), '');
-    updateCard('messages', formatInteger(summary.messages), '');
     updateCard('active', `${summary.activeDays}/${summary.totalDays}`, '');
     updateCard('peak', summary.peakDate, `${formatTokens(summary.peakTokens)} ${shareConfig.tokens}`);
   }
