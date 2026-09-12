@@ -128,6 +128,15 @@ h1{
 .cursor{color:var(--token)}
 .cursor{display:inline-block;animation:blink 1.2s steps(2,start) infinite}
 .narrative{max-width:760px;margin:18px 0 0;color:var(--text-soft);font-size:1.02rem;line-height:1.6}
+/* 吸在視窗頂端：報表很長，捲到一半想換區間不該再捲回最上面。 */
+.date-filter{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 -24px 28px;padding:12px 24px;background:var(--bg);border-bottom:1px solid var(--card-border)}
+.date-shortcuts,.date-inputs{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.date-filter button,.date-filter input{border:1px solid var(--card-border);border-radius:7px;background:var(--panel);color:var(--text);font:inherit;font-size:.76rem;line-height:1.3}
+.date-filter button{padding:6px 10px;cursor:pointer}
+.date-filter button[aria-pressed="true"]{border-color:var(--cost);color:var(--cost);background:var(--control-hover)}
+.date-inputs label{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:.76rem}
+.date-filter input{padding:5px 8px;color-scheme:dark}
+.date-filter button:focus-visible,.date-filter input:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
 .meta{font-size:.82rem;text-align:right;white-space:nowrap;line-height:1.4}
 .header-actions{display:flex;flex-direction:column;align-items:flex-end;justify-self:end;gap:12px;min-width:max-content}
 .header-buttons{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
@@ -138,7 +147,7 @@ h1{
 """ + _light_rules("""
   .share-trigger:hover{border-color:var(--text-soft)}
 """) + """
-.share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
+.share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible,.rank-line[tabindex]:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:24px 0 32px;border-block:1px solid var(--card-border);background:var(--card-bg)}
 .card{padding:20px 16px;min-width:0;display:grid;grid-template-rows:minmax(2.2em,auto) auto minmax(2.8em,auto);align-content:start}
 .card+.card{border-left:1px solid var(--card-border)}
@@ -152,12 +161,12 @@ h1{
 .section{background:transparent;border:1px solid transparent;border-radius:0;margin-top:32px;padding:20px;box-shadow:none}
 .prompt{font-size:1.05rem;color:var(--text);margin-bottom:12px;font-weight:600;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;min-width:0;overflow-wrap:anywhere}
 .prompt span{font-size:.72rem;font-weight:400}
+.prompt .prompt-title{font:inherit;color:inherit}
+.fixed-range-tag{padding:1px 6px;border:1px solid var(--card-border);border-radius:999px;color:var(--muted);font-size:.64rem;font-weight:500;letter-spacing:.03em;white-space:nowrap}
 .rule{font-size:0;height:1px;background:var(--card-border);margin-bottom:20px;border:none}
 .insights-section{margin-block:24px;padding-block:8px}
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
 .insights-section .prompt{font-size:1.2rem}
-.one-pass-section{background:var(--soft);padding-block:16px;border-block-color:var(--card-border)}
-.one-pass-section .persona-card{padding:0}
 .composition-section,.model-section{margin-top:8px;padding-top:8px}
 .composition-section .prompt,.model-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
 .composition-section .rule,.model-section .rule,.recent-titles-section .rule{background:var(--faint);margin-bottom:12px}
@@ -175,11 +184,26 @@ h1{
 .rank-line{position:relative;overflow:hidden;padding:12px;color:var(--text-soft);border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
 .rank-line:hover{transform:none;border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent}
 .rank-line:last-child{border-bottom:none}
+.rank-line[data-agent-id],.rank-line[data-project-index]{cursor:pointer}
+/* .rank-line 用 class 指定 display:grid，權重高過瀏覽器預設的 [hidden]{display:none}，
+   沒有這一條收合只會改到 DOM、畫面照舊全開。 */
+.rank-line[hidden]{display:none}
+.composition-section[hidden]{display:none}
+.rank-line.model-group .name{font-weight:600}
+/* 展開的子列要一眼看出「屬於上面那一列」：整段壓深底色、左側加一條縱線
+   框住，縮排拉大，長條也調淡，免得跟母列的長條搶視線。 */
+.rank-line.model-child,.project-detail-caption{
+  background:var(--soft);box-shadow:inset 3px 0 0 var(--warn)}
+.rank-line.model-child .name,.rank-line.model-child .model-name{padding-left:34px}
+.rank-line.model-child .share-bar span{opacity:.09}
+.project-detail-caption{padding:8px 12px 4px 34px;color:var(--muted);font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
+/* 可點開的列：箭頭是唯一的可展開提示，用跟裝飾性箭頭一樣的淡度會看不出來。 */
+.rank-line.model-group .arrow,.rank-line[data-project-index] .arrow{opacity:.85;font-size:1em;color:var(--text-soft)}
 .rank-line>*,.tool-row>*{position:relative;z-index:1}
 /* The bar is absolute against the whole row, so .name must stay static — this
    rule has to follow the one above to win. (.tool-head does the same further down.) */
-.name{position:static;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:.9em;font-weight:normal}
+.name,.model-name{position:static;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:.9em;font-weight:normal}
 .share-bar{position:absolute;top:0;left:0;width:100%;height:100%;margin:0;overflow:hidden;border-radius:0;background:transparent;z-index:0;pointer-events:none}
 .share-bar span{display:block;height:100%;border-radius:0;background:var(--cost);opacity:.15}
 .pct{color:var(--text-soft)}
@@ -216,6 +240,9 @@ h1{
 .persona-card h3{margin:0 0 14px;color:var(--text);font-size:.95rem;font-weight:700}
 .persona-caption{margin:0 0 16px;color:var(--text-soft);font-size:.88rem;line-height:1.5}
 .persona-peak{margin-top:10px;text-align:right;color:var(--muted);font-size:.72rem;font-variant-numeric:tabular-nums}
+/* .share-bar 是 position:absolute，這一格沒有定位錨點的話，五條長條會全部
+   跑到頁面左上角疊成一塊。 */
+.tokens-cell{position:relative}
 .tokens-cell .share-bar{margin-top:5px;height:3px;max-width:96px;margin-left:auto}
 .persona-hours{display:grid;grid-template-columns:repeat(24,minmax(8px,1fr));gap:4px;align-items:end;height:176px;padding-top:8px}
 .persona-hour{display:grid;grid-template-rows:1fr auto;gap:7px;align-items:end;min-width:0;height:100%}
@@ -397,11 +424,14 @@ td:first-child{color:var(--warn)}
   header{display:block}
   .meta{text-align:left;margin-top:16px}
   .header-actions{align-items:flex-start;justify-self:start;min-width:0;margin-top:16px}
+  .date-filter{align-items:flex-start}
+  .date-inputs{width:100%}
   .rank-head,.tools-head{display:none}
   .rank-list{display:grid;gap:12px}
   .rank-line{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:none;border-bottom:1px solid var(--card-border);border-radius:0;background:transparent;box-shadow:none}
   .rank-line .arrow{display:none}
-  .rank-line .name{white-space:normal;font-weight:700;color:var(--text)}
+  .rank-line.model-group .arrow,.rank-line[data-project-index] .arrow{display:inline}
+  .rank-line .name,.rank-line .model-name{white-space:normal;font-weight:700;color:var(--text)}
   .rank-line .pct,.rank-line .tokens,.rank-line .cost,.tool-row .pct,.tool-row .tokens,.tool-row .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}
   .rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before,.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{content:attr(data-label);color:var(--muted);font-weight:500}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -451,6 +481,6 @@ td:first-child{color:var(--warn)}
   :root{--bg:#fff;--panel:#fff;--card-bg:#fff;--soft:#fff;--text:#1f2318;--text-soft:#34382b;--muted:#555b49;--token:#6b5318;--cost:#256b59;--warn:#8c4624;--accent-purple:#514a7a}
   body{background:#fff!important;color:#1f2318!important}
   .section,.card,.wrapped,.wrapped-section,.wrapped-card,.trend-row,.rank-line{break-inside:avoid}
-  .share-trigger,.share-dialog{display:none!important}
+  .share-trigger,.share-dialog,.date-filter{display:none!important}
   .card,.rank-line,.trend-row,.tool-row,.share-trigger,.share-close,.share-action,.sponsor a{box-shadow:none!important;transform:none!important}
 }""")

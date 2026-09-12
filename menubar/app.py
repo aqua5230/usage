@@ -1081,8 +1081,8 @@ def _generate_analysis_report(period: str = "month", language: str | None = None
     from ui.html_report import save_and_open
 
     agents = detect_agents()
-    data = build_report_data(agents, period)
-    return save_and_open(data, language=language)
+    data = build_report_data(agents, "all")
+    return save_and_open(data, language=language, default_range=period)
 
 
 def _analysis_period_from_project_range(project_range: str) -> str:

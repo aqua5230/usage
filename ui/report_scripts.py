@@ -179,7 +179,7 @@ async function withShareableReport(maskProjects, callback) {
   const restores = [];
   const detached = [];
   if (maskProjects) {
-    document.querySelectorAll('.project-section .name').forEach((el, i) => {
+    document.querySelectorAll('.project-section .rank-line .name').forEach((el, i) => {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
@@ -199,11 +199,13 @@ async function withShareableReport(maskProjects, callback) {
       restores.push({el, original: el.textContent});
       el.textContent = '—';
     });
-    const csvDataNode = document.querySelector('#usage-csv-data');
-    if (csvDataNode) {
-      detached.push({el: csvDataNode, parent: csvDataNode.parentNode, next: csvDataNode.nextSibling});
-      csvDataNode.remove();
-    }
+    ['#usage-csv-data', '#usage-cube-data', '#usage-session-data'].forEach((selector) => {
+      const dataNode = document.querySelector(selector);
+      if (dataNode) {
+        detached.push({el: dataNode, parent: dataNode.parentNode, next: dataNode.nextSibling});
+        dataNode.remove();
+      }
+    });
   }
   document.querySelectorAll('[data-share-dialog], [data-share-open]').forEach((el) => {
     detached.push({el, parent: el.parentNode, next: el.nextSibling});
@@ -212,7 +214,7 @@ async function withShareableReport(maskProjects, callback) {
   try {
     return await callback(reportRoot);
   } finally {
-    detached.forEach((item) => {
+    detached.slice().reverse().forEach((item) => {
       item.parent.insertBefore(item.el, item.next);
     });
     restores.forEach((item) => {
@@ -230,7 +232,11 @@ async function downloadHtml(maskProjects) {
 }
 
 async function downloadCsv(maskProjects) {
-  const csvText = maskProjects ? maskedCsvData : csvData;
+  // 有日期選擇器時，CSV 要跟著當下選中的區間走；舊報表沒有 cube，就用產生時寫死的那兩份。
+  const rangeCsv = window.usageReportFilter && window.usageReportFilter.buildCsv;
+  const csvText = rangeCsv
+    ? rangeCsv(Boolean(maskProjects))
+    : (maskProjects ? maskedCsvData : csvData);
   const blob = new Blob([csvText], {type: 'text/csv;charset=utf-8'});
   downloadBlob(blob, buildShareFilename('csv'));
 }

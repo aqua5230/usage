@@ -17,6 +17,7 @@ import pytest
 
 from analyzer.reporter import DailyTrendPoint
 from ui import html_report
+from ui.report_filter import REPORT_FILTER_JS
 
 SNAPSHOT_DIR = Path(__file__).resolve().parent / "fixtures" / "html_report_snapshots"
 
@@ -148,6 +149,47 @@ def _full_report_data() -> dict[str, Any]:
             {"model": "gpt-5-codex", "pct": 36.6, "tokens": 858918, "cost": 16.70},
             {"model": "unknown", "pct": 11.0, "tokens": 258415, "cost": 5.07},
         ],
+        "by_agent_model": [
+            {
+                "agent_id": "claude-code",
+                "name": "Claude Code",
+                "pct": 52.4,
+                "tokens": 1229345,
+                "cost": 23.91,
+                "cost_known": True,
+                "models": [
+                    {"model": "claude-sonnet-4", "pct": 52.4, "tokens": 1229345, "cost": 23.91},
+                ],
+            },
+            {
+                "agent_id": "codex",
+                "name": "Codex",
+                "pct": 36.6,
+                "tokens": 858918,
+                "cost": 16.70,
+                "cost_known": True,
+                "models": [
+                    {"model": "gpt-5-codex", "pct": 36.6, "tokens": 858918, "cost": 16.70},
+                ],
+            },
+            {
+                "agent_id": "grok",
+                "name": "Grok",
+                "pct": 11.0,
+                "tokens": 258415,
+                "cost": 0.0,
+                "cost_known": False,
+                "models": [
+                    {
+                        "model": "unknown",
+                        "pct": 11.0,
+                        "tokens": 258415,
+                        "cost": 0.0,
+                        "cost_known": False,
+                    },
+                ],
+            },
+        ],
         "daily_trend": [
             {"date": "2026-05-04", "tokens": 120000, "cost": 2.34},
             {"date": "2026-05-05", "tokens": 180000, "cost": 3.45},
@@ -166,31 +208,6 @@ def _full_report_data() -> dict[str, Any]:
         "persona": {
             "hour_histogram": histogram,
             "recent_titles": ["Ship HTML report", "Ignore in current renderer"],
-            "one_pass": {
-                "total": {
-                    "sessions": 478,
-                    "turns": 4460,
-                    "interruptions": 220,
-                    "denied_tools": 130,
-                    "pass_rate": 93.0,
-                },
-                "models": [
-                    {
-                        "model": "claude-opus-5",
-                        "turns": 2481,
-                        "interruptions": 74,
-                        "denied_tools": 87,
-                        "pass_rate": 91.9,
-                    },
-                    {
-                        "model": "claude-sonnet-5",
-                        "turns": 1900,
-                        "interruptions": 45,
-                        "denied_tools": 43,
-                        "pass_rate": 94.2,
-                    },
-                ],
-            },
         },
         "top_sessions": [
             {
@@ -477,7 +494,157 @@ def test_masked_html_export_removes_unmasked_csv_data() -> None:
         "const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;"
         in html
     )
-    assert "csvDataNode.remove();" in html
+    assert "dataNode.remove();" in html
+
+
+def test_generate_html_embeds_compact_cube_and_session_json() -> None:
+    data = _empty_report_data()
+    data["cube"] = {
+        "dates": ["2026-05-21"],
+        "agents": [{"id": "codex", "name": "Codex"}],
+        "models": [{"name": "gpt-test", "cost_known": False}],
+        "projects": ["client</script>portal"],
+        "rows": [[0, 0, 0, 0, 10, 2, 0, 0, 0.25, 1]],
+    }
+    data["sessions"] = [
+        {
+            "date_idx": 0,
+            "project_idx": 0,
+            "model_idx": 0,
+            "start_time": "2026-05-21 10:00",
+            "duration_min": 2.0,
+            "tokens": 12,
+            "cost": 0.25,
+        }
+    ]
+
+    html = html_report.generate_html(data, language="en")
+
+    assert '<script type="application/json" id="usage-cube-data">' in html
+    assert '<script type="application/json" id="usage-session-data">' in html
+    assert 'client<\\/script>portal' in html
+    assert '"dates":["2026-05-21"],"agents"' in html
+
+
+def test_generate_html_omits_optional_cube_and_session_nodes() -> None:
+    html = html_report.generate_html(_empty_report_data(), language="en")
+
+    assert 'id="usage-cube-data"' not in html
+    assert 'id="usage-session-data"' not in html
+    assert 'data-agent-id="' not in html
+    assert 'data-project-index="' not in html
+    assert '<div class="date-filter" data-date-filter>' not in html
+    assert '<div class="card" data-card="' not in html
+    assert 'class="fixed-range-tag"' not in html
+
+
+def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
+    data = _full_report_data()
+    data["cube"] = {
+        "dates": ["2026-05-21"],
+        "agents": [
+            {"id": "claude-code", "name": "Claude Code"},
+            {"id": "codex", "name": "Codex"},
+            {"id": "grok", "name": "Grok"},
+        ],
+        "models": [
+            {"name": "claude-sonnet-4", "cost_known": True},
+            {"name": "gpt-5-codex", "cost_known": True},
+            {"name": "unknown", "cost_known": False},
+        ],
+        "projects": ["client<portal>", "usage"],
+        "rows": [
+            [0, 0, 0, 1, 10, 20, 30, 40, 1.25, 1],
+            [0, 1, 1, 1, 20, 30, 40, 50, 2.5, 1],
+            [0, 2, 2, 0, 1, 2, 3, 4, 0.0, 1],
+        ],
+    }
+
+    html = html_report.generate_html(data, language="en")
+
+    assert html.count('class="rank-line model-group"') == 3
+    assert 'data-agent-id="claude-code"' in html
+    assert 'data-project-index="1"' in html
+    assert 'data-project-index="0"' in html
+    assert re.search(
+        r'<div class="rank-line"><span class="arrow">→</span>'
+        r'<span class="name">unknown',
+        html,
+    )
+    assert "window.usageReportFilter = {cube, aggregateRows, normalizeBounds" in html
+    assert REPORT_FILTER_JS in html
+
+
+def test_generate_html_adds_date_filter_cards_and_fixed_range_labels_for_cube() -> None:
+    data = _full_report_data()
+    data["cube"] = {
+        "dates": ["2026-05-01", "2026-05-24"],
+        "agents": [{"id": "codex", "name": "Codex"}],
+        "models": [{"name": "gpt-test", "cost_known": True}],
+        "projects": ["usage"],
+        "rows": [[1, 0, 0, 0, 10, 20, 30, 40, 1.25, 2]],
+    }
+
+    html = html_report.generate_html(data, language="en", default_range="last7")
+
+    assert '<body data-default-range="last7">' in html
+    assert 'data-date-filter' in html
+    assert 'min="2026-05-01" max="2026-05-24"' in html
+    assert html.count('data-range="') == 5
+    assert [
+        match.group(1)
+        for match in re.finditer(r'<div class="card" data-card="([^"]+)"', html)
+    ] == ["tokens", "cost", "active", "peak"]
+    # 年度回顧、洞察、貢獻圖、使用習慣、最近在做什麼——五個不跟日期走的區塊
+    assert html.count('class="fixed-range-tag"') == 5
+    for class_name in ("trend-section", "composition-section", "session-section"):
+        section = re.search(
+            rf'<section class="section {class_name}">.*?</section>', html, re.S
+        )
+        assert section, class_name
+        assert "fixed-range-tag" not in section.group(0)
+    for class_name in (
+        "persona-section",
+        "contribution-section",
+        "wrapped-section",
+        "insights-section",
+    ):
+        section = re.search(
+            rf'<section class="section {class_name}">.*?</section>', html, re.S
+        )
+        assert section, class_name
+        assert "fixed-range-tag" in section.group(0)
+
+
+def test_generate_html_without_cube_keeps_python_rendered_filter_sections() -> None:
+    html = html_report.generate_html(_full_report_data(), language="en")
+
+    assert '<div class="date-filter" data-date-filter>' not in html
+    assert 'id="usage-cube-data"' not in html
+    assert 'id="usage-session-data"' not in html
+    assert '<span class="week">W19</span>' in html
+    assert "Cache read" in html
+    assert "2026-05-20 09:15" in html
+    assert 'class="section trend-section"' in html
+    assert 'class="section composition-section"' in html
+    assert 'class="section session-section"' in html
+    assert '"trendCompareFirst"' not in html
+
+
+def test_report_filter_script_uses_safe_dom_construction_and_separate_model_name() -> None:
+    assert "innerHTML" not in REPORT_FILTER_JS
+    assert "document.createElement" in REPORT_FILTER_JS
+    assert "appendTextSpan(row, 'model-name', modelName)" in REPORT_FILTER_JS
+    assert "appendTextSpan(row, 'name model-name', modelName)" not in REPORT_FILTER_JS
+
+
+def test_masked_share_covers_both_project_lists_and_private_data_nodes() -> None:
+    html = html_report.generate_html(_full_report_data(), language="en")
+
+    assert ".project-section .rank-line .name" in html
+    assert ".project-section .lg-name" in html
+    assert "['#usage-csv-data', '#usage-cube-data', '#usage-session-data']" in html
+    assert "detached.slice().reverse().forEach" in html
 
 
 def test_insight_naming_a_project_masks_only_the_name() -> None:
@@ -595,6 +762,85 @@ def test_render_model_section_shows_dash_for_unpriced_models() -> None:
     assert "glm-5.2" in html
     assert "—" in html
     assert "$0.00" not in html
+
+
+def test_render_model_section_groups_models_and_shows_date_range() -> None:
+    data = {
+        "date_from": "2026-05-01",
+        "date_to": "2026-05-31",
+        "by_agent_model": [
+            {
+                "agent_id": "codex",
+                "name": "Codex",
+                "tokens": 150,
+                "cost": 1.5,
+                "cost_known": True,
+                "pct": 75.0,
+                "models": [
+                    {
+                        "model": "gpt-5-codex",
+                        "tokens": 150,
+                        "cost": 1.5,
+                        "cost_known": True,
+                        "pct": 75.0,
+                    }
+                ],
+            },
+            {
+                "agent_id": "antigravity",
+                "name": "Antigravity",
+                "tokens": 50,
+                "cost": 0.0,
+                "cost_known": False,
+                "pct": 25.0,
+                "models": [
+                    {
+                        "model": "gemini-unknown",
+                        "tokens": 50,
+                        "cost": 0.0,
+                        "cost_known": False,
+                        "pct": 25.0,
+                    }
+                ],
+            },
+        ],
+    }
+
+    html = html_report._render_model_section(data, "en")
+
+    assert "Most-used models  2026-05-01 → 2026-05-31" in html
+    assert html.count('class="rank-line model-group"') == 2
+    assert html.count('class="rank-line model-child"') == 2
+    assert '<span class="arrow">▎</span><span class="name">Codex' in html
+    assert "gpt-5-codex" in html
+    assert "gemini-unknown" in html
+    assert "—" in html
+    styles = html_report._render_styles()
+    assert ".rank-line.model-group .name{font-weight:600}" in styles
+    # 子列靠縮排＋壓深底色＋左側縱線跟母列區隔，三者缺一就分不出層級
+    assert "padding-left:34px" in styles
+    assert "inset 3px 0 0 var(--warn)" in styles
+
+
+def test_render_model_section_without_groups_keeps_flat_rendering() -> None:
+    by_model = [
+        {"model": "gpt-5-codex", "pct": 100.0, "tokens": 100, "cost": 1.0},
+    ]
+    expected = html_report._render_model_section({"by_model": by_model}, "en")
+    html = html_report._render_model_section(
+        {
+            "date_from": "2026-05-01",
+            "date_to": "2026-05-31",
+            "by_model": by_model,
+        },
+        "en",
+    )
+
+    assert html == expected
+    assert 'class="rank-line"' in html
+    assert "model-group" not in html
+    assert "model-child" not in html
+    assert "2026-05-01" not in html
 
 
 def test_build_csv_data_shows_dash_for_unpriced_models() -> None:
@@ -733,55 +979,3 @@ def test_model_share_bar_uses_provider_color(model: str, color: str) -> None:
     html = html_report._render_model_section(data, "en")
 
     assert f'background:{color}' in html
-
-
-def test_one_pass_card_hides_when_stats_are_empty() -> None:
-    histogram = [0] * 24
-    histogram[9] = 1
-
-    html = html_report._persona_body(
-        {"hour_histogram": histogram, "one_pass": None},
-        "en",
-    )
-
-    assert "Active hours" in html
-    assert "One-pass rate" not in html
-    assert "one-pass-card" not in html
-
-
-def test_one_pass_card_shows_top_five_models_with_provider_colors() -> None:
-    histogram = [0] * 24
-    histogram[9] = 30
-    models = [
-        {
-            "model": f"claude-model-{index}",
-            "turns": turns,
-            "interruptions": 0,
-            "denied_tools": 0,
-            "pass_rate": 90.0 + index,
-        }
-        for index, turns in enumerate([10, 60, 50, 40, 30, 20])
-    ]
-    html = html_report._one_pass_card(
-        {
-            "hour_histogram": histogram,
-            "one_pass": {
-                "total": {
-                    "sessions": 7,
-                    "turns": 210,
-                    "interruptions": 2,
-                    "denied_tools": 3,
-                    "pass_rate": 97.6,
-                },
-                "models": models,
-            },
-        },
-        "en",
-    )
-
-    assert "This period: 7 sessions, 2 interruptions, and 3 blocked tool calls." in html
-    assert html.count('class="rank-line"') == 5
-    assert "claude-model-0" not in html
-    assert "claude-model-1" in html
-    assert "User turns: 60" in html
-    assert "background:#5abfa0" in html

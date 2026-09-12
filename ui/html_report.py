@@ -32,6 +32,7 @@ from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
 from usage_common.subprocess_utils import hidden_console_kwargs
 from ui.report_charts import render_share_bar, render_trend_bar
+from ui.report_filter import REPORT_FILTER_JS
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE, REPORT_THEME_INIT_JS
 from ui.report_styles import REPORT_CSS
 
@@ -100,15 +101,32 @@ def _localized_text(value: object, lang: str) -> str:
     return ""
 
 
-def _section(title: str, body: str, class_name: str = "") -> str:
+def _section(
+    title: str,
+    body: str,
+    class_name: str = "",
+    *,
+    fixed_label: str = "",
+    dynamic_title: bool = False,
+) -> str:
     classes = "section" if not class_name else f"section {class_name}"
+    if fixed_label or dynamic_title:
+        title_html = f'<span class="prompt-title">{html.escape(title)}</span>'
+        if fixed_label:
+            title_html += f'<small class="fixed-range-tag">{html.escape(fixed_label)}</small>'
+    else:
+        title_html = html.escape(title)
     return f"""
     <section class="{classes}">
-      <div class="prompt"><span>[usage]&gt;</span> {html.escape(title)}</div>
+      <div class="prompt"><span>[usage]&gt;</span> {title_html}</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
       {body}
     </section>
     """
+
+
+def _fixed_range_label(data: Mapping[str, Any], lang: str) -> str:
+    return _t(lang, "fixed_range") if isinstance(data.get("cube"), Mapping) else ""
 
 
 def _empty_line(label: str) -> str:
@@ -122,10 +140,19 @@ def _rank_line(
     cost: float | None,
     lang: str,
     color: str | None = None,
+    *,
+    row_class: str = "",
+    arrow: str = "→",
+    data_attributes: Mapping[str, object] | None = None,
 ) -> str:
+    classes = "rank-line" if not row_class else f"rank-line {row_class}"
+    attributes = "".join(
+        f' data-{key}="{html.escape(str(value), quote=True)}"'
+        for key, value in (data_attributes or {}).items()
+    )
     return (
-        '<div class="rank-line">'
-        f'<span class="arrow">→</span><span class="name">{html.escape(name)}{render_share_bar(pct, color)}</span>'
+        f'<div class="{classes}"{attributes}>'
+        f'<span class="arrow">{arrow}</span><span class="name">{html.escape(name)}{render_share_bar(pct, color)}</span>'
         f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">{pct:>5.1f}%</span>'
         f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
         f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(cost)}</span>'
@@ -318,68 +345,10 @@ def _hour_histogram_html(histogram: list[int], lang: str) -> str:
     return f'<div class="persona-hours">{"".join(bars)}</div>{peak}'
 
 
-def _one_pass_card(persona: Mapping[str, object], lang: str) -> str:
-    raw_stats = persona.get("one_pass")
-    if not isinstance(raw_stats, Mapping):
-        return ""
-    raw_total = raw_stats.get("total")
-    raw_models = raw_stats.get("models")
-    if not isinstance(raw_total, Mapping) or not isinstance(raw_models, list):
-        return ""
-    if _nonnegative_int(raw_total.get("turns")) <= 0:
-        return ""
-
-    models: list[tuple[str, int, float]] = []
-    for raw_model in raw_models:
-        if not isinstance(raw_model, Mapping):
-            continue
-        model = str(raw_model.get("model") or "unknown")
-        turns = _nonnegative_int(raw_model.get("turns"))
-        pass_rate = _bounded_pct(raw_model.get("pass_rate"))
-        if turns > 0:
-            models.append((model, turns, pass_rate))
-    models.sort(key=lambda item: (-item[2], item[0]))
-    if not models:
-        return ""
-
-    rows = []
-    for model, turns, pass_rate in models[:5]:
-        rows.append(
-            '<div class="rank-line">'
-            '<span class="arrow">&rarr;</span>'
-            f'<span class="name">{_escape(_display_name(model, lang))}'
-            f'{render_share_bar(pass_rate, _model_share_color(model))}</span>'
-            f'<span class="pct" data-label="{_escape(_t(lang, "persona_one_pass_title"))}">{pass_rate:.1f}%</span>'
-            f'<span class="tokens" data-label="">'
-            f'{_escape(_t(lang, "persona_one_pass_turns", turns=turns))}</span>'
-            "</div>"
-        )
-
-    summary = _t(
-        lang,
-        "persona_one_pass_summary",
-        sessions=_nonnegative_int(raw_total.get("sessions")),
-        interruptions=_nonnegative_int(raw_total.get("interruptions")),
-        denied_tools=_nonnegative_int(raw_total.get("denied_tools")),
-    )
-    return (
-        '<div class="persona-card one-pass-card">'
-        f'<p class="persona-caption">{_escape(summary)}</p>'
-        f'<div class="rank-list">{"".join(rows)}</div>'
-        "</div>"
-    )
-
-
 def _nonnegative_int(value: object) -> int:
     if isinstance(value, bool) or not isinstance(value, int | float):
         return 0
     return max(0, int(value))
-
-
-def _bounded_pct(value: object) -> float:
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        return 0.0
-    return max(0.0, min(100.0, float(value)))
 
 
 def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:
@@ -485,9 +454,18 @@ def _tools_body(
         plan_html = f'<span class="sub-plan">{_escape(str(plan))}</span>' if plan else ""
         return plan_html + since_html
 
-    def _row(name: str, plan_html: str, stats_html: str, share_html: str = "") -> str:
+    def _row(
+        name: str,
+        plan_html: str,
+        stats_html: str,
+        share_html: str = "",
+        agent_id: str = "",
+    ) -> str:
+        agent_attr = (
+            f' data-agent-id="{html.escape(agent_id, quote=True)}"' if agent_id else ""
+        )
         return (
-            '<div class="tool-row">'
+            f'<div class="tool-row"{agent_attr}>'
             f'<div class="tool-head"><span class="sub-agent">{_escape(name)}</span>{plan_html}'
             f"{share_html}</div>"
             f"{stats_html}"
@@ -508,6 +486,7 @@ def _tools_body(
                 _plan_html(by_name.get(str(agent["name"]))),
                 stats_html,
                 render_share_bar(float(agent["pct"]), _agent_share_color(agent["id"])),
+                str(agent["id"]),
             )
         )
 
@@ -550,7 +529,7 @@ def _narrative(data: ReportData, lang: str, is_empty: bool) -> str:
         lang,
         "narrative",
         tokens=_fmt_tokens(int(summary["total_tokens"])),
-        projects=len(data.get("by_project", [])),
+        projects=int(summary.get("projects", len(data.get("by_project", [])))),
         peak_date=str(peak_date),
         peak_tokens=_fmt_tokens(int(peak_tokens)),
         top_model=_display_name(top_model, lang),
@@ -562,8 +541,19 @@ def _cost_value(cost_usd: float, lang: str) -> tuple[str, str]:
     return main, ""
 
 
-def _render_cards_section(cards: list[tuple[str, str, str]]) -> str:
-    return f"""<section class="cards">{''.join(f'<div class="card"><span>{html.escape(label)}</span><b>{html.escape(value)}</b>' + (f'<i>{html.escape(sub)}</i>' if sub else '') + '</div>' for label, value, sub in cards)}</section>"""
+def _render_cards_section(
+    cards: list[tuple[str, str, str]], *, interactive: bool = False
+) -> str:
+    keys = ("tokens", "cost", "active", "peak")
+    rendered = []
+    for index, (label, value, sub) in enumerate(cards):
+        card_key = f' data-card="{keys[index]}"' if interactive else ""
+        sub_html = f'<i>{html.escape(sub)}</i>' if sub else ""
+        rendered.append(
+            f'<div class="card"{card_key}><span>{html.escape(label)}</span>'
+            f'<b>{html.escape(value)}</b>{sub_html}</div>'
+        )
+    return f'<section class="cards">{"".join(rendered)}</section>'
 
 
 def _delta_sub(current: float, prev: float, vs_prev_label: str) -> str:
@@ -603,10 +593,23 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
         )
         cost_sub = f"{cost_sub} · {cost_unpriced}" if cost_sub else cost_unpriced
 
-    cards = [
+    cards: list[tuple[str, str, str]] = [
         (_t(lang, "kpi_tokens"), f"{total_tokens:,}", tokens_sub),
         (_t(lang, "kpi_cost"), cost_main, cost_sub),
     ]
+
+    if isinstance(data.get("cube"), Mapping):
+        # 卡片維持原本四張：tokens、花費、活躍日、峰值。不要因為 cube 算得出
+        # 工作階段數與訊息數就多塞卡片，那是改版前沒有的東西。
+        cards.append(
+            (_t(lang, "kpi_active"), f'{int(summary["active_days"])}/{total_days}', "")
+        )
+        peak = _peak_day(data.get("daily_trend", []))
+        peak_date, peak_tokens = peak if peak is not None else (str(data["date_from"]), 0)
+        cards.append(
+            (_t(lang, "kpi_peak_day"), peak_date, f"{_fmt_tokens(peak_tokens)} {_t(lang, 'tokens')}")
+        )
+        return cards
 
     if total_days > 1:
         cards.append(
@@ -620,10 +623,43 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
     return cards
 
 
+def _date_filter(data: Mapping[str, Any], lang: str) -> str:
+    cube = data.get("cube")
+    if not isinstance(cube, Mapping):
+        return ""
+    dates = cube.get("dates")
+    if not isinstance(dates, list) or not dates:
+        return ""
+    date_min = _escape(dates[0])
+    date_max = _escape(dates[-1])
+    buttons = "".join(
+        f'<button type="button" data-range="{key}">{_escape(_t(lang, label))}</button>'
+        for key, label in (
+            ("today", "range_today"),
+            ("last7", "range_last7"),
+            ("last30", "range_last30"),
+            ("month", "range_month"),
+            ("all", "range_all"),
+        )
+    )
+    return (
+        '<div class="date-filter" data-date-filter>'
+        f'<div class="date-shortcuts">{buttons}</div>'
+        '<div class="date-inputs">'
+        f'<label>{_escape(_t(lang, "date_from"))}<input type="date" data-date-from min="{date_min}" max="{date_max}"></label>'
+        f'<label>{_escape(_t(lang, "date_to"))}<input type="date" data-date-to min="{date_min}" max="{date_max}"></label>'
+        '</div></div>'
+    )
+
+
 def _render_header(data: ReportData, lang: str, title: str, generated_at: str, is_empty: bool) -> str:
+    period = html.escape(str(data["period_label"]))
+    if isinstance(data.get("cube"), Mapping):
+        period = f'<span data-report-period>{period}</span>'
+    date_filter_html = ""
     return f"""<header>
     <div>
-      <div class="eyebrow"><span>$ usage report</span> --period {html.escape(str(data["period_label"]))}<span class="cursor">_</span></div>
+      <div class="eyebrow"><span>$ usage report</span> --period {period}<span class="cursor">_</span></div>{date_filter_html}
       <h1>{html.escape(title)}</h1>
       <p class="narrative">{html.escape(_narrative(data, lang, is_empty))}</p>
     </div>
@@ -659,6 +695,11 @@ def _render_share_dialog(lang: str) -> str:
 
 def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
     projects = data.get("by_project", [])
+    cube = data.get("cube")
+    cube_projects = cube.get("projects", []) if isinstance(cube, Mapping) else []
+    project_indices = {
+        str(project): index for index, project in enumerate(cube_projects)
+    }
     colors = _project_share_colors(
         [(_display_name(project["project"], lang), int(project["tokens"])) for project in projects]
     )
@@ -670,6 +711,11 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
             float(project["cost"]),
             lang,
             colors[index],
+            data_attributes=(
+                {"project-index": project_indices[str(project["project"])]}
+                if str(project["project"]) in project_indices
+                else None
+            ),
         )
         for index, project in enumerate(projects)
     ]
@@ -690,17 +736,54 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
 
 
 def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
-    model_rows = [
-        _rank_line(
-            _display_name(model["model"], lang),
-            float(model["pct"]),
-            int(model["tokens"]),
-            None if not model.get("cost_known", True) else float(model["cost"]),
-            lang,
-            _model_share_color(model["model"]),
-        )
-        for model in data.get("by_model", [])
-    ]
+    grouped_models = data.get("by_agent_model")
+    has_cube = isinstance(data.get("cube"), Mapping)
+    if grouped_models:
+        model_rows = []
+        for group in grouped_models:
+            model_rows.append(
+                _rank_line(
+                    _display_name(group["name"], lang),
+                    float(group["pct"]),
+                    int(group["tokens"]),
+                    None if not group.get("cost_known", True) else float(group["cost"]),
+                    lang,
+                    _agent_share_color(group["agent_id"]),
+                    row_class="model-group",
+                    arrow="▎",
+                    data_attributes=(
+                        {"agent-id": group["agent_id"]} if has_cube else None
+                    ),
+                )
+            )
+            model_rows.extend(
+                _rank_line(
+                    _display_name(model["model"], lang),
+                    float(model["pct"]),
+                    int(model["tokens"]),
+                    None if not model.get("cost_known", True) else float(model["cost"]),
+                    lang,
+                    _model_share_color(model["model"]),
+                    row_class="model-child",
+                )
+                for model in group["models"]
+            )
+        title = _t(lang, "model_section")
+        if data.get("date_from") and data.get("date_to"):
+            title = f'{title}  {data["date_from"]} → {data["date_to"]}'
+    else:
+        model_rows = [
+            _rank_line(
+                _display_name(model["model"], lang),
+                float(model["pct"]),
+                int(model["tokens"]),
+                None if not model.get("cost_known", True) else float(model["cost"]),
+                lang,
+                _model_share_color(model["model"]),
+            )
+            for model in data.get("by_model", [])
+        ]
+        title = _t(lang, "model_section")
     model_rows_html = "".join(model_rows)
     model_body = (
         f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "model"))}</span><span>{_escape(_t(lang, "share"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
@@ -708,7 +791,12 @@ def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
         if model_rows
         else _empty_line(_t(lang, "empty_models"))
     )
-    return _section(_t(lang, "model_section"), model_body, "model-section")
+    return _section(
+        title,
+        model_body,
+        "model-section",
+        dynamic_title=has_cube,
+    )
 
 
 def _render_tools_section(data: Mapping[str, Any], lang: str) -> str:
@@ -778,7 +866,11 @@ def _render_composition_section(data: Mapping[str, Any], lang: str) -> str:
         f'<span>{_escape(_t(lang, "composition_hit_rate"))}</span></div>'
         f'<div class="rank-list">{"".join(agent_rows)}</div>'
     )
-    return _section(_t(lang, "composition_section"), body, "composition-section")
+    return _section(
+        _t(lang, "composition_section"),
+        body,
+        "composition-section",
+    )
 
 
 def _render_insight_note(
@@ -835,7 +927,12 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
     }
     quiet = f'<div class="insight-note">{_t(lang, "insights_quiet")}</div>'
     if not components:
-        return _section(_t(lang, "insights_section"), quiet, "insights-section")
+        return _section(
+            _t(lang, "insights_section"),
+            quiet,
+            "insights-section",
+            fixed_label=_fixed_range_label(data, lang),
+        )
 
     renderers = {
         "change_headline": _render_insight_note,
@@ -851,12 +948,21 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
     )
     if not body:
         body = quiet
-    return _section(_t(lang, "insights_section"), body, "insights-section")
+    return _section(
+        _t(lang, "insights_section"),
+        body,
+        "insights-section",
+        fixed_label=_fixed_range_label(data, lang),
+    )
 
 
 def _render_trend_section(data: Mapping[str, Any], lang: str, date_to: date) -> str:
     daily = data.get("daily_trend", [])
-    return _section(_t(lang, "trend_section"), _trend_ascii(daily, lang, date_to), "trend-section")
+    return _section(
+        _t(lang, "trend_section"),
+        _trend_ascii(daily, lang, date_to),
+        "trend-section",
+    )
 
 
 def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
@@ -954,7 +1060,12 @@ def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
         f'<div class="contribution-stats">{stats_html}</div>'
         '</div>'
     )
-    return _section(_t(lang, "contribution_section"), body, "contribution-section")
+    return _section(
+        _t(lang, "contribution_section"),
+        body,
+        "contribution-section",
+        fixed_label=_fixed_range_label(data, lang),
+    )
 
 
 def _render_recent_titles_section(data: Mapping[str, Any], lang: str) -> str:
@@ -975,6 +1086,7 @@ def _render_recent_titles_section(data: Mapping[str, Any], lang: str) -> str:
         _t(lang, "recent_titles_heading"),
         f'<div class="recent-titles">{rows}</div>',
         "recent-titles-section",
+        fixed_label=_fixed_range_label(data, lang),
     )
 
 
@@ -1015,22 +1127,22 @@ def _render_wrapped_section(data: Mapping[str, Any], lang: str) -> str:
         '</div>'
         '</div>'
     )
-    return _section(_t(lang, "wrapped_section"), body, "wrapped-section")
+    return _section(
+        _t(lang, "wrapped_section"),
+        body,
+        "wrapped-section",
+        fixed_label=_fixed_range_label(data, lang),
+    )
 
 
 def _render_persona_section(data: Mapping[str, Any], lang: str) -> str:
     persona_body = _persona_body(data.get("persona"), lang)
-    return _section(_t(lang, "persona_section"), persona_body, "persona-section")
-
-
-def _render_one_pass_section(data: Mapping[str, Any], lang: str) -> str:
-    persona = data.get("persona")
-    if not isinstance(persona, Mapping):
-        return ""
-    body = _one_pass_card(persona, lang)
-    if not body:
-        return ""
-    return _section(_t(lang, "persona_one_pass_title"), body, "one-pass-section")
+    return _section(
+        _t(lang, "persona_section"),
+        persona_body,
+        "persona-section",
+        fixed_label=_fixed_range_label(data, lang),
+    )
 
 
 def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
@@ -1063,14 +1175,67 @@ def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
         if session_rows
         else _empty_line(_t(lang, "empty_sessions"))
     )
-    return _section(_t(lang, "session_section"), session_body, "session-section")
+    return _section(
+        _t(lang, "session_section"),
+        session_body,
+        "session-section",
+    )
 
 
-def _share_config_json(lang: str) -> str:
+def _share_config_json(lang: str, *, interactive: bool = False) -> str:
     share_config = {
+        "collapse": _t(lang, "collapse"),
         "copied": _t(lang, "share_copied"),
+        "expand": _t(lang, "expand"),
         "pathCopied": _t(lang, "share_path_copied"),
+        "projectShare": _t(lang, "project_share"),
     }
+    if interactive:
+        share_config.update(
+            {
+                "chartOther": _t(lang, "chart_other"),
+                "cost": _t(lang, "cost"),
+                "costUnpriced": _t(
+                    lang, "kpi_cost_unpriced", tokens="{tokens}"
+                ),
+                "emptyModels": _t(lang, "empty_models"),
+                "emptyProjects": _t(lang, "empty_projects"),
+                "modelSection": _t(lang, "model_section"),
+                "narrative": _t(
+                    lang,
+                    "narrative",
+                    tokens="{tokens}",
+                    projects="{projects}",
+                    peak_date="{peak_date}",
+                    peak_tokens="{peak_tokens}",
+                    top_model="{top_model}",
+                ),
+                "projectSection": _t(lang, "project_section"),
+                "share": _t(lang, "share"),
+                "tokens": _t(lang, "tokens"),
+                "unknown": _t(lang, "unknown"),
+                "vsPrevious": _t(lang, "kpi_vs_prev_period"),
+                "compositionCacheRead": _t(lang, "composition_cache_read"),
+                "compositionCacheWrite": _t(lang, "composition_cache_write"),
+                "compositionHitRate": _t(lang, "composition_hit_rate"),
+                "compositionInput": _t(lang, "composition_input"),
+                "compositionOutput": _t(lang, "composition_output"),
+                "duration": _t(lang, "duration"),
+                "emptyDaily": _t(lang, "empty_daily"),
+                "emptySessions": _t(lang, "empty_sessions"),
+                "model": _t(lang, "model"),
+                "project": _t(lang, "project"),
+                "rank": _t(lang, "rank"),
+                "startTime": _t(lang, "start_time"),
+                "trendCompareDown": _t(lang, "trend_compare_down", pct="{pct}"),
+                "trendCompareFirst": _t(lang, "trend_compare_first"),
+                "trendCompareFlat": _t(lang, "trend_compare_flat"),
+                "trendCompareNew": _t(lang, "trend_compare_new"),
+                "trendCompareUp": _t(lang, "trend_compare_up", ratio="{ratio}"),
+                "trendMarkerNew": _t(lang, "trend_marker_new"),
+                "trendWeekInProgress": _t(lang, "trend_week_in_progress"),
+            }
+        )
     return json.dumps(share_config, ensure_ascii=False).replace("</", "<\\/")
 
 
@@ -1122,13 +1287,15 @@ def _render_styles() -> str:
 
 
 def _render_scripts(share_config_json: str) -> str:
-    return f"{HTML_TO_IMAGE_UMD}\n" + REPORT_JS_TEMPLATE.replace(
-        "__SHARE_CONFIG_JSON__",
-        share_config_json,
-    )
+    report_js = REPORT_JS_TEMPLATE.replace("__SHARE_CONFIG_JSON__", share_config_json)
+    return f"{HTML_TO_IMAGE_UMD}\n{report_js}\n{REPORT_FILTER_JS}"
 
 
-def generate_html(data: ReportData | Mapping[str, Any], language: str | None = None) -> str:
+def generate_html(
+    data: ReportData | Mapping[str, Any],
+    language: str | None = None,
+    default_range: str | None = None,
+) -> str:
     report_data = cast(ReportData, data)
     lang = language or _detect_lang()
     date_to = _parse_daily_date(report_data["date_to"])
@@ -1138,17 +1305,29 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
         int(report_data["summary"]["total_tokens"]) <= 0
         and int(report_data["summary"]["messages"]) <= 0
     )
-    share_config_json = _share_config_json(lang)
+    has_cube = isinstance(report_data.get("cube"), Mapping)
+    share_config_json = _share_config_json(lang, interactive=has_cube)
     csv_data_json = json.dumps(_build_csv_data(report_data, lang), ensure_ascii=False).replace("</", "<\\/")
     masked_csv_data_json = json.dumps(_build_csv_data(report_data, lang, mask_projects=True), ensure_ascii=False).replace("</", "<\\/")
+    cube_data_node = ""
+    if "cube" in report_data:
+        cube_data_json = json.dumps(
+            report_data["cube"], ensure_ascii=False, separators=(",", ":")
+        ).replace("</", "<\\/")
+        cube_data_node = f'<script type="application/json" id="usage-cube-data">{cube_data_json}</script>\n'
+    session_data_node = ""
+    if "sessions" in report_data:
+        session_data_json = json.dumps(
+            report_data["sessions"], ensure_ascii=False, separators=(",", ":")
+        ).replace("</", "<\\/")
+        session_data_node = f'<script type="application/json" id="usage-session-data">{session_data_json}</script>\n'
     title = _t(lang, "title")
     detail_sections = ""
     if not is_empty:
         insight_surface = _render_insight_surface(report_data, lang)
         detail_sections = (
             f"  {_render_wrapped_section(report_data, lang)}\n"
-            f"{insight_surface}{_render_one_pass_section(report_data, lang)}\n"
-            f"  {_render_tools_section(report_data, lang)}\n"
+            f"{insight_surface.rstrip()}{_render_tools_section(report_data, lang)}\n"
             f"  {_render_composition_section(report_data, lang)}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_model_section(report_data, lang)}\n"
@@ -1157,6 +1336,11 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
             f"  {_render_recent_titles_section(report_data, lang)}{_render_persona_section(report_data, lang)}\n"
             f"  {_render_session_section(report_data, lang)}\n"
         )
+    default_range_attr = (
+        f' data-default-range="{html.escape(default_range, quote=True)}"'
+        if default_range
+        else ""
+    )
     return f"""<!doctype html>
 <html lang="{html.escape(lang)}">
 <head>
@@ -1168,16 +1352,17 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
 {_render_styles()}
 </style>
 </head>
-<body>
+<body{default_range_attr}>
 <main class="wrap">
   {_render_header(report_data, lang, title, generated_at, is_empty)}
+  {_date_filter(report_data, lang)}
   {_render_share_dialog(lang)}
-  {_render_cards_section(cards)}
+  {_render_cards_section(cards, interactive=has_cube)}
 {detail_sections}  {_render_sponsor_section(lang)}
 </main>
 <script type="application/json" id="usage-csv-data">{csv_data_json}</script>
 <script type="application/json" id="usage-masked-csv-data">{masked_csv_data_json}</script>
-<script>
+{cube_data_node}{session_data_node}<script>
 {_render_scripts(share_config_json)}
 </script>
 </body>
@@ -1189,6 +1374,7 @@ def save_and_open(
     data: ReportData | Mapping[str, Any],
     out_path: str | None = None,
     language: str | None = None,
+    default_range: str | None = None,
 ) -> str:
     if out_path:
         path = Path(os.path.expanduser(out_path))
@@ -1199,7 +1385,10 @@ def save_and_open(
         path = reports_dir / f"usage-report-{datetime.now().strftime('%Y%m%d-%H%M%S')}.html"
         display_path = f"~/.usage-reports/{path.name}"
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
-    path.write_text(generate_html(data, language=language), encoding="utf-8")
+    path.write_text(
+        generate_html(data, language=language, default_range=default_range),
+        encoding="utf-8",
+    )
     path.chmod(0o600)
     if out_path is None:
         if sys.platform == "darwin":
