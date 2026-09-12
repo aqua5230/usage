@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import shutil
 import subprocess
+from pathlib import Path
 
 import pytest
 
@@ -650,11 +651,14 @@ def test_collapsed_rank_lines_are_actually_hidden_by_css() -> None:
     assert ".composition-section[hidden]{display:none}" in REPORT_CSS
 
 
-def test_report_filter_javascript_interactions_and_boundaries() -> None:
+def test_report_filter_javascript_interactions_and_boundaries(tmp_path: Path) -> None:
     script = NODE_HARNESS.replace("__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS))
+    # 走檔案而非 node -e：整份 JS 當命令列參數會超過 Windows 的長度上限（WinError 206）。
+    script_path = tmp_path / "harness.cjs"
+    script_path.write_text(script, encoding="utf-8")
 
     result = subprocess.run(
-        [NODE or "node", "-e", script],
+        [NODE or "node", str(script_path)],
         check=True,
         capture_output=True,
         text=True,
