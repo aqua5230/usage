@@ -32,6 +32,7 @@ from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
 from usage_common.subprocess_utils import hidden_console_kwargs
 from ui.report_charts import render_share_bar, render_trend_bar
+from ui.report_filter import REPORT_FILTER_JS
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE, REPORT_THEME_INIT_JS
 from ui.report_styles import REPORT_CSS
 
@@ -125,10 +126,15 @@ def _rank_line(
     *,
     row_class: str = "",
     arrow: str = "→",
+    data_attributes: Mapping[str, object] | None = None,
 ) -> str:
     classes = "rank-line" if not row_class else f"rank-line {row_class}"
+    attributes = "".join(
+        f' data-{key}="{html.escape(str(value), quote=True)}"'
+        for key, value in (data_attributes or {}).items()
+    )
     return (
-        f'<div class="{classes}">'
+        f'<div class="{classes}"{attributes}>'
         f'<span class="arrow">{arrow}</span><span class="name">{html.escape(name)}{render_share_bar(pct, color)}</span>'
         f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">{pct:>5.1f}%</span>'
         f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
@@ -605,6 +611,11 @@ def _render_share_dialog(lang: str) -> str:
 
 def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
     projects = data.get("by_project", [])
+    cube = data.get("cube")
+    cube_projects = cube.get("projects", []) if isinstance(cube, Mapping) else []
+    project_indices = {
+        str(project): index for index, project in enumerate(cube_projects)
+    }
     colors = _project_share_colors(
         [(_display_name(project["project"], lang), int(project["tokens"])) for project in projects]
     )
@@ -616,6 +627,11 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
             float(project["cost"]),
             lang,
             colors[index],
+            data_attributes=(
+                {"project-index": project_indices[str(project["project"])]}
+                if str(project["project"]) in project_indices
+                else None
+            ),
         )
         for index, project in enumerate(projects)
     ]
@@ -637,6 +653,7 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
 
 def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
     grouped_models = data.get("by_agent_model")
+    has_cube = isinstance(data.get("cube"), Mapping)
     if grouped_models:
         model_rows = []
         for group in grouped_models:
@@ -650,6 +667,9 @@ def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
                     _agent_share_color(group["agent_id"]),
                     row_class="model-group",
                     arrow="▎",
+                    data_attributes=(
+                        {"agent-id": group["agent_id"]} if has_cube else None
+                    ),
                 )
             )
             model_rows.extend(
@@ -1037,8 +1057,11 @@ def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
 
 def _share_config_json(lang: str) -> str:
     share_config = {
+        "collapse": _t(lang, "collapse"),
         "copied": _t(lang, "share_copied"),
+        "expand": _t(lang, "expand"),
         "pathCopied": _t(lang, "share_path_copied"),
+        "projectShare": _t(lang, "project_share"),
     }
     return json.dumps(share_config, ensure_ascii=False).replace("</", "<\\/")
 
@@ -1091,10 +1114,8 @@ def _render_styles() -> str:
 
 
 def _render_scripts(share_config_json: str) -> str:
-    return f"{HTML_TO_IMAGE_UMD}\n" + REPORT_JS_TEMPLATE.replace(
-        "__SHARE_CONFIG_JSON__",
-        share_config_json,
-    )
+    report_js = REPORT_JS_TEMPLATE.replace("__SHARE_CONFIG_JSON__", share_config_json)
+    return f"{HTML_TO_IMAGE_UMD}\n{report_js}\n{REPORT_FILTER_JS}"
 
 
 def generate_html(data: ReportData | Mapping[str, Any], language: str | None = None) -> str:

@@ -17,6 +17,7 @@ import pytest
 
 from analyzer.reporter import DailyTrendPoint
 from ui import html_report
+from ui.report_filter import REPORT_FILTER_JS
 
 SNAPSHOT_DIR = Path(__file__).resolve().parent / "fixtures" / "html_report_snapshots"
 
@@ -530,6 +531,52 @@ def test_generate_html_omits_optional_cube_and_session_nodes() -> None:
 
     assert 'id="usage-cube-data"' not in html
     assert 'id="usage-session-data"' not in html
+    assert 'data-agent-id="' not in html
+    assert 'data-project-index="' not in html
+
+
+def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
+    data = _full_report_data()
+    data["cube"] = {
+        "dates": ["2026-05-21"],
+        "agents": [
+            {"id": "claude-code", "name": "Claude Code"},
+            {"id": "codex", "name": "Codex"},
+            {"id": "grok", "name": "Grok"},
+        ],
+        "models": [
+            {"name": "claude-sonnet-4", "cost_known": True},
+            {"name": "gpt-5-codex", "cost_known": True},
+            {"name": "unknown", "cost_known": False},
+        ],
+        "projects": ["client<portal>", "usage"],
+        "rows": [
+            [0, 0, 0, 1, 10, 20, 30, 40, 1.25, 1],
+            [0, 1, 1, 1, 20, 30, 40, 50, 2.5, 1],
+            [0, 2, 2, 0, 1, 2, 3, 4, 0.0, 1],
+        ],
+    }
+
+    html = html_report.generate_html(data, language="en")
+
+    assert html.count("data-agent-id=") == 3
+    assert 'data-agent-id="claude-code"' in html
+    assert 'data-project-index="1"' in html
+    assert 'data-project-index="0"' in html
+    assert re.search(
+        r'<div class="rank-line"><span class="arrow">→</span>'
+        r'<span class="name">unknown',
+        html,
+    )
+    assert "window.usageReportFilter = {cube, aggregateRows};" in html
+    assert REPORT_FILTER_JS in html
+
+
+def test_report_filter_script_uses_safe_dom_construction_and_separate_model_name() -> None:
+    assert "innerHTML" not in REPORT_FILTER_JS
+    assert "document.createElement" in REPORT_FILTER_JS
+    assert "appendTextSpan(row, 'model-name', modelName)" in REPORT_FILTER_JS
+    assert "appendTextSpan(row, 'name model-name', modelName)" not in REPORT_FILTER_JS
 
 
 def test_masked_share_covers_both_project_lists_and_private_data_nodes() -> None:

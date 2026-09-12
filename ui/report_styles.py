@@ -138,7 +138,7 @@ h1{
 """ + _light_rules("""
   .share-trigger:hover{border-color:var(--text-soft)}
 """) + """
-.share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
+.share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible,.rank-line[tabindex]:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:24px 0 32px;border-block:1px solid var(--card-border);background:var(--card-bg)}
 .card{padding:20px 16px;min-width:0;display:grid;grid-template-rows:minmax(2.2em,auto) auto minmax(2.8em,auto);align-content:start}
 .card+.card{border-left:1px solid var(--card-border)}
@@ -173,13 +173,19 @@ h1{
 .rank-line{position:relative;overflow:hidden;padding:12px;color:var(--text-soft);border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
 .rank-line:hover{transform:none;border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent}
 .rank-line:last-child{border-bottom:none}
+.rank-line[data-agent-id],.rank-line[data-project-index]{cursor:pointer}
+/* .rank-line 用 class 指定 display:grid，權重高過瀏覽器預設的 [hidden]{display:none}，
+   沒有這一條收合只會改到 DOM、畫面照舊全開。 */
+.rank-line[hidden]{display:none}
 .rank-line.model-group .name{font-weight:600}
 .rank-line.model-child .name{padding-left:18px}
+.rank-line.model-child .model-name{padding-left:18px}
+.project-detail-caption{padding:6px 12px 2px 30px;color:var(--muted);font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
 .rank-line>*,.tool-row>*{position:relative;z-index:1}
 /* The bar is absolute against the whole row, so .name must stay static — this
    rule has to follow the one above to win. (.tool-head does the same further down.) */
-.name{position:static;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:.9em;font-weight:normal}
+.name,.model-name{position:static;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:.9em;font-weight:normal}
 .share-bar{position:absolute;top:0;left:0;width:100%;height:100%;margin:0;overflow:hidden;border-radius:0;background:transparent;z-index:0;pointer-events:none}
 .share-bar span{display:block;height:100%;border-radius:0;background:var(--cost);opacity:.15}
 .pct{color:var(--text-soft)}
@@ -401,7 +407,7 @@ td:first-child{color:var(--warn)}
   .rank-list{display:grid;gap:12px}
   .rank-line{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:none;border-bottom:1px solid var(--card-border);border-radius:0;background:transparent;box-shadow:none}
   .rank-line .arrow{display:none}
-  .rank-line .name{white-space:normal;font-weight:700;color:var(--text)}
+  .rank-line .name,.rank-line .model-name{white-space:normal;font-weight:700;color:var(--text)}
   .rank-line .pct,.rank-line .tokens,.rank-line .cost,.tool-row .pct,.tool-row .tokens,.tool-row .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}
   .rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before,.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{content:attr(data-label);color:var(--muted);font-weight:500}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
