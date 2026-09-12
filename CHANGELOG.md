@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.14] - 2026-09-12
+
+### Fixed
+- **No more black console windows flashing at Windows startup** ([#130](https://github.com/aqua5230/usage/issues/130)). `usage.exe` is packaged without a console, but no `subprocess` call in the project passed `CREATE_NO_WINDOW`, so Windows created and closed a console window for every child process. The flash count equalled the number of distinct project directories in the Claude history — `resolve_project_name()` runs `git worktree list --porcelain` once per directory and caches per process, so every launch repeated it. A shared `usage_common/subprocess_utils.py` now supplies the `creationflags`, every child process in the project goes through it, and the missing `stdin=subprocess.DEVNULL` was added along the way. `usage_session_resume.py` and `usage_statusline_forwarder.py` are copied verbatim into `~/.claude/` and run by the system Python, so they keep an inlined equivalent instead of importing the project; a new test uses `ast` to keep every copied-out script free of project imports. The forwarder also had no version-upgrade path at all — `_copy_forwarder_script()` was only called on reinstall or when the state looked broken — so it gained `FORWARDER_VERSION` and a `self_heal()` upgrade step like the other hooks.
+- **The Windows panel no longer flashes at its old position before moving.** pywebview's WinForms backend passes `SWP_SHOWWINDOW` in both `resize()` and `move()`, so the `resize()` in `_place_window_on_ui_thread()` made the still-hidden window visible at the previous coordinates; the following `move()` then moved it and only then did `show()` run. Measured at 1 ms sampling, the window sat visible in the wrong place for 36 ms, about two frames. Position and size are now applied while the window is hidden in a single `SetWindowPos` without `SWP_SHOWWINDOW`, leaving display to the existing `show()` path; without a native handle, or off Windows, it falls back to `resize()` + `move()` unchanged. Applying geometry is also skipped entirely when the current physical-pixel geometry already matches, so `_apply_content_height_now()` no longer makes a pointless native call when the content height has not changed.
+
 ## [0.30.13] - 2026-09-12
 
 ### Fixed

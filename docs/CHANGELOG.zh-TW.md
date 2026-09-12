@@ -4,6 +4,12 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.14] - 2026-09-12
+
+### 修正
+- **Windows 啟動時不再連閃黑色主控台視窗**（[#130](https://github.com/aqua5230/usage/issues/130)）。`usage.exe` 打包時不帶主控台，但專案所有 `subprocess` 呼叫都沒帶 `CREATE_NO_WINDOW`，Windows 因此替每個子行程建立又關閉一個主控台視窗。閃的次數等於 Claude 歷史紀錄裡不重複的專案目錄數——`resolve_project_name()` 對每個目錄跑一次 `git worktree list --porcelain`，每個行程只快取一次，所以每次啟動都會重來。現在由共用的 `usage_common/subprocess_utils.py` 提供 `creationflags`，專案內所有子行程呼叫都走它，並補上缺漏的 `stdin=subprocess.DEVNULL`。`usage_session_resume.py` 與 `usage_statusline_forwarder.py` 會被原樣複製到 `~/.claude/`、由系統 Python 獨立執行，所以各自內聯一份等效實作而不引入專案模組；新增的測試用 `ast` 確保這幾支會被複製出去的腳本維持零專案相依。forwarder 先前完全沒有換新機制——`_copy_forwarder_script()` 只在重裝或狀態異常時才被呼叫——這次比照其他 hook 補上 `FORWARDER_VERSION` 與 `self_heal()` 的換新段落。
+- **Windows 面板不再先閃現在舊位置才跳回來。** pywebview 的 WinForms 後端在 `resize()` 與 `move()` 都帶 `SWP_SHOWWINDOW`，所以 `_place_window_on_ui_thread()` 裡那行 `resize()` 會在視窗還藏著時就把它顯示出來，而且是在上一次的座標上；隨後的 `move()` 才搬到正確位置，最後才輪到 `show()`。以 1 毫秒取樣實測，視窗在錯位置可見 36 毫秒，約兩個畫面幀。現在改成視窗還藏著時以單次 `SetWindowPos` 一起設定位置與大小、且不帶 `SWP_SHOWWINDOW`，顯示交由既有的 `show()` 路徑；取不到原生視窗或非 Windows 時退回原本的 `resize()` + `move()`，行為不變。套用幾何前也會先比對目前的實體像素幾何，完全相同就整個跳過，避免 `_apply_content_height_now()` 在內容高度沒變時仍做一次無謂的原生呼叫。
+
 ## [0.30.13] - 2026-09-12
 
 ### 修正
