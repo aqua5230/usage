@@ -658,8 +658,7 @@ def _render_header(data: ReportData, lang: str, title: str, generated_at: str, i
     period = html.escape(str(data["period_label"]))
     if isinstance(data.get("cube"), Mapping):
         period = f'<span data-report-period>{period}</span>'
-    date_filter = _date_filter(data, lang)
-    date_filter_html = f"\n      {date_filter}" if date_filter else ""
+    date_filter_html = ""
     return f"""<header>
     <div>
       <div class="eyebrow"><span>$ usage report</span> --period {period}<span class="cursor">_</span></div>{date_filter_html}
@@ -1358,6 +1357,7 @@ def generate_html(
 <body{default_range_attr}>
 <main class="wrap">
   {_render_header(report_data, lang, title, generated_at, is_empty)}
+  {_date_filter(report_data, lang)}
   {_render_share_dialog(lang)}
   {_render_cards_section(cards, interactive=has_cube)}
 {detail_sections}  {_render_sponsor_section(lang)}
