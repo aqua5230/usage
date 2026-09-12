@@ -529,7 +529,7 @@ def _narrative(data: ReportData, lang: str, is_empty: bool) -> str:
         lang,
         "narrative",
         tokens=_fmt_tokens(int(summary["total_tokens"])),
-        projects=len(data.get("by_project", [])),
+        projects=int(summary.get("projects", len(data.get("by_project", [])))),
         peak_date=str(peak_date),
         peak_tokens=_fmt_tokens(int(peak_tokens)),
         top_model=_display_name(top_model, lang),

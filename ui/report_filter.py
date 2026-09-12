@@ -197,8 +197,7 @@ REPORT_FILTER_JS = r"""(() => {
       topModel = model ? String(model.name) : '';
     });
     return {
-      // 與 _narrative() 一致：專案數取的是排行榜的長度，上限 10。
-      narrativeProjects: Math.min(10, Object.keys(projectTotals).length),
+      narrativeProjects: Object.keys(projectTotals).length,
       topModel,
       bounds,
       rows,

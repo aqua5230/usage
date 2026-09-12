@@ -223,6 +223,8 @@ h1{
 .rank-line.model-child .model-name{padding-left:18px}
 .project-detail-caption{padding:6px 12px 2px 30px;color:var(--muted);font-size:.68rem;font-weight:600;letter-spacing:.08em;text-transform:uppercase}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
+/* 可點開的列：箭頭是唯一的可展開提示，用跟裝飾性箭頭一樣的淡度會看不出來。 */
+.rank-line.model-group .arrow,.rank-line[data-project-index] .arrow{opacity:.85;font-size:1em;color:var(--text-soft)}
 .rank-line>*,.tool-row>*{position:relative;z-index:1}
 /* The bar is absolute against the whole row, so .name must stay static — this
    rule has to follow the one above to win. (.tool-head does the same further down.) */
@@ -458,6 +460,7 @@ td:first-child{color:var(--warn)}
   .rank-list{display:grid;gap:12px}
   .rank-line{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:none;border-bottom:1px solid var(--card-border);border-radius:0;background:transparent;box-shadow:none}
   .rank-line .arrow{display:none}
+  .rank-line.model-group .arrow,.rank-line[data-project-index] .arrow{display:inline}
   .rank-line .name,.rank-line .model-name{white-space:normal;font-weight:700;color:var(--text)}
   .rank-line .pct,.rank-line .tokens,.rank-line .cost,.tool-row .pct,.tool-row .tokens,.tool-row .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}
   .rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before,.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{content:attr(data-label);color:var(--muted);font-weight:500}
@@ -1027,8 +1030,7 @@ document.addEventListener('click', async (e) => {
       topModel = model ? String(model.name) : '';
     });
     return {
-      // 與 _narrative() 一致：專案數取的是排行榜的長度，上限 10。
-      narrativeProjects: Math.min(10, Object.keys(projectTotals).length),
+      narrativeProjects: Object.keys(projectTotals).length,
       topModel,
       bounds,
       rows,

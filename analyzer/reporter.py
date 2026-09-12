@@ -67,6 +67,7 @@ class SummaryReportData(TypedDict):
     messages: int
     active_days: int
     total_days: int
+    projects: int
 
 
 class AgentReportRow(TypedDict):
@@ -1226,6 +1227,8 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             "cache_read_tokens": sum(entry.cache_read_tokens for entry in entries),
             "cost_usd": _round_cost(total_cost),
             "sessions": len(session_ids),
+            # by_project 只留前 10 名，敘述句要報真實專案數就得另外帶
+            "projects": len(by_project_totals),
             "messages": sum(entry.message_count for entry in entries),
             "active_days": len(active_dates),
             "total_days": total_days,

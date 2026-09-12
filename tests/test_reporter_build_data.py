@@ -546,6 +546,7 @@ def test_build_report_data_aggregates_agent_and_model_totals(
         "messages": 7,
         "active_days": 1,
         "total_days": 1,
+        "projects": 2,
     }
     assert data["by_agent"] == [
         {
