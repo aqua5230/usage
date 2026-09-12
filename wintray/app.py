@@ -984,6 +984,35 @@ class _WindowsTrayController:
                 return None
         return dpi / 96.0 if dpi > 0 else None
 
+    def _apply_geometry_without_showing(
+        self, width: int, height: int, x: int, y: int
+    ) -> bool:
+        if os.name != "nt" or self.window is None:
+            return False
+        scale = self._window_dpi_scale()
+        if scale is None:
+            return False
+        try:
+            windll: Any = getattr(ctypes, "windll")  # noqa: B009
+            user32 = windll.user32
+            native = self.window.native
+            handle = native.Handle
+            to_int32 = getattr(handle, "ToInt32", None)
+            hwnd = to_int32() if callable(to_int32) else int(handle)
+            return bool(
+                user32.SetWindowPos(
+                    hwnd,
+                    None,
+                    int(round(x * scale)),
+                    int(round(y * scale)),
+                    int(round(width * scale)),
+                    int(round(height * scale)),
+                    0x0014,
+                )
+            )
+        except Exception:
+            return False
+
     def _working_area(self) -> tuple[int, int, int, int] | None:
         """Return the primary monitor work area in pywebview logical pixels."""
         screens = self._logical_screens()
@@ -1127,11 +1156,33 @@ class _WindowsTrayController:
         )
         width = int(round(fitted_width))
         height = int(round(fitted_height))
-        self.window.resize(width, height)
         position = anchor if anchor is not None else self._default_window_position(
             work_area, width, height
         )
-        self.window.move(*self._clamp_window_position(position, work_area, width, height))
+        x, y = self._clamp_window_position(position, work_area, width, height)
+        try:
+            native = self.window.native
+            current_geometry = (native.Left, native.Top, native.Width, native.Height)
+        except Exception:
+            current_geometry = None
+        if current_geometry is not None and all(
+            not isinstance(value, bool) and isinstance(value, int | float)
+            for value in current_geometry
+        ):
+            dpi_scale = self._window_dpi_scale()
+            if dpi_scale is not None:
+                target_geometry = tuple(
+                    int(round(value * dpi_scale)) for value in (x, y, width, height)
+                )
+                if tuple(int(round(value)) for value in current_geometry) == target_geometry:
+                    self._positioned_this_show = True
+                    return
+        geometry_applied = not self._positioned_this_show and (
+            self._apply_geometry_without_showing(width, height, x, y)
+        )
+        if not geometry_applied:
+            self.window.resize(width, height)
+            self.window.move(x, y)
         self._positioned_this_show = True
 
     def _dispatch_window_mutation(self, mutation: Callable[[], None]) -> None:
