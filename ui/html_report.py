@@ -122,10 +122,14 @@ def _rank_line(
     cost: float | None,
     lang: str,
     color: str | None = None,
+    *,
+    row_class: str = "",
+    arrow: str = "→",
 ) -> str:
+    classes = "rank-line" if not row_class else f"rank-line {row_class}"
     return (
-        '<div class="rank-line">'
-        f'<span class="arrow">→</span><span class="name">{html.escape(name)}{render_share_bar(pct, color)}</span>'
+        f'<div class="{classes}">'
+        f'<span class="arrow">{arrow}</span><span class="name">{html.escape(name)}{render_share_bar(pct, color)}</span>'
         f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">{pct:>5.1f}%</span>'
         f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
         f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(cost)}</span>'
@@ -318,68 +322,10 @@ def _hour_histogram_html(histogram: list[int], lang: str) -> str:
     return f'<div class="persona-hours">{"".join(bars)}</div>{peak}'
 
 
-def _one_pass_card(persona: Mapping[str, object], lang: str) -> str:
-    raw_stats = persona.get("one_pass")
-    if not isinstance(raw_stats, Mapping):
-        return ""
-    raw_total = raw_stats.get("total")
-    raw_models = raw_stats.get("models")
-    if not isinstance(raw_total, Mapping) or not isinstance(raw_models, list):
-        return ""
-    if _nonnegative_int(raw_total.get("turns")) <= 0:
-        return ""
-
-    models: list[tuple[str, int, float]] = []
-    for raw_model in raw_models:
-        if not isinstance(raw_model, Mapping):
-            continue
-        model = str(raw_model.get("model") or "unknown")
-        turns = _nonnegative_int(raw_model.get("turns"))
-        pass_rate = _bounded_pct(raw_model.get("pass_rate"))
-        if turns > 0:
-            models.append((model, turns, pass_rate))
-    models.sort(key=lambda item: (-item[2], item[0]))
-    if not models:
-        return ""
-
-    rows = []
-    for model, turns, pass_rate in models[:5]:
-        rows.append(
-            '<div class="rank-line">'
-            '<span class="arrow">&rarr;</span>'
-            f'<span class="name">{_escape(_display_name(model, lang))}'
-            f'{render_share_bar(pass_rate, _model_share_color(model))}</span>'
-            f'<span class="pct" data-label="{_escape(_t(lang, "persona_one_pass_title"))}">{pass_rate:.1f}%</span>'
-            f'<span class="tokens" data-label="">'
-            f'{_escape(_t(lang, "persona_one_pass_turns", turns=turns))}</span>'
-            "</div>"
-        )
-
-    summary = _t(
-        lang,
-        "persona_one_pass_summary",
-        sessions=_nonnegative_int(raw_total.get("sessions")),
-        interruptions=_nonnegative_int(raw_total.get("interruptions")),
-        denied_tools=_nonnegative_int(raw_total.get("denied_tools")),
-    )
-    return (
-        '<div class="persona-card one-pass-card">'
-        f'<p class="persona-caption">{_escape(summary)}</p>'
-        f'<div class="rank-list">{"".join(rows)}</div>'
-        "</div>"
-    )
-
-
 def _nonnegative_int(value: object) -> int:
     if isinstance(value, bool) or not isinstance(value, int | float):
         return 0
     return max(0, int(value))
-
-
-def _bounded_pct(value: object) -> float:
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        return 0.0
-    return max(0.0, min(100.0, float(value)))
 
 
 def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:
@@ -690,17 +636,50 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
 
 
 def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
-    model_rows = [
-        _rank_line(
-            _display_name(model["model"], lang),
-            float(model["pct"]),
-            int(model["tokens"]),
-            None if not model.get("cost_known", True) else float(model["cost"]),
-            lang,
-            _model_share_color(model["model"]),
-        )
-        for model in data.get("by_model", [])
-    ]
+    grouped_models = data.get("by_agent_model")
+    if grouped_models:
+        model_rows = []
+        for group in grouped_models:
+            model_rows.append(
+                _rank_line(
+                    _display_name(group["name"], lang),
+                    float(group["pct"]),
+                    int(group["tokens"]),
+                    None if not group.get("cost_known", True) else float(group["cost"]),
+                    lang,
+                    _agent_share_color(group["agent_id"]),
+                    row_class="model-group",
+                    arrow="▎",
+                )
+            )
+            model_rows.extend(
+                _rank_line(
+                    _display_name(model["model"], lang),
+                    float(model["pct"]),
+                    int(model["tokens"]),
+                    None if not model.get("cost_known", True) else float(model["cost"]),
+                    lang,
+                    _model_share_color(model["model"]),
+                    row_class="model-child",
+                )
+                for model in group["models"]
+            )
+        title = _t(lang, "model_section")
+        if data.get("date_from") and data.get("date_to"):
+            title = f'{title}  {data["date_from"]} → {data["date_to"]}'
+    else:
+        model_rows = [
+            _rank_line(
+                _display_name(model["model"], lang),
+                float(model["pct"]),
+                int(model["tokens"]),
+                None if not model.get("cost_known", True) else float(model["cost"]),
+                lang,
+                _model_share_color(model["model"]),
+            )
+            for model in data.get("by_model", [])
+        ]
+        title = _t(lang, "model_section")
     model_rows_html = "".join(model_rows)
     model_body = (
         f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "model"))}</span><span>{_escape(_t(lang, "share"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
@@ -708,7 +687,7 @@ def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
         if model_rows
         else _empty_line(_t(lang, "empty_models"))
     )
-    return _section(_t(lang, "model_section"), model_body, "model-section")
+    return _section(title, model_body, "model-section")
 
 
 def _render_tools_section(data: Mapping[str, Any], lang: str) -> str:
@@ -1023,16 +1002,6 @@ def _render_persona_section(data: Mapping[str, Any], lang: str) -> str:
     return _section(_t(lang, "persona_section"), persona_body, "persona-section")
 
 
-def _render_one_pass_section(data: Mapping[str, Any], lang: str) -> str:
-    persona = data.get("persona")
-    if not isinstance(persona, Mapping):
-        return ""
-    body = _one_pass_card(persona, lang)
-    if not body:
-        return ""
-    return _section(_t(lang, "persona_one_pass_title"), body, "one-pass-section")
-
-
 def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
     sessions = list(data.get("top_sessions", []))
     max_tokens = max((int(session["tokens"]) for session in sessions), default=0)
@@ -1141,14 +1110,25 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
     share_config_json = _share_config_json(lang)
     csv_data_json = json.dumps(_build_csv_data(report_data, lang), ensure_ascii=False).replace("</", "<\\/")
     masked_csv_data_json = json.dumps(_build_csv_data(report_data, lang, mask_projects=True), ensure_ascii=False).replace("</", "<\\/")
+    cube_data_node = ""
+    if "cube" in report_data:
+        cube_data_json = json.dumps(
+            report_data["cube"], ensure_ascii=False, separators=(",", ":")
+        ).replace("</", "<\\/")
+        cube_data_node = f'<script type="application/json" id="usage-cube-data">{cube_data_json}</script>\n'
+    session_data_node = ""
+    if "sessions" in report_data:
+        session_data_json = json.dumps(
+            report_data["sessions"], ensure_ascii=False, separators=(",", ":")
+        ).replace("</", "<\\/")
+        session_data_node = f'<script type="application/json" id="usage-session-data">{session_data_json}</script>\n'
     title = _t(lang, "title")
     detail_sections = ""
     if not is_empty:
         insight_surface = _render_insight_surface(report_data, lang)
         detail_sections = (
             f"  {_render_wrapped_section(report_data, lang)}\n"
-            f"{insight_surface}{_render_one_pass_section(report_data, lang)}\n"
-            f"  {_render_tools_section(report_data, lang)}\n"
+            f"{insight_surface.rstrip()}{_render_tools_section(report_data, lang)}\n"
             f"  {_render_composition_section(report_data, lang)}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_model_section(report_data, lang)}\n"
@@ -1177,7 +1157,7 @@ def generate_html(data: ReportData | Mapping[str, Any], language: str | None = N
 </main>
 <script type="application/json" id="usage-csv-data">{csv_data_json}</script>
 <script type="application/json" id="usage-masked-csv-data">{masked_csv_data_json}</script>
-<script>
+{cube_data_node}{session_data_node}<script>
 {_render_scripts(share_config_json)}
 </script>
 </body>

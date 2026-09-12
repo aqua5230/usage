@@ -156,8 +156,6 @@ h1{
 .insights-section{margin-block:24px;padding-block:8px}
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
 .insights-section .prompt{font-size:1.2rem}
-.one-pass-section{background:var(--soft);padding-block:16px;border-block-color:var(--card-border)}
-.one-pass-section .persona-card{padding:0}
 .composition-section,.model-section{margin-top:8px;padding-top:8px}
 .composition-section .prompt,.model-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
 .composition-section .rule,.model-section .rule,.recent-titles-section .rule{background:var(--faint);margin-bottom:12px}
@@ -175,6 +173,8 @@ h1{
 .rank-line{position:relative;overflow:hidden;padding:12px;color:var(--text-soft);border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
 .rank-line:hover{transform:none;border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent}
 .rank-line:last-child{border-bottom:none}
+.rank-line.model-group .name{font-weight:600}
+.rank-line.model-child .name{padding-left:18px}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
 .rank-line>*,.tool-row>*{position:relative;z-index:1}
 /* The bar is absolute against the whole row, so .name must stay static — this

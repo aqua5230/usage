@@ -183,8 +183,6 @@ h1{
 .insights-section{margin-block:24px;padding-block:8px}
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
 .insights-section .prompt{font-size:1.2rem}
-.one-pass-section{background:var(--soft);padding-block:16px;border-block-color:var(--card-border)}
-.one-pass-section .persona-card{padding:0}
 .composition-section,.model-section{margin-top:8px;padding-top:8px}
 .composition-section .prompt,.model-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
 .composition-section .rule,.model-section .rule,.recent-titles-section .rule{background:var(--faint);margin-bottom:12px}
@@ -202,6 +200,8 @@ h1{
 .rank-line{position:relative;overflow:hidden;padding:12px;color:var(--text-soft);border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
 .rank-line:hover{transform:none;border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent}
 .rank-line:last-child{border-bottom:none}
+.rank-line.model-group .name{font-weight:600}
+.rank-line.model-child .name{padding-left:18px}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
 .rank-line>*,.tool-row>*{position:relative;z-index:1}
 /* The bar is absolute against the whole row, so .name must stay static — this
@@ -538,14 +538,6 @@ td:first-child{color:var(--warn)}
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
       <div class="insight-note">本期燒了 2.3M tokens、$45.68，比上期多 56%。</div><div class="insight-note"><span class="insight-project" data-mask-as="Project 1">usage</span> 是這期新冒出來的專案，已佔 70.2% 用量。</div><div class="insight-action">本期用量比上期暴增，先盯一下配額水位。</div>
     </section>
-    
-    <section class="section one-pass-section">
-      <div class="prompt"><span>[usage]&gt;</span> 一次過關率</div>
-      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="persona-card one-pass-card"><p class="persona-caption">本期 478 段會話，打斷 220 次，擋下 130 次工具呼叫。</p><div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">claude-sonnet-5<span class="share-bar" aria-hidden="true"><span style="width:94.20%;background:#5abfa0"></span></span></span><span class="pct" data-label="一次過關率">94.2%</span><span class="tokens" data-label="">使用者輪次：1900</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">claude-opus-5<span class="share-bar" aria-hidden="true"><span style="width:91.90%;background:#5abfa0"></span></span></span><span class="pct" data-label="一次過關率">91.9%</span><span class="tokens" data-label="">使用者輪次：2481</span></div></div></div>
-    </section>
-    
-  
     <section class="section tools-section">
       <div class="prompt"><span>[usage]&gt;</span> 你的工具</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
@@ -568,9 +560,9 @@ td:first-child{color:var(--warn)}
     
   
     <section class="section model-section">
-      <div class="prompt"><span>[usage]&gt;</span> 主力模型</div>
+      <div class="prompt"><span>[usage]&gt;</span> 主力模型  2026-05-01 → 2026-05-24</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="rank-head"><span></span><span>模型</span><span>佔比</span><span>Tokens</span><span>花費</span></div><div class="rank-list"><div class="rank-line"><span class="arrow">→</span><span class="name">claude-sonnet-4<span class="share-bar" aria-hidden="true"><span style="width:52.40%;background:#5abfa0"></span></span></span><span class="pct" data-label="佔比"> 52.4%</span><span class="tokens" data-label="Tokens">1.2M</span><span class="cost" data-label="花費">$23.91</span></div><div class="rank-line"><span class="arrow">→</span><span class="name">gpt-5-codex<span class="share-bar" aria-hidden="true"><span style="width:36.60%;background:#e0885a"></span></span></span><span class="pct" data-label="佔比"> 36.6%</span><span class="tokens" data-label="Tokens">858.9K</span><span class="cost" data-label="花費">$16.70</span></div><div class="rank-line"><span class="arrow">→</span><span class="name">未知<span class="share-bar" aria-hidden="true"><span style="width:11.00%;background:#8b8577"></span></span></span><span class="pct" data-label="佔比"> 11.0%</span><span class="tokens" data-label="Tokens">258.4K</span><span class="cost" data-label="花費">$5.07</span></div></div>
+      <div class="rank-head"><span></span><span>模型</span><span>佔比</span><span>Tokens</span><span>花費</span></div><div class="rank-list"><div class="rank-line model-group"><span class="arrow">▎</span><span class="name">Claude Code<span class="share-bar" aria-hidden="true"><span style="width:52.40%;background:#5abfa0"></span></span></span><span class="pct" data-label="佔比"> 52.4%</span><span class="tokens" data-label="Tokens">1.2M</span><span class="cost" data-label="花費">$23.91</span></div><div class="rank-line model-child"><span class="arrow">→</span><span class="name">claude-sonnet-4<span class="share-bar" aria-hidden="true"><span style="width:52.40%;background:#5abfa0"></span></span></span><span class="pct" data-label="佔比"> 52.4%</span><span class="tokens" data-label="Tokens">1.2M</span><span class="cost" data-label="花費">$23.91</span></div><div class="rank-line model-group"><span class="arrow">▎</span><span class="name">Codex<span class="share-bar" aria-hidden="true"><span style="width:36.60%;background:#e0885a"></span></span></span><span class="pct" data-label="佔比"> 36.6%</span><span class="tokens" data-label="Tokens">858.9K</span><span class="cost" data-label="花費">$16.70</span></div><div class="rank-line model-child"><span class="arrow">→</span><span class="name">gpt-5-codex<span class="share-bar" aria-hidden="true"><span style="width:36.60%;background:#e0885a"></span></span></span><span class="pct" data-label="佔比"> 36.6%</span><span class="tokens" data-label="Tokens">858.9K</span><span class="cost" data-label="花費">$16.70</span></div><div class="rank-line model-group"><span class="arrow">▎</span><span class="name">Grok<span class="share-bar" aria-hidden="true"><span style="width:11.00%;background:#78cdb2"></span></span></span><span class="pct" data-label="佔比"> 11.0%</span><span class="tokens" data-label="Tokens">258.4K</span><span class="cost" data-label="花費">—</span></div><div class="rank-line model-child"><span class="arrow">→</span><span class="name">未知<span class="share-bar" aria-hidden="true"><span style="width:11.00%;background:#8b8577"></span></span></span><span class="pct" data-label="佔比"> 11.0%</span><span class="tokens" data-label="Tokens">258.4K</span><span class="cost" data-label="花費">—</span></div></div>
     </section>
     
   
@@ -805,7 +797,7 @@ async function withShareableReport(maskProjects, callback) {
   const restores = [];
   const detached = [];
   if (maskProjects) {
-    document.querySelectorAll('.project-section .name').forEach((el, i) => {
+    document.querySelectorAll('.project-section .rank-line .name').forEach((el, i) => {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
@@ -825,11 +817,13 @@ async function withShareableReport(maskProjects, callback) {
       restores.push({el, original: el.textContent});
       el.textContent = '—';
     });
-    const csvDataNode = document.querySelector('#usage-csv-data');
-    if (csvDataNode) {
-      detached.push({el: csvDataNode, parent: csvDataNode.parentNode, next: csvDataNode.nextSibling});
-      csvDataNode.remove();
-    }
+    ['#usage-csv-data', '#usage-cube-data', '#usage-session-data'].forEach((selector) => {
+      const dataNode = document.querySelector(selector);
+      if (dataNode) {
+        detached.push({el: dataNode, parent: dataNode.parentNode, next: dataNode.nextSibling});
+        dataNode.remove();
+      }
+    });
   }
   document.querySelectorAll('[data-share-dialog], [data-share-open]').forEach((el) => {
     detached.push({el, parent: el.parentNode, next: el.nextSibling});
@@ -838,7 +832,7 @@ async function withShareableReport(maskProjects, callback) {
   try {
     return await callback(reportRoot);
   } finally {
-    detached.forEach((item) => {
+    detached.slice().reverse().forEach((item) => {
       item.parent.insertBefore(item.el, item.next);
     });
     restores.forEach((item) => {

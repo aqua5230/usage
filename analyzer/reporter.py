@@ -100,6 +100,16 @@ class ModelReportRow(TypedDict):
     top_project: str | None
 
 
+class AgentModelReportRow(TypedDict):
+    agent_id: str
+    name: str
+    tokens: int
+    cost: float
+    cost_known: bool
+    pct: float
+    models: list[ModelReportRow]
+
+
 class DailyTrendPoint(TypedDict):
     date: str
     tokens: int
@@ -110,6 +120,34 @@ class TopSessionReportRow(TypedDict):
     start_time: str
     project: str
     model: str
+    duration_min: float
+    tokens: int
+    cost: float
+
+
+class CubeAgentData(TypedDict):
+    id: str
+    name: str
+
+
+class CubeModelData(TypedDict):
+    name: str
+    cost_known: bool
+
+
+class CubeReportData(TypedDict):
+    dates: list[str]
+    agents: list[CubeAgentData]
+    models: list[CubeModelData]
+    projects: list[str]
+    rows: list[list[float]]
+
+
+class SessionRowData(TypedDict):
+    date_idx: int
+    project_idx: int
+    model_idx: int
+    start_time: str
     duration_min: float
     tokens: int
     cost: float
@@ -127,7 +165,6 @@ class ComparisonReportData(TypedDict):
 class PersonaReportData(TypedDict):
     hour_histogram: list[int]
     recent_titles: list[str]
-    one_pass: dict[str, Any] | None
     top_projects: NotRequired[list[tuple[str, int]]]
 
 
@@ -175,7 +212,7 @@ class YearReportData(TypedDict):
     wrapped: WrappedReportData
 
 
-class ReportData(TypedDict):
+class _ReportDataRequired(TypedDict):
     period: str
     period_label: str
     date_from: str
@@ -191,6 +228,12 @@ class ReportData(TypedDict):
     persona: PersonaReportData | None
     contribution: ContributionReportData
     wrapped: WrappedReportData
+
+
+class ReportData(_ReportDataRequired, total=False):
+    by_agent_model: list[AgentModelReportRow]
+    cube: CubeReportData
+    sessions: list[SessionRowData]
 
 
 @dataclass(frozen=True)
@@ -331,37 +374,9 @@ def _load_persona_for_period(period: str) -> PersonaReportData | None:
         profile = persona_loader.load_profile(days_back)
     except Exception:
         return None
-    one_pass = profile.one_pass
     return {
         "hour_histogram": list(profile.hour_histogram),
         "recent_titles": list(profile.recent_titles),
-        "one_pass": (
-            {
-                "total": {
-                    "sessions": one_pass.total_sessions,
-                    "turns": one_pass.total_turns,
-                    "interruptions": one_pass.interruptions,
-                    "denied_tools": one_pass.denied_tools,
-                    "pass_rate": one_pass.pass_rate,
-                },
-                "models": [
-                    {
-                        "model": item.model,
-                        "turns": item.turns,
-                        "interruptions": item.interruptions,
-                        "denied_tools": item.denied_tools,
-                        "pass_rate": item.pass_rate,
-                    }
-                    for item in one_pass.by_model
-                ],
-                "unattributed": {
-                    "interruptions": one_pass.unattributed_interruptions,
-                    "denied_tools": one_pass.unattributed_denied_tools,
-                },
-            }
-            if one_pass is not None
-            else None
-        ),
     }
 
 
@@ -940,7 +955,23 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     by_project_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0, "sessions": set()})
     by_model_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0})
     by_model_project: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
+    by_agent_model_totals: dict[str, dict[str, dict[str, Any]]] = defaultdict(
+        lambda: defaultdict(lambda: {"tokens": 0, "cost": 0.0})
+    )
+    by_agent_model_project: dict[str, dict[str, dict[str, int]]] = defaultdict(
+        lambda: defaultdict(lambda: defaultdict(int))
+    )
     daily_totals: dict[date, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0})
+    cube_totals: dict[tuple[date, str, str, str], dict[str, int | float]] = defaultdict(
+        lambda: {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "cache_creation_tokens": 0,
+            "cache_read_tokens": 0,
+            "cost": 0.0,
+            "message_count": 0,
+        }
+    )
 
     for entry in entries:
         cost = calculate_cost(entry)
@@ -967,9 +998,32 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             entry.total_tokens
         )
 
+        agent_key = entry.agent_id or "unknown"
+        agent_model = by_agent_model_totals[agent_key][entry.model or "unknown"]
+        agent_model["tokens"] += entry.total_tokens
+        agent_model["cost"] += cost
+        by_agent_model_project[agent_key][entry.model or "unknown"][
+            entry.project or "unknown"
+        ] += entry.total_tokens
+
         day = daily_totals[entry_dates[id(entry)]]
         day["tokens"] += entry.total_tokens
         day["cost"] += cost
+
+        cube_row = cube_totals[
+            (
+                entry_dates[id(entry)],
+                entry.agent_id or "unknown",
+                entry.model or "unknown",
+                entry.project or "unknown",
+            )
+        ]
+        cube_row["input_tokens"] += entry.input_tokens
+        cube_row["output_tokens"] += entry.output_tokens
+        cube_row["cache_creation_tokens"] += entry.cache_creation_tokens
+        cube_row["cache_read_tokens"] += entry.cache_read_tokens
+        cube_row["cost"] += cost
+        cube_row["message_count"] += entry.message_count
 
     agent_names = {agent.id: agent.name for agent in agents}
     by_agent: list[AgentReportRow] = [
@@ -1015,6 +1069,112 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     ]
     by_model.sort(key=lambda item: item["tokens"], reverse=True)
 
+    by_agent_model: list[AgentModelReportRow] = []
+    for agent_id, model_totals in by_agent_model_totals.items():
+        models: list[ModelReportRow] = [
+            {
+                "model": model,
+                "tokens": model_data["tokens"],
+                "cost": _round_cost(model_data["cost"]),
+                "cost_known": is_model_priced(model),
+                "pct": _pct(model_data["tokens"], total_tokens),
+                "top_project": _top_project(
+                    by_agent_model_project[agent_id].get(model, {})
+                ),
+            }
+            for model, model_data in model_totals.items()
+        ]
+        models.sort(key=lambda item: item["tokens"], reverse=True)
+        group_tokens = sum(model["tokens"] for model in models)
+        group_cost = sum(model_data["cost"] for model_data in model_totals.values())
+        by_agent_model.append({
+            "agent_id": agent_id,
+            "name": agent_names.get(agent_id, AGENT_NAMES.get(agent_id, agent_id)),
+            "tokens": group_tokens,
+            "cost": _round_cost(group_cost),
+            "cost_known": any(model["cost_known"] for model in models),
+            "pct": _pct(group_tokens, total_tokens),
+            "models": models,
+        })
+    by_agent_model.sort(key=lambda item: item["tokens"], reverse=True)
+
+    cube_dimension_tokens: dict[str, dict[str, int]] = {
+        "agents": defaultdict(int),
+        "models": defaultdict(int),
+        "projects": defaultdict(int),
+    }
+    for (
+        _cube_day,
+        cube_agent_id,
+        cube_model_name,
+        cube_project_name,
+    ), values in cube_totals.items():
+        row_tokens = (
+            int(values["input_tokens"])
+            + int(values["output_tokens"])
+            + int(values["cache_creation_tokens"])
+            + int(values["cache_read_tokens"])
+        )
+        cube_dimension_tokens["agents"][cube_agent_id] += row_tokens
+        cube_dimension_tokens["models"][cube_model_name] += row_tokens
+        cube_dimension_tokens["projects"][cube_project_name] += row_tokens
+
+    cube_dates = sorted({day.isoformat() for day, *_rest in cube_totals})
+    cube_agent_ids = sorted(
+        cube_dimension_tokens["agents"],
+        key=lambda value: (-cube_dimension_tokens["agents"][value], value),
+    )
+    cube_model_names = sorted(
+        cube_dimension_tokens["models"],
+        key=lambda value: (-cube_dimension_tokens["models"][value], value),
+    )
+    cube_projects = sorted(
+        cube_dimension_tokens["projects"],
+        key=lambda value: (-cube_dimension_tokens["projects"][value], value),
+    )
+    cube_agents: list[CubeAgentData] = [
+        {
+            "id": agent_id,
+            "name": agent_names.get(agent_id, AGENT_NAMES.get(agent_id, agent_id)),
+        }
+        for agent_id in cube_agent_ids
+    ]
+    cube_models: list[CubeModelData] = [
+        {"name": model, "cost_known": is_model_priced(model)}
+        for model in cube_model_names
+    ]
+    date_indices = {value: index for index, value in enumerate(cube_dates)}
+    agent_indices = {value: index for index, value in enumerate(cube_agent_ids)}
+    model_indices = {value: index for index, value in enumerate(cube_model_names)}
+    project_indices = {value: index for index, value in enumerate(cube_projects)}
+    cube_rows: list[list[float]] = []
+    for (
+        cube_day,
+        cube_agent_id,
+        cube_model_name,
+        cube_project_name,
+    ), values in cube_totals.items():
+        cube_rows.append([
+            date_indices[cube_day.isoformat()],
+            agent_indices[cube_agent_id],
+            model_indices[cube_model_name],
+            project_indices[cube_project_name],
+            int(values["input_tokens"]),
+            int(values["output_tokens"]),
+            int(values["cache_creation_tokens"]),
+            int(values["cache_read_tokens"]),
+            _round_cost(float(values["cost"])),
+            int(values["message_count"]),
+        ])
+    cube_rows.sort(key=lambda row: (row[0], row[1], row[2], row[3]))
+    cube: CubeReportData = {
+        "dates": cube_dates,
+        "agents": cube_agents,
+        "models": cube_models,
+        "projects": cube_projects,
+        "rows": cube_rows,
+    }
+
     daily_trend: list[DailyTrendPoint] = []
     cursor = date_from
     while cursor <= date_to:
@@ -1033,6 +1193,19 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             "start_time": session.start_time.astimezone().strftime("%Y-%m-%d %H:%M") if session.start_time.tzinfo else session.start_time.strftime("%Y-%m-%d %H:%M"),
             "project": session.project or "unknown",
             "model": session.model or "unknown",
+            "duration_min": session.duration_minutes,
+            "tokens": session.total_tokens,
+            "cost": _round_cost(session.cost_usd),
+        })
+
+    session_rows: list[SessionRowData] = []
+    for session in sessions_by_cost:
+        start_time = session.start_time.astimezone().strftime("%Y-%m-%d %H:%M") if session.start_time.tzinfo else session.start_time.strftime("%Y-%m-%d %H:%M")
+        session_rows.append({
+            "date_idx": date_indices[start_time[:10]],
+            "project_idx": project_indices[session.project or "unknown"],
+            "model_idx": model_indices[session.model or "unknown"],
+            "start_time": start_time,
             "duration_min": session.duration_minutes,
             "tokens": session.total_tokens,
             "cost": _round_cost(session.cost_usd),
@@ -1060,6 +1233,9 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         "by_agent": by_agent,
         "by_project": by_project[:10],
         "by_model": by_model,
+        "by_agent_model": by_agent_model,
+        "cube": cube,
+        "sessions": session_rows,
         "daily_trend": daily_trend,
         "top_sessions": top_sessions,
         "comparison": comparison,
