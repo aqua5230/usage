@@ -126,7 +126,7 @@ def test_enable_bootstrap_returncode_0_keeps_plist_and_uses_safe_subprocess(
     tmp_path: Path,
 ) -> None:
     plist_path = _configure_login_item_paths(monkeypatch, tmp_path)
-    calls: list[tuple[list[str], bool, bool, str, str, bool, int]] = []
+    calls: list[tuple[list[str], bool, bool, str, str, bool, int, int]] = []
 
     def fake_getuid() -> int:
         return 501
@@ -140,8 +140,9 @@ def test_enable_bootstrap_returncode_0_keeps_plist_and_uses_safe_subprocess(
         errors: str,
         check: bool,
         timeout: int,
+        stdin: int,
     ) -> subprocess.CompletedProcess[str]:
-        calls.append((cmd, capture_output, text, encoding, errors, check, timeout))
+        calls.append((cmd, capture_output, text, encoding, errors, check, timeout, stdin))
         return _completed(cmd, 0)
 
     monkeypatch.setattr("installer.login_item.os.getuid", fake_getuid)
@@ -159,6 +160,7 @@ def test_enable_bootstrap_returncode_0_keeps_plist_and_uses_safe_subprocess(
             "replace",
             False,
             5,
+            subprocess.DEVNULL,
         )
     ]
     assert isinstance(calls[0][0], list)
@@ -179,8 +181,9 @@ def test_enable_bootstrap_returncode_17_keeps_plist_without_error(
         errors: str,
         check: bool,
         timeout: int,
+        stdin: int,
     ) -> subprocess.CompletedProcess[str]:
-        _ = capture_output, text, check, timeout
+        _ = capture_output, text, check, timeout, stdin
         return _completed(cmd, 17, "Bootstrap failed: 17: File exists")
 
     monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
@@ -206,8 +209,9 @@ def test_enable_bootstrap_unexpected_returncode_warns_and_keeps_plist(
         errors: str,
         check: bool,
         timeout: int,
+        stdin: int,
     ) -> subprocess.CompletedProcess[str]:
-        _ = capture_output, text, check, timeout
+        _ = capture_output, text, check, timeout, stdin
         return _completed(cmd, 5, "permission denied")
 
     monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
@@ -245,8 +249,9 @@ def test_enable_bootstrap_subprocess_exception_warns_and_keeps_plist(
         errors: str,
         check: bool,
         timeout: int,
+        stdin: int,
     ) -> subprocess.CompletedProcess[str]:
-        _ = cmd, capture_output, text, check, timeout
+        _ = cmd, capture_output, text, check, timeout, stdin
         raise side_effect
 
     monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
@@ -266,7 +271,7 @@ def test_disable_bootout_returncode_0_removes_plist_and_uses_safe_subprocess(
     plist_path = _configure_login_item_paths(monkeypatch, tmp_path)
     plist_path.parent.mkdir(parents=True)
     plist_path.write_text("plist", encoding="utf-8")
-    calls: list[tuple[list[str], bool, bool, str, str, bool, int]] = []
+    calls: list[tuple[list[str], bool, bool, str, str, bool, int, int]] = []
 
     def fake_getuid() -> int:
         return 501
@@ -280,8 +285,9 @@ def test_disable_bootout_returncode_0_removes_plist_and_uses_safe_subprocess(
         errors: str,
         check: bool,
         timeout: int,
+        stdin: int,
     ) -> subprocess.CompletedProcess[str]:
-        calls.append((cmd, capture_output, text, encoding, errors, check, timeout))
+        calls.append((cmd, capture_output, text, encoding, errors, check, timeout, stdin))
         return _completed(cmd, 0)
 
     monkeypatch.setattr("installer.login_item.os.getuid", fake_getuid)
@@ -299,6 +305,7 @@ def test_disable_bootout_returncode_0_removes_plist_and_uses_safe_subprocess(
             "replace",
             False,
             5,
+            subprocess.DEVNULL,
         )
     ]
     assert isinstance(calls[0][0], list)
@@ -321,8 +328,9 @@ def test_disable_bootout_returncode_113_removes_plist_without_error(
         errors: str,
         check: bool,
         timeout: int,
+        stdin: int,
     ) -> subprocess.CompletedProcess[str]:
-        _ = capture_output, text, check, timeout
+        _ = capture_output, text, check, timeout, stdin
         return _completed(cmd, 113, "could not find specified service")
 
     monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
@@ -350,8 +358,9 @@ def test_disable_bootout_unexpected_returncode_warns_and_removes_plist(
         errors: str,
         check: bool,
         timeout: int,
+        stdin: int,
     ) -> subprocess.CompletedProcess[str]:
-        _ = capture_output, text, check, timeout
+        _ = capture_output, text, check, timeout, stdin
         return _completed(cmd, 5, "bad service")
 
     monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)
@@ -383,8 +392,9 @@ def test_disable_bootout_file_not_found_warns_and_removes_plist(
         errors: str,
         check: bool,
         timeout: int,
+        stdin: int,
     ) -> subprocess.CompletedProcess[str]:
-        _ = cmd, capture_output, text, check, timeout
+        _ = cmd, capture_output, text, check, timeout, stdin
         raise FileNotFoundError("launchctl missing")
 
     monkeypatch.setattr("installer.login_item.subprocess.run", fake_run)

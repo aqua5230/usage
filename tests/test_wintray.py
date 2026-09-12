@@ -542,6 +542,199 @@ def test_dpi_scaled_monitor_placement_uses_logical_coordinates(
     assert mutations == [("resize", 380, 400), ("move", 2424, 268)]
 
 
+def test_hidden_panel_placement_uses_geometry_without_showing(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mutations: list[tuple[object, ...]] = []
+
+    def apply_geometry(width: int, height: int, x: int, y: int) -> bool:
+        mutations.append(("SetWindowPos", width, height, x, y))
+        return True
+
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        x=0,
+        y=0,
+        resize=lambda width, height: mutations.append(("resize", width, height)),
+        move=lambda x, y: mutations.append(("move", x, y)),
+    )
+    controller.visible = True
+    controller._content_height = 400
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
+    monkeypatch.setattr(
+        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
+    )
+    monkeypatch.setattr(
+        controller,
+        "_apply_geometry_without_showing",
+        apply_geometry,
+    )
+
+    controller._place_window_on_ui_thread()
+
+    assert mutations == [("SetWindowPos", 380, 400, 608, 388)]
+
+
+def test_hidden_panel_placement_falls_back_when_geometry_application_fails(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mutations: list[tuple[object, ...]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        x=0,
+        y=0,
+        resize=lambda width, height: mutations.append(("resize", width, height)),
+        move=lambda x, y: mutations.append(("move", x, y)),
+    )
+    controller.visible = True
+    controller._content_height = 400
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
+    monkeypatch.setattr(
+        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
+    )
+    monkeypatch.setattr(controller, "_apply_geometry_without_showing", lambda *_args: False)
+
+    controller._place_window_on_ui_thread()
+
+    assert mutations == [("resize", 380, 400), ("move", 608, 388)]
+
+
+@pytest.mark.parametrize("positioned_this_show", [False, True])
+def test_panel_placement_skips_unchanged_native_geometry(
+    monkeypatch: pytest.MonkeyPatch,
+    positioned_this_show: bool,
+) -> None:
+    mutations: list[tuple[object, ...]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        x=608,
+        y=388,
+        native=SimpleNamespace(Left=608, Top=388, Width=380, Height=400),
+        resize=lambda width, height: mutations.append(("resize", width, height)),
+        move=lambda x, y: mutations.append(("move", x, y)),
+    )
+    controller._content_height = 400
+    controller._positioned_this_show = positioned_this_show
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
+    monkeypatch.setattr(
+        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
+    )
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.0)
+    monkeypatch.setattr(
+        controller,
+        "_apply_geometry_without_showing",
+        lambda *_args: mutations.append(("SetWindowPos",)),
+    )
+
+    controller._place_window_on_ui_thread()
+
+    assert mutations == []
+    assert controller._positioned_this_show is True
+
+
+@pytest.mark.parametrize(
+    "native_geometry",
+    [
+        (607, 388, 380, 400),
+        (608, 388, 379, 400),
+    ],
+)
+def test_visible_panel_placement_applies_changed_native_geometry(
+    monkeypatch: pytest.MonkeyPatch,
+    native_geometry: tuple[int, int, int, int],
+) -> None:
+    mutations: list[tuple[object, ...]] = []
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        x=608,
+        y=388,
+        native=SimpleNamespace(
+            Left=native_geometry[0],
+            Top=native_geometry[1],
+            Width=native_geometry[2],
+            Height=native_geometry[3],
+        ),
+        resize=lambda width, height: mutations.append(("resize", width, height)),
+        move=lambda x, y: mutations.append(("move", x, y)),
+    )
+    controller._content_height = 400
+    controller._positioned_this_show = True
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
+    monkeypatch.setattr(
+        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
+    )
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.0)
+
+    controller._place_window_on_ui_thread()
+
+    assert mutations == [("resize", 380, 400), ("move", 608, 388)]
+
+
+def test_hidden_panel_placement_without_native_geometry_still_applies(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mutations: list[tuple[object, ...]] = []
+
+    def apply_geometry(width: int, height: int, x: int, y: int) -> bool:
+        mutations.append(("SetWindowPos", width, height, x, y))
+        return True
+
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        x=0,
+        y=0,
+        resize=lambda width, height: mutations.append(("resize", width, height)),
+        move=lambda x, y: mutations.append(("move", x, y)),
+    )
+    controller._content_height = 400
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
+    monkeypatch.setattr(
+        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
+    )
+    monkeypatch.setattr(
+        controller,
+        "_apply_geometry_without_showing",
+        apply_geometry,
+    )
+
+    controller._place_window_on_ui_thread()
+
+    assert mutations == [("SetWindowPos", 380, 400, 608, 388)]
+
+
+@pytest.mark.parametrize(
+    ("scale", "expected"),
+    [
+        (1.0, (100, 20, 340, 400)),
+        (2.5, (250, 50, 850, 1000)),
+    ],
+)
+def test_geometry_without_showing_converts_logical_to_physical_pixels(
+    monkeypatch: pytest.MonkeyPatch,
+    scale: float,
+    expected: tuple[int, int, int, int],
+) -> None:
+    calls: list[tuple[object, ...]] = []
+
+    def set_window_pos(*args: object) -> bool:
+        calls.append(args)
+        return True
+
+    user32 = SimpleNamespace(SetWindowPos=set_window_pos)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(
+        native=SimpleNamespace(Handle=SimpleNamespace(ToInt32=lambda: 123))
+    )
+    monkeypatch.setattr(wintray, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(ctypes, "windll", SimpleNamespace(user32=user32), raising=False)
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: scale)
+
+    result = controller._apply_geometry_without_showing(340, 400, 100, 20)
+
+    assert result is True
+    assert calls == [(123, None, *expected, 0x0014)]
+
+
 def test_physical_dpi_scaled_screens_are_converted_to_logical_coordinates(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

@@ -24,6 +24,7 @@ from i18n import t as _t
 from installer import setup_hook
 from installer.setup_hook import (
     BACKUP_KEY,
+    FORWARDER_VERSION,
     HOOK_VERSION,
     _atomic_write_text,
     _copy_forwarder_script,
@@ -32,6 +33,7 @@ from installer.setup_hook import (
     _ensure_table_line,
     _find_system_python,
     _forwarder_command,
+    _installed_forwarder_version,
     _installed_hook_version,
     _load_settings,
     _read_codex_config,
@@ -40,9 +42,11 @@ from installer.setup_hook import (
     _statusline_command,
     _statusline_command_target_exists,
     _uses_bundled_app_python,
+    forwarder_needs_update,
     is_setup,
     needs_update,
     setup,
+    update_forwarder,
     update_hook,
 )
 from loaders.codex_paths import codex_home
@@ -55,7 +59,7 @@ CODEX_CONFIG = setup_hook.CODEX_CONFIG
 # session. Off by default: enabled only via the menu toggle, never by self_heal.
 RESUME_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-session-resume.py"))
 RESUME_PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-resume-prompt.json"))
-RESUME_HOOK_VERSION = "1.7"
+RESUME_HOOK_VERSION = "1.8"
 RESUME_MATCHER = "startup|clear"
 RESUME_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
 _RESUME_MARKER = "usage-session-resume"
@@ -1142,6 +1146,20 @@ def self_heal() -> None:
         if isinstance(exc, KeyboardInterrupt):
             raise
         _debug_self_heal_failure("update_hook", exc)
+
+    try:
+        state = _detect_current_state()
+        if state in {"external", "legacy-tt"}:
+            return
+        old_version = _installed_forwarder_version()
+        if forwarder_needs_update():
+            _run_quietly(update_forwarder)
+            detail = f"{old_version or 'unknown'} -> {FORWARDER_VERSION}"
+            _append_self_heal_log("update_forwarder", detail)
+    except BaseException as exc:
+        if isinstance(exc, KeyboardInterrupt):
+            raise
+        _debug_self_heal_failure("update_forwarder", exc)
 
     try:
         state = _detect_current_state()

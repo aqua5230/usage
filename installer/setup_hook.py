@@ -37,6 +37,7 @@ from typing import Any, cast
 from i18n import t as _t
 from loaders.claude_paths import claude_home
 from loaders.codex_paths import codex_home
+from usage_common.subprocess_utils import hidden_console_kwargs
 
 HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-statusline.py"))
 FORWARDER_TARGET = Path(os.path.expanduser("~/.claude/usage-statusline-forwarder.py"))
@@ -87,6 +88,7 @@ LEGACY_TT_BACKUP_KEY = "tokenTracker"
 LEGACY_BACKUP_KEY = LEGACY_NAME
 PREV_SL_KEY = "previousStatusLine"
 HOOK_VERSION = "1.6"
+FORWARDER_VERSION = "1.1"
 # Antigravity's Go runner hands its status-line command to cmd.exe unquoted, so
 # every character cmd.exe treats specially has to be kept out of the path.
 _CMD_UNSAFE_CHARACTERS = '"&|^<>()'
@@ -212,7 +214,13 @@ def _statusline_command_target_exists() -> bool:
 def _is_working_python(path: str) -> bool:
     """Return whether ``path`` can run as a Python interpreter."""
     try:
-        result = subprocess.run([path, "--version"], capture_output=True, timeout=3)
+        result = subprocess.run(
+            [path, "--version"],
+            capture_output=True,
+            timeout=3,
+            stdin=subprocess.DEVNULL,
+            **hidden_console_kwargs(),
+        )
     except (OSError, subprocess.TimeoutExpired):
         return False
     return result.returncode == 0
@@ -1164,16 +1172,40 @@ def _installed_hook_version() -> str | None:
     return None
 
 
+def _installed_forwarder_version() -> str | None:
+    try:
+        with FORWARDER_TARGET.open(encoding="utf-8") as f:
+            for line in f:
+                if line.startswith("__version__"):
+                    _, sep, value = line.partition("=")
+                    if not sep:
+                        return None
+                    return value.strip().strip("\"'")
+    except (OSError, UnicodeDecodeError):
+        pass
+    return None
+
+
 def needs_update() -> bool:
     if not HOOK_TARGET.parent.exists():
         return False
     return _installed_hook_version() != HOOK_VERSION
 
 
+def forwarder_needs_update() -> bool:
+    if not FORWARDER_TARGET.exists():
+        return False
+    return _installed_forwarder_version() != FORWARDER_VERSION
+
+
 def update_hook() -> None:
     if not HOOK_TARGET.parent.exists():
         return
     _copy_hook_script()
+
+
+def update_forwarder() -> None:
+    _copy_forwarder_script()
 
 
 

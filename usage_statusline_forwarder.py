@@ -16,12 +16,22 @@ import os
 import shutil
 import subprocess
 import sys
-from typing import Any, cast
+from typing import Any, TypedDict, cast
 
-__version__ = "1.0"
+__version__ = "1.1"
 TIMEOUT_SECONDS = 5
 HOOK_DIR = os.path.expanduser("~/.claude")
 SELF_NAME = "usage-statusline-forwarder.py"
+
+
+class _HiddenConsoleKwargs(TypedDict, total=False):
+    creationflags: int
+
+
+def hidden_console_kwargs() -> _HiddenConsoleKwargs:
+    if sys.platform == "win32":
+        return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+    return {}
 
 
 def _configure_windows_utf8_output() -> None:
@@ -52,6 +62,7 @@ def _run_hook(py: str, hook: str, raw: str) -> str:
             check=False,
             capture_output=True,
             timeout=TIMEOUT_SECONDS,
+            **hidden_console_kwargs(),
         )
     except (subprocess.TimeoutExpired, OSError, UnicodeDecodeError):
         return ""

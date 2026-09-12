@@ -14,6 +14,8 @@ import sys
 from functools import lru_cache
 from pathlib import Path
 
+from usage_common.subprocess_utils import hidden_console_kwargs
+
 
 def _configured_value() -> str:
     value = os.environ.get("CLAUDE_CONFIG_DIR", "")
@@ -29,6 +31,7 @@ def _configured_value() -> str:
             encoding="utf-8",
             timeout=2,
             stdin=subprocess.DEVNULL,
+            **hidden_console_kwargs(),
         )
     except Exception:
         return ""
