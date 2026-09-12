@@ -79,10 +79,10 @@ applyReportTheme();
     --contrib-3:rgba(46,125,104,.65);
     --contrib-4:rgba(46,125,104,.92);
   }
-:where(html:not([data-theme])) .share-bar span[style*="background:#5abfa0"]{background:#2e7d68!important}
-:where(html:not([data-theme])) .share-bar span[style*="background:#8f86c9"]{background:#68609b!important}
-:where(html:not([data-theme])) .share-bar span[style*="background:#e0885a"]{background:#b05a2b!important}
-:where(html:not([data-theme])) .share-bar span[style*="background:#8b8577"]{background:#6b6151!important}
+:where(html:not([data-theme])) .share-bar span[style*="background:#5abfa0"],:where(html:not([data-theme])) .left-tick[style*="background:#5abfa0"],:where(html:not([data-theme])) .gauge-rail[style*="background:#5abfa0"]{background:#2e7d68!important}
+:where(html:not([data-theme])) .share-bar span[style*="background:#8f86c9"],:where(html:not([data-theme])) .left-tick[style*="background:#8f86c9"],:where(html:not([data-theme])) .gauge-rail[style*="background:#8f86c9"]{background:#68609b!important}
+:where(html:not([data-theme])) .share-bar span[style*="background:#e0885a"],:where(html:not([data-theme])) .left-tick[style*="background:#e0885a"],:where(html:not([data-theme])) .gauge-rail[style*="background:#e0885a"]{background:#b05a2b!important}
+:where(html:not([data-theme])) .share-bar span[style*="background:#8b8577"],:where(html:not([data-theme])) .left-tick[style*="background:#8b8577"],:where(html:not([data-theme])) .gauge-rail[style*="background:#8b8577"]{background:#6b6151!important}
 }
 :root:where([data-theme="light"]){
     --bg:#f6f2e9;
@@ -112,10 +112,10 @@ applyReportTheme();
     --contrib-3:rgba(46,125,104,.65);
     --contrib-4:rgba(46,125,104,.92);
   }
-:where(html[data-theme="light"]) .share-bar span[style*="background:#5abfa0"]{background:#2e7d68!important}
-:where(html[data-theme="light"]) .share-bar span[style*="background:#8f86c9"]{background:#68609b!important}
-:where(html[data-theme="light"]) .share-bar span[style*="background:#e0885a"]{background:#b05a2b!important}
-:where(html[data-theme="light"]) .share-bar span[style*="background:#8b8577"]{background:#6b6151!important}
+:where(html[data-theme="light"]) .share-bar span[style*="background:#5abfa0"],:where(html[data-theme="light"]) .left-tick[style*="background:#5abfa0"],:where(html[data-theme="light"]) .gauge-rail[style*="background:#5abfa0"]{background:#2e7d68!important}
+:where(html[data-theme="light"]) .share-bar span[style*="background:#8f86c9"],:where(html[data-theme="light"]) .left-tick[style*="background:#8f86c9"],:where(html[data-theme="light"]) .gauge-rail[style*="background:#8f86c9"]{background:#68609b!important}
+:where(html[data-theme="light"]) .share-bar span[style*="background:#e0885a"],:where(html[data-theme="light"]) .left-tick[style*="background:#e0885a"],:where(html[data-theme="light"]) .gauge-rail[style*="background:#e0885a"]{background:#b05a2b!important}
+:where(html[data-theme="light"]) .share-bar span[style*="background:#8b8577"],:where(html[data-theme="light"]) .left-tick[style*="background:#8b8577"],:where(html[data-theme="light"]) .gauge-rail[style*="background:#8b8577"]{background:#6b6151!important}
 
 html{font-size:17.5px}
 html,body{overflow-x:clip}
@@ -205,7 +205,7 @@ h1{
 .session-section{margin-top:40px;border-top-color:var(--card-border)}
 .rank-list{display:grid;gap:4px}
 .composition-hint{margin:10px 0 14px;color:var(--text-soft)}
-.rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
+.rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
 .rank-head{padding:0 12px 8px;color:var(--muted);font-size:.72rem;font-weight:600;line-height:1.4;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
 .rank-head>span:nth-child(n+3){text-align:right}
 .rank-line{position:relative;overflow:hidden;padding:12px;color:var(--text-soft);border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
@@ -219,11 +219,12 @@ h1{
 .rank-line.model-group .name{font-weight:600}
 /* 展開的子列要一眼看出「屬於上面那一列」：整段壓深底色、左側加一條縱線
    框住，縮排拉大，長條也調淡，免得跟母列的長條搶視線。 */
-.rank-line.model-child,.project-detail-caption{
+.rank-line.model-child{
   background:var(--soft);box-shadow:inset 3px 0 0 var(--warn)}
-.rank-line.model-child .name,.rank-line.model-child .model-name{padding-left:34px}
+.rank-line.model-child .name,.rank-line.model-child .model-name{display:flex;align-items:center;gap:7px;min-width:0;padding-left:34px}
 .rank-line.model-child .share-bar span{opacity:.09}
-.project-detail-caption{padding:8px 12px 4px 34px;color:var(--muted);font-size:.66rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase}
+.rank-line.model-child>.left-tick{display:none}
+.rank-line.model-child>.gauge-rail{opacity:.45}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
 /* 可點開的列：箭頭是唯一的可展開提示，用跟裝飾性箭頭一樣的淡度會看不出來。 */
 .rank-line.model-group .arrow,.rank-line[data-project-index] .arrow{opacity:.85;font-size:1em;color:var(--text-soft)}
@@ -233,6 +234,16 @@ h1{
 .name,.model-name{position:static;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:.9em;font-weight:normal}
 .share-bar{position:absolute;top:0;left:0;width:100%;height:100%;margin:0;overflow:hidden;border-radius:0;background:transparent;z-index:0;pointer-events:none}
 .share-bar span{display:block;height:100%;border-radius:0;background:var(--cost);opacity:.15}
+.rank-line>.left-tick,.rank-line>.gauge-rail{position:absolute;z-index:0;pointer-events:none}
+.left-tick{left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;background:var(--cost);opacity:.6}
+.gauge-rail{left:0;bottom:0;height:3px;border-radius:0 2px 0 0;background:var(--cost);opacity:.9;transition:height .15s ease,opacity .15s ease}
+.rank-line:hover>.gauge-rail{height:4px;opacity:1}
+.child-gauge{margin-left:auto;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;padding-right:6px}
+.child-track{width:48px;height:5px;background:var(--faint);border-radius:3px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.2)}
+.child-fill{height:100%;background:var(--warn);border-radius:3px;opacity:.9}
+.child-pct{font-family:var(--font-mono);font-size:.82rem;color:var(--text-soft);min-width:38px;text-align:right;font-variant-numeric:tabular-nums}
+.child-model-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;color:var(--text);font-size:.86rem;font-weight:600}
+.scope-tag{display:inline-block;font-family:var(--font-mono);font-size:.65rem;font-weight:700;letter-spacing:.02em;padding:1px 5px;border-radius:3px;background:rgba(224,136,90,.16);color:var(--warn);border:1px solid rgba(224,136,90,.22);white-space:nowrap;line-height:1.2}
 .pct{color:var(--text-soft)}
 .tokens,.tokens-cell{color:var(--token)}
 .cost{color:var(--cost)}
@@ -253,8 +264,10 @@ h1{
 .trend-summary{color:var(--text-soft);margin-top:8px;padding-top:12px;border-top:1px solid var(--faint);font-size:.84rem;line-height:1.6}
 @media (prefers-color-scheme: light){
 :where(html:not([data-theme])) .share-bar span,:where(html:not([data-theme])) .trend-bar div{opacity:.22}
+:where(html:not([data-theme])) .scope-tag{background:rgba(176,90,43,.14);border-color:rgba(176,90,43,.22)}
 }
 :where(html[data-theme="light"]) .share-bar span,:where(html[data-theme="light"]) .trend-bar div{opacity:.22}
+:where(html[data-theme="light"]) .scope-tag{background:rgba(176,90,43,.14);border-color:rgba(176,90,43,.22)}
 /* Square, frameless fill in the same vocabulary as .share-bar and .trend-bar.
    The rounded box with a 3px accent rail read as a generic callout and was the
    last framed surface left in a report that strips frames everywhere else. */
@@ -449,7 +462,8 @@ td:first-child{color:var(--warn)}
   .share-trigger,.share-close,.share-action,.card,.tool-row{transition:none}
 }
 @media (min-width:781px){
-  .rank-head,.rank-line,.tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
+  .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
+  .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
   .tools-head>:nth-child(1),.tool-row>:nth-child(1){grid-column:2}
   :not(.rank-head)+.rank-list>.rank-line:first-child{margin-top:28px}
   :not(.rank-head)+.rank-list>.rank-line:first-child>.pct::before,:not(.rank-head)+.rank-list>.rank-line:first-child>.tokens::before,:not(.rank-head)+.rank-list>.rank-line:first-child>.cost::before{content:attr(data-label);position:absolute;bottom:100%;right:0;margin-bottom:12px;font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;white-space:nowrap}
@@ -467,8 +481,10 @@ td:first-child{color:var(--warn)}
   .rank-line .arrow{display:none}
   .rank-line.model-group .arrow,.rank-line[data-project-index] .arrow{display:inline}
   .rank-line .name,.rank-line .model-name{white-space:normal;font-weight:700;color:var(--text)}
+  .rank-line.model-child .name,.rank-line.model-child .model-name{flex-wrap:wrap}
   .rank-line .pct,.rank-line .tokens,.rank-line .cost,.tool-row .pct,.tool-row .tokens,.tool-row .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}
   .rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before,.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{content:attr(data-label);color:var(--muted);font-weight:500}
+  .child-gauge{margin-left:0;margin-top:4px;padding-right:0;flex-wrap:wrap}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
   .card:nth-child(3){border-left:0}
   .card:nth-child(n+3){border-top:1px solid var(--card-border)}
@@ -1206,19 +1222,62 @@ document.addEventListener('click', async (e) => {
     container.append(bar);
   }
 
+  function clampedShare(share) {
+    return Math.max(0, Math.min(100, share));
+  }
+
+  function appendLeftTick(row, color) {
+    const tick = document.createElement('span');
+    tick.className = 'left-tick';
+    tick.setAttribute('aria-hidden', 'true');
+    if (color) tick.style.background = color;
+    row.append(tick);
+  }
+
+  function appendGaugeRail(row, share, color) {
+    const rail = document.createElement('div');
+    rail.className = 'gauge-rail';
+    rail.setAttribute('aria-hidden', 'true');
+    rail.style.width = `${clampedShare(share).toFixed(1)}%`;
+    if (color) rail.style.background = color;
+    row.append(rail);
+  }
+
+  function createChildGauge(share) {
+    const width = clampedShare(share);
+    const label = `${width.toFixed(1)}%`;
+    const gauge = document.createElement('div');
+    gauge.className = 'child-gauge';
+    const track = document.createElement('div');
+    track.className = 'child-track';
+    track.title = `${shareConfig.projectShare} ${label}`;
+    const fill = document.createElement('div');
+    fill.className = 'child-fill';
+    fill.style.width = `${width.toFixed(1)}%`;
+    track.append(fill);
+    const pct = document.createElement('span');
+    pct.className = 'child-pct';
+    pct.textContent = label;
+    const tag = document.createElement('span');
+    tag.className = 'scope-tag';
+    tag.textContent = shareConfig.projectShare;
+    gauge.append(track, pct, tag);
+    return gauge;
+  }
+
   function createRankRow(name, item, total, color, options = {}) {
     const share = total ? item.tokens / total * 100 : 0;
     const row = document.createElement('div');
     row.className = `rank-line${options.rowClass ? ` ${options.rowClass}` : ''}`;
     if (options.agentId !== undefined) row.dataset.agentId = String(options.agentId);
     if (options.projectIndex !== undefined) row.dataset.projectIndex = String(options.projectIndex);
+    appendLeftTick(row, color);
     appendTextSpan(row, 'arrow', options.arrow || '→');
-    const nameNode = appendTextSpan(row, options.nameClass || 'name', name);
-    appendShareBar(nameNode, share, color);
-    appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
+    appendTextSpan(row, options.nameClass || 'name', name);
     appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
     const costKnown = options.costKnown === undefined ? item.costKnown : options.costKnown;
     appendTextSpan(row, 'cost', formatCost(item.cost, costKnown), shareConfig.cost);
+    appendGaugeRail(row, share, color);
     return row;
   }
 
@@ -1226,15 +1285,8 @@ document.addEventListener('click', async (e) => {
   const projectHeadCells = projectSection
     ? Array.from(projectSection.querySelectorAll('.rank-head > span'))
     : [];
-  const tokensLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.tokens;
-  const costLabel = projectHeadCells[4] ? projectHeadCells[4].textContent : shareConfig.cost;
-
-  function createProjectDetailCaption() {
-    const caption = document.createElement('div');
-    caption.className = 'project-model-detail project-detail-caption';
-    caption.textContent = shareConfig.projectShare;
-    return caption;
-  }
+  const tokensLabel = projectHeadCells[2] ? projectHeadCells[2].textContent : shareConfig.tokens;
+  const costLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.cost;
 
   function removeProjectDetails(projectRow) {
     let sibling = projectRow.nextElementSibling;
@@ -1252,9 +1304,13 @@ document.addEventListener('click', async (e) => {
     const row = document.createElement('div');
     row.className = 'rank-line model-child project-model-detail';
     appendTextSpan(row, 'arrow', '');
-    const name = appendTextSpan(row, 'model-name', modelName);
-    appendShareBar(name, share, modelColor(modelName));
-    appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.projectShare);
+    const name = document.createElement('span');
+    name.className = 'model-name';
+    const label = document.createElement('span');
+    label.className = 'child-model-name';
+    label.textContent = modelName;
+    name.append(label, createChildGauge(share));
+    row.append(name);
     appendTextSpan(row, 'tokens', formatTokens(item.tokens), tokensLabel);
     appendTextSpan(row, 'cost', formatCost(item.cost, item.costKnown), costLabel);
     return row;
@@ -1273,11 +1329,6 @@ document.addEventListener('click', async (e) => {
       .sort((left, right) => right.tokens - left.tokens || left.modelIndex - right.modelIndex);
     const projectTokens = details.reduce((total, item) => total + item.tokens, 0);
     let insertionPoint = projectRow;
-    if (details.length) {
-      const caption = createProjectDetailCaption();
-      insertionPoint.after(caption);
-      insertionPoint = caption;
-    }
     details.forEach((item) => {
       const detail = createProjectDetail(item.modelIndex, item, projectTokens);
       insertionPoint.after(detail);

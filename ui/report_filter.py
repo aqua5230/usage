@@ -371,19 +371,62 @@ REPORT_FILTER_JS = r"""(() => {
     container.append(bar);
   }
 
+  function clampedShare(share) {
+    return Math.max(0, Math.min(100, share));
+  }
+
+  function appendLeftTick(row, color) {
+    const tick = document.createElement('span');
+    tick.className = 'left-tick';
+    tick.setAttribute('aria-hidden', 'true');
+    if (color) tick.style.background = color;
+    row.append(tick);
+  }
+
+  function appendGaugeRail(row, share, color) {
+    const rail = document.createElement('div');
+    rail.className = 'gauge-rail';
+    rail.setAttribute('aria-hidden', 'true');
+    rail.style.width = `${clampedShare(share).toFixed(1)}%`;
+    if (color) rail.style.background = color;
+    row.append(rail);
+  }
+
+  function createChildGauge(share) {
+    const width = clampedShare(share);
+    const label = `${width.toFixed(1)}%`;
+    const gauge = document.createElement('div');
+    gauge.className = 'child-gauge';
+    const track = document.createElement('div');
+    track.className = 'child-track';
+    track.title = `${shareConfig.projectShare} ${label}`;
+    const fill = document.createElement('div');
+    fill.className = 'child-fill';
+    fill.style.width = `${width.toFixed(1)}%`;
+    track.append(fill);
+    const pct = document.createElement('span');
+    pct.className = 'child-pct';
+    pct.textContent = label;
+    const tag = document.createElement('span');
+    tag.className = 'scope-tag';
+    tag.textContent = shareConfig.projectShare;
+    gauge.append(track, pct, tag);
+    return gauge;
+  }
+
   function createRankRow(name, item, total, color, options = {}) {
     const share = total ? item.tokens / total * 100 : 0;
     const row = document.createElement('div');
     row.className = `rank-line${options.rowClass ? ` ${options.rowClass}` : ''}`;
     if (options.agentId !== undefined) row.dataset.agentId = String(options.agentId);
     if (options.projectIndex !== undefined) row.dataset.projectIndex = String(options.projectIndex);
+    appendLeftTick(row, color);
     appendTextSpan(row, 'arrow', options.arrow || '→');
-    const nameNode = appendTextSpan(row, options.nameClass || 'name', name);
-    appendShareBar(nameNode, share, color);
-    appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
+    appendTextSpan(row, options.nameClass || 'name', name);
     appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
     const costKnown = options.costKnown === undefined ? item.costKnown : options.costKnown;
     appendTextSpan(row, 'cost', formatCost(item.cost, costKnown), shareConfig.cost);
+    appendGaugeRail(row, share, color);
     return row;
   }
 
@@ -391,15 +434,8 @@ REPORT_FILTER_JS = r"""(() => {
   const projectHeadCells = projectSection
     ? Array.from(projectSection.querySelectorAll('.rank-head > span'))
     : [];
-  const tokensLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.tokens;
-  const costLabel = projectHeadCells[4] ? projectHeadCells[4].textContent : shareConfig.cost;
-
-  function createProjectDetailCaption() {
-    const caption = document.createElement('div');
-    caption.className = 'project-model-detail project-detail-caption';
-    caption.textContent = shareConfig.projectShare;
-    return caption;
-  }
+  const tokensLabel = projectHeadCells[2] ? projectHeadCells[2].textContent : shareConfig.tokens;
+  const costLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.cost;
 
   function removeProjectDetails(projectRow) {
     let sibling = projectRow.nextElementSibling;
@@ -417,9 +453,13 @@ REPORT_FILTER_JS = r"""(() => {
     const row = document.createElement('div');
     row.className = 'rank-line model-child project-model-detail';
     appendTextSpan(row, 'arrow', '');
-    const name = appendTextSpan(row, 'model-name', modelName);
-    appendShareBar(name, share, modelColor(modelName));
-    appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.projectShare);
+    const name = document.createElement('span');
+    name.className = 'model-name';
+    const label = document.createElement('span');
+    label.className = 'child-model-name';
+    label.textContent = modelName;
+    name.append(label, createChildGauge(share));
+    row.append(name);
     appendTextSpan(row, 'tokens', formatTokens(item.tokens), tokensLabel);
     appendTextSpan(row, 'cost', formatCost(item.cost, item.costKnown), costLabel);
     return row;
@@ -438,11 +478,6 @@ REPORT_FILTER_JS = r"""(() => {
       .sort((left, right) => right.tokens - left.tokens || left.modelIndex - right.modelIndex);
     const projectTokens = details.reduce((total, item) => total + item.tokens, 0);
     let insertionPoint = projectRow;
-    if (details.length) {
-      const caption = createProjectDetailCaption();
-      insertionPoint.after(caption);
-      insertionPoint = caption;
-    }
     details.forEach((item) => {
       const detail = createProjectDetail(item.modelIndex, item, projectTokens);
       insertionPoint.after(detail);

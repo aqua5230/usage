@@ -150,12 +150,21 @@ def _rank_line(
         f' data-{key}="{html.escape(str(value), quote=True)}"'
         for key, value in (data_attributes or {}).items()
     )
+    width = max(0.0, min(100.0, pct))
+    color_attr = (
+        f' style="background:{html.escape(color, quote=True)}"' if color else ""
+    )
+    rail_style = f"width:{width:.1f}%"
+    if color:
+        rail_style += f";background:{html.escape(color, quote=True)}"
     return (
         f'<div class="{classes}"{attributes}>'
-        f'<span class="arrow">{arrow}</span><span class="name">{html.escape(name)}{render_share_bar(pct, color)}</span>'
-        f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">{pct:>5.1f}%</span>'
+        f'<span class="left-tick" aria-hidden="true"{color_attr}></span>'
+        f'<span class="arrow">{arrow}</span>'
+        f'<span class="name">{html.escape(name)}</span>'
         f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
         f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(cost)}</span>'
+        f'<div class="gauge-rail" aria-hidden="true" style="{rail_style}"></div>'
         "</div>"
     )
 
@@ -727,7 +736,7 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
     )
     project_body = (
         project_donut
-        + f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "project"))}</span><span>{_escape(_t(lang, "share"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
+        + f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "project"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
         + f'<div class="rank-list">{project_rows_html}</div>'
         if project_rows
         else _empty_line(_t(lang, "empty_projects"))
@@ -786,7 +795,7 @@ def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
         title = _t(lang, "model_section")
     model_rows_html = "".join(model_rows)
     model_body = (
-        f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "model"))}</span><span>{_escape(_t(lang, "share"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
+        f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "model"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
         f'<div class="rank-list">{model_rows_html}</div>'
         if model_rows
         else _empty_line(_t(lang, "empty_models"))

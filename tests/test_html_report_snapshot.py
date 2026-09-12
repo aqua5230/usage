@@ -567,7 +567,8 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
     assert 'data-project-index="1"' in html
     assert 'data-project-index="0"' in html
     assert re.search(
-        r'<div class="rank-line"><span class="arrow">→</span>'
+        r'<div class="rank-line"><span class="left-tick" aria-hidden="true"'
+        r' style="background:#[0-9a-f]+"></span><span class="arrow">→</span>'
         r'<span class="name">unknown',
         html,
     )
@@ -634,7 +635,8 @@ def test_generate_html_without_cube_keeps_python_rendered_filter_sections() -> N
 def test_report_filter_script_uses_safe_dom_construction_and_separate_model_name() -> None:
     assert "innerHTML" not in REPORT_FILTER_JS
     assert "document.createElement" in REPORT_FILTER_JS
-    assert "appendTextSpan(row, 'model-name', modelName)" in REPORT_FILTER_JS
+    assert "name.className = 'model-name'" in REPORT_FILTER_JS
+    assert "label.className = 'child-model-name'" in REPORT_FILTER_JS
     assert "appendTextSpan(row, 'name model-name', modelName)" not in REPORT_FILTER_JS
 
 
@@ -811,7 +813,7 @@ def test_render_model_section_groups_models_and_shows_date_range() -> None:
     assert "Most-used models  2026-05-01 → 2026-05-31" in html
     assert html.count('class="rank-line model-group"') == 2
     assert html.count('class="rank-line model-child"') == 2
-    assert '<span class="arrow">▎</span><span class="name">Codex' in html
+    assert '<span class="arrow">▎</span><span class="name">Codex</span>' in html
     assert "gpt-5-codex" in html
     assert "gemini-unknown" in html
     assert "—" in html
@@ -955,9 +957,34 @@ def test_project_share_bar_uses_the_donut_color() -> None:
 
     assert 'stroke="#5abfa0"' in html
     assert (
-        'alpha<span class="share-bar" aria-hidden="true">'
-        '<span style="width:66.70%;background:#5abfa0"></span>'
+        '<span class="left-tick" aria-hidden="true" style="background:#5abfa0"></span>'
+        '<span class="arrow">→</span>'
+        '<span class="name">alpha</span>'
     ) in html
+    assert (
+        '<div class="gauge-rail" aria-hidden="true" '
+        'style="width:66.7%;background:#5abfa0"></div>'
+    ) in html
+    assert "share-bar" not in html
+    assert 'class="pct"' not in html
+
+
+def test_rank_line_gauge_boundaries() -> None:
+    zero = html_report._rank_line("empty", 0.0, 0, None, "en", "#5abfa0")
+    full = html_report._rank_line("full", 100.0, 1_000, 1.0, "en", "#e0885a")
+    over = html_report._rank_line("over", 150.0, 1, None, "en")
+    negative = html_report._rank_line("under", -5.0, 1, 0.0, "en", "#8f86c9")
+
+    assert 'style="width:0.0%;background:#5abfa0"' in zero
+    assert ">—" in zero
+    assert 'class="pct"' not in zero
+    assert "share-bar" not in zero
+    assert 'style="width:100.0%;background:#e0885a"' in full
+    assert ">$1.00<" in full
+    assert 'style="width:100.0%"' in over
+    assert ">—" in over
+    assert 'style="width:0.0%;background:#8f86c9"' in negative
+    assert ">$0.00<" in negative
 
 
 @pytest.mark.parametrize(
