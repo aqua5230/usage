@@ -100,7 +100,9 @@ def test_single_entry_writes_row_and_session_header(snapshot_path: Path) -> None
             "cache_read_tokens": 0,
             "cost": 1.0,
             "date": "2026-09-01",
+            "first_ts": "2026-09-01T12:00:00",
             "input_tokens": 100,
+            "last_ts": "2026-09-01T12:00:00",
             "message_count": 1,
             "model": "gpt-5",
             "output_tokens": 0,
@@ -111,6 +113,7 @@ def test_single_entry_writes_row_and_session_header(snapshot_path: Path) -> None
     assert snapshot["sessions"] == {
         "sess-1": {
             "duration_min": 0.0,
+            "project": "usage",
             "start_time": "2026-09-01T12:00:00",
         }
     }
@@ -150,9 +153,24 @@ def test_cross_midnight_session_keeps_date_in_key(snapshot_path: Path) -> None:
         ("2026-09-02", 20),
     ]
     assert all(row["session_id"] == "sess-1" for row in snapshot["rows"])
+    assert snapshot["rows"][0]["first_ts"] == "2026-09-01T23:00:00"
+    assert snapshot["rows"][0]["last_ts"] == "2026-09-01T23:00:00"
+    assert snapshot["rows"][1]["first_ts"] == "2026-09-02T01:00:00"
+    assert snapshot["rows"][1]["last_ts"] == "2026-09-02T01:00:00"
     header = snapshot["sessions"]["sess-1"]
     assert header["start_time"] == "2026-09-01T23:00:00"
     assert header["duration_min"] == 120.0
+
+
+def test_row_stores_min_max_timestamps_on_same_day(snapshot_path: Path) -> None:
+    first = _entry(when=datetime(2026, 9, 1, 12, 0), input_tokens=10)
+    last = _entry(when=datetime(2026, 9, 1, 12, 30), input_tokens=20)
+    usage_snapshot.record_entries([first, last])
+
+    row = usage_snapshot.read_snapshot()["rows"][0]
+    assert row["first_ts"] == "2026-09-01T12:00:00"
+    assert row["last_ts"] == "2026-09-01T12:30:00"
+    assert row["input_tokens"] == 30
 
 
 def test_dates_outside_this_load_are_kept(snapshot_path: Path) -> None:

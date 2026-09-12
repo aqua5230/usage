@@ -7,7 +7,8 @@
 """Permanent session-grain archive of report totals.
 
 Raw jsonl can be deleted once this file holds the computed subtotals.
-This module only writes; the report still reads live entries.
+Writes after each report build; reads back as synthetic entries when a day's
+live transcripts fall short of the stored totals.
 """
 
 from __future__ import annotations
@@ -16,13 +17,13 @@ import contextlib
 from collections import defaultdict
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from datetime import date, datetime
+from datetime import date, datetime, timedelta, tzinfo
 import json
 import logging
 import os
 from pathlib import Path
 import tempfile
-from typing import TypeGuard, TypedDict
+from typing import NotRequired, TypeGuard, TypedDict
 
 from adapters.types import UsageEntry
 from loaders import cache_quarantine
@@ -48,11 +49,14 @@ class SnapshotRow(TypedDict):
     cache_read_tokens: int
     cost: float
     message_count: int
+    first_ts: NotRequired[str]
+    last_ts: NotRequired[str]
 
 
 class SessionHeader(TypedDict):
     start_time: str
     duration_min: float
+    project: NotRequired[str]
 
 
 class UsageSnapshot(TypedDict):
@@ -116,6 +120,86 @@ def totals_match(
         and snapshot_totals.sessions == sessions
         and round(snapshot_totals.cost, 4) == round(cost, 4)
     )
+
+
+def earliest_date(snapshot: UsageSnapshot | None = None) -> date | None:
+    payload = snapshot if snapshot is not None else _read_snapshot()
+    earliest: date | None = None
+    for row in payload["rows"]:
+        try:
+            day = date.fromisoformat(row["date"])
+        except ValueError:
+            continue
+        if earliest is None or day < earliest:
+            earliest = day
+    return earliest
+
+
+def replay_entries(date_from: date, date_to: date) -> list[UsageEntry]:
+    """Rehydrate snapshot rows in [date_from, date_to] as synthetic UsageEntry values."""
+    snapshot = _read_snapshot()
+    entries: list[UsageEntry] = []
+    for row in snapshot["rows"]:
+        try:
+            day = date.fromisoformat(row["date"])
+        except ValueError:
+            continue
+        if date_from <= day <= date_to:
+            entries.extend(_replay_row(row, snapshot["sessions"].get(row["session_id"])))
+    return _lead_with_header_project(entries, snapshot["sessions"])
+
+
+def merge_live_with_snapshot(
+    live_entries: Sequence[UsageEntry],
+    live_dates: Mapping[int, date],
+    date_from: date,
+    date_to: date,
+) -> tuple[list[UsageEntry], dict[int, date]]:
+    """Replace any day whose live tokens fall short of the snapshot with a replay.
+
+    Days the snapshot does not mention are left as the live entries (possibly
+    empty). Dates assigned to replayed entries are the snapshot row dates, so
+    the caller does not need to re-run ``_entry_date``.
+    """
+    live_by_day: dict[date, list[UsageEntry]] = defaultdict(list)
+    for entry in live_entries:
+        day = live_dates[id(entry)]
+        if date_from <= day <= date_to:
+            live_by_day[day].append(entry)
+
+    snapshot = _read_snapshot()
+    snap_tokens_by_day: dict[date, int] = defaultdict(int)
+    replay_by_day: dict[date, list[UsageEntry]] = defaultdict(list)
+    for row in snapshot["rows"]:
+        try:
+            day = date.fromisoformat(row["date"])
+        except ValueError:
+            continue
+        if date_from <= day <= date_to:
+            snap_tokens_by_day[day] += _row_tokens(row)
+            replay_by_day[day].extend(
+                _replay_row(row, snapshot["sessions"].get(row["session_id"]))
+            )
+    for day, day_entries in replay_by_day.items():
+        replay_by_day[day] = _lead_with_header_project(
+            day_entries, snapshot["sessions"]
+        )
+
+    merged: list[UsageEntry] = []
+    merged_dates: dict[int, date] = {}
+    cursor = date_from
+    while cursor <= date_to:
+        live_day = live_by_day.get(cursor, [])
+        live_tokens = sum(entry.total_tokens for entry in live_day)
+        if live_tokens >= snap_tokens_by_day.get(cursor, 0):
+            chosen = live_day
+        else:
+            chosen = replay_by_day.get(cursor, [])
+        for entry in chosen:
+            merged.append(entry)
+            merged_dates[id(entry)] = cursor
+        cursor += timedelta(days=1)
+    return merged, merged_dates
 
 
 def _empty_snapshot() -> UsageSnapshot:
@@ -184,6 +268,118 @@ def _earlier_start(old: str, new: str) -> str:
         return old
 
 
+def _later_end(old: str, new: str) -> str:
+    old_dt = _parse_iso(old)
+    new_dt = _parse_iso(new)
+    if old_dt is None:
+        return new
+    if new_dt is None:
+        return old
+    try:
+        return old if old_dt >= new_dt else new
+    except TypeError:
+        return old
+
+
+def _datetime_local_date(ts: datetime) -> date:
+    if ts.tzinfo:
+        ts = ts.astimezone()
+    return ts.date()
+
+
+def _local_tz() -> tzinfo | None:
+    return datetime.now().astimezone().tzinfo
+
+
+def _midnight(day: date, tz: tzinfo | None) -> datetime:
+    if tz is None:
+        return datetime(day.year, day.month, day.day)
+    return datetime(day.year, day.month, day.day, tzinfo=_local_tz())
+
+
+def _token_timestamp(day: date, start: datetime | None, duration_min: float) -> datetime:
+    if start is None:
+        return _midnight(day, None)
+    if _datetime_local_date(start) == day:
+        return start
+    if duration_min > 0:
+        end = start + timedelta(minutes=duration_min)
+        if _datetime_local_date(end) == day:
+            return end
+    return _midnight(day, start.tzinfo)
+
+
+def _synthetic_ids(row: SnapshotRow, suffix: str) -> tuple[str, str]:
+    key = (
+        f"{row['session_id']}|{row['date']}|{row['agent_id']}|"
+        f"{row['model']}|{row['project']}{suffix}"
+    )
+    token = f"usage-snapshot:{key}"
+    return token, token
+
+
+def _zero_entry(row: SnapshotRow, timestamp: datetime, suffix: str) -> UsageEntry:
+    message_id, request_id = _synthetic_ids(row, suffix)
+    return UsageEntry(
+        timestamp=timestamp,
+        session_id=row["session_id"],
+        message_id=message_id,
+        request_id=request_id,
+        model=row["model"],
+        input_tokens=0,
+        output_tokens=0,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=0.0,
+        project=row["project"],
+        agent_id=row["agent_id"],
+        message_count=0,
+    )
+
+
+def _replay_row(row: SnapshotRow, header: SessionHeader | None) -> list[UsageEntry]:
+    day = date.fromisoformat(row["date"])
+    parsed_first = _parse_iso(row["first_ts"]) if row.get("first_ts") else None
+    parsed_last = _parse_iso(row["last_ts"]) if row.get("last_ts") else None
+    if parsed_first is not None:
+        first_ts = parsed_first
+        last_ts = parsed_last if parsed_last is not None else parsed_first
+    else:
+        start = _parse_iso(header["start_time"]) if header is not None else None
+        duration_min = float(header["duration_min"]) if header is not None else 0.0
+        first_ts = _token_timestamp(day, start, duration_min)
+        last_ts = first_ts
+        if duration_min > 0:
+            end_ts = (
+                start + timedelta(minutes=duration_min)
+                if start is not None
+                else first_ts + timedelta(minutes=duration_min)
+            )
+            if _datetime_local_date(end_ts) == day and end_ts != first_ts:
+                last_ts = end_ts
+    message_id, request_id = _synthetic_ids(row, "")
+    entries = [
+        UsageEntry(
+            timestamp=first_ts,
+            session_id=row["session_id"],
+            message_id=message_id,
+            request_id=request_id,
+            model=row["model"],
+            input_tokens=row["input_tokens"],
+            output_tokens=row["output_tokens"],
+            cache_creation_tokens=row["cache_creation_tokens"],
+            cache_read_tokens=row["cache_read_tokens"],
+            cost_usd=row["cost"],
+            project=row["project"],
+            agent_id=row["agent_id"],
+            message_count=row["message_count"],
+        )
+    ]
+    if last_ts != first_ts:
+        entries.append(_zero_entry(row, last_ts, ":end"))
+    return entries
+
+
 def _new_row(
     *,
     session_id: str,
@@ -239,7 +435,7 @@ def _row_from_json(value: object) -> SnapshotRow | None:
         date.fromisoformat(day)
     except ValueError:
         return None
-    return {
+    row: SnapshotRow = {
         "session_id": session_id,
         "date": day,
         "agent_id": agent_id,
@@ -252,6 +448,13 @@ def _row_from_json(value: object) -> SnapshotRow | None:
         "cost": float(cost),
         "message_count": message_count,
     }
+    first_ts = value.get("first_ts")
+    last_ts = value.get("last_ts")
+    if isinstance(first_ts, str) and first_ts:
+        row["first_ts"] = first_ts
+    if isinstance(last_ts, str) and last_ts:
+        row["last_ts"] = last_ts
+    return row
 
 
 def _header_from_json(value: object) -> SessionHeader | None:
@@ -261,10 +464,43 @@ def _header_from_json(value: object) -> SessionHeader | None:
     duration_min = value.get("duration_min")
     if not isinstance(start_time, str) or not start_time or not _is_number(duration_min):
         return None
-    return {
+    header: SessionHeader = {
         "start_time": start_time,
         "duration_min": float(duration_min),
     }
+    project = value.get("project")
+    if isinstance(project, str) and project:
+        header["project"] = project
+    return header
+
+
+def _lead_with_header_project(
+    entries: list[UsageEntry],
+    sessions: Mapping[str, SessionHeader],
+) -> list[UsageEntry]:
+    """Within each session, put the header-project row first; keep the rest."""
+    if not entries or not any(header.get("project") for header in sessions.values()):
+        return entries
+    grouped: dict[str, list[UsageEntry]] = {}
+    order: list[str] = []
+    for entry in entries:
+        bucket = grouped.get(entry.session_id)
+        if bucket is None:
+            grouped[entry.session_id] = [entry]
+            order.append(entry.session_id)
+        else:
+            bucket.append(entry)
+    result: list[UsageEntry] = []
+    for session_id in order:
+        group = grouped[session_id]
+        header = sessions.get(session_id)
+        project = header.get("project") if header is not None else None
+        if not project:
+            result.extend(group)
+            continue
+        result.extend(entry for entry in group if entry.project == project)
+        result.extend(entry for entry in group if entry.project != project)
+    return result
 
 
 def _read_snapshot() -> UsageSnapshot:
@@ -366,6 +602,11 @@ def _aggregate_entries(
         row["cache_read_tokens"] += entry.cache_read_tokens
         row["cost"] += calculate_cost(entry)
         row["message_count"] += entry.message_count
+        ts_iso = entry.timestamp.isoformat()
+        current_first = row.get("first_ts")
+        current_last = row.get("last_ts")
+        row["first_ts"] = ts_iso if current_first is None else _earlier_start(current_first, ts_iso)
+        row["last_ts"] = ts_iso if current_last is None else _later_end(current_last, ts_iso)
         by_session[entry.session_id].append(entry)
 
     headers: dict[str, SessionHeader] = {}
@@ -380,6 +621,7 @@ def _aggregate_entries(
         headers[session_id] = {
             "start_time": first.timestamp.isoformat(),
             "duration_min": round(duration, 1),
+            "project": first.project or "unknown",
         }
     return rows, headers
 
@@ -425,10 +667,18 @@ def _merge_snapshot(
         if existing is None:
             merged_headers[session_id] = header
             continue
-        merged_headers[session_id] = {
-            "start_time": _earlier_start(existing["start_time"], header["start_time"]),
+        start_time = _earlier_start(existing["start_time"], header["start_time"])
+        merged_header: SessionHeader = {
+            "start_time": start_time,
             "duration_min": max(existing["duration_min"], header["duration_min"]),
         }
+        if start_time == existing["start_time"]:
+            project = existing.get("project") or header.get("project")
+        else:
+            project = header.get("project")
+        if project:
+            merged_header["project"] = project
+        merged_headers[session_id] = merged_header
     return {
         "schema_version": SNAPSHOT_SCHEMA,
         "rows": merged_rows,

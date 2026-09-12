@@ -923,10 +923,23 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         raw_entries.extend(_load_agent_entries(agent, hours_back))
     entry_dates = {id(entry): _entry_date(entry) for entry in raw_entries}
 
-    if date_from is None and raw_entries:
-        date_from = min(entry_dates[id(entry)] for entry in raw_entries)
     if date_from is None:
-        date_from = date_to
+        earliest_live = min(entry_dates.values()) if entry_dates else None
+        earliest_snap = usage_snapshot.earliest_date()
+        earliest_candidates = [day for day in (earliest_live, earliest_snap) if day is not None]
+        date_from = min(earliest_candidates) if earliest_candidates else date_to
+
+    span_from = date_from
+    if _period_spec(period).has_comparison:
+        comparison_days = (date_to - date_from).days + 1
+        span_from = date_from - timedelta(days=comparison_days)
+    span_to = date_to
+    if entry_dates:
+        span_from = min(span_from, min(entry_dates.values()))
+        span_to = max(span_to, max(entry_dates.values()))
+    raw_entries, entry_dates = usage_snapshot.merge_live_with_snapshot(
+        raw_entries, entry_dates, span_from, span_to
+    )
 
     entries = [
         entry

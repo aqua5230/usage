@@ -17,6 +17,7 @@ from analyzer.reporter import build_report_data  # noqa: E402
 from analyzer.usage_snapshot import (  # noqa: E402
     period_totals,
     read_snapshot,
+    replay_entries,
     totals_match,
 )
 
@@ -50,6 +51,22 @@ def main(argv: list[str] | None = None) -> int:
         f"{'sessions':<14} {report_sessions:>14} "
         f"{snapshot.sessions:>14} {session_delta:>14}"
     )
+
+    replayed = replay_entries(date_from, date_to)
+    replay_tokens = sum(entry.total_tokens for entry in replayed)
+    replay_sessions = len({entry.session_id for entry in replayed})
+    print(
+        f"{'replay_tokens':<14} {replay_tokens:>14} "
+        f"{snapshot.total_tokens:>14} {replay_tokens - snapshot.total_tokens:>14}"
+    )
+    print(
+        f"{'replay_sess':<14} {replay_sessions:>14} "
+        f"{snapshot.sessions:>14} {replay_sessions - snapshot.sessions:>14}"
+    )
+    top_sessions = data.get("top_sessions") or []
+    if isinstance(top_sessions, list) and top_sessions:
+        durations = ", ".join(str(row.get("duration_min", 0)) for row in top_sessions)
+        print(f"top_sessions duration_min: {durations}")
 
     if totals_match(
         snapshot,
