@@ -149,9 +149,6 @@ h1{
 """) + """
 .share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible,.rank-line[tabindex]:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;margin:24px 0 32px;border-block:1px solid var(--card-border);background:var(--card-bg)}
-.cards:has([data-card]){grid-template-columns:repeat(3,minmax(0,1fr))}
-.cards:has([data-card]) .card:nth-child(4){border-left:0}
-.cards:has([data-card]) .card:nth-child(n+4){border-top:1px solid var(--card-border)}
 .card{padding:20px 16px;min-width:0;display:grid;grid-template-rows:minmax(2.2em,auto) auto minmax(2.8em,auto);align-content:start}
 .card+.card{border-left:1px solid var(--card-border)}
 .card span{display:block;color:var(--muted);font-size:.78rem;font-weight:600;line-height:1.4;text-transform:uppercase;letter-spacing:.06em;padding-bottom:10px}
@@ -243,6 +240,9 @@ h1{
 .persona-card h3{margin:0 0 14px;color:var(--text);font-size:.95rem;font-weight:700}
 .persona-caption{margin:0 0 16px;color:var(--text-soft);font-size:.88rem;line-height:1.5}
 .persona-peak{margin-top:10px;text-align:right;color:var(--muted);font-size:.72rem;font-variant-numeric:tabular-nums}
+/* .share-bar 是 position:absolute，這一格沒有定位錨點的話，五條長條會全部
+   跑到頁面左上角疊成一塊。 */
+.tokens-cell{position:relative}
 .tokens-cell .share-bar{margin-top:5px;height:3px;max-width:96px;margin-left:auto}
 .persona-hours{display:grid;grid-template-columns:repeat(24,minmax(8px,1fr));gap:4px;align-items:end;height:176px;padding-top:8px}
 .persona-hour{display:grid;grid-template-rows:1fr auto;gap:7px;align-items:end;min-width:0;height:100%}
@@ -435,9 +435,6 @@ td:first-child{color:var(--warn)}
   .rank-line .pct,.rank-line .tokens,.rank-line .cost,.tool-row .pct,.tool-row .tokens,.tool-row .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}
   .rank-line .pct::before,.rank-line .tokens::before,.rank-line .cost::before,.tool-row .pct::before,.tool-row .tokens::before,.tool-row .cost::before{content:attr(data-label);color:var(--muted);font-weight:500}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .cards:has([data-card]){grid-template-columns:repeat(2,minmax(0,1fr))}
-  .cards:has([data-card]) .card:nth-child(odd){border-left:0}
-  .cards:has([data-card]) .card:nth-child(n+3){border-top:1px solid var(--card-border)}
   .card:nth-child(3){border-left:0}
   .card:nth-child(n+3){border-top:1px solid var(--card-border)}
   .trend-row{grid-template-columns:minmax(0,1fr) 72px 80px;gap:12px;padding:12px}
@@ -457,7 +454,6 @@ td:first-child{color:var(--warn)}
   .wrap{padding:24px 12px 32px}
   h1{white-space:normal}
   .cards{grid-template-columns:minmax(0,1fr);gap:0}
-  .cards:has([data-card]){grid-template-columns:minmax(0,1fr)}
   .cards:not(:has(.card:nth-child(4))){grid-template-columns:minmax(0,1fr)}
   .card{padding:16px;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto auto;gap:4px 12px;align-items:baseline}
   .card+.card{border-left:0;border-top:1px solid var(--card-border)}
