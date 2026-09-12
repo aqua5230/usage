@@ -232,7 +232,11 @@ async function downloadHtml(maskProjects) {
 }
 
 async function downloadCsv(maskProjects) {
-  const csvText = maskProjects ? maskedCsvData : csvData;
+  // 有日期選擇器時，CSV 要跟著當下選中的區間走；舊報表沒有 cube，就用產生時寫死的那兩份。
+  const rangeCsv = window.usageReportFilter && window.usageReportFilter.buildCsv;
+  const csvText = rangeCsv
+    ? rangeCsv(Boolean(maskProjects))
+    : (maskProjects ? maskedCsvData : csvData);
   const blob = new Blob([csvText], {type: 'text/csv;charset=utf-8'});
   downloadBlob(blob, buildShareFilename('csv'));
 }

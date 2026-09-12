@@ -595,7 +595,40 @@ def test_generate_html_adds_date_filter_cards_and_fixed_range_labels_for_cube() 
         match.group(1)
         for match in re.finditer(r'<div class="card" data-card="([^"]+)"', html)
     ] == ["tokens", "cost", "sessions", "messages", "active", "peak"]
-    assert html.count('class="fixed-range-tag"') == 7
+    # 年度回顧、洞察、貢獻圖、使用習慣、最近在做什麼——五個不跟日期走的區塊
+    assert html.count('class="fixed-range-tag"') == 5
+    for class_name in ("trend-section", "composition-section", "session-section"):
+        section = re.search(
+            rf'<section class="section {class_name}">.*?</section>', html, re.S
+        )
+        assert section, class_name
+        assert "fixed-range-tag" not in section.group(0)
+    for class_name in (
+        "persona-section",
+        "contribution-section",
+        "wrapped-section",
+        "insights-section",
+    ):
+        section = re.search(
+            rf'<section class="section {class_name}">.*?</section>', html, re.S
+        )
+        assert section, class_name
+        assert "fixed-range-tag" in section.group(0)
+
+
+def test_generate_html_without_cube_keeps_python_rendered_filter_sections() -> None:
+    html = html_report.generate_html(_full_report_data(), language="en")
+
+    assert '<div class="date-filter" data-date-filter>' not in html
+    assert 'id="usage-cube-data"' not in html
+    assert 'id="usage-session-data"' not in html
+    assert '<span class="week">W19</span>' in html
+    assert "Cache read" in html
+    assert "2026-05-20 09:15" in html
+    assert 'class="section trend-section"' in html
+    assert 'class="section composition-section"' in html
+    assert 'class="section session-section"' in html
+    assert '"trendCompareFirst"' not in html
 
 
 def test_report_filter_script_uses_safe_dom_construction_and_separate_model_name() -> None:

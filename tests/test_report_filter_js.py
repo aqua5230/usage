@@ -170,6 +170,28 @@ function makeEnvironment(
     return row;
   });
   tools.append(...toolRows);
+
+  const trendSection = new Element('section', 'trend-section');
+  trendSection.append(
+    new Element('div', 'prompt'),
+    new Element('div', 'rule'),
+    new Element('div', 'trend'),
+  );
+  const compositionSection = new Element('section', 'composition-section');
+  compositionSection.append(
+    new Element('div', 'prompt'),
+    new Element('div', 'rule'),
+    new Element('div', 'rank-list'),
+    new Element('p', 'composition-hint'),
+    new Element('div', 'rank-head'),
+    new Element('div', 'rank-list'),
+  );
+  const sessionSection = new Element('section', 'session-section');
+  sessionSection.append(
+    new Element('div', 'prompt'),
+    new Element('div', 'rule'),
+    new Element('div', 'table-wrap'),
+  );
   const cards = {};
   ['tokens', 'cost', 'sessions', 'messages', 'active', 'peak'].forEach((key) => {
     const card = new Element('div', 'card');
@@ -216,6 +238,26 @@ function makeEnvironment(
     share: 'Share',
     tokens: 'Tokens',
     vsPrevious: 'vs previous period',
+    compositionCacheRead: 'Cache read',
+    compositionCacheWrite: 'Cache write',
+    compositionHitRate: 'Cache hit rate',
+    compositionInput: 'Input',
+    compositionOutput: 'Output',
+    duration: 'Duration',
+    emptyDaily: 'No daily usage in this period',
+    emptySessions: 'No sessions to list in this period',
+    model: 'Model',
+    project: 'Project',
+    rank: 'Rank',
+    startTime: 'Start time',
+    trendCompareDown: 'This week dropped {pct}% vs last week.',
+    trendCompareFirst: 'First week of this period.',
+    trendCompareFlat: 'Roughly flat vs last week.',
+    trendCompareNew: 'This week has new usage vs last week.',
+    trendCompareUp: 'This week is {ratio}× of last week.',
+    trendMarkerNew: 'new',
+    trendWeekInProgress: 'in progress',
+    unknown: 'Unknown',
   };
   global.document = {
     querySelector(selector) {
@@ -226,6 +268,9 @@ function makeEnvironment(
       if (selector === '.model-section .rank-list') return groupList;
       if (selector === '[data-report-period]') return period;
       if (selector === '.model-section .prompt-title') return modelTitle;
+      if (selector === '.trend-section') return trendSection;
+      if (selector === '.composition-section') return compositionSection;
+      if (selector === '.session-section') return sessionSection;
       if (selector === '[data-date-filter]') return withDateFilter ? dateFilter : null;
       const cardMatch = /^\.card\[data-card="([^"]+)"\]$/.exec(selector);
       if (cardMatch) return cards[cardMatch[1]] || null;
@@ -253,7 +298,7 @@ function makeEnvironment(
   return {
     groups, groupChildren, groupList, projectHead, projectList, projectRows,
     tools, cards, period, modelTitle, dateFilter, fromInput, toInput,
-    shortcutButtons, storageData,
+    shortcutButtons, storageData, trendSection, compositionSection, sessionSection,
   };
 }
 
@@ -278,6 +323,11 @@ const cube = {
 };
 const saved = {};
 let env = run(makeEnvironment(cube, saved));
+const iso = window.usageReportFilter.isoWeek;
+assert.deepEqual(iso(new Date(Date.UTC(2026, 0, 1))), {year: 2026, week: 1});
+assert.deepEqual(iso(new Date(Date.UTC(2025, 11, 29))), {year: 2026, week: 1});
+assert.deepEqual(iso(new Date(Date.UTC(2025, 11, 28))), {year: 2025, week: 52});
+assert.deepEqual(iso(new Date(Date.UTC(2027, 0, 1))), {year: 2026, week: 53});
 assert.deepEqual(window.usageReportFilter.aggregateRows(cube.rows, 2, null), {
   0: {tokens: 60, cost: 1.25, costKnown: true},
   1: {tokens: 40, cost: 9.99, costKnown: false},
@@ -426,6 +476,167 @@ assert.deepEqual(
   ['false', 'false', 'false', 'false', 'false']
 );
 console.log('range: 50 tokens, $5, 2 sessions; empty/reversed/clamped/no-previous safe');
+
+function sectionBody(section) {
+  return section.children.filter((child) => (
+    !child.classList.contains('prompt') && !child.classList.contains('rule')
+  ));
+}
+
+const filterCube = {
+  dates: ['2025-12-28', '2025-12-29', '2026-01-01', '2026-01-05'],
+  agents: [
+    {id: 'claude-code', name: 'Claude Code'},
+    {id: 'codex', name: 'Codex'},
+  ],
+  models: [
+    {name: 'claude-test', cost_known: true},
+    {name: 'gpt-test', cost_known: false},
+  ],
+  projects: ['secret-client', 'beta'],
+  rows: [
+    [0, 0, 0, 0, 100, 20, 10, 70, 2, 1],
+    [1, 0, 0, 0, 50, 10, 0, 40, 1, 1],
+    [2, 1, 1, 1, 0, 0, 0, 0, 0, 1],
+    [3, 0, 0, 0, 200, 30, 20, 150, 4, 1],
+  ],
+};
+const filterSessions = [
+  {
+    date_idx: 0, project_idx: 0, model_idx: 0,
+    start_time: '2025-12-28 10:00', duration_min: 90, tokens: 50, cost: 8,
+  },
+  {
+    date_idx: 1, project_idx: 0, model_idx: 0,
+    start_time: '2025-12-29 11:00', duration_min: 30, tokens: 100, cost: 1.25,
+  },
+  {
+    date_idx: 3, project_idx: 1, model_idx: 1,
+    start_time: '2026-01-05 09:00', duration_min: 5, tokens: 400, cost: 9,
+  },
+];
+const filterEnv = run(makeEnvironment(filterCube, {}, false, filterSessions));
+
+function applyFilter(from, to) {
+  return window.usageReportFilter.applyBounds({from, to});
+}
+
+function trendRows() {
+  const trend = sectionBody(filterEnv.trendSection)[0];
+  return trend.children.filter((child) => child.classList.contains('trend-row'));
+}
+
+// Cross-year ISO week 2025-12-29..2026-01-04 is 2026-W1; tokens 100, cost $1.
+const crossYear = applyFilter('2025-12-29', '2026-01-04');
+assert.equal(crossYear.tokens, 100);
+assert.equal(crossYear.cost, 1);
+const crossRows = trendRows();
+assert.equal(crossRows.length, 1);
+assert.equal(crossRows[0].querySelector('.week').textContent, 'W1');
+assert.equal(crossRows[0].querySelector('em').textContent, '100');
+assert.equal(crossRows[0].getAttribute('title'), '2025-12-29 – 2026-01-04 · 100 · $1.00');
+assert.equal(crossRows[0].querySelector('.delta').textContent, '');
+assert.equal(
+  filterEnv.trendSection.querySelector('.trend-summary').textContent,
+  '→ First week of this period.'
+);
+const crossLists = filterEnv.compositionSection.querySelectorAll('.rank-list');
+assert.equal(filterEnv.compositionSection.hidden, false);
+assert.deepEqual(
+  crossLists[0].children.map((row) => [
+    row.querySelector('.name').textContent,
+    row.querySelector('.pct').textContent,
+    row.querySelector('.tokens').textContent,
+  ]),
+  [['Input', '50.0%', '50'], ['Cache read', '40.0%', '40'], ['Output', '10.0%', '10']]
+);
+assert.deepEqual(
+  crossLists[1].children.map((row) => [
+    row.querySelector('.name').textContent,
+    row.querySelector('.pct').textContent,
+  ]),
+  [['Claude Code', '44.4%'], ['Codex', '—']]
+);
+const crossSessionRows = filterEnv.sessionSection.querySelectorAll('tr').slice(1);
+assert.equal(crossSessionRows.length, 1);
+assert.equal(crossSessionRows[0].children[0].textContent, '#1');
+assert.equal(crossSessionRows[0].children[1].textContent, '2025-12-29 11:00');
+assert.equal(crossSessionRows[0].children[2].className, 'name');
+assert.equal(crossSessionRows[0].children[2].textContent, 'secret-client');
+assert.equal(crossSessionRows[0].children[3].className, '');
+assert.equal(crossSessionRows[0].children[3].textContent, 'claude-test');
+assert.equal(crossSessionRows[0].children[4].textContent, '30m');
+assert.equal(crossSessionRows[0].children[5].textContent, '100');
+assert.equal(crossSessionRows[0].children[6].textContent, '$1.25');
+const maskedCsv = window.usageReportFilter.buildCsv(true);
+assert.equal(maskedCsv.includes('secret-client'), false);
+assert.equal(maskedCsv.includes('Project 1'), true);
+assert.equal(maskedCsv.includes('claude-test'), true);
+const plainCsv = window.usageReportFilter.buildCsv(false);
+assert.equal(
+  plainCsv,
+  'type,name,share_pct,tokens,cost_usd\r\nproject,secret-client,100.0,100,1.00\r\nmodel,claude-test,100.0,100,1.00\r\n'
+);
+
+// Empty range: no rows, hide composition, empty sessions, zero-token week, no NaN.
+const emptyRange = applyFilter('2025-12-30', '2025-12-31');
+assert.deepEqual([emptyRange.tokens, emptyRange.cost], [0, 0]);
+assert.equal(filterEnv.compositionSection.hidden, true);
+assert.equal(sectionBody(filterEnv.sessionSection)[0].className, 'empty');
+assert.equal(trendRows()[0].querySelector('em').textContent, '0');
+const emptyDump = JSON.stringify({
+  summary: emptyRange,
+  csv: window.usageReportFilter.buildCsv(false),
+  title: trendRows()[0].getAttribute('title'),
+});
+assert.equal(emptyDump.includes('NaN'), false);
+assert.equal(emptyDump.includes('Infinity'), false);
+
+// Single day with data.
+const oneDay = applyFilter('2026-01-05', '2026-01-05');
+assert.equal(oneDay.tokens, 400);
+assert.equal(trendRows().length, 1);
+assert.equal(trendRows()[0].querySelector('.week').textContent, 'W2');
+assert.equal(trendRows()[0].querySelector('.delta').textContent, 'in progress');
+assert.equal(filterEnv.compositionSection.hidden, false);
+const oneDaySessions = filterEnv.sessionSection.querySelectorAll('tr').slice(1);
+assert.equal(oneDaySessions.length, 1);
+assert.equal(oneDaySessions[0].children[2].textContent, 'beta');
+assert.equal(oneDaySessions[0].children[3].className, '');
+assert.equal(oneDaySessions[0].children[4].textContent, '5m');
+
+// Full range: cost ranking (not tokens), in-progress last week, masked CSV still clean.
+applyFilter('2025-12-28', '2026-01-05');
+const fullRows = trendRows();
+assert.deepEqual(
+  fullRows.map((row) => row.querySelector('.week').textContent),
+  ['W52', 'W1', 'W2']
+);
+assert.deepEqual(
+  fullRows.map((row) => row.querySelector('em').textContent),
+  ['200', '100', '400']
+);
+assert.equal(fullRows[2].querySelector('.delta').textContent, 'in progress');
+assert.equal(
+  filterEnv.trendSection.querySelector('.trend-summary').textContent,
+  '→ This week dropped 50% vs last week.'
+);
+const ranked = filterEnv.sessionSection.querySelectorAll('tr').slice(1);
+assert.deepEqual(ranked.map((row) => row.children[6].textContent), ['$9.00', '$8.00', '$1.25']);
+assert.deepEqual(ranked.map((row) => row.children[5].textContent), ['400', '50', '100']);
+assert.equal(ranked[0].children[2].className, 'name');
+assert.equal(ranked[0].children[3].className, '');
+assert.equal(window.usageReportFilter.buildCsv(true).includes('secret-client'), false);
+assert.equal(window.usageReportFilter.buildCsv(true).includes('Project 1'), true);
+const fullDump = JSON.stringify({
+  weeks: fullRows.map((row) => row.getAttribute('title')),
+  csv: window.usageReportFilter.buildCsv(false),
+});
+assert.equal(fullDump.includes('NaN'), false);
+assert.equal(fullDump.includes('Infinity'), false);
+console.log(
+  'filter: isoWeek 2026-W1 cross-year; composition 50/40/10; sessions by cost; csv masked'
+);
 """
 
 
@@ -436,6 +647,7 @@ def test_collapsed_rank_lines_are_actually_hidden_by_css() -> None:
     from ui.report_styles import REPORT_CSS
 
     assert ".rank-line[hidden]{display:none}" in REPORT_CSS
+    assert ".composition-section[hidden]{display:none}" in REPORT_CSS
 
 
 def test_report_filter_javascript_interactions_and_boundaries() -> None:
@@ -454,4 +666,5 @@ def test_report_filter_javascript_interactions_and_boundaries() -> None:
         "single row/model: 100.0%, 10 tokens, unpriced dash; storage errors safe",
         "all unpriced: two dashes; shares 75.0% + 25.0%",
         "range: 50 tokens, $5, 2 sessions; empty/reversed/clamped/no-previous safe",
+        "filter: isoWeek 2026-W1 cross-year; composition 50/40/10; sessions by cost; csv masked",
     ]

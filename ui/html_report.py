@@ -873,7 +873,6 @@ def _render_composition_section(data: Mapping[str, Any], lang: str) -> str:
         _t(lang, "composition_section"),
         body,
         "composition-section",
-        fixed_label=_fixed_range_label(data, lang),
     )
 
 
@@ -966,7 +965,6 @@ def _render_trend_section(data: Mapping[str, Any], lang: str, date_to: date) -> 
         _t(lang, "trend_section"),
         _trend_ascii(daily, lang, date_to),
         "trend-section",
-        fixed_label=_fixed_range_label(data, lang),
     )
 
 
@@ -1091,6 +1089,7 @@ def _render_recent_titles_section(data: Mapping[str, Any], lang: str) -> str:
         _t(lang, "recent_titles_heading"),
         f'<div class="recent-titles">{rows}</div>',
         "recent-titles-section",
+        fixed_label=_fixed_range_label(data, lang),
     )
 
 
@@ -1183,7 +1182,6 @@ def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
         _t(lang, "session_section"),
         session_body,
         "session-section",
-        fixed_label=_fixed_range_label(data, lang),
     )
 
 
@@ -1220,6 +1218,25 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                 "tokens": _t(lang, "tokens"),
                 "unknown": _t(lang, "unknown"),
                 "vsPrevious": _t(lang, "kpi_vs_prev_period"),
+                "compositionCacheRead": _t(lang, "composition_cache_read"),
+                "compositionCacheWrite": _t(lang, "composition_cache_write"),
+                "compositionHitRate": _t(lang, "composition_hit_rate"),
+                "compositionInput": _t(lang, "composition_input"),
+                "compositionOutput": _t(lang, "composition_output"),
+                "duration": _t(lang, "duration"),
+                "emptyDaily": _t(lang, "empty_daily"),
+                "emptySessions": _t(lang, "empty_sessions"),
+                "model": _t(lang, "model"),
+                "project": _t(lang, "project"),
+                "rank": _t(lang, "rank"),
+                "startTime": _t(lang, "start_time"),
+                "trendCompareDown": _t(lang, "trend_compare_down", pct="{pct}"),
+                "trendCompareFirst": _t(lang, "trend_compare_first"),
+                "trendCompareFlat": _t(lang, "trend_compare_flat"),
+                "trendCompareNew": _t(lang, "trend_compare_new"),
+                "trendCompareUp": _t(lang, "trend_compare_up", ratio="{ratio}"),
+                "trendMarkerNew": _t(lang, "trend_marker_new"),
+                "trendWeekInProgress": _t(lang, "trend_week_in_progress"),
             }
         )
     return json.dumps(share_config, ensure_ascii=False).replace("</", "<\\/")

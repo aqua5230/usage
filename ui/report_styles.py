@@ -190,6 +190,7 @@ h1{
 /* .rank-line 用 class 指定 display:grid，權重高過瀏覽器預設的 [hidden]{display:none}，
    沒有這一條收合只會改到 DOM、畫面照舊全開。 */
 .rank-line[hidden]{display:none}
+.composition-section[hidden]{display:none}
 .rank-line.model-group .name{font-weight:600}
 .rank-line.model-child .name{padding-left:18px}
 .rank-line.model-child .model-name{padding-left:18px}
