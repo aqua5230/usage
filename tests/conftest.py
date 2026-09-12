@@ -60,6 +60,7 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     import prefs
     import service_status
     import usage_diagnosis_snapshot
+    from analyzer import usage_snapshot
 
     state_dir = tmp_path / "user-state"
     monkeypatch.setattr(prefs, "PREFERENCES_FILE", state_dir / "usage-preferences.json")
@@ -67,6 +68,11 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
         usage_diagnosis_snapshot,
         "SNAPSHOT_PATH",
         state_dir / "usage-diagnosis.json",
+    )
+    monkeypatch.setattr(
+        usage_snapshot,
+        "SNAPSHOT_PATH",
+        state_dir / "usage_snapshot.json",
     )
     monkeypatch.setattr(
         service_status,

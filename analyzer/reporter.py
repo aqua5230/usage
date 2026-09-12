@@ -27,7 +27,7 @@ from adapters.types import AgentInfo, UsageEntry
 from pricing import calculate_cost, is_model_priced
 
 from .aggregator import aggregate_sessions
-from . import diagnoser
+from . import diagnoser, usage_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -1213,6 +1213,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         })
 
     year_data = _load_year_data_cached(agents)
+    usage_snapshot.record_entries(entries, entry_dates=entry_dates)
 
     return {
         "period": period,
