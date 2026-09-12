@@ -857,6 +857,111 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.2",
+          "period": "2026-09-12",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "`unsandboxed` 權限棄用警告升級，列出檔案路徑、五條違規規則與 `command` 遷移步驟",
+                "en": "Upgraded Deprecation Warning for `unsandboxed` Permissions Lists File Paths, Five Offending Rules, and `command` Migration Steps"
+              },
+              "body": {
+                "zh-TW": "管理專案安全防護有了更清楚的指引。舊版廢棄規則的啟動警告現在能精準指出問題所在。⟦宛如大樓消防安檢人員巡檢後開立改善通知單，不僅逐一標出違規的樓層門牌，更明確列出最多五處不合規的排煙閥位置，並附上標準更換步驟。⟧以前若在命令列全域、共用或個別專案設定檔中殘留了舊版的 `unsandboxed` 權限規則，啟動警告往往讓人找不著頭緒。現在啟動提示全面改善，會逐一列出每個受影響的設定檔完整路徑，直接列出最多五條違規規則，並附上逐步遷移指引，帶領你將它們改寫為新版的 `command` 規則，維護工作一目了然。\n\n```json\n{\n  \"permissions\": {\n    \"command\": [\"git status\", \"npm test\"]\n  }\n}\n```",
+                "en": "Managing project security protections is now guided by clearer instructions. Startup warnings for deprecated legacy rules now pinpoint exactly where the issues lie. ⟦Much like a building fire safety inspector issuing a correction notice that not only marks the offending floor room numbers one by one, but also specifically lists up to five non-compliant smoke damper locations and attaches standard replacement steps.⟧ In the past, leaving legacy `unsandboxed` permission rules in CLI global, shared, or individual project configuration files often resulted in confusing startup warnings. Now, the startup warning has been thoroughly improved to list the full path of each affected configuration file, explicitly display up to five offending rules, and provide step-by-step migration instructions to guide you through rewriting them into new `command` rules, making maintenance crystal clear.\n\n```json\n{\n  \"permissions\": {\n    \"command\": [\"git status\", \"npm test\"]\n  }\n}\n```"
+              },
+              "original": "Improved the startup warning for deprecated `unsandboxed` permission rules across CLI, shared, and project configuration files to list each affected file path, up to five offending rules, and step-by-step instructions for migrating them to `command` rules."
+            },
+            {
+              "title": {
+                "zh-TW": "`/resume` 啟動反應加速，冷快取與過期摘要快速載入長篇對話",
+                "en": "`/resume` Startup Responsiveness Accelerated, Fast Loading for Long Conversations with Cold Caches and Stale Summaries"
+              },
+              "body": {
+                "zh-TW": "接續先前討論過的大型長篇任務，恢復對話的載入反應現在敏捷許多。⟦好似老航海船長翻開厚實的航行日誌，就算前段航程的彙整摘要尚未預先抄錄、或是前次留下的備忘筆記早已過期，也能立刻翻至指定頁面接續記錄，不再被卡在漫長的翻查等待中。⟧以前在終端機輸入 `/resume` 指令嘗試開啟對話紀錄特別龐大的歷史時，只要摘要快取（把對話內容預先暫存起來以加速讀取的機制）處於尚未預熱的冷啟動狀態、或者快取內容已經過期，啟動過程往往會出現明顯的停頓延遲。現在這項啟動反應速度已獲得改善，即使面對快取尚未就緒或內容過期的長篇歷史紀錄，也能迅速完成載入並恢復對話。\n\n```\n# 接續過往對話紀錄\nagy /resume\n```",
+                "en": "Resuming large, extended tasks from previous discussions is now significantly more responsive. ⟦Like an experienced sea captain opening a thick logbook who can immediately turn to the target page and continue recording without getting stuck in a long search, even if the summary of the previous voyage has not been prepared yet or the previous memo notes have long expired.⟧ Previously, when running the `/resume` command in the terminal to open an exceptionally large conversation history, noticeable delays would occur whenever the summary cache (a mechanism that temporarily stores conversation content in advance to speed up reading) was cold or stale. This startup responsiveness has now been improved, allowing the system to quickly complete loading and resume conversations even with unready or expired caches over long conversation histories.\n\n```\n# Resume past conversation history\nagy /resume\n```"
+              },
+              "original": "Improved `/resume` startup responsiveness when opening a large conversation history with a cold or stale summary cache."
+            },
+            {
+              "title": {
+                "zh-TW": "外掛隨附 MCP 伺服器自動套用命名空間，徹底防範重名衝突",
+                "en": "Plugin-Bundled MCP Servers Automatically Namespaced to Prevent Name Collisions"
+              },
+              "body": {
+                "zh-TW": "為終端機擴充各式外部工具，外掛隨附的伺服器重名衝突現在迎刃而解。當你使用 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）時，不同外掛套件隨附的伺服器，過去若恰好取了相同的名稱，彼此之間、或是與你在 `mcp_config.json` 中自訂的伺服器便會發生衝突與覆蓋。這種命名撞車會導致其中一方無法正常運作。現在系統會自動替外掛隨附的伺服器加上命名空間，統一改以 `<plugin>_<server>` 的格式獨立註冊，徹底解決重名互相覆蓋的問題。⟦恰如大型聯合辦公室替各進駐團隊編發專屬分機號碼，在內部總機名稱前自動加上團隊代號，就算不同團隊都恰巧指派了一位「總務」，各分機撥通時也絕不互相佔線或搶撥。⟧",
+                "en": "When extending the terminal with various external tools, name collisions among plugin-bundled servers are now completely resolved. When using MCP (Model Context Protocol, a protocol for connecting AI to external tools), bundled servers across different plugins that happened to share the same name previously collided with each other or overwrote custom servers in your `mcp_config.json`. Such naming clashes would prevent one of the servers from working properly. The system now automatically namespaces plugin-bundled servers, registering them independently in the `<plugin>_<server>` format to eliminate overlapping naming conflicts. ⟦Just like a large coworking space assigning dedicated extension numbers to each resident team by prefixing team codes to internal directory names, ensuring that even if multiple teams each appoint a \"general affairs\" lead, calls to different extensions never interfere with or intercept each other.⟧"
+              },
+              "original": "Fixed MCP servers bundled inside plugins colliding with each other or with user-configured servers in `mcp_config.json` when they shared the same server name by automatically namespacing plugin MCP servers as `<plugin>_<server>`."
+            },
+            {
+              "title": {
+                "zh-TW": "開啟或切換對話修復背景協程洩漏，顯著降低記憶體佔用",
+                "en": "Opening or Switching Conversations Fixes Background Goroutine Leak, Significantly Reducing Memory Usage"
+              },
+              "body": {
+                "zh-TW": "頻繁開啟歷史對話或在任務間切換，終端機不再悄悄囤積過多電腦記憶體。⟦彷彿房務人員走進客房整理床單後，卻忘記關閉浴室抽風機與走廊照明，讓馬達在無人使用的空房中持續空轉耗電，如今退房流程落實了隨手關閉機制，房間巡檢完畢便即刻切斷閒置電器。⟧以前只要在命令列開啟或掃描對話紀錄，背景負責清理步驟快取（用來暫存各執行步驟紀錄的內部機制）的背景協程常會殘留下來，並在整個工作階段中持續運行，造成不必要的記憶體流失。這個記憶體流失問題現在已經修好，執行 `/resume` 重新載入對話或在不同對話間頻繁切換後，系統記憶體佔用顯著減少，長久運作依然維持輕快。",
+                "en": "When frequently opening conversation histories or switching between tasks, the terminal no longer silently accumulates excessive system memory. ⟦Much like housekeeping staff making beds in a guest room but forgetting to turn off the bathroom exhaust fan and hallway lights, leaving motors idling and consuming electricity in an empty room, whereas the check-out process now enforces a shutdown protocol to immediately cut power to idle appliances after room inspection.⟧ Previously, whenever conversation histories were opened or scanned from the command line, background goroutines responsible for evicting step cache (an internal mechanism for temporarily caching execution step records) often lingered and ran throughout the rest of the session, causing unnecessary memory leaks. This memory leak has now been fixed, significantly reducing system memory usage after running `/resume` or switching between conversations, keeping long-running sessions nimble and responsive."
+              },
+              "original": "Fixed a memory leak where opening or scanning conversations left background step-cache eviction goroutines running for the rest of the session, significantly reducing memory usage after opening `/resume` or switching conversations."
+            },
+            {
+              "title": {
+                "zh-TW": "`view_file` 拒絕非 UTF-8 二進位檔與 100 MB 超大檔，防止上下文塞爆",
+                "en": "`view_file` Rejects Non-UTF-8 Binary Files and 100 MB Oversized Files to Prevent Context Overflow"
+              },
+              "body": {
+                "zh-TW": "把檔案交給 AI 閱讀時，工具現在能主動擋下會塞爆上下文視窗的非預期輸入。以前使用 `view_file` 工具查看檔案時，若遇上非 UTF-8 編碼的二進位檔案，往往會硬當成純文字解析；甚至在碰上體積大於 100 MB 的超大檔案時，也會直接嘗試塞進模型的上下文視窗（模型在單一輪對話中所能讀取與容納的文字容量上限）。這種過度載入常導致對話中斷或發生錯誤。現在這項缺陷已經修好，面對不支援的二進位格式與超大檔案，工具會在讀取前直接予以拒絕並回傳明確錯誤，避免塞爆模型上下文視窗。⟦好比自動文件掃描機的進紙托盤，遇到未支援的透明塑膠板、或是厚度超過一百頁的厚重硬皮書時，會在入紙口主動退件並亮起清楚的錯誤警示，絕不硬塞進滾輪以防卡紙扯壞內部機件。⟧",
+                "en": "When handing files over for AI reading, the tool now actively intercepts unexpected inputs that would overflow the context window. Previously, when using `view_file` to inspect files, non-UTF-8 encoded binary files were often forcibly parsed as plain text, and files larger than 100 MB were directly loaded into the model's context window (the upper limit of text capacity that the model can ingest and hold in a single turn). Such overloading frequently led to conversation aborts or errors. This defect is now fixed; unsupported binary formats and oversized files are directly rejected with a clear error before loading, preventing context window overflows. ⟦Much like an automatic document scanner tray that actively rejects unsupported transparent plastic sheets or bulky hardcover books exceeding one hundred pages at the feeder with a clear error warning, never forcing them into the rollers to prevent paper jams and internal mechanical damage.⟧"
+              },
+              "original": "Fixed `view_file` attempting to parse non-UTF-8 binary files as text or loading files larger than 100 MB into the model context; unsupported binary formats and oversized files are now rejected with a clear error before overflowing the context window."
+            },
+            {
+              "title": {
+                "zh-TW": "Gemini API 工作階段保留前輪思考區塊，並正確傳遞思考簽章",
+                "en": "Gemini API Sessions Retain Thinking Blocks from Prior Turns and Correctly Propagate Thought Signatures"
+              },
+              "body": {
+                "zh-TW": "透過金鑰與模型展開多輪深度交談，上一輪的思考脈絡現在能完好延續。⟦恰似數學競賽選手在多輪解題時保留每一步草稿演算，並在每段推導末端加蓋防偽個人戳記，交卷時所有先前的思考手稿與印鑑都能完整夾帶遞交，不會在進入下一題時把前一題的推論過程整張撕毀。⟧以前透過 `GEMINI_API_KEY` 啟動 Gemini API 工作階段時，每當使用者送出後續的新訊息，系統往往會遺失先前對話輪次中的模型思考區塊。同時，文字段落與思考段落上的思考簽章（用來驗證推論過程完整性與身分的數位記號）也無法正常傳遞。這兩項缺陷現在皆已修正，模型的思考紀錄與簽章能在多輪對話中順暢保留並正確傳播。",
+                "en": "When engaging in multi-turn in-depth conversations with models via API keys, the thinking context from prior turns is now cleanly preserved. ⟦Just like a math competition contestant preserving draft calculations for every step across multiple problem-solving rounds and stamping an anti-counterfeit personal seal at the end of each derivation, so that all prior thought manuscripts and seals are submitted together without tearing up earlier reasoning when moving to the next question.⟧ Previously, when launching Gemini API sessions via `GEMINI_API_KEY`, sending subsequent user messages often caused the system to drop model thinking blocks from previous conversation turns. Additionally, thought signatures (digital markers used to verify the integrity and identity of reasoning processes) on text and thought parts failed to propagate properly. Both defects have now been fixed, allowing model thinking records and signatures to be smoothly retained and correctly propagated across multiple conversation turns."
+              },
+              "original": "Fixed Gemini API (`GEMINI_API_KEY`) sessions dropping model thinking blocks from prior turns on subsequent user messages and failing to propagate thought signatures on text and thought parts."
+            },
+            {
+              "title": {
+                "zh-TW": "產出物審查修復父路徑比對，對話分支與快照排除系統內部目錄",
+                "en": "Artifact Review Fixes Parent Path Matching; Conversation Forks and Snapshots Exclude Internal System Directories"
+              },
+              "body": {
+                "zh-TW": "審查程式產出物或建立對話分支，專案內部目錄的管理現在更加乾淨俐落。以前若在 `.gemini/` 之上的父目錄路徑中包含 `scratch` 等被忽略的路徑名稱，產出物審查（檢視程式碼生成成果的檢查面板）常會意外失效而無法觸發。此外，在執行對話分支或快照復原時，過去常會多餘複製內部專用的 `.system_generated/subagents` 與 `.system_generated/worktrees` 資料夾，且在刪除對話時也未清理子代理人的後設資料。如今這些管理問題均已修復，分支與復原不再夾帶內部目錄，刪除對話時也會同步清除子代理人紀錄。⟦如同建築事務所封存設計專案時妥善區隔公開成果與內部暫存，分流衍生新圖紙時主動排除草稿夾裡的臨時施工模型與分身圖層，專案結案銷毀時也同步清空各協力小組的派工備忘錄。⟧",
+                "en": "When reviewing code artifacts or branching conversations, internal project directory management is now much cleaner. Previously, if a parent directory path above `.gemini/` contained skipped path names such as `scratch`, artifact review (an inspection panel for reviewing generated code outputs) often failed to trigger. In addition, when executing conversation forks or snapshot reverts, internal `.system_generated/subagents` and `.system_generated/worktrees` directories were unnecessarily copied, and deleting conversations failed to clean up subagent metadata. These management issues have now been resolved: forks and reverts no longer include internal directories, and deleting a conversation cleanly purges subagent records. ⟦Like an architecture firm archiving design projects by properly separating public deliverables from internal temp files, actively excluding temporary construction models and duplicate draft layers when branching new blueprints, and clearing assignment memos across partner teams when closing and destroying a project.⟧"
+              },
+              "original": "Fixed artifact review failing to trigger when a directory name above `.gemini/` matched a skipped path component such as `scratch`, prevented conversation forks and snapshot reverts from copying internal `.system_generated/subagents` and `.system_generated/worktrees` directories, and cleaned up subagent metadata records when deleting a conversation."
+            },
+            {
+              "title": {
+                "zh-TW": "修復已刪除對話在背景重新連線時誤建為空白 `SQLite` 資料庫",
+                "en": "Fixes Deleted Conversations Recreated as Empty `SQLite` Databases on Background Reconnection"
+              },
+              "body": {
+                "zh-TW": "手動清空不需要的舊對話紀錄，已經被刪除的歷史檔案絕不再死灰復燃。⟦有如銀行客戶前往櫃台辦理結清銷戶後，即使後台批次排程稍後才再次連線清查餘額，系統也絕不會因為收到查詢請求，就莫名在金庫中自動重新立起一個連帳號欄位都沒有的空白保險箱。⟧以前在使用者刪除對話紀錄之後，若有背景查詢作業嘗試重新連線，往往會在底層硬生生重新建立起一筆空白且缺乏資料結構的 `SQLite` 資料庫檔案。這些幽靈檔案不僅徒增混亂，也無法正常讀取。這個幽靈重建問題現在已經徹底修復，背景查詢重新連線時不會再擅自生成空白資料庫，刪除對話確實清爽乾淨。",
+                "en": "When manually clearing unwanted conversation histories, deleted history files will never resurface. ⟦Like a bank customer closing an account at the counter, where even if backend batch schedules reconnect later to check balances, the system never automatically erects an empty safe in the vault lacking even account fields just because an inquiry request was received.⟧ Previously, after a user deleted conversation histories, any background queries attempting to reconnect would recreate empty, schema-less `SQLite` database files underneath. These ghost files added clutter and could not be read properly. This ghost recreation bug has now been completely resolved; background queries reconnecting after deletion no longer generate empty databases, keeping conversation deletions truly clean."
+              },
+              "original": "Fixed deleted conversations being recreated as empty, schema-less SQLite database files when background queries reconnected after deletion."
+            },
+            {
+              "title": {
+                "zh-TW": "無工作區對話維持獨立隔離，不再意外繼承其他工作階段自訂路徑",
+                "en": "Workspaceless Conversations Maintain Strict Isolation, No Longer Inheriting Custom Paths from Other Sessions"
+              },
+              "body": {
+                "zh-TW": "不在任何專案目錄下隨手開啟終端機，獨立交談環境現在具備完善的隔離邊界。以前在未指定工作區資料夾的狀態下啟動新對話，該工作階段往往會意外繼承其他正在運行的開啟工作階段中的專案路徑與自訂設定。這種跨工作階段的設定滲漏，容易導致臨時對話誤讀了無關專案的客製化規則或檔案目錄。這個隔離缺陷現在已經修好，未指定工作區的對話會維持純粹獨立，不再擅自套用其他工作階段的環境路徑與自訂設定。⟦這好比走進共享空間租用一張臨時空桌，桌面上乾淨清空，既不會莫名翻出隔壁專案工作室遺留的門禁磁卡與私人物料，也不會意外套用其他租客專屬的自訂燈光偏好。⟧",
+                "en": "When launching the terminal outside of any project directory, standalone conversation environments now maintain proper isolation boundaries. Previously, when starting a new conversation without a workspace folder, the session often inadvertently inherited project paths and customizations from other open sessions running concurrently. This cross-session leak caused ad-hoc conversations to mistakenly read irrelevant project rules or file directories. This isolation defect has now been fixed: conversations launched without a workspace folder remain purely standalone, no longer inheriting environment paths and custom settings from other sessions. ⟦Much like renting a temporary hot desk in a shared workspace with a clean, clear surface, where you neither uncover access keycards and personal materials left behind by adjacent project studios nor inadvertently adopt another tenant's custom lighting preferences.⟧"
+              },
+              "original": "Fixed conversations launched without a workspace folder inheriting workspace paths and customizations from other open sessions."
+            }
+          ]
+        },
+        {
           "version": "1.2.1",
           "period": "2026-09-12",
           "items": [
@@ -1063,100 +1168,6 @@
                 "en": "When picking up past conversations from days ago or before an update, your chat history will no longer fail to load due to unrecognized formats. Previously, when resuming a conversation created in an older version, the system often failed with an `unknown step type` error because it could not recognize legacy step formats in the log, making the entire conversation unopenable. The loader parser now features improved backward compatibility for older formats, smoothly parsing legacy step types and fully restoring the conversation session. ⟦It is like opening an early archival manuscript in a library: even if internal pages bear obsolete classification stamps from earlier generations of curators, the new scanner recognizes them smoothly instead of refusing to turn the page over discontinued stamp codes.⟧"
               },
               "original": "Fixed older conversations failing to load with an `unknown step type` error when resumed."
-            }
-          ]
-        },
-        {
-          "version": "1.1.28",
-          "period": "2026-09-09",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "遇到 503 暫時錯誤自動長重試，工作階段不中斷",
-                "en": "Automatic extended retries on temporary 503 errors keep sessions uninterrupted"
-              },
-              "body": {
-                "zh-TW": "你正請 AI 執行冗長的多步驟任務，最怕遇到遠端模型伺服器短暫壅塞。⟦好似在熱門麵包店結帳時遇到刷卡機短暫斷線，店員不會立刻退回商品並將你請出店門，而是請你稍待片刻後再次感應，直到連線恢復。⟧ 以前只要碰上 `503 Unavailable` 這類短暫的模型介面錯誤，整個正在進行的工作階段（session，從啟動到結束的一整段對話歷程）就會被迫終止。現在代理人遇到這類暫時狀況，會透過指數退避（重試等待時間隨失敗次數拉長的做法）大幅延長重試期。即使服務發生短暫波動，也不會隨意中斷你的工作階段。",
-                "en": "When asking AI to perform long multi-step tasks, the biggest worry is hitting brief congestion on remote model servers. ⟦Much like a card reader briefly disconnecting at a busy bakery checkout, where the clerk does not immediately return your items and show you out the door, but asks you to wait a moment and tap again until the connection recovers.⟧ Previously, whenever encountering a transient model API error like `503 Unavailable`, the entire ongoing session was forced to terminate. Now, when encountering such temporary situations, the agent significantly extends the retry period using exponential backoff (waiting longer between retries as failed attempts increase). Even during brief service fluctuations, your session will no longer be casually interrupted."
-              },
-              "original": "Improved resilience to transient model API errors: the agent now retries errors such as `503 Unavailable` for much longer with exponential backoff, so a brief service hiccup no longer aborts your session."
-            },
-            {
-              "title": {
-                "zh-TW": "本機憑證快讀登入身分，切換帳號清空企業舊資料",
-                "en": "Local credentials speed up sign-in identity checks and account switching clears stale business data"
-              },
-              "body": {
-                "zh-TW": "每次啟動工具或切換帳號，現在都能迅速就緒。以前每次開啟命令列或在瀏覽器完成授權，都要先送出一趟網路請求確認身分；若是查詢遇到問題，整個登入程序就會卡住中斷，啟動時顯示的方案等級也常常閃爍消失。現在改為直接從儲存的憑證（存放在本機的登入身分證明）讀取資料，查詢失敗不再阻礙登入完成，畫面上的方案等級更維持穩定顯示。若是你剛從選定專案的企業帳號切換至個人帳號，舊的企業專案與授權細節現在會被徹底清除，不再因為殘留過期資料而跳出專案存取錯誤。⟦這好比拿出皮夾裡已蓋章的會員卡直接通關，驗票員不必每次都打電話回總部查驗，換成一般訪客卡時也會順手收回貴賓通行證，不再拿舊通行條擋住入口。⟧",
-                "en": "Launching the tool or switching accounts is now ready promptly every time. Previously, opening the CLI or completing browser authorization required sending a network request to verify your identity; if the lookup ran into issues, the entire sign-in process would freeze and halt, and the plan tier shown at startup often flickered and disappeared. Now, data is read directly from stored credentials (login identity proofs stored locally), so lookup failures no longer block sign-in completion, and the on-screen plan tier remains stably displayed. If you switch from a business account with a selected project to a personal account, old business project and license details are now thoroughly cleared, preventing project access errors caused by leftover stale data. ⟦This is like showing a stamped membership card directly from your wallet at the gate without ticket staff calling headquarters every time, and handing over a regular visitor pass while returning the VIP badge so outdated passes will not block the entrance.⟧"
-              },
-              "original": "Improved sign-in and startup speed by reading your signed-in identity from the stored credential instead of making a network request on every launch and after browser consent; a failed identity lookup no longer prevents sign-in from completing, and the displayed plan tier no longer briefly disappears during startup.\nFixed sign-in failing with a project access error after switching from a business account with a selected project to a personal account; stale business project and license details are now fully cleared on personal sign-in."
-            },
-            {
-              "title": {
-                "zh-TW": "無頭模式自動化更順暢，及時退出且日誌回報清晰",
-                "en": "Smoother headless automation with prompt exits and clear error reporting"
-              },
-              "body": {
-                "zh-TW": "將指令串進自動化排程時，最講求乾淨俐落與明確回報。⟦宛如快遞物流車隊的夜間集運，貨件裝車完畢就立即發車，沿途留下明確標籤與簽收單，不因無人簽名而原地乾等。⟧ 啟用無頭模式（headless，沒有終端機視窗的非互動執行模式）搭配 `-p` 旗標時，現在送達最終答案便會迅速退出。背景任務與排程計時器受 `--print-timeout` 限制等待結束，但開發伺服器等常駐守護工作會持續運行而不被強制中止。每輪執行省下多達 200 ms 閒置延遲，並跳過生成無人查看的對話標題。遇到無人互動的實作計畫審查時會自動通過。若 `--print-timeout` 中途逾時，會回傳既有輸出並在 stderr 附帶警告成功退出，手動按 Ctrl+C 中斷則維持非零退出碼。嚴重錯誤在 stderr 加上穩定的 `error:` 標記，提示潛在截斷並解釋先前靜默結束的原因。",
-                "en": "Chaining commands into automated workflows demands clean execution and explicit feedback. ⟦Much like a logistics delivery fleet consolidating cargo overnight, departing immediately once loading is complete and leaving clear labels and receipts along the way without idling on-site because no one is there to sign.⟧ When running in headless mode with the `-p` flag, the CLI now exits promptly once the final answer is delivered. Running background tasks and scheduled timers are waited on subject to `--print-timeout`, while persistent daemon tasks like development servers continue running without being forcefully terminated. Each turn cuts up to 200 ms of idle latency and skips generating conversation titles that nobody would see. Non-interactive implementation plan reviews now pass automatically. If `--print-timeout` expires mid-turn, it returns the partial output and exits successfully with a warning on stderr, while manual Ctrl+C interrupts still exit with a non-zero code. Fatal errors add a stable `error:` marker on stderr, noting potential truncation and explaining why previous runs ended silently."
-              },
-              "original": "Improved headless (`-p`) runs to exit promptly once the final answer is delivered: the CLI waits for running background tasks and scheduled timers to finish, bound by `--print-timeout`, and leaves daemon background tasks such as dev servers running instead of terminating them.\nImproved failure reporting in headless (`-p`) runs: fatal errors now appear on stderr with a stable `error:` marker, a note is printed when the response may be truncated, and runs that previously ended silently with no output now explain why.\nImproved headless (`-p`) turnaround by cutting up to 200 ms of idle latency per turn and skipping the model call that generated a conversation title no one would see.\nChanged what happens when `--print-timeout` expires mid-turn: the CLI now returns the partial output it has and exits successfully with a warning on stderr, instead of failing with a timeout error; interrupts such as Ctrl+C still exit non-zero.\nFixed headless (`-p`) runs stalling forever on implementation-plan approval that no one could give; non-interactive runs now proceed through plan review automatically."
-            },
-            {
-              "title": {
-                "zh-TW": "讀取網址改為預先詢問，工具審查提示說清緣由",
-                "en": "URL fetching asks for permission first and tool approval prompts explain reasons clearly"
-              },
-              "body": {
-                "zh-TW": "讓 AI 代勞查資料或動用本機工具時，安全把關更加清晰。抓取網址的預設權限從一律允許改為先問過你，除非預先授權，否則讀取網址前都會請求同意。工具審核提示也迎來翻新，明確點出審核項目——例如詢問 `Run this command?`、`Allow access to this URL?` 還是 `Allow calling this tool?`。編輯命令的快捷鍵僅在審核命令時提供，避免介面混淆。當審核原因不明顯時，下方會附上一行 `Reason:` 說明緣由，例如觸發了掛鉤（hook，在特定事件發生時觸發的攔截小程式）標記，或是涉及其他專案的檔案。⟦這彷彿在大門加裝智慧訪視對講機，外人想進門必須先按鈴通報，螢幕上清楚顯示對方的來意與身分，還會註記警衛攔檢的理由，不再讓人盲目按下開門鈕。⟧",
-                "en": "Security guardrails are much clearer when having AI fetch data or invoke local tools. The default permission for fetching URLs has changed from always allowed to asking first, requesting approval before reading a URL unless pre-authorized. Tool approval prompts have also been revamped to specify exactly what is being approved—such as asking `Run this command?`, `Allow access to this URL?`, or `Allow calling this tool?`. The shortcut for editing commands is only offered when approving a command, preventing interface confusion. When the reason for approval is not obvious, a `Reason:` line is attached below explaining why, such as a hook flagging the action or a file belonging to a different project. ⟦This is like installing a smart intercom at the front door: visitors must ring first, the screen clearly displays their identity and purpose, and notes any guard inspection reasons so you never press the door release blindly.⟧"
-              },
-              "original": "Improved tool approval prompts to say exactly what you are approving — for example `Run this command?`, `Allow access to this URL?`, or `Allow calling this tool?` — with the command-editing shortcut offered only when a command is being approved, and a `Reason:` line explaining why approval is being requested when it is not obvious, such as a hook flagging the action or a file belonging to a different project.\nChanged the default permission for fetching URLs from always allowed to asking first, so the agent now requests approval before reading a URL unless you have granted access."
-            },
-            {
-              "title": {
-                "zh-TW": "模型名稱轉換留存日誌，稽核軌跡隨時可查",
-                "en": "Model name resolutions are logged for traceable audit trails"
-              },
-              "body": {
-                "zh-TW": "在終端機指定模型名稱時，背後的實際流向現在一清二楚。⟦如同在藥局憑處方箋領藥，當藥劑師因原廠藥缺貨或劑型調整而替換成同成分學名藥時，收據與藥袋上都會清楚加註替換紀錄與變更原因。⟧ 命令列工具增強了模型選擇的稽核能力。當你輸入的模型名稱在後台被解析對應到另一款模型時，日誌都會詳實記錄具體轉換過程。無論是輸入別名對應到正式名稱、透過 `--effort` 旗標切換到不同推理程度的變體，或是先前儲存的舊模型因下架廢棄而被替換，日誌中都有跡可循。這讓你不必猜測背後到底跑的是哪一個版本，隨時都能追溯實際運行的模型。",
-                "en": "When specifying model names in the terminal, the actual underlying resolution is now crystal clear. ⟦Much like filling a prescription at a pharmacy where an out-of-stock brand-name drug is substituted with an equivalent generic, with the replacement record and rationale clearly noted on the receipt and label.⟧ The CLI tool has enhanced its auditability for model selection. Whenever a model name you specify resolves behind the scenes to a different model, the logs faithfully record the specific conversion process. Whether resolving an alias to an official name, switching to a different reasoning variant via the `--effort` flag, or replacing a deprecated saved model, everything leaves a clear trail in the logs. This removes any guesswork about which version is running behind the scenes, allowing you to trace the active model at any time."
-              },
-              "original": "Improved model selection auditability: the CLI log now records whenever a model name you specify resolves to a different model, such as alias resolution, `--effort` variant selection, or replacement of a deprecated saved model."
-            },
-            {
-              "title": {
-                "zh-TW": "外掛重裝乾淨覆蓋目錄，MCP 相對路徑基準修正",
-                "en": "Plugin reinstalls cleanly replace directories and MCP relative paths resolve accurately"
-              },
-              "body": {
-                "zh-TW": "管理擴充套件與隨附工具時，現在不再留下惱人的殘存檔案。過去重新安裝外掛時，來源端已經刪除的舊檔案仍會留在目錄裡；現在安裝會精確替換整個外掛管理目錄，且若嘗試從外掛自身的已安裝目錄再次執行安裝，會被直接拒絕以防目錄損壞。解除安裝外掛後，也不會在 `config.json` 中留下殘餘的啟用或停用項目。同時，外掛所定義的 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器若使用相對路徑或未指定工作目錄，先前會依錯誤位置解析；現在一律以該外掛本身的目錄為基準進行解析，確保隨附腳本正常運行。⟦恰似替相機更換擴充鏡頭套組，換上新套件時會徹底移走舊鏡片，拆除時順便清除控制選單裡的舊按鍵，套組內的專用濾鏡也一律以該鏡頭接環為基準精準卡位。⟧",
-                "en": "Managing plugins and bundled tools no longer leaves annoying leftover files behind. Previously, reinstalling a plugin left old files that were already deleted from the source inside the directory; now, installation replaces the managed plugin directory exactly, and attempting to install from the plugin's own installed directory is directly rejected to prevent corruption. Uninstalling a plugin also no longer leaves leftover enabled or disabled entries in `config.json`. Meanwhile, if MCP servers defined by plugins use relative paths or leave the working directory unset, they previously resolved against the wrong location; they now consistently resolve against the plugin's own directory, ensuring bundled scripts run properly. ⟦Just like swapping a camera lens kit: mounting a new set completely removes old glass, detaching it cleans up stale button mappings from the control menu, and dedicated kit filters align accurately against the lens mount.⟧"
-              },
-              "original": "Fixed plugin reinstalls keeping files that had been deleted from the source: installing a plugin now replaces its managed directory exactly, installing a plugin from its own installed directory is refused instead of corrupting it, and uninstalling a plugin no longer leaves its enabled/disabled entry behind in `config.json`.\nFixed MCP servers defined by plugins resolving relative or unset working directories against the wrong location; they now resolve against the plugin's own directory so plugin-bundled scripts run correctly."
-            },
-            {
-              "title": {
-                "zh-TW": "子代理啟動不再遺漏工具，任務結束即刻解鎖佇列",
-                "en": "Subagents reliably discover tools at startup and release queued messages upon completion"
-              },
-              "body": {
-                "zh-TW": "多工派發子代理處理複雜任務時，工具抓取與狀態切換更加可靠。先前在系統啟動時存在競爭問題，如果外部工具伺服器仍在初始化，子代理往往會撲空。現在 MCP（讓 AI 連接外部工具的協定）伺服器會確保初始化完成，讓子代理隨時能找到工具。此外，特別是在超長對話中，子代理在執行完畢後有時會卡在運行狀態；這不僅造成狀態誤判，還會讓原本排隊等候閒置時發送的訊息一路卡住，非得重啟程式才能送出。如今這兩項瑕疵都已修復，子代理在任務結束後會正確切換狀態並如期交付排隊訊息。⟦有如工廠調派實習助理進場作業，開工前一定等儀器暖機完畢才放行領取工具，任務交代完畢也會立即回報交班，不再假裝忙碌而讓後續排隊的派工單全部卡死在收發室。⟧",
-                "en": "Dispatching subagents for complex multi-tasking now offers more reliable tool discovery and state transitions. Previously, a startup race condition meant subagents could fail to find tools if external tool servers were still initializing. Now, MCP servers ensure initialization finishes so subagents can always find their tools. Additionally, especially in very large conversations, subagents sometimes appeared stuck in a running state after finishing; this caused incorrect status reporting and left messages queued for idle delivery stuck until restarting the application. Both issues are now resolved, so subagents properly transition their state and deliver queued messages on schedule once tasks finish. ⟦Like assigning an intern assistant on the factory floor: they are only sent to fetch tools after equipment warms up, and they report shift handovers immediately upon finishing tasks rather than pretending to stay busy and stalling dispatch orders in the mailroom.⟧"
-              },
-              "original": "Fixed a startup race where subagents could fail to find tools from MCP servers that were still initializing.\nFixed subagents sometimes appearing stuck in a running state after they had finished — especially in very large conversations — which also left queued when-idle messages undelivered until restart."
-            },
-            {
-              "title": {
-                "zh-TW": "終端機命令及時釋放內部狀態，長工作階段記憶體大降",
-                "en": "Terminal commands release internal state promptly to cut memory usage in long sessions"
-              },
-              "body": {
-                "zh-TW": "長時間在同一個工作階段中連續敲入指令，不再面臨記憶體越吃越腫的窘境。以前工具內部存在記憶體流失（程式結束運算後未及時釋放資源的現象）缺陷。只要在終端機中執行過任何命令，該命令的內部狀態就會被保留在記憶體中，直到整個工作階段（session，從啟動到關閉的完整使用過程）結束為止。這導致使用者若是開啟長期會話並執行大量指令，記憶體用量就會一路飆升。這次修復徹底清除了執行完畢後的殘留狀態，讓執行許多指令的長工作階段大幅降低記憶體消耗。⟦就像廚房料理台每做完一道菜就立即隨手擦拭乾淨，不再將用過的空盤與鍋具一路堆到打烊，就算連續出餐一整天，工作檯面也始終保持輕盈俐落。⟧",
-                "en": "Running continuous commands in the same session no longer leads to runaway memory bloat. Previously, the tool suffered from a memory leak where every executed terminal command retained its internal state in memory for the rest of the session. As a result, running many commands in extended sessions caused memory usage to surge continuously. This fix thoroughly clears residual state once commands finish, significantly reducing memory consumption in long sessions that run many commands. ⟦Much like wiping down a kitchen countertop immediately after each dish instead of piling up used plates and pots until closing time, keeping the workspace neat and uncluttered even during a full day of service.⟧"
-              },
-              "original": "Fixed a memory leak where every finished terminal command kept internal state alive for the rest of the session; long sessions that run many commands now use significantly less memory."
             }
           ]
         }
