@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 
-REPORT_FILTER_JS = """(() => {
+REPORT_FILTER_JS = r"""(() => {
   const cubeNode = document.querySelector('#usage-cube-data');
   if (!cubeNode) return;
 
@@ -18,6 +18,34 @@ REPORT_FILTER_JS = """(() => {
     cube = JSON.parse(cubeNode.textContent);
   } catch (_) {
     return;
+  }
+  if (!Array.isArray(cube.dates) || !Array.isArray(cube.rows)) return;
+
+  let sessions = [];
+  const sessionNode = document.querySelector('#usage-session-data');
+  if (sessionNode) {
+    try {
+      const parsed = JSON.parse(sessionNode.textContent);
+      if (Array.isArray(parsed)) sessions = parsed;
+    } catch (_) {
+      sessions = [];
+    }
+  }
+
+  const palette = [
+    '#5abfa0', '#8f86c9', '#e0885a', '#78cdb2',
+    '#aaa3d4', '#dca080', '#3f9f82', '#7168ad',
+  ];
+  const agentColors = {
+    'claude-code': '#5abfa0',
+    codex: '#e0885a',
+    antigravity: '#8f86c9',
+    grok: '#78cdb2',
+  };
+  let activeBounds = null;
+
+  function rowTokens(row) {
+    return Number(row[4]) + Number(row[5]) + Number(row[6]) + Number(row[7]);
   }
 
   function aggregateRows(rows, groupIndex, rowFilter = null) {
@@ -29,7 +57,7 @@ REPORT_FILTER_JS = """(() => {
         result[key] = {tokens: 0, cost: 0, costKnown: true};
       }
       const item = result[key];
-      item.tokens += Number(row[4]) + Number(row[5]) + Number(row[6]) + Number(row[7]);
+      item.tokens += rowTokens(row);
       item.cost += Number(row[8]);
       const model = cube.models[Number(row[2])];
       item.costKnown = item.costKnown && Boolean(model && model.cost_known);
@@ -37,7 +65,130 @@ REPORT_FILTER_JS = """(() => {
     return result;
   }
 
-  window.usageReportFilter = {cube, aggregateRows};
+  function parseDate(value) {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value));
+    if (!match) return null;
+    const parsed = new Date(Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])));
+    return Number.isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  function formatDate(value) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  function shiftDate(value, days) {
+    const result = new Date(value.getTime());
+    result.setUTCDate(result.getUTCDate() + days);
+    return result;
+  }
+
+  function normalizeBounds(from, to) {
+    const minimum = cube.dates[0];
+    const maximum = cube.dates[cube.dates.length - 1];
+    if (!minimum || !maximum) return null;
+    let start = parseDate(from) ? String(from) : minimum;
+    let end = parseDate(to) ? String(to) : maximum;
+    start = start < minimum ? minimum : start > maximum ? maximum : start;
+    end = end < minimum ? minimum : end > maximum ? maximum : end;
+    if (start > end) [start, end] = [end, start];
+    return {from: start, to: end};
+  }
+
+  function rangeBounds(key) {
+    const minimum = cube.dates[0];
+    const maximum = cube.dates[cube.dates.length - 1];
+    const last = parseDate(maximum);
+    if (!minimum || !last) return null;
+    let first = last;
+    if (key === 'last7') first = shiftDate(last, -6);
+    else if (key === 'last30') first = shiftDate(last, -29);
+    else if (key === 'month') {
+      first = new Date(Date.UTC(last.getUTCFullYear(), last.getUTCMonth(), 1));
+    } else if (key === 'all') {
+      return {from: minimum, to: maximum};
+    }
+    return normalizeBounds(formatDate(first), maximum);
+  }
+
+  function rowMatches(bounds) {
+    return (row) => {
+      const date = cube.dates[Number(row[0])];
+      return Boolean(date && date >= bounds.from && date <= bounds.to);
+    };
+  }
+
+  function summarizeRange(from, to) {
+    const bounds = normalizeBounds(from, to);
+    if (!bounds) return null;
+    const selected = rowMatches(bounds);
+    const rows = cube.rows.filter(selected);
+    const startDate = parseDate(bounds.from);
+    const endDate = parseDate(bounds.to);
+    const totalDays = Math.max(
+      1,
+      Math.round((endDate - startDate) / 86400000) + 1
+    );
+    const previousTo = shiftDate(startDate, -1);
+    const previousFrom = shiftDate(previousTo, -(totalDays - 1));
+    const previousBounds = {from: formatDate(previousFrom), to: formatDate(previousTo)};
+    const previousRows = cube.rows.filter(rowMatches(previousBounds));
+    const byDay = {};
+    let unpricedTokens = 0;
+    rows.forEach((row) => {
+      const tokens = rowTokens(row);
+      const day = cube.dates[Number(row[0])];
+      byDay[day] = (byDay[day] || 0) + tokens;
+      const model = cube.models[Number(row[2])];
+      if (!model || !model.cost_known) unpricedTokens += tokens;
+    });
+    let peakDate = bounds.from;
+    let peakTokens = -1;
+    cube.dates.forEach((day) => {
+      if (day < bounds.from || day > bounds.to) return;
+      const tokens = byDay[day] || 0;
+      if (tokens > peakTokens) {
+        peakDate = day;
+        peakTokens = tokens;
+      }
+    });
+    const tokenTotal = rows.reduce((total, row) => total + rowTokens(row), 0);
+    const costTotal = rows.reduce((total, row) => total + Number(row[8]), 0);
+    const projectTotals = aggregateRows(rows, 3);
+    const modelTotals = aggregateRows(rows, 2);
+    let topModel = '';
+    let topModelTokens = -1;
+    Object.entries(modelTotals).forEach(([modelIndex, item]) => {
+      if (item.tokens <= topModelTokens) return;
+      topModelTokens = item.tokens;
+      const model = cube.models[Number(modelIndex)];
+      topModel = model ? String(model.name) : '';
+    });
+    return {
+      // 與 _narrative() 一致：專案數取的是排行榜的長度，上限 10。
+      narrativeProjects: Math.min(10, Object.keys(projectTotals).length),
+      topModel,
+      bounds,
+      rows,
+      tokens: tokenTotal,
+      cost: costTotal,
+      messages: rows.reduce((total, row) => total + Number(row[9]), 0),
+      sessions: sessions.filter((session) => {
+        const day = cube.dates[Number(session.date_idx)];
+        return Boolean(day && day >= bounds.from && day <= bounds.to);
+      }).length,
+      activeDays: Object.values(byDay).filter((tokens) => tokens > 0).length,
+      totalDays,
+      peakDate,
+      peakTokens: Math.max(0, peakTokens),
+      unpricedTokens,
+      // 前期只要有一天早於資料的第一天，那段本來就沒資料，拿來當基準會算出假成長。
+      hasPrevious: previousRows.length > 0 && previousBounds.from >= cube.dates[0],
+      previousTokens: previousRows.reduce((total, row) => total + rowTokens(row), 0),
+      previousCost: previousRows.reduce((total, row) => total + Number(row[8]), 0),
+    };
+  }
+
+  window.usageReportFilter = {cube, aggregateRows, normalizeBounds, rangeBounds, summarizeRange};
 
   function rowName(row, selector) {
     const node = row.querySelector(selector);
@@ -55,19 +206,6 @@ REPORT_FILTER_JS = """(() => {
       event.preventDefault();
       toggle();
     });
-  }
-
-  const modelGroups = Array.from(
-    document.querySelectorAll('.model-section .rank-line.model-group[data-agent-id]')
-  );
-  let expandedAgentIds = new Set();
-  try {
-    const saved = JSON.parse(window.localStorage.getItem('usage-report-model-groups') || '[]');
-    if (Array.isArray(saved)) {
-      expandedAgentIds = new Set(saved.filter((value) => typeof value === 'string'));
-    }
-  } catch (_) {
-    expandedAgentIds = new Set();
   }
 
   function modelChildren(group) {
@@ -90,27 +228,53 @@ REPORT_FILTER_JS = """(() => {
     setToggleLabel(group, expanded, rowName(group, '.name'));
   }
 
+  function liveModelGroups() {
+    return Array.from(
+      document.querySelectorAll('.model-section .rank-line.model-group[data-agent-id]')
+    );
+  }
+
+  function expandedModelIds() {
+    return new Set(
+      liveModelGroups()
+        .filter((group) => group.getAttribute('aria-expanded') === 'true')
+        .map((group) => group.dataset.agentId)
+    );
+  }
+
   function saveModelGroups() {
-    const expanded = modelGroups
-      .filter((group) => group.getAttribute('aria-expanded') === 'true')
-      .map((group) => group.dataset.agentId);
     try {
-      window.localStorage.setItem('usage-report-model-groups', JSON.stringify(expanded));
+      window.localStorage.setItem(
+        'usage-report-model-groups',
+        JSON.stringify(Array.from(expandedModelIds()))
+      );
     } catch (_) {
       // Keep the state for this page when privacy settings deny storage.
     }
   }
 
-  modelGroups.forEach((group) => {
-    const agentId = group.dataset.agentId;
+  function bindModelGroup(group, expanded) {
     group.tabIndex = 0;
-    applyModelGroup(group, expandedAgentIds.has(agentId));
+    applyModelGroup(group, expanded);
     const toggle = () => {
       applyModelGroup(group, group.getAttribute('aria-expanded') !== 'true');
       saveModelGroups();
     };
     group.addEventListener('click', toggle);
     bindKeyboardToggle(group, toggle);
+  }
+
+  let savedModelIds = new Set();
+  try {
+    const saved = JSON.parse(window.localStorage.getItem('usage-report-model-groups') || '[]');
+    if (Array.isArray(saved)) {
+      savedModelIds = new Set(saved.filter((value) => typeof value === 'string'));
+    }
+  } catch (_) {
+    savedModelIds = new Set();
+  }
+  liveModelGroups().forEach((group) => {
+    bindModelGroup(group, savedModelIds.has(group.dataset.agentId));
   });
 
   function formatTokens(value) {
@@ -118,6 +282,10 @@ REPORT_FILTER_JS = """(() => {
     if (value >= 999950) return `${(value / 1000000).toFixed(1)}M`;
     if (value >= 1000) return `${(value / 1000).toFixed(1)}K`;
     return String(value);
+  }
+
+  function formatInteger(value) {
+    return Math.round(value).toLocaleString('en-US');
   }
 
   function formatCost(value, known) {
@@ -146,15 +314,39 @@ REPORT_FILTER_JS = """(() => {
     return span;
   }
 
+  function appendShareBar(container, share, color) {
+    const bar = document.createElement('span');
+    bar.className = 'share-bar';
+    bar.setAttribute('aria-hidden', 'true');
+    const fill = document.createElement('span');
+    fill.style.width = `${Math.max(0, Math.min(100, share)).toFixed(2)}%`;
+    fill.style.background = color;
+    bar.append(fill);
+    container.append(bar);
+  }
+
+  function createRankRow(name, item, total, color, options = {}) {
+    const share = total ? item.tokens / total * 100 : 0;
+    const row = document.createElement('div');
+    row.className = `rank-line${options.rowClass ? ` ${options.rowClass}` : ''}`;
+    if (options.agentId !== undefined) row.dataset.agentId = String(options.agentId);
+    if (options.projectIndex !== undefined) row.dataset.projectIndex = String(options.projectIndex);
+    appendTextSpan(row, 'arrow', options.arrow || '→');
+    const nameNode = appendTextSpan(row, options.nameClass || 'name', name);
+    appendShareBar(nameNode, share, color);
+    appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
+    appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
+    appendTextSpan(row, 'cost', formatCost(item.cost, item.costKnown), shareConfig.cost);
+    return row;
+  }
+
   const projectSection = document.querySelector('.project-section');
   const projectHeadCells = projectSection
     ? Array.from(projectSection.querySelectorAll('.rank-head > span'))
     : [];
-  const tokensLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : '';
-  const costLabel = projectHeadCells[4] ? projectHeadCells[4].textContent : '';
+  const tokensLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.tokens;
+  const costLabel = projectHeadCells[4] ? projectHeadCells[4].textContent : shareConfig.cost;
 
-  // 明細列的佔比分母是「這個專案」，專案列自己的佔比分母是全體。共用的表頭
-  // 只有一格，改它會把專案列那幾行一起標錯，所以基準寫在展開區塊自己的標題列上。
   function createProjectDetailCaption() {
     const caption = document.createElement('div');
     caption.className = 'project-model-detail project-detail-caption';
@@ -179,14 +371,7 @@ REPORT_FILTER_JS = """(() => {
     row.className = 'rank-line model-child project-model-detail';
     appendTextSpan(row, 'arrow', '');
     const name = appendTextSpan(row, 'model-name', modelName);
-    const bar = document.createElement('span');
-    bar.className = 'share-bar';
-    bar.setAttribute('aria-hidden', 'true');
-    const fill = document.createElement('span');
-    fill.style.width = `${Math.max(0, Math.min(100, share))}%`;
-    fill.style.background = modelColor(modelName);
-    bar.append(fill);
-    name.append(bar);
+    appendShareBar(name, share, modelColor(modelName));
     appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.projectShare);
     appendTextSpan(row, 'tokens', formatTokens(item.tokens), tokensLabel);
     appendTextSpan(row, 'cost', formatCost(item.cost, item.costKnown), costLabel);
@@ -198,7 +383,7 @@ REPORT_FILTER_JS = """(() => {
     const byModel = aggregateRows(
       cube.rows,
       2,
-      (row) => Number(row[3]) === projectIndex
+      (row) => Number(row[3]) === projectIndex && (!activeBounds || rowMatches(activeBounds)(row))
     );
     const details = Object.entries(byModel)
       .map(([modelIndex, item]) => ({modelIndex: Number(modelIndex), ...item}))
@@ -230,7 +415,7 @@ REPORT_FILTER_JS = """(() => {
     setToggleLabel(projectRow, false, rowName(projectRow, '.name'));
   }
 
-  document.querySelectorAll('.project-section .rank-line[data-project-index]').forEach((row) => {
+  function bindProjectRow(row) {
     row.tabIndex = 0;
     collapseProject(row);
     const toggle = () => {
@@ -239,6 +424,333 @@ REPORT_FILTER_JS = """(() => {
     };
     row.addEventListener('click', toggle);
     bindKeyboardToggle(row, toggle);
+  }
+
+  document.querySelectorAll('.project-section .rank-line[data-project-index]').forEach(bindProjectRow);
+
+  const toolMetadata = new Map();
+  document.querySelectorAll('.tools-section .tool-row').forEach((row) => {
+    const name = rowName(row, '.sub-agent');
+    const plan = row.querySelector('.sub-plan');
+    const since = row.querySelector('.sub-since');
+    toolMetadata.set(row.dataset.agentId || `name:${name}`, {
+      name,
+      plan: plan ? plan.textContent : '',
+      since: since ? since.textContent : '',
+    });
   });
+
+  function createToolRow(agent, item, total) {
+    const row = document.createElement('div');
+    row.className = 'tool-row';
+    row.dataset.agentId = String(agent.id);
+    const head = document.createElement('div');
+    head.className = 'tool-head';
+    appendTextSpan(head, 'sub-agent', String(agent.name));
+    const metadata = toolMetadata.get(String(agent.id)) || toolMetadata.get(`name:${agent.name}`);
+    if (metadata && metadata.plan) appendTextSpan(head, 'sub-plan', metadata.plan);
+    if (metadata && metadata.since) appendTextSpan(head, 'sub-since', metadata.since);
+    const share = total ? item.tokens / total * 100 : 0;
+    appendShareBar(head, share, agentColors[agent.id] || '#8b8577');
+    row.append(head);
+    appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
+    appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
+    appendTextSpan(row, 'cost', formatCost(item.cost, item.costKnown), shareConfig.cost);
+    return row;
+  }
+
+  function createSubscriptionOnlyRow(metadata) {
+    const row = document.createElement('div');
+    row.className = 'tool-row';
+    const head = document.createElement('div');
+    head.className = 'tool-head';
+    appendTextSpan(head, 'sub-agent', metadata.name);
+    if (metadata.plan) appendTextSpan(head, 'sub-plan', metadata.plan);
+    if (metadata.since) appendTextSpan(head, 'sub-since', metadata.since);
+    row.append(head);
+    appendTextSpan(row, 'pct', '', shareConfig.share);
+    appendTextSpan(row, 'tokens', '', shareConfig.tokens);
+    appendTextSpan(row, 'cost', '', shareConfig.cost);
+    return row;
+  }
+
+  function rebuildTools(summary) {
+    const tools = document.querySelector('.tools-section .tools');
+    if (!tools) return;
+    tools.querySelectorAll('.tool-row').forEach((row) => row.remove());
+    const byAgent = aggregateRows(summary.rows, 1);
+    const entries = Object.entries(byAgent)
+      .map(([agentIndex, item]) => ({agentIndex: Number(agentIndex), ...item}))
+      .sort((left, right) => right.tokens - left.tokens || left.agentIndex - right.agentIndex);
+    const usedIds = new Set();
+    entries.forEach((item) => {
+      const agent = cube.agents[item.agentIndex];
+      if (!agent) return;
+      usedIds.add(String(agent.id));
+      tools.append(createToolRow(agent, item, summary.tokens));
+    });
+    toolMetadata.forEach((metadata, key) => {
+      const matchedAgent = cube.agents.find((agent) => (
+        String(agent.id) === key || `name:${agent.name}` === key
+      ));
+      if (!matchedAgent || !usedIds.has(String(matchedAgent.id))) {
+        tools.append(createSubscriptionOnlyRow(metadata));
+      }
+    });
+  }
+
+  function rebuildModels(summary) {
+    const list = document.querySelector('.model-section .rank-list');
+    if (!list) return;
+    const expanded = expandedModelIds();
+    list.replaceChildren();
+    const byAgent = aggregateRows(summary.rows, 1);
+    const groups = Object.entries(byAgent)
+      .map(([agentIndex, item]) => ({agentIndex: Number(agentIndex), ...item}))
+      .sort((left, right) => right.tokens - left.tokens || left.agentIndex - right.agentIndex);
+    groups.forEach((group) => {
+      const agent = cube.agents[group.agentIndex];
+      if (!agent) return;
+      const groupRow = createRankRow(
+        String(agent.name),
+        group,
+        summary.tokens,
+        agentColors[agent.id] || '#8b8577',
+        {rowClass: 'model-group', arrow: '▎', agentId: agent.id}
+      );
+      list.append(groupRow);
+      const byModel = aggregateRows(
+        summary.rows,
+        2,
+        (row) => Number(row[1]) === group.agentIndex
+      );
+      Object.entries(byModel)
+        .map(([modelIndex, item]) => ({modelIndex: Number(modelIndex), ...item}))
+        .sort((left, right) => right.tokens - left.tokens || left.modelIndex - right.modelIndex)
+        .forEach((modelItem) => {
+          const model = cube.models[modelItem.modelIndex];
+          if (!model) return;
+          list.append(createRankRow(
+            String(model.name),
+            modelItem,
+            summary.tokens,
+            modelColor(String(model.name)),
+            {rowClass: 'model-child'}
+          ));
+        });
+      bindModelGroup(groupRow, expanded.has(String(agent.id)));
+    });
+    if (!groups.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = `→ ${shareConfig.emptyModels}`;
+      list.append(empty);
+    }
+  }
+
+  function svgElement(name) {
+    return document.createElementNS('http://www.w3.org/2000/svg', name);
+  }
+
+  function createDonut(projects, total) {
+    if (!projects.length || total <= 0) return null;
+    const shown = projects.slice(0, 6).map((project) => ({...project, other: false}));
+    const rest = total - shown.reduce((sum, project) => sum + project.tokens, 0);
+    if (rest > 0) shown.push({name: shareConfig.chartOther, tokens: rest, other: true});
+    const wrap = document.createElement('div');
+    wrap.className = 'donut-wrap';
+    const svg = svgElement('svg');
+    svg.setAttribute('class', 'donut');
+    svg.setAttribute('viewBox', '0 0 160 160');
+    svg.setAttribute('role', 'img');
+    svg.setAttribute('aria-label', shareConfig.projectSection);
+    const circumference = 2 * Math.PI * 60;
+    let offset = 0;
+    const legend = document.createElement('ul');
+    legend.className = 'donut-legend';
+    shown.forEach((project, index) => {
+      const fraction = project.tokens / total;
+      const segmentLength = circumference * fraction;
+      const color = project.other ? '#8b8577' : palette[index % palette.length];
+      const circle = svgElement('circle');
+      const attributes = {
+        cx: '80', cy: '80', r: '60', fill: 'none', stroke: color,
+        'stroke-width': '22',
+        'stroke-dasharray': `${segmentLength.toFixed(2)} ${(circumference - segmentLength).toFixed(2)}`,
+        'stroke-dashoffset': `${(-offset).toFixed(2)}`,
+        transform: 'rotate(-90 80 80)',
+      };
+      Object.entries(attributes).forEach(([key, value]) => circle.setAttribute(key, value));
+      svg.append(circle);
+      offset += segmentLength;
+      const item = document.createElement('li');
+      const dot = appendTextSpan(item, 'dot', '');
+      dot.style.background = color;
+      appendTextSpan(item, 'lg-name', project.name);
+      appendTextSpan(item, 'lg-pct', `${(fraction * 100).toFixed(1)}%`);
+      legend.append(item);
+    });
+    const totalText = svgElement('text');
+    Object.entries({x: '80', y: '77', class: 'donut-total', 'text-anchor': 'middle'})
+      .forEach(([key, value]) => totalText.setAttribute(key, value));
+    totalText.textContent = formatTokens(total);
+    const subText = svgElement('text');
+    Object.entries({x: '80', y: '95', class: 'donut-sub', 'text-anchor': 'middle'})
+      .forEach(([key, value]) => subText.setAttribute(key, value));
+    subText.textContent = 'tokens';
+    svg.append(totalText, subText);
+    wrap.append(svg, legend);
+    return wrap;
+  }
+
+  function rebuildProjects(summary) {
+    if (!projectSection) return;
+    const list = projectSection.querySelector('.rank-list');
+    const head = projectSection.querySelector('.rank-head');
+    if (!list || !head) return;
+    const oldDonut = projectSection.querySelector('.donut-wrap');
+    if (oldDonut) oldDonut.remove();
+    list.replaceChildren();
+    const byProject = aggregateRows(summary.rows, 3);
+    const projects = Object.entries(byProject)
+      .map(([projectIndex, item]) => ({
+        projectIndex: Number(projectIndex),
+        name: String(cube.projects[Number(projectIndex)] || ''),
+        ...item,
+      }))
+      .filter((item) => item.tokens > 0 || item.cost > 0)
+      .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
+    const donut = createDonut(projects, summary.tokens);
+    if (donut) projectSection.insertBefore(donut, head);
+    projects.slice(0, 10).forEach((project, index) => {
+      const row = createRankRow(
+        project.name,
+        project,
+        summary.tokens,
+        index < 6 ? palette[index] : '#8b8577',
+        {projectIndex: project.projectIndex}
+      );
+      list.append(row);
+      bindProjectRow(row);
+    });
+    if (!projects.length) {
+      const empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = `→ ${shareConfig.emptyProjects}`;
+      list.append(empty);
+    }
+  }
+
+  function deltaText(current, previous, hasPrevious) {
+    if (!hasPrevious || previous <= 0) return '';
+    const pct = Math.round((current - previous) / previous * 100);
+    return `${pct >= 0 ? '↑' : '↓'}${Math.abs(pct)}% ${shareConfig.vsPrevious}`;
+  }
+
+  function updateCard(key, value, subtitle) {
+    const card = document.querySelector(`.card[data-card="${key}"]`);
+    if (!card) return;
+    const main = card.querySelector('b');
+    if (main) main.textContent = value;
+    let sub = card.querySelector('i');
+    if (!subtitle) {
+      if (sub) sub.remove();
+      return;
+    }
+    if (!sub) {
+      sub = document.createElement('i');
+      card.append(sub);
+    }
+    sub.textContent = subtitle;
+  }
+
+  function updateSummary(summary) {
+    const tokenDelta = deltaText(summary.tokens, summary.previousTokens, summary.hasPrevious);
+    const tokenSub = [`≈ ${formatTokens(summary.tokens)}`, tokenDelta].filter(Boolean).join(' · ');
+    const costDelta = deltaText(summary.cost, summary.previousCost, summary.hasPrevious);
+    const unpriced = summary.unpricedTokens
+      ? shareConfig.costUnpriced.replace('{tokens}', formatTokens(summary.unpricedTokens))
+      : '';
+    updateCard('tokens', formatInteger(summary.tokens), tokenSub);
+    updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join(' · '));
+    updateCard('sessions', formatInteger(summary.sessions), '');
+    updateCard('messages', formatInteger(summary.messages), '');
+    updateCard('active', `${summary.activeDays}/${summary.totalDays}`, '');
+    updateCard('peak', summary.peakDate, `${formatTokens(summary.peakTokens)} ${shareConfig.tokens}`);
+  }
+
+  function updateNarrative(summary) {
+    const node = document.querySelector('.narrative');
+    if (!node || !shareConfig.narrative) return;
+    node.textContent = shareConfig.narrative
+      .replace('{tokens}', formatTokens(summary.tokens))
+      .replace('{projects}', String(summary.narrativeProjects))
+      .replace('{peak_date}', summary.peakDate)
+      .replace('{peak_tokens}', formatTokens(summary.peakTokens))
+      .replace('{top_model}', summary.topModel || shareConfig.unknown);
+  }
+
+  function updatePeriod(bounds) {
+    const period = document.querySelector('[data-report-period]');
+    if (period) period.textContent = `${bounds.from} -> ${bounds.to}`;
+    const title = document.querySelector('.model-section .prompt-title');
+    if (title) title.textContent = `${shareConfig.modelSection}  ${bounds.from} → ${bounds.to}`;
+  }
+
+  function applyBounds(bounds) {
+    const summary = summarizeRange(bounds.from, bounds.to);
+    if (!summary) return null;
+    activeBounds = summary.bounds;
+    updateSummary(summary);
+    updateNarrative(summary);
+    rebuildTools(summary);
+    rebuildProjects(summary);
+    rebuildModels(summary);
+    updatePeriod(summary.bounds);
+    return summary;
+  }
+
+  window.usageReportFilter.applyBounds = applyBounds;
+
+  const dateFilter = document.querySelector('[data-date-filter]');
+  if (!dateFilter || !cube.dates.length) return;
+  const fromInput = dateFilter.querySelector('[data-date-from]');
+  const toInput = dateFilter.querySelector('[data-date-to]');
+  const shortcutButtons = Array.from(dateFilter.querySelectorAll('[data-range]'));
+
+  function selectShortcut(key) {
+    const bounds = rangeBounds(key) || rangeBounds('all');
+    if (!bounds) return;
+    fromInput.value = bounds.from;
+    toInput.value = bounds.to;
+    shortcutButtons.forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.range === key));
+    });
+    applyBounds(bounds);
+  }
+
+  shortcutButtons.forEach((button) => {
+    button.addEventListener('click', () => selectShortcut(button.dataset.range));
+  });
+
+  function applyManualRange(event) {
+    shortcutButtons.forEach((button) => button.setAttribute('aria-pressed', 'false'));
+    let bounds = normalizeBounds(fromInput.value, toInput.value);
+    if (!bounds) return;
+    if (fromInput.value > toInput.value) {
+      if (event && event.target === fromInput) bounds = {from: bounds.to, to: bounds.to};
+      else bounds = {from: bounds.from, to: bounds.from};
+    }
+    fromInput.value = bounds.from;
+    toInput.value = bounds.to;
+    applyBounds(bounds);
+  }
+  fromInput.addEventListener('change', applyManualRange);
+  toInput.addEventListener('change', applyManualRange);
+
+  const defaultRange = document.body.dataset.defaultRange || 'all';
+  selectShortcut(['today', 'last7', 'last30', 'month', 'all'].includes(defaultRange)
+    ? defaultRange
+    : 'all');
 })();
 """

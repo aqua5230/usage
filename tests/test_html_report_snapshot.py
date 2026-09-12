@@ -533,6 +533,9 @@ def test_generate_html_omits_optional_cube_and_session_nodes() -> None:
     assert 'id="usage-session-data"' not in html
     assert 'data-agent-id="' not in html
     assert 'data-project-index="' not in html
+    assert '<div class="date-filter" data-date-filter>' not in html
+    assert '<div class="card" data-card="' not in html
+    assert 'class="fixed-range-tag"' not in html
 
 
 def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
@@ -559,7 +562,7 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
 
     html = html_report.generate_html(data, language="en")
 
-    assert html.count("data-agent-id=") == 3
+    assert html.count('class="rank-line model-group"') == 3
     assert 'data-agent-id="claude-code"' in html
     assert 'data-project-index="1"' in html
     assert 'data-project-index="0"' in html
@@ -568,8 +571,31 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
         r'<span class="name">unknown',
         html,
     )
-    assert "window.usageReportFilter = {cube, aggregateRows};" in html
+    assert "window.usageReportFilter = {cube, aggregateRows, normalizeBounds" in html
     assert REPORT_FILTER_JS in html
+
+
+def test_generate_html_adds_date_filter_cards_and_fixed_range_labels_for_cube() -> None:
+    data = _full_report_data()
+    data["cube"] = {
+        "dates": ["2026-05-01", "2026-05-24"],
+        "agents": [{"id": "codex", "name": "Codex"}],
+        "models": [{"name": "gpt-test", "cost_known": True}],
+        "projects": ["usage"],
+        "rows": [[1, 0, 0, 0, 10, 20, 30, 40, 1.25, 2]],
+    }
+
+    html = html_report.generate_html(data, language="en", default_range="last7")
+
+    assert '<body data-default-range="last7">' in html
+    assert 'data-date-filter' in html
+    assert 'min="2026-05-01" max="2026-05-24"' in html
+    assert html.count('data-range="') == 5
+    assert [
+        match.group(1)
+        for match in re.finditer(r'<div class="card" data-card="([^"]+)"', html)
+    ] == ["tokens", "cost", "sessions", "messages", "active", "peak"]
+    assert html.count('class="fixed-range-tag"') == 7
 
 
 def test_report_filter_script_uses_safe_dom_construction_and_separate_model_name() -> None:

@@ -288,9 +288,11 @@ def test_generate_analysis_report_uses_analyzer_pipeline(
         received_data: dict[str, object],
         *,
         language: str | None = None,
+        default_range: str | None = None,
     ) -> str:
         calls["data"] = received_data
         calls["language"] = language
+        calls["default_range"] = default_range
         return "~/.usage-reports/usage-report-test.html"
 
     monkeypatch.setattr("adapters.registry.detect_agents", lambda: agents)
@@ -298,7 +300,13 @@ def test_generate_analysis_report_uses_analyzer_pipeline(
     monkeypatch.setattr("ui.html_report.save_and_open", fake_save_and_open)
 
     assert menubar._generate_analysis_report() == "~/.usage-reports/usage-report-test.html"
-    assert calls == {"agents": agents, "period": "month", "data": report_data, "language": None}
+    assert calls == {
+        "agents": agents,
+        "period": "all",
+        "data": report_data,
+        "language": None,
+        "default_range": "month",
+    }
 
 
 def test_generate_analysis_report_propagates_language(
@@ -317,9 +325,11 @@ def test_generate_analysis_report_propagates_language(
         received_data: dict[str, object],
         *,
         language: str | None = None,
+        default_range: str | None = None,
     ) -> str:
         calls["data"] = received_data
         calls["language"] = language
+        calls["default_range"] = default_range
         return "~/.usage-reports/usage-report-test.html"
 
     monkeypatch.setattr("adapters.registry.detect_agents", lambda: agents)
@@ -330,7 +340,13 @@ def test_generate_analysis_report_propagates_language(
         menubar._generate_analysis_report(language="zh-TW")
         == "~/.usage-reports/usage-report-test.html"
     )
-    assert calls == {"agents": agents, "period": "month", "data": report_data, "language": "zh-TW"}
+    assert calls == {
+        "agents": agents,
+        "period": "all",
+        "data": report_data,
+        "language": "zh-TW",
+        "default_range": "month",
+    }
 
 
 def test_app_analyze_uses_project_range_period(
