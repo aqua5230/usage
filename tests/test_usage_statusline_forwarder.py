@@ -60,6 +60,7 @@ def test_main_fans_stdin_out_to_all_hooks(
         check: bool,
         capture_output: bool,
         timeout: int,
+        **kwargs: object,
     ) -> subprocess.CompletedProcess[str]:
         assert text is True
         assert encoding == "utf-8"
@@ -123,6 +124,7 @@ def test_timeout_hook_does_not_block_later_hooks(
         check: bool,
         capture_output: bool,
         timeout: int,
+        **kwargs: object,
     ) -> subprocess.CompletedProcess[str]:
         _ = input, text, encoding, errors, check, capture_output
         calls.append(cmd[1])
@@ -156,6 +158,7 @@ def test_nonzero_hook_exit_keeps_forwarder_successful(
         check: bool,
         capture_output: bool,
         timeout: int,
+        **kwargs: object,
     ) -> subprocess.CompletedProcess[str]:
         _ = input, text, encoding, errors, check, capture_output, timeout
         if cmd[1] == "/tmp/fail-statusline.py":
@@ -187,6 +190,7 @@ def test_unicode_decode_error_hook_does_not_block_later_hooks(
         check: bool,
         capture_output: bool,
         timeout: int,
+        **kwargs: object,
     ) -> subprocess.CompletedProcess[str]:
         _ = input, text, encoding, errors, check, capture_output, timeout
         if cmd[1] == "/tmp/bad-statusline.py":

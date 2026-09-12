@@ -1097,6 +1097,93 @@ def test_self_heal_updates_owned_hook(
     assert data["usage"]["selfHealLog"][-1]["action"] == "update_hook"
 
 
+def test_self_heal_updates_old_forwarder(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
+    forwarder_target = setup_paths.forwarder_target
+    setup_paths.forwarder_source.write_text('__version__ = "1.1"\n', encoding="utf-8")
+    settings.write_text(
+        json.dumps(
+            {
+                "statusLine": {
+                    "type": "command",
+                    "command": expected_statusline_command(forwarder_target),
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    forwarder_target.write_text('__version__ = "1.0"\n', encoding="utf-8")
+
+    session_hooks.self_heal()
+
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    assert forwarder_target.read_text(encoding="utf-8") == '__version__ = "1.1"\n'
+    assert data["usage"]["selfHealLog"][-1]["action"] == "update_forwarder"
+    assert data["usage"]["selfHealLog"][-1]["detail"] == "1.0 -> 1.1"
+
+
+def test_self_heal_keeps_current_forwarder_unchanged(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+) -> None:
+    settings = setup_paths.settings
+    forwarder_target = setup_paths.forwarder_target
+    setup_paths.hook_target.write_text(
+        f'__version__ = "{setup_hook.HOOK_VERSION}"\n', encoding="utf-8"
+    )
+    forwarder_target.write_text(
+        f'__version__ = "{setup_hook.FORWARDER_VERSION}"\n', encoding="utf-8"
+    )
+    settings.write_text(
+        json.dumps(
+            {
+                "statusLine": {
+                    "type": "command",
+                    "command": expected_statusline_command(forwarder_target),
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+    updates: list[None] = []
+    monkeypatch.setattr(session_hooks, "update_forwarder", lambda: updates.append(None))
+
+    session_hooks.self_heal()
+
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    assert updates == []
+    assert forwarder_target.read_text(encoding="utf-8") == (
+        f'__version__ = "{setup_hook.FORWARDER_VERSION}"\n'
+    )
+    assert "usage" not in data
+
+
+def test_missing_forwarder_does_not_install_for_direct_statusline(
+    setup_paths: SetupHookPaths,
+) -> None:
+    settings = setup_paths.settings
+    hook_target = setup_paths.hook_target
+    hook_target.write_text(f'__version__ = "{setup_hook.HOOK_VERSION}"\n', encoding="utf-8")
+    settings.write_text(
+        json.dumps(
+            {
+                "statusLine": {
+                    "type": "command",
+                    "command": expected_statusline_command(hook_target),
+                }
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    assert not setup_hook.forwarder_needs_update()
+
+    session_hooks.self_heal()
+
+    assert not setup_paths.forwarder_target.exists()
+    assert "usage" not in json.loads(settings.read_text(encoding="utf-8"))
+
+
 def test_self_heal_migrates_bundled_python_commands(
     monkeypatch: pytest.MonkeyPatch,
     setup_paths: SetupHookPaths,
@@ -1211,3 +1298,13 @@ def test_session_resume_script_version_matches_hook_constant() -> None:
     match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
     assert match, "usage_session_resume.py has no __version__ line"
     assert match.group(1) == session_hooks.RESUME_HOOK_VERSION
+
+
+def test_statusline_forwarder_version_matches_hook_constant() -> None:
+    """Keep the status-line forwarder version synchronized with its hook constant."""
+    source = (
+        Path(__file__).resolve().parents[1] / "usage_statusline_forwarder.py"
+    ).read_text(encoding="utf-8")
+    match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
+    assert match, "usage_statusline_forwarder.py has no __version__ line"
+    assert match.group(1) == setup_hook.FORWARDER_VERSION

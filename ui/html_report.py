@@ -30,6 +30,7 @@ from analyzer.reporter import (
 
 from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
+from usage_common.subprocess_utils import hidden_console_kwargs
 from ui.report_charts import render_share_bar, render_trend_bar
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE, REPORT_THEME_INIT_JS
 from ui.report_styles import REPORT_CSS
@@ -1202,7 +1203,12 @@ def save_and_open(
     path.chmod(0o600)
     if out_path is None:
         if sys.platform == "darwin":
-            subprocess.run(["/usr/bin/open", str(path.resolve())], check=False)
+            subprocess.run(
+                ["/usr/bin/open", str(path.resolve())],
+                check=False,
+                stdin=subprocess.DEVNULL,
+                **hidden_console_kwargs(),
+            )
         else:
             webbrowser.open(path.resolve().as_uri())
     return display_path

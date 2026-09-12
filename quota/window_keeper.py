@@ -44,6 +44,7 @@ from contextlib import suppress
 from pathlib import Path
 
 from menubar.prefs import _window_keeper_enabled
+from usage_common.subprocess_utils import hidden_console_kwargs
 
 logger = logging.getLogger(__name__)
 
@@ -197,6 +198,7 @@ def _run_claude_ping(claude_bin: str) -> None:
         timeout=PING_TIMEOUT_SECONDS,
         cwd=os.path.expanduser("~"),
         check=False,
+        **hidden_console_kwargs(),
     )
 
 

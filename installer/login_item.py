@@ -16,6 +16,8 @@ from typing import Any
 
 from Foundation import NSBundle
 
+from usage_common.subprocess_utils import hidden_console_kwargs
+
 logger = logging.getLogger(__name__)
 
 LABEL = "com.lollapalooza.usage"
@@ -106,6 +108,8 @@ def _launchctl_bootstrap() -> None:
             errors="replace",
             check=False,
             timeout=5,
+            stdin=subprocess.DEVNULL,
+            **hidden_console_kwargs(),
         )
     except FileNotFoundError as exc:
         _log_launchctl_error("bootstrap", str(exc))
@@ -140,6 +144,8 @@ def _launchctl_bootout() -> None:
             errors="replace",
             check=False,
             timeout=5,
+            stdin=subprocess.DEVNULL,
+            **hidden_console_kwargs(),
         )
     except FileNotFoundError as exc:
         _log_launchctl_error(

@@ -11,6 +11,8 @@ import subprocess
 from functools import lru_cache
 from pathlib import Path
 
+from usage_common.subprocess_utils import hidden_console_kwargs
+
 __all__ = ["project_from_encoded_path", "resolve_project_name"]
 
 
@@ -38,6 +40,8 @@ def _resolve_project_name(normalized_cwd: str) -> str:
             encoding="utf-8",
             errors="replace",
             timeout=3,
+            stdin=subprocess.DEVNULL,
+            **hidden_console_kwargs(),
         )
     except (FileNotFoundError, OSError, subprocess.TimeoutExpired):
         return fallback

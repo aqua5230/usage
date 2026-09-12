@@ -44,9 +44,19 @@ import tempfile
 from collections.abc import Mapping
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, TypedDict, cast
 
-__version__ = "1.7"
+__version__ = "1.8"
+
+
+class _HiddenConsoleKwargs(TypedDict, total=False):
+    creationflags: int
+
+
+def hidden_console_kwargs() -> _HiddenConsoleKwargs:
+    if sys.platform == "win32":
+        return {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
+    return {}
 
 
 def _configure_windows_utf8_output() -> None:
@@ -381,6 +391,8 @@ def _git_dirty(cwd: str) -> tuple[str, int, list[str]] | None:
             timeout=2,
             encoding="utf-8",
             check=False,
+            stdin=subprocess.DEVNULL,
+            **hidden_console_kwargs(),
         )
         if branch_proc.returncode != 0:
             return None
@@ -394,6 +406,8 @@ def _git_dirty(cwd: str) -> tuple[str, int, list[str]] | None:
             timeout=2,
             encoding="utf-8",
             check=False,
+            stdin=subprocess.DEVNULL,
+            **hidden_console_kwargs(),
         )
         if status_proc.returncode != 0:
             return None
