@@ -16,7 +16,7 @@ from usage_common.subprocess_utils import hidden_console_kwargs
 __all__ = ["project_from_encoded_path", "resolve_project_name"]
 
 
-@lru_cache(maxsize=256)
+@lru_cache(maxsize=2048)
 def resolve_project_name(cwd: str | Path) -> str:
     """Resolve a cwd to its canonical project name, including git worktrees."""
     if not str(cwd):
@@ -25,7 +25,7 @@ def resolve_project_name(cwd: str | Path) -> str:
     return _resolve_project_name(str(path))
 
 
-@lru_cache(maxsize=256)
+@lru_cache(maxsize=2048)
 def _resolve_project_name(normalized_cwd: str) -> str:
     fallback = Path(normalized_cwd).name or "unknown"
     try:

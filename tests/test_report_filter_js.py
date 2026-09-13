@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from ui.report_daily_chart import REPORT_DAILY_CHART_JS
 from ui.report_filter import REPORT_FILTER_JS
 
 NODE = shutil.which("node")
@@ -14,6 +15,7 @@ NODE = shutil.which("node")
 
 NODE_HARNESS = r"""
 const assert = require('node:assert/strict');
+const REPORT_DAILY_CHART_JS = __REPORT_DAILY_CHART_JS__;
 const REPORT_FILTER_JS = __REPORT_FILTER_JS__;
 
 class Element {
@@ -57,6 +59,13 @@ class Element {
     this.children = [];
     this.append(...nodes);
   }
+  replaceChild(node, previous) {
+    const index = this.children.indexOf(previous);
+    if (index < 0) return;
+    previous.parentNode = null;
+    node.parentNode = this;
+    this.children[index] = node;
+  }
   insertBefore(node, reference) {
     const index = this.children.indexOf(reference);
     node.parentNode = this;
@@ -91,6 +100,8 @@ class Element {
     if (selector === '[data-date-to]') return this.dataset.dateTo !== undefined;
     if (selector === '.arrow') return this.classList.contains('arrow');
     if (selector === '.name') return this.classList.contains('name');
+    if (selector === '.sub-agent') return this.classList.contains('sub-agent');
+    if (selector === '[data-daily-mode]') return this.dataset.dailyMode !== undefined;
     return false;
   }
   descendants() {
@@ -107,6 +118,9 @@ class Element {
     return this.descendants().find((node) => node.matches(selector)) || null;
   }
   querySelectorAll(selector) {
+    if (selector.includes(',')) {
+      return selector.split(',').flatMap((part) => this.querySelectorAll(part.trim()));
+    }
     if (selector === '.rank-head > span') {
       const head = this.descendants().find((node) => node.classList.contains('rank-head'));
       return head ? head.children.filter((node) => node.tagName === 'span') : [];
@@ -122,7 +136,14 @@ function span(className, text = '') {
 function rankRow(className, name, data = {}) {
   const row = new Element('div', className);
   row.dataset = {...data};
-  row.append(span('arrow', '→'), span('name', name), span('pct'), span('tokens'), span('cost'));
+  row.append(
+    span('left-tick'),
+    span('arrow', '→'),
+    span('name', name),
+    span('tokens'),
+    span('cost'),
+    new Element('div', 'gauge-rail'),
+  );
   return row;
 }
 
@@ -134,24 +155,21 @@ function makeEnvironment(
   const sessionNode = new Element('script');
   sessionNode.textContent = JSON.stringify(sessionRows);
 
-  const groupList = new Element('div', 'rank-list');
-  const groups = [
-    rankRow('rank-line model-group', 'Claude Code', {agentId: 'claude-code'}),
-    rankRow('rank-line model-group', 'Codex', {agentId: 'codex'}),
-    rankRow('rank-line model-group', 'Antigravity', {agentId: 'antigravity'}),
-    rankRow('rank-line model-group', 'Grok', {agentId: 'grok'}),
-  ];
-  const groupChildren = [
-    rankRow('rank-line model-child', 'claude-test'),
-    rankRow('rank-line model-child', 'gpt-test'),
-    rankRow('rank-line model-child', 'gemini-test'),
-    rankRow('rank-line model-child', 'grok-test'),
-  ];
+  const groupList = new Element('div', 'tools');
+  const groups = cube.agents.map((agent) =>
+    rankRow('tool-row model-group', agent.name, {agentId: agent.id})
+  );
+  groups.forEach((group) => {
+    group.append(span('sub-agent', group.querySelector('.name').textContent));
+  });
+  const groupChildren = cube.agents.map((_agent, index) =>
+    rankRow('rank-line model-child', cube.models[index]?.name || 'unknown')
+  );
   groups.forEach((group, index) => groupList.append(group, groupChildren[index]));
 
   const projectHead = new Element('div', 'rank-head');
   projectHead.append(
-    span('', ''), span('', 'Project'), span('', 'Share'), span('', 'Tokens'), span('', 'Cost')
+    span('', ''), span('', 'Project'), span('', 'Tokens'), span('', 'Cost')
   );
   const projectList = new Element('div', 'rank-list');
   const projectRows = cube.projects.map((name, index) =>
@@ -161,16 +179,8 @@ function makeEnvironment(
   const projectSection = new Element('section', 'project-section');
   projectSection.append(projectHead, projectList);
 
-  const tools = new Element('div', 'tools');
-  const toolRows = cube.agents.map((agent) => {
-    const row = new Element('div', 'tool-row');
-    row.dataset.agentId = agent.id;
-    const head = new Element('div', 'tool-head');
-    head.append(span('sub-agent', agent.name));
-    row.append(head, span('pct'), span('tokens'), span('cost'));
-    return row;
-  });
-  tools.append(...toolRows);
+  const tools = groupList;
+  const toolRows = groups;
 
   const trendSection = new Element('section', 'trend-section');
   trendSection.append(
@@ -187,6 +197,10 @@ function makeEnvironment(
     new Element('div', 'rank-head'),
     new Element('div', 'rank-list'),
   );
+  const pricingSection = new Element('section', 'pricing-section');
+  pricingSection.append(new Element('div', 'prompt'), new Element('div', 'rule'));
+  const appendix = new Element('details', 'report-appendix');
+  appendix.append(compositionSection, pricingSection);
   const sessionSection = new Element('section', 'session-section');
   sessionSection.append(
     new Element('div', 'prompt'),
@@ -201,7 +215,6 @@ function makeEnvironment(
     cards[key] = card;
   });
   const period = new Element('span');
-  const modelTitle = new Element('span', 'prompt-title');
   const dateFilter = new Element('div', 'date-filter');
   const fromInput = new Element('input');
   fromInput.dataset.dateFrom = '';
@@ -233,7 +246,6 @@ function makeEnvironment(
     costUnpriced: '{tokens} tokens have no public pricing',
     emptyModels: 'No models',
     emptyProjects: 'No projects',
-    modelSection: 'Most-used models',
     projectSection: 'Projects',
     projectShare: 'Share of project',
     share: 'Share',
@@ -259,6 +271,14 @@ function makeEnvironment(
     trendMarkerNew: 'new',
     trendWeekInProgress: 'in progress',
     unknown: 'Unknown',
+    dailyChartTitle: 'Daily usage',
+    dailyChartModeTokens: 'Tokens',
+    dailyChartModeCost: 'Cost',
+    dailyChartTotal: 'Total',
+    pricingAllPriced: 'All usage has a public price.',
+    pricingHint: 'Cost is an API equivalent.',
+    pricingPriced: 'Priced',
+    pricingUnpriced: 'No public price',
   };
   global.document = {
     querySelector(selector) {
@@ -266,11 +286,10 @@ function makeEnvironment(
       if (selector === '#usage-session-data') return sessionNode;
       if (selector === '.project-section') return projectSection;
       if (selector === '.tools-section .tools') return tools;
-      if (selector === '.model-section .rank-list') return groupList;
       if (selector === '[data-report-period]') return period;
-      if (selector === '.model-section .prompt-title') return modelTitle;
       if (selector === '.trend-section') return trendSection;
       if (selector === '.composition-section') return compositionSection;
+      if (selector === '.pricing-section') return pricingSection;
       if (selector === '.session-section') return sessionSection;
       if (selector === '[data-date-filter]') return withDateFilter ? dateFilter : null;
       const cardMatch = /^\.card\[data-card="([^"]+)"\]$/.exec(selector);
@@ -278,7 +297,7 @@ function makeEnvironment(
       return null;
     },
     querySelectorAll(selector) {
-      if (selector === '.model-section .rank-line.model-group[data-agent-id]') {
+      if (selector === '.tools-section .tool-row.model-group[data-agent-id]') {
         return groupList.children.filter((row) => row.classList.contains('model-group'));
       }
       if (selector === '.project-section .rank-line[data-project-index]') {
@@ -289,7 +308,9 @@ function makeEnvironment(
           .filter((row) => row.dataset.projectIndex !== undefined)
           .map((row) => row.querySelector('.name'));
       }
-      if (selector === '.tools-section .tool-row') return toolRows;
+      if (selector === '.tools-section .tool-row') {
+        return groupList.children.filter((row) => row.classList.contains('tool-row'));
+      }
       return [];
     },
     createElement(tagName) { return new Element(tagName); },
@@ -298,18 +319,21 @@ function makeEnvironment(
   };
   return {
     groups, groupChildren, groupList, projectHead, projectList, projectRows,
-    tools, cards, period, modelTitle, dateFilter, fromInput, toInput,
-    shortcutButtons, storageData, trendSection, compositionSection, sessionSection,
+    tools, cards, period, dateFilter, fromInput, toInput,
+    shortcutButtons, storageData, trendSection, compositionSection, pricingSection,
+    appendix, sessionSection,
   };
 }
 
 function run(environment) {
+  eval(REPORT_DAILY_CHART_JS);
   eval(REPORT_FILTER_JS);
   return environment;
 }
 
-global.document = {querySelector: () => null};
-global.window = {};
+global.document = {querySelector: () => null, querySelectorAll: () => []};
+global.window = {localStorage: {getItem: () => null, setItem: () => {}}};
+assert.doesNotThrow(() => eval(REPORT_DAILY_CHART_JS));
 assert.doesNotThrow(() => eval(REPORT_FILTER_JS));
 
 const cube = {
@@ -333,7 +357,7 @@ assert.deepEqual(window.usageReportFilter.aggregateRows(cube.rows, 2, null), {
   0: {tokens: 60, cost: 1.25, costKnown: true},
   1: {tokens: 40, cost: 9.99, costKnown: false},
 });
-assert.deepEqual(env.groupChildren.map((row) => row.hidden), [true, true, true, true]);
+assert.deepEqual(env.groupChildren.map((row) => row.hidden), [true, true]);
 assert.equal(env.groups[0].getAttribute('aria-expanded'), 'false');
 assert.equal(env.groups[0].querySelector('.arrow').textContent, '▸');
 env.groups[0].fire('click');
@@ -341,31 +365,42 @@ assert.equal(env.groupChildren[0].hidden, false);
 assert.deepEqual(JSON.parse(saved['usage-report-model-groups']), ['claude-code']);
 
 env = run(makeEnvironment(cube, saved));
-assert.deepEqual(env.groupChildren.map((row) => row.hidden), [false, true, true, true]);
+assert.deepEqual(env.groupChildren.map((row) => row.hidden), [false, true]);
 assert.equal(env.groups[1].fire('keydown', ' '), true);
 assert.equal(env.groupChildren[1].hidden, false);
 env.projectRows[0].fire('keydown', 'Enter');
-const caption = env.projectList.children.find((row) =>
-  row.classList.contains('project-detail-caption')
-);
-assert.equal(caption.textContent, 'Share of project');
 const details = env.projectList.children.filter((row) =>
-  row.classList.contains('project-model-detail') &&
-  !row.classList.contains('project-detail-caption')
+  row.classList.contains('project-model-detail')
 );
 assert.equal(details.length, 2);
-assert.deepEqual(details.map((row) => row.children[1].textContent), ['claude-test', 'gpt-test']);
-assert.deepEqual(details.map((row) => row.children[2].textContent), ['60.0%', '40.0%']);
-assert.deepEqual(details.map((row) => row.children[4].textContent), ['$1.25', '—']);
-// 共用表頭只有一格，改它會把專案列自己的「佔全體」百分比一起標錯，所以基準
-// 寫在展開區塊自己的標題列上，表頭全程維持不變。
-assert.equal(env.projectHead.children[2].textContent, 'Share');
+assert.equal(env.projectList.children.find((row) =>
+  row.classList.contains('project-detail-caption')
+), undefined);
+assert.deepEqual(
+  details.map((row) => row.querySelector('.child-model-name').textContent),
+  ['claude-test', 'gpt-test']
+);
+assert.deepEqual(
+  details.map((row) => row.querySelector('.child-pct').textContent),
+  ['60.0%', '40.0%']
+);
+assert.deepEqual(
+  details.map((row) => row.querySelector('.child-fill').style.width),
+  ['60.0%', '40.0%']
+);
+assert.deepEqual(
+  details.map((row) => row.querySelector('.scope-tag').textContent),
+  ['Share of project', 'Share of project']
+);
+assert.deepEqual(details.map((row) => row.querySelector('.cost').textContent), ['$1.25', '—']);
+assert.equal(env.projectHead.children[2].textContent, 'Tokens');
+assert.equal(env.projectHead.children.length, 4);
 assert.equal(document.querySelectorAll('.project-section .rank-line .name').length, 1);
 env.projectRows[0].fire('click');
 assert.equal(env.projectList.children.length, 1);
-assert.equal(env.projectHead.children[2].textContent, 'Share');
+assert.equal(env.projectHead.children[2].textContent, 'Tokens');
 console.log(
-  'interaction: four groups collapsed; click, keyboard, reload, project shares 100.0%; mask safe'
+  'interaction: tool groups collapsed; click, keyboard, reload, project shares 100.0%; mask safe'
 );
 
 const singleCube = {
@@ -377,16 +412,21 @@ const singleCube = {
 };
 env = run(makeEnvironment(singleCube, {}, true));
 env.groups[0].fire('click');
-env.projectRows[0].fire('click');
-const singleDetail = env.projectList.children[2];
-assert.equal(singleDetail.children[2].textContent, '100.0%');
-assert.equal(singleDetail.children[3].textContent, '10');
-assert.equal(singleDetail.children[4].textContent, '—');
+window.usageReportFilter.applyBounds({from: '2026-05-21', to: '2026-05-21'});
+const rebuiltSingleTool = env.tools.children.find((row) => row.classList.contains('model-group'));
+assert.equal(rebuiltSingleTool.getAttribute('aria-expanded'), 'true');
+assert.equal(rebuiltSingleTool.nextElementSibling.querySelector('.cost').textContent, '—');
+env.projectList.children.find((row) => row.dataset.projectIndex !== undefined).fire('click');
+const singleDetail = env.projectList.children[1];
+assert.equal(singleDetail.querySelector('.child-pct').textContent, '100.0%');
+assert.equal(singleDetail.querySelector('.child-fill').style.width, '100.0%');
+assert.equal(singleDetail.querySelector('.tokens').textContent, '10');
+assert.equal(singleDetail.querySelector('.cost').textContent, '—');
 console.log('single row/model: 100.0%, 10 tokens, unpriced dash; storage errors safe');
 
 const unpricedCube = {
   dates: ['2026-05-21'],
-  agents: [],
+  agents: [{id: 'unpriced', name: 'Unpriced'}],
   models: [{name: 'unknown-a', cost_known: false}, {name: 'unknown-b', cost_known: false}],
   projects: ['unpriced'],
   rows: [
@@ -395,11 +435,62 @@ const unpricedCube = {
   ],
 };
 env = run(makeEnvironment(unpricedCube));
-env.projectRows[0].fire('click');
-const unpricedDetails = env.projectList.children.slice(2);
-assert.deepEqual(unpricedDetails.map((row) => row.children[4].textContent), ['—', '—']);
-assert.deepEqual(unpricedDetails.map((row) => row.children[2].textContent), ['75.0%', '25.0%']);
+window.usageReportFilter.applyBounds({from: '2026-05-21', to: '2026-05-21'});
+assert.deepEqual(
+  env.tools.children
+    .filter((row) => row.classList.contains('model-child'))
+    .map((row) => row.querySelector('.cost').textContent),
+  ['—', '—']
+);
+env.projectList.children.find((row) => row.dataset.projectIndex !== undefined).fire('click');
+const unpricedDetails = env.projectList.children.slice(1);
+assert.deepEqual(unpricedDetails.map((row) => row.querySelector('.cost').textContent), ['—', '—']);
+assert.deepEqual(
+  unpricedDetails.map((row) => row.querySelector('.child-pct').textContent),
+  ['75.0%', '25.0%']
+);
 console.log('all unpriced: two dashes; shares 75.0% + 25.0%');
+
+const noToolsCube = {
+  dates: ['2026-05-21'], agents: [], models: [], projects: [], rows: [],
+};
+env = run(makeEnvironment(noToolsCube));
+window.usageReportFilter.applyBounds({from: '2026-05-21', to: '2026-05-21'});
+assert.equal(env.tools.children.filter((row) => row.classList.contains('tool-row')).length, 0);
+console.log('no tools: empty tool list stays safe');
+
+const zeroShareCube = {
+  dates: ['2026-05-21'],
+  agents: [{id: 'claude-code', name: 'Claude Code'}],
+  models: [{name: 'full-model', cost_known: true}, {name: 'zero-model', cost_known: true}],
+  projects: ['mixed'],
+  rows: [
+    [0, 0, 0, 0, 100, 0, 0, 0, 1, 1],
+    [0, 0, 1, 0, 0, 0, 0, 0, 2, 1],
+  ],
+};
+env = run(makeEnvironment(zeroShareCube));
+env.projectRows[0].fire('click');
+const zeroDetails = env.projectList.children.filter((row) =>
+  row.classList.contains('project-model-detail')
+);
+assert.deepEqual(
+  zeroDetails.map((row) => row.querySelector('.child-model-name').textContent),
+  ['full-model', 'zero-model']
+);
+assert.deepEqual(
+  zeroDetails.map((row) => row.querySelector('.child-pct').textContent),
+  ['100.0%', '0.0%']
+);
+assert.deepEqual(
+  zeroDetails.map((row) => row.querySelector('.child-fill').style.width),
+  ['100.0%', '0.0%']
+);
+assert.deepEqual(
+  zeroDetails.map((row) => row.querySelector('.cost').textContent),
+  ['$1.00', '$2.00']
+);
+console.log('zero and full child shares: 100.0% + 0.0%; costs remain');
 
 const rangeCube = {
   dates: ['2026-09-01', '2026-09-02', '2026-09-03', '2026-09-04', '2026-09-05'],
@@ -446,10 +537,7 @@ const currentProjects = rangeEnv.projectList.children
   .filter((row) => row.dataset.projectIndex !== undefined);
 assert.equal(sumVisible(currentProjects, '.tokens'), 50);
 assert.equal(sumVisible(currentProjects, '.cost'), 5);
-assert.equal(
-  rangeEnv.projectList.parentNode.querySelector('.donut-total').textContent,
-  '50'
-);
+assert.equal(rangeEnv.projectList.parentNode.querySelector('.donut-wrap'), null);
 const rebuiltClaude = currentGroups.find((row) => row.dataset.agentId === 'claude-code');
 assert.equal(rebuiltClaude.getAttribute('aria-expanded'), 'true');
 assert.equal(rebuiltClaude.nextElementSibling.hidden, false);
@@ -543,6 +631,7 @@ assert.equal(
 );
 const crossLists = filterEnv.compositionSection.querySelectorAll('.rank-list');
 assert.equal(filterEnv.compositionSection.hidden, false);
+assert.equal(filterEnv.appendix.getAttribute('open'), null);
 assert.deepEqual(
   crossLists[0].children.map((row) => [
     row.querySelector('.name').textContent,
@@ -583,6 +672,7 @@ assert.equal(
 const emptyRange = applyFilter('2025-12-30', '2025-12-31');
 assert.deepEqual([emptyRange.tokens, emptyRange.cost], [0, 0]);
 assert.equal(filterEnv.compositionSection.hidden, true);
+assert.equal(filterEnv.appendix.getAttribute('open'), null);
 assert.equal(sectionBody(filterEnv.sessionSection)[0].className, 'empty');
 assert.equal(trendRows()[0].querySelector('em').textContent, '0');
 const emptyDump = JSON.stringify({
@@ -638,6 +728,42 @@ assert.equal(fullDump.includes('Infinity'), false);
 console.log(
   'filter: isoWeek 2026-W1 cross-year; composition 50/40/10; sessions by cost; csv masked'
 );
+
+const chartCube = {
+  dates: ['2026-03-01', '2026-03-02'],
+  agents: [{id: 'claude-code', name: 'Claude Code'}, {id: 'grok', name: 'Grok'}],
+  models: [{name: 'priced', cost_known: true}, {name: 'unknown', cost_known: false}],
+  projects: ['usage'],
+  rows: [
+    [0, 0, 0, 0, 20, 0, 0, 0, 2, 1],
+    [1, 1, 1, 0, 30, 0, 0, 0, 0, 1],
+  ],
+};
+const chartEnv = run(makeEnvironment(chartCube, {}, false, [], true));
+let chart = chartEnv.trendSection.querySelector('.daily-chart-wrap');
+assert.ok(chart);
+assert.equal(chart.querySelectorAll('rect').length, 2);
+assert.equal(
+  Number(chart.querySelector('rect').getAttribute('width')),
+  (760 - 48 - 8) / 2 * .55
+);
+assert.equal(chart.querySelector('.daily-chart-legend').children.length, 2);
+assert.equal(chart.querySelector('[data-daily-mode]'), null);
+assert.equal(chartEnv.pricingSection.querySelector('.pricing-bar').children.length, 2);
+shareConfig.unknown = '未知';
+chartEnv.fromInput.value = '2026-03-02';
+chartEnv.toInput.value = '2026-03-02';
+chartEnv.fromInput.fire('change');
+assert.equal(chartEnv.appendix.getAttribute('open'), null);
+assert.equal(
+  chartEnv.pricingSection.querySelector('.pricing-bar-labels'),
+  null
+);
+const pricingModels = chartEnv.pricingSection.querySelector('.pricing-models');
+assert.equal(pricingModels.tagName, 'span');
+assert.equal(pricingModels.textContent, '未知');
+assert.equal(pricingModels.parentNode.className, 'name');
+console.log('daily chart: date range rebuilds pricing; tokens/cost toggle redraws');
 """
 
 
@@ -649,10 +775,21 @@ def test_collapsed_rank_lines_are_actually_hidden_by_css() -> None:
 
     assert ".rank-line[hidden]{display:none}" in REPORT_CSS
     assert ".composition-section[hidden]{display:none}" in REPORT_CSS
+    assert (
+        ".rank-head,.rank-line{display:grid;"
+        "grid-template-columns:20px minmax(0,1fr) 110px 110px;"
+    ) in REPORT_CSS
+    assert ".child-track{width:48px;" in REPORT_CSS
+    assert "inset 3px 0 0 var(--warn)" in REPORT_CSS
+    assert "padding-left:34px" in REPORT_CSS
 
 
 def test_report_filter_javascript_interactions_and_boundaries(tmp_path: Path) -> None:
-    script = NODE_HARNESS.replace("__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS))
+    script = (
+        NODE_HARNESS
+        .replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS))
+        .replace("__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS))
+    )
     # 走檔案而非 node -e：整份 JS 當命令列參數會超過 Windows 的長度上限（WinError 206）。
     script_path = tmp_path / "harness.cjs"
     script_path.write_text(script, encoding="utf-8")
@@ -665,10 +802,13 @@ def test_report_filter_javascript_interactions_and_boundaries(tmp_path: Path) ->
     )
 
     assert result.stdout.splitlines() == [
-        "interaction: four groups collapsed; click, keyboard, reload, "
+        "interaction: tool groups collapsed; click, keyboard, reload, "
         "project shares 100.0%; mask safe",
         "single row/model: 100.0%, 10 tokens, unpriced dash; storage errors safe",
         "all unpriced: two dashes; shares 75.0% + 25.0%",
+        "no tools: empty tool list stays safe",
+        "zero and full child shares: 100.0% + 0.0%; costs remain",
         "range: 50 tokens, $5, 2 sessions; empty/reversed/clamped/no-previous safe",
         "filter: isoWeek 2026-W1 cross-year; composition 50/40/10; sessions by cost; csv masked",
+        "daily chart: date range rebuilds pricing; tokens/cost toggle redraws",
     ]
