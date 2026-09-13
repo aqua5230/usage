@@ -6,6 +6,23 @@
       "name": "Claude Code",
       "versions": [
         {
+          "version": "2.1.270",
+          "period": "2026-09-12",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "工作階段運行已久時，唯讀 Git 指令不再誤跳授權詢問",
+                "en": "Read-only Git commands no longer mistakenly prompt for permission during long-running sessions"
+              },
+              "body": {
+                "zh-TW": "當你長時間開啟工作階段（從開啟工具到結束對話的完整操作過程）處理專案時，如果只想查閱檔案紀錄，最怕流程莫名被打斷。⟦這好比在賣場貨架前翻看商品背面的成分說明，你既沒有拆封也沒有推走貨品，店員卻在你逛了一陣子後，每拿一瓶就突然上前要求你出示證件簽名。⟧在先前的 2.1.269 版本中，工具就出現了這項令人困擾的退步問題。當時只要你在 Bash（在黑底白字視窗裡輸入文字指令的運作環境）中持續操作了一段時間，原本完全不更動任何檔案的 Git 唯讀指令，就會出乎意料地彈出確認提示，反覆向你要求授權。特別是像 Git 這種用來追蹤檔案修改歷程的工具，其查詢狀態或檢視歷史的指令純粹只是讀取資料，本就不該頻繁索取權限。這項問題現在已經修好，往後即使工作階段持續運行，各類唯讀指令也能順暢完成，不再出現多餘的授權詢問來打斷你的思路。",
+                "en": "When you keep a session open for a long time to work on a project and simply want to inspect file history, having your workflow randomly interrupted is frustrating. ⟦It is like browsing store shelves to check the ingredient labels on the back of products—without opening any packaging or taking items away, yet after you have shopped for a while, a clerk suddenly walks up and demands your ID and signature every single time you pick up a bottle.⟧ In the previous 2.1.269 release, the tool suffered from this frustrating regression. Back then, after operating for a while in Bash, read-only Git commands that modify no files at all would unexpectedly trigger confirmation prompts and repeatedly demand permission. Especially for a tool like Git used to track file modification history, commands that inspect status or view history purely read data and should never demand permissions so frequently. This issue has now been resolved; going forward, even when a session runs continuously, various read-only commands complete smoothly without unnecessary permission prompts interrupting your flow."
+              },
+              "original": "Fixed read-only git commands in Bash unexpectedly asking for permission after a session had been running for a while (regression in 2.1.269)"
+            }
+          ]
+        },
+        {
           "version": "2.1.269",
           "period": "2026-09-11",
           "items": [
@@ -487,166 +504,6 @@
                 "en": "Automated code reviews are more thorough when tracking fix progress and handling multi-agent tasks. In follow-up reviews, a note is added beneath the open findings list reminding users that resolving a finding's thread, rather than merely replying to it, prevents later reviews from counting it as open. When an agent responsible for verifying a finding fails midway, the review system replaces that agent to reach a verdict instead of remaining incomplete. When a queued push-triggered review is waiting and the pull request is converted to a draft, it no longer posts review results when its turn arrives. Additionally, when a pull request edits a root file such as `README.md`, the review system no longer ignores `CLAUDE.md` conventions for a directory just because the filename matches a file listed in that directory. ⟦The entire process is like quality assurance inspections on a construction site, where inspectors leaving midway are immediately replaced to complete sign-offs, defects must be officially stamped as resolved to pass, and paused construction never receives unsolicited inspection reports.⟧"
               },
               "original": "[Code Review] Added a note under the still-open findings list in follow-up reviews: resolving a finding's thread, not just replying to it, stops later reviews from counting it as open\n[Code Review] Fixed reviews sometimes ending as incomplete when one of the agents verifying a finding failed midway; the review now replaces that agent and reaches a verdict\n[Code Review] Fixed a push-triggered review that was queued behind a running review still posting after the pull request had been converted to draft\n[Code Review] Fixed reviews ignoring a directory's CLAUDE.md conventions when the PR edited a root file (e.g. README.md) that only shares a name with a file that CLAUDE.md lists"
-            }
-          ]
-        },
-        {
-          "version": "2.1.267",
-          "period": "2026-09-09",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "思考深度設定全面設限，自訂技能前言設定正式生效",
-                "en": "Universal Thinking Depth Limits with maxEffortLevel, Frontmatter Effort Settings Now Effective"
-              },
-              "body": {
-                "zh-TW": "想讓 Claude 深入推理又擔心 token（AI 處理與計費的文字單位）消耗過量，現在能透過 `maxEffortLevel` 設定為思考深度加上緊箍咒。⟦這宛如在跑車油門踏板下方加裝限速卡榫，無論開在哪條公路上都能限制最高轉速，駕駛依舊能輕踩慢行，自訂路線的定速指示也不會被車廠出廠預設忽略。⟧以前在 Bedrock、Vertex 與 Foundry 等不同雲端平台上，很難全面鎖定努力程度上限。現在無論在最外層或 `modelSettings` 針對個別模型指定，都能統一設限，且日常仍可自由選擇更低的努力等級：\n```\n{\n  \"maxEffortLevel\": \"medium\",\n  \"modelSettings\": {\n    \"claude-opus-4-7\": {\n      \"maxEffortLevel\": \"low\"\n    }\n  }\n}\n```\n此外，自訂指令、技能或子代理在 YAML 前言中指定的 `effort:` 數值，先前在 Opus 4.7、Opus 4.8 與 Fable 5 等固定預設等級的模型上會失效，如今已修復並能正確生效。",
-                "en": "If you want Claude to reason deeply without burning through excessive tokens, you can now cap its thinking depth with the `maxEffortLevel` setting. ⟦This is like installing a speed limiter stop beneath a sports car's accelerator pedal: it caps maximum RPM on any highway while still letting the driver cruise gently, ensuring custom cruise-control instructions along the route are no longer overridden by factory defaults.⟧ Previously across cloud providers like Bedrock, Vertex, and Foundry, it was difficult to uniformly lock effort level caps. Now, whether configured at the top level or per model under `modelSettings`, limits apply consistently while still allowing you to pick a lower effort level during daily use:\n```\n{\n  \"maxEffortLevel\": \"medium\",\n  \"modelSettings\": {\n    \"claude-opus-4-7\": {\n      \"maxEffortLevel\": \"low\"\n    }\n  }\n}\n```\nAdditionally, `effort:` values specified in YAML frontmatter for custom commands, skills, or subagents previously failed on models with pinned default effort levels (such as Opus 4.7, Opus 4.8, and Fable 5); this has now been fixed to take effect properly."
-              },
-              "original": "Added `maxEffortLevel` setting (top-level or per model under `modelSettings`): caps the effort level on every provider, including Bedrock, Vertex and Foundry; users can still pick a lower level\nFixed `effort:` frontmatter on custom commands, skills, and subagents being ignored on models whose default effort is still pinned (Opus 4.7, Opus 4.8, Fable 5)"
-            },
-            {
-              "title": {
-                "zh-TW": "系統提示詞支援即時重算，調校文案免重啟對話",
-                "en": "Real-Time System Prompt Re-Rendering Without Restarting Conversations"
-              },
-              "body": {
-                "zh-TW": "正在反覆微調提示詞（prompt）卻苦於每次改動都得開新對話，新的 `--system-prompt-snapshot off` 旗標正是為此而生。當你在打磨自訂提示詞內容時，系統預設會沿用工作階段初次錄製的提示詞快照，導致你在外側修改了檔案文字，當前的對話依然讀取舊版內容。現在只要在啟動 Claude 時帶上這個選項，每一次發出提問都會重新讀取並渲染最新的系統提示詞，讓文案調校的測試過程變得更加靈活迅速。⟦整套流程好似在排練室試穿戲服，每次出場都當場換上最新修改的布料剪裁，不必每修一針就得解散劇組重新開演。⟧",
-                "en": "If you are iterating on prompt text and tired of starting a new conversation for every tweak, the new `--system-prompt-snapshot off` flag is built for you. When polishing custom prompt content, the system by default reuses the prompt snapshot recorded at session start, causing active conversations to keep reading stale content even after you edit external files. Now, by passing this flag when launching Claude, every request will reload and render the latest system prompt fresh, making prompt experimentation much faster and more flexible. ⟦The entire workflow is like trying on costumes in a rehearsal hall: actors step onto the stage wearing the latest fabric adjustments on the spot, rather than dismissing the entire cast to restart the show after every stitch.⟧"
-              },
-              "original": "Added `--system-prompt-snapshot off` to render the system prompt fresh on every request instead of reusing the conversation's recorded prompt (for iterating on prompt text)"
-            },
-            {
-              "title": {
-                "zh-TW": "外部工具異動保全推論思考，切換模型快取不漏接",
-                "en": "Reasoning Preserved Across Tool Changes, Cache Reuse Holds on Model Switches"
-              },
-              "body": {
-                "zh-TW": "當你請 Claude 呼叫外部工具或中途切換模型時，先前辛苦推導的思考脈絡不再無端消失。⟦這好比多位專家在會議室白板上記錄解題推導，中途就算外聘顧問進出或更換麥克風，也不會突然把整面黑板的心算擦掉重抄。⟧以往 MCP（讓 AI 連接外部工具的協定）伺服器重送模型已載入的工具、內建工具重繪，或工具因斷線升級而消失時，清單重寫往往會丟失先前的思考內容；如今推論皆能妥善保留。在未開啟工具搜尋的工作階段中，外掛動態加入也會改以延遲定義傳遞，避免破壞快取（把算過結果暫存起來直接用）複用。透過 `/model` 切換模型時不再重發全部工具定義；commit 與 PR 的歸屬文字改以對話附註送達，並會在切換模型時更新，且 claude.ai 連接器工具在工作階段更動時也能保住推論記憶。",
-                "en": "When Claude invokes external tools or switches models mid-session, previously accumulated reasoning context no longer vanishes unexpectedly. ⟦This is like experts solving equations across a conference room whiteboard: even if guest consultants walk in and out or microphones get swapped, no one suddenly wipes the entire board clean to start over.⟧ Previously, when an MCP server re-sent definitions, a built-in tool re-rendered, or a tool disappeared due to disconnections or upgrades, rewriting the tool list discarded earlier thinking; reasoning is now safely preserved. In sessions without ToolSearch, dynamically added plugin tools are now passed as deferred definitions to prevent breaking prompt-cache reuse. Switching models via `/model` no longer re-sends every tool definition; commit and PR attribution text now arrives as a conversation note that updates on model changes, and reasoning memory is also retained when claude.ai connector tools change across session resumes."
-              },
-              "original": "Fixed earlier reasoning being dropped when an MCP server re-sends, or a built-in tool re-renders, a tool the model already loaded\nFixed a tool that disappears mid-conversation, from a disconnected MCP server or an upgrade, rewriting the tool list and discarding earlier thinking\nFixed mid-session MCP and plugin tools being added to the tool list in sessions without ToolSearch, which broke prompt-cache reuse; supported models now receive them as deferred definitions\nFixed switching models with /model re-sending every tool definition (a prompt-cache miss); commit and PR attribution text now arrives as a conversation note that updates on model changes\nFixed prompt-cache misses and dropped extended thinking when a claude.ai connector's tools change between a session and its resume"
-            },
-            {
-              "title": {
-                "zh-TW": "恢復工作階段沿用工具描述，背景任務不破壞提示快取",
-                "en": "Resumed Sessions Reuse Tool Descriptions, Background Tasks Preserve Prompt Cache"
-              },
-              "body": {
-                "zh-TW": "重新打開先前未完成的工作階段時，最怕背景暫存全部失效導致推論延遲。以前從對話分岔出的背景工作單元若把 `EnterWorktree` 這個工作樹（Git 讓同一專案平行開多份副本的功能）工具加進對話的工具清單，便會破壞快取重用機制。現在恢復工作階段時，不會再因 MCP（讓 AI 連接外部工具的協定）重連時間差而改寫工具清單或丟失思考，首回合執行工具時也能直接重播既有描述而非重新渲染。此外，從 `-p` 印出模式切換至互動模式時系統提示詞前綴保持一致。透過 `--system-prompt` 或 `--append-system-prompt` 啟動的子代理與工作階段，也會一次記錄提示詞與工具定義，不再每次重新渲染。⟦延續同一個會議記錄思維，這就像隔天回到會議室復工時，直接對照昨天蓋印封存的會議底稿接續討論，不會因為助手分頭跑腿或翻開備份記錄就擅自撕掉前言。⟧",
-                "en": "When reopening unfinished sessions, cache invalidation causing inference delays is a major pain point. Previously, when a background worker forked from a conversation added `EnterWorktree` to the conversation's tool block, it broke prompt-cache reuse. Now when resuming a session, tool lists are no longer rewritten and thinking is no longer dropped due to MCP reconnection timing differences; turns executing tools on the first step also replay recorded descriptions directly instead of re-rendering them. Additionally, the system prompt prefix remains consistent when resuming a print-mode (`-p`) conversation interactively. Subagents and sessions launched with `--system-prompt` or `--append-system-prompt` now record prompt and tool definitions once instead of re-rendering them. ⟦Continuing the meeting records analogy, this is like resuming work in the conference room the next day with yesterday's stamped and sealed minutes, without tearing off the preface just because assistants ran errands or opened backup logs.⟧"
-              },
-              "original": "Fixed a background worker forked from a conversation adding EnterWorktree to the conversation's tool block mid-session, which broke prompt-cache reuse\nFixed resumed sessions rewriting the inline tool set when an MCP connector reconnects at a different moment than before\nFixed resumed sessions re-rendering tool descriptions instead of replaying the recorded ones when the first turn ran a tool\nFixed resumed sessions rewriting earlier MCP tool announcements (and dropping extended thinking) before their connectors reconnect\nFixed a prompt-cache break when a print-mode (`-p`) conversation is resumed interactively: the system prompt prefix no longer changes\nImproved prompt-cache stability: subagents and sessions started with `--system-prompt` or `--append-system-prompt` now record the system prompt and tool definitions once instead of re-rendering them"
-            },
-            {
-              "title": {
-                "zh-TW": "工件發布支援斷線自動重試，明確指出損壞字元行數與欄位",
-                "en": "Artifact Publishing Adds Auto-Retry on Disconnects, Pinpoints Corrupted Character Locations"
-              },
-              "body": {
-                "zh-TW": "發布工件（artifact，在獨立視窗展示的成果文件）若中途網路斷線或遇到格式錯誤，現在不再只回傳不明原因的失敗代碼。在過去，如果上傳檔案時連線中斷，Claude Code 往往只能回報未知結果；如今只要判定傳輸未完成，就會自動重試 1 次以確保順利送達。當頁面檔案並非有效的 UTF-8 編碼，或是包含代表損毀的替換字元（U+FFFD）時，錯誤訊息也不再模糊帶過，而是會具體標示出需要修正的行數與欄位。若工件發布遭到拒絕，畫面亦會清楚解釋被拒原因以及具體的應對處置方法。⟦這套防護有如印刷廠送件作業，遇到斷線能自動重發一次，內容包含損壞字元時會明確指出第幾行第幾列，被拒絕出版時也會清楚說明退件原因與修改方針。⟧",
-                "en": "When publishing artifacts, network drops or formatting errors no longer return vague failure codes. Previously, if a connection was cut off mid-upload, Claude Code often reported an unknown outcome; now, whenever it detects that an upload never completed, it automatically retries once to ensure delivery. When a page file is not valid UTF-8 or contains replacement characters (U+FFFD) indicating corruption, error messages no longer gloss over the issue, instead explicitly naming the line and column to fix. If an artifact publish is refused, the screen also clearly explains the reason along with actionable remediation steps. ⟦This protection is like submitting print jobs to a press: it automatically retries once if transmission drops, pinpoints exact row and column numbers if corrupted characters appear, and provides clear rejection reasons and revision instructions if publishing is turned down.⟧"
-              },
-              "original": "Fixed artifact publishes cut off by a dropped connection mid-upload: they now retry once when Claude Code can tell the upload never completed, instead of reporting an unknown outcome\nFixed artifact publish failing with an unhelpful error when the page file isn't valid UTF-8 or contains a replacement character (U+FFFD); the error now names the line and column to fix\nImproved Artifact tool publish errors: when a publish is refused, the message now says why and what to do about it"
-            },
-            {
-              "title": {
-                "zh-TW": "遠端操控憑證過期自動續期，及時同步桌面與編輯器權限",
-                "en": "Automatic Renewal for Expired Remote Control Credentials, Real-Time Desktop and Editor Permission Sync"
-              },
-              "body": {
-                "zh-TW": "在遠端電腦透過 `claude remote-control` 連線工作時，長時間掛機最怕憑證失效讓所有連線瞬間中斷。⟦這如同在長效監控哨所配置專用通信機，遇到月度密碼過期會自行向總部換約重連而不斷線，新加入的聯絡終端也能即時掌握目前的防衛等級。⟧以往遠端伺服器憑證在大約 30 天過期後，主機行程會直接退出並切斷所有掛載的工作階段；現在主機端會自動重新註冊憑證並持續保持運作。同時，新加入 Claude Desktop 或 VS Code 工作階段的遠端操控客戶端，之前常停留在過期的舊權限模式直到手動變更，如今一連上就能立刻呈現即時且正確的權限狀態。",
-                "en": "When working on a remote machine via `claude remote-control`, long-running sessions no longer suffer sudden drops from expired credentials. ⟦This is like equipping an outpost with a dedicated communicator that automatically renews its monthly passcode with headquarters without dropping the link, while newly connected terminals instantly reflect current defense levels.⟧ Previously, when server credentials expired after about 30 days, the host process exited and dropped all attached sessions; now the host automatically re-registers and keeps running. Meanwhile, Remote Control clients joining a Claude Desktop or VS Code session previously remained on stale permission modes until changed manually, but now immediately reflect accurate, up-to-date permission states upon connecting."
-              },
-              "original": "Fixed Remote Control clients that join a Claude Desktop or VS Code session showing a stale permission mode until it was changed again\nFixed `claude remote-control` exiting and dropping every attached session when its server credential expires (about 30 days after start); the host now re-registers and keeps going"
-            },
-            {
-              "title": {
-                "zh-TW": "企業受管設定嚴密把關，雲端憑證逾期精確回報",
-                "en": "Strict Enterprise Managed Settings Enforcement, Accurate Cloud Credential Expiration Reporting"
-              },
-              "body": {
-                "zh-TW": "在由公司統一控管規則的企業環境中，雲端排程與登入驗證具備更嚴密的防護。受管設定要求沙箱時 Cowork 雲端排程啟動失敗已修復；`allowedHttpHookUrls`、`httpHookAllowedEnvVars` 與 `allowedChannelPlugins` 讀取失敗時一律不予放行。在 Claude Desktop 下 AWS 或 Google Cloud 憑證過期不再盲目重試 10 次，改為提示重新認證；強制閘道登入框按 Esc 即可關閉。自建執行端會回報 `--use-anthropic-git-proxy` 並對使用舊代理的工作階段提出警示，轉發身分遇 429 限制不再轉移上游以落實每人配額。⟦整體防護宛若金融大樓的安全閘道，條文讀取不清時一律從嚴封鎖，身分過期不再盲目空轉十次，限制也確實落實到每位個別訪客頭上。⟧",
-                "en": "In enterprise environments governed by centralized policies, cloud scheduling and login authentication now receive tighter safeguards. Startup failures for Cowork cloud scheduled tasks in organizations requiring sandboxing are now fixed; unreadable `allowedHttpHookUrls`, `httpHookAllowedEnvVars`, and `allowedChannelPlugins` settings now admit nothing rather than everything. Under Claude Desktop, expired AWS or Google Cloud credentials no longer blindly retry 10 times, prompting for re-authentication instead; pressing Esc now closes the mandatory gateway login dialog. Self-hosted runners now report `--use-anthropic-git-proxy` and warn sessions cloning via the legacy proxy, while `forward_user_identity` passes 429 rate limits directly to developers rather than failing over upstreams to enforce per-user quotas. ⟦The overall defense resembles security turnstiles in a financial building: unreadable rules strictly deny entry, expired badges no longer trigger ten pointless retry spins, and limits are enforced on every individual visitor.⟧"
-              },
-              "original": "Fixed Cowork scheduled tasks in the cloud failing at startup for organizations whose managed settings require sandboxing\nFixed expired AWS or Google Cloud credentials under a host app such as Claude Desktop retrying ten times with a generic \"request failed\" before the re-authenticate error appeared\nFixed managed `allowedHttpHookUrls`, `httpHookAllowedEnvVars` and `allowedChannelPlugins` to admit nothing, not everything, when unreadable\nFixed `/login` on machines whose managed settings require Claude apps gateway sign-in: Esc now closes the dialog instead of doing nothing\nSelf-hosted runner: Changed `--use-anthropic-git-proxy` to be reported to the server at registration and to print a warning for each session that still clones through the legacy git proxy\nGateway: Changed `forward_user_identity` upstreams to return a 429 as-is to a developer whose email was forwarded, instead of failing over to the next upstream, so the proxy's per-user limits hold"
-            },
-            {
-              "title": {
-                "zh-TW": "終端機按鍵與滾動修復，輸入文字不再延遲跳格",
-                "en": "Terminal Keystroke and Scrolling Fixes, Jitter-Free Responsive Text Input"
-              },
-              "body": {
-                "zh-TW": "在手機或終端機全螢幕下操作各項指令，文字輸入與介面捲動現在更加乾淨俐落。⟦這恰似把老舊放映機的齒輪重新校準，打字輸入不再因為背景動畫轉動而延遲跳格，切換視窗或滑動閱覽時畫面資訊也穩定呈現。⟧以前在代理人檢視中重新連線至 tmux 或 ssh 工作階段後，Shift+Enter 換行與 Option+Backspace 刪除單詞等快捷鍵會失效，如今已完全修復。行動端設備執行 `/context` 等本機指令時輸出空白的問題已獲解決，在全螢幕向上滾動時，對話頂端也能正常顯示淡色的上一則提問提示。此外，`/diff` 程式碼差異面板不再先閃爍零個檔案變更與載入轉圈才定格，無改動時的空白提示也已置中對齊，打字時按鍵更不會被載入動畫卡住延遲。",
-                "en": "Operating commands across mobile clients or fullscreen terminals is now much smoother for text input and interface scrolling. ⟦This is like recalibrating the gears of a classic projector: typing input no longer lags behind background animations, and screen details remain steady when switching windows or scrolling.⟧ Previously inside agent views, reconnecting to tmux or ssh sessions broke shortcuts like Shift+Enter for newlines and Option+Backspace for word deletion; these are now fully fixed. Blank outputs when running local commands like `/context` on mobile devices have been resolved, and scrolling up in fullscreen mode now reliably shows the dim last-prompt header at the top. Additionally, the `/diff` code difference panel no longer flashes \"0 files changed\" with a spinner before settling, its empty state is centered, and keystrokes are no longer delayed by loading animations."
-              },
-              "original": "Fixed `/context` and other local command output rendering blank on mobile clients\nFixed shift+enter and option+backspace not working after reconnecting to a tmux or ssh session inside an agent view\nFixed the dim last-prompt header not appearing at the top of the conversation when scrolling up in fullscreen mode\nImproved the `/diff` panel: it no longer flashes \"0 files changed\" and a spinner before settling, and its empty state is centered in the panel\nImproved prompt input responsiveness: keystrokes no longer occasionally wait a frame behind spinner or streaming repaints"
-            },
-            {
-              "title": {
-                "zh-TW": "恢復大容量歷史對話不掉內容，用量警示燈號穩定顯示",
-                "en": "Restoring Large Conversation Transcripts Without Data Loss, Stable Usage Warnings"
-              },
-              "body": {
-                "zh-TW": "恢復先前對話或載入超過 5 MB 的超大歷史紀錄時，整個還原過程變得更乾淨迅速。以前在包含大量 Bash 工具呼叫的對話中執行 `--resume`，首次渲染畫面常需等待；現在首次渲染更快。當工作階段的對話紀錄超過 5 MB 時，先前重新載入對話容易漏失平行工具呼叫與掛鉤（特定事件發生時被觸發的小程式）輸出，如今資料都能完整重現。透過 `-p --resume` 執行 `/compact` 壓縮或其他斜線指令後，對話中也不會再多生出一筆多餘的接續提示。如果工作階段中因切換不同模型或模式而回傳不同的額度週期，用量上限警示也不會再忽明忽暗地閃爍。⟦整個載入流程好比翻開厚重的歷史卷宗，即使檔案超過 5 MB 且包含多條平行批註也能完整讀取，恢復作業時不再無故多插一張空白備忘頁。⟧",
-                "en": "Resuming previous conversations and loading massive transcripts over 5 MB is now cleaner and faster. Previously, running `--resume` on sessions with many Bash tool calls caused noticeable delays on first render; first-render time is now shorter. When a session transcript exceeds 5 MB, reloading used to drop parallel tool calls and their hook output; all of it now comes back intact. Running `/compact` or other slash commands via `-p --resume` no longer inserts an extra spurious continuation prompt. If switching models or modes within a session returns varying quota windows, usage-limit warnings no longer flicker on and off. ⟦The entire loading process is like opening a heavy historical archive: even files exceeding 5 MB with parallel marginal notes load completely, without inserting an unneeded blank memo page upon resumption.⟧"
-              },
-              "original": "Fixed resuming a session after `/compact` or another slash command ran via `-p --resume`: a spurious \"Continue from where you left off.\" turn is no longer inserted\nFixed resuming a large session (transcript over 5 MB): parallel tool calls and their hook output are no longer dropped from the reloaded conversation\nFixed the usage-limit warning flickering on and off during a session when requests for different models or modes report different limit windows\nImproved `--resume` first-render time for sessions with many Bash tool calls"
-            },
-            {
-              "title": {
-                "zh-TW": "終端指令回傳白話說明，市集路徑防護與沙箱複製指引",
-                "en": "Plain-Language Terminal Command Descriptions, Marketplace Path Containment and Sandbox Copy Guidance"
-              },
-              "body": {
-                "zh-TW": "讓 Claude 在自動模式或沙箱環境執行工作時，工具的引導說明與安全把關變得更親切嚴謹。以往執行終端命令時，Claude 常只是機械式複誦指令；現在更新了 Bash 工具說明指引，引導它用大白話解釋命令的作用。在沙箱內若遇到 `pbcopy` 等剪貼簿指令執行失敗，Claude 會主動建議改用內建的 `/copy` 指令。工作流程中帶有龐大輸出結構的 `agent()` 呼叫，在自動模式下不再直接被拒，而是交由安全分類器審查。在 macOS 與 Linux 上，外掛市集路徑帶有反斜線可繞過邊界檢查的漏洞已堵死；`claude agents` 的 `@` 選單也能即時列出工作階段開啟後新建立的儲存庫。⟦這如同給領航員換上更清晰的作業指南，執行指令時會用白話解釋步驟，遇到封閉環境複製失敗時也會主動推薦替代指令。⟧",
-                "en": "When running Claude in auto mode or sandboxed environments, tool descriptions and security checks are now clearer and stricter. Previously when executing terminal commands, Claude often mechanically echoed the command; updated Bash tool guidance now steers it to explain what commands do in plain words. Inside the sandbox, if clipboard commands like `pbcopy` fail, Claude proactively suggests using the built-in `/copy` command. In workflows, `agent()` calls with large output schemas are no longer flatly refused in auto mode, routing to the safety classifier for review instead. On macOS and Linux, a case where a marketplace entry path containing a backslash could bypass the containment check has been closed, and the `claude agents` `@` menu now lists repositories created after session start. ⟦This is like giving a navigator clearer operational guidelines: explaining steps in plain terms when issuing commands, and recommending alternative commands when copy operations fail inside closed quarters.⟧"
-              },
-              "original": "Fixed Workflow `agent()` calls with large output schemas being refused in auto mode instead of being checked by the safety classifier\nFixed a case where a marketplace entry path containing a backslash could bypass the containment check for fetched marketplaces on macOS and Linux\nFixed `claude agents` `@` directory menu not listing repositories created after the session started\nImproved the Bash tool's description guidance so Claude describes what a command does in plain words instead of echoing the command\nImproved sandbox guidance so Claude suggests `/copy` when clipboard commands such as `pbcopy` fail inside the sandbox"
-            },
-            {
-              "title": {
-                "zh-TW": "[VSCode] 差異檢視跟隨編輯器主題，修復截圖貼上與多語系文字",
-                "en": "[VSCode] Diff View Adapts to Editor Themes, Fixes for Screenshot Pasting and Multilingual Text"
-              },
-              "body": {
-                "zh-TW": "在 VS Code 裡與 Claude 對話，程式碼差異對照面板現在能完美貼合你的編輯器主題。⟦體驗改善有如為繪圖板換上具備自動調色的多功能畫布，不管是貼上圖片、選用高對比深淺外觀，或是處理帶有空格的檔名，筆觸都精準無誤。⟧過去對話框中的變更區塊總是強制以深色佈景顯示，現在會同步套用當前啟用的色彩主題與高對比模式。在 WSL2 或 WSLg 環境下貼上螢幕截圖時，不再把原始圖片位元組塞進輸入框，而是直接轉成附件或自動略過；同時修復了混合由右至左語系與英文時文字順序錯亂的問題。在檔案修改方面，採 Windows（CRLF）換行格式的檔案在確認套用變更時不再噴出找不到字串的錯誤，且使用 `@` 提及檔案時也不會漏掉路徑帶有空格的檔案。",
-                "en": "When chatting with Claude in VS Code, code diff panels now align with your active editor theme. ⟦The upgrade is like outfitting a graphics tablet with an auto-adjusting color canvas: whether pasting images, choosing high-contrast dark or light themes, or handling filenames with spaces, every stroke remains precise.⟧ Previously, chat diff blocks always rendered with a dark theme; they now follow the active VS Code color theme, including high contrast. Pasting screenshots on WSL2 or WSLg no longer inserts raw bytes into the chat input, instead attaching the image or ignoring the paste if unavailable; typing mixed right-to-left and English text in the wrong order has also been fixed. For file edits, accepting changes in diff view on files with Windows (CRLF) line endings no longer fails with \"String not found in file\", and `@`-mentions no longer drop files with spaces in their paths."
-              },
-              "original": "[VSCode] Fixed pasting a screenshot on WSL2/WSLg inserting raw image bytes into the chat input; the image is now attached when the clipboard provides it, otherwise the paste is ignored\n[VSCode] Fixed chat diff blocks always rendering with a dark editor theme; they now follow the active VS Code color theme, including high contrast\n[VSCode] Fixed mixed right-to-left and English text rendering in the wrong order while typing in the message input\n[VSCode] Fixed accepting an edit in the diff view on a file with Windows (CRLF) line endings failing with \"String not found in file\"\n[VSCode] Fixed @-mentions dropping files whose paths contain spaces"
-            },
-            {
-              "title": {
-                "zh-TW": "[VSCode] 遠端工作階段清單載入修復，排除循環歷史與行程空轉",
-                "en": "[VSCode] Remote Session List Loading Fixes, Eliminating Cyclic Loops and Runaway Processes"
-              },
-              "body": {
-                "zh-TW": "開啟含有大量捷徑或龐大專案的遠端主機時，VS Code 擴充套件不再因循環紀錄或檔案搜尋而把 CPU 衝上 100%。過去當對話存檔中包含循環的父層關聯時，進行對話分支、編輯歷史訊息或執行倒轉操作會導致外掛主機直接卡死在 100% CPU，現已修復。透過 Remote-SSH 連線且工作區資料夾僅存在於遠端電腦時，工作階段清單介面過去會載入失敗，目前已能正常顯示。此外，在超大型專案或含有密集符號連結（指向另一個位置的捷徑檔）的工作環境中檢視檔案時，背景搜尋工具 ripgrep 行程失控狂飆的問題也獲得了解決。⟦承接同一個工作環境的平穩運作，這好似為巡檢機具加裝轉速調節器，遇到跨主機遠端連線或大量捷徑檔案時不再失控空轉。⟧",
-                "en": "When connecting to remote hosts with symlink-heavy or massive codebases, the VS Code extension no longer spikes CPU to 100% over cyclic transcripts or file searches. Previously, when saved transcripts contained cyclic parent links, forking, editing earlier messages, or rewinding caused the extension host to hang at 100% CPU; this is now fixed. In windows connected over Remote-SSH where the workspace folder exists only on the remote host, the sessions list view previously failed to load and now renders properly. Additionally, runaway background ripgrep processes when viewing files in large or symlink-heavy workspaces have been resolved. ⟦Continuing the smooth operation of this workspace, this is like adding a speed governor to inspection machinery, preventing uncontrolled spinning during cross-host remote connections or encounters with heavy shortcuts.⟧"
-              },
-              "original": "[VSCode] Fixed the extension host hanging at 100% CPU when forking, editing an earlier message, or rewinding in a conversation whose saved transcript contains a cyclic parent link\n[VSCode] Fixed the sessions list view failing to load in windows connected over Remote-SSH when the workspace folder exists only on the remote host\n[VSCode] Fixed runaway ripgrep processes when viewing files in large or symlink-heavy workspaces"
-            },
-            {
-              "title": {
-                "zh-TW": "[Claude Code on the web] 企業版 GitHub 授權自動換新，調度本人帳號備援呼叫",
-                "en": "[Claude Code on the web] Automatic Token Refresh for GitHub Enterprise, Personal Account Fallback for API Calls"
-              },
-              "body": {
-                "zh-TW": "透過網頁版 Claude Code 操作 GitHub 企業伺服器時，逾期的 token（授權令牌，用於身分認證）現在會自動換新。⟦這宛如在雲端工作台配置全天候秘書，遇到通行權杖逾期會自動換發，即使所屬單位未安裝官方擴充套件，也能直接採用你本人的帳號順暢銜接。⟧先前在 GitHub Enterprise Server 的工作階段中，只要個人認證憑證到期，介面就會誤標為帳號已斷線；如今在進行拉取請求（PR）或討論議題操作時，系統會自動在背景刷新授權並保持連線。另外，在尚未安裝 Claude GitHub App 的組織架構下，執行 `gh` 命令或呼叫 API 原先會直接報錯，現在會直接改用你已綁定的 GitHub 帳號發送請求，若尚未登入也會明確提示。",
-                "en": "When working with GitHub Enterprise Server via Claude Code on the web, expired tokens now refresh automatically. ⟦This is like assigning a 24/7 assistant to your cloud workbench: when access tokens expire, they are renewed automatically, and work carries on under your personal account even if the organization lacks the official app.⟧ Previously in GitHub Enterprise Server sessions, expired authentication credentials caused the interface to report the GitHub account as disconnected; PR and issue operations now automatically refresh tokens in the background to stay connected. Additionally, in organizations without the Claude GitHub App installed, running `gh` commands or making GitHub API calls previously threw errors, but now routes through your connected GitHub account and explicitly notes when none is connected."
-              },
-              "original": "[Claude Code on the web] Fixed GitHub Enterprise Server sessions showing your GitHub account as disconnected once its token expired; PR and issue operations now refresh it automatically\n[Claude Code on the web] Fixed `gh` and GitHub API calls failing in organizations without the Claude GitHub App; they now use your connected GitHub account and say so when none is connected"
-            },
-            {
-              "title": {
-                "zh-TW": "[Claude Tag] 預設連線支援切換自訂通道，額度耗盡清楚指引儲值",
-                "en": "[Claude Tag] Preset Connections Support Switching to Custom Channels, Clear Guidance on Depleted Credits"
-              },
-              "body": {
-                "zh-TW": "負責管理 Claude Tag 團隊連線的管理者，現在不必刪除重來就能將預設通道切換至自訂連接器。在後台設定預設連線表單時，新加入的「Use a custom connector」連結允許你中途直接轉向自訂通道。當團隊組織的用量額度耗盡時，Claude 過去只會冰冷回報 API 拒絕了無效請求，現在會具體說明額度已用完並指引儲值方法。在頻道頂層發布訊息後，成員在討論串內要求編輯或刪除該則貼文時，指令不再被誤判為對話糾錯，而是確實轉交給當初發文的工作階段處理。此外，管理審查介面的工具存取授權請求點擊「Connect」時，之前常跳出授權失敗或誤報授權包已刪除的問題也已修正。⟦整個調整就像在團隊客服總機後台增加切換自訂外線的捷徑，額度用盡時明確告知儲值途徑，留言串內的修改請求也能準確遞交給當初發文的專員。⟧",
-                "en": "Administrators managing Claude Tag team connections can now switch preset connections to custom connectors without starting over. When configuring preset connection forms in admin settings, a newly added \"Use a custom connector\" link lets you pivot directly to custom channels. When an organization runs out of usage credits, Claude previously replied with a generic message stating the API rejected an invalid request; it now explicitly explains credits are exhausted and details how to add more. After Claude posts a message at a channel's top level, thread requests to edit or delete that post are no longer treated as conversational corrections, routing properly to the session that originally posted it. Additionally, clicking **Connect** on Tool access requests under Admin settings > Review requests previously failed with \"Authorization failed\" or showed the access bundle as deleted; this has now been resolved. ⟦The overall update is like adding a shortcut to switch to custom outside lines in a team switchboard: clearly guiding top-ups when credit runs out and routing thread edit requests to the original dispatcher.⟧"
-              },
-              "original": "[Claude Tag] Added a \"Use a custom connector\" link to the preset connection forms in Claude Tag admin settings, so you can switch to a custom connection without starting over\n[Claude Tag] Fixed Claude replying \"The API rejected the request as invalid\" when the organization has run out of usage credits; the reply now says so and explains how to add more\n[Claude Tag] Fixed thread requests to edit or delete a message Claude posted at the channel's top level being answered with a correction instead of reaching the session that posted it\n[Claude Tag] Fixed **Connect** on Tool access requests under Admin settings > Review requests failing with \"Authorization failed\" or showing the requested access bundle as deleted"
             }
           ]
         }
@@ -1178,6 +1035,34 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.30.14",
+          "period": "2026-09-12",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Windows 啟動時不再連閃黑色主控台視窗，子行程全面安靜呼叫",
+                "en": "Windows startup no longer flashes black console windows, child processes fully silenced"
+              },
+              "body": {
+                "zh-TW": "在 Windows 啟動 Usage 時，桌面不再連閃黑色主控台視窗。⟦這好比助手出門採買，每趟都按門鈴吵到客人；改走安靜通道後，前台才重回安寧。⟧usage.exe 打包時無主控台，但呼叫子行程未帶 CREATE_NO_WINDOW，使系統每次都開關黑窗。閃爍次數等於歷史目錄數，因 resolve_project_name() 跑 git worktree list --porcelain。現由 usage_common/subprocess_utils.py 統一為子行程帶旗標與標準輸入 stdin=subprocess.DEVNULL。複製至 ~/.claude/ 的腳本改採內聯實作且經 ast 測試零相依，轉發器補上 FORWARDER_VERSION 與 self_heal()，比照其他 hook（掛鉤，特定事件發生時被觸發的小程式）自動換新。",
+                "en": "When launching Usage on Windows, the desktop no longer repeatedly flashes black console windows. ⟦This is like an assistant going out for errands and ringing the doorbell every trip, disturbing guests; switching to a quiet hallway restores peace to the front desk.⟧ usage.exe is packaged without a console, but calling child processes did not pass CREATE_NO_WINDOW, causing the system to open and close a black window every time. The flash count equaled the number of history directories because resolve_project_name() runs git worktree list --porcelain. usage_common/subprocess_utils.py now uniformly supplies flags for child processes along with standard input stdin=subprocess.DEVNULL. Scripts copied to ~/.claude/ now use inlined implementations verified by ast tests to have zero dependencies, and the forwarder adds FORWARDER_VERSION and self_heal() to auto-update just like other hooks."
+              },
+              "original": "**No more black console windows flashing at Windows startup** ([#130](https://github.com/aqua5230/usage/issues/130)). `usage.exe` is packaged without a console, but no `subprocess` call in the project passed `CREATE_NO_WINDOW`, so Windows created and closed a console window for every child process. The flash count equalled the number of distinct project directories in the Claude history — `resolve_project_name()` runs `git worktree list --porcelain` once per directory and caches per process, so every launch repeated it. A shared `usage_common/subprocess_utils.py` now supplies the `creationflags`, every child process in the project goes through it, and the missing `stdin=subprocess.DEVNULL` was added along the way. `usage_session_resume.py` and `usage_statusline_forwarder.py` are copied verbatim into `~/.claude/` and run by the system Python, so they keep an inlined equivalent instead of importing the project; a new test uses `ast` to keep every copied-out script free of project imports. The forwarder also had no version-upgrade path at all — `_copy_forwarder_script()` was only called on reinstall or when the state looked broken — so it gained `FORWARDER_VERSION` and a `self_heal()` upgrade step like the other hooks."
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 面板不再先閃現舊位置，單次設定尺寸坐標徹底消除跳動",
+                "en": "Windows panel no longer flashes at old position, single geometry update eliminates jumpiness"
+              },
+              "body": {
+                "zh-TW": "點開 Windows 面板時，畫面不再先在舊坐標閃爍一下才跳回定位。pywebview 的 WinForms 後端在 resize() 與 move() 都帶 SWP_SHOWWINDOW，使 _place_window_on_ui_thread() 提早在舊坐標顯示視窗，隨後才移到定點。以 1 毫秒取樣實測，面板在錯位可見 36 毫秒，約兩個畫面幀。現在視窗改在隱藏時以單次 SetWindowPos 一起設定位置與大小且不帶顯示旗標，顯示交由 show() 處理；非 Windows 或取不到原生視窗時退回既有備援流程。套用前也會先比對目前的實體像素幾何，完全相同便跳過，避免 _apply_content_height_now() 在高度未變時白白呼叫。⟦這種穿幫宛如舞台劇換幕，道具桌還留在上一場的站位，工作人員就失手拉開布幕才急忙把它推定位。⟧",
+                "en": "When opening the Windows panel, the screen no longer flashes briefly at its old coordinates before snapping into position. The WinForms backend of pywebview passed SWP_SHOWWINDOW in both resize() and move(), causing _place_window_on_ui_thread() to prematurely display the window at previous coordinates before moving it to its target location. Measured at 1 ms sampling, the panel was visible in the wrong position for 36 ms, or about two frames. The window now sets position and size together via a single SetWindowPos without show flags while hidden, leaving display to show(), and falls back to the existing fallback flow off Windows or when native handles are unavailable. It also compares the current physical-pixel geometry before applying and skips entirely if identical, preventing _apply_content_height_now() from being called unnecessarily when height is unchanged. ⟦This glitch is like a stage scene change where the prop table is still at the previous scene's spot when staff accidentally pull open the curtain before hastily shoving it into place.⟧"
+              },
+              "original": "**The Windows panel no longer flashes at its old position before moving.** pywebview's WinForms backend passes `SWP_SHOWWINDOW` in both `resize()` and `move()`, so the `resize()` in `_place_window_on_ui_thread()` made the still-hidden window visible at the previous coordinates; the following `move()` then moved it and only then did `show()` run. Measured at 1 ms sampling, the window sat visible in the wrong place for 36 ms, about two frames. Position and size are now applied while the window is hidden in a single `SetWindowPos` without `SWP_SHOWWINDOW`, leaving display to the existing `show()` path; without a native handle, or off Windows, it falls back to `resize()` + `move()` unchanged. Applying geometry is also skipped entirely when the current physical-pixel geometry already matches, so `_apply_content_height_now()` no longer makes a pointless native call when the content height has not changed."
+            }
+          ]
+        },
+        {
           "version": "0.30.13",
           "period": "2026-09-12",
           "items": [
@@ -1285,34 +1170,6 @@
                 "en": "Insight notes at the bottom of the report are now entirely square, borderless tinted full rows. They were originally the last framed surfaces left across the entire report interface, featuring 8px rounded corners and a 3px left stripe, and have now been updated to match the visual style of the report's other full-row fills. ⟦The entire interface is like a notebook layout where, once all chapter contents have switched to clean borderless full-bleed background colors, the last sticky note with a border and side stripe also flattens its outlines so the reading flow across the page is no longer disjointed.⟧"
               },
               "original": "**Insight notes in the report are square, borderless tinted rows.** They were the last framed surface left — 8px corners and a 3px left stripe — and now match the report's other full-row fills."
-            }
-          ]
-        },
-        {
-          "version": "0.30.11",
-          "period": "2026-09-10",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "移除 AI 人才市場面板，簡化安裝與發版流程",
-                "en": "Remove AI Talent Market panel and simplify installation and release workflows"
-              },
-              "body": {
-                "zh-TW": "挑選現成的 AI 角色卡，不再需要獨立面板。⟦這就像在背包外硬加專用工具袋，原廠斷貨讓袋子成了空擺設；既然主袋本就自帶夾層，拆掉它不但減重也省去扣具保養。⟧專案正式移除了 AI 人才市場面板。該面板原本用來瀏覽精選的 subagent（子代理）角色卡並安裝至 `~/.claude/agents/` 目錄。隨著 Claude Code 內建角色選擇，加上 GPT Store 示範了平台自帶功能後的目錄命運，三篇論文也證實角色前綴會削弱推理。該面板還夾帶私有專案編譯出的唯一外部二進位檔 `vendor/instate-cli`，發版密鑰 `INSTATE_CLI_TOKEN` 曾兩度過期，悄悄出貨少了 23 MB 且面板全空的程式。移除該功能一併拆掉了校驗檔、指紋防呆、發版上傳下載流程，以及面板一致性與主題計數腳本中專屬 macOS 的特例。",
-                "en": "Choosing ready-made AI persona cards no longer requires a dedicated panel. ⟦It is like attaching a dedicated tool pouch to the outside of a backpack only for the manufacturer to discontinue it into an empty ornament; since the main bag already comes with built-in compartments, removing it not only sheds weight but also saves buckle maintenance.⟧ The project officially removed the AI Talent Market panel. The panel was originally used to browse curated subagent persona cards and install them into the `~/.claude/agents/` directory. As Claude Code built persona selection directly into the platform, and the GPT Store demonstrated the fate of catalogs once the host platform ships its own features, three papers also confirmed that persona prefixes degrade reasoning. The panel also carried the project's only external binary compiled from a private project, `vendor/instate-cli`; its release secret `INSTATE_CLI_TOKEN` expired twice, silently shipping an app that was 23 MB lighter with an empty panel. Removing this feature also eliminated the checksum file, fingerprint guards, release upload and download workflows, and macOS-specific carve-outs in the panel parity and theme-count scripts."
-              },
-              "original": "**AI Talent Market.** The panel browsed a curated set of subagent personas and installed them into `~/.claude/agents/`. Claude Code has since built persona selection in itself, and the evidence against the pattern accumulated from the other side: the GPT Store showed what happens to a persona catalogue once the host platform ships its own, and three papers now report that a persona prefix measurably degrades a model's reasoning rather than sharpening it. The panel also carried the project's only vendored binary — `vendor/instate-cli`, built from a separate private project, fetched during release through a `INSTATE_CLI_TOKEN` secret that expired twice and silently shipped a 23 MB-lighter app with an empty panel. Removing the feature removes that whole chain: the checksum file, the fingerprint guard, the release upload/download dance, and the macOS-only carve-outs in the panel parity and theme-count scripts."
-            },
-            {
-              "title": {
-                "zh-TW": "移除 AI 圓桌討論視窗，回歸專注保護用量額度",
-                "en": "Remove AI Council window and refocus on protecting usage quota"
-              },
-              "body": {
-                "zh-TW": "想並排比較不同 AI 的回答，交給兩個終端機視窗處理得更快。專案正式移除了 AI 圓桌討論視窗。這項功能過去會在獨立視窗中，讓 Claude Code、Codex 與 Antigravity 進行多輪討論，開始前提供 token（AI 處理與計費的文字單位）預估、過程中計票共識，並支援唯讀資料夾存取。它是專案最大的子系統，在 `discussion/` 目錄佔了約 3,600 行程式碼。但它產出的成果，只是由兩款工具並排回答同一題且一次結束，開兩個終端機視窗早就更快。用量監控工具不該拿來跑對話，花掉的額度正是它存在所要保護的額度。若日後需要精簡版本，零件都仍完整留在 git 歷史紀錄中。⟦這種矛盾宛如行動電源上的電量螢幕，為了展示炫目動畫日夜長亮，耗盡的反而是出門在外最需要保留的備用電力。⟧",
-                "en": "Comparing answers from different AI tools side by side is much faster when left to two terminal windows. The project officially removed the AI Council window. This feature previously ran multi-round discussions between Claude Code, Codex, and Antigravity in a separate window, providing upfront token estimates, consensus tallying during the process, and read-only folder access. It was the project's largest subsystem, accounting for roughly 3,600 lines of code across the `discussion/` directory. Yet the output it produced was merely two tools answering the same question side by side in a single pass, which opening two terminal windows already achieved faster. A usage monitor should not be used to run conversations; the quota it consumed was the exact quota it exists to protect. If a stripped-down version is ever needed in the future, the parts remain fully intact in git history. ⟦This contradiction is like a battery indicator screen on a power bank that stays lit day and night to show flashy animations, draining the very backup power you need to preserve most when away from home.⟧"
-              },
-              "original": "**AI Council.** A separate window ran a multi-round discussion between Claude Code, Codex and Antigravity, with a token estimate up front, consensus tallying, and read-only folder access. It was the largest subsystem in the project at roughly 3,600 lines across `discussion/`, and the thing it produced — the same question answered by two tools, side by side, ending in one pass — is something two terminal windows already do faster. A usage monitor is the wrong place to run conversations; the quota it spent was the quota it exists to protect. The parts are in git history if a stripped-down version is ever wanted."
             }
           ]
         }
