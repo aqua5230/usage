@@ -179,3 +179,24 @@ def test_load_entries_without_iterations_keeps_single_entry(
     monkeypatch.setattr(claude, "get_claude_dirs", lambda: [str(projects_dir)])
 
     assert len(claude.load_entries()) == 1
+
+
+def test_project_from_cwd_groups_repo_subfolders_under_repo_name(tmp_path: Path) -> None:
+    import shutil
+    import subprocess
+
+    import project_resolver
+
+    if shutil.which("git") is None:
+        pytest.skip("git not installed")
+    project_resolver.resolve_project_name.cache_clear()
+    project_resolver._resolve_project_name.cache_clear()
+    repo = tmp_path / "my-repo"
+    (repo / "tests" / "fixtures").mkdir(parents=True)
+    subprocess.run(["git", "init", "-q", str(repo)], check=True)
+    plain = tmp_path / "notes"
+    plain.mkdir()
+
+    assert claude.project_from_cwd(str(repo / "tests" / "fixtures")) == "my-repo"
+    assert claude.project_from_cwd(str(repo)) == "my-repo"
+    assert claude.project_from_cwd(str(plain)) == "notes"

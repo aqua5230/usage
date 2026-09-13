@@ -15,6 +15,7 @@ from typing import Any
 
 from loaders.claude_paths import claude_config_dirs
 from loaders.jsonl_utils import iter_jsonl_dicts
+from project_resolver import resolve_project_name
 
 from .types import AgentInfo
 
@@ -92,19 +93,9 @@ def get_claude_dirs() -> list[str]:
 
 
 def project_from_cwd(cwd: str) -> str:
-    home = os.path.expanduser("~")
-    rel = cwd[len(home):] if cwd.startswith(home) else cwd
-    # Windows sessions read transcripts whose cwd may use either separator
-    # (e.g. POSIX-style paths). POSIX filenames may legitimately contain
-    # backslashes, so only normalize them on Windows.
-    if sys.platform == "win32":
-        rel = rel.replace("\\", "/")
-        sep = "/"
-    else:
-        sep = os.sep
-    rel = rel.strip(sep)
-    parts = rel.split(sep)
-    return parts[-1] if parts and parts[-1] else rel or "unknown"
+    # Same resolver as the Codex, Grok and Antigravity loaders: a session started
+    # in a repo subfolder (panels/, tests/) counts toward the repo, not a new project.
+    return resolve_project_name(cwd)
 
 
 def extract_project_from_dir(jsonl_path: Path, base: Path) -> str:
