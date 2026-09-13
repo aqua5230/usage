@@ -594,7 +594,7 @@ td:first-child{color:var(--warn)}
     <div>
       <div class="eyebrow"><span>$ usage report</span> --period <span data-report-period>2026-05-01 -&gt; 2026-05-23</span><span class="cursor">_</span></div>
       <h1>Your AI Usage Recap</h1>
-      <p class="narrative">You burned 2.3M tokens across 3 projects. Peak was 2026-05-13 (300.0K/day). Top model: claude-sonnet-4.</p>
+      <p class="narrative">You burned 2.3M tokens. Peak was 2026-05-13 (300.0K/day). Top model: claude-sonnet-4.</p>
     </div>
     <div class="header-actions">
       <div class="meta">Generated 2026-05-24 10:30:45 UTC<br>usage version 0.15.8</div>
@@ -762,7 +762,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "chartOther": "Other", "cost": "Cost", "costUnpriced": "{tokens} tokens have no public pricing", "emptyModels": "No model usage in this period", "emptyProjects": "No project usage in this period", "modelSection": "Most-used models", "narrative": "You burned {tokens} tokens across {projects} projects. Peak was {peak_date} ({peak_tokens}/day). Top model: {top_model}.", "projectSection": "Project hot zones", "share": "Share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "Cost", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "Cost is the API-equivalent value from public price lists, not your subscription bill. Usage without a public price is left out of cost.", "pricingModelSeparator": ", ", "pricingPriced": "Priced", "pricingUnpriced": "No public price", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "This week dropped {pct}% vs last week.", "trendCompareFirst": "First week of this period.", "trendCompareFlat": "Roughly flat vs last week.", "trendCompareNew": "This week has new usage vs last week.", "trendCompareUp": "This week is {ratio}× of last week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
+const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "chartOther": "Other", "cost": "Cost", "costUnpriced": "{tokens} tokens have no public pricing", "emptyModels": "No model usage in this period", "emptyProjects": "No project usage in this period", "modelSection": "Most-used models", "narrative": "You burned {tokens} tokens. Peak was {peak_date} ({peak_tokens}/day). Top model: {top_model}.", "projectSection": "Project hot zones", "share": "Share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "Cost", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "Cost is the API-equivalent value from public price lists, not your subscription bill. Usage without a public price is left out of cost.", "pricingModelSeparator": ", ", "pricingPriced": "Priced", "pricingUnpriced": "No public price", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "This week dropped {pct}% vs last week.", "trendCompareFirst": "First week of this period.", "trendCompareFlat": "Roughly flat vs last week.", "trendCompareNew": "This week has new usage vs last week.", "trendCompareUp": "This week is {ratio}× of last week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -1414,7 +1414,6 @@ document.addEventListener('click', async (e) => {
     });
     const tokenTotal = rows.reduce((total, row) => total + rowTokens(row), 0);
     const costTotal = rows.reduce((total, row) => total + Number(row[8]), 0);
-    const projectTotals = aggregateRows(rows, 3);
     const modelTotals = aggregateRows(rows, 2);
     let topModel = '';
     let topModelTokens = -1;
@@ -1425,7 +1424,6 @@ document.addEventListener('click', async (e) => {
       topModel = model ? String(model.name) : '';
     });
     return {
-      narrativeProjects: Object.keys(projectTotals).length,
       topModel,
       bounds,
       rows,
@@ -1994,7 +1992,6 @@ document.addEventListener('click', async (e) => {
     if (!node || !shareConfig.narrative) return;
     node.textContent = shareConfig.narrative
       .replace('{tokens}', formatTokens(summary.tokens))
-      .replace('{projects}', String(summary.narrativeProjects))
       .replace('{peak_date}', summary.peakDate)
       .replace('{peak_tokens}', formatTokens(summary.peakTokens))
       .replace('{top_model}', summary.topModel || shareConfig.unknown);

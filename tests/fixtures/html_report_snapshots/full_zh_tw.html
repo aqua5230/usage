@@ -594,7 +594,7 @@ td:first-child{color:var(--warn)}
     <div>
       <div class="eyebrow"><span>$ usage report</span> --period <span data-report-period>2026-05-01 -&gt; 2026-05-23</span><span class="cursor">_</span></div>
       <h1>你的 AI 用量回顧</h1>
-      <p class="narrative">過去這段時間你燒了 2.3M tokens、跨 3 個專案。2026-05-13 是高峰（300.0K/天），主力 LLM 是 claude-sonnet-4。</p>
+      <p class="narrative">過去這段時間你燒了 2.3M tokens。2026-05-13 是高峰（300.0K/天），主力 LLM 是 claude-sonnet-4。</p>
     </div>
     <div class="header-actions">
       <div class="meta">產生時間 2026-05-24 10:30:45 UTC<br>usage 版本 0.15.8</div>
@@ -762,7 +762,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "chartOther": "其他", "cost": "花費", "costUnpriced": "另有 {tokens} tokens 無公開價格", "emptyModels": "這段期間還沒有模型用量", "emptyProjects": "這段期間還沒有專案用量", "modelSection": "主力模型", "narrative": "過去這段時間你燒了 {tokens} tokens、跨 {projects} 個專案。{peak_date} 是高峰（{peak_tokens}/天），主力 LLM 是 {top_model}。", "projectSection": "專案熱區", "share": "佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "花費", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。", "pricingModelSeparator": "、", "pricingPriced": "已計價", "pricingUnpriced": "無公開價格", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "本週比上週少 {pct}%。", "trendCompareFirst": "這是本期第一週的數據。", "trendCompareFlat": "本週跟上週差不多。", "trendCompareNew": "本週是新出現的用量。", "trendCompareUp": "本週是上週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
+const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "chartOther": "其他", "cost": "花費", "costUnpriced": "另有 {tokens} tokens 無公開價格", "emptyModels": "這段期間還沒有模型用量", "emptyProjects": "這段期間還沒有專案用量", "modelSection": "主力模型", "narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），主力 LLM 是 {top_model}。", "projectSection": "專案熱區", "share": "佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "花費", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。", "pricingModelSeparator": "、", "pricingPriced": "已計價", "pricingUnpriced": "無公開價格", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "本週比上週少 {pct}%。", "trendCompareFirst": "這是本期第一週的數據。", "trendCompareFlat": "本週跟上週差不多。", "trendCompareNew": "本週是新出現的用量。", "trendCompareUp": "本週是上週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -1414,7 +1414,6 @@ document.addEventListener('click', async (e) => {
     });
     const tokenTotal = rows.reduce((total, row) => total + rowTokens(row), 0);
     const costTotal = rows.reduce((total, row) => total + Number(row[8]), 0);
-    const projectTotals = aggregateRows(rows, 3);
     const modelTotals = aggregateRows(rows, 2);
     let topModel = '';
     let topModelTokens = -1;
@@ -1425,7 +1424,6 @@ document.addEventListener('click', async (e) => {
       topModel = model ? String(model.name) : '';
     });
     return {
-      narrativeProjects: Object.keys(projectTotals).length,
       topModel,
       bounds,
       rows,
@@ -1994,7 +1992,6 @@ document.addEventListener('click', async (e) => {
     if (!node || !shareConfig.narrative) return;
     node.textContent = shareConfig.narrative
       .replace('{tokens}', formatTokens(summary.tokens))
-      .replace('{projects}', String(summary.narrativeProjects))
       .replace('{peak_date}', summary.peakDate)
       .replace('{peak_tokens}', formatTokens(summary.peakTokens))
       .replace('{top_model}', summary.topModel || shareConfig.unknown);

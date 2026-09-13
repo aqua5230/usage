@@ -186,7 +186,6 @@ REPORT_FILTER_JS = r"""(() => {
     });
     const tokenTotal = rows.reduce((total, row) => total + rowTokens(row), 0);
     const costTotal = rows.reduce((total, row) => total + Number(row[8]), 0);
-    const projectTotals = aggregateRows(rows, 3);
     const modelTotals = aggregateRows(rows, 2);
     let topModel = '';
     let topModelTokens = -1;
@@ -197,7 +196,6 @@ REPORT_FILTER_JS = r"""(() => {
       topModel = model ? String(model.name) : '';
     });
     return {
-      narrativeProjects: Object.keys(projectTotals).length,
       topModel,
       bounds,
       rows,
@@ -766,7 +764,6 @@ REPORT_FILTER_JS = r"""(() => {
     if (!node || !shareConfig.narrative) return;
     node.textContent = shareConfig.narrative
       .replace('{tokens}', formatTokens(summary.tokens))
-      .replace('{projects}', String(summary.narrativeProjects))
       .replace('{peak_date}', summary.peakDate)
       .replace('{peak_tokens}', formatTokens(summary.peakTokens))
       .replace('{top_model}', summary.topModel || shareConfig.unknown);
