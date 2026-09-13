@@ -5,6 +5,28 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.15] - 2026-09-14
+
+### Added
+- **The report's date range can be changed inside the page** ([#137](https://github.com/aqua5230/usage/pull/137)). The HTML report used to freeze its period at generation time, so a copy sent to someone else could not be explored. A day × tool × model × project table (about 80 KB) is now embedded, and every date-dependent section recalculates in the browser from five shortcuts or a custom from/to range in a sticky bar. No app and no regeneration are needed, so a shared file stays fully usable. Sections that always cover a fixed span say so, so they don't look broken when the dates change.
+- **Report history survives transcript cleanup.** The report recomputed everything from `~/.claude/projects` and `~/.codex/sessions`, which grow by roughly 1.9 GB a month, so deleting old transcripts erased report history with them. Totals are now kept in `~/.usage/usage_snapshot.json` at (session, date, tool, model, project) grain, plus each session's start time and duration so the session ranking survives too. When a day's live transcripts hold fewer tokens than the snapshot, that day is replayed from the snapshot; stored costs are used as-is rather than repriced against today's price list. On real data, reports for today / week / last 7 days / month / all were byte-identical except for the generation time with transcripts present and with all of them simulated as deleted.
+- **Daily usage chart.** A stacked bar per day, coloured by tool, with a Tokens/Cost toggle, a hover breakdown, and redraws when the date range changes.
+- **Cost confidence.** Shows how much usage has a public price and how much does not, names the unpriced models, and states plainly that cost is the API-equivalent value from public price lists, not a subscription bill.
+
+### Changed
+- **The report is reorganised around what people read first.** Order is now summary cards → usage trend → your tools → projects → costliest sessions → the fixed-span group (heatmap, habits, recent work, insights) → how these numbers are calculated → Year in Review. The main-model section repeated the tools section's numbers exactly, so it is gone; each tool row now expands to show its models, and expanded rows stay open when the date range changes. The project donut repeated the ranking below it and was removed. "Weekly burn trend" is now "Usage trend". Token mix, cache hit rate and cost confidence live in a collapsed "How these numbers are calculated" card. The five "fixed range" tags became one note above the group they apply to.
+- **Visual pass across the report.** Filled bars behind ranking, tool, composition and weekly rows became 2px tracks along the bottom edge; only token figures stay yellow. Summary cards are separate rounded boxes that lead with the abbreviated number and show the exact count underneath. Section spacing and title sizes are consistent, every section shares one left and right edge, and expandable rows highlight on hover. On phones, a project is one line instead of four, a tool is two lines instead of four, the session table scrolls sideways instead of wrapping, and the heatmap keeps readable cells and opens scrolled to the latest weeks.
+- **The summary sentence no longer states a project count.** Projects are attributed by working folder, so non-git folders and replayed history still inflate the number enough to mislead.
+- **Grok is pink in the report.** Its previous green sat next to Claude's green in the stacked daily chart and the two could not be told apart.
+
+### Fixed
+- **Claude sessions opened in a repo subfolder no longer count as separate projects.** `adapters/claude.py` used only the last folder name, so `tests/`, `docs/` and `panels/` each became a project. It now uses the same `resolve_project_name()` git lookup as Codex, Grok and Antigravity, and the shared cache grew from 256 to 2048 entries so several tools' folders together don't push it into repeated `git` calls. Days that can only be replayed from the snapshot keep the folder names recorded at the time.
+- **Previous-period comparisons no longer reach before the first day of data** ([#137](https://github.com/aqua5230/usage/pull/137)), which produced growth like `↑2799%`.
+- **A tool group with one unpriced model no longer hides its whole cost** ([#137](https://github.com/aqua5230/usage/pull/137)); Antigravity's $166 had been shown as `—`.
+- **Collapsed rows actually collapse** ([#137](https://github.com/aqua5230/usage/pull/137)). `.rank-line`'s `display:grid` outranked the browser's `[hidden]`, so collapsing changed the DOM but not the screen.
+- **Session ranking bars no longer pile up in the top-left corner** ([#137](https://github.com/aqua5230/usage/pull/137)); `.tokens-cell` was missing `position:relative`.
+- **Expanded model rows are no longer wider than their parent.** Child bars were drawn as share-of-project on the same scale as the parent's share-of-total, so a model at 68.7% of a project looked three times bigger than the project itself.
+
 ## [0.30.14] - 2026-09-12
 
 ### Fixed
