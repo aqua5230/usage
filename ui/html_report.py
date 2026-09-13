@@ -9,7 +9,6 @@ from __future__ import annotations
 import base64
 import html
 import json
-import math
 import os
 import csv
 import subprocess
@@ -32,7 +31,12 @@ from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
 from usage_common.subprocess_utils import hidden_console_kwargs
 from ui.report_charts import render_share_bar, render_trend_bar
-from ui.report_daily_chart import REPORT_DAILY_CHART_JS, render_daily_chart, render_pricing_section
+from ui.report_daily_chart import (
+    REPORT_DAILY_CHART_JS,
+    render_daily_chart,
+    render_daily_chart_toggle,
+    render_pricing_section,
+)
 from ui.report_filter import REPORT_FILTER_JS
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE, REPORT_THEME_INIT_JS
 from ui.report_styles import REPORT_CSS
@@ -109,6 +113,7 @@ def _section(
     *,
     fixed_label: str = "",
     dynamic_title: bool = False,
+    title_action: str = "",
 ) -> str:
     classes = "section" if not class_name else f"section {class_name}"
     if fixed_label or dynamic_title:
@@ -117,6 +122,7 @@ def _section(
             title_html += f'<small class="fixed-range-tag">{html.escape(fixed_label)}</small>'
     else:
         title_html = html.escape(title)
+    title_html += title_action
     return f"""
     <section class="{classes}">
       <div class="prompt"><span>[usage]&gt;</span> {title_html}</div>
@@ -145,6 +151,7 @@ def _rank_line(
     row_class: str = "",
     arrow: str = "→",
     data_attributes: Mapping[str, object] | None = None,
+    hidden: bool = False,
 ) -> str:
     classes = "rank-line" if not row_class else f"rank-line {row_class}"
     attributes = "".join(
@@ -159,7 +166,7 @@ def _rank_line(
     if color:
         rail_style += f";background:{html.escape(color, quote=True)}"
     return (
-        f'<div class="{classes}"{attributes}>'
+        f'<div class="{classes}"{attributes}{" hidden" if hidden else ""}>'
         f'<span class="left-tick" aria-hidden="true"{color_attr}></span>'
         f'<span class="arrow">{arrow}</span>'
         f'<span class="name">{html.escape(name)}</span>'
@@ -394,62 +401,20 @@ def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:
     return active_hours
 
 
-def _donut_svg(items: list[tuple[str, int]], lang: str, *, total: int) -> str:
-    data = [(name, tok) for name, tok in items if tok > 0]
-    if not data:
-        return ""
-    data_total = sum(tok for _, tok in data)
-    if total <= 0 or total < data_total:
-        total = data_total
-    shown = [(name, tok, False) for name, tok in data[:6]]
-    rest = total - sum(tok for _, tok, _is_other in shown)
-    if rest > 0:
-        shown = [*shown, (_t(lang, "chart_other"), rest, True)]
-    colors = _project_share_colors(data)
-
-    cx = cy = 80.0
-    radius = 60.0
-    circ = 2 * math.pi * radius
-    segs: list[str] = []
-    legend: list[str] = []
-    offset = 0.0
-    for idx, (name, tok, is_other) in enumerate(shown):
-        frac = tok / total
-        seg_len = circ * frac
-        color = "#8b8577" if is_other else colors[idx]
-        segs.append(
-            f'<circle cx="{cx}" cy="{cy}" r="{radius}" fill="none" stroke="{color}" '
-            f'stroke-width="22" stroke-dasharray="{seg_len:.2f} {circ - seg_len:.2f}" '
-            f'stroke-dashoffset="{-offset:.2f}" transform="rotate(-90 {cx} {cy})"/>'
-        )
-        offset += seg_len
-        legend.append(
-            f'<li><span class="dot" style="background:{color}"></span>'
-            f'<span class="lg-name">{html.escape(name)}</span>'
-            f'<span class="lg-pct">{frac * 100:.1f}%</span></li>'
-        )
-    center = (
-        f'<text x="{cx}" y="{cy - 3}" class="donut-total" text-anchor="middle">{_fmt_tokens(total)}</text>'
-        f'<text x="{cx}" y="{cy + 15}" class="donut-sub" text-anchor="middle">tokens</text>'
-    )
-    return (
-        '<div class="donut-wrap">'
-        f'<svg class="donut" viewBox="0 0 160 160" role="img" '
-        f'aria-label="{_escape(_t(lang, "project_section"))}">{"".join(segs)}{center}</svg>'
-        f'<ul class="donut-legend">{"".join(legend)}</ul>'
-        '</div>'
-    )
-
-
 def _tools_body(
     subs: list[dict[str, str | None]],
     agents: list[AgentReportRow],
+    grouped_models: list[dict[str, Any]],
     lang: str,
 ) -> str:
     """One card per tool, joining subscription plan with usage by tool name."""
     by_name = {str(sub.get("agent", "")): sub for sub in subs}
     seen: set[str] = set()
     rows: list[str] = []
+    models_by_agent = {
+        str(group.get("agent_id", "")): group.get("models", [])
+        for group in grouped_models
+    }
 
     def _plan_html(sub: dict[str, str | None] | None) -> str:
         if not sub:
@@ -470,13 +435,16 @@ def _tools_body(
         stats_html: str,
         share_html: str = "",
         agent_id: str = "",
+        expandable: bool = False,
     ) -> str:
         agent_attr = (
             f' data-agent-id="{html.escape(agent_id, quote=True)}"' if agent_id else ""
         )
+        group_class = " model-group" if expandable else ""
+        arrow_html = '<span class="arrow">▸</span>' if expandable else ""
         return (
-            f'<div class="tool-row"{agent_attr}>'
-            f'<div class="tool-head"><span class="sub-agent">{_escape(name)}</span>{plan_html}'
+            f'<div class="tool-row{group_class}"{agent_attr}>'
+            f'<div class="tool-head">{arrow_html}<span class="sub-agent">{_escape(name)}</span>{plan_html}'
             f"{share_html}</div>"
             f"{stats_html}"
             "</div>"
@@ -490,6 +458,7 @@ def _tools_body(
             f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(int(agent["tokens"]))}</span>'
             f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(float(agent["cost"]))}</span>'
         )
+        models = models_by_agent.get(str(agent["id"]), [])
         rows.append(
             _row(
                 name,
@@ -497,7 +466,21 @@ def _tools_body(
                 stats_html,
                 render_share_bar(float(agent["pct"]), _agent_share_color(agent["id"])),
                 str(agent["id"]),
+                bool(models),
             )
+        )
+        rows.extend(
+            _rank_line(
+                _display_name(model["model"], lang),
+                float(model["pct"]),
+                int(model["tokens"]),
+                None if not model.get("cost_known", True) else float(model["cost"]),
+                lang,
+                _model_share_color(model["model"]),
+                row_class="model-child",
+                hidden=True,
+            )
+            for model in models
         )
 
     # Subscriptions for tools that have no usage in this period still get a card.
@@ -729,14 +712,8 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
         for index, project in enumerate(projects)
     ]
     project_rows_html = "".join(project_rows)
-    project_donut = _donut_svg(
-        [(_display_name(project["project"], lang), int(project["tokens"])) for project in projects],
-        lang,
-        total=int(data["summary"]["total_tokens"]),
-    )
     project_body = (
-        project_donut
-        + f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "project"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
+        f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "project"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
         + f'<div class="rank-list">{project_rows_html}</div>'
         if project_rows
         else _empty_line(_t(lang, "empty_projects"))
@@ -744,72 +721,11 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
     return _section(_t(lang, "project_section"), project_body, "project-section")
 
 
-def _render_model_section(data: Mapping[str, Any], lang: str) -> str:
-    grouped_models = data.get("by_agent_model")
-    has_cube = isinstance(data.get("cube"), Mapping)
-    if grouped_models:
-        model_rows = []
-        for group in grouped_models:
-            model_rows.append(
-                _rank_line(
-                    _display_name(group["name"], lang),
-                    float(group["pct"]),
-                    int(group["tokens"]),
-                    None if not group.get("cost_known", True) else float(group["cost"]),
-                    lang,
-                    _agent_share_color(group["agent_id"]),
-                    row_class="model-group",
-                    arrow="▎",
-                    data_attributes=(
-                        {"agent-id": group["agent_id"]} if has_cube else None
-                    ),
-                )
-            )
-            model_rows.extend(
-                _rank_line(
-                    _display_name(model["model"], lang),
-                    float(model["pct"]),
-                    int(model["tokens"]),
-                    None if not model.get("cost_known", True) else float(model["cost"]),
-                    lang,
-                    _model_share_color(model["model"]),
-                    row_class="model-child",
-                )
-                for model in group["models"]
-            )
-        title = _t(lang, "model_section")
-        if data.get("date_from") and data.get("date_to"):
-            title = f'{title}  {data["date_from"]} → {data["date_to"]}'
-    else:
-        model_rows = [
-            _rank_line(
-                _display_name(model["model"], lang),
-                float(model["pct"]),
-                int(model["tokens"]),
-                None if not model.get("cost_known", True) else float(model["cost"]),
-                lang,
-                _model_share_color(model["model"]),
-            )
-            for model in data.get("by_model", [])
-        ]
-        title = _t(lang, "model_section")
-    model_rows_html = "".join(model_rows)
-    model_body = (
-        f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "model"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
-        f'<div class="rank-list">{model_rows_html}</div>'
-        if model_rows
-        else _empty_line(_t(lang, "empty_models"))
-    )
-    return _section(
-        title,
-        model_body,
-        "model-section",
-        dynamic_title=has_cube,
-    )
-
-
 def _render_tools_section(data: Mapping[str, Any], lang: str) -> str:
-    tools_body = _tools_body(data.get("subscriptions", []), data.get("by_agent", []), lang)
+    tools_body = _tools_body(
+        data.get("subscriptions", []), data.get("by_agent", []),
+        data.get("by_agent_model", []), lang,
+    )
     return _section(_t(lang, "tools_section"), tools_body, "tools-section")
 
 
@@ -980,6 +896,7 @@ def _render_trend_section(data: Mapping[str, Any], lang: str, date_to: date) -> 
         _t(lang, "trend_section"),
         f"{chart}{_trend_ascii(daily, lang, date_to)}",
         "trend-section",
+        title_action=(render_daily_chart_toggle(lambda key: _t(lang, key)) if isinstance(cube, Mapping) else ""),
     )
 
 
@@ -993,6 +910,19 @@ def _render_pricing_section(data: Mapping[str, Any], lang: str) -> str:
         _fmt_tokens,
         lambda value: _display_name(value, lang),
         "、" if lang.startswith("zh") else ", ",
+    )
+
+
+def _render_appendix(data: Mapping[str, Any], lang: str) -> str:
+    composition = _render_composition_section(data, lang)
+    pricing = _render_pricing_section(data, lang)
+    if not composition and not pricing:
+        return ""
+    return (
+        '<details class="report-appendix">'
+        f'<summary><span>[usage]&gt;</span> {_escape(_t(lang, "appendix_title"))}<i class="appendix-caret" aria-hidden="true">▸</i></summary>'
+        f"{composition}{pricing}"
+        "</details>"
     )
 
 
@@ -1229,9 +1159,7 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                 "costUnpriced": _t(
                     lang, "kpi_cost_unpriced", tokens="{tokens}"
                 ),
-                "emptyModels": _t(lang, "empty_models"),
                 "emptyProjects": _t(lang, "empty_projects"),
-                "modelSection": _t(lang, "model_section"),
                 "narrative": _t(
                     lang,
                     "narrative",
@@ -1366,16 +1294,15 @@ def generate_html(
     if not is_empty:
         insight_surface = _render_insight_surface(report_data, lang)
         detail_sections = (
-            f"  {_render_wrapped_section(report_data, lang)}\n"
-            f"{insight_surface.rstrip()}{_render_tools_section(report_data, lang)}\n"
-            f"  {_render_composition_section(report_data, lang)}\n"
-            f"  {_render_pricing_section(report_data, lang)}\n"
-            f"  {_render_project_section(report_data, lang)}\n"
-            f"  {_render_model_section(report_data, lang)}\n"
             f"  {_render_trend_section(report_data, lang, date_to)}\n"
-            f"  {_render_contribution_section(report_data, lang)}\n"
-            f"  {_render_recent_titles_section(report_data, lang)}{_render_persona_section(report_data, lang)}\n"
+            f"  {_render_tools_section(report_data, lang)}\n"
+            f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_session_section(report_data, lang)}\n"
+            f"  {_render_contribution_section(report_data, lang)}\n"
+            f"  {_render_persona_section(report_data, lang)}{_render_recent_titles_section(report_data, lang)}\n"
+            f"{insight_surface.rstrip()}"
+            f"  {_render_appendix(report_data, lang)}\n"
+            f"  {_render_wrapped_section(report_data, lang)}\n"
         )
     default_range_attr = (
         f' data-default-range="{html.escape(default_range, quote=True)}"'

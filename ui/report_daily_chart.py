@@ -75,6 +75,15 @@ def _pct(value: int, total: int) -> str:
     return f"{value / total * 100:.1f}%" if total else "0.0%"
 
 
+def render_daily_chart_toggle(t: Callable[[str], str]) -> str:
+    """Render the chart mode controls in the trend section title row."""
+    return (
+        '<div class="daily-chart-toggle">'
+        f'<button type="button" data-daily-mode="tokens" aria-pressed="true">{escape(t("daily_chart_mode_tokens"))}</button>'
+        f'<button type="button" data-daily-mode="cost" aria-pressed="false">{escape(t("daily_chart_mode_cost"))}</button>'
+        "</div>"
+    )
+
 def render_daily_chart(
     cube: Mapping[str, Any],
     t: Callable[[str], str],
@@ -153,11 +162,8 @@ def render_daily_chart(
         if sum(agent["tokens"]) > 0
     )
     return (
-        '<div class="daily-chart-wrap"><div class="daily-chart-head"><strong>'
-        f'{escape(t("daily_chart_title"))}</strong><div class="daily-chart-toggle">'
-        f'<button type="button" data-daily-mode="tokens" aria-pressed="true">{escape(t("daily_chart_mode_tokens"))}</button>'
-        f'<button type="button" data-daily-mode="cost" aria-pressed="false">{escape(t("daily_chart_mode_cost"))}</button>'
-        f'</div></div><div class="daily-chart-canvas">{"".join(svg)}{"".join(labels)}</div><div class="daily-chart-legend">{legend}</div></div>'
+        '<div class="daily-chart-wrap"><div class="daily-chart-canvas">'
+        f'{"".join(svg)}{"".join(labels)}</div><div class="daily-chart-legend">{legend}</div></div>'
     )
 
 
@@ -303,29 +309,6 @@ REPORT_DAILY_CHART_JS = r"""(() => {
     const data = dailyData(summary);
     const totals = data.days.map((_day, index) => data.agents.reduce((sum, agent) => sum + modeValue(agent, index), 0));
     const wrap = textNode('div', 'daily-chart-wrap', '');
-    const head = textNode('div', 'daily-chart-head', '');
-    head.append(textNode('strong', '', shareConfig.dailyChartTitle));
-    const toggle = textNode('div', 'daily-chart-toggle', '');
-    [['tokens', shareConfig.dailyChartModeTokens], ['cost', shareConfig.dailyChartModeCost]].forEach(([key, label]) => {
-      const button = textNode('button', '', label);
-      button.type = 'button';
-      button.dataset.dailyMode = key;
-      button.setAttribute('aria-pressed', String(mode === key));
-      button.addEventListener('click', () => {
-        if (mode === key || !lastSummary) return;
-        mode = key;
-        const section = document.querySelector('.trend-section');
-        const previous = section && section.querySelector('.daily-chart-wrap');
-        const next = buildDailyChart(lastSummary);
-        if (previous && previous.parentNode) {
-          previous.parentNode.insertBefore(next, previous);
-          previous.remove();
-        }
-      });
-      toggle.append(button);
-    });
-    head.append(toggle);
-    wrap.append(head);
     if (!data.days.length || Math.max(...totals, 0) <= 0) {
       wrap.append(textNode('div', 'empty', `→ ${shareConfig.emptyDaily}`));
       return wrap;
@@ -389,6 +372,23 @@ REPORT_DAILY_CHART_JS = r"""(() => {
     wrap.append(legend);
     return wrap;
   }
+  function bindDailyToggle() {
+    const section = document.querySelector('.trend-section');
+    if (!section) return;
+    section.querySelectorAll('[data-daily-mode]').forEach((button) => {
+      button.setAttribute('aria-pressed', String(button.dataset.dailyMode === mode));
+      if (button.dataset.dailyBound) return;
+      button.dataset.dailyBound = 'true';
+      button.addEventListener('click', () => {
+        if (button.dataset.dailyMode === mode || !lastSummary) return;
+        mode = button.dataset.dailyMode;
+        const previous = section.querySelector('.daily-chart-wrap');
+        const next = buildDailyChart(lastSummary);
+        if (previous && previous.parentNode) previous.parentNode.replaceChild(next, previous);
+        bindDailyToggle();
+      });
+    });
+  }
   function pricingData(summary) {
     let priced = 0; let unpriced = 0; const models = {};
     summary.rows.forEach((row) => {
@@ -426,6 +426,7 @@ REPORT_DAILY_CHART_JS = r"""(() => {
     Array.from(section.children).forEach((child) => { if (child !== prompt && child !== rule) child.remove(); });
     section.append(body);
   }
-  window.usageReportDaily = {buildDailyChart, rebuildPricing};
+  window.usageReportDaily = {buildDailyChart, bindDailyToggle, rebuildPricing};
+  bindDailyToggle();
 })();
 """

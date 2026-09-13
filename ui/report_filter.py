@@ -11,15 +11,14 @@ from __future__ import annotations
 
 REPORT_FILTER_JS = r"""(() => {
   const cubeNode = document.querySelector('#usage-cube-data');
-  if (!cubeNode) return;
-
-  let cube;
-  try {
-    cube = JSON.parse(cubeNode.textContent);
-  } catch (_) {
-    return;
+  let cube = null;
+  if (cubeNode) {
+    try {
+      cube = JSON.parse(cubeNode.textContent);
+    } catch (_) {
+      cube = null;
+    }
   }
-  if (!Array.isArray(cube.dates) || !Array.isArray(cube.rows)) return;
 
   let sessions = [];
   const sessionNode = document.querySelector('#usage-session-data');
@@ -255,12 +254,12 @@ REPORT_FILTER_JS = r"""(() => {
     group.setAttribute('aria-expanded', String(expanded));
     const arrow = group.querySelector('.arrow');
     if (arrow) arrow.textContent = expanded ? '▾' : '▸';
-    setToggleLabel(group, expanded, rowName(group, '.name'));
+    setToggleLabel(group, expanded, rowName(group, '.sub-agent'));
   }
 
   function liveModelGroups() {
     return Array.from(
-      document.querySelectorAll('.model-section .rank-line.model-group[data-agent-id]')
+      document.querySelectorAll('.tools-section .tool-row.model-group[data-agent-id]')
     );
   }
 
@@ -306,6 +305,7 @@ REPORT_FILTER_JS = r"""(() => {
   liveModelGroups().forEach((group) => {
     bindModelGroup(group, savedModelIds.has(group.dataset.agentId));
   });
+  if (!cube || !Array.isArray(cube.dates) || !Array.isArray(cube.rows)) return;
 
   function formatTokens(value) {
     if (value >= 999950000) return `${(value / 1000000000).toFixed(2)}B`;
@@ -522,10 +522,11 @@ REPORT_FILTER_JS = r"""(() => {
 
   function createToolRow(agent, item, total) {
     const row = document.createElement('div');
-    row.className = 'tool-row';
+    row.className = 'tool-row model-group';
     row.dataset.agentId = String(agent.id);
     const head = document.createElement('div');
     head.className = 'tool-head';
+    appendTextSpan(head, 'arrow', '▸');
     appendTextSpan(head, 'sub-agent', String(agent.name));
     const metadata = toolMetadata.get(String(agent.id)) || toolMetadata.get(`name:${agent.name}`);
     if (metadata && metadata.plan) appendTextSpan(head, 'sub-plan', metadata.plan);
@@ -558,7 +559,8 @@ REPORT_FILTER_JS = r"""(() => {
   function rebuildTools(summary) {
     const tools = document.querySelector('.tools-section .tools');
     if (!tools) return;
-    tools.querySelectorAll('.tool-row').forEach((row) => row.remove());
+    const expanded = expandedModelIds();
+    tools.querySelectorAll('.tool-row, .model-child').forEach((row) => row.remove());
     const byAgent = aggregateRows(summary.rows, 1);
     const entries = Object.entries(byAgent)
       .map(([agentIndex, item]) => ({agentIndex: Number(agentIndex), ...item}))
@@ -568,7 +570,25 @@ REPORT_FILTER_JS = r"""(() => {
       const agent = cube.agents[item.agentIndex];
       if (!agent) return;
       usedIds.add(String(agent.id));
-      tools.append(createToolRow(agent, item, summary.tokens));
+      const groupRow = createToolRow(agent, item, summary.tokens);
+      tools.append(groupRow);
+      const byModel = aggregateRows(
+        summary.rows,
+        2,
+        (row) => Number(row[1]) === item.agentIndex
+      );
+      Object.entries(byModel)
+        .map(([modelIndex, modelItem]) => ({modelIndex: Number(modelIndex), ...modelItem}))
+        .sort((left, right) => right.tokens - left.tokens || left.modelIndex - right.modelIndex)
+        .forEach((modelItem) => {
+          const model = cube.models[modelItem.modelIndex];
+          if (!model) return;
+          tools.append(createRankRow(
+            String(model.name), modelItem, summary.tokens,
+            modelColor(String(model.name)), {rowClass: 'model-child'}
+          ));
+        });
+      bindModelGroup(groupRow, expanded.has(String(agent.id)));
     });
     toolMetadata.forEach((metadata, key) => {
       const matchedAgent = cube.agents.find((agent) => (
@@ -580,117 +600,11 @@ REPORT_FILTER_JS = r"""(() => {
     });
   }
 
-  function rebuildModels(summary) {
-    const list = document.querySelector('.model-section .rank-list');
-    if (!list) return;
-    const expanded = expandedModelIds();
-    list.replaceChildren();
-    const byAgent = aggregateRows(summary.rows, 1);
-    const groups = Object.entries(byAgent)
-      .map(([agentIndex, item]) => ({agentIndex: Number(agentIndex), ...item}))
-      .sort((left, right) => right.tokens - left.tokens || left.agentIndex - right.agentIndex);
-    groups.forEach((group) => {
-      const agent = cube.agents[group.agentIndex];
-      if (!agent) return;
-      const groupRow = createRankRow(
-        String(agent.name),
-        group,
-        summary.tokens,
-        agentColors[agent.id] || '#8b8577',
-        {rowClass: 'model-group', arrow: '▎', agentId: agent.id}
-      );
-      list.append(groupRow);
-      const byModel = aggregateRows(
-        summary.rows,
-        2,
-        (row) => Number(row[1]) === group.agentIndex
-      );
-      Object.entries(byModel)
-        .map(([modelIndex, item]) => ({modelIndex: Number(modelIndex), ...item}))
-        .sort((left, right) => right.tokens - left.tokens || left.modelIndex - right.modelIndex)
-        .forEach((modelItem) => {
-          const model = cube.models[modelItem.modelIndex];
-          if (!model) return;
-          list.append(createRankRow(
-            String(model.name),
-            modelItem,
-            summary.tokens,
-            modelColor(String(model.name)),
-            {rowClass: 'model-child'}
-          ));
-        });
-      bindModelGroup(groupRow, expanded.has(String(agent.id)));
-    });
-    if (!groups.length) {
-      const empty = document.createElement('div');
-      empty.className = 'empty';
-      empty.textContent = `→ ${shareConfig.emptyModels}`;
-      list.append(empty);
-    }
-  }
-
-  function svgElement(name) {
-    return document.createElementNS('http://www.w3.org/2000/svg', name);
-  }
-
-  function createDonut(projects, total) {
-    if (!projects.length || total <= 0) return null;
-    const shown = projects.slice(0, 6).map((project) => ({...project, other: false}));
-    const rest = total - shown.reduce((sum, project) => sum + project.tokens, 0);
-    if (rest > 0) shown.push({name: shareConfig.chartOther, tokens: rest, other: true});
-    const wrap = document.createElement('div');
-    wrap.className = 'donut-wrap';
-    const svg = svgElement('svg');
-    svg.setAttribute('class', 'donut');
-    svg.setAttribute('viewBox', '0 0 160 160');
-    svg.setAttribute('role', 'img');
-    svg.setAttribute('aria-label', shareConfig.projectSection);
-    const circumference = 2 * Math.PI * 60;
-    let offset = 0;
-    const legend = document.createElement('ul');
-    legend.className = 'donut-legend';
-    shown.forEach((project, index) => {
-      const fraction = project.tokens / total;
-      const segmentLength = circumference * fraction;
-      const color = project.other ? '#8b8577' : palette[index % palette.length];
-      const circle = svgElement('circle');
-      const attributes = {
-        cx: '80', cy: '80', r: '60', fill: 'none', stroke: color,
-        'stroke-width': '22',
-        'stroke-dasharray': `${segmentLength.toFixed(2)} ${(circumference - segmentLength).toFixed(2)}`,
-        'stroke-dashoffset': `${(-offset).toFixed(2)}`,
-        transform: 'rotate(-90 80 80)',
-      };
-      Object.entries(attributes).forEach(([key, value]) => circle.setAttribute(key, value));
-      svg.append(circle);
-      offset += segmentLength;
-      const item = document.createElement('li');
-      const dot = appendTextSpan(item, 'dot', '');
-      dot.style.background = color;
-      appendTextSpan(item, 'lg-name', project.name);
-      appendTextSpan(item, 'lg-pct', `${(fraction * 100).toFixed(1)}%`);
-      legend.append(item);
-    });
-    const totalText = svgElement('text');
-    Object.entries({x: '80', y: '77', class: 'donut-total', 'text-anchor': 'middle'})
-      .forEach(([key, value]) => totalText.setAttribute(key, value));
-    totalText.textContent = formatTokens(total);
-    const subText = svgElement('text');
-    Object.entries({x: '80', y: '95', class: 'donut-sub', 'text-anchor': 'middle'})
-      .forEach(([key, value]) => subText.setAttribute(key, value));
-    subText.textContent = 'tokens';
-    svg.append(totalText, subText);
-    wrap.append(svg, legend);
-    return wrap;
-  }
-
   function rebuildProjects(summary) {
     if (!projectSection) return;
     const list = projectSection.querySelector('.rank-list');
     const head = projectSection.querySelector('.rank-head');
     if (!list || !head) return;
-    const oldDonut = projectSection.querySelector('.donut-wrap');
-    if (oldDonut) oldDonut.remove();
     list.replaceChildren();
     const byProject = aggregateRows(summary.rows, 3);
     const projects = Object.entries(byProject)
@@ -701,8 +615,6 @@ REPORT_FILTER_JS = r"""(() => {
       }))
       .filter((item) => item.tokens > 0 || item.cost > 0)
       .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
-    const donut = createDonut(projects, summary.tokens);
-    if (donut) projectSection.insertBefore(donut, head);
     projects.slice(0, 10).forEach((project, index) => {
       const row = createRankRow(
         project.name,
@@ -772,8 +684,6 @@ REPORT_FILTER_JS = r"""(() => {
   function updatePeriod(bounds) {
     const period = document.querySelector('[data-report-period]');
     if (period) period.textContent = `${bounds.from} -> ${bounds.to}`;
-    const title = document.querySelector('.model-section .prompt-title');
-    if (title) title.textContent = `${shareConfig.modelSection}  ${bounds.from} → ${bounds.to}`;
   }
 
   function replaceSectionBody(section, node) {
@@ -1120,7 +1030,6 @@ REPORT_FILTER_JS = r"""(() => {
     updateNarrative(summary);
     rebuildTools(summary);
     rebuildProjects(summary);
-    rebuildModels(summary);
     rebuildTrend(summary);
     rebuildComposition(summary);
     if (window.usageReportDaily && window.usageReportDaily.rebuildPricing) {

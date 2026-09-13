@@ -120,16 +120,16 @@ h1{
   white-space:nowrap;
   color:var(--text);
 }
-.eyebrow,.meta,.empty,footer,.cursor,.prompt,.share-trigger,.share-close,.share-action,.tokens,.cost,.pct,.trend-row .week,.trend-row em,.delta,.donut-total,.donut-sub,.sub-plan,.sub-since,.ai-update-version,.ai-update-period,th,td,.wrapped-kicker,.wrapped-total-label,.contribution-months,.contribution-days,.contribution-legend{
+.eyebrow,.meta,.empty,footer,.cursor,.prompt,.share-trigger,.share-close,.share-action,.tokens,.cost,.pct,.trend-row .week,.trend-row em,.delta,.sub-plan,.sub-since,.ai-update-version,.ai-update-period,th,td,.wrapped-kicker,.wrapped-total-label,.contribution-months,.contribution-days,.contribution-legend{
   font-family:var(--font-mono);
 }
 .eyebrow,.meta,.empty,footer{color:var(--muted)}
 .eyebrow span,.prompt span{color:var(--cost)}
 .cursor{color:var(--token)}
 .cursor{display:inline-block;animation:blink 1.2s steps(2,start) infinite}
-.narrative{max-width:760px;margin:18px 0 0;color:var(--text-soft);font-size:1.02rem;line-height:1.6}
+.narrative{max-width:none;margin:18px 0 0;color:var(--text-soft);font-size:1.02rem;line-height:1.6}
 /* 吸在視窗頂端：報表很長，捲到一半想換區間不該再捲回最上面。 */
-.date-filter{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 -24px 28px;padding:12px 24px;background:var(--bg);border-bottom:1px solid var(--card-border)}
+.date-filter{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 0 28px;padding:12px 0;background:var(--bg);border-bottom:1px solid var(--card-border)}
 .date-shortcuts,.date-inputs{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
 .date-filter button,.date-filter input{border:1px solid var(--card-border);border-radius:7px;background:var(--panel);color:var(--text);font:inherit;font-size:.76rem;line-height:1.3}
 .date-filter button{padding:6px 10px;cursor:pointer}
@@ -163,7 +163,7 @@ h1{
 .card[data-card="cost"] b{color:var(--text-soft)}
 .cards:not(:has(.card:nth-child(4))){grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
 /* Keep every numeric column on the same inset; vary surfaces and vertical rhythm. */
-.section{background:transparent;border:1px solid transparent;border-radius:0;margin-top:56px;padding:24px 20px;box-shadow:none}
+.section{background:transparent;border:1px solid transparent;border-radius:0;margin-top:56px;padding:24px 0;box-shadow:none}
 .prompt{font-size:1.05rem;color:var(--text);margin-bottom:12px;font-weight:600;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;min-width:0;overflow-wrap:anywhere}
 .prompt span{font-size:.72rem;font-weight:400}
 .prompt .prompt-title{font:inherit;color:inherit}
@@ -173,17 +173,16 @@ h1{
 .insights-section{margin-block:24px;padding-block:8px}
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
 .insights-section .prompt{font-size:1.2rem}
-.composition-section,.model-section{margin-top:56px;padding-top:24px}
-.composition-section .prompt,.model-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
-.composition-section .rule,.model-section .rule,.recent-titles-section .rule{background:var(--faint);margin-bottom:12px}
-.model-section .gauge-rail{display:none}
-.contribution-section{margin-top:56px;border-top-color:var(--card-border);padding-top:24px}
+.composition-section{margin-top:0;padding-top:24px}
+.composition-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
+.composition-section .rule,.recent-titles-section .rule{background:var(--faint);margin-bottom:12px}
+.contribution-section{margin-top:88px;border-top-color:var(--card-border);padding-top:24px}
 .contribution-section .rule{height:0;margin-bottom:24px}
-.contribution-section .prompt{font-size:1.2rem}
+.trend-section .prompt,.tools-section .prompt,.project-section .prompt,.session-section .prompt,.contribution-section .prompt{font-size:1.25rem}
 .recent-titles-section{margin-top:56px;padding-block:12px;padding-top:24px}
 .recent-titles{columns:2;column-gap:48px}
 .recent-title{break-inside:avoid;margin-bottom:12px;line-height:1.65}
-.persona-section{background:var(--soft);border-block-color:var(--card-border)}
+.persona-section{background:var(--soft);border-block-color:var(--card-border);padding:24px 20px}
 .session-section{margin-top:56px;border-top-color:var(--card-border)}
 .rank-list{display:grid;gap:4px}
 .composition-hint{margin:10px 0 14px;color:var(--text-soft)}
@@ -193,12 +192,11 @@ h1{
 .rank-line{position:relative;overflow:hidden;padding:12px;color:var(--text-soft);border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
 .rank-line:hover{transform:none;border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent}
 .rank-line:last-child{border-bottom:none}
-.rank-line[data-agent-id],.rank-line[data-project-index]{cursor:pointer}
+.rank-line[data-project-index],.tool-row.model-group{cursor:pointer}
 /* .rank-line 用 class 指定 display:grid，權重高過瀏覽器預設的 [hidden]{display:none}，
    沒有這一條收合只會改到 DOM、畫面照舊全開。 */
 .rank-line[hidden]{display:none}
 .composition-section[hidden]{display:none}
-.rank-line.model-group .name{font-weight:600}
 /* 展開的子列要一眼看出「屬於上面那一列」：整段壓深底色、左側加一條縱線
    框住，縮排拉大，長條也調淡，免得跟母列的長條搶視線。 */
 .rank-line.model-child{
@@ -209,7 +207,7 @@ h1{
 .rank-line.model-child>.gauge-rail{opacity:.45}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
 /* 可點開的列：箭頭是唯一的可展開提示，用跟裝飾性箭頭一樣的淡度會看不出來。 */
-.rank-line.model-group .arrow,.rank-line[data-project-index] .arrow{opacity:.85;font-size:1em;color:var(--text-soft)}
+.tool-row.model-group .arrow,.rank-line[data-project-index] .arrow{opacity:.85;font-size:1em;color:var(--text-soft)}
 .rank-line>*,.tool-row>*{position:relative;z-index:1}
 /* The bar is absolute against the whole row, so .name must stay static — this
    rule has to follow the one above to win. (.tool-head does the same further down.) */
@@ -247,14 +245,12 @@ h1{
 .delta.flat{color:var(--muted)}
 .trend-summary{color:var(--text-soft);margin-top:8px;padding-top:12px;border-top:1px solid var(--faint);font-size:.84rem;line-height:1.6}
 .daily-chart-wrap{min-width:0;margin:0 0 24px;padding:14px 0 18px;border-bottom:1px solid var(--faint)}
-.daily-chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;font-family:var(--font-mono);font-size:.82rem}
-.daily-chart-head strong{color:var(--text);font-weight:700}
-.daily-chart-toggle{display:inline-flex;gap:6px}
+.daily-chart-toggle{display:inline-flex;gap:6px;margin-left:auto;font-family:var(--font-mono);font-size:.82rem}
 .daily-chart-toggle button{border:1px solid var(--card-border);border-radius:7px;background:var(--panel);color:var(--text);padding:5px 9px;font:inherit;font-size:.72rem;line-height:1.3;cursor:pointer}
 .daily-chart-toggle button[aria-pressed="true"]{border-color:var(--cost);color:var(--cost);background:var(--control-hover)}
 .daily-chart-toggle button:focus-visible,.daily-bar:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
-.daily-chart-canvas{position:relative;min-width:0;height:180px}
-.daily-chart-svg{display:block;width:100%;height:180px;overflow:visible}
+.daily-chart-canvas{position:relative;min-width:0;height:260px;margin-left:48px}
+.daily-chart-svg{display:block;width:100%;height:260px;overflow:visible}
 .daily-grid{stroke:var(--faint);stroke-width:1;stroke-dasharray:3 4}
 .daily-chart-label{position:absolute;z-index:1;font-family:var(--font-mono);font-size:9px;line-height:1;pointer-events:none;white-space:nowrap}
 .daily-y-label{color:var(--muted);transform:translate(-100%,-50%)}.daily-x-label{color:var(--muted);transform:translate(-50%,-50%)}
@@ -267,7 +263,14 @@ h1{
 .daily-tooltip-line i,.daily-legend-item i{width:7px;height:7px;border-radius:2px}.daily-tooltip-line b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}.daily-tooltip-line em{color:var(--token);font-style:normal}.daily-tooltip-total{display:block;margin-top:7px;padding-top:6px;border-top:1px solid var(--faint);color:var(--text);font-weight:700}
 .daily-chart-legend{display:flex;flex-wrap:wrap;gap:7px 14px;margin-top:8px;color:var(--muted);font-family:var(--font-mono);font-size:.7rem}
 .daily-legend-item{display:inline-flex;align-items:center;gap:6px;min-width:0}.daily-legend-item b{color:var(--text-soft);font-weight:600}
-.pricing-section{margin-top:56px;padding-top:24px}.pricing-section .prompt{font-size:.9rem}.pricing-section .rule{background:var(--faint);margin-bottom:12px}
+.pricing-section{margin-top:0;padding-top:24px}.pricing-section .prompt{font-size:.9rem}.pricing-section .rule{background:var(--faint);margin-bottom:12px}
+.report-appendix{margin-top:96px;padding-top:32px;border-top:1px solid var(--card-border)}
+.report-appendix>summary{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:.85rem;list-style:none}
+.report-appendix>summary::-webkit-details-marker{display:none}
+.appendix-caret{margin-left:auto;font-style:normal;transition:transform .2s ease}
+.report-appendix[open] .appendix-caret{transform:rotate(90deg)}
+.report-appendix>summary span{font-size:.72rem;color:var(--cost)}
+.report-appendix .composition-section,.report-appendix .pricing-section{font-size:.92em}
 .pricing-bar{display:flex;height:2px;overflow:hidden;border-radius:0;background:var(--faint)}.pricing-bar i{display:block;min-width:0;height:100%;opacity:.72}
 .pricing-list{margin-top:10px}.pricing-line{grid-template-columns:20px minmax(0,1fr) 70px 100px}.pricing-line .tokens{font-size:.9rem}.pricing-models{display:inline;margin-left:8px;color:var(--muted);font-family:var(--font-mono);font-size:.68rem;font-weight:400}.pricing-hint{margin:12px 0 0;color:var(--muted);font-size:.78rem;line-height:1.55}.pricing-all{padding:8px 0;color:var(--text-soft);font-family:var(--font-mono);font-size:.82rem}
 """ + _light_rules("""
@@ -350,16 +353,6 @@ td:first-child{color:var(--warn)}
 .sponsor-link a{color:var(--muted);text-decoration:none;opacity:.7;transition:color .2s ease,opacity .2s ease}
 .sponsor-link a:hover{opacity:1;color:var(--cost)}
 .sponsor a:focus-visible,.sponsor-link a:focus-visible{outline:2px solid var(--cost);outline-offset:4px;border-radius:4px}
-.donut-wrap{display:flex;align-items:center;gap:32px;flex-wrap:wrap;margin-bottom:20px}
-.donut{width:190px;height:190px;flex:0 0 auto}
-.donut circle{transition:stroke-dashoffset .3s ease}
-.donut-total{fill:var(--text);font-size:20px;font-weight:700}
-.donut-sub{fill:var(--muted);font-size:11px;text-transform:uppercase}
-.donut-legend{list-style:none;margin:0;padding:0;display:grid;gap:10px;flex:1 1 200px;min-width:200px}
-.donut-legend li{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:12px;align-items:center;font-size:.86rem;color:var(--text-soft)}
-.donut-legend .dot{width:10px;height:10px;border-radius:3px}
-.donut-legend .lg-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.donut-legend .lg-pct{color:var(--muted);text-align:right;font-weight:600}
 .tools{display:grid;gap:12px;border:none;box-shadow:none;background:transparent}
 .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
 .tools-head{padding:0 16px;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:-2px}
@@ -413,7 +406,7 @@ td:first-child{color:var(--warn)}
 .ai-update-history-item{padding:0}
 .ai-update-history-item .ai-update-item-title{font-size:.86rem}
 .ai-update-history-item .ai-update-item-body{font-size:.84rem;color:var(--text-soft)}
-.wrapped-section{background:var(--panel);border-block:1px solid var(--card-border);padding:24px 20px 28px}
+.wrapped-section{margin-top:96px;background:var(--panel);border-block:1px solid var(--card-border);padding:24px 20px 28px}
 .wrapped-card{display:grid;grid-template-columns:minmax(0,1fr) 188px;gap:32px;align-items:center}
 .wrapped-copy,.wrapped-metrics{min-width:0}
 .wrapped-kicker{color:var(--muted);font-size:.78rem;letter-spacing:.06em;text-transform:uppercase}
@@ -447,6 +440,7 @@ td:first-child{color:var(--warn)}
 .contribution-cell.snake-body{background:var(--token);border-color:var(--token)}
 .contribution-cell.snake-head{background:#fff;border-color:#fff;box-shadow:0 0 14px 4px var(--token);transform:scale(1.35);position:relative;z-index:1}
 .contribution-section .prompt{cursor:pointer;user-select:none;transition:color .2s}
+.contribution-section .prompt,.contribution-section .prompt-title{color:var(--text)}
 .contribution-section .prompt:hover{color:var(--token)}
 .contribution-legend{display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:12px;color:var(--muted);font-size:.72rem}
 .contribution-legend .contribution-cell{width:12px;min-width:12px;height:12px;aspect-ratio:auto}
@@ -467,6 +461,10 @@ td:first-child{color:var(--warn)}
   :not(.rank-head)+.rank-list>.rank-line:first-child{margin-top:28px}
   :not(.rank-head)+.rank-list>.rank-line:first-child>.pct::before,:not(.rank-head)+.rank-list>.rank-line:first-child>.tokens::before,:not(.rank-head)+.rank-list>.rank-line:first-child>.cost::before{content:attr(data-label);position:absolute;bottom:100%;right:0;margin-bottom:12px;font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;white-space:nowrap}
 }
+@media (min-width:641px){
+  header>div:first-child{grid-column:1/-1;grid-row:1}
+  header>.header-actions{grid-column:2;grid-row:1;align-self:start}
+}
 @media (max-width:780px){
   .wrap{padding:32px 16px}
   header{display:block}
@@ -478,7 +476,7 @@ td:first-child{color:var(--warn)}
   .rank-list{display:grid;gap:12px}
   .rank-line{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:none;border-bottom:1px solid var(--card-border);border-radius:0;background:transparent;box-shadow:none}
   .rank-line .arrow{display:none}
-  .rank-line.model-group .arrow,.rank-line[data-project-index] .arrow{display:inline}
+  .tool-row.model-group .arrow,.rank-line[data-project-index] .arrow{display:inline}
   .rank-line .name,.rank-line .model-name{white-space:normal;font-weight:700;color:var(--text)}
   .rank-line.model-child .name,.rank-line.model-child .model-name{flex-wrap:wrap}
   .rank-line .pct,.rank-line .tokens,.rank-line .cost,.tool-row .pct,.tool-row .tokens,.tool-row .cost{display:flex;justify-content:space-between;gap:14px;text-align:left}
@@ -501,7 +499,7 @@ td:first-child{color:var(--warn)}
   .contribution-months{padding-left:30px}
 }
 @media (max-width:480px){
-  .wrap{padding:24px 12px 32px}
+  .wrap{padding:24px 16px 32px}
   h1{white-space:normal}
   .cards{grid-template-columns:minmax(0,1fr);gap:0}
   .cards:not(:has(.card:nth-child(4))){grid-template-columns:minmax(0,1fr)}
@@ -518,11 +516,12 @@ td:first-child{color:var(--warn)}
   .share-section{padding:14px}
   .share-action{min-height:42px;font-size:.72rem;gap:6px;white-space:normal}
   .share-file-actions{grid-template-columns:1fr}
-  .section{padding:20px 16px}
+  .section{padding:20px 0}
+  .persona-section{padding:20px 16px}
   .trend-row{grid-template-columns:minmax(0,1fr) 64px 72px;gap:8px;padding:12px 8px}
   .trend-row .week,.trend-row em,.delta{font-size:.74rem}
   .trend-summary{font-size:.8rem}
-  .daily-chart-wrap{margin-bottom:18px}.daily-chart-head{align-items:flex-start}.daily-chart-canvas,.daily-chart-svg{height:170px}.daily-tooltip{font-size:.67rem}
+  .daily-chart-wrap{margin-bottom:18px}.daily-chart-canvas,.daily-chart-svg{height:200px}.daily-chart-canvas{margin-left:40px}.daily-tooltip{font-size:.67rem}
   .wrapped-metrics,.contribution-stats{grid-template-columns:1fr}
   /* 52 欄塞進手機寬會縮成點、月份疊字：改固定格寬、框內橫捲。
      rtl 讓捲動起點落在最右邊（最近幾週），內層再轉回 ltr。 */
@@ -534,6 +533,7 @@ td:first-child{color:var(--warn)}
   .contribution-days{position:sticky;left:0;z-index:2;gap:2px;font-size:.58rem;background:var(--bg)}
 }
 @media (max-width:640px){
+  .contribution-section,.report-appendix,.wrapped-section{margin-top:56px}
   .recent-titles{columns:1}
   .recent-title{margin-bottom:10px;line-height:1.55}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}

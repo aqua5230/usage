@@ -591,7 +591,10 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
 
     html = html_report.generate_html(data, language="en")
 
-    assert html.count('class="rank-line model-group"') == 3
+    assert html.count('class="tool-row model-group"') == 2
+    assert html.count('class="rank-line model-child"') == 2
+    assert 'class="section model-section"' not in html
+    assert 'donut-wrap' not in html
     assert 'data-agent-id="claude-code"' in html
     assert 'data-project-index="1"' in html
     assert 'data-project-index="0"' in html
@@ -603,6 +606,28 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
     )
     assert "window.usageReportFilter = {cube, aggregateRows, displayName, normalizeBounds" in html
     assert REPORT_FILTER_JS in html
+
+
+def test_generate_html_restructures_report_into_tools_and_collapsed_appendix() -> None:
+    html = html_report.generate_html(_full_report_data(), language="zh-TW")
+    ordered = (
+        "trend-section", "tools-section", "project-section", "session-section",
+        "contribution-section", "persona-section", "recent-titles-section",
+        "insights-section", "report-appendix", "wrapped-section", "sponsor",
+    )
+
+    positions = [
+        html.index(f'class="section {name}"')
+        if name.endswith("section")
+        else html.index(f'class="{name}"')
+        for name in ordered
+    ]
+    assert positions == sorted(positions)
+    assert '<details class="report-appendix">' in html
+    assert '<details class="report-appendix" open>' not in html
+    assert 'report_model_section' not in html
+    assert 'model-section' not in html
+    assert 'donut-wrap' not in html
 
 
 def test_generate_html_adds_date_filter_cards_and_fixed_range_labels_for_cube() -> None:
@@ -768,114 +793,6 @@ def test_csv_cost_returns_dash_for_none() -> None:
     assert html_report._csv_cost(1.5) == "1.50"
 
 
-def test_render_model_section_shows_dash_for_unpriced_models() -> None:
-    """_render_model_section shows '—' for models with cost_known=False."""
-    data = {
-        "by_model": [
-            {
-                "model": "claude-opus-4-8",
-                "tokens": 100000,
-                "cost": 1.5,
-                "cost_known": True,
-                "pct": 60.0,
-            },
-            {
-                "model": "glm-5.2",
-                "tokens": 50000,
-                "cost": 0.0,
-                "cost_known": False,
-                "pct": 40.0,
-            },
-        ]
-    }
-    html = html_report._render_model_section(data, "en")
-
-    assert "claude-opus-4-8" in html
-    assert "$1.50" in html
-    assert "glm-5.2" in html
-    assert "—" in html
-    assert "$0.00" not in html
-
-
-def test_render_model_section_groups_models_and_shows_date_range() -> None:
-    data = {
-        "date_from": "2026-05-01",
-        "date_to": "2026-05-31",
-        "by_agent_model": [
-            {
-                "agent_id": "codex",
-                "name": "Codex",
-                "tokens": 150,
-                "cost": 1.5,
-                "cost_known": True,
-                "pct": 75.0,
-                "models": [
-                    {
-                        "model": "gpt-5-codex",
-                        "tokens": 150,
-                        "cost": 1.5,
-                        "cost_known": True,
-                        "pct": 75.0,
-                    }
-                ],
-            },
-            {
-                "agent_id": "antigravity",
-                "name": "Antigravity",
-                "tokens": 50,
-                "cost": 0.0,
-                "cost_known": False,
-                "pct": 25.0,
-                "models": [
-                    {
-                        "model": "gemini-unknown",
-                        "tokens": 50,
-                        "cost": 0.0,
-                        "cost_known": False,
-                        "pct": 25.0,
-                    }
-                ],
-            },
-        ],
-    }
-
-    html = html_report._render_model_section(data, "en")
-
-    assert "Most-used models  2026-05-01 → 2026-05-31" in html
-    assert html.count('class="rank-line model-group"') == 2
-    assert html.count('class="rank-line model-child"') == 2
-    assert '<span class="arrow">▎</span><span class="name">Codex</span>' in html
-    assert "gpt-5-codex" in html
-    assert "gemini-unknown" in html
-    assert "—" in html
-    styles = html_report._render_styles()
-    assert ".rank-line.model-group .name{font-weight:600}" in styles
-    # 子列靠縮排＋壓深底色＋左側縱線跟母列區隔，三者缺一就分不出層級
-    assert "padding-left:34px" in styles
-    assert "inset 3px 0 0 var(--warn)" in styles
-
-
-def test_render_model_section_without_groups_keeps_flat_rendering() -> None:
-    by_model = [
-        {"model": "gpt-5-codex", "pct": 100.0, "tokens": 100, "cost": 1.0},
-    ]
-    expected = html_report._render_model_section({"by_model": by_model}, "en")
-    html = html_report._render_model_section(
-        {
-            "date_from": "2026-05-01",
-            "date_to": "2026-05-31",
-            "by_model": by_model,
-        },
-        "en",
-    )
-
-    assert html == expected
-    assert 'class="rank-line"' in html
-    assert "model-group" not in html
-    assert "model-child" not in html
-    assert "2026-05-01" not in html
-
-
 def test_build_csv_data_shows_dash_for_unpriced_models() -> None:
     """_build_csv_data shows '—' for models with cost_known=False."""
     data = {
@@ -986,7 +903,6 @@ def test_project_share_bar_uses_the_donut_color() -> None:
 
     html = html_report._render_project_section(data, "en")
 
-    assert 'stroke="#5abfa0"' in html
     assert (
         '<span class="left-tick" aria-hidden="true" style="background:#5abfa0"></span>'
         '<span class="arrow">→</span>'
@@ -1016,24 +932,3 @@ def test_rank_line_gauge_boundaries() -> None:
     assert ">—" in over
     assert 'style="width:0.0%;background:#8f86c9"' in negative
     assert ">$0.00<" in negative
-
-
-@pytest.mark.parametrize(
-    ("model", "color"),
-    [
-        ("claude-opus-5", "#5abfa0"),
-        ("gemini-3.7-flash", "#8f86c9"),
-        ("gpt-5.6-terra", "#e0885a"),
-        ("unknown-model", "#8b8577"),
-    ],
-)
-def test_model_share_bar_uses_provider_color(model: str, color: str) -> None:
-    data = {
-        "by_model": [
-            {"model": model, "pct": 100.0, "tokens": 100, "cost": 1.0},
-        ]
-    }
-
-    html = html_report._render_model_section(data, "en")
-
-    assert f'background:{color}' in html
