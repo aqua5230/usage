@@ -630,7 +630,7 @@ def test_generate_html_restructures_report_into_tools_and_collapsed_appendix() -
     assert 'donut-wrap' not in html
 
 
-def test_generate_html_adds_date_filter_cards_and_fixed_range_labels_for_cube() -> None:
+def test_generate_html_adds_date_filter_cards_and_fixed_group_note_for_cube() -> None:
     data = _full_report_data()
     data["cube"] = {
         "dates": ["2026-05-01", "2026-05-24"],
@@ -650,8 +650,15 @@ def test_generate_html_adds_date_filter_cards_and_fixed_range_labels_for_cube() 
         match.group(1)
         for match in re.finditer(r'<div class="card" data-card="([^"]+)"', html)
     ] == ["tokens", "cost", "active", "peak"]
-    # 年度回顧、洞察、貢獻圖、使用習慣、最近在做什麼——五個不跟日期走的區塊
-    assert html.count('class="fixed-range-tag"') == 5
+    assert html.count('class="fixed-group-note"') == 1
+    contribution = re.search(
+        r'<section class="section contribution-section">\s*'
+        r'<p class="fixed-group-note">The sections below don&#x27;t follow '
+        r'the date filter above</p>\s*'
+        r'<div class="prompt">',
+        html,
+    )
+    assert contribution
     for class_name in ("trend-section", "composition-section", "session-section"):
         section = re.search(
             rf'<section class="section {class_name}">.*?</section>', html, re.S
@@ -661,14 +668,24 @@ def test_generate_html_adds_date_filter_cards_and_fixed_range_labels_for_cube() 
     for class_name in (
         "persona-section",
         "contribution-section",
-        "wrapped-section",
+        "recent-titles-section",
         "insights-section",
     ):
         section = re.search(
             rf'<section class="section {class_name}">.*?</section>', html, re.S
         )
         assert section, class_name
-        assert "fixed-range-tag" in section.group(0)
+        assert "fixed-range-tag" not in section.group(0)
+    wrapped = re.search(
+        r'<section class="section wrapped-section">.*?</section>', html, re.S
+    )
+    assert wrapped
+    assert "fixed-range-tag" in wrapped.group(0)
+    assert (
+        '<summary><span>[usage]&gt;</span> How these numbers are calculated'
+        '<span class="appendix-desc">Token mix · Cache hit rate · Cost confidence</span>'
+        in html
+    )
 
 
 def test_generate_html_without_cube_keeps_python_rendered_filter_sections() -> None:

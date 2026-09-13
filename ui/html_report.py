@@ -114,6 +114,7 @@ def _section(
     fixed_label: str = "",
     dynamic_title: bool = False,
     title_action: str = "",
+    before_prompt: str = "",
 ) -> str:
     classes = "section" if not class_name else f"section {class_name}"
     if fixed_label or dynamic_title:
@@ -123,9 +124,10 @@ def _section(
     else:
         title_html = html.escape(title)
     title_html += title_action
+    before_prompt_html = f"      {before_prompt}\n" if before_prompt else ""
     return f"""
     <section class="{classes}">
-      <div class="prompt"><span>[usage]&gt;</span> {title_html}</div>
+{before_prompt_html}      <div class="prompt"><span>[usage]&gt;</span> {title_html}</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
       {body}
     </section>
@@ -856,7 +858,6 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
             _t(lang, "insights_section"),
             quiet,
             "insights-section",
-            fixed_label=_fixed_range_label(data, lang),
         )
 
     renderers = {
@@ -877,7 +878,6 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
         _t(lang, "insights_section"),
         body,
         "insights-section",
-        fixed_label=_fixed_range_label(data, lang),
     )
 
 
@@ -920,7 +920,7 @@ def _render_appendix(data: Mapping[str, Any], lang: str) -> str:
         return ""
     return (
         '<details class="report-appendix">'
-        f'<summary><span>[usage]&gt;</span> {_escape(_t(lang, "appendix_title"))}<i class="appendix-caret" aria-hidden="true">▸</i></summary>'
+        f'<summary><span>[usage]&gt;</span> {_escape(_t(lang, "appendix_title"))}<span class="appendix-desc">{_escape(_t(lang, "appendix_desc"))}</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>'
         f"{composition}{pricing}"
         "</details>"
     )
@@ -1025,7 +1025,11 @@ def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
         _t(lang, "contribution_section"),
         body,
         "contribution-section",
-        fixed_label=_fixed_range_label(data, lang),
+        before_prompt=(
+            f'<p class="fixed-group-note">{_escape(_t(lang, "fixed_group_note"))}</p>'
+            if isinstance(data.get("cube"), Mapping)
+            else ""
+        ),
     )
 
 
@@ -1047,7 +1051,6 @@ def _render_recent_titles_section(data: Mapping[str, Any], lang: str) -> str:
         _t(lang, "recent_titles_heading"),
         f'<div class="recent-titles">{rows}</div>',
         "recent-titles-section",
-        fixed_label=_fixed_range_label(data, lang),
     )
 
 
@@ -1102,7 +1105,6 @@ def _render_persona_section(data: Mapping[str, Any], lang: str) -> str:
         _t(lang, "persona_section"),
         persona_body,
         "persona-section",
-        fixed_label=_fixed_range_label(data, lang),
     )
 
 

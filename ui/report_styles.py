@@ -164,26 +164,32 @@ h1{
 .cards:not(:has(.card:nth-child(4))){grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
 /* Keep every numeric column on the same inset; vary surfaces and vertical rhythm. */
 .section{background:transparent;border:1px solid transparent;border-radius:0;margin-top:56px;padding:24px 0;box-shadow:none}
+.wrap>.section{margin-top:72px}
 .prompt{font-size:1.05rem;color:var(--text);margin-bottom:12px;font-weight:600;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;min-width:0;overflow-wrap:anywhere}
 .prompt span{font-size:.72rem;font-weight:400}
 .prompt .prompt-title{font:inherit;color:inherit}
 .fixed-range-tag{padding:1px 6px;border:1px solid var(--card-border);border-radius:999px;color:var(--muted);font-size:.64rem;font-weight:500;letter-spacing:.03em;white-space:nowrap}
 .rule{font-size:0;height:1px;background:var(--card-border);margin-bottom:20px;border:none}
 .section .rule{background:var(--faint)}
-.insights-section{margin-block:24px;padding-block:8px}
+.insights-section{margin-block:72px 0;padding-block:24px}
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
-.insights-section .prompt{font-size:1.2rem}
+.wrap>.section>.prompt{font-size:1.15rem}
+.wrap>.wrapped-section>.prompt{font-size:1.05rem}
 .composition-section{margin-top:0;padding-top:24px}
 .composition-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
 .composition-section .rule,.recent-titles-section .rule{background:var(--faint);margin-bottom:12px}
-.contribution-section{margin-top:88px;border-top-color:var(--card-border);padding-top:24px}
+.contribution-section{margin-top:88px;border-top-color:transparent;padding-top:24px}
+.session-section{border-top-color:transparent}
+.wrap>.contribution-section{margin-top:104px;padding-top:40px;border-top:1px solid var(--card-border)}
+.fixed-group-note{display:block;margin:0 0 18px;color:var(--muted);font-family:var(--font-mono);font-size:.74rem;letter-spacing:.04em}
+.contribution-section .fixed-range-tag,.persona-section .fixed-range-tag,.recent-titles-section .fixed-range-tag,.insights-section .fixed-range-tag{display:none}
 .contribution-section .rule{height:0;margin-bottom:24px}
 .trend-section .prompt,.tools-section .prompt,.project-section .prompt,.session-section .prompt,.contribution-section .prompt{font-size:1.25rem}
 .recent-titles-section{margin-top:56px;padding-block:12px;padding-top:24px}
 .recent-titles{columns:2;column-gap:48px}
 .recent-title{break-inside:avoid;margin-bottom:12px;line-height:1.65}
-.persona-section{background:var(--soft);border-block-color:var(--card-border);padding:24px 20px}
-.session-section{margin-top:56px;border-top-color:var(--card-border)}
+.persona-section{background:transparent;border-block-color:transparent;padding-left:0;padding-right:0}
+.session-section{margin-top:56px}
 .rank-list{display:grid;gap:4px}
 .composition-hint{margin:10px 0 14px;color:var(--text-soft)}
 .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
@@ -192,7 +198,9 @@ h1{
 .rank-line{position:relative;overflow:hidden;padding:12px;color:var(--text-soft);border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
 .rank-line:hover{transform:none;border:none;border-bottom:1px solid var(--card-border);border-radius:0;box-shadow:none;background:transparent}
 .rank-line:last-child{border-bottom:none}
-.rank-line[data-project-index],.tool-row.model-group{cursor:pointer}
+.rank-line[data-project-index],.tool-row.model-group{cursor:pointer;transition:background-color .15s ease}
+.tool-row.model-group:hover,.rank-line[data-project-index]:hover{background:var(--hover-glow)}
+.tool-row.model-group:focus-visible,.rank-line[data-project-index]:focus-visible{outline:2px solid var(--cost);outline-offset:-2px}
 /* .rank-line 用 class 指定 display:grid，權重高過瀏覽器預設的 [hidden]{display:none}，
    沒有這一條收合只會改到 DOM、畫面照舊全開。 */
 .rank-line[hidden]{display:none}
@@ -207,7 +215,8 @@ h1{
 .rank-line.model-child>.gauge-rail{opacity:.45}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
 /* 可點開的列：箭頭是唯一的可展開提示，用跟裝飾性箭頭一樣的淡度會看不出來。 */
-.tool-row.model-group .arrow,.rank-line[data-project-index] .arrow{opacity:.85;font-size:1em;color:var(--text-soft)}
+.tool-row.model-group .arrow,.rank-line[data-project-index] .arrow{opacity:1;font-size:.95rem;color:var(--muted)}
+.tool-row.model-group[aria-expanded="true"] .arrow,.rank-line[data-project-index][aria-expanded="true"] .arrow{color:var(--text)}
 .rank-line>*,.tool-row>*{position:relative;z-index:1}
 /* The bar is absolute against the whole row, so .name must stay static — this
    rule has to follow the one above to win. (.tool-head does the same further down.) */
@@ -264,13 +273,20 @@ h1{
 .daily-chart-legend{display:flex;flex-wrap:wrap;gap:7px 14px;margin-top:8px;color:var(--muted);font-family:var(--font-mono);font-size:.7rem}
 .daily-legend-item{display:inline-flex;align-items:center;gap:6px;min-width:0}.daily-legend-item b{color:var(--text-soft);font-weight:600}
 .pricing-section{margin-top:0;padding-top:24px}.pricing-section .prompt{font-size:.9rem}.pricing-section .rule{background:var(--faint);margin-bottom:12px}
-.report-appendix{margin-top:96px;padding-top:32px;border-top:1px solid var(--card-border)}
-.report-appendix>summary{display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--muted);font-family:var(--font-mono);font-size:.85rem;list-style:none}
+.report-appendix{margin-top:104px;padding-top:0;border:1px solid var(--card-border);border-radius:12px;background:var(--card-bg);overflow:hidden}
+.report-appendix>summary{display:flex;align-items:center;gap:8px;padding:18px 20px;cursor:pointer;color:var(--text);font-family:var(--font-mono);font-size:.95rem;list-style:none;transition:background-color .15s ease}
+.report-appendix>summary:hover{background:var(--hover-glow)}
+.report-appendix>summary:focus-visible{outline:2px solid var(--cost);outline-offset:-2px}
 .report-appendix>summary::-webkit-details-marker{display:none}
-.appendix-caret{margin-left:auto;font-style:normal;transition:transform .2s ease}
+.appendix-desc{order:2;margin-left:auto;color:var(--muted);font-size:.76rem}
+.appendix-caret{order:3;margin-left:14px;font-size:1rem;color:var(--muted);font-style:normal;transition:transform .2s ease}
 .report-appendix[open] .appendix-caret{transform:rotate(90deg)}
-.report-appendix>summary span{font-size:.72rem;color:var(--cost)}
+.report-appendix>summary>span:first-child{font-size:.72rem;color:var(--cost)}
+.report-appendix[open]>summary{border-bottom:1px solid var(--faint)}
+.report-appendix>.section{margin-top:0;padding:24px 20px}
+.report-appendix>.section+.section{border-top:1px solid var(--faint)}
 .report-appendix .composition-section,.report-appendix .pricing-section{font-size:.92em}
+.wrap>.wrapped-section{margin-top:72px}
 .pricing-bar{display:flex;height:2px;overflow:hidden;border-radius:0;background:var(--faint)}.pricing-bar i{display:block;min-width:0;height:100%;opacity:.72}
 .pricing-list{margin-top:10px}.pricing-line{grid-template-columns:20px minmax(0,1fr) 70px 100px}.pricing-line .tokens{font-size:.9rem}.pricing-models{display:inline;margin-left:8px;color:var(--muted);font-family:var(--font-mono);font-size:.68rem;font-weight:400}.pricing-hint{margin:12px 0 0;color:var(--muted);font-size:.78rem;line-height:1.55}.pricing-all{padding:8px 0;color:var(--text-soft);font-family:var(--font-mono);font-size:.82rem}
 """ + _light_rules("""
@@ -280,9 +296,8 @@ h1{
 /* Square, frameless fill in the same vocabulary as .share-bar and .trend-bar.
    The rounded box with a 3px accent rail read as a generic callout and was the
    last framed surface left in a report that strips frames everywhere else. */
-.insight-note,.insight-action{padding:12px 14px;border-radius:0;margin-bottom:4px;font-size:.9rem;line-height:1.5}
-.insight-note{background:rgba(90,191,160,.06);color:var(--text-soft)}
-.insight-action{background:rgba(224,136,90,.06);color:var(--text-soft);margin-bottom:0}
+.insight-note,.insight-action{background:var(--card-bg);border:1px solid var(--card-border);border-left:3px solid var(--cost);border-radius:10px;margin-bottom:8px;padding:12px 16px;font-size:.9rem;line-height:1.5;color:var(--text-soft)}
+.insight-action{border-left-color:var(--warn);margin-bottom:0}
 /* No frame left to inset from, so only the vertical padding still earns its
    keep — the horizontal one just pushed this section 18px right of every other. */
 .persona-card{border:none;border-radius:12px;box-shadow:none;background:transparent;padding:18px 0;min-width:0}
@@ -533,7 +548,12 @@ td:first-child{color:var(--warn)}
   .contribution-days{position:sticky;left:0;z-index:2;gap:2px;font-size:.58rem;background:var(--bg)}
 }
 @media (max-width:640px){
-  .contribution-section,.report-appendix,.wrapped-section{margin-top:56px}
+  .wrap>.section{margin-top:48px}
+  .wrap>.contribution-section,.report-appendix{margin-top:64px}
+  .report-appendix>summary{flex-wrap:wrap}
+  .appendix-desc{order:4;flex-basis:100%;margin:6px 0 0}
+  .appendix-caret{margin-left:auto}
+  .report-appendix>.section{padding:20px 16px}
   .recent-titles{columns:1}
   .recent-title{margin-bottom:10px;line-height:1.55}
   .cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -542,6 +562,17 @@ td:first-child{color:var(--warn)}
   .card span{padding:0 0 8px;letter-spacing:.04em}
   .card b{text-align:left;font-size:1.15rem}
   .card i{padding-top:6px}
+  .project-section .rank-line{grid-template-columns:14px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px}
+  .project-section .rank-line .arrow{display:inline}
+  .project-section .rank-line .name{font-weight:600}
+  .project-section .rank-line .tokens,.project-section .rank-line .cost{display:block;text-align:right;font-size:.9rem}
+  .project-section .rank-line .tokens::before,.project-section .rank-line .cost::before{content:none}
+  .session-section th,.session-section td{white-space:nowrap;padding:8px 12px;font-size:.85rem}
+  .tools-section .tool-row{grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px 14px;align-items:baseline;padding:12px 4px}
+  .tools-section .tool-row>.tool-head{grid-column:1/-1}
+  .tools-section .tool-row>.pct{grid-column:2}
+  .tools-section .tool-row>.pct,.tools-section .tool-row>.tokens,.tools-section .tool-row>.cost{display:block;text-align:right;font-size:.88rem}
+  .tools-section .tool-row>.pct::before,.tools-section .tool-row>.tokens::before,.tools-section .tool-row>.cost::before{content:none}
 }
 @media print{
   :root{--bg:#fff;--panel:#fff;--card-bg:#fff;--soft:#fff;--text:#1f2318;--text-soft:#34382b;--muted:#555b49;--token:#6b5318;--cost:#256b59;--warn:#8c4624;--accent-purple:#514a7a}
