@@ -262,6 +262,30 @@ h1{
 .delta.down{color:var(--warn)}
 .delta.flat{color:var(--muted)}
 .trend-summary{color:var(--text-soft);margin-top:8px;padding-top:12px;border-top:1px solid var(--faint);font-size:.84rem;line-height:1.6}
+.daily-chart-wrap{min-width:0;margin:0 0 24px;padding:14px 0 18px;border-bottom:1px solid var(--faint)}
+.daily-chart-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 10px;font-family:var(--font-mono);font-size:.82rem}
+.daily-chart-head strong{color:var(--text);font-weight:700}
+.daily-chart-toggle{display:inline-flex;gap:6px}
+.daily-chart-toggle button{border:1px solid var(--card-border);border-radius:7px;background:var(--panel);color:var(--text);padding:5px 9px;font:inherit;font-size:.72rem;line-height:1.3;cursor:pointer}
+.daily-chart-toggle button[aria-pressed="true"]{border-color:var(--cost);color:var(--cost);background:var(--control-hover)}
+.daily-chart-toggle button:focus-visible,.daily-bar:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
+.daily-chart-canvas{position:relative;min-width:0;height:180px}
+.daily-chart-svg{display:block;width:100%;height:180px;overflow:visible}
+.daily-grid{stroke:var(--faint);stroke-width:1;stroke-dasharray:3 4}
+.daily-chart-label{position:absolute;z-index:1;font-family:var(--font-mono);font-size:9px;line-height:1;pointer-events:none;white-space:nowrap}
+.daily-y-label{color:var(--muted);transform:translate(-100%,-50%)}.daily-x-label{color:var(--muted);transform:translate(-50%,-50%)}
+.daily-peak-label{color:var(--text-soft);font-weight:700;transform:translate(-50%,-50%)}
+.daily-bar{cursor:crosshair;outline:none;transition:opacity 120ms ease}
+.daily-chart-svg.is-hovering .daily-bar{opacity:.4}.daily-chart-svg.is-hovering .daily-bar:hover,.daily-chart-svg.is-hovering .daily-bar:focus{opacity:1}
+.daily-tooltip{position:absolute;z-index:3;top:10px;min-width:170px;max-width:min(250px,calc(100% - 12px));padding:10px 11px;border:1px solid var(--card-border);border-radius:8px;background:var(--card-bg);box-shadow:0 8px 24px var(--card-shadow);font-family:var(--font-mono);font-size:.72rem;line-height:1.45;pointer-events:none;transform:translateX(-50%)}
+.daily-tooltip.is-left{transform:none}.daily-tooltip.is-right{transform:translateX(-100%)}.daily-tooltip-date{display:block;margin-bottom:6px;color:var(--text)}
+.daily-tooltip-line{display:grid;grid-template-columns:8px minmax(0,1fr) auto;gap:7px;align-items:center;color:var(--text-soft)}
+.daily-tooltip-line i,.daily-legend-item i{width:7px;height:7px;border-radius:2px}.daily-tooltip-line b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:500}.daily-tooltip-line em{color:var(--token);font-style:normal}.daily-tooltip-total{display:block;margin-top:7px;padding-top:6px;border-top:1px solid var(--faint);color:var(--text);font-weight:700}
+.daily-chart-legend{display:flex;flex-wrap:wrap;gap:7px 14px;margin-top:8px;color:var(--muted);font-family:var(--font-mono);font-size:.7rem}
+.daily-legend-item{display:inline-flex;align-items:center;gap:6px;min-width:0}.daily-legend-item b{color:var(--text-soft);font-weight:600}
+.pricing-section{margin-top:8px;padding-top:8px}.pricing-section .prompt{font-size:.9rem}.pricing-section .rule{background:var(--faint);margin-bottom:12px}
+.pricing-bar{display:flex;height:9px;overflow:hidden;border-radius:4px;background:var(--faint)}.pricing-bar i{display:block;min-width:0;height:100%}
+.pricing-list{margin-top:10px}.pricing-line{grid-template-columns:20px minmax(0,1fr) 70px 100px}.pricing-line .tokens{font-size:.9rem}.pricing-models{display:inline;margin-left:8px;color:var(--muted);font-family:var(--font-mono);font-size:.68rem;font-weight:400}.pricing-hint{margin:12px 0 0;color:var(--muted);font-size:.78rem;line-height:1.55}.pricing-all{padding:8px 0;color:var(--cost);font-family:var(--font-mono);font-size:.82rem}
 @media (prefers-color-scheme: light){
 :where(html:not([data-theme])) .share-bar span,:where(html:not([data-theme])) .trend-bar div{opacity:.22}
 :where(html:not([data-theme])) .scope-tag{background:rgba(176,90,43,.14);border-color:rgba(176,90,43,.22)}
@@ -459,7 +483,7 @@ td:first-child{color:var(--warn)}
 @keyframes sponsorWobble{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(-1px,-2px) rotate(-.8deg)}50%{transform:translate(0,-2.5px) rotate(0)}75%{transform:translate(1px,-2px) rotate(.8deg)}}
 @media (prefers-reduced-motion:reduce){
   .cursor,.tagline{animation:none}
-  .share-trigger,.share-close,.share-action,.card,.tool-row{transition:none}
+  .share-trigger,.share-close,.share-action,.card,.tool-row,.daily-bar{transition:none}
 }
 @media (min-width:781px){
   .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
@@ -523,6 +547,7 @@ td:first-child{color:var(--warn)}
   .trend-row{grid-template-columns:minmax(0,1fr) 64px 72px;gap:8px;padding:12px 8px}
   .trend-row .week,.trend-row em,.delta{font-size:.74rem}
   .trend-summary{font-size:.8rem}
+  .daily-chart-wrap{margin-bottom:18px}.daily-chart-head{align-items:flex-start}.daily-chart-canvas,.daily-chart-svg{height:170px}.daily-tooltip{font-size:.67rem}
   .wrapped-metrics,.contribution-stats{grid-template-columns:1fr}
   .contribution-months{font-size:.66rem;padding-left:26px}
   .contribution-board{grid-template-columns:22px minmax(0,1fr)}
@@ -861,6 +886,231 @@ document.addEventListener('click', async (e) => {
 });
 
 (() => {
+  const node = document.querySelector('#usage-cube-data');
+  if (!node) return;
+  let cube;
+  try { cube = JSON.parse(node.textContent); } catch (_) { return; }
+  if (!Array.isArray(cube.dates) || !Array.isArray(cube.rows)) return;
+  const svgNs = 'http://www.w3.org/2000/svg';
+  const agentColors = {
+    'claude-code': '#5abfa0', codex: '#e0885a', antigravity: '#8f86c9', grok: '#c7839f',
+  };
+  let mode = 'tokens';
+  let lastSummary = null;
+
+  function tokens(row) {
+    return Number(row[4]) + Number(row[5]) + Number(row[6]) + Number(row[7]);
+  }
+  function textNode(tag, className, text) {
+    const item = document.createElement(tag);
+    if (className) item.className = className;
+    item.textContent = text;
+    return item;
+  }
+  function svgNode(tag, className, attributes, text = '') {
+    const item = document.createElementNS(svgNs, tag);
+    if (className) item.setAttribute('class', className);
+    Object.entries(attributes).forEach(([key, value]) => item.setAttribute(key, String(value)));
+    if (text) item.textContent = text;
+    return item;
+  }
+  function formatTokens(value) {
+    const number = Math.max(0, Number(value) || 0);
+    if (number >= 999950000) return `${(number / 1000000000).toFixed(2)}B`;
+    if (number >= 999950) return `${(number / 1000000).toFixed(1)}M`;
+    if (number >= 1000) return `${(number / 1000).toFixed(1)}K`;
+    return String(Math.round(number));
+  }
+  function formatCost(value) {
+    const number = Math.max(0, Number(value) || 0);
+    return number > 0 && number < 1 ? `$${number.toFixed(4)}` : `$${number.toFixed(2)}`;
+  }
+  function modeValue(item, day) { return mode === 'cost' ? item.cost[day] : item.tokens[day]; }
+  function displayName(value) {
+    const filter = window.usageReportFilter;
+    if (filter && filter.displayName) return filter.displayName(value);
+    const text = value == null ? '' : String(value);
+    return (!text || text === 'unknown') ? (shareConfig.unknown || 'unknown') : text;
+  }
+  function rangeDays(summary) {
+    return cube.dates.filter((day) => day >= summary.bounds.from && day <= summary.bounds.to);
+  }
+  function dailyData(summary) {
+    const days = rangeDays(summary);
+    const positions = Object.fromEntries(cube.dates.map((day, index) => [day, index]));
+    const agents = (cube.agents || []).map((agent, index) => ({
+      id: String(agent.id || ''), name: String(agent.name || agent.id || ''),
+      color: agentColors[String(agent.id || '')] || '#8b8577',
+      tokens: Array(days.length).fill(0), cost: Array(days.length).fill(0), index,
+    }));
+    summary.rows.forEach((row) => {
+      const day = cube.dates[Number(row[0])];
+      const dayIndex = days.indexOf(day);
+      const agent = agents[Number(row[1])];
+      if (dayIndex < 0 || !agent) return;
+      agent.tokens[dayIndex] += tokens(row);
+      agent.cost[dayIndex] += Number(row[8]) || 0;
+    });
+    return {days, agents, positions};
+  }
+  function clearHover(svg, tooltip) {
+    svg.className.baseVal = 'daily-chart-svg';
+    tooltip.hidden = true;
+  }
+  function setHover(svg, tooltip, data, dayIndex) {
+    svg.setAttribute('class', 'daily-chart-svg is-hovering');
+    const day = data.days[dayIndex];
+    tooltip.replaceChildren();
+    tooltip.append(textNode('strong', 'daily-tooltip-date', day));
+    const values = data.agents.filter((agent) => modeValue(agent, dayIndex) > 0);
+    values.forEach((agent) => {
+      const line = textNode('span', 'daily-tooltip-line', '');
+      const dot = textNode('i', '', '');
+      dot.style.background = agent.color;
+      line.append(dot, textNode('b', '', agent.name), textNode('em', '', mode === 'cost'
+        ? formatCost(agent.cost[dayIndex]) : formatTokens(agent.tokens[dayIndex])));
+      tooltip.append(line);
+    });
+    const total = values.reduce((sum, agent) => sum + modeValue(agent, dayIndex), 0);
+    tooltip.append(textNode('span', 'daily-tooltip-total', `${shareConfig.dailyChartTotal}: ${mode === 'cost' ? formatCost(total) : formatTokens(total)}`));
+    const edge = dayIndex === 0 ? ' is-left' : dayIndex === data.days.length - 1 ? ' is-right' : '';
+    tooltip.className = `daily-tooltip${edge}`;
+    tooltip.style.left = dayIndex === 0 ? '0' : dayIndex === data.days.length - 1
+      ? '100%' : `${((dayIndex + .5) / data.days.length * 100).toFixed(1)}%`;
+    tooltip.hidden = false;
+  }
+  function buildDailyChart(summary) {
+    lastSummary = summary;
+    const data = dailyData(summary);
+    const totals = data.days.map((_day, index) => data.agents.reduce((sum, agent) => sum + modeValue(agent, index), 0));
+    const wrap = textNode('div', 'daily-chart-wrap', '');
+    const head = textNode('div', 'daily-chart-head', '');
+    head.append(textNode('strong', '', shareConfig.dailyChartTitle));
+    const toggle = textNode('div', 'daily-chart-toggle', '');
+    [['tokens', shareConfig.dailyChartModeTokens], ['cost', shareConfig.dailyChartModeCost]].forEach(([key, label]) => {
+      const button = textNode('button', '', label);
+      button.type = 'button';
+      button.dataset.dailyMode = key;
+      button.setAttribute('aria-pressed', String(mode === key));
+      button.addEventListener('click', () => {
+        if (mode === key || !lastSummary) return;
+        mode = key;
+        const section = document.querySelector('.trend-section');
+        const previous = section && section.querySelector('.daily-chart-wrap');
+        const next = buildDailyChart(lastSummary);
+        if (previous && previous.parentNode) {
+          previous.parentNode.insertBefore(next, previous);
+          previous.remove();
+        }
+      });
+      toggle.append(button);
+    });
+    head.append(toggle);
+    wrap.append(head);
+    if (!data.days.length || Math.max(...totals, 0) <= 0) {
+      wrap.append(textNode('div', 'empty', `→ ${shareConfig.emptyDaily}`));
+      return wrap;
+    }
+    const canvas = textNode('div', 'daily-chart-canvas', '');
+    const tooltip = textNode('div', 'daily-tooltip', '');
+    tooltip.hidden = true;
+    const width = 760; const height = 180; const left = 48; const right = 8; const top = 18; const bottom = 32;
+    const plotWidth = width - left - right; const plotHeight = height - top - bottom;
+    const maximum = Math.max(...totals); const step = plotWidth / data.days.length;
+    const compactBars = data.days.length <= 31;
+    const gap = compactBars ? 0 : data.days.length > 120 ? 0 : data.days.length > 45 ? 1 : Math.min(4, step * .25);
+    const barWidth = compactBars ? Math.max(1, step * .55) : Math.max(1, step - gap);
+    const barOffset = compactBars ? (step - barWidth) / 2 : gap / 2;
+    const svg = svgNode('svg', 'daily-chart-svg', {viewBox: `0 0 ${width} ${height}`, preserveAspectRatio: 'none', role: 'img', 'aria-label': shareConfig.dailyChartTitle});
+    const label = (className, text, x, y) => {
+      const item = textNode('span', `daily-chart-label ${className}`, text);
+      item.style.left = `${(x / width * 100).toFixed(2)}%`;
+      item.style.top = `${(y / height * 100).toFixed(2)}%`;
+      return item;
+    };
+    canvas.append(svg);
+    [1, .5, 0].forEach((fraction) => {
+      const y = top + plotHeight * (1 - fraction);
+      svg.append(svgNode('line', 'daily-grid', {x1: left, y1: y, x2: width - right, y2: y, 'vector-effect': 'non-scaling-stroke'}));
+      canvas.append(label('daily-y-label', mode === 'cost' ? formatCost(maximum * fraction) : formatTokens(maximum * fraction), left - 7, y));
+    });
+    const peak = totals.indexOf(maximum);
+    data.days.forEach((_day, dayIndex) => {
+      const x = left + dayIndex * step + barOffset;
+      let cursor = top + plotHeight;
+      const group = svgNode('g', 'daily-bar', {'data-day-index': dayIndex});
+      data.agents.forEach((agent, agentIndex) => {
+        const value = modeValue(agent, dayIndex);
+        if (!value) return;
+        const barHeight = value / maximum * plotHeight;
+        cursor -= barHeight;
+        const topSegment = !data.agents.slice(agentIndex + 1).some((other) => modeValue(other, dayIndex) > 0);
+        group.append(svgNode('rect', 'daily-segment', {x, y: cursor, width: barWidth, height: barHeight, fill: agent.color, rx: topSegment ? 2 : 0, ry: topSegment ? 2 : 0}));
+      });
+      group.addEventListener('mouseenter', () => setHover(svg, tooltip, data, dayIndex));
+      group.addEventListener('mouseleave', () => clearHover(svg, tooltip));
+      group.addEventListener('focus', () => setHover(svg, tooltip, data, dayIndex));
+      group.addEventListener('blur', () => clearHover(svg, tooltip));
+      group.setAttribute('tabindex', '0');
+      svg.append(group);
+      if (dayIndex === peak) canvas.append(label('daily-peak-label', mode === 'cost' ? formatCost(totals[dayIndex]) : formatTokens(totals[dayIndex]), x + barWidth / 2, Math.max(12, cursor - 5)));
+    });
+    [...new Set([0, Math.floor((data.days.length - 1) / 2), data.days.length - 1])].forEach((index) => {
+      canvas.append(label('daily-x-label', data.days[index].slice(5), left + index * step + step / 2, height - 7));
+    });
+    canvas.append(tooltip); wrap.append(canvas);
+    const legend = textNode('div', 'daily-chart-legend', '');
+    data.agents.filter((agent) => agent.tokens.some((value) => value > 0)).forEach((agent) => {
+      const item = textNode('span', 'daily-legend-item', '');
+      const dot = textNode('i', '', ''); dot.style.background = agent.color;
+      const total = agent[mode === 'cost' ? 'cost' : 'tokens'].reduce((sum, value) => sum + value, 0);
+      item.append(dot, textNode('span', '', agent.name), textNode('b', '', mode === 'cost' ? formatCost(total) : formatTokens(total)));
+      legend.append(item);
+    });
+    wrap.append(legend);
+    return wrap;
+  }
+  function pricingData(summary) {
+    let priced = 0; let unpriced = 0; const models = {};
+    summary.rows.forEach((row) => {
+      const value = tokens(row); const model = cube.models[Number(row[2])];
+      if (model && model.cost_known) priced += value;
+      else { unpriced += value; const name = String((model && model.name) || 'unknown'); models[name] = (models[name] || 0) + value; }
+    });
+    return {priced, unpriced, names: Object.entries(models).sort((a, b) => b[1] - a[1]).map(([name]) => name)};
+  }
+  function pricingPercent(value, total) { return total ? `${(value / total * 100).toFixed(1)}%` : '0.0%'; }
+  function pricingLine(name, percent, value, color, models = '') {
+    const line = textNode('div', 'rank-line pricing-line', '');
+    const tick = textNode('span', 'left-tick', ''); tick.style.background = color;
+    const label = textNode('span', 'name', name);
+    if (models) label.append(textNode('span', 'pricing-models', models));
+    line.append(tick, textNode('span', 'arrow', '→'), label, textNode('span', 'pct', percent), textNode('span', 'tokens', formatTokens(value)));
+    return line;
+  }
+  function rebuildPricing(summary) {
+    const section = document.querySelector('.pricing-section');
+    if (!section) return;
+    const body = textNode('div', 'pricing-body', ''); const data = pricingData(summary); const total = data.priced + data.unpriced;
+    if (!data.unpriced) body.append(textNode('div', 'pricing-all', shareConfig.pricingAllPriced));
+    else {
+      const bar = textNode('div', 'pricing-bar', ''); bar.setAttribute('aria-hidden', 'true');
+      [[data.priced, 'var(--cost)'], [data.unpriced, '#8b8577']].forEach(([value, color]) => { const segment = textNode('i', '', ''); segment.style.width = pricingPercent(value, total); segment.style.background = color; bar.append(segment); });
+      const list = textNode('div', 'rank-list pricing-list', '');
+      const models = data.names.slice(0, 3).map(displayName).join(shareConfig.pricingModelSeparator || ', ');
+      const suffix = data.names.length > 3 ? ` +${data.names.length - 3}` : '';
+      list.append(pricingLine(shareConfig.pricingPriced, pricingPercent(data.priced, total), data.priced, 'var(--cost)'), pricingLine(shareConfig.pricingUnpriced, pricingPercent(data.unpriced, total), data.unpriced, '#8b8577', `${models}${suffix}`));
+      body.append(bar, list);
+    }
+    body.append(textNode('p', 'pricing-hint', shareConfig.pricingHint));
+    const prompt = section.querySelector('.prompt'); const rule = section.querySelector('.rule');
+    Array.from(section.children).forEach((child) => { if (child !== prompt && child !== rule) child.remove(); });
+    section.append(body);
+  }
+  window.usageReportDaily = {buildDailyChart, rebuildPricing};
+})();
+
+(() => {
   const cubeNode = document.querySelector('#usage-cube-data');
   if (!cubeNode) return;
 
@@ -1071,7 +1321,7 @@ document.addEventListener('click', async (e) => {
     };
   }
 
-  window.usageReportFilter = {cube, aggregateRows, normalizeBounds, rangeBounds, summarizeRange, isoWeek};
+  window.usageReportFilter = {cube, aggregateRows, displayName, normalizeBounds, rangeBounds, summarizeRange, isoWeek};
 
   function rowName(row, selector) {
     const node = row.querySelector(selector);
@@ -1711,6 +1961,10 @@ document.addEventListener('click', async (e) => {
     const maxTokens = weekly.reduce((max, week) => Math.max(max, week.tokens), 0);
     const wrap = document.createElement('div');
     wrap.className = 'trend';
+    const dailyChart = window.usageReportDaily && window.usageReportDaily.buildDailyChart
+      ? window.usageReportDaily.buildDailyChart(summary)
+      : null;
+    if (dailyChart) wrap.append(dailyChart);
     weekly.forEach((week, idx) => {
       const isoStart = isoWeekDate(week.year, week.week, 1);
       const isoEnd = isoWeekDate(week.year, week.week, 7);
@@ -1973,6 +2227,9 @@ document.addEventListener('click', async (e) => {
     rebuildModels(summary);
     rebuildTrend(summary);
     rebuildComposition(summary);
+    if (window.usageReportDaily && window.usageReportDaily.rebuildPricing) {
+      window.usageReportDaily.rebuildPricing(summary);
+    }
     rebuildSessions(summary);
     updatePeriod(summary.bounds);
     return summary;

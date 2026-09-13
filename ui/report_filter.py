@@ -220,7 +220,7 @@ REPORT_FILTER_JS = r"""(() => {
     };
   }
 
-  window.usageReportFilter = {cube, aggregateRows, normalizeBounds, rangeBounds, summarizeRange, isoWeek};
+  window.usageReportFilter = {cube, aggregateRows, displayName, normalizeBounds, rangeBounds, summarizeRange, isoWeek};
 
   function rowName(row, selector) {
     const node = row.querySelector(selector);
@@ -860,6 +860,10 @@ REPORT_FILTER_JS = r"""(() => {
     const maxTokens = weekly.reduce((max, week) => Math.max(max, week.tokens), 0);
     const wrap = document.createElement('div');
     wrap.className = 'trend';
+    const dailyChart = window.usageReportDaily && window.usageReportDaily.buildDailyChart
+      ? window.usageReportDaily.buildDailyChart(summary)
+      : null;
+    if (dailyChart) wrap.append(dailyChart);
     weekly.forEach((week, idx) => {
       const isoStart = isoWeekDate(week.year, week.week, 1);
       const isoEnd = isoWeekDate(week.year, week.week, 7);
@@ -1122,6 +1126,9 @@ REPORT_FILTER_JS = r"""(() => {
     rebuildModels(summary);
     rebuildTrend(summary);
     rebuildComposition(summary);
+    if (window.usageReportDaily && window.usageReportDaily.rebuildPricing) {
+      window.usageReportDaily.rebuildPricing(summary);
+    }
     rebuildSessions(summary);
     updatePeriod(summary.bounds);
     return summary;

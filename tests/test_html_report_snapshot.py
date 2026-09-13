@@ -94,7 +94,7 @@ def _full_report_data() -> dict[str, Any]:
             {"date": "2026-05-23", "tokens": 100000, "level": 3},
         ],
     ]
-    return {
+    data = {
         "date_from": "2026-05-01",
         "date_to": "2026-05-24",
         "period_label": "2026-05-01 -> 2026-05-23",
@@ -373,6 +373,32 @@ def _full_report_data() -> dict[str, Any]:
             "beast": "phoenix",
         },
     }
+    data["cube"] = {
+        "dates": ["2026-05-04", "2026-05-05", "2026-05-12", "2026-05-13", "2026-05-20"],
+        "agents": [
+            {"id": "claude-code", "name": "Claude Code"},
+            {"id": "codex", "name": "Codex"},
+            {"id": "grok", "name": "Grok"},
+        ],
+        "models": [
+            {"name": "claude-sonnet-4", "cost_known": True},
+            {"name": "gpt-5-codex", "cost_known": True},
+            {"name": "unknown", "cost_known": False},
+        ],
+        "projects": ["usage"],
+        "rows": [
+            [0, 0, 0, 0, 60000, 10000, 10000, 20000, 2.34, 1],
+            [0, 1, 1, 0, 10000, 20000, 0, 0, 0.0, 1],
+            [1, 0, 0, 0, 80000, 20000, 10000, 30000, 3.45, 1],
+            [1, 1, 1, 0, 20000, 20000, 0, 0, 0.0, 1],
+            [2, 1, 1, 0, 120000, 30000, 10000, 40000, 5.12, 1],
+            [2, 2, 2, 0, 10000, 10000, 0, 10000, 0.0, 1],
+            [3, 0, 0, 0, 140000, 40000, 20000, 50000, 6.01, 1],
+            [3, 2, 2, 0, 20000, 10000, 0, 20000, 0.0, 1],
+            [4, 1, 1, 0, 60000, 30000, 10000, 40000, 2.87, 1],
+        ],
+    }
+    return data
 
 
 def _empty_report_data() -> dict[str, Any]:
@@ -446,10 +472,13 @@ def test_generate_html_omits_unpriced_cost_note_when_all_models_are_priced() -> 
     data = _full_report_data()
     for model in data["by_model"]:
         model["cost_known"] = True
+    for model in data["cube"]["models"]:
+        model["cost_known"] = True
 
     html = html_report.generate_html(data, language="zh-TW")
 
-    assert "無公開價格" not in html
+    assert "全部用量都有公開價格。" in html
+    assert '<div class="pricing-bar"' not in html
 
 
 def test_generate_html_shows_formatted_unpriced_cost_note() -> None:
@@ -572,7 +601,7 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
         r'<span class="name">unknown',
         html,
     )
-    assert "window.usageReportFilter = {cube, aggregateRows, normalizeBounds" in html
+    assert "window.usageReportFilter = {cube, aggregateRows, displayName, normalizeBounds" in html
     assert REPORT_FILTER_JS in html
 
 
@@ -618,7 +647,9 @@ def test_generate_html_adds_date_filter_cards_and_fixed_range_labels_for_cube() 
 
 
 def test_generate_html_without_cube_keeps_python_rendered_filter_sections() -> None:
-    html = html_report.generate_html(_full_report_data(), language="en")
+    data = _full_report_data()
+    data.pop("cube")
+    html = html_report.generate_html(data, language="en")
 
     assert '<div class="date-filter" data-date-filter>' not in html
     assert 'id="usage-cube-data"' not in html

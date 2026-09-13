@@ -7,6 +7,7 @@ from pathlib import Path
 
 import pytest
 
+from ui.report_daily_chart import REPORT_DAILY_CHART_JS
 from ui.report_filter import REPORT_FILTER_JS
 
 NODE = shutil.which("node")
@@ -14,6 +15,7 @@ NODE = shutil.which("node")
 
 NODE_HARNESS = r"""
 const assert = require('node:assert/strict');
+const REPORT_DAILY_CHART_JS = __REPORT_DAILY_CHART_JS__;
 const REPORT_FILTER_JS = __REPORT_FILTER_JS__;
 
 class Element {
@@ -194,6 +196,8 @@ function makeEnvironment(
     new Element('div', 'rank-head'),
     new Element('div', 'rank-list'),
   );
+  const pricingSection = new Element('section', 'pricing-section');
+  pricingSection.append(new Element('div', 'prompt'), new Element('div', 'rule'));
   const sessionSection = new Element('section', 'session-section');
   sessionSection.append(
     new Element('div', 'prompt'),
@@ -266,6 +270,14 @@ function makeEnvironment(
     trendMarkerNew: 'new',
     trendWeekInProgress: 'in progress',
     unknown: 'Unknown',
+    dailyChartTitle: 'Daily usage',
+    dailyChartModeTokens: 'Tokens',
+    dailyChartModeCost: 'Cost',
+    dailyChartTotal: 'Total',
+    pricingAllPriced: 'All usage has a public price.',
+    pricingHint: 'Cost is an API equivalent.',
+    pricingPriced: 'Priced',
+    pricingUnpriced: 'No public price',
   };
   global.document = {
     querySelector(selector) {
@@ -278,6 +290,7 @@ function makeEnvironment(
       if (selector === '.model-section .prompt-title') return modelTitle;
       if (selector === '.trend-section') return trendSection;
       if (selector === '.composition-section') return compositionSection;
+      if (selector === '.pricing-section') return pricingSection;
       if (selector === '.session-section') return sessionSection;
       if (selector === '[data-date-filter]') return withDateFilter ? dateFilter : null;
       const cardMatch = /^\.card\[data-card="([^"]+)"\]$/.exec(selector);
@@ -306,17 +319,19 @@ function makeEnvironment(
   return {
     groups, groupChildren, groupList, projectHead, projectList, projectRows,
     tools, cards, period, modelTitle, dateFilter, fromInput, toInput,
-    shortcutButtons, storageData, trendSection, compositionSection, sessionSection,
+    shortcutButtons, storageData, trendSection, compositionSection, pricingSection, sessionSection,
   };
 }
 
 function run(environment) {
+  eval(REPORT_DAILY_CHART_JS);
   eval(REPORT_FILTER_JS);
   return environment;
 }
 
 global.document = {querySelector: () => null};
 global.window = {};
+assert.doesNotThrow(() => eval(REPORT_DAILY_CHART_JS));
 assert.doesNotThrow(() => eval(REPORT_FILTER_JS));
 
 const cube = {
@@ -693,6 +708,49 @@ assert.equal(fullDump.includes('Infinity'), false);
 console.log(
   'filter: isoWeek 2026-W1 cross-year; composition 50/40/10; sessions by cost; csv masked'
 );
+
+const chartCube = {
+  dates: ['2026-03-01', '2026-03-02'],
+  agents: [{id: 'claude-code', name: 'Claude Code'}, {id: 'grok', name: 'Grok'}],
+  models: [{name: 'priced', cost_known: true}, {name: 'unknown', cost_known: false}],
+  projects: ['usage'],
+  rows: [
+    [0, 0, 0, 0, 20, 0, 0, 0, 2, 1],
+    [1, 1, 1, 0, 30, 0, 0, 0, 0, 1],
+  ],
+};
+const chartEnv = run(makeEnvironment(chartCube, {}, false, [], true));
+let chart = chartEnv.trendSection.querySelector('.daily-chart-wrap');
+assert.ok(chart);
+assert.equal(chart.querySelectorAll('rect').length, 2);
+assert.equal(
+  Number(chart.querySelector('rect').getAttribute('width')),
+  (760 - 48 - 8) / 2 * .55
+);
+assert.equal(chart.querySelector('.daily-chart-legend').children.length, 2);
+const costButton = chart.descendants().find((item) => item.dataset.dailyMode === 'cost');
+costButton.fire('click');
+chart = chartEnv.trendSection.querySelector('.daily-chart-wrap');
+const activeCostButton = chart.descendants().find((item) => item.dataset.dailyMode === 'cost');
+assert.equal(
+  activeCostButton.getAttribute('aria-pressed'),
+  'true'
+);
+assert.equal(chart.querySelector('.daily-peak-label').textContent, '$2.00');
+assert.equal(chartEnv.pricingSection.querySelector('.pricing-bar').children.length, 2);
+shareConfig.unknown = '未知';
+chartEnv.fromInput.value = '2026-03-02';
+chartEnv.toInput.value = '2026-03-02';
+chartEnv.fromInput.fire('change');
+assert.equal(
+  chartEnv.pricingSection.querySelector('.pricing-bar-labels'),
+  null
+);
+const pricingModels = chartEnv.pricingSection.querySelector('.pricing-models');
+assert.equal(pricingModels.tagName, 'span');
+assert.equal(pricingModels.textContent, '未知');
+assert.equal(pricingModels.parentNode.className, 'name');
+console.log('daily chart: date range rebuilds pricing; tokens/cost toggle redraws');
 """
 
 
@@ -714,7 +772,11 @@ def test_collapsed_rank_lines_are_actually_hidden_by_css() -> None:
 
 
 def test_report_filter_javascript_interactions_and_boundaries(tmp_path: Path) -> None:
-    script = NODE_HARNESS.replace("__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS))
+    script = (
+        NODE_HARNESS
+        .replace("__REPORT_DAILY_CHART_JS__", json.dumps(REPORT_DAILY_CHART_JS))
+        .replace("__REPORT_FILTER_JS__", json.dumps(REPORT_FILTER_JS))
+    )
     # 走檔案而非 node -e：整份 JS 當命令列參數會超過 Windows 的長度上限（WinError 206）。
     script_path = tmp_path / "harness.cjs"
     script_path.write_text(script, encoding="utf-8")
@@ -734,4 +796,5 @@ def test_report_filter_javascript_interactions_and_boundaries(tmp_path: Path) ->
         "zero and full child shares: 100.0% + 0.0%; costs remain",
         "range: 50 tokens, $5, 2 sessions; empty/reversed/clamped/no-previous safe",
         "filter: isoWeek 2026-W1 cross-year; composition 50/40/10; sessions by cost; csv masked",
+        "daily chart: date range rebuilds pricing; tokens/cost toggle redraws",
     ]

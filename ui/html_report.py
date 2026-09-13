@@ -32,6 +32,7 @@ from i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
 from usage_common.subprocess_utils import hidden_console_kwargs
 from ui.report_charts import render_share_bar, render_trend_bar
+from ui.report_daily_chart import REPORT_DAILY_CHART_JS, render_daily_chart, render_pricing_section
 from ui.report_filter import REPORT_FILTER_JS
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE, REPORT_THEME_INIT_JS
 from ui.report_styles import REPORT_CSS
@@ -268,7 +269,7 @@ _AGENT_COLORS = {
     "claude-code": "#5abfa0",
     "codex": "#e0885a",
     "antigravity": "#8f86c9",
-    "grok": "#78cdb2",
+    "grok": "#c7839f",
 }
 
 
@@ -967,10 +968,32 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
 
 def _render_trend_section(data: Mapping[str, Any], lang: str, date_to: date) -> str:
     daily = data.get("daily_trend", [])
+    chart = ""
+    cube = data.get("cube")
+    if isinstance(cube, Mapping):
+        chart = render_daily_chart(
+            cube,
+            lambda key: _t(lang, key),
+            _fmt_tokens,
+            _fmt_cost,
+        )
     return _section(
         _t(lang, "trend_section"),
-        _trend_ascii(daily, lang, date_to),
+        f"{chart}{_trend_ascii(daily, lang, date_to)}",
         "trend-section",
+    )
+
+
+def _render_pricing_section(data: Mapping[str, Any], lang: str) -> str:
+    cube = data.get("cube")
+    if not isinstance(cube, Mapping):
+        return ""
+    return render_pricing_section(
+        cube,
+        lambda key: _t(lang, key),
+        _fmt_tokens,
+        lambda value: _display_name(value, lang),
+        "、" if lang.startswith("zh") else ", ",
     )
 
 
@@ -1230,10 +1253,19 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                 "compositionInput": _t(lang, "composition_input"),
                 "compositionOutput": _t(lang, "composition_output"),
                 "duration": _t(lang, "duration"),
+                "dailyChartTitle": _t(lang, "daily_chart_title"),
+                "dailyChartModeTokens": _t(lang, "daily_chart_mode_tokens"),
+                "dailyChartModeCost": _t(lang, "daily_chart_mode_cost"),
+                "dailyChartTotal": _t(lang, "daily_chart_total"),
                 "emptyDaily": _t(lang, "empty_daily"),
                 "emptySessions": _t(lang, "empty_sessions"),
                 "model": _t(lang, "model"),
                 "project": _t(lang, "project"),
+                "pricingAllPriced": _t(lang, "pricing_all_priced"),
+                "pricingHint": _t(lang, "pricing_hint"),
+                "pricingModelSeparator": "、" if lang.startswith("zh") else ", ",
+                "pricingPriced": _t(lang, "pricing_priced"),
+                "pricingUnpriced": _t(lang, "pricing_unpriced"),
                 "rank": _t(lang, "rank"),
                 "startTime": _t(lang, "start_time"),
                 "trendCompareDown": _t(lang, "trend_compare_down", pct="{pct}"),
@@ -1297,7 +1329,7 @@ def _render_styles() -> str:
 
 def _render_scripts(share_config_json: str) -> str:
     report_js = REPORT_JS_TEMPLATE.replace("__SHARE_CONFIG_JSON__", share_config_json)
-    return f"{HTML_TO_IMAGE_UMD}\n{report_js}\n{REPORT_FILTER_JS}"
+    return f"{HTML_TO_IMAGE_UMD}\n{report_js}\n{REPORT_DAILY_CHART_JS}\n{REPORT_FILTER_JS}"
 
 
 def generate_html(
@@ -1338,6 +1370,7 @@ def generate_html(
             f"  {_render_wrapped_section(report_data, lang)}\n"
             f"{insight_surface.rstrip()}{_render_tools_section(report_data, lang)}\n"
             f"  {_render_composition_section(report_data, lang)}\n"
+            f"  {_render_pricing_section(report_data, lang)}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_model_section(report_data, lang)}\n"
             f"  {_render_trend_section(report_data, lang, date_to)}\n"
