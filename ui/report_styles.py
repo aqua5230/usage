@@ -513,9 +513,14 @@ td:first-child{color:var(--warn)}
   .trend-summary{font-size:.8rem}
   .daily-chart-wrap{margin-bottom:18px}.daily-chart-head{align-items:flex-start}.daily-chart-canvas,.daily-chart-svg{height:170px}.daily-tooltip{font-size:.67rem}
   .wrapped-metrics,.contribution-stats{grid-template-columns:1fr}
-  .contribution-months{font-size:.66rem;padding-left:26px}
-  .contribution-board{grid-template-columns:22px minmax(0,1fr)}
-  .contribution-days{font-size:.58rem}
+  /* 52 欄塞進手機寬會縮成點、月份疊字：改固定格寬、框內橫捲。
+     rtl 讓捲動起點落在最右邊（最近幾週），內層再轉回 ltr。 */
+  .contribution-heatmap{overflow-x:auto;direction:rtl;padding-bottom:6px}
+  .contribution-heatmap>*{direction:ltr;width:max-content}
+  .contribution-months,.contribution-grid{grid-template-columns:repeat(var(--weeks),11px);gap:2px}
+  .contribution-months{font-size:.62rem;padding-left:26px}
+  .contribution-board{grid-template-columns:22px max-content}
+  .contribution-days{position:sticky;left:0;z-index:2;gap:2px;font-size:.58rem;background:var(--bg)}
 }
 @media print{
   :root{--bg:#fff;--panel:#fff;--card-bg:#fff;--soft:#fff;--text:#1f2318;--text-soft:#34382b;--muted:#555b49;--token:#6b5318;--cost:#256b59;--warn:#8c4624;--accent-purple:#514a7a}
