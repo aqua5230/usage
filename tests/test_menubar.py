@@ -413,7 +413,7 @@ def test_quota_row_uses_burn_warning_when_forecast_exceeds_risk_threshold() -> N
     )
 
     assert row.warning is True
-    assert row.reset_text == "⚠ 18分鐘後用完 · 重置 51分鐘"
+    assert row.reset_text == "⚠ 照目前速度 18分鐘後用完 · 重置 51分鐘"
     assert row.reset_text_compact == "⚠ 18分鐘後用完"
 
 def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
@@ -446,6 +446,72 @@ def test_quota_row_keeps_reset_text_when_forecast_exceeds_warning_max() -> None:
 
     assert row.warning is False
     assert row.reset_text == "重置 4天 0小時"
+
+
+def test_weekly_quota_row_keeps_reset_text_when_whole_window_blocks_warning() -> None:
+    row = menubar._quota_row(
+        "Weekly",
+        53.7,
+        1_000.0 + (73 * 3600),
+        1_000.0,
+        menubar.CLAUDE_COLOR,
+        language="zh-TW",
+        forecast_seconds=47_040,
+        warning_max_seconds=24 * 3600,
+        window_seconds=7 * 86400,
+    )
+
+    assert row.warning is False
+    assert row.reset_text == "重置 3天 1小時"
+
+
+def test_weekly_quota_row_keeps_reset_text_when_warning_max_blocks_warning() -> None:
+    row = menubar._quota_row(
+        "Weekly",
+        80.0,
+        1_000.0 + (73 * 3600),
+        1_000.0,
+        menubar.CLAUDE_COLOR,
+        language="zh-TW",
+        forecast_seconds=25 * 3600,
+        warning_max_seconds=24 * 3600,
+        window_seconds=7 * 86400,
+    )
+
+    assert row.warning is False
+    assert row.reset_text == "重置 3天 1小時"
+
+
+def test_weekly_quota_row_warns_when_both_speeds_predict_exhaustion() -> None:
+    row = menubar._quota_row(
+        "Weekly",
+        80.0,
+        1_000.0 + (73 * 3600),
+        1_000.0,
+        menubar.CLAUDE_COLOR,
+        language="zh-TW",
+        forecast_seconds=10 * 3600,
+        warning_max_seconds=24 * 3600,
+        window_seconds=7 * 86400,
+    )
+
+    assert row.warning is True
+    assert "照目前速度 10小時 0分鐘後用完" in row.reset_text
+
+
+def test_weekly_quota_row_omits_pace_for_invalid_time_or_small_delta() -> None:
+    invalid_time = menubar._quota_row(
+        "Weekly", 50.0, 1_000.0 + (8 * 86400), 1_000.0, menubar.CLAUDE_COLOR,
+        language="zh-TW", forecast_seconds=30 * 60, window_seconds=7 * 86400,
+    )
+    on_track = menubar._quota_row(
+        "Weekly", 43.0, 1_000.0 + (4 * 86400), 1_000.0, menubar.CLAUDE_COLOR,
+        language="zh-TW", window_seconds=7 * 86400,
+    )
+
+    assert invalid_time.warning is True
+    assert invalid_time.reset_text.startswith("⚠ 照目前速度")
+    assert on_track.reset_text == "重置 4天 0小時"
 
 
 def test_quota_row_keeps_reset_text_when_percent_is_below_warning_floor() -> None:
@@ -2670,7 +2736,7 @@ def test_state_from_outcome_replaces_claude_reset_with_warning(
     state = _build_popover_state(delegate, outcome, _codex_rows(delegate)[0])
 
     assert state.claude_session.warning is True
-    assert state.claude_session.reset_text == "⚠ 18分鐘後用完 · 重置 51分鐘"
+    assert state.claude_session.reset_text == "⚠ 照目前速度 18分鐘後用完 · 重置 51分鐘"
 
 
 def test_codex_rows_ignores_invalid_stale_timestamp(
