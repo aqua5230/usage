@@ -1035,6 +1035,78 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.30.15",
+          "period": "2026-09-14",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "HTML 報表內建互動日期切換，外寄檔案免裝 app 隨開即查",
+                "en": "HTML reports now feature interactive date filtering, letting recipients explore data instantly without installing an app"
+              },
+              "body": {
+                "zh-TW": "將匯出的 HTML 報表寄給同事或主管時，對方現在打開網頁就能自由挑選想看的日期範圍。⟦這好比寄給客戶一張附帶迷你算盤的互動報價單，對方輕撥頂端滑軌，整張單據的各項統計數字便立刻重算。⟧過去報表在產生的那一刻就把區間寫死，收到檔案的人完全無法切換視角；若要改看上週數據，只能請你重跑一次指令。新版直接將約 80 KB 的「日 × 工具 × 模型 × 專案」彙總表嵌入網頁中，所有牽涉日期的區塊都在瀏覽器內即時計算。頁面上方設有吸頂日期列，提供五個快捷範圍與自訂起訖日；不需安裝 app 也不必重新產檔，分享出去的檔案依然能完整操作。至於那些固定觀察特定天數的區塊，介面也會清楚標明涵蓋範圍，避免切換日期時讓人誤以為畫面故障。",
+                "en": "When emailing an exported HTML report to teammates or managers, recipients can now freely select the date range they want to inspect right on the page. ⟦It is like sending a client an interactive quote with a mini abacus attached: they nudge a slider at the top, and all totals across the document instantly recalculate.⟧ Previously, the report locked its timeframe at generation time, leaving recipients unable to adjust the view; switching to last week's numbers meant asking you to rerun the command. The new version directly embeds an ~80 KB summary table of \"day × tool × model × project\" into the page, and every date-dependent section recalculates live in the browser. A sticky date bar at the top provides five shortcut ranges and a custom from/to range. No app or regeneration is required, keeping shared files fully functional. Sections covering a fixed number of days clearly indicate their span, preventing users from assuming the view is broken when switching dates."
+              },
+              "original": "**The report's date range can be changed inside the page** ([#137](https://github.com/aqua5230/usage/pull/137)). The HTML report used to freeze its period at generation time, so a copy sent to someone else could not be explored. A day × tool × model × project table (about 80 KB) is now embedded, and every date-dependent section recalculates in the browser from five shortcuts or a custom from/to range in a sticky bar. No app and no regeneration are needed, so a shared file stays fully usable. Sections that always cover a fixed span say so, so they don't look broken when the dates change."
+            },
+            {
+              "title": {
+                "zh-TW": "清理對話紀錄不再遺失用量歷史，快照持久化小計與花費",
+                "en": "Cleaning up transcripts no longer erases usage history, with snapshots persisting totals and costs"
+              },
+              "body": {
+                "zh-TW": "刪除舊的對話紀錄釋放硬碟空間，歷史報表不再跟著消失。過往報表每次都從 `~/.claude/projects` 與 `~/.codex/sessions` 重算，這些紀錄每月約增長 1.9 GB，清掉舊檔等於抹平歷史。新版將小計以工作階段、日期、工具、模型與專案五個維度存入 `~/.usage/usage_snapshot.json` 快照檔，並記錄各工作階段（session）的開始時間與時長，排行榜也能救回。若某天讀取的 token（AI 處理與計費的文字單位）少於快照，當天改由快照還原；已存花費原樣沿用，不依今日價格重新計價。實測今天、本週、最近 7 天、本月與全部五個範圍，模擬紀錄全刪與完整留存產出的報表，除產生時間外逐字相同。⟦這宛如會計部將厚重簽單彙總成分類帳，日後銷毀過期單據，收支與排行依然分毫不差。⟧",
+                "en": "Deleting old conversation transcripts to free up disk space no longer wipes out historical reports. Previously, reports recomputed everything from `~/.claude/projects` and `~/.codex/sessions`, which grow by roughly 1.9 GB each month, so clearing old files meant erasing history. The new version saves subtotal snapshots across five dimensions—session, date, tool, model, and project—into `~/.usage/usage_snapshot.json`, while also recording each session's start time and duration so rankings survive. If a given day's loaded tokens are fewer than in the snapshot, that day is restored from the snapshot. Saved costs are kept as-is rather than repriced against today's prices. In tests across five ranges—today, this week, last 7 days, this month, and all—reports generated with transcripts fully kept versus simulated as completely deleted were byte-identical, except for generation time. ⟦This is like an accounting department summarizing heavy receipts into a ledger: even if expired receipts are later shredded, revenue, expenses, and rankings remain exact.⟧"
+              },
+              "original": "**Report history survives transcript cleanup.** The report recomputed everything from `~/.claude/projects` and `~/.codex/sessions`, which grow by roughly 1.9 GB a month, so deleting old transcripts erased report history with them. Totals are now kept in `~/.usage/usage_snapshot.json` at (session, date, tool, model, project) grain, plus each session's start time and duration so the session ranking survives too. When a day's live transcripts hold fewer tokens than the snapshot, that day is replayed from the snapshot; stored costs are used as-is rather than repriced against today's price list. On real data, reports for today / week / last 7 days / month / all were byte-identical except for the generation time with transcripts present and with all of them simulated as deleted."
+            },
+            {
+              "title": {
+                "zh-TW": "報表依閱讀動線重新排版，視覺降噪並最佳化手機瀏覽",
+                "en": "Report layout reorganized around reading flow, reducing visual noise and optimizing mobile viewing"
+              },
+              "body": {
+                "zh-TW": "用量報表打開後，版面按閱讀順序重排。⟦像把年報改成目錄，先放總覽，撤掉重複圖表，細節收進可展開頁籤，手機也不迷路。⟧順序是摘要卡、用量趨勢、工具、專案、高花費工作階段、固定週期群組、計算方式、年度回顧。主力模型區塊因重複工具數字而移除；工具列可展開模型，切換日期後保持展開；專案甜甜圈圖因重複排行而刪除。每週燃燒趨勢改名為「用量趨勢」。token（AI 處理與計費的文字單位）組成、快取命中率與花費可信度收進折疊的計算卡，五個 fixed range 標籤變成群組上方說明。色條改成底緣 2px 細線，只有 token 數字維持黃色；摘要卡獨立成圓角框，先顯示縮寫數字，下方列精確數字。區塊間距、標題大小與左右邊界也統一，可展開列滑過會高亮。手機上專案一行、工具兩行，工作階段表格橫滑，熱圖保留可讀格子並自動捲到最新週數。開頭摘要移除專案數，因非 git 資料夾與重播歷史會墊高數字。",
+                "en": "When opening the usage report, the layout is now rearranged in reading order. ⟦It is like turning an annual report into a table of contents: leading with the overview, stripping redundant charts, tucking details into expandable tabs, and keeping mobile navigation effortless.⟧ The sequence is now summary cards, usage trend, tools, projects, costliest sessions, fixed-span group, calculation details, and Year in Review. The main model section was removed because it duplicated tool numbers; tool rows can expand to reveal models and remain open after switching dates; the project donut chart was removed for repeating ranking data. \"Weekly burn trend\" is renamed to \"Usage trend\". Token composition, cache hit rate, and cost confidence are tucked into a collapsed calculation card, while five \"fixed range\" tags became a single note above their group. Colored bars were replaced with 2px lines along the bottom edge, with only token figures keeping their yellow color. Summary cards are separate rounded boxes that display abbreviated numbers first, followed by exact figures underneath. Section spacing, heading sizes, and horizontal margins are unified, with expandable rows highlighting on hover. On mobile, projects take one line and tools take two lines, session tables scroll horizontally, and the heatmap retains readable grid cells while automatically scrolling to the latest weeks. The opening summary removes the project count, as non-git folders and replayed history inflate the figure."
+              },
+              "original": "**The report is reorganised around what people read first.** Order is now summary cards → usage trend → your tools → projects → costliest sessions → the fixed-span group (heatmap, habits, recent work, insights) → how these numbers are calculated → Year in Review. The main-model section repeated the tools section's numbers exactly, so it is gone; each tool row now expands to show its models, and expanded rows stay open when the date range changes. The project donut repeated the ranking below it and was removed. \"Weekly burn trend\" is now \"Usage trend\". Token mix, cache hit rate and cost confidence live in a collapsed \"How these numbers are calculated\" card. The five \"fixed range\" tags became one note above the group they apply to.\n**Visual pass across the report.** Filled bars behind ranking, tool, composition and weekly rows became 2px tracks along the bottom edge; only token figures stay yellow. Summary cards are separate rounded boxes that lead with the abbreviated number and show the exact count underneath. Section spacing and title sizes are consistent, every section shares one left and right edge, and expandable rows highlight on hover. On phones, a project is one line instead of four, a tool is two lines instead of four, the session table scrolls sideways instead of wrapping, and the heatmap keeps readable cells and opens scrolled to the latest weeks.\n**The summary sentence no longer states a project count.** Projects are attributed by working folder, so non-git folders and replayed history still inflate the number enough to mislead."
+            },
+            {
+              "title": {
+                "zh-TW": "新增每日用量堆疊圖與花費可信度，工具分色不再混淆",
+                "en": "New daily stacked usage chart and cost confidence, with distinct tool colors eliminating confusion"
+              },
+              "body": {
+                "zh-TW": "想看清各家 AI 每天的花費與用量節奏，報表新增了直觀的每日用量圖表。圖表每天顯示一根堆疊長條並依工具分色，右上角提供 Tokens 與花費切換開關，滑鼠懸停即可檢視當日用量細項，切換日期時也會跟著重新繪製。為了讓各家工具一目了然，Grok 的代表色改為粉紅色，徹底解決過往綠色與相鄰 Claude 綠色混在一起難以分辨的困擾。此外，報表增設「花費可信度」標記，明確列出有多少比例的用量具備公開價格、多少沒有，並直接點名缺乏公開報價的模型。介面也明白告知讀者，統計顯示的金額是依公開價目表折算的 API 等值花費，並非你的訂閱制月租帳單。⟦這種透明度恰如商務飯店出具的明細單，每天的消費以不同顏色長條清楚區分，附上幣別切換與項目透視，並誠實註記未定價項目的等值折算依據。⟧",
+                "en": "To provide clear visibility into daily spending and usage pacing across different AIs, the report adds an intuitive daily usage chart. The chart displays a stacked bar per day colored by tool, featuring a Tokens/Cost toggle in the top-right corner and hover tooltips for daily breakdowns, automatically redrawing when the date range changes. To make each tool instantly recognizable, Grok's color is changed to pink, resolving the issue where its previous green blended into the adjacent Claude green. In addition, the report introduces a \"Cost confidence\" badge that specifies the exact proportion of usage backed by public pricing versus unpriced usage, explicitly naming models without public rates. The interface also clearly informs readers that reported costs represent API-equivalent values calculated from public price lists rather than subscription bills. ⟦This transparency is like an itemized hotel invoice where each day's expenses are distinguished by colored bars, complete with currency toggles, line-item breakdowns, and clear explanations for estimated unpriced services.⟧"
+              },
+              "original": "**Daily usage chart.** A stacked bar per day, coloured by tool, with a Tokens/Cost toggle, a hover breakdown, and redraws when the date range changes.\n**Cost confidence.** Shows how much usage has a public price and how much does not, names the unpriced models, and states plainly that cost is the API-equivalent value from public price lists, not a subscription bill.\n**Grok is pink in the report.** Its previous green sat next to Claude's green in the stacked daily chart and the two could not be told apart."
+            },
+            {
+              "title": {
+                "zh-TW": "Claude 子目錄工作階段依 Git 歸屬專案，快取擴大防止重複查詢",
+                "en": "Claude sessions in subdirectories attributed to parent repo via Git, with expanded cache preventing repeated lookups"
+              },
+              "body": {
+                "zh-TW": "在專案子資料夾啟動 Claude，用量現在會正確歸入同一個母專案。過去 `adapters/claude.py` 處理工作階段（session）只取路徑最後一層名稱，導致 `tests/`、`docs/` 或 `panels/` 都被誤算成獨立專案。新版改用與 Codex、Grok 及 Antigravity 相同的 `resolve_project_name()` 判斷 git 根目錄。為了避免多個工具的資料夾加總後反覆呼叫 `git`，共用快取（cache，把查過的結果暫存起來直接用）上限從 256 筆調升至 2048 筆。只能從小計快照還原的舊日期，則沿用當時記下的資料夾名稱。⟦這彷彿收發室先前只看包裹的辦公室門牌，把同一部門信件拆給不同客戶；改查大樓總地址後，信件才正確歸入同案。⟧",
+                "en": "Launching Claude inside a project subfolder now correctly attributes usage to the same parent project. Previously, `adapters/claude.py` handled sessions by taking only the last folder name in the path, causing `tests/`, `docs/`, or `panels/` to be miscounted as standalone projects. The new version switches to `resolve_project_name()`, matching Codex, Grok, and Antigravity to determine the git root. To avoid repeated `git` calls when aggregating folders across multiple tools, the shared cache limit was raised from 256 to 2048 entries. Older dates that can only be replayed from subtotal snapshots retain the folder names recorded at that time. ⟦It is as if a mailroom previously looked only at office door numbers on packages, sorting letters for the same department into different client bins; checking the building's main address finally routes every mail item to the correct project.⟧"
+              },
+              "original": "**Claude sessions opened in a repo subfolder no longer count as separate projects.** `adapters/claude.py` used only the last folder name, so `tests/`, `docs/` and `panels/` each became a project. It now uses the same `resolve_project_name()` git lookup as Codex, Grok and Antigravity, and the shared cache grew from 256 to 2048 entries so several tools' folders together don't push it into repeated `git` calls. Days that can only be replayed from the snapshot keep the folder names recorded at the time."
+            },
+            {
+              "title": {
+                "zh-TW": "報表修復排版與圖表比例，校準前期統計與混合計價",
+                "en": "Report fixes layout and chart proportions, calibrating prior-period comparisons and mixed pricing"
+              },
+              "body": {
+                "zh-TW": "瀏覽 HTML 報表時，多項版面與統計問題已修正。前期比較不再算到資料起始日之前，排除了如 `↑2799%` 的假成長；工具分組混到未定價模型也不再把整組花費隱藏成 `—`，Antigravity 曾被藏起的 $166 現已正常顯示。因 `.rank-line` 的 `display:grid` 權重高於瀏覽器 `[hidden]` 導致收合失效的問題已排除，收合列會確實收起；`.tokens-cell` 補上 `position:relative`，工作階段（session）排行的長條不再全疊在頁面左上角；展開的模型子列修正尺規，不再把專案佔比套用總量尺度，避免佔專案 68.7% 的模型看起來比專案本身大三倍。⟦這好比校對帳冊排版，校正前後期基準日，把摺疊欄位確實藏起並歸位重疊圖條，不再讓細項畫得比總額還長。⟧",
+                "en": "Several layout and statistical issues in the HTML report have been resolved. Previous-period comparisons no longer reach before the first day of data, eliminating artificial growth spikes such as `↑2799%`. Tool groups mixed with unpriced models no longer hide their entire cost as `—`, properly displaying Antigravity's previously hidden $166. An issue where `.rank-line`'s `display:grid` overrode the browser's `[hidden]` attribute has been fixed, ensuring collapsed rows actually collapse. Adding `position:relative` to `.tokens-cell` prevents session ranking bars from piling up in the top-left corner. Expanded model sub-rows now use corrected scaling rather than plotting project share on the total-volume scale, preventing a model accounting for 68.7% of a project from looking three times larger than the project itself. ⟦This is like proofing a ledger's layout: calibrating baseline comparison dates, properly hiding collapsed rows, repositioning overlapping bars, and preventing sub-items from being drawn longer than the total.⟧"
+              },
+              "original": "**Previous-period comparisons no longer reach before the first day of data** ([#137](https://github.com/aqua5230/usage/pull/137)), which produced growth like `↑2799%`.\n**A tool group with one unpriced model no longer hides its whole cost** ([#137](https://github.com/aqua5230/usage/pull/137)); Antigravity's $166 had been shown as `—`.\n**Collapsed rows actually collapse** ([#137](https://github.com/aqua5230/usage/pull/137)). `.rank-line`'s `display:grid` outranked the browser's `[hidden]`, so collapsing changed the DOM but not the screen.\n**Session ranking bars no longer pile up in the top-left corner** ([#137](https://github.com/aqua5230/usage/pull/137)); `.tokens-cell` was missing `position:relative`.\n**Expanded model rows are no longer wider than their parent.** Child bars were drawn as share-of-project on the same scale as the parent's share-of-total, so a model at 68.7% of a project looked three times bigger than the project itself."
+            }
+          ]
+        },
+        {
           "version": "0.30.14",
           "period": "2026-09-12",
           "items": [
@@ -1120,56 +1192,6 @@
                 "en": "Users who previously installed the status line and session resume hooks on their systems will now have them automatically replaced with the latest script versions upon upgrading. In the past, although both hooks underwent numerous modifications—including the status line rounding fix for `1000k` and ten fixes to session resume since July—the lack of version bumps left existing installations stuck on older files. The new release bumps the status line to version 1.6 and session resume to 1.7, with the installer actively overwriting old files with the latest copies and adding an automated test to ensure script version numbers and installer constants stay strictly in step. ⟦This is just like a library circulation desk updating its service policies but forgetting to update the version code on the cover, leading librarians to mistakenly believe the dusty manual in the drawer is still the active rulebook.⟧"
               },
               "original": "**Installed status line and session resume hooks are replaced with the current copies.** Both scripts had changed without a version bump — the status line's `1000k` fix and ten session-resume fixes since July — so existing installs kept the old files. The status line goes to `1.6` and session resume to `1.7`, and a new test keeps the session-resume script version and installer constant in step."
-            }
-          ]
-        },
-        {
-          "version": "0.30.12",
-          "period": "2026-09-11",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "自訂 Claude Code 設定路徑處處生效，狀態列與專案用量不再空白",
-                "en": "Custom Claude Code config paths take effect everywhere, keeping status lines and project usage from going blank"
-              },
-              "body": {
-                "zh-TW": "如果你搬移了 Claude Code 的設定資料夾，狀態列與專案用量現在處處都能正常讀取。⟦這好比工作室搬遷後，公文仍投進舊信箱，讓新辦公室的值班看板始終查無進度。⟧先前「設定狀態列」仍寫進 `~/.claude/settings.json`，Claude Code 根本不讀，兩條額度長條圖停在 0% 且標記「即將重置」；備援機制甚至翻出過期的 `~/.claude.json`，且從 Finder 或 Dock 開啟的桌面程式抓不到終端機變數，專案用量一片空白。\n\n```\n# 路徑解析順序（逗號分隔時讀取全部、寫入第一筆）：\n# 1. 環境變數 CLAUDE_CONFIG_DIR\n# 2. launchctl getenv CLAUDE_CONFIG_DIR\n# 3. 預設路徑 ~/.claude\n\n# 跟隨變數搬移：settings.json, .claude.json, projects/\n# 固定留在原處：狀態列腳本, usage-status.json, 偏好設定\n```\n\n新版 `loaders/claude_paths.py` 依序解析目錄，Claude Code 檔案跟著走，而 usage 自己的檔案固定留在原處，避免子行程與桌面端分頭讀寫造成錯位。",
-                "en": "If you relocate Claude Code's configuration directory, the status line and project usage can now be read properly everywhere. ⟦It is like moving to a new studio while official mail is still delivered to the old mailbox, leaving the duty board in the new office with no updates to display.⟧ Previously, \"Set Up Status Line\" still wrote to `~/.claude/settings.json`, which Claude Code never read, leaving both quota bars stuck at 0% with \"Reset imminent\"; the fallback mechanism even surfaced a stale `~/.claude.json`, and desktop apps launched from Finder or the Dock could not catch terminal environment variables, leaving project usage completely blank.\n\n```\n# Path resolution order (reads all when comma-separated, writes to the first entry):\n# 1. Environment variable CLAUDE_CONFIG_DIR\n# 2. launchctl getenv CLAUDE_CONFIG_DIR\n# 3. Default path ~/.claude\n\n# Moves with the variable: settings.json, .claude.json, projects/\n# Stays pinned in place: statusline script, usage-status.json, preferences\n```\n\nThe new `loaders/claude_paths.py` resolves directories in order so that Claude Code files follow the variable while usage's own files stay pinned in place, preventing misalignment from subprocesses and the desktop app reading and writing in different locations."
-              },
-              "original": "**`CLAUDE_CONFIG_DIR` is respected everywhere, not only for transcripts** ([#129](https://github.com/aqua5230/usage/issues/129)). With a relocated Claude Code config dir, \"Set Up Status Line\" wrote to `~/.claude/settings.json`, which Claude Code never read, so both quota bars sat at 0% with \"Reset imminent\", the fallback surfaced a stale `~/.claude.json`, and Project Usage stayed empty because an `.app` launched from Finder or the Dock does not inherit the shell environment. A new `loaders/claude_paths.py` resolves the directory from the environment, then `launchctl getenv CLAUDE_CONFIG_DIR`, then `~/.claude`; comma-separated values are read in full and written to the first entry. Files Claude Code owns follow it — `settings.json`, `.claude.json` (inside the directory whenever the variable is set, the same rule Claude Code uses), and `projects/`. usage's own files — the statusline script, `usage-status.json`, prefs — stay pinned to `~/.claude`: the script runs as a Claude Code subprocess and sees the variable while the app may not, and deriving both from it would let them write and read in different places."
-            },
-            {
-              "title": {
-                "zh-TW": "狀態列 Token 在單位邊界不再顯示 1000k，並補齊十億級距",
-                "en": "Status line token counts no longer show 1000k at unit boundaries, adding the billion step"
-              },
-              "body": {
-                "zh-TW": "在狀態列查看消耗進度時，若 Token（AI 處理與計費的文字單位）數值剛好逼近單位邊界，現在不再顯示彆扭的 `1000k`。⟦這種尷尬宛如汽車儀表板的里程計數器，在行駛累積到九百九十九點五公尺時本該跳轉為一公里，卻因提早進位而顯示出一千公尺；重新對準門檻後，大單位才會準時接棒切換。⟧過去三支狀態列腳本在數值達到 1,000,000 時才升級為 `M`，但 `k` 是整數格式化，999,500 以上會先四捨五入成 `1000k`；腳本也沒有 `B` 級距，使得 15 億被印成 `1500.0M`。現在門檻改為比對進位後的邊界（`k` 到 `M` 用 999,500、`M` 到 `B` 用 999,950,000）並補上 `B` 級距，對齊 `ui/tables.py` 既有的正確寫法。",
-                "en": "When checking usage progress in the status line, token values near unit boundaries no longer display an awkward `1000k`. ⟦This awkwardness is like a car odometer that should flip to 1 kilometer at 999.5 meters, but instead displays 1000 meters due to early rounding; readjusting the threshold ensures the larger unit takes over right on time.⟧ Previously, the three status line scripts only upgraded to `M` when reaching 1,000,000, but `k` used integer formatting, causing values of 999,500 and above to round up to `1000k` first; the scripts also lacked a `B` step, causing 1.5 billion to be printed as `1500.0M`. The thresholds now compare against rounded boundaries (999,500 for `k` to `M`, 999,950,000 for `M` to `B`) and add the `B` step, matching the existing correct implementation in `ui/tables.py`."
-              },
-              "original": "**Token counts no longer read `1000k` at a unit boundary.** The three statusline scripts promoted to `M` at `value >= 1_000_000`, but `k` is formatted `:.0f`, so anything from 999,500 rounded to `1000k` first; there was no `B` step either, so 1.5 billion read `1500.0M`. The thresholds now compare against the rounded boundary (999,500 for k→M, 999,950,000 for M→B) and a `B` step was added, matching the already-correct version in `ui/tables.py`."
-            },
-            {
-              "title": {
-                "zh-TW": "報表週趨勢長條支援懸停顯示，標註日期區間與花費",
-                "en": "Report weekly trend bars support hover display, showing date ranges and costs"
-              },
-              "body": {
-                "zh-TW": "打開用量報表查看每週趨勢長條時，滑鼠移過去現在會即時浮現日期區間與花費。⟦這有如專案白板上的進度橫條，湊近細看才能得知起訖日期與開銷明細，且剛進行三天的當週絕不會虛報成整整七天。⟧以前每列長條只標記 Token（AI 處理與計費的文字單位）數量，完全看不出那是哪一週、花了多少費用。新版在滑鼠懸停時補齊了具體時間與金額，顯示的日期區間也會嚴格限制在報表的實際範圍內，讓還沒過完的最後一週不會宣稱涵蓋七天、旁邊卻只有三天的數據。",
-                "en": "When viewing weekly trend bars in the usage report, hovering over them now reveals their date range and cost. ⟦It is like a progress bar on a project whiteboard where looking closely reveals exact start and end dates and expense details, ensuring a current week with only three days is never falsely shown as a full seven days.⟧ Previously, each row only marked token counts, with no way to tell which week it was or how much it cost. The new version provides the exact timeframe and amount on hover, and clamps the displayed date range strictly to the report's actual span so an unfinished last week does not claim seven days next to three days of numbers."
-              },
-              "original": "**Weekly trend bars in the report show their date range and cost on hover.** Each row only carried a token count, with no way to tell which week it was or what it cost. The range is clamped to the report's actual span, so an unfinished last week does not claim seven days next to three days of numbers."
-            },
-            {
-              "title": {
-                "zh-TW": "報表洞察備忘改為方角無框，對齊全列填色風格",
-                "en": "Insight notes in reports become square and borderless, matching full-row fill styling"
-              },
-              "body": {
-                "zh-TW": "報表底部的洞察備忘（提供用量趨勢與分析提醒的備忘列），現在全面改為方角、無外框的淡色整列。它們原本是整個報表介面中最後一處還帶有外框的表面，帶有 8px 圓角與 3px 左側色條，現在已改為與報表其餘整列填色完全一致的視覺風格。⟦整張介面有如筆記本排版，當所有章節內容都已換成清爽的無框滿版底色時，最後一個帶有外框與側邊色條的便簽也同步抹平框線，讓整頁閱讀動線不再突兀。⟧",
-                "en": "Insight notes at the bottom of the report are now entirely square, borderless tinted full rows. They were originally the last framed surfaces left across the entire report interface, featuring 8px rounded corners and a 3px left stripe, and have now been updated to match the visual style of the report's other full-row fills. ⟦The entire interface is like a notebook layout where, once all chapter contents have switched to clean borderless full-bleed background colors, the last sticky note with a border and side stripe also flattens its outlines so the reading flow across the page is no longer disjointed.⟧"
-              },
-              "original": "**Insight notes in the report are square, borderless tinted rows.** They were the last framed surface left — 8px corners and a 3px left stripe — and now match the report's other full-row fills."
             }
           ]
         }
