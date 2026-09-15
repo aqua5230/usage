@@ -496,7 +496,7 @@ def test_weekly_quota_row_warns_when_both_speeds_predict_exhaustion() -> None:
     )
 
     assert row.warning is True
-    assert "照目前速度 10小時 0分鐘後用完" in row.reset_text
+    assert "照目前速度 23小時 45分鐘後用完" in row.reset_text
 
 
 def test_weekly_quota_row_omits_pace_for_invalid_time_or_small_delta() -> None:

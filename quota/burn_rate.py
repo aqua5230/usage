@@ -17,6 +17,7 @@ MIN_FORECAST_SPAN_SECONDS = 5 * 60
 WARNING_PERCENT_FLOOR = 50.0
 WEEKLY_WINDOW_SECONDS = 7 * 86400
 URGENT_WARNING_SECONDS = 60 * 60
+WEEKLY_AVERAGE_WARNING_RATIO = 0.8
 
 
 @dataclass(slots=True)
@@ -31,8 +32,8 @@ def assess_weekly_quota(
     window_seconds: float,
     forecast_seconds: float | None,
     warning_max_seconds: float | None,
-) -> bool:
-    """Assess a weekly quota using short-term and whole-window burn rates."""
+) -> float | None:
+    """Return the warning's exhaustion seconds, or ``None`` when no warning applies."""
     time_valid = window_seconds > 0 and 0 < reset_seconds <= window_seconds
     warning_candidate = (
         forecast_seconds is not None
@@ -41,18 +42,20 @@ def assess_weekly_quota(
     )
     if warning_candidate and forecast_seconds is not None:
         if forecast_seconds <= URGENT_WARNING_SECONDS:
-            return True
+            return forecast_seconds
         if (
             time_valid
             and percent > 0
             and (warning_max_seconds is None or forecast_seconds < warning_max_seconds)
         ):
             elapsed_seconds = window_seconds - reset_seconds
-            return (
+            average_seconds = (100.0 - percent) * elapsed_seconds / percent
+            if (
                 elapsed_seconds > 0
-                and (100.0 - percent) * elapsed_seconds / percent < reset_seconds
-            )
-    return False
+                and average_seconds < reset_seconds * WEEKLY_AVERAGE_WARNING_RATIO
+            ):
+                return average_seconds
+    return None
 
 
 class BurnRateTracker:

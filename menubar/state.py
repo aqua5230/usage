@@ -980,14 +980,13 @@ def _quota_row(
             ):
                 warning_seconds = forecast_seconds
         else:
-            if assess_weekly_quota(
+            warning_seconds = assess_weekly_quota(
                 pct,
                 time_to_reset,
                 window_seconds,
                 forecast_seconds,
                 warning_max_seconds,
-            ):
-                warning_seconds = forecast_seconds
+            )
         warning = warning_seconds is not None
         if warning_seconds is not None:
             reset_text = _t(

@@ -12,14 +12,13 @@ from quota.burn_rate import WEEKLY_WINDOW_SECONDS, BurnRateTracker, assess_weekl
 
 
 @pytest.mark.parametrize(
-    ("percent", "reset_seconds", "window_seconds", "forecast_seconds", "expected_warning"),
+    ("percent", "reset_seconds", "window_seconds", "forecast_seconds", "expected_seconds"),
     [
-        (80.0, 73 * 3600, WEEKLY_WINDOW_SECONDS, 10 * 3600, True),
-        (80.0, 73 * 3600, WEEKLY_WINDOW_SECONDS, 25 * 3600, False),
-        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, 40 * 60, True),
-        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, 3600, True),
-        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, 3601, False),
-        (50.0, WEEKLY_WINDOW_SECONDS + 1, WEEKLY_WINDOW_SECONDS, 30 * 60, True),
+        (80.0, 73 * 3600, WEEKLY_WINDOW_SECONDS, 25 * 3600, None),
+        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, 40 * 60, 40 * 60),
+        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, 3600, 3600),
+        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, 3601, None),
+        (50.0, WEEKLY_WINDOW_SECONDS + 1, WEEKLY_WINDOW_SECONDS, 30 * 60, 30 * 60),
     ],
 )
 def test_assess_weekly_quota_warning_rules(
@@ -27,17 +26,35 @@ def test_assess_weekly_quota_warning_rules(
     reset_seconds: float,
     window_seconds: float,
     forecast_seconds: float,
-    expected_warning: bool,
+    expected_seconds: float | None,
 ) -> None:
-    warning = assess_weekly_quota(
+    assert assess_weekly_quota(
         percent,
         reset_seconds,
         window_seconds,
         forecast_seconds,
         24 * 3600,
-    )
+    ) == expected_seconds
 
-    assert warning is expected_warning
+
+def test_assess_weekly_quota_needs_average_warning_margin() -> None:
+    assert assess_weekly_quota(
+        62.0,
+        3927 * 60,
+        WEEKLY_WINDOW_SECONDS,
+        (8 * 3600) + (55 * 60),
+        24 * 3600,
+    ) is None
+
+
+def test_assess_weekly_quota_returns_whole_window_average_seconds() -> None:
+    assert assess_weekly_quota(
+        80.0,
+        73 * 3600,
+        WEEKLY_WINDOW_SECONDS,
+        10 * 3600,
+        24 * 3600,
+    ) == pytest.approx((20 * 95 * 3600) / 80)
 
 
 @pytest.mark.parametrize(
@@ -57,13 +74,13 @@ def test_assess_weekly_quota_boundary_inputs_do_not_warn(
     window_seconds: float,
     forecast_seconds: float | None,
 ) -> None:
-    assert not assess_weekly_quota(
+    assert assess_weekly_quota(
         percent,
         reset_seconds,
         window_seconds,
         forecast_seconds,
         24 * 3600,
-    )
+    ) is None
 
 
 def test_forecast_none_for_empty_buffer() -> None:
