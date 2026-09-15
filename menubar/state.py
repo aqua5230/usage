@@ -24,7 +24,12 @@ from loaders.codex_paths import codex_home
 from loaders.history_loader import UsageEntry, load_entries
 from menubar.prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order
 from pricing import calculate_cost
-from quota.burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
+from quota.burn_rate import (
+    WARNING_PERCENT_FLOOR,
+    WEEKLY_WINDOW_SECONDS,
+    BurnRateTracker,
+    assess_weekly_quota,
+)
 from quota.usage_rate import GROUP_NAMES
 from service_status import ServiceStatus
 from usage_client import PollOutcome, PollState
@@ -686,6 +691,7 @@ def codex_rows(
                 language,
                 forecast_seconds=burn_rate_trackers["codex_weekly"].forecast_seconds(),
                 warning_max_seconds=24 * 3600,
+                window_seconds=WEEKLY_WINDOW_SECONDS,
             ),
         )
         return rows, 12, "gpt-5", None, None
@@ -771,6 +777,11 @@ def codex_rows(
                 min_span_seconds=WEEKLY_FORECAST_MIN_SPAN_SECONDS,
             ),
             warning_max_seconds=24 * 3600,
+            window_seconds=(
+                rate_limits.seven_day_window_minutes * 60
+                if rate_limits.seven_day_window_minutes is not None
+                else WEEKLY_WINDOW_SECONDS
+            ),
         ),
     )
     credits: CodexCreditsState | None = (
@@ -856,6 +867,7 @@ def build_popover_state(
                 min_span_seconds=WEEKLY_FORECAST_MIN_SPAN_SECONDS,
             ),
             warning_max_seconds=24 * 3600,
+            window_seconds=WEEKLY_WINDOW_SECONDS,
         )
         status_value = _status_message_value(outcome, "status_synced", language)
         if snapshot.is_stale or snapshot.data_source != "hook":
@@ -947,6 +959,8 @@ def _quota_row(
     language: str = "en",
     forecast_seconds: float | None = None,
     warning_max_seconds: float | None = None,
+    *,
+    window_seconds: float | None = None,
 ) -> QuotaRowState:
     if pct is None or resets_at is None:
         return _missing_row(title, color, language)
@@ -957,13 +971,22 @@ def _quota_row(
         reset_text = _t(language, "reset_imminent")
         warning = False
     else:
-        if (
-            forecast_seconds is not None
-            and 0 < forecast_seconds < time_to_reset
-            and (warning_max_seconds is None or forecast_seconds < warning_max_seconds)
-            and pct >= WARNING_PERCENT_FLOOR
-        ):
-            warning_seconds = forecast_seconds
+        if window_seconds is None:
+            if (
+                forecast_seconds is not None
+                and 0 < forecast_seconds < time_to_reset
+                and (warning_max_seconds is None or forecast_seconds < warning_max_seconds)
+                and pct >= WARNING_PERCENT_FLOOR
+            ):
+                warning_seconds = forecast_seconds
+        else:
+            warning_seconds = assess_weekly_quota(
+                pct,
+                time_to_reset,
+                window_seconds,
+                forecast_seconds,
+                warning_max_seconds,
+            )
         warning = warning_seconds is not None
         if warning_seconds is not None:
             reset_text = _t(

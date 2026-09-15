@@ -31,7 +31,12 @@ from menubar.state import (
     _format_percent,
     format_human_time,
 )
-from quota.burn_rate import WARNING_PERCENT_FLOOR, BurnRateTracker
+from quota.burn_rate import (
+    WARNING_PERCENT_FLOOR,
+    WEEKLY_WINDOW_SECONDS,
+    BurnRateTracker,
+    assess_weekly_quota,
+)
 from usage_common.time_utils import parse_iso8601_utc_or_raise
 
 AGY_STALE_SECONDS = 20 * 60
@@ -115,6 +120,7 @@ def project_quota(
             age_minutes,
             forecast_seconds=weekly_forecast,
             warning_max_seconds=AGY_WEEKLY_WARNING_MAX_SECONDS,
+            window_seconds=WEEKLY_WINDOW_SECONDS,
         ),
         stale=stale,
         five_hour=selected.five_hour,
@@ -189,10 +195,13 @@ def _window_row(
     age_minutes: int = 0,
     forecast_seconds: float | None = None,
     warning_max_seconds: float | None = None,
+    *,
+    window_seconds: float | None = None,
 ) -> QuotaRowState:
     remaining = _remaining_percent(window)
     used = 100.0 - remaining
     warning = False
+    warning_seconds: float | None = None
     if remaining == 100.0:
         reset_text = _t(language, "agy_quota_full")
     elif window.resets_in_minutes is None:
@@ -200,14 +209,22 @@ def _window_row(
     else:
         minutes_left = max(1, window.resets_in_minutes - max(0, age_minutes))
         time_to_reset = minutes_left * 60
-        warning_seconds: float | None = None
-        if (
-            forecast_seconds is not None
-            and 0 < forecast_seconds < time_to_reset
-            and (warning_max_seconds is None or forecast_seconds < warning_max_seconds)
-            and used >= WARNING_PERCENT_FLOOR
-        ):
-            warning_seconds = forecast_seconds
+        if window_seconds is None:
+            if (
+                forecast_seconds is not None
+                and 0 < forecast_seconds < time_to_reset
+                and (warning_max_seconds is None or forecast_seconds < warning_max_seconds)
+                and used >= WARNING_PERCENT_FLOOR
+            ):
+                warning_seconds = forecast_seconds
+        else:
+            warning_seconds = assess_weekly_quota(
+                used,
+                time_to_reset,
+                window_seconds,
+                forecast_seconds,
+                warning_max_seconds,
+            )
         warning = warning_seconds is not None
         if warning_seconds is not None:
             reset_text = _t(

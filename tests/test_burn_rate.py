@@ -8,7 +8,79 @@ from __future__ import annotations
 
 import pytest
 
-from quota.burn_rate import BurnRateTracker
+from quota.burn_rate import WEEKLY_WINDOW_SECONDS, BurnRateTracker, assess_weekly_quota
+
+
+@pytest.mark.parametrize(
+    ("percent", "reset_seconds", "window_seconds", "forecast_seconds", "expected_seconds"),
+    [
+        (80.0, 73 * 3600, WEEKLY_WINDOW_SECONDS, 25 * 3600, None),
+        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, 40 * 60, 40 * 60),
+        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, 3600, 3600),
+        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, 3601, None),
+        (50.0, WEEKLY_WINDOW_SECONDS + 1, WEEKLY_WINDOW_SECONDS, 30 * 60, 30 * 60),
+    ],
+)
+def test_assess_weekly_quota_warning_rules(
+    percent: float,
+    reset_seconds: float,
+    window_seconds: float,
+    forecast_seconds: float,
+    expected_seconds: float | None,
+) -> None:
+    assert assess_weekly_quota(
+        percent,
+        reset_seconds,
+        window_seconds,
+        forecast_seconds,
+        24 * 3600,
+    ) == expected_seconds
+
+
+def test_assess_weekly_quota_needs_average_warning_margin() -> None:
+    assert assess_weekly_quota(
+        62.0,
+        3927 * 60,
+        WEEKLY_WINDOW_SECONDS,
+        (8 * 3600) + (55 * 60),
+        24 * 3600,
+    ) is None
+
+
+def test_assess_weekly_quota_returns_whole_window_average_seconds() -> None:
+    assert assess_weekly_quota(
+        80.0,
+        73 * 3600,
+        WEEKLY_WINDOW_SECONDS,
+        10 * 3600,
+        24 * 3600,
+    ) == pytest.approx((20 * 95 * 3600) / 80)
+
+
+@pytest.mark.parametrize(
+    ("percent", "reset_seconds", "window_seconds", "forecast_seconds"),
+    [
+        (0.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, None),
+        (100.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, None),
+        (50.0, 0.0, WEEKLY_WINDOW_SECONDS, None),
+        (50.0, WEEKLY_WINDOW_SECONDS + 1, WEEKLY_WINDOW_SECONDS, None),
+        (50.0, 48 * 3600, 0.0, None),
+        (50.0, 48 * 3600, WEEKLY_WINDOW_SECONDS, None),
+    ],
+)
+def test_assess_weekly_quota_boundary_inputs_do_not_warn(
+    percent: float,
+    reset_seconds: float,
+    window_seconds: float,
+    forecast_seconds: float | None,
+) -> None:
+    assert assess_weekly_quota(
+        percent,
+        reset_seconds,
+        window_seconds,
+        forecast_seconds,
+        24 * 3600,
+    ) is None
 
 
 def test_forecast_none_for_empty_buffer() -> None:
