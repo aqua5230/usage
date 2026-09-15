@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15",
+  "generated_at": "2026-09-16",
   "tools": [
     {
       "id": "claude_code",
@@ -991,6 +991,34 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.30.16",
+          "period": "2026-09-15",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "週額度用完警示校準推算邏輯，短暫衝刺不再引發誤報",
+                "en": "Weekly quota exhaustion warnings calibrate projection logic, preventing false alarms from brief usage bursts"
+              },
+              "body": {
+                "zh-TW": "密集使用 AI 時，週額度用完警示不再因短時間衝刺就誤報。⟦這好比行車電腦預估剩餘續航，不能只因剛踩了幾秒重油門，就驚呼整桶油在半小時內見底。⟧過去只拿最近 30～60 分鐘的消耗速度外推整個 7 天週期，密集工作階段常引發假警報（例如本週用了 53.7%、還有 3 天 1 小時重置，卻警告「13 小時後用完」）。現在 `assess_weekly_quota()` 同時檢查兩種速度：短窗速度若預測 1 小時內用完仍會立刻示警；其餘情況須整週平均速度預測用完時間提前至少 20%（`WEEKLY_AVERAGE_WARNING_RATIO`）才警示。介面改為顯示整週平均預測的時間，不再出現「8h55m 後用完」卻與旁邊 5 小時工作階段額度矛盾的狀況；5 小時工作階段額度警示規則維持不變。",
+                "en": "During intensive AI use, weekly quota exhaustion warnings no longer trigger false alarms from short bursts of activity. ⟦This is like a trip computer estimating remaining range—it shouldn't panic that the entire tank will run dry in half an hour just because you stepped on the gas for a few seconds.⟧ Previously, it extrapolated only the burn rate from the last 30–60 minutes across the entire 7-day cycle, so intensive sessions often triggered false alarms (such as using 53.7% this week with 3 days and 1 hour until reset, yet warning \"runs out in 13 hours\"). Now, `assess_weekly_quota()` checks both rates: if the short-window rate predicts exhaustion within 1 hour, it still warns immediately; otherwise, the whole-week average rate must predict exhaustion at least 20% early (`WEEKLY_AVERAGE_WARNING_RATIO`) before raising a warning. The interface now displays the time predicted by the whole-week average, eliminating confusing scenarios where \"runs out in 8h55m\" contradicted the adjacent 5-hour session quota; rules for 5-hour session quota warnings remain unchanged."
+              },
+              "original": "**The weekly quota warning no longer fires from a short burst of use, and the time it shows now matches the reason it fired** ([#138](https://github.com/aqua5230/usage/pull/138)). It used to extrapolate only the last 30–60 minutes of burn rate onto the 7-day window, so a dense working session alone could trigger a false alarm (e.g. 53.7% used, 3 days 1 hour to reset, warned \"runs out in 13 hours\"). `assess_weekly_quota()` now checks both rates: the short window still warns immediately if it alone predicts exhaustion within an hour, but otherwise the whole-week average must predict exhaustion at least 20% of the reset window early (`WEEKLY_AVERAGE_WARNING_RATIO`) before it warns — and displays that average's time instead of the short window's, which previously could show a number like \"runs out in 8h55m\" next to a warning actually driven by a slower week-long trend, contradicting the separate 5-hour session quota shown beside it. Session-quota warnings are unchanged."
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 系統匣支援 UTF-8 BOM 設定檔，徹底告別卡死與載入中",
+                "en": "Windows system tray supports UTF-8 BOM config files, resolving freezes and endless loading"
+              },
+              "body": {
+                "zh-TW": "在 Windows 電腦上，當 Claude 設定檔 `~/.claude/settings.json` 帶有 UTF-8 BOM（位元組順序記號，部分編輯器在開頭加入的隱藏標記），系統匣面板不再卡在 `--` 與 Loading。過去 `installer/setup_hook.py` 用一般 `utf-8` 開啟檔案，Python 的解析器把開頭帶 BOM 的有效檔案判為 `Unexpected UTF-8 BOM` 錯誤，導致啟動自我修復步驟在刷新迴圈跑完前就失敗。現在 `_load_settings()` 與舊版遷移邏輯皆改用 `utf-8-sig`，不論檔案有無 BOM 都能正常讀取且設定內容不變。⟦這宛如收發窗口先前看到信件開頭多了一枚印章，就誤判整份合規公文無效而拒絕拆閱；換上相容的判讀方式後，運作才重回正軌。⟧",
+                "en": "On Windows, when Claude's config file `~/.claude/settings.json` contains a UTF-8 BOM (byte order mark, a hidden marker added at the beginning by some editors), the system tray panel no longer gets stuck at `--` and Loading. Previously, `installer/setup_hook.py` opened the file as plain `utf-8`, causing Python's parser to reject valid files with a BOM with an `Unexpected UTF-8 BOM` error, so the startup self-heal step failed before the refresh loop could complete. Now, both `_load_settings()` and the legacy migration logic use `utf-8-sig`, reading the file properly whether a BOM is present or not without altering parsed settings. ⟦This is like a mailroom rejecting a valid official document simply because it has an extra stamp at the top; switching to a compatible reading method puts operations back on track.⟧"
+              },
+              "original": "**The Windows tray panel could stay stuck at `--` and Loading forever when `~/.claude/settings.json` had a UTF-8 BOM.** `installer/setup_hook.py` opened the file as plain `utf-8`, and Python's JSON decoder rejects an otherwise-valid file that starts with a BOM with `Unexpected UTF-8 BOM`, so the startup self-heal step failed before the refresh loop ever completed. Both readers (`_load_settings()` and the legacy-usage migration) now open the file as `utf-8-sig`, which accepts the file with or without a BOM and does not change the parsed settings."
+            }
+          ]
+        },
+        {
           "version": "0.30.15",
           "period": "2026-09-14",
           "items": [
@@ -1089,67 +1117,6 @@
               "original": "**The Windows panel no longer flashes at its old position before moving.** pywebview's WinForms backend passes `SWP_SHOWWINDOW` in both `resize()` and `move()`, so the `resize()` in `_place_window_on_ui_thread()` made the still-hidden window visible at the previous coordinates; the following `move()` then moved it and only then did `show()` run. Measured at 1 ms sampling, the window sat visible in the wrong place for 36 ms, about two frames. Position and size are now applied while the window is hidden in a single `SetWindowPos` without `SWP_SHOWWINDOW`, leaving display to the existing `show()` path; without a native handle, or off Windows, it falls back to `resize()` + `move()` unchanged. Applying geometry is also skipped entirely when the current physical-pixel geometry already matches, so `_apply_content_height_now()` no longer makes a pointless native call when the content height has not changed."
             }
           ]
-        },
-        {
-          "version": "0.30.13",
-          "period": "2026-09-12",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Windows 面板在高縮放螢幕不再貼邊，重開位置精準",
-                "en": "Windows panel no longer clings to screen edge at high scaling, reopening accurately"
-              },
-              "body": {
-                "zh-TW": "使用 3840x2160 高解析度螢幕並開啟 250% 縮放時，Windows 面板現在會準確開在畫面之內。⟦這好比木工師傅照著設計圖施工，助手卻誤把圖面上的公尺當成公分再放大換算，讓做好的櫃子直接卡死在牆角。⟧底層套件 `pywebview 6.2.1` 回傳的螢幕範圍明明是實體像素，卻標記成縮放 1.0。後續 `move()` 與 `resize()` 又拿視窗自身 DPI 重複相乘，使得預設水平坐標被算成 3840 − 380 − 12 = 3448，將面板釘在右下角邊緣，且該位置還被存檔讓每次重開都重演。現在程式只在主螢幕回報 1.0 且視窗 DPI 不是 96 時，才用視窗自己的 DPI 將螢幕矩形換算回邏輯像素，避免未來 `pywebview` 修好時重複換算；同時將 `window.show()` 排在擺位之後，面板絕不再閃現在舊位置。",
-                "en": "When using a 3840x2160 high-resolution display with 250% scaling, the Windows panel now opens accurately within the screen bounds. ⟦This is like a carpenter building according to blueprints, but an assistant mistakes meters for centimeters and scales them up again, leaving the finished cabinet wedged tightly against the wall corner.⟧ The underlying package `pywebview 6.2.1` returns screen bounds in physical pixels but labels them with a scale of 1.0. Subsequent `move()` and `resize()` operations then multiplied their inputs by the window's own DPI again, causing the default horizontal coordinate to be calculated as 3840 − 380 − 12 = 3448, pinning the panel to the bottom-right edge, and that position was saved so every relaunch repeated the issue. Now the program converts screen rectangles back to logical pixels using the window's own DPI only when the primary screen reports 1.0 while the window DPI is not 96, preventing double conversion if a future `pywebview` release fixes this; at the same time, `window.show()` is queued after placement, ensuring the panel never flashes at a stale position."
-              },
-              "original": "**The Windows panel opens inside the screen at high display scaling** ([#130](https://github.com/aqua5230/usage/issues/130)). pywebview 6.2.1 returns screen bounds in physical pixels but labels them as scale 1.0, while `move()` / `resize()` multiply their input by the window's DPI again. At 250% on 3840x2160 the default x came out as 3840 − 380 − 12 = 3448, pinning the panel to the bottom-right edge, and that position was saved, so every relaunch repeated it. Screen rectangles are now converted to logical pixels with the window's own DPI (only when the primary screen reports 1.0 while the window DPI is not 96, so a future pywebview that fixes this is not double-converted), and `window.show()` is queued behind the placement so the panel never appears at a stale position."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 面板支援混合縮放多螢幕，重開精準回到原螢幕",
-                "en": "Windows panel supports mixed-scaling multi-monitor setups, reopening precisely on the original display"
-              },
-              "body": {
-                "zh-TW": "外接不同螢幕工作的讀者，若各螢幕設定了不同的縮放比例，關閉 Windows 面板後重新開啟，它現在會老實回到當初關閉的那台螢幕。先前系統儲存面板位置時，是把實體像素除以視窗當下所在螢幕的 DPI；這導致在 225% 縮放螢幕上關閉的面板，重新開啟時卻莫名其妙彈回 100% 的主螢幕。新版改為直接儲存實體像素，等到擺放面板位置時，才搭配視窗當下的 DPI 進行換算。⟦這如同在不同比例尺的地圖之間穿梭，標記位置時若除以當前圖紙比例，重新翻開時便會走樣跳回起點；改存真實公尺距離後，在哪張地圖合上就在哪張地圖展開。⟧這項改進完全不改變偏好設定的鍵名與資料格式。",
-                "en": "For users working with external monitors configured with different scale factors, closing the Windows panel and reopening it now reliably returns it to the specific display where it was closed. Previously, the system saved the panel's position by dividing physical pixels by the DPI of whichever display the window was currently on; as a result, a panel closed on a 225% scaling display would unexpectedly jump back to the 100% primary screen upon reopening. The new version saves positions directly in physical pixels and only converts them using the window's current DPI when placing the panel. ⟦This is like navigating between maps of different scales: if marked locations are divided by the current sheet's ratio, reopening them distorts the coordinates back to the starting point; storing the actual meter distances instead ensures that whichever map you close on is where you reopen.⟧ This improvement leaves preference key names and data formats completely unchanged."
-              },
-              "original": "**The Windows panel reopens on the display it was closed on with mixed scaling.** The saved position was physical pixels divided by the DPI of whichever monitor the window was on at that moment, so a panel closed on a 225% display reopened on the 100% primary. Positions are now saved in physical pixels and converted with the window's current DPI when placed. The preference key and shape are unchanged."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 面板放寬矮螢幕縮放下限，按鈕與狀態列不再裁切",
-                "en": "Windows panel relaxes zoom floor on short displays, preventing buttons and status row from being cut off"
-              },
-              "body": {
-                "zh-TW": "把 Windows 面板開在偏矮的螢幕上時，若曾碰過重新整理或結束按鈕被切出畫面外的窘境，現在這類版面裁切問題已徹底解決。⟦這彷彿在低矮的天花板下擺放展示架，若硬性規定層架間隔不能縮小，最底層的控制旋鈕就會被地面擋住；按空間比例動態調降底線，底部按鍵才不被擠出視野。⟧過去面板設有 0.6 的縮放下限，卻未考慮視窗自身的 DPI，使得 2560x1440 搭配 225% 縮放時，面板被卡在比實際需要更大的縮放比例，導致速率與狀態列以及重新整理和結束按鈕全部掉出畫面之外。現在 Windows 將縮放下限改為 `MIN_PANEL_SCALE / window DPI scale`，確保文字顯示依然絕不小於 100% 螢幕的 0.6 倍，同時讓整張面板順利塞進螢幕內；macOS 則維持原樣不變。",
-                "en": "When opening the Windows panel on shorter screens, any issues where the Refresh or Quit buttons were cut off outside the viewport are now completely resolved. ⟦This is like placing a display rack under a low ceiling: if shelf spacing is rigidly forbidden from shrinking, the bottom control knobs get blocked by the floor; dynamically lowering the floor based on available space keeps bottom buttons from being squeezed out of view.⟧ Previously, the panel enforced a 0.6 zoom floor without accounting for the window's own DPI, causing the panel at 2560x1440 with 225% scaling to remain stuck above the zoom level it actually needed, which pushed the rate and status row as well as the Refresh and Quit buttons entirely off-screen. Windows now changes the zoom floor to `MIN_PANEL_SCALE / window DPI scale`, ensuring text rendering is still never smaller than 0.6× of a 100% display while allowing the entire panel to fit smoothly inside the screen; macOS remains unchanged."
-              },
-              "original": "**The bottom of the Windows panel is no longer cut off on short high-DPI screens.** The 0.6 zoom floor did not account for the window's DPI, so at 2560x1440 @225% the panel was held above the zoom it needed and lost its rate/status row and Refresh/Quit buttons. Windows now uses `MIN_PANEL_SCALE / window DPI scale` as the floor, so text still never renders smaller than 0.6× of a 100% display; macOS is unchanged."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 系統匣提示限制字數，避免例外吞沒導致面板停更",
-                "en": "Windows tray tooltip enforces character limit, preventing swallowed exceptions from stalling panel updates"
-              },
-              "body": {
-                "zh-TW": "開啟 Windows 系統匣觀察各家 AI 用量，開著的面板現在絕不會無聲無息地停止更新。先前新增了 Grok 欄位之後，在英文介面且每家提供商額度皆滿 100% 的極端狀況下，提示文字長度會達到 129 個字元；這讓底層圖示套件 `pystray` 拋出 `ValueError: string too long` 錯誤，但該錯誤卻被背景工作常駐程式 `_refresh_worker()` 默默吞掉，連同該輪更新畫面的 `inject_state()` 也一併跳過，導致面板看似開著卻再也不會刷新數據。現在系統匣提示文字強制限制在 127 個字元以內，徹底防範字串過長引發的崩潰。⟦這種脫節宛如展場跑馬燈因文字過長當機，值班警衛不但沒回報還順手切斷訊號線，讓大廳螢幕默默停在上一輪舊畫面。⟧",
-                "en": "When opening the Windows tray to check AI usage across providers, an open panel will no longer silently stop updating. Previously, after adding the Grok row, tooltip text reached 129 characters in the extreme case of an English interface with every provider's quota at 100%; this caused the underlying icon library `pystray` to raise a `ValueError: string too long` error, which was silently swallowed by the background worker `_refresh_worker()`, skipping that cycle's UI update `inject_state()` as well and leaving the open panel unable to refresh data. The tray tooltip text is now strictly capped at 127 characters, completely preventing crashes caused by excessively long strings. ⟦This disconnection is like an exhibition marquee crashing from text that is too long, and instead of reporting it, the duty guard casually disconnects the signal cable, leaving the lobby display quietly frozen on the previous frame.⟧"
-              },
-              "original": "**The Windows tray tooltip is capped at 127 characters.** Since the Grok row was added, the English tooltip with every provider at 100% reached 129 characters; pystray raised `ValueError: string too long`, which `_refresh_worker()` swallowed along with the same iteration's `inject_state()`, so an open panel silently stopped updating."
-            },
-            {
-              "title": {
-                "zh-TW": "終端機狀態列與接續提醒自動換新，補齊修復並校準版號",
-                "en": "Terminal status line and session resume hooks update automatically, incorporating fixes and aligning version numbers"
-              },
-              "body": {
-                "zh-TW": "先前已在電腦中安裝過狀態列與工作階段接續提醒的使用者，現在升級時會自動替換成最新版腳本。過去這兩支 hook（特定事件發生時被觸發的小程式）雖然歷經多次修改，涵蓋狀態列進位的 `1000k` 修正以及 7 月以來工作階段接續提醒的十項修正，卻因為未調升版號，讓既有安裝一直留在舊檔案。新版將狀態列升級至 1.6 版、接續提醒升級至 1.7 版，安裝程式會主動用最新副本覆蓋舊檔，並新增自動化測試確保腳本版號與安裝常數隨時步調一致。⟦這恰似圖書館借閱處更新了服務規章，封皮上的版本代號卻漏未換新，讓館員誤以為抽屜裡積滿灰塵的舊手冊仍是現行規定。⟧",
-                "en": "Users who previously installed the status line and session resume hooks on their systems will now have them automatically replaced with the latest script versions upon upgrading. In the past, although both hooks underwent numerous modifications—including the status line rounding fix for `1000k` and ten fixes to session resume since July—the lack of version bumps left existing installations stuck on older files. The new release bumps the status line to version 1.6 and session resume to 1.7, with the installer actively overwriting old files with the latest copies and adding an automated test to ensure script version numbers and installer constants stay strictly in step. ⟦This is just like a library circulation desk updating its service policies but forgetting to update the version code on the cover, leading librarians to mistakenly believe the dusty manual in the drawer is still the active rulebook.⟧"
-              },
-              "original": "**Installed status line and session resume hooks are replaced with the current copies.** Both scripts had changed without a version bump — the status line's `1000k` fix and ten session-resume fixes since July — so existing installs kept the old files. The status line goes to `1.6` and session resume to `1.7`, and a new test keeps the session-resume script version and installer constant in step."
-            }
-          ]
         }
       ]
     },
@@ -1157,6 +1124,34 @@
       "id": "gh_cli",
       "name": "GitHub CLI",
       "versions": [
+        {
+          "version": "2.101.0",
+          "period": "2026-09-15",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Linux 套件庫全面換用新金鑰，舊安裝需更新金鑰圈",
+                "en": "Linux Package Repositories Switch to New Signing Key, Existing Installs Require Keyring Update"
+              },
+              "body": {
+                "zh-TW": "你在 Linux 上更新或安裝 `gh` 若遇到驗證錯誤，可能是本機尚未登記新印鑑。⟦這好比社區大樓換了新門禁印章，住戶若沒登記新印記，警衛核對舊印鑑就會拒絕放行。⟧ GitHub CLI 的 APT 與 RPM 套件庫（Linux 下載與管理軟體的官方倉庫）與個別 RPM 包。它們現在僅以新的 PGP 金鑰（fingerprint: `7F38BBB59D064DBCB3D84D725612B36462313325`）簽署。若你在 2026 年 4 月 8 日前透過官方 APT 或 RPM 套件庫安裝 `gh` 且尚未更新金鑰圈（存放信任憑證的鑰匙庫），安裝或升級可能失敗。請依照官方的 PGP 簽章金鑰輪換指引更新金鑰圈以排除問題。Windows 與 macOS 使用者，或透過 Homebrew、GitHub Releases、其他套件管理器及原始碼安裝者，則不受影響。",
+                "en": "If you encounter verification errors when updating or installing `gh` on Linux, your system may not have registered the new stamp yet. ⟦This is like a residential community switching to a new access control stamp; if residents haven't registered the new mark, security checking the old stamp will deny entry.⟧ GitHub CLI's APT and RPM package repositories and individual RPM packages are now signed only with the new PGP key (fingerprint: `7F38BBB59D064DBCB3D84D725612B36462313325`). If you installed `gh` through the official APT or RPM repositories before April 8, 2026, and have not yet updated your keyring, package installation or upgrades may fail. Follow the official PGP signing key rotation guidance to update your keyring and resolve the issue. Users on Windows and macOS, or those who installed via Homebrew, GitHub Releases, other package managers, or from source, are not affected."
+              },
+              "original": "## Linux package repository signing key rotation\n\nGitHub CLI's APT and RPM repositories, along with individual RPM packages, are now signed only with the new PGP key (fingerprint: `7F38BBB59D064DBCB3D84D725612B36462313325`)\n\n> [!IMPORTANT]\n> Linux users who installed `gh` from the official APT or RPM repositories before April 8, 2026, and have not refreshed their keyring, may now see package installation or update failures. Follow the [PGP signing key rotation guidance](https://github.com/cli/cli/issues/13118) to check and update your keyring. Users on Windows or macOS, and users who installed `gh` through Homebrew, GitHub Releases, another package manager, or from source, are not affected."
+            },
+            {
+              "title": {
+                "zh-TW": "登入驗證碼預設自動複製，省下繁瑣手動步驟",
+                "en": "Authentication Codes Copied to Clipboard by Default, Saving Manual Steps"
+              },
+              "body": {
+                "zh-TW": "登入 GitHub 帳號或刷新授權時，終端機現在會自動幫你保管驗證碼，省下一道手動複製手續。過去執行 `gh auth login` 登入或 `gh auth refresh` 刷新權限時，畫面會給出一組要在瀏覽器填寫的 OAuth 裝置代碼（在授權網頁輸入以確認本機身分的驗證碼）。以往得手動反白並複製，現在執行這兩項指令時，預設會主動將代碼複製進剪貼簿，切換視窗直接貼上即可。⟦這好比到櫃檯辦業務時，人員直接把號碼牌遞到你手裡，不必自己拿筆在旁邊抄號碼。⟧ 若想永久關閉此功能，可執行設定指令：\n\n```shell\ngh config set clipboard disabled\n```\n\n單次呼叫時若有明確指定剪貼簿選項，依然享有最高優先權。",
+                "en": "When signing in to your GitHub account or refreshing authorization, the terminal now automatically handles the verification code for you, saving a manual copy step. Previously, running `gh auth login` to sign in or `gh auth refresh` to refresh permissions displayed an OAuth device code to be entered in the browser. While you previously had to manually highlight and copy it, running these two commands now copies the code to the clipboard by default, allowing you to switch windows and paste directly. ⟦This is like visiting a service counter where the staff hands the queue slip directly to you, so you don't have to write the number down yourself with a pen.⟧ To permanently disable this feature, run the configuration command:\n\n```shell\ngh config set clipboard disabled\n```\n\nExplicit clipboard options specified for an individual invocation still take highest precedence."
+              },
+              "original": "## Copy authentication codes to the clipboard by default\n\n`gh auth login` and `gh auth refresh` now copy OAuth device codes to the clipboard by default, saving a manual copy step during authentication.\n\nTo persistently opt out, run:\n\n```shell\ngh config set clipboard disabled\n```\n\nExplicit clipboard options still take precedence for an individual invocation."
+            }
+          ]
+        },
         {
           "version": "2.100.0",
           "period": "2026-09-03",
@@ -1199,221 +1194,6 @@
                 "en": "You are halfway through a change when an issue needs a fresh branch, and until now you had to tidy up before switching over. `gh issue develop` can now create the linked branch for an issue and check it out in a new Git worktree, a second working copy of the same project that stands on its own, leaving your current working copy untouched.\n\n```shell\ngh issue develop 123 --checkout --worktree /path/to/wt-feature\n```\n\n⟦When a site has to start a second job, the crew does not tear down what is already laid out; they open a separate work area beside it and run both at once.⟧"
               },
               "original": "## Worktree support extended to `gh issue develop` \n\n`gh issue develop` can now create a linked branch and check it out in a new Git worktree, leaving your current working copy unchanged:\n\n```shell\n# Create a linked branch for an issue and check it out in a worktree\ngh issue develop 123 --checkout --worktree /path/to/wt-feature\n```"
-            }
-          ]
-        },
-        {
-          "version": "2.98.0",
-          "period": "2026-08-20",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "`gh pr checkout` 支援工作樹，切換 PR 不必動既有檔案",
-                "en": "`gh pr checkout` adds `--worktree` to check out PRs into parallel copies"
-              },
-              "body": {
-                "zh-TW": "正寫程式寫到一半，同事突然請你幫忙測試別人的 PR（pull request，請求將程式碼合併進專案的提案）。⟦像在圖書館查資料時直接影印一份副本帶到另一張桌子讀，原桌上攤開的筆記完全不用收拾。⟧這正是輸入 `gh pr checkout 123 --worktree` 的時刻。加上 `--worktree` 旗標後，系統會替該 PR 建立獨立的工作樹（worktree，Git 讓同一專案平行開多份副本的功能）。你能在新資料夾查看與測試變更，目前的檔案與分支留在原地，不必先把未完成的修改暫存收起。",
-                "en": "While coding mid-task, a teammate asks you to test someone's PR (pull request). ⟦It is like photocopying a reference book in a library to read at another table without clearing your existing desk notes.⟧ That is the moment to run `gh pr checkout 123 --worktree`. Passing the `--worktree` flag creates an independent worktree, Git's feature for parallel working copies. You can inspect and test the changes in a separate folder while your current branch and files stay undisturbed."
-              },
-              "original": "Add --worktree flag to gh pr checkout by @tidy-dev in https://github.com/cli/cli/pull/13946"
-            },
-            {
-              "title": {
-                "zh-TW": "issue 搜尋加入 `--search-type`，支援語意與混合查詢",
-                "en": "`gh search issues` adds `--search-type` for semantic and hybrid search"
-              },
-              "body": {
-                "zh-TW": "在專案裡搜尋 issue（議題，追蹤問題與建議的討論清單）時，以前只能比對一模一樣的關鍵字。⟦像找歌時忘記歌名，哼出大概的旋律能按感覺找；若還記得一小段歌詞，便把歌詞片段和旋律一起交給找歌的人。⟧`gh search issues` 現在新增了 `--search-type` 旗標，支援語意搜尋與混合搜尋兩種模式。當你記不清確切的錯誤文字時，輸入概念描述並加上 `--search-type semantic`，便能依背後涵義找出相近的討論；加上 `--search-type hybrid` 則會同時比對關鍵字與語意。",
-                "en": "When searching for issues in a repository, you used to rely strictly on exact keyword matches. ⟦It is like finding a song from a rough hummed melody, then giving the song finder both that melody and a remembered lyric fragment when you have one.⟧ `gh search issues` now introduces the `--search-type` flag, supporting both semantic and hybrid search modes. If you cannot remember the exact error text, pass `--search-type semantic` with a natural concept description to find relevant issues by meaning; using `--search-type hybrid` combines traditional keyword matching with semantic understanding."
-              },
-              "original": "Add --search-type flag for semantic and hybrid issue search by @michaeljacholke in https://github.com/cli/cli/pull/14006\n@michaeljacholke made their first contribution in https://github.com/cli/cli/pull/14006"
-            },
-            {
-              "title": {
-                "zh-TW": "呼叫擴充套件自動帶入 `GH_EXTENSION=1`，身分識別更明確",
-                "en": "`gh` sets `GH_EXTENSION=1` when executing extensions"
-              },
-              "body": {
-                "zh-TW": "撰寫或執行 GitHub CLI 擴充套件（extension，為 gh 新增自訂指令的附加工具）時，程式往往需要知道自己是怎麼被啟動的。⟦像員工佩戴公司發放的識別證進場，保全一眼就能確認他是從內部系統派來的，而不是自行闖入的外部訪客。⟧`gh` 現在在叫用任何擴充套件時，都會在環境變數（開程式之前預先塞給它的隱藏開關，一般使用者看不到）自動帶上 `GH_EXTENSION=1`。這讓擴充套件能藉由檢查該變數，確認自己正在被 `gh` 呼叫，並據此調整輸出格式或執行流程。",
-                "en": "When writing or running a GitHub CLI extension (an add-on tool that introduces custom commands to gh), the program often needs to know how it was started. ⟦It is like an employee wearing a company badge into the building so security immediately recognizes they were dispatched by the internal system rather than entering unannounced.⟧ When `gh` invokes any extension, it now automatically sets the environment variable `GH_EXTENSION=1`. Extensions can check this variable to confirm they are running under `gh` and adjust their output formatting or behavior accordingly."
-              },
-              "original": "Set GH_EXTENSION=1 when gh invokes an extension by @williammartin in https://github.com/cli/cli/pull/14072"
-            },
-            {
-              "title": {
-                "zh-TW": "修正 `RESTWithNext` 錯誤型態，恢復 `gh status` 與 attestation 重試",
-                "en": "Fixed `RESTWithNext` error type to restore `gh status` and attestation retries"
-              },
-              "body": {
-                "zh-TW": "查詢 `gh status` 時若遇到可重試的失敗，錯誤型態 `RESTWithNext` 的判斷曾讓重試失效。現在已修正，`gh status` 和 attestation（證明軟體產物來源與建置過程的數位簽署證明）都能重新嘗試，不會在第一次失敗後停住。⟦這像送件窗口發現回條有誤時，不再直接把整份文件退回，而是讓它回到處理隊伍再送一次。⟧",
-                "en": "When `gh status` hits a retryable failure, the `RESTWithNext` error-type handling had prevented retries. That is fixed: both `gh status` and attestations (digital signatures that verify a software artifact's origin and build process) can retry again. ⟦It is like a filing desk returning a form with a faulty receipt to the processing queue instead of rejecting the whole submission.⟧"
-              },
-              "original": "Fix `RESTWithNext` error type, repairing `gh status` and attestation retries by @williammartin in https://github.com/cli/cli/pull/13988"
-            },
-            {
-              "title": {
-                "zh-TW": "`gh release create` 解析權限範圍時會去除空白",
-                "en": "`gh release create` trims whitespace while parsing permission scopes"
-              },
-              "body": {
-                "zh-TW": "建立 Release 時，`gh release create` 需要從 `X-Oauth-Scopes` 標頭讀取權限範圍。現在解析時會去掉前後多餘空白，避免空白被當成權限名稱的一部分。修正處理的是標頭文字的辨識，讓權限範圍能按原本的名稱解讀。空白不會參與辨識。⟦像讀取名單前先把姓名旁多出的空格擦掉，才不會把同一個人誤認成另一位。⟧",
-                "en": "When creating a release, `gh release create` reads permission scopes from the `X-Oauth-Scopes` header. Its parser now strips extra surrounding whitespace so that whitespace is not treated as part of a scope name. ⟦It is like erasing stray spaces beside names on a roster so one person is not mistaken for another.⟧"
-              },
-              "original": "Trim spaces when parsing X-Oauth-Scopes in `gh release create` by @williammartin in https://github.com/cli/cli/pull/14065"
-            },
-            {
-              "title": {
-                "zh-TW": "修正非 TTY 環境的 `gh project item-add` 輸出",
-                "en": "Fixed `gh project item-add` output outside a TTY"
-              },
-              "body": {
-                "zh-TW": "把 `gh project item-add` 放進腳本或管線時，命令並未連接互動式終端機，也就是非 TTY（沒有互動式終端機螢幕的環境）。這種情況的輸出已修正，讓命令在非互動環境也能正確輸出。這是自動化流程使用命令時會遇到的輸出修正。腳本可直接使用。⟦這如同寄件單不經服務台螢幕，而是直接進入自動分揀線時，仍會印出供機器讀取的正確標籤。⟧",
-                "en": "When `gh project item-add` runs in a script or pipeline, it has no interactive terminal, meaning it is outside a TTY (a terminal screen that accepts interaction). Its output in that case is fixed, so the command emits the correct output in non-interactive environments. ⟦It is like a shipping form that skips the service-desk screen and enters an automated sorting line while still printing the correct machine-readable label.⟧"
-              },
-              "original": "Fix project item-add output for non-TTY by @zwick in https://github.com/cli/cli/pull/14056"
-            },
-            {
-              "title": {
-                "zh-TW": "七項 API 請求收攏至 `api.Client`，統一金鑰與發布通道",
-                "en": "Seven API request flows routed through unified `api.Client`"
-              },
-              "body": {
-                "zh-TW": "手邊的 GitHub CLI 指令照舊可用，不必因內部 API 連線架構重整而切換操作方式。⟦像一棟大樓原本各辦公室各自拉電話線對外聯絡，現在全面改由中央總機統籌轉接，線路更整齊且便於維護。⟧開發團隊將七項操作的 HTTP 請求全面收攏至統一的 `api.Client`（負責管理連線與驗證的共用用戶端模組）。涵蓋對象包含 deploy key、ssh key、gpg key 三類金鑰，以及 autolink 自動連結、extension 擴充套件、release 建立與 release 刪除。請求集中由共用用戶端發送後，程式碼結構更乾淨，連線行為也維持一致。",
-                "en": "Your existing GitHub CLI commands remain the same despite an internal API architecture refactor. ⟦It is like a building replacing separate external phone lines in every office with a centralized switchboard, keeping wiring tidy and maintainable.⟧ The team routed HTTP requests for seven operations through the unified `api.Client` (the shared client module managing connections and authentication). This covers deploy keys, ssh keys, gpg keys, autolinks, extensions, release creation, and release deletions. Routing these calls through a single client keeps network logic clean and consistent across the codebase."
-              },
-              "original": "Route deploy key requests through api.Client by @williammartin in https://github.com/cli/cli/pull/13989\nRoute ssh key requests through api.Client by @williammartin in https://github.com/cli/cli/pull/13994\nRoute gpg key requests through api.Client by @williammartin in https://github.com/cli/cli/pull/13997\nRoute autolink requests through api.Client by @williammartin in https://github.com/cli/cli/pull/14013\nRoute extension requests through api.Client by @williammartin in https://github.com/cli/cli/pull/14059\nRoute release creation through api.Client by @williammartin in https://github.com/cli/cli/pull/14062\nRoute release deletions through api.Client by @williammartin in https://github.com/cli/cli/pull/14077"
-            },
-            {
-              "title": {
-                "zh-TW": "垃圾 issue 分流併入 agentic 工作流程並恢復自動結案",
-                "en": "Spam triage moved into the agentic workflow with automatic closure restored"
-              },
-              "body": {
-                "zh-TW": "專案把垃圾 issue 的分流整合進 agentic issue-triage 工作流程，並恢復自動關閉垃圾 issue。用來執行分流的 Action 相容性也已修正。分類與結案因而放在同一條處理路徑上，並確保這條路徑能相容執行。⟦這好比把廣告信篩選器裝進既有的收信流程：辨識出垃圾信後直接歸檔，不必再交給另一個不相容的分揀機。⟧",
-                "en": "The project folded spam-issue triage into the agentic issue-triage workflow and restored automatic closure of spam issues. Compatibility for the Action that runs triage is fixed too. ⟦It is like placing a junk-mail filter inside the existing mail flow: identified flyers go straight to filing instead of being handed to an incompatible second sorter.⟧"
-              },
-              "original": "Collapse spam triage into the agentic issue-triage workflow by @williammartin in https://github.com/cli/cli/pull/14027\nRestore automatic spam issue closure by @williammartin in https://github.com/cli/cli/pull/14088\nFix issue triage action compatibility [skip changelog] by @tidy-dev in https://github.com/cli/cli/pull/14207"
-            },
-            {
-              "title": {
-                "zh-TW": "PR 審查須明確指定負責人",
-                "en": "PR reviews now require explicit ownership"
-              },
-              "body": {
-                "zh-TW": "送出 PR（pull request，請求將程式碼合併進專案的提案）後，審查工作現在要求明確指定負責人。每一份等待審查的變更都要知道由誰接手，責任不再停留在未指派的狀態。這項規則只聚焦於審查歸屬的明確性。每份 PR 的審查責任都有明確歸屬。不再模糊。⟦這如同在任務看板的待辦卡上明確貼上負責人名條，避免卡片一直停在待辦清單卻沒人認領。⟧",
-                "en": "After a PR (pull request) is submitted, review work now requires an explicitly named owner. Every pending change should have a person responsible for taking it up. ⟦It is like attaching a specific owner's name tag to a task card on the board so work does not sit unassigned in the queue.⟧"
-              },
-              "original": "Require explicit PR review ownership by @williammartin in https://github.com/cli/cli/pull/14028"
-            },
-            {
-              "title": {
-                "zh-TW": "Dependabot 分流改為每小時執行，依程式碼可達性判斷",
-                "en": "Dependabot triage runs hourly and checks code reachability"
-              },
-              "body": {
-                "zh-TW": "Dependabot（自動檢查相依套件更新的機器人）分流現在每小時執行。它的留言變短，判斷流程也改得更省成本、更果斷，並加入真正的程式碼可達性檢查：確認程式碼路徑是否真的能走到漏洞。它不只看到相依套件的問題，也會檢查程式實際能否觸及該問題。不是只看清單上的名稱。⟦這不是只看建築圖上有一扇失修的門，而是沿著走道實際確認能不能走到那扇門。⟧",
-                "en": "Dependabot (the bot that checks dependency updates) triage now runs every hour. Its comments are shorter, its decisions are cheaper and more decisive, and it now performs a real code-reachability check: whether a code path can actually reach a vulnerability. ⟦Rather than merely spotting a broken door on a building plan, it follows the corridor to see whether that door can really be reached.⟧"
-              },
-              "original": "Slim down dependabot triage comments by @williammartin in https://github.com/cli/cli/pull/14019\nRun Dependabot triage every hour by @sergiou87 in https://github.com/cli/cli/pull/14030\nMake Dependabot triage cheaper and more decisive by @williammartin in https://github.com/cli/cli/pull/14079\nGive Dependabot triage a real reachability check by @williammartin in https://github.com/cli/cli/pull/14087\n@sergiou87 made their first contribution in https://github.com/cli/cli/pull/14030"
-            },
-            {
-              "title": {
-                "zh-TW": "AI 代理須套用 PR 範本，並釐清測試章節填寫規範",
-                "en": "AI agents instructed to use PR template and clarified testing section requirements"
-              },
-              "body": {
-                "zh-TW": "協助專案開發的 AI 代理準備提交 PR（pull request，請求將程式碼合併進專案的提案）時，現在必須依 `AGENTS.md` 規定的 PR 範本填寫。相關指引也進一步釐清了測試章節的填寫範圍，明確指出哪些驗證細節應記錄在該欄位。⟦像填寫制式的交接報告單，表格在驗收欄明確註記該登記哪些檢查項目，避免漏記關鍵細節。⟧這讓代理提交變更時有統一的交件標準，協助審查者迅速確認測試狀況。",
-                "en": "When an AI agent prepares to submit a PR (pull request), `AGENTS.md` now directs it to follow the standard pull request template. The guidelines also clarify what belongs in the PR template's testing section, defining which verification details must be recorded. ⟦It is like filling out a standardized handover report with clear instructions on which checklist items to log in the verification section.⟧ These updates give agents clear rules for submitting changes so reviewers can quickly assess test coverage."
-              },
-              "original": "Tell agents to use the PR template in AGENTS.md by @williammartin in https://github.com/cli/cli/pull/14074\nClarify what belongs in the PR template's testing section by @williammartin in https://github.com/cli/cli/pull/14103"
-            },
-            {
-              "title": {
-                "zh-TW": "新增排程清理技術債技能，定期維護專案程式碼",
-                "en": "Added scheduled tech debt burndown skill for periodic maintenance"
-              },
-              "body": {
-                "zh-TW": "專案維護久了，程式庫常累積零星的待辦標記、過時設定或待整理的舊結構，平時卻抽不出完整時間手動整理。專案現在為 AI 代理新增了排程清理技術債技能（tech debt burndown skill，定期處理專案累積技術債務的專用指令技能）。在排程設定中啟用並排定觸發時間後，代理便會按固定週期自動檢視並清理這些技術債。⟦像在大樓日誌裡排定例行大掃除，定期把倉庫堆積的雜物與舊箱子清運出去，不讓零碎雜物越積越多。⟧透過將清債任務標準化與排程化，專案能持續維持程式碼的整潔度與健康度。",
-                "en": "As a repository grows, it often accumulates lingering TODOs, outdated configurations, or disorganized code structures that developers rarely have dedicated time to clean up. The project now introduces a scheduled tech debt burndown skill for AI agents. Once configured with a schedule, the agent automatically triggers on a recurring interval to inspect the codebase and clean up technical debt. ⟦It is like putting a regular deep-cleaning schedule on the building calendar to clear out accumulated clutter from the storage room before it piles up.⟧ Standardizing and scheduling these cleanups helps teams keep the repository tidy and maintainable over time."
-              },
-              "original": "Add a scheduled tech debt burndown skill by @williammartin in https://github.com/cli/cli/pull/14095"
-            },
-            {
-              "title": {
-                "zh-TW": "程式碼審查技能更名為 `code-review`，簡化呼叫識別",
-                "en": "Renamed cli-code-reviewer skill to code-review"
-              },
-              "body": {
-                "zh-TW": "專案調整了程式碼審查技能的命名，將原本的 `cli-code-reviewer` 正式更名為更簡短的 `code-review`。這項變更讓技能名稱更直覺且符合日常用法，去除多餘的前綴詞後也更容易被指令系統與開發者辨識。⟦像把辦公室門口冗長的「內部文件審查員室」標示，更換成簡潔明瞭的「審查室」門牌。⟧這次更名僅調整技能識別名稱，不影響原有的審查功能與運作機制。",
-                "en": "The repository renamed the `cli-code-reviewer` skill to the simpler and more concise `code-review`. Dropping the verbose prefix makes the skill name more intuitive and easier to recognize when invoking agent capabilities. ⟦It is like replacing a wordy \"Internal Document Reviewer Room\" sign on an office door with a clean, straightforward \"Review Room\" plaque.⟧ This update changes only the identifier, leaving the underlying review functionality unchanged."
-              },
-              "original": "Rename cli-code-reviewer skill to code-review by @BagToad in https://github.com/cli/cli/pull/14116"
-            },
-            {
-              "title": {
-                "zh-TW": "Linux APT 套件庫改採雙金鑰簽署",
-                "en": "Linux APT repository now uses dual-key signing"
-              },
-              "body": {
-                "zh-TW": "Linux 系統的 APT 套件庫現在同時以兩把金鑰進行簽署。在 CI（持續整合，自動執行檢查的流程）中，團隊先前曾短暫加入驗證 Linux 套件庫簽署金鑰的臨時步驟，在確認簽署狀態正常後隨即撤回該臨時步驟。整項改動僅涉及雙金鑰簽署與臨時驗證步驟的清理。⟦像在同一份公文上同時蓋上兩枚印章以供雙重辨識，期間查驗處短暫增設了核印櫃檯，確認無誤後隨即撤除。⟧",
-                "en": "The Linux APT repository is now signed with both keys simultaneously. In CI (continuous integration, an automated checking process), the team briefly added a temporary step to verify the repository signing keys, then promptly reverted that check after confirming the setup. The update focuses strictly on the dual-key signing and cleaning up the temporary verification step. ⟦It is like stamping an official document with two separate seals for dual verification, while an inspection checkpoint is briefly set up to verify the stamps before being removed.⟧"
-              },
-              "original": "ci: add temporary step to verify Linux repo signing keys by @babakks in https://github.com/cli/cli/pull/14202\nRevert \"ci: add temporary step to verify Linux repo signing keys\" by @babakks in https://github.com/cli/cli/pull/14203\nchore: sign APT repository with both keys by @babakks in https://github.com/cli/cli/pull/13271"
-            },
-            {
-              "title": {
-                "zh-TW": "測試不再讀取本機認證與 Git 設定",
-                "en": "Tests no longer read local authentication or Git configuration"
-              },
-              "body": {
-                "zh-TW": "你在自己的電腦上跑測試時，登入認證與 Git 設定本來就可能和其他人的不同，讓測試帶著個人環境的影子。這次調整把測試和本機的認證、Git 設定隔開，使測試執行時不再讀取這兩類本機資料。⟦像把實驗樣本放到專用的乾淨工作台上，只讓實驗指定的材料進場，不把研究員口袋裡的東西混進結果。⟧重點不是換掉你的認證或 Git 設定，而是讓測試不依賴它們。",
-                "en": "When you run tests on your own machine, its authentication and Git configuration can differ from someone else's and leak personal-environment details into the run. This change isolates tests from both kinds of local data, so they no longer read local authentication or Git configuration. ⟦It is like placing samples on a dedicated clean workbench, allowing in only the materials for the experiment rather than anything in the researcher's pockets.⟧ Your credentials and Git settings are not being replaced; the tests simply no longer depend on them."
-              },
-              "original": "Isolate tests from local machine's auth and git configuration by @BagToad in https://github.com/cli/cli/pull/14128"
-            },
-            {
-              "title": {
-                "zh-TW": "部署驗證接受預發布標籤",
-                "en": "Deployment validation accepts pre-release tags"
-              },
-              "body": {
-                "zh-TW": "部署流程驗證版本標籤時，現在接受預發布（pre-release，正式發布前使用的版本標籤）標籤。預發布標籤用來標示正式發布之前的版本；部署驗證會把這一類標籤視為可接受的輸入。⟦像活動入口除了正式票券，也核驗試營運場次的票券，兩種票都能通過入口。⟧這項調整只改部署驗證對標籤的接受條件，讓使用預發布標籤的部署流程不必在驗證處被擋下。",
-                "en": "When a deployment flow validates a version tag, it now accepts a pre-release tag, a tag for a version before formal release. Deployment validation therefore treats that tag type as acceptable input. ⟦It is like an event entrance validating tickets for a trial-run session as well as tickets for the formal opening, letting both through the gate.⟧ The change is limited to which tags deployment validation accepts, so a deployment using a pre-release tag is not stopped at that check."
-              },
-              "original": "Accept pre-release tags in deployment validation by @BagToad in https://github.com/cli/cli/pull/14193"
-            },
-            {
-              "title": {
-                "zh-TW": "以 `reflect.Pointer` 取代已淘汰的 `reflect.Ptr`",
-                "en": "Replaced deprecated `reflect.Ptr` with `reflect.Pointer`"
-              },
-              "body": {
-                "zh-TW": "程式碼把已淘汰的 `reflect.Ptr` 改為 `reflect.Pointer`，完成一次 API（應用程式介面，程式用來呼叫功能的固定方式）替換。這不是新增另一種呼叫方式，而是將原先使用的過時名稱換成目前的名稱。⟦像把老舊規格的轉接頭換成現行規格，插在原本位置仍是為了完成同一段連接。⟧若你正在閱讀相關程式碼，看到 `reflect.Pointer` 就是在辨認這項替換後使用的 API。",
-                "en": "Code now replaces deprecated `reflect.Ptr` with `reflect.Pointer`, completing an API (application programming interface, a fixed way for programs to call a capability) substitution. This does not add a second way to make the call; it changes the outdated name that the code used to the current one. ⟦It is like swapping an old-standard adapter for one that meets the current standard while using the same connection point.⟧ When reading the relevant code, `reflect.Pointer` is the API used after this replacement."
-              },
-              "original": "Use reflect.Pointer instead of deprecated reflect.Ptr by @williammartin in https://github.com/cli/cli/pull/14098"
-            },
-            {
-              "title": {
-                "zh-TW": "不需要清理時不再要求功能偵測註解",
-                "en": "Feature detection no longer requests cleanup comments when unneeded"
-              },
-              "body": {
-                "zh-TW": "功能偵測（feature detection，先確認功能是否可用的做法）不需要清理時，現在不再要求清理註解。這條規則把是否需要清理當成是否提出註解要求的界線：有清理需要的地方可留下相應註解，沒有清理需要的地方則不因同一件事再被要求補註。⟦像工作單只在確有後續收尾工作時附上提醒；沒有待收尾的項目，就不多附一張提醒單。⟧改動的重點是刪除不必要的要求，讓註解要求和實際清理需要對齊。",
-                "en": "When feature detection (checking whether a capability is available) needs no cleanup, it no longer requests a cleanup comment. Whether cleanup is needed now forms the boundary for asking for that comment: a corresponding comment can be left where cleanup is needed, but an item needing none is not asked for one. ⟦It is like attaching a reminder to a work order only when follow-up work really remains; an item with nothing to finish gets no extra reminder slip.⟧ The change removes an unneeded request so that the request for a comment matches the actual need for cleanup."
-              },
-              "original": "Don't ask for feature detection cleanup comments when not needed by @babakks in https://github.com/cli/cli/pull/14139"
-            },
-            {
-              "title": {
-                "zh-TW": "建置工具與相依套件升級，Dependabot 新增 aw-actions 群組",
-                "en": "Build tools and dependencies upgraded; Dependabot gains an aw-actions group"
-              },
-              "body": {
-                "zh-TW": "Dependabot 設定新增 `aw-actions` 群組，並更新 `aw-actions`、`codeql-actions`、sigstore-go、gRPC、go-containerregistry、actions/attest、azure/login、goldmark、protobuf、testify、x/crypto、lipgloss 與壓縮函式庫。Go 依序升至 1.26.6、1.26.7，CI 的 golangci-lint 升至 v2.12.2；gh-aw workflows 升至 v0.85.4，gh-aw-actions 升至 v0.87.1 並重新編譯 agentic workflows。⟦像維修清單逐項更換零件，連自動補貨規則與已組裝的工作單也一併更新。⟧",
-                "en": "Dependabot configuration now includes an `aw-actions` group, while `aw-actions`, `codeql-actions`, sigstore-go, gRPC, go-containerregistry, actions/attest, azure/login, goldmark, protobuf, testify, x/crypto, lipgloss, and a compression library were updated. Go moved through 1.26.6 to 1.26.7, CI's golangci-lint reached v2.12.2, gh-aw workflows reached v0.85.4, and gh-aw-actions reached v0.87.1 with agentic workflows recompiled. ⟦It is like replacing parts from a maintenance list while updating the automatic replenishment rule and already assembled work orders too.⟧"
-              },
-              "original": "Add aw-actions group to dependabot configuration by @babakks in https://github.com/cli/cli/pull/14123\nchore(deps): bump github.com/sigstore/sigstore-go from 1.2.2 to 1.3.0 by @dependabot[bot] in https://github.com/cli/cli/pull/14047\nchore(deps): bump the codeql-actions group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14049\nchore(deps): bump google.golang.org/grpc from 1.82.1 to 1.83.0 by @dependabot[bot] in https://github.com/cli/cli/pull/14048\nchore(deps): bump github.com/google/go-containerregistry from 0.21.7 to 0.21.8 by @dependabot[bot] in https://github.com/cli/cli/pull/14066\nchore(deps): bump actions/attest from 4.2.1 to 4.2.2 by @dependabot[bot] in https://github.com/cli/cli/pull/14100\nchore(deps): bump azure/login from 3.0.0 to 3.0.1 by @dependabot[bot] in https://github.com/cli/cli/pull/14101\nchore(deps): bump the codeql-actions group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14091\nchore(deps): bump github/gh-aw-actions/setup-cli from 0.83.4 to 0.85.4 by @dependabot[bot] in https://github.com/cli/cli/pull/14068\nchore(deps): bump github.com/google/go-containerregistry from 0.21.8 to 0.21.9 by @dependabot[bot] in https://github.com/cli/cli/pull/14119\nchore(deps): bump github.com/klauspost/compress from 1.19.1 to 1.19.2 by @dependabot[bot] in https://github.com/cli/cli/pull/14120\nchore(deps): bump the aw-actions group with 2 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14147\nchore(deps): bump github.com/yuin/goldmark from 1.8.4 to 1.8.5 by @dependabot[bot] in https://github.com/cli/cli/pull/14029\nchore(deps): bump actions/attest from 4.2.0 to 4.2.1 by @dependabot[bot] in https://github.com/cli/cli/pull/14050\nBump golangci-lint in CI to v2.12.2 by @williammartin in https://github.com/cli/cli/pull/14102\nchore(deps): bump the aw-actions group with 2 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14124\nchore(deps): bump google.golang.org/protobuf from 1.36.11 to 1.36.12 by @dependabot[bot] in https://github.com/cli/cli/pull/14140\nUpgrade gh-aw workflows to v0.85.4 by @tidy-dev in https://github.com/cli/cli/pull/14141\nBump Go to 1.26.6 by @github-actions[bot] in https://github.com/cli/cli/pull/14143\nchore: bump go to 1.26.7 by @babakks in https://github.com/cli/cli/pull/14205\nchore(deps): bump github.com/stretchr/testify from 1.11.1 to 1.12.1 by @dependabot[bot] in https://github.com/cli/cli/pull/14204\nchore(deps): bump the codeql-actions group across 1 directory with 3 updates by @dependabot[bot] in https://github.com/cli/cli/pull/14169\nchore(deps): bump golang.org/x/crypto from 0.54.0 to 0.55.0 by @dependabot[bot] in https://github.com/cli/cli/pull/14164\nchore(deps): bump charm.land/lipgloss/v2 from 2.0.5 to 2.0.6 by @dependabot[bot] in https://github.com/cli/cli/pull/14166\nBump gh-aw-actions to v0.87.1 and recompile agentic workflows by @BagToad in https://github.com/cli/cli/pull/14210"
             }
           ]
         }
