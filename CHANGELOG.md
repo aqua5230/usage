@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.16] - 2026-09-15
+
+### Fixed
+- **The weekly quota warning no longer fires from a short burst of use, and the time it shows now matches the reason it fired** ([#138](https://github.com/aqua5230/usage/pull/138)). It used to extrapolate only the last 30–60 minutes of burn rate onto the 7-day window, so a dense working session alone could trigger a false alarm (e.g. 53.7% used, 3 days 1 hour to reset, warned "runs out in 13 hours"). `assess_weekly_quota()` now checks both rates: the short window still warns immediately if it alone predicts exhaustion within an hour, but otherwise the whole-week average must predict exhaustion at least 20% of the reset window early (`WEEKLY_AVERAGE_WARNING_RATIO`) before it warns — and displays that average's time instead of the short window's, which previously could show a number like "runs out in 8h55m" next to a warning actually driven by a slower week-long trend, contradicting the separate 5-hour session quota shown beside it. Session-quota warnings are unchanged.
+- **The Windows tray panel could stay stuck at `--` and Loading forever when `~/.claude/settings.json` had a UTF-8 BOM.** `installer/setup_hook.py` opened the file as plain `utf-8`, and Python's JSON decoder rejects an otherwise-valid file that starts with a BOM with `Unexpected UTF-8 BOM`, so the startup self-heal step failed before the refresh loop ever completed. Both readers (`_load_settings()` and the legacy-usage migration) now open the file as `utf-8-sig`, which accepts the file with or without a BOM and does not change the parsed settings.
+
 ## [0.30.15] - 2026-09-14
 
 ### Added

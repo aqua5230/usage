@@ -231,6 +231,33 @@ def test_load_settings_bad_utf8_raises_system_exit(setup_paths: SetupHookPaths) 
         setup_hook._load_settings()
 
 
+def test_load_settings_accepts_utf8_bom(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
+    expected = {"statusLine": {"type": "command", "command": "echo ok"}}
+    settings.write_bytes(b"\xef\xbb\xbf" + json.dumps(expected).encode("utf-8"))
+
+    assert setup_hook._load_settings() == expected
+
+
+def test_migrate_legacy_usage_accepts_utf8_bom_settings(setup_paths: SetupHookPaths) -> None:
+    settings = setup_paths.settings
+    legacy_hook = setup_hook.LEGACY_HOOK_TARGET
+    legacy_hook.write_text("legacy hook\n", encoding="utf-8")
+    payload = {
+        "statusLine": {
+            "type": "command",
+            "command": f"python3 {legacy_hook}",
+        },
+    }
+    settings.write_bytes(b"\xef\xbb\xbf" + json.dumps(payload).encode("utf-8"))
+
+    setup_hook._migrate_from_legacy_usage()
+    data = json.loads(settings.read_bytes().decode("utf-8-sig"))
+
+    assert not legacy_hook.exists()
+    assert "statusLine" not in data
+
+
 def test_save_settings_preserves_symlink_and_updates_target(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
