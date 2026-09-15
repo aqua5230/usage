@@ -373,7 +373,7 @@ def _load_settings() -> dict[str, Any]:
     if not CLAUDE_SETTINGS.exists():
         return {}
     try:
-        with CLAUDE_SETTINGS.open(encoding="utf-8") as f:
+        with CLAUDE_SETTINGS.open(encoding="utf-8-sig") as f:
             data = json.load(f)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
         raise SystemExit(_t("setup_settings_read_failed", path=CLAUDE_SETTINGS, error=exc)) from exc

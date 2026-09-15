@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.29.22] - 2026-09-15
+
+### Fixed
+- **The Windows tray panel could remain stuck at `--` and `Loading` when Claude settings used a UTF-8 BOM.** `setup_hook._load_settings()` opened `~/.claude/settings.json` as `utf-8`, then Python's JSON decoder rejected an otherwise valid BOM-prefixed file with `Unexpected UTF-8 BOM`. On the affected installation, startup self-heal failed before the refresh loop completed, leaving the panel at its initial placeholders. The loader now uses `utf-8-sig`, which accepts both BOM-prefixed and BOM-less UTF-8 without changing the parsed settings. A regression test covers the BOM case.
+
 ## [0.29.21] - 2026-08-09
 
 ### Fixed

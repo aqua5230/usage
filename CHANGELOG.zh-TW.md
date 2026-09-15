@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.29.22] - 2026-09-15
+
+### 修正
+- **Claude 設定檔含有 UTF-8 BOM 時，Windows 系統匣面板可能永久停在 `--` 與 `Loading`。** `setup_hook._load_settings()` 原本用 `utf-8` 開啟 `~/.claude/settings.json`，Python 的 JSON 解碼器因此把原本有效、但帶 BOM 的檔案判成 `Unexpected UTF-8 BOM`。受影響的安裝在啟動自我修復階段就失敗，刷新迴圈沒有完成，面板便一直留在初始佔位狀態。現在改用 `utf-8-sig`，同時接受帶 BOM 與不帶 BOM 的 UTF-8，而且不會改變解出的設定內容；另加入 BOM 回歸測試。
+
 ## [0.29.21] - 2026-08-09
 
 ### 修正
