@@ -714,6 +714,111 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.4",
+          "period": "2026-09-16",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "新增 /skills reload 指令，免重啟工作階段即時重載技能",
+                "en": "Added /skills reload Command to Instantly Reload Skills Without Restarting Session"
+              },
+              "body": {
+                "zh-TW": "在終端機對話中途擴充技能或自訂指令，現在完全不必打斷當前思路。⟦宛如舞台劇在演出進行中，後台助理在側幕無聲換上新道具與曲目劇本，前台演員不必中斷表演，觀眾的觀賞體驗也絲毫不受干擾。⟧當你正在跟 AI 協同開發，臨時新增了一項技能檔案或自訂斜線指令，想立刻在對話中使用卻不想結束當前對話，這正是鍵入 `/skills reload` 的時刻。這項新增的子指令會在背景非同步重新載入所有偵測到的技能與斜線指令，既不用重新啟動工作階段（session），也不會暫停或鎖定你的終端機鍵盤輸入，讓你一邊繼續提問、一邊立即取用最新擴充。",
+                "en": "Expanding skills or custom commands mid-conversation in the terminal no longer requires interrupting your flow. ⟦Just like backstage assistants quietly swapping in new props and scripts from the wings during an ongoing stage play, without the actors ever pausing their performance or the audience experiencing any disruption.⟧ When collaborating with AI and adding a new skill file or custom slash command that you want to use right away without ending the ongoing session, this is the exact moment to type `/skills reload`. This newly added subcommand asynchronously reloads all discovered skills and slash commands in the background without restarting the session or blocking terminal keyboard input, allowing you to keep asking questions while immediately utilizing the latest extensions."
+              },
+              "original": "Added a `/skills reload` subcommand to asynchronously reload discovered skills and slash commands without restarting the session or blocking user input."
+            },
+            {
+              "title": {
+                "zh-TW": "新增 /model 行內自動補齊與互動選單模糊搜尋列",
+                "en": "Added Inline Autocomplete for /model and Fuzzy Search Bar in Interactive Picker"
+              },
+              "body": {
+                "zh-TW": "切換對話所使用的運算模型時，現在不必再死記複雜的型號代碼。⟦好比走進大型圖書館的數位檢索機，只要在鍵盤敲入幾個關鍵字，螢幕即刻跳出推薦書單，挑選時更能依書名或索書號即時模糊比對，迅速定位想借閱的館藏。⟧當你需要針對複雜任務切換運算模型，這正是輸入 `/model` 的時刻。現在只要在終端機輸入 `/model` 時，輸入列就會即時彈出行內參數的自動補齊下拉選單；若進入互動式選單介面，上方還新增了即時模糊搜尋列，讓你能直接輸入模型名稱或型號 ID 快速過濾篩選，挑出最合適的目標。",
+                "en": "When switching compute models during a conversation, you no longer need to memorize complex model IDs. ⟦Like searching a digital catalog in a large library, typing a few keywords on the keyboard immediately brings up recommended books, with real-time fuzzy matching across titles and call numbers to quickly locate desired items.⟧ When you need to switch compute models for complex tasks, this is the moment to enter `/model`. Typing `/model` in the terminal now instantly pops up an inline argument autocomplete dropdown; entering the interactive menu interface provides a live fuzzy search bar at the top, enabling you to filter quickly by model name or ID and pick the most suitable option."
+              },
+              "original": "Added an inline argument autocomplete dropdown when typing `/model` and a live fuzzy search bar inside the interactive `/model` picker to filter models by name or ID."
+            },
+            {
+              "title": {
+                "zh-TW": "OAuth 權限不足時明確提示執行 /logout 與 /login 指令",
+                "en": "Explicit Instructions to Run /logout and /login When OAuth Permissions Are Insufficient"
+              },
+              "body": {
+                "zh-TW": "登入驗證遇到權限不足時，錯誤提示現在會給出明確的修復指引。以前當你的 OAuth token（授權令牌）缺少系統所需的存取權限範圍時，終端機只會拋出晦澀的授權失敗訊息，讓人不知該如何處理。現在系統改進了身分驗證錯誤提示，會直接在畫面中列出清晰的修復步驟，主動指引你依序執行 `/logout` 登出與 `/login` 重新登入指令以更新權限。⟦這如同門禁通行證上的感應權限不足時，驗證閘門不再只閃爍冰冷的紅燈，而是清楚指示你前往服務櫃台辦理註銷並重新感應登錄。⟧",
+                "en": "Error messages now provide explicit remediation instructions when encountering insufficient permissions during authentication. Previously, when an OAuth token lacked required access scopes, the terminal merely threw an obscure authorization failure message, leaving users unsure how to resolve it. Authentication error prompts have now been improved to display clear recovery steps directly on screen, actively guiding you to run `/logout` and `/login` sequentially to refresh permissions. ⟦Like an access gate that no longer just flashes a cold red light when a security badge lacks permissions, but clearly instructs you to visit the service desk to revoke and re-authenticate.⟧"
+              },
+              "original": "Improved authentication error messages when OAuth tokens lack required scopes by including explicit instructions to run `/logout` and `/login`."
+            },
+            {
+              "title": {
+                "zh-TW": "修復切換至 Gemini 思考模型與聯網搜尋摘要的解析異常",
+                "en": "Fixed Parsing Errors When Switching to Gemini Thinking Models and Web Search Summaries"
+              },
+              "body": {
+                "zh-TW": "無論中途切換至具備推理能力的 Gemini 思考模型，或是執行聯網搜尋，運作流程現在更加順暢。以前若前幾輪對話是由非 Gemini 模型所產生，中途切換為 Gemini 思考模型時，系統會因為找不到前序對話的 `thought_signature`（思考簽章）而跳出格式驗證錯誤。此外，使用 `search_web` 聯網搜尋工具時，若負責產出摘要的模型在開頭吐出了思考過程片段，也會導致搜尋以 `\"no summary returned from GenerateContent\"` 錯誤失敗。這兩項思考模型解析問題現在都已經修好，模型切換與搜尋摘要皆能如常運作。⟦有如不同樂團的指揮家在中途接力交接樂譜，就算前段演奏並未標註特定的呼吸記號，接棒的指揮也能順暢接續演奏，不再因為記譜格式不同而中斷整場音樂會。⟧",
+                "en": "Workflows now run much smoother whether switching mid-conversation to Gemini thinking models equipped with reasoning capabilities or executing web searches. Previously, when prior conversation turns were generated by non-Gemini models, switching mid-session to a Gemini thinking model would fail with format validation errors due to missing `thought_signature` from previous turns. In addition, when using the `search_web` tool, if the summarization model emitted leading thought parts, the search would fail with a `\"no summary returned from GenerateContent\"` error. Both parsing issues with thinking models have now been fixed, allowing model switching and search summaries to function as expected. ⟦Like guest conductors handing off sheet music mid-performance, the incoming conductor continues smoothly even if earlier passages lacked specific breathing marks, preventing the concert from halting over notation differences.⟧"
+              },
+              "original": "Fixed mid-conversation model switching to Gemini thinking models failing with `thought_signature` validation errors when prior turns were generated by non-Gemini models.\nFixed web search (`search_web`) failing with `\"no summary returned from GenerateContent\"` when the summarization model emits leading thought parts."
+            },
+            {
+              "title": {
+                "zh-TW": "工具呼叫格式錯誤時代理迴圈會回傳錯誤並自我修正",
+                "en": "Agent Loop Returns Errors and Self-Corrects on Tool Call Validation Failures"
+              },
+              "body": {
+                "zh-TW": "讓 AI 自動調用工具時，若參數格式不合規，流程不再直接斷線罷工。以前當工具呼叫未通過結構驗證（schema validation）時，對話輪次會過早以 `NO_TOOL_CALL` 錯誤直接終止，導致工作被迫中斷。現在這個問題已經修好，代理迴圈會將驗證錯誤訊息回傳給 AI，讓模型能即時理解錯誤並自動修正參數重新呼叫。",
+                "en": "When letting AI invoke tools automatically, invalid argument formats no longer abruptly terminate the workflow. Previously, when a tool call failed schema validation, the conversation turn would terminate prematurely with a `NO_TOOL_CALL` error, forcing work to halt. This issue has now been resolved: the agent loop returns the validation error message to the AI, allowing the model to promptly understand the error, correct its arguments, and retry the call."
+              },
+              "original": "Fixed agent turns terminating prematurely with `NO_TOOL_CALL` when a tool call fails schema validation, allowing the agent loop to return the validation error and self-correct."
+            },
+            {
+              "title": {
+                "zh-TW": "修復 MCP 工具定義原地修改與 hooks.json 遭預算截斷問題",
+                "en": "Fixed In-Place MCP Tool Definition Mutation and hooks.json Token Budget Truncation"
+              },
+              "body": {
+                "zh-TW": "自訂擴充設定與外部工具整合，現在運作更加穩定可靠。⟦彷彿工廠流水線在擴充新模具時，直接複製了一份專屬加工樣板，既不會在共用設計圖上塗改破壞原有尺寸標準，也不會在控制台進行總長度修剪時遺漏了預先掛載的感應開關。⟧以前系統在為 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）擴充工具結構時，會直接在記憶體中就地修改工具定義，導致後續觸發嚴格參數驗證失敗。同時，當自訂內容啟動 token（AI 處理文字的計量單位）預算截斷機制時，原本在 `hooks.json` 設定的掛鉤規則還會無預警被整份丟棄。這兩項設定遺失與參數驗證問題現在都已修好。",
+                "en": "Custom extension configurations and external tool integrations now operate with greater stability and reliability. ⟦Like a factory assembly line duplicating a dedicated processing template when expanding with new molds, neither defacing original dimension standards on shared blueprints nor dropping pre-mounted sensor switches during total length trimming on the console.⟧ Previously, when the system augmented tool schemas for MCP (Model Context Protocol), it mutated tool definitions in place in memory, triggering subsequent strict argument validation failures. Meanwhile, when customization token budget truncation was activated, hook rules configured in `hooks.json` were silently dropped without warning. Both configuration loss and parameter validation issues have now been resolved."
+              },
+              "original": "Fixed MCP tool schema augmentation mutating tool definitions in place, preventing strict argument validation failures.\nFixed `hooks.json` configurations being silently dropped when customization token budget truncation is active."
+            },
+            {
+              "title": {
+                "zh-TW": "修復自訂子代理 exclude 技能過濾遺失與終止狀態被誤重設問題",
+                "en": "Fixed Custom Subagent exclude Skill Filter Loss and Accidental Reset of Termination Status"
+              },
+              "body": {
+                "zh-TW": "指派專門分工的自訂子代理（subagent，負責特定分工的輔助 AI）協同工作時，權限過濾與狀態追蹤更加精確。以前當系統在執行階段套用技能過濾時，自訂子代理會遺失原本設定的 `exclude` 技能排除清單。同時，在發布訂閱機制的批次合併更新下，已被終止的子代理也容易因晚到的步驟更新而被錯誤重設為活躍狀態。這兩項技能過濾與狀態追蹤問題現在都已經修好。⟦恰如專案主管指派外包團隊執行特定任務，既確保外包團隊不會擅自碰觸被禁止的機密工具，也在任務結案並撤銷權限後，不會因晚到的進度回報而誤將該小組重新標示為作業中。⟧",
+                "en": "Permission filtering and status tracking are now more precise when delegating tasks to specialized custom subagents. Previously, when runtime skill filtering was applied, custom subagents would lose their configured `exclude` skill filter lists. Additionally, under pubsub batch coalescing updates, killed subagents could be mistakenly reset to active status by late step updates. Both skill filtering and status tracking issues have now been fixed. ⟦Like a project manager assigning specific tasks to an outsourced team, ensuring they cannot touch restricted confidential tools, and preventing the team from being mistakenly marked active by delayed progress reports after the task is closed and permissions are revoked.⟧"
+              },
+              "original": "Fixed custom subagents losing configured `exclude` skill filters when runtime skill filtering is applied.\nFixed subagent status and termination tracking under pubsub batch coalescing so killed subagents are not reset to active by late step updates."
+            },
+            {
+              "title": {
+                "zh-TW": "修復重啟後對話與背景常駐工作無法自動復原及日誌遺漏問題",
+                "en": "Fixed Conversation and Daemon Background Task Auto-Resume Failures and Omitted Logs After Restart"
+              },
+              "body": {
+                "zh-TW": "終端機重新啟動後的對話復原與除錯記錄，現在更加完整可靠。以前當對話中仍有正在進行的發言輪次、或是背景有正在執行的 daemon（背景常駐程式）工作時，重新啟動後往往無法順利自動恢復對話。同時，終端機中發生的 `ERROR` 錯誤步驟（例如工具執行失敗或逾時），過去也常在 `transcript.jsonl` 對話記錄檔中被意外漏掉。這兩項工作階段自動復原與日誌記錄問題現在都已經修好。⟦宛若航行記錄器在飛行中忠實記錄每一筆警報日誌，即使儀表系統在中途重新開機，所有正在運作的背景巡航裝置也能在重啟後立即接續運轉。⟧",
+                "en": "Conversation recovery and debug logging following terminal restarts are now more complete and dependable. Previously, when a conversation had active turns or daemon background tasks running, auto-resuming the session smoothly after a restart often failed. Furthermore, terminal `ERROR` steps (such as failed tool executions or timeouts) were frequently omitted from `transcript.jsonl` conversation logs. Both session auto-recovery and logging issues have now been resolved. ⟦Like a flight recorder faithfully logging every alarm during flight, all operational background cruising systems can immediately resume running after a reboot, even if instrument systems restart mid-air.⟧"
+              },
+              "original": "Fixed conversations with active turns or running daemon background tasks failing to auto-resume after a restart.\nFixed terminal `ERROR` steps (such as failed tool executions or timeouts) being omitted from `transcript.jsonl` conversation logs."
+            },
+            {
+              "title": {
+                "zh-TW": "SSH 連線於 Apple_Terminal 停用不支援的超連結跳脫序列",
+                "en": "Disabled Unsupported Hyperlink Escape Sequences in Apple_Terminal Over SSH Connections"
+              },
+              "body": {
+                "zh-TW": "透過 SSH 遠端連線在 macOS 原生終端機操作時，畫面文字不再出現多餘的亂碼符號。以前使用 `Apple_Terminal` 建立 SSH 連線時，由於終端機不支援特定的超連結格式，畫面上會直接印出未解析的 OSC 8 原始跳脫序列（escape sequences）。現在系統已主動停用不支援的超連結序列，這個顯示問題已經修好，遠端文字呈現恢復乾淨整潔。",
+                "en": "Terminal text no longer displays stray garbled characters when operating over SSH connections in native macOS terminals. Previously, when establishing SSH connections using `Apple_Terminal`, unsupported hyperlink formats caused raw, unparsed OSC 8 escape sequences to print directly to the screen. The system now proactively disables unsupported hyperlink sequences, resolving this display glitch and restoring clean remote text rendering."
+              },
+              "original": "Fixed raw OSC 8 escape sequences rendering in `Apple_Terminal` over SSH connections by disabling unsupported hyperlink sequences."
+            }
+          ]
+        },
+        {
           "version": "1.2.3",
           "period": "2026-09-15",
           "items": [
@@ -876,111 +981,6 @@
                 "en": "When launching the terminal outside of any project directory, standalone conversation environments now maintain proper isolation boundaries. Previously, when starting a new conversation without a workspace folder, the session often inadvertently inherited project paths and customizations from other open sessions running concurrently. This cross-session leak caused ad-hoc conversations to mistakenly read irrelevant project rules or file directories. This isolation defect has now been fixed: conversations launched without a workspace folder remain purely standalone, no longer inheriting environment paths and custom settings from other sessions. ⟦Much like renting a temporary hot desk in a shared workspace with a clean, clear surface, where you neither uncover access keycards and personal materials left behind by adjacent project studios nor inadvertently adopt another tenant's custom lighting preferences.⟧"
               },
               "original": "Fixed conversations launched without a workspace folder inheriting workspace paths and customizations from other open sessions."
-            }
-          ]
-        },
-        {
-          "version": "1.2.1",
-          "period": "2026-09-12",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "自訂代理人支援精簡配置，排除預設提示詞與工具並保留掛鉤",
-                "en": "Custom agents support lean configuration, excluding default prompts and tools while preserving hooks"
-              },
-              "body": {
-                "zh-TW": "設計專精特定任務的自訂代理人時，你現在能擁有一張完全乾淨的畫布。在代理人 Markdown 檔案頂端的前言設定（在文件開頭以橫線包夾的設定區塊）加入 `excludeDefaultComponents: true`，便能選擇不載入系統預設的提示詞區段與內建工具，只留下你親自指定的行為邏輯。這項設定能避免通用指令干擾專業發揮。而任務結束後的掛鉤（在特定事件發生時被觸發的小程式）依舊完整保留，讓自訂自動化流程順暢運作。⟦宛如訂製專業賽車時選擇拆空內裝的輕量化車體，移除了預設的後座與原廠音響，只留下純粹操控配備，但底盤的安全感應線路依然維持連動。⟧\n\n```yaml\n---\nname: my-specialist\nexcludeDefaultComponents: true\n---\n```",
-                "en": "When designing custom agents tailored for specialized tasks, you now have a completely blank canvas. Adding `excludeDefaultComponents: true` to the frontmatter of an agent's Markdown file allows you to opt out of loading system default prompt sections and built-in tools, keeping only your explicitly specified behavior logic. This setting prevents general-purpose instructions from interfering with specialized capabilities. Meanwhile, post-task hooks remain fully preserved, keeping custom automated workflows running smoothly. ⟦Just like ordering a purpose-built race car with a stripped lightweight chassis, where default rear seats and factory stereo are removed to keep only pure driving controls, while the safety sensor wiring in the chassis remains connected.⟧\n\n```yaml\n---\nname: my-specialist\nexcludeDefaultComponents: true\n---\n```"
-              },
-              "original": "Added support for `excludeDefaultComponents: true` in custom agent Markdown frontmatter, allowing custom agents to opt out of default prompt sections and built-in tools while preserving post-invocation hooks."
-            },
-            {
-              "title": {
-                "zh-TW": "模型 API 強化錯誤重試機制，保留工具產出並提供清楚診斷",
-                "en": "Model API strengthens error retry mechanism, preserving tool outputs and providing clear diagnostics"
-              },
-              "body": {
-                "zh-TW": "面對遠端模型伺服器偶發的網路壅塞或限流，工具現在具備更沉著的容錯韌性。⟦宛如在自動販賣機投幣購買熱飲遇到出杯口短暫卡頓，機台會主動間隔等待並重新嘗試，妥善保留已落下的紙杯，若最終仍無法出料也會在螢幕亮起明確的缺料警示。⟧以前連線時若撞上暫時性的 `genai.APIError` 錯誤，執行流程往往直接中斷。現在無論是 `502`、`503`、`504` 伺服器異常、每分鐘觸發的 `429` 速率限制，或是傳輸串流中途中斷，程式都會在內部以指數退避（重試等待時間隨次數倍增的做法）自動重試。重試期間已完成的工具呼叫產出會完整保留，不再白白作廢。若重試後仍未能成功復原，系統會針對 `503` 與 `429` 狀況顯示清楚易懂的錯誤提示，不再丟出晦澀難懂的內部代碼。",
-                "en": "When facing occasional network congestion or rate limits from remote model servers, the tool now exhibits calmer fault resilience. ⟦Like buying a hot drink from a vending machine and encountering a brief jam at the dispenser chute: the machine automatically waits at intervals and retries, properly preserving the dropped cup, and illuminates a clear out-of-stock warning on the screen if it ultimately cannot dispense.⟧ Previously, encountering transient `genai.APIError` failures during a connection would often abort execution immediately. Now, whether dealing with `502`, `503`, or `504` server errors, per-minute `429` rate limits, or mid-stream transmission interruptions, the program automatically retries in-process using exponential backoff. Completed tool call outputs during retries are fully preserved rather than wasted. If recovery still fails after retrying, the system displays clear and understandable error messages for `503` and `429` situations instead of throwing obscure internal error codes."
-              },
-              "original": "Improved model API error resilience and diagnostics: transient `genai.APIError` failures (`502`, `503`, `504`, per-minute `429` rate limits, and mid-stream interruptions) automatically retry in-process with exponential backoff while preserving completed tool call outputs, and unrecovered `503` and `429` responses surface clear user-facing error messages."
-            },
-            {
-              "title": {
-                "zh-TW": "MCP 與工具結構驗證放寬，保留開放物件與自訂參數",
-                "en": "MCP and tool schema validation relaxed, preserving open objects and custom arguments"
-              },
-              "body": {
-                "zh-TW": "串接各類外部擴充工具時，規格檢驗不再把合法的彈性輸入擋在門外。使用 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）或各家模型提供者的擴充工具時，舊版結構驗證機制過於嚴格。即使工具規格本身允許開放物件結構描述（schema，規範資料格式與欄位型別的結構定義），例如宣告為 `{\"type\": \"object\"}` 或明確寫出 `additionalProperties: true`，系統過去仍會拒絕傳入任何未預先宣告的引數。現在檢驗邏輯全面改善，能妥善保留這些開放物件結構，讓合規允許額外參數的工具順利接收資料。⟦好比前往公證處填寫資產申報單，欄位末端若明確勾選了「其他動產」或備註允許自由補充，審查櫃台便會如實受理附帶清單，不再挑剔額外寫入的項目未列在制式表格上。⟧",
-                "en": "When integrating external extension tools, specification checks no longer lock out valid, flexible inputs. When using MCP or provider extension tools, the previous schema validation mechanism was overly strict. Even if a tool specification itself allowed open object schemas (such as declaring `{\"type\": \"object\"}` or explicitly setting `additionalProperties: true`), the system previously rejected any undeclared arguments. The validation logic is now improved to properly preserve these open object schemas, allowing tools that permit extra parameters to receive data smoothly. ⟦Just like filling out an asset declaration form at a notary office: if the end of a field explicitly checks \"other movable property\" or notes allow free additions, the review counter accepts the attached list as-is, no longer rejecting extra written items simply because they were not listed on the standard form.⟧"
-              },
-              "original": "Improved MCP and provider tool schema validation to preserve open object schemas (such as `{\"type\": \"object\"}` or explicit `additionalProperties: true`) instead of rejecting undeclared arguments on schemas that allow them."
-            },
-            {
-              "title": {
-                "zh-TW": "開啟大型對話降低記憶體佔用，每輪互動回應更敏捷",
-                "en": "Opening large conversations reduces memory usage, making per-turn responses more agile"
-              },
-              "body": {
-                "zh-TW": "重新載入累積大量歷史紀錄的長篇對話時，終端機的操作手感現在依然輕快。⟦這好比翻開一整箱厚重的工程施工藍圖，經過重新折疊與編目整理，攤在桌上不再佔滿整張辦公桌，每次翻到特定樓層做標記也隨翻隨寫、毫無延宕。⟧以前開啟對話紀錄特別長的工作階段（session，從啟動到結束的一整段對話歷程）時，龐大的歷史內容往往會迅速堆高記憶體用量。隨著對話越來越長，每輪互動的送出與回應也常因此變得遲緩。現在開啟大型對話時的每輪回應速度顯著改善，同時有效降低了記憶體消耗。即使面對篇幅極長的工作階段，每次對話往返都能維持順暢反應。",
-                "en": "When reloading lengthy conversations with accumulated history, terminal operations remain snappy. ⟦Like opening a heavy box of engineering construction blueprints that have been refolded and cataloged: spreading them out no longer occupies the entire desk, and flipping to a specific floor to make notes is immediate without any delay.⟧ Previously, opening sessions with extensive conversation histories would rapidly inflate memory usage. As conversations grew longer, sending and receiving responses per turn frequently became sluggish. Now, per-turn responsiveness when opening large conversations is significantly improved while effectively reducing memory consumption. Even in exceptionally long sessions, each conversational turn maintains smooth responsiveness."
-              },
-              "original": "Improved per-turn responsiveness and reduced memory usage when opening large conversations."
-            },
-            {
-              "title": {
-                "zh-TW": "--continue 支援階層備援搜尋，子目錄與當機後不開新對話",
-                "en": "--continue supports hierarchical fallback search, avoiding new conversations in subdirectories or after crashes"
-              },
-              "body": {
-                "zh-TW": "想要迅速接續上一回的中斷進度，恢復對話的指令現在更值得信賴。以前執行 `--continue` 旗標時，只要終端機位於專案的子目錄、先前發生過異常當機，或者同一工作區內恰好有另一個工作階段（session，從啟動到關閉的完整使用過程）正在運行，系統往往會誤判並強制開出一筆全新空白對話。這讓使用者找不到原本的上下文紀錄。現在這項缺陷已經修好，指令會啟動智慧備援（fallback，在主路徑失效時自動切換至替代方案的容錯設計）機制，自動搜尋當前工作區及其父目錄、子目錄，精準找回最近一次非空的歷史對話。⟦恰似工匠走進分流的加工側間準備繼續施工，即使方才經歷了意外跳電、或隔壁主工位正有人借用工具，他依然能在工具架的主層或鄰近抽屜裡，精準摸出最後那份尚未結案的工件繼續雕琢。⟧\n\n```\n# 接續當前工作區最近一次非空對話\nagy --continue\n```",
-                "en": "When resuming interrupted progress from a previous session, the continuation command is now much more dependable. Previously, running the `--continue` flag would often mistakenly force a brand-new blank conversation if the terminal was located in a project subdirectory, after an abnormal crash, or while another session was running in the same workspace. This left users unable to find their original context history. This flaw has now been fixed; the command initiates a fallback mechanism that automatically searches the current workspace along with its parent and child directories to accurately retrieve the most recent non-empty conversation. ⟦Much like a craftsman stepping into a branch workshop to resume work: even after a sudden power outage or while someone borrows tools at the main workstation next door, he can still reach into the tool rack's main shelf or adjacent drawers to accurately retrieve the last unfinished piece and continue carving.⟧\n\n```\n# Resume the most recent non-empty conversation in the current workspace\nagy --continue\n```"
-              },
-              "original": "Fixed `--continue` starting a brand-new conversation when launched from a subdirectory, after a crash, or while another session is open in the same workspace; it now falls back to the most recent non-empty conversation in the current workspace or its parent/child directories."
-            },
-            {
-              "title": {
-                "zh-TW": "行內模式修復全螢幕空白閃爍，捲動與清畫面視覺更平順",
-                "en": "Inline mode fixes full-screen blank flashes, smoothing scrolling and screen clearing"
-              },
-              "body": {
-                "zh-TW": "長時間在終端機中緊盯對話輸出，刺眼的畫面閃爍不再打擾你的專注。在行內模式（inline mode，直接在終端機當前游標處嵌入文字的顯示方式）下，使用者過去常常會撞見令人不適的全螢幕空白閃爍。這種刺眼的閃動特別容易發生在文字輸出首次被推入回捲緩衝區（scrollback，終端機用來保留上方歷史畫面的暫存區）的那一刻、每一輪對話即將結束的收尾瞬間，或是按下 `Ctrl+L` 快捷鍵嘗試清空螢幕之時。這個畫面閃爍問題現在已經徹底修復，各種切換情境下都能維持穩定的視覺感受。⟦彷彿在老舊放映廳看電影遇到換膠捲捲軸，以前每逢段落切換或清潔布幕時總會突然白光一閃刺傷眼睛，如今更換了數位連續放映機，轉場時畫面銜接安靜平穩。⟧",
-                "en": "When focusing on conversational output in the terminal for long periods, glaring screen flashes no longer disrupt your concentration. In inline mode, users previously often encountered jarring full-screen blank flashes. This glaring flash occurred especially when text output was first pushed into the scrollback buffer, at the closing moment of each conversation turn, or when pressing `Ctrl+L` to clear the screen. This screen flashing issue is now completely fixed, maintaining a stable visual experience across all transition scenarios. ⟦Like watching a movie in an old cinema during a film reel change: paragraph transitions or screen cleanings previously triggered a sudden flash of white light that stung the eyes, but with a new digital continuous projector, transitions now connect quietly and smoothly.⟧"
-              },
-              "original": "Fixed full-screen blank flashes in inline mode when content first pushes to scrollback, at the end of a turn, or when clearing the screen with `Ctrl+L`."
-            },
-            {
-              "title": {
-                "zh-TW": "Remote Control 隨附介面狀態修復，即時反映已登入工作階段",
-                "en": "Remote Control companion UI state fixed, instantly reflecting signed-in sessions"
-              },
-              "body": {
-                "zh-TW": "使用遠端裝置協同操作終端機時，隨附介面現在能準確同步你已登入的身分。⟦好似持智慧手環與跑步機連線同步運動數據，手環螢幕接通瞬間便會直接顯示當前登入的會員姓名，不再跳回初始歡迎頁逼你重新掃描卡片。⟧以前透過 `Remote Control` 將遠端隨附介面連線至互動式命令列工作階段（session，從啟動到結束的一整段操作歷程）時，介面端常出現異常狀況。它不會顯示當前活動工作階段的有效登入狀態，反而會錯誤彈出未通過驗證的登入畫面，阻礙使用者操作。這個狀態顯示問題現在已經修好，遠端介面連線後能直接反映正常的登入狀態。",
-                "en": "When using remote devices to collaboratively operate the terminal, the companion UI now accurately synchronizes your signed-in identity. ⟦Just like pairing a fitness tracker with a treadmill to sync workout data: the moment the tracker screen connects, it immediately displays the currently logged-in member's name instead of jumping back to the initial welcome page and forcing you to rescan your card.⟧ Previously, connecting a remote companion UI to an interactive CLI session via `Remote Control` often caused an abnormal state on the UI side. Instead of displaying the active session's authenticated sign-in state, it erroneously showed an unauthenticated sign-in screen, hindering operations. This status display issue is now fixed, allowing remote interfaces to directly reflect the normal signed-in state upon connection."
-              },
-              "original": "Fixed remote companion UIs connected to an interactive CLI session via Remote Control displaying an unauthenticated sign-in screen instead of the active session's signed-in state."
-            },
-            {
-              "title": {
-                "zh-TW": "狀態列如實反映終端機沙盒狀態，解除旗標設定下的顯示誤判",
-                "en": "Status line accurately reflects terminal sandbox state, resolving false display under flag setting"
-              },
-              "body": {
-                "zh-TW": "開啟隔離防護執行不可信指令時，底部狀態提示不再引起虛驚。當你在啟動命令列時加入了 `--sandbox` 命令列旗標，程式明明已經替該工作階段（session，從啟動到關閉的完整執行過程）啟用了終端機沙盒防護。然而畫面底部的狀態列（顯示目前模式與環境資訊的即時通知列）過去卻會錯誤回報沙盒為停用狀態，容易讓人誤以為隔離環境未生效。這個顯示問題現在已經修正，只要使用該旗標啟動，狀態列便會如實反映沙盒的啟用狀態。⟦這如同實驗室操作員戴上護目鏡並扳下通風櫥排氣閥，排風扇明明已正常抽風運轉，警示面板上的指示燈卻誤亮著「排氣已關閉」，校正接線後指示燈終於真實反映抽風狀態。⟧\n\n```\n# 以終端機沙盒防護模式啟動工作階段\nagy --sandbox\n```",
-                "en": "When enabling isolated protection to execute untrusted commands, bottom status hints no longer cause false alarms. When launching the command line with the `--sandbox` flag, the program properly enables terminal sandbox protection for that session. However, the status line at the bottom of the screen previously erroneously reported the sandbox as disabled, easily leading users to believe the isolated environment was not active. This display issue is now fixed; launching with this flag ensures the status line accurately reflects the sandbox's enabled state. ⟦Much like a lab operator putting on safety goggles and pulling the fume hood exhaust valve: while the exhaust fan is running normally, the indicator light on the warning panel mistakenly shows \"Exhaust Off\"; after correcting the wiring, the light finally accurately reflects the ventilation status.⟧\n\n```\n# Launch session with terminal sandbox protection mode\nagy --sandbox\n```"
-              },
-              "original": "Fixed the status line reporting the terminal sandbox as disabled when the session was launched with the `--sandbox` command-line flag."
-            },
-            {
-              "title": {
-                "zh-TW": "Mermaid 純文字圖表移除縮放提示，檢視器介面回歸清爽",
-                "en": "Mermaid plain-text diagrams remove zoom hints, restoring clean viewer interface"
-              },
-              "body": {
-                "zh-TW": "在終端機檢視流程圖或架構圖時，畫面控制項不再出現用不上的快捷鍵提示。當你在產出物檢視器（artifact viewer，查看程式碼或圖表等生成成果的專用檢視面板）中瀏覽 Mermaid 圖表時，若圖表是以 ASCII 純文字模式而非 Kitty 圖片模式進行算繪，終端機過去依然會顯示圖片專用的縮放按鍵提示。這導致底部的頁尾提示欄列出無效的 `Ctrl+=` 與 `Ctrl+-` 縮放快捷鍵，按下去也沒有實際縮放效果。這個介面提示問題現在已經修正，純文字圖表不再顯示多餘的圖片縮放提示。⟦宛如閱讀以純文字打字機排印的黑白公文，閱讀器底端卻跳出僅適用於高解析度相片的多點觸控手勢指引，移走無效提示後版面回歸乾淨俐落。⟧",
-                "en": "When viewing flowcharts or architecture diagrams in the terminal, UI controls no longer display unusable shortcut hints. When browsing Mermaid diagrams in the artifact viewer, if a diagram was rendered in ASCII plain-text mode rather than Kitty image mode, the terminal previously still showed image zoom key hints. This caused the bottom footer hint bar to list ineffective `Ctrl+=` and `Ctrl+-` zoom shortcuts that had no actual zooming effect when pressed. This UI hint issue is now fixed, so plain-text diagrams no longer display redundant image zoom hints. ⟦Like reading a black-and-white official document printed on a plain typewriter, only for the bottom of the reader to pop up multi-touch gesture guides meant exclusively for high-resolution photos; removing the invalid hints restores a clean, uncluttered layout.⟧"
-              },
-              "original": "Fixed image zoom keys (`Ctrl+=` and `Ctrl+-`) and the footer zoom hint appearing in the artifact viewer when a Mermaid diagram is rendered in ASCII mode instead of as a Kitty image."
             }
           ]
         }
