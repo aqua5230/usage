@@ -714,6 +714,67 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.5",
+          "period": "2026-09-17",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Markdown 自訂代理自動注入子代理指引與名冊",
+                "en": "Automatic Subagent Guidance and Roster Injection for Markdown Custom Agents"
+              },
+              "body": {
+                "zh-TW": "在 Markdown 檔案中自訂專案 AI 代理時，現在能讓代理更聰明地分工協作。⟦好比連鎖餐廳為新進店長準備的交接手冊，只要職責包含調度人力，手冊第一頁就會自動附上當班員工名冊與各崗位指派流程，讓店長一接單就能精準把工作分派給專屬外場或廚房助手。⟧當你透過 Markdown 格式定義自訂代理，並在工具清單中列入 `invoke_subagent` 工具時，這項新增機制會自動在該代理的系統提示詞（給予 AI 底層角色的指令設定）中注入目前可用的子代理名冊與詳細使用指引。自訂代理現在能確實依據名單調度所宣告的子代理，不再因為缺乏使用說明而無法分工。",
+                "en": "When customizing project AI agents in Markdown files, agents can now collaborate and divide work more intelligently. ⟦Just like an onboarding handbook prepared by a chain restaurant for a new store manager, where as long as their duties include scheduling staff, the first page automatically includes the on-duty staff roster and station assignment workflows, allowing the manager to accurately dispatch work to dedicated front-of-house staff or kitchen assistants upon receiving orders.⟧ When you define custom agents in Markdown format and include the `invoke_subagent` tool in their tool list, this new mechanism automatically injects the currently available subagent roster and detailed usage guidance into that agent's system prompt. Custom agents can now reliably delegate to their declared subagents based on the roster, rather than failing to divide work due to missing instructions."
+              },
+              "original": "Added automatic subagent guidance for custom agents defined in Markdown: agents that list `invoke_subagent` in their tools now receive the roster of available subagents and usage instructions in their system prompt, so they can actually delegate to the subagents they declared."
+            },
+            {
+              "title": {
+                "zh-TW": "背景任務保留原始命名，通知與清單不再顯示通用代號",
+                "en": "Background Tasks Retain Original Names in Notifications and Lists Instead of Displaying Generic Identifiers"
+              },
+              "body": {
+                "zh-TW": "將耗時較長的繁重指令丟到背景執行時，隨時掌握各項進度變得更加直覺。以前當你把工作指派至背景執行時，系統往往會將任務名稱替換成自動產生的通用代號，讓人難以一眼辨認哪項工作已經跑完。現在系統改進了背景任務命名機制，任務被移至背景時會完整保留當初給定的專屬名稱。不論是終端機跳出的完成通知，或是隨時查詢的背景任務清單，現在都會清楚呈現原本的任務名稱，方便你精準對照各項作業。⟦恰如乾洗衣物送交櫃台送洗時，防塵套上始終保留你親筆寫下的送洗衣物標籤，取件通知與待洗清單上都清楚列出那是哪一套衣物，不再只標註一串冰冷隨機的收件流水號。⟧",
+                "en": "Keeping track of progress is now much more intuitive when sending long-running, heavy commands to run in the background. Previously, when assigning work to run in the background, the system often replaced the task name with an auto-generated generic identifier, making it hard to tell at a glance which job had finished running. The background task naming mechanism has now been improved so that tasks fully retain their originally given custom names when moved to the background. Whether in completion notifications popping up in the terminal or in queryable background task lists, the original task name is now clearly displayed, allowing you to accurately cross-reference each operation. ⟦Just like dropping off dry cleaning at the counter, where the garment bag always keeps the handwritten laundry tag you wrote, and both the pickup notification and pending laundry list clearly specify which outfit it is, rather than only labeling an impersonal, random receipt serial number.⟧"
+              },
+              "original": "Improved background task naming so a task keeps the name it was given when sent to the background; completion notifications and task lists now show that name instead of a generic auto-derived one."
+            },
+            {
+              "title": {
+                "zh-TW": "憑證遭拒時自動登出清除，暫時性網路故障保住工作階段",
+                "en": "Automatic Sign-Out and Cleanup on Rejected Credentials While Preserving Sessions During Transient Network Failures"
+              },
+              "body": {
+                "zh-TW": "帳號權限變更或遇上網路波動時，登入狀態的管理現在更加精準可靠。⟦宛如飯店櫃台的房卡管理，當櫃台確認房客已正式退房結清時，讀卡機會主動清除房卡晶片裡的舊鑰匙以便重新配卡；但若是感應線路短暫繁忙或讀卡機反應延遲，系統絕不會隨意註銷仍在住宿期間的房客權限。⟧以前當企業帳號被撤銷或失效等情況發生，登入伺服器明確拒絕身分時，過期的登入憑證仍可能殘留在本機。現在命令列工具會自動將你登出並清除過期 token（授權令牌），讓你能乾淨重新登入。與此同時，若是遇上暫時性的網路連線失敗、伺服器錯誤或請求速率限制，系統也絕不會誤刪你的工作階段（session），確保作業不被中斷。",
+                "en": "Managing sign-in status during account permission changes or network fluctuations is now significantly more accurate and reliable. ⟦Much like room key card management at a hotel front desk, where the card reader proactively clears old keys from the card chip for re-issuance once the front desk confirms a guest has officially checked out and settled their bill, but the system never arbitrarily cancels the access of an actively staying guest if the sensor line is briefly busy or the card reader responds slowly.⟧ Previously, when situations like enterprise account revocations or invalidations occurred and the sign-in server definitively rejected the identity, stale sign-in credentials could still linger locally. The CLI tool now automatically signs you out and clears stale tokens so you can sign in again cleanly. Meanwhile, if transient network connection failures, server errors, or request rate limits occur, the system will never accidentally drop your session, ensuring operations remain uninterrupted."
+              },
+              "original": "Fixed stale credentials lingering after the sign-in server definitively rejects them (for example a revoked or invalidated enterprise account); the CLI now signs you out and clears the stale tokens so you can sign in again cleanly, while temporary network failures, server errors, and rate limits never cost you your session."
+            },
+            {
+              "title": {
+                "zh-TW": "指令遭外部中斷正確標記取消，遠端工作階段同步顯示中斷提示",
+                "en": "Commands Terminated by External Signals Correctly Marked as Canceled with Remote Sessions Syncing Interruption Hints"
+              },
+              "body": {
+                "zh-TW": "在終端機執行指令或多端連線操作時，取消與中斷狀態的紀錄現在更加準確。以前當執行中的指令受到外部信號終止（例如整個工作階段在指令運作中途關閉），系統會錯誤將其記錄為結束代碼 0 的成功執行。現在這類指令會正確標記為已取消，並完整保留中斷前所收集到的輸出紀錄。此外，過去只有在本機終端機按下 Esc 鍵時才會跳出 `Interrupted` 中斷提示，現在只要當前回合確實被取消，包括從已連線的遠端工作階段停止操作，畫面上都會如實顯示中斷提示。⟦這好比高鐵列車在行駛途中若因外部緊急訊號中途停靠，行車電腦會將該趟行程準確標註為中途取消並保留先前的行駛紀錄，駕駛座與遠端調度螢幕也都會同步亮起醒目的中斷提示燈號。⟧",
+                "en": "Recording cancellation and interruption states is now more accurate when running commands in the terminal or operating across connected sessions. Previously, when a running command was terminated by an external signal (such as when the entire session shut down mid-run), the system erroneously recorded it as a successful execution with exit code 0. Such commands are now properly marked as canceled while fully preserving the output logs collected before the interruption. In addition, whereas the `Interrupted` hint previously only appeared when pressing the Esc key locally in the terminal, it now faithfully displays on screen whenever the current turn is actually canceled, including when stopped from a connected remote session. ⟦This is like a high-speed train stopping mid-route due to an external emergency signal: the on-board computer accurately marks that trip as canceled mid-way and preserves prior driving logs, while prominent interruption warning lights illuminate synchronously across both the driver's console and the remote dispatch screen.⟧"
+              },
+              "original": "Fixed commands killed by an outside signal (for example when the whole session shuts down mid-run) being recorded as successful runs with exit code 0; such commands now finish as canceled while keeping the output collected before the interruption.\nFixed the `Interrupted` hint only appearing when Esc was pressed locally in the terminal; it now appears whenever the current turn is actually cancelled, including when it is stopped from a connected remote session."
+            },
+            {
+              "title": {
+                "zh-TW": "終端機視窗縮放自動重新折行，對話思考進度框不再卡死凍結",
+                "en": "Terminal Resizing Automatically Re-wraps Text and Resolves Frozen In-Progress Thinking Frames"
+              },
+              "body": {
+                "zh-TW": "隨意縮放終端機視窗或重載對話時，畫面排版與狀態呈現變得更加順暢。以前在調整終端機視窗大小後，成品檢視器（展示生成檔案與程式碼的預覽介面）中的 Markdown 文字會卡在原始寬度無法自動換行。此外，對話歷史中進行中的思考進度框有時也會永久凍結，例如畫面永遠停留在 `Thinking... (31s)` 的狀態，即使縮放視窗或重新載入工作階段也無法恢復。現在這兩項介面顯示問題都已修好，文字內容會自動配合新的視窗尺寸重新折行排版，思考框也能如常更新進度。⟦彷彿電子書閱讀器在切換螢幕寬度時，文章內頁會即時配合新版面重新排版折行，正在載入的進度轉圈圖示也不會因為畫面縮放而卡死在螢幕上。⟧",
+                "en": "Layout and status presentation are now much smoother when freely resizing the terminal window or reloading conversations. Previously, after resizing the terminal window, Markdown text in the artifact viewer remained stuck at its original width without re-wrapping automatically. Furthermore, in-progress thinking frames in conversation history would sometimes freeze permanently—such as staying stuck forever at `Thinking... (31s)`—without recovering even after resizing the window or reloading the session. Both interface display issues are now resolved: text content automatically re-wraps to fit the new window dimensions, and thinking frames update progress normally. ⟦Just as when switching screen widths on an e-reader, where article pages instantly reflow and re-wrap to match the new layout, and loading progress spinners do not freeze on screen due to screen resizing.⟧"
+              },
+              "original": "Fixed the artifact viewer leaving markdown text stuck at its original width after a terminal resize; content now re-wraps to the new window size.\nFixed in-progress thinking frames occasionally freezing permanently in the conversation history (for example showing `Thinking... (31s)` forever), including after a terminal resize or session reload."
+            }
+          ]
+        },
+        {
           "version": "1.2.4",
           "period": "2026-09-16",
           "items": [
@@ -876,111 +937,6 @@
                 "en": "When starting a new conversation in the terminal or using tools, feedback rating prompts no longer pop up unexpectedly to disrupt your flow. Previously, during the first few turns of a session or when tools encountered transient errors that quickly recovered, proactive feedback prompts triggered prematurely, soliciting feedback before tasks were clear. This premature triggering issue is now fixed, preventing pop-up prompts from interrupting your train of thought during early conversations or recovered transient errors."
               },
               "original": "Fixed proactive feedback prompts triggering prematurely during the first few turns of a session or on transient, recovered tool errors."
-            }
-          ]
-        },
-        {
-          "version": "1.2.2",
-          "period": "2026-09-12",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "`unsandboxed` 權限棄用警告升級，列出檔案路徑、五條違規規則與 `command` 遷移步驟",
-                "en": "Upgraded Deprecation Warning for `unsandboxed` Permissions Lists File Paths, Five Offending Rules, and `command` Migration Steps"
-              },
-              "body": {
-                "zh-TW": "管理專案安全防護有了更清楚的指引。舊版廢棄規則的啟動警告現在能精準指出問題所在。⟦宛如大樓消防安檢人員巡檢後開立改善通知單，不僅逐一標出違規的樓層門牌，更明確列出最多五處不合規的排煙閥位置，並附上標準更換步驟。⟧以前若在命令列全域、共用或個別專案設定檔中殘留了舊版的 `unsandboxed` 權限規則，啟動警告往往讓人找不著頭緒。現在啟動提示全面改善，會逐一列出每個受影響的設定檔完整路徑，直接列出最多五條違規規則，並附上逐步遷移指引，帶領你將它們改寫為新版的 `command` 規則，維護工作一目了然。",
-                "en": "Managing project security protections is now guided by clearer instructions. Startup warnings for deprecated legacy rules now pinpoint exactly where the issues lie. ⟦Much like a building fire safety inspector issuing a correction notice that not only marks the offending floor room numbers one by one, but also specifically lists up to five non-compliant smoke damper locations and attaches standard replacement steps.⟧ In the past, leaving legacy `unsandboxed` permission rules in CLI global, shared, or individual project configuration files often resulted in confusing startup warnings. Now, the startup warning has been thoroughly improved to list the full path of each affected configuration file, explicitly display up to five offending rules, and provide step-by-step migration instructions to guide you through rewriting them into new `command` rules, making maintenance crystal clear."
-              },
-              "original": "Improved the startup warning for deprecated `unsandboxed` permission rules across CLI, shared, and project configuration files to list each affected file path, up to five offending rules, and step-by-step instructions for migrating them to `command` rules."
-            },
-            {
-              "title": {
-                "zh-TW": "`/resume` 啟動反應加速，冷快取與過期摘要快速載入長篇對話",
-                "en": "`/resume` Startup Responsiveness Accelerated, Fast Loading for Long Conversations with Cold Caches and Stale Summaries"
-              },
-              "body": {
-                "zh-TW": "接續先前討論過的大型長篇任務，恢復對話的載入反應現在敏捷許多。⟦好似老航海船長翻開厚實的航行日誌，就算前段航程的彙整摘要尚未預先抄錄、或是前次留下的備忘筆記早已過期，也能立刻翻至指定頁面接續記錄，不再被卡在漫長的翻查等待中。⟧以前在終端機輸入 `/resume` 指令嘗試開啟對話紀錄特別龐大的歷史時，只要摘要快取（把對話內容預先暫存起來以加速讀取的機制）處於尚未預熱的冷啟動狀態、或者快取內容已經過期，啟動過程往往會出現明顯的停頓延遲。現在這項啟動反應速度已獲得改善，即使面對快取尚未就緒或內容過期的長篇歷史紀錄，也能迅速完成載入並恢復對話。",
-                "en": "Resuming large, extended tasks from previous discussions is now significantly more responsive. ⟦Like an experienced sea captain opening a thick logbook who can immediately turn to the target page and continue recording without getting stuck in a long search, even if the summary of the previous voyage has not been prepared yet or the previous memo notes have long expired.⟧ Previously, when running the `/resume` command in the terminal to open an exceptionally large conversation history, noticeable delays would occur whenever the summary cache (a mechanism that temporarily stores conversation content in advance to speed up reading) was cold or stale. This startup responsiveness has now been improved, allowing the system to quickly complete loading and resume conversations even with unready or expired caches over long conversation histories."
-              },
-              "original": "Improved `/resume` startup responsiveness when opening a large conversation history with a cold or stale summary cache."
-            },
-            {
-              "title": {
-                "zh-TW": "外掛隨附 MCP 伺服器自動套用命名空間，徹底防範重名衝突",
-                "en": "Plugin-Bundled MCP Servers Automatically Namespaced to Prevent Name Collisions"
-              },
-              "body": {
-                "zh-TW": "為終端機擴充各式外部工具，外掛隨附的伺服器重名衝突現在迎刃而解。當你使用 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）時，不同外掛套件隨附的伺服器，過去若恰好取了相同的名稱，彼此之間、或是與你在 `mcp_config.json` 中自訂的伺服器便會發生衝突與覆蓋。這種命名撞車會導致其中一方無法正常運作。現在系統會自動替外掛隨附的伺服器加上命名空間，統一改以 `<plugin>_<server>` 的格式獨立註冊，徹底解決重名互相覆蓋的問題。⟦恰如大型聯合辦公室替各進駐團隊編發專屬分機號碼，在內部總機名稱前自動加上團隊代號，就算不同團隊都恰巧指派了一位「總務」，各分機撥通時也絕不互相佔線或搶撥。⟧",
-                "en": "When extending the terminal with various external tools, name collisions among plugin-bundled servers are now completely resolved. When using MCP (Model Context Protocol, a protocol for connecting AI to external tools), bundled servers across different plugins that happened to share the same name previously collided with each other or overwrote custom servers in your `mcp_config.json`. Such naming clashes would prevent one of the servers from working properly. The system now automatically namespaces plugin-bundled servers, registering them independently in the `<plugin>_<server>` format to eliminate overlapping naming conflicts. ⟦Just like a large coworking space assigning dedicated extension numbers to each resident team by prefixing team codes to internal directory names, ensuring that even if multiple teams each appoint a \"general affairs\" lead, calls to different extensions never interfere with or intercept each other.⟧"
-              },
-              "original": "Fixed MCP servers bundled inside plugins colliding with each other or with user-configured servers in `mcp_config.json` when they shared the same server name by automatically namespacing plugin MCP servers as `<plugin>_<server>`."
-            },
-            {
-              "title": {
-                "zh-TW": "開啟或切換對話修復背景協程洩漏，顯著降低記憶體佔用",
-                "en": "Opening or Switching Conversations Fixes Background Goroutine Leak, Significantly Reducing Memory Usage"
-              },
-              "body": {
-                "zh-TW": "頻繁開啟歷史對話或在任務間切換，終端機不再悄悄囤積過多電腦記憶體。⟦彷彿房務人員走進客房整理床單後，卻忘記關閉浴室抽風機與走廊照明，讓馬達在無人使用的空房中持續空轉耗電，如今退房流程落實了隨手關閉機制，房間巡檢完畢便即刻切斷閒置電器。⟧以前只要在命令列開啟或掃描對話紀錄，背景負責清理步驟快取（用來暫存各執行步驟紀錄的內部機制）的背景協程常會殘留下來，並在整個工作階段中持續運行，造成不必要的記憶體流失。這個記憶體流失問題現在已經修好，執行 `/resume` 重新載入對話或在不同對話間頻繁切換後，系統記憶體佔用顯著減少，長久運作依然維持輕快。",
-                "en": "When frequently opening conversation histories or switching between tasks, the terminal no longer silently accumulates excessive system memory. ⟦Much like housekeeping staff making beds in a guest room but forgetting to turn off the bathroom exhaust fan and hallway lights, leaving motors idling and consuming electricity in an empty room, whereas the check-out process now enforces a shutdown protocol to immediately cut power to idle appliances after room inspection.⟧ Previously, whenever conversation histories were opened or scanned from the command line, background goroutines responsible for evicting step cache (an internal mechanism for temporarily caching execution step records) often lingered and ran throughout the rest of the session, causing unnecessary memory leaks. This memory leak has now been fixed, significantly reducing system memory usage after running `/resume` or switching between conversations, keeping long-running sessions nimble and responsive."
-              },
-              "original": "Fixed a memory leak where opening or scanning conversations left background step-cache eviction goroutines running for the rest of the session, significantly reducing memory usage after opening `/resume` or switching conversations."
-            },
-            {
-              "title": {
-                "zh-TW": "`view_file` 拒絕非 UTF-8 二進位檔與 100 MB 超大檔，防止上下文塞爆",
-                "en": "`view_file` Rejects Non-UTF-8 Binary Files and 100 MB Oversized Files to Prevent Context Overflow"
-              },
-              "body": {
-                "zh-TW": "把檔案交給 AI 閱讀時，工具現在能主動擋下會塞爆上下文視窗的非預期輸入。以前使用 `view_file` 工具查看檔案時，若遇上非 UTF-8 編碼的二進位檔案，往往會硬當成純文字解析；甚至在碰上體積大於 100 MB 的超大檔案時，也會直接嘗試塞進模型的上下文視窗（模型在單一輪對話中所能讀取與容納的文字容量上限）。這種過度載入常導致對話中斷或發生錯誤。現在這項缺陷已經修好，面對不支援的二進位格式與超大檔案，工具會在讀取前直接予以拒絕並回傳明確錯誤，避免塞爆模型上下文視窗。⟦好比自動文件掃描機的進紙托盤，遇到未支援的透明塑膠板、或是厚度超過一百頁的厚重硬皮書時，會在入紙口主動退件並亮起清楚的錯誤警示，絕不硬塞進滾輪以防卡紙扯壞內部機件。⟧",
-                "en": "When handing files over for AI reading, the tool now actively intercepts unexpected inputs that would overflow the context window. Previously, when using `view_file` to inspect files, non-UTF-8 encoded binary files were often forcibly parsed as plain text, and files larger than 100 MB were directly loaded into the model's context window (the upper limit of text capacity that the model can ingest and hold in a single turn). Such overloading frequently led to conversation aborts or errors. This defect is now fixed; unsupported binary formats and oversized files are directly rejected with a clear error before loading, preventing context window overflows. ⟦Much like an automatic document scanner tray that actively rejects unsupported transparent plastic sheets or bulky hardcover books exceeding one hundred pages at the feeder with a clear error warning, never forcing them into the rollers to prevent paper jams and internal mechanical damage.⟧"
-              },
-              "original": "Fixed `view_file` attempting to parse non-UTF-8 binary files as text or loading files larger than 100 MB into the model context; unsupported binary formats and oversized files are now rejected with a clear error before overflowing the context window."
-            },
-            {
-              "title": {
-                "zh-TW": "Gemini API 工作階段保留前輪思考區塊，並正確傳遞思考簽章",
-                "en": "Gemini API Sessions Retain Thinking Blocks from Prior Turns and Correctly Propagate Thought Signatures"
-              },
-              "body": {
-                "zh-TW": "透過金鑰與模型展開多輪深度交談，上一輪的思考脈絡現在能完好延續。⟦恰似數學競賽選手在多輪解題時保留每一步草稿演算，並在每段推導末端加蓋防偽個人戳記，交卷時所有先前的思考手稿與印鑑都能完整夾帶遞交，不會在進入下一題時把前一題的推論過程整張撕毀。⟧以前透過 `GEMINI_API_KEY` 啟動 Gemini API 工作階段時，每當使用者送出後續的新訊息，系統往往會遺失先前對話輪次中的模型思考區塊。同時，文字段落與思考段落上的思考簽章（用來驗證推論過程完整性與身分的數位記號）也無法正常傳遞。這兩項缺陷現在皆已修正，模型的思考紀錄與簽章能在多輪對話中順暢保留並正確傳播。",
-                "en": "When engaging in multi-turn in-depth conversations with models via API keys, the thinking context from prior turns is now cleanly preserved. ⟦Just like a math competition contestant preserving draft calculations for every step across multiple problem-solving rounds and stamping an anti-counterfeit personal seal at the end of each derivation, so that all prior thought manuscripts and seals are submitted together without tearing up earlier reasoning when moving to the next question.⟧ Previously, when launching Gemini API sessions via `GEMINI_API_KEY`, sending subsequent user messages often caused the system to drop model thinking blocks from previous conversation turns. Additionally, thought signatures (digital markers used to verify the integrity and identity of reasoning processes) on text and thought parts failed to propagate properly. Both defects have now been fixed, allowing model thinking records and signatures to be smoothly retained and correctly propagated across multiple conversation turns."
-              },
-              "original": "Fixed Gemini API (`GEMINI_API_KEY`) sessions dropping model thinking blocks from prior turns on subsequent user messages and failing to propagate thought signatures on text and thought parts."
-            },
-            {
-              "title": {
-                "zh-TW": "產出物審查修復父路徑比對，對話分支與快照排除系統內部目錄",
-                "en": "Artifact Review Fixes Parent Path Matching; Conversation Forks and Snapshots Exclude Internal System Directories"
-              },
-              "body": {
-                "zh-TW": "審查程式產出物或建立對話分支，專案內部目錄的管理現在更加乾淨俐落。以前若在 `.gemini/` 之上的父目錄路徑中包含 `scratch` 等被忽略的路徑名稱，產出物審查（檢視程式碼生成成果的檢查面板）常會意外失效而無法觸發。此外，在執行對話分支或快照復原時，過去常會多餘複製內部專用的 `.system_generated/subagents` 與 `.system_generated/worktrees` 資料夾，且在刪除對話時也未清理子代理人的後設資料。如今這些管理問題均已修復，分支與復原不再夾帶內部目錄，刪除對話時也會同步清除子代理人紀錄。⟦如同建築事務所封存設計專案時妥善區隔公開成果與內部暫存，分流衍生新圖紙時主動排除草稿夾裡的臨時施工模型與分身圖層，專案結案銷毀時也同步清空各協力小組的派工備忘錄。⟧",
-                "en": "When reviewing code artifacts or branching conversations, internal project directory management is now much cleaner. Previously, if a parent directory path above `.gemini/` contained skipped path names such as `scratch`, artifact review (an inspection panel for reviewing generated code outputs) often failed to trigger. In addition, when executing conversation forks or snapshot reverts, internal `.system_generated/subagents` and `.system_generated/worktrees` directories were unnecessarily copied, and deleting conversations failed to clean up subagent metadata. These management issues have now been resolved: forks and reverts no longer include internal directories, and deleting a conversation cleanly purges subagent records. ⟦Like an architecture firm archiving design projects by properly separating public deliverables from internal temp files, actively excluding temporary construction models and duplicate draft layers when branching new blueprints, and clearing assignment memos across partner teams when closing and destroying a project.⟧"
-              },
-              "original": "Fixed artifact review failing to trigger when a directory name above `.gemini/` matched a skipped path component such as `scratch`, prevented conversation forks and snapshot reverts from copying internal `.system_generated/subagents` and `.system_generated/worktrees` directories, and cleaned up subagent metadata records when deleting a conversation."
-            },
-            {
-              "title": {
-                "zh-TW": "修復已刪除對話在背景重新連線時誤建為空白 `SQLite` 資料庫",
-                "en": "Fixes Deleted Conversations Recreated as Empty `SQLite` Databases on Background Reconnection"
-              },
-              "body": {
-                "zh-TW": "手動清空不需要的舊對話紀錄，已經被刪除的歷史檔案絕不再死灰復燃。⟦有如銀行客戶前往櫃台辦理結清銷戶後，即使後台批次排程稍後才再次連線清查餘額，系統也絕不會因為收到查詢請求，就莫名在金庫中自動重新立起一個連帳號欄位都沒有的空白保險箱。⟧以前在使用者刪除對話紀錄之後，若有背景查詢作業嘗試重新連線，往往會在底層硬生生重新建立起一筆空白且缺乏資料結構的 `SQLite` 資料庫檔案。這些幽靈檔案不僅徒增混亂，也無法正常讀取。這個幽靈重建問題現在已經徹底修復，背景查詢重新連線時不會再擅自生成空白資料庫，刪除對話確實清爽乾淨。",
-                "en": "When manually clearing unwanted conversation histories, deleted history files will never resurface. ⟦Like a bank customer closing an account at the counter, where even if backend batch schedules reconnect later to check balances, the system never automatically erects an empty safe in the vault lacking even account fields just because an inquiry request was received.⟧ Previously, after a user deleted conversation histories, any background queries attempting to reconnect would recreate empty, schema-less `SQLite` database files underneath. These ghost files added clutter and could not be read properly. This ghost recreation bug has now been completely resolved; background queries reconnecting after deletion no longer generate empty databases, keeping conversation deletions truly clean."
-              },
-              "original": "Fixed deleted conversations being recreated as empty, schema-less SQLite database files when background queries reconnected after deletion."
-            },
-            {
-              "title": {
-                "zh-TW": "無工作區對話維持獨立隔離，不再意外繼承其他工作階段自訂路徑",
-                "en": "Workspaceless Conversations Maintain Strict Isolation, No Longer Inheriting Custom Paths from Other Sessions"
-              },
-              "body": {
-                "zh-TW": "不在任何專案目錄下隨手開啟終端機，獨立交談環境現在具備完善的隔離邊界。以前在未指定工作區資料夾的狀態下啟動新對話，該工作階段往往會意外繼承其他正在運行的開啟工作階段中的專案路徑與自訂設定。這種跨工作階段的設定滲漏，容易導致臨時對話誤讀了無關專案的客製化規則或檔案目錄。這個隔離缺陷現在已經修好，未指定工作區的對話會維持純粹獨立，不再擅自套用其他工作階段的環境路徑與自訂設定。⟦這好比走進共享空間租用一張臨時空桌，桌面上乾淨清空，既不會莫名翻出隔壁專案工作室遺留的門禁磁卡與私人物料，也不會意外套用其他租客專屬的自訂燈光偏好。⟧",
-                "en": "When launching the terminal outside of any project directory, standalone conversation environments now maintain proper isolation boundaries. Previously, when starting a new conversation without a workspace folder, the session often inadvertently inherited project paths and customizations from other open sessions running concurrently. This cross-session leak caused ad-hoc conversations to mistakenly read irrelevant project rules or file directories. This isolation defect has now been fixed: conversations launched without a workspace folder remain purely standalone, no longer inheriting environment paths and custom settings from other sessions. ⟦Much like renting a temporary hot desk in a shared workspace with a clean, clear surface, where you neither uncover access keycards and personal materials left behind by adjacent project studios nor inadvertently adopt another tenant's custom lighting preferences.⟧"
-              },
-              "original": "Fixed conversations launched without a workspace folder inheriting workspace paths and customizations from other open sessions."
             }
           ]
         }
