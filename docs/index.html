@@ -5,9 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
 <title>usage — pin your Claude Code, Codex &amp; Antigravity quota to the menu bar</title>
-<meta name="description" data-i18n-attr="content:meta_desc" content="macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. No LLM API calls — watching your quota never costs you tokens. HTML reports, 14 visual themes, AGPL-3.0." />
+<meta name="description" data-i18n-attr="content:meta_desc" content="macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. No LLM API calls, so watching your quota never costs you tokens. HTML reports, 14 visual themes, AGPL-3.0." />
 <meta property="og:title" content="usage — pin your Claude Code, Codex & Antigravity quota to the menu bar" />
-<meta property="og:description" content="macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. No LLM API calls — watching your quota never costs you tokens." />
+<meta property="og:description" content="macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. No LLM API calls, so watching your quota never costs you tokens." />
 <meta property="og:image" content="https://aqua5230.github.io/usage/og-image.jpg" />
 <meta property="og:url" content="https://aqua5230.github.io/usage/" />
 <meta property="og:type" content="website" />
@@ -585,7 +585,7 @@ pre {
 }
 @media (max-width: 640px) {
   .hero { padding: 40px 0; }
-  .eyebrow { font-size: 10px; letter-spacing: 0.025em; }
+  .eyebrow { font-size: 11px; letter-spacing: 0; }
   .hero h1 br { display: none; }
   .hero .cta { gap: 8px; }
   .hero .btn { padding: 0 12px; font-size: 14px; }
@@ -674,7 +674,7 @@ footer .kofi:hover { background: var(--accent-hover); }
   <div class="wrap">
     <span class="eyebrow" data-i18n="eyebrow">macOS &amp; Windows · open source · AGPL-3.0</span>
     <h1 data-i18n="h1">Pin your <span class="accent">Claude Code</span>, <span class="accent">Codex</span> &amp; <span class="accent">Antigravity</span> <br>quota to the menu bar.</h1>
-    <p class="lead" data-i18n="lead">A tiny menu bar app for macOS — and system tray app for Windows — that shows how much of your AI quota is left, like a battery percentage for tokens. No LLM API calls, so watching your quota never costs you tokens.</p>
+    <p class="lead" data-i18n="lead">A tiny menu bar app for macOS (and system tray app for Windows) that shows how much of your AI quota is left, like a battery percentage for tokens. No LLM API calls, so watching your quota never costs you tokens.</p>
     <div class="cta">
       <a class="btn btn-primary" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="cta_download">↓ Download .app</a>
       <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener" data-i18n="cta_star">★ Star on GitHub</a>
@@ -696,7 +696,7 @@ footer .kofi:hover { background: var(--accent-hover); }
 <section id="features">
   <div class="wrap">
     <h2 data-i18n="features_h2">Built for developers who burn tokens.</h2>
-    <p class="subtitle" data-i18n="features_sub">Stop guessing if you're about to hit the rate limit mid-refactor.</p>
+    <p class="subtitle" data-i18n="features_sub">Stop guessing if you’re about to hit the rate limit mid-refactor.</p>
     <div class="grid">
       <div class="card card-lead">
         <div class="lead-txt">
@@ -722,27 +722,27 @@ footer .kofi:hover { background: var(--accent-hover); }
       </div>
       <div class="card card-priority">
         <h3 data-i18n="card3_h">Local-first by design</h3>
-        <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk — a statusLine hook status file plus Codex session JSONL logs — with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.</p>
+        <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk (a statusLine hook status file plus Codex session JSONL logs), with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.</p>
       </div>
       <div class="card">
         <h3 data-i18n="card14_h">Grok CLI, too</h3>
-        <p data-i18n="card14_p">A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Its per-request token usage still counts toward today's cost and project totals, just like Claude Code and Codex.</p>
+        <p data-i18n="card14_p">A fourth card reads Grok CLI’s weekly credit percentage straight from its own local debug log, with no network call. Its per-request token usage still counts toward today’s cost and project totals, just like Claude Code and Codex.</p>
       </div>
       <div class="card">
         <h3 data-i18n="card4_h">One-click HTML reports</h3>
-        <p data-i18n="card4_p">Today, week, month, or all-time — get a shareable HTML report with token / cost trends, top projects, and model breakdown. Project names hide by default for client-safe sharing.</p>
+        <p data-i18n="card4_p">Today, week, month, or all-time: get a shareable HTML report with token / cost trends, top projects, and model breakdown. Project names hide by default for client-safe sharing.</p>
       </div>
       <div class="card">
         <h3 data-i18n="card5_h">14 visual panel themes</h3>
-        <p data-i18n="card5_p">Matrix digital rain, Windows 95, retro newspaper, midnight aquarium, World Cup FIFA HUD, Lepidoptera blueprint — pick a mood for your menu bar pop-out.</p>
+        <p data-i18n="card5_p">Matrix digital rain, Windows 95, retro newspaper, midnight aquarium, World Cup FIFA HUD, Lepidoptera blueprint. Pick a mood for your menu bar pop-out.</p>
       </div>
       <div class="card">
         <h3 data-i18n="card8_h">Terse Mode</h3>
-        <p data-i18n="card8_p">A menu-bar toggle that asks Claude Code — and Codex CLI too, if it's installed — to answer more tersely and in plainer language for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact. A light reminder keeps long conversations from drifting back to verbose.</p>
+        <p data-i18n="card8_p">A menu-bar toggle that asks Claude Code (and Codex CLI too, if it’s installed) to answer more tersely and in plainer language for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact. A light reminder keeps long conversations from drifting back to verbose.</p>
       </div>
       <div class="card">
         <h3 data-i18n="card10_h">Notifications before you hit the wall</h3>
-        <p data-i18n="card10_p">When your context window hits 70% — or earlier when it is filling fast — the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.</p>
+        <p data-i18n="card10_p">When your context window hits 70%, or earlier when it is filling fast, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.</p>
       </div>
     </div>
   </div>
@@ -755,7 +755,7 @@ footer .kofi:hover { background: var(--accent-hover); }
       <span class="eyebrow" data-i18n="resume_label">PROGRESS CONCIERGE</span>
     </div>
     <h2 data-i18n="resume_h2">Now your CLI picks up where you left off</h2>
-    <p class="subtitle" data-i18n="resume_lead">The web and desktop apps keep your history automatically — close them, reopen, it's all there. The CLI keeps it too, but you need to know the command to pull it back up. Resume makes that automatic: open a new session and it picks up where you left off, no command to remember, no re-explaining. It now also runs a daily health check on your logs — when it spots token waste, the handoff adds a one-line heads-up; say "show me" for the findings and fixes. Reads local files only — never connects to any API.</p>
+    <p class="subtitle" data-i18n="resume_lead">The web and desktop apps keep your history automatically: close them, reopen, it’s all there. The CLI keeps it too, but you need to know the command to pull it back up. Resume makes that automatic: open a new session and it picks up where you left off, no command to remember, no re-explaining. It now also runs a daily health check on your logs. When it spots token waste, the handoff adds a one-line heads-up; say “show me” for the findings and fixes. Reads local files only and never connects to any API.</p>
     </div>
     <div class="shot">
       <img width="1983" height="793" src="resume-ink.webp" srcset="resume-ink-800.webp 800w, resume-ink-1200.webp 1200w, resume-ink.webp 1983w" sizes="(max-width: 1023px) 100vw, 520px" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="usage — an ink-brush cat inside a red enso circle, with the line &quot;Pick up where you left off.&quot;" />
@@ -773,7 +773,7 @@ footer .kofi:hover { background: var(--accent-hover); }
 <section id="install" class="install">
   <div class="wrap">
     <h2 data-i18n="install_h2">Install in 10 seconds.</h2>
-    <p class="subtitle" data-i18n="install_sub">Four ways to get it running. All free, all AGPL-3.0.</p>
+    <p class="subtitle" data-i18n="install_sub">4 ways to get it running. All free, all AGPL-3.0.</p>
     <div class="install-row">
       <div class="install-card">
         <div class="label" data-i18n="install_label_rec">RECOMMENDED</div>
@@ -781,28 +781,28 @@ footer .kofi:hover { background: var(--accent-hover); }
         <p data-i18n="install_p_brew">One command. <code>brew upgrade</code> keeps it current.</p>
         <div class="copy-wrap">
 <pre tabindex="0" translate="no"><code>brew install --cask aqua5230/usage/usage</code></pre>
-  <button class="copy-btn" type="button" data-i18n="copy_btn">Copy</button>
+  <button class="copy-btn" type="button" aria-live="polite" data-i18n="copy_btn">Copy</button>
         </div>
       </div>
       <div class="install-card">
         <div class="label" data-i18n="install_label_dir">DIRECT</div>
         <h3 data-i18n="install_h_app">Download .app</h3>
-        <p data-i18n="install_p_app">Latest <code>usage.app.zip</code> from GitHub Releases — unzip, drag to <code>/Applications</code>.</p>
+        <p data-i18n="install_p_app">Latest <code>usage.app.zip</code> from GitHub Releases. Unzip, then drag to <code>/Applications</code>.</p>
         <a class="btn btn-secondary" style="width: 100%; justify-content: center;" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="install_btn_releases">→ Open Releases page</a>
       </div>
       <div class="install-card">
         <div class="label" data-i18n="install_label_win">WINDOWS</div>
         <h3 data-i18n="install_h_win">System tray</h3>
-        <p data-i18n="install_p_win">Latest <code>usage-windows.zip</code> from GitHub Releases — unzip and run <code>usage.exe</code>.</p>
+        <p data-i18n="install_p_win">Latest <code>usage-windows.zip</code> from GitHub Releases. Unzip and run <code>usage.exe</code>.</p>
         <a class="btn btn-secondary" style="width: 100%; justify-content: center;" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="install_btn_releases">→ Open Releases page</a>
       </div>
       <div class="install-card">
         <div class="label" data-i18n="install_label_any">ANY OS</div>
         <h3 data-i18n="install_h_uvx">uvx (no install)</h3>
-        <p data-i18n="install_p_uvx">Terminal interface only — no menu bar or tray. Works on Linux too; uv brings its own Python.</p>
+        <p data-i18n="install_p_uvx">Terminal interface only, with no menu bar or tray. Works on Linux too; uv brings its own Python.</p>
         <div class="copy-wrap">
 <pre tabindex="0" translate="no"><code>uvx usage-cli</code></pre>
-  <button class="copy-btn" type="button" data-i18n="copy_btn">Copy</button>
+  <button class="copy-btn" type="button" aria-live="polite" data-i18n="copy_btn">Copy</button>
         </div>
       </div>
     </div>
@@ -812,14 +812,14 @@ footer .kofi:hover { background: var(--accent-hover); }
 <section id="screenshots">
   <div class="wrap">
     <h2 data-i18n="screen_h2">Pick a panel that fits your mood.</h2>
-    <p class="subtitle" data-i18n="screen_sub">Fourteen built-in themes. Change anytime from the popover toolbar.</p>
+    <p class="subtitle" data-i18n="screen_sub">14 built-in themes. Change anytime from the popover toolbar.</p>
     <div class="panel-picker">
       <div class="panel-chips" id="panel-chips" role="group" data-i18n-attr="aria-label:screen_h2" aria-label="Pick a panel that fits your mood."></div>
       <div class="panel-stage" tabindex="0"><iframe id="panel-stage" title="usage panel preview" loading="lazy" scrolling="no"></iframe></div>
     </div>
     <div class="report">
       <h3 data-i18n="report_h">Your AI usage, in one shareable page.</h3>
-      <p data-i18n="report_p">Generate an HTML report with token spend, cost, top projects, and model distribution — plus a year-in-review page with a GitHub-style contribution heatmap and a "Wrapped" card. Send to your manager. Use as a client invoice attachment. Project names hide by default.</p>
+      <p data-i18n="report_p">Generate an HTML report with token spend, cost, top projects, and model distribution, plus a year-in-review page with a GitHub-style contribution heatmap and a “Wrapped” card. Send to your manager. Use as a client invoice attachment. Project names hide by default.</p>
       <img width="976" height="1036" loading="lazy" decoding="async" data-shot data-size-en="976x1036" data-size-cjk="995x1036" src="report.en.png" data-img-en="report.en.png" data-img-cjk="report.png" alt="HTML usage report" />
     </div>
   </div>
@@ -839,16 +839,16 @@ footer .kofi:hover { background: var(--accent-hover); }
     </div>
     <a class="kofi" href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" data-i18n="footer_kofi">☕ Buy me a coffee</a>
   </div>
+  <img class="mascot-pet" src="mascot.webp" loading="lazy" data-i18n-attr="alt:mascot_alt" alt="The usage butler cat, your progress concierge" />
 </footer>
 
-<img class="mascot-pet" src="mascot.webp" loading="lazy" data-i18n-attr="alt:mascot_alt" alt="The usage butler cat, your progress concierge" />
 
 <script>
 const T = {
   'en': {
     _label: 'EN',
     meta_title: 'usage — pin your Claude Code, Codex & Antigravity quota to the menu bar',
-    meta_desc: 'macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. No LLM API calls — watching your quota never costs you tokens. HTML reports, 14 visual themes, AGPL-3.0.',
+    meta_desc: 'macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. No LLM API calls, so watching your quota never costs you tokens. HTML reports, 14 visual themes, AGPL-3.0.',
     nav_features: 'Features',
     nav_resume: 'Resume',
     nav_install: 'Install',
@@ -858,7 +858,7 @@ const T = {
     skip_main: 'Skip to main content',
     eyebrow: 'macOS &amp; Windows · open source · AGPL-3.0',
     h1: 'Pin your <span class="accent">Claude Code</span>, <span class="accent">Codex</span> &amp; <span class="accent">Antigravity</span> <br>quota to the menu bar.',
-    lead: 'A tiny menu bar app for macOS — and system tray app for Windows — that shows how much of your AI quota is left, like a battery percentage for tokens. No LLM API calls, so watching your quota never costs you tokens.',
+    lead: 'A tiny menu bar app for macOS (and system tray app for Windows) that shows how much of your AI quota is left, like a battery percentage for tokens. No LLM API calls, so watching your quota never costs you tokens.',
     hero_img_alt: 'usage running in the macOS menu bar, with the quota popover open on a MacBook',
     cta_download: '↓ Download .app',
     cta_star: '★ Star on GitHub',
@@ -866,7 +866,7 @@ const T = {
     strip_2: '<strong>Local-first</strong> — Claude Code &amp; Codex read straight from your disk',
     strip_3: '<strong>No telemetry</strong>, no accounts, no cloud',
     features_h2: 'Built for developers who burn tokens.',
-    features_sub: "Stop guessing if you're about to hit the rate limit mid-refactor.",
+    features_sub: "Stop guessing if you’re about to hit the rate limit mid-refactor.",
     card1_h: '5-hour &amp; 7-day quota at a glance',
     card1_p: 'Both Claude Code session (5h) and weekly (7d) percentages live in the menu bar. Click for a full popover with per-project usage and cost.',
     q_session: 'Session',
@@ -878,47 +878,47 @@ const T = {
     card2_h: 'Claude Code, Codex &amp; Antigravity, one app',
     card2_p: 'Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.',
     card14_h: 'Grok CLI, too',
-    card14_p: "A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Its per-request token usage still counts toward today's cost and project totals, just like Claude Code and Codex.",
+    card14_p: "A fourth card reads Grok CLI’s weekly credit percentage straight from its own local debug log, with no network call. Its per-request token usage still counts toward today’s cost and project totals, just like Claude Code and Codex.",
     card3_h: 'Local-first by design',
-    card3_p: 'Claude Code and Codex numbers come from files already on your disk — a statusLine hook status file plus Codex session JSONL logs — with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.',
+    card3_p: 'Claude Code and Codex numbers come from files already on your disk (a statusLine hook status file plus Codex session JSONL logs), with no network access at all. Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md.',
     card4_h: 'One-click HTML reports',
-    card4_p: 'Today, week, month, or all-time — get a shareable HTML report with token / cost trends, top projects, and model breakdown. Project names hide by default for client-safe sharing.',
+    card4_p: 'Today, week, month, or all-time: get a shareable HTML report with token / cost trends, top projects, and model breakdown. Project names hide by default for client-safe sharing.',
     card5_h: '14 visual panel themes',
-    card5_p: 'Matrix digital rain, Windows 95, retro newspaper, midnight aquarium, World Cup FIFA HUD, Lepidoptera blueprint — pick a mood for your menu bar pop-out.',
+    card5_p: 'Matrix digital rain, Windows 95, retro newspaper, midnight aquarium, World Cup FIFA HUD, Lepidoptera blueprint. Pick a mood for your menu bar pop-out.',
     card8_h: 'Terse Mode',
-    card8_p: "A menu-bar toggle that asks Claude Code — and Codex CLI too, if it's installed — to answer more tersely and in plainer language for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact. A light reminder keeps long conversations from drifting back to verbose.",
+    card8_p: "A menu-bar toggle that asks Claude Code (and Codex CLI too, if it’s installed) to answer more tersely and in plainer language for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact. A light reminder keeps long conversations from drifting back to verbose.",
     card10_h: 'Notifications before you hit the wall',
-    card10_p: 'When your context window hits 70% — or earlier when it is filling fast — the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.',
+    card10_p: 'When your context window hits 70%, or earlier when it is filling fast, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The status line also shows your prompt cache hit rate with a countdown to expiry, so you can tell whether finishing now still reuses the cached context.',
     resume_label: 'PROGRESS CONCIERGE',
     resume_h2: 'Now your CLI picks up where you left off',
-    resume_lead: "The web and desktop apps keep your history automatically — close them, reopen, it's all there. The CLI keeps it too, but you need to know the command to pull it back up. Resume makes that automatic: open a new session and it picks up where you left off, no command to remember, no re-explaining. It now also runs a daily health check on your logs — when it spots token waste, the handoff adds a one-line heads-up; say \"show me\" for the findings and fixes. Reads local files only — never connects to any API.",
+    resume_lead: "The web and desktop apps keep your history automatically: close them, reopen, it’s all there. The CLI keeps it too, but you need to know the command to pull it back up. Resume makes that automatic: open a new session and it picks up where you left off, no command to remember, no re-explaining. It now also runs a daily health check on your logs. When it spots token waste, the handoff adds a one-line heads-up; say “show me” for the findings and fixes. Reads local files only and never connects to any API.",
     resume_point1: 'Auto-resumes your last progress',
     resume_point4: 'Daily health check flags token waste',
     resume_point2: 'Reads local files only',
     resume_img_alt: 'usage — an ink-brush cat inside a red enso circle, with the line "Pick up where you left off."',
     mascot_alt: 'The usage butler cat, your progress concierge',
     install_h2: 'Install in 10 seconds.',
-    install_sub: 'Four ways to get it running. All free, all AGPL-3.0.',
+    install_sub: '4 ways to get it running. All free, all AGPL-3.0.',
     install_label_rec: 'RECOMMENDED',
     install_h_brew: 'Homebrew',
     install_p_brew: 'One command. <code>brew upgrade</code> keeps it current.',
     install_label_dir: 'DIRECT',
     install_h_app: 'Download .app',
-    install_p_app: 'Latest <code>usage.app.zip</code> from GitHub Releases — unzip, drag to <code>/Applications</code>.',
+    install_p_app: 'Latest <code>usage.app.zip</code> from GitHub Releases. Unzip, then drag to <code>/Applications</code>.',
     install_label_win: 'WINDOWS',
     install_h_win: 'System tray',
-    install_p_win: 'Latest <code>usage-windows.zip</code> from GitHub Releases — unzip and run <code>usage.exe</code>.',
+    install_p_win: 'Latest <code>usage-windows.zip</code> from GitHub Releases. Unzip and run <code>usage.exe</code>.',
     install_label_any: 'ANY OS',
     install_h_uvx: 'uvx (no install)',
-    install_p_uvx: 'Terminal interface only — no menu bar or tray. Works on Linux too; uv brings its own Python.',
+    install_p_uvx: 'Terminal interface only, with no menu bar or tray. Works on Linux too; uv brings its own Python.',
     install_btn_releases: '→ Open Releases page',
     copy_btn: 'Copy',
     copy_done: 'Copied',
     copy_fail: 'Copy failed',
     screen_h2: 'Pick a panel that fits your mood.',
-    screen_sub: 'Fourteen built-in themes. Change anytime from the popover toolbar.',
+    screen_sub: '14 built-in themes. Change anytime from the popover toolbar.',
     report_h: 'Your AI usage, in one shareable page.',
-    report_p: 'Generate an HTML report with token spend, cost, top projects, and model distribution — plus a year-in-review page with a GitHub-style contribution heatmap and a "Wrapped" card. Send to your manager. Use as a client invoice attachment. Project names hide by default.',
+    report_p: 'Generate an HTML report with token spend, cost, top projects, and model distribution, plus a year-in-review page with a GitHub-style contribution heatmap and a “Wrapped” card. Send to your manager. Use as a client invoice attachment. Project names hide by default.',
     footer_tag_pre: 'Built by',
     footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
     footer_releases: 'Releases',
