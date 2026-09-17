@@ -612,6 +612,7 @@ footer {
 }
 footer .wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
 footer p { color: var(--fg-footer); font-size: 14.5px; }
+footer p a { text-decoration: underline; text-underline-offset: 3px; }
 footer .links { display: flex; gap: 20px; font-size: 15px; color: var(--fg-dim); flex-wrap: wrap; justify-content: center; }
 footer .links a { display: inline-flex; align-items: center; min-height: 24px; transition: color 140ms ease; }
 footer .links a:hover { color: var(--fg); }
@@ -634,7 +635,7 @@ footer .kofi:hover { background: var(--accent-hover); }
 
 <header class="topbar">
   <div class="wrap">
-    <a href="#" class="brand"><span class="brand-dot"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><ellipse cx="12" cy="16.5" rx="6.2" ry="5.3"/><ellipse cx="4.8" cy="8.6" rx="2.6" ry="3.1"/><ellipse cx="9.6" cy="4.6" rx="2.3" ry="2.9"/><ellipse cx="14.4" cy="4.6" rx="2.3" ry="2.9"/><ellipse cx="19.2" cy="8.6" rx="2.6" ry="3.1"/></svg></span>usage</a>
+    <a href="#" class="brand" translate="no"><span class="brand-dot"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><ellipse cx="12" cy="16.5" rx="6.2" ry="5.3"/><ellipse cx="4.8" cy="8.6" rx="2.6" ry="3.1"/><ellipse cx="9.6" cy="4.6" rx="2.3" ry="2.9"/><ellipse cx="14.4" cy="4.6" rx="2.3" ry="2.9"/><ellipse cx="19.2" cy="8.6" rx="2.6" ry="3.1"/></svg></span>usage</a>
     <nav>
       <a href="#features" data-i18n="nav_features">Features</a>
       <a href="#resume" data-i18n="nav_resume">Resume</a>
@@ -655,9 +656,9 @@ footer .kofi:hover { background: var(--accent-hover); }
     <div class="lang">
       <button id="lang-btn" class="lang-btn" type="button" aria-haspopup="listbox" aria-controls="lang-menu" aria-expanded="false">
         <span id="lang-current">EN</span>
-        <span class="lang-caret">▾</span>
+        <span class="lang-caret" aria-hidden="true">▾</span>
       </button>
-      <ul id="lang-menu" class="lang-menu" role="listbox" hidden>
+      <ul id="lang-menu" class="lang-menu" role="listbox" aria-label="Language" data-i18n-attr="aria-label:lang_menu" hidden>
         <li><button data-lang="en" role="option" aria-selected="false">English</button></li>
         <li><button data-lang="zh-TW" role="option" aria-selected="false">繁體中文</button></li>
         <li><button data-lang="zh-CN" role="option" aria-selected="false">简体中文</button></li>
@@ -679,7 +680,7 @@ footer .kofi:hover { background: var(--accent-hover); }
       <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener" data-i18n="cta_star">★ Star on GitHub</a>
     </div>
     <div class="shot">
-      <img width="1448" height="1086" fetchpriority="high" decoding="async" src="showcase-v3.en.webp" data-i18n-attr="alt:hero_img_alt" alt="usage running in the macOS menu bar, with the quota popover open on a MacBook" />
+      <img width="1448" height="1086" fetchpriority="high" decoding="async" src="showcase-v3.en.webp" srcset="showcase-v3.en-800.webp 800w, showcase-v3.en.webp 1448w" sizes="(max-width: 1080px) 100vw, 1030px" data-i18n-attr="alt:hero_img_alt" alt="usage running in the macOS menu bar, with the quota popover open on a MacBook" />
     </div>
   </div>
 </section>
@@ -757,7 +758,7 @@ footer .kofi:hover { background: var(--accent-hover); }
     <p class="subtitle" data-i18n="resume_lead">The web and desktop apps keep your history automatically — close them, reopen, it's all there. The CLI keeps it too, but you need to know the command to pull it back up. Resume makes that automatic: open a new session and it picks up where you left off, no command to remember, no re-explaining. It now also runs a daily health check on your logs — when it spots token waste, the handoff adds a one-line heads-up; say "show me" for the findings and fixes. Reads local files only — never connects to any API.</p>
     </div>
     <div class="shot">
-      <img width="1983" height="793" src="resume-ink.webp" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="usage — an ink-brush cat inside a red enso circle, with the line &quot;Pick up where you left off.&quot;" />
+      <img width="1983" height="793" src="resume-ink.webp" srcset="resume-ink-800.webp 800w, resume-ink-1200.webp 1200w, resume-ink.webp 1983w" sizes="(max-width: 1023px) 100vw, 520px" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="usage — an ink-brush cat inside a red enso circle, with the line &quot;Pick up where you left off.&quot;" />
     </div>
   </div>
   <div class="strip">
@@ -779,7 +780,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         <h3 data-i18n="install_h_brew">Homebrew</h3>
         <p data-i18n="install_p_brew">One command. <code>brew upgrade</code> keeps it current.</p>
         <div class="copy-wrap">
-<pre><code>brew install --cask aqua5230/usage/usage</code></pre>
+<pre tabindex="0" translate="no"><code>brew install --cask aqua5230/usage/usage</code></pre>
   <button class="copy-btn" type="button" data-i18n="copy_btn">Copy</button>
         </div>
       </div>
@@ -800,7 +801,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         <h3 data-i18n="install_h_uvx">uvx (no install)</h3>
         <p data-i18n="install_p_uvx">Terminal interface only — no menu bar or tray. Works on Linux too; uv brings its own Python.</p>
         <div class="copy-wrap">
-<pre><code>uvx usage-cli</code></pre>
+<pre tabindex="0" translate="no"><code>uvx usage-cli</code></pre>
   <button class="copy-btn" type="button" data-i18n="copy_btn">Copy</button>
         </div>
       </div>
@@ -814,7 +815,7 @@ footer .kofi:hover { background: var(--accent-hover); }
     <p class="subtitle" data-i18n="screen_sub">Fourteen built-in themes. Change anytime from the popover toolbar.</p>
     <div class="panel-picker">
       <div class="panel-chips" id="panel-chips" role="group" data-i18n-attr="aria-label:screen_h2" aria-label="Pick a panel that fits your mood."></div>
-      <div class="panel-stage"><iframe id="panel-stage" title="usage panel preview" loading="lazy" scrolling="no"></iframe></div>
+      <div class="panel-stage" tabindex="0"><iframe id="panel-stage" title="usage panel preview" loading="lazy" scrolling="no"></iframe></div>
     </div>
     <div class="report">
       <h3 data-i18n="report_h">Your AI usage, in one shareable page.</h3>
@@ -853,6 +854,7 @@ const T = {
     nav_install: 'Install',
     nav_screenshots: 'Panels',
     nav_sections: 'Sections',
+    lang_menu: 'Language',
     skip_main: 'Skip to main content',
     eyebrow: 'macOS &amp; Windows · open source · AGPL-3.0',
     h1: 'Pin your <span class="accent">Claude Code</span>, <span class="accent">Codex</span> &amp; <span class="accent">Antigravity</span> <br>quota to the menu bar.',
@@ -935,6 +937,7 @@ const T = {
     nav_install: '安裝',
     nav_screenshots: '面板',
     nav_sections: '區段',
+    lang_menu: '語言',
     skip_main: '跳至主要內容',
     eyebrow: 'macOS 與 Windows · 開源 · AGPL-3.0',
     h1: '把 <span class="accent">Claude Code</span>、<span class="accent">Codex</span> 和 <span class="accent">Antigravity</span> <br>的用量釘在 menu bar。',
@@ -1017,6 +1020,7 @@ const T = {
     nav_install: '安装',
     nav_screenshots: '面板',
     nav_sections: '章节',
+    lang_menu: '语言',
     skip_main: '跳至主要内容',
     eyebrow: 'macOS 与 Windows · 开源 · AGPL-3.0',
     h1: '把 <span class="accent">Claude Code</span>、<span class="accent">Codex</span> 和 <span class="accent">Antigravity</span> <br>的用量钉在 menu bar。',
@@ -1099,6 +1103,7 @@ const T = {
     nav_install: 'インストール',
     nav_screenshots: 'パネル',
     nav_sections: 'セクション',
+    lang_menu: '言語',
     skip_main: 'メインコンテンツへ移動',
     eyebrow: 'macOS &amp; Windows · オープンソース · AGPL-3.0',
     h1: '<span class="accent">Claude Code</span>、<span class="accent">Codex</span> &amp; <span class="accent">Antigravity</span> の<br>クォータをメニューバーに。',
@@ -1181,6 +1186,7 @@ const T = {
     nav_install: '설치',
     nav_screenshots: '패널',
     nav_sections: '섹션',
+    lang_menu: '언어',
     skip_main: '본문으로 건너뛰기',
     eyebrow: 'macOS &amp; Windows · 오픈소스 · AGPL-3.0',
     h1: '<span class="accent">Claude Code</span>, <span class="accent">Codex</span> &amp; <span class="accent">Antigravity</span>의 <br>한도를 메뉴 바에 고정.',
@@ -1387,17 +1393,6 @@ document.addEventListener('keydown', e => {
 window.addEventListener('hashchange', () => applyLang(detectLang()));
 
 const prefersReducedMotion = typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const supportsHover = typeof window.matchMedia === 'function' && window.matchMedia('(hover: hover)').matches;
-if (!prefersReducedMotion && supportsHover) {
-  document.querySelectorAll('.card').forEach(card => {
-    card.addEventListener('pointermove', event => {
-      const rect = card.getBoundingClientRect();
-      card.style.setProperty('--mx', `${event.clientX - rect.left}px`);
-      card.style.setProperty('--my', `${event.clientY - rect.top}px`);
-    }, { passive: true });
-  });
-}
-
 if (!prefersReducedMotion && 'IntersectionObserver' in window) {
   try {
     document.documentElement.classList.add('motion-ready');
@@ -1501,6 +1496,13 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
     show(panels[0].id);
   }).catch(function () { /* 面板展示載不到就留空，不影響頁面其他部分 */ });
 })();
+
+// 手機區段選單：點了連結就收起來，不然展開的選單會蓋住目標區塊的標題。
+document.querySelectorAll('.mobile-nav nav a').forEach(function (link) {
+  link.addEventListener('click', function () {
+    link.closest('.mobile-nav').open = false;
+  });
+});
 
 // 複製按鈕：指令文字直接取自同一個容器裡的 <code>，不另外寫死字串。
 document.querySelectorAll('.copy-btn').forEach(function (button) {
