@@ -62,6 +62,7 @@
 /* Hallmark · pre-emit critique: P4 H4 E3 S4 R5 V4 · browser verification pending */
 /* Hallmark · macrostructure: Workbench · tone: restrained · anchor hue: orange */
 :root {
+  color-scheme: dark;
   --bg: #090a0f;
   --bg-soft: #11131a;
   --bg-card: rgba(20, 23, 32, 0.7);
@@ -77,7 +78,7 @@
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; scroll-padding-top: 64px; overflow-x: clip; }
+html { scroll-behavior: smooth; scroll-padding-top: 64px; overflow-x: clip; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 body {
   position: relative;
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans CJK TC", "Noto Sans CJK SC", "Noto Sans JP", "Noto Sans KR", Arial, sans-serif;
@@ -94,6 +95,8 @@ h1, h2, h3 { text-wrap: balance; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
 :lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
 p, li { text-wrap: pretty; }
+:not(pre) > code { font-family: var(--mono); font-size: 0.9em; background: rgba(255, 255, 255, 0.06); padding: 1px 5px; border-radius: 4px; white-space: nowrap; }
+::selection { background: rgba(255, 140, 66, 0.3); color: #fff; }
 :where(a, button, summary):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
