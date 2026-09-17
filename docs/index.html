@@ -92,6 +92,8 @@ img { max-width: 100%; height: auto; display: block; }
 button { font-family: inherit; cursor: pointer; }
 h1, h2, h3 { text-wrap: balance; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
+:lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
+p, li { text-wrap: pretty; }
 :where(a, button, summary):focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 3px;
