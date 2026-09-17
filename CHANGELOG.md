@@ -5,6 +5,32 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.17] - 2026-09-17
+
+### Changed
+- **Insights now sit directly under the summary cards, tagged "Fixed range".** They used to come after the heatmap, habits and recent work, around 3,600px down a 4,660px page, so the most actionable line was the last thing anyone read. Insights cover the whole report period and do not follow the date filter, which is what the tag says.
+- **The "How these numbers are calculated" appendix moved above the "The sections below don't follow the date filter above" note.** The appendix does follow the filter (cache reads went from 5.29B to 1.88B after picking Last 7 days), so the note was wrong about it.
+- **The date filter only stays pinned while the sections it controls are on screen.** Scrolling into the heatmap, habits, recent work and Wrapped now lets it scroll away instead of offering buttons that change nothing there.
+- **Top 5 burn sessions are ranked by tokens.** They were sorted by cost while their bars, and every other "burn" in the report, measure tokens, so the second row could carry a longer bar than the first. Cost breaks ties.
+- **Projects use one neutral colour.** They borrowed the tools' green, purple and orange, so a project could look like it belonged to Claude Code, Antigravity or Codex. Grok's bar in the tools list is now the same pink as the chart; it was still teal there.
+- **Active days reads "17 / 17 days" instead of "17/17"**, which looked like a date next to the peak-day card.
+
+### Fixed
+- **Top sessions no longer hide tokens and cost off-screen on phones.** Each session is now a card with project, tokens and cost on the first line, start time and duration on the second, model on the third.
+- **Buttons and links are at least 44px tall on screens 780px wide or narrower.** The range buttons, date inputs, theme and share buttons, the Tokens/Cost toggle and the footer links were 16 to 32px.
+- **Dates and model names no longer break at a hyphen on phones.** The header period and the summary sentence split `2026-05-` from `04`.
+- **"Share of project" is shown once per expanded project** instead of on every model row.
+- **The cache hit rate explanation sits under its own heading** instead of directly below the Output row.
+- **The empty report names Antigravity and Grok** alongside Claude Code and Codex, in all five languages.
+- **The footer has one Ko-fi link instead of two.**
+
+### Docs
+- **Each website language has its own page** (`/zh-TW/`, `/zh-CN/`, `/ja/`, `/ko/`) with its own title, `html lang` and canonical, generated from `docs/index.html` by `scripts/build_site_pages.py`; CI runs it with `--check`. Every `?lang=` URL used to serve the English HTML with an English canonical, so the other four languages could not be indexed. hreflang and the sitemap list all five, and old `?lang=` links still work.
+- **The website's feature section is a card grid with icons, and the headline includes Grok.**
+- **Website accessibility and mobile fixes from Lighthouse, axe and the Vercel Web Interface Guidelines.** The mobile section menu closes after a tap, hero images ship 800w and 1200w variants (about 230KB less on phones), install commands are marked `translate="no"`, and scrollable regions are keyboard-reachable.
+- **Website typography.** Headings balance across lines, paragraphs avoid one-word last lines, Japanese and Korean headings no longer break mid-word, and inline commands no longer split at hyphens.
+- **Report screenshots retaken** for the new layout.
+
 ## [0.30.16] - 2026-09-15
 
 ### Fixed
