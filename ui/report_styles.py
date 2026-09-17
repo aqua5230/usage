@@ -127,6 +127,7 @@ h1{
 .eyebrow span,.prompt span{color:var(--cost)}
 .cursor{color:var(--token)}
 .cursor{display:inline-block;animation:blink 1.2s steps(2,start) infinite}
+.nowrap{white-space:nowrap}
 .narrative{max-width:none;margin:18px 0 0;color:var(--text-soft);font-size:1.02rem;line-height:1.6}
 /* 吸在視窗頂端：報表很長，捲到一半想換區間不該再捲回最上面。 */
 .date-filter{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 0 28px;padding:12px 0;background:var(--bg);border-bottom:1px solid var(--card-border)}
@@ -182,7 +183,7 @@ h1{
 .session-section{border-top-color:transparent}
 .wrap>.contribution-section{margin-top:104px;padding-top:40px;border-top:1px solid var(--card-border)}
 .fixed-group-note{display:block;margin:0 0 18px;color:var(--muted);font-family:var(--font-mono);font-size:.74rem;letter-spacing:.04em}
-.contribution-section .fixed-range-tag,.persona-section .fixed-range-tag,.recent-titles-section .fixed-range-tag,.insights-section .fixed-range-tag{display:none}
+.contribution-section .fixed-range-tag,.persona-section .fixed-range-tag,.recent-titles-section .fixed-range-tag{display:none}
 .contribution-section .rule{height:0;margin-bottom:24px}
 .trend-section .prompt,.tools-section .prompt,.project-section .prompt,.session-section .prompt,.contribution-section .prompt{font-size:1.25rem}
 .recent-titles-section{margin-top:56px;padding-block:12px;padding-top:24px}
@@ -512,6 +513,9 @@ td:first-child{color:var(--warn)}
   .wrapped-metric span{margin:0}
   .wrapped-metric b{text-align:right}
   .contribution-months{padding-left:30px}
+  /* 手指點的按鈕至少 44px 高（蘋果建議值）；桌面維持原本尺寸。 */
+  .date-filter button,.date-filter input,.share-trigger,.daily-chart-toggle button,.sponsor a,.sponsor-link a{min-height:44px}
+  .sponsor a,.sponsor-link a{display:inline-flex;align-items:center}
 }
 @media (max-width:480px){
   .wrap{padding:24px 16px 32px}

@@ -153,6 +153,7 @@ h1{
 .eyebrow span,.prompt span{color:var(--cost)}
 .cursor{color:var(--token)}
 .cursor{display:inline-block;animation:blink 1.2s steps(2,start) infinite}
+.nowrap{white-space:nowrap}
 .narrative{max-width:none;margin:18px 0 0;color:var(--text-soft);font-size:1.02rem;line-height:1.6}
 /* 吸在視窗頂端：報表很長，捲到一半想換區間不該再捲回最上面。 */
 .date-filter{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 0 28px;padding:12px 0;background:var(--bg);border-bottom:1px solid var(--card-border)}
@@ -209,7 +210,7 @@ h1{
 .session-section{border-top-color:transparent}
 .wrap>.contribution-section{margin-top:104px;padding-top:40px;border-top:1px solid var(--card-border)}
 .fixed-group-note{display:block;margin:0 0 18px;color:var(--muted);font-family:var(--font-mono);font-size:.74rem;letter-spacing:.04em}
-.contribution-section .fixed-range-tag,.persona-section .fixed-range-tag,.recent-titles-section .fixed-range-tag,.insights-section .fixed-range-tag{display:none}
+.contribution-section .fixed-range-tag,.persona-section .fixed-range-tag,.recent-titles-section .fixed-range-tag{display:none}
 .contribution-section .rule{height:0;margin-bottom:24px}
 .trend-section .prompt,.tools-section .prompt,.project-section .prompt,.session-section .prompt,.contribution-section .prompt{font-size:1.25rem}
 .recent-titles-section{margin-top:56px;padding-block:12px;padding-top:24px}
@@ -548,6 +549,9 @@ td:first-child{color:var(--warn)}
   .wrapped-metric span{margin:0}
   .wrapped-metric b{text-align:right}
   .contribution-months{padding-left:30px}
+  /* 手指點的按鈕至少 44px 高（蘋果建議值）；桌面維持原本尺寸。 */
+  .date-filter button,.date-filter input,.share-trigger,.daily-chart-toggle button,.sponsor a,.sponsor-link a{min-height:44px}
+  .sponsor a,.sponsor-link a{display:inline-flex;align-items:center}
 }
 @media (max-width:480px){
   .wrap{padding:24px 16px 32px}
@@ -623,9 +627,9 @@ td:first-child{color:var(--warn)}
 <main class="wrap">
   <header>
     <div>
-      <div class="eyebrow"><span>$ usage report</span> --period <span data-report-period>2026-05-01 -&gt; 2026-05-23</span><span class="cursor">_</span></div>
+      <div class="eyebrow"><span>$ usage report</span> --period <span class="nowrap" data-report-period>2026-05-01 -&gt; 2026-05-23</span><span class="cursor">_</span></div>
       <h1>Your AI Usage Recap</h1>
-      <p class="narrative">You burned 2.3M tokens. Peak was 2026-05-13 (300.0K/day). Top model: claude-sonnet-4.</p>
+      <p class="narrative">You burned 2.3M tokens. Peak was <span class="nowrap">2026-05-13</span> (300.0K/day). Top model: <span class="nowrap">claude-sonnet-4.</span></p>
     </div>
     <div class="header-actions">
       <div class="meta">Generated 2026-05-24 10:30:45 UTC<br>usage version 0.15.8</div>
@@ -653,7 +657,13 @@ td:first-child{color:var(--warn)}
       <div class="share-toast" data-share-toast role="status" aria-live="polite"></div>
     </div>
   </dialog>
-  <section class="cards"><div class="card" data-card="tokens"><span>Burned Tokens</span><b>2,345,678</b><i>≈ 2.3M · ↑56% vs previous period</i></div><div class="card" data-card="cost"><span>API equivalent</span><b>$45.68</b><i>↑52% vs previous period</i></div><div class="card" data-card="active"><span>Active Days</span><b>18/23</b></div><div class="card" data-card="peak"><span>Peak Day</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
+  <section class="cards"><div class="card" data-card="tokens"><span>Burned Tokens</span><b>2,345,678</b><i>≈ 2.3M · ↑56% vs previous period</i></div><div class="card" data-card="cost"><span>API equivalent</span><b>$45.68</b><i>↑52% vs previous period</i></div><div class="card" data-card="active"><span>Active Days</span><b>18 / 23 days</b></div><div class="card" data-card="peak"><span>Peak Day</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
+
+    <section class="section insights-section">
+      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">Insights</span><small class="fixed-range-tag">Fixed range</small></div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="insight-note">This period burned 2.3M tokens and $45.68 — up 56% vs last period.</div><div class="insight-note"><span class="insight-project" data-mask-as="Project 1">usage</span> is new this period and already 70.2% of usage.</div><div class="insight-action">Usage jumped hard vs last period; watch quota headroom.</div>
+    </section>
   
     <section class="section trend-section">
       <div class="prompt"><span>[usage]&gt;</span> Usage trend<div class="daily-chart-toggle"><button type="button" data-daily-mode="tokens" aria-pressed="true">Tokens</button><button type="button" data-daily-mode="cost" aria-pressed="false">Cost</button></div></div>
@@ -728,12 +738,7 @@ td:first-child{color:var(--warn)}
       <div class="recent-titles"><div class="recent-title" data-mask>→ Ship HTML report</div><div class="recent-title" data-mask>→ Ignore in current renderer</div></div>
     </section>
     
-
-    <section class="section insights-section">
-      <div class="prompt"><span>[usage]&gt;</span> Insights</div>
-      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="insight-note">This period burned 2.3M tokens and $45.68 — up 56% vs last period.</div><div class="insight-note"><span class="insight-project" data-mask-as="Project 1">usage</span> is new this period and already 70.2% of usage.</div><div class="insight-action">Usage jumped hard vs last period; watch quota headroom.</div>
-    </section>  <details class="report-appendix"><summary><span>[usage]&gt;</span> How these numbers are calculated<span class="appendix-desc">Token mix · Cache hit rate · Cost confidence</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>
+  <details class="report-appendix"><summary><span>[usage]&gt;</span> How these numbers are calculated<span class="appendix-desc">Token mix · Cache hit rate · Cost confidence</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>
     <section class="section composition-section">
       <div class="prompt"><span>[usage]&gt;</span> Token composition</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
@@ -786,7 +791,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "chartOther": "Other", "cost": "Cost", "costUnpriced": "{tokens} tokens have no public pricing", "emptyProjects": "No project usage in this period", "narrative": "You burned {tokens} tokens. Peak was {peak_date} ({peak_tokens}/day). Top model: {top_model}.", "projectSection": "Project hot zones", "share": "Share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "Cost", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "Cost is the API-equivalent value from public price lists, not your subscription bill. Usage without a public price is left out of cost.", "pricingModelSeparator": ", ", "pricingPriced": "Priced", "pricingUnpriced": "No public price", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "This week dropped {pct}% vs last week.", "trendCompareFirst": "First week of this period.", "trendCompareFlat": "Roughly flat vs last week.", "trendCompareNew": "This week has new usage vs last week.", "trendCompareUp": "This week is {ratio}× of last week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
+const shareConfig = {"collapse": "Collapse", "copied": "Copied to clipboard ✓", "expand": "Expand", "pathCopied": "Path copied ✓", "projectShare": "Share of project", "chartOther": "Other", "cost": "Cost", "costUnpriced": "{tokens} tokens have no public pricing", "emptyProjects": "No project usage in this period", "kpiActiveValue": "{active} / {total} days", "narrative": "You burned {tokens} tokens. Peak was {peak_date} ({peak_tokens}/day). Top model: {top_model}.", "projectSection": "Project hot zones", "share": "Share", "tokens": "Tokens", "unknown": "unknown", "vsPrevious": "vs previous period", "compositionCacheRead": "Cache read", "compositionCacheWrite": "Cache write", "compositionHitRate": "Cache hit rate", "compositionInput": "Input", "compositionOutput": "Output", "duration": "Duration", "dailyChartTitle": "Daily usage", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "Cost", "dailyChartTotal": "Total", "emptyDaily": "No daily usage in this period", "emptySessions": "No sessions to list in this period", "model": "Model", "project": "Project", "pricingAllPriced": "All usage has a public price.", "pricingHint": "Cost is the API-equivalent value from public price lists, not your subscription bill. Usage without a public price is left out of cost.", "pricingModelSeparator": ", ", "pricingPriced": "Priced", "pricingUnpriced": "No public price", "rank": "Rank", "startTime": "Start time", "trendCompareDown": "This week dropped {pct}% vs last week.", "trendCompareFirst": "First week of this period.", "trendCompareFlat": "Roughly flat vs last week.", "trendCompareNew": "This week has new usage vs last week.", "trendCompareUp": "This week is {ratio}× of last week.", "trendMarkerNew": "new", "trendWeekInProgress": "in progress"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -1914,18 +1919,28 @@ document.addEventListener('click', async (e) => {
       : '';
     updateCard('tokens', formatInteger(summary.tokens), tokenSub);
     updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join(' · '));
-    updateCard('active', `${summary.activeDays}/${summary.totalDays}`, '');
+    updateCard('active', shareConfig.kpiActiveValue
+      .replace('{active}', summary.activeDays)
+      .replace('{total}', summary.totalDays), '');
     updateCard('peak', summary.peakDate, `${formatTokens(summary.peakTokens)} ${shareConfig.tokens}`);
   }
 
   function updateNarrative(summary) {
     const node = document.querySelector('.narrative');
     if (!node || !shareConfig.narrative) return;
-    node.textContent = shareConfig.narrative
+    const text = shareConfig.narrative
       .replace('{tokens}', formatTokens(summary.tokens))
       .replace('{peak_date}', summary.peakDate)
       .replace('{peak_tokens}', formatTokens(summary.peakTokens))
       .replace('{top_model}', summary.topModel || shareConfig.unknown);
+    // 跟 html_report._nowrap_html 同一套規則：帶連字號的字不准折行。
+    node.replaceChildren(...text.split(/([\w.]+(?:-[\w.]+)+)/).map((part, index) => {
+      if (index % 2 === 0) return part;
+      const span = document.createElement('span');
+      span.className = 'nowrap';
+      span.textContent = part;
+      return span;
+    }));
   }
 
   function updatePeriod(bounds) {

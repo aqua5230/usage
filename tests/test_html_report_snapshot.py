@@ -611,9 +611,9 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
 def test_generate_html_restructures_report_into_tools_and_collapsed_appendix() -> None:
     html = html_report.generate_html(_full_report_data(), language="zh-TW")
     ordered = (
-        "trend-section", "tools-section", "project-section", "session-section",
-        "contribution-section", "persona-section", "recent-titles-section",
-        "insights-section", "report-appendix", "wrapped-section", "sponsor",
+        "insights-section", "trend-section", "tools-section", "project-section",
+        "session-section", "contribution-section", "persona-section",
+        "recent-titles-section", "report-appendix", "wrapped-section", "sponsor",
     )
 
     positions = [
@@ -669,18 +669,18 @@ def test_generate_html_adds_date_filter_cards_and_fixed_group_note_for_cube() ->
         "persona-section",
         "contribution-section",
         "recent-titles-section",
-        "insights-section",
     ):
         section = re.search(
             rf'<section class="section {class_name}">.*?</section>', html, re.S
         )
         assert section, class_name
         assert "fixed-range-tag" not in section.group(0)
-    wrapped = re.search(
-        r'<section class="section wrapped-section">.*?</section>', html, re.S
-    )
-    assert wrapped
-    assert "fixed-range-tag" in wrapped.group(0)
+    for class_name in ("insights-section", "wrapped-section"):
+        section = re.search(
+            rf'<section class="section {class_name}">.*?</section>', html, re.S
+        )
+        assert section, class_name
+        assert "fixed-range-tag" in section.group(0)
     assert (
         '<summary><span>[usage]&gt;</span> How these numbers are calculated'
         '<span class="appendix-desc">Token mix · Cache hit rate · Cost confidence</span>'

@@ -153,6 +153,7 @@ h1{
 .eyebrow span,.prompt span{color:var(--cost)}
 .cursor{color:var(--token)}
 .cursor{display:inline-block;animation:blink 1.2s steps(2,start) infinite}
+.nowrap{white-space:nowrap}
 .narrative{max-width:none;margin:18px 0 0;color:var(--text-soft);font-size:1.02rem;line-height:1.6}
 /* 吸在視窗頂端：報表很長，捲到一半想換區間不該再捲回最上面。 */
 .date-filter{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;margin:0 0 28px;padding:12px 0;background:var(--bg);border-bottom:1px solid var(--card-border)}
@@ -209,7 +210,7 @@ h1{
 .session-section{border-top-color:transparent}
 .wrap>.contribution-section{margin-top:104px;padding-top:40px;border-top:1px solid var(--card-border)}
 .fixed-group-note{display:block;margin:0 0 18px;color:var(--muted);font-family:var(--font-mono);font-size:.74rem;letter-spacing:.04em}
-.contribution-section .fixed-range-tag,.persona-section .fixed-range-tag,.recent-titles-section .fixed-range-tag,.insights-section .fixed-range-tag{display:none}
+.contribution-section .fixed-range-tag,.persona-section .fixed-range-tag,.recent-titles-section .fixed-range-tag{display:none}
 .contribution-section .rule{height:0;margin-bottom:24px}
 .trend-section .prompt,.tools-section .prompt,.project-section .prompt,.session-section .prompt,.contribution-section .prompt{font-size:1.25rem}
 .recent-titles-section{margin-top:56px;padding-block:12px;padding-top:24px}
@@ -548,6 +549,9 @@ td:first-child{color:var(--warn)}
   .wrapped-metric span{margin:0}
   .wrapped-metric b{text-align:right}
   .contribution-months{padding-left:30px}
+  /* 手指點的按鈕至少 44px 高（蘋果建議值）；桌面維持原本尺寸。 */
+  .date-filter button,.date-filter input,.share-trigger,.daily-chart-toggle button,.sponsor a,.sponsor-link a{min-height:44px}
+  .sponsor a,.sponsor-link a{display:inline-flex;align-items:center}
 }
 @media (max-width:480px){
   .wrap{padding:24px 16px 32px}
@@ -623,9 +627,9 @@ td:first-child{color:var(--warn)}
 <main class="wrap">
   <header>
     <div>
-      <div class="eyebrow"><span>$ usage report</span> --period <span data-report-period>2026-05-01 -&gt; 2026-05-23</span><span class="cursor">_</span></div>
+      <div class="eyebrow"><span>$ usage report</span> --period <span class="nowrap" data-report-period>2026-05-01 -&gt; 2026-05-23</span><span class="cursor">_</span></div>
       <h1>你的 AI 用量回顧</h1>
-      <p class="narrative">過去這段時間你燒了 2.3M tokens。2026-05-13 是高峰（300.0K/天），主力 LLM 是 claude-sonnet-4。</p>
+      <p class="narrative">過去這段時間你燒了 2.3M tokens。<span class="nowrap">2026-05-13</span> 是高峰（300.0K/天），主力 LLM 是 <span class="nowrap">claude-sonnet-4</span>。</p>
     </div>
     <div class="header-actions">
       <div class="meta">產生時間 2026-05-24 10:30:45 UTC<br>usage 版本 0.15.8</div>
@@ -653,7 +657,13 @@ td:first-child{color:var(--warn)}
       <div class="share-toast" data-share-toast role="status" aria-live="polite"></div>
     </div>
   </dialog>
-  <section class="cards"><div class="card" data-card="tokens"><span>燒掉 Tokens</span><b>2,345,678</b><i>≈ 2.3M · ↑56% 較前期</i></div><div class="card" data-card="cost"><span>API 等值</span><b>$45.68</b><i>↑52% 較前期</i></div><div class="card" data-card="active"><span>活躍日</span><b>18/23</b></div><div class="card" data-card="peak"><span>燒最兇的一天</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
+  <section class="cards"><div class="card" data-card="tokens"><span>燒掉 Tokens</span><b>2,345,678</b><i>≈ 2.3M · ↑56% 較前期</i></div><div class="card" data-card="cost"><span>API 等值</span><b>$45.68</b><i>↑52% 較前期</i></div><div class="card" data-card="active"><span>活躍日</span><b>18 / 23 天</b></div><div class="card" data-card="peak"><span>燒最兇的一天</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
+
+    <section class="section insights-section">
+      <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">洞察</span><small class="fixed-range-tag">固定區間</small></div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="insight-note">本期燒了 2.3M tokens、$45.68，比上期多 56%。</div><div class="insight-note"><span class="insight-project" data-mask-as="Project 1">usage</span> 是這期新冒出來的專案，已佔 70.2% 用量。</div><div class="insight-action">本期用量比上期暴增，先盯一下配額水位。</div>
+    </section>
   
     <section class="section trend-section">
       <div class="prompt"><span>[usage]&gt;</span> 用量趨勢<div class="daily-chart-toggle"><button type="button" data-daily-mode="tokens" aria-pressed="true">Tokens</button><button type="button" data-daily-mode="cost" aria-pressed="false">花費</button></div></div>
@@ -728,12 +738,7 @@ td:first-child{color:var(--warn)}
       <div class="recent-titles"><div class="recent-title" data-mask>→ Ship HTML report</div><div class="recent-title" data-mask>→ Ignore in current renderer</div></div>
     </section>
     
-
-    <section class="section insights-section">
-      <div class="prompt"><span>[usage]&gt;</span> 洞察</div>
-      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="insight-note">本期燒了 2.3M tokens、$45.68，比上期多 56%。</div><div class="insight-note"><span class="insight-project" data-mask-as="Project 1">usage</span> 是這期新冒出來的專案，已佔 70.2% 用量。</div><div class="insight-action">本期用量比上期暴增，先盯一下配額水位。</div>
-    </section>  <details class="report-appendix"><summary><span>[usage]&gt;</span> 數字怎麼算的<span class="appendix-desc">Token 組成 · 快取命中率 · 花費可信度</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>
+  <details class="report-appendix"><summary><span>[usage]&gt;</span> 數字怎麼算的<span class="appendix-desc">Token 組成 · 快取命中率 · 花費可信度</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>
     <section class="section composition-section">
       <div class="prompt"><span>[usage]&gt;</span> Token 組成</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
@@ -786,7 +791,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "chartOther": "其他", "cost": "花費", "costUnpriced": "另有 {tokens} tokens 無公開價格", "emptyProjects": "這段期間還沒有專案用量", "narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），主力 LLM 是 {top_model}。", "projectSection": "專案熱區", "share": "佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "花費", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。", "pricingModelSeparator": "、", "pricingPriced": "已計價", "pricingUnpriced": "無公開價格", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "本週比上週少 {pct}%。", "trendCompareFirst": "這是本期第一週的數據。", "trendCompareFlat": "本週跟上週差不多。", "trendCompareNew": "本週是新出現的用量。", "trendCompareUp": "本週是上週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
+const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "chartOther": "其他", "cost": "花費", "costUnpriced": "另有 {tokens} tokens 無公開價格", "emptyProjects": "這段期間還沒有專案用量", "kpiActiveValue": "{active} / {total} 天", "narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），主力 LLM 是 {top_model}。", "projectSection": "專案熱區", "share": "佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "花費", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。", "pricingModelSeparator": "、", "pricingPriced": "已計價", "pricingUnpriced": "無公開價格", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "本週比上週少 {pct}%。", "trendCompareFirst": "這是本期第一週的數據。", "trendCompareFlat": "本週跟上週差不多。", "trendCompareNew": "本週是新出現的用量。", "trendCompareUp": "本週是上週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -1914,18 +1919,28 @@ document.addEventListener('click', async (e) => {
       : '';
     updateCard('tokens', formatInteger(summary.tokens), tokenSub);
     updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join(' · '));
-    updateCard('active', `${summary.activeDays}/${summary.totalDays}`, '');
+    updateCard('active', shareConfig.kpiActiveValue
+      .replace('{active}', summary.activeDays)
+      .replace('{total}', summary.totalDays), '');
     updateCard('peak', summary.peakDate, `${formatTokens(summary.peakTokens)} ${shareConfig.tokens}`);
   }
 
   function updateNarrative(summary) {
     const node = document.querySelector('.narrative');
     if (!node || !shareConfig.narrative) return;
-    node.textContent = shareConfig.narrative
+    const text = shareConfig.narrative
       .replace('{tokens}', formatTokens(summary.tokens))
       .replace('{peak_date}', summary.peakDate)
       .replace('{peak_tokens}', formatTokens(summary.peakTokens))
       .replace('{top_model}', summary.topModel || shareConfig.unknown);
+    // 跟 html_report._nowrap_html 同一套規則：帶連字號的字不准折行。
+    node.replaceChildren(...text.split(/([\w.]+(?:-[\w.]+)+)/).map((part, index) => {
+      if (index % 2 === 0) return part;
+      const span = document.createElement('span');
+      span.className = 'nowrap';
+      span.textContent = part;
+      return span;
+    }));
   }
 
   function updatePeriod(bounds) {

@@ -667,18 +667,28 @@ REPORT_FILTER_JS = r"""(() => {
       : '';
     updateCard('tokens', formatInteger(summary.tokens), tokenSub);
     updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join(' · '));
-    updateCard('active', `${summary.activeDays}/${summary.totalDays}`, '');
+    updateCard('active', shareConfig.kpiActiveValue
+      .replace('{active}', summary.activeDays)
+      .replace('{total}', summary.totalDays), '');
     updateCard('peak', summary.peakDate, `${formatTokens(summary.peakTokens)} ${shareConfig.tokens}`);
   }
 
   function updateNarrative(summary) {
     const node = document.querySelector('.narrative');
     if (!node || !shareConfig.narrative) return;
-    node.textContent = shareConfig.narrative
+    const text = shareConfig.narrative
       .replace('{tokens}', formatTokens(summary.tokens))
       .replace('{peak_date}', summary.peakDate)
       .replace('{peak_tokens}', formatTokens(summary.peakTokens))
       .replace('{top_model}', summary.topModel || shareConfig.unknown);
+    // 跟 html_report._nowrap_html 同一套規則：帶連字號的字不准折行。
+    node.replaceChildren(...text.split(/([\w.]+(?:-[\w.]+)+)/).map((part, index) => {
+      if (index % 2 === 0) return part;
+      const span = document.createElement('span');
+      span.className = 'nowrap';
+      span.textContent = part;
+      return span;
+    }));
   }
 
   function updatePeriod(bounds) {

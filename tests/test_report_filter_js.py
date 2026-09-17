@@ -244,6 +244,7 @@ function makeEnvironment(
     chartOther: 'Other',
     cost: 'Cost',
     costUnpriced: '{tokens} tokens have no public pricing',
+    kpiActiveValue: '{active} / {total} days',
     emptyModels: 'No models',
     emptyProjects: 'No projects',
     projectSection: 'Projects',

@@ -10,6 +10,7 @@ import base64
 import html
 import json
 import os
+import re
 import csv
 import subprocess
 import sys
@@ -530,6 +531,17 @@ def _narrative(data: ReportData, lang: str, is_empty: bool) -> str:
     )
 
 
+# 日期、模型名這類帶連字號的字，在手機上會從連字號處折成兩行。
+_NOWRAP_TOKEN = re.compile(r"([\w.]+(?:-[\w.]+)+)", re.ASCII)
+
+
+def _nowrap_html(text: str) -> str:
+    return "".join(
+        f'<span class="nowrap">{html.escape(part)}</span>' if index % 2 else html.escape(part)
+        for index, part in enumerate(_NOWRAP_TOKEN.split(text))
+    )
+
+
 def _cost_value(cost_usd: float, lang: str) -> tuple[str, str]:
     main = _fmt_cost(cost_usd)
     return main, ""
@@ -596,7 +608,7 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
         # 卡片維持原本四張：tokens、花費、活躍日、峰值。不要因為 cube 算得出
         # 工作階段數與訊息數就多塞卡片，那是改版前沒有的東西。
         cards.append(
-            (_t(lang, "kpi_active"), f'{int(summary["active_days"])}/{total_days}', "")
+            (_t(lang, "kpi_active"), _t(lang, "kpi_active_value", active=int(summary["active_days"]), total=total_days), "")
         )
         peak = _peak_day(data.get("daily_trend", []))
         peak_date, peak_tokens = peak if peak is not None else (str(data["date_from"]), 0)
@@ -607,7 +619,7 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
 
     if total_days > 1:
         cards.append(
-            (_t(lang, "kpi_active"), f'{int(summary["active_days"])}/{total_days}', "")
+            (_t(lang, "kpi_active"), _t(lang, "kpi_active_value", active=int(summary["active_days"]), total=total_days), "")
         )
         peak = _peak_day(data.get("daily_trend", []))
         if peak is not None:
@@ -647,15 +659,14 @@ def _date_filter(data: Mapping[str, Any], lang: str) -> str:
 
 
 def _render_header(data: ReportData, lang: str, title: str, generated_at: str, is_empty: bool) -> str:
-    period = html.escape(str(data["period_label"]))
-    if isinstance(data.get("cube"), Mapping):
-        period = f'<span data-report-period>{period}</span>'
+    period_attr = " data-report-period" if isinstance(data.get("cube"), Mapping) else ""
+    period = f'<span class="nowrap"{period_attr}>{html.escape(str(data["period_label"]))}</span>'
     date_filter_html = ""
     return f"""<header>
     <div>
       <div class="eyebrow"><span>$ usage report</span> --period {period}<span class="cursor">_</span></div>{date_filter_html}
       <h1>{html.escape(title)}</h1>
-      <p class="narrative">{html.escape(_narrative(data, lang, is_empty))}</p>
+      <p class="narrative">{_nowrap_html(_narrative(data, lang, is_empty))}</p>
     </div>
     <div class="header-actions">
       <div class="meta">{html.escape(_t(lang, "generated"))} {html.escape(generated_at)}<br>usage {_escape(_t(lang, "version"))} {_escape(_version())}</div>
@@ -858,6 +869,7 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
             _t(lang, "insights_section"),
             quiet,
             "insights-section",
+            fixed_label=_fixed_range_label(data, lang),
         )
 
     renderers = {
@@ -878,6 +890,7 @@ def _render_insight_surface(data: Mapping[str, Any], lang: str) -> str:
         _t(lang, "insights_section"),
         body,
         "insights-section",
+        fixed_label=_fixed_range_label(data, lang),
     )
 
 
@@ -1162,6 +1175,9 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                     lang, "kpi_cost_unpriced", tokens="{tokens}"
                 ),
                 "emptyProjects": _t(lang, "empty_projects"),
+                "kpiActiveValue": _t(
+                    lang, "kpi_active_value", active="{active}", total="{total}"
+                ),
                 "narrative": _t(
                     lang,
                     "narrative",
@@ -1296,13 +1312,13 @@ def generate_html(
     if not is_empty:
         insight_surface = _render_insight_surface(report_data, lang)
         detail_sections = (
+            f"{insight_surface.rstrip()}\n"
             f"  {_render_trend_section(report_data, lang, date_to)}\n"
             f"  {_render_tools_section(report_data, lang)}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_session_section(report_data, lang)}\n"
             f"  {_render_contribution_section(report_data, lang)}\n"
             f"  {_render_persona_section(report_data, lang)}{_render_recent_titles_section(report_data, lang)}\n"
-            f"{insight_surface.rstrip()}"
             f"  {_render_appendix(report_data, lang)}\n"
             f"  {_render_wrapped_section(report_data, lang)}\n"
         )
