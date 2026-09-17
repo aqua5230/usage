@@ -612,8 +612,8 @@ def test_generate_html_restructures_report_into_tools_and_collapsed_appendix() -
     html = html_report.generate_html(_full_report_data(), language="zh-TW")
     ordered = (
         "insights-section", "trend-section", "tools-section", "project-section",
-        "session-section", "contribution-section", "persona-section",
-        "recent-titles-section", "report-appendix", "wrapped-section", "sponsor",
+        "session-section", "report-appendix", "contribution-section",
+        "persona-section", "recent-titles-section", "wrapped-section", "sponsor",
     )
 
     positions = [
@@ -909,7 +909,7 @@ def test_trend_summary_returns_first_week_copy_without_two_completed_weeks() -> 
     )
 
 
-def test_project_share_bar_uses_the_donut_color() -> None:
+def test_project_share_bar_uses_the_neutral_project_color() -> None:
     data = {
         "summary": {"total_tokens": 300},
         "by_project": [
@@ -920,15 +920,17 @@ def test_project_share_bar_uses_the_donut_color() -> None:
 
     html = html_report._render_project_section(data, "en")
 
-    assert (
-        '<span class="left-tick" aria-hidden="true" style="background:#5abfa0"></span>'
-        '<span class="arrow">→</span>'
-        '<span class="name">alpha</span>'
-    ) in html
-    assert (
-        '<div class="gauge-rail" aria-hidden="true" '
-        'style="width:66.7%;background:#5abfa0"></div>'
-    ) in html
+    # 顏色留給工具；專案若沿用工具色，會被誤認成某個工具。
+    for name, pct in (("alpha", "66.7"), ("beta", "33.3")):
+        assert (
+            '<span class="left-tick" aria-hidden="true" style="background:#8b8577"></span>'
+            '<span class="arrow">→</span>'
+            f'<span class="name">{name}</span>'
+        ) in html
+        assert (
+            '<div class="gauge-rail" aria-hidden="true" '
+            f'style="width:{pct}%;background:#8b8577"></div>'
+        ) in html
     assert "share-bar" not in html
     assert 'class="pct"' not in html
 

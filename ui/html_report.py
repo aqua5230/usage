@@ -252,16 +252,8 @@ _PALETTE = [
 ]
 
 
-def _project_share_colors(items: list[tuple[str, int]]) -> list[str]:
-    colors = ["#8b8577"] * len(items)
-    shown = 0
-    for index, (_name, tokens) in enumerate(items):
-        if tokens <= 0:
-            continue
-        if shown < 6:
-            colors[index] = _PALETTE[shown % len(_PALETTE)]
-        shown += 1
-    return colors
+# 專案一律用中性色：顏色留給工具，專案若也上彩色會被誤認成某個工具。
+_PROJECT_COLOR = "#8b8577"
 
 
 def _model_share_color(model: object) -> str:
@@ -705,9 +697,6 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
     project_indices = {
         str(project): index for index, project in enumerate(cube_projects)
     }
-    colors = _project_share_colors(
-        [(_display_name(project["project"], lang), int(project["tokens"])) for project in projects]
-    )
     project_rows = [
         _rank_line(
             _display_name(project["project"], lang),
@@ -715,7 +704,7 @@ def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
             int(project["tokens"]),
             float(project["cost"]),
             lang,
-            colors[index],
+            _PROJECT_COLOR,
             data_attributes=(
                 {"project-index": project_indices[str(project["project"])]}
                 if str(project["project"]) in project_indices
@@ -799,9 +788,9 @@ def _render_composition_section(data: Mapping[str, Any], lang: str) -> str:
 
     body = (
         f'<div class="rank-list">{rows}</div>'
-        f'<p class="composition-hint">{_escape(_t(lang, "composition_hint"))}</p>'
         f'<div class="rank-head"><span></span>'
         f'<span>{_escape(_t(lang, "composition_hit_rate"))}</span></div>'
+        f'<p class="composition-hint">{_escape(_t(lang, "composition_hint"))}</p>'
         f'<div class="rank-list">{"".join(agent_rows)}</div>'
     )
     return _section(
@@ -1261,7 +1250,6 @@ def _build_csv_data(data: Mapping[str, Any], lang: str, *, mask_projects: bool =
 
 def _render_sponsor_section(lang: str) -> str:
     return f"""<p class="sponsor">
-    <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
     <span class="tagline">{html.escape(_t(lang, "sponsor"))}</span>
     <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
   </p>
@@ -1309,6 +1297,7 @@ def generate_html(
         session_data_node = f'<script type="application/json" id="usage-session-data">{session_data_json}</script>\n'
     title = _t(lang, "title")
     detail_sections = ""
+    fixed_sections = ""
     if not is_empty:
         insight_surface = _render_insight_surface(report_data, lang)
         detail_sections = (
@@ -1317,9 +1306,11 @@ def generate_html(
             f"  {_render_tools_section(report_data, lang)}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_session_section(report_data, lang)}\n"
+            f"  {_render_appendix(report_data, lang)}\n"
+        )
+        fixed_sections = (
             f"  {_render_contribution_section(report_data, lang)}\n"
             f"  {_render_persona_section(report_data, lang)}{_render_recent_titles_section(report_data, lang)}\n"
-            f"  {_render_appendix(report_data, lang)}\n"
             f"  {_render_wrapped_section(report_data, lang)}\n"
         )
     default_range_attr = (
@@ -1341,10 +1332,12 @@ def generate_html(
 <body{default_range_attr}>
 <main class="wrap">
   {_render_header(report_data, lang, title, generated_at, is_empty)}
-  {_date_filter(report_data, lang)}
   {_render_share_dialog(lang)}
+  <div class="filter-scope">
+  {_date_filter(report_data, lang)}
   {_render_cards_section(cards, interactive=has_cube)}
-{detail_sections}  {_render_sponsor_section(lang)}
+{detail_sections}  </div>
+{fixed_sections}  {_render_sponsor_section(lang)}
 </main>
 <script type="application/json" id="usage-csv-data">{csv_data_json}</script>
 <script type="application/json" id="usage-masked-csv-data">{masked_csv_data_json}</script>

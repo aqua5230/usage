@@ -165,7 +165,7 @@ h1{
 .cards:not(:has(.card:nth-child(4))){grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
 /* Keep every numeric column on the same inset; vary surfaces and vertical rhythm. */
 .section{background:transparent;border:1px solid transparent;border-radius:0;margin-top:56px;padding:24px 0;box-shadow:none}
-.wrap>.section{margin-top:72px}
+.wrap>.section,.filter-scope>.section{margin-top:72px}
 .prompt{font-size:1.05rem;color:var(--text);margin-bottom:12px;font-weight:600;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;min-width:0;overflow-wrap:anywhere}
 .prompt span{font-size:.72rem;font-weight:400}
 .prompt .prompt-title{font:inherit;color:inherit}
@@ -174,7 +174,7 @@ h1{
 .section .rule{background:var(--faint)}
 .insights-section{margin-block:72px 0;padding-block:24px}
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
-.wrap>.section>.prompt{font-size:1.15rem}
+.wrap>.section>.prompt,.filter-scope>.section>.prompt{font-size:1.15rem}
 .wrap>.wrapped-section>.prompt{font-size:1.05rem}
 .composition-section{margin-top:0;padding-top:24px}
 .composition-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
@@ -192,7 +192,9 @@ h1{
 .persona-section{background:transparent;border-block-color:transparent;padding-left:0;padding-right:0}
 .session-section{margin-top:56px}
 .rank-list{display:grid;gap:4px}
-.composition-hint{margin:10px 0 14px;color:var(--text-soft)}
+.project-model-detail+.project-model-detail .scope-tag{visibility:hidden}
+.composition-section .rank-head{margin-top:40px}
+.composition-hint{margin:0;color:var(--text-soft)}
 .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
 .rank-head{padding:0 12px 8px;color:var(--muted);font-size:.72rem;font-weight:600;line-height:1.4;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
 .rank-head>span:nth-child(n+3){text-align:right}
@@ -552,7 +554,7 @@ td:first-child{color:var(--warn)}
   .contribution-days{position:sticky;left:0;z-index:2;gap:2px;font-size:.58rem;background:var(--bg)}
 }
 @media (max-width:640px){
-  .wrap>.section{margin-top:48px}
+  .wrap>.section,.filter-scope>.section{margin-top:48px}
   .wrap>.contribution-section,.report-appendix{margin-top:64px}
   .report-appendix>summary{flex-wrap:wrap}
   .appendix-desc{order:4;flex-basis:100%;margin:6px 0 0}
@@ -571,7 +573,18 @@ td:first-child{color:var(--warn)}
   .project-section .rank-line .name{font-weight:600}
   .project-section .rank-line .tokens,.project-section .rank-line .cost{display:block;text-align:right;font-size:.9rem}
   .project-section .rank-line .tokens::before,.project-section .rank-line .cost::before{content:none}
-  .session-section th,.session-section td{white-space:nowrap;padding:8px 12px;font-size:.85rem}
+  .session-section table,.session-section tbody{display:block;min-width:0}
+  .session-section thead{display:none}
+  .session-section tr{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px;border-bottom:1px solid var(--faint)}
+  .session-section td{padding:0;border:0;font-size:.85rem;white-space:nowrap;min-width:0}
+  .session-section td:nth-child(1){grid-column:1;grid-row:1}
+  .session-section td:nth-child(3){grid-column:2;grid-row:1;overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--text)}
+  .session-section td:nth-child(6){grid-column:3;grid-row:1;text-align:right}
+  .session-section td:nth-child(7){grid-column:4;grid-row:1;text-align:right}
+  .session-section td:nth-child(2),.session-section td:nth-child(4),.session-section td:nth-child(5){color:var(--muted);font-size:.74rem}
+  .session-section td:nth-child(2){grid-column:2;grid-row:2}
+  .session-section td:nth-child(5){grid-column:3/5;grid-row:2;text-align:right}
+  .session-section td:nth-child(4){grid-column:2/5;grid-row:3;overflow:hidden;text-overflow:ellipsis}
   .tools-section .tool-row{grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px 14px;align-items:baseline;padding:12px 4px}
   .tools-section .tool-row>.tool-head{grid-column:1/-1}
   .tools-section .tool-row>.pct{grid-column:2}

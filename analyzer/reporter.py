@@ -1202,7 +1202,8 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
 
     top_sessions: list[TopSessionReportRow] = []
     sessions_by_cost = sorted(aggregate_sessions(entries), key=lambda session: session.cost_usd, reverse=True)
-    for session in sessions_by_cost[:5]:
+    sessions_by_tokens = sorted(sessions_by_cost, key=lambda session: session.total_tokens, reverse=True)
+    for session in sessions_by_tokens[:5]:
         top_sessions.append({
             "start_time": session.start_time.astimezone().strftime("%Y-%m-%d %H:%M") if session.start_time.tzinfo else session.start_time.strftime("%Y-%m-%d %H:%M"),
             "project": session.project or "unknown",

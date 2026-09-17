@@ -39,7 +39,7 @@ REPORT_FILTER_JS = r"""(() => {
     'claude-code': '#5abfa0',
     codex: '#e0885a',
     antigravity: '#8f86c9',
-    grok: '#78cdb2',
+    grok: '#c7839f',
   };
   let activeBounds = null;
 
@@ -620,7 +620,7 @@ REPORT_FILTER_JS = r"""(() => {
         project.name,
         project,
         summary.tokens,
-        index < 6 ? palette[index] : '#8b8577',
+        '#8b8577',
         // _render_project_section() 無條件顯示花費，這裡跟著一致
         {projectIndex: project.projectIndex, costKnown: true}
       );
@@ -932,7 +932,7 @@ REPORT_FILTER_JS = r"""(() => {
         const day = cube.dates[Number(session.date_idx)];
         return Boolean(day && day >= summary.bounds.from && day <= summary.bounds.to);
       })
-      .sort((left, right) => Number(right.cost) - Number(left.cost) || 0)
+      .sort((left, right) => Number(right.tokens) - Number(left.tokens) || Number(right.cost) - Number(left.cost))
       .slice(0, 5);
     if (!matched.length) {
       const empty = document.createElement('div');

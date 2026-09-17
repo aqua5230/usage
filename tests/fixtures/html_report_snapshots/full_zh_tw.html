@@ -192,7 +192,7 @@ h1{
 .cards:not(:has(.card:nth-child(4))){grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
 /* Keep every numeric column on the same inset; vary surfaces and vertical rhythm. */
 .section{background:transparent;border:1px solid transparent;border-radius:0;margin-top:56px;padding:24px 0;box-shadow:none}
-.wrap>.section{margin-top:72px}
+.wrap>.section,.filter-scope>.section{margin-top:72px}
 .prompt{font-size:1.05rem;color:var(--text);margin-bottom:12px;font-weight:600;display:flex;flex-wrap:wrap;align-items:baseline;gap:8px;min-width:0;overflow-wrap:anywhere}
 .prompt span{font-size:.72rem;font-weight:400}
 .prompt .prompt-title{font:inherit;color:inherit}
@@ -201,7 +201,7 @@ h1{
 .section .rule{background:var(--faint)}
 .insights-section{margin-block:72px 0;padding-block:24px}
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
-.wrap>.section>.prompt{font-size:1.15rem}
+.wrap>.section>.prompt,.filter-scope>.section>.prompt{font-size:1.15rem}
 .wrap>.wrapped-section>.prompt{font-size:1.05rem}
 .composition-section{margin-top:0;padding-top:24px}
 .composition-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
@@ -219,7 +219,9 @@ h1{
 .persona-section{background:transparent;border-block-color:transparent;padding-left:0;padding-right:0}
 .session-section{margin-top:56px}
 .rank-list{display:grid;gap:4px}
-.composition-hint{margin:10px 0 14px;color:var(--text-soft)}
+.project-model-detail+.project-model-detail .scope-tag{visibility:hidden}
+.composition-section .rank-head{margin-top:40px}
+.composition-hint{margin:0;color:var(--text-soft)}
 .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
 .rank-head{padding:0 12px 8px;color:var(--muted);font-size:.72rem;font-weight:600;line-height:1.4;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
 .rank-head>span:nth-child(n+3){text-align:right}
@@ -588,7 +590,7 @@ td:first-child{color:var(--warn)}
   .contribution-days{position:sticky;left:0;z-index:2;gap:2px;font-size:.58rem;background:var(--bg)}
 }
 @media (max-width:640px){
-  .wrap>.section{margin-top:48px}
+  .wrap>.section,.filter-scope>.section{margin-top:48px}
   .wrap>.contribution-section,.report-appendix{margin-top:64px}
   .report-appendix>summary{flex-wrap:wrap}
   .appendix-desc{order:4;flex-basis:100%;margin:6px 0 0}
@@ -607,7 +609,18 @@ td:first-child{color:var(--warn)}
   .project-section .rank-line .name{font-weight:600}
   .project-section .rank-line .tokens,.project-section .rank-line .cost{display:block;text-align:right;font-size:.9rem}
   .project-section .rank-line .tokens::before,.project-section .rank-line .cost::before{content:none}
-  .session-section th,.session-section td{white-space:nowrap;padding:8px 12px;font-size:.85rem}
+  .session-section table,.session-section tbody{display:block;min-width:0}
+  .session-section thead{display:none}
+  .session-section tr{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px;border-bottom:1px solid var(--faint)}
+  .session-section td{padding:0;border:0;font-size:.85rem;white-space:nowrap;min-width:0}
+  .session-section td:nth-child(1){grid-column:1;grid-row:1}
+  .session-section td:nth-child(3){grid-column:2;grid-row:1;overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--text)}
+  .session-section td:nth-child(6){grid-column:3;grid-row:1;text-align:right}
+  .session-section td:nth-child(7){grid-column:4;grid-row:1;text-align:right}
+  .session-section td:nth-child(2),.session-section td:nth-child(4),.session-section td:nth-child(5){color:var(--muted);font-size:.74rem}
+  .session-section td:nth-child(2){grid-column:2;grid-row:2}
+  .session-section td:nth-child(5){grid-column:3/5;grid-row:2;text-align:right}
+  .session-section td:nth-child(4){grid-column:2/5;grid-row:3;overflow:hidden;text-overflow:ellipsis}
   .tools-section .tool-row{grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px 14px;align-items:baseline;padding:12px 4px}
   .tools-section .tool-row>.tool-head{grid-column:1/-1}
   .tools-section .tool-row>.pct{grid-column:2}
@@ -639,7 +652,6 @@ td:first-child{color:var(--warn)}
       </div>
     </div>
   </header>
-  <div class="date-filter" data-date-filter><div class="date-shortcuts"><button type="button" data-range="today">今日</button><button type="button" data-range="last7">最近 7 天</button><button type="button" data-range="last30">最近 30 天</button><button type="button" data-range="month">本月</button><button type="button" data-range="all">全部</button></div><div class="date-inputs"><label>起<input type="date" data-date-from min="2026-05-04" max="2026-05-20"></label><label>迄<input type="date" data-date-to min="2026-05-04" max="2026-05-20"></label></div></div>
   <dialog class="share-dialog" data-share-dialog>
     <div class="share-modal">
       <button class="share-close" type="button" data-share-close aria-label="關閉">×</button>
@@ -657,6 +669,8 @@ td:first-child{color:var(--warn)}
       <div class="share-toast" data-share-toast role="status" aria-live="polite"></div>
     </div>
   </dialog>
+  <div class="filter-scope">
+  <div class="date-filter" data-date-filter><div class="date-shortcuts"><button type="button" data-range="today">今日</button><button type="button" data-range="last7">最近 7 天</button><button type="button" data-range="last30">最近 30 天</button><button type="button" data-range="month">本月</button><button type="button" data-range="all">全部</button></div><div class="date-inputs"><label>起<input type="date" data-date-from min="2026-05-04" max="2026-05-20"></label><label>迄<input type="date" data-date-to min="2026-05-04" max="2026-05-20"></label></div></div>
   <section class="cards"><div class="card" data-card="tokens"><span>燒掉 Tokens</span><b>2,345,678</b><i>≈ 2.3M · ↑56% 較前期</i></div><div class="card" data-card="cost"><span>API 等值</span><b>$45.68</b><i>↑52% 較前期</i></div><div class="card" data-card="active"><span>活躍日</span><b>18 / 23 天</b></div><div class="card" data-card="peak"><span>燒最兇的一天</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
 
     <section class="section insights-section">
@@ -682,7 +696,7 @@ td:first-child{color:var(--warn)}
     <section class="section project-section">
       <div class="prompt"><span>[usage]&gt;</span> 專案熱區</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="rank-head"><span></span><span>專案</span><span>Tokens</span><span>花費</span></div><div class="rank-list"><div class="rank-line" data-project-index="0"><span class="left-tick" aria-hidden="true" style="background:#5abfa0"></span><span class="arrow">→</span><span class="name">usage</span><span class="tokens" data-label="Tokens">1.6M</span><span class="cost" data-label="花費">$32.07</span><div class="gauge-rail" aria-hidden="true" style="width:70.2%;background:#5abfa0"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#8f86c9"></span><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span><span class="tokens" data-label="Tokens">471.5K</span><span class="cost" data-label="花費">$9.18</span><div class="gauge-rail" aria-hidden="true" style="width:20.1%;background:#8f86c9"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#e0885a"></span><span class="arrow">→</span><span class="name">未知</span><span class="tokens" data-label="Tokens">227.3K</span><span class="cost" data-label="花費">$4.43</span><div class="gauge-rail" aria-hidden="true" style="width:9.7%;background:#e0885a"></div></div></div>
+      <div class="rank-head"><span></span><span>專案</span><span>Tokens</span><span>花費</span></div><div class="rank-list"><div class="rank-line" data-project-index="0"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">usage</span><span class="tokens" data-label="Tokens">1.6M</span><span class="cost" data-label="花費">$32.07</span><div class="gauge-rail" aria-hidden="true" style="width:70.2%;background:#8b8577"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span><span class="tokens" data-label="Tokens">471.5K</span><span class="cost" data-label="花費">$9.18</span><div class="gauge-rail" aria-hidden="true" style="width:20.1%;background:#8b8577"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">未知</span><span class="tokens" data-label="Tokens">227.3K</span><span class="cost" data-label="花費">$4.43</span><div class="gauge-rail" aria-hidden="true" style="width:9.7%;background:#8b8577"></div></div></div>
     </section>
     
   
@@ -717,6 +731,14 @@ td:first-child{color:var(--warn)}
         
     </section>
     
+  <details class="report-appendix"><summary><span>[usage]&gt;</span> 數字怎麼算的<span class="appendix-desc">Token 組成 · 快取命中率 · 花費可信度</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>
+    <section class="section composition-section">
+      <div class="prompt"><span>[usage]&gt;</span> Token 組成</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">快取讀取<span class="share-bar" aria-hidden="true"><span style="width:85.26%;background:#78cdb2"></span></span></span><span class="pct" data-label="佔比"> 85.3%</span><span class="tokens" data-label="Tokens">2.0M</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">輸入<span class="share-bar" aria-hidden="true"><span style="width:10.66%;background:#5abfa0"></span></span></span><span class="pct" data-label="佔比"> 10.7%</span><span class="tokens" data-label="Tokens">250.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">快取寫入<span class="share-bar" aria-hidden="true"><span style="width:2.13%;background:#e0885a"></span></span></span><span class="pct" data-label="佔比">  2.1%</span><span class="tokens" data-label="Tokens">50.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">輸出<span class="share-bar" aria-hidden="true"><span style="width:2.00%;background:#8f86c9"></span></span></span><span class="pct" data-label="佔比">  1.9%</span><span class="tokens" data-label="Tokens">45.7K</span></div></div><div class="rank-head"><span></span><span>快取命中率</span></div><p class="composition-hint">命中率越高越好，代表舊脈絡被重複使用而不是重送。</p><div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Codex<span class="share-bar" aria-hidden="true"><span style="width:87.21%;background:#78cdb2"></span></span></span><span class="pct" data-label="快取命中率"> 87.2%</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Claude<span class="share-bar" aria-hidden="true"><span style="width:86.81%;background:#78cdb2"></span></span></span><span class="pct" data-label="快取命中率"> 86.8%</span></div></div>
+    </section>
+    <section class="section pricing-section"><div class="prompt"><span>[usage]&gt;</span> 花費可信度</div><div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div><div class="pricing-bar" aria-hidden="true"><i style="width:91.8%;background:var(--cost)"></i><i style="width:8.2%;background:#8b8577"></i></div><div class="rank-list pricing-list"><div class="rank-line pricing-line"><span class="left-tick"></span><span class="arrow">→</span><span class="name">已計價</span><span class="pct">91.8%</span><span class="tokens">900.0K</span></div><div class="rank-line pricing-line"><span class="left-tick" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">無公開價格<span class="pricing-models">未知</span></span><span class="pct">8.2%</span><span class="tokens">80.0K</span></div></div><p class="pricing-hint">花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。</p></section></details>
+  </div>
   
     <section class="section contribution-section">
       <p class="fixed-group-note">以下區塊不受上方日期篩選影響</p>
@@ -738,13 +760,6 @@ td:first-child{color:var(--warn)}
       <div class="recent-titles"><div class="recent-title" data-mask>→ Ship HTML report</div><div class="recent-title" data-mask>→ Ignore in current renderer</div></div>
     </section>
     
-  <details class="report-appendix"><summary><span>[usage]&gt;</span> 數字怎麼算的<span class="appendix-desc">Token 組成 · 快取命中率 · 花費可信度</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>
-    <section class="section composition-section">
-      <div class="prompt"><span>[usage]&gt;</span> Token 組成</div>
-      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">快取讀取<span class="share-bar" aria-hidden="true"><span style="width:85.26%;background:#78cdb2"></span></span></span><span class="pct" data-label="佔比"> 85.3%</span><span class="tokens" data-label="Tokens">2.0M</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">輸入<span class="share-bar" aria-hidden="true"><span style="width:10.66%;background:#5abfa0"></span></span></span><span class="pct" data-label="佔比"> 10.7%</span><span class="tokens" data-label="Tokens">250.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">快取寫入<span class="share-bar" aria-hidden="true"><span style="width:2.13%;background:#e0885a"></span></span></span><span class="pct" data-label="佔比">  2.1%</span><span class="tokens" data-label="Tokens">50.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">輸出<span class="share-bar" aria-hidden="true"><span style="width:2.00%;background:#8f86c9"></span></span></span><span class="pct" data-label="佔比">  1.9%</span><span class="tokens" data-label="Tokens">45.7K</span></div></div><p class="composition-hint">命中率越高越好，代表舊脈絡被重複使用而不是重送。</p><div class="rank-head"><span></span><span>快取命中率</span></div><div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Codex<span class="share-bar" aria-hidden="true"><span style="width:87.21%;background:#78cdb2"></span></span></span><span class="pct" data-label="快取命中率"> 87.2%</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Claude<span class="share-bar" aria-hidden="true"><span style="width:86.81%;background:#78cdb2"></span></span></span><span class="pct" data-label="快取命中率"> 86.8%</span></div></div>
-    </section>
-    <section class="section pricing-section"><div class="prompt"><span>[usage]&gt;</span> 花費可信度</div><div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div><div class="pricing-bar" aria-hidden="true"><i style="width:91.8%;background:var(--cost)"></i><i style="width:8.2%;background:#8b8577"></i></div><div class="rank-list pricing-list"><div class="rank-line pricing-line"><span class="left-tick"></span><span class="arrow">→</span><span class="name">已計價</span><span class="pct">91.8%</span><span class="tokens">900.0K</span></div><div class="rank-line pricing-line"><span class="left-tick" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">無公開價格<span class="pricing-models">未知</span></span><span class="pct">8.2%</span><span class="tokens">80.0K</span></div></div><p class="pricing-hint">花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。</p></section></details>
   
     <section class="section wrapped-section">
       <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">年度 Wrapped</span><small class="fixed-range-tag">固定區間</small></div>
@@ -753,7 +768,6 @@ td:first-child{color:var(--warn)}
     </section>
     
   <p class="sponsor">
-    <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
     <span class="tagline">No cloud. No tracking. Just yours.</span>
     <a href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" aria-label="Buy me a coffee on Ko-fi"><img src="https://img.shields.io/badge/Ko--fi-FF5E5B?logo=ko-fi&amp;logoColor=white" alt="Ko-fi"></a>
   </p>
@@ -1291,7 +1305,7 @@ document.addEventListener('click', async (e) => {
     'claude-code': '#5abfa0',
     codex: '#e0885a',
     antigravity: '#8f86c9',
-    grok: '#78cdb2',
+    grok: '#c7839f',
   };
   let activeBounds = null;
 
@@ -1872,7 +1886,7 @@ document.addEventListener('click', async (e) => {
         project.name,
         project,
         summary.tokens,
-        index < 6 ? palette[index] : '#8b8577',
+        '#8b8577',
         // _render_project_section() 無條件顯示花費，這裡跟著一致
         {projectIndex: project.projectIndex, costKnown: true}
       );
@@ -2184,7 +2198,7 @@ document.addEventListener('click', async (e) => {
         const day = cube.dates[Number(session.date_idx)];
         return Boolean(day && day >= summary.bounds.from && day <= summary.bounds.to);
       })
-      .sort((left, right) => Number(right.cost) - Number(left.cost) || 0)
+      .sort((left, right) => Number(right.tokens) - Number(left.tokens) || Number(right.cost) - Number(left.cost))
       .slice(0, 5);
     if (!matched.length) {
       const empty = document.createElement('div');

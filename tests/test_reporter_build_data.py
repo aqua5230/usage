@@ -426,7 +426,7 @@ def test_build_report_data_month_comparison_uses_previous_full_window(
     }
 
 
-def test_build_report_data_sorts_projects_by_tokens_and_sessions_by_cost(
+def test_build_report_data_sorts_projects_and_sessions_by_tokens(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     fixed_now = datetime(2026, 5, 21, 18, tzinfo=UTC)
@@ -468,9 +468,9 @@ def test_build_report_data_sorts_projects_by_tokens_and_sessions_by_cost(
 
     assert [row["project"] for row in data["by_project"]] == ["alpha", "beta"]
     assert [row["tokens"] for row in data["by_project"]] == [400, 80]
-    assert [row["project"] for row in data["top_sessions"]] == ["beta", "alpha", "alpha"]
-    assert [row["cost"] for row in data["top_sessions"]] == [9.0, 6.0, 3.0]
-    assert [row["tokens"] for row in data["top_sessions"]] == [80, 100, 300]
+    assert [row["project"] for row in data["top_sessions"]] == ["alpha", "alpha", "beta"]
+    assert [row["cost"] for row in data["top_sessions"]] == [3.0, 6.0, 9.0]
+    assert [row["tokens"] for row in data["top_sessions"]] == [300, 100, 80]
 
 
 def test_build_report_data_aggregates_agent_and_model_totals(

@@ -714,8 +714,8 @@ assert.equal(
   '→ This week dropped 50% vs last week.'
 );
 const ranked = filterEnv.sessionSection.querySelectorAll('tr').slice(1);
-assert.deepEqual(ranked.map((row) => row.children[6].textContent), ['$9.00', '$8.00', '$1.25']);
-assert.deepEqual(ranked.map((row) => row.children[5].textContent), ['400', '50', '100']);
+assert.deepEqual(ranked.map((row) => row.children[5].textContent), ['400', '100', '50']);
+assert.deepEqual(ranked.map((row) => row.children[6].textContent), ['$9.00', '$1.25', '$8.00']);
 assert.equal(ranked[0].children[2].className, 'name');
 assert.equal(ranked[0].children[3].className, '');
 assert.equal(window.usageReportFilter.buildCsv(true).includes('secret-client'), false);
