@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  只列首頁一筆。docs/panels/*.html 是首頁 iframe 載入的展示內容，不是獨立頁面，
-  故不列入（它們各自帶 noindex）。
+  首頁與四個語言頁各一筆（語言頁由 scripts/build_site_pages.py 產生），每筆都列出
+  全部語言版本，Google 要求 hreflang 雙向互指。docs/panels/*.html 是首頁 iframe
+  載入的展示內容，不是獨立頁面，故不列入（它們各自帶 noindex）。
 
   lastmod 必須反映「實質重大修改」，Google 官方明言若時間戳與實際不符就會停止
   信任本站的 lastmod：
@@ -14,12 +15,52 @@
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
   <url>
     <loc>https://aqua5230.github.io/usage/</loc>
-    <lastmod>2026-09-09</lastmod>
-    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/?lang=en"/>
-    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/?lang=zh-TW"/>
-    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://aqua5230.github.io/usage/?lang=zh-CN"/>
-    <xhtml:link rel="alternate" hreflang="ja" href="https://aqua5230.github.io/usage/?lang=ja"/>
-    <xhtml:link rel="alternate" hreflang="ko" href="https://aqua5230.github.io/usage/?lang=ko"/>
+    <lastmod>2026-09-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://aqua5230.github.io/usage/zh-CN/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://aqua5230.github.io/usage/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://aqua5230.github.io/usage/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/zh-TW/</loc>
+    <lastmod>2026-09-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://aqua5230.github.io/usage/zh-CN/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://aqua5230.github.io/usage/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://aqua5230.github.io/usage/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/zh-CN/</loc>
+    <lastmod>2026-09-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://aqua5230.github.io/usage/zh-CN/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://aqua5230.github.io/usage/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://aqua5230.github.io/usage/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/ja/</loc>
+    <lastmod>2026-09-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://aqua5230.github.io/usage/zh-CN/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://aqua5230.github.io/usage/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://aqua5230.github.io/usage/ko/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/"/>
+  </url>
+  <url>
+    <loc>https://aqua5230.github.io/usage/ko/</loc>
+    <lastmod>2026-09-17</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://aqua5230.github.io/usage/"/>
+    <xhtml:link rel="alternate" hreflang="zh-TW" href="https://aqua5230.github.io/usage/zh-TW/"/>
+    <xhtml:link rel="alternate" hreflang="zh-CN" href="https://aqua5230.github.io/usage/zh-CN/"/>
+    <xhtml:link rel="alternate" hreflang="ja" href="https://aqua5230.github.io/usage/ja/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://aqua5230.github.io/usage/ko/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://aqua5230.github.io/usage/"/>
   </url>
 </urlset>
