@@ -326,6 +326,32 @@ def test_fetch_once_uses_claude_json_when_status_is_missing(
     )
 
 
+@pytest.mark.parametrize(
+    ("cache_account", "current_account", "kept"),
+    [
+        ("account-a", "account-b", False),
+        ("account-a", None, False),
+        ("account-a", "account-a", True),
+        (None, "account-b", True),
+    ],
+)
+def test_claude_json_cache_from_another_account_is_ignored(
+    tmp_path: Path, cache_account: str | None, current_account: str | None, kept: bool
+) -> None:
+    claude_json_path = tmp_path / ".claude.json"
+    _write_claude_json(claude_json_path, 1_784_144_611.575)
+    data = json.loads(claude_json_path.read_text(encoding="utf-8"))
+    if cache_account is not None:
+        data["cachedUsageUtilization"]["accountUuid"] = cache_account
+    if current_account is not None:
+        data["oauthAccount"] = {"accountUuid": current_account}
+    claude_json_path.write_text(json.dumps(data), encoding="utf-8")
+
+    snapshot = usage_client._read_claude_json_snapshot()
+
+    assert (snapshot is not None) is kept
+
+
 @pytest.mark.parametrize("status_age", [-1.0, 1.0])
 def test_fetch_once_prefers_complete_hook_over_claude_json_cache(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, status_age: float

@@ -175,6 +175,12 @@ def _read_claude_json_snapshot() -> UsageSnapshot | None:
         return None
 
     cached = _as_dict(data.get("cachedUsageUtilization"))
+    # Claude Code tags the cache with the account that fetched it and drops it
+    # after an account switch. An untagged cache predates the tag and stays usable.
+    cached_account = cached.get("accountUuid")
+    current_account = _as_dict(data.get("oauthAccount")).get("accountUuid")
+    if cached_account is not None and cached_account != current_account:
+        return None
     fetched_at_ms = _as_finite_float(cached.get("fetchedAtMs"))
     if fetched_at_ms is None:
         return None
