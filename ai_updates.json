@@ -756,6 +756,133 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.155.0",
+          "period": "2026-09-17",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "語音對話實驗功能上線，支援即時逐字稿與麥克風控制",
+                "en": "Experimental Voice Conversations Now Live with Real-Time Transcripts and Microphone Controls"
+              },
+              "body": {
+                "zh-TW": "想直接用語音向 AI 說明需求而不想一直敲鍵盤？Codex 在支援的建置版本中推出了實驗性的 `/voice` 語音對話功能。⟦這就像隨身對講機加裝了即時字幕螢幕與收音切換鍵，開口說話的同時螢幕立刻浮現逐字稿，既能動口暢談也能隨時調整收音狀態。⟧你只需先在對話中輸入 `/experimental` 指令開啟實驗性功能清單，就能啟用這項模式。進入語音對話後，終端機畫面會同步顯示即時對話轉錄（transcript，將語音同步轉成文字的逐字紀錄），同時提供專門的麥克風控制項供你切換收音狀態，讓口語溝通與文字紀錄同步並行。",
+                "en": "Want to explain your requirements to the AI directly with your voice instead of constantly typing on a keyboard? Codex has introduced experimental `/voice` conversations on supported builds. ⟦This is like equipping a walkie-talkie with a live subtitle screen and an audio input switch, where speaking immediately displays transcripts on-screen while allowing you to adjust recording states at any time.⟧ You only need to type the `/experimental` command in a conversation to open the experimental features list and enable this mode. After entering a voice conversation, the terminal screen simultaneously displays live transcripts alongside dedicated microphone controls to toggle audio capture states, keeping spoken communication and written records in sync."
+              },
+              "original": "Added experimental `/voice` conversations with live transcripts and microphone controls on supported builds, enabled through `/experimental`. (#43581, #43651, #44331)"
+            },
+            {
+              "title": {
+                "zh-TW": "狀態列即時顯示推論摘要，回合完成附帶時間戳記",
+                "en": "Status Row Displays Live Reasoning Summaries with Completion Timestamps"
+              },
+              "body": {
+                "zh-TW": "等待 AI 思考程式碼架構時，你不再需要對著空白畫面發呆。現在文字終端機介面的狀態列（status row，終端機底部的即時狀態提示區）會同步顯示即時推論摘要，清楚交代模型當前的思考步驟。當該回合順利完成後，畫面還會主動標註完成時間戳記。⟦這好比搭乘高鐵時車廂前端的跑馬燈，行進間即時顯示列車當前通過的站點與行車動態，抵達後則清楚標示靠站時間。⟧有了這項改進，你隨時都能掌握目前的運算進度與確切完成時刻。",
+                "en": "You no longer need to stare at a blank screen while waiting for the AI to reason about code architecture. The terminal UI status row now displays live reasoning summaries in real time, clearly showing the model's current thinking steps. Once a turn completes successfully, the screen also proactively displays a completion timestamp. ⟦This is like the digital marquee at the front of a high-speed train carriage, showing upcoming stations and train status while in transit, then clearly displaying arrival times upon reaching the destination.⟧ With this improvement, you can stay informed about ongoing computation progress and exact completion times."
+              },
+              "original": "The TUI now shows live reasoning summaries in the status row and completion timestamps after successful turns. (#43558, #43921)"
+            },
+            {
+              "title": {
+                "zh-TW": "代理人總覽支援任務隱藏封存與刪除，工作樹顯示歸屬並安全清理",
+                "en": "Agents Overview Adds Task Hiding, Archiving, and Deletion with Worktree Ownership and Safe Cleanup"
+              },
+              "body": {
+                "zh-TW": "管理多個背景代理人與平行分支時，專案總覽介面變得更井然有序。代理人總覽頁面現在支援任務的隱藏、封存與刪除功能，方便你隨時整理已完成或暫時不需追蹤的項目。此外，系統也加入了工作樹（worktree，Git 讓同一專案平行開多份副本的功能）的歸屬詳細資訊，並支援在二次確認後安全刪除乾淨無殘留修改的託管工作樹。⟦如同專案看板主管整理工作區，不僅能將已結案的任務便條暫時隱藏、封存或撕除，還能清楚看見每張延伸實驗桌由誰負責，並安全拆除已收拾乾淨的閒置工作台。⟧這讓維護龐大專案時的平行分支變得更加清爽安全。",
+                "en": "Managing multiple background agents and parallel branches is now much more organized. The agents overview page now supports hiding, archiving, and deleting tasks, making it easy to organize completed items or tasks you no longer need to track. In addition, the system includes worktree ownership details and supports confirmed deletion of clean managed worktrees without lingering modifications. ⟦Just like a project manager organizing a Kanban board, you can hide, archive, or remove completed task notes, clearly see who is responsible for each extension workbench, and safely dismantle clean, idle desks.⟧ This keeps parallel branches cleaner and safer when maintaining large projects."
+              },
+              "original": "Added task hiding, archiving, and deletion in the agents overview, plus worktree ownership details and confirmed deletion of clean managed worktrees. (#43942, #44424, #44433)"
+            },
+            {
+              "title": {
+                "zh-TW": "MCP 支援 Mac 指紋驗證，OAuth 憑證過期提供重連指引",
+                "en": "MCP Supports Touch ID on Mac with Reconnect Guidance for Expired OAuth Credentials"
+              },
+              "body": {
+                "zh-TW": "在 Mac 上使用命令列介面串接外部工具時，安全驗證變得更俐落省時。針對支援的 Mac 機種，本機文字終端機的工作階段現在支援以 Touch ID 指紋辨識來驗證 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）的操作請求。同時，當外部 MCP 伺服器的 OAuth 授權憑證過期時，系統能精確回報錯誤狀態。一旦授權權杖（token，用來驗證身分的授權令牌）重新整理失敗，介面還會主動提供清楚的重新連線指引，引導你完成登入驗證。⟦這好似重要庫房引進了雙重驗證門禁，本機調用工具時只需輕觸指紋即可快速放行；而當外部特約廠商的通行權杖失效時，系統也會清楚告知問題並指示換證窗口，不再無故中斷。⟧",
+                "en": "Security verification is now faster and more streamlined when connecting external tools via the command line on macOS. On supported Mac models, local terminal UI sessions now support Touch ID verification for MCP (Model Context Protocol) operation requests. Meanwhile, when OAuth credentials on external MCP servers expire, the system accurately reports the error state. If token refresh fails, the interface proactively provides clear reconnection guidance to walk you through login verification. ⟦This is like introducing dual-factor access control to a warehouse: local tool invocations are quickly granted with a fingerprint touch, and when an external contractor's pass expires, the system explains the issue and directs them to the renewal desk rather than abruptly cutting access.⟧"
+              },
+              "original": "Added Touch ID verification for MCP requests in local TUI sessions on supported Macs. (#43624, #43712, #43715)\nMCP servers now report expired OAuth credentials accurately and provide reconnect guidance when token refresh fails. (#43947, #44359)"
+            },
+            {
+              "title": {
+                "zh-TW": "守護行程支援自訂更新排程，重啟後自動還原對話與目標",
+                "en": "Daemon Supports Configurable Update Schedules with Thread and Goal Recovery After Restarts"
+              },
+              "body": {
+                "zh-TW": "常駐背景執行的伺服器現在具備更靈活的更新彈性與還原韌性。你可以自訂守護行程（daemon，在背景持續運作的常駐服務程式）的自動更新排程，或隨時執行 `codex app-server daemon update` 指令手動檢查並套用更新。更棒的是，即使守護行程在背景重新啟動，已儲存的對話串與當前進行中的目標也能自動恢復，不會因服務重啟而遺失工作脈絡。⟦宛如全天候運作的大樓中央空調，管理員能自訂夜間例行維護時程或隨時手動升級設備，且重啟後能立刻接續原本設定的各區溫控目標與運行紀錄，不中斷整體服務。⟧",
+                "en": "Background servers now offer more flexible updates and recovery resilience. You can configure automatic update schedules for the daemon or run `codex app-server daemon update` at any time to manually check and apply updates. Furthermore, even if the daemon restarts in the background, saved threads and active goals recover automatically without losing workflow context. ⟦Like a 24/7 central HVAC system where building managers can schedule nighttime maintenance or perform manual upgrades, the system immediately restores temperature goals and operational logs across zones upon restarting without interrupting overall service.⟧"
+              },
+              "original": "Added configurable daemon update schedules and `codex app-server daemon update`; saved threads and active goals can recover after daemon restarts. (#43542, #43562, #44314)"
+            },
+            {
+              "title": {
+                "zh-TW": "Amazon Bedrock 支援指令取得 AWS 憑證，具備快取與自動重新整理",
+                "en": "Amazon Bedrock Supports Command-Based AWS Credentials with Caching and Auto-Refresh"
+              },
+              "body": {
+                "zh-TW": "透過 Amazon Bedrock 調用模型時，雲端憑證的管理變得更加自動化。系統現在可以直接執行你所設定的自訂指令來取得 AWS 登入憑證，並利用快取（caching，把查過的資料暫存起來直接用）機制將憑證暫存備用。當憑證即將過期時，背景會依據有效期限自動重新整理，並在遭遇認證異常時主動執行復原程序。⟦如同飯店櫃檯向總公司驗證貴賓身分時，能依據指定指令自動派發電子房卡，將房卡暫存備用並在時效屆滿前自動換發，遇到刷卡異常還能自動重試修復。⟧這免去了頻繁手動更新金鑰的繁瑣步驟。",
+                "en": "Cloud credential management is now more automated when invoking models via Amazon Bedrock. The system can now execute configured custom commands directly to obtain AWS credentials and cache them for subsequent use. When credentials near expiration, background processes automatically refresh them based on their lifespan and initiate recovery procedures if authentication anomalies occur. ⟦Like a hotel front desk requesting guest verification from headquarters, the system issues electronic keycards via specified commands, caches them for reuse, renews them before expiration, and retries upon swipe errors.⟧ This eliminates the hassle of manually updating keys frequently."
+              },
+              "original": "Amazon Bedrock can now obtain AWS credentials from configured commands, with caching, expiration-based refresh, and authentication recovery. (#44028)"
+            },
+            {
+              "title": {
+                "zh-TW": "提示詞壓縮失敗仍妥善保留，修復 tmux 縮放與對話歷史顯示問題",
+                "en": "Accepted Prompts Preserved on Compaction Failures with Fixes for tmux Resizes and History Viewports"
+              },
+              "body": {
+                "zh-TW": "對話記錄過長或頻繁切換工作視窗時，文字與畫面狀態現在都能穩定留存。即便在對話回合開始前遇到歷程壓縮（compaction，精簡過往對話以節省空間的機制）失敗，系統依然會完整保留你剛輸入並被接受的提示詞，避免心血白費。此外，這次更新也修正了 tmux 終端機視窗縮放事件漏失、對話逐字紀錄視角無法正確還原，以及切換不同對話串後出現過期舊紀錄的顯示問題。⟦這就像秘書手上的速記本與展示看板，即使先前筆記摘要整理失敗，新交代的工作事項依然會穩穩記下；當你調整窗格大小或翻頁切換不同專案時，畫面也能精準對齊當前進度，不再殘留上一頁的舊草稿。⟧",
+                "en": "Text and screen states now remain stable during long conversations or frequent window switching. Even if history compaction fails before a turn begins, the system completely preserves accepted prompts to prevent lost input. Additionally, this update fixes missed tmux resize events, transcript viewport restoration issues, and stale history appearing after switching between threads. ⟦Like a secretary's shorthand notebook and display board, new instructions are reliably recorded even if earlier summary compilations fail; when resizing panes or flipping between projects, the display precisely aligns with current progress without leaving outdated drafts from previous pages.⟧"
+              },
+              "original": "Accepted prompts are now saved even when compaction fails before a turn starts. (#44487)\nFixed missed tmux resizes, transcript viewport restoration, and stale history appearing after switching threads. (#43603, #43889, #43994)"
+            },
+            {
+              "title": {
+                "zh-TW": "自動核准審查保留完整操作與佐證，支援失敗重試並釐清危險警示",
+                "en": "Automatic Approval Reviews Preserve Full Actions and Evidence with Retry Support and Clarified Risk Alerts"
+              },
+              "body": {
+                "zh-TW": "仰賴系統自動審核高權限操作時，判斷流程現在更具可信度與容錯力。自動核准審查機制在評估時能更可靠地保留完整操作步驟與授權佐證，提供完整的稽核依據。面對網路或伺服器引發的暫時性故障，審查流程會自動重試；同時也能明確區分審查流程本身的執行失敗與真正偵測到危險操作的警示結果，避免將系統異常誤判為安全威脅。⟦猶如海關自動通關閘門，不僅會妥善保存整份申報單據與查驗佐證，遇到感應器短暫連線逾時會自動重試，並明確區分是讀卡機線路故障還是旅客違規，不會把設備錯誤誤判成走私。⟧",
+                "en": "Automated review of elevated permissions is now more reliable and fault-tolerant. Automatic approval reviews preserve complete action steps and authorization evidence more reliably during evaluation, providing a solid audit trail. The review process automatically retries upon transient network or server failures, while clearly distinguishing review execution failures from unsafe-action findings to avoid misclassifying system anomalies as security threats. ⟦Like an automated customs e-gate, it preserves full declaration forms and inspection evidence, retries automatically during brief sensor timeouts, and clearly distinguishes card reader network faults from passenger violations instead of mistaking hardware glitches for smuggling.⟧"
+              },
+              "original": "Automatic approval reviews now preserve complete actions and authorization evidence more reliably, retry transient failures, and distinguish review failures from unsafe-action findings. (#44482, #44569, #44570)"
+            },
+            {
+              "title": {
+                "zh-TW": "切換帳號自動失效前身分工作階段，清除連線快取與模型目錄",
+                "en": "Account Switching Invalidates Previous Sessions While Clearing Connection Caches and Model Catalogs"
+              },
+              "body": {
+                "zh-TW": "在同一台電腦切換不同使用者帳號時，前一個帳號的敏感連線與資源將被徹底清空。一旦完成身分切換，系統會立即讓屬於前一身分的遠端控制工作階段全部失效，並清除快取（cache，把連線狀態暫存起來的機制）的 WebSocket 連線資料與模型目錄，確保不同帳號間的權限與資料完全隔離。⟦正如不同員工輪班共用同一台工作站，交接登出時系統會立即切斷先前的遠端連線、清空所有暫存連線狀態與前一位員工專屬的權限目錄，徹底防範身分混淆。⟧",
+                "en": "Switching between user accounts on the same machine now completely clears sensitive connections and resources from the previous identity. Once account switching completes, the system immediately invalidates all remote-control sessions belonging to the prior identity and clears cached WebSocket connection state and model catalogs, ensuring complete isolation of permissions and data between accounts. ⟦Just like shift workers sharing a workstation, logging out during handoff immediately severs prior remote sessions, clears cached connection states, and wipes access catalogs belonging to the previous employee to prevent identity crossover.⟧"
+              },
+              "original": "Switching accounts now invalidates remote-control sessions, cached WebSocket state, and model catalogs belonging to the previous identity. (#43906, #44341, #44489)"
+            },
+            {
+              "title": {
+                "zh-TW": "封鎖 WSL 沙盒程式逃逸，強化 Shell 快照防止憑證外洩",
+                "en": "Blocks WSL Sandbox Escapes and Hardens Shell Snapshots Against Credential Leaks"
+              },
+              "body": {
+                "zh-TW": "在受限環境中執行腳本或指令時，系統安全防護進一步升級。Codex 成功阻擋了在受限的 WSL 沙盒（sandbox，隔離程式執行權限的保護環境）中逃逸並啟動 Windows 程序的漏洞。同時，系統也強化了中介代理 Shell 快照的保護機制，防止機密的登入憑證在環境快照中遭到外洩。⟦彷彿在隔離實驗艙四周築起防護網，既防止內部程式繞道穿透到宿主作業系統，又將中介連線的系統快照嚴密加密，杜絕任何敏感金鑰外洩的漏洞。⟧這讓你在隔離環境測試未知程式碼時更加安心。",
+                "en": "Security safeguards are further enhanced when running scripts or commands in restricted environments. Codex successfully blocks escapes from restricted WSL sandboxes that attempt to launch Windows processes. Meanwhile, the system hardens brokered shell snapshots to prevent confidential credentials from leaking through environment snapshots. ⟦Like building a protective barrier around an isolated lab chamber, it prevents internal programs from bypassing boundaries to the host operating system while locking down brokered shell snapshots to eliminate credential exposure.⟧ This gives you greater peace of mind when testing untrusted code in isolated environments."
+              },
+              "original": "Blocked Windows-process escapes from restricted WSL sandboxes and hardened brokered shell snapshots against credential exposure. (#44286, #43909, #44040)"
+            },
+            {
+              "title": {
+                "zh-TW": "Python SDK 與執行階段同步穩定版 CLI 發布，版本統一並預先驗證資源",
+                "en": "Python SDK and Runtime Align with Stable CLI Releases with Matching Versions and Pre-Validated Assets"
+              },
+              "body": {
+                "zh-TW": "使用 Python 開發套件呼叫 Codex 服務時，套件版本與核心工具將保持緊密同步。Python SDK 與執行階段套件的發布流程現在全面對齊穩定版 CLI 發布，雙方採用完全一致的版本號碼。在 SDK 正式上架發布前，系統還會嚴格驗證執行階段所需的各項資源檔案，確保套件環境完備無虞。⟦這恰似品牌推出新產品時，將週邊配件、軟體套件與主機出廠編號同步對齊，並在配件上架前先行檢驗核心組件的完整性，確保使用者開箱即用不撞期。⟧這能有效避免套件版本錯置或缺檔的困擾。",
+                "en": "Package versions and core tools now stay closely synchronized when invoking Codex services via Python. Publishing workflows for the Python SDK and runtime packages are now fully aligned with stable CLI releases, using matching version numbers across both. Before SDK publication, the system rigorously verifies required runtime assets to ensure a complete and ready environment. ⟦Like launching a new product where accessories, software suites, and main hardware share matching release numbers while verifying core components before launch, this ensures an out-of-the-box experience without schedule mismatches.⟧ This effectively prevents mismatched versions or missing asset issues."
+              },
+              "original": "Aligned Python SDK and runtime publishing with stable CLI releases, using matching versions and verifying runtime assets before SDK publication. (#44067)"
+            }
+          ]
+        },
+        {
           "version": "0.154.0",
           "period": "2026-09-09",
           "items": [
@@ -920,34 +1047,6 @@
               "original": "Updated Astra’s guidance to use asynchronous questions only when the tool is available in the session. (#42878)"
             }
           ]
-        },
-        {
-          "version": "0.153.3",
-          "period": "2026-09-04",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Amazon Bedrock 路由選單加入 GPT-6-Astra 模型",
-                "en": "Amazon Bedrock Route Picker Adds GPT-6-Astra Model"
-              },
-              "body": {
-                "zh-TW": "你在 Amazon Bedrock 雲端環境中調用 Codex 時，挑選模型有了新選項。⟦如同連鎖餐廳在特定分店的點餐機上，正式把最新招牌菜加入螢幕選單，走進指定門市的顧客直接按螢幕就能點選。⟧這項改動涵蓋 Mantle 路由，以及 Runtime 的 global 與 US 路由（route，雲端服務分配請求路徑的通道）。只要連線走這幾條途徑，你就能在模型挑選器（model picker，供手動切換不同 AI 版本的選單）中直接選取 GPT-6-Astra 模型。走 Mantle 或 Runtime 的 global／US 路由時，可在模型挑選器直接選 GPT-6-Astra。",
-                "en": "When calling Codex in the Amazon Bedrock cloud environment, you now have a new option when selecting models. ⟦Much like a chain restaurant officially adding its latest signature dish to the screen menu on ordering kiosks at specific branches, allowing customers entering designated stores to select it directly on the screen.⟧ This change covers the Mantle route as well as Runtime's global and US routes. As long as your connection uses these paths, you can directly select the GPT-6-Astra model in the model picker. When routing through Mantle or Runtime global/US, you can directly choose GPT-6-Astra in the model picker."
-              },
-              "original": "Added GPT-6-Astra to the Amazon Bedrock model picker for Mantle and Runtime global/US routes. (#42805)"
-            },
-            {
-              "title": {
-                "zh-TW": "修正 GPT-6-Astra 非同步提問指引，改用支援工具且認得純文字限制",
-                "en": "Corrected GPT-6-Astra Guidance for Asynchronous Clarifications to Use Supported Tools and Recognize Text-Only Limits"
-              },
-              "body": {
-                "zh-TW": "交給 GPT-6-Astra 的任務如果需求不明確，它在背景發問釐清的流程現在更穩定。這項改動修正了該模型提出非同步釐清問題（asynchronous clarification questions，不中斷手邊工作、在背景等候回覆的提問機制）時的內建指引。現在它會確實呼叫官方受支援的工具（supported tool，環境中明訂可用來向外部發問的功能模組），不再誤用不相容的管道。同時，它也能正確辨識該工具僅接受純文字內容，避免送出不支援的格式而引發錯誤。⟦宛如助理遇到交代不清的待辦事項時，會準確把疑問寫成便條紙投進專用留言箱，不再投錯信箱或塞進格式不符的包裹。⟧",
-                "en": "When tasks assigned to GPT-6-Astra have unclear requirements, its process for asking clarifying questions in the background is now more reliable. This change corrects the model's built-in guidance when asking asynchronous clarification questions. It now properly calls officially supported tools instead of misusing incompatible channels. At the same time, it correctly recognizes that the tool accepts only plain text, avoiding errors caused by sending unsupported formats. ⟦Much like an assistant dealing with an unclearly explained task who accurately writes questions on a memo note and drops it into a dedicated message box, rather than dropping it into the wrong mailbox or stuffing in a parcel with an incompatible format.⟧"
-              },
-              "original": "Corrected GPT-6-Astra’s guidance for asynchronous clarification questions to use the supported tool and recognize that it accepts text only. (#42809)"
-            }
-          ]
         }
       ]
     },
@@ -955,6 +1054,78 @@
       "id": "agy",
       "name": "Antigravity",
       "versions": [
+        {
+          "version": "1.2.6",
+          "period": "2026-09-18",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "遠端操控正式推出，隨時隨地跨裝置同步接手對話",
+                "en": "Remote Control Officially Launches for Cross-Device Session Handoff"
+              },
+              "body": {
+                "zh-TW": "想暫時離開電腦又想隨時盯緊 AI 的執行進度，現在你可以直接用另一台裝置接手。⟦宛如客廳電視遊樂器開啟跨裝置鏡射，在平板完成配對後，即使走到廚房也能同步觀看畫面並直接操作控制器；退出連線或關機時通道也會立即關閉以保安全。⟧你在開啟工具時加上 `--remote-control` 旗標，或在對話中輸入 `/remote-control` 指令，就能建立專屬連線，從手機或平板即時跟隨與控制終端機。輸入 `/remote-control off` 或關閉工作階段（session）時，系統會自動拆除通道並註銷裝置清單。這項連線也修好了權限繼承問題，遠端發起的指令會完整套用原本設定的權限模式、循環模式與檔案存取授權；即使資料目錄名稱不同，配套介面也能如實呈現豐富的產物卡片。",
+                "en": "If you want to step away from your computer while keeping a close eye on AI progress, you can now take over directly from another device. ⟦Just like enabling cross-device mirroring on a living room console, where pairing with a tablet lets you watch the screen and operate the controller even while walking into the kitchen, with the tunnel immediately closing upon disconnecting or shutting down for safety.⟧ By adding the `--remote-control` flag when launching the tool or typing the `/remote-control` command in a conversation, you can create a dedicated connection to follow and control the terminal in real time from a phone or tablet. Typing `/remote-control off` or closing the session automatically tears down the tunnel and unregisters the device list. This connection also fixes permission inheritance issues, ensuring commands initiated remotely fully inherit the original permission mode, cycle mode, and file access grants. Even when data directory names differ, the companion interface faithfully renders rich artifact cards."
+              },
+              "original": "Added Remote Control (start a connection via `--remote-control` startup flag or `/remote-control` slash command) to create a session-scoped remote connection for following and controlling your active terminal session from another device. Typing `/remote-control off` or closing the session automatically tears down the tunnel and unregisters the device from the active Remote Control session list.\nFixed turns triggered from a connected Remote Control session or running across secondary workspaces executing without the CLI session's active permission mode, cycle mode, and non-workspace file access grants.\nFixed artifacts in the Remote Control companion rendering as plain `<name>.md` file links instead of rich artifact cards when the CLI's application data directory differs from the default bundle name."
+            },
+            {
+              "title": {
+                "zh-TW": "無頭模式解除執行時限，背景伺服器常駐且錯誤排查更精準",
+                "en": "Headless Mode Removes Execution Time Limits, Keeps Background Servers Running, and Improves Error Diagnostics"
+              },
+              "body": {
+                "zh-TW": "把耗時的繁重任務交給自動化腳本執行時，無頭模式（headless，沒有終端機視覺介面的執行模式）現在不會因為時間到了就強制中斷。⟦恰如工廠在夜間啟動無人值守的自動化流水線，只要不設關機定時器，機台就會耐心運轉直至所有工件加工完畢；若是途中遇上原料斷供或故障，控制面板立刻印出含錯誤代碼的結構化清單。⟧使用 `-p` 或 `--prompt` 執行時，預設逾時已從 5 分鐘調整為無限制，讓耗時較長的任務能一路執行到回覆完畢，除非手動加上 `--print-timeout` 參數。在具備 `GEMINI_API_KEY` 的工作階段中，背景伺服器指令也會在回合結束後保持運作。此外，當因 API 失敗中斷時，CLI 在標準錯誤輸出 `AGY_ERROR: {...}` JSON 紀錄，詳列標準狀態、HTTP 或 gRPC 錯誤代碼、是否可重試與錯誤識別碼，並將結束代碼改為 `3`。",
+                "en": "When handing off time-consuming heavy tasks to automation scripts, headless mode no longer forcibly terminates when time runs out. ⟦Just like starting an unattended automated assembly line in a factory at night, where machines run patiently until all workpieces are processed unless a shutdown timer is set, and the control panel immediately prints a structured list with error codes if materials run out or a breakdown occurs midway.⟧ When running with `-p` or `--prompt`, the default timeout has been changed from 5 minutes to unlimited, allowing long-running tasks to execute until the response finishes unless the `--print-timeout` parameter is passed manually. In sessions with `GEMINI_API_KEY`, background server commands also remain running after the turn ends. Additionally, when terminated due to an API failure, the CLI prints an `AGY_ERROR: {...}` JSON record to standard error detailing canonical status, HTTP or gRPC error codes, retryability, and error IDs, while updating the exit code to `3`."
+              },
+              "original": "Changed the default timeout for headless (`-p` / `--prompt`) runs from 5 minutes to unlimited so long-running agent turns run until the response completes unless `--print-timeout` is passed explicitly, and enabled daemon background commands in headless `GEMINI_API_KEY` sessions so background servers stay running after the turn finishes.\nImproved headless (`-p` / `--prompt`) error reporting when a turn terminates on an agent or model API failure: the CLI now prints a structured `AGY_ERROR: {...}` JSON line on stderr with canonical status, HTTP or gRPC error code, retryability, and error ID (including HTTP status mapping for `GEMINI_API_KEY` SDK errors) and exits with code `3` instead of `1`."
+            },
+            {
+              "title": {
+                "zh-TW": "編輯器游標支援標點斷詞，路徑與參數修改更俐落",
+                "en": "Editor Cursor Supports Punctuation Boundaries for Snappier Path and Flag Editing"
+              },
+              "body": {
+                "zh-TW": "鍵盤游標在提示詞編輯器中穿梭時，單詞跳轉與文字刪除變得更加細膩。以前按下單詞跳轉快捷鍵時，游標只會在空格處停下，如果遇到用斜線或符號連接的長網址，一跳就會衝過頭，刪除時也會把整串路徑一口氣刪光。⟦這就像長途列車原本只能在縣市大站停靠，現在每一處轉運站的交接月台都能精準煞停，讓你能隨心所欲單獨檢視或卸下某個特定車廂。⟧現在系統改進了分詞規則，游標移動快捷鍵（如 `Alt+F`、`Alt+B` 以及方向鍵組合）遇到標點符號時都會主動停下。單詞刪除鍵（如 `Ctrl+W`、`Alt+Backspace` 和 `Alt+D`）同樣會在標點邊界煞停。無論是檔案路徑中的各層目錄、網址或是各項參數設定，你都能精準按節跳轉或逐步刪除。",
+                "en": "Word navigation and text deletion have become much more refined when moving the keyboard cursor through the prompt editor. Previously, when pressing word-navigation shortcuts, the cursor only stopped at whitespace, causing it to overshoot long URLs joined by slashes or symbols and wipe out entire path strings when deleting. ⟦This is like a long-distance train that could only stop at major city stations, but can now halt precisely at transfer platforms at every transit hub, letting you inspect or detach a specific railcar at will.⟧ The system has now improved word boundary rules so cursor movement shortcuts (such as `Alt+F`, `Alt+B`, and arrow key combinations) actively stop at punctuation marks. Word deletion shortcuts (such as `Ctrl+W`, `Alt+Backspace`, and `Alt+D`) likewise stop at punctuation boundaries. Whether dealing with directory levels in file paths, URLs, or various parameter flags, you can now navigate precisely by segment or delete step by step."
+              },
+              "original": "Improved word-wise cursor movement (`Alt+F`, `Alt+B`, and `Ctrl`/`Alt`+Arrow keys) and word deletion (`Ctrl+W`, `Alt+Backspace`, and `Alt+D`) in the prompt editor to stop at punctuation boundaries instead of only whitespace, making it easy to step through or delete individual segments of file paths, URLs, and flags."
+            },
+            {
+              "title": {
+                "zh-TW": "全螢幕產物檢視器純文字複製，不再誤選行號與留白",
+                "en": "Full-Screen Artifact Viewer Copies Plain Text Without Accidentally Selecting Line Numbers and Padding"
+              },
+              "body": {
+                "zh-TW": "滑鼠在全螢幕產物檢視器中拖曳選取時，複製出來的內容不再夾帶多餘雜訊。以前只要滑鼠拖曳過螢幕，系統就會連同最左側的行號邊緣欄以及右側的尾隨間距一併選入，貼上時還得手動刪除行號。現在這個問題已經修好，拖曳只會反白並複製文件本身的文字內容；你還能隨時按下 `Ctrl+C` 重新複製當前選取的範圍、按 `Esc` 清除選取，或是使用 `Shift` 鍵搭配拖曳來保留原生終端機的選取方式。",
+                "en": "When dragging to select with the mouse in the full-screen artifact viewer, copied content no longer includes unwanted noise. Previously, dragging across the screen would capture the leftmost line-number gutter along with trailing padding on the right, requiring you to manually delete line numbers after pasting. This issue has now been fixed: dragging highlights and copies only the document text content itself. You can also press `Ctrl+C` at any time to re-copy the active selection, press `Esc` to clear the selection, or hold `Shift` while dragging to retain native terminal selection."
+              },
+              "original": "Fixed text selection in the full-screen artifact viewer capturing the line-number gutter and trailing padding; dragging across the viewer now highlights and copies only the document text, with `Ctrl+C` to re-copy an active selection, `Esc` to clear it, and `Shift`+drag for native terminal selection."
+            },
+            {
+              "title": {
+                "zh-TW": "執行中切換模型改為依序排隊，進行中對話不再中途遭換",
+                "en": "Mid-Run Model Switches Now Queue in Order Without Swapping In-Flight Turns"
+              },
+              "body": {
+                "zh-TW": "趁著 AI 正在回答問題時提前輸入下一句指示並指定模型，現在系統會乖乖排隊而不會打亂現狀。以前在回合運作中途輸入 `/model <name> <prompt>` 指令，系統會立刻切換執行中的模型，導致正在產出的內容中途被換掉。這個問題已經修好，單次模型切換現在會耐心等待，直到該筆排隊的提示詞正式開始執行時才會切換，確保當前進行中的回合與更早排隊的提示詞，都能完整使用工作階段（session）原本的模型順利跑完。",
+                "en": "When entering a subsequent instruction with a specified model while the AI is actively answering, the system now queues it properly without disrupting ongoing work. Previously, submitting the `/model <name> <prompt>` command midway through a running turn would immediately switch the active model, causing in-flight generations to be swapped mid-stream. This issue has now been fixed: one-shot model switches now wait patiently until the queued prompt begins executing, ensuring both the currently running turn and any earlier queued prompts finish completely on the session's original model."
+              },
+              "original": "Fixed submitting `/model <name> <prompt>` while a turn is already running switching the active model immediately in the middle of the in-flight turn; the one-shot model switch now waits until the queued prompt begins executing so the running turn and any earlier queued prompts finish on the session's original model."
+            },
+            {
+              "title": {
+                "zh-TW": "超大變更不撐爆對話儲存，倒帶復原不再誤覆寫成果",
+                "en": "Oversized Edits No Longer Exceed Session Storage, and Rewind Reverts Avoid Overwriting Work"
+              },
+              "body": {
+                "zh-TW": "遇到超大檔案變更或需要倒帶復原進度時，工作階段（session）的儲存與工作區狀態現在更加穩固。⟦宛如厚重帳本在歸檔龐大資料時，只記錄增減行數與摘要而省略整份原始收據，避免抽屜爆滿被整箱清空；翻查紀錄時也會精準比對目標頁數，不再盲目拿過期的舊存根來覆寫現狀。⟧以前當檔案修改的差異內容大於 1 MiB 時，會因超出對話儲存上限而導致整個工作階段被強制清空。現在超大編輯會保留行數變更統計，並自儲存歷程中省略龐大的原始差異內容，在執行 `/rewind` 時也會直接略過省略部分。此外，過去使用 `/rewind` 進行對話復原或建立分支時，若略過了近期的快照，系統可能會倒退掃描至過舊的工作區快照，默默覆寫保留的修改；現在尋找快照會從目標步驟向前搜尋，若無較新快照則採用逐步復原重播作為備援。",
+                "en": "When encountering massive file changes or rewinding progress, session storage and workspace states are now significantly more stable. ⟦Just like a thick ledger archiving voluminous records by logging only line counts and summaries while omitting bulky raw receipts to prevent overflowing drawers from being dumped out entirely, and referencing precise target page numbers during audits rather than blindly overwriting the present with outdated stubs.⟧ Previously, when file modification diffs exceeded 1 MiB, exceeding the conversation storage limit would force-clear the entire session. Oversized edits now preserve line-change statistics while omitting the massive raw diff content from stored history, and `/rewind` directly skips elided diffs during reverts. Additionally, when using `/rewind` for conversation reverts or forks in the past, skipping recent snapshots could cause the system to sweep backward to an outdated workspace snapshot and silently overwrite kept modifications. Snapshot lookup now sweeps forward from the target step, falling back to step-by-step revert replay when no newer snapshot exists."
+              },
+              "original": "Fixed file edits with diffs larger than 1 MiB exceeding the conversation storage limit and force-clearing the session; oversized edits now preserve their line-change statistics while omitting the raw diff body from stored conversation history and skipping the elided diff during `/rewind` reverts.\nFixed `/rewind` conversation reverts and forks sweeping backward to an older workspace snapshot when recent snapshot commits were skipped, which could silently overwrite kept work; snapshot lookup now sweeps forward from the target step and falls back to step-by-step revert replay when no later snapshot exists."
+            }
+          ]
+        },
         {
           "version": "1.2.5",
           "period": "2026-09-17",
@@ -1118,67 +1289,6 @@
                 "en": "Terminal text no longer displays stray garbled characters when operating over SSH connections in native macOS terminals. Previously, when establishing SSH connections using `Apple_Terminal`, unsupported hyperlink formats caused raw, unparsed OSC 8 escape sequences to print directly to the screen. The system now proactively disables unsupported hyperlink sequences, resolving this display glitch and restoring clean remote text rendering."
               },
               "original": "Fixed raw OSC 8 escape sequences rendering in `Apple_Terminal` over SSH connections by disabling unsupported hyperlink sequences."
-            }
-          ]
-        },
-        {
-          "version": "1.2.3",
-          "period": "2026-09-15",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "新增 /copy btw 複製旁支回答全文，打指令附帶參數幽靈提示",
-                "en": "Add /copy btw to copy full text of side-question responses, with argument ghost hints when typing commands"
-              },
-              "body": {
-                "zh-TW": "一邊等待 AI 處理主要工作，一邊透過 `/btw` 提出旁支問題，取用解答文字現在更加俐落。⟦這好比在研討會聽講時，你在桌角備忘便條隨手記下專家的延伸解答；即使便條紙正巧被厚重講義遮住或摺疊收攏，專屬助理也能替你將整張便條的文字原樣複印到筆記夾中。⟧當你交代助理撰寫長篇企劃，趁空檔用 `/btw` 查詢專有名詞，讀完後想把整段答覆貼進工作報告，這正是輸入 `/copy btw` 的時刻。這項新增的斜線子指令，能將當前進行中的 `/btw` 旁支回答全文直接複製至剪貼簿，就算回覆卡片已經收合或被捲動移出可見畫面，也完全不影響複製。此外，當你在終端機鍵入 `/copy` 時，指令輸入列還會顯示參數的幽靈提示（輸入指令時以淡色顯示的待填參數建議），提醒你能接續輸入哪些可用選項。",
-                "en": "While waiting for AI to handle primary tasks, asking side questions via `/btw` and retrieving the answer text is now much smoother. ⟦This is like attending a conference lecture and jotting down an expert's elaboration on a sticky note at the corner of your desk; even if the note happens to be covered by heavy handouts or folded away, your dedicated assistant can still copy the exact text from the entire note into your binder for you.⟧ When you ask an assistant to draft a long-form proposal and use `/btw` during downtime to look up technical terms, and then want to paste the full answer into your report after reading, this is the exact moment to type `/copy btw`. This newly added slash subcommand copies the full text of the active `/btw` side-question response directly to your clipboard, even if the response card is collapsed or scrolled out of view. In addition, when you type `/copy` in the terminal, the command input bar displays argument ghost hints (faded suggestions for parameters to fill in while typing commands) to remind you of available options you can enter next."
-              },
-              "original": "Added the `/copy btw` slash subcommand to copy the full text of the active `/btw` side-question response to the clipboard even when the response card is collapsed or scrolled, along with argument ghost hints when typing `/copy`."
-            },
-            {
-              "title": {
-                "zh-TW": "工具選用約束轉為原生後端設定，提升呼叫忠實度",
-                "en": "Translate tool-choice constraints into native backend configurations to improve calling fidelity"
-              },
-              "body": {
-                "zh-TW": "指揮 AI 配合特定流程呼叫工具時，模型遵循呼叫限制的表現現在更加精準可靠。以前在每次請求中指定工具選用約束，例如限制必須呼叫任意工具的 `any`、強制調用工具的 `required`，或是指定特定具名函式，若未深入底層，執行時偶爾仍可能偏離指示。現在系統會將每筆請求的工具選用約束，直接轉換為後端原生的函式呼叫設定（由模型服務底層介面直接控管工具挑選的機制），確保工具呼叫的保真度徹底落實。⟦恰似精密物流中心的分揀輸送帶，當包裹貼上「必須檢驗」或指定特定通道的標籤時，系統直接將分流指令寫入輸送帶底層的感應電路，包裹自然順著軌道精準送達，不再有任何錯漏。⟧",
-                "en": "When directing AI to call tools for specific workflows, the model's adherence to calling restrictions is now more precise and reliable. Previously, when specifying per-request tool-choice constraints—such as `any` requiring calling any tool, `required` enforcing tool invocation, or specifying named functions—executions could still occasionally deviate from instructions if not integrated into the underlying layer. Now, the system directly translates per-request tool-choice constraints into native backend function-calling configurations (a mechanism where the model service's underlying interface directly manages tool selection), ensuring complete fidelity in tool calling. ⟦Just like a sorting conveyor belt in a precision logistics center, when a package is labeled 'must inspect' or assigned a specific lane, the system writes routing instructions directly into the conveyor's underlying sensor circuits, allowing packages to arrive precisely along the track without errors.⟧"
-              },
-              "original": "Improved tool-calling fidelity by translating per-request tool-choice constraints (`any`, `required`, and named functions) into native backend function-calling configurations."
-            },
-            {
-              "title": {
-                "zh-TW": "/hooks 與檢查工具納入已啟用外掛隨附的掛鉤設定",
-                "en": "Include hook configurations bundled inside enabled plugins in /hooks and inspection utilities"
-              },
-              "body": {
-                "zh-TW": "檢查自動化流程的掛鉤設定時，外掛隨附的規則不再無端隱形。以前在終端機執行 `/hooks` 指令或使用掛鉤檢查工具列出使用中的 `hooks.json` 設定時，系統會漏掉已啟用外掛套件裡自帶的 hook（掛鉤，特定事件發生時被觸發的小程式），導致你難以確認外掛功能是否如期攔截；這個遺漏問題現在已經修好，清單會如實列出已啟用外掛隨附的所有掛鉤設定。",
-                "en": "When inspecting hook configurations in automated workflows, rules bundled with plugins no longer invisibly disappear. Previously, when running the `/hooks` command in the terminal or using hook inspection utilities to list active `hooks.json` configurations, the system omitted hooks bundled inside enabled plugin packages (small programs triggered when specific events occur), making it difficult to verify whether plugin features were intercepting as expected. This omission issue is now fixed, and listings faithfully include all hook configurations bundled with enabled plugins."
-              },
-              "original": "Fixed the `/hooks` command and hook inspection utilities omitting hooks bundled inside enabled plugins when listing active `hooks.json` configurations."
-            },
-            {
-              "title": {
-                "zh-TW": "自訂子代理繼承父代理 MCP 伺服器，並正確解析相對設定路徑",
-                "en": "Custom subagents inherit parent MCP servers and correctly resolve relative configuration paths"
-              },
-              "body": {
-                "zh-TW": "配置專門分工的自訂子代理時，工具連線與檔案路徑的兩項問題已獲修正。以前在建立自訂子代理時就算指定了 `enable_mcp_tools: true`，子代理也只會收到一份空的伺服器清單，無法順利繼承父代理原先設定妥當的 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器；同時，宣告式子代理設定若使用 `relative_path_to_config` 指定相對設定檔路徑，系統也無法以父代理所在的目錄為基準完成解析。這兩項路徑與設定繼承問題現在都已經修好，子代理會確實繼承父代理的外部工具伺服器，相對路徑也能順利對齊。",
-                "en": "When configuring custom subagents for specialized division of labor, two issues with tool connections and file paths have been fixed. Previously, even if `enable_mcp_tools: true` was specified when creating a custom subagent, the subagent only received an empty server list and failed to inherit the configured MCP (Model Context Protocol, a protocol allowing AI to connect to external tools) servers from the parent agent. At the same time, if a declarative subagent configuration specified a relative configuration file path using `relative_path_to_config`, the system failed to resolve it against the parent agent's directory. Both path and configuration inheritance issues are now fixed, ensuring subagents properly inherit the parent agent's external tool servers and relative paths align smoothly."
-              },
-              "original": "Fixed custom subagents created with `enable_mcp_tools: true` receiving an empty MCP server list instead of inheriting the parent agent's configured MCP servers, and fixed declarative subagent configurations failing to resolve relative config file paths (`relative_path_to_config`) against the parent agent's directory."
-            },
-            {
-              "title": {
-                "zh-TW": "主動回饋提示不再過早跳出，排除初期對話與暫態錯誤干擾",
-                "en": "Proactive feedback prompts no longer trigger prematurely, eliminating early-session and transient-error disruptions"
-              },
-              "body": {
-                "zh-TW": "在終端機展開新對話或使用工具時，評分詢問不再無端跳出打擾節奏。以前只要工作階段剛開始的前幾輪對話、或者工具遇到短暫發生但隨後已順利復原的暫態錯誤，系統的主動回饋提示就會過早觸發，在任務尚未明朗時突然向你索取意見；這個過早觸發的問題現在已經修好，不會再在對話初期或暫態錯誤復原時過早彈出提示打斷思路。",
-                "en": "When starting a new conversation in the terminal or using tools, feedback rating prompts no longer pop up unexpectedly to disrupt your flow. Previously, during the first few turns of a session or when tools encountered transient errors that quickly recovered, proactive feedback prompts triggered prematurely, soliciting feedback before tasks were clear. This premature triggering issue is now fixed, preventing pop-up prompts from interrupting your train of thought during early conversations or recovered transient errors."
-              },
-              "original": "Fixed proactive feedback prompts triggering prematurely during the first few turns of a session or on transient, recovered tool errors."
             }
           ]
         }
