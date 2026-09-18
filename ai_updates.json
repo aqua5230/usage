@@ -1057,6 +1057,67 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.30.17",
+          "period": "2026-09-17",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "洞察結論移至摘要卡正下方，日期篩選列隨管轄區塊動態吸頂",
+                "en": "Insights Move Right Under the Summary Cards, Date Filter Now Only Pins Above Sections It Actually Controls"
+              },
+              "body": {
+                "zh-TW": "檢視用量報表時，最關鍵的洞察結論不再需要滑到頁面底部。過去長達 4,660px 的頁面中，洞察排在熱力圖、使用習慣與最近在做什麼之後，要捲動到約 3,600px 處才看得見。現在洞察移至數字卡片正下方並標上「固定區間」，表示它統計整份報告期間、不跟日期篩選連動。「數字怎麼算的」附錄移到「以下區塊不受上方日期篩選影響」上方，因附錄數據會隨篩選改變（選「最近 7 天」後快取讀取量由 5.29B 變成 1.88B）。日期篩選列改為只在管轄區塊在畫面時固定在頂端，捲到熱力圖、使用習慣、最近在做什麼與年度 Wrapped 時會跟著離開，不再留下一排按了沒反應的按鈕。⟦這好比商場將導覽指引立在手扶梯旁，促銷標籤只在特賣區懸浮，走進常設專櫃便自動收起。⟧",
+                "en": "The most actionable line in your usage report no longer requires scrolling to the bottom of the page. On the old 4,660px page, Insights came after the heatmap, habits, and recent work, around 3,600px down. Insights now sits directly under the summary cards, tagged \"Fixed range\" to show it covers the whole report period and doesn't follow the date filter. The \"How these numbers are calculated\" appendix has moved above the note that says sections below don't follow the date filter above, since the appendix actually does follow it (cache reads went from 5.29B to 1.88B after picking Last 7 days). The date filter now only stays pinned while the sections it controls are on screen; scrolling into the heatmap, habits, recent work, or Wrapped lets it scroll away instead of leaving a row of buttons that do nothing there. ⟦It's like a mall putting directional signage next to the escalator, with promo tags floating only over the sale section and folding away once you walk into the permanent stores.⟧"
+              },
+              "original": "**Insights now sit directly under the summary cards, tagged \"Fixed range\".** They used to come after the heatmap, habits and recent work, around 3,600px down a 4,660px page, so the most actionable line was the last thing anyone read. Insights cover the whole report period and do not follow the date filter, which is what the tag says.\n**The \"How these numbers are calculated\" appendix moved above the \"The sections below don't follow the date filter above\" note.** The appendix does follow the filter (cache reads went from 5.29B to 1.88B after picking Last 7 days), so the note was wrong about it.\n**The date filter only stays pinned while the sections it controls are on screen.** Scrolling into the heatmap, habits, recent work and Wrapped now lets it scroll away instead of offering buttons that change nothing there."
+            },
+            {
+              "title": {
+                "zh-TW": "高消耗工作階段改依 tokens 排序，專案改採中性色並調整指標排版",
+                "en": "Top Burn Sessions Now Rank by Tokens, Projects Get a Neutral Colour and Metrics Get Tidier"
+              },
+              "body": {
+                "zh-TW": "想掌握各個模型與專案的消耗排行，圖表與數據呈現現在更加直覺一致。過去「最燒的 5 段工作階段」依花費排序，但長條圖與報表各處的燃燒皆代表 token（AI 處理與計費的文字單位），導致第二名長條可能比第一名還長。現在全面改依 token 排序，用量相同時才比花費。專案長條改用單一中性色，不再借用工具的綠、紫、橘色，避免專案看起來像屬於 Claude Code、Antigravity 或 Codex；工具列中 Grok 的長條也改為與圖表相同的粉紅色。活躍日寫成「17 / 17 天」，避免在尖峰日旁被誤認成日期。展開專案後「佔本專案」只標示一次不再每列重複，快取命中率說明也移至專屬小標題底下。⟦這有如整理多重幣別的計量儀表，將耗電長條全數照度數多寡排序，不同團隊採用一致中立色塊，讓讀表者一眼看清真實消耗。⟧",
+                "en": "Reading model and project consumption rankings is now more consistent and intuitive. The Top 5 burn sessions used to be ranked by cost, while their bars — and every other \"burn\" in the report — measure tokens, so the second row could carry a longer bar than the first. Everything now ranks by tokens, with cost only breaking ties. Project bars now use one neutral colour instead of borrowing the tools' green, purple, and orange, so a project no longer looks like it belongs to Claude Code, Antigravity, or Codex; Grok's bar in the tools list is now the same pink as the chart instead of teal. Active days now reads \"17 / 17 days\" instead of looking like a date next to the peak-day card. \"Share of project\" is shown once per expanded project instead of on every model row, and the cache hit rate explanation now sits under its own heading. ⟦It's like tidying up a multi-currency meter panel: every burn bar gets sorted purely by its reading, different teams get the same neutral colour block, and the reader can tell real consumption at a glance.⟧"
+              },
+              "original": "**Top 5 burn sessions are ranked by tokens.** They were sorted by cost while their bars, and every other \"burn\" in the report, measure tokens, so the second row could carry a longer bar than the first. Cost breaks ties.\n**Projects use one neutral colour.** They borrowed the tools' green, purple and orange, so a project could look like it belonged to Claude Code, Antigravity or Codex. Grok's bar in the tools list is now the same pink as the chart; it was still teal there.\n**Active days reads \"17 / 17 days\" instead of \"17/17\"**, which looked like a date next to the peak-day card.\n**\"Share of project\" is shown once per expanded project** instead of on every model row.\n**The cache hit rate explanation sits under its own heading** instead of directly below the Output row."
+            },
+            {
+              "title": {
+                "zh-TW": "手機版工作階段改為三行卡片，放大觸控按鈕並修正斷行排版",
+                "en": "Top Sessions Become Three-Line Cards on Phones, Buttons Get Bigger and Line Breaks Get Fixed"
+              },
+              "body": {
+                "zh-TW": "在手機螢幕上瀏覽用量明細時，窄版面的排版與觸控操作體驗更加順手。過去熱門工作階段常將 tokens 與花費擠出手機畫面外，現在改為三行卡片：首行列出專案、tokens 與花費，次行標註開始時間和時長，第三行顯示模型。寬度 780px 以下時，日期按鈕、輸入框、主題與分享鍵、Tokens 與花費切換及頁尾連結高度從原本 16 至 32px 提升到至少 44px，確保觸控容易點按。手機上日期與模型名稱不再從連字號處斷行，避免 `2026-05-` 與 `04` 拆成兩行。空白報表提示在五種語言補上 Antigravity 與 Grok（與 Claude Code 及 Codex 並列），頁尾 Ko-fi 連結減為一個，並重拍對齊新版面的報表截圖。⟦這彷彿將橫幅通訊錄重新剪裁為隨身便條，把重要資料分行排好，並將每顆按鈕放大到手指能從容點擊的友善間距。⟧",
+                "en": "Browsing usage details on a phone screen is now easier to read and tap through. Top sessions used to push tokens and cost off-screen on phones; each session is now a card with project, tokens, and cost on the first line, start time and duration on the second, and model on the third. On screens 780px wide or narrower, the range buttons, date inputs, theme and share buttons, the Tokens/Cost toggle, and the footer links now stand at least 44px tall instead of their old 16 to 32px. Dates and model names on phones no longer break at a hyphen, so `2026-05-` and `04` no longer split apart. The empty report now names Antigravity and Grok alongside Claude Code and Codex in all five languages, the footer has one Ko-fi link instead of two, and report screenshots have been retaken for the new layout. ⟦It's like recutting a wide address book into a pocket notecard: the key fields line up row by row, and every button gets sized up to a friendly width your thumb can hit without missing.⟧"
+              },
+              "original": "**Top sessions no longer hide tokens and cost off-screen on phones.** Each session is now a card with project, tokens and cost on the first line, start time and duration on the second, model on the third.\n**Buttons and links are at least 44px tall on screens 780px wide or narrower.** The range buttons, date inputs, theme and share buttons, the Tokens/Cost toggle and the footer links were 16 to 32px.\n**Dates and model names no longer break at a hyphen on phones.** The header period and the summary sentence split `2026-05-` from `04`.\n**The empty report names Antigravity and Grok** alongside Claude Code and Codex, in all five languages.\n**The footer has one Ko-fi link instead of two.**\n**Report screenshots retaken** for the new layout."
+            },
+            {
+              "title": {
+                "zh-TW": "官網推出獨立多語系網頁強化搜尋收錄，功能區改為圖示卡片格",
+                "en": "The Website Gets Standalone Pages Per Language for Better Search Indexing, Feature Section Becomes an Icon Grid"
+              },
+              "body": {
+                "zh-TW": "搜尋或瀏覽 usage 官網時，多語系讀者能直接造訪專屬母語頁面。過去透過 `?lang=` 切換語言時，一律回傳英文 HTML 與英文 canonical（告知搜尋引擎代表性頁面的標準網址標記），導致其他四種語言無法被收錄。現在由 `scripts/build_site_pages.py` 從 `docs/index.html` 產生各語系獨立網頁（含 `/zh-TW/`、`/zh-CN/`、`/ja/`、`/ko/`），具備在地化標題、`html lang` 與專屬 canonical，CI 用 `--check` 把關。網站地圖與 hreflang 列出五語網址，舊 `?lang=` 連結仍可用。功能區改為附圖示卡片格，標題補上 Grok。⟦這如同觀光局為旅客印製專屬母語手冊與獨立展架，讓各語言讀者與搜尋引擎都能精準找到正確版本，不再全擠在英文櫃台前。⟧",
+                "en": "Multilingual readers can now land directly on a page in their own language when they search or browse the usage website. Every `?lang=` URL used to serve the English HTML with an English canonical (the standard URL tag that tells search engines which page is authoritative), so the other four languages couldn't be indexed. `scripts/build_site_pages.py` now generates a standalone page per language (`/zh-TW/`, `/zh-CN/`, `/ja/`, `/ko/`) from `docs/index.html`, each with its own localized title, `html lang`, and canonical, checked by CI with `--check`. The sitemap and hreflang tags now list all five language URLs, and old `?lang=` links still work. The feature section is now a card grid with icons, and the headline includes Grok. ⟦It's like a tourism board printing a dedicated language brochure and display stand for each nationality of visitor, so readers and search engines alike can find the right version instead of everyone crowding the English-only counter.⟧"
+              },
+              "original": "**Each website language has its own page** (`/zh-TW/`, `/zh-CN/`, `/ja/`, `/ko/`) with its own title, `html lang` and canonical, generated from `docs/index.html` by `scripts/build_site_pages.py`; CI runs it with `--check`. Every `?lang=` URL used to serve the English HTML with an English canonical, so the other four languages could not be indexed. hreflang and the sitemap list all five, and old `?lang=` links still work.\n**The website's feature section is a card grid with icons, and the headline includes Grok.**"
+            },
+            {
+              "title": {
+                "zh-TW": "官網遵循無障礙與介面規範，改善鍵盤操作、手機圖檔與文字排版",
+                "en": "The Website Follows Accessibility and Interface Guidelines, Improving Keyboard Use, Mobile Images and Typography"
+              },
+              "body": {
+                "zh-TW": "點開 usage 官網閱讀說明時，頁面的無障礙操作體驗與排版細節更加完善。網站依循 Lighthouse、axe 與 Vercel Web Interface Guidelines 規範進行多項調整：手機上的章節選單在點擊後會自動收合，頁面內所有可捲動區塊也能完整透過鍵盤操作。首頁主視覺圖提供 800w 與 1200w 尺寸規格，在手機載入時能減少約 230KB 下載量，安裝指令亦加上 `translate=\"no\"` 標記。在文字排版方面，標題會自動跨行平衡長度，段落結尾避免留下單字孤行；日文與韓文標題不再從詞彙中間拆斷，行內指令也不再從連字號處斷開。⟦這種細緻度恰似印刷出版品在交付裝訂前的全面校準，既壓縮大圖減輕手冊重量，又微調每行字距與斷詞，讓閱讀翻頁體驗順暢舒適。⟧",
+                "en": "Reading through the usage website is now more polished in its accessibility and typographic details. The site picked up several fixes from Lighthouse, axe, and the Vercel Web Interface Guidelines: the mobile section menu now closes after a tap, and every scrollable region on the page is fully keyboard-reachable. Hero images now ship 800w and 1200w variants, cutting about 230KB off phone loads, and install commands are now marked `translate=\"no\"`. On the typography side, headings now balance their length across lines and paragraphs avoid leaving a single word on the last line; Japanese and Korean headings no longer break mid-word, and inline commands no longer split at a hyphen. ⟦It's the kind of finish a print publication gets before binding: shrinking oversized images to lighten the load, tightening every line's spacing and word breaks, so flipping through it reads smoothly.⟧"
+              },
+              "original": "**Website accessibility and mobile fixes from Lighthouse, axe and the Vercel Web Interface Guidelines.** The mobile section menu closes after a tap, hero images ship 800w and 1200w variants (about 230KB less on phones), install commands are marked `translate=\"no\"`, and scrollable regions are keyboard-reachable.\n**Website typography.** Headings balance across lines, paragraphs avoid one-word last lines, Japanese and Korean headings no longer break mid-word, and inline commands no longer split at hyphens."
+            }
+          ]
+        },
+        {
           "version": "0.30.16",
           "period": "2026-09-15",
           "items": [
@@ -1153,34 +1214,6 @@
                 "en": "Several layout and statistical issues in the HTML report have been resolved. Previous-period comparisons no longer reach before the first day of data, eliminating artificial growth spikes such as `↑2799%`. Tool groups mixed with unpriced models no longer hide their entire cost as `—`, properly displaying Antigravity's previously hidden $166. An issue where `.rank-line`'s `display:grid` overrode the browser's `[hidden]` attribute has been fixed, ensuring collapsed rows actually collapse. Adding `position:relative` to `.tokens-cell` prevents session ranking bars from piling up in the top-left corner. Expanded model sub-rows now use corrected scaling rather than plotting project share on the total-volume scale, preventing a model accounting for 68.7% of a project from looking three times larger than the project itself. ⟦This is like proofing a ledger's layout: calibrating baseline comparison dates, properly hiding collapsed rows, repositioning overlapping bars, and preventing sub-items from being drawn longer than the total.⟧"
               },
               "original": "**Previous-period comparisons no longer reach before the first day of data** ([#137](https://github.com/aqua5230/usage/pull/137)), which produced growth like `↑2799%`.\n**A tool group with one unpriced model no longer hides its whole cost** ([#137](https://github.com/aqua5230/usage/pull/137)); Antigravity's $166 had been shown as `—`.\n**Collapsed rows actually collapse** ([#137](https://github.com/aqua5230/usage/pull/137)). `.rank-line`'s `display:grid` outranked the browser's `[hidden]`, so collapsing changed the DOM but not the screen.\n**Session ranking bars no longer pile up in the top-left corner** ([#137](https://github.com/aqua5230/usage/pull/137)); `.tokens-cell` was missing `position:relative`.\n**Expanded model rows are no longer wider than their parent.** Child bars were drawn as share-of-project on the same scale as the parent's share-of-total, so a model at 68.7% of a project looked three times bigger than the project itself."
-            }
-          ]
-        },
-        {
-          "version": "0.30.14",
-          "period": "2026-09-12",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Windows 啟動時不再連閃黑色主控台視窗，子行程全面安靜呼叫",
-                "en": "Windows startup no longer flashes black console windows, child processes fully silenced"
-              },
-              "body": {
-                "zh-TW": "在 Windows 啟動 Usage 時，桌面不再連閃黑色主控台視窗。⟦這好比助手出門採買，每趟都按門鈴吵到客人；改走安靜通道後，前台才重回安寧。⟧usage.exe 打包時無主控台，但呼叫子行程未帶 CREATE_NO_WINDOW，使系統每次都開關黑窗。閃爍次數等於歷史目錄數，因 resolve_project_name() 跑 git worktree list --porcelain。現由 usage_common/subprocess_utils.py 統一為子行程帶旗標與標準輸入 stdin=subprocess.DEVNULL。複製至 ~/.claude/ 的腳本改採內聯實作且經 ast 測試零相依，轉發器補上 FORWARDER_VERSION 與 self_heal()，比照其他 hook（掛鉤，特定事件發生時被觸發的小程式）自動換新。",
-                "en": "When launching Usage on Windows, the desktop no longer repeatedly flashes black console windows. ⟦This is like an assistant going out for errands and ringing the doorbell every trip, disturbing guests; switching to a quiet hallway restores peace to the front desk.⟧ usage.exe is packaged without a console, but calling child processes did not pass CREATE_NO_WINDOW, causing the system to open and close a black window every time. The flash count equaled the number of history directories because resolve_project_name() runs git worktree list --porcelain. usage_common/subprocess_utils.py now uniformly supplies flags for child processes along with standard input stdin=subprocess.DEVNULL. Scripts copied to ~/.claude/ now use inlined implementations verified by ast tests to have zero dependencies, and the forwarder adds FORWARDER_VERSION and self_heal() to auto-update just like other hooks."
-              },
-              "original": "**No more black console windows flashing at Windows startup** ([#130](https://github.com/aqua5230/usage/issues/130)). `usage.exe` is packaged without a console, but no `subprocess` call in the project passed `CREATE_NO_WINDOW`, so Windows created and closed a console window for every child process. The flash count equalled the number of distinct project directories in the Claude history — `resolve_project_name()` runs `git worktree list --porcelain` once per directory and caches per process, so every launch repeated it. A shared `usage_common/subprocess_utils.py` now supplies the `creationflags`, every child process in the project goes through it, and the missing `stdin=subprocess.DEVNULL` was added along the way. `usage_session_resume.py` and `usage_statusline_forwarder.py` are copied verbatim into `~/.claude/` and run by the system Python, so they keep an inlined equivalent instead of importing the project; a new test uses `ast` to keep every copied-out script free of project imports. The forwarder also had no version-upgrade path at all — `_copy_forwarder_script()` was only called on reinstall or when the state looked broken — so it gained `FORWARDER_VERSION` and a `self_heal()` upgrade step like the other hooks."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 面板不再先閃現舊位置，單次設定尺寸坐標徹底消除跳動",
-                "en": "Windows panel no longer flashes at old position, single geometry update eliminates jumpiness"
-              },
-              "body": {
-                "zh-TW": "點開 Windows 面板時，畫面不再先在舊坐標閃爍一下才跳回定位。pywebview 的 WinForms 後端在 resize() 與 move() 都帶 SWP_SHOWWINDOW，使 _place_window_on_ui_thread() 提早在舊坐標顯示視窗，隨後才移到定點。以 1 毫秒取樣實測，面板在錯位可見 36 毫秒，約兩個畫面幀。現在視窗改在隱藏時以單次 SetWindowPos 一起設定位置與大小且不帶顯示旗標，顯示交由 show() 處理；非 Windows 或取不到原生視窗時退回既有備援流程。套用前也會先比對目前的實體像素幾何，完全相同便跳過，避免 _apply_content_height_now() 在高度未變時白白呼叫。⟦這種穿幫宛如舞台劇換幕，道具桌還留在上一場的站位，工作人員就失手拉開布幕才急忙把它推定位。⟧",
-                "en": "When opening the Windows panel, the screen no longer flashes briefly at its old coordinates before snapping into position. The WinForms backend of pywebview passed SWP_SHOWWINDOW in both resize() and move(), causing _place_window_on_ui_thread() to prematurely display the window at previous coordinates before moving it to its target location. Measured at 1 ms sampling, the panel was visible in the wrong position for 36 ms, or about two frames. The window now sets position and size together via a single SetWindowPos without show flags while hidden, leaving display to show(), and falls back to the existing fallback flow off Windows or when native handles are unavailable. It also compares the current physical-pixel geometry before applying and skips entirely if identical, preventing _apply_content_height_now() from being called unnecessarily when height is unchanged. ⟦This glitch is like a stage scene change where the prop table is still at the previous scene's spot when staff accidentally pull open the curtain before hastily shoving it into place.⟧"
-              },
-              "original": "**The Windows panel no longer flashes at its old position before moving.** pywebview's WinForms backend passes `SWP_SHOWWINDOW` in both `resize()` and `move()`, so the `resize()` in `_place_window_on_ui_thread()` made the still-hidden window visible at the previous coordinates; the following `move()` then moved it and only then did `show()` run. Measured at 1 ms sampling, the window sat visible in the wrong place for 36 ms, about two frames. Position and size are now applied while the window is hidden in a single `SetWindowPos` without `SWP_SHOWWINDOW`, leaving display to the existing `show()` path; without a native handle, or off Windows, it falls back to `resize()` + `move()` unchanged. Applying geometry is also skipped entirely when the current physical-pixel geometry already matches, so `_apply_content_height_now()` no longer makes a pointless native call when the content height has not changed."
             }
           ]
         }
