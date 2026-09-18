@@ -5,6 +5,21 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.18] - 2026-09-19
+
+### Changed
+- **The HTML report is laid out as dashboard cards.** Each section sits in a card of the same shape instead of being split by thin rules, which were hard to follow down a long page. Body text and numbers share one sans-serif face with tabular figures; monospace is kept for the `[usage]>` prefix and the command line at the top. The palette is neutral, token counts are no longer amber, and green is kept for trends and peaks. The four summary cards share one three-row grid, so their numbers line up.
+- **Chart labels in the HTML report are larger.** Axis labels went from 9px to 12px and legends from .7rem to .8rem, and the hour axis and the heatmap's month and weekday labels grew with them. The old sizes were unreadable on an ordinary screen.
+
+### Fixed
+- **Switching Claude accounts no longer shows the previous account's quota on Windows.** Claude Code tags the quota it caches in `~/.claude.json` with the account that fetched it and ignores the cache after a switch. usage did not check the tag, and on Windows that cache is the main source of Claude quota. A cache from another account is now skipped. Caches written by older Claude Code versions carry no tag and are still read.
+
+### Internal
+- **Report tests pin session start times to UTC.** Six report tests passed only on UTC machines, so CI stayed green while they failed on Windows at UTC+8. Session start times were converted with an inline `.astimezone()` the tests could not replace; that conversion is now `_session_start_text()`, and the fixtures pin it to UTC next to `_entry_date`. Behavior is unchanged. (#144)
+
+### Docs
+- **Website visual refresh.** The feature section alternates image and text in three rows (quota for every tool, the HTML report, themes) with the remaining features as two-column cards, and the standalone report section merged into the second row. The pacing section is a paper card, the theme preview sizes its frame to the panel so short panels leave no empty space, and install moved to the end. Nav links, the mobile copy button and footer links have larger tap targets, and panel previews show a static poster until they load, in Chinese on the Chinese pages.
+
 ## [0.30.17] - 2026-09-17
 
 ### Changed
