@@ -138,7 +138,7 @@ p, li { text-wrap: pretty; }
 .brand { font-weight: 600; font-size: 16px; letter-spacing: -0.01em; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
 .brand-dot { color: var(--accent); display: inline-flex; }
 .topbar nav { display: flex; align-items: center; gap: 24px; font-size: 15px; color: var(--fg-dim); }
-.topbar nav a { display: inline-flex; align-items: center; gap: 6px; min-height: 24px; transition: color 140ms ease; }
+.topbar nav a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; transition: color 140ms ease; }
 .topbar nav a:hover { color: var(--fg); }
 .mobile-nav { display: none; }
 @media (max-width: 640px) {
@@ -510,6 +510,8 @@ section .subtitle {
   transition: border-color 150ms ease;
 }
 .install-card:hover { border-color: rgba(255, 255, 255, 0.16); }
+.install-card.is-recommended { border-color: rgba(255, 140, 66, 0.45); background: rgba(255, 140, 66, 0.06); }
+.install-card.is-recommended:hover { border-color: rgba(255, 140, 66, 0.6); }
 .install-card .label {
   font-size: 11px;
   font-family: var(--mono);
@@ -600,7 +602,7 @@ pre {
   gap: 28px;
   margin: 0;
 }
-.panel-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 860px; }
+.panel-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 1040px; }
 .panel-chip {
   appearance: none;
   border: 1px solid var(--border);
@@ -627,6 +629,7 @@ pre {
   font-weight: 600;
 }
 .panel-stage {
+  position: relative;
   width: 364px;
   border-radius: 14px;
   overflow: hidden;
@@ -636,15 +639,28 @@ pre {
   flex-shrink: 0;
 }
 .panel-stage iframe { width: 364px; height: 1004px; border: 0; display: block; pointer-events: none; transform-origin: top left; }
+.panel-poster { position: absolute; inset: 0; width: 100%; height: auto; display: block; pointer-events: none; }
 .panel-stage.is-cropped {
   -webkit-mask-image: linear-gradient(#000 80%, transparent);
   mask-image: linear-gradient(#000 80%, transparent);
 }
 @media (max-width: 760px) {
   .panel-picker { gap: 24px; width: 100%; }
+  .chips-scroll { position: relative; width: 100%; }
+  .chips-scroll::before, .chips-scroll::after {
+    content: ""; position: absolute; top: 0; bottom: 4px; width: 56px; pointer-events: none;
+    opacity: 0; transition: opacity 140ms ease;
+  }
+  .chips-scroll::before { left: 0; background: linear-gradient(to right, var(--bg), transparent); }
+  .chips-scroll::after { right: 0; background: linear-gradient(to left, var(--bg), transparent); }
+  .chips-scroll.can-scroll-left::before, .chips-scroll.can-scroll-right::after { opacity: 1; }
   .panel-chips { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; max-width: 100%; padding-bottom: 4px; }
   .panel-chip { flex-shrink: 0; }
   .panel-stage { width: min(364px, 100%); overflow-x: auto; overflow-y: hidden; }
+}
+
+@media (max-width: 760px) {
+  .copy-btn { min-height: 44px; padding: 11px 16px; }
 }
 
 @media (max-width: 800px) {
@@ -692,7 +708,8 @@ footer {
 footer .wrap { display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center; }
 footer p { color: var(--fg-footer); font-size: 14.5px; }
 footer p a { text-decoration: underline; text-underline-offset: 3px; }
-footer .links { display: flex; gap: 20px; font-size: 15px; color: var(--fg-dim); flex-wrap: wrap; justify-content: center; }
+footer .links { display: flex; gap: 14px 40px; font-size: 15px; color: var(--fg-dim); flex-wrap: wrap; justify-content: center; }
+footer .link-group { display: flex; gap: 6px 20px; flex-wrap: wrap; justify-content: center; }
 footer .links a { display: inline-flex; align-items: center; min-height: 24px; transition: color 140ms ease; }
 footer .links a:hover { color: var(--fg); }
 footer .kofi {
@@ -874,8 +891,10 @@ footer .kofi:hover { background: var(--accent-hover); }
     <h2 data-i18n="screen_h2">挑一個你喜歡的面板。</h2>
     <p class="subtitle" data-i18n="screen_sub">14 款內建主題。隨時從 popover 工具列切換。</p>
     <div class="panel-picker">
-      <div class="panel-chips" id="panel-chips" role="group" data-i18n-attr="aria-label:screen_h2" aria-label="挑一個你喜歡的面板。"></div>
-      <div class="panel-stage" tabindex="0"><iframe id="panel-stage" title="usage panel preview" loading="lazy" scrolling="no"></iframe></div>
+      <div class="chips-scroll" id="chips-scroll">
+        <div class="panel-chips" id="panel-chips" role="group" data-i18n-attr="aria-label:screen_h2" aria-label="挑一個你喜歡的面板。"></div>
+      </div>
+      <div class="panel-stage" tabindex="0"><img class="panel-poster" id="panel-poster" width="364" height="1183" loading="lazy" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="../classic.png" data-img-en="../classic.en.png" data-img-cjk="../classic.png" alt=""><iframe id="panel-stage" title="usage panel preview" loading="lazy" scrolling="no"></iframe></div>
     </div>
   </div>
 </section>
@@ -886,7 +905,7 @@ footer .kofi:hover { background: var(--accent-hover); }
     <h2 data-i18n="install_h2">10 秒安裝完成。</h2>
     <p class="subtitle" data-i18n="install_sub">四種方式都免費、都 AGPL-3.0。</p>
     <div class="install-row">
-      <div class="install-card">
+      <div class="install-card is-recommended">
         <div class="label" data-i18n="install_label_rec">推薦</div>
         <h3 data-i18n="install_h_brew">Homebrew</h3>
         <p data-i18n="install_p_brew">一行指令搞定。日後 <code>brew upgrade</code> 自動更新。</p>
@@ -925,12 +944,16 @@ footer .kofi:hover { background: var(--accent-hover); }
   <div class="wrap">
     <p><span data-i18n="footer_tag_pre">作者：</span> <a href="https://github.com/aqua5230" target="_blank" rel="noopener" style="color: var(--fg-dim);">@aqua5230</a> <span data-i18n="footer_tag_post">· AGPL-3.0 · 不上雲、不追蹤，只屬於你。</span></p>
     <div class="links">
-      <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
-      <a href="https://github.com/aqua5230/usage/releases" target="_blank" rel="noopener" data-i18n="footer_releases">Releases</a>
-      <a href="https://github.com/aqua5230/usage/blob/main/CHANGELOG.md" target="_blank" rel="noopener" data-i18n="footer_changelog">Changelog</a>
-      <a href="https://github.com/aqua5230/usage/blob/main/LICENSE" target="_blank" rel="noopener" data-i18n="footer_license">License</a>
-      <a href="https://www.bestpractices.dev/projects/13538" target="_blank" rel="noopener" data-i18n="footer_openssf">OpenSSF Best Practices</a>
-      <a href="https://github.com/aqua5230/usage#code-signing-policy" target="_blank" rel="noopener" data-i18n="footer_signing">程式碼簽章政策</a>
+      <span class="link-group">
+        <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://github.com/aqua5230/usage/releases" target="_blank" rel="noopener" data-i18n="footer_releases">Releases</a>
+        <a href="https://github.com/aqua5230/usage/blob/main/CHANGELOG.md" target="_blank" rel="noopener" data-i18n="footer_changelog">Changelog</a>
+      </span>
+      <span class="link-group">
+        <a href="https://github.com/aqua5230/usage/blob/main/LICENSE" target="_blank" rel="noopener" data-i18n="footer_license">License</a>
+        <a href="https://www.bestpractices.dev/projects/13538" target="_blank" rel="noopener" data-i18n="footer_openssf">OpenSSF Best Practices</a>
+        <a href="https://github.com/aqua5230/usage#code-signing-policy" target="_blank" rel="noopener" data-i18n="footer_signing">程式碼簽章政策</a>
+      </span>
     </div>
     <a class="kofi" href="https://ko-fi.com/lollapalooza" target="_blank" rel="noopener" data-i18n="footer_kofi">☕ 請我喝杯咖啡</a>
   </div>
@@ -1525,6 +1548,16 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
   let panels = [];
   let language = 'en';
 
+  const chipsScroll = document.getElementById('chips-scroll');
+  function updateChipFade() {
+    if (!chipsScroll) return;
+    const more = chips.scrollWidth - chips.clientWidth;
+    chipsScroll.classList.toggle('can-scroll-left', chips.scrollLeft > 4);
+    chipsScroll.classList.toggle('can-scroll-right', more > 4 && chips.scrollLeft < more - 4);
+  }
+  chips.addEventListener('scroll', updateChipFade, { passive: true });
+  window.addEventListener('resize', updateChipFade);
+
   // 面板自己量出的自然高度，透過 make_panel_demo.py 補的假 webkit 橋接傳過來。
   const box = stage.parentElement;
   const topbar = document.querySelector('.topbar');
@@ -1568,6 +1601,8 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
     stage.addEventListener('load', function once() {
       stage.removeEventListener('load', once);
       stage.contentWindow.postMessage({ usageDemoLanguage: language }, '*');
+      const poster = document.getElementById('panel-poster');
+      if (poster) poster.remove();
     });
     for (const button of chips.children) {
       button.setAttribute('aria-pressed', String(button.dataset.id === id));
@@ -1595,6 +1630,7 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
       chips.append(button);
     });
     show(panels[0].id);
+    updateChipFade();
   }).catch(function () { /* 面板展示載不到就留空，不影響頁面其他部分 */ });
 })();
 
