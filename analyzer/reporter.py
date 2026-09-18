@@ -270,6 +270,12 @@ def _entry_date(entry: UsageEntry) -> date:
     return ts.date()
 
 
+def _session_start_text(ts: datetime) -> str:
+    if ts.tzinfo:
+        ts = ts.astimezone()
+    return ts.strftime("%Y-%m-%d %H:%M")
+
+
 def _period_bounds(period: str, today: date) -> tuple[date | None, date]:
     if period == "today":
         return today, today
@@ -1205,7 +1211,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     sessions_by_tokens = sorted(sessions_by_cost, key=lambda session: session.total_tokens, reverse=True)
     for session in sessions_by_tokens[:5]:
         top_sessions.append({
-            "start_time": session.start_time.astimezone().strftime("%Y-%m-%d %H:%M") if session.start_time.tzinfo else session.start_time.strftime("%Y-%m-%d %H:%M"),
+            "start_time": _session_start_text(session.start_time),
             "project": session.project or "unknown",
             "model": session.model or "unknown",
             "duration_min": session.duration_minutes,
@@ -1215,7 +1221,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
 
     session_rows: list[SessionRowData] = []
     for session in sessions_by_cost:
-        start_time = session.start_time.astimezone().strftime("%Y-%m-%d %H:%M") if session.start_time.tzinfo else session.start_time.strftime("%Y-%m-%d %H:%M")
+        start_time = _session_start_text(session.start_time)
         session_rows.append({
             "date_idx": date_indices[start_time[:10]],
             "project_idx": project_indices[session.project or "unknown"],

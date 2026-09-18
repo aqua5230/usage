@@ -135,7 +135,13 @@ def _sandbox_report(
             ts = ts.astimezone(UTC)
         return ts.date()
 
+    def _session_start_text_utc(ts: datetime) -> str:
+        if ts.tzinfo:
+            ts = ts.astimezone(UTC)
+        return ts.strftime("%Y-%m-%d %H:%M")
+
     monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
+    monkeypatch.setattr(reporter, "_session_start_text", _session_start_text_utc)
     monkeypatch.setattr(usage_snapshot, "_entry_date", _entry_date_utc)
     monkeypatch.setattr(usage_snapshot, "_datetime_local_date", _date_utc)
     monkeypatch.setattr(usage_snapshot, "_local_tz", lambda: UTC)

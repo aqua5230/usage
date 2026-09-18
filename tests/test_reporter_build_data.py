@@ -112,15 +112,21 @@ def _sandbox_reporter_dependencies(
         time.tzset()
 
     # TZ + tzset only pins the local zone on POSIX — Windows has no tzset, so
-    # entry dates would still be bucketed in the machine's zone there. Pin the
-    # conversion point itself to UTC as well.
+    # entry dates and session start times would still be converted in the
+    # machine's zone there. Pin the conversion points themselves to UTC as well.
     def _entry_date_utc(entry: UsageEntry) -> date:
         ts = entry.timestamp
         if ts.tzinfo:
             ts = ts.astimezone(UTC)
         return ts.date()
 
+    def _session_start_text_utc(ts: datetime) -> str:
+        if ts.tzinfo:
+            ts = ts.astimezone(UTC)
+        return ts.strftime("%Y-%m-%d %H:%M")
+
     monkeypatch.setattr(reporter, "_entry_date", _entry_date_utc)
+    monkeypatch.setattr(reporter, "_session_start_text", _session_start_text_utc)
 
     monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", tmp_path / ".usage" / "year_cache.json")
     monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", tmp_path / ".usage" / "year_ledger.json")
