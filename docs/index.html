@@ -317,7 +317,15 @@ p, li { text-wrap: pretty; }
 .btn-secondary:active {
   background: rgba(255, 255, 255, 0.03);
 }
-.star-count { border-left: 1px solid var(--border); margin-left: 8px; padding: 0 8px; font-variant-numeric: tabular-nums; font-weight: inherit; }
+.star-count {
+  align-self: stretch; display: inline-flex; align-items: center;
+  margin-left: 4px; padding-left: 12px;
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--fg-dim); font-variant-numeric: tabular-nums;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+.star-count[hidden] { display: none; }
+.btn-secondary:hover .star-count { color: var(--fg); border-color: rgba(255, 255, 255, 0.24); }
 .shot {
   margin: 0 auto;
   border-radius: 10px;
