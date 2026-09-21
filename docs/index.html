@@ -4,10 +4,10 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <meta name="theme-color" content="#0a0a0a" />
-<title>usage — pin your Claude Code, Codex &amp; Antigravity quota to the menu bar</title>
-<meta name="description" data-i18n-attr="content:meta_desc" content="macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. No LLM API calls, so watching your quota never costs you tokens. HTML reports, 14 visual themes, AGPL-3.0." />
-<meta property="og:title" content="usage — pin your Claude Code, Codex & Antigravity quota to the menu bar" />
-<meta property="og:description" content="macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. No LLM API calls, so watching your quota never costs you tokens." />
+<title>usage — Claude Code, Codex, Antigravity &amp; Grok quota tracker</title>
+<meta name="description" data-i18n-attr="content:meta_desc" content="macOS menu bar and Windows tray app for Claude Code, Codex, Antigravity, and Grok quota, tokens, and cost. No LLM API calls, so it never spends your tokens." />
+<meta property="og:title" content="usage — Claude Code, Codex, Antigravity &amp; Grok quota tracker" />
+<meta property="og:description" content="macOS menu bar and Windows tray app for Claude Code, Codex, Antigravity, and Grok quota, tokens, and cost. No LLM API calls, so it never spends your tokens." />
 <meta property="og:image" content="https://aqua5230.github.io/usage/og-image.jpg" />
 <meta property="og:url" content="https://aqua5230.github.io/usage/" />
 <meta property="og:type" content="website" />
@@ -41,6 +41,7 @@
   "operatingSystem": "macOS 12 or later, Windows 10, Windows 11",
   "description": "macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. Reading usage never calls an LLM inference API, so watching your quota never costs you tokens.",
   "url": "https://aqua5230.github.io/usage/",
+  "inLanguage": "en",
   "downloadUrl": "https://github.com/aqua5230/usage/releases/latest",
   "codeRepository": "https://github.com/aqua5230/usage",
   "license": "https://www.gnu.org/licenses/agpl-3.0.html",
@@ -286,7 +287,10 @@ p, li { text-wrap: pretty; }
   line-height: 1.65;
   text-wrap: balance;
 }
-.cta { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; margin-bottom: 40px; }
+.cta { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; }
+.cta-note { margin: 12px 0 40px; min-height: 24px; font-size: 13px; color: var(--fg-dim); }
+.cta-note a { display: inline-flex; align-items: center; min-height: 24px; color: inherit; text-decoration: underline; }
+.cta-note a:hover { color: var(--fg); }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   font-size: 15px; font-weight: 550;
@@ -313,6 +317,7 @@ p, li { text-wrap: pretty; }
 .btn-secondary:active {
   background: rgba(255, 255, 255, 0.03);
 }
+.star-count { border-left: 1px solid var(--border); margin-left: 8px; padding: 0 8px; font-variant-numeric: tabular-nums; font-weight: inherit; }
 .shot {
   margin: 0 auto;
   border-radius: 10px;
@@ -526,6 +531,8 @@ section .subtitle {
 }
 .install-card h3 { font-size: 17px; margin-bottom: 6px; font-weight: 600; }
 .install-card p { color: var(--fg-dim); font-size: 14.5px; margin-bottom: 14px; line-height: 1.45; flex-grow: 1; }
+.install-note { max-width: 100%; margin: 24px auto 0; color: var(--fg-dim); font-size: 13.5px; line-height: 1.45; overflow-wrap: anywhere; scroll-margin-top: 68px; }
+.install-note strong { color: var(--fg); }
 .install-card pre {
   white-space: pre;
   overflow-wrap: normal;
@@ -772,8 +779,9 @@ footer .kofi:hover { background: var(--accent-hover); }
     <p class="lead" data-i18n="lead">A tiny menu bar app for macOS (and system tray app for Windows) that shows how much of your AI quota is left, like a battery percentage for tokens. No LLM API calls, so watching your quota never costs you tokens.</p>
     <div class="cta">
       <a class="btn btn-primary" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="cta_download">↓ Download .app</a>
-      <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener" data-i18n="cta_star">★ Star on GitHub</a>
+      <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener"><span data-i18n="cta_star">★ Star on GitHub</span><span class="star-count" id="star-count" hidden></span></a>
     </div>
+    <p class="cta-note"><a href="#first-launch" data-i18n="hero_note">First launch blocked by macOS?</a></p>
     <div class="shot">
       <img width="1448" height="1086" fetchpriority="high" decoding="async" src="showcase-v3.en.webp" srcset="showcase-v3.en-800.webp 800w, showcase-v3.en.webp 1448w" sizes="(max-width: 1080px) 100vw, 1030px" data-i18n-attr="alt:hero_img_alt" alt="usage running in the macOS menu bar, with the quota popover open on a MacBook" />
     </div>
@@ -784,7 +792,7 @@ footer .kofi:hover { background: var(--accent-hover); }
   <div class="wrap">
     <div class="item"><span class="dot"></span><span data-i18n="strip_1"><strong>No LLM API calls</strong> — watching quota never costs tokens</span></div>
     <div class="item"><span class="dot"></span><span data-i18n="strip_2"><strong>Local-first</strong> — Claude Code &amp; Codex read straight from your disk</span></div>
-    <div class="item"><span class="dot"></span><span data-i18n="strip_3"><strong>No telemetry</strong>, no accounts, no cloud</span></div>
+    <div class="item"><span class="dot"></span><span data-i18n="strip_3"><strong>No telemetry</strong>, no accounts, no uploads</span></div>
   </div>
 </div>
 
@@ -815,8 +823,8 @@ footer .kofi:hover { background: var(--accent-hover); }
       <div class="chess-row">
         <div class="chess-txt">
           <span class="chess-num">01</span>
-          <h3 data-i18n="card2_h">Claude Code, Codex &amp; Antigravity, one app</h3>
-          <p data-i18n="card2_p">Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.</p>
+          <h3 data-i18n="card2_h">Claude Code, Codex, Antigravity &amp; Grok, one app</h3>
+          <p data-i18n="card2_p">Track Anthropic, OpenAI, Google, and xAI quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.</p>
         </div>
         <div class="chess-media m-panel"><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="classic.en.png" data-img-en="classic.en.png" data-img-cjk="classic.png" alt="" /></div>
       </div>
@@ -826,7 +834,7 @@ footer .kofi:hover { background: var(--accent-hover); }
           <h3 data-i18n="card4_h">One-click HTML reports</h3>
           <p data-i18n="card4_p">Today, week, month, or all-time: get a shareable HTML report with token / cost trends, top projects, and model breakdown. Project names hide by default for client-safe sharing.</p>
         </div>
-        <div class="chess-media m-report"><img width="976" height="1219" loading="lazy" decoding="async" data-shot data-size-en="976x1219" data-size-cjk="995x1219" src="report.en.png" data-img-en="report.en.png" data-img-cjk="report.png" alt="HTML usage report" /></div>
+        <div class="chess-media m-report"><img width="976" height="1219" loading="lazy" decoding="async" data-shot data-size-en="976x1219" data-size-cjk="995x1219" src="report.en.png" data-img-en="report.en.png" data-img-cjk="report.png" data-i18n-attr="alt:report_alt" alt="HTML usage report" /></div>
       </div>
       <div class="chess-row">
         <div class="chess-txt">
@@ -834,7 +842,7 @@ footer .kofi:hover { background: var(--accent-hover); }
           <h3 data-i18n="card5_h">14 visual panel themes</h3>
           <p data-i18n="card5_p">Matrix digital rain, Windows 95, retro newspaper, midnight aquarium, World Cup FIFA HUD, Lepidoptera blueprint. Pick a mood for your menu bar pop-out.</p>
         </div>
-        <div class="chess-media m-fan"><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="matrix.en.png" data-img-en="matrix.en.png" data-img-cjk="matrix.png" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="newspaper.en.png" data-img-en="newspaper.en.png" data-img-cjk="newspaper.png" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="aquarium.en.png" data-img-en="aquarium.en.png" data-img-cjk="aquarium.png" alt="" /></div>
+        <div class="chess-media m-fan"><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="matrix.en.webp" data-img-en="matrix.en.webp" data-img-cjk="matrix.webp" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="newspaper.en.webp" data-img-en="newspaper.en.webp" data-img-cjk="newspaper.webp" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="aquarium.en.webp" data-img-en="aquarium.en.webp" data-img-cjk="aquarium.webp" alt="" /></div>
       </div>
     </div>
     <div class="grid">
@@ -893,7 +901,7 @@ footer .kofi:hover { background: var(--accent-hover); }
       <div class="chips-scroll" id="chips-scroll">
         <div class="panel-chips" id="panel-chips" role="group" data-i18n-attr="aria-label:screen_h2" aria-label="Pick a panel that fits your mood."></div>
       </div>
-      <div class="panel-stage" tabindex="0"><img class="panel-poster" id="panel-poster" width="364" height="1183" loading="lazy" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="classic.en.png" data-img-en="classic.en.png" data-img-cjk="classic.png" alt=""><iframe id="panel-stage" title="usage panel preview" loading="lazy" scrolling="no"></iframe></div>
+      <div class="panel-stage" tabindex="0"><img class="panel-poster" id="panel-poster" width="364" height="1183" loading="lazy" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="classic.en.png" data-img-en="classic.en.png" data-img-cjk="classic.png" alt=""><iframe id="panel-stage" title="usage panel preview" data-i18n-attr="title:preview_title" loading="lazy" scrolling="no"></iframe></div>
     </div>
   </div>
 </section>
@@ -935,13 +943,14 @@ footer .kofi:hover { background: var(--accent-hover); }
         </div>
       </div>
     </div>
+    <p class="install-note" id="first-launch" data-i18n="install_note"><strong>macOS blocked the first launch?</strong> Open System Settings → Privacy &amp; Security, scroll down, and click <strong>Open Anyway</strong>. On macOS 14 or earlier, right-click <code>usage.app</code> → Open instead.</p>
   </div>
 </section>
 </main>
 
 <footer>
   <div class="wrap">
-    <p><span data-i18n="footer_tag_pre">Built by</span> <a href="https://github.com/aqua5230" target="_blank" rel="noopener" style="color: var(--fg-dim);">@aqua5230</a> <span data-i18n="footer_tag_post">· AGPL-3.0 · No cloud. No tracking. Just yours.</span></p>
+    <p><span data-i18n="footer_tag_pre">Built by</span> <a href="https://github.com/aqua5230" target="_blank" rel="noopener" style="color: var(--fg-dim);">@aqua5230</a> <span data-i18n="footer_tag_post">· AGPL-3.0 · No uploads. No tracking. Just yours.</span></p>
     <div class="links">
       <span class="link-group">
         <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
@@ -964,8 +973,8 @@ footer .kofi:hover { background: var(--accent-hover); }
 const T = {
   'en': {
     _label: 'EN',
-    meta_title: 'usage — pin your Claude Code, Codex & Antigravity quota to the menu bar',
-    meta_desc: 'macOS menu bar and Windows tray tracker for Claude Code, Codex, Antigravity, and Grok CLI quota, tokens, and cost. No LLM API calls, so watching your quota never costs you tokens. HTML reports, 14 visual themes, AGPL-3.0.',
+    meta_title: 'usage — Claude Code, Codex, Antigravity & Grok quota tracker',
+    meta_desc: 'macOS menu bar and Windows tray app for Claude Code, Codex, Antigravity, and Grok quota, tokens, and cost. No LLM API calls, so it never spends your tokens.',
     nav_features: 'Features',
     nav_resume: 'Resume',
     nav_install: 'Install',
@@ -979,9 +988,10 @@ const T = {
     hero_img_alt: 'usage running in the macOS menu bar, with the quota popover open on a MacBook',
     cta_download: '↓ Download .app',
     cta_star: '★ Star on GitHub',
+    hero_note: 'First launch blocked by macOS?',
     strip_1: '<strong>No LLM API calls</strong> — watching quota never costs tokens',
     strip_2: '<strong>Local-first</strong> — Claude Code &amp; Codex read straight from your disk',
-    strip_3: '<strong>No telemetry</strong>, no accounts, no cloud',
+    strip_3: '<strong>No telemetry</strong>, no accounts, no uploads',
     features_h2: 'Built for developers who burn tokens.',
     features_sub: "Stop guessing if you’re about to hit the rate limit mid-refactor.",
     card1_h: '5-hour &amp; 7-day quota at a glance',
@@ -992,8 +1002,8 @@ const T = {
     q_used_w: '38% used',
     q_reset_s: 'Resets in 2h 14m',
     q_reset_w: 'Resets in 3d 6h',
-    card2_h: 'Claude Code, Codex &amp; Antigravity, one app',
-    card2_p: 'Track Anthropic, OpenAI, and Google quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.',
+    card2_h: 'Claude Code, Codex, Antigravity &amp; Grok, one app',
+    card2_p: 'Track Anthropic, OpenAI, Google, and xAI quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.',
     card14_h: 'Grok CLI, too',
     card14_p: "A fourth card reads Grok CLI’s weekly credit percentage straight from its own local debug log, with no network call. Its per-request token usage still counts toward today’s cost and project totals, just like Claude Code and Codex.",
     card3_h: 'Local-first by design',
@@ -1029,13 +1039,16 @@ const T = {
     install_h_uvx: 'uvx (no install)',
     install_p_uvx: 'Terminal interface only, with no menu bar or tray. Works on Linux too; uv brings its own Python.',
     install_btn_releases: '→ Open Releases page',
+    install_note: '<strong>macOS blocked the first launch?</strong> Open System Settings → Privacy &amp; Security, scroll down, and click <strong>Open Anyway</strong>. On macOS 14 or earlier, right-click <code>usage.app</code> → Open instead.',
     copy_btn: 'Copy',
     copy_done: 'Copied',
     copy_fail: 'Copy failed',
     screen_h2: 'Pick a panel that fits your mood.',
     screen_sub: '14 built-in themes. Change anytime from the popover toolbar.',
+    report_alt: 'HTML usage report',
+    preview_title: 'usage panel preview',
     footer_tag_pre: 'Built by',
-    footer_tag_post: '· AGPL-3.0 · No cloud. No tracking. Just yours.',
+    footer_tag_post: '· AGPL-3.0 · No uploads. No tracking. Just yours.',
     footer_releases: 'Releases',
     footer_changelog: 'Changelog',
     footer_license: 'License',
@@ -1045,7 +1058,7 @@ const T = {
   },
   'zh-TW': {
     _label: '繁中',
-    meta_title: 'usage — 把 Claude Code、Codex 和 Antigravity 的用量釘在 menu bar',
+    meta_title: 'usage — 把 Claude Code、Codex、Antigravity 和 Grok 的用量釘在 menu bar',
     meta_desc: 'macOS menu bar 與 Windows 系統匣工具，監控 Claude Code、Codex、Antigravity 和 Grok CLI 的配額、token 用量與成本。不呼叫任何 LLM API——看配額永遠不會消耗你的 token。HTML 報告、14 款主題、AGPL-3.0。',
     nav_features: '功能',
     nav_resume: '進度管家',
@@ -1060,9 +1073,10 @@ const T = {
     hero_img_alt: 'usage 在 macOS 選單列上執行，MacBook 上開著額度面板',
     cta_download: '↓ 下載 .app',
     cta_star: '★ 給個星星',
+    hero_note: '第一次打開被 macOS 擋住？',
     strip_1: '<strong>不呼叫 LLM API</strong>——看配額永遠不花 token',
     strip_2: '<strong>本地優先</strong>——Claude Code 與 Codex 直接讀你磁碟上的檔案',
-    strip_3: '<strong>無遙測</strong>、無帳號、無雲端',
+    strip_3: '<strong>無遙測</strong>、無帳號、不上傳',
     features_h2: '為燒 token 的開發者打造。',
     features_sub: '別再憑感覺猜還剩多少配額了。',
     card1_h: '5 小時與 7 天配額一覽',
@@ -1073,8 +1087,8 @@ const T = {
     q_used_w: '38% 已用',
     q_reset_s: '重置 2小時 14分鐘',
     q_reset_w: '重置 3天 6小時',
-    card2_h: 'Claude Code、Codex、Antigravity 一個 app 搞定',
-    card2_p: 'Anthropic、OpenAI 與 Google 的配額並排顯示。Codex 從 <code>~/.codex/sessions/</code> 自動偵測，不需設定；Antigravity 則用它自己的 CLI 已經存好的登入身分。',
+    card2_h: 'Claude Code、Codex、Antigravity、Grok 一個 app 搞定',
+    card2_p: 'Anthropic、OpenAI、Google 與 xAI 的配額並排顯示。Codex 從 <code>~/.codex/sessions/</code> 自動偵測，不需設定；Antigravity 則用它自己的 CLI 已經存好的登入身分。',
     card14_h: 'Grok CLI 也算進來',
     card14_p: '第四張卡片直接讀 Grok CLI 自己的本地除錯 log 算出週配額百分比，不連網。它的逐次 token 用量一樣會算進今日花費和各專案總計，跟 Claude Code、Codex 一樣。',
     card3_h: '天生本地優先',
@@ -1110,13 +1124,16 @@ const T = {
     install_h_uvx: 'uvx（零安裝）',
     install_p_uvx: '只有終端機介面，沒有選單列或系統匣。Linux 也能跑，uv 會自備 Python。',
     install_btn_releases: '→ 開啟 Releases 頁面',
+    install_note: '<strong>第一次打開被 macOS 擋住？</strong>打開「系統設定」→「隱私權與安全性」，往下捲，按<strong>「強制打開」</strong>。macOS 14 以前的版本，改成在 <code>usage.app</code> 上按右鍵 →「打開」。',
     copy_btn: '複製',
     copy_done: '已複製',
     copy_fail: '複製失敗',
     screen_h2: '挑一個你喜歡的面板。',
     screen_sub: '14 款內建主題。隨時從 popover 工具列切換。',
+    report_alt: 'HTML 用量報告',
+    preview_title: 'usage 面板預覽',
     footer_tag_pre: '作者：',
-    footer_tag_post: '· AGPL-3.0 · 不上雲、不追蹤，只屬於你。',
+    footer_tag_post: '· AGPL-3.0 · 不上傳、不追蹤，只屬於你。',
     footer_releases: 'Releases',
     footer_changelog: 'Changelog',
     footer_license: 'License',
@@ -1126,7 +1143,7 @@ const T = {
   },
   'zh-CN': {
     _label: '简中',
-    meta_title: 'usage — 把 Claude Code、Codex 和 Antigravity 的用量钉在 menu bar',
+    meta_title: 'usage — 把 Claude Code、Codex、Antigravity 和 Grok 的用量钉在 menu bar',
     meta_desc: 'macOS menu bar 与 Windows 系统托盘工具，监控 Claude Code、Codex、Antigravity 和 Grok CLI 的额度、token 用量与花费。不调用任何 LLM API——看额度永远不会消耗你的 token。HTML 报告、14 款主题、AGPL-3.0。',
     nav_features: '功能',
     nav_resume: '进度管家',
@@ -1141,9 +1158,10 @@ const T = {
     hero_img_alt: 'usage 在 macOS 菜单栏上运行，MacBook 上开着额度面板',
     cta_download: '↓ 下载 .app',
     cta_star: '★ 给个星星',
+    hero_note: '首次打开被 macOS 拦截？',
     strip_1: '<strong>不调用 LLM API</strong>——看额度永远不花 token',
     strip_2: '<strong>本地优先</strong>——Claude Code 与 Codex 直接读你磁盘上的文件',
-    strip_3: '<strong>无遥测</strong>、无账号、无云端',
+    strip_3: '<strong>无遥测</strong>、无账号、不上传',
     features_h2: '为烧 token 的开发者打造。',
     features_sub: '别再凭感觉猜还剩多少额度了。',
     card1_h: '5 小时与 7 天额度一览',
@@ -1154,8 +1172,8 @@ const T = {
     q_used_w: '38% 已用',
     q_reset_s: '重置 2小时 14分钟',
     q_reset_w: '重置 3天 6小时',
-    card2_h: 'Claude Code、Codex、Antigravity 一个 app 搞定',
-    card2_p: 'Anthropic、OpenAI 与 Google 的额度并排显示。Codex 从 <code>~/.codex/sessions/</code> 自动检测，无需配置；Antigravity 则使用它自己的 CLI 已保存的登录身份。',
+    card2_h: 'Claude Code、Codex、Antigravity、Grok 一个 app 搞定',
+    card2_p: 'Anthropic、OpenAI、Google 与 xAI 的额度并排显示。Codex 从 <code>~/.codex/sessions/</code> 自动检测，无需配置；Antigravity 则使用它自己的 CLI 已保存的登录身份。',
     card14_h: 'Grok CLI 也算进来',
     card14_p: '第四张卡片直接读 Grok CLI 自己的本地调试 log 算出周额度百分比，不联网。它的逐次 token 用量一样会算进今日花费和各项目总计，跟 Claude Code、Codex 一样。',
     card3_h: '天生本地优先',
@@ -1191,13 +1209,16 @@ const T = {
     install_h_uvx: 'uvx（零安装）',
     install_p_uvx: '只有终端界面，没有菜单栏或系统托盘。Linux 也能跑，uv 会自备 Python。',
     install_btn_releases: '→ 打开 Releases 页面',
+    install_note: '<strong>首次打开被 macOS 拦截？</strong>打开“系统设置”→“隐私与安全性”，向下滚动，点击<strong>“仍要打开”</strong>。macOS 14 及更早版本，改为右键点击 <code>usage.app</code> →“打开”。',
     copy_btn: '复制',
     copy_done: '已复制',
     copy_fail: '复制失败',
     screen_h2: '挑一个你喜欢的面板。',
     screen_sub: '14 款内建主题。随时从 popover 工具栏切换。',
+    report_alt: 'HTML 用量报告',
+    preview_title: 'usage 面板预览',
     footer_tag_pre: '作者：',
-    footer_tag_post: '· AGPL-3.0 · 不上云、不追踪，只属于你。',
+    footer_tag_post: '· AGPL-3.0 · 不上传、不追踪，只属于你。',
     footer_releases: 'Releases',
     footer_changelog: 'Changelog',
     footer_license: 'License',
@@ -1207,7 +1228,7 @@ const T = {
   },
   'ja': {
     _label: '日本語',
-    meta_title: 'usage — Claude Code、Codex、Antigravity のクォータをメニューバーに固定',
+    meta_title: 'usage — Claude Code、Codex、Antigravity、Grok のクォータをメニューバーに固定',
     meta_desc: 'macOS メニューバーと Windows システムトレイで Claude Code、Codex、Antigravity、Grok CLI のクォータ、トークン使用量、コストを監視。LLM API を呼び出さないため、クォータを確認してもトークンを消費しません。HTML レポート、14 種テーマ、AGPL-3.0。',
     nav_features: '機能',
     nav_resume: '続きから',
@@ -1222,9 +1243,10 @@ const T = {
     hero_img_alt: 'macOS のメニューバーで動作する usage と、MacBook 上で開いたクォータパネル',
     cta_download: '↓ .app をダウンロード',
     cta_star: '★ GitHub でスター',
+    hero_note: '初回起動がブロックされた？',
     strip_1: '<strong>LLM API 呼び出しなし</strong> — クォータの確認でトークンは消費されません',
     strip_2: '<strong>ローカルファースト</strong> — Claude Code と Codex はディスク上のファイルを直接読み取り',
-    strip_3: '<strong>テレメトリなし</strong>、アカウント不要、クラウド不要',
+    strip_3: '<strong>テレメトリなし</strong>、アカウント不要、アップロードなし',
     features_h2: 'トークンを燃やす開発者のために。',
     features_sub: 'リファクタリング中にレート制限に達するかどうか、もう推測しなくていい。',
     card1_h: '5 時間 & 7 日のクォータをひと目で',
@@ -1235,8 +1257,8 @@ const T = {
     q_used_w: '38% 使用済み',
     q_reset_s: '2時間 14分後にリセット',
     q_reset_w: '3日 6時間後にリセット',
-    card2_h: 'Claude Code、Codex、Antigravity を 1 つのアプリで',
-    card2_p: 'Anthropic、OpenAI、Google のクォータを並べて追跡。Codex は <code>~/.codex/sessions/</code> から設定不要で自動検出。Antigravity は CLI が保存済みのサインイン情報を利用します。',
+    card2_h: 'Claude Code、Codex、Antigravity、Grok を 1 つのアプリで',
+    card2_p: 'Anthropic、OpenAI、Google、xAI のクォータを並べて追跡。Codex は <code>~/.codex/sessions/</code> から設定不要で自動検出。Antigravity は CLI が保存済みのサインイン情報を利用します。',
     card14_h: 'Grok CLI にも対応',
     card14_p: '4枚目のカードは Grok CLI 自身のローカルデバッグログから週間クレジット率を読み取ります — ネットワーク通信なし。トークン使用量は Claude Code や Codex と同様、当日のコストとプロジェクト合計にも反映されます。',
     card3_h: '設計段階からローカルファースト',
@@ -1272,13 +1294,16 @@ const T = {
     install_h_uvx: 'uvx（インストール不要）',
     install_p_uvx: 'ターミナルインターフェースのみ。メニューバーもトレイもありません。Linuxでも動作し、uvがPythonを用意します。',
     install_btn_releases: '→ Releases ページを開く',
+    install_note: '<strong>初回起動が macOS にブロックされた？</strong>「システム設定」→「プライバシーとセキュリティ」を開き、下へスクロールして<strong>「このまま開く」</strong>をクリック。macOS 14 以前では <code>usage.app</code> を右クリック →「開く」。',
     copy_btn: 'コピー',
     copy_done: 'コピー済み',
     copy_fail: 'コピー失敗',
     screen_h2: '気分に合うパネルを選んで。',
     screen_sub: '14 種の内蔵テーマ。ポップオーバーのツールバーからいつでも切り替え可能。',
+    report_alt: 'HTML 使用量レポート',
+    preview_title: 'usage パネルのプレビュー',
     footer_tag_pre: '制作：',
-    footer_tag_post: '· AGPL-3.0 · クラウドなし、トラッキングなし。あなただけのもの。',
+    footer_tag_post: '· AGPL-3.0 · アップロードなし、トラッキングなし。あなただけのもの。',
     footer_releases: 'Releases',
     footer_changelog: 'Changelog',
     footer_license: 'License',
@@ -1288,7 +1313,7 @@ const T = {
   },
   'ko': {
     _label: '한국어',
-    meta_title: 'usage — Claude Code, Codex, Antigravity의 한도를 메뉴 바에 고정',
+    meta_title: 'usage — Claude Code, Codex, Antigravity, Grok의 한도를 메뉴 바에 고정',
     meta_desc: 'macOS 메뉴 바와 Windows 시스템 트레이에서 Claude Code, Codex, Antigravity, Grok CLI의 한도, 토큰 사용량, 비용을 모니터링. LLM API를 호출하지 않아 한도를 확인해도 토큰이 소비되지 않음. HTML 보고서, 14가지 테마, AGPL-3.0.',
     nav_features: '기능',
     nav_resume: '이어하기',
@@ -1303,9 +1328,10 @@ const T = {
     hero_img_alt: 'macOS 메뉴 막대에서 실행 중인 usage와 MacBook에 열린 할당량 패널',
     cta_download: '↓ .app 다운로드',
     cta_star: '★ GitHub에서 스타',
+    hero_note: '첫 실행이 차단되었나요?',
     strip_1: '<strong>LLM API 호출 없음</strong> — 한도를 확인해도 토큰이 소비되지 않음',
     strip_2: '<strong>로컬 우선</strong> — Claude Code와 Codex는 디스크 파일을 직접 읽음',
-    strip_3: '<strong>텔레메트리 없음</strong>, 계정 없음, 클라우드 없음',
+    strip_3: '<strong>텔레메트리 없음</strong>, 계정 없음, 업로드 없음',
     features_h2: '토큰 태우는 개발자를 위한 도구.',
     features_sub: '리팩토링 중에 한도에 도달할지 추측하지 마세요.',
     card1_h: '5시간과 7일 한도 한눈에',
@@ -1316,8 +1342,8 @@ const T = {
     q_used_w: '38% 사용됨',
     q_reset_s: '2시간 14분 후 초기화',
     q_reset_w: '3일 6시간 후 초기화',
-    card2_h: 'Claude Code, Codex, Antigravity를 한 앱에서',
-    card2_p: 'Anthropic, OpenAI, Google 한도를 나란히 추적. Codex는 <code>~/.codex/sessions/</code>에서 설정 없이 자동 감지되고, Antigravity는 자체 CLI가 이미 저장해 둔 로그인 정보를 사용합니다.',
+    card2_h: 'Claude Code, Codex, Antigravity, Grok을 한 앱에서',
+    card2_p: 'Anthropic, OpenAI, Google, xAI 한도를 나란히 추적. Codex는 <code>~/.codex/sessions/</code>에서 설정 없이 자동 감지되고, Antigravity는 자체 CLI가 이미 저장해 둔 로그인 정보를 사용합니다.',
     card14_h: 'Grok CLI도 지원',
     card14_p: '네 번째 카드는 Grok CLI 자체의 로컬 디버그 로그에서 주간 크레딧 비율을 바로 읽어옵니다 — 네트워크 호출 없음. 토큰 사용량은 Claude Code, Codex와 마찬가지로 오늘의 비용과 프로젝트 합계에도 반영됩니다.',
     card3_h: '설계상 로컬 우선',
@@ -1353,13 +1379,16 @@ const T = {
     install_h_uvx: 'uvx(설치 없음)',
     install_p_uvx: '터미널 인터페이스만 제공하며 메뉴 막대나 트레이는 없습니다. Linux에서도 작동하고 uv가 Python을 준비합니다.',
     install_btn_releases: '→ Releases 페이지 열기',
+    install_note: '<strong>첫 실행이 macOS에서 차단되었나요?</strong> 시스템 설정 → 개인정보 보호 및 보안을 열고 아래로 스크롤한 뒤 <strong>그래도 열기</strong>를 클릭하세요. macOS 14 이하에서는 <code>usage.app</code>을 우클릭 → 열기를 선택하세요.',
     copy_btn: '복사',
     copy_done: '복사됨',
     copy_fail: '복사 실패',
     screen_h2: '마음에 드는 패널을 골라보세요.',
     screen_sub: '14가지 내장 테마. 팝오버 툴바에서 언제든 전환 가능.',
+    report_alt: 'HTML 사용량 리포트',
+    preview_title: 'usage 패널 미리보기',
     footer_tag_pre: '제작:',
-    footer_tag_post: '· AGPL-3.0 · 클라우드 없음, 추적 없음. 온전히 당신의 것.',
+    footer_tag_post: '· AGPL-3.0 · 업로드 없음, 추적 없음. 온전히 당신의 것.',
     footer_releases: 'Releases',
     footer_changelog: 'Changelog',
     footer_license: 'License',
@@ -1659,6 +1688,33 @@ document.querySelectorAll('.copy-btn').forEach(function (button) {
     }, 2000);
   });
 });
+
+(function () {
+  const count = document.getElementById('star-count');
+  if (!count) return;
+  function show(stars) {
+    if (!Number.isInteger(stars) || stars <= 0) return;
+    const text = stars < 1000 ? String(stars) : (stars / 1000).toFixed(1).replace(/\.0$/, '') + 'k';
+    count.textContent = text;
+    count.hidden = false;
+  }
+  try {
+    const cached = Number(sessionStorage.getItem('usage-stars'));
+    if (Number.isInteger(cached) && cached > 0) {
+      show(cached);
+      return;
+    }
+  } catch (e) { /* ignore */ }
+  fetch('https://api.github.com/repos/aqua5230/usage').then(function (response) {
+    if (!response.ok) return null;
+    return response.json();
+  }).then(function (data) {
+    const stars = data && data.stargazers_count;
+    if (!Number.isInteger(stars) || stars <= 0) return;
+    try { sessionStorage.setItem('usage-stars', String(stars)); } catch (e) { /* ignore */ }
+    show(stars);
+  }).catch(function () { /* ignore */ });
+})();
 
 applyLang(detectLang());
 </script>

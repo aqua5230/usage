@@ -33,7 +33,7 @@ brew install --cask aqua5230/usage/usage
 
 **Not on macOS?** `uvx usage-cli` runs the terminal interface anywhere, Linux included — no install, no menu bar.
 
-It lands in your Applications folder automatically. Right-click **Open** once to pass Gatekeeper, then click the menu bar icon. Prefer a direct download or want the full setup flow? See [Install](#install) below.
+It lands in your Applications folder automatically. Open it once; if macOS 15 or later blocks it, go to System Settings → Privacy & Security, scroll down, and click **Open Anyway**. On macOS 14 or earlier, right-click **Open** once to pass Gatekeeper. Then click the menu bar icon. Prefer a direct download or want the full setup flow? See [Install](#install) below.
 
 **Jump to:** [What You Get](#what-you-get) · [Privacy](#privacy--data-sources) · [Requirements](#requirements) · [Install](#install) · [Status Line](#first-launch-set-up-the-status-line) · [Windows](#windows-support) · [Themes](#theme-gallery) · [Troubleshooting](#troubleshooting) · [Comparison](#comparison) · [Not a Fit?](#when-usage-isnt-the-right-fit) · [Development](#development)
 
@@ -93,13 +93,13 @@ Installing via Homebrew means a single `brew upgrade --cask usage` keeps it curr
 brew install --cask aqua5230/usage/usage
 ```
 
-*(First launch: right-click `usage.app` in Finder → **Open** to pass Gatekeeper).*
+*(First launch: on macOS 15 or later, open System Settings → Privacy & Security, scroll down, and click **Open Anyway**. On macOS 14 or earlier, right-click `usage.app` in Finder → **Open** to pass Gatekeeper.)*
 
 ### 2. Download for macOS
 
 1. Download the latest `usage.app.zip` from the [GitHub Releases page](https://github.com/aqua5230/usage/releases/latest).
 2. Unzip it and drag `usage.app` into your Applications folder.
-3. First launch: in Finder, right-click `usage.app` → **Open** → confirm Open.
+3. First launch: on macOS 15 or later, open System Settings → Privacy & Security, scroll down, and click **Open Anyway**. On macOS 14 or earlier, in Finder, right-click `usage.app` → **Open** → confirm Open.
 
 ### 3. uvx (zero install, any OS)
 
@@ -174,7 +174,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Codex section is empty | No Codex history found | Run a Codex conversation to generate logs |
 | Today's cost shows $0.00 | Model pricing missing | Delete `~/.usage/pricing_cache.json` or check `USAGE_DEBUG=1` |
 | Antigravity card is missing | Antigravity CLI not installed or not signed in | Install and sign in to the Antigravity CLI; the card appears automatically once a background quota fetch succeeds |
-| App won't open | macOS Gatekeeper blocked it | Right-click `usage.app` in Finder → Open |
+| App won't open | macOS Gatekeeper blocked it | macOS 15 or later: System Settings → Privacy & Security → scroll down → Open Anyway. macOS 14 or earlier: right-click `usage.app` in Finder → Open |
 
 ## Comparison
 

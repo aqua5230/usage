@@ -33,7 +33,7 @@ brew install --cask aqua5230/usage/usage
 
 **不是 macOS？** `uvx usage-cli` 在任何系统都能打开终端界面，Linux 也行——无需安装，也没有菜单栏。
 
-它会自动安装到 Applications 文件夹。先右键点击一次 **Open** 以通过 Gatekeeper，然后点击菜单栏图标。想直接下载或查看完整设置流程？请参见下方的[安装](#安装)。
+它会自动安装到 Applications 文件夹。先打开一次；macOS 15 及更高版本若被拦截，到“系统设置”→“隐私与安全性”，向下滚动，点击**“仍要打开”**。macOS 14 及更早版本：右键点击 **“打开”** 以通过 Gatekeeper。放行后点击菜单栏图标。想直接下载或查看完整设置流程？请参见下方的[安装](#安装)。
 
 **快速跳转：** [功能一览](#功能一览) · [隐私与数据来源](#隐私与数据来源) · [系统要求](#系统要求) · [安装](#安装) · [设置状态栏](#首次启动设置状态栏) · [Windows 支持](#windows-支持) · [主题图库](#主题图库) · [故障排除](#故障排除) · [对比](#对比) · [不适合谁](#不适合谁) · [开发](#开发)
 
@@ -93,13 +93,13 @@ brew install --cask aqua5230/usage/usage
 brew install --cask aqua5230/usage/usage
 ```
 
-*（首次启动：在 Finder 中右键 `usage.app` → **Open** 以通过 Gatekeeper）。*
+*（首次启动：macOS 15 及更高版本，打开“系统设置”→“隐私与安全性”，向下滚动，点击**“仍要打开”**。macOS 14 及更早版本，在 Finder 中右键 `usage.app` → **“打开”** 以通过 Gatekeeper）。*
 
 ### 2. 下载 macOS App
 
 1. 从 [GitHub Releases 页面](https://github.com/aqua5230/usage/releases/latest)下载最新的 `usage.app.zip`。
 2. 解压后，将 `usage.app` 拖入 Applications 文件夹。
-3. 首次启动：在 Finder 中右键 `usage.app` → **Open** → 确认 Open。
+3. 首次启动：macOS 15 及更高版本，打开“系统设置”→“隐私与安全性”，向下滚动，点击**“仍要打开”**。macOS 14 及更早版本，在 Finder 中右键 `usage.app` → **Open** → 确认 Open。
 
 ### 3. uvx（零安装，跨平台）
 
@@ -174,7 +174,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | Codex 区块为空 | 未找到 Codex 历史记录 | 进行一次 Codex 对话以生成日志 |
 | 今日费用显示 $0.00 | 缺少模型价格 | 删除 `~/.usage/pricing_cache.json`，或检查 `USAGE_DEBUG=1` |
 | Antigravity 卡片未显示 | 未安装或未登录 Antigravity CLI | 安装并登录 Antigravity CLI；后台配额查询成功后卡片会自动出现 |
-| App 无法打开 | macOS Gatekeeper 阻止了它 | 在 Finder 中右键 `usage.app` → Open |
+| App 无法打开 | macOS Gatekeeper 阻止了它 | macOS 15 及更高版本：系统设置 → 隐私与安全性 → 向下滚动 → 仍要打开。macOS 14 及更早版本：在 Finder 中右键 `usage.app` → 打开 |
 
 ## 对比
 

@@ -33,7 +33,7 @@ brew install --cask aqua5230/usage/usage
 
 **macOS가 아니라면** `uvx usage-cli`로 어떤 OS에서든 터미널 인터페이스를 열 수 있습니다. Linux도 지원하며 설치가 필요 없고 메뉴 막대도 없습니다.
 
-Applications 폴더에 자동으로 설치됩니다. Gatekeeper를 통과하려면 한 번 마우스 오른쪽 버튼으로 클릭해 **Open**을 선택한 뒤 메뉴 막대 아이콘을 클릭하세요. 직접 다운로드하거나 전체 설정 과정을 보고 싶다면 아래 [설치](#설치)를 참고하세요.
+Applications 폴더에 자동으로 설치됩니다. 먼저 한 번 실행해 보고, macOS 15 이상에서 차단되면 시스템 설정 → 개인정보 보호 및 보안을 열고 아래로 스크롤한 뒤 **그래도 열기**를 클릭하세요. macOS 14 이하에서는 한 번 마우스 오른쪽 버튼으로 클릭해 **열기**를 선택하여 Gatekeeper를 통과하세요. 그다음 메뉴 막대 아이콘을 클릭하세요. 직접 다운로드하거나 전체 설정 과정을 보고 싶다면 아래 [설치](#설치)를 참고하세요.
 
 **빠른 이동:** [제공 기능](#제공-기능) · [개인정보 보호와 데이터 소스](#개인정보-보호와-데이터-소스) · [요구 사항](#요구-사항) · [설치](#설치) · [상태 줄 설정](#첫-실행-상태-줄-설정) · [Windows 지원](#windows-지원) · [테마 갤러리](#테마-갤러리) · [문제 해결](#문제-해결) · [비교](#비교) · [적합하지 않은 경우](#적합하지-않은-경우) · [개발](#개발)
 
@@ -93,13 +93,13 @@ Homebrew로 설치하면 `brew upgrade --cask usage` 한 번으로 최신 상태
 brew install --cask aqua5230/usage/usage
 ```
 
-*(첫 실행: Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → **Open**을 선택해 Gatekeeper를 통과합니다.)*
+*(첫 실행: macOS 15 이상에서는 시스템 설정 → 개인정보 보호 및 보안을 열고 아래로 스크롤한 뒤 **그래도 열기**를 클릭하세요. macOS 14 이하에서는 Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → **열기**를 선택해 Gatekeeper를 통과합니다.)*
 
 ### 2. macOS용 App 다운로드
 
 1. [GitHub Releases 페이지](https://github.com/aqua5230/usage/releases/latest)에서 최신 `usage.app.zip`을 다운로드합니다.
 2. 압축을 풀고 `usage.app`을 Applications 폴더로 드래그합니다.
-3. 첫 실행: Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → **Open** → Open을 확인합니다.
+3. 첫 실행: macOS 15 이상에서는 시스템 설정 → 개인정보 보호 및 보안을 열고 아래로 스크롤한 뒤 **그래도 열기**를 클릭하세요. macOS 14 이하에서는 Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → **열기** → 열기를 확인합니다.
 
 ### 3. uvx(제로 설치, 모든 OS)
 
@@ -174,7 +174,7 @@ UI에서 직접 **14가지 시각 테마**를 전환하세요.
 | Codex 섹션이 비어 있음 | Codex 기록을 찾지 못함 | Codex 대화를 실행하여 로그를 생성하세요 |
 | 오늘 비용이 $0.00으로 표시 | 모델 가격 정보 없음 | `~/.usage/pricing_cache.json`을 삭제하거나 `USAGE_DEBUG=1`을 확인하세요 |
 | Antigravity 카드가 표시되지 않음 | Antigravity CLI가 설치되지 않았거나 로그인되지 않음 | Antigravity CLI를 설치하고 로그인하세요. 백그라운드 할당량 조회가 성공하면 카드가 자동으로 나타납니다 |
-| App이 열리지 않음 | macOS Gatekeeper가 차단함 | Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → Open |
+| App이 열리지 않음 | macOS Gatekeeper가 차단함 | macOS 15 이상: 시스템 설정 → 개인정보 보호 및 보안 → 아래로 스크롤 → 그래도 열기. macOS 14 이하: Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → 열기 |
 
 ## 비교
 

@@ -15,6 +15,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import json
 import re
 import sys
 from pathlib import Path
@@ -34,6 +35,7 @@ LOCAL_URL_RE = re.compile(
     r'(\s(?:src|href|data-img-en|data-img-cjk)=")(?!https?:|#|/|data:|mailto:)'
 )
 SRCSET_RE = re.compile(r'(\ssrcset=")([^"]+)"')
+LD_DESC_RE = re.compile(r'^  "description": ".*",$', re.M)
 
 
 def parse_translations(source: str) -> dict[str, dict[str, str]]:
@@ -74,6 +76,12 @@ def render(source: str, lang: str, t: dict[str, str]) -> str:
     page = replace_once(
         page, f'property="og:url" content="{SITE}"', f'property="og:url" content="{url}"'
     )
+    page = replace_once(page, f'  "url": "{SITE}",', f'  "url": "{url}",')
+    page = replace_once(page, '  "inLanguage": "en",', f'  "inLanguage": "{lang}",')
+    description = json.dumps(html.unescape(t["meta_desc"]), ensure_ascii=False)
+    page, count = LD_DESC_RE.subn(lambda _: f'  "description": {description},', page)
+    if count != 1:
+        raise ValueError("expected one JSON-LD description in docs/index.html")
     page = re.sub(r"<title>.*?</title>", lambda _: f"<title>{title}</title>", page, count=1)
     page = re.sub(
         r'<meta property="og:title"[^>]*>', lambda m: set_attr(m[0], "content", title), page
