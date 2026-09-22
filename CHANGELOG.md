@@ -5,6 +5,21 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.19] - 2026-09-23
+
+### Changed
+- **New app icon: a flat ink-wash cat.** Every icon is now generated from one set of SVG sources in `assets/brand/` (color, black, reversed, wordmark, app icon) by `scripts/make_app_icon.py`: the macOS and Windows app icons, the README avatar, the website favicon, apple-touch-icon and logo banner. The app icon follows Apple's grid as a rounded square, so macOS 26 and 27 no longer put it inside a gray frame.
+
+### Fixed
+- **Opus 5.5 has an offline price and a short name.** Claude Code 2.1.280 made Opus 5.5 (`claude-opus-5-5`) the default Opus model, but the fallback price table had no entry for it, so whenever the price cache had expired its usage was costed at $0. The table now carries $4/$20 per Mtok with $5 cache writes and $0.20 cache reads, matching LiteLLM, and the usage table shows "Opus 5.5" instead of the raw model ID.
+- **Grok spending is recovered when `unified.jsonl` is missing.** A missing combined log returned an empty list, so the per-session `updates.jsonl` spending was dropped too. It is now handled like an empty combined log and recovered as before.
+
+### Docs
+- **Website: first-launch guide and live star count.** The install section explains what to do when macOS blocks the first launch (from macOS 15, right-click → Open no longer bypasses Gatekeeper; use System Settings → Privacy & Security → Open Anyway), linked from under the hero download button, and all five READMEs describe the same steps. The Star on GitHub button shows the live star count and hides it if the request fails. Titles mention Grok, theme screenshots are WebP (647KB → 95KB on the English page), and non-English pages carry their own URL, language and description in JSON-LD.
+- **Website: CJK typography follows W3C clreq.** Chinese, Japanese and Korean pages use zero heading letter-spacing, break Chinese headings only between words, keep em dashes off the start of a line, and use larger text and line height in the install cards. Justified paragraphs were reverted to normal line breaking after they opened wide gaps in the hero text. English pages are unchanged.
+- **Website: the logo's red circle animates.** In the header it draws in on load and shrinks as you read down the page, the copy button closes its small circle on success, a faint large circle turns behind the hero title, and a new 404 page switches among the five languages. All motion is off under `prefers-reduced-motion`.
+- **The header mark, social preview image and section tabs use the new icon and a cleaner layout.** The unused butler-cat `docs/avatar.png` was removed.
+
 ## [0.30.18] - 2026-09-19
 
 ### Changed
