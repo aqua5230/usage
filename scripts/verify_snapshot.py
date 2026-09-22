@@ -39,18 +39,9 @@ def main(argv: list[str] | None = None) -> int:
 
     print(f"period: {data['period_label']}")
     print(f"{'metric':<14} {'report':>14} {'snapshot':>14} {'delta':>14}")
-    print(
-        f"{'total_tokens':<14} {report_tokens:>14} "
-        f"{snapshot.total_tokens:>14} {token_delta:>14}"
-    )
-    print(
-        f"{'cost':<14} {report_cost:>14.4f} "
-        f"{round(snapshot.cost, 4):>14.4f} {cost_delta:>14.4f}"
-    )
-    print(
-        f"{'sessions':<14} {report_sessions:>14} "
-        f"{snapshot.sessions:>14} {session_delta:>14}"
-    )
+    print(f"{'total_tokens':<14} {report_tokens:>14} {snapshot.total_tokens:>14} {token_delta:>14}")
+    print(f"{'cost':<14} {report_cost:>14.4f} {round(snapshot.cost, 4):>14.4f} {cost_delta:>14.4f}")
+    print(f"{'sessions':<14} {report_sessions:>14} {snapshot.sessions:>14} {session_delta:>14}")
 
     replayed = replay_entries(date_from, date_to)
     replay_tokens = sum(entry.total_tokens for entry in replayed)

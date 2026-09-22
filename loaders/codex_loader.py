@@ -154,6 +154,7 @@ def _sqlite_file_fingerprint(path: Path) -> _SqliteFileFingerprint:
     wal_path = Path(f"{path}-wal")
     return ((str(path), stat_key(path)), (str(wal_path), stat_key(wal_path)))
 
+
 # Disk cache for JSONL parsing results. Schema version must be bumped when the
 # serialization format or parsing logic changes incompatibly.
 _CODEX_JSONL_CACHE_SCHEMA = 5
@@ -238,10 +239,7 @@ def load_entries(
     models = {session_id: data.model for session_id, data in metadata.items()}
     entries = _load_jsonl_entries(SESSIONS_DIR, models, cutoff, jsonl_paths=jsonl_paths)
 
-    latest_jsonl_ts_by_session = {
-        entry.session_id: entry.timestamp
-        for entry in entries
-    }
+    latest_jsonl_ts_by_session = {entry.session_id: entry.timestamp for entry in entries}
     entries.extend(_load_sqlite_log_entries(metadata, cutoff, latest_jsonl_ts_by_session))
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
@@ -266,8 +264,7 @@ def has_recent_thread_history_turns(hours_back: int) -> bool | None:
     try:
         with closing(sqlite3.connect(_readonly_sqlite_uri(THREAD_HISTORY_DB), uri=True)) as conn:
             row = conn.execute(
-                "SELECT 1 FROM thread_turns "
-                "WHERE started_at >= ? OR completed_at >= ? LIMIT 1",
+                "SELECT 1 FROM thread_turns WHERE started_at >= ? OR completed_at >= ? LIMIT 1",
                 (cutoff, cutoff),
             ).fetchone()
     except (OSError, sqlite3.Error):
@@ -355,20 +352,15 @@ def _load_jsonl_entries(
             entries_by_session[parsed[0].session_id] = parsed
 
     # Flush to disk if any file was newly parsed or re-parsed (content changed)
-    if (
-        {str(p): (e.mtime, e.size) for p, e in _jsonl_cache.items()} != jsonl_snapshot
-        or {str(p): (v[0], v[1]) for p, v in _file_info_cache.items()} != file_info_snapshot
-    ):
+    if {str(p): (e.mtime, e.size) for p, e in _jsonl_cache.items()} != jsonl_snapshot or {
+        str(p): (v[0], v[1]) for p, v in _file_info_cache.items()
+    } != file_info_snapshot:
         _disk_cache_dirty = True
         _flush_caches_to_disk()
     elif _disk_cache_dirty:
         _flush_caches_to_disk()
 
-    return [
-        entry
-        for session_entries in entries_by_session.values()
-        for entry in session_entries
-    ]
+    return [entry for session_entries in entries_by_session.values() for entry in session_entries]
 
 
 def _is_better_session_log(candidate: list[UsageEntry], existing: list[UsageEntry]) -> bool:
@@ -447,9 +439,7 @@ def _load_jsonl_rate_limits(
     *,
     jsonl_candidates: Iterable[tuple[Path, float]] | None = None,
 ) -> CodexRateLimits | None:
-    if jsonl_candidates is None and not any(
-        root.is_dir() for root in _session_roots(SESSIONS_DIR)
-    ):
+    if jsonl_candidates is None and not any(root.is_dir() for root in _session_roots(SESSIONS_DIR)):
         return None
     models = _load_thread_models()
     # scan 30 recent sessions because short/interrupted Codex sessions write null rate_limits
@@ -565,9 +555,9 @@ def _load_sqlite_rate_limits() -> CodexRateLimits | None:
         query = (
             "SELECT ts, feedback_log_body FROM logs "
             "WHERE target = 'codex_api::endpoint::responses_websocket' "
-            "AND (feedback_log_body LIKE '%websocket event: {\"type\":\"codex.rate_limits\"%' "
+            'AND (feedback_log_body LIKE \'%websocket event: {"type":"codex.rate_limits"%\' '
             "OR feedback_log_body LIKE "
-            "'%websocket event: {\"type\":\"error\"%usage_limit_reached%') "
+            '\'%websocket event: {"type":"error"%usage_limit_reached%\') '
             "ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 50"
         )
         try:
@@ -606,7 +596,7 @@ def _websocket_event_payload(body: str) -> dict[str, Any]:
     if index < 0:
         return {}
     try:
-        data = json.loads(body[index + len(marker):])
+        data = json.loads(body[index + len(marker) :])
     except json.JSONDecodeError:
         return {}
     return data if isinstance(data, dict) else {}
@@ -733,24 +723,26 @@ def _assign_rate_limit_slots(
     float | None,
     float | None,
 ]:
-    primary_is_session = (
-        primary_window_minutes is not None and primary_window_minutes <= 600.0
-    )
+    primary_is_session = primary_window_minutes is not None and primary_window_minutes <= 600.0
     secondary_is_session = (
         secondary_window_minutes is not None and secondary_window_minutes <= 600.0
     )
     classify_by_window = (
-        primary_window_minutes is not None
-        and secondary_window_minutes is not None
-        and primary_is_session != secondary_is_session
-    ) or (
-        primary_window_minutes is not None
-        and secondary_pct is None
-        and secondary_window_minutes is None
-    ) or (
-        secondary_window_minutes is not None
-        and primary_pct is None
-        and primary_window_minutes is None
+        (
+            primary_window_minutes is not None
+            and secondary_window_minutes is not None
+            and primary_is_session != secondary_is_session
+        )
+        or (
+            primary_window_minutes is not None
+            and secondary_pct is None
+            and secondary_window_minutes is None
+        )
+        or (
+            secondary_window_minutes is not None
+            and primary_pct is None
+            and primary_window_minutes is None
+        )
     )
     if classify_by_window and not primary_is_session:
         primary_pct, secondary_pct = secondary_pct, primary_pct
@@ -770,10 +762,7 @@ def _assign_rate_limit_slots(
 
 
 def _load_thread_models() -> dict[str, str]:
-    return {
-        thread_id: metadata.model
-        for thread_id, metadata in _load_thread_metadata().items()
-    }
+    return {thread_id: metadata.model for thread_id, metadata in _load_thread_metadata().items()}
 
 
 def _load_thread_metadata() -> dict[str, _ThreadMetadata]:
@@ -836,8 +825,7 @@ def _load_sqlite_log_entries(
             conn.execute("BEGIN")
             rows = conn.execute(query, params).fetchall()
             newest_rows = conn.execute(
-                "SELECT ts, ts_nanos, id FROM logs "
-                "ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 1"
+                "SELECT ts, ts_nanos, id FROM logs ORDER BY ts DESC, ts_nanos DESC, id DESC LIMIT 1"
             ).fetchall()
             newest = newest_rows[0] if newest_rows else None
     except (OSError, sqlite3.Error):
@@ -932,9 +920,7 @@ def _recent_jsonl_files(
 ) -> list[Path]:
     if jsonl_candidates is not None:
         visible_candidates = [
-            (mtime, path)
-            for path, mtime in jsonl_candidates
-            if _is_visible_jsonl(path)
+            (mtime, path) for path, mtime in jsonl_candidates if _is_visible_jsonl(path)
         ]
         visible_candidates.sort(key=lambda item: item[0], reverse=True)
         return [path for _, path in visible_candidates[:_RECENT_JSONL_SCAN_LIMIT]]

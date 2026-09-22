@@ -75,6 +75,7 @@ def test_load_session_titles_uses_30_day_profile(
         0,
         {"session-1": "Fix dashboard"},
     )
+
     def fake_load_profile(days_back: int) -> usage_cli.persona_loader.PersonaProfile:
         calls.append(days_back)
         return profile
@@ -97,10 +98,13 @@ def test_load_session_titles_returns_none_on_error(
 
 
 def test_recent_titles_section_tolerates_missing_key() -> None:
-    assert html_report._render_recent_titles_section(
-        {"persona": {"hour_histogram": []}},
-        "en",
-    ) == ""
+    assert (
+        html_report._render_recent_titles_section(
+            {"persona": {"hour_histogram": []}},
+            "en",
+        )
+        == ""
+    )
 
 
 def test_dashboard_and_reporter_agree_on_agent_loaders() -> None:
@@ -158,11 +162,7 @@ def test_recent_sessions_hides_topic_in_compact_mode(
 
     table = printed[0]
     assert "col_session_title" not in [str(column.header) for column in table.columns]
-    assert "Hidden topic" not in [
-        str(cell)
-        for column in table.columns
-        for cell in column.cells
-    ]
+    assert "Hidden topic" not in [str(cell) for column in table.columns for cell in column.cells]
 
 
 @pytest.mark.parametrize(
@@ -185,9 +185,7 @@ def test_session_title_translations(
 
 
 def test_parse_sort_args_extracts_major_flags() -> None:
-    remaining, sort_key, descending = usage_cli._parse_sort_args(
-        ["30", "--sort", "cost", "--asc"]
-    )
+    remaining, sort_key, descending = usage_cli._parse_sort_args(["30", "--sort", "cost", "--asc"])
 
     assert remaining == ["30"]
     assert sort_key == "cost"
@@ -405,9 +403,7 @@ def test_main_status_without_json_prints_one_line(
 
     usage_cli.main()
 
-    assert capsys.readouterr().out == (
-        "claude-code 5h=41.0% 7d=65.0% | codex available=false\n"
-    )
+    assert capsys.readouterr().out == ("claude-code 5h=41.0% 7d=65.0% | codex available=false\n")
 
 
 @pytest.mark.parametrize("flag", ["-h", "--help"])

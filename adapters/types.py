@@ -26,7 +26,12 @@ class UsageEntry:
 
     @property
     def total_tokens(self) -> int:
-        return self.input_tokens + self.output_tokens + self.cache_creation_tokens + self.cache_read_tokens
+        return (
+            self.input_tokens
+            + self.output_tokens
+            + self.cache_creation_tokens
+            + self.cache_read_tokens
+        )
 
     @property
     def dedup_key(self) -> str:

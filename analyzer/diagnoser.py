@@ -138,9 +138,7 @@ def analyze_loaded_records(
     total_waste = sum(finding.estimated_waste_usd for finding in findings)
     total_waste_tokens = sum(finding.estimated_waste_tokens for finding in findings)
     fixable_waste_tokens = sum(
-        finding.estimated_waste_tokens
-        for finding in findings
-        if finding.kind == "polluter_dirs"
+        finding.estimated_waste_tokens for finding in findings if finding.kind == "polluter_dirs"
     )
     if total_cost_usd > 0:
         total_waste = min(total_waste, total_cost_usd)
@@ -172,9 +170,7 @@ def _load_records(
             continue
         for jsonl_path in base.rglob("*.jsonl"):
             fallback_project = claude.extract_project_from_dir(jsonl_path, base)
-            tool_calls.extend(
-                parse_tool_calls(jsonl_path, fallback_project, date_from, date_to)
-            )
+            tool_calls.extend(parse_tool_calls(jsonl_path, fallback_project, date_from, date_to))
             claude.parse_jsonl(
                 jsonl_path,
                 fallback_project,
@@ -198,17 +194,17 @@ def parse_tool_calls(
 
     try:
         for data in iter_jsonl_dicts(path):
-                record_type = data.get("type")
-                if record_type == "assistant":
-                    _parse_assistant_tool_uses(
-                        data,
-                        fallback_project,
-                        date_from,
-                        date_to,
-                        pending,
-                    )
-                elif record_type == "user":
-                    _parse_user_results(data, pending, tool_calls)
+            record_type = data.get("type")
+            if record_type == "assistant":
+                _parse_assistant_tool_uses(
+                    data,
+                    fallback_project,
+                    date_from,
+                    date_to,
+                    pending,
+                )
+            elif record_type == "user":
+                _parse_user_results(data, pending, tool_calls)
     except (OSError, UnicodeDecodeError):
         return tool_calls
 
@@ -439,9 +435,7 @@ def _find_repeated_reads(tool_calls: list[ToolCall]) -> DiagnosisFinding | None:
 
 
 def _find_polluter_dirs(tool_calls: list[ToolCall]) -> tuple[DiagnosisFinding | None, set[str]]:
-    stats: dict[str, dict[str, int]] = defaultdict(
-        lambda: {"count": 0, "chars": 0, "tokens": 0}
-    )
+    stats: dict[str, dict[str, int]] = defaultdict(lambda: {"count": 0, "chars": 0, "tokens": 0})
     for call in tool_calls:
         if call.tool_name not in {"Read", "Edit"}:
             continue
@@ -553,9 +547,7 @@ def _find_anomaly_sessions(sessions: list[_SessionUsage]) -> DiagnosisFinding | 
 
 def _find_noisy_bash(tool_calls: list[ToolCall]) -> DiagnosisFinding | None:
     calls = [
-        call
-        for call in tool_calls
-        if call.tool_name == "Bash" and call.result_size_chars > 20_000
+        call for call in tool_calls if call.tool_name == "Bash" and call.result_size_chars > 20_000
     ]
     calls.sort(key=lambda call: call.result_size_chars, reverse=True)
     items: list[dict[str, object]] = []

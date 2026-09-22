@@ -807,9 +807,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
                     else:
                         cache_countdown = f" ({fmt_duration(remain)} {_t('remaining_prefix')})"
             cache_part = cache_bar_part + (
-                f"{C['dim']}{C['magenta']}{cache_countdown}{C['reset']}"
-                if cache_countdown
-                else ""
+                f"{C['dim']}{C['magenta']}{cache_countdown}{C['reset']}" if cache_countdown else ""
             )
             line3.append(cache_part)
 

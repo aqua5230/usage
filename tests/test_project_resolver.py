@@ -43,8 +43,7 @@ def test_resolve_project_name_uses_first_worktree_basename(
         return_value=_completed(
             0,
             stdout=(
-                "worktree /Users/me/src/main-project\n"
-                "worktree /Users/me/src/main-project-feature\n"
+                "worktree /Users/me/src/main-project\nworktree /Users/me/src/main-project-feature\n"
             ),
         )
     )

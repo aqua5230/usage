@@ -129,16 +129,19 @@ def render_json(report: DoctorReport | None = None) -> str:
                 "detail": check.detail,
             }
         )
-    return json.dumps(
-        {
-            "version": current.version,
-            "checks": checks,
-            "self_heal_log": current.self_heal_log,
-            "summary": summary,
-        },
-        ensure_ascii=False,
-        indent=2,
-    ) + "\n"
+    return (
+        json.dumps(
+            {
+                "version": current.version,
+                "checks": checks,
+                "self_heal_log": current.self_heal_log,
+                "summary": summary,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n"
+    )
 
 
 def exit_code(report: DoctorReport) -> int:
@@ -188,9 +191,7 @@ def _hook_version() -> CheckResult:
             detail=f"not installed (current {setup_hook.HOOK_VERSION})",
         )
     suffix = (
-        "current"
-        if installed == setup_hook.HOOK_VERSION
-        else f"current {setup_hook.HOOK_VERSION}"
+        "current" if installed == setup_hook.HOOK_VERSION else f"current {setup_hook.HOOK_VERSION}"
     )
     status = "ok" if installed == setup_hook.HOOK_VERSION else "warn"
     return CheckResult(code=HOOK_VERSION, status=status, detail=f"{installed} ({suffix})")
@@ -243,11 +244,7 @@ def _status_command() -> CheckResult:
     command = sl.get("command") if isinstance(sl, dict) else None
     if not isinstance(command, str):
         return CheckResult(code=STATUS_COMMAND, status="warn", detail="not configured")
-    if (
-        sys.platform == "win32"
-        and "usage-statusline" in command
-        and "\\" in command
-    ):
+    if sys.platform == "win32" and "usage-statusline" in command and "\\" in command:
         return CheckResult(
             code=STATUS_COMMAND,
             status="warn",
@@ -438,11 +435,7 @@ def _claude_cost() -> CheckResult:
     ):
         return CheckResult(code=CLAUDE_COST, status="ok", detail="unavailable")
 
-    entries = [
-        entry
-        for entry in history_loader.load_entries()
-        if entry.session_id == session_id
-    ]
+    entries = [entry for entry in history_loader.load_entries() if entry.session_id == session_id]
     if not entries:
         return CheckResult(code=CLAUDE_COST, status="ok", detail="unavailable")
 

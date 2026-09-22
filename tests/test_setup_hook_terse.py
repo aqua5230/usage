@@ -86,34 +86,28 @@ def test_enable_registers_hook_and_writes_sidecar(
     )
     assert (
         "도구나 서브에이전트의 출력을 그대로 붙여넣지 말 것: 먼저 이해한 뒤 쉬운 말로 결론으로 "
-        "다시 쓰고, 코드·명령어·경로·오류 메시지만 원문 그대로 둔다."
-        in bundle["ko"]["instruction"]
+        "다시 쓰고, 코드·명령어·경로·오류 메시지만 원문 그대로 둔다." in bundle["ko"]["instruction"]
     )
     assert (
         "名詞化還原成動詞：進行修改→改、做出決定→決定。刪只預告不給資訊的句子：接下來我要說明、值"
-        "得注意的是、在深入之前。每句先已知後新知。"
-        in bundle["zh-TW"]["instruction"]
+        "得注意的是、在深入之前。每句先已知後新知。" in bundle["zh-TW"]["instruction"]
     )
     assert (
         "名词化还原成动词：进行修改→改、做出决定→决定。删只预告不给信息的句子：接下来我要说明、值"
-        "得注意的是、在深入之前。每句先已知后新知。"
-        in bundle["zh-CN"]["instruction"]
+        "得注意的是、在深入之前。每句先已知后新知。" in bundle["zh-CN"]["instruction"]
     )
     assert (
-        "Zombie nouns to verbs: \"make a decision\" to \"decide\". Cut metadiscourse: \"Let me ex"
-        "plain\", \"It's worth noting\", \"Before diving in\". Given info first in a sentence, ne"
-        "w info last. "
-        in bundle["en"]["instruction"]
+        'Zombie nouns to verbs: "make a decision" to "decide". Cut metadiscourse: "Let me ex'
+        'plain", "It\'s worth noting", "Before diving in". Given info first in a sentence, ne'
+        "w info last. " in bundle["en"]["instruction"]
     )
     assert (
         "名詞化は動詞に戻す（修正を行う→修正する）。予告だけの文は削る（「これから説明します」「"
-        "注目すべきは」）。各文は既知が先、新情報が後。"
-        in bundle["ja"]["instruction"]
+        "注目すべきは」）。各文は既知が先、新情報が後。" in bundle["ja"]["instruction"]
     )
     assert (
-        "명사화는 동사로 (수정을 진행한다 → 고친다). 예고만 하는 문장은 삭제 (\"이제 설명하겠습니"
-        "다\", \"주목할 점은\"). 각 문장은 아는 것 먼저, 새 정보 나중. "
-        in bundle["ko"]["instruction"]
+        '명사화는 동사로 (수정을 진행한다 → 고친다). 예고만 하는 문장은 삭제 ("이제 설명하겠습니'
+        '다", "주목할 점은"). 각 문장은 아는 것 먼저, 새 정보 나중. ' in bundle["ko"]["instruction"]
     )
     assert "plain-spoken" in bundle["en"]["reminder"]
 
@@ -192,9 +186,7 @@ def test_disable_preserves_user_hook_in_shared_entry(terse_paths: TerseHookPaths
 
 def test_strip_hook_entries_keeps_user_backup_command() -> None:
     entry = {
-        "hooks": [
-            {"type": "command", "command": "python3 /opt/my-usage-terse-mode-backup.py"}
-        ]
+        "hooks": [{"type": "command", "command": "python3 /opt/my-usage-terse-mode-backup.py"}]
     }
 
     assert session_hooks._strip_hook_entries(entry, session_hooks._TERSE_MARKERS) == entry
@@ -217,13 +209,7 @@ def test_migration_keeps_custom_terse_substring_command(terse_paths: TerseHookPa
     command = "python3 /Users/test/usage-terse-mode-backup.py --custom"
     terse_paths.settings.write_text(
         json.dumps(
-            {
-                "hooks": {
-                    "SessionStart": [
-                        {"hooks": [{"type": "command", "command": command}]}
-                    ]
-                }
-            }
+            {"hooks": {"SessionStart": [{"hooks": [{"type": "command", "command": command}]}]}}
         ),
         encoding="utf-8",
     )
@@ -564,6 +550,7 @@ def test_self_heal_updates_old_reminder_version(terse_paths: TerseHookPaths) -> 
 def test_self_heal_reminder_noop_when_disabled(terse_paths: TerseHookPaths) -> None:
     session_hooks._self_heal_terse_mode()
     assert not terse_paths.terse_reminder_target.exists()
+
 
 def test_terse_script_version_matches_hook_constant() -> None:
     """The self-heal compares the installed script's __version__ against

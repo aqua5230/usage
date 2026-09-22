@@ -17,15 +17,26 @@ from adapters import agy, claude, codex, grok
 from adapters.rate_limits import load_rate_limits as load_claude_rate_limits
 from adapters.registry import detect_agents
 from adapters.types import AgentInfo, RateLimits
-from analyzer.aggregator import aggregate_daily, aggregate_monthly, aggregate_sessions, aggregate_weekly
+from analyzer.aggregator import (
+    aggregate_daily,
+    aggregate_monthly,
+    aggregate_sessions,
+    aggregate_weekly,
+)
 from analyzer.blocks import analyze_blocks, calculate_p90
 from analyzer import persona_loader
 from installer.session_hooks import disable_session_resume, disable_terse_mode
 from installer.setup_hook import is_claude_setup, is_codex_setup, is_setup, setup, unsetup
 from i18n import t
 from ui.tables import (
-    AGENT_LABEL, console, render_daily, render_dashboard,
-    render_monthly, render_sessions, render_tab_bar, render_weekly,
+    AGENT_LABEL,
+    console,
+    render_daily,
+    render_dashboard,
+    render_monthly,
+    render_sessions,
+    render_tab_bar,
+    render_weekly,
 )
 
 AGENT_ALIASES = {"claude": "claude-code", "codex": "codex"}
@@ -130,25 +141,58 @@ _REPORT_EXPORT_OPTIONS = {
 
 EXPORT_FIELDS: dict[str, list[str]] = {
     "daily": [
-        "agent_id", "date", "input_tokens", "output_tokens",
-        "cache_creation_tokens", "cache_read_tokens", "total_tokens",
-        "cost_usd", "session_count", "message_count",
+        "agent_id",
+        "date",
+        "input_tokens",
+        "output_tokens",
+        "cache_creation_tokens",
+        "cache_read_tokens",
+        "total_tokens",
+        "cost_usd",
+        "session_count",
+        "message_count",
     ],
     "weekly": [
-        "agent_id", "week", "week_start", "week_end", "input_tokens",
-        "output_tokens", "cache_creation_tokens", "cache_read_tokens",
-        "total_tokens", "cost_usd", "session_count", "message_count",
+        "agent_id",
+        "week",
+        "week_start",
+        "week_end",
+        "input_tokens",
+        "output_tokens",
+        "cache_creation_tokens",
+        "cache_read_tokens",
+        "total_tokens",
+        "cost_usd",
+        "session_count",
+        "message_count",
     ],
     "monthly": [
-        "agent_id", "month", "input_tokens", "output_tokens",
-        "cache_creation_tokens", "cache_read_tokens", "total_tokens",
-        "cost_usd", "session_count", "message_count",
+        "agent_id",
+        "month",
+        "input_tokens",
+        "output_tokens",
+        "cache_creation_tokens",
+        "cache_read_tokens",
+        "total_tokens",
+        "cost_usd",
+        "session_count",
+        "message_count",
     ],
     "sessions": [
-        "agent_id", "session_id", "project", "model", "start_time",
-        "end_time", "duration_minutes", "input_tokens", "output_tokens",
-        "cache_creation_tokens", "cache_read_tokens", "total_tokens",
-        "cost_usd", "message_count",
+        "agent_id",
+        "session_id",
+        "project",
+        "model",
+        "start_time",
+        "end_time",
+        "duration_minutes",
+        "input_tokens",
+        "output_tokens",
+        "cache_creation_tokens",
+        "cache_read_tokens",
+        "total_tokens",
+        "cost_usd",
+        "message_count",
     ],
 }
 
@@ -363,7 +407,13 @@ def _run_status(args: list[str]) -> None:
         print(_status_summary(payload))
 
 
-def _apply_sort(stats: list[Any], sort_key: str | None, descending: bool, default_attr: str, default_reverse: bool) -> None:
+def _apply_sort(
+    stats: list[Any],
+    sort_key: str | None,
+    descending: bool,
+    default_attr: str,
+    default_reverse: bool,
+) -> None:
     if sort_key is None:
         stats.sort(key=lambda s: getattr(s, default_attr), reverse=default_reverse)
         return
@@ -388,7 +438,9 @@ def _load_entries(agent_id: str, hours_back: int = 0) -> list[Any]:
     return entries
 
 
-def _aggregate_per_agent(agents: list[AgentInfo], agg_fn: Callable[[list[Any]], list[Any]]) -> list[Any]:
+def _aggregate_per_agent(
+    agents: list[AgentInfo], agg_fn: Callable[[list[Any]], list[Any]]
+) -> list[Any]:
     stats: list[Any] = []
     for a in agents:
         entries = _load_entries(a.id)
@@ -416,19 +468,28 @@ def _build_agent_data(agent_id: str, agent_name: str) -> dict[str, Any] | None:
     monthly = aggregate_monthly(entries)
     sessions = aggregate_sessions(entries)
     from datetime import datetime, timezone, timedelta
+
     cutoff = datetime.now(timezone.utc) - timedelta(hours=48)
     recent = [e for e in entries if e.timestamp >= cutoff]
     blocks = analyze_blocks(recent)
     rate_limits = RATE_LIMIT_LOADERS.get(agent_id, lambda: None)()
     p90 = None
-    has_limits = rate_limits and (rate_limits.five_hour_pct is not None or rate_limits.seven_day_pct is not None)
+    has_limits = rate_limits and (
+        rate_limits.five_hour_pct is not None or rate_limits.seven_day_pct is not None
+    )
     if not has_limits:
         p90 = calculate_p90(daily)
     session_titles = _load_session_titles()
     return dict(
-        daily_stats=daily, weekly_stats=weekly, monthly_stats=monthly,
-        sessions=sessions, blocks=blocks, rate_limits=rate_limits,
-        p90=p90, agents=[agent_name], session_titles=session_titles,
+        daily_stats=daily,
+        weekly_stats=weekly,
+        monthly_stats=monthly,
+        sessions=sessions,
+        blocks=blocks,
+        rate_limits=rate_limits,
+        p90=p90,
+        agents=[agent_name],
+        session_titles=session_titles,
     )
 
 
@@ -463,7 +524,7 @@ def _fit_screen(text: str, height: int, scroll_offset: int) -> tuple[str, int]:
     max_body = max(1, height - 1)
     max_scroll = max(0, len(lines) - max_body)
     scroll_offset = max(0, min(scroll_offset, max_scroll))
-    visible = lines[:1] + lines[1 + scroll_offset:1 + scroll_offset + max_body - 1]
+    visible = lines[:1] + lines[1 + scroll_offset : 1 + scroll_offset + max_body - 1]
     return "\n".join(visible), max_scroll
 
 
@@ -515,19 +576,28 @@ def _show_interactive_dashboard(agents: list[AgentInfo]) -> None:
                     reverse=sort_desc,
                 )
                 arrow = "↓" if sort_desc else "↑"
-                session_title = t("session_title", limit=session_limit, label=sort_label, arrow=arrow)
+                session_title = t(
+                    "session_title", limit=session_limit, label=sort_label, arrow=arrow
+                )
             else:
                 sorted_sessions = []
                 session_title = None
 
             buf = StringIO()
             _tables.console = RichConsole(
-                file=buf, width=width, force_terminal=True,
+                file=buf,
+                width=width,
+                force_terminal=True,
             )
             render_tab_bar(agent_names, current)
             if data:
                 render_data = {**data, "sessions": sorted_sessions}
-                render_dashboard(**render_data, session_limit=session_limit, top_margin=False, session_title=session_title)
+                render_dashboard(
+                    **render_data,
+                    session_limit=session_limit,
+                    top_margin=False,
+                    session_title=session_title,
+                )
             else:
                 _tables.console.print(f"[yellow]{t('no_data')}[/yellow]")
             _tables.console = orig
@@ -589,6 +659,7 @@ def _read_key_unix() -> str:
     import select
     import tty
     import termios
+
     fd = sys.stdin.fileno()
     old = termios.tcgetattr(fd)  # type: ignore[attr-defined]
     try:
@@ -644,6 +715,7 @@ def _read_key_unix() -> str:
 
 def _read_key_win() -> str:
     import msvcrt
+
     ch = msvcrt.getch()  # type: ignore[attr-defined]
     if ch in (b"\xe0", b"\x00"):
         ch2 = msvcrt.getch()  # type: ignore[attr-defined]
@@ -684,6 +756,7 @@ _read_key = _read_key_win if sys.platform == "win32" else _read_key_unix
 
 def _get_version() -> str:
     from importlib.metadata import version
+
     return version("usage-cli")
 
 
@@ -723,7 +796,9 @@ def main() -> None:
     agent_ids = {a.id for a in agents}
 
     if command not in {"dashboard", "export"}:
-        console.print(f"[dim]{t('detected', agents=', '.join(a.name + ' ✓' for a in agents))}[/dim]")
+        console.print(
+            f"[dim]{t('detected', agents=', '.join(a.name + ' ✓' for a in agents))}[/dim]"
+        )
 
     hook_warning_needed = (
         (command == "claude" and not is_claude_setup())

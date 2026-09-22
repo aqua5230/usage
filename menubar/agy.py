@@ -135,9 +135,7 @@ def load_refresh_result(
     if find_agy() is None:
         return AgyRefreshResult(projection=None, hide_agy=True)
     try:
-        projection = project_quota(
-            load_quota(), language, burn_rate_trackers=burn_rate_trackers
-        )
+        projection = project_quota(load_quota(), language, burn_rate_trackers=burn_rate_trackers)
     except Exception:
         projection = None
     return AgyRefreshResult(projection=projection, hide_agy=projection is None)
@@ -270,5 +268,5 @@ def _stale_state(fetched_at: str, now: float, language: str) -> AgyStaleState | 
         )
     return cast(
         AgyStaleState,
-        {"ageText": _t(language, "agy_stale_hours", hours=max(1, int(age_seconds // 3600)))}
+        {"ageText": _t(language, "agy_stale_hours", hours=max(1, int(age_seconds // 3600)))},
     )

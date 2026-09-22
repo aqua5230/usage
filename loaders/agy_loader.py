@@ -46,6 +46,8 @@ _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
 
 def _readonly_sqlite_uri(path: Path) -> str:
     return f"{path.resolve().as_uri()}?mode=ro"
+
+
 _disk_cache_dirty = False
 _last_disk_cache_flush_at: float | None = None
 _monotonic = time.monotonic
@@ -68,10 +70,7 @@ class AgyUsageEntry:
     @property
     def total_tokens(self) -> int:
         return (
-            self.input_tokens
-            + self.output_tokens
-            + self.cache_read_tokens
-            + self.thinking_tokens
+            self.input_tokens + self.output_tokens + self.cache_read_tokens + self.thinking_tokens
         )
 
     @property
@@ -179,9 +178,7 @@ def flush_caches_on_terminate() -> None:
 
 def recent_input_output_tokens(hours_back: int) -> int:
     """Return recent input plus output tokens, excluding cache-read and thinking."""
-    return sum(
-        entry.input_tokens + entry.output_tokens for entry in load_entries(hours_back)
-    )
+    return sum(entry.input_tokens + entry.output_tokens for entry in load_entries(hours_back))
 
 
 def _load_database(
@@ -266,9 +263,7 @@ def _parse_database(path: Path) -> tuple[list[AgyUsageEntry], int] | None:
 
 def _session_timestamp(connection: sqlite3.Connection, path: Path) -> datetime:
     try:
-        row = connection.execute(
-            "SELECT data FROM trajectory_metadata_blob LIMIT 1"
-        ).fetchone()
+        row = connection.execute("SELECT data FROM trajectory_metadata_blob LIMIT 1").fetchone()
     except sqlite3.Error:
         row = None
     if row is not None and isinstance(row[0], bytes):
@@ -285,7 +280,7 @@ def _session_project(connection: sqlite3.Connection) -> str:
     try:
         row = connection.execute(
             "SELECT step_payload FROM steps "
-            "WHERE step_payload LIKE '%\"Cwd\":\"%' "
+            'WHERE step_payload LIKE \'%"Cwd":"%\' '
             "ORDER BY idx LIMIT 1"
         ).fetchone()
     except sqlite3.Error:

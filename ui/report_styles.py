@@ -1,7 +1,9 @@
 """CSS for the HTML usage report. Extracted verbatim from html_report."""
 
+
 def _light_rules(rules: str) -> str:
     """Emit both theme paths from flat rules, preserving cascade specificity/order."""
+
     def scoped(scope: str) -> str:
         result = []
         for rule in rules.strip().split("}"):
@@ -12,19 +14,23 @@ def _light_rules(rules: str) -> str:
             for selector in selectors.split(","):
                 selector = selector.strip()
                 prefixed.append(
-                    f":root:where({scope})" if selector == ":root"
+                    f":root:where({scope})"
+                    if selector == ":root"
                     else f":where(html{scope}) {selector}"
                 )
             result.append(",".join(prefixed) + "{" + declarations + "}")
         return "\n".join(result)
 
     return (
-        "@media (prefers-color-scheme: light){\n" + scoped(":not([data-theme])")
-        + "\n}\n" + scoped('[data-theme="light"]')
+        "@media (prefers-color-scheme: light){\n"
+        + scoped(":not([data-theme])")
+        + "\n}\n"
+        + scoped('[data-theme="light"]')
     )
 
 
-REPORT_CSS = ("""/* Hallmark · macrostructure: Stat-led report · brand: usage (preserved)
+REPORT_CSS = (
+    """/* Hallmark · macrostructure: Stat-led report · brand: usage (preserved)
  * pre-emit critique: P5 H4 E4 S5 R5 V4 */
 :root{
   --font-mono:ui-monospace,SFMono-Regular,"SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
@@ -56,7 +62,8 @@ REPORT_CSS = ("""/* Hallmark · macrostructure: Stat-led report · brand: usage 
   --contrib-4:rgba(90,191,160,.95);
 }
 
-""" + _light_rules("""
+"""
+    + _light_rules("""
   :root{
     --bg:#f4f4f5;
     --bg-gradient-1:rgba(176,90,43,.035);
@@ -89,7 +96,8 @@ REPORT_CSS = ("""/* Hallmark · macrostructure: Stat-led report · brand: usage 
   .share-bar span[style*="background:#8f86c9"],.left-tick[style*="background:#8f86c9"],.gauge-rail[style*="background:#8f86c9"]{background:#68609b!important}
   .share-bar span[style*="background:#e0885a"],.left-tick[style*="background:#e0885a"],.gauge-rail[style*="background:#e0885a"]{background:#b05a2b!important}
   .share-bar span[style*="background:#8b8577"],.left-tick[style*="background:#8b8577"],.gauge-rail[style*="background:#8b8577"]{background:#6b6151!important}
-""") + """
+""")
+    + """
 
 html{font-size:17.5px}
 html,body{overflow-x:clip}
@@ -144,9 +152,11 @@ h1{
   display:inline-flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--card-border);color:var(--text);padding:6px 14px;border-radius:8px;cursor:pointer;font-size:.8rem;font-weight:500;line-height:1.3;text-decoration:none;transition:background-color .2s ease,border-color .2s ease,color .2s ease,transform .2s ease,box-shadow .2s ease,opacity .2s ease
 }
 .share-trigger:hover{border-color:rgba(255,255,255,.24);color:var(--text);background:var(--control-hover);transform:translateY(-2px);box-shadow:0 4px 12px var(--hover-glow)}
-""" + _light_rules("""
+"""
+    + _light_rules("""
   .share-trigger:hover{border-color:var(--text-soft)}
-""") + """
+""")
+    + """
 .share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible,.rank-line[tabindex]:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:0 0 16px;padding:0;border:0;background:transparent}
 /* 三列固定為「標題／大數字／小字」。第一張卡的 b 與 i 顛倒（大數字在 i），用 grid-row 歸位；
@@ -297,10 +307,12 @@ h1{
 .wrap>.wrapped-section{margin-top:16px}
 .pricing-bar{display:flex;height:2px;overflow:hidden;border-radius:0;background:var(--faint)}.pricing-bar i{display:block;min-width:0;height:100%;opacity:.72}
 .pricing-list{margin-top:10px}.pricing-line{grid-template-columns:20px minmax(0,1fr) 70px 100px}.pricing-line .tokens{font-size:.9rem}.pricing-models{display:inline;margin-left:8px;color:var(--muted);font-family:var(--font-mono);font-size:.68rem;font-weight:400}.pricing-hint{margin:12px 0 0;color:var(--muted);font-size:.78rem;line-height:1.55}.pricing-all{padding:8px 0;color:var(--text-soft);font-family:var(--font-mono);font-size:.82rem}
-""" + _light_rules("""
+"""
+    + _light_rules("""
   .tokens-cell .share-bar span{opacity:.22}
   .scope-tag{background:rgba(176,90,43,.14);border-color:rgba(176,90,43,.22)}
-""") + """
+""")
+    + """
 /* Square, frameless fill in the same vocabulary as .share-bar and .trend-bar.
    The rounded box with a 3px accent rail read as a generic callout and was the
    last framed surface left in a report that strips frames everywhere else. */
@@ -333,17 +345,21 @@ table{width:100%;border-collapse:collapse;min-width:760px}
 th,td{padding:8px 16px;text-align:left;font-size:.95rem}
 th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--faint)}
 td{color:var(--text-soft);border-bottom:1px solid var(--faint)}
-""" + _light_rules("""
+"""
+    + _light_rules("""
   td{border-bottom:1px solid rgba(0,0,0,.03)}
-""") + """
+""")
+    + """
 td:first-child{color:var(--muted)}
 .share-dialog{
   width:min(760px,calc(100vw - 28px));max-height:min(92vh,860px);border:1px solid var(--card-border);border-radius:12px;background:var(--panel);color:var(--text);padding:0;box-shadow:0 24px 70px rgba(0,0,0,.6);overflow:auto;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)
 }
 .share-dialog::backdrop{background:rgba(5,7,10,.72);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
-""" + _light_rules("""
+"""
+    + _light_rules("""
   .share-dialog::backdrop{background:rgba(243,244,246,.72)}
-""") + """
+""")
+    + """
 .share-modal{position:relative;padding:24px;display:grid;gap:18px;align-content:start}
 .share-modal h2{margin:0 40px 0 0;font-size:1.15rem;line-height:1.35;letter-spacing:0;font-weight:700}
 .share-close{
@@ -386,9 +402,11 @@ td:first-child{color:var(--muted)}
 .tool-head{position:static;display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0;color:var(--text-soft);font-size:.9em;font-weight:normal}
 .sub-agent{font-weight:700;color:var(--text)}
 .sub-plan{color:var(--text-soft);background:transparent;padding:3px 11px;border-radius:999px;font-size:.82rem;font-weight:600;border:1px solid var(--card-border)}
-""" + _light_rules("""
+"""
+    + _light_rules("""
   .sub-plan{background:rgba(255,255,255,.28);border-color:rgba(0,0,0,.12)}
-""") + """
+""")
+    + """
 .sub-since{color:var(--muted);font-size:.82rem}
 .tool-row .pct,.tool-row .tokens,.tool-row .cost{white-space:nowrap;text-align:right}
 .tool-row .pct{color:var(--muted);font-weight:600}
@@ -402,20 +420,26 @@ td:first-child{color:var(--muted)}
 .ai-update-period{margin:8px 0 0;color:var(--muted);font-size:.82rem}
 .ai-update-items{list-style:none;display:grid;gap:14px;margin:16px 0 0;padding:0;counter-reset:ai-updates}
 .ai-update-item{position:relative;counter-increment:ai-updates;padding:16px 16px 14px 48px;border:1px solid var(--card-border);border-radius:10px;background:rgba(0,0,0,.2);box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
-""" + _light_rules("""
+"""
+    + _light_rules("""
   .ai-update-item{background:rgba(255,255,255,.4);box-shadow:inset 0 1px 0 rgba(255,255,255,.5)}
-""") + """
+""")
+    + """
 .ai-update-item:nth-child(even){background:rgba(0,0,0,.1)}
-""" + _light_rules("""
+"""
+    + _light_rules("""
   .ai-update-item:nth-child(even){background:rgba(255,255,255,.2)}
-""") + """
+""")
+    + """
 .ai-update-item::before{content:counter(ai-updates,decimal-leading-zero);position:absolute;top:16px;left:16px;color:var(--muted);font-size:.72rem;font-weight:700;letter-spacing:.08em;line-height:1}
 .ai-update-item-title{margin:0;color:var(--text);font-size:.92rem;font-weight:700;line-height:1.5}
 .ai-update-item-body{margin:6px 0 0;color:var(--text-soft);font-size:.9rem;line-height:1.65}
 .ai-update-original,.ai-update-history{margin-top:10px;border:1px solid var(--card-border);border-radius:8px;background:rgba(0,0,0,.15)}
-""" + _light_rules("""
+"""
+    + _light_rules("""
   .ai-update-original,.ai-update-history{background:rgba(255,255,255,.35)}
-""") + """
+""")
+    + """
 .ai-update-original summary,.ai-update-history summary{cursor:pointer;list-style:none;padding:8px 12px;color:var(--text-soft);font-size:.82rem;font-weight:600;user-select:none;display:flex;align-items:center;gap:6px}
 .ai-update-original summary::before,.ai-update-history summary::before{content:"▶";font-size:.65rem;transition:transform .25s ease;display:inline-block}
 .ai-update-original[open] summary::before,.ai-update-history[open] summary::before{transform:rotate(90deg)}
@@ -440,9 +464,11 @@ td:first-child{color:var(--muted)}
 .wrapped-analogy{display:none;margin:10px 0 0;color:var(--text-soft);font-size:.9rem;line-height:1.55}
 .wrapped-art{display:grid;place-items:center;min-width:0}
 .wrapped-art img{display:block;width:188px;max-width:100%;height:auto}
-""" + _light_rules("""
+"""
+    + _light_rules("""
   .wrapped-art img{filter:invert(1) opacity(.8)}
-""") + """
+""")
+    + """
 .wrapped-metrics{grid-column:1/-1;display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) repeat(2,minmax(0,1.3fr));gap:16px;border-top:1px solid var(--card-border);padding-top:20px}
 .wrapped-metric{min-width:0}
 .wrapped-metric span{display:block;color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px}
@@ -602,4 +628,5 @@ td:first-child{color:var(--muted)}
   .section,.card,.wrapped,.wrapped-section,.wrapped-card,.trend-row,.rank-line{break-inside:avoid}
   .share-trigger,.share-dialog,.date-filter{display:none!important}
   .card,.rank-line,.trend-row,.tool-row,.share-trigger,.share-close,.share-action,.sponsor a{box-shadow:none!important;transform:none!important}
-}""")
+}"""
+)

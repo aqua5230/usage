@@ -84,6 +84,7 @@ def render_daily_chart_toggle(t: Callable[[str], str]) -> str:
         "</div>"
     )
 
+
 def render_daily_chart(
     cube: Mapping[str, Any],
     t: Callable[[str], str],
@@ -135,8 +136,8 @@ def render_daily_chart(
             bar_height = value / maximum * plot_height
             cursor -= bar_height
             rounded = (
-                " rx=\"2\" ry=\"2\""
-                if not any(other["tokens"][index] > 0 for other in agents[agent_index + 1:])
+                ' rx="2" ry="2"'
+                if not any(other["tokens"][index] > 0 for other in agents[agent_index + 1 :])
                 else ""
             )
             svg.append(
@@ -157,7 +158,7 @@ def render_daily_chart(
     svg.append("</svg>")
     legend = "".join(
         f'<span class="daily-legend-item"><i style="background:{escape(agent["color"], quote=True)}"></i>'
-        f'{escape(agent["name"])} <b>{escape(fmt_tokens(sum(agent["tokens"])))}</b></span>'
+        f"{escape(agent['name'])} <b>{escape(fmt_tokens(sum(agent['tokens'])))}</b></span>"
         for agent in agents
         if sum(agent["tokens"]) > 0
     )
@@ -178,7 +179,7 @@ def render_pricing_section(
     return (
         '<section class="section pricing-section"><div class="prompt"><span>[usage]&gt;</span> '
         f'{escape(t("pricing_section"))}</div><div class="rule" aria-hidden="true">'
-        f'────────────────────────────────────────────────────────</div>{render_pricing_body(priced, unpriced, names, t, fmt_tokens, display_name, model_separator)}</section>'
+        f"────────────────────────────────────────────────────────</div>{render_pricing_body(priced, unpriced, names, t, fmt_tokens, display_name, model_separator)}</section>"
     )
 
 

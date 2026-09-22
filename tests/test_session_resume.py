@@ -150,11 +150,11 @@ def _sidecar(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
                     "empty": "GREETING::",
                     "uncommitted": "dirty branch={branch} count={count} files={files}",
                     "diagnosis_reminder": (
-                        'Health check: about {waste_pct}% waste came from {cause}. '
+                        "Health check: about {waste_pct}% waste came from {cause}. "
                         'If you say "修", the full diagnosis is at {path}.'
                     ),
                     "diagnosis_reminder_explain": (
-                        'Health check: about {waste_pct}% waste came from {cause}. '
+                        "Health check: about {waste_pct}% waste came from {cause}. "
                         'If you say "看", I will walk you through {path}.'
                     ),
                     "diagnosis_default_cause": "avoidable context waste",

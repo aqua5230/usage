@@ -118,9 +118,7 @@ def patch_setup_hook_paths(
     forwarder_source.write_text(forwarder_source_text, encoding="utf-8")
     claude_dir.mkdir()
     monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
-    monkeypatch.setattr(
-        session_hooks, "RESUME_HOOK_TARGET", claude_dir / "usage-session-resume.py"
-    )
+    monkeypatch.setattr(session_hooks, "RESUME_HOOK_TARGET", claude_dir / "usage-session-resume.py")
     monkeypatch.setattr(session_hooks, "CODEX_CONFIG", tmp_path / ".codex" / "config.toml")
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", hook_target)
     monkeypatch.setattr(setup_hook, "FORWARDER_TARGET", forwarder_target)
@@ -227,9 +225,7 @@ def patch_terse_hook_paths(
     reminder_source.write_text(reminder_source_text, encoding="utf-8")
     monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: settings)
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
-    monkeypatch.setattr(
-        session_hooks, "RESUME_HOOK_TARGET", claude_dir / "usage-session-resume.py"
-    )
+    monkeypatch.setattr(session_hooks, "RESUME_HOOK_TARGET", claude_dir / "usage-session-resume.py")
     monkeypatch.setattr(session_hooks, "TERSE_HOOK_TARGET", terse_target)
     monkeypatch.setattr(session_hooks, "TERSE_REMINDER_HOOK_TARGET", terse_reminder_target)
     monkeypatch.setattr(session_hooks, "TERSE_PROMPT_SIDECAR", sidecar)

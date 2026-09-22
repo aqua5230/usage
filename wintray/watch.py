@@ -298,8 +298,7 @@ class WindowsUsageWatcher:
         for runtime in self._runtimes:
             runtime.ready.wait(2.0)
         if any(
-            runtime.thread is not None and runtime.thread.is_alive()
-            for runtime in self._runtimes
+            runtime.thread is not None and runtime.thread.is_alive() for runtime in self._runtimes
         ):
             return True
         self.stop()
@@ -322,8 +321,7 @@ class WindowsUsageWatcher:
                 thread.join(max(0.0, deadline - time.monotonic()))
 
         if any(
-            runtime.thread is not None and runtime.thread.is_alive()
-            for runtime in self._runtimes
+            runtime.thread is not None and runtime.thread.is_alive() for runtime in self._runtimes
         ):
             self._debug_warning("Windows usage watcher did not stop cleanly")
             return

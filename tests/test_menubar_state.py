@@ -52,9 +52,7 @@ def test_history_sources_fingerprint_uses_claude_projects_dir(
     (noise_dir / "noise.jsonl").write_text("{}", encoding="utf-8")
     monkeypatch.setattr(Path, "home", lambda: home)
     monkeypatch.setenv("CODEX_HOME", str(home / ".codex"))
-    monkeypatch.setattr(
-        menubar_state, "claude_config_dirs", lambda: [projects_dir.parent]
-    )
+    monkeypatch.setattr(menubar_state, "claude_config_dirs", lambda: [projects_dir.parent])
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", home / ".codex" / "sessions")
     monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", archived_dir)
     monkeypatch.setattr(codex_loader, "LOGS_DB", home / ".codex" / "logs_2.sqlite")
@@ -323,9 +321,7 @@ def test_file_event_refresh_decision_merges_into_existing_trailing() -> None:
 def test_history_cache_reload_decision() -> None:
     fingerprint = (("history", 1, 10.0),)
 
-    assert menubar_state.history_cache_needs_reload(
-        None, fingerprint, has_cached_result=False
-    )
+    assert menubar_state.history_cache_needs_reload(None, fingerprint, has_cached_result=False)
     assert not menubar_state.history_cache_needs_reload(
         fingerprint, fingerprint, has_cached_result=True
     )

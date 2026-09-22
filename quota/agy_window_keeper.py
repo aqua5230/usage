@@ -25,9 +25,7 @@ from usage_common.subprocess_utils import hidden_console_kwargs
 
 logger = logging.getLogger(__name__)
 
-AGY_WINDOW_KEEPER_STATE_PATH = Path(
-    os.path.expanduser("~/.usage/agy_window_keeper.json")
-)
+AGY_WINDOW_KEEPER_STATE_PATH = Path(os.path.expanduser("~/.usage/agy_window_keeper.json"))
 PING_COOLDOWN_SECONDS = 5 * 3600
 PING_TIMEOUT_SECONDS = 180
 AGY_MODEL = "Gemini 3.5 Flash (Low)"
@@ -167,9 +165,7 @@ def maybe_ping(result: AgyRefreshResult, mock: bool) -> None:
         now=now,
         enabled=enabled,
         last_ping_at=last_ping_at,
-        remaining_percent=(
-            five_hour.remaining_percent if five_hour is not None else None
-        ),
+        remaining_percent=(five_hour.remaining_percent if five_hour is not None else None),
         stale=projection.stale if projection is not None else None,
         fallback_projection=projection is None,
         mock=mock,

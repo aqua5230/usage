@@ -428,10 +428,7 @@ def test_tool_results_do_not_start_new_user_turns(
             ]
         )
         if index == 0:
-            rows.extend(
-                _signal_row(timestamp=now, denied_parent_uuid="uuid-0")
-                for _ in range(3)
-            )
+            rows.extend(_signal_row(timestamp=now, denied_parent_uuid="uuid-0") for _ in range(3))
     _write_jsonl(projects_dir / "project-a" / "a.jsonl", rows)
 
     stats = persona_loader.load_profile().one_pass

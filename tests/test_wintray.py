@@ -124,9 +124,7 @@ def test_tray_icon_style(used: float | None, text: str, color: tuple[int, ...]) 
         (150.0, wintray.TaskbarProgressState.ERROR),
     ],
 )
-def test_taskbar_progress_state(
-    used: float | None, state: wintray.TaskbarProgressState
-) -> None:
+def test_taskbar_progress_state(used: float | None, state: wintray.TaskbarProgressState) -> None:
     assert wintray.taskbar_progress_state(used) == state
 
 
@@ -186,9 +184,7 @@ def test_taskbar_list3_interface_is_creatable() -> None:
         assert taskbar.value
     finally:
         if taskbar.value:
-            vtable = ctypes.cast(
-                taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
-            ).contents
+            vtable = ctypes.cast(taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
             win_function_type(ctypes.c_ulong, ctypes.c_void_p)(vtable[2])(taskbar)
         if initialize_result in {0, 1}:
             ole32.CoUninitialize()
@@ -321,7 +317,7 @@ def test_panel_html_installs_webkit_shim_without_changing_asset() -> None:
     assert "max-height: 80vh" in html
     assert "overflow-y: auto" in html
     assert "event.stopImmediatePropagation()" in html
-    assert "[data-card=\"claude\"]" in html
+    assert '[data-card="claude"]' in html
     assert "usage-card-window-dragging" in html
     assert "card.classList.add('pywebview-drag-region'" in html
     assert "button, a, input, select, textarea, label, summary" in html
@@ -347,17 +343,11 @@ def test_content_height_message_resizes_visible_panel_with_natural_height(
     controller.window = SimpleNamespace(x=0, y=0)
     calls: list[str] = []
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
-    monkeypatch.setattr(
-        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
-    )
+    monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800))
     monkeypatch.setattr(controller, "_place_window_on_ui_thread", lambda: calls.append("place"))
 
-    controller.handle_panel_message(
-        json.dumps({"action": "content_height", "height": 510.4})
-    )
-    controller.handle_panel_message(
-        json.dumps({"action": "content_height", "height": 5000})
-    )
+    controller.handle_panel_message(json.dumps({"action": "content_height", "height": 510.4}))
+    controller.handle_panel_message(json.dumps({"action": "content_height", "height": 5000}))
 
     assert controller.panel_height() == 4000
     assert calls == ["place", "place"]
@@ -370,9 +360,7 @@ def test_invalid_content_height_keeps_registered_fallback(
     fallback = wintray.PANEL_HEIGHTS[controller.active_panel_id]
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
 
-    controller.handle_panel_message(
-        json.dumps({"action": "content_height", "height": "510"})
-    )
+    controller.handle_panel_message(json.dumps({"action": "content_height", "height": "510"}))
 
     assert controller.panel_height() == fallback
 
@@ -449,12 +437,20 @@ def test_physical_saved_position_returns_to_secondary_screen_after_restart(
     monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
     screens = [
         SimpleNamespace(
-            x=0, y=0, width=1920, height=1080,
-            frame=SimpleNamespace(Left=0, Top=0, Right=1920, Bottom=1040), scale=1.0,
+            x=0,
+            y=0,
+            width=1920,
+            height=1080,
+            frame=SimpleNamespace(Left=0, Top=0, Right=1920, Bottom=1040),
+            scale=1.0,
         ),
         SimpleNamespace(
-            x=1920, y=0, width=2560, height=1440,
-            frame=SimpleNamespace(Left=1920, Top=0, Right=4480, Bottom=1258), scale=1.0,
+            x=1920,
+            y=0,
+            width=2560,
+            height=1440,
+            frame=SimpleNamespace(Left=1920, Top=0, Right=4480, Bottom=1258),
+            scale=1.0,
         ),
     ]
     monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
@@ -481,12 +477,20 @@ def test_physical_saved_position_uses_current_secondary_dpi_scale(
     monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
     screens = [
         SimpleNamespace(
-            x=0, y=0, width=1920, height=1080,
-            frame=SimpleNamespace(Left=0, Top=0, Right=1920, Bottom=1040), scale=1.0,
+            x=0,
+            y=0,
+            width=1920,
+            height=1080,
+            frame=SimpleNamespace(Left=0, Top=0, Right=1920, Bottom=1040),
+            scale=1.0,
         ),
         SimpleNamespace(
-            x=1920, y=0, width=2560, height=1440,
-            frame=SimpleNamespace(Left=1920, Top=0, Right=4480, Bottom=1258), scale=1.0,
+            x=1920,
+            y=0,
+            width=2560,
+            height=1440,
+            frame=SimpleNamespace(Left=1920, Top=0, Right=4480, Bottom=1258),
+            scale=1.0,
         ),
     ]
     monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
@@ -561,9 +565,7 @@ def test_hidden_panel_placement_uses_geometry_without_showing(
     controller.visible = True
     controller._content_height = 400
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
-    monkeypatch.setattr(
-        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
-    )
+    monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800))
     monkeypatch.setattr(
         controller,
         "_apply_geometry_without_showing",
@@ -589,9 +591,7 @@ def test_hidden_panel_placement_falls_back_when_geometry_application_fails(
     controller.visible = True
     controller._content_height = 400
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
-    monkeypatch.setattr(
-        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
-    )
+    monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800))
     monkeypatch.setattr(controller, "_apply_geometry_without_showing", lambda *_args: False)
 
     controller._place_window_on_ui_thread()
@@ -616,9 +616,7 @@ def test_panel_placement_skips_unchanged_native_geometry(
     controller._content_height = 400
     controller._positioned_this_show = positioned_this_show
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
-    monkeypatch.setattr(
-        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
-    )
+    monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800))
     monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.0)
     monkeypatch.setattr(
         controller,
@@ -660,9 +658,7 @@ def test_visible_panel_placement_applies_changed_native_geometry(
     controller._content_height = 400
     controller._positioned_this_show = True
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
-    monkeypatch.setattr(
-        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
-    )
+    monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800))
     monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.0)
 
     controller._place_window_on_ui_thread()
@@ -688,9 +684,7 @@ def test_hidden_panel_placement_without_native_geometry_still_applies(
     )
     controller._content_height = 400
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
-    monkeypatch.setattr(
-        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
-    )
+    monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800))
     monkeypatch.setattr(
         controller,
         "_apply_geometry_without_showing",
@@ -960,9 +954,7 @@ def test_failed_panel_zoom_does_not_resize_window_to_scaled_height(
     controller.window = window
     controller._content_height = 1000
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
-    monkeypatch.setattr(
-        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
-    )
+    monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800))
 
     controller._place_window()
 
@@ -1002,9 +994,7 @@ def test_background_window_mutation_is_dispatched_to_ui_thread(
     )
     monkeypatch.setitem(sys.modules, "System", SimpleNamespace(Action=lambda callback: callback))
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
-    monkeypatch.setattr(
-        controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800)
-    )
+    monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800))
     worker = threading.Thread(target=controller._place_window)
     worker.start()
     worker.join()
@@ -1018,9 +1008,7 @@ def test_background_window_mutation_is_dispatched_to_ui_thread(
     assert javascript_threads == [worker.ident]
 
 
-def test_load_preferences_non_utf8(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_load_preferences_non_utf8(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     preferences_path = tmp_path / "usage-preferences.json"
     preferences_path.write_bytes(b"\xff\xfe\x00bad")
     monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
@@ -1286,9 +1274,7 @@ def test_panel_and_tray_menus_render_the_shared_model(
 
     def model_keys(entries: tuple[wintray_menu.MenuEntry, ...]) -> list[str]:
         return [
-            "separator"
-            if isinstance(entry, wintray_menu.MenuSeparator)
-            else entry.i18n_key
+            "separator" if isinstance(entry, wintray_menu.MenuSeparator) else entry.i18n_key
             for entry in entries
         ]
 
@@ -1296,12 +1282,9 @@ def test_panel_and_tray_menus_render_the_shared_model(
         panel_model
     )
     assert [
-        "separator" if item is FakeMenu.SEPARATOR else item.label
-        for item in tray_menu.items[1:]
+        "separator" if item is FakeMenu.SEPARATOR else item.label for item in tray_menu.items[1:]
     ] == [
-        "separator"
-        if isinstance(entry, wintray_menu.MenuSeparator)
-        else _t("en", entry.i18n_key)
+        "separator" if isinstance(entry, wintray_menu.MenuSeparator) else _t("en", entry.i18n_key)
         for entry in tray_model
     ]
     assert model_keys(tray_model) == ["reset_panel_position", "separator", "quit"]
@@ -1387,9 +1370,7 @@ def test_card_order_persists_into_the_next_loaded_panel(
     )
     monkeypatch.setattr(controller, "_place_window", lambda: None)
 
-    controller.handle_panel_message(
-        json.dumps({"action": "set_card_order", "order": order})
-    )
+    controller.handle_panel_message(json.dumps({"action": "set_card_order", "order": order}))
     controller.switch_panel(panel_id)
     controller.on_loaded()
 
@@ -1428,9 +1409,7 @@ def test_run_app_wires_pystray_and_pywebview(
     window = SimpleNamespace(events=SimpleNamespace(loaded=Event()))
 
     def create_window(*args: object, **kwargs: object) -> object:
-        events.append(
-            ("window", args[0], kwargs["hidden"], kwargs["background_color"])
-        )
+        events.append(("window", args[0], kwargs["hidden"], kwargs["background_color"]))
         return window
 
     FakeMenu.SEPARATOR = object()  # type: ignore[attr-defined]
@@ -1688,9 +1667,7 @@ def test_windows_usage_watch_specs_are_limited_to_usage_sources(
         "wintray.watch.rate_limits.TT_STATUS_FILE",
         str(claude_root / "tt-status.json"),
     )
-    monkeypatch.setattr(
-        "wintray.watch.claude_config_dirs", lambda: [claude_root]
-    )
+    monkeypatch.setattr("wintray.watch.claude_config_dirs", lambda: [claude_root])
     monkeypatch.setattr("wintray.watch.codex_loader.SESSIONS_DIR", sessions)
     monkeypatch.setattr("wintray.watch.codex_loader.ARCHIVED_SESSIONS_DIR", archived)
 
@@ -1752,8 +1729,7 @@ def test_windows_watcher_observes_real_filesystem_change_and_refreshes(
 
     assert any(target in changes.paths for changes in received)
     assert all(
-        runtime.thread is None or not runtime.thread.is_alive()
-        for runtime in watcher._runtimes
+        runtime.thread is None or not runtime.thread.is_alive() for runtime in watcher._runtimes
     )
 
 
@@ -2351,9 +2327,7 @@ def test_quota_toast_action_activates_panel(monkeypatch: pytest.MonkeyPatch) -> 
     activated: list[str] = []
     monkeypatch.setattr(controller, "_activate_panel", lambda: activated.append("panel"))
 
-    controller._send_quota_notification(
-        NotificationEvent("warn", "claude_session", 90.0), _state()
-    )
+    controller._send_quota_notification(NotificationEvent("warn", "claude_session", 90.0), _state())
     callback = shown[0].on_activated
     assert callable(callback)
     callback(SimpleNamespace(arguments=wintray._TOAST_OPEN_PANEL_ACTION))
@@ -2376,9 +2350,7 @@ def test_quota_notification_falls_back_to_pystray_when_toast_unavailable(
     )
     state = _state()
 
-    controller._send_quota_notification(
-        NotificationEvent("warn", "claude_session", 90.0), state
-    )
+    controller._send_quota_notification(NotificationEvent("warn", "claude_session", 90.0), state)
 
     assert notices == [("Claude Session is 25% used. Time to wrap up?", "🐾 Almost out")]
 
@@ -2413,9 +2385,7 @@ def test_quota_notification_falls_back_when_toast_show_raises(
         notify=lambda message, title: notices.append((message, title))
     )
 
-    controller._send_quota_notification(
-        NotificationEvent("warn", "claude_session", 90.0), _state()
-    )
+    controller._send_quota_notification(NotificationEvent("warn", "claude_session", 90.0), _state())
 
     assert notices == [("Claude Session is 25% used. Time to wrap up?", "🐾 Almost out")]
     assert controller._toast_backend is None
@@ -2551,6 +2521,7 @@ def test_manual_update_check_bypasses_gates_and_keeps_windows_yes_no_prompt(
         "check_latest_release_result",
         lambda version: update_checker.ReleaseCheckResult(release),
     )
+
     def message_box(text: str, *, style: int = 0x40) -> int:
         messages.append((text, style))
         return 6
@@ -2585,14 +2556,13 @@ def test_update_alert_strips_markdown_from_release_notes(
     messages: list[tuple[str, int]] = []
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.language = "en"
+
     def message_box(text: str, *, style: int = 0x40) -> int:
         messages.append((text, style))
         return 6
 
     monkeypatch.setattr(controller, "_message_box", message_box)
-    monkeypatch.setattr(
-        "wintray.app.update_gate.resolve_alert_choice", lambda *a: ("dismiss", {})
-    )
+    monkeypatch.setattr("wintray.app.update_gate.resolve_alert_choice", lambda *a: ("dismiss", {}))
 
     controller._show_update_alert(release)
 
@@ -2654,9 +2624,7 @@ def test_single_instance_lock_blocks_second_acquire_until_released(
 ) -> None:
     # Use a test-specific mutex name so a real tray running on this machine
     # cannot interfere.
-    monkeypatch.setattr(
-        wintray, "_SINGLE_INSTANCE_MUTEX", "usage-tray-single-instance-pytest"
-    )
+    monkeypatch.setattr(wintray, "_SINGLE_INSTANCE_MUTEX", "usage-tray-single-instance-pytest")
     assert wintray._acquire_single_instance_lock() is True
     try:
         assert wintray._acquire_single_instance_lock() is False

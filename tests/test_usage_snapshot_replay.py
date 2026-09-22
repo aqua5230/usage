@@ -23,9 +23,7 @@ from analyzer.aggregator import aggregate_sessions
 from loaders import cache_quarantine
 from ui import html_report
 
-_GENERATED_AT = re.compile(
-    r"(產生時間|Generated|生成时间|生成日時|생성 시간) [^<\n]+"
-)
+_GENERATED_AT = re.compile(r"(產生時間|Generated|生成时间|生成日時|생성 시간) [^<\n]+")
 
 
 @pytest.fixture
@@ -348,12 +346,10 @@ def test_html_identical_after_entries_cleared(
                 start = max(0, index - 80)
                 pytest.fail(
                     f"HTML differed at {index}:\n"
-                    f"A: {stripped_a[start:index + 80]!r}\n"
-                    f"B: {stripped_b[start:index + 80]!r}"
+                    f"A: {stripped_a[start : index + 80]!r}\n"
+                    f"B: {stripped_b[start : index + 80]!r}"
                 )
-        pytest.fail(
-            f"HTML length differed: {len(stripped_a)} vs {len(stripped_b)}"
-        )
+        pytest.fail(f"HTML length differed: {len(stripped_a)} vs {len(stripped_b)}")
 
     assert data_a["top_sessions"][0]["duration_min"] == data_b["top_sessions"][0]["duration_min"]
     assert {row["duration_min"] for row in data_a["top_sessions"]} == {
@@ -609,9 +605,7 @@ def test_replay_single_entry_row_does_not_add_placeholder(snapshot_path: Path) -
     assert replayed[0].input_tokens == 40
 
 
-def test_replay_preserves_offset_timestamps(
-    snapshot_path: Path, _sandbox_report: None
-) -> None:
+def test_replay_preserves_offset_timestamps(snapshot_path: Path, _sandbox_report: None) -> None:
     tz = timezone(timedelta(hours=8))
     first = _entry(
         when=datetime(2026, 9, 1, 12, 0, tzinfo=tz),

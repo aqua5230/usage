@@ -178,11 +178,7 @@ def _resolve_access_token(timeout: float) -> str | None:
         return None
     access_token = token.get("access_token")
     expiry = token.get("expiry")
-    if (
-        isinstance(access_token, str)
-        and isinstance(expiry, str)
-        and _seconds_until(expiry) > 60
-    ):
+    if isinstance(access_token, str) and isinstance(expiry, str) and _seconds_until(expiry) > 60:
         return access_token
 
     refresh_token = token.get("refresh_token")

@@ -12,16 +12,12 @@ import pytest
 from loaders import cache_quarantine
 
 
-def test_quarantine_moves_a_cache_file(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_quarantine_moves_a_cache_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     quarantine_dir = tmp_path / "quarantine"
     source = tmp_path / "cache.json"
     source.write_text("broken", encoding="utf-8")
     monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", quarantine_dir)
-    monkeypatch.setattr(
-        "loaders.cache_quarantine.time.time_ns", lambda: 1_754_132_400_123_000_000
-    )
+    monkeypatch.setattr("loaders.cache_quarantine.time.time_ns", lambda: 1_754_132_400_123_000_000)
 
     cache_quarantine.quarantine(source, "json-error")
 
@@ -47,9 +43,7 @@ def test_quarantine_skips_files_larger_than_five_megabytes(
     assert not quarantine_dir.exists()
 
 
-def test_quarantine_keeps_only_ten_backups(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_quarantine_keeps_only_ten_backups(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     quarantine_dir = tmp_path / "quarantine"
     quarantine_dir.mkdir()
     for index in range(10):
@@ -59,9 +53,7 @@ def test_quarantine_keeps_only_ten_backups(
     source = tmp_path / "cache.json"
     source.write_text("broken", encoding="utf-8")
     monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", quarantine_dir)
-    monkeypatch.setattr(
-        "loaders.cache_quarantine.time.time_ns", lambda: 1_754_132_400_123_000_000
-    )
+    monkeypatch.setattr("loaders.cache_quarantine.time.time_ns", lambda: 1_754_132_400_123_000_000)
 
     cache_quarantine.quarantine(source, "json-error")
 

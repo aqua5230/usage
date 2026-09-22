@@ -58,9 +58,7 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     from menubar.app import _session_resume_enabled, _terse_mode_enabled
 
     menu = NSMenu.alloc().initWithTitle_(_t(app.language, "switch_panel"))
-    menu.addItem_(
-        build_menu_item(app.language, "panel_ai_daily", "toggleAiDaily:", target=app)
-    )
+    menu.addItem_(build_menu_item(app.language, "panel_ai_daily", "toggleAiDaily:", target=app))
     menu.addItem_(NSMenuItem.separatorItem())
     # Panel themes live in a submenu so the menu stays short — one "面板主題 ▸"
     # row that expands on demand instead of fourteen inline rows.
@@ -68,7 +66,10 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     for panel in panels.all_panels():
         panel_submenu.addItem_(
             build_menu_item(
-                app.language, panel.i18n_key, "selectPanel:", target=app,
+                app.language,
+                panel.i18n_key,
+                "selectPanel:",
+                target=app,
                 represented=panel.id,
                 state=panel.id == app.active_panel.id,
             )
@@ -84,25 +85,37 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     hide_submenu = NSMenu.alloc().initWithTitle_(_t(app.language, "hide_sections_menu"))
     hide_submenu.addItem_(
         build_menu_item(
-            app.language, "claude_name", "toggleHideClaude:", target=app,
+            app.language,
+            "claude_name",
+            "toggleHideClaude:",
+            target=app,
             state=_hide_claude_enabled(),
         )
     )
     hide_submenu.addItem_(
         build_menu_item(
-            app.language, "codex_name", "toggleHideCodex:", target=app,
+            app.language,
+            "codex_name",
+            "toggleHideCodex:",
+            target=app,
             state=_hide_codex_enabled(),
         )
     )
     hide_submenu.addItem_(
         build_menu_item(
-            app.language, "agy_name", "toggleHideAgy:", target=app,
+            app.language,
+            "agy_name",
+            "toggleHideAgy:",
+            target=app,
             state=_hide_agy_enabled(),
         )
     )
     hide_submenu.addItem_(
         build_menu_item(
-            app.language, "grok_name", "toggleHideGrok:", target=app,
+            app.language,
+            "grok_name",
+            "toggleHideGrok:",
+            target=app,
             state=_hide_grok_enabled(),
         )
     )
@@ -115,19 +128,28 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     menu.addItem_(NSMenuItem.separatorItem())
     menu.addItem_(
         build_menu_item(
-            app.language, "launch_at_login", "toggleLaunchAtLogin:", target=app,
+            app.language,
+            "launch_at_login",
+            "toggleLaunchAtLogin:",
+            target=app,
             state=login_item.is_enabled(),
         )
     )
     menu.addItem_(
         build_menu_item(
-            app.language, "quota_notifications_menu", "toggleQuotaNotifications:", target=app,
+            app.language,
+            "quota_notifications_menu",
+            "toggleQuotaNotifications:",
+            target=app,
             state=_quota_notifications_enabled(),
         )
     )
     menu.addItem_(
         build_menu_item(
-            app.language, "window_keeper_menu", "toggleWindowKeeper:", target=app,
+            app.language,
+            "window_keeper_menu",
+            "toggleWindowKeeper:",
+            target=app,
             state=_window_keeper_enabled(),
             tooltip_key="window_keeper_tooltip",
         )
@@ -138,14 +160,20 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     # added a divider with no real category difference.
     menu.addItem_(
         build_menu_item(
-            app.language, "project_butler", "toggleSessionResume:", target=app,
+            app.language,
+            "project_butler",
+            "toggleSessionResume:",
+            target=app,
             state=_session_resume_enabled(),
             tooltip_key="project_butler_tooltip",
         )
     )
     menu.addItem_(
         build_menu_item(
-            app.language, "terse_mode_menu", "toggleTerseMode:", target=app,
+            app.language,
+            "terse_mode_menu",
+            "toggleTerseMode:",
+            target=app,
             state=_terse_mode_enabled(),
             tooltip_key="terse_mode_tooltip",
         )

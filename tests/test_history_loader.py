@@ -537,36 +537,34 @@ def test_disk_cache_seed_loads_on_cold_start(
     monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
     monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
-    cache_data = (
-        json.dumps(
-            {
-                "schema_version": history_loader._HISTORY_JSONL_CACHE_SCHEMA,
-                "cached_at": datetime.now(UTC).timestamp(),
-                "files": {
-                    str(session_path): {
-                        "mtime": 123456.0,
-                        "size": 1000,
-                        "entries": [
-                            {
-                                "timestamp": "2026-06-24T12:00:00+00:00",
-                                "session_id": "test-session",
-                                "message_id": "test-message",
-                                "request_id": "test-request",
-                                "model": "claude-sonnet",
-                                "input_tokens": 100,
-                                "output_tokens": 50,
-                                "cache_creation_tokens": 10,
-                                "cache_read_tokens": 5,
-                                "cost_usd": 0.25,
-                                "project": "plain-project",
-                            }
-                        ],
-                        "confirmed_offset": 1000,
-                        "confirmed_prefix_digest": "abcd",
-                    }
-                },
-            }
-        )
+    cache_data = json.dumps(
+        {
+            "schema_version": history_loader._HISTORY_JSONL_CACHE_SCHEMA,
+            "cached_at": datetime.now(UTC).timestamp(),
+            "files": {
+                str(session_path): {
+                    "mtime": 123456.0,
+                    "size": 1000,
+                    "entries": [
+                        {
+                            "timestamp": "2026-06-24T12:00:00+00:00",
+                            "session_id": "test-session",
+                            "message_id": "test-message",
+                            "request_id": "test-request",
+                            "model": "claude-sonnet",
+                            "input_tokens": 100,
+                            "output_tokens": 50,
+                            "cache_creation_tokens": 10,
+                            "cache_read_tokens": 5,
+                            "cost_usd": 0.25,
+                            "project": "plain-project",
+                        }
+                    ],
+                    "confirmed_offset": 1000,
+                    "confirmed_prefix_digest": "abcd",
+                }
+            },
+        }
     )
     shard_path = history_disk_cache._shard_path(
         cache_file, history_disk_cache._shard_index(session_path)

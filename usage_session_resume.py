@@ -177,9 +177,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
             "（請在你這次對話的第一則回覆最前面，說一行「🐾 歡迎回來，"
             "這個專案目前沒有要接的進度。」，再正常回應。）"
         ),
-        "uncommitted": (
-            "上次離開時還留著：{branch} 分支有 {count} 個檔案改了還沒提交（{files}）"
-        ),
+        "uncommitted": ("上次離開時還留著：{branch} 分支有 {count} 個檔案改了還沒提交（{files}）"),
     },
     "zh-CN": {
         "prompt": (
@@ -203,9 +201,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
             "（请在你这次对话的第一则回复最前面，说一行「🐾 欢迎回来，"
             "这个项目目前没有要接的进度。」，再正常回应。）"
         ),
-        "uncommitted": (
-            "上次离开时还留着：{branch} 分支有 {count} 个文件改了还没提交（{files}）"
-        ),
+        "uncommitted": ("上次离开时还留着：{branch} 分支有 {count} 个文件改了还没提交（{files}）"),
     },
     "ja": {
         "prompt": (
@@ -249,7 +245,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
             "(이것은 진행 상황 인수인계입니다. 첫 답변 맨 앞에 먼저 한 줄 "
             '"🐾 지난 작업을 불러왔어요! 이어서 가볼까요?"라고 '
             "말한 뒤, 아래 단서를 그대로 읽지 말고 똑똑하고 사려 깊은 동료처럼 소화하세요: "
-            "먼저 사용자가 마지막에 실제로 무엇을 하고 있었는지 파악하고(\"최근 작업한 내용\"은 "
+            '먼저 사용자가 마지막에 실제로 무엇을 하고 있었는지 파악하고("최근 작업한 내용"은 '
             "최신순이므로 맨 위 항목을 신뢰하고 오래된 것에 끌려가지 마세요), 지난번에 어디까지 "
             "했고 무엇을 완료했는지 한두 문장으로 따뜻하고 구체적으로 짚어 준 뒤, 이어서 취해야 "
             '할 구체적인 다음 단계 하나를 제시하세요 — 구체적으로 말하고 "무엇을 할까요"라고 '
@@ -670,8 +666,7 @@ def _build_diagnosis_instruction(
     findings = raw_findings if isinstance(raw_findings, list) else []
     waste_pct = _coerce_float(snapshot.get("waste_pct"))
     has_critical = any(
-        isinstance(finding, dict) and finding.get("severity") == "critical"
-        for finding in findings
+        isinstance(finding, dict) and finding.get("severity") == "critical" for finding in findings
     )
     if waste_pct < 5.0 and not has_critical:
         return ""
@@ -793,7 +788,7 @@ def _format_time(parsed: datetime) -> str:
 
 def _project_from_cwd(cwd: str) -> str:
     home = os.path.expanduser("~")
-    rel = cwd[len(home):] if cwd.startswith(home) else cwd
+    rel = cwd[len(home) :] if cwd.startswith(home) else cwd
     # Windows sessions read transcripts whose cwd may use either separator
     # (e.g. POSIX-style paths). POSIX filenames may legitimately contain
     # backslashes, so only normalize them on Windows.
@@ -852,7 +847,9 @@ def _normalize_lang(code: str) -> str:
     return "en"
 
 
-def _load_template(lang: str) -> tuple[
+def _load_template(
+    lang: str,
+) -> tuple[
     str,
     str,
     str,

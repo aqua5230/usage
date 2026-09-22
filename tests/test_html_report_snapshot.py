@@ -513,15 +513,14 @@ def test_masked_html_export_removes_unmasked_csv_data() -> None:
     html = html_report.generate_html(data, language="en")
     unmasked_node = html.split('<script type="application/json" id="usage-csv-data">', 1)[1]
     unmasked_data, remainder = unmasked_node.split("</script>", 1)
-    masked_data = remainder.split(
-        '<script type="application/json" id="usage-masked-csv-data">', 1
-    )[1].split("</script>", 1)[0]
+    masked_data = remainder.split('<script type="application/json" id="usage-masked-csv-data">', 1)[
+        1
+    ].split("</script>", 1)[0]
 
     assert "project,usage" in unmasked_data
     assert "project,usage" not in masked_data
     assert (
-        "const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;"
-        in html
+        "const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;" in html
     )
     assert "dataNode.remove();" in html
 
@@ -551,7 +550,7 @@ def test_generate_html_embeds_compact_cube_and_session_json() -> None:
 
     assert '<script type="application/json" id="usage-cube-data">' in html
     assert '<script type="application/json" id="usage-session-data">' in html
-    assert 'client<\\/script>portal' in html
+    assert "client<\\/script>portal" in html
     assert '"dates":["2026-05-21"],"agents"' in html
 
 
@@ -594,7 +593,7 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
     assert html.count('class="tool-row model-group"') == 2
     assert html.count('class="rank-line model-child"') == 2
     assert 'class="section model-section"' not in html
-    assert 'donut-wrap' not in html
+    assert "donut-wrap" not in html
     assert 'data-agent-id="claude-code"' in html
     assert 'data-project-index="1"' in html
     assert 'data-project-index="0"' in html
@@ -611,9 +610,17 @@ def test_generate_html_wires_cube_rows_to_report_filter_script() -> None:
 def test_generate_html_restructures_report_into_tools_and_collapsed_appendix() -> None:
     html = html_report.generate_html(_full_report_data(), language="zh-TW")
     ordered = (
-        "insights-section", "trend-section", "tools-section", "project-section",
-        "session-section", "report-appendix", "contribution-section",
-        "persona-section", "recent-titles-section", "wrapped-section", "sponsor",
+        "insights-section",
+        "trend-section",
+        "tools-section",
+        "project-section",
+        "session-section",
+        "report-appendix",
+        "contribution-section",
+        "persona-section",
+        "recent-titles-section",
+        "wrapped-section",
+        "sponsor",
     )
 
     positions = [
@@ -625,9 +632,9 @@ def test_generate_html_restructures_report_into_tools_and_collapsed_appendix() -
     assert positions == sorted(positions)
     assert '<details class="report-appendix">' in html
     assert '<details class="report-appendix" open>' not in html
-    assert 'report_model_section' not in html
-    assert 'model-section' not in html
-    assert 'donut-wrap' not in html
+    assert "report_model_section" not in html
+    assert "model-section" not in html
+    assert "donut-wrap" not in html
 
 
 def test_generate_html_adds_date_filter_cards_and_fixed_group_note_for_cube() -> None:
@@ -643,26 +650,23 @@ def test_generate_html_adds_date_filter_cards_and_fixed_group_note_for_cube() ->
     html = html_report.generate_html(data, language="en", default_range="last7")
 
     assert '<body data-default-range="last7">' in html
-    assert 'data-date-filter' in html
+    assert "data-date-filter" in html
     assert 'min="2026-05-01" max="2026-05-24"' in html
     assert html.count('data-range="') == 5
     assert [
-        match.group(1)
-        for match in re.finditer(r'<div class="card" data-card="([^"]+)"', html)
+        match.group(1) for match in re.finditer(r'<div class="card" data-card="([^"]+)"', html)
     ] == ["tokens", "cost", "active", "peak"]
     assert html.count('class="fixed-group-note"') == 1
     contribution = re.search(
         r'<section class="section contribution-section">\s*'
         r'<p class="fixed-group-note">The sections below don&#x27;t follow '
-        r'the date filter above</p>\s*'
+        r"the date filter above</p>\s*"
         r'<div class="prompt">',
         html,
     )
     assert contribution
     for class_name in ("trend-section", "composition-section", "session-section"):
-        section = re.search(
-            rf'<section class="section {class_name}">.*?</section>', html, re.S
-        )
+        section = re.search(rf'<section class="section {class_name}">.*?</section>', html, re.S)
         assert section, class_name
         assert "fixed-range-tag" not in section.group(0)
     for class_name in (
@@ -670,21 +674,16 @@ def test_generate_html_adds_date_filter_cards_and_fixed_group_note_for_cube() ->
         "contribution-section",
         "recent-titles-section",
     ):
-        section = re.search(
-            rf'<section class="section {class_name}">.*?</section>', html, re.S
-        )
+        section = re.search(rf'<section class="section {class_name}">.*?</section>', html, re.S)
         assert section, class_name
         assert "fixed-range-tag" not in section.group(0)
     for class_name in ("insights-section", "wrapped-section"):
-        section = re.search(
-            rf'<section class="section {class_name}">.*?</section>', html, re.S
-        )
+        section = re.search(rf'<section class="section {class_name}">.*?</section>', html, re.S)
         assert section, class_name
         assert "fixed-range-tag" in section.group(0)
     assert (
-        '<summary><span>[usage]&gt;</span> How these numbers are calculated'
-        '<span class="appendix-desc">Token mix · Cache hit rate · Cost confidence</span>'
-        in html
+        "<summary><span>[usage]&gt;</span> How these numbers are calculated"
+        '<span class="appendix-desc">Token mix · Cache hit rate · Cost confidence</span>' in html
     )
 
 
@@ -729,9 +728,7 @@ def test_insight_naming_a_project_masks_only_the_name() -> None:
     data["by_project"][0]["project"] = sentinel
     html = html_report.generate_html(data, language="en")
 
-    spans = re.findall(
-        r'<span class="insight-project" data-mask-as="([^"]*)">([^<]*)</span>', html
-    )
+    spans = re.findall(r'<span class="insight-project" data-mask-as="([^"]*)">([^<]*)</span>', html)
     assert spans, "expected the project name to be wrapped for masking"
     assert all(name == sentinel for _, name in spans)
     # by_project[0] -> Project 1, matching the project table and donut legend.
@@ -741,6 +738,7 @@ def test_insight_naming_a_project_masks_only_the_name() -> None:
     assert any("insight-project" not in note for note in notes), (
         "masking must be selective, not applied to every insight"
     )
+
 
 def test_save_and_open_sets_private_permissions_for_custom_path(tmp_path: Path) -> None:
     path = tmp_path / "reports" / "report.html"
@@ -790,8 +788,6 @@ def test_build_csv_data_masks_project_names() -> None:
     assert "project,Project 2,20.1,471482,9.18\r\n" in csv_text
     assert "model,claude-sonnet-4,52.4,1229345,23.91\r\n" in csv_text
     assert "project,usage,70.2,1646859,32.07\r\n" not in csv_text
-
-
 
 
 def test_fmt_cost_returns_dash_for_none() -> None:

@@ -27,9 +27,7 @@ PANEL_CORNER_RADIUS = 12.0
 
 class PanelWindow(NSPanel):
     def initWithContentRect_(self, content_rect: Any) -> PanelWindow:
-        style_mask = int(NSWindowStyleMaskBorderless) | int(
-            NSWindowStyleMaskNonactivatingPanel
-        )
+        style_mask = int(NSWindowStyleMaskBorderless) | int(NSWindowStyleMaskNonactivatingPanel)
         self = objc.super(PanelWindow, self).initWithContentRect_styleMask_backing_defer_(
             content_rect,
             style_mask,

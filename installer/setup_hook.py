@@ -43,17 +43,13 @@ HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-statusline.py"))
 FORWARDER_TARGET = Path(os.path.expanduser("~/.claude/usage-statusline-forwarder.py"))
 STATUS_FILE = Path(os.path.expanduser("~/.claude/usage-status.json"))
 AGY_SETTINGS = Path(os.path.expanduser("~/.gemini/antigravity-cli/settings.json"))
-AGY_HOOK_TARGET = Path(
-    os.path.expanduser("~/.gemini/antigravity-cli/usage-statusline-agy.py")
-)
+AGY_HOOK_TARGET = Path(os.path.expanduser("~/.gemini/antigravity-cli/usage-statusline-agy.py"))
 AGY_PREVIOUS_STATUSLINE = Path(
     os.path.expanduser("~/.gemini/antigravity-cli/usage-previous-statusline.json")
 )
 GROK_SETTINGS = Path(os.path.expanduser("~/.grok/config.toml"))
 GROK_HOOK_TARGET = Path(os.path.expanduser("~/.grok/usage-statusline-grok.py"))
-GROK_PREVIOUS_STATUSLINE = Path(
-    os.path.expanduser("~/.grok/usage-previous-statusline-grok.json")
-)
+GROK_PREVIOUS_STATUSLINE = Path(os.path.expanduser("~/.grok/usage-previous-statusline-grok.json"))
 CODEX_CONFIG = codex_home() / "config.toml"
 CODEX_BACKUP = codex_home() / "usage-backup.json"
 # LEGACY_TT_* / tokenTracker / tt-* below are MIGRATION-ONLY constants for users
@@ -101,9 +97,7 @@ def _claude_settings_path() -> Path:
 
 
 def _claude_install_exists() -> bool:
-    return _claude_settings_path().parent.exists() or Path(
-        os.path.expanduser("~/.claude")
-    ).exists()
+    return _claude_settings_path().parent.exists() or Path(os.path.expanduser("~/.claude")).exists()
 
 
 def _claude_settings_dir_exists() -> bool:
@@ -229,11 +223,7 @@ def _is_working_python(path: str) -> bool:
 def _find_system_python() -> str:
     if sys.platform == "win32":
         executable = sys.executable
-        if (
-            executable
-            and not getattr(sys, "frozen", False)
-            and _is_ascii_path(executable)
-        ):
+        if executable and not getattr(sys, "frozen", False) and _is_ascii_path(executable):
             return executable
         # Claude Code can fail to spawn a command containing non-ASCII paths
         # on Windows.  The hook is stdlib-only, so an ASCII-path Python from
@@ -303,9 +293,7 @@ def _cmd_unsafe_reason(value: str) -> str | None:
         problems.append("spaces")
     unsafe = sorted({char for char in value if char in _CMD_UNSAFE_CHARACTERS})
     if unsafe:
-        problems.append(
-            "unsafe cmd.exe characters " + ", ".join(repr(char) for char in unsafe)
-        )
+        problems.append("unsafe cmd.exe characters " + ", ".join(repr(char) for char in unsafe))
     return " and ".join(problems) or None
 
 
@@ -449,9 +437,7 @@ def _migrate_bundled_python_commands_if_needed(
 
 
 def _command_references(command: str, filename: str) -> bool:
-    return bool(
-        re.search(rf"(?:^|[\s/\\'\"]){re.escape(filename)}(?=$|[\s'\"])", command)
-    )
+    return bool(re.search(rf"(?:^|[\s/\\'\"]){re.escape(filename)}(?=$|[\s'\"])", command))
 
 
 def _is_usage_hook(sl: object) -> bool:
@@ -570,9 +556,7 @@ def _load_settings() -> dict[str, Any]:
         with claude_settings.open(encoding="utf-8-sig") as f:
             data = json.load(f)
     except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
-        raise SystemExit(
-            _t("setup_settings_read_failed", path=claude_settings, error=exc)
-        ) from exc
+        raise SystemExit(_t("setup_settings_read_failed", path=claude_settings, error=exc)) from exc
     if not isinstance(data, dict):
         raise SystemExit(_t("setup_settings_not_object", path=claude_settings))
     return data
@@ -603,9 +587,7 @@ def _agy_statusline_command() -> str:
     python = _find_agy_python() if sys.platform == "win32" else "/usr/bin/python3"
     if sys.platform == "win32":
         python = _agy_windows_command_path(python, "Python interpreter")
-        hook_target = _agy_windows_command_path(
-            str(AGY_HOOK_TARGET), "status-line hook"
-        )
+        hook_target = _agy_windows_command_path(str(AGY_HOOK_TARGET), "status-line hook")
         return f"{python} {hook_target}"
     return f"{_shell_arg(python)} {_shell_arg(str(AGY_HOOK_TARGET))}"
 
@@ -948,9 +930,7 @@ def _insert_table_line(content: str, name: str, line: str) -> str:
         subtable = re.compile(rf"(?m)^[ \t]*\[{re.escape(name)}\.").search(content)
         new_table = f"[{name}]\n{line}\n"
         if subtable is not None:
-            candidate = (
-                content[: subtable.start()] + new_table + "\n" + content[subtable.start() :]
-            )
+            candidate = content[: subtable.start()] + new_table + "\n" + content[subtable.start() :]
             return validated(candidate)
 
         first_table = _TABLE_REGEX.search(content)
@@ -1034,9 +1014,7 @@ def _remove_table_line(content: str, name: str, line_regex: re.Pattern[str]) -> 
     return validated(candidate)
 
 
-def _ensure_table_line(
-    content: str, name: str, line_regex: re.Pattern[str], line: str
-) -> str:
+def _ensure_table_line(content: str, name: str, line_regex: re.Pattern[str], line: str) -> str:
     """Make sure ``line`` is in table ``name``: replace an existing ``line_regex`` match if
     present, else insert ``line`` fresh. Appends a new ``[name]`` table at EOF when the table
     itself is absent."""
@@ -1208,8 +1186,6 @@ def update_forwarder() -> None:
     _copy_forwarder_script()
 
 
-
-
 def is_setup() -> bool:
     has_claude = _claude_install_exists()
     has_codex = CODEX_CONFIG.exists()
@@ -1338,7 +1314,6 @@ def unsetup() -> int:
         if STATUS_FILE.exists():
             STATUS_FILE.unlink()
             print(_t("setup_status_file_deleted", path=STATUS_FILE))
-
 
     if CODEX_CONFIG.exists():
         _unsetup_codex()

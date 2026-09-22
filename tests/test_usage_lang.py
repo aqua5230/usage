@@ -16,9 +16,7 @@ from usage_common.usage_lang import _detect_windows_lang, _normalize_lang, detec
 
 
 def _fake_windll(monkeypatch: pytest.MonkeyPatch, lang_id: int) -> None:
-    windll = SimpleNamespace(
-        kernel32=SimpleNamespace(GetUserDefaultUILanguage=lambda: lang_id)
-    )
+    windll = SimpleNamespace(kernel32=SimpleNamespace(GetUserDefaultUILanguage=lambda: lang_id))
     monkeypatch.setattr(ctypes, "windll", windll, raising=False)
 
 

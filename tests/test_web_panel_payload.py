@@ -185,9 +185,7 @@ def test_bridge_saves_valid_panel_flavor_and_ignores_invalid_input(
 
     bridge.userContentController_didReceiveScriptMessage_(
         None,
-        SimpleNamespace(
-            body=lambda: '{"action":"set_panel_flavor","flavor":"macchiato"}'
-        ),
+        SimpleNamespace(body=lambda: '{"action":"set_panel_flavor","flavor":"macchiato"}'),
     )
     assert prefs._load_preferences()["panel_flavor"] == "macchiato"
 

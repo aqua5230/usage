@@ -143,9 +143,7 @@ def _save_ping_state(
 ) -> None:
     state_path = WINDOW_KEEPER_STATE_PATH if path is None else path
     state_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps(
-        {"last_pinged_reset_at": reset_at, "last_ping_at": ping_at}
-    ) + "\n"
+    payload = json.dumps({"last_pinged_reset_at": reset_at, "last_ping_at": ping_at}) + "\n"
     tmp_path: str | None = None
     try:
         fd, tmp_path = tempfile.mkstemp(dir=state_path.parent, suffix=".tmp")

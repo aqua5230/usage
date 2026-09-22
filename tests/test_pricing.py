@@ -198,13 +198,16 @@ def test_calculate_cost_uses_distinct_cache_write_ttls(monkeypatch: pytest.Monke
         },
     )
 
-    assert pricing.calculate_cost(
-        _entry(
-            model="claude-opus-5",
-            cache_creation_tokens=2_000_000,
-            cache_creation_1h_tokens=1_000_000,
+    assert (
+        pricing.calculate_cost(
+            _entry(
+                model="claude-opus-5",
+                cache_creation_tokens=2_000_000,
+                cache_creation_1h_tokens=1_000_000,
+            )
         )
-    ) == 16.25
+        == 16.25
+    )
 
 
 def test_calculate_cost_accepts_analyzer_usage_entry(monkeypatch: pytest.MonkeyPatch) -> None:

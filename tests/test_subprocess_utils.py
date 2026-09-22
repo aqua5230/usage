@@ -17,9 +17,7 @@ from usage_common.subprocess_utils import hidden_console_kwargs
 def test_hidden_console_kwargs_on_windows(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(sys, "platform", "win32")
 
-    assert hidden_console_kwargs() == {
-        "creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)
-    }
+    assert hidden_console_kwargs() == {"creationflags": getattr(subprocess, "CREATE_NO_WINDOW", 0)}
 
 
 def test_hidden_console_kwargs_on_other_platform(

@@ -29,13 +29,17 @@ def _make_raw_id_token(payload_claims: object) -> str:
 
 def test_claude_subscription(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     cfg = tmp_path / ".claude.json"
-    cfg.write_text(json.dumps({
-        "oauthAccount": {
-            "organizationType": "claude_pro",
-            "subscriptionCreatedAt": "2026-04-12T03:29:57.721002Z",
-            "emailAddress": "secret@example.com",
-        }
-    }))
+    cfg.write_text(
+        json.dumps(
+            {
+                "oauthAccount": {
+                    "organizationType": "claude_pro",
+                    "subscriptionCreatedAt": "2026-04-12T03:29:57.721002Z",
+                    "emailAddress": "secret@example.com",
+                }
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     sub = subscription._load_claude_subscription()
     assert sub == {"agent": "Claude Code", "plan": "Claude Pro", "since": "2026-04-12"}
@@ -56,13 +60,21 @@ def test_claude_unknown_plan_is_humanised(monkeypatch: pytest.MonkeyPatch, tmp_p
 
 def test_codex_subscription(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     auth = tmp_path / "auth.json"
-    auth.write_text(json.dumps({
-        "auth_mode": "chatgpt",
-        "tokens": {"id_token": _make_id_token({
-            "chatgpt_plan_type": "plus",
-            "chatgpt_subscription_active_start": "2026-03-23T13:23:07+00:00",
-        })},
-    }))
+    auth.write_text(
+        json.dumps(
+            {
+                "auth_mode": "chatgpt",
+                "tokens": {
+                    "id_token": _make_id_token(
+                        {
+                            "chatgpt_plan_type": "plus",
+                            "chatgpt_subscription_active_start": "2026-03-23T13:23:07+00:00",
+                        }
+                    )
+                },
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     sub = subscription._load_codex_subscription()
     assert sub == {"agent": "Codex", "plan": "ChatGPT Plus", "since": "2026-03-23"}
@@ -72,12 +84,20 @@ def test_codex_subscription_reads_plan_without_auth_mode(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     auth = tmp_path / "auth.json"
-    auth.write_text(json.dumps({
-        "tokens": {"id_token": _make_id_token({
-            "chatgpt_plan_type": "plus",
-            "chatgpt_subscription_active_until": "2026-02-15T03:18:25+00:00",
-        })},
-    }))
+    auth.write_text(
+        json.dumps(
+            {
+                "tokens": {
+                    "id_token": _make_id_token(
+                        {
+                            "chatgpt_plan_type": "plus",
+                            "chatgpt_subscription_active_until": "2026-02-15T03:18:25+00:00",
+                        }
+                    )
+                },
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     sub = subscription._load_codex_subscription()
     assert sub == {"agent": "Codex", "plan": "ChatGPT Plus", "since": None}
@@ -100,10 +120,14 @@ def test_load_subscriptions_combines_both(monkeypatch: pytest.MonkeyPatch, tmp_p
     cfg = tmp_path / ".claude.json"
     cfg.write_text(json.dumps({"oauthAccount": {"organizationType": "claude_pro"}}))
     auth = tmp_path / "auth.json"
-    auth.write_text(json.dumps({
-        "auth_mode": "chatgpt",
-        "tokens": {"id_token": _make_id_token({"chatgpt_plan_type": "pro"})},
-    }))
+    auth.write_text(
+        json.dumps(
+            {
+                "auth_mode": "chatgpt",
+                "tokens": {"id_token": _make_id_token({"chatgpt_plan_type": "pro"})},
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     subs = subscription.load_subscriptions()
@@ -146,12 +170,16 @@ def test_claude_subscription_non_string_fields_degrade(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     cfg = tmp_path / ".claude.json"
-    cfg.write_text(json.dumps({
-        "oauthAccount": {
-            "organizationType": 123,
-            "subscriptionCreatedAt": 1717000000,
-        }
-    }))
+    cfg.write_text(
+        json.dumps(
+            {
+                "oauthAccount": {
+                    "organizationType": 123,
+                    "subscriptionCreatedAt": 1717000000,
+                }
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     assert subscription._load_claude_subscription() is None
 
@@ -160,12 +188,16 @@ def test_claude_subscription_non_string_since_keeps_default_plan(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     cfg = tmp_path / ".claude.json"
-    cfg.write_text(json.dumps({
-        "oauthAccount": {
-            "organizationType": "claude_team",
-            "subscriptionCreatedAt": 1717000000,
-        }
-    }))
+    cfg.write_text(
+        json.dumps(
+            {
+                "oauthAccount": {
+                    "organizationType": "claude_team",
+                    "subscriptionCreatedAt": 1717000000,
+                }
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "_claude_config_path", lambda: cfg)
     assert subscription._load_claude_subscription() == {
         "agent": "Claude Code",
@@ -178,13 +210,21 @@ def test_codex_subscription_non_string_fields_degrade(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     auth = tmp_path / "auth.json"
-    auth.write_text(json.dumps({
-        "auth_mode": "chatgpt",
-        "tokens": {"id_token": _make_id_token({
-            "chatgpt_plan_type": 456,
-            "chatgpt_subscription_active_start": 1717000000,
-        })},
-    }))
+    auth.write_text(
+        json.dumps(
+            {
+                "auth_mode": "chatgpt",
+                "tokens": {
+                    "id_token": _make_id_token(
+                        {
+                            "chatgpt_plan_type": 456,
+                            "chatgpt_subscription_active_start": 1717000000,
+                        }
+                    )
+                },
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     assert subscription._load_codex_subscription() is None
 
@@ -193,10 +233,14 @@ def test_codex_subscription_ignores_non_dict_auth_claims(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     auth = tmp_path / "auth.json"
-    auth.write_text(json.dumps({
-        "auth_mode": "chatgpt",
-        "tokens": {"id_token": _make_id_token([])},
-    }))
+    auth.write_text(
+        json.dumps(
+            {
+                "auth_mode": "chatgpt",
+                "tokens": {"id_token": _make_id_token([])},
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     assert subscription._load_codex_subscription() is None
 
@@ -206,10 +250,14 @@ def test_load_subscriptions_ignores_non_string_id_token(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, id_token: object
 ) -> None:
     auth = tmp_path / "auth.json"
-    auth.write_text(json.dumps({
-        "auth_mode": "chatgpt",
-        "tokens": {"id_token": id_token},
-    }))
+    auth.write_text(
+        json.dumps(
+            {
+                "auth_mode": "chatgpt",
+                "tokens": {"id_token": id_token},
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     monkeypatch.setattr(subscription, "_claude_config_path", lambda: tmp_path / "nope.json")
     assert subscription.load_subscriptions() == []
@@ -219,10 +267,14 @@ def test_load_subscriptions_ignores_non_dict_jwt_payload(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     auth = tmp_path / "auth.json"
-    auth.write_text(json.dumps({
-        "auth_mode": "chatgpt",
-        "tokens": {"id_token": _make_raw_id_token(123)},
-    }))
+    auth.write_text(
+        json.dumps(
+            {
+                "auth_mode": "chatgpt",
+                "tokens": {"id_token": _make_raw_id_token(123)},
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     monkeypatch.setattr(subscription, "_claude_config_path", lambda: tmp_path / "nope.json")
     assert subscription.load_subscriptions() == []
@@ -232,13 +284,21 @@ def test_codex_subscription_non_string_plan_type_keeps_default_plan(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     auth = tmp_path / "auth.json"
-    auth.write_text(json.dumps({
-        "auth_mode": "chatgpt",
-        "tokens": {"id_token": _make_id_token({
-            "chatgpt_plan_type": 456,
-            "chatgpt_subscription_active_start": "2026-03-23T13:23:07+00:00",
-        })},
-    }))
+    auth.write_text(
+        json.dumps(
+            {
+                "auth_mode": "chatgpt",
+                "tokens": {
+                    "id_token": _make_id_token(
+                        {
+                            "chatgpt_plan_type": 456,
+                            "chatgpt_subscription_active_start": "2026-03-23T13:23:07+00:00",
+                        }
+                    )
+                },
+            }
+        )
+    )
     monkeypatch.setattr(subscription, "CODEX_AUTH", auth)
     assert subscription._load_codex_subscription() == {
         "agent": "Codex",

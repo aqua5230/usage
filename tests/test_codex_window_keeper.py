@@ -63,13 +63,9 @@ class _SyncThread:
 
 
 @pytest.fixture
-def isolated_state(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> Path:
+def isolated_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     state_path = tmp_path / "codex_window_keeper.json"
-    monkeypatch.setattr(
-        codex_window_keeper, "CODEX_WINDOW_KEEPER_STATE_PATH", state_path
-    )
+    monkeypatch.setattr(codex_window_keeper, "CODEX_WINDOW_KEEPER_STATE_PATH", state_path)
     monkeypatch.setattr(codex_window_keeper, "_ping_in_flight", False)
     _SyncThread.instances.clear()
     monkeypatch.setattr(threading, "Thread", _SyncThread)
@@ -86,9 +82,13 @@ def test_should_ping_disabled() -> None:
     now = time.time()
     assert (
         codex_window_keeper.should_ping(
-            now, now + EXPIRED, enabled=False, last_pinged_reset_at=None,
+            now,
+            now + EXPIRED,
+            enabled=False,
+            last_pinged_reset_at=None,
             last_ping_at=None,
-            current_percent=0.0, has_five_hour_window=True,
+            current_percent=0.0,
+            has_five_hour_window=True,
         )
         is False
     )
@@ -98,9 +98,13 @@ def test_should_ping_no_five_hour_window() -> None:
     now = time.time()
     assert (
         codex_window_keeper.should_ping(
-            now, None, enabled=True, last_pinged_reset_at=None,
+            now,
+            None,
+            enabled=True,
+            last_pinged_reset_at=None,
             last_ping_at=None,
-            current_percent=None, has_five_hour_window=False,
+            current_percent=None,
+            has_five_hour_window=False,
         )
         is False
     )
@@ -110,9 +114,13 @@ def test_should_ping_window_still_running() -> None:
     now = time.time()
     assert (
         codex_window_keeper.should_ping(
-            now, now + 3600, enabled=True, last_pinged_reset_at=None,
+            now,
+            now + 3600,
+            enabled=True,
+            last_pinged_reset_at=None,
             last_ping_at=None,
-            current_percent=50.0, has_five_hour_window=True,
+            current_percent=50.0,
+            has_five_hour_window=True,
         )
         is False
     )
@@ -123,9 +131,13 @@ def test_should_ping_missing_reset_at_with_five_hour_window() -> None:
     now = time.time()
     assert (
         codex_window_keeper.should_ping(
-            now, None, enabled=True, last_pinged_reset_at=None,
+            now,
+            None,
+            enabled=True,
+            last_pinged_reset_at=None,
             last_ping_at=None,
-            current_percent=0.0, has_five_hour_window=True,
+            current_percent=0.0,
+            has_five_hour_window=True,
         )
         is True
     )
@@ -135,9 +147,13 @@ def test_should_ping_sqlite_cleared_percent_and_reset() -> None:
     now = time.time()
     assert (
         codex_window_keeper.should_ping(
-            now, None, enabled=True, last_pinged_reset_at=None,
+            now,
+            None,
+            enabled=True,
+            last_pinged_reset_at=None,
             last_ping_at=None,
-            current_percent=None, has_five_hour_window=True,
+            current_percent=None,
+            has_five_hour_window=True,
         )
         is True
     )
@@ -148,9 +164,13 @@ def test_should_ping_rejects_already_handled_boundary() -> None:
     reset_at = now + EXPIRED
     assert (
         codex_window_keeper.should_ping(
-            now, reset_at, enabled=True, last_pinged_reset_at=reset_at,
+            now,
+            reset_at,
+            enabled=True,
+            last_pinged_reset_at=reset_at,
             last_ping_at=now - 60,
-            current_percent=0.0, has_five_hour_window=True,
+            current_percent=0.0,
+            has_five_hour_window=True,
         )
         is False
     )
@@ -160,9 +180,13 @@ def test_should_ping_cleared_reset_respects_cooldown() -> None:
     now = time.time()
     assert (
         codex_window_keeper.should_ping(
-            now, None, enabled=True, last_pinged_reset_at=None,
+            now,
+            None,
+            enabled=True,
+            last_pinged_reset_at=None,
             last_ping_at=now - 60,
-            current_percent=0.0, has_five_hour_window=True,
+            current_percent=0.0,
+            has_five_hour_window=True,
         )
         is False
     )
@@ -178,7 +202,8 @@ def test_should_ping_fires_for_new_boundary_despite_recent_ping() -> None:
             enabled=True,
             last_pinged_reset_at=previous_reset_at,
             last_ping_at=now - 60,
-            current_percent=0.0, has_five_hour_window=True,
+            current_percent=0.0,
+            has_five_hour_window=True,
         )
         is True
     )
@@ -188,9 +213,13 @@ def test_should_ping_fires_with_no_prior_ping() -> None:
     now = time.time()
     assert (
         codex_window_keeper.should_ping(
-            now, now + EXPIRED, enabled=True, last_pinged_reset_at=None,
+            now,
+            now + EXPIRED,
+            enabled=True,
+            last_pinged_reset_at=None,
             last_ping_at=None,
-            current_percent=0.0, has_five_hour_window=True,
+            current_percent=0.0,
+            has_five_hour_window=True,
         )
         is True
     )
@@ -202,9 +231,13 @@ def test_should_ping_within_grace_period_not_yet_expired() -> None:
     now = time.time()
     assert (
         codex_window_keeper.should_ping(
-            now, now - 5, enabled=True, last_pinged_reset_at=None,
+            now,
+            now - 5,
+            enabled=True,
+            last_pinged_reset_at=None,
             last_ping_at=None,
-            current_percent=0.0, has_five_hour_window=True,
+            current_percent=0.0,
+            has_five_hour_window=True,
         )
         is False
     )
@@ -214,9 +247,13 @@ def test_should_ping_missing_percent_with_timestamp() -> None:
     now = time.time()
     assert (
         codex_window_keeper.should_ping(
-            now, now + EXPIRED, enabled=True, last_pinged_reset_at=None,
+            now,
+            now + EXPIRED,
+            enabled=True,
+            last_pinged_reset_at=None,
             last_ping_at=None,
-            current_percent=None, has_five_hour_window=True,
+            current_percent=None,
+            has_five_hour_window=True,
         )
         is False
     )
@@ -306,23 +343,17 @@ def test_load_ping_state_non_utf8(isolated_state: Path) -> None:
 
 
 def test_load_ping_state_rejects_non_numeric(isolated_state: Path) -> None:
-    isolated_state.write_text(
-        json.dumps({"last_pinged_reset_at": "soon"}), encoding="utf-8"
-    )
+    isolated_state.write_text(json.dumps({"last_pinged_reset_at": "soon"}), encoding="utf-8")
     assert codex_window_keeper._load_ping_state() == (None, None)
 
 
 def test_load_ping_state_accepts_legacy_last_ping_at(isolated_state: Path) -> None:
-    isolated_state.write_text(
-        json.dumps({"last_ping_at": 12345.5}), encoding="utf-8"
-    )
+    isolated_state.write_text(json.dumps({"last_ping_at": 12345.5}), encoding="utf-8")
     assert codex_window_keeper._load_ping_state() == (None, 12345.5)
 
 
 def test_load_ping_state_accepts_old_reset_only_state(isolated_state: Path) -> None:
-    isolated_state.write_text(
-        json.dumps({"last_pinged_reset_at": 12345.5}), encoding="utf-8"
-    )
+    isolated_state.write_text(json.dumps({"last_pinged_reset_at": 12345.5}), encoding="utf-8")
     assert codex_window_keeper._load_ping_state() == (12345.5, None)
 
 
@@ -353,9 +384,7 @@ def _arm_successful_ping(
     """Wire every I/O collaborator to fakes so maybe_ping runs hermetically."""
     calls: list[str] = []
     monkeypatch.setattr(codex_window_keeper, "_window_keeper_enabled", lambda: enabled)
-    monkeypatch.setattr(
-        codex_window_keeper, "_resolve_codex_bin", lambda: "/fake/codex"
-    )
+    monkeypatch.setattr(codex_window_keeper, "_resolve_codex_bin", lambda: "/fake/codex")
     monkeypatch.setattr(
         codex_window_keeper,
         "load_rate_limits",
@@ -402,9 +431,7 @@ def test_maybe_ping_fires_for_timestamped_expired_window(
     assert saved_ping_at == pytest.approx(now)
 
 
-def test_maybe_ping_mock_is_noop(
-    monkeypatch: pytest.MonkeyPatch, isolated_state: Path
-) -> None:
+def test_maybe_ping_mock_is_noop(monkeypatch: pytest.MonkeyPatch, isolated_state: Path) -> None:
     calls = _arm_successful_ping(monkeypatch)
     monkeypatch.setattr(
         codex_window_keeper,
@@ -418,9 +445,7 @@ def test_maybe_ping_mock_is_noop(
     assert _SyncThread.instances == []
 
 
-def test_maybe_ping_disabled_is_noop(
-    monkeypatch: pytest.MonkeyPatch, isolated_state: Path
-) -> None:
+def test_maybe_ping_disabled_is_noop(monkeypatch: pytest.MonkeyPatch, isolated_state: Path) -> None:
     # Opt-in switch is OFF — must not read/write state, must not spawn a thread.
     calls = _arm_successful_ping(monkeypatch, enabled=False)
     monkeypatch.setattr(
@@ -548,9 +573,7 @@ def test_maybe_ping_old_reset_only_state_allows_same_boundary(
         monkeypatch,
         limits=_limits(five_hour_pct=0.0, five_hour_resets_at=reset_at),
     )
-    isolated_state.write_text(
-        json.dumps({"last_pinged_reset_at": reset_at}), encoding="utf-8"
-    )
+    isolated_state.write_text(json.dumps({"last_pinged_reset_at": reset_at}), encoding="utf-8")
 
     codex_window_keeper.maybe_ping(mock=False)
 

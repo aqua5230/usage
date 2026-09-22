@@ -130,9 +130,7 @@ class PopoverViewController(NSViewController):
         overlay.setAutoresizingMask_(int(NSViewWidthSizable) | int(NSViewHeightSizable))
         layer = overlay.layer()
         if layer is not None:
-            layer.setBackgroundColor_(
-                CGColorCreateGenericRGB(10 / 255, 15 / 255, 20 / 255, 1.0)
-            )
+            layer.setBackgroundColor_(CGColorCreateGenericRGB(10 / 255, 15 / 255, 20 / 255, 1.0))
         view.addSubview_(overlay)
         self.transition_overlays[panel_id] = overlay
         self.performSelector_withObject_afterDelay_(

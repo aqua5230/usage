@@ -61,9 +61,7 @@ def load_windows_definitions() -> tuple[tuple[tuple[str, str, str], ...], dict[s
     try:
         wintray = importlib.import_module("wintray.app")
     except Exception:
-        source = (Path(__file__).resolve().parent.parent / "wintray.py").read_text(
-            encoding="utf-8"
-        )
+        source = (Path(__file__).resolve().parent.parent / "wintray.py").read_text(encoding="utf-8")
         return parse_windows_definitions(source)
 
     return tuple(wintray.WINDOWS_PANELS), {
@@ -81,8 +79,7 @@ def main() -> int:
     windows_panels, panel_heights = load_windows_definitions()
     mac_by_id = {panel.id: panel for panel in mac_panels}
     windows_by_id = {
-        panel_id: (i18n_key, html_filename)
-        for panel_id, i18n_key, html_filename in windows_panels
+        panel_id: (i18n_key, html_filename) for panel_id, i18n_key, html_filename in windows_panels
     }
     mac_panel_ids = set(mac_by_id)
     windows_panel_ids = set(windows_by_id)

@@ -342,9 +342,7 @@ def test_quota_row_shows_imminent_reset_at_zero_seconds() -> None:
 
 
 def test_quota_row_shows_imminent_reset_after_reset_time() -> None:
-    row = menubar._quota_row(
-        "Session", 50.0, 970.0, 1_000.0, menubar.CODEX_COLOR, language="zh-TW"
-    )
+    row = menubar._quota_row("Session", 50.0, 970.0, 1_000.0, menubar.CODEX_COLOR, language="zh-TW")
 
     assert row.reset_text == "即將重置"
     assert row.warning is False
@@ -415,6 +413,7 @@ def test_quota_row_uses_burn_warning_when_forecast_exceeds_risk_threshold() -> N
     assert row.warning is True
     assert row.reset_text == "⚠ 照目前速度 18分鐘後用完 · 重置 51分鐘"
     assert row.reset_text_compact == "⚠ 18分鐘後用完"
+
 
 def test_quota_row_keeps_reset_text_when_forecast_is_not_before_reset() -> None:
     row = menubar._quota_row(
@@ -501,12 +500,23 @@ def test_weekly_quota_row_warns_when_both_speeds_predict_exhaustion() -> None:
 
 def test_weekly_quota_row_omits_pace_for_invalid_time_or_small_delta() -> None:
     invalid_time = menubar._quota_row(
-        "Weekly", 50.0, 1_000.0 + (8 * 86400), 1_000.0, menubar.CLAUDE_COLOR,
-        language="zh-TW", forecast_seconds=30 * 60, window_seconds=7 * 86400,
+        "Weekly",
+        50.0,
+        1_000.0 + (8 * 86400),
+        1_000.0,
+        menubar.CLAUDE_COLOR,
+        language="zh-TW",
+        forecast_seconds=30 * 60,
+        window_seconds=7 * 86400,
     )
     on_track = menubar._quota_row(
-        "Weekly", 43.0, 1_000.0 + (4 * 86400), 1_000.0, menubar.CLAUDE_COLOR,
-        language="zh-TW", window_seconds=7 * 86400,
+        "Weekly",
+        43.0,
+        1_000.0 + (4 * 86400),
+        1_000.0,
+        menubar.CLAUDE_COLOR,
+        language="zh-TW",
+        window_seconds=7 * 86400,
     )
 
     assert invalid_time.warning is True
@@ -1027,9 +1037,7 @@ def test_toggle_statusline_preserves_forwarder_settings(
         "env": {"KEEP": "1"},
         "statusLine": {
             "type": "command",
-            "command": "python3 ~/.claude/"
-            + "tt"
-            + "-statusline-usage-statusline-forward.py",
+            "command": "python3 ~/.claude/" + "tt" + "-statusline-usage-statusline-forward.py",
         },
     }
     settings.write_text(json.dumps(original, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -1289,6 +1297,7 @@ def test_statusline_switch_mirrors_onto_agy(
 
     monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: settings)
     monkeypatch.setattr(setup_hook, "setup", lambda: 0)
+
     def setup_agy() -> bool:
         calls.append("setup")
         return True
@@ -1462,9 +1471,7 @@ def test_popover_size_grows_with_service_alerts() -> None:
     two = menubar_popover._popover_size(two_state, panel)
 
     assert one.height - base.height == panel.service_alert_height
-    assert two.height - base.height == (
-        panel.service_alert_height * 2 + menubar.SERVICE_ALERT_GAP
-    )
+    assert two.height - base.height == (panel.service_alert_height * 2 + menubar.SERVICE_ALERT_GAP)
 
 
 def test_hide_claude_enabled_reads_preferences(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -1926,9 +1933,7 @@ def test_load_history_entries_refreshes_cache_when_sources_change(
         return entries
 
     monkeypatch.setattr(delegate, "_history_source_scan", lambda: next(scans))
-    monkeypatch.setattr(
-        menubar_state, "load_entries", lambda *, hours_back=0, jsonl_paths=None: []
-    )
+    monkeypatch.setattr(menubar_state, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
     monkeypatch.setattr(codex_loader, "load_entries", fake_codex_entries)
     monkeypatch.setattr(grok_loader, "load_entries", lambda hours_back=0: [])
 
@@ -1960,9 +1965,7 @@ def test_load_history_entries_records_error_key_on_failure_and_clears_on_success
         )
     )
     monkeypatch.setattr(delegate, "_history_source_scan", lambda: next(scans))
-    monkeypatch.setattr(
-        codex_loader, "load_entries", lambda *, hours_back=0, jsonl_paths=None: []
-    )
+    monkeypatch.setattr(codex_loader, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
     monkeypatch.setattr(grok_loader, "load_entries", lambda hours_back=0: [])
 
     def failing_load_entries(
@@ -1974,9 +1977,7 @@ def test_load_history_entries_records_error_key_on_failure_and_clears_on_success
     delegate._load_history_entries()
     assert delegate._history_load_error_key == "history_load_error_file"
 
-    monkeypatch.setattr(
-        menubar_state, "load_entries", lambda *, hours_back=0, jsonl_paths=None: []
-    )
+    monkeypatch.setattr(menubar_state, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
     delegate._load_history_entries()
     assert delegate._history_load_error_key is None
 
@@ -2943,8 +2944,7 @@ def test_state_from_outcome_translates_hook_broken_message(
     )
 
     assert (
-        state.status_text
-        == "Status: ⚠ Status line hook is not running. Restart Claude Code once."
+        state.status_text == "Status: ⚠ Status line hook is not running. Restart Claude Code once."
     )
     assert state.status_long is True
 

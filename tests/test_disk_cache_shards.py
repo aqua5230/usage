@@ -74,9 +74,7 @@ def test_history_flush_changes_only_the_affected_shard(tmp_path: Path) -> None:
     first, second = _distinct_paths(history_disk_cache._shard_index)
     cache = OrderedDict([(first, _history_entry(first)), (second, _history_entry(second))])
     history_disk_cache.flush_caches(cache_path, 2, cache)
-    first_shard = history_disk_cache._shard_path(
-        cache_path, history_disk_cache._shard_index(first)
-    )
+    first_shard = history_disk_cache._shard_path(cache_path, history_disk_cache._shard_index(first))
     second_shard = history_disk_cache._shard_path(
         cache_path, history_disk_cache._shard_index(second)
     )
@@ -167,9 +165,7 @@ def test_codex_corrupt_shard_is_skipped_and_rebuilt(
     original, info = _codex_caches(first, second)
     sqlite_cache = codex_loader._SqliteLogCache()
     codex_disk_cache.flush_caches(cache_path, 4, original, info, sqlite_cache)
-    corrupt_shard = codex_disk_cache._shard_path(
-        cache_path, codex_disk_cache._shard_index(first)
-    )
+    corrupt_shard = codex_disk_cache._shard_path(cache_path, codex_disk_cache._shard_index(first))
     corrupt_shard.write_text("broken", encoding="utf-8")
     seeded: OrderedDict[Path, codex_loader._JsonlCacheEntry] = OrderedDict()
     seeded_info: OrderedDict[Path, tuple[float, int, _SessionFileInfo]] = OrderedDict()
@@ -191,9 +187,7 @@ def test_codex_legacy_single_file_is_deleted(tmp_path: Path) -> None:
     entries: OrderedDict[Path, codex_loader._JsonlCacheEntry] = OrderedDict()
     info: OrderedDict[Path, tuple[float, int, _SessionFileInfo]] = OrderedDict()
 
-    codex_disk_cache.seed_caches(
-        cache_path, 4, 4096, entries, info, codex_loader._SqliteLogCache()
-    )
+    codex_disk_cache.seed_caches(cache_path, 4, 4096, entries, info, codex_loader._SqliteLogCache())
 
     assert not cache_path.exists()
     assert not entries

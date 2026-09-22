@@ -242,7 +242,7 @@ def _invalidate_restored_content_height(panel: Any, view: Any) -> None:
     if not hasattr(view, "evaluateJavaScript_completionHandler_"):
         return
     view.evaluateJavaScript_completionHandler_(
-        "typeof window.usageInvalidateContentHeight === \"function\" && "
+        'typeof window.usageInvalidateContentHeight === "function" && '
         "window.usageInvalidateContentHeight()",
         None,
     )
@@ -666,8 +666,7 @@ class AppDelegate(NSObject):
             button_rect = button.convertRect_toView_(button.bounds(), None)
             screen_rect = button_window.convertRectToScreen_(button_rect)
             origin = (
-                float(screen_rect.origin.x)
-                + (float(screen_rect.size.width) - size[0]) / 2.0,
+                float(screen_rect.origin.x) + (float(screen_rect.size.width) - size[0]) / 2.0,
                 float(screen_rect.origin.y) - size[1],
             )
         visible_frames = [
@@ -679,9 +678,7 @@ class AppDelegate(NSObject):
             )
             for screen in NSScreen.screens()
         ]
-        origin = panel_window_state.clamp_origin_to_visible_frames(
-            origin, size, visible_frames
-        )
+        origin = panel_window_state.clamp_origin_to_visible_frames(origin, size, visible_frames)
         self.popover.setFrameOrigin_(NSMakePoint(*origin))
         self._panel_window_will_show()
         self.popover.makeKeyAndOrderFront_(None)
@@ -693,9 +690,7 @@ class AppDelegate(NSObject):
             return
         controller = self.popover_controller
         view = (
-            controller.currentContentView()
-            if hasattr(controller, "currentContentView")
-            else None
+            controller.currentContentView() if hasattr(controller, "currentContentView") else None
         )
         _invalidate_restored_content_height(
             self.active_panel,
@@ -857,9 +852,7 @@ class AppDelegate(NSObject):
                 language=self.language,
                 burn_rate_trackers=self.burn_rate_trackers,
                 jsonl_candidates=(
-                    None
-                    if history_scan is None
-                    else history_scan.codex_rate_limit_candidates
+                    None if history_scan is None else history_scan.codex_rate_limit_candidates
                 ),
             )
         except Exception:
@@ -1066,6 +1059,7 @@ class AppDelegate(NSObject):
         entries: list[UsageEntry] | None = None,
     ) -> list[tuple[str, int, float | None]]:
         return menubar_state.app_project_rows(self, hours_back=hours_back, entries=entries)
+
 
 def run_app(mock: bool = False, interval: int = 60) -> None:
     global _APP_DELEGATE

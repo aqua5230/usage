@@ -35,9 +35,7 @@ class FakeResponse:
 def isolated_cache(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Iterator[Path]:
     monkeypatch.setattr(service_status, "_last_failure_at", {})
     cache_dir = tmp_path / ".usage"
-    monkeypatch.setattr(
-        service_status, "ALERT_STATE_PATH", cache_dir / "service_alert_state.json"
-    )
+    monkeypatch.setattr(service_status, "ALERT_STATE_PATH", cache_dir / "service_alert_state.json")
     yield cache_dir
 
 
@@ -217,9 +215,7 @@ def test_codex_api_outage_reports_abnormal(
     isolated_cache: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     config = _config(service_status.CODEX_STATUS, isolated_cache)
-    payload: dict[str, object] = {
-        "components": [{"name": "Codex API", "status": "partial_outage"}]
-    }
+    payload: dict[str, object] = {"components": [{"name": "Codex API", "status": "partial_outage"}]}
     _mock_response(monkeypatch, config, payload)
 
     result = service_status.get_service_status(config)

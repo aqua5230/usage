@@ -28,23 +28,29 @@ def test_assess_weekly_quota_warning_rules(
     forecast_seconds: float,
     expected_seconds: float | None,
 ) -> None:
-    assert assess_weekly_quota(
-        percent,
-        reset_seconds,
-        window_seconds,
-        forecast_seconds,
-        24 * 3600,
-    ) == expected_seconds
+    assert (
+        assess_weekly_quota(
+            percent,
+            reset_seconds,
+            window_seconds,
+            forecast_seconds,
+            24 * 3600,
+        )
+        == expected_seconds
+    )
 
 
 def test_assess_weekly_quota_needs_average_warning_margin() -> None:
-    assert assess_weekly_quota(
-        62.0,
-        3927 * 60,
-        WEEKLY_WINDOW_SECONDS,
-        (8 * 3600) + (55 * 60),
-        24 * 3600,
-    ) is None
+    assert (
+        assess_weekly_quota(
+            62.0,
+            3927 * 60,
+            WEEKLY_WINDOW_SECONDS,
+            (8 * 3600) + (55 * 60),
+            24 * 3600,
+        )
+        is None
+    )
 
 
 def test_assess_weekly_quota_returns_whole_window_average_seconds() -> None:
@@ -74,13 +80,16 @@ def test_assess_weekly_quota_boundary_inputs_do_not_warn(
     window_seconds: float,
     forecast_seconds: float | None,
 ) -> None:
-    assert assess_weekly_quota(
-        percent,
-        reset_seconds,
-        window_seconds,
-        forecast_seconds,
-        24 * 3600,
-    ) is None
+    assert (
+        assess_weekly_quota(
+            percent,
+            reset_seconds,
+            window_seconds,
+            forecast_seconds,
+            24 * 3600,
+        )
+        is None
+    )
 
 
 def test_forecast_none_for_empty_buffer() -> None:
@@ -121,14 +130,10 @@ def test_forecast_uses_window_average_slope() -> None:
 
     first_timestamp, first_percent = samples[0]
     latest_timestamp, latest_percent = samples[-1]
-    expected_slope = (latest_percent - first_percent) / (
-        latest_timestamp - first_timestamp
-    )
+    expected_slope = (latest_percent - first_percent) / (latest_timestamp - first_timestamp)
     expected_forecast = (100.0 - latest_percent) / expected_slope
 
-    assert tracker.forecast_seconds(min_span_seconds=300.0) == pytest.approx(
-        expected_forecast
-    )
+    assert tracker.forecast_seconds(min_span_seconds=300.0) == pytest.approx(expected_forecast)
 
 
 def test_forecast_window_average_ignores_short_interval_spike() -> None:
@@ -196,10 +201,13 @@ def test_forecast_explicit_none_parameters_match_default() -> None:
     for index in range(10):
         tracker.record(index * 40.0, index * (10.0 / 9.0))
 
-    assert tracker.forecast_seconds(
-        window_seconds=None,
-        min_span_seconds=None,
-    ) == tracker.forecast_seconds()
+    assert (
+        tracker.forecast_seconds(
+            window_seconds=None,
+            min_span_seconds=None,
+        )
+        == tracker.forecast_seconds()
+    )
 
 
 def test_forecast_none_for_too_short_span() -> None:

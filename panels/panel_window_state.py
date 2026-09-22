@@ -45,8 +45,7 @@ def clamp_origin_to_visible_frames(
 
     return min(
         candidates,
-        key=lambda candidate: (candidate[0] - origin[0]) ** 2
-        + (candidate[1] - origin[1]) ** 2,
+        key=lambda candidate: (candidate[0] - origin[0]) ** 2 + (candidate[1] - origin[1]) ** 2,
     )
 
 
@@ -152,8 +151,10 @@ def resolve_panel_size(
 
     width, height = menubar_state.popover_dimensions(state, panel)
     measurement_available = getattr(panel, "_content_height_reports_available", True)
-    if measurement_available and panel is not None and (
-        saved_height := load_panel_content_height(panel.id, defaults)
+    if (
+        measurement_available
+        and panel is not None
+        and (saved_height := load_panel_content_height(panel.id, defaults))
     ):
         height = saved_height
     return (width, height)

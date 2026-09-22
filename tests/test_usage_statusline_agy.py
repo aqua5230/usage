@@ -47,9 +47,7 @@ def test_statusline_detect_lang_ignores_lang_on_windows(
 
     assert usage_statusline_agy._statusline_detect_lang({"LANG": "zh_TW.UTF-8"}) == "en"
     assert (
-        usage_statusline_agy._statusline_detect_lang(
-            {"USAGE_LANG": "ja", "LANG": "zh_TW.UTF-8"}
-        )
+        usage_statusline_agy._statusline_detect_lang({"USAGE_LANG": "ja", "LANG": "zh_TW.UTF-8"})
         == "ja"
     )
 
@@ -235,9 +233,7 @@ def test_agy_windows_command_shortens_both_spaced_paths_without_quotes(
     monkeypatch.setattr(setup_hook, "_find_system_python", lambda: python)
     monkeypatch.setattr("installer.setup_hook.shutil.which", lambda _name: None)
     monkeypatch.setattr(setup_hook, "AGY_HOOK_TARGET", target)
-    monkeypatch.setattr(
-        setup_hook, "_get_windows_short_path", lambda value: short_paths[value]
-    )
+    monkeypatch.setattr(setup_hook, "_get_windows_short_path", lambda value: short_paths[value])
 
     command = setup_hook._agy_statusline_command()
 
@@ -517,12 +513,8 @@ def test_agy_only_statusline_toggle_is_enabled_and_removable(
         statusline_settings, "_claude_settings_path", lambda: tmp_path / "settings.json"
     )
     monkeypatch.setattr(setup_hook, "setup", lambda: 1)
-    monkeypatch.setattr(
-        setup_hook, "_setup_agy", lambda: _set_agy_enabled(state, True)
-    )
-    monkeypatch.setattr(
-        setup_hook, "_unsetup_agy", lambda: _set_agy_enabled(state, False)
-    )
+    monkeypatch.setattr(setup_hook, "_setup_agy", lambda: _set_agy_enabled(state, True))
+    monkeypatch.setattr(setup_hook, "_unsetup_agy", lambda: _set_agy_enabled(state, False))
     monkeypatch.setattr(setup_hook, "is_agy_setup", lambda: state["enabled"])
 
     assert statusline_settings._toggle_statusline_settings() == ("install", 0)

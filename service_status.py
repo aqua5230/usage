@@ -196,8 +196,10 @@ def _apply_alert_suppression(
         if any(value in {"investigating", "identified"} for value in incident_statuses):
             return status
 
-        if incidents and len(incident_statuses) == len(incidents) and all(
-            value == "monitoring" for value in incident_statuses
+        if (
+            incidents
+            and len(incident_statuses) == len(incidents)
+            and all(value == "monitoring" for value in incident_statuses)
         ):
             updated_times: list[datetime] = []
             for incident in incidents:
@@ -280,13 +282,12 @@ def _write_alert_state(state: dict[str, Any]) -> None:
                 os.unlink(tmp_path)
 
 
-def _read_cache(
-    config: ServiceStatusConfig, *, allow_stale: bool = False
-) -> dict[str, Any] | None:
+def _read_cache(config: ServiceStatusConfig, *, allow_stale: bool = False) -> dict[str, Any] | None:
     try:
-        if not allow_stale and (
-            time.time() - config.cache_path.stat().st_mtime
-        ) > CACHE_TTL_SECONDS:
+        if (
+            not allow_stale
+            and (time.time() - config.cache_path.stat().st_mtime) > CACHE_TTL_SECONDS
+        ):
             return None
         with config.cache_path.open(encoding="utf-8") as file:
             payload = json.load(file)

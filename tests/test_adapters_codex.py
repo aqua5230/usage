@@ -25,12 +25,8 @@ def _clear_file_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     # Keep the loader away from the developer's real ~/.codex and ~/.usage:
     # the archived-sessions dir and the JSONL disk cache would otherwise leak
     # real entries into assertions on machines with usage history.
-    monkeypatch.setattr(
-        codex_loader, "ARCHIVED_SESSIONS_DIR", tmp_path / "archived_sessions"
-    )
-    monkeypatch.setattr(
-        codex_loader, "JSONL_CACHE_PATH", tmp_path / "codex_jsonl_cache.json"
-    )
+    monkeypatch.setattr(codex_loader, "ARCHIVED_SESSIONS_DIR", tmp_path / "archived_sessions")
+    monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", tmp_path / "codex_jsonl_cache.json")
     monkeypatch.setattr(codex_loader, "_disk_cache_seeded", True)
     codex_loader._jsonl_cache.clear()
 

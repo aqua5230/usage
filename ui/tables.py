@@ -48,6 +48,7 @@ def _is_light_theme() -> bool:
 
 class _S:
     """语义化样式，根据终端主题自动切换"""
+
     light = _is_light_theme()
     dim = "grey50" if light else "dim"
     token = "dark_cyan" if light else "dim cyan"
@@ -158,8 +159,7 @@ def _display_width(s: str) -> int:
     return w
 
 
-def _append_bar(lines: Text, label: str, pct: float,
-                bar_width: int, suffix: str = "") -> None:
+def _append_bar(lines: Text, label: str, pct: float, bar_width: int, suffix: str = "") -> None:
     filled = int(pct / 100 * bar_width)
     bar = "█" * filled + "░" * (bar_width - filled)
     bar_style = _S.bar_high if pct > 80 else _S.bar_mid if pct > 50 else _S.bar_low
@@ -189,9 +189,14 @@ def _pct_style(pct: float) -> str:
     return _S.bar_high if pct > 80 else _S.bar_mid if pct > 50 else _S.bar_low
 
 
-def _render_rate_bar(lines: Text, label: str, pct: float,
-                     resets_at: int | None, bar_width: int,
-                     date_fmt: str = "%H:%M") -> None:
+def _render_rate_bar(
+    lines: Text,
+    label: str,
+    pct: float,
+    resets_at: int | None,
+    bar_width: int,
+    date_fmt: str = "%H:%M",
+) -> None:
     reset_suffix = ""
     if resets_at:
         reset_dt = datetime.fromtimestamp(resets_at, tz=timezone.utc)
@@ -199,8 +204,9 @@ def _render_rate_bar(lines: Text, label: str, pct: float,
     _append_bar(lines, f"  {label}    ", pct, bar_width, reset_suffix)
 
 
-def _render_week_section(lines: Text, week: WeeklyStats,
-                         last_week: WeeklyStats | None = None) -> None:
+def _render_week_section(
+    lines: Text, week: WeeklyStats, last_week: WeeklyStats | None = None
+) -> None:
     now = datetime.now(timezone.utc)
     elapsed_days = now.weekday() + 1
     daily_avg_cost = week.cost_usd / elapsed_days if elapsed_days > 0 else 0
@@ -208,11 +214,16 @@ def _render_week_section(lines: Text, week: WeeklyStats,
     if last_week:
         _append_trend(lines, week.total_tokens, last_week.total_tokens)
     lines.append(f"  Output: {_fmt_tokens(week.output_tokens)}", style=_S.dim)
-    lines.append(f"  {t('rate_per_day', rate=_fmt_tokens(week.total_tokens // elapsed_days))}\n", style=_S.dim)
+    lines.append(
+        f"  {t('rate_per_day', rate=_fmt_tokens(week.total_tokens // elapsed_days))}\n",
+        style=_S.dim,
+    )
     lines.append(f"  {t('cost_label')}  {_fmt_cost(week.cost_usd)}", style=_S.cost)
     lines.append(f"  {t('daily_avg', cost=_fmt_cost(daily_avg_cost))}", style=_S.dim)
     lines.append("\n")
-    lines.append(f"  {t('msg_session', msgs=week.message_count, sessions=week.session_count)}", style=_S.dim)
+    lines.append(
+        f"  {t('msg_session', msgs=week.message_count, sessions=week.session_count)}", style=_S.dim
+    )
 
 
 def render_tab_bar(agent_names: list[str], current: int) -> None:
@@ -240,17 +251,25 @@ def _project_short(project: str) -> str:
     return project if project else "unknown"
 
 
-def _render_header(agents: list[str], total_tokens: int, total_cost: float,
-                   total_sessions: int, total_messages: int, days: int,
-                   top_margin: bool = True) -> None:
+def _render_header(
+    agents: list[str],
+    total_tokens: int,
+    total_cost: float,
+    total_sessions: int,
+    total_messages: int,
+    days: int,
+    top_margin: bool = True,
+) -> None:
     agent_text = " ".join(f"[{_S.good}]●[/{_S.good}] {a}" for a in agents)
     if top_margin:
         console.print()
-    console.print(Panel(
-        f"[bold]Token Tracker[/bold]  {agent_text}",
-        border_style="blue",
-        padding=(0, 1),
-    ))
+    console.print(
+        Panel(
+            f"[bold]Token Tracker[/bold]  {agent_text}",
+            border_style="blue",
+            padding=(0, 1),
+        )
+    )
 
     lines = Text()
     lines.append(t("history_overview"), style="bold")
@@ -270,7 +289,9 @@ def _render_header(agents: list[str], total_tokens: int, total_cost: float,
 def _render_agent_summaries(stats_list: list[DailyStats], multi_agent: bool) -> None:
     if not multi_agent:
         return
-    by_agent: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0, "sessions": 0, "messages": 0})
+    by_agent: dict[str, dict[str, Any]] = defaultdict(
+        lambda: {"tokens": 0, "cost": 0.0, "sessions": 0, "messages": 0}
+    )
     for s in stats_list:
         if not s.agent_id:
             continue
@@ -338,7 +359,9 @@ def render_dashboard(
     cur_week = weekly_stats[-1] if weekly_stats else None
     last_week = weekly_stats[-2] if len(weekly_stats) >= 2 else None
 
-    has_limits = rate_limits and (rate_limits.five_hour_pct is not None or rate_limits.seven_day_pct is not None)
+    has_limits = rate_limits and (
+        rate_limits.five_hour_pct is not None or rate_limits.seven_day_pct is not None
+    )
     if p90 and not has_limits:
         today = daily_stats[-1] if daily_stats else None
         yesterday = daily_stats[-2] if len(daily_stats) >= 2 else None
@@ -450,7 +473,9 @@ def render_daily(stats: list[DailyStats], agents: list[str] | None = None) -> No
     total_msgs = sum(s.message_count for s in stats)
     total_sessions = sum(s.session_count for s in stats)
 
-    _render_header(agents or ["Claude Code"], total_tokens, total_cost, total_sessions, total_msgs, len(dates))
+    _render_header(
+        agents or ["Claude Code"], total_tokens, total_cost, total_sessions, total_msgs, len(dates)
+    )
     _render_agent_summaries(stats, multi_agent)
 
     mode = _width_mode()
@@ -494,8 +519,12 @@ def render_daily(stats: list[DailyStats], agents: list[str] | None = None) -> No
 def _render_weekly_table(stats: list[WeeklyStats], title: str | None = None) -> None:
     mode = _width_mode()
     table = Table(
-        title=title, title_style="bold", box=box.SIMPLE_HEAVY,
-        header_style="bold", padding=(0, 1), expand=True,
+        title=title,
+        title_style="bold",
+        box=box.SIMPLE_HEAVY,
+        header_style="bold",
+        padding=(0, 1),
+        expand=True,
     )
     table.add_column(t("col_week"), style=_S.token, no_wrap=True)
     if mode != "compact":
@@ -534,7 +563,9 @@ def _render_weekly_table(stats: list[WeeklyStats], title: str | None = None) -> 
             _fmt_tokens(sum(s.output_tokens for s in stats)),
         ]
     if mode == "wide":
-        total_row.append(_fmt_tokens(sum(s.cache_creation_tokens + s.cache_read_tokens for s in stats)))
+        total_row.append(
+            _fmt_tokens(sum(s.cache_creation_tokens + s.cache_read_tokens for s in stats))
+        )
     total_row += [
         f"[{_S.token_bold}]{_fmt_tokens(sum(s.total_tokens for s in stats))}[/{_S.token_bold}]",
         f"[{_S.cost_bold}]{_fmt_cost(sum(s.cost_usd for s in stats))}[/{_S.cost_bold}]",
@@ -558,7 +589,14 @@ def render_weekly(stats: list[WeeklyStats], agents: list[str] | None = None) -> 
     total_msgs = sum(s.message_count for s in stats)
     total_sessions = sum(s.session_count for s in stats)
 
-    _render_header(agents or ["Claude Code"], total_tokens, total_cost, total_sessions, total_msgs, len(weeks) * 7)
+    _render_header(
+        agents or ["Claude Code"],
+        total_tokens,
+        total_cost,
+        total_sessions,
+        total_msgs,
+        len(weeks) * 7,
+    )
 
     if multi_agent:
         for agent_id, group in sorted(_group_by_agent(stats).items()):
@@ -572,8 +610,12 @@ def render_weekly(stats: list[WeeklyStats], agents: list[str] | None = None) -> 
 def _render_monthly_table(stats: list[MonthlyStats], title: str | None = None) -> None:
     mode = _width_mode()
     table = Table(
-        title=title, title_style="bold", box=box.SIMPLE_HEAVY,
-        header_style="bold", padding=(0, 1), expand=True,
+        title=title,
+        title_style="bold",
+        box=box.SIMPLE_HEAVY,
+        header_style="bold",
+        padding=(0, 1),
+        expand=True,
     )
     table.add_column(t("col_month"), style=_S.token, no_wrap=True)
     if mode != "compact":
@@ -637,7 +679,9 @@ def render_monthly(stats: list[MonthlyStats], agents: list[str] | None = None) -
     total_sessions = sum(s.session_count for s in stats)
     days = len(months) * 30
 
-    _render_header(agents or ["Claude Code"], total_tokens, total_cost, total_sessions, total_msgs, days)
+    _render_header(
+        agents or ["Claude Code"], total_tokens, total_cost, total_sessions, total_msgs, days
+    )
 
     if multi_agent:
         for agent_id, group in sorted(_group_by_agent(stats).items()):
@@ -709,13 +753,15 @@ def render_sessions(stats: list[SessionStats], limit: int = 20) -> None:
     total_cost = sum(s.cost_usd for s in shown)
 
     console.print()
-    console.print(Panel(
-        f"[bold]Token Tracker[/bold]  {t('session_summary', shown=len(shown), total=len(stats))}  "
-        f"Token: [{_S.token_bold}]{_fmt_tokens(total_tokens)}[/{_S.token_bold}]  "
-        f"{t('cost_colon')}[{_S.cost_bold}]{_fmt_cost(total_cost)}[/{_S.cost_bold}]",
-        border_style="blue",
-        padding=(0, 1),
-    ))
+    console.print(
+        Panel(
+            f"[bold]Token Tracker[/bold]  {t('session_summary', shown=len(shown), total=len(stats))}  "
+            f"Token: [{_S.token_bold}]{_fmt_tokens(total_tokens)}[/{_S.token_bold}]  "
+            f"{t('cost_colon')}[{_S.cost_bold}]{_fmt_cost(total_cost)}[/{_S.cost_bold}]",
+            border_style="blue",
+            padding=(0, 1),
+        )
+    )
 
     mode = _width_mode()
     table = Table(box=box.SIMPLE_HEAVY, header_style="bold", padding=(0, 1))
@@ -784,11 +830,17 @@ def _render_daily_panel(
     if yesterday:
         _append_trend(lines, today.total_tokens, yesterday.total_tokens)
     lines.append(f"  Output: {_fmt_tokens(today.output_tokens)}", style=_S.dim)
-    lines.append(f"  Cache: {_fmt_tokens(today.cache_creation_tokens + today.cache_read_tokens)}\n", style=_S.dim)
+    lines.append(
+        f"  Cache: {_fmt_tokens(today.cache_creation_tokens + today.cache_read_tokens)}\n",
+        style=_S.dim,
+    )
     lines.append(f"  {t('cost_label')}  {_fmt_cost(today.cost_usd)}", style=_S.cost)
     if yesterday:
         _append_trend(lines, today.cost_usd, yesterday.cost_usd)
-    lines.append(f"  {t('session_msg', sessions=today.session_count, msgs=today.message_count)}", style=_S.dim)
+    lines.append(
+        f"  {t('session_msg', sessions=today.session_count, msgs=today.message_count)}",
+        style=_S.dim,
+    )
     if today.message_count > 0:
         tokens_per_msg = today.total_tokens // today.message_count
         lines.append(f"  {t('rate_per_msg', rate=_fmt_tokens(tokens_per_msg))}", style=_S.dim)
@@ -798,16 +850,24 @@ def _render_daily_panel(
         elapsed_days = now.weekday() + 1
         daily_avg_cost = week.cost_usd / elapsed_days if elapsed_days > 0 else 0
 
-        lines.append(f"\n\n  {t('week_token', tokens=_fmt_tokens(week.total_tokens))}", style=_S.token)
+        lines.append(
+            f"\n\n  {t('week_token', tokens=_fmt_tokens(week.total_tokens))}", style=_S.token
+        )
         if last_week:
             _append_trend(lines, week.total_tokens, last_week.total_tokens)
         lines.append(f"  Output: {_fmt_tokens(week.output_tokens)}", style=_S.dim)
-        lines.append(f"  {t('rate_per_day', rate=_fmt_tokens(week.total_tokens // elapsed_days))}\n", style=_S.dim)
+        lines.append(
+            f"  {t('rate_per_day', rate=_fmt_tokens(week.total_tokens // elapsed_days))}\n",
+            style=_S.dim,
+        )
         lines.append(f"  {t('week_cost')}  {_fmt_cost(week.cost_usd)}", style=_S.cost)
         if last_week:
             _append_trend(lines, week.cost_usd, last_week.cost_usd)
         lines.append(f"  {t('daily_avg', cost=_fmt_cost(daily_avg_cost))}", style=_S.dim)
-        lines.append(f"  {t('session_msg', sessions=week.session_count, msgs=week.message_count)}", style=_S.dim)
+        lines.append(
+            f"  {t('session_msg', sessions=week.session_count, msgs=week.message_count)}",
+            style=_S.dim,
+        )
 
     lines.append("\n")
 
@@ -836,11 +896,18 @@ def _render_active_block(
     lines.append(f"{t('active_panel_title')}\n\n", style="bold")
 
     if rate_limits and rate_limits.five_hour_pct is not None:
-        _render_rate_bar(lines, t("limit_5h"), rate_limits.five_hour_pct,
-                         rate_limits.five_hour_resets_at, bar_width)
+        _render_rate_bar(
+            lines,
+            t("limit_5h"),
+            rate_limits.five_hour_pct,
+            rate_limits.five_hour_resets_at,
+            bar_width,
+        )
 
     lines.append(f"  {t('time_label')}      ", style=_S.dim)
-    lines.append(f"{t('time_elapsed', elapsed=elapsed_min, h=remaining_h, m=remaining_m)}\n", style=_S.dim)
+    lines.append(
+        f"{t('time_elapsed', elapsed=elapsed_min, h=remaining_h, m=remaining_m)}\n", style=_S.dim
+    )
 
     lines.append(f"  Token     {_fmt_tokens(b.total_tokens)}", style=_S.token)
     if last_block:
@@ -855,8 +922,14 @@ def _render_active_block(
 
     if rate_limits and rate_limits.seven_day_pct is not None:
         lines.append("\n\n")
-        _render_rate_bar(lines, t("limit_7d"), rate_limits.seven_day_pct,
-                         rate_limits.seven_day_resets_at, bar_width, "%m-%d %H:%M")
+        _render_rate_bar(
+            lines,
+            t("limit_7d"),
+            rate_limits.seven_day_pct,
+            rate_limits.seven_day_resets_at,
+            bar_width,
+            "%m-%d %H:%M",
+        )
         if week:
             _render_week_section(lines, week, last_week)
 
@@ -876,14 +949,25 @@ def _render_idle_panel(
     lines.append(f"{t('idle_panel_title')}\n\n", style="bold")
 
     if rate_limits.five_hour_pct is not None:
-        _render_rate_bar(lines, t("limit_5h"), rate_limits.five_hour_pct,
-                         rate_limits.five_hour_resets_at, bar_width)
+        _render_rate_bar(
+            lines,
+            t("limit_5h"),
+            rate_limits.five_hour_pct,
+            rate_limits.five_hour_resets_at,
+            bar_width,
+        )
 
     if rate_limits.seven_day_pct is not None:
         if rate_limits.five_hour_pct is not None:
             lines.append("\n")
-        _render_rate_bar(lines, t("limit_7d"), rate_limits.seven_day_pct,
-                         rate_limits.seven_day_resets_at, bar_width, "%m-%d %H:%M")
+        _render_rate_bar(
+            lines,
+            t("limit_7d"),
+            rate_limits.seven_day_pct,
+            rate_limits.seven_day_resets_at,
+            bar_width,
+            "%m-%d %H:%M",
+        )
         if week:
             _render_week_section(lines, week, last_week)
 

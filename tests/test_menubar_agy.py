@@ -252,9 +252,7 @@ def test_project_quota_warns_when_session_will_empty_before_reset() -> None:
 
     assert projection is not None
     assert projection.session.warning is True
-    assert projection.session.reset_text == (
-        "⚠ At this pace, empty in 6m · resets in 1h 30m"
-    )
+    assert projection.session.reset_text == ("⚠ At this pace, empty in 6m · resets in 1h 30m")
 
 
 def test_weekly_window_row_keeps_reset_text_when_whole_window_blocks_warning() -> None:
@@ -326,9 +324,7 @@ def test_project_quota_does_not_forecast_stale_snapshot() -> None:
     projection = menubar_agy.project_quota(
         _quota_snapshot(stale_fetched_at, session_used=95.0),
         "en",
-        now=(
-            stale_fetched_at + timedelta(seconds=menubar_agy.AGY_STALE_SECONDS + 1)
-        ).timestamp(),
+        now=(stale_fetched_at + timedelta(seconds=menubar_agy.AGY_STALE_SECONDS + 1)).timestamp(),
         burn_rate_trackers=trackers,
     )
 

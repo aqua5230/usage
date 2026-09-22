@@ -27,9 +27,7 @@ def _clear_claude_path_cache() -> Iterator[None]:
     claude_paths.cache_clear()
 
 
-def test_environment_value_takes_priority(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_environment_value_takes_priority(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     configured = tmp_path / "configured"
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(configured))
     monkeypatch.setattr(
@@ -97,9 +95,7 @@ def test_empty_or_failed_launchctl_falls_back_to_default(
     monkeypatch.setenv("USERPROFILE", str(tmp_path))
     monkeypatch.delenv("CLAUDE_CONFIG_DIR", raising=False)
     monkeypatch.setattr("loaders.claude_paths.sys.platform", "darwin")
-    monkeypatch.setattr(
-        "loaders.claude_paths.subprocess.run", lambda *args, **kwargs: result
-    )
+    monkeypatch.setattr("loaders.claude_paths.subprocess.run", lambda *args, **kwargs: result)
 
     assert claude_paths.claude_config_dirs() == [tmp_path / ".claude"]
 
@@ -190,9 +186,7 @@ def test_setup_without_config_dir_writes_default_settings(
     hook_source.write_text("print('hook')\n", encoding="utf-8")
     hook_target = fixed_dir / "usage-statusline.py"
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", hook_target)
-    monkeypatch.setattr(
-        setup_hook, "FORWARDER_TARGET", fixed_dir / "usage-statusline-forwarder.py"
-    )
+    monkeypatch.setattr(setup_hook, "FORWARDER_TARGET", fixed_dir / "usage-statusline-forwarder.py")
     monkeypatch.setattr(setup_hook, "STATUS_FILE", fixed_dir / "usage-status.json")
     monkeypatch.setattr(setup_hook, "LEGACY_HOOK_TARGET", fixed_dir / "usag-statusline.py")
     monkeypatch.setattr(setup_hook, "LEGACY_STATUS_FILE", fixed_dir / "usag-status.json")
@@ -227,9 +221,7 @@ def test_setup_uses_relocated_settings_but_usage_reads_fixed_status_file(
     hook_target = fixed_dir / "usage-statusline.py"
     status_file = fixed_dir / "usage-status.json"
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", hook_target)
-    monkeypatch.setattr(
-        setup_hook, "FORWARDER_TARGET", fixed_dir / "usage-statusline-forwarder.py"
-    )
+    monkeypatch.setattr(setup_hook, "FORWARDER_TARGET", fixed_dir / "usage-statusline-forwarder.py")
     monkeypatch.setattr(setup_hook, "STATUS_FILE", status_file)
     monkeypatch.setattr(setup_hook, "LEGACY_HOOK_TARGET", fixed_dir / "usag-statusline.py")
     monkeypatch.setattr(setup_hook, "LEGACY_STATUS_FILE", fixed_dir / "usag-status.json")
@@ -256,9 +248,7 @@ def test_setup_uses_relocated_settings_but_usage_reads_fixed_status_file(
         encoding="utf-8",
     )
     monkeypatch.setattr(usage_client, "STATUS_FILE", str(status_file))
-    monkeypatch.setattr(
-        usage_client, "LEGACY_STATUS_FILE", str(fixed_dir / "usag-status.json")
-    )
+    monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(fixed_dir / "usag-status.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(fixed_dir / "tt-status.json"))
 
     loaded = usage_client._read_status_file()
@@ -279,9 +269,7 @@ def test_setup_does_not_create_a_missing_configured_directory(
     monkeypatch.setenv("CLAUDE_CONFIG_DIR", str(relocated_dir))
     claude_paths.cache_clear()
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", fixed_dir / "usage-statusline.py")
-    monkeypatch.setattr(
-        setup_hook, "LEGACY_HOOK_TARGET", fixed_dir / "usag-statusline.py"
-    )
+    monkeypatch.setattr(setup_hook, "LEGACY_HOOK_TARGET", fixed_dir / "usag-statusline.py")
     monkeypatch.setattr(setup_hook, "LEGACY_STATUS_FILE", fixed_dir / "usag-status.json")
 
     assert setup_hook.setup() == 1

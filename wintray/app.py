@@ -518,9 +518,7 @@ def _set_taskbar_progress(
         )
         _raise_for_hresult(result, "CoCreateInstance(CLSID_TaskbarList)")
 
-        vtable = ctypes.cast(
-            taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
-        ).contents
+        vtable = ctypes.cast(taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
         hresult_method = win_function_type(ctypes.c_long, ctypes.c_void_p)
         set_progress_value_method = win_function_type(
             ctypes.c_long,
@@ -548,18 +546,12 @@ def _set_taskbar_progress(
                 "ITaskbarList3.SetProgressValue",
             )
         _raise_for_hresult(
-            int(
-                set_progress_state_method(vtable[10])(
-                    taskbar, ctypes.c_void_p(hwnd), int(state)
-                )
-            ),
+            int(set_progress_state_method(vtable[10])(taskbar, ctypes.c_void_p(hwnd), int(state))),
             "ITaskbarList3.SetProgressState",
         )
     finally:
         if taskbar.value:
-            vtable = ctypes.cast(
-                taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))
-            ).contents
+            vtable = ctypes.cast(taskbar, ctypes.POINTER(ctypes.POINTER(ctypes.c_void_p))).contents
             release_method = win_function_type(ctypes.c_ulong, ctypes.c_void_p)
             release_method(vtable[2])(taskbar)
         if initialized_here:
@@ -568,11 +560,7 @@ def _set_taskbar_progress(
 
 def build_tooltip(state: menubar_state.PopoverState) -> str:
     def line(name: str, row: menubar_state.QuotaRowState) -> str:
-        used = (
-            "--"
-            if row.percent is None
-            else str(min(100, max(0, round(row.percent))))
-        )
+        used = "--" if row.percent is None else str(min(100, max(0, round(row.percent))))
         return f"{name} {row.title}: {used}%"
 
     lines = [
@@ -984,9 +972,7 @@ class _WindowsTrayController:
                 return None
         return dpi / 96.0 if dpi > 0 else None
 
-    def _apply_geometry_without_showing(
-        self, width: int, height: int, x: int, y: int
-    ) -> bool:
+    def _apply_geometry_without_showing(self, width: int, height: int, x: int, y: int) -> bool:
         if os.name != "nt" or self.window is None:
             return False
         scale = self._window_dpi_scale()
@@ -1077,9 +1063,12 @@ class _WindowsTrayController:
             x, y = native.Left, native.Top
         except Exception:
             x = y = None
-        if not isinstance(x, bool) and not isinstance(y, bool) and isinstance(
-            x, int | float
-        ) and isinstance(y, int | float):
+        if (
+            not isinstance(x, bool)
+            and not isinstance(y, bool)
+            and isinstance(x, int | float)
+            and isinstance(y, int | float)
+        ):
             return (int(round(x)), int(round(y)))
         position = self._current_window_position()
         if position is None:
@@ -1156,8 +1145,10 @@ class _WindowsTrayController:
         )
         width = int(round(fitted_width))
         height = int(round(fitted_height))
-        position = anchor if anchor is not None else self._default_window_position(
-            work_area, width, height
+        position = (
+            anchor
+            if anchor is not None
+            else self._default_window_position(work_area, width, height)
         )
         x, y = self._clamp_window_position(position, work_area, width, height)
         try:
@@ -1429,9 +1420,7 @@ class _WindowsTrayController:
         )
         measure("codex_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
-        agy_result = menubar_agy.load_refresh_result(
-            self.language, self.burn_rate_trackers
-        )
+        agy_result = menubar_agy.load_refresh_result(self.language, self.burn_rate_trackers)
         agy = agy_result.projection or menubar_agy.fallback_projection(self.language)
         measure("agy_load", started_at)
         started_at = time.monotonic() if debug_timing else 0.0
@@ -2055,9 +2044,7 @@ def _menu(controller: _WindowsTrayController) -> Any:
     import pystray
 
     entries = wintray_menu.entries_for_surface(_menu_model(), wintray_menu.TRAY)
-    recovery_items = tuple(
-        _tray_menu_entry(pystray, controller, entry) for entry in entries
-    )
+    recovery_items = tuple(_tray_menu_entry(pystray, controller, entry) for entry in entries)
     return pystray.Menu(
         pystray.MenuItem("Open", controller.show_panel, default=True, visible=False),
         *recovery_items,
@@ -2114,9 +2101,7 @@ def _tray_menu_entry(
         return pystray.Menu.SEPARATOR
     if isinstance(entry, wintray_menu.MenuGroup):
         children = tuple(_tray_menu_entry(pystray, controller, child) for child in entry.children)
-        return pystray.MenuItem(
-            _t(controller.language, entry.i18n_key), pystray.Menu(*children)
-        )
+        return pystray.MenuItem(_t(controller.language, entry.i18n_key), pystray.Menu(*children))
     action = getattr(controller, entry.action)
     kwargs: dict[str, object] = {"radio": entry.radio}
     if entry.checked_by is not None:

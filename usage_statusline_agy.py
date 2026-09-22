@@ -378,10 +378,7 @@ def _render_core(data: Dict[str, Any]) -> str:
             selected = no_reset
         else:
             selected = (
-                project_parts
-                + [part[2] for part in quota_parts]
-                + context_parts[1:2]
-                + model_parts
+                project_parts + [part[2] for part in quota_parts] + context_parts[1:2] + model_parts
             )
     return " | ".join(selected) if selected else "usage"
 

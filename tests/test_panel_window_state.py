@@ -133,8 +133,14 @@ def test_content_heights_are_separate_per_panel() -> None:
 
 @pytest.mark.parametrize(
     "value",
-    ["broken", {"classic": "456"}, {"classic": float("nan")},
-     {"classic": float("inf")}, {"classic": -1}, {"classic": True}],
+    [
+        "broken",
+        {"classic": "456"},
+        {"classic": float("nan")},
+        {"classic": float("inf")},
+        {"classic": -1},
+        {"classic": True},
+    ],
 )
 def test_content_height_rejects_invalid_values_and_save_recovers(value: object) -> None:
     defaults = ContentHeightDefaults(value)

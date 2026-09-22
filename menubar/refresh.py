@@ -159,9 +159,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             ) = menubar_state.project_rows_for_windows(all_entries)
         sources.measure("project_rows_windows", started_at)
         today_text = menubar_state._today_title(app.mock, app.language, entries=all_entries)
-        yesterday_text = menubar_state._yesterday_title(
-            app.mock, app.language, entries=all_entries
-        )
+        yesterday_text = menubar_state._yesterday_title(app.mock, app.language, entries=all_entries)
         statusline = menubar_state._statusline_payload(app.language)
         hide_claude = _hide_claude_enabled()
         hide_codex = _hide_codex_enabled()

@@ -169,9 +169,7 @@ class UsageScriptBridge(NSObject):
                 parsed = None
             if isinstance(parsed, dict) and "action" in parsed:
                 if parsed["action"] == "content_height":
-                    self.delegate.panelContentHeight_forView_(
-                        parsed.get("height"), self.web_view
-                    )
+                    self.delegate.panelContentHeight_forView_(parsed.get("height"), self.web_view)
                     return
                 if parsed["action"] == "begin_window_drag":
                     self.delegate.panelBeginWindowDrag_(self.web_view)
@@ -202,9 +200,7 @@ class UsageScriptBridge(NSObject):
         elif action == "analyze":
             self.web_view.evaluateJavaScript_completionHandler_(
                 "typeof projectRange === 'string' ? projectRange : '30d'",
-                lambda value, error: self.delegate.analyzeUsage_(
-                    value if error is None else "30d"
-                ),
+                lambda value, error: self.delegate.analyzeUsage_(value if error is None else "30d"),
             )
         elif action in {"toggle_statusline", "toggle-statusline"}:
             self.delegate.toggleStatusline_(None)
@@ -212,7 +208,6 @@ class UsageScriptBridge(NSObject):
             self.delegate.installStatusline_(None)
         elif action == "uninstall_statusline":
             self.delegate.uninstallStatusline_(None)
-
 
 
 class WebPanelView(WKWebView):
@@ -255,9 +250,7 @@ class WebPanelView(WKWebView):
         self.setWantsLayer_(True)
         layer = self.layer()
         if layer is not None:
-            layer.setBackgroundColor_(
-                CGColorCreateGenericRGB(10 / 255, 15 / 255, 20 / 255, 1.0)
-            )
+            layer.setBackgroundColor_(CGColorCreateGenericRGB(10 / 255, 15 / 255, 20 / 255, 1.0))
             layer.setMasksToBounds_(True)
         return self
 

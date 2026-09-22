@@ -327,25 +327,33 @@ def test_save_preserves_existing_complete_rate_limits_when_new_data_is_incomplet
     tmp_path: Path,
 ) -> None:
     status_file = tmp_path / "usage-status.json"
-    status_file.write_text(json.dumps({
-        "rate_limits": {
-            "five_hour": {"used_percentage": 11},
-            "seven_day": {"used_percentage": 22},
-        },
-        "_received_at": "old",
-        "_received_at_ts": 1,
-        "model": {"display_name": "old"},
-    }), encoding="utf-8")
+    status_file.write_text(
+        json.dumps(
+            {
+                "rate_limits": {
+                    "five_hour": {"used_percentage": 11},
+                    "seven_day": {"used_percentage": 22},
+                },
+                "_received_at": "old",
+                "_received_at_ts": 1,
+                "model": {"display_name": "old"},
+            }
+        ),
+        encoding="utf-8",
+    )
     now = datetime(2026, 1, 1, 12, 30, tzinfo=UTC)
     monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
 
-    usage_statusline.save({
-        "model": {"display_name": "new"},
-        "rate_limits": {
-            "five_hour": {"used_percentage": None},
-            "seven_day": {"used_percentage": None},
+    usage_statusline.save(
+        {
+            "model": {"display_name": "new"},
+            "rate_limits": {
+                "five_hour": {"used_percentage": None},
+                "seven_day": {"used_percentage": None},
+            },
         },
-    }, now)
+        now,
+    )
 
     data = json.loads(status_file.read_text(encoding="utf-8"))
     assert data["model"] == {"display_name": "new"}
@@ -362,21 +370,29 @@ def test_save_overwrites_existing_rate_limits_when_new_data_is_complete(
     tmp_path: Path,
 ) -> None:
     status_file = tmp_path / "usage-status.json"
-    status_file.write_text(json.dumps({
-        "rate_limits": {
-            "five_hour": {"used_percentage": 11},
-            "seven_day": {"used_percentage": 22},
-        },
-    }), encoding="utf-8")
+    status_file.write_text(
+        json.dumps(
+            {
+                "rate_limits": {
+                    "five_hour": {"used_percentage": 11},
+                    "seven_day": {"used_percentage": 22},
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
     now = datetime(2026, 1, 1, 12, 30, tzinfo=UTC)
     monkeypatch.setattr(usage_statusline, "STATUS_FILE", str(status_file))
 
-    usage_statusline.save({
-        "rate_limits": {
-            "five_hour": {"used_percentage": 88},
-            "seven_day": {"used_percentage": 99},
+    usage_statusline.save(
+        {
+            "rate_limits": {
+                "five_hour": {"used_percentage": 88},
+                "seven_day": {"used_percentage": 99},
+            },
         },
-    }, now)
+        now,
+    )
 
     data = json.loads(status_file.read_text(encoding="utf-8"))
     assert data["rate_limits"] == {
@@ -396,14 +412,17 @@ def test_read_update_hint_returns_latest_when_fresh_and_newer(
     tmp_path: Path,
 ) -> None:
     prefs_file = tmp_path / "usage-preferences.json"
-    _write_prefs(prefs_file, {
-        "last_update_check": {
-            "checked_at": 1000.0,
-            "current_version": "0.11.3",
-            "latest_version": "0.12.0",
-            "release_url": "https://x",
+    _write_prefs(
+        prefs_file,
+        {
+            "last_update_check": {
+                "checked_at": 1000.0,
+                "current_version": "0.11.3",
+                "latest_version": "0.12.0",
+                "release_url": "https://x",
+            },
         },
-    })
+    )
     monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
 
     assert usage_statusline._read_update_hint(1000.0) == "0.12.0"
@@ -414,14 +433,17 @@ def test_read_update_hint_returns_none_when_same_version(
     tmp_path: Path,
 ) -> None:
     prefs_file = tmp_path / "usage-preferences.json"
-    _write_prefs(prefs_file, {
-        "last_update_check": {
-            "checked_at": 1000.0,
-            "current_version": "0.11.3",
-            "latest_version": "0.11.3",
-            "release_url": None,
+    _write_prefs(
+        prefs_file,
+        {
+            "last_update_check": {
+                "checked_at": 1000.0,
+                "current_version": "0.11.3",
+                "latest_version": "0.11.3",
+                "release_url": None,
+            },
         },
-    })
+    )
     monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
 
     assert usage_statusline._read_update_hint(1000.0) is None
@@ -432,15 +454,18 @@ def test_read_update_hint_respects_skipped_version(
     tmp_path: Path,
 ) -> None:
     prefs_file = tmp_path / "usage-preferences.json"
-    _write_prefs(prefs_file, {
-        "update_skipped_version": "0.12.0",
-        "last_update_check": {
-            "checked_at": 1000.0,
-            "current_version": "0.11.3",
-            "latest_version": "0.12.0",
-            "release_url": "https://x",
+    _write_prefs(
+        prefs_file,
+        {
+            "update_skipped_version": "0.12.0",
+            "last_update_check": {
+                "checked_at": 1000.0,
+                "current_version": "0.11.3",
+                "latest_version": "0.12.0",
+                "release_url": "https://x",
+            },
         },
-    })
+    )
     monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
 
     assert usage_statusline._read_update_hint(1000.0) is None
@@ -451,14 +476,17 @@ def test_read_update_hint_returns_none_when_stale(
     tmp_path: Path,
 ) -> None:
     prefs_file = tmp_path / "usage-preferences.json"
-    _write_prefs(prefs_file, {
-        "last_update_check": {
-            "checked_at": 1000.0,
-            "current_version": "0.11.3",
-            "latest_version": "0.12.0",
-            "release_url": "https://x",
+    _write_prefs(
+        prefs_file,
+        {
+            "last_update_check": {
+                "checked_at": 1000.0,
+                "current_version": "0.11.3",
+                "latest_version": "0.12.0",
+                "release_url": "https://x",
+            },
         },
-    })
+    )
     monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(prefs_file))
 
     stale = 1000.0 + usage_statusline.UPDATE_HINT_STALE_SECONDS + 1
@@ -469,9 +497,7 @@ def test_read_update_hint_handles_missing_file(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    monkeypatch.setattr(
-        usage_statusline, "PREFERENCES_FILE", str(tmp_path / "does-not-exist.json")
-    )
+    monkeypatch.setattr(usage_statusline, "PREFERENCES_FILE", str(tmp_path / "does-not-exist.json"))
     assert usage_statusline._read_update_hint(1000.0) is None
 
 
@@ -728,13 +754,16 @@ def test_render_keeps_prompt_cache_bar_when_expired(
     monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
     now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
 
-    output = usage_statusline.render({
-        "prompt_cache": {
-            "caching_observed": True,
-            "hit_ratio": 0.91,
-            "expires_at": now.timestamp() - 1,
+    output = usage_statusline.render(
+        {
+            "prompt_cache": {
+                "caching_observed": True,
+                "hit_ratio": 0.91,
+                "expires_at": now.timestamp() - 1,
+            },
         },
-    }, now)
+        now,
+    )
 
     assert "Cache:" in output
     assert "91%" in output
@@ -754,9 +783,12 @@ def test_render_prompt_cache_uses_inverted_colors(
     monkeypatch.setenv("TT_LANG", "en")
     monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
 
-    output = usage_statusline.render({
-        "prompt_cache": {"caching_observed": True, "hit_ratio": hit_ratio},
-    }, datetime(2026, 1, 1, tzinfo=UTC))
+    output = usage_statusline.render(
+        {
+            "prompt_cache": {"caching_observed": True, "hit_ratio": hit_ratio},
+        },
+        datetime(2026, 1, 1, tzinfo=UTC),
+    )
 
     assert color in output
     if hit_ratio == 0.91:

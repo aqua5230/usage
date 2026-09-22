@@ -459,8 +459,7 @@ def _as_int(value: Any) -> int:
     if isinstance(value, str):
         normalized = value.strip()
         if normalized.isascii() and (
-            normalized.isdigit()
-            or (normalized.startswith("+") and normalized[1:].isdigit())
+            normalized.isdigit() or (normalized.startswith("+") and normalized[1:].isdigit())
         ):
             return int(normalized)
     return 0

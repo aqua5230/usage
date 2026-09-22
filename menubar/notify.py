@@ -21,6 +21,7 @@ def user_notification_center() -> tuple[Any, dict[str, int]]:
         UNAuthorizationOptionSound,
         UNUserNotificationCenter,
     )
+
     register_user_notification_block_metadata()
 
     return (

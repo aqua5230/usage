@@ -131,9 +131,7 @@ def test_parse_setup_app_resources() -> None:
 def test_local_data_files_are_declared_as_py2app_resources() -> None:
     resources = parse_setup_app_resources()
     missing = [
-        ref
-        for ref in find_local_data_file_references()
-        if not _is_declared(ref[1], resources)
+        ref for ref in find_local_data_file_references() if not _is_declared(ref[1], resources)
     ]
 
     assert not missing, "\n".join(

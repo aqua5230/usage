@@ -118,15 +118,19 @@ def _patch_main_for_win32(monkeypatch: Any, calls: list[dict[str, Any]]) -> None
     monkeypatch.setattr(
         main,
         "parse_args",
-        lambda: type("Args", (), {
-            "doctor": False,
-            "setup": False,
-            "unsetup": False,
-            "tui": False,
-            "mock": False,
-            "interval": 60,
-            "force_group": None,
-        })(),
+        lambda: type(
+            "Args",
+            (),
+            {
+                "doctor": False,
+                "setup": False,
+                "unsetup": False,
+                "tui": False,
+                "mock": False,
+                "interval": 60,
+                "force_group": None,
+            },
+        )(),
     )
     monkeypatch.setattr(main, "_self_heal", lambda: None)
     monkeypatch.setattr(main, "run_tui", fake_run_tui)

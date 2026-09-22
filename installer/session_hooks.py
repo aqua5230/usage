@@ -226,11 +226,7 @@ def _resolve_terse_source() -> Path:
 def _resolve_terse_reminder_source() -> Path:
     paths = [
         Path(__file__).resolve().parent.parent / "usage_terse_reminder.py",
-        (
-            Path(sys.executable).resolve().parent.parent
-            / "Resources"
-            / "usage_terse_reminder.py"
-        ),
+        (Path(sys.executable).resolve().parent.parent / "Resources" / "usage_terse_reminder.py"),
     ]
     for path in paths:
         if path.exists():
@@ -492,9 +488,7 @@ def _load_codex_hooks() -> dict[str, Any] | None:
 
 
 def _save_codex_hooks(data: dict[str, Any]) -> None:
-    _atomic_write_text(
-        CODEX_HOOKS_JSON, json.dumps(data, indent=2, ensure_ascii=False) + "\n"
-    )
+    _atomic_write_text(CODEX_HOOKS_JSON, json.dumps(data, indent=2, ensure_ascii=False) + "\n")
 
 
 def _codex_session_start_list(data: dict[str, Any]) -> list[Any] | None:
@@ -540,9 +534,7 @@ def _setup_codex_terse() -> None:
 
     features = parsed.get("features")
     if not (isinstance(features, dict) and features.get("hooks") is True):
-        new_content = _ensure_table_line(
-            content, "features", _FEATURES_HOOKS_REGEX, "hooks = true"
-        )
+        new_content = _ensure_table_line(content, "features", _FEATURES_HOOKS_REGEX, "hooks = true")
         if new_content != content:
             _atomic_write_text(CODEX_CONFIG, new_content)
 
@@ -554,9 +546,7 @@ def _setup_codex_terse() -> None:
     if not isinstance(session_start, list):
         session_start = []
         hooks["SessionStart"] = session_start
-    session_start[:] = [
-        e for e in (_strip_terse_hooks(e) for e in session_start) if e is not None
-    ]
+    session_start[:] = [e for e in (_strip_terse_hooks(e) for e in session_start) if e is not None]
     session_start.append(
         {
             "matcher": CODEX_TERSE_MATCHER,
@@ -778,9 +768,7 @@ def disable_terse_mode() -> int:
 
         ups = _user_prompt_submit_list(settings)
         if ups is not None:
-            kept_ups = [
-                e for e in (_strip_terse_reminder_hooks(e) for e in ups) if e is not None
-            ]
+            kept_ups = [e for e in (_strip_terse_reminder_hooks(e) for e in ups) if e is not None]
             if kept_ups != ups:
                 hooks = settings["hooks"]
                 if kept_ups:
@@ -1086,10 +1074,7 @@ def _append_self_heal_log(action: str, detail: str) -> None:
             log.append(
                 {
                     "timestamp": (
-                        datetime.now(UTC)
-                        .replace(microsecond=0)
-                        .isoformat()
-                        .replace("+00:00", "Z")
+                        datetime.now(UTC).replace(microsecond=0).isoformat().replace("+00:00", "Z")
                     ),
                     "action": action,
                     "detail": detail,

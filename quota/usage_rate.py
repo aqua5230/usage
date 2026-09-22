@@ -48,11 +48,7 @@ class UsageRateTracker:
         if self._cached_group is not None and now < self._cache_expires_at:
             return self._cached_group
 
-        entries = (
-            self._load(1)
-            if self._load is not None
-            else load_entries(hours_back=1)
-        )
+        entries = self._load(1) if self._load is not None else load_entries(hours_back=1)
         if not entries:
             result = 0
             self._cached_group = result

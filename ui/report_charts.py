@@ -13,11 +13,7 @@ def render_trend_bar(tokens: int, max_tokens: int) -> str:
     width = 0.0
     if tokens > 0 and max_tokens > 0:
         width = max(2.0, min(100.0, tokens / max_tokens * 100))
-    return (
-        '<div class="trend-bar" aria-hidden="true">'
-        f'<div style="width:{width:.2f}%"></div>'
-        "</div>"
-    )
+    return f'<div class="trend-bar" aria-hidden="true"><div style="width:{width:.2f}%"></div></div>'
 
 
 def render_share_bar(pct: float, color: str | None = None) -> str:

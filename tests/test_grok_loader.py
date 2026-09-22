@@ -155,9 +155,7 @@ def test_load_entries_maps_inference_and_looks_up_model_and_project(
     assert second.cache_read_tokens == 18688
     assert second.model == "grok-4.6"
     assert second.project == "usage-grok-project"
-    assert [entry.timestamp for entry in entries] == sorted(
-        entry.timestamp for entry in entries
-    )
+    assert [entry.timestamp for entry in entries] == sorted(entry.timestamp for entry in entries)
 
 
 def test_load_entries_uses_model_in_effect_after_mid_session_switch(

@@ -68,7 +68,7 @@ def test_daily_chart_compacts_over_120_days_and_single_tool() -> None:
     html = render_daily_chart(cube, _t, _tokens, str)
     assert html.count('class="daily-segment"') == len(dates)
     assert 'width="5.72"' in html
-    assert html.count('daily-legend-item') == 1
+    assert html.count("daily-legend-item") == 1
 
 
 def test_daily_chart_centers_55_percent_bars_for_31_or_fewer_days() -> None:
@@ -79,7 +79,7 @@ def test_daily_chart_centers_55_percent_bars_for_31_or_fewer_days() -> None:
 
     assert 'preserveAspectRatio="none"' in html
     assert html.count('vector-effect="non-scaling-stroke"') == 3
-    assert '<text ' not in html
+    assert "<text " not in html
     assert 'width="77.44"' in html
     assert 'x="79.68"' in html
     assert 'class="daily-chart-label daily-y-label"' in html
@@ -88,13 +88,13 @@ def test_daily_chart_centers_55_percent_bars_for_31_or_fewer_days() -> None:
 def test_pricing_usage_and_body_cover_priced_and_unpriced() -> None:
     priced = _cube([[0, 0, 0, 0, 2, 0, 0, 0, 1, 1]])
     assert pricing_usage(priced) == (2, 0, [])
-    assert "pricing_all_priced" in render_pricing_body(
-        2, 0, [], _t, _tokens, _display_name, "、"
+    assert "pricing_all_priced" in render_pricing_body(2, 0, [], _t, _tokens, _display_name, "、")
+    mixed = _cube(
+        [
+            [0, 0, 0, 0, 2, 0, 0, 0, 1, 1],
+            [0, 0, 1, 0, 3, 0, 0, 0, 0, 1],
+        ]
     )
-    mixed = _cube([
-        [0, 0, 0, 0, 2, 0, 0, 0, 1, 1],
-        [0, 0, 1, 0, 3, 0, 0, 0, 0, 1],
-    ])
     assert pricing_usage(mixed) == (2, 3, ["unknown"])
     body = render_pricing_body(2, 3, ["unknown"], _t, _tokens, _display_name, "、")
     assert "40.0%" in body and "60.0%" in body and "未知" in body

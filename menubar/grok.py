@@ -123,5 +123,5 @@ def _stale_state(fetched_at: str, now: float, language: str) -> GrokStaleState |
         )
     return cast(
         GrokStaleState,
-        {"ageText": _t(language, "grok_stale_hours", hours=max(1, int(age_seconds // 3600)))}
+        {"ageText": _t(language, "grok_stale_hours", hours=max(1, int(age_seconds // 3600)))},
     )

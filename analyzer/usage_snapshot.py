@@ -177,13 +177,9 @@ def merge_live_with_snapshot(
             continue
         if date_from <= day <= date_to:
             snap_tokens_by_day[day] += _row_tokens(row)
-            replay_by_day[day].extend(
-                _replay_row(row, snapshot["sessions"].get(row["session_id"]))
-            )
+            replay_by_day[day].extend(_replay_row(row, snapshot["sessions"].get(row["session_id"])))
     for day, day_entries in replay_by_day.items():
-        replay_by_day[day] = _lead_with_header_project(
-            day_entries, snapshot["sessions"]
-        )
+        replay_by_day[day] = _lead_with_header_project(day_entries, snapshot["sessions"])
 
     merged: list[UsageEntry] = []
     merged_dates: dict[int, date] = {}
@@ -581,7 +577,11 @@ def _aggregate_entries(
     rows: dict[_RowKey, SnapshotRow] = {}
     by_session: dict[str, list[UsageEntry]] = defaultdict(list)
     for entry in entries:
-        day = entry_dates.get(id(entry), _entry_date(entry)) if entry_dates is not None else _entry_date(entry)
+        day = (
+            entry_dates.get(id(entry), _entry_date(entry))
+            if entry_dates is not None
+            else _entry_date(entry)
+        )
         agent_id = entry.agent_id or "unknown"
         model = entry.model or "unknown"
         project = entry.project or "unknown"

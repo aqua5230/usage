@@ -130,18 +130,14 @@ def test_change_headline_skips_without_previous_period() -> None:
     payload = _payload()
     payload["comparison"] = {"period": "today", "has_prev": False}
 
-    assert not any(
-        component["type"] == "change_headline" for component in build_insights(payload)
-    )
+    assert not any(component["type"] == "change_headline" for component in build_insights(payload))
 
 
 def test_change_headline_skips_when_previous_tokens_are_zero() -> None:
     payload = _payload()
     payload["comparison"]["prev_tokens"] = 0
 
-    assert not any(
-        component["type"] == "change_headline" for component in build_insights(payload)
-    )
+    assert not any(component["type"] == "change_headline" for component in build_insights(payload))
 
 
 def test_spike_skips_without_clear_spike() -> None:
@@ -156,9 +152,7 @@ def test_shift_skips_without_signal() -> None:
     payload["by_project"] = [
         {"project": "usage", "tokens": 1800, "cost": 9.25, "sessions": 39, "pct": 100.0}
     ]
-    payload["by_model"] = [
-        {"model": "gpt-5-codex", "tokens": 900, "cost": 4.0, "pct": 50.0}
-    ]
+    payload["by_model"] = [{"model": "gpt-5-codex", "tokens": 900, "cost": 4.0, "pct": 50.0}]
     payload["comparison"]["prev_model_share"] = {"gpt-5-codex": 45.0}
     payload["daily_trend"] = _daily_from(date(2026, 5, 4), [100] * 14)
 
@@ -180,8 +174,7 @@ def test_change_headline_only_emits_on_surge() -> None:
         payload["summary"]["total_tokens"] = tokens
 
         assert not any(
-            component["type"] == "change_headline"
-            for component in build_insights(payload)
+            component["type"] == "change_headline" for component in build_insights(payload)
         )
 
     payload = _payload()
@@ -208,9 +201,7 @@ def test_shift_model_up_when_no_new_project() -> None:
         {"project": "usage", "tokens": 1800, "cost": 9.25, "sessions": 39, "pct": 100.0}
     ]
 
-    shift = next(
-        component for component in build_insights(payload) if component["type"] == "shift"
-    )
+    shift = next(component for component in build_insights(payload) if component["type"] == "shift")
 
     assert shift == {
         "type": "shift",
@@ -227,9 +218,7 @@ def test_weekly_trend_alone_emits_no_shift() -> None:
     payload["by_project"] = [
         {"project": "usage", "tokens": 1800, "cost": 9.25, "sessions": 39, "pct": 100.0}
     ]
-    payload["by_model"] = [
-        {"model": "gpt-5-codex", "tokens": 900, "cost": 4.0, "pct": 50.0}
-    ]
+    payload["by_model"] = [{"model": "gpt-5-codex", "tokens": 900, "cost": 4.0, "pct": 50.0}]
     payload["comparison"]["prev_model_share"] = {"gpt-5-codex": 45.0}
     payload["daily_trend"] = _daily_from(
         date(2026, 5, 4),

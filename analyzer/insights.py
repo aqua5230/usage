@@ -90,8 +90,7 @@ def _build_new_project_shift(data: dict[str, Any]) -> dict[str, Any] | None:
         return None
 
     prev_projects = {
-        _str_value(project, "")
-        for project in _list_value(comparison.get("prev_projects"))
+        _str_value(project, "") for project in _list_value(comparison.get("prev_projects"))
     }
     for project in _list_value(data.get("by_project")):
         item = _mapping_value(project)
@@ -188,8 +187,7 @@ def _find_spike(raw_daily: object) -> dict[str, Any] | None:
     candidates = [
         point
         for point in daily
-        if point["tokens"] > threshold
-        and point["tokens"] >= mean * _SPIKE_MULTIPLIER_THRESHOLD
+        if point["tokens"] > threshold and point["tokens"] >= mean * _SPIKE_MULTIPLIER_THRESHOLD
     ]
     if not candidates:
         return None

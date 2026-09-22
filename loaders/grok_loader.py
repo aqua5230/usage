@@ -91,11 +91,7 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
             model = _normalize_model(default_model)
 
         previous_cwd = last_cwd.get(sid)
-        cwd = (
-            previous_cwd[1]
-            if previous_cwd is not None and previous_cwd[0] < timestamp
-            else ""
-        )
+        cwd = previous_cwd[1] if previous_cwd is not None and previous_cwd[0] < timestamp else ""
         entry_id = f"{sid}:{payload['loop_index']}"
         entries.append(
             UsageEntry(
@@ -188,8 +184,7 @@ def _event_from_line(
     if msg != _MSG_INFERENCE:
         return None
     if not all(
-        key in context
-        for key in ("prompt_tokens", "cached_prompt_tokens", "completion_tokens")
+        key in context for key in ("prompt_tokens", "cached_prompt_tokens", "completion_tokens")
     ):
         return None
     loop_index = context.get("loop_index")
@@ -233,9 +228,7 @@ def _normalize_model(model: str) -> str:
     return model.removesuffix("-build")
 
 
-def _apply_session_costs(
-    entries: list[UsageEntry], cutoff: datetime | None
-) -> list[UsageEntry]:
+def _apply_session_costs(entries: list[UsageEntry], cutoff: datetime | None) -> list[UsageEntry]:
     """Attach covered costs and restore updates outside unified's window."""
     entries_by_session: dict[str, list[UsageEntry]] = {}
     earliest_entry: dict[str, datetime] = {}
@@ -264,9 +257,7 @@ def _apply_session_costs(
                 # restore them instead as their own precise entries.
                 if earliest is None or timestamp < earliest:
                     if cutoff is None or timestamp >= cutoff:
-                        restored_entries.extend(
-                            _entries_from_update(sid, cwd, timestamp, usage)
-                        )
+                        restored_entries.extend(_entries_from_update(sid, cwd, timestamp, usage))
                     continue
                 seen_cost_by_session.add(sid)
                 ticks_by_session[sid] = ticks_by_session.get(sid, 0) + ticks

@@ -16,7 +16,7 @@ PANEL_ASSETS = Path(__file__).parents[1] / "assets" / "panels"
 
 def test_script_wraps_state_application_and_measures_without_height_constraints() -> None:
     html = inject_content_height_script(
-        "<body><main class=\"wrap\"></main><script>"
+        '<body><main class="wrap"></main><script>'
         "window.usageApplyState = function() {};</script></body>"
     )
 

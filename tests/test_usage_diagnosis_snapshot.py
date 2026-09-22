@@ -78,7 +78,4 @@ def test_refresh_snapshot_skips_when_snapshot_is_younger_than_one_day(
 
     monkeypatch.setattr(diagnoser, "_load_records", fail)
 
-    assert (
-        mod.refresh_snapshot(now=datetime(2026, 6, 11, 12, 0, tzinfo=UTC))
-        is False
-    )
+    assert mod.refresh_snapshot(now=datetime(2026, 6, 11, 12, 0, tzinfo=UTC)) is False

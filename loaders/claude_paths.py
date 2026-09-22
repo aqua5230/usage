@@ -41,9 +41,7 @@ def _configured_value() -> str:
 @lru_cache(maxsize=1)
 def _configured_dirs() -> tuple[Path, ...]:
     return tuple(
-        Path(part.strip()).expanduser()
-        for part in _configured_value().split(",")
-        if part.strip()
+        Path(part.strip()).expanduser() for part in _configured_value().split(",") if part.strip()
     )
 
 

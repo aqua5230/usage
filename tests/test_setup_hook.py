@@ -75,9 +75,7 @@ def test_setup_backs_up_existing_statusline_and_is_idempotent(
     assert setup_hook.setup() == 0
 
     data = json.loads(settings.read_text(encoding="utf-8"))
-    assert data["statusLine"]["command"] == expected_statusline_command(
-        setup_hook.FORWARDER_TARGET
-    )
+    assert data["statusLine"]["command"] == expected_statusline_command(setup_hook.FORWARDER_TARGET)
     assert data["usage"]["previousStatusLine"] == original
     assert hook_target.exists()
     assert setup_hook.FORWARDER_TARGET.exists()
@@ -88,12 +86,7 @@ def test_unsetup_restores_grok_status_line(
     setup_paths: SetupHookPaths,
 ) -> None:
     original = (
-        '[ui]\n'
-        'theme = "dark"\n'
-        '\n'
-        '[ui.status_line]\n'
-        'type = "builtin"\n'
-        'items = ["cwd", "model"]\n'
+        '[ui]\ntheme = "dark"\n\n[ui.status_line]\ntype = "builtin"\nitems = ["cwd", "model"]\n'
     )
     setup_hook.GROK_SETTINGS.parent.mkdir(parents=True)
     setup_hook.GROK_SETTINGS.write_text(original, encoding="utf-8")
@@ -170,18 +163,30 @@ def test_detect_current_state_recognizes_complete_usage_hook_filenames(
 ) -> None:
     _ = setup_paths
 
-    assert setup_hook._detect_current_state(
-        {"statusLine": {"command": f"python3 {setup_hook.HOOK_TARGET}"}}
-    ) == "us-direct"
-    assert setup_hook._detect_current_state(
-        {"statusLine": {"command": f"python3 {setup_hook.FORWARDER_TARGET}"}}
-    ) == "us-forwarder"
-    assert setup_hook._detect_current_state(
-        {"statusLine": {"command": f"python3 {setup_hook.LEGACY_TT_HOOK_TARGET}"}}
-    ) == "legacy-tt"
-    assert setup_hook._detect_current_state(
-        {"statusLine": {"command": r"python.exe C:\\Users\\test\\.claude\\usage-statusline.py"}}
-    ) == "us-direct"
+    assert (
+        setup_hook._detect_current_state(
+            {"statusLine": {"command": f"python3 {setup_hook.HOOK_TARGET}"}}
+        )
+        == "us-direct"
+    )
+    assert (
+        setup_hook._detect_current_state(
+            {"statusLine": {"command": f"python3 {setup_hook.FORWARDER_TARGET}"}}
+        )
+        == "us-forwarder"
+    )
+    assert (
+        setup_hook._detect_current_state(
+            {"statusLine": {"command": f"python3 {setup_hook.LEGACY_TT_HOOK_TARGET}"}}
+        )
+        == "legacy-tt"
+    )
+    assert (
+        setup_hook._detect_current_state(
+            {"statusLine": {"command": r"python.exe C:\\Users\\test\\.claude\\usage-statusline.py"}}
+        )
+        == "us-direct"
+    )
 
 
 def test_migration_removes_legacy_files_and_moves_backup(setup_paths: SetupHookPaths) -> None:
@@ -297,9 +302,7 @@ def test_append_self_heal_log_writes_under_settings_lock(
     assert data["usage"]["selfHealLog"][-1]["action"] == "test_action"
 
 
-@pytest.mark.skipif(
-    sys.platform == "win32", reason="exercises POSIX shell quoting via /bin/sh"
-)
+@pytest.mark.skipif(sys.platform == "win32", reason="exercises POSIX shell quoting via /bin/sh")
 def test_statusline_command_quotes_paths_with_spaces(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
@@ -443,8 +446,7 @@ def test_windows_hook_commands_use_double_quotes(monkeypatch: pytest.MonkeyPatch
     )
 
     assert setup_hook._statusline_command() == (
-        '"C:/Program Files/Python/python.exe" '
-        '"C:/Users/test user/.claude/usage-statusline.py"'
+        '"C:/Program Files/Python/python.exe" "C:/Users/test user/.claude/usage-statusline.py"'
     )
     assert setup_hook._forwarder_command() == (
         '"C:/Program Files/Python/python.exe" '
@@ -565,9 +567,7 @@ def test_setup_codex_adds_tui_before_existing_subtable(
     codex_config = tmp_path / ".codex" / "config.toml"
     codex_backup = tmp_path / ".codex" / "usage-backup.json"
     codex_config.parent.mkdir()
-    codex_config.write_text(
-        "[tui.model_availability_nux]\nseen = true\n", encoding="utf-8"
-    )
+    codex_config.write_text("[tui.model_availability_nux]\nseen = true\n", encoding="utf-8")
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
     monkeypatch.setattr(setup_hook, "CODEX_BACKUP", codex_backup)
 
@@ -628,10 +628,7 @@ def test_insert_tui_status_line_before_table_after_dotted_key() -> None:
 
 
 def test_insert_tui_status_line_before_subtable_after_other_table() -> None:
-    content = (
-        "[features]\nhooks = true\n"
-        "[tui.model_availability_nux]\nseen = true\n"
-    )
+    content = "[features]\nhooks = true\n[tui.model_availability_nux]\nseen = true\n"
 
     updated = setup_hook._insert_tui_status_line(
         content, setup_hook._status_line_toml(setup_hook.CODEX_STATUS_LINE)
@@ -782,7 +779,7 @@ def test_setup_codex_upgrades_legacy_status_line_without_changing_backup(
     codex_backup = tmp_path / ".codex" / "usage-backup.json"
     codex_config.parent.mkdir()
     codex_config.write_text(
-        f'[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n',
+        f"[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n",
         encoding="utf-8",
     )
     if backup_before is not None:
@@ -883,7 +880,7 @@ def test_unsetup_codex_restores_backup_from_legacy_status_line(
     legacy_backup = tmp_path / ".codex" / "tt-backup.json"
     codex_config.parent.mkdir()
     codex_config.write_text(
-        f'[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n',
+        f"[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n",
         encoding="utf-8",
     )
     codex_backup.write_text(json.dumps({"status_line": ["original"]}), encoding="utf-8")
@@ -907,7 +904,7 @@ def test_unsetup_codex_keeps_backup_when_restore_write_fails(
     legacy_backup = tmp_path / ".codex" / "tt-backup.json"
     codex_config.parent.mkdir()
     codex_config.write_text(
-        f'[tui]\nstatus_line = {json.dumps(setup_hook.CODEX_STATUS_LINE)}\n',
+        f"[tui]\nstatus_line = {json.dumps(setup_hook.CODEX_STATUS_LINE)}\n",
         encoding="utf-8",
     )
     codex_backup.write_text(json.dumps({"status_line": ["original"]}), encoding="utf-8")
@@ -961,7 +958,7 @@ def test_unsetup_codex_bad_utf8_backup_keeps_config_and_backup(
     legacy_backup = tmp_path / ".codex" / "tt-backup.json"
     codex_config.parent.mkdir()
     codex_config.write_text(
-        f'[tui]\nstatus_line = {json.dumps(setup_hook.CODEX_STATUS_LINE)}\n',
+        f"[tui]\nstatus_line = {json.dumps(setup_hook.CODEX_STATUS_LINE)}\n",
         encoding="utf-8",
     )
     codex_backup.write_bytes(b"\xff\xfe{")
@@ -1004,7 +1001,7 @@ def test_unsetup_codex_restores_valid_backup(
     legacy_backup = tmp_path / ".codex" / "tt-backup.json"
     codex_config.parent.mkdir()
     codex_config.write_text(
-        f'[tui]\nstatus_line = {json.dumps(setup_hook.CODEX_STATUS_LINE)}\n',
+        f"[tui]\nstatus_line = {json.dumps(setup_hook.CODEX_STATUS_LINE)}\n",
         encoding="utf-8",
     )
     codex_backup.write_text(json.dumps({"status_line": ["original"]}), encoding="utf-8")
@@ -1026,7 +1023,7 @@ def test_is_codex_setup_recognizes_legacy_status_line(
     codex_config = tmp_path / ".codex" / "config.toml"
     codex_config.parent.mkdir()
     codex_config.write_text(
-        f'[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n',
+        f"[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n",
         encoding="utf-8",
     )
     monkeypatch.setattr(setup_hook, "CODEX_CONFIG", codex_config)
@@ -1056,7 +1053,7 @@ def test_self_heal_upgrades_only_legacy_codex_status_line(
         session_hooks, "_append_self_heal_log", lambda action, detail: logs.append((action, detail))
     )
     codex_config.write_text(
-        f'[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n',
+        f"[tui]\nstatus_line = {json.dumps(setup_hook.LEGACY_CODEX_STATUS_LINES[0])}\n",
         encoding="utf-8",
     )
 
@@ -1329,9 +1326,9 @@ def test_session_resume_script_version_matches_hook_constant() -> None:
 
 def test_statusline_forwarder_version_matches_hook_constant() -> None:
     """Keep the status-line forwarder version synchronized with its hook constant."""
-    source = (
-        Path(__file__).resolve().parents[1] / "usage_statusline_forwarder.py"
-    ).read_text(encoding="utf-8")
+    source = (Path(__file__).resolve().parents[1] / "usage_statusline_forwarder.py").read_text(
+        encoding="utf-8"
+    )
     match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
     assert match, "usage_statusline_forwarder.py has no __version__ line"
     assert match.group(1) == setup_hook.FORWARDER_VERSION

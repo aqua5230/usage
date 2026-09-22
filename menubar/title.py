@@ -73,9 +73,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
         title.appendAttributedString_(_menubar_text_string(app, f" {claude_percent}"))
     if not state.hide_codex and (app.codex_5h_pct is not None or state.hide_claude):
         codex_percent = (
-            "--"
-            if app.codex_5h_pct is None
-            else f"{_format_percent(float(app.codex_5h_pct))}%"
+            "--" if app.codex_5h_pct is None else f"{_format_percent(float(app.codex_5h_pct))}%"
         )
         if not state.hide_claude:
             title.appendAttributedString_(_menubar_text_string(app, "  "))
@@ -130,11 +128,7 @@ def _compose_title(app: _TitleApp, state: PopoverState) -> str:
         )
         parts.append(claude)
     if not state.hide_codex and (app.codex_5h_pct is not None or state.hide_claude):
-        codex = (
-            "--"
-            if app.codex_5h_pct is None
-            else f"{_format_percent(float(app.codex_5h_pct))}%"
-        )
+        codex = "--" if app.codex_5h_pct is None else f"{_format_percent(float(app.codex_5h_pct))}%"
         parts.append(codex)
     if not state.hide_agy and state.agy_session.percent is not None:
         agy = f"{_format_percent(state.agy_session.percent)}%"

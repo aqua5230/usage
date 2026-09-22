@@ -10,6 +10,7 @@ Everything here is read-only and stays on disk — we only pull the plan name an
 the subscription start date out of the OAuth account files that Claude Code and
 Codex already keep. Tokens, emails and account IDs are never read or returned.
 """
+
 from __future__ import annotations
 
 import base64

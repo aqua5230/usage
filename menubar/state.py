@@ -65,6 +65,7 @@ def file_event_refresh_decision(
         trailing_delay=max(0.0, min_interval - (now - last_refresh_started_at)),
     )
 
+
 logger = logging.getLogger(__name__)
 
 CLAUDE_COLOR = (244 / 255, 145 / 255, 100 / 255)
@@ -155,6 +156,7 @@ class PopoverState:
     grok_stale: GrokStaleState | None = None
     card_order: tuple[str, ...] = ("claude", "codex", "agy", "grok")
     history_error: HistoryLoadErrorState | None = None
+
 
 @dataclass(frozen=True, slots=True)
 class HistorySourceScan:
@@ -317,9 +319,7 @@ def _source_fingerprint_from_index(
         entry = file_stats.get(source)
         return (str(source), int(entry is not None), 0.0 if entry is None else entry[0] / 1e9)
     mtimes = [
-        entry[0]
-        for path, entry in file_stats.items()
-        if path == source or source in path.parents
+        entry[0] for path, entry in file_stats.items() if path == source or source in path.parents
     ]
     return (str(source), len(mtimes), max(mtimes, default=0) / 1e9)
 
@@ -520,9 +520,7 @@ def project_rows_for_windows(
     local_today = local_now.date()
     local_tz = local_now.tzinfo
     assert local_tz is not None
-    today_start = datetime.combine(local_today, datetime_time.min, tzinfo=local_tz).astimezone(
-        UTC
-    )
+    today_start = datetime.combine(local_today, datetime_time.min, tzinfo=local_tz).astimezone(UTC)
     tomorrow_start = datetime.combine(
         local_today + timedelta(days=1), datetime_time.min, tzinfo=local_tz
     ).astimezone(UTC)
@@ -618,9 +616,7 @@ def codex_stale_state(updated_at: str, now: float, language: str) -> CodexStaleS
     return {"ageText": _t(language, "codex_stale_hours", hours=hours)}
 
 
-def history_load_error_state(
-    reason_key: str | None, language: str
-) -> HistoryLoadErrorState | None:
+def history_load_error_state(reason_key: str | None, language: str) -> HistoryLoadErrorState | None:
     if reason_key is None:
         return None
     return {"reasonText": _t(language, reason_key)}
@@ -739,9 +735,7 @@ def codex_rows(
     session_title = (
         ""
         if session_absent
-        else _codex_window_title(
-            rate_limits.five_hour_window_minutes, "session_label", language
-        )
+        else _codex_window_title(rate_limits.five_hour_window_minutes, "session_label", language)
     )
     # A slot with neither usage nor a window is absent (the free plan has no
     # weekly window) — leave its label blank rather than mislabel it "Weekly".
@@ -751,9 +745,7 @@ def codex_rows(
     weekly_title = (
         ""
         if weekly_absent
-        else _codex_window_title(
-            rate_limits.seven_day_window_minutes, "weekly_label", language
-        )
+        else _codex_window_title(rate_limits.seven_day_window_minutes, "weekly_label", language)
     )
     rows = (
         _quota_row(
@@ -877,11 +869,7 @@ def build_popover_state(
             "status_text",
             value=status_value,
         )
-        status_long = (
-            bool(outcome.message)
-            or snapshot.is_stale
-            or snapshot.data_source != "hook"
-        )
+        status_long = bool(outcome.message) or snapshot.is_stale or snapshot.data_source != "hook"
     else:
         claude_session = _missing_row(_t(language, "session_label"), CLAUDE_COLOR, language)
         claude_weekly = _missing_row(_t(language, "weekly_label"), CLAUDE_COLOR, language)
@@ -1040,9 +1028,7 @@ def _format_percent(value: float) -> str:
     return f"{value:.1f}"
 
 
-def popover_dimensions(
-    state: PopoverState, panel: UsagePanel | None = None
-) -> tuple[float, float]:
+def popover_dimensions(state: PopoverState, panel: UsagePanel | None = None) -> tuple[float, float]:
     # Imported here, not at module scope: panels pulls in PyObjC, and this
     # module stays importable without the ObjC runtime so the projections
     # above remain unit-testable.
@@ -1052,9 +1038,7 @@ def popover_dimensions(
     width, base_height = active_panel.preferred_size()
     claude_deduct = active_panel.claude_card_height if state.hide_claude else 0.0
     codex_deduct = active_panel.codex_card_height if state.hide_codex else 0.0
-    codex_missing_rows = sum(
-        not row.title for row in (state.codex_session, state.codex_weekly)
-    )
+    codex_missing_rows = sum(not row.title for row in (state.codex_session, state.codex_weekly))
     codex_row_deduct = (
         getattr(active_panel, "codex_row_height", 0.0) * codex_missing_rows
         if not state.hide_codex and active_panel.codex_card_height > 0
@@ -1066,9 +1050,7 @@ def popover_dimensions(
     grok_deduct = grok_card_height if state.hide_grok else 0.0
     install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
     status_extra = (
-        getattr(active_panel, "status_wrap_extra_height", 0.0)
-        if state.status_long
-        else 0.0
+        getattr(active_panel, "status_wrap_extra_height", 0.0) if state.status_long else 0.0
     )
     codex_credits_extra = (
         24.0

@@ -40,9 +40,7 @@ DOC_GROUPS = (
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description=(
-            "Check that English public docs and translations stay in lockstep."
-        )
+        description=("Check that English public docs and translations stay in lockstep.")
     )
     parser.add_argument(
         "--root",

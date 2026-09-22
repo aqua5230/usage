@@ -42,9 +42,7 @@ class _SyncThread:
 @pytest.fixture
 def isolated_state(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     state_path = tmp_path / "agy_window_keeper.json"
-    monkeypatch.setattr(
-        agy_window_keeper, "AGY_WINDOW_KEEPER_STATE_PATH", state_path
-    )
+    monkeypatch.setattr(agy_window_keeper, "AGY_WINDOW_KEEPER_STATE_PATH", state_path)
     monkeypatch.setattr(agy_window_keeper, "_ping_in_flight", False)
     _SyncThread.instances.clear()
     monkeypatch.setattr(threading, "Thread", _SyncThread)
@@ -110,9 +108,7 @@ def test_should_ping_allows_no_prior_ping() -> None:
 
 
 def test_should_ping_allows_after_cooldown() -> None:
-    assert _gate(
-        last_ping_at=20_000.0 - agy_window_keeper.PING_COOLDOWN_SECONDS
-    ) is True
+    assert _gate(last_ping_at=20_000.0 - agy_window_keeper.PING_COOLDOWN_SECONDS) is True
 
 
 def test_load_last_ping_missing_file(isolated_state: Path) -> None:
@@ -122,9 +118,7 @@ def test_load_last_ping_missing_file(isolated_state: Path) -> None:
 def test_save_and_load_last_ping_roundtrip(isolated_state: Path) -> None:
     agy_window_keeper._save_last_ping(12345.5)
     assert agy_window_keeper._load_last_ping() == 12345.5
-    assert json.loads(isolated_state.read_text(encoding="utf-8")) == {
-        "last_ping_at": 12345.5
-    }
+    assert json.loads(isolated_state.read_text(encoding="utf-8")) == {"last_ping_at": 12345.5}
 
 
 def test_load_last_ping_tolerates_corrupt_json(isolated_state: Path) -> None:
@@ -138,12 +132,8 @@ def test_load_last_ping_non_utf8(isolated_state: Path) -> None:
 
 
 @pytest.mark.parametrize("value", [True, "soon", None, []])
-def test_load_last_ping_rejects_invalid_values(
-    isolated_state: Path, value: object
-) -> None:
-    isolated_state.write_text(
-        json.dumps({"last_ping_at": value}), encoding="utf-8"
-    )
+def test_load_last_ping_rejects_invalid_values(isolated_state: Path, value: object) -> None:
+    isolated_state.write_text(json.dumps({"last_ping_at": value}), encoding="utf-8")
     assert agy_window_keeper._load_last_ping() is None
 
 
@@ -172,9 +162,7 @@ def _refresh_result(
 
 def _arm_ping(monkeypatch: pytest.MonkeyPatch, *, enabled: bool = True) -> list[str]:
     calls: list[str] = []
-    monkeypatch.setattr(
-        agy_window_keeper, "_agy_window_keeper_enabled", lambda: enabled
-    )
+    monkeypatch.setattr(agy_window_keeper, "_agy_window_keeper_enabled", lambda: enabled)
     monkeypatch.setattr(agy_window_keeper, "_resolve_agy_bin", lambda: "/fake/agy")
     monkeypatch.setattr(agy_window_keeper, "_run_agy_ping", calls.append)
     return calls

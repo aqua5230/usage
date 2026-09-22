@@ -21,21 +21,21 @@ def test_iter_jsonl_dicts_returns_dicts_in_file_order(tmp_path: Path) -> None:
 
 def test_iter_jsonl_dicts_skips_empty_and_whitespace_lines(tmp_path: Path) -> None:
     path = tmp_path / "records.jsonl"
-    path.write_text("\n  \n\t\n{\"kept\": true}\n\n", encoding="utf-8")
+    path.write_text('\n  \n\t\n{"kept": true}\n\n', encoding="utf-8")
 
     assert list(iter_jsonl_dicts(path)) == [{"kept": True}]
 
 
 def test_iter_jsonl_dicts_skips_invalid_json_and_continues(tmp_path: Path) -> None:
     path = tmp_path / "records.jsonl"
-    path.write_text("{\"before\": 1}\n{\"broken\": }\n{\"after\": 2}\n", encoding="utf-8")
+    path.write_text('{"before": 1}\n{"broken": }\n{"after": 2}\n', encoding="utf-8")
 
     assert list(iter_jsonl_dicts(path)) == [{"before": 1}, {"after": 2}]
 
 
 def test_iter_jsonl_dicts_filters_non_object_json_values(tmp_path: Path) -> None:
     path = tmp_path / "records.jsonl"
-    path.write_text("123\n\"text\"\n[1, 2]\n{\"kept\": true}\n", encoding="utf-8")
+    path.write_text('123\n"text"\n[1, 2]\n{"kept": true}\n', encoding="utf-8")
 
     assert list(iter_jsonl_dicts(path)) == [{"kept": True}]
 
@@ -68,7 +68,7 @@ def test_iter_jsonl_dicts_skips_oversized_line_and_continues(
     caplog: pytest.LogCaptureFixture,
 ) -> None:
     path = tmp_path / "records.jsonl"
-    path.write_bytes(b"x" * 1_025 + b"\n{\"kept\": true}\n")
+    path.write_bytes(b"x" * 1_025 + b'\n{"kept": true}\n')
     monkeypatch.setattr(jsonl_limits, "MAX_JSONL_LINE_BYTES", 1_024)
 
     assert list(iter_jsonl_dicts(path)) == [{"kept": True}]
@@ -78,6 +78,6 @@ def test_iter_jsonl_dicts_skips_oversized_line_and_continues(
 def test_iter_jsonl_dicts_skips_recursively_nested_lines(tmp_path: Path) -> None:
     path = tmp_path / "records.jsonl"
     nested = "{" * 2_000 + "0" + "}" * 2_000
-    path.write_bytes(nested.encode() + b"\n{\"kept\": true}\n")
+    path.write_bytes(nested.encode() + b'\n{"kept": true}\n')
 
     assert list(iter_jsonl_dicts(path)) == [{"kept": True}]

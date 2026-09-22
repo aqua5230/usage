@@ -209,9 +209,7 @@ def test_day_with_fewer_tokens_keeps_stored_rows(snapshot_path: Path) -> None:
     assert rows[0]["cost"] == 5.0
 
 
-def test_schema_mismatch_rebuilds_without_quarantine(
-    snapshot_path: Path, tmp_path: Path
-) -> None:
+def test_schema_mismatch_rebuilds_without_quarantine(snapshot_path: Path, tmp_path: Path) -> None:
     snapshot_path.write_text(
         json.dumps(
             {
@@ -248,9 +246,7 @@ def test_schema_mismatch_rebuilds_without_quarantine(
     assert not (tmp_path / "quarantine").exists()
 
 
-def test_unreadable_snapshot_is_quarantined(
-    snapshot_path: Path, tmp_path: Path
-) -> None:
+def test_unreadable_snapshot_is_quarantined(snapshot_path: Path, tmp_path: Path) -> None:
     snapshot_path.write_text("{not-json", encoding="utf-8")
     entry = _entry(when=datetime(2026, 9, 1, 12, 0), input_tokens=3)
 
@@ -286,19 +282,13 @@ def test_period_totals_and_match(snapshot_path: Path) -> None:
         ),
     ]
     snapshot = usage_snapshot.record_entries(entries)
-    totals = usage_snapshot.period_totals(
-        snapshot, date(2026, 9, 1), date(2026, 9, 2)
-    )
+    totals = usage_snapshot.period_totals(snapshot, date(2026, 9, 1), date(2026, 9, 2))
 
     assert totals.total_tokens == 35
     assert totals.sessions == 2
     assert totals.cost == pytest.approx(3.23456)
-    assert usage_snapshot.totals_match(
-        totals, total_tokens=35, cost=3.2346, sessions=2
-    )
-    assert not usage_snapshot.totals_match(
-        totals, total_tokens=36, cost=3.2346, sessions=2
-    )
+    assert usage_snapshot.totals_match(totals, total_tokens=35, cost=3.2346, sessions=2)
+    assert not usage_snapshot.totals_match(totals, total_tokens=36, cost=3.2346, sessions=2)
 
 
 def test_truncated_reload_does_not_shrink_session_header(snapshot_path: Path) -> None:
@@ -328,7 +318,9 @@ def _sandbox_report_write(
     monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", tmp_path / "year_cache.json")
     monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", tmp_path / "year_ledger.json")
     monkeypatch.setattr(
-        reporter, "_load_year_data_cached", lambda _agents: {
+        reporter,
+        "_load_year_data_cached",
+        lambda _agents: {
             "contribution": {
                 "weeks": [],
                 "start": "2026-01-01",
@@ -354,7 +346,7 @@ def _sandbox_report_write(
                 "codex_tokens": 0,
                 "beast": None,
             },
-        }
+        },
     )
     monkeypatch.setattr(reporter, "_load_persona_for_period", lambda _period: None)
     monkeypatch.setattr("analyzer.reporter.subscription.load_subscriptions", lambda: [])

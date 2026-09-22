@@ -147,9 +147,7 @@ def _sandbox_reporter_dependencies(
     claude_projects = tmp_path / ".claude" / "projects"
     monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [claude_projects])
     monkeypatch.setattr(persona_loader, "_claude_projects_dirs", lambda: [claude_projects])
-    monkeypatch.setattr(
-        subscription, "_claude_config_path", lambda: tmp_path / ".claude.json"
-    )
+    monkeypatch.setattr(subscription, "_claude_config_path", lambda: tmp_path / ".claude.json")
     monkeypatch.setattr(subscription, "CODEX_AUTH", tmp_path / ".codex" / "auth.json")
     monkeypatch.setattr(pricing, "CACHE_PATH", tmp_path / ".usage" / "pricing_cache.json")
     monkeypatch.setattr(pricing, "LEGACY_CACHE_PATH", tmp_path / ".claude" / "pricing_cache.json")
@@ -667,26 +665,28 @@ def test_build_report_data_agent_model_edge_cases(
     empty = reporter.build_report_data([agent], "today")
     assert empty["by_agent_model"] == []
 
-    entries.extend([
-        _entry(
-            when=fixed_now,
-            session_id="first",
-            model="unpriced-a",
-            project="alpha",
-            agent_id="custom-tool",
-            input_tokens=75,
-            cost_usd=0.0,
-        ),
-        _entry(
-            when=fixed_now,
-            session_id="second",
-            model="unpriced-b",
-            project="beta",
-            agent_id="custom-tool",
-            input_tokens=25,
-            cost_usd=0.0,
-        ),
-    ])
+    entries.extend(
+        [
+            _entry(
+                when=fixed_now,
+                session_id="first",
+                model="unpriced-a",
+                project="alpha",
+                agent_id="custom-tool",
+                input_tokens=75,
+                cost_usd=0.0,
+            ),
+            _entry(
+                when=fixed_now,
+                session_id="second",
+                model="unpriced-b",
+                project="beta",
+                agent_id="custom-tool",
+                input_tokens=25,
+                cost_usd=0.0,
+            ),
+        ]
+    )
     monkeypatch.setattr(reporter, "is_model_priced", lambda _model: False)
 
     one_agent = reporter.build_report_data([agent], "today")
@@ -781,9 +781,7 @@ def test_cube_reconciles_with_existing_report_totals_and_sessions(
     monkeypatch.setattr(
         reporter,
         "_load_agent_entries",
-        lambda agent, _hours_back=0: [
-            entry for entry in entries if entry.agent_id == agent.id
-        ],
+        lambda agent, _hours_back=0: [entry for entry in entries if entry.agent_id == agent.id],
     )
 
     data = reporter.build_report_data(agents, "last7")
@@ -813,15 +811,11 @@ def test_cube_reconciles_with_existing_report_totals_and_sessions(
         add("date", day, cube_row)
         add("agent_model", f"{agent_id}\0{model}", cube_row)
 
-    assert sum(value[0] for value in totals["agent"].values()) == data["summary"][
-        "total_tokens"
-    ]
-    assert round(sum(value[1] for value in totals["agent"].values()), 4) == data[
-        "summary"
-    ]["cost_usd"]
-    assert sum(value[2] for value in totals["agent"].values()) == data["summary"][
-        "messages"
-    ]
+    assert sum(value[0] for value in totals["agent"].values()) == data["summary"]["total_tokens"]
+    assert (
+        round(sum(value[1] for value in totals["agent"].values()), 4) == data["summary"]["cost_usd"]
+    )
+    assert sum(value[2] for value in totals["agent"].values()) == data["summary"]["messages"]
     for agent_row in data["by_agent"]:
         cube_total = totals["agent"][agent_row["id"]]
         assert cube_total[0] == agent_row["tokens"]
@@ -837,22 +831,16 @@ def test_cube_reconciles_with_existing_report_totals_and_sessions(
         assert round(cube_total[1], 4) == model_row["cost"]
     for group in data["by_agent_model"]:
         for grouped_model_row in group["models"]:
-            cube_total = totals["agent_model"][
-                f'{group["agent_id"]}\0{grouped_model_row["model"]}'
-            ]
+            cube_total = totals["agent_model"][f"{group['agent_id']}\0{grouped_model_row['model']}"]
             assert cube_total[0] == grouped_model_row["tokens"]
             assert round(cube_total[1], 4) == grouped_model_row["cost"]
     for daily_row in data["daily_trend"]:
-        cube_total = totals["date"].get(
-            daily_row["date"], [0.0, 0.0, 0.0]
-        )
+        cube_total = totals["date"].get(daily_row["date"], [0.0, 0.0, 0.0])
         assert cube_total[0] == daily_row["tokens"]
         assert round(cube_total[1], 4) == daily_row["cost"]
 
     assert len(data["sessions"]) == len(aggregate_sessions(entries))
-    indexed_sessions = sorted(
-        data["sessions"], key=lambda row: row["cost"], reverse=True
-    )[:5]
+    indexed_sessions = sorted(data["sessions"], key=lambda row: row["cost"], reverse=True)[:5]
     decoded_sessions = [
         {
             "start_time": row["start_time"],
@@ -901,12 +889,8 @@ def test_cube_boundary_values_do_not_create_empty_indexes(
     )
     result = reporter.build_report_data([agent], "today")
 
-    assert result["cube"]["agents"] == [
-        {"id": "single-tool", "name": "Single Tool"}
-    ]
-    assert result["cube"]["models"] == [
-        {"name": "unpriced-model", "cost_known": False}
-    ]
+    assert result["cube"]["agents"] == [{"id": "single-tool", "name": "Single Tool"}]
+    assert result["cube"]["models"] == [{"name": "unpriced-model", "cost_known": False}]
     assert result["cube"]["projects"] == ["unknown"]
     assert result["cube"]["rows"] == [[0, 0, 0, 0, 10, 0, 0, 0, 0.0, 1]]
     assert result["sessions"][0]["project_idx"] == 0

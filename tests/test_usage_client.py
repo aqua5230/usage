@@ -27,9 +27,7 @@ LEGACY_NAME = "usag"
 @pytest.fixture(autouse=True)
 def isolate_claude_files(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
-    monkeypatch.setattr(
-        usage_client, "_claude_json_file", lambda: str(tmp_path / ".claude.json")
-    )
+    monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(tmp_path / ".claude.json"))
 
 
 def _write_claude_json(path: Path, fetched_at: float) -> None:
@@ -737,9 +735,12 @@ def test_recent_project_activity_uses_ttl_cache(monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
 
     assert usage_client._has_recent_claude_project_activity(now) is True
-    assert usage_client._has_recent_claude_project_activity(
-        now + usage_client.RECENT_ACTIVITY_CACHE_TTL_SECONDS - 1
-    ) is True
+    assert (
+        usage_client._has_recent_claude_project_activity(
+            now + usage_client.RECENT_ACTIVITY_CACHE_TTL_SECONDS - 1
+        )
+        is True
+    )
     assert projects_dir.calls == 1
 
 
@@ -767,9 +768,12 @@ def test_recent_project_activity_rescans_after_ttl_expires(
     monkeypatch.setattr(usage_client, "_recent_activity_cache", None)
 
     assert usage_client._has_recent_claude_project_activity(now) is True
-    assert usage_client._has_recent_claude_project_activity(
-        now + usage_client.RECENT_ACTIVITY_CACHE_TTL_SECONDS
-    ) is True
+    assert (
+        usage_client._has_recent_claude_project_activity(
+            now + usage_client.RECENT_ACTIVITY_CACHE_TTL_SECONDS
+        )
+        is True
+    )
     assert projects_dir.calls == 2
 
 

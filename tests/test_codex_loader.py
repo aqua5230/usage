@@ -64,11 +64,19 @@ def test_disk_cache_flush_is_throttled_and_terminate_flushes_dirty(
     assert codex_loader._disk_cache_dirty is False
 
 
-def _write_rate_limit_session(path: Path, timestamp: str, rate_limits: dict[str, Any] | None, mtime: float) -> None:  # noqa: E501
-    _write_session(path, session_id=path.stem, timestamp=timestamp, rate_limits=rate_limits, mtime=mtime)  # noqa: E501
+def _write_rate_limit_session(
+    path: Path, timestamp: str, rate_limits: dict[str, Any] | None, mtime: float
+) -> None:  # noqa: E501
+    _write_session(
+        path, session_id=path.stem, timestamp=timestamp, rate_limits=rate_limits, mtime=mtime
+    )  # noqa: E501
+
 
 def _rate_limits() -> dict[str, Any]:
-    return {"primary": {"used_percent": 30, "resets_at": 9_999_999_999}, "secondary": {"used_percent": 60, "resets_at": 9_999_999_999}}  # noqa: E501
+    return {
+        "primary": {"used_percent": 30, "resets_at": 9_999_999_999},
+        "secondary": {"used_percent": 60, "resets_at": 9_999_999_999},
+    }  # noqa: E501
 
 
 def _write_session_with_usage_events(
@@ -823,7 +831,6 @@ def test_sqlite_rate_limit_cache_reuses_unchanged_database_and_invalidates_on_mt
     assert codex_loader._load_sqlite_rate_limits() is None
     assert connect_calls == 2
 
-
     logs_db.unlink()
     assert codex_loader._load_sqlite_rate_limits() is None
     assert connect_calls == 2
@@ -929,8 +936,7 @@ def test_sqlite_log_cache_uses_composite_watermark_and_dynamic_filters(
     later_event_ts = datetime(2026, 1, 1, 0, 3, tzinfo=UTC)
     with sqlite3.connect(logs_db) as conn:
         conn.execute(
-            "INSERT INTO logs (id, ts, ts_nanos, target, feedback_log_body) "
-            "VALUES (?, ?, ?, ?, ?)",
+            "INSERT INTO logs (id, ts, ts_nanos, target, feedback_log_body) VALUES (?, ?, ?, ?, ?)",
             (
                 3,
                 log_ts,
@@ -947,9 +953,7 @@ def test_sqlite_log_cache_uses_composite_watermark_and_dynamic_filters(
         )
         conn.execute("DELETE FROM logs WHERE id IN (1, 2)")
 
-    all_entries = codex_loader._load_sqlite_log_entries(
-        {}, None, {"new-session": new_event_ts}
-    )
+    all_entries = codex_loader._load_sqlite_log_entries({}, None, {"new-session": new_event_ts})
 
     assert [entry.session_id for entry in all_entries] == [
         "old-session",
@@ -1150,14 +1154,13 @@ def test_parse_jsonl_incremental_append_matches_full_reparse(
     ]
 
     with session_path.open("a", encoding="utf-8") as file:
-        file.write(rendered[5][len(partial):] + "\n" + rendered[6])
+        file.write(rendered[5][len(partial) :] + "\n" + rendered[6])
 
     final = codex_loader._parse_jsonl(session_path, {}, None)
 
     assert final == expected
     assert [
-        (entry.input_tokens, entry.output_tokens, entry.cache_read_tokens)
-        for entry in final
+        (entry.input_tokens, entry.output_tokens, entry.cache_read_tokens) for entry in final
     ] == [
         (8, 3, 2),
         (12, 5, 3),
@@ -1270,8 +1273,7 @@ def test_parse_jsonl_falls_back_to_full_reparse_when_prefix_changes(tmp_path: Pa
     second = codex_loader._parse_jsonl(session_path, {}, None)
 
     assert [
-        (entry.input_tokens, entry.output_tokens, entry.cache_read_tokens)
-        for entry in second
+        (entry.input_tokens, entry.output_tokens, entry.cache_read_tokens) for entry in second
     ] == [
         (18, 4, 2),
         (12, 5, 3),
@@ -1309,8 +1311,7 @@ def test_parse_jsonl_replay_cache_key_change_ignores_stale_cache(tmp_path: Path)
     )
 
     assert [
-        (entry.input_tokens, entry.output_tokens, entry.cache_read_tokens)
-        for entry in parsed
+        (entry.input_tokens, entry.output_tokens, entry.cache_read_tokens) for entry in parsed
     ] == [
         (8, 3, 2),
     ]
@@ -1338,9 +1339,7 @@ def test_file_info_cache_reuses_result_on_unmodified_file(
         uncached_calls += 1
         return original_uncached(p)
 
-    monkeypatch.setattr(
-        codex_loader, "_read_session_file_info_uncached", _counting_uncached
-    )
+    monkeypatch.setattr(codex_loader, "_read_session_file_info_uncached", _counting_uncached)
 
     first = codex_loader._read_session_file_info(path)
     assert first.session_id == "cached-session"
@@ -1954,7 +1953,9 @@ def test_load_rate_limits_clears_expired_primary_window(
     assert result.seven_day_resets_at == now.timestamp() + 120
 
 
-def test_load_rate_limits_skips_null_recent_sessions(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:  # noqa: E501
+def test_load_rate_limits_skips_null_recent_sessions(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:  # noqa: E501
     sessions_dir = tmp_path / "sessions"
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
     monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
@@ -1962,7 +1963,12 @@ def test_load_rate_limits_skips_null_recent_sessions(monkeypatch: pytest.MonkeyP
     valid_limits["primary"].update({"limit_id": "primary-window", "plan_type": "pro"})
     valid_limits["secondary"].update({"limit_name": "weekly", "rate_limit_reached_type": None})
     for index in range(6):
-        _write_rate_limit_session(sessions_dir / f"session-{index}.jsonl", "2026-05-27T16:39:00+00:00", valid_limits if index == 0 else None, 100 + index)  # noqa: E501
+        _write_rate_limit_session(
+            sessions_dir / f"session-{index}.jsonl",
+            "2026-05-27T16:39:00+00:00",
+            valid_limits if index == 0 else None,
+            100 + index,
+        )  # noqa: E501
 
     result = codex_loader.load_rate_limits()
 
@@ -1970,17 +1976,23 @@ def test_load_rate_limits_skips_null_recent_sessions(monkeypatch: pytest.MonkeyP
     assert result.five_hour_pct == 30.0
 
 
-def test_load_rate_limits_returns_none_when_all_30_are_null(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:  # noqa: E501
+def test_load_rate_limits_returns_none_when_all_30_are_null(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:  # noqa: E501
     sessions_dir = tmp_path / "sessions"
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
     monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
     for index in range(codex_loader._RECENT_JSONL_SCAN_LIMIT):
-        _write_rate_limit_session(sessions_dir / f"session-{index}.jsonl", "2026-05-27T16:45:00+00:00", None, 100 + index)  # noqa: E501
+        _write_rate_limit_session(
+            sessions_dir / f"session-{index}.jsonl", "2026-05-27T16:45:00+00:00", None, 100 + index
+        )  # noqa: E501
 
     assert codex_loader.load_rate_limits() is None
 
 
-def test_load_rate_limits_picks_most_recent_valid(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:  # noqa: E501
+def test_load_rate_limits_picks_most_recent_valid(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:  # noqa: E501
     sessions_dir = tmp_path / "sessions"
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
     monkeypatch.setattr(codex_loader, "_load_thread_models", lambda: {})
@@ -2042,9 +2054,7 @@ def test_load_rate_limits_falls_back_to_first_model_specific_session(
         "primary": {"used_percent": 44, "resets_at": 9_999_999_999},
         "secondary": None,
     }
-    _write_rate_limit_session(
-        sessions_dir / "first.jsonl", "2026-08-12T02:39:00+00:00", first, 200
-    )
+    _write_rate_limit_session(sessions_dir / "first.jsonl", "2026-08-12T02:39:00+00:00", first, 200)
     _write_rate_limit_session(
         sessions_dir / "second.jsonl", "2026-08-12T02:24:00+00:00", second, 100
     )
@@ -2606,9 +2616,7 @@ def test_disk_cache_fork_file_entries_not_written(
     codex_loader._flush_caches_to_disk()
 
     # Read back and verify fork file has null entries
-    shard_path = codex_disk_cache._shard_path(
-        cache_file, codex_disk_cache._shard_index(fork_path)
-    )
+    shard_path = codex_disk_cache._shard_path(cache_file, codex_disk_cache._shard_index(fork_path))
     with shard_path.open(encoding="utf-8") as f:
         data = json.load(f)
 

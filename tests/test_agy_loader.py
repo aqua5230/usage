@@ -93,9 +93,7 @@ def _write_database(
             (_trajectory_blob(session_timestamp),),
         )
         if steps_payloads is not None:
-            connection.execute(
-                "CREATE TABLE steps (idx INTEGER PRIMARY KEY, step_payload BLOB);"
-            )
+            connection.execute("CREATE TABLE steps (idx INTEGER PRIMARY KEY, step_payload BLOB);")
             connection.executemany(
                 "INSERT INTO steps (idx, step_payload) VALUES (?, ?)",
                 [(index, payload) for index, payload in enumerate(steps_payloads)],
@@ -301,8 +299,7 @@ def test_load_entries_resolves_project_from_steps_cwd(
 ) -> None:
     now = datetime.now(UTC)
     payload = (
-        b'{"CommandLine":"git status --porcelain",'
-        b'"Cwd":"/Users/lollapalooza/Developer/my-project"}'
+        b'{"CommandLine":"git status --porcelain","Cwd":"/Users/lollapalooza/Developer/my-project"}'
     )
     _write_database(
         sessions_dir / "project.db",
@@ -313,9 +310,9 @@ def test_load_entries_resolves_project_from_steps_cwd(
     monkeypatch.setattr(
         agy_loader,
         "resolve_project_name",
-        lambda cwd: "my-project"
-        if cwd == "/Users/lollapalooza/Developer/my-project"
-        else "unexpected",
+        lambda cwd: (
+            "my-project" if cwd == "/Users/lollapalooza/Developer/my-project" else "unexpected"
+        ),
     )
     entries = agy_loader.load_entries()
     assert len(entries) == 1

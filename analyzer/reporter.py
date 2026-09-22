@@ -412,22 +412,17 @@ def _build_comparison(
     prev_date_to = date_from - timedelta(days=1)
     prev_date_from = prev_date_to - timedelta(days=total_days - 1)
     prev_entries = [
-        entry
-        for entry in raw_entries
-        if prev_date_from <= entry_dates[id(entry)] <= prev_date_to
+        entry for entry in raw_entries if prev_date_from <= entry_dates[id(entry)] <= prev_date_to
     ]
 
     prev_tokens = sum(entry.total_tokens for entry in prev_entries)
     prev_cost = sum(calculate_cost(entry) for entry in prev_entries)
-    prev_projects = sorted(
-        {entry.project or "unknown" for entry in prev_entries}
-    )
+    prev_projects = sorted({entry.project or "unknown" for entry in prev_entries})
     model_tokens: dict[str, int] = defaultdict(int)
     for entry in prev_entries:
         model_tokens[entry.model or "unknown"] += entry.total_tokens
     prev_model_share = {
-        model: _pct(tokens, prev_tokens)
-        for model, tokens in sorted(model_tokens.items())
+        model: _pct(tokens, prev_tokens) for model, tokens in sorted(model_tokens.items())
     }
 
     return {
@@ -667,9 +662,7 @@ def _merge_year_ledger(
             days[day_key] = current_day
 
     ledger["days"] = {
-        day_key: day
-        for day_key, day in days.items()
-        if date.fromisoformat(day_key) >= trim_before
+        day_key: day for day_key, day in days.items() if date.fromisoformat(day_key) >= trim_before
     }
     _write_year_ledger(ledger)
     return ledger
@@ -710,9 +703,7 @@ def _build_year_output_from_ledger(
     max_tokens = max(daily_tokens.values(), default=0)
     busiest_day: BusiestDay | None = None
     if max_tokens > 0:
-        busiest_date = min(
-            day for day, tokens in daily_tokens.items() if tokens == max_tokens
-        )
+        busiest_date = min(day for day, tokens in daily_tokens.items() if tokens == max_tokens)
         busiest_day = {
             "date": busiest_date.isoformat(),
             "tokens": max_tokens,
@@ -784,11 +775,7 @@ def build_year_data(agents: list[AgentInfo]) -> YearReportData:
     for agent in agents:
         raw_entries.extend(_load_agent_entries(agent, hours_back))
 
-    entries = [
-        entry
-        for entry in raw_entries
-        if grid_start <= _entry_date(entry) <= today
-    ]
+    entries = [entry for entry in raw_entries if grid_start <= _entry_date(entry) <= today]
 
     current_days = _aggregate_year_days(entries)
     ledger = _merge_year_ledger(
@@ -866,21 +853,15 @@ def serialize_diagnosis(
     total_corpus_tokens: int,
 ) -> dict[str, Any]:
     waste_pct = (
-        result.total_waste_tokens / total_corpus_tokens * 100
-        if total_corpus_tokens
-        else 0.0
+        result.total_waste_tokens / total_corpus_tokens * 100 if total_corpus_tokens else 0.0
     )
     fixable_pct = (
-        result.fixable_waste_tokens / total_corpus_tokens * 100
-        if total_corpus_tokens
-        else 0.0
+        result.fixable_waste_tokens / total_corpus_tokens * 100 if total_corpus_tokens else 0.0
     )
     return {
         "has_data": result.has_data,
         "total_waste_usd": _round_cost(result.total_waste_usd),
-        "monthly_savings_estimate_usd": _round_cost(
-            result.monthly_savings_estimate_usd
-        ),
+        "monthly_savings_estimate_usd": _round_cost(result.monthly_savings_estimate_usd),
         "total_waste_tokens": int(result.total_waste_tokens),
         "fixable_waste_tokens": int(result.fixable_waste_tokens),
         "total_corpus_tokens": int(total_corpus_tokens),
@@ -947,11 +928,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         raw_entries, entry_dates, span_from, span_to
     )
 
-    entries = [
-        entry
-        for entry in raw_entries
-        if date_from <= entry_dates[id(entry)] <= date_to
-    ]
+    entries = [entry for entry in raw_entries if date_from <= entry_dates[id(entry)] <= date_to]
 
     total_tokens = sum(entry.total_tokens for entry in entries)
     total_cost = 0.0
@@ -972,7 +949,9 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
             "messages": 0,
         }
     )
-    by_project_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0, "sessions": set()})
+    by_project_totals: dict[str, dict[str, Any]] = defaultdict(
+        lambda: {"tokens": 0, "cost": 0.0, "sessions": set()}
+    )
     by_model_totals: dict[str, dict[str, Any]] = defaultdict(lambda: {"tokens": 0, "cost": 0.0})
     by_model_project: dict[str, dict[str, int]] = defaultdict(lambda: defaultdict(int))
     by_agent_model_totals: dict[str, dict[str, dict[str, Any]]] = defaultdict(
@@ -1014,17 +993,15 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         model = by_model_totals[entry.model or "unknown"]
         model["tokens"] += entry.total_tokens
         model["cost"] += cost
-        by_model_project[entry.model or "unknown"][entry.project or "unknown"] += (
-            entry.total_tokens
-        )
+        by_model_project[entry.model or "unknown"][entry.project or "unknown"] += entry.total_tokens
 
         agent_key = entry.agent_id or "unknown"
         agent_model = by_agent_model_totals[agent_key][entry.model or "unknown"]
         agent_model["tokens"] += entry.total_tokens
         agent_model["cost"] += cost
-        by_agent_model_project[agent_key][entry.model or "unknown"][
-            entry.project or "unknown"
-        ] += entry.total_tokens
+        by_agent_model_project[agent_key][entry.model or "unknown"][entry.project or "unknown"] += (
+            entry.total_tokens
+        )
 
         day = daily_totals[entry_dates[id(entry)]]
         day["tokens"] += entry.total_tokens
@@ -1098,24 +1075,24 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
                 "cost": _round_cost(model_data["cost"]),
                 "cost_known": is_model_priced(model),
                 "pct": _pct(model_data["tokens"], total_tokens),
-                "top_project": _top_project(
-                    by_agent_model_project[agent_id].get(model, {})
-                ),
+                "top_project": _top_project(by_agent_model_project[agent_id].get(model, {})),
             }
             for model, model_data in model_totals.items()
         ]
         models.sort(key=lambda item: item["tokens"], reverse=True)
         group_tokens = sum(model["tokens"] for model in models)
         group_cost = sum(model_data["cost"] for model_data in model_totals.values())
-        by_agent_model.append({
-            "agent_id": agent_id,
-            "name": agent_names.get(agent_id, AGENT_NAMES.get(agent_id, agent_id)),
-            "tokens": group_tokens,
-            "cost": _round_cost(group_cost),
-            "cost_known": any(model["cost_known"] for model in models),
-            "pct": _pct(group_tokens, total_tokens),
-            "models": models,
-        })
+        by_agent_model.append(
+            {
+                "agent_id": agent_id,
+                "name": agent_names.get(agent_id, AGENT_NAMES.get(agent_id, agent_id)),
+                "tokens": group_tokens,
+                "cost": _round_cost(group_cost),
+                "cost_known": any(model["cost_known"] for model in models),
+                "pct": _pct(group_tokens, total_tokens),
+                "models": models,
+            }
+        )
     by_agent_model.sort(key=lambda item: item["tokens"], reverse=True)
 
     cube_dimension_tokens: dict[str, dict[str, int]] = {
@@ -1160,8 +1137,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         for agent_id in cube_agent_ids
     ]
     cube_models: list[CubeModelData] = [
-        {"name": model, "cost_known": is_model_priced(model)}
-        for model in cube_model_names
+        {"name": model, "cost_known": is_model_priced(model)} for model in cube_model_names
     ]
     date_indices = {value: index for index, value in enumerate(cube_dates)}
     agent_indices = {value: index for index, value in enumerate(cube_agent_ids)}
@@ -1174,18 +1150,20 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         cube_model_name,
         cube_project_name,
     ), values in cube_totals.items():
-        cube_rows.append([
-            date_indices[cube_day.isoformat()],
-            agent_indices[cube_agent_id],
-            model_indices[cube_model_name],
-            project_indices[cube_project_name],
-            int(values["input_tokens"]),
-            int(values["output_tokens"]),
-            int(values["cache_creation_tokens"]),
-            int(values["cache_read_tokens"]),
-            _round_cost(float(values["cost"])),
-            int(values["message_count"]),
-        ])
+        cube_rows.append(
+            [
+                date_indices[cube_day.isoformat()],
+                agent_indices[cube_agent_id],
+                model_indices[cube_model_name],
+                project_indices[cube_project_name],
+                int(values["input_tokens"]),
+                int(values["output_tokens"]),
+                int(values["cache_creation_tokens"]),
+                int(values["cache_read_tokens"]),
+                _round_cost(float(values["cost"])),
+                int(values["message_count"]),
+            ]
+        )
     cube_rows.sort(key=lambda row: (row[0], row[1], row[2], row[3]))
     cube: CubeReportData = {
         "dates": cube_dates,
@@ -1199,38 +1177,48 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
     cursor = date_from
     while cursor <= date_to:
         day = daily_totals[cursor]
-        daily_trend.append({
-            "date": cursor.isoformat(),
-            "tokens": day["tokens"],
-            "cost": _round_cost(day["cost"]),
-        })
+        daily_trend.append(
+            {
+                "date": cursor.isoformat(),
+                "tokens": day["tokens"],
+                "cost": _round_cost(day["cost"]),
+            }
+        )
         cursor += timedelta(days=1)
 
     top_sessions: list[TopSessionReportRow] = []
-    sessions_by_cost = sorted(aggregate_sessions(entries), key=lambda session: session.cost_usd, reverse=True)
-    sessions_by_tokens = sorted(sessions_by_cost, key=lambda session: session.total_tokens, reverse=True)
+    sessions_by_cost = sorted(
+        aggregate_sessions(entries), key=lambda session: session.cost_usd, reverse=True
+    )
+    sessions_by_tokens = sorted(
+        sessions_by_cost, key=lambda session: session.total_tokens, reverse=True
+    )
     for session in sessions_by_tokens[:5]:
-        top_sessions.append({
-            "start_time": _session_start_text(session.start_time),
-            "project": session.project or "unknown",
-            "model": session.model or "unknown",
-            "duration_min": session.duration_minutes,
-            "tokens": session.total_tokens,
-            "cost": _round_cost(session.cost_usd),
-        })
+        top_sessions.append(
+            {
+                "start_time": _session_start_text(session.start_time),
+                "project": session.project or "unknown",
+                "model": session.model or "unknown",
+                "duration_min": session.duration_minutes,
+                "tokens": session.total_tokens,
+                "cost": _round_cost(session.cost_usd),
+            }
+        )
 
     session_rows: list[SessionRowData] = []
     for session in sessions_by_cost:
         start_time = _session_start_text(session.start_time)
-        session_rows.append({
-            "date_idx": date_indices[start_time[:10]],
-            "project_idx": project_indices[session.project or "unknown"],
-            "model_idx": model_indices[session.model or "unknown"],
-            "start_time": start_time,
-            "duration_min": session.duration_minutes,
-            "tokens": session.total_tokens,
-            "cost": _round_cost(session.cost_usd),
-        })
+        session_rows.append(
+            {
+                "date_idx": date_indices[start_time[:10]],
+                "project_idx": project_indices[session.project or "unknown"],
+                "model_idx": model_indices[session.model or "unknown"],
+                "start_time": start_time,
+                "duration_min": session.duration_minutes,
+                "tokens": session.total_tokens,
+                "cost": _round_cost(session.cost_usd),
+            }
+        )
 
     year_data = _load_year_data_cached(agents)
     usage_snapshot.record_entries(entries, entry_dates=entry_dates)

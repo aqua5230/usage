@@ -48,9 +48,7 @@ def test_classify_file_events_returns_reliable_file_paths() -> None:
         [0x00010000 | 0x00001000, 0x00010000 | 0x00000200],
     )
 
-    assert changes.paths == frozenset(
-        {Path("/tmp/one.jsonl"), Path("/tmp/two.jsonl")}
-    )
+    assert changes.paths == frozenset({Path("/tmp/one.jsonl"), Path("/tmp/two.jsonl")})
     assert changes.needs_full_scan is False
 
 

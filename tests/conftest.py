@@ -42,9 +42,7 @@ def _isolate_log_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
 
 
 @pytest.fixture(autouse=True)
-def _isolate_claude_config(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> Iterator[None]:
+def _isolate_claude_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Iterator[None]:
     """Keep dynamic Claude Code paths out of the user's real config directory."""
     from loaders import claude_paths
 

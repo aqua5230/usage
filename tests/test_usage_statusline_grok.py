@@ -179,16 +179,16 @@ def test_setup_and_unsetup_grok_restore_existing_status_line_verbatim(
 ) -> None:
     settings, target, previous = _patch_grok_paths(monkeypatch, tmp_path)
     original = (
-        '# Keep this comment exactly.\n'
-        '[ui]\n'
+        "# Keep this comment exactly.\n"
+        "[ui]\n"
         'theme = "dark"\n'
-        '\n'
-        '[ui.status_line] # previous row\n'
+        "\n"
+        "[ui.status_line] # previous row\n"
         'type = "builtin"\n'
         'items = ["cwd", "model"]\n'
-        '\n'
-        '[other]\n'
-        'keep = true\n'
+        "\n"
+        "[other]\n"
+        "keep = true\n"
     )
     settings.write_text(original, encoding="utf-8")
     monkeypatch.setattr("installer.setup_hook.sys.platform", "darwin")
@@ -263,7 +263,7 @@ def test_self_heal_installs_grok_statusline(
     tmp_path: Path,
 ) -> None:
     settings, target, _previous = _patch_grok_paths(monkeypatch, tmp_path)
-    settings.write_text("[ui]\ntheme = \"dark\"\n", encoding="utf-8")
+    settings.write_text('[ui]\ntheme = "dark"\n', encoding="utf-8")
     logs: list[tuple[str, str]] = []
     monkeypatch.setattr("installer.setup_hook.sys.platform", "darwin")
     monkeypatch.setattr(setup_hook, "AGY_SETTINGS", tmp_path / "missing-agy-settings.json")

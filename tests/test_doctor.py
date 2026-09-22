@@ -24,9 +24,7 @@ from loaders import codex_loader, history_loader
 def _patch_doctor_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     claude_dir = tmp_path / ".claude"
     codex_dir = tmp_path / ".codex"
-    monkeypatch.setattr(
-        setup_hook, "_claude_settings_path", lambda: claude_dir / "settings.json"
-    )
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: claude_dir / "settings.json")
     monkeypatch.setattr(setup_hook, "HOOK_TARGET", claude_dir / "usage-statusline.py")
     monkeypatch.setattr(
         setup_hook,
@@ -183,15 +181,13 @@ def test_doctor_reports_codex_diagnostics(
         conn.executemany(
             "INSERT INTO logs (feedback_log_body) VALUES (?)",
             [
-                ("websocket event: {\"type\":\"codex.rate_limits\"}",),
-                ("websocket event: {\"type\":\"error\",\"error\":\"usage_limit_reached\"}",),
+                ('websocket event: {"type":"codex.rate_limits"}',),
+                ('websocket event: {"type":"error","error":"usage_limit_reached"}',),
                 ("other",),
             ],
         )
     state_db.write_text("", encoding="utf-8")
-    monkeypatch.setattr(
-        setup_hook, "_claude_settings_path", lambda: claude_dir / "settings.json"
-    )
+    monkeypatch.setattr(setup_hook, "_claude_settings_path", lambda: claude_dir / "settings.json")
     monkeypatch.setattr(setup_hook, "STATUS_FILE", claude_dir / "usage-status.json")
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions_dir)
     monkeypatch.setattr(codex_loader, "LOGS_DB", logs_db)

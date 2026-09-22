@@ -184,8 +184,7 @@ def test_shared_core_exposes_optional_system_accent_as_css_variable() -> None:
     core_script = core_path.read_text(encoding="utf-8")
 
     assert (
-        'root.style.setProperty("--usage-system-accent", state.system_accent_color)'
-        in core_script
+        'root.style.setProperty("--usage-system-accent", state.system_accent_color)' in core_script
     )
     assert 'root.style.removeProperty("--usage-system-accent")' in core_script
 
@@ -195,9 +194,9 @@ def test_shared_core_cycles_through_yesterday_and_updates_footer() -> None:
     core_script = core_path.read_text(encoding="utf-8")
 
     assert 'range === "yesterday"' in core_script
-    assert 'state.projectsYesterday' in core_script
-    assert 'state.footer.yesterday' in core_script
-    assert 'window.usageRequestContentHeight()' in core_script
+    assert "state.projectsYesterday" in core_script
+    assert "state.footer.yesterday" in core_script
+    assert "window.usageRequestContentHeight()" in core_script
 
 
 @pytest.mark.parametrize("filename", CARD_PANEL_FILENAMES)
@@ -245,8 +244,9 @@ def test_classic_project_header_expands_for_action_row() -> None:
     panel_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / "classic.html"
     html = panel_path.read_text(encoding="utf-8")
     project_brand_css = html[
-        html.index('.card[data-card="projects"] .brand {') :
-        html.index('.card[data-card="projects"] .brand-icon {')
+        html.index('.card[data-card="projects"] .brand {') : html.index(
+            '.card[data-card="projects"] .brand-icon {'
+        )
     ]
 
     assert '<div class="project-actions">' in html
@@ -456,9 +456,7 @@ def test_evaluate_javascript_completion_handler_block_signature() -> None:
     from AppKit import NSMakeRect
 
     config = WKWebViewConfiguration.alloc().init()
-    view = WKWebView.alloc().initWithFrame_configuration_(
-        NSMakeRect(0, 0, 10, 10), config
-    )
+    view = WKWebView.alloc().initWithFrame_configuration_(NSMakeRect(0, 0, 10, 10), config)
     # Must not raise TypeError about the missing block signature.
     view.evaluateJavaScript_completionHandler_("1+1", lambda value, error: None)
 

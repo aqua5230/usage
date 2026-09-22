@@ -39,11 +39,17 @@ class UsageEntry:
 
     @property
     def total_tokens(self) -> int:
-        return self.input_tokens + self.output_tokens + self.cache_creation_tokens + self.cache_read_tokens
+        return (
+            self.input_tokens
+            + self.output_tokens
+            + self.cache_creation_tokens
+            + self.cache_read_tokens
+        )
 
     @property
     def dedup_key(self) -> str:
         return f"{self.message_id}:{self.request_id}"
+
 
 _FILE_CACHE_MAXSIZE = 512
 _file_cache: OrderedDict[Path, tuple[float, int, list[UsageEntry]]] = OrderedDict()
@@ -67,6 +73,7 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
     cutoff = None
     if hours_back > 0:
         from datetime import timedelta
+
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours_back)
 
     for base_dir in get_claude_dirs():
@@ -104,7 +111,7 @@ def extract_project_from_dir(jsonl_path: Path, base: Path) -> str:
     decoded = project_dir.replace("-", os.sep).strip(os.sep)
     home = os.path.expanduser("~").strip(os.sep)
     if decoded.startswith(home):
-        decoded = decoded[len(home):].strip(os.sep)
+        decoded = decoded[len(home) :].strip(os.sep)
     parts = decoded.split(os.sep)
     return parts[-1] if parts else "unknown"
 

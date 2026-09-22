@@ -116,9 +116,7 @@ def test_non_mapping_payload_is_quarantined(
     assert len(list(quarantine_dir.glob("*.bak"))) == 1
 
 
-def test_missing_cache_file_is_silent_miss(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_missing_cache_file_is_silent_miss(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     cache_path = tmp_path / "does-not-exist.json"
     quarantine_dir = tmp_path / "quarantine"
     monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", quarantine_dir)

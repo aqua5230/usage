@@ -860,11 +860,7 @@ def test_build_year_data_keeps_ledger_days_missing_from_current_entries(
     reporter.build_year_data([agent])
     data = reporter.build_year_data([agent])
 
-    cells = {
-        cell["date"]: cell
-        for week in data["contribution"]["weeks"]
-        for cell in week
-    }
+    cells = {cell["date"]: cell for week in data["contribution"]["weeks"] for cell in week}
     ledger = json.loads(ledger_path.read_text(encoding="utf-8"))
 
     assert cells["2026-06-17"]["tokens"] == 100
@@ -1116,8 +1112,7 @@ def test_contribution_level_uses_quantile_thresholds_for_edges() -> None:
     sparse_thresholds = reporter._contribution_thresholds([10, 20, 30])
     assert sparse_thresholds == [10, 20, 30, 30]
     sparse_levels = [
-        reporter._contribution_level(tokens, sparse_thresholds)
-        for tokens in [10, 20, 30]
+        reporter._contribution_level(tokens, sparse_thresholds) for tokens in [10, 20, 30]
     ]
     assert sparse_levels == [1, 2, 3]
 
@@ -1267,9 +1262,7 @@ def test_build_year_data_prefers_phoenix_on_tie(monkeypatch: Any) -> None:
     monkeypatch.setattr(
         reporter,
         "_load_agent_entries",
-        lambda agent, _hours_back=0: [
-            entry for entry in entries if entry.agent_id == agent.id
-        ],
+        lambda agent, _hours_back=0: [entry for entry in entries if entry.agent_id == agent.id],
     )
     monkeypatch.setattr(reporter, "calculate_cost", lambda _entry: 1.0)
 

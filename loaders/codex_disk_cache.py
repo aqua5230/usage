@@ -217,9 +217,7 @@ def flush_caches(
             "watermark": list(sqlite_log_cache.watermark)
             if sqlite_log_cache.watermark is not None
             else None,
-            "entries": [
-                _serialize_usage_entry(entry) for entry in sqlite_log_cache.entries
-            ],
+            "entries": [_serialize_usage_entry(entry) for entry in sqlite_log_cache.entries],
         }
         _write_if_changed(_sqlite_log_path(cache_path), _encoded_payload(sqlite_payload))
     except Exception as exc:
