@@ -259,3 +259,14 @@ def test_disable_preserves_user_hook_in_shared_entry(
     commands = [h["command"] for e in data["hooks"]["SessionStart"] for h in e["hooks"]]
     assert "echo my-own-hook" in commands  # user's hook survived
     assert not session_hooks.is_resume_enabled()  # ours is gone
+
+
+def test_hook_default_templates_match_written_sidecar(resume_paths: ResumeHookPaths) -> None:
+    import usage_session_resume
+
+    session_hooks._write_resume_sidecar()
+    sidecar = json.loads(resume_paths.sidecar.read_text(encoding="utf-8"))
+    # Non-English fallbacks carry only the core keys; diagnosis wording falls back to English.
+    for lang, template in usage_session_resume._DEFAULT_TEMPLATES.items():
+        for key, value in template.items():
+            assert value == sidecar[lang][key], (lang, key)

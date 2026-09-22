@@ -46,7 +46,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
-__version__ = "1.8"
+__version__ = "1.9"
 
 
 class _HiddenConsoleKwargs(TypedDict, total=False):
@@ -139,17 +139,17 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
             "Left uncommitted last time: {count} changed file(s) on branch {branch} ({files})"
         ),
         "diagnosis_reminder": (
-            'Health check: about {waste_pct}% waste from {cause}. Say "fix it" '
+            'Health check: about {waste_pct}% waste came from {cause}. Say "fix it" '
             "and I'll read the full diagnosis at {path}."
         ),
         "diagnosis_reminder_explain": (
-            'Health check: about {waste_pct}% waste from {cause}. Say "show me" '
+            'Health check: about {waste_pct}% waste came from {cause}. Say "show me" '
             "and I'll walk you through the full diagnosis at {path}."
         ),
         "diagnosis_default_cause": "avoidable context waste",
         "diagnosis_causes": {
             "repeated_reads": "re-reading the same files",
-            "polluter_dirs": "scanning generated folders",
+            "polluter_dirs": "scanning generated or dependency folders",
             "anomaly_session": "one oversized session",
             "noisy_bash": "oversized Bash output",
             "repeated_bash": "re-running the same Bash command",
@@ -217,7 +217,7 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         "none": "（記録なし）",
         "lead": (
             "（これは進捗の引き継ぎです。最初の返信の冒頭で、まず一行"
-            "「🐾 前回の続き、引き継ぎ済みです！そのままどうぞ！」と述べ、"
+            "「🐾 前回の続きを引き継ぎました！そのまま続けましょう！」と述べ、"
             "下記の手がかりをそのまま読み上げるのではなく、賢く気の利いた相棒のように"
             "消化してください：まずユーザーが最後に実際に取り組んでいたことを見極め"
             "（「最近の作業」は新しい順なので、先頭の項目を信頼し、古いものに引きずられない"
@@ -229,7 +229,8 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         ),
         "empty": (
             "（このセッションの最初の返信の冒頭に、一行「🐾 おかえりなさい！"
-            "このプロジェクトはまだこれからですね。」と述べてから、通常どおり応答してください。）"
+            "このプロジェクトはまだ引き継ぐ進捗がありません。」と述べてから、"
+            "通常どおり応答してください。）"
         ),
         "uncommitted": (
             "前回の終了時に未コミット：{branch} ブランチに変更済み未コミットのファイルが "
@@ -261,7 +262,8 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
             '이 프로젝트는 아직 이어갈 내용이 없어요."라고 말한 뒤 평소대로 응답하세요.)'
         ),
         "uncommitted": (
-            "지난번 종료 시 미커밋: {branch} 브랜치에 변경된 미커밋 파일 {count}개 ({files})"
+            "지난번 종료 시 미커밋 파일: {branch} 브랜치에 {count}개 파일이 "
+            "커밋되지 않은 채 남아 있었습니다 ({files})"
         ),
     },
 }
