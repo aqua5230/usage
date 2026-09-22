@@ -5,87 +5,96 @@
 # Part of "usage". Free software licensed under the GNU Affero General Public
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
-"""Generate the usage app icon (placeholder art).
+"""Generate brand PNGs from assets/brand/*.svg with AppKit (macOS only).
 
-Draws a macOS-style rounded square (Apple icon grid: 824x824 content inside a
-1024 canvas, corner radius 185) with a teal gradient and a flat white paw,
-matching the 🐾 menu-bar identity. Writes assets/usage_icon.png.
-
-Run: python3 scripts/make_app_icon.py
-Then scripts/build_icns.sh turns the PNG into assets/usage.icns.
-
-This is intentionally simple placeholder art — swap assets/usage_icon.png for
-the real icon later and re-run scripts/build_icns.sh; no code change needed.
+Run: .venv/bin/python scripts/make_app_icon.py
+Then run: bash scripts/build_icns.sh
+Then run: python3 scripts/make_ico.py
 """
 
 from __future__ import annotations
 
 from pathlib import Path
 
-from PIL import Image, ImageDraw
+from AppKit import (
+    NSBitmapImageRep,
+    NSCompositingOperationSourceOver,
+    NSGraphicsContext,
+    NSImage,
+    NSMakeRect,
+    NSPNGFileType,
+)
+from Foundation import NSData
 
-CANVAS = 1024
-MARGIN = 100  # Apple icon grid: 824x824 content centred in 1024
-RADIUS = 185
-TOP_COLOR = (43, 212, 192)  # teal
-BOTTOM_COLOR = (14, 124, 111)  # deep teal
-
-ASSETS = Path(__file__).resolve().parent.parent / "assets"
-
-
-def _vertical_gradient(
-    size: int, top: tuple[int, int, int], bottom: tuple[int, int, int]
-) -> Image.Image:
-    grad = Image.new("RGB", (1, size))
-    for y in range(size):
-        t = y / (size - 1)
-        grad.putpixel(
-            (0, y),
-            tuple(round(top[i] + (bottom[i] - top[i]) * t) for i in range(3)),
-        )
-    return grad.resize((size, size))
+ROOT = Path(__file__).resolve().parent.parent
+BRAND = ROOT / "assets" / "brand"
+PAPER = "#F1EDE4"
 
 
-def _rounded_mask(size: int, margin: int, radius: int) -> Image.Image:
-    mask = Image.new("L", (size, size), 0)
-    draw = ImageDraw.Draw(mask)
-    draw.rounded_rectangle(
-        (margin, margin, size - margin, size - margin),
-        radius=radius,
-        fill=255,
+def render(svg: str, output: Path, width: int, height: int) -> None:
+    data = svg.encode()
+    image = NSImage.alloc().initWithData_(NSData.dataWithBytes_length_(data, len(data)))
+    rep = NSBitmapImageRep.alloc().initWithBitmapDataPlanes_pixelsWide_pixelsHigh_bitsPerSample_samplesPerPixel_hasAlpha_isPlanar_colorSpaceName_bytesPerRow_bitsPerPixel_(  # noqa: E501
+        None, width, height, 8, 4, True, False, "NSDeviceRGBColorSpace", 0, 0
     )
-    return mask
-
-
-def _draw_paw(draw: ImageDraw.ImageDraw, cx: int, cy: int) -> None:
-    white = (255, 255, 255, 255)
-    # Main pad: a wide rounded shape low-centre.
-    draw.ellipse((cx - 150, cy + 20, cx + 150, cy + 230), fill=white)
-    # Four toe beans arching above the pad.
-    toes = [
-        (cx - 175, cy - 90, 90, 130),  # outer left
-        (cx - 70, cy - 150, 95, 140),  # inner left
-        (cx + 35, cy - 150, 95, 140),  # inner right
-        (cx + 140, cy - 90, 90, 130),  # outer right
-    ]
-    for tx, ty, w, h in toes:
-        draw.ellipse((tx, ty, tx + w, ty + h), fill=white)
+    NSGraphicsContext.saveGraphicsState()
+    NSGraphicsContext.setCurrentContext_(NSGraphicsContext.graphicsContextWithBitmapImageRep_(rep))
+    image.drawInRect_fromRect_operation_fraction_(
+        NSMakeRect(0, 0, width, height),
+        NSMakeRect(0, 0, 0, 0),
+        NSCompositingOperationSourceOver,
+        1.0,
+    )
+    NSGraphicsContext.restoreGraphicsState()
+    rep.representationUsingType_properties_(NSPNGFileType, {}).writeToFile_atomically_(
+        str(output), True
+    )
 
 
 def main() -> None:
-    base = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    gradient = _vertical_gradient(CANVAS, TOP_COLOR, BOTTOM_COLOR).convert("RGBA")
-    mask = _rounded_mask(CANVAS, MARGIN, RADIUS)
-    base.paste(gradient, (0, 0), mask)
-
-    paw_layer = Image.new("RGBA", (CANVAS, CANVAS), (0, 0, 0, 0))
-    _draw_paw(ImageDraw.Draw(paw_layer), CANVAS // 2, CANVAS // 2 - 20)
-    base = Image.alpha_composite(base, paw_layer)
-
-    ASSETS.mkdir(exist_ok=True)
-    out = ASSETS / "usage_icon.png"
-    base.save(out)
-    print(f"wrote {out}")
+    app_icon = (BRAND / "usage-app-icon.svg").read_text()
+    mark = (BRAND / "usage-mark.svg").read_text().split(">", 1)[1].rsplit("</svg>", 1)[0]
+    wordmark = (BRAND / "usage-wordmark.svg").read_text().split(">", 1)[1].rsplit("</svg>", 1)[0]
+    outputs = [
+        (ROOT / "assets" / "usage_icon.png", app_icon, 1024, 1024),
+        (ROOT / "assets" / "usage_icon_windows.png", app_icon, 1024, 1024),
+        (
+            ROOT / "docs" / "readme-logo.png",
+            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">'
+            f'<circle cx="256" cy="256" r="256" fill="{PAPER}"/>'
+            f'<g transform="translate(64 64) scale(6)">{mark}</g></svg>',
+            512,
+            512,
+        ),
+        (
+            ROOT / "docs" / "favicon-32.png",
+            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
+            f'<rect width="32" height="32" rx="7" fill="{PAPER}"/>'
+            f'<g transform="translate(1 1) scale(0.46875)">{mark}</g></svg>',
+            32,
+            32,
+        ),
+        (
+            ROOT / "docs" / "apple-touch-icon.png",
+            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180">'
+            f'<rect width="180" height="180" fill="{PAPER}"/>'
+            f'<g transform="translate(22 22) scale(2.125)">{mark}</g></svg>',
+            180,
+            180,
+        ),
+        (
+            ROOT / "docs" / "logo.png",
+            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1774 887">'
+            f'<rect width="1774" height="887" fill="{PAPER}"/>'
+            f'<g transform="translate(216 243.5) scale(6.25)">{mark}</g>'
+            f'<g transform="translate(672 285.1) scale(3.6)">{wordmark}</g></svg>',
+            1774,
+            887,
+        ),
+    ]
+    for output, svg, width, height in outputs:
+        render(svg, output, width, height)
+        print(f"wrote {output.relative_to(ROOT)}")
 
 
 if __name__ == "__main__":
