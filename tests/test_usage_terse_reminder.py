@@ -241,3 +241,9 @@ def test_main_falls_back_to_en_when_sidecar_lacks_lang(
     assert mod.main() == 0
     out = json.loads(capsys.readouterr().out)
     assert out["hookSpecificOutput"]["additionalContext"] == "REMINDER::EN"
+
+
+def test_default_reminder_matches_i18n() -> None:
+    i18n = json.loads((Path(__file__).parents[1] / "i18n.json").read_text(encoding="utf-8"))
+    for lang, reminder in mod._DEFAULT_REMINDER.items():
+        assert reminder == i18n[lang]["terse_reminder_instruction"], lang

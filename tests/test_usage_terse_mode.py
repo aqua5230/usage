@@ -258,3 +258,9 @@ def test_main_handles_codex_style_payload(
     out = json.loads(capsys.readouterr().out)
     assert out["hookSpecificOutput"]["hookEventName"] == "SessionStart"
     assert out["hookSpecificOutput"]["additionalContext"] == "TERSE::EN"
+
+
+def test_default_instruction_matches_i18n() -> None:
+    i18n = json.loads((Path(__file__).parents[1] / "i18n.json").read_text(encoding="utf-8"))
+    for lang, instruction in mod._DEFAULT_INSTRUCTION.items():
+        assert instruction == i18n[lang]["terse_mode_instruction"], lang
