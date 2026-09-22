@@ -16,6 +16,7 @@ This project is maintained by a single maintainer ([@aqua5230](https://github.co
 ```bash
 source .venv/bin/activate
 uv run ruff check
+uv run ruff format --check
 uv run mypy .
 uv run pytest -v
 ```

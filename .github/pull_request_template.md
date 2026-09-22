@@ -3,6 +3,7 @@
 
 ## Test plan
 - [ ] `uv run ruff check .`
+- [ ] `uv run ruff format --check .`
 - [ ] `uv run mypy .`
 - [ ] `uv run pytest tests/`
 - [ ] Manually verified in menu bar mode / TUI mode (if UI-related)
