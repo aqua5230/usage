@@ -97,8 +97,9 @@ h1, h2, h3 { text-wrap: balance; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
 :lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
 :lang(zh) :is(h1, h2, h3) { word-break: keep-all; overflow-wrap: break-word; }
-/* Inline code can't break, so justifying around it opens wide gaps; those stay start-aligned. */
-:where(:lang(zh), :lang(ja)) main p:not(:has(code)) { text-align: justify; }
+/* Inline code can't break, so justifying around it opens wide gaps; those stay start-aligned.
+   Pretty/balance wrapping shortens lines on purpose and justify would stretch them into gaps, so justified text wraps plainly. */
+:where(:lang(zh), :lang(ja)) main p:not(:has(code)) { text-align: justify; text-wrap: wrap; }
 /* CJK typography: solid setting per W3C clreq. */
 :is(:lang(zh), :lang(ja), :lang(ko)) .hero h1,
 :is(:lang(zh), :lang(ja), :lang(ko)) section h2,
@@ -347,6 +348,7 @@ p, li { text-wrap: pretty; }
   line-height: 1.65;
   text-wrap: balance;
 }
+:where(:lang(zh), :lang(ja)) .hero p.lead { text-wrap: wrap; }
 .cta { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; }
 .cta-note { margin: 12px 0 40px; min-height: 24px; font-size: 13px; color: var(--fg-dim); }
 .cta-note a { display: inline-flex; align-items: center; min-height: 24px; color: inherit; text-decoration: underline; }
