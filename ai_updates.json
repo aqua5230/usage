@@ -560,6 +560,89 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.8",
+          "period": "2026-09-22",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "上下文壓縮預算彈性分配，長提示詞與摘要清單不再提早截斷",
+                "en": "Flexible Context Compaction Budgets Prevent Early Truncation of Long Prompts and Summaries"
+              },
+              "body": {
+                "zh-TW": "當你進行長對話並觸發上下文壓縮（context compaction，對話過長時自動濃縮歷史以節省空間的機制）時，重要指令與背景任務不再被草率截斷。以往在壓縮對話時，每條提問都會被套用固定的長度上限，即使後續問答只有短短幾句，開頭落落長的初始提示詞（prompt）也會被硬生生切成一小段。現在預算改由所有擷取的提問共同彈性分攤，完整保留長指令的細節。同時，摘要與截斷預算也改以模型完整的上下文視窗（context window，模型一次能讀取的最大容量）作為計算基準，而非原本較窄的壓縮觸發門檻，避免濃縮後的摘要與背景任務清單過早被切掉。⟦這好比整理長篇會議發言記錄時，秘書將手冊的可用頁數彈性調配給各個段落，只要後續發言簡短，開場致詞就能完整謄錄，附錄的待辦清單也不會被提早切掉。⟧",
+                "en": "When engaging in long conversations that trigger context compaction, important instructions and background tasks are no longer prematurely cut short. Previously, a fixed length slice was applied to every captured prompt during compaction, truncating long initial instructions even if subsequent turns were brief. The user-request budget is now shared flexibly across all captured prompts, preserving the full details of long instructions. At the same time, summary and truncation budgets are now sized against the model's full context window rather than the narrower compaction trigger threshold, preventing compacted summaries and background-task lists from being truncated early. ⟦This is like a secretary compiling lengthy meeting minutes who flexibly allocates available page limits across sections, allowing a detailed opening speech to be recorded in full when follow-up remarks are short without cutting off the appendix's task list.⟧"
+              },
+              "original": "Improved context compaction to spread its user-request budget across all captured prompts, so a long initial instruction is no longer truncated to a small fixed slice when the other prompts in the conversation are short\nImproved context compaction to size summary and truncation budgets from the model's full context window instead of the compaction trigger threshold, so compacted summaries and background-task lists are no longer prematurely cut short"
+            },
+            {
+              "title": {
+                "zh-TW": "自訂模型預設支援 PDF，並完整遵循各類多媒體旗標設定",
+                "en": "Custom Models Support PDFs by Default and Fully Honor Media Flags"
+              },
+              "body": {
+                "zh-TW": "如果你在 `settings.json` 中設定了自訂模型，過去傳送 PDF 或音訊附件、或是工具輸出音訊與文件時，會報出不支援媒體類型（unsupported mime type）的錯誤。現在自訂模型已修復這項問題，預設直接支援 PDF 格式，並且會嚴格遵循 `modelFeatures` 中的各項媒體旗標設定（包含 images、video、PDF 與 audio）。以前遇到自訂模型傳送 PDF 或音訊附件，或是工具輸出音訊與文件時，會報出錯誤而中斷，現在各類多媒體檔案都能依設定順暢傳遞給模型處理。",
+                "en": "If you configure custom models in `settings.json`, sending PDF or audio attachments or receiving audio and document outputs from tools previously caused `unsupported mime type` errors. Custom models now fix this issue by accepting PDFs by default and strictly honoring all media flags in `modelFeatures` (including images, video, PDF, and audio). Previously, sending PDF or audio attachments or handling tool media outputs on custom models would fail with errors, but now all types of media files pass smoothly to models according to their settings."
+              },
+              "original": "Fixed PDF and audio tool outputs and attachments failing with `unsupported mime type` errors on custom models configured in `settings.json`; custom models now accept PDFs by default and honor the `modelFeatures` media flags for images, video, PDF, and audio"
+            },
+            {
+              "title": {
+                "zh-TW": "終端機編輯器呼叫修復，按 Ctrl+G 啟動 Vim 不再卡死",
+                "en": "Terminal Editor Invocation Fixed: Launching Vim via Ctrl+G No Longer Hangs"
+              },
+              "body": {
+                "zh-TW": "習慣在終端機內撰寫長篇提示詞時，按下 `Ctrl+G` 能呼叫全螢幕外部編輯器（如 `vim`）來編輯內容。以前按下快捷鍵後，編輯器會因為無法正確對接終端機輸出而卡死，並跳出警告訊息表示輸出並非指向終端機。現在外部編輯器已經改在真實的終端機標準輸出（stdout）環境下運作。以前你可能被迫中斷工作階段並重開終端機，現在隨時按下 `Ctrl+G` 都能順暢開啟編輯器撰寫提示詞，存檔退出後立即返回對話。",
+                "en": "When drafting long prompts in the terminal, pressing `Ctrl+G` opens a full-screen external editor (such as `vim`) to edit your input. Previously, pressing this shortcut caused the editor to hang with a warning that output was not to a terminal because it failed to attach properly. External editors now run against a real terminal stdout environment. Whereas you were previously forced to abort the session and restart your terminal, pressing `Ctrl+G` now reliably launches the editor to compose prompts and returns to the conversation immediately upon saving and exiting."
+              },
+              "original": "Fixed pressing `Ctrl+G` to edit the prompt in a full-screen terminal editor such as `vim` hanging with `Vim: Warning: Output is not to a terminal`; external editors now run against a real terminal stdout"
+            },
+            {
+              "title": {
+                "zh-TW": "語音聽寫加入防逾時保護，超長錄音自動在三分半完成轉錄",
+                "en": "Voice Dictation Adds Timeout Protection: Long Recordings Auto-Finalize at 3.5 Minutes"
+              },
+              "body": {
+                "zh-TW": "當你透過語音輸入講述落落長的任務需求時，聽寫內容不再因為超時而被整段抹除。過去語音聽寫工作階段（session，錄音並即時轉成文字的執行過程）若超過 4 分鐘，會因為觸發時限錯誤而直接失敗，導致好不容易講完的草稿全數遺失。現在錄音會在 3 分 30 秒自動停止並完成最終轉錄。以前你講得太忘我可能會痛失所有語音輸入內容，現在會在時限前自動收尾，確保每句講述都穩穩轉成文字送出。",
+                "en": "When speaking extensive task requirements via voice input, your dictation is no longer wiped out due to timeouts. Previously, voice dictation sessions exceeding 4 minutes failed with a deadline error, losing the entire drafted transcription. Recordings now automatically stop and finalize at 3 minutes 30 seconds. Instead of losing lengthy spoken input if you talk too long, the system wraps up before the limit, ensuring your spoken words are reliably converted into text."
+              },
+              "original": "Fixed voice dictation sessions longer than 4 minutes failing with a deadline error and erasing the drafted transcription; recordings now automatically stop and finalize at 3 minutes 30 seconds"
+            },
+            {
+              "title": {
+                "zh-TW": "一般帳號啟動橫幅精簡，不再誤顯示 Google Cloud 專案代碼",
+                "en": "Startup Banner Streamlined for Consumer Accounts: Google Cloud Project ID Removed"
+              },
+              "body": {
+                "zh-TW": "開啟命令列工具時，一般個人帳號的使用者將看到更乾淨的歡迎畫面。先前使用非企業的個人帳號登入時，終端機頂部的啟動橫幅會誤顯示 Google Cloud 專案代碼（Project ID）。現在這個顯示問題已經修好，一般消費者登入時不再出現該欄位。以前登入個人帳號時容易看到與自己無關的雲端專案字樣，現在橫幅畫面更加清爽乾淨。",
+                "en": "When launching the command-line tool, consumer account users will see a cleaner welcome screen. Previously, signing in with a non-enterprise personal account mistakenly displayed a Google Cloud Project ID in the startup banner at the top of the terminal. This display issue has now been resolved, and the field no longer appears for consumer sign-ins. Rather than seeing irrelevant cloud project details when logging in with a personal account, the startup banner remains clean and concise."
+              },
+              "original": "Fixed the startup banner displaying a Google Cloud Project ID for consumer (non-enterprise) sign-ins"
+            },
+            {
+              "title": {
+                "zh-TW": "對話載入不因進階步驟當機，分岔對話資料不再衝突互撞",
+                "en": "Conversation Loading No Longer Crashes on Advanced Steps; Forked Data Collisions Fixed"
+              },
+              "body": {
+                "zh-TW": "在處理具備多代理或非同步任務的複雜對話時，記錄載入與對話分岔運作更加穩固。過去當對話中包含背景任務、子代理管理、訊息傳遞或排程步驟時，重新載入或壓縮對話容易觸發堆疊溢位（stack-overflow，記憶體堆疊空間耗盡）而導致程式當機，這項問題已經徹底修好。另外，先前將對話分岔（fork，從既有對話的某個時間點複製出一條新分支）時，新對話會誤繼承分岔點之後的舊步驟輸出資料，進而與分岔後產生的新步驟發生衝突。現在分岔記錄已確實截斷並乾淨隔離。⟦這好比整理複雜的活動企劃案，翻閱包含跨組交辦與排程備忘的厚重紀錄時不會讓活頁夾散架，而從中途某個階段另存新企劃時，也不會誤把原案後續的舊進度抄進來與新進度打架。⟧",
+                "en": "When handling complex conversations with multi-agent or asynchronous tasks, session loading and conversation branching operate much more reliably. Previously, reloading or compacting conversations containing background-task, subagent-management, messaging, or scheduling steps could trigger a stack-overflow crash, an issue that is now completely resolved. In addition, when forking a conversation, the new branch mistakenly inherited step output data from steps past the fork point, colliding with newly generated steps. Forked conversation history is now properly truncated and cleanly isolated. ⟦This is like managing a complex event plan: flipping through thick binders with cross-team delegations and schedules no longer breaks the binder, and saving a new project branch midway avoids copying over subsequent original milestones that clash with the new plan.⟧"
+              },
+              "original": "Fixed a stack-overflow crash when loading or compacting conversations containing background-task, subagent-management, messaging, or scheduling steps\nFixed forked conversations inheriting step output data from steps after the fork point, which could collide with new steps produced in the fork"
+            },
+            {
+              "title": {
+                "zh-TW": "修復背景計時洩漏與無效佈署，命令列退出不再延遲等待",
+                "en": "Background Leak and Orphan Provisioning Fixed; CLI Exits Without Delay"
+              },
+              "body": {
+                "zh-TW": "長時間使用命令列工具與頻繁切換工作區時，背景程序資源釋放更加迅速俐落。先前每個對話工作階段（session）都會發生背景輪詢器與定時器洩漏的問題，在長時間執行下會逐漸累積佔用記憶體。現在已修復資源釋放機制。同時，如果使用者中途取消建立對話或工作區，過去背景仍會持續佈署資源，現在中止的請求會立即停止作業。此外，過去退出命令列工具時常需要額外等待約 5 秒行程才會結束，現在關閉時會立即中斷未結的串流連線，不再耗時等待強制逾時。⟦這如同大樓的智慧物業管理，一旦訪客退租或取消預約，後台便立即停止調度備料，離開大門時也能感應即過，不留任何持續耗能的閒置設備。⟧",
+                "en": "When using the command-line tool over extended periods or switching workspaces, background process resources are released much more cleanly. Previously, a background poller and timer leaked for every conversation session, gradually accumulating memory across long runs. The resource cleanup mechanism has now been corrected. Additionally, if a user canceled conversation or workspace creation, the background previously continued provisioning resources, whereas aborted requests now halt immediately. Furthermore, quitting the CLI previously required an extra wait of around 5 seconds before exiting, but shutdown now immediately cancels open streaming connections instead of waiting for a forced timeout. ⟦This is like smart building property management: once a tenant moves out or cancels a booking, background staging stops immediately, and exiting through the gate is instantaneous without leaving idle, power-draining equipment running.⟧"
+              },
+              "original": "Fixed a background poller and timer leaking for every conversation session, slowly accumulating memory over long-running sessions\nFixed canceled conversation and workspace creation requests continuing to provision resources in the background; aborted requests now stop immediately\nFixed quitting the CLI taking around 5 extra seconds before the process exited; shutdown now cancels open streaming connections immediately instead of waiting for a forced timeout"
+            }
+          ]
+        },
+        {
           "version": "1.2.7",
           "period": "2026-09-19",
           "items": [
@@ -733,67 +816,6 @@
                 "en": "When encountering massive file changes or rewinding progress, session storage and workspace states are now significantly more stable. ⟦Just like a thick ledger archiving voluminous records by logging only line counts and summaries while omitting bulky raw receipts to prevent overflowing drawers from being dumped out entirely, and referencing precise target page numbers during audits rather than blindly overwriting the present with outdated stubs.⟧ Previously, when file modification diffs exceeded 1 MiB, exceeding the conversation storage limit would force-clear the entire session. Oversized edits now preserve line-change statistics while omitting the massive raw diff content from stored history, and `/rewind` directly skips elided diffs during reverts. Additionally, when using `/rewind` for conversation reverts or forks in the past, skipping recent snapshots could cause the system to sweep backward to an outdated workspace snapshot and silently overwrite kept modifications. Snapshot lookup now sweeps forward from the target step, falling back to step-by-step revert replay when no newer snapshot exists."
               },
               "original": "Fixed file edits with diffs larger than 1 MiB exceeding the conversation storage limit and force-clearing the session; oversized edits now preserve their line-change statistics while omitting the raw diff body from stored conversation history and skipping the elided diff during `/rewind` reverts.\nFixed `/rewind` conversation reverts and forks sweeping backward to an older workspace snapshot when recent snapshot commits were skipped, which could silently overwrite kept work; snapshot lookup now sweeps forward from the target step and falls back to step-by-step revert replay when no later snapshot exists."
-            }
-          ]
-        },
-        {
-          "version": "1.2.5",
-          "period": "2026-09-17",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Markdown 自訂代理自動注入子代理指引與名冊",
-                "en": "Automatic Subagent Guidance and Roster Injection for Markdown Custom Agents"
-              },
-              "body": {
-                "zh-TW": "在 Markdown 檔案中自訂專案 AI 代理時，現在能讓代理更聰明地分工協作。⟦好比連鎖餐廳為新進店長準備的交接手冊，只要職責包含調度人力，手冊第一頁就會自動附上當班員工名冊與各崗位指派流程，讓店長一接單就能精準把工作分派給專屬外場或廚房助手。⟧當你透過 Markdown 格式定義自訂代理，並在工具清單中列入 `invoke_subagent` 工具時，這項新增機制會自動在該代理的系統提示詞（給予 AI 底層角色的指令設定）中注入目前可用的子代理名冊與詳細使用指引。自訂代理現在能確實依據名單調度所宣告的子代理，不再因為缺乏使用說明而無法分工。",
-                "en": "When customizing project AI agents in Markdown files, agents can now collaborate and divide work more intelligently. ⟦Just like an onboarding handbook prepared by a chain restaurant for a new store manager, where as long as their duties include scheduling staff, the first page automatically includes the on-duty staff roster and station assignment workflows, allowing the manager to accurately dispatch work to dedicated front-of-house staff or kitchen assistants upon receiving orders.⟧ When you define custom agents in Markdown format and include the `invoke_subagent` tool in their tool list, this new mechanism automatically injects the currently available subagent roster and detailed usage guidance into that agent's system prompt. Custom agents can now reliably delegate to their declared subagents based on the roster, rather than failing to divide work due to missing instructions."
-              },
-              "original": "Added automatic subagent guidance for custom agents defined in Markdown: agents that list `invoke_subagent` in their tools now receive the roster of available subagents and usage instructions in their system prompt, so they can actually delegate to the subagents they declared."
-            },
-            {
-              "title": {
-                "zh-TW": "背景任務保留原始命名，通知與清單不再顯示通用代號",
-                "en": "Background Tasks Retain Original Names in Notifications and Lists Instead of Displaying Generic Identifiers"
-              },
-              "body": {
-                "zh-TW": "將耗時較長的繁重指令丟到背景執行時，隨時掌握各項進度變得更加直覺。以前當你把工作指派至背景執行時，系統往往會將任務名稱替換成自動產生的通用代號，讓人難以一眼辨認哪項工作已經跑完。現在系統改進了背景任務命名機制，任務被移至背景時會完整保留當初給定的專屬名稱。不論是終端機跳出的完成通知，或是隨時查詢的背景任務清單，現在都會清楚呈現原本的任務名稱，方便你精準對照各項作業。⟦恰如乾洗衣物送交櫃台送洗時，防塵套上始終保留你親筆寫下的送洗衣物標籤，取件通知與待洗清單上都清楚列出那是哪一套衣物，不再只標註一串冰冷隨機的收件流水號。⟧",
-                "en": "Keeping track of progress is now much more intuitive when sending long-running, heavy commands to run in the background. Previously, when assigning work to run in the background, the system often replaced the task name with an auto-generated generic identifier, making it hard to tell at a glance which job had finished running. The background task naming mechanism has now been improved so that tasks fully retain their originally given custom names when moved to the background. Whether in completion notifications popping up in the terminal or in queryable background task lists, the original task name is now clearly displayed, allowing you to accurately cross-reference each operation. ⟦Just like dropping off dry cleaning at the counter, where the garment bag always keeps the handwritten laundry tag you wrote, and both the pickup notification and pending laundry list clearly specify which outfit it is, rather than only labeling an impersonal, random receipt serial number.⟧"
-              },
-              "original": "Improved background task naming so a task keeps the name it was given when sent to the background; completion notifications and task lists now show that name instead of a generic auto-derived one."
-            },
-            {
-              "title": {
-                "zh-TW": "憑證遭拒時自動登出清除，暫時性網路故障保住工作階段",
-                "en": "Automatic Sign-Out and Cleanup on Rejected Credentials While Preserving Sessions During Transient Network Failures"
-              },
-              "body": {
-                "zh-TW": "帳號權限變更或遇上網路波動時，登入狀態的管理現在更加精準可靠。⟦宛如飯店櫃台的房卡管理，當櫃台確認房客已正式退房結清時，讀卡機會主動清除房卡晶片裡的舊鑰匙以便重新配卡；但若是感應線路短暫繁忙或讀卡機反應延遲，系統絕不會隨意註銷仍在住宿期間的房客權限。⟧以前當企業帳號被撤銷或失效等情況發生，登入伺服器明確拒絕身分時，過期的登入憑證仍可能殘留在本機。現在命令列工具會自動將你登出並清除過期 token（授權令牌），讓你能乾淨重新登入。與此同時，若是遇上暫時性的網路連線失敗、伺服器錯誤或請求速率限制，系統也絕不會誤刪你的工作階段（session），確保作業不被中斷。",
-                "en": "Managing sign-in status during account permission changes or network fluctuations is now significantly more accurate and reliable. ⟦Much like room key card management at a hotel front desk, where the card reader proactively clears old keys from the card chip for re-issuance once the front desk confirms a guest has officially checked out and settled their bill, but the system never arbitrarily cancels the access of an actively staying guest if the sensor line is briefly busy or the card reader responds slowly.⟧ Previously, when situations like enterprise account revocations or invalidations occurred and the sign-in server definitively rejected the identity, stale sign-in credentials could still linger locally. The CLI tool now automatically signs you out and clears stale tokens so you can sign in again cleanly. Meanwhile, if transient network connection failures, server errors, or request rate limits occur, the system will never accidentally drop your session, ensuring operations remain uninterrupted."
-              },
-              "original": "Fixed stale credentials lingering after the sign-in server definitively rejects them (for example a revoked or invalidated enterprise account); the CLI now signs you out and clears the stale tokens so you can sign in again cleanly, while temporary network failures, server errors, and rate limits never cost you your session."
-            },
-            {
-              "title": {
-                "zh-TW": "指令遭外部中斷正確標記取消，遠端工作階段同步顯示中斷提示",
-                "en": "Commands Terminated by External Signals Correctly Marked as Canceled with Remote Sessions Syncing Interruption Hints"
-              },
-              "body": {
-                "zh-TW": "在終端機執行指令或多端連線操作時，取消與中斷狀態的紀錄現在更加準確。以前當執行中的指令受到外部信號終止（例如整個工作階段在指令運作中途關閉），系統會錯誤將其記錄為結束代碼 0 的成功執行。現在這類指令會正確標記為已取消，並完整保留中斷前所收集到的輸出紀錄。此外，過去只有在本機終端機按下 Esc 鍵時才會跳出 `Interrupted` 中斷提示，現在只要當前回合確實被取消，包括從已連線的遠端工作階段停止操作，畫面上都會如實顯示中斷提示。⟦這好比高鐵列車在行駛途中若因外部緊急訊號中途停靠，行車電腦會將該趟行程準確標註為中途取消並保留先前的行駛紀錄，駕駛座與遠端調度螢幕也都會同步亮起醒目的中斷提示燈號。⟧",
-                "en": "Recording cancellation and interruption states is now more accurate when running commands in the terminal or operating across connected sessions. Previously, when a running command was terminated by an external signal (such as when the entire session shut down mid-run), the system erroneously recorded it as a successful execution with exit code 0. Such commands are now properly marked as canceled while fully preserving the output logs collected before the interruption. In addition, whereas the `Interrupted` hint previously only appeared when pressing the Esc key locally in the terminal, it now faithfully displays on screen whenever the current turn is actually canceled, including when stopped from a connected remote session. ⟦This is like a high-speed train stopping mid-route due to an external emergency signal: the on-board computer accurately marks that trip as canceled mid-way and preserves prior driving logs, while prominent interruption warning lights illuminate synchronously across both the driver's console and the remote dispatch screen.⟧"
-              },
-              "original": "Fixed commands killed by an outside signal (for example when the whole session shuts down mid-run) being recorded as successful runs with exit code 0; such commands now finish as canceled while keeping the output collected before the interruption.\nFixed the `Interrupted` hint only appearing when Esc was pressed locally in the terminal; it now appears whenever the current turn is actually cancelled, including when it is stopped from a connected remote session."
-            },
-            {
-              "title": {
-                "zh-TW": "終端機視窗縮放自動重新折行，對話思考進度框不再卡死凍結",
-                "en": "Terminal Resizing Automatically Re-wraps Text and Resolves Frozen In-Progress Thinking Frames"
-              },
-              "body": {
-                "zh-TW": "隨意縮放終端機視窗或重載對話時，畫面排版與狀態呈現變得更加順暢。以前在調整終端機視窗大小後，成品檢視器（展示生成檔案與程式碼的預覽介面）中的 Markdown 文字會卡在原始寬度無法自動換行。此外，對話歷史中進行中的思考進度框有時也會永久凍結，例如畫面永遠停留在 `Thinking... (31s)` 的狀態，即使縮放視窗或重新載入工作階段也無法恢復。現在這兩項介面顯示問題都已修好，文字內容會自動配合新的視窗尺寸重新折行排版，思考框也能如常更新進度。⟦彷彿電子書閱讀器在切換螢幕寬度時，文章內頁會即時配合新版面重新排版折行，正在載入的進度轉圈圖示也不會因為畫面縮放而卡死在螢幕上。⟧",
-                "en": "Layout and status presentation are now much smoother when freely resizing the terminal window or reloading conversations. Previously, after resizing the terminal window, Markdown text in the artifact viewer remained stuck at its original width without re-wrapping automatically. Furthermore, in-progress thinking frames in conversation history would sometimes freeze permanently—such as staying stuck forever at `Thinking... (31s)`—without recovering even after resizing the window or reloading the session. Both interface display issues are now resolved: text content automatically re-wraps to fit the new window dimensions, and thinking frames update progress normally. ⟦Just as when switching screen widths on an e-reader, where article pages instantly reflow and re-wrap to match the new layout, and loading progress spinners do not freeze on screen due to screen resizing.⟧"
-              },
-              "original": "Fixed the artifact viewer leaving markdown text stuck at its original width after a terminal resize; content now re-wraps to the new window size.\nFixed in-progress thinking frames occasionally freezing permanently in the conversation history (for example showing `Thinking... (31s)` forever), including after a terminal resize or session reload."
             }
           ]
         }
