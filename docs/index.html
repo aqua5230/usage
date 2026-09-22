@@ -99,6 +99,10 @@ h1, h2, h3 { text-wrap: balance; }
 /* Inline code can't break, so justifying around it opens wide gaps; those stay start-aligned.
    Pretty/balance wrapping shortens lines on purpose and justify would stretch them into gaps, so justified text wraps plainly. */
 :where(:lang(zh), :lang(ja)) main p:not(:has(code)) { text-align: justify; text-wrap: wrap; }
+/* Narrow screens avoid CJK justify gaps around Latin words. */
+@media (max-width: 640px) {
+  :where(:lang(zh), :lang(ja)) main p:not(:has(code)) { text-align: start; }
+}
 /* CJK typography: solid setting per W3C clreq. */
 :is(:lang(zh), :lang(ja), :lang(ko)) .hero h1,
 :is(:lang(zh), :lang(ja), :lang(ko)) section h2,
@@ -610,6 +614,9 @@ section .subtitle {
   background: #08090d;
   border-radius: 8px;
 }
+@media (min-width: 360px) and (max-width: 640px) {
+  .install-card pre { font-size: 11px; }
+}
 pre {
   background: #08090d;
   border: 1px solid var(--border);
@@ -1073,6 +1080,7 @@ const T = {
     lead: 'A tiny menu bar app for macOS (and system tray app for Windows) that shows how much of your AI quota is left, like a battery percentage for tokens. No LLM API calls, so watching your quota never costs you tokens.',
     hero_img_alt: 'usage running in the macOS menu bar, with the quota popover open on a MacBook',
     cta_download: '↓ Download .app',
+    cta_download_win: '↓ Download for Windows',
     cta_star: '★ Star on GitHub',
     hero_note: 'First launch blocked by macOS?',
     strip_1: '<strong>No LLM API calls</strong> — watching quota never costs tokens',
@@ -1158,6 +1166,7 @@ const T = {
     lead: '一個迷你的 macOS menu bar 小工具（Windows 則常駐在系統匣），在螢幕角落顯示你的 AI 配額還剩多少——像電池百分比一樣直觀好懂。不呼叫任何 LLM API，看配額永遠不會消耗你的 token。',
     hero_img_alt: 'usage 在 macOS 選單列上執行，MacBook 上開著額度面板',
     cta_download: '↓ 下載 .app',
+    cta_download_win: '↓ 下載 Windows 版',
     cta_star: '★ 給個星星',
     hero_note: '第一次打開被 macOS 擋住？',
     strip_1: '<strong>不呼叫 LLM API</strong>——看配額永遠不花 token',
@@ -1243,6 +1252,7 @@ const T = {
     lead: '一个迷你的 macOS menu bar 小工具（Windows 则常驻在系统托盘），在屏幕角落显示你的 AI 额度还剩多少——像电池百分比一样直观好懂。不调用任何 LLM API，看额度永远不会消耗你的 token。',
     hero_img_alt: 'usage 在 macOS 菜单栏上运行，MacBook 上开着额度面板',
     cta_download: '↓ 下载 .app',
+    cta_download_win: '↓ 下载 Windows 版',
     cta_star: '★ 给个星星',
     hero_note: '首次打开被 macOS 拦截？',
     strip_1: '<strong>不调用 LLM API</strong>——看额度永远不花 token',
@@ -1328,6 +1338,7 @@ const T = {
     lead: 'AI クォータの残量をひと目で表示する、小さな macOS メニューバーアプリ（Windows ではシステムトレイに常駐）。バッテリー残量のように分かります。LLM API を呼び出さないため、クォータを確認してもトークンを消費しません。',
     hero_img_alt: 'macOS のメニューバーで動作する usage と、MacBook 上で開いたクォータパネル',
     cta_download: '↓ .app をダウンロード',
+    cta_download_win: '↓ Windows 版をダウンロード',
     cta_star: '★ GitHub でスター',
     hero_note: '初回起動がブロックされた？',
     strip_1: '<strong>LLM API 呼び出しなし</strong> — クォータの確認でトークンは消費されません',
@@ -1413,6 +1424,7 @@ const T = {
     lead: 'AI 한도가 얼마나 남았는지 보여주는 작은 macOS 메뉴 바 앱(Windows에서는 시스템 트레이에 상주). 배터리 퍼센트처럼 한눈에 확인. LLM API를 호출하지 않아 한도를 확인해도 토큰이 소비되지 않아요.',
     hero_img_alt: 'macOS 메뉴 막대에서 실행 중인 usage와 MacBook에 열린 할당량 패널',
     cta_download: '↓ .app 다운로드',
+    cta_download_win: '↓ Windows 버전 다운로드',
     cta_star: '★ GitHub에서 스타',
     hero_note: '첫 실행이 차단되었나요?',
     strip_1: '<strong>LLM API 호출 없음</strong> — 한도를 확인해도 토큰이 소비되지 않음',
@@ -1490,6 +1502,9 @@ const SUPPORTED = Object.keys(T);
 // 共用資源要往上一層找（data-root="../"）。英文首頁兩個都沒有。
 const PAGE_LANG = document.documentElement.dataset.pageLang;
 const ROOT = document.documentElement.dataset.root || '';
+if (navigator.userAgent.includes('Windows')) {
+  document.querySelector('.btn.btn-primary[data-i18n="cta_download"]')?.setAttribute('data-i18n', 'cta_download_win');
+}
 
 function legacyHashLang() {
   try {
