@@ -194,8 +194,6 @@ p, li { text-wrap: pretty; }
     background: rgba(255, 255, 255, 0.03);
   }
   .mobile-nav summary::-webkit-details-marker { display: none; }
-  .mobile-nav summary::after { content: "▾"; margin-left: 6px; font-size: 10px; }
-  .mobile-nav[open] summary::after { transform: rotate(180deg); }
   .mobile-nav nav {
     position: absolute;
     right: 0;
@@ -240,7 +238,6 @@ p, li { text-wrap: pretty; }
 .lang-btn:hover { border-color: var(--fg-dimmer); background: var(--bg-soft); }
 .lang-btn:active { background: var(--bg-soft); }
 .lang-btn[aria-expanded="true"] { border-color: var(--accent); }
-.lang-caret { font-size: 10px; color: var(--fg-dim); }
 .lang-menu {
   position: absolute;
   right: 0;
@@ -801,7 +798,6 @@ footer .kofi:hover { background: var(--accent-hover); }
     <div class="lang">
       <button id="lang-btn" class="lang-btn" type="button" aria-haspopup="listbox" aria-controls="lang-menu" aria-expanded="false">
         <span id="lang-current">EN</span>
-        <span class="lang-caret" aria-hidden="true">▾</span>
       </button>
       <ul id="lang-menu" class="lang-menu" role="listbox" aria-label="语言" data-i18n-attr="aria-label:lang_menu" hidden>
         <li><button data-lang="en" role="option" aria-selected="false">English</button></li>
