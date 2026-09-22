@@ -95,6 +95,40 @@ button { font-family: inherit; cursor: pointer; }
 h1, h2, h3 { text-wrap: balance; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
 :lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
+/* CJK typography: solid setting per W3C clreq. */
+:is(:lang(zh), :lang(ja), :lang(ko)) .hero h1,
+:is(:lang(zh), :lang(ja), :lang(ko)) section h2,
+:is(:lang(zh), :lang(ja), :lang(ko)) .chess-txt h3 {
+  letter-spacing: 0;
+  line-height: 1.3;
+}
+:is(:lang(zh), :lang(ja), :lang(ko)) .card h3 {
+  letter-spacing: 0;
+}
+:is(:lang(zh), :lang(ja), :lang(ko)) .install-note {
+  font-size: 15px;
+  line-height: 1.6;
+}
+:is(:lang(zh), :lang(ja), :lang(ko)) .install-card p {
+  line-height: 1.6;
+}
+:is(:lang(zh), :lang(ja), :lang(ko)) .cta-note {
+  font-size: 14px;
+}
+:is(:lang(zh), :lang(ja), :lang(ko)) .eyebrow {
+  font-family: inherit;
+  font-size: 12px;
+  text-transform: none;
+  letter-spacing: 0;
+}
+:is(:lang(zh), :lang(ja), :lang(ko)) .install-card .label {
+  font-family: inherit;
+  font-size: 12px;
+  letter-spacing: 0;
+}
+:is(:lang(zh), :lang(ja), :lang(ko)) .copy-btn {
+  font-size: 12px;
+}
 p, li { text-wrap: pretty; }
 :not(pre) > code { font-family: var(--mono); font-size: 0.9em; background: rgba(255, 255, 255, 0.06); padding: 1px 5px; border-radius: 4px; white-space: nowrap; }
 ::selection { background: rgba(255, 140, 66, 0.3); color: #fff; }
