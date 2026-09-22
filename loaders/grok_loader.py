@@ -56,14 +56,14 @@ _UPDATE_METHODS = frozenset({"session/update", "_x.ai/session/update"})
 
 def load_entries(hours_back: int = 0) -> list[UsageEntry]:
     """Return per-request Grok CLI usage, oldest timestamp first."""
-    if not GROK_LOG_PATH.is_file():
-        return []
-
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
-    try:
-        events = list(_parse_events())
-    except OSError:
-        return []
+    if GROK_LOG_PATH.is_file():
+        try:
+            events = list(_parse_events())
+        except OSError:
+            return []
+    else:
+        events = []
 
     events.sort(key=lambda event: (event[0], event[1]))
     last_model: dict[str, tuple[datetime, str]] = {}

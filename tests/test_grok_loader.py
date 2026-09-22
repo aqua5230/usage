@@ -579,6 +579,40 @@ def test_load_entries_restores_session_missing_from_unified_log(
     assert entry.project == "usage-grok-project"
 
 
+def test_load_entries_restores_session_when_log_is_missing(
+    grok_paths: tuple[Path, Path],
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    sid = "updates-only-session"
+    _write_updates(
+        _updates_path_for_cwd(log_path, sid, "%2Ftmp%2Fusage-grok-project"),
+        [
+            _update(
+                1_777_777_777,
+                250_000_000_000,
+                model_usage={
+                    "grok-4.6-build": {
+                        "inputTokens": 100,
+                        "outputTokens": 20,
+                        "cachedReadTokens": 30,
+                        "cacheCreationTokens": 4,
+                        "costUsdTicks": 250_000_000_000,
+                    }
+                },
+            )
+        ],
+    )
+
+    entries = grok_loader.load_entries()
+
+    assert len(entries) == 1
+    entry = entries[0]
+    assert entry.model == "grok-4.6"
+    assert entry.cost_usd == pytest.approx(25.0)
+    assert entry.project == "usage-grok-project"
+
+
 def test_load_entries_restores_early_updates_without_double_counting(
     grok_paths: tuple[Path, Path],
 ) -> None:
