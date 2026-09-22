@@ -95,6 +95,9 @@ button { font-family: inherit; cursor: pointer; }
 h1, h2, h3 { text-wrap: balance; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
 :lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
+:lang(zh) :is(h1, h2, h3) { word-break: keep-all; overflow-wrap: break-word; }
+/* Inline code can't break, so justifying around it opens wide gaps; those stay start-aligned. */
+:where(:lang(zh), :lang(ja)) main p:not(:has(code)) { text-align: justify; }
 /* CJK typography: solid setting per W3C clreq. */
 :is(:lang(zh), :lang(ja), :lang(ko)) .hero h1,
 :is(:lang(zh), :lang(ja), :lang(ko)) section h2,
@@ -1489,7 +1492,8 @@ function applyLang(lang) {
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if (t[key] !== undefined) el.innerHTML = t[key];
+    // U+2060 keeps a dash off the start of a line (W3C clreq prohibition rules).
+    if (t[key] !== undefined) el.innerHTML = t[key].replaceAll('——', '⁠——');
   });
   document.querySelectorAll('[data-i18n-attr]').forEach(el => {
     const spec = el.getAttribute('data-i18n-attr');

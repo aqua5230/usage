@@ -96,7 +96,8 @@ def render(source: str, lang: str, t: dict[str, str]) -> str:
         tag, before, key, after, inner = match.groups()
         if f"<{tag}" in inner:
             raise ValueError(f'nested <{tag}> inside data-i18n="{key}"')
-        return f'<{tag}{before} data-i18n="{key}"{after}>{t.get(key, inner)}</{tag}>'
+        text = t.get(key, inner).replace("——", "⁠——")  # mirrors applyLang() in docs/index.html
+        return f'<{tag}{before} data-i18n="{key}"{after}>{text}</{tag}>'
 
     def attribute(match: re.Match[str]) -> str:
         name, key = match[1], match[2]

@@ -95,6 +95,9 @@ button { font-family: inherit; cursor: pointer; }
 h1, h2, h3 { text-wrap: balance; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
 :lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
+:lang(zh) :is(h1, h2, h3) { word-break: keep-all; overflow-wrap: break-word; }
+/* Inline code can't break, so justifying around it opens wide gaps; those stay start-aligned. */
+:where(:lang(zh), :lang(ja)) main p:not(:has(code)) { text-align: justify; }
 /* CJK typography: solid setting per W3C clreq. */
 :is(:lang(zh), :lang(ja), :lang(ko)) .hero h1,
 :is(:lang(zh), :lang(ja), :lang(ko)) section h2,
@@ -815,7 +818,7 @@ footer .kofi:hover { background: var(--accent-hover); }
   <div class="wrap">
     <span class="eyebrow" data-i18n="eyebrow">macOS 与 Windows · 开源 · AGPL-3.0</span>
     <h1 data-i18n="h1">把 <span class="accent">Claude Code</span>、<span class="accent">Codex</span>、<span class="accent">Antigravity</span> 和 <span class="accent">Grok</span> <br>的用量钉在 menu bar。</h1>
-    <p class="lead" data-i18n="lead">一个迷你的 macOS menu bar 小工具（Windows 则常驻在系统托盘），在屏幕角落显示你的 AI 额度还剩多少——像电池百分比一样直观好懂。不调用任何 LLM API，看额度永远不会消耗你的 token。</p>
+    <p class="lead" data-i18n="lead">一个迷你的 macOS menu bar 小工具（Windows 则常驻在系统托盘），在屏幕角落显示你的 AI 额度还剩多少⁠——像电池百分比一样直观好懂。不调用任何 LLM API，看额度永远不会消耗你的 token。</p>
     <div class="cta">
       <a class="btn btn-primary" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="cta_download">↓ 下载 .app</a>
       <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener"><span data-i18n="cta_star">★ 给个星星</span><span class="star-count" id="star-count" hidden></span></a>
@@ -829,8 +832,8 @@ footer .kofi:hover { background: var(--accent-hover); }
 
 <div class="strip">
   <div class="wrap">
-    <div class="item"><span class="dot"></span><span data-i18n="strip_1"><strong>不调用 LLM API</strong>——看额度永远不花 token</span></div>
-    <div class="item"><span class="dot"></span><span data-i18n="strip_2"><strong>本地优先</strong>——Claude Code 与 Codex 直接读你磁盘上的文件</span></div>
+    <div class="item"><span class="dot"></span><span data-i18n="strip_1"><strong>不调用 LLM API</strong>⁠——看额度永远不花 token</span></div>
+    <div class="item"><span class="dot"></span><span data-i18n="strip_2"><strong>本地优先</strong>⁠——Claude Code 与 Codex 直接读你磁盘上的文件</span></div>
     <div class="item"><span class="dot"></span><span data-i18n="strip_3"><strong>无遥测</strong>、无账号、不上传</span></div>
   </div>
 </div>
@@ -871,7 +874,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         <div class="chess-txt">
           <span class="chess-num">02</span>
           <h3 data-i18n="card4_h">一键 HTML 报告</h3>
-          <p data-i18n="card4_p">今日、本周、本月或全部——生成可分享的 HTML 报告，内含 token / 花费趋势、项目排行与模型分布。默认隐藏项目名称，安全分享给客户。</p>
+          <p data-i18n="card4_p">今日、本周、本月或全部⁠——生成可分享的 HTML 报告，内含 token / 花费趋势、项目排行与模型分布。默认隐藏项目名称，安全分享给客户。</p>
         </div>
         <div class="chess-media m-report"><img width="995" height="1219" loading="lazy" decoding="async" data-shot data-size-en="976x1219" data-size-cjk="995x1219" src="../report.png" data-img-en="../report.en.png" data-img-cjk="../report.png" data-i18n-attr="alt:report_alt" alt="HTML 用量报告" /></div>
       </div>
@@ -879,7 +882,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         <div class="chess-txt">
           <span class="chess-num">03</span>
           <h3 data-i18n="card5_h">14 款视觉面板主题</h3>
-          <p data-i18n="card5_p">黑客帝国数字雨、Windows 95、复古报纸、午夜水族馆、世界杯 FIFA 转播、蝴蝶蓝图——挑个喜欢的氛围。</p>
+          <p data-i18n="card5_p">黑客帝国数字雨、Windows 95、复古报纸、午夜水族馆、世界杯 FIFA 转播、蝴蝶蓝图⁠——挑个喜欢的氛围。</p>
         </div>
         <div class="chess-media m-fan"><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="../matrix.webp" data-img-en="../matrix.en.webp" data-img-cjk="../matrix.webp" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="../newspaper.webp" data-img-en="../newspaper.en.webp" data-img-cjk="../newspaper.webp" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="../aquarium.webp" data-img-en="../aquarium.en.webp" data-img-cjk="../aquarium.webp" alt="" /></div>
       </div>
@@ -888,7 +891,7 @@ footer .kofi:hover { background: var(--accent-hover); }
       <div class="card">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/><path d="M6 16h.01"/><path d="M10 16h.01"/></svg></span>
         <h3 data-i18n="card3_h">天生本地优先</h3>
-        <p data-i18n="card3_p">Claude Code 与 Codex 的数字来自你磁盘上现有的文件——状态栏 hook 写入的状态文件，加上 Codex session JSONL log——完全不需要联网。Antigravity 额度则是用它自己的 CLI 保存的凭据向 Google 获取。所有对外连接都列在 SECURITY.md。</p>
+        <p data-i18n="card3_p">Claude Code 与 Codex 的数字来自你磁盘上现有的文件⁠——状态栏 hook 写入的状态文件，加上 Codex session JSONL log⁠——完全不需要联网。Antigravity 额度则是用它自己的 CLI 保存的凭据向 Google 获取。所有对外连接都列在 SECURITY.md。</p>
       </div>
       <div class="card">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg></span>
@@ -898,7 +901,7 @@ footer .kofi:hover { background: var(--accent-hover); }
       <div class="card">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h6"/></svg></span>
         <h3 data-i18n="card8_h">精简模式</h3>
-        <p data-i18n="card8_p">菜单栏开关，让 Claude Code——连同装好的 Codex CLI——整个对话回答更简短、更白话：内容不变、字变少，但代码、命令、错误消息一个字都不会被缩减。轻声提醒维持精简，长对话也不会慢慢讲回啰嗦。</p>
+        <p data-i18n="card8_p">菜单栏开关，让 Claude Code⁠——连同装好的 Codex CLI⁠——整个对话回答更简短、更白话：内容不变、字变少，但代码、命令、错误消息一个字都不会被缩减。轻声提醒维持精简，长对话也不会慢慢讲回啰嗦。</p>
       </div>
       <div class="card">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
@@ -916,7 +919,7 @@ footer .kofi:hover { background: var(--accent-hover); }
       <span class="eyebrow" data-i18n="resume_label">进度管家</span>
     </div>
     <h2 data-i18n="resume_h2">让你的 CLI 也接得回上次</h2>
-    <p class="subtitle" data-i18n="resume_lead">网页版、桌面 App 关掉再打开，对话自动就在那，什么都不用做；CLI 的记录其实也留着，但不会自动接上，得自己打指令去找。进度管家把这一步变成自动——开新对话就直接接回你上次做到哪，不用重讲、也不用记指令。现在还会每天帮本机记录做一次健检，发现 token 浪费时开场白会多一行提醒；说「看」，AI 就会解释发现了什么、该怎么改。只读本机记录，不连到服务端。</p>
+    <p class="subtitle" data-i18n="resume_lead">网页版、桌面 App 关掉再打开，对话自动就在那，什么都不用做；CLI 的记录其实也留着，但不会自动接上，得自己打指令去找。进度管家把这一步变成自动⁠——开新对话就直接接回你上次做到哪，不用重讲、也不用记指令。现在还会每天帮本机记录做一次健检，发现 token 浪费时开场白会多一行提醒；说「看」，AI 就会解释发现了什么、该怎么改。只读本机记录，不连到服务端。</p>
     </div>
     <div class="shot">
       <img width="1983" height="793" src="../resume-ink.webp" srcset="../resume-ink-800.webp 800w, ../resume-ink-1200.webp 1200w, ../resume-ink.webp 1983w" sizes="(max-width: 1023px) 100vw, 520px" loading="lazy" data-i18n-attr="alt:resume_img_alt" alt="usage 品牌横幅：水墨猫与红色圆相，标语「Pick up where you left off.」" />
@@ -963,13 +966,13 @@ footer .kofi:hover { background: var(--accent-hover); }
       <div class="install-card">
         <div class="label" data-i18n="install_label_dir">直接</div>
         <h3 data-i18n="install_h_app">下载 .app</h3>
-        <p data-i18n="install_p_app">从 GitHub Releases 拉最新的 <code>usage.app.zip</code>——解压、拖到 <code>/Applications</code>。</p>
+        <p data-i18n="install_p_app">从 GitHub Releases 拉最新的 <code>usage.app.zip</code>⁠——解压、拖到 <code>/Applications</code>。</p>
         <a class="btn btn-secondary" style="width: 100%; justify-content: center;" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="install_btn_releases">→ 打开 Releases 页面</a>
       </div>
       <div class="install-card">
         <div class="label" data-i18n="install_label_win">WINDOWS</div>
         <h3 data-i18n="install_h_win">系统托盘</h3>
-        <p data-i18n="install_p_win">从 GitHub Releases 拉最新的 <code>usage-windows.zip</code>——解压后运行 <code>usage.exe</code>。</p>
+        <p data-i18n="install_p_win">从 GitHub Releases 拉最新的 <code>usage-windows.zip</code>⁠——解压后运行 <code>usage.exe</code>。</p>
         <a class="btn btn-secondary" style="width: 100%; justify-content: center;" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="install_btn_releases">→ 打开 Releases 页面</a>
       </div>
       <div class="install-card">
@@ -1489,7 +1492,8 @@ function applyLang(lang) {
 
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
-    if (t[key] !== undefined) el.innerHTML = t[key];
+    // U+2060 keeps a dash off the start of a line (W3C clreq prohibition rules).
+    if (t[key] !== undefined) el.innerHTML = t[key].replaceAll('——', '⁠——');
   });
   document.querySelectorAll('[data-i18n-attr]').forEach(el => {
     const spec = el.getAttribute('data-i18n-attr');
