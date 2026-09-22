@@ -102,6 +102,7 @@ MODEL_SHORT = {
     "claude-opus-4-7": "Opus 4.7",
     "claude-opus-4-8": "Opus 4.8",
     "claude-opus-5": "Opus 5",
+    "claude-opus-5-5": "Opus 5.5",
     "claude-sonnet-4-6": "Sonnet 4.6",
     "claude-sonnet-5": "Sonnet 5",
     "claude-sonnet": "Sonnet",

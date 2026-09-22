@@ -369,6 +369,13 @@ def test_fallback_pricing_contains_expected_models() -> None:
     assert "claude-sonnet-4-6" in fallback
     assert "claude-sonnet-5" in fallback
     assert "claude-haiku-4-5-20251001" in fallback
+    assert fallback["claude-opus-5-5"] == {
+        "input_cost_per_token": 4e-6,
+        "output_cost_per_token": 20e-6,
+        "cache_creation_input_token_cost": 5e-6,
+        "cache_read_input_token_cost": 0.2e-6,
+    }
+    assert pricing._resolve_model_key("claude-opus-5", fallback) == "claude-opus-5"
     assert fallback["claude-fable-5-1"] == {
         "input_cost_per_token": 10e-6,
         "output_cost_per_token": 50e-6,

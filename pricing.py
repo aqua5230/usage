@@ -450,6 +450,12 @@ def _fallback_pricing() -> PricingTable:
             "cache_creation_input_token_cost": 6.25e-6,
             "cache_read_input_token_cost": 0.5e-6,
         },
+        "claude-opus-5-5": {
+            "input_cost_per_token": 4e-6,
+            "output_cost_per_token": 20e-6,
+            "cache_creation_input_token_cost": 5e-6,
+            "cache_read_input_token_cost": 0.2e-6,
+        },
         "claude-sonnet-4": {
             "input_cost_per_token": 3e-6,
             "output_cost_per_token": 15e-6,
