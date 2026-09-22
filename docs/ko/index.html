@@ -60,6 +60,7 @@
 }
 </script>
 <style>
+@property --p { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
 /* Hallmark · pre-emit critique: P4 H4 E3 S4 R5 V4 · browser verification pending */
 /* Hallmark · macrostructure: Workbench · tone: restrained · anchor hue: orange */
 :root {
@@ -174,7 +175,25 @@ p, li { text-wrap: pretty; }
 .topbar .wrap > nav { justify-self: center; }
 .topbar .wrap > .lang { justify-self: end; }
 .brand { font-weight: 600; font-size: 16px; letter-spacing: -0.01em; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
-.brand-dot { display: inline-flex; }
+.brand-dot { position: relative; width: 20px; height: 20px; flex: 0 0 20px; }
+.brand-dot svg { position: absolute; inset: 0; width: 20px; height: 20px; }
+.brand-ring-base { opacity: 0.3; }
+.brand-ring-progress {
+  --p: calc((1 - var(--scroll, 0)) * 226deg);
+  -webkit-mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+  mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+  animation: brand-draw 0.9s ease-out;
+}
+.brand-cat { opacity: 1; animation: brand-cat-appear 0.35s 0.82s both; }
+.brand-tail { transform-origin: 23px 51px; }
+.brand-ear { transform-box: fill-box; transform-origin: center bottom; }
+.brand:hover .brand-tail { animation: brand-wag 0.52s ease-in-out; }
+.brand:hover .brand-ear-left { animation: brand-ears 0.22s 2 alternate; }
+.brand:hover .brand-ear-right { animation: brand-ears 0.22s 0.05s 2 alternate-reverse; }
+@keyframes brand-draw { from { --p: 0deg; } }
+@keyframes brand-cat-appear { from { opacity: 0; } }
+@keyframes brand-wag { 30% { transform: rotate(-18deg); } 65% { transform: rotate(13deg); } 100% { transform: rotate(0); } }
+@keyframes brand-ears { to { transform: rotate(7deg) translateY(-1px); } }
 .topbar nav { display: flex; align-items: center; gap: 24px; font-size: 15px; color: var(--fg-dim); }
 .topbar nav a { display: inline-flex; align-items: center; gap: 6px; min-height: 40px; transition: color 140ms ease; }
 .topbar nav a:hover { color: var(--fg); }
@@ -276,7 +295,7 @@ p, li { text-wrap: pretty; }
 }
 
 /* Hero — typography and the existing product image */
-.hero { position: relative; isolation: isolate; padding: 72px 0 64px; text-align: left; }
+.hero { position: relative; isolation: isolate; overflow: clip; padding: 72px 0 64px; text-align: left; }
 /* 背景光暈與淡格線只是裝飾，絕對定位不佔版面，不影響 CLS。 */
 .hero::before {
   content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
@@ -287,6 +306,12 @@ p, li { text-wrap: pretty; }
   -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
   mask-image: linear-gradient(to bottom, #000 0%, transparent 70%);
 }
+.hero-ring {
+  position: absolute; top: -42px; left: calc(50% + 12px); z-index: -1;
+  width: 560px; height: 560px; opacity: 0.08; pointer-events: none;
+  animation: hero-ring-turn 60s linear infinite;
+}
+@keyframes hero-ring-turn { to { transform: rotate(360deg); } }
 .eyebrow {
   display: inline-flex;
   align-items: center;
@@ -604,6 +629,9 @@ pre {
 }
 .copy-wrap pre { width: 100%; }
 .copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   margin-top: 8px;
   padding: 5px 11px;
   min-height: 28px;
@@ -618,6 +646,16 @@ pre {
   transition: color 140ms ease, border-color 140ms ease, background 140ms ease;
 }
 .copy-btn:hover { color: var(--fg); border-color: var(--accent); background: var(--accent-soft); }
+.copy-ring { display: none; position: relative; flex: 0 0 15px; width: 15px; height: 15px; }
+.copy-ring svg { position: absolute; inset: 0; width: 15px; height: 15px; }
+/* 平常露出 62%（跟 logo 紅圈同一個缺口），複製成功時補滿成完整圓。 */
+.copy-ring-fill circle { stroke-dasharray: 100; stroke-dashoffset: 0; }
+.copy-btn.is-done { color: var(--fg); border-color: #BF483C; }
+.copy-btn.is-done .copy-ring { display: block; }
+.copy-btn.is-done .copy-ring-fill circle { animation: copy-ring-complete 0.42s ease-out backwards; }
+.copy-btn.is-done .copy-ring-check { animation: copy-check-appear 0.16s 0.39s backwards; }
+@keyframes copy-ring-complete { from { stroke-dashoffset: 38; } }
+@keyframes copy-check-appear { from { opacity: 0; } }
 
 /* Screenshot gallery */
 .gallery {
@@ -747,6 +785,9 @@ pre {
   .install-card { padding: 20px 16px; }
   .panel-chip { white-space: nowrap; padding: 8px 12px; }
 }
+@media (max-width: 720px) {
+  .hero-ring { top: -12px; left: auto; right: -112px; width: 320px; height: 320px; }
+}
 
 /* Footer */
 footer {
@@ -776,11 +817,12 @@ footer .kofi:hover { background: var(--accent-hover); }
 </style>
 </head>
 <body>
+<svg class="brand-symbols" width="0" height="0" aria-hidden="true" style="position:absolute"><defs><symbol id="usage-ring" viewBox="0 0 64 64"><path fill="#BF483C" d="M21.32 6.58 L22.74 6.06 L24.18 5.62 L25.64 5.26 L27.12 4.98 L28.60 4.78 L30.10 4.65 L31.60 4.60 L33.10 4.64 L34.60 4.75 L36.08 4.94 L37.56 5.20 L39.02 5.54 L40.45 5.96 L41.87 6.46 L43.25 7.03 L44.60 7.67 L45.92 8.38 L47.19 9.15 L48.42 10.00 L49.61 10.91 L50.74 11.88 L51.83 12.90 L52.85 13.99 L53.82 15.12 L54.72 16.30 L55.56 17.53 L56.34 18.81 L57.05 20.12 L57.68 21.46 L58.24 22.84 L58.73 24.24 L59.15 25.67 L59.49 27.12 L59.75 28.58 L59.93 30.05 L60.04 31.53 L60.07 33.01 L60.02 34.50 L59.89 35.97 L59.68 37.44 L59.40 38.89 L59.04 40.33 L58.60 41.74 L58.09 43.13 L57.50 44.49 L56.83 45.80 L56.09 47.08 L55.28 48.31 L54.41 49.50 L53.48 50.63 L52.48 51.71 L51.43 52.74 L50.33 53.70 L49.18 54.60 L47.98 55.43 L46.75 56.20 L45.47 56.89 L44.16 57.52 L42.83 58.07 L41.47 58.55 L40.09 58.95 L38.69 59.28 L37.28 59.53 L35.86 59.71 L34.44 59.81 L33.01 59.83 L31.60 59.77 L30.19 59.64 L28.79 59.43 L27.41 59.15 L26.06 58.80 L24.72 58.38 L24.94 57.61 L26.27 57.87 L27.61 58.06 L28.94 58.19 L30.28 58.24 L31.62 58.22 L32.95 58.14 L34.27 57.98 L35.58 57.76 L36.87 57.47 L38.14 57.11 L39.38 56.69 L40.60 56.21 L41.79 55.67 L42.95 55.06 L44.07 54.40 L45.15 53.69 L46.19 52.92 L47.19 52.10 L48.15 51.23 L49.05 50.32 L49.91 49.36 L50.71 48.36 L51.46 47.33 L52.16 46.26 L52.80 45.16 L53.39 44.03 L53.91 42.87 L54.38 41.69 L54.80 40.49 L55.15 39.28 L55.44 38.04 L55.66 36.79 L55.82 35.54 L55.91 34.28 L55.93 33.01 L55.89 31.75 L55.78 30.49 L55.60 29.24 L55.36 28.00 L55.05 26.78 L54.68 25.57 L54.25 24.39 L53.75 23.23 L53.20 22.10 L52.58 21.00 L51.91 19.93 L51.18 18.91 L50.40 17.92 L49.57 16.98 L48.69 16.08 L47.77 15.23 L46.80 14.43 L45.79 13.68 L44.75 12.99 L43.67 12.35 L42.56 11.78 L41.42 11.26 L40.25 10.80 L39.06 10.41 L37.86 10.08 L36.64 9.81 L35.40 9.61 L34.16 9.47 L32.92 9.40 L31.67 9.40 L30.42 9.47 L29.18 9.60 L27.95 9.79 L26.74 10.05 L25.54 10.38 L24.36 10.76 L23.20 11.21 A2.50 2.50 0 0 1 21.32 6.58 Z"/></symbol></defs></svg>
 <a class="skip-link" href="#main-content" data-i18n="skip_main">본문으로 건너뛰기</a>
 
 <header class="topbar">
   <div class="wrap">
-    <a href="#" class="brand" translate="no"><span class="brand-dot"><svg width="20" height="20" viewBox="0 0 64 64" aria-hidden="true"><path fill="#BF483C" d="M21.32 6.58 L22.74 6.06 L24.18 5.62 L25.64 5.26 L27.12 4.98 L28.60 4.78 L30.10 4.65 L31.60 4.60 L33.10 4.64 L34.60 4.75 L36.08 4.94 L37.56 5.20 L39.02 5.54 L40.45 5.96 L41.87 6.46 L43.25 7.03 L44.60 7.67 L45.92 8.38 L47.19 9.15 L48.42 10.00 L49.61 10.91 L50.74 11.88 L51.83 12.90 L52.85 13.99 L53.82 15.12 L54.72 16.30 L55.56 17.53 L56.34 18.81 L57.05 20.12 L57.68 21.46 L58.24 22.84 L58.73 24.24 L59.15 25.67 L59.49 27.12 L59.75 28.58 L59.93 30.05 L60.04 31.53 L60.07 33.01 L60.02 34.50 L59.89 35.97 L59.68 37.44 L59.40 38.89 L59.04 40.33 L58.60 41.74 L58.09 43.13 L57.50 44.49 L56.83 45.80 L56.09 47.08 L55.28 48.31 L54.41 49.50 L53.48 50.63 L52.48 51.71 L51.43 52.74 L50.33 53.70 L49.18 54.60 L47.98 55.43 L46.75 56.20 L45.47 56.89 L44.16 57.52 L42.83 58.07 L41.47 58.55 L40.09 58.95 L38.69 59.28 L37.28 59.53 L35.86 59.71 L34.44 59.81 L33.01 59.83 L31.60 59.77 L30.19 59.64 L28.79 59.43 L27.41 59.15 L26.06 58.80 L24.72 58.38 L24.94 57.61 L26.27 57.87 L27.61 58.06 L28.94 58.19 L30.28 58.24 L31.62 58.22 L32.95 58.14 L34.27 57.98 L35.58 57.76 L36.87 57.47 L38.14 57.11 L39.38 56.69 L40.60 56.21 L41.79 55.67 L42.95 55.06 L44.07 54.40 L45.15 53.69 L46.19 52.92 L47.19 52.10 L48.15 51.23 L49.05 50.32 L49.91 49.36 L50.71 48.36 L51.46 47.33 L52.16 46.26 L52.80 45.16 L53.39 44.03 L53.91 42.87 L54.38 41.69 L54.80 40.49 L55.15 39.28 L55.44 38.04 L55.66 36.79 L55.82 35.54 L55.91 34.28 L55.93 33.01 L55.89 31.75 L55.78 30.49 L55.60 29.24 L55.36 28.00 L55.05 26.78 L54.68 25.57 L54.25 24.39 L53.75 23.23 L53.20 22.10 L52.58 21.00 L51.91 19.93 L51.18 18.91 L50.40 17.92 L49.57 16.98 L48.69 16.08 L47.77 15.23 L46.80 14.43 L45.79 13.68 L44.75 12.99 L43.67 12.35 L42.56 11.78 L41.42 11.26 L40.25 10.80 L39.06 10.41 L37.86 10.08 L36.64 9.81 L35.40 9.61 L34.16 9.47 L32.92 9.40 L31.67 9.40 L30.42 9.47 L29.18 9.60 L27.95 9.79 L26.74 10.05 L25.54 10.38 L24.36 10.76 L23.20 11.21 A2.50 2.50 0 0 1 21.32 6.58 Z"/><g fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="32" cy="24.5" r="7"/><path d="M25.6 22 L26.2 13.2 L31 18.6 Z M33 18.6 L37.8 13.2 L38.4 22 Z"/><path d="M27 29.5 C22.2 33.5 19.6 41 20.4 47.4 C20.9 51 25 52.6 32 52.6 C39 52.6 43.1 51 43.6 47.4 C44.4 41 41.8 33.5 37 29.5 Z"/></g><path d="M23 51.2 C16.5 53 12 50 13.2 45.2" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></span>usage</a>
+    <a href="#" class="brand" translate="no"><span class="brand-dot" aria-hidden="true"><svg class="brand-ring-base" viewBox="0 0 64 64"><use href="#usage-ring"/></svg><svg class="brand-ring-progress" viewBox="0 0 64 64"><use href="#usage-ring"/></svg><svg class="brand-cat" viewBox="0 0 64 64" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="32" cy="24.5" r="7"/><path class="brand-ear brand-ear-left" d="M25.6 22 L26.2 13.2 L31 18.6 Z"/><path class="brand-ear brand-ear-right" d="M33 18.6 L37.8 13.2 L38.4 22 Z"/><path d="M27 29.5 C22.2 33.5 19.6 41 20.4 47.4 C20.9 51 25 52.6 32 52.6 C39 52.6 43.1 51 43.6 47.4 C44.4 41.8 41.8 33.5 37 29.5 Z"/><path class="brand-tail" d="M23 51.2 C16.5 53 12 50 13.2 45.2" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg></span>usage</a>
     <nav>
       <a href="#features" data-i18n="nav_features">기능</a>
       <a href="#resume" data-i18n="nav_resume">이어하기</a>
@@ -815,6 +857,7 @@ footer .kofi:hover { background: var(--accent-hover); }
 
 <main id="main-content">
 <section class="hero">
+  <svg class="hero-ring" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><use href="#usage-ring"/></svg>
   <div class="wrap">
     <span class="eyebrow" data-i18n="eyebrow">macOS &amp; Windows · 오픈소스 · AGPL-3.0</span>
     <h1 data-i18n="h1"><span class="accent">Claude Code</span>, <span class="accent">Codex</span>, <span class="accent">Antigravity</span>, <span class="accent">Grok</span>의 <br>한도를 메뉴 바에 고정.</h1>
@@ -960,7 +1003,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         <p data-i18n="install_p_brew">한 줄 명령. <code>brew upgrade</code>로 최신 유지.</p>
         <div class="copy-wrap">
 <pre tabindex="0" translate="no"><code>brew install --cask aqua5230/usage/usage</code></pre>
-  <button class="copy-btn" type="button" aria-live="polite" data-i18n="copy_btn">복사</button>
+  <button class="copy-btn" type="button" aria-live="polite"><span class="copy-ring" aria-hidden="true"><svg class="copy-ring-fill" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="26" pathLength="100" stroke="#BF483C" stroke-width="6" stroke-linecap="round" transform="rotate(242 32 32)"/></svg><svg class="copy-ring-check" viewBox="0 0 16 16" fill="none"><path d="m3 8 3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="copy-label" data-i18n="copy_btn">복사</span></button>
         </div>
       </div>
       <div class="install-card">
@@ -981,7 +1024,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         <p data-i18n="install_p_uvx">터미널 인터페이스만 제공하며 메뉴 막대나 트레이는 없습니다. Linux에서도 작동하고 uv가 Python을 준비합니다.</p>
         <div class="copy-wrap">
 <pre tabindex="0" translate="no"><code>uvx usage-cli</code></pre>
-  <button class="copy-btn" type="button" aria-live="polite" data-i18n="copy_btn">복사</button>
+  <button class="copy-btn" type="button" aria-live="polite"><span class="copy-ring" aria-hidden="true"><svg class="copy-ring-fill" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="26" pathLength="100" stroke="#BF483C" stroke-width="6" stroke-linecap="round" transform="rotate(242 32 32)"/></svg><svg class="copy-ring-check" viewBox="0 0 16 16" fill="none"><path d="m3 8 3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="copy-label" data-i18n="copy_btn">복사</span></button>
         </div>
       </div>
     </div>
@@ -1712,6 +1755,24 @@ document.querySelectorAll('.mobile-nav nav a').forEach(function (link) {
   });
 });
 
+// 頁首紅圈顯示尚未閱讀的頁面比例；合併同一幀內的捲動事件，避免每次都重算版面。
+(function () {
+  const root = document.documentElement;
+  let frame = 0;
+  function update() {
+    frame = 0;
+    const max = root.scrollHeight - window.innerHeight;
+    const progress = max > 0 ? Math.min(Math.max(window.scrollY / max, 0), 1) : 0;
+    root.style.setProperty('--scroll', String(progress));
+  }
+  function schedule() {
+    if (!frame) frame = window.requestAnimationFrame(update);
+  }
+  window.addEventListener('scroll', schedule, { passive: true });
+  window.addEventListener('resize', schedule);
+  update();
+})();
+
 // 複製按鈕：指令文字直接取自同一個容器裡的 <code>，不另外寫死字串。
 document.querySelectorAll('.copy-btn').forEach(function (button) {
   button.addEventListener('click', async function () {
@@ -1719,15 +1780,21 @@ document.querySelectorAll('.copy-btn').forEach(function (button) {
     if (!code) return;
     const lang = document.documentElement.lang;
     const t = T[lang] || T.en;
+    const label = button.querySelector('.copy-label');
+    if (!label) return;
+    clearTimeout(button._resetTimer);
+    button.classList.remove('is-done');
     try {
       await navigator.clipboard.writeText(code.textContent);
-      button.textContent = t.copy_done || T.en.copy_done;
+      void button.offsetWidth;
+      button.classList.add('is-done');
+      label.textContent = t.copy_done || T.en.copy_done;
     } catch (e) {
-      button.textContent = t.copy_fail || T.en.copy_fail;
+      label.textContent = t.copy_fail || T.en.copy_fail;
     }
-    clearTimeout(button._resetTimer);
     button._resetTimer = setTimeout(function () {
-      button.textContent = t.copy_btn;
+      button.classList.remove('is-done');
+      label.textContent = t.copy_btn || T.en.copy_btn;
     }, 2000);
   });
 });

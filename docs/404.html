@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#090a0f">
+<title>Page not found — usage</title>
+<link rel="icon" type="image/png" sizes="32x32" href="/usage/favicon-32.png">
+<link rel="apple-touch-icon" href="/usage/apple-touch-icon.png">
+<style>
+@property --p { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+:root {
+  color-scheme: dark;
+  --bg: #090a0f;
+  --fg: #f5f5f7;
+  --fg-dim: #9898a0;
+  --accent: #ff8c42;
+  --accent-soft: rgba(255, 140, 66, 0.12);
+  --border: rgba(255, 255, 255, 0.08);
+}
+* { box-sizing: border-box; }
+html, body { min-width: 0; margin: 0; overflow-x: clip; background: var(--bg); color: var(--fg); }
+body {
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+main { display: grid; min-height: 100vh; place-items: center; padding: 32px 20px; text-align: center; }
+.notfound { width: min(100%, 440px); }
+.mark { position: relative; width: 160px; height: 160px; margin: 0 auto; color: var(--fg); }
+.mark svg { position: absolute; inset: 0; width: 160px; height: 160px; }
+.mark-base { opacity: 0.16; }
+.mark-progress {
+  --p: 32deg;
+  -webkit-mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+  mask: conic-gradient(from 331deg, #000 0deg var(--p), transparent var(--p) 360deg);
+}
+.mark-cat { animation: breathe 4s ease-in-out infinite; }
+h1 { margin: 20px 0 8px; font-size: clamp(28px, 6vw, 40px); line-height: 1.12; letter-spacing: -0.04em; }
+p { margin: 0 0 20px; color: var(--fg-dim); font-size: 15px; }
+.home {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+  padding: 0 16px; border-radius: 8px; background: var(--accent); color: var(--bg);
+  font-size: 15px; font-weight: 600; text-decoration: none; transition: background 150ms ease;
+}
+.home:hover { background: #ffa365; }
+.home:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+@keyframes breathe { 50% { transform: scale(0.97); } }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs><symbol id="usage-ring" viewBox="0 0 64 64"><path fill="#BF483C" d="M21.32 6.58 L22.74 6.06 L24.18 5.62 L25.64 5.26 L27.12 4.98 L28.60 4.78 L30.10 4.65 L31.60 4.60 L33.10 4.64 L34.60 4.75 L36.08 4.94 L37.56 5.20 L39.02 5.54 L40.45 5.96 L41.87 6.46 L43.25 7.03 L44.60 7.67 L45.92 8.38 L47.19 9.15 L48.42 10.00 L49.61 10.91 L50.74 11.88 L51.83 12.90 L52.85 13.99 L53.82 15.12 L54.72 16.30 L55.56 17.53 L56.34 18.81 L57.05 20.12 L57.68 21.46 L58.24 22.84 L58.73 24.24 L59.15 25.67 L59.49 27.12 L59.75 28.58 L59.93 30.05 L60.04 31.53 L60.07 33.01 L60.02 34.50 L59.89 35.97 L59.68 37.44 L59.40 38.89 L59.04 40.33 L58.60 41.74 L58.09 43.13 L57.50 44.49 L56.83 45.80 L56.09 47.08 L55.28 48.31 L54.41 49.50 L53.48 50.63 L52.48 51.71 L51.43 52.74 L50.33 53.70 L49.18 54.60 L47.98 55.43 L46.75 56.20 L45.47 56.89 L44.16 57.52 L42.83 58.07 L41.47 58.55 L40.09 58.95 L38.69 59.28 L37.28 59.53 L35.86 59.71 L34.44 59.81 L33.01 59.83 L31.60 59.77 L30.19 59.64 L28.79 59.43 L27.41 59.15 L26.06 58.80 L24.72 58.38 L24.94 57.61 L26.27 57.87 L27.61 58.06 L28.94 58.19 L30.28 58.24 L31.62 58.22 L32.95 58.14 L34.27 57.98 L35.58 57.76 L36.87 57.47 L38.14 57.11 L39.38 56.69 L40.60 56.21 L41.79 55.67 L42.95 55.06 L44.07 54.40 L45.15 53.69 L46.19 52.92 L47.19 52.10 L48.15 51.23 L49.05 50.32 L49.91 49.36 L50.71 48.36 L51.46 47.33 L52.16 46.26 L52.80 45.16 L53.39 44.03 L53.91 42.87 L54.38 41.69 L54.80 40.49 L55.15 39.28 L55.44 38.04 L55.66 36.79 L55.82 35.54 L55.91 34.28 L55.93 33.01 L55.89 31.75 L55.78 30.49 L55.60 29.24 L55.36 28.00 L55.05 26.78 L54.68 25.57 L54.25 24.39 L53.75 23.23 L53.20 22.10 L52.58 21.00 L51.91 19.93 L51.18 18.91 L50.40 17.92 L49.57 16.98 L48.69 16.08 L47.77 15.23 L46.80 14.43 L45.79 13.68 L44.75 12.99 L43.67 12.35 L42.56 11.78 L41.42 11.26 L40.25 10.80 L39.06 10.41 L37.86 10.08 L36.64 9.81 L35.40 9.61 L34.16 9.47 L32.92 9.40 L31.67 9.40 L30.42 9.47 L29.18 9.60 L27.95 9.79 L26.74 10.05 L25.54 10.38 L24.36 10.76 L23.20 11.21 A2.50 2.50 0 0 1 21.32 6.58 Z"/></symbol></defs></svg>
+<main>
+  <section class="notfound" aria-labelledby="notfound-title">
+    <div class="mark" aria-hidden="true">
+      <svg class="mark-base" viewBox="0 0 64 64"><use href="#usage-ring"/></svg>
+      <svg class="mark-progress" viewBox="0 0 64 64"><use href="#usage-ring"/></svg>
+      <svg class="mark-cat" viewBox="0 0 64 64" fill="currentColor" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><circle cx="32" cy="24.5" r="7"/><path d="M25.6 22 L26.2 13.2 L31 18.6 Z"/><path d="M33 18.6 L37.8 13.2 L38.4 22 Z"/><path d="M27 29.5 C22.2 33.5 19.6 41 20.4 47.4 C20.9 51 25 52.6 32 52.6 C39 52.6 43.1 51 43.6 47.4 C44.4 41.8 41.8 33.5 37 29.5 Z"/><path d="M23 51.2 C16.5 53 12 50 13.2 45.2" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"/></svg>
+    </div>
+    <h1 id="notfound-title">This page isn't in your quota.</h1>
+    <p>404</p>
+    <a class="home" href="/usage/">Back to home</a>
+  </section>
+</main>
+<script>
+(function () {
+  const copy = {
+    en: { title: 'Page not found — usage', slogan: "This page isn't in your quota.", home: 'Back to home' },
+    'zh-TW': { title: '找不到這一頁 — usage', slogan: '這一頁不在你的額度裡。', home: '回首頁' },
+    'zh-CN': { title: '找不到这一页 — usage', slogan: '这一页不在你的额度里。', home: '回首页' },
+    ja: { title: 'ページが見つかりません — usage', slogan: 'このページはクォータの範囲外です。', home: 'ホームへ戻る' },
+    ko: { title: '페이지를 찾을 수 없습니다 — usage', slogan: '이 페이지는 할당량에 없어요.', home: '홈으로' }
+  };
+  function normalise(value) {
+    const lang = String(value || '').toLowerCase();
+    if (lang === 'zh-tw' || lang === 'zh-hk' || lang.startsWith('zh-hant')) return 'zh-TW';
+    if (lang.startsWith('zh')) return 'zh-CN';
+    if (lang.startsWith('ja')) return 'ja';
+    if (lang.startsWith('ko')) return 'ko';
+    return lang.startsWith('en') ? 'en' : '';
+  }
+  const pathMatch = location.pathname.match(/^\/usage\/(zh-TW|zh-CN|ja|ko)(?:\/|$)/);
+  let lang = pathMatch ? pathMatch[1] : '';
+  if (!lang) {
+    try { lang = normalise(localStorage.getItem('usage_lang')); } catch (error) { /* ignore */ }
+  }
+  if (!lang) {
+    const languages = navigator.languages && navigator.languages.length ? navigator.languages : [navigator.language];
+    for (const candidate of languages) {
+      lang = normalise(candidate);
+      if (lang) break;
+    }
+  }
+  if (!copy[lang]) lang = 'en';
+  const text = copy[lang];
+  document.documentElement.lang = lang;
+  document.title = text.title;
+  document.getElementById('notfound-title').textContent = text.slogan;
+  const home = document.querySelector('.home');
+  home.textContent = text.home;
+  home.href = lang === 'en' ? '/usage/' : '/usage/' + lang + '/';
+})();
+</script>
+</body>
+</html>
