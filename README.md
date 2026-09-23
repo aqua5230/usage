@@ -124,7 +124,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 
 ## Windows Support
 
-Windows has the full core experience: the system-tray UI, Claude Code status-line hook, and Codex history parsing all work natively. Download `usage-windows.zip` from the [latest GitHub Release](https://github.com/aqua5230/usage/releases/latest), unzip it, then run `usage.exe`—no installer is needed. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
+Windows has the full core experience: the system-tray UI, Claude Code status-line hook, and Codex history parsing all work natively. Download `usage-windows.zip` from the [latest GitHub Release](https://github.com/aqua5230/usage/releases/latest), unzip it, then run `usage.exe`—no installer is needed. If SmartScreen shows **Windows protected your PC** on first launch, click **More info** → **Run anyway**. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
 
 The system-tray icon updates with your Claude quota percentage; its tooltip summarizes the Claude and Codex windows. Left-click opens the same 14 quota themes available on macOS (Default plus the other thirteen) in WebView2. Right-click provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
 
@@ -175,6 +175,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Today's cost shows $0.00 | Model pricing missing | Delete `~/.usage/pricing_cache.json` or check `USAGE_DEBUG=1` |
 | Antigravity card is missing | Antigravity CLI not installed or not signed in | Install and sign in to the Antigravity CLI; the card appears automatically once a background quota fetch succeeds |
 | App won't open | macOS Gatekeeper blocked it | macOS 15 or later: System Settings → Privacy & Security → scroll down → Open Anyway. macOS 14 or earlier: right-click `usage.app` in Finder → Open |
+| Windows shows "Windows protected your PC" | SmartScreen doesn't recognize the download yet | Click More info → Run anyway |
 
 ## Comparison
 

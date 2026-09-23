@@ -124,7 +124,7 @@ Codexを使用したことがある場合、`usage` はその履歴を自動で�
 
 ## Windows対応
 
-Windowsでも主要機能をすべてネイティブで利用できます。システムトレイUI、Claude Codeのステータスラインhook、Codex履歴の解析に対応しています。[最新のGitHub Release](https://github.com/aqua5230/usage/releases/latest)から`usage-windows.zip`をダウンロードし、展開して`usage.exe`を実行してください。インストールは不要です。システムトレイUIにはMicrosoft Edge WebView2 Runtimeが必要ですが、通常はWindows 10/11に含まれています。
+Windowsでも主要機能をすべてネイティブで利用できます。システムトレイUI、Claude Codeのステータスラインhook、Codex履歴の解析に対応しています。[最新のGitHub Release](https://github.com/aqua5230/usage/releases/latest)から`usage-windows.zip`をダウンロードし、展開して`usage.exe`を実行してください。インストールは不要です。初回起動時にSmartScreenの**「WindowsによってPCが保護されました」**が表示されたら、**「詳細情報」**→**「実行」**をクリックします。システムトレイUIにはMicrosoft Edge WebView2 Runtimeが必要ですが、通常はWindows 10/11に含まれています。
 
 システムトレイのアイコンはClaudeのクォータ率に合わせて更新され、ツールチップにはClaudeとCodexの各ウィンドウの概要が表示されます。左クリックでWebView2上にmacOSと同じ14種類のテーマパネル（デフォルトと他の13テーマ）を開き、右クリックでは「パネルの位置をリセット」と「終了」のみで、パネル切替、更新、ログイン時に起動、更新確認はパネル側のメニューにあります。
 
@@ -175,6 +175,7 @@ UIから直接 **14種類のビジュアルテーマ**を切り替えられま�
 | 今日のコストが$0.00と表示される | モデル価格情報がない | `~/.usage/pricing_cache.json` を削除するか、`USAGE_DEBUG=1` を確認します |
 | Antigravityカードが表示されない | Antigravity CLIがインストールされていない、またはサインインしていない | Antigravity CLIをインストールしてサインインします。バックグラウンドのクォータ取得が成功すると、カードが自動的に表示されます |
 | Appが開かない | macOS Gatekeeperにブロックされた | macOS 15 以降：「システム設定」→「プライバシーとセキュリティ」→ 下へスクロール → このまま開く。macOS 14 以前：Finderで `usage.app` を右クリック → 開く |
+| Windowsで「WindowsによってPCが保護されました」と表示される | SmartScreenがまだこのダウンロードを認識していない | 「詳細情報」→「実行」をクリック |
 
 ## 比較
 
