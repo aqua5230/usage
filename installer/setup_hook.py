@@ -709,13 +709,20 @@ def is_agy_setup() -> bool:
     )
 
 
+def _grok_windows_wrapper() -> Path:
+    # Grok on Windows runs the whole command string as one program path, so the
+    # interpreter and the script cannot be two words; a .cmd wrapper joins them.
+    return GROK_HOOK_TARGET.with_suffix(".cmd")
+
+
+def _grok_windows_wrapper_bytes() -> bytes:
+    return f'@"{_find_grok_python()}" "%~dp0{GROK_HOOK_TARGET.name}"\r\n'.encode("ascii")
+
+
 def _grok_statusline_command() -> str:
-    python = _find_grok_python() if sys.platform == "win32" else "/usr/bin/python3"
     if sys.platform == "win32":
-        python = _agy_windows_command_path(python, "Python interpreter")
-        hook_target = _agy_windows_command_path(str(GROK_HOOK_TARGET), "status-line hook")
-        return f"{python} {hook_target}"
-    return f"{_shell_arg(python)} {_shell_arg(str(GROK_HOOK_TARGET))}"
+        return _agy_windows_command_path(str(_grok_windows_wrapper()), "status-line wrapper")
+    return f"{_shell_arg('/usr/bin/python3')} {_shell_arg(str(GROK_HOOK_TARGET))}"
 
 
 def _read_grok_config() -> tuple[str, dict[str, Any]] | None:
@@ -740,13 +747,29 @@ def _grok_status_line(parsed: dict[str, Any]) -> object:
     return ui.get("status_line") if isinstance(ui, dict) else None
 
 
-def _is_grok_usage_hook(status_line: object) -> bool:
+def _is_grok_current_hook(status_line: object) -> bool:
     if not isinstance(status_line, dict):
         return False
     return (
         status_line.get("type") == "command"
         and status_line.get("command") == _grok_statusline_command()
     )
+
+
+def _is_grok_usage_hook(status_line: object) -> bool:
+    """Recognize usage's row, including one written for another interpreter or format."""
+    if not isinstance(status_line, dict) or status_line.get("type") != "command":
+        return False
+    command = status_line.get("command")
+    if isinstance(command, str) and (
+        _command_references(command, GROK_HOOK_TARGET.name)
+        or _command_references(command, _grok_windows_wrapper().name)
+    ):
+        return True
+    try:
+        return _is_grok_current_hook(status_line)
+    except RuntimeError:
+        return False
 
 
 def _grok_status_line_toml() -> str:
@@ -762,6 +785,22 @@ def _read_grok_previous_statusline() -> str | None:
         return GROK_PREVIOUS_STATUSLINE.read_text(encoding="utf-8")
     except (OSError, UnicodeDecodeError):
         return None
+
+
+def _grok_previous_is_usage_row(previous: str) -> bool:
+    # Older setups compared the exact command, so a row usage wrote for another
+    # interpreter could be saved as the user's own; restoring it would bring back usage.
+    try:
+        return _is_grok_usage_hook(_grok_status_line(tomllib.loads(previous)))
+    except tomllib.TOMLDecodeError:
+        return False
+
+
+def _grok_windows_wrapper_is_current() -> bool:
+    try:
+        return _grok_windows_wrapper().read_bytes() == _grok_windows_wrapper_bytes()
+    except OSError:
+        return False
 
 
 def _replace_grok_status_line(content: str, replacement: str) -> str | None:
@@ -803,15 +842,21 @@ def _setup_grok() -> bool:
         except OSError:
             return False
 
-    replacement = _replace_grok_status_line(content, _grok_status_line_toml())
-    if replacement is None:
-        return False
     try:
         GROK_HOOK_TARGET.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, GROK_HOOK_TARGET)
         GROK_HOOK_TARGET.chmod(
             GROK_HOOK_TARGET.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
         )
+        if sys.platform == "win32":
+            # Written before the command: an 8.3 short path needs the file to exist.
+            _grok_windows_wrapper().write_bytes(_grok_windows_wrapper_bytes())
+    except OSError:
+        return False
+    replacement = _replace_grok_status_line(content, _grok_status_line_toml())
+    if replacement is None:
+        return False
+    try:
         _atomic_write_text(GROK_SETTINGS, replacement)
     except OSError:
         return False
@@ -831,10 +876,12 @@ def _unsetup_grok() -> bool:
         return False
 
     start, end = section
+    previous = None
     if GROK_PREVIOUS_STATUSLINE.exists():
         previous = _read_grok_previous_statusline()
         if previous is None:
             return False
+    if previous is not None and not _grok_previous_is_usage_row(previous):
         restored = content[:start] + previous + content[end:]
     else:
         restored = content[:start] + content[end:]
@@ -857,8 +904,10 @@ def is_grok_setup() -> bool:
         return False
     if not GROK_SETTINGS.is_file() or not GROK_HOOK_TARGET.is_file():
         return False
+    if sys.platform == "win32" and not _grok_windows_wrapper_is_current():
+        return False
     result = _read_grok_config()
-    return result is not None and _is_grok_usage_hook(_grok_status_line(result[1]))
+    return result is not None and _is_grok_current_hook(_grok_status_line(result[1]))
 
 
 def _copy_hook_script() -> None:

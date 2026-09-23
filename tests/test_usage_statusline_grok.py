@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import json
 import re
+import tomllib
 from pathlib import Path
 from typing import Any
 
@@ -228,6 +229,79 @@ def test_setup_and_unsetup_grok_restore_config_without_prior_status_line(
     assert setup_hook._unsetup_grok()
     assert settings.read_text(encoding="utf-8") == original
     assert target.exists()
+
+
+def _patch_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "win32")
+    monkeypatch.setattr(setup_hook, "_find_grok_python", lambda: r"C:\Python 313\python.exe")
+
+
+def test_setup_grok_on_windows_points_at_a_single_wrapper_path(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    settings, target, previous = _patch_grok_paths(monkeypatch, tmp_path)
+    original = '[ui]\ntheme = "dark"\n'
+    settings.write_text(original, encoding="utf-8")
+    _patch_windows(monkeypatch)
+
+    assert setup_hook._setup_grok()
+    wrapper = target.with_suffix(".cmd")
+    # Grok on Windows starts the whole command as one program path, so it must
+    # carry no arguments; the wrapper hands the script to Python.
+    assert wrapper.read_bytes() == (
+        b'@"C:\\Python 313\\python.exe" "%~dp0usage-statusline-grok.py"\r\n'
+    )
+    status_line = setup_hook._grok_status_line(tomllib.loads(settings.read_text(encoding="utf-8")))
+    assert status_line == {"type": "command", "command": str(wrapper).replace("/", "\\")}
+    assert setup_hook.is_grok_setup()
+
+    wrapper.write_bytes(b"@echo stale\r\n")
+    assert not setup_hook.is_grok_setup()
+
+    assert setup_hook._setup_grok()
+    assert setup_hook._unsetup_grok()
+    assert settings.read_text(encoding="utf-8") == original
+    assert not previous.exists()
+
+
+def test_setup_grok_on_windows_replaces_an_older_usage_command_without_backing_it_up(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    settings, target, previous = _patch_grok_paths(monkeypatch, tmp_path)
+    old_command = rf"C:\Python310\python.EXE {target}".replace("/", "\\")
+    settings.write_text(
+        f'[ui.status_line]\ntype = "command"\ncommand = {json.dumps(old_command)}\n',
+        encoding="utf-8",
+    )
+    _patch_windows(monkeypatch)
+    assert not setup_hook.is_grok_setup()
+
+    assert setup_hook._setup_grok()
+    assert not previous.exists()
+    assert setup_hook.is_grok_setup()
+    assert setup_hook._unsetup_grok()
+    assert "status_line" not in settings.read_text(encoding="utf-8")
+
+
+def test_unsetup_grok_drops_a_saved_row_that_usage_wrote_itself(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    settings, target, previous = _patch_grok_paths(monkeypatch, tmp_path)
+    settings.write_text('[ui]\ntheme = "dark"\n', encoding="utf-8")
+    _patch_windows(monkeypatch)
+    assert setup_hook._setup_grok()
+    stale_command = rf"C:\old\.venv\Scripts\python.exe {target}".replace("/", "\\")
+    previous.write_text(
+        f'[ui.status_line]\ntype = "command"\ncommand = {json.dumps(stale_command)}\n',
+        encoding="utf-8",
+    )
+
+    assert setup_hook._unsetup_grok()
+    assert settings.read_text(encoding="utf-8") == '[ui]\ntheme = "dark"\n'
+    assert not previous.exists()
 
 
 @pytest.mark.parametrize("content", ["{broken", "[ui.status_line]\ntype = ["])
