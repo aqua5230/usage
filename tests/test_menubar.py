@@ -632,7 +632,7 @@ def test_yesterday_title_uses_dst_specific_day_boundaries(
     try:
         with monkeypatch.context() as patch:
             patch.setenv("TZ", "America/New_York")
-            time.tzset()
+            getattr(time, "tzset", lambda: None)()
             patch.setattr(menubar_state, "datetime", FixedDateTime)
             entries = [
                 entry(datetime(2026, 3, 8, 4, 59, tzinfo=UTC)),
@@ -648,7 +648,7 @@ def test_yesterday_title_uses_dst_specific_day_boundaries(
             os.environ.pop("TZ", None)
         else:
             os.environ["TZ"] = previous_tz
-        time.tzset()
+        getattr(time, "tzset", lambda: None)()
 
 
 def test_empty_state() -> None:
