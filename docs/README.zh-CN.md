@@ -124,7 +124,7 @@ Linux 上运行 `usage setup` 也能装好 Claude Code 的状态栏，配额会�
 
 ## Windows 支持
 
-Windows 原生支持完整核心功能：系统托盘 UI、Claude Code 状态栏 hook 和 Codex 记录解析均可使用。从[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后直接运行 `usage.exe`，无需安装。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
+Windows 原生支持完整核心功能：系统托盘 UI、Claude Code 状态栏 hook 和 Codex 记录解析均可使用。从[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后直接运行 `usage.exe`，无需安装。首次运行若弹出 SmartScreen 的**“Windows 已保护你的电脑”**，点击**“更多信息”**→**“仍要运行”**。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
 
 系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 14 款主题面板（默认加另外十三款）；右键只有「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
 
@@ -175,6 +175,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | 今日费用显示 $0.00 | 缺少模型价格 | 删除 `~/.usage/pricing_cache.json`，或检查 `USAGE_DEBUG=1` |
 | Antigravity 卡片未显示 | 未安装或未登录 Antigravity CLI | 安装并登录 Antigravity CLI；后台配额查询成功后卡片会自动出现 |
 | App 无法打开 | macOS Gatekeeper 阻止了它 | macOS 15 及更高版本：系统设置 → 隐私与安全性 → 向下滚动 → 仍要打开。macOS 14 及更早版本：在 Finder 中右键 `usage.app` → 打开 |
+| Windows 弹出“Windows 已保护你的电脑” | SmartScreen 尚未识别这个下载文件 | 点击“更多信息”→“仍要运行” |
 
 ## 对比
 

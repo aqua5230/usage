@@ -124,7 +124,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 
 ## Windows 지원
 
-Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다. 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석을 지원합니다.[최신 GitHub Release](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 내려받아 압축을 풀고 `usage.exe`를 실행하면 됩니다. 설치는 필요하지 않습니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10/11에 이미 포함되어 있습니다.
+Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다. 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석을 지원합니다.[최신 GitHub Release](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 내려받아 압축을 풀고 `usage.exe`를 실행하면 됩니다. 설치는 필요하지 않습니다. 첫 실행 때 SmartScreen의 **Windows의 PC 보호** 창이 뜨면 **추가 정보** → **실행**을 클릭하세요. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10/11에 이미 포함되어 있습니다.
 
 시스템 트레이 아이콘은 Claude 할당량 비율에 따라 업데이트되고, 도구 설명에는 Claude와 Codex의 각 창 요약이 표시됩니다. 왼쪽 클릭하면 WebView2에서 macOS와 같은 14개 테마 패널(기본과 나머지 13개)을 열고, 오른쪽 클릭 메뉴에는 '패널 위치 재설정'과 '종료'만 있고, 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인은 패널 메뉴에 있습니다.
 
@@ -175,6 +175,7 @@ UI에서 직접 **14가지 시각 테마**를 전환하세요.
 | 오늘 비용이 $0.00으로 표시 | 모델 가격 정보 없음 | `~/.usage/pricing_cache.json`을 삭제하거나 `USAGE_DEBUG=1`을 확인하세요 |
 | Antigravity 카드가 표시되지 않음 | Antigravity CLI가 설치되지 않았거나 로그인되지 않음 | Antigravity CLI를 설치하고 로그인하세요. 백그라운드 할당량 조회가 성공하면 카드가 자동으로 나타납니다 |
 | App이 열리지 않음 | macOS Gatekeeper가 차단함 | macOS 15 이상: 시스템 설정 → 개인정보 보호 및 보안 → 아래로 스크롤 → 그래도 열기. macOS 14 이하: Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → 열기 |
+| Windows에 "Windows의 PC 보호"가 표시됨 | SmartScreen이 아직 이 다운로드를 인식하지 못함 | 추가 정보 → 실행 클릭 |
 
 ## 비교
 

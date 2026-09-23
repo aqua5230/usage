@@ -1037,7 +1037,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         </div>
       </div>
     </div>
-    <p class="install-note" id="first-launch" data-i18n="install_note"><strong>初回起動が macOS にブロックされた？</strong>「システム設定」→「プライバシーとセキュリティ」を開き、下へスクロールして<strong>「このまま開く」</strong>をクリック。macOS 14 以前では <code>usage.app</code> を右クリック →「開く」。</p>
+    <p class="install-note" id="first-launch" data-i18n="install_note"><strong>初回起動が macOS にブロックされた？</strong>「システム設定」→「プライバシーとセキュリティ」を開き、下へスクロールして<strong>「このまま開く」</strong>をクリック。macOS 14 以前では <code>usage.app</code> を右クリック →「開く」。<strong>Windows で「Windows によって PC が保護されました」と表示された？</strong>「詳細情報」→<strong>「実行」</strong>をクリック。</p>
   </div>
 </section>
 </main>
@@ -1134,7 +1134,7 @@ const T = {
     install_h_uvx: 'uvx (no install)',
     install_p_uvx: 'Terminal interface only, with no menu bar or tray. Works on Linux too; uv brings its own Python.',
     install_btn_releases: '→ Open Releases page',
-    install_note: '<strong>macOS blocked the first launch?</strong> Open System Settings → Privacy &amp; Security, scroll down, and click <strong>Open Anyway</strong>. On macOS 14 or earlier, right-click <code>usage.app</code> → Open instead.',
+    install_note: '<strong>macOS blocked the first launch?</strong> Open System Settings → Privacy &amp; Security, scroll down, and click <strong>Open Anyway</strong>. On macOS 14 or earlier, right-click <code>usage.app</code> → Open instead. <strong>Windows showed “Windows protected your PC”?</strong> Click <strong>More info</strong> → <strong>Run anyway</strong>.',
     copy_btn: 'Copy',
     copy_done: 'Copied',
     copy_fail: 'Copy failed',
@@ -1220,7 +1220,7 @@ const T = {
     install_h_uvx: 'uvx（零安裝）',
     install_p_uvx: '只有終端機介面，沒有選單列或系統匣。Linux 也能跑，uv 會自備 Python。',
     install_btn_releases: '→ 開啟 Releases 頁面',
-    install_note: '<strong>第一次打開被 macOS 擋住？</strong>打開「系統設定」→「隱私權與安全性」，往下捲，按<strong>「強制打開」</strong>。macOS 14 以前的版本，改成在 <code>usage.app</code> 上按右鍵 →「打開」。',
+    install_note: '<strong>第一次打開被 macOS 擋住？</strong>打開「系統設定」→「隱私權與安全性」，往下捲，按<strong>「強制打開」</strong>。macOS 14 以前的版本，改成在 <code>usage.app</code> 上按右鍵 →「打開」。<strong>Windows 跳出「Windows 已保護您的電腦」？</strong>按「其他資訊」→<strong>「仍要執行」</strong>。',
     copy_btn: '複製',
     copy_done: '已複製',
     copy_fail: '複製失敗',
@@ -1306,7 +1306,7 @@ const T = {
     install_h_uvx: 'uvx（零安装）',
     install_p_uvx: '只有终端界面，没有菜单栏或系统托盘。Linux 也能跑，uv 会自备 Python。',
     install_btn_releases: '→ 打开 Releases 页面',
-    install_note: '<strong>首次打开被 macOS 拦截？</strong>打开“系统设置”→“隐私与安全性”，向下滚动，点击<strong>“仍要打开”</strong>。macOS 14 及更早版本，改为右键点击 <code>usage.app</code> →“打开”。',
+    install_note: '<strong>首次打开被 macOS 拦截？</strong>打开“系统设置”→“隐私与安全性”，向下滚动，点击<strong>“仍要打开”</strong>。macOS 14 及更早版本，改为右键点击 <code>usage.app</code> →“打开”。<strong>Windows 弹出“Windows 已保护你的电脑”？</strong>点击“更多信息”→<strong>“仍要运行”</strong>。',
     copy_btn: '复制',
     copy_done: '已复制',
     copy_fail: '复制失败',
@@ -1392,7 +1392,7 @@ const T = {
     install_h_uvx: 'uvx（インストール不要）',
     install_p_uvx: 'ターミナルインターフェースのみ。メニューバーもトレイもありません。Linuxでも動作し、uvがPythonを用意します。',
     install_btn_releases: '→ Releases ページを開く',
-    install_note: '<strong>初回起動が macOS にブロックされた？</strong>「システム設定」→「プライバシーとセキュリティ」を開き、下へスクロールして<strong>「このまま開く」</strong>をクリック。macOS 14 以前では <code>usage.app</code> を右クリック →「開く」。',
+    install_note: '<strong>初回起動が macOS にブロックされた？</strong>「システム設定」→「プライバシーとセキュリティ」を開き、下へスクロールして<strong>「このまま開く」</strong>をクリック。macOS 14 以前では <code>usage.app</code> を右クリック →「開く」。<strong>Windows で「Windows によって PC が保護されました」と表示された？</strong>「詳細情報」→<strong>「実行」</strong>をクリック。',
     copy_btn: 'コピー',
     copy_done: 'コピー済み',
     copy_fail: 'コピー失敗',
@@ -1478,7 +1478,7 @@ const T = {
     install_h_uvx: 'uvx(설치 없음)',
     install_p_uvx: '터미널 인터페이스만 제공하며 메뉴 막대나 트레이는 없습니다. Linux에서도 작동하고 uv가 Python을 준비합니다.',
     install_btn_releases: '→ Releases 페이지 열기',
-    install_note: '<strong>첫 실행이 macOS에서 차단되었나요?</strong> 시스템 설정 → 개인정보 보호 및 보안을 열고 아래로 스크롤한 뒤 <strong>그래도 열기</strong>를 클릭하세요. macOS 14 이하에서는 <code>usage.app</code>을 우클릭 → 열기를 선택하세요.',
+    install_note: '<strong>첫 실행이 macOS에서 차단되었나요?</strong> 시스템 설정 → 개인정보 보호 및 보안을 열고 아래로 스크롤한 뒤 <strong>그래도 열기</strong>를 클릭하세요. macOS 14 이하에서는 <code>usage.app</code>을 우클릭 → 열기를 선택하세요. <strong>Windows에 “Windows의 PC 보호”가 표시되나요?</strong> 추가 정보 → <strong>실행</strong>을 클릭하세요.',
     copy_btn: '복사',
     copy_done: '복사됨',
     copy_fail: '복사 실패',
