@@ -23,7 +23,9 @@ from .types import AgentInfo, RateLimits, UsageEntry
 CODEX_DIR = str(codex_home())
 SESSIONS_DIR = os.path.join(CODEX_DIR, "sessions")
 STATE_DB = os.path.join(CODEX_DIR, "state_5.sqlite")
-_FILE_CACHE_MAXSIZE = 512
+# Must exceed a real user's session file count (loaders/history_loader.py explains
+# why): at 512, a machine with 822 files re-parsed every file on each report.
+_FILE_CACHE_MAXSIZE = 4096
 _file_cache: OrderedDict[Path, tuple[float, int, list[dict[str, Any]]]] = OrderedDict()
 
 
