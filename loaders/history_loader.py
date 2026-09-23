@@ -55,7 +55,7 @@ class _FileCacheEntry:
 _file_cache: OrderedDict[Path, _FileCacheEntry] = OrderedDict()
 
 HISTORY_CACHE_PATH = Path(os.path.expanduser("~/.usage/history_jsonl_cache.json"))
-_HISTORY_JSONL_CACHE_SCHEMA = 3
+_HISTORY_JSONL_CACHE_SCHEMA = 4
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
 _disk_cache_dirty = False

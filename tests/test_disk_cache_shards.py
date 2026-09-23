@@ -38,6 +38,18 @@ def _usage_entry(session_id: str) -> history_loader.UsageEntry:
     )
 
 
+def test_usage_entry_round_trip_keeps_1h_cache_writes() -> None:
+    entry = _usage_entry("claude")
+    entry.cache_creation_tokens = 5_000
+    entry.cache_creation_1h_tokens = 4_000
+    data = disk_cache_common._serialize_usage_entry(entry)
+
+    assert disk_cache_common._deserialize_usage_entry(data) == entry
+
+    del data["cache_creation_1h_tokens"]
+    assert disk_cache_common._deserialize_usage_entry(data).cache_creation_1h_tokens == 0
+
+
 def _distinct_paths(indexer: object, parent: Path = Path("/sessions")) -> tuple[Path, Path]:
     first = parent / "session-0.jsonl"
     first_index = indexer(first)  # type: ignore[operator]

@@ -36,6 +36,7 @@ def _serialize_usage_entry(entry: Any) -> dict[str, Any]:
         "cache_read_tokens": entry.cache_read_tokens,
         "cost_usd": entry.cost_usd,
         "project": entry.project,
+        "cache_creation_1h_tokens": entry.cache_creation_1h_tokens,
     }
 
 
@@ -54,6 +55,8 @@ def _deserialize_usage_entry(data: dict[str, Any]) -> Any:
         cache_read_tokens=data["cache_read_tokens"],
         cost_usd=data["cost_usd"],
         project=sys.intern(data["project"]),
+        # Codex caches predate this field and never carry 1h cache writes.
+        cache_creation_1h_tokens=data.get("cache_creation_1h_tokens", 0),
     )
 
 
