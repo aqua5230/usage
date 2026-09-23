@@ -7,6 +7,8 @@
 from __future__ import annotations
 
 import json
+import os
+import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -599,6 +601,54 @@ def test_yesterday_title_uses_provided_entries() -> None:
     assert menubar_state._yesterday_title(False, "en", entries=[entry]) == (
         "Yesterday: $0.01 (150 tokens)"
     )
+
+
+@pytest.mark.skipif(not hasattr(time, "tzset"), reason="requires POSIX timezone control")
+def test_yesterday_title_uses_dst_specific_day_boundaries(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FixedDateTime(datetime):
+        @classmethod
+        def now(cls, tz: object = None) -> FixedDateTime:
+            value = cls(2026, 3, 9, 12)
+            return value if tz is None else value.astimezone(tz)  # type: ignore[arg-type]
+
+    def entry(timestamp: datetime) -> history_loader.UsageEntry:
+        return history_loader.UsageEntry(
+            timestamp=timestamp,
+            session_id="session",
+            message_id=timestamp.isoformat(),
+            request_id="request",
+            model="claude-sonnet",
+            input_tokens=10,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=0,
+            cost_usd=0.01,
+            project="usage",
+        )
+
+    previous_tz = os.environ.get("TZ")
+    try:
+        with monkeypatch.context() as patch:
+            patch.setenv("TZ", "America/New_York")
+            time.tzset()
+            patch.setattr(menubar_state, "datetime", FixedDateTime)
+            entries = [
+                entry(datetime(2026, 3, 8, 4, 59, tzinfo=UTC)),
+                entry(datetime(2026, 3, 8, 5, 0, tzinfo=UTC)),
+                entry(datetime(2026, 3, 9, 4, 0, tzinfo=UTC)),
+            ]
+
+            assert menubar_state._yesterday_title(False, "en", entries=entries) == (
+                "Yesterday: $0.01 (10 tokens)"
+            )
+    finally:
+        if previous_tz is None:
+            os.environ.pop("TZ", None)
+        else:
+            os.environ["TZ"] = previous_tz
+        time.tzset()
 
 
 def test_empty_state() -> None:

@@ -7,7 +7,8 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
+from typing import cast
 
 import pytest
 
@@ -192,6 +193,48 @@ def test_history_source_tracker_scans_every_time_without_fsevents(
     tracker.scan(now=1.0)
 
     assert calls == 2
+
+
+@pytest.mark.parametrize(
+    ("root", "matching", "prefix_only"),
+    [
+        (
+            PurePosixPath("/users/me/.codex/sessions"),
+            PurePosixPath("/users/me/.codex/sessions/2026/session.jsonl"),
+            PurePosixPath("/users/me/.codex/sessions-old/session.jsonl"),
+        ),
+        (
+            PureWindowsPath("C:/Users/me/.codex/sessions"),
+            PureWindowsPath("C:/Users/me/.codex/sessions/2026/session.jsonl"),
+            PureWindowsPath("C:/Users/me/.codex/sessions-old/session.jsonl"),
+        ),
+    ],
+)
+def test_history_scan_matches_complete_path_parts(
+    monkeypatch: pytest.MonkeyPatch,
+    root: PurePosixPath | PureWindowsPath,
+    matching: PurePosixPath | PureWindowsPath,
+    prefix_only: PurePosixPath | PureWindowsPath,
+) -> None:
+    claude = root.parent / "claude-projects"
+    archived = root.parent / "archived_sessions"
+    matching_path = cast(Path, matching)
+    roots = tuple(cast(Path, path) for path in (claude, root, archived))
+    monkeypatch.setattr(menubar_state, "_history_directory_sources", lambda: roots)
+    monkeypatch.setattr(menubar_state, "_history_file_sources", lambda: ())
+    index = menubar_state.HistorySourceIndex(
+        {
+            cast(Path, prefix_only): (1_000_000_000, 10),
+            matching_path: (2_000_000_000, 20),
+        },
+        0.0,
+    )
+
+    scan = menubar_state._history_scan_from_index(index)
+
+    assert scan.fingerprint[1] == (str(root), 1, 2.0)
+    assert scan.codex_paths == (matching_path,)
+    assert scan.codex_rate_limit_candidates == ((matching_path, 2.0),)
 
 
 def test_codex_stale_state_hides_fresh_data() -> None:

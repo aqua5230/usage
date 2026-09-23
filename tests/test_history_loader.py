@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import subprocess
+import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -23,6 +24,7 @@ from loaders import history_disk_cache, history_loader
 @pytest.fixture(autouse=True)
 def _clear_file_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     history_loader._file_cache.clear()
+    history_loader._dirty_cache_shards.clear()
     monkeypatch.setattr(history_loader, "_disk_cache_seeded", False)
     monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", tmp_path / "history_jsonl_cache.json")
     monkeypatch.setattr(history_loader, "_disk_cache_dirty", False)
@@ -34,7 +36,7 @@ def _clear_file_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
 def test_disk_cache_flush_is_throttled_and_dirty_is_preserved(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
-    flush = Mock()
+    flush = Mock(return_value=set())
     now = 100.0
     monkeypatch.setattr(history_loader, "flush_caches", flush)
     monkeypatch.setattr(history_loader, "_monotonic", lambda: now)
@@ -63,6 +65,19 @@ def test_history_cache_terminate_flush_is_best_effort(monkeypatch: pytest.Monkey
     assert history_loader._disk_cache_dirty is True
 
 
+def test_history_cache_clears_only_successfully_written_shards(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    history_loader._dirty_cache_shards.update({3, 7})
+    monkeypatch.setattr(history_loader, "_disk_cache_dirty", True)
+    monkeypatch.setattr(history_loader, "flush_caches", Mock(return_value={3}))
+
+    history_loader._flush_caches_to_disk(force=True)
+
+    assert history_loader._dirty_cache_shards == {7}
+    assert history_loader._disk_cache_dirty is True
+
+
 def test_load_entries_skips_oversized_line_and_continues(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -86,6 +101,48 @@ def test_load_entries_skips_recursively_nested_lines(tmp_path: Path) -> None:
     entries = history_loader.load_entries(jsonl_paths=[path])
 
     assert [entry.message_id for entry in entries] == ["message"]
+
+
+def test_load_entries_keeps_first_duplicate_within_file(tmp_path: Path) -> None:
+    path = tmp_path / "history.jsonl"
+    path.write_text(
+        "\n".join([_line(input_tokens=1), _line(input_tokens=9)]),
+        encoding="utf-8",
+    )
+
+    entries = history_loader.load_entries(jsonl_paths=[path])
+
+    assert [entry.input_tokens for entry in entries] == [1]
+    assert [entry.input_tokens for entry in history_loader._file_cache[path].entries] == [1]
+
+
+def test_incremental_parse_deduplicates_against_cached_entries(tmp_path: Path) -> None:
+    path = tmp_path / "history.jsonl"
+    path.write_text(_line(input_tokens=1) + "\n", encoding="utf-8")
+    history_loader.load_entries(jsonl_paths=[path])
+    with path.open("a", encoding="utf-8") as file:
+        file.write(_line(input_tokens=9) + "\n")
+
+    entries = history_loader.load_entries(jsonl_paths=[path])
+
+    assert [entry.input_tokens for entry in entries] == [1]
+    assert [entry.input_tokens for entry in history_loader._file_cache[path].entries] == [1]
+
+
+def test_cutoff_uses_first_duplicate_even_when_later_copy_is_recent(tmp_path: Path) -> None:
+    path = tmp_path / "history.jsonl"
+    now = datetime.now(UTC)
+    path.write_text(
+        "\n".join(
+            [
+                _line(timestamp=(now - timedelta(hours=2)).isoformat(), input_tokens=1),
+                _line(timestamp=(now - timedelta(minutes=5)).isoformat(), input_tokens=9),
+            ]
+        ),
+        encoding="utf-8",
+    )
+
+    assert history_loader.load_entries(hours_back=1, jsonl_paths=[path]) == []
 
 
 def _line(
@@ -229,6 +286,16 @@ def test_parse_line_parses_valid_entry_and_cwd_project() -> None:
     assert entry.total_tokens == 10
     assert entry.cost_usd == 0.01
     assert entry.project == "my-project"
+
+
+def test_parse_line_interns_repeated_usage_strings() -> None:
+    first = history_loader._parse_line(_line(), "project")
+    second = history_loader._parse_line(_line(), "project")
+
+    assert first is not None and second is not None
+    for field in ("session_id", "model", "project"):
+        assert getattr(first[0], field) is getattr(second[0], field)
+        assert getattr(first[0], field) is sys.intern(getattr(first[0], field))
 
 
 def test_as_optional_float_accepts_finite_numeric_strings() -> None:
@@ -534,6 +601,7 @@ def test_disk_cache_seed_loads_on_cold_start(
     projects_dir = tmp_path / "projects"
     session_path = projects_dir / "plain-project" / "session.jsonl"
     session_path.parent.mkdir(parents=True, exist_ok=True)
+    session_path.write_text("", encoding="utf-8")
     monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", cache_file)
     monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [projects_dir])
 
@@ -572,7 +640,7 @@ def test_disk_cache_seed_loads_on_cold_start(
     shard_path.parent.mkdir()
     shard_path.write_text(cache_data, encoding="utf-8")
 
-    history_loader.load_entries()
+    history_loader._seed_caches_from_disk()
 
     assert len(history_loader._file_cache) == 1
     assert session_path in history_loader._file_cache

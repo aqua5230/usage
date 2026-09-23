@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import sqlite3
+import sys
 import time
 from collections import OrderedDict
 from collections.abc import Iterable
@@ -189,12 +190,12 @@ class CodexRateLimits:
 
 def _seed_caches_from_disk() -> None:
     """Seed in-memory caches from disk exactly once. Silently fails on any error."""
-    global _disk_cache_seeded
+    global _disk_cache_dirty, _disk_cache_seeded
 
     if not needs_cache_seed(_disk_cache_seeded):
         return
     _disk_cache_seeded = True
-    seed_caches(
+    dirty_shards = seed_caches(
         JSONL_CACHE_PATH,
         _CODEX_JSONL_CACHE_SCHEMA,
         _JSONL_CACHE_MAXSIZE,
@@ -202,6 +203,7 @@ def _seed_caches_from_disk() -> None:
         _file_info_cache,
         _sqlite_log_cache,
     )
+    _disk_cache_dirty = _disk_cache_dirty or bool(dirty_shards)
 
 
 def _flush_caches_to_disk(*, force: bool = False) -> None:
@@ -901,16 +903,16 @@ def _parse_sqlite_log_row(
     project = _project_from_cwd(thread.cwd) if thread.cwd else "unknown"
     return UsageEntry(
         timestamp=timestamp,
-        session_id=session_id,
+        session_id=sys.intern(session_id),
         message_id=f"{session_id}:sqlite:{row_id}:{ts_nanos}",
         request_id="",
-        model=model,
+        model=sys.intern(model),
         input_tokens=input_tokens,
         output_tokens=output_tokens,
         cache_creation_tokens=0,
         cache_read_tokens=cached,
         cost_usd=None,
-        project=project,
+        project=sys.intern(project),
     )
 
 
@@ -1189,16 +1191,16 @@ def _parse_linear_jsonl_bytes(
         entries.append(
             UsageEntry(
                 timestamp=timestamp,
-                session_id=session_id,
+                session_id=sys.intern(session_id),
                 message_id=f"{session_id}:{state.token_count_index}",
                 request_id="",
-                model=models.get(session_id, state.session_model),
+                model=sys.intern(models.get(session_id, state.session_model)),
                 input_tokens=delta.input_tokens,
                 output_tokens=delta.output_tokens,
                 cache_creation_tokens=0,
                 cache_read_tokens=delta.cache_read_tokens,
                 cost_usd=None,
-                project=state.project,
+                project=sys.intern(state.project),
             )
         )
 
@@ -1384,16 +1386,16 @@ def _parse_jsonl(
                 entries.append(
                     UsageEntry(
                         timestamp=timestamp,
-                        session_id=session_id,
+                        session_id=sys.intern(session_id),
                         message_id=f"{session_id}:{token_count_index}",
                         request_id="",
-                        model=models.get(session_id, session_model),
+                        model=sys.intern(models.get(session_id, session_model)),
                         input_tokens=delta.input_tokens,
                         output_tokens=delta.output_tokens,
                         cache_creation_tokens=0,
                         cache_read_tokens=delta.cache_read_tokens,
                         cost_usd=None,
-                        project=project,
+                        project=sys.intern(project),
                     )
                 )
     except (OSError, UnicodeDecodeError) as exc:

@@ -21,7 +21,7 @@ def flush_caches_if_due(
     last_flush_at: float | None,
     monotonic: Callable[[], float],
     interval_s: float,
-    flush: Callable[[], None],
+    flush: Callable[[], bool | None],
     *,
     force: bool = False,
 ) -> tuple[bool, float | None]:
@@ -30,7 +30,8 @@ def flush_caches_if_due(
     now = monotonic()
     if not force and last_flush_at is not None and now - last_flush_at < interval_s:
         return dirty, last_flush_at
-    flush()
+    if flush() is False:
+        return dirty, last_flush_at
     return False, now
 
 

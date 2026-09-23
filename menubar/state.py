@@ -311,42 +311,45 @@ def _update_history_source_index(
     return HistorySourceIndex(file_stats, index.last_full_scan_at)
 
 
-def _source_fingerprint_from_index(
-    source: Path,
-    file_stats: dict[Path, tuple[int, int]],
-) -> tuple[str, int, float]:
-    if source in _history_file_sources():
-        entry = file_stats.get(source)
-        return (str(source), int(entry is not None), 0.0 if entry is None else entry[0] / 1e9)
-    mtimes = [
-        entry[0] for path, entry in file_stats.items() if path == source or source in path.parents
-    ]
-    return (str(source), len(mtimes), max(mtimes, default=0) / 1e9)
-
-
 def _history_scan_from_index(index: HistorySourceIndex) -> HistorySourceScan:
     directory_sources = _history_directory_sources()
     file_sources = _history_file_sources()
-    source_fingerprint = tuple(
-        _source_fingerprint_from_index(source, index.file_stats)
-        for source in (*directory_sources, *file_sources)
-    )
+    root_parts = {root: root.parts for root in directory_sources}
+    paths_by_root: dict[Path, list[Path]] = {root: [] for root in directory_sources}
+    for path in index.file_stats:
+        path_parts = path.parts
+        for root, parts in root_parts.items():
+            if path_parts[: len(parts)] == parts:
+                paths_by_root[root].append(path)
+
+    source_fingerprint_items: list[tuple[str, int, float]] = []
+    for source in (*directory_sources, *file_sources):
+        if source in file_sources:
+            entry = index.file_stats.get(source)
+            source_fingerprint_items.append(
+                (str(source), int(entry is not None), 0.0 if entry is None else entry[0] / 1e9)
+            )
+        else:
+            mtimes = [index.file_stats[path][0] for path in paths_by_root[source]]
+            source_fingerprint_items.append(
+                (str(source), len(mtimes), max(mtimes, default=0) / 1e9)
+            )
+    source_fingerprint = tuple(source_fingerprint_items)
     file_fingerprint = tuple(
         (str(path), entry[1], entry[0] / 1e9)
         for path, entry in sorted(index.file_stats.items(), key=lambda item: str(item[0]))
     )
     fingerprint = source_fingerprint + file_fingerprint
     claude_root, sessions_root, archived_root = directory_sources
-    claude_paths = tuple(
-        path
-        for path in index.file_stats
-        if path.suffix == ".jsonl" and (path == claude_root or claude_root in path.parents)
-    )
+    claude_paths = tuple(path for path in paths_by_root[claude_root] if path.suffix == ".jsonl")
     codex_paths = tuple(
         path
         for path in index.file_stats
         if path.suffix == ".jsonl"
-        and any(path == root or root in path.parents for root in (sessions_root, archived_root))
+        and any(
+            path.parts[: len(root_parts[root])] == root_parts[root]
+            for root in (sessions_root, archived_root)
+        )
     )
     codex_rate_limit_candidates = tuple(
         (path, index.file_stats[path][0] / 1e9)
@@ -354,8 +357,8 @@ def _history_scan_from_index(index: HistorySourceIndex) -> HistorySourceScan:
         if all(
             not part.startswith(".")
             for root in (sessions_root, archived_root)
-            if path == root or root in path.parents
-            for part in path.relative_to(root).parts
+            if path.parts[: len(root_parts[root])] == root_parts[root]
+            for part in path.parts[len(root_parts[root]) :]
         )
     )
     return HistorySourceScan(
@@ -1157,6 +1160,8 @@ def _today_title(
 
     try:
         today = datetime.now().astimezone().date()
+        start = datetime.combine(today, datetime_time.min).astimezone(UTC)
+        end = datetime.combine(today + timedelta(days=1), datetime_time.min).astimezone(UTC)
         total_tokens = 0
         total_cost = 0.0
 
@@ -1166,7 +1171,7 @@ def _today_title(
             else list(load_entries(hours_back=24)) + codex_loader.load_entries(hours_back=24)
         )
         for entry in all_entries:
-            if entry.timestamp.astimezone().date() != today:
+            if not start <= entry.timestamp < end:
                 continue
             total_tokens += entry.total_tokens
             total_cost += calculate_cost(entry)
@@ -1188,14 +1193,14 @@ def _yesterday_title(
 
     try:
         yesterday = datetime.now().astimezone().date() - timedelta(days=1)
+        start = datetime.combine(yesterday, datetime_time.min).astimezone(UTC)
+        end = datetime.combine(yesterday + timedelta(days=1), datetime_time.min).astimezone(UTC)
         all_entries = (
             entries
             if entries is not None
             else list(load_entries(hours_back=48)) + codex_loader.load_entries(hours_back=48)
         )
-        selected = [
-            entry for entry in all_entries if entry.timestamp.astimezone().date() == yesterday
-        ]
+        selected = [entry for entry in all_entries if start <= entry.timestamp < end]
         total_tokens = sum(entry.total_tokens for entry in selected)
         total_cost = sum(calculate_cost(entry) for entry in selected)
     except Exception:

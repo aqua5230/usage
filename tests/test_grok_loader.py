@@ -33,6 +33,14 @@ def _write_config(path: Path, default: str = "grok-4.6") -> None:
     path.write_text(f'[models]\ndefault = "{default}"\n', encoding="utf-8")
 
 
+def test_usage_update_prefilter_skips_lines_without_cost_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(json, "loads", lambda _line: pytest.fail("parsed line"))
+
+    assert grok_loader._usage_update_from_line(b'{"method":"session/update"}') is None
+
+
 def _event(ts: str, sid: str, msg: str, ctx: dict[str, object]) -> str:
     return json.dumps({"ts": ts, "sid": sid, "msg": msg, "ctx": ctx})
 

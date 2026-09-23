@@ -70,10 +70,11 @@ def seed_caches(
     jsonl_cache: _JsonlCache,
     file_info_cache: _FileInfoCache,
     sqlite_log_cache: Any,
-) -> None:
+) -> set[int]:
     """Seed valid shards, skipping only corrupt or stale shards."""
     from loaders.codex_loader import _JsonlCacheEntry, _JsonlParseState
 
+    dirty_shards: set[int] = set()
     _remove_legacy_cache(cache_path)
     sqlite_payload = _load_payload(_sqlite_log_path(cache_path), schema_version)
     if sqlite_payload is not None:
@@ -104,6 +105,13 @@ def seed_caches(
                 continue
             try:
                 path = Path(path_str)
+                try:
+                    path.stat()
+                except FileNotFoundError:
+                    dirty_shards.add(index)
+                    continue
+                except OSError:
+                    pass
                 mtime = file_data["mtime"]
                 size = file_data["size"]
                 session_id = file_data["session_id"]
@@ -154,6 +162,7 @@ def seed_caches(
                 )
             except (KeyError, TypeError, ValueError):
                 continue
+    return dirty_shards
 
 
 def flush_caches(

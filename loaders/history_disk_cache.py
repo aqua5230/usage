@@ -49,9 +49,10 @@ def seed_caches(
     schema_version: int,
     maxsize: int,
     file_cache: _FileCache,
-) -> None:
-    from loaders.history_loader import _FileCacheEntry
+) -> set[int]:
+    from loaders.history_loader import _dedup_key, _FileCacheEntry
 
+    dirty_shards: set[int] = set()
     _remove_legacy_cache(cache_path)
     for index in range(_SHARD_COUNT):
         files = _load_shard(_shard_path(cache_path, index), schema_version)
@@ -62,41 +63,70 @@ def seed_caches(
                 continue
             try:
                 path = Path(path_str)
+                try:
+                    path.stat()
+                except FileNotFoundError:
+                    dirty_shards.add(index)
+                    continue
+                except OSError:
+                    pass
                 entries_data = file_data["entries"]
                 if not isinstance(entries_data, list):
                     continue
+                entries = [_deserialize_usage_entry(entry) for entry in entries_data]
+                unique_entries = []
+                seen: set[str] = set()
+                for entry in entries:
+                    dedup_key = _dedup_key(entry)
+                    if dedup_key in seen:
+                        continue
+                    seen.add(dedup_key)
+                    unique_entries.append(entry)
+                if len(unique_entries) != len(entries):
+                    dirty_shards.add(index)
                 if len(file_cache) >= maxsize:
-                    file_cache.popitem(last=False)
+                    evicted_path, _ = file_cache.popitem(last=False)
+                    dirty_shards.add(_shard_index(evicted_path))
                 file_cache[path] = _FileCacheEntry(
                     mtime=float(file_data["mtime"]),
                     size=int(file_data["size"]),
-                    entries=[_deserialize_usage_entry(entry) for entry in entries_data],
+                    entries=unique_entries,
                     confirmed_offset=int(file_data["confirmed_offset"]),
                     confirmed_prefix_digest=bytes.fromhex(file_data["confirmed_prefix_digest"]),
                 )
             except (KeyError, TypeError, ValueError):
                 continue
+    return dirty_shards
 
 
 def flush_caches(
     cache_path: Path,
     schema_version: int,
     file_cache: _FileCache,
-) -> None:
+    dirty_shards: set[int] | None = None,
+) -> set[int]:
     """Atomically replace only shards whose serialized contents changed."""
-    try:
-        _remove_legacy_cache(cache_path)
-        shards: list[dict[str, Any]] = [{} for _ in range(_SHARD_COUNT)]
-        for path, entry in file_cache.items():
-            shards[_shard_index(path)][str(path)] = {
-                "mtime": entry.mtime,
-                "size": entry.size,
-                "entries": [_serialize_usage_entry(item) for item in entry.entries],
-                "confirmed_offset": entry.confirmed_offset,
-                "confirmed_prefix_digest": entry.confirmed_prefix_digest.hex(),
-            }
+    _remove_legacy_cache(cache_path)
+    indexes = set(range(_SHARD_COUNT)) if dirty_shards is None else set(dirty_shards)
+    shards: dict[int, list[tuple[Path, Any]]] = {index: [] for index in indexes}
+    for path, entry in file_cache.items():
+        index = _shard_index(path)
+        if index in shards:
+            shards[index].append((path, entry))
 
-        for index, files in enumerate(shards):
+    written: set[int] = set()
+    for index, shard_entries in shards.items():
+        try:
+            files = {
+                str(path): {
+                    "mtime": entry.mtime,
+                    "size": entry.size,
+                    "entries": [_serialize_usage_entry(item) for item in entry.entries],
+                    "confirmed_offset": entry.confirmed_offset,
+                    "confirmed_prefix_digest": entry.confirmed_prefix_digest.hex(),
+                }
+                for path, entry in shard_entries
+            }
             path = _shard_path(cache_path, index)
             if files:
                 _write_if_changed(
@@ -105,6 +135,8 @@ def flush_caches(
                 )
             else:
                 path.unlink(missing_ok=True)
-    except Exception as exc:
-        if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("failed to write history jsonl cache %s: %s", cache_path, exc)
+            written.add(index)
+        except Exception as exc:
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("failed to write history jsonl cache %s: %s", cache_path, exc)
+    return written

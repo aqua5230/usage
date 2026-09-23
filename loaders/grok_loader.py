@@ -280,6 +280,9 @@ def _iter_update_paths() -> Iterator[Path]:
 
 
 def _usage_update_from_line(line: bytes) -> tuple[datetime, int, dict[str, Any]] | None:
+    # Every usable update must contain the cost key checked below.
+    if b"costUsdTicks" not in line:
+        return None
     try:
         payload: object = json.loads(line)
     except (UnicodeDecodeError, json.JSONDecodeError, RecursionError):

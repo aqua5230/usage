@@ -11,6 +11,7 @@ import json
 import logging
 import math
 import os
+import sys
 import time
 from collections import OrderedDict
 from collections.abc import Iterable
@@ -27,7 +28,7 @@ from loaders.disk_cache_lifecycle import (
 from loaders.disk_cache_lifecycle import (
     flush_caches_on_terminate as _flush_caches_on_terminate,
 )
-from loaders.history_disk_cache import flush_caches, seed_caches
+from loaders.history_disk_cache import _shard_index, flush_caches, seed_caches
 from loaders.jsonl_limits import read_bounded_jsonl_line
 from project_resolver import project_from_encoded_path, resolve_project_name
 from usage_common.time_utils import parse_optional_iso8601_utc
@@ -58,6 +59,7 @@ _HISTORY_JSONL_CACHE_SCHEMA = 3
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
 _disk_cache_dirty = False
+_dirty_cache_shards: set[int] = set()
 _last_disk_cache_flush_at: float | None = None
 _monotonic = time.monotonic
 
@@ -118,9 +120,7 @@ def load_entries(
         if jsonl_paths is None
         else tuple(jsonl_paths)
     )
-    file_cache_snapshot = {
-        str(path): (entry.mtime, entry.size) for path, entry in _file_cache.items()
-    }
+    file_cache_snapshot = {path: (entry.mtime, entry.size) for path, entry in _file_cache.items()}
     for jsonl_path in paths:
         if cutoff_ts is not None:
             try:
@@ -132,9 +132,14 @@ def load_entries(
         project = _project_from_path(jsonl_path)
         _load_file(jsonl_path, project, cutoff, seen, entries)
 
-    if {
-        str(path): (entry.mtime, entry.size) for path, entry in _file_cache.items()
-    } != file_cache_snapshot:
+    current_file_cache = {path: (entry.mtime, entry.size) for path, entry in _file_cache.items()}
+    changed_paths = {
+        path
+        for path in file_cache_snapshot.keys() | current_file_cache.keys()
+        if file_cache_snapshot.get(path) != current_file_cache.get(path)
+    }
+    if changed_paths:
+        _dirty_cache_shards.update(_shard_index(path) for path in changed_paths)
         _disk_cache_dirty = True
         _flush_caches_to_disk()
     elif _disk_cache_dirty:
@@ -145,17 +150,20 @@ def load_entries(
 
 
 def _seed_caches_from_disk() -> None:
-    global _disk_cache_seeded
+    global _disk_cache_dirty, _disk_cache_seeded
 
     if not needs_cache_seed(_disk_cache_seeded):
         return
     _disk_cache_seeded = True
-    seed_caches(
-        HISTORY_CACHE_PATH,
-        _HISTORY_JSONL_CACHE_SCHEMA,
-        _FILE_CACHE_MAXSIZE,
-        _file_cache,
+    _dirty_cache_shards.update(
+        seed_caches(
+            HISTORY_CACHE_PATH,
+            _HISTORY_JSONL_CACHE_SCHEMA,
+            _FILE_CACHE_MAXSIZE,
+            _file_cache,
+        )
     )
+    _disk_cache_dirty = bool(_dirty_cache_shards)
 
 
 def _flush_caches_to_disk(*, force: bool = False) -> None:
@@ -166,13 +174,20 @@ def _flush_caches_to_disk(*, force: bool = False) -> None:
         _last_disk_cache_flush_at,
         _monotonic,
         _DISK_CACHE_FLUSH_INTERVAL_S,
-        lambda: flush_caches(
-            HISTORY_CACHE_PATH,
-            _HISTORY_JSONL_CACHE_SCHEMA,
-            _file_cache,
-        ),
+        _flush_dirty_cache_shards,
         force=force,
     )
+
+
+def _flush_dirty_cache_shards() -> bool:
+    written = flush_caches(
+        HISTORY_CACHE_PATH,
+        _HISTORY_JSONL_CACHE_SCHEMA,
+        _file_cache,
+        set(_dirty_cache_shards),
+    )
+    _dirty_cache_shards.difference_update(written)
+    return not _dirty_cache_shards
 
 
 def flush_caches_on_terminate() -> None:
@@ -304,6 +319,7 @@ def _parse_complete_lines(
     digest: Any,
     confirmed_offset: int,
 ) -> int:
+    seen = {_dedup_key(entry) for entry in parsed_entries}
     while True:
         line_start = int(file.tell())
         line, too_long = read_bounded_jsonl_line(file)
@@ -319,7 +335,12 @@ def _parse_complete_lines(
         digest.update(line)
         confirmed_offset = int(file.tell())
         if parsed_entries_for_line is not None:
-            parsed_entries.extend(parsed_entries_for_line)
+            for entry in parsed_entries_for_line:
+                dedup_key = _dedup_key(entry)
+                if dedup_key in seen:
+                    continue
+                seen.add(dedup_key)
+                parsed_entries.append(entry)
 
 
 def _parse_line(line: str, project: str) -> list[UsageEntry] | None:
@@ -358,10 +379,11 @@ def _parse_line(line: str, project: str) -> list[UsageEntry] | None:
     if isinstance(cwd, str) and cwd:
         project = _project_from_cwd(cwd)
 
-    session_id = _as_str(data.get("sessionId"))
+    session_id = sys.intern(_as_str(data.get("sessionId")))
     message_id = _as_str(message.get("id"))
     request_id = _as_str(data.get("requestId"))
-    model = _as_str(message.get("model")) or "unknown"
+    model = sys.intern(_as_str(message.get("model")) or "unknown")
+    project = sys.intern(project)
     entries: list[UsageEntry] = []
     if input_tokens + output_tokens + cache_creation_tokens + cache_read_tokens:
         entries.append(
@@ -409,7 +431,7 @@ def _parse_line(line: str, project: str) -> list[UsageEntry] | None:
                     session_id=session_id,
                     message_id=message_id,
                     request_id=f"{request_id}#advisor{index}",
-                    model=_as_str(iteration.get("model")) or model,
+                    model=sys.intern(_as_str(iteration.get("model")) or model),
                     input_tokens=advisor_input_tokens,
                     output_tokens=advisor_output_tokens,
                     cache_creation_tokens=advisor_cache_creation_tokens,

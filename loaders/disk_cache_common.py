@@ -12,6 +12,7 @@ import contextlib
 import hashlib
 import json
 import os
+import sys
 import tempfile
 from datetime import datetime
 from pathlib import Path
@@ -43,16 +44,16 @@ def _deserialize_usage_entry(data: dict[str, Any]) -> Any:
 
     return UsageEntry(
         timestamp=datetime.fromisoformat(data["timestamp"]),
-        session_id=data["session_id"],
+        session_id=sys.intern(data["session_id"]),
         message_id=data["message_id"],
         request_id=data["request_id"],
-        model=data["model"],
+        model=sys.intern(data["model"]),
         input_tokens=data["input_tokens"],
         output_tokens=data["output_tokens"],
         cache_creation_tokens=data["cache_creation_tokens"],
         cache_read_tokens=data["cache_read_tokens"],
         cost_usd=data["cost_usd"],
-        project=data["project"],
+        project=sys.intern(data["project"]),
     )
 
 

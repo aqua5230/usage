@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+import sys
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -680,6 +681,24 @@ def _sqlite_token_body(
         f"tool_token_count={input_tokens + output_tokens} event.timestamp={timestamp} "
         f"conversation.id={session_id} model={model}"
     )
+
+
+def test_sqlite_rows_intern_repeated_usage_strings() -> None:
+    body = _sqlite_token_body(
+        session_id="session-sqlite",
+        timestamp="2026-01-01T00:00:00Z",
+        input_tokens=10,
+        output_tokens=2,
+        cached_tokens=1,
+    )
+    metadata = {"session-sqlite": codex_loader._ThreadMetadata(model="gpt-state", cwd="/tmp/demo")}
+
+    first = codex_loader._parse_sqlite_log_row(1, 0, 0, body, metadata)
+    second = codex_loader._parse_sqlite_log_row(2, 0, 0, body, metadata)
+
+    assert first is not None and second is not None
+    for field in ("session_id", "model", "project"):
+        assert getattr(first, field) is getattr(second, field)
 
 
 def test_load_entries_includes_sqlite_logs_when_sessions_dir_is_missing(
@@ -2413,6 +2432,9 @@ def test_usage_entry_round_trip() -> None:
     assert deserialized.timestamp == original.timestamp
     assert deserialized.timestamp.tzinfo == UTC  # Timezone preserved
     assert deserialized.cost_usd is None  # None preserved
+    assert deserialized.session_id is sys.intern(deserialized.session_id)
+    assert deserialized.model is sys.intern(deserialized.model)
+    assert deserialized.project is sys.intern(deserialized.project)
 
 
 def test_disk_cache_seed_loads_on_cold_start(
@@ -2429,6 +2451,7 @@ def test_disk_cache_seed_loads_on_cold_start(
     now = datetime.now(UTC)
     session_path = sessions_dir / "2026-06-24" / "test-session.jsonl"
     session_path.parent.mkdir(parents=True, exist_ok=True)
+    session_path.write_text("", encoding="utf-8")
 
     # Prepare pre-seeded cache with one file
     cache_data = {
@@ -2480,8 +2503,7 @@ def test_disk_cache_seed_loads_on_cold_start(
     # Clear module flag to force seed reload
     monkeypatch.setattr(codex_loader, "_disk_cache_seeded", False)
 
-    # Trigger seed loading by calling load_entries
-    codex_loader.load_entries()
+    codex_loader._seed_caches_from_disk()
 
     # Cache should be seeded from disk
     assert len(codex_loader._jsonl_cache) == 1
