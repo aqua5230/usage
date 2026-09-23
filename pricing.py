@@ -510,6 +510,18 @@ def _fallback_pricing() -> PricingTable:
             "cache_creation_input_token_cost": 12.5e-6,
             "cache_read_input_token_cost": 1e-6,
         },
+        "gpt-6-sol": {
+            "input_cost_per_token": 2e-6,
+            "output_cost_per_token": 10e-6,
+            "cache_creation_input_token_cost": 2.5e-6,
+            "cache_read_input_token_cost": 0.2e-6,
+        },
+        "gpt-6-luna": {
+            "input_cost_per_token": 0.1e-6,
+            "output_cost_per_token": 0.5e-6,
+            "cache_creation_input_token_cost": 0.125e-6,
+            "cache_read_input_token_cost": 0.01e-6,
+        },
         "gpt-5.6-terra": {
             "input_cost_per_token": 2e-6,
             "output_cost_per_token": 12e-6,
