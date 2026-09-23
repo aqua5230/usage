@@ -5,6 +5,27 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.20] - 2026-09-23
+
+### Changed
+- **The menu bar app uses about half the memory and far less CPU per refresh.** Measured on one machine with 1.6 GB of Claude logs and 596 MB of Codex logs: the memory footprint went from 263 MB to about 130 MB, and each refresh from 1.2–1.65 s of CPU to 0.16–0.47 s. Grok's `updates.jsonl` lines are JSON-decoded only when they carry `costUsdTicks` (212 of 22,491 lines), and the whole Grok result is reused while none of its files change. The history cache drops lines repeated within one Claude log (57% of cached entries), shares repeated model, project and session strings, and skips entries whose source file was deleted; only the cache shards that changed are rewritten. Today's and yesterday's totals compare against local day boundaries instead of converting every entry's time zone, and the source scan groups paths by their parts. The first launch after upgrading re-reads the Claude logs once to rebuild the cache.
+- **Generating the HTML report again no longer re-reads every log.** The report's parsers capped their file cache at 512, below a real install's file count, so a sequential scan evicted every file; the cap is now 4096, as in the menu bar's loader. A second load went from 5.0 s to 0.1 s.
+
+### Fixed
+- **Claude spending is no longer undercounted after the app restarts.** The on-disk cache dropped the count of 1-hour cache writes, so after a restart they were priced as 5-minute writes (1.25× input instead of 2×). `usage doctor`'s reconciliation against Claude Code's own cost went from 12% apart to 2%. The Claude cache schema was bumped, so existing caches rebuild with the right figures.
+- **Turning the status line off and on no longer loses the status line you had before installing usage.** The switch parked the live status line under `previousStatusLine`, the key that holds the pre-install backup, so a later uninstall had nothing to restore. It now uses its own key, and uninstalling while the switch is off restores the original too.
+- **Uninstalling restores the Antigravity status line.** `usage unsetup` restored Claude Code, Codex and Grok but left Antigravity pointing at usage's script.
+- **Several directories in `CLAUDE_CONFIG_DIR` no longer stop the menu bar from refreshing.** The history scan assumed exactly one Claude directory and crashed when a comma-separated list named more.
+- **A setting changed during an update check is no longer reverted.** The background update check saved the preferences it had read before its network request, overwriting anything changed meanwhile; on macOS and Windows it now re-reads them first.
+- **The terse-mode and session-resume hooks' built-in fallback text matches the translations.** The fallbacks, shown only when the translation sidecar is missing, had fallen behind `i18n.json`; the English terse reminder also gets back the verb in "Drop filler … and pleasantries". Both hook versions were bumped so installed copies are rewritten.
+
+### Internal
+- **CI checks formatting with `ruff format --check`.** The whole project was reformatted once, and that commit is listed in `.git-blame-ignore-revs`.
+- **The daylight-saving title test passes Windows' type check.** It calls `time.tzset` through `getattr`, since Windows has no `tzset`.
+
+### Docs
+- **Website on phones.** Chinese and Japanese paragraphs are no longer justified at 640px and below, the Homebrew command fits on one line in the install card, and Windows visitors see the Windows download button first.
+
 ## [0.30.19] - 2026-09-23
 
 ### Changed
