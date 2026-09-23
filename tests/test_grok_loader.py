@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from unittest.mock import Mock
 
 import pytest
 
@@ -164,6 +165,33 @@ def test_load_entries_maps_inference_and_looks_up_model_and_project(
     assert second.model == "grok-4.6"
     assert second.project == "usage-grok-project"
     assert [entry.timestamp for entry in entries] == sorted(entry.timestamp for entry in entries)
+
+
+def test_load_entries_reuses_result_until_a_source_changes(
+    grok_paths: tuple[Path, Path],
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    log_path, config_path = grok_paths
+    _write_config(config_path)
+    _write_log(
+        log_path,
+        [_event("2026-08-26T10:24:38.127Z", _SID, "shell.turn.inference_done", _inference_ctx(1))],
+    )
+    updates_path = _updates_path(log_path, _SID)
+    _write_updates(updates_path, [_update("2026-08-26T10:24:38.500Z", 100)])
+    first = grok_loader.load_entries()
+    parse_events = Mock(side_effect=grok_loader._parse_events)
+    monkeypatch.setattr(grok_loader, "_parse_events", parse_events)
+
+    assert grok_loader.load_entries() == first
+    assert parse_events.call_count == 0
+
+    _write_updates(
+        updates_path,
+        [_update("2026-08-26T10:24:38.500Z", 100), _update("2026-08-26T10:24:39.500Z", 200)],
+    )
+    grok_loader.load_entries()
+    assert parse_events.call_count == 1
 
 
 def test_load_entries_uses_model_in_effect_after_mid_session_switch(

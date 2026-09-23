@@ -53,9 +53,36 @@ _UNKNOWN_MODEL = "unknown"
 _COST_USD_PER_TICK = 1e-10
 _UPDATE_METHODS = frozenset({"session/update", "_x.ai/session/update"})
 
+_entries_cache: tuple[tuple[tuple[str, int, int], ...], list[UsageEntry]] | None = None
+
 
 def load_entries(hours_back: int = 0) -> list[UsageEntry]:
     """Return per-request Grok CLI usage, oldest timestamp first."""
+    global _entries_cache
+
+    # A windowed result moves with the clock; only the full history is reusable.
+    if hours_back > 0:
+        return _load_entries(hours_back)
+    signature = _sources_signature()
+    if _entries_cache is None or _entries_cache[0] != signature:
+        _entries_cache = (signature, _load_entries(0))
+    return list(_entries_cache[1])
+
+
+def _sources_signature() -> tuple[tuple[str, int, int], ...]:
+    """Stat every file _load_entries reads; a match means its result still holds."""
+    signature: list[tuple[str, int, int]] = []
+    for path in (GROK_LOG_PATH, GROK_CONFIG_PATH, *_iter_update_paths()):
+        try:
+            st = path.stat()
+        except OSError:
+            signature.append((str(path), -1, -1))
+            continue
+        signature.append((str(path), st.st_mtime_ns, st.st_size))
+    return tuple(signature)
+
+
+def _load_entries(hours_back: int) -> list[UsageEntry]:
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
     if GROK_LOG_PATH.is_file():
         try:
