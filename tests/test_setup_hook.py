@@ -97,6 +97,20 @@ def test_unsetup_restores_grok_status_line(
     assert setup_hook.GROK_SETTINGS.read_text(encoding="utf-8") == original
 
 
+def test_unsetup_restores_agy_status_line(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+) -> None:
+    original = {"statusLine": {"type": "command", "command": "echo original"}}
+    setup_hook.AGY_SETTINGS.parent.mkdir(parents=True)
+    setup_hook.AGY_SETTINGS.write_text(json.dumps(original), encoding="utf-8")
+    monkeypatch.setattr("installer.setup_hook.sys.platform", "darwin")
+
+    assert setup_hook._setup_agy()
+    assert setup_hook.unsetup() == 0
+    assert json.loads(setup_hook.AGY_SETTINGS.read_text(encoding="utf-8")) == original
+
+
 def test_unsetup_restores_backup_and_removes_hook_files(setup_paths: SetupHookPaths) -> None:
     settings = setup_paths.settings
     hook_target = setup_paths.hook_target
@@ -124,6 +138,30 @@ def test_unsetup_restores_backup_and_removes_hook_files(setup_paths: SetupHookPa
     assert not hook_target.exists()
     assert not setup_hook.FORWARDER_TARGET.exists()
     assert not status_file.exists()
+
+
+@pytest.mark.parametrize("enable_again", [True, False])
+def test_statusline_switch_keeps_pre_install_backup_through_unsetup(
+    monkeypatch: pytest.MonkeyPatch,
+    setup_paths: SetupHookPaths,
+    enable_again: bool,
+) -> None:
+    from installer import statusline_settings
+
+    original = {"type": "command", "command": "echo original"}
+    setup_paths.settings.write_text(json.dumps({"statusLine": original}), encoding="utf-8")
+    monkeypatch.setattr(statusline_settings, "_claude_settings_path", lambda: setup_paths.settings)
+    monkeypatch.setattr("installer.setup_hook.is_agy_setup", lambda: False)
+
+    assert setup_hook.setup() == 0
+    assert statusline_settings._disable_statusline_settings() == 0
+    if enable_again:
+        assert statusline_settings._enable_statusline_settings() == 0
+    assert setup_hook.unsetup() == 0
+
+    data = json.loads(setup_paths.settings.read_text(encoding="utf-8"))
+    assert data["statusLine"] == original
+    assert "usage" not in data
 
 
 def test_unsetup_without_install_is_safe_and_is_usage_hook_detects_commands(

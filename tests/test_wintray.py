@@ -2448,6 +2448,38 @@ def test_automatic_update_check_honors_toggle_cache_and_cooldown(
     )
 
 
+def test_automatic_update_check_keeps_preferences_saved_during_network_check(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    stored: dict[str, object] = {}
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+
+    def save(data: dict[str, object]) -> None:
+        stored.clear()
+        stored.update(data)
+
+    def check_while_user_hides_claude(version: str) -> object:
+        _ = version
+        stored["hide_claude_section"] = True
+        return SimpleNamespace(failed=False, release=None)
+
+    monkeypatch.setattr(wintray, "_current_version", lambda: "1.0.0")
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: dict(stored))
+    monkeypatch.setattr(wintray, "_save_preferences", save)
+    monkeypatch.setattr(
+        update_checker, "check_latest_release_result", check_while_user_hides_claude
+    )
+
+    controller._check_update_in_background(
+        manual=False,
+        ignore_cooldown=False,
+        ignore_skipped=False,
+    )
+
+    assert stored["hide_claude_section"] is True
+    assert "last_update_check" in stored
+
+
 def test_automatic_update_check_persists_cache_and_honors_skipped_version(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

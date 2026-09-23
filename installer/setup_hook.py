@@ -83,6 +83,9 @@ BACKUP_KEY = "usage"
 LEGACY_TT_BACKUP_KEY = "tokenTracker"
 LEGACY_BACKUP_KEY = LEGACY_NAME
 PREV_SL_KEY = "previousStatusLine"
+# Where the status-line switch parks the live statusLine while it is off, so it
+# never overwrites the pre-install backup under PREV_SL_KEY.
+DISABLED_SL_KEY = "disabledStatusLine"
 HOOK_VERSION = "1.6"
 FORWARDER_VERSION = "1.1"
 # Antigravity's Go runner hands its status-line command to cmd.exe unquoted, so
@@ -1278,9 +1281,12 @@ def unsetup() -> int:
     if _claude_install_exists():
         settings = _load_settings()
         sl = settings.get("statusLine")
+        backup = settings.get(BACKUP_KEY)
+        parked = backup.pop(DISABLED_SL_KEY, None) if isinstance(backup, dict) else None
+        if sl is None:
+            sl = parked
 
         if _is_usage_hook(sl) or _is_legacy_tt_hook(sl):
-            backup = settings.get(BACKUP_KEY)
             legacy_backup = settings.get(LEGACY_TT_BACKUP_KEY)
             prev = backup.get(PREV_SL_KEY) if isinstance(backup, dict) else None
             if not isinstance(prev, dict) and isinstance(legacy_backup, dict):
@@ -1317,6 +1323,9 @@ def unsetup() -> int:
 
     if CODEX_CONFIG.exists():
         _unsetup_codex()
+
+    if AGY_SETTINGS.exists():
+        _unsetup_agy()
 
     if GROK_SETTINGS.exists():
         _unsetup_grok()

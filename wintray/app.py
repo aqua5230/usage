@@ -1870,6 +1870,8 @@ class _WindowsTrayController:
             return
 
         release = result.release
+        # Re-read: the network check can take seconds, and a toggle saved meanwhile must survive.
+        preferences = _load_preferences()
         preferences["last_update_check"] = update_gate.build_check_cache_entry(
             current_version, release
         )

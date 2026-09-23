@@ -842,6 +842,40 @@ def test_auto_update_disabled_skips_background_check(monkeypatch: pytest.MonkeyP
     assert called is False
 
 
+def test_update_check_keeps_preferences_saved_during_network_check(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from menubar import update as menubar_update
+
+    stored: dict[str, object] = {}
+
+    def save(data: dict[str, object]) -> None:
+        stored.clear()
+        stored.update(data)
+
+    def check_while_user_hides_claude(current_version: str) -> object:
+        _ = current_version
+        stored["hide_claude_section"] = True
+        return SimpleNamespace(failed=False, release=None)
+
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: dict(stored))
+    monkeypatch.setattr(menubar_update, "_save_preferences", save)
+    monkeypatch.setattr(
+        "menubar.app.update_checker.check_latest_release_result",
+        check_while_user_hides_claude,
+    )
+
+    menubar.AppDelegate._check_update_in_background(
+        cast(Any, object()),
+        manual=False,
+        ignore_cooldown=False,
+        ignore_skipped=False,
+    )
+
+    assert stored["hide_claude_section"] is True
+    assert "last_update_check" in stored
+
+
 def test_fresh_auto_update_check_skips_network_request(monkeypatch: pytest.MonkeyPatch) -> None:
     called = False
 
@@ -1105,7 +1139,7 @@ def test_toggle_statusline_preserves_forwarder_settings(
     assert (action, exit_code) == ("uninstall", 0)
     disabled = json.loads(settings.read_text(encoding="utf-8"))
     assert "statusLine" not in disabled
-    assert disabled["usage"]["previousStatusLine"] == original["statusLine"]
+    assert disabled["usage"]["disabledStatusLine"] == original["statusLine"]
 
     action, exit_code = menubar._toggle_statusline_settings()
 

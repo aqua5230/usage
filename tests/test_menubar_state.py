@@ -151,6 +151,21 @@ def test_history_source_tracker_handles_added_and_deleted_files(
     assert scan.claude_paths == (added,)
 
 
+def test_history_scan_merges_every_claude_config_dir(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    claude, _, _ = _patch_history_sources(monkeypatch, tmp_path)
+    second = tmp_path / "second-claude" / "projects"
+    second.mkdir(parents=True)
+    (claude / "a.jsonl").write_text("{}", encoding="utf-8")
+    (second / "b.jsonl").write_text("{}", encoding="utf-8")
+    monkeypatch.setattr(menubar_state, "claude_config_dirs", lambda: [claude.parent, second.parent])
+
+    scan = menubar_state.history_source_scan()
+
+    assert set(scan.claude_paths) == {claude / "a.jsonl", second / "b.jsonl"}
+
+
 def test_history_source_tracker_full_scan_fallbacks(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

@@ -340,8 +340,13 @@ def _history_scan_from_index(index: HistorySourceIndex) -> HistorySourceScan:
         for path, entry in sorted(index.file_stats.items(), key=lambda item: str(item[0]))
     )
     fingerprint = source_fingerprint + file_fingerprint
-    claude_root, sessions_root, archived_root = directory_sources
-    claude_paths = tuple(path for path in paths_by_root[claude_root] if path.suffix == ".jsonl")
+    # CLAUDE_CONFIG_DIR may list several directories, so only the Codex roots are fixed.
+    *claude_roots, sessions_root, archived_root = directory_sources
+    claude_paths = tuple(
+        dict.fromkeys(
+            path for root in claude_roots for path in paths_by_root[root] if path.suffix == ".jsonl"
+        )
+    )
     codex_paths = tuple(
         path
         for path in index.file_stats

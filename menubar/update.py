@@ -101,6 +101,8 @@ def check_update_in_background(
         return
 
     release = check_result.release
+    # Re-read: the network check can take seconds, and a toggle saved meanwhile must survive.
+    prefs = _load_preferences()
     prefs["last_update_check"] = update_gate.build_check_cache_entry(current_version, release)
     _save_preferences(prefs)
 

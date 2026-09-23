@@ -105,6 +105,8 @@ def _sync_grok_statusline(enable: bool) -> None:
 
 
 def _disable_statusline_settings() -> int:
+    from installer import setup_hook
+
     _sync_agy_statusline(False)
     _sync_grok_statusline(False)
     settings = _load_claude_settings()
@@ -114,13 +116,15 @@ def _disable_statusline_settings() -> int:
     if not isinstance(usage_settings, dict):
         usage_settings = {}
         settings["usage"] = usage_settings
-    usage_settings["previousStatusLine"] = settings["statusLine"]
+    usage_settings[setup_hook.DISABLED_SL_KEY] = settings["statusLine"]
     del settings["statusLine"]
     _save_claude_settings(settings)
     return 0
 
 
 def _enable_statusline_settings() -> int:
+    from installer import setup_hook
+
     _sync_agy_statusline(True)
     _sync_grok_statusline(True)
     settings = _load_claude_settings()
@@ -128,25 +132,25 @@ def _enable_statusline_settings() -> int:
         return 0
     raw_usage_settings = settings.get("usage")
     usage_settings = raw_usage_settings if isinstance(raw_usage_settings, dict) else None
-    previous = usage_settings.get("previousStatusLine") if usage_settings is not None else None
+    # Older versions parked the switch's statusLine under previousStatusLine.
+    stash_key = setup_hook.DISABLED_SL_KEY
+    if usage_settings is not None and stash_key not in usage_settings:
+        stash_key = setup_hook.PREV_SL_KEY
+    previous = usage_settings.get(stash_key) if usage_settings is not None else None
     if previous:
         assert usage_settings is not None
         if not _statusline_command_target_exists(previous):
-            del usage_settings["previousStatusLine"]
+            del usage_settings[stash_key]
             if not usage_settings:
                 del settings["usage"]
             _save_claude_settings(settings)
-            from installer import setup_hook
-
             return setup_hook.setup()
         settings["statusLine"] = previous
-        del usage_settings["previousStatusLine"]
+        del usage_settings[stash_key]
         if not usage_settings:
             del settings["usage"]
         _save_claude_settings(settings)
         return 0
-
-    from installer import setup_hook
 
     exit_code = setup_hook.setup()
     if exit_code != 0 and setup_hook.is_agy_setup():
