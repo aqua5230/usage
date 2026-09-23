@@ -5,6 +5,18 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.21] - 2026-09-23
+
+### Changed
+- **The offline price table knows Codex's GPT-6-Sol and GPT-6-Luna.** The live LiteLLM table already priced them; the built-in fallback, used only when that download fails, now carries the same prices, so spending on the two new models is not left out while offline.
+
+### Fixed
+- **Grok's status line works on Windows.** Grok on Windows starts the whole `[ui.status_line] command` as one program path, so usage's "python.exe script.py" command failed with `os error 123`. usage now writes `~/.grok/usage-statusline-grok.cmd` and points the command at it; existing installs are switched over by the self-repair check. macOS is unchanged.
+- **usage no longer backs up its own older Grok status line as yours.** Setup compared the exact command, so a usage row written for another Python path was saved as the user's status line and brought back on uninstall. It now recognizes any row that points at usage's script or wrapper, and uninstall drops such a backup instead of restoring it.
+
+### Docs
+- **Windows first launch.** The README and website explain how to get past SmartScreen's "Windows protected your PC" prompt: More info → Run anyway.
+
 ## [0.30.20] - 2026-09-23
 
 ### Changed

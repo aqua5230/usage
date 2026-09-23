@@ -4,6 +4,18 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.21] - 2026-09-23
+
+### 變更
+- **離線價目表認得 Codex 的 GPT-6-Sol 與 GPT-6-Luna。** 線上的 LiteLLM 價目表本來就有這兩個模型；內建的備用表只在下載失敗時使用，現在也補上相同價格，離線時這兩個新模型的花費不會漏算。
+
+### 修正
+- **Windows 上 Grok 的狀態列可以正常顯示。** Grok 在 Windows 把 `[ui.status_line] command` 整串當成一個程式路徑啟動，usage 寫的「python.exe 腳本.py」因此報 `os error 123`。現在 usage 會寫一個 `~/.grok/usage-statusline-grok.cmd`，command 只指向它；已安裝的會由自我修復檢查自動換成新格式。macOS 不變。
+- **usage 不再把自己舊版的 Grok 狀態列當成你的備份。** 安裝時比對整串指令，Python 路徑一變，usage 寫的舊指令就被存成「使用者原本的狀態列」，解除安裝時又被還原回去。現在只要指令指到 usage 的腳本或包裝檔就認得是自己的，解除安裝時這種備份會直接移除，不再還原。
+
+### 文件
+- **Windows 第一次執行。** README 與官網補上 SmartScreen 跳出「Windows 已保護您的電腦」時的放行步驟：按「其他資訊」→「仍要執行」。
+
 ## [0.30.20] - 2026-09-23
 
 ### 變更
