@@ -846,6 +846,89 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.9",
+          "period": "2026-09-23",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "輸入提示詞可用 @ 指名子代理，自動補齊快速對話",
+                "en": "Mention Subagents with @ in Prompts for Fast Messaging with Autocomplete"
+              },
+              "body": {
+                "zh-TW": "當你同時開了好幾個背景工作幫手，想要單獨插話交辦新任務，現在只要在輸入框打個 @ 符號就能辦到。現在新增了 `@<subagent> <message>` 提示詞語法，能直接把訊息發給指定的子代理（subagent，在背景獨立處理特定任務的助理）。打字時只要輸入 @ 就會跳出自動補齊選單，清單會列出目前正在執行以及已經完成的子代理名稱。例如研究助理剛查完資料，你直接打 `@research 幫我整理成三點結論` 就能繼續追問，不必手動切換對話。⟦彷彿在專案群組裡打出標註符號，選單立刻列出在線與已完工的全部同事，點名就能直接交代待辦事項。⟧",
+                "en": "When running multiple background helpers and wanting to chime in with a new task, you can now do so simply by typing an @ symbol in the input box. The newly added `@<subagent> <message>` prompt syntax lets you send messages directly to a specific subagent (an assistant handling dedicated tasks in the background). Typing @ brings up an autocomplete menu listing the names of both running and completed subagents. For example, right after a research assistant finishes gathering info, you can type `@research summarize this into three key takeaways` to follow up without manually switching conversations. ⟦Think of tagging someone in a project group chat, where a popup menu lists all active and finished colleagues so you can assign action items right away.⟧"
+              },
+              "original": "Added `@<subagent> <message>` prompt syntax to send a message directly to a subagent conversation, with autocomplete listing running and completed subagents"
+            },
+            {
+              "title": {
+                "zh-TW": "Vim 模式支援數字倍數前綴，多行與區塊操作一氣呵成",
+                "en": "Vim Mode Adds Numeric Count Multipliers for Multi-Line and Block Operations in One Go"
+              },
+              "body": {
+                "zh-TW": "習慣在終端機裡用 Vim 快速修整文字的讀者，現在不用再狂按同一組快捷鍵了。編輯器現在支援數字倍數乘數，在一般模式（Normal mode，游標移動與執行指令的狀態）以及選取模式中，你可以在動作、移動與運算子前面加上次數。常用的整行刪除、貼上、復原、游標跳轉到指定行或選取多層括號區塊，都能直接加倍執行：\n\n```\n3dw    # 刪除接下來的 3 個單字\n2d3w   # 執行 2 次刪除 3 個單字\n3dd    # 刪除 3 行\n3x     # 刪除 3 個字元\n3rX    # 將接下來 3 個字元替換為 X\n3p     # 連續貼上 3 次\n3u     # 連續復原 3 次動作\n5G     # 移動至第 5 行（支援 [count]G、gg 與 $）\n2di(   # 刪除外層第 2 層括號內的文字物件\n```\n\n⟦如同給常用指令蓋上倍數印章，以前得連按好幾次按鍵的操作，現在敲個數字加指令就能一口氣整批執行完畢。⟧",
+                "en": "If you are used to editing text quickly with Vim in the terminal, you no longer have to mash the same shortcuts repeatedly. The editor now supports numeric count multipliers. In Normal mode (the state for moving the cursor and running commands) and Visual mode, you can prefix actions, motions, and operators with a count. Common operations like deleting whole lines, pasting, undoing, jumping to a specific line, or selecting nested bracket blocks can now run in multiples:\n\n```\n3dw    # Delete the next 3 words\n2d3w   # Run delete 3 words 2 times\n3dd    # Delete 3 lines\n3x     # Delete 3 characters\n3rX    # Replace the next 3 characters with X\n3p     # Paste 3 times consecutively\n3u     # Undo 3 actions consecutively\n5G     # Jump to line 5 (supports [count]G, gg, and $)\n2di(   # Delete the inner text object inside the 2nd outer bracket level\n```\n\n⟦Picture stamping your frequent commands with a multiplier mark, turning repeated keystrokes into a single batch execution with just a number and a key.⟧"
+              },
+              "original": "Added Vim numeric count multipliers so counts apply to operators, motions, and actions in Normal and Visual modes, including `3dw`, `2d3w`, `3dd`, `3x`, `3rX`, `3p`, `3u`, `[count]G`/`gg`/`$`, and counted text objects such as `2di(`"
+            },
+            {
+              "title": {
+                "zh-TW": "無頭模式守護程序正常退場，背景耗時任務不再被提早中斷",
+                "en": "Headless Daemons Exit Cleanly and Long Background Tasks Run to Completion"
+              },
+              "body": {
+                "zh-TW": "用腳本串接命令列工具來自動跑任務時，最怕背景工作沒跑完就被砍掉、或是執行結束後卡住不放。在以 -p 或 --prompt 執行的無頭模式（headless，沒有終端機畫面的自動執行模式）下，以前程式退出後常殘留背景守護程序。這會導致讀取輸出的外部腳本一直等不到結尾訊號而卡死，現在常駐程序會在執行結束時確實終止。另外，以前助理只要閒置約 5 秒，就會誤把還在跑的背景任務直接取消；現在會持續等待背景任務完成，最長可等到 --print-timeout 指定的期限，上限為 30 分鐘。⟦跟自動化產線收工一樣，系統會等手上最後一件耗時組裝確實完工才打卡，下班時也會把廠房電源全數關閉不留尾巴。⟧",
+                "en": "When scripting command-line tools to automate tasks, you never want background jobs killed prematurely or hanging indefinitely after execution finishes. In headless mode (an automated execution mode without a terminal UI) run with -p or --prompt, background daemon processes previously lingered after exit. This caused external scripts reading CLI output to hang while waiting for an EOF signal, but daemons now terminate cleanly when the run ends. Additionally, when the agent sat idle for about 5 seconds, it previously cancelled still-running background tasks by mistake. Runs now keep waiting for background tasks until the --print-timeout deadline, capped at 30 minutes. ⟦Just like wrapping up an automated assembly line, the system waits for the last time-consuming build to finish before clocking out, completely powering down the workshop without leaving anything behind.⟧"
+              },
+              "original": "Fixed headless (`-p` / `--prompt`) runs leaving daemon background processes running after exit, which could hang scripts reading the CLI's output until end-of-file; daemon processes now terminate when the run ends\nFixed headless (`-p` / `--prompt`) runs cancelling still-running background tasks about 5 seconds after the agent went idle; runs now wait for background tasks until the `--print-timeout` deadline, up to a 30-minute cap"
+            },
+            {
+              "title": {
+                "zh-TW": "修復對話歷史資料庫損毀風險，改善上下文壓縮與串流穩定度",
+                "en": "Fix History Database Corruption Risks, Context Compaction, and Streaming Stability"
+              },
+              "body": {
+                "zh-TW": "當你同時開啟多個終端機視窗、或是進行超長篇對話時，底層資料庫與連線都不再無預警出錯。以前多個處理程序同時存取同一個對話歷史資料庫時，檢查寫入權限的動作可能會悄悄丟失檔案鎖（file lock，防止多個程式同時寫入同一檔案的鎖定機制），造成資料庫損壞風險。當對話過長觸發上下文壓縮（context compaction，自動濃縮歷史以節省空間的機制）時，部分情境下用於建立檢查點的工具設定曾遭到拒絕而導致壓縮失敗。模型串流回傳資料時，要是封包缺少外層回應信封，先前會觸發後端當機並以連線錯誤終止工作階段。現在這些資料庫鎖定、壓縮檢查點與串流封包解析問題都已修復。",
+                "en": "When opening multiple terminal windows at once or having very long conversations, underlying databases and connections no longer fail unexpectedly. When multiple processes accessed the same conversation history database concurrently, checking write permissions previously risked silently dropping file locks (a locking mechanism preventing multiple programs from writing to the same file at once), creating a database corruption risk. When long chats triggered context compaction (a mechanism that summarizes history to save space), tool configurations used for compaction checkpoints were rejected in certain scenarios, causing compaction to fail. When the model streamed response chunks without an outer response envelope, it previously triggered a backend crash that terminated the session with connection errors. These database locking, compaction checkpoint, and stream packet parsing issues are now fixed."
+              },
+              "original": "Fixed a conversation-history database corruption risk where checking the database file for write access could silently drop file locks held by concurrent CLI processes on the same file\nFixed context compaction failing when the tool configuration used for compaction checkpoints was rejected in certain scenarios\nFixed a backend crash when a streamed model response chunk arrived without its response envelope, which terminated the session with connection errors"
+            },
+            {
+              "title": {
+                "zh-TW": "Markdown 跨行檔案連結不再破版，符號連結正確顯示名稱",
+                "en": "Markdown Multi-Line File Links No Longer Break Alignment, Code Links Show Clean Text"
+              },
+              "body": {
+                "zh-TW": "在終端機裡查看模型產出的表格與程式碼清單時，畫面排版現在變得整齊乾淨。以前表格儲存格如果包含換行折疊的檔案連結，整張 Markdown 表格的欄位對齊就會歪掉破版；現在即使連結文字跨行折疊，欄位依然能維持精確對齊。另外，指向函式或類別等程式碼符號的檔案連結，過去常遺失自訂顯示文字，直接把長長一串原始檔案路徑印出來；現在修復後會正常顯示原本的描述文字。⟦就像排版整齊的型錄表格，即使品名附帶超連結且折成兩行，整欄格線依然筆直對齊，按鈕上也好好印著簡潔名稱而非冗長路徑。⟧",
+                "en": "When viewing model-generated tables and code listings in the terminal, the layout is now clean and tidy. Previously, if a table cell contained a file link that wrapped across lines, the column alignment of the entire Markdown table would break. Even when link text wraps across multiple lines, table columns now maintain precise alignment. Additionally, file links pointing to code symbols like functions or classes often dropped their custom display text, rendering a long raw file path instead. This is now fixed so the intended descriptive text displays properly. ⟦A neatly formatted catalog table keeps its grid lines perfectly straight even when product links wrap across two lines, showing clean labels on buttons instead of raw file paths.⟧"
+              },
+              "original": "Fixed markdown table column alignment when a table cell contains file links that wrap across lines\nFixed markdown file links to code symbols dropping their display text and rendering the raw path instead"
+            },
+            {
+              "title": {
+                "zh-TW": "登入行為一致化，未完成的企業驗證憑證自動清除",
+                "en": "Consistent Sign-In Behavior and Automatic Cleanup for Incomplete Enterprise Credentials"
+              },
+              "body": {
+                "zh-TW": "在不同登入方式之間切換、或是驗證中途斷線時，帳號狀態處理現在更順手。使用 GEMINI_API_KEY 環境變數啟動的工作階段，過去與一般登入路徑存在些許行為差異，現在已修復並減少兩者的行為落差。另外在進行企業帳號登入時，若在挑選授權或專案之前就關閉瀏覽器視窗，以前會殘留卡住的局部憑證（credential，記錄登入身分的授權資料）而無法重試。現在會自動清除未完成的殘餘憑證，讓你直接乾淨重試登入。⟦恰似訪客在發卡機前登記，若手續辦到一半中途離開，機器會自動收回未完成的臨時卡，方便下一回重新乾淨取證。⟧",
+                "en": "Handling account states is now smoother when switching between sign-in methods or disconnecting mid-authentication. Sessions started with the GEMINI_API_KEY environment variable previously had slight behavior discrepancies compared to the standard sign-in path, which are now resolved. Furthermore, during enterprise account sign-ins, closing the browser window before selecting a license or project previously left behind stuck partial credentials (authorization data recording sign-in identity) that blocked retries. Incomplete leftover credentials are now cleared automatically so you can retry sign-in cleanly. ⟦When a visitor registers at a badge kiosk and walks away halfway through, the machine retrieves the unfinished temporary card so the next attempt can start fresh.⟧"
+              },
+              "original": "Improved `GEMINI_API_KEY` sessions to reduce behavior discrepancies with the non-API-key sign-in path\nFixed incomplete enterprise sign-ins (for example closing the browser window before finishing license or project selection) leaving behind a stuck partial credential; such credentials are now cleared automatically so sign-in can be retried cleanly"
+            },
+            {
+              "title": {
+                "zh-TW": "成品檢視器顯示平移提示，回溯面板自動聚焦最新步驟",
+                "en": "Artifact Viewer Shows Pan Hints, Rewind Panel Auto-Focuses Latest Step"
+              },
+              "body": {
+                "zh-TW": "在終端機裡查看生成產物或回頭翻找對話歷程時，多處介面細節變得更順手。當大型圖表超出視窗寬度時，成品檢視器（artifact viewer，瀏覽產出圖表與文件的介面）會在底部顯示向左或向右平移的提示。開啟 /rewind 回溯面板時，各步驟會標上相對時間，並在面板打開時自動聚焦在最新步驟。在指令授權方面，白名單建議現在能精準辨識 jj config 與 jj op 子指令，方便你直接設定永久允許。瀏覽器隨行頁面的分頁標題也修正為大寫縮寫的 Antigravity CLI。這些介面與指令辨識的修整，讓日常瀏覽圖表與回溯操作更俐落。",
+                "en": "Several UI details are now smoother when reviewing generated artifacts or browsing past conversation history in the terminal. When a wide diagram overflows the window width, the artifact viewer (an interface for browsing generated diagrams and documents) shows a Left/Right pan hint in the footer. Opening the /rewind panel displays relative timestamps for each step and automatically focuses on the most recent step when the panel opens. For command authorization, allow-listing suggestions now accurately recognize jj config and jj op subcommands when offering to always allow a command. The browser companion page title has also been corrected to the capitalized acronym Antigravity CLI. These interface and command recognition refinements make viewing diagrams and rewinding history much crisper."
+              },
+              "original": "Improved the artifact viewer to show a Left/Right pan hint in the footer when a wide diagram overflows the window\nImproved `/rewind` to show a relative timestamp for each step and to focus the most recent step when the panel opens\nImproved command allow-listing suggestions to recognize `jj config` and `jj op` subcommands when offering to always allow a command\nFixed the browser companion page title to read `Antigravity CLI` instead of `Antigravity Cli`"
+            }
+          ]
+        },
+        {
           "version": "1.2.8",
           "period": "2026-09-22",
           "items": [
@@ -1030,78 +1113,6 @@
                 "en": "Previously, launching the CLI on your computer could inadvertently interfere with desktop app state, causing pinned conversations to be unpinned or read conversations to be marked as unread. This issue has now been resolved, ensuring that starting the CLI will no longer unintentionally modify conversation read flags or pinned states in the desktop application."
               },
               "original": "Fixed starting the CLI unpinning conversations or marking them unread in the desktop app"
-            }
-          ]
-        },
-        {
-          "version": "1.2.6",
-          "period": "2026-09-18",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "遠端操控正式推出，隨時隨地跨裝置同步接手對話",
-                "en": "Remote Control Officially Launches for Cross-Device Session Handoff"
-              },
-              "body": {
-                "zh-TW": "想暫時離開電腦又想隨時盯緊 AI 的執行進度，現在你可以直接用另一台裝置接手。⟦宛如客廳電視遊樂器開啟跨裝置鏡射，在平板完成配對後，即使走到廚房也能同步觀看畫面並直接操作控制器；退出連線或關機時通道也會立即關閉以保安全。⟧你在開啟工具時加上 `--remote-control` 旗標，或在對話中輸入 `/remote-control` 指令，就能建立專屬連線，從手機或平板即時跟隨與控制終端機。輸入 `/remote-control off` 或關閉工作階段（session）時，系統會自動拆除通道並註銷裝置清單。這項連線也修好了權限繼承問題，遠端發起的指令會完整套用原本設定的權限模式、循環模式與檔案存取授權；即使資料目錄名稱不同，配套介面也能如實呈現豐富的產物卡片。",
-                "en": "If you want to step away from your computer while keeping a close eye on AI progress, you can now take over directly from another device. ⟦Just like enabling cross-device mirroring on a living room console, where pairing with a tablet lets you watch the screen and operate the controller even while walking into the kitchen, with the tunnel immediately closing upon disconnecting or shutting down for safety.⟧ By adding the `--remote-control` flag when launching the tool or typing the `/remote-control` command in a conversation, you can create a dedicated connection to follow and control the terminal in real time from a phone or tablet. Typing `/remote-control off` or closing the session automatically tears down the tunnel and unregisters the device list. This connection also fixes permission inheritance issues, ensuring commands initiated remotely fully inherit the original permission mode, cycle mode, and file access grants. Even when data directory names differ, the companion interface faithfully renders rich artifact cards."
-              },
-              "original": "Added Remote Control (start a connection via `--remote-control` startup flag or `/remote-control` slash command) to create a session-scoped remote connection for following and controlling your active terminal session from another device. Typing `/remote-control off` or closing the session automatically tears down the tunnel and unregisters the device from the active Remote Control session list.\nFixed turns triggered from a connected Remote Control session or running across secondary workspaces executing without the CLI session's active permission mode, cycle mode, and non-workspace file access grants.\nFixed artifacts in the Remote Control companion rendering as plain `<name>.md` file links instead of rich artifact cards when the CLI's application data directory differs from the default bundle name."
-            },
-            {
-              "title": {
-                "zh-TW": "無頭模式解除執行時限，背景伺服器常駐且錯誤排查更精準",
-                "en": "Headless Mode Removes Execution Time Limits, Keeps Background Servers Running, and Improves Error Diagnostics"
-              },
-              "body": {
-                "zh-TW": "把耗時的繁重任務交給自動化腳本執行時，無頭模式（headless，沒有終端機視覺介面的執行模式）現在不會因為時間到了就強制中斷。⟦恰如工廠在夜間啟動無人值守的自動化流水線，只要不設關機定時器，機台就會耐心運轉直至所有工件加工完畢；若是途中遇上原料斷供或故障，控制面板立刻印出含錯誤代碼的結構化清單。⟧使用 `-p` 或 `--prompt` 執行時，預設逾時已從 5 分鐘調整為無限制，讓耗時較長的任務能一路執行到回覆完畢，除非手動加上 `--print-timeout` 參數。在具備 `GEMINI_API_KEY` 的工作階段中，背景伺服器指令也會在回合結束後保持運作。此外，當因 API 失敗中斷時，CLI 在標準錯誤輸出 `AGY_ERROR: {...}` JSON 紀錄，詳列標準狀態、HTTP 或 gRPC 錯誤代碼、是否可重試與錯誤識別碼，並將結束代碼改為 `3`。",
-                "en": "When handing off time-consuming heavy tasks to automation scripts, headless mode no longer forcibly terminates when time runs out. ⟦Just like starting an unattended automated assembly line in a factory at night, where machines run patiently until all workpieces are processed unless a shutdown timer is set, and the control panel immediately prints a structured list with error codes if materials run out or a breakdown occurs midway.⟧ When running with `-p` or `--prompt`, the default timeout has been changed from 5 minutes to unlimited, allowing long-running tasks to execute until the response finishes unless the `--print-timeout` parameter is passed manually. In sessions with `GEMINI_API_KEY`, background server commands also remain running after the turn ends. Additionally, when terminated due to an API failure, the CLI prints an `AGY_ERROR: {...}` JSON record to standard error detailing canonical status, HTTP or gRPC error codes, retryability, and error IDs, while updating the exit code to `3`."
-              },
-              "original": "Changed the default timeout for headless (`-p` / `--prompt`) runs from 5 minutes to unlimited so long-running agent turns run until the response completes unless `--print-timeout` is passed explicitly, and enabled daemon background commands in headless `GEMINI_API_KEY` sessions so background servers stay running after the turn finishes.\nImproved headless (`-p` / `--prompt`) error reporting when a turn terminates on an agent or model API failure: the CLI now prints a structured `AGY_ERROR: {...}` JSON line on stderr with canonical status, HTTP or gRPC error code, retryability, and error ID (including HTTP status mapping for `GEMINI_API_KEY` SDK errors) and exits with code `3` instead of `1`."
-            },
-            {
-              "title": {
-                "zh-TW": "編輯器游標支援標點斷詞，路徑與參數修改更俐落",
-                "en": "Editor Cursor Supports Punctuation Boundaries for Snappier Path and Flag Editing"
-              },
-              "body": {
-                "zh-TW": "鍵盤游標在提示詞編輯器中穿梭時，單詞跳轉與文字刪除變得更加細膩。以前按下單詞跳轉快捷鍵時，游標只會在空格處停下，如果遇到用斜線或符號連接的長網址，一跳就會衝過頭，刪除時也會把整串路徑一口氣刪光。⟦這就像長途列車原本只能在縣市大站停靠，現在每一處轉運站的交接月台都能精準煞停，讓你能隨心所欲單獨檢視或卸下某個特定車廂。⟧現在系統改進了分詞規則，游標移動快捷鍵（如 `Alt+F`、`Alt+B` 以及方向鍵組合）遇到標點符號時都會主動停下。單詞刪除鍵（如 `Ctrl+W`、`Alt+Backspace` 和 `Alt+D`）同樣會在標點邊界煞停。無論是檔案路徑中的各層目錄、網址或是各項參數設定，你都能精準按節跳轉或逐步刪除。",
-                "en": "Word navigation and text deletion have become much more refined when moving the keyboard cursor through the prompt editor. Previously, when pressing word-navigation shortcuts, the cursor only stopped at whitespace, causing it to overshoot long URLs joined by slashes or symbols and wipe out entire path strings when deleting. ⟦This is like a long-distance train that could only stop at major city stations, but can now halt precisely at transfer platforms at every transit hub, letting you inspect or detach a specific railcar at will.⟧ The system has now improved word boundary rules so cursor movement shortcuts (such as `Alt+F`, `Alt+B`, and arrow key combinations) actively stop at punctuation marks. Word deletion shortcuts (such as `Ctrl+W`, `Alt+Backspace`, and `Alt+D`) likewise stop at punctuation boundaries. Whether dealing with directory levels in file paths, URLs, or various parameter flags, you can now navigate precisely by segment or delete step by step."
-              },
-              "original": "Improved word-wise cursor movement (`Alt+F`, `Alt+B`, and `Ctrl`/`Alt`+Arrow keys) and word deletion (`Ctrl+W`, `Alt+Backspace`, and `Alt+D`) in the prompt editor to stop at punctuation boundaries instead of only whitespace, making it easy to step through or delete individual segments of file paths, URLs, and flags."
-            },
-            {
-              "title": {
-                "zh-TW": "全螢幕產物檢視器純文字複製，不再誤選行號與留白",
-                "en": "Full-Screen Artifact Viewer Copies Plain Text Without Accidentally Selecting Line Numbers and Padding"
-              },
-              "body": {
-                "zh-TW": "滑鼠在全螢幕產物檢視器中拖曳選取時，複製出來的內容不再夾帶多餘雜訊。以前只要滑鼠拖曳過螢幕，系統就會連同最左側的行號邊緣欄以及右側的尾隨間距一併選入，貼上時還得手動刪除行號。現在這個問題已經修好，拖曳只會反白並複製文件本身的文字內容；你還能隨時按下 `Ctrl+C` 重新複製當前選取的範圍、按 `Esc` 清除選取，或是使用 `Shift` 鍵搭配拖曳來保留原生終端機的選取方式。",
-                "en": "When dragging to select with the mouse in the full-screen artifact viewer, copied content no longer includes unwanted noise. Previously, dragging across the screen would capture the leftmost line-number gutter along with trailing padding on the right, requiring you to manually delete line numbers after pasting. This issue has now been fixed: dragging highlights and copies only the document text content itself. You can also press `Ctrl+C` at any time to re-copy the active selection, press `Esc` to clear the selection, or hold `Shift` while dragging to retain native terminal selection."
-              },
-              "original": "Fixed text selection in the full-screen artifact viewer capturing the line-number gutter and trailing padding; dragging across the viewer now highlights and copies only the document text, with `Ctrl+C` to re-copy an active selection, `Esc` to clear it, and `Shift`+drag for native terminal selection."
-            },
-            {
-              "title": {
-                "zh-TW": "執行中切換模型改為依序排隊，進行中對話不再中途遭換",
-                "en": "Mid-Run Model Switches Now Queue in Order Without Swapping In-Flight Turns"
-              },
-              "body": {
-                "zh-TW": "趁著 AI 正在回答問題時提前輸入下一句指示並指定模型，現在系統會乖乖排隊而不會打亂現狀。以前在回合運作中途輸入 `/model <name> <prompt>` 指令，系統會立刻切換執行中的模型，導致正在產出的內容中途被換掉。這個問題已經修好，單次模型切換現在會耐心等待，直到該筆排隊的提示詞正式開始執行時才會切換，確保當前進行中的回合與更早排隊的提示詞，都能完整使用工作階段（session）原本的模型順利跑完。",
-                "en": "When entering a subsequent instruction with a specified model while the AI is actively answering, the system now queues it properly without disrupting ongoing work. Previously, submitting the `/model <name> <prompt>` command midway through a running turn would immediately switch the active model, causing in-flight generations to be swapped mid-stream. This issue has now been fixed: one-shot model switches now wait patiently until the queued prompt begins executing, ensuring both the currently running turn and any earlier queued prompts finish completely on the session's original model."
-              },
-              "original": "Fixed submitting `/model <name> <prompt>` while a turn is already running switching the active model immediately in the middle of the in-flight turn; the one-shot model switch now waits until the queued prompt begins executing so the running turn and any earlier queued prompts finish on the session's original model."
-            },
-            {
-              "title": {
-                "zh-TW": "超大變更不撐爆對話儲存，倒帶復原不再誤覆寫成果",
-                "en": "Oversized Edits No Longer Exceed Session Storage, and Rewind Reverts Avoid Overwriting Work"
-              },
-              "body": {
-                "zh-TW": "遇到超大檔案變更或需要倒帶復原進度時，工作階段（session）的儲存與工作區狀態現在更加穩固。⟦宛如厚重帳本在歸檔龐大資料時，只記錄增減行數與摘要而省略整份原始收據，避免抽屜爆滿被整箱清空；翻查紀錄時也會精準比對目標頁數，不再盲目拿過期的舊存根來覆寫現狀。⟧以前當檔案修改的差異內容大於 1 MiB 時，會因超出對話儲存上限而導致整個工作階段被強制清空。現在超大編輯會保留行數變更統計，並自儲存歷程中省略龐大的原始差異內容，在執行 `/rewind` 時也會直接略過省略部分。此外，過去使用 `/rewind` 進行對話復原或建立分支時，若略過了近期的快照，系統可能會倒退掃描至過舊的工作區快照，默默覆寫保留的修改；現在尋找快照會從目標步驟向前搜尋，若無較新快照則採用逐步復原重播作為備援。",
-                "en": "When encountering massive file changes or rewinding progress, session storage and workspace states are now significantly more stable. ⟦Just like a thick ledger archiving voluminous records by logging only line counts and summaries while omitting bulky raw receipts to prevent overflowing drawers from being dumped out entirely, and referencing precise target page numbers during audits rather than blindly overwriting the present with outdated stubs.⟧ Previously, when file modification diffs exceeded 1 MiB, exceeding the conversation storage limit would force-clear the entire session. Oversized edits now preserve line-change statistics while omitting the massive raw diff content from stored history, and `/rewind` directly skips elided diffs during reverts. Additionally, when using `/rewind` for conversation reverts or forks in the past, skipping recent snapshots could cause the system to sweep backward to an outdated workspace snapshot and silently overwrite kept modifications. Snapshot lookup now sweeps forward from the target step, falling back to step-by-step revert replay when no newer snapshot exists."
-              },
-              "original": "Fixed file edits with diffs larger than 1 MiB exceeding the conversation storage limit and force-clearing the session; oversized edits now preserve their line-change statistics while omitting the raw diff body from stored conversation history and skipping the elided diff during `/rewind` reverts.\nFixed `/rewind` conversation reverts and forks sweeping backward to an older workspace snapshot when recent snapshot commits were skipped, which could silently overwrite kept work; snapshot lookup now sweeps forward from the target step and falls back to step-by-step revert replay when no later snapshot exists."
             }
           ]
         }
