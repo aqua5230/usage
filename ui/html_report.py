@@ -569,7 +569,9 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
     cost_usd = float(summary["cost_usd"])
     total_days = int(summary["total_days"])
     cost_main, cost_sub = _cost_value(cost_usd, lang)
-    tokens_sub = f"≈ {_fmt_tokens(total_tokens)}"
+    # 大字只放約略值；精確值和漲跌幅是小字，一段一行（CSS 用 pre-line 換行），
+    # 跟花費卡同一個排法。
+    tokens_sub = f"{total_tokens:,}"
 
     if comparison.get("has_prev"):
         vs_prev_label = _t(lang, "kpi_vs_prev_period")
@@ -577,10 +579,10 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
             total_tokens, float(comparison.get("prev_tokens", 0)), vs_prev_label
         )
         if tokens_delta:
-            tokens_sub = f"{tokens_sub} · {tokens_delta}"
+            tokens_sub = f"{tokens_sub}\n{tokens_delta}"
         cost_delta = _delta_sub(cost_usd, float(comparison.get("prev_cost", 0)), vs_prev_label)
         if cost_delta:
-            cost_sub = f"{cost_sub} · {cost_delta}" if cost_sub else cost_delta
+            cost_sub = f"{cost_sub}\n{cost_delta}" if cost_sub else cost_delta
 
     unpriced_tokens = sum(
         int(model["tokens"])
@@ -589,10 +591,10 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
     )
     if unpriced_tokens:
         cost_unpriced = _t(lang, "kpi_cost_unpriced", tokens=_fmt_tokens(unpriced_tokens))
-        cost_sub = f"{cost_sub} · {cost_unpriced}" if cost_sub else cost_unpriced
+        cost_sub = f"{cost_sub}\n{cost_unpriced}" if cost_sub else cost_unpriced
 
     cards: list[tuple[str, str, str]] = [
-        (_t(lang, "kpi_tokens"), f"{total_tokens:,}", tokens_sub),
+        (_t(lang, "kpi_tokens"), f"≈ {_fmt_tokens(total_tokens)}", tokens_sub),
         (_t(lang, "kpi_cost"), cost_main, cost_sub),
     ]
 

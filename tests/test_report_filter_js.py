@@ -522,7 +522,8 @@ for (const groupIndex of [1, 2, 3]) {
 }
 rangeEnv.groups[0].fire('click');
 window.usageReportFilter.applyBounds(rangeSummary.bounds);
-assert.equal(rangeEnv.cards.tokens.querySelector('b').textContent, '50');
+assert.equal(rangeEnv.cards.tokens.querySelector('b').textContent, '≈ 50');
+assert.equal(rangeEnv.cards.tokens.querySelector('i').textContent.split('\n')[0], '50');
 assert.equal(rangeEnv.cards.cost.querySelector('b').textContent, '$5.00');
 const sumVisible = (rows, className) => rows
   .map((row) => row.querySelector(className).textContent)

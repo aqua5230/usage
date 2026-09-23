@@ -660,13 +660,13 @@ REPORT_FILTER_JS = r"""(() => {
 
   function updateSummary(summary) {
     const tokenDelta = deltaText(summary.tokens, summary.previousTokens, summary.hasPrevious);
-    const tokenSub = [`≈ ${formatTokens(summary.tokens)}`, tokenDelta].filter(Boolean).join(' · ');
+    const tokenSub = [formatInteger(summary.tokens), tokenDelta].filter(Boolean).join('\n');
     const costDelta = deltaText(summary.cost, summary.previousCost, summary.hasPrevious);
     const unpriced = summary.unpricedTokens
       ? shareConfig.costUnpriced.replace('{tokens}', formatTokens(summary.unpricedTokens))
       : '';
-    updateCard('tokens', formatInteger(summary.tokens), tokenSub);
-    updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join(' · '));
+    updateCard('tokens', `≈ ${formatTokens(summary.tokens)}`, tokenSub);
+    updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join('\n'));
     updateCard('active', shareConfig.kpiActiveValue
       .replace('{active}', summary.activeDays)
       .replace('{total}', summary.totalDays), '');

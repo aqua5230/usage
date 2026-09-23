@@ -176,9 +176,9 @@ h1{
 :where(html[data-theme="light"]) .share-trigger:hover{border-color:var(--text-soft)}
 .share-trigger:focus-visible,.share-close:focus-visible,.share-action:focus-visible,.rank-line[tabindex]:focus-visible{outline:2px solid var(--cost);outline-offset:2px}
 .cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin:0 0 16px;padding:0;border:0;background:transparent}
-/* 三列固定為「標題／大數字／小字」。第一張卡的 b 與 i 顛倒（大數字在 i），用 grid-row 歸位；
-   沒有小字的卡片靠 ::after 佔住第三列，四張的數字才會落在同一條線上。 */
-.card{padding:20px 22px;min-width:0;display:grid;grid-template-rows:auto minmax(2.4em,auto) 32px;row-gap:0;align-content:start;border:1px solid var(--card-border);border-radius:16px;background:var(--card-bg)}
+/* 三列固定為「標題／大數字／小字」，業界 KPI 卡的標準排法：大數字只放一個值，
+   漲跌幅之類放小字。沒有小字的卡片靠 ::after 佔住第三列，四張的數字才會落在同一條線上。 */
+.card{padding:20px 22px;min-width:0;display:grid;grid-template-rows:auto minmax(2.4em,auto) minmax(32px,auto);row-gap:0;align-content:start;border:1px solid var(--card-border);border-radius:16px;background:var(--card-bg)}
 .card span{grid-row:1}
 .card>b{grid-row:2;align-self:end}
 .card>i{grid-row:3}
@@ -186,9 +186,7 @@ h1{
 .card+.card{border-left:1px solid var(--card-border)}
 .card span{display:block;color:var(--muted);font-size:.78rem;font-weight:600;line-height:1.4;text-transform:uppercase;letter-spacing:.04em;padding-bottom:12px}
 .card b{display:block;min-width:0;font-size:clamp(1.4rem,2.4vw,1.9rem);color:var(--text);overflow-wrap:anywhere;line-height:1.25;font-weight:650;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.card i{display:block;font-style:normal;color:var(--muted);font-size:.78rem;line-height:1.5;padding-top:8px;overflow-wrap:anywhere}
-.card[data-card="tokens"]>i{grid-row:2;align-self:end;padding-top:0;color:var(--text);font-size:clamp(1.4rem,2.4vw,1.9rem);font-weight:650;letter-spacing:-.03em;line-height:1.25}
-.card[data-card="tokens"]>b{grid-row:3;padding-top:8px;color:var(--muted);font-size:.78rem;font-weight:500;letter-spacing:0;line-height:1.5}
+.card i{display:block;font-style:normal;color:var(--muted);font-size:.78rem;line-height:1.5;padding-top:8px;overflow-wrap:anywhere;white-space:pre-line}
 .cards:not(:has(.card:nth-child(4))){grid-template-columns:repeat(auto-fit,minmax(0,1fr))}
 /* Keep every numeric column on the same inset; vary surfaces and vertical rhythm. */
 /* 每個區塊一張同規格卡片：報表很長，統一外框比一路細線更好辨認段落邊界。 */
@@ -345,7 +343,7 @@ h1{
 /* .share-bar 是 position:absolute，這一格沒有定位錨點的話，五條長條會全部
    跑到頁面左上角疊成一塊。 */
 .tokens-cell{position:relative}
-.tokens-cell .share-bar{margin-top:5px;height:3px;max-width:96px;margin-left:auto}
+.tokens-cell .share-bar{top:auto;bottom:6px;left:16px;height:3px;max-width:96px}
 .persona-hours{display:grid;grid-template-columns:repeat(24,minmax(8px,1fr));gap:4px;align-items:end;height:176px;padding-top:8px}
 .persona-hour{display:grid;grid-template-rows:1fr auto;gap:7px;align-items:end;min-width:0;height:100%}
 .persona-hour span{display:block;width:100%;min-height:1.5px;border-radius:4px 4px 1px 1px;background:var(--cost);opacity:.35}
@@ -517,6 +515,9 @@ td:first-child{color:var(--muted)}
   .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
   .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
   .tools-head>:nth-child(1),.tool-row>:nth-child(1){grid-column:2}
+  /* 箭頭佔第一欄，工具名才會跟下面專案熱區的名字對齊。 */
+  .tool-row>.tool-head{grid-column:1/3}
+  .tool-head>.arrow{flex:0 0 20px;margin-right:2px}
   :not(.rank-head)+.rank-list>.rank-line:first-child{margin-top:28px}
   :not(.rank-head)+.rank-list>.rank-line:first-child>.pct::before,:not(.rank-head)+.rank-list>.rank-line:first-child>.tokens::before,:not(.rank-head)+.rank-list>.rank-line:first-child>.cost::before{content:attr(data-label);position:absolute;bottom:100%;right:0;margin-bottom:12px;font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;white-space:nowrap}
 }
@@ -573,12 +574,15 @@ td:first-child{color:var(--muted)}
   .wrapped-card{grid-template-columns:minmax(0,1fr)}
   .wrapped-art{justify-items:start}
   .persona-hours{gap:2px;grid-template-columns:repeat(24,minmax(0,1fr))}
+  /* 24 個標籤擠在手機寬會疊成一串，只留 00、03、06…。 */
+  .persona-hour:not(:nth-child(3n+1)) em{visibility:hidden}
+  .persona-hour em{overflow:visible}
   .share-dialog{width:100%;max-width:none;height:100dvh;max-height:none;margin:0;border:0;border-radius:0}
   .share-modal{min-height:100dvh;padding:20px 16px}
   .share-section{padding:14px}
   .share-action{min-height:42px;font-size:.72rem;gap:6px;white-space:normal}
   .share-file-actions{grid-template-columns:1fr}
-  .section{padding:20px 0}
+  .section{padding:20px 16px}
   .persona-section{padding:20px 16px}
   .trend-row{grid-template-columns:minmax(0,1fr) 64px 72px;gap:8px;padding:12px 8px}
   .trend-row .week,.trend-row em,.delta{font-size:.74rem}
@@ -676,7 +680,8 @@ td:first-child{color:var(--muted)}
   </dialog>
   <div class="filter-scope">
   <div class="date-filter" data-date-filter><div class="date-shortcuts"><button type="button" data-range="today">今日</button><button type="button" data-range="last7">最近 7 天</button><button type="button" data-range="last30">最近 30 天</button><button type="button" data-range="month">本月</button><button type="button" data-range="all">全部</button></div><div class="date-inputs"><label>起<input type="date" data-date-from min="2026-05-04" max="2026-05-20"></label><label>迄<input type="date" data-date-to min="2026-05-04" max="2026-05-20"></label></div></div>
-  <section class="cards"><div class="card" data-card="tokens"><span>燒掉 Tokens</span><b>2,345,678</b><i>≈ 2.3M · ↑56% 較前期</i></div><div class="card" data-card="cost"><span>API 等值</span><b>$45.68</b><i>↑52% 較前期</i></div><div class="card" data-card="active"><span>活躍日</span><b>18 / 23 天</b></div><div class="card" data-card="peak"><span>燒最兇的一天</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
+  <section class="cards"><div class="card" data-card="tokens"><span>燒掉 Tokens</span><b>≈ 2.3M</b><i>2,345,678
+↑56% 較前期</i></div><div class="card" data-card="cost"><span>API 等值</span><b>$45.68</b><i>↑52% 較前期</i></div><div class="card" data-card="active"><span>活躍日</span><b>18 / 23 天</b></div><div class="card" data-card="peak"><span>燒最兇的一天</span><b>2026-05-13</b><i>300.0K Tokens</i></div></section>
 
     <section class="section insights-section">
       <div class="prompt"><span>[usage]&gt;</span> <span class="prompt-title">洞察</span><small class="fixed-range-tag">固定區間</small></div>
@@ -1931,13 +1936,13 @@ document.addEventListener('click', async (e) => {
 
   function updateSummary(summary) {
     const tokenDelta = deltaText(summary.tokens, summary.previousTokens, summary.hasPrevious);
-    const tokenSub = [`≈ ${formatTokens(summary.tokens)}`, tokenDelta].filter(Boolean).join(' · ');
+    const tokenSub = [formatInteger(summary.tokens), tokenDelta].filter(Boolean).join('\n');
     const costDelta = deltaText(summary.cost, summary.previousCost, summary.hasPrevious);
     const unpriced = summary.unpricedTokens
       ? shareConfig.costUnpriced.replace('{tokens}', formatTokens(summary.unpricedTokens))
       : '';
-    updateCard('tokens', formatInteger(summary.tokens), tokenSub);
-    updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join(' · '));
+    updateCard('tokens', `≈ ${formatTokens(summary.tokens)}`, tokenSub);
+    updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join('\n'));
     updateCard('active', shareConfig.kpiActiveValue
       .replace('{active}', summary.activeDays)
       .replace('{total}', summary.totalDays), '');
