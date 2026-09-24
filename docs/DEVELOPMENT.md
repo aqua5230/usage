@@ -202,15 +202,18 @@ The JSON carries a `schema_version` so consumers can guard against future change
   "agents": {
     "claude-code": {
       "available": true,
-      "five_hour": { "used_percent": 41.0, "resets_at": 1786676400 },
-      "seven_day": { "used_percent": 65.0, "resets_at": 1786788000 },
+      "five_hour": { "used_percent": 41.0, "resets_at": 1786676400, "resets_in_seconds": 0 },
+      "seven_day": { "used_percent": 65.0, "resets_at": 1786788000, "resets_in_seconds": 97200 },
       "model": "claude-opus-5",
-      "updated_at": "2026-08-14T06:52:00Z"
+      "updated_at": "2026-08-14T06:52:00Z",
+      "age_seconds": 480
     },
-    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910 }, "model": "", "updated_at": "2026-08-14T06:52:23Z" }
+    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null, "resets_in_seconds": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910, "resets_in_seconds": 506110 }, "model": "", "updated_at": "2026-08-14T06:52:23Z", "age_seconds": 457 }
   }
 }
 ```
+
+`resets_in_seconds` counts down from `generated_at` to `resets_at` (floored at `0`), and `age_seconds` is how old `updated_at` was at `generated_at`; both are `null` when their source field is.
 
 An agent with no readable data yet reports `"available": false` with null fields, and the command still exits `0` — missing data is not an error. A window that the provider doesn't report is `null` rather than absent, so consumers never have to guard against a missing key.
 

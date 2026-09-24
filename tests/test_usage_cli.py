@@ -300,21 +300,37 @@ def test_main_status_json_outputs_both_local_agents(
     payload = json.loads(captured.out)
     assert captured.err == ""
     assert payload["schema_version"] == 1
-    assert datetime.fromisoformat(payload["generated_at"].replace("Z", "+00:00")).tzinfo == UTC
+    generated_at = datetime.fromisoformat(payload["generated_at"].replace("Z", "+00:00"))
+    assert generated_at.tzinfo == UTC
+    now = int(generated_at.timestamp())
     assert payload["agents"] == {
         "claude-code": {
             "available": True,
-            "five_hour": {"used_percent": 41.0, "resets_at": 1_786_676_400},
-            "seven_day": {"used_percent": 65.0, "resets_at": 1_786_788_000},
+            "five_hour": {
+                "used_percent": 41.0,
+                "resets_at": 1_786_676_400,
+                "resets_in_seconds": max(0, 1_786_676_400 - now),
+            },
+            "seven_day": {
+                "used_percent": 65.0,
+                "resets_at": 1_786_788_000,
+                "resets_in_seconds": max(0, 1_786_788_000 - now),
+            },
             "model": "claude-opus-5",
             "updated_at": "2026-08-14T06:52:00Z",
+            "age_seconds": now - 1_786_690_320,
         },
         "codex": {
             "available": True,
-            "five_hour": {"used_percent": None, "resets_at": None},
-            "seven_day": {"used_percent": 21.0, "resets_at": 1_787_196_910},
+            "five_hour": {"used_percent": None, "resets_at": None, "resets_in_seconds": None},
+            "seven_day": {
+                "used_percent": 21.0,
+                "resets_at": 1_787_196_910,
+                "resets_in_seconds": max(0, 1_787_196_910 - now),
+            },
             "model": "",
             "updated_at": "2026-08-14T06:52:23Z",
+            "age_seconds": now - 1_786_690_343,
         },
     }
 
@@ -338,12 +354,45 @@ def test_main_status_json_marks_none_loader_unavailable(
     payload = json.loads(capsys.readouterr().out)
     assert payload["agents"]["claude-code"] == {
         "available": False,
-        "five_hour": {"used_percent": None, "resets_at": None},
-        "seven_day": {"used_percent": None, "resets_at": None},
+        "five_hour": {"used_percent": None, "resets_at": None, "resets_in_seconds": None},
+        "seven_day": {"used_percent": None, "resets_at": None, "resets_in_seconds": None},
         "model": None,
         "updated_at": None,
+        "age_seconds": None,
     }
+
     assert payload["agents"]["codex"]["available"] is True
+
+
+def test_status_agent_counts_down_to_reset_and_ages_updated_at() -> None:
+    now = 1_000_000
+    agent = usage_cli._status_agent(
+        RateLimits(
+            five_hour_pct=10.0,
+            five_hour_resets_at=now + 3_600,
+            seven_day_pct=20.0,
+            seven_day_resets_at=now - 5,
+            updated_at=datetime.fromtimestamp(now - 90, UTC).isoformat(),
+        ),
+        now,
+    )
+
+    assert agent["five_hour"]["resets_in_seconds"] == 3_600
+    assert agent["seven_day"]["resets_in_seconds"] == 0
+    assert agent["age_seconds"] == 90
+
+
+def test_status_agent_unparsable_updated_at_has_no_age() -> None:
+    agent = usage_cli._status_agent(RateLimits(updated_at="yesterday"), 1_000_000)
+
+    assert agent["age_seconds"] is None
+
+
+def test_status_agent_reads_naive_updated_at_as_utc() -> None:
+    now = int(datetime(2026, 1, 1, 0, 10, tzinfo=UTC).timestamp())
+    agent = usage_cli._status_agent(RateLimits(updated_at="2026-01-01T00:00:00"), now)
+
+    assert agent["age_seconds"] == 600
 
 
 def test_main_status_json_isolates_loader_exception(

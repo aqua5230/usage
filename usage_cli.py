@@ -17,6 +17,7 @@ from adapters import agy, claude, codex, grok
 from adapters.rate_limits import load_rate_limits as load_claude_rate_limits
 from adapters.registry import detect_agents
 from adapters.types import AgentInfo, RateLimits
+from usage_common.time_utils import parse_optional_iso8601_utc
 from analyzer.aggregator import (
     aggregate_daily,
     aggregate_monthly,
@@ -338,41 +339,56 @@ def _write_export_csv(stats: list[Any], export_type: str, out_path: str | None) 
     return None
 
 
-def _status_agent(rate_limits: RateLimits | None) -> dict[str, Any]:
+def _status_window(used_percent: float | None, resets_at: int | None, now: int) -> dict[str, Any]:
+    return {
+        "used_percent": used_percent,
+        "resets_at": resets_at,
+        "resets_in_seconds": None if resets_at is None else max(0, resets_at - now),
+    }
+
+
+def _age_seconds(updated_at: str | None, now: int) -> int | None:
+    parsed = parse_optional_iso8601_utc(updated_at)
+    return None if parsed is None else max(0, now - int(parsed.timestamp()))
+
+
+def _status_agent(rate_limits: RateLimits | None, now: int) -> dict[str, Any]:
     if rate_limits is None:
         return {
             "available": False,
-            "five_hour": {"used_percent": None, "resets_at": None},
-            "seven_day": {"used_percent": None, "resets_at": None},
+            "five_hour": _status_window(None, None, now),
+            "seven_day": _status_window(None, None, now),
             "model": None,
             "updated_at": None,
+            "age_seconds": None,
         }
     return {
         "available": True,
-        "five_hour": {
-            "used_percent": rate_limits.five_hour_pct,
-            "resets_at": rate_limits.five_hour_resets_at,
-        },
-        "seven_day": {
-            "used_percent": rate_limits.seven_day_pct,
-            "resets_at": rate_limits.seven_day_resets_at,
-        },
+        "five_hour": _status_window(
+            rate_limits.five_hour_pct, rate_limits.five_hour_resets_at, now
+        ),
+        "seven_day": _status_window(
+            rate_limits.seven_day_pct, rate_limits.seven_day_resets_at, now
+        ),
         "model": rate_limits.model,
         "updated_at": rate_limits.updated_at,
+        "age_seconds": _age_seconds(rate_limits.updated_at, now),
     }
 
 
 def _status_payload() -> dict[str, Any]:
+    generated_at = datetime.now(UTC).replace(microsecond=0)
+    now = int(generated_at.timestamp())
     agents: dict[str, dict[str, Any]] = {}
     for agent_id in ("claude-code", "codex"):
         try:
             rate_limits = RATE_LIMIT_LOADERS[agent_id]()
         except Exception:
             rate_limits = None
-        agents[agent_id] = _status_agent(rate_limits)
+        agents[agent_id] = _status_agent(rate_limits, now)
     return {
         "schema_version": 1,
-        "generated_at": datetime.now(UTC).isoformat(timespec="seconds").replace("+00:00", "Z"),
+        "generated_at": generated_at.isoformat().replace("+00:00", "Z"),
         "agents": agents,
     }
 

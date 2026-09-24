@@ -206,15 +206,18 @@ JSON 帶有 `schema_version`，之後格式若有變動，接的人可以據此�
   "agents": {
     "claude-code": {
       "available": true,
-      "five_hour": { "used_percent": 41.0, "resets_at": 1786676400 },
-      "seven_day": { "used_percent": 65.0, "resets_at": 1786788000 },
+      "five_hour": { "used_percent": 41.0, "resets_at": 1786676400, "resets_in_seconds": 0 },
+      "seven_day": { "used_percent": 65.0, "resets_at": 1786788000, "resets_in_seconds": 97200 },
       "model": "claude-opus-5",
-      "updated_at": "2026-08-14T06:52:00Z"
+      "updated_at": "2026-08-14T06:52:00Z",
+      "age_seconds": 480
     },
-    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910 }, "model": "", "updated_at": "2026-08-14T06:52:23Z" }
+    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null, "resets_in_seconds": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910, "resets_in_seconds": 506110 }, "model": "", "updated_at": "2026-08-14T06:52:23Z", "age_seconds": 457 }
   }
 }
 ```
+
+`resets_in_seconds` 是從 `generated_at` 算到 `resets_at` 還剩幾秒（最小 `0`），`age_seconds` 是 `updated_at` 在 `generated_at` 當下已經過了幾秒；來源欄位是 `null` 時，這兩個也是 `null`。
 
 還讀不到資料的 agent 會回 `"available": false` 加一整組 null，指令本身仍然 exit `0`——沒資料不算錯誤。廠商沒回報的那個視窗會是 `null` 而不是整個欄位消失，接的人不用為了「key 不存在」多寫防呆。
 
