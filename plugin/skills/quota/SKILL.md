@@ -1,10 +1,11 @@
 ---
 name: quota
-description: Show how much of the Claude Code and Codex 5-hour and weekly quota is used and when each window resets. Use when the user asks about remaining quota, rate limits, or usage for Claude Code or Codex.
+description: Show how much of the Claude Code and Codex 5-hour and weekly quota is used and when each window resets.
+disable-model-invocation: true
 allowed-tools: Bash(${CLAUDE_PLUGIN_ROOT}/scripts/quota.sh), Bash(date +%s)
 ---
 
-Quota snapshot from the usage CLI (`usage status --json`):
+Quota snapshot from `usage-cli status --json`:
 
 !`${CLAUDE_PLUGIN_ROOT}/scripts/quota.sh`
 
