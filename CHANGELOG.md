@@ -5,6 +5,18 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.22] - 2026-09-25
+
+### Added
+- **Claude Code plugin: `/usage:quota`.** Run `/plugin marketplace add aqua5230/usage`, then `/plugin install usage@usage`, and `/usage:quota` shows how much of the Claude Code and Codex 5-hour and weekly quota is used and when each window resets. The plugin only calls `usage-cli status --json` (through `uvx` when `usage-cli` isn't installed). It calls `usage-cli` rather than `usage` because other tools also install a `usage` command, and it runs only when you type it — Claude never triggers it on its own.
+- **`usage status --json` reports countdowns.** Each window gains `resets_in_seconds` and each agent gains `age_seconds`, both measured at `generated_at`, so consumers no longer subtract timestamps themselves.
+
+### Changed
+- **Terse mode drops two lines.** "Never let it fade" pressure is gone — the per-message reminder already keeps the style steady — and so is "no warmth padding", which clashed with the resume handoff's warm recap, the one place every user reads.
+
+### Fixed
+- **The HTML report's KPI cards stay one height.** The big number on the tokens card shows one rounded value; the exact figure and change move to small lines, so the four cards no longer wrap unevenly. On phones, sections get 16px side padding instead of touching the card edge.
+
 ## [0.30.21] - 2026-09-23
 
 ### Changed

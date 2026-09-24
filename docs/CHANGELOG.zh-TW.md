@@ -4,6 +4,18 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.22] - 2026-09-25
+
+### 新增
+- **Claude Code 外掛：`/usage:quota`。** 先跑 `/plugin marketplace add aqua5230/usage`，再跑 `/plugin install usage@usage`，之後打 `/usage:quota` 就能看 Claude Code 與 Codex 的 5 小時與每週額度用了多少、各自什麼時候重置。外掛只呼叫 `usage-cli status --json`（沒裝 `usage-cli` 就改走 `uvx`）。叫 `usage-cli` 而不是 `usage`，是因為別的工具也會裝一個 `usage` 指令；而且只有你親自輸入才會執行，Claude 不會自己觸發。
+- **`usage status --json` 直接給倒數秒數。** 每個視窗多了 `resets_in_seconds`、每個 agent 多了 `age_seconds`，都以 `generated_at` 當下計算，接的人不必再自己拿時間相減。
+
+### 變更
+- **精簡模式拿掉兩句。** 「不准淡忘」這句施壓的話刪了——逐則提醒本來就在穩住語氣；「不要為了親切多寫」也刪了，它跟進度交接要的溫暖開場打架，而進度交接是每個使用者一定會看到的地方。
+
+### 修正
+- **HTML 報表的 KPI 卡高度一致。** 燒掉 token 那張卡的大字只放約略值，精確值與漲跌幅改成小字分行，四張卡不再有的折行有的不折。手機版區塊左右補 16px 留白，內容不再貼著卡片邊框。
+
 ## [0.30.21] - 2026-09-23
 
 ### 變更
