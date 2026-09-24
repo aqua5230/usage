@@ -1,0 +1,13 @@
+{
+  "name": "usage",
+  "displayName": "usage",
+  "description": "Check your Claude Code and Codex 5-hour and weekly quota without leaving Claude Code. Reads local files only; never calls a model API.",
+  "author": {
+    "name": "lollapalooza",
+    "url": "https://github.com/aqua5230"
+  },
+  "homepage": "https://github.com/aqua5230/usage",
+  "repository": "https://github.com/aqua5230/usage",
+  "license": "AGPL-3.0-only",
+  "keywords": ["quota", "usage", "rate-limit", "codex", "monitor"]
+}

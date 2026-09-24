@@ -1,0 +1,15 @@
+{
+  "name": "usage",
+  "description": "Claude Code plugin from the usage quota monitor.",
+  "owner": {
+    "name": "lollapalooza",
+    "url": "https://github.com/aqua5230"
+  },
+  "plugins": [
+    {
+      "name": "usage",
+      "source": "./plugin",
+      "description": "Check your Claude Code and Codex quota from inside Claude Code."
+    }
+  ]
+}
