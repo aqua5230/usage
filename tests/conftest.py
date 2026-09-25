@@ -53,6 +53,14 @@ def _isolate_claude_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> I
 
 
 @pytest.fixture(autouse=True)
+def _isolate_muse_sessions(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Keep detectors and history scans out of real Muse journals."""
+    from loaders import muse_loader
+
+    monkeypatch.setattr(muse_loader, "MUSE_SESSIONS_DIR", tmp_path / "muse-sessions")
+
+
+@pytest.fixture(autouse=True)
 def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Keep shared startup workers out of the user's real config directories."""
     import prefs

@@ -7,8 +7,11 @@
 from __future__ import annotations
 
 import base64
+import os
 import re
 import sys
+import time
+from collections.abc import Iterator
 from datetime import UTC, date, datetime, tzinfo
 from pathlib import Path
 from typing import Any
@@ -46,9 +49,20 @@ class _FixedDateTime:
 @pytest.fixture(autouse=True)
 def _pin_nondeterministic_report_values(
     monkeypatch: pytest.MonkeyPatch,
-) -> None:
+) -> Iterator[None]:
+    original_tz = os.environ.get("TZ")
+    monkeypatch.setenv("TZ", "UTC")
+    if hasattr(time, "tzset"):
+        time.tzset()
     monkeypatch.setattr(html_report, "datetime", _FixedDateTime)
     monkeypatch.setattr(html_report, "_version", lambda: "0.15.8")
+    yield
+    if hasattr(time, "tzset"):
+        if original_tz is None:
+            monkeypatch.delenv("TZ", raising=False)
+        else:
+            monkeypatch.setenv("TZ", original_tz)
+        time.tzset()
 
 
 def _full_report_data() -> dict[str, Any]:

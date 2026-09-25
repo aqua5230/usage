@@ -22,7 +22,7 @@ from typing import Any, NotRequired, TypedDict, cast
 from loaders import cache_quarantine, codex_loader
 from analyzer import persona_loader
 from analyzer import subscription
-from adapters import agy, claude, codex, grok
+from adapters import agy, claude, codex, grok, muse
 from adapters.types import AgentInfo, UsageEntry
 from pricing import calculate_cost, is_model_priced
 
@@ -31,7 +31,13 @@ from . import diagnoser, usage_snapshot
 
 logger = logging.getLogger(__name__)
 
-AGENT_LOADERS = {"claude-code": claude, "codex": codex, "antigravity": agy, "grok": grok}
+AGENT_LOADERS = {
+    "claude-code": claude,
+    "codex": codex,
+    "antigravity": agy,
+    "grok": grok,
+    "muse": muse,
+}
 AGENT_NAMES = {"claude-code": "Claude Code", "codex": "Codex"}
 _YEAR_WEEKS = 53
 YEAR_CACHE_PATH = Path(os.path.expanduser("~/.usage/year_cache.json"))

@@ -1884,6 +1884,19 @@ def test_load_history_entries_includes_grok_entries(monkeypatch: pytest.MonkeyPa
         cost_usd=None,
         project="usage",
     )
+    muse_entry = history_loader.UsageEntry(
+        timestamp=datetime(2026, 5, 21, tzinfo=UTC),
+        session_id="muse",
+        message_id="m4",
+        request_id="r4",
+        model="muse-spark-1.3",
+        input_tokens=12,
+        output_tokens=2,
+        cache_creation_tokens=0,
+        cache_read_tokens=8,
+        cost_usd=None,
+        project="usage",
+    )
 
     scan = menubar_state.HistorySourceScan(
         fingerprint=(("same", 1, 1.0),),
@@ -1904,8 +1917,12 @@ def test_load_history_entries_includes_grok_entries(monkeypatch: pytest.MonkeyPa
         "menubar.state.grok_loader.load_entries",
         lambda hours_back=0: [grok_entry],
     )
+    monkeypatch.setattr(
+        "menubar.state.muse_loader.load_entries",
+        lambda hours_back=0: [muse_entry],
+    )
 
-    assert delegate._load_history_entries() == [claude_entry, codex_entry, grok_entry]
+    assert delegate._load_history_entries() == [claude_entry, codex_entry, grok_entry, muse_entry]
 
 
 def test_load_history_entries_reuses_cache_when_sources_do_not_change(

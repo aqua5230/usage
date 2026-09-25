@@ -651,7 +651,7 @@ td:first-child{color:var(--muted)}
     <div>
       <div class="eyebrow"><span>$ usage report</span> --period <span class="nowrap">empty-window</span><span class="cursor">_</span></div>
       <h1>你的 AI 用量回顧</h1>
-      <p class="narrative">還沒有可以回顧的用量。先用 Claude Code、Codex、Antigravity 或 Grok 跑幾次，再回來看這份報告。</p>
+      <p class="narrative">還沒有可以回顧的用量。先用 Claude Code、Codex、Antigravity、Grok 或 Muse 跑幾次，再回來看這份報告。</p>
     </div>
     <div class="header-actions">
       <div class="meta">產生時間 2026-05-24 10:30:45 UTC<br>usage 版本 0.15.8</div>
@@ -977,7 +977,7 @@ document.addEventListener('click', async (e) => {
   if (!Array.isArray(cube.dates) || !Array.isArray(cube.rows)) return;
   const svgNs = 'http://www.w3.org/2000/svg';
   const agentColors = {
-    'claude-code': '#5abfa0', codex: '#e0885a', antigravity: '#8f86c9', grok: '#c7839f',
+    'claude-code': '#5abfa0', codex: '#e0885a', antigravity: '#8f86c9', grok: '#c7839f', muse: '#d7ba62',
   };
   let mode = 'tokens';
   let lastSummary = null;
@@ -1220,6 +1220,7 @@ document.addEventListener('click', async (e) => {
     codex: '#e0885a',
     antigravity: '#8f86c9',
     grok: '#c7839f',
+    muse: '#d7ba62',
   };
   let activeBounds = null;
 

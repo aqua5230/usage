@@ -15,6 +15,7 @@ AGENT_COLORS = {
     "codex": "#e0885a",
     "antigravity": "#8f86c9",
     "grok": "#c7839f",
+    "muse": "#d7ba62",
 }
 _FALLBACK_COLOR = "#8b8577"
 
@@ -219,7 +220,7 @@ REPORT_DAILY_CHART_JS = r"""(() => {
   if (!Array.isArray(cube.dates) || !Array.isArray(cube.rows)) return;
   const svgNs = 'http://www.w3.org/2000/svg';
   const agentColors = {
-    'claude-code': '#5abfa0', codex: '#e0885a', antigravity: '#8f86c9', grok: '#c7839f',
+    'claude-code': '#5abfa0', codex: '#e0885a', antigravity: '#8f86c9', grok: '#c7839f', muse: '#d7ba62',
   };
   let mode = 'tokens';
   let lastSummary = null;

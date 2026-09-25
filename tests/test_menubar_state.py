@@ -12,7 +12,7 @@ from typing import cast
 
 import pytest
 
-from loaders import codex_loader, grok_loader
+from loaders import codex_loader, grok_loader, muse_loader
 from loaders.history_loader import UsageEntry
 from menubar import state as menubar_state
 from quota.burn_rate import BurnRateTracker
@@ -65,6 +65,20 @@ def test_history_sources_fingerprint_uses_claude_projects_dir(
     assert fingerprint[0][1] == 1
     assert fingerprint[2][0] == str(archived_dir)
     assert fingerprint[2][1] == 1
+
+
+def test_history_sources_fingerprint_includes_muse_session(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    _patch_history_sources(monkeypatch, tmp_path)
+    path = tmp_path / "muse" / "2026" / "09" / "25" / "session" / "session.jsonl"
+    path.parent.mkdir(parents=True)
+    path.write_text("{}\n", encoding="utf-8")
+    monkeypatch.setattr(muse_loader, "MUSE_SESSIONS_DIR", tmp_path / "muse")
+
+    fingerprint = menubar_state.history_source_scan().fingerprint
+
+    assert any(item[0] == str(path) for item in fingerprint)
 
 
 def test_history_source_tracker_skips_directory_io_when_unchanged(

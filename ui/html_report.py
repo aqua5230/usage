@@ -271,6 +271,7 @@ _AGENT_COLORS = {
     "codex": "#e0885a",
     "antigravity": "#8f86c9",
     "grok": "#c7839f",
+    "muse": "#d7ba62",
 }
 
 

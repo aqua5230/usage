@@ -40,6 +40,7 @@ REPORT_FILTER_JS = r"""(() => {
     codex: '#e0885a',
     antigravity: '#8f86c9',
     grok: '#c7839f',
+    muse: '#d7ba62',
   };
   let activeBounds = null;
 

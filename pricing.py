@@ -370,6 +370,11 @@ def _resolve_model_key(model: str, pricing: PricingTable) -> str | None:
     if normalized in pricing:
         return normalized
 
+    if normalized.startswith("muse-"):
+        meta_key = f"meta/{normalized}"
+        if meta_key in pricing:
+            return meta_key
+
     dated_matches = [key for key in pricing if DATE_SUFFIX_RE.sub("", key) == normalized]
     if dated_matches:
         return sorted(dated_matches, key=lambda key: (len(key), key))[0]
@@ -539,6 +544,16 @@ def _fallback_pricing() -> PricingTable:
             "output_cost_per_token": 1.2e-6,
             "cache_creation_input_token_cost": 0.25e-6,
             "cache_read_input_token_cost": 0.02e-6,
+        },
+        "meta/muse-spark-1.3": {
+            "input_cost_per_token": 1.25e-6,
+            "output_cost_per_token": 4.25e-6,
+            "cache_read_input_token_cost": 0.15e-6,
+        },
+        "meta/muse-spark-1.3-contributor": {
+            "input_cost_per_token": 0.1e-6,
+            "output_cost_per_token": 0.2e-6,
+            "cache_read_input_token_cost": 0.002e-6,
         },
         "gpt-5.5": {
             "input_cost_per_token": 5e-6,
