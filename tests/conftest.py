@@ -104,6 +104,17 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
 
 
 @pytest.fixture(autouse=True)
+def _isolate_dispatch_ledger_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """Keep report builds from reading real Codex/Antigravity sessions and quota caches."""
+    from loaders import agy_loader, agy_quota_probe, codex_loader
+
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", tmp_path / "codex-home" / "sessions")
+    monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "codex-home" / "logs_2.sqlite")
+    monkeypatch.setattr(agy_loader, "AGY_SESSIONS_DIR", tmp_path / "agy-conversations")
+    monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", tmp_path / "agy_quota_cache.json")
+
+
+@pytest.fixture(autouse=True)
 def _isolate_codex_config(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Prevent self_heal from writing a user's real Codex, Antigravity or Grok config."""
     from installer import setup_hook

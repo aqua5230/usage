@@ -27,7 +27,7 @@ from adapters.types import AgentInfo, UsageEntry
 from pricing import calculate_cost, is_model_priced
 
 from .aggregator import aggregate_sessions
-from . import diagnoser, usage_snapshot
+from . import diagnoser, dispatch_ledger, usage_snapshot
 
 logger = logging.getLogger(__name__)
 
@@ -130,6 +130,7 @@ class TopSessionReportRow(TypedDict):
     duration_min: float
     tokens: int
     cost: float
+    weekly_quota_pct: float | None
 
 
 class CubeAgentData(TypedDict):
@@ -241,6 +242,7 @@ class ReportData(_ReportDataRequired, total=False):
     by_agent_model: list[AgentModelReportRow]
     cube: CubeReportData
     sessions: list[SessionRowData]
+    dispatch_ledger: dispatch_ledger.LedgerData
 
 
 @dataclass(frozen=True)
@@ -911,6 +913,11 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         prev_date_from = date_from - timedelta(days=total_days_for_comparison)
         hours_back = ((date_to - prev_date_from).days + 2) * 24
 
+    weekly_preloaded = (
+        [entry for agent in agents for entry in _load_agent_entries(agent, 8 * 24)]
+        if hours_back < 8 * 24
+        else None
+    )
     raw_entries: list[UsageEntry] = []
     for agent in agents:
         raw_entries.extend(_load_agent_entries(agent, hours_back))
@@ -1193,6 +1200,10 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         cursor += timedelta(days=1)
 
     top_sessions: list[TopSessionReportRow] = []
+    now = datetime.now().astimezone(timezone.utc)
+    weekly_entries = raw_entries if weekly_preloaded is None else weekly_preloaded
+    windows = dispatch_ledger.load_windows() if weekly_entries else {}
+    estimates = dispatch_ledger.estimate_sessions(weekly_entries, windows, now)
     sessions_by_cost = sorted(
         aggregate_sessions(entries), key=lambda session: session.cost_usd, reverse=True
     )
@@ -1200,16 +1211,16 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         sessions_by_cost, key=lambda session: session.total_tokens, reverse=True
     )
     for session in sessions_by_tokens[:5]:
-        top_sessions.append(
-            {
-                "start_time": _session_start_text(session.start_time),
-                "project": session.project or "unknown",
-                "model": session.model or "unknown",
-                "duration_min": session.duration_minutes,
-                "tokens": session.total_tokens,
-                "cost": _round_cost(session.cost_usd),
-            }
-        )
+        session_row: TopSessionReportRow = {
+            "start_time": _session_start_text(session.start_time),
+            "project": session.project or "unknown",
+            "model": session.model or "unknown",
+            "duration_min": session.duration_minutes,
+            "tokens": session.total_tokens,
+            "cost": _round_cost(session.cost_usd),
+            "weekly_quota_pct": estimates.get((session.agent_id, session.session_id)),
+        }
+        top_sessions.append(session_row)
 
     session_rows: list[SessionRowData] = []
     for session in sessions_by_cost:
@@ -1256,6 +1267,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         "sessions": session_rows,
         "daily_trend": daily_trend,
         "top_sessions": top_sessions,
+        "dispatch_ledger": dispatch_ledger.build_ledger(estimates, now),
         "comparison": comparison,
         "subscriptions": subscription.load_subscriptions(),
         "persona": _load_persona_for_period(period),

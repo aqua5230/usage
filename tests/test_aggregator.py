@@ -13,7 +13,7 @@ from datetime import datetime
 import pytest
 
 from adapters.types import UsageEntry
-from analyzer.aggregator import aggregate_daily
+from analyzer.aggregator import aggregate_daily, aggregate_sessions
 
 
 def _tzset() -> None:
@@ -73,3 +73,22 @@ def test_aggregate_daily_groups_entries_by_local_date(
     assert daily[0].date == "2026-06-27"
     assert daily[0].total_tokens == 33
     assert daily[0].session_count == 2
+
+
+def test_aggregate_sessions_keeps_agent_id() -> None:
+    entry = UsageEntry(
+        timestamp=datetime.fromisoformat("2026-06-26T23:30:00+00:00"),
+        session_id="session-1",
+        message_id="message-1",
+        request_id="request-1",
+        model="gpt-test",
+        input_tokens=10,
+        output_tokens=1,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=0.0,
+        project="demo",
+        agent_id="codex",
+    )
+
+    assert aggregate_sessions([entry])[0].agent_id == "codex"

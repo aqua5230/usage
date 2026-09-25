@@ -122,6 +122,7 @@ def aggregate_sessions(entries: list[UsageEntry]) -> list[SessionStats]:
             start_time=first.timestamp,
             end_time=last.timestamp,
             duration_minutes=round(duration, 1),
+            agent_id=first.agent_id,
         )
         for e in session_entries:
             cost = calculate_cost(e)

@@ -39,6 +39,7 @@ from ui.report_daily_chart import (
     render_pricing_section,
 )
 from ui.report_filter import REPORT_FILTER_JS
+from ui.report_ledger import format_pct, render_ledger
 from ui.report_scripts import HTML_TO_IMAGE_UMD, REPORT_JS_TEMPLATE, REPORT_THEME_INIT_JS
 from ui.report_styles import REPORT_CSS
 
@@ -1136,14 +1137,14 @@ def _render_session_section(data: Mapping[str, Any], lang: str) -> str:
           <td>{_escape(_display_name(session["model"], lang))}</td>
           <td>{_fmt_duration(float(session["duration_min"]))}</td>
           <td class="tokens-cell">{_fmt_tokens(tokens)}\
-{render_share_bar(share, _model_share_color(session["model"]))}</td>
+{render_share_bar(share, _model_share_color(session["model"]))}</td><td>{_escape(format_pct(session.get("weekly_quota_pct"), lang))}</td>
           <td>{_fmt_cost(float(session["cost"]))}</td>
         </tr>""")
     session_body = (
         f"""
         <div class="table-wrap">
           <table>
-            <thead><tr><th>{_escape(_t(lang, "rank"))}</th><th>{_escape(_t(lang, "start_time"))}</th><th>{_escape(_t(lang, "project"))}</th><th>{_escape(_t(lang, "model"))}</th><th>{_escape(_t(lang, "duration"))}</th><th>{_escape(_t(lang, "tokens"))}</th><th>{_escape(_t(lang, "cost"))}</th></tr></thead>
+            <thead><tr><th>{_escape(_t(lang, "rank"))}</th><th>{_escape(_t(lang, "start_time"))}</th><th>{_escape(_t(lang, "project"))}</th><th>{_escape(_t(lang, "model"))}</th><th>{_escape(_t(lang, "duration"))}</th><th>{_escape(_t(lang, "tokens"))}</th><th>{_escape(_t(lang, "quota_share"))}</th><th>{_escape(_t(lang, "cost"))}</th></tr></thead>
             <tbody>{"".join(session_rows)}</tbody>
           </table>
         </div>
@@ -1315,12 +1316,14 @@ def generate_html(
     fixed_sections = ""
     if not is_empty:
         insight_surface = _render_insight_surface(report_data, lang)
+        ledger_section = render_ledger(report_data, lang)
         detail_sections = (
             f"{insight_surface.rstrip()}\n"
             f"  {_render_trend_section(report_data, lang, date_to)}\n"
             f"  {_render_tools_section(report_data, lang)}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_session_section(report_data, lang)}\n"
+            f"{('  ' + ledger_section + chr(10)) if ledger_section else ''}"
             f"  {_render_appendix(report_data, lang)}\n"
         )
         fixed_sections = (

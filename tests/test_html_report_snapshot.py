@@ -231,6 +231,7 @@ def _full_report_data() -> dict[str, Any]:
                 "duration_min": 125.5,
                 "tokens": 98765,
                 "cost": 8.91,
+                "weekly_quota_pct": 3.2,
             },
             {
                 "start_time": "2026-05-21 21:05",
@@ -239,6 +240,7 @@ def _full_report_data() -> dict[str, Any]:
                 "duration_min": 35.0,
                 "tokens": 45678,
                 "cost": 4.56,
+                "weekly_quota_pct": None,
             },
         ],
         "ai_updates": [

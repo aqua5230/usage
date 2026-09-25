@@ -852,7 +852,10 @@ def test_cube_reconciles_with_existing_report_totals_and_sessions(
         }
         for row in indexed_sessions
     ]
-    assert decoded_sessions == data["top_sessions"]
+    assert decoded_sessions == [
+        {key: value for key, value in row.items() if key != "weekly_quota_pct"}
+        for row in data["top_sessions"]
+    ]
 
 
 def test_cube_boundary_values_do_not_create_empty_indexes(
