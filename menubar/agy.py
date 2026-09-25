@@ -145,7 +145,9 @@ def load_refresh_result(
     try:
         _last_quota = load_quota()
         projection = project_quota(
-            _last_quota, language, burn_rate_trackers=burn_rate_trackers,
+            _last_quota,
+            language,
+            burn_rate_trackers=burn_rate_trackers,
             group_preference=_agy_quota_group(),
         )
     except Exception:
@@ -161,7 +163,9 @@ def reproject_cached_quota(
     burn_rate_trackers["agy_session"] = BurnRateTracker()
     burn_rate_trackers["agy_weekly"] = BurnRateTracker()
     return project_quota(
-        _last_quota, language, burn_rate_trackers=burn_rate_trackers,
+        _last_quota,
+        language,
+        burn_rate_trackers=burn_rate_trackers,
         group_preference=_agy_quota_group(),
     )
 
