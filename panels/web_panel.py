@@ -19,6 +19,7 @@ from Quartz import CGColorCreateGenericRGB
 
 from menubar.prefs import (
     _panel_flavor,
+    _save_agy_quota_group,
     _save_panel_flavor,
     _save_quota_card_order,
     _valid_quota_card_order,
@@ -187,6 +188,22 @@ class UsageScriptBridge(NSObject):
                     return
                 if parsed["action"] == "set_panel_flavor":
                     _save_panel_flavor(parsed.get("flavor"))
+                    return
+                if parsed["action"] == "set_agy_quota_group":
+                    if _save_agy_quota_group(parsed.get("group")):
+                        from menubar.agy import reproject_cached_quota
+
+                        state = getattr(self.delegate, "latest_state", None)
+                        if state is not None:
+                            projection = reproject_cached_quota(
+                                state.language, self.delegate.burn_rate_trackers
+                            )
+                            if projection is not None:
+                                state.agy_session = projection.session
+                                state.agy_weekly = projection.weekly
+                                state.agy_group_name = projection.group_name
+                                state.agy_stale = projection.stale
+                            self.delegate.popover_controller.setState_(state)
                     return
                 return
         if action == "refresh":

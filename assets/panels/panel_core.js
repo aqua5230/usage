@@ -249,6 +249,14 @@
 
     function renderAgy(agy) {
       applyCard("agy", agy);
+      const groupButton = document.querySelector('[data-action="set_agy_quota_group"]');
+      if (groupButton) {
+        const isClaude = Boolean(agy && /claude/i.test(agy.groupName || ""));
+        groupButton.textContent = t(isClaude ? "agy_group_claude_gpt" : "agy_group_gemini");
+        groupButton.dataset.group = isClaude ? "gemini" : "claude_gpt";
+        groupButton.title = t("agy_group_switch_tooltip");
+        groupButton.setAttribute("aria-label", t("agy_group_switch_tooltip"));
+      }
       const staleEl = document.querySelector("[data-agy-stale]");
       const ageEl = document.querySelector("[data-agy-stale-age]");
       const tooltipEl = document.querySelector("[data-agy-stale-tooltip]");
@@ -446,7 +454,9 @@
       }
       const bridge = window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.usage;
       if (bridge && typeof bridge.postMessage === "function") {
-        bridge.postMessage(button.dataset.action);
+        bridge.postMessage(button.dataset.action === "set_agy_quota_group"
+          ? JSON.stringify({ action: button.dataset.action, group: button.dataset.group })
+          : button.dataset.action);
       }
     });
 

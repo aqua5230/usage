@@ -539,6 +539,31 @@
     .card[data-card="agy"] .brand-icon {
       color: var(--accent);
     }
+
+    .card[data-card="agy"] .agy-group-toggle {
+      flex: 0 0 auto;
+      border: 1px solid color-mix(in srgb, #2ef272 60%, transparent);
+      border-radius: 999px;
+      padding: 3px 6px;
+      background: color-mix(in srgb, #2ef272 12%, transparent);
+      color: #2ef272;
+      font-family: inherit;
+      font-size: 10px;
+      font-weight: 600;
+      line-height: 1.2;
+      white-space: nowrap;
+      cursor: pointer;
+    }
+    .card[data-card="agy"] .brand h1 {
+      flex: 0 1 auto;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .card[data-card="agy"] .agy-group-toggle:hover,
+    .card[data-card="agy"] .agy-group-toggle:focus-visible {
+      background: color-mix(in srgb, #2ef272 25%, transparent);
+    }
   </style>
 </head>
 <body>
@@ -575,6 +600,7 @@
       <header class="brand">
         <div class="brand-icon"><svg fill="currentColor" fill-rule="evenodd" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M21.751 22.607c1.34 1.005 3.35.335 1.508-1.508C17.73 15.74 18.904 1 12.037 1 5.17 1 6.342 15.74.815 21.1c-2.01 2.009.167 2.511 1.507 1.506 5.192-3.517 4.857-9.714 9.715-9.714 4.857 0 4.522 6.197 9.714 9.715z"></path></svg></div>
         <h1 data-i18n="agy_name"></h1>
+        <button type="button" class="agy-group-toggle" data-action="set_agy_quota_group" title="" aria-label=""></button>
         <div class="codex-stale" data-agy-stale hidden>
           <span aria-hidden="true">⚠</span>
           <span data-agy-stale-age></span>

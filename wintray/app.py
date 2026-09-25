@@ -45,6 +45,7 @@ from menubar.prefs import (
     _quota_card_order,
     _quota_notification_thresholds,
     _quota_notifications_enabled,
+    _save_agy_quota_group,
     _save_panel_flavor,
     _window_keeper_enabled,
 )
@@ -1939,6 +1940,17 @@ class _WindowsTrayController:
                     _save_preferences(preferences)
             elif action == "set_panel_flavor":
                 _save_panel_flavor(payload.get("flavor"))
+            elif action == "set_agy_quota_group":
+                if _save_agy_quota_group(payload.get("group")):
+                    projection = menubar_agy.reproject_cached_quota(
+                        self.language, self.burn_rate_trackers
+                    )
+                    if projection is not None:
+                        self.latest_state.agy_session = projection.session
+                        self.latest_state.agy_weekly = projection.weekly
+                        self.latest_state.agy_group_name = projection.group_name
+                        self.latest_state.agy_stale = projection.stale
+                    self.inject_state(force=True)
             elif action == "switch_panel":
                 panel_id = payload.get("panel_id")
                 if isinstance(panel_id, str):

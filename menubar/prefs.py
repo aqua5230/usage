@@ -13,6 +13,7 @@ from prefs import _load_preferences, _save_preferences
 DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy", "grok")
 DEFAULT_PANEL_FLAVOR = "mocha"
 PANEL_FLAVORS = ("latte", "frappe", "macchiato", "mocha")
+AGY_QUOTA_GROUPS = ("gemini", "claude_gpt")
 
 
 def _resolved_preferences(prefs: Mapping[str, object] | None = None) -> Mapping[str, object]:
@@ -64,6 +65,26 @@ def _valid_panel_flavor(value: object) -> str | None:
     if not isinstance(value, str) or value not in PANEL_FLAVORS:
         return None
     return value
+
+
+def _agy_quota_group(prefs: Mapping[str, object] | None = None) -> str:
+    data = _resolved_preferences(prefs)
+    group = _valid_agy_quota_group(data.get("agy_quota_group"))
+    return "gemini" if group is None else group
+
+
+def _save_agy_quota_group(group: object) -> bool:
+    valid_group = _valid_agy_quota_group(group)
+    if valid_group is None:
+        return False
+    prefs = _load_preferences()
+    prefs["agy_quota_group"] = valid_group
+    _save_preferences(prefs)
+    return True
+
+
+def _valid_agy_quota_group(value: object) -> str | None:
+    return value if isinstance(value, str) and value in AGY_QUOTA_GROUPS else None
 
 
 def _quota_card_order(prefs: Mapping[str, object] | None = None) -> tuple[str, ...]:

@@ -23,6 +23,7 @@ import prefs
 import service_status
 from i18n import _t
 from loaders import codex_loader
+from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
 from menubar import agy as menubar_agy
 from menubar import prefs as menubar_prefs
 from menubar import state as menubar_state
@@ -96,6 +97,33 @@ def _state() -> menubar_state.PopoverState:
         yesterday_text="",
         statusline={},
     )
+
+
+def test_panel_message_switches_agy_group_without_refresh(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
+    window = AgyQuotaWindow(remaining_percent=55, resets_in=None, resets_in_minutes=60)
+    quota = AgyQuotaResult(
+        groups=[
+            AgyQuotaGroup("GEMINI MODELS", [], window, window),
+            AgyQuotaGroup("CLAUDE AND GPT MODELS", [], window, window),
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+    monkeypatch.setattr(menubar_agy, "_last_quota", quota)
+    monkeypatch.setattr(menubar_agy, "load_quota", lambda: pytest.fail("switch probed quota"))
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = SimpleNamespace(evaluate_js=lambda script: painted.append(script))
+    painted: list[str] = []
+
+    controller.handle_panel_message(
+        json.dumps({"action": "set_agy_quota_group", "group": "claude_gpt"})
+    )
+
+    assert menubar_prefs._agy_quota_group() == "claude_gpt"
+    assert controller.latest_state.agy_group_name == "CLAUDE AND GPT MODELS"
+    assert len(painted) == 1
 
 
 @pytest.mark.parametrize(

@@ -17,6 +17,7 @@ from menubar import agy as menubar_agy
 from menubar import app as menubar
 from menubar import grok as menubar_grok
 from panels.web_panel import UsageScriptBridge, _row_payload, _state_payload
+from quota.burn_rate import BurnRateTracker
 
 
 def test_state_payload_includes_agy_card_data() -> None:
@@ -194,6 +195,49 @@ def test_bridge_saves_valid_panel_flavor_and_ignores_invalid_input(
         SimpleNamespace(body=lambda: '{"action":"set_panel_flavor","flavor":"latte "}'),
     )
     assert prefs._load_preferences()["panel_flavor"] == "macchiato"
+
+
+def test_bridge_switches_agy_from_cached_quota(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
+    window = AgyQuotaWindow(remaining_percent=75, resets_in=None, resets_in_minutes=60)
+    quota = AgyQuotaResult(
+        groups=[
+            AgyQuotaGroup("GEMINI MODELS", [], window, window),
+            AgyQuotaGroup("CLAUDE AND GPT MODELS", [], window, window),
+        ],
+        fetched_at=datetime(2026, 1, 1, tzinfo=UTC).isoformat(),
+    )
+    monkeypatch.setattr(menubar_agy, "_last_quota", quota)
+    monkeypatch.setattr(menubar_agy, "load_quota", lambda: pytest.fail("switch probed quota"))
+    state = menubar._empty_state("en")
+    painted: list[object] = []
+    delegate = SimpleNamespace(
+        latest_state=state,
+        burn_rate_trackers={"agy_session": BurnRateTracker(), "agy_weekly": BurnRateTracker()},
+        popover_controller=SimpleNamespace(setState_=painted.append),
+    )
+    bridge = UsageScriptBridge.alloc().init()
+    bridge.delegate = delegate
+
+    bridge.userContentController_didReceiveScriptMessage_(
+        None,
+        SimpleNamespace(body=lambda: '{"action":"set_agy_quota_group","group":"claude_gpt"}'),
+    )
+
+    assert prefs._load_preferences()["agy_quota_group"] == "claude_gpt"
+    assert state.agy_group_name == "CLAUDE AND GPT MODELS"
+    assert painted == [state]
+    agy_payload = cast(dict[str, object], _state_payload(state)["agy"])
+    assert agy_payload["groupName"] == "CLAUDE AND GPT MODELS"
+
+    bridge.userContentController_didReceiveScriptMessage_(
+        None,
+        SimpleNamespace(body=lambda: '{"action":"set_agy_quota_group","group":"CLAUDE"}'),
+    )
+    assert prefs._load_preferences()["agy_quota_group"] == "claude_gpt"
+    assert painted == [state]
 
 
 def test_bridge_forwards_measured_content_height() -> None:

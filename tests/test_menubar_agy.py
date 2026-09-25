@@ -4,11 +4,14 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 
 import pytest
 
+import prefs
 from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
 from menubar import agy as menubar_agy
+from menubar.prefs import _save_agy_quota_group
 from quota.burn_rate import BurnRateTracker
 
 
@@ -84,6 +87,77 @@ def test_project_quota_selects_gemini_group_and_converts_percent() -> None:
     assert projection.weekly.percent == 10.0
     assert projection.weekly.percent_text == "10% used"
     assert projection.session.reset_text == "Resets in 1h 30m"
+
+
+def test_project_quota_selects_claude_and_falls_back_to_gemini() -> None:
+    quota = AgyQuotaResult(
+        groups=[
+            _group("GEMINI MODELS", session_remaining=40, weekly_remaining=90),
+            _group("CLAUDE AND GPT MODELS", session_remaining=70, weekly_remaining=12.5),
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+    selected = menubar_agy.project_quota(
+        quota, "en", now=1_767_225_600.0, group_preference="claude_gpt"
+    )
+    assert selected is not None
+    assert selected.group_name == "CLAUDE AND GPT MODELS"
+    assert selected.session.percent == 30.0
+    assert selected.weekly.percent == 87.5
+
+    gemini_only = AgyQuotaResult(groups=quota.groups[:1], fetched_at=quota.fetched_at)
+    fallback = menubar_agy.project_quota(
+        gemini_only, "en", now=1_767_225_600.0, group_preference="claude_gpt"
+    )
+    assert fallback is not None
+    assert fallback.group_name == "GEMINI MODELS"
+
+
+def test_switch_reprojects_cached_quota_and_resets_trackers(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
+    quota = AgyQuotaResult(
+        groups=[
+            _group("GEMINI MODELS", session_remaining=40, weekly_remaining=90),
+            _group("CLAUDE AND GPT MODELS", session_remaining=70, weekly_remaining=12.5),
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+    monkeypatch.setattr(menubar_agy, "_last_quota", quota)
+    trackers = _burn_rate_trackers()
+    old_session, old_weekly = trackers["agy_session"], trackers["agy_weekly"]
+    old_session.record(100, 12)
+    old_weekly.record(100, 34)
+    assert _save_agy_quota_group("claude_gpt") is True
+
+    projection = menubar_agy.reproject_cached_quota("en", trackers)
+
+    assert projection is not None
+    assert projection.group_name == "CLAUDE AND GPT MODELS"
+    assert trackers["agy_session"] is not old_session
+    assert trackers["agy_weekly"] is not old_weekly
+    assert trackers["agy_session"].last_timestamp != 100
+    assert trackers["agy_weekly"].last_timestamp != 100
+
+
+def test_refresh_projects_saved_agy_group(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
+    quota = AgyQuotaResult(
+        groups=[
+            _group("GEMINI MODELS", session_remaining=40, weekly_remaining=90),
+            _group("CLAUDE AND GPT MODELS", session_remaining=70, weekly_remaining=12.5),
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+    monkeypatch.setattr(menubar_agy, "find_agy", lambda: "agy")
+    monkeypatch.setattr(menubar_agy, "load_quota", lambda: quota)
+    assert _save_agy_quota_group("claude_gpt") is True
+
+    result = menubar_agy.load_refresh_result("en")
+
+    assert result.projection is not None
+    assert result.projection.group_name == "CLAUDE AND GPT MODELS"
 
 
 def test_project_quota_falls_back_to_most_constrained_group_without_gemini() -> None:

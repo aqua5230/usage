@@ -23,6 +23,7 @@ from loaders.agy_quota_probe import (
 from loaders.agy_quota_probe import (
     find_agy as find_agy,
 )
+from menubar.prefs import _agy_quota_group
 from menubar.state import (
     AGY_COLOR,
     AgyStaleState,
@@ -43,6 +44,7 @@ AGY_STALE_SECONDS = 20 * 60
 AGY_SESSION_FORECAST_MIN_SPAN_SECONDS = 15 * 60
 AGY_WEEKLY_FORECAST_MIN_SPAN_SECONDS = 30 * 60
 AGY_WEEKLY_WARNING_MAX_SECONDS = 24 * 3600
+_last_quota: AgyQuotaResult | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -69,11 +71,15 @@ def project_quota(
     language: str,
     now: float | None = None,
     burn_rate_trackers: dict[str, BurnRateTracker] | None = None,
+    group_preference: str = "gemini",
 ) -> AgyQuotaProjection | None:
-    """Select and convert the Gemini quota group without I/O when available."""
+    """Select and convert the preferred quota group without I/O."""
     if quota is None or not quota.groups:
         return None
-    selected = next(
+    preferred = next(
+        (group for group in quota.groups if _matches_group(group.name, group_preference)), None
+    )
+    selected = preferred or next(
         (group for group in quota.groups if "gemini" in group.name.lower()),
         min(quota.groups, key=_group_remaining_percent),
     )
@@ -133,12 +139,38 @@ def load_refresh_result(
 ) -> AgyRefreshResult:
     """Load/probe quota for a worker thread; never call this on the main thread."""
     if find_agy() is None:
+        global _last_quota
+        _last_quota = None
         return AgyRefreshResult(projection=None, hide_agy=True)
     try:
-        projection = project_quota(load_quota(), language, burn_rate_trackers=burn_rate_trackers)
+        _last_quota = load_quota()
+        projection = project_quota(
+            _last_quota, language, burn_rate_trackers=burn_rate_trackers,
+            group_preference=_agy_quota_group(),
+        )
     except Exception:
+        _last_quota = None
         projection = None
     return AgyRefreshResult(projection=projection, hide_agy=projection is None)
+
+
+def reproject_cached_quota(
+    language: str, burn_rate_trackers: dict[str, BurnRateTracker]
+) -> AgyQuotaProjection | None:
+    """Change groups from the last loaded snapshot without probing the network."""
+    burn_rate_trackers["agy_session"] = BurnRateTracker()
+    burn_rate_trackers["agy_weekly"] = BurnRateTracker()
+    return project_quota(
+        _last_quota, language, burn_rate_trackers=burn_rate_trackers,
+        group_preference=_agy_quota_group(),
+    )
+
+
+def _matches_group(name: str, preference: str) -> bool:
+    normalized = name.lower()
+    if preference == "claude_gpt":
+        return "claude" in normalized and "gpt" in normalized
+    return "gemini" in normalized
 
 
 def fallback_projection(language: str) -> AgyQuotaProjection:

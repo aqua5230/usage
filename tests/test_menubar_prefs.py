@@ -95,6 +95,21 @@ def test_panel_flavor_round_trip(monkeypatch: pytest.MonkeyPatch, tmp_path: Path
     assert prefs._load_preferences()["panel_flavor"] == "latte"
 
 
+def test_agy_quota_group_round_trip_and_invalid_values(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    preferences_file = tmp_path / "usage-preferences.json"
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_file)
+
+    assert menubar_prefs._agy_quota_group() == "gemini"
+    assert menubar_prefs._save_agy_quota_group("claude_gpt") is True
+    assert menubar_prefs._agy_quota_group() == "claude_gpt"
+    assert prefs._load_preferences()["agy_quota_group"] == "claude_gpt"
+    for invalid in ("Claude", "claude_gpt ", None, 1, ["gemini"]):
+        assert menubar_prefs._save_agy_quota_group(invalid) is False
+    assert menubar_prefs._agy_quota_group() == "claude_gpt"
+
+
 @pytest.mark.parametrize("flavor", ["latte ", "LATTE", 123, None, ["mocha"]])
 def test_save_panel_flavor_rejects_invalid_values(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path, flavor: object
