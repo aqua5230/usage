@@ -42,8 +42,9 @@ brew install --cask aqua5230/usage/usage
 ### 实时可见
 
 - **常驻监视器：** 配额常驻菜单栏，以绿色到红色的颜色编码显示。需要完整的会话、每周和各项目明细时，点击即可查看。
-- **Antigravity 支持：** Antigravity（Gemini）的会话与每周配额以第三张卡片出现在除了 World Cup 2026 以外的每一款面板（该款维持两队对战 HUD）。数值直接向官方配额 API 查询，使用的是 Antigravity CLI 本就保存在你机器上的登录身份——每隔几分钟自动刷新，重置倒计时实时递减。
+- **Antigravity 支持：** Antigravity（Gemini）的会话与每周配额以第三张卡片出现在除了 World Cup 2026 以外的每一款面板（该款维持两队对战 HUD）。数值直接向官方配额 API 查询，使用的是 Antigravity CLI 本就保存在你机器上的登录身份——每隔几分钟自动刷新，重置倒计时实时递减。Antigravity 有两组独立配额：卡片默认显示 Gemini，点击标题旁的“Gemini ⇄”标签即可切换到 Claude / GPT，选择会被记住。
 - **Grok CLI 支持：** 第四张卡片直接读取 Grok CLI 自己写在本地的调试日志算出每周配额百分比，不做任何网络调用。Grok CLI 没有提供会话或燃烧率数据，所以这张卡片只显示一条每周进度条；但它的逐次 token 用量一样会算进今日花费与各项目总计，跟 Claude Code、Codex 一样。
+- **Muse Code 花费：** Muse Code 每次请求的 token 与花费会计入今日花费、项目总计、HTML 报告与 `usage` CLI，数据来自它自己保存在本地的会话日志。Muse 没有本地配额数据，因此没有 Muse 配额卡片。
 - **服务状态警示：** Claude Code、Claude API 或 Codex API 发生故障或性能降级时，相关面板底部会显示橘红警示横幅，数值仅读取官方公开的 Statuspage.io 状态页——绝不调用 LLM 使用量 API。Antigravity 因没有可用的公开状态页，暂不支持。
 - **上下文提醒与通知：** 当上下文窗口达到 70%（填得快时会提前）时，状态栏会提示你使用 `/clear` 或 `/compact`，避免浪费 token。你也可以选择接收关于配额限额和恢复的系统通知。
 - **缓存健康度：** 状态栏会显示 Claude Code 的 prompt cache 命中率与过期倒计时，让你一眼判断现在收尾还能沿用已缓存的内容，还是快要冷掉、得整份重新发送。需要 Claude Code 2.1.251 以上；旧版不会出现这一段。
@@ -184,8 +185,9 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | 始终显示在屏幕上 | ✅ | — | ✅ |
 | macOS 菜单栏与 Windows 系统托盘 | ✅ | — | 仅限 macOS |
 | Claude Code 与 Codex 用量 | ✅ | 仅 Claude | ✅ |
-| Antigravity（Gemini）用量 | ✅ | — | — |
+| Antigravity 用量（Gemini 与 Claude / GPT） | ✅ | — | — |
 | Grok CLI 用量 | ✅ | — | — |
+| Muse Code token 花费 | ✅ | — | — |
 | Claude Code 与 Codex 服务状态警示 | ✅ | — | — |
 | HTML 深度报告与界面 | ✅ | ✅ | — |
 | AI 更新日报 | ✅ | — | — |

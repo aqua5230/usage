@@ -5,6 +5,15 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.30.23] - 2026-09-26
+
+### Added
+- **Switch the Antigravity card between its two quota pools.** Antigravity keeps separate Gemini and Claude / GPT quotas, and the card used to show only Gemini — so anyone working mainly with Claude models in Antigravity never saw their own numbers (#150). A small tag next to the title now always names the pool on screen; tap `Gemini ⇄` to switch to `Claude / GPT ⇄` and back. The choice is remembered, the switch redraws from the last fetched snapshot without another network call, and the burn-rate forecast restarts so the two pools never blend into one prediction. It works in the 13 themes that have an Antigravity card, on macOS and Windows.
+- **Muse Code spending.** Muse Code's per-request tokens and cost now count toward today's cost, project totals, the HTML report, and the `usage` CLI. They are read from `~/.local/share/muse/sessions/**/session.jsonl`, deduplicated by record ID, and priced from LiteLLM's `meta/muse-*` entries, with `muse-spark-1.3` added to the offline fallback table. Muse keeps no local quota data, so there is no Muse quota card.
+
+### Changed
+- Bumped ruff to 0.16.8, `astral-sh/setup-uv` to 10.2.0, and the CodeQL actions.
+
 ## [0.30.22] - 2026-09-25
 
 ### Added

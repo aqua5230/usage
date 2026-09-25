@@ -4,6 +4,15 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.30.23] - 2026-09-26
+
+### 新增
+- **Antigravity 卡片可以切換兩組額度。** Antigravity 的 Gemini 與 Claude / GPT 是兩組獨立額度，卡片原本只顯示 Gemini，主要在 Antigravity 裡用 Claude 模型的人看不到自己那組（#150）。現在標題旁多一個一直顯示的小標籤，寫的就是目前顯示的組；點 `Gemini ⇄` 切到 `Claude / GPT ⇄`，再點切回。選擇會記住；切換時直接用上次抓到的資料重畫，不多打一次網路，並重新開始算燒速預測，兩組數字不會混在一起。13 款有 Antigravity 卡片的主題都支援，macOS 與 Windows 都有。
+- **Muse Code 花費。** Muse Code 每次請求的 token 與花費會算進今日花費、專案總計、HTML 報表與 `usage` CLI。資料讀自 `~/.local/share/muse/sessions/**/session.jsonl`，以紀錄 ID 去重，價格對到 LiteLLM 的 `meta/muse-*`，離線備用價目表也補上 `muse-spark-1.3`。Muse 沒有本機額度資料，所以沒有 Muse 額度卡片。
+
+### 變更
+- ruff 升到 0.16.8、`astral-sh/setup-uv` 升到 10.2.0，CodeQL actions 也一併更新。
+
 ## [0.30.22] - 2026-09-25
 
 ### 新增

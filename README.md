@@ -42,8 +42,9 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 ### Live Visibility
 
 - **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
-- **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every theme except World Cup 2026, which stays a two-team HUD. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns.
+- **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every theme except World Cup 2026, which stays a two-team HUD. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns. Antigravity keeps two separate quota pools: the card shows Gemini by default, and tapping the `Gemini ⇄` tag next to the title switches it to Claude / GPT — the choice is remembered.
 - **Grok CLI Support:** A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Grok CLI doesn't expose session or burn-rate data, so the card shows a single weekly bar; its per-request token usage still counts toward today's cost and project totals like Claude Code and Codex.
+- **Muse Code Spending:** Muse Code's per-request tokens and cost count toward today's cost, project totals, the HTML report, and the `usage` CLI, read from its own local session logs. Muse keeps no local quota data, so there is no Muse quota card.
 - **Service Status Alerts:** An orange-red banner appears when Claude Code, Claude API, or Codex API has an outage or degraded performance, read from their public Statuspage.io pages — never an LLM usage API. Antigravity isn't covered; it has no public status page.
 - **Context Nudges & Notifications:** When your context window hits 70% — or earlier when it is filling fast — the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
 - **Prompt Cache Health:** The status line shows Claude Code's prompt cache hit rate with a countdown to expiry, so you can tell at a glance whether finishing now still reuses the cached context or lets it go cold and re-sends everything. Needs Claude Code 2.1.251 or newer; on older versions the segment simply doesn't appear.
@@ -184,8 +185,9 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Always on screen | ✅ | — | ✅ |
 | macOS menu bar & Windows system tray | ✅ | — | macOS only |
 | Claude Code & Codex usage | ✅ | Claude only | ✅ |
-| Antigravity (Gemini) usage | ✅ | — | — |
+| Antigravity usage (Gemini and Claude / GPT) | ✅ | — | — |
 | Grok CLI usage | ✅ | — | — |
+| Muse Code token spend | ✅ | — | — |
 | Claude Code & Codex service-status alerts | ✅ | — | — |
 | HTML deep reports & UI | ✅ | ✅ | — |
 | AI Update Daily | ✅ | — | — |
