@@ -10,6 +10,11 @@ on:
         description: 'Existing tag to (re)build, e.g. v0.1.1'
         required: true
         type: string
+      pypi_only:
+        description: 'Only publish this tag to PyPI; skip the app build, release assets and Homebrew bump'
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -58,6 +63,7 @@ jobs:
 
   build:
     needs: test
+    if: ${{ !inputs.pypi_only }}
     runs-on: macos-latest
     permissions:
       contents: write
@@ -368,3 +374,37 @@ jobs:
           git add Casks/usage.rb
           git commit -m "usage $TAG"
           git push
+
+  # Trusted Publishing: PyPI trusts this workflow via OIDC, so no API token is
+  # stored anywhere. --check-url skips files already on PyPI, which makes a
+  # re-run of the same tag a no-op instead of an error.
+  publish-pypi:
+    needs: test
+    runs-on: ubuntu-latest
+    environment: pypi
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Resolve ref
+        id: ref
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          INPUT_TAG: ${{ inputs.tag }}
+          GIT_REF: ${{ github.ref }}
+        run: |
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "ref=$INPUT_TAG" >> "$GITHUB_OUTPUT"
+          else
+            echo "ref=$GIT_REF" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ steps.ref.outputs.ref }}
+
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7 # v10.2.0
+
+      - run: uv build
+
+      - run: uv publish --trusted-publishing always --check-url https://pypi.org/simple/
