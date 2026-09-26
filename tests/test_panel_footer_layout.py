@@ -23,7 +23,8 @@ ROOT = Path(__file__).resolve().parents[1]
     os.environ.get("USAGE_BROWSER_TESTS") != "1" or sys.platform != "darwin",
     reason="opt-in browser test using the macOS demo generator",
 )
-def test_footer_layout(tmp_path: Path) -> None:
+@pytest.mark.parametrize("script", ["panel_footer_layout.cjs", "panel_height_feedback.cjs"])
+def test_footer_layout(tmp_path: Path, script: str) -> None:
     node = shutil.which("node")
     assert node, "USAGE_BROWSER_TESTS requires Node and an existing playwright installation"
     subprocess.run(
@@ -34,10 +35,10 @@ def test_footer_layout(tmp_path: Path) -> None:
         text=True,
     )
     result = subprocess.run(
-        [node, str(ROOT / "tests/panel_footer_layout.cjs"), str(tmp_path)],
+        [node, str(ROOT / "tests" / script), str(tmp_path)],
         cwd=ROOT,
         capture_output=True,
         text=True,
-        timeout=240,
+        timeout=600,
     )
     assert result.returncode == 0, result.stdout + result.stderr

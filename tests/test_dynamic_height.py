@@ -30,7 +30,7 @@ def test_script_wraps_state_application_and_measures_without_height_constraints(
     assert "requestAnimationFrame" in CONTENT_HEIGHT_SCRIPT
     assert "MutationObserver" in CONTENT_HEIGHT_SCRIPT
     assert "ResizeObserver" in CONTENT_HEIGHT_SCRIPT
-    assert "document.fonts.ready.then(requestContentHeight)" in CONTENT_HEIGHT_SCRIPT
+    assert "document.fonts.ready.then(requestContentChange)" in CONTENT_HEIGHT_SCRIPT
     assert "height !== lastPostedHeight" in CONTENT_HEIGHT_SCRIPT
     assert "requestContentHeight();" in CONTENT_HEIGHT_SCRIPT
     assert "window.usageInvalidateContentHeight" in CONTENT_HEIGHT_SCRIPT

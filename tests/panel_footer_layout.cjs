@@ -6,6 +6,76 @@ const playwright = require('playwright');
 const engine = process.env.USAGE_BROWSER_ENGINE || 'chromium';
 assert.ok(['chromium', 'webkit'].includes(engine));
 
+function footerErrors() {
+  const errors = [];
+  const inside = (a, b) => a.left >= b.left - 1 && a.right <= b.right + 1
+    && a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
+  for (const element of document.querySelectorAll(
+    '.footer [data-action], .footer .attribution, .footer .credit',
+  )) {
+    if (!element.getClientRects().length) continue;
+    const box = element.getBoundingClientRect();
+    const name = element.dataset.action || 'attribution';
+    if (element.dataset.action) {
+      for (const fraction of [0.25, 0.5, 0.75]) {
+        const hit = document.elementFromPoint(
+          box.left + box.width * fraction, box.top + box.height / 2,
+        );
+        if (hit !== element && !element.contains(hit)) {
+          errors.push(`${name}: click area obstructed`);
+        }
+      }
+    }
+    if (!inside(box, { left: 0, top: 0, right: innerWidth, bottom: innerHeight })) {
+      errors.push(`${name}: viewport`);
+    }
+    // The root's zoomed CSS box is not the viewport's clip rectangle.
+    for (let parent = element.parentElement;
+      parent && parent !== document.documentElement; parent = parent.parentElement) {
+      const style = getComputedStyle(parent);
+      if (parent.matches('.actions,.footer')
+        || ['hidden', 'clip'].includes(style.overflowX)
+        || ['hidden', 'clip'].includes(style.overflowY)) {
+        if (!inside(box, parent.getBoundingClientRect())) {
+          errors.push(`${name}: ancestor ${parent.className}`);
+        }
+      }
+    }
+    const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
+    let text;
+    while ((text = walker.nextNode())) {
+      if (!text.textContent.trim()) continue;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      for (const line of range.getClientRects()) {
+        if (!inside(line, box)) errors.push(`${name}: text outside button`);
+      }
+    }
+  }
+  // A grid column can shrink while its text paints over adjacent buttons.
+  const meta = document.querySelector('.footer .meta');
+  if (meta) {
+    const walker = document.createTreeWalker(meta, NodeFilter.SHOW_TEXT);
+    let text;
+    while ((text = walker.nextNode())) {
+      if (!text.textContent.trim()) continue;
+      const range = document.createRange();
+      range.selectNodeContents(text);
+      for (const line of range.getClientRects()) {
+        for (const button of document.querySelectorAll('.footer [data-action]')) {
+          if (!button.getClientRects().length) continue;
+          const box = button.getBoundingClientRect();
+          if (Math.min(line.right, box.right) - Math.max(line.left, box.left) > 1
+            && Math.min(line.bottom, box.bottom) - Math.max(line.top, box.top) > 1) {
+            errors.push('status text overlaps button');
+          }
+        }
+      }
+    }
+  }
+  return errors;
+}
+
 async function main() {
   const directory = process.argv[2];
   const browser = await playwright[engine].launch();
@@ -60,75 +130,7 @@ async function main() {
                 height = measured;
               }
               assert.ok(settled, `height did not settle: ${panel.id}/${width}/${scale}`);
-              const errors = await page.evaluate(() => {
-                const errors = [];
-                const inside = (a, b) => a.left >= b.left - 1 && a.right <= b.right + 1
-                  && a.top >= b.top - 1 && a.bottom <= b.bottom + 1;
-                for (const element of document.querySelectorAll(
-                  '.footer [data-action], .footer .attribution, .footer .credit',
-                )) {
-                  if (!element.getClientRects().length) continue;
-                  const box = element.getBoundingClientRect();
-                  const name = element.dataset.action || 'attribution';
-                  if (element.dataset.action) {
-                    for (const fraction of [0.25, 0.5, 0.75]) {
-                      const hit = document.elementFromPoint(
-                        box.left + box.width * fraction, box.top + box.height / 2,
-                      );
-                      if (hit !== element && !element.contains(hit)) {
-                        errors.push(`${name}: click area obstructed`);
-                      }
-                    }
-                  }
-                  if (!inside(box, { left: 0, top: 0, right: innerWidth, bottom: innerHeight })) {
-                    errors.push(`${name}: viewport`);
-                  }
-                  // The root's zoomed CSS box is not the viewport's clip rectangle.
-                  for (let parent = element.parentElement;
-                    parent && parent !== document.documentElement; parent = parent.parentElement) {
-                    const style = getComputedStyle(parent);
-                    if (parent.matches('.actions,.footer')
-                      || ['hidden', 'clip'].includes(style.overflowX)
-                      || ['hidden', 'clip'].includes(style.overflowY)) {
-                      if (!inside(box, parent.getBoundingClientRect())) {
-                        errors.push(`${name}: ancestor ${parent.className}`);
-                      }
-                    }
-                  }
-                  const walker = document.createTreeWalker(element, NodeFilter.SHOW_TEXT);
-                  let text;
-                  while ((text = walker.nextNode())) {
-                    if (!text.textContent.trim()) continue;
-                    const range = document.createRange();
-                    range.selectNodeContents(text);
-                    for (const line of range.getClientRects()) {
-                      if (!inside(line, box)) errors.push(`${name}: text outside button`);
-                    }
-                  }
-                }
-                // A grid column can shrink while its text paints over adjacent buttons.
-                const meta = document.querySelector('.footer .meta');
-                if (meta) {
-                  const walker = document.createTreeWalker(meta, NodeFilter.SHOW_TEXT);
-                  let text;
-                  while ((text = walker.nextNode())) {
-                    if (!text.textContent.trim()) continue;
-                    const range = document.createRange();
-                    range.selectNodeContents(text);
-                    for (const line of range.getClientRects()) {
-                      for (const button of document.querySelectorAll('.footer [data-action]')) {
-                        if (!button.getClientRects().length) continue;
-                        const box = button.getBoundingClientRect();
-                        if (Math.min(line.right, box.right) - Math.max(line.left, box.left) > 1
-                          && Math.min(line.bottom, box.bottom) - Math.max(line.top, box.top) > 1) {
-                          errors.push('status text overlaps button');
-                        }
-                      }
-                    }
-                  }
-                }
-                return errors;
-              });
+              const errors = await page.evaluate(footerErrors);
               assert.deepEqual(errors, [], JSON.stringify({
                 theme: panel.id, width, language, install, scale, errors,
               }));
@@ -154,4 +156,7 @@ async function main() {
     await browser.close();
   }
 }
-main().catch(error => { console.error(error); process.exitCode = 1; });
+module.exports = { footerErrors };
+if (require.main === module) {
+  main().catch(error => { console.error(error); process.exitCode = 1; });
+}
