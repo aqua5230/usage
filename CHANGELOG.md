@@ -5,10 +5,16 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## [0.30.24] - 2026-09-26
+
+### Added
+- **Dispatch ledger in the HTML report.** The top-conversations table gains an "Approx. weekly quota" column, and a new "Dispatch ledger (last 7 days)" section matches the `codex exec` / `agy -p` calls in a Claude conversation to the Codex and Antigravity conversations they started, estimating how much of each provider's weekly quota one task used: conversation tokens (excluding cache reads) ÷ the period's total tokens × that provider's weekly quota used. A dispatch is attributed by Claude's conversation UUID first, then by a -5 to +120 second time window, then by working directory; if it is still ambiguous it stays unattributed. It reads local files only — Antigravity's quota comes from the existing cache, with no new network call — and the section is omitted when there were no dispatches.
+
+### Changed
+- Tagging a release now also publishes `usage-cli` to PyPI through Trusted Publishing, with no stored token.
 
 ### Fixed
-- Keep footer action labels and buttons visible in the ten affected panel themes when the status-line setup button is shown, including narrow panels and longer translations. Allow local wrapping and natural button height while preserving theme chrome. Measure content at the displayed zoom so WebKit font metrics and line wrapping cannot clip the footer after panel scaling.
+- Keep footer action labels and buttons visible in the ten affected panel themes when the status-line setup button is shown, including narrow panels and longer translations. Allow local wrapping and natural button height while preserving theme chrome. Measure content at the displayed zoom so WebKit font metrics and line wrapping cannot clip the footer after panel scaling ([#151](https://github.com/aqua5230/usage/pull/151)).
 
 ## [0.30.23] - 2026-09-26
 
