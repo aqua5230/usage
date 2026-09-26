@@ -537,16 +537,22 @@
       flex-wrap: wrap;
       gap: 4px 9px;
       min-width: 0;
+      overflow-wrap: anywhere;
       color: rgba(255, 255, 255, 0.72);
       font-size: 12px;
       font-weight: 750;
       line-height: 1.2;
     }
 
+    .footer:has(.action[data-action="install"][data-visible="true"]) {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
     .actions {
       position: relative;
       z-index: 1;
       display: flex;
+      flex-wrap: wrap;
       gap: 6px;
     }
 

@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+### Fixed
+- Keep footer action labels and buttons visible in the ten affected panel themes when the status-line setup button is shown, including narrow panels and longer translations. Allow local wrapping and natural button height while preserving theme chrome. Measure content at the displayed zoom so WebKit font metrics and line wrapping cannot clip the footer after panel scaling.
+
 ## [0.30.23] - 2026-09-26
 
 ### Added

@@ -17,18 +17,19 @@ CONTENT_HEIGHT_SCRIPT = """
   var lastPostedHeight = null;
   function naturalContentHeight() {
     var root = document.documentElement;
-    var zoom = root.style.zoom;
+    // Measure in the displayed zoom: WebKit may enforce a minimum rendered
+    // font size, changing line breaks. Removing zoom also changes the layout
+    // width after the native window has been fitted to the screen.
+    var scale = parseFloat(window.getComputedStyle(root).zoom) || 1;
     var body = document.body;
     // usageApplyPanelZoom expands this layout box while Chromium zoom is
-    // active. Release it as well as zoom, otherwise a subsequent measurement
+    // active. Release that height, otherwise a subsequent measurement
     // would report the compensated height rather than the natural content.
     var bodyHeight = body ? body.style.height : "";
-    root.style.zoom = "normal";
     if (body) body.style.height = "";
     var wrap = document.querySelector(".wrap");
     if (!wrap) {
       if (body) body.style.height = bodyHeight;
-      root.style.zoom = zoom;
       return null;
     }
     // A panel can explicitly mark a flexible region whose current laid-out
@@ -40,7 +41,7 @@ CONTENT_HEIGHT_SCRIPT = """
       function(element) {
         return {
           element: element,
-          height: element.getBoundingClientRect().height,
+          height: element.getBoundingClientRect().height / scale,
           minHeight: element.style.minHeight
         };
       }
@@ -85,7 +86,7 @@ CONTENT_HEIGHT_SCRIPT = """
       });
       // Force reflow with viewport constraints disabled. Restoration remains
       // in this synchronous task, so the temporary styles are never painted.
-      var total = wrap.getBoundingClientRect().height;
+      var total = wrap.getBoundingClientRect().height / scale;
       chain.forEach(function(element, index) {
         var style = window.getComputedStyle(element);
         total += (parseFloat(style.marginTop) || 0) + (parseFloat(style.marginBottom) || 0);
@@ -110,7 +111,6 @@ CONTENT_HEIGHT_SCRIPT = """
         floor.element.style.minHeight = floor.minHeight;
       });
       if (body) body.style.height = bodyHeight;
-      root.style.zoom = zoom;
     }
   }
   function reportContentHeight() {
@@ -156,6 +156,7 @@ CONTENT_HEIGHT_SCRIPT = """
       body.style.height = scaled && Number.isFinite(height) && height > 0
         ? String(height) + "px" : "";
     }
+    requestContentHeight();
     return true;
   };
   window.usageApplyState = function usageApplyStateWithDynamicHeight(state) {

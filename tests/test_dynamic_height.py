@@ -35,7 +35,10 @@ def test_script_wraps_state_application_and_measures_without_height_constraints(
     assert "requestContentHeight();" in CONTENT_HEIGHT_SCRIPT
     assert "window.usageInvalidateContentHeight" in CONTENT_HEIGHT_SCRIPT
     assert "lastPostedHeight = null;" in CONTENT_HEIGHT_SCRIPT
-    assert 'root.style.zoom = "normal"' in CONTENT_HEIGHT_SCRIPT
+    assert 'root.style.zoom = "normal"' not in CONTENT_HEIGHT_SCRIPT
+    assert "window.getComputedStyle(root).zoom" in CONTENT_HEIGHT_SCRIPT
+    assert "wrap.getBoundingClientRect().height / scale" in CONTENT_HEIGHT_SCRIPT
+    assert "element.getBoundingClientRect().height / scale" in CONTENT_HEIGHT_SCRIPT
     assert "window.usageApplyPanelZoom" in CONTENT_HEIGHT_SCRIPT
     assert "function(scale, naturalHeight)" in CONTENT_HEIGHT_SCRIPT
     assert 'body.style.height = ""' in CONTENT_HEIGHT_SCRIPT
