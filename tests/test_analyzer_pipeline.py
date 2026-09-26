@@ -252,6 +252,7 @@ def test_html_panels_expose_analyze_action() -> None:
         "lepidoptera.html",
         "matrix.html",
         "migration.html",
+        "sketchbook.html",
         "newspaper.html",
         "origami.html",
         "prism_arcade.html",

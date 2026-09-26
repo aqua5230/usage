@@ -108,6 +108,18 @@
     }
   },
   {
+    "id": "sketchbook",
+    "width": 364.0,
+    "height": 1132.0,
+    "names": {
+      "en": "Sketchbook",
+      "zh-TW": "手繪筆記",
+      "zh-CN": "手绘笔记",
+      "ja": "手描きノート",
+      "ko": "손그림 노트"
+    }
+  },
+  {
     "id": "origami",
     "width": 364.0,
     "height": 1132.0,

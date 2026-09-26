@@ -96,6 +96,7 @@ WINDOWS_PANELS = (
     ("world_cup", "panel_world_cup", "world_cup.html"),
     ("stained_glass", "panel_stained_glass", "stained_glass.html"),
     ("migration", "panel_migration", "migration.html"),
+    ("sketchbook", "panel_sketchbook", "sketchbook.html"),
     ("origami", "panel_origami", "origami.html"),
     ("catppuccin", "panel_catppuccin", "catppuccin.html"),
 )
@@ -117,6 +118,7 @@ PANEL_HEIGHTS = {
     "world_cup": 812,
     "stained_glass": 1132,
     "migration": 1132,
+    "sketchbook": 1132,
     "origami": 1132,
     "catppuccin": 1166,
 }
