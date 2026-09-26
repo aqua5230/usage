@@ -35,6 +35,16 @@ from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu
 from wintray import watch as windows_watch
 
+_REAL_NATIVE_WORK_AREA = wintray._WindowsTrayController._native_work_area_for_point
+
+
+@pytest.fixture(autouse=True)
+def _no_real_monitor_lookup(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep placement tests on their fake screens when CI runs on real Windows."""
+    monkeypatch.setattr(
+        wintray._WindowsTrayController, "_native_work_area_for_point", lambda _self, _point: None
+    )
+
 
 class _Key:
     def __enter__(self) -> _Key:
@@ -936,7 +946,7 @@ def test_native_work_area_converts_physical_pixels_to_logical(
     controller.window = SimpleNamespace(native=SimpleNamespace(Handle=123))
     monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.25)
 
-    assert controller._native_work_area_for_point((1169, 2)) == (0, 0, 1536, 826)
+    assert _REAL_NATIVE_WORK_AREA(controller, (1169, 2)) == (0, 0, 1536, 826)
 
 
 def test_panel_rechecks_native_work_area_before_final_move(
