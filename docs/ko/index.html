@@ -478,6 +478,7 @@ section .subtitle {
 #screenshots {
   padding: 96px 0 80px; border-top: 1px solid var(--border);
   background: radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.06) 1px, transparent 0) 0 0 / 24px 24px, var(--bg);
+  overflow-x: clip;
 }
 #screenshots .section-label, #screenshots h2, #screenshots .subtitle { text-align: center; }
 #screenshots .subtitle { margin-left: auto; margin-right: auto; }
@@ -588,8 +589,6 @@ section .subtitle {
   transition: border-color 150ms ease;
 }
 .install-card:hover { border-color: rgba(255, 255, 255, 0.16); }
-.install-card.is-recommended { border-color: rgba(255, 140, 66, 0.45); background: rgba(255, 140, 66, 0.06); }
-.install-card.is-recommended:hover { border-color: rgba(255, 140, 66, 0.6); }
 .install-card .label {
   font-size: 11px;
   font-family: var(--mono);
@@ -689,15 +688,14 @@ pre {
   font-size: 13px;
   font-family: var(--mono);
 }
-/* 主題按鈕橫排置中、預覽在下。預覽由 JS 縮放並限高，按鈕列和面板在同一個畫面看完，
-   換主題不必上下捲；面板比剩下的高度長才截掉、底部淡出（.is-cropped）。 */
+/* 主題按鈕與扇形預覽。預覽由 JS 縮放、限高並排出兩側卡片。 */
 .panel-picker {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  justify-items: center;
   gap: 28px;
   margin: 0;
 }
+.chips-scroll { justify-self: center; max-width: 100%; }
 .panel-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 1040px; }
 .panel-chip {
   appearance: none;
@@ -724,21 +722,56 @@ pre {
   color: #08090c;
   font-weight: 600;
 }
-.panel-stage {
+.panel-fan {
   position: relative;
-  width: 364px;
+  left: calc(50% - 50vw);
+  width: 100vw;
+  overflow: hidden;
+  isolation: isolate;
+  touch-action: pan-y;
+}
+.panel-fan::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 22%; z-index: 20;
+  background: linear-gradient(transparent, #0e1118); pointer-events: none;
+}
+.panel-fan-card {
+  appearance: none;
+  position: absolute;
+  top: 40px;
+  left: 50%;
+  width: var(--card-width, 291px);
+  height: var(--card-height, 500px);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  background: var(--bg-card);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.55);
+  cursor: pointer;
+  transform-origin: center bottom;
+  transition: transform 450ms cubic-bezier(.2,.8,.2,1), opacity 450ms cubic-bezier(.2,.8,.2,1);
+  will-change: transform;
+}
+.panel-fan-card img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.panel-fan-card:focus-visible, .panel-stage:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.panel-stage {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  z-index: 10;
+  width: min(291px, calc(100vw - 32px));
   border-radius: 14px;
   overflow: hidden;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background: var(--bg-card);
   box-shadow: 0 40px 100px -40px rgba(255, 140, 66, 0.28), 0 24px 60px -24px rgba(0, 0, 0, 0.8);
-  flex-shrink: 0;
+  transform: translateX(-50%);
 }
 .panel-stage iframe { width: 364px; height: 1004px; border: 0; display: block; pointer-events: none; transform-origin: top left; }
-.panel-poster { position: absolute; inset: 0; width: 100%; height: auto; display: block; pointer-events: none; }
-.panel-stage.is-cropped {
-  -webkit-mask-image: linear-gradient(#000 80%, transparent);
-  mask-image: linear-gradient(#000 80%, transparent);
+.panel-poster { position: absolute; z-index: 1; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; pointer-events: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .panel-fan-card { transition: none; }
 }
 @media (max-width: 760px) {
   .panel-picker { gap: 24px; width: 100%; }
@@ -752,7 +785,7 @@ pre {
   .chips-scroll.can-scroll-left::before, .chips-scroll.can-scroll-right::after { opacity: 1; }
   .panel-chips { flex-wrap: nowrap; overflow-x: auto; justify-content: flex-start; max-width: 100%; padding-bottom: 4px; }
   .panel-chip { flex-shrink: 0; }
-  .panel-stage { width: min(364px, 100%); overflow-x: auto; overflow-y: hidden; }
+  .panel-stage { width: min(364px, calc(100vw - 32px)); }
 }
 
 @media (max-width: 760px) {
@@ -823,6 +856,156 @@ footer .kofi {
   transition: background 150ms ease;
 }
 footer .kofi:hover { background: var(--accent-hover); }
+
+/* Product display grid */
+:root {
+  --bento-line: rgba(255, 255, 255, 0.11);
+  --bento-glow: rgba(255, 140, 66, 0.22);
+  --bento-panel: #171c25;
+  --bento-deep: #11151d;
+}
+#features {
+  background: linear-gradient(180deg, #0d1017 0%, #121722 54%, #0b0e15 100%);
+}
+#features > .wrap > .subtitle { margin-bottom: 30px; }
+.bento-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 16px;
+}
+.bento-grid > * { min-width: 0; }
+.bento-item {
+  --tile-bg: var(--bento-panel);
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border: 1px solid transparent;
+  border-radius: 22px;
+  background:
+    radial-gradient(300px circle at var(--spot-x, 50%) var(--spot-y, 50%), var(--bento-glow), transparent 72%) padding-box,
+    linear-gradient(var(--tile-bg), var(--tile-bg)) padding-box,
+    radial-gradient(340px circle at var(--spot-x, 50%) var(--spot-y, 50%), rgba(255, 166, 96, 0.75), var(--bento-line) 76%) border-box;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.12), inset 0 1px rgba(255, 255, 255, 0.045);
+}
+.bento-item:hover { --bento-glow: rgba(255, 140, 66, 0.28); }
+.bento-grid .card:hover { border-color: transparent; }
+.bento-grid .card-lead {
+  grid-column: span 12;
+  margin: 0;
+  padding: 38px 42px;
+  column-gap: 50px;
+  --tile-bg: #1e222b;
+}
+.bento-grid .card-lead h3 { font-size: clamp(26px, 3vw, 34px); }
+.bento-grid .lead-rows { padding: 22px; border: 1px solid var(--bento-line); border-radius: 15px; background: rgba(8, 10, 15, 0.34); }
+.bento-grid .chess-row {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+}
+.bento-grid .chess-row:nth-child(2) { grid-column: span 7; }
+.bento-grid .chess-row:nth-child(3) { grid-column: span 5; --tile-bg: #1a202a; }
+.bento-grid .chess-row:nth-child(4) {
+  grid-column: span 12;
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  --tile-bg: #1b1b22;
+}
+.bento-grid .chess-row.flip .chess-txt { order: 0; }
+.bento-grid .chess-txt { padding: 32px 34px 24px; min-width: 0; }
+.bento-grid .chess-num { margin-bottom: 12px; }
+.bento-grid .chess-txt h3 { font-size: clamp(24px, 2.4vw, 31px); line-height: 1.18; margin-bottom: 12px; overflow-wrap: anywhere; }
+.bento-grid .chess-txt p { font-size: 15.5px; line-height: 1.62; max-width: 52ch; }
+.bento-grid .chess-media {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 14px;
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  padding: 0 24px 28px;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+.bento-grid .chess-media img,
+.bento-grid .m-fan img:nth-child(n) {
+  position: static;
+  transform: none;
+  top: auto;
+  left: auto;
+  width: auto;
+  max-width: 100%;
+  max-height: 440px;
+  height: auto;
+  object-fit: contain;
+  border-radius: 9px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.34), 0 0 0 1px rgba(255, 255, 255, 0.15);
+}
+.bento-grid .m-report img { max-height: 410px; }
+.bento-grid .m-fan { padding: 30px 30px 30px 0; }
+.bento-grid .m-fan img:nth-child(n) { width: calc((100% - 28px) / 3); max-height: none; }
+.bento-grid .m-fan img:nth-child(1) { transform: rotate(-3deg); }
+.bento-grid .m-fan img:nth-child(3) { transform: rotate(3deg); }
+.bento-grid > .card:not(.card-lead) { grid-column: span 6; padding: 30px 32px; }
+.bento-grid > .card:nth-child(5), .bento-grid > .card:nth-child(8) { --tile-bg: #191f29; }
+.bento-grid > .card:nth-child(6), .bento-grid > .card:nth-child(7) { --tile-bg: var(--bento-deep); }
+.bento-grid > .card:not(.card-lead) h3 { font-size: clamp(21px, 2vw, 25px); margin-bottom: 14px; }
+.bento-grid > .card:not(.card-lead) p { font-size: 15.5px; line-height: 1.68; max-width: 59ch; }
+.bento-grid .card-icon { margin-bottom: 22px; }
+
+#resume { padding-top: 0; background: #0b0e15; }
+.resume-layout { max-width: 1120px; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; padding: 50px 34px 50px 56px; }
+#resume .resume-copy { position: relative; z-index: 1; }
+#resume .subtitle { font-size: 16px; line-height: 1.7; }
+#resume .shot { display: flex; flex-direction: column; justify-content: center; align-items: center; align-self: stretch; width: 100%; overflow: visible; }
+#resume .shot img { width: 100%; height: auto; }
+#resume .strip { margin-top: 60px; }
+#screenshots { background-color: #0e1118; }
+#install { background: linear-gradient(180deg, #090a0f, #12151d); }
+
+@media (max-width: 850px) {
+  .bento-grid .chess-row:nth-child(2), .bento-grid .chess-row:nth-child(3), .bento-grid .chess-row:nth-child(4) { grid-column: span 12; }
+  .bento-grid .chess-row:nth-child(2), .bento-grid .chess-row:nth-child(3) { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: center; }
+  .bento-grid .chess-media { padding: 28px; }
+  .bento-grid .chess-row:nth-child(4) { grid-template-columns: minmax(0, 1fr); }
+  .bento-grid .m-fan { padding: 0 28px 32px; }
+  .resume-layout { grid-template-columns: minmax(0, 1fr); padding: 42px; }
+}
+@media (max-width: 640px) {
+  .bento-grid { gap: 12px; }
+  .bento-grid .card-lead { padding: 24px 20px; }
+  .bento-grid .chess-row:nth-child(2), .bento-grid .chess-row:nth-child(3) { display: flex; }
+  .bento-grid .chess-txt { padding: 24px 22px 18px; }
+  .bento-grid .chess-media { padding: 0 22px 24px; }
+  .bento-grid .chess-media img { max-height: 350px; }
+  .bento-grid .m-fan { gap: 8px; padding: 0 15px 25px; }
+  .bento-grid .m-fan img:nth-child(n) { width: calc((100% - 16px) / 3); }
+  .bento-grid > .card:not(.card-lead) { grid-column: span 12; padding: 25px 23px; }
+  .resume-layout { padding: 32px 24px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .hero::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: -25% -10%;
+    pointer-events: none;
+    background: radial-gradient(ellipse 36% 28% at 45% 38%, rgba(255, 140, 66, 0.10), transparent 75%);
+    animation: hero-glow-drift 18s ease-in-out infinite alternate;
+  }
+  @keyframes hero-glow-drift { from { transform: translate3d(-7%, 3%, 0); } to { transform: translate3d(10%, -5%, 0); } }
+  .bento-item { transition: transform 300ms ease, box-shadow 300ms ease; }
+  .bento-item:hover { transform: translateY(-3px); box-shadow: 0 24px 48px rgba(0, 0, 0, 0.24); }
+  .bento-item.bento-pending { opacity: 0; transform: translateY(22px); }
+  .bento-item.bento-visible { animation: bento-reveal 650ms cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--stagger, 0ms); }
+  @keyframes bento-reveal { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
+}
 </style>
 </head>
 <body>
@@ -895,7 +1078,8 @@ footer .kofi:hover { background: var(--accent-hover); }
     <div class="section-label"><span class="eyebrow" data-i18n="nav_features">기능</span></div>
     <h2 data-i18n="features_h2">토큰 태우는 개발자를 위한 도구.</h2>
     <p class="subtitle" data-i18n="features_sub">리팩토링 중에 한도에 도달할지 추측하지 마세요.</p>
-    <div class="card card-lead">
+    <div class="bento-grid">
+    <div class="card card-lead bento-item">
       <div class="lead-txt">
         <h3 data-i18n="card1_h">5시간과 7일 한도 한눈에</h3>
         <p data-i18n="card1_p">Claude Code의 세션(5h)과 주간(7d) 퍼센트를 메뉴 바에 동시 표시. 클릭하면 프로젝트별 사용량과 비용을 보여주는 팝오버.</p>
@@ -913,8 +1097,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         </div>
       </div>
     </div>
-    <div class="chess">
-      <div class="chess-row">
+      <div class="chess-row bento-item">
         <div class="chess-txt">
           <span class="chess-num">01</span>
           <h3 data-i18n="card2_h">Claude Code, Codex, Antigravity, Grok을 한 앱에서</h3>
@@ -922,7 +1105,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         </div>
         <div class="chess-media m-panel"><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="../classic.en.png" data-img-en="../classic.en.png" data-img-cjk="../classic.png" alt="" /></div>
       </div>
-      <div class="chess-row flip">
+      <div class="chess-row flip bento-item">
         <div class="chess-txt">
           <span class="chess-num">02</span>
           <h3 data-i18n="card4_h">원클릭 HTML 보고서</h3>
@@ -930,7 +1113,7 @@ footer .kofi:hover { background: var(--accent-hover); }
         </div>
         <div class="chess-media m-report"><img width="976" height="1219" loading="lazy" decoding="async" data-shot data-size-en="976x1219" data-size-cjk="995x1219" src="../report.en.png" data-img-en="../report.en.png" data-img-cjk="../report.png" data-i18n-attr="alt:report_alt" alt="HTML 사용량 리포트" /></div>
       </div>
-      <div class="chess-row">
+      <div class="chess-row bento-item">
         <div class="chess-txt">
           <span class="chess-num">03</span>
           <h3 data-i18n="card5_h">14가지 시각 패널 테마</h3>
@@ -938,24 +1121,22 @@ footer .kofi:hover { background: var(--accent-hover); }
         </div>
         <div class="chess-media m-fan"><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="../matrix.en.webp" data-img-en="../matrix.en.webp" data-img-cjk="../matrix.webp" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="../newspaper.en.webp" data-img-en="../newspaper.en.webp" data-img-cjk="../newspaper.webp" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="../aquarium.en.webp" data-img-en="../aquarium.en.webp" data-img-cjk="../aquarium.webp" alt="" /></div>
       </div>
-    </div>
-    <div class="grid">
-      <div class="card">
+      <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/><path d="M6 16h.01"/><path d="M10 16h.01"/></svg></span>
         <h3 data-i18n="card3_h">설계상 로컬 우선</h3>
         <p data-i18n="card3_p">Claude Code와 Codex 수치는 statusLine 훅이 쓴 상태 파일과 Codex 세션 JSONL 로그처럼 이미 디스크에 있는 파일에서 가져오므로 네트워크 연결이 전혀 필요 없습니다. Antigravity 한도는 자체 CLI가 저장한 자격 증명으로 Google에서 가져옵니다. 모든 외부 요청은 SECURITY.md에 정리되어 있습니다.</p>
       </div>
-      <div class="card">
+      <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg></span>
         <h3 data-i18n="card14_h">Grok CLI도 지원</h3>
         <p data-i18n="card14_p">네 번째 카드는 Grok CLI 자체의 로컬 디버그 로그에서 주간 크레딧 비율을 바로 읽어옵니다 — 네트워크 호출 없음. 토큰 사용량은 Claude Code, Codex와 마찬가지로 오늘의 비용과 프로젝트 합계에도 반영됩니다.</p>
       </div>
-      <div class="card">
+      <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h6"/></svg></span>
         <h3 data-i18n="card8_h">간결 모드</h3>
         <p data-i18n="card8_p">메뉴 바 스위치 하나로 Claude Code — 설치되어 있다면 Codex CLI까지 — 대화 전체를 더 간결하고 쉬운 말로 답하도록 요청합니다. 내용은 그대로, 글자 수만 줄고 코드·명령어·오류 메시지는 한 글자도 줄지 않습니다. 가벼운 리마인더가 긴 대화에서도 다시 장황해지는 것을 막아 줍니다.</p>
       </div>
-      <div class="card">
+      <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
         <h3 data-i18n="card10_h">한도에 닿기 전에 알림</h3>
         <p data-i18n="card10_p">컨텍스트 창이 70%(빠르게 채워지면 더 일찍)에 도달하면 상태 줄이 <code>/clear</code> 또는 <code>/compact</code> 를 권해 토큰 낭비를 막아 줍니다. 한도 경고와 회복 알림용 시스템 알림도 따로 켤 수 있어요. 상태 줄에는 prompt cache 적중률과 만료 카운트다운도 표시되어, 지금 마무리해도 캐시된 컨텍스트를 재사용할 수 있는지 판단할 수 있습니다.</p>
@@ -995,7 +1176,9 @@ footer .kofi:hover { background: var(--accent-hover); }
       <div class="chips-scroll" id="chips-scroll">
         <div class="panel-chips" id="panel-chips" role="group" data-i18n-attr="aria-label:screen_h2" aria-label="마음에 드는 패널을 골라보세요."></div>
       </div>
-      <div class="panel-stage" tabindex="0"><img class="panel-poster" id="panel-poster" width="364" height="1183" loading="lazy" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="../classic.en.png" data-img-en="../classic.en.png" data-img-cjk="../classic.png" alt=""><iframe id="panel-stage" title="usage 패널 미리보기" data-i18n-attr="title:preview_title" loading="lazy" scrolling="no"></iframe></div>
+      <div class="panel-fan" id="panel-fan">
+        <div class="panel-stage" tabindex="0"><img class="panel-poster" id="panel-poster" width="300" loading="lazy" decoding="async" src="../fan/classic.en.webp" alt=""><iframe id="panel-stage" title="usage 패널 미리보기" data-i18n-attr="title:preview_title" loading="lazy" scrolling="no"></iframe></div>
+      </div>
     </div>
   </div>
 </section>
@@ -1675,9 +1858,21 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
 (function () {
   const stage = document.getElementById('panel-stage');
   const chips = document.getElementById('panel-chips');
-  if (!stage || !chips) return;
+  const fan = document.getElementById('panel-fan');
+  if (!stage || !chips || !fan) return;
   let panels = [];
   let language = 'en';
+  let currentId = '';
+  let loadTimer = 0;
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  const cards = [];
+  const box = stage.parentElement;
+  const topbar = document.querySelector('.topbar');
+  let naturalHeight = 0;
+
+  function thumbnail(id) {
+    return ROOT + 'fan/' + id + (language === 'en' ? '.en.webp' : '.webp');
+  }
 
   const chipsScroll = document.getElementById('chips-scroll');
   function updateChipFade() {
@@ -1689,27 +1884,51 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
   chips.addEventListener('scroll', updateChipFade, { passive: true });
   window.addEventListener('resize', updateChipFade);
 
-  // 面板自己量出的自然高度，透過 make_panel_demo.py 補的假 webkit 橋接傳過來。
-  const box = stage.parentElement;
-  const topbar = document.querySelector('.topbar');
-  let naturalHeight = 0;
-
   // 面板本身比視窗高（實測 1132–1183px），按鈕列又在面板上方，全高顯示就得來回捲。
-  // 桌機固定縮到 80%，窄螢幕維持原尺寸；框高度取「面板實際高度」和「畫面剩下的高度」較小者，
-  // 短面板（如世界盃）整個顯示、框不留空，長面板才截掉並加 is-cropped 讓底部淡出。
+  // 桌機固定縮到 80%，窄螢幕配合可用寬度；框高度取「面板實際高度」和「畫面剩下的高度」較小者，
+  // 短面板（如世界盃）整個顯示、框不留空，長面板才截掉（扇形裡不淡出，透明底會把後面的牌透出來）。
   function fit() {
     if (!naturalHeight) return;
     const mobile = window.innerWidth <= 760;
-    const scale = mobile ? 1 : 0.8;
+    box.style.width = mobile ? '' : Math.round(364 * 0.8) + 'px';
+    const scale = mobile ? Math.min(1, box.clientWidth / 364) : 0.8;
     const available = mobile
       ? Math.round(window.innerHeight * 0.7)
       : window.innerHeight - (topbar ? topbar.offsetHeight : 0) - chips.offsetHeight - 72;
     const height = Math.round(naturalHeight * scale);
     const shown = Math.min(height, Math.max(available, 420));
-    stage.style.transform = mobile ? '' : 'scale(' + scale + ')';
-    box.style.width = mobile ? '' : Math.round(364 * scale) + 'px';
+    stage.style.transform = 'scale(' + scale + ')';
     box.style.height = shown + 'px';
     box.classList.toggle('is-cropped', shown < height);
+    fan.style.height = shown + 110 + 'px';
+    fan.style.setProperty('--card-width', box.offsetWidth + 'px');
+    fan.style.setProperty('--card-height', shown + 'px');
+    for (const card of cards) card.classList.toggle('is-cropped', shown < height);
+    renderFan();
+  }
+
+  function renderFan() {
+    if (!currentId) return;
+    const center = panels.findIndex(panel => panel.id === currentId);
+    const limit = window.innerWidth <= 760 ? 1 : 3;
+    const step = box.offsetWidth * 0.42;
+    const count = cards.length;
+    cards.forEach(function (card, index) {
+      let distance = ((index - center) % count + count) % count;
+      if (distance > count / 2) distance -= count;
+      const visible = distance !== 0 && Math.abs(distance) <= limit;
+      const position = Math.max(-limit - 1, Math.min(limit + 1, distance));
+      const jump = card.dataset.position !== undefined && Math.abs(position - Number(card.dataset.position)) > limit + 1;
+      card.dataset.position = String(position);
+      card.style.transition = jump ? 'none' : '';
+      card.style.transform = 'translateX(-50%) translate(' + (position * step) + 'px, ' + (Math.abs(position) * 26) + 'px) rotate(' + (position * 6) + 'deg) scale(' + Math.max(0.7, 1 - Math.abs(position) * 0.1) + ')';
+      card.style.opacity = visible ? '1' : '0';
+      card.style.filter = 'brightness(' + Math.max(0.4, 1 - Math.abs(distance) * 0.2) + ')';
+      card.style.zIndex = String(9 - Math.abs(position));
+      card.style.pointerEvents = visible ? 'auto' : 'none';
+      card.tabIndex = visible ? 0 : -1;
+      card.setAttribute('aria-hidden', String(!visible));
+    });
   }
 
   function setNaturalHeight(height) {
@@ -1727,18 +1946,59 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
 
   function show(id) {
     const panel = panels.find(p => p.id === id);
-    if (panel) setNaturalHeight(panel.height);
-    stage.src = ROOT + 'panels/' + id + '.html';
-    stage.addEventListener('load', function once() {
-      stage.removeEventListener('load', once);
-      stage.contentWindow.postMessage({ usageDemoLanguage: language }, '*');
-      const poster = document.getElementById('panel-poster');
-      if (poster) poster.remove();
-    });
+    if (!panel || id === currentId) return;
+    currentId = id;
+    setNaturalHeight(panel.height);
+    let poster = document.getElementById('panel-poster');
+    if (!poster) {
+      poster = document.createElement('img');
+      poster.id = 'panel-poster';
+      poster.className = 'panel-poster';
+      poster.alt = '';
+      poster.decoding = 'async';
+      box.prepend(poster);
+    }
+    poster.src = thumbnail(id);
+    clearTimeout(loadTimer);
+    loadTimer = setTimeout(function () { stage.src = ROOT + 'panels/' + id + '.html'; }, reducedMotion.matches ? 0 : 460);
     for (const button of chips.children) {
       button.setAttribute('aria-pressed', String(button.dataset.id === id));
     }
   }
+
+  stage.addEventListener('load', function () {
+    if (!currentId || !stage.contentWindow.location.pathname.endsWith('/' + currentId + '.html')) return;
+    stage.contentWindow.postMessage({ usageDemoLanguage: language }, '*');
+    const poster = document.getElementById('panel-poster');
+    if (poster) poster.remove();
+  });
+
+  function step(offset) {
+    const index = panels.findIndex(panel => panel.id === currentId);
+    show(panels[(index + offset + panels.length) % panels.length].id);
+  }
+
+  box.addEventListener('keydown', function (event) {
+    if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+    event.preventDefault();
+    step(event.key === 'ArrowRight' ? 1 : -1);
+  });
+
+  let touchStart = null;
+  fan.addEventListener('touchstart', function (event) {
+    const touch = event.changedTouches[0];
+    touchStart = { x: touch.clientX, y: touch.clientY };
+  }, { passive: true });
+  fan.addEventListener('touchend', function (event) {
+    if (!touchStart) return;
+    const touch = event.changedTouches[0];
+    const dx = touch.clientX - touchStart.x;
+    const dy = touch.clientY - touchStart.y;
+    touchStart = null;
+    if (Math.abs(dx) < 40 || Math.abs(dx) <= Math.abs(dy)) return;
+    event.preventDefault();
+    step(dx < 0 ? 1 : -1);
+  });
 
   window.usagePanelsSetLanguage = function (next) {
     language = next;
@@ -1746,6 +2006,12 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
       const panel = panels.find(p => p.id === button.dataset.id);
       if (panel && panel.names[next]) button.textContent = panel.names[next];
     }
+    cards.forEach(function (card, index) {
+      card.querySelector('img').src = thumbnail(panels[index].id);
+      card.setAttribute('aria-label', panels[index].names[next] || panels[index].names.en);
+    });
+    const poster = document.getElementById('panel-poster');
+    if (poster && currentId) poster.src = thumbnail(currentId);
     if (stage.contentWindow) stage.contentWindow.postMessage({ usageDemoLanguage: next }, '*');
   };
 
@@ -1759,6 +2025,23 @@ if (!prefersReducedMotion && 'IntersectionObserver' in window) {
       button.textContent = panel.names[language] || panel.names.en;
       button.addEventListener('click', function () { show(panel.id); });
       chips.append(button);
+
+      const card = document.createElement('button');
+      card.className = 'panel-fan-card';
+      card.type = 'button';
+      card.setAttribute('aria-label', panel.names[language] || panel.names.en);
+      const image = document.createElement('img');
+      image.src = thumbnail(panel.id);
+      image.loading = 'lazy';
+      image.decoding = 'async';
+      image.alt = '';
+      card.append(image);
+      card.addEventListener('click', function () {
+        show(panel.id);
+        box.focus({ preventScroll: true });
+      });
+      fan.append(card);
+      cards.push(card);
     });
     show(panels[0].id);
     updateChipFade();
@@ -1844,6 +2127,38 @@ document.querySelectorAll('.copy-btn').forEach(function (button) {
 })();
 
 applyLang(detectLang());
+</script>
+
+<script>
+(() => {
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const tiles = document.querySelectorAll('.bento-item');
+  tiles.forEach((tile, index) => {
+    tile.style.setProperty('--stagger', `${(index % 4) * 90}ms`);
+    tile.addEventListener('pointermove', event => {
+      const bounds = tile.getBoundingClientRect();
+      tile.style.setProperty('--spot-x', `${event.clientX - bounds.left}px`);
+      tile.style.setProperty('--spot-y', `${event.clientY - bounds.top}px`);
+    });
+    tile.addEventListener('pointerleave', () => {
+      tile.style.removeProperty('--spot-x');
+      tile.style.removeProperty('--spot-y');
+    });
+  });
+  if (!('IntersectionObserver' in window)) return;
+  const observer = new IntersectionObserver((entries, current) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.remove('bento-pending');
+      entry.target.classList.add('bento-visible');
+      current.unobserve(entry.target);
+    });
+  }, { threshold: 0.08, rootMargin: '0px 0px -24px 0px' });
+  tiles.forEach(tile => {
+    tile.classList.add('bento-pending');
+    observer.observe(tile);
+  });
+})();
 </script>
 
 </body>
