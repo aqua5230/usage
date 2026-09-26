@@ -38,7 +38,7 @@ AGY_SESSIONS_DIR = Path(os.path.expanduser("~/.gemini/antigravity-cli/conversati
 # below that count evicts databases parsed during the prior refresh, causing a
 # permanent full SQLite/protobuf reparse on every load (LRU thrashing).
 _FILE_CACHE_MAXSIZE = 4096
-_AGY_DB_CACHE_SCHEMA = 2
+_AGY_DB_CACHE_SCHEMA = 3
 AGY_CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_db_cache.json"))
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
@@ -239,10 +239,32 @@ def _parse_database(path: Path) -> tuple[list[AgyUsageEntry], int] | None:
         with sqlite3.connect(_readonly_sqlite_uri(path), uri=True) as connection:
             session_timestamp = _session_timestamp(connection, path)
             project = _session_project(connection)
-            rows = connection.execute("SELECT data FROM gen_metadata ORDER BY idx")
+            by_response_id: dict[str, datetime] = {}
+            by_gen_idx: dict[int, datetime] = {}
+            try:
+                for (metadata,) in connection.execute(
+                    "SELECT metadata FROM steps WHERE step_type = 15 AND metadata IS NOT NULL"
+                ):
+                    if not isinstance(metadata, bytes):
+                        continue
+                    timestamp = _timestamp(_message_field(metadata, 1))
+                    if timestamp is None:
+                        continue
+                    response_metadata = _message_field(metadata, 9)
+                    response_id = _string_field(response_metadata or b"", 11)
+                    if response_id and response_id.strip():
+                        by_response_id[response_id.strip()] = timestamp
+                    generation_metadata = _message_field(metadata, 20)
+                    gen_idx = _varint_field(generation_metadata or b"", 3)
+                    if gen_idx is not None:
+                        by_gen_idx[gen_idx] = timestamp
+            except sqlite3.Error:
+                by_response_id.clear()
+                by_gen_idx.clear()
+            rows = connection.execute("SELECT idx, data FROM gen_metadata ORDER BY idx")
             entries: list[AgyUsageEntry] = []
             skipped_missing_dedup_key = 0
-            for (blob,) in rows:
+            for gen_idx, blob in rows:
                 if not isinstance(blob, bytes):
                     continue
                 entry, missing_dedup_key = _parse_generation(
@@ -250,6 +272,9 @@ def _parse_database(path: Path) -> tuple[list[AgyUsageEntry], int] | None:
                     path.stem,
                     session_timestamp,
                     set(),
+                    gen_idx=gen_idx,
+                    by_response_id=by_response_id,
+                    by_gen_idx=by_gen_idx,
                     project=project,
                 )
                 skipped_missing_dedup_key += missing_dedup_key
@@ -304,6 +329,10 @@ def _parse_generation(
     session_id: str,
     session_timestamp: datetime,
     seen_dedup_keys: set[str],
+    *,
+    gen_idx: int,
+    by_response_id: dict[str, datetime],
+    by_gen_idx: dict[int, datetime],
     project: str = "",
 ) -> tuple[AgyUsageEntry | None, int]:
     chat_model = _message_field(blob, 1)
@@ -335,11 +364,16 @@ def _parse_generation(
         return None, 0
     seen_dedup_keys.add(dedup_key)
 
-    timestamp = _timestamp(_message_field(_message_field(chat_model, 9) or b"", 4))
+    timestamp = (
+        _timestamp(_message_field(_message_field(chat_model, 9) or b"", 4))
+        or by_response_id.get(dedup_key.strip())
+        or by_gen_idx.get(gen_idx)
+        or session_timestamp
+    )
     model = _string_field(chat_model, 19) or "unknown"
     return (
         AgyUsageEntry(
-            timestamp=timestamp or session_timestamp,
+            timestamp=timestamp,
             model=model,
             input_tokens=system_tokens + new_input_tokens,
             output_tokens=output_tokens,

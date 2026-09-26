@@ -72,11 +72,22 @@ def _trajectory_blob(timestamp: datetime) -> bytes:
     return _message_field(2, _timestamp_blob(timestamp))
 
 
+def _step_metadata_blob(timestamp: datetime, response_id: str, gen_idx: int) -> bytes:
+    return b"".join(
+        (
+            _message_field(1, _timestamp_blob(timestamp)),
+            _message_field(9, _message_field(11, response_id.encode())),
+            _message_field(20, _varint_field(3, gen_idx)),
+        )
+    )
+
+
 def _write_database(
     path: Path,
     rows: list[bytes],
     session_timestamp: datetime,
     steps_payloads: list[bytes] | None = None,
+    steps_metadata: list[tuple[int, bytes]] | None = None,
 ) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(path) as connection:
@@ -92,11 +103,23 @@ def _write_database(
             "INSERT INTO trajectory_metadata_blob (data) VALUES (?)",
             (_trajectory_blob(session_timestamp),),
         )
-        if steps_payloads is not None:
-            connection.execute("CREATE TABLE steps (idx INTEGER PRIMARY KEY, step_payload BLOB);")
+        if steps_payloads is not None or steps_metadata is not None:
+            connection.execute(
+                "CREATE TABLE steps "
+                "(idx INTEGER PRIMARY KEY, step_payload BLOB, step_type INTEGER, metadata BLOB);"
+            )
             connection.executemany(
                 "INSERT INTO steps (idx, step_payload) VALUES (?, ?)",
-                [(index, payload) for index, payload in enumerate(steps_payloads)],
+                [(index, payload) for index, payload in enumerate(steps_payloads or [])],
+            )
+            connection.executemany(
+                "INSERT INTO steps (idx, step_type, metadata) VALUES (?, ?, ?)",
+                [
+                    (index, step_type, metadata)
+                    for index, (step_type, metadata) in enumerate(
+                        steps_metadata or [], start=len(steps_payloads or [])
+                    )
+                ],
             )
 
 
@@ -179,6 +202,76 @@ def test_load_entries_filters_on_generation_timestamp_and_falls_back_to_session_
 
     assert [entry.dedup_key for entry in entries] == ["fallback"]
     assert entries[0].timestamp == now
+
+
+def test_load_entries_uses_step_response_id_timestamp(sessions_dir: Path) -> None:
+    session_timestamp = datetime(2026, 1, 1, tzinfo=UTC)
+    step_timestamp = datetime(2026, 1, 2, 3, 4, 5, 123_456, tzinfo=UTC)
+    _write_database(
+        sessions_dir / "response_id.db",
+        [_generation_blob(timestamp=None, dedup_key=" response-id ")],
+        session_timestamp,
+        steps_metadata=[(15, _step_metadata_blob(step_timestamp, "response-id", 99))],
+    )
+
+    entries = agy_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].timestamp == step_timestamp
+
+
+def test_load_entries_uses_step_generation_index_when_response_id_differs(
+    sessions_dir: Path,
+) -> None:
+    session_timestamp = datetime(2026, 1, 1, tzinfo=UTC)
+    step_timestamp = datetime(2026, 1, 2, tzinfo=UTC)
+    _write_database(
+        sessions_dir / "generation_index.db",
+        [_generation_blob(timestamp=None, dedup_key="generation")],
+        session_timestamp,
+        steps_metadata=[(15, _step_metadata_blob(step_timestamp, "other", 0))],
+    )
+
+    entries = agy_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].timestamp == step_timestamp
+
+
+def test_load_entries_falls_back_when_step_does_not_match(sessions_dir: Path) -> None:
+    session_timestamp = datetime(2026, 1, 1, tzinfo=UTC)
+    step_timestamp = datetime(2026, 1, 2, tzinfo=UTC)
+    _write_database(
+        sessions_dir / "unmatched.db",
+        [_generation_blob(timestamp=None, dedup_key="generation")],
+        session_timestamp,
+        steps_metadata=[
+            (14, _step_metadata_blob(step_timestamp, "generation", 0)),
+            (15, _step_metadata_blob(step_timestamp, "other", 99)),
+        ],
+    )
+
+    entries = agy_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].timestamp == session_timestamp
+
+
+def test_load_entries_prefers_legacy_generation_timestamp(sessions_dir: Path) -> None:
+    session_timestamp = datetime(2026, 1, 1, tzinfo=UTC)
+    step_timestamp = datetime(2026, 1, 2, tzinfo=UTC)
+    generation_timestamp = datetime(2026, 1, 3, tzinfo=UTC)
+    _write_database(
+        sessions_dir / "legacy.db",
+        [_generation_blob(timestamp=generation_timestamp, dedup_key="generation")],
+        session_timestamp,
+        steps_metadata=[(15, _step_metadata_blob(step_timestamp, "generation", 0))],
+    )
+
+    entries = agy_loader.load_entries()
+
+    assert len(entries) == 1
+    assert entries[0].timestamp == generation_timestamp
 
 
 def test_recent_input_output_tokens_excludes_cache_and_thinking(sessions_dir: Path) -> None:
@@ -325,12 +418,13 @@ def test_load_entries_falls_back_to_empty_project_when_steps_table_missing(
     now = datetime.now(UTC)
     _write_database(
         sessions_dir / "no_steps.db",
-        [_generation_blob(timestamp=now, dedup_key="no-steps")],
+        [_generation_blob(timestamp=None, dedup_key="no-steps")],
         now,
     )
     entries = agy_loader.load_entries()
     assert len(entries) == 1
     assert entries[0].project == ""
+    assert entries[0].timestamp == now
 
 
 def test_load_entries_takes_first_cwd_and_handles_escapes(
