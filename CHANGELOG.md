@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.31.2] - 2026-09-27
+
+### Changed
+- Tidy the Heart Monitor panel's project list and footer: project rows line up as a data table with thin bars and outlined rank chips, the three project actions form one segmented control whose lit state follows the real status-line setting, and the footer becomes a status strip. The quota cards keep their original look.
+- Add Sketchbook and Heart Monitor to the README theme gallery and to the website's panel carousel.
+
 ## [0.31.1] - 2026-09-27
 
 ### Added
