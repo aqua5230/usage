@@ -5,7 +5,7 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [0.30.25] - 2026-09-27
+## [0.31.0] - 2026-09-27
 
 ### Added
 - **Sketchbook panel theme.** A hand-drawn notebook look on grid paper: every quota shows as a half-circle gauge with a needle, the percentage sits in large ink over a highlighter stroke in each provider's color, and the 50% / 80% warning and danger colors and the fixed 80% mark still apply. Available on macOS and Windows; the panel count is now 15.
