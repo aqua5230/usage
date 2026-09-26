@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.31.3] - 2026-09-27
+
+### Fixed
+- Bring the Heart Monitor panel's project list and footer text up to the size every other theme uses. Project names, token counts, costs, the project actions, the status strip, today's total and the footer buttons were 1–3px smaller and looked out of place under the large quota readouts.
+
 ## [0.31.2] - 2026-09-27
 
 ### Changed
