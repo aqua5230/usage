@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## Unreleased
+
+### Fixed
+- Stop panel height and automatic zoom from repeatedly adjusting each other on macOS, which could make Origami jitter. Keep a conservative height during zoom-only fitting while allowing changed content to shrink, and cover automatic-fit stability and content transitions in the browser regression.
+
 ## [0.30.24] - 2026-09-26
 
 ### Added

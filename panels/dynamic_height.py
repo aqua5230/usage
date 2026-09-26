@@ -15,6 +15,9 @@ CONTENT_HEIGHT_SCRIPT = """
   if (typeof applyState !== "function") return;
   var scheduled = false;
   var lastPostedHeight = null;
+  var fittingHeight = 0;
+  var contentChanged = false;
+  var lastMeasuredHeight = null;
   function naturalContentHeight() {
     var root = document.documentElement;
     // Measure in the displayed zoom: WebKit may enforce a minimum rendered
@@ -116,6 +119,17 @@ CONTENT_HEIGHT_SCRIPT = """
   function reportContentHeight() {
     scheduled = false;
     var height = naturalContentHeight();
+    // A zoom-only fit may grow to accommodate wrapping, but must not shrink
+    // again: fractional WebKit metrics can otherwise alternate between two
+    // heights, each producing the other's scale. Real content changes can
+    // still contract; identical state refreshes keep the settled fit.
+    if (contentChanged && height !== lastMeasuredHeight) fittingHeight = 0;
+    contentChanged = false;
+    lastMeasuredHeight = height;
+    if (Number.isFinite(height) && height > 0) {
+      fittingHeight = Math.max(fittingHeight, height);
+      height = fittingHeight;
+    }
     var bridge = window.webkit && window.webkit.messageHandlers
       && window.webkit.messageHandlers.usage;
     if (Number.isFinite(height) && height > 0 && height !== lastPostedHeight && bridge
@@ -137,14 +151,20 @@ CONTENT_HEIGHT_SCRIPT = """
   window.usageRequestContentHeight = requestContentHeight;
   window.usageInvalidateContentHeight = function() {
     lastPostedHeight = null;
+    fittingHeight = 0;
     requestContentHeight();
   };
+  function requestContentChange() {
+    contentChanged = true;
+    requestContentHeight();
+  }
   window.usageApplyPanelZoom = function(scale, naturalHeight) {
     var value = Number(scale);
     var root = document.documentElement;
     var body = document.body;
     var height = Number(naturalHeight);
     var scaled = Number.isFinite(value) && value > 0 && value !== 1;
+    if (!scaled) fittingHeight = 0;
     root.style.zoom = scaled ? String(value) : "normal";
     // Chromium's CSS zoom scales the paint output but leaves its layout box at
     // the viewport height. Give that box the known natural content height so
@@ -161,12 +181,12 @@ CONTENT_HEIGHT_SCRIPT = """
   };
   window.usageApplyState = function usageApplyStateWithDynamicHeight(state) {
     var result = applyState.apply(this, arguments);
-    requestContentHeight();
+    requestContentChange();
     return result;
   };
   var wrap = document.querySelector(".wrap");
   if (wrap && typeof MutationObserver === "function") {
-    new MutationObserver(requestContentHeight).observe(wrap, {
+    new MutationObserver(requestContentChange).observe(wrap, {
       childList: true,
       characterData: true,
       subtree: true
@@ -176,7 +196,7 @@ CONTENT_HEIGHT_SCRIPT = """
     new ResizeObserver(requestContentHeight).observe(wrap);
   }
   if (document.fonts && document.fonts.ready) {
-    document.fonts.ready.then(requestContentHeight);
+    document.fonts.ready.then(requestContentChange);
   }
   requestContentHeight();
 })();
