@@ -158,7 +158,7 @@ CONTENT_HEIGHT_SCRIPT = """
     contentChanged = true;
     requestContentHeight();
   }
-  window.usageApplyPanelZoom = function(scale, naturalHeight) {
+  window.usageApplyPanelZoom = function(scale, naturalHeight, scroll) {
     var value = Number(scale);
     var root = document.documentElement;
     var body = document.body;
@@ -166,6 +166,8 @@ CONTENT_HEIGHT_SCRIPT = """
     var scaled = Number.isFinite(value) && value > 0 && value !== 1;
     if (!scaled) fittingHeight = 0;
     root.style.zoom = scaled ? String(value) : "normal";
+    root.style.overflowY = scroll ? "auto" : "";
+    if (body) body.style.overflowY = scroll ? "auto" : "";
     // Chromium's CSS zoom scales the paint output but leaves its layout box at
     // the viewport height. Give that box the known natural content height so
     // flex children are not shrunk and clipped before they are painted.

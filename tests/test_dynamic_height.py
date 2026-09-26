@@ -40,7 +40,7 @@ def test_script_wraps_state_application_and_measures_without_height_constraints(
     assert "wrap.getBoundingClientRect().height / scale" in CONTENT_HEIGHT_SCRIPT
     assert "element.getBoundingClientRect().height / scale" in CONTENT_HEIGHT_SCRIPT
     assert "window.usageApplyPanelZoom" in CONTENT_HEIGHT_SCRIPT
-    assert "function(scale, naturalHeight)" in CONTENT_HEIGHT_SCRIPT
+    assert "function(scale, naturalHeight, scroll)" in CONTENT_HEIGHT_SCRIPT
     assert 'body.style.height = ""' in CONTENT_HEIGHT_SCRIPT
     assert 'String(height) + "px"' in CONTENT_HEIGHT_SCRIPT
     assert "innerHeight /" not in CONTENT_HEIGHT_SCRIPT

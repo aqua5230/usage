@@ -830,12 +830,13 @@ class _WindowsTrayController:
         if self.visible:
             self._place_window()
 
-    def _apply_panel_zoom(self, scale: float) -> bool:
+    def _apply_panel_zoom(self, scale: float, *, scroll: bool = False) -> bool:
         if self.window is not None and hasattr(self.window, "evaluate_js"):
             try:
                 result = self.window.evaluate_js(
                     "typeof window.usageApplyPanelZoom === 'function' && "
-                    f"window.usageApplyPanelZoom({scale}, {self.panel_height()})"
+                    f"window.usageApplyPanelZoom({scale}, {self.panel_height()}"
+                    f"{', true' if scroll else ''})"
                 )
                 return result is True
             except Exception:
@@ -1011,6 +1012,67 @@ class _WindowsTrayController:
                 return work_area
         return screens[0][1] if screens else None
 
+    def _native_work_area_for_point(
+        self, point: tuple[int, int] | None
+    ) -> tuple[int, int, int, int] | None:
+        """Read the target monitor's physical work area independently of pywebview."""
+        if os.name != "nt" or self.window is None:
+            return None
+        scale = self._window_dpi_scale()
+        if scale is None:
+            return None
+
+        class _Point(ctypes.Structure):
+            _fields_ = [("x", ctypes.c_long), ("y", ctypes.c_long)]
+
+        class _Rect(ctypes.Structure):
+            _fields_ = [
+                ("left", ctypes.c_long),
+                ("top", ctypes.c_long),
+                ("right", ctypes.c_long),
+                ("bottom", ctypes.c_long),
+            ]
+
+        class _MonitorInfo(ctypes.Structure):
+            _fields_ = [
+                ("size", ctypes.c_ulong),
+                ("monitor", _Rect),
+                ("work", _Rect),
+                ("flags", ctypes.c_ulong),
+            ]
+
+        try:
+            library_name = "windll"
+            windll: Any = getattr(ctypes, library_name)
+            user32 = windll.user32
+            user32.MonitorFromPoint.argtypes = [_Point, ctypes.c_uint]
+            user32.MonitorFromPoint.restype = ctypes.c_void_p
+            user32.MonitorFromWindow.argtypes = [ctypes.c_void_p, ctypes.c_uint]
+            user32.MonitorFromWindow.restype = ctypes.c_void_p
+            user32.GetMonitorInfoW.argtypes = [ctypes.c_void_p, ctypes.POINTER(_MonitorInfo)]
+            if point is None:
+                handle = self.window.native.Handle
+                to_int64 = getattr(handle, "ToInt64", None)
+                hwnd = to_int64() if callable(to_int64) else int(handle)
+                monitor = user32.MonitorFromWindow(hwnd, 2)
+            else:
+                physical = _Point(int(round(point[0] * scale)), int(round(point[1] * scale)))
+                monitor = user32.MonitorFromPoint(physical, 2)
+            info = _MonitorInfo()
+            info.size = ctypes.sizeof(info)
+            if not monitor or not user32.GetMonitorInfoW(monitor, ctypes.byref(info)):
+                return None
+            work = info.work
+            return (
+                int(round(work.left / scale)),
+                int(round(work.top / scale)),
+                int(round(work.right / scale)),
+                int(round(work.bottom / scale)),
+            )
+        except Exception:
+            logger.debug("Unable to read native monitor work area", exc_info=True)
+            return None
+
     def _work_area_for_point(
         self, point: tuple[int, int] | None
     ) -> tuple[int, int, int, int] | None:
@@ -1100,46 +1162,68 @@ class _WindowsTrayController:
     def _panel_minimum_scale(self) -> float:
         return MIN_PANEL_SCALE / (self._window_dpi_scale() or 1.0)
 
-    def _place_window(self, *, force_default: bool = False) -> None:
-        current_position = self._current_window_position()
-        work_area = self._work_area_for_point(current_position) or self._working_area()
-        maximum = (
-            float(work_area[3] - work_area[1] - 24)
-            if work_area is not None
-            else float(PANEL_HEIGHTS[self.active_panel_id])
-        )
-        scale = fit_scale(self.panel_height(), maximum, self._panel_minimum_scale())
-        zoom_applied = self._apply_panel_zoom(scale)
-        if scale < 1.0 and not zoom_applied:
-            return
-        if force_default:
-            self._dispatch_window_mutation(
-                lambda: self._place_window_on_ui_thread(force_default=True)
-            )
-        else:
-            self._dispatch_window_mutation(self._place_window_on_ui_thread)
-
-    def _place_window_on_ui_thread(self, *, force_default: bool = False) -> None:
-        if self.window is None or self.stopping.is_set():
-            return
-        primary_work_area = self._working_area()
-        if primary_work_area is None:
-            return
-
-        # Resolve the *target* anchor point before picking a work area, then
-        # look up the work area of whichever monitor that point is on. The
-        # primary monitor's work area is only a fallback for the "no anchor
-        # yet" (first-ever launch) case — using it unconditionally would
-        # clamp a window the user dragged onto a secondary display back onto
-        # the primary one every time the panel is switched.
+    def _placement_target(
+        self, force_default: bool
+    ) -> tuple[tuple[int, int] | None, tuple[int, int, int, int]] | None:
         if force_default:
             anchor = None
         elif self._positioned_this_show:
             anchor = self._current_window_position() or self._saved_window_position()
         else:
             anchor = self._saved_window_position()
+        work_area = (
+            self._native_work_area_for_point(anchor)
+            or self._work_area_for_point(anchor)
+            or self._working_area()
+        )
+        if work_area is None:
+            return None
+        return anchor, work_area
 
-        work_area = self._work_area_for_point(anchor) or primary_work_area
+    def _place_window(self, *, force_default: bool = False) -> None:
+        placement = self._placement_target(force_default)
+        work_area = placement[1] if placement is not None else None
+        maximum = (
+            float(work_area[3] - work_area[1] - 24)
+            if work_area is not None
+            else float(PANEL_HEIGHTS[self.active_panel_id])
+        )
+        natural_height = self.panel_height()
+        minimum_scale = self._panel_minimum_scale()
+        scale = fit_scale(natural_height, maximum, minimum_scale)
+        scroll = natural_height * minimum_scale > maximum
+        zoom_applied = self._apply_panel_zoom(scale, scroll=scroll)
+        if scale < 1.0 and not zoom_applied:
+            return
+
+        def place() -> None:
+            self._place_window_on_ui_thread(force_default=force_default, placement=placement)
+
+        self._dispatch_window_mutation(place)
+
+    def _place_window_on_ui_thread(
+        self,
+        *,
+        force_default: bool = False,
+        placement: tuple[tuple[int, int] | None, tuple[int, int, int, int]] | None = None,
+    ) -> None:
+        if self.window is None or self.stopping.is_set():
+            return
+        if placement is None:
+            placement = self._placement_target(force_default)
+        if placement is None:
+            return
+        anchor, work_area = placement
+        native_work_area = self._native_work_area_for_point(anchor)
+        if native_work_area is not None and native_work_area != work_area:
+            work_area = native_work_area
+            natural_height = self.panel_height()
+            maximum = float(work_area[3] - work_area[1] - 24)
+            minimum_scale = self._panel_minimum_scale()
+            scale = fit_scale(natural_height, maximum, minimum_scale)
+            scroll = natural_height * minimum_scale > maximum
+            if not self._apply_panel_zoom(scale, scroll=scroll) and scale < 1.0:
+                return
         left, top, right, bottom = work_area
         maximum = float(bottom - top - 24)
         natural_height = self.panel_height()
@@ -1147,13 +1231,25 @@ class _WindowsTrayController:
             PANEL_WIDTH, natural_height, maximum, self._panel_minimum_scale()
         )
         width = int(round(fitted_width))
-        height = int(round(fitted_height))
+        height = min(int(round(fitted_height)), max(0, bottom - top - 24))
         position = (
             anchor
             if anchor is not None
             else self._default_window_position(work_area, width, height)
         )
         x, y = self._clamp_window_position(position, work_area, width, height)
+        logger.debug(
+            "Panel placement work_area=%s dpi_scale=%s natural_height=%s fit_scale=%s "
+            "x=%s y=%s width=%s height=%s",
+            work_area,
+            self._window_dpi_scale(),
+            natural_height,
+            scale,
+            x,
+            y,
+            width,
+            height,
+        )
         try:
             native = self.window.native
             current_geometry = (native.Left, native.Top, native.Width, native.Height)
