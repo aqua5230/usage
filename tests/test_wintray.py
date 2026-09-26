@@ -915,8 +915,92 @@ def test_short_high_dpi_panel_uses_native_work_area_and_keeps_footer_visible(
     assert round((geometry["y"] + geometry["height"]) * 1.25) <= 1032
 
 
+def test_content_height_message_records_the_page_render_scale(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.25)
+    monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
+
+    assert controller._content_scale() == 1.25
+
+    controller.handle_panel_message(
+        json.dumps({"action": "content_height", "height": 700, "dpr": 1.3625})
+    )
+    assert controller._content_scale() == 1.3625
+
+    # A malformed or absurd ratio from the page never replaces a good one.
+    for invalid in (True, "1.5", 0, -1, 0.1, 99, None, float("nan")):
+        controller.handle_panel_message(
+            json.dumps({"action": "content_height", "height": 701, "dpr": invalid})
+        )
+        assert controller._content_scale() == 1.3625
+
+
+def test_text_size_scaling_sizes_the_window_by_the_rendered_scale(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Windows "Text size" at 109% on a 125% display: WebView2 renders 1.3625
+    # physical pixels per CSS pixel while GetDpiForWindow still reports 1.25.
+    # Sized with 1.25 alone, the window is ~8% shorter than its content and
+    # shows a scrollbar even though the screen has room to spare.
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
+    geometry: dict[str, int] = {}
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.active_panel_id = "newspaper"
+    controller.window = SimpleNamespace(
+        x=0,
+        y=0,
+        evaluate_js=lambda _code: True,
+        resize=lambda width, height: geometry.update(width=width, height=height),
+        move=lambda x, y: geometry.update(x=x, y=y),
+    )
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.25)
+    # A 1920x1020 physical work area, expressed in CSS pixels at 1.3625.
+    monkeypatch.setattr(controller, "_native_work_area_for_point", lambda _point: (0, 0, 1409, 749))
+    controller.handle_panel_message(
+        json.dumps({"action": "content_height", "height": 600, "dpr": 1.3625})
+    )
+
+    controller._place_window()
+
+    # pywebview multiplies what it is given by the display scale on its own.
+    assert abs(geometry["height"] * 1.25 - 600 * 1.3625) <= 1
+    assert abs(geometry["width"] * 1.25 - wintray.PANEL_WIDTH * 1.3625) <= 1
+
+
+def test_pywebview_geometry_is_unchanged_without_a_page_render_scale(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")
+    geometry: dict[str, int] = {}
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.active_panel_id = "newspaper"
+    controller.window = SimpleNamespace(
+        x=0,
+        y=0,
+        evaluate_js=lambda _code: True,
+        resize=lambda width, height: geometry.update(width=width, height=height),
+        move=lambda x, y: geometry.update(x=x, y=y),
+    )
+    monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.25)
+    monkeypatch.setattr(controller, "_native_work_area_for_point", lambda _point: (0, 0, 1536, 816))
+    controller.handle_panel_message(json.dumps({"action": "content_height", "height": 600}))
+
+    controller._place_window()
+
+    assert geometry["height"] == 600
+    assert geometry["width"] == wintray.PANEL_WIDTH
+
+
+@pytest.mark.parametrize(
+    ("page_scale", "expected"),
+    [(None, (0, 0, 1536, 826)), (1.3625, (0, 0, 1409, 757))],
+)
 def test_native_work_area_converts_physical_pixels_to_logical(
     monkeypatch: pytest.MonkeyPatch,
+    page_scale: float | None,
+    expected: tuple[int, int, int, int],
 ) -> None:
     class FakeFunction:
         def __init__(self, result: object) -> None:
@@ -945,8 +1029,9 @@ def test_native_work_area_converts_physical_pixels_to_logical(
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.window = SimpleNamespace(native=SimpleNamespace(Handle=123))
     monkeypatch.setattr(controller, "_window_dpi_scale", lambda: 1.25)
+    controller._apply_page_scale(page_scale)
 
-    assert _REAL_NATIVE_WORK_AREA(controller, (1169, 2)) == (0, 0, 1536, 826)
+    assert _REAL_NATIVE_WORK_AREA(controller, (1169, 2)) == expected
 
 
 def test_panel_rechecks_native_work_area_before_final_move(

@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+- Size the Windows panel from the scale its page is really rendered at, so it no longer scrolls when Windows' "Text size" is not 100% (a follow-up to [#153](https://github.com/aqua5230/usage/issues/153)). Text size multiplies WebView2's device pixel ratio on top of the display scale (125% × 109% = 1.3625), but `GetDpiForWindow` does not include it, so a window sized with the display scale alone came out about 8% shorter than its content: a scrollbar appeared although the screen had room to spare, and hiding a card did not help. The panel page now reports its `devicePixelRatio` together with its content height, and the window size, work area, saved position and legibility floor are converted with it, falling back to the display scale until the page has reported one. pywebview's `resize()` / `move()` multiply by the display scale themselves, so they are corrected by the ratio between the two.
+
 ## [0.31.0] - 2026-09-27
 
 ### Added

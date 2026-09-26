@@ -15,6 +15,7 @@ CONTENT_HEIGHT_SCRIPT = """
   if (typeof applyState !== "function") return;
   var scheduled = false;
   var lastPostedHeight = null;
+  var lastPostedDpr = null;
   var fittingHeight = 0;
   var contentChanged = false;
   var lastMeasuredHeight = null;
@@ -132,10 +133,17 @@ CONTENT_HEIGHT_SCRIPT = """
     }
     var bridge = window.webkit && window.webkit.messageHandlers
       && window.webkit.messageHandlers.usage;
-    if (Number.isFinite(height) && height > 0 && height !== lastPostedHeight && bridge
+    // The native side sizes its window from this height, so it also needs the
+    // ratio the page really renders at. On Windows that is the display scale
+    // times the "Text size" accessibility setting (125% x 109% = 1.3625), which
+    // GetDpiForWindow does not include.
+    var dpr = window.devicePixelRatio;
+    if (Number.isFinite(height) && height > 0
+        && (height !== lastPostedHeight || dpr !== lastPostedDpr) && bridge
         && typeof bridge.postMessage === "function") {
       lastPostedHeight = height;
-      bridge.postMessage(JSON.stringify({ action: "content_height", height: height }));
+      lastPostedDpr = dpr;
+      bridge.postMessage(JSON.stringify({ action: "content_height", height: height, dpr: dpr }));
     }
   }
   function requestContentHeight() {
@@ -151,6 +159,7 @@ CONTENT_HEIGHT_SCRIPT = """
   window.usageRequestContentHeight = requestContentHeight;
   window.usageInvalidateContentHeight = function() {
     lastPostedHeight = null;
+    lastPostedDpr = null;
     fittingHeight = 0;
     requestContentHeight();
   };
