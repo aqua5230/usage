@@ -67,7 +67,7 @@ brew install --cask aqua5230/usage/usage
 
 ### 体验与自定义
 
-- **15 个视觉主题：** 可切换面板风格，包括默认（Default）、Matrix、Windows 95、复古报纸（Newspaper）、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、蝶类图鉴（Lepidoptera）、候鸟迁徙（Migration）、彩绘玻璃、折纸、手绘笔记（Sketchbook）和 Catppuccin（官方配色，四款 flavor 全支持）。
+- **16 个视觉主题：** 可切换面板风格，包括默认（Default）、Matrix、Windows 95、复古报纸（Newspaper）、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、蝶类图鉴（Lepidoptera）、候鸟迁徙（Migration）、彩绘玻璃、折纸、手绘笔记（Sketchbook）、心电图（Heart Monitor）和 Catppuccin（官方配色，四款 flavor 全支持）。
 - **面板自由摆放：** 面板不再固定在菜单栏图标下方。在任何空白处按住即可拖动到你想要的位置，下次打开仍保留在原位。切换到其他 App 时也不会消失，再次点击菜单栏图标或按 Esc 键才会关闭。
 - **拖拽排序：** 按住任意配额卡上下拖拽即可交换顺序——这一排列在所有包含配额卡的主题间共享（除 World Cup 2026 之外），并在重启后保留。
 - **自动本地化：** 界面文本提供繁体中文、简体中文、英语、日语和韩语，并自动匹配系统设置。
@@ -127,7 +127,7 @@ Linux 上运行 `usage setup` 也能装好 Claude Code 的状态栏，配额会�
 
 Windows 原生支持完整核心功能：系统托盘 UI、Claude Code 状态栏 hook 和 Codex 记录解析均可使用。从[最新 GitHub Release](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后直接运行 `usage.exe`，无需安装。首次运行若弹出 SmartScreen 的**“Windows 已保护你的电脑”**，点击**“更多信息”**→**“仍要运行”**。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
 
-系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 15 款主题面板（默认加另外十四款）；右键只有「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
+系统托盘图标会随 Claude 配额百分比更新；提示文字会汇总 Claude 和 Codex 的各个窗口。左键通过 WebView2 打开与 macOS 相同的 16 款主题面板（默认加另外十五款）；右键只有「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
 
 Windows 的差异：面板显示在工作区右下角，而不是紧贴系统托盘图标；更新提示使用系统 Yes/No 对话框。
 
@@ -144,7 +144,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 
 ## 主题图库
 
-直接在界面中切换 **15 个视觉主题**：
+直接在界面中切换 **16 个视觉主题**：
 
 <p align="center">
   <img src="classic.en.png" width="32%" alt="Classic 主题" />

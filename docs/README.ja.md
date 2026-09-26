@@ -67,7 +67,7 @@ Applicationsフォルダに自動でインストールされます。一度開�
 
 ### 体験とカスタマイズ
 
-- **15種類のビジュアルテーマ：** デフォルト（Default）、Matrix、Windows 95、レトロ新聞（Newspaper）、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、蝶の図鑑（Lepidoptera）、渡り鳥（Migration）、ステンドグラス、折り紙、手描きノート（Sketchbook）、Catppuccin（公式パレット、4種のflavorすべてに対応）を含むパネルスタイルを切り替えられます。
+- **16種類のビジュアルテーマ：** デフォルト（Default）、Matrix、Windows 95、レトロ新聞（Newspaper）、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、蝶の図鑑（Lepidoptera）、渡り鳥（Migration）、ステンドグラス、折り紙、手描きノート（Sketchbook）、心電図モニター（Heart Monitor）、Catppuccin（公式パレット、4種のflavorすべてに対応）を含むパネルスタイルを切り替えられます。
 - **パネルを自由に配置：** パネルはメニューバーアイコンの下に固定されなくなりました。空白部分をドラッグして好きな場所に移動でき、次回開いたときもその位置を保持します。他のアプリにフォーカスが移っても消えず、メニューバーアイコンをもう一度クリックするかEscキーを押すと閉じます。
 - **ドラッグで並べ替え：** 任意のクォータカードをつかんで上下にドラッグすると順序を入れ替えられます。並び順はクォータカードを含むすべてのテーマ（World Cup 2026 を除く）で共有され、再起動後も維持されます。
 - **自動ローカライズ：** UIテキストは繁体字中国語、簡体字中国語、英語、日本語、韓国語で利用でき、システム設定に自動的に合わせます。
@@ -127,7 +127,7 @@ Codexを使用したことがある場合、`usage` はその履歴を自動で�
 
 Windowsでも主要機能をすべてネイティブで利用できます。システムトレイUI、Claude Codeのステータスラインhook、Codex履歴の解析に対応しています。[最新のGitHub Release](https://github.com/aqua5230/usage/releases/latest)から`usage-windows.zip`をダウンロードし、展開して`usage.exe`を実行してください。インストールは不要です。初回起動時にSmartScreenの**「WindowsによってPCが保護されました」**が表示されたら、**「詳細情報」**→**「実行」**をクリックします。システムトレイUIにはMicrosoft Edge WebView2 Runtimeが必要ですが、通常はWindows 10/11に含まれています。
 
-システムトレイのアイコンはClaudeのクォータ率に合わせて更新され、ツールチップにはClaudeとCodexの各ウィンドウの概要が表示されます。左クリックでWebView2上にmacOSと同じ15種類のテーマパネル（デフォルトと他の14テーマ）を開き、右クリックでは「パネルの位置をリセット」と「終了」のみで、パネル切替、更新、ログイン時に起動、更新確認はパネル側のメニューにあります。
+システムトレイのアイコンはClaudeのクォータ率に合わせて更新され、ツールチップにはClaudeとCodexの各ウィンドウの概要が表示されます。左クリックでWebView2上にmacOSと同じ16種類のテーマパネル（デフォルトと他の15テーマ）を開き、右クリックでは「パネルの位置をリセット」と「終了」のみで、パネル切替、更新、ログイン時に起動、更新確認はパネル側のメニューにあります。
 
 Windowsでの相違点：パネルはトレイアイコンの隣ではなく作業領域の右下に開きます。更新通知はシステムのYes/Noダイアログです。
 
@@ -144,7 +144,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 
 ## テーマギャラリー
 
-UIから直接 **15種類のビジュアルテーマ**を切り替えられます。
+UIから直接 **16種類のビジュアルテーマ**を切り替えられます。
 
 <p align="center">
   <img src="classic.en.png" width="32%" alt="Classicテーマ" />
