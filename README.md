@@ -160,6 +160,8 @@ Switch between **16 visual themes** directly from the UI:
   <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera theme" />
   <img src="docs/migration.en.png" width="32%" alt="Migration theme" />
   <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccin theme" />
+  <img src="docs/sketchbook.en.png" width="32%" alt="Sketchbook theme" />
+  <img src="docs/heart_monitor.en.png" width="32%" alt="Heart Monitor theme" />
 </p>
 
 ## Troubleshooting

@@ -160,6 +160,8 @@ UIから直接 **16種類のビジュアルテーマ**を切り替えられま�
   <img src="lepidoptera.en.png" width="32%" alt="Lepidopteraテーマ" />
   <img src="migration.png" width="32%" alt="渡り鳥テーマ" />
   <img src="catppuccin.en.png" width="32%" alt="Catppuccinテーマ" />
+  <img src="sketchbook.en.png" width="32%" alt="手描きノートテーマ" />
+  <img src="heart_monitor.en.png" width="32%" alt="心電図モニターテーマ" />
 </p>
 
 ## トラブルシューティング

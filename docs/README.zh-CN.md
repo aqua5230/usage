@@ -160,6 +160,8 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
   <img src="lepidoptera.en.png" width="32%" alt="Lepidoptera 主题" />
   <img src="migration.png" width="32%" alt="候鸟迁徙主题" />
   <img src="catppuccin.en.png" width="32%" alt="Catppuccin 主题" />
+  <img src="sketchbook.en.png" width="32%" alt="手绘笔记主题" />
+  <img src="heart_monitor.en.png" width="32%" alt="心电图主题" />
 </p>
 
 ## 故障排除

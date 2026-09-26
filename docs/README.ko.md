@@ -160,6 +160,8 @@ UI에서 직접 **16가지 시각 테마**를 전환하세요.
   <img src="lepidoptera.en.png" width="32%" alt="Lepidoptera 테마" />
   <img src="migration.png" width="32%" alt="철새 이동 테마" />
   <img src="catppuccin.en.png" width="32%" alt="Catppuccin 테마" />
+  <img src="sketchbook.en.png" width="32%" alt="손그림 노트 테마" />
+  <img src="heart_monitor.en.png" width="32%" alt="심전도 모니터 테마" />
 </p>
 
 ## 문제 해결
