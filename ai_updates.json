@@ -1031,6 +1031,23 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.157.1",
+          "period": "2026-09-26",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "未提供更新重點，標籤比對查無內容",
+                "en": "No Update Highlights Provided, Tag Comparison Found No Content"
+              },
+              "body": {
+                "zh-TW": "如果你想知道這版更新了什麼，目前提供的資料還無法確認重點。因為本次提供的 PR 索引（PR index，記錄程式碼修改與合併紀錄的清單）完全空白。連線到 GitHub 比對版本標籤（tag，標記特定軟體版本的記號）的功能也無法查詢。該比對頁面直接回傳了 404 錯誤代碼（網頁伺服器表示找不到該頁面的狀態碼）。⟦像走進展覽館翻開隨附的導覽手冊，展品索引頁面剛好一片空白，掃描牆上的導覽連結也跳出失效畫面，讓人暫時無法查知具體的展出項目。⟧由於來源清單空白且標籤比對頁面失效，目前無法確認本版的更新重點。",
+                "en": "If you want to know what changed in this release, the currently provided information cannot confirm the highlights. This is because the provided PR index is completely blank. Connecting to GitHub to compare version tags also fails to return any information. The comparison page directly returned a 404 error code. ⟦A visitor walks into an exhibition hall and opens the accompanying guidebook only to find the exhibit index blank, while scanning the guide link on the wall brings up a broken page, making it impossible to check the specific exhibits for now.⟧ Because the source list is blank and the tag comparison page is unavailable, the update highlights for this release cannot be confirmed at this time."
+              },
+              "original": "Release highlights could not be determined: the supplied PR index is empty, and the GitHub tag comparison returned 404."
+            }
+          ]
+        },
+        {
           "version": "0.157.0",
           "period": "2026-09-25",
           "items": [
@@ -1105,133 +1122,6 @@
                 "en": "When sending numerous requests while asking AI to write code consecutively, unexpected interruptions that break your train of thought are a major hassle. From the model picker, you can now directly choose GPT-6 Sol or GPT-6 Luna. When outgoing requests hit their cap and trigger rate limits (a protective throttle that pauses incoming requests when sent too frequently in a short period), the pop-up switch prompt now proactively suggests handing off to GPT-6 Luna. ⟦Much like a cyclist on a steep climb whose bike computer now suggests which gear to shift into: before, you had to stop and work it out yourself; now you follow the prompt and keep riding.⟧ This ensures that when juggling model resources heavily, you can follow the suggestion to switch directly without interrupting your ongoing development work."
               },
               "original": "Choose GPT-6 Sol or GPT-6 Luna from the model picker. The rate-limit switch prompt now recommends GPT-6 Luna. (#47405)"
-            }
-          ]
-        },
-        {
-          "version": "0.156.0",
-          "period": "2026-09-22",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "選用 /tui 全螢幕介面，支援搜尋紀錄與滑鼠右鍵複製",
-                "en": "Choose the optional /tui fullscreen UI with transcript search and right-click copying"
-              },
-              "body": {
-                "zh-TW": "全螢幕介面現在是可選的：在 Codex 裡輸入 `/tui` 做選擇，下次啟動時就會改用全螢幕的操作畫面。⟦好比走進挑高寬敞的大型閱覽室，桌面上能一口氣展開整份研究卷宗，想找特定段落直接查目錄，還能隨手拿螢光筆圈選重點並按一下印表機複印。⟧進入全螢幕後，你可以直接用搜尋功能快速翻查過往的對話轉錄紀錄，也能直接用滑鼠游標圈選畫面上的文字，並點擊滑鼠右鍵快速複製內容。",
-                "en": "The fullscreen interface is now optional: enter `/tui` in Codex to select it, and your next launch will switch to a fullscreen operational display. ⟦Picture stepping into a spacious reading hall where you can spread out an entire research dossier across the desk, look up specific passages directly in the index, highlight key notes with a marker, and make instant copies on a printer.⟧ Once in fullscreen mode, you can quickly search through past conversation transcripts, select text on screen directly with your mouse cursor, and right-click to copy content quickly."
-              },
-              "original": "Choose an optional fullscreen UI with `/tui` for your next launch, including transcript search, mouse selection, and right-click copying. (#46732, #46734, #46883, #46895)"
-            },
-            {
-              "title": {
-                "zh-TW": "語音對話改為預設開啟，附快捷鍵、設定選單與播放修復",
-                "en": "Voice conversations are enabled by default with shortcuts, a settings menu, and playback fixes"
-              },
-              "body": {
-                "zh-TW": "雙手忙著寫程式或翻查文件時，開口直接跟 AI 討論變得更自然省事。⟦就像車載免持對講系統在出廠時就預先安裝好喇叭與麥克風，按下方向盤按鈕就能隨時切換通話，而且遇到播放暫停或語音突然大量湧入時，車機喇叭依然會把每個字完整唸完，絕不漏字。⟧語音對話現在預設直接開放，Linux 與 Windows 版本也已內建打包好的音訊執行階段，開箱即可運作。你只要按下 F8 鍵就能開關語音對話，或在對話中輸入 `/voice settings` 開啟選單挑選偏好的語音設定。另外，系統修復了音訊播放暫停或短時間湧入大量語音時容易丟失字句的問題。",
-                "en": "Speaking directly with AI becomes much more natural when your hands are busy writing code or looking through documentation. ⟦Much like a factory-installed hands-free car intercom with built-in speakers and microphones, you can toggle calls from the steering wheel, and the car speakers read out every word completely without dropping speech even during pauses or sudden bursts of incoming audio.⟧ Voice conversations are now enabled by default, and Linux and Windows builds bundle pre-packaged audio runtimes that work out of the box. Simply press F8 to toggle voice conversations, or type `/voice settings` in a conversation to open a menu and choose your preferred voice options. In addition, the system fixes an issue where speech was dropped during playback pauses or bursts of incoming audio."
-              },
-              "original": "Voice conversations are enabled by default, with an F8 toggle, a `/voice settings` picker, and bundled audio runtimes for Linux and Windows. (#44921, #46071, #44622, #44714, #44922)\nPrevent speech from being dropped during playback pauses or bursts of incoming audio. (#46880)"
-            },
-            {
-              "title": {
-                "zh-TW": "新增 /usage 分析儀表板，用量、token 與外掛活動一目了然",
-                "en": "Add /usage analytics dashboard to track consumption, token totals, and plugin activity"
-              },
-              "body": {
-                "zh-TW": "想知道自己的帳號用掉多少額度、哪些外掛與技能最常派上用場？現在只要在終端機輸入 `/usage` 指令，就能叫出專屬的數據分析總覽。⟦宛如家庭智慧電表配備的即時數據面板，隨時翻看就能清楚查閱總耗電度數、各個家電插座的用電紀錄與每日用量走勢，不再需要等到月底收帳單才盲猜。⟧在這個儀表板中，你可以檢視帳號的整體用量，掌握消耗的 token（AI 處理與計費的文字單位）累積總計。同時，介面還會列出各項外掛與技能的呼叫活動紀錄，方便你評估各項擴充工具的運作情形。",
-                "en": "Want to know how much quota your account has used or which plugins and skills are called most often? Now you can simply enter the `/usage` command in the terminal to bring up a dedicated analytics overview. ⟦Think of a smart home electricity meter equipped with a live dashboard that lets you check total kilowatt-hours, monitor power usage across individual appliance outlets, and track daily consumption trends instead of guessing before the bill arrives at the end of the month.⟧ In this dashboard, you can view your overall account usage and track cumulative token totals. The interface also lists invocation activity across plugins and skills, making it easy to evaluate how your extensions are performing."
-              },
-              "original": "Explore account usage, token totals, and plugin and skill activity through the `/usage` analytics dashboard. (#45764, #45769)"
-            },
-            {
-              "title": {
-                "zh-TW": "代理人控制中心支援狀態篩選，工作樹建立與支援預設開啟",
-                "en": "Agent command center supports status filtering, with worktree creation and support enabled by default"
-              },
-              "body": {
-                "zh-TW": "指揮多個背景代理人處理複雜任務時，追蹤進度與分流目錄變得更加井井有條。⟦如同專案總監巡視工地的中央調度台，不僅能依據施工狀態分類篩選待辦工單，還能為特定小組直接開啟獨立的隔離施工艙，且這種分流作業規範現在一開工就全面啟用。⟧在代理人控制中心裡，你可以依照任務狀態快速篩選待辦清單，並直接針對特定任務建立專屬的工作樹（worktree，Git 讓同一專案平行開多份副本的功能）工作階段。同時，工作樹支援在本次更新中改為預設開啟，讓你在開發多條分支時無須額外設定即可直接享受獨立目錄的隔離優勢。",
-                "en": "Tracking progress and compartmentalizing directories becomes far more organized when directing multiple background agents on complex tasks. ⟦A project director inspecting a site from a central dispatch console can filter pending work orders by construction status and spin up dedicated, isolated work bays for specific crews, with this compartmentalized workflow now active right from the start.⟧ In the agent command center, you can quickly filter tasks by status and create dedicated worktree sessions for specific assignments. Meanwhile, worktree support is enabled by default in this update, letting you enjoy the isolation benefits of independent directories across multiple branches without extra configuration."
-              },
-              "original": "Filter tasks by status and create worktree sessions from the agent command center; worktree support is now enabled by default. (#46839, #45276, #44870)"
-            },
-            {
-              "title": {
-                "zh-TW": "終端機推出六款新主題配色，支援即時渲染 Mermaid 圖表與數學公式",
-                "en": "Terminal introduces six new themes, supporting direct rendering of Mermaid diagrams and math equations"
-              },
-              "body": {
-                "zh-TW": "看膩了預設的黑底白字，或是讀到複雜的流程邏輯只能盯著純文字自行腦補？⟦好似替客廳換上多種風格的新壁紙與沙發套，而且電視牆還能直接播放流程圖與清楚排版的數學公式看板，不必再把草稿紙翻得眼花撩亂。⟧這次更新為終端機加入了六款全新主題配色，讓你能自由客製化視覺介面。更棒的是，當 AI 在回覆中給出受支援的 Mermaid 圖表或數學展示公式時，終端機現在能直接在回答中將它們視覺化呈現出來，省去將圖表程式碼複製到外部編輯器才能預覽的麻煩。",
-                "en": "Tired of the default black-and-white terminal or struggling to visualize complex process logic from plain text? ⟦Imagine refitting a living room with new wallpapers and sofa covers while the media wall renders flowcharts and neatly formatted math equations directly on screen, sparing you from flipping through messy scratch paper.⟧ This update adds six brand-new color themes to the terminal, allowing you to freely customize your visual interface. Even better, when AI provides supported Mermaid diagrams or display equations in its responses, the terminal can now render them visually right in the output, eliminating the hassle of copying diagram code into external editors just to preview it."
-              },
-              "original": "Customize the terminal with six new themes and view supported Mermaid diagrams and display equations directly in responses. (#46504, #46054, #45612)"
-            },
-            {
-              "title": {
-                "zh-TW": "支援 /daemon 指令更新背景伺服器，或用 --no-daemon 完全繞過",
-                "en": "Support /daemon command to update background server or bypass it completely with --no-daemon"
-              },
-              "body": {
-                "zh-TW": "想升級在本機默默運作的背景服務，或是想單次乾淨啟動而不依賴常駐程序？⟦正如給社區中央供水泵補上獨立升級開關，管理員隨時能下令進行設備更新，住戶若想測試自備水塔也能直接切換獨立閥門、完全不經過中央管線。⟧你現在可以在 Codex 裡輸入 `/daemon`，直接更新本機的守護行程（daemon，在背景持續運作的常駐服務程式）。如果這次不想經過背景伺服器，只要在啟動命令列加上 `--no-daemon` 旗標，就會直接繞過它。",
-                "en": "Need to upgrade a background service running quietly on your local machine, or prefer a clean one-off launch without relying on a resident process? ⟦Just as a community water pump receives a dedicated upgrade switch so managers can trigger equipment updates at any time, residents can also turn an independent valve to test their own water tank without routing through central pipes.⟧ You can now use `/daemon` inside Codex to update the local daemon. If you would rather not go through the background server this time, add the `--no-daemon` flag when launching and it is bypassed."
-              },
-              "original": "Update the local background server through `/daemon`, or bypass it with `--no-daemon`. (#45854, #46088)"
-            },
-            {
-              "title": {
-                "zh-TW": "對話中斷或編輯提示詞時，完整保留已生成的答案、計畫與設定",
-                "en": "Preserve streamed answers, plans, and settings when conversations are interrupted or prompts are edited"
-              },
-              "body": {
-                "zh-TW": "當你請 AI 規劃冗長步驟卻不幸碰上網路瞬斷、手動中斷，或是想回頭修改剛才的提問時，先前的心血不再瞬間歸零。⟦猶如繪畫師在長卷上作畫，即便畫到一半顏料用盡或臨時被電話打斷，已經勾勒好的底稿與著色計畫依然會穩穩留在畫布上；重新拿起畫筆時能立即接續先前的畫法模式，即使擦改前幾筆線條也不會弄丟整幅畫的圖層標籤與筆刷設定。⟧系統現在會在回合失敗、遭使用者中斷或接收到子代理完成事件時，妥善保留已經串流產生的回覆內容與執行計畫。當你重新續接工作階段時，先前開啟的 Plan 模式會自動精準還原；而在編輯更早之前的提示詞時，對話串的身分識別與自訂設定也能完整延續。",
-                "en": "When you ask AI to plan complex multi-step tasks and run into network dropouts, manual interruptions, or simply want to edit a previous prompt, your earlier progress is no longer lost. ⟦When an artist paints on a long scroll, the sketched drafts and coloring plans remain firmly on canvas even if the paint runs out or a phone call interrupts mid-stroke; picking up the brush immediately restores the previous painting mode, and erasing earlier strokes never loses the layer tags or brush settings.⟧ The system now preserves streamed responses and execution plans when turns fail, are interrupted by the user, or receive subagent completion events. When you resume a session, previously activated Plan mode is restored accurately, and editing earlier prompts preserves thread identity and custom settings."
-              },
-              "original": "Preserve streamed answers and plans when turns fail, are interrupted, or receive subagent completion events. (#45549, #46867)\nRestore Plan mode when resuming sessions and preserve thread identity and settings when editing earlier prompts. (#45519, #45845)"
-            },
-            {
-              "title": {
-                "zh-TW": "修復 tmux 與 SSH 剪貼簿轉發，貼上文字時保留 Tab 縮排",
-                "en": "Fix clipboard forwarding in tmux and SSH, preserving Tab indentation on pasted text"
-              },
-              "body": {
-                "zh-TW": "透過遠端連線或終端機分頁軟體工作時，複製貼上程式碼最怕遇到剪貼簿失效或縮排格式被壓扁。⟦跟在辦公室使用跨樓層文件輸送管一樣，遠端傳送的文件能精準送達收件匣，而且就算遇到老舊傳送機把整疊報表拆成單頁逐張送出，系統依然會依照原本的格線與分欄標記工整排好，絕不讓表格欄位錯位。⟧這次更新修正了在 tmux 與 SSH 工作階段中剪貼簿無法正確轉發的問題。同時，當某些終端機將貼上的大段文字拆成個別按鍵訊號逐一送出時，Codex 現在也能完整保留原始的 Tab 縮排格式，不再將排版打亂成純文字。",
-                "en": "When working over remote connections or terminal multiplexers, copying and pasting code often risks broken clipboards or flattened indentations. ⟦Operating like a multi-floor document pneumatic tube system in an office, remotely dispatched files arrive accurately in the inbox, and even if an aging feeder sends a report sheet by sheet, the system arranges them neatly along original gridlines and column markers without misaligned columns.⟧ This update fixes clipboard forwarding failures in tmux and SSH sessions. Additionally, when certain terminals send pasted text as individual keystrokes, Codex now preserves the original Tab indentation format rather than scrambling it into plain unformatted text."
-              },
-              "original": "Fix clipboard forwarding in tmux and SSH sessions and preserve tab indentation when terminals send pasted text as individual keystrokes. (#45457, #45454)"
-            },
-            {
-              "title": {
-                "zh-TW": "支援透過系統代理伺服器復原登入，修復 MCP 憑證 503 重新整理",
-                "en": "Recover login through system proxies and refresh MCP credentials on 503 errors"
-              },
-              "body": {
-                "zh-TW": "公司網路規定所有連線都得先繞經代理時，Codex 的登入以前容易卡在半路。⟦彷彿外賓進園區規定要走公司的接待櫃台，以前走這條路常被擋在門外，現在能照常換證進門；遇到換證窗口回「忙線中」時，櫃台也會主動幫你重換一張有效的通行證，不再讓你在門口枯等。⟧Codex 現在能透過系統代理伺服器順利復原登入工作階段，確保特殊網路架構下的認證暢通。此外，當外部伺服器的 OAuth 身分探索回傳 503 服務暫時無法使用錯誤時，系統會自動重新整理 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）的授權憑證，提升外部工具連線的穩定度。",
-                "en": "On corporate networks that route every connection through a proxy, Codex sign-in used to get stuck halfway. ⟦Picture a visitor who has to enter a campus through the company reception desk: that route used to leave them stuck outside, and now it gets them in; when the badge office answers \"line busy\", the desk now fetches a fresh pass instead of leaving them waiting at the door.⟧ Codex can now recover login sessions smoothly through system proxies, so sign-in works on networks that route traffic through a proxy. Furthermore, when OAuth identity discovery returns a 503 Service Unavailable error from an external server, the system automatically refreshes MCP (Model Context Protocol) authorization credentials, improving connection stability for external tools."
-              },
-              "original": "Recover login through system proxies and refresh MCP credentials when OAuth discovery returns a 503 error. (#46562, #44636)"
-            },
-            {
-              "title": {
-                "zh-TW": "修補沙盒隔離漏洞，防堵連線穿透、特權通訊端與檔案寫入",
-                "en": "Patch sandbox isolation gaps to block inbound connections, privileged sockets, and file writes"
-              },
-              "body": {
-                "zh-TW": "讓 AI 在受限環境中測試未知腳本時，環境隔離的防護邊界現在更加固若金湯。⟦類似給金庫隔離艙加裝多重防護閥，既封鎖了外部未經許可的傳入管線，又切斷了內部程式暗中調用高特權通訊通道的可能，並嚴格鎖死唯讀公文櫃的鎖扣、防止任何人偷偷提筆篡改。⟧這次更新修補了沙盒（sandbox，隔離程式執行權限的保護環境）的數項隔離漏洞：堵住了涉及 Windows 傳入連線的漏洞、阻斷了 Linux 與 macOS 上存取特權通訊端的管道，並徹底禁止透過 macOS 唯讀檔案控制代碼進行寫入操作。",
-                "en": "When having AI test unknown scripts in restricted environments, the protective perimeter of environmental isolation is now significantly tighter. ⟦Installing multiple protective valves on a vault isolation chamber blocks unauthorized inbound pipelines, cuts off covert attempts by internal programs to access privileged communication channels, and firmly locks read-only document cabinets to prevent illicit alterations.⟧ This update patches several isolation gaps in the sandbox: it closes a gap involving inbound connections on Windows, shuts down avenues for accessing privileged sockets on Linux and macOS, and strictly prohibits write operations through read-only macOS file handles."
-              },
-              "original": "Close sandbox isolation gaps involving inbound Windows connections, privileged Linux/macOS sockets, and writes through read-only macOS file handles. (#44639, #45984, #46500)"
-            },
-            {
-              "title": {
-                "zh-TW": "淘汰舊版個性設定，釐清代理規則萬用字元並升級 TLS 套件",
-                "en": "Retire legacy personality settings, clarify proxy wildcard rules, and upgrade TLS dependencies"
-              },
-              "body": {
-                "zh-TW": "這批更新收攏了幾項設定規則、網路比對與底層套件的規格細節。官方明確釐清先前已標記為棄用的 `friendly` 與 `pragmatic` 個性設定，現在已不再對 AI 的回覆語氣風格產生任何影響。在網路代理的允許與拒絕比對規則中，規則說明補上了問號 `?` 代表匹配單一字元的定義，方便你寫出更精確的代理規則。同時，系統打包的 TLS 安全傳輸相依套件也完成升級，包含為 Linux musl 建置版本納入了 OpenSSL 3.6.4。以前如果對代理規則語法不確定或受限於舊版通訊套件，現在規則寫得清楚，打包的套件也更新到新版。",
-                "en": "This batch of updates consolidates specification details across configuration rules, network matching, and underlying packages. The release explicitly clarifies that the previously deprecated `friendly` and `pragmatic` personality settings no longer have any effect on AI response style. In network proxy allow and deny matching rules, the documentation now explains that the question mark `?` matches a single character, helping you write more precise proxy rules. Meanwhile, bundled TLS security dependencies have been upgraded, including OpenSSL 3.6.4 for Linux musl builds. If you were previously uncertain about proxy rule syntax or constrained by older communication packages, the rules are now spelled out and the bundled secure-connection libraries are up to date."
-              },
-              "original": "Clarify that deprecated `friendly` and `pragmatic` personality settings no longer select response styles. (#45809)\nExplain how `?` matches a single character in network proxy allow and deny patterns. (#46027)\nUpdate bundled TLS dependencies, including OpenSSL 3.6.4 for Linux musl builds. (#45149, #45489)"
             }
           ]
         }
@@ -1475,6 +1365,84 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.30.24",
+          "period": "2026-09-26",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "HTML 報表新增派工帳本，清楚看懂跨工具額度消耗",
+                "en": "HTML Reports Add Delegation Ledger to Track Multi-Tool Quota Consumption"
+              },
+              "body": {
+                "zh-TW": "當你讓 Claude 呼叫其他工具一起分工寫程式時，往往很難算清一項任務到底扣了哪一邊的用量。⟦像工程主管核對跨包商工單，以前只見到月底整筆總支出，現在能清清楚楚拆解出每個專案各自攤提了哪家廠商的工時。⟧現在 HTML 報表的最耗用對話清單新增了「約佔週額度」欄位，並加入「派工帳本（最近 7 天）」區塊。它會將對話中的 `codex exec` 與 `agy -p` 呼叫，對應回 Codex 與 Antigravity 的紀錄。消耗估算是以對話消耗的 token（AI 處理與計費的文字單位）佔比，乘以各平台已使用的週額度。計算時會自動排除快取（把查過的資料暫存起來直接用）讀取的份額。歸屬依序比對對話識別碼、負五至一百二十秒的時間窗與工作目錄；若仍無法確認，就保持未歸屬。全程只讀取本機檔案與既有快取，不發送額外網路請求，沒有派工時也不會顯示此區塊。",
+                "en": "When you have Claude delegate coding tasks to external tools, tracking which platform consumed quota for a specific task can be difficult. ⟦Think of an engineering manager auditing contractor invoices: where they once saw only a lump-sum bill at month-end, they can now clearly break down which vendor's hours were billed to each project.⟧ The top-spending conversations list in the HTML report now adds an \"Est. % of Weekly Quota\" column and introduces a \"Delegation Ledger (Last 7 Days)\" section. It maps `codex exec` and `agy -p` invocations within conversations back to Codex and Antigravity records. Usage estimation multiplies the conversation's token consumption share by each platform's used weekly quota. The calculation automatically excludes cached reads. Attribution matches sequentially by conversation ID, a time window of -5 to 120 seconds, and working directory; if it still cannot be confirmed, it remains unassigned. The entire process reads only local files and existing caches without making additional network requests, and the section is hidden when no delegation occurred."
+              },
+              "original": "**Dispatch ledger in the HTML report.** The top-conversations table gains an \"Approx. weekly quota\" column, and a new \"Dispatch ledger (last 7 days)\" section matches the `codex exec` / `agy -p` calls in a Claude conversation to the Codex and Antigravity conversations they started, estimating how much of each provider's weekly quota one task used: conversation tokens (excluding cache reads) ÷ the period's total tokens × that provider's weekly quota used. A dispatch is attributed by Claude's conversation UUID first, then by a -5 to +120 second time window, then by working directory; if it is still ambiguous it stays unattributed. It reads local files only — Antigravity's quota comes from the existing cache, with no new network call — and the section is omitted when there were no dispatches."
+            },
+            {
+              "title": {
+                "zh-TW": "發行版本自動上傳套件庫，免存認證金鑰更安全",
+                "en": "Automated Releases Upload to Package Index Without Storing Authentication Keys"
+              },
+              "body": {
+                "zh-TW": "想要把維護好的工具打包發布，現在只要為專案建立版本標籤，流程就會透過受信任發布機制（Trusted Publishing，透過平台互信驗證身分的安全機制）自動將 `usage-cli` 送上 Python 套件庫 PyPI。⟦好比大樓改用身分認證自動辨識進出，以前必須在管理室押一把實體備用鑰匙，現在通過驗證就直接放行，櫃子裡不必保存任何密碼鑰匙。⟧整個自動化發布流程完全不需要在設定中存放任何 token（授權令牌），只要打上標籤發版就能安全完成發布，不必擔心金鑰外洩。",
+                "en": "When publishing maintained tools, creating a version tag on the project will now automatically upload `usage-cli` to the Python package index PyPI via Trusted Publishing, a mechanism that verifies identity through trust between platforms. ⟦Picture a secure building switching to automated identity verification: instead of leaving a physical spare key with the front desk, visitors are granted entry directly upon authentication without storing any keys or combinations in a locker.⟧ The entire automated release workflow eliminates the need to store authorization tokens in settings. Tagging a release safely completes deployment without the risk of credential leakage."
+              },
+              "original": "Tagging a release now also publishes `usage-cli` to PyPI through Trusted Publishing, with no stored token."
+            },
+            {
+              "title": {
+                "zh-TW": "面板底部按鈕不再被裁切，窄版介面完整顯示操作文字",
+                "en": "Popover Bottom Buttons No Longer Clipped Across Narrow Layouts"
+              },
+              "body": {
+                "zh-TW": "當你在使用較窄的面板主題或是切換到文字較長的語言介面時，可能會發現底部的操作按鈕被切掉半截。⟦如同排版軟體依照實際縮放比例重新測量元件，以前視窗縮放後，邊界文字會被擠出畫面；現在文字可就地換行，按鈕高度也會自然調整，字樣不再被切掉。⟧這次修正解決了十款面板主題在顯示狀態列（顯示在終端機最底部的即時資訊列）設定按鈕時，底部標籤與按鈕溢出的問題。介面現在會依實際縮放比例精確測量內容，避免 WebKit 引擎縮放後的字體差異造成底部被截斷，同時保留各主題原本的外觀風格。",
+                "en": "When using a narrow popover theme or switching to a language with longer text strings, you might find the bottom action buttons cut off. ⟦Like publishing software remeasuring elements against the actual zoom scale, where window resizing previously pushed edge text off-screen, text now wraps in place while button heights adjust naturally so labels are never clipped.⟧ This fix resolves bottom label and button overflow across 10 popover themes when displaying status line settings buttons. The interface now accurately measures content based on the actual scale factor, preventing font rendering discrepancies in the WebKit engine from truncating the bottom while preserving each theme's original visual styling."
+              },
+              "original": "Keep footer action labels and buttons visible in the ten affected panel themes when the status-line setup button is shown, including narrow panels and longer translations. Allow local wrapping and natural button height while preserving theme chrome. Measure content at the displayed zoom so WebKit font metrics and line wrapping cannot clip the footer after panel scaling ([#151](https://github.com/aqua5230/usage/pull/151))."
+            }
+          ]
+        },
+        {
+          "version": "0.30.23",
+          "period": "2026-09-26",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Antigravity 卡片支援切換兩組額度",
+                "en": "Antigravity Cards Support Switching Between Two Quota Sets"
+              },
+              "body": {
+                "zh-TW": "如果你在 Antigravity 裡習慣呼叫 Claude 或 GPT 模型，以前工具卡片上永遠只顯示 Gemini 的消耗量。現在標題旁多了一個常駐標籤顯示目前的模型組別，點擊 `Gemini ⇄` 就能切換成 `Claude / GPT ⇄`，系統會記住你的選擇。切換時會直接以最近一次抓取的快照重繪畫面，完全不需再次發送網路請求，並重新啟動消耗速度預測，避免兩組額度混合計算。這項功能支援全數 13 款包含 Antigravity 卡片的主題，且在 macOS 與 Windows 上都能運作。⟦跟雙幣帳戶在手機上翻頁查帳一樣，以前只顯示台幣餘額，現在按一下就能查看外幣，切換時直接讀取剛剛的紀錄而不必重打網路，兩邊的扣款預測也不會混在一起。⟧",
+                "en": "If you regularly use Claude or GPT models in Antigravity, tool cards previously only displayed Gemini usage. A persistent badge next to the title now shows the current model group, allowing you to click `Gemini ⇄` to switch to `Claude / GPT ⇄`, and the system remembers your choice. Switching immediately redraws the interface using the most recent snapshot without making another network request, while restarting burn rate predictions to keep both quota calculations separate. This feature supports all 13 themes containing Antigravity cards and runs on both macOS and Windows. ⟦Think of checking a mobile dual-currency account: it previously showed only the local balance, but now a single tap reveals foreign currency, directly loading recent records without new network requests and keeping deduction forecasts from mixing together.⟧"
+              },
+              "original": "**Switch the Antigravity card between its two quota pools.** Antigravity keeps separate Gemini and Claude / GPT quotas, and the card used to show only Gemini — so anyone working mainly with Claude models in Antigravity never saw their own numbers (#150). A small tag next to the title now always names the pool on screen; tap `Gemini ⇄` to switch to `Claude / GPT ⇄` and back. The choice is remembered, the switch redraws from the last fetched snapshot without another network call, and the burn-rate forecast restarts so the two pools never blend into one prediction. It works in the 13 themes that have an Antigravity card, on macOS and Windows."
+            },
+            {
+              "title": {
+                "zh-TW": "Muse Code 呼叫花費納入統計與報表",
+                "en": "Muse Code Usage Costs Included in Statistics and Reports"
+              },
+              "body": {
+                "zh-TW": "當你在專案中使用 Muse Code 輔助寫程式時，現在它產生的每筆費用都能被完整追蹤。工具會讀取 `~/.local/share/muse/sessions/**/session.jsonl` 中的工作階段紀錄，依據紀錄 ID 排除重複項目，並以每次請求消耗的 token（AI 處理與計費的文字單位）對照 LiteLLM 的 `meta/muse-*` 模型價格計算金額。這些花費會計入今日開銷、專案累積總計、HTML 報表與 `usage` 命令列工具。即使在斷網環境下，離線備援價目表也已補上 `muse-spark-1.3` 的計費依據。由於 Muse 本身沒有存放本機額度資料，因此不會額外提供 Muse 額度卡片。⟦好比總務人員定期整理出差單據，以前分散在各處的零星開銷無人清查，現在按紀錄編號剔除重複並對照標準價目，即便離線也有備用表可查，全數彙整到當日帳本中。⟧",
+                "en": "When you use Muse Code to assist with coding in your projects, every expense it generates is now fully tracked. The tool reads session records in `~/.local/share/muse/sessions/**/session.jsonl`, deduplicates entries by record ID, and calculates costs by matching tokens consumed per request against LiteLLM `meta/muse-*` model pricing. These expenses are included in today's spending, project cumulative totals, HTML reports, and the `usage` command-line tool. Even when disconnected, the offline fallback price list includes billing rates for `muse-spark-1.3`. Because Muse does not store local quota data, no additional Muse quota card is provided. ⟦Picture an administrative clerk sorting travel receipts: previously scattered expenses went unchecked, but now duplicates are removed by record ID and matched against standard rates—with an offline backup table on hand—fully compiling everything into the daily ledger.⟧"
+              },
+              "original": "**Muse Code spending.** Muse Code's per-request tokens and cost now count toward today's cost, project totals, the HTML report, and the `usage` CLI. They are read from `~/.local/share/muse/sessions/**/session.jsonl`, deduplicated by record ID, and priced from LiteLLM's `meta/muse-*` entries, with `muse-spark-1.3` added to the offline fallback table. Muse keeps no local quota data, so there is no Muse quota card."
+            },
+            {
+              "title": {
+                "zh-TW": "開發工具版本更新",
+                "en": "Development Tool Version Updates"
+              },
+              "body": {
+                "zh-TW": "你在檢查專案的自動化工作流程時，想確認底層換了什麼，清單列出三項：ruff 更新到 0.16.8，`astral-sh/setup-uv` 更新到 10.2.0，CodeQL actions 也更新了；原文沒有提供 CodeQL actions 的新版本號。這份紀錄只列更新項目，沒有交代這次換版後的實際效果。⟦像核對器材更換單，前兩件寫出新型號，第三件只註明已更換；拿到這張單，你知道哪些器材換過，卻不知道換後用起來有何不同。⟧",
+                "en": "When checking your project's automated workflow to see what changed underneath, the list outlines three items: ruff was updated to 0.16.8, `astral-sh/setup-uv` was updated to 10.2.0, and CodeQL actions was also updated, though the source provided no new version number for CodeQL actions. This log only lists updated items without explaining the actual effects of the version bump. ⟦Checking an equipment replacement form works similarly: the first two items list new model numbers while the third only notes it was replaced; holding this slip, you know which equipment was swapped, but not how it feels to use afterward.⟧"
+              },
+              "original": "Bumped ruff to 0.16.8, `astral-sh/setup-uv` to 10.2.0, and the CodeQL actions."
+            }
+          ]
+        },
+        {
           "version": "0.30.22",
           "period": "2026-09-25",
           "items": [
@@ -1521,106 +1489,6 @@
                 "en": "When you open the usage report in a browser or on your phone, the statistics on screen no longer line up crookedly. ⟦Like trimming every caption plaque on a gallery wall to the same size: before, cards with more text were laid out messily and pressed against the frame; now the supplementary details are shrunk onto separate lines with margins added, and the whole display wall looks neat and consistent.⟧ In the HTML report, the four key metric cards now all keep exactly the same height. The card tracking token (the unit of text the AI processes and bills by) consumption shows only an approximate value in large type, while the exact figure and the change move to smaller text on separate lines, fixing the old problem of inconsistent line wrapping across cards. On mobile, each section also gains 16px of padding on both sides, so content no longer hugs the card edges."
               },
               "original": "**The HTML report's KPI cards stay one height.** The big number on the tokens card shows one rounded value; the exact figure and change move to small lines, so the four cards no longer wrap unevenly. On phones, sections get 16px side padding instead of touching the card edge."
-            }
-          ]
-        },
-        {
-          "version": "0.30.21",
-          "period": "2026-09-23",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "離線價目表補齊 GPT-6 模型，斷網也能精準記帳",
-                "en": "Offline pricing table now covers GPT-6 models, so billing stays accurate without a network"
-              },
-              "body": {
-                "zh-TW": "當你在沒有網路的環境下使用 Codex 寫程式，工具依然能準確計算最新模型的花費。線上的 LiteLLM 價目表原本就包含 GPT-6-Sol 與 GPT-6-Luna 這兩款新模型，但過去程式內建的備援（fallback，下載線上資料失敗時才會啟用的備用方案）價目表尚未更新。一旦網路斷線或是連線下載失敗，這兩個新模型的消耗金額就會漏算。現在內建備援表已經同步補上相同的價格資訊。⟦就像水電師傅隨身帶著備用紙本報價單，就算在地下室收不到訊號，翻開來照樣查得到新進特殊零件的工料費，算帳時不會漏掉任何項目。⟧",
-                "en": "When you use Codex to write code in an environment without internet access, the tool can still accurately calculate the cost of the latest models. The online LiteLLM pricing table already included the two new models GPT-6-Sol and GPT-6-Luna, but the program's built-in fallback pricing table (the backup that only kicks in when downloading online data fails) had not been updated. Once the network dropped or the download failed, the spending on these two new models would be missed. The built-in fallback table has now been synced with the same pricing information. ⟦It is like a plumber who carries a paper backup price list: even in a basement with no signal, they can still look up the labor and material cost of newly stocked specialty parts, so nothing gets left off the bill.⟧"
-              },
-              "original": "**The offline price table knows Codex's GPT-6-Sol and GPT-6-Luna.** The live LiteLLM table already priced them; the built-in fallback, used only when that download fails, now carries the same prices, so spending on the two new models is not left out while offline."
-            },
-            {
-              "title": {
-                "zh-TW": "Grok 狀態列支援 Windows，舊設定不再誤當備份還原",
-                "en": "Grok status line now supports Windows, and old settings are no longer mistakenly restored as backups"
-              },
-              "body": {
-                "zh-TW": "在 Windows 上使用 Grok 搭配 usage 時，狀態列（status line，顯示在終端機最底下的狀態列）現在能正常運作。過去 Grok 會把 [ui.status_line] command 視為單一程式路徑而觸發 os error 123 錯誤。現在 usage 會寫入 ~/.grok/usage-statusline-grok.cmd 包裝檔並指向它，既有安裝由自我修復自動切換，macOS 維持不變。過去若 Python 路徑不同，安裝程式會把舊指令誤存為使用者設定並在移除時還原；現在只要指向 usage 腳本或包裝檔，解除安裝便會直接捨棄備份。⟦如同將工序封裝成專用料理包避免出錯，退租點交時也能認出外加包裝直接丟棄，不再誤當成原本餐具放回抽屜。⟧",
-                "en": "When using Grok with usage on Windows, the status line (the status bar shown at the very bottom of the terminal) now works properly. Previously, Grok treated the [ui.status_line] command as a single program path, which triggered os error 123. Now usage writes a wrapper file at ~/.grok/usage-statusline-grok.cmd and points to it; existing installs switch over automatically via self-repair, while macOS stays unchanged. In the past, if the Python path differed, the installer would mistakenly save the old command as a user setting and restore it on removal; now, as long as it points to the usage script or wrapper file, uninstalling simply discards the backup. ⟦Think of it like sealing a procedure into a dedicated meal kit to avoid mistakes: at move-out inspection, the added packaging is recognized and thrown away directly, instead of being mistaken for the original tableware and put back in the drawer.⟧"
-              },
-              "original": "**Grok's status line works on Windows.** Grok on Windows starts the whole `[ui.status_line] command` as one program path, so usage's \"python.exe script.py\" command failed with `os error 123`. usage now writes `~/.grok/usage-statusline-grok.cmd` and points the command at it; existing installs are switched over by the self-repair check. macOS is unchanged.\n**usage no longer backs up its own older Grok status line as yours.** Setup compared the exact command, so a usage row written for another Python path was saved as the user's status line and brought back on uninstall. It now recognizes any row that points at usage's script or wrapper, and uninstall drops such a backup instead of restoring it."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 首次啟動說明，教你放行 SmartScreen 警告",
-                "en": "First-launch instructions for Windows show you how to allow the SmartScreen warning"
-              },
-              "body": {
-                "zh-TW": "第一次在 Windows 電腦上下載並打開 usage 時，如果遇到系統安全提示擋下，現在有明確步驟可依循。官方說明文件（README，專案隨附的說明檔案）與網站正式補上操作教學：當 Windows Defender SmartScreen 跳出「Windows 已保護您的電腦」提示時，只要先點擊「其他資訊」，再按下「仍要執行」即可正常啟動程式，不必擔心被系統防護卡住。⟦跟大樓門禁初次攔下訪客一樣，只要依提示點擊確認，就能順利放行進門。⟧",
-                "en": "The first time you download and open usage on a Windows computer, if a system security prompt blocks it, there are now clear steps to follow. The official documentation (the README, the instruction file shipped with the project) and the website now include a walkthrough: when Windows Defender SmartScreen pops up the \"Windows protected your PC\" prompt, just click \"More info\" first, then press \"Run anyway\" to start the program normally, without worrying about being stuck at the system protection screen. ⟦Just like a building's access control stopping a visitor for the first time, you only need to follow the prompts to confirm, and you are let through the door smoothly.⟧"
-              },
-              "original": "**Windows first launch.** The README and website explain how to get past SmartScreen's \"Windows protected your PC\" prompt: More info → Run anyway."
-            }
-          ]
-        },
-        {
-          "version": "0.30.20",
-          "period": "2026-09-23",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "選單列記憶體減半且刷新變快，HTML 報表二次載入縮短至 0.1 秒",
-                "en": "Menu bar memory halved and refreshes faster, HTML report second load drops to 0.1 seconds"
-              },
-              "body": {
-                "zh-TW": "讓電腦整天掛著 usage 監控用量，現在吃掉的記憶體和 CPU 都少了很多。實測顯示選單列記憶體從 263 MB 降到約 130 MB，每次刷新從 1.2～1.65 秒 CPU 降至 0.16～0.47 秒。Grok 紀錄只在帶花費時才解 JSON（22,491 行裡只有 212 行），無變動時直接沿用。歷史快取（把查過的結果暫存起來直接用）略過來源檔已刪除的項目，並丟掉同一份 Claude 紀錄裡重複的行。這類重複行占快取項目的 57%；另外讓重複模型、專案與工作階段字串共用一份，並只重寫變動分片。今日與昨日合計改用本地日界線比較，升級後首次開啟會重讀紀錄重建快取。產生 HTML 報表時快取上限由 512 提高至 4096，第二次載入從 5.0 秒降至 0.1 秒。⟦會計師整理年度發票時，先把重複的抬頭合用同一個印章，沒變動的帳冊不再整本重抄，結算速度省下一大半時間。⟧",
-                "en": "Leaving usage running all day to monitor consumption now takes far less memory and CPU. Benchmarks show menu bar memory dropped from 263 MB to about 130 MB, and each refresh dropped from 1.2–1.65 seconds of CPU to 0.16–0.47 seconds. Grok logs decode JSON only when carrying costs (212 of 22,491 lines), and are reused directly when unchanged. The history cache drops lines repeated within one Claude log (57% of cached entries), skips entries whose source file was deleted, shares a single copy of repeated model, project, and session strings, and only rewrites changed shards. Today's and yesterday's totals now compare against local day boundaries, and the first launch after upgrading re-reads logs to rebuild the cache. When generating HTML reports, the cache cap was raised from 512 to 4096, cutting the second load from 5.0 seconds to 0.1 seconds. ⟦An accountant organizing annual invoices reuses one stamp for duplicate headers and avoids recopying unchanged ledgers, cutting settlement time by more than half.⟧"
-              },
-              "original": "**The menu bar app uses about half the memory and far less CPU per refresh.** Measured on one machine with 1.6 GB of Claude logs and 596 MB of Codex logs: the memory footprint went from 263 MB to about 130 MB, and each refresh from 1.2–1.65 s of CPU to 0.16–0.47 s. Grok's `updates.jsonl` lines are JSON-decoded only when they carry `costUsdTicks` (212 of 22,491 lines), and the whole Grok result is reused while none of its files change. The history cache drops lines repeated within one Claude log (57% of cached entries), shares repeated model, project and session strings, and skips entries whose source file was deleted; only the cache shards that changed are rewritten. Today's and yesterday's totals compare against local day boundaries instead of converting every entry's time zone, and the source scan groups paths by their parts. The first launch after upgrading re-reads the Claude logs once to rebuild the cache.\n**Generating the HTML report again no longer re-reads every log.** The report's parsers capped their file cache at 512, below a real install's file count, so a sequential scan evicted every file; the cap is now 4096, as in the menu bar's loader. A second load went from 5.0 s to 0.1 s."
-            },
-            {
-              "title": {
-                "zh-TW": "重新開啟 App 不再少算 Claude 花費，快取寫入計價回歸正確倍率",
-                "en": "Reopening app no longer undercounts Claude spending, cache write pricing returns to correct multiplier"
-              },
-              "body": {
-                "zh-TW": "重啟電腦或重新打開 usage 後，你看到的 Claude 花費不會再少算。以前程式將資料寫入硬碟快取（把查過的結果暫存起來直接用）時，漏掉了「1 小時快取寫入」的筆數。這導致 App 重開後，這批寫入被誤當成費率較低的 5 分鐘快取計價（以輸入價格的 1.25 倍而非正確的 2 倍計算），算出來的花費因而偏低。用 `usage doctor` 跟 Claude Code 自己算的花費對帳，差距從 12% 降到 2%。Claude 的快取結構已升級，現有快取會以正確的倍率重新計算。⟦就像飯店櫃台的電腦重開機後，以前會把住一晚的客人誤登成鐘點休息，帳因此少算一截；現在重開機也會照原本登記的方案收費。⟧",
-                "en": "After restarting your computer or reopening usage, the Claude spending you see is no longer undercounted. Previously, when writing data to disk cache, the program dropped the count of \"1-hour cache writes\". This caused the app, upon reopening, to mistakenly price these writes at the lower 5-minute cache rate (calculated at 1.25× the input price instead of the correct 2×), resulting in undercounted spending. Reconciling with `usage doctor` against Claude Code's own cost figures, the gap went from 12% to 2%. The Claude cache structure was upgraded, so existing caches recalculate with the correct multiplier. ⟦It is like a hotel front-desk system that, after a reboot, used to log overnight guests as short hourly stays and undercharge them; now it keeps charging the plan each guest actually booked.⟧"
-              },
-              "original": "**Claude spending is no longer undercounted after the app restarts.** The on-disk cache dropped the count of 1-hour cache writes, so after a restart they were priced as 5-minute writes (1.25× input instead of 2×). `usage doctor`'s reconciliation against Claude Code's own cost went from 12% apart to 2%. The Claude cache schema was bumped, so existing caches rebuild with the right figures."
-            },
-            {
-              "title": {
-                "zh-TW": "解除安裝完整還原原本的狀態列，開關切換不再覆寫原始備份",
-                "en": "Uninstalling fully restores the original status line, toggle switch no longer overwrites original backup"
-              },
-              "body": {
-                "zh-TW": "你在安裝 usage 之前自己設定的狀態列，現在不會再被弄丟。以前在設定中關閉再開啟狀態列，程式會把當前的狀態列暫存在專門保存安裝前備份的欄位 `previousStatusLine`，導致原本的舊設定被蓋掉，日後解除安裝時找不到最初的設定值。現在開關改用獨立欄位儲存，即使在狀態列關閉的狀態下解除安裝，也能順利找回原本的設定。執行 `usage unsetup` 解除安裝時，除了還原 Claude Code、Codex 與 Grok 之外，現在也會一併還原 Antigravity 的狀態列，不再將其遺留在 usage 的腳本捷徑上。⟦租車出遊換上自己的導航架，還車拆下時車行依舊把原廠螢幕接回，不會因為中途切換過模式就弄丟原本的配備。⟧",
-                "en": "The status line you set up before installing usage is no longer lost. Previously, toggling the status line off and on in settings caused the program to park the active status line under `previousStatusLine`, a field reserved for the pre-installation backup, which overwrote the original configuration and left uninstallation with nothing to restore. Toggling now stores state in an independent field, successfully restoring your original settings even if you uninstall while the status line is turned off. When running `usage unsetup` to uninstall, in addition to restoring Claude Code, Codex, and Grok, it now also restores Antigravity's status line instead of leaving it pointing at usage's script shortcut. ⟦Picture installing your own navigation mount in a rental car; when returning the car and taking it down, the agency still hooks the factory screen back up without losing the original gear just because you switched modes during the trip.⟧"
-              },
-              "original": "**Turning the status line off and on no longer loses the status line you had before installing usage.** The switch parked the live status line under `previousStatusLine`, the key that holds the pre-install backup, so a later uninstall had nothing to restore. It now uses its own key, and uninstalling while the switch is off restores the original too.\n**Uninstalling restores the Antigravity status line.** `usage unsetup` restored Claude Code, Codex and Grok but left Antigravity pointing at usage's script."
-            },
-            {
-              "title": {
-                "zh-TW": "支援多個 Claude 目錄掃描，修復背景更新覆寫設定與 Hook 備援文字",
-                "en": "Scanning multiple Claude directories supported, background update overwriting settings and hook fallback text fixed"
-              },
-              "body": {
-                "zh-TW": "如果你平時會在多個環境目錄切換，或習慣一邊檢查軟體更新一邊調整偏好，日常操作現在更加穩定順手。當你在環境變數 `CLAUDE_CONFIG_DIR` 中用逗號指定多個資料夾時，歷史紀錄掃描不再因預設單一路徑而當掉，選單列能持續正常刷新。背景檢查更新時，程式在連網結束後會先重新讀取最新的設定檔，解決 macOS 與 Windows 上剛改好的設定會被連網前的舊資料覆蓋回去的問題。精簡模式與接續工作階段的 hook（特定事件發生時被觸發的小程式）在遺失翻譯檔時顯示的內建備援文字，已同步至最新 `i18n.json` 內容。英文精簡提醒也補回「Drop filler … and pleasantries」的動詞。兩支 hook 均已升級版本並會自動重寫本機副本。多專案切換與自訂偏好設定的使用者，從此不必再擔心設定被莫名還原或畫面停止更新。",
-                "en": "If you frequently switch between multiple environment directories or adjust preferences while checking for software updates, daily workflows are now smoother and more reliable. When you specify multiple folders separated by commas in the `CLAUDE_CONFIG_DIR` environment variable, history scans no longer crash by assuming a single path, allowing the menu bar to refresh normally. During background update checks, the program now re-reads the latest preferences after the network request finishes, fixing an issue on macOS and Windows where freshly updated settings were overwritten by stale pre-network data. The built-in fallback text shown by terse-mode and session-resume hooks (small programs triggered when specific events occur) when translation files are missing has been synchronized with the latest `i18n.json`. The English terse reminder also restores the verb in \"Drop filler … and pleasantries\". Both hook versions were bumped and will automatically rewrite local copies. Users switching across projects and customizing preferences no longer need to worry about settings unexpectedly reverting or displays freezing."
-              },
-              "original": "**Several directories in `CLAUDE_CONFIG_DIR` no longer stop the menu bar from refreshing.** The history scan assumed exactly one Claude directory and crashed when a comma-separated list named more.\n**A setting changed during an update check is no longer reverted.** The background update check saved the preferences it had read before its network request, overwriting anything changed meanwhile; on macOS and Windows it now re-reads them first.\n**The terse-mode and session-resume hooks' built-in fallback text matches the translations.** The fallbacks, shown only when the translation sidecar is missing, had fallen behind `i18n.json`; the English terse reminder also gets back the verb in \"Drop filler … and pleasantries\". Both hook versions were bumped so installed copies are rewritten."
-            },
-            {
-              "title": {
-                "zh-TW": "官網手機版排版優化，CI 導入 Ruff 檢查並修復 Windows 測試",
-                "en": "Official website mobile layout polished, CI adopts Ruff formatting check and Windows tests fixed"
-              },
-              "body": {
-                "zh-TW": "用手機瀏覽 usage 官方網站，或是在不同作業系統參與專案開發時，閱讀與測試體驗都更為清爽。官網在 640px 以下的手機螢幕上，中日文段落取消了兩端對齊排版，讓窄螢幕閱讀更自然。安裝卡片內的 Homebrew 安裝指令現在能完整在一行內放下，而 Windows 訪客打開首頁時也會優先看到專屬的下載按鈕。在內部維護方面，持續整合（CI，自動驗證程式碼的機制）導入了 `ruff format --check` 檢查程式碼排版，全專案重排的紀錄也已收錄在 `.git-blame-ignore-revs` 中，讓 `git blame` 不會把每一行都算到這次重排頭上。夏令時間標題測試改用 `getattr` 呼叫 `time.tzset`，順利解決 Windows 系統因缺乏該函式而無法通過型別檢查的困擾。",
-                "en": "Whether browsing the official usage website on mobile or contributing across different operating systems, reading and testing experiences are now much cleaner. On mobile screens at 640px and below, the website removes justified text alignment for Chinese and Japanese paragraphs, making narrow-screen reading more natural. The Homebrew install command inside the install card now fits cleanly on a single line, and Windows visitors opening the homepage see the dedicated Windows download button first. For internal maintenance, continuous integration (CI, an automated mechanism for verifying code) introduced `ruff format --check` to verify code formatting, and the commit for reformatting the entire project is recorded in `.git-blame-ignore-revs` so `git blame` does not attribute every line to that reformat. The daylight-saving title test now calls `time.tzset` via `getattr`, resolving type-checking failures on Windows due to the missing function."
-              },
-              "original": "**CI checks formatting with `ruff format --check`.** The whole project was reformatted once, and that commit is listed in `.git-blame-ignore-revs`.\n**The daylight-saving title test passes Windows' type check.** It calls `time.tzset` through `getattr`, since Windows has no `tzset`.\n**Website on phones.** Chinese and Japanese paragraphs are no longer justified at 640px and below, the Homebrew command fits on one line in the install card, and Windows visitors see the Windows download button first."
             }
           ]
         }
