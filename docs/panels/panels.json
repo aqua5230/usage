@@ -120,6 +120,18 @@
     }
   },
   {
+    "id": "heart_monitor",
+    "width": 364.0,
+    "height": 1132.0,
+    "names": {
+      "en": "Heart Monitor",
+      "zh-TW": "心電圖",
+      "zh-CN": "心电图",
+      "ja": "心電図モニター",
+      "ko": "심전도 모니터"
+    }
+  },
+  {
     "id": "origami",
     "width": 364.0,
     "height": 1132.0,
