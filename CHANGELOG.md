@@ -5,9 +5,14 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## [0.30.25] - 2026-09-27
+
+### Added
+- **Sketchbook panel theme.** A hand-drawn notebook look on grid paper: every quota shows as a half-circle gauge with a needle, the percentage sits in large ink over a highlighter stroke in each provider's color, and the 50% / 80% warning and danger colors and the fixed 80% mark still apply. Available on macOS and Windows; the panel count is now 15.
 
 ### Fixed
+- Keep the whole Windows panel on screen on short high-DPI displays, so the Refresh Now and Quit buttons are no longer cut off ([#153](https://github.com/aqua5230/usage/issues/153)). The panel now reads the target monitor's work area straight from Windows instead of relying on the screen size pywebview reports, sizes the zoom and the window from the same monitor, never lets the window's bottom edge pass the taskbar, and becomes scrollable if even the smallest readable zoom cannot fit.
+- Date Antigravity turns by their own time again. Antigravity CLI 1.1.18 and later no longer store a per-turn time where usage read it, so every turn of a multi-day conversation landed on the day it started. Turn times now come from the conversation's steps table, and the local caches are rebuilt once so older dates are recomputed.
 - Stop panel height and automatic zoom from repeatedly adjusting each other on macOS, which could make Origami jitter. Keep a conservative height during zoom-only fitting while allowing changed content to shrink, and cover automatic-fit stability and content transitions in the browser regression.
 
 ## [0.30.24] - 2026-09-26
