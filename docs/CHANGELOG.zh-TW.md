@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 修正
+- Windows 面板改依網頁實際的繪製比例決定視窗大小，Windows「文字大小」不是 100% 時不再出現多餘的捲軸（[#153](https://github.com/aqua5230/usage/issues/153) 的後續）。「文字大小」會在顯示縮放之外，再乘上 WebView2 的裝置像素比（125% × 109% = 1.3625），但 `GetDpiForWindow` 不含這一項，只用顯示縮放算出的視窗會比內容矮約 8%：螢幕明明還有空間卻出現捲軸，隱藏卡片也沒有用。面板頁面現在會連同內容高度一併回報自己的 `devicePixelRatio`，視窗大小、工作區、儲存的位置與可讀性下限都改用它換算；頁面尚未回報前仍退回顯示縮放。pywebview 的 `resize()` / `move()` 會自己再乘一次顯示縮放，改以兩者的比值補正。
+
 ## [0.31.0] - 2026-09-27
 
 ### 新增

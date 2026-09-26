@@ -8,6 +8,7 @@ import ctypes
 import importlib
 import json
 import logging
+import math
 import os
 import threading
 import time
@@ -755,6 +756,7 @@ class _WindowsTrayController:
         self._history_scan: menubar_state.HistorySourceScan | None = None
         self._history_scan_at: float | None = None
         self._content_height: int | None = None
+        self._page_scale: float | None = None
         self._window_mutations: deque[Callable[[], None]] = deque()
         self._window_mutation_lock = threading.Lock()
         self._window_mutation_scheduled = False
@@ -930,7 +932,7 @@ class _WindowsTrayController:
             ),
             result[0] if result else None,
         )
-        window_scale = self._window_dpi_scale()
+        window_scale = self._content_scale()
         if (
             primary is not None
             and primary[2] == 1.0
@@ -976,10 +978,37 @@ class _WindowsTrayController:
                 return None
         return dpi / 96.0 if dpi > 0 else None
 
+    def _content_scale(self) -> float | None:
+        """Physical pixels per CSS pixel that the panel page is really rendered at.
+
+        Windows' "Text size" accessibility setting multiplies WebView2's device
+        pixel ratio on top of the display scale (125% x 109% = 1.3625), and
+        GetDpiForWindow does not include it. A window sized with the display
+        scale alone ends up shorter than its content and shows a scrollbar, so
+        every CSS <-> physical conversion uses the ratio the page reports and
+        falls back to the display scale until it has reported one.
+        """
+        return self._page_scale or self._window_dpi_scale()
+
+    def _apply_page_scale(self, value: object) -> None:
+        if isinstance(value, bool) or not isinstance(value, int | float):
+            return
+        scale = float(value)
+        if math.isfinite(scale) and 0.5 <= scale <= 8.0:
+            self._page_scale = scale
+
+    def _pywebview_scale_ratio(self) -> float:
+        """Correction for pywebview's resize()/move(), which apply the display scale."""
+        content = self._content_scale()
+        display = self._window_dpi_scale()
+        if content is None or display is None or display <= 0:
+            return 1.0
+        return content / display
+
     def _apply_geometry_without_showing(self, width: int, height: int, x: int, y: int) -> bool:
         if os.name != "nt" or self.window is None:
             return False
-        scale = self._window_dpi_scale()
+        scale = self._content_scale()
         if scale is None:
             return False
         try:
@@ -1018,7 +1047,7 @@ class _WindowsTrayController:
         """Read the target monitor's physical work area independently of pywebview."""
         if os.name != "nt" or self.window is None:
             return None
-        scale = self._window_dpi_scale()
+        scale = self._content_scale()
         if scale is None:
             return None
 
@@ -1104,7 +1133,7 @@ class _WindowsTrayController:
             return None
         if not isinstance(x, (int, float)) or not isinstance(y, (int, float)):
             return None
-        scale = self._window_dpi_scale() or 1.0
+        scale = self._content_scale() or 1.0
         return (int(round(x / scale)), int(round(y / scale)))
 
     def _current_window_position(self) -> tuple[int, int] | None:
@@ -1138,7 +1167,7 @@ class _WindowsTrayController:
         position = self._current_window_position()
         if position is None:
             return None
-        scale = self._window_dpi_scale() or 1.0
+        scale = self._content_scale() or 1.0
         return (int(round(position[0] * scale)), int(round(position[1] * scale)))
 
     @staticmethod
@@ -1158,9 +1187,9 @@ class _WindowsTrayController:
         left, top, right, bottom = work_area
         return (max(left + 12, right - width - 12), max(top + 12, bottom - height - 12))
 
-    # The legibility floor uses physical pixels: CSS zoom times window DPI scale.
+    # The legibility floor uses physical pixels: CSS zoom times the rendered scale.
     def _panel_minimum_scale(self) -> float:
-        return MIN_PANEL_SCALE / (self._window_dpi_scale() or 1.0)
+        return MIN_PANEL_SCALE / (self._content_scale() or 1.0)
 
     def _placement_target(
         self, force_default: bool
@@ -1239,9 +1268,10 @@ class _WindowsTrayController:
         )
         x, y = self._clamp_window_position(position, work_area, width, height)
         logger.debug(
-            "Panel placement work_area=%s dpi_scale=%s natural_height=%s fit_scale=%s "
-            "x=%s y=%s width=%s height=%s",
+            "Panel placement work_area=%s content_scale=%s display_scale=%s "
+            "natural_height=%s fit_scale=%s x=%s y=%s width=%s height=%s",
             work_area,
+            self._content_scale(),
             self._window_dpi_scale(),
             natural_height,
             scale,
@@ -1259,10 +1289,10 @@ class _WindowsTrayController:
             not isinstance(value, bool) and isinstance(value, int | float)
             for value in current_geometry
         ):
-            dpi_scale = self._window_dpi_scale()
-            if dpi_scale is not None:
+            content_scale = self._content_scale()
+            if content_scale is not None:
                 target_geometry = tuple(
-                    int(round(value * dpi_scale)) for value in (x, y, width, height)
+                    int(round(value * content_scale)) for value in (x, y, width, height)
                 )
                 if tuple(int(round(value)) for value in current_geometry) == target_geometry:
                     self._positioned_this_show = True
@@ -1271,8 +1301,11 @@ class _WindowsTrayController:
             self._apply_geometry_without_showing(width, height, x, y)
         )
         if not geometry_applied:
-            self.window.resize(width, height)
-            self.window.move(x, y)
+            # pywebview multiplies by the display scale itself; pass values that
+            # land on the same physical pixels the page is rendered at.
+            ratio = self._pywebview_scale_ratio()
+            self.window.resize(int(round(width * ratio)), int(round(height * ratio)))
+            self.window.move(int(round(x * ratio)), int(round(y * ratio)))
         self._positioned_this_show = True
 
     def _dispatch_window_mutation(self, mutation: Callable[[], None]) -> None:
@@ -2023,6 +2056,8 @@ class _WindowsTrayController:
             if action == "open_menu":
                 return self._panel_menu_data()
             if action == "content_height":
+                # The scale first: applying the height re-places the window.
+                self._apply_page_scale(payload.get("dpr"))
                 self._apply_content_height(payload.get("height"))
                 return None
             if action == "set_card_order":

@@ -59,6 +59,19 @@ def test_script_wraps_state_application_and_measures_without_height_constraints(
     assert "body.style.height = bodyHeight" in CONTENT_HEIGHT_SCRIPT
 
 
+def test_script_reports_the_rendered_device_pixel_ratio_with_the_height() -> None:
+    # The window is sized from the reported height, so the native side needs the
+    # ratio the page really renders at: on Windows it includes the "Text size"
+    # setting that GetDpiForWindow leaves out.
+    assert "var dpr = window.devicePixelRatio;" in CONTENT_HEIGHT_SCRIPT
+    assert 'action: "content_height", height: height, dpr: dpr' in CONTENT_HEIGHT_SCRIPT
+    # A ratio change alone is worth reporting again, and invalidating the
+    # height must not leave a stale ratio behind.
+    assert "dpr !== lastPostedDpr" in CONTENT_HEIGHT_SCRIPT
+    assert "lastPostedDpr = dpr;" in CONTENT_HEIGHT_SCRIPT
+    assert "lastPostedDpr = null;" in CONTENT_HEIGHT_SCRIPT
+
+
 def test_world_cup_declares_its_pitch_height_floor() -> None:
     html = (PANEL_ASSETS / "world_cup.html").read_text(encoding="utf-8")
 
