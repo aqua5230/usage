@@ -954,6 +954,100 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.158.0",
+          "period": "2026-09-28",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "全螢幕介面支援選取即複製與右鍵貼上，並保留排版格式",
+                "en": "Fullscreen interface supports copy-on-select and right-click paste while preserving formatting"
+              },
+              "body": {
+                "zh-TW": "在全螢幕文字介面（TUI，以純文字排版的終端機操作畫面）瀏覽或整理對話紀錄時，操作方式變得更貼近日常習慣。⟦跟在一般文書軟體裡圈選文字一樣，滑鼠反白選取就能直接存入剪貼簿、點擊右鍵就能貼上，而且帶有標題與清單的內容複製出去後仍維持原本排版。⟧現在你可以在設定中開啟選取即複製與右鍵貼上功能。從對話紀錄選取複製的內容，會完整保留 Markdown（用簡單符號標註粗體與標題的純文字排版格式）語法，貼到其他筆記工具時不再失去格式。",
+                "en": "Browsing or organizing conversation history in the full-screen terminal interface now aligns more closely with everyday habits. ⟦Much like selecting text in a standard word processor, highlighting text with the mouse copies it directly to the clipboard, right-clicking pastes it, and content with headings and lists preserves its original layout after copying.⟧ You can now enable copy-on-select and right-click paste in settings. Content copied from chat history fully preserves Markdown syntax, so it no longer loses formatting when pasted into other note-taking tools."
+              },
+              "original": "Configure copy-on-select and right-click paste in the fullscreen TUI. Copied transcript selections now preserve Markdown formatting. (#47639, #47896, #48118)"
+            },
+            {
+              "title": {
+                "zh-TW": "MCP 伺服器支援預先註冊的密鑰驗證",
+                "en": "MCP servers support pre-registered secret authentication"
+              },
+              "body": {
+                "zh-TW": "當你想要串接需要特殊身分驗證的外部服務時，現在可以直接提供專屬金鑰完成連線。⟦有些門禁只認預先登記的通行證；現在 Codex 也能帶著伺服器要求的預先註冊密鑰連線。⟧Codex 現在支援需要預先註冊 OAuth 客戶端密鑰的 MCP（讓 AI 連接外部工具的協定）伺服器。你可以直接在終端機執行帶有專屬參數的指令來新增伺服器：\n```bash\ncodex mcp add --oauth-client-secret\n```\n面對要求事先註冊密鑰的驗證機制，也能順利連接並整合至日常工作中。",
+                "en": "When you want to connect external services that require special authentication, you can now directly provide a dedicated key to establish the connection. ⟦Think of an access gate that only accepts pre-registered passes: Codex can now connect using the pre-registered secret required by the server.⟧ Codex now supports MCP servers that require a pre-registered OAuth client secret. You can add a server directly by running a command with dedicated flags in the terminal:\n```bash\ncodex mcp add --oauth-client-secret\n```\nThis allows you to smoothly connect and integrate authentication mechanisms that require pre-registered secrets into your daily workflow."
+              },
+              "original": "Connect to MCP servers that require pre-registered OAuth client secrets, including through `codex mcp add --oauth-client-secret`. (#47891)"
+            },
+            {
+              "title": {
+                "zh-TW": "執行伺服器 WebSocket 連線加入令牌驗證",
+                "en": "WebSocket connections to execution server add token authentication"
+              },
+              "body": {
+                "zh-TW": "在背景執行伺服器與主程式進行即時通訊時，傳輸通道的安全防護再度升級。⟦彷彿替專屬通訊管道掛上門禁驗票閘門，以前只要通道接通就能傳話，現在每次進出都必須出示專屬的通行證才給過。⟧Codex 現在使用 bearer token（持有者出示即可驗證身分的授權令牌）來保護直接連向 exec-server 的 WebSocket 連線。這項安全保護也包含經由 app-server 所配置的連線管道。透過令牌驗證機制，連線能防止未授權的外部存取，保障通訊過程的安全性。",
+                "en": "When the background execution server communicates in real time with the main program, security protection for the transmission channel is upgraded once again. ⟦A security gate is now installed on the dedicated communication channel: while any connected line used to transmit messages freely, every entry and exit now requires presenting an exclusive pass.⟧ Codex now uses a bearer token to protect direct WebSocket connections to exec-server. This security protection also covers connection channels configured through app-server. Through token authentication, connections prevent unauthorized external access and ensure communication security."
+              },
+              "original": "Secure direct exec-server WebSocket connections with bearer tokens, including connections configured through app-server. (#47601, #47648)"
+            },
+            {
+              "title": {
+                "zh-TW": "圖片生成支援透明背景，對話圖片可直接編輯",
+                "en": "Image generation supports transparent backgrounds and direct editing of conversation images"
+              },
+              "body": {
+                "zh-TW": "請 AI 製作或修改圖像素材時，產出的圖片能更方便地直接放入簡報與網頁中。⟦像在透明畫布上作畫，完成的圖案可以疊到簡報或網頁上；對話裡已存成檔案的圖片，也能當成下一次修改的素材。⟧現在你在下達生成或修改圖片的指令時，可以明確要求輸出透明背景。圖片編輯功能也支援直接讀取對話紀錄中已存為檔案的圖像，讓你不用重新匯出上傳就能接續調整畫面。",
+                "en": "When asking AI to create or modify image assets, generated images can be placed directly into presentations and webpages more conveniently. ⟦Like painting on a transparent canvas, completed graphics can overlay onto presentations or webpages, while images saved as files in the conversation can serve as source assets for subsequent edits.⟧ You can now explicitly request a transparent background when issuing prompts to generate or modify images. The image editing feature also supports reading images saved as files directly from the conversation history, allowing you to continue adjusting visuals without re-exporting and uploading."
+              },
+              "original": "Image generation and editing can explicitly request transparent backgrounds, and edits now accept file-backed conversation images. (#47484, #47956)"
+            },
+            {
+              "title": {
+                "zh-TW": "權限審核提問不中斷動作，並減少重複確認提示",
+                "en": "Permission review queries no longer interrupt actions and reduce repeated confirmation prompts"
+              },
+              "body": {
+                "zh-TW": "當你在等待指令審核的過程中想發問或確認狀態時，操作不再會意外中斷。⟦好比在櫃檯辦理手續時隨口問了一句進度，辦事員回答完你的問題會繼續處理申請，不會把整份表格直接作廢；原本就已蓋章核可的項目，也不會換個叫法就叫你重新排隊。⟧現在若在待審核狀態下輸入新文字，審核流程會自動重試，詢問狀態不會直接中斷等待執行的操作。針對以提升權限執行的指令，終端機輸入審核預設開啟，僅限執行階段授予的權限也不再引發多餘的審查。在 macOS 上套用修正時，系統能識別既有權限已涵蓋的路徑別名（alias，指向相同位置的替代路徑名稱），避免重複跳出確認提示。",
+                "en": "Asking questions or checking status while waiting for command review no longer accidentally interrupts the operation. ⟦Picture asking a clerk for a quick status update while processing paperwork: the clerk answers your question and continues handling the application without voiding the entire form, nor making you wait in line again for already stamped approvals under a different name.⟧ If new text is entered while in a pending review state, the review process automatically retries, ensuring status inquiries do not directly interrupt operations awaiting execution. For commands executed with elevated permissions, terminal input review is enabled by default, and runtime-only permissions no longer trigger redundant audits. When applying fixes on macOS, the system recognizes path aliases covered by existing permissions, avoiding duplicate confirmation prompts."
+              },
+              "original": "Terminal input approval is enabled by default for commands running with elevated permissions; runtime-only grants no longer cause unnecessary reviews. (#47799, #48073)\nmacOS patch operations now recognize system path aliases covered by existing permissions, avoiding unnecessary approval prompts. (#47879)\nApproval reviews now retry when new user input arrives, so a status question does not automatically abort a pending action. (#47819)"
+            },
+            {
+              "title": {
+                "zh-TW": "修復跨平台沙盒路徑、憑證與寫入權限問題",
+                "en": "Fixes cross-platform sandbox path, credential, and write permission issues"
+              },
+              "body": {
+                "zh-TW": "在不同作業系統中透過沙盒（隔離程式執行的環境）執行指令時，穩定性獲得改善。⟦像校正隔離空間的出入口與可用範圍，以前一般 Windows 10 路徑或巢狀可寫入根目錄會讓沙盒出錯，現在這兩種路徑都能正常處理，Git 中繼資料的防護也會保留。⟧在 Windows 上，修復了涉及一般 Windows 10 路徑、已儲存憑證（留存的登入證明）遭拒，以及龐大權限政策時導致沙盒失敗的問題。在 Linux 環境下，修正了包含巢狀可寫入根目錄時沙盒無法啟動的錯誤。跨 Linux 與 macOS 的多個可寫入根目錄時，也確保完整保留 Git 中繼資料（記錄版本控制設定的內部資料）的防護機制。",
+                "en": "Stability is improved when running commands inside sandboxes across different operating systems. ⟦Adjusting the access points and boundaries of an isolated space ensures that standard Windows 10 paths and nested writable roots are handled properly, while preserving protections for Git metadata.⟧ On Windows, issues causing sandbox failures with standard Windows 10 paths, rejected saved credentials, and oversized permission policies have been fixed. On Linux, an error where sandboxes failed to start when containing nested writable roots has been resolved. Across multiple writable roots on Linux and macOS, protection mechanisms for Git metadata are also fully preserved."
+              },
+              "original": "Fixed Windows sandbox failures involving ordinary Windows 10 paths, rejected stored credentials, and large permission policies. (#47672, #47695, #47919)\nFixed Linux sandbox startup with nested writable roots and preserved Git metadata protections across writable roots on Linux and macOS. (#47623, #47974)"
+            },
+            {
+              "title": {
+                "zh-TW": "Mermaid 流程圖支援引號與符號，未支援圖表附退回說明",
+                "en": "Mermaid flowcharts support quotes and symbols, with fallback explanations for unsupported charts"
+              },
+              "body": {
+                "zh-TW": "請 AI 繪製流程圖或架構圖時，終端機顯示圖表的相容性變得更完整。⟦正如遇到特殊符號時不再直接破圖，畫面能正確排出版面，就算遇到無法繪製的圖表類型，也會清楚附註原因並退回原本的文字草稿供你檢閱。⟧Mermaid（用純文字繪製圖表的語法）流程圖現在能正常渲染帶有雙引號的標籤與「&」符號。如果遇到目前尚未支援的圖表類型，畫面會明確說明退回備援（fallback，無法顯示時改用原始文字呈現的後備機制）的原因，不再讓人摸不著頭緒。",
+                "en": "Terminal chart compatibility is now more comprehensive when asking AI to generate flowcharts or architecture diagrams. ⟦Instead of breaking upon encountering special symbols, the screen renders layouts correctly, and if an unrenderable chart type appears, it clearly notes the reason and falls back to the original text draft for review.⟧ Mermaid flowcharts now properly render labels containing double quotes and \"&\" symbols. When encountering currently unsupported chart types, the screen clearly explains the reason for the fallback, preventing any confusion."
+              },
+              "original": "Mermaid flowcharts now render quoted labels and ampersands; unsupported diagrams explain why they fall back to source. (#47572, #47678)"
+            },
+            {
+              "title": {
+                "zh-TW": "指令完成事件納入前期輸出，行程啟動失敗會回報客戶端",
+                "en": "Command completion events include early output, and process launch failures report to clients"
+              },
+              "body": {
+                "zh-TW": "透過客戶端應用程式監看指令執行狀況時，原本可能漏看開頭輸出，也難以得知行程為何沒啟動。⟦像轉播結束後的紀錄把開場畫面一併附上；若轉播設備根本沒啟動，也會把失敗情況回報給收看端。⟧現在指令完成事件中會包含執行最初期產生的前期輸出內容。當啟動行程（process，作業系統中正在運作的程式個體）遭遇失敗時，也會主動將錯誤回報給客戶端，讓排查問題更有效率。",
+                "en": "When monitoring command execution through a client application, initial output could previously be missed, and diagnosing why a process failed to launch was difficult. ⟦A post-broadcast recording now attaches the opening footage, and if broadcasting equipment fails to start altogether, the failure is reported directly to the viewer.⟧ Command completion events now include early output generated at the very beginning of execution. When launching a process fails, the error is actively reported to the client, making troubleshooting much more efficient."
+              },
+              "original": "Command completion events now include early output and report process-launch failures to clients. (#47529, #47665)"
+            }
+          ]
+        },
+        {
           "version": "0.157.1",
           "period": "2026-09-26",
           "items": [
@@ -1028,23 +1122,6 @@
                 "en": "In managed environments or ones that reach the network through a proxy server (a relay host that forwards your network requests), network transfers are now more reliable and secure. ⟦Like fitting a logistics hub with smart gates and a resend conveyor belt: packages used to get dropped whenever the signal was weak and transfer routes occasionally went the wrong way, but now failed deliveries retry automatically with a longer wait, and any package whose security pass has been revoked is blocked on the spot.⟧ Previously, live connections and standalone web searches could take the wrong proxy route when hitting a redirect; that problem is fixed. File uploads now retry automatically on transient network failures, and the upload timeout has been extended to five minutes. All redirects and in-flight HTTP (web transfer protocol) connections strictly enforce network restrictions. The same goes for WebSocket (a real-time two-way connection): once a security rule change revokes permission, the connection is actively terminated immediately."
               },
               "original": "Fixed configured proxy routing for realtime connections and standalone web search, including search redirects. (#47101, #47142, #47204)\nAdded retries for transient file-upload failures and increased the upload timeout to five minutes. (#47122, #47393)\nEnforced network restrictions across redirects and ongoing HTTP and WebSocket traffic, including cancellation when policy changes revoke access. (#47389, #47407)"
-            }
-          ]
-        },
-        {
-          "version": "0.156.1",
-          "period": "2026-09-23",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "模型選單支援 GPT-6 系列，限流提示推薦切換 Luna",
-                "en": "Model Picker Supports GPT-6 Series with Rate-Limit Prompts Recommending Luna"
-              },
-              "body": {
-                "zh-TW": "當你連續請 AI 撰寫程式碼而發出大量請求時，最怕遇到對話中斷而打亂思緒。在模型選單（挑選由哪一款 AI 回答問題的切換清單）中，現在可以直接指定 GPT-6 Sol 或 GPT-6 Luna。當發送的請求達到上限並觸發限流（短時間內發送過於頻繁時暫停接收的保護機制）時，畫面跳出的切換提示現在會主動推薦改用 GPT-6 Luna 接手。⟦如同騎長途公路車遇到陡坡時，碼表直接跳出該換哪一檔的建議，以前得自己停下來判斷，現在照著提示換檔就能繼續往前騎。⟧如此一來，在密集調度不同模型資源時，便能直接順著建議切換，不必中斷手邊正在進行的開發任務。",
-                "en": "When sending numerous requests while asking AI to write code consecutively, unexpected interruptions that break your train of thought are a major hassle. From the model picker, you can now directly choose GPT-6 Sol or GPT-6 Luna. When outgoing requests hit their cap and trigger rate limits (a protective throttle that pauses incoming requests when sent too frequently in a short period), the pop-up switch prompt now proactively suggests handing off to GPT-6 Luna. ⟦Much like a cyclist on a steep climb whose bike computer now suggests which gear to shift into: before, you had to stop and work it out yourself; now you follow the prompt and keep riding.⟧ This ensures that when juggling model resources heavily, you can follow the suggestion to switch directly without interrupting your ongoing development work."
-              },
-              "original": "Choose GPT-6 Sol or GPT-6 Luna from the model picker. The rate-limit switch prompt now recommends GPT-6 Luna. (#47405)"
             }
           ]
         }
