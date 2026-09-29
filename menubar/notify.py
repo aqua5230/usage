@@ -45,6 +45,16 @@ def user_notification_classes() -> tuple[Any, Any, Any]:
     return UNMutableNotificationContent, UNNotificationRequest, UNNotificationSound
 
 
+ALERT_SOUND = "usage_uhoh.wav"
+
+
+def notification_sound(sound_cls: Any, kind: str) -> Any:
+    # "restored" is good news; only warn/depleted get the uh-oh.
+    if kind == "restored":
+        return sound_cls.defaultSound()
+    return sound_cls.soundNamed_(ALERT_SOUND)
+
+
 def register_user_notification_block_metadata() -> None:
     objc.registerMetaDataForSelector(
         b"UNUserNotificationCenter",

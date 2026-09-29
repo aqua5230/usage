@@ -960,7 +960,7 @@ class AppDelegate(NSObject):
                     reset=row.reset_text,
                 )
             )
-            content.setSound_(sound_cls.defaultSound())
+            content.setSound_(menubar_notify.notification_sound(sound_cls, event.kind))
             request = request_cls.requestWithIdentifier_content_trigger_(
                 f"usage.{event.channel}.{event.kind}.{int(time.time() * 1000)}",
                 content,
