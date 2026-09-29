@@ -712,6 +712,100 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.159.0",
+          "period": "2026-09-29",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "隨時插話調整方向，即時引導執行中的任務",
+                "en": "Steer Active Tasks in Real Time with Instant Interrupts"
+              },
+              "body": {
+                "zh-TW": "當你看著模型正洋洋灑灑回答、或是執行耗時的程式呼叫時，只要打字就能立刻把它的思緒拉回新方向。啟用 `instant_interrupt` 設定後，你不必苦等當前輸出跑完或強行中斷重來，送出新提示詞就能在運算當下直接引導 Codex 調整下一步。⟦好比向正在報告的助理隨時遞上補充紙條，對方能邊聽邊改口，不用等整場簡報講完才重新開會。⟧如果你發現剛才的提問有誤或想臨時補充細節，這項機制讓你隨時插話，省去反覆等待與重啟對話的時間。",
+                "en": "When you watch the model outputting a lengthy response or running a time-consuming program call, you can steer its train of thought in a new direction simply by typing. After enabling the `instant_interrupt` setting, you do not have to wait for the current output to finish or forcefully interrupt and start over; sending a new prompt directly guides Codex to adjust its next step mid-computation. ⟦Think of handing a supplementary note to an assistant mid-presentation, allowing them to adjust what they are saying on the fly instead of waiting for the meeting to end.⟧ If you spot a mistake in your previous prompt or want to add details spontaneously, this mechanism lets you chime in at any time, saving you the wait of restarting conversations."
+              },
+              "original": "Opt-in `instant_interrupt` lets new input steer Codex during model responses or long-running code-mode calls. (#48135, #48141)"
+            },
+            {
+              "title": {
+                "zh-TW": "切換任務保留未送出草稿，全新對話即刻歸檔",
+                "en": "Preserve Unsent Drafts Across Tasks and Archive Empty Sessions"
+              },
+              "body": {
+                "zh-TW": "在打了一長串提示詞卻臨時想切去處理別的工作時，留在輸入框的草稿現在不會無故消失。就算當前是一個尚未展開對話的全新空白工作階段（session，開啟工具後與 AI 互動的獨立工作階段），切換任務時輸入內容依然會妥善保留。同時，你還沒送出第一則訊息的對話串，現在也能直接列在清單中或執行歸檔。⟦彷彿隨手在便條本寫了點想法還沒撕下，就算臨時翻到其他頁面工作，回頭時剛才的草稿與空白筆記本依然整齊收在抽屜裡。⟧這讓你在整理多個進行中的任務時，不必擔心手滑切換而弄丟寫到一半的想法。",
+                "en": "When you type out a lengthy prompt but suddenly need to switch to another task, the draft in the input box no longer disappears. Even if the current task is a brand-new blank session without any messages yet, your entered input is properly preserved when switching tasks. In addition, conversation threads where you have not sent a first message can now be listed directly or archived. ⟦Picture jotting down thoughts on a notepad without tearing off the sheet; even if you flip to other pages to work, your draft and blank notebook remain neatly tucked in your drawer when you return.⟧ This ensures you will not lose half-written ideas when switching between multiple active tasks."
+              },
+              "original": "Blank sessions retain drafts when switching tasks, and threads can be archived and listed before their first turn. (#48628, #48828, #48199)"
+            },
+            {
+              "title": {
+                "zh-TW": "終端介面精簡俐落，審核計畫與警告檢視更順手",
+                "en": "Streamlined Terminal Interface with Flexible Plan Review and Warning Inspection"
+              },
+              "body": {
+                "zh-TW": "當你開啟新的工作階段時，終端機現在會以更精簡的歡迎畫面與統一標頭迎接你，並在對話進行中或結束後適時提供操作小提示。如果在執行時跳出警告檢視器，關閉檢視器時會自動清除已看過的警告項目，若有想稍後再確認的重點，只要按下鍵盤上的 `k` 鍵就能特意保留。此外，當 Codex 提出執行計畫並詢問是否採用時，你不再被卡在固定的確認畫面，而是能自由向上捲動對話記錄，仔細核對先前的上下文再做決定。這些調整讓你在終端機裡查閱與操作時更加直覺流暢。",
+                "en": "When you start a new session, the terminal greets you with a cleaner welcome screen and unified header, offering helpful tips during or after conversations. If the warning viewer appears during execution, closing it automatically clears reviewed warnings, though you can press the `k` key to keep specific items for later review. Furthermore, when Codex presents an execution plan and asks for confirmation, you are no longer stuck on a rigid confirmation screen; instead, you can freely scroll up through conversation history to check prior context before deciding. These adjustments make reviewing and interacting in the terminal more intuitive and fluid."
+              },
+              "original": "New sessions get a compact welcome screen and consistent headers, with occasional tips during and after turns. (#48513, #48562, #48352)\nThe warnings viewer dismisses reviewed warnings when closed; press `k` to keep one for later. (#48205, #48206)\nYou can scroll the transcript while deciding whether to implement a plan. (#48805)"
+            },
+            {
+              "title": {
+                "zh-TW": "完整繪製流程圖節點，反白複製保留表格排版",
+                "en": "Render Rich Flowchart Nodes and Copy Terminal Tables with Intact Layouts"
+              },
+              "body": {
+                "zh-TW": "當你請 AI 繪製架構圖或整理資料表格時，畫面呈現與複製貼上的格式現在更加精準。內建的 Mermaid（用純文字繪製圖表的語法）渲染器現在支援更多流程圖連線樣式、文字標籤與節點群組，排版不再輕易破版。同時，在終端機選取並複製對話記錄時，會完整保留 Markdown 表格結構、文字樣式與縮排空白，且支援更多終端機的反白即複製功能。⟦像開會時一邊看白板圖、一邊複製會議筆記：以前白板難以畫出某些連線、標籤和分組，貼出的筆記也可能亂掉；現在白板能畫得更完整，筆記的表格與縮排也能留住。⟧你不再需要手動補齊歪掉的欄位或重畫群組架構。",
+                "en": "When asking AI to generate architecture diagrams or data tables, rendering and copy-pasting formats are now significantly more accurate. The built-in Mermaid renderer supports more flowchart link styles, text labels, and node subgraphs, making layouts less prone to breaking. Meanwhile, selecting and copying conversation logs in the terminal fully preserves Markdown table structures, text styles, and indentation spacing, with broader support for copy-on-select terminal behaviors. ⟦Like reviewing a whiteboard diagram while copying meeting notes: previously, certain links, labels, and groups failed to draw on the board, and pasted notes lost their format; now the whiteboard renders fully, and table columns and indentation stay intact.⟧ You no longer need to manually realign misaligned columns or redraw node groups."
+              },
+              "original": "Native Mermaid rendering supports more flowchart edges, labels, and node groups. (#48814, #48895)\nCopying transcript selections preserves Markdown tables, formatting, and significant whitespace. More terminals now copy automatically on selection. (#48548, #48549, #48469)"
+            },
+            {
+              "title": {
+                "zh-TW": "本機登入瀏覽器穩定開啟，提供快捷鍵複製連結",
+                "en": "Reliable Browser Launch for Local Login with Shortcut to Copy Links"
+              },
+              "body": {
+                "zh-TW": "剛安裝好工具準備登入帳號時，驗證步驟變得更加順暢可靠。透過本機登入 ChatGPT 帳號時，系統現在能穩定自動開啟預設瀏覽器完成授權；如果瀏覽器未能如期跳出，初次引導畫面也額外提供了快捷鍵，可以直接複製登入網址並手動貼到瀏覽器開啟。⟦如同收到電子邀請函時能直接點擊連結前往會場，信件下方也貼心附上備用網址供你隨時手動複製。⟧這避免了過去登入視窗偶爾卡住、使用者找不到授權網址而卡在開場說明的窘境。",
+                "en": "When logging into your account after installing the tool, the authentication workflow is much smoother and more dependable. When logging into a ChatGPT account locally, the system reliably opens your default browser to complete authorization; if the browser fails to pop up, the onboarding screen provides a keyboard shortcut to directly copy the login URL and paste it manually. ⟦A guest receiving an invitation can click the link directly to enter, with a backup URL included at the bottom for manual copying.⟧ This avoids past issues where login windows hung or users got stuck without an authorization URL during onboarding."
+              },
+              "original": "Local ChatGPT sign-in opens the browser reliably; onboarding also provides a shortcut to copy the login link. (#48502, #48544)"
+            },
+            {
+              "title": {
+                "zh-TW": "檔案拒絕存取規則持續生效，修復 macOS 沙盒網路",
+                "en": "Enforce File Access Restrictions on Approved Commands and Fix macOS Sandbox Networking"
+              },
+              "body": {
+                "zh-TW": "即使你已經核准了某些指令的執行權限，安全防線依然不會被整組打破。現在已核准的指令仍會嚴格遵循你明確設定的檔案系統存取限制，且在可寫入根目錄底下的 `.aws`（儲存雲端服務金鑰的資料夾）目錄預設會受到保護，防止機密憑證外洩。此外，在 macOS 上啟用網路連線的沙盒與需要代理伺服器的遠端環境中，先前 TLS（安全傳輸層協定，用於加密網路連線）連線異常的問題也已經修好。⟦就像拿到大樓通行證的訪客依然進不去被特別上鎖的機房，隔離會議室內的專用電話也能順暢撥通對外連線。⟧過去在受限環境中可能連不上網路或不小心動到機密檔案的情況，現在都能正常防護並穩定連線。",
+                "en": "Even after approving execution permissions for specific commands, your security boundaries remain intact. Approved commands now strictly adhere to your explicitly configured filesystem access restrictions, and the `.aws` directory under writable roots is protected by default to prevent secret credential leaks. In addition, on macOS sandboxes with networking enabled and in proxy-reliant remote environments, prior TLS connection anomalies have been resolved. ⟦Just as a visitor with a building pass cannot enter locked server rooms, a dedicated telephone in an isolated meeting room can still reliably make outside calls.⟧ Situations where network connections failed in restricted environments or secret files were unintentionally touched are now properly protected with stable connections."
+              },
+              "original": "Approved commands retain explicit filesystem denials, and `.aws` directories are protected by default under writable roots. (#48155, #48176)\nFixed macOS TLS access in network-enabled sandboxes and remote environments that require proxy access. (#48565, #48198)"
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 啟動不再跳出黑視窗，歷史記錄支援分頁讀取",
+                "en": "Suppress Pop-up Console Windows on Windows and Support Paginated History"
+              },
+              "body": {
+                "zh-TW": "在 Windows 系統上啟動工具時，桌面不再被突然彈出的黑色視窗打擾。執行 MCP（讓 AI 連接外部工具的協定）伺服器、程式模式主機或管道指令時，能避免跳出多餘的主控台視窗，且在權限受限的啟動環境下會自動切換為內嵌備援模式。同時，應用伺服器（app-server，負責處理外部用戶端請求的後端服務）現在支援分頁讀取功能，用戶端能指定從特定的對話項目開始拉取歷史記錄。⟦跟把後台運作的設備狀態收納在櫃子裡一樣，既不佔用走道視線，要調閱舊帳冊時也能直接翻開指定頁碼。⟧這讓你在 Windows 上的多工體驗更加乾淨整潔。",
+                "en": "When launching tools on Windows, your desktop is no longer disrupted by sudden black terminal pop-ups. Spawning MCP servers, programmatic mode hosts, or piped commands avoids extraneous console windows, and the system automatically falls back to an embedded mode in permission-restricted launch environments. Meanwhile, the app-server now supports pagination, allowing clients to fetch history starting from a specific conversation item. ⟦Storing operating background machinery inside a utility closet keeps hallways clear of clutter, while pulling old ledgers lets you flip directly to the desired page.⟧ This makes multitasking on Windows cleaner and more organized."
+              },
+              "original": "App-server clients can paginate thread history from a specific item. (#48151)\nWindows launches avoid stray console windows for MCP servers, code-mode hosts, and piped commands; restrictive launchers can fall back to embedded mode. (#48138, #48238, #48483, #48491)"
+            },
+            {
+              "title": {
+                "zh-TW": "移除自動追問建議，精簡內建外掛製作技能",
+                "en": "Remove Automatic Prompt Suggestions and Streamline Built-in Plugin Creator Skill"
+              },
+              "body": {
+                "zh-TW": "如果你習慣自己在終端機掌握對話節奏，畫面現在不會再主動彈出干擾思考的後續問題建議。這次更新正式移除了自動追問提示建議功能，相關的 `tui.prompt_suggestions` 設定項也一併清理下架。同時，系統不再預先打包隨附的 `plugin-creator`（外掛製作工具）技能，讓內建環境回歸輕量。⟦跟整理工作桌一樣，移開以前容易干擾視線的提示便條與預載雜物，檯面重新回到乾淨專注的狀態。⟧以前畫面上可能會出現用不到的建議或預載工具，現在介面與設定檔都變得更加清爽，把主導權完全交還給你的指令。",
+                "en": "If you prefer managing your conversation flow in the terminal yourself, the screen will no longer pop up follow-up prompt suggestions that interrupt your train of thought. This update officially removes automated follow-up prompt suggestions and retires the corresponding `tui.prompt_suggestions` setting. In addition, the system no longer bundles the built-in `plugin-creator` skill out of the box, keeping the default environment lightweight. ⟦Clearing clutter from a workbench removes distracting sticky notes and preloaded accessories, restoring the workspace to a clean and focused state.⟧ Where unused suggestions or preloaded tools once cluttered the view, the interface and configuration are now cleaner, handing full control back to your commands."
+              },
+              "original": "Removed automatic follow-up prompt suggestions and the `tui.prompt_suggestions` setting. (#48621)\nRemoved the bundled `plugin-creator` skill. (#48604)"
+            }
+          ]
+        },
+        {
           "version": "0.158.0",
           "period": "2026-09-28",
           "items": [
@@ -819,67 +913,6 @@
                 "en": "If you want to know what changed in this release, the currently provided information cannot confirm the highlights. This is because the provided PR index is completely blank. Connecting to GitHub to compare version tags also fails to return any information. The comparison page directly returned a 404 error code. ⟦A visitor walks into an exhibition hall and opens the accompanying guidebook only to find the exhibit index blank, while scanning the guide link on the wall brings up a broken page, making it impossible to check the specific exhibits for now.⟧ Because the source list is blank and the tag comparison page is unavailable, the update highlights for this release cannot be confirmed at this time."
               },
               "original": "Release highlights could not be determined: the supplied PR index is empty, and the GitHub tag comparison returned 404."
-            }
-          ]
-        },
-        {
-          "version": "0.157.0",
-          "period": "2026-09-25",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "GPT-6 Sol 與 Luna 模型上線，支援 Bedrock 並附帶舊版遷移提示",
-                "en": "GPT-6 Sol and Luna Models Launch with Bedrock Support and Legacy Migration Tips"
-              },
-              "body": {
-                "zh-TW": "如果你正準備挑選模型處理專案，現在多了 GPT-6 Sol 與 Luna 兩款新模型可供切換使用。⟦就像工坊添購了兩台新設備，連接著企業專用線路的廠區能直接啟用，操作台旁還附上了舊機型的換機指引。⟧習慣透過 Amazon Bedrock（AWS 提供的雲端模型託管服務）串接模型的團隊，現在也能直接選用這兩款模型。如果手邊的專案仍在運行舊版模型，也可以參考附帶的遷移提示，順利將工作過渡到新模型。",
-                "en": "If you're picking a model for your project, two new models, GPT-6 Sol and Luna, are now available to switch to. ⟦Picture a workshop that just added two new machines: the facility connected to the dedicated enterprise line can power them on right away, and a replacement guide for the old models sits next to the console.⟧ Teams used to connecting models through Amazon Bedrock (AWS's cloud model hosting service) can now choose these two models directly. If your project still runs on an older model, you can also follow the included migration tips to move your work over to the new models smoothly."
-              },
-              "original": "Added GPT-6 Sol and Luna, including Amazon Bedrock support and migration prompts for older models. (#47332, #47347)"
-            },
-            {
-              "title": {
-                "zh-TW": "背景伺服器自動啟動，遠端工作階段支援匯入指令",
-                "en": "Background Servers Auto-Start, Remote Sessions Support the Import Command"
-              },
-              "body": {
-                "zh-TW": "當你開啟互動式工作階段（與 AI 即時交談的操作階段）時，符合條件的環境現在會自動在背後啟動伺服器。⟦彷彿走進智能廚房時備料烤箱就已自動熱機，以前每次動工都要先手動啟動各台設備，現在一進場就能直接開始；遇到設定規格不合時，控制台還會主動提供調整方案讓你點選修復。⟧萬一伺服器設定與當前環境衝突，畫面會給出修復選項供你選擇，避免操作直接中斷。在遠端連線或本機背景伺服器的工作階段中，你現在也能隨時使用 `/import` 指令。",
-                "en": "When you open an interactive session (a live conversation with the AI), eligible environments now automatically start a server behind the scenes. ⟦It's like walking into a smart kitchen where the prep oven is already warming up: you used to have to manually start every machine before getting to work, but now you can begin the moment you walk in; and when the settings don't match the spec, the console proactively offers adjustment options you can click to fix.⟧ If the server configuration conflicts with your current environment, the screen offers repair options so your work isn't interrupted outright. In sessions running on a remote connection or a local background server, you can now also use the `/import` command at any time."
-              },
-              "original": "Enabled automatic background-server startup for eligible interactive sessions, with recovery choices when server settings are incompatible. (#47179, #47318)\nMade `/import` available in remote sessions and local background-server sessions. (#47317)"
-            },
-            {
-              "title": {
-                "zh-TW": "快捷鍵快速分岔對話，草稿與語音通話切換不中斷",
-                "en": "Fork Conversations with a Shortcut, Drafts and Voice Calls Survive Switching"
-              },
-              "body": {
-                "zh-TW": "你正在與 AI 討論專案，如果想開闢新分支探索不同方案，這正是按下 `f` 快捷鍵分岔對話（從既有討論衍生新分支）的時刻。⟦會議室另開一桌討論時，草稿與排隊待談的問題會跟著到新桌；在兩桌之間換位時，耳機裡的通話則持續進行。⟧透過這項功能分岔在其他應用程式中開啟的對話時，你尚未送出的草稿與排隊中的提示詞都會完整保留。當你在不同討論串之間切換時，進行中的語音通話不會被迫中斷。如果在回合結束時你輸入框裡還有未送出的回答，內容會自動恢復到輸入框中，而且不會干擾當前進行中的歷史紀錄搜尋。",
-                "en": "You're discussing a project with the AI, and if you want to open a new branch to explore a different approach, this is the moment to press the `f` shortcut to fork the conversation (spinning a new branch off the existing discussion). ⟦When a meeting room opens a second table for discussion, the drafts and queued questions follow you to the new table; and as you move between the two tables, the call in your headset keeps going.⟧ When you fork a conversation that was opened in another application, your unsent drafts and queued prompts are all preserved intact. As you switch between discussion threads, an ongoing voice call is not forced to disconnect. If you still have an unsubmitted reply in the input box when a turn ends, the content is automatically restored to the input box, without interfering with any history search currently in progress."
-              },
-              "original": "Added an `f` shortcut to fork conversations open in another app, preserving drafts and queued prompts. (#47185)\nPreserved active voice conversations when switching threads. (#47381)\nRecovered unsent question answers into the composer when turns end, without disrupting active history searches. (#47422, #47423)"
-            },
-            {
-              "title": {
-                "zh-TW": "全螢幕對話紀錄預設開啟，終端機排版與選取捲動體驗升級",
-                "en": "Fullscreen Conversation History On by Default, Terminal Layout and Selection Scrolling Upgraded"
-              },
-              "body": {
-                "zh-TW": "當你需要在終端機裡查閱長篇回應、或是想跨行複製特定段落時，畫面空間與文字選取都很重要。對話紀錄現在預設以全螢幕顯示，並支援按住 Shift 鍵配合點擊來延伸選取文字。⟦跟把粗糙的黑白草稿換成排版講究的印刷手冊一樣，以前數學符號與清單容易擠成一團，現在符號排得整齊，也能拉著尺標連續標記整段文字。⟧畫面渲染也更加細緻，完整支援 Unicode（通用文字編碼）項目符號、核取方塊、對齊方程式與最佳化數學標記。當你在自動螢幕模式下透過 SSH（遠端連線通道）使用 Terminal.app 時，現在能再次使用原生捲動紀錄。終端機也會遵循 tmux（終端機多工工具）的滑鼠設定。",
-                "en": "When you need to read long responses in the terminal or copy a specific passage across lines, screen space and text selection both matter. Conversation history now displays fullscreen by default, and supports holding the Shift key while clicking to extend a text selection. ⟦Think of swapping a rough black-and-white draft for a carefully typeset printed manual: math symbols and lists used to get crammed together, but now the symbols line up neatly, and you can drag along the ruler to mark an entire passage in one go.⟧ Rendering is also more refined, with full support for Unicode (universal text encoding) bullets, checkboxes, aligned equations, and optimization notation. When you use Terminal.app over SSH (a remote connection channel) in automatic screen mode, native scrollback works again. The terminal also respects the mouse settings of tmux (a terminal multiplexer)."
-              },
-              "original": "Enabled fullscreen transcripts by default and added Shift-click to extend text selections. (#47178, #47414)\nImproved terminal rendering with Unicode bullets, checkboxes, aligned equations, and optimization notation. (#47191, #47322)\nRespected tmux mouse settings and restored native scrollback for Terminal.app over SSH in automatic screen mode. (#47399, #47417)"
-            },
-            {
-              "title": {
-                "zh-TW": "代理伺服器路由修復，檔案上傳支援重試並強化連線管制",
-                "en": "Proxy Routing Fixed, File Uploads Gain Retries and Stricter Connection Enforcement"
-              },
-              "body": {
-                "zh-TW": "在受管制或需要透過代理伺服器（替你轉發網路請求的中繼主機）連網的環境中，現在網路傳輸更加可靠且安全。⟦好比替物流轉運站加裝智慧閘門與重送輸送帶，以前遇到訊號微弱包裹就容易掉單、轉運路線也偶爾走錯，現在傳送失敗會自動重試且等候時間更長，遇到安全通行證被撤銷時也會立刻阻斷違規包裹。⟧過去即時連線與獨立網路搜尋在遇到轉址時，代理伺服器路由可能走錯，這個問題已經修好。上傳檔案時若遇到暫時性網路故障會自動重試，上傳逾時時間也延長至五分鐘。所有轉址與進行中的 HTTP（網頁傳輸規則）連線都會嚴格落實網路限制。WebSocket（即時雙向連線）也一樣；一旦安全規則變更撤銷了權限，連線會立刻被主動中斷。",
-                "en": "In managed environments or ones that reach the network through a proxy server (a relay host that forwards your network requests), network transfers are now more reliable and secure. ⟦Like fitting a logistics hub with smart gates and a resend conveyor belt: packages used to get dropped whenever the signal was weak and transfer routes occasionally went the wrong way, but now failed deliveries retry automatically with a longer wait, and any package whose security pass has been revoked is blocked on the spot.⟧ Previously, live connections and standalone web searches could take the wrong proxy route when hitting a redirect; that problem is fixed. File uploads now retry automatically on transient network failures, and the upload timeout has been extended to five minutes. All redirects and in-flight HTTP (web transfer protocol) connections strictly enforce network restrictions. The same goes for WebSocket (a real-time two-way connection): once a security rule change revokes permission, the connection is actively terminated immediately."
-              },
-              "original": "Fixed configured proxy routing for realtime connections and standalone web search, including search redirects. (#47101, #47142, #47204)\nAdded retries for transient file-upload failures and increased the upload timeout to five minutes. (#47122, #47393)\nEnforced network restrictions across redirects and ongoing HTTP and WebSocket traffic, including cancellation when policy changes revoke access. (#47389, #47407)"
             }
           ]
         }
@@ -1068,6 +1101,56 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.31.4",
+          "period": "2026-09-29",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "接回舊對話與狀態列即時提醒，快取過期成本一目了然",
+                "en": "Resuming Old Conversations with Real-Time Status Line Alerts Makes Cache Expiration Costs Clear"
+              },
+              "body": {
+                "zh-TW": "當你暫停工作後想接續先前任務，常因快取（暫存計算結果的機制）過期而重送大量資料。開啟進度管家後，只要以 `/resume`、`--resume` 或 `--continue` 接回過期且脈絡達 5 萬 token（AI 計費的文字單位）的對話，Claude Code 會在輸入首句前顯示一行提示，列出閒置時間、預估重送的 token 數並建議先執行 `/compact`。此提示僅自己可見且不計入脈絡，需 2.1.251 以上版本且下次啟動 usage 自動套用。狀態列在倒數結束後也不再留白，到期當下會即時重畫，顯示如 `cold·re-cache 180k` 的提示，表示下一則訊息約有 18 萬 token 要重新快取。⟦如同退房時櫃檯即時試算加時費用，以前超時往往結帳才發現驚人帳單，現在一到超時點就主動亮出補收標準，讓你能提前評估是否精簡內容。⟧",
+                "en": "When resuming previous tasks after taking a break, users often resend large amounts of data due to expired caches. With Progress Manager enabled, whenever you resume an expired conversation with at least 50k tokens of context using `/resume`, `--resume`, or `--continue`, Claude Code displays a single-line notice before you enter your first prompt. This notice details the idle duration and the estimated number of tokens to resend, while suggesting that you run `/compact` first. Visible only to you, this prompt is excluded from context, requires version 2.1.251 or later, and applies automatically the next time usage launches. The status line also no longer goes blank when the countdown ends. Instead, it redraws immediately upon expiration to show prompts like `cold·re-cache 180k`, indicating that the next message will re-cache approximately 180k tokens. ⟦Picture a hotel front desk calculating overtime charges the moment checkout passes: instead of discovering a surprise bill at final settlement, you immediately see the extra fees and can decide in advance whether to trim your stay.⟧"
+              },
+              "original": "**Resuming a stale conversation now tells you what it will cost.** When Progress Concierge is on and you `/resume` (or `--resume` / `--continue`) a conversation whose prompt cache has expired and whose context is at least 50k tokens, Claude Code shows a one-line warning before your first message: how long it sat idle, roughly how many tokens the next message re-sends, and a suggestion to `/compact` first. Only you see it; it is never added to Claude's context. Needs Claude Code 2.1.251 or newer. Existing installs pick up the new trigger automatically the next time usage starts.\n**The status line now says what a cold cache will cost.** Once the prompt cache countdown runs out, the segment switches to how many tokens the next message will re-cache (for example `cold·re-cache 180k`) instead of going blank. Claude Code redraws the status line the moment the cache expires, so no refresh interval is needed."
+            },
+            {
+              "title": {
+                "zh-TW": "額度快用完改播專屬短音，告急提醒更具辨識度",
+                "en": "Distinct Chimes for Dwindling Quotas Make Low-Quota Alerts Instantly Recognizable"
+              },
+              "body": {
+                "zh-TW": "埋頭趕工或專注思考時，如果沒有時常緊盯著用量面板，額度（特定週期內可使用的調用配額上限）見底的瞬間往往讓人猝不及防。現在系統調整了通知音效，當額度快用完或已經用完時，會改播 usage 自製的兩聲「uh-oh」簡短警示音，讓你光聽聲音就能分辨用量告急。至於額度恢復時的通知，則繼續維持播放系統預設的提示音，避免干擾既有的使用習慣。⟦洗衣機遇到排水故障時用短促警示，洗好衣服則播放一般完成音；現在額度告急有專屬短音，額度恢復仍是系統預設音，光聽就能分辨。⟧",
+                "en": "When rushing through work or deep in thought, running out of quota without watching the usage popover can easily catch you off guard. The system has now updated its notification sounds. Whenever quota is running low or fully exhausted, usage plays a custom two-tone \"uh-oh\" short alert, letting you recognize the urgent status by sound alone. Notifications for quota recovery continue to play the default system chime, preserving your established workflow habits. ⟦A washing machine beeps with a sharp warning when drainage fails but plays a standard completion chime when the cycle finishes smoothly. In the same way, quota exhaustion now triggers a dedicated short tone while recovery uses the default system sound, making them distinguishable by ear alone.⟧"
+              },
+              "original": "Quota warning and quota-depleted notifications now play a short two-note \"uh-oh\" alert sound made for usage. The quota-restored notification keeps the system default sound."
+            },
+            {
+              "title": {
+                "zh-TW": "修正子代理輸出少算問題，歷史快取自動重新結算",
+                "en": "Fixing Undercounted Subagent Outputs and Automatically Recalculating Historical Caches"
+              },
+              "body": {
+                "zh-TW": "習慣呼叫多個背景助手平行處理繁重任務的使用者，過去看到的用量統計可能嚴重失真。先前在串流（答案一邊生成一邊逐字傳輸的輸出方式）處理時，Claude Code 會把同一請求多次寫入日誌，導致解析器只抓到第一行，使子代理的輸出用量少算約 86%。例如在某台機器上的 17 個子代理日誌中，原本僅記錄到 23,327 個輸出 token（AI 處理與計費的文字單位），修正後改取每筆請求的最大值，實際數值應為 165,395。這項問題只影響子代理，主對話日誌完全不受影響；更新後歷史快取與年度快取會自動重算一次，但日誌已遭刪除的日期則維持封存數字無法補正。⟦好比收銀機結帳時印出整串明細，以前系統只抓取了剛開始印出的第一行小計，導致整筆交易總額嚴重短少；現在改以最終印出的加總金額為準，歷史紀錄重新結算後用量數字終於回歸真實。⟧",
+                "en": "Users accustomed to spawning multiple background assistants for parallel tasks may have previously seen severely skewed usage statistics. During streaming responses, Claude Code wrote the same request to logs multiple times. This caused the parser to capture only the first line, undercounting subagent output usage by about 86%. For example, across 17 subagent logs on one machine, only 23,327 output tokens were initially recorded; after switching to taking the maximum value per request, the actual count was 165,395. This issue affected only subagents, leaving main session logs completely untouched. After the update, historical and annual caches are automatically recalculated once, though dates whose logs were deleted remain archived and cannot be retroactively fixed. ⟦Think of a cash register printing a long receipt where the system previously captured only the first line of subtotal, causing the recorded total to fall drastically short. By taking the final printed sum instead, historical records are recalculated and usage numbers reflect reality at last.⟧"
+              },
+              "original": "**Claude subagent output was undercounted by about 86%.** Claude Code writes each subagent request to its transcript several times while it streams, and `output_tokens` only reaches its final value on the last line. Both Claude parsers kept the first line, so on one machine 17 subagent transcripts counted 23,327 output tokens instead of 165,395. They now keep the largest value for each request. Main-conversation transcripts were not affected. The history and yearly caches are rebuilt once; days whose transcripts were already deleted keep their archived totals and cannot be corrected."
+            },
+            {
+              "title": {
+                "zh-TW": "離線備用價目表補上 Sonnet 5.5，名稱顯示不再截斷",
+                "en": "Offline Fallback Pricing Adds Sonnet 5.5 and Fixes Truncated Model Names"
+              },
+              "body": {
+                "zh-TW": "遇到網路斷線或離線環境工作時，最怕計費工具因連不上伺服器而無法正確計算新型號的花費。現在離線備援（主要機制失效時接手的後備清單）價目表正式補上了新模型資料，完整納入 `claude-sonnet-5-5` 的費率。以前當下載的線上價目表過期時，這款模型的用量會被誤算為 0 美元；現在即使離線也能依正確標準計價，終端機表格中也會顯示為清晰的「Sonnet 5.5」，不再出現被截斷的模型識別碼。⟦彷彿隨身攜帶的紙本價目表補齊了最新熱門品項，以前網路斷線時查不到新餐點價格會直接被當成免費招待，現在備援清單完整對齊，就算離線結算也不會漏算費用。⟧",
+                "en": "When working offline or during network outages, cost tracking tools often fail to price new models accurately without server access. The offline fallback pricing table now officially incorporates new model data, fully including rates for `claude-sonnet-5-5`. Previously, when the downloaded online pricing expired, usage for this model was miscalculated as $0. Now it is priced correctly even offline, and terminal tables clearly display \"Sonnet 5.5\" rather than a truncated model identifier. ⟦Like a printed menu updated with the newest popular dishes, where disconnected servers previously treated unknown items as free on the house, the fallback list is now fully aligned so offline calculations never miss a charge.⟧"
+              },
+              "original": "Add Sonnet 5.5 (`claude-sonnet-5-5`) to the offline fallback price table, so its usage is no longer priced at $0 when the downloaded price table is stale, and show it as \"Sonnet 5.5\" in tables instead of a truncated model ID."
+            }
+          ]
+        },
+        {
           "version": "0.31.3",
           "period": "2026-09-27",
           "items": [
@@ -1109,34 +1192,6 @@
                 "en": "When previewing interface styles before picking a theme, you can now see the results directly without installing and switching themes yourself. ⟦Like flipping through an online furniture catalog where new color schemes previously lacked room previews and required assembling them at home, the homepage now provides an interactive carousel to compare the exact look of every style at a glance.⟧ The README theme gallery in the documentation and the popover carousel on the official website now include both the \"Handdrawn\" and \"ECG\" themes. You can inspect layout details across themes directly on the web and pick your favorite style before applying it to your terminal."
               },
               "original": "Add Sketchbook and Heart Monitor to the README theme gallery and to the website's panel carousel."
-            }
-          ]
-        },
-        {
-          "version": "0.31.1",
-          "period": "2026-09-27",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "心電圖面板主題登場，用量高低化為即時跳動波形",
-                "en": "Heart Monitor popover theme debuts, turning quota usage into live pulsing waveforms"
-              },
-              "body": {
-                "zh-TW": "在日常盯著各家模型額度時，你現在能用醫院監視器風格的畫面掌握消耗狀況。⟦像看跑車儀表板上的動態轉速表，以前查用量只能盯著單純的數字進度，現在消耗節奏直接化為起伏波形，用量越凶波峰跳得越急。⟧新加入的心電圖（Heart Monitor）主題採用深色網格背景。每一列額度旁邊都有一條持續捲動的心電圖與等寬大字讀數，當用量越高，波峰會長得越高且跳動得越快。原本的 50% 與 80% 警示及危險配色，以及 80% 記號都完整保留。如果你在系統中開啟了「減少動態效果」，波形動畫就會貼心暫停。這項主題在 macOS 與 Windows 都能使用，讓可選的面板總數增加到 16 款。",
-                "en": "When keeping an eye on model quotas each day, you can now track consumption with a hospital-monitor style interface. ⟦Picture a dynamic tachometer on a sports car dashboard: while you previously checked usage by staring at plain numeric progress, consumption rhythm is now rendered as an undulating waveform where heavier usage triggers faster, taller peaks.⟧ The newly added Heart Monitor theme features a dark grid background. Next to each quota row is a continuously scrolling ECG trace alongside large monospace readings; as usage rises, the peaks grow taller and pulse faster. The original warning and danger color schemes for 50% and 80%, along with the 80% marker, are fully preserved. If you have \"Reduce Motion\" enabled in your system settings, the waveform animation pauses automatically. This theme is available on macOS and Windows, bringing the total number of selectable themes to 16."
-              },
-              "original": "**Heart Monitor panel theme.** A hospital-monitor look on a dark grid: every quota row scrolls an ECG trace whose peaks grow taller and faster as usage rises, next to a large monospace readout. The 50% / 80% warning and danger colors and the 80% mark still apply, and the animation stops when Reduce Motion is on. Available on macOS and Windows; the panel count is now 16."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 面板視窗精準貼合內容，放大文字不再冒出多餘捲軸",
-                "en": "Windows popover window fits content accurately, eliminating unwanted scrollbars when scaling text"
-              },
-              "body": {
-                "zh-TW": "當你在 Windows 調大文字大小，開啟面板不會再看到擠在邊緣的垂直捲軸。⟦照片接連放大兩次，若相框只照第一次尺寸做，邊緣仍會被擠住；按最後尺寸做才裝得下。⟧這是先前視窗問題（[#153]）的後續改進。若 Windows「文字大小」非 100%，會在顯示縮放外疊加 WebView2 縮放倍率（如 125% 乘 109% 達 1.3625）。舊版 `GetDpiForWindow` 未計入這層放大，使視窗比內容矮約 8% 而冒出捲軸，隱藏卡片也沒用。現在頁面會回報內容高度與 `devicePixelRatio`（實際顯示倍率），面板依此換算視窗大小、工作區、已存位置與可讀性下限，未回報前則退回顯示縮放。針對 pywebview 呼叫 `resize()` 與 `move()` 重複乘上縮放的問題，也依兩者比值補正。",
-                "en": "When you increase text size on Windows, opening the popover will no longer display a vertical scrollbar crammed against the edge. ⟦When a photo is enlarged twice in succession, building the frame based only on the first resize still cramps the edges; only sizing it for the final dimensions makes everything fit.⟧ This is a follow-up improvement to a previous window issue ([#153]). If Windows \"Text size\" is not 100%, WebView2 zoom is compounded on top of display scaling, such as 125% multiplied by 109% reaching 1.3625. The legacy `GetDpiForWindow` did not account for this extra scaling layer, leaving the window roughly 8% shorter than its content and causing scrollbars to appear even if cards were hidden. The page now reports content height and `devicePixelRatio` (effective display scale), which the popover uses to calculate window dimensions, workspace, saved positions, and readability floors, falling back to display scale before reporting occurs. To address pywebview redundantly multiplying scaling on `resize()` and `move()` calls, values are corrected using the ratio between both scales."
-              },
-              "original": "Size the Windows panel from the scale its page is really rendered at, so it no longer scrolls when Windows' \"Text size\" is not 100% (a follow-up to [#153](https://github.com/aqua5230/usage/issues/153)). Text size multiplies WebView2's device pixel ratio on top of the display scale (125% × 109% = 1.3625), but `GetDpiForWindow` does not include it, so a window sized with the display scale alone came out about 8% shorter than its content: a scrollbar appeared although the screen had room to spare, and hiding a card did not help. The panel page now reports its `devicePixelRatio` together with its content height, and the window size, work area, saved position and legibility floor are converted with it, falling back to the display scale until the page has reported one. pywebview's `resize()` / `move()` multiply by the display scale themselves, so they are corrected by the ratio between the two."
             }
           ]
         }
