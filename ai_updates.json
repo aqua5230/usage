@@ -890,6 +890,56 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.13",
+          "period": "2026-09-29",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "遇到模型限流聰明等待，額度耗盡立刻停手",
+                "en": "Smarter Retry Delays on Rate Limits, Immediate Stop When Quota Exhausted"
+              },
+              "body": {
+                "zh-TW": "若是頻繁發問而觸發了雲端模型的呼叫頻率限制，命令列工具現在會更聰明地處理重新嘗試的時間。以前只要遇到 API（程式與雲端模型溝通的管道）回傳需要稍候重試，工具一律死板地固定等待五秒。現在它會完全照著伺服器要求的秒數等待。如果伺服器要求等待超過三十秒，或是回報每日額度與帳單上限已滿，工具便會立刻停止執行，不再盲目重試。⟦跟到熱門餐廳抽號碼牌一樣，以前不管店家告知要等多久，你都每隔五秒就上前敲一次門；現在店家說等幾秒就精確等幾秒，若店家告知要等超過三十秒或當日名額已滿，則會立刻轉身離開不再徒勞敲門。⟧",
+                "en": "If frequent prompts trigger cloud model rate limits, the command-line tool now handles retry delays more intelligently. Previously, whenever the API returned a retry-after response, the tool rigidly waited for a fixed five seconds. Now, it waits for the exact number of seconds requested by the server. If the server requests a delay of more than thirty seconds, or reports that the daily quota or billing limit is exhausted, the tool stops immediately instead of retrying blindly. ⟦Think of taking a number at a popular restaurant: in the past, no matter how long the staff told you to wait, you knocked on the door every five seconds; now you wait for the exact duration requested, and if they tell you the wait exceeds thirty seconds or that daily capacity is full, you turn away immediately without knocking in vain.⟧"
+              },
+              "original": "Improved rate-limit handling when the model API returns a retry delay: the CLI now waits the delay the server asks for instead of a fixed 5 seconds, and stops right away instead of retrying when the delay is longer than 30 seconds or the quota is a daily or billing cap"
+            },
+            {
+              "title": {
+                "zh-TW": "提升對話畫面繪製效能，捲動與運作時更省資源",
+                "en": "Improved Chat Screen Rendering Performance for Lower Resource Usage While Scrolling"
+              },
+              "body": {
+                "zh-TW": "在快速捲動落落長的對話紀錄、或看著代理人（代你執行任務的 AI）忙碌時，介面操作現在感覺更加輕快。對話畫面在重新繪製時的效能獲得了改善。以前每當畫面快速重繪，電腦的處理器（負責執行所有運算的核心硬體）使用率容易飆高，記憶體也會頻繁配置與釋放。現在無論是快速捲動視窗還是等待代理人即時輸出，都能有效減少運算資源耗損與記憶體負擔。⟦彷彿速寫畫家連畫好幾頁，以前很快就累了，畫紙也用得快；現在畫同樣多頁，力氣與畫紙都省下不少。⟧",
+                "en": "When quickly scrolling through lengthy conversation histories or watching an agent work, UI interactions now feel significantly snappier. Redrawing performance for the conversation screen has been improved. Previously, rapid screen repaints often spiked CPU usage and caused frequent memory allocations and releases. Now, whether scrolling quickly through the window or waiting for real-time agent output, compute overhead and memory pressure are both substantially reduced. ⟦Picture a sketch artist drawing several pages in a row: in the past, the artist quickly grew tired and burned through paper; now, drawing that same number of pages takes far less effort and saves plenty of paper.⟧"
+              },
+              "original": "Improved rendering efficiency, cutting CPU use and memory churn while the conversation view redraws, such as during fast scrolling or while the agent is working"
+            },
+            {
+              "title": {
+                "zh-TW": "產物檢視器按鍵提示更明確，切換模式一目了然",
+                "en": "Clearer Key Hints in the Artifact Viewer for Intuitive Mode Toggling"
+              },
+              "body": {
+                "zh-TW": "想要預覽 AI 生成的圖表或公式等產物（獨立生成的圖表、公式或文件檔案）時，底部切換顯示模式的提示變得更直覺了。以前畫面上的 `m` 按鍵提示只寫 `toggle ASCII` 或 `toggle raw`，讓人難以預期切換後的畫面。現在提示文字會直接寫出內容種類與目標模式，例如清楚標示 `diagram ASCII`、`diagram source` 或是 `math image`。⟦好比相機上的功能轉盤，以前上面的標籤只寫著模糊的切換，轉過去才知道會變成什麼；現在清楚標示人像或夜景，按下去前就能明確知道切換後的樣貌。⟧",
+                "en": "When previewing AI-generated artifacts such as standalone diagrams, formulas, or document files, the bottom hint for toggling display modes is now much more intuitive. Previously, the on-screen `m` key hint only displayed `toggle ASCII` or `toggle raw`, making it hard to anticipate what the screen would switch to. Now, the prompt text explicitly shows the content type and target mode, clearly indicating options like `diagram ASCII`, `diagram source`, or `math image`. ⟦Like a mode dial on a camera where labels previously showed a vague toggle so you only discovered the outcome after turning it, the dial now clearly marks portrait or night scene so you know the exact result before switching.⟧"
+              },
+              "original": "Improved the artifact viewer's `m` hint to name the content and the mode it switches to, such as `diagram ASCII`, `diagram source`, or `math image`, instead of `toggle ASCII` or `toggle raw`"
+            },
+            {
+              "title": {
+                "zh-TW": "窄終端機視窗文字不再被截斷，長行與標籤自動排版",
+                "en": "Text No Longer Truncated in Narrow Terminal Windows with Auto-Wrapping for Long Lines and Tabs"
+              },
+              "body": {
+                "zh-TW": "把終端機視窗縮小到約 40 欄寬的狹窄寬度時，各個功能面板的文字再也不會因為超出邊界而被裁切。以前在工作區信任對話框、`/help` 說明面板，以及登入與 MCP（讓 AI 連接外部工具的協定）驗證畫面中，長文字容易直接消失在螢幕邊緣。現在這些畫面中的長行文字與操作導引提示都會自動折行顯示，`/help` 的分頁標籤列也會自動緊縮排版以完整容納，排版截斷問題已經修好。",
+                "en": "When shrinking a terminal window down to a narrow width of around 40 columns, text in various panels is no longer clipped by boundary overflows. Previously, in workspace trust dialogs, the `/help` panel, and login or MCP authentication screens, long text frequently disappeared off the edge of the screen. Now, long lines and guidance prompts across these screens wrap automatically, and the tab bar in `/help` compresses its layout to fit completely, fixing text truncation issues."
+              },
+              "original": "Fixed the workspace trust dialog, the `/help` panel, and the sign-in and MCP authentication screens clipping text on narrow terminals of around 40 columns; long lines and navigation hints now wrap, and the `/help` tab bar compacts to fit"
+            }
+          ]
+        },
+        {
           "version": "1.2.12",
           "period": "2026-09-27",
           "items": [
@@ -1008,89 +1058,6 @@
                 "en": "When configuring dedicated assistant roles in your project directory, every execution environment can now smoothly load these custom settings. Previously, project custom agents located in `.agents/agents/` were frequently missing or unselectable in workspaces created in the Desktop App, in trusted workspaces, when specifying `--agent`, in headless `-p` or `--prompt` runs without a terminal window, and within the `/agents` panel. These discovery issues have all been resolved, allowing you to assign custom agents directly in any mode."
               },
               "original": "Fixed project custom agents in .agents/agents/ not being found or selectable in workspaces created in the Desktop App, in already-trusted workspaces, under execution with --agent, in headless (-p / --prompt) runs, and in the /agents panel."
-            }
-          ]
-        },
-        {
-          "version": "1.2.10",
-          "period": "2026-09-24",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "/config 新增中等詳細程度，摘要工具呼叫並保留指令回覆",
-                "en": "/config Adds Medium Verbosity to Summarize Tool Calls While Keeping Commands and Responses Visible"
-              },
-              "body": {
-                "zh-TW": "當你交辦複雜任務給助理時，既不想被整頁的工具呼叫與思考細節洗版，又希望能看清執行了哪些指令與最終產出。在 `/config` 設定選單中，現在新增了介於 high 與 low 之間的 medium 詳細程度（Verbosity，控制終端機輸出多寡的設定）選項。切換到這個模式後，助理會把一連串相關的工具呼叫與思考過程，整合成像是 `Explored N files` 這樣的簡短摘要。所有實際跑過的指令與產生的文字回覆，依然會完整顯示在畫面上。Verbosity 設定本身以及底下的每個選項，現在都附上了說明文字，清楚標示各選項會顯示與隱藏哪些內容。⟦好比閱讀晨會的重點簡報，後台密集的資料調度被濃縮成一行要點，關鍵結論與交辦指令依然完整呈現。⟧",
-                "en": "When delegating complex tasks to an agent, you might want to avoid being flooded with pages of tool calls and thought details while still clearly tracking executed commands and final responses. The `/config` settings menu now introduces a `medium` verbosity option between `high` and `low`. In this mode, the agent groups a series of related tool calls and thought processes into concise summaries like `Explored N files`. All executed commands and resulting text responses remain fully visible on the screen. The Verbosity setting and each individual option beneath it now include descriptive text clearly outlining what is shown or hidden. ⟦Picture reading a morning briefing: intensive background data operations are condensed into a single takeaway, while key conclusions and assigned instructions remain fully visible.⟧"
-              },
-              "original": "Added `medium` verbosity mode to `/config`, between `high` and `low`, which groups related tool calls and thoughts into concise summaries (such as `Explored N files`) while keeping commands and responses visible; the Verbosity setting and each option now describe what they show"
-            },
-            {
-              "title": {
-                "zh-TW": "成品檢視器圖表渲染加速，多工器環境自動切換文字圖表",
-                "en": "Artifact Viewer Accelerates Diagram Rendering and Falls Back to Text Diagrams in Multiplexers"
-              },
-              "body": {
-                "zh-TW": "在終端機裡開啟圖表或數學公式時，畫面載入與按鍵操作現在更俐落。在支援 Kitty 圖片協定的終端機中，成品檢視器（artifact viewer，瀏覽產出圖表與文件的介面）會在背景預先渲染產物，打開瞬間就能看見 Mermaid 圖表與 LaTeX 算式。圖片改以較小尺寸一次上傳，使用 `Ctrl+=` 與 `Ctrl+-` 縮放不再閃爍。檢視器頁尾將置頂與置底提示整併為 `g/G top/bottom`，`m` 鍵會清楚標示切換模式（包含 diagram、LaTeX、ASCII 或 raw），並修復箭頭符號過早折行的問題。在 `tmux` 或 GNU `screen` 內若圖片無法傳入，系統會自動備援降級為 ASCII 純文字圖表避免留白，有設定穿透者仍可用 `CLI_GRAPHICS=kitty` 強制開啟圖片模式。",
-                "en": "Viewing diagrams or math formulas in the terminal is now smoother across loading and key interactions. On terminals supporting the Kitty graphics protocol, the artifact viewer pre-renders artifacts in the background so Mermaid diagrams and LaTeX formulas appear instantly upon opening. Images are uploaded once at a smaller size, eliminating flickering when zooming with `Ctrl+=` and `Ctrl+-`. The viewer footer combines the separate top and bottom hints into `g/G top/bottom`, labels the `m` key with the active switch target (including diagram, LaTeX, ASCII, or raw), and fixes hints containing arrow symbols wrapping too early. Inside `tmux` or GNU `screen` where images cannot reach the terminal, the system automatically falls back to ASCII text diagrams to prevent blank gaps, while setups with passthrough can still force image mode using `CLI_GRAPHICS=kitty`."
-              },
-              "original": "Improved Mermaid diagram and LaTeX rendering in the artifact viewer on Kitty-compatible terminals: artifacts are pre-rendered in the background so diagrams appear as soon as the viewer opens, images are uploaded once at a smaller size, and zooming with `Ctrl+=` / `Ctrl+-` no longer flickers between the old and new sizes\nImproved the artifact viewer footer by combining the separate top and bottom hints into one `g/G top/bottom` entry, labeling `m` with the view it switches to (diagram, LaTeX, ASCII, or raw), and fixing hints that contain arrow symbols wrapping onto a new line too early\nFixed Mermaid diagrams and LaTeX leaving a blank gap inside `tmux` or GNU `screen` when the outer terminal supports Kitty graphics; the CLI now falls back to ASCII diagrams unless images actually reach the terminal, and `CLI_GRAPHICS=kitty` still forces image mode for setups with image passthrough configured"
-            },
-            {
-              "title": {
-                "zh-TW": "終端機沙盒降低繞過頻率，失敗步驟標記與 Esc 鍵行為修整",
-                "en": "Terminal Sandbox Reduces Bypass Requests with Refined Failed Step Labels and Esc Key Handling"
-              },
-              "body": {
-                "zh-TW": "讓助理在終端機裡自動執行各項指令時，安全防護與按鍵操作現在更符合直覺。終端機沙盒（sandbox，在隔離環境中執行指令以確保安全的機制）現在經過改善，助理要求跳出沙盒確認的頻率明顯降低。助理現在清楚知道沙盒內的指令可以直接讀寫自己的 artifact 與 scratch 資料夾，而且就算前面某個指令曾需要跳出沙盒，接下來的指令依然會優先在沙盒內嘗試。執行結束且回傳非零退出碼的指令，其步驟標題已從原先的 `Errored` 正式改為 `Failed`。當終端機跳出建議下拉選單時，按下 `Esc` 鍵現在會先關閉選單，按第二下 `Esc` 才會中斷助理執行，避免選字時不小心誤按中斷。",
-                "en": "Running commands automatically with an agent in the terminal is now safer and more intuitive. With improvements to the terminal sandbox, the agent requests to bypass the sandbox significantly less often. The agent now recognizes that sandboxed commands can directly read and write its own artifact and scratch directories, and it continues to prioritize the sandbox for subsequent commands even after an earlier command required a bypass. For commands that finish execution with a non-zero exit code, the step title is formally updated from `Errored` to `Failed`. When the suggestions dropdown is open in the terminal, pressing `Esc` now closes the dropdown first, requiring a second `Esc` press to interrupt the agent and preventing accidental cancellation during autocomplete."
-              },
-              "original": "Improved terminal sandbox behavior so the agent asks to bypass the sandbox less often: it now knows sandboxed commands can read and write its own artifact and scratch directories, and it tries the sandbox first even after an earlier command needed a bypass\nChanged the step title of commands that exit with a non-zero code from `Errored` to `Failed`\nFixed pressing `Esc` while the suggestions dropdown is open interrupting the agent's turn; it now closes the dropdown, and a second `Esc` interrupts"
-            },
-            {
-              "title": {
-                "zh-TW": "自訂設定檔改為僅掃描當前目錄，巢狀項目需透過 include_only 指定",
-                "en": "Customization Configs Now Scan Top-Level Directories Only, Requiring Nested Items via include_only"
-              },
-              "body": {
-                "zh-TW": "當你在專案中自訂技能、規則或外掛目錄時，現在設定檔的載入行為變得更精確可預測。在 `skills.json`、`rules.json`、`agents.json` 與 `plugins.json` 這類自訂設定檔（customization，用於擴充助理能力與行為的設定）中，填入目錄路徑時現在只會載入直接位於該目錄下的第一層項目，行為與預設的 `.agents/skills/` 資料夾一致，不再自動遞迴載入所有子目錄中的內容。如果你想要引入深層子目錄裡的特定巢狀項目，必須在設定項目中透過 `include_only` 明確列出路徑，例如：\n\n```\n{\"path\": \"shared_skills\", \"include_only\": [\"category/my-skill\"]}\n```\n\n⟦就像打開收納盒只拿取最上層的物件，若要翻出深層隔袋裡的工具，就得在領取清單上明確標出該項目的名稱。⟧",
-                "en": "Loading behavior for customization files is now more precise and predictable when defining skills, rules, or plugins directories in a project. In customization files such as `skills.json`, `rules.json`, `agents.json`, and `plugins.json`, directory entries now load only first-level items located directly inside that directory—matching the behavior of the default `.agents/skills/` directory—rather than recursively scanning every subdirectory. To include a specific nested item within a deeper subdirectory, you must explicitly specify its path via `include_only`, for example:\n\n```\n{\"path\": \"shared_skills\", \"include_only\": [\"category/my-skill\"]}\n```\n\n⟦Think of opening a storage box and picking only top-level items: retrieving a tool tucked away in a deep inner pouch requires explicitly naming it on the retrieval list.⟧"
-              },
-              "original": "Changed how directory entries in `skills.json`, `rules.json`, `agents.json`, and `plugins.json` are scanned: an entry now loads only the items directly inside the directory, the same as a `.agents/skills/` folder, instead of recursively loading everything beneath it; to load a nested item, name it in `include_only`, for example `{\"path\": \"shared_skills\", \"include_only\": [\"category/my-skill\"]}`"
-            },
-            {
-              "title": {
-                "zh-TW": "無頭模式串流中斷回傳錯誤退出碼，JSON 輸出保留部分回覆",
-                "en": "Headless Mode Streaming Errors Now Return Exit Code 3 While JSON Output Retains Partial Responses"
-              },
-              "body": {
-                "zh-TW": "把命令列工具放進自動化腳本跑任務時，最怕遇到程式半途出錯卻假裝成功。在以 `-p` 或 `--prompt` 執行的無頭模式（headless，沒有終端機畫面的自動執行模式）下，以前若串流輸出中途因模型或助理出錯中斷，程式仍會帶著代表成功的代碼 0 結束。現在這類異常會正確改以退出碼 `3` 結束並印出 `AGY_ERROR` 錯誤行，JSON 錯誤輸出中也會保留出錯前已生成的局部內容，多輪 `stream-json` 工作階段則維持發出警告並繼續執行。",
-                "en": "When running the CLI in automation scripts, silent failures that masquerade as success are a major pitfall. In headless mode executed with `-p` or `--prompt`, streaming outputs interrupted by model or agent errors previously exited with code 0 indicating success. Such failures now properly exit with code `3` and print an `AGY_ERROR` line, while JSON error output preserves the partial response generated prior to the failure, and multi-turn `stream-json` sessions continue to warn and proceed."
-              },
-              "original": "Fixed headless (`-p` / `--prompt`) runs that streamed part of a response and then ended on a model or agent error exiting with code 0; they now exit with code `3` and print the `AGY_ERROR` line, and JSON error output includes the partial response, while multi-turn `stream-json` sessions still warn and continue"
-            },
-            {
-              "title": {
-                "zh-TW": "舊版遠端控制升級後不再重複當機，自動取消廢棄服務",
-                "en": "Upgraded Legacy Remote Control Installations No Longer Crash Loop and Unregister Deprecated Services"
-              },
-              "body": {
-                "zh-TW": "以前使用舊版 Remote Control 安裝腳本設定的機器，在升級版本後常會陷入不斷崩潰重啟的無窮迴圈。現在當命令列工具被該已廢棄的舊版背景服務啟動時，會自動取消註冊該背景服務，並提示改用 `remote-control start` 指令啟動，徹底解決升級後反覆當機重開的問題。",
-                "en": "Machines configured with legacy Remote Control installer scripts previously fell into infinite crash loops after upgrading. When the CLI is launched by that deprecated background service, it now automatically unregisters the background service and prompts switching to the `remote-control start` command, completely resolving crash loops after upgrades."
-              },
-              "original": "Fixed machines set up with the old Remote Control installer script crash-looping after an upgrade; when the CLI is launched by that deprecated background service it now unregisters the service and points to `remote-control start` instead of restarting repeatedly"
-            },
-            {
-              "title": {
-                "zh-TW": "子代理工作樹檔案不再誤當成品，隔離存放避免殘留元資料",
-                "en": "Subagent Worktree Files Are No Longer Mistaken for Artifacts to Prevent Metadata Residue"
-              },
-              "body": {
-                "zh-TW": "呼叫背景助手平行處理程式碼時，專案目錄不再被莫名其妙的說明檔弄亂。以前在 Git 工作樹（worktree，讓同一專案平行開多份副本的功能）中寫入一般檔案時，系統會誤以為那是產物，強制要求附帶描述並留下 `.metadata.json` 檔案。現在子代理的工作樹統一移至資料目錄下的 `worktrees/` 資料夾，這個問題已經修好。",
-                "en": "When invoking background agents to work on code in parallel, project directories will no longer be cluttered with unexpected metadata files. Previously, writing standard files inside a Git worktree caused the system to mistake them for artifacts, demanding descriptions and leaving `.metadata.json` files behind. Subagent worktrees now reside under a unified `worktrees/` folder in the app data directory, resolving this issue."
-              },
-              "original": "Fixed files that subagents write inside their own Git worktree being treated as artifacts, which demanded artifact metadata and left `.metadata.json` files in the worktree; subagent worktrees now live under a `worktrees/` directory in the app data directory"
             }
           ]
         }
