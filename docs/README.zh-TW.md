@@ -47,12 +47,12 @@ brew install --cask aqua5230/usage/usage
 - **Muse Code 花費：** Muse Code 每次請求的 token 與花費會算進今日花費、專案總計、HTML 報表與 `usage` CLI，資料來自它自己存在本機的對話紀錄。Muse 沒有本機額度資料，所以沒有 Muse 額度卡片。
 - **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅，狀態資訊只讀官方公開的 Statuspage.io 狀態頁——絕不呼叫 LLM 用量 API。Antigravity 因沒有可用的公開狀態頁，暫不支援。
 - **上下文提醒與系統通知：** Context Window 達 70%（填得快時會提早）時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
-- **快取健康度：** 狀態列會顯示 Claude Code 的 prompt cache 命中率與過期倒數，讓你一眼判斷現在收尾還能沿用已快取的內容，還是快要冷掉、得整份重送。需要 Claude Code 2.1.251 以上；舊版不會出現這一段。
+- **快取健康度：** 狀態列會顯示 Claude Code 的 prompt cache 命中率與過期倒數，讓你一眼判斷現在收尾還能沿用已快取的內容，還是快要冷掉、得整份重送。冷掉之後，倒數會改成顯示下一句要重寫多少 token。需要 Claude Code 2.1.251 以上；舊版不會出現這一段。
 - **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex、Grok CLI 或 Antigravity 從選單列及面板上徹底隱藏。
 
 ### 工作流程輔助
 
-- **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用重講一遍進度。完全本機、預設關閉。
+- **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用重講一遍進度。用 `/resume` 接回放太久、快取已過期的對話時，會先提醒下一句要重送多少 token，建議先 `/compact`。完全本機、預設關閉。
 - **省 token 模式 (Token Saver)：** 一鍵讓 Claude Code 與 Codex 講話更精簡、更白話，省下輸出 token，但程式碼與錯誤訊息保證一個字都不縮水。輕聲提醒維持精簡，長對話也不走鐘——在真實 Session 的 A/B 測試中，對話後段回覆維持少約 40%，而不是走鐘變長 84%。
 - **終端機整合：** `usage status --json` 把 Claude Code 與 Codex 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案，不做網路呼叫。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **Token 浪費健檢：** 每日背景診斷重複讀取檔案、污染目錄與雜訊輸出。當發現浪費時會有一行提示，AI 也能帶你看懂問題並給出改善建議。
