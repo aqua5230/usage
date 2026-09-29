@@ -59,8 +59,8 @@ CODEX_CONFIG = setup_hook.CODEX_CONFIG
 # session. Off by default: enabled only via the menu toggle, never by self_heal.
 RESUME_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-session-resume.py"))
 RESUME_PROMPT_SIDECAR = Path(os.path.expanduser("~/.claude/usage-resume-prompt.json"))
-RESUME_HOOK_VERSION = "1.9"
-RESUME_MATCHER = "startup|clear"
+RESUME_HOOK_VERSION = "1.10"
+RESUME_MATCHER = "startup|clear|resume"
 RESUME_LANGS = ("zh-TW", "zh-CN", "en", "ja", "ko")
 _RESUME_MARKER = "usage-session-resume"
 _RESUME_MARKERS = (_RESUME_MARKER, "usage_session_resume")
@@ -299,6 +299,7 @@ def _write_resume_sidecar() -> None:
         lead = table.get("report_rw_inject_lead") or en.get("report_rw_inject_lead") or ""
         empty = table.get("report_rw_empty") or en.get("report_rw_empty") or ""
         uncommitted = table.get("report_rw_uncommitted") or en.get("report_rw_uncommitted") or ""
+        resume_cost = table.get("report_rw_resume_cost") or en.get("report_rw_resume_cost") or ""
         diagnosis_reminder = (
             table.get("report_rw_diagnosis_reminder")
             or en.get("report_rw_diagnosis_reminder")
@@ -329,6 +330,7 @@ def _write_resume_sidecar() -> None:
                 "lead": lead,
                 "empty": empty,
                 "uncommitted": uncommitted,
+                "resume_cost": resume_cost,
                 "diagnosis_reminder": diagnosis_reminder,
                 "diagnosis_reminder_explain": diagnosis_reminder_explain,
                 "diagnosis_default_cause": diagnosis_default_cause,
@@ -837,6 +839,7 @@ def _self_heal_resume() -> None:
     script/sidecar and update a stale script. Never enables it on its own."""
     if not is_resume_enabled():
         return
+    _migrate_resume_matcher_if_needed()
     _migrate_resume_command_if_needed()
     missing = _missing_resume_artifacts()
     if missing:
@@ -917,6 +920,41 @@ def _self_heal_terse_reminder() -> None:
             "update_terse_reminder_hook",
             f"{old or 'unknown'} -> {TERSE_REMINDER_HOOK_VERSION}",
         )
+
+
+def _migrate_resume_matcher_if_needed() -> None:
+    settings = _load_settings()
+    entries = _session_start_list(settings)
+    if not entries:
+        return
+    changed = False
+    updated: list[Any] = []
+    for entry in entries:
+        if not isinstance(entry, dict) or not _is_resume_entry(entry):
+            updated.append(entry)
+            continue
+        if entry.get("matcher") == RESUME_MATCHER:
+            updated.append(entry)
+            continue
+        hooks = entry.get("hooks")
+        if not isinstance(hooks, list):
+            updated.append(entry)
+            continue
+        ours = [
+            hook
+            for hook in hooks
+            if isinstance(hook, dict)
+            and isinstance(hook.get("command"), str)
+            and _command_owns_script(hook["command"], _RESUME_MARKERS)
+        ]
+        others = [hook for hook in hooks if hook not in ours]
+        if others:
+            updated.append({**entry, "hooks": others})
+        updated.append({**entry, "matcher": RESUME_MATCHER, "hooks": ours})
+        changed = True
+    if changed:
+        settings["hooks"]["SessionStart"] = updated
+        _save_settings(settings)
 
 
 def _migrate_resume_command_if_needed() -> None:

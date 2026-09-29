@@ -8,8 +8,9 @@
 """usage SessionStart hook — inject "where you left off" into a new Claude Code session.
 
 This is the session resume feature. Claude Code runs this on SessionStart (matcher
-``startup|clear``) and pipes the session JSON on stdin; the script locates the project's
-*previous* session log, gathers the *evidence* of that session — the most recent user
+``startup|clear|resume``) and pipes the session JSON on stdin. For startup/clear,
+it locates the project's *previous* session log, gathers the *evidence* of that
+session — the most recent user
 requests (newest first, so a session that drifted topics is still read correctly), the
 commits made, the files edited, and any pending todos — and hands it to Claude via
 ``hookSpecificOutput.additionalContext`` with an instruction to *reason over* it rather
@@ -21,12 +22,15 @@ under macOS's bundled ``/usr/bin/python3`` (3.9), so no third-party imports, no
 ``datetime.UTC``, no runtime ``X | Y`` types. The session-log parse is self-contained here
 (no app imports), so the hook stays loadable under the bundled interpreter.
 
+For resume, it may show a cache-expiry warning through ``systemMessage`` only.
+
 When there's no fresh progress to hand over (brand-new project, the previous session
 did nothing extractable, or it's older than the cutoff) the hook still checks in with
 a short greeting rather than going silent.
 
 The prompt wording stays single-sourced: ``setup_hook`` writes ``report_rw_prompt`` /
-``report_rw_none`` / ``report_rw_inject_lead`` / ``report_rw_empty`` from ``i18n.json`` to
+``report_rw_none`` / ``report_rw_inject_lead`` / ``report_rw_empty`` /
+``report_rw_resume_cost`` from ``i18n.json`` to
 a sidecar that this script reads. If the sidecar is missing it falls back to embedded
 templates for the detected language. The script never raises into the session — any
 failure exits 0 with no output.
@@ -46,7 +50,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
-__version__ = "1.9"
+__version__ = "1.10"
 
 
 class _HiddenConsoleKwargs(TypedDict, total=False):
@@ -120,6 +124,11 @@ _DEFAULT_EMPTY = (
 )
 _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
     "en": {
+        "resume_cost": (
+            "This conversation sat idle for {idle} and its prompt cache has expired, "
+            "so your next message re-sends about {tokens} tokens. Run /compact first "
+            "to use less quota."
+        ),
         "prompt": _DEFAULT_PROMPT,
         "none": _DEFAULT_NONE,
         "lead": (
@@ -156,6 +165,10 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         },
     },
     "zh-TW": {
+        "resume_cost": (
+            "這個對話放了 {idle}，快取已過期，下一句會重送約 {tokens} token。"
+            "想省額度可以先打 /compact 壓縮再聊。"
+        ),
         "prompt": (
             "專案：{project}（最後活動 {when}）\n"
             "最近在忙的（新→舊）：{last_request}\n"
@@ -180,6 +193,10 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         "uncommitted": ("上次離開時還留著：{branch} 分支有 {count} 個檔案改了還沒提交（{files}）"),
     },
     "zh-CN": {
+        "resume_cost": (
+            "这个对话放了 {idle}，缓存已过期，下一句会重新发送约 {tokens} token。"
+            "想省额度可以先输入 /compact 压缩再聊。"
+        ),
         "prompt": (
             "项目：{project}（最后活动 {when}）\n"
             "最近在忙的（新→旧）：{last_request}\n"
@@ -204,6 +221,11 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         "uncommitted": ("上次离开时还留着：{branch} 分支有 {count} 个文件改了还没提交（{files}）"),
     },
     "ja": {
+        "resume_cost": (
+            "この会話は {idle} 放置され、プロンプトキャッシュが切れています。"
+            "次のメッセージで約 {tokens} トークンを再送信します。"
+            "クォータを節約するには、先に /compact で圧縮してください。"
+        ),
         "prompt": (
             "プロジェクト：{project}（最終アクティブ {when}）\n"
             "最近の作業（新しい順）：{last_request}\n"
@@ -234,6 +256,11 @@ _DEFAULT_TEMPLATES: dict[str, dict[str, Any]] = {
         ),
     },
     "ko": {
+        "resume_cost": (
+            "이 대화는 {idle} 동안 방치되어 프롬프트 캐시가 만료되었습니다. "
+            "다음 메시지에서 약 {tokens} 토큰을 다시 보냅니다. "
+            "할당량을 아끼려면 먼저 /compact로 압축하세요."
+        ),
         "prompt": (
             "프로젝트: {project} (마지막 활동 {when})\n"
             "최근 작업한 내용 (최신순): {last_request}\n"
@@ -269,27 +296,84 @@ def main() -> int:
     _configure_windows_utf8_output()
     try:
         payload = json.loads(_read_stdin_utf8() or "{}")
-    except (OSError, json.JSONDecodeError, ValueError):
+    except Exception:
         return 0
     if not isinstance(payload, dict):
         return 0
+    if payload.get("source") == "fork":
+        return 0
     try:
-        prompt = _build_prompt(payload)
+        output: dict[str, Any] | None
+        if payload.get("source") == "resume":
+            message = _build_resume_cost_message(payload)
+            output = {"systemMessage": message} if message else None
+        else:
+            prompt = _build_prompt(payload)
+            output = (
+                {
+                    "hookSpecificOutput": {
+                        "hookEventName": "SessionStart",
+                        "additionalContext": prompt,
+                    }
+                }
+                if prompt
+                else None
+            )
     except Exception:
         return 0
-    if not prompt:
+    if output is None:
         return 0
-    output = {
-        "hookSpecificOutput": {
-            "hookEventName": "SessionStart",
-            "additionalContext": prompt,
-        }
-    }
     try:
         print(json.dumps(output, ensure_ascii=True))
-    except OSError:
+    except Exception:
         return 0
     return 0
+
+
+def _build_resume_cost_message(payload: dict[str, Any]) -> str:
+    if payload.get("prompt_cache_likely_expired") is not True:
+        return ""
+    tokens = payload.get("context_tokens")
+    idle = payload.get("seconds_since_last_response")
+    if isinstance(tokens, bool) or not isinstance(tokens, int) or tokens < 50_000:
+        return ""
+    if isinstance(idle, bool) or not isinstance(idle, (int, float)) or idle < 0:
+        return ""
+    lang = _detect_lang()
+    template = cast(str, _DEFAULT_TEMPLATES[lang]["resume_cost"])
+    try:
+        bundle = json.loads(PROMPT_SIDECAR.read_text(encoding="utf-8"))
+        entry = bundle.get(lang) if isinstance(bundle, dict) else None
+        candidate = entry.get("resume_cost") if isinstance(entry, dict) else None
+        if isinstance(candidate, str) and candidate:
+            template = candidate
+    except (OSError, json.JSONDecodeError, ValueError):
+        pass
+    return template.format(idle=_fmt_duration(idle), tokens=_fmt_tokens(tokens))
+
+
+def _fmt_duration(seconds: float) -> str:
+    if seconds >= 86400:
+        days = int(seconds // 86400)
+        remaining = int(seconds % 86400)
+        return f"{days}d{remaining // 3600}h"
+    if seconds >= 3600:
+        hours = int(seconds // 3600)
+        minutes = int((seconds % 3600) // 60)
+        return f"{hours}h{minutes}m"
+    if seconds >= 60:
+        return f"{int(seconds // 60)}min"
+    return f"{int(seconds)}s"
+
+
+def _fmt_tokens(value: int) -> str:
+    if value >= 999_950_000:
+        return f"{value / 1_000_000_000:.1f}B"
+    if value >= 999_500:
+        return f"{value / 1_000_000:.1f}M"
+    if value >= 1_000:
+        return f"{value / 1_000:.0f}k"
+    return str(value)
 
 
 def _build_prompt(payload: dict[str, Any]) -> str:

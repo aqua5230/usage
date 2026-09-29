@@ -55,6 +55,8 @@ def test_enable_registers_hook_and_writes_sidecar(
     assert "lead" in bundle["en"]  # lead-in so Claude's first reply acknowledges the load
     assert bundle["en"]["empty"]  # greeting shown when there's no fresh progress to report
     assert "uncommitted" in bundle["en"]
+    assert bundle["zh-TW"]["resume_cost"].startswith("這個對話放了 {idle}")
+    assert "{tokens}" in bundle["en"]["resume_cost"]
     assert "diagnosis_reminder" in bundle["en"]
     assert "polluter_dirs" in bundle["en"]["diagnosis_causes"]
 
@@ -182,14 +184,15 @@ def test_self_heal_normalizes_existing_target_command(
     session_hooks._self_heal_resume()
 
     data = json.loads(settings.read_text(encoding="utf-8"))
-    session_entry = data["hooks"]["SessionStart"][0]
+    other_entry, session_entry = data["hooks"]["SessionStart"]
     migrated_hook = session_entry["hooks"][0]
-    assert session_entry["matcher"] == "startup|clear"
+    assert session_entry["matcher"] == session_hooks.RESUME_MATCHER
     assert session_entry["custom"] == "keep"
     assert migrated_hook["type"] == "command"
     assert migrated_hook["timeout"] == 3
     assert resume_target.as_posix() in migrated_hook["command"]
-    assert session_entry["hooks"][1]["command"] == "other"
+    assert other_entry["matcher"] == "startup|clear"
+    assert other_entry["hooks"] == [{"type": "command", "command": "other"}]
     assert data["hooks"]["PreToolUse"][0]["hooks"][0]["command"] == "guard"
     # The stale "1.2" target also triggers a version update in the same pass, so the
     # migrate entry is no longer necessarily last — find it by action.
@@ -238,6 +241,43 @@ def test_self_heal_noop_when_disabled(
     resume_target = resume_paths.resume_target
     session_hooks._self_heal_resume()
     assert not resume_target.exists()
+
+
+def test_self_heal_upgrades_only_our_matcher(resume_paths: ResumeHookPaths) -> None:
+    settings = resume_paths.settings
+    session_hooks.enable_session_resume()
+    data = json.loads(settings.read_text(encoding="utf-8"))
+    own_entry = data["hooks"]["SessionStart"][0]
+    own_entry["matcher"] = "startup|clear"
+    other_entry = {
+        "matcher": "startup|clear",
+        "hooks": [{"type": "command", "command": "other"}],
+    }
+    data["hooks"]["SessionStart"].append(other_entry)
+    settings.write_text(json.dumps(data), encoding="utf-8")
+
+    session_hooks._self_heal_resume()
+
+    after = json.loads(settings.read_text(encoding="utf-8"))
+    assert after["hooks"]["SessionStart"][0]["matcher"] == session_hooks.RESUME_MATCHER
+    assert after["hooks"]["SessionStart"][1] == other_entry
+
+
+def test_self_heal_does_not_enable_resume_for_other_hooks(resume_paths: ResumeHookPaths) -> None:
+    settings = resume_paths.settings
+    data = {
+        "hooks": {
+            "SessionStart": [
+                {"matcher": "startup|clear", "hooks": [{"type": "command", "command": "other"}]}
+            ]
+        }
+    }
+    settings.write_text(json.dumps(data), encoding="utf-8")
+
+    session_hooks._self_heal_resume()
+
+    assert json.loads(settings.read_text(encoding="utf-8")) == data
+    assert not resume_paths.resume_target.exists()
 
 
 def test_disable_preserves_user_hook_in_shared_entry(

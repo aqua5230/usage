@@ -702,8 +702,12 @@ def test_main_emits_additional_context(
     assert "wire up the new endpoint" in out["hookSpecificOutput"]["additionalContext"]
 
 
+@pytest.mark.parametrize("source", ["startup", "clear", None])
 def test_main_emits_greeting_when_no_progress(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, capsys: pytest.CaptureFixture[str]
+    source: str | None,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
 ) -> None:
     monkeypatch.setenv("USAGE_LANG", "en")
     _sidecar(tmp_path, monkeypatch)
@@ -711,12 +715,166 @@ def test_main_emits_greeting_when_no_progress(
     # Brand-new project: only the current transcript, nothing previous to report.
     current = project / "current.jsonl"
     current.write_text("", encoding="utf-8")
-    payload = json.dumps({"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"})
+    payload = json.dumps(
+        {"source": source, "transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"}
+    )
     monkeypatch.setattr("sys.stdin", _FakeStdin(payload))
 
     assert mod.main() == 0
     out = json.loads(capsys.readouterr().out)
     assert out["hookSpecificOutput"]["additionalContext"] == "GREETING::"
+
+
+@pytest.mark.parametrize(
+    ("lang", "expected"),
+    [
+        (
+            "zh-TW",
+            "這個對話放了 3h12m，快取已過期，下一句會重送約 180k token。"
+            "想省額度可以先打 /compact 壓縮再聊。",
+        ),
+        (
+            "en",
+            "This conversation sat idle for 3h12m and its prompt cache has expired, "
+            "so your next message re-sends about 180k tokens. Run /compact first "
+            "to use less quota.",
+        ),
+    ],
+)
+def test_main_resume_cost_is_user_only(
+    lang: str,
+    expected: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", lang)
+    _sidecar(tmp_path, monkeypatch)
+    monkeypatch.setattr(
+        sys,
+        "stdin",
+        _FakeStdin(
+            json.dumps(
+                {
+                    "source": "resume",
+                    "transcript_path": "/does/not/exist.jsonl",
+                    "cwd": "/does/not/exist",
+                    "seconds_since_last_response": 11520,
+                    "context_tokens": 180000,
+                    "prompt_cache_likely_expired": True,
+                }
+            )
+        ),
+    )
+
+    assert mod.main() == 0
+    assert json.loads(capsys.readouterr().out) == {"systemMessage": expected}
+
+
+@pytest.mark.parametrize(
+    "changes",
+    [
+        {"prompt_cache_likely_expired": False},
+        {"context_tokens": 20000},
+        {"context_tokens": None},
+        {"seconds_since_last_response": None},
+        {"context_tokens": True},
+        {"seconds_since_last_response": True},
+        {"seconds_since_last_response": -1},
+    ],
+)
+def test_main_resume_cost_invalid_input_is_silent(
+    changes: dict[str, object],
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _sidecar(tmp_path, monkeypatch)
+    payload: dict[str, object] = {
+        "source": "resume",
+        "seconds_since_last_response": 11520,
+        "context_tokens": 180000,
+        "prompt_cache_likely_expired": True,
+    }
+    payload.update(changes)
+    monkeypatch.setattr(sys, "stdin", _FakeStdin(json.dumps(payload)))
+
+    assert mod.main() == 0
+    assert capsys.readouterr().out == ""
+
+
+@pytest.mark.parametrize(
+    "missing", ["prompt_cache_likely_expired", "context_tokens", "seconds_since_last_response"]
+)
+def test_main_resume_cost_missing_field_is_silent(
+    missing: str,
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    _sidecar(tmp_path, monkeypatch)
+    payload = {
+        "source": "resume",
+        "prompt_cache_likely_expired": True,
+        "context_tokens": 180000,
+        "seconds_since_last_response": 11520,
+    }
+    del payload[missing]
+    monkeypatch.setattr(sys, "stdin", _FakeStdin(json.dumps(payload)))
+
+    assert mod.main() == 0
+    assert capsys.readouterr().out == ""
+
+
+def test_main_resume_cost_uses_sidecar_and_float_idle(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    sidecar = tmp_path / "prompt.json"
+    sidecar.write_text(json.dumps({"en": {"resume_cost": "idle={idle} tokens={tokens}"}}))
+    monkeypatch.setattr(mod, "PROMPT_SIDECAR", sidecar)
+    monkeypatch.setattr(
+        sys,
+        "stdin",
+        _FakeStdin(
+            json.dumps(
+                {
+                    "source": "resume",
+                    "seconds_since_last_response": 172800.5,
+                    "context_tokens": 1_200_000,
+                    "prompt_cache_likely_expired": True,
+                }
+            )
+        ),
+    )
+
+    assert mod.main() == 0
+    assert json.loads(capsys.readouterr().out) == {"systemMessage": "idle=2d0h tokens=1.2M"}
+
+
+def test_main_fork_is_silent(
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    monkeypatch.setattr(
+        sys,
+        "stdin",
+        _FakeStdin(
+            json.dumps(
+                {
+                    "source": "fork",
+                    "seconds_since_last_response": 11520,
+                    "context_tokens": 180000,
+                    "prompt_cache_likely_expired": True,
+                }
+            )
+        ),
+    )
+
+    assert mod.main() == 0
+    assert capsys.readouterr().out == ""
 
 
 def test_main_reads_utf8_bytes_when_stdin_uses_cp950(
