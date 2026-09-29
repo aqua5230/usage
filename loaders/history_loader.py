@@ -15,7 +15,7 @@ import sys
 import time
 from collections import OrderedDict
 from collections.abc import Iterable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -55,7 +55,7 @@ class _FileCacheEntry:
 _file_cache: OrderedDict[Path, _FileCacheEntry] = OrderedDict()
 
 HISTORY_CACHE_PATH = Path(os.path.expanduser("~/.usage/history_jsonl_cache.json"))
-_HISTORY_JSONL_CACHE_SCHEMA = 4
+_HISTORY_JSONL_CACHE_SCHEMA = 5
 _disk_cache_seeded = False
 _DISK_CACHE_FLUSH_INTERVAL_S = 300.0
 _disk_cache_dirty = False
@@ -319,7 +319,7 @@ def _parse_complete_lines(
     digest: Any,
     confirmed_offset: int,
 ) -> int:
-    seen = {_dedup_key(entry) for entry in parsed_entries}
+    index = {_dedup_key(entry): i for i, entry in enumerate(parsed_entries)}
     while True:
         line_start = int(file.tell())
         line, too_long = read_bounded_jsonl_line(file)
@@ -337,9 +337,15 @@ def _parse_complete_lines(
         if parsed_entries_for_line is not None:
             for entry in parsed_entries_for_line:
                 dedup_key = _dedup_key(entry)
-                if dedup_key in seen:
+                kept_at = index.get(dedup_key)
+                if kept_at is not None:
+                    # Subagent transcripts log one request several times while it streams,
+                    # with output_tokens still growing, so keep the largest, not the first.
+                    kept = parsed_entries[kept_at]
+                    if entry.output_tokens > kept.output_tokens:
+                        parsed_entries[kept_at] = replace(kept, output_tokens=entry.output_tokens)
                     continue
-                seen.add(dedup_key)
+                index[dedup_key] = len(parsed_entries)
                 parsed_entries.append(entry)
 
 

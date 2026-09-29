@@ -137,16 +137,23 @@ def parse_jsonl(
         _file_cache.move_to_end(path)
         parsed_entries = cached[2]
     else:
-        parsed_entries = []
+        by_key: dict[str, UsageEntry] = {}
         try:
             for data in iter_jsonl_dicts(path):
                 if data.get("type") != "assistant":
                     continue
 
-                parsed_entries.extend(_parse_assistant_entry(data, project))
+                for entry in _parse_assistant_entry(data, project):
+                    kept = by_key.setdefault(entry.dedup_key, entry)
+                    # Subagent transcripts log one request several times while it streams,
+                    # with output_tokens still growing, so keep the largest, not the first.
+                    # Without ids the key cannot tell requests apart, so never merge those.
+                    if entry.message_id or entry.request_id:
+                        kept.output_tokens = max(kept.output_tokens, entry.output_tokens)
         except (OSError, PermissionError, UnicodeDecodeError) as exc:
             _debug_file_error("failed to read Claude log", path, exc)
             return
+        parsed_entries = list(by_key.values())
 
         if path not in _file_cache and len(_file_cache) >= _FILE_CACHE_MAXSIZE:
             _file_cache.popitem(last=False)

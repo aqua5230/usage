@@ -200,3 +200,55 @@ def test_project_from_cwd_groups_repo_subfolders_under_repo_name(tmp_path: Path)
     assert claude.project_from_cwd(str(repo / "tests" / "fixtures")) == "my-repo"
     assert claude.project_from_cwd(str(repo)) == "my-repo"
     assert claude.project_from_cwd(str(plain)) == "notes"
+
+
+def test_parse_jsonl_keeps_largest_output_of_streamed_duplicate(tmp_path: Path) -> None:
+    # Subagent transcripts repeat one request while it streams; the last line is final.
+    path = tmp_path / "agent-1.jsonl"
+    lines = []
+    for output_tokens in (6, 118, 40):
+        lines.append(
+            json.dumps(
+                {
+                    "type": "assistant",
+                    "timestamp": "2026-01-01T00:00:00Z",
+                    "sessionId": "session-1",
+                    "requestId": "request-1",
+                    "message": {
+                        "id": "message-1",
+                        "model": "claude-sonnet",
+                        "usage": {"input_tokens": 1, "output_tokens": output_tokens},
+                    },
+                }
+            )
+        )
+    path.write_text("\n".join(lines), encoding="utf-8")
+    entries: list[Any] = []
+
+    claude.parse_jsonl(path, "demo", entries, set(), None)
+
+    assert [entry.output_tokens for entry in entries] == [118]
+
+
+def test_parse_jsonl_never_merges_output_across_entries_without_ids(tmp_path: Path) -> None:
+    path = tmp_path / "anon.jsonl"
+    lines = [
+        json.dumps(
+            {
+                "type": "assistant",
+                "timestamp": "2026-01-01T00:00:00Z",
+                "sessionId": session_id,
+                "message": {
+                    "model": "claude-sonnet",
+                    "usage": {"input_tokens": 1, "output_tokens": output_tokens},
+                },
+            }
+        )
+        for session_id, output_tokens in (("s1", 6), ("s2", 118))
+    ]
+    path.write_text("\n".join(lines), encoding="utf-8")
+    entries: list[Any] = []
+
+    claude.parse_jsonl(path, "demo", entries, set(), None)
+
+    assert [(entry.session_id, entry.output_tokens) for entry in entries] == [("s1", 6)]

@@ -116,6 +116,32 @@ def test_load_entries_keeps_first_duplicate_within_file(tmp_path: Path) -> None:
     assert [entry.input_tokens for entry in history_loader._file_cache[path].entries] == [1]
 
 
+def test_load_entries_keeps_largest_output_of_streamed_duplicate(tmp_path: Path) -> None:
+    # Subagent transcripts repeat one request while it streams; the last line is final.
+    path = tmp_path / "agent-1.jsonl"
+    path.write_text(
+        "\n".join([_line(output_tokens=6), _line(output_tokens=118), _line(output_tokens=40)]),
+        encoding="utf-8",
+    )
+
+    entries = history_loader.load_entries(jsonl_paths=[path])
+
+    assert [entry.output_tokens for entry in entries] == [118]
+
+
+def test_incremental_parse_upgrades_streamed_output_tokens(tmp_path: Path) -> None:
+    path = tmp_path / "agent-1.jsonl"
+    path.write_text(_line(output_tokens=6) + "\n", encoding="utf-8")
+    first = history_loader.load_entries(jsonl_paths=[path])
+    with path.open("a", encoding="utf-8") as file:
+        file.write(_line(output_tokens=118) + "\n")
+
+    entries = history_loader.load_entries(jsonl_paths=[path])
+
+    assert [entry.output_tokens for entry in entries] == [118]
+    assert [entry.output_tokens for entry in first] == [6]
+
+
 def test_incremental_parse_deduplicates_against_cached_entries(tmp_path: Path) -> None:
     path = tmp_path / "history.jsonl"
     path.write_text(_line(input_tokens=1) + "\n", encoding="utf-8")
