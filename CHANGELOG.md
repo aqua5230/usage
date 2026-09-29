@@ -5,6 +5,19 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.31.4] - 2026-09-29
+
+### Added
+- **Resuming a stale conversation now tells you what it will cost.** When Progress Concierge is on and you `/resume` (or `--resume` / `--continue`) a conversation whose prompt cache has expired and whose context is at least 50k tokens, Claude Code shows a one-line warning before your first message: how long it sat idle, roughly how many tokens the next message re-sends, and a suggestion to `/compact` first. Only you see it; it is never added to Claude's context. Needs Claude Code 2.1.251 or newer. Existing installs pick up the new trigger automatically the next time usage starts.
+- **The status line now says what a cold cache will cost.** Once the prompt cache countdown runs out, the segment switches to how many tokens the next message will re-cache (for example `cold·re-cache 180k`) instead of going blank. Claude Code redraws the status line the moment the cache expires, so no refresh interval is needed.
+
+### Changed
+- Quota warning and quota-depleted notifications now play a short two-note "uh-oh" alert sound made for usage. The quota-restored notification keeps the system default sound.
+
+### Fixed
+- **Claude subagent output was undercounted by about 86%.** Claude Code writes each subagent request to its transcript several times while it streams, and `output_tokens` only reaches its final value on the last line. Both Claude parsers kept the first line, so on one machine 17 subagent transcripts counted 23,327 output tokens instead of 165,395. They now keep the largest value for each request. Main-conversation transcripts were not affected. The history and yearly caches are rebuilt once; days whose transcripts were already deleted keep their archived totals and cannot be corrected.
+- Add Sonnet 5.5 (`claude-sonnet-5-5`) to the offline fallback price table, so its usage is no longer priced at $0 when the downloaded price table is stale, and show it as "Sonnet 5.5" in tables instead of a truncated model ID.
+
 ## [0.31.3] - 2026-09-27
 
 ### Fixed
