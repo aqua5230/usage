@@ -22,6 +22,7 @@ collect_ignore = (
         "test_analyzer_pipeline.py",
         "test_login_item.py",
         "test_menubar.py",
+        "test_menubar_notify.py",
         "test_panels.py",
         "test_web_panel_payload.py",
     ]
