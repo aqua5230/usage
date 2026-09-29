@@ -67,7 +67,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.6"
+__version__ = "1.7"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -110,6 +110,7 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "本輪",
         "cached": "快取:",
         "cache_hit": "快取:",
+        "cache_cold_recache": "已冷·下輪重寫 {tokens}",
         "cost": "花費:",
         "session_dur": "會話時長:",
         "remaining_prefix": "剩",
@@ -131,6 +132,7 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "本轮",
         "cached": "缓存:",
         "cache_hit": "缓存:",
+        "cache_cold_recache": "已冷·下轮重写 {tokens}",
         "cost": "花费:",
         "session_dur": "会话时长:",
         "remaining_prefix": "剩",
@@ -152,6 +154,7 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "this turn",
         "cached": "Cached:",
         "cache_hit": "Cache:",
+        "cache_cold_recache": "cold·re-cache {tokens}",
         "cost": "Cost:",
         "session_dur": "Session:",
         "remaining_prefix": "left",
@@ -173,6 +176,7 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "今回",
         "cached": "キャッシュ:",
         "cache_hit": "キャッシュ:",
+        "cache_cold_recache": "期限切れ·再書込 {tokens}",
         "cost": "費用:",
         "session_dur": "セッション時間:",
         "remaining_prefix": "残り",
@@ -194,6 +198,7 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "이번 턴",
         "cached": "캐시:",
         "cache_hit": "캐시:",
+        "cache_cold_recache": "만료·재기록 {tokens}",
         "cost": "비용:",
         "session_dur": "세션 시간:",
         "remaining_prefix": "남음",
@@ -798,14 +803,31 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
                 f"{progress_bar(hit_ratio * 100, bar_w, color_by_pct_inverted)}"
             )
             cache_countdown = ""
-            expires_at = _as_float(prompt_cache.get("expires_at"))
+            expires_at_raw = prompt_cache.get("expires_at")
+            expires_at = _as_float(expires_at_raw)
+            cache_remain: Optional[int] = None
             if expires_at is not None:
-                remain = int(expires_at) - int(now.timestamp())
-                if remain > 0:
-                    if lang in ("zh-TW", "zh-CN"):
-                        cache_countdown = f" ({_t('remaining_prefix')}{fmt_duration(remain)})"
-                    else:
-                        cache_countdown = f" ({fmt_duration(remain)} {_t('remaining_prefix')})"
+                cache_remain = int(expires_at) - int(now.timestamp())
+            cold = prompt_cache.get("warm") is False or (
+                isinstance(expires_at_raw, (int, float))
+                and not isinstance(expires_at_raw, bool)
+                and cache_remain is not None
+                and cache_remain <= 0
+            )
+            recache_tokens = prompt_cache.get("recache_tokens_if_cold")
+            if cold:
+                if (
+                    isinstance(recache_tokens, int)
+                    and not isinstance(recache_tokens, bool)
+                    and recache_tokens > 0
+                ):
+                    text = _t("cache_cold_recache").format(tokens=fmt_tokens(recache_tokens))
+                    cache_countdown = f" ({text})"
+            elif cache_remain is not None and cache_remain > 0:
+                if lang in ("zh-TW", "zh-CN"):
+                    cache_countdown = f" ({_t('remaining_prefix')}{fmt_duration(cache_remain)})"
+                else:
+                    cache_countdown = f" ({fmt_duration(cache_remain)} {_t('remaining_prefix')})"
             cache_part = cache_bar_part + (
                 f"{C['dim']}{C['magenta']}{cache_countdown}{C['reset']}" if cache_countdown else ""
             )
