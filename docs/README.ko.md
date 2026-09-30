@@ -4,9 +4,9 @@
 
 # usage
 
-### macOS 메뉴 막대와 Windows 시스템 트레이에서 Claude Code, Codex, Antigravity, Grok CLI 할당량을 확인하세요.
+### Claude Code, Codex, Antigravity, Grok CLI 할당량이 언제나 화면에.
 
-세션 중간에 할당량이 소진되면 비용이 큽니다. 특히 Claude Code에 의존하는 긴 리팩터링이나 디버깅 작업에서는 더욱 그렇습니다. `usage`는 한도에 도달하기 *전에* 5시간 및 주간 한도를 표시하고, 작업 내내 계속 보이게 합니다. 실행할 명령이나 열 페이지가 없습니다. 이미 보고 있는 곳에 답이 표시됩니다.
+`usage`는 5시간 및 주간 한도를 macOS 메뉴 막대나 Windows 시스템 트레이에 녹색부터 빨간색까지의 색상으로 표시합니다. 긴 리팩터링 도중에 한도에 부딪혀서야 잔여량이 부족했다는 걸 알게 되는 건 난감한 일입니다. 이제 미리 확인할 수 있습니다. 실행할 명령도, 열 페이지도 없습니다.
 
 [繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · 한국어 &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [공식 사이트](https://aqua5230.github.io/usage/)
 
@@ -23,7 +23,9 @@
   <img src="showcase-v3.en.png" alt="usage — macOS 메뉴 막대에 고정된 Claude Code, Codex, Antigravity 할당량" width="820">
 </p>
 
-Claude Code와 Codex 수치는 이미 컴퓨터에 있는 로그 파일에서 수동적으로 읽어오므로, **할당량을 확인하는 과정에서 Anthropic이나 OpenAI의 LLM API를 호출하지 않으며** token도 전혀 소비하지 않습니다. 유일한 예외인 Antigravity 할당량은 Antigravity CLI가 이미 로컬에 저장해 둔 로그인 정보를 사용해 Google의 공식 할당량 엔드포인트에서 가져오지만, 이 역시 메타데이터 조회일 뿐 모델 할당량을 소비하지 않습니다.
+Claude Code와 Codex 수치는 이미 컴퓨터에 있는 로그 파일에서 가져오므로, **할당량을 확인하는 과정에서 Anthropic이나 OpenAI의 LLM API를 호출하지 않으며** token도 전혀 소비하지 않습니다. 유일한 예외는 Antigravity입니다. 할당량은 Antigravity CLI가 로컬에 저장해 둔 로그인 정보를 사용해 Google 공식 할당량 엔드포인트에서 가져옵니다. 이는 메타데이터 조회일 뿐이며 모델 할당량을 소비하지도 않습니다.
+
+`usage`는 사용량을 줄이는 데도 도움이 됩니다. 컨텍스트 창이 지나치게 커지거나 prompt cache가 식기 전에 상태 줄이 미리 경고하고, Token 절약 토글로 답변을 짧게 유지할 수 있습니다. 실제 세션에서의 A/B 테스트 결과, 대화 후반 답변이 84% 길어지는 일 없이 약 40% 짧게 유지되었습니다.
 
 ## 빠른 시작
 
@@ -31,9 +33,9 @@ Claude Code와 Codex 수치는 이미 컴퓨터에 있는 로그 파일에서 �
 brew install --cask aqua5230/usage/usage
 ```
 
-**macOS가 아니라면** `uvx usage-cli`로 어떤 OS에서든 터미널 인터페이스를 열 수 있습니다. Linux도 지원하며 설치가 필요 없고 메뉴 막대도 없습니다.
-
 Applications 폴더에 자동으로 설치됩니다. 먼저 한 번 실행해 보고, macOS 15 이상에서 차단되면 시스템 설정 → 개인정보 보호 및 보안을 열고 아래로 스크롤한 뒤 **그래도 열기**를 클릭하세요. macOS 14 이하에서는 한 번 마우스 오른쪽 버튼으로 클릭해 **열기**를 선택하여 Gatekeeper를 통과하세요. 그다음 메뉴 막대 아이콘을 클릭하세요. 직접 다운로드하거나 전체 설정 과정을 보고 싶다면 아래 [설치](#설치)를 참고하세요.
+
+**macOS가 아니라면** `uvx usage-cli`로 어떤 OS에서든 터미널 인터페이스를 열 수 있습니다. Linux도 지원하며 설치가 필요 없고 메뉴 막대도 없습니다.
 
 **빠른 이동:** [제공 기능](#제공-기능) · [개인정보 보호와 데이터 소스](#개인정보-보호와-데이터-소스) · [요구 사항](#요구-사항) · [설치](#설치) · [상태 줄 설정](#첫-실행-상태-줄-설정) · [Windows 지원](#windows-지원) · [테마 갤러리](#테마-갤러리) · [문제 해결](#문제-해결) · [비교](#비교) · [적합하지 않은 경우](#적합하지-않은-경우) · [개발](#개발)
 
@@ -57,7 +59,7 @@ Applications 폴더에 자동으로 설치됩니다. 먼저 한 번 실행해 �
 - **터미널 통합:** `usage status --json`은 명령을 실행할 수 있는 모든 도구——Starship, tmux 또는 자체 스크립트——에 Claude Code 및 Codex 할당량을 전달합니다. 메뉴 막대와 동일한 로컬 파일을 읽으며, 네트워크 호출이 없습니다. [미리 준비된 스니펫](DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **Token 낭비 상태 점검:** 매일 백그라운드 진단이 로그를 검사해 반복 파일 읽기, 오염 디렉터리, 장황한 Bash 출력 등을 포함한 낭비를 찾습니다. 문제가 발견되면 한 줄 알림이 표시됩니다. AI에게 "show me"라고 말하면 해결 방법을 안내합니다.
 
-### AI 팀워크
+### 최신 동향 파악
 
 - **AI 업데이트 일보:** 매일 자동 업데이트되는 공개 [웹 페이지](https://aqua5230.github.io/ai-updates/)를 열어 Claude Code, Codex, Antigravity의 업데이트를 다루고 전체 기록을 보존합니다. 심사가 완료된 업데이트는 5개 언어의 알기 쉬운 요약을, 미심사 항목은 공식 원문을 보여줍니다.
 
@@ -68,7 +70,7 @@ Applications 폴더에 자동으로 설치됩니다. 먼저 한 번 실행해 �
 ### 경험과 사용자화
 
 - **16가지 시각 테마:** 기본(Default), Matrix, Windows 95, 복고 신문(Newspaper), Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, 나비 도감(Lepidoptera), 철새 이동(Migration), 스테인드글라스, 종이접기, 손그림 노트(Sketchbook), 심전도 모니터(Heart Monitor), Catppuccin(공식 팔레트, 4가지 flavor 모두 지원)을 포함한 패널 스타일을 전환할 수 있습니다.
-- **패널 자유 배치:** 패널이 더 이상 메뉴 막대 아이콘 아래에 고정되지 않습니다. 빈 공간을 드래그해 원하는 위치로 이동할 수 있으며, 다음에 열 때도 그 위치가 유지됩니다. 다른 앱으로 포커스가 이동해도 사라지지 않으며, 메뉴 막대 아이콘을 다시 클릭하거나 Esc 키를 눌러야 닫힙니다.
+- **패널 자유 배치:** 빈 공간을 드래그해 원하는 위치로 이동할 수 있으며, 다음에 열 때도 그 위치가 유지됩니다. 다른 앱으로 포커스가 이동해도 사라지지 않으며, 메뉴 막대 아이콘을 다시 클릭하거나 Esc 키를 눌러야 닫힙니다.
 - **드래그로 순서 변경:** 아무 할당량 카드나 잡고 위아래로 드래그하면 순서를 바꿀 수 있습니다. 배치는 할당량 카드가 있는 모든 테마(World Cup 2026 제외)에서 공유되며 다시 시작해도 유지됩니다.
 - **자동 현지화:** UI 텍스트는 번체 중국어, 간체 중국어, 영어, 일본어, 한국어로 제공되며 시스템 설정에 맞춰 자동으로 전환됩니다.
 
@@ -81,7 +83,7 @@ Applications 폴더에 자동으로 설치됩니다. 먼저 한 번 실행해 �
 ## 요구 사항
 
 - macOS 12(Monterey) 이상, 또는 Windows 10/11
-- Claude Code, Codex 또는 Antigravity를 한 번 이상 사용한 적이 있어야 합니다(로컬 사용량 데이터가 있어야 함).
+- Claude Code, Codex, Antigravity 또는 Grok CLI를 한 번 이상 사용한 적이 있어야 합니다(로컬 사용량 데이터가 있어야 함).
 - (소스 실행만 해당) Python 3.13.
 
 ## 설치
@@ -147,21 +149,22 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 UI에서 직접 **16가지 시각 테마**를 전환하세요.
 
 <p align="center">
-  <img src="classic.en.png" width="32%" alt="Classic 테마" />
-  <img src="matrix.en.png" width="32%" alt="Matrix 테마" />
-  <img src="win95.en.png" width="32%" alt="Windows 95 테마" />
-  <img src="newspaper.en.png" width="32%" alt="Newspaper 테마" />
-  <img src="cloud_observation.en.png" width="32%" alt="Cloud Observation 테마" />
-  <img src="aquarium.en.png" width="32%" alt="Aquarium 테마" />
-  <img src="prism_arcade.en.png" width="32%" alt="Prism Arcade 테마" />
-  <img src="stained_glass.en.png" width="32%" alt="Stained Glass 테마" />
-  <img src="origami.en.png" width="32%" alt="Origami 테마" />
-  <img src="black_hole.en.png" width="32%" alt="Black Hole 테마" />
-  <img src="lepidoptera.en.png" width="32%" alt="Lepidoptera 테마" />
-  <img src="migration.png" width="32%" alt="철새 이동 테마" />
-  <img src="catppuccin.en.png" width="32%" alt="Catppuccin 테마" />
-  <img src="sketchbook.en.png" width="32%" alt="손그림 노트 테마" />
-  <img src="heart_monitor.en.png" width="32%" alt="심전도 모니터 테마" />
+  <img src="classic.en.png" width="24%" alt="Classic 테마" />
+  <img src="matrix.en.png" width="24%" alt="Matrix 테마" />
+  <img src="win95.en.png" width="24%" alt="Windows 95 테마" />
+  <img src="newspaper.en.png" width="24%" alt="Newspaper 테마" />
+  <img src="cloud_observation.en.png" width="24%" alt="Cloud Observation 테마" />
+  <img src="aquarium.en.png" width="24%" alt="Aquarium 테마" />
+  <img src="prism_arcade.en.png" width="24%" alt="Prism Arcade 테마" />
+  <img src="stained_glass.en.png" width="24%" alt="Stained Glass 테마" />
+  <img src="origami.en.png" width="24%" alt="Origami 테마" />
+  <img src="black_hole.en.png" width="24%" alt="Black Hole 테마" />
+  <img src="world_cup.en.png" width="24%" alt="World Cup 2026 테마" />
+  <img src="lepidoptera.en.png" width="24%" alt="Lepidoptera 테마" />
+  <img src="migration.png" width="24%" alt="철새 이동 테마" />
+  <img src="catppuccin.en.png" width="24%" alt="Catppuccin 테마" />
+  <img src="sketchbook.en.png" width="24%" alt="손그림 노트 테마" />
+  <img src="heart_monitor.en.png" width="24%" alt="심전도 모니터 테마" />
 </p>
 
 ## 문제 해결
@@ -201,8 +204,8 @@ UI에서 직접 **16가지 시각 테마**를 전환하세요.
 ## 적합하지 않은 경우
 
 - 항상 터미널에서 작업하며 백그라운드에 메뉴 막대 아이콘을 띄워두고 싶지 않은 경우 — 단일 실행 CLI 도구가 더 적합합니다.
-- Claude Code, Codex, Antigravity를 사용하지 않는 경우 — `usage`가 읽어올 로컬 사용량 데이터가 없기 때문입니다.
-- Linux를 사용하는 경우 — 현재는 macOS와 Windows만 지원합니다.
+- Claude Code, Codex, Antigravity, Grok CLI를 사용하지 않는 경우 — `usage`가 읽어올 로컬 사용량 데이터가 없기 때문입니다.
+- Linux에서 메뉴 막대를 쓰려는 경우. 현재 메뉴 막대는 macOS와 Windows에만 있지만, 터미널 인터페이스(`uvx usage-cli`)는 Linux에서도 실행됩니다.
 
 ## 개발
 

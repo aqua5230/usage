@@ -4,9 +4,9 @@
 
 # usage
 
-### Quota visibility for Claude Code, Codex, Antigravity, and Grok CLI, built into the macOS menu bar and Windows system tray.
+### Your Claude Code, Codex, Antigravity and Grok CLI quota, always on screen.
 
-Running out of quota mid-session is expensive — especially during a long refactor or debugging run that depends on Claude Code. `usage` surfaces 5-hour and weekly limits *before* you hit the wall, and keeps them visible the whole time. There's no command to run and no page to open; the answer is just there, where you already look.
+`usage` puts your 5-hour and weekly limits in the macOS menu bar or Windows system tray, colored from green to red. Hitting the limit halfway through a long refactor is a bad way to find out you were running low. Now you see it coming. There's nothing to run and no page to open.
 
 [繁體中文](docs/README.zh-TW.md) · [简体中文](docs/README.zh-CN.md) · English · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [Landing page](https://aqua5230.github.io/usage/)
 
@@ -23,7 +23,9 @@ Running out of quota mid-session is expensive — especially during a long refac
   <img src="docs/showcase-v3.en.png" alt="usage — Claude Code, Codex, and Antigravity quota pinned to the macOS menu bar" width="820">
 </p>
 
-Claude Code and Codex numbers are read passively from log files already on your machine, so **watching your quota never calls Anthropic or OpenAI's LLM APIs** and never costs you a token. Antigravity is the one exception: its quota comes from Google's official quota endpoint using the sign-in the Antigravity CLI already stores locally — a metadata call that doesn't consume your model quota either.
+Claude Code and Codex numbers come from log files already on your machine, so **watching your quota never calls Anthropic or OpenAI's LLM APIs** and never costs you a token. Antigravity is the one exception: its quota comes from Google's official quota endpoint, using the sign-in the Antigravity CLI already stores locally. That's a metadata call and doesn't use your model quota either.
+
+`usage` also helps you spend less. The status line warns you before your context window bloats or your prompt cache goes cold, and a Token Saver toggle keeps replies short. In an A/B test on real sessions, late replies stayed ~40% shorter instead of growing 84% longer.
 
 ## Quick Start
 
@@ -31,9 +33,9 @@ Claude Code and Codex numbers are read passively from log files already on your 
 brew install --cask aqua5230/usage/usage
 ```
 
-**Not on macOS?** `uvx usage-cli` runs the terminal interface anywhere, Linux included — no install, no menu bar.
-
 It lands in your Applications folder automatically. Open it once; if macOS 15 or later blocks it, go to System Settings → Privacy & Security, scroll down, and click **Open Anyway**. On macOS 14 or earlier, right-click **Open** once to pass Gatekeeper. Then click the menu bar icon. Prefer a direct download or want the full setup flow? See [Install](#install) below.
+
+**Not on macOS?** `uvx usage-cli` runs the terminal interface anywhere, Linux included — no install, no menu bar.
 
 **Jump to:** [What You Get](#what-you-get) · [Privacy](#privacy--data-sources) · [Requirements](#requirements) · [Install](#install) · [Status Line](#first-launch-set-up-the-status-line) · [Windows](#windows-support) · [Themes](#theme-gallery) · [Troubleshooting](#troubleshooting) · [Comparison](#comparison) · [Not a Fit?](#when-usage-isnt-the-right-fit) · [Development](#development)
 
@@ -57,7 +59,7 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 - **Terminal Integration:** `usage status --json` hands your Claude Code and Codex quota to any tool that can run a command — Starship, tmux, or your own scripts. Reads the same local files as the menu bar, no network call. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **Token-waste Health Check:** A daily background diagnosis scans your logs for waste, including repeated file reads, polluter directories, and noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
 
-### AI Teamwork
+### Stay Current
 
 - **AI Update Daily:** Opens a daily-updated public [page](https://aqua5230.github.io/ai-updates/) covering Claude Code, Codex, and Antigravity, with the full history kept. Reviewed items get a plain-language summary in all five UI languages; unreviewed ones show the original source text.
 
@@ -68,7 +70,7 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 ### Experience & Customization
 
 - **16 Visual Themes:** Switch between panel styles including Default, Matrix, Windows 95, Vintage Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera, Migration, Stained Glass, Origami, Sketchbook, Heart Monitor, and Catppuccin (official palette, all four flavors).
-- **Place the Panel Anywhere:** The panel is no longer pinned under the menu bar icon. Drag it from any empty spot to wherever you want it, and it reopens there next time. It stays put when another app takes focus — a second click on the menu bar icon, or Escape, closes it.
+- **Place the Panel Anywhere:** Drag the panel from any empty spot to wherever you want it, and it reopens there next time. It stays put when another app takes focus — a second click on the menu bar icon, or Escape, closes it.
 - **Drag to Reorder:** Grab any quota card and drag it up or down to swap the order — the arrangement is shared across every theme with quota cards (all except World Cup 2026) and survives restarts.
 - **Automatic Localization:** UI text is available in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
 
@@ -81,7 +83,7 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 ## Requirements
 
 - macOS 12 (Monterey) or newer, or Windows 10/11
-- Claude Code, Codex, or Antigravity has been used at least once (so local usage data exists).
+- Claude Code, Codex, Antigravity, or Grok CLI has been used at least once (so local usage data exists).
 - (Source runs only) Python 3.13.
 
 ## Install
@@ -147,21 +149,22 @@ Privacy policy: this program will not transfer any information to other networke
 Switch between **16 visual themes** directly from the UI:
 
 <p align="center">
-  <img src="docs/classic.en.png" width="32%" alt="Classic theme" />
-  <img src="docs/matrix.en.png" width="32%" alt="Matrix theme" />
-  <img src="docs/win95.en.png" width="32%" alt="Windows 95 theme" />
-  <img src="docs/newspaper.en.png" width="32%" alt="Newspaper theme" />
-  <img src="docs/cloud_observation.en.png" width="32%" alt="Cloud Observation theme" />
-  <img src="docs/aquarium.en.png" width="32%" alt="Midnight Aquarium theme" />
-  <img src="docs/prism_arcade.en.png" width="32%" alt="Prism Arcade theme" />
-  <img src="docs/stained_glass.en.png" width="32%" alt="Stained Glass theme" />
-  <img src="docs/origami.en.png" width="32%" alt="Origami theme" />
-  <img src="docs/black_hole.en.png" width="32%" alt="Black Hole theme" />
-  <img src="docs/lepidoptera.en.png" width="32%" alt="Lepidoptera theme" />
-  <img src="docs/migration.en.png" width="32%" alt="Migration theme" />
-  <img src="docs/catppuccin.en.png" width="32%" alt="Catppuccin theme" />
-  <img src="docs/sketchbook.en.png" width="32%" alt="Sketchbook theme" />
-  <img src="docs/heart_monitor.en.png" width="32%" alt="Heart Monitor theme" />
+  <img src="docs/classic.en.png" width="24%" alt="Classic theme" />
+  <img src="docs/matrix.en.png" width="24%" alt="Matrix theme" />
+  <img src="docs/win95.en.png" width="24%" alt="Windows 95 theme" />
+  <img src="docs/newspaper.en.png" width="24%" alt="Newspaper theme" />
+  <img src="docs/cloud_observation.en.png" width="24%" alt="Cloud Observation theme" />
+  <img src="docs/aquarium.en.png" width="24%" alt="Midnight Aquarium theme" />
+  <img src="docs/prism_arcade.en.png" width="24%" alt="Prism Arcade theme" />
+  <img src="docs/stained_glass.en.png" width="24%" alt="Stained Glass theme" />
+  <img src="docs/origami.en.png" width="24%" alt="Origami theme" />
+  <img src="docs/black_hole.en.png" width="24%" alt="Black Hole theme" />
+  <img src="docs/world_cup.en.png" width="24%" alt="World Cup 2026 theme" />
+  <img src="docs/lepidoptera.en.png" width="24%" alt="Lepidoptera theme" />
+  <img src="docs/migration.en.png" width="24%" alt="Migration theme" />
+  <img src="docs/catppuccin.en.png" width="24%" alt="Catppuccin theme" />
+  <img src="docs/sketchbook.en.png" width="24%" alt="Sketchbook theme" />
+  <img src="docs/heart_monitor.en.png" width="24%" alt="Heart Monitor theme" />
 </p>
 
 ## Troubleshooting
@@ -201,8 +204,8 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 ## When usage Isn't the Right Fit
 
 - You only live in the terminal and don't want another menu bar icon running in the background — a one-off CLI check fits better.
-- You don't use Claude Code, Codex, or Antigravity — there's no local usage data for `usage` to read.
-- You're on Linux — only macOS and Windows are supported today.
+- You don't use Claude Code, Codex, Antigravity, or Grok CLI — there's no local usage data for `usage` to read.
+- You want a menu bar on Linux. Only macOS and Windows have one today, though the terminal interface (`uvx usage-cli`) runs on Linux.
 
 ## Development
 

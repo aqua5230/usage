@@ -4,9 +4,9 @@
 
 # usage
 
-### 把 Claude Code、Codex、Antigravity 與 Grok CLI 額度直接放進 macOS 選單列與 Windows 系統匣
+### 你的 Claude Code、Codex、Antigravity 與 Grok CLI 額度，一直都在畫面上。
 
-長時間重構或除錯若依賴 Claude Code，無預警撞到額度上限代價很高。`usage` 讓你在撞牆前就先看到 5 小時與每週限額，並且全程留在畫面上——不用停下來跑指令、也不用另外開頁面，答案就在你本來就在看的地方。
+`usage` 把 5 小時與每週限額放在 macOS 選單列或 Windows 系統匣，用綠到紅的顏色表示。重構做到一半才發現額度用完，很難受；現在你會先看到。不用跑指令，也不用開頁面。
 
 繁體中文 · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介紹頁](https://aqua5230.github.io/usage/)
 
@@ -23,7 +23,9 @@
   <img src="showcase-v3.en.png" alt="usage — 把 Claude Code、Codex 與 Antigravity 的額度釘在 macOS 選單列" width="820">
 </p>
 
-Claude Code 與 Codex 的數字是被動讀自你機器上原本就在寫的紀錄檔，因此**看額度這件事永遠不會呼叫 Anthropic 或 OpenAI 的 LLM API**，也不會消耗你的任何 token。Antigravity 是唯一的例外：它的額度來自 Google 官方額度端點，用的是 Antigravity CLI 本來就存在本機的登入身分——這只是一次元資料查詢，同樣不會消耗你的模型額度。
+Claude Code 與 Codex 的數字讀自你機器上原本就在寫的紀錄檔，所以**看額度永遠不會呼叫 Anthropic 或 OpenAI 的 LLM API**，也不花你任何 token。Antigravity 是唯一的例外：額度來自 Google 官方額度端點，用的是 Antigravity CLI 本來就存在本機的登入身分。那只是一次元資料查詢，同樣不會用掉你的模型額度。
+
+`usage` 也能幫你少用一點。對話窗快要膨脹、提示快取快冷掉之前，狀態列會先提醒；Token 節省開關讓回覆變短。在真實對話的 A/B 測試裡，後段回覆維持短約 40%，而不是越拖越長 84%。
 
 ## 快速上手
 
@@ -31,9 +33,9 @@ Claude Code 與 Codex 的數字是被動讀自你機器上原本就在寫的紀�
 brew install --cask aqua5230/usage/usage
 ```
 
-**不是 macOS？** `uvx usage-cli` 在任何系統都能開終端機介面，Linux 也行——不用安裝，也沒有選單列。
-
 安裝後會自動進入「應用程式」資料夾。先打開一次；macOS 15 以上若被擋，到「系統設定」→「隱私權與安全性」，往下捲，按**「強制打開」**。macOS 14 以前：按右鍵**「打開」**一次讓 Gatekeeper 放行。放行後點選單列圖示即可。想直接下載，或想看完整設定流程？見下方 [安裝](#安裝)。
+
+**不是 macOS？** `uvx usage-cli` 在任何系統都能開終端機介面，Linux 也行——不用安裝，也沒有選單列。
 
 **快速跳轉：** [你會得到什麼](#你會得到什麼) · [隱私與資料來源](#隱私與資料來源) · [環境需求](#環境需求) · [安裝](#安裝) · [設定狀態列](#首次打開設定狀態列) · [Windows 支援](#windows-支援) · [主題展示](#主題展示) · [常見問題排查](#常見問題排查) · [跟其他工具比較](#跟其他工具比較) · [不適合誰](#不適合誰) · [開發](#開發)
 
@@ -57,7 +59,7 @@ brew install --cask aqua5230/usage/usage
 - **終端機整合：** `usage status --json` 把 Claude Code 與 Codex 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案，不做網路呼叫。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **Token 浪費健檢：** 每日背景診斷重複讀取檔案、污染目錄與雜訊輸出。當發現浪費時會有一行提示，AI 也能帶你看懂問題並給出改善建議。
 
-### AI 協作
+### 掌握最新動態
 
 - **AI 更新日報：** 開啟每天自動更新的公開[網頁](https://aqua5230.github.io/ai-updates/)，涵蓋 Claude Code、Codex、Antigravity 三套工具、保留完整歷史。已審核的更新顯示五語白話版，未審核的顯示官方原文。
 
@@ -68,7 +70,7 @@ brew install --cask aqua5230/usage/usage
 ### 體驗與客製化
 
 - **16 款視覺面板：** 可在預設（Default）、Matrix、Windows 95、復古報紙（Newspaper）、雲圖觀測（Cloud Observation）、午夜水族箱（Midnight Aquarium）、Prism Arcade、黑洞視界（Black Hole）、World Cup 2026、蝶類圖鑑（Lepidoptera）、候鳥遷徙（Migration）、彩繪玻璃（Stained Glass）、摺紙（Origami）、手繪筆記（Sketchbook）、心電圖（Heart Monitor）與 Catppuccin（官方配色，四款 flavor 全支援）之間切換。
-- **面板自由擺放：** 面板不再釘在選單列圖示下方。在任何空白處按住就能拖到你想要的位置，下次打開還在原地。點到別的 App 也不會消失，要再點一次選單列圖示或按 Esc 才關。
+- **面板自由擺放：** 在面板任何空白處按住就能拖到你想要的位置，下次打開還在原地。點到別的 App 也不會消失，要再點一次選單列圖示或按 Esc 才關。
 - **拖曳排序：** 按住任何一張額度卡上下拖曳就能交換順序，排法在所有包含額度卡的主題間共用（除 World Cup 2026 之外），重開也會記住。
 - **自動多語言 (i18n)：** 介面支援繁中、簡中、英、日、韓，自動跟隨系統語言設定。
 
@@ -81,7 +83,7 @@ brew install --cask aqua5230/usage/usage
 ## 環境需求
 
 - macOS 12（Monterey）或更新版本，或 Windows 10/11
-- 已經使用過 Claude Code、Codex 或 Antigravity（需有本機用量資料）
+- 已經使用過 Claude Code、Codex、Antigravity 或 Grok CLI（需有本機用量資料）
 - （僅限從原始碼跑）Python 3.13
 
 ## 安裝
@@ -147,21 +149,22 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 內建 **16 款可切換的視覺主題**，可直接在 UI 中切換：
 
 <p align="center">
-  <img src="classic.png" width="32%" alt="Classic 主題" />
-  <img src="matrix.png" width="32%" alt="Matrix 主題" />
-  <img src="win95.png" width="32%" alt="Windows 95 主題" />
-  <img src="newspaper.png" width="32%" alt="復古報紙主題" />
-  <img src="cloud_observation.png" width="32%" alt="雲圖觀測主題" />
-  <img src="aquarium.png" width="32%" alt="深夜水族箱主題" />
-  <img src="prism_arcade.png" width="32%" alt="Prism Arcade 主題" />
-  <img src="stained_glass.png" width="32%" alt="彩繪玻璃主題" />
-  <img src="origami.png" width="32%" alt="摺紙主題" />
-  <img src="black_hole.png" width="32%" alt="黑洞主題" />
-  <img src="lepidoptera.png" width="32%" alt="Lepidoptera 主題" />
-  <img src="migration.png" width="32%" alt="候鳥遷徙主題" />
-  <img src="catppuccin.png" width="32%" alt="Catppuccin 主題" />
-  <img src="sketchbook.png" width="32%" alt="手繪筆記主題" />
-  <img src="heart_monitor.png" width="32%" alt="心電圖主題" />
+  <img src="classic.png" width="24%" alt="Classic 主題" />
+  <img src="matrix.png" width="24%" alt="Matrix 主題" />
+  <img src="win95.png" width="24%" alt="Windows 95 主題" />
+  <img src="newspaper.png" width="24%" alt="復古報紙主題" />
+  <img src="cloud_observation.png" width="24%" alt="雲圖觀測主題" />
+  <img src="aquarium.png" width="24%" alt="深夜水族箱主題" />
+  <img src="prism_arcade.png" width="24%" alt="Prism Arcade 主題" />
+  <img src="stained_glass.png" width="24%" alt="彩繪玻璃主題" />
+  <img src="origami.png" width="24%" alt="摺紙主題" />
+  <img src="black_hole.png" width="24%" alt="黑洞主題" />
+  <img src="world_cup.png" width="24%" alt="World Cup 2026 主題" />
+  <img src="lepidoptera.png" width="24%" alt="Lepidoptera 主題" />
+  <img src="migration.png" width="24%" alt="候鳥遷徙主題" />
+  <img src="catppuccin.png" width="24%" alt="Catppuccin 主題" />
+  <img src="sketchbook.png" width="24%" alt="手繪筆記主題" />
+  <img src="heart_monitor.png" width="24%" alt="心電圖主題" />
 </p>
 
 ## 常見問題排查
@@ -201,8 +204,8 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 ## 不適合誰
 
 - 你完全生活在終端機裡，不想要任何背景執行的選單列圖示——單次執行的 CLI 工具會更適合你。
-- 你沒有在使用 Claude Code、Codex 或 Antigravity——因為這樣 `usage` 就沒有可以讀取的本機用量資料。
-- 你使用的是 Linux——目前只支援 macOS 與 Windows。
+- 你沒有在使用 Claude Code、Codex、Antigravity 或 Grok CLI——因為這樣 `usage` 就沒有可以讀取的本機用量資料。
+- 你想在 Linux 上用選單列。目前只有 macOS 與 Windows 有，不過終端機介面（`uvx usage-cli`）在 Linux 上跑得起來。
 
 ## 開發
 

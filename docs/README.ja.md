@@ -4,9 +4,9 @@
 
 # usage
 
-### macOSのメニューバーとWindowsのシステムトレイでClaude Code、Codex、Antigravity、Grok CLIのクォータを確認。
+### Claude Code、Codex、Antigravity、Grok CLIのクォータを、いつでも画面に。
 
-セッションの途中でクォータが尽きると大きな損失になります。特に、Claude Code に依存する長時間のリファクタリングやデバッグではなおさらです。`usage` は上限に達する*前に*5時間ごとと週ごとの上限を表示し、常に見える状態に保ちます。コマンドを実行する必要も、ページを開く必要もありません。答えは、いつも見る場所に表示されています。
+`usage` は5時間と週ごとの上限を macOS のメニューバーや Windows のシステムトレイに表示し、緑から赤への色で示します。長いリファクタリングの途中で上限に達して残量不足に気づくのは、痛いものです。これなら事前に把握できます。コマンドを実行する必要も、ページを開く必要もありません。
 
 [繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · 日本語 · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [公式サイト](https://aqua5230.github.io/usage/)
 
@@ -23,7 +23,9 @@
   <img src="showcase-v3.en.png" alt="usage — macOSメニューバーに固定されたClaude Code、Codex、Antigravityのクォータ" width="820">
 </p>
 
-Claude CodeとCodexの数値は、すでにマシンにあるログファイルから受動的に読み取られるため、**クォータの確認で Anthropic や OpenAI の LLM API を呼び出すことはなく**、tokenを消費することもありません。唯一の例外である Antigravity のクォータは、Antigravity CLI がすでにローカルに保存しているサインイン情報を使って Google の公式クォータエンドポイントから取得されますが、これもメタデータの取得に過ぎず、モデルクォータを消費することはありません。
+Claude CodeとCodexの数値はマシン上にある既存のログファイルから読み取るため、**クォータの確認で Anthropic や OpenAI の LLM API を呼び出すことはなく**、tokenを消費することもありません。唯一の例外は Antigravity です。クォータは Antigravity CLI がローカルに保存しているサインイン情報を使って Google の公式クォータエンドポイントから取得されます。これはメタデータの取得に過ぎず、モデルクォータを消費することもありません。
+
+`usage` は消費を抑えるのにも役立ちます。コンテキストウィンドウが膨らんだり prompt cache が冷えたりする前に、ステータスラインが先にお知らせします。Token セーバーのトグルで回答も短く保てます。実際のセッションでの A/B テストでは、後半の回答が 84% 長くなることはなく、約 40% 短いまま維持されました。
 
 ## クイックスタート
 
@@ -31,9 +33,9 @@ Claude CodeとCodexの数値は、すでにマシンにあるログファイル�
 brew install --cask aqua5230/usage/usage
 ```
 
-**macOSではない場合は** `uvx usage-cli` でどのOSでもターミナルインターフェースを開けます。Linuxも対応、インストール不要、メニューバーはありません。
-
 Applicationsフォルダに自動でインストールされます。一度開いてみて、macOS 15 以降でブロックされたら「システム設定」→「プライバシーとセキュリティ」を開き、下へスクロールして**「このまま開く」**をクリック。macOS 14 以前では一度右クリックして **「開く」** を選び、Gatekeeperを通します。その後メニューバーのアイコンをクリックしてください。直接ダウンロードしたい場合や、設定の全手順を確認したい場合は、下の[インストール](#インストール)をご覧ください。
+
+**macOSではない場合は** `uvx usage-cli` でどのOSでもターミナルインターフェースを開けます。Linuxも対応、インストール不要、メニューバーはありません。
 
 **クイックジャンプ：** [主な機能](#主な機能) · [プライバシーとデータソース](#プライバシーとデータソース) · [必要環境](#必要環境) · [インストール](#インストール) · [ステータスライン設定](#初回起動ステータスラインを設定) · [Windows対応](#windows対応) · [テーマギャラリー](#テーマギャラリー) · [トラブルシューティング](#トラブルシューティング) · [比較](#比較) · [対象外となるケース](#対象外となるケース) · [開発](#開発)
 
@@ -57,7 +59,7 @@ Applicationsフォルダに自動でインストールされます。一度開�
 - **ターミナル統合：** `usage status --json` は、コマンドを実行できるあらゆるツール——Starship、tmux、または独自のスクリプト——に Claude Code および Codex のクオータを渡します。メニューバーと同じローカルファイルを読み込み、ネットワーク呼び出しは行いません。[既製のスニペット](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **Token浪費ヘルスチェック：** 毎日のバックグラウンド診断がログをスキャンし、ファイルの繰り返し読み込み、汚染ディレクトリ、冗長なBash出力などの無駄を検出します。問題が見つかると一行の通知を表示します。「show me」と言えば、AIが修正手順を案内します。
 
-### AIチームワーク
+### 最新動向の把握
 
 - **AI更新日報：** 毎日更新される公開[ウェブページ](https://aqua5230.github.io/ai-updates/)を開き、Claude Code、Codex、Antigravityを網羅し、完全な履歴を保持します。審査済みの更新は5言語の平易な要約を、未審査のものは公式原文を表示します。
 
@@ -68,7 +70,7 @@ Applicationsフォルダに自動でインストールされます。一度開�
 ### 体験とカスタマイズ
 
 - **16種類のビジュアルテーマ：** デフォルト（Default）、Matrix、Windows 95、レトロ新聞（Newspaper）、Cloud Observation、Midnight Aquarium、Prism Arcade、Black Hole、World Cup 2026、蝶の図鑑（Lepidoptera）、渡り鳥（Migration）、ステンドグラス、折り紙、手描きノート（Sketchbook）、心電図モニター（Heart Monitor）、Catppuccin（公式パレット、4種のflavorすべてに対応）を含むパネルスタイルを切り替えられます。
-- **パネルを自由に配置：** パネルはメニューバーアイコンの下に固定されなくなりました。空白部分をドラッグして好きな場所に移動でき、次回開いたときもその位置を保持します。他のアプリにフォーカスが移っても消えず、メニューバーアイコンをもう一度クリックするかEscキーを押すと閉じます。
+- **パネルを自由に配置：** 空白部分をドラッグして好きな場所に移動でき、次回開いたときもその位置を保持します。他のアプリにフォーカスが移っても消えず、メニューバーアイコンをもう一度クリックするかEscキーを押すと閉じます。
 - **ドラッグで並べ替え：** 任意のクォータカードをつかんで上下にドラッグすると順序を入れ替えられます。並び順はクォータカードを含むすべてのテーマ（World Cup 2026 を除く）で共有され、再起動後も維持されます。
 - **自動ローカライズ：** UIテキストは繁体字中国語、簡体字中国語、英語、日本語、韓国語で利用でき、システム設定に自動的に合わせます。
 
@@ -81,7 +83,7 @@ Applicationsフォルダに自動でインストールされます。一度開�
 ## 必要環境
 
 - macOS 12（Monterey）以降、または Windows 10/11
-- Claude Code、Codex、またはAntigravityを少なくとも一度使用済みであること（ローカル使用量データが存在するため）。
+- Claude Code、Codex、Antigravity、またはGrok CLIを少なくとも一度使用済みであること（ローカル使用量データが存在するため）。
 - （ソースから実行する場合のみ）Python 3.13。
 
 ## インストール
@@ -147,21 +149,22 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 UIから直接 **16種類のビジュアルテーマ**を切り替えられます。
 
 <p align="center">
-  <img src="classic.en.png" width="32%" alt="Classicテーマ" />
-  <img src="matrix.en.png" width="32%" alt="Matrixテーマ" />
-  <img src="win95.en.png" width="32%" alt="Windows 95テーマ" />
-  <img src="newspaper.en.png" width="32%" alt="Newspaperテーマ" />
-  <img src="cloud_observation.en.png" width="32%" alt="Cloud Observationテーマ" />
-  <img src="aquarium.en.png" width="32%" alt="Aquariumテーマ" />
-  <img src="prism_arcade.en.png" width="32%" alt="Prism Arcadeテーマ" />
-  <img src="stained_glass.en.png" width="32%" alt="Stained Glassテーマ" />
-  <img src="origami.en.png" width="32%" alt="Origamiテーマ" />
-  <img src="black_hole.en.png" width="32%" alt="Black Holeテーマ" />
-  <img src="lepidoptera.en.png" width="32%" alt="Lepidopteraテーマ" />
-  <img src="migration.png" width="32%" alt="渡り鳥テーマ" />
-  <img src="catppuccin.en.png" width="32%" alt="Catppuccinテーマ" />
-  <img src="sketchbook.en.png" width="32%" alt="手描きノートテーマ" />
-  <img src="heart_monitor.en.png" width="32%" alt="心電図モニターテーマ" />
+  <img src="classic.en.png" width="24%" alt="Classicテーマ" />
+  <img src="matrix.en.png" width="24%" alt="Matrixテーマ" />
+  <img src="win95.en.png" width="24%" alt="Windows 95テーマ" />
+  <img src="newspaper.en.png" width="24%" alt="Newspaperテーマ" />
+  <img src="cloud_observation.en.png" width="24%" alt="Cloud Observationテーマ" />
+  <img src="aquarium.en.png" width="24%" alt="Aquariumテーマ" />
+  <img src="prism_arcade.en.png" width="24%" alt="Prism Arcadeテーマ" />
+  <img src="stained_glass.en.png" width="24%" alt="Stained Glassテーマ" />
+  <img src="origami.en.png" width="24%" alt="Origamiテーマ" />
+  <img src="black_hole.en.png" width="24%" alt="Black Holeテーマ" />
+  <img src="world_cup.en.png" width="24%" alt="World Cup 2026テーマ" />
+  <img src="lepidoptera.en.png" width="24%" alt="Lepidopteraテーマ" />
+  <img src="migration.png" width="24%" alt="渡り鳥テーマ" />
+  <img src="catppuccin.en.png" width="24%" alt="Catppuccinテーマ" />
+  <img src="sketchbook.en.png" width="24%" alt="手描きノートテーマ" />
+  <img src="heart_monitor.en.png" width="24%" alt="心電図モニターテーマ" />
 </p>
 
 ## トラブルシューティング
@@ -201,8 +204,8 @@ UIから直接 **16種類のビジュアルテーマ**を切り替えられま�
 ## 対象外となるケース
 
 - ターミナルでのみ作業しており、バックグラウンドでメニューバーアイコンを実行したくない場合——単発で確認できる CLI ツールのほうが適しています。
-- Claude Code、Codex、Antigravity のいずれも使用していない場合——`usage` が読み取るためのローカル使用量データが存在しません。
-- Linux を使用している場合——現在は macOS と Windows のみサポートしています。
+- Claude Code、Codex、Antigravity、Grok CLI のいずれも使用していない場合——`usage` が読み取るためのローカル使用量データが存在しません。
+- Linux でメニューバーを使いたい場合。現在メニューバーがあるのは macOS と Windows のみですが、ターミナルインターフェース（`uvx usage-cli`）なら Linux でも動作します。
 
 ## 開発
 
