@@ -712,6 +712,40 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.159.2",
+          "period": "2026-09-29",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Windows 執行背景與沙盒指令不再跳出黑視窗閃爍",
+                "en": "Background and Sandboxed Commands on Windows No Longer Flash Black Windows"
+              },
+              "body": {
+                "zh-TW": "在 Windows 上使用 Codex 處理專案時，工作節奏不再會被突如其來的畫面閃爍打斷。以前每當它在幕後啟動背景行程（在後台運作而不佔用畫面的程式）時，螢幕常會瞬間閃現黑框。執行沙盒指令（被限制在安全隔離環境中執行的指令）時也會出現同樣的彈窗干擾。現在 Codex 啟動這些背景任務時，跳出主控台（console，顯示純文字指令的介面）視窗的閃爍問題已經被修好。⟦像舞台助理在布幕後方安靜搬運道具，不會每次走動就突然拉開簾子干擾台前的表演。⟧",
+                "en": "When working on projects with Codex on Windows, your workflow is no longer interrupted by sudden screen flashing. Previously, whenever it spawned background processes behind the scenes, black command prompt windows would often flash across the screen. Running sandboxed commands caused the same popup disruptions. Now, the flashing issue caused by popup console windows when Codex launches these background tasks has been fixed. ⟦Picture a stage assistant moving props quietly behind the curtains without pulling them open to disrupt the performance on stage every time they move around.⟧"
+              },
+              "original": "Suppressed console windows flashing on Windows when Codex launches background processes and sandboxed commands. (#49385)"
+            }
+          ]
+        },
+        {
+          "version": "0.159.1",
+          "period": "2026-09-29",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "預設模型升級為 GPT-6.1 Sol",
+                "en": "Default Model Upgraded to GPT-6.1 Sol"
+              },
+              "body": {
+                "zh-TW": "你想知道 Codex 預設選哪個模型時，可以看它使用的模型目錄。這次改動涵蓋三份目錄：Codex 內建的模型目錄，以及 Amazon Bedrock（亞馬遜的雲端 AI 服務）中名為 Mantle 和 Runtime 的兩份模型目錄。三份目錄現在都把 GPT-6.1 Sol 列為預設模型。⟦像三份菜單原本各有預設餐點，現在都把預設欄改填同一道餐；改的是菜單上的預設選項。⟧",
+                "en": "When checking which model Codex selects by default, you can look at the model catalog it references. This update covers three catalogs: Codex's built-in model catalog, and two model catalogs named Mantle and Runtime in Amazon Bedrock (Amazon's cloud AI service). All three catalogs now list GPT-6.1 Sol as the default model. ⟦Picture three menus that each previously had a default meal, now all updated to list the same dish as the default; what changed is the preset option printed on each menu.⟧"
+              },
+              "original": "Added GPT-6.1 Sol as the default model in the bundled catalog and Amazon Bedrock Mantle and Runtime catalogs. (#49323, #49342)"
+            }
+          ]
+        },
+        {
           "version": "0.159.0",
           "period": "2026-09-29",
           "items": [
@@ -804,117 +838,6 @@
               "original": "Removed automatic follow-up prompt suggestions and the `tui.prompt_suggestions` setting. (#48621)\nRemoved the bundled `plugin-creator` skill. (#48604)"
             }
           ]
-        },
-        {
-          "version": "0.158.0",
-          "period": "2026-09-28",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "全螢幕介面支援選取即複製與右鍵貼上，並保留排版格式",
-                "en": "Fullscreen interface supports copy-on-select and right-click paste while preserving formatting"
-              },
-              "body": {
-                "zh-TW": "在全螢幕文字介面（TUI，以純文字排版的終端機操作畫面）瀏覽或整理對話紀錄時，操作方式變得更貼近日常習慣。⟦跟在一般文書軟體裡圈選文字一樣，滑鼠反白選取就能直接存入剪貼簿、點擊右鍵就能貼上，而且帶有標題與清單的內容複製出去後仍維持原本排版。⟧現在你可以在設定中開啟選取即複製與右鍵貼上功能。從對話紀錄選取複製的內容，會完整保留 Markdown（用簡單符號標註粗體與標題的純文字排版格式）語法，貼到其他筆記工具時不再失去格式。",
-                "en": "Browsing or organizing conversation history in the full-screen terminal interface now aligns more closely with everyday habits. ⟦Much like selecting text in a standard word processor, highlighting text with the mouse copies it directly to the clipboard, right-clicking pastes it, and content with headings and lists preserves its original layout after copying.⟧ You can now enable copy-on-select and right-click paste in settings. Content copied from chat history fully preserves Markdown syntax, so it no longer loses formatting when pasted into other note-taking tools."
-              },
-              "original": "Configure copy-on-select and right-click paste in the fullscreen TUI. Copied transcript selections now preserve Markdown formatting. (#47639, #47896, #48118)"
-            },
-            {
-              "title": {
-                "zh-TW": "MCP 伺服器支援預先註冊的密鑰驗證",
-                "en": "MCP servers support pre-registered secret authentication"
-              },
-              "body": {
-                "zh-TW": "當你想要串接需要特殊身分驗證的外部服務時，現在可以直接提供專屬金鑰完成連線。⟦有些門禁只認預先登記的通行證；現在 Codex 也能帶著伺服器要求的預先註冊密鑰連線。⟧Codex 現在支援需要預先註冊 OAuth 客戶端密鑰的 MCP（讓 AI 連接外部工具的協定）伺服器。你可以直接在終端機執行帶有專屬參數的指令來新增伺服器：\n```bash\ncodex mcp add --oauth-client-secret\n```\n面對要求事先註冊密鑰的驗證機制，也能順利連接並整合至日常工作中。",
-                "en": "When you want to connect external services that require special authentication, you can now directly provide a dedicated key to establish the connection. ⟦Think of an access gate that only accepts pre-registered passes: Codex can now connect using the pre-registered secret required by the server.⟧ Codex now supports MCP servers that require a pre-registered OAuth client secret. You can add a server directly by running a command with dedicated flags in the terminal:\n```bash\ncodex mcp add --oauth-client-secret\n```\nThis allows you to smoothly connect and integrate authentication mechanisms that require pre-registered secrets into your daily workflow."
-              },
-              "original": "Connect to MCP servers that require pre-registered OAuth client secrets, including through `codex mcp add --oauth-client-secret`. (#47891)"
-            },
-            {
-              "title": {
-                "zh-TW": "執行伺服器 WebSocket 連線加入令牌驗證",
-                "en": "WebSocket connections to execution server add token authentication"
-              },
-              "body": {
-                "zh-TW": "在背景執行伺服器與主程式進行即時通訊時，傳輸通道的安全防護再度升級。⟦彷彿替專屬通訊管道掛上門禁驗票閘門，以前只要通道接通就能傳話，現在每次進出都必須出示專屬的通行證才給過。⟧Codex 現在使用 bearer token（持有者出示即可驗證身分的授權令牌）來保護直接連向 exec-server 的 WebSocket 連線。這項安全保護也包含經由 app-server 所配置的連線管道。透過令牌驗證機制，連線能防止未授權的外部存取，保障通訊過程的安全性。",
-                "en": "When the background execution server communicates in real time with the main program, security protection for the transmission channel is upgraded once again. ⟦A security gate is now installed on the dedicated communication channel: while any connected line used to transmit messages freely, every entry and exit now requires presenting an exclusive pass.⟧ Codex now uses a bearer token to protect direct WebSocket connections to exec-server. This security protection also covers connection channels configured through app-server. Through token authentication, connections prevent unauthorized external access and ensure communication security."
-              },
-              "original": "Secure direct exec-server WebSocket connections with bearer tokens, including connections configured through app-server. (#47601, #47648)"
-            },
-            {
-              "title": {
-                "zh-TW": "圖片生成支援透明背景，對話圖片可直接編輯",
-                "en": "Image generation supports transparent backgrounds and direct editing of conversation images"
-              },
-              "body": {
-                "zh-TW": "請 AI 製作或修改圖像素材時，產出的圖片能更方便地直接放入簡報與網頁中。⟦像在透明畫布上作畫，完成的圖案可以疊到簡報或網頁上；對話裡已存成檔案的圖片，也能當成下一次修改的素材。⟧現在你在下達生成或修改圖片的指令時，可以明確要求輸出透明背景。圖片編輯功能也支援直接讀取對話紀錄中已存為檔案的圖像，讓你不用重新匯出上傳就能接續調整畫面。",
-                "en": "When asking AI to create or modify image assets, generated images can be placed directly into presentations and webpages more conveniently. ⟦Like painting on a transparent canvas, completed graphics can overlay onto presentations or webpages, while images saved as files in the conversation can serve as source assets for subsequent edits.⟧ You can now explicitly request a transparent background when issuing prompts to generate or modify images. The image editing feature also supports reading images saved as files directly from the conversation history, allowing you to continue adjusting visuals without re-exporting and uploading."
-              },
-              "original": "Image generation and editing can explicitly request transparent backgrounds, and edits now accept file-backed conversation images. (#47484, #47956)"
-            },
-            {
-              "title": {
-                "zh-TW": "權限審核提問不中斷動作，並減少重複確認提示",
-                "en": "Permission review queries no longer interrupt actions and reduce repeated confirmation prompts"
-              },
-              "body": {
-                "zh-TW": "當你在等待指令審核的過程中想發問或確認狀態時，操作不再會意外中斷。⟦好比在櫃檯辦理手續時隨口問了一句進度，辦事員回答完你的問題會繼續處理申請，不會把整份表格直接作廢；原本就已蓋章核可的項目，也不會換個叫法就叫你重新排隊。⟧現在若在待審核狀態下輸入新文字，審核流程會自動重試，詢問狀態不會直接中斷等待執行的操作。針對以提升權限執行的指令，終端機輸入審核預設開啟，僅限執行階段授予的權限也不再引發多餘的審查。在 macOS 上套用修正時，系統能識別既有權限已涵蓋的路徑別名（alias，指向相同位置的替代路徑名稱），避免重複跳出確認提示。",
-                "en": "Asking questions or checking status while waiting for command review no longer accidentally interrupts the operation. ⟦Picture asking a clerk for a quick status update while processing paperwork: the clerk answers your question and continues handling the application without voiding the entire form, nor making you wait in line again for already stamped approvals under a different name.⟧ If new text is entered while in a pending review state, the review process automatically retries, ensuring status inquiries do not directly interrupt operations awaiting execution. For commands executed with elevated permissions, terminal input review is enabled by default, and runtime-only permissions no longer trigger redundant audits. When applying fixes on macOS, the system recognizes path aliases covered by existing permissions, avoiding duplicate confirmation prompts."
-              },
-              "original": "Terminal input approval is enabled by default for commands running with elevated permissions; runtime-only grants no longer cause unnecessary reviews. (#47799, #48073)\nmacOS patch operations now recognize system path aliases covered by existing permissions, avoiding unnecessary approval prompts. (#47879)\nApproval reviews now retry when new user input arrives, so a status question does not automatically abort a pending action. (#47819)"
-            },
-            {
-              "title": {
-                "zh-TW": "修復跨平台沙盒路徑、憑證與寫入權限問題",
-                "en": "Fixes cross-platform sandbox path, credential, and write permission issues"
-              },
-              "body": {
-                "zh-TW": "在不同作業系統中透過沙盒（隔離程式執行的環境）執行指令時，穩定性獲得改善。⟦像校正隔離空間的出入口與可用範圍，以前一般 Windows 10 路徑或巢狀可寫入根目錄會讓沙盒出錯，現在這兩種路徑都能正常處理，Git 中繼資料的防護也會保留。⟧在 Windows 上，修復了涉及一般 Windows 10 路徑、已儲存憑證（留存的登入證明）遭拒，以及龐大權限政策時導致沙盒失敗的問題。在 Linux 環境下，修正了包含巢狀可寫入根目錄時沙盒無法啟動的錯誤。跨 Linux 與 macOS 的多個可寫入根目錄時，也確保完整保留 Git 中繼資料（記錄版本控制設定的內部資料）的防護機制。",
-                "en": "Stability is improved when running commands inside sandboxes across different operating systems. ⟦Adjusting the access points and boundaries of an isolated space ensures that standard Windows 10 paths and nested writable roots are handled properly, while preserving protections for Git metadata.⟧ On Windows, issues causing sandbox failures with standard Windows 10 paths, rejected saved credentials, and oversized permission policies have been fixed. On Linux, an error where sandboxes failed to start when containing nested writable roots has been resolved. Across multiple writable roots on Linux and macOS, protection mechanisms for Git metadata are also fully preserved."
-              },
-              "original": "Fixed Windows sandbox failures involving ordinary Windows 10 paths, rejected stored credentials, and large permission policies. (#47672, #47695, #47919)\nFixed Linux sandbox startup with nested writable roots and preserved Git metadata protections across writable roots on Linux and macOS. (#47623, #47974)"
-            },
-            {
-              "title": {
-                "zh-TW": "Mermaid 流程圖支援引號與符號，未支援圖表附退回說明",
-                "en": "Mermaid flowcharts support quotes and symbols, with fallback explanations for unsupported charts"
-              },
-              "body": {
-                "zh-TW": "請 AI 繪製流程圖或架構圖時，終端機顯示圖表的相容性變得更完整。⟦正如遇到特殊符號時不再直接破圖，畫面能正確排出版面，就算遇到無法繪製的圖表類型，也會清楚附註原因並退回原本的文字草稿供你檢閱。⟧Mermaid（用純文字繪製圖表的語法）流程圖現在能正常渲染帶有雙引號的標籤與「&」符號。如果遇到目前尚未支援的圖表類型，畫面會明確說明退回備援（fallback，無法顯示時改用原始文字呈現的後備機制）的原因，不再讓人摸不著頭緒。",
-                "en": "Terminal chart compatibility is now more comprehensive when asking AI to generate flowcharts or architecture diagrams. ⟦Instead of breaking upon encountering special symbols, the screen renders layouts correctly, and if an unrenderable chart type appears, it clearly notes the reason and falls back to the original text draft for review.⟧ Mermaid flowcharts now properly render labels containing double quotes and \"&\" symbols. When encountering currently unsupported chart types, the screen clearly explains the reason for the fallback, preventing any confusion."
-              },
-              "original": "Mermaid flowcharts now render quoted labels and ampersands; unsupported diagrams explain why they fall back to source. (#47572, #47678)"
-            },
-            {
-              "title": {
-                "zh-TW": "指令完成事件納入前期輸出，行程啟動失敗會回報客戶端",
-                "en": "Command completion events include early output, and process launch failures report to clients"
-              },
-              "body": {
-                "zh-TW": "透過客戶端應用程式監看指令執行狀況時，原本可能漏看開頭輸出，也難以得知行程為何沒啟動。⟦像轉播結束後的紀錄把開場畫面一併附上；若轉播設備根本沒啟動，也會把失敗情況回報給收看端。⟧現在指令完成事件中會包含執行最初期產生的前期輸出內容。當啟動行程（process，作業系統中正在運作的程式個體）遭遇失敗時，也會主動將錯誤回報給客戶端，讓排查問題更有效率。",
-                "en": "When monitoring command execution through a client application, initial output could previously be missed, and diagnosing why a process failed to launch was difficult. ⟦A post-broadcast recording now attaches the opening footage, and if broadcasting equipment fails to start altogether, the failure is reported directly to the viewer.⟧ Command completion events now include early output generated at the very beginning of execution. When launching a process fails, the error is actively reported to the client, making troubleshooting much more efficient."
-              },
-              "original": "Command completion events now include early output and report process-launch failures to clients. (#47529, #47665)"
-            }
-          ]
-        },
-        {
-          "version": "0.157.1",
-          "period": "2026-09-26",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "未提供更新重點，標籤比對查無內容",
-                "en": "No Update Highlights Provided, Tag Comparison Found No Content"
-              },
-              "body": {
-                "zh-TW": "如果你想知道這版更新了什麼，目前提供的資料還無法確認重點。因為本次提供的 PR 索引（PR index，記錄程式碼修改與合併紀錄的清單）完全空白。連線到 GitHub 比對版本標籤（tag，標記特定軟體版本的記號）的功能也無法查詢。該比對頁面直接回傳了 404 錯誤代碼（網頁伺服器表示找不到該頁面的狀態碼）。⟦像走進展覽館翻開隨附的導覽手冊，展品索引頁面剛好一片空白，掃描牆上的導覽連結也跳出失效畫面，讓人暫時無法查知具體的展出項目。⟧由於來源清單空白且標籤比對頁面失效，目前無法確認本版的更新重點。",
-                "en": "If you want to know what changed in this release, the currently provided information cannot confirm the highlights. This is because the provided PR index is completely blank. Connecting to GitHub to compare version tags also fails to return any information. The comparison page directly returned a 404 error code. ⟦A visitor walks into an exhibition hall and opens the accompanying guidebook only to find the exhibit index blank, while scanning the guide link on the wall brings up a broken page, making it impossible to check the specific exhibits for now.⟧ Because the source list is blank and the tag comparison page is unavailable, the update highlights for this release cannot be confirmed at this time."
-              },
-              "original": "Release highlights could not be determined: the supplied PR index is empty, and the GitHub tag comparison returned 404."
-            }
-          ]
         }
       ]
     },
@@ -922,6 +845,89 @@
       "id": "agy",
       "name": "Antigravity",
       "versions": [
+        {
+          "version": "1.2.14",
+          "period": "2026-09-30",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "設定選單新增排隊選項，可隨時插話打斷對話",
+                "en": "Settings Menu Adds Queue Option to Interrupt Conversations Anytime"
+              },
+              "body": {
+                "zh-TW": "當你看到助理正朝錯誤方向執行長任務時，現在可以直接插話叫停。⟦跟看著助手搬錯箱子時直接出聲喊停一樣，以前只能等他把整批貨搬完才能交代新指令，現在一開口就能立刻打斷他。⟧你可以在 `/config` 選單找到 `Queued Messages` 選項。保持預設的 `Queue` 會把補充訊息暫存到當前輪次結束，切換成 `Send Immediately` 則能立即中斷助理。這項偏好也能直接寫入全域設定檔 `settings.json`，修正了以往寫入該設定卻被系統忽略的問題：\n```json\n{\"queuedMessages\": \"send-immediately\"}\n```",
+                "en": "When you see your assistant heading in the wrong direction during a long task, you can now speak up and stop it directly. ⟦Think of calling out to stop a helper carrying the wrong box: previously you had to wait until the entire shipment was moved to issue new instructions, but now you can interrupt immediately.⟧ You can find the `Queued Messages` option in the `/config` menu. Keeping the default `Queue` buffers follow-up messages until the current turn ends, while switching to `Send Immediately` interrupts the assistant right away. This preference can also be written directly to the global configuration file `settings.json`, fixing an issue where writing this setting previously got ignored by the system:\n```json\n{\"queuedMessages\": \"send-immediately\"}\n```"
+              },
+              "original": "Added the `Queued Messages` option to `/config`: keep the default `Queue` to hold follow-up messages until the current turn ends, or choose `Send Immediately` to interrupt the agent with them; it can also be set with `\"queuedMessages\": \"send-immediately\"` in `settings.json`, which was previously ignored"
+            },
+            {
+              "title": {
+                "zh-TW": "Linux 容器環境支援遠端控制，沒有 systemd 使用者服務管理員也能背景啟動",
+                "en": "Remote Control Now Supported in Linux Containers, Starting in Background Without systemd User Service Manager"
+              },
+              "body": {
+                "zh-TW": "當你在輕量 Docker 環境裡想要連線操作時，過去常因底層缺少自動託管機制而直接碰壁卡關。⟦彷彿在沒有自動排班系統的小型倉庫裡改由工人手動輪值，雖然當機時不會自動重啟、開機也不會自動執行，但依然能把手邊的工作順利跑起來。⟧在沒有 systemd 使用者服務管理員（替個人帳號管理背景服務的程式）的 Linux 機器上執行 `remote-control start` 時，現在會直接將常駐程式以背景行程啟動，並警告該行程當機後不會自動重啟且開機時不會自動載入。你隨時能輸入 `remote-control status` 查詢其行程識別碼（PID），需要結束時輸入 `remote-control stop` 即可將其關閉。",
+                "en": "When you want to connect and operate inside a lightweight Docker environment, you previously hit a wall because the underlying system lacked an automated hosting mechanism. ⟦Picture running a small warehouse without an automated scheduling system by having workers take manual shifts: although it will not automatically restart on crashes or launch on boot, it still keeps your current work running smoothly.⟧ When running `remote-control start` on Linux machines without a systemd user service manager (a program that manages background services for a user account), the daemon now starts directly as a background process, warning that the process will not restart on crash or launch on boot. You can enter `remote-control status` anytime to check its process ID (PID), and enter `remote-control stop` whenever you need to shut it down."
+              },
+              "original": "Improved `remote-control start` on Linux machines without a systemd user service manager, such as most containers: instead of failing, it now starts the daemon as a background process and warns that it will not restart after a crash or start at boot; `remote-control status` shows its PID and `remote-control stop` shuts it down"
+            },
+            {
+              "title": {
+                "zh-TW": "長對話載入更快，缺步歷程不再覆寫舊進度",
+                "en": "Long Conversations Load Faster, and Histories with Missing Steps No Longer Overwrite Old Progress"
+              },
+              "body": {
+                "zh-TW": "當你接續聊了很久的繁重工作階段，或是中途遇上當機想接回紀錄時，整個流程順暢且安心許多。⟦如同翻開厚重日記時直接跳到最新的書籤頁，不必每次都從第一頁逐字掃描，就算中間曾掉了一頁，後續記錄也絕不會錯位覆蓋。⟧重啟擁有數千步驟的對話時，命令列介面不再預先逐步掃描，載入速度明顯加快。歷程若曾因當機或寫入中斷而出現遺漏步驟，恢復時不會再隱藏最新內容，更不會讓新訊息意外覆寫舊紀錄。自動產生的對話標題現在也會將首則訊息附加的圖片與檔案納入考量，純傳截圖或檔案的請求也能擁有具體的標題。",
+                "en": "When you resume a heavy, long-running session or reconnect to your history after a crash, the entire workflow is noticeably smoother and safer. ⟦A reader opening a thick journal jumps straight to the newest bookmarked page without scanning word-by-word from the start, ensuring later entries never misalign or overwrite old notes even if a page went missing.⟧ When restarting conversations with thousands of steps, the command-line interface no longer pre-scans step-by-step, significantly speeding up load times. If history was missing steps due to crashes or interrupted writes, resuming will no longer hide the latest content, nor will new messages accidentally overwrite old records. Auto-generated conversation titles now also factor in images and files attached to the first message, giving concrete titles to requests that only include screenshots or files."
+              },
+              "original": "Improved loading long conversations: resuming a conversation with thousands of steps is noticeably faster because the CLI no longer scans every step up front\nImproved automatically generated conversation titles to take images and files attached to your first message into account, so screenshot- or file-driven requests get specific titles and messages with only attachments get a title too\nFixed resuming a conversation whose history had a missing step, for example after a crash or an interrupted write, hiding the most recent steps and letting new messages overwrite them"
+            },
+            {
+              "title": {
+                "zh-TW": "帳號違規遭封鎖時，登入錯誤提示附上申訴連結",
+                "en": "Login Error Prompts Include Appeal Links When Accounts Are Blocked for Violations"
+              },
+              "body": {
+                "zh-TW": "早上一開工卻被擋在門外，畫面上只寫著因違反服務條款（Terms of Service）遭到停權，常讓人不知道該去哪裡詢問。以前遇到帳號受阻只能看見失敗提示，摸不清該找誰處理；現在登入失敗的錯誤訊息裡會直接附上申訴連結，讓你能立刻點擊網址提交說明。⟦就像門禁卡突然失效時，感應機不再只發出逼逼警告聲，而是直接在螢幕上顯示管理室的服務電話與分機。⟧",
+                "en": "Starting your morning only to find yourself locked out, with a screen stating your account has been suspended for violating the Terms of Service, often leaves you wondering where to turn. Previously, encountering a blocked account only showed a generic failure message with no clear contact point; now, login failure error messages directly include an appeal link, letting you click the URL immediately to submit an explanation. ⟦Instead of merely beeping when an access card fails, a card reader now displays the management office phone number and extension directly on its screen.⟧"
+              },
+              "original": "Improved the sign-in error shown to accounts blocked for a Terms of Service violation, which now includes a link to submit an appeal"
+            },
+            {
+              "title": {
+                "zh-TW": "`--json-schema` 啟動時嚴格檢查，根層級非物件立即報錯",
+                "en": "`--json-schema` Strictly Validated at Startup, Failing Immediately If Root Level Is Not an Object"
+              },
+              "body": {
+                "zh-TW": "當你為指令傳入結構描述時，若格式有誤或檔案遺失，系統在啟動階段就會立即攔截。⟦好比海關在登機門前嚴格核對護照格式，發現拿的是白紙、寫錯代碼或缺件就當場拒絕通行，而不是放行登機後才引發混亂。⟧參數 `--json-schema` 不再將純文字、單獨型態名稱（如 `string`）或不存在的結構描述檔默默當成字串型態處理。現在只要輸入上述無效內容，或是根層級不是物件（`\"type\": \"object\"`）的結構描述，程式在啟動時就會直接輸出錯誤訊息並以結束代碼 `1` 中斷退出。",
+                "en": "When you pass a schema to a command, the system now intercepts formatting errors or missing files right at startup. ⟦Customs officers strictly check passport formats at the boarding gate, turning away blank paper, mistyped codes, or missing documents on the spot rather than causing chaos after boarding.⟧ The `--json-schema` parameter no longer silently treats plain text, bare type names (such as `string`), or non-existent schema files as string types. Supplying any of these invalid inputs, or a schema whose root level is not an object (`\"type\": \"object\"`), now causes the program to output an error message at startup and exit immediately with exit code `1`."
+              },
+              "original": "Changed `--json-schema` to reject plain text, bare type names such as `string`, and missing schema files instead of silently treating them as a string schema; these inputs, and any schema whose root is not `\"type\": \"object\"`, now fail at startup with an error and exit code `1`"
+            },
+            {
+              "title": {
+                "zh-TW": "輸入提示不再游標偏離，表情符號與特殊文字換行不割裂",
+                "en": "Prompt Input Eliminates Cursor Drift, Keeping Emojis and Complex Characters Intact Across Line Wraps"
+              },
+              "body": {
+                "zh-TW": "在終端機輸入特殊字元或在多重視窗中作業時，游標位置與文字折行現在能精準對齊。⟦就像使用排版工具編輯圖文，以前遇到複雜貼圖或組合文字時游標會飄到半空中、換行還會把圖案切成兩半，現在游標與字元邊界都緊緊貼合。⟧修復了在提示列輸入 ⚠️ 或 👩‍💻 等表情符號，以及天城文（Devanagari）與泰文等組合字元時游標尾端偏離的問題，特別是在 `tmux` 環境下更是如此。當文字過長自動折行時，也不會再將這類特殊字元拆散切成兩行顯示。",
+                "en": "When entering special characters in the terminal or working across multiplexed windows, cursor positioning and text wrapping now align precisely. ⟦Like laying out text and graphics in a publishing tool where complex stickers previously floated the cursor into mid-air and line breaks sliced graphics in half, the cursor and character boundaries now fit tightly together.⟧ Fixed trailing cursor drift when entering emojis such as ⚠️ or 👩‍💻, as well as combining characters like Devanagari and Thai in the prompt line, especially inside `tmux` environments. When long text wraps automatically, it will also no longer split these special characters across two lines."
+              },
+              "original": "Fixed the prompt cursor drifting away from the end of the text after emoji such as ⚠️ or 👩‍💻, or scripts with combining marks such as Devanagari and Thai, especially inside `tmux`, and fixed prompt wrapping splitting such characters across two lines"
+            },
+            {
+              "title": {
+                "zh-TW": "檢視管線裝置與損毀影音不再卡死，事前攔截並清楚提示",
+                "en": "Inspecting Pipe Devices and Corrupted Media No Longer Hangs, Intercepting Early with Clear Prompts"
+              },
+              "body": {
+                "zh-TW": "當助理嘗試讀取特殊系統檔案或不完整的影音錄影時，對話不會再陷入無止境的等待或報錯。⟦宛如播放器遇到未下載完成的影片或特殊資料通道時直接提示檔案損毀，而不是整台機器當機轉圈圈。⟧以前助理若嘗試檢視管線（pipe）、通訊端或裝置檔等特殊檔案，流程很容易直接卡死。檢視未錄製完整的 MP4、MOV 或 M4A 影音檔時，對話也會陷入無效引數（`INVALID_ARGUMENT`）錯誤而無法繼續。現在遇到這兩類檔案時，系統會在讀取前直接攔截並給出明確的提示訊息。",
+                "en": "When the assistant attempts to read special system files or incomplete audiovisual recordings, conversations no longer get trapped in endless waiting or error states. ⟦A media player encountering an incomplete video download or a special data stream alerts you to file corruption directly instead of freezing the entire machine with a spinning wheel.⟧ Previously, if the assistant tried to inspect special files such as pipes, sockets, or device files, the process easily hung completely. Inspecting incompletely recorded MP4, MOV, or M4A media files also threw `INVALID_ARGUMENT` errors that blocked the conversation from continuing. When encountering either type of file, the system now intercepts before reading and provides a clear prompt."
+              },
+              "original": "Fixed the agent hanging when it tried to view a pipe, socket, or device file, and a conversation getting stuck with `INVALID_ARGUMENT` errors after the agent viewed a truncated MP4, MOV, or M4A recording; both are now rejected up front with a clear message"
+            }
+          ]
+        },
         {
           "version": "1.2.13",
           "period": "2026-09-29",
@@ -1030,67 +1036,6 @@
                 "en": "Editing commands and text in Vim mode is now significantly smoother when typing non-English characters or selecting blocks. Previously, non-ASCII characters such as `é` or `中` were silently ignored after `r`, `f`, `F`, `t`, and `T` commands. Using `fv` and `fV` in Visual mode inadvertently exited the selection instead of extending the range. Furthermore, executing `D`, `C`, or Visual mode `~`, `u`, and `U` without modifying text recorded an empty undo entry and wiped the redo history. All of these editing glitches have now been resolved. ⟦Much like working in an advanced text editor, jumping to Chinese characters lands accurately, highlighting text does not abruptly cancel, and hitting ineffective keys will not wipe your redo history.⟧"
               },
               "original": "Fixed Vim mode ignoring non-ASCII characters such as `é` or `中` after `r`, `f`, `F`, `t` and `T`, `fv` and `fV` in Visual mode leaving Visual mode instead of extending the selection, and `D`, `C`, or Visual `~`/`u`/`U` recording an empty undo step and clearing redo history when they changed nothing"
-            }
-          ]
-        },
-        {
-          "version": "1.2.11",
-          "period": "2026-09-25",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "模型推理解析度支援分級，旗標與選單皆可自訂力度",
-                "en": "Tiered Reasoning Effort Support for Models, Configurable via Flag and Menu"
-              },
-              "body": {
-                "zh-TW": "當你需要模型處理繁複的架構設計或快速回覆簡短提問時，能自由調配思考深度就顯得格外實用。Antigravity 改進了不同模型對推理解析度（reasoning effort，模型產生答案前的思考運算深度）的支援，讓支援不同思考力度的模型能更精準切換層級。現在只要在啟動指令加上 `--effort` 旗標，或在對話中輸入 `/effort` 與 `/model`，就能從視覺化量表直接挑選適合的強度。⟦就像騎變速自行車依路況切換檔位，遇到陡峭山路時切換到高檔全力衝刺，平坦直路則換上輕檔快速巡航。⟧ 遇到棘手的重構難題時拉高力度，寫簡短測試或整理資料時調低檔位，思考資源運用更靈活。",
-                "en": "When you need a model to tackle complex architectural designs or quickly answer brief questions, the freedom to adjust thinking depth is especially useful. Antigravity improves support for reasoning effort across different models, allowing models with varying reasoning capabilities to switch levels more precisely. You can now select the right intensity directly from a visual gauge by adding the `--effort` flag to startup commands or running `/effort` and `/model` during a session. ⟦Like shifting gears on a bicycle to match the terrain, a rider shifts into a higher gear for full power on steep climbs and cruises in a lighter gear on flat roads.⟧ Dial up the effort for tricky refactoring tasks and lower it for short tests or data organization, making your thinking resources far more flexible."
-              },
-              "original": "Improved reasoning effort level for models with different support, selectable with `--effort` or from the effort gauge in `/effort` and `/model`."
-            },
-            {
-              "title": {
-                "zh-TW": "需要設定參數的手動外掛改為預設停用",
-                "en": "Manually Added Plugins That Need Configuration Now Start Disabled"
-              },
-              "body": {
-                "zh-TW": "平時若是習慣直接把擴充套件檔案複製到設定資料夾，要注意這些外掛的啟用方式變了。以前直接放進 `~/.gemini/config/plugins` 目錄的外掛，只要內含需要設定參數的 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器，往往一放進去就嘗試運作；現在它們預設會先保持停用，直到你主動啟用為止。這樣的行為已與透過 `/plugin` 指令安裝的外掛完全一致。⟦如同收到需要裝上電池才能運轉的新家電，出廠時預設切在斷電安全檔，一定要先裝妥配件並手動按下開關才會啟動。⟧",
-                "en": "If you usually copy plugin files directly into the configuration folder, note that these plugins now start up differently. Previously, plugins placed directly in the `~/.gemini/config/plugins` directory would attempt to run immediately if they contained MCP servers requiring configuration parameters; now, they remain disabled by default until you explicitly enable them. This behavior now fully matches plugins installed via the `/plugin` command. ⟦Picture receiving a new household appliance that requires batteries: it arrives safely switched off by default, starting up only after you install the accessories and manually turn on the power switch.⟧"
-              },
-              "original": "Changed plugins placed directly in `~/.gemini/config/plugins` so that a plugin whose MCP server needs configuration variables now starts disabled until you enable it, matching plugins installed through `/plugin`."
-            },
-            {
-              "title": {
-                "zh-TW": "WezTerm 與 VS Code 終端機不再破圖，圖表改以純文字備援顯示",
-                "en": "No More Garbled Graphics in WezTerm and VS Code, Falling Back to Plain Text Diagrams"
-              },
-              "body": {
-                "zh-TW": "在 WezTerm 或 VS Code 內建終端機裡查看架構圖或數學公式時，畫面上不再出現一連串令人摸不著頭緒的亂碼方塊。過去輸出 Mermaid 流程圖或 LaTeX 公式時，終端機被誤判為支援 Kitty 繪圖通訊協定，導致畫面印出整排破圖字元；現在已取消這項假設，改以清晰的 ASCII 純文字備援格式顯示，確保圖表與排版內容都能一目了然。",
-                "en": "When viewing architecture diagrams or mathematical formulas inside WezTerm or the VS Code integrated terminal, you will no longer see confusing rows of corrupted placeholder characters. Previously, when rendering Mermaid flowcharts or LaTeX formulas, these terminals were incorrectly assumed to support the Kitty graphics protocol, causing rows of broken characters to print on screen. Antigravity has removed this assumption and now displays them in a clear ASCII fallback format, ensuring that both diagrams and formatted content remain readable at a glance."
-              },
-              "original": "Fixed Mermaid diagrams and LaTeX rendering as rows of garbled placeholder characters in WezTerm and the VS Code integrated terminal; these terminals are no longer assumed to support Kitty graphics and now show the ASCII fallback"
-            },
-            {
-              "title": {
-                "zh-TW": "關閉選取即複製後，成品檢視器釋放滑鼠控制並恢復快速鍵",
-                "en": "Artifact Viewer Releases Mouse Capture When Copy on Select Is Disabled, Restoring Shortcuts"
-              },
-              "body": {
-                "zh-TW": "當你在設定中關閉選取自動複製功能時，瀏覽產出的檔案內容不再被強制攔截游標動作。過去在 `/config` 裡將 `Copy on Select` 關閉後，成品檢視器依然會捕捉滑鼠事件，使得終端機原生的選取與複製快速鍵無法使用；現在檢視器已不再佔用滑鼠，終端機本身的複製操作能正常運作，按下 `Ctrl+C` 也會如期執行中斷或退出。",
-                "en": "When you disable automatic copy on selection in settings, browsing generated file contents will no longer hijack your cursor actions. Previously, after turning off `Copy on Select` in `/config`, the artifact viewer continued to capture mouse events, preventing the terminal's native selection and copy shortcuts from working. The viewer now releases the mouse so your terminal's built-in copy operations function normally, and pressing `Ctrl+C` properly interrupts or exits as expected."
-              },
-              "original": "Fixed copying text from the artifact viewer when `Copy on Select` is turned off in `/config`: the viewer no longer captures the mouse, so your terminal's own selection and copy shortcut work, and `Ctrl+C` goes back to interrupting or exiting"
-            },
-            {
-              "title": {
-                "zh-TW": "專案自訂代理支援修復，桌面端與無頭模式皆能正常選用",
-                "en": "Project Custom Agents Fixed Across Desktop App and Headless Runs"
-              },
-              "body": {
-                "zh-TW": "當你在專案目錄下配置專屬的輔助角色時，各個執行環境現在都能順利讀取到這些客製化設定。以前放在 `.agents/agents/` 目錄下的專案自訂代理，容易在桌面應用程式建立的工作區、已信任的工作區、使用 `--agent` 參數、以 `-p` 或 `--prompt` 執行的 headless（無頭模式，沒有終端機視窗的執行模式），以及 `/agents` 面板中找不到或無法選取；現在這些辨識問題均已修好，無論在哪種模式下都能直接指派自訂代理。",
-                "en": "When configuring dedicated assistant roles in your project directory, every execution environment can now smoothly load these custom settings. Previously, project custom agents located in `.agents/agents/` were frequently missing or unselectable in workspaces created in the Desktop App, in trusted workspaces, when specifying `--agent`, in headless `-p` or `--prompt` runs without a terminal window, and within the `/agents` panel. These discovery issues have all been resolved, allowing you to assign custom agents directly in any mode."
-              },
-              "original": "Fixed project custom agents in .agents/agents/ not being found or selectable in workspaces created in the Desktop App, in already-trusted workspaces, under execution with --agent, in headless (-p / --prompt) runs, and in the /agents panel."
             }
           ]
         }
