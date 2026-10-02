@@ -822,6 +822,100 @@
       "name": "Codex",
       "versions": [
         {
+          "version": "0.160.0",
+          "period": "2026-10-01",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Guardian 審查支援回溯早期指示，交接脈絡不漏勾",
+                "en": "Guardian Review Supports Tracing Early Instructions Without Losing Handover Context"
+              },
+              "body": {
+                "zh-TW": "當你讓 AI 執行跨步驟任務或在不同代理人間輪流協作時，最怕後續接手的環節漏掉最初的叮嚀。新加入的 Guardian 審查（Guardian review，檢驗操作是否符合安全規範的防護機制）是一項自由啟用的功能。它現在能主動擷取使用者在對話更早之前給出的指令，並將代理人交接時的完整脈絡一併納入檢查。⟦如同工地的安全督導員，以前只看當班工人手上的施工單，現在換班交接時會主動調出屋主最初簽署的設計要求，確保每位接手的師傅都不會走樣。⟧過去交接時若只傳遞當前進度，防護檢查可能因缺乏前因後果而做出誤判。現在只要開啟這項功能，審查模組就能掌握全貌，讓多代理人協作時的執行方向始終對齊你的原始要求。",
+                "en": "When you have AI execute multi-step tasks or rotate collaboration across different agents, the biggest concern is that subsequent stages might overlook initial instructions. The newly added Guardian review (an opt-in safety mechanism that verifies whether operations comply with security rules) is an optional feature. It can now proactively retrieve user instructions provided earlier in the conversation, incorporating full agent handover context into its checks. ⟦Picture a construction safety inspector who previously only checked the active worker's daily slip, but now during shift changes pulls up the owner's original design requirements to ensure incoming craftsmen never deviate.⟧ In the past, passing only the current progress during handovers could lead to misjudgments in safety checks due to missing background context. Once enabled, the review module captures the complete picture, ensuring that multi-agent execution remains aligned with your original requirements."
+              },
+              "original": "Added opt-in Guardian review capabilities to retrieve earlier user instructions and include context from agent handoffs. (#49036, #49057)"
+            },
+            {
+              "title": {
+                "zh-TW": "支援專案外快速開啟工作階段，恢復時自動帶回權限",
+                "en": "Support Starting Sessions Outside Projects with Automatic Permission Restoration"
+              },
+              "body": {
+                "zh-TW": "有時候你只是想臨時發問或處理零散檔案，手邊的目錄並不是任何專案資料夾。現在只要系統政策允許，你可以在專案目錄之外直接啟動工作階段（session，你與 AI 連續互動的對話環境），並套用預設的工作區設定。不僅如此，當你之後想要接續處理並恢復工作階段時，系統也會一併還原先前儲存的授權與權限。⟦就像帶著筆電到露天咖啡廳臨時辦公，只要大樓管理規範許可，你不必特地進辦公室也能直接套用標準辦公設備，再次打開筆電時還能立刻連回原本設定好的內部網路。⟧以前不在專案內可能無法正常啟用，中斷後重新連線還得重新授權一次。現在即使脫離專案目錄，操作彈性與權限記憶依然完整。",
+                "en": "Sometimes you simply want to ask quick questions or handle miscellaneous files when the current directory is not a project folder. As long as system policy permits, you can now launch a session (a conversational environment for continuous interaction with AI) directly outside project directories while applying default workspace settings. Furthermore, when you resume the session later to continue work, the system also restores previously stored authorizations and permissions. ⟦Think of working remotely from an outdoor cafe with a laptop where building policies allow you to use standard office setups without visiting the office, and reopening your laptop immediately reconnects to your configured internal network.⟧ Previously, starting outside a project might fail, and reconnecting required re-authorizing permissions. Now, even outside project directories, operational flexibility and permission persistence remain intact."
+              },
+              "original": "Start sessions outside a project with workspace defaults when policy permits, and restore saved permissions when resuming. (#49160)"
+            },
+            {
+              "title": {
+                "zh-TW": "控制中心支援鍵盤翻查舊任務，終端機設定與歷史更精準",
+                "en": "Agent Control Center Adds Keyboard Navigation for Past Tasks with Precise Terminal History"
+              },
+              "body": {
+                "zh-TW": "在終端機裡頻繁切換任務或檢視紀錄時，操作流暢度會直接影響工作節奏。代理人控制中心現在新增了可用鍵盤直接操作的「Show more」動作，讓你輕鬆翻查更早之前的任務紀錄。在支援此操作的本機 Linux X11 終端機上，全螢幕模式下也已支援選取對話紀錄文字並透過滑鼠中鍵快速貼上。在設定與狀態保存上，終端機介面現在會完整保留伺服器提供者、推論摘要與詳細程度等偏好，並在恢復對話或分支出新歷史時顯示正確的工作階段。⟦跟整理多功能工作桌一樣，以前翻找抽屜底層的舊文件很不順手、切換全螢幕時剪刀膠水會暫時失靈，重新開工還得把檯燈與筆記重新擺一遍；現在所有工具位置與歷史紀錄都牢牢固定在原位。⟧各項介面細節修整後，日常操作更加順手。",
+                "en": "When frequently switching tasks or inspecting history in the terminal, operational smoothness directly affects your workflow pace. The Agent Control Center now introduces a keyboard-accessible \"Show more\" action, letting you easily browse earlier task records. On local Linux X11 terminals that support this operation, full-screen mode now also allows selecting conversation transcript text and pasting quickly with a middle click. For settings and state persistence, the terminal interface fully preserves preferences such as server provider, reasoning summaries, and verbosity, displaying the correct session when resuming conversations or branching into new history. ⟦Much like organizing a versatile workbench where digging through bottom drawers was clumsy, scissors and glue temporarily failed in full-screen mode, and restarting required rearranging desk lamps and notes, all tool positions and records now stay firmly in place.⟧ With these refined interface details, daily operations become much smoother."
+              },
+              "original": "Browse older tasks in the agent command center with a keyboard-accessible “Show more” action. (#49106)\nSelect transcript text and paste with middle-click in fullscreen mode on supported local Linux X11 terminals. (#49112)\nThe terminal UI now preserves server provider, reasoning-summary, and verbosity settings and shows the correct sessions in resume and fork history. (#49144, #49161, #49171)"
+            },
+            {
+              "title": {
+                "zh-TW": "斷線重連自動確認發送狀態，佇列訊息不再重複寄出",
+                "en": "Reconnection Automatically Verifies Delivery Status to Prevent Duplicate Queued Messages"
+              },
+              "body": {
+                "zh-TW": "當你在網路不穩的環境下對話，最怕連線中斷時排隊等著送出的訊息被重複發送。現在佇列（queue，排隊依序等待處理的待辦清單）中的未發送訊息有了更完善的重連機制。當網路斷線重新連上時，系統會先核對並確認先前處於狀態不明的提交是否已經成功，釐清之後才繼續處理後續訊息，徹底避免同一句話被重複發送。⟦好比在通訊不良的山區發送訊息，以前一恢復訊號就急著把草稿全發出去，常害對方收到兩次同一句話；現在會先核對上一則到底有沒有送達，確認清楚才按順序送出下一條。⟧重連後會繼續處理未送出的佇列訊息，避免重複發送。",
+                "en": "When conversing over an unstable network, the biggest concern is that pending messages waiting to be sent might be duplicated during disconnections. Unsent messages in the queue (a pending list waiting to be processed in order) now benefit from an improved reconnection mechanism. Upon reconnecting after network drops, the system first verifies whether earlier submissions in an uncertain state succeeded before continuing with subsequent messages, completely preventing the same message from being sent twice. ⟦Consider sending messages in a mountain area with poor signal where restoring connectivity previously caused rushed draft submissions that delivered duplicates, whereas now it first confirms if the prior text arrived before sequentially sending the next one.⟧ After reconnecting, the system resumes processing unsent queued messages without duplication."
+              },
+              "original": "Unsent queued messages now resume after reconnection once uncertain submissions are resolved, avoiding duplicate sends. (#49105)"
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 沙盒健全 PowerShell 備援，長路徑與背景視窗一併修復",
+                "en": "Windows Sandbox Solidifies PowerShell Fallback while Fixing Long Paths and Background Windows"
+              },
+              "body": {
+                "zh-TW": "在 Windows 環境下利用沙盒執行隔離指令時，以前可能偶爾會遇到執行失敗或跳出干擾視窗的情況。這版修復了 Windows 沙盒（sandbox，將程式隔離在安全環境執行的技術）中的 PowerShell 備援機制，並解決了超長路徑下的權限修復問題。背景輔助程式在運作時也不再彈出多餘的主控台視窗。⟦宛如在隔音工作室裡測試設備，以前遇到特殊規格的線路會卡住、後台小幫手還會時不時推開門探頭打擾；現在所有備用線路自動接通，助理也在門後安靜作業。⟧這些問題修好後，在 Windows 上的沙盒執行不再受阻，畫面也不會被突然跳出的視窗打擾。",
+                "en": "When executing isolated commands inside sandboxes on Windows, you might previously have encountered execution failures or distracting pop-up windows. This release fixes the PowerShell fallback mechanism within Windows sandbox (a technology that isolates programs within a secure environment) and resolves permission repair issues with very long paths. Background helper processes also no longer pop up redundant console windows during operation. ⟦A technician testing gear in a soundproof studio previously faced stalls with special cables while backstage assistants constantly poked their heads in, but now backup lines connect automatically and assistants work quietly behind closed doors.⟧ With these issues resolved, sandbox execution on Windows is no longer obstructed, and your screen remains undisturbed by sudden pop-up windows."
+              },
+              "original": "Fixed Windows sandbox PowerShell fallbacks and long-path permission repairs, and suppressed unwanted console windows from background helpers. (#49019, #49058, #49098, #49164, #49386)"
+            },
+            {
+              "title": {
+                "zh-TW": "子代理人保留啟動中環境，清楚接收準備失敗訊息",
+                "en": "Subagents Retain Starting Environments and Clearly Receive Setup Failure Reasons"
+              },
+              "body": {
+                "zh-TW": "當你讓 AI 分派子任務給多個子代理人處理時，如果執行環境還在準備，過去容易出現狀態追蹤不明的情況。子代理人（subagent，由主程式派發去獨立執行特定子任務的輔助代理人）現在會妥善保留仍在啟動中的執行環境。如果在設定或準備階段發生任何錯誤，子代理人也能確實接收到具體的失敗原因。⟦類似派發任務給外勤調查員，以前若臨時聯絡站還在搭建或調度失敗，調查員可能直接斷訊消失；現在會持續維持聯繫，並如實回報到底是設備短缺還是場地問題。⟧這讓多代理人協作的初始化流程更加穩健，遇到問題時也能立即知道卡在何處。",
+                "en": "When you have AI delegate subtasks to multiple subagents, tracking could become unclear if the execution environment was still being prepared. A subagent (a helper agent dispatched by the main program to run specific subtasks independently) now properly retains execution environments that are still starting up. If any errors occur during configuration or setup, the subagent accurately receives the concrete reason for failure. ⟦Dispatching tasks to field investigators previously meant they might vanish without communication if a temporary outpost failed to set up, but now contact remains open and reports accurately whether gear is missing or venues are unavailable.⟧ This makes multi-agent initialization much more reliable, allowing you to instantly see where things stalled when issues arise."
+              },
+              "original": "Subagents now retain environments that are still starting and receive their configuration or preparation failure. (#49075)"
+            },
+            {
+              "title": {
+                "zh-TW": "SQLite 資料庫連線不卡頓，錯誤如實顯示並自動回收空間",
+                "en": "SQLite Database Eliminates Connection Jank with Genuine Error Reporting and Space Reclamation"
+              },
+              "body": {
+                "zh-TW": "在長時間執行或頻繁寫入日誌時，底層資料庫的穩定度與磁碟空間管理十分關鍵。這版防止了 SQLite（一種輕量級的嵌入式資料庫系統）在建立連線與寫入記錄時發生卡頓的情況。如果資料庫在初始化時發生錯誤，系統會直接顯示真正的錯誤訊息，不再將其模糊地掩蓋成連線超時。同時，系統新增了背景自動回收機制，會自動釋放日誌資料庫中未使用的剩餘空間，減少硬碟容量佔用。⟦彷彿辦公室的檔案資料庫，以前抽屜卡住或鎖頭故障時只會讓人乾等超時，清空後的空箱還一直堆在走道；現在調閱登記暢行無阻，故障時立刻貼出維修告示，多餘的空位也會在背景自動整理乾淨。⟧",
+                "en": "During long runs or frequent logging, underlying database stability and disk space management are important. This release prevents SQLite (a lightweight embedded database system) from experiencing jank when establishing connections and writing records. If an error occurs during database initialization, the system displays the genuine error message directly instead of masking it as a connection timeout. Meanwhile, a background automatic reclamation mechanism has been added to free unused space in the log database, reducing disk consumption. ⟦Imagine an office file archive where stuck drawers or broken locks previously left people waiting until timeouts while empty boxes piled up in hallways, whereas now record lookups proceed without stalls, maintenance notices post immediately on failure, and reclaimed space is tidied automatically in the background.⟧"
+              },
+              "original": "Prevented SQLite stalls during connection setup and logging, and surfaced initialization errors instead of masking them as timeouts. (#49032, #49102)\nAdded background reclamation of unused log database space to reduce disk usage. (#49069)"
+            },
+            {
+              "title": {
+                "zh-TW": "模型清單過濾過期項目，憑證設定更清晰且外掛載入更快",
+                "en": "Model List Filters Stale Items with Clearer Credential Configuration and Faster Plugin Loading"
+              },
+              "body": {
+                "zh-TW": "當你連接外部自訂模型或載入多個外掛擴充時，設定的明確度與載入效率直接影響啟動速度。明確指定的模型提供者清單現在不再包含不支援的內建項目，重新整理失敗時也不會再沿用過期資料。官方也進一步釐清了提供者憑證如何搭配儲存後端運作，並說明如何利用 `env_key` 設定來指定 API 金鑰所屬的環境變數。在外掛方面，系統透過快取（把算過或查過的結果暫存起來直接用）已解析的資訊清單，並在發送遠端請求時重複使用既有的 HTTP 連線，減少了重複載入外掛的時間。⟦比照專業外燴廚房進貨，以前菜單沒更新會混進不提供的菜色、調料庫存標示不清，每次叫外送食材還得重新簽一次合約；現在菜單即時更新、倉庫放哪一目了然，常用食材也建立了固定配送專線。⟧整體整合更乾淨，運作更俐落。",
+                "en": "When connecting external custom models or loading multiple plugin extensions, configuration clarity and loading efficiency directly impact startup speed. The explicitly specified model provider list no longer contains unsupported built-in entries, nor does it reuse stale data when refreshes fail. The update further clarifies how provider credentials work with storage backends and explains using the `env_key` setting to designate the environment variable for API keys. For plugins, the system caches parsed manifests and reuses existing HTTP connections during remote requests, reducing plugin reloading time. ⟦Like a catering kitchen restocking inventory where outdated menus previously included unavailable dishes, seasoning locations were unmarked, and every delivery required signing new contracts, menus now update promptly, storage is clear, and staple ingredients have dedicated delivery channels.⟧ Overall integration is cleaner and operates more smoothly."
+              },
+              "original": "Explicit provider model catalogs no longer include unsupported bundled models or reuse stale entries after refresh failures. (#49135)\nClarified how provider credentials use the configured storage backend and how `env_key` identifies the API-key environment variable. (#49118)\nReduced repeated plugin-loading work by caching parsed manifests and reusing HTTP connections for remote plugin requests. (#49099, #49100)"
+            }
+          ]
+        },
+        {
           "version": "0.159.3",
           "period": "2026-09-30",
           "items": [
@@ -852,23 +946,6 @@
                 "en": "When working on projects with Codex on Windows, your workflow is no longer interrupted by sudden screen flashing. Previously, whenever it spawned background processes behind the scenes, black command prompt windows would often flash across the screen. Running sandboxed commands caused the same popup disruptions. Now, the flashing issue caused by popup console windows when Codex launches these background tasks has been fixed. ⟦Picture a stage assistant moving props quietly behind the curtains without pulling them open to disrupt the performance on stage every time they move around.⟧"
               },
               "original": "Suppressed console windows flashing on Windows when Codex launches background processes and sandboxed commands. (#49385)"
-            }
-          ]
-        },
-        {
-          "version": "0.159.1",
-          "period": "2026-09-29",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "預設模型升級為 GPT-6.1 Sol",
-                "en": "Default Model Upgraded to GPT-6.1 Sol"
-              },
-              "body": {
-                "zh-TW": "你想知道 Codex 預設選哪個模型時，可以看它使用的模型目錄。這次改動涵蓋三份目錄：Codex 內建的模型目錄，以及 Amazon Bedrock（亞馬遜的雲端 AI 服務）中名為 Mantle 和 Runtime 的兩份模型目錄。三份目錄現在都把 GPT-6.1 Sol 列為預設模型。⟦像三份菜單原本各有預設餐點，現在都把預設欄改填同一道餐；改的是菜單上的預設選項。⟧",
-                "en": "When checking which model Codex selects by default, you can look at the model catalog it references. This update covers three catalogs: Codex's built-in model catalog, and two model catalogs named Mantle and Runtime in Amazon Bedrock (Amazon's cloud AI service). All three catalogs now list GPT-6.1 Sol as the default model. ⟦Picture three menus that each previously had a default meal, now all updated to list the same dish as the default; what changed is the preset option printed on each menu.⟧"
-              },
-              "original": "Added GPT-6.1 Sol as the default model in the bundled catalog and Amazon Bedrock Mantle and Runtime catalogs. (#49323, #49342)"
             }
           ]
         }
