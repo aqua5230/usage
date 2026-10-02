@@ -708,10 +708,8 @@ def test_render_shows_prompt_cache_hit_with_countdown(
         "cost": {"total_duration_ms": 720000},
         "prompt_cache": {
             "caching_observed": True,
-            "warm": True,
             "hit_ratio": 0.9072975151245158,
             "expires_at": now.timestamp() + 43 * 60,
-            "recache_tokens_if_cold": 180_000,
         },
     }
 
@@ -721,87 +719,7 @@ def test_render_shows_prompt_cache_hit_with_countdown(
     assert "快取:" in line3
     assert "91%" in line3
     assert "(剩43min)" in line3
-    assert "已冷" not in line3
     assert "\033[2m\033[38;5;111m" in line3
-
-
-@pytest.mark.parametrize(
-    ("lang", "warm", "expires_offset", "expected"),
-    [
-        ("zh-TW", False, -1, "已冷·下輪重寫 180k"),
-        ("en", False, -1, "cold·re-cache 180k"),
-        ("zh-TW", None, -1, "已冷·下輪重寫 180k"),
-        ("zh-TW", True, 0, "已冷·下輪重寫 180k"),
-        ("zh-TW", False, 60, "已冷·下輪重寫 180k"),
-    ],
-)
-def test_render_shows_recache_tokens_when_prompt_cache_is_cold(
-    monkeypatch: pytest.MonkeyPatch,
-    lang: str,
-    warm: bool | None,
-    expires_offset: int,
-    expected: str,
-) -> None:
-    monkeypatch.setenv("USAGE_LANG", lang)
-    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
-    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
-    prompt_cache: dict[str, object] = {
-        "caching_observed": True,
-        "hit_ratio": 0.9,
-        "expires_at": now.timestamp() + expires_offset,
-        "recache_tokens_if_cold": 180_000,
-    }
-    if warm is not None:
-        prompt_cache["warm"] = warm
-
-    output = usage_statusline.render({"prompt_cache": prompt_cache}, now)
-
-    assert "90%" in output
-    assert f" ({expected})" in output
-    assert "剩" not in output
-    assert "left" not in output
-    assert f"{usage_statusline.C['dim']}{usage_statusline.C['magenta']} ({expected})" in output
-
-
-@pytest.mark.parametrize("recache_tokens", [None, 0, True, "180000"])
-def test_render_omits_recache_text_for_invalid_token_counts(
-    monkeypatch: pytest.MonkeyPatch,
-    recache_tokens: object,
-) -> None:
-    monkeypatch.setenv("USAGE_LANG", "zh-TW")
-    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
-    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
-    output = usage_statusline.render(
-        {
-            "prompt_cache": {
-                "caching_observed": True,
-                "warm": False,
-                "hit_ratio": 0.9,
-                "expires_at": now.timestamp() - 1,
-                "recache_tokens_if_cold": recache_tokens,
-            }
-        },
-        now,
-    )
-
-    assert "快取:" in output
-    assert "(" not in output
-    assert "已冷" not in output
-
-
-def test_render_omits_recache_text_when_token_count_is_missing(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    monkeypatch.setenv("USAGE_LANG", "zh-TW")
-    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
-    now = datetime(2026, 1, 1, 12, 0, tzinfo=UTC)
-    output = usage_statusline.render(
-        {"prompt_cache": {"caching_observed": True, "warm": False, "hit_ratio": 0.9}},
-        now,
-    )
-
-    assert "快取:" in output
-    assert "(" not in output
 
 
 @pytest.mark.parametrize(
