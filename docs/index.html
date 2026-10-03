@@ -497,13 +497,15 @@ section .subtitle {
 .card:hover { border-color: rgba(255, 255, 255, 0.16); }
 .card h3 { font-size: 18px; line-height: 1.35; margin-bottom: 10px; letter-spacing: -0.01em; color: var(--fg); font-weight: 600; }
 .card p { font-size: 15px; color: var(--fg-dim); line-height: 1.7; overflow-wrap: anywhere; }
+.card:has(> .card-icon) { display: grid; grid-template-columns: auto minmax(0, 1fr); column-gap: 10px; align-items: start; align-content: start; }
+.card:has(> .card-icon) > p { grid-column: 1 / -1; }
+/* Icon sits beside the h3; font-size tracks the h3 so 1.35em matches its first line box. */
 .card-icon {
-  display: inline-flex; align-items: center; justify-content: center;
-  width: 36px; height: 36px; margin-bottom: 18px;
-  color: var(--accent); background: var(--accent-soft);
-  border: 1px solid rgba(255, 140, 66, 0.2); border-radius: 10px;
+  display: inline-flex; align-items: center;
+  font-size: 18px; height: 1.35em;
+  color: var(--accent);
 }
-.card-icon svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.card-icon svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .card-lead {
   margin-bottom: 120px;
   display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); column-gap: 56px;
@@ -813,7 +815,6 @@ pre {
   .grid { gap: 12px; }
   .grid > .card { grid-column: 1 / -1; }
   .card { padding: 22px 20px; }
-  .card-icon { margin-bottom: 14px; }
   .card-lead { grid-template-columns: minmax(0, 1fr); padding: 24px 20px; row-gap: 24px; margin-bottom: 72px; }
   .m-panel img { width: 240px; top: 32px; }
   .m-report img { left: 24px; top: 32px; width: calc(100% - 24px); }
@@ -956,7 +957,7 @@ footer .kofi:hover { background: var(--accent-hover); }
 .bento-grid > .card:nth-child(6), .bento-grid > .card:nth-child(7) { --tile-bg: var(--bento-deep); }
 .bento-grid > .card:not(.card-lead) h3 { font-size: clamp(21px, 2vw, 25px); margin-bottom: 14px; }
 .bento-grid > .card:not(.card-lead) p { font-size: 15.5px; line-height: 1.68; max-width: 59ch; }
-.bento-grid .card-icon { margin-bottom: 22px; }
+.bento-grid .card-icon { font-size: clamp(21px, 2vw, 25px); }
 
 #resume { padding-top: 0; background: #0b0e15; }
 .resume-layout { max-width: 1120px; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 20px; padding: 50px 34px 50px 56px; }
