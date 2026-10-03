@@ -1612,7 +1612,9 @@ def test_panel_and_tray_menus_render_the_shared_model(
     assert [
         "separator" if item is FakeMenu.SEPARATOR else item.label for item in tray_menu.items[1:]
     ] == [
-        "separator" if isinstance(entry, wintray_menu.MenuSeparator) else _t("en", entry.i18n_key)
+        "separator"
+        if isinstance(entry, wintray_menu.MenuSeparator)
+        else wintray._without_power_glyph(_t("en", entry.i18n_key))
         for entry in tray_model
     ]
     assert model_keys(tray_model) == ["reset_panel_position", "separator", "quit"]
@@ -1629,6 +1631,34 @@ def test_panel_body_keeps_refresh_and_quit_escape_controls(
 
     assert 'data-action="refresh"' in html
     assert 'data-action="quit"' in html
+
+
+@pytest.mark.parametrize("_panel_id,_key,filename", wintray.WINDOWS_PANELS)
+def test_panel_html_removes_the_power_glyph(_panel_id: str, _key: str, filename: str) -> None:
+    html = wintray.panel_html(filename)
+
+    assert "⏻" not in html
+    assert '"quit": "結束"' in html
+    assert '"quit": "⏻ 結束"' not in html
+
+
+def test_tray_quit_label_removes_the_power_glyph() -> None:
+    class FakeMenuItem:
+        def __init__(self, label: str, action: object, **kwargs: object) -> None:
+            self.label = label
+
+    class FakeMenu:
+        SEPARATOR = object()
+
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "zh-TW"
+    entry = wintray_menu.MenuCommand("quit", "quit", surfaces=frozenset({wintray_menu.TRAY}))
+    item = wintray._tray_menu_entry(
+        SimpleNamespace(Menu=FakeMenu, MenuItem=FakeMenuItem), controller, entry
+    )
+
+    assert "⏻" not in item.label
+    assert item.label == item.label.lstrip()
 
 
 @pytest.mark.parametrize(
