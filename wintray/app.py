@@ -604,12 +604,17 @@ def draw_tray_icon(used_percent: float | None) -> Image:
     return image
 
 
+def _without_power_glyph(text: str) -> str:
+    """Windows fonts lack U+23FB."""
+    return text.replace("⏻ ", "")
+
+
 def panel_html(filename: str) -> str:
     html = _load_panel_html(filename)
     html = html.replace("{{PANEL_FLAVOR}}", _panel_flavor())
     html = inject_content_height_script(html)
     marker = "<head>"
-    return html.replace(marker, f"{marker}\n{JS_SHIM}", 1)
+    return _without_power_glyph(html.replace(marker, f"{marker}\n{JS_SHIM}", 1))
 
 
 def _active_panel_id() -> str:
@@ -2250,7 +2255,10 @@ def _tray_menu_entry(
         return pystray.Menu.SEPARATOR
     if isinstance(entry, wintray_menu.MenuGroup):
         children = tuple(_tray_menu_entry(pystray, controller, child) for child in entry.children)
-        return pystray.MenuItem(_t(controller.language, entry.i18n_key), pystray.Menu(*children))
+        return pystray.MenuItem(
+            _without_power_glyph(_t(controller.language, entry.i18n_key)),
+            pystray.Menu(*children),
+        )
     action = getattr(controller, entry.action)
     kwargs: dict[str, object] = {"radio": entry.radio}
     if entry.checked_by is not None:
@@ -2261,7 +2269,9 @@ def _tray_menu_entry(
         def action(_icon: Any, _item: Any, *, value: str = value) -> Any:
             return getattr(controller, entry.action)(value)
 
-    return pystray.MenuItem(_t(controller.language, entry.i18n_key), action, **kwargs)
+    return pystray.MenuItem(
+        _without_power_glyph(_t(controller.language, entry.i18n_key)), action, **kwargs
+    )
 
 
 def _session_resume_enabled() -> bool:
