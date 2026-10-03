@@ -697,7 +697,7 @@ def test_render_outputs_multiline_colored_statusline(
     assert "$" not in output  # cost line removed in v0.10.0
 
 
-def test_render_shows_prompt_cache_hit_with_countdown(
+def test_render_shows_prompt_cache_hit_without_countdown(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setenv("TT_LANG", "zh_TW")
@@ -718,7 +718,7 @@ def test_render_shows_prompt_cache_hit_with_countdown(
     line3 = output.splitlines()[0]
     assert "快取:" in line3
     assert "91%" in line3
-    assert "(剩43min)" in line3
+    assert "43min" not in line3
     assert "\033[2m\033[38;5;111m" in line3
 
 
@@ -811,12 +811,12 @@ def test_render_prompt_cache_degrades_for_narrow_widths(
     }
 
     monkeypatch.setattr(usage_statusline, "get_width", lambda: 29)
-    bar_only = usage_statusline.render(payload, now)
-    assert "Session:" not in bar_only
-    assert "Cache:" in bar_only
-    assert "43min" not in bar_only
+    pct_only = usage_statusline.render(payload, now)
+    assert "Session:" not in pct_only
+    assert "Cache:" in pct_only
+    assert "43min" not in pct_only
 
-    monkeypatch.setattr(usage_statusline, "get_width", lambda: 18)
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 17)
     without_cache = usage_statusline.render(payload, now)
     assert "Session:" not in without_cache
     assert "Cache:" not in without_cache

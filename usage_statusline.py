@@ -753,17 +753,17 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             f"{C['blue']}{_t('context')}:{C['reset']}{ctx_pct:.0f}%",
         ]
 
-    full = line1 + [p[0] for p in rl_parts] + (ctx_parts[:1] if ctx_parts else [])
+    full = line1 + [p[0] for p in rl_parts]
     candidate = SEP.join(full)
     if vlen(candidate) <= width:
         line1 = full
     else:
-        no_reset = line1 + [p[1] for p in rl_parts] + (ctx_parts[:1] if ctx_parts else [])
+        no_reset = line1 + [p[1] for p in rl_parts]
         candidate = SEP.join(no_reset)
         if vlen(candidate) <= width:
             line1 = no_reset
         else:
-            line1 = line1 + [p[2] for p in rl_parts] + (ctx_parts[1:2] if ctx_parts else [])
+            line1 = line1 + [p[2] for p in rl_parts]
 
     cost = _as_dict(data.get("cost"))
 
@@ -792,36 +792,26 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             model_name += f" {_t('fast_mode')}"
         line3.append(f"{C['dim']}{C['magenta']}{safe_text(model_name)}{C['reset']}")
 
-    cache_part = ""
-    cache_bar_part = ""
+    cache_pct_part = ""
     prompt_cache = _as_dict(data.get("prompt_cache"))
     if prompt_cache.get("caching_observed") is True:
         hit_ratio = _as_float(prompt_cache.get("hit_ratio"))
         if hit_ratio is not None:
-            cache_bar_part = (
+            cache_pct_part = (
                 f"{C['dim']}{C['magenta']}{_t('cache_hit')}{C['reset']}"
-                f"{progress_bar(hit_ratio * 100, bar_w, color_by_pct_inverted)}"
+                f"{color_by_pct_inverted(hit_ratio * 100)}{hit_ratio * 100:.0f}%{C['reset']}"
             )
-            cache_countdown = ""
-            expires_at = _as_float(prompt_cache.get("expires_at"))
-            if expires_at is not None:
-                remain = int(expires_at) - int(now.timestamp())
-                if remain > 0:
-                    if lang in ("zh-TW", "zh-CN"):
-                        cache_countdown = f" ({_t('remaining_prefix')}{fmt_duration(remain)})"
-                    else:
-                        cache_countdown = f" ({fmt_duration(remain)} {_t('remaining_prefix')})"
-            cache_part = cache_bar_part + (
-                f"{C['dim']}{C['magenta']}{cache_countdown}{C['reset']}" if cache_countdown else ""
-            )
-            line3.append(cache_part)
+            line3.append(cache_pct_part)
+
+    if ctx_parts:
+        line3.append(ctx_parts[0])
 
     if vlen(SEP.join(line3)) > width and duration_part:
         line3 = [p for p in line3 if p != duration_part]
-    if vlen(SEP.join(line3)) > width and cache_part:
-        line3 = [cache_bar_part if p == cache_part else p for p in line3]
-    if vlen(SEP.join(line3)) > width and cache_bar_part:
-        line3 = [p for p in line3 if p != cache_bar_part]
+    if vlen(SEP.join(line3)) > width and cache_pct_part:
+        line3 = [p for p in line3 if p != cache_pct_part]
+    if len(ctx_parts) > 1 and vlen(SEP.join(line3)) > width:
+        line3[-1] = ctx_parts[1]
 
     update_version = _read_update_hint(now.timestamp())
     if update_version and (line1 or line3):
