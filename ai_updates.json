@@ -956,6 +956,249 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.16",
+          "period": "2026-10-03",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "設定選單支援左右方向鍵，切換選項立即儲存",
+                "en": "Settings menu supports left and right arrow keys to switch options and save instantly"
+              },
+              "body": {
+                "zh-TW": "當你想調整工具偏好卻不想在一層層下拉選單裡反覆按確認時，現在有更快的改法。在終端機輸入 `/config` 開啟設定頁面，將游標停在想要修改的項目上，直接按鍵盤的 `←` 或 `→` 鍵，就能立刻切換到上一個或下一個選項數值並直接儲存，不需要再按 Enter 展開下拉清單。畫面最下方的頁尾也會顯示 `←/→ Change` 的提示字樣。⟦像在電視選單按左右鍵切換訊號源或音效模式，不用每次都展開整排下拉選單再按確定，手指一撥設定就立刻生效。⟧",
+                "en": "When you want to adjust tool preferences without repeatedly pressing confirm across dropdown menus, there is now a faster way. Typing `/config` in the terminal opens the settings page. Highlight the setting you want to change and press `←` or `→` on your keyboard to instantly switch to the previous or next value and save immediately, without needing to press Enter to expand the dropdown list. The footer at the very bottom of the screen also displays a `←/→ Change` prompt. ⟦Like toggling input sources or sound modes with the arrow keys on a TV menu, settings apply instantly with a flick of a finger instead of expanding an entire dropdown list and confirming every time.⟧"
+              },
+              "original": "Added `←`/`→` shortcuts to `/config`: on a highlighted setting they switch to the previous or next value and save it right away, without opening the dropdown, and the footer shows a `←/→ Change` hint"
+            },
+            {
+              "title": {
+                "zh-TW": "全螢幕對話不再卡頓，滑鼠選取與重繪更流暢",
+                "en": "Fullscreen chats no longer freeze, with smoother mouse selection and repainting"
+              },
+              "body": {
+                "zh-TW": "當你在長對話中調整終端機視窗大小或用滑鼠選取文字時，畫面反應現在更加敏捷。在無閃爍的 `altscreen`（終端機全螢幕顯示模式）與產出物檢視器中，拉動視窗不會再讓介面卡死，系統會優先重繪目前畫面上的訊息，不再卡在舊寬度等待整段對話重繪完畢。按 `Esc` 中斷代理人或恢復對話時，也不會把螢幕上的所有步驟全部重新繪製一次。使用滑鼠拖曳反白超過頂端或底端時會自動捲動，滾動滾輪或在代理人串流輸出時選取範圍都不會跑位。複製文字還能完整包含捲出畫面的行數，並自動濾除產出物檢視器中的行號與註解預覽。⟦彷彿閱讀排版精美的長卷軸電子書，拉大視窗時眼前文字立刻依新寬度排好，反白選取整段內容往下拉也能順暢捲動，複製時更不會把旁邊的頁碼與輔助備忘一起剪進去。⟧",
+                "en": "When you resize terminal windows or select text with a mouse during long chats, the display responds much more quickly. In the flicker-free `altscreen` (terminal fullscreen display mode) and artifact viewer, dragging the window will no longer freeze the interface. The system prioritizes repainting the messages currently on screen instead of getting stuck at the old width waiting for the entire conversation to finish repainting. Pressing `Esc` to interrupt the agent or resume the conversation also avoids repainting all steps on screen from scratch. Dragging to highlight past the top or bottom with the mouse now auto-scrolls, and scrolling the mouse wheel or selecting text while the agent streams output will not cause selections to drift. Copying text also captures lines scrolled off screen and automatically strips line numbers and annotation previews in the artifact viewer. ⟦Picture reading a beautifully formatted long-scroll e-book: resizing the window instantly wraps the text before you to the new width, dragging the selection downward scrolls smoothly, and copying omits side page numbers and helper notes.⟧"
+              },
+              "original": "Improved responsiveness in long conversations in no flicker (altscreen) mode: resizing the terminal no longer freezes or lags the CLI, the full-screen view redraws the messages on screen first instead of showing text wrapped for the old width until the whole conversation has re-rendered, and interrupting the agent with `Esc` or resuming a conversation no longer re-renders every step already on screen.\nImproved mouse text selection in the `altscreen` view and in the artifact viewer: dragging past the top or bottom now auto-scrolls, the selection stays on its text while the agent streams or you scroll with the wheel, and copying includes lines that scrolled off screen, without line numbers or comment previews from the artifact viewer"
+            },
+            {
+              "title": {
+                "zh-TW": "Go 指令授權更省事，編譯與檢查可永久放行",
+                "en": "Simpler Go command approvals allow permanent authorization for builds and checks"
+              },
+              "body": {
+                "zh-TW": "當你頻繁讓代理人編譯或檢查 Go 專案程式碼時，授權流程變得更加省心。批准 `go vet` 或 `go build` 等安全指令時，系統現在會提供直接放行該子指令（主指令底下負責特定功能的附屬指令）所有後續參數的選項，日後帶不同參數都不必再次手動按確認。但針對會執行或安裝程式碼的 `go run`、`go test`、`go generate`、`go install` 與 `go tool`，這些子指令仍須以完整指令為放行範圍。⟦跟廚房領用食材一樣，拿取安全調味料只要登記一次就能自由取用不同份量，但遇到動用瓦斯爐或刀具等高風險操作，放行時仍須寫明完整操作內容。⟧",
+                "en": "When you frequently have the agent compile or check Go project code, the authorization process is much easier. When approving safe commands like `go vet` or `go build`, the system now provides an option to allow all future arguments for that subcommand, so passing different arguments later will not require manual confirmation again. However, for subcommands that execute or install code—such as `go run`, `go test`, `go generate`, `go install`, and `go tool`—approvals must still cover the exact full command. ⟦Much like requisitioning ingredients in a kitchen, signing out safe seasonings once allows you to freely take different quantities later, whereas high-risk tasks like using the stove or knives still require explicit approval for each full action.⟧"
+              },
+              "original": "Improved the always-allow suggestion when approving `go` commands: approving a command such as `go vet` or `go build` now offers to allow that subcommand with any arguments, while `go run`, `go test`, `go generate`, `go install`, and `go tool` still require the exact command"
+            },
+            {
+              "title": {
+                "zh-TW": "排隊訊息支援合併即時送出，Vim 快捷鍵不再誤送",
+                "en": "Queued messages support merged immediate delivery, fixing Vim shortcut mishandling"
+              },
+              "body": {
+                "zh-TW": "當你在代理人忙碌時連續輸入多條指令，訊息的排隊與召回機制現在更為可靠。在 `/config` 設定中開啟排隊訊息的 `Send Immediately`（立即發送）時，若前面已有訊息在排隊，新送出的內容會依照先後順序連同排隊訊息一起交給代理人，不再單獨落後排隊。若訊息在回合中途發送失敗，也會自動退回佇列（排隊等候處理的清單）而不會憑空遺失。在 Vim 常規模式的最頂行按下 `k` 鍵時，現在會如同向上方向鍵一樣將排隊訊息抽回編輯區，修復了以前誤抓歷史紀錄導致排隊訊息重複送出的問題。⟦宛若在郵局櫃台寄信，臨時追加的急件能直接併入當前的包裹一起秤重寄出，如果櫃台忙碌沒收下也會退回你手上，不必重新排隊重填一張單據。⟧",
+                "en": "When you enter multiple commands while the agent is busy, message queuing and recall are now more reliable. When enabling `Send Immediately` in `/config`, if messages are already queued, newly submitted input is delivered to the agent in order along with the existing queued messages rather than falling behind in a separate queue. If message delivery fails mid-turn, the message automatically returns to the queue instead of vanishing. Pressing `k` on the top line in Vim normal mode now pulls queued messages back into the editor like the Up arrow key, fixing an issue where pulling history mistakenly caused duplicate submissions of queued messages. ⟦Think of mailing items at a post office counter: an urgent addition merges directly into your current parcel to be weighed and shipped together, and if the counter fails to process it, it is returned directly to your hands without waiting in line to fill out a new slip.⟧"
+              },
+              "original": "Improved the `Send Immediately` option for Queued Messages in `/config`: a message you send while earlier messages are still queued now goes to the agent together with them, in order, instead of joining the queue, and a message that fails to send mid-turn goes back to the queue instead of being lost\nFixed `k` in Vim Normal mode recalling the last history entry instead of your queued messages when pressed on the top line, which could send a queued message twice; `k` now pulls queued messages back into the editor like the `Up` arrow does"
+            },
+            {
+              "title": {
+                "zh-TW": "圖片生成改由專屬子代理負責，自動重試並存入產出物",
+                "en": "Image generation moves to a dedicated subagent with automatic retries and artifact saving"
+              },
+              "body": {
+                "zh-TW": "當你請代理人繪製插圖或設計素材時，產圖的工作流程變得更有條理。主代理人現在會將生圖需求轉交給內建的 `image-generator` 子代理（在背景協助處理特定專門任務的輔助助理）。它會負責撰寫提示詞（引導 AI 生成具體內容的描述句）、檢查每次產生的圖片，且最多會自動嘗試三次直到成功，最後將完成的圖片儲存至對話的產出物中。整個產圖過程也會在對話紀錄中明確呈現為獨立的子代理執行階段。⟦猶如把設計海報的工作交給專門的美編助理，他會自己琢磨提示詞並反覆微調，最多嘗試三次，最後把滿意的圖檔規矩收進專案資料夾，不再需要總指導親自逐筆摸索。⟧",
+                "en": "When you ask the agent to draw illustrations or design assets, the image generation workflow is now better organized. The primary agent delegates image creation to the built-in `image-generator` subagent. It handles prompt writing, inspects each generated image, and makes up to three attempts automatically until successful before saving the completed images to the conversation artifacts. The entire generation process is clearly recorded in the conversation transcript as an independent subagent execution stage. ⟦A design lead delegates poster design to a dedicated graphic assistant, who crafts prompts, iterates up to three times, and files the finished image into the project folder without requiring the lead to tweak every detail manually.⟧"
+              },
+              "original": "Changed how the agent generates images: it now hands image requests to a built-in `image-generator` subagent, which writes the prompt, checks each result with up to three attempts, and saves the images to the conversation's artifacts, so image generation appears as a subagent run in the conversation"
+            },
+            {
+              "title": {
+                "zh-TW": "背景指令中斷不再卡死，無頭模式精確等待結果",
+                "en": "Interrupted background commands no longer hang, with accurate waiting in headless mode"
+              },
+              "body": {
+                "zh-TW": "當代理人在背景執行的耗時指令遭遇系統強制中止或記憶體不足時，處理流程不再停滯。以前代理人等待背景指令時，若指令當機或因記憶體耗盡遭系統終止，代理人會卡在原地等待。現在系統能正確辨識如 `137` 或 `134` 等結束代碼（程式執行完畢後回傳給系統的狀態數字）並繼續後續工作。在以無頭模式（沒有終端機視窗或視覺介面的執行模式）使用 `-p` 參數執行時，也修復了背景指令於第一回合後完成時代理人尚未回應程式就提前結束的問題。⟦就如外送平台派單給外勤騎士，就算路上機車拋錨或意外中斷，系統收到騎士回傳的異常代碼後也能立刻轉派或繼續流程，不會傻等在原地直到整家店打烊。⟧",
+                "en": "When long-running background commands executed by the agent are terminated by the system or run out of memory, execution no longer stalls. Previously, if a background command crashed or was killed by the system due to out-of-memory errors, the agent remained stuck waiting. The system now correctly recognizes exit codes like `137` or `134` and proceeds with subsequent tasks. When running in headless mode with the `-p` flag, it also fixes an issue where the process exited prematurely if a background command finished after the first turn before the agent responded. ⟦A delivery platform dispatches orders to couriers: if a scooter breaks down along the route, the system receives the abnormal status code and immediately reroutes or proceeds, rather than waiting idly until the store closes.⟧"
+              },
+              "original": "Fixed the agent stalling when a background command it was waiting on crashed or was killed by the system, for example when it ran out of memory; the agent now sees the command finish with its exit code, such as `137` or `134`, and keeps going\nFixed headless `-p` runs sometimes exiting before the agent could respond to a background command that finished after its first turn"
+            },
+            {
+              "title": {
+                "zh-TW": "子目錄可正常載入上層技能，斜線選單不再列出停用工具",
+                "en": "Subdirectories properly load parent skills, and slash menus omit disabled tools"
+              },
+              "body": {
+                "zh-TW": "當你在專案深層的子資料夾開啟工作階段時，專案層級的自訂擴充現在能完整生效。以前若從子目錄啟動工作階段（使用者與 AI 進行的一連串連續互動對話），上層目錄 `.agents/` 裡的 `skills.json` 與 `rules.json` 等自訂清單會被忽略。現在系統會從目前工作目錄一路向上至專案根目錄，完整載入各層級的設定檔。輸入 `/` 開啟的選單也修復了會列出當前代理人未啟用的內建技能之問題，避免選取後注入代理人無法使用的工具指令。⟦如同翻閱總公司與各分部的工作手冊，在分店工作也能一路向上查找總部規章，且目錄索引裡只會列出當前分店真正具備的工具清單。⟧",
+                "en": "When you launch a session from deep within a project subdirectory, project-level customizations now take full effect. Previously, starting a session from a subdirectory ignored custom definitions like `skills.json` and `rules.json` in parent `.agents/` folders. The system now traverses upward from the current working directory to the project root, loading configuration files across all levels. The menu opened by typing `/` also fixes an issue where it listed built-in skills disabled for the current agent, preventing selection from injecting instructions for tools the agent cannot use. ⟦Consulting employee handbooks across headquarters and branches: working at a branch lets you look up company-wide policies upward, while the table of contents only lists tools actually available at that location.⟧"
+              },
+              "original": "Fixed `skills.json`, `rules.json`, and other customization manifests in a parent `.agents/` directory being ignored when a session started in a subdirectory; manifests now load from every `.agents/` directory between the working directory and the project root\nFixed the `/` menu listing built-in skills that the current agent does not enable, which inserted instructions for tools the agent could not use when selected"
+            },
+            {
+              "title": {
+                "zh-TW": "支援含 UTF-8 簽章的設定檔，Windows 儲存不再報錯",
+                "en": "Configuration files with UTF-8 BOM now supported without Windows saving errors"
+              },
+              "body": {
+                "zh-TW": "在 Windows 環境下使用記事本或 PowerShell 的 `Set-Content` 編輯設定檔時，檔案開頭常會自動加入 UTF-8 位元組順序記號（標記檔案文字編碼的隱藏字元）。以前這會導致 `~/.gemini/config/config.json` 無法正常載入設定，現在這個問題已經修好，能順暢讀取各類編輯器儲存的設定檔。",
+                "en": "When editing configuration files on Windows using Notepad or PowerShell's `Set-Content`, editors often prepend a UTF-8 byte order mark (a hidden character indicating text encoding). Previously, this prevented `~/.gemini/config/config.json` from loading settings properly. This issue has now been resolved, ensuring smooth parsing across various editors."
+              },
+              "original": "Fixed settings failing to load when `~/.gemini/config/config.json` starts with a UTF-8 byte order mark, as files saved by Notepad or PowerShell `Set-Content` on Windows do"
+            },
+            {
+              "title": {
+                "zh-TW": "修復終端機剛好滿行時的文字折行與縮排異常",
+                "en": "Fixed word wrapping and indentation glitches when terminal lines are exactly full"
+              },
+              "body": {
+                "zh-TW": "當斜線指令的輸出或系統警示訊息剛好與終端機視窗等寬時，以前最後一個單字會被直接擠到下一行開頭且失去縮排，破壞閱讀版面。現在版面排版邏輯已經修正，即便字元長度剛好貼齊邊界也能保持整齊換行與原有縮排。",
+                "en": "When slash command output or system warnings match the exact width of the terminal window, the final word previously wrapped to the start of the next line while losing indentation and disrupting the layout. The rendering logic is now fixed, maintaining clean wrapping and consistent indentation even when text reaches the exact window boundary."
+              },
+              "original": "Fixed slash-command output and alerts where a line exactly as wide as the terminal had its last word pushed to the start of the next line without indentation"
+            }
+          ]
+        },
+        {
+          "version": "1.2.15",
+          "period": "2026-10-03",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Termux 原生支援上線，Android 裝置免裝模擬環境直接執行",
+                "en": "Native Termux support is live, running directly on Android without emulation environments"
+              },
+              "body": {
+                "zh-TW": "當你想出門在外只帶一支手機或平板，直接在行動裝置上呼叫 AI 幫忙寫程式時，現在只要打開 Termux 就能立即啟動。官方現在提供了預先編譯好的 Android 原生執行檔，讓命令列介面（CLI，用文字輸入指令與電腦互動的工具）能夠直接在 Termux 裡面運作。以前你必須先在手機裡設定 proot-distro（在 Android 上模擬完整 Linux 作業系統的環境工具）才能勉強跑起來，過程繁瑣且佔用額外空間。⟦跟帶著隨身小折疊梯一樣，以前要在戶外修屋簷得先搭起整座大型鷹架，現在把折疊梯拉開就能直接動工。⟧現在只要安裝好 Termux，直接下載執行檔就能開始對話。",
+                "en": "When you want to travel light with only a phone or tablet and call on AI to write code directly on your mobile device, you can now launch right inside Termux. Pre-compiled native Android binaries are now provided, allowing the CLI to run directly within Termux. Previously, you had to set up proot-distro (an environment tool that emulates a full Linux operating system on Android) on your phone just to get it running, a tedious process that consumed extra storage. ⟦Picture carrying a portable step ladder: previously, repairing outdoor eaves required erecting massive scaffolding, but now unfolding the ladder lets you start working immediately.⟧ Now, simply install Termux, download the binary directly, and start chatting."
+              },
+              "original": "Added prebuilt native Android binaries of the CLI that can run directly in Termux, without requiring a proot-distro environment."
+            },
+            {
+              "title": {
+                "zh-TW": "精簡畫面更新記憶體，打字捲動與輸出反應更敏捷",
+                "en": "Screen refresh memory streamlined for snappier typing, scrolling, and output response"
+              },
+              "body": {
+                "zh-TW": "當你一邊看著 AI 飛快輸出長篇回答，一邊想要上下捲動歷史紀錄或同步輸入新文字時，整個介面都不再感到延遲。這次顯著減少了工具在每次畫面更新與重新繪製時所配置的記憶體（RAM，電腦運行時暫存資料的記憶空間）。以前每次文字串流（內容一邊生成一邊即時顯示的輸出方式）或畫面變動，都會重複申請大量暫存記憶體，容易讓終端機在長對話中反應變慢。⟦彷彿舞台工作人員換景時只替換移動的道具，不再每次走位都把整套佈景與音響全部拆卸重裝，換幕流程自然流暢無比。⟧現在無論輸出多長，打字與捲動都保持俐落順暢。",
+                "en": "When you watch AI rapidly stream long responses while scrolling through history or typing new text simultaneously, the interface no longer lags. Memory allocated during each screen update and redraw has now been significantly reduced. Previously, every text stream or visual change repeatedly requested large amounts of temporary memory, which tended to slow down terminal responsiveness during lengthy conversations. ⟦Think of stagehands swapping only the moving props between scenes instead of tearing down and reinstalling the entire set and sound system for every movement, making scene transitions effortlessly smooth.⟧ Now, regardless of output length, typing and scrolling remain crisp and smooth."
+              },
+              "original": "Improved responsiveness while typing, scrolling, and streaming agent output by sharply reducing the memory the CLI allocates on every update and redraw"
+            },
+            {
+              "title": {
+                "zh-TW": "/usage 配額重置時間改以本地時區顯示，自動化腳本不受影響",
+                "en": "/usage quota reset time now displays in local timezone without affecting automated scripts"
+              },
+              "body": {
+                "zh-TW": "當你想查詢自己的使用額度何時恢復、在終端機輸入 `-p \"/usage\"` 檢查時，看到的重置時間會自動換算成你所在的本地時間。以前終端機印出來的都是國際標準時間，你總得自己在腦中手動加減時差，才能算出確切幾點幾分能繼續使用。為了兼顧自動化程式，只要你使用管線串接輸出或加上 `--json` 參數，工具依然會輸出 UTC（世界協調時間，跨時區通用的標準時間基準）時間戳記。⟦好比跨國班機的電子機票，在螢幕上呈現時自動轉為旅客當地的起飛時刻，但底層售票系統依舊記錄標準世界時以利各國航管對接。⟧這項調整既方便肉眼閱讀，又完全不影響既有腳本運作。",
+                "en": "When checking when your quota resets by entering `-p \"/usage\"` in the terminal, the reset time is now automatically converted to your local time. Previously, the terminal always printed Universal Coordinated Time, forcing you to manually calculate timezone offsets in your head to know the exact time you could resume usage. To preserve compatibility with automated programs, piping the output or passing the `--json` flag still outputs standard UTC timestamps. ⟦Like an electronic ticket for international flights displaying departure times converted to the passenger's local timezone on screen, while the underlying ticketing system still records standard Universal Time for air traffic coordination across countries.⟧ This adjustment enhances human readability while leaving existing scripts completely unaffected."
+              },
+              "original": "Improved `-p \"/usage\"` to show quota reset times in your local time zone when printing to a terminal; piped and `--json` output still use UTC timestamps, so existing scripts are unaffected"
+            },
+            {
+              "title": {
+                "zh-TW": "權限核准範圍細化至子指令，被拒絕時不再繞道執行",
+                "en": "Permission approvals narrowed to subcommands, honoring denials without workaround execution"
+              },
+              "body": {
+                "zh-TW": "當你授權 AI 執行版本控制工具的特定指令，或是直接拒絕了某項操作時，系統對權限邊界的拿捏更加嚴謹。現在審核 `repo` 工具時，「總是允許」的建議只會鎖定在具體的子指令（例如只放行 `repo status` 查詢狀態），不再一口氣放行所有危險指令，行為與 `git`、`hg` 和 `jj` 完全一致。若權限請求遭到拒絕，例如無法主動向你詢問的子代理（在背景協助處理特定分工的代理人）碰壁時，AI 會嚴格遵守拒絕決定。它絕不會私自改用其他指令、腳本或替代工具繞道偷跑。⟦就像辦公室訪客向櫃台申請通行證，警衛現在只發放前往會議室的單一樓層卡片，若訪客被主管拒絕會面，也不會擅自改走貨梯溜進去。⟧",
+                "en": "When authorizing AI to run specific version control commands or denying an operation, permission boundaries are now handled much more strictly. When prompting permissions for `repo`, \"Always Allow\" suggestions target only the specific subcommand (such as granting only `repo status` for status queries) instead of approving every risky command at once, aligning behavior with `git`, `hg`, and `jj`. If a permission request is denied—such as when a subagent running in the background encounters a block without the ability to prompt you—the AI strictly respects the denial. It will never secretly bypass the block by switching to other commands, scripts, or alternative tools. ⟦Consider office visitors requesting passes at reception: security now issues a badge restricted to the specific conference room floor, and if an executive denies the meeting, visitors cannot sneak around through the freight elevator.⟧"
+              },
+              "original": "Improved the always-allow suggestion when approving `repo` commands: it is now limited to the subcommand, such as `repo status`, instead of allowing every `repo` command, matching `git`, `hg`, and `jj`\nImproved how the agent handles a permission request that is not approved, such as one raised by a subagent that cannot ask you: it now respects the denial and no longer tries to work around it with other commands, scripts, or tools"
+            },
+            {
+              "title": {
+                "zh-TW": "修復終端機縮放導致對話畫面凍結，斷線支援自動重連",
+                "en": "Fixed terminal resizing freezing the conversation UI, adding automatic reconnection on drop"
+              },
+              "body": {
+                "zh-TW": "在長對話中快速調整終端機視窗大小時，對話畫面不再卡死不動。以前多次連續縮放視窗觸發畫面重繪後，整個工作階段畫面上常常不再出現新的執行步驟，即使 AI 仍在背後工作，你也只能看著凍結的畫面乾等。現在工具會在連線中斷時自動嘗試重新連線，只有在重試失敗時才會跳出警告；若連線真的丟失，只要發送一則新訊息就能立刻恢復畫面連線。",
+                "en": "Rapidly resizing the terminal window during lengthy conversations no longer freezes the screen. Previously, consecutive resizes triggering redraws often caused the session screen to stop displaying new execution steps, leaving you staring at a frozen view while AI continued working in the background. The tool now automatically attempts to reconnect whenever the connection drops, raising a warning only if retries fail; if the connection is truly lost, sending a new message immediately restores the visual connection."
+              },
+              "original": "Fixed the conversation view freezing for the rest of the session, with no new steps appearing while the agent kept working, after redraws such as several quick terminal resizes in a long conversation; the CLI now reconnects automatically, warns only if reconnecting fails, and sending a new message recovers a lost connection"
+            },
+            {
+              "title": {
+                "zh-TW": "配額用盡且點數不足時立即明確提示，不再空轉兩分半鐘",
+                "en": "Immediate notice when quota is exhausted and credits are insufficient to cover the request, ending two-and-a-half-minute hangs"
+              },
+              "body": {
+                "zh-TW": "當方案配額耗盡且帳戶內的 AI 點數餘額不足以支付時，系統會立即給出清楚的提示訊息。以前在餘額不足的情況下送出請求，終端機會停在「Working...」狀態不斷重試約兩分半鐘，最後才拋出模糊的「Agent execution terminated due to error.」錯誤；現在會當場明確告知「Your AI credits balance is too low to continue.」，幫你省下無謂的等待時間。",
+                "en": "When plan quota is exhausted and account AI credits are insufficient, the system now provides an immediate and clear notification. Previously, submitting a request with insufficient balance left the terminal stuck on \"Working...\" retrying repeatedly for about two and a half minutes before throwing a vague \"Agent execution terminated due to error.\" error; it now promptly informs you on the spot that \"Your AI credits balance is too low to continue.\", saving you unnecessary waiting time."
+              },
+              "original": "Fixed requests made after your plan quota is used up and your AI credits balance cannot cover them: instead of retrying on `Working...` for about two and a half minutes and then showing the generic \"Agent execution terminated due to error.\", the CLI now immediately says \"Your AI credits balance is too low to continue.\""
+            },
+            {
+              "title": {
+                "zh-TW": "SSH 遠端連線退出後不再殘留圖片代碼亂碼",
+                "en": "Exiting over remote SSH no longer leaves behind garbled image protocol artifacts"
+              },
+              "body": {
+                "zh-TW": "透過 SSH（用來安全連線至遠端電腦的通訊協定）使用 CLI 命令列工具，退出 CLI 後，終端機畫面不再被奇怪的字元代碼弄亂。以前在 macOS 內建的 Terminal.app 透過 SSH 使用 CLI，退出 CLI 後，螢幕上常會殘留像 `Ga=q,f=32,s=1,v=1,i=31;AAAAAA==` 這類探測圖片協定的亂碼。現在工具在偵測圖片支援前會先要求終端機表明身分，在 SSH 連線下只將 Kitty 與 Ghostty 視為具備圖片顯示能力的終端機，避免 WezTerm 和 Konsole 產生亂碼佔位字串。",
+                "en": "When using the CLI tool over SSH, exiting the CLI no longer clutters your terminal screen with strange character codes. Previously, using the CLI over SSH in macOS Terminal.app often left behind garbled image protocol probing strings like `Ga=q,f=32,s=1,v=1,i=31;AAAAAA==` after exit. The tool now queries terminal identity before checking image support, recognizing only Kitty and Ghostty as image-capable terminals under SSH connections to prevent WezTerm and Konsole from generating mojibake placeholder strings."
+              },
+              "original": "Fixed text like `Ga=q,f=32,s=1,v=1,i=31;AAAAAA==` being left behind in macOS Terminal.app after exiting the CLI over SSH; the CLI now asks the terminal to identify itself before probing for image support, and over SSH only Kitty and Ghostty are treated as image-capable, so WezTerm and Konsole no longer show garbled image placeholders"
+            },
+            {
+              "title": {
+                "zh-TW": "Vim 模式游標正確跳過 Emoji 與複合字元，刪除與取代不破壞字形",
+                "en": "Vim mode cursor correctly skips emojis and composite characters without breaking glyphs"
+              },
+              "body": {
+                "zh-TW": "在終端機開啟 Vim 編輯模式處理含有表情符號或多重組合標記的文字時，游標移動與編輯變得更加精準。以前游標移動到像 👩‍💻、⚠️ 這種由多個編碼組合而成的 Emoji，或是天城文等帶有組合標記的字元時，游標會卡在字元中間。現在使用 `h`、`l` 等移動鍵會一次跨越整個完整字元，按下 `x` 刪除或 `r` 取代時，也會直接操作整組完整字元，不再將複合字形拆散切碎。",
+                "en": "Cursor navigation and editing are now more precise when handling emojis or complex combining marks in terminal Vim editing mode. Previously, moving the cursor over multi-codepoint emojis like 👩‍💻 or ⚠️, or scripts with combining marks such as Devanagari, caused the cursor to get stuck midway through characters. Navigation keys like `h` and `l` now traverse entire composite characters in a single step, and pressing `x` to delete or `r` to replace acts on the complete grapheme cluster without breaking glyphs apart."
+              },
+              "original": "Fixed the Vim mode cursor stopping inside emoji such as 👩‍💻 or ⚠️ and characters with combining marks such as Devanagari: `h`, `l`, and other motions now move over whole characters, and `x` and `r` delete or replace the whole character instead of a hidden part of it"
+            },
+            {
+              "title": {
+                "zh-TW": "/resume 歷史對話搜尋框支援全螢幕寬度，長關鍵字不再折行遮擋",
+                "en": "/resume session search input spans full terminal width, preventing long queries from wrapping"
+              },
+              "body": {
+                "zh-TW": "當你輸入 `/resume` 挑選並恢復先前的歷史對話時，搜尋關鍵字較長也較不會折行。以前對話選擇清單裡的搜尋輸入框寬度有限，查詢字串較長時就會自動折行，導致最前面的文字被擠出可視範圍之外。現在搜尋框會自動延展並填滿整個終端機的寬度，較長的查詢較不會折行，開頭也不會因此被擠出畫面。",
+                "en": "When entering `/resume` to pick and restore previous session history, longer search queries are much less likely to wrap. Previously, the search input box in the conversation picker had limited width, causing longer queries to wrap automatically and push the beginning of the text out of view. The search box now expands to fill the entire terminal width, making longer queries less likely to wrap and preventing the start of text from getting pushed off-screen."
+              },
+              "original": "Fixed the search box in the `/resume` conversation picker wrapping long queries so that their beginning scrolled out of view; the box now uses the full terminal width"
+            },
+            {
+              "title": {
+                "zh-TW": "解禁全域自訂規則讀取權限，符號連結不再重複載入",
+                "en": "Unrestricted read access for global custom rules, eliminating duplicate symlink loading"
+              },
+              "body": {
+                "zh-TW": "當你在設定目錄管理自訂規則時，AI 現在能正常讀取 `~/.gemini/config` 裡的 `rules/` 資料夾、`AGENTS.md`、`GEMINI.md`、`skills.json`、`rules.json`、`plugins.json` 與 `agents.json`，且修改前會先徵詢同意，其餘檔案維持禁止存取。若 `~/.gemini/GEMINI.md`、`~/.gemini/AGENTS.md` 或其 `~/.gemini/config/` 對應檔案為指向同一個實體檔案的符號連結（指向另一個位置的捷徑檔），系統會自動排除重複，避免規則被多次載入。⟦像管家翻閱公用手冊，遇到多張指向同一份文件的便條紙時不會重複抄寫。⟧",
+                "en": "When managing custom rules in the configuration directory, AI can now properly read the `rules/` directory, `AGENTS.md`, `GEMINI.md`, `skills.json`, `rules.json`, `plugins.json`, and `agents.json` within `~/.gemini/config`, asking for confirmation before making edits while keeping all other files restricted. If `~/.gemini/GEMINI.md`, `~/.gemini/AGENTS.md`, or their counterparts under `~/.gemini/config/` are symlinks pointing to the exact same physical file, the system automatically deduplicates them to prevent rules from loading multiple times. ⟦A butler consulting a shared handbook does not recopy notes repeatedly when encountering multiple sticky notes pointing to the same document.⟧"
+              },
+              "original": "Fixed the agent being blocked from reading your global rules and customization files in `~/.gemini/config`, including the `rules/` folder, `AGENTS.md`, `GEMINI.md`, `skills.json`, `rules.json`, `plugins.json`, and `agents.json`; it can now read them and asks before editing them, while other files in that folder stay off-limits\nFixed global rules being added to the agent's context more than once when `~/.gemini/GEMINI.md`, `~/.gemini/AGENTS.md`, or their `~/.gemini/config/` counterparts are symlinks to the same file"
+            },
+            {
+              "title": {
+                "zh-TW": "修復 MCP 伺服器 OAuth 登入問題，相容 HTTP 200 回應",
+                "en": "Fix MCP Server OAuth Login Issue with HTTP 200 Responses"
+              },
+              "body": {
+                "zh-TW": "當你嘗試登入某些透過標準協定串接的外部工具時，不再因為伺服器回傳的狀態碼而登入失敗。在登入支援 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）的伺服器時，若對方的 OAuth 客戶端註冊流程回傳了代表成功的 HTTP `200` 而非預期的 `201`，以前工具會誤判為錯誤並拋出「registration failed with status 200」；現在這個問題已經修好，能正常相容這兩種成功狀態碼並順利完成登入。",
+                "en": "When logging in to certain external tools integrated through standard protocols, login attempts no longer fail due to server response status codes. When logging in to servers supporting MCP (Model Context Protocol, a protocol connecting AI to external tools), if the server's OAuth client registration flow returned a successful HTTP `200` instead of the expected `201`, the tool previously misidentified it as an error and threw \"registration failed with status 200\". This issue is now fixed to properly support both successful status codes and complete the login process smoothly."
+              },
+              "original": "Fixed signing in to MCP servers whose OAuth client registration responds with HTTP `200` instead of `201`, which previously failed with `registration failed with status 200`"
+            },
+            {
+              "title": {
+                "zh-TW": "大型 WebP 圖片自動縮小至符合圖片尺寸上限",
+                "en": "Automatically Downscale Large WebP Images to Fit Size Limits"
+              },
+              "body": {
+                "zh-TW": "當你請 AI 分析高解析度圖檔時，不再受格式差異影響。以前 AI 讀取大型 PNG 與 JPEG 圖片時都會自動縮小以符合尺寸上限，唯獨漏掉了 WebP 格式；現在修復後，WebP 也會比照辦理自動縮小，避免超大圖檔超出規格限制。",
+                "en": "When asking AI to analyze high-resolution images, format differences no longer cause issues. Previously, when AI read large PNG and JPEG images, it automatically downscaled them to fit image size limits, but WebP format was overlooked. Following this fix, WebP images are also automatically downscaled accordingly, preventing oversized image files from exceeding specification limits."
+              },
+              "original": "Fixed large WebP images opened by the agent not being scaled down to fit image size limits the way PNG and JPEG images are"
+            }
+          ]
+        },
+        {
           "version": "1.2.14",
           "period": "2026-09-30",
           "items": [
@@ -1035,117 +1278,6 @@
                 "en": "When the assistant attempts to read special system files or incomplete audiovisual recordings, conversations no longer get trapped in endless waiting or error states. ⟦A media player encountering an incomplete video download or a special data stream alerts you to file corruption directly instead of freezing the entire machine with a spinning wheel.⟧ Previously, if the assistant tried to inspect special files such as pipes, sockets, or device files, the process easily hung completely. Inspecting incompletely recorded MP4, MOV, or M4A media files also threw `INVALID_ARGUMENT` errors that blocked the conversation from continuing. When encountering either type of file, the system now intercepts before reading and provides a clear prompt."
               },
               "original": "Fixed the agent hanging when it tried to view a pipe, socket, or device file, and a conversation getting stuck with `INVALID_ARGUMENT` errors after the agent viewed a truncated MP4, MOV, or M4A recording; both are now rejected up front with a clear message"
-            }
-          ]
-        },
-        {
-          "version": "1.2.13",
-          "period": "2026-09-29",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "遇到模型限流聰明等待，額度耗盡立刻停手",
-                "en": "Smarter Retry Delays on Rate Limits, Immediate Stop When Quota Exhausted"
-              },
-              "body": {
-                "zh-TW": "若是頻繁發問而觸發了雲端模型的呼叫頻率限制，命令列工具現在會更聰明地處理重新嘗試的時間。以前只要遇到 API（程式與雲端模型溝通的管道）回傳需要稍候重試，工具一律死板地固定等待五秒。現在它會完全照著伺服器要求的秒數等待。如果伺服器要求等待超過三十秒，或是回報每日額度與帳單上限已滿，工具便會立刻停止執行，不再盲目重試。⟦跟到熱門餐廳抽號碼牌一樣，以前不管店家告知要等多久，你都每隔五秒就上前敲一次門；現在店家說等幾秒就精確等幾秒，若店家告知要等超過三十秒或當日名額已滿，則會立刻轉身離開不再徒勞敲門。⟧",
-                "en": "If frequent prompts trigger cloud model rate limits, the command-line tool now handles retry delays more intelligently. Previously, whenever the API returned a retry-after response, the tool rigidly waited for a fixed five seconds. Now, it waits for the exact number of seconds requested by the server. If the server requests a delay of more than thirty seconds, or reports that the daily quota or billing limit is exhausted, the tool stops immediately instead of retrying blindly. ⟦Think of taking a number at a popular restaurant: in the past, no matter how long the staff told you to wait, you knocked on the door every five seconds; now you wait for the exact duration requested, and if they tell you the wait exceeds thirty seconds or that daily capacity is full, you turn away immediately without knocking in vain.⟧"
-              },
-              "original": "Improved rate-limit handling when the model API returns a retry delay: the CLI now waits the delay the server asks for instead of a fixed 5 seconds, and stops right away instead of retrying when the delay is longer than 30 seconds or the quota is a daily or billing cap"
-            },
-            {
-              "title": {
-                "zh-TW": "提升對話畫面繪製效能，捲動與運作時更省資源",
-                "en": "Improved Chat Screen Rendering Performance for Lower Resource Usage While Scrolling"
-              },
-              "body": {
-                "zh-TW": "在快速捲動落落長的對話紀錄、或看著代理人（代你執行任務的 AI）忙碌時，介面操作現在感覺更加輕快。對話畫面在重新繪製時的效能獲得了改善。以前每當畫面快速重繪，電腦的處理器（負責執行所有運算的核心硬體）使用率容易飆高，記憶體也會頻繁配置與釋放。現在無論是快速捲動視窗還是等待代理人即時輸出，都能有效減少運算資源耗損與記憶體負擔。⟦彷彿速寫畫家連畫好幾頁，以前很快就累了，畫紙也用得快；現在畫同樣多頁，力氣與畫紙都省下不少。⟧",
-                "en": "When quickly scrolling through lengthy conversation histories or watching an agent work, UI interactions now feel significantly snappier. Redrawing performance for the conversation screen has been improved. Previously, rapid screen repaints often spiked CPU usage and caused frequent memory allocations and releases. Now, whether scrolling quickly through the window or waiting for real-time agent output, compute overhead and memory pressure are both substantially reduced. ⟦Picture a sketch artist drawing several pages in a row: in the past, the artist quickly grew tired and burned through paper; now, drawing that same number of pages takes far less effort and saves plenty of paper.⟧"
-              },
-              "original": "Improved rendering efficiency, cutting CPU use and memory churn while the conversation view redraws, such as during fast scrolling or while the agent is working"
-            },
-            {
-              "title": {
-                "zh-TW": "產物檢視器按鍵提示更明確，切換模式一目了然",
-                "en": "Clearer Key Hints in the Artifact Viewer for Intuitive Mode Toggling"
-              },
-              "body": {
-                "zh-TW": "想要預覽 AI 生成的圖表或公式等產物（獨立生成的圖表、公式或文件檔案）時，底部切換顯示模式的提示變得更直覺了。以前畫面上的 `m` 按鍵提示只寫 `toggle ASCII` 或 `toggle raw`，讓人難以預期切換後的畫面。現在提示文字會直接寫出內容種類與目標模式，例如清楚標示 `diagram ASCII`、`diagram source` 或是 `math image`。⟦好比相機上的功能轉盤，以前上面的標籤只寫著模糊的切換，轉過去才知道會變成什麼；現在清楚標示人像或夜景，按下去前就能明確知道切換後的樣貌。⟧",
-                "en": "When previewing AI-generated artifacts such as standalone diagrams, formulas, or document files, the bottom hint for toggling display modes is now much more intuitive. Previously, the on-screen `m` key hint only displayed `toggle ASCII` or `toggle raw`, making it hard to anticipate what the screen would switch to. Now, the prompt text explicitly shows the content type and target mode, clearly indicating options like `diagram ASCII`, `diagram source`, or `math image`. ⟦Like a mode dial on a camera where labels previously showed a vague toggle so you only discovered the outcome after turning it, the dial now clearly marks portrait or night scene so you know the exact result before switching.⟧"
-              },
-              "original": "Improved the artifact viewer's `m` hint to name the content and the mode it switches to, such as `diagram ASCII`, `diagram source`, or `math image`, instead of `toggle ASCII` or `toggle raw`"
-            },
-            {
-              "title": {
-                "zh-TW": "窄終端機視窗文字不再被截斷，長行與標籤自動排版",
-                "en": "Text No Longer Truncated in Narrow Terminal Windows with Auto-Wrapping for Long Lines and Tabs"
-              },
-              "body": {
-                "zh-TW": "把終端機視窗縮小到約 40 欄寬的狹窄寬度時，各個功能面板的文字再也不會因為超出邊界而被裁切。以前在工作區信任對話框、`/help` 說明面板，以及登入與 MCP（讓 AI 連接外部工具的協定）驗證畫面中，長文字容易直接消失在螢幕邊緣。現在這些畫面中的長行文字與操作導引提示都會自動折行顯示，`/help` 的分頁標籤列也會自動緊縮排版以完整容納，排版截斷問題已經修好。",
-                "en": "When shrinking a terminal window down to a narrow width of around 40 columns, text in various panels is no longer clipped by boundary overflows. Previously, in workspace trust dialogs, the `/help` panel, and login or MCP authentication screens, long text frequently disappeared off the edge of the screen. Now, long lines and guidance prompts across these screens wrap automatically, and the tab bar in `/help` compresses its layout to fit completely, fixing text truncation issues."
-              },
-              "original": "Fixed the workspace trust dialog, the `/help` panel, and the sign-in and MCP authentication screens clipping text on narrow terminals of around 40 columns; long lines and navigation hints now wrap, and the `/help` tab bar compacts to fit"
-            }
-          ]
-        },
-        {
-          "version": "1.2.12",
-          "period": "2026-09-27",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "全螢幕捲動效能升級，長對話與檢視器不再卡頓",
-                "en": "Smoother Full-Screen Scrolling Eliminates Stutter in Long Chats and Artifact Viewer"
-              },
-              "body": {
-                "zh-TW": "當你在全螢幕模式下翻閱篇幅很長的對話紀錄，或是打開產出物檢視器查閱內容時，快速滑動滾輪與觸控板變得十分滑順。以前手指快速滾動時，每一次細微的滾輪訊號都會立即觸發畫面重新繪製，不僅容易造成畫面卡頓，還會佔用大量處理器（CPU，電腦負責運算的核心）資源。現在系統會先將短時間內連續觸發的滑動事件合併整理，再一次性更新畫面，既降低了運算負擔，也消除了操作延遲。⟦如同收發室把同一時間寄達的零散信件整批捆好一次遞交，不必每來一張明信片就專程跑一趟辦公室。⟧",
-                "en": "Rapid scrolling with a mouse wheel or trackpad is now much smoother when browsing lengthy conversation histories or inspecting content in the artifact viewer in full-screen mode. Previously, every tiny scroll event triggered an immediate screen redraw during fast scrolling, which caused visual stutter and consumed heavy CPU resources. The system now batches scroll events triggered in rapid succession before updating the screen all at once, reducing computational overhead and eliminating lag. ⟦Picture a mailroom bundling scattered letters that arrive at the same time into a single delivery, rather than running to an office for every individual postcard.⟧"
-              },
-              "original": "Improved scrolling in the full-screen view: bursts of mouse-wheel or trackpad events are now coalesced before redrawing, which cuts CPU use and reduces scroll lag in long conversations and the artifact viewer"
-            },
-            {
-              "title": {
-                "zh-TW": "額度或預算耗盡立即停損，不再空等數分鐘重試",
-                "en": "Immediate Fail-Fast on Exhausted Quota or Budget Without Minutes of Retrying"
-              },
-              "body": {
-                "zh-TW": "使用金鑰 `GEMINI_API_KEY` 進行操作時，一旦帳戶額度見底，系統會立即中斷並回報，不再讓你乾等。以前只要遇到每日配額（quota，平台允許呼叫的使用上限）耗盡、專案或帳單達到支出上限，或是預付餘額扣光，程式仍會花費數分鐘持續重試不可能成功的連線。現在遇到這類確定無法解決的狀況會立刻中止工作階段。至於每分鐘呼叫次數超標這類短暫限制，仍會自動重試。⟦好比去自動販賣機買飲料，發現卡片餘額不足時機器會立刻提示餘額為零，而不是反覆吞吐卡片空轉好幾分鐘。⟧",
-                "en": "When operating with `GEMINI_API_KEY`, the system now halts immediately and reports the error once your account quota is exhausted, sparing you from waiting idly. Previously, when hitting daily quotas, project or billing spend limits, or running out of prepaid credits, the application would still spend several minutes retrying connections that could not possibly succeed. The session now terminates immediately upon encountering these permanently unresolvable conditions. Transient restrictions such as exceeding rate limits per minute will still be retried automatically. ⟦A vending machine immediately alerts you to a zero balance when your card lacks sufficient funds, rather than repeatedly ejecting and swallowing the card for minutes.⟧"
-              },
-              "original": "Improved `GEMINI_API_KEY` sessions to stop immediately when the Gemini API reports an exhausted daily quota, a project or billing-account spend cap, or depleted prepaid credits, instead of spending several minutes on retries that cannot succeed; short-lived per-minute rate limits are still retried"
-            },
-            {
-              "title": {
-                "zh-TW": "重新接續長對話瞬間載入，跳過重複動畫不再卡頓",
-                "en": "Instant Resumption for Long Sessions Skips Replay Animations Without Lag"
-              },
-              "body": {
-                "zh-TW": "當你打開先前篇幅很長的工作階段繼續提問時，畫面載入的速度變得俐落許多。以前在 `medium` 或 `low` 的詳細程度（verbosity，決定畫面要印出多少除錯與執行細節的設定）下恢復對話時，系統需要花上數秒重播所有歷史紀錄，造成操作延遲。現在先前執行完畢的工具會直接顯示為完成狀態，省去逐條重播動畫的時間。在載入過程中敲擊鍵盤，也不會再重新整理只載入到一半的對話紀錄。⟦就像翻開已寫好的會議紀錄，大家能直接從結論處接著討論，不必把每位發言者的發言逐字重唸一遍。⟧",
-                "en": "Loading feels much crisper when reopening a lengthy prior session to continue asking questions. Previously, resuming a conversation under `medium` or `low` verbosity required several seconds to replay entire histories, causing UI lag. Previously completed tools now render directly in their finished state, skipping sequential animation replays. Typing on the keyboard during loading also no longer refreshes a conversation history that has only partially loaded. ⟦Think of opening completed meeting minutes where everyone resumes discussion directly from the conclusion, without reading every attendee's remarks aloud word for word.⟧"
-              },
-              "original": "Fixed resuming a long conversation in `medium` or `low` verbosity taking many seconds and lagging while history replayed: earlier tool groups now appear already finished instead of each re-animating, and keys pressed during the replay no longer refresh a half-loaded transcript"
-            },
-            {
-              "title": {
-                "zh-TW": "終端機多工器標題不再亂碼，修復圖片探測干擾",
-                "en": "Terminal Multiplexer Titles Preserved Without Mojibake From Graphics Probing"
-              },
-              "body": {
-                "zh-TW": "在多窗格環境下啟動工具時，終端機與分頁的名稱終於能正常保留。以前在 GNU `screen`、`tmux`（包含 iTerm2 的 `tmux -CC` 分頁）或 Zellij 等環境中開啓命令列時，標題每次都會被改成 `Ga=q,f=32,...` 這類奇怪的字串。這是因為系統啟動時會發送圖片支援的探測訊號，因而干擾了終端機多工器（將終端視窗分割成多個獨立工作區的工具）。現在程式不再主動向多工器發送圖片探測指令。若你確定需要開啟圖片顯示，依然可透過設定 `CLI_GRAPHICS=kitty` 強制啟用。⟦彷彿廣播系統取消了開場時刺耳的測試音，螢幕面板上的節目名稱再也不會被測試訊號給干擾覆蓋。⟧",
-                "en": "Terminal and tab titles are now properly preserved when launching tools in multi-pane environments. Previously, opening the command line under GNU `screen`, `tmux` (including iTerm2 `tmux -CC` tabs), or Zellij altered window titles to strange strings like `Ga=q,f=32,...`. This occurred because the startup sequence sent graphics support probes, which interfered with terminal multiplexers. The program no longer sends graphics probes to multiplexers by default. If you still need image rendering, you can force it on by setting `CLI_GRAPHICS=kitty`. ⟦Like a broadcast system silencing its harsh opening test tone, the show title on the display panel is no longer scrambled by test signals.⟧"
-              },
-              "original": "Fixed the terminal or tab title changing to a string like `Ga=q,f=32,...` every time the CLI starts inside GNU `screen`, `tmux` (including iTerm2 `tmux -CC` tabs), or Zellij; the CLI no longer sends its image-support probe through a multiplexer, and `CLI_GRAPHICS=kitty` still forces image mode"
-            },
-            {
-              "title": {
-                "zh-TW": "Vim 模式多項修正，支援中文字元搜尋與選取復原",
-                "en": "Multiple Vim Mode Fixes Support Non-ASCII Character Search and Selection Undo"
-              },
-              "body": {
-                "zh-TW": "偏好使用 Vim 模式編輯指令與文字的讀者，現在輸入非英文字元或選取段落時順手許多。以前在 `r`、`f`、`F`、`t` 與 `T` 指令後輸入 `é` 或 `中` 等非 ASCII 字元（非英文字母與標準符號的文字）時會被直接忽略。在可視模式（Visual mode，反白選取文字的模式）下使用 `fv` 與 `fV` 會意外跳出選取，無法順利延伸範圍。當執行 `D`、`C` 或可視狀態下的 `~`、`u`、`U` 但沒有變動文字時，以前還會多記一筆空白復原紀錄並清空重做歷程。現在這些編輯問題都已修正完畢。⟦宛如操作高階文書軟體，跳躍搜尋中文字能精確定位，反白選取時不會無故中斷，就算誤觸沒有作用的按鍵也不會清空復原歷程。⟧",
-                "en": "Editing commands and text in Vim mode is now significantly smoother when typing non-English characters or selecting blocks. Previously, non-ASCII characters such as `é` or `中` were silently ignored after `r`, `f`, `F`, `t`, and `T` commands. Using `fv` and `fV` in Visual mode inadvertently exited the selection instead of extending the range. Furthermore, executing `D`, `C`, or Visual mode `~`, `u`, and `U` without modifying text recorded an empty undo entry and wiped the redo history. All of these editing glitches have now been resolved. ⟦Much like working in an advanced text editor, jumping to Chinese characters lands accurately, highlighting text does not abruptly cancel, and hitting ineffective keys will not wipe your redo history.⟧"
-              },
-              "original": "Fixed Vim mode ignoring non-ASCII characters such as `é` or `中` after `r`, `f`, `F`, `t` and `T`, `fv` and `fV` in Visual mode leaving Visual mode instead of extending the selection, and `D`, `C`, or Visual `~`/`u`/`U` recording an empty undo step and clearing redo history when they changed nothing"
             }
           ]
         }
