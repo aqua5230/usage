@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.31.6] - 2026-10-04
+
+### Fixed
+- **Windows:** the tray menu's "Quit" item no longer shows a missing-glyph box.
+- **Windows:** the Grok status line in the classic console no longer overwrites the quota percentage.
+
 ## [0.31.5] - 2026-10-03
 
 ### Changed
