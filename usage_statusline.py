@@ -734,6 +734,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
                     reset_str = f" {clock}({_t('remaining_prefix')}{fmt_duration(remain)})"
                 else:
                     reset_str = f" {clock}({fmt_duration(remain)} {_t('remaining_prefix')})"
+                reset_str = f" {C['dim']}{reset_str[1:]}{C['reset']}"
         rl_parts.append(
             (
                 f"{C['blue']}{label}:{C['reset']}{progress_bar(pct_float, bar_w)}{reset_str}",
