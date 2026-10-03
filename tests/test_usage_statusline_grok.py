@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import json
+import os
 import re
 import tomllib
 from pathlib import Path
@@ -71,6 +72,11 @@ def _visible(value: str) -> str:
     return _ANSI.sub("", value)
 
 
+def test_progress_bar_chars_are_platform_specific() -> None:
+    assert usage_statusline_grok._progress_bar_chars("nt") == ("█", "░")
+    assert usage_statusline_grok._progress_bar_chars("posix") == ("■", "□")
+
+
 def test_render_fixture_contains_expected_status(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
@@ -82,11 +88,12 @@ def test_render_fixture_contains_expected_status(
     monkeypatch.setenv("COLUMNS", "300")
 
     output = _visible(usage_statusline_grok.render(_fixture_data()))
+    filled, empty = usage_statusline_grok._progress_bar_chars(os.name)
 
     assert "project(main)" in output
-    assert "週配額:■■■□□□□□ 42%" in output
+    assert f"週配額:{filled * 3}{empty * 5} 42%" in output
     assert re.search(r"\(剩[0-9]+d[0-9]+h\)", output)
-    assert "對話窗:■□□□□□□□ 8% / 2.0M" in output
+    assert f"對話窗:{filled}{empty * 7} 8% / 2.0M" in output
     assert "會話時長:20min" in output
     assert "Grok 4.6/深思" in output
     assert output.count("\n") == 1
@@ -160,7 +167,8 @@ def test_render_degrades_for_narrow_terminal(
     assert "Weekly:42%" in first_line
     assert "Context:8%" in first_line
     assert "left" not in first_line
-    assert "■" not in first_line
+    filled, _empty = usage_statusline_grok._progress_bar_chars(os.name)
+    assert filled not in first_line
 
 
 def _patch_grok_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> tuple[Path, Path, Path]:
@@ -377,5 +385,6 @@ def test_render_shows_zero_quota_when_percent_is_omitted(
     monkeypatch.setenv("COLUMNS", "300")
 
     output = _visible(usage_statusline_grok.render(_fixture_data()))
+    _filled, empty = usage_statusline_grok._progress_bar_chars(os.name)
 
-    assert "週配額:□□□□□□□□ 0%" in output
+    assert f"週配額:{empty * 8} 0%" in output
