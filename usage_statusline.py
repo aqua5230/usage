@@ -726,10 +726,14 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
         if resets_at is not None:
             remain = int(resets_at) - int(now.timestamp())
             if remain > 0:
+                reset_dt = datetime.fromtimestamp(resets_at)
+                clock = f"{reset_dt:%H:%M}"
+                if reset_dt.date() != datetime.fromtimestamp(now.timestamp()).date():
+                    clock = f"{reset_dt.month}/{reset_dt.day} {clock}"
                 if lang in ("zh-TW", "zh-CN"):
-                    reset_str = f" ({_t('remaining_prefix')}{fmt_duration(remain)})"
+                    reset_str = f" {clock}({_t('remaining_prefix')}{fmt_duration(remain)})"
                 else:
-                    reset_str = f" ({fmt_duration(remain)} {_t('remaining_prefix')})"
+                    reset_str = f" {clock}({fmt_duration(remain)} {_t('remaining_prefix')})"
         rl_parts.append(
             (
                 f"{C['blue']}{label}:{C['reset']}{progress_bar(pct_float, bar_w)}{reset_str}",
