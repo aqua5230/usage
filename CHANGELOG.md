@@ -5,6 +5,18 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.31.5] - 2026-10-03
+
+### Changed
+- **The status line is shorter.** The first line now holds only the project and your two quotas; the context window moved to the end of the second line. The cache segment lost its bar and its countdown and shows just the hit rate (for example `Cache: 93%`) — the countdown read about 59 minutes almost every time, because Claude Code restarts it on every message and the status line does not redraw while you are idle.
+- The two quotas now show the reset clock time before the time remaining (for example `22:00 (3h45m left)`), and both are drawn in a dimmer colour.
+
+### Removed
+- The "cold cache, next message re-caches N tokens" text added in 0.31.4 is gone from the status line.
+
+### Fixed
+- Add `gpt-6.1-sol` to the offline fallback price table, so its Codex usage is no longer priced at $0 when the downloaded price table is stale.
+
 ## [0.31.4] - 2026-09-29
 
 ### Added

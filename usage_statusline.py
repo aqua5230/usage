@@ -760,10 +760,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
     else:
         no_reset = line1 + [p[1] for p in rl_parts]
         candidate = SEP.join(no_reset)
-        if vlen(candidate) <= width:
-            line1 = no_reset
-        else:
-            line1 = line1 + [p[2] for p in rl_parts]
+        line1 = no_reset if vlen(candidate) <= width else line1 + [p[2] for p in rl_parts]
 
     cost = _as_dict(data.get("cost"))
 
