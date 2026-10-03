@@ -175,12 +175,18 @@ def color_by_pct(pct: float) -> str:
     return "\033[38;5;160m"
 
 
+def _progress_bar_chars(os_name: str) -> Tuple[str, str]:
+    # Legacy Windows consoles draw ■□ double-width.
+    return ("█", "░") if os_name == "nt" else ("■", "□")
+
+
 def progress_bar(value: Any, bar_width: int = 8) -> str:
     pct = max(0.0, min(100.0, float(value)))
     filled = round(pct / 100 * bar_width)
+    filled_char, empty_char = _progress_bar_chars(os.name)
     return (
-        f"{color_by_pct(pct)}{'■' * filled}{C['reset']}"
-        f"{'□' * (bar_width - filled)} "
+        f"{color_by_pct(pct)}{filled_char * filled}{C['reset']}"
+        f"{empty_char * (bar_width - filled)} "
         f"{color_by_pct(pct)}{pct:.0f}%{C['reset']}"
     )
 
