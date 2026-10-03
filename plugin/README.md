@@ -2,7 +2,7 @@
 
 Adds `/usage:quota` to Claude Code. It shows how much of your Claude Code and Codex 5-hour and weekly quota is used, and when each window resets.
 
-It runs `usage-cli status --json` from [usage-cli](https://pypi.org/project/usage-cli/), which reads local files only. It never calls a model API and never spends quota.
+It runs `usage-cli status --json` from [usage-cli](https://pypi.org/project/usage-cli/), which reads local files.
 
 ## Install
 

@@ -23,7 +23,7 @@
   <img src="showcase-v3.en.png" alt="usage — 固定在 macOS 菜单栏中的 Claude Code、Codex 与 Antigravity 配额" width="820">
 </p>
 
-Claude Code 和 Codex 的数值来自你电脑上已有的日志文件，所以**查看配额永远不会调用 Anthropic 或 OpenAI 的 LLM API**，也绝不消耗你的 token。Antigravity 是唯一的例外：配额来自 Google 官方配额接口，使用的是 Antigravity CLI 本就保存在本机的登录身份。那只是一次元数据查询，同样不会消耗你的模型配额。
+Claude Code 和 Codex 的数值来自你电脑上已有的日志文件。Antigravity 配额来自 Google 官方配额接口，使用的是 Antigravity CLI 本就保存在本机的登录身份。
 
 `usage` 也能帮你少用一点。上下文窗口快要膨胀、prompt 缓存快要变冷之前，状态栏会先提醒；Token 节省开关让回复变短。在真实会话的 A/B 测试里，后段回复维持短约 40%，而不是越拖越长 84%。
 
@@ -45,18 +45,18 @@ brew install --cask aqua5230/usage/usage
 
 - **常驻监视器：** 配额常驻菜单栏，以绿色到红色的颜色编码显示。需要完整的会话、每周和各项目明细时，点击即可查看。
 - **Antigravity 支持：** Antigravity（Gemini）的会话与每周配额以第三张卡片出现在除了 World Cup 2026 以外的每一款面板（该款维持两队对战 HUD）。数值直接向官方配额 API 查询，使用的是 Antigravity CLI 本就保存在你机器上的登录身份——每隔几分钟自动刷新，重置倒计时实时递减。Antigravity 有两组独立配额：卡片默认显示 Gemini，点击标题旁的“Gemini ⇄”标签即可切换到 Claude / GPT，选择会被记住。
-- **Grok CLI 支持：** 第四张卡片直接读取 Grok CLI 自己写在本地的调试日志算出每周配额百分比，不做任何网络调用。Grok CLI 没有提供会话或燃烧率数据，所以这张卡片只显示一条每周进度条；但它的逐次 token 用量一样会算进今日花费与各项目总计，跟 Claude Code、Codex 一样。
+- **Grok CLI 支持：** 第四张卡片直接读取 Grok CLI 自己写在本地的调试日志算出每周配额百分比。Grok CLI 没有提供会话或燃烧率数据，所以这张卡片只显示一条每周进度条；但它的逐次 token 用量一样会算进今日花费与各项目总计，跟 Claude Code、Codex 一样。
 - **Muse Code 花费：** Muse Code 每次请求的 token 与花费会计入今日花费、项目总计、HTML 报告与 `usage` CLI，数据来自它自己保存在本地的会话日志。Muse 没有本地配额数据，因此没有 Muse 配额卡片。
-- **服务状态警示：** Claude Code、Claude API 或 Codex API 发生故障或性能降级时，相关面板底部会显示橘红警示横幅，数值仅读取官方公开的 Statuspage.io 状态页——绝不调用 LLM 使用量 API。Antigravity 因没有可用的公开状态页，暂不支持。
+- **服务状态警示：** Claude Code、Claude API 或 Codex API 发生故障或性能降级时，相关面板底部会显示橘红警示横幅，数值仅读取官方公开的 Statuspage.io 状态页。Antigravity 因没有可用的公开状态页，暂不支持。
 - **上下文提醒与通知：** 当上下文窗口达到 70%（填得快时会提前）时，状态栏会提示你使用 `/clear` 或 `/compact`，避免浪费 token。你也可以选择接收关于配额限额和恢复的系统通知。
 - **缓存健康度：** 状态栏会显示 Claude Code 的 prompt cache 命中率与过期倒计时，让你一眼判断现在收尾还能沿用已缓存的内容，还是快要冷掉、得整份重新发送。冷掉之后，倒计时会改成显示下一句要重写多少 token。需要 Claude Code 2.1.251 以上；旧版不会出现这一段。
 - **隐藏区块：** 没全都用？点击一次即可从菜单栏和面板中完全隐藏 Claude Code、Codex、Grok CLI 或 Antigravity 区块。
 
 ### 工作流辅助
 
-- **进度管家：** 打开新的 Claude Code 会话时，`usage` 会直接把你上次的进度交给 AI，包括上次请求、未提交的变更和未完成的待办事项。无需 `/resume`，无需回顾。用 `/resume` 接回放太久、缓存已过期的对话时，会先提醒下一句要重新发送多少 token，建议先 `/compact`。完全本地运行，默认关闭。
+- **进度管家：** 打开新的 Claude Code 会话时，`usage` 会直接把你上次的进度交给 AI，包括上次请求、未提交的变更和未完成的待办事项。无需 `/resume`，无需回顾。用 `/resume` 接回放太久、缓存已过期的对话时，会先提醒下一句要重新发送多少 token，建议先 `/compact`。默认关闭。
 - **Token 节省器：** 菜单栏开关会要求 Claude Code 和 Codex 在当前会话中更简洁、更白话地回答，在保持代码和错误信息逐字节不变的同时节省输出 token。轻量的逐消息提醒能避免长对话中的回复逐渐变得冗长——在真实会话的 A/B 测试中，对话后期回复维持缩短约 40%，而不是漂移变长 84%。
-- **终端集成：** `usage status --json` 会将你的 Claude Code 和 Codex 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件，无网络请求。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
+- **终端集成：** `usage status --json` 会将你的 Claude Code 和 Codex 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **Token 浪费健康检查：** 每日后台诊断会扫描日志中的浪费问题，包括重复读取文件、污染目录和冗长的 Bash 输出。发现问题时会显示一行提示；对 AI 说“show me”，它会引导你完成修复。
 
 ### 掌握最新动态
@@ -76,8 +76,8 @@ brew install --cask aqua5230/usage/usage
 
 ## 隐私与数据来源
 
-- Claude Code 和 Codex 的数值**仅从本机本地日志文件**读取；读取这些数值**不会调用 Anthropic 或 OpenAI 的 LLM API**。
-- Antigravity 配额需要联网，且只有你实际使用它才会发生：配额通过 Antigravity CLI 登录后保存的 OAuth 凭据，向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器，或本地 token 文件。`usage` 只读取该凭据而不写回，任何刷新后的 access token 也只保留在内存中；该调用本身只读取配额信息，绝不消耗你的模型配额。
+- Claude Code 和 Codex 的数值从你电脑上的本地日志文件读取。
+- Antigravity 配额需要联网，且只有你实际使用它才会发生：配额通过 Antigravity CLI 登录后保存的 OAuth 凭据，向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器，或本地 token 文件。`usage` 只读取该凭据而不写回，任何刷新后的 access token 也只保留在内存中；该调用本身读取配额信息。
 - 后台网络活动范围：上述 Antigravity 配额／token 接口、用于标记故障的 Claude 与 Codex 公开状态页、用于估算费用的公开模型价格表（离线时回退到内置价格），以及偶尔在 GitHub 检查新版本。Claude Code 与 Codex 的日志内容不会被上传。
 
 ## 系统要求
@@ -198,7 +198,6 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | AI 更新日报 | ✅ | — | — |
 | 进度管家与 Token 节省器 | ✅ | — | — |
 | Token 浪费健康检查 | ✅ | — | — |
-| 读取配额时不调用 LLM API | ✅ | ✅ | ✅ |
 | 开源许可证 | AGPL-3.0 | MIT | — |
 
 ## 不适合谁

@@ -23,7 +23,7 @@
   <img src="docs/showcase-v3.en.png" alt="usage — Claude Code, Codex, and Antigravity quota pinned to the macOS menu bar" width="820">
 </p>
 
-Claude Code and Codex numbers come from log files already on your machine, so **watching your quota never calls Anthropic or OpenAI's LLM APIs** and never costs you a token. Antigravity is the one exception: its quota comes from Google's official quota endpoint, using the sign-in the Antigravity CLI already stores locally. That's a metadata call and doesn't use your model quota either.
+Claude Code and Codex numbers come from log files already on your machine. Antigravity quota comes from Google's official quota endpoint, using the sign-in the Antigravity CLI already stores locally.
 
 `usage` also helps you spend less. The status line warns you before your context window bloats or your prompt cache goes cold, and a Token Saver toggle keeps replies short. In an A/B test on real sessions, late replies stayed ~40% shorter instead of growing 84% longer.
 
@@ -45,18 +45,18 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 
 - **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
 - **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every theme except World Cup 2026, which stays a two-team HUD. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns. Antigravity keeps two separate quota pools: the card shows Gemini by default, and tapping the `Gemini ⇄` tag next to the title switches it to Claude / GPT — the choice is remembered.
-- **Grok CLI Support:** A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log — no network call. Grok CLI doesn't expose session or burn-rate data, so the card shows a single weekly bar; its per-request token usage still counts toward today's cost and project totals like Claude Code and Codex.
+- **Grok CLI Support:** A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log. Grok CLI doesn't expose session or burn-rate data, so the card shows a single weekly bar; its per-request token usage still counts toward today's cost and project totals like Claude Code and Codex.
 - **Muse Code Spending:** Muse Code's per-request tokens and cost count toward today's cost, project totals, the HTML report, and the `usage` CLI, read from its own local session logs. Muse keeps no local quota data, so there is no Muse quota card.
-- **Service Status Alerts:** An orange-red banner appears when Claude Code, Claude API, or Codex API has an outage or degraded performance, read from their public Statuspage.io pages — never an LLM usage API. Antigravity isn't covered; it has no public status page.
+- **Service Status Alerts:** An orange-red banner appears when Claude Code, Claude API, or Codex API has an outage or degraded performance, read from their public Statuspage.io pages. Antigravity isn't covered; it has no public status page.
 - **Context Nudges & Notifications:** When your context window hits 70% — or earlier when it is filling fast — the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries.
 - **Prompt Cache Health:** The status line shows Claude Code's prompt cache hit rate with a countdown to expiry, so you can tell at a glance whether finishing now still reuses the cached context or lets it go cold and re-sends everything. Once it has gone cold, the countdown turns into how many tokens your next message will re-cache. Needs Claude Code 2.1.251 or newer; on older versions the segment simply doesn't appear.
 - **Hide Sections:** Only use one or two of the tools? Hide the Claude Code, Codex, Grok CLI, or Antigravity section from the menu bar and panels completely with a single click.
 
 ### Workflow Helpers
 
-- **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI, including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. When you do `/resume` a conversation that sat long enough for its cache to expire, it warns you how many tokens the next message will re-send and suggests `/compact` first. Fully local, off by default.
+- **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI, including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. When you do `/resume` a conversation that sat long enough for its cache to expire, it warns you how many tokens the next message will re-send and suggests `/compact` first. Off by default.
 - **Token Saver:** A menu-bar toggle asks Claude Code and Codex to answer more tersely and in plainer language, saving output tokens while keeping code and error messages byte-exact. A light reminder keeps long conversations from drifting back to verbose — in an A/B test on real sessions, late replies stayed ~40% shorter instead of drifting 84% longer.
-- **Terminal Integration:** `usage status --json` hands your Claude Code and Codex quota to any tool that can run a command — Starship, tmux, or your own scripts. Reads the same local files as the menu bar, no network call. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
+- **Terminal Integration:** `usage status --json` hands your Claude Code and Codex quota to any tool that can run a command — Starship, tmux, or your own scripts. Reads the same local files as the menu bar. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **Token-waste Health Check:** A daily background diagnosis scans your logs for waste, including repeated file reads, polluter directories, and noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
 
 ### Stay Current
@@ -76,8 +76,8 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 
 ## Privacy & Data Sources
 
-- Claude Code and Codex numbers are read **only from local log files** on your machine; reading them **never calls Anthropic or OpenAI's LLM APIs**.
-- Antigravity quota requires network access, and only if you use it: quota is fetched from Google's official quota endpoint using the OAuth credential the Antigravity CLI already stored after sign-in — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version. `usage` reads that credential without writing it back and keeps any refreshed access token in memory only; the call itself only reads quota metadata and never consumes your model quota.
+- Claude Code and Codex numbers are read from local log files on your machine.
+- Antigravity quota requires network access, and only if you use it: quota is fetched from Google's official quota endpoint using the OAuth credential the Antigravity CLI already stored after sign-in — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version. `usage` reads that credential without writing it back and keeps any refreshed access token in memory only; the call itself reads quota metadata.
 - Background network activity: the Antigravity quota/token endpoints above, public Claude and Codex status pages to flag outages, a public model-pricing table to estimate cost (falls back to built-in prices offline), and occasionally checking GitHub for a new version. Claude Code and Codex log contents are never uploaded.
 
 ## Requirements
@@ -198,7 +198,6 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | AI Update Daily | ✅ | — | — |
 | Progress Concierge & Token Saver | ✅ | — | — |
 | Token-waste Health Check | ✅ | — | — |
-| No LLM API calls to read quota | ✅ | ✅ | ✅ |
 | Open-source license | AGPL-3.0 | MIT | — |
 
 ## When usage Isn't the Right Fit

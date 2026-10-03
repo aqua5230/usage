@@ -6,7 +6,7 @@
 
 ## 它怎麼拿到你的用量數字
 
-Claude Code 跟 Codex 的數字來自這兩個工具本來就在你本機留下的檔案，不呼叫 Anthropic / OpenAI 的 API。Antigravity 是例外：它的額度不在磁碟上，所以 usage 會用 Antigravity CLI 存下的 OAuth 憑證（macOS Keychain／Windows 認證管理員）向 Google 的額度端點取得，access token 過期時透過 `https://oauth2.googleapis.com/token` 更新。除此之外，會連網的只有三件事：(1) 估算 Codex 成本時需要 token 單價表，如果本機沒有快取（`~/.usage/pricing_cache.json`），會先用內建 fallback 價格立即顯示成本估算，再在背景嘗試從公開的 [LiteLLM 價格表](https://github.com/BerriAI/litellm) 下載並快取，7 天後過期再抓；下載失敗不影響用量百分比顯示，網路恢復後會自動更新價格表；(2) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關掉）；(3) 每 5 分鐘讀取 Claude 與 Codex 的公開 Statuspage 摘要，用來顯示服務狀態警示。完整的對外連線清單見 [SECURITY.md](../.github/SECURITY.md)。
+Claude Code 跟 Codex 的數字來自這兩個工具本來就在你本機留下的檔案。Antigravity 的額度不在磁碟上，所以 usage 會用 Antigravity CLI 存下的 OAuth 憑證（macOS Keychain／Windows 認證管理員）向 Google 的額度端點取得，access token 過期時透過 `https://oauth2.googleapis.com/token` 更新。其他網路活動包括：(1) 估算 Codex 成本時需要 token 單價表，如果本機沒有快取（`~/.usage/pricing_cache.json`），會先用內建 fallback 價格立即顯示成本估算，再在背景嘗試從公開的 [LiteLLM 價格表](https://github.com/BerriAI/litellm) 下載並快取，7 天後過期再抓；下載失敗不影響用量百分比顯示，網路恢復後會自動更新價格表；(2) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關掉）；(3) 每 5 分鐘讀取 Claude 與 Codex 的公開 Statuspage 摘要，用來顯示服務狀態警示。完整的對外連線清單見 [SECURITY.md](../.github/SECURITY.md)。
 
 ### Claude Code 用量
 
@@ -25,8 +25,6 @@ flowchart LR
     B -->|寫入| C[(~/.claude/<br/>usage-status.json)]
     D[usage menu bar / TUI] -->|讀取| C
     D -->|顯示| E[macOS menu bar]
-    F((Anthropic API)) -.x.- D
-    style F stroke:#c0392b,stroke-dasharray:5 5
 ```
 
 讀檔的優先順序：
@@ -39,7 +37,7 @@ flowchart LR
 
 Codex CLI 沒有 statusLine hook 這種機制，所以 usage 採另一條路：掃 Codex CLI 在 `~/.codex/sessions/` 底下留下的 `*.jsonl` 對話紀錄檔。Codex 每次對話會在紀錄裡寫入 `rate_limits`（配額資訊），usage 直接讀裡面的 5 小時跟 7 天用量百分比，不需要自己計算。今日的 token 用量跟成本則從同一份紀錄的 token 統計加總。
 
-要注意的是：Codex 只是**偶爾**才把 `rate_limits` 寫進紀錄，不像 Claude Code 會即時回報，所以這個數字可能**落後你的實際用量**（在網頁上用的更不會進到本機檔）。當本機快照超過 15 分鐘，Codex 卡會標出「約 N 分鐘前」提醒你這是舊資料。維持離線是刻意的——這樣 usage 不會多耗你的 token。
+要注意的是：Codex 只是**偶爾**才把 `rate_limits` 寫進紀錄，不像 Claude Code 會即時回報，所以這個數字可能**落後你的實際用量**（在網頁上用的更不會進到本機檔）。當本機快照超過 15 分鐘，Codex 卡會標出「約 N 分鐘前」提醒你這是舊資料。
 
 沒裝 Codex 或沒這個資料夾的話，這部分會自動隱藏，不會影響 Claude Code 那邊的顯示。
 
@@ -186,7 +184,7 @@ HTML 報告包含：每日 / 週 / 月 token 與成本走勢、各專案排名�
 
 ## 給其他工具讀的配額狀態（`usage status`）
 
-`usage status` 會印出目前 Claude Code 與 Codex 的配額，讓其他工具接得上。它只讀選單列本來就在讀的那些本機檔案，不做任何網路呼叫；Antigravity 的配額需要連網才拿得到，所以刻意不放進來。
+`usage status` 會印出目前 Claude Code 與 Codex 的配額，讓其他工具接得上。它讀取選單列本來就在讀的那些本機檔案。這個指令不包含 Antigravity 配額。
 
 ```bash
 # 一行人類看的摘要
@@ -323,7 +321,7 @@ USAGE_LANG=zh-CN python3 main.py   # 簡體中文
 
 ## 一些行為說明
 
-- usage 只在本機讀取 `~/.claude/usage-status.json`、v0.1.x 留下的 `~/.claude/usag-status.json`、`~/.claude/tt-status.json`，以及 Codex 的 session 檔，且絕不為了讀取這些資料呼叫 Anthropic 或 OpenAI 的 API。除此之外會連網的情況：(a) 如果你有使用 Antigravity，其額度來自 Google 的官方額度端點，使用 Antigravity CLI 已儲存的 OAuth 憑證——依據 CLI 版本讀自 macOS Keychain、Windows 認證管理員或本機 token 檔——這是一次元資料呼叫，不消耗模型額度；(b) 讀取公開的 Claude 與 Codex Statuspage.io 頁面來標示故障；(c) 首次估算成本時下載 LiteLLM 價格表（快取 7 天，離線也能用 fallback）；(d) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關閉）。
+- usage 在本機讀取 `~/.claude/usage-status.json`、v0.1.x 留下的 `~/.claude/usag-status.json`、`~/.claude/tt-status.json`，以及 Codex 的 session 檔。網路活動包括：(a) 如果你有使用 Antigravity，其額度來自 Google 的官方額度端點，使用 Antigravity CLI 已儲存的 OAuth 憑證——依據 CLI 版本讀自 macOS Keychain、Windows 認證管理員或本機 token 檔——這是一次額度元資料呼叫；(b) 讀取公開的 Claude 與 Codex Statuspage.io 頁面來標示故障；(c) 首次估算成本時下載 LiteLLM 價格表（快取 7 天，離線也能用 fallback）；(d) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關閉）。
 - Claude Code 沒在跑的時候，狀態檔不會更新；但因為實際用量也不會變（除非重置時間到了），所以顯示的數字仍然是有效的；重置時間過了會自動歸零。
 - 如果狀態檔超過 6 小時沒被更新過，會在狀態訊息標註 `⚠ usage stale Nm`（N 為實際分鐘數），提示資料可能過時。
 

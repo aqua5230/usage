@@ -2,7 +2,7 @@
 
 在 Claude Code 加上 `/usage:quota` 指令，顯示 Claude Code 與 Codex 的 5 小時、每週額度用了多少，以及各自何時重置。
 
-它執行 [usage-cli](https://pypi.org/project/usage-cli/) 的 `usage-cli status --json`，只讀本機檔案，不呼叫任何模型 API，也不消耗額度。
+它執行 [usage-cli](https://pypi.org/project/usage-cli/) 的 `usage-cli status --json`，讀取本機檔案。
 
 ## 安裝
 

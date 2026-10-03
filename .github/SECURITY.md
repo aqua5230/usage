@@ -22,11 +22,11 @@ usage ships on a rolling basis; security fixes target the **latest release only*
 
 ## Security Design
 
-usage **never calls an LLM API.** Watching your quota never costs you tokens — that's the core design principle of the project. usage also does not upload, track, or phone home with your usage data: your prompts, your conversation content, and your usage numbers never leave your machine.
+usage does not upload, track, or phone home with your usage data: your prompts, your conversation content, and your usage numbers never leave your machine.
 
-**Claude Code and Codex** numbers come entirely from files already on your local disk — the status file Claude Code's statusLine hook writes, and Codex's session logs. Reading them involves no network access at all.
+**Claude Code and Codex** numbers come from files already on your local disk — the status file Claude Code's statusLine hook writes, and Codex's session logs.
 
-**Antigravity** is different, and worth stating plainly: its quota is not on your disk, so usage fetches it over the network. See below.
+**Antigravity** quota is fetched from Google’s official quota endpoint over the network. See below.
 
 ### Every outbound request
 

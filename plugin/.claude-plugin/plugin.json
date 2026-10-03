@@ -1,7 +1,7 @@
 {
   "name": "usage",
   "displayName": "usage",
-  "description": "Check your Claude Code and Codex 5-hour and weekly quota without leaving Claude Code. Reads local files only; never calls a model API.",
+  "description": "Check your Claude Code and Codex 5-hour and weekly quota without leaving Claude Code. Reads local files.",
   "author": {
     "name": "lollapalooza",
     "url": "https://github.com/aqua5230"

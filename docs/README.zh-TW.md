@@ -23,7 +23,7 @@
   <img src="showcase-v3.en.png" alt="usage — 把 Claude Code、Codex 與 Antigravity 的額度釘在 macOS 選單列" width="820">
 </p>
 
-Claude Code 與 Codex 的數字讀自你機器上原本就在寫的紀錄檔，所以**看額度永遠不會呼叫 Anthropic 或 OpenAI 的 LLM API**，也不花你任何 token。Antigravity 是唯一的例外：額度來自 Google 官方額度端點，用的是 Antigravity CLI 本來就存在本機的登入身分。那只是一次元資料查詢，同樣不會用掉你的模型額度。
+Claude Code 與 Codex 的數字讀自你機器上原本就在寫的紀錄檔。Antigravity 額度來自 Google 官方額度端點，用的是 Antigravity CLI 本來就存在本機的登入身分。
 
 `usage` 也能幫你少用一點。對話窗快要膨脹、提示快取快冷掉之前，狀態列會先提醒；Token 節省開關讓回覆變短。在真實對話的 A/B 測試裡，後段回覆維持短約 40%，而不是越拖越長 84%。
 
@@ -45,18 +45,18 @@ brew install --cask aqua5230/usage/usage
 
 - **常駐監控：** 額度常駐選單列，顏色標示警戒級別（綠到紅）。點開能看 Session、Weekly 與各專案用量細節。
 - **Antigravity 支援：** Antigravity（Gemini）的 Session 與每週額度以第三張卡片出現在除了 World Cup 2026 以外的每一款面板（該款維持兩隊對戰 HUD）。數字直接向官方額度 API 查詢，用的是 Antigravity CLI 本來就存在你機器上的登入身分——每幾分鐘自動刷新，重置倒數即時遞減。Antigravity 有兩組獨立額度：卡片預設顯示 Gemini，點標題旁的「Gemini ⇄」標籤就切到 Claude / GPT，選擇會記住。
-- **Grok CLI 支援：** 第四張卡片直接讀 Grok CLI 自己寫在本機的除錯紀錄檔算出每週額度百分比，不做任何網路呼叫。Grok CLI 沒有提供 Session 或燃燒率資料，所以這張卡片只顯示一條每週進度條；但它的逐次 token 用量一樣會算進今日花費與各專案總計，跟 Claude Code、Codex 一樣。
+- **Grok CLI 支援：** 第四張卡片直接讀 Grok CLI 自己寫在本機的除錯紀錄檔算出每週額度百分比。Grok CLI 沒有提供 Session 或燃燒率資料，所以這張卡片只顯示一條每週進度條；但它的逐次 token 用量一樣會算進今日花費與各專案總計，跟 Claude Code、Codex 一樣。
 - **Muse Code 花費：** Muse Code 每次請求的 token 與花費會算進今日花費、專案總計、HTML 報表與 `usage` CLI，資料來自它自己存在本機的對話紀錄。Muse 沒有本機額度資料，所以沒有 Muse 額度卡片。
-- **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅，狀態資訊只讀官方公開的 Statuspage.io 狀態頁——絕不呼叫 LLM 用量 API。Antigravity 因沒有可用的公開狀態頁，暫不支援。
+- **服務狀態警示：** Claude Code、Claude API 或 Codex API 發生故障或效能降級時，相關面板底部會顯示橘紅警示橫幅，狀態資訊只讀官方公開的 Statuspage.io 狀態頁。Antigravity 因沒有可用的公開狀態頁，暫不支援。
 - **上下文提醒與系統通知：** Context Window 達 70%（填得快時會提早）時，狀態列會提醒你 `/clear` 或 `/compact` 來避免浪費；也可自選開啟系統通知，在接近門檻或額度恢復時提醒。
 - **快取健康度：** 狀態列會顯示 Claude Code 的 prompt cache 命中率與過期倒數，讓你一眼判斷現在收尾還能沿用已快取的內容，還是快要冷掉、得整份重送。冷掉之後，倒數會改成顯示下一句要重寫多少 token。需要 Claude Code 2.1.251 以上；舊版不會出現這一段。
 - **獨立隱藏區塊：** 沒有全部都用？一鍵就能把 Claude Code、Codex、Grok CLI 或 Antigravity 從選單列及面板上徹底隱藏。
 
 ### 工作流程輔助
 
-- **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用重講一遍進度。用 `/resume` 接回放太久、快取已過期的對話時，會先提醒下一句要重送多少 token，建議先 `/compact`。完全本機、預設關閉。
+- **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用重講一遍進度。用 `/resume` 接回放太久、快取已過期的對話時，會先提醒下一句要重送多少 token，建議先 `/compact`。預設關閉。
 - **省 token 模式 (Token Saver)：** 一鍵讓 Claude Code 與 Codex 講話更精簡、更白話，省下輸出 token，但程式碼與錯誤訊息保證一個字都不縮水。輕聲提醒維持精簡，長對話也不走鐘——在真實 Session 的 A/B 測試中，對話後段回覆維持少約 40%，而不是走鐘變長 84%。
-- **終端機整合：** `usage status --json` 把 Claude Code 與 Codex 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案，不做網路呼叫。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
+- **終端機整合：** `usage status --json` 把 Claude Code 與 Codex 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **Token 浪費健檢：** 每日背景診斷重複讀取檔案、污染目錄與雜訊輸出。當發現浪費時會有一行提示，AI 也能帶你看懂問題並給出改善建議。
 
 ### 掌握最新動態
@@ -76,8 +76,8 @@ brew install --cask aqua5230/usage/usage
 
 ## 隱私與資料來源
 
-- Claude Code 與 Codex 的數字**只讀本機紀錄檔**；讀取這些數字**不會呼叫 Anthropic 或 OpenAI 的 LLM API**。
-- Antigravity 額度需要連網，而且只有你真的使用它才會發生：額度是用 Antigravity CLI 登入後存下的 OAuth 憑證，向 Google 官方額度端點查詢——依 CLI 版本不同，這個憑證讀自 macOS Keychain、Windows 認證管理員，或本機 token 檔。`usage` 只讀取這個憑證而不寫回，任何刷新後的 access token 也只留在記憶體中；這個呼叫本身只讀額度資訊，絕不消耗你的模型額度。
+- Claude Code 與 Codex 的數字讀自你機器上的本機紀錄檔。
+- Antigravity 額度需要連網，而且只有你真的使用它才會發生：額度是用 Antigravity CLI 登入後存下的 OAuth 憑證，向 Google 官方額度端點查詢——依 CLI 版本不同，這個憑證讀自 macOS Keychain、Windows 認證管理員，或本機 token 檔。`usage` 只讀取這個憑證而不寫回，任何刷新後的 access token 也只留在記憶體中；這個呼叫本身讀取額度資訊。
 - 背景連網範圍：上述 Antigravity 額度／token 端點、用來標示故障的 Claude 與 Codex 公開狀態頁、估算成本用的公開價格表（斷網會用內建預設），以及偶爾檢查 GitHub 版本更新。Claude Code 與 Codex 的紀錄檔內容不會被上傳。
 
 ## 環境需求
@@ -198,7 +198,6 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | AI 更新日報 | ✅ | — | — |
 | 進度管家與省 token 模式 | ✅ | — | — |
 | Token 浪費健檢 | ✅ | — | — |
-| 讀取額度時不呼叫 LLM API | ✅ | ✅ | ✅ |
 | 開源授權 | AGPL-3.0 | MIT | — |
 
 ## 不適合誰

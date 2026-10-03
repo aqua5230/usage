@@ -6,7 +6,7 @@ Everything you need to run usage from source, use the TUI / CLI, configure detec
 
 ## How it gets the data
 
-Claude Code and Codex numbers come from local files those tools already write — no Anthropic / OpenAI API calls. Antigravity is the exception: its quota is not on disk, so usage fetches it from Google's quota endpoint using the OAuth credential the Antigravity CLI stores (macOS Keychain / Windows Credential Manager), refreshing the access token via `https://oauth2.googleapis.com/token` when it expires. Beyond that, network access is limited to three things: (1) to estimate Codex costs, usage needs a token pricing table — if no local cache exists (`~/.usage/pricing_cache.json`), usage shows the estimate immediately with a built-in fallback price, then tries to download and cache the public [LiteLLM pricing JSON](https://github.com/BerriAI/litellm) in the background, refreshing it again after 7 days. If the download fails, usage percentage display is unaffected, and pricing updates automatically once the network succeeds. (2) Starting in v0.11.0, usage pings the GitHub Releases API at most once per 24h to check for new versions (toggleable from the "Switch Panel" menu). (3) The public Claude and Codex Statuspage summaries, polled every 5 minutes to raise the service-status banner. The full list of outbound requests lives in [SECURITY.md](../.github/SECURITY.md).
+Claude Code and Codex numbers come from local files those tools already write. Antigravity quota is not on disk, so usage fetches it from Google's quota endpoint using the OAuth credential the Antigravity CLI stores (macOS Keychain / Windows Credential Manager), refreshing the access token via `https://oauth2.googleapis.com/token` when it expires. Other network activity includes: (1) to estimate Codex costs, usage needs a token pricing table — if no local cache exists (`~/.usage/pricing_cache.json`), usage shows the estimate immediately with a built-in fallback price, then tries to download and cache the public [LiteLLM pricing JSON](https://github.com/BerriAI/litellm) in the background, refreshing it again after 7 days. If the download fails, usage percentage display is unaffected, and pricing updates automatically once the network succeeds. (2) Starting in v0.11.0, usage pings the GitHub Releases API at most once per 24h to check for new versions (toggleable from the "Switch Panel" menu). (3) The public Claude and Codex Statuspage summaries, polled every 5 minutes to raise the service-status banner. The full list of outbound requests lives in [SECURITY.md](../.github/SECURITY.md).
 
 ### Claude Code usage
 
@@ -25,8 +25,6 @@ flowchart LR
     B -->|writes| C[(~/.claude/<br/>usage-status.json)]
     D[usage menu bar / TUI] -->|reads| C
     D -->|renders| E[macOS menu bar]
-    F((Anthropic API)) -.x.- D
-    style F stroke:#c0392b,stroke-dasharray:5 5
 ```
 
 Read priority:
@@ -39,7 +37,7 @@ Read priority:
 
 Codex CLI doesn't expose a statusLine hook, so usage takes a different route: it scans the conversation logs Codex CLI leaves on disk (`~/.codex/sessions/*.jsonl`). Codex writes `rate_limits` data directly into each log entry — usage reads those fields to get the 5-hour and 7-day quota percentages directly. Today's token count and cost are summed from the token usage recorded in the same files.
 
-Note that Codex only writes `rate_limits` into its logs **intermittently** — unlike Claude Code, it has no live status-line reporting — so this number can **lag your real usage** (and anything you do on the web never reaches the local files at all). When the local snapshot is older than 15 minutes, the Codex card shows an "about N minutes ago" tag to flag that it's stale. Staying offline is deliberate: it means usage never burns your tokens.
+Note that Codex only writes `rate_limits` into its logs **intermittently** — unlike Claude Code, it has no live status-line reporting — so this number can **lag your real usage** (and anything you do on the web never reaches the local files at all). When the local snapshot is older than 15 minutes, the Codex card shows an "about N minutes ago" tag to flag that it's stale.
 
 If Codex isn't installed or the directory doesn't exist, that part of the UI hides itself and Claude Code stats continue to work normally.
 
@@ -182,7 +180,7 @@ The HTML report covers daily / weekly / monthly token + cost trends, per-project
 
 ## Quota status for other tools (`usage status`)
 
-`usage status` prints the current Claude Code and Codex quota so other tools can read it. It only reads the same local files the menu bar uses — no network call, and Antigravity is deliberately excluded because its quota needs one.
+`usage status` prints the current Claude Code and Codex quota so other tools can read it. It reads the same local files the menu bar uses. Antigravity quota is not included in this command.
 
 ```bash
 # One-line human-readable summary
@@ -319,7 +317,7 @@ USAGE_LANG=zh-CN python3 main.py   # Simplified Chinese
 
 ## Behaviour notes
 
-- usage reads `~/.claude/usage-status.json`, the v0.1.x legacy `~/.claude/usag-status.json`, `~/.claude/tt-status.json`, and Codex's session files locally, and never calls the Anthropic or OpenAI LLM APIs to do it. Network activity beyond that: (a) if you use Antigravity, its quota comes from Google's official quota endpoint using the OAuth credential the Antigravity CLI already stores — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version — a metadata call that doesn't consume model quota; (b) public Claude and Codex Statuspage.io pages to flag outages; (c) a one-time download of the LiteLLM pricing table for cost estimates (cached for 7 days; offline fallback available); (d) starting in v0.11.0, an at-most-daily ping to the GitHub Releases API to check for new versions (toggleable from the "Switch Panel" menu).
+- usage reads `~/.claude/usage-status.json`, the v0.1.x legacy `~/.claude/usag-status.json`, `~/.claude/tt-status.json`, and Codex's session files locally. Network activity includes: (a) if you use Antigravity, its quota comes from Google's official quota endpoint using the OAuth credential the Antigravity CLI already stores — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version — a quota metadata call; (b) public Claude and Codex Statuspage.io pages to flag outages; (c) a one-time download of the LiteLLM pricing table for cost estimates (cached for 7 days; offline fallback available); (d) starting in v0.11.0, an at-most-daily ping to the GitHub Releases API to check for new versions (toggleable from the "Switch Panel" menu).
 - When Claude Code isn't running, the status file isn't updated — but actual usage isn't changing either (until reset time), so the displayed value is still accurate. After reset time passes, it auto-resets to zero.
 - If the status file hasn't been updated for more than 6 hours, the status message shows `⚠ usage stale Nm` (where N is the actual minute count) to flag potentially out-of-date numbers.
 
