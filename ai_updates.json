@@ -1310,6 +1310,34 @@
       "name": "Usage",
       "versions": [
         {
+          "version": "0.31.5",
+          "period": "2026-10-03",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "狀態列排版精簡，重置時間與快取命中一目了然",
+                "en": "Status Line Layout Streamlined for At-a-Glance Reset Times and Cache Hits"
+              },
+              "body": {
+                "zh-TW": "在終端機專心配對程式碼時，螢幕最底部的即時資訊現在變得更短。⟦好比汽車儀表板精簡了多餘的指針，以前塞滿次要數據容易讓人分心，現在只留關鍵油量與里程，一眼就能看清現況。⟧第一行現在只保留專案名稱與兩個額度，上下文視窗（對話可容納的內容範圍）資訊則移至第二行末尾。兩個額度改用較暗的顏色顯示，並在剩餘時間前標出重置時刻，例如 22:00(剩 3h45m)。快取（把算過或查過的結果暫存起來直接用）區塊移除了進度條與倒數，改為僅顯示命中率，例如快取:93%。因為 Claude Code 每送出一則訊息就會重新計時，加上閒置時不會重畫畫面，導致倒數幾乎永遠停在約 59 分鐘，所以不再顯示。先前在 0.31.4 加入的「快取已冷、下輪重寫 N token（AI 處理與計費的文字單位）」提示文字也一併從狀態列移除。",
+                "en": "While pair programming in the terminal, the real-time information at the very bottom of the screen is now more concise. ⟦Think of a car dashboard stripping away unnecessary gauges: where cluttered secondary dials once caused distraction, only key fuel and mileage remain to check status at a glance.⟧ The first line now keeps only the project name and two quotas, while context window information moves to the end of the second line. The two quotas are displayed in a dimmer color, labeling the reset time before the remaining time, such as 22:00 (3h45m left). The cache section removes the progress bar and countdown, showing only the hit rate instead, such as cache:93%. Because Claude Code resets the timer every time a message is sent and does not redraw the screen when idle, the countdown almost permanently hovered around 59 minutes and is no longer shown. The hint text added in 0.31.4 noting that the cache has cooled down and N tokens will be rewritten next round has also been removed from the status line."
+              },
+              "original": "**The status line is shorter.** The first line now holds only the project and your two quotas; the context window moved to the end of the second line. The cache segment lost its bar and its countdown and shows just the hit rate (for example `Cache: 93%`) — the countdown read about 59 minutes almost every time, because Claude Code restarts it on every message and the status line does not redraw while you are idle.\nThe two quotas now show the reset clock time before the time remaining (for example `22:00 (3h45m left)`), and both are drawn in a dimmer colour.\nThe \"cold cache, next message re-caches N tokens\" text added in 0.31.4 is gone from the status line."
+            },
+            {
+              "title": {
+                "zh-TW": "離線備援價目表補上新模型，過期時不再誤算為零元",
+                "en": "Offline Fallback Price List Adds New Model to Prevent Zero-Dollar Miscalculations Upon Expiration"
+              },
+              "body": {
+                "zh-TW": "當下載的價目表過期，你查看 gpt-6.1-sol 的 Codex 用量時，以前可能會看到 $0。⟦就像手上的商品價目表過期，店員改查備用表；以前備用表漏了新商品，價格被記成 0 元，現在備用表補上了這項商品。⟧內建的離線備援價目表正式補上 gpt-6.1-sol。以往只要下載的價目表過期，它的 Codex 用量就會被算成 $0；現在補齊清單後，這種情況下不會再被誤算。",
+                "en": "When the downloaded price list expired and you checked Codex usage for gpt-6.1-sol, you might have previously seen $0. ⟦Picture a clerk consulting a backup catalog when the printed price list expires; where the backup sheet previously omitted new items and recorded their prices as $0, it now includes the missing listing.⟧ The built-in offline fallback price list officially adds gpt-6.1-sol. Previously, whenever the downloaded price list expired, Codex usage for this model was calculated as $0; with the list completed, it will no longer be miscalculated under these conditions."
+              },
+              "original": "Add `gpt-6.1-sol` to the offline fallback price table, so its Codex usage is no longer priced at $0 when the downloaded price table is stale."
+            }
+          ]
+        },
+        {
           "version": "0.31.4",
           "period": "2026-09-29",
           "items": [
@@ -1373,34 +1401,6 @@
                 "en": "When you switch to the ECG popover to track usage, text across the project list and bottom section now reads with greater visual balance. ⟦Picture reviewing a bank statement where individual line items below the total were previously printed unusually small, creating an awkward visual contrast; now all fields share a consistent font size so you can clearly scan every expense at a glance.⟧ Previously in this theme, project names, token counts, costs, project action buttons, the status bar, today's total, and footer buttons were all 1 to 3px smaller than usual. That text looked out of place beneath the large quota readout, but project usage and footer font sizes in the ECG popover have now been restored to their standard scale, staying consistent with all other themes."
               },
               "original": "Bring the Heart Monitor panel's project list and footer text up to the size every other theme uses. Project names, token counts, costs, the project actions, the status strip, today's total and the footer buttons were 1–3px smaller and looked out of place under the large quota readouts."
-            }
-          ]
-        },
-        {
-          "version": "0.31.2",
-          "period": "2026-09-27",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "心電圖面板重整專案用量與頁尾，按鈕即時連動狀態列設定",
-                "en": "ECG Popover Reorganizes Project Usage and Footer with Real-Time Status-Line Sync"
-              },
-              "body": {
-                "zh-TW": "想在終端機裡查看各專案的資源消耗時，現在心電圖面板能呈現更工整清晰的排版。⟦如同走進重新規畫的控制室，以前各項指標高低不一且按鈕各自為政，現在所有數值按欄位整齊排好，開關指示燈也直接與主系統連線同步。⟧心電圖面板的專案列已改為對齊的數據表，搭配細長條與外框名次標籤，讓用量多寡與排行一目了然。原本的三個專案動作整合成一組分段按鈕，按鈕亮起狀態會跟著真正的 status-line（顯示在終端機最底下的狀態列）設定走，避免顯示與背後設定脫節。底部頁尾換上精簡的狀態列樣式，而上方的額度卡片則維持原本外觀。",
-                "en": "When checking resource consumption across projects in the terminal, the ECG popover now presents a cleaner, more organized layout. ⟦Picture stepping into a redesigned control room: where scattered meters and isolated switches once operated independently, all readings are now arranged in aligned columns and indicator lights stay in sync with the main system.⟧ The project rows in the ECG popover are now structured into an aligned data table with slender bars and boxed rank tags, making usage levels and rankings clear at a glance. The previous three project actions are consolidated into a segmented button group, and the active button state mirrors the actual status-line configuration to prevent display mismatch. The bottom footer adopts a streamlined status-line style, while the quota cards above retain their original appearance."
-              },
-              "original": "Tidy the Heart Monitor panel's project list and footer: project rows line up as a data table with thin bars and outlined rank chips, the three project actions form one segmented control whose lit state follows the real status-line setting, and the footer becomes a status strip. The quota cards keep their original look."
-            },
-            {
-              "title": {
-                "zh-TW": "說明文件與官網展示收錄手繪筆記與心電圖新主題",
-                "en": "Documentation and Website Add Handdrawn and ECG Theme Previews"
-              },
-              "body": {
-                "zh-TW": "想在挑選主題前先預覽介面外觀，現在不必親自安裝切換就能直接看見效果。⟦好比走進線上家具型錄，以前新推出的配色沒有附上實景展示，想看搭配只能買回家組裝；現在目錄首頁就放上情境輪播，一眼就能比對每套風格的實際質感。⟧說明文件裡的 README 主題展示（theme gallery，列出各種外觀風格的範例區）與官方網站的面板輪播，現在同步收錄了「手繪筆記」與「心電圖」兩款樣式。你可以在網頁上直接看清不同主題在面板上的排版細節，挑選順眼的風格後再套用到終端機環境中。",
-                "en": "When previewing interface styles before picking a theme, you can now see the results directly without installing and switching themes yourself. ⟦Like flipping through an online furniture catalog where new color schemes previously lacked room previews and required assembling them at home, the homepage now provides an interactive carousel to compare the exact look of every style at a glance.⟧ The README theme gallery in the documentation and the popover carousel on the official website now include both the \"Handdrawn\" and \"ECG\" themes. You can inspect layout details across themes directly on the web and pick your favorite style before applying it to your terminal."
-              },
-              "original": "Add Sketchbook and Heart Monitor to the README theme gallery and to the website's panel carousel."
             }
           ]
         }
