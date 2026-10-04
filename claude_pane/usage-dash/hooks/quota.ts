@@ -13,8 +13,12 @@ export function parseQuota(text: string): Quotas {
   const value = JSON.parse(text, (_key, v) =>
     v && typeof v === 'object' && 'used_percent' in v && !Number.isFinite(v.used_percent) ? undefined : v)
   if (!value || typeof value.agents !== 'object' || value.agents === null) throw new Error(t('quota_invalid'))
-  return { agents: Object.fromEntries(Object.entries(value.agents).filter(([, agent]) =>
-    agent !== null && typeof agent === 'object' && (agent as { available?: boolean }).available === true)) } as Quotas
+  const agents = Object.fromEntries(Object.entries(value.agents).filter(([, agent]) =>
+    agent !== null && typeof agent === 'object' && (agent as { available?: boolean }).available === true)) as Quotas['agents']
+  // agy's Claude / GPT pool barely moves and the menu bar panel already shows it; in the pane it is noise.
+  const agy = agents.antigravity
+  if (agy?.groups) agents.antigravity = { ...agy, groups: agy.groups.filter(group => !['CLAUDE AND GPT MODELS', 'Claude / GPT'].includes(group.name)) }
+  return { agents }
 }
 export function hideAgents(data: Quotas, preferences: string): Quotas {
   let value: unknown

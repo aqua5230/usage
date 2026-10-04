@@ -5,7 +5,7 @@ import type { Run, Session } from '../types'
 import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
 import { parseQuota, hideAgents, byTightest, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
-import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus, finishedSessions } from './sessions'
+import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus, sessionNotifications } from './sessions'
 import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
@@ -155,9 +155,9 @@ async function refreshSessions($: Dollar) {
     await readContexts($, `${home}/.usage/claude-pane/live`, rows)
     const previous = await read($, sessions), currentId = await $.session.id()
     await update($, sessions, () => newest(rows))
-    for (const session of finishedSessions(previous, rows, currentId)) {
+    for (const { session, kind } of sessionNotifications(previous, rows, currentId)) {
       const title = session.title.length > 40 ? `${session.title.slice(0,40)}…` : session.title
-      $.ui.toast(t('session_done', { title }), { timeoutMs: 8000 })
+      $.ui.toast(t(`session_${kind}`, { title }), { timeoutMs: 8000 })
     }
   } catch (error) { failures.push(String(error)) }
   await update($, sessionError, () => failures.length ? t('session_error', { error: failures.join('; ') }) : '')
@@ -323,7 +323,7 @@ export const register: Register = (on) => {
           const waiting = isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now)
           return <Box key={s.id} flexDirection="column">
             <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={busy ? 'green' : undefined} dimColor={!busy}>●</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
-            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}<Text color={waiting ? 'yellow' : busy ? 'green' : undefined} dimColor={!waiting && !busy}>{waiting ? t('waiting') : sessionStatus(s,now)}</Text></Text></Box></Box>
+            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}<Text color={waiting ? 'yellow' : busy ? 'green' : undefined} dimColor={!waiting && !busy}>{waiting ? t('waiting') : sessionStatus(s,now)}</Text>{s.preview && <Text dimColor>{` · ${s.preview}`}</Text>}</Text></Box></Box>
           </Box>
         })}
         {!list.length && <Text dimColor>{t('none')}</Text>}

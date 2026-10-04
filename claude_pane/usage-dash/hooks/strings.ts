@@ -6,6 +6,7 @@ export const defaults: Record<string, string> = {
   "claude_pane_period": "Period",
   "claude_pane_sessions": "Claude sessions",
   "claude_pane_session_done": "Done: {title}",
+  "claude_pane_session_waiting": "Waiting for you: {title}",
   "claude_pane_busy": "Busy",
   "claude_pane_waiting": "waiting for you",
   "claude_pane_agent_running": "running",
