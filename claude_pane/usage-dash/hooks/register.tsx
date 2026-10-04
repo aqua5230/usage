@@ -3,15 +3,16 @@ import { atom, read, update } from 'claude-code'
 import type { Hook, Register } from 'claude-code'
 import type { Run, Session } from '../types'
 import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
-import { parseQuota, hideAgents, dockQuotaLine, staleAge, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, byTightest, showsUnavailable, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
-import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus } from './sessions'
+import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, waitingText, settleNotifications, sessionMark } from './sessions'
 import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
 const updated = atom({ plugin: 'usage-dash', key: 'updated' } as const, null)
 const quotaError = atom({ plugin: 'usage-dash', key: 'quotaError' } as const, '')
 const sessions = atom({ plugin: 'usage-dash', key: 'sessions' } as const, [])
+const pendingToasts = atom({ plugin: 'usage-dash', key: 'pendingToasts' } as const, [])
 const sessionError = atom({ plugin: 'usage-dash', key: 'sessionError' } as const, '')
 const agents = atom({ plugin: 'usage-dash', key: 'agents' } as const, [])
 const runs = atom({ plugin: 'usage-dash', key: 'runs' } as const, [])
@@ -153,7 +154,14 @@ async function refreshSessions($: Dollar) {
       rows.push(toSession(row, transcript))
     }
     await readContexts($, `${home}/.usage/claude-pane/live`, rows)
+    const previous = await read($, sessions), currentId = await $.session.id()
+    const settled = settleNotifications(await read($, pendingToasts), previous, rows, currentId)
     await update($, sessions, () => newest(rows))
+    await update($, pendingToasts, () => settled.pending)
+    for (const { session, kind } of settled.toast) {
+      const title = session.title.length > 40 ? `${session.title.slice(0,40)}…` : session.title
+      $.ui.toast(t(`session_${kind}`, { title }), { timeoutMs: 8000 })
+    }
   } catch (error) { failures.push(String(error)) }
   await update($, sessionError, () => failures.length ? t('session_error', { error: failures.join('; ') }) : '')
 }
@@ -282,25 +290,24 @@ export const register: Register = (on) => {
       <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
       <Box justifyContent="space-between"><Button key="quota" plain label={`[ ${fold.quota ? '▸' : '▾'} ${t('quota')} ]`} onPress={() => update($, collapsed, v => ({ ...v, quota: !v.quota }))} /></Box>
       {!fold.quota && <Box flexDirection="column">
-        {['claude-code','codex','antigravity','grok'].map(key => {
+        {byTightest(data, ['claude-code','codex','antigravity','grok']).map(key => {
           const agent = data.agents[key]
-          if (!agent?.available) return null
+          if (!agent || (!agent.available && !showsUnavailable(key, agent.reason))) return null
           const name = key === 'claude-code' ? 'Claude' : key === 'codex' ? 'Codex' : key === 'antigravity' ? 'agy' : 'Grok'
+          if (!agent.available) return <Text key={key}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{name.padEnd(8)}</Text><Text dimColor>{t(`unavailable_${agent.reason ?? 'no_data'}`)}</Text></Text>
           const age = staleAge(agent.age_seconds ?? 0, now, last)
           const groups = agent.groups ?? [{ name: '', five_hour: agent.five_hour, seven_day: agent.seven_day }]
+          const rows = groups.flatMap(group => [
+            ...(groups.length > 1 && group.name ? [[group.name === 'GEMINI MODELS' ? 'Gemini' : group.name === 'CLAUDE AND GPT MODELS' ? 'Claude / GPT' : group.name, undefined] as const] : []),
+            ...([[t('five_hour'),group.five_hour],[t('week'),group.seven_day],[t('period'),agent.period]] as const).filter(([,window]) => window),
+          ])
           return <Box key={key} flexDirection="column">
-            <Box justifyContent="space-between">
-              <Text><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{`▎ ${name}`}</Text><Text dimColor>{key === 'grok' && agent.tier ? ` ${agent.tier}` : ''}</Text>{age && <Text color="yellow">{age}</Text>}</Text>
-              {agent.model && <Box flexShrink={1} marginLeft={1}><Text dimColor wrap="truncate-end">{agent.model}</Text></Box>}
-            </Box>
-            {groups.map((group,i) => <Box key={`${key}-${i}`} flexDirection="column">
-              {group.name && <Text dimColor>{`  ${group.name === 'GEMINI MODELS' ? 'Gemini' : group.name === 'CLAUDE AND GPT MODELS' ? 'Claude / GPT' : group.name}`}</Text>}
-              {([[t('five_hour'),group.five_hour],[t('week'),group.seven_day],[t('period'),agent.period]] as const).map(([label,window]) => {
-                if (!window) return null
-                const line = dockQuotaLine(label,window,now,last === null ? 0 : (now-last)/1000,e.props.bodyColumns)
-                return <Text key={label}><Text dimColor>{`  ${line.label}`}</Text><Text color={line.color}>{line.filled}</Text><Text dimColor>{line.empty}</Text>{' '}<Text color={line.color}>{line.percent}</Text><Text dimColor>{line.countdown}</Text></Text>
-              })}
-            </Box>)}
+            {rows.map(([label,window],i) => {
+              const line = window ? dockQuotaLine(label,window,now,last === null ? 0 : (now-last)/1000,e.props.bodyColumns) : null
+              // Under 50% stays gray so only the windows worth watching carry color.
+              const color = window && window.used_percent >= 50 ? line?.color : undefined
+              return <Text key={String(i)}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{i === 0 ? `${name.padEnd(8)}` : '        '}</Text><Text dimColor>{line ? line.label : label}</Text>{line && <Text color={color} dimColor={!color}>{line.filled}</Text>}{line && <Text dimColor>{line.empty}</Text>}{line && ' '}{line && <Text color={color} dimColor={!color}>{line.percent}</Text>}{line && <Text dimColor>{line.countdown}</Text>}{i === 0 && age && <Text color="yellow">{age}</Text>}</Text>
+            })}
           </Box>
         })}
         {!Object.keys(data.agents).length && <Text dimColor>{t('none')}</Text>}
@@ -314,11 +321,10 @@ export const register: Register = (on) => {
       </Box>
       {!fold.sessions && <Box flexDirection="column">
         {list.slice(0,expanded ? list.length : 4).map(s => {
-          const busy = isBusy(s)
-          const waiting = isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now)
+          const waiting = s.status === 'waiting' || isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now), mark = sessionMark(s, waiting, now)
           return <Box key={s.id} flexDirection="column">
-            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={busy ? 'green' : undefined} dimColor={!busy}>●</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
-            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}<Text color={waiting ? 'yellow' : busy ? 'green' : undefined} dimColor={!waiting && !busy}>{waiting ? t('waiting') : sessionStatus(s,now)}</Text></Text></Box></Box>
+            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={mark.color} dimColor={!mark.color}>{mark.text}</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
+            {(waiting || s.preview) && <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}{waiting && <Text color="yellow">{waitingText(s.waitingFor)}</Text>}{s.preview && <Text dimColor>{`${waiting ? ' · ' : ''}${s.preview}`}</Text>}</Text></Box></Box>}
           </Box>
         })}
         {!list.length && <Text dimColor>{t('none')}</Text>}

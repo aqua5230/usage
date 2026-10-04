@@ -234,6 +234,8 @@ JSON 帶有 `schema_version`，之後格式若有變動，接的人可以據此�
 
 還讀不到資料的 agent 會回 `"available": false` 加一整組 null，指令本身仍然 exit `0`——沒資料不算錯誤。廠商沒回報的那個視窗會是 `null` 而不是整個欄位消失，接的人不用為了「key 不存在」多寫防呆。
 
+無法取得額度時也會帶 `reason`：載入器沒回傳資料為 `no_data`，拋出例外為 `error`；只有 Antigravity 在額度快取與 CLI OAuth 權杖檔都不存在時回 `not_signed_in`。可用代理的欄位不變；這是新增欄位，`schema_version` 保持 `1`。
+
 Antigravity 的 `groups` 保留快取順序，`weekly` 對應 `seven_day`，`used_percent` 是 `100 - remaining_percent`，取小數一位。倒數以快取的 `fetched_at` 加上 `resets_in_minutes` 計算，再扣掉目前時間，最小為 `0`；沒有重置時間時為 `null`。Grok 的 `period.resets_at` 是 `period_end` 換算的 Unix 秒數，`tier` 是 `subscription_tier`，沒有方案時為 `null`。兩者的 `updated_at` 都保留 `fetched_at` 原字串；快取過舊仍可讀，倒數會歸零。沒資料時，兩者都沿用 Claude/Codex 的完整 unavailable 欄位形狀。
 
 從原始碼安裝的話，可以直接跑 `python3 usage_cli.py status --json`，或先跑一次 `uv sync` 把 `usage` 指令裝進 PATH。

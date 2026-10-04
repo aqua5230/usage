@@ -1,12 +1,31 @@
 import { t } from './strings'
 import type { Quotas, Window } from '../types'
+export function byTightest(data: Quotas, order: readonly string[]): string[] {
+  return order.map((key, index) => {
+    const agent = data.agents[key]
+    const windows = [agent?.five_hour, agent?.seven_day, agent?.period, ...(agent?.groups ?? []).flatMap(group => [group.five_hour, group.seven_day])]
+    const used = Math.max(-Infinity, ...windows.map(window => window?.used_percent).filter((value): value is number => typeof value === 'number' && Number.isFinite(value)))
+    return { key, index, used, available: agent?.available === true }
+  }).sort((a,b) => Number(b.available) - Number(a.available) || b.used - a.used || a.index - b.index).map(row => row.key)
+}
+// agy and Grok are optional, so like the menu bar they stay hidden unless they are set up and failing.
+export function showsUnavailable(key: string, reason?: string): boolean {
+  return key === 'claude-code' || key === 'codex' || reason === 'error'
+}
 export function parseQuota(text: string): Quotas {
   // A window without a numeric used_percent has no data; drop it so it is hidden instead of drawn as 0%.
   const value = JSON.parse(text, (_key, v) =>
     v && typeof v === 'object' && 'used_percent' in v && !Number.isFinite(v.used_percent) ? undefined : v)
   if (!value || typeof value.agents !== 'object' || value.agents === null) throw new Error(t('quota_invalid'))
-  return { agents: Object.fromEntries(Object.entries(value.agents).filter(([, agent]) =>
-    agent !== null && typeof agent === 'object' && (agent as { available?: boolean }).available === true)) } as Quotas
+  const agents = Object.fromEntries(Object.entries(value.agents).filter(([, agent]) =>
+    agent !== null && typeof agent === 'object').map(([key, agent]) => {
+    const row = agent as Quotas['agents'][string]
+    return [key, row.available === true ? row : { available: false, reason: ['not_signed_in','no_data','error'].includes(row.reason ?? '') ? row.reason : 'no_data' }]
+  })) as Quotas['agents']
+  // agy's Claude / GPT pool barely moves and the menu bar panel already shows it; in the pane it is noise.
+  const agy = agents.antigravity
+  if (agy?.groups) agents.antigravity = { ...agy, groups: agy.groups.filter(group => !['CLAUDE AND GPT MODELS', 'Claude / GPT'].includes(group.name)) }
+  return { agents }
 }
 export function hideAgents(data: Quotas, preferences: string): Quotas {
   let value: unknown

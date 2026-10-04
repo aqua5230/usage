@@ -28,6 +28,8 @@ usage_cli: Any = import_module("usage_cli")
 @pytest.fixture(autouse=True)
 def _isolate_status_quotas(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", tmp_path / "agy_quota_cache.json")
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", tmp_path / "agy-token")
+    agy_quota_probe._TOKEN_PATH.touch()
     monkeypatch.setattr(grok_quota_probe, "load_quota", lambda: None)
 
 
@@ -363,6 +365,7 @@ def test_main_status_json_marks_none_loader_unavailable(
     payload = json.loads(capsys.readouterr().out)
     assert payload["agents"]["claude-code"] == {
         "available": False,
+        "reason": "no_data",
         "five_hour": {"used_percent": None, "resets_at": None, "resets_in_seconds": None},
         "seven_day": {"used_percent": None, "resets_at": None, "resets_in_seconds": None},
         "model": None,
@@ -1041,6 +1044,7 @@ def test_dashboard_sort_cycle_shape_and_order() -> None:
 def test_status_payload_antigravity_cache(monkeypatch: pytest.MonkeyPatch, age: int) -> None:
     now = datetime(2026, 10, 4, 14, tzinfo=UTC)
     fetched_at = datetime.fromtimestamp(now.timestamp() - age + 0.319588, UTC).isoformat()
+    agy_quota_probe._TOKEN_PATH.unlink()
     cache = {
         "fetched_at": fetched_at,
         "groups": [
@@ -1090,7 +1094,9 @@ def test_status_payload_antigravity_cache(monkeypatch: pytest.MonkeyPatch, age: 
 def test_status_antigravity_unreadable_cache(content: str | None) -> None:
     if content is not None:
         agy_quota_probe.CACHE_PATH.write_bytes(content.encode("latin-1"))
-    assert usage_cli._status_antigravity(1_000_000) == usage_cli._status_agent(None, 1_000_000)
+    assert usage_cli._status_antigravity(1_000_000) == usage_cli._status_agent(
+        None, 1_000_000, "error" if content == "\xff" else "no_data"
+    )
 
 
 @pytest.mark.parametrize("tier", ["XPremium", None])
@@ -1127,3 +1133,32 @@ def test_status_payload_grok(
 
 def test_status_grok_none() -> None:
     assert usage_cli._status_grok(1_000_000) == usage_cli._status_agent(None, 1_000_000)
+
+
+@pytest.mark.parametrize("signed_in", [False, True])
+def test_status_antigravity_missing_quota_reason(signed_in: bool) -> None:
+    if not signed_in:
+        agy_quota_probe._TOKEN_PATH.unlink()
+    assert usage_cli._status_antigravity(0)["reason"] == (
+        "no_data" if signed_in else "not_signed_in"
+    )
+
+
+@pytest.mark.parametrize("agent_id", ["claude-code", "codex", "antigravity", "grok"])
+def test_status_loader_exception_reason(monkeypatch: pytest.MonkeyPatch, agent_id: str) -> None:
+    def fail() -> None:
+        raise OSError("quota read failed")
+
+    monkeypatch.setattr(
+        usage_cli, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
+    )
+    if agent_id == "antigravity":
+        agy_quota_probe._TOKEN_PATH.unlink()
+        monkeypatch.setattr(agy_quota_probe, "_read_cache", fail)
+    elif agent_id == "grok":
+        monkeypatch.setattr(grok_quota_probe, "load_quota", fail)
+    else:
+        monkeypatch.setitem(usage_cli.RATE_LIMIT_LOADERS, agent_id, fail)
+    payload = usage_cli._status_payload()
+    assert payload["schema_version"] == 1
+    assert payload["agents"][agent_id]["reason"] == "error"
