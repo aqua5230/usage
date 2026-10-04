@@ -222,6 +222,15 @@ def test_uses_platform_separator(monkeypatch: pytest.MonkeyPatch) -> None:
     assert pane._remove_path("/other;/pane/", "/pane") == "/other"
 
 
+def test_status_argv_uses_windows_frozen_executable(monkeypatch: pytest.MonkeyPatch) -> None:
+    executable = r"C:\\Program Files\\usage\\usage.exe"
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "executable", executable)
+
+    assert pane._status_argv() == [executable, "status", "--json"]
+
+
 def test_missing_sidecar_language_falls_back(
     isolated: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

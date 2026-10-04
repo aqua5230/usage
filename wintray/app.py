@@ -864,6 +864,12 @@ class _WindowsTrayController:
         self.refresh()
 
     def _startup_maintenance(self) -> None:
+        from installer import claude_pane
+
+        try:
+            claude_pane.refresh_claude_pane()
+        except (OSError, SystemExit):
+            logger.warning("Claude Code pane refresh failed", exc_info=True)
         usage_diagnosis_snapshot.maybe_schedule_refresh()
         self._clear_stale_update_cache()
         self._check_update_in_background(
@@ -1838,6 +1844,38 @@ class _WindowsTrayController:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("toggle terse mode failed", exc_info=True)
 
+    def toggle_claude_pane(self, _icon: Any = None, _item: Any = None) -> None:
+        threading.Thread(target=self._toggle_claude_pane_in_background, daemon=True).start()
+
+    def _toggle_claude_pane_in_background(self) -> None:
+        import contextlib
+        import io
+
+        from installer import claude_pane
+
+        output = io.StringIO()
+        ok = False
+        enabled = False
+        try:
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+                enabled = not claude_pane.is_claude_pane_enabled()
+                action = (
+                    claude_pane.enable_claude_pane if enabled else claude_pane.disable_claude_pane
+                )
+                ok = action() == 0
+        except SystemExit as exc:
+            print(exc.code, file=output)
+        except Exception as exc:
+            print(f"{type(exc).__name__}: {exc}", file=output)
+
+        if ok:
+            key = "claude_pane_enabled_msg" if enabled else "claude_pane_disabled_msg"
+            self._message_box(_t(self.language, key))
+        else:
+            self._message_box(
+                f"{_t(self.language, 'claude_pane_action_failed')}\n\n{output.getvalue().strip()}"
+            )
+
     def _process_quota_notifications(self, state: menubar_state.PopoverState) -> None:
         try:
             events = self._quota_notifier.update(
@@ -2120,6 +2158,8 @@ class _WindowsTrayController:
                 self.toggle_session_resume()
             elif action == "toggle_terse_mode":
                 self.toggle_terse_mode()
+            elif action == "toggle_claude_pane":
+                self.toggle_claude_pane()
             elif action == "check_update":
                 self.check_update()
             elif action == "quit":
@@ -2221,6 +2261,7 @@ def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCo
         "window_keeper": _window_keeper_enabled,
         "session_resume": _session_resume_enabled,
         "terse_mode": _terse_mode_enabled,
+        "claude_pane": _claude_pane_enabled,
     }
     return checks[entry.checked_by]() if entry.checked_by is not None else False
 
@@ -2288,6 +2329,15 @@ def _terse_mode_enabled() -> bool:
         from installer import session_hooks
 
         return session_hooks.is_terse_mode_enabled()
+    except Exception:
+        return False
+
+
+def _claude_pane_enabled() -> bool:
+    try:
+        from installer import claude_pane
+
+        return claude_pane.is_claude_pane_enabled()
     except Exception:
         return False
 

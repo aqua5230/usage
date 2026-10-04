@@ -45,6 +45,8 @@ def _resolve_source() -> Path:
 
 
 def _status_argv() -> list[str]:
+    if getattr(sys, "frozen", False) and sys.platform == "win32":
+        return [sys.executable, "status", "--json"]
     if getattr(sys, "frozen", False):
         resources = str(Path(sys.executable).resolve().parent.parent / "Resources")
         major, minor = sys.version_info[:2]
