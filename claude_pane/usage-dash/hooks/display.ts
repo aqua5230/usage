@@ -1,7 +1,8 @@
 import { t } from './strings'
+import type { AgentInfo } from 'claude-code'
 import type { Run } from '../types'
 import { ago } from './sessions'
-export type LiveContext = { sessionId: string; percent: number; updatedAt: number }
+export type LiveContext = { sessionId: string; percent?: number; waiting?: boolean; updatedAt: number }
 export function contextPercent(percent: number | undefined): number | undefined {
   return typeof percent === 'number' && Number.isFinite(percent) ? Math.round(Math.max(0, Math.min(100, percent))) : undefined
 }
@@ -11,8 +12,8 @@ export function contextColor(percent: number): 'yellow' | 'red' | undefined {
 export function parseContext(text: string): LiveContext | null {
   try {
     const row = JSON.parse(text)
-    if (!row || typeof row.sessionId !== 'string' || !row.sessionId || !Number.isInteger(row.percent) || row.percent < 0 || row.percent > 100 || typeof row.updatedAt !== 'number' || !Number.isFinite(row.updatedAt)) return null
-    return { sessionId: row.sessionId, percent: row.percent, updatedAt: row.updatedAt }
+    if (!row || typeof row.sessionId !== 'string' || !row.sessionId || (row.percent !== undefined && (!Number.isInteger(row.percent) || row.percent < 0 || row.percent > 100)) || (row.waiting !== undefined && typeof row.waiting !== 'boolean') || typeof row.updatedAt !== 'number' || !Number.isFinite(row.updatedAt)) return null
+    return { sessionId: row.sessionId, ...(row.percent === undefined ? {} : { percent: row.percent }), ...(row.waiting === undefined ? {} : { waiting: row.waiting }), updatedAt: row.updatedAt }
   } catch { return null }
 }
 export function staleContext(sessionId: string, updatedAt: number, openIds: Set<string>, now: number): boolean {
@@ -20,4 +21,13 @@ export function staleContext(sessionId: string, updatedAt: number, openIds: Set<
 }
 export function completedAgo(run: Pick<Run, 'end' | 'status'>, now: number): string {
   return run.end === null ? '' : ` · ${t('completed_ago', { ago: ago(run.end, now), status: run.status === 'failed' ? t('failed') : t('completed') })}`
+}
+export function isWaiting(context: Pick<LiveContext, 'waiting' | 'updatedAt'>, now: number): boolean {
+  return context.waiting === true && now - context.updatedAt <= 600000
+}
+export function visibleAgents(agents: AgentInfo[]): AgentInfo[] {
+  return agents.filter(agent => ['pending','running','waiting','idle'].includes(agent.status))
+}
+export function backgroundCount(runs: Pick<Run, 'end'>[], agents: AgentInfo[]): number {
+  return runs.filter(run => run.end === null).length + visibleAgents(agents).length
 }

@@ -16,7 +16,7 @@ for (const mode of ['full', 'missing', 'empty'] as const) {
   test(`inline 固定三行、無框線與按鈕：${mode}`, async ($, on) => {
     mock.clock(on, {now:10000})
     on('session.id', () => ({value:'one'}))
-    const values: PluginState['usage-dash'] = {
+    const values: PluginState['usage-dash'] = { agents:[],
       quotas:{agents:mode === 'empty' ? {} : mode === 'missing' ? {antigravity:{available:true},grok:{available:true}} : {
         'claude-code':{available:true,five_hour:{used_percent:11},seven_day:{used_percent:21}},
         codex:{available:true,five_hour:{used_percent:1},seven_day:{used_percent:17}},
@@ -56,7 +56,7 @@ test('四家額度、三個對話、一筆工作與收合按鈕', async ($, on) 
     antigravity:{available:true,age_seconds:120,groups:[{name:'GEMINI MODELS',five_hour:{used_percent:23.7,resets_in_seconds:5100},seven_day:{used_percent:53.9,resets_in_seconds:222300}},{name:'Claude / GPT',five_hour:{used_percent:12,resets_in_seconds:1200},seven_day:{used_percent:40,resets_in_seconds:86400}}]},
     grok:{available:true,tier:'XPremium',age_seconds:60,period:{used_percent:28,resets_in_seconds:176000}}
   }})
-  const values: PluginState['usage-dash'] = { quotas:parseQuota(fixture),updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:false,runs:false},more:false,sessions:[
+  const values: PluginState['usage-dash'] = { agents:[], quotas:parseQuota(fixture),updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:false,runs:false},more:false,sessions:[
     {id:'s1',pid:1,status:'busy',mtimeMs:990000,title:'Usage面板',source:'usage',contextPercent:41},
     {id:'s2',pid:2,status:'busy',mtimeMs:950000,title:'整理筆記',source:'notes · Desktop',contextPercent:70},
     {id:'s3',pid:3,status:'idle',mtimeMs:990000,title:'修測試',source:'tests',contextPercent:85}
@@ -152,6 +152,11 @@ test('啟動、CLI 備援、存活對話清單與定時更新', async ($, on) =>
   mock.env(on,{HOME:'/假家目錄'})
   const values: Record<string,unknown> = {}
   const commands: string[][] = []
+  let agentCalls = 0
+  on('agent.list', () => {
+    if (++agentCalls > 1) throw new Error('agent list unavailable')
+    return {value:[{id:'child',type:'Explore',description:'讀程式',status:'running'},{id:'done',type:'Explore',description:'已結束',status:'completed'}]}
+  })
   on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
   on('state.set', ($,e) => {values[e.key]=e.value;return {value:{isSet:true,version:1}}})
   on('ui.open', () => ({value:{isPlaced:true}}))
@@ -179,9 +184,10 @@ test('啟動、CLI 備援、存活對話清單與定時更新', async ($, on) =>
     return {value:{exitCode:success ? 0 : 127,stdout:success ? stdout : '',stderr:success ? '' : 'not found',isStdoutTruncated:false,isStderrTruncated:false}}
   })
   await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
+  expect(values.agents).toEqual([{id:'child',type:'Explore',description:'讀程式',status:'running'}])
   expect(commands.filter(argv => argv[0] === 'ps')).toEqual([['ps','-o','pid=','-p','1,2,3,5']])
   expect(commands.filter(argv => argv[0] === '/bin/sh')).toEqual(['one','s3','s5'].map(id => ['/bin/sh','-c','ls "$1"/*/"$2".jsonl 2>/dev/null | head -1','sh','/假家目錄/.claude/projects',id]))
-  expect(readFiles).toHaveLength(5)
+  expect(readFiles.filter(path => path.startsWith('/假家目錄/.claude/sessions/'))).toHaveLength(5)
   expect(readFiles.some(path => path.endsWith('.key'))).toBe(false)
   expect(values.sessions).toEqual([
     {id:'s3',pid:3,title:'名稱3',source:'usage · Desktop',mtimeMs:990000,status:'busy'},
@@ -189,6 +195,8 @@ test('啟動、CLI 備援、存活對話清單與定時更新', async ($, on) =>
     {id:'one',pid:1,title:'假對話',source:'usage',mtimeMs:990000,status:'idle'}
   ])
   await clock.advance(15000)
+  expect(agentCalls).toBe(2)
+  expect(values.agents).toEqual([])
   expect(commands.filter(argv => argv[0] === 'tail')).toHaveLength(4)
   expect(commands.filter(argv => argv[0] === 'usage')).toHaveLength(1)
   await clock.advance(45000)
@@ -229,7 +237,7 @@ for (const bodyColumns of [10, 43, 44, 200]) {
   test(`分段顏色、忙閒圓點與面板寬度 ${bodyColumns}`, async ($, on) => {
     mock.clock(on, { now: 1000000 })
     on('session.id', () => ({value:'busy'}))
-    const values: PluginState['usage-dash'] = {
+    const values: PluginState['usage-dash'] = { agents:[],
       quotas:{agents:{codex:{available:true,five_hour:{used_percent:82,resets_in_seconds:3600}}}},
       updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:false,runs:false},more:false,runs:[],
       sessions:[{id:'busy',pid:1,status:'busy',title:'忙對話',source:'Terminal',mtimeMs:999000},{id:'idle',pid:2,status:'idle',title:'閒對話',source:'Desktop',mtimeMs:800000}]
@@ -254,7 +262,7 @@ for (const bodyColumns of [10, 43, 44, 200]) {
 test('context 靠右、顏色門檻、無資料隱藏與底部只留更新時間', async ($, on) => {
   mock.clock(on,{now:60000})
   on('session.id', () => ({value:'one'}))
-  const values: PluginState['usage-dash'] = {
+  const values: PluginState['usage-dash'] = { agents:[],
     quotas:{agents:{}},updated:59000,quotaError:'',sessionError:'',collapsed:{quota:true,sessions:false,runs:true},more:true,runs:[],
     sessions:[undefined,0,69,70,84,85,100].map((percent,i) => ({id:String(i),pid:i+1,title:`對話${i}`,source:'usage',mtimeMs:59000,status:'idle',...(percent === undefined ? {} : {contextPercent:percent})}))
   }
@@ -336,15 +344,15 @@ for (const writeFails of [false,true]) {
       return {value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}
     })
     await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
-    expect(JSON.parse(written[0]!)).toEqual({sessionId:'one',percent:41,updatedAt:now})
+    expect(JSON.parse(written[0]!)).toEqual({sessionId:'one',percent:41,waiting:false,updatedAt:now})
     expect(commands.filter(argv => argv[0] === 'mkdir')).toEqual([['mkdir','-p',directory]])
     expect(commands.filter(argv => argv[0] === 'rm')).toEqual([['rm','-f',`${directory}/old.json`]])
-    expect(values.sessions).toEqual([{id:'one',pid:1,title:'',source:'usage',mtimeMs:now,status:'idle',contextPercent:41}])
+    expect(values.sessions).toEqual([{id:'one',pid:1,title:'',source:'usage',mtimeMs:now,status:'idle',contextPercent:41,...(writeFails ? {} : {waiting:false,waitingUpdatedAt:now})}])
     expect(values.sessionError).toBe('')
     await clock.advance(1000)
     const result = await $.turn.complete({answer:'完成',durationMs:1000,isAborted:false,turnId:'turn',reason:'answer'})
     expect(result).toEqual({text:'完成'})
-    expect(JSON.parse(written[1]!)).toEqual({sessionId:'one',percent:41,updatedAt:now+1000})
+    expect(JSON.parse(written[1]!)).toEqual({sessionId:'one',percent:41,waiting:false,updatedAt:now+1000})
     await clock.advance(14000)
     expect(commands.filter(argv => argv[0] === 'rm')).toEqual(['old','boundary'].map(id => ['rm','-f',`${directory}/${id}.json`]))
     for (const id of ['unrelated','mismatch','empty','numeric','Case']) expect(files[id]).toBeDefined()
@@ -395,7 +403,7 @@ for (const age of [599,601,3660]) {
   test(`寬版直條、灰字分組與黃色舊資料 ${age}`, async ($, on) => {
     mock.clock(on,{now:1000000})
     on('session.id', () => ({value:'one'}))
-    const values: PluginState['usage-dash'] = {
+    const values: PluginState['usage-dash'] = { agents:[],
       quotas:{agents:{antigravity:{available:true,age_seconds:age,groups:[{name:'GEMINI MODELS'},{name:'CLAUDE AND GPT MODELS'}]}}},
       updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:true,runs:true},more:false,runs:[],sessions:[]
     }
@@ -408,3 +416,30 @@ for (const age of [599,601,3660]) {
     expect(old.map(flatText)).toEqual(age === 599 ? [] : [age === 601 ? ' · 10m ago' : ' · 1h ago'])
   })
 }
+
+test('另一個對話等你、子代理顏色順序與背景工作總數', async ($, on) => {
+  mock.clock(on,{now:600000})
+  on('session.id', () => ({value:'B'}))
+  const values: PluginState['usage-dash'] = {
+    quotas:{agents:{}},updated:600000,quotaError:'',sessionError:'',collapsed:{quota:true,sessions:false,runs:false},more:false,
+    sessions:[{id:'A',pid:1,status:'busy',title:'另一個對話',source:'usage',mtimeMs:0,waiting:true,waitingUpdatedAt:0}],
+    runs:[{id:'external',agent:'codex',label:'外部工作',start:590000,end:null,status:'running'}],
+    agents:['running','waiting','idle','pending','completed','failed','killed'].map((status,i) => ({id:String(i),type:'Explore',description:`子代理${i}`,status:status as PluginState['usage-dash']['agents'][number]['status']}))
+  }
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:60,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
+  const nodes = elements(await ui.drawn())
+  expect(nodes.some(n => flatText(n) === '1 busy / 1')).toBe(true)
+  expect(nodes.some(n => flatText(n) === '5')).toBe(true)
+  const waiting = nodes.filter(n => n.type === 'Text' && flatText(n) === 'waiting for you')
+  expect(waiting).toHaveLength(2)
+  expect(waiting.every(n => n.props?.color === 'yellow' && !n.props?.dimColor)).toBe(true)
+  const jobs = nodes.filter(n => n.type === 'Text' && n.props?.wrap === 'truncate-end' && /外部工作|子代理/.test(flatText(n)))
+  expect(jobs.map(flatText)).toEqual(['0m10s  codex  外部工作','running  Explore  子代理0','waiting for you  Explore  子代理1','idle  Explore  子代理2','pending  Explore  子代理3'])
+  expect((jobs[1]!.children![0] as Drawn).props?.color).toBe('green')
+  expect((jobs[3]!.children![0] as Drawn).props?.dimColor).toBe(true)
+  expect((jobs[4]!.children![0] as Drawn).props?.dimColor).toBe(true)
+  values.sessions[0]!.waitingUpdatedAt = -1
+  await ui.redraw()
+  expect(elements(await ui.drawn()).filter(n => n.type === 'Text' && flatText(n) === 'waiting for you')).toHaveLength(1)
+})

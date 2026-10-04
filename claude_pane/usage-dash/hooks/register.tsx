@@ -6,13 +6,14 @@ import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
 import { parseQuota, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
 import { parseLiveSession, liveSessions, toSession, newest, isBusy, sessionStatus } from './sessions'
-import { contextPercent, contextColor, parseContext, staleContext, completedAgo } from './display'
+import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
 const updated = atom({ plugin: 'usage-dash', key: 'updated' } as const, null)
 const quotaError = atom({ plugin: 'usage-dash', key: 'quotaError' } as const, '')
 const sessions = atom({ plugin: 'usage-dash', key: 'sessions' } as const, [])
 const sessionError = atom({ plugin: 'usage-dash', key: 'sessionError' } as const, '')
+const agents = atom({ plugin: 'usage-dash', key: 'agents' } as const, [])
 const runs = atom({ plugin: 'usage-dash', key: 'runs' } as const, [])
 const collapsed = atom({ plugin: 'usage-dash', key: 'collapsed' } as const, { quota: false, sessions: false, runs: false })
 const more = atom({ plugin: 'usage-dash', key: 'more' } as const, false)
@@ -54,11 +55,8 @@ async function refreshQuota($: Dollar) {
   }
   await update($, quotaError, () => t('quota_error', { error: failures.join('; ') }))
 }
-async function reportContext($: Dollar) {
+async function reportContext($: Dollar, waiting = false) {
   try {
-    const usage = await $.session.usage()
-    const percent = contextPercent(usage.context.percent)
-    if (percent === undefined) return
     const home = await $.env.get('HOME'), sessionId = await $.session.id()
     if (!home || !/^[A-Za-z0-9_-]+$/.test(sessionId)) return
     const directory = `${home}/.usage/claude-pane/live`
@@ -66,7 +64,11 @@ async function reportContext($: Dollar) {
       const result = await $.process.run(['mkdir', '-p', directory])
       if (result.exitCode !== 0) return
     }
-    await $.fs.write(`${directory}/${sessionId}.json`, JSON.stringify({ sessionId, percent, updatedAt: await $.clock.now() }))
+    const path = `${directory}/${sessionId}.json`
+    let percent: number | undefined
+    try { percent = parseContext(await $.fs.read(path))?.percent } catch { /* no previous context is normal */ }
+    try { percent = contextPercent((await $.session.usage()).context.percent) ?? percent } catch { /* waiting can be reported without usage */ }
+    await $.fs.write(path, JSON.stringify({ sessionId, percent, waiting, updatedAt: await $.clock.now() }))
   } catch { /* live reporting is best effort, as requested */ }
 }
 async function readContexts($: Dollar, directory: string, rows: Session[]) {
@@ -79,7 +81,13 @@ async function readContexts($: Dollar, directory: string, rows: Session[]) {
         const context = parseContext(await $.fs.read(path))
         if (!context || context.sessionId !== sessionId) continue
         const row = rows.find(row => row.id === sessionId)
-        if (row) row.contextPercent = context.percent
+        if (row) {
+          row.contextPercent = context.percent
+          if (context.waiting !== undefined) {
+            row.waiting = context.waiting
+            row.waitingUpdatedAt = context.updatedAt
+          }
+        }
         if (staleContext(sessionId, Math.max(file.mtimeMs, context.updatedAt), openIds, now)) {
           await $.process.run(['rm', '-f', path])
         }
@@ -127,6 +135,14 @@ async function refreshSessions($: Dollar) {
   } catch (error) { failures.push(String(error)) }
   await update($, sessionError, () => failures.length ? t('session_error', { error: failures.join('; ') }) : '')
 }
+async function refreshAgents($: Dollar) {
+  let list: Awaited<ReturnType<Dollar['agent']['list']>> = []
+  try { list = await $.agent.list() } catch { /* unavailable agents are an empty list */ }
+  await update($, agents, () => visibleAgents(list))
+}
+async function refreshSessionLists($: Dollar) {
+  await Promise.all([refreshSessions($), refreshAgents($)])
+}
 let quotaTimer: { cancel(): void } | undefined
 let sessionTimer: { cancel(): void } | undefined
 let redrawTimer: { cancel(): void } | undefined
@@ -153,17 +169,41 @@ export const register: Register = (on) => {
     void $.ui.open({ id: PANE, title: t('title') })
     quotaTimer?.cancel(); sessionTimer?.cancel(); redrawTimer?.cancel()
     quotaTimer = $.clock.every(60000, () => refreshQuota($))
-    sessionTimer = $.clock.every(15000, () => refreshSessions($))
+    sessionTimer = $.clock.every(15000, () => refreshSessionLists($))
     redrawTimer = $.clock.every(1000, () => $.ui.invalidate('ui.render'))
     await reportContext($)
     await refreshQuota($)
-    await refreshSessions($)
+    await refreshSessionLists($)
     return next(e)
   })
   on('turn.complete', async ($, e, next) => {
     const result = await next(e)
     await reportContext($)
     return result
+  })
+  on('classic.PermissionRequest', async ($, e, next) => {
+    await reportContext($, true)
+    return next(e)
+  })
+  on('classic.Notification', async ($, e, next) => {
+    if (e.notification_type === 'permission_prompt' || e.notification_type === 'elicitation_dialog') await reportContext($, true)
+    return next(e)
+  })
+  on('classic.Elicitation', async ($, e, next) => {
+    await reportContext($, true)
+    return next(e)
+  })
+  on('classic.PostToolUse', async ($, e, next) => {
+    await reportContext($)
+    return next(e)
+  })
+  on('classic.PermissionDenied', async ($, e, next) => {
+    await reportContext($)
+    return next(e)
+  })
+  on('classic.ElicitationResult', async ($, e, next) => {
+    await reportContext($)
+    return next(e)
   })
   on('command.run', { command: PANE }, async $ => {
     await $.ui.open({ id: PANE, title: t('title') })
@@ -190,6 +230,7 @@ export const register: Register = (on) => {
     return ran
   })
   on('prompt.submit', async ($, e, next) => {
+    await reportContext($)
     if (e.origin.kind === 'task-notification') await finish($, e.text)
     return next(e)
   })
@@ -205,6 +246,8 @@ export const register: Register = (on) => {
     const expanded = await read($, more), last = await read($, updated)
     const qe = await read($, quotaError), se = await read($, sessionError)
     const current = await $.session.id()
+    const agentList = visibleAgents(await read($, agents))
+    const jobs = backgroundCount(shown, agentList)
     const running = shown.filter(r => r.end === null).length
     if (e.props.placement === 'inline') {
       return <Box flexDirection="column">
@@ -250,9 +293,10 @@ export const register: Register = (on) => {
       {!fold.sessions && <Box flexDirection="column">
         {list.slice(0,expanded ? list.length : 4).map(s => {
           const busy = isBusy(s)
+          const waiting = isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now)
           return <Box key={s.id} flexDirection="column">
             <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={busy ? 'green' : undefined} dimColor={!busy}>●</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
-            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}<Text color={busy ? 'green' : undefined} dimColor={!busy}>{sessionStatus(s,now)}</Text></Text></Box></Box>
+            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}<Text color={waiting ? 'yellow' : busy ? 'green' : undefined} dimColor={!waiting && !busy}>{waiting ? t('waiting') : sessionStatus(s,now)}</Text></Text></Box></Box>
           </Box>
         })}
         {!list.length && <Text dimColor>{t('none')}</Text>}
@@ -263,7 +307,7 @@ export const register: Register = (on) => {
       <Box flexDirection="column" borderStyle="round" borderColor="yellow" paddingX={1}>
       <Box justifyContent="space-between">
         <Button key="runs" plain label={`[ ${fold.runs ? '▸' : '▾'} ${t('runs')} ]`} onPress={() => update($, collapsed, v => ({ ...v, runs: !v.runs }))} />
-        <Text color={running > 0 ? 'yellow' : undefined} dimColor={running === 0}>{running}</Text>
+        <Text color={jobs > 0 ? 'yellow' : undefined} dimColor={jobs === 0}>{jobs}</Text>
       </Box>
       {!fold.runs && <Box flexDirection="column">
         {shown.slice(-4).map(r => {
@@ -273,7 +317,8 @@ export const register: Register = (on) => {
           const prefix = done ? `${r.status === 'completed' ? '✓' : r.status === 'launched' ? '↗' : '✗'} ` : ''
           return <Text key={r.id} dimColor={done} wrap="truncate-end"><Text color={done ? undefined : 'green'}>{`${prefix}${elapsed}`}</Text>{'  '}<Text color={done ? undefined : 'cyan'}>{r.agent}</Text>{`  ${r.label}`}<Text dimColor>{completedAgo(r,now)}</Text></Text>
         })}
-        {!shown.length && <Text dimColor>{t('none')}</Text>}
+        {agentList.map(agent => <Text key={`agent-${agent.id}`} wrap="truncate-end"><Text color={agent.status === 'running' ? 'green' : agent.status === 'waiting' ? 'yellow' : undefined} dimColor={agent.status === 'idle' || agent.status === 'pending'}>{agent.status === 'waiting' ? t('waiting') : t(`agent_${agent.status}`)}</Text>{'  '}<Text color="cyan">{agent.type}</Text>{`  ${agent.description}`}</Text>)}
+        {!shown.length && !agentList.length && <Text dimColor>{t('none')}</Text>}
       </Box>}
       </Box>
       <Box justifyContent="flex-end"><Text dimColor>{refreshedAgo(now, last)}</Text></Box>
