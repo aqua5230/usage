@@ -89,10 +89,10 @@ test('四家額度、三個對話、一筆工作與收合按鈕', async ($, on) 
   }
   await ui.press({key:'quota'})
   await ui.redraw()
-  expect(await ui.find({type:'Text',text:/▎ Claude/})).toBeUndefined()
+  expect(await ui.find({type:'Text',text:/Claude  /})).toBeUndefined()
   await ui.press({key:'quota'})
   await ui.redraw()
-  expect(await ui.find({type:'Text',text:/▎ Claude/})).toBeDefined()
+  expect(await ui.find({type:'Text',text:/Claude  /})).toBeDefined()
   await ui.press({key:'sessions'})
   await ui.redraw()
   expect(await ui.find({type:'Text',text:/Usage面板/})).toBeUndefined()
@@ -109,23 +109,13 @@ test('四家額度、三個對話、一筆工作與收合按鈕', async ($, on) 
   await ui.press({key:'more'}); await ui.redraw()
   expect(await ui.find({type:'Text',text:/其他對話 2/})).toBeUndefined()
   expect(lines.join('\n')+'\n').toBe(`[ ▾ Quota ]
-▎ Claude
-Opus 5.5
-  5h    ■■■■■■□□□□  58%  ${resetTime({used_percent:58,resets_in_seconds:2432},1000000)}
-  Week  ■■□□□□□□□□  15%  ${resetTime({used_percent:15,resets_in_seconds:432000},1000000)}
-▎ Codex
-gpt-6.1-sol
-  5h    ■■■■■■■■□□  82%  ${resetTime({used_percent:82,resets_in_seconds:3540},1000000)}
-  Week  ■■■□□□□□□□  31%  ${resetTime({used_percent:31,resets_in_seconds:259200},1000000)}
-▎ agy
-  Gemini
-  5h    ■■□□□□□□□□  24%  ${resetTime({used_percent:24,resets_in_seconds:5100},1000000)}
-  Week  ■■■■■□□□□□  54%  ${resetTime({used_percent:54,resets_in_seconds:222300},1000000)}
-  Claude / GPT
-  5h    ■□□□□□□□□□  12%  ${resetTime({used_percent:12,resets_in_seconds:1200},1000000)}
-  Week  ■■■■□□□□□□  40%  ${resetTime({used_percent:40,resets_in_seconds:86400},1000000)}
-▎ Grok XPremium
-  Period ■■■□□□□□□□  28%  ${resetTime({used_percent:28,resets_in_seconds:176000},1000000)}
+Codex   5h    ■■■■■■■■□□  82%  ${resetTime({used_percent:82,resets_in_seconds:3540},1000000)}
+        Week  ■■■□□□□□□□  31%  ${resetTime({used_percent:31,resets_in_seconds:259200},1000000)}
+Claude  5h    ■■■■■■□□□□  58%  ${resetTime({used_percent:58,resets_in_seconds:2432},1000000)}
+        Week  ■■□□□□□□□□  15%  ${resetTime({used_percent:15,resets_in_seconds:432000},1000000)}
+agy     5h    ■■□□□□□□□□  24%  ${resetTime({used_percent:24,resets_in_seconds:5100},1000000)}
+        Week  ■■■■■□□□□□  54%  ${resetTime({used_percent:54,resets_in_seconds:222300},1000000)}
+Grok    Period ■■■□□□□□□□  28%  ${resetTime({used_percent:28,resets_in_seconds:176000},1000000)}
 [ ▾ Claude sessions ]
 2 busy / 3
 ● usage (here)Usage面板
@@ -268,14 +258,15 @@ for (const bodyColumns of [10, 43, 44, 200]) {
     on('state.get', ($, e) => ({value:{value:values[e.key],version:0}}))
     const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
     const nodes = elements(await ui.drawn())
-    const quota = nodes.find(n => n.type === 'Text' && n.children?.some(c => flatText(c) === '  5h    '))!
+    const quota = nodes.find(n => n.type === 'Text' && n.children?.some(c => flatText(c) === '5h    '))!
     expect(quota.props?.color).toBeUndefined()
+    expect(flatText(quota)).toBe(`Codex   5h    ${'■'.repeat(bodyColumns < 44 ? 7 : 8)}${'□'.repeat(bodyColumns < 44 ? 1 : 2)}  82%  1h0m remaining`)
     const parts = (quota.children ?? []).filter(c => typeof c === 'object') as Drawn[]
-    expect(parts.map(n => n.props?.color)).toEqual([undefined,'#d70000',undefined,'#d70000',undefined])
-    expect(parts.map(n => n.props?.dimColor === true)).toEqual([true,false,true,false,true])
-    expect(flatText(parts[1]).length + flatText(parts[2]).length).toBe(bodyColumns < 44 ? 8 : 10)
-    expect(flatText(parts[1])).toBe('■'.repeat(bodyColumns < 44 ? 7 : 8))
-    expect(flatText(parts[2])).toBe('□'.repeat(bodyColumns < 44 ? 1 : 2))
+    expect(parts.map(n => n.props?.color)).toEqual(['#10a37f',undefined,'#d70000',undefined,'#d70000',undefined])
+    expect(parts.map(n => n.props?.dimColor === true)).toEqual([false,true,false,true,false,true])
+    expect(flatText(parts[2]).length + flatText(parts[3]).length).toBe(bodyColumns < 44 ? 8 : 10)
+    expect(flatText(parts[2])).toBe('■'.repeat(bodyColumns < 44 ? 7 : 8))
+    expect(flatText(parts[3])).toBe('□'.repeat(bodyColumns < 44 ? 1 : 2))
     const dots = nodes.filter(n => n.type === 'Text' && flatText(n) === '●')
     expect(dots.map(n => n.props?.color)).toEqual(['green',undefined])
     expect(dots.map(n => n.props?.dimColor)).toEqual([false,true])
@@ -504,10 +495,12 @@ for (const age of [599,601,3660]) {
     on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
     const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:60,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
     const nodes = elements(await ui.drawn())
-    expect(nodes.find(n => n.type === 'Text' && n.props?.color === '#4285f4' && flatText(n) === '▎ agy')?.props?.color).toBe('#4285f4')
-    for (const title of ['  Gemini','  Claude / GPT']) expect(nodes.find(n => n.type === 'Text' && flatText(n) === title)?.props?.dimColor).toBe(true)
+    expect(nodes.find(n => n.type === 'Text' && n.props?.color === '#4285f4' && flatText(n) === 'agy     ')?.props?.color).toBe('#4285f4')
+    for (const title of ['Gemini','Claude / GPT']) expect(nodes.find(n => n.type === 'Text' && flatText(n) === title)?.props?.dimColor).toBe(true)
     const old = nodes.filter(n => n.type === 'Text' && n.props?.color === 'yellow')
     expect(old.map(flatText)).toEqual(age === 599 ? [] : [age === 601 ? ' · 10m ago' : ' · 1h ago'])
+    const groupRows = nodes.filter(n => n.type === 'Text' && n.children?.some(c => ['Gemini','Claude / GPT'].includes(flatText(c))))
+    expect(groupRows.map(flatText)).toEqual([`agy     Gemini${age === 599 ? '' : age === 601 ? ' · 10m ago' : ' · 1h ago'}`, '        Claude / GPT'])
   })
 }
 

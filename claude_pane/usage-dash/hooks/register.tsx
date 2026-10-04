@@ -293,19 +293,15 @@ export const register: Register = (on) => {
           const name = key === 'claude-code' ? 'Claude' : key === 'codex' ? 'Codex' : key === 'antigravity' ? 'agy' : 'Grok'
           const age = staleAge(agent.age_seconds ?? 0, now, last)
           const groups = agent.groups ?? [{ name: '', five_hour: agent.five_hour, seven_day: agent.seven_day }]
+          const rows = groups.flatMap(group => [
+            ...(groups.length > 1 && group.name ? [[group.name === 'GEMINI MODELS' ? 'Gemini' : group.name === 'CLAUDE AND GPT MODELS' ? 'Claude / GPT' : group.name, undefined] as const] : []),
+            ...([[t('five_hour'),group.five_hour],[t('week'),group.seven_day],[t('period'),agent.period]] as const).filter(([,window]) => window),
+          ])
           return <Box key={key} flexDirection="column">
-            <Box justifyContent="space-between">
-              <Text><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{`▎ ${name}`}</Text><Text dimColor>{key === 'grok' && agent.tier ? ` ${agent.tier}` : ''}</Text>{age && <Text color="yellow">{age}</Text>}</Text>
-              {agent.model && <Box flexShrink={1} marginLeft={1}><Text dimColor wrap="truncate-end">{agent.model}</Text></Box>}
-            </Box>
-            {groups.map((group,i) => <Box key={`${key}-${i}`} flexDirection="column">
-              {group.name && <Text dimColor>{`  ${group.name === 'GEMINI MODELS' ? 'Gemini' : group.name === 'CLAUDE AND GPT MODELS' ? 'Claude / GPT' : group.name}`}</Text>}
-              {([[t('five_hour'),group.five_hour],[t('week'),group.seven_day],[t('period'),agent.period]] as const).map(([label,window]) => {
-                if (!window) return null
-                const line = dockQuotaLine(label,window,now,last === null ? 0 : (now-last)/1000,e.props.bodyColumns)
-                return <Text key={label}><Text dimColor>{`  ${line.label}`}</Text><Text color={line.color}>{line.filled}</Text><Text dimColor>{line.empty}</Text>{' '}<Text color={line.color}>{line.percent}</Text><Text dimColor>{line.countdown}</Text></Text>
-              })}
-            </Box>)}
+            {rows.map(([label,window],i) => {
+              const line = window ? dockQuotaLine(label,window,now,last === null ? 0 : (now-last)/1000,e.props.bodyColumns) : null
+              return <Text key={String(i)}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{i === 0 ? `${name.padEnd(8)}` : '        '}</Text><Text dimColor>{line ? line.label : label}</Text>{line && <Text color={line.color}>{line.filled}</Text>}{line && <Text dimColor>{line.empty}</Text>}{line && ' '}{line && <Text color={line.color}>{line.percent}</Text>}{line && <Text dimColor>{line.countdown}</Text>}{i === 0 && age && <Text color="yellow">{age}</Text>}</Text>
+            })}
           </Box>
         })}
         {!Object.keys(data.agents).length && <Text dimColor>{t('none')}</Text>}
