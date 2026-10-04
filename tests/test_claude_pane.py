@@ -33,6 +33,7 @@ def test_enable_preserves_paths(
     path = str(pane.INSTALL_DIR)
     if existing == "tilde":
         monkeypatch.setenv("HOME", str(pane.INSTALL_DIR.parent))
+        monkeypatch.setenv("USERPROFILE", str(pane.INSTALL_DIR.parent))
         existing = "~/usage-dash"
     elif existing == "ours":
         existing = path
@@ -83,13 +84,14 @@ def test_disable_only_ours(isolated: Path, others: bool, keep_env: bool) -> None
 
 def test_tilde_disable_and_reinstall(isolated: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("HOME", str(pane.INSTALL_DIR.parent))
+    monkeypatch.setenv("USERPROFILE", str(pane.INSTALL_DIR.parent))
     pane.enable_claude_pane()
     old = pane.INSTALL_DIR / "old.txt"
     old.write_text("obsolete")
     (pane.INSTALL_DIR / "hooks" / "quota.ts").write_text("modified")
     pane.enable_claude_pane()
     assert not old.exists()
-    assert "modified" not in (pane.INSTALL_DIR / "hooks" / "quota.ts").read_text()
+    assert "modified" not in (pane.INSTALL_DIR / "hooks" / "quota.ts").read_text(encoding="utf-8")
     setup_hook._save_settings({"env": {pane.PLUGIN_DIRS_KEY: "~/usage-dash/"}})
     assert pane.is_claude_pane_enabled()
     pane.disable_claude_pane()
@@ -105,8 +107,8 @@ def test_sidecar(isolated: Path, monkeypatch: pytest.MonkeyPatch, frozen: bool) 
         monkeypatch.setattr(sys, "executable", "/tmp/A space's/usage.app/Contents/MacOS/usage")
         monkeypatch.setattr(sys, "version_info", (3, 14, 0))
     pane.enable_claude_pane()
-    sidecar = json.loads((pane.INSTALL_DIR / "usage-pane.json").read_text())
-    bundle = json.loads(i18n.I18N_PATH.read_text())
+    sidecar = json.loads((pane.INSTALL_DIR / "usage-pane.json").read_text(encoding="utf-8"))
+    bundle = json.loads(i18n.I18N_PATH.read_text(encoding="utf-8"))
     assert sidecar["strings"] == {
         key: value for key, value in bundle["zh-TW"].items() if key.startswith("claude_pane_")
     }
@@ -167,7 +169,7 @@ def test_bundled_source(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
 
 def test_packaging_and_default_strings() -> None:
     root = Path(__file__).resolve().parent.parent
-    tree = ast.parse((root / "setup_app.py").read_text())
+    tree = ast.parse((root / "setup_app.py").read_text(encoding="utf-8"))
     resources = next(
         value
         for node in ast.walk(tree)
@@ -176,9 +178,9 @@ def test_packaging_and_default_strings() -> None:
         if isinstance(key, ast.Constant) and key.value == "resources"
     )
     assert "claude_pane" in ast.literal_eval(resources)
-    strings = (root / "claude_pane/usage-dash/hooks/strings.ts").read_text()
+    strings = (root / "claude_pane/usage-dash/hooks/strings.ts").read_text(encoding="utf-8")
     defaults = json.loads(strings.split("= ", 1)[1].split("\nlet strings", 1)[0])
-    english = json.loads((root / "i18n.json").read_text())["en"]
+    english = json.loads((root / "i18n.json").read_text(encoding="utf-8"))["en"]
     assert all(english[key] == value for key, value in defaults.items())
 
 
@@ -218,10 +220,12 @@ def test_missing_sidecar_language_falls_back(
 
     monkeypatch.setattr(pane, "detect_lang", lambda: "missing")
     pane.enable_claude_pane()
-    strings = json.loads((pane.INSTALL_DIR / "usage-pane.json").read_text())["strings"]
+    strings = json.loads((pane.INSTALL_DIR / "usage-pane.json").read_text(encoding="utf-8"))[
+        "strings"
+    ]
     assert (
         strings["claude_pane_title"]
-        == json.loads(i18n.I18N_PATH.read_text())["en"]["claude_pane_title"]
+        == json.loads(i18n.I18N_PATH.read_text(encoding="utf-8"))["en"]["claude_pane_title"]
     )
 
 
