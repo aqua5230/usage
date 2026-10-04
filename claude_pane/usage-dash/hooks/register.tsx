@@ -300,7 +300,9 @@ export const register: Register = (on) => {
           return <Box key={key} flexDirection="column">
             {rows.map(([label,window],i) => {
               const line = window ? dockQuotaLine(label,window,now,last === null ? 0 : (now-last)/1000,e.props.bodyColumns) : null
-              return <Text key={String(i)}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{i === 0 ? `${name.padEnd(8)}` : '        '}</Text><Text dimColor>{line ? line.label : label}</Text>{line && <Text color={line.color}>{line.filled}</Text>}{line && <Text dimColor>{line.empty}</Text>}{line && ' '}{line && <Text color={line.color}>{line.percent}</Text>}{line && <Text dimColor>{line.countdown}</Text>}{i === 0 && age && <Text color="yellow">{age}</Text>}</Text>
+              // Under 50% stays gray so only the windows worth watching carry color.
+              const color = window && window.used_percent >= 50 ? line?.color : undefined
+              return <Text key={String(i)}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{i === 0 ? `${name.padEnd(8)}` : '        '}</Text><Text dimColor>{line ? line.label : label}</Text>{line && <Text color={color} dimColor={!color}>{line.filled}</Text>}{line && <Text dimColor>{line.empty}</Text>}{line && ' '}{line && <Text color={color} dimColor={!color}>{line.percent}</Text>}{line && <Text dimColor>{line.countdown}</Text>}{i === 0 && age && <Text color="yellow">{age}</Text>}</Text>
             })}
           </Box>
         })}
