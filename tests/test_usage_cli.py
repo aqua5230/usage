@@ -1038,9 +1038,7 @@ def test_dashboard_sort_cycle_shape_and_order() -> None:
 
 
 @pytest.mark.parametrize("age", [120, 3 * 24 * 3600])
-def test_status_payload_antigravity_cache(
-    monkeypatch: pytest.MonkeyPatch, age: int
-) -> None:
+def test_status_payload_antigravity_cache(monkeypatch: pytest.MonkeyPatch, age: int) -> None:
     now = datetime(2026, 10, 4, 14, tzinfo=UTC)
     fetched_at = datetime.fromtimestamp(now.timestamp() - age + 0.319588, UTC).isoformat()
     cache = {
@@ -1064,9 +1062,7 @@ def test_status_payload_antigravity_cache(
         ],
     }
     agy_quota_probe.CACHE_PATH.write_text(json.dumps(cache), encoding="utf-8")
-    monkeypatch.setattr(
-        usage_cli, "datetime", SimpleNamespace(now=lambda tz: now)
-    )
+    monkeypatch.setattr(usage_cli, "datetime", SimpleNamespace(now=lambda tz: now))
     monkeypatch.setattr(
         usage_cli, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
     )

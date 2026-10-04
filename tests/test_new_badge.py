@@ -35,7 +35,7 @@ def test_dismiss(already_shown: bool, monkeypatch: pytest.MonkeyPatch) -> None:
     assert prefs._load_preferences()["new_feature_badges"]["claude_pane"]["dismissed"]
 
 
-@pytest.mark.parametrize("raw", ['{"other": "keep",', '[]', 'null', '\xff'])
+@pytest.mark.parametrize("raw", ['{"other": "keep",', "[]", "null", "\xff"])
 def test_corrupt_file_preserved(raw: str) -> None:
     prefs.PREFERENCES_FILE.parent.mkdir(parents=True, exist_ok=True)
     prefs.PREFERENCES_FILE.write_bytes(raw.encode("latin1"))
@@ -56,10 +56,14 @@ def test_invalid_badges_preserve_preferences(badges: object) -> None:
 @pytest.mark.parametrize("first_shown", ["1800000000", NOW + DAY, -1, True])
 def test_timestamp_boundaries(first_shown: object) -> None:
     assert not new_badge._valid_first_shown(first_shown, NOW)
-    prefs._save_preferences({"new_feature_badges": {
-        "claude_pane": {"first_shown": first_shown, "dismissed": False},
-        "other_feature": {"first_shown": NOW, "dismissed": True},
-    }})
+    prefs._save_preferences(
+        {
+            "new_feature_badges": {
+                "claude_pane": {"first_shown": first_shown, "dismissed": False},
+                "other_feature": {"first_shown": NOW, "dismissed": True},
+            }
+        }
+    )
     assert new_badge.should_show_badge("claude_pane", NOW)
     saved = prefs._load_preferences()["new_feature_badges"]
     assert saved["claude_pane"] == {"first_shown": NOW, "dismissed": False}
@@ -78,17 +82,26 @@ def test_apply_without_api(monkeypatch: pytest.MonkeyPatch) -> None:
     assert not prefs.PREFERENCES_FILE.exists()
 
 
-@pytest.mark.parametrize("language,label", [
-    ("zh-TW", "新"), ("en", "New"), ("zh-CN", "新"), ("ja", "新規"), ("ko", "신규"),
-])
-def test_apply_native_badge(
-    monkeypatch: pytest.MonkeyPatch, language: str, label: str
-) -> None:
+@pytest.mark.parametrize(
+    "language,label",
+    [
+        ("zh-TW", "新"),
+        ("en", "New"),
+        ("zh-CN", "新"),
+        ("ja", "新規"),
+        ("ko", "신규"),
+    ],
+)
+def test_apply_native_badge(monkeypatch: pytest.MonkeyPatch, language: str, label: str) -> None:
     calls: list[str] = []
     badge = SimpleNamespace(initWithString_=lambda text: text)
-    monkeypatch.setitem(sys.modules, "AppKit", SimpleNamespace(
-        NSMenuItemBadge=SimpleNamespace(alloc=lambda: badge),
-    ))
+    monkeypatch.setitem(
+        sys.modules,
+        "AppKit",
+        SimpleNamespace(
+            NSMenuItemBadge=SimpleNamespace(alloc=lambda: badge),
+        ),
+    )
     item = SimpleNamespace(setBadge_=calls.append)
     new_badge.apply_badge(item, language, "claude_pane")
     assert calls == [label]
@@ -111,9 +124,13 @@ def test_toggle_dismisses(monkeypatch: pytest.MonkeyPatch) -> None:
     from menubar import actions
 
     calls: list[str] = []
-    monkeypatch.setattr(threading, "Thread", lambda **kwargs: SimpleNamespace(
-        start=lambda: calls.append("start"),
-    ))
+    monkeypatch.setattr(
+        threading,
+        "Thread",
+        lambda **kwargs: SimpleNamespace(
+            start=lambda: calls.append("start"),
+        ),
+    )
     monkeypatch.setattr(actions, "dismiss_badge", lambda feature: calls.append(feature))
     app = SimpleNamespace(_mark_switch_menu_action=lambda: calls.append("mark"))
     actions.toggle_claude_pane(app)

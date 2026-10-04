@@ -27,8 +27,9 @@ def isolated(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
 
 
 @pytest.mark.parametrize("existing", [None, "/someone/plugin", "ours", "tilde"])
-def test_enable_preserves_paths(isolated: Path, monkeypatch: pytest.MonkeyPatch,
-                                existing: str | None) -> None:
+def test_enable_preserves_paths(
+    isolated: Path, monkeypatch: pytest.MonkeyPatch, existing: str | None
+) -> None:
     path = str(pane.INSTALL_DIR)
     if existing == "tilde":
         monkeypatch.setenv("HOME", str(pane.INSTALL_DIR.parent))
@@ -42,8 +43,11 @@ def test_enable_preserves_paths(isolated: Path, monkeypatch: pytest.MonkeyPatch,
     assert pane.enable_claude_pane() == 0
     result = setup_hook._load_settings()
     value = result["env"][pane.PLUGIN_DIRS_KEY]
-    assert value == (existing if existing in (path, "~/usage-dash") else
-                     os.pathsep.join(filter(None, [existing, path])))
+    assert value == (
+        existing
+        if existing in (path, "~/usage-dash")
+        else os.pathsep.join(filter(None, [existing, path]))
+    )
     assert result["other"] == before["other"]
     if existing is not None:
         assert result["env"]["OTHER"] == "keep"
@@ -56,8 +60,11 @@ def test_enable_preserves_paths(isolated: Path, monkeypatch: pytest.MonkeyPatch,
 @pytest.mark.parametrize("keep_env", [True, False])
 def test_disable_only_ours(isolated: Path, others: bool, keep_env: bool) -> None:
     pane.enable_claude_pane()
-    env = {pane.PLUGIN_DIRS_KEY: os.pathsep.join(
-        ["/other", str(pane.INSTALL_DIR), "/another"] if others else [str(pane.INSTALL_DIR)])}
+    env = {
+        pane.PLUGIN_DIRS_KEY: os.pathsep.join(
+            ["/other", str(pane.INSTALL_DIR), "/another"] if others else [str(pane.INSTALL_DIR)]
+        )
+    }
     if keep_env:
         env["OTHER"] = "keep"
     setup_hook._save_settings({"env": env, "other": "keep"})
@@ -100,37 +107,49 @@ def test_sidecar(isolated: Path, monkeypatch: pytest.MonkeyPatch, frozen: bool) 
     pane.enable_claude_pane()
     sidecar = json.loads((pane.INSTALL_DIR / "usage-pane.json").read_text())
     bundle = json.loads(i18n.I18N_PATH.read_text())
-    assert sidecar["strings"] == {key: value for key, value in bundle["zh-TW"].items()
-                                  if key.startswith("claude_pane_")}
+    assert sidecar["strings"] == {
+        key: value for key, value in bundle["zh-TW"].items() if key.startswith("claude_pane_")
+    }
     argv = sidecar["status_argv"]
     if frozen:
         resources = Path(sys.executable).resolve().parent.parent / "Resources"
-        assert argv[:5] == ["/usr/bin/env", f"PYTHONHOME={resources}",
-                            f"RESOURCEPATH={resources}", sys.executable, "-c"]
+        assert argv[:5] == [
+            "/usr/bin/env",
+            f"PYTHONHOME={resources}",
+            f"RESOURCEPATH={resources}",
+            sys.executable,
+            "-c",
+        ]
         assert len(argv) == 6
         tree = ast.parse(argv[5])
         paths = tree.body[1]
         assert isinstance(paths, ast.Assign)
         # Execute only the path expression, never the status command.
         actual = eval(compile(ast.Expression(paths.value), "bootstrap", "eval"))
-        assert actual == [str(resources / "lib/python314.zip"),
-                          str(resources / "lib/python3.14"),
-                          str(resources / "lib/python3.14/lib-dynload"), str(resources)]
+        assert actual == [
+            str(resources / "lib/python314.zip"),
+            str(resources / "lib/python3.14"),
+            str(resources / "lib/python3.14/lib-dynload"),
+            str(resources),
+        ]
         assert "sys.argv=['usage','status','--json'];usage_cli.main()" in argv[5]
     else:
         assert argv[0] == sys.executable
-        assert argv[1:] == [str(Path(pane.__file__).resolve().parent.parent / "usage_cli.py"),
-                           "status", "--json"]
+        assert argv[1:] == [
+            str(Path(pane.__file__).resolve().parent.parent / "usage_cli.py"),
+            "status",
+            "--json",
+        ]
 
 
-@pytest.mark.parametrize("value", ["", os.pathsep, "/other" + os.pathsep,
-                                   "/pane/", "/other" + os.pathsep + "/pane/"])
+@pytest.mark.parametrize(
+    "value", ["", os.pathsep, "/other" + os.pathsep, "/pane/", "/other" + os.pathsep + "/pane/"]
+)
 def test_path_boundaries(value: str) -> None:
     added = pane._add_path(value, "/pane")
     assert pane._add_path(added, "/pane") == added
     removed = pane._remove_path(added, "/pane")
-    assert not any(part and pane._same_path(part, "/pane")
-                   for part in removed.split(os.pathsep))
+    assert not any(part and pane._same_path(part, "/pane") for part in removed.split(os.pathsep))
     if "/other" in value:
         assert "/other" in removed.split(os.pathsep)
     else:
@@ -149,9 +168,13 @@ def test_bundled_source(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None
 def test_packaging_and_default_strings() -> None:
     root = Path(__file__).resolve().parent.parent
     tree = ast.parse((root / "setup_app.py").read_text())
-    resources = next(value for node in ast.walk(tree) if isinstance(node, ast.Dict)
-                     for key, value in zip(node.keys, node.values, strict=True)
-                     if isinstance(key, ast.Constant) and key.value == "resources")
+    resources = next(
+        value
+        for node in ast.walk(tree)
+        if isinstance(node, ast.Dict)
+        for key, value in zip(node.keys, node.values, strict=True)
+        if isinstance(key, ast.Constant) and key.value == "resources"
+    )
     assert "claude_pane" in ast.literal_eval(resources)
     strings = (root / "claude_pane/usage-dash/hooks/strings.ts").read_text()
     defaults = json.loads(strings.split("= ", 1)[1].split("\nlet strings", 1)[0])
@@ -169,8 +192,9 @@ def test_invalid_env_not_overwritten(isolated: Path, env: object) -> None:
     assert (pane.INSTALL_DIR / "usage-pane.json").is_file()
 
 
-def test_missing_source_preserves_install(isolated: Path, monkeypatch: pytest.MonkeyPatch,
-                                         tmp_path: Path) -> None:
+def test_missing_source_preserves_install(
+    isolated: Path, monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     pane.enable_claude_pane()
     before = isolated.read_bytes()
     monkeypatch.setattr(pane, "__file__", str(tmp_path / "absent/installer/pane.py"))
@@ -187,15 +211,18 @@ def test_uses_platform_separator(monkeypatch: pytest.MonkeyPatch) -> None:
     assert pane._remove_path("/other;/pane/", "/pane") == "/other"
 
 
-def test_missing_sidecar_language_falls_back(isolated: Path,
-                                            monkeypatch: pytest.MonkeyPatch) -> None:
+def test_missing_sidecar_language_falls_back(
+    isolated: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     import i18n
 
     monkeypatch.setattr(pane, "detect_lang", lambda: "missing")
     pane.enable_claude_pane()
     strings = json.loads((pane.INSTALL_DIR / "usage-pane.json").read_text())["strings"]
-    assert strings["claude_pane_title"] == json.loads(i18n.I18N_PATH.read_text())["en"][
-        "claude_pane_title"]
+    assert (
+        strings["claude_pane_title"]
+        == json.loads(i18n.I18N_PATH.read_text())["en"]["claude_pane_title"]
+    )
 
 
 @pytest.mark.skipif(sys.platform != "darwin", reason="macOS menu action")
@@ -230,13 +257,18 @@ def test_toggle_reports_result(monkeypatch: pytest.MonkeyPatch, enabled: bool, c
     assert calls == ["disable" if enabled else "enable"]
 
 
-def test_enable_installs_before_loading_settings(isolated: Path,
-                                                monkeypatch: pytest.MonkeyPatch) -> None:
+def test_enable_installs_before_loading_settings(
+    isolated: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     pane.INSTALL_DIR.mkdir(parents=True)
     calls = Mock()
-    for owner, name in [(shutil, "rmtree"), (shutil, "copytree"),
-                        (pane, "_write_sidecar"), (setup_hook, "_load_settings"),
-                        (setup_hook, "_save_settings")]:
+    for owner, name in [
+        (shutil, "rmtree"),
+        (shutil, "copytree"),
+        (pane, "_write_sidecar"),
+        (setup_hook, "_load_settings"),
+        (setup_hook, "_save_settings"),
+    ]:
         wrapped = Mock(wraps=getattr(owner, name))
         calls.attach_mock(wrapped, name)
         monkeypatch.setattr(owner, name, wrapped)
@@ -247,15 +279,18 @@ def test_enable_installs_before_loading_settings(isolated: Path,
     assert order[-3:] == ["_write_sidecar", "_load_settings", "_save_settings"]
 
 
-def test_disable_saves_before_removing_install(isolated: Path,
-                                              monkeypatch: pytest.MonkeyPatch) -> None:
+def test_disable_saves_before_removing_install(
+    isolated: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     pane.enable_claude_pane()
     calls = Mock()
-    for owner, name in [(setup_hook, "_load_settings"), (setup_hook, "_save_settings"),
-                        (shutil, "rmtree")]:
+    for owner, name in [
+        (setup_hook, "_load_settings"),
+        (setup_hook, "_save_settings"),
+        (shutil, "rmtree"),
+    ]:
         wrapped = Mock(wraps=getattr(owner, name))
         calls.attach_mock(wrapped, name)
         monkeypatch.setattr(owner, name, wrapped)
     assert pane.disable_claude_pane() == 0
-    assert [call[0] for call in calls.mock_calls] == [
-        "_load_settings", "_save_settings", "rmtree"]
+    assert [call[0] for call in calls.mock_calls] == ["_load_settings", "_save_settings", "rmtree"]

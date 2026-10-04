@@ -53,10 +53,20 @@ def _status_argv() -> list[str]:
             f"{resources!r}+'/lib/python{major}.{minor}/lib-dynload',{resources!r}];"
             "import usage_cli;sys.argv=['usage','status','--json'];usage_cli.main()"
         )
-        return ["/usr/bin/env", f"PYTHONHOME={resources}", f"RESOURCEPATH={resources}",
-                sys.executable, "-c", bootstrap]
-    return [sys.executable, str(Path(__file__).resolve().parent.parent / "usage_cli.py"),
-            "status", "--json"]
+        return [
+            "/usr/bin/env",
+            f"PYTHONHOME={resources}",
+            f"RESOURCEPATH={resources}",
+            sys.executable,
+            "-c",
+            bootstrap,
+        ]
+    return [
+        sys.executable,
+        str(Path(__file__).resolve().parent.parent / "usage_cli.py"),
+        "status",
+        "--json",
+    ]
 
 
 def _write_sidecar() -> None:
@@ -67,12 +77,15 @@ def _write_sidecar() -> None:
     table = bundle.get(detect_lang(), english)
     strings = {
         key: table.get(key) or value
-        for key, value in english.items() if key.startswith("claude_pane_")
+        for key, value in english.items()
+        if key.startswith("claude_pane_")
     }
     setup_hook._atomic_write_text(
         INSTALL_DIR / "usage-pane.json",
-        json.dumps({"strings": strings, "status_argv": _status_argv()}, ensure_ascii=False,
-                   indent=2) + "\n",
+        json.dumps(
+            {"strings": strings, "status_argv": _status_argv()}, ensure_ascii=False, indent=2
+        )
+        + "\n",
     )
 
 
