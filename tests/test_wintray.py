@@ -34,6 +34,7 @@ from wintray import app as wintray
 from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu
 from wintray import watch as windows_watch
+from wintray.prefs import load_tray_provider
 
 _REAL_NATIVE_WORK_AREA = wintray._WindowsTrayController._native_work_area_for_point
 
@@ -139,8 +140,8 @@ def test_panel_message_switches_agy_group_without_refresh(
 @pytest.mark.parametrize(
     ("used", "text", "color"),
     [
-        (None, "--", (110, 118, 129, 255)),
-        (0.0, "100", (244, 145, 100, 255)),
+        (None, "--", (125, 211, 252, 255)),
+        (0.0, "100", (45, 212, 191, 255)),
         (60.0, "40", (255, 196, 57, 255)),
         (95.0, "5", (255, 69, 58, 255)),
         (150.0, "0", (255, 69, 58, 255)),
@@ -1547,6 +1548,8 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "separator",
         "switch_panel",
         "hide_sections_menu",
+        "tray_provider_menu",
+        "quota_label_menu",
         "separator",
         "launch_at_login",
         "quota_notifications_menu",
@@ -1561,11 +1564,12 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     assert panels[1]["panelId"] == "matrix"
     assert panels[1]["checked"] is True
     assert [item["checked"] for item in hidden_sections] == [True, False, True, False]
-    assert menu[5]["checked"] is True
-    assert menu[6]["checked"] is False
+    assert menu[5]["checked"] is False
     assert menu[7]["checked"] is True
-    assert menu[8]["checked"] is True
-    assert menu[9]["checked"] is False
+    assert menu[8]["checked"] is False
+    assert menu[9]["checked"] is True
+    assert menu[10]["checked"] is True
+    assert menu[11]["checked"] is False
 
 
 def test_panel_and_tray_menus_render_the_shared_model(
@@ -1617,7 +1621,13 @@ def test_panel_and_tray_menus_render_the_shared_model(
         else wintray._without_power_glyph(_t("en", entry.i18n_key))
         for entry in tray_model
     ]
-    assert model_keys(tray_model) == ["reset_panel_position", "separator", "quit"]
+    assert model_keys(tray_model) == [
+        "tray_provider_menu",
+        "quota_label_menu",
+        "reset_panel_position",
+        "separator",
+        "quit",
+    ]
     assert tray_menu.items[0].kwargs == {"default": True, "visible": False}
     tray_menu.items[-1].action(None, None)
     assert quit_calls == ["quit"]
@@ -1665,6 +1675,8 @@ def test_tray_quit_label_removes_the_power_glyph() -> None:
     ("payload", "method", "expected"),
     [
         ({"action": "open_ai_daily"}, "open_ai_daily", ()),
+        ({"action": "set_tray_provider", "provider": "codex"}, "set_tray_provider", ("codex",)),
+        ({"action": "toggle_quota_label"}, "toggle_quota_label", ()),
         ({"action": "reset_panel_position"}, "reset_panel_position", ()),
         ({"action": "switch_panel", "panel_id": "matrix"}, "_schedule_panel_switch", ("matrix",)),
         (
@@ -2191,6 +2203,152 @@ def test_quit_cancels_file_timer_stops_watcher_and_joins_workers() -> None:
         "stop_icon",
         "destroy_window",
     ]
+
+
+@pytest.mark.parametrize("saved", [None, "unknown", "", 1, [], {}, "claude"])
+def test_tray_provider_defaults_to_claude_for_invalid_preferences(saved: object) -> None:
+    prefs._save_preferences({"tray_provider": saved})
+    assert load_tray_provider() == "claude"
+
+
+@pytest.mark.parametrize("provider", [None, "unknown", "", 1, [], {}])
+def test_invalid_tray_provider_does_not_change_saved_selection(provider: object) -> None:
+    prefs._save_preferences({"tray_provider": "codex", "usage.activePanelId": "matrix"})
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.handle_panel_message({"action": "set_tray_provider", "provider": provider})
+    assert controller.tray_provider == "codex"
+    assert prefs._load_preferences() == {"tray_provider": "codex", "usage.activePanelId": "matrix"}
+
+
+def test_tray_provider_switch_updates_immediately_and_survives_restart(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    prefs._save_preferences({"usage.activePanelId": "matrix"})
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = replace(
+        _state(), codex_session=replace(_state().codex_session, percent=82.0)
+    )
+    images: list[float | None] = []
+    progress: list[float | None] = []
+    menu_updates: list[bool] = []
+    controller.icon = SimpleNamespace(
+        icon=None, title=None, update_menu=lambda: menu_updates.append(True)
+    )
+    monkeypatch.setattr(wintray, "draw_tray_icon", images.append)
+    monkeypatch.setattr(controller, "_update_taskbar_progress", progress.append)
+
+    controller._update_tray()
+    controller.handle_panel_message('{"action":"set_tray_provider","provider":"codex"}')
+    assert images == [25.0, 82.0]
+    assert progress == [25.0, 82.0]
+    assert controller.icon.title.startswith("Codex Session: 82%")
+    assert menu_updates == [True]
+    assert prefs._load_preferences()["usage.activePanelId"] == "matrix"
+    restarted = wintray._WindowsTrayController(mock=True, interval=60)
+    assert restarted.tray_provider == "codex"
+
+    controller.set_tray_provider("claude")
+    assert images[-1] == 25.0
+    assert controller.icon.title.startswith("Claude Session: 25%")
+    assert load_tray_provider() == "claude"
+
+
+@pytest.mark.parametrize(("percent", "available"), [(None, True), (82.0, False)])
+def test_selected_codex_without_quota_never_falls_back_to_claude(
+    monkeypatch: pytest.MonkeyPatch, percent: float | None, available: bool
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = replace(
+        _state(),
+        codex_session=replace(_state().codex_session, percent=percent, available=available),
+    )
+    drawn: list[float | None] = []
+    controller.icon = SimpleNamespace(icon=None, title=None, update_menu=lambda: None)
+    monkeypatch.setattr(wintray, "draw_tray_icon", drawn.append)
+    controller.set_tray_provider("codex")
+    assert drawn == [None]
+    assert wintray.tray_icon_style(drawn[0])[0] == "--"
+
+
+def test_provider_switch_with_equal_percent_still_updates_tooltip(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = _state()
+    controller.icon = SimpleNamespace(icon=None, title=None, update_menu=lambda: None)
+    monkeypatch.setattr(wintray, "draw_tray_icon", lambda percent: object())
+    controller._update_tray()
+    assert controller.icon.title.startswith("Claude")
+    controller.set_tray_provider("codex")
+    assert controller.icon.title.startswith("Codex")
+    assert "Claude" in controller.icon.title
+    assert len(controller.icon.title) <= wintray.TOOLTIP_MAX_LENGTH
+
+
+@pytest.mark.parametrize("weekly_percent", [8.0, None])
+def test_codex_with_only_weekly_window_uses_weekly_quota(
+    monkeypatch: pytest.MonkeyPatch, weekly_percent: float | None
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = replace(
+        _state(),
+        codex_session=replace(_state().codex_session, title="", percent=None),
+        codex_weekly=replace(_state().codex_weekly, percent=weekly_percent),
+    )
+    drawn: list[float | None] = []
+    progress: list[float | None] = []
+    controller.icon = SimpleNamespace(icon=None, title=None, update_menu=lambda: None)
+    monkeypatch.setattr(wintray, "draw_tray_icon", drawn.append)
+    monkeypatch.setattr(controller, "_update_taskbar_progress", progress.append)
+    controller.set_tray_provider("codex")
+    assert drawn == progress == [weekly_percent]
+    expected = "--" if weekly_percent is None else "92"
+    assert wintray.tray_icon_style(drawn[0])[0] == expected
+    assert controller.icon.title.startswith("Codex Weekly:")
+    assert "Codex :" not in controller.icon.title
+
+
+def test_selected_provider_is_used_when_showing_and_reloading_panel(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    prefs._save_preferences({"tray_provider": "codex"})
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = replace(
+        _state(), codex_session=replace(_state().codex_session, percent=82.0)
+    )
+    progress: list[float | None] = []
+    monkeypatch.setattr(controller, "_update_taskbar_progress", progress.append)
+    monkeypatch.setattr(controller, "_place_window", lambda: None)
+    monkeypatch.setattr(controller, "_dispatch_window_mutation", lambda callback: None)
+    monkeypatch.setattr(controller, "inject_state", lambda **kwargs: None)
+    monkeypatch.setattr(controller, "refresh", lambda: None)
+    controller.show_panel()
+    controller.on_loaded()
+    assert progress == [82.0, 82.0]
+
+
+def test_native_provider_menu_switches_and_panel_menu_reflects_selection(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    pytest.importorskip("pystray")
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    monkeypatch.setattr(win_login_item, "is_enabled", lambda: False)
+    menu = wintray._menu(controller)
+    providers = tuple(next(item.submenu for item in menu if item.submenu is not None))
+    assert [item.checked for item in providers] == [True, False]
+    assert all(item.radio for item in providers)
+    providers[1](None)
+    assert controller.tray_provider == "codex"
+    assert [item.checked for item in providers] == [False, True]
+    group = next(
+        item
+        for item in controller._panel_menu_data()
+        if item.get("i18nKey") == "tray_provider_menu"
+    )
+    choices = cast(list[dict[str, object]], group["children"])
+    assert [item["checked"] for item in choices] == [False, True]
+    assert [item["provider"] for item in choices] == ["claude", "codex"]
+    assert all(item["radio"] for item in choices)
 
 
 def test_tray_update_skips_unchanged_values(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -3033,6 +3191,10 @@ def test_menu_actions_pass_real_pystray_signature_validation() -> None:
     controller = SimpleNamespace(
         language="en",
         active_panel_id="classic",
+        tray_provider="claude",
+        quota_label_enabled=False,
+        toggle_quota_label=lambda: None,
+        set_tray_provider=lambda provider: None,
         switch_panel=lambda panel_id: None,
         show_panel=lambda: None,
         reset_panel_position=lambda: None,

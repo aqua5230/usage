@@ -65,6 +65,8 @@ if (-not (Test-Path $Executable -PathType Leaf)) {
     throw "PyInstaller did not produce $Executable"
 }
 
+Copy-Item -LiteralPath (Join-Path $RepoRoot "THIRD_PARTY_NOTICES.md") -Destination $OutputDir
+
 # The exe existing is not proof it works: v0.29.34-36 shipped bundles whose
 # hidden-import names still pointed at pre-refactor top-level modules, so the
 # packages collected nothing and the app died on launch. Assert the two

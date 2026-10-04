@@ -11,6 +11,8 @@ from typing import Literal
 type MenuSurface = Literal["panel", "tray"]
 type CheckKey = Literal[
     "active_panel",
+    "tray_provider",
+    "quota_label",
     "hide_claude",
     "hide_codex",
     "hide_agy",
@@ -26,6 +28,7 @@ PANEL: MenuSurface = "panel"
 TRAY: MenuSurface = "tray"
 _PANEL_ONLY = frozenset({PANEL})
 _TRAY_ONLY = frozenset({TRAY})
+_BOTH = frozenset({PANEL, TRAY})
 
 
 @dataclass(frozen=True, slots=True)
@@ -57,6 +60,18 @@ type Panel = tuple[str, str, str]
 
 def windows_menu_model(panels: tuple[Panel, ...]) -> tuple[MenuEntry, ...]:
     """Describe both Windows menus once; renderers select their own surface."""
+    tray_providers: tuple[MenuEntry, ...] = tuple(
+        MenuCommand(
+            f"{provider}_name",
+            "set_tray_provider",
+            surfaces=_BOTH,
+            checked_by="tray_provider",
+            argument_name="provider",
+            argument_value=provider,
+            radio=True,
+        )
+        for provider in ("claude", "codex")
+    )
     panel_choices: tuple[MenuEntry, ...] = tuple(
         MenuCommand(
             i18n_key,
@@ -103,6 +118,10 @@ def windows_menu_model(panels: tuple[Panel, ...]) -> tuple[MenuEntry, ...]:
         MenuSeparator(_PANEL_ONLY),
         MenuGroup("switch_panel", panel_choices),
         MenuGroup("hide_sections_menu", hidden_sections),
+        MenuGroup("tray_provider_menu", tray_providers, surfaces=_BOTH),
+        MenuCommand(
+            "quota_label_menu", "toggle_quota_label", surfaces=_BOTH, checked_by="quota_label"
+        ),
         MenuSeparator(_PANEL_ONLY),
         MenuCommand("launch_at_login", "toggle_login", checked_by="launch_at_login"),
         MenuCommand(
