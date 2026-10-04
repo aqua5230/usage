@@ -5,6 +5,16 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.32.3] - 2026-10-05
+
+### Changed
+- **Quota shows 0% once its reset time passes:** After a 5-hour or weekly window resets, the menu bar, popover panels, Windows tray and Claude Code side pane show 0% with "Reset" until fresh data arrives, instead of the last percentage. Notifications and history still use the real reading.
+- **Refresh gives feedback:** The popover status chip shows "↻ Refreshing…" while a refresh started from the Refresh button runs (macOS and Windows).
+
+### Fixed
+- **Side pane no longer calls a conversation done while its background jobs run:** A conversation whose main turn ended but whose background jobs are still running keeps the spinner and only toasts "Done" after they finish.
+- **Side pane shows every running background job:** The jobs block used to keep only the last four rows; running jobs now always show, and finished ones fold behind a "+N more" toggle.
+
 ## [0.32.2] - 2026-10-05
 
 ### Added
