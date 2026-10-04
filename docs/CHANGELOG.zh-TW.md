@@ -7,8 +7,13 @@
 ## [Unreleased]
 
 ### 新增
-- **Claude Code 側邊面板（macOS）：** 選單開關讓 Claude Code 顯示額度、對話與背景工作。需要支援 mod（介面外掛）的較新 Claude Code，實測版本 2.1.289。開啟後開新的對話或打 `/reload-plugins`；終端機寬度 ≥144 欄會自動在右側打開，較窄時打 `/usage-dash`。macOS 內建「終端機」只有 256 色，會出現灰底，建議在 `/config` 換 ANSI 深色主題。
+- **Claude Code 側邊面板（macOS）：** 選單開關讓 Claude Code 顯示額度、對話與背景工作。需要支援 mod（介面外掛）的較新 Claude Code，實測版本 2.1.289。開啟後開新的對話或打 `/reload-plugins`；終端機寬度 ≥144 欄會自動在右側打開，較窄時打 `/usage-dash`。macOS 內建「終端機」只有 256 色，會出現灰底，建議在 `/config` 換 ANSI 深色主題。等你確認權限或輸入 MCP 資料的對話會以黃色「等你」標示，其他對話的面板也看得到，背景工作也會列出 Claude 用 Agent 工具開的子代理與狀態。
 - **`usage status --json` 加入 Antigravity 與 Grok 配額。** 從本機快取讀取所有 Antigravity 群組，從本機紀錄讀取 Grok 帳務，附上重置倒數與資料年齡。文字摘要維持原樣。
+
+### 修正
+- **Claude Code 側邊面板：** usage app 啟動時會自動把已啟用的面板更新成 app 內的版本，升級後不必手動關掉再打開。
+- **Claude Code 側邊面板：** 更新時間超過一分鐘後改顯示分鐘或小時。
+- **Claude Code 側邊面板：** 缺資料的額度窗口不再顯示成 0%。
 
 ## [0.31.6] - 2026-10-04
 

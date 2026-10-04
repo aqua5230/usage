@@ -25,7 +25,7 @@ import usage_statusline  # noqa: E402
 
 _PAYLOAD = {
     "workspace": {"project_dir": str(_REPO_ROOT)},
-    "model": {"display_name": "Opus 5"},
+    "model": {"display_name": "Opus 5.5"},
     "effort": {"level": "high"},
     "context_window": {
         "used_percentage": 23,
