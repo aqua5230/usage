@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+- **Claude Code side pane on Windows:** The system-tray panel menu now has the **Claude Code side pane** switch. The pane runs on Windows without POSIX tools (`tasklist` for live conversations, `findstr` for long transcripts), and `usage.exe status --json` supplies its quota data. Enabling it offers to turn on Claude Code's fullscreen layout, which the pane needs to dock on the right; turning the pane off switches the layout back.
+
 ## [0.32.0] - 2026-10-05
 
 ### Added
