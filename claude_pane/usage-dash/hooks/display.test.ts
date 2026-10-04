@@ -1,6 +1,6 @@
 import type { AgentInfo } from 'claude-code'
 import { expect, test } from 'claude-code/testing'
-import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
+import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
 test('context 百分比單位、缺值與三種顏色門檻', () => {
   expect(contextPercent(undefined)).toBeUndefined()
   expect(contextPercent(0.41)).toBe(0)
@@ -52,4 +52,15 @@ test('背景工作數量是執行中外部指令加顯示中的子代理', () =>
   expect(backgroundCount([],[])).toBe(0)
   expect(backgroundCount([{end:0}],agents.map(agent => ({...agent,status:'completed'})))).toBe(0)
   expect(backgroundCount([{end:null}],[])).toBe(1)
+})
+test('背景工作：跑的全顯示、完成的補空位、展開看全部', () => {
+  const run = (id: string, end: number | null) => ({ id, agent: 'muse' as const, label: id, start: 0, end, status: end === null ? 'running' : 'completed' })
+  const ids = (rows: { id: string }[]) => rows.map(r => r.id)
+  const six = ['a','b','c','d','e','f'].map(id => run(id, null))
+  expect(visibleRuns(six,false)).toEqual({ rows: six, hiddenDone: 0 })
+  const mixed = [run('d1',1), run('d2',2), run('d3',3), run('r1',null), run('r2',null)]
+  expect(ids(visibleRuns(mixed,false).rows)).toEqual(['d2','d3','r1','r2'])
+  expect(visibleRuns(mixed,false).hiddenDone).toBe(1)
+  expect(ids(visibleRuns(mixed,true).rows)).toEqual(['d1','d2','d3','r1','r2'])
+  expect(visibleRuns([...six, run('d1',1)],false)).toEqual({ rows: six, hiddenDone: 1 })
 })

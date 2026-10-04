@@ -9,7 +9,7 @@ declare module 'claude-code' {
   interface PluginState {
     'usage-dash': {
       quotas: Quotas; updated: number | null; quotaError: string; sessions: Session[]; sessionError: string; pendingToasts: { id: string; kind: 'done' | 'waiting' }[];
-      runs: Run[]; agents: AgentInfo[]; collapsed: { quota: boolean; sessions: boolean; runs: boolean }; more: boolean;
+      runs: Run[]; agents: AgentInfo[]; collapsed: { quota: boolean; sessions: boolean; runs: boolean }; more: boolean; moreRuns: boolean;
     }
   }
 }

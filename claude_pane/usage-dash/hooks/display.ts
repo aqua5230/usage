@@ -31,3 +31,9 @@ export function visibleAgents(agents: AgentInfo[]): AgentInfo[] {
 export function backgroundCount(runs: Pick<Run, 'end'>[], agents: AgentInfo[]): number {
   return runs.filter(run => run.end === null).length + visibleAgents(agents).length
 }
+// Running jobs always show; finished ones only fill the rows left out of four, unless expanded.
+export function visibleRuns(runs: Run[], expanded: boolean): { rows: Run[]; hiddenDone: number } {
+  const done = runs.filter(r => r.end !== null)
+  const kept = new Set(expanded ? done : done.slice(done.length - Math.max(0, 4 - (runs.length - done.length))))
+  return { rows: runs.filter(r => r.end === null || kept.has(r)), hiddenDone: done.length - kept.size }
+}

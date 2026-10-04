@@ -6,7 +6,7 @@ import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
 import { parseQuota, hideAgents, byTightest, showsUnavailable, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
 import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, waitingText, settleNotifications, sessionMark } from './sessions'
-import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
+import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
 const updated = atom({ plugin: 'usage-dash', key: 'updated' } as const, null)
@@ -18,6 +18,7 @@ const agents = atom({ plugin: 'usage-dash', key: 'agents' } as const, [])
 const runs = atom({ plugin: 'usage-dash', key: 'runs' } as const, [])
 const collapsed = atom({ plugin: 'usage-dash', key: 'collapsed' } as const, { quota: false, sessions: false, runs: false })
 const more = atom({ plugin: 'usage-dash', key: 'more' } as const, false)
+const moreRuns = atom({ plugin: 'usage-dash', key: 'moreRuns' } as const, false)
 type Dollar = Parameters<Hook<'session.start'>>[0]
 const STALE_MS = 3600000
 const KEEP_DONE_MS = 300000
@@ -273,7 +274,7 @@ export const register: Register = (on) => {
     const now = await $.clock.now()
     const data = await read($, quotas), list = await read($, sessions), fold = await read($, collapsed)
     const shown = (await read($, runs)).filter(r => isVisible(r,now))
-    const expanded = await read($, more), last = await read($, updated)
+    const expanded = await read($, more), last = await read($, updated), runsExpanded = await read($, moreRuns)
     const qe = await read($, quotaError), se = await read($, sessionError)
     const current = await $.session.id()
     const agentList = visibleAgents(await read($, agents))
@@ -338,7 +339,7 @@ export const register: Register = (on) => {
         <Text color={jobs > 0 ? 'yellow' : undefined} dimColor={jobs === 0}>{jobs}</Text>
       </Box>
       {!fold.runs && <Box flexDirection="column">
-        {shown.slice(-4).map(r => {
+        {visibleRuns(shown, runsExpanded).rows.map(r => {
           const done = r.end !== null
           const seconds = Math.max(0, Math.floor(((r.end ?? now)-r.start)/1000))
           const elapsed = t('elapsed', { minutes: Math.floor(seconds/60), seconds: String(seconds%60).padStart(2,'0') })
@@ -346,6 +347,7 @@ export const register: Register = (on) => {
           return <Text key={r.id} dimColor={done} wrap="truncate-end"><Text color={done ? undefined : 'green'}>{`${prefix}${elapsed}`}</Text>{'  '}<Text color={done ? undefined : 'cyan'}>{r.agent}</Text>{`  ${r.label}`}<Text dimColor>{completedAgo(r,now)}</Text></Text>
         })}
         {agentList.map(agent => <Text key={`agent-${agent.id}`} wrap="truncate-end"><Text color={agent.status === 'running' ? 'green' : agent.status === 'waiting' ? 'yellow' : undefined} dimColor={agent.status === 'idle' || agent.status === 'pending'}>{agent.status === 'waiting' ? t('waiting') : t(`agent_${agent.status}`)}</Text>{'  '}<Text color="cyan">{agent.type}</Text>{`  ${agent.description}`}</Text>)}
+        {(runsExpanded || visibleRuns(shown, false).hiddenDone > 0) && <Button key="moreRuns" plain label={runsExpanded ? `[ − ${t('less')} ]` : `[ + ${t('more', { count: visibleRuns(shown, false).hiddenDone })} ]`} onPress={() => update($, moreRuns, v => !v)} />}
         {!shown.length && !agentList.length && <Text dimColor>{t('none')}</Text>}
       </Box>}
       </Box>
