@@ -98,7 +98,16 @@ def test_tilde_disable_and_reinstall(isolated: Path, monkeypatch: pytest.MonkeyP
     assert setup_hook._load_settings() == {}
 
 
-@pytest.mark.parametrize("frozen", [False, True])
+@pytest.mark.parametrize(
+    "frozen",
+    [
+        False,
+        pytest.param(
+            True,
+            marks=pytest.mark.skipif(sys.platform == "win32", reason="macOS .app bundle paths"),
+        ),
+    ],
+)
 def test_sidecar(isolated: Path, monkeypatch: pytest.MonkeyPatch, frozen: bool) -> None:
     import i18n
 
