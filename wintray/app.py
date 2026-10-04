@@ -35,6 +35,7 @@ from loaders import codex_loader, grok_loader
 from loaders.history_loader import UsageEntry, load_entries
 from menubar import agy as menubar_agy
 from menubar import grok as menubar_grok
+from menubar import manual_refresh
 from menubar import state as menubar_state
 from menubar.prefs import (
     _auto_update_check_enabled,
@@ -566,7 +567,11 @@ def _set_taskbar_progress(
 
 def build_tooltip(state: menubar_state.PopoverState) -> str:
     def line(name: str, row: menubar_state.QuotaRowState) -> str:
-        used = "--" if row.percent is None else str(min(100, max(0, round(row.percent))))
+        used = (
+            "--"
+            if row.display_percent is None
+            else str(min(100, max(0, round(row.display_percent))))
+        )
         return f"{name} {row.title}: {used}%"
 
     lines = [
@@ -888,7 +893,7 @@ class _WindowsTrayController:
             self.inject_state(force=True)
             # A panel reload can recreate its taskbar button. Reapply the
             # latest value once the visible native window has loaded.
-            self._update_taskbar_progress(self.latest_state.claude_session.percent)
+            self._update_taskbar_progress(self.latest_state.claude_session.display_percent)
 
     @staticmethod
     def _screen_rectangle(value: object) -> tuple[int, int, int, int] | None:
@@ -1458,6 +1463,17 @@ class _WindowsTrayController:
             self._last_file_event_refresh_started_at = time.monotonic()
         self.refresh()
 
+    def refresh_manual(self) -> None:
+        with self.refresh_lock:
+            if self.stopping.is_set():
+                return
+            manual_refresh.begin(self.latest_state, queued=self._refresh_in_flight)
+        try:
+            if self.visible:
+                self.inject_state()
+        finally:
+            self.refresh()
+
     def refresh(self) -> None:
         with self.refresh_lock:
             if self.stopping.is_set():
@@ -1484,10 +1500,14 @@ class _WindowsTrayController:
 
         while True:
             try:
-                self.latest_state = self._build_state(
+                state = self._build_state(
                     measure=measure,
                     debug_timing=debug_timing,
                 )
+                with self.refresh_lock:
+                    self.latest_state = manual_refresh.finish(
+                        self.latest_state, state, queued=self._refresh_queued
+                    )
                 self._process_quota_notifications(self.latest_state)
                 started_at = time.monotonic() if debug_timing else 0.0
                 self._update_tray()
@@ -1497,6 +1517,15 @@ class _WindowsTrayController:
                     self.inject_state()
                     measure("inject_state", started_at)
             except Exception:
+                with self.refresh_lock:
+                    manual_refresh.finish(
+                        self.latest_state, self.latest_state, queued=self._refresh_queued
+                    )
+                if self.visible:
+                    try:
+                        self.inject_state()
+                    except Exception:
+                        logger.warning("Windows tray refresh status update failed", exc_info=True)
                 if os.environ.get("USAGE_DEBUG") == "1":
                     logger.warning("Windows tray refresh failed", exc_info=True)
 
@@ -1669,7 +1698,7 @@ class _WindowsTrayController:
         return await self.usage_client.fetch_once()
 
     def _update_tray(self) -> None:
-        percent = self.latest_state.claude_session.percent
+        percent = self.latest_state.claude_session.display_percent
         self._update_taskbar_progress(percent)
         if self.icon is None:
             return
@@ -1729,7 +1758,7 @@ class _WindowsTrayController:
         self.visible = True
         self._place_window()
         self._dispatch_window_mutation(self._show_panel_on_ui_thread)
-        self._update_taskbar_progress(self.latest_state.claude_session.percent)
+        self._update_taskbar_progress(self.latest_state.claude_session.display_percent)
         self.inject_state(force=True)
         self.refresh()
 
@@ -2158,7 +2187,7 @@ class _WindowsTrayController:
             elif action == "reset_panel_position":
                 self.reset_panel_position()
             elif action == "refresh":
-                self.refresh()
+                self.refresh_manual()
             elif action == "toggle_login":
                 self.toggle_login()
             elif action == "toggle_quota_notifications":
@@ -2178,7 +2207,7 @@ class _WindowsTrayController:
             return None
         action = str(payload)
         if action == "refresh":
-            self.refresh()
+            self.refresh_manual()
         elif action == "quit":
             self.quit()
         elif action == "switch":

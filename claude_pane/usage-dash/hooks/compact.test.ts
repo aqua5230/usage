@@ -45,3 +45,10 @@ test('百分比 100 與執行中工作配色、更新時間不為負', () => {
   expect(lines[2][1]).toEqual({text:'2',color:'yellow'})
   expect(lines[2].map(part => part.text).join('')).toBe('Sessions 0 busy / 0 · Background jobs 2 · ↻ 0s ago')
 })
+
+
+test('精簡版的相對窗口也隨讀取後時間歸零', () => {
+  const lines = compactLines({agents:{codex:{available:true,five_hour:{used_percent:95,resets_in_seconds:60}}}}, [], 0, 60000, 0)
+  expect(lines[0].map(part => part.text).join('')).toBe('◆ Codex 5h 0%')
+  expect(lines[0].find(part => part.text === '0%')?.color).toBe('green')
+})

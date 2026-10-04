@@ -56,6 +56,7 @@
     "data_stale_hint": "資料來自備援來源，建議檢查設定",
     "status_loading": "載入中",
     "status_synced": "✓ 已同步",
+    "status_refreshing": "↻ 更新中…",
     "status_no_data": "無資料",
     "awaiting_rate_limits": "請對 Claude Code 發送一句訊息以同步配額",
     "hook_broken_not_installed": "⚠ 狀態列沒在更新，請按「設定狀態列」重新安裝",
@@ -75,6 +76,7 @@
     "percent_used": "{value}% 已用",
     "reset_in": "重置 {time}",
     "reset_imminent": "即將重置",
+    "reset_done": "已重置",
     "burn_warning": "⚠ 照目前速度 {empty}後用完 · 重置 {reset}",
     "burn_warning_compact": "⚠ {empty}後用完",
     "reset_placeholder": "重置 --",
@@ -490,6 +492,7 @@
     "claude_pane_invalid_sidecar": "usage-pane.json 格式錯誤",
     "claude_pane_elapsed": "{minutes}分{seconds}秒",
     "claude_pane_remaining": "剩",
+    "claude_pane_reset_done": "已重置",
     "claude_pane_hours_ago": "{count}時前"
   },
   "en": {
@@ -549,6 +552,7 @@
     "data_stale_hint": "Data is from a fallback source. Check settings.",
     "status_loading": "Loading",
     "status_synced": "✓ Synced",
+    "status_refreshing": "↻ Refreshing…",
     "status_no_data": "No data",
     "awaiting_rate_limits": "Send a message in Claude Code to sync your quota",
     "hook_broken_not_installed": "⚠ Status line is not updating. Click \"Set Up Status Line\" to reinstall it.",
@@ -568,6 +572,7 @@
     "percent_used": "{value}% used",
     "reset_in": "Resets in {time}",
     "reset_imminent": "Reset imminent",
+    "reset_done": "Reset",
     "burn_warning": "⚠ At this pace, empty in {empty} · resets in {reset}",
     "burn_warning_compact": "⚠ Empty in {empty}",
     "reset_placeholder": "Resets in --",
@@ -983,6 +988,7 @@
     "claude_pane_invalid_sidecar": "Invalid usage-pane.json",
     "claude_pane_elapsed": "{minutes}m{seconds}s",
     "claude_pane_remaining": "left",
+    "claude_pane_reset_done": "Reset",
     "claude_pane_hours_ago": "{count}h ago"
   },
   "zh-CN": {
@@ -1042,6 +1048,7 @@
     "data_stale_hint": "数据来自备用来源，建议检查设置",
     "status_loading": "加载中",
     "status_synced": "✓ 已同步",
+    "status_refreshing": "↻ 更新中…",
     "status_no_data": "无数据",
     "awaiting_rate_limits": "请对 Claude Code 发送一句消息以同步配额",
     "hook_broken_not_installed": "⚠ 状态栏没有更新，请点「设置状态栏」重新安装",
@@ -1061,6 +1068,7 @@
     "percent_used": "{value}% 已用",
     "reset_in": "重置 {time}",
     "reset_imminent": "即将重置",
+    "reset_done": "已重置",
     "burn_warning": "⚠ 按当前速度 {empty}后用完 · 重置 {reset}",
     "burn_warning_compact": "⚠ {empty}后用完",
     "reset_placeholder": "重置 --",
@@ -1476,6 +1484,7 @@
     "claude_pane_invalid_sidecar": "usage-pane.json 格式错误",
     "claude_pane_elapsed": "{minutes}分{seconds}秒",
     "claude_pane_remaining": "剩",
+    "claude_pane_reset_done": "已重置",
     "claude_pane_hours_ago": "{count}时前"
   },
   "ja": {
@@ -1535,6 +1544,7 @@
     "data_stale_hint": "データはフォールバック元から取得しています。設定を確認してください。",
     "status_loading": "読み込み中",
     "status_synced": "✓ 同期済み",
+    "status_refreshing": "↻ 更新中…",
     "status_no_data": "データなし",
     "awaiting_rate_limits": "Claude Code にメッセージを送信してクォータを同期してください",
     "hook_broken_not_installed": "⚠ ステータスラインが更新されていません。「ステータスラインを設定」を押して再インストールしてください。",
@@ -1554,6 +1564,7 @@
     "percent_used": "{value}% 使用済み",
     "reset_in": "{time}後にリセット",
     "reset_imminent": "まもなくリセット",
+    "reset_done": "リセット済み",
     "burn_warning": "⚠ このペースで{empty}で使い切り·リセット{reset}",
     "burn_warning_compact": "⚠ {empty}で使い切り",
     "reset_placeholder": "リセット --",
@@ -1969,6 +1980,7 @@
     "claude_pane_invalid_sidecar": "usage-pane.json の形式が不正です",
     "claude_pane_elapsed": "{minutes}分{seconds}秒",
     "claude_pane_remaining": "残り",
+    "claude_pane_reset_done": "リセット済み",
     "claude_pane_hours_ago": "{count}時間前"
   },
   "ko": {
@@ -2028,6 +2040,7 @@
     "data_stale_hint": "데이터가 대체 소스에서 왔습니다. 설정을 확인하세요.",
     "status_loading": "불러오는 중",
     "status_synced": "✓ 동기화됨",
+    "status_refreshing": "↻ 새로 고치는 중…",
     "status_no_data": "데이터 없음",
     "awaiting_rate_limits": "Claude Code에 메시지를 보내 할당량을 동기화하세요",
     "hook_broken_not_installed": "⚠ 상태 표시줄이 업데이트되지 않습니다. \"상태 표시줄 설정\"을 눌러 다시 설치하세요.",
@@ -2047,6 +2060,7 @@
     "percent_used": "{value}% 사용됨",
     "reset_in": "{time} 후 초기화",
     "reset_imminent": "곧 초기화",
+    "reset_done": "리셋됨",
     "burn_warning": "⚠ 현재 속도면 {empty} 후 소진 · 초기화까지 {reset}",
     "burn_warning_compact": "⚠ {empty} 후 소진",
     "reset_placeholder": "초기화까지 --",
@@ -2462,6 +2476,7 @@
     "claude_pane_invalid_sidecar": "usage-pane.json 형식이 잘못되었습니다",
     "claude_pane_elapsed": "{minutes}분{seconds}초",
     "claude_pane_remaining": "남음",
+    "claude_pane_reset_done": "리셋됨",
     "claude_pane_hours_ago": "{count}시간 전"
   }
 }

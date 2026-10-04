@@ -8,7 +8,7 @@ export function compactLines(data: Quotas, sessions: Session[], running: number,
   const first: CompactPart[] = [], second: CompactPart[] = []
   function percent(row: CompactPart[], window: Window | undefined) {
     if (!window) return
-    const line = quotaLine('', window, now)
+    const line = quotaLine('', window, now, last === null ? 0 : (now-last)/1000)
     row.push({ text: line.percent.trim(), color: line.color })
   }
   for (const [key, name, color, row] of [

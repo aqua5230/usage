@@ -1,10 +1,10 @@
 import { t } from './strings'
 import type { Quotas, Window } from '../types'
-export function byTightest(data: Quotas, order: readonly string[]): string[] {
+export function byTightest(data: Quotas, order: readonly string[], now = Date.now(), elapsedSeconds = 0): string[] {
   return order.map((key, index) => {
     const agent = data.agents[key]
     const windows = [agent?.five_hour, agent?.seven_day, agent?.period, ...(agent?.groups ?? []).flatMap(group => [group.five_hour, group.seven_day])]
-    const used = Math.max(-Infinity, ...windows.map(window => window?.used_percent).filter((value): value is number => typeof value === 'number' && Number.isFinite(value)))
+    const used = Math.max(-Infinity, ...windows.map(window => window ? effectivePercent(window, now, elapsedSeconds) : undefined).filter((value): value is number => typeof value === 'number' && Number.isFinite(value)))
     return { key, index, used, available: agent?.available === true }
   }).sort((a,b) => Number(b.available) - Number(a.available) || b.used - a.used || a.index - b.index).map(row => row.key)
 }
@@ -41,8 +41,13 @@ export function countdown(seconds: number): string {
   if (s < 86400) return t('hours', { count: Math.floor(s / 3600) })
   return t('days', { count: Math.floor(s / 86400) })
 }
+export function effectivePercent(window: Window, now: number, elapsedSeconds = 0): number {
+  const reset = window.resets_at ?? (now / 1000 - elapsedSeconds + (window.resets_in_seconds ?? Infinity))
+  return reset <= now / 1000 ? 0 : window.used_percent
+}
 export function quotaLine(label: string, window: Window, now: number, ageSeconds = 0, bodyColumns?: number) {
-  const percent = Math.max(0, Math.min(100, Number.isFinite(window.used_percent) ? window.used_percent : 0))
+  const used = effectivePercent(window, now, ageSeconds)
+  const percent = Math.max(0, Math.min(100, Number.isFinite(used) ? used : 0))
   const barWidth = bodyColumns === undefined ? 16 : Math.max(10, Math.min(20, Math.floor(bodyColumns - 24)))
   const filled = Math.round(percent * barWidth / 100)
   const seconds = window.resets_at === undefined ? (window.resets_in_seconds ?? 0) - ageSeconds : window.resets_at - now / 1000
@@ -53,7 +58,7 @@ export function quotaLine(label: string, window: Window, now: number, ageSeconds
     filled: '━'.repeat(filled),
     empty: '─'.repeat(barWidth - filled),
     percent: `${Math.round(percent)}%`.padStart(4),
-    countdown: ` ↻${countdown(seconds)}`,
+    countdown: ` ↻${seconds <= 0 && (window.resets_at !== undefined || window.resets_in_seconds !== undefined) ? t('reset_done') : countdown(seconds)}`,
   }
   return { ...parts, text: `${parts.label}${parts.filled}${parts.empty} ${parts.percent}${parts.countdown}`,
     color: percent >= 80 ? 'red' : percent >= 50 ? 'yellow' : 'green' }
@@ -75,14 +80,15 @@ export function progressParts(value: number, bodyColumns = 44) {
     color: percent < 50 ? '#00d787' : percent < 80 ? '#ffaf00' : '#d70000' }
 }
 export function resetTime(window: Window, now: number, elapsedSeconds = 0): string {
-  const reset = window.resets_at ?? (now / 1000 - elapsedSeconds + (window.resets_in_seconds ?? 0))
+  const reset = window.resets_at ?? (now / 1000 - elapsedSeconds + (window.resets_in_seconds ?? Infinity))
+  if (reset <= now / 1000) return t('reset_done')
   const remain = Math.trunc(reset) - Math.trunc(now / 1000)
-  if (remain <= 0 || !Number.isFinite(remain)) return ''
+  if (!Number.isFinite(remain)) return ''
   const word = t('remaining'), duration = fmtDuration(remain)
   return word === '剩' ? `${word}${duration}` : `${duration} ${word}`
 }
 export function dockQuotaLine(label: string, window: Window, now: number, elapsedSeconds = 0, bodyColumns = 44) {
-  const parts = progressParts(window.used_percent, bodyColumns)
+  const parts = progressParts(effectivePercent(window, now, elapsedSeconds), bodyColumns)
   const width = [...label].reduce((sum, ch) => sum + (ch.charCodeAt(0) > 0xff ? 2 : 1), 0)
   const time = resetTime(window, now, elapsedSeconds)
   return { ...parts, label: `${label}${' '.repeat(Math.max(0, 5 - width))} `,

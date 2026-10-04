@@ -54,6 +54,7 @@ export const defaults: Record<string, string> = {
   "claude_pane_sidecar_error": "Cannot read pane settings: {error}",
   "claude_pane_invalid_sidecar": "Invalid usage-pane.json",
   "claude_pane_remaining": "left",
+  "claude_pane_reset_done": "Reset",
   "claude_pane_hours_ago": "{count}h ago",
   "claude_pane_elapsed": "{minutes}m{seconds}s"
 }

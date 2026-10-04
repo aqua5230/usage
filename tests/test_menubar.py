@@ -19,6 +19,7 @@ import pytest
 import panels
 import quota.agy_window_keeper as agy_window_keeper
 import quota.window_keeper as window_keeper
+from i18n import _t
 from installer import statusline_settings
 from loaders import codex_loader, grok_loader, history_loader
 from menubar import actions as menubar_actions
@@ -334,19 +335,21 @@ def test_quota_row_shows_imminent_reset_with_30_seconds_remaining() -> None:
     assert row.warning is False
 
 
-def test_quota_row_shows_imminent_reset_at_zero_seconds() -> None:
+def test_quota_row_shows_done_reset_at_zero_seconds() -> None:
     row = menubar._quota_row(
         "Session", 50.0, 1_000.0, 1_000.0, menubar.CODEX_COLOR, language="zh-TW"
     )
 
-    assert row.reset_text == "即將重置"
+    assert row.reset_text == "已重置"
+    assert row.display_percent == 0.0
     assert row.warning is False
 
 
-def test_quota_row_shows_imminent_reset_after_reset_time() -> None:
+def test_quota_row_shows_done_reset_after_reset_time() -> None:
     row = menubar._quota_row("Session", 50.0, 970.0, 1_000.0, menubar.CODEX_COLOR, language="zh-TW")
 
-    assert row.reset_text == "即將重置"
+    assert row.reset_text == "已重置"
+    assert row.display_percent == 0.0
     assert row.warning is False
 
 
@@ -2690,9 +2693,13 @@ def test_refresh_now_queues_when_refresh_is_busy() -> None:
     delegate._refresh_in_flight = True
     delegate._refresh_queued = False
 
+    delegate.popover = SimpleNamespace(isVisible=lambda: False)
     delegate.refreshNow_(None)
 
     assert delegate._refresh_queued is True
+    assert delegate.latest_state.status_text == _t(
+        delegate.language, "status_text", value=_t(delegate.language, "status_refreshing")
+    )
 
 
 def test_apply_refresh_result_clears_busy_flag_when_ui_update_fails() -> None:
@@ -3128,3 +3135,30 @@ def test_state_from_outcome_shows_setup_button_for_codex_only(
     )
 
     assert state.show_install_button is True
+
+
+def test_reset_title_keeps_notification_values(monkeypatch: pytest.MonkeyPatch) -> None:
+    from types import SimpleNamespace
+
+    state = menubar._empty_state("en")
+    row = menubar._quota_row("Session", 100.0, 999.0, 1000.0, menubar.CLAUDE_COLOR)
+    state.claude_session = state.codex_session = state.agy_session = state.grok_weekly = row
+    state.hide_claude = state.hide_codex = state.hide_agy = state.hide_grok = False
+    app = SimpleNamespace(codex_5h_pct=100.0, _menubar_text_cache={})
+    assert menubar_title._compose_title(app, state) == "0% · 0% · 0% · 0%"
+    texts: list[str] = []
+    original_text_string = menubar_title._menubar_text_string
+
+    def record_text(app: Any, text: str) -> Any:
+        texts.append(text)
+        return original_text_string(app, text)
+
+    monkeypatch.setattr(menubar_title, "_menubar_text_string", record_text)
+    menubar_title._menubar_attributed_title(app, state)
+    assert texts.count(" 0%") == 4
+    state.claude_session = menubar._missing_row("Session", menubar.CLAUDE_COLOR)
+    state.codex_session = menubar._missing_row("", menubar.CODEX_COLOR)
+    state.codex_weekly = row
+    state.hide_claude = state.hide_agy = state.hide_grok = True
+    assert menubar_title._compose_title(app, state) == "0%"
+    assert row.percent == 100.0

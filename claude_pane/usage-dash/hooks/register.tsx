@@ -2,11 +2,11 @@ import { t, configure, statusArgv } from './strings'
 import { atom, read, update } from 'claude-code'
 import type { Hook, Register } from 'claude-code'
 import type { Run, Session } from '../types'
-import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
-import { parseQuota, hideAgents, byTightest, showsUnavailable, dockQuotaLine, staleAge, refreshedAgo } from './quota'
+import { matchAgent, isShellBackgrounded, parseNotifications, backgroundTasks, liveBgTasks, STALE_MS } from './parse'
+import { parseQuota, hideAgents, byTightest, showsUnavailable, effectivePercent, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
 import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, waitingText, settleNotifications, sessionMark } from './sessions'
-import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
+import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
 const updated = atom({ plugin: 'usage-dash', key: 'updated' } as const, null)
@@ -16,10 +16,11 @@ const pendingToasts = atom({ plugin: 'usage-dash', key: 'pendingToasts' } as con
 const sessionError = atom({ plugin: 'usage-dash', key: 'sessionError' } as const, '')
 const agents = atom({ plugin: 'usage-dash', key: 'agents' } as const, [])
 const runs = atom({ plugin: 'usage-dash', key: 'runs' } as const, [])
+const bgTasks = atom({ plugin: 'usage-dash', key: 'bgTasks' } as const, [])
 const collapsed = atom({ plugin: 'usage-dash', key: 'collapsed' } as const, { quota: false, sessions: false, runs: false })
 const more = atom({ plugin: 'usage-dash', key: 'more' } as const, false)
+const moreRuns = atom({ plugin: 'usage-dash', key: 'moreRuns' } as const, false)
 type Dollar = Parameters<Hook<'session.start'>>[0]
-const STALE_MS = 3600000
 const KEEP_DONE_MS = 300000
 function isVisible(r: Run, now: number): boolean { return r.end === null ? now - r.start < STALE_MS : now - r.end < KEEP_DONE_MS }
 async function getHome($: Dollar) { return (await $.env.get('HOME')) || (await $.env.get('USERPROFILE')) }
@@ -27,6 +28,7 @@ function clearLater($: Dollar) {
   $.clock.after(KEEP_DONE_MS + 1000, async () => {
     const now = await $.clock.now()
     await update($, runs, list => list.filter(r => isVisible(r, now)))
+    await reportContext($, null)
   })
 }
 async function finish($: Dollar, text: string) {
@@ -37,6 +39,8 @@ async function finish($: Dollar, text: string) {
     const d = done.find(x => x.toolUseId === r.id)
     return d && r.end === null ? { ...r, end, status: d.status } : r
   }))
+  await update($, bgTasks, list => liveBgTasks(list.filter(task => !done.some(d => d.taskId === task.id)), end))
+  await reportContext($, null)
   clearLater($)
 }
 async function refreshQuota($: Dollar) {
@@ -60,16 +64,20 @@ async function refreshQuota($: Dollar) {
   }
   await update($, quotaError, () => t('quota_error', { error: failures.join('; ') }))
 }
-async function reportContext($: Dollar, waiting = false) {
+async function reportContext($: Dollar, waiting: boolean | null = false) {
   try {
     const home = await getHome($), sessionId = await $.session.id()
     if (!home || !/^[A-Za-z0-9_-]+$/.test(sessionId)) return
     const directory = `${home}/.usage/claude-pane/live`
     const path = `${directory}/${sessionId}.json`
-    let percent: number | undefined
-    try { percent = parseContext(await $.fs.read(path))?.percent } catch { /* no previous context is normal */ }
+    const now = await $.clock.now()
+    const jobs = backgroundCount((await read($, runs)).filter(r => isVisible(r, now)), visibleAgents(await read($, agents)), liveBgTasks(await read($, bgTasks), now))
+    let previous: ReturnType<typeof parseContext> = null
+    try { previous = parseContext(await $.fs.read(path)) } catch { /* no previous context is normal */ }
+    if (waiting === null && previous?.jobs === jobs) return
+    let percent = previous?.percent
     try { percent = contextPercent((await $.session.usage()).context.percent) ?? percent } catch { /* waiting can be reported without usage */ }
-    await $.fs.write(path, JSON.stringify({ sessionId, percent, waiting, updatedAt: await $.clock.now() }))
+    await $.fs.write(path, JSON.stringify({ sessionId, percent, waiting: waiting ?? previous?.waiting ?? false, jobs, updatedAt: now }))
   } catch { /* live reporting is best effort, as requested */ }
 }
 async function readContexts($: Dollar, directory: string, rows: Session[]) {
@@ -84,6 +92,7 @@ async function readContexts($: Dollar, directory: string, rows: Session[]) {
         const row = rows.find(row => row.id === sessionId)
         if (row) {
           row.contextPercent = context.percent
+          row.jobs = context.jobs
           if (context.waiting !== undefined) {
             row.waiting = context.waiting
             row.waitingUpdatedAt = context.updatedAt
@@ -168,10 +177,14 @@ async function refreshSessions($: Dollar) {
 async function refreshAgents($: Dollar) {
   let list: Awaited<ReturnType<Dollar['agent']['list']>> = []
   try { list = await $.agent.list() } catch { /* unavailable agents are an empty list */ }
+  const now = await $.clock.now()
+  await update($, bgTasks, tasks => liveBgTasks(tasks, now))
   await update($, agents, () => visibleAgents(list))
+  await reportContext($, null)
 }
 async function refreshSessionLists($: Dollar) {
-  await Promise.all([refreshSessions($), refreshAgents($)])
+  await refreshAgents($)
+  await refreshSessions($)
 }
 let quotaTimer: { cancel(): void } | undefined
 let sessionTimer: { cancel(): void } | undefined
@@ -211,6 +224,13 @@ export const register: Register = (on) => {
     await reportContext($)
     return result
   })
+  on('classic.Stop', async ($, e, next) => {
+    const result = await next(e)
+    const now = await $.clock.now()
+    await update($, bgTasks, list => backgroundTasks(e.background_tasks ?? [], list, now))
+    await reportContext($, null)
+    return result
+  })
   on('classic.PermissionRequest', async ($, e, next) => {
     await reportContext($, true)
     return next(e)
@@ -245,9 +265,11 @@ export const register: Register = (on) => {
     const start = await $.clock.now()
     const run: Run = { id: e.tool_use_id ?? `run-${start}`, agent, label: (e.description ?? '').slice(0,24), start, end: null, status: 'running' }
     await update($, runs, list => [...list.filter(r => isVisible(r,start)), run])
+    await reportContext($, null)
     const ran = await next(e)
     if (ran.deny !== undefined) {
       await update($, runs, list => list.filter(r => r.id !== run.id))
+      await reportContext($, null)
       return ran
     }
     const result = ran.result as { backgroundTaskId?: string } | undefined
@@ -255,6 +277,7 @@ export const register: Register = (on) => {
       const end = await $.clock.now()
       const status = isShellBackgrounded(e.command) ? 'launched' : ran.isError ? 'failed' : 'completed'
       await update($, runs, list => list.map(r => r.id === run.id ? { ...r, end, status } : r))
+      await reportContext($, null)
       clearLater($)
     }
     return ran
@@ -273,12 +296,13 @@ export const register: Register = (on) => {
     const now = await $.clock.now()
     const data = await read($, quotas), list = await read($, sessions), fold = await read($, collapsed)
     const shown = (await read($, runs)).filter(r => isVisible(r,now))
-    const expanded = await read($, more), last = await read($, updated)
+    const expanded = await read($, more), last = await read($, updated), runsExpanded = await read($, moreRuns)
     const qe = await read($, quotaError), se = await read($, sessionError)
     const current = await $.session.id()
     const agentList = visibleAgents(await read($, agents))
-    const jobs = backgroundCount(shown, agentList)
-    const running = shown.filter(r => r.end === null).length
+    const tasks = liveBgTasks(await read($, bgTasks), now)
+    const jobs = backgroundCount(shown, agentList, tasks)
+    const running = shown.filter(r => r.end === null).length + tasks.length
     if (e.props.placement === 'inline') {
       return <Box flexDirection="column">
         {compactLines(data,list,running,now,last).map((line,i) => <Text key={String(i)} wrap="wrap">
@@ -290,7 +314,7 @@ export const register: Register = (on) => {
       <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
       <Box justifyContent="space-between"><Button key="quota" plain label={`[ ${fold.quota ? '▸' : '▾'} ${t('quota')} ]`} onPress={() => update($, collapsed, v => ({ ...v, quota: !v.quota }))} /></Box>
       {!fold.quota && <Box flexDirection="column">
-        {byTightest(data, ['claude-code','codex','antigravity','grok']).map(key => {
+        {byTightest(data, ['claude-code','codex','antigravity','grok'], now, last === null ? 0 : (now-last)/1000).map(key => {
           const agent = data.agents[key]
           if (!agent || (!agent.available && !showsUnavailable(key, agent.reason))) return null
           const name = key === 'claude-code' ? 'Claude' : key === 'codex' ? 'Codex' : key === 'antigravity' ? 'agy' : 'Grok'
@@ -305,7 +329,7 @@ export const register: Register = (on) => {
             {rows.map(([label,window],i) => {
               const line = window ? dockQuotaLine(label,window,now,last === null ? 0 : (now-last)/1000,e.props.bodyColumns) : null
               // Under 50% stays gray so only the windows worth watching carry color.
-              const color = window && window.used_percent >= 50 ? line?.color : undefined
+              const color = window && effectivePercent(window,now,last === null ? 0 : (now-last)/1000) >= 50 ? line?.color : undefined
               return <Text key={String(i)}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{i === 0 ? `${name.padEnd(8)}` : '        '}</Text><Text dimColor>{line ? line.label : label}</Text>{line && <Text color={color} dimColor={!color}>{line.filled}</Text>}{line && <Text dimColor>{line.empty}</Text>}{line && ' '}{line && <Text color={color} dimColor={!color}>{line.percent}</Text>}{line && <Text dimColor>{line.countdown}</Text>}{i === 0 && age && <Text color="yellow">{age}</Text>}</Text>
             })}
           </Box>
@@ -338,7 +362,7 @@ export const register: Register = (on) => {
         <Text color={jobs > 0 ? 'yellow' : undefined} dimColor={jobs === 0}>{jobs}</Text>
       </Box>
       {!fold.runs && <Box flexDirection="column">
-        {shown.slice(-4).map(r => {
+        {visibleRuns(shown, runsExpanded, tasks).rows.map(r => {
           const done = r.end !== null
           const seconds = Math.max(0, Math.floor(((r.end ?? now)-r.start)/1000))
           const elapsed = t('elapsed', { minutes: Math.floor(seconds/60), seconds: String(seconds%60).padStart(2,'0') })
@@ -346,7 +370,8 @@ export const register: Register = (on) => {
           return <Text key={r.id} dimColor={done} wrap="truncate-end"><Text color={done ? undefined : 'green'}>{`${prefix}${elapsed}`}</Text>{'  '}<Text color={done ? undefined : 'cyan'}>{r.agent}</Text>{`  ${r.label}`}<Text dimColor>{completedAgo(r,now)}</Text></Text>
         })}
         {agentList.map(agent => <Text key={`agent-${agent.id}`} wrap="truncate-end"><Text color={agent.status === 'running' ? 'green' : agent.status === 'waiting' ? 'yellow' : undefined} dimColor={agent.status === 'idle' || agent.status === 'pending'}>{agent.status === 'waiting' ? t('waiting') : t(`agent_${agent.status}`)}</Text>{'  '}<Text color="cyan">{agent.type}</Text>{`  ${agent.description}`}</Text>)}
-        {!shown.length && !agentList.length && <Text dimColor>{t('none')}</Text>}
+        {(runsExpanded || visibleRuns(shown, false, tasks).hiddenDone > 0) && <Button key="moreRuns" plain label={runsExpanded ? `[ − ${t('less')} ]` : `[ + ${t('more', { count: visibleRuns(shown, false, tasks).hiddenDone })} ]`} onPress={() => update($, moreRuns, v => !v)} />}
+        {!shown.length && !agentList.length && !tasks.length && <Text dimColor>{t('none')}</Text>}
       </Box>}
       </Box>
       <Box justifyContent="flex-end"><Text dimColor>{refreshedAgo(now, last)}</Text></Box>

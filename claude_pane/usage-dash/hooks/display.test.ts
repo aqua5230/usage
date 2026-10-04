@@ -1,6 +1,6 @@
 import type { AgentInfo } from 'claude-code'
 import { expect, test } from 'claude-code/testing'
-import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
+import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
 test('context 百分比單位、缺值與三種顏色門檻', () => {
   expect(contextPercent(undefined)).toBeUndefined()
   expect(contextPercent(0.41)).toBe(0)
@@ -52,4 +52,31 @@ test('背景工作數量是執行中外部指令加顯示中的子代理', () =>
   expect(backgroundCount([],[])).toBe(0)
   expect(backgroundCount([{end:0}],agents.map(agent => ({...agent,status:'completed'})))).toBe(0)
   expect(backgroundCount([{end:null}],[])).toBe(1)
+})
+test('背景工作：跑的全顯示、完成的補空位、展開看全部', () => {
+  const run = (id: string, end: number | null) => ({ id, agent: 'muse' as const, label: id, start: 0, end, status: end === null ? 'running' : 'completed' })
+  const ids = (rows: { id: string }[]) => rows.map(r => r.id)
+  const six = ['a','b','c','d','e','f'].map(id => run(id, null))
+  expect(visibleRuns(six,false)).toEqual({ rows: six, hiddenDone: 0 })
+  const mixed = [run('d1',1), run('d2',2), run('d3',3), run('r1',null), run('r2',null)]
+  expect(ids(visibleRuns(mixed,false).rows)).toEqual(['d2','d3','r1','r2'])
+  expect(visibleRuns(mixed,false).hiddenDone).toBe(1)
+  expect(ids(visibleRuns(mixed,true).rows)).toEqual(['d1','d2','d3','r1','r2'])
+  expect(visibleRuns([...six, run('d1',1)],false)).toEqual({ rows: six, hiddenDone: 1 })
+})
+
+test('jobs 只接受非負整數，壞欄位不丟掉 context', () => {
+  const row = {sessionId:'one',percent:41,waiting:true,updatedAt:0}
+  for (const jobs of [0,1,42]) expect(parseContext(JSON.stringify({...row,jobs}))).toEqual({...row,jobs})
+  for (const jobs of [-1,0.5,'1',null,true,{},[]]) expect(parseContext(JSON.stringify({...row,jobs}))).toEqual(row)
+})
+
+test('一般背景工作計入總數、全顯示並減少完成列空位', () => {
+  const tasks = Array.from({length:5},(_,i) => ({id:`shell-${i}`,type:'shell',label:'整理',start:0}))
+  const done = [{id:'done',agent:'codex' as const,label:'完成',start:0,end:1,status:'completed'}]
+  expect(backgroundCount(done,[],tasks)).toBe(5)
+  expect(visibleRuns(done,false,tasks).rows.map(r => r.id)).toEqual(tasks.map(task => task.id))
+  expect(visibleRuns(done,false,tasks).hiddenDone).toBe(1)
+  expect(visibleRuns(done,true,tasks).rows).toHaveLength(6)
+  expect(visibleRuns(done,false,tasks.slice(0,1)).rows.map(r => r.id)).toEqual(['done','shell-0'])
 })

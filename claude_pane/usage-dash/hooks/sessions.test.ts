@@ -133,3 +133,26 @@ test('通知等第二次刷新確認，回忙、關閉、變更狀態與目前�
     expect(settleNotifications([],[busy],[next],'one')).toEqual({toast:[],pending:[]})
   }
 })
+
+test('idle 背景工作轉圈、不通知完成，歸零後等下一次確認', () => {
+  const busy = {id:'one',title:'title',source:'',mtimeMs:0,pid:1,status:'busy'}
+  const working = {...busy,status:'idle',jobs:1}, done = {...working,jobs:0}
+  expect(isBusy(working)).toBe(true)
+  expect(sessionMark(working,false,0)).toEqual({text:'⠋',color:'green'})
+  expect(sessionMark(working,true,0)).toEqual({text:'?',color:'yellow'})
+  expect(newest([done,working])).toEqual([working,done])
+  expect(settleNotifications([],[busy],[working],'current')).toEqual({toast:[],pending:[]})
+  const first = settleNotifications([],[working],[done],'current')
+  expect(first).toEqual({toast:[],pending:[{id:'one',kind:'done'}]})
+  expect(settleNotifications(first.pending,[done],[done],'current')).toEqual({toast:[{session:done,kind:'done'}],pending:[]})
+  expect(settleNotifications(first.pending,[done],[working],'current')).toEqual({toast:[],pending:[]})
+})
+
+test('背景工作仍在跑時，等你通知只出現一次', () => {
+  const busy = {id:'one',title:'title',source:'',mtimeMs:0,pid:1,status:'busy',jobs:1}
+  const waiting = {...busy,status:'waiting'}
+  const first = settleNotifications([],[busy],[waiting],'current')
+  expect(first.pending).toEqual([{id:'one',kind:'waiting'}])
+  expect(settleNotifications(first.pending,[waiting],[waiting],'current')).toEqual({toast:[{session:waiting,kind:'waiting'}],pending:[]})
+  expect(settleNotifications([],[waiting],[waiting],'current')).toEqual({toast:[],pending:[]})
+})

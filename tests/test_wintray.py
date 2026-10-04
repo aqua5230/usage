@@ -3151,3 +3151,70 @@ def test_windows_panel_registry_stays_in_sync_with_macos() -> None:
     mac_ids = set(panels.panel_ids())
     assert {panel[0] for panel in wintray.WINDOWS_PANELS} == mac_ids
     assert set(wintray.PANEL_HEIGHTS) == mac_ids
+
+
+def test_reset_tray_uses_display_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = _state()
+    row = menubar_state._quota_row("Session", 100.0, 999.0, 1000.0, menubar_state.CLAUDE_COLOR)
+    controller.latest_state.claude_session = row
+    controller.icon = SimpleNamespace(icon=None, title=None)
+    calls: list[float | None] = []
+    taskbar: list[float | None] = []
+
+    def draw(percent: float | None) -> object:
+        calls.append(percent)
+        return object()
+
+    monkeypatch.setattr(wintray, "draw_tray_icon", draw)
+    monkeypatch.setattr(
+        controller, "_update_taskbar_progress", lambda percent: taskbar.append(percent)
+    )
+    controller._update_tray()
+    assert calls == taskbar == [0.0]
+    assert "Claude Session: 0%" in controller.icon.title
+    assert row.percent == 100.0
+
+
+@pytest.mark.parametrize("manual", [False, True])
+def test_refresh_chip_only_shows_during_manual_refresh(
+    monkeypatch: pytest.MonkeyPatch, manual: bool
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    started, release = threading.Event(), threading.Event()
+    pushed: list[str] = []
+    state = _state()
+    state.status_text = "Status: ✓ Synced"
+
+    def build_state(**_kwargs: object) -> menubar_state.PopoverState:
+        started.set()
+        assert release.wait(2)
+        return state
+
+    monkeypatch.setattr(controller, "_build_state", build_state)
+    monkeypatch.setattr(controller, "_ensure_windows_watcher", lambda: None)
+    monkeypatch.setattr(controller, "_process_quota_notifications", lambda _state: None)
+    monkeypatch.setattr(controller, "_update_tray", lambda: None)
+    monkeypatch.setattr(
+        controller, "inject_state", lambda: pushed.append(controller.latest_state.status_text)
+    )
+    if manual:
+        controller.handle_panel_message({"action": "refresh"})
+    else:
+        controller.refresh()
+    try:
+        assert started.wait(2)
+        refreshing = _t(
+            controller.language, "status_text", value=_t(controller.language, "status_refreshing")
+        )
+        assert (controller.latest_state.status_text == refreshing) is manual
+        assert pushed == ([refreshing] if manual else [])
+    finally:
+        release.set()
+        thread = controller._refresh_thread
+        if thread is not None:
+            thread.join(2)
+    assert controller._refresh_in_flight is False
+    assert controller.latest_state.status_text == "Status: ✓ Synced"
+    assert pushed[-1] == "Status: ✓ Synced"
