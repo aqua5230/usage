@@ -37,6 +37,10 @@ export function toSession(row: LiveSession, transcript = ''): Session {
   return { id: row.sessionId, pid: row.pid, title: title === t('untitled') ? row.name : title, source: projectSource(cwd, row.entrypoint), mtimeMs: row.statusUpdatedAt, status: row.status }
 }
 export function isBusy(session: Session): boolean { return session.status === 'busy' }
+export function finishedSessions(previous: Session[], next: Session[], currentId: string): Session[] {
+  const busy = new Set(previous.filter(isBusy).map(session => session.id))
+  return next.filter(session => session.id !== currentId && session.status === 'idle' && busy.has(session.id))
+}
 export function sessionStatus(session: Session, now: number): string {
   return isBusy(session) ? t('busy') : t('idle', { ago: ago(session.mtimeMs, now) })
 }

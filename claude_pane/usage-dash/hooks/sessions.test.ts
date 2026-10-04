@@ -1,5 +1,17 @@
 import { expect, test } from 'claude-code/testing'
-import { parseSession, isBusy, newest, sessionStatus, parseLiveSession, liveSessions, tasklistPids, toSession } from './sessions'
+import { parseSession, isBusy, newest, sessionStatus, parseLiveSession, liveSessions, tasklistPids, toSession, finishedSessions } from './sessions'
+test('其他對話忙轉閒才通知、關閉與首次刷新不通知', () => {
+  const busy = {id:'one',title:'標題',source:'',mtimeMs:0,pid:1,status:'busy'}, idle = {...busy,status:'idle'}
+  expect(finishedSessions([busy],[idle],'current')).toEqual([idle])
+  expect(finishedSessions([busy],[busy],'current')).toEqual([])
+  expect(finishedSessions([idle],[idle],'current')).toEqual([])
+  for (const status of ['waiting','other','']) expect(finishedSessions([busy],[{...busy,status}],'current')).toEqual([])
+  expect(finishedSessions([busy],[],'current')).toEqual([])
+  expect(finishedSessions([busy],[idle],'one')).toEqual([])
+  expect(finishedSessions([],[idle],'current')).toEqual([])
+  const second = {...idle,id:'two',pid:2}
+  expect(finishedSessions([busy,{...second,status:'busy'}],[idle,second],'current')).toEqual([idle,second])
+})
 test('斷行跳過、最後標題優先、來源保留', () => {
   expect(parseSession('broken\n{"type":"ai-title","aiTitle":"舊標題"}\n{"type":"ai-title","aiTitle":"新標題","entrypoint":"cli"}\n{"type":"last-prompt","lastPrompt":"最後問題","entrypoint":"other"}')).toEqual({title:'新標題',source:'other'})
 })

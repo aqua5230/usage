@@ -1,5 +1,19 @@
 import { expect, test } from 'claude-code/testing'
-import { parseQuota, hideAgents, countdown, quotaLine, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, byTightest, countdown, quotaLine, refreshedAgo } from './quota'
+test('最高使用率先排、同分維持原順序', () => {
+  const order = ['claude-code','codex','antigravity','grok'] as const
+  const data = parseQuota('{"agents":{"claude-code":{"available":true,"five_hour":{"used_percent":20},"seven_day":{"used_percent":60}},"codex":{"available":true,"five_hour":{"used_percent":80}},"antigravity":{"available":true,"seven_day":{"used_percent":60}},"grok":{"available":true,"period":{"used_percent":90}}}}')
+  expect(byTightest(data,order)).toEqual(['grok','codex','claude-code','antigravity'])
+  expect(order).toEqual(['claude-code','codex','antigravity','grok'])
+})
+test('agy 所有群組窗口都算、沒有數字排最後', () => {
+  const order = ['claude-code','codex','antigravity','grok']
+  const data = parseQuota('{"agents":{"claude-code":{"available":true},"codex":{"available":true,"five_hour":{"used_percent":0}},"antigravity":{"available":true,"five_hour":{"used_percent":10},"groups":[{"name":"one","five_hour":{"used_percent":70}},{"name":"two","seven_day":{"used_percent":95}}]},"grok":{"available":true,"period":{"used_percent":80}}}}')
+  expect(byTightest(data,order)).toEqual(['antigravity','grok','codex','claude-code'])
+  data.agents.antigravity!.groups![1]!.seven_day!.used_percent = 50
+  expect(byTightest(data,order)).toEqual(['grok','antigravity','codex','claude-code'])
+  expect(byTightest({agents:{}},order)).toEqual(order)
+})
 test('舊版 JSON 與 unavailable', () => {
   expect(parseQuota('{"agents":{"claude-code":{"available":true},"codex":{"available":false}}}')).toEqual({ agents: { 'claude-code': { available: true } } })
   expect(parseQuota('{"agents":{}}')).toEqual({ agents: {} })

@@ -1,5 +1,13 @@
 import { t } from './strings'
 import type { Quotas, Window } from '../types'
+export function byTightest(data: Quotas, order: readonly string[]): string[] {
+  return order.map((key, index) => {
+    const agent = data.agents[key]
+    const windows = [agent?.five_hour, agent?.seven_day, agent?.period, ...(agent?.groups ?? []).flatMap(group => [group.five_hour, group.seven_day])]
+    const used = Math.max(-Infinity, ...windows.map(window => window?.used_percent).filter((value): value is number => typeof value === 'number' && Number.isFinite(value)))
+    return { key, index, used }
+  }).sort((a,b) => b.used - a.used || a.index - b.index).map(row => row.key)
+}
 export function parseQuota(text: string): Quotas {
   // A window without a numeric used_percent has no data; drop it so it is hidden instead of drawn as 0%.
   const value = JSON.parse(text, (_key, v) =>

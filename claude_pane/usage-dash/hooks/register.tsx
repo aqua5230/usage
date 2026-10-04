@@ -3,9 +3,9 @@ import { atom, read, update } from 'claude-code'
 import type { Hook, Register } from 'claude-code'
 import type { Run, Session } from '../types'
 import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
-import { parseQuota, hideAgents, dockQuotaLine, staleAge, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, byTightest, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
-import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus } from './sessions'
+import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus, finishedSessions } from './sessions'
 import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
@@ -153,7 +153,12 @@ async function refreshSessions($: Dollar) {
       rows.push(toSession(row, transcript))
     }
     await readContexts($, `${home}/.usage/claude-pane/live`, rows)
+    const previous = await read($, sessions), currentId = await $.session.id()
     await update($, sessions, () => newest(rows))
+    for (const session of finishedSessions(previous, rows, currentId)) {
+      const title = session.title.length > 40 ? `${session.title.slice(0,40)}…` : session.title
+      $.ui.toast(t('session_done', { title }), { timeoutMs: 8000 })
+    }
   } catch (error) { failures.push(String(error)) }
   await update($, sessionError, () => failures.length ? t('session_error', { error: failures.join('; ') }) : '')
 }
@@ -282,7 +287,7 @@ export const register: Register = (on) => {
       <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
       <Box justifyContent="space-between"><Button key="quota" plain label={`[ ${fold.quota ? '▸' : '▾'} ${t('quota')} ]`} onPress={() => update($, collapsed, v => ({ ...v, quota: !v.quota }))} /></Box>
       {!fold.quota && <Box flexDirection="column">
-        {['claude-code','codex','antigravity','grok'].map(key => {
+        {byTightest(data, ['claude-code','codex','antigravity','grok']).map(key => {
           const agent = data.agents[key]
           if (!agent?.available) return null
           const name = key === 'claude-code' ? 'Claude' : key === 'codex' ? 'Codex' : key === 'antigravity' ? 'agy' : 'Grok'
