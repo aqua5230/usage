@@ -4,7 +4,7 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## [Unreleased]
+## [0.32.1] - 2026-10-05
 
 ### 新增
 - **Windows 版 Claude Code 側邊面板：** 系統匣面板選單新增「Claude Code 側邊面板」開關。外掛在 Windows 不再依賴 POSIX 指令（用 `tasklist` 判斷進行中的對話、用 `findstr` 讀長對話紀錄），額度由 `usage.exe status --json` 提供。開啟時會一併開啟 Claude Code 的全螢幕介面（面板要放在右側需要它），關閉面板時會改回。
