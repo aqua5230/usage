@@ -4,7 +4,7 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## [Unreleased]
+## [0.32.0] - 2026-10-05
 
 ### 新增
 - **Claude Code 側邊面板（macOS）：** 選單開關讓 Claude Code 顯示額度、對話與背景工作。需要支援 mod（介面外掛）的較新 Claude Code，實測版本 2.1.289。開啟後開新的對話或打 `/reload-plugins`；終端機寬度 ≥144 欄會自動在右側打開，較窄時打 `/usage-dash`。macOS 內建「終端機」只有 256 色，會出現灰底，建議在 `/config` 換 ANSI 深色主題。等你確認權限或輸入 MCP 資料的對話會以黃色「等你」標示，其他對話的面板也看得到，背景工作也會列出 Claude 用 Agent 工具開的子代理與狀態。

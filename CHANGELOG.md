@@ -5,7 +5,7 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.32.0] - 2026-10-05
 
 ### Added
 - **Claude Code side pane (macOS):** Toggle quotas, Claude sessions and background jobs inside Claude Code. Requires a recent Claude Code with mod support (tested with 2.1.289). Open a new conversation or run `/reload-plugins` after enabling. The pane opens on the right automatically at terminal widths ≥144 columns; use `/usage-dash` in narrower terminals. macOS Terminal supports only 256 colors and may show a gray background; select an ANSI dark theme in `/config`. Conversations waiting for your permission or MCP input are marked in yellow across panes, and background jobs also list subagents started by Claude with the Agent tool and their status.
