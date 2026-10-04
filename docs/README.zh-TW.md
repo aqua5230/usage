@@ -37,7 +37,7 @@ brew install --cask aqua5230/usage/usage
 
 **不是 macOS？** `uvx usage-cli` 在任何系統都能開終端機介面，Linux 也行——不用安裝，也沒有選單列。
 
-**快速跳轉：** [你會得到什麼](#你會得到什麼) · [隱私與資料來源](#隱私與資料來源) · [環境需求](#環境需求) · [安裝](#安裝) · [設定狀態列](#首次打開設定狀態列) · [Windows 支援](#windows-支援) · [主題展示](#主題展示) · [常見問題排查](#常見問題排查) · [跟其他工具比較](#跟其他工具比較) · [不適合誰](#不適合誰) · [開發](#開發)
+**快速跳轉：** [你會得到什麼](#你會得到什麼) · [隱私與資料來源](#隱私與資料來源) · [環境需求](#環境需求) · [安裝](#安裝) · [設定狀態列](#首次打開設定狀態列) · [Claude Code 側邊面板](#claude-code-側邊面板) · [Windows 支援](#windows-支援) · [主題展示](#主題展示) · [常見問題排查](#常見問題排查) · [跟其他工具比較](#跟其他工具比較) · [不適合誰](#不適合誰) · [開發](#開發)
 
 ## 你會得到什麼
 
@@ -56,7 +56,7 @@ brew install --cask aqua5230/usage/usage
 
 - **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用重講一遍進度。用 `/resume` 接回放太久、快取已過期的對話時，會先提醒下一句要重送多少 token，建議先 `/compact`。預設關閉。
 - **省 token 模式 (Token Saver)：** 一鍵讓 Claude Code 與 Codex 講話更精簡、更白話，省下輸出 token，但程式碼與錯誤訊息保證一個字都不縮水。輕聲提醒維持精簡，長對話也不走鐘——在真實 Session 的 A/B 測試中，對話後段回覆維持少約 40%，而不是走鐘變長 84%。
-- **Claude Code 側邊面板（macOS）：** 選單開關讓 Claude Code 顯示額度、對話與背景工作。需要支援 mod（介面外掛）的較新 Claude Code，實測版本 2.1.289。開啟後開新的對話或打 `/reload-plugins`；終端機寬度 ≥144 欄會自動在右側打開，較窄時打 `/usage-dash`。macOS 內建「終端機」只有 256 色，會出現灰底，建議在 `/config` 換 ANSI 深色主題。等你確認權限或輸入 MCP 資料的對話會以黃色「等你」標示，其他對話的面板也看得到，背景工作也會列出 Claude 用 Agent 工具開的子代理與狀態。usage app 啟動時會自動把已啟用的面板更新成 app 內的版本。
+- **Claude Code 側邊面板（macOS）：** 在 Claude Code 裡看額度、對話與背景工作。 [看側邊面板介紹](#claude-code-側邊面板).
 - **自動啟動 5 小時計時：** 預設關閉。打開後，每次 5 小時額度一重置，`usage` 就自動各送一則極小的訊息（Claude 用 Haiku、Antigravity 用 Gemini 3.5 Flash Low、Codex 用最省成本的模型），讓下一輪 5 小時立刻開始計時。這些訊息會花一點額度，但量小到可以忽略。平常查看額度不會送任何訊息，只有打開這個開關才會。
 - **終端機整合：** `usage status --json` 把 Claude Code、Codex、Antigravity 與 Grok 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **Token 浪費健檢：** 每日背景診斷重複讀取檔案、污染目錄與雜訊輸出。當發現浪費時會有一行提示，AI 也能帶你看懂問題並給出改善建議。
@@ -126,6 +126,33 @@ Linux 上跑 `usage setup` 也能裝好 Claude Code 的狀態列，配額會像 
 <p align="center">
   <img src="statusline.gif" alt="Claude Code statusLine 顯示樣式（繁中）" width="900">
 </p>
+
+## Claude Code 側邊面板
+
+不用離開 Claude Code，就能看到額度、其他對話與背景工作。支援 macOS。
+
+<p align="center"><img src="side-pane.png" alt="Claude Code 側邊面板顯示額度、對話與背景工作" width="637"></p>
+
+**你會看到**
+
+- **額度：** 5 小時與每週額度。
+- **Claude 對話：** 等你回覆權限確認或 MCP 輸入的對話會標黃色。
+- **背景工作：** 包含 Claude 用 Agent 工具開的子代理，以及它們的狀態。
+
+**開啟方式**
+
+1. 在 usage 選單列選單勾選 **Claude Code 側邊面板**。
+2. 開新對話或執行 `/reload-plugins`。
+3. 終端機寬度 ≥144 欄時，面板會自動在右邊打開；比較窄時輸入 `/usage-dash`。
+
+<details>
+<summary>相容性與更新</summary>
+
+- 需要支援 mod 的新版 Claude Code，已測過 2.1.289。
+- macOS 內建 Terminal 只支援 256 色，可能出現灰底；到 `/config` 選 ANSI 深色主題。
+- usage app 啟動時，會把已開啟的面板自動更新到內附版本。
+
+</details>
 
 ## Windows 支援
 
