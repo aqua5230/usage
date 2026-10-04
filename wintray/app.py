@@ -1722,10 +1722,16 @@ class _WindowsTrayController:
             return
         if self.quota_label is None:
             self.quota_label = TaskbarQuotaLabel(self.show_panel)
-        text, _color = tray_icon_style(self._tray_percent())
+        percent = self._tray_percent()
+        text, _color = tray_icon_style(percent)
         self.quota_label.update(
-            f"{self.tray_provider.capitalize()}: {text}%",
-            self._tray_percent(),
+            _t(
+                self.language,
+                "quota_label_format" if percent is not None else "quota_label_unknown",
+                provider=_t(self.language, f"{self.tray_provider}_name"),
+                value=text,
+            ),
+            percent,
             build_tooltip(self.latest_state, self.tray_provider),
         )
 

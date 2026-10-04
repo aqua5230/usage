@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import ctypes as C
 import os
+import sys
 from ctypes import wintypes as W
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any
@@ -106,7 +107,14 @@ class TaskbarLayout:
 
 
 class TaskbarOverlay:
+    # WinDLL inherits CDLL, whose type is available on every platform.
+    user: C.CDLL
+    gdi: C.CDLL
+    dwm: C.CDLL
+
     def __init__(self) -> None:
+        if sys.platform != "win32":
+            raise RuntimeError("Taskbar overlay requires Windows")
         self.user = C.WinDLL("user32", use_last_error=True)
         self.gdi = C.WinDLL("gdi32", use_last_error=True)
         self.dwm = C.WinDLL("dwmapi", use_last_error=True)

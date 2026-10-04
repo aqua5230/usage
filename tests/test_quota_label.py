@@ -6,11 +6,21 @@ from types import SimpleNamespace
 
 import pytest
 
+import i18n
 import prefs
 from tests.test_wintray import _state
-from wintray import app, quota_label
+from wintray import app, quota_label, taskbar_overlay
 from wintray.quota_label import TaskbarQuotaLabel, draw_label, taskbar_text_color
 from wintray.taskbar_overlay import TaskbarLayout, covers_monitor, label_position
+
+
+@pytest.mark.parametrize("platform", ["linux", "darwin"])
+def test_overlay_rejects_non_windows_before_loading_native_libraries(
+    monkeypatch: pytest.MonkeyPatch, platform: str
+) -> None:
+    monkeypatch.setattr(taskbar_overlay, "sys", SimpleNamespace(platform=platform))
+    with pytest.raises(RuntimeError, match="requires Windows"):
+        taskbar_overlay.TaskbarOverlay()
 
 
 def test_click_returns_without_waiting_for_panel_and_coalesces_busy_clicks() -> None:
@@ -193,15 +203,73 @@ def test_label_follows_provider_quota_and_persisted_toggle(monkeypatch: pytest.M
     assert updates[-1][1] == 8
     assert str(updates[-1][2]).startswith("Codex Weekly: 8%")
     controller.set_tray_provider("claude")
-    assert str(updates[-1][0]) == "Claude: 75%"
+    assert str(updates[-1][0]) == "Claude Code: 75%"
     controller.toggle_quota_label()
     assert closes == [True]
     assert controller.quota_label is None
     assert prefs._load_preferences()["quota_label_enabled"] is False
     assert prefs._load_preferences()["tray_provider"] == "claude"
     controller.toggle_quota_label()
-    assert str(updates[-1][0]) == "Claude: 75%"
+    assert str(updates[-1][0]) == "Claude Code: 75%"
     assert prefs._load_preferences()["quota_label_enabled"] is True
+
+
+@pytest.mark.parametrize("language", ["en", "zh-TW", "zh-CN", "ja", "ko"])
+@pytest.mark.parametrize(("provider", "name"), [("claude", "Claude Code"), ("codex", "Codex")])
+@pytest.mark.parametrize(
+    ("used", "available", "expected"),
+    [(8, True, "92%"), (None, True, "--"), (8, False, "--"), (0, True, "100%"), (100, True, "0%")],
+)
+def test_label_formats_remaining_and_unknown_quota_in_every_language(
+    monkeypatch: pytest.MonkeyPatch,
+    language: str,
+    provider: str,
+    name: str,
+    used: float | None,
+    available: bool,
+    expected: str,
+) -> None:
+    updates: list[tuple[object, ...]] = []
+    monkeypatch.setattr(
+        app,
+        "TaskbarQuotaLabel",
+        lambda _: SimpleNamespace(update=lambda *args: updates.append(args)),
+    )
+    prefs._save_preferences({"quota_label_enabled": True, "tray_provider": provider})
+    controller = app._WindowsTrayController(mock=True, interval=60)
+    controller.language = language
+    state = _state()
+    row = replace(state.claude_session, percent=used, available=available)
+    controller.latest_state = replace(state, claude_session=row, codex_session=row)
+    controller._update_quota_label_on_ui_thread()
+    assert updates[-1][0] == f"{name}: {expected}"
+    assert updates[-1][1] == (used if available else None)
+
+
+@pytest.mark.parametrize("provider", ["claude", "codex"])
+def test_label_uses_localized_provider_and_format_templates(
+    monkeypatch: pytest.MonkeyPatch, provider: str
+) -> None:
+    table = i18n._load_i18n_bundle()["ja"]
+    monkeypatch.setitem(table, f"{provider}_name", "翻訳された名前")
+    monkeypatch.setitem(table, "quota_label_format", "{value}% · {provider}")
+    monkeypatch.setitem(table, "quota_label_unknown", "不明 · {provider}")
+    updates: list[tuple[object, ...]] = []
+    monkeypatch.setattr(
+        app,
+        "TaskbarQuotaLabel",
+        lambda _: SimpleNamespace(update=lambda *args: updates.append(args)),
+    )
+    prefs._save_preferences({"quota_label_enabled": True, "tray_provider": provider})
+    controller = app._WindowsTrayController(mock=True, interval=60)
+    controller.language = "ja"
+    controller.latest_state = _state()
+    controller._update_quota_label_on_ui_thread()
+    assert str(updates[-1][0]) == "75% · 翻訳された名前"
+    unknown = replace(_state().claude_session, percent=None)
+    controller.latest_state = replace(_state(), claude_session=unknown, codex_session=unknown)
+    controller._update_quota_label_on_ui_thread()
+    assert str(updates[-1][0]) == "不明 · 翻訳された名前"
 
 
 def test_taskbar_label_replaces_numeric_icon_and_toggle_restores_it(

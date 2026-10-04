@@ -11,6 +11,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **Windows:** choose Claude Code or Codex as the tray quota source in the tray or panel menu. The selection is remembered; Codex falls back to its weekly quota when no session window is reported.
 - **Windows:** optionally show a transparent remaining-quota label beside the notification area, with DPI scaling, light/dark theme support, fullscreen hiding, and a fallback position when taskbar buttons occupy the space. Click the label to toggle the panel without blocking the UI thread.
 
+### Fixed
+- Guard Windows taskbar native-library loading on other platforms so cross-platform type checks pass. Localize taskbar label formats and provider names, and omit the percent sign when quota is unknown.
+
 ## [0.31.6] - 2026-10-04
 
 ### Fixed
