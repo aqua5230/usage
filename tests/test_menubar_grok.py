@@ -92,3 +92,17 @@ def test_build_popover_state_includes_grok_row_and_visibility() -> None:
     assert state.hide_grok is False
     assert state.grok_weekly.percent == 18.0
     assert state.card_order == ("claude", "codex", "agy", "grok")
+
+
+@pytest.mark.parametrize(
+    "offset, text, used", [(0, "Reset", 0.0), (1, "Reset", 0.0), (-30, "Reset imminent", 18.0)]
+)
+def test_project_quota_reset_boundary(offset: int, text: str, used: float) -> None:
+    quota = _quota()
+    now = datetime(2026, 9, 1, 15, 50, 8, tzinfo=UTC).timestamp() + offset
+    projection = menubar_grok.project_quota(quota, "en", now=now)
+    assert projection is not None
+    assert projection.weekly.display_percent == used
+    assert projection.weekly.reset_text == text
+    assert not projection.weekly.warning
+    assert quota.used_percent == 18.0

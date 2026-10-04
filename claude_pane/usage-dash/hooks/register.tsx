@@ -3,7 +3,7 @@ import { atom, read, update } from 'claude-code'
 import type { Hook, Register } from 'claude-code'
 import type { Run, Session } from '../types'
 import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
-import { parseQuota, hideAgents, byTightest, showsUnavailable, dockQuotaLine, staleAge, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, byTightest, showsUnavailable, effectivePercent, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
 import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, waitingText, settleNotifications, sessionMark } from './sessions'
 import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
@@ -291,7 +291,7 @@ export const register: Register = (on) => {
       <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
       <Box justifyContent="space-between"><Button key="quota" plain label={`[ ${fold.quota ? '▸' : '▾'} ${t('quota')} ]`} onPress={() => update($, collapsed, v => ({ ...v, quota: !v.quota }))} /></Box>
       {!fold.quota && <Box flexDirection="column">
-        {byTightest(data, ['claude-code','codex','antigravity','grok']).map(key => {
+        {byTightest(data, ['claude-code','codex','antigravity','grok'], now, last === null ? 0 : (now-last)/1000).map(key => {
           const agent = data.agents[key]
           if (!agent || (!agent.available && !showsUnavailable(key, agent.reason))) return null
           const name = key === 'claude-code' ? 'Claude' : key === 'codex' ? 'Codex' : key === 'antigravity' ? 'agy' : 'Grok'
@@ -306,7 +306,7 @@ export const register: Register = (on) => {
             {rows.map(([label,window],i) => {
               const line = window ? dockQuotaLine(label,window,now,last === null ? 0 : (now-last)/1000,e.props.bodyColumns) : null
               // Under 50% stays gray so only the windows worth watching carry color.
-              const color = window && window.used_percent >= 50 ? line?.color : undefined
+              const color = window && effectivePercent(window,now,last === null ? 0 : (now-last)/1000) >= 50 ? line?.color : undefined
               return <Text key={String(i)}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{i === 0 ? `${name.padEnd(8)}` : '        '}</Text><Text dimColor>{line ? line.label : label}</Text>{line && <Text color={color} dimColor={!color}>{line.filled}</Text>}{line && <Text dimColor>{line.empty}</Text>}{line && ' '}{line && <Text color={color} dimColor={!color}>{line.percent}</Text>}{line && <Text dimColor>{line.countdown}</Text>}{i === 0 && age && <Text color="yellow">{age}</Text>}</Text>
             })}
           </Box>

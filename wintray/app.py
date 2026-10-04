@@ -566,7 +566,11 @@ def _set_taskbar_progress(
 
 def build_tooltip(state: menubar_state.PopoverState) -> str:
     def line(name: str, row: menubar_state.QuotaRowState) -> str:
-        used = "--" if row.percent is None else str(min(100, max(0, round(row.percent))))
+        used = (
+            "--"
+            if row.display_percent is None
+            else str(min(100, max(0, round(row.display_percent))))
+        )
         return f"{name} {row.title}: {used}%"
 
     lines = [
@@ -888,7 +892,7 @@ class _WindowsTrayController:
             self.inject_state(force=True)
             # A panel reload can recreate its taskbar button. Reapply the
             # latest value once the visible native window has loaded.
-            self._update_taskbar_progress(self.latest_state.claude_session.percent)
+            self._update_taskbar_progress(self.latest_state.claude_session.display_percent)
 
     @staticmethod
     def _screen_rectangle(value: object) -> tuple[int, int, int, int] | None:
@@ -1669,7 +1673,7 @@ class _WindowsTrayController:
         return await self.usage_client.fetch_once()
 
     def _update_tray(self) -> None:
-        percent = self.latest_state.claude_session.percent
+        percent = self.latest_state.claude_session.display_percent
         self._update_taskbar_progress(percent)
         if self.icon is None:
             return
@@ -1729,7 +1733,7 @@ class _WindowsTrayController:
         self.visible = True
         self._place_window()
         self._dispatch_window_mutation(self._show_panel_on_ui_thread)
-        self._update_taskbar_progress(self.latest_state.claude_session.percent)
+        self._update_taskbar_progress(self.latest_state.claude_session.display_percent)
         self.inject_state(force=True)
         self.refresh()
 

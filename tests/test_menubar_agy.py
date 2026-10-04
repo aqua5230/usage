@@ -288,7 +288,7 @@ def test_project_quota_counts_down_by_cache_age() -> None:
     assert projection.session.reset_text == "Resets in 9m"
 
 
-def test_project_quota_countdown_clamps_to_one_minute_when_overdue() -> None:
+def test_project_quota_displays_zero_when_overdue() -> None:
     now_dt = datetime(2026, 1, 1, 0, 0, tzinfo=UTC)
     fetched = now_dt - timedelta(minutes=18)
     quota = AgyQuotaResult(
@@ -307,7 +307,10 @@ def test_project_quota_countdown_clamps_to_one_minute_when_overdue() -> None:
     projection = menubar_agy.project_quota(quota, "en", now=now_dt.timestamp())
 
     assert projection is not None
-    assert projection.session.reset_text == "Resets in 1m"
+    assert projection.session.reset_text == "Reset"
+    assert projection.session.display_percent == 0.0
+    assert projection.session.percent == 50.0
+    assert not projection.session.warning
 
 
 def test_project_quota_warns_when_session_will_empty_before_reset() -> None:
@@ -478,3 +481,17 @@ def test_project_quota_warns_for_weekly_window_after_thirty_minute_span() -> Non
 
     assert projection is not None
     assert projection.weekly.warning is True
+
+
+@pytest.mark.parametrize(
+    "age_minutes, text, used",
+    [(12.0, "Reset", 0.0), (11.5, "Reset imminent", 90.0), (11.0, "Resets in 1m", 90.0)],
+)
+def test_window_row_reset_boundary(age_minutes: float, text: str, used: float) -> None:
+    window = AgyQuotaWindow(10.0, None, 12)
+    row = menubar_agy._window_row("Session", window, "en", age_minutes, forecast_seconds=10.0)
+    assert row.display_percent == used
+    if age_minutes >= 11.5:
+        assert row.reset_text == text
+        assert not row.warning
+    assert window.remaining_percent == 10.0

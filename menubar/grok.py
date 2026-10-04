@@ -18,9 +18,7 @@ from menubar.state import (
     GROK_COLOR,
     GrokStaleState,
     QuotaRowState,
-    _bar_color,
-    _format_percent,
-    format_human_time,
+    _quota_row,
 )
 from usage_common.time_utils import parse_iso8601_utc_or_raise
 
@@ -56,22 +54,15 @@ def project_quota(
         period_end = parse_iso8601_utc_or_raise(quota.period_end).timestamp()
     except (TypeError, ValueError):
         return None
-    if period_end < current_time:
-        return None
     stale = _stale_state(quota.fetched_at, current_time, language)
-    used = max(0.0, min(100.0, quota.used_percent))
     return GrokQuotaProjection(
-        weekly=QuotaRowState(
-            title=_t(language, "weekly_label"),
-            percent=used,
-            percent_text=_t(language, "percent_used", value=_format_percent(used)),
-            reset_text=_t(
-                language,
-                "reset_in",
-                time=format_human_time(max(0.0, period_end - current_time), language),
-            ),
-            color=_bar_color(used, GROK_COLOR),
-            available=True,
+        weekly=_quota_row(
+            _t(language, "weekly_label"),
+            quota.used_percent,
+            period_end,
+            current_time,
+            GROK_COLOR,
+            language,
         ),
         stale=stale,
     )

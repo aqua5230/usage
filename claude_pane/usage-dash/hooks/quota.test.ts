@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { parseQuota, hideAgents, byTightest, showsUnavailable, countdown, quotaLine, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, byTightest, showsUnavailable, countdown, effectivePercent, quotaLine, refreshedAgo } from './quota'
 test('最高使用率先排、同分維持原順序', () => {
   const order = ['claude-code','codex','antigravity','grok'] as const
   const data = parseQuota('{"agents":{"claude-code":{"available":true,"five_hour":{"used_percent":20},"seven_day":{"used_percent":60}},"codex":{"available":true,"five_hour":{"used_percent":80}},"antigravity":{"available":true,"seven_day":{"used_percent":60}},"grok":{"available":true,"period":{"used_percent":90}}}}')
@@ -36,7 +36,7 @@ for (const [seconds, text] of [[0,'0m'],[3540,'59m'],[3600,'1h'],[82800,'23h'],[
 }
 test('百分比顏色與 16 格', () => {
   for (const [percent,color] of [[0,'green'],[49,'green'],[50,'yellow'],[79,'yellow'],[80,'red'],[100,'red']] as const) {
-    const line = quotaLine('Week',{ used_percent: percent, resets_in_seconds: 0 },0)
+    const line = quotaLine('Week',{ used_percent: percent, resets_in_seconds: 60 },0)
     expect(line.color).toBe(color)
     expect(line.text.match(/[━─]+/)?.[0].length).toBe(16)
     expect(line.filled).toBe('━'.repeat(Math.round(percent * 16 / 100)))
@@ -52,11 +52,11 @@ test('倒數跟著更新後時間遞減', () => {
 test('窄寬面板與預設進度條', () => {
   for (const [columns, width] of [[10,10],[200,20],[undefined,16]] as const) {
     for (const percent of [0,100]) {
-      const line = quotaLine('Week',{used_percent:percent,resets_in_seconds:-10},0,0,columns)
+      const line = quotaLine('Week',{used_percent:percent,resets_in_seconds:60},0,0,columns)
       expect(line.filled.length + line.empty.length).toBe(width)
       expect(line.filled.length).toBe(percent === 0 ? 0 : width)
       expect(line.percent).toBe(percent === 0 ? '  0%' : '100%')
-      expect(line.countdown).toBe(' ↻0m')
+      expect(line.countdown).toBe(' ↻1m')
     }
   }
 })
@@ -78,8 +78,8 @@ test('只顯示剩餘時間、跨日、過期、相對重置與寬度', () => {
   const today = {used_percent:33,resets_at:now/1000+12000}
   expect(resetTime(today,now)).toBe('3h20m left')
   expect(resetTime({used_percent:33,resets_at:now/1000+5*86400+18*3600},now)).toBe('5d18h left')
-  expect(resetTime({used_percent:0,resets_at:now/1000},now)).toBe('')
-  expect(resetTime({used_percent:0,resets_at:now/1000-1},now)).toBe('')
+  expect(resetTime({used_percent:0,resets_at:now/1000},now)).toBe('Reset')
+  expect(resetTime({used_percent:0,resets_at:now/1000-1},now)).toBe('Reset')
   expect(resetTime({used_percent:0,resets_in_seconds:12060},now,60)).toBe('3h20m left')
   for (const window of [today, {used_percent:33,resets_at:now/1000+5*86400+18*3600}, {used_percent:0,resets_in_seconds:12060}]) {
     expect(resetTime(window,now,60)).not.toMatch(/[:/]/)
@@ -99,7 +99,7 @@ test('只顯示剩餘時間、跨日、過期、相對重置與寬度', () => {
   const window = {used_percent:33,resets_at:now/1000+14160}
   expect(resetTime(window,now)).toBe('剩3h56m')
   expect(dockQuotaLine('5h',window,now).countdown).toBe('  剩3h56m')
-  expect(dockQuotaLine('5h',{used_percent:0,resets_at:now/1000},now).countdown).toBe('')
+  expect(dockQuotaLine('5h',{used_percent:0,resets_at:now/1000},now).countdown).toBe('  Reset')
   configure()
   expect(resetTime(window,now)).toBe('3h56m left')
   expect(dockQuotaLine('5h',window,now).countdown).toBe('  3h56m left')
@@ -158,4 +158,43 @@ test('Claude 與 Codex 讀不到都顯示，agy 與 Grok 只在出錯時顯示',
     expect(showsUnavailable('antigravity',reason)).toBe(reason === 'error')
     expect(showsUnavailable('grok',reason)).toBe(reason === 'error')
   }
+})
+
+
+test('重置只改顯示、絕對與相對時間都在邊界歸零', () => {
+  configure()
+  const now = 100000
+  for (const window of [{used_percent:95,resets_at:99}, {used_percent:95,resets_at:100}, {used_percent:95,resets_in_seconds:60}]) {
+    expect(effectivePercent(window,now,60)).toBe(0)
+    const line = quotaLine('5h',window,now,60)
+    expect(line.percent).toBe('  0%')
+    expect(line.filled).toBe('')
+    expect(line.color).toBe('green')
+    expect(line.countdown).toBe(' ↻Reset')
+    const dock = dockQuotaLine('5h',window,now,60)
+    expect(dock.percent).toBe('  0%')
+    expect(dock.filled).toBe('')
+    expect(dock.color).toBe('#00d787')
+    expect(dock.countdown).toBe('  Reset')
+    expect(window.used_percent).toBe(95)
+  }
+  expect(effectivePercent({used_percent:95,resets_at:100.1},now)).toBe(95)
+  expect(resetTime({used_percent:95,resets_at:100.1},now)).toBe('0s left')
+  expect(effectivePercent({used_percent:95,resets_in_seconds:61},now,60)).toBe(95)
+  expect(effectivePercent({used_percent:95},now,60)).toBe(95)
+  expect(resetTime({used_percent:95},now)).toBe('')
+  configure({strings:{claude_pane_reset_done:'已重置'}})
+  expect(dockQuotaLine('5h',{used_percent:95,resets_at:100},now).countdown).toBe('  已重置')
+  configure()
+})
+test('排序把已重置的所有窗口當零、相對時間計入經過秒數', () => {
+  const data = {agents:{
+    codex:{available:true,five_hour:{used_percent:99,resets_at:100}},
+    grok:{available:true,period:{used_percent:80,resets_in_seconds:60}},
+    antigravity:{available:true,groups:[{name:'Gemini',seven_day:{used_percent:100,resets_at:99}}]},
+    'claude-code':{available:true,seven_day:{used_percent:10,resets_at:101}},
+  }}
+  const order = ['codex','grok','antigravity','claude-code']
+  expect(byTightest(data,order,100000,60)).toEqual(['claude-code','codex','grok','antigravity'])
+  expect(data.agents.codex.five_hour.used_percent).toBe(99)
 })

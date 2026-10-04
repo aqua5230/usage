@@ -1,5 +1,6 @@
 import { expect, mock, test } from 'claude-code/testing'
 import { parseQuota, hideAgents, resetTime } from './quota'
+import { configure } from './strings'
 import type { PluginState } from 'claude-code'
 type Drawn = { type?: string; props?: Record<string, unknown>; children?: unknown[] }
 function flatText(node: unknown): string {
@@ -638,3 +639,24 @@ for (const status of ['idle','waiting'] as const) {
     })
   }
 }
+
+
+test('已重置的 dock 額度歸零、倒數改 Reset、灰字且排序下降', async ($, on) => {
+  configure()
+  mock.clock(on,{now:60000})
+  on('session.id', () => ({value:'current'}))
+  const values: PluginState['usage-dash'] = {
+    pendingToasts:[],agents:[],sessions:[],runs:[],updated:0,quotaError:'',sessionError:'',more:false,moreRuns:false,
+    collapsed:{quota:false,sessions:true,runs:true},
+    quotas:{agents:{codex:{available:true,five_hour:{used_percent:95,resets_in_seconds:60}},'claude-code':{available:true,five_hour:{used_percent:10,resets_at:120}}}},
+  }
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:60,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
+  const rows = elements(await ui.drawn()).filter(n => n.type === 'Text' && n.children?.some(c => ['Claude  ','Codex   '].includes(flatText(c))))
+  expect(rows.map(flatText)).toEqual(['Claude  5h    ■□□□□□□□□□  10%  1min left','Codex   5h    □□□□□□□□□□   0%  Reset'])
+  const codex = rows[1]!
+  const parts = (codex.children ?? []).filter(c => typeof c === 'object') as Drawn[]
+  expect(parts[2]!.props?.color).toBeUndefined()
+  expect(parts[4]!.props?.color).toBeUndefined()
+  expect(parts[4]!.props?.dimColor).toBe(true)
+})

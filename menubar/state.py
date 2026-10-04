@@ -99,6 +99,13 @@ class QuotaRowState:
     warning: bool = False
     available: bool = True
     reset_text_compact: str = ""
+    reset_done: bool = False
+
+    # Keep percent unchanged for quota notifications; renderers use display_percent.
+
+    @property
+    def display_percent(self) -> float | None:
+        return 0.0 if self.reset_done else self.percent
 
 
 class CodexStaleState(TypedDict):
@@ -970,7 +977,10 @@ def _quota_row(
     pct = max(0.0, min(100.0, float(pct)))
     time_to_reset = resets_at - now
     warning_seconds: float | None = None
-    if time_to_reset < 60:
+    if time_to_reset <= 0:
+        reset_text = _t(language, "reset_done")
+        warning = False
+    elif time_to_reset < 60:
         reset_text = _t(language, "reset_imminent")
         warning = False
     else:
@@ -1007,11 +1017,14 @@ def _quota_row(
     row = QuotaRowState(
         title=title,
         percent=pct,
-        percent_text=_t(language, "percent_used", value=_format_percent(pct)),
+        percent_text=_t(
+            language, "percent_used", value=_format_percent(0.0 if time_to_reset <= 0 else pct)
+        ),
         reset_text=reset_text,
-        color=_bar_color(pct, color),
+        color=_bar_color(0.0 if time_to_reset <= 0 else pct, color),
         warning=warning,
         available=True,
+        reset_done=time_to_reset <= 0,
     )
     if warning_seconds is not None:
         row.reset_text_compact = _t(

@@ -3151,3 +3151,23 @@ def test_windows_panel_registry_stays_in_sync_with_macos() -> None:
     mac_ids = set(panels.panel_ids())
     assert {panel[0] for panel in wintray.WINDOWS_PANELS} == mac_ids
     assert set(wintray.PANEL_HEIGHTS) == mac_ids
+
+
+def test_reset_tray_uses_display_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = _state()
+    row = menubar_state._quota_row("Session", 100.0, 999.0, 1000.0, menubar_state.CLAUDE_COLOR)
+    controller.latest_state.claude_session = row
+    controller.icon = SimpleNamespace(icon=None, title=None)
+    calls: list[float | None] = []
+    taskbar: list[float | None] = []
+    monkeypatch.setattr(
+        wintray, "draw_tray_icon", lambda percent: calls.append(percent) or object()
+    )
+    monkeypatch.setattr(
+        controller, "_update_taskbar_progress", lambda percent: taskbar.append(percent)
+    )
+    controller._update_tray()
+    assert calls == taskbar == [0.0]
+    assert "Claude Session: 0%" in controller.icon.title
+    assert row.percent == 100.0

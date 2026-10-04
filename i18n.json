@@ -75,6 +75,7 @@
     "percent_used": "{value}% 已用",
     "reset_in": "重置 {time}",
     "reset_imminent": "即將重置",
+    "reset_done": "已重置",
     "burn_warning": "⚠ 照目前速度 {empty}後用完 · 重置 {reset}",
     "burn_warning_compact": "⚠ {empty}後用完",
     "reset_placeholder": "重置 --",
@@ -490,6 +491,7 @@
     "claude_pane_invalid_sidecar": "usage-pane.json 格式錯誤",
     "claude_pane_elapsed": "{minutes}分{seconds}秒",
     "claude_pane_remaining": "剩",
+    "claude_pane_reset_done": "已重置",
     "claude_pane_hours_ago": "{count}時前"
   },
   "en": {
@@ -568,6 +570,7 @@
     "percent_used": "{value}% used",
     "reset_in": "Resets in {time}",
     "reset_imminent": "Reset imminent",
+    "reset_done": "Reset",
     "burn_warning": "⚠ At this pace, empty in {empty} · resets in {reset}",
     "burn_warning_compact": "⚠ Empty in {empty}",
     "reset_placeholder": "Resets in --",
@@ -983,6 +986,7 @@
     "claude_pane_invalid_sidecar": "Invalid usage-pane.json",
     "claude_pane_elapsed": "{minutes}m{seconds}s",
     "claude_pane_remaining": "left",
+    "claude_pane_reset_done": "Reset",
     "claude_pane_hours_ago": "{count}h ago"
   },
   "zh-CN": {
@@ -1061,6 +1065,7 @@
     "percent_used": "{value}% 已用",
     "reset_in": "重置 {time}",
     "reset_imminent": "即将重置",
+    "reset_done": "已重置",
     "burn_warning": "⚠ 按当前速度 {empty}后用完 · 重置 {reset}",
     "burn_warning_compact": "⚠ {empty}后用完",
     "reset_placeholder": "重置 --",
@@ -1476,6 +1481,7 @@
     "claude_pane_invalid_sidecar": "usage-pane.json 格式错误",
     "claude_pane_elapsed": "{minutes}分{seconds}秒",
     "claude_pane_remaining": "剩",
+    "claude_pane_reset_done": "已重置",
     "claude_pane_hours_ago": "{count}时前"
   },
   "ja": {
@@ -1554,6 +1560,7 @@
     "percent_used": "{value}% 使用済み",
     "reset_in": "{time}後にリセット",
     "reset_imminent": "まもなくリセット",
+    "reset_done": "リセット済み",
     "burn_warning": "⚠ このペースで{empty}で使い切り·リセット{reset}",
     "burn_warning_compact": "⚠ {empty}で使い切り",
     "reset_placeholder": "リセット --",
@@ -1969,6 +1976,7 @@
     "claude_pane_invalid_sidecar": "usage-pane.json の形式が不正です",
     "claude_pane_elapsed": "{minutes}分{seconds}秒",
     "claude_pane_remaining": "残り",
+    "claude_pane_reset_done": "リセット済み",
     "claude_pane_hours_ago": "{count}時間前"
   },
   "ko": {
@@ -2047,6 +2055,7 @@
     "percent_used": "{value}% 사용됨",
     "reset_in": "{time} 후 초기화",
     "reset_imminent": "곧 초기화",
+    "reset_done": "리셋됨",
     "burn_warning": "⚠ 현재 속도면 {empty} 후 소진 · 초기화까지 {reset}",
     "burn_warning_compact": "⚠ {empty} 후 소진",
     "reset_placeholder": "초기화까지 --",
@@ -2462,6 +2471,7 @@
     "claude_pane_invalid_sidecar": "usage-pane.json 형식이 잘못되었습니다",
     "claude_pane_elapsed": "{minutes}분{seconds}초",
     "claude_pane_remaining": "남음",
+    "claude_pane_reset_done": "리셋됨",
     "claude_pane_hours_ago": "{count}시간 전"
   }
 }
