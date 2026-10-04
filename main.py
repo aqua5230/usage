@@ -314,6 +314,11 @@ async def run_tui(mock: bool, interval: int, force_group: int | None = None) -> 
 
 
 def main() -> None:
+    if sys.argv[1:2] == ["status"]:
+        import usage_cli
+
+        usage_cli.main()
+        return
     _setup_logging()
     args = parse_args()
     if args.doctor:

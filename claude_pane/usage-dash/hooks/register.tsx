@@ -3,9 +3,9 @@ import { atom, read, update } from 'claude-code'
 import type { Hook, Register } from 'claude-code'
 import type { Run, Session } from '../types'
 import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
-import { parseQuota, dockQuotaLine, staleAge, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
-import { parseLiveSession, liveSessions, toSession, newest, isBusy, sessionStatus } from './sessions'
+import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus } from './sessions'
 import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
@@ -21,6 +21,7 @@ type Dollar = Parameters<Hook<'session.start'>>[0]
 const STALE_MS = 3600000
 const KEEP_DONE_MS = 300000
 function isVisible(r: Run, now: number): boolean { return r.end === null ? now - r.start < STALE_MS : now - r.end < KEEP_DONE_MS }
+async function getHome($: Dollar) { return (await $.env.get('HOME')) || (await $.env.get('USERPROFILE')) }
 function clearLater($: Dollar) {
   $.clock.after(KEEP_DONE_MS + 1000, async () => {
     const now = await $.clock.now()
@@ -38,14 +39,17 @@ async function finish($: Dollar, text: string) {
   clearLater($)
 }
 async function refreshQuota($: Dollar) {
-  const home = await $.env.get('HOME')
+  const home = await getHome($)
   const failures: string[] = []
   const commands = statusArgv ? [statusArgv] : ['usage', ...(home ? [`${home}/.local/bin/usage`] : [])].map(executable => [executable, 'status', '--json'])
   for (const argv of commands) {
     try {
       const result = await $.process.run(argv, { timeoutMs: 10000 })
       if (result.exitCode !== 0) throw new Error(`${argv[0]}: ${result.stderr || t('exit_code', { code: result.exitCode })}`)
-      const data = parseQuota(result.stdout)
+      const parsed = parseQuota(result.stdout)
+      let preferences = ''
+      try { if (home) preferences = await $.fs.read(`${home}/.claude/usage-preferences.json`) } catch { /* missing preferences are normal */ }
+      const data = hideAgents(parsed, preferences)
       const now = await $.clock.now()
       await update($, quotas, () => data)
       await update($, updated, () => now)
@@ -57,13 +61,9 @@ async function refreshQuota($: Dollar) {
 }
 async function reportContext($: Dollar, waiting = false) {
   try {
-    const home = await $.env.get('HOME'), sessionId = await $.session.id()
+    const home = await getHome($), sessionId = await $.session.id()
     if (!home || !/^[A-Za-z0-9_-]+$/.test(sessionId)) return
     const directory = `${home}/.usage/claude-pane/live`
-    if (!await $.fs.exists(directory)) {
-      const result = await $.process.run(['mkdir', '-p', directory])
-      if (result.exitCode !== 0) return
-    }
     const path = `${directory}/${sessionId}.json`
     let percent: number | undefined
     try { percent = parseContext(await $.fs.read(path))?.percent } catch { /* no previous context is normal */ }
@@ -89,7 +89,8 @@ async function readContexts($: Dollar, directory: string, rows: Session[]) {
           }
         }
         if (staleContext(sessionId, Math.max(file.mtimeMs, context.updatedAt), openIds, now)) {
-          await $.process.run(['rm', '-f', path])
+          if ((await $.env.get('OS')) === 'Windows_NT') await $.process.run(['cmd', '/d', '/c', 'del', '/f', '/q', path.replaceAll('/', '\\')])
+          else await $.process.run(['rm', '-f', path])
         }
       } catch { /* unavailable live records do not affect the session list */ }
     }
@@ -98,7 +99,7 @@ async function readContexts($: Dollar, directory: string, rows: Session[]) {
 async function refreshSessions($: Dollar) {
   const failures: string[] = []
   try {
-    const home = await $.env.get('HOME')
+    const home = await getHome($)
     if (!home) throw new Error(t('home_missing'))
     const directory = `${home}/.claude/sessions`
     const candidates = []
@@ -112,20 +113,41 @@ async function refreshSessions($: Dollar) {
     let psOutput = ''
     if (candidates.length) {
       try {
-        const result = await $.process.run(['ps', '-o', 'pid=', '-p', candidates.map(row => row.pid).join(',')])
-        if (result.exitCode === 0) psOutput = result.stdout
+        if ((await $.env.get('OS')) === 'Windows_NT') {
+          const result = await $.process.run(['tasklist', '/FO', 'CSV', '/NH'])
+          if (result.exitCode === 0) psOutput = tasklistPids(result.stdout)
+        } else {
+          const result = await $.process.run(['ps', '-o', 'pid=', '-p', candidates.map(row => row.pid).join(',')])
+          if (result.exitCode === 0) psOutput = result.stdout
+        }
       } catch { /* ps failure means no live processes */ }
     }
     const rows: Session[] = []
     for (const row of liveSessions(candidates, psOutput)) {
       let transcript = ''
       try {
-        const found = await $.process.run(['/bin/sh', '-c', 'ls "$1"/*/"$2".jsonl 2>/dev/null | head -1', 'sh', `${home}/.claude/projects`, row.sessionId])
-        const path = found.exitCode === 0 ? found.stdout.trim() : ''
-        if (path) {
-          const result = await $.process.run(['tail', '-c', '262144', path])
-          if (result.exitCode !== 0) throw new Error(result.stderr || t('exit_code', { code: result.exitCode }))
-          transcript = result.stdout
+        if ((await $.env.get('OS')) === 'Windows_NT') {
+          let path = ''
+          for (const dir of await $.fs.list(`${home}/.claude/projects`)) {
+            const candidate = `${home}/.claude/projects/${dir.name}/${row.sessionId}.jsonl`
+            if (dir.kind === 'dir' && await $.fs.exists(candidate)) { path = candidate; break }
+          }
+          if (path) {
+            if ((await $.fs.stat(path)).size <= 4 * 1024 * 1024) {
+              transcript = (await $.fs.read(path)).slice(-262144)
+            } else {
+              const result = await $.process.run(['findstr', '/L', '/C:ai-title', '/C:last-prompt', path.replaceAll('/', '\\')])
+              if (result.exitCode === 0) transcript = result.stdout
+            }
+          }
+        } else {
+          const found = await $.process.run(['/bin/sh', '-c', 'ls "$1"/*/"$2".jsonl 2>/dev/null | head -1', 'sh', `${home}/.claude/projects`, row.sessionId])
+          const path = found.exitCode === 0 ? found.stdout.trim() : ''
+          if (path) {
+            const result = await $.process.run(['tail', '-c', '262144', path])
+            if (result.exitCode !== 0) throw new Error(result.stderr || t('exit_code', { code: result.exitCode }))
+            transcript = result.stdout
+          }
         }
       } catch (error) { failures.push(`${row.sessionId}：${String(error)}`) }
       rows.push(toSession(row, transcript))
@@ -150,7 +172,7 @@ export const register: Register = (on) => {
   on('session.start', async ($, e, next) => {
     configure()
     try {
-      const root = $.plugin.root.replace(/\/\.claude-plugin\/?$/, '')
+      const root = $.plugin.root.replace(/[\\/]\.claude-plugin[\\/]?$/, '')
       const path = `${root}/usage-pane.json`
       if (await $.fs.exists(path)) {
         const value = JSON.parse(await $.fs.read(path))

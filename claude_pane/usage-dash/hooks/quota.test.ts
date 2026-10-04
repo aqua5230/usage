@@ -1,8 +1,17 @@
 import { expect, test } from 'claude-code/testing'
-import { parseQuota, countdown, quotaLine, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, countdown, quotaLine, refreshedAgo } from './quota'
 test('舊版 JSON 與 unavailable', () => {
   expect(parseQuota('{"agents":{"claude-code":{"available":true},"codex":{"available":false}}}')).toEqual({ agents: { 'claude-code': { available: true } } })
   expect(parseQuota('{"agents":{}}')).toEqual({ agents: {} })
+})
+test('隱藏區塊設定會移除對應工具且不改原資料', () => {
+  const data = parseQuota('{"agents":{"claude-code":{"available":true},"codex":{"available":true},"antigravity":{"available":true},"grok":{"available":true}}}')
+  expect(hideAgents(data,'{"hide_grok_section":true}').agents).not.toHaveProperty('grok')
+  expect(hideAgents(data,'{"hide_claude_section":true,"hide_agy_section":true}').agents).toEqual({codex:{available:true},grok:{available:true}})
+  expect(hideAgents(data,'{"hide_grok_section":false,"hide_codex_section":"true"}')).toEqual(data)
+  expect(hideAgents(data,'broken')).toEqual(data)
+  expect(hideAgents(data,'')).toEqual(data)
+  expect(data.agents).toEqual({'claude-code':{available:true},codex:{available:true},antigravity:{available:true},grok:{available:true}})
 })
 for (const [seconds, text] of [[0,'0m'],[3540,'59m'],[3600,'1h'],[82800,'23h'],[86400,'1d'],[259200,'3d'],[-1,'0m']] as const) {
   test(`倒數 ${seconds}`, () => expect(countdown(seconds)).toBe(text))

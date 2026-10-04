@@ -204,6 +204,29 @@ test('啟動、CLI 備援、存活對話清單與定時更新', async ($, on) =>
   expect(values.updated).toBe(1060000)
 })
 
+test('隱藏區塊設定會在刷新額度時移除 Grok', async ($, on) => {
+  mock.clock(on,{now:1000000})
+  mock.env(on,{HOME:'/假家目錄'})
+  const values: Record<string,unknown> = {}
+  const normalize = (path: string) => path.replaceAll('\\','/').replace(/^[A-Za-z]:/, '')
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  on('state.set', ($,e) => {values[e.key]=e.value;return {value:{isSet:true,version:1}}})
+  on('command.register', ($,e) => ({value:{command:e.name}}))
+  on('ui.open', () => ({value:{isPlaced:true}}))
+  on('session.start', ($,e) => ({cwd:e.cwd}))
+  on('session.usage', () => { throw new Error('no context yet') })
+  on('fs.write', () => ({value:undefined}))
+  on('fs.exists', () => ({value:false}))
+  on('fs.list', () => ({value:[]}))
+  on('fs.read', ($,e) => {
+    if (normalize(e.path).endsWith('/.claude/usage-preferences.json')) return {value:'{"hide_grok_section":true}'}
+    throw new Error('ENOENT')
+  })
+  on('process.run', () => ({value:{exitCode:0,stdout:'{"agents":{"claude-code":{"available":true},"codex":{"available":true},"antigravity":{"available":true},"grok":{"available":true}}}',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
+  await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
+  expect(values.quotas).toEqual({agents:{'claude-code':{available:true},codex:{available:true},antigravity:{available:true}}})
+})
+
 for (const mode of ['empty', 'ps-exit-1', 'ps-reject'] as const) {
   test(`無存活對話：${mode}`, async ($, on) => {
     mock.clock(on,{now:1000000})
@@ -345,7 +368,7 @@ for (const writeFails of [false,true]) {
     })
     await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
     expect(JSON.parse(written[0]!)).toEqual({sessionId:'one',percent:41,waiting:false,updatedAt:now})
-    expect(commands.filter(argv => argv[0] === 'mkdir')).toEqual([['mkdir','-p',directory]])
+    expect(commands.filter(argv => argv[0] === 'mkdir')).toEqual([])
     expect(commands.filter(argv => argv[0] === 'rm')).toEqual([['rm','-f',`${directory}/old.json`]])
     expect(values.sessions).toEqual([{id:'one',pid:1,title:'',source:'usage',mtimeMs:now,status:'idle',contextPercent:41,...(writeFails ? {} : {waiting:false,waitingUpdatedAt:now})}])
     expect(values.sessionError).toBe('')
@@ -356,6 +379,75 @@ for (const writeFails of [false,true]) {
     await clock.advance(14000)
     expect(commands.filter(argv => argv[0] === 'rm')).toEqual(['old','boundary'].map(id => ['rm','-f',`${directory}/${id}.json`]))
     for (const id of ['unrelated','mismatch','empty','numeric','Case']) expect(files[id]).toBeDefined()
+  })
+}
+
+for (const writeFails of [false,true]) {
+  test(`Windows live 清掃與對話紀錄：寫入失敗 ${writeFails}`, async ($, on) => {
+    const now = 172800000, commands: string[][] = [], lists: string[] = [], reads: string[] = [], stats: string[] = [], values: Record<string,unknown> = {}
+    const normalize = (path: string) => path.replaceAll('\\','/').replace(/^[A-Za-z]:/, '')
+    mock.clock(on,{now})
+    mock.env(on,{HOME:'/假家目錄',OS:'Windows_NT'})
+    on('session.id', () => ({value:'one'}))
+    on('session.usage', () => ({value:{startedAt:0,context:{window:200000,percent:41.4},rateLimits:[]}}))
+    on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+    on('state.set', ($,e) => {values[e.key]=e.value;return {value:{isSet:true,version:1}}})
+    on('command.register', ($,e) => ({value:{command:e.name}}))
+    on('ui.open', () => ({value:{isPlaced:true}}))
+    on('session.start', ($,e) => ({cwd:e.cwd}))
+    on('fs.write', () => {
+      if (writeFails) throw new Error('write denied')
+      return {value:undefined}
+    })
+    on('fs.list', ($,e) => {
+      const path = normalize(e.path); lists.push(path)
+      if (path.endsWith('/.claude/sessions')) return {value:[
+        {name:'one.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false},
+        {name:'large.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false},
+        {name:'dead.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false},
+      ]}
+      if (path.endsWith('/.claude/projects')) return {value:[
+        {name:'project-one',kind:'dir' as const,size:0,mtimeMs:0,isLink:false},
+        {name:'project-large',kind:'dir' as const,size:0,mtimeMs:0,isLink:false},
+      ]}
+      if (path.endsWith('/.usage/claude-pane/live')) return {value:[{name:'old.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false}]}
+      return {value:[]}
+    })
+    on('fs.exists', ($,e) => ({value:normalize(e.path).endsWith('/project-one/one.jsonl') || normalize(e.path).endsWith('/project-large/large.jsonl')}))
+    on('fs.stat', ($,e) => {
+      const path = normalize(e.path); stats.push(path)
+      return {value:{size:path.endsWith('/large.jsonl') ? 4 * 1024 * 1024 + 1 : 10}}
+    })
+    on('fs.read', ($,e) => {
+      const path = normalize(e.path); reads.push(path)
+      if (path.endsWith('/.claude/sessions/one.json')) return {value:JSON.stringify({pid:1,sessionId:'one',cwd:'/專案',entrypoint:'cli',status:'idle',updatedAt:now})}
+      if (path.endsWith('/.claude/sessions/large.json')) return {value:JSON.stringify({pid:2,sessionId:'large',cwd:'/大檔',entrypoint:'cli',status:'idle',updatedAt:now})}
+      if (path.endsWith('/.claude/sessions/dead.json')) return {value:JSON.stringify({pid:3,sessionId:'dead',cwd:'/死檔',entrypoint:'cli',status:'idle',updatedAt:now})}
+      if (path.endsWith('/project-one/one.jsonl')) return {value:'{"type":"ai-title","aiTitle":"Windows 標題","entrypoint":"cli"}'}
+      if (path.endsWith('/.usage/claude-pane/live/one.json')) throw new Error('ENOENT')
+      if (path.endsWith('/.usage/claude-pane/live/old.json')) return {value:JSON.stringify({sessionId:'old',percent:50,updatedAt:0})}
+      throw new Error(`unexpected read: ${path}`)
+    })
+    on('process.run', ($,e) => {
+      commands.push([...e.argv])
+      return {value:{exitCode:0,stdout:e.argv[0] === 'tasklist' ? '"claude.exe","1","Console"\r\n"claude.exe","2","Console"' : e.argv[0] === 'findstr' ? '{"type":"ai-title","aiTitle":"大檔 Windows 標題","entrypoint":"cli"}' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}
+    })
+    await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
+    expect(commands.filter(argv => argv[0] === 'tasklist')).toEqual([['tasklist','/FO','CSV','/NH']])
+    expect((values.sessions as {id:string;title:string}[]).map(({id,title}) => ({id,title}))).toEqual([{id:'one',title:'Windows 標題'},{id:'large',title:'大檔 Windows 標題'}])
+    const findstr = commands.find(argv => argv[0] === 'findstr')!
+    expect(findstr.slice(0,4)).toEqual(['findstr','/L','/C:ai-title','/C:last-prompt'])
+    expect(findstr[4]).not.toContain('/')
+    const deletes = commands.filter(argv => argv[0] === 'cmd')
+    expect(deletes).toHaveLength(1)
+    expect(deletes[0]!.slice(0,-1)).toEqual(['cmd','/d','/c','del','/f','/q'])
+    expect(deletes[0]![6]).toMatch(/^[^/]*\\old\.json$/)
+    expect(commands.some(argv => ['rm','ps','/bin/sh','tail','mkdir'].includes(argv[0]!))).toBe(false)
+    expect(lists).toContain('/假家目錄/.claude/projects')
+    expect(reads).toContain('/假家目錄/.claude/projects/project-one/one.jsonl')
+    expect(stats).toContain('/假家目錄/.claude/projects/project-large/large.jsonl')
+    expect(reads.some(path => path.endsWith('/large.jsonl'))).toBe(false)
+    expect(values.sessionError).toBe('')
   })
 }
 
@@ -374,6 +466,7 @@ for (const mode of ['installed', 'absent', 'invalid', 'unreadable'] as const) {
     on('fs.exists', ($, e) => ({ value: e.path.endsWith('/usage-pane.json') && mode !== 'absent' }))
     on('fs.read', ($, e) => {
       reads.push(e.path)
+      if (e.path.replaceAll('\\', '/').endsWith('/usage-preferences.json')) throw new Error('ENOENT')
       if (mode === 'unreadable') throw new Error('read denied')
       return { value: JSON.stringify(mode === 'invalid' ? { strings: {}, status_argv: [] } : {
         strings: { claude_pane_title: '使用狀態', claude_pane_description: '開啟面板', claude_pane_opened: '已開啟面板。' }, status_argv: argv
@@ -388,8 +481,9 @@ for (const mode of ['installed', 'absent', 'invalid', 'unreadable'] as const) {
       return { value: { exitCode: fail ? 127 : 0, stdout: fail ? '' : '{"agents":{}}', stderr: fail ? 'missing' : '', isStdoutTruncated: false, isStderrTruncated: false } }
     })
     await $.session.start({ cwd: '/project', surface: 'terminal', isInteractive: true })
-    expect(reads.every(path => path.endsWith('/usage-dash/usage-pane.json'))).toBe(true)
-    expect(reads).toHaveLength(mode === 'absent' ? 0 : 1)
+    const paneReads = reads.filter(path => !path.replaceAll('\\', '/').endsWith('/usage-preferences.json'))
+    expect(paneReads.every(path => path.endsWith('/usage-dash/usage-pane.json'))).toBe(true)
+    expect(paneReads).toHaveLength(mode === 'absent' ? 0 : 1)
     expect(commands).toEqual(mode === 'installed' ? [argv] : [['usage', 'status', '--json'], ['/test-home/.local/bin/usage', 'status', '--json']])
     expect(titles[0]).toBe(mode === 'installed' ? '使用狀態' : 'Usage')
     expect(descriptions[0]).toBe(mode === 'installed' ? '開啟面板' : 'Open the quota, Claude sessions and background jobs pane')

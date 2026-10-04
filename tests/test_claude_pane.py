@@ -82,6 +82,50 @@ def test_disable_only_ours(isolated: Path, others: bool, keep_env: bool) -> None
     assert not pane.is_claude_pane_enabled()
 
 
+def test_enable_fullscreen_layout_records_usage_flag(isolated: Path) -> None:
+    setup_hook._save_settings({"usage": {"other": "keep"}, "other": "keep"})
+
+    pane.enable_fullscreen_layout()
+
+    assert setup_hook._load_settings() == {
+        "tui": "fullscreen",
+        "usage": {"other": "keep", "claudePaneSetFullscreen": True},
+        "other": "keep",
+    }
+
+
+def test_disable_restores_fullscreen_layout_set_by_pane(isolated: Path) -> None:
+    pane.INSTALL_DIR.mkdir(parents=True)
+    setup_hook._save_settings(
+        {
+            "tui": "fullscreen",
+            "usage": {"claudePaneSetFullscreen": True, "other": "keep"},
+        }
+    )
+
+    assert pane.disable_claude_pane() == 0
+
+    assert setup_hook._load_settings() == {"usage": {"other": "keep"}}
+
+
+def test_disable_keeps_user_fullscreen_layout(isolated: Path) -> None:
+    pane.INSTALL_DIR.mkdir(parents=True)
+    setup_hook._save_settings({"tui": "fullscreen"})
+
+    assert pane.disable_claude_pane() == 0
+
+    assert setup_hook._load_settings() == {"tui": "fullscreen"}
+
+
+def test_disable_keeps_changed_tui_when_pane_flagged(isolated: Path) -> None:
+    pane.INSTALL_DIR.mkdir(parents=True)
+    setup_hook._save_settings({"tui": "compact", "usage": {"claudePaneSetFullscreen": True}})
+
+    assert pane.disable_claude_pane() == 0
+
+    assert setup_hook._load_settings() == {"tui": "compact"}
+
+
 def test_tilde_disable_and_reinstall(isolated: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("HOME", str(pane.INSTALL_DIR.parent))
     monkeypatch.setenv("USERPROFILE", str(pane.INSTALL_DIR.parent))
@@ -220,6 +264,15 @@ def test_uses_platform_separator(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(os, "pathsep", ";")
     assert pane._add_path("/other;/pane/", "/pane") == "/other;/pane/"
     assert pane._remove_path("/other;/pane/", "/pane") == "/other"
+
+
+def test_status_argv_uses_windows_frozen_executable(monkeypatch: pytest.MonkeyPatch) -> None:
+    executable = r"C:\\Program Files\\usage\\usage.exe"
+    monkeypatch.setattr(sys, "frozen", True, raising=False)
+    monkeypatch.setattr(sys, "platform", "win32")
+    monkeypatch.setattr(sys, "executable", executable)
+
+    assert pane._status_argv() == [executable, "status", "--json"]
 
 
 def test_missing_sidecar_language_falls_back(

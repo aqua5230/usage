@@ -45,6 +45,8 @@ def _resolve_source() -> Path:
 
 
 def _status_argv() -> list[str]:
+    if getattr(sys, "frozen", False) and sys.platform == "win32":
+        return [sys.executable, "status", "--json"]
     if getattr(sys, "frozen", False):
         resources = str(Path(sys.executable).resolve().parent.parent / "Resources")
         major, minor = sys.version_info[:2]
@@ -142,9 +144,25 @@ def enable_claude_pane() -> int:
     return 0
 
 
+def is_fullscreen_layout() -> bool:
+    return setup_hook._load_settings().get("tui") == "fullscreen"
+
+
+def enable_fullscreen_layout() -> None:
+    settings = setup_hook._load_settings()
+    settings["tui"] = "fullscreen"
+    usage = settings.get("usage")
+    if not isinstance(usage, dict):
+        usage = {}
+        settings["usage"] = usage
+    usage["claudePaneSetFullscreen"] = True
+    setup_hook._save_settings(settings)
+
+
 def disable_claude_pane() -> int:
     settings = setup_hook._load_settings()
     env = _env(settings)
+    changed = False
     if PLUGIN_DIRS_KEY in env:
         value = _remove_path(env[PLUGIN_DIRS_KEY], str(INSTALL_DIR.absolute()))
         if value:
@@ -153,6 +171,16 @@ def disable_claude_pane() -> int:
             env.pop(PLUGIN_DIRS_KEY)
         if not env:
             settings.pop("env", None)
+        changed = True
+    usage = settings.get("usage")
+    if isinstance(usage, dict) and usage.get("claudePaneSetFullscreen") is True:
+        if settings.get("tui") == "fullscreen":
+            settings.pop("tui")
+        usage.pop("claudePaneSetFullscreen")
+        if not usage:
+            settings.pop("usage")
+        changed = True
+    if changed:
         setup_hook._save_settings(settings)
     if INSTALL_DIR.exists():
         shutil.rmtree(INSTALL_DIR)

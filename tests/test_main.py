@@ -70,6 +70,19 @@ def test_parse_args_setup(monkeypatch: Any) -> None:
     assert args.setup is True
 
 
+def test_main_delegates_status_before_logging(monkeypatch: Any) -> None:
+    import usage_cli
+
+    calls: list[str] = []
+    monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
+    monkeypatch.setattr(main, "_setup_logging", lambda: calls.append("logging"))
+    monkeypatch.setattr(usage_cli, "main", lambda: calls.append("status"))
+
+    main.main()
+
+    assert calls == ["status"]
+
+
 def test_apply_outcome_success_updates_snapshot_and_clears_fatal_message() -> None:
     state = AppViewState(fatal_message="boom")
     snapshot = _snapshot()

@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { parseSession, isBusy, newest, sessionStatus, parseLiveSession, liveSessions, toSession } from './sessions'
+import { parseSession, isBusy, newest, sessionStatus, parseLiveSession, liveSessions, tasklistPids, toSession } from './sessions'
 test('斷行跳過、最後標題優先、來源保留', () => {
   expect(parseSession('broken\n{"type":"ai-title","aiTitle":"舊標題"}\n{"type":"ai-title","aiTitle":"新標題","entrypoint":"cli"}\n{"type":"last-prompt","lastPrompt":"最後問題","entrypoint":"other"}')).toEqual({title:'新標題',source:'other'})
 })
@@ -29,6 +29,15 @@ test('壞 JSON 與無效資料跳過、死 pid 與空資料', () => {
   expect(liveSessions([row], '')).toEqual([])
   expect(liveSessions([], '')).toEqual([])
   expect(liveSessions([row], ' 1\n')).toEqual([row])
+})
+test('tasklist PID 與 Windows 專案路徑', () => {
+  expect(tasklistPids('"claude.exe","1864","Console"\n"other.exe","9","Console"')).toBe('1864 9')
+  expect(tasklistPids('"claude.exe","1864","Console"\r\n')).toBe('1864')
+  expect(tasklistPids('')).toBe('')
+  expect(tasklistPids('"含,逗號.exe","1864","Console"')).toBe('1864')
+  const row = parseLiveSession('{"pid":1,"sessionId":"one","entrypoint":"cli","cwd":"C:\\\\Users\\\\USER\\\\Desktop\\\\GitHub","updatedAt":0}')!
+  expect(toSession(row).source).toBe('GitHub')
+  expect(toSession({...row,cwd:'C:\\Users\\USER\\Desktop\\GitHub\\'}).source).toBe('GitHub')
 })
 test('忙在前、同組時間新在前、不限八筆', () => {
   const rows = Array.from({length:10},(_,i) => ({id:String(i),title:'',source:'',mtimeMs:i,pid:i+1,status:i < 2 ? 'busy' : 'idle'}))

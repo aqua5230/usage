@@ -33,6 +33,7 @@ try {
         --add-data "$(Join-Path $RepoRoot 'i18n.json');." `
         --add-data "$(Join-Path $RepoRoot 'pyproject.toml');." `
         --add-data "$(Join-Path $RepoRoot 'assets');assets" `
+        --add-data "$(Join-Path $RepoRoot 'claude_pane');claude_pane" `
         --add-data "$(Join-Path $RepoRoot 'usage_statusline.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_statusline_agy.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_statusline_grok.py');." `
@@ -41,6 +42,7 @@ try {
         --add-data "$(Join-Path $RepoRoot 'usage_terse_mode.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_terse_reminder.py');." `
         --hidden-import wintray.app `
+        --hidden-import usage_cli `
         --hidden-import pystray `
         --hidden-import webview `
         --hidden-import webview.platforms.edgechromium `

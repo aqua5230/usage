@@ -10,7 +10,7 @@ import sys
 from collections.abc import Callable
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 from loaders import agy_quota_probe, codex_loader, grok_quota_probe
 from adapters import agy, claude, codex, grok, muse
@@ -483,6 +483,8 @@ def _run_status(args: list[str]) -> None:
 
     payload = _status_payload(include_extra_agents="--json" in args)
     if "--json" in args:
+        if sys.platform == "win32" and sys.stdout is not None:
+            cast(Any, sys.stdout).reconfigure(encoding="utf-8")
         print(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
     else:
         print(_status_summary(payload))

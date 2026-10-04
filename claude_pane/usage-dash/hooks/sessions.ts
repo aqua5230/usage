@@ -25,6 +25,9 @@ export function liveSessions(rows: LiveSession[], psOutput: string): LiveSession
   const pids = new Set(psOutput.trim().split(/\s+/).map(Number))
   return rows.filter(row => pids.has(row.pid))
 }
+export function tasklistPids(output: string): string {
+  return output.split(/\r?\n/).map(line => line.match(/^"(?:[^"]|"")*","([^"]*)"/)?.[1]).filter((pid): pid is string => !!pid).join(' ')
+}
 export function toSession(row: LiveSession, transcript = ''): Session {
   const { title } = parseSession(transcript)
   let cwd = row.cwd
@@ -46,6 +49,6 @@ export function ago(time: number, now: number): string {
   return minutes === 0 ? t('just_now') : t('minutes_ago', { count: minutes })
 }
 export function projectSource(cwd: string, entrypoint: string): string {
-  const project = cwd.replace(/\/+$/, '').split('/').pop() || (cwd.startsWith('/') ? '/' : t('no_project'))
+  const project = cwd.replace(/[\\/]+$/, '').split(/[\\/]+/).pop() || (cwd.startsWith('/') ? '/' : t('no_project'))
   return `${project}${entrypoint && entrypoint !== 'cli' ? ` · ${t('desktop')}` : ''}`
 }

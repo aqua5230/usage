@@ -8,6 +8,14 @@ export function parseQuota(text: string): Quotas {
   return { agents: Object.fromEntries(Object.entries(value.agents).filter(([, agent]) =>
     agent !== null && typeof agent === 'object' && (agent as { available?: boolean }).available === true)) } as Quotas
 }
+export function hideAgents(data: Quotas, preferences: string): Quotas {
+  let value: unknown
+  try { value = JSON.parse(preferences) } catch { return { ...data, agents: { ...data.agents } } }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return { ...data, agents: { ...data.agents } }
+  const keys: Record<string,string> = { hide_claude_section:'claude-code', hide_codex_section:'codex', hide_agy_section:'antigravity', hide_grok_section:'grok' }
+  const hidden = new Set(Object.entries(keys).filter(([key]) => (value as Record<string,unknown>)[key] === true).map(([,agent]) => agent))
+  return { ...data, agents: Object.fromEntries(Object.entries(data.agents).filter(([agent]) => !hidden.has(agent))) }
+}
 export function countdown(seconds: number): string {
   const s = Math.max(0, Number.isFinite(seconds) ? seconds : 0)
   if (s < 3600) return t('minutes', { count: Math.floor(s / 60) })
