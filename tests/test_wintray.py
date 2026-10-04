@@ -3161,9 +3161,12 @@ def test_reset_tray_uses_display_value(monkeypatch: pytest.MonkeyPatch) -> None:
     controller.icon = SimpleNamespace(icon=None, title=None)
     calls: list[float | None] = []
     taskbar: list[float | None] = []
-    monkeypatch.setattr(
-        wintray, "draw_tray_icon", lambda percent: calls.append(percent) or object()
-    )
+
+    def draw(percent: float | None) -> object:
+        calls.append(percent)
+        return object()
+
+    monkeypatch.setattr(wintray, "draw_tray_icon", draw)
     monkeypatch.setattr(
         controller, "_update_taskbar_progress", lambda percent: taskbar.append(percent)
     )
