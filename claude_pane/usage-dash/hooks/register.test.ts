@@ -407,11 +407,14 @@ for (const writeFails of [false,true]) {
     })
     on('process.run', ($,e) => {
       commands.push([...e.argv])
-      return {value:{exitCode:0,stdout:e.argv[0] === 'tasklist' ? '"claude.exe","1","Console"\r\n"claude.exe","2","Console"' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}
+      return {value:{exitCode:0,stdout:e.argv[0] === 'tasklist' ? '"claude.exe","1","Console"\r\n"claude.exe","2","Console"' : e.argv[0] === 'findstr' ? '{"type":"ai-title","aiTitle":"大檔 Windows 標題","entrypoint":"cli"}' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}
     })
     await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
     expect(commands.filter(argv => argv[0] === 'tasklist')).toEqual([['tasklist','/FO','CSV','/NH']])
-    expect((values.sessions as {id:string;title:string}[]).map(({id,title}) => ({id,title}))).toEqual([{id:'one',title:'Windows 標題'},{id:'large',title:''}])
+    expect((values.sessions as {id:string;title:string}[]).map(({id,title}) => ({id,title}))).toEqual([{id:'one',title:'Windows 標題'},{id:'large',title:'大檔 Windows 標題'}])
+    const findstr = commands.find(argv => argv[0] === 'findstr')!
+    expect(findstr.slice(0,4)).toEqual(['findstr','/L','/C:ai-title','/C:last-prompt'])
+    expect(findstr[4]).not.toContain('/')
     const deletes = commands.filter(argv => argv[0] === 'cmd')
     expect(deletes).toHaveLength(1)
     expect(deletes[0]!.slice(0,-1)).toEqual(['cmd','/d','/c','del','/f','/q'])

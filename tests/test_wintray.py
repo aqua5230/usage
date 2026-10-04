@@ -1977,12 +1977,57 @@ def test_claude_pane_menu_check_and_toggle_results(monkeypatch: pytest.MonkeyPat
     messages: list[str] = []
     monkeypatch.setattr(claude_pane, "is_claude_pane_enabled", lambda: False)
     monkeypatch.setattr(claude_pane, "enable_claude_pane", lambda: 0)
+    monkeypatch.setattr(claude_pane, "is_fullscreen_layout", lambda: True)
     monkeypatch.setattr(controller, "_message_box", messages.append)
 
     assert wintray._menu_checked(controller, entry) is False
     controller._toggle_claude_pane_in_background()
 
     assert messages == [_t("en", "claude_pane_enabled_msg")]
+
+
+def test_claude_pane_toggle_enables_fullscreen_when_confirmed(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    messages: list[tuple[str, int]] = []
+    calls: list[str] = []
+    monkeypatch.setattr(claude_pane, "is_claude_pane_enabled", lambda: False)
+    monkeypatch.setattr(claude_pane, "enable_claude_pane", lambda: 0)
+    monkeypatch.setattr(claude_pane, "is_fullscreen_layout", lambda: False)
+    monkeypatch.setattr(claude_pane, "enable_fullscreen_layout", lambda: calls.append("fullscreen"))
+
+    def answer(text: str, *, style: int = 0x40) -> int:
+        messages.append((text, style))
+        return 6
+
+    monkeypatch.setattr(controller, "_message_box", answer)
+
+    controller._toggle_claude_pane_in_background()
+
+    assert calls == ["fullscreen"]
+    assert messages == [
+        (
+            f"{_t('en', 'claude_pane_enabled_msg')}\n\n{_t('en', 'claude_pane_fullscreen_prompt')}",
+            0x24,
+        )
+    ]
+
+
+def test_claude_pane_toggle_leaves_layout_when_declined(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    calls: list[str] = []
+    monkeypatch.setattr(claude_pane, "is_claude_pane_enabled", lambda: False)
+    monkeypatch.setattr(claude_pane, "enable_claude_pane", lambda: 0)
+    monkeypatch.setattr(claude_pane, "is_fullscreen_layout", lambda: False)
+    monkeypatch.setattr(claude_pane, "enable_fullscreen_layout", lambda: calls.append("fullscreen"))
+    monkeypatch.setattr(controller, "_message_box", lambda _text, *, style=0x40: 7)
+
+    controller._toggle_claude_pane_in_background()
+
+    assert calls == []
 
 
 def test_claude_pane_toggle_failure_reports_output(monkeypatch: pytest.MonkeyPatch) -> None:

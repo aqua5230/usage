@@ -129,7 +129,14 @@ async function refreshSessions($: Dollar) {
             const candidate = `${home}/.claude/projects/${dir.name}/${row.sessionId}.jsonl`
             if (dir.kind === 'dir' && await $.fs.exists(candidate)) { path = candidate; break }
           }
-          if (path && (await $.fs.stat(path)).size <= 4 * 1024 * 1024) transcript = (await $.fs.read(path)).slice(-262144)
+          if (path) {
+            if ((await $.fs.stat(path)).size <= 4 * 1024 * 1024) {
+              transcript = (await $.fs.read(path)).slice(-262144)
+            } else {
+              const result = await $.process.run(['findstr', '/L', '/C:ai-title', '/C:last-prompt', path.replaceAll('/', '\\')])
+              if (result.exitCode === 0) transcript = result.stdout
+            }
+          }
         } else {
           const found = await $.process.run(['/bin/sh', '-c', 'ls "$1"/*/"$2".jsonl 2>/dev/null | head -1', 'sh', `${home}/.claude/projects`, row.sessionId])
           const path = found.exitCode === 0 ? found.stdout.trim() : ''
