@@ -345,7 +345,7 @@ for (const writeFails of [false,true]) {
     })
     await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
     expect(JSON.parse(written[0]!)).toEqual({sessionId:'one',percent:41,waiting:false,updatedAt:now})
-    expect(commands.filter(argv => argv[0] === 'mkdir')).toEqual([['mkdir','-p',directory]])
+    expect(commands.filter(argv => argv[0] === 'mkdir')).toEqual([])
     expect(commands.filter(argv => argv[0] === 'rm')).toEqual([['rm','-f',`${directory}/old.json`]])
     expect(values.sessions).toEqual([{id:'one',pid:1,title:'',source:'usage',mtimeMs:now,status:'idle',contextPercent:41,...(writeFails ? {} : {waiting:false,waitingUpdatedAt:now})}])
     expect(values.sessionError).toBe('')
@@ -356,6 +356,72 @@ for (const writeFails of [false,true]) {
     await clock.advance(14000)
     expect(commands.filter(argv => argv[0] === 'rm')).toEqual(['old','boundary'].map(id => ['rm','-f',`${directory}/${id}.json`]))
     for (const id of ['unrelated','mismatch','empty','numeric','Case']) expect(files[id]).toBeDefined()
+  })
+}
+
+for (const writeFails of [false,true]) {
+  test(`Windows live 清掃與對話紀錄：寫入失敗 ${writeFails}`, async ($, on) => {
+    const now = 172800000, commands: string[][] = [], lists: string[] = [], reads: string[] = [], stats: string[] = [], values: Record<string,unknown> = {}
+    const normalize = (path: string) => path.replaceAll('\\','/').replace(/^[A-Za-z]:/, '')
+    mock.clock(on,{now})
+    mock.env(on,{HOME:'/假家目錄',OS:'Windows_NT'})
+    on('session.id', () => ({value:'one'}))
+    on('session.usage', () => ({value:{startedAt:0,context:{window:200000,percent:41.4},rateLimits:[]}}))
+    on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+    on('state.set', ($,e) => {values[e.key]=e.value;return {value:{isSet:true,version:1}}})
+    on('command.register', ($,e) => ({value:{command:e.name}}))
+    on('ui.open', () => ({value:{isPlaced:true}}))
+    on('session.start', ($,e) => ({cwd:e.cwd}))
+    on('fs.write', () => {
+      if (writeFails) throw new Error('write denied')
+      return {value:undefined}
+    })
+    on('fs.list', ($,e) => {
+      const path = normalize(e.path); lists.push(path)
+      if (path.endsWith('/.claude/sessions')) return {value:[
+        {name:'one.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false},
+        {name:'large.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false},
+        {name:'dead.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false},
+      ]}
+      if (path.endsWith('/.claude/projects')) return {value:[
+        {name:'project-one',kind:'dir' as const,size:0,mtimeMs:0,isLink:false},
+        {name:'project-large',kind:'dir' as const,size:0,mtimeMs:0,isLink:false},
+      ]}
+      if (path.endsWith('/.usage/claude-pane/live')) return {value:[{name:'old.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false}]}
+      return {value:[]}
+    })
+    on('fs.exists', ($,e) => ({value:normalize(e.path).endsWith('/project-one/one.jsonl') || normalize(e.path).endsWith('/project-large/large.jsonl')}))
+    on('fs.stat', ($,e) => {
+      const path = normalize(e.path); stats.push(path)
+      return {value:{size:path.endsWith('/large.jsonl') ? 4 * 1024 * 1024 + 1 : 10}}
+    })
+    on('fs.read', ($,e) => {
+      const path = normalize(e.path); reads.push(path)
+      if (path.endsWith('/.claude/sessions/one.json')) return {value:JSON.stringify({pid:1,sessionId:'one',cwd:'/專案',entrypoint:'cli',status:'idle',updatedAt:now})}
+      if (path.endsWith('/.claude/sessions/large.json')) return {value:JSON.stringify({pid:2,sessionId:'large',cwd:'/大檔',entrypoint:'cli',status:'idle',updatedAt:now})}
+      if (path.endsWith('/.claude/sessions/dead.json')) return {value:JSON.stringify({pid:3,sessionId:'dead',cwd:'/死檔',entrypoint:'cli',status:'idle',updatedAt:now})}
+      if (path.endsWith('/project-one/one.jsonl')) return {value:'{"type":"ai-title","aiTitle":"Windows 標題","entrypoint":"cli"}'}
+      if (path.endsWith('/.usage/claude-pane/live/one.json')) throw new Error('ENOENT')
+      if (path.endsWith('/.usage/claude-pane/live/old.json')) return {value:JSON.stringify({sessionId:'old',percent:50,updatedAt:0})}
+      throw new Error(`unexpected read: ${path}`)
+    })
+    on('process.run', ($,e) => {
+      commands.push([...e.argv])
+      return {value:{exitCode:0,stdout:e.argv[0] === 'tasklist' ? '"claude.exe","1","Console"\r\n"claude.exe","2","Console"' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}
+    })
+    await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
+    expect(commands.filter(argv => argv[0] === 'tasklist')).toEqual([['tasklist','/FO','CSV','/NH']])
+    expect((values.sessions as {id:string;title:string}[]).map(({id,title}) => ({id,title}))).toEqual([{id:'one',title:'Windows 標題'},{id:'large',title:''}])
+    const deletes = commands.filter(argv => argv[0] === 'cmd')
+    expect(deletes).toHaveLength(1)
+    expect(deletes[0]!.slice(0,-1)).toEqual(['cmd','/d','/c','del','/f','/q'])
+    expect(deletes[0]![6]).toMatch(/^[^/]*\\old\.json$/)
+    expect(commands.some(argv => ['rm','ps','/bin/sh','tail','mkdir'].includes(argv[0]!))).toBe(false)
+    expect(lists).toContain('/假家目錄/.claude/projects')
+    expect(reads).toContain('/假家目錄/.claude/projects/project-one/one.jsonl')
+    expect(stats).toContain('/假家目錄/.claude/projects/project-large/large.jsonl')
+    expect(reads.some(path => path.endsWith('/large.jsonl'))).toBe(false)
+    expect(values.sessionError).toBe('')
   })
 }
 

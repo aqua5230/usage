@@ -31,11 +31,11 @@ test('壞 JSON 與無效資料跳過、死 pid 與空資料', () => {
   expect(liveSessions([row], ' 1\n')).toEqual([row])
 })
 test('tasklist PID 與 Windows 專案路徑', () => {
-  expect(tasklistPids('\"claude.exe\",\"1864\",\"Console\"\n\"other.exe\",\"9\",\"Console\"')).toBe('1864 9')
-  expect(tasklistPids('\"claude.exe\",\"1864\",\"Console\"\r\n')).toBe('1864')
+  expect(tasklistPids('"claude.exe","1864","Console"\n"other.exe","9","Console"')).toBe('1864 9')
+  expect(tasklistPids('"claude.exe","1864","Console"\r\n')).toBe('1864')
   expect(tasklistPids('')).toBe('')
-  expect(tasklistPids('\"含,逗號.exe\",\"1864\",\"Console\"')).toBe('1864')
-  const row = parseLiveSession('{\"pid\":1,\"sessionId\":\"one\",\"entrypoint\":\"cli\",\"cwd\":\"C:\\\\Users\\\\USER\\\\Desktop\\\\GitHub\",\"updatedAt\":0}')!
+  expect(tasklistPids('"含,逗號.exe","1864","Console"')).toBe('1864')
+  const row = parseLiveSession('{"pid":1,"sessionId":"one","entrypoint":"cli","cwd":"C:\\\\Users\\\\USER\\\\Desktop\\\\GitHub","updatedAt":0}')!
   expect(toSession(row).source).toBe('GitHub')
   expect(toSession({...row,cwd:'C:\\Users\\USER\\Desktop\\GitHub\\'}).source).toBe('GitHub')
 })

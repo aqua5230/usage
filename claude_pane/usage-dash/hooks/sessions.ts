@@ -26,7 +26,7 @@ export function liveSessions(rows: LiveSession[], psOutput: string): LiveSession
   return rows.filter(row => pids.has(row.pid))
 }
 export function tasklistPids(output: string): string {
-  return output.split(/\r?\n/).map(line => line.match(/^\"(?:[^\"]|\"\")*\",\"([^\"]*)\"/)?.[1]).filter((pid): pid is string => !!pid).join(' ')
+  return output.split(/\r?\n/).map(line => line.match(/^"(?:[^"]|"")*","([^"]*)"/)?.[1]).filter((pid): pid is string => !!pid).join(' ')
 }
 export function toSession(row: LiveSession, transcript = ''): Session {
   const { title } = parseSession(transcript)
