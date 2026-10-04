@@ -42,10 +42,11 @@ export function toSession(row: LiveSession, transcript = ''): Session {
   }
   return { id: row.sessionId, pid: row.pid, title: title === t('untitled') ? row.name : title, source: projectSource(cwd, row.entrypoint), mtimeMs: row.statusUpdatedAt, status: row.status, ...(preview ? { preview } : {}), ...(row.waitingFor ? { waitingFor: row.waitingFor } : {}) }
 }
-export function isBusy(session: Session): boolean { return session.status === 'busy' }
+export function isBusy(session: Session): boolean { return session.status === 'busy' || (session.jobs ?? 0) > 0 }
 export function sessionNotifications(previous: Session[], next: Session[], currentId: string): { session: Session; kind: 'done' | 'waiting' }[] {
   const busy = new Set(previous.filter(isBusy).map(session => session.id))
-  return next.filter(session => session.id !== currentId && (session.status === 'idle' || session.status === 'waiting') && busy.has(session.id)).map(session => ({ session, kind: session.status === 'waiting' ? 'waiting' : 'done' }))
+  const waiting = new Set(previous.filter(session => session.status === 'waiting').map(session => session.id))
+  return next.filter(session => session.id !== currentId && ((session.status === 'idle' && !isBusy(session)) || (session.status === 'waiting' && !waiting.has(session.id))) && busy.has(session.id)).map(session => ({ session, kind: session.status === 'waiting' ? 'waiting' : 'done' }))
 }
 export function waitingText(reason?: string): string {
   if (!reason?.trim()) return t('waiting')
@@ -55,7 +56,7 @@ export function waitingText(reason?: string): string {
 }
 export function settleNotifications(pending: { id: string; kind: 'done' | 'waiting' }[], previous: Session[], next: Session[], currentId: string): { toast: { session: Session; kind: 'done' | 'waiting' }[]; pending: { id: string; kind: 'done' | 'waiting' }[] } {
   const toast = pending.flatMap(({ id, kind }) => {
-    const session = next.find(session => session.id === id && id !== currentId && session.status === (kind === 'done' ? 'idle' : 'waiting'))
+    const session = next.find(session => session.id === id && id !== currentId && session.status === (kind === 'done' ? 'idle' : 'waiting') && (kind !== 'done' || !isBusy(session)))
     return session ? [{ session, kind }] : []
   })
   return { toast, pending: sessionNotifications(previous,next,currentId).map(({session,kind}) => ({id:session.id,kind})) }

@@ -163,6 +163,8 @@ class PopoverState:
     grok_stale: GrokStaleState | None = None
     card_order: tuple[str, ...] = ("claude", "codex", "agy", "grok")
     history_error: HistoryLoadErrorState | None = None
+    refresh_status: tuple[str, bool] | None = None
+    refresh_queued: bool = False
 
 
 @dataclass(frozen=True, slots=True)

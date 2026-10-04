@@ -355,15 +355,15 @@ for (const writeFails of [false,true]) {
       return {value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}
     })
     await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
-    expect(JSON.parse(written[0]!)).toEqual({sessionId:'one',percent:41,waiting:false,updatedAt:now})
+    expect(JSON.parse(written[0]!)).toEqual({sessionId:'one',percent:41,waiting:false,jobs:0,updatedAt:now})
     expect(commands.filter(argv => argv[0] === 'mkdir')).toEqual([])
     expect(commands.filter(argv => argv[0] === 'rm')).toEqual([['rm','-f',`${directory}/old.json`]])
-    expect(values.sessions).toEqual([{id:'one',pid:1,title:'',source:'usage',mtimeMs:now,status:'idle',contextPercent:41,...(writeFails ? {} : {waiting:false,waitingUpdatedAt:now})}])
+    expect(values.sessions).toEqual([{id:'one',pid:1,title:'',source:'usage',mtimeMs:now,status:'idle',contextPercent:41,...(writeFails ? {} : {waiting:false,waitingUpdatedAt:now,jobs:0})}])
     expect(values.sessionError).toBe('')
     await clock.advance(1000)
     const result = await $.turn.complete({answer:'完成',durationMs:1000,isAborted:false,turnId:'turn',reason:'answer'})
     expect(result).toEqual({text:'完成'})
-    expect(JSON.parse(written[1]!)).toEqual({sessionId:'one',percent:41,waiting:false,updatedAt:now+1000})
+    expect(JSON.parse(written[written.length - 1]!)).toEqual({sessionId:'one',percent:41,waiting:false,jobs:0,updatedAt:now+1000})
     await clock.advance(14000)
     expect(commands.filter(argv => argv[0] === 'rm')).toEqual(['old','boundary'].map(id => ['rm','-f',`${directory}/${id}.json`]))
     for (const id of ['unrelated','mismatch','empty','numeric','Case']) expect(files[id]).toBeDefined()
@@ -659,4 +659,48 @@ test('已重置的 dock 額度歸零、倒數改 Reset、灰字且排序下降',
   expect(parts[2]!.props?.color).toBeUndefined()
   expect(parts[4]!.props?.color).toBeUndefined()
   expect(parts[4]!.props?.dimColor).toBe(true)
+})
+
+test('live 回報背景工作數，idle 工作歸零才通知完成', async ($, on) => {
+  const clock = mock.clock(on,{now:0}), directory = '/test-home/.usage/claude-pane/live'
+  mock.env(on,{HOME:'/test-home'})
+  const values: Record<string,unknown> = {runs:[{id:'run',agent:'codex',label:'',start:0,end:null,status:'running'}]}
+  const writes: {jobs:number}[] = [], toasts: string[] = []
+  let jobs = 2, runningAgent = true, live = ''
+  on('session.id', () => ({value:'current'}))
+  on('session.usage', () => ({value:{startedAt:0,context:{window:200000,percent:41},rateLimits:[]}}))
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  on('state.set', ($,e) => {values[e.key]=e.value;return {value:{isSet:true,version:1}}})
+  on('session.start', ($,e) => ({cwd:e.cwd}))
+  on('agent.list', () => ({value:runningAgent ? [{id:'child',type:'Explore',description:'task',status:'running'}] : []}))
+  on('ui.open', () => ({value:{isPlaced:true}}))
+  on('ui.invalidate', () => ({value:undefined}))
+  on('ui.toast', ($,e) => {toasts.push(e.text);return {value:undefined}})
+  on('command.register', ($,e) => ({value:{command:e.name}}))
+  on('fs.exists', () => ({value:false}))
+  on('fs.write', ($,e) => {live=e.text;writes.push(JSON.parse(e.text));return {value:undefined}})
+  on('fs.list', ($,e) => ({value:[{name:e.path === directory ? 'other.json' : '1.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false}]}))
+  on('fs.read', ($,e) => {
+    if (e.path === `${directory}/current.json`) return {value:live}
+    if (e.path === `${directory}/other.json`) return {value:JSON.stringify({sessionId:'other',jobs,updatedAt:0})}
+    if (e.path.endsWith('/.claude/sessions/1.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:'task',updatedAt:0,status:'idle'})}
+    throw new Error('ENOENT')
+  })
+  on('process.run', ($,e) => ({value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
+  await $.session.start({cwd:'/project',surface:'terminal',isInteractive:true})
+  expect(writes[writes.length - 1]!.jobs).toBe(2)
+  expect((values.sessions as PluginState['usage-dash']['sessions'])[0]!.jobs).toBe(2)
+  expect(values.pendingToasts).toEqual([])
+  jobs = 1; runningAgent = false
+  await clock.advance(15000)
+  expect(writes[writes.length - 1]!.jobs).toBe(1)
+  expect(values.pendingToasts).toEqual([])
+  values.runs = [{id:'run',agent:'codex',label:'',start:0,end:15000,status:'completed'}]
+  jobs = 0
+  await clock.advance(15000)
+  expect(writes[writes.length - 1]!.jobs).toBe(0)
+  expect(values.pendingToasts).toEqual([{id:'other',kind:'done'}])
+  expect(toasts).toEqual([])
+  await clock.advance(15000)
+  expect(toasts).toEqual(['Done: task'])
 })

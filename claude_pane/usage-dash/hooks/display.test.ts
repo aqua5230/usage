@@ -64,3 +64,9 @@ test('背景工作：跑的全顯示、完成的補空位、展開看全部', ()
   expect(ids(visibleRuns(mixed,true).rows)).toEqual(['d1','d2','d3','r1','r2'])
   expect(visibleRuns([...six, run('d1',1)],false)).toEqual({ rows: six, hiddenDone: 1 })
 })
+
+test('jobs 只接受非負整數，壞欄位不丟掉 context', () => {
+  const row = {sessionId:'one',percent:41,waiting:true,updatedAt:0}
+  for (const jobs of [0,1,42]) expect(parseContext(JSON.stringify({...row,jobs}))).toEqual({...row,jobs})
+  for (const jobs of [-1,0.5,'1',null,true,{},[]]) expect(parseContext(JSON.stringify({...row,jobs}))).toEqual(row)
+})

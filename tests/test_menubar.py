@@ -2692,9 +2692,13 @@ def test_refresh_now_queues_when_refresh_is_busy() -> None:
     delegate._refresh_in_flight = True
     delegate._refresh_queued = False
 
+    delegate.popover = SimpleNamespace(isVisible=lambda: False)
     delegate.refreshNow_(None)
 
     assert delegate._refresh_queued is True
+    assert delegate.latest_state.status_text == menubar._t(
+        delegate.language, "status_text", value=menubar._t(delegate.language, "status_refreshing")
+    )
 
 
 def test_apply_refresh_result_clears_busy_flag_when_ui_update_fails() -> None:

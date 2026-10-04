@@ -3171,3 +3171,47 @@ def test_reset_tray_uses_display_value(monkeypatch: pytest.MonkeyPatch) -> None:
     assert calls == taskbar == [0.0]
     assert "Claude Session: 0%" in controller.icon.title
     assert row.percent == 100.0
+
+
+@pytest.mark.parametrize("manual", [False, True])
+def test_refresh_chip_only_shows_during_manual_refresh(
+    monkeypatch: pytest.MonkeyPatch, manual: bool
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    started, release = threading.Event(), threading.Event()
+    pushed: list[str] = []
+    state = _state()
+    state.status_text = "Status: ✓ Synced"
+
+    def build_state(**_kwargs: object) -> menubar_state.PopoverState:
+        started.set()
+        assert release.wait(2)
+        return state
+
+    monkeypatch.setattr(controller, "_build_state", build_state)
+    monkeypatch.setattr(controller, "_ensure_windows_watcher", lambda: None)
+    monkeypatch.setattr(controller, "_process_quota_notifications", lambda _state: None)
+    monkeypatch.setattr(controller, "_update_tray", lambda: None)
+    monkeypatch.setattr(
+        controller, "inject_state", lambda: pushed.append(controller.latest_state.status_text)
+    )
+    if manual:
+        controller.handle_panel_message({"action": "refresh"})
+    else:
+        controller.refresh()
+    try:
+        assert started.wait(2)
+        refreshing = _t(
+            controller.language, "status_text", value=_t(controller.language, "status_refreshing")
+        )
+        assert (controller.latest_state.status_text == refreshing) is manual
+        assert pushed == ([refreshing] if manual else [])
+    finally:
+        release.set()
+        thread = controller._refresh_thread
+        if thread is not None:
+            thread.join(2)
+    assert controller._refresh_in_flight is False
+    assert controller.latest_state.status_text == "Status: ✓ Synced"
+    assert pushed[-1] == "Status: ✓ Synced"

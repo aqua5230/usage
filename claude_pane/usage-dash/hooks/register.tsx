@@ -28,6 +28,7 @@ function clearLater($: Dollar) {
   $.clock.after(KEEP_DONE_MS + 1000, async () => {
     const now = await $.clock.now()
     await update($, runs, list => list.filter(r => isVisible(r, now)))
+    await reportContext($, null)
   })
 }
 async function finish($: Dollar, text: string) {
@@ -38,6 +39,7 @@ async function finish($: Dollar, text: string) {
     const d = done.find(x => x.toolUseId === r.id)
     return d && r.end === null ? { ...r, end, status: d.status } : r
   }))
+  await reportContext($, null)
   clearLater($)
 }
 async function refreshQuota($: Dollar) {
@@ -61,16 +63,20 @@ async function refreshQuota($: Dollar) {
   }
   await update($, quotaError, () => t('quota_error', { error: failures.join('; ') }))
 }
-async function reportContext($: Dollar, waiting = false) {
+async function reportContext($: Dollar, waiting: boolean | null = false) {
   try {
     const home = await getHome($), sessionId = await $.session.id()
     if (!home || !/^[A-Za-z0-9_-]+$/.test(sessionId)) return
     const directory = `${home}/.usage/claude-pane/live`
     const path = `${directory}/${sessionId}.json`
-    let percent: number | undefined
-    try { percent = parseContext(await $.fs.read(path))?.percent } catch { /* no previous context is normal */ }
+    const now = await $.clock.now()
+    const jobs = backgroundCount((await read($, runs)).filter(r => isVisible(r, now)), visibleAgents(await read($, agents)))
+    let previous: ReturnType<typeof parseContext> = null
+    try { previous = parseContext(await $.fs.read(path)) } catch { /* no previous context is normal */ }
+    if (waiting === null && previous?.jobs === jobs) return
+    let percent = previous?.percent
     try { percent = contextPercent((await $.session.usage()).context.percent) ?? percent } catch { /* waiting can be reported without usage */ }
-    await $.fs.write(path, JSON.stringify({ sessionId, percent, waiting, updatedAt: await $.clock.now() }))
+    await $.fs.write(path, JSON.stringify({ sessionId, percent, waiting: waiting ?? previous?.waiting ?? false, jobs, updatedAt: now }))
   } catch { /* live reporting is best effort, as requested */ }
 }
 async function readContexts($: Dollar, directory: string, rows: Session[]) {
@@ -85,6 +91,7 @@ async function readContexts($: Dollar, directory: string, rows: Session[]) {
         const row = rows.find(row => row.id === sessionId)
         if (row) {
           row.contextPercent = context.percent
+          row.jobs = context.jobs
           if (context.waiting !== undefined) {
             row.waiting = context.waiting
             row.waitingUpdatedAt = context.updatedAt
@@ -170,9 +177,11 @@ async function refreshAgents($: Dollar) {
   let list: Awaited<ReturnType<Dollar['agent']['list']>> = []
   try { list = await $.agent.list() } catch { /* unavailable agents are an empty list */ }
   await update($, agents, () => visibleAgents(list))
+  await reportContext($, null)
 }
 async function refreshSessionLists($: Dollar) {
-  await Promise.all([refreshSessions($), refreshAgents($)])
+  await refreshAgents($)
+  await refreshSessions($)
 }
 let quotaTimer: { cancel(): void } | undefined
 let sessionTimer: { cancel(): void } | undefined
@@ -246,9 +255,11 @@ export const register: Register = (on) => {
     const start = await $.clock.now()
     const run: Run = { id: e.tool_use_id ?? `run-${start}`, agent, label: (e.description ?? '').slice(0,24), start, end: null, status: 'running' }
     await update($, runs, list => [...list.filter(r => isVisible(r,start)), run])
+    await reportContext($, null)
     const ran = await next(e)
     if (ran.deny !== undefined) {
       await update($, runs, list => list.filter(r => r.id !== run.id))
+      await reportContext($, null)
       return ran
     }
     const result = ran.result as { backgroundTaskId?: string } | undefined
@@ -256,6 +267,7 @@ export const register: Register = (on) => {
       const end = await $.clock.now()
       const status = isShellBackgrounded(e.command) ? 'launched' : ran.isError ? 'failed' : 'completed'
       await update($, runs, list => list.map(r => r.id === run.id ? { ...r, end, status } : r))
+      await reportContext($, null)
       clearLater($)
     }
     return ran

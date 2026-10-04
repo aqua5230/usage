@@ -35,6 +35,7 @@ from loaders import codex_loader, grok_loader
 from loaders.history_loader import UsageEntry, load_entries
 from menubar import agy as menubar_agy
 from menubar import grok as menubar_grok
+from menubar import manual_refresh
 from menubar import state as menubar_state
 from menubar.prefs import (
     _auto_update_check_enabled,
@@ -1462,6 +1463,17 @@ class _WindowsTrayController:
             self._last_file_event_refresh_started_at = time.monotonic()
         self.refresh()
 
+    def refresh_manual(self) -> None:
+        with self.refresh_lock:
+            if self.stopping.is_set():
+                return
+            manual_refresh.begin(self.latest_state, queued=self._refresh_in_flight)
+        try:
+            if self.visible:
+                self.inject_state()
+        finally:
+            self.refresh()
+
     def refresh(self) -> None:
         with self.refresh_lock:
             if self.stopping.is_set():
@@ -1488,10 +1500,14 @@ class _WindowsTrayController:
 
         while True:
             try:
-                self.latest_state = self._build_state(
+                state = self._build_state(
                     measure=measure,
                     debug_timing=debug_timing,
                 )
+                with self.refresh_lock:
+                    self.latest_state = manual_refresh.finish(
+                        self.latest_state, state, queued=self._refresh_queued
+                    )
                 self._process_quota_notifications(self.latest_state)
                 started_at = time.monotonic() if debug_timing else 0.0
                 self._update_tray()
@@ -1501,6 +1517,15 @@ class _WindowsTrayController:
                     self.inject_state()
                     measure("inject_state", started_at)
             except Exception:
+                with self.refresh_lock:
+                    manual_refresh.finish(
+                        self.latest_state, self.latest_state, queued=self._refresh_queued
+                    )
+                if self.visible:
+                    try:
+                        self.inject_state()
+                    except Exception:
+                        logger.warning("Windows tray refresh status update failed", exc_info=True)
                 if os.environ.get("USAGE_DEBUG") == "1":
                     logger.warning("Windows tray refresh failed", exc_info=True)
 
@@ -2162,7 +2187,7 @@ class _WindowsTrayController:
             elif action == "reset_panel_position":
                 self.reset_panel_position()
             elif action == "refresh":
-                self.refresh()
+                self.refresh_manual()
             elif action == "toggle_login":
                 self.toggle_login()
             elif action == "toggle_quota_notifications":
@@ -2182,7 +2207,7 @@ class _WindowsTrayController:
             return None
         action = str(payload)
         if action == "refresh":
-            self.refresh()
+            self.refresh_manual()
         elif action == "quit":
             self.quit()
         elif action == "switch":
