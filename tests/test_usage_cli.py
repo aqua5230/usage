@@ -1145,9 +1145,7 @@ def test_status_antigravity_missing_quota_reason(signed_in: bool) -> None:
 
 
 @pytest.mark.parametrize("agent_id", ["claude-code", "codex", "antigravity", "grok"])
-def test_status_loader_exception_reason(
-    monkeypatch: pytest.MonkeyPatch, agent_id: str
-) -> None:
+def test_status_loader_exception_reason(monkeypatch: pytest.MonkeyPatch, agent_id: str) -> None:
     def fail() -> None:
         raise OSError("quota read failed")
 
