@@ -1,6 +1,6 @@
 import { t } from './strings'
 import type { Quotas, Session, Window } from '../types'
-import { quotaLine } from './quota'
+import { quotaLine, refreshedAgo } from './quota'
 import { isBusy } from './sessions'
 
 export type CompactPart = { text: string; color?: string; bold?: boolean }
@@ -46,6 +46,6 @@ export function compactLines(data: Quotas, sessions: Session[], running: number,
   return [first, second, [
     { text: t('compact_summary', { busy: sessions.filter(isBusy).length, total: sessions.length }) },
     { text: String(running), color: running > 0 ? 'yellow' : undefined },
-    { text: ` · ${last === null ? '↻ —' : `↻ ${t('seconds_ago', { count: Math.max(0, Math.floor((now-last)/1000)) })}`}` },
+    { text: ` · ${refreshedAgo(now, last)}` },
   ]]
 }

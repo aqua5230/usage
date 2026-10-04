@@ -3,7 +3,7 @@ import { atom, read, update } from 'claude-code'
 import type { Hook, Register } from 'claude-code'
 import type { Run, Session } from '../types'
 import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
-import { parseQuota, dockQuotaLine, staleAge } from './quota'
+import { parseQuota, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
 import { parseLiveSession, liveSessions, toSession, newest, isBusy, sessionStatus } from './sessions'
 import { contextPercent, contextColor, parseContext, staleContext, completedAgo } from './display'
@@ -276,7 +276,7 @@ export const register: Register = (on) => {
         {!shown.length && <Text dimColor>{t('none')}</Text>}
       </Box>}
       </Box>
-      <Box justifyContent="flex-end"><Text dimColor>{last === null ? '↻ —' : `↻ ${t('seconds_ago', { count: Math.max(0,Math.floor((now-last)/1000)) })}`}</Text></Box>
+      <Box justifyContent="flex-end"><Text dimColor>{refreshedAgo(now, last)}</Text></Box>
     </Box>
   })
 }

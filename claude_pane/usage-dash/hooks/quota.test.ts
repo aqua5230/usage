@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { parseQuota, countdown, quotaLine } from './quota'
+import { parseQuota, countdown, quotaLine, refreshedAgo } from './quota'
 test('舊版 JSON 與 unavailable', () => {
   expect(parseQuota('{"agents":{"claude-code":{"available":true},"codex":{"available":false}}}')).toEqual({ agents: { 'claude-code': { available: true } } })
   expect(parseQuota('{"agents":{}}')).toEqual({ agents: {} })
@@ -103,4 +103,8 @@ test('方塊條窄版、43／44 欄邊界、預設與寬版', () => {
       expect(parts.filled.length).toBe(percent === 0 ? 0 : percent === 100 ? width : 3)
     }
   }
+})
+test('刷新時間超過一分鐘換單位', () => {
+  expect([null, 59000, 60000, 3599000, 3600000].map(age => refreshedAgo(10000000, age === null ? null : 10000000 - age)))
+    .toEqual(['↻ —', '↻ 59s ago', '↻ 1m ago', '↻ 59m ago', '↻ 1h ago'])
 })

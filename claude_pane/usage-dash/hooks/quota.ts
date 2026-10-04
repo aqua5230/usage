@@ -59,6 +59,11 @@ export function dockQuotaLine(label: string, window: Window, now: number, elapse
   return { ...parts, label: `${label}${' '.repeat(Math.max(0, 5 - width))} `,
     percent: parts.percent.padStart(4), countdown: time ? `  ${time}` : '' }
 }
+export function refreshedAgo(now: number, last: number | null): string {
+  if (last === null) return '↻ —'
+  const seconds = Math.max(0, Math.floor((now - last) / 1000))
+  return `↻ ${seconds < 60 ? t('seconds_ago', { count: seconds }) : t(seconds < 3600 ? 'minutes_ago' : 'hours_ago', { count: Math.floor(seconds / (seconds < 3600 ? 60 : 3600)) })}`
+}
 export function staleAge(ageSeconds: number, now: number, last: number | null): string {
   const age = Math.max(0, ageSeconds + (last === null ? 0 : (now - last) / 1000))
   if (age <= 600) return ''
