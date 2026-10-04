@@ -294,3 +294,57 @@ def test_disable_saves_before_removing_install(
         monkeypatch.setattr(owner, name, wrapped)
     assert pane.disable_claude_pane() == 0
     assert [call[0] for call in calls.mock_calls] == ["_load_settings", "_save_settings", "rmtree"]
+
+
+def test_refresh_skips_when_disabled(isolated: Path) -> None:
+    pane.refresh_claude_pane()
+    assert not pane.INSTALL_DIR.exists()
+
+
+def test_refresh_leaves_current_install_alone(
+    isolated: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    pane.enable_claude_pane()
+    generated = pane.INSTALL_DIR / ".claude-plugin" / "types" / "claude-code" / "index.d.ts"
+    generated.parent.mkdir(parents=True)
+    generated.write_text("// written by Claude Code\n")
+    rmtree = Mock()
+    monkeypatch.setattr(shutil, "rmtree", rmtree)
+    pane.refresh_claude_pane()
+    rmtree.assert_not_called()
+    assert generated.exists()
+
+
+@pytest.mark.parametrize("change", ["edited", "extra", "missing", "language"])
+def test_refresh_recopies_stale_install(
+    isolated: Path, monkeypatch: pytest.MonkeyPatch, change: str
+) -> None:
+    pane.enable_claude_pane()
+    register = pane.INSTALL_DIR / "hooks" / "register.tsx"
+    expected = register.read_bytes()
+    if change == "edited":
+        register.write_text("// old build\n")
+    elif change == "extra":
+        (pane.INSTALL_DIR / "hooks" / "removed.ts").write_text("// dropped upstream\n")
+    elif change == "missing":
+        register.unlink()
+    else:
+        monkeypatch.setattr(pane, "detect_lang", lambda: "ja")
+    pane.refresh_claude_pane()
+    assert register.read_bytes() == expected
+    assert not (pane.INSTALL_DIR / "hooks" / "removed.ts").exists()
+    assert pane._installed_is_current()
+
+
+def test_update_check_survives_pane_refresh_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    import usage_diagnosis_snapshot
+    from menubar import update as menubar_update
+
+    def fail() -> None:
+        raise SystemExit("source missing")
+
+    monkeypatch.setattr(usage_diagnosis_snapshot, "maybe_schedule_refresh", Mock())
+    monkeypatch.setattr(pane, "refresh_claude_pane", fail)
+    app = Mock()
+    menubar_update.maybe_check_update_in_background(app)
+    app._check_update_in_background.assert_called_once()

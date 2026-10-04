@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import filecmp
 import json
 import os
 import shutil
@@ -69,7 +70,7 @@ def _status_argv() -> list[str]:
     ]
 
 
-def _write_sidecar() -> None:
+def _sidecar_text() -> str:
     from i18n import I18N_PATH
 
     bundle = json.loads(I18N_PATH.read_text(encoding="utf-8"))
@@ -80,13 +81,48 @@ def _write_sidecar() -> None:
         for key, value in english.items()
         if key.startswith("claude_pane_")
     }
-    setup_hook._atomic_write_text(
-        INSTALL_DIR / "usage-pane.json",
+    return (
         json.dumps(
             {"strings": strings, "status_argv": _status_argv()}, ensure_ascii=False, indent=2
         )
-        + "\n",
+        + "\n"
     )
+
+
+def _write_sidecar() -> None:
+    setup_hook._atomic_write_text(INSTALL_DIR / "usage-pane.json", _sidecar_text())
+
+
+def _copy_pane() -> None:
+    source = _resolve_source()
+    if INSTALL_DIR.exists():
+        shutil.rmtree(INSTALL_DIR)
+    shutil.copytree(source, INSTALL_DIR, ignore=shutil.ignore_patterns("*.test.ts"))
+    _write_sidecar()
+
+
+def _installed_is_current() -> bool:
+    source = _resolve_source()
+    shipped = {
+        path.relative_to(source)
+        for path in source.rglob("*")
+        if path.is_file() and not path.name.endswith(".test.ts")
+    }
+    # Claude Code writes its own type stubs under .claude-plugin/types; they are not ours.
+    generated = Path(".claude-plugin", "types")
+    installed = {
+        path.relative_to(INSTALL_DIR)
+        for path in INSTALL_DIR.rglob("*")
+        if path.is_file() and generated not in path.relative_to(INSTALL_DIR).parents
+    } - {Path("usage-pane.json")}
+    if shipped != installed:
+        return False
+    if not all(filecmp.cmp(source / path, INSTALL_DIR / path, shallow=False) for path in shipped):
+        return False
+    try:
+        return (INSTALL_DIR / "usage-pane.json").read_text(encoding="utf-8") == _sidecar_text()
+    except OSError:
+        return False
 
 
 def _env(settings: dict[str, object]) -> dict[str, str]:
@@ -97,11 +133,7 @@ def _env(settings: dict[str, object]) -> dict[str, str]:
 
 
 def enable_claude_pane() -> int:
-    source = _resolve_source()
-    if INSTALL_DIR.exists():
-        shutil.rmtree(INSTALL_DIR)
-    shutil.copytree(source, INSTALL_DIR, ignore=shutil.ignore_patterns("*.test.ts"))
-    _write_sidecar()
+    _copy_pane()
     settings = setup_hook._load_settings()
     env = _env(settings)
     env[PLUGIN_DIRS_KEY] = _add_path(env.get(PLUGIN_DIRS_KEY, ""), str(INSTALL_DIR.absolute()))
@@ -135,3 +167,9 @@ def is_claude_pane_enabled() -> bool:
     return INSTALL_DIR.is_dir() and any(
         part and _same_path(part, str(INSTALL_DIR.absolute())) for part in value.split(os.pathsep)
     )
+
+
+def refresh_claude_pane() -> None:
+    """Re-copy an enabled pane whose files differ from this build's, e.g. after an app upgrade."""
+    if is_claude_pane_enabled() and not _installed_is_current():
+        _copy_pane()
