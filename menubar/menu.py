@@ -11,7 +11,8 @@ from typing import Any, Protocol
 from AppKit import NSMakePoint, NSMenu, NSMenuItem
 
 from i18n import _t
-from installer import login_item
+from installer import claude_pane, login_item
+from menubar.new_badge import apply_badge
 from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
@@ -178,6 +179,16 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
             tooltip_key="terse_mode_tooltip",
         )
     )
+    claude_pane_item = build_menu_item(
+        app.language,
+        "claude_pane_menu",
+        "toggleClaudePane:",
+        target=app,
+        state=claude_pane.is_claude_pane_enabled(),
+        tooltip_key="claude_pane_tooltip",
+    )
+    apply_badge(claude_pane_item, app.language, "claude_pane")
+    menu.addItem_(claude_pane_item)
     app._switch_menu_action_taken = False
     menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
     # Dismissing the menu without picking anything used to close the panel:

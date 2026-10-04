@@ -1,0 +1,53 @@
+// English defaults mirror i18n.json; tests enforce parity.
+export const defaults: Record<string, string> = {
+  "claude_pane_quota": "Quota",
+  "claude_pane_five_hour": "5h",
+  "claude_pane_week": "Week",
+  "claude_pane_period": "Period",
+  "claude_pane_sessions": "Claude sessions",
+  "claude_pane_busy": "Busy",
+  "claude_pane_busy_count": "{count} busy / {total}",
+  "claude_pane_idle": "Idle {ago}",
+  "claude_pane_runs": "Background jobs",
+  "claude_pane_none": "(none)",
+  "claude_pane_untitled": "(untitled)",
+  "claude_pane_no_project": "(no project)",
+  "claude_pane_here": "(here)",
+  "claude_pane_more": "{count} more",
+  "claude_pane_less": "Show less",
+  "claude_pane_terminal": "Terminal",
+  "claude_pane_desktop": "Desktop",
+  "claude_pane_minutes": "{count}m",
+  "claude_pane_hours": "{count}h",
+  "claude_pane_days": "{count}d",
+  "claude_pane_seconds": "{count}s",
+  "claude_pane_minutes_ago": "{count}m ago",
+  "claude_pane_seconds_ago": "{count}s ago",
+  "claude_pane_just_now": "just now",
+  "claude_pane_failed": "failed",
+  "claude_pane_completed": "completed",
+  "claude_pane_completed_ago": "{ago} · {status}",
+  "claude_pane_quota_invalid": "Quota JSON has no agents",
+  "claude_pane_exit_code": "exit code {code}",
+  "claude_pane_quota_error": "Cannot read quota: {error}",
+  "claude_pane_session_error": "Cannot read sessions: {error}",
+  "claude_pane_home_missing": "HOME is not set",
+  "claude_pane_description": "Open the quota, Claude sessions and background jobs pane",
+  "claude_pane_title": "Usage",
+  "claude_pane_opened": "Usage pane opened.",
+  "claude_pane_compact_summary": "Sessions {busy} busy / {total} · Background jobs ",
+  "claude_pane_sidecar_error": "Cannot read pane settings: {error}",
+  "claude_pane_invalid_sidecar": "Invalid usage-pane.json",
+  "claude_pane_remaining": "left",
+  "claude_pane_hours_ago": "{count}h ago",
+  "claude_pane_elapsed": "{minutes}m{seconds}s"
+}
+let strings = defaults
+export let statusArgv: string[] | undefined
+export function configure(value?: { strings?: Record<string, string>; status_argv?: string[] }) {
+  strings = { ...defaults, ...value?.strings }
+  statusArgv = value?.status_argv
+}
+export function t(key: string, values: Record<string, string | number> = {}): string {
+  return (strings[`claude_pane_${key}`] ?? key).replace(/\{(\w+)\}/g, (match, name) => String(values[name] ?? match))
+}

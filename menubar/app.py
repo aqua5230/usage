@@ -579,6 +579,12 @@ class AppDelegate(NSObject):
         alert.runModal()
         self._refresh()
 
+    def toggleClaudePane_(self, sender: Any) -> None:
+        menubar_actions.toggle_claude_pane(self)
+
+    def _finishClaudePane_(self, result: dict[str, Any]) -> None:
+        menubar_actions.finish_claude_pane(self, result)
+
     def toggleTerseMode_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
         thread = threading.Thread(target=self._toggle_terse_mode_in_background, daemon=True)

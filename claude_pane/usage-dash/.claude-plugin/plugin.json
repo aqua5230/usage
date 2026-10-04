@@ -1,0 +1,6 @@
+{
+  "name": "usage-dash",
+  "version": "0.1.1",
+  "description": "Quota, Claude sessions and background jobs pane",
+  "types": "./types/index.d.ts"
+}

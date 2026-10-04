@@ -23,6 +23,7 @@ from installer.statusline_settings import (
     _toggle_statusline_settings,
 )
 from menubar.chrome import _make_alert
+from menubar.new_badge import dismiss_badge
 from usage_common.usage_lang import detect_lang
 
 logger = logging.getLogger(__name__)
@@ -200,3 +201,50 @@ def show_forwarder_mode_prompt_if_needed(language: str | None = None) -> None:
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("forwarder prompt dismissal failed", exc_info=True)
+
+
+class _PaneApp(_ActionApp, Protocol):
+    def _mark_switch_menu_action(self) -> None: ...
+    def _refresh(self) -> None: ...
+
+
+def toggle_claude_pane(app: _PaneApp) -> None:
+    import threading
+
+    dismiss_badge("claude_pane")
+    app._mark_switch_menu_action()
+    threading.Thread(target=toggle_claude_pane_in_background, args=(app,), daemon=True).start()
+
+
+def toggle_claude_pane_in_background(app: _ActionApp) -> None:
+    from installer import claude_pane
+
+    output = io.StringIO()
+    ok = False
+    enabled = False
+    try:
+        with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+            enabled = not claude_pane.is_claude_pane_enabled()
+            action = claude_pane.enable_claude_pane if enabled else claude_pane.disable_claude_pane
+            ok = action() == 0
+    except SystemExit as exc:
+        print(exc.code, file=output)
+    except Exception as exc:
+        print(f"{type(exc).__name__}: {exc}", file=output)
+    app.performSelectorOnMainThread_withObject_waitUntilDone_(
+        "_finishClaudePane:",
+        {"ok": ok, "enabled": enabled, "output": output.getvalue().strip()},
+        False,
+    )
+
+
+def finish_claude_pane(app: _PaneApp, result: dict[str, Any]) -> None:
+    alert = _make_alert()
+    if result.get("ok"):
+        key = "claude_pane_enabled_msg" if result.get("enabled") else "claude_pane_disabled_msg"
+        alert.setMessageText_(_t(app.language, key))
+    else:
+        alert.setMessageText_(_t(app.language, "claude_pane_action_failed"))
+        alert.setInformativeText_(str(result.get("output") or ""))
+    alert.runModal()
+    app._refresh()

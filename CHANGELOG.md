@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Added
+- **Claude Code side pane (macOS):** Toggle quotas, Claude sessions and background jobs inside Claude Code. Requires a recent Claude Code with mod support (tested with 2.1.289). Open a new conversation or run `/reload-plugins` after enabling. The pane opens on the right automatically at terminal widths ≥144 columns; use `/usage-dash` in narrower terminals. macOS Terminal supports only 256 colors and may show a gray background; select an ANSI dark theme in `/config`.
 - **`usage status --json` includes Antigravity and Grok quotas.** Read all Antigravity groups from the local cache and Grok billing from its local log, with reset countdowns and snapshot ages. The text summary stays unchanged.
 
 ## [0.31.6] - 2026-10-04

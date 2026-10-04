@@ -56,6 +56,7 @@ brew install --cask aqua5230/usage/usage
 
 - **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用重講一遍進度。用 `/resume` 接回放太久、快取已過期的對話時，會先提醒下一句要重送多少 token，建議先 `/compact`。預設關閉。
 - **省 token 模式 (Token Saver)：** 一鍵讓 Claude Code 與 Codex 講話更精簡、更白話，省下輸出 token，但程式碼與錯誤訊息保證一個字都不縮水。輕聲提醒維持精簡，長對話也不走鐘——在真實 Session 的 A/B 測試中，對話後段回覆維持少約 40%，而不是走鐘變長 84%。
+- **Claude Code 側邊面板（macOS）：** 選單開關讓 Claude Code 顯示額度、對話與背景工作。需要支援 mod（介面外掛）的較新 Claude Code，實測版本 2.1.289。開啟後開新的對話或打 `/reload-plugins`；終端機寬度 ≥144 欄會自動在右側打開，較窄時打 `/usage-dash`。macOS 內建「終端機」只有 256 色，會出現灰底，建議在 `/config` 換 ANSI 深色主題。
 - **自動啟動 5 小時計時：** 預設關閉。打開後，每次 5 小時額度一重置，`usage` 就自動各送一則極小的訊息（Claude 用 Haiku、Antigravity 用 Gemini 3.5 Flash Low、Codex 用最省成本的模型），讓下一輪 5 小時立刻開始計時。這些訊息會花一點額度，但量小到可以忽略。平常查看額度不會送任何訊息，只有打開這個開關才會。
 - **終端機整合：** `usage status --json` 把 Claude Code、Codex、Antigravity 與 Grok 的配額交給任何能執行指令的工具——Starship、tmux，或你自己的腳本。讀的是選單列本來就在讀的本機檔案。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **Token 浪費健檢：** 每日背景診斷重複讀取檔案、污染目錄與雜訊輸出。當發現浪費時會有一行提示，AI 也能帶你看懂問題並給出改善建議。
