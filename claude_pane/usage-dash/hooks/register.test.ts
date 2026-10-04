@@ -1,5 +1,5 @@
 import { expect, mock, test } from 'claude-code/testing'
-import { parseQuota, resetTime } from './quota'
+import { parseQuota, hideAgents, resetTime } from './quota'
 import type { PluginState } from 'claude-code'
 type Drawn = { type?: string; props?: Record<string, unknown>; children?: unknown[] }
 function flatText(node: unknown): string {
@@ -16,7 +16,7 @@ for (const mode of ['full', 'missing', 'empty'] as const) {
   test(`inline 固定三行、無框線與按鈕：${mode}`, async ($, on) => {
     mock.clock(on, {now:10000})
     on('session.id', () => ({value:'one'}))
-    const values: PluginState['usage-dash'] = { agents:[],
+    const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[],
       quotas:{agents:mode === 'empty' ? {} : mode === 'missing' ? {antigravity:{available:true},grok:{available:true}} : {
         'claude-code':{available:true,five_hour:{used_percent:11},seven_day:{used_percent:21}},
         codex:{available:true,five_hour:{used_percent:1},seven_day:{used_percent:17}},
@@ -56,7 +56,7 @@ test('四家額度、三個對話、一筆工作與收合按鈕', async ($, on) 
     antigravity:{available:true,age_seconds:120,groups:[{name:'GEMINI MODELS',five_hour:{used_percent:23.7,resets_in_seconds:5100},seven_day:{used_percent:53.9,resets_in_seconds:222300}},{name:'Claude / GPT',five_hour:{used_percent:12,resets_in_seconds:1200},seven_day:{used_percent:40,resets_in_seconds:86400}}]},
     grok:{available:true,tier:'XPremium',age_seconds:60,period:{used_percent:28,resets_in_seconds:176000}}
   }})
-  const values: PluginState['usage-dash'] = { agents:[], quotas:parseQuota(fixture),updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:false,runs:false},more:false,sessions:[
+  const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[], quotas:parseQuota(fixture),updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:false,runs:false},more:false,sessions:[
     {id:'s1',pid:1,status:'busy',mtimeMs:990000,title:'Usage面板',source:'usage',contextPercent:41},
     {id:'s2',pid:2,status:'busy',mtimeMs:950000,title:'整理筆記',source:'notes · Desktop',contextPercent:70},
     {id:'s3',pid:3,status:'idle',mtimeMs:990000,title:'修測試',source:'tests',contextPercent:85}
@@ -82,7 +82,7 @@ test('四家額度、三個對話、一筆工作與收合按鈕', async ($, on) 
   }
   walk(tree)
   const statusRows = elements(tree).filter(n => n.props?.justifyContent === 'space-between' && /Idle/.test(flatText(n)))
-  expect(statusRows).toHaveLength(1)
+  expect(statusRows).toHaveLength(0)
   for (const row of statusRows) {
     expect(row.children).toHaveLength(1)
     expect(flatText(row)).not.toContain('%')
@@ -124,7 +124,6 @@ Grok    Period ■■■□□□□□□□  28%  ${resetTime({used_percent:28
 70%
 ✓ tests 修測試
 85%
-    Idle just now
 [ ▾ Background jobs ]
 1
 3m12s  codex  檢查測試結果
@@ -248,7 +247,7 @@ for (const bodyColumns of [10, 43, 44, 200]) {
   test(`分段顏色、忙閒圓點與面板寬度 ${bodyColumns}`, async ($, on) => {
     mock.clock(on, { now: 1000000 })
     on('session.id', () => ({value:'busy'}))
-    const values: PluginState['usage-dash'] = { agents:[],
+    const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[],
       quotas:{agents:{codex:{available:true,five_hour:{used_percent:82,resets_in_seconds:3600}}}},
       updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:false,runs:false},more:false,runs:[],
       sessions:[{id:'busy',pid:1,status:'busy',title:'忙對話',source:'Terminal',mtimeMs:999000},{id:'idle',pid:2,status:'idle',title:'閒對話',source:'Desktop',mtimeMs:800000}]
@@ -273,7 +272,7 @@ for (const bodyColumns of [10, 43, 44, 200]) {
 test('context 靠右、顏色門檻、無資料隱藏與底部只留更新時間', async ($, on) => {
   mock.clock(on,{now:60000})
   on('session.id', () => ({value:'one'}))
-  const values: PluginState['usage-dash'] = { agents:[],
+  const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[],
     quotas:{agents:{}},updated:59000,quotaError:'',sessionError:'',collapsed:{quota:true,sessions:false,runs:true},more:true,runs:[],
     sessions:[undefined,0,69,70,84,85,100].map((percent,i) => ({id:String(i),pid:i+1,title:`對話${i}`,source:'usage',mtimeMs:59000,status:'idle',...(percent === undefined ? {} : {contextPercent:percent})}))
   }
@@ -300,7 +299,7 @@ test('context 靠右、顏色門檻、無資料隱藏與底部只留更新時間
   expect(sessionRows).toHaveLength(7)
   expect(flatText(sessionRows[0])).not.toContain('%')
   const statusRows = nodes.filter(n => n.props?.justifyContent === 'space-between' && flatText(n).includes('Idle'))
-  expect(statusRows).toHaveLength(7)
+  expect(statusRows).toHaveLength(0)
   for (const row of statusRows) {
     expect(row.children).toHaveLength(1)
     expect(flatText(row)).not.toContain('%')
@@ -485,7 +484,7 @@ for (const age of [599,601,3660]) {
   test(`寬版直條、灰字分組與黃色舊資料 ${age}`, async ($, on) => {
     mock.clock(on,{now:1000000})
     on('session.id', () => ({value:'one'}))
-    const values: PluginState['usage-dash'] = { agents:[],
+    const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[],
       quotas:{agents:{antigravity:{available:true,age_seconds:age,groups:[{name:'GEMINI MODELS'},{name:'CLAUDE AND GPT MODELS'}]}}},
       updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:true,runs:true},more:false,runs:[],sessions:[]
     }
@@ -505,7 +504,7 @@ test('另一個對話等你、子代理顏色順序與背景工作總數', async
   mock.clock(on,{now:600000})
   on('session.id', () => ({value:'B'}))
   const values: PluginState['usage-dash'] = {
-    quotas:{agents:{}},updated:600000,quotaError:'',sessionError:'',collapsed:{quota:true,sessions:false,runs:false},more:false,
+    pendingToasts:[], quotas:{agents:{}},updated:600000,quotaError:'',sessionError:'',collapsed:{quota:true,sessions:false,runs:false},more:false,
     sessions:[{id:'A',pid:1,status:'busy',title:'另一個對話',source:'usage',mtimeMs:0,waiting:true,waitingUpdatedAt:0}],
     runs:[{id:'external',agent:'codex',label:'外部工作',start:590000,end:null,status:'running'}],
     agents:['running','waiting','idle','pending','completed','failed','killed'].map((status,i) => ({id:String(i),type:'Explore',description:`子代理${i}`,status:status as PluginState['usage-dash']['agents'][number]['status']}))
@@ -527,3 +526,115 @@ test('另一個對話等你、子代理顏色順序與背景工作總數', async
   await ui.redraw()
   expect(elements(await ui.drawn()).filter(n => n.type === 'Text' && flatText(n) === 'waiting for you')).toHaveLength(1)
 })
+
+test('不可用額度各一列、名稱配色與排序、隱藏設定及 compact 跳過', async ($, on) => {
+  mock.clock(on,{now:0})
+  on('session.id', () => ({value:'current'}))
+  const values: PluginState['usage-dash'] = {
+    pendingToasts:[],agents:[],sessions:[],runs:[],updated:0,quotaError:'',sessionError:'',more:false,
+    collapsed:{quota:false,sessions:true,runs:true},
+    quotas:parseQuota('{"agents":{"claude-code":{"available":false,"reason":"error"},"codex":{"available":true,"five_hour":{"used_percent":50}},"antigravity":{"available":false,"reason":"error"},"grok":{"available":false,"reason":"unknown"}}}')
+  }
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  const props = {title:'Usage',isFocused:true,bodyColumns:60,placement:'dock' as const,scroll:{offset:0,bodyRows:40},view:{}}
+  const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props})
+  const nodes = elements(await ui.drawn())
+  const rows = nodes.filter(n => n.type === 'Text' && n.children?.some(c => ['Claude  ','Codex   ','agy     ','Grok    '].includes(flatText(c))))
+  expect(rows.map(flatText)).toEqual([
+    'Codex   5h    ■■■■■□□□□□  50%',
+    "Claude  Couldn't read · retrying automatically",
+    "agy     Couldn't read · retrying automatically",
+  ])
+  for (const [name,color,bold] of [['Claude  ','#d97757',false],['agy     ','#4285f4',false]] as const) {
+    const row = rows.find(n => flatText(n).startsWith(name))!
+    expect(row.children).toHaveLength(2)
+    expect((row.children![0] as Drawn).props?.color).toBe(color)
+    expect((row.children![0] as Drawn).props?.bold).toBe(bold)
+    expect((row.children![1] as Drawn).props?.dimColor).toBe(true)
+  }
+  expect(nodes.some(n => n.type === 'Text' && flatText(n) === '(none)')).toBe(false)
+  const inline = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{...props,placement:'inline'}})
+  expect(flatText(await inline.drawn())).not.toMatch(/Claude|agy|Grok|Couldn't read|No data|Not signed/)
+  values.quotas = hideAgents(values.quotas,'{"hide_claude_section":true,"hide_codex_section":true,"hide_agy_section":true,"hide_grok_section":true}')
+  await ui.redraw()
+  expect(elements(await ui.drawn()).filter(n => n.type === 'Text' && flatText(n) === '(none)')).toHaveLength(1)
+})
+
+test('第二行只留預覽或黃色等待事項、空忙閒列略過', async ($, on) => {
+  mock.clock(on,{now:0})
+  on('session.id', () => ({value:'current'}))
+  const base = {pid:1,title:'title',source:'project',mtimeMs:0}
+  const values: PluginState['usage-dash'] = {
+    pendingToasts:[],agents:[],runs:[],quotas:{agents:{}},updated:0,quotaError:'',sessionError:'',more:true,
+    collapsed:{quota:true,sessions:false,runs:true},
+    sessions:[
+      {...base,id:'busy-empty',status:'busy'},
+      {...base,id:'idle-empty',status:'idle'},
+      {...base,id:'busy-preview',status:'busy',preview:'busy reply'},
+      {...base,id:'idle-preview',status:'idle',preview:'idle reply'},
+      {...base,id:'input',status:'waiting',waitingFor:'input needed',preview:'reply'},
+      {...base,id:'dialog',status:'waiting',waitingFor:'dialog open'},
+      {...base,id:'sandbox',status:'waiting',waitingFor:'sandbox request'},
+      {...base,id:'worker',status:'waiting',waitingFor:'worker request'},
+      {...base,id:'goal',status:'waiting',waitingFor:'goal proposal'},
+      {...base,id:'unknown',status:'waiting',waitingFor:'custom reason',preview:'custom reply'},
+      {...base,id:'missing',status:'waiting'},
+    ]
+  }
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:60,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
+  const nodes = elements(await ui.drawn())
+  const rows = nodes.filter(n => n.type === 'Text' && n.props?.wrap === 'truncate-end' && flatText(n).startsWith('    '))
+  expect(rows.map(flatText)).toEqual([
+    '    busy reply','    idle reply','    waiting: needs your answer · reply',
+    '    waiting: dialog open','    waiting: sandbox permission','    waiting: subagent request',
+    '    waiting: confirm the goal','    waiting: custom reason · custom reply','    waiting for you',
+  ])
+  const labels = nodes.filter(n => n.type === 'Text' && /^(waiting:|waiting for you$)/.test(flatText(n)))
+  expect(labels).toHaveLength(7)
+  expect(labels.every(n => n.props?.color === 'yellow' && !n.props?.dimColor)).toBe(true)
+  expect(rows.every(n => !/Idle|Busy/.test(flatText(n)))).toBe(true)
+})
+
+for (const status of ['idle','waiting'] as const) {
+  for (const outcome of ['stable','busy','closed','current','first-sighting'] as const) {
+    test(`通知延遲一次刷新：${status} / ${outcome}`, async ($, on) => {
+      const clock = mock.clock(on,{now:0})
+      mock.env(on,{HOME:'/test-home'})
+      let phase: string = outcome === 'first-sighting' ? status : 'busy'
+      const title = 't'.repeat(41), values: Record<string,unknown> = {}
+      const toasts: {text:string;timeoutMs?:number}[] = []
+      on('session.id', () => ({value:outcome === 'current' ? 'other' : 'current'}))
+      on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+      on('state.set', ($,e) => {values[e.key]=e.value;return {value:{isSet:true,version:1}}})
+      on('session.start', ($,e) => ({cwd:e.cwd}))
+      on('session.usage', () => {throw new Error('no context')})
+      on('agent.list', () => ({value:[]}))
+      on('ui.open', () => ({value:{isPlaced:true}}))
+      on('ui.invalidate', () => ({value:undefined}))
+      on('ui.toast', ($,e) => {toasts.push({text:e.text,timeoutMs:e.timeoutMs});return {value:undefined}})
+      on('command.register', ($,e) => ({value:{command:e.name}}))
+      on('fs.exists', () => ({value:false}))
+      on('fs.write', () => ({value:undefined}))
+      on('fs.list', ($,e) => ({value:e.path.endsWith('/.claude/sessions') && phase !== 'closed' ? [{name:'other.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false}] : []}))
+      on('fs.read', ($,e) => {
+        if (e.path.endsWith('/.claude/sessions/other.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:title,updatedAt:0,status:phase,waitingFor:'input needed'})}
+        throw new Error('ENOENT')
+      })
+      on('process.run', ($,e) => ({value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
+      await $.session.start({cwd:'/project',surface:'terminal',isInteractive:true})
+      expect(toasts).toEqual([])
+      phase = status
+      await clock.advance(15000)
+      expect(toasts).toEqual([])
+      const kind = status === 'idle' ? 'done' : 'waiting'
+      expect(values.pendingToasts).toEqual(outcome === 'current' || outcome === 'first-sighting' ? [] : [{id:'other',kind}])
+      if (outcome === 'busy' || outcome === 'closed') phase = outcome
+      await clock.advance(15000)
+      expect(toasts).toEqual(outcome === 'stable' ? [{text:`${status === 'idle' ? 'Done' : 'Waiting for you'}: ${title.slice(0,40)}…`,timeoutMs:8000}] : [])
+      expect(values.pendingToasts).toEqual([])
+      await clock.advance(15000)
+      expect(toasts).toHaveLength(outcome === 'stable' ? 1 : 0)
+    })
+  }
+}

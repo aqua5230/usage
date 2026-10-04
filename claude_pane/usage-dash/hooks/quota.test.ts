@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { parseQuota, hideAgents, byTightest, countdown, quotaLine, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, byTightest, showsUnavailable, countdown, quotaLine, refreshedAgo } from './quota'
 test('最高使用率先排、同分維持原順序', () => {
   const order = ['claude-code','codex','antigravity','grok'] as const
   const data = parseQuota('{"agents":{"claude-code":{"available":true,"five_hour":{"used_percent":20},"seven_day":{"used_percent":60}},"codex":{"available":true,"five_hour":{"used_percent":80}},"antigravity":{"available":true,"seven_day":{"used_percent":60}},"grok":{"available":true,"period":{"used_percent":90}}}}')
@@ -15,7 +15,7 @@ test('agy 所有群組窗口都算、沒有數字排最後', () => {
   expect(byTightest({agents:{}},order)).toEqual(order)
 })
 test('舊版 JSON 與 unavailable', () => {
-  expect(parseQuota('{"agents":{"claude-code":{"available":true},"codex":{"available":false}}}')).toEqual({ agents: { 'claude-code': { available: true } } })
+  expect(parseQuota('{"agents":{"claude-code":{"available":true},"codex":{"available":false}}}')).toEqual({ agents: { 'claude-code': { available: true }, codex: { available: false, reason: 'no_data' } } })
   expect(parseQuota('{"agents":{}}')).toEqual({ agents: {} })
 })
 test('agy 的 Claude / GPT 群組不進面板', () => {
@@ -138,4 +138,24 @@ test('刷新時間超過一分鐘換單位', () => {
 test('沒有數字的額度窗口不顯示成 0%', () => {
   expect(parseQuota('{"agents":{"claude-code":{"available":true,"five_hour":{"used_percent":21},"seven_day":{"used_percent":null,"resets_at":null}}}}'))
     .toEqual({ agents: { 'claude-code': { available: true, five_hour: { used_percent: 21 } } } })
+})
+
+test('不可用原因保留、未知或缺省用 no_data、非物件跳過', () => {
+  for (const reason of ['not_signed_in','no_data','error','unknown',undefined]) {
+    const data = parseQuota(JSON.stringify({agents:{codex:{available:false,reason},nil:null,bad:3}}))
+    expect(data).toEqual({agents:{codex:{available:false,reason:reason === 'unknown' || reason === undefined ? 'no_data' : reason}}})
+    expect(hideAgents(data,'{"hide_codex_section":true}')).toEqual({agents:{}})
+  }
+  const data = parseQuota('{"agents":{"claude-code":{"available":false,"reason":"error"},"codex":{"available":true,"five_hour":{"used_percent":0}},"antigravity":{"available":false,"reason":"not_signed_in"},"grok":{"available":true,"period":{"used_percent":50}}}}')
+  expect(byTightest(data,['claude-code','codex','antigravity','grok'])).toEqual(['grok','codex','claude-code','antigravity'])
+  data.agents.codex = {available:true}
+  expect(byTightest(data,['claude-code','codex','antigravity','grok'])).toEqual(['grok','codex','claude-code','antigravity'])
+})
+test('Claude 與 Codex 讀不到都顯示，agy 與 Grok 只在出錯時顯示', () => {
+  for (const reason of ['not_signed_in','no_data','error']) {
+    expect(showsUnavailable('claude-code',reason)).toBe(true)
+    expect(showsUnavailable('codex',reason)).toBe(true)
+    expect(showsUnavailable('antigravity',reason)).toBe(reason === 'error')
+    expect(showsUnavailable('grok',reason)).toBe(reason === 'error')
+  }
 })

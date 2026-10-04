@@ -358,10 +358,13 @@ def _age_seconds(updated_at: str | None, now: int) -> int | None:
     return None if parsed is None else max(0, now - int(parsed.timestamp()))
 
 
-def _status_agent(rate_limits: RateLimits | None, now: int) -> dict[str, Any]:
+def _status_agent(
+    rate_limits: RateLimits | None, now: int, reason: str = "no_data"
+) -> dict[str, Any]:
     if rate_limits is None:
         return {
             "available": False,
+            "reason": reason,
             "five_hour": _status_window(None, None, now),
             "seven_day": _status_window(None, None, now),
             "model": None,
@@ -386,9 +389,10 @@ def _status_antigravity(now: int) -> dict[str, Any]:
     try:
         quota = agy_quota_probe._read_cache()
     except (OSError, UnicodeError, ValueError):
-        quota = None
+        return _status_agent(None, now, "error")
     if quota is None:
-        return _status_agent(None, now)
+        reason = "no_data" if agy_quota_probe._TOKEN_PATH.exists() else "not_signed_in"
+        return _status_agent(None, now, reason)
     fetched_at = parse_optional_iso8601_utc(quota.fetched_at)
     if fetched_at is None:
         return _status_agent(None, now)
@@ -426,7 +430,7 @@ def _status_grok(now: int) -> dict[str, Any]:
         period_end = None if quota is None else parse_optional_iso8601_utc(quota.period_end)
         resets_at = None if period_end is None else int(period_end.timestamp())
     except (OSError, ValueError, OverflowError):
-        return _status_agent(None, now)
+        return _status_agent(None, now, "error")
     if quota is None or resets_at is None:
         return _status_agent(None, now)
     return {
@@ -446,8 +450,9 @@ def _status_payload(*, include_extra_agents: bool = True) -> dict[str, Any]:
         try:
             rate_limits = RATE_LIMIT_LOADERS[agent_id]()
         except Exception:
-            rate_limits = None
-        agents[agent_id] = _status_agent(rate_limits, now)
+            agents[agent_id] = _status_agent(None, now, "error")
+        else:
+            agents[agent_id] = _status_agent(rate_limits, now)
     if include_extra_agents:
         agents["antigravity"] = _status_antigravity(now)
         agents["grok"] = _status_grok(now)

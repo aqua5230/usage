@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { parseSession, isBusy, newest, sessionStatus, parseLiveSession, liveSessions, tasklistPids, toSession, sessionNotifications, sessionMark } from './sessions'
+import { parseSession, isBusy, newest, sessionStatus, parseLiveSession, liveSessions, tasklistPids, toSession, sessionNotifications, settleNotifications, waitingText, sessionMark } from './sessions'
 test('其他對話忙轉閒或等你才通知、關閉與首次刷新不通知', () => {
   const busy = {id:'one',title:'標題',source:'',mtimeMs:0,pid:1,status:'busy'}, idle = {...busy,status:'idle'}, waiting = {...busy,status:'waiting'}
   expect(sessionNotifications([busy],[idle],'current')).toEqual([{session:idle,kind:'done'}])
@@ -99,4 +99,37 @@ test('對話標記：轉圈、等你、剛做完打勾、久了變灰點', () =>
   expect(sessionMark(busy,true,0)).toEqual({text:'?',color:'yellow'})
   expect(sessionMark(idle,false,599999)).toEqual({text:'✓',color:'green'})
   expect(sessionMark(idle,false,600000)).toEqual({text:'●'})
+})
+
+test('waitingFor 解析、帶入 Session、已知翻譯、未知原文與缺省', () => {
+  for (const [reason,label] of [['input needed','needs your answer'],['dialog open','dialog open'],['sandbox request','sandbox permission'],['worker request','subagent request'],['goal proposal','confirm the goal'],['custom reason','custom reason'],['constructor','constructor']] as const) {
+    const row = parseLiveSession(JSON.stringify({pid:1,sessionId:'one',updatedAt:0,status:'waiting',waitingFor:reason}))!
+    expect(row.waitingFor).toBe(reason)
+    expect(toSession(row).waitingFor).toBe(reason)
+    expect(waitingText(reason)).toBe(`waiting: ${label}`)
+  }
+  for (const reason of [undefined,null,1,'','   ']) {
+    const row = parseLiveSession(JSON.stringify({pid:1,sessionId:'one',updatedAt:0,waitingFor:reason}))!
+    expect(row.waitingFor).toBeUndefined()
+    expect(toSession(row).waitingFor).toBeUndefined()
+  }
+  expect(waitingText()).toBe('waiting for you')
+  expect(waitingText('')).toBe('waiting for you')
+  expect(waitingText('   ')).toBe('waiting for you')
+})
+test('通知等第二次刷新確認，回忙、關閉、變更狀態與目前對話取消', () => {
+  const busy = {id:'one',title:'title',source:'',mtimeMs:0,pid:1,status:'busy'}
+  for (const kind of ['done','waiting'] as const) {
+    const next = {...busy,status:kind === 'done' ? 'idle' : 'waiting'}
+    const first = settleNotifications([],[busy],[next],'current')
+    expect(first).toEqual({toast:[],pending:[{id:'one',kind}]})
+    const confirmed = {...next,title:'latest title'}
+    expect(settleNotifications(first.pending,[next],[confirmed],'current')).toEqual({toast:[{session:confirmed,kind}],pending:[]})
+    expect(settleNotifications([],[],[next],'current')).toEqual({toast:[],pending:[]})
+    expect(settleNotifications(first.pending,[next],[busy],'current')).toEqual({toast:[],pending:[]})
+    expect(settleNotifications(first.pending,[next],[],'current')).toEqual({toast:[],pending:[]})
+    expect(settleNotifications(first.pending,[next],[{...next,status:kind === 'done' ? 'waiting' : 'idle'}],'current')).toEqual({toast:[],pending:[]})
+    expect(settleNotifications(first.pending,[next],[next],'one')).toEqual({toast:[],pending:[]})
+    expect(settleNotifications([],[busy],[next],'one')).toEqual({toast:[],pending:[]})
+  }
 })

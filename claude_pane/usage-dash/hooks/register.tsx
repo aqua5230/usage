@@ -3,15 +3,16 @@ import { atom, read, update } from 'claude-code'
 import type { Hook, Register } from 'claude-code'
 import type { Run, Session } from '../types'
 import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
-import { parseQuota, hideAgents, byTightest, dockQuotaLine, staleAge, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, byTightest, showsUnavailable, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
-import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus, sessionNotifications, sessionMark } from './sessions'
+import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, waitingText, settleNotifications, sessionMark } from './sessions'
 import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
 const updated = atom({ plugin: 'usage-dash', key: 'updated' } as const, null)
 const quotaError = atom({ plugin: 'usage-dash', key: 'quotaError' } as const, '')
 const sessions = atom({ plugin: 'usage-dash', key: 'sessions' } as const, [])
+const pendingToasts = atom({ plugin: 'usage-dash', key: 'pendingToasts' } as const, [])
 const sessionError = atom({ plugin: 'usage-dash', key: 'sessionError' } as const, '')
 const agents = atom({ plugin: 'usage-dash', key: 'agents' } as const, [])
 const runs = atom({ plugin: 'usage-dash', key: 'runs' } as const, [])
@@ -154,8 +155,10 @@ async function refreshSessions($: Dollar) {
     }
     await readContexts($, `${home}/.usage/claude-pane/live`, rows)
     const previous = await read($, sessions), currentId = await $.session.id()
+    const settled = settleNotifications(await read($, pendingToasts), previous, rows, currentId)
     await update($, sessions, () => newest(rows))
-    for (const { session, kind } of sessionNotifications(previous, rows, currentId)) {
+    await update($, pendingToasts, () => settled.pending)
+    for (const { session, kind } of settled.toast) {
       const title = session.title.length > 40 ? `${session.title.slice(0,40)}…` : session.title
       $.ui.toast(t(`session_${kind}`, { title }), { timeoutMs: 8000 })
     }
@@ -289,8 +292,9 @@ export const register: Register = (on) => {
       {!fold.quota && <Box flexDirection="column">
         {byTightest(data, ['claude-code','codex','antigravity','grok']).map(key => {
           const agent = data.agents[key]
-          if (!agent?.available) return null
+          if (!agent || (!agent.available && !showsUnavailable(key, agent.reason))) return null
           const name = key === 'claude-code' ? 'Claude' : key === 'codex' ? 'Codex' : key === 'antigravity' ? 'agy' : 'Grok'
+          if (!agent.available) return <Text key={key}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{name.padEnd(8)}</Text><Text dimColor>{t(`unavailable_${agent.reason ?? 'no_data'}`)}</Text></Text>
           const age = staleAge(agent.age_seconds ?? 0, now, last)
           const groups = agent.groups ?? [{ name: '', five_hour: agent.five_hour, seven_day: agent.seven_day }]
           const rows = groups.flatMap(group => [
@@ -317,11 +321,10 @@ export const register: Register = (on) => {
       </Box>
       {!fold.sessions && <Box flexDirection="column">
         {list.slice(0,expanded ? list.length : 4).map(s => {
-          const busy = isBusy(s)
           const waiting = s.status === 'waiting' || isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now), mark = sessionMark(s, waiting, now)
           return <Box key={s.id} flexDirection="column">
             <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={mark.color} dimColor={!mark.color}>{mark.text}</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
-            {(waiting || !busy || s.preview) && <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}{(waiting || !busy) && <Text color={waiting ? 'yellow' : undefined} dimColor={!waiting}>{waiting ? t('waiting') : sessionStatus(s,now)}</Text>}{s.preview && <Text dimColor>{`${waiting || !busy ? ' · ' : ''}${s.preview}`}</Text>}</Text></Box></Box>}
+            {(waiting || s.preview) && <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}{waiting && <Text color="yellow">{waitingText(s.waitingFor)}</Text>}{s.preview && <Text dimColor>{`${waiting ? ' · ' : ''}${s.preview}`}</Text>}</Text></Box></Box>}
           </Box>
         })}
         {!list.length && <Text dimColor>{t('none')}</Text>}

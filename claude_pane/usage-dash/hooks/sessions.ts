@@ -18,14 +18,14 @@ export function parseSession(text: string): Pick<Session, 'title' | 'source'> & 
   }
   return { title: title || prompt || t('untitled'), source: source === 'cli' ? t('terminal') : source === 'claude-desktop' ? t('desktop') : source, preview }
 }
-export type LiveSession = { pid: number; sessionId: string; name: string; entrypoint: string; status: string; statusUpdatedAt: number; cwd: string }
+export type LiveSession = { pid: number; sessionId: string; name: string; entrypoint: string; status: string; statusUpdatedAt: number; cwd: string; waitingFor?: string }
 export function parseLiveSession(text: string): LiveSession | null {
   let row
   try { row = JSON.parse(text) } catch { return null }
   if (!row || typeof row !== 'object' || !Number.isSafeInteger(row.pid) || row.pid <= 0 || typeof row.sessionId !== 'string' || !row.sessionId) return null
   const timestamp = row.statusUpdatedAt ?? row.updatedAt
   if (typeof timestamp !== 'number' || !Number.isFinite(timestamp)) return null
-  return { pid: row.pid, sessionId: row.sessionId, name: typeof row.name === 'string' ? row.name : '', entrypoint: typeof row.entrypoint === 'string' ? row.entrypoint : '', status: typeof row.status === 'string' ? row.status : '', statusUpdatedAt: timestamp, cwd: typeof row.cwd === 'string' ? row.cwd : '' }
+  return { pid: row.pid, sessionId: row.sessionId, name: typeof row.name === 'string' ? row.name : '', entrypoint: typeof row.entrypoint === 'string' ? row.entrypoint : '', status: typeof row.status === 'string' ? row.status : '', statusUpdatedAt: timestamp, cwd: typeof row.cwd === 'string' ? row.cwd : '', ...(typeof row.waitingFor === 'string' && row.waitingFor.trim() ? { waitingFor: row.waitingFor } : {}) }
 }
 export function liveSessions(rows: LiveSession[], psOutput: string): LiveSession[] {
   const pids = new Set(psOutput.trim().split(/\s+/).map(Number))
@@ -40,12 +40,25 @@ export function toSession(row: LiveSession, transcript = ''): Session {
   if (!cwd) for (const line of transcript.split('\n')) {
     try { const entry = JSON.parse(line); if (typeof entry?.cwd === 'string') cwd = entry.cwd } catch { /* skip malformed transcript rows */ }
   }
-  return { id: row.sessionId, pid: row.pid, title: title === t('untitled') ? row.name : title, source: projectSource(cwd, row.entrypoint), mtimeMs: row.statusUpdatedAt, status: row.status, ...(preview ? { preview } : {}) }
+  return { id: row.sessionId, pid: row.pid, title: title === t('untitled') ? row.name : title, source: projectSource(cwd, row.entrypoint), mtimeMs: row.statusUpdatedAt, status: row.status, ...(preview ? { preview } : {}), ...(row.waitingFor ? { waitingFor: row.waitingFor } : {}) }
 }
 export function isBusy(session: Session): boolean { return session.status === 'busy' }
 export function sessionNotifications(previous: Session[], next: Session[], currentId: string): { session: Session; kind: 'done' | 'waiting' }[] {
   const busy = new Set(previous.filter(isBusy).map(session => session.id))
   return next.filter(session => session.id !== currentId && (session.status === 'idle' || session.status === 'waiting') && busy.has(session.id)).map(session => ({ session, kind: session.status === 'waiting' ? 'waiting' : 'done' }))
+}
+export function waitingText(reason?: string): string {
+  if (!reason?.trim()) return t('waiting')
+  const keys: Record<string,string> = { 'input needed':'input', 'dialog open':'dialog', 'sandbox request':'sandbox', 'worker request':'worker', 'goal proposal':'goal' }
+  const key = Object.hasOwn(keys,reason) ? keys[reason] : undefined
+  return t('waiting_for', { reason: key ? t(`waiting_${key}`) : reason })
+}
+export function settleNotifications(pending: { id: string; kind: 'done' | 'waiting' }[], previous: Session[], next: Session[], currentId: string): { toast: { session: Session; kind: 'done' | 'waiting' }[]; pending: { id: string; kind: 'done' | 'waiting' }[] } {
+  const toast = pending.flatMap(({ id, kind }) => {
+    const session = next.find(session => session.id === id && id !== currentId && session.status === (kind === 'done' ? 'idle' : 'waiting'))
+    return session ? [{ session, kind }] : []
+  })
+  return { toast, pending: sessionNotifications(previous,next,currentId).map(({session,kind}) => ({id:session.id,kind})) }
 }
 const SPINNER = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
 // Spinner while working, ? while waiting on you, ✓ for ten minutes after finishing, then a gray dot.

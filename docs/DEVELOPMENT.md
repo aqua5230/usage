@@ -230,6 +230,8 @@ The JSON carries a `schema_version` so consumers can guard against future change
 
 An agent with no readable data yet reports `"available": false` with null fields, and the command still exits `0` — missing data is not an error. A window that the provider doesn't report is `null` rather than absent, so consumers never have to guard against a missing key.
 
+Unavailable agents also include `reason`: `no_data` when the loader returns nothing, `error` when it raises, or (Antigravity only) `not_signed_in` when both cached quota and the CLI OAuth token file are absent. Available agents stay unchanged; this additive field keeps `schema_version` at `1`.
+
 Antigravity preserves cache order in `groups`, maps `weekly` to `seven_day`, and computes `used_percent` as `100 - remaining_percent`, rounded to one decimal. Its countdown uses cached `fetched_at` plus `resets_in_minutes`, minus the current time, floored at `0`; an unknown reset is `null`. Grok converts `period_end` to Unix seconds in `period.resets_at` and exposes `subscription_tier` as `tier` (`null` when absent). Both preserve the original `fetched_at` string as `updated_at`; stale cache data remains readable with elapsed countdowns at zero. When unavailable, both use the complete Claude/Codex unavailable field shape.
 
 If you installed from source, either run it as `python3 usage_cli.py status --json` or `uv sync` once to get the `usage` command on your PATH.
