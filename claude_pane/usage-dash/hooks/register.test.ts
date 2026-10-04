@@ -81,8 +81,8 @@ test('四家額度、三個對話、一筆工作與收合按鈕', async ($, on) 
     } else { for (const child of element.children ?? []) walk(child) }
   }
   walk(tree)
-  const statusRows = elements(tree).filter(n => n.props?.justifyContent === 'space-between' && /Busy|Idle/.test(flatText(n)))
-  expect(statusRows).toHaveLength(3)
+  const statusRows = elements(tree).filter(n => n.props?.justifyContent === 'space-between' && /Idle/.test(flatText(n)))
+  expect(statusRows).toHaveLength(1)
   for (const row of statusRows) {
     expect(row.children).toHaveLength(1)
     expect(flatText(row)).not.toContain('%')
@@ -120,10 +120,8 @@ Grok    Period ■■■□□□□□□□  28%  ${resetTime({used_percent:28
 2 busy / 3
 ⠋ usage (here)Usage面板
 41%
-    Busy
 ⠋ notes · Desktop 整理筆記
 70%
-    Busy
 ✓ tests 修測試
 85%
     Idle just now

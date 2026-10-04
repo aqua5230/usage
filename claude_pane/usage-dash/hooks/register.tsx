@@ -321,7 +321,7 @@ export const register: Register = (on) => {
           const waiting = s.status === 'waiting' || isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now), mark = sessionMark(s, waiting, now)
           return <Box key={s.id} flexDirection="column">
             <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={mark.color} dimColor={!mark.color}>{mark.text}</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
-            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}<Text color={waiting ? 'yellow' : busy ? 'green' : undefined} dimColor={!waiting && !busy}>{waiting ? t('waiting') : sessionStatus(s,now)}</Text>{s.preview && <Text dimColor>{` · ${s.preview}`}</Text>}</Text></Box></Box>
+            {(waiting || !busy || s.preview) && <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}{(waiting || !busy) && <Text color={waiting ? 'yellow' : undefined} dimColor={!waiting}>{waiting ? t('waiting') : sessionStatus(s,now)}</Text>}{s.preview && <Text dimColor>{`${waiting || !busy ? ' · ' : ''}${s.preview}`}</Text>}</Text></Box></Box>}
           </Box>
         })}
         {!list.length && <Text dimColor>{t('none')}</Text>}
