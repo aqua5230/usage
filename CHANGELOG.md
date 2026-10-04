@@ -5,6 +5,17 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.32.2] - 2026-10-05
+
+### Added
+- **Claude Code side pane notifications:** A toast appears when another Claude conversation finishes or starts waiting for you. It fires only when the next refresh still shows the same state, so brief flips don't ping.
+- **Session rows show the latest reply:** Each conversation's second row shows the last assistant reply (Markdown stripped); a waiting conversation says what it waits for, such as needs your answer or sandbox permission.
+- **`usage status --json` explains missing quotas:** Unavailable agents carry `reason` (`not_signed_in`, `no_data` or `error`). The pane shows Claude and Codex with that reason instead of dropping them; Antigravity and Grok stay hidden like the menu bar unless reading fails.
+
+### Changed
+- **Side pane quota block is easier to scan:** The tightest quota is listed first, each tool takes two rows with its name in a left column, model names are gone, and windows under 50% are gray so only the ones worth watching are colored. Antigravity's Claude / GPT pool is no longer shown in the pane.
+- **Session marks follow state:** A spinner while working, a yellow `?` while waiting for you, a green check for ten minutes after finishing, then a gray dot. The Busy and Idle labels are gone.
+
 ## [0.32.1] - 2026-10-05
 
 ### Added
