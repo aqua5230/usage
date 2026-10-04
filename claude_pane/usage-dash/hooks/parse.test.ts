@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'claude-code/testing'
 
-import { formatElapsed, isShellBackgrounded, matchAgent, parseNotifications } from './parse'
+import { formatElapsed, isShellBackgrounded, matchAgent, parseNotifications, backgroundTasks, liveBgTasks, STALE_MS } from './parse'
 
 // Captured verbatim from a live background-task notification on Claude Code 2.1.288.
 const NOTIFICATION = `<task-notification>
@@ -14,15 +14,15 @@ const NOTIFICATION = `<task-notification>
 describe('parseNotifications', () => {
   test('reads tool-use-id and status', () => {
     expect(parseNotifications(NOTIFICATION)).toEqual([
-      { toolUseId: 'toolu_01C2HgtbDDFTyLA6fh5X7oxY', status: 'completed' },
+      { taskId: 'bmfolkcj5', toolUseId: 'toolu_01C2HgtbDDFTyLA6fh5X7oxY', status: 'completed' },
     ])
   })
 
   test('reads several notifications in one text', () => {
     const second = NOTIFICATION.replace('toolu_01C2HgtbDDFTyLA6fh5X7oxY', 'toolu_B').replace('completed', 'failed')
     expect(parseNotifications(`${NOTIFICATION}\n${second}`)).toEqual([
-      { toolUseId: 'toolu_01C2HgtbDDFTyLA6fh5X7oxY', status: 'completed' },
-      { toolUseId: 'toolu_B', status: 'failed' },
+      { taskId: 'bmfolkcj5', toolUseId: 'toolu_01C2HgtbDDFTyLA6fh5X7oxY', status: 'completed' },
+      { taskId: 'bmfolkcj5', toolUseId: 'toolu_B', status: 'failed' },
     ])
   })
 
@@ -83,4 +83,23 @@ test('額外邊界：負數時間、空指令、空通知', () => {
 test('matchAgent sees a dispatch after a heredoc brief', () => {
   expect(matchAgent(`SP=/tmp/x; cat > $SP/brief.md <<'EOF'\nrun codex exec here\nEOF\ncd /repo && codex exec -m gpt-6.1-sol "$(cat $SP/brief.md)" </dev/null`)).toBe('codex')
   expect(matchAgent(`cat > b.md <<'EOF'\ncodex exec x\nEOF\necho done`)).toBe(null)
+})
+
+test('Stop 清單排除子代理和派工，保留開始時間與指令備援', () => {
+  const shell = {id:'shell',type:'shell',status:'running',description:'整理',command:'python scripts/auto_curate.py'}
+  const tasks = [shell, {id:'child',type:'subagent',description:'讀檔'}, {id:'dispatch',type:'shell',description:'派工',command:'cd /repo && codex exec "fix"'}]
+  const first = backgroundTasks(tasks,[],100)
+  expect(first).toEqual([{id:'shell',type:'shell',label:'整理',start:100}])
+  expect(backgroundTasks([{...shell,description:''}],first,200)).toEqual([{id:'shell',type:'shell',label:shell.command,start:100}])
+  expect(backgroundTasks([...tasks,{id:'new',type:'monitor',description:'監看'}],first,200)[1]!.start).toBe(200)
+  expect(backgroundTasks([],first,200)).toEqual([])
+  expect(liveBgTasks(first,100 + STALE_MS - 1)).toEqual(first)
+  expect(liveBgTasks(first,100 + STALE_MS)).toEqual([])
+  expect(backgroundTasks(tasks,first,100 + STALE_MS)).toEqual([])
+})
+
+test('通知可只有 task-id，舊 tool-use-id 格式照常解析', () => {
+  expect(parseNotifications('<task-notification><task-id>shell</task-id><status>completed</status></task-notification>')).toEqual([{taskId:'shell',status:'completed'}])
+  expect(parseNotifications('<task-notification><tool-use-id>run</tool-use-id><status>failed</status></task-notification>')).toEqual([{toolUseId:'run',status:'failed'}])
+  expect(parseNotifications('<task-notification><task-id>shell</task-id></task-notification>')).toEqual([])
 })

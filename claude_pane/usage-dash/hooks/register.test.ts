@@ -17,7 +17,7 @@ for (const mode of ['full', 'missing', 'empty'] as const) {
   test(`inline 固定三行、無框線與按鈕：${mode}`, async ($, on) => {
     mock.clock(on, {now:10000})
     on('session.id', () => ({value:'one'}))
-    const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[],
+    const values: PluginState['usage-dash'] = { bgTasks:[], pendingToasts:[], agents:[],
       quotas:{agents:mode === 'empty' ? {} : mode === 'missing' ? {antigravity:{available:true},grok:{available:true}} : {
         'claude-code':{available:true,five_hour:{used_percent:11},seven_day:{used_percent:21}},
         codex:{available:true,five_hour:{used_percent:1},seven_day:{used_percent:17}},
@@ -57,7 +57,7 @@ test('四家額度、三個對話、一筆工作與收合按鈕', async ($, on) 
     antigravity:{available:true,age_seconds:120,groups:[{name:'GEMINI MODELS',five_hour:{used_percent:23.7,resets_in_seconds:5100},seven_day:{used_percent:53.9,resets_in_seconds:222300}},{name:'Claude / GPT',five_hour:{used_percent:12,resets_in_seconds:1200},seven_day:{used_percent:40,resets_in_seconds:86400}}]},
     grok:{available:true,tier:'XPremium',age_seconds:60,period:{used_percent:28,resets_in_seconds:176000}}
   }})
-  const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[], quotas:parseQuota(fixture),updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:false,runs:false},more:false,moreRuns:false,sessions:[
+  const values: PluginState['usage-dash'] = { bgTasks:[], pendingToasts:[], agents:[], quotas:parseQuota(fixture),updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:false,runs:false},more:false,moreRuns:false,sessions:[
     {id:'s1',pid:1,status:'busy',mtimeMs:990000,title:'Usage面板',source:'usage',contextPercent:41},
     {id:'s2',pid:2,status:'busy',mtimeMs:950000,title:'整理筆記',source:'notes · Desktop',contextPercent:70},
     {id:'s3',pid:3,status:'idle',mtimeMs:990000,title:'修測試',source:'tests',contextPercent:85}
@@ -248,7 +248,7 @@ for (const bodyColumns of [10, 43, 44, 200]) {
   test(`分段顏色、忙閒圓點與面板寬度 ${bodyColumns}`, async ($, on) => {
     mock.clock(on, { now: 1000000 })
     on('session.id', () => ({value:'busy'}))
-    const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[],
+    const values: PluginState['usage-dash'] = { bgTasks:[], pendingToasts:[], agents:[],
       quotas:{agents:{codex:{available:true,five_hour:{used_percent:82,resets_in_seconds:3600}}}},
       updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:false,runs:false},more:false,moreRuns:false,runs:[],
       sessions:[{id:'busy',pid:1,status:'busy',title:'忙對話',source:'Terminal',mtimeMs:999000},{id:'idle',pid:2,status:'idle',title:'閒對話',source:'Desktop',mtimeMs:800000}]
@@ -273,7 +273,7 @@ for (const bodyColumns of [10, 43, 44, 200]) {
 test('context 靠右、顏色門檻、無資料隱藏與底部只留更新時間', async ($, on) => {
   mock.clock(on,{now:60000})
   on('session.id', () => ({value:'one'}))
-  const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[],
+  const values: PluginState['usage-dash'] = { bgTasks:[], pendingToasts:[], agents:[],
     quotas:{agents:{}},updated:59000,quotaError:'',sessionError:'',collapsed:{quota:true,sessions:false,runs:true},more:true,moreRuns:false,runs:[],
     sessions:[undefined,0,69,70,84,85,100].map((percent,i) => ({id:String(i),pid:i+1,title:`對話${i}`,source:'usage',mtimeMs:59000,status:'idle',...(percent === undefined ? {} : {contextPercent:percent})}))
   }
@@ -485,7 +485,7 @@ for (const age of [599,601,3660]) {
   test(`寬版直條、灰字分組與黃色舊資料 ${age}`, async ($, on) => {
     mock.clock(on,{now:1000000})
     on('session.id', () => ({value:'one'}))
-    const values: PluginState['usage-dash'] = { pendingToasts:[], agents:[],
+    const values: PluginState['usage-dash'] = { bgTasks:[], pendingToasts:[], agents:[],
       quotas:{agents:{antigravity:{available:true,age_seconds:age,groups:[{name:'GEMINI MODELS'},{name:'CLAUDE AND GPT MODELS'}]}}},
       updated:1000000,quotaError:'',sessionError:'',collapsed:{quota:false,sessions:true,runs:true},more:false,moreRuns:false,runs:[],sessions:[]
     }
@@ -504,7 +504,7 @@ for (const age of [599,601,3660]) {
 test('另一個對話等你、子代理顏色順序與背景工作總數', async ($, on) => {
   mock.clock(on,{now:600000})
   on('session.id', () => ({value:'B'}))
-  const values: PluginState['usage-dash'] = {
+  const values: PluginState['usage-dash'] = { bgTasks:[],
     pendingToasts:[], quotas:{agents:{}},updated:600000,quotaError:'',sessionError:'',collapsed:{quota:true,sessions:false,runs:false},more:false,moreRuns:false,
     sessions:[{id:'A',pid:1,status:'busy',title:'另一個對話',source:'usage',mtimeMs:0,waiting:true,waitingUpdatedAt:0}],
     runs:[{id:'external',agent:'codex',label:'外部工作',start:590000,end:null,status:'running'}],
@@ -531,7 +531,7 @@ test('另一個對話等你、子代理顏色順序與背景工作總數', async
 test('不可用額度各一列、名稱配色與排序、隱藏設定及 compact 跳過', async ($, on) => {
   mock.clock(on,{now:0})
   on('session.id', () => ({value:'current'}))
-  const values: PluginState['usage-dash'] = {
+  const values: PluginState['usage-dash'] = { bgTasks:[],
     pendingToasts:[],agents:[],sessions:[],runs:[],updated:0,quotaError:'',sessionError:'',more:false,moreRuns:false,
     collapsed:{quota:false,sessions:true,runs:true},
     quotas:parseQuota('{"agents":{"claude-code":{"available":false,"reason":"error"},"codex":{"available":true,"five_hour":{"used_percent":50}},"antigravity":{"available":false,"reason":"error"},"grok":{"available":false,"reason":"unknown"}}}')
@@ -565,7 +565,7 @@ test('第二行只留預覽或黃色等待事項、空忙閒列略過', async ($
   mock.clock(on,{now:0})
   on('session.id', () => ({value:'current'}))
   const base = {pid:1,title:'title',source:'project',mtimeMs:0}
-  const values: PluginState['usage-dash'] = {
+  const values: PluginState['usage-dash'] = { bgTasks:[],
     pendingToasts:[],agents:[],runs:[],quotas:{agents:{}},updated:0,quotaError:'',sessionError:'',more:true,moreRuns:false,
     collapsed:{quota:true,sessions:false,runs:true},
     sessions:[
@@ -645,7 +645,7 @@ test('已重置的 dock 額度歸零、倒數改 Reset、灰字且排序下降',
   configure()
   mock.clock(on,{now:60000})
   on('session.id', () => ({value:'current'}))
-  const values: PluginState['usage-dash'] = {
+  const values: PluginState['usage-dash'] = { bgTasks:[],
     pendingToasts:[],agents:[],sessions:[],runs:[],updated:0,quotaError:'',sessionError:'',more:false,moreRuns:false,
     collapsed:{quota:false,sessions:true,runs:true},
     quotas:{agents:{codex:{available:true,five_hour:{used_percent:95,resets_in_seconds:60}},'claude-code':{available:true,five_hour:{used_percent:10,resets_at:120}}}},
@@ -703,4 +703,52 @@ test('live 回報背景工作數，idle 工作歸零才通知完成', async ($, 
   expect(toasts).toEqual([])
   await clock.advance(15000)
   expect(toasts).toEqual(['Done: task'])
+})
+
+test('Stop 追蹤一般 shell、保留時間，通知移除並更新標頭和 live jobs', async ($, on) => {
+  configure()
+  const clock = mock.clock(on,{now:1000})
+  mock.env(on,{HOME:'/test-home'})
+  const values: PluginState['usage-dash'] = {
+    bgTasks:[],runs:[],agents:[],sessions:[],pendingToasts:[],quotas:{agents:{}},updated:0,quotaError:'',sessionError:'',
+    more:false,moreRuns:false,collapsed:{quota:true,sessions:true,runs:false},
+  }
+  let live = '', stops = 0
+  on('session.id', () => ({value:'current'}))
+  on('session.usage', () => {throw new Error('no context')})
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  on('state.set', ($,e) => {Object.assign(values,{[e.key]:e.value});return {value:{isSet:true,version:1}}})
+  on('fs.read', () => ({value:live}))
+  on('fs.write', ($,e) => {live=e.text;return {value:undefined}})
+  on('classic.Stop', () => {stops++;return {}})
+  on('session.receive', ($,e) => ({text:e.text}))
+  const shell = {id:'shell',type:'shell',status:'running',description:'整理資料',command:'python scripts/auto_curate.py'}
+  const background_tasks = [shell,{id:'child',type:'subagent',status:'running',description:'讀檔'},{id:'dispatch',type:'shell',status:'running',description:'派工',command:'codex exec "fix"'}]
+  await $.classic.Stop({stop_hook_active:false,background_tasks})
+  expect(values.bgTasks).toEqual([{id:'shell',type:'shell',label:'整理資料',start:1000}])
+  expect(JSON.parse(live).jobs).toBe(1)
+  await clock.advance(1000)
+  await $.classic.Stop({stop_hook_active:false,background_tasks})
+  expect(values.bgTasks[0]!.start).toBe(1000)
+  expect(stops).toBe(2)
+  const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:60,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
+  const nodes = elements(await ui.drawn())
+  expect(nodes.some(n => n.type === 'Text' && flatText(n) === '1')).toBe(true)
+  const row = nodes.find(n => n.props?.wrap === 'truncate-end' && flatText(n) === '0m01s  shell  整理資料')!
+  expect((row.children![0] as Drawn).props?.color).toBe('green')
+  expect((row.children![2] as Drawn).props?.color).toBe('cyan')
+  await $.session.receive({origin:{kind:'task-notification'},text:'<task-notification><task-id>shell</task-id><status>completed</status></task-notification>'})
+  expect(values.bgTasks).toEqual([])
+  expect(JSON.parse(live).jobs).toBe(0)
+  await ui.redraw()
+  expect(elements(await ui.drawn()).some(n => n.props?.wrap === 'truncate-end' && flatText(n).includes('整理資料'))).toBe(false)
+  await $.classic.Stop({stop_hook_active:false,background_tasks})
+  await clock.advance(3600000)
+  await $.classic.Stop({stop_hook_active:false,background_tasks})
+  expect(values.bgTasks).toEqual([])
+  expect(JSON.parse(live).jobs).toBe(0)
+  await $.classic.Stop({stop_hook_active:false,background_tasks})
+  await $.classic.Stop({stop_hook_active:false})
+  expect(values.bgTasks).toEqual([])
+  expect(JSON.parse(live).jobs).toBe(0)
 })

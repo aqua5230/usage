@@ -1,5 +1,16 @@
 import { t } from './strings'
-import type { Agent } from '../types'
+import type { Agent, BgTask } from '../types'
+
+export const STALE_MS = 3600000
+
+export function liveBgTasks(tasks: BgTask[], now: number): BgTask[] {
+  return tasks.filter(task => now - task.start < STALE_MS)
+}
+
+export function backgroundTasks(tasks: readonly { id: string; type: string; description: string; command?: string }[], previous: BgTask[], now: number): BgTask[] {
+  return liveBgTasks(tasks.filter(task => task.type !== 'subagent' && !(task.type === 'shell' && matchAgent(task.command ?? '')))
+    .map(task => ({ id: task.id, type: task.type, label: task.description || task.command || '', start: previous.find(old => old.id === task.id)?.start ?? now })), now)
+}
 
 // A dispatch starts a command segment: line start, or after && || ; | — optionally behind VAR=value prefixes.
 const DISPATCH = /(?:^|&&|\|\||[;|\n])\s*(?:[A-Za-z_][A-Za-z0-9_]*=\S*\s+)*(codex exec|agy -p|grok --prompt-file|muse exec)(?=\s|$)/
@@ -25,14 +36,15 @@ export function isShellBackgrounded(command: string): boolean {
 }
 
 // The task-notification text format is not a typed field; parse.test.ts pins it.
-export function parseNotifications(text: string): { toolUseId: string; status: string }[] {
+export function parseNotifications(text: string): { toolUseId?: string; taskId?: string; status: string }[] {
   return text
     .split('<task-notification>')
     .slice(1)
     .flatMap(block => {
       const id = /<tool-use-id>([^<]+)<\/tool-use-id>/.exec(block)?.[1]
+      const taskId = /<task-id>([^<]+)<\/task-id>/.exec(block)?.[1]
       const status = /<status>([^<]+)<\/status>/.exec(block)?.[1]
-      return id && status ? [{ toolUseId: id, status }] : []
+      return (id || taskId) && status ? [{ ...(id ? { toolUseId: id } : {}), ...(taskId ? { taskId } : {}), status }] : []
     })
 }
 

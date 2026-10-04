@@ -70,3 +70,13 @@ test('jobs 只接受非負整數，壞欄位不丟掉 context', () => {
   for (const jobs of [0,1,42]) expect(parseContext(JSON.stringify({...row,jobs}))).toEqual({...row,jobs})
   for (const jobs of [-1,0.5,'1',null,true,{},[]]) expect(parseContext(JSON.stringify({...row,jobs}))).toEqual(row)
 })
+
+test('一般背景工作計入總數、全顯示並減少完成列空位', () => {
+  const tasks = Array.from({length:5},(_,i) => ({id:`shell-${i}`,type:'shell',label:'整理',start:0}))
+  const done = [{id:'done',agent:'codex' as const,label:'完成',start:0,end:1,status:'completed'}]
+  expect(backgroundCount(done,[],tasks)).toBe(5)
+  expect(visibleRuns(done,false,tasks).rows.map(r => r.id)).toEqual(tasks.map(task => task.id))
+  expect(visibleRuns(done,false,tasks).hiddenDone).toBe(1)
+  expect(visibleRuns(done,true,tasks).rows).toHaveLength(6)
+  expect(visibleRuns(done,false,tasks.slice(0,1)).rows.map(r => r.id)).toEqual(['done','shell-0'])
+})

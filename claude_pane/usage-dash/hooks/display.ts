@@ -1,6 +1,6 @@
 import { t } from './strings'
 import type { AgentInfo } from 'claude-code'
-import type { Run } from '../types'
+import type { Run, BgTask } from '../types'
 import { ago } from './sessions'
 export type LiveContext = { sessionId: string; percent?: number; waiting?: boolean; jobs?: number; updatedAt: number }
 export function contextPercent(percent: number | undefined): number | undefined {
@@ -28,12 +28,13 @@ export function isWaiting(context: Pick<LiveContext, 'waiting' | 'updatedAt'>, n
 export function visibleAgents(agents: AgentInfo[]): AgentInfo[] {
   return agents.filter(agent => ['pending','running','waiting','idle'].includes(agent.status))
 }
-export function backgroundCount(runs: Pick<Run, 'end'>[], agents: AgentInfo[]): number {
-  return runs.filter(run => run.end === null).length + visibleAgents(agents).length
+export function backgroundCount(runs: Pick<Run, 'end'>[], agents: AgentInfo[], tasks: BgTask[] = []): number {
+  return tasks.length + runs.filter(run => run.end === null).length + visibleAgents(agents).length
 }
 // Running jobs always show; finished ones only fill the rows left out of four, unless expanded.
-export function visibleRuns(runs: Run[], expanded: boolean): { rows: Run[]; hiddenDone: number } {
-  const done = runs.filter(r => r.end !== null)
-  const kept = new Set(expanded ? done : done.slice(done.length - Math.max(0, 4 - (runs.length - done.length))))
-  return { rows: runs.filter(r => r.end === null || kept.has(r)), hiddenDone: done.length - kept.size }
+export function visibleRuns(runs: Run[], expanded: boolean, tasks: BgTask[] = []): { rows: (Omit<Run, 'agent'> & { agent: string })[]; hiddenDone: number } {
+  const jobs = [...runs, ...tasks.map(task => ({ id: task.id, agent: task.type, label: task.label, start: task.start, end: null, status: 'running' }))]
+  const done = jobs.filter(r => r.end !== null)
+  const kept = new Set(expanded ? done : done.slice(done.length - Math.max(0, 4 - (jobs.length - done.length))))
+  return { rows: jobs.filter(r => r.end === null || kept.has(r)), hiddenDone: done.length - kept.size }
 }
