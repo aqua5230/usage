@@ -149,7 +149,7 @@ See your quota, other conversations, and background jobs without leaving Claude 
 <summary>Compatibility and updates</summary>
 
 - Requires a recent Claude Code with mod support; tested with 2.1.289.
-- The pane docks on the right only in Claude Code's fullscreen layout; otherwise it appears above the prompt. On Windows, enabling the pane offers to turn the fullscreen layout on as well.
+- The pane docks on the right only in Claude Code's fullscreen layout; otherwise it appears above the prompt. On Windows, enabling the pane turns the fullscreen layout on as well, and turning the pane off switches it back.
 - The built-in macOS Terminal supports only 256 colors and may show a gray background. Select an ANSI dark theme in `/config`.
 - When the usage app starts, it automatically updates an enabled pane to the bundled version.
 

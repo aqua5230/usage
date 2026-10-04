@@ -149,7 +149,7 @@ Linux 上运行 `usage setup` 也能装好 Claude Code 的状态栏，配额会�
 <summary>兼容性与更新</summary>
 
 - 需要支持 mod 的新版 Claude Code，已在 2.1.289 上测试。
-- 面板只有在 Claude Code 的全屏界面下才会显示在右侧，否则会显示在输入框上方。Windows 版启用面板时，会询问是否一并开启全屏界面。
+- 面板只有在 Claude Code 的全屏界面下才会显示在右侧，否则会显示在输入框上方。Windows 版启用面板时会一并开启全屏界面，关闭面板时改回。
 - macOS 内置 Terminal 只支持 256 色，可能出现灰色背景；在 `/config` 中选择 ANSI 深色主题。
 - usage 应用启动时，会把已启用的面板自动更新到应用内置版本。
 
