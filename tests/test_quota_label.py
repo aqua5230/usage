@@ -95,6 +95,7 @@ def test_label_placement_avoids_buttons_and_handles_taskbar_edges(
 
 
 def test_label_image_has_transparent_background_without_a_dark_outline() -> None:
+    pytest.importorskip("PIL", reason="Pillow is a Windows-only extra")
     image = draw_label("Codex: 92%", (245, 247, 250, 255))
     assert image.mode == "RGBA"
     assert image.getchannel("A").getpixel((0, 0)) == 1
@@ -126,6 +127,7 @@ def test_text_uses_theme_contrast_and_low_quota_colors() -> None:
 def test_label_hides_for_fullscreen_and_auto_hide_then_restores(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
+    pytest.importorskip("PIL", reason="Pillow is a Windows-only extra")
     layout = TaskbarLayout(
         12,
         (0, 1040, 1920, 1080),

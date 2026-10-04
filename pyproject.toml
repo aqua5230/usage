@@ -5,7 +5,7 @@ description = "usage — 在 macOS menu bar 與 Windows 系統匣顯示 Claude C
 readme = "README.md"
 requires-python = ">=3.13"
 license = "AGPL-3.0-only"
-license-files = ["LICENSE"]
+license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 dependencies = [
     "pyobjc-framework-Cocoa>=11.0; sys_platform == 'darwin'",
     "pyobjc-framework-Quartz>=11.0; sys_platform == 'darwin'",
