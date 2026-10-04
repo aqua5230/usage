@@ -3,7 +3,7 @@ import { atom, read, update } from 'claude-code'
 import type { Hook, Register } from 'claude-code'
 import type { Run, Session } from '../types'
 import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
-import { parseQuota, dockQuotaLine, staleAge, refreshedAgo } from './quota'
+import { parseQuota, hideAgents, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
 import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus } from './sessions'
 import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
@@ -46,7 +46,10 @@ async function refreshQuota($: Dollar) {
     try {
       const result = await $.process.run(argv, { timeoutMs: 10000 })
       if (result.exitCode !== 0) throw new Error(`${argv[0]}: ${result.stderr || t('exit_code', { code: result.exitCode })}`)
-      const data = parseQuota(result.stdout)
+      const parsed = parseQuota(result.stdout)
+      let preferences = ''
+      try { if (home) preferences = await $.fs.read(`${home}/.claude/usage-preferences.json`) } catch { /* missing preferences are normal */ }
+      const data = hideAgents(parsed, preferences)
       const now = await $.clock.now()
       await update($, quotas, () => data)
       await update($, updated, () => now)

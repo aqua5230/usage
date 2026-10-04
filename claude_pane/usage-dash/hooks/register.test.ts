@@ -204,6 +204,29 @@ test('啟動、CLI 備援、存活對話清單與定時更新', async ($, on) =>
   expect(values.updated).toBe(1060000)
 })
 
+test('隱藏區塊設定會在刷新額度時移除 Grok', async ($, on) => {
+  mock.clock(on,{now:1000000})
+  mock.env(on,{HOME:'/假家目錄'})
+  const values: Record<string,unknown> = {}
+  const normalize = (path: string) => path.replaceAll('\\','/').replace(/^[A-Za-z]:/, '')
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  on('state.set', ($,e) => {values[e.key]=e.value;return {value:{isSet:true,version:1}}})
+  on('command.register', ($,e) => ({value:{command:e.name}}))
+  on('ui.open', () => ({value:{isPlaced:true}}))
+  on('session.start', ($,e) => ({cwd:e.cwd}))
+  on('session.usage', () => { throw new Error('no context yet') })
+  on('fs.write', () => ({value:undefined}))
+  on('fs.exists', () => ({value:false}))
+  on('fs.list', () => ({value:[]}))
+  on('fs.read', ($,e) => {
+    if (normalize(e.path).endsWith('/.claude/usage-preferences.json')) return {value:'{"hide_grok_section":true}'}
+    throw new Error('ENOENT')
+  })
+  on('process.run', () => ({value:{exitCode:0,stdout:'{"agents":{"claude-code":{"available":true},"codex":{"available":true},"antigravity":{"available":true},"grok":{"available":true}}}',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
+  await $.session.start({cwd:'/假專案',surface:'terminal',isInteractive:true})
+  expect(values.quotas).toEqual({agents:{'claude-code':{available:true},codex:{available:true},antigravity:{available:true}}})
+})
+
 for (const mode of ['empty', 'ps-exit-1', 'ps-reject'] as const) {
   test(`無存活對話：${mode}`, async ($, on) => {
     mock.clock(on,{now:1000000})
@@ -443,6 +466,7 @@ for (const mode of ['installed', 'absent', 'invalid', 'unreadable'] as const) {
     on('fs.exists', ($, e) => ({ value: e.path.endsWith('/usage-pane.json') && mode !== 'absent' }))
     on('fs.read', ($, e) => {
       reads.push(e.path)
+      if (e.path.replaceAll('\\', '/').endsWith('/usage-preferences.json')) throw new Error('ENOENT')
       if (mode === 'unreadable') throw new Error('read denied')
       return { value: JSON.stringify(mode === 'invalid' ? { strings: {}, status_argv: [] } : {
         strings: { claude_pane_title: '使用狀態', claude_pane_description: '開啟面板', claude_pane_opened: '已開啟面板。' }, status_argv: argv
@@ -457,8 +481,9 @@ for (const mode of ['installed', 'absent', 'invalid', 'unreadable'] as const) {
       return { value: { exitCode: fail ? 127 : 0, stdout: fail ? '' : '{"agents":{}}', stderr: fail ? 'missing' : '', isStdoutTruncated: false, isStderrTruncated: false } }
     })
     await $.session.start({ cwd: '/project', surface: 'terminal', isInteractive: true })
-    expect(reads.every(path => path.endsWith('/usage-dash/usage-pane.json'))).toBe(true)
-    expect(reads).toHaveLength(mode === 'absent' ? 0 : 1)
+    const paneReads = reads.filter(path => !path.replaceAll('\\', '/').endsWith('/usage-preferences.json'))
+    expect(paneReads.every(path => path.endsWith('/usage-dash/usage-pane.json'))).toBe(true)
+    expect(paneReads).toHaveLength(mode === 'absent' ? 0 : 1)
     expect(commands).toEqual(mode === 'installed' ? [argv] : [['usage', 'status', '--json'], ['/test-home/.local/bin/usage', 'status', '--json']])
     expect(titles[0]).toBe(mode === 'installed' ? '使用狀態' : 'Usage')
     expect(descriptions[0]).toBe(mode === 'installed' ? '開啟面板' : 'Open the quota, Claude sessions and background jobs pane')
