@@ -1,5 +1,5 @@
 import { expect, test } from 'claude-code/testing'
-import { parseSession, isBusy, newest, sessionStatus, parseLiveSession, liveSessions, tasklistPids, toSession, sessionNotifications } from './sessions'
+import { parseSession, isBusy, newest, sessionStatus, parseLiveSession, liveSessions, tasklistPids, toSession, sessionNotifications, sessionMark } from './sessions'
 test('其他對話忙轉閒或等你才通知、關閉與首次刷新不通知', () => {
   const busy = {id:'one',title:'標題',source:'',mtimeMs:0,pid:1,status:'busy'}, idle = {...busy,status:'idle'}, waiting = {...busy,status:'waiting'}
   expect(sessionNotifications([busy],[idle],'current')).toEqual([{session:idle,kind:'done'}])
@@ -91,4 +91,12 @@ test('忙在前、同組時間新在前、不限八筆', () => {
   expect(toSession({...row,cwd:''},'{"cwd":"/Users/x/project"}').source).toBe('project')
   expect(sessionStatus(toSession(row),59000)).toBe('Idle just now')
   expect(sessionStatus(toSession(row),60000)).toBe('Idle 1m ago')
+})
+test('對話標記：轉圈、等你、剛做完打勾、久了變灰點', () => {
+  const busy = {id:'one',title:'',source:'',mtimeMs:0,pid:1,status:'busy'}, idle = {...busy,status:'idle'}
+  expect(sessionMark(busy,false,0)).toEqual({text:'⠋',color:'green'})
+  expect(sessionMark(busy,false,3500)).toEqual({text:'⠸',color:'green'})
+  expect(sessionMark(busy,true,0)).toEqual({text:'?',color:'yellow'})
+  expect(sessionMark(idle,false,599999)).toEqual({text:'✓',color:'green'})
+  expect(sessionMark(idle,false,600000)).toEqual({text:'●'})
 })

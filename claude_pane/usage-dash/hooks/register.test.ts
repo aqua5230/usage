@@ -118,13 +118,13 @@ agy     5h    ■■□□□□□□□□  24%  ${resetTime({used_percent:24,
 Grok    Period ■■■□□□□□□□  28%  ${resetTime({used_percent:28,resets_in_seconds:176000},1000000)}
 [ ▾ Claude sessions ]
 2 busy / 3
-● usage (here)Usage面板
+⠋ usage (here)Usage面板
 41%
     Busy
-● notes · Desktop 整理筆記
+⠋ notes · Desktop 整理筆記
 70%
     Busy
-● tests 修測試
+✓ tests 修測試
 85%
     Idle just now
 [ ▾ Background jobs ]
@@ -267,9 +267,8 @@ for (const bodyColumns of [10, 43, 44, 200]) {
     expect(flatText(parts[2]).length + flatText(parts[3]).length).toBe(bodyColumns < 44 ? 8 : 10)
     expect(flatText(parts[2])).toBe('■'.repeat(bodyColumns < 44 ? 7 : 8))
     expect(flatText(parts[3])).toBe('□'.repeat(bodyColumns < 44 ? 1 : 2))
-    const dots = nodes.filter(n => n.type === 'Text' && flatText(n) === '●')
-    expect(dots.map(n => n.props?.color)).toEqual(['green',undefined])
-    expect(dots.map(n => n.props?.dimColor)).toEqual([false,true])
+    const marks = nodes.filter(n => n.type === 'Text' && ['⠋','✓'].includes(flatText(n)))
+    expect(marks.map(n => [flatText(n), n.props?.color, n.props?.dimColor])).toEqual([['⠋','green',false],['✓','green',false]])
   })
 }
 

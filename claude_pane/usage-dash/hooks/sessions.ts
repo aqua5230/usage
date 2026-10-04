@@ -47,6 +47,13 @@ export function sessionNotifications(previous: Session[], next: Session[], curre
   const busy = new Set(previous.filter(isBusy).map(session => session.id))
   return next.filter(session => session.id !== currentId && (session.status === 'idle' || session.status === 'waiting') && busy.has(session.id)).map(session => ({ session, kind: session.status === 'waiting' ? 'waiting' : 'done' }))
 }
+const SPINNER = '⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏'
+// Spinner while working, ? while waiting on you, ✓ for ten minutes after finishing, then a gray dot.
+export function sessionMark(session: Session, waiting: boolean, now: number): { text: string; color?: string } {
+  if (waiting) return { text: '?', color: 'yellow' }
+  if (isBusy(session)) return { text: SPINNER[Math.floor(now / 1000) % SPINNER.length]!, color: 'green' }
+  return now - session.mtimeMs < 600000 ? { text: '✓', color: 'green' } : { text: '●' }
+}
 export function sessionStatus(session: Session, now: number): string {
   return isBusy(session) ? t('busy') : t('idle', { ago: ago(session.mtimeMs, now) })
 }

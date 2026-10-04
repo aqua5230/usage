@@ -5,7 +5,7 @@ import type { Run, Session } from '../types'
 import { matchAgent, isShellBackgrounded, parseNotifications } from './parse'
 import { parseQuota, hideAgents, byTightest, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
-import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus, sessionNotifications } from './sessions'
+import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, sessionStatus, sessionNotifications, sessionMark } from './sessions'
 import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
@@ -318,9 +318,9 @@ export const register: Register = (on) => {
       {!fold.sessions && <Box flexDirection="column">
         {list.slice(0,expanded ? list.length : 4).map(s => {
           const busy = isBusy(s)
-          const waiting = isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now)
+          const waiting = s.status === 'waiting' || isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now), mark = sessionMark(s, waiting, now)
           return <Box key={s.id} flexDirection="column">
-            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={busy ? 'green' : undefined} dimColor={!busy}>●</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
+            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={mark.color} dimColor={!mark.color}>{mark.text}</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
             <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}<Text color={waiting ? 'yellow' : busy ? 'green' : undefined} dimColor={!waiting && !busy}>{waiting ? t('waiting') : sessionStatus(s,now)}</Text>{s.preview && <Text dimColor>{` · ${s.preview}`}</Text>}</Text></Box></Box>
           </Box>
         })}
