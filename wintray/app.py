@@ -1870,15 +1870,15 @@ class _WindowsTrayController:
 
         if ok:
             if enabled and not claude_pane.is_fullscreen_layout():
-                text = (
-                    f"{_t(self.language, 'claude_pane_enabled_msg')}\n\n"
-                    f"{_t(self.language, 'claude_pane_fullscreen_prompt')}"
-                )
                 try:
-                    if self._message_box(text, style=0x24) == 6:
-                        claude_pane.enable_fullscreen_layout()
+                    claude_pane.enable_fullscreen_layout()
                 except (OSError, SystemExit) as exc:
                     self._message_box(f"{_t(self.language, 'claude_pane_action_failed')}\n\n{exc}")
+                else:
+                    self._message_box(
+                        f"{_t(self.language, 'claude_pane_enabled_msg')}\n\n"
+                        f"{_t(self.language, 'claude_pane_fullscreen_enabled_note')}"
+                    )
             else:
                 key = "claude_pane_enabled_msg" if enabled else "claude_pane_disabled_msg"
                 self._message_box(_t(self.language, key))
