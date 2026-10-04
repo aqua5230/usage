@@ -180,7 +180,7 @@ The HTML report covers daily / weekly / monthly token + cost trends, per-project
 
 ## Quota status for other tools (`usage status`)
 
-`usage status` prints the current Claude Code and Codex quota so other tools can read it. It reads the same local files the menu bar uses. Antigravity quota is not included in this command.
+`usage status` prints the current Claude Code and Codex quota so other tools can read it. It reads the same local files the menu bar uses. JSON also includes the Antigravity cache and Grok local billing log; the text summary stays unchanged. No network requests are made.
 
 ```bash
 # One-line human-readable summary
@@ -206,7 +206,22 @@ The JSON carries a `schema_version` so consumers can guard against future change
       "updated_at": "2026-08-14T06:52:00Z",
       "age_seconds": 480
     },
-    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null, "resets_in_seconds": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910, "resets_in_seconds": 506110 }, "model": "", "updated_at": "2026-08-14T06:52:23Z", "age_seconds": 457 }
+    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null, "resets_in_seconds": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910, "resets_in_seconds": 506110 }, "model": "", "updated_at": "2026-08-14T06:52:23Z", "age_seconds": 457 },
+    "antigravity": {
+      "available": true,
+      "groups": [
+        { "name": "GEMINI MODELS", "five_hour": { "used_percent": 23.7, "resets_in_seconds": 4980 }, "seven_day": { "used_percent": 53.9, "resets_in_seconds": 222180 } }
+      ],
+      "updated_at": "2026-08-14T06:58:00Z",
+      "age_seconds": 120
+    },
+    "grok": {
+      "available": true,
+      "period": { "used_percent": 28.0, "resets_at": 1786873200, "resets_in_seconds": 176000 },
+      "tier": "XPremium",
+      "updated_at": "2026-08-14T06:59:30Z",
+      "age_seconds": 30
+    }
   }
 }
 ```
@@ -214,6 +229,8 @@ The JSON carries a `schema_version` so consumers can guard against future change
 `resets_in_seconds` counts down from `generated_at` to `resets_at` (floored at `0`), and `age_seconds` is how old `updated_at` was at `generated_at`; both are `null` when their source field is.
 
 An agent with no readable data yet reports `"available": false` with null fields, and the command still exits `0` — missing data is not an error. A window that the provider doesn't report is `null` rather than absent, so consumers never have to guard against a missing key.
+
+Antigravity preserves cache order in `groups`, maps `weekly` to `seven_day`, and computes `used_percent` as `100 - remaining_percent`, rounded to one decimal. Its countdown uses cached `fetched_at` plus `resets_in_minutes`, minus the current time, floored at `0`; an unknown reset is `null`. Grok converts `period_end` to Unix seconds in `period.resets_at` and exposes `subscription_tier` as `tier` (`null` when absent). Both preserve the original `fetched_at` string as `updated_at`; stale cache data remains readable with elapsed countdowns at zero. When unavailable, both use the complete Claude/Codex unavailable field shape.
 
 If you installed from source, either run it as `python3 usage_cli.py status --json` or `uv sync` once to get the `usage` command on your PATH.
 

@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 新增
+- **`usage status --json` 加入 Antigravity 與 Grok 配額。** 從本機快取讀取所有 Antigravity 群組，從本機紀錄讀取 Grok 帳務，附上重置倒數與資料年齡。文字摘要維持原樣。
+
 ## [0.31.6] - 2026-10-04
 
 ### 修正

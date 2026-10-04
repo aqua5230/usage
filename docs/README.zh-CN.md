@@ -57,7 +57,7 @@ brew install --cask aqua5230/usage/usage
 - **进度管家：** 打开新的 Claude Code 会话时，`usage` 会直接把你上次的进度交给 AI，包括上次请求、未提交的变更和未完成的待办事项。无需 `/resume`，无需回顾。用 `/resume` 接回放太久、缓存已过期的对话时，会先提醒下一句要重新发送多少 token，建议先 `/compact`。默认关闭。
 - **Token 节省器：** 菜单栏开关会要求 Claude Code 和 Codex 在当前会话中更简洁、更白话地回答，在保持代码和错误信息逐字节不变的同时节省输出 token。轻量的逐消息提醒能避免长对话中的回复逐渐变得冗长——在真实会话的 A/B 测试中，对话后期回复维持缩短约 40%，而不是漂移变长 84%。
 - **自动启动 5 小时计时：** 默认关闭。打开后，每次 5 小时额度一重置，`usage` 就会自动各发送一则极小的消息（Claude 用 Haiku、Antigravity 用 Gemini 3.5 Flash Low、Codex 用最省成本的模型），让下一轮 5 小时立刻开始计时。这些消息会消耗一点额度，但量小到可以忽略。平时查看额度不会发送任何消息，只有打开这个开关才会。
-- **终端集成：** `usage status --json` 会将你的 Claude Code 和 Codex 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
+- **终端集成：** `usage status --json` 会将你的 Claude Code、Codex、Antigravity 和 Grok 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **Token 浪费健康检查：** 每日后台诊断会扫描日志中的浪费问题，包括重复读取文件、污染目录和冗长的 Bash 输出。发现问题时会显示一行提示；对 AI 说“show me”，它会引导你完成修复。
 
 ### 掌握最新动态

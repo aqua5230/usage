@@ -184,7 +184,7 @@ HTML 報告包含：每日 / 週 / 月 token 與成本走勢、各專案排名�
 
 ## 給其他工具讀的配額狀態（`usage status`）
 
-`usage status` 會印出目前 Claude Code 與 Codex 的配額，讓其他工具接得上。它讀取選單列本來就在讀的那些本機檔案。這個指令不包含 Antigravity 配額。
+`usage status` 會印出目前 Claude Code 與 Codex 的配額，讓其他工具接得上。它讀取選單列本來就在讀的那些本機檔案。JSON 另外包含 Antigravity 快取與 Grok 本機帳務紀錄；文字摘要維持原樣，不發出網路請求。
 
 ```bash
 # 一行人類看的摘要
@@ -210,7 +210,22 @@ JSON 帶有 `schema_version`，之後格式若有變動，接的人可以據此�
       "updated_at": "2026-08-14T06:52:00Z",
       "age_seconds": 480
     },
-    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null, "resets_in_seconds": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910, "resets_in_seconds": 506110 }, "model": "", "updated_at": "2026-08-14T06:52:23Z", "age_seconds": 457 }
+    "codex": { "available": true, "five_hour": { "used_percent": null, "resets_at": null, "resets_in_seconds": null }, "seven_day": { "used_percent": 21.0, "resets_at": 1787196910, "resets_in_seconds": 506110 }, "model": "", "updated_at": "2026-08-14T06:52:23Z", "age_seconds": 457 },
+    "antigravity": {
+      "available": true,
+      "groups": [
+        { "name": "GEMINI MODELS", "five_hour": { "used_percent": 23.7, "resets_in_seconds": 4980 }, "seven_day": { "used_percent": 53.9, "resets_in_seconds": 222180 } }
+      ],
+      "updated_at": "2026-08-14T06:58:00Z",
+      "age_seconds": 120
+    },
+    "grok": {
+      "available": true,
+      "period": { "used_percent": 28.0, "resets_at": 1786873200, "resets_in_seconds": 176000 },
+      "tier": "XPremium",
+      "updated_at": "2026-08-14T06:59:30Z",
+      "age_seconds": 30
+    }
   }
 }
 ```
@@ -218,6 +233,8 @@ JSON 帶有 `schema_version`，之後格式若有變動，接的人可以據此�
 `resets_in_seconds` 是從 `generated_at` 算到 `resets_at` 還剩幾秒（最小 `0`），`age_seconds` 是 `updated_at` 在 `generated_at` 當下已經過了幾秒；來源欄位是 `null` 時，這兩個也是 `null`。
 
 還讀不到資料的 agent 會回 `"available": false` 加一整組 null，指令本身仍然 exit `0`——沒資料不算錯誤。廠商沒回報的那個視窗會是 `null` 而不是整個欄位消失，接的人不用為了「key 不存在」多寫防呆。
+
+Antigravity 的 `groups` 保留快取順序，`weekly` 對應 `seven_day`，`used_percent` 是 `100 - remaining_percent`，取小數一位。倒數以快取的 `fetched_at` 加上 `resets_in_minutes` 計算，再扣掉目前時間，最小為 `0`；沒有重置時間時為 `null`。Grok 的 `period.resets_at` 是 `period_end` 換算的 Unix 秒數，`tier` 是 `subscription_tier`，沒有方案時為 `null`。兩者的 `updated_at` 都保留 `fetched_at` 原字串；快取過舊仍可讀，倒數會歸零。沒資料時，兩者都沿用 Claude/Codex 的完整 unavailable 欄位形狀。
 
 從原始碼安裝的話，可以直接跑 `python3 usage_cli.py status --json`，或先跑一次 `uv sync` 把 `usage` 指令裝進 PATH。
 

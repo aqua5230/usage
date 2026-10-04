@@ -12,7 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from loaders import codex_loader
+from loaders import agy_quota_probe, codex_loader, grok_quota_probe
 from adapters import agy, claude, codex, grok, muse
 from adapters.rate_limits import load_rate_limits as load_claude_rate_limits
 from adapters.registry import detect_agents
@@ -382,7 +382,63 @@ def _status_agent(rate_limits: RateLimits | None, now: int) -> dict[str, Any]:
     }
 
 
-def _status_payload() -> dict[str, Any]:
+def _status_antigravity(now: int) -> dict[str, Any]:
+    try:
+        quota = agy_quota_probe._read_cache()
+    except (OSError, UnicodeError, ValueError):
+        quota = None
+    if quota is None:
+        return _status_agent(None, now)
+    fetched_at = parse_optional_iso8601_utc(quota.fetched_at)
+    if fetched_at is None:
+        return _status_agent(None, now)
+
+    fetched_timestamp = fetched_at.timestamp()
+
+    def window_status(window: agy_quota_probe.AgyQuotaWindow) -> dict[str, Any]:
+        return {
+            "used_percent": round(100 - window.remaining_percent, 1),
+            "resets_in_seconds": (
+                None
+                if window.resets_in_minutes is None
+                else int(max(0, fetched_timestamp + window.resets_in_minutes * 60 - now))
+            ),
+        }
+
+    return {
+        "available": True,
+        "groups": [
+            {
+                "name": group.name,
+                "five_hour": window_status(group.five_hour),
+                "seven_day": window_status(group.weekly),
+            }
+            for group in quota.groups
+        ],
+        "updated_at": quota.fetched_at,
+        "age_seconds": _age_seconds(quota.fetched_at, now),
+    }
+
+
+def _status_grok(now: int) -> dict[str, Any]:
+    try:
+        quota = grok_quota_probe.load_quota()
+        period_end = None if quota is None else parse_optional_iso8601_utc(quota.period_end)
+        resets_at = None if period_end is None else int(period_end.timestamp())
+    except (OSError, ValueError, OverflowError):
+        return _status_agent(None, now)
+    if quota is None or resets_at is None:
+        return _status_agent(None, now)
+    return {
+        "available": True,
+        "period": _status_window(quota.used_percent, resets_at, now),
+        "tier": quota.subscription_tier,
+        "updated_at": quota.fetched_at,
+        "age_seconds": _age_seconds(quota.fetched_at, now),
+    }
+
+
+def _status_payload(*, include_extra_agents: bool = True) -> dict[str, Any]:
     generated_at = datetime.now(UTC).replace(microsecond=0)
     now = int(generated_at.timestamp())
     agents: dict[str, dict[str, Any]] = {}
@@ -392,6 +448,9 @@ def _status_payload() -> dict[str, Any]:
         except Exception:
             rate_limits = None
         agents[agent_id] = _status_agent(rate_limits, now)
+    if include_extra_agents:
+        agents["antigravity"] = _status_antigravity(now)
+        agents["grok"] = _status_grok(now)
     return {
         "schema_version": 1,
         "generated_at": generated_at.isoformat().replace("+00:00", "Z"),
@@ -422,7 +481,7 @@ def _run_status(args: list[str]) -> None:
         print(f"Error: unknown status option: {unknown}", file=sys.stderr)
         sys.exit(1)
 
-    payload = _status_payload()
+    payload = _status_payload(include_extra_agents="--json" in args)
     if "--json" in args:
         print(json.dumps(payload, ensure_ascii=False, separators=(",", ":")))
     else:

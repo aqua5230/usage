@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+- **`usage status --json` includes Antigravity and Grok quotas.** Read all Antigravity groups from the local cache and Grok billing from its local log, with reset countdowns and snapshot ages. The text summary stays unchanged.
+
 ## [0.31.6] - 2026-10-04
 
 ### Fixed
