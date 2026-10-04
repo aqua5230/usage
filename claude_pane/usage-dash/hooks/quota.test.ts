@@ -108,3 +108,7 @@ test('刷新時間超過一分鐘換單位', () => {
   expect([null, 59000, 60000, 3599000, 3600000].map(age => refreshedAgo(10000000, age === null ? null : 10000000 - age)))
     .toEqual(['↻ —', '↻ 59s ago', '↻ 1m ago', '↻ 59m ago', '↻ 1h ago'])
 })
+test('沒有數字的額度窗口不顯示成 0%', () => {
+  expect(parseQuota('{"agents":{"claude-code":{"available":true,"five_hour":{"used_percent":21},"seven_day":{"used_percent":null,"resets_at":null}}}}'))
+    .toEqual({ agents: { 'claude-code': { available: true, five_hour: { used_percent: 21 } } } })
+})

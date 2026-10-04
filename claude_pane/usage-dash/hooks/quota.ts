@@ -1,7 +1,9 @@
 import { t } from './strings'
 import type { Quotas, Window } from '../types'
 export function parseQuota(text: string): Quotas {
-  const value = JSON.parse(text)
+  // A window without a numeric used_percent has no data; drop it so it is hidden instead of drawn as 0%.
+  const value = JSON.parse(text, (_key, v) =>
+    v && typeof v === 'object' && 'used_percent' in v && !Number.isFinite(v.used_percent) ? undefined : v)
   if (!value || typeof value.agents !== 'object' || value.agents === null) throw new Error(t('quota_invalid'))
   return { agents: Object.fromEntries(Object.entries(value.agents).filter(([, agent]) =>
     agent !== null && typeof agent === 'object' && (agent as { available?: boolean }).available === true)) } as Quotas
