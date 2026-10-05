@@ -825,30 +825,6 @@ def test_switch_panel_cancel_keeps_the_panel_open(
     assert delegate.popover.shown == 0
 
 
-def test_auto_update_disabled_skips_background_check(monkeypatch: pytest.MonkeyPatch) -> None:
-    called = False
-
-    def fake_check_latest_release_result(current_version: str) -> object:
-        nonlocal called
-        called = True
-        return SimpleNamespace(failed=False, release=None)
-
-    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": False})
-    monkeypatch.setattr(
-        "menubar.update.update_checker.check_latest_release_result",
-        fake_check_latest_release_result,
-    )
-
-    menubar.AppDelegate._check_update_in_background(
-        cast(Any, object()),
-        manual=False,
-        ignore_cooldown=False,
-        ignore_skipped=False,
-    )
-
-    assert called is False
-
-
 def test_update_check_keeps_preferences_saved_during_network_check(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -874,9 +850,6 @@ def test_update_check_keeps_preferences_saved_during_network_check(
 
     menubar.AppDelegate._check_update_in_background(
         cast(Any, object()),
-        manual=False,
-        ignore_cooldown=False,
-        ignore_skipped=False,
     )
 
     assert stored["hide_claude_section"] is True
@@ -895,7 +868,7 @@ def test_fresh_auto_update_check_skips_network_request(monkeypatch: pytest.Monke
     monkeypatch.setattr(
         menubar_update,
         "_load_preferences",
-        lambda: {"auto_update_check": True, "last_update_check": {"checked_at": 1.0}},
+        lambda: {"last_update_check": {"checked_at": 1.0}},
     )
     monkeypatch.setattr("menubar.app.update_gate.auto_check_is_due", lambda prefs: False)
     monkeypatch.setattr(
@@ -905,43 +878,9 @@ def test_fresh_auto_update_check_skips_network_request(monkeypatch: pytest.Monke
 
     menubar.AppDelegate._check_update_in_background(
         cast(Any, object()),
-        manual=False,
-        ignore_cooldown=False,
-        ignore_skipped=False,
     )
 
     assert called is False
-
-
-def test_manual_update_check_ignores_ttl(monkeypatch: pytest.MonkeyPatch) -> None:
-    called = False
-
-    def fake_check_latest_release_result(current_version: str) -> object:
-        nonlocal called
-        _ = current_version
-        called = True
-        return SimpleNamespace(failed=False, release=None)
-
-    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"last_update_check": {}})
-    monkeypatch.setattr(menubar_update, "_save_preferences", lambda prefs: None)
-    monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
-    monkeypatch.setattr("menubar.app.update_gate.auto_check_is_due", lambda prefs: False)
-    monkeypatch.setattr(
-        "menubar.app.update_checker.check_latest_release_result",
-        fake_check_latest_release_result,
-    )
-    fake_self = SimpleNamespace(
-        performSelectorOnMainThread_withObject_waitUntilDone_=lambda *args: None,
-    )
-
-    menubar.AppDelegate._check_update_in_background(
-        cast(Any, fake_self),
-        manual=True,
-        ignore_cooldown=False,
-        ignore_skipped=False,
-    )
-
-    assert called is True
 
 
 def test_background_daily_maintenance_schedules_diagnosis_snapshot(
@@ -962,13 +901,13 @@ def test_background_daily_maintenance_schedules_diagnosis_snapshot(
 
     assert calls == [
         "snapshot",
-        {"manual": False, "ignore_cooldown": False, "ignore_skipped": False},
+        {},
     ]
 
 
 def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.MonkeyPatch) -> None:
     saved: list[dict[str, Any]] = []
-    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": True})
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {})
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr("updates.gate.time.time", lambda: 1700000000.0)
@@ -983,9 +922,6 @@ def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.Monkey
 
     menubar.AppDelegate._check_update_in_background(
         cast(Any, fake_self),
-        manual=False,
-        ignore_cooldown=False,
-        ignore_skipped=True,
     )
 
     assert saved
@@ -998,7 +934,7 @@ def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.Monkey
 
 def test_check_update_writes_cache_when_no_release(monkeypatch: pytest.MonkeyPatch) -> None:
     saved: list[dict[str, Any]] = []
-    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": True})
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {})
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr("updates.gate.time.time", lambda: 1700000000.0)
@@ -1009,9 +945,6 @@ def test_check_update_writes_cache_when_no_release(monkeypatch: pytest.MonkeyPat
 
     menubar.AppDelegate._check_update_in_background(
         cast(Any, object()),
-        manual=False,
-        ignore_cooldown=False,
-        ignore_skipped=False,
     )
 
     assert saved
@@ -1022,7 +955,7 @@ def test_check_update_writes_cache_when_no_release(monkeypatch: pytest.MonkeyPat
 
 def test_check_update_skips_cache_on_failure(monkeypatch: pytest.MonkeyPatch) -> None:
     saved: list[dict[str, Any]] = []
-    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": True})
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {})
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
     monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr(
@@ -1032,9 +965,6 @@ def test_check_update_skips_cache_on_failure(monkeypatch: pytest.MonkeyPatch) ->
 
     menubar.AppDelegate._check_update_in_background(
         cast(Any, object()),
-        manual=False,
-        ignore_cooldown=False,
-        ignore_skipped=False,
     )
 
     assert saved == []
@@ -3169,32 +3099,6 @@ def test_reset_title_keeps_notification_values(monkeypatch: pytest.MonkeyPatch) 
     assert row.percent == 100.0
 
 
-@pytest.mark.skipif(sys.platform != "darwin", reason="update dialog requires AppKit")
-@pytest.mark.parametrize("reason", [None, "offline", "rate_limited", "server", "bad_response"])
-def test_update_failure_dialog_can_retry(
-    monkeypatch: pytest.MonkeyPatch, reason: str | None
-) -> None:
-    from i18n import _t
-    from menubar import chrome
-
-    texts: list[str] = []
-    buttons: list[str] = []
-    calls: list[Any] = []
-    alert = SimpleNamespace(
-        setMessageText_=texts.append,
-        setInformativeText_=texts.append,
-        addButtonWithTitle_=buttons.append,
-        runModal=lambda: 1000,
-    )
-    monkeypatch.setattr(chrome, "_make_alert", lambda: alert)
-    app = SimpleNamespace(language="en", checkForUpdates_=calls.append)
-    menubar_update.show_update_check_failed(cast(Any, app), reason)
-    assert texts[0] == _t("en", "update_check_failed")
-    assert texts[1:] == ([] if reason is None else [_t("en", "update_check_failed_" + reason)])
-    assert buttons == [_t("en", "update_btn_retry"), _t("en", "report_share_close")]
-    assert calls == [None]
-
-
 @pytest.mark.skipif(sys.platform != "darwin", reason="update app requires AppKit")
 @pytest.mark.parametrize("outcome", [False, True, RuntimeError("failed")])
 def test_poll_tick_rechecks_without_startup_maintenance(
@@ -3234,33 +3138,6 @@ def test_poll_tick_rechecks_without_startup_maintenance(
     assert len(calls) == 1
     now[0] += 1
     menubar_update.on_poll_tick(cast(Any, app))
-    assert calls == [{"manual": False, "ignore_cooldown": False, "ignore_skipped": False}] * 2
+    assert calls == [{}] * 2
     assert len(cleared) == 3
     assert app._auto_check_schedule._failures == (0 if outcome is False else 2)
-
-
-@pytest.mark.skipif(sys.platform != "darwin", reason="update app requires AppKit")
-def test_manual_failure_returns_reason_and_preserves_schedule(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    from updates.checker import ReleaseCheckResult
-
-    calls: list[Any] = []
-    schedule = AutoCheckSchedule()
-    schedule.finish(100, failed=True)
-    app = SimpleNamespace(
-        _auto_check_schedule=schedule,
-        performSelectorOnMainThread_withObject_waitUntilDone_=lambda *args: calls.append(args),
-    )
-    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {})
-    monkeypatch.setattr(menubar, "_current_version", lambda: "1.0.0")
-    monkeypatch.setattr(
-        "updates.checker.check_latest_release_result",
-        lambda version: ReleaseCheckResult(None, True, "offline"),
-    )
-    assert menubar_update.check_update_in_background(
-        cast(Any, app), manual=True, ignore_cooldown=True, ignore_skipped=True
-    )
-    assert calls == [("_showUpdateCheckFailed:", "offline", False)]
-    assert schedule._failures == 1
-    assert schedule._next_at == 3700

@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 AGY_WINDOW_KEEPER_STATE_PATH = Path(os.path.expanduser("~/.usage/agy_window_keeper.json"))
 PING_COOLDOWN_SECONDS = 5 * 3600
 PING_TIMEOUT_SECONDS = 180
-AGY_MODEL = "Gemini 3.5 Flash (Low)"
+AGY_MODEL = "gemini-3.8-flash-low"
 _AGY_BIN_FALLBACKS = (
     "~/.local/bin/agy",
     "~/AppData/Local/agy/bin/agy.exe",

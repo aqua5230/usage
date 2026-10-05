@@ -20,11 +20,6 @@ def test_quota_notification_thresholds_filters_invalid_values() -> None:
     assert menubar_prefs._quota_notification_thresholds(prefs) == [95.0, 50.5]
 
 
-def test_auto_update_check_enabled_defaults_true() -> None:
-    assert menubar_prefs._auto_update_check_enabled({}) is True
-    assert menubar_prefs._auto_update_check_enabled({"auto_update_check": False}) is False
-
-
 @pytest.mark.parametrize(
     "preferences, enabled",
     [

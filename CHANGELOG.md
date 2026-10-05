@@ -5,14 +5,23 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## Unreleased
+## [0.32.4] - 2026-10-05
 
 ### Added
 - **Windows:** choose Claude Code or Codex as the tray quota source in the tray or panel menu. The selection is remembered; Codex falls back to its weekly quota when no session window is reported.
 - **Windows:** optionally show a transparent remaining-quota label beside the notification area, with DPI scaling, light/dark theme support, and fullscreen hiding. It moves left of taskbar buttons and the News and interests weather widget, with an outside fallback when space runs out. Click the label to toggle the panel without blocking the UI thread.
 
+### Changed
+- **Windows:** a failed **Check for Updates** now says why: you are offline, GitHub is limiting requests (HTTP 403/429), GitHub returned an error, or its response could not be read. The message box offers **Retry/Cancel**.
+
 ### Fixed
-- Correct the macOS background-update tests to isolate the current update helper and prevent live release checks during tests.
+- **Updates are found while usage stays open:** On macOS and Windows, usage now re-evaluates automatic checks every hour instead of checking only at launch, still respecting the existing 24-hour check interval, dismissal cooldown and skipped version, and retrying failed checks after 1, 1, 2, 4 and 6 hours. Finding a new version opens the same update dialog as the launch check. Automatic checks also resume for anyone who turned them off with the old setting, which was removed in June and could not be turned back on.
+- **macOS notification banners appear while usage is in front:** Banners now appear even when usage is the foreground app, and denied notification permission is recorded in the log file.
+- **Expired Antigravity sign-in is visible:** The quota card shows "Sign-in expired" with a hint to sign in again, and `usage status --json` reports `not_signed_in`, which the side pane already displays. The warning clears after the next successful quota check.
+- **Auto-start failures are visible:** On macOS and Windows, **Auto-start 5-hour Session** records each attempt's result, including a missing command, timeout, non-zero exit with the command's last output line or an exception, and retries once after 10 minutes if the window is still idle. A final failure adds ` ⚠` to the existing menu row with the reason on hover and sends a notification when usage alerts are on; the same error is not notified again for every window, and a successful attempt clears the warning and notification suppression.
+- **Antigravity auto-start works again:** The keeper asked Antigravity for Gemini 3.5 Flash (Low), which it no longer offers, so every ping exited with an error. It now uses Gemini 3.8 Flash (Low).
+- **Stopped background jobs show the right status:** The side pane now shows "stopped" instead of "completed" when a background job's notification says killed, stopped or cancelled.
+- **Token Saver warns when Codex will not run it:** Codex 0.129 and newer require trusted hooks; when usage's session-start hook is untrusted or disabled, the existing **Token Saver** row adds ` ⚠` with a hover hint to trust it through `/hooks` in Codex. usage only reads the trust settings and never grants trust itself; `usage doctor` also reports the state.
 
 ## [0.32.3] - 2026-10-05
 

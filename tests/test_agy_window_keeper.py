@@ -281,7 +281,7 @@ def test_run_agy_ping_uses_verified_noninteractive_command(
         "-p",
         "ok",
         "--model",
-        "Gemini 3.5 Flash (Low)",
+        "gemini-3.8-flash-low",
     ]
     assert captured["stdin"] is subprocess.DEVNULL
     assert captured["capture_output"] is True
