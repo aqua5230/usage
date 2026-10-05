@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import importlib.util
 import json
 import os
 import sqlite3
@@ -14,7 +15,14 @@ from typing import Any
 
 import pytest
 
-from scripts import check_upstream as check
+# Loaded by path like test_pricing.py: importing it as scripts.check_upstream makes `mypy .`
+# see the file under two module names, since scripts/ has no __init__.py.
+_spec = importlib.util.spec_from_file_location(
+    "check_upstream", Path(__file__).parents[1] / "scripts" / "check_upstream.py"
+)
+assert _spec is not None and _spec.loader is not None
+check = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(check)
 
 
 def write_json(path: Path, value: Any) -> Path:
@@ -292,7 +300,8 @@ def test_sqlite_opens_readonly(monkeypatch: pytest.MonkeyPatch) -> None:
     def connect(database: str, **kwargs: Any) -> sqlite3.Connection:
         uris.append(database)
         assert "mode=ro" in database and kwargs["uri"] is True
-        return original(database, **kwargs)
+        conn: sqlite3.Connection = original(database, **kwargs)
+        return conn
 
     monkeypatch.setattr(check.sqlite3, "connect", connect)
     assert check.check_agy_conversations()[0] == "OK"
