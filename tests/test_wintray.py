@@ -3027,12 +3027,11 @@ def test_real_windows_toast_backend_registers_aumid_and_creates_notifier() -> No
 @pytest.mark.parametrize(
     "preferences",
     [
-        {"auto_update_check": False},
         {"last_update_check": {"checked_at": 2_000_000_000.0}},
         {"update_dismissed_at": 2_000_000_000.0},
     ],
 )
-def test_automatic_update_check_honors_toggle_cache_and_cooldown(
+def test_automatic_update_check_honors_cache_and_cooldown(
     monkeypatch: pytest.MonkeyPatch,
     preferences: dict[str, object],
 ) -> None:
@@ -3138,7 +3137,6 @@ def test_manual_update_check_bypasses_gates_and_keeps_windows_yes_no_prompt(
         body="release notes",
     )
     preferences: dict[str, object] = {
-        "auto_update_check": False,
         "update_skipped_version": release.version,
         "update_dismissed_at": 2_000_000_000.0,
         "last_update_check": {"checked_at": 2_000_000_000.0},
@@ -3398,7 +3396,16 @@ def test_windows_update_failure_retries(
 
     monkeypatch.setattr(controller, "_message_box", message)
     monkeypatch.setattr(controller, "check_update", lambda: retries.append(True))
-    controller._show_update_check_failed(reason)
+    monkeypatch.setattr(wintray, "_load_preferences", lambda: {})
+    monkeypatch.setattr(wintray, "_current_version", lambda: "1.0.0")
+    monkeypatch.setattr(
+        update_checker,
+        "check_latest_release_result",
+        lambda version: update_checker.ReleaseCheckResult(None, True, reason),
+    )
+    assert controller._check_update_in_background(
+        manual=True, ignore_cooldown=True, ignore_skipped=True
+    )
     expected = _t("en", "update_check_failed")
     if reason is not None:
         expected += "\n" + _t("en", "update_check_failed_" + reason)

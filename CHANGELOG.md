@@ -10,13 +10,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ### Added
 - **Windows:** choose Claude Code or Codex as the tray quota source in the tray or panel menu. The selection is remembered; Codex falls back to its weekly quota when no session window is reported.
 - **Windows:** optionally show a transparent remaining-quota label beside the notification area, with DPI scaling, light/dark theme support, and fullscreen hiding. It moves left of taskbar buttons and the News and interests weather widget, with an outside fallback when space runs out. Click the label to toggle the panel without blocking the UI thread.
-- **Check for Updates returns on macOS:** The menu once again offers **Check for Updates**, so you can check for a new release manually.
 
 ### Changed
-- **Failed update checks explain why:** The dialog now reports whether you are offline, rate-limited (HTTP 403/429), facing a server error or receiving an invalid response, and offers **Retry**. Windows shows a **Retry/Cancel** dialog.
+- **Windows:** a failed **Check for Updates** now says why: you are offline, GitHub is limiting requests (HTTP 403/429), GitHub returned an error, or its response could not be read. The message box offers **Retry/Cancel**.
 
 ### Fixed
-- **Updates are found while usage stays open:** On macOS and Windows, usage now re-evaluates automatic checks every hour instead of checking only at launch, still respecting the existing 24-hour check interval, dismissal cooldown and skipped version, and retrying failed checks after 1, 1, 2, 4 and 6 hours. Finding a new version opens the same update dialog as the launch check.
+- **Updates are found while usage stays open:** On macOS and Windows, usage now re-evaluates automatic checks every hour instead of checking only at launch, still respecting the existing 24-hour check interval, dismissal cooldown and skipped version, and retrying failed checks after 1, 1, 2, 4 and 6 hours. Finding a new version opens the same update dialog as the launch check. Automatic checks also resume for anyone who turned them off with the old setting, which was removed in June and could not be turned back on.
 - **macOS notification banners appear while usage is in front:** Banners now appear even when usage is the foreground app, and denied notification permission is recorded in the log file.
 - **Expired Antigravity sign-in is visible:** The quota card shows "Sign-in expired" with a hint to sign in again, and `usage status --json` reports `not_signed_in`, which the side pane already displays. The warning clears after the next successful quota check.
 - **Auto-start failures are visible:** On macOS and Windows, **Auto-start 5-hour Session** records each attempt's result, including a missing command, timeout, non-zero exit with the command's last output line or an exception, and retries once after 10 minutes if the window is still idle. A final failure adds ` ⚠` to the existing menu row with the reason on hover and sends a notification when usage alerts are on; the same error is not notified again for every window, and a successful attempt clears the warning and notification suppression.

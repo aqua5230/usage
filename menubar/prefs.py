@@ -20,11 +20,6 @@ def _resolved_preferences(prefs: Mapping[str, object] | None = None) -> Mapping[
     return _load_preferences() if prefs is None else prefs
 
 
-def _auto_update_check_enabled(prefs: Mapping[str, object] | None = None) -> bool:
-    data = _resolved_preferences(prefs)
-    return data.get("auto_update_check") is not False
-
-
 def _hide_claude_enabled(prefs: Mapping[str, object] | None = None) -> bool:
     data = _resolved_preferences(prefs)
     return data.get("hide_claude_section") is True

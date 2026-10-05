@@ -203,7 +203,6 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     )
     apply_badge(claude_pane_item, app.language, "claude_pane")
     menu.addItem_(claude_pane_item)
-    menu.addItem_(build_menu_item(app.language, "check_update", "checkForUpdates:", target=app))
     app._switch_menu_action_taken = False
     menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
     # Dismissing the menu without picking anything used to close the panel:

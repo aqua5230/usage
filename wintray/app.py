@@ -38,7 +38,6 @@ from menubar import grok as menubar_grok
 from menubar import manual_refresh
 from menubar import state as menubar_state
 from menubar.prefs import (
-    _auto_update_check_enabled,
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
@@ -2153,8 +2152,6 @@ class _WindowsTrayController:
         ignore_skipped: bool,
     ) -> bool:
         preferences = _load_preferences()
-        if not manual and not _auto_update_check_enabled(preferences):
-            return False
         if not manual and not update_gate.auto_check_is_due(preferences):
             return False
         if not ignore_cooldown and update_gate.dismissed_recently(preferences):

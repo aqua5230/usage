@@ -85,7 +85,6 @@ from menubar.chrome import (
 )
 from menubar.popover import PopoverViewController, _popover_size
 from menubar.prefs import (
-    _auto_update_check_enabled,
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
@@ -181,7 +180,6 @@ __all__ = [
     "_missing_row",
     "_quota_row",
     "format_human_time",
-    "_auto_update_check_enabled",
     "_hide_agy_enabled",
     "_hide_claude_enabled",
     "_hide_codex_enabled",
@@ -606,28 +604,14 @@ class AppDelegate(NSObject):
         alert.runModal()
         self._refresh()
 
-    def checkForUpdates_(self, sender: Any) -> None:
-        menubar_update.check_manually(self)
-
     def _clear_stale_update_cache(self) -> None:
         menubar_update.clear_stale_update_cache()
 
     def _maybe_check_update_in_background(self) -> None:
         menubar_update.maybe_check_update_in_background(self)
 
-    def _check_update_in_background(
-        self,
-        *,
-        manual: bool,
-        ignore_cooldown: bool,
-        ignore_skipped: bool,
-    ) -> bool:
-        return menubar_update.check_update_in_background(
-            self,
-            manual=manual,
-            ignore_cooldown=ignore_cooldown,
-            ignore_skipped=ignore_skipped,
-        )
+    def _check_update_in_background(self) -> bool:
+        return menubar_update.check_update_in_background(self)
 
     def _showUpdateAlert_(self, release: update_checker.ReleaseInfo) -> None:
         alert = _make_alert()
@@ -647,14 +631,6 @@ class AppDelegate(NSObject):
         if action == "dismiss":
             prefs["update_dismissed_at"] = time.time()
         _save_preferences(prefs)
-
-    def _showNoUpdateAvailable_(self, result: Any) -> None:
-        alert = _make_alert()
-        alert.setMessageText_(_t(self.language, "update_no_new_version"))
-        alert.runModal()
-
-    def _showUpdateCheckFailed_(self, result: Any) -> None:
-        menubar_update.show_update_check_failed(self, result)
 
     def _set_active_panel_id(self, panel_id: str) -> None:
         panel = panels.get_panel(panel_id)
