@@ -213,20 +213,20 @@ def _remaining_percent(window: AgyQuotaWindow) -> float:
     return max(0.0, min(100.0, float(window.remaining_percent)))
 
 
-def _cache_age_minutes(fetched_at: str, now: float) -> int:
-    """Whole minutes since the cached snapshot was taken (never negative)."""
+def _cache_age_minutes(fetched_at: str, now: float) -> float:
+    """Minutes since the cached snapshot was taken (never negative)."""
     try:
         age_seconds = now - parse_iso8601_utc_or_raise(fetched_at).timestamp()
     except (TypeError, ValueError):
         return 0
-    return max(0, int(age_seconds // 60))
+    return max(0.0, age_seconds / 60)
 
 
 def _window_row(
     title: str,
     window: AgyQuotaWindow,
     language: str,
-    age_minutes: int = 0,
+    age_minutes: float = 0,
     forecast_seconds: float | None = None,
     warning_max_seconds: float | None = None,
     *,
@@ -236,12 +236,20 @@ def _window_row(
     used = 100.0 - remaining
     warning = False
     warning_seconds: float | None = None
-    if remaining == 100.0:
+    reset_done = window.resets_in_minutes is not None and window.resets_in_minutes <= max(
+        0, age_minutes
+    )
+    if reset_done:
+        used = 0.0
+        reset_text = _t(language, "reset_done")
+    elif remaining == 100.0:
         reset_text = _t(language, "agy_quota_full")
     elif window.resets_in_minutes is None:
         reset_text = _t(language, "reset_placeholder")
+    elif window.resets_in_minutes - max(0, age_minutes) < 1:
+        reset_text = _t(language, "reset_imminent")
     else:
-        minutes_left = max(1, window.resets_in_minutes - max(0, age_minutes))
+        minutes_left = window.resets_in_minutes - int(max(0, age_minutes))
         time_to_reset = minutes_left * 60
         if window_seconds is None:
             if (
@@ -275,12 +283,13 @@ def _window_row(
             )
     return QuotaRowState(
         title=title,
-        percent=used,
+        percent=100.0 - remaining,
         percent_text=_t(language, "percent_used", value=_format_percent(used)),
         reset_text=reset_text,
         color=_bar_color(used, AGY_COLOR),
         warning=warning,
         available=True,
+        reset_done=reset_done,
     )
 
 

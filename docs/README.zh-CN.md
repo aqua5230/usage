@@ -37,7 +37,7 @@ brew install --cask aqua5230/usage/usage
 
 **不是 macOS？** `uvx usage-cli` 在任何系统都能打开终端界面，Linux 也行——无需安装，也没有菜单栏。
 
-**快速跳转：** [功能一览](#功能一览) · [隐私与数据来源](#隐私与数据来源) · [系统要求](#系统要求) · [安装](#安装) · [设置状态栏](#首次启动设置状态栏) · [Windows 支持](#windows-支持) · [主题图库](#主题图库) · [故障排除](#故障排除) · [对比](#对比) · [不适合谁](#不适合谁) · [开发](#开发)
+**快速跳转：** [功能一览](#功能一览) · [隐私与数据来源](#隐私与数据来源) · [系统要求](#系统要求) · [安装](#安装) · [设置状态栏](#首次启动设置状态栏) · [Claude Code 侧边面板](#claude-code-侧边面板) · [Windows 支持](#windows-支持) · [主题图库](#主题图库) · [故障排除](#故障排除) · [对比](#对比) · [不适合谁](#不适合谁) · [开发](#开发)
 
 ## 功能一览
 
@@ -56,8 +56,9 @@ brew install --cask aqua5230/usage/usage
 
 - **进度管家：** 打开新的 Claude Code 会话时，`usage` 会直接把你上次的进度交给 AI，包括上次请求、未提交的变更和未完成的待办事项。无需 `/resume`，无需回顾。用 `/resume` 接回放太久、缓存已过期的对话时，会先提醒下一句要重新发送多少 token，建议先 `/compact`。默认关闭。
 - **Token 节省器：** 菜单栏开关会要求 Claude Code 和 Codex 在当前会话中更简洁、更白话地回答，在保持代码和错误信息逐字节不变的同时节省输出 token。轻量的逐消息提醒能避免长对话中的回复逐渐变得冗长——在真实会话的 A/B 测试中，对话后期回复维持缩短约 40%，而不是漂移变长 84%。
+- **Claude Code 侧边面板（macOS／Windows）：** 在 Claude Code 中查看额度、对话和后台任务。 [查看侧边面板介绍](#claude-code-侧边面板).
 - **自动启动 5 小时计时：** 默认关闭。打开后，每次 5 小时额度一重置，`usage` 就会自动各发送一则极小的消息（Claude 用 Haiku、Antigravity 用 Gemini 3.5 Flash Low、Codex 用最省成本的模型），让下一轮 5 小时立刻开始计时。这些消息会消耗一点额度，但量小到可以忽略。平时查看额度不会发送任何消息，只有打开这个开关才会。
-- **终端集成：** `usage status --json` 会将你的 Claude Code 和 Codex 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
+- **终端集成：** `usage status --json` 会将你的 Claude Code、Codex、Antigravity 和 Grok 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **Token 浪费健康检查：** 每日后台诊断会扫描日志中的浪费问题，包括重复读取文件、污染目录和冗长的 Bash 输出。发现问题时会显示一行提示；对 AI 说“show me”，它会引导你完成修复。
 
 ### 掌握最新动态
@@ -125,6 +126,34 @@ Linux 上运行 `usage setup` 也能装好 Claude Code 的状态栏，配额会�
 <p align="center">
   <img src="statusline.zh-CN.gif" alt="Claude Code 状态栏显示（简体）" width="900">
 </p>
+
+## Claude Code 侧边面板
+
+不用离开 Claude Code，就能查看额度、其他对话和后台任务。支持 macOS 和 Windows。
+
+<p align="center"><img src="side-pane.png" alt="Claude Code 侧边面板显示额度、对话和后台任务" width="637"></p>
+
+**你会看到**
+
+- **额度：** 5 小时和每周额度。
+- **Claude 对话：** 等待你确认权限或提供 MCP 输入的对话会标为黄色。
+- **后台任务：** 包括 Claude 用 Agent 工具启动的子代理及其状态。
+
+**开启方式**
+
+1. 在 usage 菜单栏菜单（macOS）或系统托盘面板菜单（Windows）中勾选 **Claude Code 侧边面板**。
+2. 打开新对话或运行 `/reload-plugins`。
+3. 终端宽度 ≥144 列时，面板会自动在右侧打开；较窄时输入 `/usage-dash`。
+
+<details>
+<summary>兼容性与更新</summary>
+
+- 需要支持 mod 的新版 Claude Code，已在 2.1.289 上测试。
+- 面板只有在 Claude Code 的全屏界面下才会显示在右侧，否则会显示在输入框上方。Windows 版启用面板时会一并开启全屏界面，关闭面板时改回。
+- macOS 内置 Terminal 只支持 256 色，可能出现灰色背景；在 `/config` 中选择 ANSI 深色主题。
+- usage 应用启动时，会把已启用的面板自动更新到应用内置版本。
+
+</details>
 
 ## Windows 支持
 

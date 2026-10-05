@@ -45,20 +45,19 @@ def label_position(
     occupied: tuple[Rect, ...] = (),
     gap: int = 4,
 ) -> tuple[int, int]:
-    """Use the notification area's left edge; fall back outside crowded/vertical bars."""
+    """Fit left of the notification area and obstacles, or outside a crowded bar."""
     width, height = size
     horizontal = taskbar[2] - taskbar[0] >= taskbar[3] - taskbar[1]
     x = tray[0] - width - gap
     y = taskbar[1] + (taskbar[3] - taskbar[1] - height) // 2
-    candidate = (x, y, x + width, y + height)
-    if (
-        horizontal
-        and x >= taskbar[0]
-        and y >= taskbar[1]
-        and y + height <= taskbar[3]
-        and not any(intersects(candidate, rect) for rect in occupied)
-    ):
-        return x, y
+    if horizontal and y >= taskbar[1] and y + height <= taskbar[3]:
+        inside_x = x
+        while inside_x >= taskbar[0]:
+            candidate = (inside_x, y, inside_x + width, y + height)
+            collisions = [rect for rect in occupied if intersects(candidate, rect)]
+            if not collisions:
+                return inside_x, y
+            inside_x = min(rect[0] for rect in collisions) - width - max(0, gap)
     if horizontal:
         y = work[1] + gap if taskbar[1] <= work[1] else work[3] - height - gap
     else:
@@ -175,6 +174,19 @@ class TaskbarOverlay:
     def window_rect(self, hwnd: int) -> Rect | None:
         rect = W.RECT()
         return _rect(rect) if self.user.GetWindowRect(hwnd, C.byref(rect)) else None
+
+    def widget_rects(self, taskbar: int) -> tuple[Rect, ...]:
+        """Windows 10 News and interests is a window, not a UIA Button/ListItem."""
+        rects: list[Rect] = []
+        child = None
+        while child := self.user.FindWindowExW(taskbar, child, None, None):
+            name = C.create_unicode_buffer(128)
+            self.user.GetClassNameW(child, name, len(name))
+            if name.value.startswith("DynamicContent") and self.user.IsWindowVisible(child):
+                rect = self.window_rect(child)
+                if rect is not None and rect[0] < rect[2] and rect[1] < rect[3]:
+                    rects.append(rect)
+        return tuple(rects)
 
     def layout(self) -> TaskbarLayout | None:
         taskbar = self.user.FindWindowW("Shell_TrayWnd", None)

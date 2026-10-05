@@ -449,3 +449,53 @@ def test_project_rows_for_windows_matches_window_boundaries() -> None:
         ("today", 4, 4.0),
         ("week", 3, 3.0),
     ]
+
+
+@pytest.mark.parametrize("offset", [-60.0, 0.0, 30.0, 3600.0])
+@pytest.mark.parametrize("language", ["en", "zh-TW", "zh-CN", "ja", "ko"])
+def test_quota_row_reset_display(offset: float, language: str) -> None:
+    from i18n import _t
+
+    row = menubar_state._quota_row(
+        "Session", 95.0, 1000.0 + offset, 1000.0, menubar_state.CLAUDE_COLOR, language
+    )
+    assert row.percent == 95.0  # Notifications continue to read the original value.
+    assert row.display_percent == (0.0 if offset <= 0 else 95.0)
+    assert row.percent_text == _t(language, "percent_used", value="0" if offset <= 0 else "95")
+    assert not row.warning
+    if offset <= 0:
+        assert row.reset_text == _t(language, "reset_done")
+    elif offset < 60:
+        assert row.reset_text == _t(language, "reset_imminent")
+    else:
+        assert row.reset_text == _t(
+            language, "reset_in", time=menubar_state.format_human_time(offset, language)
+        )
+
+
+@pytest.mark.parametrize("window_seconds", [None, 7 * 24 * 3600])
+def test_reset_quota_row_cannot_warn(window_seconds: float | None) -> None:
+    row = menubar_state._quota_row(
+        "Weekly",
+        100.0,
+        999.0,
+        1000.0,
+        menubar_state.CLAUDE_COLOR,
+        forecast_seconds=10.0,
+        window_seconds=window_seconds,
+    )
+    assert row.display_percent == 0.0
+    assert row.reset_text == "Reset"
+    assert row.reset_text_compact == ""
+    assert not row.warning
+
+
+def test_display_reset_does_not_restore_notifications() -> None:
+    from usage_notifications import QuotaNotifier
+
+    notifier = QuotaNotifier()
+    row = menubar_state._quota_row("Session", 100.0, 1001.0, 1000.0, menubar_state.CLAUDE_COLOR)
+    notifier.update({"claude_session": (row.percent, row.available)})
+    reset = menubar_state._quota_row("Session", 100.0, 1001.0, 1001.0, menubar_state.CLAUDE_COLOR)
+    assert reset.display_percent == 0.0
+    assert notifier.update({"claude_session": (reset.percent, reset.available)}) == []

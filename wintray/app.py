@@ -35,6 +35,7 @@ from loaders import codex_loader, grok_loader
 from loaders.history_loader import UsageEntry, load_entries
 from menubar import agy as menubar_agy
 from menubar import grok as menubar_grok
+from menubar import manual_refresh
 from menubar import state as menubar_state
 from menubar.prefs import (
     _auto_update_check_enabled,
@@ -571,7 +572,11 @@ def _set_taskbar_progress(
 
 def build_tooltip(state: menubar_state.PopoverState, provider: TrayProvider = "claude") -> str:
     def line(name: str, row: menubar_state.QuotaRowState) -> str:
-        used = "--" if row.percent is None else str(min(100, max(0, round(row.percent))))
+        used = (
+            "--"
+            if row.display_percent is None
+            else str(min(100, max(0, round(row.display_percent))))
+        )
         return f"{name} {row.title}: {used}%"
 
     lines = [
@@ -884,6 +889,12 @@ class _WindowsTrayController:
         self.refresh()
 
     def _startup_maintenance(self) -> None:
+        from installer import claude_pane
+
+        try:
+            claude_pane.refresh_claude_pane()
+        except (OSError, SystemExit):
+            logger.warning("Claude Code pane refresh failed", exc_info=True)
         usage_diagnosis_snapshot.maybe_schedule_refresh()
         self._clear_stale_update_cache()
         self._check_update_in_background(
@@ -1474,6 +1485,17 @@ class _WindowsTrayController:
             self._last_file_event_refresh_started_at = time.monotonic()
         self.refresh()
 
+    def refresh_manual(self) -> None:
+        with self.refresh_lock:
+            if self.stopping.is_set():
+                return
+            manual_refresh.begin(self.latest_state, queued=self._refresh_in_flight)
+        try:
+            if self.visible:
+                self.inject_state()
+        finally:
+            self.refresh()
+
     def refresh(self) -> None:
         with self.refresh_lock:
             if self.stopping.is_set():
@@ -1500,10 +1522,14 @@ class _WindowsTrayController:
 
         while True:
             try:
-                self.latest_state = self._build_state(
+                state = self._build_state(
                     measure=measure,
                     debug_timing=debug_timing,
                 )
+                with self.refresh_lock:
+                    self.latest_state = manual_refresh.finish(
+                        self.latest_state, state, queued=self._refresh_queued
+                    )
                 self._process_quota_notifications(self.latest_state)
                 started_at = time.monotonic() if debug_timing else 0.0
                 self._update_tray()
@@ -1513,6 +1539,15 @@ class _WindowsTrayController:
                     self.inject_state()
                     measure("inject_state", started_at)
             except Exception:
+                with self.refresh_lock:
+                    manual_refresh.finish(
+                        self.latest_state, self.latest_state, queued=self._refresh_queued
+                    )
+                if self.visible:
+                    try:
+                        self.inject_state()
+                    except Exception:
+                        logger.warning("Windows tray refresh status update failed", exc_info=True)
                 if os.environ.get("USAGE_DEBUG") == "1":
                     logger.warning("Windows tray refresh failed", exc_info=True)
 
@@ -1694,7 +1729,7 @@ class _WindowsTrayController:
         # that window is absent, rather than temporarily missing its quota.
         if self.tray_provider == "codex" and not row.title and row.percent is None:
             row = self.latest_state.codex_weekly
-        return row.percent if row.available else None
+        return row.display_percent if row.available else None
 
     def _update_tray(self) -> None:
         percent = self._tray_percent()
@@ -1915,6 +1950,49 @@ class _WindowsTrayController:
         except Exception:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("toggle terse mode failed", exc_info=True)
+
+    def toggle_claude_pane(self, _icon: Any = None, _item: Any = None) -> None:
+        threading.Thread(target=self._toggle_claude_pane_in_background, daemon=True).start()
+
+    def _toggle_claude_pane_in_background(self) -> None:
+        import contextlib
+        import io
+
+        from installer import claude_pane
+
+        output = io.StringIO()
+        ok = False
+        enabled = False
+        try:
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+                enabled = not claude_pane.is_claude_pane_enabled()
+                action = (
+                    claude_pane.enable_claude_pane if enabled else claude_pane.disable_claude_pane
+                )
+                ok = action() == 0
+        except SystemExit as exc:
+            print(exc.code, file=output)
+        except Exception as exc:
+            print(f"{type(exc).__name__}: {exc}", file=output)
+
+        if ok:
+            if enabled and not claude_pane.is_fullscreen_layout():
+                try:
+                    claude_pane.enable_fullscreen_layout()
+                except (OSError, SystemExit) as exc:
+                    self._message_box(f"{_t(self.language, 'claude_pane_action_failed')}\n\n{exc}")
+                else:
+                    self._message_box(
+                        f"{_t(self.language, 'claude_pane_enabled_msg')}\n\n"
+                        f"{_t(self.language, 'claude_pane_fullscreen_enabled_note')}"
+                    )
+            else:
+                key = "claude_pane_enabled_msg" if enabled else "claude_pane_disabled_msg"
+                self._message_box(_t(self.language, key))
+        else:
+            self._message_box(
+                f"{_t(self.language, 'claude_pane_action_failed')}\n\n{output.getvalue().strip()}"
+            )
 
     def _process_quota_notifications(self, state: menubar_state.PopoverState) -> None:
         try:
@@ -2191,7 +2269,7 @@ class _WindowsTrayController:
             elif action == "reset_panel_position":
                 self.reset_panel_position()
             elif action == "refresh":
-                self.refresh()
+                self.refresh_manual()
             elif action == "toggle_login":
                 self.toggle_login()
             elif action == "toggle_quota_notifications":
@@ -2202,6 +2280,8 @@ class _WindowsTrayController:
                 self.toggle_session_resume()
             elif action == "toggle_terse_mode":
                 self.toggle_terse_mode()
+            elif action == "toggle_claude_pane":
+                self.toggle_claude_pane()
             elif action == "check_update":
                 self.check_update()
             elif action == "quit":
@@ -2209,7 +2289,7 @@ class _WindowsTrayController:
             return None
         action = str(payload)
         if action == "refresh":
-            self.refresh()
+            self.refresh_manual()
         elif action == "quit":
             self.quit()
         elif action == "switch":
@@ -2308,6 +2388,7 @@ def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCo
         "window_keeper": _window_keeper_enabled,
         "session_resume": _session_resume_enabled,
         "terse_mode": _terse_mode_enabled,
+        "claude_pane": _claude_pane_enabled,
     }
     return checks[entry.checked_by]() if entry.checked_by is not None else False
 
@@ -2377,6 +2458,15 @@ def _terse_mode_enabled() -> bool:
         from installer import session_hooks
 
         return session_hooks.is_terse_mode_enabled()
+    except Exception:
+        return False
+
+
+def _claude_pane_enabled() -> bool:
+    try:
+        from installer import claude_pane
+
+        return claude_pane.is_claude_pane_enabled()
     except Exception:
         return False
 

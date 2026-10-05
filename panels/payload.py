@@ -91,7 +91,7 @@ def _data_uri(asset_name: str) -> str:
 
 def _row_payload(row: QuotaRowState) -> dict[str, object]:
     return {
-        "percent": row.percent,
+        "percent": row.display_percent,
         "percentText": row.percent_text,
         "resetText": row.reset_text,
         "resetTextCompact": row.reset_text_compact or row.reset_text,

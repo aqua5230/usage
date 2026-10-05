@@ -1006,6 +1006,10 @@ footer .kofi:hover { background: var(--accent-hover); }
   .bento-item.bento-visible { animation: bento-reveal 650ms cubic-bezier(.2,.7,.2,1) both; animation-delay: var(--stagger, 0ms); }
   @keyframes bento-reveal { from { opacity: 0; transform: translateY(22px); } to { opacity: 1; transform: translateY(0); } }
 }
+#side-pane { padding-top: 64px; }
+#side-pane .resume-layout { background: var(--bg); color: var(--fg); box-shadow: none; }
+#side-pane .subtitle { margin-bottom: 0; }
+#side-pane .strip { margin-top: 40px; }
 </style>
 </head>
 <body>
@@ -1018,6 +1022,7 @@ footer .kofi:hover { background: var(--accent-hover); }
     <nav>
       <a href="#features" data-i18n="nav_features">Features</a>
       <a href="#resume" data-i18n="nav_resume">Resume</a>
+      <a href="#side-pane" data-i18n="side_pane_nav">Side Pane</a>
       <a href="#screenshots" data-i18n="nav_screenshots">Panels</a>
       <a href="#install" data-i18n="nav_install">Install</a>
       <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>GitHub</a>
@@ -1027,6 +1032,7 @@ footer .kofi:hover { background: var(--accent-hover); }
       <nav aria-label="Sections" data-i18n-attr="aria-label:nav_sections">
         <a href="#features" data-i18n="nav_features">Features</a>
         <a href="#resume" data-i18n="nav_resume">Resume</a>
+        <a href="#side-pane" data-i18n="side_pane_nav">Side Pane</a>
         <a href="#screenshots" data-i18n="nav_screenshots">Panels</a>
         <a href="#install" data-i18n="nav_install">Install</a>
         <a href="https://github.com/aqua5230/usage" target="_blank" rel="noopener">GitHub</a>
@@ -1167,6 +1173,26 @@ footer .kofi:hover { background: var(--accent-hover); }
   </div>
 </section>
 
+<section id="side-pane">
+  <div class="wrap resume-layout">
+    <div class="resume-copy">
+      <div><span class="eyebrow" data-i18n="side_pane_label">INSIDE CLAUDE CODE</span></div>
+      <h2 data-i18n="side_pane_h2">Your quota, right inside Claude Code</h2>
+      <p class="subtitle" data-i18n="side_pane_lead">On macOS and Windows, see your quotas, conversations, and background jobs—including subagents started with the Agent tool and their status—inside Claude Code. Conversations waiting for your permission or MCP input are marked in yellow. After enabling the pane, it opens on the right automatically at terminal widths ≥144 columns; otherwise, enter <code>/usage-dash</code>.</p>
+    </div>
+    <div class="shot">
+      <img width="637" height="614" src="side-pane.webp" loading="lazy" data-i18n-attr="alt:side_pane_img_alt" alt="Claude Code side pane showing quotas, conversations, and background jobs" />
+    </div>
+  </div>
+  <div class="strip">
+    <div class="wrap">
+      <div class="item"><span class="dot"></span><strong data-i18n="side_pane_point1">Quotas without leaving the conversation</strong></div>
+      <div class="item"><span class="dot"></span><strong data-i18n="side_pane_point2">Waiting conversations marked in yellow</strong></div>
+      <div class="item"><span class="dot"></span><strong data-i18n="side_pane_point3">Background jobs and subagents</strong></div>
+    </div>
+  </div>
+</section>
+
 <section id="screenshots">
   <div class="wrap">
     <div class="section-label"><span class="eyebrow" data-i18n="nav_screenshots">Panels</span></div>
@@ -1249,6 +1275,14 @@ footer .kofi:hover { background: var(--accent-hover); }
 <script>
 const T = {
   'en': {
+    side_pane_label: 'INSIDE CLAUDE CODE',
+    side_pane_h2: 'Your quota, right inside Claude Code',
+    side_pane_lead: 'On macOS and Windows, see your quotas, conversations, and background jobs—including subagents started with the Agent tool and their status—inside Claude Code. Conversations waiting for your permission or MCP input are marked in yellow. After enabling the pane, it opens on the right automatically at terminal widths ≥144 columns; otherwise, enter <code>/usage-dash</code>.',
+    side_pane_point1: 'Quotas without leaving the conversation',
+    side_pane_point2: 'Waiting conversations marked in yellow',
+    side_pane_point3: 'Background jobs and subagents',
+    side_pane_img_alt: 'Claude Code side pane showing quotas, conversations, and background jobs',
+    side_pane_nav: 'Side Pane',
     _label: 'EN',
     meta_title: 'usage — Claude Code, Codex, Antigravity & Grok quota tracker',
     meta_desc: 'macOS menu bar and Windows tray app for Claude Code, Codex, Antigravity, and Grok quota, tokens, and cost.',
@@ -1335,6 +1369,14 @@ const T = {
     footer_kofi: '☕ Buy me a coffee',
   },
   'zh-TW': {
+    side_pane_label: '在 CLAUDE CODE 裡',
+    side_pane_h2: '你的額度，就在 Claude Code 裡',
+    side_pane_lead: '在 macOS 與 Windows 的 Claude Code 裡看額度、對話與背景工作，包含 Agent 工具開的子代理及其狀態。等你回覆權限確認或 MCP 輸入的對話會標黃色。開啟面板後，終端機寬度 ≥144 欄會自動在右邊打開；比較窄時輸入 <code>/usage-dash</code>。',
+    side_pane_point1: '不用離開對話就能看額度',
+    side_pane_point2: '等你的對話標黃色',
+    side_pane_point3: '背景工作與子代理',
+    side_pane_img_alt: 'Claude Code 側邊面板顯示額度、對話與背景工作',
+    side_pane_nav: '側邊面板',
     _label: '繁中',
     meta_title: 'usage — 把 Claude Code、Codex、Antigravity 和 Grok 的用量釘在 menu bar',
     meta_desc: 'macOS menu bar 與 Windows 系統匣工具，監控 Claude Code、Codex、Antigravity 和 Grok CLI 的配額、token 用量與成本。HTML 報告、16 款主題、AGPL-3.0。',
@@ -1421,6 +1463,14 @@ const T = {
     footer_kofi: '☕ 請我喝杯咖啡',
   },
   'zh-CN': {
+    side_pane_label: '在 CLAUDE CODE 中',
+    side_pane_h2: '你的额度，就在 Claude Code 中',
+    side_pane_lead: '在 macOS 和 Windows 的 Claude Code 中查看额度、对话和后台任务，包括 Agent 工具启动的子代理及其状态。等待你确认权限或提供 MCP 输入的对话会标为黄色。启用面板后，终端宽度 ≥144 列时会自动在右侧打开；较窄时输入 <code>/usage-dash</code>。',
+    side_pane_point1: '不用离开对话就能查看额度',
+    side_pane_point2: '等待你的对话标为黄色',
+    side_pane_point3: '后台任务与子代理',
+    side_pane_img_alt: 'Claude Code 侧边面板显示额度、对话和后台任务',
+    side_pane_nav: '侧边面板',
     _label: '简中',
     meta_title: 'usage — 把 Claude Code、Codex、Antigravity 和 Grok 的用量钉在 menu bar',
     meta_desc: 'macOS menu bar 与 Windows 系统托盘工具，监控 Claude Code、Codex、Antigravity 和 Grok CLI 的额度、token 用量与花费。HTML 报告、16 款主题、AGPL-3.0。',
@@ -1507,6 +1557,14 @@ const T = {
     footer_kofi: '☕ 请我喝杯咖啡',
   },
   'ja': {
+    side_pane_label: 'CLAUDE CODE の中で',
+    side_pane_h2: '使用量を Claude Code の中で確認',
+    side_pane_lead: 'macOS と Windows の Claude Code 内で、使用量、会話、バックグラウンド作業を確認できます。Agent ツールで起動したサブエージェントとその状態も表示します。権限の確認や MCP への入力を待つ会話は黄色で表示。有効にすると、ターミナル幅が144列以上なら右側に自動で開きます。狭い場合は <code>/usage-dash</code> を入力してください。',
+    side_pane_point1: '会話を離れずに使用量を確認',
+    side_pane_point2: '入力待ちの会話を黄色で表示',
+    side_pane_point3: 'バックグラウンド作業とサブエージェント',
+    side_pane_img_alt: '使用量、会話、バックグラウンド作業を表示する Claude Code サイドパネル',
+    side_pane_nav: 'サイドパネル',
     _label: '日本語',
     meta_title: 'usage — Claude Code、Codex、Antigravity、Grok のクォータをメニューバーに固定',
     meta_desc: 'macOS メニューバーと Windows システムトレイで Claude Code、Codex、Antigravity、Grok CLI のクォータ、トークン使用量、コストを監視。HTML レポート、16 種テーマ、AGPL-3.0。',
@@ -1593,6 +1651,14 @@ const T = {
     footer_kofi: '☕ コーヒーをおごる',
   },
   'ko': {
+    side_pane_label: 'CLAUDE CODE 안에서',
+    side_pane_h2: '사용량을 Claude Code 안에서 바로 확인',
+    side_pane_lead: 'macOS와 Windows의 Claude Code 안에서 사용량, 대화, 백그라운드 작업을 확인하세요. Agent 도구로 시작한 하위 에이전트와 상태도 표시됩니다. 권한 확인이나 MCP 입력을 기다리는 대화는 노란색으로 표시됩니다. 패널을 켜면 터미널 너비가 144열 이상일 때 오른쪽에 자동으로 열립니다. 좁으면 <code>/usage-dash</code>를 입력하세요.',
+    side_pane_point1: '대화를 떠나지 않고 사용량 확인',
+    side_pane_point2: '입력 대기 중인 대화는 노란색 표시',
+    side_pane_point3: '백그라운드 작업과 하위 에이전트',
+    side_pane_img_alt: '사용량, 대화, 백그라운드 작업을 보여 주는 Claude Code 사이드 패널',
+    side_pane_nav: '사이드 패널',
     _label: '한국어',
     meta_title: 'usage — Claude Code, Codex, Antigravity, Grok의 한도를 메뉴 바에 고정',
     meta_desc: 'macOS 메뉴 바와 Windows 시스템 트레이에서 Claude Code, Codex, Antigravity, Grok CLI의 한도, 토큰 사용량, 비용을 모니터링. HTML 보고서, 16가지 테마, AGPL-3.0.',

@@ -9,10 +9,51 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 - **Windows:** choose Claude Code or Codex as the tray quota source in the tray or panel menu. The selection is remembered; Codex falls back to its weekly quota when no session window is reported.
-- **Windows:** optionally show a transparent remaining-quota label beside the notification area, with DPI scaling, light/dark theme support, fullscreen hiding, and a fallback position when taskbar buttons occupy the space. Click the label to toggle the panel without blocking the UI thread.
+- **Windows:** optionally show a transparent remaining-quota label beside the notification area, with DPI scaling, light/dark theme support, and fullscreen hiding. It moves left of taskbar buttons and the News and interests weather widget, with an outside fallback when space runs out. Click the label to toggle the panel without blocking the UI thread.
 
 ### Fixed
-- Guard Windows taskbar native-library loading on other platforms so cross-platform type checks pass. Localize taskbar label formats and provider names, and omit the percent sign when quota is unknown.
+- Correct the macOS background-update tests to isolate the current update helper and prevent live release checks during tests.
+
+## [0.32.3] - 2026-10-05
+
+### Changed
+- **Quota shows 0% once its reset time passes:** After a 5-hour or weekly window resets, the menu bar, popover panels, Windows tray and Claude Code side pane show 0% with "Reset" until fresh data arrives, instead of the last percentage. Notifications and history still use the real reading.
+- **Refresh gives feedback:** The popover status chip shows "↻ Refreshing…" while a refresh started from the Refresh button runs (macOS and Windows).
+
+### Fixed
+- **Side pane no longer calls a conversation done while its background jobs run:** A conversation whose main turn ended but whose background jobs are still running keeps the spinner and only toasts "Done" after they finish.
+- **Side pane shows every running background job:** The jobs block used to keep only the last four rows; running jobs now always show, and finished ones fold behind a "+N more" toggle.
+- **Side pane lists every kind of background work:** Plain background shell commands, monitors and workflows now appear in the jobs block (from Claude Code's own in-flight list at the end of each turn), not just codex / agy / grok / muse dispatches and subagents, and they count toward keeping a conversation busy.
+
+## [0.32.2] - 2026-10-05
+
+### Added
+- **Claude Code side pane notifications:** A toast appears when another Claude conversation finishes or starts waiting for you. It fires only when the next refresh still shows the same state, so brief flips don't ping.
+- **Session rows show the latest reply:** Each conversation's second row shows the last assistant reply (Markdown stripped); a waiting conversation says what it waits for, such as needs your answer or sandbox permission.
+- **`usage status --json` explains missing quotas:** Unavailable agents carry `reason` (`not_signed_in`, `no_data` or `error`). The pane shows Claude and Codex with that reason instead of dropping them; Antigravity and Grok stay hidden like the menu bar unless reading fails.
+
+### Changed
+- **Side pane quota block is easier to scan:** The tightest quota is listed first, each tool takes two rows with its name in a left column, model names are gone, and windows under 50% are gray so only the ones worth watching are colored. Antigravity's Claude / GPT pool is no longer shown in the pane.
+- **Session marks follow state:** A spinner while working, a yellow `?` while waiting for you, a green check for ten minutes after finishing, then a gray dot. The Busy and Idle labels are gone.
+
+## [0.32.1] - 2026-10-05
+
+### Added
+- **Claude Code side pane on Windows:** The system-tray panel menu now has the **Claude Code side pane** switch. The pane runs on Windows without POSIX tools (`tasklist` for live conversations, `findstr` for long transcripts), and `usage.exe status --json` supplies its quota data. Enabling it also turns on Claude Code's fullscreen layout, which the pane needs to dock on the right; turning the pane off switches the layout back.
+
+### Changed
+- **Claude Code side pane follows Hide Sections:** Tools hidden from the usage menu are also hidden in the pane and the compact box above the prompt, on macOS and Windows.
+
+## [0.32.0] - 2026-10-05
+
+### Added
+- **Claude Code side pane (macOS):** Toggle quotas, Claude sessions and background jobs inside Claude Code. Requires a recent Claude Code with mod support (tested with 2.1.289). Open a new conversation or run `/reload-plugins` after enabling. The pane opens on the right automatically at terminal widths ≥144 columns; use `/usage-dash` in narrower terminals. macOS Terminal supports only 256 colors and may show a gray background; select an ANSI dark theme in `/config`. Conversations waiting for your permission or MCP input are marked in yellow across panes, and background jobs also list subagents started by Claude with the Agent tool and their status.
+- **`usage status --json` includes Antigravity and Grok quotas.** Read all Antigravity groups from the local cache and Grok billing from its local log, with reset countdowns and snapshot ages. The text summary stays unchanged.
+
+### Fixed
+- **Claude Code side pane:** when the usage app starts, an enabled pane is automatically updated to the bundled version, so upgrades no longer require toggling it off and on.
+- **Claude Code side pane:** the refresh age switches from seconds to minutes or hours after one minute.
+- **Claude Code side pane:** quota windows with missing data are hidden instead of appearing as 0%.
 
 ## [0.31.6] - 2026-10-04
 

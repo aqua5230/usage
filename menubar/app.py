@@ -70,6 +70,7 @@ from loaders.history_loader import (
     flush_caches_on_terminate as flush_history_cache,
 )
 from menubar import actions as menubar_actions
+from menubar import manual_refresh
 from menubar import menu as menubar_menu
 from menubar import notify as menubar_notify
 from menubar import refresh as menubar_refresh
@@ -419,7 +420,7 @@ class AppDelegate(NSObject):
             self._panel_window_did_hide()
 
     def refreshNow_(self, sender: Any) -> None:
-        self._refresh(queue_if_busy=True)
+        manual_refresh.start_mac(self)
 
     def installHook_(self, sender: Any) -> None:
         thread = threading.Thread(target=self._install_hook_in_background, daemon=True)
@@ -578,6 +579,12 @@ class AppDelegate(NSObject):
             alert.setInformativeText_(str(result.get("output") or ""))
         alert.runModal()
         self._refresh()
+
+    def toggleClaudePane_(self, sender: Any) -> None:
+        menubar_actions.toggle_claude_pane(self)
+
+    def _finishClaudePane_(self, result: dict[str, Any]) -> None:
+        menubar_actions.finish_claude_pane(self, result)
 
     def toggleTerseMode_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
@@ -816,7 +823,7 @@ class AppDelegate(NSObject):
             codex_model = result.get("codex_model", "unknown")
             self.codex_5h_pct = codex_5h_pct
             self.codex_model = codex_model
-            self.latest_state = state
+            self.latest_state = manual_refresh.finish_mac(self, state)
             self._process_quota_notifications(state)
             if self._panel_window_is_visible():
                 self.popover_controller.setState_(self.latest_state)
@@ -825,8 +832,7 @@ class AppDelegate(NSObject):
             menubar_title._set_button_title(self, state)
         finally:
             should_refresh_again = bool(self._refresh_queued)
-            self._refresh_queued = False
-            self._refresh_in_flight = False
+            self._refresh_queued = self._refresh_in_flight = False
         if should_refresh_again:
             self._refresh()
         if started_at:
@@ -836,7 +842,7 @@ class AppDelegate(NSObject):
             )
 
     def _clearRefreshInFlight_(self, _sender: Any) -> None:
-        self._refresh_in_flight = False
+        manual_refresh.fail_mac(self)
 
     def _load_codex_refresh_result(self) -> dict[str, Any]:
         history_scan = None if self.mock else self._history_source_scan()

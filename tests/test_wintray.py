@@ -22,6 +22,7 @@ import panels
 import prefs
 import service_status
 from i18n import _t
+from installer import claude_pane
 from loaders import codex_loader
 from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
 from menubar import agy as menubar_agy
@@ -1535,6 +1536,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     monkeypatch.setattr(wintray, "_window_keeper_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_session_resume_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_terse_mode_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_claude_pane_enabled", lambda: True)
 
     menu = controller._panel_menu_data()
 
@@ -1556,6 +1558,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "window_keeper_menu",
         "project_butler",
         "terse_mode_menu",
+        "claude_pane_menu",
         "separator",
         "check_update",
     ]
@@ -1570,6 +1573,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     assert menu[9]["checked"] is True
     assert menu[10]["checked"] is True
     assert menu[11]["checked"] is False
+    assert menu[12]["checked"] is True
 
 
 def test_panel_and_tray_menus_render_the_shared_model(
@@ -1695,6 +1699,7 @@ def test_tray_quit_label_removes_the_power_glyph() -> None:
         ({"action": "toggle_window_keeper"}, "toggle_window_keeper", ()),
         ({"action": "toggle_session_resume"}, "toggle_session_resume", ()),
         ({"action": "toggle_terse_mode"}, "toggle_terse_mode", ()),
+        ({"action": "toggle_claude_pane"}, "toggle_claude_pane", ()),
         ({"action": "check_update"}, "check_update", ()),
         ({"action": "quit"}, "quit", ()),
     ],
@@ -1942,6 +1947,7 @@ def test_attach_schedules_startup_maintenance_after_tray_is_visible(
         "wintray.app.usage_diagnosis_snapshot.maybe_schedule_refresh",
         lambda: events.append("diagnosis"),
     )
+    monkeypatch.setattr(claude_pane, "refresh_claude_pane", lambda: events.append("claude-pane"))
     monkeypatch.setattr(
         controller,
         "_clear_stale_update_cache",
@@ -1963,7 +1969,8 @@ def test_attach_schedules_startup_maintenance_after_tray_is_visible(
     ]
     startup = next(thread for thread in threads if thread.target == controller._startup_maintenance)
     startup.target(**startup.kwargs)
-    assert events[-3:] == [
+    assert events[-4:] == [
+        "claude-pane",
         "diagnosis",
         "clear-update-cache",
         (
@@ -1971,6 +1978,86 @@ def test_attach_schedules_startup_maintenance_after_tray_is_visible(
             {"manual": False, "ignore_cooldown": False, "ignore_skipped": False},
         ),
     ]
+
+
+def test_claude_pane_menu_check_and_toggle_results(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    entry = wintray_menu.MenuCommand(
+        "claude_pane_menu", "toggle_claude_pane", checked_by="claude_pane"
+    )
+    messages: list[str] = []
+    monkeypatch.setattr(claude_pane, "is_claude_pane_enabled", lambda: False)
+    monkeypatch.setattr(claude_pane, "enable_claude_pane", lambda: 0)
+    monkeypatch.setattr(claude_pane, "is_fullscreen_layout", lambda: True)
+    monkeypatch.setattr(controller, "_message_box", messages.append)
+
+    assert wintray._menu_checked(controller, entry) is False
+    controller._toggle_claude_pane_in_background()
+
+    assert messages == [_t("en", "claude_pane_enabled_msg")]
+
+
+def test_claude_pane_toggle_enables_fullscreen_and_reports_note(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    messages: list[str] = []
+    calls: list[str] = []
+    monkeypatch.setattr(claude_pane, "is_claude_pane_enabled", lambda: False)
+    monkeypatch.setattr(claude_pane, "enable_claude_pane", lambda: 0)
+    monkeypatch.setattr(claude_pane, "is_fullscreen_layout", lambda: False)
+    monkeypatch.setattr(claude_pane, "enable_fullscreen_layout", lambda: calls.append("fullscreen"))
+
+    monkeypatch.setattr(controller, "_message_box", messages.append)
+
+    controller._toggle_claude_pane_in_background()
+
+    assert calls == ["fullscreen"]
+    assert messages == [
+        f"{_t('en', 'claude_pane_enabled_msg')}\n\n"
+        f"{_t('en', 'claude_pane_fullscreen_enabled_note')}"
+    ]
+
+
+def test_claude_pane_toggle_fullscreen_failure_reports_error(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    messages: list[str] = []
+    monkeypatch.setattr(claude_pane, "is_claude_pane_enabled", lambda: False)
+    monkeypatch.setattr(claude_pane, "enable_claude_pane", lambda: 0)
+    monkeypatch.setattr(claude_pane, "is_fullscreen_layout", lambda: False)
+
+    def fail() -> None:
+        raise OSError("fullscreen failure")
+
+    monkeypatch.setattr(claude_pane, "enable_fullscreen_layout", fail)
+    monkeypatch.setattr(controller, "_message_box", messages.append)
+
+    controller._toggle_claude_pane_in_background()
+
+    assert messages == [f"{_t('en', 'claude_pane_action_failed')}\n\nfullscreen failure"]
+
+
+def test_claude_pane_toggle_failure_reports_output(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    messages: list[str] = []
+    monkeypatch.setattr(claude_pane, "is_claude_pane_enabled", lambda: False)
+
+    def fail() -> int:
+        print("pane failure")
+        return 1
+
+    monkeypatch.setattr(claude_pane, "enable_claude_pane", fail)
+    monkeypatch.setattr(controller, "_message_box", messages.append)
+
+    controller._toggle_claude_pane_in_background()
+
+    assert messages == [f"{_t('en', 'claude_pane_action_failed')}\n\npane failure"]
 
 
 def test_refresh_requested_while_busy_runs_once_after_current_refresh(
@@ -3226,3 +3313,70 @@ def test_windows_panel_registry_stays_in_sync_with_macos() -> None:
     mac_ids = set(panels.panel_ids())
     assert {panel[0] for panel in wintray.WINDOWS_PANELS} == mac_ids
     assert set(wintray.PANEL_HEIGHTS) == mac_ids
+
+
+def test_reset_tray_uses_display_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.latest_state = _state()
+    row = menubar_state._quota_row("Session", 100.0, 999.0, 1000.0, menubar_state.CLAUDE_COLOR)
+    controller.latest_state.claude_session = row
+    controller.icon = SimpleNamespace(icon=None, title=None)
+    calls: list[float | None] = []
+    taskbar: list[float | None] = []
+
+    def draw(percent: float | None) -> object:
+        calls.append(percent)
+        return object()
+
+    monkeypatch.setattr(wintray, "draw_tray_icon", draw)
+    monkeypatch.setattr(
+        controller, "_update_taskbar_progress", lambda percent: taskbar.append(percent)
+    )
+    controller._update_tray()
+    assert calls == taskbar == [0.0]
+    assert "Claude Session: 0%" in controller.icon.title
+    assert row.percent == 100.0
+
+
+@pytest.mark.parametrize("manual", [False, True])
+def test_refresh_chip_only_shows_during_manual_refresh(
+    monkeypatch: pytest.MonkeyPatch, manual: bool
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.visible = True
+    started, release = threading.Event(), threading.Event()
+    pushed: list[str] = []
+    state = _state()
+    state.status_text = "Status: ✓ Synced"
+
+    def build_state(**_kwargs: object) -> menubar_state.PopoverState:
+        started.set()
+        assert release.wait(2)
+        return state
+
+    monkeypatch.setattr(controller, "_build_state", build_state)
+    monkeypatch.setattr(controller, "_ensure_windows_watcher", lambda: None)
+    monkeypatch.setattr(controller, "_process_quota_notifications", lambda _state: None)
+    monkeypatch.setattr(controller, "_update_tray", lambda: None)
+    monkeypatch.setattr(
+        controller, "inject_state", lambda: pushed.append(controller.latest_state.status_text)
+    )
+    if manual:
+        controller.handle_panel_message({"action": "refresh"})
+    else:
+        controller.refresh()
+    try:
+        assert started.wait(2)
+        refreshing = _t(
+            controller.language, "status_text", value=_t(controller.language, "status_refreshing")
+        )
+        assert (controller.latest_state.status_text == refreshing) is manual
+        assert pushed == ([refreshing] if manual else [])
+    finally:
+        release.set()
+        thread = controller._refresh_thread
+        if thread is not None:
+            thread.join(2)
+    assert controller._refresh_in_flight is False
+    assert controller.latest_state.status_text == "Status: ✓ Synced"
+    assert pushed[-1] == "Status: ✓ Synced"

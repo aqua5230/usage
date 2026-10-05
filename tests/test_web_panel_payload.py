@@ -272,3 +272,13 @@ def test_bridge_forwards_window_drag() -> None:
     )
 
     assert calls == [web_view]
+
+
+def test_reset_row_payload_uses_display_value() -> None:
+    row = menubar._quota_row("Weekly", 100.0, 999.0, 1000.0, menubar.CLAUDE_COLOR)
+    payload = _row_payload(row)
+    assert payload["percent"] == 0.0
+    assert payload["percentText"] == "0% used"
+    assert payload["resetText"] == payload["resetTextCompact"] == "Reset"
+    assert payload["warning"] is False
+    assert row.percent == 100.0

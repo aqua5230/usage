@@ -66,20 +66,22 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
     if not state.hide_claude:
         claude_percent = (
             "--"
-            if state.claude_session.percent is None
-            else f"{_format_percent(state.claude_session.percent)}%"
+            if state.claude_session.display_percent is None
+            else f"{_format_percent(state.claude_session.display_percent)}%"
         )
         title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
         title.appendAttributedString_(_menubar_text_string(app, f" {claude_percent}"))
     if not state.hide_codex and (app.codex_5h_pct is not None or state.hide_claude):
-        codex_percent = (
-            "--" if app.codex_5h_pct is None else f"{_format_percent(float(app.codex_5h_pct))}%"
+        codex_row = (
+            state.codex_session if state.codex_session.percent is not None else state.codex_weekly
         )
+        codex_used = 0.0 if codex_row.reset_done else app.codex_5h_pct
+        codex_percent = "--" if codex_used is None else f"{_format_percent(float(codex_used))}%"
         if not state.hide_claude:
             title.appendAttributedString_(_menubar_text_string(app, "  "))
         title.appendAttributedString_(_menubar_icon_attachment_string(_codex_menubar_icon()))
         title.appendAttributedString_(_menubar_text_string(app, f" {codex_percent}"))
-    agy_session_percent = state.agy_session.percent
+    agy_session_percent = state.agy_session.display_percent
     agy_visible = not state.hide_agy and agy_session_percent is not None
     if agy_visible:
         assert agy_session_percent is not None
@@ -88,7 +90,7 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
             title.appendAttributedString_(_menubar_text_string(app, "  "))
         title.appendAttributedString_(_menubar_icon_attachment_string(_agy_menubar_icon()))
         title.appendAttributedString_(_menubar_text_string(app, f" {agy_percent}"))
-    grok_weekly_percent = state.grok_weekly.percent
+    grok_weekly_percent = state.grok_weekly.display_percent
     grok_visible = not state.hide_grok and grok_weekly_percent is not None
     if grok_visible:
         assert grok_weekly_percent is not None
@@ -123,18 +125,22 @@ def _compose_title(app: _TitleApp, state: PopoverState) -> str:
     if not state.hide_claude:
         claude = (
             "--"
-            if state.claude_session.percent is None
-            else f"{_format_percent(state.claude_session.percent)}%"
+            if state.claude_session.display_percent is None
+            else f"{_format_percent(state.claude_session.display_percent)}%"
         )
         parts.append(claude)
     if not state.hide_codex and (app.codex_5h_pct is not None or state.hide_claude):
-        codex = "--" if app.codex_5h_pct is None else f"{_format_percent(float(app.codex_5h_pct))}%"
+        codex_row = (
+            state.codex_session if state.codex_session.percent is not None else state.codex_weekly
+        )
+        codex_used = 0.0 if codex_row.reset_done else app.codex_5h_pct
+        codex = "--" if codex_used is None else f"{_format_percent(float(codex_used))}%"
         parts.append(codex)
-    if not state.hide_agy and state.agy_session.percent is not None:
-        agy = f"{_format_percent(state.agy_session.percent)}%"
+    if not state.hide_agy and state.agy_session.display_percent is not None:
+        agy = f"{_format_percent(state.agy_session.display_percent)}%"
         parts.append(agy)
-    if not state.hide_grok and state.grok_weekly.percent is not None:
-        grok = f"{_format_percent(state.grok_weekly.percent)}%"
+    if not state.hide_grok and state.grok_weekly.display_percent is not None:
+        grok = f"{_format_percent(state.grok_weekly.display_percent)}%"
         parts.append(grok)
     # Both providers hidden: keep a recognizable, clickable status item.
     return " · ".join(parts) if parts else "usage"

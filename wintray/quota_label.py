@@ -149,6 +149,9 @@ class TaskbarQuotaLabel:
         # Wait for a current taskbar snapshot before covering any shell surface.
         if owner != layout.hwnd:
             occupied = (layout.rect,)
+        # Read shell widgets on every tick, including after Explorer recreates
+        # the taskbar or the user toggles News and interests.
+        occupied += self.native.widget_rects(layout.hwnd)
         signature = (self._text, taskbar_text_color(self._used, _light_taskbar()), layout.scale)
         changed = signature != self._last
         if changed:

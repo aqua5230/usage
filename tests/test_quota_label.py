@@ -3,6 +3,7 @@ from __future__ import annotations
 import threading
 from dataclasses import replace
 from types import SimpleNamespace
+from typing import Any
 
 import pytest
 
@@ -11,7 +12,7 @@ import prefs
 from tests.test_wintray import _state
 from wintray import app, quota_label, taskbar_overlay
 from wintray.quota_label import TaskbarQuotaLabel, draw_label, taskbar_text_color
-from wintray.taskbar_overlay import TaskbarLayout, covers_monitor, label_position
+from wintray.taskbar_overlay import TaskbarLayout, covers_monitor, intersects, label_position
 
 
 @pytest.mark.parametrize("platform", ["linux", "darwin"])
@@ -81,13 +82,27 @@ def test_panel_action_failure_releases_click_guard(caplog: pytest.LogCaptureFixt
             (1600, 1040, 1920, 1080),
             (0, 0, 1920, 1040),
             ((1400, 1040, 1500, 1080),),
-            (1436, 1004),
+            (1236, 1044),
         ),
         (
             (0, 0, 1920, 40),
             (1600, 0, 1920, 40),
             (0, 40, 1920, 1080),
             ((1400, 0, 1500, 40),),
+            (1236, 4),
+        ),
+        (
+            (0, 1040, 1920, 1080),
+            (1600, 1040, 1920, 1080),
+            (0, 0, 1920, 1040),
+            ((0, 1040, 1600, 1080),),
+            (1436, 1004),
+        ),
+        (
+            (0, 0, 1920, 40),
+            (1600, 0, 1920, 40),
+            (0, 40, 1920, 1080),
+            ((0, 0, 1600, 40),),
             (1436, 44),
         ),
         ((0, 0, 48, 1080), (0, 800, 48, 1080), (48, 0, 1920, 1080), (), (52, 764)),
@@ -102,6 +117,79 @@ def test_label_placement_avoids_buttons_and_handles_taskbar_edges(
     expected: tuple[int, int],
 ) -> None:
     assert label_position(taskbar, tray, work, (160, 32), occupied) == expected
+
+
+@pytest.mark.parametrize("scale", [1.0, 1.5])
+@pytest.mark.parametrize("offset", [0, -1920])
+def test_label_moves_left_of_weather_and_buttons(scale: float, offset: int) -> None:
+    def rect(left: int, top: int, right: int, bottom: int) -> tuple[int, int, int, int]:
+        return (
+            round((left + offset) * scale),
+            round(top * scale),
+            round((right + offset) * scale),
+            round(bottom * scale),
+        )
+
+    taskbar = rect(0, 1040, 1920, 1080)
+    tray = rect(1633, 1040, 1920, 1080)
+    work = rect(0, 0, 1920, 1040)
+    weather = rect(1515, 1040, 1625, 1080)
+    button = rect(1390, 1040, 1500, 1080)
+    size = (round(81 * scale), round(32 * scale))
+    gap = round(4 * scale)
+    for occupied in ((weather,), (weather, button), (button, weather)):
+        x, y = label_position(taskbar, tray, work, size, occupied, gap)
+        label = (x, y, x + size[0], y + size[1])
+        assert taskbar[0] <= x and taskbar[1] <= y
+        assert label[3] <= taskbar[3]
+        assert label[2] == min(obstacle[0] for obstacle in occupied) - gap
+        assert not any(intersects(label, obstacle) for obstacle in occupied)
+
+
+def test_native_widgets_include_only_visible_nonempty_dynamic_content(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    native = object.__new__(taskbar_overlay.TaskbarOverlay)
+    taskbar = 1 << 34
+    children = [taskbar + i for i in range(1, 7)]
+    classes = dict(
+        zip(
+            children,
+            (
+                "DynamicContent2",
+                "DynamicContent1",
+                "DynamicContent3",
+                "DynamicContent4",
+                "TrayNotifyWnd",
+                "DynamicContent",
+            ),
+            strict=True,
+        )
+    )
+    visible = set(children) - {children[1]}
+    bounds = {child: (1515, 1040, 1625, 1080) for child in children}
+    bounds[children[2]] = (0, 0, 0, 0)
+
+    def find(parent: int, after: int | None, _cls: object, _title: object) -> int | None:
+        assert parent == taskbar
+        index = children.index(after) + 1 if after is not None else 0
+        return children[index] if index < len(children) else None
+
+    def name(hwnd: int, buffer: Any, _length: int) -> int:
+        buffer.value = classes[hwnd]
+        return len(buffer.value)
+
+    native.user = SimpleNamespace(  # type: ignore[assignment]
+        FindWindowExW=find, GetClassNameW=name, IsWindowVisible=lambda hwnd: hwnd in visible
+    )
+    monkeypatch.setattr(
+        native, "window_rect", lambda hwnd: None if hwnd == children[3] else bounds[hwnd]
+    )
+    assert native.widget_rects(taskbar) == (bounds[children[0]], bounds[children[5]])
+    visible.clear()
+    assert native.widget_rects(taskbar) == ()
+    children.clear()  # Explorer can remove all its children while rebuilding.
+    assert native.widget_rects(taskbar) == ()
 
 
 def test_label_image_has_transparent_background_without_a_dark_outline() -> None:
@@ -148,9 +236,10 @@ def test_label_hides_for_fullscreen_and_auto_hide_then_restores(
         True,
     )
     fullscreen = False
-    shown: list[object] = []
+    shown: list[Any] = []
     hidden: list[int] = []
     paints: list[object] = []
+    widgets: tuple[tuple[int, int, int, int], ...] = ()
     label = object.__new__(TaskbarQuotaLabel)
     label.hwnd = 25
     label.native = SimpleNamespace(  # type: ignore[assignment]
@@ -160,6 +249,7 @@ def test_label_hides_for_fullscreen_and_auto_hide_then_restores(
         hide=hidden.append,
         configure=lambda *args: None,
         paint=lambda *args: paints.append(args),
+        widget_rects=lambda _: widgets,
     )
     label.obstacles = SimpleNamespace(hwnd=0, snapshot=(12, ()))  # type: ignore[assignment]
     label._last = None
@@ -181,6 +271,20 @@ def test_label_hides_for_fullscreen_and_auto_hide_then_restores(
     label._refresh()
     assert len(shown) == len(paints) == 2
     assert label._image is not None and label._image.height == 48
+    layout = replace(layout, rect=(0, 1020, 1920, 1080), work=(0, 0, 1920, 1020))
+    widgets = ((1450, 1040, 1600, 1080),)
+    label._refresh()
+    position = shown[-1][1]
+    assert position[0] + label._image.width <= widgets[0][0]
+    widgets = ()
+    label._refresh()
+    assert shown[-1][1][0] > position[0]
+    layout = replace(layout, hwnd=13)
+    label._refresh()
+    assert shown[-1][1][1] < layout.rect[1]
+    label.obstacles.snapshot = (13, ())
+    label._refresh()
+    assert shown[-1][1][1] >= layout.rect[1]
 
 
 def test_label_follows_provider_quota_and_persisted_toggle(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -270,6 +374,26 @@ def test_label_uses_localized_provider_and_format_templates(
     controller.latest_state = replace(_state(), claude_session=unknown, codex_session=unknown)
     controller._update_quota_label_on_ui_thread()
     assert str(updates[-1][0]) == "不明 · 翻訳された名前"
+
+
+@pytest.mark.parametrize("provider", ["claude", "codex"])
+def test_selected_label_and_tray_show_full_remaining_quota_after_reset(
+    monkeypatch: pytest.MonkeyPatch, provider: str
+) -> None:
+    updates: list[tuple[object, ...]] = []
+    monkeypatch.setattr(
+        app,
+        "TaskbarQuotaLabel",
+        lambda _: SimpleNamespace(update=lambda *args: updates.append(args)),
+    )
+    prefs._save_preferences({"quota_label_enabled": True, "tray_provider": provider})
+    controller = app._WindowsTrayController(mock=True, interval=60)
+    row = replace(_state().claude_session, percent=85, reset_done=True)
+    controller.latest_state = replace(_state(), claude_session=row, codex_session=row)
+    controller._update_quota_label_on_ui_thread()
+    assert controller._tray_percent() == 0
+    assert str(updates[-1][0]).endswith(": 100%")
+    assert row.percent == 85  # Notifications retain the actual observation.
 
 
 def test_taskbar_label_replaces_numeric_icon_and_toggle_restores_it(

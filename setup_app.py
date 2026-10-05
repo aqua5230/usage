@@ -66,6 +66,7 @@ if __name__ == "__main__":
             "assets/panels",
             "assets/windows",
             "i18n.json",
+            "claude_pane",
             "pyproject.toml",
             "usage_statusline.py",
             "usage_statusline_agy.py",
