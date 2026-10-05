@@ -857,6 +857,56 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.2.17",
+          "period": "2026-10-05",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "輸入框上方新增公告卡片，按鍵即可翻頁關閉",
+                "en": "Announcement cards appear above the input prompt, dismissible with key presses"
+              },
+              "body": {
+                "zh-TW": "當模型剛推出新版本、舊版即將停用，或是服務有重大異動時，你現在能在終端機直接看見官方通知。這些公告卡片會出現在輸入框上方，一次只顯示一張，並由最新的一則開始排列。若你在空白輸入框按下 `Esc` 鍵，就能永久關閉當前這張卡片並切換到下一張。要是你直接送出訊息，卡片在該工作階段（這次與 AI 對話的連線過程）剩下的時間裡便會自動隱藏。⟦跟汽車儀表板上的保養提示類似，最新的車況警示優先浮現，按一下確認鍵就能切換至下一則訊息，一旦你踩下油門專心開車，通知便自動退到背景不再干擾視線。⟧",
+                "en": "When a model releases a new version, an older version is about to be deprecated, or there is a major service change, you can now see official notices directly in the terminal. These announcement cards appear above the input prompt, displaying one card at a time and ordered starting with the newest. If you press `Esc` in an empty input prompt, you can permanently dismiss the current card and move to the next one. If you send a message directly, the card will automatically hide for the rest of that session. ⟦Much like maintenance alerts on a car dashboard, the newest vehicle warning surfaces first, pressing a confirmation button moves to the next message, and once you step on the gas to focus on driving, the notice quietly retreats into the background to stay out of view.⟧"
+              },
+              "original": "Added announcement cards above the prompt for model launches, deprecations, and other service notices. Cards appear one at a time, newest first; press `Esc` on an empty prompt to dismiss the current card permanently and show the next one, and sending a message hides the card for the rest of the session."
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 命令沙盒免管理員權限，常用工具開箱即用",
+                "en": "Windows command sandbox no longer requires administrator privileges, common tools work out of the box"
+              },
+              "body": {
+                "zh-TW": "在 Windows 環境讓 AI 執行指令時，沙盒防護再也不會因為權限不足而卡住。這次改進了 Windows 平台的指令沙盒機制，執行受保護的命令時不再需要額外取得系統管理員權限（最高操作許可）。包括 Python、Git 以及 `npm` 等常見的開發工具，現在都能直接在沙盒環境中順利運作，無須手動調整路徑或設定。⟦宛如在社區工坊租用獨立工作桌，以前動用電鑽都得請管理員拿鑰匙開鎖，現在走進去隨手就能拿起整套標準工具開工，作業被隔開的同時也不用再大費周章申請通行證。⟧",
+                "en": "When having AI run commands on Windows, sandbox protection will no longer get stuck due to insufficient permissions. This update improves the command sandboxing mechanism on Windows, eliminating the need for administrator privileges (the highest level of operating permission) when running protected commands. Common development tools, including Python, Git, and `npm`, now run smoothly inside the sandbox environment without manual adjustments to paths or settings. ⟦Picture renting an individual workbench in a community workshop: previously, using a power drill required asking a manager to open the lock with a key, but now you can walk in, pick up a full set of standard tools, and start working immediately, keeping tasks isolated without going through the hassle of requesting a pass.⟧"
+              },
+              "original": "Improved the Windows command sandbox so sandboxed commands no longer need administrator rights, and common tools such as Python, Git, and `npm` work inside the sandbox out of the box."
+            },
+            {
+              "title": {
+                "zh-TW": "Markdown 表格不再因表情符號或特殊字元跑位",
+                "en": "Markdown tables no longer misalign due to emoji or special characters"
+              },
+              "body": {
+                "zh-TW": "在遠端伺服器檢視包含圖示的報表時，表格欄位不再歪七扭八。以前透過 SSH 遠端連線或在 tmux（終端機多畫面分割工具）的工作階段中，一旦 Markdown 表格的儲存格出現 ⚠️ 或 👍🏽 等表情符號，或是像印地語這類帶有組合字元的文字，整排欄位寬度就會對不齊而嚴重跑位。這個問題現在已經修正，含有特殊字元的表格在終端機中都能保持整齊對齊。",
+                "en": "When viewing reports containing icons on a remote server, table columns will no longer become distorted. Previously, over an SSH remote connection or inside a tmux session (a terminal window multiplexer), cells in Markdown tables containing emoji like ⚠️ or 👍🏽, or text with combining characters such as Hindi, caused entire columns to misalign severely. This issue has now been resolved, and tables containing special characters remain neatly aligned in the terminal."
+              },
+              "original": "Fixed markdown table columns drifting out of alignment when a cell contains emoji such as ⚠️ or 👍🏽 or scripts with combining characters such as Hindi, which affected every session over SSH or inside tmux."
+            },
+            {
+              "title": {
+                "zh-TW": "檢視 .tiff 圖片格式不再誤判，避免被默默轉檔",
+                "en": "Viewing .tiff image formats is no longer misidentified, preventing silent conversion"
+              },
+              "body": {
+                "zh-TW": "請 AI 檢查高畫質設計圖或掃描檔時，圖片格式現在能正確識別。過去當 AI 助理檢視 `.tiff` 格式的影像時，系統會誤判它的檔案類型，並在背後悄悄將它轉換成 PNG 格式。這個問題已經修好，`.tiff` 圖片不會再被回報成錯的檔案類型，也不會再被默默轉成 PNG。",
+                "en": "When asking AI to inspect high-resolution designs or scanned documents, image formats are now recognized correctly. Previously, when the AI assistant viewed images in `.tiff` format, the system misidentified the file type and quietly converted it to PNG in the background. This issue has been fixed, so `.tiff` images will no longer be reported as the wrong file type or silently converted to PNG."
+              },
+              "original": "Fixed `.tiff` images being reported with the wrong file type and silently converted to PNG when the agent viewed them."
+            }
+          ]
+        },
+        {
           "version": "1.2.16",
           "period": "2026-10-03",
           "items": [
@@ -1098,89 +1148,6 @@
               "original": "Fixed large WebP images opened by the agent not being scaled down to fit image size limits the way PNG and JPEG images are"
             }
           ]
-        },
-        {
-          "version": "1.2.14",
-          "period": "2026-09-30",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "設定選單新增排隊選項，可隨時插話打斷對話",
-                "en": "Settings Menu Adds Queue Option to Interrupt Conversations Anytime"
-              },
-              "body": {
-                "zh-TW": "當你看到助理正朝錯誤方向執行長任務時，現在可以直接插話叫停。⟦跟看著助手搬錯箱子時直接出聲喊停一樣，以前只能等他把整批貨搬完才能交代新指令，現在一開口就能立刻打斷他。⟧你可以在 `/config` 選單找到 `Queued Messages` 選項。保持預設的 `Queue` 會把補充訊息暫存到當前輪次結束，切換成 `Send Immediately` 則能立即中斷助理。這項偏好也能直接寫入全域設定檔 `settings.json`，修正了以往寫入該設定卻被系統忽略的問題：\n```json\n{\"queuedMessages\": \"send-immediately\"}\n```",
-                "en": "When you see your assistant heading in the wrong direction during a long task, you can now speak up and stop it directly. ⟦Think of calling out to stop a helper carrying the wrong box: previously you had to wait until the entire shipment was moved to issue new instructions, but now you can interrupt immediately.⟧ You can find the `Queued Messages` option in the `/config` menu. Keeping the default `Queue` buffers follow-up messages until the current turn ends, while switching to `Send Immediately` interrupts the assistant right away. This preference can also be written directly to the global configuration file `settings.json`, fixing an issue where writing this setting previously got ignored by the system:\n```json\n{\"queuedMessages\": \"send-immediately\"}\n```"
-              },
-              "original": "Added the `Queued Messages` option to `/config`: keep the default `Queue` to hold follow-up messages until the current turn ends, or choose `Send Immediately` to interrupt the agent with them; it can also be set with `\"queuedMessages\": \"send-immediately\"` in `settings.json`, which was previously ignored"
-            },
-            {
-              "title": {
-                "zh-TW": "Linux 容器環境支援遠端控制，沒有 systemd 使用者服務管理員也能背景啟動",
-                "en": "Remote Control Now Supported in Linux Containers, Starting in Background Without systemd User Service Manager"
-              },
-              "body": {
-                "zh-TW": "當你在輕量 Docker 環境裡想要連線操作時，過去常因底層缺少自動託管機制而直接碰壁卡關。⟦彷彿在沒有自動排班系統的小型倉庫裡改由工人手動輪值，雖然當機時不會自動重啟、開機也不會自動執行，但依然能把手邊的工作順利跑起來。⟧在沒有 systemd 使用者服務管理員（替個人帳號管理背景服務的程式）的 Linux 機器上執行 `remote-control start` 時，現在會直接將常駐程式以背景行程啟動，並警告該行程當機後不會自動重啟且開機時不會自動載入。你隨時能輸入 `remote-control status` 查詢其行程識別碼（PID），需要結束時輸入 `remote-control stop` 即可將其關閉。",
-                "en": "When you want to connect and operate inside a lightweight Docker environment, you previously hit a wall because the underlying system lacked an automated hosting mechanism. ⟦Picture running a small warehouse without an automated scheduling system by having workers take manual shifts: although it will not automatically restart on crashes or launch on boot, it still keeps your current work running smoothly.⟧ When running `remote-control start` on Linux machines without a systemd user service manager (a program that manages background services for a user account), the daemon now starts directly as a background process, warning that the process will not restart on crash or launch on boot. You can enter `remote-control status` anytime to check its process ID (PID), and enter `remote-control stop` whenever you need to shut it down."
-              },
-              "original": "Improved `remote-control start` on Linux machines without a systemd user service manager, such as most containers: instead of failing, it now starts the daemon as a background process and warns that it will not restart after a crash or start at boot; `remote-control status` shows its PID and `remote-control stop` shuts it down"
-            },
-            {
-              "title": {
-                "zh-TW": "長對話載入更快，缺步歷程不再覆寫舊進度",
-                "en": "Long Conversations Load Faster, and Histories with Missing Steps No Longer Overwrite Old Progress"
-              },
-              "body": {
-                "zh-TW": "當你接續聊了很久的繁重工作階段，或是中途遇上當機想接回紀錄時，整個流程順暢且安心許多。⟦如同翻開厚重日記時直接跳到最新的書籤頁，不必每次都從第一頁逐字掃描，就算中間曾掉了一頁，後續記錄也絕不會錯位覆蓋。⟧重啟擁有數千步驟的對話時，命令列介面不再預先逐步掃描，載入速度明顯加快。歷程若曾因當機或寫入中斷而出現遺漏步驟，恢復時不會再隱藏最新內容，更不會讓新訊息意外覆寫舊紀錄。自動產生的對話標題現在也會將首則訊息附加的圖片與檔案納入考量，純傳截圖或檔案的請求也能擁有具體的標題。",
-                "en": "When you resume a heavy, long-running session or reconnect to your history after a crash, the entire workflow is noticeably smoother and safer. ⟦A reader opening a thick journal jumps straight to the newest bookmarked page without scanning word-by-word from the start, ensuring later entries never misalign or overwrite old notes even if a page went missing.⟧ When restarting conversations with thousands of steps, the command-line interface no longer pre-scans step-by-step, significantly speeding up load times. If history was missing steps due to crashes or interrupted writes, resuming will no longer hide the latest content, nor will new messages accidentally overwrite old records. Auto-generated conversation titles now also factor in images and files attached to the first message, giving concrete titles to requests that only include screenshots or files."
-              },
-              "original": "Improved loading long conversations: resuming a conversation with thousands of steps is noticeably faster because the CLI no longer scans every step up front\nImproved automatically generated conversation titles to take images and files attached to your first message into account, so screenshot- or file-driven requests get specific titles and messages with only attachments get a title too\nFixed resuming a conversation whose history had a missing step, for example after a crash or an interrupted write, hiding the most recent steps and letting new messages overwrite them"
-            },
-            {
-              "title": {
-                "zh-TW": "帳號違規遭封鎖時，登入錯誤提示附上申訴連結",
-                "en": "Login Error Prompts Include Appeal Links When Accounts Are Blocked for Violations"
-              },
-              "body": {
-                "zh-TW": "早上一開工卻被擋在門外，畫面上只寫著因違反服務條款（Terms of Service）遭到停權，常讓人不知道該去哪裡詢問。以前遇到帳號受阻只能看見失敗提示，摸不清該找誰處理；現在登入失敗的錯誤訊息裡會直接附上申訴連結，讓你能立刻點擊網址提交說明。⟦就像門禁卡突然失效時，感應機不再只發出逼逼警告聲，而是直接在螢幕上顯示管理室的服務電話與分機。⟧",
-                "en": "Starting your morning only to find yourself locked out, with a screen stating your account has been suspended for violating the Terms of Service, often leaves you wondering where to turn. Previously, encountering a blocked account only showed a generic failure message with no clear contact point; now, login failure error messages directly include an appeal link, letting you click the URL immediately to submit an explanation. ⟦Instead of merely beeping when an access card fails, a card reader now displays the management office phone number and extension directly on its screen.⟧"
-              },
-              "original": "Improved the sign-in error shown to accounts blocked for a Terms of Service violation, which now includes a link to submit an appeal"
-            },
-            {
-              "title": {
-                "zh-TW": "`--json-schema` 啟動時嚴格檢查，根層級非物件立即報錯",
-                "en": "`--json-schema` Strictly Validated at Startup, Failing Immediately If Root Level Is Not an Object"
-              },
-              "body": {
-                "zh-TW": "當你為指令傳入結構描述時，若格式有誤或檔案遺失，系統在啟動階段就會立即攔截。⟦好比海關在登機門前嚴格核對護照格式，發現拿的是白紙、寫錯代碼或缺件就當場拒絕通行，而不是放行登機後才引發混亂。⟧參數 `--json-schema` 不再將純文字、單獨型態名稱（如 `string`）或不存在的結構描述檔默默當成字串型態處理。現在只要輸入上述無效內容，或是根層級不是物件（`\"type\": \"object\"`）的結構描述，程式在啟動時就會直接輸出錯誤訊息並以結束代碼 `1` 中斷退出。",
-                "en": "When you pass a schema to a command, the system now intercepts formatting errors or missing files right at startup. ⟦Customs officers strictly check passport formats at the boarding gate, turning away blank paper, mistyped codes, or missing documents on the spot rather than causing chaos after boarding.⟧ The `--json-schema` parameter no longer silently treats plain text, bare type names (such as `string`), or non-existent schema files as string types. Supplying any of these invalid inputs, or a schema whose root level is not an object (`\"type\": \"object\"`), now causes the program to output an error message at startup and exit immediately with exit code `1`."
-              },
-              "original": "Changed `--json-schema` to reject plain text, bare type names such as `string`, and missing schema files instead of silently treating them as a string schema; these inputs, and any schema whose root is not `\"type\": \"object\"`, now fail at startup with an error and exit code `1`"
-            },
-            {
-              "title": {
-                "zh-TW": "輸入提示不再游標偏離，表情符號與特殊文字換行不割裂",
-                "en": "Prompt Input Eliminates Cursor Drift, Keeping Emojis and Complex Characters Intact Across Line Wraps"
-              },
-              "body": {
-                "zh-TW": "在終端機輸入特殊字元或在多重視窗中作業時，游標位置與文字折行現在能精準對齊。⟦就像使用排版工具編輯圖文，以前遇到複雜貼圖或組合文字時游標會飄到半空中、換行還會把圖案切成兩半，現在游標與字元邊界都緊緊貼合。⟧修復了在提示列輸入 ⚠️ 或 👩‍💻 等表情符號，以及天城文（Devanagari）與泰文等組合字元時游標尾端偏離的問題，特別是在 `tmux` 環境下更是如此。當文字過長自動折行時，也不會再將這類特殊字元拆散切成兩行顯示。",
-                "en": "When entering special characters in the terminal or working across multiplexed windows, cursor positioning and text wrapping now align precisely. ⟦Like laying out text and graphics in a publishing tool where complex stickers previously floated the cursor into mid-air and line breaks sliced graphics in half, the cursor and character boundaries now fit tightly together.⟧ Fixed trailing cursor drift when entering emojis such as ⚠️ or 👩‍💻, as well as combining characters like Devanagari and Thai in the prompt line, especially inside `tmux` environments. When long text wraps automatically, it will also no longer split these special characters across two lines."
-              },
-              "original": "Fixed the prompt cursor drifting away from the end of the text after emoji such as ⚠️ or 👩‍💻, or scripts with combining marks such as Devanagari and Thai, especially inside `tmux`, and fixed prompt wrapping splitting such characters across two lines"
-            },
-            {
-              "title": {
-                "zh-TW": "檢視管線裝置與損毀影音不再卡死，事前攔截並清楚提示",
-                "en": "Inspecting Pipe Devices and Corrupted Media No Longer Hangs, Intercepting Early with Clear Prompts"
-              },
-              "body": {
-                "zh-TW": "當助理嘗試讀取特殊系統檔案或不完整的影音錄影時，對話不會再陷入無止境的等待或報錯。⟦宛如播放器遇到未下載完成的影片或特殊資料通道時直接提示檔案損毀，而不是整台機器當機轉圈圈。⟧以前助理若嘗試檢視管線（pipe）、通訊端或裝置檔等特殊檔案，流程很容易直接卡死。檢視未錄製完整的 MP4、MOV 或 M4A 影音檔時，對話也會陷入無效引數（`INVALID_ARGUMENT`）錯誤而無法繼續。現在遇到這兩類檔案時，系統會在讀取前直接攔截並給出明確的提示訊息。",
-                "en": "When the assistant attempts to read special system files or incomplete audiovisual recordings, conversations no longer get trapped in endless waiting or error states. ⟦A media player encountering an incomplete video download or a special data stream alerts you to file corruption directly instead of freezing the entire machine with a spinning wheel.⟧ Previously, if the assistant tried to inspect special files such as pipes, sockets, or device files, the process easily hung completely. Inspecting incompletely recorded MP4, MOV, or M4A media files also threw `INVALID_ARGUMENT` errors that blocked the conversation from continuing. When encountering either type of file, the system now intercepts before reading and provides a clear prompt."
-              },
-              "original": "Fixed the agent hanging when it tried to view a pipe, socket, or device file, and a conversation getting stuck with `INVALID_ARGUMENT` errors after the agent viewed a truncated MP4, MOV, or M4A recording; both are now rejected up front with a clear message"
-            }
-          ]
         }
       ]
     },
@@ -1188,6 +1155,34 @@
       "id": "usage",
       "name": "Usage",
       "versions": [
+        {
+          "version": "0.32.3",
+          "period": "2026-10-05",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "額度重置立即歸零，面板更新即時顯示狀態",
+                "en": "Quotas Reset to Zero Instantly, and Panels Display Live Status During Refresh"
+              },
+              "body": {
+                "zh-TW": "每當你等待用量重置或手動點擊更新時，畫面上的數值與按鈕狀態現在都能即時反映最新進度。⟦像手機上網流量在每月結算日重新計費，以前帳單週期剛換時螢幕還停留在上個月的滿額警告，現在時間一到就直接歸零並標記重置，查帳時不必再盯著舊數據反覆猜測。⟧5 小時或每週額度（quota，固定時間內能使用的 AI 運算量上限）重置時間一到，選單列、彈出面板、Windows 系統匣與 Claude Code 側邊面板都會立即顯示 0% 與「已重置」，直到新資料載入，不再卡在上一週期的百分比。系統通知與歷史紀錄則會繼續維持實際讀到的數值，確保用量軌跡不受影響。在 macOS 與 Windows 上按下「立即更新」按鈕後，彈出面板的狀態標籤也會顯示「↻ 更新中…」，直到整個更新流程順利完成。",
+                "en": "Whenever you wait for usage to reset or click refresh manually, the numbers and button states on your screen now reflect the latest progress in real time. ⟦Think of mobile data resetting on billing day: where screens previously stayed stuck on the prior month's limit warning right as a new billing cycle began, the display now immediately drops to zero and marks the reset the moment time arrives, saving you from guessing over stale numbers.⟧ When the 5-hour or weekly quota reset time arrives, the menu bar, popover panel, Windows system tray, and Claude Code side panel immediately display 0% and \"Reset\" until fresh data loads, instead of remaining stuck on the previous cycle's percentage. System notifications and history logs continue to maintain the actual retrieved values, ensuring usage history remains unaffected. After clicking the \"Refresh Now\" button on macOS and Windows, the popover panel's status label also displays \"↻ Updating...\" until the entire update process completes smoothly."
+              },
+              "original": "**Quota shows 0% once its reset time passes:** After a 5-hour or weekly window resets, the menu bar, popover panels, Windows tray and Claude Code side pane show 0% with \"Reset\" until fresh data arrives, instead of the last percentage. Notifications and history still use the real reading.\n**Refresh gives feedback:** The popover status chip shows \"↻ Refreshing…\" while a refresh started from the Refresh button runs (macOS and Windows)."
+            },
+            {
+              "title": {
+                "zh-TW": "側邊面板完整列出背景工作，任務未跑完不再誤報完成",
+                "en": "Side Panel Lists Background Tasks in Full, Ending Premature Completion Alerts While Jobs Run"
+              },
+              "body": {
+                "zh-TW": "交給 Claude Code 處理耗時任務時，側邊面板現在能清楚掌握每一項背景工作的即時進度。⟦跟搬家公司清點物件一樣，以前工作人員搬完客廳桌椅就急著宣布完工，把還在裝箱的廚房物品全拋在腦後；現在總指揮會盯著所有搬運項目陸續上車，等每件家具確實定位才通知你簽收。⟧主對話輪次結束但背景工作還在跑時，側邊面板會持續顯示轉圈圖示，直到所有工作結束才跳出完成提示，不再提早宣告對話完成。面板內的背景工作區以前只保留最後四列，現在所有執行中的工作都會完整顯示，已結束的工作則收進「+N 個」按鈕供點擊展開。追蹤項目也不再只限於派發給 codex、agy、grok、muse 與子代理（subagent，替主要對話分頭處理任務的輔助程式），一般的背景指令、監控程序和工作流程現在都會列入清單，並讓對話正確維持在工作中。",
+                "en": "When handing off time-consuming tasks to Claude Code, the side panel now clearly tracks the real-time progress of every background job. ⟦Picture a moving crew inventorying household items: workers previously rushed to announce the job was finished right after moving living room tables and chairs, leaving packed kitchen boxes completely behind; now the supervisor tracks every item onto the truck and waits until each piece of furniture is in place before asking for your sign-off.⟧ When the main conversation turn finishes while background tasks are still running, the side panel continues displaying a spinner icon and only presents a completion notice once all jobs finish, no longer declaring the conversation complete prematurely. The background tasks section in the panel previously retained only the last four rows, but now all running jobs are fully displayed, while finished jobs are collapsed into a \"+N more\" button that you can click to expand. Tracked items are also no longer limited to delegations to codex, agy, grok, muse, and subagents (helper programs handling tasks in parallel for the main conversation); standard background commands, monitoring processes, and workflows are now included in the list, keeping the conversation properly marked as working."
+              },
+              "original": "**Side pane no longer calls a conversation done while its background jobs run:** A conversation whose main turn ended but whose background jobs are still running keeps the spinner and only toasts \"Done\" after they finish.\n**Side pane shows every running background job:** The jobs block used to keep only the last four rows; running jobs now always show, and finished ones fold behind a \"+N more\" toggle.\n**Side pane lists every kind of background work:** Plain background shell commands, monitors and workflows now appear in the jobs block (from Claude Code's own in-flight list at the end of each turn), not just codex / agy / grok / muse dispatches and subagents, and they count toward keeping a conversation busy."
+            }
+          ]
+        },
         {
           "version": "0.32.2",
           "period": "2026-10-05",
@@ -1241,45 +1236,6 @@
                 "en": "When working with AI on a Windows computer, just open the tray panel menu and you can call up a dedicated info bar anytime. ⟦It is like adding a folding extension shelf next to your desk: before, checking progress meant switching windows back and forth, but now pulling it open automatically switches to fullscreen and docks the panel on the right, and when you close it the interface instantly reverts, while tools tucked away in the drawer no longer pop out uninvited.⟧ On Windows this plugin no longer relies on POSIX commands (the command set compatible with Unix systems); instead it uses tasklist to track ongoing conversations and findstr to read long conversation logs. Account quota is provided directly by usage.exe status --json. When opened, it also switches to a fullscreen interface so the panel can dock on the right side, and closing the panel switches back to the original layout. Tools you hide in the usage menu are also hidden in sync in the side panel and the compact box above the input field, on both macOS and Windows."
               },
               "original": "**Claude Code side pane on Windows:** The system-tray panel menu now has the **Claude Code side pane** switch. The pane runs on Windows without POSIX tools (`tasklist` for live conversations, `findstr` for long transcripts), and `usage.exe status --json` supplies its quota data. Enabling it also turns on Claude Code's fullscreen layout, which the pane needs to dock on the right; turning the pane off switches the layout back.\n**Claude Code side pane follows Hide Sections:** Tools hidden from the usage menu are also hidden in the pane and the compact box above the prompt, on macOS and Windows."
-            }
-          ]
-        },
-        {
-          "version": "0.32.0",
-          "period": "2026-10-05",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Claude Code 側邊面板登場，直接在終端機查看額度與背景工作",
-                "en": "Claude Code Side Panel Arrives: Check Quota and Background Tasks Right in Your Terminal"
-              },
-              "body": {
-                "zh-TW": "想在終端機裡隨時掌握 Claude Code 的用量與工作進度，現在有專屬的側邊面板可供使用。⟦在料理檯旁架起點單螢幕，廚師不必離開工作台翻帳本，抬頭就能看清各項出餐進度與備料。⟧這項功能需要支援介面外掛的較新版本 Claude Code（實測為 2.1.289 版）。在選單開啟後，開新對話或輸入 `/reload-plugins` 即可載入。終端機寬度大於等於 144 欄時會自動在右側展開，較窄時可輸入 `/usage-dash` 開啟。macOS 內建終端機僅支援 256 色可能產生灰底，可在 `/config` 選用 ANSI 深色主題。面板會以黃色標示等待授權或等待 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）輸入的對話，背景工作也會列出 Claude 透過 Agent 工具啟動的子代理與狀態。",
-                "en": "If you want to keep an eye on Claude Code's usage and task progress from inside the terminal, there is now a dedicated side panel for that. ⟦It is like setting up an order screen next to the prep counter: the chef no longer has to leave the workstation to flip through the ledger, and can see every dish's progress and remaining ingredients just by looking up.⟧This feature requires a newer version of Claude Code that supports interface plugins (tested on version 2.1.289). After enabling it in the menu, start a new conversation or type `/reload-plugins` to load it. When the terminal is 144 columns wide or more, the panel expands automatically on the right; on narrower terminals, type `/usage-dash` to open it. The built-in macOS terminal only supports 256 colors, which may produce a gray background; you can select the ANSI dark theme in `/config`. The panel highlights in yellow any conversations waiting for authorization or waiting for MCP (Model Context Protocol, a protocol that lets AI connect to external tools) input, and background tasks also list the subagents launched by Claude through the Agent tool along with their status."
-              },
-              "original": "**Claude Code side pane (macOS):** Toggle quotas, Claude sessions and background jobs inside Claude Code. Requires a recent Claude Code with mod support (tested with 2.1.289). Open a new conversation or run `/reload-plugins` after enabling. The pane opens on the right automatically at terminal widths ≥144 columns; use `/usage-dash` in narrower terminals. macOS Terminal supports only 256 colors and may show a gray background; select an ANSI dark theme in `/config`. Conversations waiting for your permission or MCP input are marked in yellow across panes, and background jobs also list subagents started by Claude with the Agent tool and their status."
-            },
-            {
-              "title": {
-                "zh-TW": "usage status 指令輸出 JSON 時納入 Antigravity 與 Grok 配額",
-                "en": "usage status Now Includes Antigravity and Grok Quotas in JSON Output"
-              },
-              "body": {
-                "zh-TW": "當你需要透過腳本取得完整的結構化數據時，`usage status --json` 現在會將 Antigravity 與 Grok 的額度資訊一併納入 JSON 輸出。⟦翻開帳目明細表，以前只列出單一帳戶，現在把其他分行的儲備與結算倒數也一併寫入。⟧這項改動會從本機快取（把查過的結果暫存起來直接用的儲存區）讀取所有 Antigravity 群組，並從本機紀錄讀取 Grok 帳務，同時附上配額重置倒數與資料年齡。如果你平時習慣直接閱讀文字版摘要，終端機顯示的純文字排版則維持原樣不變。",
-                "en": "When you need to pull complete structured data through a script, `usage status --json` now includes quota information for Antigravity and Grok in the JSON output. ⟦Think of opening an account ledger: it used to list only a single account, but now the reserves and settlement countdowns from the other branches are written in as well.⟧This change reads all Antigravity groups from the local cache (a storage area that keeps previously fetched results ready for direct reuse) and reads Grok billing from local records, along with the quota reset countdown and data age. If you normally prefer reading the text summary directly, the plain-text layout shown in the terminal stays exactly the same as before."
-              },
-              "original": "**`usage status --json` includes Antigravity and Grok quotas.** Read all Antigravity groups from the local cache and Grok billing from its local log, with reset countdowns and snapshot ages. The text summary stays unchanged."
-            },
-            {
-              "title": {
-                "zh-TW": "Claude Code 側邊面板自動更新元件，並優化時間與額度顯示",
-                "en": "Claude Code Side Panel Auto-Updates Its Component and Improves Time and Quota Display"
-              },
-              "body": {
-                "zh-TW": "針對 Claude Code 側邊面板的使用流程與介面呈現，這次更新修正了升級機制並改善多項數據顯示。當 usage 應用程式啟動時，會自動將已啟用的側邊面板更新至內建的最新版本，以前升級後必須手動關閉再重新開啟才能套用新版，現在完全不需多餘操作。面板上的資料更新時間在經過一分鐘後，會自動切換為顯示分鐘或小時。遇到缺少資料的額度窗口時，介面會直接隱藏該項目，不再錯誤顯示成 0%，讓你不會再誤以為配額已經見底。",
-                "en": "For the Claude Code side panel's workflow and interface presentation, this update fixes the upgrade mechanism and improves several data displays. When the usage app starts, it now automatically updates the enabled side panel to the latest built-in version. Previously, after an upgrade you had to manually close and reopen the panel to apply the new version; now no extra steps are needed at all. Once the panel's data update time is more than a minute old, it automatically switches to showing minutes or hours. When a quota window has missing data, the interface now hides that item outright instead of incorrectly showing it as 0%, so you will no longer mistakenly think your quota has run dry."
-              },
-              "original": "**Claude Code side pane:** when the usage app starts, an enabled pane is automatically updated to the bundled version, so upgrades no longer require toggling it off and on.\n**Claude Code side pane:** the refresh age switches from seconds to minutes or hours after one minute.\n**Claude Code side pane:** quota windows with missing data are hidden instead of appearing as 0%."
             }
           ]
         }
