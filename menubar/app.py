@@ -909,9 +909,6 @@ class AppDelegate(NSObject):
             return
         menubar_notify.request_notification_authorization()
 
-    def sendTestNotification_(self, sender: Any) -> None:
-        menubar_notify.send_test_notification(self.language)
-
     def _process_quota_notifications(self, state: PopoverState) -> None:
         try:
             events = self._quota_notifier.update(

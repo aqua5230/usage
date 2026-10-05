@@ -160,9 +160,6 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
         )
     )
     menu.addItem_(
-        build_menu_item(app.language, "notif_test_menu", "sendTestNotification:", target=app)
-    )
-    menu.addItem_(
         build_menu_item(
             app.language,
             "window_keeper_menu",
