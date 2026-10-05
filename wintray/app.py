@@ -754,6 +754,7 @@ class _WindowsTrayController:
         self._file_event_refresh_timer: threading.Timer | None = None
         self._last_file_event_refresh_started_at: float | None = None
         self._history_source_tracker = menubar_state.HistorySourceTracker()
+        self._auto_check_schedule = update_gate.AutoCheckSchedule()
         self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
         self.usage_client = ClaudeUsageClient(mock=mock)
         self._last_tray_percent: float | None = None
@@ -877,11 +878,8 @@ class _WindowsTrayController:
             logger.warning("Claude Code pane refresh failed", exc_info=True)
         usage_diagnosis_snapshot.maybe_schedule_refresh()
         self._clear_stale_update_cache()
-        self._check_update_in_background(
-            manual=False,
-            ignore_cooldown=False,
-            ignore_skipped=False,
-        )
+        if self._auto_check_schedule.try_begin(time.time()):
+            self._run_auto_update_check()
 
     def on_loaded(self) -> None:
         # pywebview's resize()/move() call SetWindowPos with SWP_SHOWWINDOW,
@@ -1409,6 +1407,9 @@ class _WindowsTrayController:
                 self.interval if self.visible else max(self.interval, SLOW_POLL_INTERVAL_S)
             ):
                 self.refresh()
+                self._clear_stale_update_cache()
+                if self._auto_check_schedule.try_begin(time.time()):
+                    threading.Thread(target=self._run_auto_update_check, daemon=True).start()
         finally:
             if self._poll_thread is current_thread:
                 self._poll_thread = None
@@ -2062,14 +2063,14 @@ class _WindowsTrayController:
         manual: bool,
         ignore_cooldown: bool,
         ignore_skipped: bool,
-    ) -> None:
+    ) -> bool:
         preferences = _load_preferences()
         if not manual and not _auto_update_check_enabled(preferences):
-            return
+            return False
         if not manual and not update_gate.auto_check_is_due(preferences):
-            return
+            return False
         if not ignore_cooldown and update_gate.dismissed_recently(preferences):
-            return
+            return False
 
         try:
             current_version = _current_version()
@@ -2078,13 +2079,13 @@ class _WindowsTrayController:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("Windows update check failed", exc_info=True)
             if manual:
-                self._message_box(_t(self.language, "update_check_failed"))
-            return
+                self._show_update_check_failed(None)
+            return True
 
         if result.failed:
             if manual:
-                self._message_box(_t(self.language, "update_check_failed"))
-            return
+                self._show_update_check_failed(result.failure_reason)
+            return True
 
         release = result.release
         # Re-read: the network check can take seconds, and a toggle saved meanwhile must survive.
@@ -2097,10 +2098,32 @@ class _WindowsTrayController:
         if release is None:
             if manual:
                 self._message_box(_t(self.language, "update_no_new_version"))
-            return
+            return False
         if not ignore_skipped and preferences.get("update_skipped_version") == release.version:
-            return
+            return False
         self._show_update_alert(release)
+
+        return False
+
+    def _run_auto_update_check(self) -> None:
+        failed = True
+        try:
+            failed = bool(
+                self._check_update_in_background(
+                    manual=False,
+                    ignore_cooldown=False,
+                    ignore_skipped=False,
+                )
+            )
+        finally:
+            self._auto_check_schedule.finish(time.time(), failed=failed)
+
+    def _show_update_check_failed(self, reason: str | None) -> None:
+        text = _t(self.language, "update_check_failed")
+        if reason is not None:
+            text += "\n" + _t(self.language, "update_check_failed_" + reason)
+        if self._message_box(text, style=0x5 | 0x30) == 4:
+            self.check_update()
 
     def _show_update_alert(self, release: update_checker.ReleaseInfo) -> None:
         title = _t(self.language, "update_alert_title", version=release.version)

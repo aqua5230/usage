@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import urllib.error
 import urllib.request
+from email.message import Message
 from typing import Any
 
 import pytest
@@ -141,3 +142,32 @@ def test_check_latest_release_returns_none_for_network_error(
 
     assert update_checker.check_latest_release("0.10.1") is None
     assert update_checker.check_latest_release_result("0.10.1").failed is True
+
+
+@pytest.mark.parametrize(
+    "error,reason",
+    [
+        (urllib.error.HTTPError("https://test", 403, "limited", Message(), None), "rate_limited"),
+        (urllib.error.HTTPError("https://test", 429, "limited", Message(), None), "rate_limited"),
+        (urllib.error.HTTPError("https://test", 500, "server", Message(), None), "server"),
+        (ValueError("bad response"), "bad_response"),
+        (UnicodeDecodeError("utf-8", b"\xff", 0, 1, "invalid"), "bad_response"),
+        (urllib.error.URLError("offline"), "offline"),
+        (TimeoutError("timeout"), "offline"),
+    ],
+)
+def test_release_failure_reason(
+    monkeypatch: pytest.MonkeyPatch, error: Exception, reason: str
+) -> None:
+    def fail(*args: Any, **kwargs: Any) -> Any:
+        raise error
+
+    monkeypatch.setattr(urllib.request, "urlopen", fail)
+    result = update_checker.check_latest_release_result("1.0.0")
+    assert result.failed
+    assert result.failure_reason == reason
+
+
+def test_invalid_release_schema_is_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(urllib.request, "urlopen", lambda *a, **k: FakeResponse(b"{}"))
+    assert update_checker.check_latest_release_result("1.0.0").failure_reason == "bad_response"

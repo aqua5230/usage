@@ -708,3 +708,91 @@ def _result(fetched_at: datetime) -> AgyQuotaResult:
 
 def _unexpected_probe() -> AgyQuotaResult | None:
     raise AssertionError("fresh cache must not call probe_quota")
+
+
+@pytest.mark.parametrize(
+    "endpoint,code,body,expired",
+    [
+        ("token", 401, b"", True),
+        ("token", 400, b'{"error":"invalid_grant"}', True),
+        ("token", 400, b'{"error":"invalid_client"}', False),
+        ("token", 400, b"broken", False),
+        ("quota", 401, b"", True),
+        ("quota", 400, b'{"error":"invalid_grant"}', False),
+    ],
+)
+def test_auth_expiration_marker(
+    monkeypatch: pytest.MonkeyPatch, endpoint: str, code: int, body: bytes, expired: bool
+) -> None:
+    from io import BytesIO
+
+    def fail(*args: object, **kwargs: object) -> object:
+        raise HTTPError("https://test", code, "failed", Message(), BytesIO(body))
+
+    monkeypatch.setattr(agy_quota_probe, "urlopen", fail)
+    if endpoint == "token":
+        assert agy_quota_probe._refresh_token("refresh", 1) is None
+    else:
+        assert agy_quota_probe._post_json(_QUOTA_URL, "token", {}, 1) is None
+    assert agy_quota_probe.auth_expired() is expired
+
+
+def test_successful_probe_clears_expiration_marker(monkeypatch: pytest.MonkeyPatch) -> None:
+    result = AgyQuotaResult(groups=[], fetched_at=datetime.now(UTC).isoformat())
+    agy_quota_probe.AUTH_EXPIRED_PATH.touch()
+    monkeypatch.setattr(agy_quota_probe, "_resolve_access_token", lambda timeout: "token")
+    monkeypatch.setattr(agy_quota_probe, "_post_json", lambda *args: {})
+    monkeypatch.setattr(agy_quota_probe, "_extract_groups", lambda raw: [{}])
+    monkeypatch.setattr(agy_quota_probe, "_build_result", lambda raw: result)
+    assert agy_quota_probe.probe_quota() == result
+    assert not agy_quota_probe.auth_expired()
+
+
+def test_unusable_probe_keeps_expiration_marker(monkeypatch: pytest.MonkeyPatch) -> None:
+    agy_quota_probe.AUTH_EXPIRED_PATH.touch()
+    monkeypatch.setattr(agy_quota_probe, "_resolve_access_token", lambda timeout: "token")
+    monkeypatch.setattr(agy_quota_probe, "_post_json", lambda *args: {})
+    monkeypatch.setattr(agy_quota_probe, "_extract_groups", lambda raw: [{}])
+    monkeypatch.setattr(agy_quota_probe, "_build_result", lambda raw: None)
+    assert agy_quota_probe.probe_quota() is None
+    assert agy_quota_probe.auth_expired()
+
+
+def test_token_error_body_read_is_bounded(monkeypatch: pytest.MonkeyPatch) -> None:
+    from io import BytesIO
+
+    reads: list[int | None] = []
+
+    class Body(BytesIO):
+        def read(self, size: int | None = -1) -> bytes:
+            reads.append(size)
+            return super().read(size)
+
+    def fail(*args: object, **kwargs: object) -> object:
+        raise HTTPError(
+            "https://test", 400, "failed", Message(), Body(b'{"error":"invalid_grant"}')
+        )
+
+    monkeypatch.setattr(agy_quota_probe, "_MAX_RESPONSE_BYTES", 8)
+    monkeypatch.setattr(agy_quota_probe, "urlopen", fail)
+    assert agy_quota_probe._refresh_token("refresh", 1) is None
+    assert reads == [9]
+    assert not agy_quota_probe.auth_expired()
+
+
+def test_marker_write_and_delete_errors_are_ignored(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail(*args: object, **kwargs: object) -> None:
+        raise OSError("read-only")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(Path, "touch", fail)
+        agy_quota_probe._mark_auth_expired()
+    agy_quota_probe.AUTH_EXPIRED_PATH.touch()
+    monkeypatch.setattr(Path, "unlink", fail)
+    result = AgyQuotaResult(groups=[], fetched_at=datetime.now(UTC).isoformat())
+    monkeypatch.setattr(agy_quota_probe, "_resolve_access_token", lambda timeout: "token")
+    monkeypatch.setattr(agy_quota_probe, "_post_json", lambda *args: {})
+    monkeypatch.setattr(agy_quota_probe, "_extract_groups", lambda raw: [{}])
+    monkeypatch.setattr(agy_quota_probe, "_build_result", lambda raw: result)
+    assert agy_quota_probe.probe_quota() == result
+    assert agy_quota_probe.auth_expired()

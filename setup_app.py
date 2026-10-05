@@ -83,6 +83,7 @@ if __name__ == "__main__":
             "WebKit",
             "UserNotifications",
             "objc",
+            "PyObjCTools.AppHelper",
             "usage_notifications",
             "usage_client",
             "pricing",

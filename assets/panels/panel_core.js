@@ -263,7 +263,7 @@
       if (!staleEl || !ageEl || !tooltipEl) return;
       if (agy && agy.stale && agy.stale.ageText) {
         ageEl.textContent = agy.stale.ageText;
-        tooltipEl.textContent = t("agy_stale_tooltip");
+        tooltipEl.textContent = agy.stale.tooltip || t("agy_stale_tooltip");
         staleEl.hidden = false;
         return;
       }

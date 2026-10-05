@@ -386,6 +386,8 @@ def _status_agent(
 
 
 def _status_antigravity(now: int) -> dict[str, Any]:
+    if agy_quota_probe.auth_expired():
+        return _status_agent(None, now, "not_signed_in")
     try:
         quota = agy_quota_probe._read_cache()
     except (OSError, UnicodeError, ValueError):

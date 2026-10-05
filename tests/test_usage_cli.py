@@ -1162,3 +1162,16 @@ def test_status_loader_exception_reason(monkeypatch: pytest.MonkeyPatch, agent_i
     payload = usage_cli._status_payload()
     assert payload["schema_version"] == 1
     assert payload["agents"][agent_id]["reason"] == "error"
+
+
+def test_antigravity_expired_login_overrides_cache(monkeypatch: pytest.MonkeyPatch) -> None:
+    import usage_cli
+    from loaders import agy_quota_probe
+
+    agy_quota_probe.AUTH_EXPIRED_PATH.touch()
+    monkeypatch.setattr(
+        agy_quota_probe, "_read_cache", lambda: pytest.fail("expired login must override cache")
+    )
+    result = usage_cli._status_antigravity(1700000000)
+    assert result["reason"] == "not_signed_in"
+    assert result["available"] is False

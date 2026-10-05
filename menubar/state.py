@@ -14,7 +14,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
 from datetime import time as datetime_time
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Protocol, TypedDict, cast
+from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict, cast
 
 from i18n import _t
 from installer.statusline_settings import _statusline_enabled
@@ -114,6 +114,7 @@ class CodexStaleState(TypedDict):
 
 class AgyStaleState(TypedDict):
     ageText: str
+    tooltip: NotRequired[str]
 
 
 class GrokStaleState(TypedDict):

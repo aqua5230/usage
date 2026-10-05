@@ -306,6 +306,7 @@ class AppDelegate(NSObject):
             "agy_session": BurnRateTracker(),
             "agy_weekly": BurnRateTracker(),
         }
+        self._auto_check_schedule = update_gate.AutoCheckSchedule()
         self._quota_notifier = QuotaNotifier(_quota_notification_thresholds())
         self._refresh_in_flight = False
         self._refresh_queued = False
@@ -383,7 +384,7 @@ class AppDelegate(NSObject):
 
     def timerFired_(self, timer: Any) -> None:
         self._refresh()
-        self._clear_stale_update_cache()
+        menubar_update.on_poll_tick(self)
 
     def _reschedule_poll_timer(self, interval: float) -> None:
         if self.timer is not None and self.timer_interval == interval:
@@ -605,6 +606,9 @@ class AppDelegate(NSObject):
         alert.runModal()
         self._refresh()
 
+    def checkForUpdates_(self, sender: Any) -> None:
+        menubar_update.check_manually(self)
+
     def _clear_stale_update_cache(self) -> None:
         menubar_update.clear_stale_update_cache()
 
@@ -617,8 +621,8 @@ class AppDelegate(NSObject):
         manual: bool,
         ignore_cooldown: bool,
         ignore_skipped: bool,
-    ) -> None:
-        menubar_update.check_update_in_background(
+    ) -> bool:
+        return menubar_update.check_update_in_background(
             self,
             manual=manual,
             ignore_cooldown=ignore_cooldown,
@@ -650,9 +654,7 @@ class AppDelegate(NSObject):
         alert.runModal()
 
     def _showUpdateCheckFailed_(self, result: Any) -> None:
-        alert = _make_alert()
-        alert.setMessageText_(_t(self.language, "update_check_failed"))
-        alert.runModal()
+        menubar_update.show_update_check_failed(self, result)
 
     def _set_active_panel_id(self, panel_id: str) -> None:
         panel = panels.get_panel(panel_id)
@@ -905,16 +907,10 @@ class AppDelegate(NSObject):
     def _request_notification_authorization(self) -> None:
         if self.mock or not _quota_notifications_enabled():
             return
-        try:
-            center, constants = menubar_notify.user_notification_center()
-            options = constants["badge"] | constants["sound"] | constants["alert"]
-            center.requestAuthorizationWithOptions_completionHandler_(
-                options,
-                lambda granted, error: None,
-            )
-        except Exception:
-            if os.environ.get("USAGE_DEBUG") == "1":
-                logger.warning("notification authorization failed", exc_info=True)
+        menubar_notify.request_notification_authorization()
+
+    def sendTestNotification_(self, sender: Any) -> None:
+        menubar_notify.send_test_notification(self.language)
 
     def _process_quota_notifications(self, state: PopoverState) -> None:
         try:

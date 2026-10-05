@@ -3218,3 +3218,80 @@ def test_refresh_chip_only_shows_during_manual_refresh(
     assert controller._refresh_in_flight is False
     assert controller.latest_state.status_text == "Status: ✓ Synced"
     assert pushed[-1] == "Status: ✓ Synced"
+
+
+@pytest.mark.parametrize("reason", [None, "offline", "rate_limited", "server", "bad_response"])
+def test_windows_update_failure_retries(
+    monkeypatch: pytest.MonkeyPatch, reason: str | None
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    calls: list[tuple[str, int]] = []
+    retries: list[bool] = []
+
+    def message(text: str, *, style: int) -> int:
+        calls.append((text, style))
+        return 4
+
+    monkeypatch.setattr(controller, "_message_box", message)
+    monkeypatch.setattr(controller, "check_update", lambda: retries.append(True))
+    controller._show_update_check_failed(reason)
+    expected = _t("en", "update_check_failed")
+    if reason is not None:
+        expected += "\n" + _t("en", "update_check_failed_" + reason)
+    assert calls == [(expected, 0x35)]
+    assert retries == [True]
+
+
+@pytest.mark.parametrize("failed", [True, False])
+def test_windows_auto_check_schedule_finishes(
+    monkeypatch: pytest.MonkeyPatch, failed: bool
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[dict[str, bool]] = []
+
+    def check(**kwargs: bool) -> bool:
+        calls.append(kwargs)
+        return failed
+
+    monkeypatch.setattr(controller, "_check_update_in_background", check)
+    monkeypatch.setattr("wintray.app.time.time", lambda: 100.0)
+    assert controller._auto_check_schedule.try_begin(100)
+    controller._run_auto_update_check()
+    assert calls == [{"manual": False, "ignore_cooldown": False, "ignore_skipped": False}]
+    assert controller._auto_check_schedule._failures == int(failed)
+    assert not controller._auto_check_schedule.try_begin(3699)
+    assert controller._auto_check_schedule.try_begin(3700)
+
+
+def test_windows_poll_loop_rechecks_each_hour(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    now = [0.0]
+    ticks = iter([100.0, 3699.0, 3700.0])
+    refreshes: list[float] = []
+    checks: list[dict[str, bool]] = []
+    clears: list[float] = []
+
+    def wait(interval: float) -> bool:
+        value = next(ticks, None)
+        if value is None:
+            return True
+        now[0] = value
+        return False
+
+    def check(**kwargs: bool) -> bool:
+        checks.append(kwargs)
+        return False
+
+    monkeypatch.setattr(controller.stopping, "wait", wait)
+    monkeypatch.setattr("wintray.app.time.time", lambda: now[0])
+    monkeypatch.setattr(controller, "refresh", lambda: refreshes.append(now[0]))
+    monkeypatch.setattr(controller, "_clear_stale_update_cache", lambda: clears.append(now[0]))
+    monkeypatch.setattr(controller, "_check_update_in_background", check)
+    monkeypatch.setattr(
+        "wintray.app.threading.Thread", lambda *, target, daemon: SimpleNamespace(start=target)
+    )
+    controller._poll_loop()
+    assert refreshes == clears == [100, 3699, 3700]
+    assert checks == [{"manual": False, "ignore_cooldown": False, "ignore_skipped": False}] * 2
+    assert controller._poll_thread is None
