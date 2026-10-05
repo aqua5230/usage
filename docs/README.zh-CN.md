@@ -49,7 +49,7 @@ brew install --cask aqua5230/usage/usage
 - **Muse Code 花费：** Muse Code 每次请求的 token 与花费会计入今日花费、项目总计、HTML 报告与 `usage` CLI，数据来自它自己保存在本地的会话日志。Muse 没有本地配额数据，因此没有 Muse 配额卡片。
 - **服务状态警示：** Claude Code、Claude API 或 Codex API 发生故障或性能降级时，相关面板底部会显示橘红警示横幅，数值仅读取官方公开的 Statuspage.io 状态页。Antigravity 因没有可用的公开状态页，暂不支持。
 - **上下文提醒与通知：** 当上下文窗口达到 70%（填得快时会提前）时，状态栏会提示你使用 `/clear` 或 `/compact`，避免浪费 token。你也可以选择接收关于配额限额和恢复的系统通知。
-- **缓存健康度：** 状态栏会显示 Claude Code 的 prompt cache 命中率与过期倒计时，让你一眼判断现在收尾还能沿用已缓存的内容，还是快要冷掉、得整份重新发送。冷掉之后，倒计时会改成显示下一句要重写多少 token。需要 Claude Code 2.1.251 以上；旧版不会出现这一段。
+- **缓存健康度：** 状态栏会显示 Claude Code 的 prompt cache 命中率。缓存失效后 10 分钟内，还会说出原因，比如换了模型、工具变了、闲置超过 5 分钟，让你知道多花的 token 是不是自己造成的。命中率需要 Claude Code 2.1.251 以上，失效原因需要 2.1.260 以上；旧版不会出现这些内容。
 - **隐藏区块：** 没全都用？点击一次即可从菜单栏和面板中完全隐藏 Claude Code、Codex、Grok CLI 或 Antigravity 区块。
 
 ### 工作流辅助

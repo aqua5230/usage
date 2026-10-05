@@ -5,6 +5,20 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.32.5] - 2026-10-06
+
+### Added
+- **Status line:** for 10 minutes after Claude Code's prompt cache misses, the cache segment says why, for example `Cache:62% missed:tools changed`. It covers all 17 causes Claude Code reports (model, effort, fast mode, tools, system prompt, idle past the 5-minute or 1-hour TTL, likely server-side, and more) in all five languages; an unknown cause is left out. The reason is the first part dropped when the line is too narrow. Requires Claude Code 2.1.260 or newer. The status line hook version is now 1.9, so installed copies update on the next app launch.
+- **Development:** `scripts/check_upstream.py` checks the formats usage depends on against the real files on this machine before a release: the Claude status line payload and transcripts, Codex sessions and SQLite files (including a newer-numbered file such as `state_6.sqlite`), the Antigravity conversation database and quota cache, the Grok log, installed hook copies (including a source edited without bumping its version), and the watched Statuspage components. Each check reports OK, NEW, BROKEN, or NO_DATA.
+
+### Changed
+- **Claude Code side pane:** each section's title and count now sit on the box's top border, saving one row per section. The title still collapses the section when clicked.
+- **README:** the prompt cache description now matches the status line, which no longer shows an expiry countdown.
+
+### Fixed
+- **Claude Code side pane:** the background jobs box could hide one recently finished job when fewer than four jobs were listed.
+- **Claude Code side pane:** the pane's own tests pass again on Claude Code 2.1.289, and `claude plugin validate` no longer fails on its state contract.
+
 ## [0.32.4] - 2026-10-05
 
 ### Added
