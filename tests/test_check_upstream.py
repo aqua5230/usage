@@ -241,7 +241,7 @@ def test_codex_window_type(codex_event: dict[str, Any]) -> None:
 
 def make_db(path: Path, schema: dict[str, set[str]]) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
-    with sqlite3.connect(path) as conn:
+    with closing(sqlite3.connect(path)) as conn, conn:
         for table, columns in schema.items():
             conn.execute(f'CREATE TABLE "{table}" ({", ".join(sorted(columns))})')
     return path
@@ -270,7 +270,7 @@ def test_codex_sqlite_missing_file(codex_dbs: None) -> None:
 
 
 def test_codex_sqlite_missing_column(codex_dbs: None) -> None:
-    with sqlite3.connect(check.codex_loader.STATE_DB) as conn:
+    with closing(sqlite3.connect(check.codex_loader.STATE_DB)) as conn, conn:
         conn.execute("ALTER TABLE threads DROP COLUMN model")
     state, detail = check.check_codex_sqlite()
     assert state == "BROKEN" and "threads.model" in detail
@@ -291,7 +291,7 @@ def test_agy_conversations_missing_table() -> None:
 
 def test_sqlite_opens_readonly(monkeypatch: pytest.MonkeyPatch) -> None:
     path = make_db(check.agy_loader.AGY_SESSIONS_DIR / "session.db", check.AGY_SCHEMA)
-    with sqlite3.connect(path) as conn:
+    with closing(sqlite3.connect(path)) as conn, conn:
         conn.execute("PRAGMA journal_mode=WAL")
     before = path.read_bytes()
     original = sqlite3.connect
