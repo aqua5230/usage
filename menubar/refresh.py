@@ -228,6 +228,13 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             )
         agy_window_keeper.maybe_ping(agy_result, app.mock)
         codex_window_keeper.maybe_ping(app.mock)
+        from menubar.notify import send_simple_notification
+        from menubar.prefs import _quota_notifications_enabled
+        from quota.keeper_outcome import notify_failures
+
+        notify_failures(
+            app.language, _quota_notifications_enabled(), app.mock, send_simple_notification
+        )
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("refresh failed", exc_info=True)

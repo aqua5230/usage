@@ -40,6 +40,7 @@ export const defaults: Record<string, string> = {
   "claude_pane_seconds_ago": "{count}s ago",
   "claude_pane_just_now": "just now",
   "claude_pane_failed": "failed",
+  "claude_pane_stopped": "stopped",
   "claude_pane_completed": "completed",
   "claude_pane_completed_ago": "{ago} · {status}",
   "claude_pane_quota_invalid": "Quota JSON has no agents",

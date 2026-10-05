@@ -23,6 +23,7 @@ test('工作完成時間、失敗與未來時間', () => {
   expect(completedAgo({end:0,status:'completed'},59000)).toBe(' · just now · completed')
   expect(completedAgo({end:0,status:'completed'},60000)).toBe(' · 1m ago · completed')
   expect(completedAgo({end:0,status:'completed'},180000)).toBe(' · 3m ago · completed')
+  for (const status of ['killed','stopped','cancelled']) expect(completedAgo({end:0,status},180000)).toBe(' · 3m ago · stopped')
   expect(completedAgo({end:0,status:'failed'},180000)).toBe(' · 3m ago · failed')
   expect(completedAgo({end:200000,status:'completed'},180000)).toBe(' · just now · completed')
 })

@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import ctypes
 import json
+import subprocess
 import sys
 import threading
 import time
@@ -3295,3 +3296,42 @@ def test_windows_poll_loop_rechecks_each_hour(monkeypatch: pytest.MonkeyPatch) -
     assert refreshes == clears == [100, 3699, 3700]
     assert checks == [{"manual": False, "ignore_cooldown": False, "ignore_skipped": False}] * 2
     assert controller._poll_thread is None
+
+
+@pytest.mark.parametrize("trust", ["untrusted", "disabled", "trusted", "unknown", "not_installed"])
+def test_keeper_and_terse_menu_warnings(monkeypatch: pytest.MonkeyPatch, trust: str) -> None:
+    from installer import codex_hook_trust
+    from quota import keeper_outcome, window_keeper
+
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    monkeypatch.setattr(win_login_item, "is_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_session_resume_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_claude_pane_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_window_keeper_enabled", lambda: True)
+    monkeypatch.setattr(wintray, "_terse_mode_enabled", lambda: True)
+    monkeypatch.setattr(codex_hook_trust, "codex_terse_hook_trust", lambda: trust)
+    keeper_outcome.record_result(
+        window_keeper.WINDOW_KEEPER_STATE_PATH,
+        {
+            "last_result": "failed",
+            "last_error_kind": "not_found",
+            "last_result_at": 1000,
+        },
+    )
+    model = controller._panel_menu_data()
+    keeper = next(row for row in model if row.get("i18nKey") == "window_keeper_menu")
+    terse = next(row for row in model if row.get("i18nKey") == "terse_mode_menu")
+    assert str(keeper["label"]).endswith(" ⚠")
+    assert "Claude" in str(keeper["tooltip"])
+    assert str(terse["label"]).endswith(" ⚠") is (trust in ("untrusted", "disabled"))
+    if trust in ("untrusted", "disabled"):
+        assert "/hooks" in str(terse["tooltip"])
+    keeper_outcome.record_result(
+        window_keeper.WINDOW_KEEPER_STATE_PATH,
+        keeper_outcome.classify(subprocess.CompletedProcess([], 0)),
+    )
+    keeper = next(
+        row for row in controller._panel_menu_data() if row.get("i18nKey") == "window_keeper_menu"
+    )
+    assert not str(keeper["label"]).endswith(" ⚠")

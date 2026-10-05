@@ -51,6 +51,20 @@ def build_menu_item(
         item.setState_(1 if state else 0)
     if tooltip_key is not None:
         item.setToolTip_(_t(language, tooltip_key))
+    if title_key == "window_keeper_menu" and state:
+        from quota.keeper_outcome import failure_tooltip
+
+        failures = failure_tooltip(language)
+        if failures:
+            item.setTitle_(_t(language, title_key) + " ⚠")
+            item.setToolTip_(failures + "\n" + _t(language, "window_keeper_tooltip"))
+    if title_key == "terse_mode_menu" and state:
+        from installer.codex_hook_trust import codex_terse_hook_trust
+
+        trust = codex_terse_hook_trust()
+        if trust in ("untrusted", "disabled"):
+            item.setTitle_(_t(language, title_key) + " ⚠")
+            item.setToolTip_(_t(language, f"terse_codex_hook_{trust}"))
     return item
 
 
