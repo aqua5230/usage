@@ -178,3 +178,38 @@ def test_blocked_dialog_opens_notification_settings(monkeypatch: pytest.MonkeyPa
     notify._show_test_dialog("en", "notif_test_blocked")
     assert buttons == ["Open System Settings", "Close"]
     assert opened == ["x-apple.systempreferences:com.apple.preference.notifications"]
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="notification APIs require PyObjC")
+def test_simple_notification_uses_default_sound(monkeypatch: pytest.MonkeyPatch) -> None:
+    content: dict[str, str] = {}
+    sent: list[object] = []
+
+    class Content:
+        @staticmethod
+        def alloc() -> Any:
+            return Content()
+
+        def init(self) -> Content:
+            return self
+
+        def setTitle_(self, value: str) -> None:
+            content["title"] = value
+
+        def setBody_(self, value: str) -> None:
+            content["body"] = value
+
+        def setSound_(self, value: str) -> None:
+            content["sound"] = value
+
+    request_cls = SimpleNamespace(requestWithIdentifier_content_trigger_=lambda *args: args)
+    center = SimpleNamespace(
+        addNotificationRequest_withCompletionHandler_=lambda request, callback: sent.append(request)
+    )
+    monkeypatch.setattr(notify, "user_notification_center", lambda: (center, {}))
+    monkeypatch.setattr(
+        notify, "user_notification_classes", lambda: (Content, request_cls, _FakeSound)
+    )
+    notify.send_simple_notification("title", "body")
+    assert content == {"title": "title", "body": "body", "sound": "default"}
+    assert len(sent) == 1

@@ -20,7 +20,7 @@ export function staleContext(sessionId: string, updatedAt: number, openIds: Set<
   return !openIds.has(sessionId) && now - updatedAt > 86400000
 }
 export function completedAgo(run: Pick<Run, 'end' | 'status'>, now: number): string {
-  return run.end === null ? '' : ` · ${t('completed_ago', { ago: ago(run.end, now), status: run.status === 'failed' ? t('failed') : t('completed') })}`
+  return run.end === null ? '' : ` · ${t('completed_ago', { ago: ago(run.end, now), status: ['killed', 'stopped', 'cancelled'].includes(run.status) ? t('stopped') : run.status === 'failed' ? t('failed') : t('completed') })}`
 }
 export function isWaiting(context: Pick<LiveContext, 'waiting' | 'updatedAt'>, now: number): boolean {
   return context.waiting === true && now - context.updatedAt <= 600000

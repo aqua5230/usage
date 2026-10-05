@@ -180,3 +180,19 @@ def patch_terse_hook_paths(
         return _patch_terse_hook_paths(monkeypatch, tmp_path, **kwargs)
 
     return factory
+
+
+@pytest.fixture(autouse=True)
+def _isolate_keeper_and_trust_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from installer import codex_hook_trust, session_hooks
+    from quota import agy_window_keeper, codex_window_keeper, window_keeper
+
+    monkeypatch.setattr(window_keeper, "WINDOW_KEEPER_STATE_PATH", tmp_path / "keeper.json")
+    monkeypatch.setattr(
+        codex_window_keeper, "CODEX_WINDOW_KEEPER_STATE_PATH", tmp_path / "codex-keeper.json"
+    )
+    monkeypatch.setattr(
+        agy_window_keeper, "AGY_WINDOW_KEEPER_STATE_PATH", tmp_path / "agy-keeper.json"
+    )
+    monkeypatch.setattr(session_hooks, "CODEX_HOOKS_JSON", tmp_path / "codex" / "hooks.json")
+    monkeypatch.setattr(codex_hook_trust, "codex_home", lambda: tmp_path / "codex")

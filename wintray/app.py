@@ -228,6 +228,7 @@ window.webkit.messageHandlers.usage = {
     row.className = 'usage-panel-menu-item';
     row.setAttribute('role', 'menuitemcheckbox');
     row.textContent = (item.checked ? '✓  ' : '    ') + item.label;
+    if (item.tooltip) row.title = item.tooltip;
     row.addEventListener('click', function() {
       var extra = item.panelId ? { panel_id: item.panelId } :
         item.preferenceKey ? { preference_key: item.preferenceKey } : undefined;
@@ -1640,6 +1641,15 @@ class _WindowsTrayController:
             )
         agy_window_keeper.maybe_ping(agy_result, self.mock)
         codex_window_keeper.maybe_ping(self.mock)
+        from quota.keeper_outcome import notify_failures
+
+        def send_keeper_notification(title: str, body: str) -> None:
+            if self.icon is not None:
+                self.icon.notify(body, title)
+
+        notify_failures(
+            self.language, _quota_notifications_enabled(), self.mock, send_keeper_notification
+        )
         return menubar_state.build_popover_state(
             outcome=outcome,
             codex_rows=codex_rows,
@@ -2338,6 +2348,20 @@ def _panel_menu_entry(
         "i18nKey": entry.i18n_key,
         "label": _t(controller.language, entry.i18n_key),
     }
+    if entry.i18n_key == "window_keeper_menu" and _window_keeper_enabled():
+        from quota.keeper_outcome import failure_tooltip
+
+        failures = failure_tooltip(controller.language)
+        if failures:
+            data["label"] = _t(controller.language, entry.i18n_key) + " ⚠"
+            data["tooltip"] = failures + "\n" + _t(controller.language, "window_keeper_tooltip")
+    if entry.i18n_key == "terse_mode_menu" and _terse_mode_enabled():
+        from installer.codex_hook_trust import codex_terse_hook_trust
+
+        trust = codex_terse_hook_trust()
+        if trust in ("untrusted", "disabled"):
+            data["label"] = _t(controller.language, entry.i18n_key) + " ⚠"
+            data["tooltip"] = _t(controller.language, f"terse_codex_hook_{trust}")
     if isinstance(entry, wintray_menu.MenuGroup):
         data["action"] = ""
         data["children"] = [_panel_menu_entry(controller, child) for child in entry.children]

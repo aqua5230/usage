@@ -404,7 +404,7 @@ for (const writeFails of [false,true]) {
     on('fs.exists', ($,e) => ({value:normalize(e.path).endsWith('/project-one/one.jsonl') || normalize(e.path).endsWith('/project-large/large.jsonl')}))
     on('fs.stat', ($,e) => {
       const path = normalize(e.path); stats.push(path)
-      return {value:{size:path.endsWith('/large.jsonl') ? 4 * 1024 * 1024 + 1 : 10}}
+      return {value:{kind:'file' as const,size:path.endsWith('/large.jsonl') ? 4 * 1024 * 1024 + 1 : 10,mtimeMs:0,isLink:false}}
     })
     on('fs.read', ($,e) => {
       const path = normalize(e.path); reads.push(path)

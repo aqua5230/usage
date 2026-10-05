@@ -32,18 +32,16 @@ dispatches a one-line call into :func:`maybe_ping`.
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import shutil
 import subprocess
-import tempfile
 import threading
 import time
-from contextlib import suppress
 from pathlib import Path
 
 from menubar.prefs import _window_keeper_enabled
+from quota import keeper_outcome
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 logger = logging.getLogger(__name__)
@@ -114,49 +112,20 @@ def should_ping(
     return last_ping_at is None or now - last_ping_at >= PING_COOLDOWN_SECONDS
 
 
-def _load_ping_state(
-    path: Path | None = None,
-) -> tuple[float | None, float | None]:
+def _load_ping_state(path: Path | None = None) -> tuple[float | None, float | None]:
     state_path = WINDOW_KEEPER_STATE_PATH if path is None else path
-    if not state_path.exists():
-        return None, None
-    try:
-        data = json.loads(state_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        return None, None
-    if not isinstance(data, dict):
-        return None, None
-
-    def numeric_value(key: str) -> float | None:
-        value = data.get(key)
-        if isinstance(value, bool) or not isinstance(value, int | float):
-            return None
-        return float(value)
-
-    return numeric_value("last_pinged_reset_at"), numeric_value("last_ping_at")
+    state = keeper_outcome.read_state(state_path)
+    return (
+        keeper_outcome.numeric_value(state, "last_pinged_reset_at"),
+        keeper_outcome.numeric_value(state, "last_ping_at"),
+    )
 
 
-def _save_ping_state(
-    reset_at: float,
-    ping_at: float,
-    path: Path | None = None,
-) -> None:
+def _save_ping_state(reset_at: float, ping_at: float, path: Path | None = None) -> None:
     state_path = WINDOW_KEEPER_STATE_PATH if path is None else path
-    state_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps({"last_pinged_reset_at": reset_at, "last_ping_at": ping_at}) + "\n"
-    tmp_path: str | None = None
-    try:
-        fd, tmp_path = tempfile.mkstemp(dir=state_path.parent, suffix=".tmp")
-        with os.fdopen(fd, "w", encoding="utf-8") as handle:
-            handle.write(payload)
-        os.replace(tmp_path, state_path)
-        tmp_path = None
-    except OSError:
-        _debug_log("window-keeper state write failed", exc_info=True)
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            with suppress(OSError):
-                os.unlink(tmp_path)
+    keeper_outcome.update_state(
+        state_path, {"last_pinged_reset_at": reset_at, "last_ping_at": ping_at}
+    )
 
 
 def _resolve_claude_bin() -> str | None:
@@ -185,9 +154,9 @@ def _release() -> None:
         _ping_in_flight = False
 
 
-def _run_claude_ping(claude_bin: str) -> None:
+def _run_claude_ping(claude_bin: str) -> subprocess.CompletedProcess[str]:
     # encoding="utf-8" is mandatory inside the .app bundle (project invariant).
-    subprocess.run(  # noqa: S603 - shelling out to the user's own claude CLI by resolved path
+    return subprocess.run(  # noqa: S603 - shelling out to the user's own claude CLI by resolved path
         [claude_bin, "-p", "ok", "--model", "haiku"],
         stdin=subprocess.DEVNULL,
         capture_output=True,
@@ -202,19 +171,13 @@ def _run_claude_ping(claude_bin: str) -> None:
 
 def _ping_worker(started_at: float) -> None:
     try:
-        claude_bin = _resolve_claude_bin()
-        if claude_bin is None:
-            _debug_log("window-keeper: claude binary not found, skipping ping")
-            return
-        _run_claude_ping(claude_bin)
-        _debug_log(f"window-keeper: ping completed (started_at={started_at})")
-    except subprocess.TimeoutExpired:
-        _debug_log(f"window-keeper: ping timed out after {PING_TIMEOUT_SECONDS}s")
-    except Exception:
-        # Never let a ping failure escape into the app — this runs on a daemon
-        # thread whose exception would otherwise be silently swallowed anyway,
-        # but be explicit so a future refactor can't crash the main loop.
-        _debug_log("window-keeper: ping failed", exc_info=True)
+        binary = _resolve_claude_bin()
+        result = _run_claude_ping(binary) if binary is not None else FileNotFoundError()
+        fields = keeper_outcome.classify(result)
+    except Exception as exc:
+        fields = keeper_outcome.classify(exc)
+    try:
+        keeper_outcome.record_result(WINDOW_KEEPER_STATE_PATH, fields)
     finally:
         _release()
 
@@ -239,7 +202,9 @@ def maybe_ping(
         return
     now = time.time()
     last_pinged_reset_at, last_ping_at = _load_ping_state()
-    if not should_ping(
+    state = keeper_outcome.read_state(WINDOW_KEEPER_STATE_PATH)
+    idle = should_ping(now, current_reset_at, enabled, None, None, current_percent, data_source)
+    fresh = should_ping(
         now,
         current_reset_at,
         enabled,
@@ -247,14 +212,21 @@ def maybe_ping(
         last_ping_at,
         current_percent,
         data_source,
-    ):
+    )
+    retry = not fresh and keeper_outcome.should_retry(state, now, current_reset_at, idle)
+    if not (fresh or retry):
         return
     if not _try_acquire():
         return
-    # Mark this boundary handled at dispatch time regardless of subprocess
-    # outcome, so a failed ping doesn't retry on every refresh.
     assert current_reset_at is not None  # guaranteed by should_ping
-    _save_ping_state(current_reset_at, now)
+    keeper_outcome.update_state(
+        WINDOW_KEEPER_STATE_PATH,
+        {
+            "last_pinged_reset_at": current_reset_at,
+            "last_ping_at": now,
+            "retry_used": retry,
+        },
+    )
     worker = threading.Thread(target=_ping_worker, args=(now,), daemon=True)
     worker.start()
 

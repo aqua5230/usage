@@ -274,3 +274,24 @@ def send_test_notification(language: str) -> None:
     except Exception as exc:
         logger.warning("test notification failed", exc_info=True)
         _test_dialog(language, "notif_test_failed", str(exc))
+
+
+def send_simple_notification(title: str, body: str) -> None:
+    try:
+        center, _ = user_notification_center()
+        content_cls, request_cls, sound_cls = user_notification_classes()
+        content = content_cls.alloc().init()
+        content.setTitle_(title)
+        content.setBody_(body)
+        content.setSound_(sound_cls.defaultSound())
+        request = request_cls.requestWithIdentifier_content_trigger_(
+            f"usage.keeper.{time.time_ns()}", content, None
+        )
+
+        def completed(error: Any) -> None:
+            if error is not None:
+                logger.warning("keeper notification failed: %s", error)
+
+        center.addNotificationRequest_withCompletionHandler_(request, completed)
+    except Exception:
+        logger.warning("keeper notification failed", exc_info=True)

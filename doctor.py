@@ -20,6 +20,7 @@ from typing import Final
 
 from i18n import packaged_resource_path
 from installer import setup_hook
+from installer.codex_hook_trust import codex_terse_hook_trust
 
 SEPARATOR = "-" * 29
 RATE_LIMIT_FRESH_SECONDS: Final = 15 * 60
@@ -54,6 +55,7 @@ CHECK_LABELS: Final = {
     CODEX_RATE_LIMITS: "codex rate limits",
     CODEX_HISTORY: "codex history",
     CLAUDE_COST: "claude cost",
+    "codex_terse_hook_trust": "codex terse hook trust",
 }
 
 
@@ -87,6 +89,7 @@ def collect() -> DoctorReport:
         ("optional", _field(CODEX_LOGS, _codex_logs)),
         ("optional", _field(CODEX_RATE_LIMITS, _codex_rate_limits)),
         ("optional", _field(CLAUDE_COST, _claude_cost)),
+        ("optional", _field("codex_terse_hook_trust", _codex_terse_trust)),
     ]
     return DoctorReport(
         version=_text_field(_current_version),
@@ -514,3 +517,8 @@ def _ago(mtime: float) -> str:
         return f"{hours}h"
     days = hours // 24
     return f"{days}d"
+
+
+def _codex_terse_trust() -> CheckResult:
+    trust = codex_terse_hook_trust()
+    return CheckResult("codex_terse_hook_trust", "ok" if trust == "trusted" else "warn", trust)

@@ -8,19 +8,17 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import os
 import shutil
 import subprocess
-import tempfile
 import threading
 import time
-from contextlib import suppress
 from pathlib import Path
 
 from menubar.agy import AgyRefreshResult
 from menubar.prefs import _agy_window_keeper_enabled
+from quota import keeper_outcome
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 logger = logging.getLogger(__name__)
@@ -61,37 +59,12 @@ def should_ping(
 
 def _load_last_ping(path: Path | None = None) -> float | None:
     state_path = AGY_WINDOW_KEEPER_STATE_PATH if path is None else path
-    if not state_path.exists():
-        return None
-    try:
-        data = json.loads(state_path.read_text(encoding="utf-8"))
-    except (OSError, UnicodeDecodeError, json.JSONDecodeError):
-        return None
-    if not isinstance(data, dict):
-        return None
-    value = data.get("last_ping_at")
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        return None
-    return float(value)
+    return keeper_outcome.numeric_value(keeper_outcome.read_state(state_path), "last_ping_at")
 
 
 def _save_last_ping(ts: float, path: Path | None = None) -> None:
     state_path = AGY_WINDOW_KEEPER_STATE_PATH if path is None else path
-    state_path.parent.mkdir(parents=True, exist_ok=True)
-    payload = json.dumps({"last_ping_at": ts}) + "\n"
-    tmp_path: str | None = None
-    try:
-        fd, tmp_path = tempfile.mkstemp(dir=state_path.parent, suffix=".tmp")
-        with os.fdopen(fd, "w", encoding="utf-8") as handle:
-            handle.write(payload)
-        os.replace(tmp_path, state_path)
-        tmp_path = None
-    except OSError:
-        _debug_log("agy-window-keeper state write failed", exc_info=True)
-    finally:
-        if tmp_path and os.path.exists(tmp_path):
-            with suppress(OSError):
-                os.unlink(tmp_path)
+    keeper_outcome.update_state(state_path, {"last_ping_at": ts})
 
 
 def _resolve_agy_bin() -> str | None:
@@ -120,8 +93,8 @@ def _release() -> None:
         _ping_in_flight = False
 
 
-def _run_agy_ping(agy_bin: str) -> None:
-    subprocess.run(  # noqa: S603 - resolved local Antigravity CLI
+def _run_agy_ping(agy_bin: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(  # noqa: S603 - resolved local Antigravity CLI
         [agy_bin, "-p", "ok", "--model", AGY_MODEL],
         stdin=subprocess.DEVNULL,
         capture_output=True,
@@ -136,16 +109,13 @@ def _run_agy_ping(agy_bin: str) -> None:
 
 def _ping_worker(started_at: float) -> None:
     try:
-        agy_bin = _resolve_agy_bin()
-        if agy_bin is None:
-            _debug_log("agy-window-keeper: agy binary not found, skipping ping")
-            return
-        _run_agy_ping(agy_bin)
-        _debug_log(f"agy-window-keeper: ping completed (started_at={started_at})")
-    except subprocess.TimeoutExpired:
-        _debug_log(f"agy-window-keeper: ping timed out after {PING_TIMEOUT_SECONDS}s")
-    except Exception:
-        _debug_log("agy-window-keeper: ping failed", exc_info=True)
+        binary = _resolve_agy_bin()
+        result = _run_agy_ping(binary) if binary is not None else FileNotFoundError()
+        fields = keeper_outcome.classify(result)
+    except Exception as exc:
+        fields = keeper_outcome.classify(exc)
+    try:
+        keeper_outcome.record_result(AGY_WINDOW_KEEPER_STATE_PATH, fields)
     finally:
         _release()
 
@@ -161,20 +131,33 @@ def maybe_ping(result: AgyRefreshResult, mock: bool) -> None:
     five_hour = projection.five_hour if projection is not None else None
     now = time.time()
     last_ping_at = _load_last_ping()
-    if not should_ping(
-        now=now,
-        enabled=enabled,
-        last_ping_at=last_ping_at,
-        remaining_percent=(five_hour.remaining_percent if five_hour is not None else None),
-        stale=projection.stale if projection is not None else None,
-        fallback_projection=projection is None,
-        mock=mock,
-    ):
+    state = keeper_outcome.read_state(AGY_WINDOW_KEEPER_STATE_PATH)
+
+    def gate(previous: float | None) -> bool:
+        return should_ping(
+            now=now,
+            enabled=enabled,
+            last_ping_at=previous,
+            remaining_percent=five_hour.remaining_percent if five_hour is not None else None,
+            stale=projection.stale if projection is not None else None,
+            fallback_projection=projection is None,
+            mock=mock,
+        )
+
+    fresh = gate(last_ping_at)
+    retry = not fresh and keeper_outcome.should_retry(state, now, None, gate(None))
+    if not (fresh or retry):
         return
     if not _try_acquire():
         return
-    # Stamp dispatch even on failure to avoid retrying every refresh.
-    _save_last_ping(now)
+    keeper_outcome.update_state(
+        AGY_WINDOW_KEEPER_STATE_PATH,
+        {
+            "last_pinged_reset_at": None,
+            "last_ping_at": now,
+            "retry_used": retry,
+        },
+    )
     threading.Thread(target=_ping_worker, args=(now,), daemon=True).start()
 
 

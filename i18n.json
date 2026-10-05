@@ -506,7 +506,15 @@
     "notif_test_blocked": "macOS 目前不會顯示 usage 的通知。到「系統設定 → 通知 → usage」打開「允許通知」，提示樣式選「橫幅」或「提示」。",
     "notif_open_settings": "打開系統設定",
     "agy_signin_expired": "登入過期",
-    "agy_signin_expired_tooltip": "Antigravity 登入已過期，usage 拿不到新額度。在終端機執行一次 agy 重新登入，成功後會自動恢復。"
+    "agy_signin_expired_tooltip": "Antigravity 登入已過期，usage 拿不到新額度。在終端機執行一次 agy 重新登入，成功後會自動恢復。",
+    "keeper_failed_title": "自動開窗失敗",
+    "keeper_failed_body": "{tool}：{reason}。下一輪 5 小時沒有開始計時。",
+    "keeper_reason_not_found": "找不到指令",
+    "keeper_reason_timeout": "逾時",
+    "keeper_failed_line": "上次失敗 {time}：{tool}（{reason}）",
+    "terse_codex_hook_untrusted": "Codex 還沒批准 usage 的精簡模式 hook，Codex 那邊不會生效。在 Codex 裡打 /hooks 批准它。",
+    "terse_codex_hook_disabled": "你在 Codex 停用了 usage 的精簡模式 hook。在 Codex 裡打 /hooks 重新啟用。",
+    "claude_pane_stopped": "已停止"
   },
   "en": {
     "panel_default_name": "Default",
@@ -1015,7 +1023,15 @@
     "notif_test_blocked": "macOS is blocking usage notifications. In System Settings → Notifications → usage, turn on Allow Notifications and choose Banners or Alerts.",
     "notif_open_settings": "Open System Settings",
     "agy_signin_expired": "Sign-in expired",
-    "agy_signin_expired_tooltip": "Your Antigravity sign-in expired, so usage cannot fetch fresh quota. Run agy in a terminal to sign in again. Quota will recover automatically."
+    "agy_signin_expired_tooltip": "Your Antigravity sign-in expired, so usage cannot fetch fresh quota. Run agy in a terminal to sign in again. Quota will recover automatically.",
+    "keeper_failed_title": "Auto-start failed",
+    "keeper_failed_body": "{tool}: {reason}. The next 5-hour window has not started.",
+    "keeper_reason_not_found": "Command not found",
+    "keeper_reason_timeout": "Timed out",
+    "keeper_failed_line": "Last failure {time}: {tool} ({reason})",
+    "terse_codex_hook_untrusted": "Codex has not approved usage’s terse mode hook, so terse mode will not work in Codex. Run /hooks in Codex to approve it.",
+    "terse_codex_hook_disabled": "You disabled usage’s terse mode hook in Codex. Run /hooks in Codex to enable it again.",
+    "claude_pane_stopped": "stopped"
   },
   "zh-CN": {
     "panel_default_name": "默认",
@@ -1524,7 +1540,15 @@
     "notif_test_blocked": "macOS 目前不会显示 usage 的通知。到“系统设置 → 通知 → usage”打开“允许通知”，提示样式选“横幅”或“提醒”。",
     "notif_open_settings": "打开系统设置",
     "agy_signin_expired": "登录过期",
-    "agy_signin_expired_tooltip": "Antigravity 登录已过期，usage 无法获取新额度。在终端运行一次 agy 重新登录，成功后会自动恢复。"
+    "agy_signin_expired_tooltip": "Antigravity 登录已过期，usage 无法获取新额度。在终端运行一次 agy 重新登录，成功后会自动恢复。",
+    "keeper_failed_title": "自动开窗失败",
+    "keeper_failed_body": "{tool}：{reason}。下一轮 5 小时没有开始计时。",
+    "keeper_reason_not_found": "找不到命令",
+    "keeper_reason_timeout": "超时",
+    "keeper_failed_line": "上次失败 {time}：{tool}（{reason}）",
+    "terse_codex_hook_untrusted": "Codex 还没批准 usage 的精简模式 hook，Codex 那边不会生效。在 Codex 里输入 /hooks 批准它。",
+    "terse_codex_hook_disabled": "你在 Codex 停用了 usage 的精简模式 hook。在 Codex 里输入 /hooks 重新启用。",
+    "claude_pane_stopped": "已停止"
   },
   "ja": {
     "panel_default_name": "デフォルト",
@@ -2033,7 +2057,15 @@
     "notif_test_blocked": "macOS が usage の通知を表示していません。「システム設定 → 通知 → usage」で「通知を許可」をオンにして、バナーまたは通知パネルを選んでください。",
     "notif_open_settings": "システム設定を開く",
     "agy_signin_expired": "ログイン期限切れ",
-    "agy_signin_expired_tooltip": "Antigravity のログイン期限が切れたため、usage は新しい利用枠を取得できません。ターミナルで agy を実行して再ログインすると、自動で復旧します。"
+    "agy_signin_expired_tooltip": "Antigravity のログイン期限が切れたため、usage は新しい利用枠を取得できません。ターミナルで agy を実行して再ログインすると、自動で復旧します。",
+    "keeper_failed_title": "自動開始に失敗",
+    "keeper_failed_body": "{tool}：{reason}。次の 5 時間枠は開始されていません。",
+    "keeper_reason_not_found": "コマンドが見つかりません",
+    "keeper_reason_timeout": "タイムアウト",
+    "keeper_failed_line": "前回の失敗 {time}：{tool}（{reason}）",
+    "terse_codex_hook_untrusted": "Codex が usage の簡潔モード hook をまだ承認していないため、Codex では機能しません。Codex で /hooks を入力して承認してください。",
+    "terse_codex_hook_disabled": "Codex で usage の簡潔モード hook が無効になっています。Codex で /hooks を入力して再び有効にしてください。",
+    "claude_pane_stopped": "停止済み"
   },
   "ko": {
     "panel_default_name": "기본",
@@ -2542,6 +2574,14 @@
     "notif_test_blocked": "macOS가 usage 알림을 표시하지 않아요. 시스템 설정 → 알림 → usage에서 알림 허용을 켜고 배너 또는 알림을 선택하세요.",
     "notif_open_settings": "시스템 설정 열기",
     "agy_signin_expired": "로그인 만료",
-    "agy_signin_expired_tooltip": "Antigravity 로그인이 만료되어 usage가 새 한도를 가져올 수 없어요. 터미널에서 agy를 실행해 다시 로그인하면 자동으로 복구돼요."
+    "agy_signin_expired_tooltip": "Antigravity 로그인이 만료되어 usage가 새 한도를 가져올 수 없어요. 터미널에서 agy를 실행해 다시 로그인하면 자동으로 복구돼요.",
+    "keeper_failed_title": "자동 시작 실패",
+    "keeper_failed_body": "{tool}: {reason}. 다음 5시간 구간이 시작되지 않았습니다.",
+    "keeper_reason_not_found": "명령을 찾을 수 없음",
+    "keeper_reason_timeout": "시간 초과",
+    "keeper_failed_line": "마지막 실패 {time}: {tool} ({reason})",
+    "terse_codex_hook_untrusted": "Codex가 usage의 간결 모드 hook을 아직 승인하지 않아 Codex에서 작동하지 않습니다. Codex에서 /hooks를 입력해 승인하세요.",
+    "terse_codex_hook_disabled": "Codex에서 usage의 간결 모드 hook을 비활성화했습니다. Codex에서 /hooks를 입력해 다시 활성화하세요.",
+    "claude_pane_stopped": "중지됨"
   }
 }

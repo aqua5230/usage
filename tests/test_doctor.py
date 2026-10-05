@@ -333,7 +333,7 @@ def test_render_json_has_structured_checks() -> None:
 
     assert isinstance(payload["version"], str)
     assert set(payload) == {"version", "checks", "self_heal_log", "summary"}
-    assert payload["summary"] == {"ok": 5, "warn": 9, "error": 0}
+    assert payload["summary"] == {"ok": 5, "warn": 10, "error": 0}
     expected_codes = {
         "status_file",
         "codex_sessions",
@@ -349,6 +349,7 @@ def test_render_json_has_structured_checks() -> None:
         "codex_rate_limits",
         "codex_history",
         "claude_cost",
+        "codex_terse_hook_trust",
     }
     checks = payload["checks"]
     assert {check["code"] for check in checks} == expected_codes
