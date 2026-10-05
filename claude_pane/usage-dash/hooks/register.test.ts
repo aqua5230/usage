@@ -109,33 +109,34 @@ test('四家額度、三個對話、一筆工作與收合按鈕', async ($, on) 
   expect(await ui.find({type:'Text',text:/其他對話 2/})).toBeDefined()
   await ui.press({key:'more'}); await ui.redraw()
   expect(await ui.find({type:'Text',text:/其他對話 2/})).toBeUndefined()
-  expect(lines.join('\n')+'\n').toBe(`[ ▾ Quota ]
-Codex   5h    ■■■■■■■■□□  82%  ${resetTime({used_percent:82,resets_in_seconds:3540},1000000)}
+  expect(lines.join('\n')+'\n').toBe(`Codex   5h    ■■■■■■■■□□  82%  ${resetTime({used_percent:82,resets_in_seconds:3540},1000000)}
         Week  ■■■□□□□□□□  31%  ${resetTime({used_percent:31,resets_in_seconds:259200},1000000)}
 Claude  5h    ■■■■■■□□□□  58%  ${resetTime({used_percent:58,resets_in_seconds:2432},1000000)}
         Week  ■■□□□□□□□□  15%  ${resetTime({used_percent:15,resets_in_seconds:432000},1000000)}
 agy     5h    ■■□□□□□□□□  24%  ${resetTime({used_percent:24,resets_in_seconds:5100},1000000)}
         Week  ■■■■■□□□□□  54%  ${resetTime({used_percent:54,resets_in_seconds:222300},1000000)}
 Grok    Period ■■■□□□□□□□  28%  ${resetTime({used_percent:28,resets_in_seconds:176000},1000000)}
-[ ▾ Claude sessions ]
-2 busy / 3
+[ ▾ Quota ]
 ⠋ usage (here)Usage面板
 41%
 ⠋ notes · Desktop 整理筆記
 70%
 ✓ tests 修測試
 85%
-[ ▾ Background jobs ]
-1
+[ ▾ Claude sessions ]
+${' 2 busy / 3 '}
 3m12s  codex  檢查測試結果
 ✓ 2m00s  agy  整理完成 · 3m ago · completed
 ✗ 0m30s  grok  檢查失敗 · just now · failed
+[ ▾ Background jobs ]
+${' 1 '}
 ↻ 0s ago
 `)
 
 })
 
 test('啟動、CLI 備援、存活對話清單與定時更新', async ($, on) => {
+  on('session.id', () => ({value:'one'}))
   const clock = mock.clock(on,{now:1000000})
   mock.env(on,{HOME:'/假家目錄'})
   const values: Record<string,unknown> = {}
@@ -217,6 +218,7 @@ test('隱藏區塊設定會在刷新額度時移除 Grok', async ($, on) => {
 
 for (const mode of ['empty', 'ps-exit-1', 'ps-reject'] as const) {
   test(`無存活對話：${mode}`, async ($, on) => {
+    on('session.id', () => ({value:'current'}))
     mock.clock(on,{now:1000000})
     mock.env(on,{HOME:'/假家目錄'})
     const values: Record<string,unknown> = {}
@@ -258,7 +260,7 @@ for (const bodyColumns of [10, 43, 44, 200]) {
     const nodes = elements(await ui.drawn())
     const quota = nodes.find(n => n.type === 'Text' && n.children?.some(c => flatText(c) === '5h    '))!
     expect(quota.props?.color).toBeUndefined()
-    expect(flatText(quota)).toBe(`Codex   5h    ${'■'.repeat(bodyColumns < 44 ? 7 : 8)}${'□'.repeat(bodyColumns < 44 ? 1 : 2)}  82%  1h0m remaining`)
+    expect(flatText(quota)).toBe(`Codex   5h    ${'■'.repeat(bodyColumns < 44 ? 7 : 8)}${'□'.repeat(bodyColumns < 44 ? 1 : 2)}  82%  1h0m left`)
     const parts = (quota.children ?? []).filter(c => typeof c === 'object') as Drawn[]
     expect(parts.map(n => n.props?.color)).toEqual(['#10a37f',undefined,'#d70000',undefined,'#d70000',undefined])
     expect(parts.map(n => n.props?.dimColor === true)).toEqual([false,true,false,true,false,true])
@@ -496,7 +498,7 @@ for (const age of [599,601,3660]) {
     for (const title of ['Gemini','Claude / GPT']) expect(nodes.find(n => n.type === 'Text' && flatText(n) === title)?.props?.dimColor).toBe(true)
     const old = nodes.filter(n => n.type === 'Text' && n.props?.color === 'yellow')
     expect(old.map(flatText)).toEqual(age === 599 ? [] : [age === 601 ? ' · 10m ago' : ' · 1h ago'])
-    const groupRows = nodes.filter(n => n.type === 'Text' && n.children?.some(c => ['Gemini','Claude / GPT'].includes(flatText(c))))
+    const groupRows = nodes.filter(n => n.type === 'Text' && n.children?.some(c => typeof c === 'object' && ['Gemini','Claude / GPT'].includes(flatText(c))))
     expect(groupRows.map(flatText)).toEqual([`agy     Gemini${age === 599 ? '' : age === 601 ? ' · 10m ago' : ' · 1h ago'}`, '        Claude / GPT'])
   })
 }
@@ -540,7 +542,7 @@ test('不可用額度各一列、名稱配色與排序、隱藏設定及 compact
   const props = {title:'Usage',isFocused:true,bodyColumns:60,placement:'dock' as const,scroll:{offset:0,bodyRows:40},view:{}}
   const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props})
   const nodes = elements(await ui.drawn())
-  const rows = nodes.filter(n => n.type === 'Text' && n.children?.some(c => ['Claude  ','Codex   ','agy     ','Grok    '].includes(flatText(c))))
+  const rows = nodes.filter(n => n.type === 'Text' && n.children?.some(c => typeof c === 'object' && ['Claude  ','Codex   ','agy     ','Grok    '].includes(flatText(c))))
   expect(rows.map(flatText)).toEqual([
     'Codex   5h    ■■■■■□□□□□  50%',
     "Claude  Couldn't read · retrying automatically",
@@ -554,8 +556,9 @@ test('不可用額度各一列、名稱配色與排序、隱藏設定及 compact
     expect((row.children![1] as Drawn).props?.dimColor).toBe(true)
   }
   expect(nodes.some(n => n.type === 'Text' && flatText(n) === '(none)')).toBe(false)
-  const inline = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{...props,placement:'inline'}})
-  expect(flatText(await inline.drawn())).not.toMatch(/Claude|agy|Grok|Couldn't read|No data|Not signed/)
+  await ui.redraw({...props,placement:'inline'})
+  expect(flatText(await ui.drawn())).not.toMatch(/Claude|agy|Grok|Couldn't read|No data|Not signed/)
+  await ui.redraw(props)
   values.quotas = hideAgents(values.quotas,'{"hide_claude_section":true,"hide_codex_section":true,"hide_agy_section":true,"hide_grok_section":true}')
   await ui.redraw()
   expect(elements(await ui.drawn()).filter(n => n.type === 'Text' && flatText(n) === '(none)')).toHaveLength(1)
@@ -652,7 +655,7 @@ test('已重置的 dock 額度歸零、倒數改 Reset、灰字且排序下降',
   }
   on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
   const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:60,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
-  const rows = elements(await ui.drawn()).filter(n => n.type === 'Text' && n.children?.some(c => ['Claude  ','Codex   '].includes(flatText(c))))
+  const rows = elements(await ui.drawn()).filter(n => n.type === 'Text' && n.children?.some(c => typeof c === 'object' && ['Claude  ','Codex   '].includes(flatText(c))))
   expect(rows.map(flatText)).toEqual(['Claude  5h    ■□□□□□□□□□  10%  1min left','Codex   5h    □□□□□□□□□□   0%  Reset'])
   const codex = rows[1]!
   const parts = (codex.children ?? []).filter(c => typeof c === 'object') as Drawn[]

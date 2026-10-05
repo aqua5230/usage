@@ -1,4 +1,3 @@
-import type { AgentInfo } from 'claude-code'
 export type Agent = 'codex' | 'agy' | 'grok' | 'muse'
 export type Run = { id: string; agent: Agent; label: string; start: number; end: number | null; status: string }
 export type BgTask = { id: string; type: string; label: string; start: number }

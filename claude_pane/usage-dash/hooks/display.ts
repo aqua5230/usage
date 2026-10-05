@@ -35,6 +35,6 @@ export function backgroundCount(runs: Pick<Run, 'end'>[], agents: AgentInfo[], t
 export function visibleRuns(runs: Run[], expanded: boolean, tasks: BgTask[] = []): { rows: (Omit<Run, 'agent'> & { agent: string })[]; hiddenDone: number } {
   const jobs = [...runs, ...tasks.map(task => ({ id: task.id, agent: task.type, label: task.label, start: task.start, end: null, status: 'running' }))]
   const done = jobs.filter(r => r.end !== null)
-  const kept = new Set(expanded ? done : done.slice(done.length - Math.max(0, 4 - (jobs.length - done.length))))
+  const kept = new Set(expanded ? done : done.slice(Math.max(0, done.length - Math.max(0, 4 - (jobs.length - done.length)))))
   return { rows: jobs.filter(r => r.end === null || kept.has(r)), hiddenDone: done.length - kept.size }
 }
