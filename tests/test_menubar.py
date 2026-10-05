@@ -828,14 +828,15 @@ def test_switch_panel_cancel_keeps_the_panel_open(
 def test_auto_update_disabled_skips_background_check(monkeypatch: pytest.MonkeyPatch) -> None:
     called = False
 
-    def fake_check_latest_release(current_version: str) -> object:
+    def fake_check_latest_release_result(current_version: str) -> object:
         nonlocal called
         called = True
-        return None
+        return SimpleNamespace(failed=False, release=None)
 
-    monkeypatch.setattr(menubar, "_load_preferences", lambda: {"auto_update_check": False})
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {"auto_update_check": False})
     monkeypatch.setattr(
-        "menubar.app.update_checker.check_latest_release", fake_check_latest_release
+        "menubar.update.update_checker.check_latest_release_result",
+        fake_check_latest_release_result,
     )
 
     menubar.AppDelegate._check_update_in_background(
@@ -892,7 +893,7 @@ def test_fresh_auto_update_check_skips_network_request(monkeypatch: pytest.Monke
         return SimpleNamespace(failed=False, release=None)
 
     monkeypatch.setattr(
-        menubar,
+        menubar_update,
         "_load_preferences",
         lambda: {"auto_update_check": True, "last_update_check": {"checked_at": 1.0}},
     )

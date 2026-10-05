@@ -53,7 +53,7 @@ from menubar.prefs import (
 )
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
 from panels.panel_scale import MIN_PANEL_SCALE, fit_panel_size, fit_scale
-from panels.payload import _load_panel_html, _state_payload
+from panels.payload import _load_panel_html, _state_payload, resolve_resource
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
 from quota.burn_rate import BurnRateTracker
@@ -66,6 +66,8 @@ from usage_common.usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
 from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu
+from wintray.prefs import TrayProvider, load_tray_provider, save_tray_provider
+from wintray.quota_label import TaskbarQuotaLabel, label_enabled
 from wintray.watch import (
     WindowsFileEventChanges,
     WindowsUsageWatcher,
@@ -127,8 +129,9 @@ PANEL_HEIGHTS = {
     "catppuccin": 1166,
 }
 
-TRAY_UNKNOWN_COLOR = (110, 118, 129, 255)
-TRAY_NORMAL_COLOR = (244, 145, 100, 255)
+# Bright fills keep the dark numerals readable on both Windows taskbar themes.
+TRAY_UNKNOWN_COLOR = (125, 211, 252, 255)
+TRAY_NORMAL_COLOR = (45, 212, 191, 255)
 TRAY_PAUSED_COLOR = (255, 196, 57, 255)
 TRAY_ERROR_COLOR = (255, 69, 58, 255)
 
@@ -226,12 +229,14 @@ window.webkit.messageHandlers.usage = {
     var row = document.createElement('button');
     row.type = 'button';
     row.className = 'usage-panel-menu-item';
-    row.setAttribute('role', 'menuitemcheckbox');
+    row.setAttribute('role', item.radio ? 'menuitemradio' : 'menuitemcheckbox');
+    row.setAttribute('aria-checked', String(!!item.checked));
     row.textContent = (item.checked ? '✓  ' : '    ') + item.label;
     if (item.tooltip) row.title = item.tooltip;
     row.addEventListener('click', function() {
       var extra = item.panelId ? { panel_id: item.panelId } :
-        item.preferenceKey ? { preference_key: item.preferenceKey } : undefined;
+        item.preferenceKey ? { preference_key: item.preferenceKey } :
+        item.provider ? { provider: item.provider } : undefined;
       post(item.action, extra);
       closeMenu();
     });
@@ -566,7 +571,7 @@ def _set_taskbar_progress(
             ole32.CoUninitialize()
 
 
-def build_tooltip(state: menubar_state.PopoverState) -> str:
+def build_tooltip(state: menubar_state.PopoverState, provider: TrayProvider = "claude") -> str:
     def line(name: str, row: menubar_state.QuotaRowState) -> str:
         used = (
             "--"
@@ -581,6 +586,10 @@ def build_tooltip(state: menubar_state.PopoverState) -> str:
         f"{line('Codex', state.codex_session)} · "
         f"{line('Codex', state.codex_weekly).removeprefix('Codex ')}",
     ]
+    if not state.codex_session.title and state.codex_session.percent is None:
+        lines[1] = line("Codex", state.codex_weekly)
+    if provider == "codex":
+        lines.reverse()
     if not state.hide_agy:
         lines.append(
             f"{line('Antigravity', state.agy_session)} · "
@@ -590,6 +599,13 @@ def build_tooltip(state: menubar_state.PopoverState) -> str:
         lines.append(line("Grok", state.grok_weekly))
     text = "\n".join(lines)
     return text if len(text) <= TOOLTIP_MAX_LENGTH else text[:126] + "…"
+
+
+def draw_app_icon() -> Image:
+    from PIL import Image
+
+    with Image.open(resolve_resource("usage.ico")) as image:
+        return image.convert("RGBA").resize((64, 64))
 
 
 def draw_tray_icon(used_percent: float | None) -> Image:
@@ -728,6 +744,10 @@ class _WindowsTrayController:
         self.interval = max(30, interval)
         self.language = detect_lang()
         self.active_panel_id = _active_panel_id()
+        self.tray_provider = load_tray_provider()
+        self.quota_label_enabled = label_enabled()
+        self.quota_label: TaskbarQuotaLabel | None = None
+        self._native_ready = False
         self._switch_pending: bool = False
         self.latest_state = self._empty_state()
         self.tracker = UsageRateTracker(mock=mock)
@@ -883,6 +903,8 @@ class _WindowsTrayController:
             self._run_auto_update_check()
 
     def on_loaded(self) -> None:
+        self._native_ready = True
+        self._sync_quota_label()
         # pywebview's resize()/move() call SetWindowPos with SWP_SHOWWINDOW,
         # so placing the window while it is hidden would drag the bare panel
         # onto the screen. Placement happens in show_panel() instead; here it
@@ -892,7 +914,7 @@ class _WindowsTrayController:
             self.inject_state(force=True)
             # A panel reload can recreate its taskbar button. Reapply the
             # latest value once the visible native window has loaded.
-            self._update_taskbar_progress(self.latest_state.claude_session.display_percent)
+            self._update_taskbar_progress(self._tray_percent())
 
     @staticmethod
     def _screen_rectangle(value: object) -> tuple[int, int, int, int] | None:
@@ -1708,18 +1730,66 @@ class _WindowsTrayController:
     async def _fetch(self) -> Any:
         return await self.usage_client.fetch_once()
 
+    def _tray_percent(self) -> float | None:
+        row = (
+            self.latest_state.codex_session
+            if self.tray_provider == "codex"
+            else self.latest_state.claude_session
+        )
+        # Codex can expose only a weekly window. A blank session title means
+        # that window is absent, rather than temporarily missing its quota.
+        if self.tray_provider == "codex" and not row.title and row.percent is None:
+            row = self.latest_state.codex_weekly
+        return row.display_percent if row.available else None
+
     def _update_tray(self) -> None:
-        percent = self.latest_state.claude_session.display_percent
+        percent = self._tray_percent()
         self._update_taskbar_progress(percent)
+        self._sync_quota_label()
         if self.icon is None:
             return
-        tooltip = build_tooltip(self.latest_state)
+        tooltip = build_tooltip(self.latest_state, self.tray_provider)
         if percent == self._last_tray_percent and tooltip == self._last_tray_tooltip:
             return
-        self.icon.icon = draw_tray_icon(percent)
+        self.icon.icon = draw_app_icon() if self.quota_label_enabled else draw_tray_icon(percent)
         self.icon.title = tooltip
         self._last_tray_percent = percent
         self._last_tray_tooltip = tooltip
+
+    def _sync_quota_label(self) -> None:
+        if self._native_ready and (self.quota_label_enabled or self.quota_label is not None):
+            self._dispatch_window_mutation(self._update_quota_label_on_ui_thread)
+
+    def _update_quota_label_on_ui_thread(self) -> None:
+        if not self.quota_label_enabled:
+            if self.quota_label is not None:
+                self.quota_label.close()
+                self.quota_label = None
+            return
+        if self.quota_label is None:
+            self.quota_label = TaskbarQuotaLabel(self.show_panel)
+        percent = self._tray_percent()
+        text, _color = tray_icon_style(percent)
+        self.quota_label.update(
+            _t(
+                self.language,
+                "quota_label_format" if percent is not None else "quota_label_unknown",
+                provider=_t(self.language, f"{self.tray_provider}_name"),
+                value=text,
+            ),
+            percent,
+            build_tooltip(self.latest_state, self.tray_provider),
+        )
+
+    def toggle_quota_label(self, _icon: Any = None, _item: Any = None) -> None:
+        preferences = _load_preferences()
+        self.quota_label_enabled = not self.quota_label_enabled
+        preferences["quota_label_enabled"] = self.quota_label_enabled
+        _save_preferences(preferences)
+        self._last_tray_tooltip = ""
+        self._update_tray()
+        if self.icon is not None:
+            self.icon.update_menu()
 
     def _update_taskbar_progress(self, used_percent: float | None) -> None:
         # ITaskbarList3 targets a window's taskbar button, not the pystray icon.
@@ -1769,7 +1839,7 @@ class _WindowsTrayController:
         self.visible = True
         self._place_window()
         self._dispatch_window_mutation(self._show_panel_on_ui_thread)
-        self._update_taskbar_progress(self.latest_state.claude_session.display_percent)
+        self._update_taskbar_progress(self._tray_percent())
         self.inject_state(force=True)
         self.refresh()
 
@@ -1836,6 +1906,14 @@ class _WindowsTrayController:
         self.latest_state.hide_grok = _hide_grok_enabled()
         if self.visible:
             self.inject_state()
+
+    def set_tray_provider(self, provider: object) -> None:
+        if not save_tray_provider(provider):
+            return
+        self.tray_provider = load_tray_provider()
+        self._update_tray()
+        if self.icon is not None:
+            self.icon.update_menu()
 
     def toggle_quota_notifications(self, _icon: Any = None, _item: Any = None) -> None:
         preferences = _load_preferences()
@@ -2206,6 +2284,10 @@ class _WindowsTrayController:
                 panel_id = payload.get("panel_id")
                 if isinstance(panel_id, str):
                     self._schedule_panel_switch(panel_id)
+            elif action == "set_tray_provider":
+                self.set_tray_provider(payload.get("provider"))
+            elif action == "toggle_quota_label":
+                self.toggle_quota_label()
             elif action == "toggle_hide_section":
                 preference_key = payload.get("preference_key")
                 if preference_key in {
@@ -2284,6 +2366,9 @@ class _WindowsTrayController:
 
     def quit(self, _icon: Any = None, _item: Any = None) -> None:
         self.stopping.set()
+        if self.quota_label is not None:
+            self.quota_label.close()
+            self.quota_label = None
         with self._file_event_lock:
             timer = self._file_event_refresh_timer
             self._file_event_refresh_timer = None
@@ -2325,6 +2410,8 @@ def _menu_model() -> tuple[wintray_menu.MenuEntry, ...]:
 def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCommand) -> bool:
     checks = {
         "active_panel": lambda: controller.active_panel_id == entry.argument_value,
+        "tray_provider": lambda: controller.tray_provider == entry.argument_value,
+        "quota_label": lambda: controller.quota_label_enabled,
         "hide_claude": _hide_claude_enabled,
         "hide_codex": _hide_codex_enabled,
         "hide_agy": _hide_agy_enabled,
@@ -2367,6 +2454,8 @@ def _panel_menu_entry(
         data["children"] = [_panel_menu_entry(controller, child) for child in entry.children]
         return data
     data["action"] = entry.action
+    if entry.radio:
+        data["radio"] = True
     if entry.checked_by is not None:
         data["checked"] = _menu_checked(controller, entry)
     if entry.argument_name is not None:
@@ -2499,7 +2588,8 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
     if window is None:
         raise RuntimeError("pywebview did not create a window")
     window.events.loaded += controller.on_loaded
-    icon = pystray.Icon("usage", draw_tray_icon(None), "usage", _menu(controller))
+    icon_image = draw_app_icon() if controller.quota_label_enabled else draw_tray_icon(None)
+    icon = pystray.Icon("usage", icon_image, "usage", _menu(controller))
     controller.attach(icon, window)
     icon.run_detached()
     try:
