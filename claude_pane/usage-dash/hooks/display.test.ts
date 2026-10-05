@@ -59,6 +59,8 @@ test('背景工作：跑的全顯示、完成的補空位、展開看全部', ()
   const ids = (rows: { id: string }[]) => rows.map(r => r.id)
   const six = ['a','b','c','d','e','f'].map(id => run(id, null))
   expect(visibleRuns(six,false)).toEqual({ rows: six, hiddenDone: 0 })
+  const sparse = [run('d1',1), run('d2',2), run('r1',null)]
+  expect(visibleRuns(sparse,false)).toEqual({ rows: sparse, hiddenDone: 0 })
   const mixed = [run('d1',1), run('d2',2), run('d3',3), run('r1',null), run('r2',null)]
   expect(ids(visibleRuns(mixed,false).rows)).toEqual(['d2','d3','r1','r2'])
   expect(visibleRuns(mixed,false).hiddenDone).toBe(1)

@@ -4,6 +4,20 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [0.32.5] - 2026-10-06
+
+### 新增
+- **狀態列：** Claude Code 的 prompt cache 失效後 10 分鐘內，快取那一段會顯示原因，例如 `快取:62% 剛失效:工具換了`。涵蓋 Claude Code 回報的全部 17 種原因（換模型、換思考強度、快速模式、工具、系統提示、閒置超過 5 分鐘或 1 小時、可能是伺服器端等），五種語言都有；不明原因不顯示。狀態列太窄時，原因會最先被拿掉。需要 Claude Code 2.1.260 以上。狀態列 hook 版本升到 1.9，已安裝的副本會在下次開啟 app 時更新。
+- **開發：** `scripts/check_upstream.py` 會在發版前用這台電腦上的真實檔案，檢查 usage 依賴的官方格式：Claude 狀態列資料與對話紀錄、Codex 對話紀錄與 SQLite 檔（包括冒出 `state_6.sqlite` 這類新版號檔案）、Antigravity 對話資料庫與額度快取、Grok log、已安裝的 hook 副本（包括原始檔改了卻沒升版號），以及監看的 Statuspage 元件。每一項回報 OK、NEW、BROKEN 或 NO_DATA。
+
+### 變更
+- **Claude Code 側邊面板：** 每個區塊的標題與數字改放在框的上緣，每個區塊省下一行。點標題一樣可以收合。
+- **README：** prompt cache 的說明改成跟目前狀態列一致，狀態列早已不顯示過期倒數。
+
+### 修正
+- **Claude Code 側邊面板：** 背景工作列出不到四筆時，可能會少顯示一筆剛完成的工作。
+- **Claude Code 側邊面板：** 面板自己的測試在 Claude Code 2.1.289 上重新全部通過，`claude plugin validate` 也不再因狀態宣告失敗。
+
 ## [0.32.4] - 2026-10-05
 
 ### 新增

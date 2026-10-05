@@ -67,7 +67,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.8"
+__version__ = "1.9"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -110,6 +110,24 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "本輪",
         "cached": "快取:",
         "cache_hit": "快取:",
+        "cache_miss": "剛失效:",
+        "miss_system_prompt_changed": "系統提示改了",
+        "miss_tools_changed": "工具換了",
+        "miss_model_changed": "換了模型",
+        "miss_fast_mode_changed": "切換快速模式",
+        "miss_cache_scope_or_ttl_changed": "快取規則變了",
+        "miss_betas_changed": "測試功能變了",
+        "miss_effort_changed": "換了思考強度",
+        "miss_thinking_mode_changed": "開關思考",
+        "miss_thinking_display_changed": "思考顯示變了",
+        "miss_auto_mode_changed": "切換自動模式",
+        "miss_overage_changed": "額度狀態變了",
+        "miss_extra_body_changed": "請求欄位變了",
+        "miss_defer_loading_changed": "工具載入方式變了",
+        "miss_messages_rewritten": "前面對話被改",
+        "miss_ttl_expired_5m": "閒置超過5分鐘",
+        "miss_ttl_expired_1h": "閒置超過1小時",
+        "miss_likely_server_side": "沒改東西,可能是伺服器端",
         "cost": "花費:",
         "session_dur": "會話時長:",
         "remaining_prefix": "剩",
@@ -131,6 +149,24 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "本轮",
         "cached": "缓存:",
         "cache_hit": "缓存:",
+        "cache_miss": "刚失效:",
+        "miss_system_prompt_changed": "系统提示改了",
+        "miss_tools_changed": "工具换了",
+        "miss_model_changed": "换了模型",
+        "miss_fast_mode_changed": "切换快速模式",
+        "miss_cache_scope_or_ttl_changed": "缓存规则变了",
+        "miss_betas_changed": "测试功能变了",
+        "miss_effort_changed": "换了思考强度",
+        "miss_thinking_mode_changed": "开关思考",
+        "miss_thinking_display_changed": "思考显示变了",
+        "miss_auto_mode_changed": "切换自动模式",
+        "miss_overage_changed": "额度状态变了",
+        "miss_extra_body_changed": "请求字段变了",
+        "miss_defer_loading_changed": "工具加载方式变了",
+        "miss_messages_rewritten": "前面对话被改",
+        "miss_ttl_expired_5m": "闲置超过5分钟",
+        "miss_ttl_expired_1h": "闲置超过1小时",
+        "miss_likely_server_side": "没改东西,可能是服务器端",
         "cost": "花费:",
         "session_dur": "会话时长:",
         "remaining_prefix": "剩",
@@ -152,6 +188,24 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "this turn",
         "cached": "Cached:",
         "cache_hit": "Cache:",
+        "cache_miss": "missed:",
+        "miss_system_prompt_changed": "system prompt changed",
+        "miss_tools_changed": "tools changed",
+        "miss_model_changed": "model changed",
+        "miss_fast_mode_changed": "fast mode toggled",
+        "miss_cache_scope_or_ttl_changed": "cache scope/TTL changed",
+        "miss_betas_changed": "betas changed",
+        "miss_effort_changed": "effort changed",
+        "miss_thinking_mode_changed": "thinking toggled",
+        "miss_thinking_display_changed": "thinking display changed",
+        "miss_auto_mode_changed": "auto mode toggled",
+        "miss_overage_changed": "usage-limit state changed",
+        "miss_extra_body_changed": "request fields changed",
+        "miss_defer_loading_changed": "deferred tool loading changed",
+        "miss_messages_rewritten": "earlier messages changed",
+        "miss_ttl_expired_5m": "idle past 5m TTL",
+        "miss_ttl_expired_1h": "idle past 1h TTL",
+        "miss_likely_server_side": "unchanged, likely server-side",
         "cost": "Cost:",
         "session_dur": "Session:",
         "remaining_prefix": "left",
@@ -173,6 +227,24 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "今回",
         "cached": "キャッシュ:",
         "cache_hit": "キャッシュ:",
+        "cache_miss": "失効:",
+        "miss_system_prompt_changed": "システム指示変更",
+        "miss_tools_changed": "ツール変更",
+        "miss_model_changed": "モデル変更",
+        "miss_fast_mode_changed": "高速モード切替",
+        "miss_cache_scope_or_ttl_changed": "キャッシュ範囲/TTL変更",
+        "miss_betas_changed": "ベータ機能変更",
+        "miss_effort_changed": "思考強度変更",
+        "miss_thinking_mode_changed": "思考切替",
+        "miss_thinking_display_changed": "思考表示変更",
+        "miss_auto_mode_changed": "自動モード切替",
+        "miss_overage_changed": "利用上限の状態変更",
+        "miss_extra_body_changed": "リクエスト項目変更",
+        "miss_defer_loading_changed": "ツール遅延読込変更",
+        "miss_messages_rewritten": "以前のメッセージ変更",
+        "miss_ttl_expired_5m": "5分TTL超過",
+        "miss_ttl_expired_1h": "1時間TTL超過",
+        "miss_likely_server_side": "変更なし,サーバー側の可能性",
         "cost": "費用:",
         "session_dur": "セッション時間:",
         "remaining_prefix": "残り",
@@ -194,6 +266,24 @@ STATUSLINE_TRANSLATIONS = {
         "this_turn": "이번 턴",
         "cached": "캐시:",
         "cache_hit": "캐시:",
+        "cache_miss": "만료:",
+        "miss_system_prompt_changed": "시스템 지침 변경",
+        "miss_tools_changed": "도구 변경",
+        "miss_model_changed": "모델 변경",
+        "miss_fast_mode_changed": "빠른 모드 전환",
+        "miss_cache_scope_or_ttl_changed": "캐시 범위/TTL 변경",
+        "miss_betas_changed": "베타 기능 변경",
+        "miss_effort_changed": "사고 강도 변경",
+        "miss_thinking_mode_changed": "사고 전환",
+        "miss_thinking_display_changed": "사고 표시 변경",
+        "miss_auto_mode_changed": "자동 모드 전환",
+        "miss_overage_changed": "사용 한도 상태 변경",
+        "miss_extra_body_changed": "요청 필드 변경",
+        "miss_defer_loading_changed": "도구 지연 로딩 변경",
+        "miss_messages_rewritten": "이전 메시지 변경",
+        "miss_ttl_expired_5m": "5분 TTL 초과",
+        "miss_ttl_expired_1h": "1시간 TTL 초과",
+        "miss_likely_server_side": "변경 없음, 서버 측 추정",
         "cost": "비용:",
         "session_dur": "세션 시간:",
         "remaining_prefix": "남음",
@@ -790,6 +880,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
         line3.append(f"{C['dim']}{C['magenta']}{safe_text(model_name)}{C['reset']}")
 
     cache_pct_part = ""
+    cache_miss_part = ""
     prompt_cache = _as_dict(data.get("prompt_cache"))
     if prompt_cache.get("caching_observed") is True:
         hit_ratio = _as_float(prompt_cache.get("hit_ratio"))
@@ -798,11 +889,28 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
                 f"{C['dim']}{C['magenta']}{_t('cache_hit')}{C['reset']}"
                 f"{color_by_pct_inverted(hit_ratio * 100)}{hit_ratio * 100:.0f}%{C['reset']}"
             )
-            line3.append(cache_pct_part)
+            last_miss_at = prompt_cache.get("last_miss_at")
+            causes = _as_dict(prompt_cache.get("last_miss_cause")).get("causes")
+            if (
+                isinstance(last_miss_at, (int, float))
+                and not isinstance(last_miss_at, bool)
+                and 0 <= now.timestamp() - last_miss_at <= 600
+                and isinstance(causes, list)
+            ):
+                for cause in causes:
+                    if isinstance(cause, str) and f"miss_{cause}" in STATUSLINE_TRANSLATIONS[lang]:
+                        reason = safe_text(f"{_t('cache_miss')}{_t(f'miss_{cause}')}")
+                        cache_miss_part = (
+                            f"{cache_pct_part} {C['dim']}{C['magenta']}{reason}{C['reset']}"
+                        )
+                        break
+            line3.append(cache_miss_part or cache_pct_part)
 
     if ctx_parts:
         line3.append(ctx_parts[0])
 
+    if vlen(SEP.join(line3)) > width and cache_miss_part:
+        line3 = [cache_pct_part if p == cache_miss_part else p for p in line3]
     if vlen(SEP.join(line3)) > width and duration_part:
         line3 = [p for p in line3 if p != duration_part]
     if vlen(SEP.join(line3)) > width and cache_pct_part:

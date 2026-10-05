@@ -311,8 +311,8 @@ export const register: Register = (on) => {
       </Box>
     }
     return <Box flexDirection="column">
+      <Box flexDirection="column">
       <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
-      <Box justifyContent="space-between"><Button key="quota" plain label={`[ ${fold.quota ? '▸' : '▾'} ${t('quota')} ]`} onPress={() => update($, collapsed, v => ({ ...v, quota: !v.quota }))} /></Box>
       {!fold.quota && <Box flexDirection="column">
         {byTightest(data, ['claude-code','codex','antigravity','grok'], now, last === null ? 0 : (now-last)/1000).map(key => {
           const agent = data.agents[key]
@@ -338,11 +338,10 @@ export const register: Register = (on) => {
         {qe && <Text color="red">{qe}</Text>}
       </Box>}
       </Box>
-      <Box flexDirection="column" borderStyle="round" borderColor="blue" paddingX={1}>
-      <Box justifyContent="space-between">
-        <Button key="sessions" plain label={`[ ${fold.sessions ? '▸' : '▾'} ${t('sessions')} ]`} onPress={() => update($, collapsed, v => ({ ...v, sessions: !v.sessions }))} />
-        <Text dimColor>{t('busy_count', { count: list.filter(s => isBusy(s)).length, total: list.length })}</Text>
+      <Box position="absolute" top={0} left={2} right={2} justifyContent="space-between"><Button key="quota" plain label={`[ ${fold.quota ? '▸' : '▾'} ${t('quota')} ]`} onPress={() => update($, collapsed, v => ({ ...v, quota: !v.quota }))} /></Box>
       </Box>
+      <Box flexDirection="column">
+      <Box flexDirection="column" borderStyle="round" borderColor="blue" paddingX={1}>
       {!fold.sessions && <Box flexDirection="column">
         {list.slice(0,expanded ? list.length : 4).map(s => {
           const waiting = s.status === 'waiting' || isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now), mark = sessionMark(s, waiting, now)
@@ -356,11 +355,13 @@ export const register: Register = (on) => {
         {se && <Text color="red">{se}</Text>}
       </Box>}
       </Box>
-      <Box flexDirection="column" borderStyle="round" borderColor="yellow" paddingX={1}>
-      <Box justifyContent="space-between">
-        <Button key="runs" plain label={`[ ${fold.runs ? '▸' : '▾'} ${t('runs')} ]`} onPress={() => update($, collapsed, v => ({ ...v, runs: !v.runs }))} />
-        <Text color={jobs > 0 ? 'yellow' : undefined} dimColor={jobs === 0}>{jobs}</Text>
+      <Box position="absolute" top={0} left={2} right={2} justifyContent="space-between">
+        <Button key="sessions" plain label={`[ ${fold.sessions ? '▸' : '▾'} ${t('sessions')} ]`} onPress={() => update($, collapsed, v => ({ ...v, sessions: !v.sessions }))} />
+        <Text>{' '}<Text dimColor>{t('busy_count', { count: list.filter(s => isBusy(s)).length, total: list.length })}</Text>{' '}</Text>
       </Box>
+      </Box>
+      <Box flexDirection="column">
+      <Box flexDirection="column" borderStyle="round" borderColor="yellow" paddingX={1}>
       {!fold.runs && <Box flexDirection="column">
         {visibleRuns(shown, runsExpanded, tasks).rows.map(r => {
           const done = r.end !== null
@@ -373,6 +374,11 @@ export const register: Register = (on) => {
         {(runsExpanded || visibleRuns(shown, false, tasks).hiddenDone > 0) && <Button key="moreRuns" plain label={runsExpanded ? `[ − ${t('less')} ]` : `[ + ${t('more', { count: visibleRuns(shown, false, tasks).hiddenDone })} ]`} onPress={() => update($, moreRuns, v => !v)} />}
         {!shown.length && !agentList.length && !tasks.length && <Text dimColor>{t('none')}</Text>}
       </Box>}
+      </Box>
+      <Box position="absolute" top={0} left={2} right={2} justifyContent="space-between">
+        <Button key="runs" plain label={`[ ${fold.runs ? '▸' : '▾'} ${t('runs')} ]`} onPress={() => update($, collapsed, v => ({ ...v, runs: !v.runs }))} />
+        <Text>{' '}<Text color={jobs > 0 ? 'yellow' : undefined} dimColor={jobs === 0}>{jobs}</Text>{' '}</Text>
+      </Box>
       </Box>
       <Box justifyContent="flex-end"><Text dimColor>{refreshedAgo(now, last)}</Text></Box>
     </Box>

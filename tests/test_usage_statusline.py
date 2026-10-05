@@ -822,6 +822,168 @@ def test_render_prompt_cache_degrades_for_narrow_widths(
     assert "Cache:" not in without_cache
 
 
+@pytest.mark.parametrize("age", (0, 30, 600))
+def test_render_shows_recent_cache_miss(monkeypatch: pytest.MonkeyPatch, age: int) -> None:
+    monkeypatch.setenv("TT_LANG", "zh_TW")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+
+    output = usage_statusline.render(
+        {
+            "prompt_cache": {
+                "caching_observed": True,
+                "hit_ratio": 0.62,
+                "last_miss_at": now.timestamp() - age,
+                "last_miss_cause": {"causes": ["tools_changed"]},
+            }
+        },
+        now,
+    )
+
+    assert "62%" in output
+    assert "\033[2m\033[38;5;111m剛失效:工具換了\033[0m" in output
+
+
+@pytest.mark.parametrize("last_miss_at", (1767224999, 1767225601, None, "1767225600", True))
+def test_render_omits_cache_miss_with_invalid_or_old_time(
+    monkeypatch: pytest.MonkeyPatch, last_miss_at: object
+) -> None:
+    monkeypatch.setenv("TT_LANG", "zh_TW")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+
+    output = usage_statusline.render(
+        {
+            "prompt_cache": {
+                "caching_observed": True,
+                "hit_ratio": 0.62,
+                "last_miss_at": last_miss_at,
+                "last_miss_cause": {"causes": ["tools_changed"]},
+            }
+        },
+        datetime(2026, 1, 1, tzinfo=UTC),
+    )
+
+    assert "快取:" in output
+    assert "62%" in output
+    assert "剛失效:" not in output
+
+
+@pytest.mark.parametrize(
+    "last_miss_cause",
+    (
+        None,
+        "tools_changed",
+        {"causes": "tools_changed"},
+        {"causes": ["unknown"]},
+        {"causes": ["unrecognized"]},
+        {"causes": [None, {}]},
+    ),
+)
+def test_render_omits_unrecognized_cache_miss(
+    monkeypatch: pytest.MonkeyPatch, last_miss_cause: object
+) -> None:
+    monkeypatch.setenv("TT_LANG", "zh_TW")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+
+    output = usage_statusline.render(
+        {
+            "prompt_cache": {
+                "caching_observed": True,
+                "hit_ratio": 0.62,
+                "last_miss_at": now.timestamp(),
+                "last_miss_cause": last_miss_cause,
+            }
+        },
+        now,
+    )
+
+    assert "快取:" in output
+    assert "62%" in output
+    assert "剛失效:" not in output
+
+
+def test_render_cache_miss_uses_first_recognized_cause(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "zh_TW")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+
+    output = usage_statusline.render(
+        {
+            "prompt_cache": {
+                "caching_observed": True,
+                "hit_ratio": 0.62,
+                "last_miss_at": now.timestamp(),
+                "last_miss_cause": {"causes": ["unknown", "effort_changed", "tools_changed"]},
+            }
+        },
+        now,
+    )
+
+    assert "剛失效:換了思考強度" in output
+    assert "工具換了" not in output
+
+
+def test_render_drops_cache_miss_before_duration_or_percentage(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setenv("TT_LANG", "zh_TW")
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    payload = {
+        "cost": {"total_duration_ms": 720000},
+        "prompt_cache": {
+            "caching_observed": True,
+            "hit_ratio": 0.62,
+            "last_miss_at": now.timestamp(),
+            "last_miss_cause": {"causes": ["tools_changed"]},
+        },
+    }
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    full = usage_statusline.render(payload, now)
+    width = usage_statusline.vlen(full) - usage_statusline.vlen(" 剛失效:工具換了")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: width)
+
+    output = usage_statusline.render(payload, now)
+
+    assert "剛失效:" not in output
+    assert "快取:" in output
+    assert "62%" in output
+    assert "會話時長:" in output
+    assert usage_statusline.vlen(output) == width
+
+
+@pytest.mark.parametrize("lang", ("zh-TW", "zh-CN", "en", "ja", "ko"))
+def test_cache_miss_translation_keys(lang: str) -> None:
+    causes = (
+        "system_prompt_changed",
+        "tools_changed",
+        "model_changed",
+        "fast_mode_changed",
+        "cache_scope_or_ttl_changed",
+        "betas_changed",
+        "effort_changed",
+        "thinking_mode_changed",
+        "thinking_display_changed",
+        "auto_mode_changed",
+        "overage_changed",
+        "extra_body_changed",
+        "defer_loading_changed",
+        "messages_rewritten",
+        "ttl_expired_5m",
+        "ttl_expired_1h",
+        "likely_server_side",
+    )
+    translations = usage_statusline.STATUSLINE_TRANSLATIONS[lang]
+
+    assert translations["cache_miss"]
+    assert {key for key in translations if key.startswith("miss_")} == {
+        f"miss_{cause}" for cause in causes
+    }
+    assert all(translations[f"miss_{cause}"] for cause in causes)
+
+
 def test_render_skips_bad_rate_limit_percentage_without_fallback(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
