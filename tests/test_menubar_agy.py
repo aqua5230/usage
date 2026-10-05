@@ -495,3 +495,15 @@ def test_window_row_reset_boundary(age_minutes: float, text: str, used: float) -
         assert row.reset_text == text
         assert not row.warning
     assert window.remaining_percent == 10.0
+
+
+def test_fresh_cache_with_expired_login_is_stale() -> None:
+    from loaders import agy_quota_probe
+    from menubar import agy
+
+    agy_quota_probe.AUTH_EXPIRED_PATH.touch()
+    now = datetime.now(UTC)
+    state = agy._stale_state(now.isoformat(), now.timestamp(), "zh-TW")
+    assert state is not None
+    assert state["ageText"] == "登入過期"
+    assert "agy" in state["tooltip"]

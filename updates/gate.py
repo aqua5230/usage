@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import threading
 import time
 from typing import Any
 
@@ -13,6 +14,33 @@ from updates import checker as update_checker
 
 AUTO_CHECK_TTL_SECONDS = 24 * 60 * 60
 UPDATE_DISMISS_SECONDS = 24 * 3600
+UPDATE_RECHECK_SECONDS = 3600
+UPDATE_RETRY_MAX_SECONDS = 6 * 3600
+
+
+class AutoCheckSchedule:
+    def __init__(self) -> None:
+        self._lock = threading.Lock()
+        self._running = False
+        self._failures = 0
+        self._next_at = 0.0
+
+    def try_begin(self, now: float) -> bool:
+        with self._lock:
+            if self._running or now < self._next_at:
+                return False
+            self._running = True
+            return True
+
+    def finish(self, now: float, *, failed: bool) -> None:
+        with self._lock:
+            self._failures = self._failures + 1 if failed else 0
+            delay = min(
+                UPDATE_RECHECK_SECONDS * 2 ** min(max(self._failures - 1, 0), 3),
+                UPDATE_RETRY_MAX_SECONDS,
+            )
+            self._next_at = now + delay
+            self._running = False
 
 
 def dismissed_recently(prefs: dict[str, Any]) -> bool:

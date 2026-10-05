@@ -106,3 +106,24 @@ def test_resolve_alert_choice(
     expected: tuple[str, dict[str, str]],
 ) -> None:
     assert update_gate.resolve_alert_choice(result_code, "0.12.0") == expected
+
+
+@pytest.mark.parametrize(
+    "failures,delay", [(0, 3600), (1, 3600), (2, 7200), (3, 14400), (4, 21600), (10, 21600)]
+)
+def test_schedule_backoff_and_reset(failures: int, delay: int) -> None:
+    schedule = update_gate.AutoCheckSchedule()
+    now = 100.0
+    assert schedule.try_begin(now)
+    assert not schedule.try_begin(now + 100000)
+    for index in range(max(1, failures)):
+        schedule.finish(now, failed=failures > 0)
+        if index < failures - 1:
+            now = schedule._next_at
+            assert schedule.try_begin(now)
+    assert not schedule.try_begin(now + delay - 0.01)
+    assert schedule.try_begin(now + delay)
+    schedule.finish(now + delay, failed=False)
+    assert schedule._failures == 0
+    assert not schedule.try_begin(now + delay + 3599)
+    assert schedule.try_begin(now + delay + 3600)

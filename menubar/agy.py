@@ -18,6 +18,7 @@ from loaders.agy_quota_probe import (
     AgyQuotaGroup,
     AgyQuotaResult,
     AgyQuotaWindow,
+    auth_expired,
     load_quota,
 )
 from loaders.agy_quota_probe import (
@@ -294,6 +295,11 @@ def _window_row(
 
 
 def _stale_state(fetched_at: str, now: float, language: str) -> AgyStaleState | None:
+    if auth_expired():
+        return {
+            "ageText": _t(language, "agy_signin_expired"),
+            "tooltip": _t(language, "agy_signin_expired_tooltip"),
+        }
     try:
         age_seconds = now - parse_iso8601_utc_or_raise(fetched_at).timestamp()
     except (TypeError, ValueError):

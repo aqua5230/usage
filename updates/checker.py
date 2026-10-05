@@ -30,6 +30,7 @@ class ReleaseInfo:
 class ReleaseCheckResult:
     release: ReleaseInfo | None
     failed: bool = False
+    failure_reason: str | None = None
 
 
 def _parse_version(version: str) -> tuple[int, int, int, tuple[str, ...] | None] | None:
@@ -115,18 +116,17 @@ def check_latest_release_result(
         if len(raw) > MAX_RESPONSE_BYTES:
             raise ValueError("release response exceeds the size limit")
         payload = json.loads(raw.decode("utf-8"))
-    except (
-        OSError,
-        UnicodeDecodeError,
-        ValueError,
-        urllib.error.URLError,
-        urllib.error.HTTPError,
-    ):
-        return ReleaseCheckResult(None, failed=True)
+    except urllib.error.HTTPError as exc:
+        reason = "rate_limited" if exc.code in (403, 429) else "server"
+        return ReleaseCheckResult(None, failed=True, failure_reason=reason)
+    except ValueError:
+        return ReleaseCheckResult(None, failed=True, failure_reason="bad_response")
+    except (urllib.error.URLError, OSError):
+        return ReleaseCheckResult(None, failed=True, failure_reason="offline")
 
     release = _release_from_payload(payload)
     if release is None:
-        return ReleaseCheckResult(None)
+        return ReleaseCheckResult(None, failed=True, failure_reason="bad_response")
     try:
         if compare_versions(current_version, release.version) >= 0:
             return ReleaseCheckResult(None)

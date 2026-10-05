@@ -122,6 +122,7 @@ def _isolate_dispatch_ledger_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: 
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "codex-home" / "logs_2.sqlite")
     monkeypatch.setattr(agy_loader, "AGY_SESSIONS_DIR", tmp_path / "agy-conversations")
     monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", tmp_path / "agy_quota_cache.json")
+    monkeypatch.setattr(agy_quota_probe, "AUTH_EXPIRED_PATH", tmp_path / "agy_auth_expired")
 
 
 @pytest.fixture(autouse=True)

@@ -10,6 +10,8 @@ from __future__ import annotations
 
 import logging
 import os
+import threading
+import time
 from typing import Any, Protocol
 
 import usage_diagnosis_snapshot
@@ -23,6 +25,11 @@ logger = logging.getLogger(__name__)
 
 
 class _UpdateApp(Protocol):
+    language: str
+    _auto_check_schedule: update_gate.AutoCheckSchedule
+
+    def checkForUpdates_(self, sender: Any) -> None: ...
+
     def performSelectorOnMainThread_withObject_waitUntilDone_(
         self, selector: str, obj: Any, wait: bool
     ) -> None: ...
@@ -33,7 +40,7 @@ class _UpdateApp(Protocol):
         manual: bool,
         ignore_cooldown: bool,
         ignore_skipped: bool,
-    ) -> None: ...
+    ) -> bool: ...
 
 
 def clear_stale_update_cache() -> None:
@@ -56,11 +63,50 @@ def maybe_check_update_in_background(app: _UpdateApp) -> None:
         claude_pane.refresh_claude_pane()
     except (OSError, SystemExit):
         logger.warning("Claude Code pane refresh failed", exc_info=True)
-    app._check_update_in_background(
-        manual=False,
-        ignore_cooldown=False,
-        ignore_skipped=False,
-    )
+    if app._auto_check_schedule.try_begin(time.time()):
+        _run_auto_check(app)
+
+
+def _run_auto_check(app: _UpdateApp) -> None:
+    failed = True
+    try:
+        failed = bool(
+            app._check_update_in_background(
+                manual=False,
+                ignore_cooldown=False,
+                ignore_skipped=False,
+            )
+        )
+    finally:
+        app._auto_check_schedule.finish(time.time(), failed=failed)
+
+
+def on_poll_tick(app: _UpdateApp) -> None:
+    clear_stale_update_cache()
+    if app._auto_check_schedule.try_begin(time.time()):
+        threading.Thread(target=_run_auto_check, args=(app,), daemon=True).start()
+
+
+def check_manually(app: _UpdateApp) -> None:
+    threading.Thread(
+        target=app._check_update_in_background,
+        kwargs={"manual": True, "ignore_cooldown": True, "ignore_skipped": True},
+        daemon=True,
+    ).start()
+
+
+def show_update_check_failed(app: _UpdateApp, reason: str | None) -> None:
+    from i18n import _t
+    from menubar.chrome import _make_alert
+
+    alert = _make_alert()
+    alert.setMessageText_(_t(app.language, "update_check_failed"))
+    if reason is not None:
+        alert.setInformativeText_(_t(app.language, "update_check_failed_" + reason))
+    alert.addButtonWithTitle_(_t(app.language, "update_btn_retry"))
+    alert.addButtonWithTitle_(_t(app.language, "report_share_close"))
+    if int(alert.runModal()) == 1000:
+        app.checkForUpdates_(None)
 
 
 def check_update_in_background(
@@ -69,18 +115,18 @@ def check_update_in_background(
     manual: bool,
     ignore_cooldown: bool,
     ignore_skipped: bool,
-) -> None:
+) -> bool:
     from menubar.app import _current_version
 
     prefs = _load_preferences()
     if not manual and not _auto_update_check_enabled(prefs):
-        return
+        return False
 
     if not manual and not update_gate.auto_check_is_due(prefs):
-        return
+        return False
 
     if not ignore_cooldown and update_gate.dismissed_recently(prefs):
-        return
+        return False
 
     try:
         current_version = _current_version()
@@ -94,16 +140,16 @@ def check_update_in_background(
                 None,
                 False,
             )
-        return
+        return True
 
     if check_result.failed:
         if manual:
             app.performSelectorOnMainThread_withObject_waitUntilDone_(
                 "_showUpdateCheckFailed:",
-                None,
+                check_result.failure_reason,
                 False,
             )
-        return
+        return True
 
     release = check_result.release
     # Re-read: the network check can take seconds, and a toggle saved meanwhile must survive.
@@ -118,13 +164,14 @@ def check_update_in_background(
                 None,
                 False,
             )
-        return
+        return False
 
     if not ignore_skipped and prefs.get("update_skipped_version") == release.version:
-        return
+        return False
 
     app.performSelectorOnMainThread_withObject_waitUntilDone_(
         "_showUpdateAlert:",
         release,
         False,
     )
+    return False

@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 import time
+from contextlib import suppress
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
@@ -37,6 +39,7 @@ from menubar import update as menubar_update
 from panels import panel_window_state
 from quota.burn_rate import BurnRateTracker
 from service_status import ServiceStatus
+from updates.gate import AutoCheckSchedule
 from usage_client import PollOutcome, PollState, UsageSnapshot
 
 
@@ -951,6 +954,7 @@ def test_background_daily_maintenance_schedules_diagnosis_snapshot(
     )
     fake_self = SimpleNamespace(
         _check_update_in_background=lambda **kwargs: calls.append(kwargs),
+        _auto_check_schedule=AutoCheckSchedule(),
     )
 
     menubar.AppDelegate._maybe_check_update_in_background(cast(Any, fake_self))
@@ -3162,3 +3166,100 @@ def test_reset_title_keeps_notification_values(monkeypatch: pytest.MonkeyPatch) 
     state.hide_claude = state.hide_agy = state.hide_grok = True
     assert menubar_title._compose_title(app, state) == "0%"
     assert row.percent == 100.0
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="update dialog requires AppKit")
+@pytest.mark.parametrize("reason", [None, "offline", "rate_limited", "server", "bad_response"])
+def test_update_failure_dialog_can_retry(
+    monkeypatch: pytest.MonkeyPatch, reason: str | None
+) -> None:
+    from i18n import _t
+    from menubar import chrome
+
+    texts: list[str] = []
+    buttons: list[str] = []
+    calls: list[Any] = []
+    alert = SimpleNamespace(
+        setMessageText_=texts.append,
+        setInformativeText_=texts.append,
+        addButtonWithTitle_=buttons.append,
+        runModal=lambda: 1000,
+    )
+    monkeypatch.setattr(chrome, "_make_alert", lambda: alert)
+    app = SimpleNamespace(language="en", checkForUpdates_=calls.append)
+    menubar_update.show_update_check_failed(cast(Any, app), reason)
+    assert texts[0] == _t("en", "update_check_failed")
+    assert texts[1:] == ([] if reason is None else [_t("en", "update_check_failed_" + reason)])
+    assert buttons == [_t("en", "update_btn_retry"), _t("en", "report_share_close")]
+    assert calls == [None]
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="update app requires AppKit")
+@pytest.mark.parametrize("outcome", [False, True, RuntimeError("failed")])
+def test_poll_tick_rechecks_without_startup_maintenance(
+    monkeypatch: pytest.MonkeyPatch, outcome: bool | Exception
+) -> None:
+    now = [100.0]
+    calls: list[dict[str, bool]] = []
+    cleared: list[bool] = []
+
+    def check(**kwargs: bool) -> bool:
+        calls.append(kwargs)
+        if isinstance(outcome, Exception):
+            raise outcome
+        return outcome
+
+    def start(target: Any, args: tuple[Any, ...]) -> None:
+        with suppress(RuntimeError):
+            target(*args)
+
+    app = SimpleNamespace(
+        _auto_check_schedule=AutoCheckSchedule(), _check_update_in_background=check
+    )
+    monkeypatch.setattr("menubar.update.time.time", lambda: now[0])
+    monkeypatch.setattr(menubar_update, "clear_stale_update_cache", lambda: cleared.append(True))
+    monkeypatch.setattr(
+        menubar_update,
+        "maybe_check_update_in_background",
+        lambda *a: pytest.fail("poll must not run startup maintenance"),
+    )
+    monkeypatch.setattr(
+        "menubar.update.threading.Thread",
+        lambda *, target, args, daemon: SimpleNamespace(start=lambda: start(target, args)),
+    )
+    menubar_update.on_poll_tick(cast(Any, app))
+    now[0] += 3599
+    menubar_update.on_poll_tick(cast(Any, app))
+    assert len(calls) == 1
+    now[0] += 1
+    menubar_update.on_poll_tick(cast(Any, app))
+    assert calls == [{"manual": False, "ignore_cooldown": False, "ignore_skipped": False}] * 2
+    assert len(cleared) == 3
+    assert app._auto_check_schedule._failures == (0 if outcome is False else 2)
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="update app requires AppKit")
+def test_manual_failure_returns_reason_and_preserves_schedule(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from updates.checker import ReleaseCheckResult
+
+    calls: list[Any] = []
+    schedule = AutoCheckSchedule()
+    schedule.finish(100, failed=True)
+    app = SimpleNamespace(
+        _auto_check_schedule=schedule,
+        performSelectorOnMainThread_withObject_waitUntilDone_=lambda *args: calls.append(args),
+    )
+    monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {})
+    monkeypatch.setattr(menubar, "_current_version", lambda: "1.0.0")
+    monkeypatch.setattr(
+        "updates.checker.check_latest_release_result",
+        lambda version: ReleaseCheckResult(None, True, "offline"),
+    )
+    assert menubar_update.check_update_in_background(
+        cast(Any, app), manual=True, ignore_cooldown=True, ignore_skipped=True
+    )
+    assert calls == [("_showUpdateCheckFailed:", "offline", False)]
+    assert schedule._failures == 1
+    assert schedule._next_at == 3700

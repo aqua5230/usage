@@ -37,6 +37,19 @@ from urllib.request import Request, urlopen
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_quota_cache.json"))
+AUTH_EXPIRED_PATH = CACHE_PATH.parent / "agy_auth_expired"
+
+
+def auth_expired() -> bool:
+    return AUTH_EXPIRED_PATH.exists()
+
+
+def _mark_auth_expired() -> None:
+    with suppress(OSError):
+        AUTH_EXPIRED_PATH.parent.mkdir(parents=True, exist_ok=True)
+        AUTH_EXPIRED_PATH.touch()
+
+
 # Legacy OAuth token written by older Antigravity CLI versions. Read-only: we
 # never write back here (that is the CLI's home and could corrupt its login).
 _TOKEN_PATH = Path(os.path.expanduser("~/.gemini/antigravity-cli/antigravity-oauth-token"))
@@ -117,7 +130,11 @@ def probe_quota(timeout_seconds: float = 15) -> AgyQuotaResult | None:
     groups_raw = _extract_groups(raw)
     if not groups_raw:
         return None
-    return _build_result(groups_raw)
+    result = _build_result(groups_raw)
+    if result is not None:
+        with suppress(OSError):
+            AUTH_EXPIRED_PATH.unlink(missing_ok=True)
+    return result
 
 
 def find_agy() -> str | None:
@@ -353,6 +370,20 @@ def _refresh_token(refresh_token: str, timeout: float) -> tuple[str, int] | None
         payload = json.loads(raw)
     except HTTPError as exc:
         _handle_http_error(exc)
+        if exc.code == 401:
+            _mark_auth_expired()
+        elif exc.code == 400:
+            try:
+                raw_error = exc.read(_MAX_RESPONSE_BYTES + 1)
+                if len(raw_error) <= _MAX_RESPONSE_BYTES:
+                    error_payload = json.loads(raw_error)
+                    if (
+                        isinstance(error_payload, dict)
+                        and error_payload.get("error") == "invalid_grant"
+                    ):
+                        _mark_auth_expired()
+            except (OSError, ValueError):
+                pass
         return None
     except (URLError, OSError, ValueError):
         return None
@@ -387,6 +418,8 @@ def _post_json(url: str, access_token: str, body: dict[str, object], timeout: fl
         return json.loads(raw)
     except HTTPError as exc:
         _handle_http_error(exc)
+        if exc.code == 401:
+            _mark_auth_expired()
         return None
     except (URLError, OSError, ValueError):
         return None
