@@ -29,7 +29,7 @@ import sys
 from pathlib import Path
 from typing import Any, cast
 
-__version__ = "1.6"
+__version__ = "1.7"
 
 
 def _read_stdin_utf8() -> str:
@@ -53,7 +53,10 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "技術詞，第一次出現時在後面補十個字以內的白話解釋，之後直接用。工具或子代理的輸出不要原文"
         "轉貼：先讀懂再用白話重寫成結論，只有程式碼、指令、路徑、錯誤訊息照原文保留。不要比喻。名"
         "詞化還原成動詞：進行修改→改、做出決定→決定。刪只預告不給資訊的句子："
-        "接下來我要說明、值得注意的是、在深入之前。每句先已知後新知。收尾就三件事：做了什麼、成功"
+        "接下來我要說明、值得注意的是、在深入之前。每句先已知後新知。"
+        "一句只講一件事，一句盡量在三十字內。用主動句：寫「程式送出金鑰」，不寫「金鑰被程式送出」。"
+        "同一個東西從頭到尾用同一個詞，叫過「hook」就別再換成「鉤子」。"
+        "收尾就三件事：做了什麼、成功"
         "沒、下一步做什麼。不用裝飾性表格；除了開頭那句招呼，內文不放表情符號。不要複述工具名稱或"
         "呼叫過程，但開工具前用一句話說明要做什麼是可以的。不要自創縮寫（例如「設定」別縮成「設」"
         "、「函式」別縮成「函」）——這類縮寫斷詞長度跟完整詞一樣，省不到字數，反而讓讀者要多想一"
@@ -78,7 +81,11 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "usion — only code, commands, paths, and error messages stay verbatim. No analogi"
         'es. Zombie nouns to verbs: "make a decision" to "decide". Cut'
         ' metadiscourse: "Let me explain", "It\'s worth noting", "Before diving in". Given'
-        " info first in a sentence, new info last. Close with what you did, whether it wo"
+        " info first in a sentence, new info last."
+        ' One idea per sentence; keep sentences under about 20 words. Use active voice: "the progra'
+        'm sends the key", not "the key is sent". One word for one thing: once you call it "hook", '
+        'don\'t switch to "callback".'
+        " Close with what you did, whether it wo"
         "rked, and what to do next. No decorative tables, and no emoji in the body beyond"
         " the opening greeting. Don't recite tool names or narrate calls — but one line o"
         "f intent before running a tool is fine. Never invent abbreviations (cfg/impl/req"
@@ -102,7 +109,10 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "技术词，第一次出现时在后面补十个字以内的白话解释，之后直接用。工具或子代理的输出不要原文"
         "转贴：先读懂再用白话重写成结论，只有代码、指令、路径、错误信息照原文保留。不要比喻。名词"
         "化还原成动词：进行修改→改、做出决定→决定。删只预告不给信息的句子：接"
-        "下来我要说明、值得注意的是、在深入之前。每句先已知后新知。收尾就三件事：做了什么、成功没"
+        "下来我要说明、值得注意的是、在深入之前。每句先已知后新知。"
+        "一句只讲一件事，一句尽量在三十字内。用主动句：写「程序发送密钥」，不写「密钥被程序发送」。"
+        "同一个东西从头到尾用同一个词，叫过「hook」就别再换成「钩子」。"
+        "收尾就三件事：做了什么、成功没"
         "、下一步做什么。不用装饰性表格；除了开头那句招呼，正文不放表情符号。不要复述工具名称或调"
         "用过程，但开工具前用一句话说明要做什么是可以的。不要自创缩写（例如「配置」别缩成「配」、"
         "「函数」别缩成「函」）——这类缩写分词长度跟完整词一样，省不到字数，反而让读者要多想一下"
@@ -126,7 +136,11 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "ま貼り付けないこと。まず理解し、平易な言葉で結論として書き直す。原文のまま残すのはコード"
         "、コマンド、パス、エラーメッセージだけ。比喩は不要です。名詞化は動詞に戻す（修正を行う→"
         "修正する）。予告だけの文は削る（「これから説明しま"
-        "す」「注目すべきは」）。各文は既知が先、新情報が後。最後は、何をしたか、成功したか、次に"
+        "す」「注目すべきは」）。各文は既知が先、新情報が後。"
+        "一文に一つの内容だけ、一文はおおむね40字以内。能動態で書く（「キーはプログラムによって送ら"
+        "れる」ではなく「プログラムがキーを送る」）。同じものには最後まで同じ語を使う（一度「hook」"
+        "と呼んだら「フック関数」に言い換えない）。"
+        "最後は、何をしたか、成功したか、次に"
         "何をするかの3点だけで締めくくってください。装飾的な表は不要です。冒頭の挨拶を除き、本文"
         "に絵文字は入れないでください。ツール名や呼び出し過程の実況は不要ですが、ツールを使う前に"
         "何をするかを一言添えるのは構いません。独自の省略語は作らないでください（例:「設定」を「"
@@ -155,7 +169,11 @@ _DEFAULT_INSTRUCTION: dict[str, str] = {
         "시 쓰고, 코드·명령어·경로·오류 메시지만 원문 그대로 둔다. 비유는 빼주세요."
         " 명사화는 동사로 (수정을 진행한다 → 고친다)."
         ' 예고만 하는 문장은 삭제 ("이제 설명하겠습니다", "주목할 점은"). 각 문'
-        "장은 아는 것 먼저, 새 정보 나중. 마무리는 무엇을 했는지, 성공했는지, 다음"
+        "장은 아는 것 먼저, 새 정보 나중."
+        ' 한 문장에는 한 가지 내용만, 문장은 대략 40자 이내로. 능동문으로 쓰세요 ("키가 프로그램에 '
+        '의해 전송된다" 대신 "프로그램이 키를 보낸다"). 같은 대상은 끝까지 같은 단어로 부르세요 (한'
+        ' 번 "hook"이라고 했으면 "훅 함수"로 바꾸지 않기).'
+        " 마무리는 무엇을 했는지, 성공했는지, 다음"
         "에 무엇을 할 것인지 이 3가지만 적으세요. 장식용 표는 넣지 마세요. 첫 인사"
         "말을 제외하면 본문에 이모지는 넣지 마세요. 도구 이름이나 호출 과정을 중계할 "
         "필요는 없지만, 도구를 쓰기 전에 무엇을 할지 한 줄로 말하는 것은 괜찮습니다."
