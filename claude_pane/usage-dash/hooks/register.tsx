@@ -6,7 +6,7 @@ import { matchAgent, isShellBackgrounded, parseNotifications, backgroundTasks, l
 import { parseQuota, hideAgents, byTightest, showsUnavailable, effectivePercent, dockQuotaLine, staleAge, refreshedAgo } from './quota'
 import { compactLines } from './compact'
 import { parseLiveSession, liveSessions, tasklistPids, toSession, newest, isBusy, waitingText, settleNotifications, sessionMark } from './sessions'
-import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
+import { contextPercent, contextColor, parseContext, parseMix, mixLabel, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
 const PANE = 'usage-dash'
 const quotas = atom({ plugin: 'usage-dash', key: 'quotas' } as const, { agents: {} })
 const updated = atom({ plugin: 'usage-dash', key: 'updated' } as const, null)
@@ -75,9 +75,13 @@ async function reportContext($: Dollar, waiting: boolean | null = false) {
     let previous: ReturnType<typeof parseContext> = null
     try { previous = parseContext(await $.fs.read(path)) } catch { /* no previous context is normal */ }
     if (waiting === null && previous?.jobs === jobs) return
-    let percent = previous?.percent
-    try { percent = contextPercent((await $.session.usage()).context.percent) ?? percent } catch { /* waiting can be reported without usage */ }
-    await $.fs.write(path, JSON.stringify({ sessionId, percent, waiting: waiting ?? previous?.waiting ?? false, jobs, updatedAt: now }))
+    let percent = previous?.percent, tokens = previous?.tokens
+    try {
+      const context = (await $.session.usage()).context
+      percent = contextPercent(context.percent) ?? percent
+      tokens = context.tokens !== undefined && Number.isInteger(context.tokens) && context.tokens >= 0 ? context.tokens : tokens
+    } catch { /* waiting can be reported without usage */ }
+    await $.fs.write(path, JSON.stringify({ sessionId, percent, tokens, waiting: waiting ?? previous?.waiting ?? false, jobs, updatedAt: now }))
   } catch { /* live reporting is best effort, as requested */ }
 }
 async function readContexts($: Dollar, directory: string, rows: Session[]) {
@@ -92,6 +96,7 @@ async function readContexts($: Dollar, directory: string, rows: Session[]) {
         const row = rows.find(row => row.id === sessionId)
         if (row) {
           row.contextPercent = context.percent
+          row.contextTokens = context.tokens
           row.jobs = context.jobs
           if (context.waiting !== undefined) {
             row.waiting = context.waiting
@@ -105,6 +110,18 @@ async function readContexts($: Dollar, directory: string, rows: Session[]) {
       } catch { /* unavailable live records do not affect the session list */ }
     }
   } catch { /* a missing live directory is normal before the first report */ }
+  try {
+    const mixDirectory = directory.replace(/\/live$/, '/mix')
+    for (const file of await $.fs.list(mixDirectory)) {
+      if (file.kind !== 'file' || file.isLink || !/^[A-Za-z0-9_-]+\.json$/.test(file.name)) continue
+      const sessionId = file.name.slice(0, -5), row = rows.find(row => row.id === sessionId)
+      if (!row) continue
+      try {
+        const mix = parseMix(await $.fs.read(`${mixDirectory}/${file.name}`))
+        if (mix?.sessionId === sessionId && mix.complete) { row.images = mix.images; row.toolTokens = mix.toolTokens }
+      } catch { /* unavailable mix records omit the label */ }
+    }
+  } catch { /* a missing mix directory is normal before the first status line */ }
 }
 async function refreshSessions($: Dollar) {
   const failures: string[] = []
@@ -346,7 +363,7 @@ export const register: Register = (on) => {
         {list.slice(0,expanded ? list.length : 4).map(s => {
           const waiting = s.status === 'waiting' || isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now), mark = sessionMark(s, waiting, now)
           return <Box key={s.id} flexDirection="column">
-            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={mark.color} dimColor={!mark.color}>{mark.text}</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
+            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={mark.color} dimColor={!mark.color}>{mark.text}</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}>{mixLabel(s) && <Text dimColor>{`${mixLabel(s)} `}</Text>}<Text color={contextColor(s.contextPercent, s.contextTokens)} dimColor={contextColor(s.contextPercent, s.contextTokens) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
             {(waiting || s.preview) && <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}{waiting && <Text color="yellow">{waitingText(s.waitingFor)}</Text>}{s.preview && <Text dimColor>{`${waiting ? ' · ' : ''}${s.preview}`}</Text>}</Text></Box></Box>}
           </Box>
         })}

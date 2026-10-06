@@ -1,12 +1,13 @@
+import { configure } from './strings'
 import type { AgentInfo } from 'claude-code'
 import { expect, test } from 'claude-code/testing'
-import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
+import { contextPercent, contextColor, parseContext, parseMix, mixLabel, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
 test('context 百分比單位、缺值與三種顏色門檻', () => {
   expect(contextPercent(undefined)).toBeUndefined()
   expect(contextPercent(0.41)).toBe(0)
   expect(contextPercent(0.9)).toBe(1)
   expect(contextPercent(41.6)).toBe(42)
-  expect([0,69,70,84,85,100].map(contextColor)).toEqual([undefined,undefined,'yellow','yellow','red','red'])
+  expect([0,49,50,79,80,100].map(percent => contextColor(percent))).toEqual([undefined,undefined,'yellow','yellow','red','red'])
   expect(parseContext('broken')).toBeNull()
   expect(parseContext('{"sessionId":"one","updatedAt":0}')).toEqual({sessionId:'one',updatedAt:0})
   expect(parseContext('{"sessionId":"one","percent":41,"updatedAt":0}')).toEqual({sessionId:'one',percent:41,updatedAt:0})
@@ -82,4 +83,45 @@ test('一般背景工作計入總數、全顯示並減少完成列空位', () =>
   expect(visibleRuns(done,false,tasks).hiddenDone).toBe(1)
   expect(visibleRuns(done,true,tasks).rows).toHaveLength(6)
   expect(visibleRuns(done,false,tasks.slice(0,1)).rows.map(r => r.id)).toEqual(['done','shell-0'])
+})
+
+test('context 取百分比與實際 token 較高警示，涵蓋 200K 與 1M 視窗', () => {
+  for (const window of [200000,1000000]) {
+    expect([0,49,50,79,80,100].map(percent => contextColor(percent, percent / 100 * window))).toEqual(window === 200000 ? [undefined,undefined,'yellow','yellow','red','red'] : [undefined,'red','red','red','red','red'])
+  }
+  expect(contextColor(25,250000)).toBe('yellow')
+  expect(contextColor(45,450000)).toBe('red')
+  expect([199999,200000,399999,400000].map(tokens => contextColor(10,tokens))).toEqual([undefined,'yellow','yellow','red'])
+  expect(contextColor(80,0)).toBe('red')
+  expect(contextColor(50,0)).toBe('yellow')
+  expect([49,50,79,80].map(percent => contextColor(percent,undefined))).toEqual([undefined,'yellow','yellow','red'])
+})
+test('tokens 只接受非負整數，壞欄位與缺值保留舊資料', () => {
+  const row = {sessionId:'one',percent:25,updatedAt:0}
+  expect(parseContext(JSON.stringify(row))).toEqual(row)
+  for (const tokens of [0,250000]) expect(parseContext(JSON.stringify({...row,tokens}))).toEqual({...row,tokens})
+  for (const tokens of [-1,0.5,'250000',null,true,{},[]]) expect(parseContext(JSON.stringify({...row,tokens}))).toEqual(row)
+})
+
+test('mix 嚴格檢查全部欄位，標籤只在警示時出現', () => {
+  const row = {sessionId:'one',transcript:'/tmp/one.jsonl',offset:10,size:12,images:3,toolTokens:120000,complete:true,updatedAt:0}
+  expect(parseMix(JSON.stringify(row))).toEqual(row)
+  for (const text of ['broken','null','[]','{}']) expect(parseMix(text)).toBeNull()
+  for (const key of Object.keys(row)) {
+    const missing: Record<string, unknown> = {...row}
+    delete missing[key]
+    expect(parseMix(JSON.stringify(missing))).toBeNull()
+    expect(parseMix(JSON.stringify({...row,[key]:null}))).toBeNull()
+  }
+  for (const key of ['offset','size','images','toolTokens']) {
+    for (const value of [-1,0.5,'1',true,{},[]]) expect(parseMix(JSON.stringify({...row,[key]:value}))).toBeNull()
+  }
+  for (const fields of [{sessionId:'../bad'},{sessionId:''},{transcript:''},{transcript:2},{offset:13},{complete:'yes'},{complete:1},{updatedAt:-1},{updatedAt:'0'}]) expect(parseMix(JSON.stringify({...row,...fields}))).toBeNull()
+  expect(parseMix(JSON.stringify(row).replace('"updatedAt":0','"updatedAt":1e999'))).toBeNull()
+  configure()
+  expect(mixLabel({contextPercent:30,contextTokens:300000,images:3,toolTokens:120000})).toBe('Images3 Tools40%')
+  expect(mixLabel({contextPercent:50,contextTokens:100000,images:0,toolTokens:200000})).toBe('Tools100%')
+  expect(mixLabel({contextPercent:50,contextTokens:0,images:0,toolTokens:0})).toBe('Tools0%')
+  expect(mixLabel({contextPercent:19,contextTokens:190000,images:3,toolTokens:120000})).toBe('')
+  expect(mixLabel({contextPercent:50})).toBe('')
 })

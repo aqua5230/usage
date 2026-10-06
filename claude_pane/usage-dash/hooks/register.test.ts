@@ -280,13 +280,13 @@ test('context 靠右、顏色門檻、無資料隱藏與底部只留更新時間
   on('session.id', () => ({value:'one'}))
   const values: PluginState['usage-dash'] = { bgTasks:[], pendingToasts:[], agents:[],
     quotas:{agents:{}},updated:59000,quotaError:'',sessionError:'',collapsed:{quota:true,sessions:false,runs:true},more:true,moreRuns:false,runs:[],
-    sessions:[undefined,0,69,70,84,85,100].map((percent,i) => ({id:String(i),pid:i+1,title:`對話${i}`,source:'usage',mtimeMs:59000,status:'idle',...(percent === undefined ? {} : {contextPercent:percent})}))
+    sessions:[undefined,0,49,50,79,80,100].map((percent,i) => ({id:String(i),pid:i+1,title:`對話${i}`,source:'usage',mtimeMs:59000,status:'idle',...(percent === undefined ? {} : {contextPercent:percent})}))
   }
   on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
   const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:60,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
   const nodes = elements(await ui.drawn())
   const percents = nodes.filter(n => n.type === 'Text' && /^\d+%$/.test(flatText(n)))
-  expect(percents.map(flatText)).toEqual(['0%','69%','70%','84%','85%','100%'])
+  expect(percents.map(flatText)).toEqual(['0%','49%','50%','79%','80%','100%'])
   expect(percents.map(n => n.props?.color)).toEqual([undefined,undefined,'yellow','yellow','red','red'])
   expect(percents.map(n => n.props?.dimColor === true)).toEqual([true,true,false,false,false,false])
   for (const percent of percents) {
@@ -761,4 +761,84 @@ test('Stop 追蹤一般 shell、保留時間，通知移除並更新標頭和 li
   await $.classic.Stop({stop_hook_active:false})
   expect(values.bgTasks).toEqual([])
   expect(JSON.parse(live).jobs).toBe(0)
+})
+
+test('1M 視窗回報 tokens 並填入對話列與顏色，缺值沿用前次', async ($, on) => {
+  const now = 1000000, directory = '/test-home/.usage/claude-pane/live'
+  mock.clock(on,{now})
+  mock.env(on,{HOME:'/test-home',OS:'Linux'})
+  const values: Record<string,unknown> = {}
+  let live = '', tokens: number | undefined = 250000
+  on('session.id', () => ({value:'one'}))
+  on('session.usage', () => ({value:{startedAt:0,context:{window:1000000,percent:25,...(tokens === undefined ? {} : {tokens})},rateLimits:[]}}))
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  on('state.set', ($,e) => {values[e.key]=e.value;return {value:{isSet:true,version:1}}})
+  on('command.register', ($,e) => ({value:{command:e.name}}))
+  on('ui.open', () => ({value:{isPlaced:true}}))
+  on('ui.invalidate', () => ({value:undefined}))
+  on('session.start', ($,e) => ({cwd:e.cwd}))
+  on('turn.complete', ($,e) => ({text:e.answer}))
+  on('fs.exists', () => ({value:false}))
+  on('fs.write', ($,e) => {expect(normalizePath(e.path)).toBe(`${directory}/one.json`);live=e.text;return {value:undefined}})
+  on('fs.list', ($,e) => ({value:[{name:normalizePath(e.path) === directory ? 'one.json' : '1.json',kind:'file' as const,size:10,mtimeMs:now,isLink:false}]}))
+  on('fs.read', ($,e) => ({value:normalizePath(e.path).startsWith(directory) ? live : JSON.stringify({pid:1,sessionId:'one',cwd:'/usage',entrypoint:'cli',status:'idle',updatedAt:now})}))
+  on('process.run', ($,e) => ({value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
+  await $.session.start({cwd:'/usage',surface:'terminal',isInteractive:true})
+  expect(JSON.parse(live)).toEqual({sessionId:'one',percent:25,tokens:250000,waiting:false,jobs:0,updatedAt:now})
+  expect(values.sessions).toEqual([{id:'one',pid:1,title:'',source:'usage',mtimeMs:now,status:'idle',contextPercent:25,contextTokens:250000,waiting:false,waitingUpdatedAt:now,jobs:0}])
+  const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:60,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
+  const percent = elements(await ui.drawn()).find(n => n.type === 'Text' && flatText(n) === '25%')!
+  expect(percent.props?.color).toBe('yellow')
+  expect(percent.props?.dimColor).toBe(false)
+  tokens = undefined
+  await $.turn.complete({answer:'done',durationMs:1000,isAborted:false,turnId:'turn',reason:'answer'})
+  expect(JSON.parse(live).tokens).toBe(250000)
+  for (const invalid of [-1,0.5]) {
+    tokens = invalid
+    await $.turn.complete({answer:'done',durationMs:1000,isAborted:false,turnId:'turn',reason:'answer'})
+    expect(JSON.parse(live).tokens).toBe(250000)
+  }
+})
+
+test('mix 讀取安全檢查與警示列的灰字標籤', async ($, on) => {
+  configure()
+  const now = 1000000, directory = '/test-home/.usage/claude-pane'
+  mock.clock(on,{now})
+  mock.env(on,{HOME:'/test-home',OS:'Linux'})
+  const values: Record<string,unknown> = {}
+  const ids = ['yellow','green','no-images','mismatch','partial','link','dir','bad','bad.name']
+  const mixReads: string[] = []
+  on('session.id', () => ({value:'current'}))
+  on('session.usage', () => {throw new Error('no context')})
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  on('state.set', ($,e) => {values[e.key]=e.value;return {value:{isSet:true,version:1}}})
+  on('session.start', ($,e) => ({cwd:e.cwd}))
+  on('command.register', ($,e) => ({value:{command:e.name}}))
+  on('ui.open', () => ({value:{isPlaced:true}}))
+  on('ui.invalidate', () => ({value:undefined}))
+  on('agent.list', () => ({value:[]}))
+  on('fs.exists', () => ({value:false}))
+  on('fs.write', () => ({value:undefined}))
+  on('fs.list', ($,e) => ({value:ids.map(id => ({name:`${id}.json`,kind:normalizePath(e.path) === `${directory}/mix` && id === 'dir' ? 'dir' as const : 'file' as const,size:10,mtimeMs:now,isLink:normalizePath(e.path) === `${directory}/mix` && id === 'link'}))}))
+  on('fs.read', ($,e) => {
+    const path = normalizePath(e.path), id = path.split('/').pop()!.slice(0,-5)
+    if (path.startsWith(`${directory}/mix/`)) {
+      mixReads.push(id)
+      return {value:JSON.stringify({sessionId:id === 'mismatch' ? 'other' : id,transcript:'/tmp/transcript',offset:10,size:10,images:id === 'no-images' ? 0 : 3,toolTokens:id === 'bad' ? -1 : 120000,complete:id !== 'partial',updatedAt:now})}
+    }
+    if (path.startsWith(`${directory}/live/`)) return {value:JSON.stringify({sessionId:id,percent:id === 'green' ? 19 : 30,tokens:id === 'green' ? 190000 : 300000,updatedAt:now})}
+    if (path.includes('/.claude/sessions/')) return {value:JSON.stringify({pid:1,sessionId:id,name:id,cwd:'/usage',status:'idle',updatedAt:now})}
+    throw new Error('ENOENT')
+  })
+  on('process.run', ($,e) => ({value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
+  await $.session.start({cwd:'/usage',surface:'terminal',isInteractive:true})
+  expect(mixReads).toEqual(['yellow','green','no-images','mismatch','partial','bad'])
+  const rows = values.sessions as PluginState['usage-dash']['sessions']
+  expect(rows.find(row => row.id === 'yellow')!.images).toBe(3)
+  for (const id of ['mismatch','partial','link','dir','bad','bad.name']) expect(rows.find(row => row.id === id)!.images).toBeUndefined()
+  const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:120,placement:'dock',scroll:{offset:0,bodyRows:40},view:{}}})
+  const nodes = elements(await ui.drawn())
+  const labels = nodes.filter(n => n.type === 'Text' && /^(Images3 Tools40% |Tools40% )$/.test(flatText(n)))
+  expect(labels.map(flatText).sort()).toEqual(['Images3 Tools40% ','Tools40% '])
+  expect(labels.every(n => n.props?.dimColor === true)).toBe(true)
 })
