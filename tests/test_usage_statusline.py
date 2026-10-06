@@ -172,7 +172,8 @@ def _isolate_context_burn_and_preferences_files(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    """Isolate the context-burn and preferences files for each test."""
+    """Isolate the context-burn, mix and preferences files for each test."""
+    monkeypatch.setattr(usage_statusline, "MIX_DIR", str(tmp_path / "mix"))
     monkeypatch.setattr(
         usage_statusline,
         "CONTEXT_BURN_FILE",
@@ -1265,3 +1266,198 @@ def test_context_color_uses_worse_threshold_without_changing_quota(
     output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
     assert f"Context:{usage_statusline.C['reset']}\033[38;5;{color}m" in output
     assert f"5h:{usage_statusline.C['reset']}\033[38;5;42m" in output
+
+
+def _mix_record(*blocks: dict[str, Any], **fields: Any) -> bytes:
+    return (
+        json.dumps({"type": "user", "message": {"content": list(blocks)}, **fields}) + "\n"
+    ).encode()
+
+
+def test_mix_counts_images_text_sidechains_and_compaction(tmp_path: Path) -> None:
+    transcript = tmp_path / "session.jsonl"
+    image = {"type": "image", "source": {"data": "not-measured"}}
+    tool = {"type": "tool_result", "content": [{"type": "text", "text": "中文abcd"}, image]}
+    transcript.write_bytes(
+        _mix_record(image, image, tool)
+        + _mix_record(image, tool, isSidechain=True)
+        + _mix_record(image, type="assistant")
+    )
+    data = {"session_id": "one", "transcript_path": str(transcript)}
+    mix = usage_statusline.read_mix(data)
+    assert mix is not None
+    assert (mix["images"], mix["toolTokens"]) == (3, 3)
+    assert mix["offset"] == transcript.stat().st_size
+    assert json.loads((Path(usage_statusline.MIX_DIR) / "one.json").read_text()) == mix
+    with transcript.open("ab") as target:
+        target.write(b'{"type":"system","subtype":"compact_boundary"}\n')
+        target.write(_mix_record(tool))
+    mix = usage_statusline.read_mix(data)
+    assert mix is not None
+    assert (mix["images"], mix["toolTokens"]) == (1, 3)
+    with transcript.open("ab") as target:
+        target.write(_mix_record(image, isCompactSummary=True))
+        target.write(_mix_record({"type": "tool_result", "content": "abcdefgh"}))
+    mix = usage_statusline.read_mix(data)
+    assert mix is not None
+    assert (mix["images"], mix["toolTokens"]) == (0, 2)
+
+
+def test_mix_incremental_reads_only_new_complete_lines(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    transcript = tmp_path / "session.jsonl"
+    image = _mix_record({"type": "image"})
+    transcript.write_bytes(image)
+    data = {"session_id": "one", "transcript_path": str(transcript)}
+    assert usage_statusline.read_mix(data)["images"] == 1  # type: ignore[index]
+    original_open = open
+    reads: list[int] = []
+
+    class Tracked:
+        def __enter__(self) -> Any:
+            self.source = original_open(transcript, "rb")
+            return self
+
+        def __exit__(self, *args: Any) -> None:
+            self.source.close()
+
+        def fileno(self) -> int:
+            return self.source.fileno()
+
+        def seek(self, offset: int) -> None:
+            self.source.seek(offset)
+
+        def read(self, size: int) -> bytes:
+            reads.append(size)
+            return self.source.read(size)
+
+    def tracked_open(path: Any, mode: str = "r", **kwargs: Any) -> Any:
+        return (
+            Tracked()
+            if str(path) == str(transcript) and mode == "rb"
+            else original_open(path, mode, **kwargs)
+        )
+
+    monkeypatch.setattr(usage_statusline, "open", tracked_open, raising=False)
+    assert usage_statusline.read_mix(data)["images"] == 1  # type: ignore[index]
+    assert reads == [0]
+    with transcript.open("ab") as target:
+        target.write(image + image[:-1])
+    mix = usage_statusline.read_mix(data)
+    assert mix is not None
+    assert (mix["offset"], mix["images"]) == (len(image) * 2, 2)
+    with transcript.open("ab") as target:
+        target.write(b"\n")
+    mix = usage_statusline.read_mix(data)
+    assert mix is not None
+    assert (mix["offset"], mix["images"]) == (len(image) * 3, 3)
+
+
+def test_mix_restarts_on_replaced_or_truncated_transcript(tmp_path: Path) -> None:
+    transcript = tmp_path / "first.jsonl"
+    image = _mix_record({"type": "image"})
+    transcript.write_bytes(image * 2)
+    data = {"session_id": "one", "transcript_path": str(transcript)}
+    assert usage_statusline.read_mix(data)["images"] == 2  # type: ignore[index]
+    transcript.write_bytes(image)
+    assert usage_statusline.read_mix(data)["images"] == 1  # type: ignore[index]
+    other = tmp_path / "second.jsonl"
+    other.write_bytes(image * 3)
+    data["transcript_path"] = str(other)
+    assert usage_statusline.read_mix(data)["images"] == 3  # type: ignore[index]
+
+
+def test_mix_catches_up_within_the_read_budget(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    transcript = tmp_path / "session.jsonl"
+    image = _mix_record({"type": "image"})
+    long_tool = _mix_record({"type": "tool_result", "content": "x" * 400})
+    transcript.write_bytes(image * 3 + long_tool)
+    monkeypatch.setattr(usage_statusline, "MIX_READ_BUDGET", len(image) * 2)
+    data = {"session_id": "one", "transcript_path": str(transcript)}
+    mix = usage_statusline.read_mix(data)
+    assert mix is not None
+    assert (mix["images"], mix["offset"], mix["complete"]) == (2, len(image) * 2, False)
+    mix = usage_statusline.read_mix(data)
+    assert mix is not None
+    assert (mix["images"], mix["offset"], mix["complete"]) == (3, len(image) * 3, False)
+    # The record longer than the budget is read whole in one run.
+    mix = usage_statusline.read_mix(data)
+    assert mix is not None
+    assert (mix["toolTokens"], mix["complete"]) == (100, True)
+    assert mix["offset"] == transcript.stat().st_size
+
+
+def test_render_mix_label_waits_until_complete(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 200)
+    transcript = tmp_path / "session.jsonl"
+    image = _mix_record({"type": "image"})
+    transcript.write_bytes(image * 2)
+    monkeypatch.setattr(usage_statusline, "MIX_READ_BUDGET", len(image))
+    payload = {
+        "session_id": "one",
+        "transcript_path": str(transcript),
+        "context_window": {"used_percentage": 30, "context_window_size": 1_000_000},
+    }
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    assert "Images" not in usage_statusline.render(payload, now)
+    assert "Images 2" in usage_statusline.render(payload, now)
+
+
+@pytest.mark.parametrize("session_id", ("../escape", "", "a/b", "a.json"))
+def test_mix_rejects_invalid_ids(session_id: str, tmp_path: Path) -> None:
+    assert (
+        usage_statusline.read_mix(
+            {"session_id": session_id, "transcript_path": str(tmp_path / "missing")}
+        )
+        is None
+    )
+    assert not Path(usage_statusline.MIX_DIR).exists()
+
+
+@pytest.mark.parametrize("bad", (b"broken\n", b"null\n", b"\xff\n"))
+def test_mix_errors_preserve_previous_cache(bad: bytes, tmp_path: Path) -> None:
+    transcript = tmp_path / "one.jsonl"
+    transcript.write_bytes(_mix_record({"type": "image"}))
+    data = {"session_id": "one", "transcript_path": str(transcript)}
+    assert usage_statusline.read_mix(data) is not None
+    cache = Path(usage_statusline.MIX_DIR) / "one.json"
+    before = cache.read_bytes()
+    with transcript.open("ab") as target:
+        target.write(bad)
+    assert usage_statusline.read_mix(data) is None
+    assert cache.read_bytes() == before
+
+
+@pytest.mark.parametrize("percent,images,visible", ((30, 3, True), (50, 0, True), (19, 3, False)))
+def test_render_mix_label(
+    percent: int, images: int, visible: bool, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("TT_LANG", "zh-TW")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 300)
+    transcript = tmp_path / "one.jsonl"
+    transcript.write_bytes(
+        _mix_record(
+            *([{"type": "image"}] * images), {"type": "tool_result", "content": "a" * 480000}
+        )
+    )
+    data = {
+        "session_id": "one",
+        "transcript_path": str(transcript),
+        "context_window": {"used_percentage": percent, "context_window_size": 1000000},
+    }
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    output = usage_statusline.render(data, now)
+    assert ("工具輸出" in output) is visible
+    assert ("圖 3" in output) is (visible and images > 0)
+    if percent == 30:
+        assert "工具輸出 40%" in output
+    if not visible:
+        assert output == usage_statusline.render({"context_window": data["context_window"]}, now)
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 20)
+    assert "工具輸出" not in usage_statusline.render(data, now)

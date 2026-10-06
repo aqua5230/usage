@@ -38,3 +38,17 @@ export function visibleRuns(runs: Run[], expanded: boolean, tasks: BgTask[] = []
   const kept = new Set(expanded ? done : done.slice(Math.max(0, done.length - Math.max(0, 4 - (jobs.length - done.length)))))
   return { rows: jobs.filter(r => r.end === null || kept.has(r)), hiddenDone: done.length - kept.size }
 }
+
+export type ContextMix = { sessionId: string; transcript: string; offset: number; size: number; images: number; toolTokens: number; complete: boolean; updatedAt: number }
+export function parseMix(text: string): ContextMix | null {
+  try {
+    const row = JSON.parse(text)
+    if (!row || typeof row.sessionId !== 'string' || !/^[A-Za-z0-9_-]+$/.test(row.sessionId) || typeof row.transcript !== 'string' || !row.transcript || ['offset','size','images','toolTokens'].some(key => !Number.isSafeInteger(row[key]) || row[key] < 0) || row.offset > row.size || typeof row.complete !== 'boolean' || typeof row.updatedAt !== 'number' || !Number.isFinite(row.updatedAt) || row.updatedAt < 0) return null
+    return { sessionId: row.sessionId, transcript: row.transcript, offset: row.offset, size: row.size, images: row.images, toolTokens: row.toolTokens, complete: row.complete, updatedAt: row.updatedAt }
+  } catch { return null }
+}
+export function mixLabel(row: { contextPercent?: number; contextTokens?: number; images?: number; toolTokens?: number }): string {
+  if (row.contextPercent === undefined || contextColor(row.contextPercent, row.contextTokens) === undefined || row.images === undefined || row.toolTokens === undefined) return ''
+  const share = row.contextTokens && row.contextTokens > 0 ? Math.round(Math.max(0, Math.min(100, row.toolTokens / row.contextTokens * 100))) : 0
+  return [...(row.images >= 1 ? [t('mix_images', { n: row.images })] : []), t('mix_tools', { n: share })].join(' ')
+}

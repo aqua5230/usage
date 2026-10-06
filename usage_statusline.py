@@ -22,7 +22,9 @@ from __future__ import annotations
 
 import errno
 import json
+import math
 import os
+import re
 import sys
 import tempfile
 import time
@@ -67,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.10"
+__version__ = "1.11"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -81,6 +83,10 @@ _LOCK_CONTENDED_ERRNOS = frozenset(
 )
 PREFERENCES_FILE = os.path.expanduser("~/.claude/usage-preferences.json")
 CONTEXT_BURN_FILE = os.path.expanduser("~/.claude/usage-context-burn.json")
+MIX_DIR = os.path.expanduser("~/.usage/claude-pane/mix")
+# Bytes one status-line run may parse; a long transcript catches up over
+# several refreshes instead of stalling one.
+MIX_READ_BUDGET = 4 * 1024 * 1024
 UPDATE_HINT_STALE_SECONDS = 30 * 86400
 # Context fill at which a /clear or /compact nudge is worth the noise. Set below
 # the default auto-compact line (~80%) so the user can act before the lossy
@@ -104,6 +110,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5小時",
         "seven_day": "7天",
         "context": "對話窗",
+        "mix_images": "圖 {n}",
+        "mix_tools": "工具輸出 {n}%",
         "total": "累計",
         "in_short": "問:",
         "out_short": "答:",
@@ -143,6 +151,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5小时",
         "seven_day": "7天",
         "context": "对话窗",
+        "mix_images": "图 {n}",
+        "mix_tools": "工具输出 {n}%",
         "total": "累计",
         "in_short": "问:",
         "out_short": "答:",
@@ -182,6 +192,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5h",
         "seven_day": "7d",
         "context": "Context",
+        "mix_images": "Images {n}",
+        "mix_tools": "Tool output {n}%",
         "total": "Total",
         "in_short": "in:",
         "out_short": "out:",
@@ -221,6 +233,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5時間",
         "seven_day": "7日",
         "context": "コンテキスト",
+        "mix_images": "画像 {n}",
+        "mix_tools": "ツール出力 {n}%",
         "total": "累計",
         "in_short": "入:",
         "out_short": "出:",
@@ -260,6 +274,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5시간",
         "seven_day": "7일",
         "context": "컨텍스트",
+        "mix_images": "이미지 {n}",
+        "mix_tools": "도구 출력 {n}%",
         "total": "누적",
         "in_short": "입:",
         "out_short": "출:",
@@ -793,6 +809,126 @@ def _heavy_warning(data: Dict[str, Any], now_ts: Optional[float] = None) -> Opti
     return f"\033[38;5;160m⚠ {detail} · {_t('warn_clear')}{C['reset']}"
 
 
+# The CJK ranges of analyzer/diagnoser.py's _is_cjk, as one class so the count
+# runs in the regex engine instead of a Python call per character.
+_CJK_RE = re.compile(
+    "[\u1100-\u11ff\u3040-\u309f\u30a0-\u30ff\u3130-\u318f\u31f0-\u31ff"
+    "\u3400-\u4dbf\u4e00-\u9fff\ua960-\ua97f\uac00-\ud7af\uf900-\ufaff"
+    "\U0001aff0-\U0001afff\U0001b000-\U0001b16f\U00020000-\U0002ee5d"
+    "\U00030000-\U000323af]"
+)
+
+
+def _estimate_tokens(text: str) -> int:
+    cjk_chars = len(_CJK_RE.findall(text))
+    return cjk_chars + (len(text) - cjk_chars) // 4
+
+
+def read_mix(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
+    """Count complete transcript records, preserving an incremental byte offset."""
+    session_id, transcript = data.get("session_id"), data.get("transcript_path")
+    if not isinstance(session_id, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", session_id):
+        return None
+    if not isinstance(transcript, str) or not transcript:
+        return None
+    temporary = None
+    try:
+        path = os.path.join(MIX_DIR, session_id + ".json")
+        previous: Dict[str, Any] = {}
+        try:
+            with open(path, encoding="utf-8") as cache:
+                previous = json.load(cache)
+        except FileNotFoundError:
+            pass
+        if previous and (
+            not isinstance(previous, dict)
+            or previous.get("sessionId") != session_id
+            or not isinstance(previous.get("transcript"), str)
+            or any(
+                type(previous.get(k)) is not int or previous[k] < 0
+                for k in ("offset", "size", "images", "toolTokens")
+            )
+            or previous["offset"] > previous["size"]
+            or type(previous.get("complete")) is not bool
+            or type(previous.get("updatedAt")) not in (int, float)
+            or not math.isfinite(previous["updatedAt"])
+            or previous["updatedAt"] < 0
+        ):
+            return None
+        with open(transcript, "rb") as source:
+            size = os.fstat(source.fileno()).st_size
+            offset = previous.get("offset", 0)
+            images, tool_tokens = previous.get("images", 0), previous.get("toolTokens", 0)
+            if previous.get("transcript") != transcript or size < offset:
+                offset, images, tool_tokens = 0, 0, 0
+            source.seek(offset)
+            pending = source.read(min(size - offset, MIX_READ_BUDGET))
+            # A single record longer than the budget is read whole, never split.
+            while b"\n" not in pending and offset + len(pending) < size:
+                more = source.read(min(size - offset - len(pending), MIX_READ_BUDGET))
+                if not more:
+                    break
+                pending += more
+        consumed = pending.rfind(b"\n") + 1
+        complete = offset + len(pending) >= size
+        for line in pending[:consumed].splitlines():
+            record = json.loads(line)
+            if record.get("isSidechain") is True:
+                continue
+            if (
+                record.get("type") == "system" and record.get("subtype") == "compact_boundary"
+            ) or record.get("isCompactSummary") is True:
+                images, tool_tokens = 0, 0
+                continue
+            content = _as_dict(record.get("message")).get("content")
+            if not isinstance(content, list):
+                continue
+            for block in content:
+                if not isinstance(block, dict):
+                    continue
+                if block.get("type") == "image" and record.get("type") == "user":
+                    images += 1
+                elif block.get("type") == "tool_result":
+                    result = block.get("content")
+                    if isinstance(result, str):
+                        tool_tokens += _estimate_tokens(result)
+                    elif isinstance(result, list):
+                        for item in result:
+                            if not isinstance(item, dict):
+                                continue
+                            if item.get("type") == "image":
+                                images += 1
+                            elif item.get("type") == "text" and isinstance(item.get("text"), str):
+                                tool_tokens += _estimate_tokens(item["text"])
+        mix = {
+            "sessionId": session_id,
+            "transcript": transcript,
+            "offset": offset + consumed,
+            "size": size,
+            "images": images,
+            "toolTokens": tool_tokens,
+            "complete": complete,
+            "updatedAt": time.time() * 1000,
+        }
+        if all(previous.get(k) == mix[k] for k in mix if k != "updatedAt"):
+            return previous
+        os.makedirs(MIX_DIR, exist_ok=True)
+        with tempfile.NamedTemporaryFile(
+            mode="w", encoding="utf-8", dir=MIX_DIR, delete=False
+        ) as target:
+            temporary = target.name
+            json.dump(mix, target)
+        os.replace(temporary, path)
+        return mix
+    except Exception as exc:
+        _debug("context mix failed", exc)
+        return None
+    finally:
+        if temporary is not None:
+            with suppress(OSError):
+                os.unlink(temporary)
+
+
 def _render_core(data: Dict[str, Any], now: datetime) -> str:
     width = get_width()
     ctx = _as_dict(data.get("context_window"))
@@ -841,6 +977,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             )
         )
 
+    mix = read_mix(data)
     ctx_parts: List[str] = []
     ctx_pct = _as_float(ctx.get("used_percentage"))
     if ctx_pct is not None:
@@ -855,6 +992,21 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             f"{C['dim']}/ {fmt_tokens(size)}{C['reset']}",
             f"{C['blue']}{_t('context')}:{C['reset']}{ctx_pct:.0f}%",
         ]
+        if (
+            mix is not None
+            and mix["complete"]
+            and context_color(ctx_pct, tokens) != context_color(0)
+        ):
+            parts = []
+            if mix["images"] >= 1:
+                parts.append(_t("mix_images").format(n=mix["images"]))
+            share = (
+                int(min(100, max(0, mix["toolTokens"] / tokens * 100)) + 0.5)
+                if tokens and tokens > 0
+                else 0
+            )
+            parts.append(_t("mix_tools").format(n=share))
+            ctx_parts[0] += f" · {C['dim']}{' · '.join(parts)}{C['reset']}"
 
     full = line1 + [p[0] for p in rl_parts]
     candidate = SEP.join(full)

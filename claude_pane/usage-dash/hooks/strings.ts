@@ -4,6 +4,8 @@ export const defaults: Record<string, string> = {
   "claude_pane_five_hour": "5h",
   "claude_pane_week": "Week",
   "claude_pane_period": "Period",
+  "claude_pane_mix_images": "Images{n}",
+  "claude_pane_mix_tools": "Tools{n}%",
   "claude_pane_sessions": "Claude sessions",
   "claude_pane_session_done": "Done: {title}",
   "claude_pane_session_waiting": "Waiting for you: {title}",
