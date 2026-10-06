@@ -86,7 +86,7 @@ PREV_SL_KEY = "previousStatusLine"
 # Where the status-line switch parks the live statusLine while it is off, so it
 # never overwrites the pre-install backup under PREV_SL_KEY.
 DISABLED_SL_KEY = "disabledStatusLine"
-HOOK_VERSION = "1.13"
+HOOK_VERSION = "1.14"
 FORWARDER_VERSION = "1.1"
 # Antigravity's Go runner hands its status-line command to cmd.exe unquoted, so
 # every character cmd.exe treats specially has to be kept out of the path.

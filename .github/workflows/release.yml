@@ -170,6 +170,15 @@ jobs:
           if [[ ! -s "$NOTES_FILE" ]]; then
             echo "CHANGELOG.md has no section for [$VERSION]; using empty notes."
           fi
+          if [[ -f docs/CHANGELOG.zh-TW.md ]]; then
+            awk -v v="$VERSION" '
+              $0 ~ "^## \\[" v "\\]" {
+                print "\n## 繁體中文\n"; flag=1; next
+              }
+              /^## \[/ && flag { exit }
+              flag { print }
+            ' docs/CHANGELOG.zh-TW.md >> "$NOTES_FILE"
+          fi
           echo "path=$NOTES_FILE" >> "$GITHUB_OUTPUT"
 
       - name: Ensure release exists

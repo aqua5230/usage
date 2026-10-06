@@ -69,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.13"
+__version__ = "1.14"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -811,13 +811,26 @@ def _heavy_warning(data: Dict[str, Any], now_ts: Optional[float] = None) -> Opti
 
 
 # The CJK ranges of analyzer/diagnoser.py's _is_cjk, as one class so the count
-# runs in the regex engine instead of a Python call per character.
-_CJK_RE = re.compile(
-    "[\u1100-\u11ff\u3040-\u309f\u30a0-\u30ff\u3130-\u318f\u31f0-\u31ff"
-    "\u3400-\u4dbf\u4e00-\u9fff\ua960-\ua97f\uac00-\ud7af\uf900-\ufaff"
-    "\U0001aff0-\U0001afff\U0001b000-\U0001b16f\U00020000-\U0002ee5d"
-    "\U00030000-\U000323af]"
+# runs in the regex engine instead of a Python call per character. Built from
+# code points because CodeQL misreads astral escapes in a literal class as
+# overlapping ranges (py/overly-large-range).
+_CJK_RANGES = (
+    (0x1100, 0x11FF),
+    (0x3040, 0x309F),
+    (0x30A0, 0x30FF),
+    (0x3130, 0x318F),
+    (0x31F0, 0x31FF),
+    (0x3400, 0x4DBF),
+    (0x4E00, 0x9FFF),
+    (0xA960, 0xA97F),
+    (0xAC00, 0xD7AF),
+    (0xF900, 0xFAFF),
+    (0x1AFF0, 0x1AFFF),
+    (0x1B000, 0x1B16F),
+    (0x20000, 0x2EE5D),
+    (0x30000, 0x323AF),
 )
+_CJK_RE = re.compile("[" + "".join(f"{chr(a)}-{chr(b)}" for a, b in _CJK_RANGES) + "]")
 
 
 def _estimate_tokens(text: str) -> int:

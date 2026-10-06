@@ -4,7 +4,7 @@ from typing import cast
 
 import pytest
 
-from updates.release_notes import format_release_notes
+from updates.release_notes import alert_release_notes, format_release_notes, headline_release_notes
 
 
 def test_formats_changelog_style_release_notes() -> None:
@@ -61,3 +61,32 @@ def test_truncates_at_a_whitespace_boundary_with_ellipsis() -> None:
 )
 def test_handles_empty_none_like_and_plain_text(body: str, expected: str) -> None:
     assert format_release_notes(body, 100) == expected
+
+
+def test_headlines_keep_only_bold_leads() -> None:
+    body = (
+        "### Changed\n"
+        "- **Context color now accounts for window size.** It turns yellow sooner.\n"
+        "- **Build:** the app is re-signed. `codesign --verify` passes.\n"
+        "- **打包：** 刪除快取後重新簽章。下載的 app 可以通過檢查。\n"
+        "- **Faster** startup via `usage status`.\n"
+        "- Plain bullet stays whole."
+    )
+
+    assert headline_release_notes(body) == (
+        "### Changed\n"
+        "- **Context color now accounts for window size.**\n"
+        "- **Build:** the app is re-signed.\n"
+        "- **打包：**刪除快取後重新簽章。\n"
+        "- **Faster** startup via `usage status`.\n"
+        "- Plain bullet stays whole."
+    )
+
+
+def test_alert_notes_select_language_then_headline() -> None:
+    body = (
+        "### Added\n- **English lead.** Detail.\n\n## 繁體中文\n\n### 新增\n- **中文標題。** 細節。"
+    )
+
+    assert alert_release_notes(body, "zh-TW", 100) == "新增\n\n• 中文標題。"
+    assert alert_release_notes(body, "ja", 100) == "Added\n\n• English lead."

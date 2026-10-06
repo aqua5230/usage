@@ -11,6 +11,8 @@ _BULLET_RE = re.compile(r"^([ \t]*)[-*][ \t]+(.*)$")
 _LINK_RE = re.compile(r"\[([^\]]+)\]\([^)]+\)")
 _STRONG_RE = re.compile(r"\*\*(.+?)\*\*|__(.+?)__")
 _INLINE_CODE_RE = re.compile(r"`([^`\n]+)`")
+_LEAD_BULLET_RE = re.compile(r"^([ \t]*[-*][ \t]+)\*\*(.+?)\*\*(.*)$")
+_FIRST_SENTENCE_RE = re.compile(r"\s*(.+?(?:。|\.(?=\s|$)))")
 
 
 def _format_inline_markdown(text: str) -> str:
@@ -47,3 +49,41 @@ def format_release_notes(body: str, limit: int) -> str:
     if boundary < 0:
         return "…"
     return f"{text[:boundary].rstrip()}…"
+
+
+def select_release_notes(body: str, language: str) -> str:
+    """Select a language section; old releases and missing translations fall back."""
+    parts = re.split(
+        r"^## 繁體中文$",
+        body.replace("\r\n", "\n").replace("\r", "\n"),
+        maxsplit=1,
+        flags=re.MULTILINE,
+    )
+    if len(parts) == 1:
+        return body
+    english, chinese = (part.strip() for part in parts)
+    return chinese if language in ("zh-TW", "zh-CN") and chinese else english
+
+
+def headline_release_notes(body: str) -> str:
+    """Shorten bullets that open with a bold sentence to that sentence.
+
+    A category lead such as "Build:" keeps the first sentence after it. A bold
+    word inside a sentence leaves the bullet whole.
+    """
+    lines = []
+    for line in body.split("\n"):
+        match = _LEAD_BULLET_RE.match(line)
+        if match:
+            prefix, lead, rest = match.groups()
+            if lead.endswith((".", "。", "!", "！", "?", "？")):
+                line = f"{prefix}**{lead}**"
+            elif lead.endswith((":", "：")) and (sentence := _FIRST_SENTENCE_RE.match(rest)):
+                gap = "" if lead.endswith("：") else " "
+                line = f"{prefix}**{lead}**{gap}{sentence.group(1)}"
+        lines.append(line)
+    return "\n".join(lines)
+
+
+def alert_release_notes(body: str, language: str, limit: int) -> str:
+    return format_release_notes(headline_release_notes(select_release_notes(body, language)), limit)

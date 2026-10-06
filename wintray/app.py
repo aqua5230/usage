@@ -59,7 +59,7 @@ from quota.burn_rate import BurnRateTracker
 from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
 from updates import gate as update_gate
-from updates.release_notes import format_release_notes
+from updates.release_notes import alert_release_notes
 from usage_client import ClaudeUsageClient, PollState
 from usage_common.usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
@@ -2212,7 +2212,7 @@ class _WindowsTrayController:
 
     def _show_update_alert(self, release: update_checker.ReleaseInfo) -> None:
         title = _t(self.language, "update_alert_title", version=release.version)
-        body = format_release_notes(release.body, UPDATE_ALERT_BODY_LIMIT)
+        body = alert_release_notes(release.body, self.language, UPDATE_ALERT_BODY_LIMIT)
         result = self._message_box(f"{title}\n\n{body}", style=0x44)
         action, preference_updates = update_gate.resolve_alert_choice(
             1000 if result == 6 else 1001,
@@ -2561,7 +2561,12 @@ def _show_already_running_notice() -> None:
     windll.user32.MessageBoxW(0, _t(detect_lang(), "wintray_already_running"), "usage", 0x40)
 
 
-def run_app(mock: bool = False, interval: int = 60) -> None:
+def run_app(
+    mock: bool = False,
+    interval: int = 60,
+    preferences_snapshot: dict[str, Any] | None = None,
+) -> None:
+    snapshot = _load_preferences() if preferences_snapshot is None else preferences_snapshot
     if not _acquire_single_instance_lock():
         _show_already_running_notice()
         return
@@ -2589,6 +2594,9 @@ def run_app(mock: bool = False, interval: int = 60) -> None:
     icon = pystray.Icon("usage", icon_image, "usage", _menu(controller))
     controller.attach(icon, window)
     icon.run_detached()
+    from wintray.whats_new import start
+
+    start(_current_version(), snapshot, controller.language)
     try:
         webview.start(gui="edgechromium", debug=os.environ.get("USAGE_DEBUG") == "1")
     finally:
