@@ -4,7 +4,7 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## [Unreleased]
+## [0.32.6] - 2026-10-07
 
 ### 變更
 - **對話窗顏色會依容量判斷。** 用量到 50% 或 200K token 時變黃，到 80% 或 400K token 時變紅，以先到者為準。1M 對話窗約 20% 就會變黃；200K 對話窗維持不變。

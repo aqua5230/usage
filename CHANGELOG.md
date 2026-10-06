@@ -5,7 +5,7 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.32.6] - 2026-10-07
 
 ### Changed
 - **Context color now accounts for window size.** The figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. On a 1M window, yellow now appears at about 20%. 200K windows are unchanged.
