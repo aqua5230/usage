@@ -30,7 +30,7 @@ def show_notice(release: ReleaseInfo, language: str) -> bool:
 
 
 def _dispatch(callback: Callable[[], None]) -> None:
-    from PyObjCTools.AppHelper import callAfter  # type: ignore[import-untyped]
+    from PyObjCTools.AppHelper import callAfter
 
     callAfter(callback)
 

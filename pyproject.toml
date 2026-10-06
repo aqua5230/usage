@@ -119,7 +119,7 @@ ignore_missing_imports = true
 # `ignore_missing_imports` is the standard idiom for stubless modules — this
 # is NOT suppressing a real bug, just declaring the frameworks are untyped.
 [[tool.mypy.overrides]]
-module = ["AppKit", "Foundation", "objc", "Quartz", "UserNotifications", "WebKit"]
+module = ["AppKit", "Foundation", "objc", "PyObjCTools.*", "Quartz", "UserNotifications", "WebKit"]
 ignore_missing_imports = true
 
 # usage_cli's key readers pair a POSIX branch (termios/tty) with a Windows
