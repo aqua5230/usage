@@ -8,15 +8,17 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Changed
-- **The context window turns yellow sooner on large windows.** The color used to follow the percent alone, so on a 1M window it stayed green until 500K tokens. It now turns yellow at 50% or 200K tokens, and red at 80% or 400K tokens, whichever comes first. On a 200K window nothing changes. If you use a 1M window, expect yellow at about 20%: that is the warning working, not a bug.
-- **The Claude Code side pane uses the same colors as the status line.** Its context figure moves from 70% / 85% to the rule above, so the two views always agree.
-- **Terse mode writes shorter sentences.** Replies now keep one idea per sentence, stay under a length cap (about 20 words in English, 30 characters in Chinese, 40 in Japanese and Korean), use active voice, and use one word for one thing. The terse hook version is now 1.7, so installed copies update on the next app launch.
+- **Context color now accounts for window size.** The figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. On a 1M window, yellow now appears at about 20%. 200K windows are unchanged.
+- **Side pane colors match the status line.** The Claude Code side pane moves from 70% / 85% to the same rule.
+- **Terse mode uses shorter sentences.** Replies keep one idea per sentence, use active voice and consistent terms, and follow a length limit per language: about 20 words in English, 30 characters in Chinese, 40 in Japanese and Korean. The terse hook is now 1.7; installed copies update on the next app launch.
 
 ### Added
-- **The status line says what fills the context.** Once the context figure turns yellow or red, it adds how many images the conversation holds and roughly how much of it is file reads and command output, for example `Images 3 · Files & commands 22%`. If these are high, starting a new conversation usually helps. The share is an estimate, and it is the first part dropped when the line is too narrow. The status line hook version is now 1.13, so installed copies update on the next app launch.
+- **Context breakdown in the status line.** When the context figure turns yellow or red, the status line shows the image count and the estimated share of file reads and command output, for example `Images 3 · Files & commands 22%`. A high share suggests starting a new conversation. This segment is dropped first when space runs out. The status line hook is now 1.13; installed copies update on the next app launch.
+- **Release notes after an update.** The first launch after an update shows what changed in that version, once. Fresh installs skip it. If the app is offline, it tries again on the next launch. macOS and Windows.
+- **Release notes in your language.** Update alerts list one line per change. Chinese users see Traditional Chinese; other languages see English. This applies to the update alert from the version after this one, because the alert is drawn by the version you already have.
 
 ### Fixed
-- **Build:** the app is signed again after the build removes cached bytecode, so `codesign --verify` passes on the built app.
+- **The app's code signature is valid again.** The build re-signs the app after it removes bytecode caches, so `codesign --verify` passes on downloaded copies.
 
 ## [0.32.5] - 2026-10-06
 

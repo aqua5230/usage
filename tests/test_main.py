@@ -145,6 +145,7 @@ def _patch_main_for_win32(monkeypatch: Any, calls: list[dict[str, Any]]) -> None
             },
         )(),
     )
+    monkeypatch.setattr(main, "_load_preferences", lambda: {})
     monkeypatch.setattr(main, "_self_heal", lambda: None)
     monkeypatch.setattr(main, "run_tui", fake_run_tui)
     monkeypatch.setattr(main, "_t", lambda key: "fallback")

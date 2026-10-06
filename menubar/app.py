@@ -70,7 +70,7 @@ from loaders.history_loader import (
     flush_caches_on_terminate as flush_history_cache,
 )
 from menubar import actions as menubar_actions
-from menubar import manual_refresh
+from menubar import manual_refresh, whats_new
 from menubar import menu as menubar_menu
 from menubar import notify as menubar_notify
 from menubar import refresh as menubar_refresh
@@ -159,7 +159,6 @@ from quota.burn_rate import BurnRateTracker
 from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
 from updates import gate as update_gate
-from updates.release_notes import format_release_notes
 from usage_client import ClaudeUsageClient, PollOutcome
 from usage_common.usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
@@ -614,23 +613,7 @@ class AppDelegate(NSObject):
         return menubar_update.check_update_in_background(self)
 
     def _showUpdateAlert_(self, release: update_checker.ReleaseInfo) -> None:
-        alert = _make_alert()
-        alert.setMessageText_(_t(self.language, "update_alert_title", version=release.version))
-        alert.setInformativeText_(format_release_notes(release.body, UPDATE_ALERT_BODY_LIMIT))
-        alert.addButtonWithTitle_(_t(self.language, "update_btn_download"))
-        alert.addButtonWithTitle_(_t(self.language, "update_btn_later"))
-        alert.addButtonWithTitle_(_t(self.language, "update_btn_skip"))
-        result = int(alert.runModal())
-        action, pref_updates = update_gate.resolve_alert_choice(result, release.version)
-        if action == "open":
-            webbrowser.open(release.html_url)
-            return
-
-        prefs = _load_preferences()
-        prefs.update(pref_updates)
-        if action == "dismiss":
-            prefs["update_dismissed_at"] = time.time()
-        _save_preferences(prefs)
+        menubar_update.show_update_alert(self, release, _make_alert())
 
     def _set_active_panel_id(self, panel_id: str) -> None:
         panel = panels.get_panel(panel_id)
@@ -1036,11 +1019,17 @@ class AppDelegate(NSObject):
         return menubar_state.app_project_rows(self, hours_back=hours_back, entries=entries)
 
 
-def run_app(mock: bool = False, interval: int = 60) -> None:
+def run_app(
+    mock: bool = False,
+    interval: int = 60,
+    preferences_snapshot: Mapping[str, Any] | None = None,
+) -> None:
     global _APP_DELEGATE
+    snapshot = _load_preferences() if preferences_snapshot is None else preferences_snapshot
     app = NSApplication.sharedApplication()
     _APP_DELEGATE = AppDelegate.alloc().initWithMock_interval_(mock, interval)
     app.setDelegate_(_APP_DELEGATE)
+    whats_new.start(_current_version(), snapshot, _APP_DELEGATE.language)
     app.run()
 
 

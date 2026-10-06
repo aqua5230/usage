@@ -12,13 +12,16 @@ import logging
 import os
 import threading
 import time
+import webbrowser
 from typing import Any, Protocol
 
 import usage_diagnosis_snapshot
+from i18n import _t
 from installer import claude_pane
 from prefs import _load_preferences, _save_preferences
 from updates import checker as update_checker
 from updates import gate as update_gate
+from updates.release_notes import alert_release_notes
 
 logger = logging.getLogger(__name__)
 
@@ -111,3 +114,26 @@ def check_update_in_background(app: _UpdateApp) -> bool:
         False,
     )
     return False
+
+
+def show_update_alert(app: _UpdateApp, release: update_checker.ReleaseInfo, alert: Any) -> None:
+    from menubar.app import UPDATE_ALERT_BODY_LIMIT
+
+    alert.setMessageText_(_t(app.language, "update_alert_title", version=release.version))
+    alert.setInformativeText_(
+        alert_release_notes(release.body, app.language, UPDATE_ALERT_BODY_LIMIT)
+    )
+    alert.addButtonWithTitle_(_t(app.language, "update_btn_download"))
+    alert.addButtonWithTitle_(_t(app.language, "update_btn_later"))
+    alert.addButtonWithTitle_(_t(app.language, "update_btn_skip"))
+    result = int(alert.runModal())
+    action, pref_updates = update_gate.resolve_alert_choice(result, release.version)
+    if action == "open":
+        webbrowser.open(release.html_url)
+        return
+
+    prefs = _load_preferences()
+    prefs.update(pref_updates)
+    if action == "dismiss":
+        prefs["update_dismissed_at"] = time.time()
+    _save_preferences(prefs)

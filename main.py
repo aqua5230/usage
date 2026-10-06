@@ -343,6 +343,7 @@ def main() -> None:
         disable_session_resume()
         disable_terse_mode()
         raise SystemExit(unsetup())
+    preferences_snapshot = _load_preferences()
     _self_heal()
     if args.tui:
         with suppress(KeyboardInterrupt):
@@ -352,7 +353,9 @@ def main() -> None:
     elif sys.platform == "darwin":
         menubar = _import_module_with_oserror_retry("menubar.app")
         menubar.show_forwarder_mode_prompt_if_needed()
-        menubar.run_app(mock=args.mock, interval=args.interval)
+        menubar.run_app(
+            mock=args.mock, interval=args.interval, preferences_snapshot=preferences_snapshot
+        )
     elif sys.platform == "win32":
         try:
             wintray = importlib.import_module("wintray.app")
@@ -367,7 +370,11 @@ def main() -> None:
                 )
         else:
             try:
-                wintray.run_app(mock=args.mock, interval=args.interval)
+                wintray.run_app(
+                    mock=args.mock,
+                    interval=args.interval,
+                    preferences_snapshot=preferences_snapshot,
+                )
             except ModuleNotFoundError as exc:
                 print(f"{_t('wintray_unavailable')} [{exc.name}]")
                 with suppress(KeyboardInterrupt):
