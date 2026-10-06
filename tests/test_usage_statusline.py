@@ -1406,7 +1406,7 @@ def test_render_mix_label_waits_until_complete(
     }
     now = datetime(2026, 1, 1, tzinfo=UTC)
     assert "Images" not in usage_statusline.render(payload, now)
-    assert "Images 2" in usage_statusline.render(payload, now)
+    assert "2 images" in usage_statusline.render(payload, now)
 
 
 @pytest.mark.parametrize("session_id", ("../escape", "", "a/b", "a.json"))
@@ -1463,14 +1463,14 @@ def test_render_mix_label(
     }
     now = datetime(2026, 1, 1, tzinfo=UTC)
     output = usage_statusline.render(data, now)
-    assert ("工具輸出" in output) is visible
-    assert ("圖 3" in output) is (visible and images > 0)
+    assert ("讀檔與指令輸出" in output) is visible
+    assert ("圖片 3 張" in output) is (visible and images > 0)
     if percent == 30:
-        assert "工具輸出 40%" in output
+        assert "讀檔與指令輸出 40%" in output
     if not visible:
         assert output == usage_statusline.render({"context_window": data["context_window"]}, now)
     monkeypatch.setattr(usage_statusline, "get_width", lambda: 20)
-    assert "工具輸出" not in usage_statusline.render(data, now)
+    assert "讀檔與指令輸出" not in usage_statusline.render(data, now)
 
 
 def test_render_drops_mix_label_before_the_context_bar(
@@ -1489,11 +1489,11 @@ def test_render_drops_mix_label_before_the_context_bar(
     now = datetime(2026, 1, 1, tzinfo=UTC)
     monkeypatch.setattr(usage_statusline, "get_width", lambda: 90)
     assert "/ 1.0M" in usage_statusline.render(payload, now)
-    assert "圖 2" in usage_statusline.render(payload, now)
+    assert "圖片 2 張" in usage_statusline.render(payload, now)
     monkeypatch.setattr(usage_statusline, "get_width", lambda: 60)
     narrow = usage_statusline.render(payload, now)
     assert "/ 1.0M" in narrow
-    assert "圖 2" not in narrow
+    assert "圖片 2 張" not in narrow
 
 
 def test_mix_sweeps_stale_files_when_a_new_session_starts(tmp_path: Path) -> None:

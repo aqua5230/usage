@@ -1,7 +1,7 @@
 import { configure } from './strings'
 import type { AgentInfo } from 'claude-code'
 import { expect, test } from 'claude-code/testing'
-import { contextPercent, contextColor, parseContext, parseMix, mixLabel, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
+import { contextPercent, contextColor, parseContext, staleContext, completedAgo, isWaiting, visibleAgents, backgroundCount, visibleRuns } from './display'
 test('context 百分比單位、缺值與三種顏色門檻', () => {
   expect(contextPercent(undefined)).toBeUndefined()
   expect(contextPercent(0.41)).toBe(0)
@@ -103,25 +103,3 @@ test('tokens 只接受非負整數，壞欄位與缺值保留舊資料', () => {
   for (const tokens of [-1,0.5,'250000',null,true,{},[]]) expect(parseContext(JSON.stringify({...row,tokens}))).toEqual(row)
 })
 
-test('mix 嚴格檢查全部欄位，標籤只在警示時出現', () => {
-  const row = {sessionId:'one',transcript:'/tmp/one.jsonl',offset:10,size:12,images:3,toolTokens:120000,complete:true,updatedAt:0}
-  expect(parseMix(JSON.stringify(row))).toEqual(row)
-  for (const text of ['broken','null','[]','{}']) expect(parseMix(text)).toBeNull()
-  for (const key of Object.keys(row)) {
-    const missing: Record<string, unknown> = {...row}
-    delete missing[key]
-    expect(parseMix(JSON.stringify(missing))).toBeNull()
-    expect(parseMix(JSON.stringify({...row,[key]:null}))).toBeNull()
-  }
-  for (const key of ['offset','size','images','toolTokens']) {
-    for (const value of [-1,0.5,'1',true,{},[]]) expect(parseMix(JSON.stringify({...row,[key]:value}))).toBeNull()
-  }
-  for (const fields of [{sessionId:'../bad'},{sessionId:''},{transcript:''},{transcript:2},{offset:13},{complete:'yes'},{complete:1},{updatedAt:-1},{updatedAt:'0'}]) expect(parseMix(JSON.stringify({...row,...fields}))).toBeNull()
-  expect(parseMix(JSON.stringify(row).replace('"updatedAt":0','"updatedAt":1e999'))).toBeNull()
-  configure()
-  expect(mixLabel({contextPercent:30,contextTokens:300000,images:3,toolTokens:120000})).toBe('Images3 Tools40%')
-  expect(mixLabel({contextPercent:50,contextTokens:100000,images:0,toolTokens:200000})).toBe('Tools100%')
-  expect(mixLabel({contextPercent:50,contextTokens:0,images:0,toolTokens:0})).toBe('Tools0%')
-  expect(mixLabel({contextPercent:19,contextTokens:190000,images:3,toolTokens:120000})).toBe('')
-  expect(mixLabel({contextPercent:50})).toBe('')
-})

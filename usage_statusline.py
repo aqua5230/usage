@@ -69,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.11"
+__version__ = "1.12"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -111,8 +111,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5小時",
         "seven_day": "7天",
         "context": "對話窗",
-        "mix_images": "圖 {n}",
-        "mix_tools": "工具輸出 {n}%",
+        "mix_images": "圖片 {n} 張",
+        "mix_tools": "讀檔與指令輸出 {n}%",
         "total": "累計",
         "in_short": "問:",
         "out_short": "答:",
@@ -152,8 +152,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5小时",
         "seven_day": "7天",
         "context": "对话窗",
-        "mix_images": "图 {n}",
-        "mix_tools": "工具输出 {n}%",
+        "mix_images": "图片 {n} 张",
+        "mix_tools": "读文件与命令输出 {n}%",
         "total": "累计",
         "in_short": "问:",
         "out_short": "答:",
@@ -193,8 +193,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5h",
         "seven_day": "7d",
         "context": "Context",
-        "mix_images": "Images {n}",
-        "mix_tools": "Tool output {n}%",
+        "mix_images": "{n} images",
+        "mix_tools": "files & commands {n}%",
         "total": "Total",
         "in_short": "in:",
         "out_short": "out:",
@@ -234,8 +234,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5時間",
         "seven_day": "7日",
         "context": "コンテキスト",
-        "mix_images": "画像 {n}",
-        "mix_tools": "ツール出力 {n}%",
+        "mix_images": "画像 {n} 枚",
+        "mix_tools": "ファイル・コマンド出力 {n}%",
         "total": "累計",
         "in_short": "入:",
         "out_short": "出:",
@@ -275,8 +275,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5시간",
         "seven_day": "7일",
         "context": "컨텍스트",
-        "mix_images": "이미지 {n}",
-        "mix_tools": "도구 출력 {n}%",
+        "mix_images": "이미지 {n}장",
+        "mix_tools": "파일·명령 출력 {n}%",
         "total": "누적",
         "in_short": "입:",
         "out_short": "출:",
