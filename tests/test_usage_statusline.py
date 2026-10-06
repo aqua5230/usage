@@ -1406,7 +1406,7 @@ def test_render_mix_label_waits_until_complete(
     }
     now = datetime(2026, 1, 1, tzinfo=UTC)
     assert "Images" not in usage_statusline.render(payload, now)
-    assert "2 images" in usage_statusline.render(payload, now)
+    assert "Images 2" in usage_statusline.render(payload, now)
 
 
 @pytest.mark.parametrize("session_id", ("../escape", "", "a/b", "a.json"))
