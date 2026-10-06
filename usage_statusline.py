@@ -69,7 +69,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.12"
+__version__ = "1.13"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -193,8 +193,8 @@ STATUSLINE_TRANSLATIONS = {
         "five_hour": "5h",
         "seven_day": "7d",
         "context": "Context",
-        "mix_images": "{n} images",
-        "mix_tools": "files & commands {n}%",
+        "mix_images": "Images {n}",
+        "mix_tools": "Files & commands {n}%",
         "total": "Total",
         "in_short": "in:",
         "out_short": "out:",
