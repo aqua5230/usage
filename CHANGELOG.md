@@ -13,7 +13,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **Terse mode uses shorter sentences.** Replies keep one idea per sentence, use active voice and consistent terms, and follow a length limit per language: about 20 words in English, 30 characters in Chinese, 40 in Japanese and Korean. The terse hook is now 1.7; installed copies update on the next app launch.
 
 ### Added
-- **Context breakdown in the status line.** When the context figure turns yellow or red, the status line shows the image count and the estimated share of file reads and command output, for example `Images 3 · Files & commands 22%`. A high share suggests starting a new conversation. This segment is dropped first when space runs out. The status line hook is now 1.13; installed copies update on the next app launch.
+- **Context breakdown in the status line.** When the context figure turns yellow or red, the status line shows the image count and the estimated share of file reads and command output, for example `Images 3 · Files & commands 22%`. A high share suggests starting a new conversation. This segment is dropped first when space runs out. The status line hook is now 1.14; installed copies update on the next app launch.
 - **Release notes after an update.** The first launch after an update shows what changed in that version, once. Fresh installs skip it. If the app is offline, it tries again on the next launch. macOS and Windows.
 - **Release notes in your language.** Update alerts list one line per change. Chinese users see Traditional Chinese; other languages see English. This applies to the update alert from the version after this one, because the alert is drawn by the version you already have.
 
