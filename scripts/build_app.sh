@@ -15,4 +15,8 @@ find "$APP" -type d -name '__pycache__' -prune -exec rm -rf {} +
 find "$APP" -type f -name '*.opt-1.pyc' -delete
 rm -rf "$APP/Contents/Resources/include"
 echo "Size after prune: $(du -sh "$APP" | cut -f1)"
+# py2app signed the bundle before the prune, so its seal still lists the
+# deleted files; re-sign ad hoc and verify, or the bundle fails codesign.
+codesign --force --deep --sign - "$APP"
+codesign --verify --deep --strict "$APP"
 echo "Built: dist/usage.app"
