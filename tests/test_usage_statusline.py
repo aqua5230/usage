@@ -1420,18 +1420,28 @@ def test_mix_rejects_invalid_ids(session_id: str, tmp_path: Path) -> None:
     assert not Path(usage_statusline.MIX_DIR).exists()
 
 
-@pytest.mark.parametrize("bad", (b"broken\n", b"null\n", b"\xff\n"))
-def test_mix_errors_preserve_previous_cache(bad: bytes, tmp_path: Path) -> None:
+@pytest.mark.parametrize("bad", (b"broken\n", b"null\n", b"\xff\n", b"[1]\n"))
+def test_mix_skips_torn_lines(bad: bytes, tmp_path: Path) -> None:
+    transcript = tmp_path / "one.jsonl"
+    image = _mix_record({"type": "image"})
+    transcript.write_bytes(image + bad + image)
+    data = {"session_id": "one", "transcript_path": str(transcript)}
+    mix = usage_statusline.read_mix(data)
+    assert mix is not None
+    assert (mix["images"], mix["offset"], mix["complete"]) == (2, transcript.stat().st_size, True)
+
+
+@pytest.mark.parametrize("cache_text", ("broken", "null", '{"sessionId": "one"}'))
+def test_mix_restarts_from_a_corrupt_cache(cache_text: str, tmp_path: Path) -> None:
     transcript = tmp_path / "one.jsonl"
     transcript.write_bytes(_mix_record({"type": "image"}))
-    data = {"session_id": "one", "transcript_path": str(transcript)}
-    assert usage_statusline.read_mix(data) is not None
     cache = Path(usage_statusline.MIX_DIR) / "one.json"
-    before = cache.read_bytes()
-    with transcript.open("ab") as target:
-        target.write(bad)
-    assert usage_statusline.read_mix(data) is None
-    assert cache.read_bytes() == before
+    cache.parent.mkdir(parents=True)
+    cache.write_text(cache_text)
+    mix = usage_statusline.read_mix({"session_id": "one", "transcript_path": str(transcript)})
+    assert mix is not None
+    assert (mix["images"], mix["complete"]) == (1, True)
+    assert json.loads(cache.read_text()) == mix
 
 
 @pytest.mark.parametrize("percent,images,visible", ((30, 3, True), (50, 0, True), (19, 3, False)))
@@ -1461,3 +1471,40 @@ def test_render_mix_label(
         assert output == usage_statusline.render({"context_window": data["context_window"]}, now)
     monkeypatch.setattr(usage_statusline, "get_width", lambda: 20)
     assert "工具輸出" not in usage_statusline.render(data, now)
+
+
+def test_render_drops_mix_label_before_the_context_bar(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "zh-TW")
+    transcript = tmp_path / "session.jsonl"
+    transcript.write_bytes(_mix_record({"type": "image"}, {"type": "image"}))
+    payload = {
+        "session_id": "one",
+        "transcript_path": str(transcript),
+        "context_window": {"used_percentage": 30, "context_window_size": 1_000_000},
+        "cost": {"total_duration_ms": 3_600_000},
+        "model": {"display_name": "Opus 5.5"},
+    }
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 90)
+    assert "/ 1.0M" in usage_statusline.render(payload, now)
+    assert "圖 2" in usage_statusline.render(payload, now)
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 60)
+    narrow = usage_statusline.render(payload, now)
+    assert "/ 1.0M" in narrow
+    assert "圖 2" not in narrow
+
+
+def test_mix_sweeps_stale_files_when_a_new_session_starts(tmp_path: Path) -> None:
+    mix_dir = Path(usage_statusline.MIX_DIR)
+    mix_dir.mkdir(parents=True)
+    old, fresh = mix_dir / "old.json", mix_dir / "fresh.json"
+    old.write_text("{}")
+    fresh.write_text("{}")
+    week_ago = time.time() - usage_statusline.MIX_STALE_SECONDS - 60
+    os.utime(old, (week_ago, week_ago))
+    transcript = tmp_path / "one.jsonl"
+    transcript.write_bytes(_mix_record({"type": "image"}))
+    assert usage_statusline.read_mix({"session_id": "one", "transcript_path": str(transcript)})
+    assert sorted(p.name for p in mix_dir.iterdir()) == ["fresh.json", "one.json"]

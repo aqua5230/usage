@@ -87,6 +87,7 @@ MIX_DIR = os.path.expanduser("~/.usage/claude-pane/mix")
 # Bytes one status-line run may parse; a long transcript catches up over
 # several refreshes instead of stalling one.
 MIX_READ_BUDGET = 4 * 1024 * 1024
+MIX_STALE_SECONDS = 7 * 86400
 UPDATE_HINT_STALE_SECONDS = 30 * 86400
 # Context fill at which a /clear or /compact nudge is worth the noise. Set below
 # the default auto-compact line (~80%) so the user can act before the lossy
@@ -838,11 +839,12 @@ def read_mix(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         try:
             with open(path, encoding="utf-8") as cache:
                 previous = json.load(cache)
-        except FileNotFoundError:
+        except (FileNotFoundError, ValueError):
             pass
+        if not isinstance(previous, dict):
+            previous = {}
         if previous and (
-            not isinstance(previous, dict)
-            or previous.get("sessionId") != session_id
+            previous.get("sessionId") != session_id
             or not isinstance(previous.get("transcript"), str)
             or any(
                 type(previous.get(k)) is not int or previous[k] < 0
@@ -854,7 +856,8 @@ def read_mix(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
             or not math.isfinite(previous["updatedAt"])
             or previous["updatedAt"] < 0
         ):
-            return None
+            # A corrupt or foreign cache starts over rather than pinning the label off.
+            previous = {}
         with open(transcript, "rb") as source:
             size = os.fstat(source.fileno()).st_size
             offset = previous.get("offset", 0)
@@ -872,7 +875,14 @@ def read_mix(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         consumed = pending.rfind(b"\n") + 1
         complete = offset + len(pending) >= size
         for line in pending[:consumed].splitlines():
-            record = json.loads(line)
+            # A line torn by a crash is skipped; failing on it would re-read the
+            # same budget on every refresh and never get past it.
+            try:
+                record = json.loads(line)
+            except ValueError:
+                continue
+            if not isinstance(record, dict):
+                continue
             if record.get("isSidechain") is True:
                 continue
             if (
@@ -913,6 +923,14 @@ def read_mix(data: Dict[str, Any]) -> Optional[Dict[str, Any]]:
         if all(previous.get(k) == mix[k] for k in mix if k != "updatedAt"):
             return previous
         os.makedirs(MIX_DIR, exist_ok=True)
+        if not previous:
+            # One file per session; sweep the old ones only when a new one starts.
+            cutoff = time.time() - MIX_STALE_SECONDS
+            for name in os.listdir(MIX_DIR):
+                stale = os.path.join(MIX_DIR, name)
+                with suppress(OSError):
+                    if name.endswith(".json") and os.path.getmtime(stale) < cutoff:
+                        os.unlink(stale)
         with tempfile.NamedTemporaryFile(
             mode="w", encoding="utf-8", dir=MIX_DIR, delete=False
         ) as target:
@@ -979,6 +997,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
 
     mix = read_mix(data)
     ctx_parts: List[str] = []
+    ctx_label_part = ""
     ctx_pct = _as_float(ctx.get("used_percentage"))
     if ctx_pct is not None:
         size = ctx.get("context_window_size", 0)
@@ -1006,7 +1025,7 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
                 else 0
             )
             parts.append(_t("mix_tools").format(n=share))
-            ctx_parts[0] += f" · {C['dim']}{' · '.join(parts)}{C['reset']}"
+            ctx_label_part = f"{ctx_parts[0]} · {C['dim']}{' · '.join(parts)}{C['reset']}"
 
     full = line1 + [p[0] for p in rl_parts]
     candidate = SEP.join(full)
@@ -1072,7 +1091,11 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
             line3.append(cache_miss_part or cache_pct_part)
 
     if ctx_parts:
-        line3.append(ctx_parts[0])
+        line3.append(ctx_label_part or ctx_parts[0])
+
+    # The label goes first, so a narrow terminal keeps the bar it annotates.
+    if vlen(SEP.join(line3)) > width and ctx_label_part:
+        line3[-1] = ctx_parts[0]
 
     if vlen(SEP.join(line3)) > width and cache_miss_part:
         line3 = [cache_pct_part if p == cache_miss_part else p for p in line3]
