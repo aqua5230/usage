@@ -320,7 +320,7 @@ for (const writeFails of [false,true]) {
   test(`自己回報、回合更新與 live 清掃：寫入失敗 ${writeFails}`, async ($, on) => {
     const now = 172800000, directory = '/假家目錄/.usage/claude-pane/live'
     const clock = mock.clock(on,{now})
-    mock.env(on,{HOME:'/假家目錄'})
+    mock.env(on,{HOME:'/假家目錄',OS:'Linux'})
     const values: Record<string,unknown> = {}, written: string[] = [], commands: string[][] = []
     const files: Record<string,{text:string;mtimeMs:number}> = {
       one:{text:JSON.stringify({sessionId:'one',percent:41,updatedAt:0}),mtimeMs:0},
