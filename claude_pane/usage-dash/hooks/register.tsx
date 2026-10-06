@@ -75,9 +75,13 @@ async function reportContext($: Dollar, waiting: boolean | null = false) {
     let previous: ReturnType<typeof parseContext> = null
     try { previous = parseContext(await $.fs.read(path)) } catch { /* no previous context is normal */ }
     if (waiting === null && previous?.jobs === jobs) return
-    let percent = previous?.percent
-    try { percent = contextPercent((await $.session.usage()).context.percent) ?? percent } catch { /* waiting can be reported without usage */ }
-    await $.fs.write(path, JSON.stringify({ sessionId, percent, waiting: waiting ?? previous?.waiting ?? false, jobs, updatedAt: now }))
+    let percent = previous?.percent, tokens = previous?.tokens
+    try {
+      const context = (await $.session.usage()).context
+      percent = contextPercent(context.percent) ?? percent
+      tokens = context.tokens !== undefined && Number.isInteger(context.tokens) && context.tokens >= 0 ? context.tokens : tokens
+    } catch { /* waiting can be reported without usage */ }
+    await $.fs.write(path, JSON.stringify({ sessionId, percent, tokens, waiting: waiting ?? previous?.waiting ?? false, jobs, updatedAt: now }))
   } catch { /* live reporting is best effort, as requested */ }
 }
 async function readContexts($: Dollar, directory: string, rows: Session[]) {
@@ -92,6 +96,7 @@ async function readContexts($: Dollar, directory: string, rows: Session[]) {
         const row = rows.find(row => row.id === sessionId)
         if (row) {
           row.contextPercent = context.percent
+          row.contextTokens = context.tokens
           row.jobs = context.jobs
           if (context.waiting !== undefined) {
             row.waiting = context.waiting
@@ -346,7 +351,7 @@ export const register: Register = (on) => {
         {list.slice(0,expanded ? list.length : 4).map(s => {
           const waiting = s.status === 'waiting' || isWaiting({ waiting: s.waiting, updatedAt: s.waitingUpdatedAt ?? 0 }, now), mark = sessionMark(s, waiting, now)
           return <Box key={s.id} flexDirection="column">
-            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={mark.color} dimColor={!mark.color}>{mark.text}</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent)} dimColor={contextColor(s.contextPercent) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
+            <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end"><Text color={mark.color} dimColor={!mark.color}>{mark.text}</Text><Text dimColor>{` ${s.source}${s.source ? ' ' : ''}`}</Text>{s.id === current && <Text color="cyan">{t('here')}</Text>}{s.title || t('untitled')}</Text></Box>{s.contextPercent !== undefined && <Box flexShrink={0} marginLeft={1}><Text color={contextColor(s.contextPercent, s.contextTokens)} dimColor={contextColor(s.contextPercent, s.contextTokens) === undefined}>{`${s.contextPercent}%`}</Text></Box>}</Box>
             {(waiting || s.preview) && <Box justifyContent="space-between"><Box flexShrink={1}><Text wrap="truncate-end">{'    '}{waiting && <Text color="yellow">{waitingText(s.waitingFor)}</Text>}{s.preview && <Text dimColor>{`${waiting ? ' · ' : ''}${s.preview}`}</Text>}</Text></Box></Box>}
           </Box>
         })}

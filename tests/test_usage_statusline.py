@@ -1224,3 +1224,44 @@ def test_main_prints_fallback_when_render_fails(
 
     assert status_file.exists()
     assert capsys.readouterr().out == "usage\n"
+
+
+@pytest.mark.parametrize(
+    ("percent", "size", "tokens", "color"),
+    [
+        (25, 1_000_000, None, 214),
+        (45, 1_000_000, None, 160),
+        (40, 200_000, None, 42),
+        (19, 1_000_000, None, 42),
+        (20, 1_000_000, None, 214),
+        (39, 1_000_000, None, 214),
+        (40, 1_000_000, None, 160),
+        (50, 200_000, None, 214),
+        (80, 200_000, None, 160),
+        (40, None, None, 42),
+        (50, None, None, 214),
+        (80, None, None, 160),
+        (10, 1_000_000, 900_000, 42),
+    ],
+)
+def test_context_color_uses_worse_threshold_without_changing_quota(
+    monkeypatch: pytest.MonkeyPatch,
+    percent: int,
+    size: int | None,
+    tokens: object,
+    color: int,
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    monkeypatch.setattr(usage_statusline, "get_width", lambda: 116)
+    context: dict[str, Any] = {"used_percentage": percent}
+    if size is not None:
+        context["context_window_size"] = size
+    if tokens is not None:
+        context["total_input_tokens"] = tokens
+    payload = {
+        "context_window": context,
+        "rate_limits": {"five_hour": {"used_percentage": 25}},
+    }
+    output = usage_statusline.render(payload, datetime(2026, 1, 1, tzinfo=UTC))
+    assert f"Context:{usage_statusline.C['reset']}\033[38;5;{color}m" in output
+    assert f"5h:{usage_statusline.C['reset']}\033[38;5;42m" in output

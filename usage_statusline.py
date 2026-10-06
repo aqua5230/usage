@@ -67,7 +67,7 @@ else:
 fcntl = _fcntl
 msvcrt = _msvcrt
 
-__version__ = "1.9"
+__version__ = "1.10"
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
 LOCK_FILE = os.path.expanduser("~/.claude/usage-status.lock")
@@ -594,6 +594,14 @@ def color_by_pct(pct: float) -> str:
     return "\033[38;5;160m"
 
 
+def context_color(pct: float, tokens: Optional[float] = None) -> str:
+    if pct >= 80 or (tokens is not None and tokens >= 400_000):
+        return "\033[38;5;160m"
+    if pct >= 50 or (tokens is not None and tokens >= 200_000):
+        return "\033[38;5;214m"
+    return "\033[38;5;42m"
+
+
 def color_by_pct_inverted(pct: float) -> str:
     # Line 2 is secondary info: a healthy cache stays as quiet as its neighbours,
     # only a degraded one is allowed to draw the eye.
@@ -837,9 +845,14 @@ def _render_core(data: Dict[str, Any], now: datetime) -> str:
     ctx_pct = _as_float(ctx.get("used_percentage"))
     if ctx_pct is not None:
         size = ctx.get("context_window_size", 0)
+        # total_input_tokens was a session-wide sum in older Claude Code builds;
+        # percent x window always matches the figure on screen.
+        window_size = _as_float(size)
+        tokens = ctx_pct / 100 * window_size if window_size is not None else None
         ctx_parts = [
             f"{C['blue']}{_t('context')}:{C['reset']}"
-            f"{progress_bar(ctx_pct, bar_w)} {C['dim']}/ {fmt_tokens(size)}{C['reset']}",
+            f"{progress_bar(ctx_pct, bar_w, color_func=lambda pct: context_color(pct, tokens))} "
+            f"{C['dim']}/ {fmt_tokens(size)}{C['reset']}",
             f"{C['blue']}{_t('context')}:{C['reset']}{ctx_pct:.0f}%",
         ]
 
