@@ -3,6 +3,7 @@ import { parseQuota, hideAgents, resetTime } from './quota'
 import { configure } from './strings'
 import type { PluginState } from 'claude-code'
 type Drawn = { type?: string; props?: Record<string, unknown>; children?: unknown[] }
+const normalizePath = (path: string) => path.replaceAll('\\','/').replace(/^[A-Za-z]:/, '')
 function flatText(node: unknown): string {
   if (typeof node === 'string' || typeof node === 'number') return String(node)
   if (!node || typeof node !== 'object') return ''
@@ -138,7 +139,7 @@ ${' 1 '}
 test('啟動、CLI 備援、存活對話清單與定時更新', async ($, on) => {
   on('session.id', () => ({value:'one'}))
   const clock = mock.clock(on,{now:1000000})
-  mock.env(on,{HOME:'/假家目錄'})
+  mock.env(on,{HOME:'/假家目錄',OS:'Linux'})
   const values: Record<string,unknown> = {}
   const commands: string[][] = []
   let agentCalls = 0
@@ -157,13 +158,15 @@ test('啟動、CLI 備援、存活對話清單與定時更新', async ($, on) =>
     on('fs.exists', () => ({value:false}))
   const readFiles: string[] = []
   on('fs.list', ($,e) => {
-    if (e.path === '/假家目錄/.usage/claude-pane/live') return {value:[]}
-    expect(e.path).toBe('/假家目錄/.claude/sessions')
+    const path = normalizePath(e.path)
+    if (path === '/假家目錄/.usage/claude-pane/live') return {value:[]}
+    expect(path).toBe('/假家目錄/.claude/sessions')
     return {value:['1.json','2.json','3.json','4.json','5.json','1.hash.key'].map(name => ({name,kind:'file' as const,size:10,mtimeMs:990000,isLink:false}))}
   })
   on('fs.read', ($,e) => {
-    readFiles.push(e.path)
-    const pid = Number(e.path.split('/').pop()!.split('.')[0])
+    const path = normalizePath(e.path)
+    readFiles.push(path)
+    const pid = Number(path.split('/').pop()!.split('.')[0])
     return {value:pid === 4 ? 'broken' : JSON.stringify({pid,sessionId:pid === 1 ? 'one' : `s${pid}`,name:`名稱${pid}`,cwd:'/Users/x/usage/',entrypoint:pid === 3 ? 'claude-desktop' : 'cli',kind:pid === 5 ? 'background' : 'interactive',status:pid === 3 ? 'busy' : 'idle',updatedAt:990000,statusUpdatedAt:pid === 5 ? 995000 : 990000})}
   })
   on('process.run', ($,e) => {
@@ -220,7 +223,7 @@ for (const mode of ['empty', 'ps-exit-1', 'ps-reject'] as const) {
   test(`無存活對話：${mode}`, async ($, on) => {
     on('session.id', () => ({value:'current'}))
     mock.clock(on,{now:1000000})
-    mock.env(on,{HOME:'/假家目錄'})
+    mock.env(on,{HOME:'/假家目錄',OS:'Linux'})
     const values: Record<string,unknown> = {}
     const commands: string[][] = []
     on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
@@ -317,7 +320,7 @@ for (const writeFails of [false,true]) {
   test(`自己回報、回合更新與 live 清掃：寫入失敗 ${writeFails}`, async ($, on) => {
     const now = 172800000, directory = '/假家目錄/.usage/claude-pane/live'
     const clock = mock.clock(on,{now})
-    mock.env(on,{HOME:'/假家目錄'})
+    mock.env(on,{HOME:'/假家目錄',OS:'Linux'})
     const values: Record<string,unknown> = {}, written: string[] = [], commands: string[][] = []
     const files: Record<string,{text:string;mtimeMs:number}> = {
       one:{text:JSON.stringify({sessionId:'one',percent:41,updatedAt:0}),mtimeMs:0},
@@ -343,14 +346,17 @@ for (const writeFails of [false,true]) {
     on('turn.complete', ($,e) => ({text:e.answer}))
     on('fs.exists', () => ({value:false}))
     on('fs.write', ($,e) => {
-      expect(e.path).toBe(`${directory}/one.json`)
+      expect(normalizePath(e.path)).toBe(`${directory}/one.json`)
       written.push(e.text)
       if (writeFails) throw new Error('write denied')
       files.one = {text:e.text,mtimeMs:JSON.parse(e.text).updatedAt}
       return {value:undefined}
     })
-    on('fs.list', ($,e) => ({value:e.path === directory ? Object.entries(files).map(([id,file]) => ({name:`${id}.json`,kind:'file' as const,size:10,mtimeMs:file.mtimeMs,isLink:false})) : [{name:'1.json',kind:'file',size:10,mtimeMs:0,isLink:false}]}))
-    on('fs.read', ($,e) => ({value:e.path.startsWith(directory) ? files[e.path.split('/').pop()!.slice(0,-5)]!.text : JSON.stringify({pid:1,sessionId:'one',cwd:'/Users/x/usage',entrypoint:'cli',status:'idle',updatedAt:now})}))
+    on('fs.list', ($,e) => ({value:normalizePath(e.path) === directory ? Object.entries(files).map(([id,file]) => ({name:`${id}.json`,kind:'file' as const,size:10,mtimeMs:file.mtimeMs,isLink:false})) : [{name:'1.json',kind:'file',size:10,mtimeMs:0,isLink:false}]}))
+    on('fs.read', ($,e) => {
+      const path = normalizePath(e.path)
+      return {value:path.startsWith(directory) ? files[path.split('/').pop()!.slice(0,-5)]!.text : JSON.stringify({pid:1,sessionId:'one',cwd:'/Users/x/usage',entrypoint:'cli',status:'idle',updatedAt:now})}
+    })
     on('process.run', ($,e) => {
       commands.push([...e.argv])
       if (e.argv[0] === 'rm') delete files[e.argv[2]!.split('/').pop()!.slice(0,-5)]
@@ -444,7 +450,7 @@ for (const writeFails of [false,true]) {
 for (const mode of ['installed', 'absent', 'invalid', 'unreadable'] as const) {
   test(`sidecar language, argv and fallback: ${mode}`, async ($, on) => {
     mock.clock(on, { now: 0 })
-    mock.env(on, { HOME: '/test-home' })
+    mock.env(on, { HOME: '/test-home', OS: 'Linux' })
     const commands: string[][] = [], descriptions: string[] = [], titles: string[] = [], logs: string[] = []
     const reads: string[] = [], values: Record<string, unknown> = {}
     const argv = ['/app path/python', '-c', 'bootstrap with spaces']
@@ -453,7 +459,7 @@ for (const mode of ['installed', 'absent', 'invalid', 'unreadable'] as const) {
     on('session.start', ($, e) => ({ cwd: e.cwd }))
     on('session.usage', () => { throw new Error('no context') })
     on('fs.list', () => ({ value: [] }))
-    on('fs.exists', ($, e) => ({ value: e.path.endsWith('/usage-pane.json') && mode !== 'absent' }))
+    on('fs.exists', ($, e) => ({ value: normalizePath(e.path).endsWith('/usage-pane.json') && mode !== 'absent' }))
     on('fs.read', ($, e) => {
       reads.push(e.path)
       if (e.path.replaceAll('\\', '/').endsWith('/usage-preferences.json')) throw new Error('ENOENT')
@@ -472,7 +478,7 @@ for (const mode of ['installed', 'absent', 'invalid', 'unreadable'] as const) {
     })
     await $.session.start({ cwd: '/project', surface: 'terminal', isInteractive: true })
     const paneReads = reads.filter(path => !path.replaceAll('\\', '/').endsWith('/usage-preferences.json'))
-    expect(paneReads.every(path => path.endsWith('/usage-dash/usage-pane.json'))).toBe(true)
+    expect(paneReads.every(path => normalizePath(path).endsWith('/usage-dash/usage-pane.json'))).toBe(true)
     expect(paneReads).toHaveLength(mode === 'absent' ? 0 : 1)
     expect(commands).toEqual(mode === 'installed' ? [argv] : [['usage', 'status', '--json'], ['/test-home/.local/bin/usage', 'status', '--json']])
     expect(titles[0]).toBe(mode === 'installed' ? '使用狀態' : 'Usage')
@@ -604,7 +610,7 @@ for (const status of ['idle','waiting'] as const) {
   for (const outcome of ['stable','busy','closed','current','first-sighting'] as const) {
     test(`通知延遲一次刷新：${status} / ${outcome}`, async ($, on) => {
       const clock = mock.clock(on,{now:0})
-      mock.env(on,{HOME:'/test-home'})
+      mock.env(on,{HOME:'/test-home',OS:'Linux'})
       let phase: string = outcome === 'first-sighting' ? status : 'busy'
       const title = 't'.repeat(41), values: Record<string,unknown> = {}
       const toasts: {text:string;timeoutMs?:number}[] = []
@@ -620,9 +626,9 @@ for (const status of ['idle','waiting'] as const) {
       on('command.register', ($,e) => ({value:{command:e.name}}))
       on('fs.exists', () => ({value:false}))
       on('fs.write', () => ({value:undefined}))
-      on('fs.list', ($,e) => ({value:e.path.endsWith('/.claude/sessions') && phase !== 'closed' ? [{name:'other.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false}] : []}))
+      on('fs.list', ($,e) => ({value:normalizePath(e.path).endsWith('/.claude/sessions') && phase !== 'closed' ? [{name:'other.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false}] : []}))
       on('fs.read', ($,e) => {
-        if (e.path.endsWith('/.claude/sessions/other.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:title,updatedAt:0,status:phase,waitingFor:'input needed'})}
+        if (normalizePath(e.path).endsWith('/.claude/sessions/other.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:title,updatedAt:0,status:phase,waitingFor:'input needed'})}
         throw new Error('ENOENT')
       })
       on('process.run', ($,e) => ({value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
@@ -666,7 +672,7 @@ test('已重置的 dock 額度歸零、倒數改 Reset、灰字且排序下降',
 
 test('live 回報背景工作數，idle 工作歸零才通知完成', async ($, on) => {
   const clock = mock.clock(on,{now:0}), directory = '/test-home/.usage/claude-pane/live'
-  mock.env(on,{HOME:'/test-home'})
+  mock.env(on,{HOME:'/test-home',OS:'Linux'})
   const values: Record<string,unknown> = {runs:[{id:'run',agent:'codex',label:'',start:0,end:null,status:'running'}]}
   const writes: {jobs:number}[] = [], toasts: string[] = []
   let jobs = 2, runningAgent = true, live = ''
@@ -682,11 +688,12 @@ test('live 回報背景工作數，idle 工作歸零才通知完成', async ($, 
   on('command.register', ($,e) => ({value:{command:e.name}}))
   on('fs.exists', () => ({value:false}))
   on('fs.write', ($,e) => {live=e.text;writes.push(JSON.parse(e.text));return {value:undefined}})
-  on('fs.list', ($,e) => ({value:[{name:e.path === directory ? 'other.json' : '1.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false}]}))
+  on('fs.list', ($,e) => ({value:[{name:normalizePath(e.path) === directory ? 'other.json' : '1.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false}]}))
   on('fs.read', ($,e) => {
-    if (e.path === `${directory}/current.json`) return {value:live}
-    if (e.path === `${directory}/other.json`) return {value:JSON.stringify({sessionId:'other',jobs,updatedAt:0})}
-    if (e.path.endsWith('/.claude/sessions/1.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:'task',updatedAt:0,status:'idle'})}
+    const path = normalizePath(e.path)
+    if (path === `${directory}/current.json`) return {value:live}
+    if (path === `${directory}/other.json`) return {value:JSON.stringify({sessionId:'other',jobs,updatedAt:0})}
+    if (path.endsWith('/.claude/sessions/1.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:'task',updatedAt:0,status:'idle'})}
     throw new Error('ENOENT')
   })
   on('process.run', ($,e) => ({value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
