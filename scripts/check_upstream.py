@@ -25,7 +25,6 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-import service_status  # noqa: E402
 from installer import session_hooks, setup_hook  # noqa: E402
 from loaders import (  # noqa: E402
     agy_loader,
@@ -34,6 +33,7 @@ from loaders import (  # noqa: E402
     grok_loader,
     grok_quota_probe,
 )
+from usage_common import service_status  # noqa: E402
 from usage_hooks import usage_statusline  # noqa: E402
 
 CLAUDE_STATUS_PATH = setup_hook.STATUS_FILE

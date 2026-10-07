@@ -185,7 +185,7 @@ def test_project_from_cwd_groups_repo_subfolders_under_repo_name(tmp_path: Path)
     import shutil
     import subprocess
 
-    import project_resolver
+    from usage_common import project_resolver
 
     if shutil.which("git") is None:
         pytest.skip("git not installed")

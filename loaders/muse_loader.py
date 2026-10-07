@@ -13,7 +13,7 @@ from pathlib import Path
 from typing import Any
 
 from loaders.history_loader import UsageEntry
-from project_resolver import resolve_project_name
+from usage_common.project_resolver import resolve_project_name
 
 logger = logging.getLogger(__name__)
 MUSE_SESSIONS_DIR = Path(os.path.expanduser("~/.local/share/muse/sessions"))

@@ -15,7 +15,7 @@ from typing import Any
 
 from loaders.claude_paths import claude_config_dirs
 from loaders.jsonl_utils import iter_jsonl_dicts
-from project_resolver import resolve_project_name
+from usage_common.project_resolver import resolve_project_name
 
 from .types import AgentInfo
 

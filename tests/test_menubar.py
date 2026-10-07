@@ -38,9 +38,9 @@ from menubar import title as menubar_title
 from menubar import update as menubar_update
 from panels import panel_window_state
 from quota.burn_rate import BurnRateTracker
-from service_status import ServiceStatus
 from updates.gate import AutoCheckSchedule
 from usage_client import PollOutcome, PollState, UsageSnapshot
+from usage_common.service_status import ServiceStatus
 
 
 @pytest.fixture(autouse=True)
@@ -939,7 +939,7 @@ def test_background_daily_maintenance_schedules_diagnosis_snapshot(
     calls: list[object] = []
 
     monkeypatch.setattr(
-        "menubar.update.usage_diagnosis_snapshot.maybe_schedule_refresh",
+        "menubar.update.diagnosis_snapshot.maybe_schedule_refresh",
         lambda: calls.append("snapshot"),
     )
     fake_self = SimpleNamespace(

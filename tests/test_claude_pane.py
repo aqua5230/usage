@@ -403,13 +403,13 @@ def test_refresh_recopies_stale_install(
 
 
 def test_update_check_survives_pane_refresh_failure(monkeypatch: pytest.MonkeyPatch) -> None:
-    import usage_diagnosis_snapshot
+    from analyzer import diagnosis_snapshot
     from menubar import update as menubar_update
 
     def fail() -> None:
         raise SystemExit("source missing")
 
-    monkeypatch.setattr(usage_diagnosis_snapshot, "maybe_schedule_refresh", Mock())
+    monkeypatch.setattr(diagnosis_snapshot, "maybe_schedule_refresh", Mock())
     monkeypatch.setattr(pane, "refresh_claude_pane", fail)
     app = Mock()
     menubar_update.maybe_check_update_in_background(app)

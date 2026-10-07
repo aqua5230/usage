@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-import service_status
+from usage_common import service_status
 
 
 class FakeResponse:

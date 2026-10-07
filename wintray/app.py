@@ -24,8 +24,7 @@ from uuid import UUID
 import quota.agy_window_keeper as agy_window_keeper
 import quota.codex_window_keeper as codex_window_keeper
 import quota.window_keeper as window_keeper
-import service_status
-import usage_diagnosis_snapshot
+from analyzer import diagnosis_snapshot
 from i18n import _t
 from installer.statusline_settings import _statusline_enabled, _toggle_statusline_settings
 from loaders import codex_loader, grok_loader
@@ -54,14 +53,15 @@ from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
 from quota import quota_snapshot
 from quota.burn_rate import BurnRateTracker
+from quota.notifications import NotificationEvent, QuotaNotifier
 from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import alert_release_notes
 from usage_client import ClaudeUsageClient, PollState
+from usage_common import service_status
 from usage_common.app_version import current_version as _current_version
 from usage_common.usage_lang import detect_lang
-from usage_notifications import NotificationEvent, QuotaNotifier
 from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu
 from wintray.prefs import TrayProvider, load_tray_provider, save_tray_provider
@@ -879,7 +879,7 @@ class _WindowsTrayController:
             claude_pane.refresh_claude_pane()
         except (OSError, SystemExit):
             logger.warning("Claude Code pane refresh failed", exc_info=True)
-        usage_diagnosis_snapshot.maybe_schedule_refresh()
+        diagnosis_snapshot.maybe_schedule_refresh()
         self._clear_stale_update_cache()
         if self._auto_check_schedule.try_begin(time.time()):
             self._run_auto_update_check()

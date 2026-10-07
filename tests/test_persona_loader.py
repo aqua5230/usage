@@ -16,8 +16,8 @@ from unittest.mock import Mock
 
 import pytest
 
-import project_resolver
 from analyzer import persona_loader
+from usage_common import project_resolver
 
 
 @pytest.fixture(autouse=True)

@@ -17,8 +17,8 @@ from unittest.mock import Mock
 
 import pytest
 
-import project_resolver
 from loaders import history_disk_cache, history_loader
+from usage_common import project_resolver
 
 
 @pytest.fixture(autouse=True)
@@ -348,7 +348,7 @@ def test_parse_line_uses_main_worktree_project_for_cwd(
             stderr="",
         )
     )
-    monkeypatch.setattr("project_resolver.subprocess.run", run)
+    monkeypatch.setattr("usage_common.project_resolver.subprocess.run", run)
 
     entries = history_loader._parse_line(_line(cwd="/tmp/work/my-project-feature"), "fallback")
 

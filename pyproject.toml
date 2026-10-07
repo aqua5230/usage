@@ -46,18 +46,13 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 py-modules = [
     "main",
-    "usage_notifications",
     "pricing",
     "usage_client",
     "i18n",
     "usage_cli",
-    "project_resolver",
     "doctor",
-    "fsevents_watch",
     "prefs",
-    "service_status",
     "setup_app",
-    "usage_diagnosis_snapshot",
 ]
 
 [tool.setuptools.packages.find]
