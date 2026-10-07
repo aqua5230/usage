@@ -7,9 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.33.1] - 2026-10-07
+
 ### Added
-- **Claude Desktop quota:** read local desktop plan history when Claude Code quota files are unavailable, including Windows Microsoft Store installs. Show session and weekly percentages, plus exact reset times from a matching, recent local HTTP cache response when available. No credentials or quota API requests; unknown reset times remain unknown. Includes observation age and stale-data handling.
-- **Windows taskbar label menu:** right-click the quota label to open the same menu as the tray icon, outside the taskbar so it cannot cover the menu. Adapts to taskbars on any screen edge; left-click still opens the panel.
+- **Claude quota shows even with only Claude Desktop installed.** When Claude Code quota files are unavailable, usage reads Claude Desktop's local plan history, including Windows Microsoft Store installs. It shows session and weekly percentages, plus exact reset times from a matching, recent local HTTP cache response when available. No credentials or quota API requests; unknown reset times remain unknown. Includes observation age and stale-data handling.
+- **On Windows, right-clicking the taskbar quota label opens the menu.** It is the same menu as the tray icon, shown outside the taskbar so it cannot cover the menu. Adapts to taskbars on any screen edge; left-click still opens the panel.
+- **Windows gets Beginner Mode and Quota-Aware Mode switches.** They sit with the side pane under a **Claude Code** submenu in the tray menu, as on macOS. On Windows, Quota-Aware Mode now also sees Codex and Antigravity quota.
 
 ## [0.33.0] - 2026-10-07
 
