@@ -94,7 +94,7 @@ _TERSE_REMINDER_MARKER = "usage-terse-reminder"
 _TERSE_REMINDER_MARKERS = (_TERSE_REMINDER_MARKER, "usage_terse_reminder")
 # Independent, opt-in Claude Code UserPromptSubmit hook.
 QUOTA_AWARE_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-quota-aware.py"))
-QUOTA_AWARE_HOOK_VERSION = "1.0"
+QUOTA_AWARE_HOOK_VERSION = "1.1"
 QUOTA_AWARE_MATCHER = ""
 _QUOTA_AWARE_MARKER = "usage-quota-aware"
 _QUOTA_AWARE_MARKERS = (_QUOTA_AWARE_MARKER, "usage_quota_aware")
