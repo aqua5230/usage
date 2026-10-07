@@ -1,8 +1,8 @@
 import { expect, test } from 'claude-code/testing'
 import type { EngineInterface, ModelCompleteRequest } from 'claude-code'
 import { clean } from './clean'
-import { hidden, keyOf, parseTerms, quotaPaused } from './glossary'
-import { extract, record, setKnown } from './register'
+import { graded, hidden, keyOf, parseTerms, quizOf, quotaPaused, withKnown } from './glossary'
+import { extract, grade, readGlossary, record, setKnown } from './register'
 
 const ANSWER = 'SQLite mode=ro '.repeat(30)
 const PATH = '/test/.usage/glossary.json'
@@ -139,4 +139,61 @@ test('stale detached results are dropped, corrupt glossary is preserved', async 
 test('quota rejects future timestamps and non-number fields', () => {
   expect(quotaPaused(JSON.stringify({ rate_limits: { five_hour: { used_percentage: '90' } }, _received_at_ts: 1000 }), 1000000)).toBe(false)
   expect(quotaPaused(JSON.stringify({ rate_limits: { five_hour: { used_percentage: 90 } }, _received_at_ts: 1001 }), 1000000)).toBe(false)
+})
+
+const learned = (name: string, plain: string, review_at?: number) =>
+  ({ ...entry(name, true), plain, ...(review_at === undefined ? {} : { review_at, reviews: 0 }) })
+test('quiz picks the longest-waiting due term, masks it, and skips overlapping or revealing distractors', () => {
+  const data = { version: 1 as const, terms: {
+    push: learned('push', 'Send your PUSH-ed commits to the remote', 5),
+    commit: learned('commit', 'A saved snapshot', 3),
+    'git commit': entry('git commit'),
+    branch: { ...entry('branch'), plain: 'A line of work' },
+    '分支 (branch)': { ...entry('分支 (branch)'), plain: 'Another line of work' },
+    tag: { ...entry('tag'), plain: 'A commit label' },
+    merge: { ...entry('merge'), plain: 'Join two branches' },
+    later: learned('later', 'Not due yet', 10),
+  } }
+  const quiz = quizOf(data, 6, () => 0)!
+  expect(quiz.key).toBe('commit')
+  expect(quiz.options[quiz.answer]).toBe('A saved snapshot')
+  expect(quiz.options.length).toBe(4)
+  // "push" and "tag" explanations name "commit"; "git commit" overlaps the name.
+  expect(quiz.options.some(o => o.includes('Send') || o.includes('label') || o.includes('A simple explanation'))).toBe(false)
+  const pushQuiz = quizOf({ version: 1, terms: { push: data.terms.push, merge: data.terms.merge } }, 6, () => 0)!
+  expect(pushQuiz.options[pushQuiz.answer]).toBe('Send your ___-ed commits to the remote')
+  expect(quizOf({ ...data, quizzed_at: 6 - DAY + 1 }, 6, () => 0)).toBeUndefined()
+  expect(quizOf({ ...data, quizzed_at: 6 - DAY }, 6, () => 0)?.key).toBe('commit')
+  expect(quizOf({ version: 1, terms: { commit: data.terms.commit } }, 6, () => 0)).toBeUndefined()
+  expect(quizOf({ version: 1, terms: { later: data.terms.later, merge: data.terms.merge } }, 6, () => 0)).toBeUndefined()
+})
+test('understanding schedules a 7-day quiz; right answers move it to 21, 60, then none; a wrong one forgets it', () => {
+  const known = withKnown(entry('API'), true, 0)
+  expect(known).toEqual({ ...entry('API', true), review_at: 7 * DAY, reviews: 0 })
+  expect(withKnown(known, false, 0)).toEqual(entry('API'))
+  const once = graded(known, true, 10)
+  expect(once).toEqual({ ...known, reviews: 1, review_at: 10 + 21 * DAY })
+  const twice = graded(once, true, 20)
+  expect(twice.review_at).toBe(20 + 60 * DAY)
+  const done = graded(twice, true, 30)
+  expect(done.reviews).toBe(3)
+  expect('review_at' in done).toBe(false)
+  expect(graded(twice, false, 30)).toEqual(entry('API'))
+})
+test('quiz fields survive other writers, the history toggle schedules a quiz, and grading re-reads', async () => {
+  const f = fake()
+  f.files.set(PATH, JSON.stringify({ version: 1, quizzed_at: 5, terms: { push: { ...entry('push', true), review_at: 9, reviews: 1 }, sqlite: entry('SQLite') } }))
+  f.$.clock.now = async () => 2 * DAY
+  await record(f.$, PATH, [term('API')])
+  let saved = JSON.parse(f.files.get(PATH)!)
+  expect(saved.quizzed_at).toBe(5)
+  expect(saved.terms.push).toEqual({ ...entry('push', true), review_at: 9, reviews: 1 })
+  await setKnown(f.$, PATH, ['sqlite'])
+  saved = JSON.parse(f.files.get(PATH)!)
+  expect(saved.terms.sqlite).toEqual({ ...entry('SQLite', true), review_at: 9 * DAY, reviews: 0 })
+  expect((await grade(f.$, PATH, 'api', true))).toBeUndefined()
+  expect((await grade(f.$, PATH, 'push', false))?.known).toBe(false)
+  expect(JSON.parse(f.files.get(PATH)!).terms.push).toEqual(entry('push'))
+  f.files.set(PATH, JSON.stringify({ version: 1, quizzed_at: -1, terms: {} }))
+  await expect(readGlossary(f.$, PATH)).rejects.toThrow()
 })

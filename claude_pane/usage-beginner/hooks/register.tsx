@@ -3,28 +3,31 @@
 /* @jsxFrag Fragment */
 import type { EngineInterface, Register, RenderElement } from 'claude-code'
 import { configure, lang, t } from './strings'
-import { hidden, keyOf, languageName, parseTerms, quotaPaused, termOf } from './glossary'
-import type { Term, Entry, Glossary } from './glossary'
+import { graded, hidden, keyOf, languageName, parseTerms, quizOf, quotaPaused, REVIEW_DAYS, termOf, withKnown } from './glossary'
+import type { Term, Entry, Glossary, Quiz } from './glossary'
 
 export async function readGlossary($: EngineInterface, path: string): Promise<Glossary> {
   if (!await $.fs.exists(path)) return { version: 1, terms: {} }
   const value = JSON.parse(await $.fs.read(path))
-  if (value?.version !== 1 || !value.terms || typeof value.terms !== 'object' || Array.isArray(value.terms)) {
+  // Optional fields are absent, or a non-negative number (an integer for counts); every writer re-reads through here.
+  const bad = (field: unknown, integer = false) =>
+    field !== undefined && (!(integer ? Number.isInteger(field) : Number.isFinite(field)) || (field as number) < 0)
+  if (value?.version !== 1 || !value.terms || typeof value.terms !== 'object' || Array.isArray(value.terms) || bad(value.quizzed_at)) {
     throw new Error('Invalid glossary.json')
   }
   const entries: [string, Entry][] = []
   for (const [key, raw] of Object.entries(value.terms)) {
     const row = raw as Entry, term = termOf(raw)
     if (!term || keyOf(term.term) !== key || typeof row.known !== 'boolean' ||
-        !Number.isFinite(row.first_seen) || row.first_seen < 0 ||
-        (row.last_seen !== undefined && (!Number.isFinite(row.last_seen) || row.last_seen < 0)) ||
+        !Number.isFinite(row.first_seen) || row.first_seen < 0 || bad(row.last_seen) || bad(row.review_at) || bad(row.reviews, true) ||
         !Number.isInteger(row.seen_count) || row.seen_count < 1) throw new Error('Invalid glossary entry')
     entries.push([key, {
       ...term, first_seen: row.first_seen, ...(row.last_seen === undefined ? {} : { last_seen: row.last_seen }),
       seen_count: row.seen_count, known: row.known,
+      ...(row.review_at === undefined ? {} : { review_at: row.review_at }), ...(row.reviews === undefined ? {} : { reviews: row.reviews }),
     }])
   }
-  return { version: 1, terms: Object.fromEntries(entries) }
+  return { version: 1, terms: Object.fromEntries(entries), ...(value.quizzed_at === undefined ? {} : { quizzed_at: value.quizzed_at }) }
 }
 
 export async function record($: EngineInterface, path: string, items: Term[]): Promise<Term[]> {
@@ -45,11 +48,25 @@ export async function record($: EngineInterface, path: string, items: Term[]): P
 }
 
 export async function setKnown($: EngineInterface, path: string, keys: string[], known?: boolean): Promise<void> {
-  const data = await readGlossary($, path)
+  const data = await readGlossary($, path), now = await $.clock.now()
   for (const key of keys) {
-    if (Object.hasOwn(data.terms, key)) data.terms[key] = { ...data.terms[key]!, known: known ?? !data.terms[key]!.known }
+    if (Object.hasOwn(data.terms, key)) data.terms[key] = withKnown(data.terms[key]!, known ?? !data.terms[key]!.known, now)
   }
   await $.fs.write(path, JSON.stringify(data))
+}
+
+export async function grade($: EngineInterface, path: string, key: string, correct: boolean): Promise<Entry | undefined> {
+  // Re-read: another conversation or the history pane may have changed the term since the quiz was drawn.
+  const data = await readGlossary($, path)
+  if (!Object.hasOwn(data.terms, key) || !data.terms[key]!.known) return undefined
+  const row = data.terms[key] = graded(data.terms[key]!, correct, await $.clock.now())
+  await $.fs.write(path, JSON.stringify(data))
+  return row
+}
+
+export async function markQuizzed($: EngineInterface, path: string): Promise<void> {
+  const data = await readGlossary($, path)
+  await $.fs.write(path, JSON.stringify({ ...data, quizzed_at: await $.clock.now() }))
 }
 
 export async function glossaryPath($: EngineInterface): Promise<string> {
@@ -101,10 +118,27 @@ export async function extract($: EngineInterface, answer: string, lang: string, 
 
 const PANE = 'usage-beginner-terms'
 let items: Term[] = [], expanded = new Set<number>(), generation = 0
+let quiz: Quiz | undefined, quizResult: string | undefined, quizStamped = false
 function hide($: EngineInterface): void {
   generation++
   items = []
   expanded = new Set()
+  quiz = quizResult = undefined
+  $.ui.invalidate('ui.render')
+}
+async function answer($: EngineInterface, shown: Quiz, index: number): Promise<void> {
+  const correct = index === shown.answer
+  let row: Entry | undefined
+  try {
+    row = await grade($, await glossaryPath($), shown.key, correct)
+  } catch (error) {
+    await $.ui.log(t('error', { error: String(error) }))
+    return
+  }
+  if (quiz !== shown) return
+  if (!row) { hide($); return }
+  const days = REVIEW_DAYS[row.reviews ?? 0]
+  quizResult = !correct ? t('quiz_wrong', { answer: row.plain }) : days ? t('quiz_right', { days }) : t('quiz_done')
   $.ui.invalidate('ui.render')
 }
 async function changeKnown($: EngineInterface, keys: string[], known?: boolean): Promise<boolean> {
@@ -133,6 +167,13 @@ export const register: Register = on => {
       }
     } catch (error) { await $.ui.log(t('error', { error: String(error) })) }
     await $.command.register({ name: 'terms', description: t('description') })
+    if (e.isInteractive) {
+      try {
+        quiz = quizOf(await readGlossary($, await glossaryPath($)), await $.clock.now(), Math.random)
+        quizStamped = false
+        $.ui.invalidate('ui.render')
+      } catch (error) { await $.ui.log(t('error', { error: String(error) })) }
+    }
     return next(e)
   })
   on('turn.start', ($, e, next) => { hide($); return next(e) })
@@ -155,8 +196,31 @@ export const register: Register = on => {
   })
   on('ui.render', { component: 'AbovePrompt' }, async ($, e, next): Promise<RenderElement> => {
     const below = await next(e)
-    if (e.props.isWorking || e.props.hasSurvey || !items.length) return below
+    if (e.props.isWorking || e.props.hasSurvey) return below
     const { Box, Text, Button } = $.ui.resolve(e)
+    if (!items.length && quiz) {
+      const asked = quiz
+      // The day's quiz is spent once it is drawn, not when a conversation merely starts or the module reloads.
+      if (!quizStamped) {
+        quizStamped = true
+        void (async () => {
+          try { await markQuizzed($, await glossaryPath($)) } catch (error) { await $.ui.log(t('error', { error: String(error) })) }
+        })()
+      }
+      return <Box flexDirection="column">
+        {below}
+        <Text dimColor>{t('quiz_title')}</Text>
+        <Box flexDirection="column" marginLeft={2}>
+          <Text wrap="wrap">{t('quiz_question', { term: asked.term })}</Text>
+          {quizResult !== undefined
+            ? <Text wrap="wrap">{quizResult}</Text>
+            : asked.options.map((option, index) => <Button key={`quiz-${index}`} hotkey={String(index + 1)} plain label={option}
+                onPress={() => answer($, asked, index)} />)}
+          <Button key="quiz-close" hotkey="0" plain label={t('dismiss')} onPress={() => hide($)} />
+        </Box>
+      </Box>
+    }
+    if (!items.length) return below
     const shown = items
     return <Box flexDirection="column">
       {below}

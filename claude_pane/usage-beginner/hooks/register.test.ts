@@ -107,3 +107,30 @@ test('the answer is framed as data, and a reply with no array logs what Haiku sa
   await done
   expect(logs[0]).toContain('Expected a JSON array (30 chars, 9 tokens): "Sure, I can rebase it for you."')
 })
+
+test('a new conversation draws the day\'s quiz once and grades the answer', async ($, on) => {
+  const DAY = 86_400_000, path = '/test/.usage/glossary.json'
+  const row = (term: string, plain: string, known: boolean) =>
+    ({ term, plain, example: 'e', first_seen: 1, seen_count: 1, known, ...(known ? { review_at: 2, reviews: 0 } : {}) })
+  const files = new Map([[path, JSON.stringify({ version: 1, terms: { push: row('push', 'Upload commits', true), merge: row('merge', 'Join two branches', false) } })]])
+  on('env.get', () => ({ value: '/test' }))
+  on('clock.now', () => ({ value: 10 * DAY }))
+  on('fs.exists', (_$, e) => ({ value: files.has(e.path) }))
+  on('fs.read', (_$, e) => ({ value: files.get(e.path) ?? '{}' }))
+  on('fs.write', (_$, e) => { files.set(e.path, e.text); return { value: undefined } })
+  on('command.register', (_$, e) => ({ value: { command: e.name } }))
+  on('session.start', (_$, e) => ({ cwd: e.cwd }))
+  on('ui.render', () => ({ type: 'Box', props: {}, children: [] }))
+  await $.session.start({ cwd: '/test', surface: 'terminal', isInteractive: true })
+  const ui = await $.ui.mount({ plugin: 'usage-beginner', surface: 'terminal', component: 'AbovePrompt', props: band })
+  expect(await ui.find({ text: 'What does push mean?' })).toBeDefined()
+  for (let i = 0; i < 30 && JSON.parse(files.get(path)!).quizzed_at === undefined; i++) await ui.redraw()
+  expect(JSON.parse(files.get(path)!).quizzed_at).toBe(10 * DAY)
+  const right = (await ui.find({ key: 'quiz-0' }))?.text?.includes('Upload commits') ? 'quiz-0' : 'quiz-1'
+  await ui.press({ key: right })
+  for (let i = 0; i < 30 && !(await ui.find({ text: 'Correct! Next quiz in 21 days.' })); i++) await ui.redraw()
+  expect(await ui.find({ text: 'Correct! Next quiz in 21 days.' })).toBeDefined()
+  expect(JSON.parse(files.get(path)!).terms.push).toEqual({ ...row('push', 'Upload commits', true), review_at: 31 * DAY, reviews: 1 })
+  await ui.press({ key: 'quiz-close' })
+  expect(await ui.find({ key: 'quiz-close' })).toBeUndefined()
+})
