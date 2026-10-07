@@ -959,7 +959,7 @@ def test_check_update_writes_cache_when_release_found(monkeypatch: pytest.Monkey
     saved: list[dict[str, Any]] = []
     monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {})
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
-    monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
+    monkeypatch.setattr(menubar_update, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr("updates.gate.time.time", lambda: 1700000000.0)
     fake_release = SimpleNamespace(version="0.12.0", html_url="https://x/v0.12.0", body="")
     monkeypatch.setattr(
@@ -986,7 +986,7 @@ def test_check_update_writes_cache_when_no_release(monkeypatch: pytest.MonkeyPat
     saved: list[dict[str, Any]] = []
     monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {})
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
-    monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
+    monkeypatch.setattr(menubar_update, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr("updates.gate.time.time", lambda: 1700000000.0)
     monkeypatch.setattr(
         "menubar.update.update_checker.check_latest_release_result",
@@ -1007,7 +1007,7 @@ def test_check_update_skips_cache_on_failure(monkeypatch: pytest.MonkeyPatch) ->
     saved: list[dict[str, Any]] = []
     monkeypatch.setattr(menubar_update, "_load_preferences", lambda: {})
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
-    monkeypatch.setattr(menubar, "_current_version", lambda: "0.11.3")
+    monkeypatch.setattr(menubar_update, "_current_version", lambda: "0.11.3")
     monkeypatch.setattr(
         "menubar.app.update_checker.check_latest_release_result",
         lambda v: SimpleNamespace(failed=True, release=None),
@@ -1034,7 +1034,7 @@ def test_clear_stale_update_cache_clears_after_upgrade(
     }
     monkeypatch.setattr(menubar_update, "_load_preferences", lambda: prefs)
     monkeypatch.setattr(menubar_update, "_save_preferences", lambda d: saved.append(dict(d)))
-    monkeypatch.setattr(menubar, "_current_version", lambda: "0.15.0")
+    monkeypatch.setattr(menubar_update, "_current_version", lambda: "0.15.0")
 
     menubar.AppDelegate._clear_stale_update_cache(cast(Any, object()))
 
@@ -1058,7 +1058,7 @@ def test_clear_stale_update_cache_keeps_pending_update(
     }
     monkeypatch.setattr(menubar, "_load_preferences", lambda: prefs)
     monkeypatch.setattr(menubar, "_save_preferences", lambda d: saved.append(dict(d)))
-    monkeypatch.setattr(menubar, "_current_version", lambda: "0.15.0")
+    monkeypatch.setattr(menubar_update, "_current_version", lambda: "0.15.0")
 
     menubar.AppDelegate._clear_stale_update_cache(cast(Any, object()))
 

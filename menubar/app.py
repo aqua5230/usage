@@ -14,11 +14,8 @@ import logging
 import os
 import threading
 import time
-import tomllib
 import webbrowser
 from collections.abc import Callable, Mapping
-from importlib import metadata
-from pathlib import Path
 from typing import Any, cast
 
 import objc
@@ -36,7 +33,7 @@ from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 
 import panels
 from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
-from i18n import _t, packaged_resource_path
+from i18n import _t
 from installer import login_item
 from installer.statusline_settings import (
     _claude_settings_path as _claude_settings_path,
@@ -160,6 +157,7 @@ from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
 from updates import gate as update_gate
 from usage_client import ClaudeUsageClient, PollOutcome
+from usage_common.app_version import current_version as _current_version
 from usage_common.usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
 
@@ -216,20 +214,6 @@ def _terse_mode_enabled() -> bool:
         return session_hooks.is_terse_mode_enabled()
     except Exception:
         return False
-
-
-def _current_version() -> str:
-    try:
-        return metadata.version("usage-cli")
-    except metadata.PackageNotFoundError as exc:
-        pyproject = packaged_resource_path(
-            "pyproject.toml", Path(__file__).with_name("pyproject.toml")
-        )
-        data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
-        version = data.get("project", {}).get("version")
-        if isinstance(version, str):
-            return version
-        raise RuntimeError("project.version missing from pyproject.toml") from exc
 
 
 def _invalidate_restored_content_height(panel: Any, view: Any) -> None:

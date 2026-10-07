@@ -22,6 +22,7 @@ from prefs import _load_preferences, _save_preferences
 from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import alert_release_notes
+from usage_common.app_version import current_version as _current_version
 
 logger = logging.getLogger(__name__)
 
@@ -38,8 +39,6 @@ class _UpdateApp(Protocol):
 
 
 def clear_stale_update_cache() -> None:
-    from menubar.app import _current_version
-
     try:
         current_version = _current_version()
         prefs = _load_preferences()
@@ -76,8 +75,6 @@ def on_poll_tick(app: _UpdateApp) -> None:
 
 
 def check_update_in_background(app: _UpdateApp) -> bool:
-    from menubar.app import _current_version
-
     prefs = _load_preferences()
     if not update_gate.auto_check_is_due(prefs):
         return False
