@@ -1,5 +1,5 @@
 const defaults: Record<string, string> = {
-  "claude_beginner_menu": "Claude Code Beginner Mode",
+  "claude_beginner_menu": "Beginner Mode",
   "claude_beginner_tooltip": "Understand Claude’s answers: after each answer, see up to 3 technical terms explained above the prompt. Press 9 to mark them as understood so they will not appear again. Uses a small amount of Claude quota.",
   "claude_beginner_title": "Terms",
   "claude_beginner_history_title": "Term history",

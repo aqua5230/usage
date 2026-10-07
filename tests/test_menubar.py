@@ -92,10 +92,16 @@ class _FakeMenuItem:
         self.action = ""
         self.submenu: object | None = None
         self.tooltip: str | None = None
+        self.section_header = False
 
     @classmethod
     def alloc(cls) -> _FakeMenuItem:
         return cls()
+
+    @classmethod
+    def respondsToSelector_(cls, selector: str) -> bool:
+        assert selector == "sectionHeaderWithTitle:"
+        return False
 
     @classmethod
     def separatorItem(cls) -> _FakeMenuItem:
@@ -677,7 +683,24 @@ def test_empty_state() -> None:
     assert state.yesterday_text == "Yesterday: $0.00 (0 tokens)"
 
 
-def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("native_header", [True, False])
+def test_switch_panel_menu_contains_update_items(
+    monkeypatch: pytest.MonkeyPatch, native_header: bool
+) -> None:
+    class NativeMenuItem(_FakeMenuItem):
+        @classmethod
+        def respondsToSelector_(cls, selector: str) -> bool:
+            assert selector == "sectionHeaderWithTitle:"
+            return True
+
+        @classmethod
+        def sectionHeaderWithTitle_(cls, title: str) -> _FakeMenuItem:
+            item = cls()
+            item.title = title
+            item.enabled = False
+            item.section_header = True
+            return item
+
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
     delegate.language = "en"
     delegate.active_panel = SimpleNamespace(id="classic")
@@ -687,7 +710,9 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     ]
 
     monkeypatch.setattr(menubar_menu, "NSMenu", _FakeMenu)
-    monkeypatch.setattr(menubar_menu, "NSMenuItem", _FakeMenuItem)
+    monkeypatch.setattr(
+        menubar_menu, "NSMenuItem", NativeMenuItem if native_header else _FakeMenuItem
+    )
     monkeypatch.setattr("panels.all_panels", lambda: panels)
     monkeypatch.setattr("menubar.menu.login_item.is_enabled", lambda: False)
     monkeypatch.setattr(
@@ -743,7 +768,31 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     assert grok_item.action == "toggleHideGrok:"
     assert grok_item.state == 0
 
-    # Resume Last Session is a single tooltip-backed toggle (no group header, no indent).
+    settings = main_menu.items[main_titles.index(_t("en", "launch_at_login")) :]
+    assert [item.title for item in settings] == [
+        _t("en", "launch_at_login"),
+        _t("en", "quota_notifications_menu"),
+        _t("en", "window_keeper_menu"),
+        "---",
+        _t("en", "project_butler"),
+        _t("en", "terse_mode_menu"),
+        "---",
+        "Claude Code",
+        "Side pane",
+        "Beginner Mode",
+    ]
+    section = settings[7]
+    assert section.enabled is False
+    assert section.action == ""
+    assert section.target is None
+    assert section.section_header is native_header
+    pane = settings[8]
+    assert pane.title == _t("en", "claude_pane_section_menu")
+    assert pane.action == "toggleClaudePane:"
+    assert pane.tooltip == _t("en", "claude_pane_tooltip")
+    assert pane.indentation == 1
+
+    # Resume Last Session keeps its action and tooltip.
     butler = next(item for item in main_menu.items if item.action == "toggleSessionResume:")
     assert butler.title == "Resume Last Session"
     assert butler.indentation == 0
@@ -752,12 +801,33 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     assert terse.title == "Token Saver"
     assert terse.tooltip
     beginner = next(item for item in main_menu.items if item.action == "toggleClaudeBeginner:")
-    assert beginner.title == "Claude Code Beginner Mode"
+    assert beginner.title == "Beginner Mode"
+    assert beginner.indentation == 1
     assert beginner.tooltip == _t("en", "claude_beginner_tooltip")
     assert beginner.state == 0
     assert main_menu.items[main_menu.items.index(beginner) - 1].action == "toggleClaudePane:"
     assert beginner.target is delegate._beginner_menu_target
+    assert pane.target is delegate
     assert "Show in report" not in main_titles
+
+
+@pytest.mark.parametrize(
+    ("language", "pane", "beginner", "original_pane"),
+    [
+        ("zh-TW", "側邊面板", "新手模式", "Claude Code 側邊面板"),
+        ("zh-CN", "侧边面板", "新手模式", "Claude Code 侧边面板"),
+        ("en", "Side pane", "Beginner Mode", "Claude Code side pane"),
+        ("ja", "サイドペイン", "初心者モード", "Claude Code サイドパネル"),
+        ("ko", "사이드 패널", "초보자 모드", "Claude Code 사이드 패널"),
+    ],
+)
+def test_claude_code_section_translations(
+    language: str, pane: str, beginner: str, original_pane: str
+) -> None:
+    assert _t(language, "claude_code_section") == "Claude Code"
+    assert _t(language, "claude_pane_section_menu") == pane
+    assert _t(language, "claude_beginner_menu") == beginner
+    assert _t(language, "claude_pane_menu") == original_pane
 
 
 def test_switch_panel_cancel_keeps_the_panel_open(
