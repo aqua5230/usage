@@ -11,6 +11,8 @@ from functools import cache, lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from i18n import _load_i18n_bundle
+
 if TYPE_CHECKING:
     from menubar.state import PopoverState, QuotaRowState
 
@@ -29,20 +31,6 @@ def resolve_resource(name: str) -> str:
         if bundled.exists():
             return str(bundled)
     return str(Path(__file__).resolve().parent.parent / "assets" / name)
-
-
-def _i18n_path() -> Path:
-    resource_root = os.environ.get("RESOURCEPATH")
-    if resource_root:
-        bundled = Path(resource_root) / "i18n.json"
-        if bundled.exists():
-            return bundled
-    frozen_root = getattr(sys, "_MEIPASS", None)
-    if frozen_root:
-        bundled = Path(frozen_root) / "i18n.json"
-        if bundled.exists():
-            return bundled
-    return Path(__file__).resolve().parent.parent / "i18n.json"
 
 
 def _new_state_payload(view: Any, payload: dict[str, object]) -> str | None:
@@ -70,15 +58,6 @@ def _load_panel_html(filename: str) -> str:
 @lru_cache(maxsize=1)
 def _load_core_script() -> str:
     return Path(resolve_resource(CORE_SCRIPT_FILENAME)).read_text(encoding="utf-8")
-
-
-@lru_cache(maxsize=1)
-def _load_i18n_bundle() -> dict[str, dict[str, str]]:
-    data = json.loads(_i18n_path().read_text(encoding="utf-8"))
-    return {
-        str(lang): {str(key): str(value) for key, value in values.items()}
-        for lang, values in data.items()
-    }
 
 
 @lru_cache(maxsize=4)

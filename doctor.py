@@ -10,17 +10,15 @@ import os
 import shlex
 import sqlite3
 import sys
-import tomllib
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from importlib import metadata
 from pathlib import Path
 from typing import Final
 
-from i18n import packaged_resource_path
 from installer import setup_hook
 from installer.codex_hook_trust import codex_terse_hook_trust
+from usage_common.app_version import current_version as _current_version
 
 SEPARATOR = "-" * 29
 RATE_LIMIT_FRESH_SECONDS: Final = 15 * 60
@@ -163,20 +161,6 @@ def _text_field(func: Callable[[], str]) -> str:
         return func()
     except Exception as exc:
         return f"error: {exc}"
-
-
-def _current_version() -> str:
-    try:
-        return metadata.version("usage-cli")
-    except metadata.PackageNotFoundError:
-        pyproject = packaged_resource_path(
-            "pyproject.toml", Path(__file__).with_name("pyproject.toml")
-        )
-        data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
-        version = data.get("project", {}).get("version")
-        if isinstance(version, str):
-            return version
-        raise RuntimeError("project.version missing from pyproject.toml") from None
 
 
 def _hook_state() -> CheckResult:

@@ -12,6 +12,7 @@ from pathlib import Path
 import pytest
 from rich.panel import Panel
 
+import i18n
 from tui import app as tui
 from usage_client import PollState, UsageSnapshot
 
@@ -44,13 +45,13 @@ def test_load_i18n_bundle_reads_monkeypatched_path(
 ) -> None:
     bundle_path = tmp_path / "i18n.json"
     bundle_path.write_text(json.dumps(_minimal_bundle()), encoding="utf-8")
-    monkeypatch.setattr(tui, "I18N_PATH", bundle_path)
-    tui._load_i18n_bundle.cache_clear()
+    monkeypatch.setattr(i18n, "I18N_PATH", bundle_path)
+    i18n._load_i18n_bundle.cache_clear()
 
     try:
-        bundle = tui._load_i18n_bundle()
+        bundle = i18n._load_i18n_bundle()
     finally:
-        tui._load_i18n_bundle.cache_clear()
+        i18n._load_i18n_bundle.cache_clear()
 
     assert isinstance(bundle, dict)
     assert bundle["en"]["usage_title"] == "usage"

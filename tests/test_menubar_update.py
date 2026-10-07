@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import sys
-from types import ModuleType, SimpleNamespace
+from types import SimpleNamespace
 from typing import Any, cast
 
 import pytest
@@ -12,11 +11,8 @@ from updates import gate as update_gate
 
 
 def test_due_background_update_checks_and_saves_once(monkeypatch: pytest.MonkeyPatch) -> None:
-    # Only the version supplier needs AppKit. Exercise the real update helper
-    # on every platform, with neither PyObjC nor a real GitHub request.
-    app_module = ModuleType("menubar.app")
-    monkeypatch.setattr(app_module, "_current_version", lambda: "0.0.0", raising=False)
-    monkeypatch.setitem(sys.modules, "menubar.app", app_module)
+    # Exercise the real update helper without a real GitHub request.
+    monkeypatch.setattr(update, "_current_version", lambda: "0.0.0")
     monkeypatch.setattr(update, "_load_preferences", lambda: {})
     saved: list[object] = []
     monkeypatch.setattr(update, "_save_preferences", saved.append)
