@@ -29,8 +29,8 @@ if not os.environ.get("RESOURCEPATH") and (Path(__file__).parent / "__boot__.py"
         "To run from source instead: https://github.com/aqua5230/usage"
     )
 
+from loaders.claude_usage import ClaudeUsageClient, PollOutcome, PollState
 from quota.usage_rate import UsageRateTracker
-from usage_client import ClaudeUsageClient, PollOutcome, PollState
 from usage_common import prefs
 from usage_common.i18n import t as _t
 from usage_common.prefs import PREFERENCES_FILE as PREFERENCES_FILE
@@ -216,7 +216,7 @@ def main() -> None:
     _setup_logging()
     args = parse_args()
     if args.doctor:
-        import doctor
+        from usage_app import doctor
 
         report = doctor.collect()
         output = doctor.render_json(report) if args.json else doctor.render(report)

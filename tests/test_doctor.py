@@ -15,9 +15,9 @@ from pathlib import Path
 
 import pytest
 
-import doctor
 from installer import setup_hook
 from loaders import codex_loader, history_loader
+from usage_app import doctor
 
 
 @pytest.fixture(autouse=True)

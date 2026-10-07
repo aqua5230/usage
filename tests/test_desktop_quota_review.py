@@ -15,9 +15,9 @@ import pytest
 from rich.console import Console
 
 import usage_cli
-import usage_client
 from adapters import rate_limits
 from loaders import chromium_cache, claude_desktop
+from loaders import claude_usage as usage_client
 from menubar import state
 from tests.test_chromium_cache import Response, _cache
 from tui import app as tui
@@ -31,7 +31,7 @@ def sources(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
         for name in ("STATUS_FILE", "LEGACY_STATUS_FILE", "TT_STATUS_FILE"):
             monkeypatch.setattr(module, name, str(tmp_path / name))
     monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(tmp_path / "cli.json"))
-    monkeypatch.setattr("usage_client.time.time", lambda: NOW)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: NOW)
     monkeypatch.setenv("USAGE_LANG", "en")
     path = tmp_path / claude_desktop.HISTORY_NAME
     monkeypatch.setattr(claude_desktop, "desktop_history_paths", lambda: (path,))
@@ -161,7 +161,7 @@ def test_gui_and_cli_use_code_cache_before_desktop(
     monkeypatch.setattr(claude_desktop, "load_desktop_quota", forbidden)
     client = usage_client.ClaudeUsageClient()
     for now, expected in [(NOW, (22, 33)), (NOW + 101, (0, 33)), (NOW + 201, (0, 0))]:
-        monkeypatch.setattr("usage_client.time.time", lambda now=now: now)
+        monkeypatch.setattr("loaders.claude_usage.time.time", lambda now=now: now)
         snapshot = asyncio.run(client.fetch_once()).snapshot
         assert snapshot is not None and snapshot.data_source == "claude-json"
         assert (snapshot.current_percent, snapshot.weekly_percent) == expected
@@ -241,7 +241,7 @@ class BlockDecoder(importlib.abc.MetaPathFinder):
         if fullname == "zstandard":
             raise ImportError("missing wheel")
 sys.meta_path.insert(0, BlockDecoder())
-import usage_client
+from loaders import claude_usage as usage_client
 from adapters import rate_limits
 root = Path(sys.argv[1])
 for module in (usage_client, rate_limits):

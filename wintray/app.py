@@ -27,6 +27,7 @@ import quota.window_keeper as window_keeper
 from analyzer import diagnosis_snapshot
 from installer.statusline_settings import _statusline_enabled, _toggle_statusline_settings
 from loaders import codex_loader, grok_loader
+from loaders.claude_usage import ClaudeUsageClient, PollState
 from loaders.history_loader import UsageEntry, load_entries
 from menubar import agy as menubar_agy
 from menubar import grok as menubar_grok
@@ -55,7 +56,6 @@ from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import alert_release_notes
-from usage_client import ClaudeUsageClient, PollState
 from usage_common import service_status
 from usage_common.app_version import current_version as _current_version
 from usage_common.i18n import _t

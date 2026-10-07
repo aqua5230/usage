@@ -23,6 +23,7 @@ import quota.agy_window_keeper as agy_window_keeper
 import quota.window_keeper as window_keeper
 from installer import session_hooks, statusline_settings
 from loaders import codex_loader, grok_loader, history_loader
+from loaders.claude_usage import PollOutcome, PollState, UsageSnapshot
 from menubar import actions as menubar_actions
 from menubar import agy as menubar_agy
 from menubar import app as menubar
@@ -38,7 +39,6 @@ from menubar import update as menubar_update
 from panels import panel_window_state
 from quota.burn_rate import BurnRateTracker
 from updates.gate import AutoCheckSchedule
-from usage_client import PollOutcome, PollState, UsageSnapshot
 from usage_common.i18n import _t
 from usage_common.service_status import ServiceStatus
 

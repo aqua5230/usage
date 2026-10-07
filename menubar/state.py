@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict, cast
 from installer.statusline_settings import _statusline_enabled
 from loaders import codex_loader, grok_loader, muse_loader
 from loaders.claude_paths import claude_config_dirs
+from loaders.claude_usage import PollOutcome, PollState
 from loaders.codex_paths import codex_home
 from loaders.history_loader import UsageEntry, load_entries
 from menubar.prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order
@@ -29,7 +30,6 @@ from quota.burn_rate import (
     assess_weekly_quota,
 )
 from quota.usage_rate import GROUP_NAMES
-from usage_client import PollOutcome, PollState
 from usage_common.i18n import _t
 from usage_common.pricing import calculate_cost
 from usage_common.service_status import ServiceStatus

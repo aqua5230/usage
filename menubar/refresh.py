@@ -19,6 +19,7 @@ from typing import Any, Protocol
 import quota.agy_window_keeper as agy_window_keeper
 import quota.codex_window_keeper as codex_window_keeper
 import quota.window_keeper as window_keeper
+from loaders.claude_usage import PollOutcome, PollState
 from loaders.history_loader import UsageEntry
 from menubar import agy as menubar_agy
 from menubar import grok as menubar_grok
@@ -33,7 +34,6 @@ from menubar.prefs import (
 from quota import quota_snapshot
 from quota.burn_rate import BurnRateTracker
 from quota.usage_rate import UsageRateTracker
-from usage_client import PollOutcome, PollState
 from usage_common.service_status import CLAUDE_STATUS, CODEX_STATUS, get_service_status
 
 logger = logging.getLogger(__name__)

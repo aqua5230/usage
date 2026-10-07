@@ -17,7 +17,7 @@ from typing import Any
 
 import pytest
 
-import usage_client
+from loaders import claude_usage as usage_client
 from usage_common.i18n import _t
 from usage_common.usage_lang import detect_lang
 
@@ -174,7 +174,7 @@ def test_build_snapshot_handles_missing_rate_limits_and_clamps_percentages(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     now = 1_700_000_000.0
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
 
     assert usage_client._build_snapshot({}) is None
 
@@ -200,7 +200,7 @@ def test_build_snapshot_keeps_missing_weekly_percent_as_none(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     now = 1_700_000_000.0
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
 
     snapshot = usage_client._build_snapshot(
         {
@@ -220,7 +220,7 @@ def test_build_snapshot_keeps_missing_current_percent_as_none(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     now = 1_700_000_000.0
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
 
     snapshot = usage_client._build_snapshot(
         {
@@ -240,7 +240,7 @@ def test_build_snapshot_keeps_both_percentages_when_present(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     now = 1_700_000_000.0
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
 
     snapshot = usage_client._build_snapshot(
         {
@@ -260,7 +260,7 @@ def test_build_snapshot_treats_invalid_percentage_values_as_missing(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     now = 1_700_000_000.0
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
 
     snapshot = usage_client._build_snapshot(
         {
@@ -306,7 +306,7 @@ def test_fetch_once_uses_claude_json_when_status_is_missing(
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
     monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
-    monkeypatch.setattr("usage_client.time.time", lambda: fetched_at + 1)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: fetched_at + 1)
     _write_claude_json(claude_json_path, fetched_at)
 
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
@@ -361,7 +361,7 @@ def test_fetch_once_prefers_complete_hook_over_claude_json_cache(
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
     monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
-    monkeypatch.setattr("usage_client.time.time", lambda: fetched_at + 2)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: fetched_at + 2)
     _write_complete_status(status_path, fetched_at + status_age)
     _write_claude_json(claude_json_path, fetched_at)
 
@@ -383,7 +383,7 @@ def test_fetch_once_uses_claude_json_when_hook_percentage_is_invalid(
     monkeypatch.setattr(usage_client, "LEGACY_STATUS_FILE", str(tmp_path / "legacy.json"))
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
     monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
-    monkeypatch.setattr("usage_client.time.time", lambda: fetched_at + 2)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: fetched_at + 2)
     status_path.write_text(
         json.dumps(
             {
@@ -563,7 +563,7 @@ def test_fetch_once_recomputes_stale_state_when_status_mtime_is_unchanged(
     )
 
     now = received_at + 10
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
     client = usage_client.ClaudeUsageClient(mock=False)
     first = asyncio.run(client.fetch_once())
 
@@ -627,7 +627,7 @@ def test_fetch_once_warns_reinstall_when_recent_activity_and_hook_not_installed(
     status_path = _patch_status_paths(monkeypatch, tmp_path, projects_dir)
     _write_complete_status(status_path, now - usage_client.RECENT_ACTIVITY_SECONDS - 1)
     _touch_project_log(projects_dir / "demo" / "session.jsonl", now - 60)
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
     monkeypatch.setattr(usage_client, "current_hook_state", lambda: "none")
 
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
@@ -647,7 +647,7 @@ def test_fetch_once_warns_restart_when_recent_activity_and_usage_hook_installed(
     status_path = _patch_status_paths(monkeypatch, tmp_path, projects_dir)
     _write_complete_status(status_path, now - usage_client.RECENT_ACTIVITY_SECONDS - 1)
     _touch_project_log(projects_dir / "demo" / "session.jsonl", now - 60)
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
     monkeypatch.setattr(usage_client, "current_hook_state", lambda: "us-forwarder")
 
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
@@ -670,7 +670,7 @@ def test_fetch_once_does_not_warn_without_recent_project_activity(
         projects_dir / "demo" / "session.jsonl",
         now - usage_client.RECENT_ACTIVITY_SECONDS - 1,
     )
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
     monkeypatch.setattr(usage_client, "current_hook_state", lambda: "none")
 
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
@@ -689,7 +689,7 @@ def test_fetch_once_hints_active_when_status_missing_hook_installed_and_active(
     projects_dir = tmp_path / "projects"
     _patch_status_paths(monkeypatch, tmp_path, projects_dir)
     _touch_project_log(projects_dir / "demo" / "session.jsonl", now - 60)
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
     monkeypatch.setattr(usage_client, "current_hook_state", lambda: "us-direct")
 
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
@@ -704,7 +704,7 @@ def test_fetch_once_uses_generic_missing_message_without_recent_activity(
     now = 1_700_000_000.0
     projects_dir = tmp_path / "projects"
     _patch_status_paths(monkeypatch, tmp_path, projects_dir)
-    monkeypatch.setattr("usage_client.time.time", lambda: now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: now)
     monkeypatch.setattr(usage_client, "current_hook_state", lambda: "us-direct")
 
     outcome = asyncio.run(usage_client.ClaudeUsageClient(mock=False).fetch_once())
@@ -789,7 +789,7 @@ def test_cached_claude_json_rezeroes_after_reset_passes(
     monkeypatch.setattr(usage_client, "TT_STATUS_FILE", str(tmp_path / "tt-status.json"))
     monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(claude_json_path))
     fake_now = fetched_at + 1
-    monkeypatch.setattr("usage_client.time.time", lambda: fake_now)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: fake_now)
     _write_claude_json(claude_json_path, fetched_at)
 
     client = usage_client.ClaudeUsageClient(mock=False)

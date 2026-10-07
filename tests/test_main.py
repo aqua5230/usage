@@ -13,8 +13,8 @@ from pathlib import Path
 from typing import Any
 
 import main
+from loaders.claude_usage import PollOutcome, PollState, UsageSnapshot
 from tui.app import AppViewState
-from usage_client import PollOutcome, PollState, UsageSnapshot
 
 
 def _parse_args(monkeypatch: Any, *args: str) -> Any:
