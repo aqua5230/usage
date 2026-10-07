@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.0"
+__version__ = "1.1"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 STATE_PATH = Path.home() / ".usage/quota_aware_state.json"
@@ -124,9 +124,13 @@ def reminder(session_id: str, now: float) -> str:
     _save(state)
     return (
         "[usage quota] " + " ".join(messages) + "\n"
-        "Before starting a large task (many files, long runs, subagents), tell the user the "
-        "remaining quota and reset time, and ask whether to do a smaller part now or wait "
-        "for the reset. For small tasks, just proceed and don't mention quota."
+        "Each quota above is separate: it only limits work that runs on that tool, and a "
+        "model group in parentheses only limits that group's models; other groups are "
+        "unaffected. "
+        "Before starting a large task (many files, long runs, subagents) that will use one "
+        "of these quotas, tell the user the remaining quota and reset time, and ask whether "
+        "to do a smaller part now or wait for the reset. Otherwise, just proceed and don't "
+        "mention quota."
     )
 
 
