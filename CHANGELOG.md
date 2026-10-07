@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+- **Claude Desktop quota:** read local desktop plan history when Claude Code quota files are unavailable, including Windows Microsoft Store installs. Show session and weekly percentages, plus exact reset times from a matching, recent local HTTP cache response when available. No credentials or quota API requests; unknown reset times remain unknown. Includes observation age and stale-data handling.
+
 ## [0.33.0] - 2026-10-07
 
 ### Added

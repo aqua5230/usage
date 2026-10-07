@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 license = "AGPL-3.0-only"
 license-files = ["LICENSE", "THIRD_PARTY_NOTICES.md"]
 dependencies = [
+    "zstandard>=0.25.0,<1.0.0",
     "pyobjc-framework-Cocoa>=11.0; sys_platform == 'darwin'",
     "pyobjc-framework-Quartz>=11.0; sys_platform == 'darwin'",
     "pyobjc-framework-UserNotifications>=11.0; sys_platform == 'darwin'",

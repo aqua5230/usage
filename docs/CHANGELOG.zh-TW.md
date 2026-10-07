@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 新增
+- **Claude 桌面版額度：** 沒有可用的 Claude Code 額度檔時，讀取桌面版的本機額度歷史，包含 Windows Microsoft Store 安裝版。顯示會話與每週百分比；若本機 HTTP 快取有近期且一致的額度回應，也顯示準確重置時間。不讀取登入憑證、不呼叫額度 API；未知時間不推測。並標示更新時間與過期資料。
+
 ## [0.33.0] - 2026-10-07
 
 ### 新增

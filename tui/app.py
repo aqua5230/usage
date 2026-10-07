@@ -74,7 +74,9 @@ class AppViewState:
     codex_credits: tuple[str | None, bool] | None = None
 
 
-def format_countdown(reset_at: float, language: str, now: float | None = None) -> str:
+def format_countdown(reset_at: float | None, language: str, now: float | None = None) -> str:
+    if reset_at is None:
+        return _t(language, "resets_in_placeholder")
     current_time = now if now is not None else time.time()
     remaining = max(0, math.ceil(reset_at - current_time))
     days, rem = divmod(remaining, 86400)
@@ -111,7 +113,7 @@ def _chip(label: str) -> Text:
 def _usage_block(
     percent: int,
     label: str,
-    reset_at: float,
+    reset_at: float | None,
     now: float,
     language: str,
 ) -> RenderableType:
