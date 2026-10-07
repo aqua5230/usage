@@ -203,7 +203,7 @@ def all_panels() -> tuple[Panel, ...]:
             codex_card_height=0.0,
             service_alert_height=32.0,
         ),
-        # 1038 = classic's 1004 + roughly 34px for the flavor swatches.
+        # 1166 = the previous 1038px estimate + 128px for the Grok card.
         # This is estimated, not measured; verify clipping visually after packaging.
         HTMLPanel(
             "catppuccin",

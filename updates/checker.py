@@ -91,10 +91,6 @@ def compare_versions(a: str, b: str) -> int:
     return 0
 
 
-def check_latest_release(current_version: str, *, timeout: float = 5.0) -> ReleaseInfo | None:
-    return check_latest_release_result(current_version, timeout=timeout).release
-
-
 def check_latest_release_result(
     current_version: str,
     *,

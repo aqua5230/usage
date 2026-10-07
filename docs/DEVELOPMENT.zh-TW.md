@@ -6,7 +6,7 @@
 
 ## 它怎麼拿到你的用量數字
 
-Claude Code 跟 Codex 的數字來自這兩個工具本來就在你本機留下的檔案。Antigravity 的額度不在磁碟上，所以 usage 會用 Antigravity CLI 存下的 OAuth 憑證（macOS Keychain／Windows 認證管理員）向 Google 的額度端點取得，access token 過期時透過 `https://oauth2.googleapis.com/token` 更新。其他網路活動包括：(1) 估算 Codex 成本時需要 token 單價表，如果本機沒有快取（`~/.usage/pricing_cache.json`），會先用內建 fallback 價格立即顯示成本估算，再在背景嘗試從公開的 [LiteLLM 價格表](https://github.com/BerriAI/litellm) 下載並快取，7 天後過期再抓；下載失敗不影響用量百分比顯示，網路恢復後會自動更新價格表；(2) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關掉）；(3) 每 5 分鐘讀取 Claude 與 Codex 的公開 Statuspage 摘要，用來顯示服務狀態警示。完整的對外連線清單見 [SECURITY.md](../.github/SECURITY.md)。
+Claude Code 跟 Codex 的數字來自這兩個工具本來就在你本機留下的檔案。Antigravity 的額度不在磁碟上，所以 usage 會用 Antigravity CLI 存下的 OAuth 憑證（macOS Keychain／Windows 認證管理員）向 Google 的額度端點取得，access token 過期時透過 `https://oauth2.googleapis.com/token` 更新。其他網路活動包括：(1) 估算 Codex 成本時需要 token 單價表，如果本機沒有快取（`~/.usage/pricing_cache.json`），會先用內建 fallback 價格立即顯示成本估算，再在背景嘗試從公開的 [LiteLLM 價格表](https://github.com/BerriAI/litellm) 下載並快取，7 天後過期再抓；下載失敗不影響用量百分比顯示，網路恢復後會自動更新價格表；(2) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關掉）；(3) 每 5 分鐘讀取 Claude 與 Codex 的公開 Statuspage `components.json`，監看 Claude Code／Claude API 與 Codex API，用來顯示服務狀態警示；只有監看的元件異常時才讀取 `incidents.json`。完整的對外連線清單見 [SECURITY.md](../.github/SECURITY.md)。
 
 ### Claude Code 用量
 
@@ -31,7 +31,11 @@ flowchart LR
 
 1. `~/.claude/usage-status.json` —— usage 自己 hook 寫的
 2. `~/.claude/usag-status.json` —— v0.1.x legacy 自動 fallback，新使用者不會碰到
-3. `~/.claude/tt-status.json` —— 備援；給從第三方工具 [stormzhang/token-tracker](https://github.com/stormzhang/token-tracker) 升級過來的使用者，usage 會直接共用它的狀態檔（**注意：跟本專案的整合無關，純粹相容外部社群工具**）
+3. `~/.claude/tt-status.json` —— 唯讀，僅供從第三方工具 [stormzhang/token-tracker](https://github.com/stormzhang/token-tracker) 遷移的使用者備援。
+4. `~/.claude.json` 的 `cachedUsageUtilization` —— Claude Code 快取的配額。
+5. 桌面版的本機 `plan-usage-history.json` —— Claude Code 來源都無法使用時才讀取，不讀憑證、不連網。
+
+同一桌面版設定檔的本機 HTTP 快取，若組織與觀測資料吻合，可提供精確重置時間。快取缺失或無法使用時，重置時間維持未知（`None`），usage 不會編造。
 
 ### Codex 用量
 
@@ -119,7 +123,7 @@ python3 main.py
   2. 專案用量卡：列出近期用量前三名的專案，可點右上角按鈕在「今日 / 7 日 / 月」三段之間切換
   3. 最下面那張小卡是目前速率、同步狀態、今日 token 用量與成本估算（Claude 若 log 有提供實際金額則直接顯示；Codex 成本為依 token 數估算）
   4. 兩顆按鈕：「立即更新」、「結束」
-- **面板**：點右上角「更換面板」按鈕可切換面板樣式。目前內建十四款面板——「預設」（簡潔白色卡片）、「駭客任務」（黑底螢光綠＋數位雨動畫）、「視窗 95」（Windows 95 復古介面）、「復古報紙」（米黃報紙風）、「雲圖觀測」（氣象風玻璃卡片）、「午夜水族箱」（深海動畫）、「稜鏡街機」（彩虹全息動畫）、「黑洞視界」（旋轉吸積盤）、「彩繪玻璃」（鉛條分隔的不規則色塊，隨光線掃過如萬花筒轉動）、「摺紙」（同一版面摺成單色三角紙飛機）、「候鳥遷徙」（暮色天空中 V 字雁陣掠過經緯格線，附航線標籤）、「Catppuccin」（官方配色，四款 flavor 全支援）、「世界盃 2026」——FIFA 轉播 HUD 風格，鮮綠球場、棒人球員追球踢球互動動畫、雙向對戰記分條——以及「蝶類圖鑑」，帶有飄動翅膀動畫的藍曬圖風格蝴蝶標本板。World Cup 2026 僅包含 Claude 與 Codex，沒有 Antigravity 卡片也無法拖曳排序。
+- **面板**：點右上角「更換面板」按鈕可切換面板樣式。目前內建十六款面板——「預設」（簡潔白色卡片）、「駭客任務」（黑底螢光綠＋數位雨動畫）、「視窗 95」（Windows 95 復古介面）、「復古報紙」（米黃報紙風）、「雲圖觀測」（氣象風玻璃卡片）、「午夜水族箱」（深海動畫）、「稜鏡街機」（彩虹全息動畫）、「黑洞視界」（旋轉吸積盤）、「彩繪玻璃」（鉛條分隔的不規則色塊，隨光線掃過如萬花筒轉動）、「摺紙」（同一版面摺成單色三角紙飛機）、「手繪筆記」（Sketchbook）、「心電圖」（Heart Monitor）、「候鳥遷徙」（暮色天空中 V 字雁陣掠過經緯格線，附航線標籤）、「Catppuccin」（官方配色，四款 flavor 全支援）、「世界盃 2026」——FIFA 轉播 HUD 風格，鮮綠球場、棒人球員追球踢球互動動畫、雙向對戰記分條——以及「蝶類圖鑑」，帶有飄動翅膀動畫的藍曬圖風格蝴蝶標本板。World Cup 2026 僅包含 Claude 與 Codex，沒有 Antigravity 卡片也無法拖曳排序。
 
   <p align="center">
     <img src="matrix.png" alt="駭客任務面板" width="220">

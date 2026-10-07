@@ -16,6 +16,7 @@ import quota.agy_window_keeper as agy_window_keeper
 from loaders.agy_quota_probe import AgyQuotaWindow
 from menubar import agy as menubar_agy
 from menubar.state import AgyStaleState, QuotaRowState
+from quota import keeper_outcome
 
 
 class _SyncThread:
@@ -116,7 +117,7 @@ def test_load_last_ping_missing_file(isolated_state: Path) -> None:
 
 
 def test_save_and_load_last_ping_roundtrip(isolated_state: Path) -> None:
-    agy_window_keeper._save_last_ping(12345.5)
+    keeper_outcome.update_state(isolated_state, {"last_ping_at": 12345.5})
     assert agy_window_keeper._load_last_ping() == 12345.5
     assert json.loads(isolated_state.read_text(encoding="utf-8")) == {"last_ping_at": 12345.5}
 

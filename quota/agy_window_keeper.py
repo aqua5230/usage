@@ -62,11 +62,6 @@ def _load_last_ping(path: Path | None = None) -> float | None:
     return keeper_outcome.numeric_value(keeper_outcome.read_state(state_path), "last_ping_at")
 
 
-def _save_last_ping(ts: float, path: Path | None = None) -> None:
-    state_path = AGY_WINDOW_KEEPER_STATE_PATH if path is None else path
-    keeper_outcome.update_state(state_path, {"last_ping_at": ts})
-
-
 def _resolve_agy_bin() -> str | None:
     found = shutil.which("agy")
     if found:

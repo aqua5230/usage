@@ -67,7 +67,9 @@ def test_check_latest_release_offers_final_to_beta_user(
         ),
     )
 
-    assert update_checker.check_latest_release("0.11.0-beta.1") == update_checker.ReleaseInfo(
+    assert update_checker.check_latest_release_result(
+        "0.11.0-beta.1"
+    ).release == update_checker.ReleaseInfo(
         version="0.11.0",
         html_url="https://example.test/release",
         body="notes",
@@ -86,7 +88,7 @@ def test_check_latest_release_parses_newer_release(monkeypatch: pytest.MonkeyPat
 
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
 
-    release = update_checker.check_latest_release("0.10.1", timeout=1.5)
+    release = update_checker.check_latest_release_result("0.10.1", timeout=1.5).release
 
     assert release == update_checker.ReleaseInfo(
         version="0.10.2",
@@ -108,8 +110,8 @@ def test_check_latest_release_returns_none_when_remote_is_not_newer(
         ),
     )
 
-    assert update_checker.check_latest_release("0.10.1") is None
-    assert update_checker.check_latest_release("0.10.2") is None
+    assert update_checker.check_latest_release_result("0.10.1").release is None
+    assert update_checker.check_latest_release_result("0.10.2").release is None
 
 
 @pytest.mark.parametrize(
@@ -129,7 +131,7 @@ def test_check_latest_release_returns_none_for_invalid_payloads(
         lambda request, *, timeout: FakeResponse(response_body),
     )
 
-    assert update_checker.check_latest_release("0.10.1") is None
+    assert update_checker.check_latest_release_result("0.10.1").release is None
 
 
 def test_check_latest_release_returns_none_for_network_error(
@@ -140,7 +142,7 @@ def test_check_latest_release_returns_none_for_network_error(
 
     monkeypatch.setattr(urllib.request, "urlopen", fake_urlopen)
 
-    assert update_checker.check_latest_release("0.10.1") is None
+    assert update_checker.check_latest_release_result("0.10.1").release is None
     assert update_checker.check_latest_release_result("0.10.1").failed is True
 
 
