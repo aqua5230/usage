@@ -57,6 +57,8 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 - **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI, including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. When you do `/resume` a conversation that sat long enough for its cache to expire, it warns you how many tokens the next message will re-send and suggests `/compact` first. Off by default.
 - **Token Saver:** A menu-bar toggle asks Claude Code and Codex to answer more tersely and in plainer language, saving output tokens while keeping code and error messages byte-exact. A light reminder keeps long conversations from drifting back to verbose — in an A/B test on real sessions, late replies stayed ~40% shorter instead of drifting 84% longer.
 - **Claude Code side pane (macOS and Windows):** Quotas, conversations, and background jobs inside Claude Code. [See the side pane](#claude-code-side-pane).
+- **Beginner Mode (macOS):** Off by default. After Claude Code answers, up to three technical terms from that answer appear above the prompt, each with a one-line plain explanation in your UI language. Press 9 to mark them understood; terms you skip come back after 1, 3, then 7 days. Understood terms return as a one-question multiple-choice quiz 7, 21, then 60 days later, at most one a day; a wrong answer puts the term back in the hints. `/terms` opens your term history. Picking terms asks Claude Haiku through your Claude Code, so it uses a little Claude quota, and it pauses while your 5-hour quota is at 90% or more.
+- **Quota-Aware Mode (macOS):** Off by default. When a 5-hour quota passes 80%, 90%, or 95%, or a weekly quota passes 95%, Claude Code gets one line with what is left and when it resets. Before a big task, Claude then tells you and lets you pick a smaller part or wait for the reset. It covers Claude Code, Codex, and Antigravity quota, says each level once per conversation, and makes no extra model calls.
 - **Auto-start 5-hour Session:** Off by default. Turn it on and, right after a 5-hour quota resets, `usage` sends one tiny message to each tool (Claude with Haiku, Antigravity with Gemini 3.5 Flash Low, Codex with its cheapest model) so the next 5-hour window starts counting right away. Those messages do use a little quota, but the amount is negligible. Checking your quota never sends a message; only this switch does.
 - **Terminal Integration:** `usage status --json` hands your Claude Code, Codex, Antigravity, and Grok quota to any tool that can run a command — Starship, tmux, or your own scripts. Reads the same local files as the menu bar. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **Token-waste Health Check:** A daily background diagnosis scans your logs for waste, including repeated file reads, polluter directories, and noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
@@ -81,6 +83,7 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 - Claude Code and Codex numbers are read from local log files on your machine.
 - Antigravity quota requires network access, and only if you use it: quota is fetched from Google's official quota endpoint using the OAuth credential the Antigravity CLI already stored after sign-in — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version. `usage` reads that credential without writing it back and keeps any refreshed access token in memory only; the call itself reads quota metadata.
 - Background network activity: the Antigravity quota/token endpoints above, public Claude and Codex status pages to flag outages, a public model-pricing table to estimate cost (falls back to built-in prices offline), and occasionally checking GitHub for a new version. Claude Code and Codex log contents are never uploaded.
+- Beginner Mode, only if you turn it on, sends Claude Code's latest answer to Claude Haiku through your own Claude Code sign-in to pick terms. Your term list stays in `~/.usage/glossary.json`.
 
 ## Requirements
 
@@ -141,7 +144,7 @@ See your quota, other conversations, and background jobs without leaving Claude 
 
 **How to enable**
 
-1. In the usage menu bar menu (macOS) or the system-tray panel menu (Windows), check **Claude Code side pane**.
+1. In the usage menu bar menu (macOS) or the system-tray panel menu (Windows), check **Claude Code side pane**. On macOS it sits under the **Claude Code** submenu as **Side pane**.
 2. Open a new conversation or run `/reload-plugins`.
 3. At terminal widths ≥144 columns, the pane opens on the right automatically. In narrower terminals, enter `/usage-dash`.
 
@@ -230,6 +233,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | AI Update Daily | ✅ | — | — |
 | Progress Concierge & Token Saver | ✅ | — | — |
 | Token-waste Health Check | ✅ | — | — |
+| Claude Code Beginner Mode & Quota-Aware Mode | ✅ | — | — |
 | Open-source license | AGPL-3.0 | MIT | — |
 
 ## When usage Isn't the Right Fit
