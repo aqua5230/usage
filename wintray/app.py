@@ -55,6 +55,7 @@ from panels.panel_scale import MIN_PANEL_SCALE, fit_panel_size, fit_scale
 from panels.payload import _load_panel_html, _state_payload, resolve_resource
 from prefs import _load_preferences, _save_preferences
 from pricing import calculate_cost
+from quota import quota_snapshot
 from quota.burn_rate import BurnRateTracker
 from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
@@ -1531,6 +1532,8 @@ class _WindowsTrayController:
                     self.latest_state = manual_refresh.finish(
                         self.latest_state, state, queued=self._refresh_queued
                     )
+                if not self.mock:
+                    quota_snapshot.write_snapshot()
                 self._process_quota_notifications(self.latest_state)
                 started_at = time.monotonic() if debug_timing else 0.0
                 self._update_tray()
@@ -2004,6 +2007,75 @@ class _WindowsTrayController:
                 f"{_t(self.language, 'claude_pane_action_failed')}\n\n{output.getvalue().strip()}"
             )
 
+    def toggle_claude_beginner(self, _icon: Any = None, _item: Any = None) -> None:
+        threading.Thread(target=self._toggle_claude_beginner_in_background, daemon=True).start()
+
+    def _toggle_claude_beginner_in_background(self) -> None:
+        import contextlib
+        import io
+
+        from installer import claude_pane
+
+        output = io.StringIO()
+        ok = False
+        enabled = False
+        try:
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+                enabled = not claude_pane.is_claude_beginner_enabled()
+                action = (
+                    claude_pane.enable_claude_beginner
+                    if enabled
+                    else claude_pane.disable_claude_beginner
+                )
+                ok = action() == 0
+        except SystemExit as exc:
+            print(exc.code, file=output)
+        except Exception as exc:
+            print(f"{type(exc).__name__}: {exc}", file=output)
+
+        if ok:
+            key = "claude_beginner_enabled_msg" if enabled else "claude_beginner_disabled_msg"
+            self._message_box(_t(self.language, key))
+        else:
+            self._message_box(
+                f"{_t(self.language, 'claude_beginner_action_failed')}\n\n"
+                f"{output.getvalue().strip()}"
+            )
+
+    def toggle_quota_aware(self, _icon: Any = None, _item: Any = None) -> None:
+        threading.Thread(target=self._toggle_quota_aware_in_background, daemon=True).start()
+
+    def _toggle_quota_aware_in_background(self) -> None:
+        import contextlib
+        import io
+
+        from installer import session_hooks
+
+        output = io.StringIO()
+        ok = False
+        enabled = False
+        try:
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+                enabled = not session_hooks.is_quota_aware_enabled()
+                action = (
+                    session_hooks.enable_quota_aware
+                    if enabled
+                    else session_hooks.disable_quota_aware
+                )
+                ok = action() == 0
+        except SystemExit as exc:
+            print(exc.code, file=output)
+        except Exception as exc:
+            print(f"{type(exc).__name__}: {exc}", file=output)
+
+        if ok:
+            key = "quota_aware_enabled_msg" if enabled else "quota_aware_disabled_msg"
+            self._message_box(_t(self.language, key))
+        else:
+            self._message_box(
+                f"{_t(self.language, 'quota_aware_action_failed')}\n\n{output.getvalue().strip()}"
+            )
+
     def _process_quota_notifications(self, state: menubar_state.PopoverState) -> None:
         try:
             events = self._quota_notifier.update(
@@ -2312,6 +2384,10 @@ class _WindowsTrayController:
                 self.toggle_terse_mode()
             elif action == "toggle_claude_pane":
                 self.toggle_claude_pane()
+            elif action == "toggle_claude_beginner":
+                self.toggle_claude_beginner()
+            elif action == "toggle_quota_aware":
+                self.toggle_quota_aware()
             elif action == "check_update":
                 self.check_update()
             elif action == "quit":
@@ -2419,6 +2495,8 @@ def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCo
         "session_resume": _session_resume_enabled,
         "terse_mode": _terse_mode_enabled,
         "claude_pane": _claude_pane_enabled,
+        "claude_beginner": _claude_beginner_enabled,
+        "quota_aware": _quota_aware_enabled,
     }
     return checks[entry.checked_by]() if entry.checked_by is not None else False
 
@@ -2511,6 +2589,24 @@ def _claude_pane_enabled() -> bool:
         from installer import claude_pane
 
         return claude_pane.is_claude_pane_enabled()
+    except Exception:
+        return False
+
+
+def _claude_beginner_enabled() -> bool:
+    try:
+        from installer import claude_pane
+
+        return claude_pane.is_claude_beginner_enabled()
+    except Exception:
+        return False
+
+
+def _quota_aware_enabled() -> bool:
+    try:
+        from installer import session_hooks
+
+        return session_hooks.is_quota_aware_enabled()
     except Exception:
         return False
 
