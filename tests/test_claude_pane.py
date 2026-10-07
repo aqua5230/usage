@@ -442,15 +442,19 @@ def test_beginner_sidecar(isolated: Path, monkeypatch: pytest.MonkeyPatch, lang:
 
     monkeypatch.setattr(pane, "detect_lang", lambda: lang)
     pane.enable_claude_beginner()
-    value = json.loads((pane._install_dir("usage-beginner") / "usage-beginner.json").read_text())
-    bundle = json.loads(i18n.I18N_PATH.read_text())
+    value = json.loads(
+        (pane._install_dir("usage-beginner") / "usage-beginner.json").read_text(encoding="utf-8")
+    )
+    bundle = json.loads(i18n.I18N_PATH.read_text(encoding="utf-8"))
     assert value == {
         "lang": lang,
         "strings": {
             key: text for key, text in bundle[lang].items() if key.startswith("claude_beginner_")
         },
     }
-    strings = (pane._resolve_source("usage-beginner") / "hooks/strings.ts").read_text()
+    strings = (pane._resolve_source("usage-beginner") / "hooks/strings.ts").read_text(
+        encoding="utf-8"
+    )
     defaults = json.loads(strings.split("= ", 1)[1].split("\nlet strings", 1)[0])
     assert defaults == {
         key: text for key, text in bundle["en"].items() if key.startswith("claude_beginner_")

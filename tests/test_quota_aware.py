@@ -114,7 +114,7 @@ def test_snapshot_and_agy_reset(paths: Path) -> None:
     output = hook.reminder("one", NOW)
     assert "Codex 5-hour quota: 91% used" in output
     assert "Antigravity (Gemini) 5-hour quota: 82% used, resets in 40m." in output
-    state = json.loads(hook.STATE_PATH.read_text())
+    state = json.loads(hook.STATE_PATH.read_text(encoding="utf-8"))
     assert any(value["resets_at"] == NOW + 2400 for value in state.values())
     assert hook.reminder("one", NOW) == ""
 
@@ -161,7 +161,7 @@ def test_expired_state_pruned_and_new_reset(paths: Path) -> None:
     hook.reminder("one", NOW)
     claude(82, reset=RESET + 7200)
     assert "82% used" in hook.reminder("one", RESET + 1)
-    state = json.loads(hook.STATE_PATH.read_text())
+    state = json.loads(hook.STATE_PATH.read_text(encoding="utf-8"))
     assert len(state) == 1
     assert not list(paths.glob("*.tmp"))
 
@@ -182,7 +182,7 @@ def test_install_remove_and_upgrade(monkeypatch: pytest.MonkeyPatch, tmp_path: P
     assert session_hooks.enable_quota_aware() == 0
     assert session_hooks.enable_quota_aware() == 0
     assert session_hooks.is_quota_aware_enabled()
-    settings = json.loads(settings_path.read_text())
+    settings = json.loads(settings_path.read_text(encoding="utf-8"))
     assert len(settings["hooks"]["UserPromptSubmit"]) == 2
     assert settings["hooks"]["UserPromptSubmit"][0] == existing
     target.write_text('__version__ = "0.1"')
@@ -194,7 +194,9 @@ def test_install_remove_and_upgrade(monkeypatch: pytest.MonkeyPatch, tmp_path: P
     assert session_hooks.disable_quota_aware() == 0
     assert not target.exists()
     assert not session_hooks.is_quota_aware_enabled()
-    assert json.loads(settings_path.read_text())["hooks"]["UserPromptSubmit"] == [existing]
+    assert json.loads(settings_path.read_text(encoding="utf-8"))["hooks"]["UserPromptSubmit"] == [
+        existing
+    ]
 
 
 def test_shared_entry_preserved(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -223,7 +225,9 @@ def test_shared_entry_preserved(monkeypatch: pytest.MonkeyPatch, tmp_path: Path)
         )
     )
     session_hooks.disable_quota_aware()
-    assert json.loads(settings_path.read_text())["hooks"]["UserPromptSubmit"][0]["hooks"] == [other]
+    assert json.loads(settings_path.read_text(encoding="utf-8"))["hooks"]["UserPromptSubmit"][0][
+        "hooks"
+    ] == [other]
 
 
 def test_snapshot_atomic_and_local(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -241,7 +245,7 @@ def test_snapshot_atomic_and_local(monkeypatch: pytest.MonkeyPatch, tmp_path: Pa
 
     monkeypatch.setattr(agy_quota_probe, "load_quota", fail)
     quota_snapshot.write_snapshot()
-    payload = json.loads(quota_snapshot.SNAPSHOT_PATH.read_text())
+    payload = json.loads(quota_snapshot.SNAPSHOT_PATH.read_text(encoding="utf-8"))
     assert payload["schema_version"] == 1
     assert payload["generated_at"]
     assert set(payload["agents"]) == {"claude-code", "codex", "antigravity", "grok"}
