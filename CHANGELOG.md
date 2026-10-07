@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Changed
+- **The rate label compares you with yourself.** Idle, Normal, Active and Heavy now come from your own last 30 days: hours below your 25th percentile are Idle, and only your top 5% are Heavy. Fixed limits labelled a normal Opus session Heavy almost all the time. Until there are 24 hours of history, the old limits apply.
+
 ## [0.32.6] - 2026-10-07
 
 ### Changed
