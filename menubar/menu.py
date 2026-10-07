@@ -193,13 +193,8 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
         )
     )
     menu.addItem_(NSMenuItem.separatorItem())
-    section_title = _t(app.language, "claude_code_section")
-    if NSMenuItem.respondsToSelector_("sectionHeaderWithTitle:"):
-        section = NSMenuItem.sectionHeaderWithTitle_(section_title)
-    else:
-        section = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(section_title, "", "")
-        section.setEnabled_(False)
-    menu.addItem_(section)
+    # Claude Code-only switches stay collapsed in a submenu, like the panel themes.
+    claude_submenu = NSMenu.alloc().initWithTitle_(_t(app.language, "claude_code_section"))
     claude_pane_item = build_menu_item(
         app.language,
         "claude_pane_section_menu",
@@ -208,9 +203,8 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
         state=claude_pane.is_claude_pane_enabled(),
         tooltip_key="claude_pane_tooltip",
     )
-    claude_pane_item.setIndentationLevel_(1)
     apply_badge(claude_pane_item, app.language, "claude_pane")
-    menu.addItem_(claude_pane_item)
+    claude_submenu.addItem_(claude_pane_item)
     from menubar.actions import BeginnerMenuTarget
 
     beginner_target = BeginnerMenuTarget.alloc().init()
@@ -225,8 +219,7 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
         state=claude_pane.is_claude_beginner_enabled(),
         tooltip_key="claude_beginner_tooltip",
     )
-    beginner_item.setIndentationLevel_(1)
-    menu.addItem_(beginner_item)
+    claude_submenu.addItem_(beginner_item)
     from menubar.actions import QuotaAwareMenuTarget
 
     quota_target = QuotaAwareMenuTarget.alloc().init()
@@ -240,8 +233,12 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
         state=session_hooks.is_quota_aware_enabled(),
         tooltip_key="quota_aware_tooltip",
     )
-    quota_item.setIndentationLevel_(1)
-    menu.addItem_(quota_item)
+    claude_submenu.addItem_(quota_item)
+    claude_parent = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(
+        _t(app.language, "claude_code_section"), "", ""
+    )
+    claude_parent.setSubmenu_(claude_submenu)
+    menu.addItem_(claude_parent)
     app._switch_menu_action_taken = False
     menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
     # Dismissing the menu without picking anything used to close the panel:

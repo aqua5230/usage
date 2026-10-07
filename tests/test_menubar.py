@@ -92,16 +92,10 @@ class _FakeMenuItem:
         self.action = ""
         self.submenu: object | None = None
         self.tooltip: str | None = None
-        self.section_header = False
 
     @classmethod
     def alloc(cls) -> _FakeMenuItem:
         return cls()
-
-    @classmethod
-    def respondsToSelector_(cls, selector: str) -> bool:
-        assert selector == "sectionHeaderWithTitle:"
-        return False
 
     @classmethod
     def separatorItem(cls) -> _FakeMenuItem:
@@ -683,25 +677,10 @@ def test_empty_state() -> None:
     assert state.yesterday_text == "Yesterday: $0.00 (0 tokens)"
 
 
-@pytest.mark.parametrize("native_header", [True, False])
 @pytest.mark.parametrize("quota_enabled", [True, False])
 def test_switch_panel_menu_contains_update_items(
-    monkeypatch: pytest.MonkeyPatch, native_header: bool, quota_enabled: bool
+    monkeypatch: pytest.MonkeyPatch, quota_enabled: bool
 ) -> None:
-    class NativeMenuItem(_FakeMenuItem):
-        @classmethod
-        def respondsToSelector_(cls, selector: str) -> bool:
-            assert selector == "sectionHeaderWithTitle:"
-            return True
-
-        @classmethod
-        def sectionHeaderWithTitle_(cls, title: str) -> _FakeMenuItem:
-            item = cls()
-            item.title = title
-            item.enabled = False
-            item.section_header = True
-            return item
-
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
     delegate.language = "en"
     delegate.active_panel = SimpleNamespace(id="classic")
@@ -711,9 +690,7 @@ def test_switch_panel_menu_contains_update_items(
     ]
 
     monkeypatch.setattr(menubar_menu, "NSMenu", _FakeMenu)
-    monkeypatch.setattr(
-        menubar_menu, "NSMenuItem", NativeMenuItem if native_header else _FakeMenuItem
-    )
+    monkeypatch.setattr(menubar_menu, "NSMenuItem", _FakeMenuItem)
     monkeypatch.setattr("panels.all_panels", lambda: panels)
     monkeypatch.setattr("menubar.menu.login_item.is_enabled", lambda: False)
     monkeypatch.setattr(
@@ -726,13 +703,9 @@ def test_switch_panel_menu_contains_update_items(
     _FakeMenu.instances = []
     menubar.AppDelegate.switchPanel_(delegate, object())
 
-    # Three menus are built: the main popup, the panel-themes submenu, and the
-    # provider-visibility submenu.
-    main_menu, panel_submenu, hide_submenu = (
-        _FakeMenu.instances[0],
-        _FakeMenu.instances[1],
-        _FakeMenu.instances[2],
-    )
+    # Four menus are built: the main popup, the panel-themes submenu, the
+    # provider-visibility submenu, and the Claude Code submenu.
+    main_menu, panel_submenu, hide_submenu, claude_submenu = _FakeMenu.instances
     main_titles = [item.title for item in main_menu.items]
 
     # The auto-update row is gone — update checks just stay on by default.
@@ -780,20 +753,17 @@ def test_switch_panel_menu_contains_update_items(
         _t("en", "terse_mode_menu"),
         "---",
         "Claude Code",
+    ]
+    assert settings[7].submenu is claude_submenu
+    assert [item.title for item in claude_submenu.items] == [
         "Side pane",
         "Beginner Mode",
         "Quota-Aware Mode",
     ]
-    section = settings[7]
-    assert section.enabled is False
-    assert section.action == ""
-    assert section.target is None
-    assert section.section_header is native_header
-    pane = settings[8]
+    pane, beginner, quota = claude_submenu.items
     assert pane.title == _t("en", "claude_pane_section_menu")
     assert pane.action == "toggleClaudePane:"
     assert pane.tooltip == _t("en", "claude_pane_tooltip")
-    assert pane.indentation == 1
 
     # Resume Last Session keeps its action and tooltip.
     butler = next(item for item in main_menu.items if item.action == "toggleSessionResume:")
@@ -803,20 +773,14 @@ def test_switch_panel_menu_contains_update_items(
     terse = next(item for item in main_menu.items if item.action == "toggleTerseMode:")
     assert terse.title == "Token Saver"
     assert terse.tooltip
-    beginner = next(item for item in main_menu.items if item.action == "toggleClaudeBeginner:")
-    assert beginner.title == "Beginner Mode"
-    assert beginner.indentation == 1
+    assert beginner.action == "toggleClaudeBeginner:"
     assert beginner.tooltip == _t("en", "claude_beginner_tooltip")
     assert beginner.state == 0
-    assert main_menu.items[main_menu.items.index(beginner) - 1].action == "toggleClaudePane:"
     assert beginner.target is delegate._beginner_menu_target
-    quota = next(item for item in main_menu.items if item.action == "toggleQuotaAware:")
-    assert quota.title == "Quota-Aware Mode"
-    assert quota.indentation == 1
+    assert quota.action == "toggleQuotaAware:"
     assert quota.state == int(quota_enabled)
     assert quota.tooltip == _t("en", "quota_aware_tooltip")
     assert quota.target is delegate._quota_aware_menu_target
-    assert main_menu.items[main_menu.items.index(quota) - 1] is beginner
     assert pane.target is delegate
     assert "Show in report" not in main_titles
 
