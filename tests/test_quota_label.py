@@ -403,7 +403,7 @@ def test_label_follows_provider_quota_and_persisted_toggle(monkeypatch: pytest.M
     monkeypatch.setattr(app, "TaskbarQuotaLabel", lambda _panel, _menu: label)
     prefs._save_preferences({"quota_label_enabled": True, "tray_provider": "codex"})
     controller = app._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace()
+    controller.window = SimpleNamespace(native=SimpleNamespace(InvokeRequired=False))
     controller.latest_state = replace(
         _state(),
         codex_session=replace(_state().codex_session, title="", percent=None),

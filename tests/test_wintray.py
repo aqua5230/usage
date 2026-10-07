@@ -50,6 +50,18 @@ def _no_real_monitor_lookup(monkeypatch: pytest.MonkeyPatch) -> None:
     )
 
 
+def _form(**attrs: Any) -> SimpleNamespace:
+    """A created WinForms Form, already on its UI thread."""
+    return SimpleNamespace(InvokeRequired=False, **attrs)
+
+
+def _window(**attrs: Any) -> SimpleNamespace:
+    """A pywebview Window double; real windows always expose native and evaluate_js."""
+    attrs.setdefault("native", _form())
+    attrs.setdefault("evaluate_js", lambda _code: True)
+    return SimpleNamespace(**attrs)
+
+
 class _Key:
     def __enter__(self) -> _Key:
         return self
@@ -382,7 +394,7 @@ def test_content_height_message_resizes_visible_panel_with_natural_height(
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.visible = True
-    controller.window = SimpleNamespace(x=0, y=0)
+    controller.window = _window(x=0, y=0)
     calls: list[str] = []
     monkeypatch.setattr(controller, "_working_area", lambda: (0, 0, 1000, 800))
     monkeypatch.setattr(controller, "_work_area_for_point", lambda _point: (0, 0, 1000, 800))
@@ -418,7 +430,7 @@ def test_panel_position_is_clamped_and_persisted_on_hide(
     )
     monkeypatch.setattr(prefs, "PREFERENCES_FILE", preferences_path)
     moves: list[tuple[int, int]] = []
-    window = SimpleNamespace(
+    window = _window(
         x=0,
         y=0,
         resize=lambda *args: None,
@@ -500,7 +512,7 @@ def test_physical_saved_position_returns_to_secondary_screen_after_restart(
     monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
     moves: list[tuple[int, int]] = []
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0, y=0, resize=lambda *_args: None, move=lambda x, y: moves.append((x, y))
     )
     controller._content_height = 400
@@ -540,7 +552,7 @@ def test_physical_saved_position_uses_current_secondary_dpi_scale(
     monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
     moves: list[tuple[int, int]] = []
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0, y=0, resize=lambda *_args: None, move=lambda x, y: moves.append((x, y))
     )
     controller._content_height = 400
@@ -574,7 +586,7 @@ def test_dpi_scaled_monitor_placement_uses_logical_coordinates(
     ]
     monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
     mutations: list[tuple[str, int, int]] = []
-    window = SimpleNamespace(
+    window = _window(
         x=2700,
         y=600,
         resize=lambda width, height: mutations.append(("resize", width, height)),
@@ -789,7 +801,7 @@ def test_physical_dpi_scaled_screens_are_converted_to_logical_coordinates(
     monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
     mutations: list[tuple[str, int, int]] = []
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0,
         y=0,
         resize=lambda width, height: mutations.append(("resize", width, height)),
@@ -824,7 +836,7 @@ def test_physical_dpi_scaled_saved_position_is_clamped_to_logical_screen(
     monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(screens=screens))
     moves: list[tuple[int, int]] = []
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0, y=0, resize=lambda *_args: None, move=lambda x, y: moves.append((x, y))
     )
     controller._content_height = 400
@@ -857,7 +869,7 @@ def test_physical_dpi_scaled_screens_use_logical_height_for_panel_zoom(
         return True
 
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0,
         y=0,
         evaluate_js=evaluate_js,
@@ -901,7 +913,7 @@ def test_short_high_dpi_panel_uses_native_work_area_and_keeps_footer_visible(
 
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.active_panel_id = "newspaper"
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0,
         y=0,
         evaluate_js=evaluate_js,
@@ -952,7 +964,7 @@ def test_text_size_scaling_sizes_the_window_by_the_rendered_scale(
     geometry: dict[str, int] = {}
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.active_panel_id = "newspaper"
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0,
         y=0,
         evaluate_js=lambda _code: True,
@@ -980,7 +992,7 @@ def test_pywebview_geometry_is_unchanged_without_a_page_render_scale(
     geometry: dict[str, int] = {}
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.active_panel_id = "newspaper"
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0,
         y=0,
         evaluate_js=lambda _code: True,
@@ -1060,7 +1072,7 @@ def test_panel_rechecks_native_work_area_before_final_move(
 
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.active_panel_id = "newspaper"
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0,
         y=0,
         evaluate_js=evaluate_js,
@@ -1111,7 +1123,7 @@ def test_panel_zoom_uses_saved_position_monitor_before_window_move(
 
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.active_panel_id = "newspaper"
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=1800,
         y=100,
         evaluate_js=evaluate_js,
@@ -1145,7 +1157,7 @@ def test_panel_scrolls_only_when_minimum_scale_cannot_fit(
         return True
 
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0,
         y=0,
         evaluate_js=evaluate_js,
@@ -1183,7 +1195,7 @@ def test_high_dpi_panel_zoom_can_fit_below_css_legibility_floor(
         return True
 
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0,
         y=0,
         evaluate_js=evaluate_js,
@@ -1220,7 +1232,7 @@ def test_standard_dpi_panel_zoom_keeps_css_legibility_floor(
         return True
 
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         x=0,
         y=0,
         evaluate_js=evaluate_js,
@@ -1275,7 +1287,7 @@ def test_failed_panel_zoom_does_not_resize_window_to_scaled_height(
         javascript.append(code)
         return zoom_ready
 
-    window = SimpleNamespace(
+    window = _window(
         x=0,
         y=0,
         evaluate_js=evaluate_js,
@@ -1379,7 +1391,7 @@ def test_switch_panel_keeps_dragged_position_before_new_height_is_measured(
     # was measured, snapping a dragged window back up to the top of the
     # screen on every switch.
     moves: list[tuple[int, int]] = []
-    window = SimpleNamespace(
+    window = _window(
         x=0,
         y=0,
         resize=lambda *args: None,
@@ -1429,7 +1441,7 @@ def test_switch_panel_keeps_dragged_position_on_secondary_monitor(
         return primary
 
     moves: list[tuple[int, int]] = []
-    window = SimpleNamespace(
+    window = _window(
         x=0,
         y=0,
         resize=lambda *args: None,
@@ -1852,7 +1864,7 @@ def test_show_panel_places_window_before_showing(
         controller, "inject_state", lambda *, force=False: calls.append(f"inject:{force}")
     )
     monkeypatch.setattr(controller, "refresh", lambda: calls.append("refresh"))
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         show=lambda: calls.append("show"), hide=lambda: calls.append("hide")
     )
 
@@ -1860,6 +1872,29 @@ def test_show_panel_places_window_before_showing(
 
     assert controller.visible is True
     assert calls == ["place", "show", "inject:True", "refresh"]
+
+
+def test_window_mutation_waits_until_native_form_exists() -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    calls: list[str] = []
+    controller.window = _window(native=None)
+
+    controller._dispatch_window_mutation(lambda: calls.append("first"))
+
+    assert calls == []
+    controller.window.native = _form()
+    controller._dispatch_window_mutation(lambda: calls.append("second"))
+    assert calls == ["first", "second"]
+
+
+def test_panel_zoom_reports_failure_when_page_script_raises() -> None:
+    def evaluate_js(_code: str) -> bool:
+        raise RuntimeError("page is reloading")
+
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = _window(evaluate_js=evaluate_js)
+
+    assert controller._apply_panel_zoom(1.0) is False
 
 
 def test_show_panel_queues_show_after_placement_on_ui_thread(
@@ -1873,7 +1908,7 @@ def test_show_panel_queues_show_after_placement_on_ui_thread(
         BeginInvoke=lambda callback: callbacks.append(callback),
     )
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         native=native,
         x=0,
         y=0,
@@ -1906,7 +1941,7 @@ def test_queued_show_panel_does_not_show_after_being_hidden(
         BeginInvoke=lambda callback: callbacks.append(callback),
     )
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         native=native,
         x=0,
         y=0,
@@ -2596,7 +2631,7 @@ def test_inject_state_skips_duplicate_but_forces_after_panel_reopens(
 ) -> None:
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     injected: list[str] = []
-    controller.window = SimpleNamespace(
+    controller.window = _window(
         evaluate_js=injected.append,
         show=lambda: None,
         hide=lambda: None,

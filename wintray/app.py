@@ -851,20 +851,18 @@ class _WindowsTrayController:
             self._place_window()
 
     def _apply_panel_zoom(self, scale: float, *, scroll: bool = False) -> bool:
-        if self.window is not None and hasattr(self.window, "evaluate_js"):
-            try:
-                result = self.window.evaluate_js(
-                    "typeof window.usageApplyPanelZoom === 'function' && "
-                    f"window.usageApplyPanelZoom({scale}, {self.panel_height()}"
-                    f"{', true' if scroll else ''})"
-                )
-                return result is True
-            except Exception:
-                logger.exception("Unable to apply panel zoom")
+        if self.window is None:
             return False
-        # Lightweight window doubles do not embed a browser. There is no DOM
-        # to scale, so geometry-only tests can proceed normally.
-        return self.window is not None
+        try:
+            result = self.window.evaluate_js(
+                "typeof window.usageApplyPanelZoom === 'function' && "
+                f"window.usageApplyPanelZoom({scale}, {self.panel_height()}"
+                f"{', true' if scroll else ''})"
+            )
+            return result is True
+        except Exception:
+            logger.exception("Unable to apply panel zoom")
+        return False
 
     def attach(self, icon: Any, window: Any) -> None:
         self.icon = icon
@@ -1350,10 +1348,6 @@ class _WindowsTrayController:
         window = self.window
         if window is None:
             return False
-        if not hasattr(window, "native"):
-            # Lightweight test doubles have no native control and execute synchronously.
-            self._drain_window_mutations()
-            return True
         native = window.native
         if native is None:
             # The tray can receive a click before pywebview has created its Form.
