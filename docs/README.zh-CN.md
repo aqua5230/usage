@@ -80,6 +80,8 @@ brew install --cask aqua5230/usage/usage
 
 ## 隐私与数据来源
 
+也支持 Claude 桌面版聊天的额度，不必另装 Claude Code CLI 或配置状态栏。请保持 Claude 桌面版打开：没有可用的 Claude Code 额度文件时，usage 会读取本地 `plan-usage-history.json`，Windows 的 Microsoft Store 安装版也支持。如果本地 Chromium 块文件 HTTP 缓存中有较新的额度响应，且组织一致，还会读取准确的会话与每周重置时间。较新的缓存观察优先于有采样延迟的历史记录；较旧的缓存须与百分比一致。缓存缺失、格式不支持、过期或数据不一致时，倒计时保持未知，不推测时间。桌面版通常每 5–15 分钟更新；面板显示数据更新时间，超过 30 分钟标记过期，超过两小时停止显示。采用最新一条组织数据，不会搜索自定义桌面配置目录。不需要 Cookie、登录令牌或 API 调用。这些额度缓存没有各项目的 token 明细；如果桌面会话也在 `~/.claude/projects/` 写入兼容的 Claude Code 日志，原有项目与 token 报表仍会统计。
+
 - Claude Code 和 Codex 的数值从你电脑上的本地日志文件读取。
 - Antigravity 配额需要联网，且只有你实际使用它才会发生：配额通过 Antigravity CLI 登录后保存的 OAuth 凭据，向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器，或本地 token 文件。`usage` 只读取该凭据而不写回，任何刷新后的 access token 也只保留在内存中；该调用本身读取配额信息。
 - 后台网络活动范围：上述 Antigravity 配额／token 接口、用于标记故障的 Claude 与 Codex 公开状态页、用于估算费用的公开模型价格表（离线时回退到内置价格），以及偶尔在 GitHub 检查新版本。Claude Code 与 Codex 的日志内容不会被上传。
@@ -88,7 +90,7 @@ brew install --cask aqua5230/usage/usage
 ## 系统要求
 
 - macOS 12（Monterey）或更新版本，或 Windows 10/11
-- 至少使用过一次 Claude Code、Codex、Antigravity 或 Grok CLI（以便存在本地使用数据）。
+- Claude Code、Codex、Antigravity 或 Grok CLI 的本地使用数据，或已打开并生成额度历史的 Claude 桌面版。
 - （仅限源代码运行）Python 3.13。
 
 ## 安装

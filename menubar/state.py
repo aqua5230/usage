@@ -871,6 +871,7 @@ def build_popover_state(
             CLAUDE_COLOR,
             language,
             forecast_seconds=burn_rate_trackers["claude_session"].forecast_seconds(),
+            allow_unknown_reset=snapshot.data_source == "claude-desktop",
         )
         claude_weekly = _quota_row(
             _t(language, "weekly_label"),
@@ -885,6 +886,7 @@ def build_popover_state(
             ),
             warning_max_seconds=24 * 3600,
             window_seconds=WEEKLY_WINDOW_SECONDS,
+            allow_unknown_reset=snapshot.data_source == "claude-desktop",
         )
         status_value = _status_message_value(outcome, "status_synced", language)
         if snapshot.is_stale or snapshot.data_source != "hook":
@@ -974,10 +976,19 @@ def _quota_row(
     warning_max_seconds: float | None = None,
     *,
     window_seconds: float | None = None,
+    allow_unknown_reset: bool = False,
 ) -> QuotaRowState:
-    if pct is None or resets_at is None:
+    if pct is None or (resets_at is None and not allow_unknown_reset):
         return _missing_row(title, color, language)
     pct = max(0.0, min(100.0, float(pct)))
+    if resets_at is None:
+        return QuotaRowState(
+            title=title,
+            percent=pct,
+            percent_text=_t(language, "percent_used", value=_format_percent(pct)),
+            reset_text=_t(language, "reset_placeholder"),
+            color=_bar_color(pct, color),
+        )
     time_to_reset = resets_at - now
     warning_seconds: float | None = None
     if time_to_reset <= 0:

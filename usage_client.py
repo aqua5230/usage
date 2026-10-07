@@ -11,6 +11,7 @@ import logging
 import math
 import os
 import time
+from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import datetime
 from enum import StrEnum
@@ -19,6 +20,7 @@ from typing import Any
 
 from i18n import _t
 from installer.setup_hook import current_hook_state
+from loaders import claude_desktop
 from loaders.claude_paths import claude_config_dirs, claude_json_path
 from usage_common.usage_lang import detect_lang
 
@@ -48,9 +50,9 @@ class PollState(StrEnum):
 @dataclass(slots=True)
 class UsageSnapshot:
     current_percent: int | None
-    current_reset_at: float
+    current_reset_at: float | None
     weekly_percent: int | None
-    weekly_reset_at: float
+    weekly_reset_at: float | None
     current_status: str
     polled_at: float
     is_stale: bool = False
@@ -228,10 +230,18 @@ def _time_adjusted(snapshot: UsageSnapshot) -> UsageSnapshot:
     """Re-derive expiry-sensitive fields of a cached snapshot at the current time."""
     now = time.time()
     five_pct = snapshot.current_percent
-    if five_pct is not None and snapshot.current_reset_at < now:
+    if (
+        five_pct is not None
+        and snapshot.current_reset_at is not None
+        and snapshot.current_reset_at < now
+    ):
         five_pct = 0
     seven_pct = snapshot.weekly_percent
-    if seven_pct is not None and snapshot.weekly_reset_at < now:
+    if (
+        seven_pct is not None
+        and snapshot.weekly_reset_at is not None
+        and snapshot.weekly_reset_at < now
+    ):
         seven_pct = 0
     return UsageSnapshot(
         current_percent=five_pct,
@@ -345,8 +355,35 @@ def _build_snapshot(data: dict[str, Any], *, data_source: str = "hook") -> Usage
     )
 
 
+def read_quota_fallback(
+    cache_reader: Callable[[], UsageSnapshot | None] | None = None,
+) -> UsageSnapshot | None:
+    """Use the same Claude Code cache -> Desktop priority in the app and CLI.
+
+    Call only after checking for a complete status-line payload. Keep the GUI's
+    mtime-based cache reader while the CLI uses the same uncached parser.
+    """
+    cached = (cache_reader or _read_claude_json_snapshot)()
+    if cached is not None:
+        return cached
+    now = time.time()
+    desktop = claude_desktop.load_desktop_quota(now)
+    if desktop is None:
+        return None
+    return UsageSnapshot(
+        current_percent=desktop.current_percent,
+        current_reset_at=desktop.current_reset_at,
+        weekly_percent=desktop.weekly_percent,
+        weekly_reset_at=desktop.weekly_reset_at,
+        current_status="",
+        polled_at=desktop.polled_at,
+        is_stale=now - desktop.polled_at > claude_desktop.STALE_SECONDS,
+        data_source="claude-desktop",
+    )
+
+
 class ClaudeUsageClient:
-    """Read quota state from the local JSON written by the Claude Code statusLine hook."""
+    """Read Claude Code quota files, falling back to Claude Desktop's local history."""
 
     def __init__(self, *, interval_seconds: int = 60, mock: bool = False) -> None:
         self.interval_seconds = interval_seconds
@@ -367,8 +404,6 @@ class ClaudeUsageClient:
         if self.mock:
             return self._mock_outcome()
 
-        claude_json_snapshot = self._read_claude_json_snapshot_cached()
-
         if (
             (stat_result := _status_file_stat()) is not None
             and self._cached_data is not None
@@ -384,8 +419,9 @@ class ClaudeUsageClient:
                 self._cached_data = None
                 self._cached_path = None
                 self._cached_mtime = None
-                if claude_json_snapshot is not None:
-                    return self._success_outcome(claude_json_snapshot)
+                fallback_snapshot = read_quota_fallback(self._read_claude_json_snapshot_cached)
+                if fallback_snapshot is not None:
+                    return self._success_outcome(fallback_snapshot)
                 message_key = "usage_status_missing"
                 if current_hook_state() in {
                     "us-direct",
@@ -406,11 +442,12 @@ class ClaudeUsageClient:
         # In particular its fetchedAtMs can be newer than the hook timestamp while
         # still describing a different/expired session.  A complete statusLine
         # payload must therefore always win; use the cache only when the hook has
-        # not provided both quota windows yet.
-        if claude_json_snapshot is not None and not _has_complete_rate_limits(data):
-            return self._success_outcome(claude_json_snapshot)
-
+        # not provided both quota windows yet. Desktop history is also a fallback;
+        # it never replaces a complete hook payload or supplies invented resets.
         if not _has_complete_rate_limits(data):
+            fallback_snapshot = read_quota_fallback(self._read_claude_json_snapshot_cached)
+            if fallback_snapshot is not None:
+                return self._success_outcome(fallback_snapshot)
             outcome = PollOutcome(
                 state=PollState.LOADING,
                 message="awaiting_rate_limits",
@@ -468,8 +505,14 @@ class ClaudeUsageClient:
         source_path: str | None = None,
     ) -> PollOutcome:
         now = time.time()
-        message = _hook_broken_message(now, snapshot.polled_at)
-        if snapshot.is_stale:
+        message: str | None
+        if snapshot.data_source == "claude-desktop":
+            minutes = max(0, int((now - snapshot.polled_at) / 60))
+            key = "claude_desktop_stale" if snapshot.is_stale else "claude_desktop_updated"
+            message = _t(detect_lang(), key, minutes=minutes)
+        else:
+            message = _hook_broken_message(now, snapshot.polled_at)
+        if snapshot.is_stale and snapshot.data_source != "claude-desktop":
             source_tag = {
                 "tt-fallback": "tt-status",
                 "claude-json": "claude.json",

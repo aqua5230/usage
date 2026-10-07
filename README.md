@@ -80,6 +80,8 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 
 ## Privacy & Data Sources
 
+Claude Desktop chat quota is also supported without installing the standalone Claude Code CLI or configuring a status line. Keep Claude Desktop open: when Claude Code quota files are unavailable, usage reads its local `plan-usage-history.json` (including Microsoft Store installations on Windows). When a recent response in its local Chromium block-file HTTP cache matches the organization, usage also reads the exact session and weekly reset times. Newer cached observations take precedence over throttled history samples; older cache must match the percentages. Missing, unsupported, expired, or inconsistent cache data leaves the countdown unknown; times are never estimated. Desktop samples normally update every 5–15 minutes. The panel shows the observation age, marks it stale after 30 minutes, and stops displaying it after two hours. The most recent organization sample is used; custom desktop profiles are not discovered. No cookies, login tokens, or API calls are needed. These quota caches contain no per-project token counts. Desktop sessions that also write compatible Claude Code logs under `~/.claude/projects/` are counted by the existing project/token reports.
+
 - Claude Code and Codex numbers are read from local log files on your machine.
 - Antigravity quota requires network access, and only if you use it: quota is fetched from Google's official quota endpoint using the OAuth credential the Antigravity CLI already stored after sign-in — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version. `usage` reads that credential without writing it back and keeps any refreshed access token in memory only; the call itself reads quota metadata.
 - Background network activity: the Antigravity quota/token endpoints above, public Claude and Codex status pages to flag outages, a public model-pricing table to estimate cost (falls back to built-in prices offline), and occasionally checking GitHub for a new version. Claude Code and Codex log contents are never uploaded.
@@ -88,7 +90,7 @@ It lands in your Applications folder automatically. Open it once; if macOS 15 or
 ## Requirements
 
 - macOS 12 (Monterey) or newer, or Windows 10/11
-- Claude Code, Codex, Antigravity, or Grok CLI has been used at least once (so local usage data exists).
+- Local usage data from Claude Code, Codex, Antigravity, or Grok CLI, or a running Claude Desktop app with plan-usage history.
 - (Source runs only) Python 3.13.
 
 ## Install

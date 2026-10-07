@@ -69,7 +69,7 @@
     "awaiting_rate_limits": "請對 Claude Code 發送一句訊息以同步配額",
     "hook_broken_not_installed": "⚠ 狀態列沒在更新，請按「設定狀態列」重新安裝",
     "hook_broken_restart": "⚠ 狀態列沒在運作，請重開一次 Claude Code",
-    "usage_status_missing": "⚠ 找不到狀態檔，請按「設定狀態列」，再打開一次 Claude Code",
+    "usage_status_missing": "尚無額度資料。請保持 Claude 桌面版開啟，或設定狀態列後啟動終端機的 Claude Code。",
     "usage_status_missing_active": "⚠ 配額資料只能靠終端機的狀態列同步，桌面版／背景工作階段不會觸發，請開一次終端機的 Claude Code 來同步",
     "usage_status_no_quota": "⚠ 狀態檔尚無配額資料，等 Claude Code 再刷新一次 statusLine",
     "status_error": "錯誤 ({message})",
@@ -542,7 +542,9 @@
     "quota_aware_enabled_msg": "已開啟額度感知模式。請重啟 Claude Code 套用。",
     "quota_aware_disabled_msg": "已關閉額度感知模式。請重啟 Claude Code 套用。",
     "quota_aware_action_failed": "無法切換額度感知模式。",
-    "claude_beginner_error": "新手模式：{error}"
+    "claude_beginner_error": "新手模式：{error}",
+    "claude_desktop_updated": "Claude 桌面版 · {minutes} 分鐘前更新",
+    "claude_desktop_stale": "Claude 桌面版 · 資料過期 · {minutes} 分鐘前更新"
   },
   "en": {
     "panel_default_name": "Default",
@@ -614,7 +616,7 @@
     "awaiting_rate_limits": "Send a message in Claude Code to sync your quota",
     "hook_broken_not_installed": "⚠ Status line is not updating. Click \"Set Up Status Line\" to reinstall it.",
     "hook_broken_restart": "⚠ Status line hook is not running. Restart Claude Code once.",
-    "usage_status_missing": "⚠ Status file not found. Click \"Set Up Status Line\", then open Claude Code once.",
+    "usage_status_missing": "No quota data yet. Keep Claude Desktop open, or set up the status line and start Claude Code in a terminal.",
     "usage_status_missing_active": "⚠ Quota data only syncs via the terminal status line — the desktop app and headless sessions don't trigger it. Open Claude Code in a terminal once to sync.",
     "usage_status_no_quota": "⚠ Status file has no quota data yet. Wait for Claude Code to refresh statusLine once.",
     "status_error": "Error ({message})",
@@ -1087,7 +1089,9 @@
     "quota_aware_enabled_msg": "Quota-Aware Mode enabled. Restart Claude Code to apply.",
     "quota_aware_disabled_msg": "Quota-Aware Mode disabled. Restart Claude Code to apply.",
     "quota_aware_action_failed": "Could not change Quota-Aware Mode.",
-    "claude_beginner_error": "Beginner Mode: {error}"
+    "claude_beginner_error": "Beginner Mode: {error}",
+    "claude_desktop_updated": "Claude Desktop · updated {minutes}m ago",
+    "claude_desktop_stale": "Claude Desktop · stale · updated {minutes}m ago"
   },
   "zh-CN": {
     "panel_default_name": "默认",
@@ -1159,7 +1163,7 @@
     "awaiting_rate_limits": "请对 Claude Code 发送一句消息以同步配额",
     "hook_broken_not_installed": "⚠ 状态栏没有更新，请点「设置状态栏」重新安装",
     "hook_broken_restart": "⚠ 状态栏没有运行，请重开一次 Claude Code",
-    "usage_status_missing": "⚠ 找不到状态文件，请点「设置状态栏」，再打开一次 Claude Code",
+    "usage_status_missing": "尚无额度数据。请保持 Claude 桌面版打开，或设置状态栏后启动终端中的 Claude Code。",
     "usage_status_missing_active": "⚠ 配额数据只能靠终端的状态栏同步，桌面版／后台会话不会触发，请打开一次终端的 Claude Code 来同步",
     "usage_status_no_quota": "⚠ 状态文件还没有配额数据，等 Claude Code 再刷新一次 statusLine",
     "status_error": "错误 ({message})",
@@ -1632,7 +1636,9 @@
     "quota_aware_enabled_msg": "已开启额度感知模式。请重启 Claude Code 应用。",
     "quota_aware_disabled_msg": "已关闭额度感知模式。请重启 Claude Code 应用。",
     "quota_aware_action_failed": "无法切换额度感知模式。",
-    "claude_beginner_error": "新手模式：{error}"
+    "claude_beginner_error": "新手模式：{error}",
+    "claude_desktop_updated": "Claude 桌面版 · {minutes} 分钟前更新",
+    "claude_desktop_stale": "Claude 桌面版 · 数据过期 · {minutes} 分钟前更新"
   },
   "ja": {
     "panel_default_name": "デフォルト",
@@ -1704,7 +1710,7 @@
     "awaiting_rate_limits": "Claude Code にメッセージを送信してクォータを同期してください",
     "hook_broken_not_installed": "⚠ ステータスラインが更新されていません。「ステータスラインを設定」を押して再インストールしてください。",
     "hook_broken_restart": "⚠ ステータスライン hook が動作していません。Claude Code を一度再起動してください。",
-    "usage_status_missing": "⚠ ステータスファイルが見つかりません。「ステータスラインを設定」を押してから、Claude Code を一度起動してください。",
+    "usage_status_missing": "利用枠データがありません。Claude デスクトップを開いたままにするか、ステータスラインを設定してターミナルの Claude Code を起動してください。",
     "usage_status_missing_active": "⚠ クォータ情報はターミナルのステータスラインでのみ同期されます。デスクトップアプリやヘッドレスセッションでは同期されません。ターミナルで Claude Code を一度開いてください。",
     "usage_status_no_quota": "⚠ ステータスファイルにクォータデータがまだありません。Claude Code が statusLine をもう一度更新するまでお待ちください。",
     "status_error": "エラー ({message})",
@@ -2177,7 +2183,9 @@
     "quota_aware_enabled_msg": "クォータ認識モードを有効にしました。Claude Code を再起動してください。",
     "quota_aware_disabled_msg": "クォータ認識モードを無効にしました。Claude Code を再起動してください。",
     "quota_aware_action_failed": "クォータ認識モードを切り替えられませんでした。",
-    "claude_beginner_error": "初心者モード：{error}"
+    "claude_beginner_error": "初心者モード：{error}",
+    "claude_desktop_updated": "Claude デスクトップ · {minutes}分前に更新",
+    "claude_desktop_stale": "Claude デスクトップ · 古いデータ · {minutes}分前に更新"
   },
   "ko": {
     "panel_default_name": "기본",
@@ -2249,7 +2257,7 @@
     "awaiting_rate_limits": "Claude Code에 메시지를 보내 할당량을 동기화하세요",
     "hook_broken_not_installed": "⚠ 상태 표시줄이 업데이트되지 않습니다. \"상태 표시줄 설정\"을 눌러 다시 설치하세요.",
     "hook_broken_restart": "⚠ 상태 표시줄 hook이 작동하지 않습니다. Claude Code를 한 번 다시 시작하세요.",
-    "usage_status_missing": "⚠ 상태 파일을 찾을 수 없습니다. \"상태 표시줄 설정\"을 누른 뒤 Claude Code를 한 번 여세요.",
+    "usage_status_missing": "사용 한도 데이터가 없습니다. Claude 데스크톱을 열어 두거나 상태 표시줄을 설정한 뒤 터미널에서 Claude Code를 실행하세요.",
     "usage_status_missing_active": "⚠ 할당량 데이터는 터미널 상태 표시줄로만 동기화됩니다. 데스크톱 앱이나 헤드리스 세션에서는 동기화되지 않습니다. 터미널에서 Claude Code를 한 번 열어주세요.",
     "usage_status_no_quota": "⚠ 상태 파일에 아직 할당량 데이터가 없습니다. Claude Code가 statusLine을 한 번 더 새로 고칠 때까지 기다리세요.",
     "status_error": "오류 ({message})",
@@ -2722,6 +2730,8 @@
     "quota_aware_enabled_msg": "할당량 인식 모드를 켰습니다. Claude Code를 다시 시작해 주세요.",
     "quota_aware_disabled_msg": "할당량 인식 모드를 껐습니다. Claude Code를 다시 시작해 주세요.",
     "quota_aware_action_failed": "할당량 인식 모드를 변경할 수 없습니다.",
-    "claude_beginner_error": "초보자 모드: {error}"
+    "claude_beginner_error": "초보자 모드: {error}",
+    "claude_desktop_updated": "Claude 데스크톱 · {minutes}분 전 업데이트",
+    "claude_desktop_stale": "Claude 데스크톱 · 오래된 데이터 · {minutes}분 전 업데이트"
   }
 }

@@ -10,6 +10,8 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
+import usage_client
+
 from .types import RateLimits
 
 STATUS_FILE = os.path.expanduser("~/.claude/usage-status.json")
@@ -42,8 +44,12 @@ def _read_status() -> dict[str, Any] | None:
 
 def load_rate_limits() -> RateLimits | None:
     data = _read_status()
-    if data is None:
-        return None
+    if data is None or not usage_client._has_complete_rate_limits(data):
+        snapshot = usage_client.read_quota_fallback()
+        if snapshot is not None:
+            return _snapshot_rate_limits(snapshot)
+        if data is None:
+            return None
 
     rl = data.get("rate_limits") or {}
     five = rl.get("five_hour") or {}
@@ -73,4 +79,19 @@ def load_rate_limits() -> RateLimits | None:
         seven_day_resets_at=int(seven_reset) if seven_reset is not None else None,
         model=model_name,
         updated_at=data.get("_received_at", ""),
+    )
+
+
+def _snapshot_rate_limits(quota: usage_client.UsageSnapshot) -> RateLimits:
+    return RateLimits(
+        five_hour_pct=quota.current_percent,
+        seven_day_pct=quota.weekly_percent,
+        five_hour_resets_at=int(quota.current_reset_at)
+        if quota.current_reset_at is not None
+        else None,
+        seven_day_resets_at=int(quota.weekly_reset_at)
+        if quota.weekly_reset_at is not None
+        else None,
+        model="",
+        updated_at=datetime.fromtimestamp(quota.polled_at, timezone.utc).isoformat(),
     )

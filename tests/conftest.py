@@ -30,6 +30,13 @@ collect_ignore = (
 
 
 @pytest.fixture(autouse=True)
+def _isolate_desktop_quota(monkeypatch: pytest.MonkeyPatch) -> None:
+    from loaders import claude_desktop
+
+    monkeypatch.setattr(claude_desktop, "desktop_history_paths", lambda: ())
+
+
+@pytest.fixture(autouse=True)
 def _isolate_log_dir(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Keep every test out of the real ~/Library/Logs/usage directory.
 
