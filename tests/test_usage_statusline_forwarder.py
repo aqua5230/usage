@@ -16,7 +16,7 @@ from typing import Any
 
 import pytest
 
-usage_statusline_forwarder: Any = import_module("usage_statusline_forwarder")
+usage_statusline_forwarder: Any = import_module("usage_hooks.usage_statusline_forwarder")
 
 
 def test_windows_output_reconfigures_both_streams(monkeypatch: pytest.MonkeyPatch) -> None:

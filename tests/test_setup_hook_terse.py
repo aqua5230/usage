@@ -556,16 +556,16 @@ def test_terse_script_version_matches_hook_constant() -> None:
     """The self-heal compares the installed script's __version__ against
     TERSE_HOOK_VERSION. If the two drift apart the comparison never matches and
     every session rewrites the sidecar, so keep them in lockstep."""
-    source = (Path(__file__).resolve().parents[1] / "usage_terse_mode.py").read_text(
-        encoding="utf-8"
-    )
+    source = (
+        Path(__file__).resolve().parents[1] / "usage_hooks" / "usage_terse_mode.py"
+    ).read_text(encoding="utf-8")
     match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
     assert match, "usage_terse_mode.py has no __version__ line"
     assert match.group(1) == session_hooks.TERSE_HOOK_VERSION
 
-    reminder = (Path(__file__).resolve().parents[1] / "usage_terse_reminder.py").read_text(
-        encoding="utf-8"
-    )
+    reminder = (
+        Path(__file__).resolve().parents[1] / "usage_hooks" / "usage_terse_reminder.py"
+    ).read_text(encoding="utf-8")
     reminder_match = re.search(r'^__version__ = "([^"]+)"$', reminder, re.M)
     assert reminder_match, "usage_terse_reminder.py has no __version__ line"
     assert reminder_match.group(1) == session_hooks.TERSE_REMINDER_HOOK_VERSION

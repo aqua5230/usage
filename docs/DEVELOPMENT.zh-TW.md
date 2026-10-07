@@ -78,7 +78,7 @@ python3 main.py --setup
 setup 具體做了什麼：
 
 - 如果有 Codex，在 `~/.codex/config.toml` 設定 `tui.status_line`
-- 如果有 Claude Code，把 `usage_statusline.py` 複製到 `~/.claude/usage-statusline.py`
+- 如果有 Claude Code，把 `usage_hooks/usage_statusline.py` 複製到 `~/.claude/usage-statusline.py`
 - 如果有 Claude Code，在 `~/.claude/settings.json` 把 `statusLine` 指向這個 hook
 - 如果你本來就有自訂的 Claude Code statusLine，會自動備份到 `settings.usage.previousStatusLine`，不會被蓋掉
 

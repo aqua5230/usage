@@ -8,7 +8,7 @@
 
 Claude Code calls the command configured in ~/.claude/settings.json statusLine
 and sends session JSON on stdin whenever it refreshes the status line. The
-installer copies usage_statusline.py to ~/.claude/usage-statusline.py and points
+installer copies usage_hooks/usage_statusline.py to ~/.claude/usage-statusline.py and points
 statusLine at it, so the main app can read a local status file.
 
 The previous statusLine is backed up under settings["usage"]["previousStatusLine"]
@@ -118,9 +118,9 @@ def configure_windows_utf8_output() -> None:
 
 
 def _resolve_hook_source() -> Path:
-    # installer/ is one level below the repo root, where the hook scripts remain.
+    # installer/ is one level below the repo root; hook sources live in usage_hooks/.
     paths = [
-        Path(__file__).resolve().parent.parent / "usage_statusline.py",
+        Path(__file__).resolve().parent.parent / "usage_hooks" / "usage_statusline.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_statusline.py",
     ]
     for path in paths:
@@ -132,7 +132,7 @@ def _resolve_hook_source() -> Path:
 
 def _resolve_forwarder_source() -> Path:
     paths = [
-        Path(__file__).resolve().parent.parent / "usage_statusline_forwarder.py",
+        Path(__file__).resolve().parent.parent / "usage_hooks" / "usage_statusline_forwarder.py",
         (
             Path(sys.executable).resolve().parent.parent
             / "Resources"
@@ -148,7 +148,7 @@ def _resolve_forwarder_source() -> Path:
 
 def _resolve_agy_hook_source() -> Path | None:
     paths = [
-        Path(__file__).resolve().parent.parent / "usage_statusline_agy.py",
+        Path(__file__).resolve().parent.parent / "usage_hooks" / "usage_statusline_agy.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_statusline_agy.py",
     ]
     return next((path for path in paths if path.exists()), None)
@@ -166,7 +166,7 @@ def _agy_hook_script_is_stale() -> bool:
 
 def _resolve_grok_hook_source() -> Path | None:
     paths = [
-        Path(__file__).resolve().parent.parent / "usage_statusline_grok.py",
+        Path(__file__).resolve().parent.parent / "usage_hooks" / "usage_statusline_grok.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_statusline_grok.py",
     ]
     return next((path for path in paths if path.exists()), None)
@@ -1277,7 +1277,7 @@ def is_codex_setup() -> bool:
 
 
 def _install_forwarder(settings: dict[str, Any]) -> None:
-    """Copy usage_statusline_forwarder.py to ~/.claude/ and update settings.json."""
+    """Copy usage_hooks/usage_statusline_forwarder.py to ~/.claude/ and update settings.json."""
     _copy_hook_script()
     _copy_forwarder_script()
     _backup_existing_statusline(settings)
