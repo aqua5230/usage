@@ -162,7 +162,8 @@ def test_group_caches_result(monkeypatch: pytest.MonkeyPatch) -> None:
 
     assert tracker.group() == 1
     assert tracker.group() == 1
-    assert calls == 1
+    # One load for the last hour, one for the 30-day baseline.
+    assert calls == 2
 
 
 def test_group_uses_custom_loader(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -191,3 +192,73 @@ def test_group_keeps_five_minute_floor(monkeypatch: pytest.MonkeyPatch) -> None:
     tracker = usage_rate.UsageRateTracker(load=lambda hours_back: [_entry(20_000)])
 
     assert tracker.group() == 2
+
+
+def _hours(rates: list[int]) -> list[UsageEntry]:
+    return [
+        _entry(rate * 60, timestamp=START_TIME - timedelta(hours=index + 1))
+        for index, rate in enumerate(rates)
+    ]
+
+
+def test_baseline_uses_own_percentiles() -> None:
+    assert usage_rate.baseline_thresholds(_hours(list(range(1, 101)))) == (
+        25.75,
+        75.25,
+        95.05,
+    )
+
+
+def test_baseline_falls_back_without_enough_hours() -> None:
+    assert usage_rate.baseline_thresholds(_hours([10_000] * 23)) == (500.0, 2500.0, 6000.0)
+
+
+def test_baseline_sums_an_hour_and_skips_cache_reads() -> None:
+    entries = _hours([100] * 23) + [
+        _entry(3_000, timestamp=START_TIME),
+        _entry(3_000, timestamp=START_TIME + timedelta(minutes=30)),
+        UsageEntry(
+            timestamp=START_TIME + timedelta(hours=1),
+            session_id="session",
+            message_id="message",
+            request_id="request",
+            model="claude-sonnet",
+            input_tokens=0,
+            output_tokens=0,
+            cache_creation_tokens=0,
+            cache_read_tokens=5_000_000,
+            cost_usd=None,
+            project="project",
+        ),
+    ]
+
+    # 24 hours with usage: 23 at 100/min and one at 6,000 tokens / 60 = 100/min.
+    assert usage_rate.baseline_thresholds(entries) == (100.0, 100.0, 100.0)
+
+
+def test_group_uses_baseline_levels(monkeypatch: pytest.MonkeyPatch) -> None:
+    history = _hours(list(range(1_000, 101_000, 1_000)))
+    recent = [_entry(30_000 * 5)]
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=5))
+    tracker = usage_rate.UsageRateTracker(
+        load=lambda hours_back: history if hours_back == usage_rate.BASELINE_HOURS else recent
+    )
+
+    # 30,000/min is Heavy on fixed limits but between p25 and p75 here.
+    assert tracker.group() == 1
+
+
+def test_baseline_is_cached_across_refreshes(monkeypatch: pytest.MonkeyPatch) -> None:
+    loads: list[int] = []
+
+    def load(hours_back: int) -> list[UsageEntry]:
+        loads.append(hours_back)
+        return [_entry(2500)]
+
+    _freeze_utc_now(monkeypatch, START_TIME + timedelta(minutes=5))
+    tracker = usage_rate.UsageRateTracker(load=load)
+    tracker.group()
+    tracker._cache_expires_at = 0.0
+    tracker.group()
+
+    assert loads == [1, usage_rate.BASELINE_HOURS, 1]
