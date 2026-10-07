@@ -46,6 +46,7 @@ from menubar.prefs import (
     _save_panel_flavor,
     _window_keeper_enabled,
 )
+from panels.catalog import PANEL_SPECS
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
 from panels.panel_scale import MIN_PANEL_SCALE, fit_panel_size, fit_scale
 from panels.payload import _load_panel_html, _state_payload, resolve_resource
@@ -85,47 +86,9 @@ TOOLTIP_MAX_LENGTH = 127
 PANEL_WIDTH = 380
 _TOAST_AUMID = "com.lollapalooza.usage"
 _TOAST_OPEN_PANEL_ACTION = "open_panel"
-WINDOWS_PANELS = (
-    ("classic", "panel_default_name", "classic.html"),
-    ("matrix", "panel_matrix", "matrix.html"),
-    ("win95", "panel_win95", "win95.html"),
-    ("newspaper", "panel_newspaper", "newspaper.html"),
-    ("cloud_observation", "panel_cloud_observation", "cloud_observation.html"),
-    ("aquarium", "panel_aquarium", "aquarium.html"),
-    ("prism_arcade", "panel_prism_arcade", "prism_arcade.html"),
-    ("black_hole", "panel_black_hole", "black_hole.html"),
-    ("lepidoptera", "panel_lepidoptera", "lepidoptera.html"),
-    ("world_cup", "panel_world_cup", "world_cup.html"),
-    ("stained_glass", "panel_stained_glass", "stained_glass.html"),
-    ("migration", "panel_migration", "migration.html"),
-    ("sketchbook", "panel_sketchbook", "sketchbook.html"),
-    ("heart_monitor", "panel_heart_monitor", "heart_monitor.html"),
-    ("origami", "panel_origami", "origami.html"),
-    ("catppuccin", "panel_catppuccin", "catppuccin.html"),
-)
-# These are only the initial-placeholder fallback used before the WebView
-# reports its real content height (see panel_height()); kept in sync with
-# panels/__init__.py's Mac heights from 64a7c0b (Recalibrate HTML panel
-# heights and status-wrap growth) so the brief pre-measurement window isn't
-# ~17-24pt too tall.
-PANEL_HEIGHTS = {
-    "classic": 1132,
-    "matrix": 1174,
-    "win95": 1183,
-    "newspaper": 1179,
-    "cloud_observation": 1134,
-    "aquarium": 1134,
-    "prism_arcade": 1134,
-    "black_hole": 1134,
-    "lepidoptera": 1174,
-    "world_cup": 812,
-    "stained_glass": 1132,
-    "migration": 1132,
-    "sketchbook": 1132,
-    "heart_monitor": 1132,
-    "origami": 1132,
-    "catppuccin": 1166,
-}
+WINDOWS_PANELS = tuple((spec.id, spec.i18n_key, spec.html_filename) for spec in PANEL_SPECS)
+# Initial fallback heights until the WebView reports its actual content height.
+PANEL_HEIGHTS = {spec.id: int(spec.height) for spec in PANEL_SPECS}
 
 # Bright fills keep the dark numerals readable on both Windows taskbar themes.
 TRAY_UNKNOWN_COLOR = (125, 211, 252, 255)
