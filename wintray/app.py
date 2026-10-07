@@ -25,7 +25,6 @@ import quota.agy_window_keeper as agy_window_keeper
 import quota.codex_window_keeper as codex_window_keeper
 import quota.window_keeper as window_keeper
 from analyzer import diagnosis_snapshot
-from i18n import _t
 from installer.statusline_settings import _statusline_enabled, _toggle_statusline_settings
 from loaders import codex_loader, grok_loader
 from loaders.history_loader import UsageEntry, load_entries
@@ -49,8 +48,6 @@ from menubar.prefs import (
 from panels.dynamic_height import clamp_content_height, inject_content_height_script
 from panels.panel_scale import MIN_PANEL_SCALE, fit_panel_size, fit_scale
 from panels.payload import _load_panel_html, _state_payload, resolve_resource
-from prefs import _load_preferences, _save_preferences
-from pricing import calculate_cost
 from quota import quota_snapshot
 from quota.burn_rate import BurnRateTracker
 from quota.notifications import NotificationEvent, QuotaNotifier
@@ -61,6 +58,9 @@ from updates.release_notes import alert_release_notes
 from usage_client import ClaudeUsageClient, PollState
 from usage_common import service_status
 from usage_common.app_version import current_version as _current_version
+from usage_common.i18n import _t
+from usage_common.prefs import _load_preferences, _save_preferences
+from usage_common.pricing import calculate_cost
 from usage_common.usage_lang import detect_lang
 from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu

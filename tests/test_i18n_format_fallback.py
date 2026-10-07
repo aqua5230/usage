@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import pytest
 
-import i18n
+from usage_common import i18n
 
 
 def test_t_falls_back_to_english_on_malformed_localized_placeholder(

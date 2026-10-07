@@ -18,10 +18,10 @@ from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
-from i18n import _t
 from installer.setup_hook import current_hook_state
 from loaders import claude_desktop
 from loaders.claude_paths import claude_config_dirs, claude_json_path
+from usage_common.i18n import _t
 from usage_common.usage_lang import detect_lang
 
 logger = logging.getLogger(__name__)

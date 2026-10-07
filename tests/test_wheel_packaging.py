@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pytest import MonkeyPatch
 
-import i18n
+from usage_common import i18n
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 

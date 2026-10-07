@@ -12,10 +12,10 @@ import ctypes
 from collections.abc import Mapping
 from typing import Any
 
-from i18n import _t
 from updates.checker import ReleaseInfo
 from updates.release_notes import alert_release_notes
 from updates.whats_new import start_notice
+from usage_common.i18n import _t
 
 # MessageBoxW needs no comctl32 v6 activation context, which the bundle's manifest does not
 # request; TaskDialogIndirect does. Yes/No labels come from the system language.

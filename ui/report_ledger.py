@@ -8,7 +8,7 @@ from __future__ import annotations
 import html
 from typing import Any, Mapping
 
-from i18n import _t
+from usage_common.i18n import _t
 
 
 def _label(lang: str, key: str, **kwargs: object) -> str:

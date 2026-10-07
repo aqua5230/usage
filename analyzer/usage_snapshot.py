@@ -27,7 +27,7 @@ from typing import NotRequired, TypeGuard, TypedDict
 
 from adapters.types import UsageEntry
 from loaders import cache_quarantine
-from pricing import calculate_cost
+from usage_common.pricing import calculate_cost
 
 logger = logging.getLogger(__name__)
 

@@ -9,8 +9,8 @@ import shutil
 import sys
 from pathlib import Path
 
-from i18n import t as _t
 from installer import setup_hook
+from usage_common.i18n import t as _t
 from usage_common.usage_lang import detect_lang
 
 INSTALL_DIR = Path.home() / ".usage" / "claude-pane" / "usage-dash"
@@ -81,7 +81,7 @@ def _status_argv() -> list[str]:
 
 
 def _sidecar_text(mod: str = "usage-dash") -> str:
-    from i18n import I18N_PATH
+    from usage_common.i18n import I18N_PATH
 
     bundle = json.loads(I18N_PATH.read_text(encoding="utf-8"))
     english = bundle["en"]

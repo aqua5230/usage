@@ -403,8 +403,8 @@ def _codex_rate_limits() -> CheckResult:
 def _claude_cost() -> CheckResult:
     import json
 
-    import pricing
     from loaders import history_loader
+    from usage_common import pricing
 
     try:
         status_data = json.loads(setup_hook.STATUS_FILE.read_text(encoding="utf-8"))

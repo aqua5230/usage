@@ -14,8 +14,8 @@ import pytest
 import adapters.registry as registry
 from adapters import agy
 from adapters.types import AgentInfo
-from i18n import t
 from loaders import agy_loader
+from usage_common.i18n import t
 
 
 @pytest.fixture

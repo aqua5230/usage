@@ -28,7 +28,7 @@ from analyzer.blocks import analyze_blocks, calculate_p90
 from analyzer import persona_loader
 from installer.session_hooks import disable_session_resume, disable_terse_mode
 from installer.setup_hook import is_claude_setup, is_codex_setup, is_setup, setup, unsetup
-from i18n import t
+from usage_common.i18n import t
 from ui.tables import (
     AGENT_LABEL,
     console,

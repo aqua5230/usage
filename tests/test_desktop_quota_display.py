@@ -9,11 +9,11 @@ import pytest
 import usage_cli
 import usage_client
 from adapters import rate_limits
-from i18n import _t
 from loaders import claude_desktop
 from menubar import state as state_module
 from quota.burn_rate import BurnRateTracker
 from tui import app as tui
+from usage_common.i18n import _t
 
 NOW = 2_000_000_000.0
 

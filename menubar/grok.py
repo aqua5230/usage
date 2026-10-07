@@ -12,7 +12,6 @@ import time
 from dataclasses import dataclass
 from typing import cast
 
-from i18n import _t
 from loaders.grok_quota_probe import GrokQuotaResult, find_grok, load_quota
 from menubar.state import (
     GROK_COLOR,
@@ -20,6 +19,7 @@ from menubar.state import (
     QuotaRowState,
     _quota_row,
 )
+from usage_common.i18n import _t
 from usage_common.time_utils import parse_iso8601_utc_or_raise
 
 GROK_STALE_SECONDS = 20 * 60

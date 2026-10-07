@@ -9,9 +9,8 @@ from typing import Any
 
 import pytest
 
-import i18n
-import prefs
 from tests.test_wintray import _state
+from usage_common import i18n, prefs
 from wintray import app, quota_label, taskbar_menu, taskbar_overlay
 from wintray.quota_label import TaskbarQuotaLabel, draw_label, taskbar_text_color
 from wintray.taskbar_overlay import TaskbarLayout, covers_monitor, intersects, label_position

@@ -10,7 +10,6 @@ from typing import cast
 
 import pytest
 
-import prefs
 from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
 from loaders.grok_quota_probe import GrokQuotaResult
 from menubar import agy as menubar_agy
@@ -18,6 +17,7 @@ from menubar import app as menubar
 from menubar import grok as menubar_grok
 from panels.web_panel import UsageScriptBridge, _row_payload, _state_payload
 from quota.burn_rate import BurnRateTracker
+from usage_common import prefs
 
 
 def test_state_payload_includes_agy_card_data() -> None:

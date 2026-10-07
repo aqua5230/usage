@@ -34,9 +34,9 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any, cast
 
-from i18n import t as _t
 from loaders.claude_paths import claude_home
 from loaders.codex_paths import codex_home
+from usage_common.i18n import t as _t
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-statusline.py"))

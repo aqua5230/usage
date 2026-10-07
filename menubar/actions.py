@@ -16,7 +16,6 @@ from typing import Any, Protocol
 
 from Foundation import NSObject
 
-from i18n import _t
 from installer import session_hooks, setup_hook
 from installer.statusline_settings import (
     _disable_statusline_settings,
@@ -26,6 +25,7 @@ from installer.statusline_settings import (
 )
 from menubar.chrome import _make_alert
 from menubar.new_badge import dismiss_badge
+from usage_common.i18n import _t
 from usage_common.usage_lang import detect_lang
 
 logger = logging.getLogger(__name__)

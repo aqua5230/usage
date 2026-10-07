@@ -17,7 +17,6 @@ from AppKit import NSColor, NSFont, NSMakeRect, NSTextField, NSView
 from Foundation import NSObject
 from Quartz import CGColorCreateGenericRGB
 
-from i18n import _load_i18n_bundle
 from menubar.prefs import (
     _panel_flavor,
     _save_agy_quota_group,
@@ -34,6 +33,7 @@ from panels.payload import (
     _state_payload,
 )
 from panels.window_drag import inject_window_drag_script
+from usage_common.i18n import _load_i18n_bundle
 
 __all__ = [
     "_data_uri",

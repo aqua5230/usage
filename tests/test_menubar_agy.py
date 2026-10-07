@@ -8,11 +8,11 @@ from pathlib import Path
 
 import pytest
 
-import prefs
 from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
 from menubar import agy as menubar_agy
 from menubar.prefs import _save_agy_quota_group
 from quota.burn_rate import BurnRateTracker
+from usage_common import prefs
 
 
 def _group(

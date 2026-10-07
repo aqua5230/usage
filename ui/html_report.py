@@ -28,7 +28,7 @@ from analyzer.reporter import (
     ReportData,
 )
 
-from i18n import _t as _i18n_t, packaged_resource_path
+from usage_common.i18n import _t as _i18n_t, packaged_resource_path
 from usage_common.usage_lang import detect_lang
 from usage_common.subprocess_utils import hidden_console_kwargs
 from ui.report_charts import render_share_bar, render_trend_bar

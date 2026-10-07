@@ -2,9 +2,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from i18n import _t
 from menubar import manual_refresh
 from menubar.state import _empty_state
+from usage_common.i18n import _t
 
 
 @pytest.mark.parametrize("normal", ["status_synced", "data_stale_hint", "status_no_data"])

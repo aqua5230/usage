@@ -9,10 +9,10 @@ from pathlib import Path
 
 import pytest
 
-import pricing
 from adapters import muse
 from loaders import muse_loader
-from pricing import _fallback_pricing, _resolve_model_key
+from usage_common import pricing
+from usage_common.pricing import _fallback_pricing, _resolve_model_key
 
 
 def _session(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:

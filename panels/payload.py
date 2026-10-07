@@ -11,7 +11,7 @@ from functools import cache, lru_cache
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from i18n import _load_i18n_bundle
+from usage_common.i18n import _load_i18n_bundle
 
 if TYPE_CHECKING:
     from menubar.state import PopoverState, QuotaRowState

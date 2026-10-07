@@ -71,11 +71,10 @@ def _isolate_muse_sessions(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> N
 @pytest.fixture(autouse=True)
 def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Keep shared startup workers out of the user's real config directories."""
-    import prefs
     from analyzer import diagnosis_snapshot, usage_snapshot
     from installer import claude_pane, session_hooks
     from quota import quota_snapshot
-    from usage_common import service_status
+    from usage_common import prefs, service_status
     from usage_hooks import usage_session_resume
 
     state_dir = tmp_path / "user-state"

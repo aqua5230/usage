@@ -9,7 +9,7 @@ from __future__ import annotations
 from loaders import grok_loader as shared_grok_loader
 from loaders.history_loader import UsageEntry as GrokUsageEntry
 
-from i18n import t
+from usage_common.i18n import t
 
 from .types import AgentInfo, UsageEntry
 

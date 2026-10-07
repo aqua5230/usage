@@ -10,7 +10,6 @@ import pytest
 
 PROJECT_IMPORT_ROOTS = {
     "analyzer",
-    "i18n",
     "installer",
     "loaders",
     "menubar",

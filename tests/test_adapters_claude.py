@@ -13,8 +13,8 @@ from typing import Any
 
 import pytest
 
-import pricing
 from adapters import claude
+from usage_common import pricing
 
 
 @pytest.fixture(autouse=True)

@@ -16,9 +16,9 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from i18n import _load_i18n_bundle
 from tui.sprite import render_sprite
 from usage_client import PollState, UsageSnapshot
+from usage_common.i18n import _load_i18n_bundle
 from usage_common.usage_lang import detect_lang
 
 BG = "#000000"

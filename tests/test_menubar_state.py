@@ -454,7 +454,7 @@ def test_project_rows_for_windows_matches_window_boundaries() -> None:
 @pytest.mark.parametrize("offset", [-60.0, 0.0, 30.0, 3600.0])
 @pytest.mark.parametrize("language", ["en", "zh-TW", "zh-CN", "ja", "ko"])
 def test_quota_row_reset_display(offset: float, language: str) -> None:
-    from i18n import _t
+    from usage_common.i18n import _t
 
     row = menubar_state._quota_row(
         "Session", 95.0, 1000.0 + offset, 1000.0, menubar_state.CLAUDE_COLOR, language

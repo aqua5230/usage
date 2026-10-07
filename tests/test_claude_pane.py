@@ -153,7 +153,7 @@ def test_tilde_disable_and_reinstall(isolated: Path, monkeypatch: pytest.MonkeyP
     ],
 )
 def test_sidecar(isolated: Path, monkeypatch: pytest.MonkeyPatch, frozen: bool) -> None:
-    import i18n
+    from usage_common import i18n
 
     monkeypatch.setattr(sys, "frozen", frozen, raising=False)
     if frozen:
@@ -278,7 +278,7 @@ def test_status_argv_uses_windows_frozen_executable(monkeypatch: pytest.MonkeyPa
 def test_missing_sidecar_language_falls_back(
     isolated: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    import i18n
+    from usage_common import i18n
 
     monkeypatch.setattr(pane, "detect_lang", lambda: "missing")
     pane.enable_claude_pane()
@@ -438,7 +438,7 @@ def test_beginner_independent_toggle(isolated: Path) -> None:
 
 @pytest.mark.parametrize("lang", ["en", "zh-TW", "zh-CN", "ja", "ko"])
 def test_beginner_sidecar(isolated: Path, monkeypatch: pytest.MonkeyPatch, lang: str) -> None:
-    import i18n
+    from usage_common import i18n
 
     monkeypatch.setattr(pane, "detect_lang", lambda: lang)
     pane.enable_claude_beginner()

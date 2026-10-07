@@ -13,7 +13,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
-from prefs import _load_preferences
+from usage_common.prefs import _load_preferences
 from wintray.taskbar_menu import request_tray_menu as request_tray_menu
 from wintray.taskbar_obstacles import TaskbarObstacles
 from wintray.taskbar_overlay import TaskbarOverlay, label_position
