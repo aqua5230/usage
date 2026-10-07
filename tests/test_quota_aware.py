@@ -9,9 +9,9 @@ from typing import Any
 
 import pytest
 
-import usage_quota_aware as hook
 from installer import session_hooks, setup_hook
 from quota import quota_snapshot
+from usage_hooks import usage_quota_aware as hook
 
 NOW = 1_800_000_000.0
 RESET = NOW + 4800

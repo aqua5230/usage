@@ -48,15 +48,9 @@ py-modules = [
     "main",
     "usage_notifications",
     "pricing",
-    "usage_statusline",
-    "usage_statusline_agy",
-    "usage_statusline_grok",
     "usage_client",
     "i18n",
     "usage_cli",
-    "usage_statusline_forwarder",
-    "usage_session_resume",
-    "usage_terse_mode",
     "project_resolver",
     "doctor",
     "fsevents_watch",
@@ -64,12 +58,10 @@ py-modules = [
     "service_status",
     "setup_app",
     "usage_diagnosis_snapshot",
-    "usage_terse_reminder",
-    "usage_quota_aware",
 ]
 
 [tool.setuptools.packages.find]
-include = ["adapters*", "analyzer*", "installer*", "loaders*", "menubar*", "panels*", "quota*", "tui*", "ui*", "updates*", "usage_common*", "wintray*"]
+include = ["usage_hooks*", "adapters*", "analyzer*", "installer*", "loaders*", "menubar*", "panels*", "quota*", "tui*", "ui*", "updates*", "usage_common*", "wintray*"]
 
 # Top-level modules cannot collect adjacent data files via package-data.
 [tool.setuptools.data-files]
@@ -94,12 +86,12 @@ extend-exclude = ["release-win"]
 select = ["E", "F", "I", "UP", "B", "SIM"]
 
 [tool.ruff.lint.per-file-ignores]
-# usage_statusline.py 設計成可以用系統 python3 跑（macOS 內建是 3.9），
+# usage_hooks/usage_statusline.py 設計成可以用系統 python3 跑（macOS 內建是 3.9），
 # 必須避開 3.11+ 才有的 datetime.UTC，用 timezone.utc 取代。
-"usage_statusline.py" = ["UP017"]
-# usage_session_resume.py 同樣裝進 ~/.claude/ 給系統 python3 (3.9) 跑，同一條限制。
-"usage_session_resume.py" = ["UP017"]
-"usage_quota_aware.py" = ["UP017", "UP045"]
+"usage_hooks/usage_statusline.py" = ["UP017"]
+# usage_hooks/usage_session_resume.py 同樣裝進 ~/.claude/ 給系統 python3 (3.9) 跑，同一條限制。
+"usage_hooks/usage_session_resume.py" = ["UP017"]
+"usage_hooks/usage_quota_aware.py" = ["UP017", "UP045"]
 # Imported analytics source is kept with minimal path fixes; keep formatting
 # stable for this integration commit.
 "adapters/**/*.py" = ["E501", "I001", "SIM108", "UP015", "UP017"]

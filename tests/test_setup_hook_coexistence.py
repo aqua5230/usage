@@ -18,9 +18,9 @@ from typing import Any
 import pytest
 
 import main
-import usage_statusline_forwarder
 from installer import setup_hook
 from tests.helpers import SetupHookPaths, expected_statusline_command
+from usage_hooks import usage_statusline_forwarder
 
 
 @pytest.fixture
@@ -97,7 +97,7 @@ def test_forwarder_calls_all_hooks(tmp_path: Path, monkeypatch: pytest.MonkeyPat
         return SimpleNamespace(stdout=Path(cmd[1]).name + "\n")
 
     monkeypatch.setattr(usage_statusline_forwarder, "HOOK_DIR", str(tmp_path))
-    monkeypatch.setattr("usage_statusline_forwarder.subprocess.run", fake_run)
+    monkeypatch.setattr("usage_hooks.usage_statusline_forwarder.subprocess.run", fake_run)
     monkeypatch.setattr(sys, "stdin", io.StringIO('{"x": 1}'))
     stdout = io.StringIO()
     monkeypatch.setattr(sys, "stdout", stdout)

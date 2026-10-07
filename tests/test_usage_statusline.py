@@ -20,7 +20,7 @@ from typing import Any
 
 import pytest
 
-import usage_statusline
+from usage_hooks import usage_statusline
 
 
 @pytest.mark.parametrize(

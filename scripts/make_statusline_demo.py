@@ -8,7 +8,7 @@
 """印出一份範例 statusLine，給 scripts/*.tape 錄 README 示範動圖用。
 
 只呼叫 render()，不呼叫 save()——不會寫到真的 ~/.claude/usage-status.json。
-語言看 TT_LANG 環境變數，跟 usage_statusline.py 讀的變數一致。
+語言看 TT_LANG 環境變數，跟 usage_hooks/usage_statusline.py 讀的變數一致。
 """
 
 from __future__ import annotations
@@ -21,7 +21,7 @@ from pathlib import Path
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO_ROOT))
 
-import usage_statusline  # noqa: E402
+from usage_hooks import usage_statusline  # noqa: E402
 
 _PAYLOAD = {
     "workspace": {"project_dir": str(_REPO_ROOT)},

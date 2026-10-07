@@ -4,7 +4,7 @@
 #   bash <(curl -fsSL https://raw.githubusercontent.com/aqua5230/usage/main/scripts/install-hook.sh)
 #
 # 做的事：
-#   1. 下載 usage_statusline.py 到 ~/.claude/usage-statusline.py
+#   1. 下載 usage_hooks/usage_statusline.py 到 ~/.claude/usage-statusline.py
 #   2. 把 ~/.claude/settings.json 的 statusLine 指向它
 #   3. 如果原本有自訂 statusLine，備份到 settings.usage.previousStatusLine
 set -euo pipefail
@@ -17,7 +17,7 @@ SETTINGS_PATH="${CLAUDE_DIR}/settings.json"
 mkdir -p "${CLAUDE_DIR}"
 
 echo "↓ 下載 hook 腳本到 ${HOOK_PATH}"
-curl -fsSL "${REPO_RAW}/usage_statusline.py" -o "${HOOK_PATH}"
+curl -fsSL "${REPO_RAW}/hooks/usage_statusline.py" -o "${HOOK_PATH}"
 chmod +x "${HOOK_PATH}"
 
 PYTHON_BIN="$(command -v python3 || echo /usr/bin/python3)"

@@ -34,14 +34,14 @@ try {
         --add-data "$(Join-Path $RepoRoot 'pyproject.toml');." `
         --add-data "$(Join-Path $RepoRoot 'assets');assets" `
         --add-data "$(Join-Path $RepoRoot 'claude_pane');claude_pane" `
-        --add-data "$(Join-Path $RepoRoot 'usage_statusline.py');." `
-        --add-data "$(Join-Path $RepoRoot 'usage_statusline_agy.py');." `
-        --add-data "$(Join-Path $RepoRoot 'usage_statusline_grok.py');." `
-        --add-data "$(Join-Path $RepoRoot 'usage_statusline_forwarder.py');." `
-        --add-data "$(Join-Path $RepoRoot 'usage_session_resume.py');." `
-        --add-data "$(Join-Path $RepoRoot 'usage_terse_mode.py');." `
-        --add-data "$(Join-Path $RepoRoot 'usage_terse_reminder.py');." `
-        --add-data "$(Join-Path $RepoRoot 'usage_quota_aware.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_statusline.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_statusline_agy.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_statusline_grok.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_statusline_forwarder.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_session_resume.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_terse_mode.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_terse_reminder.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_quota_aware.py');." `
         --hidden-import wintray.app `
         --hidden-import usage_cli `
         --hidden-import pystray `

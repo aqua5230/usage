@@ -32,7 +32,7 @@ HOOK_SCRIPTS = (
 @pytest.mark.parametrize("script_name", HOOK_SCRIPTS)
 def test_copied_hook_scripts_have_no_project_imports(script_name: str) -> None:
     project_root = Path(__file__).resolve().parents[1]
-    tree = ast.parse((project_root / script_name).read_text(encoding="utf-8"))
+    tree = ast.parse((project_root / "usage_hooks" / script_name).read_text(encoding="utf-8"))
     imported_roots: set[str] = set()
     for node in tree.body:
         if isinstance(node, ast.Import):

@@ -74,10 +74,10 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     import prefs
     import service_status
     import usage_diagnosis_snapshot
-    import usage_session_resume
     from analyzer import usage_snapshot
     from installer import claude_pane, session_hooks
     from quota import quota_snapshot
+    from usage_hooks import usage_session_resume
 
     state_dir = tmp_path / "user-state"
     monkeypatch.setattr(quota_snapshot, "SNAPSHOT_PATH", state_dir / "quota_snapshot.json")

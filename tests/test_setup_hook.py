@@ -1344,9 +1344,9 @@ def test_statusline_script_version_matches_hook_constant() -> None:
     """needs_update() compares the installed script's __version__ against
     HOOK_VERSION. If the two drift apart the comparison always matches and the
     installed copy is never refreshed, so keep them in lockstep."""
-    source = (Path(__file__).resolve().parents[1] / "usage_statusline.py").read_text(
-        encoding="utf-8"
-    )
+    source = (
+        Path(__file__).resolve().parents[1] / "usage_hooks" / "usage_statusline.py"
+    ).read_text(encoding="utf-8")
     match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
     assert match, "usage_statusline.py has no __version__ line"
     assert match.group(1) == setup_hook.HOOK_VERSION
@@ -1354,9 +1354,9 @@ def test_statusline_script_version_matches_hook_constant() -> None:
 
 def test_session_resume_script_version_matches_hook_constant() -> None:
     """Keep the session-resume script version synchronized with its hook constant."""
-    source = (Path(__file__).resolve().parents[1] / "usage_session_resume.py").read_text(
-        encoding="utf-8"
-    )
+    source = (
+        Path(__file__).resolve().parents[1] / "usage_hooks" / "usage_session_resume.py"
+    ).read_text(encoding="utf-8")
     match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
     assert match, "usage_session_resume.py has no __version__ line"
     assert match.group(1) == session_hooks.RESUME_HOOK_VERSION
@@ -1364,9 +1364,9 @@ def test_session_resume_script_version_matches_hook_constant() -> None:
 
 def test_statusline_forwarder_version_matches_hook_constant() -> None:
     """Keep the status-line forwarder version synchronized with its hook constant."""
-    source = (Path(__file__).resolve().parents[1] / "usage_statusline_forwarder.py").read_text(
-        encoding="utf-8"
-    )
+    source = (
+        Path(__file__).resolve().parents[1] / "usage_hooks" / "usage_statusline_forwarder.py"
+    ).read_text(encoding="utf-8")
     match = re.search(r'^__version__ = "([^"]+)"$', source, re.M)
     assert match, "usage_statusline_forwarder.py has no __version__ line"
     assert match.group(1) == setup_hook.FORWARDER_VERSION

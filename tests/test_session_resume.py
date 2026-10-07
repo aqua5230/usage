@@ -17,7 +17,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import usage_session_resume as mod
+from usage_hooks import usage_session_resume as mod
 
 
 @pytest.mark.parametrize(

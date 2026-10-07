@@ -302,7 +302,7 @@ def test_disable_preserves_user_hook_in_shared_entry(
 
 
 def test_hook_default_templates_match_written_sidecar(resume_paths: ResumeHookPaths) -> None:
-    import usage_session_resume
+    from usage_hooks import usage_session_resume
 
     session_hooks._write_resume_sidecar()
     sidecar = json.loads(resume_paths.sidecar.read_text(encoding="utf-8"))

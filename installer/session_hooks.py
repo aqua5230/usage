@@ -51,7 +51,7 @@ from installer.setup_hook import (
 )
 from loaders.codex_paths import codex_home
 from usage_common.usage_lang import detect_lang
-from usage_statusline import _exclusive_lock
+from usage_hooks.usage_statusline import _exclusive_lock
 
 CODEX_CONFIG = setup_hook.CODEX_CONFIG
 
@@ -205,9 +205,9 @@ def _migrate_bundled_python_commands_if_needed(
 
 
 def _resolve_resume_source() -> Path:
-    # installer/ is one level below the repo root, where the hook scripts remain.
+    # installer/ is one level below the repo root; hook sources live in usage_hooks/.
     paths = [
-        Path(__file__).resolve().parent.parent / "usage_session_resume.py",
+        Path(__file__).resolve().parent.parent / "usage_hooks" / "usage_session_resume.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_session_resume.py",
     ]
     for path in paths:
@@ -219,7 +219,7 @@ def _resolve_resume_source() -> Path:
 
 def _resolve_terse_source() -> Path:
     paths = [
-        Path(__file__).resolve().parent.parent / "usage_terse_mode.py",
+        Path(__file__).resolve().parent.parent / "usage_hooks" / "usage_terse_mode.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_terse_mode.py",
     ]
     for path in paths:
@@ -231,7 +231,7 @@ def _resolve_terse_source() -> Path:
 
 def _resolve_terse_reminder_source() -> Path:
     paths = [
-        Path(__file__).resolve().parent.parent / "usage_terse_reminder.py",
+        Path(__file__).resolve().parent.parent / "usage_hooks" / "usage_terse_reminder.py",
         (Path(sys.executable).resolve().parent.parent / "Resources" / "usage_terse_reminder.py"),
     ]
     for path in paths:
@@ -1275,7 +1275,7 @@ def self_heal() -> None:
 
 def _resolve_quota_aware_source() -> Path:
     paths = [
-        Path(__file__).resolve().parent.parent / "usage_quota_aware.py",
+        Path(__file__).resolve().parent.parent / "usage_hooks" / "usage_quota_aware.py",
         Path(sys.executable).resolve().parent.parent / "Resources" / "usage_quota_aware.py",
     ]
     for path in paths:
