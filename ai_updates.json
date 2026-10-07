@@ -769,6 +769,133 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.3.1",
+          "period": "2026-10-07",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "/diff 檔案比對檢視升級，跨檔跳轉與進度更清楚",
+                "en": "/diff file comparison view upgraded, making cross-file navigation and progress clearer"
+              },
+              "body": {
+                "zh-TW": "檢查 AI 修改的多個檔案時，`/diff` 畫面的跨檔案切換變得非常流暢。⟦就像使用電子書閱讀器翻閱文件，以前切換章節總會迷失段落，現在翻頁時自動對準修改處並記住捲動位置，右上角還隨時標記目前讀到第幾項變更。⟧按左右箭頭 `←` 與 `→` 切換檔案時，畫面會跳到該檔案的第一個修改區塊，並顯示區塊標頭與修改處前面的文字。每個檔案會記住游標與捲動位置，切換檔案或回到檔案清單後都不會跑位。按 `n` 或 `N` 能繼續跳到下一個或上一個檔案的變更，不再停在當前檔案的最後一處修改。頂端標頭新增靠右的 `change A/B · file X/Y`，標示游標所在的增刪區塊與檔案順序。只有一個檔案變更時省略檔案計數，終端機太窄時隱藏位置標示。底部按鍵提示移除通用的捲動與翻頁說明，視窗太窄時會換行，不再被切斷。",
+                "en": "When inspecting multiple files modified by AI, switching between files in the `/diff` view is now much smoother. ⟦Think of turning pages on an e-reader where changing chapters used to lose your place, but now turning a page aligns right to the edits, remembers your scroll position, and marks in the top-right corner which change you are currently reading.⟧ Pressing the left and right arrows `←` and `→` to switch files jumps to the first modified chunk of that file and displays the chunk header along with the text preceding the edit. Each file remembers its cursor and scroll position so nothing shifts when switching files or returning to the file list. Pressing `n` or `N` continues jumping to the next or previous file's changes instead of stopping at the last modification in the current file. The top header adds a right-aligned `change A/B · file X/Y` indicator that marks the cursor's addition/deletion chunk and file order. When only one file changes, the file count is omitted, and the position indicator is hidden if the terminal is too narrow. Bottom key hints remove generic scrolling and paging descriptions, wrapping onto a new line when the window is too narrow so they are no longer cut off."
+              },
+              "original": "Improved navigation in the `/diff` file view: `←`/`→` now open the next or previous file at its first change with the hunk header and leading context in view, each file remembers its cursor and scroll position when you switch files or go back to the file list, `n`/`N` continue into the next or previous file's changes instead of stopping at the last change in the current file, and the key-hint footer drops the generic scroll and page hints and wraps onto extra lines instead of being cut off on narrow terminals.\nImproved the `/diff` file view header to show where you are: it now ends with a right-aligned `change A/B · file X/Y` position, counting the block of added or removed lines under the cursor and the file's place in the file list (`file X/Y` is left out when only one file changed, and the position is hidden on narrow terminals)."
+            },
+            {
+              "title": {
+                "zh-TW": "/rewind 清楚標示已清除訊息，避免選取報錯",
+                "en": "/rewind clearly labels cleared messages to prevent selection errors"
+              },
+              "body": {
+                "zh-TW": "想要在長對話中退回先前的討論進度時，歷史訊息的呈現更加明確。以前為了節省空間而清掉的舊訊息，在 `/rewind` 清單中會顯示為 `(empty message)`，一旦選取就會發生錯誤。現在這些已清理的訊息會保留原本的文字內容，以淡化樣式標註 `cleared to save space, can't rewind here`，並且無法再被選取，避免你不小心點到無法退回的段落。",
+                "en": "When rewinding to an earlier point in a long conversation, historical messages are now displayed much more clearly. Previously, older messages cleared to save space appeared as `(empty message)` in the `/rewind` list, throwing an error if selected. These cleared messages now retain their original text content, are labeled with a dimmed `cleared to save space, can't rewind here` style, and can no longer be selected, preventing you from accidentally choosing an unrewindable section."
+              },
+              "original": "Fixed `/rewind` in very long conversations listing older messages as `(empty message)` and failing with an error when you picked one: messages that were cleared to save space now show their original text, dimmed and labeled `cleared to save space, can't rewind here`, and can no longer be selected."
+            },
+            {
+              "title": {
+                "zh-TW": "Windows 外掛管理修復，避免檔案佔用與設定讀取失敗",
+                "en": "Windows plugin management fixed to prevent file locking and config load failures"
+              },
+              "body": {
+                "zh-TW": "在 Windows 系統上使用 `/plugin` 管理外掛時，安裝與移除流程現在更穩定。以前如果外掛的 MCP（讓 AI 連接外部工具的協定）伺服器仍在執行，檔案操作便會失敗。現在指令列介面會在替換或刪除資料夾前先停止相關伺服器，完成後再重新啟動。要是有另一個 `agy` 工作階段、Antigravity Hub 或 `remote-control` 背景守護程序仍佔用該外掛，也會提示你關閉該程式後重試。包含 UTF-8 位元組順序標記（BOM，部分編輯器存檔時附加在檔頭、用來辨識文字編碼的特殊標記）的外掛資訊清單、`mcp_config.json` 與 `hooks.json` 檔案現在都能正常讀取。從市集安裝外掛時，也不會再意外覆寫來自其他來源的既有外掛資料夾。",
+                "en": "When managing plugins with `/plugin` on Windows, installation and removal are now more reliable. Previously, file operations would fail if the plugin's MCP (a protocol that lets AI connect to external tools) server was still running. The CLI now stops the relevant servers before replacing or deleting folders, restarting them once complete. If another `agy` session, Antigravity Hub, or `remote-control` background daemon still locks the plugin, it will prompt you to close that process and retry. Plugin manifests, `mcp_config.json`, and `hooks.json` files containing a UTF-8 byte order mark (BOM) can now be read properly. Some editors add this marker at the beginning of a file to identify its text encoding. Installing plugins from the marketplace will also no longer accidentally overwrite existing plugin folders from other sources."
+              },
+              "original": "Fixed installing, reinstalling, and uninstalling plugins with `/plugin` on Windows failing while one of the plugin's MCP servers was running: the CLI now stops the plugin's MCP servers before replacing or deleting its folder and restarts them afterwards, and if another Antigravity process such as another `agy` session, the Antigravity Hub, or the `remote-control` daemon still holds the plugin open, it tells you to close it and retry. Plugin manifests, `mcp_config.json`, and `hooks.json` files saved with a UTF-8 byte-order mark now load, and installing from a marketplace no longer overwrites an existing plugin folder that came from a different source."
+            },
+            {
+              "title": {
+                "zh-TW": "自訂 Agent 支援相對路徑，輕鬆引入附屬檔案",
+                "en": "Custom agents support relative paths for easy inclusion of referenced files"
+              },
+              "body": {
+                "zh-TW": "為自訂 Agent 撰寫 Markdown 設定檔時，引入附屬資源的方式變得更直覺。以前無論作為主要 Agent 或子代理（由主要 Agent 派工的輔助代理）執行，檔案內以相對路徑指定的 `skills:`、`plugins:`、`rules:`、`agents:` 與 `hooks:` 都會被忽略。現在這些設定會以該 Agent 檔案所在的目錄為基準進行解析，例如在設定中寫入 `agents: [child.md]` 就能順利呼叫 `child`，方便將相關技能與子代理打包在一起。",
+                "en": "When writing Markdown config files for custom agents, referencing companion resources is now much more intuitive. Previously, relative paths specified in `skills:`, `plugins:`, `rules:`, `agents:`, and `hooks:` were ignored whether running as the main agent or as a subagent (a supporting agent assigned tasks by the main agent). These settings are now resolved relative to the directory containing that agent file. For example, writing `agents: [child.md]` in the configuration successfully invokes `child`, making it easy to package related skills and subagents together."
+              },
+              "original": "Fixed markdown custom agents ignoring `skills:`, `plugins:`, `rules:`, `agents:`, and `hooks:` entries written as paths relative to the agent's own file when the agent ran as a subagent or as the main agent; such entries now resolve against the agent's directory, so an agent that lists `agents: [child.md]` can invoke `child`."
+            },
+            {
+              "title": {
+                "zh-TW": "子代理遇錯不再誤標完成，即時顯示錯誤原因",
+                "en": "Subagent failures no longer marked Done, showing exact error causes in real time"
+              },
+              "body": {
+                "zh-TW": "派遣子代理在背景處理任務時，執行狀態的呈現更加精確。以前子代理若因額度耗盡或模型算力不足而中斷，在 `/agents` 與執行中的代理清單中仍會被誤標為 `Done`。現在遇到問題時會明確顯示 `Error:` 以及具體的出錯原因，且只要該子代理後續重新取得進展，錯誤標記便會自動清除，方便你隨時掌握背景作業的真實進度。",
+                "en": "When delegating background tasks to subagents, execution statuses are displayed much more accurately. Previously, if a subagent stopped due to exhausted quota or insufficient model capacity, it was still incorrectly marked as `Done` in `/agents` and the active agents list. It now clearly shows `Error:` alongside the specific cause of failure whenever an issue occurs. As soon as the subagent makes further progress later, the error badge is automatically cleared, allowing you to track the actual status of background operations at all times."
+              },
+              "original": "Fixed subagents that stopped on an error, such as running out of quota or model capacity, being shown as `Done` in `/agents` and the list of running agents; they now show `Error:` with the reason, and the error clears once the subagent makes further progress."
+            },
+            {
+              "title": {
+                "zh-TW": "/tasks 納入定時與背景工具，任務清單更完整",
+                "en": "/tasks includes timers and background tools for a complete task list"
+              },
+              "body": {
+                "zh-TW": "透過終端機追蹤各項背景工作時，任務清單現在能掌握全部作業。以前 `/tasks`、作用中任務清單以及終端機狀態列（顯示在終端機底部的狀態資訊）的任務計數，都只會記錄背景 Shell 指令。現在 AI 排程的單次計時器、循環定時工作，以及其他在背景運行的工具都會一併列出。這些任務會明確標示為 `completed` 或 `failed`，不再附帶虛構的結束代碼。",
+                "en": "When tracking background jobs through the terminal, the task list now captures all operations. Previously, `/tasks`, the active task list, and the terminal status line (status information displayed at the bottom of the terminal) task counter only tracked background shell commands. Single-shot timers scheduled by AI, recurring scheduled jobs, and other tools running in the background are now listed as well. These tasks are clearly labeled as `completed` or `failed` without attaching fabricated exit codes."
+              },
+              "original": "Fixed `/tasks`, the active task list, and the status line's task count showing only background shell commands; timers and recurring jobs the agent schedules, and other tools running in the background, now appear there too and are shown as `completed` or `failed` without a made-up exit code."
+            },
+            {
+              "title": {
+                "zh-TW": "立即傳送訊息不再延遲，產物更新時立刻送達",
+                "en": "Immediately sent messages no longer delayed, arriving instantly during artifact updates"
+              },
+              "body": {
+                "zh-TW": "如果你想在 AI 回覆中途插話補充指令，訊息能更即時地送達。以前如果在 `/config` 中將 `Queued Messages` 設定為 `Send Immediately` 立即傳送，只要 AI 在該回合中建立或更新了任務清單或計畫等產物，你的輸入就會被悄悄排隊延後，直到整次回合結束前 AI 都不會看到你剛才輸入的內容。現在訊息會立刻傳遞給 AI，確保你的即時指示能馬上發揮作用。",
+                "en": "If you want to interject instructions while the AI is replying, messages are now delivered much more promptly. Previously, when `Queued Messages` was set to `Send Immediately` in `/config`, your input was silently queued and delayed whenever the AI created or updated artifacts like task lists or plans during that turn, preventing the AI from seeing what you typed until the entire turn finished. Messages are now delivered to the AI immediately, ensuring your real-time instructions take effect right away."
+              },
+              "original": "Fixed messages sent with `Queued Messages` set to `Send Immediately` in `/config` being silently queued until the end of the turn whenever the agent had already written or updated an artifact, such as a task list or plan, during that turn; they now reach the agent right away."
+            },
+            {
+              "title": {
+                "zh-TW": "AI 提問跳出系統通知，不再錯過待覆問題",
+                "en": "AI questions trigger system notifications, preventing missed pending prompts"
+              },
+              "body": {
+                "zh-TW": "將終端機切換到背景執行時，AI 的提問能第一時間提醒你。以前在 `/config` 開啟了 `Notifications` 通知功能，AI 停下來向你詢問問題時，終端機卻不會跳出提示，導致作業在背景乾等。現在指令列介面會像跳出工具授權提示那樣，針對待回覆的問題發出提醒通知，讓你隨時接手確認。",
+                "en": "When running the terminal in the background, questions from the AI can now alert you immediately. Previously, even with `Notifications` enabled in `/config`, no prompt popped up in the terminal when the AI stopped to ask you a question, leaving the job waiting in the background. The CLI now emits reminder notifications for pending questions just like it does for tool approval prompts, allowing you to take over and confirm at any time."
+              },
+              "original": "Fixed terminal notifications not firing when the agent stops to ask you a question; with `Notifications` turned on in `/config`, the CLI now alerts you for pending questions just as it does for tool permission prompts."
+            },
+            {
+              "title": {
+                "zh-TW": "/mcp 重啟服務更穩定，舊行程逾時也能重啟",
+                "en": "/mcp restarts servers more reliably, recovering even when old processes time out"
+              },
+              "body": {
+                "zh-TW": "調整外部工具連線時，重新啟動伺服器的流程變得更可靠。以前透過 `/mcp` 重新啟動 MCP（讓 AI 連接外部工具的協定）伺服器時，若舊的伺服器行程關閉耗時過久，可能會出現 `Failed to stop existing instances for reload: ... signal: killed` 等錯誤並停留在停止狀態。現在這個問題已經修好，無論舊行程關閉耗時多久，伺服器都會順利重新啟動。",
+                "en": "When adjusting external tool connections, restarting servers is now more dependable. Previously, restarting an MCP (a protocol that lets AI connect to external tools) server via `/mcp` could trigger errors like `Failed to stop existing instances for reload: ... signal: killed` and remain stopped if the old server process took too long to shut down. This issue has been fixed so that the server restarts smoothly regardless of how long the old process takes to terminate."
+              },
+              "original": "Fixed restarting an MCP server from `/mcp` sometimes leaving it stopped, with an error such as `Failed to stop existing instances for reload: ... signal: killed`, when the old server process took too long to exit; the server now always starts again."
+            },
+            {
+              "title": {
+                "zh-TW": "帳號驗證補上操作連結，不再誤導登出重登",
+                "en": "Account verification adds action links, eliminating misleading logout advice"
+              },
+              "body": {
+                "zh-TW": "遇到帳號狀態異常或條款限制時，錯誤訊息能提供更具體的解決途徑。以前帳號若需要驗證身分或申訴服務條款（Terms of Service）封鎖，登入錯誤有時只會顯示 `Verify your account to continue.` 卻沒有附上任何網址，甚至建議你登出再重新登入。現在畫面一律會提供驗證或申訴的連結，且在重新登入沒有幫助的情況下不再給出無效的登出建議。",
+                "en": "When encountering abnormal account statuses or terms restrictions, error messages provide clearer resolution paths. Previously, if an account needed identity verification or needed to appeal a Terms of Service ban, login errors sometimes only showed `Verify your account to continue.` without any URL, even suggesting that you log out and log back in. The screen now consistently provides verification or appeal links and no longer suggests an unhelpful logout when re-logging in would not resolve the issue."
+              },
+              "original": "Fixed the sign-in error for accounts that need to verify their identity or appeal a Terms of Service block sometimes showing only `Verify your account to continue.` with no link; the verification or appeal link now always appears, and the CLI no longer suggests logging out and back in when that would not help."
+            },
+            {
+              "title": {
+                "zh-TW": "GEMINI_API_KEY 連線中斷自動重試，避免回合誤中斷",
+                "en": "Automatic retries on GEMINI_API_KEY connection drops prevent false turn cancellations"
+              },
+              "body": {
+                "zh-TW": "使用自訂金鑰連線時，網路短暫斷線不再導致工作階段整次回合失敗。以前在透過 `GEMINI_API_KEY` 執行的工作階段中，若內部與 Gemini API 的連線不小心斷開，整次回合會直接失敗並顯示為如同被你手動取消一樣。現在指令列介面遇到內部斷線時會改為自動重試請求，不必再手動重新輸入。",
+                "en": "When connecting with a custom key, brief network disconnects no longer cause an entire session turn to fail. Previously, in sessions running via `GEMINI_API_KEY`, if the internal connection to the Gemini API was unexpectedly interrupted, the entire turn would fail immediately and appear as though you had manually cancelled it. Now, the command-line interface automatically retries requests upon internal disconnects, so you no longer need to re-enter them manually."
+              },
+              "original": "Fixed `GEMINI_API_KEY` sessions failing a turn as if you had cancelled it when the connection to the Gemini API was dropped internally; the CLI now retries the request instead."
+            }
+          ]
+        },
+        {
           "version": "1.3.0",
           "period": "2026-10-06",
           "items": [
@@ -867,111 +994,6 @@
               "original": "Fixed `.tiff` images being reported with the wrong file type and silently converted to PNG when the agent viewed them."
             }
           ]
-        },
-        {
-          "version": "1.2.16",
-          "period": "2026-10-03",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "設定選單支援左右方向鍵，切換選項立即儲存",
-                "en": "Settings menu supports left and right arrow keys to switch options and save instantly"
-              },
-              "body": {
-                "zh-TW": "當你想調整工具偏好卻不想在一層層下拉選單裡反覆按確認時，現在有更快的改法。在終端機輸入 `/config` 開啟設定頁面，將游標停在想要修改的項目上，直接按鍵盤的 `←` 或 `→` 鍵，就能立刻切換到上一個或下一個選項數值並直接儲存，不需要再按 Enter 展開下拉清單。畫面最下方的頁尾也會顯示 `←/→ Change` 的提示字樣。⟦像在電視選單按左右鍵切換訊號源或音效模式，不用每次都展開整排下拉選單再按確定，手指一撥設定就立刻生效。⟧",
-                "en": "When you want to adjust tool preferences without repeatedly pressing confirm across dropdown menus, there is now a faster way. Typing `/config` in the terminal opens the settings page. Highlight the setting you want to change and press `←` or `→` on your keyboard to instantly switch to the previous or next value and save immediately, without needing to press Enter to expand the dropdown list. The footer at the very bottom of the screen also displays a `←/→ Change` prompt. ⟦Like toggling input sources or sound modes with the arrow keys on a TV menu, settings apply instantly with a flick of a finger instead of expanding an entire dropdown list and confirming every time.⟧"
-              },
-              "original": "Added `←`/`→` shortcuts to `/config`: on a highlighted setting they switch to the previous or next value and save it right away, without opening the dropdown, and the footer shows a `←/→ Change` hint"
-            },
-            {
-              "title": {
-                "zh-TW": "全螢幕對話不再卡頓，滑鼠選取與重繪更流暢",
-                "en": "Fullscreen chats no longer freeze, with smoother mouse selection and repainting"
-              },
-              "body": {
-                "zh-TW": "當你在長對話中調整終端機視窗大小或用滑鼠選取文字時，畫面反應現在更加敏捷。在無閃爍的 `altscreen`（終端機全螢幕顯示模式）與產出物檢視器中，拉動視窗不會再讓介面卡死，系統會優先重繪目前畫面上的訊息，不再卡在舊寬度等待整段對話重繪完畢。按 `Esc` 中斷代理人或恢復對話時，也不會把螢幕上的所有步驟全部重新繪製一次。使用滑鼠拖曳反白超過頂端或底端時會自動捲動，滾動滾輪或在代理人串流輸出時選取範圍都不會跑位。複製文字還能完整包含捲出畫面的行數，並自動濾除產出物檢視器中的行號與註解預覽。⟦彷彿閱讀排版精美的長卷軸電子書，拉大視窗時眼前文字立刻依新寬度排好，反白選取整段內容往下拉也能順暢捲動，複製時更不會把旁邊的頁碼與輔助備忘一起剪進去。⟧",
-                "en": "When you resize terminal windows or select text with a mouse during long chats, the display responds much more quickly. In the flicker-free `altscreen` (terminal fullscreen display mode) and artifact viewer, dragging the window will no longer freeze the interface. The system prioritizes repainting the messages currently on screen instead of getting stuck at the old width waiting for the entire conversation to finish repainting. Pressing `Esc` to interrupt the agent or resume the conversation also avoids repainting all steps on screen from scratch. Dragging to highlight past the top or bottom with the mouse now auto-scrolls, and scrolling the mouse wheel or selecting text while the agent streams output will not cause selections to drift. Copying text also captures lines scrolled off screen and automatically strips line numbers and annotation previews in the artifact viewer. ⟦Picture reading a beautifully formatted long-scroll e-book: resizing the window instantly wraps the text before you to the new width, dragging the selection downward scrolls smoothly, and copying omits side page numbers and helper notes.⟧"
-              },
-              "original": "Improved responsiveness in long conversations in no flicker (altscreen) mode: resizing the terminal no longer freezes or lags the CLI, the full-screen view redraws the messages on screen first instead of showing text wrapped for the old width until the whole conversation has re-rendered, and interrupting the agent with `Esc` or resuming a conversation no longer re-renders every step already on screen.\nImproved mouse text selection in the `altscreen` view and in the artifact viewer: dragging past the top or bottom now auto-scrolls, the selection stays on its text while the agent streams or you scroll with the wheel, and copying includes lines that scrolled off screen, without line numbers or comment previews from the artifact viewer"
-            },
-            {
-              "title": {
-                "zh-TW": "Go 指令授權更省事，編譯與檢查可永久放行",
-                "en": "Simpler Go command approvals allow permanent authorization for builds and checks"
-              },
-              "body": {
-                "zh-TW": "當你頻繁讓代理人編譯或檢查 Go 專案程式碼時，授權流程變得更加省心。批准 `go vet` 或 `go build` 等安全指令時，系統現在會提供直接放行該子指令（主指令底下負責特定功能的附屬指令）所有後續參數的選項，日後帶不同參數都不必再次手動按確認。但針對會執行或安裝程式碼的 `go run`、`go test`、`go generate`、`go install` 與 `go tool`，這些子指令仍須以完整指令為放行範圍。⟦跟廚房領用食材一樣，拿取安全調味料只要登記一次就能自由取用不同份量，但遇到動用瓦斯爐或刀具等高風險操作，放行時仍須寫明完整操作內容。⟧",
-                "en": "When you frequently have the agent compile or check Go project code, the authorization process is much easier. When approving safe commands like `go vet` or `go build`, the system now provides an option to allow all future arguments for that subcommand, so passing different arguments later will not require manual confirmation again. However, for subcommands that execute or install code—such as `go run`, `go test`, `go generate`, `go install`, and `go tool`—approvals must still cover the exact full command. ⟦Much like requisitioning ingredients in a kitchen, signing out safe seasonings once allows you to freely take different quantities later, whereas high-risk tasks like using the stove or knives still require explicit approval for each full action.⟧"
-              },
-              "original": "Improved the always-allow suggestion when approving `go` commands: approving a command such as `go vet` or `go build` now offers to allow that subcommand with any arguments, while `go run`, `go test`, `go generate`, `go install`, and `go tool` still require the exact command"
-            },
-            {
-              "title": {
-                "zh-TW": "排隊訊息支援合併即時送出，Vim 快捷鍵不再誤送",
-                "en": "Queued messages support merged immediate delivery, fixing Vim shortcut mishandling"
-              },
-              "body": {
-                "zh-TW": "當你在代理人忙碌時連續輸入多條指令，訊息的排隊與召回機制現在更為可靠。在 `/config` 設定中開啟排隊訊息的 `Send Immediately`（立即發送）時，若前面已有訊息在排隊，新送出的內容會依照先後順序連同排隊訊息一起交給代理人，不再單獨落後排隊。若訊息在回合中途發送失敗，也會自動退回佇列（排隊等候處理的清單）而不會憑空遺失。在 Vim 常規模式的最頂行按下 `k` 鍵時，現在會如同向上方向鍵一樣將排隊訊息抽回編輯區，修復了以前誤抓歷史紀錄導致排隊訊息重複送出的問題。⟦宛若在郵局櫃台寄信，臨時追加的急件能直接併入當前的包裹一起秤重寄出，如果櫃台忙碌沒收下也會退回你手上，不必重新排隊重填一張單據。⟧",
-                "en": "When you enter multiple commands while the agent is busy, message queuing and recall are now more reliable. When enabling `Send Immediately` in `/config`, if messages are already queued, newly submitted input is delivered to the agent in order along with the existing queued messages rather than falling behind in a separate queue. If message delivery fails mid-turn, the message automatically returns to the queue instead of vanishing. Pressing `k` on the top line in Vim normal mode now pulls queued messages back into the editor like the Up arrow key, fixing an issue where pulling history mistakenly caused duplicate submissions of queued messages. ⟦Think of mailing items at a post office counter: an urgent addition merges directly into your current parcel to be weighed and shipped together, and if the counter fails to process it, it is returned directly to your hands without waiting in line to fill out a new slip.⟧"
-              },
-              "original": "Improved the `Send Immediately` option for Queued Messages in `/config`: a message you send while earlier messages are still queued now goes to the agent together with them, in order, instead of joining the queue, and a message that fails to send mid-turn goes back to the queue instead of being lost\nFixed `k` in Vim Normal mode recalling the last history entry instead of your queued messages when pressed on the top line, which could send a queued message twice; `k` now pulls queued messages back into the editor like the `Up` arrow does"
-            },
-            {
-              "title": {
-                "zh-TW": "圖片生成改由專屬子代理負責，自動重試並存入產出物",
-                "en": "Image generation moves to a dedicated subagent with automatic retries and artifact saving"
-              },
-              "body": {
-                "zh-TW": "當你請代理人繪製插圖或設計素材時，產圖的工作流程變得更有條理。主代理人現在會將生圖需求轉交給內建的 `image-generator` 子代理（在背景協助處理特定專門任務的輔助助理）。它會負責撰寫提示詞（引導 AI 生成具體內容的描述句）、檢查每次產生的圖片，且最多會自動嘗試三次直到成功，最後將完成的圖片儲存至對話的產出物中。整個產圖過程也會在對話紀錄中明確呈現為獨立的子代理執行階段。⟦猶如把設計海報的工作交給專門的美編助理，他會自己琢磨提示詞並反覆微調，最多嘗試三次，最後把滿意的圖檔規矩收進專案資料夾，不再需要總指導親自逐筆摸索。⟧",
-                "en": "When you ask the agent to draw illustrations or design assets, the image generation workflow is now better organized. The primary agent delegates image creation to the built-in `image-generator` subagent. It handles prompt writing, inspects each generated image, and makes up to three attempts automatically until successful before saving the completed images to the conversation artifacts. The entire generation process is clearly recorded in the conversation transcript as an independent subagent execution stage. ⟦A design lead delegates poster design to a dedicated graphic assistant, who crafts prompts, iterates up to three times, and files the finished image into the project folder without requiring the lead to tweak every detail manually.⟧"
-              },
-              "original": "Changed how the agent generates images: it now hands image requests to a built-in `image-generator` subagent, which writes the prompt, checks each result with up to three attempts, and saves the images to the conversation's artifacts, so image generation appears as a subagent run in the conversation"
-            },
-            {
-              "title": {
-                "zh-TW": "背景指令中斷不再卡死，無頭模式精確等待結果",
-                "en": "Interrupted background commands no longer hang, with accurate waiting in headless mode"
-              },
-              "body": {
-                "zh-TW": "當代理人在背景執行的耗時指令遭遇系統強制中止或記憶體不足時，處理流程不再停滯。以前代理人等待背景指令時，若指令當機或因記憶體耗盡遭系統終止，代理人會卡在原地等待。現在系統能正確辨識如 `137` 或 `134` 等結束代碼（程式執行完畢後回傳給系統的狀態數字）並繼續後續工作。在以無頭模式（沒有終端機視窗或視覺介面的執行模式）使用 `-p` 參數執行時，也修復了背景指令於第一回合後完成時代理人尚未回應程式就提前結束的問題。⟦就如外送平台派單給外勤騎士，就算路上機車拋錨或意外中斷，系統收到騎士回傳的異常代碼後也能立刻轉派或繼續流程，不會傻等在原地直到整家店打烊。⟧",
-                "en": "When long-running background commands executed by the agent are terminated by the system or run out of memory, execution no longer stalls. Previously, if a background command crashed or was killed by the system due to out-of-memory errors, the agent remained stuck waiting. The system now correctly recognizes exit codes like `137` or `134` and proceeds with subsequent tasks. When running in headless mode with the `-p` flag, it also fixes an issue where the process exited prematurely if a background command finished after the first turn before the agent responded. ⟦A delivery platform dispatches orders to couriers: if a scooter breaks down along the route, the system receives the abnormal status code and immediately reroutes or proceeds, rather than waiting idly until the store closes.⟧"
-              },
-              "original": "Fixed the agent stalling when a background command it was waiting on crashed or was killed by the system, for example when it ran out of memory; the agent now sees the command finish with its exit code, such as `137` or `134`, and keeps going\nFixed headless `-p` runs sometimes exiting before the agent could respond to a background command that finished after its first turn"
-            },
-            {
-              "title": {
-                "zh-TW": "子目錄可正常載入上層技能，斜線選單不再列出停用工具",
-                "en": "Subdirectories properly load parent skills, and slash menus omit disabled tools"
-              },
-              "body": {
-                "zh-TW": "當你在專案深層的子資料夾開啟工作階段時，專案層級的自訂擴充現在能完整生效。以前若從子目錄啟動工作階段（使用者與 AI 進行的一連串連續互動對話），上層目錄 `.agents/` 裡的 `skills.json` 與 `rules.json` 等自訂清單會被忽略。現在系統會從目前工作目錄一路向上至專案根目錄，完整載入各層級的設定檔。輸入 `/` 開啟的選單也修復了會列出當前代理人未啟用的內建技能之問題，避免選取後注入代理人無法使用的工具指令。⟦如同翻閱總公司與各分部的工作手冊，在分店工作也能一路向上查找總部規章，且目錄索引裡只會列出當前分店真正具備的工具清單。⟧",
-                "en": "When you launch a session from deep within a project subdirectory, project-level customizations now take full effect. Previously, starting a session from a subdirectory ignored custom definitions like `skills.json` and `rules.json` in parent `.agents/` folders. The system now traverses upward from the current working directory to the project root, loading configuration files across all levels. The menu opened by typing `/` also fixes an issue where it listed built-in skills disabled for the current agent, preventing selection from injecting instructions for tools the agent cannot use. ⟦Consulting employee handbooks across headquarters and branches: working at a branch lets you look up company-wide policies upward, while the table of contents only lists tools actually available at that location.⟧"
-              },
-              "original": "Fixed `skills.json`, `rules.json`, and other customization manifests in a parent `.agents/` directory being ignored when a session started in a subdirectory; manifests now load from every `.agents/` directory between the working directory and the project root\nFixed the `/` menu listing built-in skills that the current agent does not enable, which inserted instructions for tools the agent could not use when selected"
-            },
-            {
-              "title": {
-                "zh-TW": "支援含 UTF-8 簽章的設定檔，Windows 儲存不再報錯",
-                "en": "Configuration files with UTF-8 BOM now supported without Windows saving errors"
-              },
-              "body": {
-                "zh-TW": "在 Windows 環境下使用記事本或 PowerShell 的 `Set-Content` 編輯設定檔時，檔案開頭常會自動加入 UTF-8 位元組順序記號（標記檔案文字編碼的隱藏字元）。以前這會導致 `~/.gemini/config/config.json` 無法正常載入設定，現在這個問題已經修好，能順暢讀取各類編輯器儲存的設定檔。",
-                "en": "When editing configuration files on Windows using Notepad or PowerShell's `Set-Content`, editors often prepend a UTF-8 byte order mark (a hidden character indicating text encoding). Previously, this prevented `~/.gemini/config/config.json` from loading settings properly. This issue has now been resolved, ensuring smooth parsing across various editors."
-              },
-              "original": "Fixed settings failing to load when `~/.gemini/config/config.json` starts with a UTF-8 byte order mark, as files saved by Notepad or PowerShell `Set-Content` on Windows do"
-            },
-            {
-              "title": {
-                "zh-TW": "修復終端機剛好滿行時的文字折行與縮排異常",
-                "en": "Fixed word wrapping and indentation glitches when terminal lines are exactly full"
-              },
-              "body": {
-                "zh-TW": "當斜線指令的輸出或系統警示訊息剛好與終端機視窗等寬時，以前最後一個單字會被直接擠到下一行開頭且失去縮排，破壞閱讀版面。現在版面排版邏輯已經修正，即便字元長度剛好貼齊邊界也能保持整齊換行與原有縮排。",
-                "en": "When slash command output or system warnings match the exact width of the terminal window, the final word previously wrapped to the start of the next line while losing indentation and disrupting the layout. The rendering logic is now fixed, maintaining clean wrapping and consistent indentation even when text reaches the exact window boundary."
-              },
-              "original": "Fixed slash-command output and alerts where a line exactly as wide as the terminal had its last word pushed to the start of the next line without indentation"
-            }
-          ]
         }
       ]
     },
@@ -979,6 +1001,67 @@
       "id": "usage",
       "name": "Usage",
       "versions": [
+        {
+          "version": "0.32.6",
+          "period": "2026-10-07",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "上下文用量依容量變色，側邊面板警示同步",
+                "en": "Context usage color adapts to capacity, syncing sidebar panel alerts"
+              },
+              "body": {
+                "zh-TW": "當你跟 AI 進行長篇對話時，往往需要留意用量是否快要超出容量上限。⟦好比大水庫與小水槽改用不同的警報線，以前側邊面板跟狀態列各自看不同比例，現在兩邊統一套用相同標準，遇到超大容量更會提早亮起黃燈提醒。⟧上下文視窗現在會依照總容量來判斷顏色。用量達到 50% 或 200K token（AI 處理與計費的文字單位）時會變黃，達到 80% 或 400K token 時則變紅，並以先達到的一項為準。上下文容量為 1M 時，用量大約達到 20% 就會變黃；至於上下文容量為 200K 時，變色門檻則維持不變。Claude Code 側邊面板的警示標準也從原本的 70% 與 85% 改為這套新規則，讓側邊面板與狀態列的顏色完全保持一致。",
+                "en": "During long conversations with AI, you often need to keep an eye on whether usage is nearing capacity limits. ⟦Think of large reservoirs and small basins adopting distinct alert lines: while the sidebar panel and status line previously tracked different thresholds, both now share a unified standard, triggering yellow warnings earlier for extra-large capacities.⟧ The context window now determines its color based on total capacity. Usage turns yellow at 50% or 200K tokens (units of text used for AI processing and billing), and turns red at 80% or 400K tokens, whichever threshold is reached first. With a 1M context window, usage turns yellow at roughly 20%; for a 200K context window, the color thresholds remain unchanged. Claude Code sidebar panel alerts have also switched to these new rules from the previous 70% and 85% marks, keeping colors between the sidebar panel and status line fully consistent."
+              },
+              "original": "**Context color now accounts for window size.** The figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. On a 1M window, yellow now appears at about 20%. 200K windows are unchanged.\n**Side pane colors match the status line.** The Claude Code side pane moves from 70% / 85% to the same rule."
+            },
+            {
+              "title": {
+                "zh-TW": "精簡模式改用短句回答，嚴格限制各語言長度",
+                "en": "Concise mode adopts short sentences, strictly capping lengths across languages"
+              },
+              "body": {
+                "zh-TW": "如果你習慣讓 AI 給出簡潔俐落的答案，開啟精簡模式時會發現回覆變得乾淨明快。⟦像專業速記員整理重點，以前回覆容易把好幾件事拖成冗長複句，現在規定每一句只講一個動作，並嚴格卡住字數上限，讀起來輕鬆省力。⟧精簡模式現在強制一句話只講一件事，一律採用主動語態，並針對同一概念使用一致的詞彙。回覆長度也依照語言設下嚴格上限，中文限制 30 字、日文與韓文限制 40 字，英文則約為 20 個單字。負責這項功能的精簡模式 hook（掛鉤，特定事件發生時被觸發的小程式）版本已升級至 1.7，已安裝的副本會在下次開啟應用程式時自動更新。",
+                "en": "If you prefer crisp answers from AI, turning on concise mode makes responses noticeably clear and punchy. ⟦Like a stenographer distilling key points, where answers previously dragged multiple ideas into lengthy compound sentences, every sentence must now convey just one action under strict length caps for effortless reading.⟧ Concise mode now enforces one idea per sentence, strictly adopts the active voice, and applies consistent terms for the same concept. Response length is also capped by language: 30 characters for Chinese, 40 characters for Japanese and Korean, and roughly 20 words for English. The concise mode hook (a small program triggered by a specific event) handling this feature has been upgraded to version 1.7, and installed copies will automatically update on the next application launch."
+              },
+              "original": "**Terse mode uses shorter sentences.** Replies keep one idea per sentence, use active voice and consistent terms, and follow a length limit per language: about 20 words in English, 30 characters in Chinese, 40 in Japanese and Korean. The terse hook is now 1.7; installed copies update on the next app launch."
+            },
+            {
+              "title": {
+                "zh-TW": "狀態列顯示用量組成，容量吃緊時拆解佔比",
+                "en": "Status line reveals usage breakdown, detailing proportions under tight capacity"
+              },
+              "body": {
+                "zh-TW": "把大量程式碼和截圖丟進對話後，一旦看到用量亮起警告，往往很難一眼看出到底是哪類內容在吃容量。⟦彷彿收納行李超重時跳出的明細清單，以前亮起紅燈你只能瞎猜是哪件物品太重，現在直接標出大件行李數量與雜物佔比，空間不足時還會自動把次要備註收起來。⟧當上下文（AI 在對話中能參考的內容）用量的數字變黃或變紅時，顯示在終端機最底下的狀態列會主動列出圖片數量，以及讀取檔案與指令輸出的估計佔比，例如 `圖片 3 張 · 讀檔與指令輸出 22%`。若該比例偏高，會建議你開啟新的對話工作階段。當狀態列空間不足時，這段組成資訊會最先被省略。狀態列 hook（掛鉤，特定事件發生時被觸發的小程式）已升級至 1.14，已安裝的副本會在下次開啟應用程式時更新。",
+                "en": "After pasting extensive code and screenshots into a conversation, seeing a usage warning often leaves you wondering which content type is consuming capacity. ⟦Picture an itemized breakdown when luggage exceeds weight limits: instead of guessing which item caused the red alert, big pieces and clutter ratios are explicitly listed, with secondary notes automatically tucked away when space runs tight.⟧ The status line appears at the very bottom of the terminal. When context (the content AI can refer to in a conversation) usage numbers turn yellow or red, the status line actively displays image counts alongside estimated proportions for read files and command output, such as `Images 3 · Files & commands 22%`. If this percentage is high, it recommends starting a new conversation session. When status line space runs out, this breakdown information is omitted first. The status line hook (a small program triggered by a specific event) has been upgraded to 1.14, and installed copies will update on the next application launch."
+              },
+              "original": "**Context breakdown in the status line.** When the context figure turns yellow or red, the status line shows the image count and the estimated share of file reads and command output, for example `Images 3 · Files & commands 22%`. A high share suggests starting a new conversation. This segment is dropped first when space runs out. The status line hook is now 1.14; installed copies update on the next app launch."
+            },
+            {
+              "title": {
+                "zh-TW": "更新後自動顯示改版重點，提示支援繁體中文",
+                "en": "Release highlights display automatically upon update, adding Traditional Chinese support"
+              },
+              "body": {
+                "zh-TW": "每次應用程式自動升級之後，你往往需要確認剛剛到底改了哪些功能。⟦如同訂閱的雜誌改版時夾附一張母語重點摘要，以前更新完只能自己找改了什麼，現在一開門就遞上每項只寫一行的繁中清單，斷網時還會貼心留到下次再給。⟧現在更新後第一次開啟應用程式，畫面會主動跳出這一版的更新內容，而且只會顯示一次。全新安裝的使用者不會看到這項提示；若啟動時沒有網路連線，會在下次開啟時再次嘗試顯示。這項功能同時適用於 macOS 與 Windows 系統。更新提示中每項變更只會列出一行，中文使用者會看到繁體中文說明，其他語言的使用者則會看到英文。由於提示視窗是由你目前安裝的版本所繪製，多語言更新說明會從這版之後的下一版更新提示開始正式生效。",
+                "en": "Whenever the application updates automatically, you often want to verify which features changed. ⟦A renewed magazine subscription includes a key summary in your native language: instead of hunting for changes on your own, a single-line Traditional Chinese list greets you immediately, quietly deferred to the next launch if you are offline.⟧ When you launch the application for the first time after an update, a release notes prompt appears on screen and shows only once. Fresh installations will not display this prompt, and if there is no internet connection at startup, it will try again on the next launch. This feature is supported across macOS and Windows. Each change in the update prompt takes only one line; Chinese users see Traditional Chinese descriptions, while other users see English. Because the prompt window is rendered by your currently installed version, multilingual release notes will officially take effect starting with the update prompt in the subsequent release."
+              },
+              "original": "**Release notes after an update.** The first launch after an update shows what changed in that version, once. Fresh installs skip it. If the app is offline, it tries again on the next launch. macOS and Windows.\n**Release notes in your language.** Update alerts list one line per change. Chinese users see Traditional Chinese; other languages see English. This applies to the update alert from the version after this one, because the alert is drawn by the version you already have."
+            },
+            {
+              "title": {
+                "zh-TW": "應用程式程式碼簽章恢復有效，下載後驗證順利通過",
+                "en": "Application code signatures restored, passing verification after download"
+              },
+              "body": {
+                "zh-TW": "如果你在 macOS 上下載應用程式後習慣手動驗證安全性，以前可能會因為簽章失效而無法通過檢查。⟦像出廠檢驗時重貼封條，以前如果在蓋完印章後又清理暫存碎屑，會弄破標籤導致檢查不過，現在改在徹底清乾淨後才重新壓上鋼印。⟧現在打包流程在清除位元組碼快取（cache，把編譯結果暫存起來直接用的檔案）後會重新進行數位簽章。下載後的應用程式副本都能順利通過 `codesign --verify` 驗證，讓程式碼簽章恢復有效。",
+                "en": "If you manually verify application security after downloading on macOS, invalid signatures may have previously caused checks to fail. ⟦Much like reapplying factory seals during inspection, where clearing residual debris after stamping once tore the seal and failed verification, stamps are now reapplied after thorough cleanup.⟧ The packaging process now performs digital signing again after clearing bytecode caches. Downloaded application copies can now pass `codesign --verify` verification without issue, restoring valid code signatures."
+              },
+              "original": "**The app's code signature is valid again.** The build re-signs the app after it removes bytecode caches, so `codesign --verify` passes on downloaded copies."
+            }
+          ]
+        },
         {
           "version": "0.32.5",
           "period": "2026-10-06",
@@ -1076,34 +1159,6 @@
                 "en": "When switching between desktop windows, task progress and system alert statuses are now more accurate. On macOS, notification banners display normally even while usage is running in the foreground, and denied notification permissions are recorded in the log file. The side popover also corrects background job statuses: when receiving killed, stopped, or cancelled notifications, the panel marks them as stopped. The interface no longer mislabels prematurely terminated jobs as completed, preventing misinterpretations of execution results. ⟦Package tracking systems handle status milestones with precision: instead of stamping an interrupted return as successfully delivered, notifications pop up right in front of you and halted shipments are clearly marked as stopped.⟧"
               },
               "original": "**macOS notification banners appear while usage is in front:** Banners now appear even when usage is the foreground app, and denied notification permission is recorded in the log file.\n**Stopped background jobs show the right status:** The side pane now shows \"stopped\" instead of \"completed\" when a background job's notification says killed, stopped or cancelled."
-            }
-          ]
-        },
-        {
-          "version": "0.32.3",
-          "period": "2026-10-05",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "額度重置立即歸零，面板更新即時顯示狀態",
-                "en": "Quotas Reset to Zero Instantly, and Panels Display Live Status During Refresh"
-              },
-              "body": {
-                "zh-TW": "每當你等待用量重置或手動點擊更新時，畫面上的數值與按鈕狀態現在都能即時反映最新進度。⟦像手機上網流量在每月結算日重新計費，以前帳單週期剛換時螢幕還停留在上個月的滿額警告，現在時間一到就直接歸零並標記重置，查帳時不必再盯著舊數據反覆猜測。⟧5 小時或每週額度（quota，固定時間內能使用的 AI 運算量上限）重置時間一到，選單列、彈出面板、Windows 系統匣與 Claude Code 側邊面板都會立即顯示 0% 與「已重置」，直到新資料載入，不再卡在上一週期的百分比。系統通知與歷史紀錄則會繼續維持實際讀到的數值，確保用量軌跡不受影響。在 macOS 與 Windows 上按下「立即更新」按鈕後，彈出面板的狀態標籤也會顯示「↻ 更新中…」，直到整個更新流程順利完成。",
-                "en": "Whenever you wait for usage to reset or click refresh manually, the numbers and button states on your screen now reflect the latest progress in real time. ⟦Think of mobile data resetting on billing day: where screens previously stayed stuck on the prior month's limit warning right as a new billing cycle began, the display now immediately drops to zero and marks the reset the moment time arrives, saving you from guessing over stale numbers.⟧ When the 5-hour or weekly quota reset time arrives, the menu bar, popover panel, Windows system tray, and Claude Code side panel immediately display 0% and \"Reset\" until fresh data loads, instead of remaining stuck on the previous cycle's percentage. System notifications and history logs continue to maintain the actual retrieved values, ensuring usage history remains unaffected. After clicking the \"Refresh Now\" button on macOS and Windows, the popover panel's status label also displays \"↻ Updating...\" until the entire update process completes smoothly."
-              },
-              "original": "**Quota shows 0% once its reset time passes:** After a 5-hour or weekly window resets, the menu bar, popover panels, Windows tray and Claude Code side pane show 0% with \"Reset\" until fresh data arrives, instead of the last percentage. Notifications and history still use the real reading.\n**Refresh gives feedback:** The popover status chip shows \"↻ Refreshing…\" while a refresh started from the Refresh button runs (macOS and Windows)."
-            },
-            {
-              "title": {
-                "zh-TW": "側邊面板完整列出背景工作，任務未跑完不再誤報完成",
-                "en": "Side Panel Lists Background Tasks in Full, Ending Premature Completion Alerts While Jobs Run"
-              },
-              "body": {
-                "zh-TW": "交給 Claude Code 處理耗時任務時，側邊面板現在能清楚掌握每一項背景工作的即時進度。⟦跟搬家公司清點物件一樣，以前工作人員搬完客廳桌椅就急著宣布完工，把還在裝箱的廚房物品全拋在腦後；現在總指揮會盯著所有搬運項目陸續上車，等每件家具確實定位才通知你簽收。⟧主對話輪次結束但背景工作還在跑時，側邊面板會持續顯示轉圈圖示，直到所有工作結束才跳出完成提示，不再提早宣告對話完成。面板內的背景工作區以前只保留最後四列，現在所有執行中的工作都會完整顯示，已結束的工作則收進「+N 個」按鈕供點擊展開。追蹤項目也不再只限於派發給 codex、agy、grok、muse 與子代理（subagent，替主要對話分頭處理任務的輔助程式），一般的背景指令、監控程序和工作流程現在都會列入清單，並讓對話正確維持在工作中。",
-                "en": "When handing off time-consuming tasks to Claude Code, the side panel now clearly tracks the real-time progress of every background job. ⟦Picture a moving crew inventorying household items: workers previously rushed to announce the job was finished right after moving living room tables and chairs, leaving packed kitchen boxes completely behind; now the supervisor tracks every item onto the truck and waits until each piece of furniture is in place before asking for your sign-off.⟧ When the main conversation turn finishes while background tasks are still running, the side panel continues displaying a spinner icon and only presents a completion notice once all jobs finish, no longer declaring the conversation complete prematurely. The background tasks section in the panel previously retained only the last four rows, but now all running jobs are fully displayed, while finished jobs are collapsed into a \"+N more\" button that you can click to expand. Tracked items are also no longer limited to delegations to codex, agy, grok, muse, and subagents (helper programs handling tasks in parallel for the main conversation); standard background commands, monitoring processes, and workflows are now included in the list, keeping the conversation properly marked as working."
-              },
-              "original": "**Side pane no longer calls a conversation done while its background jobs run:** A conversation whose main turn ended but whose background jobs are still running keeps the spinner and only toasts \"Done\" after they finish.\n**Side pane shows every running background job:** The jobs block used to keep only the last four rows; running jobs now always show, and finished ones fold behind a \"+N more\" toggle.\n**Side pane lists every kind of background work:** Plain background shell commands, monitors and workflows now appear in the jobs block (from Claude Code's own in-flight list at the end of each turn), not just codex / agy / grok / muse dispatches and subagents, and they count toward keeping a conversation busy."
             }
           ]
         }
