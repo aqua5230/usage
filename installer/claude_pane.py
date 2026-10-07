@@ -62,7 +62,7 @@ def _status_argv() -> list[str]:
             f"import sys;sys.path[:0]=[{resources!r}+'/lib/python{major}{minor}.zip',"
             f"{resources!r}+'/lib/python{major}.{minor}',"
             f"{resources!r}+'/lib/python{major}.{minor}/lib-dynload',{resources!r}];"
-            "import usage_cli;sys.argv=['usage','status','--json'];usage_cli.main()"
+            "from usage_app import cli;sys.argv=['usage','status','--json'];cli.main()"
         )
         return [
             "/usr/bin/env",
@@ -72,11 +72,12 @@ def _status_argv() -> list[str]:
             "-c",
             bootstrap,
         ]
+    root = str(Path(__file__).resolve().parent.parent)
     return [
         sys.executable,
-        str(Path(__file__).resolve().parent.parent / "usage_cli.py"),
-        "status",
-        "--json",
+        "-c",
+        f"import sys;sys.path.insert(0,{root!r});from usage_app import cli;"
+        "sys.argv=['usage','status','--json'];cli.main()",
     ]
 
 

@@ -6,11 +6,11 @@ from pathlib import Path
 
 import pytest
 
-import usage_cli
 from adapters import rate_limits
 from loaders import claude_desktop
 from loaders import claude_usage as usage_client
 from menubar import state as state_module
+from quota import status_payload
 from quota.burn_rate import BurnRateTracker
 from tui import app as tui
 from usage_common.i18n import _t
@@ -122,7 +122,7 @@ def test_local_cached_resets_reach_client_panel_tui_and_cli(
     )
     quota = rate_limits.load_rate_limits()
     assert quota is not None
-    payload = usage_cli._status_agent(quota, int(NOW))
+    payload = status_payload._status_agent(quota, int(NOW))
     assert payload["five_hour"]["resets_in_seconds"] == 100
     assert payload["seven_day"]["resets_in_seconds"] == 200
 
@@ -192,7 +192,7 @@ def test_desktop_quota_reaches_status_json(
         monkeypatch.setattr(rate_limits, attr, str(quota_file.parent / attr))
     quota = rate_limits.load_rate_limits()
     assert quota is not None
-    payload = usage_cli._status_agent(quota, int(NOW))
+    payload = status_payload._status_agent(quota, int(NOW))
     assert payload["available"]
     assert payload["five_hour"]["used_percent"] == 11
     assert payload["five_hour"]["resets_at"] is None

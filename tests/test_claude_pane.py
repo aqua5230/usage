@@ -4,6 +4,7 @@ import ast
 import json
 import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 from unittest.mock import Mock
@@ -187,13 +188,14 @@ def test_sidecar(isolated: Path, monkeypatch: pytest.MonkeyPatch, frozen: bool) 
             str(resources / "lib/python3.14/lib-dynload"),
             str(resources),
         ]
-        assert "sys.argv=['usage','status','--json'];usage_cli.main()" in argv[5]
+        assert "sys.argv=['usage','status','--json'];cli.main()" in argv[5]
     else:
         assert argv[0] == sys.executable
+        root = str(Path(pane.__file__).resolve().parent.parent)
         assert argv[1:] == [
-            str(Path(pane.__file__).resolve().parent.parent / "usage_cli.py"),
-            "status",
-            "--json",
+            "-c",
+            f"import sys;sys.path.insert(0,{root!r});from usage_app import cli;"
+            "sys.argv=['usage','status','--json'];cli.main()",
         ]
 
 
@@ -490,3 +492,13 @@ def test_beginner_toggle_reports_result(
     app.performSelectorOnMainThread_withObject_waitUntilDone_.assert_called_once_with(
         "_finishClaudePane:", {"ok": code == 0, "enabled": not enabled, "output": ""}, False
     )
+
+
+def test_status_argv_runs_from_source(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(sys, "frozen", False, raising=False)
+    monkeypatch.setenv("HOME", str(tmp_path))
+    monkeypatch.setenv("USERPROFILE", str(tmp_path))
+    argv = pane._status_argv()
+    result = subprocess.run(argv, capture_output=True, timeout=60)
+    assert result.returncode == 0
+    assert "agents" in json.loads(result.stdout)

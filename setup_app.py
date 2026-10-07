@@ -85,7 +85,6 @@ if __name__ == "__main__":
             "UserNotifications",
             "objc",
             "PyObjCTools.AppHelper",
-            "usage_cli",
         ],
         "packages": [
             "WebKit",

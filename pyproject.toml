@@ -24,8 +24,8 @@ windows = [
 ]
 
 [project.scripts]
-usage = "usage_cli:main"
-usage-cli = "usage_cli:main"
+usage = "usage_app.cli:main"
+usage-cli = "usage_app.cli:main"
 
 [tool.uv]
 # Lock for every platform we ship on, not just whichever one runs `uv lock`.
@@ -46,7 +46,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 py-modules = [
     "main",
-    "usage_cli",
     "setup_app",
 ]
 
@@ -87,7 +86,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 "adapters/**/*.py" = ["E501", "I001", "SIM108", "UP015", "UP017"]
 "analyzer/**/*.py" = ["E501", "I001", "UP015", "UP017"]
 "ui/**/*.py" = ["E501", "I001", "UP017", "UP035"]
-"usage_cli.py" = ["E501", "I001", "UP017"]
+"usage_app/cli.py" = ["E501", "I001", "UP017"]
 
 [tool.mypy]
 python_version = "3.13"
@@ -107,17 +106,17 @@ ignore_missing_imports = true
 module = ["AppKit", "Foundation", "objc", "PyObjCTools.*", "Quartz", "UserNotifications", "WebKit"]
 ignore_missing_imports = true
 
-# usage_cli's key readers pair a POSIX branch (termios/tty) with a Windows
+# usage_app.cli's key readers pair a POSIX branch (termios/tty) with a Windows
 # branch (msvcrt); each side's `type: ignore` comments are only "used" when
 # mypy runs on the other platform, so unused-ignore warnings must stay off
 # for this module to keep `mypy .` green on both macOS and Windows CI.
 [[tool.mypy.overrides]]
-module = "usage_cli"
+module = "usage_app.cli"
 warn_unused_ignores = false
 
 # tests/test_usage_statusline.py forks a child to contend the POSIX file lock;
 # os.fork does not exist on Windows, so its `type: ignore` is only "used" when
-# mypy runs there. Same reasoning as usage_cli above.
+# mypy runs there. Same reasoning as usage_app.cli above.
 [[tool.mypy.overrides]]
 module = "tests.test_usage_statusline"
 warn_unused_ignores = false

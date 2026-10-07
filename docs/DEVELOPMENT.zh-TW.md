@@ -154,7 +154,7 @@ python3 main.py --tui
 
 ## 報告與深度分析（CLI）
 
-除了選單列跟 TUI，還有一個分析用的 CLI 進入點 `usage_cli.py`，可以匯出 HTML 報告、或在終端機開互動式 dashboard（儀表板，互動式統計面板）：
+除了選單列跟 TUI，還有一個分析用的 CLI 進入點 `usage_app/cli.py`，可以匯出 HTML 報告、或在終端機開互動式 dashboard（儀表板，互動式統計面板）：
 
 <p align="center">
   <img src="report.png" alt="HTML 報告畫面：你的 AI 用量回顧" width="520">
@@ -164,24 +164,24 @@ python3 main.py --tui
 source .venv/bin/activate
 
 # 互動式 dashboard（自動偵測 Claude / Codex 兩邊用量，用方向鍵切換）
-python3 usage_cli.py
+uv run usage
 
 # 只看 Claude Code / 只看 Codex
-python3 usage_cli.py claude
-python3 usage_cli.py codex
+uv run usage claude
+uv run usage codex
 
 # 產生 HTML 報告並用預設瀏覽器打開（預設範圍：近 30 天）
-python3 usage_cli.py report
-python3 usage_cli.py report --today              # 今日
-python3 usage_cli.py report --week               # 本週
-python3 usage_cli.py report --month              # 本月
-python3 usage_cli.py report --all                # 全部資料
-python3 usage_cli.py report --out report.html    # 另存到指定位置
+uv run usage report
+uv run usage report --today              # 今日
+uv run usage report --week               # 本週
+uv run usage report --month              # 本月
+uv run usage report --all                # 全部資料
+uv run usage report --out report.html    # 另存到指定位置
 
 # 純文字統計表
-python3 usage_cli.py daily
-python3 usage_cli.py weekly
-python3 usage_cli.py monthly
+uv run usage daily
+uv run usage weekly
+uv run usage monthly
 ```
 
 HTML 報告包含：每日 / 週 / 月 token 與成本走勢、各專案排名、Top 模型分布。右上角的「分享」按鈕可另存 `.html` 或複製檔案路徑，透過 AirDrop / Mail / Slack / iMessage 把報告傳給同事或主管；對方瀏覽器打開即可閱讀。報告內含「隱藏專案名稱」勾選框（預設打勾，隱私優先），勾選後另存的 HTML 會把所有專案名稱替換成 `Project 1 / Project 2 / ...`，不影響當前螢幕顯示。
@@ -242,7 +242,7 @@ JSON 帶有 `schema_version`，之後格式若有變動，接的人可以據此�
 
 Antigravity 的 `groups` 保留快取順序，`weekly` 對應 `seven_day`，`used_percent` 是 `100 - remaining_percent`，取小數一位。倒數以快取的 `fetched_at` 加上 `resets_in_minutes` 計算，再扣掉目前時間，最小為 `0`；沒有重置時間時為 `null`。Grok 的 `period.resets_at` 是 `period_end` 換算的 Unix 秒數，`tier` 是 `subscription_tier`，沒有方案時為 `null`。兩者的 `updated_at` 都保留 `fetched_at` 原字串；快取過舊仍可讀，倒數會歸零。沒資料時，兩者都沿用 Claude/Codex 的完整 unavailable 欄位形狀。
 
-從原始碼安裝的話，可以直接跑 `python3 usage_cli.py status --json`，或先跑一次 `uv sync` 把 `usage` 指令裝進 PATH。
+從原始碼安裝的話，可以直接跑 `uv run usage status --json`，或先跑一次 `uv sync` 把 `usage` 指令裝進 PATH。
 
 ### Starship
 
