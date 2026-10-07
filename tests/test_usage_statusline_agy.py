@@ -13,8 +13,8 @@ from typing import Any
 
 import pytest
 
-import usage_statusline_agy
 from installer import session_hooks, setup_hook, statusline_settings
+from usage_hooks import usage_statusline_agy
 
 FIXTURE = Path(__file__).parent / "fixtures" / "agy_statusline_input.json"
 
@@ -154,7 +154,7 @@ def test_setup_and_unsetup_agy_on_macos_preserve_settings_and_restore_statusline
         "enabled": True,
     }
     assert json.loads(previous.read_text(encoding="utf-8")) == original_statusline
-    source = Path(setup_hook.__file__).parent.parent / "usage_statusline_agy.py"
+    source = Path(setup_hook.__file__).parent.parent / "usage_hooks" / "usage_statusline_agy.py"
     assert target.read_bytes() == source.read_bytes()
     assert setup_hook.is_agy_setup()
 
@@ -209,7 +209,7 @@ def test_setup_and_unsetup_agy_on_windows_use_discovered_python_and_sidecar(
     }
     assert '"' not in installed["statusLine"]["command"]
     assert json.loads(previous.read_text(encoding="utf-8")) == original_statusline
-    source = Path(setup_hook.__file__).parent.parent / "usage_statusline_agy.py"
+    source = Path(setup_hook.__file__).parent.parent / "usage_hooks" / "usage_statusline_agy.py"
     assert target.read_bytes() == source.read_bytes()
     assert setup_hook.is_agy_setup()
 

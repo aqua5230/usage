@@ -26,7 +26,6 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 import service_status  # noqa: E402
-import usage_statusline  # noqa: E402
 from installer import session_hooks, setup_hook  # noqa: E402
 from loaders import (  # noqa: E402
     agy_loader,
@@ -35,6 +34,7 @@ from loaders import (  # noqa: E402
     grok_loader,
     grok_quota_probe,
 )
+from usage_hooks import usage_statusline  # noqa: E402
 
 CLAUDE_STATUS_PATH = setup_hook.STATUS_FILE
 CLAUDE_PROJECTS_DIR = CLAUDE_STATUS_PATH.parent / "projects"
@@ -508,7 +508,7 @@ def check_grok() -> Result:
 
 def hook_pairs() -> list[tuple[Path, Path]]:
     return [
-        (ROOT / source, target)
+        (ROOT / "usage_hooks" / source, target)
         for source, target in (
             ("usage_statusline.py", setup_hook.HOOK_TARGET),
             ("usage_statusline_forwarder.py", setup_hook.FORWARDER_TARGET),

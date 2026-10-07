@@ -76,7 +76,7 @@ python3 main.py --setup
 What `--setup` does in detail:
 
 - Configures `tui.status_line` in `~/.codex/config.toml` when Codex is detected.
-- If Claude Code is present, copies `usage_statusline.py` to `~/.claude/usage-statusline.py`.
+- If Claude Code is present, copies `usage_hooks/usage_statusline.py` to `~/.claude/usage-statusline.py`.
 - If Claude Code is present, points `statusLine` in `~/.claude/settings.json` at that hook.
 - If you already had a custom Claude Code `statusLine`, it is backed up to `settings.usage.previousStatusLine` so nothing is overwritten.
 

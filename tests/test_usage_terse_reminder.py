@@ -14,7 +14,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import usage_terse_reminder as mod
+from usage_hooks import usage_terse_reminder as mod
 
 
 @pytest.mark.parametrize(

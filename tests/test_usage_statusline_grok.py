@@ -15,8 +15,8 @@ from typing import Any
 
 import pytest
 
-import usage_statusline_grok
 from installer import session_hooks, setup_hook, statusline_settings
+from usage_hooks import usage_statusline_grok
 
 FIXTURE = Path(__file__).parent / "fixtures" / "grok_statusline_input.json"
 _ANSI = re.compile(r"\033\[[0-9;]*m")
@@ -212,7 +212,7 @@ def test_setup_and_unsetup_grok_restore_existing_status_line_verbatim(
     assert previous.read_text(encoding="utf-8") == (
         '[ui.status_line] # previous row\ntype = "builtin"\nitems = ["cwd", "model"]\n\n'
     )
-    source = Path(setup_hook.__file__).parent.parent / "usage_statusline_grok.py"
+    source = Path(setup_hook.__file__).parent.parent / "usage_hooks" / "usage_statusline_grok.py"
     assert target.read_bytes() == source.read_bytes()
     assert setup_hook.is_grok_setup()
 

@@ -14,7 +14,7 @@ from types import SimpleNamespace
 
 import pytest
 
-import usage_terse_mode as mod
+from usage_hooks import usage_terse_mode as mod
 
 
 @pytest.mark.parametrize(
