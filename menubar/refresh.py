@@ -30,6 +30,7 @@ from menubar.prefs import (
     _hide_grok_enabled,
     _quota_card_order,
 )
+from quota import quota_snapshot
 from quota.burn_rate import BurnRateTracker
 from quota.usage_rate import UsageRateTracker
 from service_status import CLAUDE_STATUS, CODEX_STATUS, get_service_status
@@ -268,6 +269,8 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         state.hide_grok = hide_grok
         state.card_order = card_order
 
+    if not app.mock:
+        quota_snapshot.write_snapshot()
     return {
         "state": state,
         "codex_5h_pct": codex_5h_pct,

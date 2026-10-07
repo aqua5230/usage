@@ -532,6 +532,11 @@
     "claude_beginner_enabled_msg": "已開啟新手模式。重開 Claude Code 後生效。",
     "claude_beginner_disabled_msg": "已關閉新手模式。重開 Claude Code 後生效。",
     "claude_beginner_action_failed": "無法切換新手模式",
+    "quota_aware_menu": "額度感知模式",
+    "quota_aware_tooltip": "額度快用完時，Claude 開大任務前會先告訴你剩多少、幾點重置，讓你選先做小的還是等重置。",
+    "quota_aware_enabled_msg": "已開啟額度感知模式。請重啟 Claude Code 套用。",
+    "quota_aware_disabled_msg": "已關閉額度感知模式。請重啟 Claude Code 套用。",
+    "quota_aware_action_failed": "無法切換額度感知模式。",
     "claude_beginner_error": "新手模式：{error}"
   },
   "en": {
@@ -1067,6 +1072,11 @@
     "claude_beginner_enabled_msg": "Beginner Mode enabled. Restart Claude Code to apply.",
     "claude_beginner_disabled_msg": "Beginner Mode disabled. Restart Claude Code to apply.",
     "claude_beginner_action_failed": "Could not change Beginner Mode",
+    "quota_aware_menu": "Quota-Aware Mode",
+    "quota_aware_tooltip": "When quota is running low, Claude tells you how much remains and when it resets before starting a large task, so you can choose a smaller part now or wait for the reset.",
+    "quota_aware_enabled_msg": "Quota-Aware Mode enabled. Restart Claude Code to apply.",
+    "quota_aware_disabled_msg": "Quota-Aware Mode disabled. Restart Claude Code to apply.",
+    "quota_aware_action_failed": "Could not change Quota-Aware Mode.",
     "claude_beginner_error": "Beginner Mode: {error}"
   },
   "zh-CN": {
@@ -1602,6 +1612,11 @@
     "claude_beginner_enabled_msg": "已开启新手模式。重启 Claude Code 后生效。",
     "claude_beginner_disabled_msg": "已关闭新手模式。重启 Claude Code 后生效。",
     "claude_beginner_action_failed": "无法切换新手模式",
+    "quota_aware_menu": "额度感知模式",
+    "quota_aware_tooltip": "额度快用完时，Claude 开大任务前会先告诉你还剩多少、几点重置，让你选先做小的还是等重置。",
+    "quota_aware_enabled_msg": "已开启额度感知模式。请重启 Claude Code 应用。",
+    "quota_aware_disabled_msg": "已关闭额度感知模式。请重启 Claude Code 应用。",
+    "quota_aware_action_failed": "无法切换额度感知模式。",
     "claude_beginner_error": "新手模式：{error}"
   },
   "ja": {
@@ -2137,6 +2152,11 @@
     "claude_beginner_enabled_msg": "初心者モードを有効にしました。Claude Code を再起動してください。",
     "claude_beginner_disabled_msg": "初心者モードを無効にしました。Claude Code を再起動してください。",
     "claude_beginner_action_failed": "初心者モードを切り替えられません",
+    "quota_aware_menu": "クォータ認識モード",
+    "quota_aware_tooltip": "クォータが少なくなると、大きなタスクを始める前に Claude が残量とリセット時刻を伝えます。小さな部分を先に進めるか、リセットを待つか選べます。",
+    "quota_aware_enabled_msg": "クォータ認識モードを有効にしました。Claude Code を再起動してください。",
+    "quota_aware_disabled_msg": "クォータ認識モードを無効にしました。Claude Code を再起動してください。",
+    "quota_aware_action_failed": "クォータ認識モードを切り替えられませんでした。",
     "claude_beginner_error": "初心者モード：{error}"
   },
   "ko": {
@@ -2672,6 +2692,11 @@
     "claude_beginner_enabled_msg": "초보자 모드를 켰습니다. Claude Code를 다시 시작하세요.",
     "claude_beginner_disabled_msg": "초보자 모드를 껐습니다. Claude Code를 다시 시작하세요.",
     "claude_beginner_action_failed": "초보자 모드를 전환할 수 없습니다",
+    "quota_aware_menu": "할당량 인식 모드",
+    "quota_aware_tooltip": "할당량이 부족해지면 Claude가 큰 작업을 시작하기 전에 남은 양과 초기화 시간을 알려 줍니다. 작은 부분을 먼저 진행하거나 초기화를 기다릴 수 있습니다.",
+    "quota_aware_enabled_msg": "할당량 인식 모드를 켰습니다. Claude Code를 다시 시작해 주세요.",
+    "quota_aware_disabled_msg": "할당량 인식 모드를 껐습니다. Claude Code를 다시 시작해 주세요.",
+    "quota_aware_action_failed": "할당량 인식 모드를 변경할 수 없습니다.",
     "claude_beginner_error": "초보자 모드: {error}"
   }
 }

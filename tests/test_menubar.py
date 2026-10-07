@@ -22,7 +22,7 @@ import panels
 import quota.agy_window_keeper as agy_window_keeper
 import quota.window_keeper as window_keeper
 from i18n import _t
-from installer import statusline_settings
+from installer import session_hooks, statusline_settings
 from loaders import codex_loader, grok_loader, history_loader
 from menubar import actions as menubar_actions
 from menubar import agy as menubar_agy
@@ -684,8 +684,9 @@ def test_empty_state() -> None:
 
 
 @pytest.mark.parametrize("native_header", [True, False])
+@pytest.mark.parametrize("quota_enabled", [True, False])
 def test_switch_panel_menu_contains_update_items(
-    monkeypatch: pytest.MonkeyPatch, native_header: bool
+    monkeypatch: pytest.MonkeyPatch, native_header: bool, quota_enabled: bool
 ) -> None:
     class NativeMenuItem(_FakeMenuItem):
         @classmethod
@@ -721,6 +722,7 @@ def test_switch_panel_menu_contains_update_items(
         lambda: {"hide_codex_section": True},
     )
 
+    monkeypatch.setattr(session_hooks, "is_quota_aware_enabled", lambda: quota_enabled)
     _FakeMenu.instances = []
     menubar.AppDelegate.switchPanel_(delegate, object())
 
@@ -780,6 +782,7 @@ def test_switch_panel_menu_contains_update_items(
         "Claude Code",
         "Side pane",
         "Beginner Mode",
+        "Quota-Aware Mode",
     ]
     section = settings[7]
     assert section.enabled is False
@@ -807,6 +810,13 @@ def test_switch_panel_menu_contains_update_items(
     assert beginner.state == 0
     assert main_menu.items[main_menu.items.index(beginner) - 1].action == "toggleClaudePane:"
     assert beginner.target is delegate._beginner_menu_target
+    quota = next(item for item in main_menu.items if item.action == "toggleQuotaAware:")
+    assert quota.title == "Quota-Aware Mode"
+    assert quota.indentation == 1
+    assert quota.state == int(quota_enabled)
+    assert quota.tooltip == _t("en", "quota_aware_tooltip")
+    assert quota.target is delegate._quota_aware_menu_target
+    assert main_menu.items[main_menu.items.index(quota) - 1] is beginner
     assert pane.target is delegate
     assert "Show in report" not in main_titles
 
@@ -3217,3 +3227,33 @@ def test_poll_tick_rechecks_without_startup_maintenance(
     assert calls == [{}] * 2
     assert len(cleared) == 3
     assert app._auto_check_schedule._failures == (0 if outcome is False else 2)
+
+
+@pytest.mark.parametrize(
+    ("ok", "enabled", "key"),
+    [
+        (True, True, "quota_aware_enabled_msg"),
+        (True, False, "quota_aware_disabled_msg"),
+        (False, False, "quota_aware_action_failed"),
+    ],
+)
+def test_quota_aware_completion_alert(
+    monkeypatch: pytest.MonkeyPatch, ok: bool, enabled: bool, key: str
+) -> None:
+    messages: list[str] = []
+    details: list[str] = []
+    completed: list[str] = []
+    alert = SimpleNamespace(
+        setMessageText_=messages.append,
+        setInformativeText_=details.append,
+        runModal=lambda: completed.append("alert"),
+    )
+    monkeypatch.setattr(menubar_actions, "_make_alert", lambda: alert)
+    target = menubar_actions.QuotaAwareMenuTarget.alloc().init()
+    target.app = cast(
+        Any, SimpleNamespace(language="en", _refresh=lambda: completed.append("refresh"))
+    )
+    target._finishQuotaAware_({"ok": ok, "enabled": enabled, "output": "failure details"})
+    assert messages == [_t("en", key)]
+    assert details == ([] if ok else ["failure details"])
+    assert completed == ["alert", "refresh"]

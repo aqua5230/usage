@@ -285,3 +285,49 @@ class BeginnerMenuTarget(NSObject):  # type: ignore[misc]
 
     def _finishClaudePane_(self, result: dict[str, Any]) -> None:
         finish_claude_pane(self.app, result, beginner=True)
+
+
+class QuotaAwareMenuTarget(NSObject):  # type: ignore[misc]
+    """Own the quota toggle and its main-thread completion callback."""
+
+    app: _PaneApp
+
+    def toggleQuotaAware_(self, sender: Any) -> None:
+        import threading
+
+        self.app._mark_switch_menu_action()
+        threading.Thread(target=self._toggle_in_background, daemon=True).start()
+
+    def _toggle_in_background(self) -> None:
+        output = io.StringIO()
+        ok = False
+        enabled = False
+        try:
+            with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
+                enabled = not session_hooks.is_quota_aware_enabled()
+                action = (
+                    session_hooks.enable_quota_aware
+                    if enabled
+                    else session_hooks.disable_quota_aware
+                )
+                ok = action() == 0
+        except SystemExit as exc:
+            print(exc.code, file=output)
+        except Exception as exc:
+            print(f"{type(exc).__name__}: {exc}", file=output)
+        self.performSelectorOnMainThread_withObject_waitUntilDone_(
+            "_finishQuotaAware:",
+            {"ok": ok, "enabled": enabled, "output": output.getvalue().strip()},
+            False,
+        )
+
+    def _finishQuotaAware_(self, result: dict[str, Any]) -> None:
+        alert = _make_alert()
+        if result.get("ok"):
+            key = "quota_aware_enabled_msg" if result.get("enabled") else "quota_aware_disabled_msg"
+            alert.setMessageText_(_t(self.app.language, key))
+        else:
+            alert.setMessageText_(_t(self.app.language, "quota_aware_action_failed"))
+            alert.setInformativeText_(str(result.get("output") or ""))
+        alert.runModal()
+        self.app._refresh()

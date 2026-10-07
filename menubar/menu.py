@@ -11,7 +11,7 @@ from typing import Any, Protocol
 from AppKit import NSMakePoint, NSMenu, NSMenuItem
 
 from i18n import _t
-from installer import claude_pane, login_item
+from installer import claude_pane, login_item, session_hooks
 from menubar.new_badge import apply_badge
 from menubar.prefs import (
     _hide_agy_enabled,
@@ -28,6 +28,7 @@ class _SwitchMenuApp(Protocol):
     active_panel: Any
     _switch_menu_action_taken: bool
     _beginner_menu_target: Any
+    _quota_aware_menu_target: Any
 
     def _resync_popover_after_menu(self) -> None: ...
 
@@ -226,6 +227,21 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     )
     beginner_item.setIndentationLevel_(1)
     menu.addItem_(beginner_item)
+    from menubar.actions import QuotaAwareMenuTarget
+
+    quota_target = QuotaAwareMenuTarget.alloc().init()
+    quota_target.app = app
+    app._quota_aware_menu_target = quota_target
+    quota_item = build_menu_item(
+        app.language,
+        "quota_aware_menu",
+        "toggleQuotaAware:",
+        target=quota_target,
+        state=session_hooks.is_quota_aware_enabled(),
+        tooltip_key="quota_aware_tooltip",
+    )
+    quota_item.setIndentationLevel_(1)
+    menu.addItem_(quota_item)
     app._switch_menu_action_taken = False
     menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
     # Dismissing the menu without picking anything used to close the panel:

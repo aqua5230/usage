@@ -25,6 +25,7 @@ HOOK_SCRIPTS = (
     "usage_statusline.py",
     "usage_terse_mode.py",
     "usage_terse_reminder.py",
+    "usage_quota_aware.py",
 )
 
 
