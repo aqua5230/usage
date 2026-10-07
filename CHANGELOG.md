@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Added
 - **Claude Desktop quota:** read local desktop plan history when Claude Code quota files are unavailable, including Windows Microsoft Store installs. Show session and weekly percentages, plus exact reset times from a matching, recent local HTTP cache response when available. No credentials or quota API requests; unknown reset times remain unknown. Includes observation age and stale-data handling.
+- **Windows taskbar label menu:** right-click the quota label to open the same menu as the tray icon, outside the taskbar so it cannot cover the menu. Adapts to taskbars on any screen edge; left-click still opens the panel.
 
 ## [0.33.0] - 2026-10-07
 

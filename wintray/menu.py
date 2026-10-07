@@ -23,6 +23,8 @@ type CheckKey = Literal[
     "session_resume",
     "terse_mode",
     "claude_pane",
+    "claude_beginner",
+    "quota_aware",
 ]
 
 PANEL: MenuSurface = "panel"
@@ -135,7 +137,20 @@ def windows_menu_model(panels: tuple[Panel, ...]) -> tuple[MenuEntry, ...]:
         # added a divider with no real category difference (matches macOS f74bbe0).
         MenuCommand("project_butler", "toggle_session_resume", checked_by="session_resume"),
         MenuCommand("terse_mode_menu", "toggle_terse_mode", checked_by="terse_mode"),
-        MenuCommand("claude_pane_menu", "toggle_claude_pane", checked_by="claude_pane"),
+        MenuGroup(
+            "claude_code_section",
+            (
+                MenuCommand(
+                    "claude_pane_section_menu", "toggle_claude_pane", checked_by="claude_pane"
+                ),
+                MenuCommand(
+                    "claude_beginner_menu",
+                    "toggle_claude_beginner",
+                    checked_by="claude_beginner",
+                ),
+                MenuCommand("quota_aware_menu", "toggle_quota_aware", checked_by="quota_aware"),
+            ),
+        ),
         MenuSeparator(_PANEL_ONLY),
         MenuCommand("check_update", "check_update"),
         MenuCommand(

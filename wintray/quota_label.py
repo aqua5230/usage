@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
 from prefs import _load_preferences
+from wintray.taskbar_menu import request_tray_menu as request_tray_menu
 from wintray.taskbar_obstacles import TaskbarObstacles
 from wintray.taskbar_overlay import TaskbarOverlay, label_position
 
@@ -77,7 +78,7 @@ def draw_label(text: str, color: tuple[int, int, int, int], scale: float = 1.0) 
 class TaskbarQuotaLabel:
     """Construct/update on the UI thread; close may be called from the tray thread."""
 
-    def __init__(self, open_panel: Callable[[], None]) -> None:
+    def __init__(self, open_panel: Callable[[], None], open_menu: Callable[[], None]) -> None:
         self.forms = importlib.import_module("System.Windows.Forms")
         self.system = importlib.import_module("System")
         self.form = self.forms.Form()
@@ -88,6 +89,7 @@ class TaskbarQuotaLabel:
         self.form.StartPosition = self.forms.FormStartPosition.Manual
         self.form.Cursor = self.forms.Cursors.Hand
         self._open_panel = open_panel
+        self._open_menu = open_menu
         self._action_lock = threading.Lock()
         self._closed = threading.Event()
         self.form.MouseClick += self._on_click
@@ -105,7 +107,15 @@ class TaskbarQuotaLabel:
         self.timer.Start()
 
     def _on_click(self, _sender: Any, event: Any) -> None:
-        if event.Button != self.forms.MouseButtons.Left or self._closed.is_set():
+        if self._closed.is_set():
+            return
+        if event.Button == self.forms.MouseButtons.Right:
+            try:
+                self._open_menu()
+            except Exception:
+                logger.exception("Unable to open the menu from the taskbar label")
+            return
+        if event.Button != self.forms.MouseButtons.Left:
             return
         if not self._action_lock.acquire(blocking=False):
             return
