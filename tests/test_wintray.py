@@ -23,12 +23,13 @@ import panels
 import prefs
 import service_status
 from i18n import _t
-from installer import claude_pane
+from installer import claude_pane, session_hooks
 from loaders import codex_loader
 from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
 from menubar import agy as menubar_agy
 from menubar import prefs as menubar_prefs
 from menubar import state as menubar_state
+from quota import quota_snapshot
 from updates import checker as update_checker
 from usage_client import PollOutcome, PollState
 from usage_notifications import NotificationEvent
@@ -1538,6 +1539,8 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     monkeypatch.setattr(wintray, "_session_resume_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_terse_mode_enabled", lambda: False)
     monkeypatch.setattr(wintray, "_claude_pane_enabled", lambda: True)
+    monkeypatch.setattr(wintray, "_claude_beginner_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_quota_aware_enabled", lambda: True)
 
     menu = controller._panel_menu_data()
 
@@ -1559,7 +1562,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
         "window_keeper_menu",
         "project_butler",
         "terse_mode_menu",
-        "claude_pane_menu",
+        "claude_code_section",
         "separator",
         "check_update",
     ]
@@ -1574,7 +1577,13 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     assert menu[9]["checked"] is True
     assert menu[10]["checked"] is True
     assert menu[11]["checked"] is False
-    assert menu[12]["checked"] is True
+    claude_code = cast(list[dict[str, object]], menu[12]["children"])
+    assert [item["i18nKey"] for item in claude_code] == [
+        "claude_pane_section_menu",
+        "claude_beginner_menu",
+        "quota_aware_menu",
+    ]
+    assert [item["checked"] for item in claude_code] == [True, False, True]
 
 
 def test_panel_and_tray_menus_render_the_shared_model(
@@ -1701,6 +1710,8 @@ def test_tray_quit_label_removes_the_power_glyph() -> None:
         ({"action": "toggle_session_resume"}, "toggle_session_resume", ()),
         ({"action": "toggle_terse_mode"}, "toggle_terse_mode", ()),
         ({"action": "toggle_claude_pane"}, "toggle_claude_pane", ()),
+        ({"action": "toggle_claude_beginner"}, "toggle_claude_beginner", ()),
+        ({"action": "toggle_quota_aware"}, "toggle_quota_aware", ()),
         ({"action": "check_update"}, "check_update", ()),
         ({"action": "quit"}, "quit", ()),
     ],
@@ -2059,6 +2070,78 @@ def test_claude_pane_toggle_failure_reports_output(monkeypatch: pytest.MonkeyPat
     controller._toggle_claude_pane_in_background()
 
     assert messages == [f"{_t('en', 'claude_pane_action_failed')}\n\npane failure"]
+
+
+def test_claude_beginner_toggle_enables_without_fullscreen(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    messages: list[str] = []
+    fullscreen_calls: list[str] = []
+    monkeypatch.setattr(claude_pane, "is_claude_beginner_enabled", lambda: False)
+    monkeypatch.setattr(claude_pane, "enable_claude_beginner", lambda: 0)
+    monkeypatch.setattr(
+        claude_pane, "enable_fullscreen_layout", lambda: fullscreen_calls.append("fullscreen")
+    )
+    monkeypatch.setattr(controller, "_message_box", messages.append)
+
+    controller._toggle_claude_beginner_in_background()
+
+    assert messages == [_t("en", "claude_beginner_enabled_msg")]
+    assert fullscreen_calls == []
+
+
+def test_quota_aware_toggle_reports_enabled_and_disabled_messages(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    messages: list[str] = []
+    enabled = False
+
+    def is_enabled() -> bool:
+        return enabled
+
+    def enable() -> int:
+        nonlocal enabled
+        enabled = True
+        return 0
+
+    def disable() -> int:
+        nonlocal enabled
+        enabled = False
+        return 0
+
+    monkeypatch.setattr(session_hooks, "is_quota_aware_enabled", is_enabled)
+    monkeypatch.setattr(session_hooks, "enable_quota_aware", enable)
+    monkeypatch.setattr(session_hooks, "disable_quota_aware", disable)
+    monkeypatch.setattr(controller, "_message_box", messages.append)
+
+    controller._toggle_quota_aware_in_background()
+    controller._toggle_quota_aware_in_background()
+
+    assert messages == [
+        _t("en", "quota_aware_enabled_msg"),
+        _t("en", "quota_aware_disabled_msg"),
+    ]
+
+
+@pytest.mark.parametrize(("mock", "expected_writes"), [(False, 1), (True, 0)])
+def test_refresh_writes_quota_snapshot_only_outside_mock_mode(
+    monkeypatch: pytest.MonkeyPatch, mock: bool, expected_writes: int
+) -> None:
+    controller = wintray._WindowsTrayController(mock=mock, interval=60)
+    writes: list[str] = []
+    monkeypatch.setattr(controller, "_ensure_windows_watcher", lambda: None)
+    monkeypatch.setattr(controller, "_build_state", lambda **_kwargs: _state())
+    monkeypatch.setattr(controller, "_process_quota_notifications", lambda _state: None)
+    monkeypatch.setattr(controller, "_update_tray", lambda: None)
+    monkeypatch.setattr(quota_snapshot, "write_snapshot", lambda: writes.append("write"))
+
+    controller._refresh_worker()
+
+    assert len(writes) == expected_writes
 
 
 def test_refresh_requested_while_busy_runs_once_after_current_refresh(
