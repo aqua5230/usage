@@ -14,6 +14,8 @@ import logging
 import os
 from typing import Any, Protocol
 
+from Foundation import NSObject
+
 from i18n import _t
 from installer import session_hooks, setup_hook
 from installer.statusline_settings import (
@@ -216,7 +218,7 @@ def toggle_claude_pane(app: _PaneApp) -> None:
     threading.Thread(target=toggle_claude_pane_in_background, args=(app,), daemon=True).start()
 
 
-def toggle_claude_pane_in_background(app: _ActionApp) -> None:
+def toggle_claude_pane_in_background(app: _ActionApp, *, beginner: bool = False) -> None:
     from installer import claude_pane
 
     output = io.StringIO()
@@ -224,8 +226,18 @@ def toggle_claude_pane_in_background(app: _ActionApp) -> None:
     enabled = False
     try:
         with contextlib.redirect_stdout(output), contextlib.redirect_stderr(output):
-            enabled = not claude_pane.is_claude_pane_enabled()
-            action = claude_pane.enable_claude_pane if enabled else claude_pane.disable_claude_pane
+            if beginner:
+                enabled = not claude_pane.is_claude_beginner_enabled()
+                action = (
+                    claude_pane.enable_claude_beginner
+                    if enabled
+                    else claude_pane.disable_claude_beginner
+                )
+            else:
+                enabled = not claude_pane.is_claude_pane_enabled()
+                action = (
+                    claude_pane.enable_claude_pane if enabled else claude_pane.disable_claude_pane
+                )
             ok = action() == 0
     except SystemExit as exc:
         print(exc.code, file=output)
@@ -238,13 +250,38 @@ def toggle_claude_pane_in_background(app: _ActionApp) -> None:
     )
 
 
-def finish_claude_pane(app: _PaneApp, result: dict[str, Any]) -> None:
+def finish_claude_pane(app: _PaneApp, result: dict[str, Any], *, beginner: bool = False) -> None:
+    prefix = "claude_beginner" if beginner else "claude_pane"
     alert = _make_alert()
     if result.get("ok"):
-        key = "claude_pane_enabled_msg" if result.get("enabled") else "claude_pane_disabled_msg"
+        key = f"{prefix}_enabled_msg" if result.get("enabled") else f"{prefix}_disabled_msg"
         alert.setMessageText_(_t(app.language, key))
     else:
-        alert.setMessageText_(_t(app.language, "claude_pane_action_failed"))
+        alert.setMessageText_(_t(app.language, f"{prefix}_action_failed"))
         alert.setInformativeText_(str(result.get("output") or ""))
     alert.runModal()
     app._refresh()
+
+
+class BeginnerMenuTarget(NSObject):  # type: ignore[misc]
+    """Keep Objective-C callbacks in this leaf, without adding app selectors."""
+
+    app: _PaneApp
+
+    @property
+    def language(self) -> str:
+        return self.app.language
+
+    def toggleClaudeBeginner_(self, sender: Any) -> None:
+        import threading
+
+        self.app._mark_switch_menu_action()
+        threading.Thread(
+            target=toggle_claude_pane_in_background,
+            args=(self,),
+            kwargs={"beginner": True},
+            daemon=True,
+        ).start()
+
+    def _finishClaudePane_(self, result: dict[str, Any]) -> None:
+        finish_claude_pane(self.app, result, beginner=True)

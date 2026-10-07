@@ -27,6 +27,7 @@ class _SwitchMenuApp(Protocol):
     language: str
     active_panel: Any
     _switch_menu_action_taken: bool
+    _beginner_menu_target: Any
 
     def _resync_popover_after_menu(self) -> None: ...
 
@@ -203,6 +204,22 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     )
     apply_badge(claude_pane_item, app.language, "claude_pane")
     menu.addItem_(claude_pane_item)
+    from menubar.actions import BeginnerMenuTarget
+
+    beginner_target = BeginnerMenuTarget.alloc().init()
+    beginner_target.app = app
+    # NSMenuItem does not retain its target; hold it through background completion.
+    app._beginner_menu_target = beginner_target
+    menu.addItem_(
+        build_menu_item(
+            app.language,
+            "claude_beginner_menu",
+            "toggleClaudeBeginner:",
+            target=beginner_target,
+            state=claude_pane.is_claude_beginner_enabled(),
+            tooltip_key="claude_beginner_tooltip",
+        )
+    )
     app._switch_menu_action_taken = False
     menu.popUpMenuPositioningItem_atLocation_inView_(None, NSMakePoint(0, 0), sender)
     # Dismissing the menu without picking anything used to close the panel:

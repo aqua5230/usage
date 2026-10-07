@@ -751,6 +751,12 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     terse = next(item for item in main_menu.items if item.action == "toggleTerseMode:")
     assert terse.title == "Token Saver"
     assert terse.tooltip
+    beginner = next(item for item in main_menu.items if item.action == "toggleClaudeBeginner:")
+    assert beginner.title == "Claude Code Beginner Mode"
+    assert beginner.tooltip == _t("en", "claude_beginner_tooltip")
+    assert beginner.state == 0
+    assert main_menu.items[main_menu.items.index(beginner) - 1].action == "toggleClaudePane:"
+    assert beginner.target is delegate._beginner_menu_target
     assert "Show in report" not in main_titles
 
 

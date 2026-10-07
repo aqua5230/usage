@@ -33,10 +33,18 @@ def _remove_path(value: str, path: str) -> str:
     return os.pathsep.join(parts) if any(parts) else ""
 
 
-def _resolve_source() -> Path:
+def _install_dir(mod: str) -> Path:
+    return INSTALL_DIR.with_name("usage-beginner") if mod == "usage-beginner" else INSTALL_DIR
+
+
+def _sidecar_name(mod: str) -> str:
+    return "usage-beginner.json" if mod == "usage-beginner" else "usage-pane.json"
+
+
+def _resolve_source(mod: str = "usage-dash") -> Path:
     paths = [
-        Path(__file__).resolve().parent.parent / "claude_pane" / "usage-dash",
-        Path(sys.executable).resolve().parent.parent / "Resources" / "claude_pane" / "usage-dash",
+        Path(__file__).resolve().parent.parent / "claude_pane" / mod,
+        Path(sys.executable).resolve().parent.parent / "Resources" / "claude_pane" / mod,
     ]
     for path in paths:
         if path.is_dir():
@@ -72,7 +80,7 @@ def _status_argv() -> list[str]:
     ]
 
 
-def _sidecar_text() -> str:
+def _sidecar_text(mod: str = "usage-dash") -> str:
     from i18n import I18N_PATH
 
     bundle = json.loads(I18N_PATH.read_text(encoding="utf-8"))
@@ -81,30 +89,36 @@ def _sidecar_text() -> str:
     strings = {
         key: table.get(key) or value
         for key, value in english.items()
-        if key.startswith("claude_pane_")
+        if key.startswith("claude_beginner_" if mod == "usage-beginner" else "claude_pane_")
     }
     return (
         json.dumps(
-            {"strings": strings, "status_argv": _status_argv()}, ensure_ascii=False, indent=2
+            (
+                {"strings": strings, "lang": detect_lang()}
+                if mod == "usage-beginner"
+                else {"strings": strings, "status_argv": _status_argv()}
+            ),
+            ensure_ascii=False,
+            indent=2,
         )
         + "\n"
     )
 
 
-def _write_sidecar() -> None:
-    setup_hook._atomic_write_text(INSTALL_DIR / "usage-pane.json", _sidecar_text())
+def _write_sidecar(mod: str = "usage-dash") -> None:
+    setup_hook._atomic_write_text(_install_dir(mod) / _sidecar_name(mod), _sidecar_text(mod))
 
 
-def _copy_pane() -> None:
-    source = _resolve_source()
-    if INSTALL_DIR.exists():
-        shutil.rmtree(INSTALL_DIR)
-    shutil.copytree(source, INSTALL_DIR, ignore=shutil.ignore_patterns("*.test.ts"))
-    _write_sidecar()
+def _copy_pane(mod: str = "usage-dash") -> None:
+    source = _resolve_source(mod)
+    if _install_dir(mod).exists():
+        shutil.rmtree(_install_dir(mod))
+    shutil.copytree(source, _install_dir(mod), ignore=shutil.ignore_patterns("*.test.ts"))
+    _write_sidecar() if mod == "usage-dash" else _write_sidecar(mod)
 
 
-def _installed_is_current() -> bool:
-    source = _resolve_source()
+def _installed_is_current(mod: str = "usage-dash") -> bool:
+    source = _resolve_source(mod)
     shipped = {
         path.relative_to(source)
         for path in source.rglob("*")
@@ -113,16 +127,20 @@ def _installed_is_current() -> bool:
     # Claude Code writes its own type stubs under .claude-plugin/types; they are not ours.
     generated = Path(".claude-plugin", "types")
     installed = {
-        path.relative_to(INSTALL_DIR)
-        for path in INSTALL_DIR.rglob("*")
-        if path.is_file() and generated not in path.relative_to(INSTALL_DIR).parents
-    } - {Path("usage-pane.json")}
+        path.relative_to(_install_dir(mod))
+        for path in _install_dir(mod).rglob("*")
+        if path.is_file() and generated not in path.relative_to(_install_dir(mod)).parents
+    } - {Path(_sidecar_name(mod))}
     if shipped != installed:
         return False
-    if not all(filecmp.cmp(source / path, INSTALL_DIR / path, shallow=False) for path in shipped):
+    if not all(
+        filecmp.cmp(source / path, _install_dir(mod) / path, shallow=False) for path in shipped
+    ):
         return False
     try:
-        return (INSTALL_DIR / "usage-pane.json").read_text(encoding="utf-8") == _sidecar_text()
+        return (_install_dir(mod) / _sidecar_name(mod)).read_text(
+            encoding="utf-8"
+        ) == _sidecar_text(mod)
     except OSError:
         return False
 
@@ -134,11 +152,13 @@ def _env(settings: dict[str, object]) -> dict[str, str]:
     return env
 
 
-def enable_claude_pane() -> int:
-    _copy_pane()
+def enable_claude_pane(mod: str = "usage-dash") -> int:
+    _copy_pane() if mod == "usage-dash" else _copy_pane(mod)
     settings = setup_hook._load_settings()
     env = _env(settings)
-    env[PLUGIN_DIRS_KEY] = _add_path(env.get(PLUGIN_DIRS_KEY, ""), str(INSTALL_DIR.absolute()))
+    env[PLUGIN_DIRS_KEY] = _add_path(
+        env.get(PLUGIN_DIRS_KEY, ""), str(_install_dir(mod).absolute())
+    )
     settings["env"] = env
     setup_hook._save_settings(settings)
     return 0
@@ -159,12 +179,12 @@ def enable_fullscreen_layout() -> None:
     setup_hook._save_settings(settings)
 
 
-def disable_claude_pane() -> int:
+def disable_claude_pane(mod: str = "usage-dash") -> int:
     settings = setup_hook._load_settings()
     env = _env(settings)
     changed = False
     if PLUGIN_DIRS_KEY in env:
-        value = _remove_path(env[PLUGIN_DIRS_KEY], str(INSTALL_DIR.absolute()))
+        value = _remove_path(env[PLUGIN_DIRS_KEY], str(_install_dir(mod).absolute()))
         if value:
             env[PLUGIN_DIRS_KEY] = value
         else:
@@ -173,7 +193,11 @@ def disable_claude_pane() -> int:
             settings.pop("env", None)
         changed = True
     usage = settings.get("usage")
-    if isinstance(usage, dict) and usage.get("claudePaneSetFullscreen") is True:
+    if (
+        mod == "usage-dash"
+        and isinstance(usage, dict)
+        and usage.get("claudePaneSetFullscreen") is True
+    ):
         if settings.get("tui") == "fullscreen":
             settings.pop("tui")
         usage.pop("claudePaneSetFullscreen")
@@ -182,18 +206,19 @@ def disable_claude_pane() -> int:
         changed = True
     if changed:
         setup_hook._save_settings(settings)
-    if INSTALL_DIR.exists():
-        shutil.rmtree(INSTALL_DIR)
+    if _install_dir(mod).exists():
+        shutil.rmtree(_install_dir(mod))
     return 0
 
 
-def is_claude_pane_enabled() -> bool:
+def is_claude_pane_enabled(mod: str = "usage-dash") -> bool:
     try:
         value = _env(setup_hook._load_settings()).get(PLUGIN_DIRS_KEY, "")
     except SystemExit:
         return False
-    return INSTALL_DIR.is_dir() and any(
-        part and _same_path(part, str(INSTALL_DIR.absolute())) for part in value.split(os.pathsep)
+    return _install_dir(mod).is_dir() and any(
+        part and _same_path(part, str(_install_dir(mod).absolute()))
+        for part in value.split(os.pathsep)
     )
 
 
@@ -201,3 +226,17 @@ def refresh_claude_pane() -> None:
     """Re-copy an enabled pane whose files differ from this build's, e.g. after an app upgrade."""
     if is_claude_pane_enabled() and not _installed_is_current():
         _copy_pane()
+    if is_claude_beginner_enabled() and not _installed_is_current("usage-beginner"):
+        _copy_pane("usage-beginner")
+
+
+def enable_claude_beginner() -> int:
+    return enable_claude_pane("usage-beginner")
+
+
+def disable_claude_beginner() -> int:
+    return disable_claude_pane("usage-beginner")
+
+
+def is_claude_beginner_enabled() -> bool:
+    return is_claude_pane_enabled("usage-beginner")
