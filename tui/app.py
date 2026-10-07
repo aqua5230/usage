@@ -6,12 +6,9 @@
 
 from __future__ import annotations
 
-import json
 import math
 import time
 from dataclasses import dataclass, field
-from functools import lru_cache
-from pathlib import Path
 
 from rich.align import Align
 from rich.console import Console, Group, RenderableType
@@ -19,7 +16,7 @@ from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
 
-from i18n import packaged_resource_path
+from i18n import _load_i18n_bundle
 from tui.sprite import render_sprite
 from usage_client import PollState, UsageSnapshot
 from usage_common.usage_lang import detect_lang
@@ -37,18 +34,6 @@ SPINNER_FRAMES = ["·", "✻", "✽", "✶", "✳", "✢"]
 SPINNER_PHASES = [0, 1, 2, 3, 4, 5, 4, 3, 2, 1]
 SPINNER_PHASE_MS = [260, 130, 130, 130, 130, 260, 130, 130, 130, 130]
 LOADING_INTERVAL_MS = 4000
-I18N_PATH = packaged_resource_path(
-    "i18n.json", Path(__file__).resolve().parent.parent / "i18n.json"
-)
-
-
-@lru_cache(maxsize=1)
-def _load_i18n_bundle() -> dict[str, dict[str, str]]:
-    data = json.loads(I18N_PATH.read_text(encoding="utf-8"))
-    return {
-        str(lang): {str(key): str(value) for key, value in values.items()}
-        for lang, values in data.items()
-    }
 
 
 def _t(language: str, key: str, **kwargs: object) -> str:

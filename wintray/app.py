@@ -12,15 +12,12 @@ import math
 import os
 import threading
 import time
-import tomllib
 import webbrowser
 from collections import deque
 from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from enum import IntEnum
-from importlib import metadata
-from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
@@ -62,6 +59,7 @@ from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import alert_release_notes
 from usage_client import ClaudeUsageClient, PollState
+from usage_common.app_version import current_version as _current_version
 from usage_common.usage_lang import detect_lang
 from usage_notifications import NotificationEvent, QuotaNotifier
 from wintray import login_item as win_login_item
@@ -649,20 +647,6 @@ def _save_active_panel_id(panel_id: str) -> None:
     preferences = _load_preferences()
     preferences["usage.activePanelId"] = panel_id
     _save_preferences(preferences)
-
-
-def _current_version() -> str:
-    try:
-        return metadata.version("usage-cli")
-    except metadata.PackageNotFoundError:
-        from i18n import packaged_resource_path
-
-        pyproject = packaged_resource_path(
-            "pyproject.toml", Path(__file__).with_name("pyproject.toml")
-        )
-        data = tomllib.loads(pyproject.read_text(encoding="utf-8"))
-        value = data["project"]["version"]
-        return str(value)
 
 
 def _statusline_payload(language: str) -> dict[str, object]:

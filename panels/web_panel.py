@@ -17,6 +17,7 @@ from AppKit import NSColor, NSFont, NSMakeRect, NSTextField, NSView
 from Foundation import NSObject
 from Quartz import CGColorCreateGenericRGB
 
+from i18n import _load_i18n_bundle
 from menubar.prefs import (
     _panel_flavor,
     _save_agy_quota_group,
@@ -27,7 +28,6 @@ from menubar.prefs import (
 from panels.dynamic_height import inject_content_height_script
 from panels.payload import (
     _data_uri,
-    _load_i18n_bundle,
     _load_panel_html,
     _new_state_payload,
     _row_payload,
