@@ -311,16 +311,29 @@ def check_claude_transcript() -> Result:
 
 
 def check_codex_sessions() -> Result:
-    path = _latest(codex_loader.SESSIONS_DIR.glob("**/*.jsonl"))
-    if path is None:
+    paths = sorted(
+        codex_loader.SESSIONS_DIR.glob("**/*.jsonl"),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    if not paths:
         return "NO_DATA", f"{codex_loader.SESSIONS_DIR}: no sessions"
-    if result := _fresh(path):
+    if result := _fresh(paths[0]):
         return result
-    rows = [
-        r
-        for r in _rows(path, 10000)
-        if r.get("type") == "event_msg" and _get(r, "payload.type") == "token_count"
-    ]
+    # A session that has only just started has no token_count rows yet. Check the
+    # newest recent session that has some; if none has any, report the newest.
+    path, rows = paths[0], []
+    for candidate in paths:
+        if _fresh(candidate):
+            break
+        found = [
+            r
+            for r in _rows(candidate, 10000)
+            if r.get("type") == "event_msg" and _get(r, "payload.type") == "token_count"
+        ]
+        if found:
+            path, rows = candidate, found
+            break
     fields: dict[str, Callable[[Any], bool]] = {
         "timestamp": lambda v: _timestamp(v) is not None,
         **{f"payload.info.total_token_usage.{key}": _number for key in CODEX_TOKENS},

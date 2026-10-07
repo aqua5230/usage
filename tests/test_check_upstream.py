@@ -210,6 +210,29 @@ def test_codex_sessions_ok(codex_event: dict[str, Any]) -> None:
     assert check.check_codex_sessions()[0] == "OK"
 
 
+def test_codex_skips_session_without_token_count_yet(codex_event: dict[str, Any]) -> None:
+    older = write_rows(check.codex_loader.SESSIONS_DIR / "older.jsonl", [codex_event])
+    old = time.time() - 60
+    os.utime(older, (old, old))
+    write_rows(
+        check.codex_loader.SESSIONS_DIR / "started.jsonl",
+        [{"type": "event_msg", "timestamp": now(), "payload": {"type": "task_started"}}],
+    )
+    state, detail = check.check_codex_sessions()
+    assert state == "OK"
+    assert detail.endswith("older.jsonl")
+
+
+def test_codex_no_token_count_in_any_session() -> None:
+    write_rows(
+        check.codex_loader.SESSIONS_DIR / "started.jsonl",
+        [{"type": "event_msg", "timestamp": now(), "payload": {"type": "task_started"}}],
+    )
+    state, detail = check.check_codex_sessions()
+    assert state == "BROKEN"
+    assert "started.jsonl" in detail
+
+
 @pytest.mark.parametrize("field", ["rate_limits", "info"])
 def test_codex_missing(codex_event: dict[str, Any], field: str) -> None:
     del codex_event["payload"][field]
