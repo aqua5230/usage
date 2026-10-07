@@ -7,10 +7,10 @@ from datetime import UTC, datetime
 
 import pytest
 
+from loaders.claude_usage import PollOutcome, PollState
 from loaders.grok_quota_probe import GrokQuotaResult
 from menubar import grok as menubar_grok
 from menubar import state as menubar_state
-from usage_client import PollOutcome, PollState
 
 
 def _quota() -> GrokQuotaResult:

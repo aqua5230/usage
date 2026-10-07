@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 
 import usage_cli
-import usage_client
 from adapters import rate_limits
 from loaders import claude_desktop
+from loaders import claude_usage as usage_client
 from menubar import state as state_module
 from quota.burn_rate import BurnRateTracker
 from tui import app as tui
@@ -23,7 +23,7 @@ def quota_file(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> Path:
     for attr in ("STATUS_FILE", "LEGACY_STATUS_FILE", "TT_STATUS_FILE"):
         monkeypatch.setattr(usage_client, attr, str(tmp_path / attr))
     monkeypatch.setattr(usage_client, "_claude_json_file", lambda: str(tmp_path / "cli.json"))
-    monkeypatch.setattr("usage_client.time.time", lambda: NOW)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: NOW)
     monkeypatch.setenv("USAGE_LANG", "en")
     path = tmp_path / claude_desktop.HISTORY_NAME
     monkeypatch.setattr(claude_desktop, "desktop_history_paths", lambda: (path,))
@@ -203,11 +203,13 @@ def test_desktop_age_is_recomputed_without_file_change(
     quota_file: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     client = usage_client.ClaudeUsageClient()
-    monkeypatch.setattr("usage_client.time.time", lambda: NOW + 31 * 60)
+    monkeypatch.setattr("loaders.claude_usage.time.time", lambda: NOW + 31 * 60)
     result = asyncio.run(client.fetch_once())
     assert result.snapshot is not None and result.snapshot.is_stale
     assert result.message == _t("en", "claude_desktop_stale", minutes=31)
-    monkeypatch.setattr("usage_client.time.time", lambda: NOW + claude_desktop.MAX_AGE_SECONDS + 1)
+    monkeypatch.setattr(
+        "loaders.claude_usage.time.time", lambda: NOW + claude_desktop.MAX_AGE_SECONDS + 1
+    )
     result = asyncio.run(client.fetch_once())
     assert result.snapshot is None
 

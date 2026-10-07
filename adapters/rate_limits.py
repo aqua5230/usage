@@ -10,7 +10,7 @@ import os
 from datetime import datetime, timezone
 from typing import Any
 
-import usage_client
+from loaders import claude_usage as usage_client
 
 from .types import RateLimits
 

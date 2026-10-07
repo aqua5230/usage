@@ -85,7 +85,6 @@ if __name__ == "__main__":
             "UserNotifications",
             "objc",
             "PyObjCTools.AppHelper",
-            "usage_client",
             "usage_cli",
         ],
         "packages": [
@@ -108,6 +107,7 @@ if __name__ == "__main__":
             "tui",
             "ui",
             "updates",
+            "usage_app",
             "usage_common",
             "wintray",
         ],

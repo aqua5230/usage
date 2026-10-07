@@ -46,14 +46,12 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 py-modules = [
     "main",
-    "usage_client",
     "usage_cli",
-    "doctor",
     "setup_app",
 ]
 
 [tool.setuptools.packages.find]
-include = ["usage_hooks*", "adapters*", "analyzer*", "installer*", "loaders*", "menubar*", "panels*", "quota*", "tui*", "ui*", "updates*", "usage_common*", "wintray*"]
+include = ["usage_hooks*", "adapters*", "analyzer*", "installer*", "loaders*", "menubar*", "panels*", "quota*", "tui*", "ui*", "updates*", "usage_app*", "usage_common*", "wintray*"]
 
 # Top-level modules cannot collect adjacent data files via package-data.
 [tool.setuptools.data-files]

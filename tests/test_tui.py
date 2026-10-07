@@ -12,8 +12,8 @@ from pathlib import Path
 import pytest
 from rich.panel import Panel
 
+from loaders.claude_usage import PollState, UsageSnapshot
 from tui import app as tui
-from usage_client import PollState, UsageSnapshot
 from usage_common import i18n
 
 

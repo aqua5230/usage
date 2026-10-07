@@ -55,7 +55,7 @@ PING_TIMEOUT_SECONDS = 180
 # window the previous ping opened.
 PING_COOLDOWN_SECONDS = 5 * 3600 + 300
 
-# usage_client defaults a missing ``resets_at`` to parse-time "now", which one
+# loaders.claude_usage defaults a missing ``resets_at`` to parse-time "now", which one
 # refresh later reads as "expired seconds ago". Requiring the expiry to be at
 # least this old filters those synthetic timestamps without delaying a real
 # expired-while-away ping by more than two minutes. Codex's loader already

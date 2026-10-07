@@ -58,6 +58,7 @@ from installer.statusline_settings import (
     _toggle_statusline_settings as _toggle_statusline_settings,
 )
 from loaders import agy_loader, codex_loader
+from loaders.claude_usage import ClaudeUsageClient, PollOutcome
 from loaders.history_loader import (
     UsageEntry,
 )
@@ -154,7 +155,6 @@ from quota.notifications import NotificationEvent, QuotaNotifier
 from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
 from updates import gate as update_gate
-from usage_client import ClaudeUsageClient, PollOutcome
 from usage_common.app_version import current_version as _current_version
 from usage_common.i18n import _t
 from usage_common.prefs import _load_preferences, _save_preferences

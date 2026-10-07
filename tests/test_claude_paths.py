@@ -15,9 +15,9 @@ from types import SimpleNamespace
 
 import pytest
 
-import usage_client
 from installer import setup_hook
 from loaders import claude_paths
+from loaders import claude_usage as usage_client
 
 
 @pytest.fixture(autouse=True)

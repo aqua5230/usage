@@ -23,13 +23,13 @@ import panels
 from installer import claude_pane, session_hooks
 from loaders import codex_loader
 from loaders.agy_quota_probe import AgyQuotaGroup, AgyQuotaResult, AgyQuotaWindow
+from loaders.claude_usage import PollOutcome, PollState
 from menubar import agy as menubar_agy
 from menubar import prefs as menubar_prefs
 from menubar import state as menubar_state
 from quota import quota_snapshot
 from quota.notifications import NotificationEvent
 from updates import checker as update_checker
-from usage_client import PollOutcome, PollState
 from usage_common import prefs, service_status
 from usage_common.i18n import _t
 from wintray import app as wintray
