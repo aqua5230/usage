@@ -87,13 +87,18 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
     latest: dict[str, object] | None = None
     latest_time = 0.0
     for sample in samples:
-        if not isinstance(sample, dict) or not isinstance(sample.get("org"), str):
+        if not isinstance(sample, dict):
             continue
         timestamp = _number(sample.get("t"))
-        if timestamp is not None and timestamp >= latest_time and sample["org"]:
+        if timestamp is not None and timestamp >= latest_time:
             latest, latest_time = sample, timestamp
     polled_at = latest_time / 1000
-    if latest is None or not -60 <= now - polled_at <= MAX_AGE_SECONDS:
+    if (
+        latest is None
+        or not isinstance(latest.get("org"), str)
+        or not latest["org"]
+        or not -60 <= now - polled_at <= MAX_AGE_SECONDS
+    ):
         return None
     utilization = latest.get("u")
     if not isinstance(utilization, dict):

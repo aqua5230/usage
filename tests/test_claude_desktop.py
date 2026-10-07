@@ -39,6 +39,20 @@ def test_invalid_latest_org_does_not_restore_previous_org(tmp_path: Path) -> Non
     assert desktop._read_history(path, NOW) is None
 
 
+@pytest.mark.parametrize("org", ["", None, 7, "missing"])
+def test_latest_sample_without_valid_org_does_not_restore_previous_org(
+    tmp_path: Path, org: object
+) -> None:
+    path = tmp_path / desktop.HISTORY_NAME
+    latest = _sample(fh=5, sd=6)
+    if org == "missing":
+        del latest["org"]
+    else:
+        latest["org"] = org
+    _history(path, [_sample(age=10, fh=91, sd=82), latest])
+    assert desktop._read_history(path, NOW) is None
+
+
 def test_equal_timestamps_use_last_org_observation(tmp_path: Path) -> None:
     path = tmp_path / desktop.HISTORY_NAME
     _history(path, [_sample(org="a", fh=99), _sample(org="b", fh=12)])
