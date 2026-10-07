@@ -6,7 +6,7 @@
 
 from __future__ import annotations
 
-from usage_notifications import QuotaNotifier
+from quota.notifications import QuotaNotifier
 
 
 def test_threshold_warn_only_triggers_once_until_reset() -> None:

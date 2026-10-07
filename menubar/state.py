@@ -31,8 +31,8 @@ from quota.burn_rate import (
     assess_weekly_quota,
 )
 from quota.usage_rate import GROUP_NAMES
-from service_status import ServiceStatus
 from usage_client import PollOutcome, PollState
+from usage_common.service_status import ServiceStatus
 from usage_common.time_utils import parse_iso8601_utc_or_raise
 
 if TYPE_CHECKING:

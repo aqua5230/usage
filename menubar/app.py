@@ -32,7 +32,6 @@ from AppKit import (
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 
 import panels
-from fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from i18n import _t
 from installer import login_item
 from installer.statusline_settings import (
@@ -80,6 +79,7 @@ from menubar.actions import (
 from menubar.chrome import (
     _make_alert,
 )
+from menubar.fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from menubar.popover import PopoverViewController, _popover_size
 from menubar.prefs import (
     _hide_agy_enabled,
@@ -153,13 +153,13 @@ from panels.panel_window_state import save_panel_window_top_left
 from prefs import _load_preferences, _save_preferences
 from pricing import warm_up_pricing
 from quota.burn_rate import BurnRateTracker
+from quota.notifications import NotificationEvent, QuotaNotifier
 from quota.usage_rate import UsageRateTracker
 from updates import checker as update_checker
 from updates import gate as update_gate
 from usage_client import ClaudeUsageClient, PollOutcome
 from usage_common.app_version import current_version as _current_version
 from usage_common.usage_lang import detect_lang
-from usage_notifications import NotificationEvent, QuotaNotifier
 
 __all__ = [
     "CLAUDE_COLOR",

@@ -13,8 +13,8 @@ from types import SimpleNamespace
 
 import pytest
 
-import usage_diagnosis_snapshot as mod
 from analyzer import diagnoser
+from analyzer import diagnosis_snapshot as mod
 
 
 def test_refresh_snapshot_writes_payload_with_generated_at_and_fingerprint(

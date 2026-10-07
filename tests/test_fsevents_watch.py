@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-import fsevents_watch
+from menubar import fsevents_watch
 
 
 def test_usage_watch_paths_only_includes_existing_history_directories(

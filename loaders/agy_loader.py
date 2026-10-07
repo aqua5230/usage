@@ -28,7 +28,7 @@ from loaders.disk_cache_lifecycle import (
 from loaders.disk_cache_lifecycle import (
     flush_caches_on_terminate as _flush_caches_on_terminate,
 )
-from project_resolver import resolve_project_name
+from usage_common.project_resolver import resolve_project_name
 
 logger = logging.getLogger(__name__)
 

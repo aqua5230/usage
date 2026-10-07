@@ -491,7 +491,7 @@ def test_reset_quota_row_cannot_warn(window_seconds: float | None) -> None:
 
 
 def test_display_reset_does_not_restore_notifications() -> None:
-    from usage_notifications import QuotaNotifier
+    from quota.notifications import QuotaNotifier
 
     notifier = QuotaNotifier()
     row = menubar_state._quota_row("Session", 100.0, 1001.0, 1000.0, menubar_state.CLAUDE_COLOR)

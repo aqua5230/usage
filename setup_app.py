@@ -85,7 +85,6 @@ if __name__ == "__main__":
             "UserNotifications",
             "objc",
             "PyObjCTools.AppHelper",
-            "usage_notifications",
             "usage_client",
             "pricing",
             "i18n",

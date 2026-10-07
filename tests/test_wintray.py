@@ -21,7 +21,6 @@ import pytest
 
 import panels
 import prefs
-import service_status
 from i18n import _t
 from installer import claude_pane, session_hooks
 from loaders import codex_loader
@@ -30,9 +29,10 @@ from menubar import agy as menubar_agy
 from menubar import prefs as menubar_prefs
 from menubar import state as menubar_state
 from quota import quota_snapshot
+from quota.notifications import NotificationEvent
 from updates import checker as update_checker
 from usage_client import PollOutcome, PollState
-from usage_notifications import NotificationEvent
+from usage_common import service_status
 from wintray import app as wintray
 from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu
@@ -1991,7 +1991,7 @@ def test_attach_schedules_startup_maintenance_after_tray_is_visible(
     monkeypatch.setattr(controller, "_update_tray", lambda: events.append("tray"))
     monkeypatch.setattr(controller, "refresh", lambda: events.append("refresh"))
     monkeypatch.setattr(
-        "wintray.app.usage_diagnosis_snapshot.maybe_schedule_refresh",
+        "wintray.app.diagnosis_snapshot.maybe_schedule_refresh",
         lambda: events.append("diagnosis"),
     )
     monkeypatch.setattr(claude_pane, "refresh_claude_pane", lambda: events.append("claude-pane"))

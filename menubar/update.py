@@ -15,7 +15,7 @@ import time
 import webbrowser
 from typing import Any, Protocol
 
-import usage_diagnosis_snapshot
+from analyzer import diagnosis_snapshot
 from i18n import _t
 from installer import claude_pane
 from prefs import _load_preferences, _save_preferences
@@ -51,7 +51,7 @@ def clear_stale_update_cache() -> None:
 
 
 def maybe_check_update_in_background(app: _UpdateApp) -> None:
-    usage_diagnosis_snapshot.maybe_schedule_refresh()
+    diagnosis_snapshot.maybe_schedule_refresh()
     try:
         claude_pane.refresh_claude_pane()
     except (OSError, SystemExit):
