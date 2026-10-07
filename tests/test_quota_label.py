@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import importlib
+import sys
 import threading
 from dataclasses import replace
 from types import SimpleNamespace
@@ -10,7 +12,7 @@ import pytest
 import i18n
 import prefs
 from tests.test_wintray import _state
-from wintray import app, quota_label, taskbar_overlay
+from wintray import app, quota_label, taskbar_menu, taskbar_overlay
 from wintray.quota_label import TaskbarQuotaLabel, draw_label, taskbar_text_color
 from wintray.taskbar_overlay import TaskbarLayout, covers_monitor, intersects, label_position
 
@@ -26,7 +28,7 @@ def test_overlay_rejects_non_windows_before_loading_native_libraries(
 
 def test_click_returns_without_waiting_for_panel_and_coalesces_busy_clicks() -> None:
     label = object.__new__(TaskbarQuotaLabel)
-    label.forms = SimpleNamespace(MouseButtons=SimpleNamespace(Left=1))  # type: ignore[assignment]
+    label.forms = SimpleNamespace(MouseButtons=SimpleNamespace(Left=1, Right=2))  # type: ignore[assignment]
     label._closed = threading.Event()
     label._action_lock = threading.Lock()
     entered = threading.Event()
@@ -69,6 +71,111 @@ def test_panel_action_failure_releases_click_guard(caplog: pytest.LogCaptureFixt
     label._run_panel_action()
     assert not label._action_lock.locked()
     assert "Unable to open the panel" in caplog.text
+
+
+def test_right_click_opens_menu_even_while_panel_action_is_busy() -> None:
+    label = object.__new__(TaskbarQuotaLabel)
+    label.forms = SimpleNamespace(MouseButtons=SimpleNamespace(Left=1, Right=2))  # type: ignore[assignment]
+    label._closed = threading.Event()
+    label._action_lock = threading.Lock()
+    label._action_lock.acquire()
+    actions: list[str] = []
+    label._open_menu = lambda: actions.append("menu")
+    label._open_panel = lambda: actions.append("panel")
+    label._on_click(None, SimpleNamespace(Button=2))
+    assert actions == ["menu"]
+    assert label._action_lock.locked()
+    label._on_click(None, SimpleNamespace(Button=3))
+    label._closed.set()
+    label._on_click(None, SimpleNamespace(Button=2))
+    label._on_click(None, SimpleNamespace(Button=1))
+    assert actions == ["menu"]
+
+
+def test_menu_action_failure_is_logged_without_escaping_ui_event(
+    caplog: pytest.LogCaptureFixture,
+) -> None:
+    label = object.__new__(TaskbarQuotaLabel)
+    label.forms = SimpleNamespace(MouseButtons=SimpleNamespace(Left=1, Right=2))  # type: ignore[assignment]
+    label._closed = threading.Event()
+
+    def fail() -> None:
+        raise OSError("Tray is stopping")
+
+    label._open_menu = fail
+    label._on_click(None, SimpleNamespace(Button=2))
+    assert "Unable to open the menu" in caplog.text
+
+
+@pytest.mark.parametrize("icon", [None, SimpleNamespace(), SimpleNamespace(_hwnd=None)])
+def test_menu_request_ignores_uninitialized_tray(icon: Any) -> None:
+    quota_label.request_tray_menu(icon)
+
+
+def test_menu_request_reports_post_failure(monkeypatch: pytest.MonkeyPatch) -> None:
+    native = SimpleNamespace(WM_NOTIFY=1035, WM_RBUTTONUP=517, PostMessage=lambda *_: False)
+    monkeypatch.setattr(importlib, "import_module", lambda _: native)
+    with pytest.raises(OSError, match="request the tray menu"):
+        quota_label.request_tray_menu(SimpleNamespace(_hwnd=123, _message_handlers={}))
+
+
+def test_controller_menu_callback_uses_current_icon_and_ignores_shutdown(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    requested: list[object] = []
+    callbacks: list[Any] = []
+
+    def make_label(_panel: Any, menu: Any) -> Any:
+        callbacks.append(menu)
+        return SimpleNamespace(update=lambda *_: None)
+
+    monkeypatch.setattr(app, "TaskbarQuotaLabel", make_label)
+    monkeypatch.setattr(app, "request_tray_menu", requested.append)
+    prefs._save_preferences({"quota_label_enabled": True})
+    controller = app._WindowsTrayController(mock=True, interval=60)
+    controller._update_quota_label_on_ui_thread()
+    first_icon, second_icon = object(), object()
+    controller.icon = first_icon
+    callbacks[0]()
+    controller.icon = second_icon
+    callbacks[0]()
+    controller.stopping.set()
+    callbacks[0]()
+    assert requested == [first_icon, second_icon]
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows native message loop")
+def test_menu_request_reaches_real_tray_message_loop_on_its_own_thread(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    from PIL import Image
+    from pystray._util import win32
+    from pystray._win32 import Icon
+
+    icon = Icon("usage-label-menu-test", Image.new("RGBA", (16, 16)))
+    ready, received = threading.Event(), threading.Event()
+    events: list[tuple[int, int]] = []
+
+    def show_menu(received_icon: Any) -> None:
+        assert received_icon is icon
+        events.append((taskbar_menu.WM_LABEL_MENU, threading.get_ident()))
+        received.set()
+
+    original_notify = icon._message_handlers[win32.WM_NOTIFY]
+    monkeypatch.setattr(taskbar_menu, "_show_tray_menu", show_menu)
+    tray_thread = threading.Thread(target=lambda: icon.run(setup=lambda _: ready.set()))
+    tray_thread.start()
+    try:
+        assert ready.wait(3)
+        quota_label.request_tray_menu(icon)
+        assert received.wait(3)
+        assert events == [(taskbar_menu.WM_LABEL_MENU, tray_thread.ident)]
+        assert events[0][1] != threading.get_ident()
+        assert icon._message_handlers[win32.WM_NOTIFY] == original_notify
+    finally:
+        icon.stop()
+        tray_thread.join(3)
+    assert not tray_thread.is_alive()
 
 
 @pytest.mark.parametrize(
@@ -293,7 +400,7 @@ def test_label_follows_provider_quota_and_persisted_toggle(monkeypatch: pytest.M
     label = SimpleNamespace(
         update=lambda *args: updates.append(args), close=lambda: closes.append(True)
     )
-    monkeypatch.setattr(app, "TaskbarQuotaLabel", lambda callback: label)
+    monkeypatch.setattr(app, "TaskbarQuotaLabel", lambda _panel, _menu: label)
     prefs._save_preferences({"quota_label_enabled": True, "tray_provider": "codex"})
     controller = app._WindowsTrayController(mock=True, interval=60)
     controller.window = SimpleNamespace()
@@ -337,7 +444,7 @@ def test_label_formats_remaining_and_unknown_quota_in_every_language(
     monkeypatch.setattr(
         app,
         "TaskbarQuotaLabel",
-        lambda _: SimpleNamespace(update=lambda *args: updates.append(args)),
+        lambda _panel, _menu: SimpleNamespace(update=lambda *args: updates.append(args)),
     )
     prefs._save_preferences({"quota_label_enabled": True, "tray_provider": provider})
     controller = app._WindowsTrayController(mock=True, interval=60)
@@ -362,7 +469,7 @@ def test_label_uses_localized_provider_and_format_templates(
     monkeypatch.setattr(
         app,
         "TaskbarQuotaLabel",
-        lambda _: SimpleNamespace(update=lambda *args: updates.append(args)),
+        lambda _panel, _menu: SimpleNamespace(update=lambda *args: updates.append(args)),
     )
     prefs._save_preferences({"quota_label_enabled": True, "tray_provider": provider})
     controller = app._WindowsTrayController(mock=True, interval=60)
@@ -384,7 +491,7 @@ def test_selected_label_and_tray_show_full_remaining_quota_after_reset(
     monkeypatch.setattr(
         app,
         "TaskbarQuotaLabel",
-        lambda _: SimpleNamespace(update=lambda *args: updates.append(args)),
+        lambda _panel, _menu: SimpleNamespace(update=lambda *args: updates.append(args)),
     )
     prefs._save_preferences({"quota_label_enabled": True, "tray_provider": provider})
     controller = app._WindowsTrayController(mock=True, interval=60)

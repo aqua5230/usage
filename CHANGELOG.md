@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Added
+- **Windows taskbar label menu:** right-click the quota label to open the same menu as the tray icon, outside the taskbar so it cannot cover the menu. Adapts to taskbars on any screen edge; left-click still opens the panel.
+
 ## [0.33.0] - 2026-10-07
 
 ### Added
