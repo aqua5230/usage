@@ -116,7 +116,7 @@ def test_load_last_ping_missing_file(isolated_state: Path) -> None:
 
 
 def test_save_and_load_last_ping_roundtrip(isolated_state: Path) -> None:
-    agy_window_keeper._save_last_ping(12345.5)
+    agy_window_keeper.keeper_outcome.update_state(isolated_state, {"last_ping_at": 12345.5})
     assert agy_window_keeper._load_last_ping() == 12345.5
     assert json.loads(isolated_state.read_text(encoding="utf-8")) == {"last_ping_at": 12345.5}
 

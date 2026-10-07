@@ -94,19 +94,6 @@ def _display_name(value: object, lang: str) -> str:
     return _t(lang, "unknown") if text == "unknown" else text
 
 
-def _localized_text(value: object, lang: str) -> str:
-    if not isinstance(value, dict):
-        return ""
-    for key in (lang, "en"):
-        localized = value.get(key)
-        if isinstance(localized, str) and localized:
-            return localized
-    for localized in value.values():
-        if isinstance(localized, str) and localized:
-            return localized
-    return ""
-
-
 def _section(
     title: str,
     body: str,
@@ -358,12 +345,6 @@ def _hour_histogram_html(histogram: list[int], lang: str) -> str:
         else ""
     )
     return f'<div class="persona-hours">{"".join(bars)}</div>{peak}'
-
-
-def _nonnegative_int(value: object) -> int:
-    if isinstance(value, bool) or not isinstance(value, int | float):
-        return 0
-    return max(0, int(value))
 
 
 def _persona_body(persona: Mapping[str, object] | None, lang: str) -> str:

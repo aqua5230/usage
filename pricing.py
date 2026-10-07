@@ -251,11 +251,6 @@ def _reset_pricing_warm_up_for_test() -> None:
         _fallback_warning_emitted = False
 
 
-def _load_pricing() -> PricingTable:
-    pricing, _ = _load_pricing_with_source()
-    return pricing
-
-
 def _load_pricing_with_source() -> tuple[PricingTable, PricingSource]:
     cached = _read_cache()
     if cached:

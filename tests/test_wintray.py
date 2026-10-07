@@ -2328,7 +2328,8 @@ def test_windows_history_watcher_uses_dirty_paths_and_full_scan_fallback(
     )
     dirty = spec.root / "nested" / "session.jsonl"
 
-    changed = spec.classify(dirty, windows_watch._FILE_ACTION_MODIFIED)
+    file_action_modified = 3  # Win32 FILE_ACTION_MODIFIED
+    changed = spec.classify(dirty, file_action_modified)
     removed_directory = spec.classify(
         spec.root / "removed-directory",
         windows_watch._FILE_ACTION_REMOVED,

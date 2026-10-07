@@ -9,7 +9,6 @@ from __future__ import annotations
 import argparse
 import asyncio
 import importlib
-import json
 import logging
 import os
 import sys
@@ -31,17 +30,14 @@ if not os.environ.get("RESOURCEPATH") and (Path(__file__).parent / "__boot__.py"
     )
 
 import prefs
-from i18n import packaged_resource_path
 from i18n import t as _t
 from prefs import PREFERENCES_FILE as PREFERENCES_FILE
 from quota.usage_rate import UsageRateTracker
 from usage_client import ClaudeUsageClient, PollOutcome, PollState
-from usage_common.usage_lang import detect_lang
 
 SPRITE_INTERVAL_S = [2.0, 0.8, 0.4, 0.15]  # idle/normal/active/heavy
 IMPORT_RETRY_ATTEMPTS = 6
 IMPORT_RETRY_DELAY_S = 3.0
-REPAIR_DISMISS_SECONDS = 24 * 3600
 
 logger = logging.getLogger(__name__)
 
@@ -77,108 +73,6 @@ def _setup_logging() -> None:
     import usage_common.usage_logging as usage_logging
 
     usage_logging.setup_logging()
-
-
-def _i18n_text(language: str, key: str) -> str:
-    try:
-        i18n_path = packaged_resource_path("i18n.json", Path(__file__).with_name("i18n.json"))
-        data = json.loads(i18n_path.read_text(encoding="utf-8"))
-        table = data.get(language) or data.get("en") or {}
-        return str(table.get(key) or data.get("en", {}).get(key) or key)
-    except (OSError, json.JSONDecodeError, AttributeError):
-        return key
-
-
-def _health_language() -> str:
-    return detect_lang()
-
-
-def _save_user_preference(key: str) -> None:
-    prefs = _load_preferences()
-    if key == "repair_dismissed_at":
-        prefs[key] = time.time()
-    else:
-        prefs[key] = True
-    _save_preferences(prefs)
-
-
-def _user_dismissed_repair_today() -> bool:
-    prefs = _load_preferences()
-    if prefs.get("no_auto_repair") is True:
-        return True
-    dismissed_at = prefs.get("repair_dismissed_at")
-    if isinstance(dismissed_at, int | float):
-        return (time.time() - float(dismissed_at)) < REPAIR_DISMISS_SECONDS
-    return False
-
-
-def _is_our_hook_in_settings() -> bool:
-    try:
-        from installer import setup_hook
-
-        return setup_hook._detect_current_state() in {"us-direct", "us-forwarder"}
-    except Exception:
-        if os.environ.get("USAGE_DEBUG") == "1":
-            logger.warning("hook health check failed", exc_info=True)
-        return False
-
-
-def _is_first_run() -> bool:
-    try:
-        import usage_client
-        from installer import setup_hook
-
-        return not setup_hook.HOOK_TARGET.exists() and not Path(usage_client.STATUS_FILE).exists()
-    except Exception:
-        return True
-
-
-def _show_repair_dialog() -> str:
-    language = _health_language()
-    title = _i18n_text(language, "repair_dialog_title")
-    message = _i18n_text(language, "repair_dialog_message")
-    repair = _i18n_text(language, "repair_dialog_repair")
-    skip = _i18n_text(language, "repair_dialog_skip")
-    never = _i18n_text(language, "repair_dialog_never")
-
-    try:
-        appkit = importlib.import_module("AppKit")
-        alert = appkit.NSAlert.alloc().init()
-        alert.setMessageText_(title)
-        alert.setInformativeText_(message)
-        alert.addButtonWithTitle_(repair)
-        alert.addButtonWithTitle_(skip)
-        alert.addButtonWithTitle_(never)
-        result = int(alert.runModal())
-    except Exception:
-        print(f"{title}: {message}")
-        return "skip"
-
-    if result == 1000:
-        return "repair"
-    if result == 1002:
-        return "never"
-    return "skip"
-
-
-def health_check() -> None:
-    if _is_our_hook_in_settings():
-        return
-    if _is_first_run():
-        return
-    if _user_dismissed_repair_today():
-        return
-
-    choice = _show_repair_dialog()
-    if choice == "repair":
-        from installer import session_hooks, setup_hook
-
-        setup_hook.setup(force_forwarder=True)
-        session_hooks._migrate_bundled_python_commands_if_needed()
-    elif choice == "never":
-        _save_user_preference("no_auto_repair")
-    else:
-        _save_user_preference("repair_dismissed_at")
 
 
 def _self_heal() -> None:

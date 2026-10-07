@@ -1080,10 +1080,6 @@ def _ensure_table_line(content: str, name: str, line_regex: re.Pattern[str], lin
     return content[:start] + f"\n{line}" + content[start:]
 
 
-def _find_tui_table(content: str) -> re.Match[str] | None:
-    return _find_table(content, "tui")
-
-
 def _insert_tui_status_line(content: str, replacement: str) -> str:
     return _insert_table_line(content, "tui", replacement)
 

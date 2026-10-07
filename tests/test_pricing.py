@@ -597,7 +597,7 @@ def test_load_pricing_falls_back_without_fetching(
 
     monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
 
-    assert pricing._load_pricing() == pricing._fallback_pricing()
+    assert pricing._load_pricing_with_source() == (pricing._fallback_pricing(), "fallback")
     assert fetch_calls == 0
 
 
