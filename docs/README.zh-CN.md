@@ -57,6 +57,8 @@ brew install --cask aqua5230/usage/usage
 - **进度管家：** 打开新的 Claude Code 会话时，`usage` 会直接把你上次的进度交给 AI，包括上次请求、未提交的变更和未完成的待办事项。无需 `/resume`，无需回顾。用 `/resume` 接回放太久、缓存已过期的对话时，会先提醒下一句要重新发送多少 token，建议先 `/compact`。默认关闭。
 - **Token 节省器：** 菜单栏开关会要求 Claude Code 和 Codex 在当前会话中更简洁、更白话地回答，在保持代码和错误信息逐字节不变的同时节省输出 token。轻量的逐消息提醒能避免长对话中的回复逐渐变得冗长——在真实会话的 A/B 测试中，对话后期回复维持缩短约 40%，而不是漂移变长 84%。
 - **Claude Code 侧边面板（macOS／Windows）：** 在 Claude Code 中查看额度、对话和后台任务。 [查看侧边面板介绍](#claude-code-侧边面板).
+- **新手模式（macOS）：** 默认关闭。Claude Code 回答完后，输入框上方会挑出回答里最多 3 个专业术语，每个配一行白话解释，语言与界面一致。按 9 标成“懂了”；跳过的术语会在 1、3、7 天后再出现。标成懂了的术语，会在 7、21、60 天后变成一道选择题小测验，一天最多一题；答错就回到提示里。输入 `/terms` 可以查看术语记录。挑术语会通过你的 Claude Code 请 Claude Haiku 帮忙，所以会用到少量 Claude 额度；5 小时额度达到 90% 以上时会自动暂停。
+- **额度感知模式（macOS）：** 默认关闭。5 小时额度超过 80%、90%、95%，或周额度超过 95% 时，Claude Code 会收到一行字，写明还剩多少、几点重置。之后 Claude 开始大任务前会先告诉你，让你选择先做小的还是等重置。Claude Code、Codex、Antigravity 的额度都会看，每一级在同一个对话里只说一次，不会额外调用模型。
 - **自动启动 5 小时计时：** 默认关闭。打开后，每次 5 小时额度一重置，`usage` 就会自动各发送一则极小的消息（Claude 用 Haiku、Antigravity 用 Gemini 3.5 Flash Low、Codex 用最省成本的模型），让下一轮 5 小时立刻开始计时。这些消息会消耗一点额度，但量小到可以忽略。平时查看额度不会发送任何消息，只有打开这个开关才会。
 - **终端集成：** `usage status --json` 会将你的 Claude Code、Codex、Antigravity 和 Grok 额度交给任何可以运行命令的工具——Starship、tmux 或你自己的脚本。与菜单栏读取相同的本地文件。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **Token 浪费健康检查：** 每日后台诊断会扫描日志中的浪费问题，包括重复读取文件、污染目录和冗长的 Bash 输出。发现问题时会显示一行提示；对 AI 说“show me”，它会引导你完成修复。
@@ -81,6 +83,7 @@ brew install --cask aqua5230/usage/usage
 - Claude Code 和 Codex 的数值从你电脑上的本地日志文件读取。
 - Antigravity 配额需要联网，且只有你实际使用它才会发生：配额通过 Antigravity CLI 登录后保存的 OAuth 凭据，向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器，或本地 token 文件。`usage` 只读取该凭据而不写回，任何刷新后的 access token 也只保留在内存中；该调用本身读取配额信息。
 - 后台网络活动范围：上述 Antigravity 配额／token 接口、用于标记故障的 Claude 与 Codex 公开状态页、用于估算费用的公开模型价格表（离线时回退到内置价格），以及偶尔在 GitHub 检查新版本。Claude Code 与 Codex 的日志内容不会被上传。
+- 新手模式只有在你打开时才会联网：它通过你自己的 Claude Code 登录，把 Claude Code 最新一条回答发给 Claude Haiku 挑术语。你的术语记录保存在 `~/.usage/glossary.json`。
 
 ## 系统要求
 
@@ -141,7 +144,7 @@ Linux 上运行 `usage setup` 也能装好 Claude Code 的状态栏，配额会�
 
 **开启方式**
 
-1. 在 usage 菜单栏菜单（macOS）或系统托盘面板菜单（Windows）中勾选 **Claude Code 侧边面板**。
+1. 在 usage 菜单栏菜单（macOS）或系统托盘面板菜单（Windows）中勾选 **Claude Code 侧边面板**。macOS 上它在 **Claude Code** 子菜单里，名为 **侧边面板**。
 2. 打开新对话或运行 `/reload-plugins`。
 3. 终端宽度 ≥144 列时，面板会自动在右侧打开；较窄时输入 `/usage-dash`。
 
@@ -230,6 +233,7 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 | AI 更新日报 | ✅ | — | — |
 | 进度管家与 Token 节省器 | ✅ | — | — |
 | Token 浪费健康检查 | ✅ | — | — |
+| Claude Code 新手模式与额度感知模式 | ✅ | — | — |
 | 开源许可证 | AGPL-3.0 | MIT | — |
 
 ## 不适合谁

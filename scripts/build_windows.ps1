@@ -41,6 +41,7 @@ try {
         --add-data "$(Join-Path $RepoRoot 'usage_session_resume.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_terse_mode.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_terse_reminder.py');." `
+        --add-data "$(Join-Path $RepoRoot 'usage_quota_aware.py');." `
         --hidden-import wintray.app `
         --hidden-import usage_cli `
         --hidden-import pystray `

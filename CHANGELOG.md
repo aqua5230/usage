@@ -5,6 +5,17 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.33.0] - 2026-10-07
+
+### Added
+- **Beginner Mode helps you read Claude Code's answers.** After an answer, up to three technical terms appear above the prompt, each with a one-line plain explanation in your UI language. Press 9 to mark them understood; skipped terms come back after 1, 3, then 7 days. `/terms` opens your term history. Picking terms asks Claude Haiku through your Claude Code, so it uses a little Claude quota, and it pauses while your 5-hour quota is at 90% or more. macOS, off by default.
+- **Beginner Mode quizzes you on terms you understood.** A new conversation can open with a one-question multiple-choice quiz on a term you marked understood, 7, 21, then 60 days later, at most one a day. A wrong answer puts the term back in the hints.
+- **Quota-Aware Mode tells Claude when quota runs low.** When a 5-hour quota passes 80%, 90% or 95%, or a weekly quota passes 95%, Claude Code gets one line with what is left and when it resets. Before a big task, Claude tells you and lets you pick a smaller part or wait. It covers Claude Code, Codex and Antigravity, says each level once per conversation, and makes no extra model calls. macOS, off by default.
+
+### Changed
+- **Claude Code switches have their own submenu.** Side pane, Beginner Mode and Quota-Aware Mode sit under a **Claude Code** submenu in the menu bar menu, like the panel themes.
+- **The rate label compares you with yourself.** Idle, Normal, Active and Heavy now come from your own last 30 days: hours below your 25th percentile are Idle, and only your top 5% are Heavy. Fixed limits labelled a normal Opus session Heavy almost all the time. Until there are 24 hours of history, the old limits apply.
+
 ## [0.32.6] - 2026-10-07
 
 ### Changed

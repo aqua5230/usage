@@ -75,6 +75,7 @@ if __name__ == "__main__":
             "usage_session_resume.py",
             "usage_terse_mode.py",
             "usage_terse_reminder.py",
+            "usage_quota_aware.py",
         ],
         "includes": [
             "AppKit",

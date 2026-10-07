@@ -92,6 +92,12 @@ TERSE_REMINDER_HOOK_VERSION = "1.2"
 TERSE_REMINDER_MATCHER = ""
 _TERSE_REMINDER_MARKER = "usage-terse-reminder"
 _TERSE_REMINDER_MARKERS = (_TERSE_REMINDER_MARKER, "usage_terse_reminder")
+# Independent, opt-in Claude Code UserPromptSubmit hook.
+QUOTA_AWARE_HOOK_TARGET = Path(os.path.expanduser("~/.claude/usage-quota-aware.py"))
+QUOTA_AWARE_HOOK_VERSION = "1.0"
+QUOTA_AWARE_MATCHER = ""
+_QUOTA_AWARE_MARKER = "usage-quota-aware"
+_QUOTA_AWARE_MARKERS = (_QUOTA_AWARE_MARKER, "usage_quota_aware")
 
 
 def _migrate_bundled_python_commands_if_needed(
@@ -1253,8 +1259,118 @@ def self_heal() -> None:
         _debug_self_heal_failure("resume_hook", exc)
 
     try:
+        _self_heal_quota_aware()
+    except BaseException as exc:
+        if isinstance(exc, KeyboardInterrupt):
+            raise
+        _debug_self_heal_failure("quota_aware_hook", exc)
+
+    try:
         _self_heal_terse_mode()
     except BaseException as exc:
         if isinstance(exc, KeyboardInterrupt):
             raise
         _debug_self_heal_failure("terse_hook", exc)
+
+
+def _resolve_quota_aware_source() -> Path:
+    paths = [
+        Path(__file__).resolve().parent.parent / "usage_quota_aware.py",
+        Path(sys.executable).resolve().parent.parent / "Resources" / "usage_quota_aware.py",
+    ]
+    for path in paths:
+        if path.exists():
+            return path
+    raise SystemExit(_t("setup_hook_source_missing", tried=", ".join(map(str, paths))))
+
+
+def _quota_aware_command() -> str:
+    return f"{_shell_arg(_find_system_python())} {_shell_arg(str(QUOTA_AWARE_HOOK_TARGET))}"
+
+
+def _copy_quota_aware_script() -> None:
+    QUOTA_AWARE_HOOK_TARGET.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(_resolve_quota_aware_source(), QUOTA_AWARE_HOOK_TARGET)
+    QUOTA_AWARE_HOOK_TARGET.chmod(
+        QUOTA_AWARE_HOOK_TARGET.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH
+    )
+
+
+def is_quota_aware_enabled() -> bool:
+    try:
+        entries = _user_prompt_submit_list(_load_settings())
+    except SystemExit:
+        return False
+    return any(_is_hook_entry(entry, _QUOTA_AWARE_MARKERS) for entry in entries or [])
+
+
+def enable_quota_aware() -> int:
+    if not setup_hook._claude_settings_dir_exists():
+        print(_t("setup_no_agents"), file=sys.stderr)
+        return 1
+    _copy_quota_aware_script()
+    settings = _load_settings()
+    hooks = settings.get("hooks")
+    if not isinstance(hooks, dict):
+        hooks = {}
+        settings["hooks"] = hooks
+    entries = _user_prompt_submit_list(settings) or []
+    hooks["UserPromptSubmit"] = [
+        kept
+        for entry in entries
+        if (kept := _strip_hook_entries(entry, _QUOTA_AWARE_MARKERS)) is not None
+    ] + [
+        {
+            "matcher": QUOTA_AWARE_MATCHER,
+            "hooks": [{"type": "command", "command": _quota_aware_command()}],
+        }
+    ]
+    _save_settings(settings)
+    print(_t("quota_aware_enabled_msg"))
+    print(_t("setup_claude_restart_required"))
+    return 0
+
+
+def disable_quota_aware() -> int:
+    settings = _load_settings()
+    entries = _user_prompt_submit_list(settings)
+    if entries is not None:
+        kept = [
+            item
+            for entry in entries
+            if (item := _strip_hook_entries(entry, _QUOTA_AWARE_MARKERS)) is not None
+        ]
+        if kept != entries:
+            hooks = settings["hooks"]
+            if kept:
+                hooks["UserPromptSubmit"] = kept
+            else:
+                hooks.pop("UserPromptSubmit", None)
+            if not hooks:
+                settings.pop("hooks", None)
+            _save_settings(settings)
+    if QUOTA_AWARE_HOOK_TARGET.exists():
+        QUOTA_AWARE_HOOK_TARGET.unlink()
+    print(_t("quota_aware_disabled_msg"))
+    return 0
+
+
+def _installed_quota_aware_version() -> str | None:
+    try:
+        for line in QUOTA_AWARE_HOOK_TARGET.read_text(encoding="utf-8").splitlines():
+            if line.startswith("__version__"):
+                return line.partition("=")[2].strip().strip("\"'")
+    except (OSError, UnicodeError):
+        pass
+    return None
+
+
+def _self_heal_quota_aware() -> None:
+    if not is_quota_aware_enabled():
+        return
+    old = _installed_quota_aware_version()
+    if old != QUOTA_AWARE_HOOK_VERSION:
+        _copy_quota_aware_script()
+        _append_self_heal_log(
+            "update_quota_aware_hook", f"{old or 'unknown'} -> {QUOTA_AWARE_HOOK_VERSION}"
+        )

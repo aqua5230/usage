@@ -414,3 +414,79 @@ def test_update_check_survives_pane_refresh_failure(monkeypatch: pytest.MonkeyPa
     app = Mock()
     menubar_update.maybe_check_update_in_background(app)
     app._check_update_in_background.assert_called_once()
+
+
+def test_beginner_independent_toggle(isolated: Path) -> None:
+    pane.enable_claude_pane()
+    setup_hook._save_settings({**setup_hook._load_settings(), "tui": "fullscreen"})
+    dash = str(pane.INSTALL_DIR)
+    assert not pane.is_claude_beginner_enabled()
+    assert pane.enable_claude_beginner() == 0
+    assert pane.is_claude_beginner_enabled()
+    assert setup_hook._load_settings()["env"][pane.PLUGIN_DIRS_KEY].split(os.pathsep) == [
+        dash,
+        str(pane._install_dir("usage-beginner")),
+    ]
+    pane.disable_claude_beginner()
+    assert not pane.is_claude_beginner_enabled()
+    assert setup_hook._load_settings() == {"env": {pane.PLUGIN_DIRS_KEY: dash}, "tui": "fullscreen"}
+    assert pane.is_claude_pane_enabled()
+    pane.enable_claude_beginner()
+    pane.disable_claude_pane()
+    assert pane.is_claude_beginner_enabled()
+
+
+@pytest.mark.parametrize("lang", ["en", "zh-TW", "zh-CN", "ja", "ko"])
+def test_beginner_sidecar(isolated: Path, monkeypatch: pytest.MonkeyPatch, lang: str) -> None:
+    import i18n
+
+    monkeypatch.setattr(pane, "detect_lang", lambda: lang)
+    pane.enable_claude_beginner()
+    value = json.loads(
+        (pane._install_dir("usage-beginner") / "usage-beginner.json").read_text(encoding="utf-8")
+    )
+    bundle = json.loads(i18n.I18N_PATH.read_text(encoding="utf-8"))
+    assert value == {
+        "lang": lang,
+        "strings": {
+            key: text for key, text in bundle[lang].items() if key.startswith("claude_beginner_")
+        },
+    }
+    strings = (pane._resolve_source("usage-beginner") / "hooks/strings.ts").read_text(
+        encoding="utf-8"
+    )
+    defaults = json.loads(strings.split("= ", 1)[1].split("\nlet strings", 1)[0])
+    assert defaults == {
+        key: text for key, text in bundle["en"].items() if key.startswith("claude_beginner_")
+    }
+
+
+def test_refresh_both_mods(isolated: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    pane.enable_claude_pane()
+    pane.enable_claude_beginner()
+    for directory in [pane.INSTALL_DIR, pane._install_dir("usage-beginner")]:
+        (directory / "hooks/register.tsx").write_text("old build")
+    monkeypatch.setattr(pane, "detect_lang", lambda: "ko")
+    pane.refresh_claude_pane()
+    assert pane._installed_is_current()
+    assert pane._installed_is_current("usage-beginner")
+
+
+@pytest.mark.skipif(sys.platform != "darwin", reason="macOS menu action")
+@pytest.mark.parametrize("enabled,code", [(False, 0), (True, 0), (False, 1), (True, 1)])
+def test_beginner_toggle_reports_result(
+    monkeypatch: pytest.MonkeyPatch, enabled: bool, code: int
+) -> None:
+    from menubar import actions
+
+    app = Mock(language="en")
+    monkeypatch.setattr(pane, "is_claude_beginner_enabled", lambda: enabled)
+    enable, disable = Mock(return_value=code), Mock(return_value=code)
+    monkeypatch.setattr(pane, "enable_claude_beginner", enable)
+    monkeypatch.setattr(pane, "disable_claude_beginner", disable)
+    actions.toggle_claude_pane_in_background(app, beginner=True)
+    (disable if enabled else enable).assert_called_once()
+    (enable if enabled else disable).assert_not_called()
+    app.performSelectorOnMainThread_withObject_waitUntilDone_.assert_called_once_with(
+        "_finishClaudePane:", {"ok": code == 0, "enabled": not enabled, "output": ""}, False
+    )

@@ -1,6 +1,6 @@
 [project]
 name = "usage-cli"
-version = "0.32.6"
+version = "0.33.0"
 description = "usage — 在 macOS menu bar 與 Windows 系統匣顯示 Claude Code、Codex、Antigravity 用量的小工具（也提供終端機 TUI）"
 readme = "README.md"
 requires-python = ">=3.13"
@@ -64,6 +64,7 @@ py-modules = [
     "setup_app",
     "usage_diagnosis_snapshot",
     "usage_terse_reminder",
+    "usage_quota_aware",
 ]
 
 [tool.setuptools.packages.find]
@@ -97,6 +98,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 "usage_statusline.py" = ["UP017"]
 # usage_session_resume.py 同樣裝進 ~/.claude/ 給系統 python3 (3.9) 跑，同一條限制。
 "usage_session_resume.py" = ["UP017"]
+"usage_quota_aware.py" = ["UP017", "UP045"]
 # Imported analytics source is kept with minimal path fixes; keep formatting
 # stable for this integration commit.
 "adapters/**/*.py" = ["E501", "I001", "SIM108", "UP015", "UP017"]

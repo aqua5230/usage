@@ -69,9 +69,14 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
     import usage_diagnosis_snapshot
     import usage_session_resume
     from analyzer import usage_snapshot
-    from installer import claude_pane
+    from installer import claude_pane, session_hooks
+    from quota import quota_snapshot
 
     state_dir = tmp_path / "user-state"
+    monkeypatch.setattr(quota_snapshot, "SNAPSHOT_PATH", state_dir / "quota_snapshot.json")
+    monkeypatch.setattr(
+        session_hooks, "QUOTA_AWARE_HOOK_TARGET", state_dir / "usage-quota-aware.py"
+    )
     monkeypatch.setattr(claude_pane, "INSTALL_DIR", state_dir / "claude-pane" / "usage-dash")
     monkeypatch.setattr(prefs, "PREFERENCES_FILE", state_dir / "usage-preferences.json")
     monkeypatch.setattr(
@@ -116,10 +121,19 @@ def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -
 @pytest.fixture(autouse=True)
 def _isolate_dispatch_ledger_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Keep report builds from reading real Codex/Antigravity sessions and quota caches."""
-    from loaders import agy_loader, agy_quota_probe, codex_loader
+    from adapters import rate_limits
+    from loaders import agy_loader, agy_quota_probe, codex_loader, grok_quota_probe
 
     monkeypatch.setattr(codex_loader, "SESSIONS_DIR", tmp_path / "codex-home" / "sessions")
     monkeypatch.setattr(codex_loader, "LOGS_DB", tmp_path / "codex-home" / "logs_2.sqlite")
+    monkeypatch.setattr(codex_loader, "STATE_DB", tmp_path / "codex-home" / "state_5.sqlite")
+    monkeypatch.setattr(
+        codex_loader, "ARCHIVED_SESSIONS_DIR", tmp_path / "codex-home" / "archived_sessions"
+    )
+    monkeypatch.setattr(codex_loader, "JSONL_CACHE_PATH", tmp_path / "codex_jsonl_cache.json")
+    for name in ("STATUS_FILE", "LEGACY_STATUS_FILE", "TT_STATUS_FILE"):
+        monkeypatch.setattr(rate_limits, name, str(tmp_path / name))
+    monkeypatch.setattr(grok_quota_probe, "GROK_LOG_PATH", tmp_path / "grok-unified.jsonl")
     monkeypatch.setattr(agy_loader, "AGY_SESSIONS_DIR", tmp_path / "agy-conversations")
     monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", tmp_path / "agy_quota_cache.json")
     monkeypatch.setattr(agy_quota_probe, "AUTH_EXPIRED_PATH", tmp_path / "agy_auth_expired")

@@ -22,7 +22,7 @@ import panels
 import quota.agy_window_keeper as agy_window_keeper
 import quota.window_keeper as window_keeper
 from i18n import _t
-from installer import statusline_settings
+from installer import session_hooks, statusline_settings
 from loaders import codex_loader, grok_loader, history_loader
 from menubar import actions as menubar_actions
 from menubar import agy as menubar_agy
@@ -677,7 +677,10 @@ def test_empty_state() -> None:
     assert state.yesterday_text == "Yesterday: $0.00 (0 tokens)"
 
 
-def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.mark.parametrize("quota_enabled", [True, False])
+def test_switch_panel_menu_contains_update_items(
+    monkeypatch: pytest.MonkeyPatch, quota_enabled: bool
+) -> None:
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
     delegate.language = "en"
     delegate.active_panel = SimpleNamespace(id="classic")
@@ -696,16 +699,13 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
         lambda: {"hide_codex_section": True},
     )
 
+    monkeypatch.setattr(session_hooks, "is_quota_aware_enabled", lambda: quota_enabled)
     _FakeMenu.instances = []
     menubar.AppDelegate.switchPanel_(delegate, object())
 
-    # Three menus are built: the main popup, the panel-themes submenu, and the
-    # provider-visibility submenu.
-    main_menu, panel_submenu, hide_submenu = (
-        _FakeMenu.instances[0],
-        _FakeMenu.instances[1],
-        _FakeMenu.instances[2],
-    )
+    # Four menus are built: the main popup, the panel-themes submenu, the
+    # provider-visibility submenu, and the Claude Code submenu.
+    main_menu, panel_submenu, hide_submenu, claude_submenu = _FakeMenu.instances
     main_titles = [item.title for item in main_menu.items]
 
     # The auto-update row is gone — update checks just stay on by default.
@@ -743,7 +743,29 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     assert grok_item.action == "toggleHideGrok:"
     assert grok_item.state == 0
 
-    # Resume Last Session is a single tooltip-backed toggle (no group header, no indent).
+    settings = main_menu.items[main_titles.index(_t("en", "launch_at_login")) :]
+    assert [item.title for item in settings] == [
+        _t("en", "launch_at_login"),
+        _t("en", "quota_notifications_menu"),
+        _t("en", "window_keeper_menu"),
+        "---",
+        _t("en", "project_butler"),
+        _t("en", "terse_mode_menu"),
+        "---",
+        "Claude Code",
+    ]
+    assert settings[7].submenu is claude_submenu
+    assert [item.title for item in claude_submenu.items] == [
+        "Side pane",
+        "Beginner Mode",
+        "Quota-Aware Mode",
+    ]
+    pane, beginner, quota = claude_submenu.items
+    assert pane.title == _t("en", "claude_pane_section_menu")
+    assert pane.action == "toggleClaudePane:"
+    assert pane.tooltip == _t("en", "claude_pane_tooltip")
+
+    # Resume Last Session keeps its action and tooltip.
     butler = next(item for item in main_menu.items if item.action == "toggleSessionResume:")
     assert butler.title == "Resume Last Session"
     assert butler.indentation == 0
@@ -751,7 +773,35 @@ def test_switch_panel_menu_contains_update_items(monkeypatch: pytest.MonkeyPatch
     terse = next(item for item in main_menu.items if item.action == "toggleTerseMode:")
     assert terse.title == "Token Saver"
     assert terse.tooltip
+    assert beginner.action == "toggleClaudeBeginner:"
+    assert beginner.tooltip == _t("en", "claude_beginner_tooltip")
+    assert beginner.state == 0
+    assert beginner.target is delegate._beginner_menu_target
+    assert quota.action == "toggleQuotaAware:"
+    assert quota.state == int(quota_enabled)
+    assert quota.tooltip == _t("en", "quota_aware_tooltip")
+    assert quota.target is delegate._quota_aware_menu_target
+    assert pane.target is delegate
     assert "Show in report" not in main_titles
+
+
+@pytest.mark.parametrize(
+    ("language", "pane", "beginner", "original_pane"),
+    [
+        ("zh-TW", "側邊面板", "新手模式", "Claude Code 側邊面板"),
+        ("zh-CN", "侧边面板", "新手模式", "Claude Code 侧边面板"),
+        ("en", "Side pane", "Beginner Mode", "Claude Code side pane"),
+        ("ja", "サイドペイン", "初心者モード", "Claude Code サイドパネル"),
+        ("ko", "사이드 패널", "초보자 모드", "Claude Code 사이드 패널"),
+    ],
+)
+def test_claude_code_section_translations(
+    language: str, pane: str, beginner: str, original_pane: str
+) -> None:
+    assert _t(language, "claude_code_section") == "Claude Code"
+    assert _t(language, "claude_pane_section_menu") == pane
+    assert _t(language, "claude_beginner_menu") == beginner
+    assert _t(language, "claude_pane_menu") == original_pane
 
 
 def test_switch_panel_cancel_keeps_the_panel_open(
@@ -3141,3 +3191,33 @@ def test_poll_tick_rechecks_without_startup_maintenance(
     assert calls == [{}] * 2
     assert len(cleared) == 3
     assert app._auto_check_schedule._failures == (0 if outcome is False else 2)
+
+
+@pytest.mark.parametrize(
+    ("ok", "enabled", "key"),
+    [
+        (True, True, "quota_aware_enabled_msg"),
+        (True, False, "quota_aware_disabled_msg"),
+        (False, False, "quota_aware_action_failed"),
+    ],
+)
+def test_quota_aware_completion_alert(
+    monkeypatch: pytest.MonkeyPatch, ok: bool, enabled: bool, key: str
+) -> None:
+    messages: list[str] = []
+    details: list[str] = []
+    completed: list[str] = []
+    alert = SimpleNamespace(
+        setMessageText_=messages.append,
+        setInformativeText_=details.append,
+        runModal=lambda: completed.append("alert"),
+    )
+    monkeypatch.setattr(menubar_actions, "_make_alert", lambda: alert)
+    target = menubar_actions.QuotaAwareMenuTarget.alloc().init()
+    target.app = cast(
+        Any, SimpleNamespace(language="en", _refresh=lambda: completed.append("refresh"))
+    )
+    target._finishQuotaAware_({"ok": ok, "enabled": enabled, "output": "failure details"})
+    assert messages == [_t("en", key)]
+    assert details == ([] if ok else ["failure details"])
+    assert completed == ["alert", "refresh"]
