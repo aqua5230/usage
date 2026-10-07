@@ -209,7 +209,7 @@ async def run_tui(mock: bool, interval: int, force_group: int | None = None) -> 
 
 def main() -> None:
     if sys.argv[1:2] == ["status"]:
-        import usage_cli
+        from usage_app import cli as usage_cli
 
         usage_cli.main()
         return

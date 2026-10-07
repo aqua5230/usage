@@ -150,7 +150,7 @@ Press `Ctrl+C` to exit.
 
 ## Reports and deep analytics (CLI)
 
-Beyond the menu bar and TUI, there's an analytics CLI entrypoint `usage_cli.py` for exporting HTML reports or running an interactive terminal dashboard:
+Beyond the menu bar and TUI, there's an analytics CLI entrypoint `usage_app/cli.py` for exporting HTML reports or running an interactive terminal dashboard:
 
 <p align="center">
   <img src="report.en.png" alt="HTML report screen: Your AI Usage Recap" width="520">
@@ -160,24 +160,24 @@ Beyond the menu bar and TUI, there's an analytics CLI entrypoint `usage_cli.py` 
 source .venv/bin/activate
 
 # Interactive dashboard (auto-detects Claude / Codex; arrow keys switch between agents)
-python3 usage_cli.py
+uv run usage
 
 # Single-agent dashboard
-python3 usage_cli.py claude
-python3 usage_cli.py codex
+uv run usage claude
+uv run usage codex
 
 # Generate an HTML report and open it in your default browser (default range: last 30 days)
-python3 usage_cli.py report
-python3 usage_cli.py report --today              # today
-python3 usage_cli.py report --week               # this week
-python3 usage_cli.py report --month              # this month
-python3 usage_cli.py report --all                # all data
-python3 usage_cli.py report --out report.html    # save to a specific path
+uv run usage report
+uv run usage report --today              # today
+uv run usage report --week               # this week
+uv run usage report --month              # this month
+uv run usage report --all                # all data
+uv run usage report --out report.html    # save to a specific path
 
 # Plain-text tabular stats
-python3 usage_cli.py daily
-python3 usage_cli.py weekly
-python3 usage_cli.py monthly
+uv run usage daily
+uv run usage weekly
+uv run usage monthly
 ```
 
 The HTML report covers daily / weekly / monthly token + cost trends, per-project rankings, and top-model distribution. The top-right Share button lets you save a copy as `.html` or copy the file path to send via AirDrop / Mail / Slack / iMessage — recipients open it in any browser. The built-in "Hide project names" toggle (on by default, privacy-first) swaps every project name to `Project 1 / Project 2 / ...` before the file is saved, while the on-screen view is unaffected.
@@ -238,7 +238,7 @@ Unavailable agents also include `reason`: `no_data` when the loader returns noth
 
 Antigravity preserves cache order in `groups`, maps `weekly` to `seven_day`, and computes `used_percent` as `100 - remaining_percent`, rounded to one decimal. Its countdown uses cached `fetched_at` plus `resets_in_minutes`, minus the current time, floored at `0`; an unknown reset is `null`. Grok converts `period_end` to Unix seconds in `period.resets_at` and exposes `subscription_tier` as `tier` (`null` when absent). Both preserve the original `fetched_at` string as `updated_at`; stale cache data remains readable with elapsed countdowns at zero. When unavailable, both use the complete Claude/Codex unavailable field shape.
 
-If you installed from source, either run it as `python3 usage_cli.py status --json` or `uv sync` once to get the `usage` command on your PATH.
+If you installed from source, either run it as `uv run usage status --json` or `uv sync` once to get the `usage` command on your PATH.
 
 ### Starship
 

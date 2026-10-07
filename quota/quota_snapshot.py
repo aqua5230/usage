@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def write_snapshot() -> None:
-    from usage_cli import _status_payload
+    from quota.status_payload import _status_payload
 
     temporary = None
     try:

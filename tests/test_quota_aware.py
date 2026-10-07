@@ -231,14 +231,14 @@ def test_shared_entry_preserved(monkeypatch: pytest.MonkeyPatch, tmp_path: Path)
 
 
 def test_snapshot_atomic_and_local(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    import usage_cli
     from loaders import agy_quota_probe
+    from quota import status_payload
 
     monkeypatch.setattr(quota_snapshot, "SNAPSHOT_PATH", tmp_path / "quota.json")
     monkeypatch.setattr(
-        usage_cli, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
+        status_payload, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
     )
-    monkeypatch.setattr(usage_cli, "_status_grok", lambda now: {"available": False})
+    monkeypatch.setattr(status_payload, "_status_grok", lambda now: {"available": False})
 
     def fail(*args: Any, **kwargs: Any) -> Any:
         raise AssertionError("Network quota loader must not be called")

@@ -43,7 +43,7 @@ try {
         --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_terse_reminder.py');." `
         --add-data "$(Join-Path $RepoRoot 'usage_hooks/usage_quota_aware.py');." `
         --hidden-import wintray.app `
-        --hidden-import usage_cli `
+        --hidden-import usage_app.cli `
         --hidden-import pystray `
         --hidden-import webview `
         --hidden-import webview.platforms.edgechromium `

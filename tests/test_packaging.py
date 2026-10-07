@@ -1,6 +1,6 @@
 """Guard the pip-install path: every top-level module must ship in the wheel.
 
-`[project.scripts] usage` imports `usage_cli`, which pulls in most of the
+`[project.scripts] usage` imports `usage_app.cli`, which pulls in most of the
 top-level modules. `[tool.setuptools] py-modules` is an explicit allowlist, so a
 new module that nobody adds there is missing from an installed copy and the
 console script dies with ModuleNotFoundError — while every test still passes,

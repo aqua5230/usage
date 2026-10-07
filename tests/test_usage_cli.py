@@ -18,11 +18,12 @@ import pytest
 
 from adapters.types import AgentInfo, RateLimits, SessionStats, UsageEntry
 from analyzer import reporter
-from loaders import agy_quota_probe, grok_quota_probe
+from loaders import agy_quota_probe, codex_loader, grok_quota_probe
+from quota import status_payload
 from ui import html_report, tables
 from usage_common import i18n
 
-usage_cli: Any = import_module("usage_cli")
+usage_cli: Any = import_module("usage_app.cli")
 
 
 @pytest.fixture(autouse=True)
@@ -249,9 +250,9 @@ def test_cli_codex_rate_limits_use_shared_loader_conversion(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
-        usage_cli.codex_loader,
+        codex_loader,
         "load_rate_limits",
-        lambda: usage_cli.codex_loader.CodexRateLimits(
+        lambda: codex_loader.CodexRateLimits(
             five_hour_pct=0.0,
             five_hour_resets_at=1234.9,
             seven_day_pct=56.0,
@@ -261,7 +262,7 @@ def test_cli_codex_rate_limits_use_shared_loader_conversion(
         ),
     )
 
-    result = usage_cli.RATE_LIMIT_LOADERS["codex"]()
+    result = status_payload.RATE_LIMIT_LOADERS["codex"]()
 
     assert result == RateLimits(
         five_hour_pct=0.0,
@@ -279,7 +280,7 @@ def test_main_status_json_outputs_both_local_agents(
 ) -> None:
     monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
     monkeypatch.setattr(
-        usage_cli,
+        status_payload,
         "RATE_LIMIT_LOADERS",
         {
             "claude-code": lambda: RateLimits(
@@ -312,8 +313,8 @@ def test_main_status_json_outputs_both_local_agents(
     generated_at = datetime.fromisoformat(payload["generated_at"].replace("Z", "+00:00"))
     assert generated_at.tzinfo == UTC
     now = int(generated_at.timestamp())
-    assert payload["agents"]["antigravity"] == usage_cli._status_agent(None, now)
-    assert payload["agents"]["grok"] == usage_cli._status_agent(None, now)
+    assert payload["agents"]["antigravity"] == status_payload._status_agent(None, now)
+    assert payload["agents"]["grok"] == status_payload._status_agent(None, now)
     assert {key: payload["agents"][key] for key in ("claude-code", "codex")} == {
         "claude-code": {
             "available": True,
@@ -352,7 +353,7 @@ def test_main_status_json_marks_none_loader_unavailable(
 ) -> None:
     monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
     monkeypatch.setattr(
-        usage_cli,
+        status_payload,
         "RATE_LIMIT_LOADERS",
         {
             "claude-code": lambda: None,
@@ -378,7 +379,7 @@ def test_main_status_json_marks_none_loader_unavailable(
 
 def test_status_agent_counts_down_to_reset_and_ages_updated_at() -> None:
     now = 1_000_000
-    agent = usage_cli._status_agent(
+    agent = status_payload._status_agent(
         RateLimits(
             five_hour_pct=10.0,
             five_hour_resets_at=now + 3_600,
@@ -395,14 +396,14 @@ def test_status_agent_counts_down_to_reset_and_ages_updated_at() -> None:
 
 
 def test_status_agent_unparsable_updated_at_has_no_age() -> None:
-    agent = usage_cli._status_agent(RateLimits(updated_at="yesterday"), 1_000_000)
+    agent = status_payload._status_agent(RateLimits(updated_at="yesterday"), 1_000_000)
 
     assert agent["age_seconds"] is None
 
 
 def test_status_agent_reads_naive_updated_at_as_utc() -> None:
     now = int(datetime(2026, 1, 1, 0, 10, tzinfo=UTC).timestamp())
-    agent = usage_cli._status_agent(RateLimits(updated_at="2026-01-01T00:00:00"), now)
+    agent = status_payload._status_agent(RateLimits(updated_at="2026-01-01T00:00:00"), now)
 
     assert agent["age_seconds"] == 600
 
@@ -416,7 +417,7 @@ def test_main_status_json_isolates_loader_exception(
 
     monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
     monkeypatch.setattr(
-        usage_cli,
+        status_payload,
         "RATE_LIMIT_LOADERS",
         {
             "claude-code": lambda: RateLimits(five_hour_pct=3.0),
@@ -437,7 +438,7 @@ def test_main_status_json_succeeds_when_both_loaders_return_none(
 ) -> None:
     monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
     monkeypatch.setattr(
-        usage_cli,
+        status_payload,
         "RATE_LIMIT_LOADERS",
         {"claude-code": lambda: None, "codex": lambda: None},
     )
@@ -460,7 +461,7 @@ def test_main_status_without_json_prints_one_line(
         grok_quota_probe, "load_quota", lambda: pytest.fail("text status must not read grok")
     )
     monkeypatch.setattr(
-        usage_cli,
+        status_payload,
         "RATE_LIMIT_LOADERS",
         {
             "claude-code": lambda: RateLimits(five_hour_pct=41.0, seven_day_pct=65.0),
@@ -481,7 +482,7 @@ def test_main_status_help_does_not_load_agents(
 ) -> None:
     monkeypatch.setattr(sys, "argv", ["usage", "status", flag])
     monkeypatch.setattr(
-        usage_cli,
+        status_payload,
         "RATE_LIMIT_LOADERS",
         {
             "claude-code": lambda: pytest.fail("status help should not load quotas"),
@@ -1066,14 +1067,14 @@ def test_status_payload_antigravity_cache(monkeypatch: pytest.MonkeyPatch, age: 
         ],
     }
     agy_quota_probe.CACHE_PATH.write_text(json.dumps(cache), encoding="utf-8")
-    monkeypatch.setattr(usage_cli, "datetime", SimpleNamespace(now=lambda tz: now))
+    monkeypatch.setattr(status_payload, "datetime", SimpleNamespace(now=lambda tz: now))
     monkeypatch.setattr(
-        usage_cli, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
+        status_payload, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
     )
     monkeypatch.setattr(
         agy_quota_probe, "load_quota", lambda: pytest.fail("status must never probe agy")
     )
-    payload = usage_cli._status_payload()
+    payload = status_payload._status_payload()
     assert payload["schema_version"] == 1
     assert payload["agents"]["antigravity"] == {
         "available": True,
@@ -1094,7 +1095,7 @@ def test_status_payload_antigravity_cache(monkeypatch: pytest.MonkeyPatch, age: 
 def test_status_antigravity_unreadable_cache(content: str | None) -> None:
     if content is not None:
         agy_quota_probe.CACHE_PATH.write_bytes(content.encode("latin-1"))
-    assert usage_cli._status_antigravity(1_000_000) == usage_cli._status_agent(
+    assert status_payload._status_antigravity(1_000_000) == status_payload._status_agent(
         None, 1_000_000, "error" if content == "\xff" else "no_data"
     )
 
@@ -1114,11 +1115,11 @@ def test_status_payload_grok(
         subscription_tier=tier,
     )
     monkeypatch.setattr(grok_quota_probe, "load_quota", lambda: quota)
-    monkeypatch.setattr(usage_cli, "datetime", SimpleNamespace(now=lambda tz: now))
+    monkeypatch.setattr(status_payload, "datetime", SimpleNamespace(now=lambda tz: now))
     monkeypatch.setattr(
-        usage_cli, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
+        status_payload, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
     )
-    assert usage_cli._status_payload()["agents"]["grok"] == {
+    assert status_payload._status_payload()["agents"]["grok"] == {
         "available": True,
         "period": {
             "used_percent": 28.0,
@@ -1132,14 +1133,14 @@ def test_status_payload_grok(
 
 
 def test_status_grok_none() -> None:
-    assert usage_cli._status_grok(1_000_000) == usage_cli._status_agent(None, 1_000_000)
+    assert status_payload._status_grok(1_000_000) == status_payload._status_agent(None, 1_000_000)
 
 
 @pytest.mark.parametrize("signed_in", [False, True])
 def test_status_antigravity_missing_quota_reason(signed_in: bool) -> None:
     if not signed_in:
         agy_quota_probe._TOKEN_PATH.unlink()
-    assert usage_cli._status_antigravity(0)["reason"] == (
+    assert status_payload._status_antigravity(0)["reason"] == (
         "no_data" if signed_in else "not_signed_in"
     )
 
@@ -1150,7 +1151,7 @@ def test_status_loader_exception_reason(monkeypatch: pytest.MonkeyPatch, agent_i
         raise OSError("quota read failed")
 
     monkeypatch.setattr(
-        usage_cli, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
+        status_payload, "RATE_LIMIT_LOADERS", {"claude-code": lambda: None, "codex": lambda: None}
     )
     if agent_id == "antigravity":
         agy_quota_probe._TOKEN_PATH.unlink()
@@ -1158,20 +1159,19 @@ def test_status_loader_exception_reason(monkeypatch: pytest.MonkeyPatch, agent_i
     elif agent_id == "grok":
         monkeypatch.setattr(grok_quota_probe, "load_quota", fail)
     else:
-        monkeypatch.setitem(usage_cli.RATE_LIMIT_LOADERS, agent_id, fail)
-    payload = usage_cli._status_payload()
+        monkeypatch.setitem(status_payload.RATE_LIMIT_LOADERS, agent_id, fail)
+    payload = status_payload._status_payload()
     assert payload["schema_version"] == 1
     assert payload["agents"][agent_id]["reason"] == "error"
 
 
 def test_antigravity_expired_login_overrides_cache(monkeypatch: pytest.MonkeyPatch) -> None:
-    import usage_cli
     from loaders import agy_quota_probe
 
     agy_quota_probe.AUTH_EXPIRED_PATH.touch()
     monkeypatch.setattr(
         agy_quota_probe, "_read_cache", lambda: pytest.fail("expired login must override cache")
     )
-    result = usage_cli._status_antigravity(1700000000)
+    result = status_payload._status_antigravity(1700000000)
     assert result["reason"] == "not_signed_in"
     assert result["available"] is False

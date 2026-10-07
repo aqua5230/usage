@@ -14,11 +14,11 @@ from typing import Any
 import pytest
 from rich.console import Console
 
-import usage_cli
 from adapters import rate_limits
 from loaders import chromium_cache, claude_desktop
 from loaders import claude_usage as usage_client
 from menubar import state
+from quota import status_payload
 from tests.test_chromium_cache import Response, _cache
 from tui import app as tui
 
@@ -72,7 +72,7 @@ def test_reset_is_normalized_for_loader_gui_tui_and_json(
     assert (snapshot.current_percent, snapshot.weekly_percent) == expected
     cli = rate_limits.load_rate_limits()
     assert cli is not None
-    payload = usage_cli._status_agent(cli, int(NOW))
+    payload = status_payload._status_agent(cli, int(NOW))
     for name, percent, reset in zip(
         ("five_hour", "seven_day"), expected, (five, seven), strict=True
     ):

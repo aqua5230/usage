@@ -71,7 +71,7 @@ def test_parse_args_setup(monkeypatch: Any) -> None:
 
 
 def test_main_delegates_status_before_logging(monkeypatch: Any) -> None:
-    import usage_cli
+    from usage_app import cli as usage_cli
 
     calls: list[str] = []
     monkeypatch.setattr(sys, "argv", ["usage", "status", "--json"])
