@@ -20,9 +20,9 @@ from pathlib import Path
 
 import pytest
 
-import pricing
 from adapters.types import UsageEntry as AnalyzerUsageEntry
 from loaders.history_loader import UsageEntry
+from usage_common import pricing
 
 CHECK_FALLBACK_PRICING = runpy.run_path(
     str(Path(__file__).parents[1] / "scripts" / "check_fallback_pricing.py"),
@@ -104,7 +104,7 @@ def test_calculate_cost_triggers_pricing_refresh_for_unknown_model(
 
     monkeypatch.setattr(pricing, "get_pricing", lambda: {"known": {"input_cost_per_token": 1.0}})
     monkeypatch.setattr(pricing, "warm_up_pricing", fake_warm_up_pricing)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: 1.0)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: 1.0)
 
     assert pricing.calculate_cost(_entry(model="missing", input_tokens=100)) == 0.0
     assert warm_up_calls == 1
@@ -123,7 +123,7 @@ def test_unknown_model_pricing_refresh_is_debounced(
 
     monkeypatch.setattr(pricing, "get_pricing", lambda: {"known": {"input_cost_per_token": 1.0}})
     monkeypatch.setattr(pricing, "warm_up_pricing", fake_warm_up_pricing)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
 
     assert pricing.calculate_cost(_entry(model="missing", input_tokens=100)) == 0.0
     assert pricing.calculate_cost(_entry(model="missing", input_tokens=100)) == 0.0
@@ -637,7 +637,7 @@ def test_warm_up_pricing_fetches_writes_updates_cache_and_notifies(
     monkeypatch.setattr(pricing, "_read_cache", lambda *, allow_stale=False: None)
     monkeypatch.setattr(pricing, "_fetch_pricing", lambda: fetched)
     monkeypatch.setattr(pricing, "_write_cache", writes.append)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: 1_000.0)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: 1_000.0)
 
     pricing.warm_up_pricing(ready.set)
 
@@ -663,7 +663,7 @@ def test_warm_up_pricing_skips_fetch_for_fresh_disk_cache(
         lambda: (cached, "cache"),
     )
     monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: 1_000.0)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: 1_000.0)
 
     pricing._warm_up_pricing_worker(None, False)
 
@@ -687,7 +687,7 @@ def test_warm_up_pricing_fetches_when_disk_cache_is_expired(
     )
     monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
     monkeypatch.setattr(pricing, "_write_cache", lambda table: None)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: 1_000.0)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: 1_000.0)
 
     pricing._warm_up_pricing_worker(None, False)
 
@@ -748,7 +748,7 @@ def test_get_pricing_reuses_fallback_within_retry_ttl(
     monkeypatch.setattr(pricing, "_read_cache", lambda *, allow_stale=False: None)
     monkeypatch.setattr(pricing, "warm_up_pricing", fake_warm_up_pricing)
     monkeypatch.setattr(pricing, "_fallback_pricing", lambda: fallback)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
     monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
 
     assert pricing.get_pricing() == fallback
@@ -802,7 +802,7 @@ def test_get_pricing_with_stale_cache_triggers_warm_up(
 
     monkeypatch.setattr(pricing, "_read_cache", fake_read_cache)
     monkeypatch.setattr(pricing, "warm_up_pricing", fake_warm_up_pricing)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
 
     assert pricing.get_pricing() == stale
     assert warm_up_calls == 1
@@ -868,7 +868,7 @@ def test_get_pricing_triggers_warm_up_after_fallback_retry_ttl(
     monkeypatch.setattr(pricing, "_read_cache", lambda *, allow_stale=False: None)
     monkeypatch.setattr(pricing, "warm_up_pricing", fake_warm_up_pricing)
     monkeypatch.setattr(pricing, "_fallback_pricing", lambda: fallback)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
     monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
 
     assert pricing.get_pricing() == fallback
@@ -895,8 +895,8 @@ def test_get_pricing_retries_fallback_after_monotonic_ttl_when_wall_clock_moves_
     monkeypatch.setattr(pricing, "_read_cache", lambda *, allow_stale=False: None)
     monkeypatch.setattr(pricing, "warm_up_pricing", fake_warm_up_pricing)
     monkeypatch.setattr(pricing, "_fallback_pricing", lambda: fallback)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: monotonic_now)
-    monkeypatch.setattr("pricing.time.time", lambda: wall_clock_now)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: monotonic_now)
+    monkeypatch.setattr("usage_common.pricing.time.time", lambda: wall_clock_now)
     monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
 
     assert pricing.get_pricing() == fallback
@@ -923,7 +923,7 @@ def test_get_pricing_keeps_fetched_result_after_retry_ttl(
     monkeypatch.setattr(pricing, "_read_cache", lambda: None)
     monkeypatch.setattr(pricing, "_load_pricing_with_source", fake_load_pricing_with_source)
     monkeypatch.setattr(pricing, "_write_cache", lambda table: None)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
     monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
 
     assert pricing.get_pricing() == fetched
@@ -948,7 +948,7 @@ def test_get_pricing_keeps_cache_result_after_retry_ttl(
     pricing._set_pricing_cache_for_test(None)
     monkeypatch.setattr(pricing, "_read_cache", lambda: cached)
     monkeypatch.setattr(pricing, "_fetch_pricing", fake_fetch_pricing)
-    monkeypatch.setattr("pricing.time.monotonic", lambda: now)
+    monkeypatch.setattr("usage_common.pricing.time.monotonic", lambda: now)
     monkeypatch.setattr(pricing, "FALLBACK_RETRY_SECONDS", 600)
 
     assert pricing.get_pricing() == cached

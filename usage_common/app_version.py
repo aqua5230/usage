@@ -7,7 +7,7 @@ import tomllib
 from importlib import metadata
 from pathlib import Path
 
-from i18n import packaged_resource_path
+from usage_common.i18n import packaged_resource_path
 
 
 def current_version() -> str:

@@ -16,13 +16,13 @@ import webbrowser
 from typing import Any, Protocol
 
 from analyzer import diagnosis_snapshot
-from i18n import _t
 from installer import claude_pane
-from prefs import _load_preferences, _save_preferences
 from updates import checker as update_checker
 from updates import gate as update_gate
 from updates.release_notes import alert_release_notes
 from usage_common.app_version import current_version as _current_version
+from usage_common.i18n import _t
+from usage_common.prefs import _load_preferences, _save_preferences
 
 logger = logging.getLogger(__name__)
 

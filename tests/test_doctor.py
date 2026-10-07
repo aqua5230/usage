@@ -262,8 +262,8 @@ def test_claude_cost_warns_for_large_difference(
         "load_entries",
         lambda: [_claude_entry("current", model="missing-model")],
     )
-    monkeypatch.setattr("pricing.calculate_cost", lambda entry: 5.0)
-    monkeypatch.setattr("pricing.is_model_priced", lambda model: False)
+    monkeypatch.setattr("usage_common.pricing.calculate_cost", lambda entry: 5.0)
+    monkeypatch.setattr("usage_common.pricing.is_model_priced", lambda model: False)
 
     check = doctor._claude_cost()
 
@@ -283,8 +283,8 @@ def test_claude_cost_is_ok_within_difference_threshold(
         encoding="utf-8",
     )
     monkeypatch.setattr(history_loader, "load_entries", lambda: [_claude_entry("current")])
-    monkeypatch.setattr("pricing.calculate_cost", lambda entry: 8.5)
-    monkeypatch.setattr("pricing.is_model_priced", lambda model: True)
+    monkeypatch.setattr("usage_common.pricing.calculate_cost", lambda entry: 8.5)
+    monkeypatch.setattr("usage_common.pricing.is_model_priced", lambda model: True)
 
     check = doctor._claude_cost()
 

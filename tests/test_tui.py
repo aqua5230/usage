@@ -12,9 +12,9 @@ from pathlib import Path
 import pytest
 from rich.panel import Panel
 
-import i18n
 from tui import app as tui
 from usage_client import PollState, UsageSnapshot
+from usage_common import i18n
 
 
 def _minimal_bundle() -> dict[str, dict[str, str]]:

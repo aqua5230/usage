@@ -25,15 +25,15 @@ def packaged_resource_path(filename: str, source_mode_path: Path) -> Path:
     pointing at that directory; we prefer it when present.
 
     Why this exists: in py2app builds this module is compiled into
-    ``lib/python313.zip``, so ``Path(__file__).with_name("i18n.json")``
-    resolves to ``lib/python313.zip/i18n.json`` — an invalid path through
-    the zipfile that raises ``NotADirectoryError`` at first read. In source
-    mode (and tests) ``RESOURCEPATH`` is unset and the source-adjacent
-    fallback path is correct. Wheels installed by pip or uvx place data files
+    ``lib/python313.zip/usage_common``, so a source-relative fallback
+    can resolve through the zipfile and raise ``NotADirectoryError`` at first
+    read. In source mode (and tests) ``RESOURCEPATH`` is unset and the
+    repository-root fallback path is correct. Wheels installed by pip or uvx place data files
     under the interpreter's sysconfig data directory, so that location is
     checked before the source fallback.
 
     The callers pass the source-mode path explicitly (as the literal
+    ``Path(__file__).resolve().parent.parent / "..."`` or
     ``Path(__file__).with_name("...")``) so that
     ``tests/test_packaged_resources.py`` can still statically detect every
     declared resource and enforce that ``setup_app.py`` lists it.
@@ -54,7 +54,9 @@ def packaged_resource_path(filename: str, source_mode_path: Path) -> Path:
     return source_mode_path
 
 
-I18N_PATH = packaged_resource_path("i18n.json", Path(__file__).with_name("i18n.json"))
+I18N_PATH = packaged_resource_path(
+    "i18n.json", Path(__file__).resolve().parent.parent / "i18n.json"
+)
 
 
 @lru_cache(maxsize=1)

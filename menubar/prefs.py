@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from prefs import _load_preferences, _save_preferences
+from usage_common.prefs import _load_preferences, _save_preferences
 
 DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy", "grok")
 DEFAULT_PANEL_FLAVOR = "mocha"

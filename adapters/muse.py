@@ -6,7 +6,7 @@ from __future__ import annotations
 from loaders import muse_loader
 from loaders.history_loader import UsageEntry as MuseUsageEntry
 
-from i18n import t
+from usage_common.i18n import t
 
 from .types import AgentInfo, UsageEntry
 

@@ -46,12 +46,9 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools]
 py-modules = [
     "main",
-    "pricing",
     "usage_client",
-    "i18n",
     "usage_cli",
     "doctor",
-    "prefs",
     "setup_app",
 ]
 

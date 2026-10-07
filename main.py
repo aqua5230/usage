@@ -29,11 +29,11 @@ if not os.environ.get("RESOURCEPATH") and (Path(__file__).parent / "__boot__.py"
         "To run from source instead: https://github.com/aqua5230/usage"
     )
 
-import prefs
-from i18n import t as _t
-from prefs import PREFERENCES_FILE as PREFERENCES_FILE
 from quota.usage_rate import UsageRateTracker
 from usage_client import ClaudeUsageClient, PollOutcome, PollState
+from usage_common import prefs
+from usage_common.i18n import t as _t
+from usage_common.prefs import PREFERENCES_FILE as PREFERENCES_FILE
 
 SPRITE_INTERVAL_S = [2.0, 0.8, 0.4, 0.15]  # idle/normal/active/heavy
 IMPORT_RETRY_ATTEMPTS = 6

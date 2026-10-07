@@ -86,8 +86,6 @@ if __name__ == "__main__":
             "objc",
             "PyObjCTools.AppHelper",
             "usage_client",
-            "pricing",
-            "i18n",
             "usage_cli",
         ],
         "packages": [

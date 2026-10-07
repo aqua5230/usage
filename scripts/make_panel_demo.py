@@ -16,12 +16,12 @@ from pathlib import Path
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_REPO_ROOT))
 
-from i18n import _t  # noqa: E402
 from menubar import app as menubar  # noqa: E402
 from menubar.state import PopoverState, QuotaRowState, format_human_time  # noqa: E402
 from panels import all_panels  # noqa: E402
 from panels.dynamic_height import inject_content_height_script  # noqa: E402
 from panels.payload import _load_panel_html, _state_payload  # noqa: E402
+from usage_common.i18n import _t  # noqa: E402
 
 # 面板用 window.webkit.messageHandlers 把量到的自然高度回報給原生端。
 # 瀏覽器裡沒有那座橋，補一個假的，把高度轉發給外層的展示頁。

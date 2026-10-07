@@ -16,11 +16,11 @@ from typing import Any
 
 import pytest
 
-import i18n
 from adapters.types import AgentInfo, RateLimits, SessionStats, UsageEntry
 from analyzer import reporter
 from loaders import agy_quota_probe, grok_quota_probe
 from ui import html_report, tables
+from usage_common import i18n
 
 usage_cli: Any = import_module("usage_cli")
 

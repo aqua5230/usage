@@ -11,10 +11,10 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from typing import Any
 
-from i18n import _t
 from updates.checker import ReleaseInfo
 from updates.release_notes import alert_release_notes
 from updates.whats_new import start_notice
+from usage_common.i18n import _t
 
 
 def show_notice(release: ReleaseInfo, language: str) -> bool:

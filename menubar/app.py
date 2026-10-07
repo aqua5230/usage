@@ -32,7 +32,6 @@ from AppKit import (
 from Foundation import NSObject, NSRunLoop, NSRunLoopCommonModes, NSTimer
 
 import panels
-from i18n import _t
 from installer import login_item
 from installer.statusline_settings import (
     _claude_settings_path as _claude_settings_path,
@@ -150,8 +149,6 @@ from panels.base import (
 from panels.dynamic_height import clamp_content_height
 from panels.panel_window import PanelWindow
 from panels.panel_window_state import save_panel_window_top_left
-from prefs import _load_preferences, _save_preferences
-from pricing import warm_up_pricing
 from quota.burn_rate import BurnRateTracker
 from quota.notifications import NotificationEvent, QuotaNotifier
 from quota.usage_rate import UsageRateTracker
@@ -159,6 +156,9 @@ from updates import checker as update_checker
 from updates import gate as update_gate
 from usage_client import ClaudeUsageClient, PollOutcome
 from usage_common.app_version import current_version as _current_version
+from usage_common.i18n import _t
+from usage_common.prefs import _load_preferences, _save_preferences
+from usage_common.pricing import warm_up_pricing
 from usage_common.usage_lang import detect_lang
 
 __all__ = [

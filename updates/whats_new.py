@@ -17,7 +17,6 @@ import webbrowser
 from collections.abc import Callable, Mapping
 from typing import Any, Literal
 
-from prefs import _load_preferences, _save_preferences
 from updates.checker import (
     MAX_RESPONSE_BYTES,
     ReleaseCheckResult,
@@ -25,6 +24,7 @@ from updates.checker import (
     _release_from_payload,
     compare_versions,
 )
+from usage_common.prefs import _load_preferences, _save_preferences
 
 logger = logging.getLogger(__name__)
 

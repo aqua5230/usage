@@ -20,7 +20,7 @@ from pathlib import Path
 
 import pytest
 
-from i18n import packaged_resource_path
+from usage_common.i18n import packaged_resource_path
 
 
 def test_prefers_RESOURCEPATH_when_file_exists(

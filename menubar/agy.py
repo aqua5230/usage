@@ -13,7 +13,6 @@ from dataclasses import dataclass
 from typing import cast
 
 import quota.burn_rate as burn_rate
-from i18n import _t
 from loaders.agy_quota_probe import (
     AgyQuotaGroup,
     AgyQuotaResult,
@@ -39,6 +38,7 @@ from quota.burn_rate import (
     BurnRateTracker,
     assess_weekly_quota,
 )
+from usage_common.i18n import _t
 from usage_common.time_utils import parse_iso8601_utc_or_raise
 
 AGY_STALE_SECONDS = 20 * 60

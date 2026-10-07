@@ -119,7 +119,7 @@ def test_catppuccin_panel_preferred_size() -> None:
 def test_catppuccin_flavor_is_resolved_after_cached_html_load(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
-    import prefs
+    from usage_common import prefs
     from wintray import app as wintray
 
     monkeypatch.setattr(prefs, "PREFERENCES_FILE", tmp_path / "usage-preferences.json")

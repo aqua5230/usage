@@ -8,8 +8,8 @@ from typing import Any
 
 import pytest
 
-import prefs
 from menubar import new_badge
+from usage_common import prefs
 
 NOW = 1_800_000_000
 DAY = 24 * 60 * 60

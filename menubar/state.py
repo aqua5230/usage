@@ -16,14 +16,12 @@ from datetime import time as datetime_time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict, cast
 
-from i18n import _t
 from installer.statusline_settings import _statusline_enabled
 from loaders import codex_loader, grok_loader, muse_loader
 from loaders.claude_paths import claude_config_dirs
 from loaders.codex_paths import codex_home
 from loaders.history_loader import UsageEntry, load_entries
 from menubar.prefs import _hide_claude_enabled, _hide_codex_enabled, _quota_card_order
-from pricing import calculate_cost
 from quota.burn_rate import (
     WARNING_PERCENT_FLOOR,
     WEEKLY_WINDOW_SECONDS,
@@ -32,6 +30,8 @@ from quota.burn_rate import (
 )
 from quota.usage_rate import GROUP_NAMES
 from usage_client import PollOutcome, PollState
+from usage_common.i18n import _t
+from usage_common.pricing import calculate_cost
 from usage_common.service_status import ServiceStatus
 from usage_common.time_utils import parse_iso8601_utc_or_raise
 

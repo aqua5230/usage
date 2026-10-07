@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from i18n import _t
 from menubar.state import PopoverState
+from usage_common.i18n import _t
 
 
 def begin(state: PopoverState, *, queued: bool = False) -> None:

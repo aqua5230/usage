@@ -21,7 +21,6 @@ import pytest
 import panels
 import quota.agy_window_keeper as agy_window_keeper
 import quota.window_keeper as window_keeper
-from i18n import _t
 from installer import session_hooks, statusline_settings
 from loaders import codex_loader, grok_loader, history_loader
 from menubar import actions as menubar_actions
@@ -40,6 +39,7 @@ from panels import panel_window_state
 from quota.burn_rate import BurnRateTracker
 from updates.gate import AutoCheckSchedule
 from usage_client import PollOutcome, PollState, UsageSnapshot
+from usage_common.i18n import _t
 from usage_common.service_status import ServiceStatus
 
 

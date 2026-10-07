@@ -11,9 +11,9 @@ import logging
 import time
 from typing import Any, TypeGuard
 
-import prefs
-from i18n import _t
-from prefs import _load_preferences, _save_preferences
+from usage_common import prefs
+from usage_common.i18n import _t
+from usage_common.prefs import _load_preferences, _save_preferences
 
 logger = logging.getLogger(__name__)
 _LIFETIME = 14 * 24 * 60 * 60

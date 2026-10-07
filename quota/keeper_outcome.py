@@ -15,7 +15,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-from i18n import _t
+from usage_common.i18n import _t
 
 _lock = threading.Lock()
 logger = logging.getLogger(__name__)

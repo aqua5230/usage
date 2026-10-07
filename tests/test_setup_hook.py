@@ -18,9 +18,9 @@ from types import SimpleNamespace
 
 import pytest
 
-from i18n import t
 from installer import session_hooks, setup_hook
 from tests.helpers import SetupHookPaths, expected_statusline_command
+from usage_common.i18n import t
 
 LEGACY_NAME = "usag"
 

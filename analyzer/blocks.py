@@ -8,7 +8,7 @@ from collections.abc import Sequence
 from datetime import datetime, timedelta, timezone
 
 from adapters.types import DailyStats, P90Limits, SessionBlock, UsageEntry
-from pricing import calculate_cost
+from usage_common.pricing import calculate_cost
 
 BLOCK_DURATION = timedelta(hours=5)
 

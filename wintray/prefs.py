@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from prefs import _load_preferences, _save_preferences
+from usage_common.prefs import _load_preferences, _save_preferences
 
 type TrayProvider = Literal["claude", "codex"]
 

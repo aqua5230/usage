@@ -10,7 +10,6 @@ from typing import Any, Protocol
 
 from AppKit import NSMakePoint, NSMenu, NSMenuItem
 
-from i18n import _t
 from installer import claude_pane, login_item, session_hooks
 from menubar.new_badge import apply_badge
 from menubar.prefs import (
@@ -21,6 +20,7 @@ from menubar.prefs import (
     _quota_notifications_enabled,
     _window_keeper_enabled,
 )
+from usage_common.i18n import _t
 
 
 class _SwitchMenuApp(Protocol):

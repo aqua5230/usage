@@ -20,7 +20,6 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
-from i18n import t as _t
 from installer import setup_hook
 from installer.setup_hook import (
     BACKUP_KEY,
@@ -50,6 +49,7 @@ from installer.setup_hook import (
     update_hook,
 )
 from loaders.codex_paths import codex_home
+from usage_common.i18n import t as _t
 from usage_common.usage_lang import detect_lang
 from usage_hooks.usage_statusline import _exclusive_lock
 
@@ -286,7 +286,7 @@ def _copy_terse_reminder_script() -> None:
 def _write_resume_sidecar() -> None:
     """Mirror i18n.json's rw_prompt/rw_none into a sidecar the stdlib hook can read,
     so the injected wording stays single-sourced and the hook needs no app imports."""
-    from i18n import I18N_PATH
+    from usage_common.i18n import I18N_PATH
 
     try:
         bundle = json.loads(I18N_PATH.read_text(encoding="utf-8"))
@@ -350,7 +350,7 @@ def _write_resume_sidecar() -> None:
 
 
 def _write_terse_sidecar() -> None:
-    from i18n import I18N_PATH
+    from usage_common.i18n import I18N_PATH
 
     try:
         bundle = json.loads(I18N_PATH.read_text(encoding="utf-8"))

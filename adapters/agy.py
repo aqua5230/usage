@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from loaders import agy_loader as shared_agy_loader
 
-from i18n import t
+from usage_common.i18n import t
 
 from .types import AgentInfo, UsageEntry
 
