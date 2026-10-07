@@ -67,7 +67,7 @@ from usage_notifications import NotificationEvent, QuotaNotifier
 from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu
 from wintray.prefs import TrayProvider, load_tray_provider, save_tray_provider
-from wintray.quota_label import TaskbarQuotaLabel, label_enabled
+from wintray.quota_label import TaskbarQuotaLabel, label_enabled, request_tray_menu
 from wintray.watch import (
     WindowsFileEventChanges,
     WindowsUsageWatcher,
@@ -1769,7 +1769,7 @@ class _WindowsTrayController:
                 self.quota_label = None
             return
         if self.quota_label is None:
-            self.quota_label = TaskbarQuotaLabel(self.show_panel)
+            self.quota_label = TaskbarQuotaLabel(self.show_panel, self.show_tray_menu)
         percent = self._tray_percent()
         text, _color = tray_icon_style(percent)
         self.quota_label.update(
@@ -1782,6 +1782,10 @@ class _WindowsTrayController:
             percent,
             build_tooltip(self.latest_state, self.tray_provider),
         )
+
+    def show_tray_menu(self) -> None:
+        if not self.stopping.is_set():
+            request_tray_menu(self.icon)
 
     def toggle_quota_label(self, _icon: Any = None, _item: Any = None) -> None:
         preferences = _load_preferences()
