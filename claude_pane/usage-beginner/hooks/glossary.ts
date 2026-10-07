@@ -1,9 +1,14 @@
 import { clean } from './clean'
 
 export type Term = { term: string; plain: string; example: string }
-export type Entry = Term & { first_seen: number; seen_count: number; known: boolean }
+export type Entry = Term & { first_seen: number; last_seen?: number; seen_count: number; known: boolean }
 export type Glossary = { version: 1; terms: Record<string, Entry> }
 export const keyOf = (term: string): string => term.trim().toLowerCase()
+
+const DAY = 86_400_000
+// A term shown without "All understood" waits longer each time: 1, 3, then 7 days.
+export const hidden = (row: Entry, now: number): boolean =>
+  row.known || now < (row.last_seen ?? row.first_seen) + [1, 3, 7][Math.min(row.seen_count, 3) - 1]! * DAY
 
 export function termOf(value: unknown): Term | null {
   if (!value || typeof value !== 'object') return null

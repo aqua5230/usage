@@ -86,3 +86,24 @@ test('turn completion returns before a slow model reply', async ($, on) => {
   release()
   await stored
 })
+
+test('the answer is framed as data, and a reply with no array logs what Haiku said', async ($, on) => {
+  const logs: string[] = []
+  let logged: () => void = () => {}
+  const done = new Promise<void>(resolve => { logged = resolve })
+  on('env.get', () => ({ value: '/test' }))
+  on('clock.now', () => ({ value: 1000000 }))
+  on('fs.exists', () => ({ value: false }))
+  on('fs.read', () => ({ value: '{}' }))
+  on('ui.log', (_$, e) => { logs.push(e.text); logged(); return { value: undefined } })
+  on('model.complete', async (_$, e) => {
+    expect(e.prompt).toContain('<answer>\nWant me to rebase now? ')
+    expect(e.prompt).toMatch(/<\/answer>\n\nList the terms from the answer above\. Return ONLY the JSON array\.$/)
+    expect(e.maxTokens).toBe(2048)
+    return { value: { isAnswered: true, text: 'Sure, I can rebase it for you.', usage: { input_tokens: 0, output_tokens: 9, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } } }
+  })
+  on('turn.complete', () => ({ text: 'finished' }))
+  await $.turn.complete({ reason: 'answer', answer: 'Want me to rebase now? '.repeat(10), durationMs: 1, isAborted: false, turnId: 'prose' })
+  await done
+  expect(logs[0]).toContain('Expected a JSON array (30 chars, 9 tokens): "Sure, I can rebase it for you."')
+})

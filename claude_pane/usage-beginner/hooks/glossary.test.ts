@@ -1,11 +1,12 @@
 import { expect, test } from 'claude-code/testing'
 import type { EngineInterface, ModelCompleteRequest } from 'claude-code'
 import { clean } from './clean'
-import { keyOf, parseTerms, quotaPaused } from './glossary'
+import { hidden, keyOf, parseTerms, quotaPaused } from './glossary'
 import { extract, record, setKnown } from './register'
 
 const ANSWER = 'SQLite mode=ro '.repeat(30)
 const PATH = '/test/.usage/glossary.json'
+const DAY = 86_400_000
 const term = (name: string) => ({ term: name, plain: 'A simple explanation', example: 'A short example' })
 const entry = (name: string, known = false) => ({ ...term(name), known, seen_count: 1, first_seen: 123 })
 function fake(status?: string) {
@@ -49,19 +50,35 @@ test('bad JSON and unanswered replies stay hidden and logged', async () => {
     expect(f.logs.length).toBe(1)
   }
 })
-test('eight candidates exclude all recorded terms and show only three', async () => {
-  const f = fake()
-  f.files.set(PATH, JSON.stringify({ version: 1, terms: { sqlite: entry('SQLite', true), 'mode=ro': entry('mode=ro') } }))
-  f.reply({ isAnswered: true, text: JSON.stringify([' SQLite ', 'MODE=RO', 'API', 'SDK', 'CLI', 'JSON', 'RPC', 'MCP'].map(term)) })
-  expect((await extract(f.$, ANSWER, 'en')).map(row => row.term)).toEqual(['API', 'SDK', 'CLI'])
+test('eight candidates exclude understood and cooling terms, bring back cooled ones and show only three', async () => {
+  const f = fake(), now = 2 * DAY
+  f.$.clock.now = async () => now
+  f.files.set(PATH, JSON.stringify({ version: 1, terms: {
+    sqlite: entry('SQLite', true), 'mode=ro': entry('mode=ro'), json: { ...entry('JSON'), last_seen: DAY + 1 },
+  } }))
+  f.reply({ isAnswered: true, text: JSON.stringify([' SQLite ', 'MODE=RO', 'JSON', 'API', 'SDK', 'CLI', 'RPC', 'MCP'].map(term)) })
+  expect((await extract(f.$, ANSWER, 'en')).map(row => row.term)).toEqual(['MODE=RO', 'API', 'SDK'])
   const saved = JSON.parse(f.files.get(PATH)!)
-  expect(saved.terms.api).toEqual({ ...term('API'), first_seen: 1000000, seen_count: 1, known: false })
+  expect(saved.terms.api).toEqual({ ...term('API'), first_seen: now, last_seen: now, seen_count: 1, known: false })
+  expect(saved.terms['mode=ro']).toEqual({ ...entry('mode=ro'), last_seen: now, seen_count: 2 })
   expect(saved.terms.sqlite.known).toBe(true)
 })
-test('all recorded candidates stay hidden', async () => {
+test('understood and cooling candidates stay hidden', async () => {
   const f = fake()
+  f.files.set(PATH, JSON.stringify({ version: 1, terms: { sqlite: entry('SQLite', true) } }))
+  expect(await extract(f.$, ANSWER, 'en')).toEqual([])
   f.files.set(PATH, JSON.stringify({ version: 1, terms: { sqlite: entry('SQLite') } }))
   expect(await extract(f.$, ANSWER, 'en')).toEqual([])
+})
+test('cooldown grows from 1 to 3 to 7 days and never ends for understood terms', () => {
+  const row = (seen_count: number, last_seen?: number) => ({ ...entry('T'), first_seen: 0, seen_count, ...(last_seen === undefined ? {} : { last_seen }) })
+  for (const [seen, days] of [[1, 1], [2, 3], [3, 7], [9, 7]] as const) {
+    expect(hidden(row(seen), days * DAY - 1)).toBe(true)
+    expect(hidden(row(seen), days * DAY)).toBe(false)
+  }
+  expect(hidden(row(1, DAY), 2 * DAY - 1)).toBe(true)
+  expect(hidden(row(1, DAY), 2 * DAY)).toBe(false)
+  expect(hidden({ ...row(1), known: true }, 100 * DAY)).toBe(true)
 })
 test('clean removes escapes and invisible text, rejects tags and caps code points', () => {
   expect(clean('\x1b[31mSQLite\x1b[0m\u200b', 40)).toBe('SQLite')
@@ -76,6 +93,7 @@ test('parseTerms reads an array wrapped in a code fence or a sentence', () => {
   expect(parseTerms('```json\n' + JSON.stringify([row]) + '\n```')).toEqual([row])
   expect(parseTerms('Here you go: ' + JSON.stringify([row]))).toEqual([row])
   expect(() => parseTerms('no array here')).toThrow()
+  expect(() => parseTerms('[{"term":"SQLite","plain":"P","exam')).toThrow()
 })
 test('marking all displayed terms known preserves other records; history toggles', async () => {
   const f = fake()
@@ -98,13 +116,13 @@ test('re-read merges a term another conversation wrote after the initial read', 
   await extract(f.$, ANSWER, 'en')
   expect(Object.keys(JSON.parse(f.files.get(PATH)!).terms)).toEqual(['concurrent', 'sqlite'])
 })
-test('short answers never call the model; prompt contains only truncated answer', async () => {
+test('short answers never call the model; prompt frames only the truncated answer', async () => {
   const f = fake()
   expect(await extract(f.$, 'x'.repeat(199), 'en')).toEqual([])
   expect(f.calls.length).toBe(0)
   await extract(f.$, 'x'.repeat(6500), 'ja')
   expect(f.calls[0]!.model).toBe('haiku')
-  expect(f.calls[0]!.prompt).toBe('x'.repeat(6000))
+  expect(f.calls[0]!.prompt).toBe(`<answer>\n${'x'.repeat(6000)}\n</answer>\n\nList the terms from the answer above. Return ONLY the JSON array.`)
   expect(f.calls[0]!.system).toContain('Use Japanese')
 })
 test('stale detached results are dropped, corrupt glossary is preserved', async () => {
