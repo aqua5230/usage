@@ -1,6 +1,7 @@
 import { expect, test } from 'claude-code/testing'
 import type { RenderPropsOf } from 'claude-code'
 
+const normalizePath = (path: string) => path.replaceAll('\\','/').replace(/^[A-Za-z]:/, '')
 const band: RenderPropsOf['AbovePrompt'] = {
   isWorking: false, hasSurvey: false, maxRows: 20, bodyColumns: 100,
   scroll: { offset: 0, bodyRows: 20 }, view: {},
@@ -9,16 +10,16 @@ const band: RenderPropsOf['AbovePrompt'] = {
 test('examples, hidden bands, and pressing 9 updates glossary', async ($, on) => {
   const trace: string[] = []
   const files = new Map<string, string>()
-  on('env.get', (_$, e) => ({ value: e.name === 'HOME' ? '/test' : undefined }))
+  on('env.get', (_$, e) => ({ value: e.name === 'HOME' ? '/test' : e.name === 'OS' ? 'Linux' : undefined }))
   on('clock.now', () => ({ value: 1000000 }))
-  on('fs.exists', (_$, e) => ({ value: files.has(e.path) }))
-  on('fs.read', (_$, e) => ({ value: files.get(e.path) ?? '{}' }))
+  on('fs.exists', (_$, e) => ({ value: files.has(normalizePath(e.path)) }))
+  on('fs.read', (_$, e) => ({ value: files.get(normalizePath(e.path)) ?? '{}' }))
   on('ui.log', (_$, e) => { trace.push(JSON.stringify(e)); return { value: undefined } })
   on('model.complete', async (_$, e) => {
     expect(e.model).toBe('haiku')
     return { value: { isAnswered: true, text: '[{"term":"SQLite","plain":"A file database","example":"data.sqlite"}]', usage: { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } } }
   })
-  on('fs.write', (_$, e) => { files.set(e.path, e.text); return { value: undefined } })
+  on('fs.write', (_$, e) => { files.set(normalizePath(e.path), e.text); return { value: undefined } })
   on('ui.render', () => ({ type: 'Box', props: {}, children: [] }))
   on('turn.start', (_$, e) => ({ turnId: e.turnId }))
   on('ui.open', (_$, e) => { expect(e.title).toBe('Term history'); return { value: { isPlaced: true } } })
@@ -115,9 +116,9 @@ test('a new conversation draws the day\'s quiz once and grades the answer', asyn
   const files = new Map([[path, JSON.stringify({ version: 1, terms: { push: row('push', 'Upload commits', true), merge: row('merge', 'Join two branches', false) } })]])
   on('env.get', () => ({ value: '/test' }))
   on('clock.now', () => ({ value: 10 * DAY }))
-  on('fs.exists', (_$, e) => ({ value: files.has(e.path) }))
-  on('fs.read', (_$, e) => ({ value: files.get(e.path) ?? '{}' }))
-  on('fs.write', (_$, e) => { files.set(e.path, e.text); return { value: undefined } })
+  on('fs.exists', (_$, e) => ({ value: files.has(normalizePath(e.path)) }))
+  on('fs.read', (_$, e) => ({ value: files.get(normalizePath(e.path)) ?? '{}' }))
+  on('fs.write', (_$, e) => { files.set(normalizePath(e.path), e.text); return { value: undefined } })
   on('command.register', (_$, e) => ({ value: { command: e.name } }))
   on('session.start', (_$, e) => ({ cwd: e.cwd }))
   on('ui.render', () => ({ type: 'Box', props: {}, children: [] }))
