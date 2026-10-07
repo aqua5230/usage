@@ -628,7 +628,7 @@ for (const status of ['idle','waiting'] as const) {
       on('fs.write', () => ({value:undefined}))
       on('fs.list', ($,e) => ({value:normalizePath(e.path).endsWith('/.claude/sessions') && phase !== 'closed' ? [{name:'other.json',kind:'file' as const,size:10,mtimeMs:0,isLink:false}] : []}))
       on('fs.read', ($,e) => {
-        if (normalizePath(e.path).endsWith('/.claude/sessions/other.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:title,updatedAt:0,status:phase,waitingFor:'input needed'})}
+        if (normalizePath(e.path).endsWith('/.claude/sessions/other.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:title,cwd:'/work/proj',updatedAt:0,status:phase,waitingFor:'input needed'})}
         throw new Error('ENOENT')
       })
       on('process.run', ($,e) => ({value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
@@ -641,7 +641,7 @@ for (const status of ['idle','waiting'] as const) {
       expect(values.pendingToasts).toEqual(outcome === 'current' || outcome === 'first-sighting' ? [] : [{id:'other',kind}])
       if (outcome === 'busy' || outcome === 'closed') phase = outcome
       await clock.advance(15000)
-      expect(toasts).toEqual(outcome === 'stable' ? [{text:`${status === 'idle' ? 'Done' : 'Waiting for you'}: ${title.slice(0,40)}…`,timeoutMs:8000}] : [])
+      expect(toasts).toEqual(outcome === 'stable' ? [{text:`${status === 'idle' ? 'Done' : 'Waiting for you'}: proj · ${title.slice(0,40)}…`,timeoutMs:8000}] : [])
       expect(values.pendingToasts).toEqual([])
       await clock.advance(15000)
       expect(toasts).toHaveLength(outcome === 'stable' ? 1 : 0)
@@ -693,7 +693,7 @@ test('live 回報背景工作數，idle 工作歸零才通知完成', async ($, 
     const path = normalizePath(e.path)
     if (path === `${directory}/current.json`) return {value:live}
     if (path === `${directory}/other.json`) return {value:JSON.stringify({sessionId:'other',jobs,updatedAt:0})}
-    if (path.endsWith('/.claude/sessions/1.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:'task',updatedAt:0,status:'idle'})}
+    if (path.endsWith('/.claude/sessions/1.json')) return {value:JSON.stringify({pid:1,sessionId:'other',name:'task',cwd:'/work/proj',updatedAt:0,status:'idle'})}
     throw new Error('ENOENT')
   })
   on('process.run', ($,e) => ({value:{exitCode:0,stdout:e.argv[0] === 'ps' ? '1' : e.argv[0] === 'usage' ? '{"agents":{}}' : '',stderr:'',isStdoutTruncated:false,isStderrTruncated:false}}))
@@ -712,7 +712,7 @@ test('live 回報背景工作數，idle 工作歸零才通知完成', async ($, 
   expect(values.pendingToasts).toEqual([{id:'other',kind:'done'}])
   expect(toasts).toEqual([])
   await clock.advance(15000)
-  expect(toasts).toEqual(['Done: task'])
+  expect(toasts).toEqual(['Done: proj · task'])
 })
 
 test('Stop 追蹤一般 shell、保留時間，通知移除並更新標頭和 live jobs', async ($, on) => {

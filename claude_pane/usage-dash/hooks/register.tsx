@@ -174,7 +174,7 @@ async function refreshSessions($: Dollar) {
     await update($, pendingToasts, () => settled.pending)
     for (const { session, kind } of settled.toast) {
       const title = session.title.length > 40 ? `${session.title.slice(0,40)}…` : session.title
-      $.ui.toast(t(`session_${kind}`, { title }), { timeoutMs: 8000 })
+      $.ui.toast(t(`session_${kind}`, { title: `${session.source} · ${title}` }), { timeoutMs: 8000 })
     }
   } catch (error) { failures.push(String(error)) }
   await update($, sessionError, () => failures.length ? t('session_error', { error: failures.join('; ') }) : '')
