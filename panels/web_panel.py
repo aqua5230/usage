@@ -109,7 +109,9 @@ def _reload_web_panel(view: Any) -> None:
 
 
 def _is_navigation_menu_item(item: Any) -> bool:
-    item_identifier = getattr(item, "itemIdentifier", None)
+    # WebKit tags its context-menu items through NSMenuItem.identifier();
+    # NSMenuItem has no itemIdentifier, so looking that up removed nothing.
+    item_identifier = getattr(item, "identifier", None)
     if not callable(item_identifier):
         return False
     identifier = item_identifier()
