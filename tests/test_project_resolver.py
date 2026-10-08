@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from pathlib import Path
 from unittest.mock import Mock
@@ -168,7 +169,7 @@ def test_project_from_encoded_path_resolves_existing_dash_dir(tmp_path: Path) ->
     assert result == "claude-tutorial-video"
 
 
-@pytest.mark.parametrize("drive", ["C", "C:"])
+@pytest.mark.parametrize("drive", ["C-", "C:"])
 def test_encoded_path_root_uses_windows_drive_root(
     monkeypatch: pytest.MonkeyPatch,
     drive: str,
@@ -177,12 +178,52 @@ def test_encoded_path_root_uses_windows_drive_root(
     # becomes "-"), so the drive normally survives only as a bare letter.
     monkeypatch.setattr(os, "sep", "\\")
 
-    root, start = project_resolver._encoded_path_root(
-        [drive, "Users", "runneradmin", "AppData", "Local", "Temp", "alpha"]
+    root, encoded = project_resolver._encoded_path_root(
+        project_resolver._encode(f"{drive}-Users-runneradmin-AppData-Local-Temp-alpha")
     )
 
     assert str(root) == "C:\\"
-    assert start == 1
+    assert encoded == "Users-runneradmin-AppData-Local-Temp-alpha"
+
+
+def _claude_encode(path: Path) -> str:
+    # Mirrors Claude Code's JavaScript `replace(/[^a-zA-Z0-9]/g, "-")`, which
+    # replaces each UTF-16 code unit.
+    units = str(path).encode("utf-16-le")
+    text = "".join(chr(int.from_bytes(units[i : i + 2], "little")) for i in range(0, len(units), 2))
+    return re.sub(r"[^A-Za-z0-9]", "-", text)
+
+
+@pytest.mark.parametrize(
+    "name", [".hidden-app", "my_tool", "生日卡-birthday", "-dash-lead", "🎂cake"]
+)
+def test_project_from_encoded_path_matches_names_claude_flattens(tmp_path: Path, name: str) -> None:
+    # Claude Code turns ".", "_", "-" and non-ASCII letters into "-", which the
+    # "/"-split guess cannot recover; a sibling named like the parent must not win.
+    projects_dir = tmp_path / "projects"
+    real_project = tmp_path / "-Users-me" / name
+    real_project.mkdir(parents=True)
+    encoded = _claude_encode(real_project)
+
+    result = project_from_encoded_path(projects_dir / encoded / "a.jsonl", projects_dir)
+
+    assert result == name
+
+
+def test_project_from_encoded_path_matches_truncated_long_path(tmp_path: Path) -> None:
+    # Claude Code keeps the first 200 encoded characters and appends "-<hash>".
+    projects_dir = tmp_path / "projects"
+    name = "long-project-" + "x" * 220
+    real_project = tmp_path / "work" / name
+    real_project.mkdir(parents=True)
+    encoded = _claude_encode(real_project)
+    assert len(_claude_encode(real_project.parent)) < 200 < len(encoded)
+
+    result = project_from_encoded_path(
+        projects_dir / f"{encoded[:200]}-1x2y3z" / "a.jsonl", projects_dir
+    )
+
+    assert result == name
 
 
 def test_project_from_encoded_path_fallback_preserves_dash(tmp_path: Path) -> None:

@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from functools import lru_cache
 from pathlib import Path
@@ -14,6 +15,8 @@ from pathlib import Path
 from usage_common.subprocess_utils import hidden_console_kwargs
 
 __all__ = ["project_from_encoded_path", "resolve_project_name"]
+
+_ENCODED_LIMIT = 200
 
 
 @lru_cache(maxsize=2048)
@@ -72,16 +75,18 @@ def project_from_encoded_path(jsonl_path: Path, projects_dir: Path) -> str:
     except (IndexError, ValueError):
         return "unknown"
 
-    parts = [part for part in project_dir.split("-") if part]
-    if not parts:
+    # Claude Code cuts encoded paths longer than 200 characters and appends
+    # "-<hash>", so only a prefix of the last directory name survives.
+    truncated = len(project_dir) > _ENCODED_LIMIT
+    root, encoded = _encoded_path_root(_encode(project_dir[:_ENCODED_LIMIT]))
+    if not encoded:
         return "unknown"
 
-    root, start = _encoded_path_root(parts)
-    slash_candidate = root.joinpath(*parts[start:])
-    if slash_candidate.is_dir():
+    slash_candidate = root.joinpath(*encoded.split("-"))
+    if not truncated and "--" not in encoded and slash_candidate.is_dir():
         return slash_candidate.name or "unknown"
 
-    existing_project = _existing_encoded_project_path(parts)
+    existing_project = _existing_encoded_project_path(root, encoded, truncated)
     if existing_project is not None:
         return existing_project.name or "unknown"
 
@@ -89,32 +94,44 @@ def project_from_encoded_path(jsonl_path: Path, projects_dir: Path) -> str:
     return fallback or "unknown"
 
 
-def _existing_encoded_project_path(parts: list[str]) -> Path | None:
-    def search(index: int, current: Path) -> Path | None:
-        for end in range(index + 1, len(parts) + 1):
-            candidate = current / "-".join(parts[index:end])
-            if not candidate.is_dir():
-                continue
-            if end == len(parts):
-                return candidate
-            result = search(end, candidate)
-            if result is not None:
-                return result
+def _encode(name: str) -> str:
+    # Claude Code encodes every non-alphanumeric character, including ".", "_",
+    # "-" and non-ASCII letters, as "-". Its JavaScript regex works on UTF-16
+    # code units, so a character outside the BMP (e.g. an emoji) becomes "--".
+    return re.sub(r"[^A-Za-z0-9]", lambda match: "--" if ord(match[0]) > 0xFFFF else "-", name)
+
+
+def _existing_encoded_project_path(current: Path, encoded: str, truncated: bool) -> Path | None:
+    """Walk real directories whose encoded names spell out the encoded path."""
+    try:
+        entries = sorted(os.scandir(current), key=lambda entry: entry.name)
+    except OSError:
         return None
+    for entry in entries:
+        name = _encode(entry.name)
+        last = encoded == name or (truncated and name.startswith(encoded))
+        if not last and not encoded.startswith(name + "-"):
+            continue
+        try:
+            if not entry.is_dir():
+                continue
+        except OSError:
+            continue
+        if last:
+            return Path(entry.path)
+        rest = encoded[len(name) + 1 :]
+        result = _existing_encoded_project_path(Path(entry.path), rest, truncated) if rest else None
+        if result is not None:
+            return result
+    return None
 
-    root, start = _encoded_path_root(parts)
-    return search(start, root)
 
-
-def _encoded_path_root(parts: list[str]) -> tuple[Path, int]:
-    """Return the filesystem root and first encoded component to search."""
+def _encoded_path_root(encoded: str) -> tuple[Path, str]:
+    """Return the filesystem root and the encoded path below it."""
     if os.sep == "\\":
-        drive = parts[0]
-        # Claude Code encodes every non-alphanumeric character as "-", so
-        # "C:\Users\me" arrives as "C--Users-me" and the drive survives only
-        # as a bare letter; accept "C:" too for robustness.
-        if len(drive) == 1 and drive.isalpha():
-            return Path(f"{drive}:{os.sep}"), 1
-        if len(drive) == 2 and drive[0].isalpha() and drive[1] == ":":
-            return Path(drive + os.sep), 1
-    return Path(os.sep), 0
+        # Claude Code encodes "C:\Users\me" as "C--Users-me", so the drive
+        # survives only as a bare letter followed by "--".
+        match = re.match(r"([A-Za-z])--", encoded)
+        if match:
+            return Path(f"{match.group(1)}:{os.sep}"), encoded[match.end() :]
+    return Path(os.sep), encoded.removeprefix("-")
