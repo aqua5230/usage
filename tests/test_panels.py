@@ -468,39 +468,29 @@ def test_evaluate_javascript_completion_handler_block_signature() -> None:
 
 
 def test_web_panel_context_menu_removes_navigation_items() -> None:
+    # WebKit hands willOpenMenu plain NSMenuItems tagged through identifier().
+    # A fake item that defines its own lookup method passes even when the real
+    # NSMenuItem has no such method (#42 shipped that way), so use real items.
+    from AppKit import NSMenu, NSMenuItem
+
     import panels.web_panel as web_panel
 
-    class FakeMenuItem:
-        def __init__(self, identifier: str | None) -> None:
-            self.identifier = identifier
-
-        def itemIdentifier(self) -> str | None:
-            return self.identifier
-
-    class FakeMenu:
-        def __init__(self) -> None:
-            self.reload = FakeMenuItem("WKMenuItemIdentifierReload")
-            self.copy = FakeMenuItem("WKMenuItemIdentifierCopy")
-            self.open_link = FakeMenuItem("WKMenuItemIdentifierOpenLinkInNewWindow")
-            self.no_identifier = FakeMenuItem(None)
-            self.items = [
-                self.reload,
-                self.copy,
-                self.open_link,
-                self.no_identifier,
-            ]
-
-        def itemArray(self) -> list[FakeMenuItem]:
-            return self.items
-
-        def removeItem_(self, item: FakeMenuItem) -> None:
-            self.items.remove(item)
-
-    menu = FakeMenu()
+    menu = NSMenu.alloc().initWithTitle_("")
+    for identifier in (
+        "WKMenuItemIdentifierReload",
+        "WKMenuItemIdentifierCopy",
+        "WKMenuItemIdentifierOpenLinkInNewWindow",
+        None,
+    ):
+        item = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_("", None, "")
+        if identifier is not None:
+            item.setIdentifier_(identifier)
+        menu.addItem_(item)
 
     web_panel._remove_navigation_menu_items(menu)
 
-    assert menu.items == [menu.copy, menu.no_identifier]
+    remaining = [item.identifier() for item in menu.itemArray()]
+    assert remaining == ["WKMenuItemIdentifierCopy", None]
 
 
 def test_build_view_falls_back_to_error_panel_on_failure(
