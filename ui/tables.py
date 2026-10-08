@@ -116,6 +116,7 @@ MODEL_SHORT = {
     "claude-sonnet-5-5": "Sonnet 5.5",
     "claude-sonnet": "Sonnet",
     "claude-haiku-4-5-20251001": "Haiku 4.5",
+    "claude-haiku-5-5": "Haiku 5.5",
     "claude-haiku": "Haiku",
     "claude-fable-5": "Fable 5",
     "claude-fable-5-1": "Fable 5.1",
