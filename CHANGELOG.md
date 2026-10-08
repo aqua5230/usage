@@ -7,6 +7,13 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.33.2] - 2026-10-08
+
+### Fixed
+- **Project names show for folders with dots, underscores, non-English names or emoji.** Claude Code turns every symbol in a project path into `-`, so these projects showed the whole encoded string or the parent folder's name. usage now matches the encoded name against the real folders, including long paths Claude Code shortens.
+- **Quota-Aware Mode only asks about the quota a task uses.** An exhausted Antigravity model group made Claude ask whether to wait before unrelated work. The reminder now says each quota and model group is separate. Quota-Aware hook 1.1; the installed copy updates the next time you open the app.
+- **Side pane session toasts name the project.** A toast that a session finished now starts with the project name, so you can tell which window it was.
+
 ## [0.33.1] - 2026-10-07
 
 ### Added
