@@ -23,102 +23,31 @@
   <img src="docs/showcase-v3.en.png" alt="usage — Claude Code, Codex, and Antigravity quota pinned to the macOS menu bar" width="820">
 </p>
 
-Claude Code and Codex numbers come from log files already on your machine. Antigravity quota comes from Google's official quota endpoint, using the sign-in the Antigravity CLI already stores locally.
-
-`usage` also helps you spend less. The status line warns you before your context window bloats or your prompt cache goes cold, and a Token Saver toggle keeps replies short. In an A/B test on real sessions, late replies stayed ~40% shorter instead of growing 84% longer.
-
-## Quick Start
-
-```bash
-brew install --cask aqua5230/usage/usage
-```
-
-It lands in your Applications folder automatically. Open it once; if macOS 15 or later blocks it, go to System Settings → Privacy & Security, scroll down, and click **Open Anyway**. On macOS 14 or earlier, right-click **Open** once to pass Gatekeeper. Then click the menu bar icon. Prefer a direct download or want the full setup flow? See [Install](#install) below.
-
-**Not on macOS?** `uvx usage-cli` runs the terminal interface anywhere, Linux included — no install, no menu bar.
-
-**Jump to:** [What You Get](#what-you-get) · [Privacy](#privacy--data-sources) · [Requirements](#requirements) · [Install](#install) · [Status Line](#first-launch-set-up-the-status-line) · [Claude Code Side Pane](#claude-code-side-pane) · [Windows](#windows-support) · [Themes](#theme-gallery) · [Troubleshooting](#troubleshooting) · [Comparison](#comparison) · [Not a Fit?](#when-usage-isnt-the-right-fit) · [Development](#development)
-
-## What You Get
-
-### Live Visibility
-
-- **Always-on Monitor:** Your quota lives in the menu bar, color-coded from green to red. Click when you want the full session, weekly, and per-project breakdown.
-- **Antigravity Support:** Antigravity (Gemini) session and weekly quota show up as a third card in every theme except World Cup 2026, which stays a two-team HUD. Numbers come straight from the official quota API, using the sign-in the Antigravity CLI already keeps on your machine — refreshed every few minutes, with live reset countdowns. Antigravity keeps two separate quota pools: the card shows Gemini by default, and tapping the `Gemini ⇄` tag next to the title switches it to Claude / GPT — the choice is remembered.
-- **Grok CLI Support:** A fourth card reads Grok CLI's weekly credit percentage straight from its own local debug log. Grok CLI doesn't expose session or burn-rate data, so the card shows a single weekly bar; its per-request token usage still counts toward today's cost and project totals like Claude Code and Codex.
-- **Muse Code Spending:** Muse Code's per-request tokens and cost count toward today's cost, project totals, the HTML report, and the `usage` CLI, read from its own local session logs. Muse keeps no local quota data, so there is no Muse quota card.
-- **Service Status Alerts:** An orange-red banner appears when Claude Code, Claude API, or Codex API has an outage or degraded performance, read from their public Statuspage.io pages. Antigravity isn't covered; it has no public status page.
-- **Context Nudges & Notifications:** When your context window hits 70% — or earlier when it is filling fast — the status line nudges you to `/clear` or `/compact` to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The context figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. When it changes color, the status line shows the image count and the estimated share of files and command output.
-- **Prompt Cache Health:** The status line shows Claude Code's prompt cache hit rate. For 10 minutes after the cache misses, it also says why — the model changed, the tools changed, you sat idle past the 5-minute TTL, and so on — so you can tell whether the extra tokens came from something you did. The hit rate needs Claude Code 2.1.251 or newer and the reason needs 2.1.260 or newer; on older versions those parts simply don't appear.
-- **Hide Sections:** Only use one or two of the tools? Hide the Claude Code, Codex, Grok CLI, or Antigravity section from the menu bar and panels completely with a single click.
-
-### Workflow Helpers
-
-- **Progress Concierge:** Open a new Claude Code session and `usage` hands your last progress straight to the AI, including your last request, uncommitted changes, and unfinished todos. No `/resume`, no recap. When you do `/resume` a conversation that sat long enough for its cache to expire, it warns you how many tokens the next message will re-send and suggests `/compact` first. Off by default.
-- **Token Saver:** A menu-bar toggle asks Claude Code and Codex to answer more tersely and in plainer language, saving output tokens while keeping code and error messages byte-exact. A light reminder keeps long conversations from drifting back to verbose — in an A/B test on real sessions, late replies stayed ~40% shorter instead of drifting 84% longer.
-- **Claude Code side pane (macOS and Windows):** Quotas, conversations, and background jobs inside Claude Code. [See the side pane](#claude-code-side-pane).
-- **Beginner Mode (macOS and Windows):** Off by default. After Claude Code answers, up to three technical terms from that answer appear above the prompt, each with a one-line plain explanation in your UI language. Press 9 to mark them understood; terms you skip come back after 1, 3, then 7 days. Understood terms return as a one-question multiple-choice quiz 7, 21, then 60 days later, at most one a day; a wrong answer puts the term back in the hints. `/terms` opens your term history. Picking terms asks Claude Haiku through your Claude Code, so it uses a little Claude quota, and it pauses while your 5-hour quota is at 90% or more.
-- **Quota-Aware Mode (macOS and Windows):** Off by default. When a 5-hour quota passes 80%, 90%, or 95%, or a weekly quota passes 95%, Claude Code gets one line with what is left and when it resets. Before a big task, Claude then tells you and lets you pick a smaller part or wait for the reset. It covers Claude Code, Codex, and Antigravity quota, says each level once per conversation, and makes no extra model calls.
-- **Auto-start 5-hour Session:** Off by default. Turn it on and, right after a 5-hour quota resets, `usage` sends one tiny message to each tool (Claude with Haiku, Antigravity with Gemini 3.8 Flash Low, Codex with its cheapest model) so the next 5-hour window starts counting right away. Those messages do use a little quota, but the amount is negligible. Checking your quota never sends a message; only this switch does.
-- **Terminal Integration:** `usage status --json` hands your Claude Code, Codex, Antigravity, and Grok quota to any tool that can run a command — Starship, tmux, or your own scripts. Reads the same local files as the menu bar. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
-- **Token-waste Health Check:** A daily background diagnosis scans your logs for waste, including repeated file reads, polluter directories, and noisy Bash output. If it finds issues, a one-line heads-up appears; say "show me" and the AI walks you through fixes.
-
-### Stay Current
-
-- **AI Update Daily:** Opens a daily-updated public [page](https://aqua5230.github.io/ai-updates/) covering Claude Code, Codex, and Antigravity, with the full history kept. Reviewed items get a plain-language summary in all five UI languages; unreviewed ones show the original source text.
-- **Release Notes After an Update:** The first launch after an update shows what changed in that version in your UI language, once. Fresh installs skip it.
-
-### Reporting & Insight
-
-- **Deep HTML Reports:** Shareable HTML reports of daily and weekly token trends, project rankings, and cost — including a Year in Review with a contribution heatmap and "Wrapped" summary. A "What you worked on" section lists the names Claude Code gave your recent conversations, so the numbers arrive with context. Export as .html, .csv, or .png, fully offline, with optional project-name masking that covers those titles too.
-
-### Experience & Customization
-
-- **16 Visual Themes:** Switch between panel styles including Default, Matrix, Windows 95, Vintage Newspaper, Cloud Observation, Midnight Aquarium, Prism Arcade, Black Hole, World Cup 2026, Lepidoptera, Migration, Stained Glass, Origami, Sketchbook, Heart Monitor, and Catppuccin (official palette, all four flavors).
-- **Place the Panel Anywhere:** Drag the panel from any empty spot to wherever you want it, and it reopens there next time. It stays put when another app takes focus — a second click on the menu bar icon, or Escape, closes it.
-- **Drag to Reorder:** Grab any quota card and drag it up or down to swap the order — the arrangement is shared across every theme with quota cards (all except World Cup 2026) and survives restarts.
-- **Automatic Localization:** UI text is available in Traditional Chinese, Simplified Chinese, English, Japanese, and Korean, automatically matching your system settings.
-
-## Privacy & Data Sources
-
-Claude Desktop chat quota is also supported without installing the standalone Claude Code CLI or configuring a status line. Keep Claude Desktop open: when Claude Code quota files are unavailable, usage reads its local `plan-usage-history.json` (including Microsoft Store installations on Windows). When a recent response in its local Chromium block-file HTTP cache matches the organization, usage also reads the exact session and weekly reset times. Newer cached observations take precedence over throttled history samples; older cache must match the percentages. Missing, unsupported, expired, or inconsistent cache data leaves the countdown unknown; times are never estimated. Desktop samples normally update every 5–15 minutes. The panel shows the observation age, marks it stale after 30 minutes, and stops displaying it after two hours. The most recent organization sample is used; custom desktop profiles are not discovered. No cookies, login tokens, or API calls are needed. These quota caches contain no per-project token counts. Desktop sessions that also write compatible Claude Code logs under `~/.claude/projects/` are counted by the existing project/token reports.
-
-- Claude Code and Codex numbers are read from local log files on your machine.
-- Antigravity quota requires network access, and only if you use it: quota is fetched from Google's official quota endpoint using the OAuth credential the Antigravity CLI already stored after sign-in — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version. `usage` reads that credential without writing it back and keeps any refreshed access token in memory only; the call itself reads quota metadata.
-- Background network activity: the Antigravity quota/token endpoints above, public Claude and Codex status pages to flag outages, a public model-pricing table to estimate cost (falls back to built-in prices offline), and occasionally checking GitHub for a new version. Claude Code and Codex log contents are never uploaded.
-- Beginner Mode, only if you turn it on, sends Claude Code's latest answer to Claude Haiku through your own Claude Code sign-in to pick terms. Your term list stays in `~/.usage/glossary.json`.
-
-## Requirements
-
-- macOS 12 (Monterey) or newer, or Windows 10/11
-- Local usage data from Claude Code, Codex, Antigravity, or Grok CLI, or a running Claude Desktop app with plan-usage history.
-- (Source runs only) Python 3.13.
+- **Every quota at a glance:** Claude Code, Codex, and Antigravity session and weekly limits with reset countdowns, plus Grok CLI's weekly credit.
+- **Reads what's already on your machine:** Claude Code, Codex, and Grok CLI numbers come from local logs. Antigravity quota comes from Google's official endpoint, using the sign-in its CLI already stores.
+- **Warns before tokens go to waste:** The Claude Code status line flags a bloating context window and a cold prompt cache. A banner shows Claude or Codex outages.
+- **Helpers inside Claude Code:** A side pane, shorter replies, a progress hand-off for new sessions, and quota-aware planning. All optional.
+- **Reports and 16 themes:** HTML reports of token trends and cost, and 16 panel themes to pick from.
 
 ## Install
 
-### 1. Homebrew (Recommended)
+Runs on macOS 12 or newer and Windows 10/11.
 
-Installing via Homebrew means a single `brew upgrade --cask usage` keeps it current.
+**macOS, with Homebrew (recommended):**
 
 ```bash
 brew install --cask aqua5230/usage/usage
 ```
 
-*(First launch: on macOS 15 or later, open System Settings → Privacy & Security, scroll down, and click **Open Anyway**. On macOS 14 or earlier, right-click `usage.app` in Finder → **Open** to pass Gatekeeper.)*
+It lands in your Applications folder, and `brew upgrade --cask usage` keeps it current. Prefer a direct download? Get `usage.app.zip` from the [latest release](https://github.com/aqua5230/usage/releases/latest), unzip it, and drag `usage.app` into Applications.
 
-### 2. Download for macOS
+**First launch on macOS:** if macOS 15 or later blocks it, open System Settings → Privacy & Security, scroll down, and click **Open Anyway**. On macOS 14 or earlier, right-click `usage.app` in Finder → **Open** once. Then click the menu bar icon.
 
-1. Download the latest `usage.app.zip` from the [GitHub Releases page](https://github.com/aqua5230/usage/releases/latest).
-2. Unzip it and drag `usage.app` into your Applications folder.
-3. First launch: on macOS 15 or later, open System Settings → Privacy & Security, scroll down, and click **Open Anyway**. On macOS 14 or earlier, in Finder, right-click `usage.app` → **Open** → confirm Open.
+**Windows:** download `usage-windows.zip` from the [latest release](https://github.com/aqua5230/usage/releases/latest), unzip it, and run `usage.exe`. No installer is needed. If SmartScreen shows **Windows protected your PC**, click **More info** → **Run anyway**. See [Windows Support](#windows-support).
 
-### 3. uvx (zero install, any OS)
+**Terminal only, any OS (Linux included):** `uvx usage-cli` opens the terminal interface with nothing to install; uv prepares Python 3.13 by itself. For a persistent `usage` command, run `uv tool install usage-cli`. On Linux, `usage setup` installs the Claude Code status line too. This path has no menu bar or tray app.
 
-Run `uvx usage-cli` to open the terminal interface directly. uv automatically prepares Python 3.13, so no separate Python installation is needed.
-
-For a persistent command, run `uv tool install usage-cli`, then use `usage` (for example, `usage status --json`). This installation path provides the CLI only, not the menu bar app.
-
-On Linux, `usage setup` installs the Claude Code status line as well, so quota shows up under your prompt the same way it does on macOS and Windows. CI verifies this on Ubuntu. The menu bar and system tray apps remain macOS- and Windows-only.
+`usage` needs data from at least one of Claude Code, Codex, Antigravity, or Grok CLI, or a running Claude Desktop app.
 
 ## First Launch: Set Up the Status Line
 
@@ -133,6 +62,56 @@ Once set up, the bottom of the Claude Code window will show a status line like t
   <img src="docs/statusline.en.gif" alt="Claude Code statusLine display (English)" width="900">
 </p>
 
+## What You Get
+
+### On Screen
+
+- **Menu bar monitor:** Quota color-coded from green to red. Click for the full session, weekly, and per-project breakdown.
+- **Antigravity card:** Shows the Gemini pool by default. Tap the `Gemini ⇄` tag to switch to the separate Claude / GPT pool; the choice is remembered.
+- **Grok CLI card:** The weekly credit percentage from Grok CLI's local debug log. Its tokens also count toward cost and project totals.
+- **Muse Code spending:** Its tokens and cost count toward today's cost, project totals, reports, and the CLI. Muse keeps no quota data locally, so it has no card.
+- **Outage alerts:** An orange-red banner when Claude Code, Claude API, or Codex API is down or degraded, read from their public status pages.
+- **Context and cache warnings:** The status line nudges you to `/clear` or `/compact` before the context window bloats, and says why the prompt cache missed.
+- **Hide what you don't use:** Hide the Claude Code, Codex, Grok CLI, or Antigravity section from the menu bar and panels in one click.
+
+### Inside Claude Code
+
+- **Progress Concierge:** A new session starts with your last request, uncommitted changes, and unfinished todos already handed to the AI. No `/resume`, no recap. Off by default.
+- **Token Saver:** Asks Claude Code and Codex for shorter, plainer replies while keeping code and error messages byte-exact. In an A/B test on real sessions, late replies stayed ~40% shorter instead of drifting 84% longer.
+- **Side pane:** Quotas, other conversations, and background jobs next to your work. [See the side pane](#claude-code-side-pane).
+- **Beginner Mode:** Explains up to three technical terms from each answer in one plain line, then brings them back for review. Off by default; uses a little Claude quota.
+- **Quota-Aware Mode:** When a quota runs low, Claude tells you before a big task that would use it, and lets you do a smaller part or wait for the reset. Off by default; makes no extra model calls.
+- **Auto-start 5-hour session:** Right after a 5-hour quota resets, sends each tool one tiny message so the next window starts counting right away. Off by default.
+- **Token-waste health check:** A daily scan of your logs for repeated file reads and noisy output. Say "show me" and the AI walks you through fixes.
+
+### Reports and More
+
+- **HTML reports:** Daily and weekly token trends, project rankings, cost, and a Year in Review with a contribution heatmap. Export .html, .csv, or .png fully offline, with optional project-name masking.
+- **Terminal integration:** `usage status --json` hands your Claude Code, Codex, Antigravity, and Grok quota to Starship, tmux, or your own scripts. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
+- **AI Update Daily:** A daily public [page](https://aqua5230.github.io/ai-updates/) of Claude Code, Codex, and Antigravity changes, with plain-language summaries in five languages.
+- **Your layout:** Drag the panel anywhere, drag quota cards to reorder them, and switch among 16 themes. The UI follows your system language: Traditional Chinese, Simplified Chinese, English, Japanese, or Korean.
+
+<details>
+<summary>Thresholds, versions, and fine print</summary>
+
+- **Context colors:** The context figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. The nudge appears at 70%, or earlier when the context is filling fast. When the color changes, the status line shows the image count and the estimated share of files and command output.
+- **Prompt cache:** The hit rate needs Claude Code 2.1.251 or newer. For 10 minutes after a miss, the status line says why — the model changed, the tools changed, you sat idle past the 5-minute TTL, and so on; that needs 2.1.260 or newer. On older versions those parts don't appear.
+- **Notifications:** Opt in to system notifications for quota limits and recoveries.
+- **Antigravity card:** Refreshed every few minutes. It appears in every theme except World Cup 2026, which stays a two-team HUD.
+- **Outage alerts:** Antigravity isn't covered; it has no public status page.
+- **Token-waste health check:** It also flags polluter directories and noisy Bash output.
+- **Linux:** CI verifies `usage setup` on Ubuntu.
+- **Progress Concierge:** When you `/resume` a conversation that sat long enough for its cache to expire, it warns how many tokens the next message will re-send and suggests `/compact` first.
+- **Beginner Mode (macOS and Windows):** Terms appear above the prompt in your UI language. Press 9 to mark them understood; skipped terms come back after 1, 3, then 7 days. Understood terms return as a one-question multiple-choice quiz 7, 21, then 60 days later, at most one a day, and a wrong answer puts the term back in the hints. `/terms` opens your term history. Picking terms asks Claude Haiku through your Claude Code, and pauses while your 5-hour quota is at 90% or more.
+- **Quota-Aware Mode (macOS and Windows):** Claude Code gets one line with what is left and when it resets when a 5-hour quota passes 80%, 90%, or 95%, or a weekly quota passes 95%. It covers Claude Code, Codex, and Antigravity, says each level once per conversation, and treats each quota and model group separately, so a used-up one only matters for work that runs on it.
+- **Auto-start 5-hour session:** Claude gets Haiku, Antigravity gets Gemini 3.8 Flash Low, and Codex gets its cheapest model. The quota used is negligible. Checking your quota never sends a message; only this switch does.
+- **Panel:** It stays put when another app takes focus; a second click on the menu bar icon, or Escape, closes it. Card order is shared across every theme with quota cards (all except World Cup 2026) and survives restarts.
+- **HTML reports:** A "What you worked on" section lists the names Claude Code gave your recent conversations, and masking covers those titles too.
+- **AI Update Daily:** Unreviewed items show the original source text. The full history is kept.
+- **Release notes:** The first launch after an update shows what changed in that version, once, in your UI language. Fresh installs skip it.
+
+</details>
+
 ## Claude Code Side Pane
 
 See your quota, other conversations, and background jobs without leaving Claude Code. Available on macOS and Windows.
@@ -143,7 +122,7 @@ See your quota, other conversations, and background jobs without leaving Claude 
 
 - **Quotas:** Your 5-hour and weekly limits.
 - **Claude conversations:** Conversations waiting for your permission or MCP input are marked in yellow.
-- **Conversation notifications:** A notification appears when another Claude conversation finishes or starts waiting for you.
+- **Conversation notifications:** A notification, starting with the project name, appears when another Claude conversation finishes or starts waiting for you.
 - **Latest reply:** Each conversation row shows the latest assistant reply on its second line.
 - **Background jobs:** Includes subagents started by Claude with the Agent tool and their status.
 
@@ -163,15 +142,37 @@ See your quota, other conversations, and background jobs without leaving Claude 
 
 </details>
 
+## Privacy & Data Sources
+
+- **Local logs:** Claude Code, Codex, Grok CLI, and Muse Code numbers are read from log files on your machine. Their contents are never uploaded.
+- **Claude Desktop:** Without the Claude Code CLI or a status line, keep Claude Desktop open and `usage` reads its local plan-usage history. No cookies, login tokens, or API calls are needed. Reset times appear only when its local cache confirms them; they are never estimated.
+- **Antigravity**, only if you use it, needs network access: quota is fetched from Google's official quota endpoint with the OAuth credential the Antigravity CLI already stored after sign-in — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version. `usage` never writes that credential back and keeps any refreshed access token in memory only; the call itself reads quota metadata.
+- **Other background network activity:** Public Claude and Codex status pages to flag outages, a public model-pricing table to estimate cost (built-in prices are used offline), and an occasional GitHub check for a new version.
+- **Beginner Mode**, only if you turn it on, sends Claude Code's latest answer to Claude Haiku through your own Claude Code sign-in to pick terms. Your term list stays in `~/.usage/glossary.json`.
+
+<details>
+<summary>How Claude Desktop quota is read</summary>
+
+When Claude Code quota files are unavailable, `usage` reads Claude Desktop's local `plan-usage-history.json`, including Microsoft Store installations on Windows. When a recent response in its local Chromium block-file HTTP cache matches the organization, `usage` also reads the exact session and weekly reset times. Newer cached observations take precedence over throttled history samples; older cache must match the percentages. Missing, unsupported, expired, or inconsistent cache data leaves the countdown unknown.
+
+Desktop samples normally update every 5–15 minutes. The panel shows the observation age, marks it stale after 30 minutes, and stops displaying it after two hours. The most recent organization sample is used; custom desktop profiles are not discovered. These quota caches contain no per-project token counts. Desktop sessions that also write compatible Claude Code logs under `~/.claude/projects/` are counted by the existing project/token reports.
+
+</details>
+
 ## Windows Support
 
-Windows has the full core experience: the system-tray UI, Claude Code status-line hook, and Codex history parsing all work natively. Download `usage-windows.zip` from the [latest GitHub Release](https://github.com/aqua5230/usage/releases/latest), unzip it, then run `usage.exe`—no installer is needed. If SmartScreen shows **Windows protected your PC** on first launch, click **More info** → **Run anyway**. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
+Windows has the full core experience: the system-tray UI with the same 16 themes as macOS, the Claude Code status-line hook, and Codex history parsing all work natively. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
 
-The system-tray icon shows the remaining session quota percentage for Claude or Codex. Choose **Tray Display Source → Claude Code / Codex** in the right-click menu or panel menu; the change applies immediately and survives restarts (default: Claude). If Codex has no session window, the icon uses its weekly quota instead and the tooltip identifies that window. Missing quota data shows `--`. The tooltip summarizes both tools, with the selected source first. Left-click opens the same 16 quota themes available on macOS (Default plus the other fifteen) in WebView2. Right-click also provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
+<details>
+<summary>Tray icon, taskbar label, and other differences</summary>
+
+The system-tray icon shows the remaining session quota percentage for Claude or Codex. Choose **Tray Display Source → Claude Code / Codex** in the right-click menu or panel menu; the change applies immediately and survives restarts (default: Claude). If Codex has no session window, the icon uses its weekly quota instead and the tooltip identifies that window. Missing quota data shows `--`. The tooltip summarizes both tools, with the selected source first. Left-click opens the quota themes in WebView2. Right-click also provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
 
 Enable **Show Taskbar Quota** in either menu for a transparent `Codex: 92%` label inside the taskbar, immediately left of the notification area. It follows taskbar position, scaling, and light/dark theme, and hides during fullscreen use or taskbar auto-hide. Click the label to open the panel. If buttons leave insufficient space, it moves just outside the taskbar. The normal app icon remains as a menu entry point; the label follows the selected source and quota window. Right-click the label to open the same menu as the tray icon.
 
-Windows differences: the panel opens at the bottom-right of the working area rather than next to the tray icon; update prompts use a system Yes/No dialog.
+The panel opens at the bottom-right of the working area rather than next to the tray icon, and update prompts use a system Yes/No dialog.
+
+</details>
 
 ### Code signing policy
 
@@ -193,6 +194,12 @@ Switch between **16 visual themes** directly from the UI:
   <img src="docs/matrix.en.png" width="24%" alt="Matrix theme" />
   <img src="docs/win95.en.png" width="24%" alt="Windows 95 theme" />
   <img src="docs/newspaper.en.png" width="24%" alt="Newspaper theme" />
+</p>
+
+<details>
+<summary>See the other 12 themes</summary>
+
+<p align="center">
   <img src="docs/cloud_observation.en.png" width="24%" alt="Cloud Observation theme" />
   <img src="docs/aquarium.en.png" width="24%" alt="Midnight Aquarium theme" />
   <img src="docs/prism_arcade.en.png" width="24%" alt="Prism Arcade theme" />
@@ -207,6 +214,8 @@ Switch between **16 visual themes** directly from the UI:
   <img src="docs/heart_monitor.en.png" width="24%" alt="Heart Monitor theme" />
 </p>
 
+</details>
+
 ## Troubleshooting
 
 If the menu bar shows `--`, it's usually not broken — there's just no local data yet.
@@ -220,7 +229,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 | Codex section is empty | No Codex history found | Run a Codex conversation to generate logs |
 | Today's cost shows $0.00 | Model pricing missing | Delete `~/.usage/pricing_cache.json` or check `USAGE_DEBUG=1` |
 | Antigravity card is missing | Antigravity CLI not installed or not signed in | Install and sign in to the Antigravity CLI; the card appears automatically once a background quota fetch succeeds |
-| App won't open | macOS Gatekeeper blocked it | macOS 15 or later: System Settings → Privacy & Security → scroll down → Open Anyway. macOS 14 or earlier: right-click `usage.app` in Finder → Open |
+| App won't open | macOS Gatekeeper blocked it | See [First launch on macOS](#install) |
 | Windows shows "Windows protected your PC" | SmartScreen doesn't recognize the download yet | Click More info → Run anyway |
 
 ## Comparison
@@ -229,22 +238,20 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 |---------|:-----:|:-------:|:------------:|
 | Always on screen | ✅ | — | ✅ |
 | macOS menu bar & Windows system tray | ✅ | — | macOS only |
-| Claude Code & Codex usage | ✅ | Claude only | ✅ |
+| Claude Code & Codex usage | ✅ | ✅ | ✅ |
 | Antigravity usage (Gemini and Claude / GPT) | ✅ | — | — |
 | Grok CLI usage | ✅ | — | — |
 | Muse Code token spend | ✅ | — | — |
 | Claude Code & Codex service-status alerts | ✅ | — | — |
 | HTML deep reports & UI | ✅ | ✅ | — |
+| Claude Code helpers (Token Saver, Progress Concierge, Beginner and Quota-Aware modes, health check) | ✅ | — | — |
 | AI Update Daily | ✅ | — | — |
-| Progress Concierge & Token Saver | ✅ | — | — |
-| Token-waste Health Check | ✅ | — | — |
-| Claude Code Beginner Mode & Quota-Aware Mode | ✅ | — | — |
 | Open-source license | AGPL-3.0 | MIT | — |
 
 ## When usage Isn't the Right Fit
 
 - You only live in the terminal and don't want another menu bar icon running in the background — a one-off CLI check fits better.
-- You don't use Claude Code, Codex, Antigravity, or Grok CLI — there's no local usage data for `usage` to read.
+- You don't use Claude Code, Codex, Antigravity, Grok CLI, or Claude Desktop — there's no usage data for `usage` to read.
 - You want a menu bar on Linux. Only macOS and Windows have one today, though the terminal interface (`uvx usage-cli`) runs on Linux.
 
 ## Development
