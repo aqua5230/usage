@@ -16,6 +16,8 @@ from usage_common.subprocess_utils import hidden_console_kwargs
 
 __all__ = ["project_from_encoded_path", "resolve_project_name"]
 
+_ENCODED_LIMIT = 200
+
 
 @lru_cache(maxsize=2048)
 def resolve_project_name(cwd: str | Path) -> str:
@@ -73,15 +75,18 @@ def project_from_encoded_path(jsonl_path: Path, projects_dir: Path) -> str:
     except (IndexError, ValueError):
         return "unknown"
 
-    root, encoded = _encoded_path_root(_encode(project_dir))
+    # Claude Code cuts encoded paths longer than 200 characters and appends
+    # "-<hash>", so only a prefix of the last directory name survives.
+    truncated = len(project_dir) > _ENCODED_LIMIT
+    root, encoded = _encoded_path_root(_encode(project_dir[:_ENCODED_LIMIT]))
     if not encoded:
         return "unknown"
 
     slash_candidate = root.joinpath(*encoded.split("-"))
-    if "--" not in encoded and slash_candidate.is_dir():
+    if not truncated and "--" not in encoded and slash_candidate.is_dir():
         return slash_candidate.name or "unknown"
 
-    existing_project = _existing_encoded_project_path(root, encoded)
+    existing_project = _existing_encoded_project_path(root, encoded, truncated)
     if existing_project is not None:
         return existing_project.name or "unknown"
 
@@ -91,11 +96,12 @@ def project_from_encoded_path(jsonl_path: Path, projects_dir: Path) -> str:
 
 def _encode(name: str) -> str:
     # Claude Code encodes every non-alphanumeric character, including ".", "_",
-    # "-" and non-ASCII letters, as "-".
-    return re.sub(r"[^A-Za-z0-9]", "-", name)
+    # "-" and non-ASCII letters, as "-". Its JavaScript regex works on UTF-16
+    # code units, so a character outside the BMP (e.g. an emoji) becomes "--".
+    return re.sub(r"[^A-Za-z0-9]", lambda match: "--" if ord(match[0]) > 0xFFFF else "-", name)
 
 
-def _existing_encoded_project_path(current: Path, encoded: str) -> Path | None:
+def _existing_encoded_project_path(current: Path, encoded: str, truncated: bool) -> Path | None:
     """Walk real directories whose encoded names spell out the encoded path."""
     try:
         entries = sorted(os.scandir(current), key=lambda entry: entry.name)
@@ -103,16 +109,18 @@ def _existing_encoded_project_path(current: Path, encoded: str) -> Path | None:
         return None
     for entry in entries:
         name = _encode(entry.name)
-        if encoded != name and not encoded.startswith(name + "-"):
+        last = encoded == name or (truncated and name.startswith(encoded))
+        if not last and not encoded.startswith(name + "-"):
             continue
         try:
             if not entry.is_dir():
                 continue
         except OSError:
             continue
-        if encoded == name:
+        if last:
             return Path(entry.path)
-        result = _existing_encoded_project_path(Path(entry.path), encoded[len(name) + 1 :])
+        rest = encoded[len(name) + 1 :]
+        result = _existing_encoded_project_path(Path(entry.path), rest, truncated) if rest else None
         if result is not None:
             return result
     return None
