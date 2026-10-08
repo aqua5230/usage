@@ -197,9 +197,7 @@ def _claude_encode(path: Path) -> str:
 @pytest.mark.parametrize(
     "name", [".hidden-app", "my_tool", "生日卡-birthday", "-dash-lead", "🎂cake"]
 )
-def test_project_from_encoded_path_matches_names_claude_flattens(
-    tmp_path: Path, name: str
-) -> None:
+def test_project_from_encoded_path_matches_names_claude_flattens(tmp_path: Path, name: str) -> None:
     # Claude Code turns ".", "_", "-" and non-ASCII letters into "-", which the
     # "/"-split guess cannot recover; a sibling named like the parent must not win.
     projects_dir = tmp_path / "projects"
