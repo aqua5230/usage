@@ -7,8 +7,19 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.33.3] - 2026-10-09
+
+### Performance
+- **usage uses far less CPU while it sits in the menu bar.** With the panel closed, a refresh took about 1.2 s of CPU and could run three times a minute, about 6% CPU on average while you work. Incremental history scans no longer list every Muse session again for each changed file, Muse sessions are reparsed only when they change, and resolved Claude project names are cached. A steady-state refresh now takes about 0.13 s.
+- **Closing the panel frees the memory of panels you browsed.** Each panel you switched to kept its own WebKit process after the panel closed, up to six and about 400 MB. Now only the current panel stays loaded once the panel closes. Switching while it is open is unchanged.
+
 ### Fixed
 - **Claude Desktop quota remains available when plan history stops updating.** A fresh local HTTP quota response for the latest history organization can now supply percentages and reset times even after the history sample expires. Expired responses, invalid organizations and another account's cache still return no data.
+- **The panel's right-click menu no longer offers Reload.** The v0.22.5 fix looked up the wrong menu item property, so right-click > Reload still blanked the panel (#42).
+- **Claude Haiku 5.5 has prices and a short name.** Its cost no longer drops out when the online price table is unreachable, and reports show "Haiku 5.5" instead of the raw model ID. The Auto-start 5-hour Session tooltip and dialog now name Gemini 3.8 Flash Low for Antigravity.
+- **Claude Desktop quota finds responses in Chromium's follow-on cache files.** Once the cache outgrew its first entry file, a fresh quota response could sit in a follow-on file and be missed.
+- **A Claude log that cannot be read is retried on the next refresh.** A brief lock, for example an antivirus scan on Windows, used to leave that file's usage missing until the file changed or usage restarted.
+- **Codex usage after a mid-session model switch is priced with the model that ran it.** Earlier turns were priced as the session's latest model. Codex history is reparsed once after this update.
 
 ## [0.33.2] - 2026-10-08
 
