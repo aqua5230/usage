@@ -209,12 +209,13 @@ def test_cache_reuses_only_unchanged_files_and_isolates_returned_entries(
     os.utime(path, ns=(mtime, mtime))
     assert [entry.message_id for entry in muse_loader.load_entries()] == ["two"]
     assert read.call_count == 3
-    # Same size, different nanosecond timestamp also invalidates the cache.
+    # Same size, different timestamp also invalidates the cache. NTFS stores
+    # 100 ns ticks, so a 1 ns change would be rounded away on Windows.
     second["id"] = "new"
     size = path.stat().st_size
     _write(path, [second])
     assert path.stat().st_size == size
-    os.utime(path, ns=(mtime + 1, mtime + 1))
+    os.utime(path, ns=(mtime + 1_000_000_000, mtime + 1_000_000_000))
     assert muse_loader.load_entries()[0].message_id == "new"
     assert read.call_count == 4
     path.unlink()
