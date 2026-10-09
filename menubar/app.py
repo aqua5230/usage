@@ -81,6 +81,9 @@ from menubar.chrome import (
 )
 from menubar.fsevents_watch import FileEventChanges, cleanup_fsevents, setup_fsevents
 from menubar.popover import PopoverViewController, _popover_size
+from menubar.popover import (
+    _invalidate_restored_content_height as _invalidate_restored_content_height,
+)
 from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
@@ -214,20 +217,6 @@ def _terse_mode_enabled() -> bool:
         return session_hooks.is_terse_mode_enabled()
     except Exception:
         return False
-
-
-def _invalidate_restored_content_height(panel: Any, view: Any) -> None:
-    if not getattr(panel, "_content_height_reports_available", True):
-        return
-    if panel_window_state.load_panel_content_height(panel.id) is None:
-        return
-    if not hasattr(view, "evaluateJavaScript_completionHandler_"):
-        return
-    view.evaluateJavaScript_completionHandler_(
-        'typeof window.usageInvalidateContentHeight === "function" && '
-        "window.usageInvalidateContentHeight()",
-        None,
-    )
 
 
 _APP_DELEGATE: AppDelegate | None = None
@@ -390,6 +379,7 @@ class AppDelegate(NSObject):
         self.refreshNow_(None)
 
     def _panel_window_did_hide(self) -> None:
+        self.popover_controller.evictInactivePanelViews()
         self._reschedule_poll_timer(max(self.interval, SLOW_POLL_INTERVAL_S))
 
     def windowDidMove_(self, notification: Any) -> None:

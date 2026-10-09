@@ -6,9 +6,10 @@
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import UTC, datetime, timedelta
 from pathlib import Path, PurePosixPath, PureWindowsPath
-from typing import cast
+from typing import Any, cast
 
 import pytest
 
@@ -499,3 +500,197 @@ def test_display_reset_does_not_restore_notifications() -> None:
     reset = menubar_state._quota_row("Session", 100.0, 1001.0, 1001.0, menubar_state.CLAUDE_COLOR)
     assert reset.display_percent == 0.0
     assert notifier.update({"claude_session": (reset.percent, reset.available)}) == []
+
+
+def test_incremental_scan_snapshots_sources_once_and_preserves_index(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    from unittest.mock import Mock
+
+    claude, codex, _ = _patch_history_sources(monkeypatch, tmp_path)
+    muse = tmp_path / "muse" / "2026" / "10" / "09" / "session" / "session.jsonl"
+    muse.parent.mkdir(parents=True)
+    muse.write_text("{}\n")
+    monkeypatch.setattr(muse_loader, "MUSE_SESSIONS_DIR", tmp_path / "muse")
+    dirty = codex / "one.jsonl"
+    deleted = claude / "deleted.jsonl"
+    for path in (dirty, deleted):
+        path.write_text("{}\n")
+    tracker = menubar_state.HistorySourceTracker(incremental_enabled=True)
+    tracker.scan(now=0.0)
+    deleted.unlink()
+    dirty.write_text("{}\n{}\n")
+    noise = tmp_path / "noise.jsonl"
+    noise.write_text("{}\n")
+    tracker.record_changes({dirty, deleted, noise})
+    sources = Mock(wraps=menubar_state._history_file_sources)
+    monkeypatch.setattr(menubar_state, "_history_file_sources", sources)
+    incremental = tracker.scan(now=1.0)
+    # scan(), update() and result assembly each take one snapshot, regardless of file count.
+    assert sources.call_count == 3
+    assert incremental == menubar_state.HistorySourceTracker().scan(now=1.0)
+    assert dirty in incremental.codex_paths
+    assert deleted not in incremental.claude_paths
+    assert all(item[0] != str(noise) for item in incremental.fingerprint)
+
+
+def test_file_event_at_eight_seconds_cannot_trigger_immediate_refresh() -> None:
+    # :05 -> :13 in the supplied log cannot pass the ordinary file-event gate.
+    decision = menubar_state.file_event_refresh_decision(73.0, 65.0, False)
+    assert decision.refresh_now is False
+    assert decision.trailing_delay == 22.0
+    queued = menubar_state.file_event_refresh_decision(73.0, 65.0, True)
+    assert queued.refresh_now is False
+    assert queued.trailing_delay is None
+
+
+def test_poll_refresh_is_independent_of_file_event_gate() -> None:
+    import ast
+    from types import SimpleNamespace
+
+    # Compile only this PyObjC-free method; never import menubar.app in the sandbox.
+    path = Path(__file__).resolve().parents[1] / "menubar" / "app.py"
+    tree = ast.parse(path.read_text())
+    delegate = next(
+        node for node in tree.body if isinstance(node, ast.ClassDef) and node.name == "AppDelegate"
+    )
+    method = next(
+        node
+        for node in delegate.body
+        if isinstance(node, ast.FunctionDef) and node.name == "timerFired_"
+    )
+    module = ast.Module(body=[method], type_ignores=[])
+    calls: list[str] = []
+    namespace = {
+        "Any": object,
+        "menubar_update": SimpleNamespace(on_poll_tick=lambda app: calls.append("update")),
+    }
+    exec(compile(module, str(path), "exec"), namespace)
+    app = SimpleNamespace(_refresh=lambda: calls.append("refresh"))
+    from collections.abc import Callable
+
+    cast(Callable[[object, object], None], namespace["timerFired_"])(app, None)
+    assert calls == ["refresh", "update"]
+
+
+@pytest.mark.parametrize("failure", ["swallowed", "raised"])
+def test_history_entries_retry_after_read_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, failure: str
+) -> None:
+    import json
+    from types import SimpleNamespace
+
+    from loaders import history_loader
+
+    path = tmp_path / "session.jsonl"
+    path.write_text(
+        json.dumps(
+            {
+                "type": "assistant",
+                "timestamp": "2026-10-09T00:00:00Z",
+                "sessionId": "session-a",
+                "requestId": "req-a",
+                "message": {
+                    "id": "msg-a",
+                    "model": "claude-sonnet-4-5",
+                    "usage": {"input_tokens": 10, "output_tokens": 118},
+                },
+            }
+        )
+        + "\n"
+    )
+    monkeypatch.setattr(history_loader, "HISTORY_CACHE_PATH", tmp_path / "cache.json")
+    monkeypatch.setattr(history_loader, "_claude_projects_dirs", lambda: [tmp_path])
+    for loader in (codex_loader, grok_loader, muse_loader):
+        monkeypatch.setattr(loader, "load_entries", lambda **kwargs: [])
+    scan = menubar_state.HistorySourceScan(
+        ((str(path), path.stat().st_size, path.stat().st_mtime),), (path,), ()
+    )
+    app = SimpleNamespace(
+        mock=False,
+        _history_entries_cache=None,
+        _history_entries_cache_fingerprint=None,
+        _history_load_error_key=None,
+    )
+    attempts = 0
+    original = Path.open
+
+    def transient_lock(self: Path, *args: Any, **kwargs: Any) -> Any:
+        nonlocal attempts
+        if self == path:
+            attempts += 1
+            if attempts == 1:
+                raise PermissionError("temporary file lock")
+        return original(self, *args, **kwargs)
+
+    if failure == "swallowed":
+        monkeypatch.setattr(Path, "open", transient_lock)
+    else:
+        load = history_loader.load_entries
+
+        def raising_load(**kwargs: Any) -> list[UsageEntry]:
+            nonlocal attempts
+            attempts += 1
+            if attempts == 1:
+                raise PermissionError("temporary file lock")
+            return load(**kwargs)
+
+        monkeypatch.setattr(menubar_state, "load_entries", raising_load)
+    assert menubar_state.app_load_history_entries(app, scan=scan) == []
+    assert app._history_entries_cache is None
+    assert app._history_entries_cache_fingerprint is None
+    assert (app._history_load_error_key is None) == (failure == "swallowed")
+    second = menubar_state.app_load_history_entries(app, scan=scan)
+    assert [entry.total_tokens for entry in second] == [128]
+    assert attempts == 2
+    assert app._history_entries_cache == second
+    assert menubar_state.app_load_history_entries(app, scan=scan) == second
+    assert attempts == 2
+
+
+@pytest.mark.parametrize("failed_loader", ["claude", "codex", "grok", "muse"])
+def test_history_exception_returns_partial_entries_without_caching(
+    monkeypatch: pytest.MonkeyPatch, failed_loader: str
+) -> None:
+    from types import SimpleNamespace
+
+    entry = UsageEntry(
+        timestamp=datetime(2026, 10, 9, tzinfo=UTC),
+        session_id="ok",
+        message_id="ok",
+        request_id="",
+        model="test",
+        input_tokens=128,
+        output_tokens=0,
+        cache_creation_tokens=0,
+        cache_read_tokens=0,
+        cost_usd=None,
+        project="test",
+    )
+    attempts: dict[str, int] = {}
+
+    def load(name: str) -> Callable[..., list[UsageEntry]]:
+        def loader(**kwargs: Any) -> list[UsageEntry]:
+            attempts[name] = attempts.get(name, 0) + 1
+            if name == failed_loader and attempts[name] == 1:
+                raise OSError("temporary read failure")
+            return [entry]
+
+        return loader
+
+    monkeypatch.setattr(menubar_state, "load_entries", load("claude"))
+    for name, module in [("codex", codex_loader), ("grok", grok_loader), ("muse", muse_loader)]:
+        monkeypatch.setattr(module, "load_entries", load(name))
+    app = SimpleNamespace(
+        mock=False,
+        _history_entries_cache=[],
+        _history_entries_cache_fingerprint=(("old", 0, 0.0),),
+        _history_load_error_key=None,
+    )
+    scan = menubar_state.HistorySourceScan((("new", 0, 0.0),), (), ())
+    assert menubar_state.app_load_history_entries(app, scan=scan) == [entry] * 3
+    assert app._history_entries_cache == []
+    assert app._history_entries_cache_fingerprint == (("old", 0, 0.0),)
+    assert menubar_state.app_load_history_entries(app, scan=scan) == [entry] * 4
+    assert app._history_entries_cache == [entry] * 4
+    assert attempts == dict.fromkeys(["claude", "codex", "grok", "muse"], 2)

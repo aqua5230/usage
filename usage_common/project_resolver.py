@@ -74,7 +74,18 @@ def project_from_encoded_path(jsonl_path: Path, projects_dir: Path) -> str:
         project_dir = jsonl_path.relative_to(projects_dir).parts[0]
     except (IndexError, ValueError):
         return "unknown"
+    try:
+        return _project_from_encoded_directory(project_dir, projects_dir)
+    except _UnresolvedProject:
+        return project_dir.removeprefix("-") or "unknown"
 
+
+class _UnresolvedProject(Exception):
+    """Leave unresolved paths out of the cache so newly created directories work."""
+
+
+@lru_cache(maxsize=4096)
+def _project_from_encoded_directory(project_dir: str, projects_dir: Path) -> str:
     # Claude Code cuts encoded paths longer than 200 characters and appends
     # "-<hash>", so only a prefix of the last directory name survives.
     truncated = len(project_dir) > _ENCODED_LIMIT
@@ -90,8 +101,7 @@ def project_from_encoded_path(jsonl_path: Path, projects_dir: Path) -> str:
     if existing_project is not None:
         return existing_project.name or "unknown"
 
-    fallback = project_dir.removeprefix("-")
-    return fallback or "unknown"
+    raise _UnresolvedProject
 
 
 def _encode(name: str) -> str:
