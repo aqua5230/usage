@@ -76,14 +76,18 @@ def test_incomplete_hook_uses_desktop_quota(quota_file: Path) -> None:
 
 
 @pytest.mark.parametrize("language", ["en", "zh-TW", "zh-CN", "ja", "ko"])
+@pytest.mark.parametrize("history_age", [0, 6 * 3600])
 def test_local_cached_resets_reach_client_panel_tui_and_cli(
-    quota_file: Path, monkeypatch: pytest.MonkeyPatch, language: str
+    quota_file: Path, monkeypatch: pytest.MonkeyPatch, language: str, history_age: float
 ) -> None:
     from datetime import UTC, datetime
     from types import SimpleNamespace
 
     from tests.test_chromium_cache import Response, _cache
 
+    history = json.loads(quota_file.read_text(encoding="utf-8"))
+    history["samples"][0]["t"] = (NOW - history_age) * 1000
+    quota_file.write_text(json.dumps(history), encoding="utf-8")
     _cache(
         quota_file.parent / "Cache/Cache_Data",
         Response(

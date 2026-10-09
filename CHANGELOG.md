@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Claude Desktop quota remains available when plan history stops updating.** A fresh local HTTP quota response for the latest history organization can now supply percentages and reset times even after the history sample expires. Expired responses, invalid organizations and another account's cache still return no data.
+
 ## [0.33.2] - 2026-10-08
 
 ### Fixed

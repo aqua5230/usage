@@ -97,7 +97,7 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
         latest is None
         or not isinstance(latest.get("org"), str)
         or not latest["org"]
-        or not -60 <= now - polled_at <= MAX_AGE_SECONDS
+        or now - polled_at < -60
     ):
         return None
     utilization = latest.get("u")
@@ -107,7 +107,11 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
     weekly = _percent(utilization.get("sd"))
     if current is None and weekly is None:
         return None
-    quota = DesktopQuota(current, weekly, polled_at)
+    # An old history sample still identifies the latest organization. Desktop
+    # may refresh its HTTP cache without appending to the throttled history.
+    # Only return history percentages while they are fresh; independently
+    # bounded HTTP observations can replace them even after history expires.
+    quota = DesktopQuota(current, weekly, polled_at) if now - polled_at <= MAX_AGE_SECONDS else None
     try:
         url = f"https://claude.ai/api/organizations/{latest['org']}/usage".encode()
     except UnicodeEncodeError:
@@ -124,6 +128,8 @@ def _read_history(path: Path, now: float) -> DesktopQuota | None:
         cached_current is not None or cached_weekly is not None
     ):
         current, weekly, polled_at = cached_current, cached_weekly, response.fetched_at
+    elif quota is None:
+        return None
     current_reset = _reset_time(five, polled_at, now + 5 * 3600 + 60, current)
     weekly_reset = _reset_time(seven, polled_at, now + 7 * 86400 + 60, weekly)
     # Expiry is part of the loaded quota, not a presentation-only adjustment.
