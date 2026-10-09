@@ -22,6 +22,7 @@ from usage_common.project_resolver import project_from_encoded_path
 def _clear_project_resolver_cache() -> None:
     project_resolver.resolve_project_name.cache_clear()
     project_resolver._resolve_project_name.cache_clear()
+    project_resolver._project_from_encoded_directory.cache_clear()
 
 
 def _completed(
@@ -257,3 +258,51 @@ def test_resolve_project_name_forces_utf8_git_decoding(
     _, kwargs = run.call_args
     assert kwargs.get("encoding") == "utf-8"
     assert kwargs.get("errors") == "replace"
+
+
+def test_encoded_directory_cache_shares_sessions_and_separates_roots(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    real = tmp_path / "real"
+    real.mkdir()
+    encoded = _claude_encode(real)
+    # Count successful resolution without replacing filesystem behavior.
+    original = project_resolver._encoded_path_root
+    root = Mock(wraps=original)
+    monkeypatch.setattr(project_resolver, "_encoded_path_root", root)
+    projects = tmp_path / "projects"
+    assert project_from_encoded_path(projects / encoded / "one.jsonl", projects) == "real"
+    assert project_from_encoded_path(projects / encoded / "two.jsonl", projects) == "real"
+    assert root.call_count == 1
+    other = tmp_path / "other"
+    assert project_from_encoded_path(other / encoded / "one.jsonl", other) == "real"
+    assert root.call_count == 2
+    assert project_resolver._project_from_encoded_directory.cache_info().maxsize == 4096
+
+
+def test_encoded_fallback_retries_after_directory_created(tmp_path: Path) -> None:
+    projects = tmp_path / "projects"
+    real = tmp_path / "created-later"
+    encoded = _claude_encode(real)
+    path = projects / encoded / "one.jsonl"
+    fallback = encoded.removeprefix("-")
+    assert project_from_encoded_path(path, projects) == fallback
+    assert project_resolver._project_from_encoded_directory.cache_info().currsize == 0
+    real.mkdir()
+    assert project_from_encoded_path(path, projects) == "created-later"
+
+
+def test_encoded_cache_handles_missing_growing_truncated_and_deleted_journal(
+    tmp_path: Path,
+) -> None:
+    projects = tmp_path / "projects"
+    real = tmp_path / "real"
+    real.mkdir()
+    path = projects / _claude_encode(real) / "one.jsonl"
+    assert project_from_encoded_path(path, projects) == "real"
+    path.parent.mkdir(parents=True)
+    for content in ("{}", "{}\n{}\n", ""):
+        path.write_text(content)
+        assert project_from_encoded_path(path, projects) == "real"
+    path.unlink()
+    assert project_from_encoded_path(path, projects) == "real"

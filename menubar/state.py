@@ -298,12 +298,14 @@ def _build_history_source_index(now: float) -> HistorySourceIndex:
     return HistorySourceIndex(file_stats=file_stats, last_full_scan_at=now)
 
 
-def _is_indexed_history_path(path: Path) -> bool:
-    if path in _history_file_sources():
+def _is_indexed_history_path(
+    path: Path, file_sources: set[Path], directory_sources: tuple[Path, ...]
+) -> bool:
+    if path in file_sources:
         return True
     if path.suffix != ".jsonl":
         return False
-    return any(path == root or root in path.parents for root in _history_directory_sources())
+    return any(path == root or root in path.parents for root in directory_sources)
 
 
 def _update_history_source_index(
@@ -311,8 +313,10 @@ def _update_history_source_index(
     dirty_paths: set[Path],
 ) -> HistorySourceIndex:
     file_stats = dict(index.file_stats)
+    file_sources = set(_history_file_sources())
+    directory_sources = _history_directory_sources()
     for path in dirty_paths:
-        if not _is_indexed_history_path(path):
+        if not _is_indexed_history_path(path, file_sources, directory_sources):
             continue
         entry = _stat_index_entry(path)
         if entry is None:
@@ -425,8 +429,11 @@ def app_load_history_entries(
 
     entries: list[UsageEntry] = []
     error_key: str | None = None
+    read_failures: list[Path] = []
     try:
-        entries.extend(load_entries(hours_back=0, jsonl_paths=scan.claude_paths))
+        entries.extend(
+            load_entries(hours_back=0, jsonl_paths=scan.claude_paths, read_failures=read_failures)
+        )
     except Exception as exc:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("Claude project usage load failed", exc_info=True)
@@ -450,8 +457,9 @@ def app_load_history_entries(
             logger.warning("Muse project usage load failed", exc_info=True)
         error_key = _classify_history_load_error(exc)
     app._history_load_error_key = error_key
-    app._history_entries_cache = list(entries)
-    app._history_entries_cache_fingerprint = fingerprint
+    if error_key is None and not read_failures:
+        app._history_entries_cache = list(entries)
+        app._history_entries_cache_fingerprint = fingerprint
     return entries
 
 

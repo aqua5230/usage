@@ -228,6 +228,11 @@ class PopoverViewController(NSViewController):
     def evictPanelViewsIfNeeded(self) -> None:
         self._schedulePanelEvictionIfNeeded()
 
+    def evictInactivePanelViews(self) -> None:
+        for panel_id in tuple(self.panel_views):
+            if self.panel is not None and panel_id != self.panel.id:
+                self.evictPanelViewForId_(panel_id)
+
     def _schedulePanelEvictionIfNeeded(self) -> None:
         if self.panel is None or len(self.panel_views) <= MAX_CACHED_PANEL_VIEWS:
             return
@@ -280,3 +285,17 @@ def _popover_size(state: PopoverState, panel: UsagePanel | None = None) -> Any:
     maximum = height if screen is None else float(screen.visibleFrame().size.height) - 24.0
     fitted_width, fitted_height, _ = fit_panel_size(width, height, maximum)
     return NSMakeSize(fitted_width, fitted_height)
+
+
+def _invalidate_restored_content_height(panel: Any, view: Any) -> None:
+    if not getattr(panel, "_content_height_reports_available", True):
+        return
+    if panel_window_state.load_panel_content_height(panel.id) is None:
+        return
+    if not hasattr(view, "evaluateJavaScript_completionHandler_"):
+        return
+    view.evaluateJavaScript_completionHandler_(
+        'typeof window.usageInvalidateContentHeight === "function" && '
+        "window.usageInvalidateContentHeight()",
+        None,
+    )

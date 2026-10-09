@@ -101,6 +101,7 @@ def load_entries(
     hours_back: int = 0,
     *,
     jsonl_paths: Iterable[Path] | None = None,
+    read_failures: list[Path] | None = None,
 ) -> list[UsageEntry]:
     global _disk_cache_dirty
 
@@ -130,7 +131,8 @@ def load_entries(
                 logger.warning("failed to stat Claude project log %s: %s", jsonl_path, exc)
                 continue
         project = _project_from_path(jsonl_path)
-        _load_file(jsonl_path, project, cutoff, seen, entries)
+        if not _load_file(jsonl_path, project, cutoff, seen, entries) and read_failures is not None:
+            read_failures.append(jsonl_path)
 
     current_file_cache = {path: (entry.mtime, entry.size) for path, entry in _file_cache.items()}
     changed_paths = {
@@ -201,12 +203,13 @@ def _load_file(
     cutoff: datetime | None,
     seen: set[str],
     entries: list[UsageEntry],
-) -> None:
+) -> bool:
+    """Append the file's entries; return False when it could not be read."""
     try:
         st = path.stat()
     except OSError as exc:
         logger.warning("failed to stat Claude project log %s: %s", path, exc)
-        return
+        return False
 
     cached = _file_cache.get(path)
     if cached is not None and cached.mtime == st.st_mtime and cached.size == st.st_size:
@@ -219,11 +222,11 @@ def _load_file(
                 continue
             seen.add(dedup_key)
             entries.append(entry)
-        return
+        return True
 
     refreshed = _refresh_cache(path, st, project, cached)
     if refreshed is None:
-        return
+        return False
 
     if path not in _file_cache and len(_file_cache) >= _FILE_CACHE_MAXSIZE:
         _file_cache.popitem(last=False)
@@ -237,6 +240,7 @@ def _load_file(
             continue
         seen.add(dedup_key)
         entries.append(entry)
+    return True
 
 
 def _refresh_cache(

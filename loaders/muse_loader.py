@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -17,6 +18,7 @@ from usage_common.project_resolver import resolve_project_name
 
 logger = logging.getLogger(__name__)
 MUSE_SESSIONS_DIR = Path(os.path.expanduser("~/.local/share/muse/sessions"))
+_session_cache: dict[Path, tuple[int, int, list[UsageEntry]]] = {}
 
 
 def session_paths() -> tuple[Path, ...]:
@@ -31,16 +33,30 @@ def load_entries(hours_back: int = 0) -> list[UsageEntry]:
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
     entries: list[UsageEntry] = []
     seen: set[str] = set()
-    for path in session_paths():
+    paths = session_paths()
+    for stale_path in _session_cache.keys() - set(paths):
+        del _session_cache[stale_path]
+    for path in paths:
         try:
-            entries.extend(_read_session(path, cutoff, seen))
+            stat = path.stat()
+            cached = _session_cache.get(path)
+            if cached is None or cached[:2] != (stat.st_mtime_ns, stat.st_size):
+                cached = (stat.st_mtime_ns, stat.st_size, _read_session(path))
+                _session_cache[path] = cached
+            for entry in cached[2]:
+                if entry.message_id in seen:
+                    continue
+                seen.add(entry.message_id)
+                if cutoff is None or entry.timestamp >= cutoff:
+                    entries.append(replace(entry))
         except OSError:
+            _session_cache.pop(path, None)
             logger.warning("failed to read Muse session %s", path, exc_info=True)
     entries.sort(key=lambda entry: entry.timestamp)
     return entries
 
 
-def _read_session(path: Path, cutoff: datetime | None, seen: set[str]) -> list[UsageEntry]:
+def _read_session(path: Path) -> list[UsageEntry]:
     session_id = path.parent.name
     workspace = ""
     route_cwd = ""
@@ -92,11 +108,9 @@ def _read_session(path: Path, cutoff: datetime | None, seen: set[str]) -> list[U
                         if isinstance(value, str) and value:
                             route_cwd = value
                 entry = _usage_entry(item, payload, session_id)
-                if entry is None or entry.message_id in seen:
+                if entry is None:
                     continue
-                seen.add(entry.message_id)
-                if cutoff is None or entry.timestamp >= cutoff:
-                    entries.append(entry)
+                entries.append(entry)
     project_path = workspace or route_cwd
     project = resolve_project_name(project_path) if project_path else ""
     for entry in entries:

@@ -16,7 +16,7 @@ import time
 from collections import OrderedDict
 from collections.abc import Iterable
 from contextlib import closing
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -84,6 +84,8 @@ class _JsonlParseState:
     session_model: str = "unknown"
     previous_usage: _TokenUsage | None = None
     token_count_index: int = 0
+    turn_model: str = ""
+    fallback_entry_count: int = 0
 
     def copy(self) -> _JsonlParseState:
         return _JsonlParseState(
@@ -92,6 +94,8 @@ class _JsonlParseState:
             session_model=self.session_model,
             previous_usage=self.previous_usage,
             token_count_index=self.token_count_index,
+            turn_model=self.turn_model,
+            fallback_entry_count=self.fallback_entry_count,
         )
 
 
@@ -104,6 +108,7 @@ class _JsonlCacheEntry:
     confirmed_offset: int = 0
     confirmed_prefix_digest: bytes = b""
     state: _JsonlParseState = field(default_factory=_JsonlParseState)
+    fallback_entry_count: int | None = None
 
 
 @dataclass(slots=True)
@@ -158,7 +163,7 @@ def _sqlite_file_fingerprint(path: Path) -> _SqliteFileFingerprint:
 
 # Disk cache for JSONL parsing results. Schema version must be bumped when the
 # serialization format or parsing logic changes incompatibly.
-_CODEX_JSONL_CACHE_SCHEMA = 5
+_CODEX_JSONL_CACHE_SCHEMA = 6
 JSONL_CACHE_PATH = Path(os.path.expanduser("~/.usage/codex_jsonl_cache.json"))
 
 # Module-level flag to ensure seed loading happens exactly once.
@@ -239,7 +244,9 @@ def load_entries(
     cutoff = datetime.now(UTC) - timedelta(hours=hours_back) if hours_back > 0 else None
     metadata = _load_thread_metadata()
     models = {session_id: data.model for session_id, data in metadata.items()}
-    entries = _load_jsonl_entries(SESSIONS_DIR, models, cutoff, jsonl_paths=jsonl_paths)
+    entries = _load_jsonl_entries(
+        SESSIONS_DIR, models, cutoff, jsonl_paths=jsonl_paths, per_turn_models=True
+    )
 
     latest_jsonl_ts_by_session = {entry.session_id: entry.timestamp for entry in entries}
     entries.extend(_load_sqlite_log_entries(metadata, cutoff, latest_jsonl_ts_by_session))
@@ -294,6 +301,7 @@ def _load_jsonl_entries(
     cutoff: datetime | None,
     *,
     jsonl_paths: Iterable[Path] | None = None,
+    per_turn_models: bool = False,
 ) -> list[UsageEntry]:
     global _disk_cache_dirty
 
@@ -362,7 +370,15 @@ def _load_jsonl_entries(
     elif _disk_cache_dirty:
         _flush_caches_to_disk()
 
-    return [entry for session_entries in entries_by_session.values() for entry in session_entries]
+    entries = [
+        entry for session_entries in entries_by_session.values() for entry in session_entries
+    ]
+    if not per_turn_models:
+        # The adapter retains its session-wide model policy without mutating parse caches.
+        return [
+            replace(entry, model=models.get(entry.session_id, entry.model)) for entry in entries
+        ]
+    return entries
 
 
 def _is_better_session_log(candidate: list[UsageEntry], existing: list[UsageEntry]) -> bool:
@@ -1171,7 +1187,9 @@ def _parse_linear_jsonl_bytes(
                 state.session_model = _session_model(payload, state.session_model)
             continue
         if data.get("type") == "turn_context":
-            state.session_model = _session_model(data.get("payload"), state.session_model)
+            state.turn_model = (
+                _as_str(_as_dict(data.get("payload")).get("model")) or state.turn_model
+            )
             continue
         if data.get("type") != "event_msg":
             continue
@@ -1188,13 +1206,15 @@ def _parse_linear_jsonl_bytes(
         if delta.total_tokens == 0:
             continue
         state.token_count_index += 1
+        if not state.turn_model:
+            state.fallback_entry_count = state.token_count_index
         entries.append(
             UsageEntry(
                 timestamp=timestamp,
                 session_id=sys.intern(session_id),
                 message_id=f"{session_id}:{state.token_count_index}",
                 request_id="",
-                model=sys.intern(models.get(session_id, state.session_model)),
+                model=sys.intern(state.turn_model or models.get(session_id, state.session_model)),
                 input_tokens=delta.input_tokens,
                 output_tokens=delta.output_tokens,
                 cache_creation_tokens=0,
@@ -1244,6 +1264,7 @@ def _refresh_linear_jsonl_cache(
             confirmed_offset=confirmed_offset,
             confirmed_prefix_digest=prefix_hasher.digest(),
             state=state,
+            fallback_entry_count=state.fallback_entry_count,
         )
 
     entries: list[UsageEntry] = []
@@ -1271,6 +1292,7 @@ def _refresh_linear_jsonl_cache(
         confirmed_offset=confirmed_offset,
         confirmed_prefix_digest=digest.digest(),
         state=state,
+        fallback_entry_count=state.fallback_entry_count,
     )
 
 
@@ -1290,6 +1312,9 @@ def _parse_jsonl(
         return []
 
     cache_entry = _jsonl_cache.get(path)
+    # An entry without model provenance must be rebuilt from the source.
+    if cache_entry is not None and cache_entry.fallback_entry_count is None:
+        cache_entry = None
     if (
         cache_entry is not None
         and cache_entry.mtime == st.st_mtime
@@ -1298,7 +1323,7 @@ def _parse_jsonl(
     ):
         _jsonl_cache.move_to_end(path)
         cached_entries = cache_entry.entries
-        for entry in cached_entries:
+        for entry in cached_entries[: cache_entry.fallback_entry_count]:
             if entry.session_id in models:
                 entry.model = models[entry.session_id]
         if cutoff is None:
@@ -1324,11 +1349,8 @@ def _parse_jsonl(
             return []
         _cache_jsonl_entry(path, refreshed)
         refreshed_entries = refreshed.entries
-        # Carried-forward entries from a prior incremental parse were built
-        # before `models` (thread->model, resolved from sqlite) may have caught
-        # up — reapply it here too, not just to entries parsed in this call, or
-        # a stale/unknown model (and thus wrong per-model cost) sticks forever.
-        for entry in refreshed_entries:
+        # Only entries before the first turn model use the SQLite fallback.
+        for entry in refreshed_entries[: refreshed.fallback_entry_count]:
             if entry.session_id in models:
                 entry.model = models[entry.session_id]
         if cutoff is not None:
@@ -1339,6 +1361,8 @@ def _parse_jsonl(
     session_timestamp = ""
     project = "unknown"
     session_model = "unknown"
+    turn_model = ""
+    fallback_entry_count = 0
     entries: list[UsageEntry] = []
     previous_usage: _TokenUsage | None = None
     token_count_index = 0
@@ -1366,7 +1390,7 @@ def _parse_jsonl(
                 if line_number <= replay_boundary:
                     continue
                 if data.get("type") == "turn_context":
-                    session_model = _session_model(data.get("payload"), session_model)
+                    turn_model = _as_str(_as_dict(data.get("payload")).get("model")) or turn_model
                     continue
                 if data.get("type") != "event_msg":
                     continue
@@ -1383,13 +1407,15 @@ def _parse_jsonl(
                 if delta.total_tokens == 0:
                     continue
                 token_count_index += 1
+                if not turn_model:
+                    fallback_entry_count = token_count_index
                 entries.append(
                     UsageEntry(
                         timestamp=timestamp,
                         session_id=sys.intern(session_id),
                         message_id=f"{session_id}:{token_count_index}",
                         request_id="",
-                        model=sys.intern(models.get(session_id, session_model)),
+                        model=sys.intern(turn_model or models.get(session_id, session_model)),
                         input_tokens=delta.input_tokens,
                         output_tokens=delta.output_tokens,
                         cache_creation_tokens=0,
@@ -1428,6 +1454,7 @@ def _parse_jsonl(
             size=st.st_size,
             replay_cache_key=replay_cache_key,
             entries=entries,
+            fallback_entry_count=fallback_entry_count,
         ),
     )
     if cutoff is not None:

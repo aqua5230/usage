@@ -1817,7 +1817,7 @@ def test_load_history_entries_includes_codex_entries(monkeypatch: pytest.MonkeyP
     monkeypatch.setattr(
         menubar_state,
         "load_entries",
-        lambda *, hours_back, jsonl_paths=None: [claude_entry],
+        lambda *, hours_back, jsonl_paths=None, read_failures=None: [claude_entry],
     )
     monkeypatch.setattr(
         "menubar.state.codex_loader.load_entries",
@@ -1895,7 +1895,7 @@ def test_load_history_entries_includes_grok_entries(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(
         menubar_state,
         "load_entries",
-        lambda *, hours_back, jsonl_paths=None: [claude_entry],
+        lambda *, hours_back, jsonl_paths=None, read_failures=None: [claude_entry],
     )
     monkeypatch.setattr(
         "menubar.state.codex_loader.load_entries",
@@ -1955,6 +1955,7 @@ def test_load_history_entries_reuses_cache_when_sources_do_not_change(
         *,
         hours_back: int = 0,
         jsonl_paths: tuple[Path, ...] = (),
+        read_failures: list[Path] | None = None,
     ) -> list[history_loader.UsageEntry]:
         calls["claude"] += 1
         assert hours_back == 0
@@ -2058,7 +2059,10 @@ def test_load_history_entries_records_error_key_on_failure_and_clears_on_success
     monkeypatch.setattr(grok_loader, "load_entries", lambda hours_back=0: [])
 
     def failing_load_entries(
-        *, hours_back: int = 0, jsonl_paths: tuple[Path, ...] | None = None
+        *,
+        hours_back: int = 0,
+        jsonl_paths: tuple[Path, ...] | None = None,
+        read_failures: list[Path] | None = None,
     ) -> list[history_loader.UsageEntry]:
         raise OSError("cannot read jsonl")
 
@@ -2066,7 +2070,11 @@ def test_load_history_entries_records_error_key_on_failure_and_clears_on_success
     delegate._load_history_entries()
     assert delegate._history_load_error_key == "history_load_error_file"
 
-    monkeypatch.setattr(menubar_state, "load_entries", lambda *, hours_back=0, jsonl_paths=None: [])
+    monkeypatch.setattr(
+        menubar_state,
+        "load_entries",
+        lambda *, hours_back=0, jsonl_paths=None, read_failures=None: [],
+    )
     delegate._load_history_entries()
     assert delegate._history_load_error_key is None
 
@@ -3221,3 +3229,46 @@ def test_quota_aware_completion_alert(
     assert messages == [_t("en", key)]
     assert details == ([] if ok else ["failure details"])
     assert completed == ["alert", "refresh"]
+
+
+def test_hiding_panel_evicts_inactive_views_via_existing_teardown() -> None:
+    from unittest.mock import Mock
+
+    controller = menubar_popover.PopoverViewController.alloc().init()
+    controller.panel = SimpleNamespace(id="current")
+    views = {name: Mock() for name in ("current", "old", "older")}
+    overlays = {name: Mock() for name in views}
+    controller.panel_views = dict(views)
+    controller.panel_lru = list(views)
+    controller.panel_scales = {name: (1.0, 100.0) for name in views}
+    controller.transition_overlays = dict(overlays)
+    controller.pending_panel_evictions = {"old"}
+    controller.evictInactivePanelViews()
+    assert controller.panel_views == {"current": views["current"]}
+    assert controller.panel_lru == ["current"]
+    assert controller.panel_scales == {"current": (1.0, 100.0)}
+    assert controller.transition_overlays == {"current": overlays["current"]}
+    assert controller.pending_panel_evictions == set()
+    for name in ("old", "older"):
+        views[name].teardown.assert_called_once_with()
+        views[name].removeFromSuperview.assert_called_once_with()
+        overlays[name].removeFromSuperview.assert_called_once_with()
+    views["current"].teardown.assert_not_called()
+    views["current"].removeFromSuperview.assert_not_called()
+    # An already scheduled eviction and a second close must be harmless.
+    controller.evictPanelViewForId_("old")
+    controller.evictInactivePanelViews()
+    views["old"].teardown.assert_called_once_with()
+
+
+def test_panel_window_hide_prunes_cache_and_keeps_slow_poll() -> None:
+    from unittest.mock import Mock
+
+    controller = SimpleNamespace(evictInactivePanelViews=Mock())
+    reschedule = Mock()
+    delegate = SimpleNamespace(
+        popover_controller=controller, interval=60, _reschedule_poll_timer=reschedule
+    )
+    menubar.AppDelegate._panel_window_did_hide(cast(Any, delegate))
+    controller.evictInactivePanelViews.assert_called_once_with()
+    reschedule.assert_called_once_with(300.0)

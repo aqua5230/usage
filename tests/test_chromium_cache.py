@@ -15,7 +15,7 @@ import zstandard
 
 from loaders import chromium_cache as cache
 from loaders import claude_desktop as desktop
-from loaders._shared_cache_file import read_range
+from loaders._shared_cache_file import read_bounded, read_range
 
 NOW = 2_000_000_000.0
 URL = b"https://claude.ai/api/organizations/org-a/usage"
@@ -247,3 +247,63 @@ def test_reads_file_opened_with_delete_access_on_windows(tmp_path: Path) -> None
         assert read_range(path, 6, 4) == b"data"
     finally:
         kernel.CloseHandle(owner)
+
+
+@pytest.mark.parametrize("next_file", [4, 1, 9, 2])
+def test_entry_file_header_chain(tmp_path: Path, next_file: int) -> None:
+    path = tmp_path / "Cache/Cache_Data"
+    _cache(
+        path,
+        Response(url=b"https://other.example/x", encoding="plain"),
+        Response(
+            encoding="plain",
+            payload={"five_hour": {"utilization": 90, "resets_at": _iso(NOW + 100)}},
+        ),
+    )
+    entries = bytearray((path / "data_1").read_bytes())
+    second = bytearray(entries[:8192] + entries[8448:8704])
+    struct.pack_into("<H", second, 8, 4)
+    struct.pack_into("<I", second, 8192, 65)
+    (path / "data_4").write_bytes(second)
+    struct.pack_into("<I", entries, 8196, _address(2, 4, 0))
+    struct.pack_into("<H", entries, 10, next_file)
+    (path / "data_1").write_bytes(entries[:8448])
+    index = bytearray((path / "index").read_bytes())
+    struct.pack_into("<I", index, 376, 0)
+    (path / "index").write_bytes(index)
+    result = cache.load_cached_json(path, URL, NOW - 60, NOW)
+    if next_file != 4:
+        assert result is None
+        return
+    assert result is not None
+    assert result.data["five_hour"] == {"utilization": 90, "resets_at": _iso(NOW + 100)}
+    history = tmp_path / desktop.HISTORY_NAME
+    history.write_text(
+        json.dumps(
+            {"version": 2, "samples": [{"t": (NOW - 30) * 1000, "org": "org-a", "u": {"fh": 14}}]}
+        )
+    )
+    quota = desktop._read_history(history, NOW)
+    assert quota is not None
+    assert quota.current_percent == 90
+    assert quota.current_reset_at == NOW + 100
+
+
+def test_entry_file_chain_stops_after_sixteen_files(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    _cache(tmp_path, Response())
+    for file in range(1, 18):
+        raw = _block_file(file, 256, 0)
+        struct.pack_into("<H", raw, 10, file + 1)
+        (tmp_path / f"data_{file}").write_bytes(raw)
+    reads: list[str] = []
+    original = read_bounded
+
+    def read(path: Path, limit: int) -> bytes:
+        reads.append(path.name)
+        return original(path, limit)
+
+    monkeypatch.setattr(cache, "read_bounded", read)
+    assert cache.load_cached_json(tmp_path, URL, NOW - 60, NOW) is None
+    assert reads == ["index"] + [f"data_{file}" for file in range(1, 17)]

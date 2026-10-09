@@ -177,3 +177,98 @@ def test_muse_models_resolve_to_distinct_meta_prices() -> None:
     assert normal == "meta/muse-spark-1.3"
     assert contributor == "meta/muse-spark-1.3-contributor"
     assert prices[normal]["input_cost_per_token"] > prices[contributor]["input_cost_per_token"]
+
+
+def test_cache_reuses_only_unchanged_files_and_isolates_returned_entries(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    from unittest.mock import Mock
+
+    path = _session(tmp_path, monkeypatch)
+    event = _event(
+        "one", datetime.now(UTC), "model_completed", {"input_tokens": 5, "output_tokens": 2}
+    )
+    _write(path, [event])
+    read = Mock(wraps=muse_loader._read_session)
+    monkeypatch.setattr(muse_loader, "_read_session", read)
+    first = muse_loader.load_entries()
+    first[0].project = "modified"
+    assert muse_loader.load_entries()[0].project == ""
+    assert read.call_count == 1
+    # Append and truncate must both invalidate even when mtime is preserved.
+    import os
+
+    mtime = path.stat().st_mtime_ns
+    second = _event(
+        "two", datetime.now(UTC), "model_completed", {"input_tokens": 3, "output_tokens": 1}
+    )
+    _write(path, [event, second])
+    os.utime(path, ns=(mtime, mtime))
+    assert len(muse_loader.load_entries()) == 2
+    _write(path, [second])
+    os.utime(path, ns=(mtime, mtime))
+    assert [entry.message_id for entry in muse_loader.load_entries()] == ["two"]
+    assert read.call_count == 3
+    # Same size, different nanosecond timestamp also invalidates the cache.
+    second["id"] = "new"
+    size = path.stat().st_size
+    _write(path, [second])
+    assert path.stat().st_size == size
+    os.utime(path, ns=(mtime + 1, mtime + 1))
+    assert muse_loader.load_entries()[0].message_id == "new"
+    assert read.call_count == 4
+    path.unlink()
+    assert muse_loader.load_entries() == []
+    assert path not in muse_loader._session_cache
+    assert muse_loader.load_entries() == []
+
+
+def test_cache_merges_in_file_order_before_filtering(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    first = _session(tmp_path, monkeypatch)
+    second = first.parent.parent / "session-2" / "session.jsonl"
+    second.parent.mkdir()
+    now = datetime.now(UTC)
+    old = _event(
+        "duplicate",
+        now - timedelta(hours=25),
+        "model_completed",
+        {"input_tokens": 5, "output_tokens": 1},
+    )
+    recent = _event("duplicate", now, "model_completed", {"input_tokens": 9, "output_tokens": 1})
+    _write(first, [old, old])
+    _write(second, [recent])
+    monkeypatch.setattr(muse_loader, "session_paths", lambda: (first, second))
+    assert muse_loader.load_entries(24) == []
+    assert len(muse_loader._session_cache[first][2]) == 2
+    assert muse_loader.load_entries(0)[0].input_tokens == 5
+    monkeypatch.setattr(muse_loader, "session_paths", lambda: (second, first))
+    assert muse_loader.load_entries(24)[0].input_tokens == 9
+    assert muse_loader.load_entries(0)[0].input_tokens == 9
+
+
+def test_cached_cutoff_is_recomputed(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = _session(tmp_path, monkeypatch)
+    now = datetime.now(UTC)
+    _write(
+        path,
+        [
+            _event(
+                "one",
+                now - timedelta(hours=23),
+                "model_completed",
+                {"input_tokens": 1, "output_tokens": 1},
+            )
+        ],
+    )
+    assert len(muse_loader.load_entries(24)) == 1
+
+    class Later(datetime):
+        @classmethod
+        def now(cls, tz=None):  # type: ignore[no-untyped-def]
+            return now + timedelta(hours=2)
+
+    monkeypatch.setattr(muse_loader, "datetime", Later)
+    assert muse_loader.load_entries(24) == []
+    assert len(muse_loader.load_entries(0)) == 1

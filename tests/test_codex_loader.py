@@ -2475,6 +2475,8 @@ def test_disk_cache_seed_loads_on_cold_start(
                         "cache_read_tokens": 0,
                     },
                     "token_count_index": 1,
+                    "turn_model": "",
+                    "fallback_entry_count": 1,
                 },
                 "entries": [
                     {
@@ -2711,3 +2713,84 @@ def test_disk_cache_file_mtime_invalidates_seed(
     # Should have the actual file's values, not the seed's
     assert entries[0].input_tokens == 200
     assert entries[0].output_tokens == 100
+
+
+@pytest.mark.parametrize(
+    "turn_models",
+    [
+        ["gpt-5", "gpt-5-mini"],
+        [None, None],
+        [None, "gpt-5"],
+        ["gpt-5", "gpt-5-mini", "gpt-5-nano"],
+    ],
+)
+def test_usage_keeps_turn_models_across_cache_and_append(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch, turn_models: list[str | None]
+) -> None:
+    from usage_common import pricing
+
+    sessions = tmp_path / "sessions"
+    sessions.mkdir()
+    monkeypatch.setattr(codex_loader, "SESSIONS_DIR", sessions)
+    path = sessions / "session.jsonl"
+    db = tmp_path / "state.sqlite"
+    monkeypatch.setattr(codex_loader, "STATE_DB", db)
+    with sqlite3.connect(db) as conn:
+        conn.execute("CREATE TABLE threads (id TEXT, model TEXT, cwd TEXT)")
+        conn.execute(
+            "INSERT INTO threads VALUES (?, ?, ?)", ("session-a", "gpt-5-mini", str(tmp_path))
+        )
+    rows: list[dict[str, Any]] = [
+        {
+            "type": "session_meta",
+            "payload": {
+                "id": "session-a",
+                "timestamp": "2026-10-09T00:00:00Z",
+                "cwd": str(tmp_path),
+                "model": "gpt-5",
+            },
+        }
+    ]
+    for i, model in enumerate(turn_models, 1):
+        if model is not None:
+            rows.append({"type": "turn_context", "payload": {"model": model}})
+        rows.append(
+            {
+                "type": "event_msg",
+                "timestamp": f"2026-10-09T00:0{i}:00Z",
+                "payload": {
+                    "type": "token_count",
+                    "info": {
+                        "total_token_usage": {"input_tokens": i * 1000000, "output_tokens": 0}
+                    },
+                },
+            }
+        )
+    path.write_text("\n".join(map(json.dumps, rows)) + "\n")
+    expected = [model or "gpt-5-mini" for model in turn_models]
+    for _ in range(2):
+        entries = codex_loader.load_entries(jsonl_paths=[path])
+        assert [entry.model for entry in entries] == expected
+        assert [entry.input_tokens for entry in entries] == [1000000] * len(expected)
+    if turn_models == ["gpt-5", "gpt-5-mini"]:
+        monkeypatch.setattr(
+            pricing,
+            "get_pricing",
+            lambda: {
+                "gpt-5": {"input_cost_per_token": 1.25e-6},
+                "gpt-5-mini": {"input_cost_per_token": 0.25e-6},
+            },
+        )
+        assert sum(pricing.calculate_cost(entry) for entry in entries) == 1.5
+    # A cold disk seed must retain turn attribution when reparsed.
+    codex_loader._flush_caches_to_disk(force=True)
+    codex_loader._jsonl_cache.clear()
+    monkeypatch.setattr(codex_loader, "_disk_cache_seeded", False)
+    assert [entry.model for entry in codex_loader.load_entries(jsonl_paths=[path])] == expected
+    rows[-1]["timestamp"] = "2026-10-09T00:09:00Z"
+    rows[-1]["payload"]["info"]["total_token_usage"]["input_tokens"] += 1000000
+    with path.open("a") as file:
+        file.write(json.dumps(rows[-1]) + "\n")
+    assert [entry.model for entry in codex_loader.load_entries(jsonl_paths=[path])] == expected + [
+        expected[-1]
+    ]

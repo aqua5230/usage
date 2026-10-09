@@ -23,6 +23,7 @@ MAX_BODY = 1024 * 1024
 MAX_WINDOW = 8 * 1024 * 1024
 MAX_INDEX = 4 * 1024 * 1024
 MAX_ENTRIES = 16 * 1024 * 1024
+MAX_CHAIN_FILES = 16
 BLOCK_SIZES = {1: 36, 2: 256, 3: 1024, 4: 4096, 5: 8, 6: 256, 7: 256}
 INDEX_HEADER = 368
 BLOCK_HEADER = 8192
@@ -136,7 +137,13 @@ class _BlockCache:
             if (address >> 28) & 7 in {2, 6}
         }
         results = []
-        for file in sorted(files):
+        pending = [(file, 0) for file in sorted(files)]
+        visited: set[int] = set()
+        while pending:
+            file, depth = pending.pop(0)
+            if file in visited:
+                continue
+            visited.add(file)
             try:
                 raw = read_bounded(self.path / f"data_{file}", MAX_ENTRIES)
             except (OSError, ValueError):
@@ -148,6 +155,9 @@ class _BlockCache:
                 or struct.unpack_from("<i", raw, 12)[0] != 256
             ):
                 continue
+            next_file = struct.unpack_from("<H", raw, 10)[0]
+            if next_file and depth + 1 < MAX_CHAIN_FILES:
+                pending.append((next_file, depth + 1))
             for offset in range(BLOCK_HEADER, len(raw) - 255, 256):
                 entry = raw[offset : offset + 256]
                 try:

@@ -140,12 +140,17 @@ def seed_caches(
                     or "parse_state" not in file_data
                 ):
                     continue
+                fallback_entry_count = parse_state_data.get("fallback_entry_count")
+                if not isinstance(fallback_entry_count, int):
+                    continue
                 state = _JsonlParseState(
                     session_timestamp=str(parse_state_data.get("session_timestamp", "")),
                     project=str(parse_state_data.get("project", "unknown")),
                     session_model=str(parse_state_data.get("session_model", "unknown")),
                     previous_usage=_deserialize_token_usage(parse_state_data.get("previous_usage")),
                     token_count_index=int(parse_state_data.get("token_count_index", 0)),
+                    turn_model=str(parse_state_data.get("turn_model", "")),
+                    fallback_entry_count=fallback_entry_count,
                 )
                 if len(jsonl_cache) >= maxsize:
                     jsonl_cache.popitem(last=False)
@@ -159,6 +164,7 @@ def seed_caches(
                     if isinstance(digest_hex, str)
                     else b"",
                     state=state,
+                    fallback_entry_count=fallback_entry_count,
                 )
             except (KeyError, TypeError, ValueError):
                 continue
@@ -208,6 +214,8 @@ def flush_caches(
                     "session_model": entry.state.session_model,
                     "previous_usage": _serialize_token_usage(entry.state.previous_usage),
                     "token_count_index": entry.state.token_count_index,
+                    "turn_model": entry.state.turn_model,
+                    "fallback_entry_count": entry.state.fallback_entry_count,
                 },
             }
 
