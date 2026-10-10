@@ -1133,22 +1133,22 @@ footer .kofi:hover { background: var(--accent-hover); }
       <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
         <h3 data-i18n="card10_h">Notifications before you hit the wall</h3>
-        <p data-i18n="card10_p">When your context window hits 70%, or earlier when it is filling fast, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The context figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. When it changes color, the status line shows the image count and the estimated share of files and command output. The status line also shows your prompt cache hit rate. For 10 minutes after a cache miss, it explains why, such as a model change, a tool change, or idle time past the 5-minute TTL.</p>
+        <p data-i18n="card10_p">At 70% context, the status line nudges you to <code>/clear</code> or <code>/compact</code>. The number turns yellow at 50% and red at 80%, and a missed prompt cache tells you why.</p>
       </div>
       <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h6"/></svg></span>
         <h3 data-i18n="card8_h">Token Saver</h3>
-        <p data-i18n="card8_p">A menu-bar toggle that asks Claude Code (and Codex CLI too, if it’s installed) to answer more tersely and in plainer language for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact. A light reminder keeps long conversations from drifting back to verbose. In Codex 0.129 or newer, trust the hook through <code>/hooks</code> in Codex.</p>
+        <p data-i18n="card8_p">Claude Code and Codex answer shorter and plainer, and long chats don’t drift back to wordy. Code, commands and error messages stay byte-exact. In Codex, trust the hook in <code>/hooks</code> first.</p>
       </div>
       <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg></span>
         <h3 data-i18n="beginner_h">Beginner Mode</h3>
-        <p data-i18n="beginner_p">Off by default, on macOS and Windows. After Claude Code answers, up to three terms from that answer get a one-line plain explanation, and terms you understood come back as a short quiz later. It uses a little Claude quota.</p>
+        <p data-i18n="beginner_p">After each answer, up to three terms show up above the input box with a one-line plain explanation. Terms you mark as understood come back later as a short quiz. Uses a little Claude quota.</p>
       </div>
       <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m12 14 4-4"/><path d="M3.34 19a10 10 0 1 1 17.32 0"/></svg></span>
         <h3 data-i18n="quota_aware_h">Quota-Aware Mode</h3>
-        <p data-i18n="quota_aware_p">Off by default, on macOS and Windows. When a 5-hour quota passes 80%, 90% or 95%, or a weekly quota passes 95%, Claude learns what is left and when it resets, so it can offer a smaller task or waiting. Covers Claude Code, Codex and Antigravity with no extra model calls.</p>
+        <p data-i18n="quota_aware_p">When quota runs low, Claude tells you what’s left and when it resets before starting anything big, so you can do a smaller piece or wait. Covers Claude Code, Codex and Antigravity, with no extra model calls.</p>
       </div>
       <div class="bento-group">
         <h3 data-i18n="grp_data_h">Where the numbers come from</h3>
@@ -1157,12 +1157,12 @@ footer .kofi:hover { background: var(--accent-hover); }
       <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/><path d="M6 16h.01"/><path d="M10 16h.01"/></svg></span>
         <h3 data-i18n="card3_h">Local-first by design</h3>
-        <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk (a statusLine hook status file plus Codex session JSONL logs). Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md. With only Claude Desktop installed and no Claude Code, Claude quota still appears from local history, without reading login credentials or calling a quota API.</p>
+        <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your computer, and Claude Desktop alone is enough for Claude quota. Antigravity is the exception: it asks Google with its CLI’s own sign-in. Every outbound request is listed in SECURITY.md.</p>
       </div>
       <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg></span>
         <h3 data-i18n="card14_h">Grok CLI, too</h3>
-        <p data-i18n="card14_p">A fourth card reads Grok CLI’s weekly credit percentage straight from its own local debug log. Its per-request token usage still counts toward today’s cost and project totals, just like Claude Code and Codex.</p>
+        <p data-i18n="card14_p">Reads Grok CLI’s own local log to work out its weekly quota percentage. Each request’s tokens count toward today’s cost and project totals, just like Claude Code and Codex.</p>
       </div>
     </div>
   </div>
@@ -1334,25 +1334,25 @@ const T = {
     card2_h: 'Claude Code, Codex, Antigravity &amp; Grok, one app',
     card2_p: 'Track Anthropic, OpenAI, Google, and xAI quota side by side. Codex is auto-detected from <code>~/.codex/sessions/</code> with no setup; Antigravity uses the sign-in its own CLI already stores.',
     card14_h: 'Grok CLI, too',
-    card14_p: "A fourth card reads Grok CLI’s weekly credit percentage straight from its own local debug log. Its per-request token usage still counts toward today’s cost and project totals, just like Claude Code and Codex.",
+    card14_p: 'Reads Grok CLI’s own local log to work out its weekly quota percentage. Each request’s tokens count toward today’s cost and project totals, just like Claude Code and Codex.',
     card3_h: 'Local-first by design',
-    card3_p: 'Claude Code and Codex numbers come from files already on your disk (a statusLine hook status file plus Codex session JSONL logs). Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md. With only Claude Desktop installed and no Claude Code, Claude quota still appears from local history, without reading login credentials or calling a quota API.',
+    card3_p: 'Claude Code and Codex numbers come from files already on your computer, and Claude Desktop alone is enough for Claude quota. Antigravity is the exception: it asks Google with its CLI’s own sign-in. Every outbound request is listed in SECURITY.md.',
     card4_h: 'One-click HTML reports',
     card4_p: 'Today, week, month, or all-time: get a shareable HTML report with token / cost trends, top projects, and model breakdown. Project names hide by default for client-safe sharing.',
     card5_h: '16 visual panel themes',
     card5_p: 'Matrix digital rain, Windows 95, retro newspaper, midnight aquarium, World Cup FIFA HUD, Lepidoptera blueprint. Pick a mood for your menu bar pop-out.',
     card8_h: 'Token Saver',
-    card8_p: "A menu-bar toggle that asks Claude Code (and Codex CLI too, if it’s installed) to answer more tersely and in plainer language for the whole session: same substance, fewer words, while code, commands, and error messages stay byte-exact. A light reminder keeps long conversations from drifting back to verbose. In Codex 0.129 or newer, trust the hook through <code>/hooks</code> in Codex.",
+    card8_p: 'Claude Code and Codex answer shorter and plainer, and long chats don’t drift back to wordy. Code, commands and error messages stay byte-exact. In Codex, trust the hook in <code>/hooks</code> first.',
     beginner_h: 'Beginner Mode',
-    beginner_p: 'Off by default, on macOS and Windows. After Claude Code answers, up to three terms from that answer get a one-line plain explanation, and terms you understood come back as a short quiz later. It uses a little Claude quota.',
+    beginner_p: 'After each answer, up to three terms show up above the input box with a one-line plain explanation. Terms you mark as understood come back later as a short quiz. Uses a little Claude quota.',
     quota_aware_h: 'Quota-Aware Mode',
-    quota_aware_p: 'Off by default, on macOS and Windows. When a 5-hour quota passes 80%, 90% or 95%, or a weekly quota passes 95%, Claude learns what is left and when it resets, so it can offer a smaller task or waiting. Covers Claude Code, Codex and Antigravity with no extra model calls.',
+    quota_aware_p: 'When quota runs low, Claude tells you what’s left and when it resets before starting anything big, so you can do a smaller piece or wait. Covers Claude Code, Codex and Antigravity, with no extra model calls.',
     card10_h: 'Notifications before you hit the wall',
     grp_cc_h: 'Claude Code helpers',
     grp_cc_sub: 'Keeping an eye on quota and context while you code',
     grp_data_h: 'Where the numbers come from',
     grp_data_sub: 'How usage reads each tool',
-    card10_p: 'When your context window hits 70%, or earlier when it is filling fast, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The context figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. When it changes color, the status line shows the image count and the estimated share of files and command output. The status line also shows your prompt cache hit rate. For 10 minutes after a cache miss, it explains why, such as a model change, a tool change, or idle time past the 5-minute TTL.',
+    card10_p: 'At 70% context, the status line nudges you to <code>/clear</code> or <code>/compact</code>. The number turns yellow at 50% and red at 80%, and a missed prompt cache tells you why.',
     resume_label: 'PROGRESS CONCIERGE',
     resume_h2: 'Now your CLI picks up where you left off',
     resume_lead: "The web and desktop apps keep your history automatically: close them, reopen, it’s all there. The CLI keeps it too, but you need to know the command to pull it back up. Resume makes that automatic: open a new session and it picks up where you left off, no command to remember, no re-explaining. It now also runs a daily health check on your logs. When it spots token waste, the handoff adds a one-line heads-up; say “show me” for the findings and fixes. Reads local files.",
@@ -1640,25 +1640,25 @@ const T = {
     card2_h: 'Claude Code、Codex、Antigravity、Grok を 1 つのアプリで',
     card2_p: 'Anthropic、OpenAI、Google、xAI のクォータを並べて追跡。Codex は <code>~/.codex/sessions/</code> から設定不要で自動検出。Antigravity は CLI が保存済みのサインイン情報を利用します。',
     card14_h: 'Grok CLI にも対応',
-    card14_p: '4枚目のカードは Grok CLI 自身のローカルデバッグログから週間クレジット率を読み取ります。トークン使用量は Claude Code や Codex と同様、当日のコストとプロジェクト合計にも反映されます。',
+    card14_p: 'Grok CLI 自身のローカルログから、週間クォータの割合を算出します。リクエストごとのトークンも、Claude Code や Codex と同じく当日のコストとプロジェクト合計に入ります。',
     card3_h: '設計段階からローカルファースト',
-    card3_p: 'Claude Code と Codex の数値は、statusLine hook が書き込むステータスファイルと Codex セッション JSONL ログという、すでにディスク上にあるファイルから取得します。Antigravity のクォータは、CLI が保存した認証情報を使って Google から取得します。すべての外部リクエストは SECURITY.md に記載しています。 Claude Code がなく Claude Desktop だけでも、ローカル履歴から Claude のクォータを表示します。ログイン認証情報の読み取りやクォータ API の呼び出しは行いません。',
+    card3_p: 'Claude Code と Codex の数値は、パソコンにもともとある記録から読み取ります。Claude Desktop だけでも Claude のクォータが見えます。Antigravity は例外で、CLI のログイン情報を使って Google に問い合わせます。外部への通信はすべて SECURITY.md に記載しています。',
     card4_h: 'ワンクリック HTML レポート',
     card4_p: '今日・週・月・全期間で、トークン / コスト推移、トッププロジェクト、モデル分布を含む共有可能な HTML レポートを生成。プロジェクト名はデフォルトで非表示。',
     card5_h: '16 種のビジュアルパネル',
     card5_p: 'マトリックスのデジタルレイン、Windows 95、レトロ新聞、深夜水族館、ワールドカップ FIFA HUD、蝶の設計図 — お好みの雰囲気で。',
     card8_h: 'トークン節約モード',
-    card8_p: 'メニューバーのスイッチ一つで、Claude Code（導入済みなら Codex CLI にも）に会話全体をより簡潔で平易に答えるよう依頼——内容はそのまま、文字数だけ減り、コード・コマンド・エラーメッセージは一切省略されません。さりげないリマインダーが、長い会話でも冗長さへの逆戻りを防ぎます。 Codex 0.129 以降では、Codex の <code>/hooks</code> でこのフックを信頼してください。',
+    card8_p: 'Claude Code と Codex の回答を短く、平易にします。長い会話でも冗長に戻りません。コード・コマンド・エラーメッセージは一字も省きません。Codex では先に <code>/hooks</code> でこのフックを信頼してください。',
     beginner_h: '初心者モード',
-    beginner_p: '初期設定はオフ、macOS・Windows 対応。Claude Code の回答後、用語を最大3つ選んで一行のやさしい説明を添え、理解済みにした用語はあとで小テストで復習します。Claude のクォータを少し使います。',
+    beginner_p: '回答のあと、入力欄の上に専門用語を最大 3 つ選び、やさしい説明を一行ずつ添えます。理解済みにした用語は、あとで小テストで復習します。Claude のクォータを少し使います。',
     quota_aware_h: 'クォータ認識モード',
-    quota_aware_p: '初期設定はオフ、macOS・Windows 対応。5時間枠が80%・90%・95%、週枠が95%を超えると、残量とリセット時刻を Claude に伝え、小さな作業か待機かを選べるようにします。Claude Code・Codex・Antigravity が対象で、追加のモデル呼び出しはありません。',
+    quota_aware_p: 'クォータが残り少ないとき、Claude は大きな作業の前に残量とリセット時刻を伝え、小さく始めるか待つかを聞いてきます。Claude Code・Codex・Antigravity が対象で、追加のモデル呼び出しはありません。',
     card10_h: '壁にぶつかる前に通知',
     grp_cc_h: 'Claude Code のお助け機能',
     grp_cc_sub: 'コーディング中、使用量と会話を見守ります',
     grp_data_h: 'データの出どころ',
     grp_data_sub: '数字の算出方法',
-    card10_p: 'コンテキストウィンドウが 70%（埋まるのが速い場合はもっと早く）に達すると、ステータスラインが <code>/clear</code> または <code>/compact</code> を促してトークン浪費を防ぎます。さらに、クォータ制限や回復のシステム通知も任意で有効化できます。コンテキストの数値は 50% または 200K トークンで黄色、80% または 400K トークンで赤色になり、先に達した条件を使います。色が変わると、ステータスラインに画像数と「ファイルとコマンド出力」の推定割合を表示します。 ステータスラインには prompt cache のヒット率も表示します。キャッシュがミスした後の10分間は、モデル変更、ツール変更、5分の有効期間（TTL）を超える待機などの理由を表示します。',
+    card10_p: 'コンテキストが 70% に達すると、ステータスラインが <code>/clear</code> か <code>/compact</code> を促します。数値は 50% で黄色、80% で赤になり、キャッシュが外れたときは理由も表示します。',
     resume_label: '続きから',
     resume_h2: 'CLI でも前回の続きから',
     resume_lead: 'ウェブ版もデスクトップアプリも、閉じて開き直せば会話履歴は自動でそのまま出てきます。CLI にも履歴は残っていますが、コマンドを知らないと呼び出せません。Resume はそこを自動化します——新しいセッションを開くだけで前回の続きを自動で引き継ぎ、コマンドを覚える必要も説明し直す必要もありません。さらに毎日ローカルのログをヘルスチェックし、トークンの無駄を見つけると引き継ぎに一行のお知らせを追加。「見せて」と言えば、AI が内容と改善策を説明します。ローカルの記録を読みます。',
@@ -1742,25 +1742,25 @@ const T = {
     card2_h: 'Claude Code, Codex, Antigravity, Grok을 한 앱에서',
     card2_p: 'Anthropic, OpenAI, Google, xAI 한도를 나란히 추적. Codex는 <code>~/.codex/sessions/</code>에서 설정 없이 자동 감지되고, Antigravity는 자체 CLI가 이미 저장해 둔 로그인 정보를 사용합니다.',
     card14_h: 'Grok CLI도 지원',
-    card14_p: '네 번째 카드는 Grok CLI 자체의 로컬 디버그 로그에서 주간 크레딧 비율을 바로 읽어옵니다. 토큰 사용량은 Claude Code, Codex와 마찬가지로 오늘의 비용과 프로젝트 합계에도 반영됩니다.',
+    card14_p: 'Grok CLI 자체의 로컬 로그로 주간 할당량 비율을 계산합니다. 요청마다 쓴 토큰도 Claude Code, Codex와 똑같이 오늘 비용과 프로젝트 합계에 들어갑니다.',
     card3_h: '설계상 로컬 우선',
-    card3_p: 'Claude Code와 Codex 수치는 statusLine 훅이 쓴 상태 파일과 Codex 세션 JSONL 로그처럼 이미 디스크에 있는 파일에서 가져옵니다. Antigravity 한도는 자체 CLI가 저장한 자격 증명으로 Google에서 가져옵니다. 모든 외부 요청은 SECURITY.md에 정리되어 있습니다. Claude Code 없이 Claude Desktop만 설치해도 로컬 기록에서 Claude 할당량을 표시합니다. 로그인 인증 정보를 읽거나 할당량 API를 호출하지 않습니다.',
+    card3_p: 'Claude Code와 Codex 숫자는 컴퓨터에 이미 있는 기록에서 읽습니다. Claude Desktop만 있어도 Claude 할당량을 볼 수 있습니다. Antigravity는 예외로, CLI의 로그인 정보로 Google에 조회합니다. 외부 연결은 모두 SECURITY.md에 적혀 있습니다.',
     card4_h: '원클릭 HTML 보고서',
     card4_p: '오늘, 주간, 월간, 전체 기간 — 토큰/비용 추세, 상위 프로젝트, 모델 분포가 포함된 공유 가능한 HTML 보고서. 프로젝트 이름은 기본 숨김 처리됩니다.',
     card5_h: '16가지 시각 패널 테마',
     card5_p: '매트릭스 디지털 비, Windows 95, 복고 신문, 자정 수족관, 월드컵 FIFA HUD, 나비 설계도 — 메뉴 바 팝아웃의 분위기를 마음대로.',
     card8_h: '토큰 절약 모드',
-    card8_p: '메뉴 바 스위치 하나로 Claude Code — 설치되어 있다면 Codex CLI까지 — 대화 전체를 더 간결하고 쉬운 말로 답하도록 요청합니다. 내용은 그대로, 글자 수만 줄고 코드·명령어·오류 메시지는 한 글자도 줄지 않습니다. 가벼운 리마인더가 긴 대화에서도 다시 장황해지는 것을 막아 줍니다. Codex 0.129부터 Codex의 <code>/hooks</code>에서 이 hook을 신뢰해야 합니다.',
+    card8_p: 'Claude Code와 Codex가 더 짧고 쉽게 답하고, 긴 대화에서도 다시 장황해지지 않습니다. 코드, 명령어, 오류 메시지는 한 글자도 줄이지 않습니다. Codex에서는 먼저 <code>/hooks</code>에서 이 훅을 신뢰해 주세요.',
     beginner_h: '초보자 모드',
-    beginner_p: '기본값은 꺼짐이며 macOS와 Windows에서 지원합니다. Claude Code가 답한 뒤 용어를 최대 3개 골라 한 줄로 쉽게 설명하고, 이해했다고 표시한 용어는 나중에 짧은 퀴즈로 복습합니다. Claude 할당량을 조금 씁니다.',
+    beginner_p: '답변이 끝나면 입력창 위에 전문 용어를 최대 3개 골라 쉬운 설명을 한 줄씩 붙입니다. 이해했다고 표시한 용어는 나중에 짧은 퀴즈로 복습합니다. Claude 할당량을 조금 씁니다.',
     quota_aware_h: '할당량 인식 모드',
-    quota_aware_p: '기본값은 꺼짐이며 macOS와 Windows에서 지원합니다. 5시간 할당량이 80%, 90%, 95% 또는 주간 할당량이 95%를 넘으면 남은 양과 재설정 시각을 Claude에 알려, 작은 작업을 할지 기다릴지 고르게 합니다. Claude Code, Codex, Antigravity를 지원하며 모델을 따로 호출하지 않습니다.',
+    quota_aware_p: '할당량이 얼마 남지 않으면 Claude가 큰 작업을 시작하기 전에 남은 양과 재설정 시각을 알려 주고, 작게 시작할지 기다릴지 묻습니다. Claude Code, Codex, Antigravity를 모두 보고, 모델을 따로 호출하지 않습니다.',
     card10_h: '한도에 닿기 전에 알림',
     grp_cc_h: 'Claude Code 도우미',
     grp_cc_sub: '코딩하는 동안 사용량과 대화를 챙겨 줍니다',
     grp_data_h: '데이터 출처',
     grp_data_sub: '숫자를 계산하는 방법',
-    card10_p: '컨텍스트 창이 70%(빠르게 채워지면 더 일찍)에 도달하면 상태 줄이 <code>/clear</code> 또는 <code>/compact</code> 를 권해 토큰 낭비를 막아 줍니다. 한도 경고와 회복 알림용 시스템 알림도 따로 켤 수 있어요. 컨텍스트 수치는 50% 또는 200K 토큰에서 노란색, 80% 또는 400K 토큰에서 빨간색으로 바뀌며 먼저 도달한 기준을 적용합니다. 색이 바뀌면 상태 줄에 이미지 수와 파일 및 명령 출력의 추정 비율이 표시됩니다. 상태 줄에는 prompt cache 적중률도 표시됩니다. 캐시가 빗나간 뒤 10분 동안 모델 변경, 도구 변경, 5분 유효 기간(TTL)을 넘긴 유휴 시간 등의 이유를 보여 줍니다.',
+    card10_p: '컨텍스트가 70%에 이르면 상태 줄이 <code>/clear</code> 또는 <code>/compact</code>를 권합니다. 숫자는 50%에서 노란색, 80%에서 빨간색이 되고, 캐시가 빗나가면 이유도 알려 줍니다.',
     resume_label: '이어서 계속',
     resume_h2: '이제 CLI도 이어서',
     resume_lead: '웹과 데스크톱 앱은 닫았다 열어도 대화 기록이 자동으로 그대로 남아있어요. CLI에도 기록은 남지만, 명령어를 알아야 다시 불러올 수 있어요. Resume은 이걸 자동으로 해줘요 — 새 세션을 열면 명령어를 몰라도, 다시 설명할 필요도 없이 지난 작업을 자동으로 이어받아요. 이제 매일 로컬 로그를 헬스 체크해서 토큰 낭비를 발견하면 인계 메시지에 한 줄 알림을 붙여요. "보여줘"라고 하면 AI가 내용과 개선 방법을 설명해 줘요. 로컬 기록을 읽어요.',
