@@ -96,13 +96,9 @@ h1, h2, h3 { text-wrap: balance; }
 :lang(ko) :is(h1, h2, h3) { word-break: keep-all; }
 :lang(ja) :is(h1, h2, h3) { word-break: auto-phrase; }
 :lang(zh) :is(h1, h2, h3) { word-break: keep-all; overflow-wrap: break-word; }
-/* Inline code can't break, so justifying around it opens wide gaps; those stay start-aligned.
-   Pretty/balance wrapping shortens lines on purpose and justify would stretch them into gaps, so justified text wraps plainly. */
-:where(:lang(zh), :lang(ja)) main p:not(:has(code)) { text-align: justify; text-wrap: wrap; }
-/* Narrow screens avoid CJK justify gaps around Latin words. */
-@media (max-width: 640px) {
-  :where(:lang(zh), :lang(ja)) main p:not(:has(code)) { text-align: start; }
-}
+/* CJK body text stays start-aligned: justify stretched the gaps around Latin words and inline code,
+   and cards with code ended up aligned differently from their neighbours. */
+:where(:lang(zh), :lang(ja)) main p { text-wrap: pretty; }
 /* CJK typography: solid setting per W3C clreq. */
 :is(:lang(zh), :lang(ja), :lang(ko)) .hero h1,
 :is(:lang(zh), :lang(ja), :lang(ko)) section h2,
@@ -953,8 +949,11 @@ footer .kofi:hover { background: var(--accent-hover); }
 .bento-grid .m-fan img:nth-child(1) { transform: rotate(-3deg); }
 .bento-grid .m-fan img:nth-child(3) { transform: rotate(3deg); }
 .bento-grid > .card:not(.card-lead) { grid-column: span 6; padding: 30px 32px; }
-.bento-grid > .card:nth-child(5), .bento-grid > .card:nth-child(8), .bento-grid > .card:nth-child(9) { --tile-bg: #191f29; }
-.bento-grid > .card:nth-child(6), .bento-grid > .card:nth-child(7), .bento-grid > .card:nth-child(10) { --tile-bg: var(--bento-deep); }
+.bento-grid > .card:nth-child(6), .bento-grid > .card:nth-child(9), .bento-grid > .card:nth-child(11) { --tile-bg: #191f29; }
+.bento-grid > .card:nth-child(7), .bento-grid > .card:nth-child(8), .bento-grid > .card:nth-child(12) { --tile-bg: var(--bento-deep); }
+.bento-group { grid-column: span 12; margin: 26px 4px 2px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.bento-group h3 { font-size: 14px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.bento-group p { font-size: 14px; color: var(--fg-dim); }
 .bento-grid > .card:not(.card-lead) h3 { font-size: clamp(21px, 2vw, 25px); margin-bottom: 14px; }
 .bento-grid > .card:not(.card-lead) p { font-size: 15.5px; line-height: 1.68; max-width: 59ch; }
 .bento-grid .card-icon { font-size: clamp(21px, 2vw, 25px); }
@@ -1127,15 +1126,14 @@ footer .kofi:hover { background: var(--accent-hover); }
         </div>
         <div class="chess-media m-fan"><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="matrix.en.webp" data-img-en="matrix.en.webp" data-img-cjk="matrix.webp" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="newspaper.en.webp" data-img-en="newspaper.en.webp" data-img-cjk="newspaper.webp" alt="" /><img width="364" height="1183" loading="lazy" decoding="async" data-shot data-size-en="364x1183" data-size-cjk="364x1183" src="aquarium.en.webp" data-img-en="aquarium.en.webp" data-img-cjk="aquarium.webp" alt="" /></div>
       </div>
-      <div class="card bento-item">
-        <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/><path d="M6 16h.01"/><path d="M10 16h.01"/></svg></span>
-        <h3 data-i18n="card3_h">Local-first by design</h3>
-        <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk (a statusLine hook status file plus Codex session JSONL logs). Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md. With only Claude Desktop installed and no Claude Code, Claude quota still appears from local history, without reading login credentials or calling a quota API.</p>
+      <div class="bento-group">
+        <h3 data-i18n="grp_cc_h">Claude Code helpers</h3>
+        <p data-i18n="grp_cc_sub">Keeping an eye on quota and context while you code</p>
       </div>
       <div class="card bento-item">
-        <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg></span>
-        <h3 data-i18n="card14_h">Grok CLI, too</h3>
-        <p data-i18n="card14_p">A fourth card reads Grok CLI’s weekly credit percentage straight from its own local debug log. Its per-request token usage still counts toward today’s cost and project totals, just like Claude Code and Codex.</p>
+        <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
+        <h3 data-i18n="card10_h">Notifications before you hit the wall</h3>
+        <p data-i18n="card10_p">When your context window hits 70%, or earlier when it is filling fast, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The context figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. When it changes color, the status line shows the image count and the estimated share of files and command output. The status line also shows your prompt cache hit rate. For 10 minutes after a cache miss, it explains why, such as a model change, a tool change, or idle time past the 5-minute TTL.</p>
       </div>
       <div class="card bento-item">
         <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 6h16"/><path d="M4 12h10"/><path d="M4 18h6"/></svg></span>
@@ -1152,10 +1150,19 @@ footer .kofi:hover { background: var(--accent-hover); }
         <h3 data-i18n="quota_aware_h">Quota-Aware Mode</h3>
         <p data-i18n="quota_aware_p">Off by default, on macOS and Windows. When a 5-hour quota passes 80%, 90% or 95%, or a weekly quota passes 95%, Claude learns what is left and when it resets, so it can offer a smaller task or waiting. Covers Claude Code, Codex and Antigravity with no extra model calls.</p>
       </div>
+      <div class="bento-group">
+        <h3 data-i18n="grp_data_h">Where the numbers come from</h3>
+        <p data-i18n="grp_data_sub">How usage reads each tool</p>
+      </div>
       <div class="card bento-item">
-        <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></span>
-        <h3 data-i18n="card10_h">Notifications before you hit the wall</h3>
-        <p data-i18n="card10_p">When your context window hits 70%, or earlier when it is filling fast, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The context figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. When it changes color, the status line shows the image count and the estimated share of files and command output. The status line also shows your prompt cache hit rate. For 10 minutes after a cache miss, it explains why, such as a model change, a tool change, or idle time past the 5-minute TTL.</p>
+        <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 12H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11Z"/><path d="M6 16h.01"/><path d="M10 16h.01"/></svg></span>
+        <h3 data-i18n="card3_h">Local-first by design</h3>
+        <p data-i18n="card3_p">Claude Code and Codex numbers come from files already on your disk (a statusLine hook status file plus Codex session JSONL logs). Antigravity quota is fetched from Google using the credential its own CLI stores. Every outbound request is listed in SECURITY.md. With only Claude Desktop installed and no Claude Code, Claude quota still appears from local history, without reading login credentials or calling a quota API.</p>
+      </div>
+      <div class="card bento-item">
+        <span class="card-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="m4 17 6-6-6-6"/><path d="M12 19h8"/></svg></span>
+        <h3 data-i18n="card14_h">Grok CLI, too</h3>
+        <p data-i18n="card14_p">A fourth card reads Grok CLI’s weekly credit percentage straight from its own local debug log. Its per-request token usage still counts toward today’s cost and project totals, just like Claude Code and Codex.</p>
       </div>
     </div>
   </div>
@@ -1341,6 +1348,10 @@ const T = {
     quota_aware_h: 'Quota-Aware Mode',
     quota_aware_p: 'Off by default, on macOS and Windows. When a 5-hour quota passes 80%, 90% or 95%, or a weekly quota passes 95%, Claude learns what is left and when it resets, so it can offer a smaller task or waiting. Covers Claude Code, Codex and Antigravity with no extra model calls.',
     card10_h: 'Notifications before you hit the wall',
+    grp_cc_h: 'Claude Code helpers',
+    grp_cc_sub: 'Keeping an eye on quota and context while you code',
+    grp_data_h: 'Where the numbers come from',
+    grp_data_sub: 'How usage reads each tool',
     card10_p: 'When your context window hits 70%, or earlier when it is filling fast, the status line nudges you to <code>/clear</code> or <code>/compact</code> to prevent token waste. You can also opt-in to system notifications for quota limits and recoveries. The context figure turns yellow at 50% or 200K tokens and red at 80% or 400K tokens, whichever comes first. When it changes color, the status line shows the image count and the estimated share of files and command output. The status line also shows your prompt cache hit rate. For 10 minutes after a cache miss, it explains why, such as a model change, a tool change, or idle time past the 5-minute TTL.',
     resume_label: 'PROGRESS CONCIERGE',
     resume_h2: 'Now your CLI picks up where you left off',
@@ -1425,21 +1436,25 @@ const T = {
     card2_h: 'Claude Code、Codex、Antigravity、Grok 一個 app 搞定',
     card2_p: 'Anthropic、OpenAI、Google 與 xAI 的配額並排顯示。Codex 從 <code>~/.codex/sessions/</code> 自動偵測，不需設定；Antigravity 則用它自己的 CLI 已經存好的登入身分。',
     card14_h: 'Grok CLI 也算進來',
-    card14_p: '第四張卡片直接讀 Grok CLI 自己的本地除錯 log 算出週配額百分比。它的逐次 token 用量一樣會算進今日花費和各專案總計，跟 Claude Code、Codex 一樣。',
+    card14_p: '讀 Grok CLI 自己的本機 log，算出週額度百分比。每次的 token 用量也算進今日花費和各專案總計，跟 Claude Code、Codex 一樣。',
     card3_h: '天生本地優先',
-    card3_p: 'Claude Code 與 Codex 的數字來自你磁碟上既有的檔案——狀態列 hook 寫入的狀態檔，加上 Codex session JSONL log。Antigravity 額度則是用它自己的 CLI 存好的憑證向 Google 取得。所有對外連線都列在 SECURITY.md。 只裝 Claude Desktop、沒有 Claude Code，也看得到 Claude 額度：讀本機紀錄，不讀登入憑證，也不呼叫額度 API。',
+    card3_p: 'Claude Code 和 Codex 的數字，讀的是你電腦上本來就有的紀錄；只裝 Claude Desktop 也看得到 Claude 額度。Antigravity 例外，會用它 CLI 的登入身分向 Google 查。對外連線都列在 SECURITY.md。',
     card4_h: '一鍵 HTML 報告',
     card4_p: '今日、本週、本月或全部——產出可分享的 HTML 報告，內含 token / 成本走勢、各專案排行與模型分布。預設隱藏專案名稱，安全分享給客戶。',
     card5_h: '16 款視覺面板主題',
     card5_p: '駭客任務數字雨、Windows 95、復古報紙、午夜水族箱、世界盃 FIFA 轉播、蝴蝶藍圖——挑個喜歡的氛圍。',
     card8_h: '省 token 模式',
-    card8_p: '選單列開關，讓 Claude Code——連同裝好的 Codex CLI——整個對話回答更簡短、更白話：內容不變、字變少，但程式碼、指令、錯誤訊息一個字都不會被縮減。輕聲提醒維持精簡，長對話也不會慢慢講回囉嗦。 Codex 0.129 起，需在 Codex 的 <code>/hooks</code> 信任這個 hook。',
+    card8_p: '讓 Claude Code 和 Codex 回答更短、更白話，長對話也不會越講越長。程式碼、指令、錯誤訊息一個字都不縮。Codex 需先在 <code>/hooks</code> 信任它。',
     beginner_h: '新手模式',
-    beginner_p: '預設關閉，macOS 與 Windows 都支援。Claude Code 回答後，挑出最多 3 個名詞各配一行白話解釋；標成懂了的名詞，之後會用小考複習。會用到少量 Claude 額度。',
+    beginner_p: 'Claude 回答完，輸入框上方會挑出最多 3 個專有名詞，各配一句白話。標成懂了的詞，之後用小考複習。會用到少量 Claude 額度。',
     quota_aware_h: '額度感知模式',
-    quota_aware_p: '預設關閉，macOS 與 Windows 都支援。5 小時額度超過 80%、90%、95%，或週額度超過 95% 時，告訴 Claude 還剩多少、幾點重置，讓它先問你要做小的還是等重置。涵蓋 Claude Code、Codex、Antigravity，不另外呼叫模型。',
+    quota_aware_p: '額度快用完時，Claude 開大任務前會先說還剩多少、幾點重置，讓你選先做小的或等重置。Claude Code、Codex、Antigravity 都看，不另外呼叫模型。',
     card10_h: '撞牆前先提醒你',
-    card10_p: '上下文窗用到 70%（填得快時會提早）時，狀態列會提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪費 token；你也能另外開啟配額門檻與恢復通知的系統提醒。上下文數字在 50% 或 200K token 時變黃，80% 或 400K token 時變紅，以先達到的門檻為準。變色時，狀態列會顯示圖片數與「檔案與指令輸出」的估計佔比。 狀態列也會顯示 prompt cache 命中率。快取沒命中後 10 分鐘內，會說明原因，例如換模型、換工具或閒置超過 5 分鐘的有效期限（TTL）。',
+    grp_cc_h: 'Claude Code 小幫手',
+    grp_cc_sub: '寫程式時，幫你顧著額度和對話',
+    grp_data_h: '資料從哪來',
+    grp_data_sub: '數字怎麼算出來的',
+    card10_p: '上下文用到 70% 時，狀態列提醒你 <code>/clear</code> 或 <code>/compact</code>。數字 50% 變黃、80% 變紅；快取沒命中，也會告訴你原因。',
     resume_label: '進度管家',
     resume_h2: '讓你的 CLI 也接得回上次',
     resume_lead: '網頁版、桌面 App 關掉再打開，對話自動就在那，什麼都不用做；CLI 的紀錄其實也留著，但不會自動接上，得自己打指令去找。進度管家把這一步變成自動——開新對話就直接接回你上次做到哪，不用重講、也不用記指令。現在還會每天幫本機紀錄做一次健檢，發現 token 浪費時開場白會多一行提醒；說「看」，AI 就會解釋發現了什麼、該怎麼改。讀取本機紀錄。',
@@ -1523,21 +1538,25 @@ const T = {
     card2_h: 'Claude Code、Codex、Antigravity、Grok 一个 app 搞定',
     card2_p: 'Anthropic、OpenAI、Google 与 xAI 的额度并排显示。Codex 从 <code>~/.codex/sessions/</code> 自动检测，无需配置；Antigravity 则使用它自己的 CLI 已保存的登录身份。',
     card14_h: 'Grok CLI 也算进来',
-    card14_p: '第四张卡片直接读 Grok CLI 自己的本地调试 log 算出周额度百分比。它的逐次 token 用量一样会算进今日花费和各项目总计，跟 Claude Code、Codex 一样。',
+    card14_p: '读取 Grok CLI 自己的本地 log，算出周额度百分比。每次的 token 用量也会计入今日花费和各项目总计，跟 Claude Code、Codex 一样。',
     card3_h: '天生本地优先',
-    card3_p: 'Claude Code 与 Codex 的数字来自你磁盘上现有的文件——状态栏 hook 写入的状态文件，加上 Codex session JSONL log。Antigravity 额度则是用它自己的 CLI 保存的凭据向 Google 获取。所有对外连接都列在 SECURITY.md。 只安装 Claude Desktop、没有 Claude Code，也能看到 Claude 额度：读取本地记录，不读取登录凭据，也不调用额度 API。',
+    card3_p: 'Claude Code 和 Codex 的数字，读的是你电脑上本来就有的记录；只装 Claude Desktop 也能看到 Claude 额度。Antigravity 例外，会用它 CLI 的登录身份向 Google 查询。对外连接都列在 SECURITY.md。',
     card4_h: '一键 HTML 报告',
     card4_p: '今日、本周、本月或全部——生成可分享的 HTML 报告，内含 token / 花费趋势、项目排行与模型分布。默认隐藏项目名称，安全分享给客户。',
     card5_h: '16 款视觉面板主题',
     card5_p: '黑客帝国数字雨、Windows 95、复古报纸、午夜水族馆、世界杯 FIFA 转播、蝴蝶蓝图——挑个喜欢的氛围。',
     card8_h: '省 token 模式',
-    card8_p: '菜单栏开关，让 Claude Code——连同装好的 Codex CLI——整个对话回答更简短、更白话：内容不变、字变少，但代码、命令、错误消息一个字都不会被缩减。轻声提醒维持精简，长对话也不会慢慢讲回啰嗦。 Codex 0.129 起，需要在 Codex 的 <code>/hooks</code> 中信任这个 hook。',
+    card8_p: '让 Claude Code 和 Codex 回答更短、更通俗，长对话也不会越讲越长。代码、命令、错误消息一个字都不缩。Codex 需先在 <code>/hooks</code> 中信任它。',
     beginner_h: '新手模式',
-    beginner_p: '默认关闭，macOS 和 Windows 均支持。Claude Code 回答后，挑出最多 3 个术语，各配一行通俗解释；标为已懂的术语之后会用小测验复习。会使用少量 Claude 额度。',
+    beginner_p: 'Claude 回答完，输入框上方会挑出最多 3 个术语，各配一句通俗解释。标为已懂的术语，之后用小测验复习。会使用少量 Claude 额度。',
     quota_aware_h: '额度感知模式',
-    quota_aware_p: '默认关闭，macOS 和 Windows 均支持。5 小时额度超过 80%、90%、95%，或周额度超过 95% 时，告诉 Claude 还剩多少、几点重置，让它先问你是做小任务还是等待重置。涵盖 Claude Code、Codex、Antigravity，不额外调用模型。',
+    quota_aware_p: '额度快用完时，Claude 开始大任务前会先说还剩多少、几点重置，让你选先做小的还是等重置。Claude Code、Codex、Antigravity 都看，不额外调用模型。',
     card10_h: '撞墙前先提醒你',
-    card10_p: '上下文窗口用到 70%（填得快时会提前）时，状态栏会提醒你 <code>/clear</code> 或 <code>/compact</code>，避免浪费 token；你也可以另外开启额度门槛与恢复通知的系统提醒。上下文数字在 50% 或 200K token 时变黄，80% 或 400K token 时变红，以先达到的门槛为准。变色时，状态栏会显示图片数与“文件与命令输出”的估计占比。 状态栏也会显示 prompt cache 命中率。缓存未命中后 10 分钟内，会说明原因，例如更换模型、更换工具或闲置超过 5 分钟的有效期（TTL）。',
+    grp_cc_h: 'Claude Code 小帮手',
+    grp_cc_sub: '写代码时，帮你盯着额度和对话',
+    grp_data_h: '数据从哪来',
+    grp_data_sub: '数字怎么算出来的',
+    card10_p: '上下文用到 70% 时，状态栏提醒你 <code>/clear</code> 或 <code>/compact</code>。数字 50% 变黄、80% 变红；缓存没命中，也会告诉你原因。',
     resume_label: '进度管家',
     resume_h2: '让你的 CLI 也接得回上次',
     resume_lead: '网页版、桌面 App 关掉再打开，对话自动就在那，什么都不用做；CLI 的记录其实也留着，但不会自动接上，得自己打指令去找。进度管家把这一步变成自动——开新对话就直接接回你上次做到哪，不用重讲、也不用记指令。现在还会每天帮本机记录做一次健检，发现 token 浪费时开场白会多一行提醒；说「看」，AI 就会解释发现了什么、该怎么改。读取本机记录。',
@@ -1635,6 +1654,10 @@ const T = {
     quota_aware_h: 'クォータ認識モード',
     quota_aware_p: '初期設定はオフ、macOS・Windows 対応。5時間枠が80%・90%・95%、週枠が95%を超えると、残量とリセット時刻を Claude に伝え、小さな作業か待機かを選べるようにします。Claude Code・Codex・Antigravity が対象で、追加のモデル呼び出しはありません。',
     card10_h: '壁にぶつかる前に通知',
+    grp_cc_h: 'Claude Code のお助け機能',
+    grp_cc_sub: 'コーディング中、使用量と会話を見守ります',
+    grp_data_h: 'データの出どころ',
+    grp_data_sub: '数字の算出方法',
     card10_p: 'コンテキストウィンドウが 70%（埋まるのが速い場合はもっと早く）に達すると、ステータスラインが <code>/clear</code> または <code>/compact</code> を促してトークン浪費を防ぎます。さらに、クォータ制限や回復のシステム通知も任意で有効化できます。コンテキストの数値は 50% または 200K トークンで黄色、80% または 400K トークンで赤色になり、先に達した条件を使います。色が変わると、ステータスラインに画像数と「ファイルとコマンド出力」の推定割合を表示します。 ステータスラインには prompt cache のヒット率も表示します。キャッシュがミスした後の10分間は、モデル変更、ツール変更、5分の有効期間（TTL）を超える待機などの理由を表示します。',
     resume_label: '続きから',
     resume_h2: 'CLI でも前回の続きから',
@@ -1733,6 +1756,10 @@ const T = {
     quota_aware_h: '할당량 인식 모드',
     quota_aware_p: '기본값은 꺼짐이며 macOS와 Windows에서 지원합니다. 5시간 할당량이 80%, 90%, 95% 또는 주간 할당량이 95%를 넘으면 남은 양과 재설정 시각을 Claude에 알려, 작은 작업을 할지 기다릴지 고르게 합니다. Claude Code, Codex, Antigravity를 지원하며 모델을 따로 호출하지 않습니다.',
     card10_h: '한도에 닿기 전에 알림',
+    grp_cc_h: 'Claude Code 도우미',
+    grp_cc_sub: '코딩하는 동안 사용량과 대화를 챙겨 줍니다',
+    grp_data_h: '데이터 출처',
+    grp_data_sub: '숫자를 계산하는 방법',
     card10_p: '컨텍스트 창이 70%(빠르게 채워지면 더 일찍)에 도달하면 상태 줄이 <code>/clear</code> 또는 <code>/compact</code> 를 권해 토큰 낭비를 막아 줍니다. 한도 경고와 회복 알림용 시스템 알림도 따로 켤 수 있어요. 컨텍스트 수치는 50% 또는 200K 토큰에서 노란색, 80% 또는 400K 토큰에서 빨간색으로 바뀌며 먼저 도달한 기준을 적용합니다. 색이 바뀌면 상태 줄에 이미지 수와 파일 및 명령 출력의 추정 비율이 표시됩니다. 상태 줄에는 prompt cache 적중률도 표시됩니다. 캐시가 빗나간 뒤 10분 동안 모델 변경, 도구 변경, 5분 유효 기간(TTL)을 넘긴 유휴 시간 등의 이유를 보여 줍니다.',
     resume_label: '이어서 계속',
     resume_h2: '이제 CLI도 이어서',
