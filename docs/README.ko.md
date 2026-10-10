@@ -116,7 +116,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 
 Claude Code를 떠나지 않고 사용량, 다른 대화, 백그라운드 작업을 확인하세요. macOS와 Windows에서 사용할 수 있습니다.
 
-<p align="center"><img src="side-pane.png" alt="사용량, 대화, 백그라운드 작업을 보여 주는 Claude Code 사이드 패널" width="637"></p>
+<p align="center"><img src="side-pane.en.png" alt="사용량, 대화, 백그라운드 작업을 보여 주는 Claude Code 사이드 패널" width="637"></p>
 
 **표시되는 내용**
 

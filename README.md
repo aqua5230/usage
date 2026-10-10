@@ -116,7 +116,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 
 See your quota, other conversations, and background jobs without leaving Claude Code. Available on macOS and Windows.
 
-<p align="center"><img src="docs/side-pane.png" alt="Claude Code side pane showing quotas, conversations, and background jobs" width="637"></p>
+<p align="center"><img src="docs/side-pane.en.png" alt="Claude Code side pane showing quotas, conversations, and background jobs" width="637"></p>
 
 **What you’ll see**
 
