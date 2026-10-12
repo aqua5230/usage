@@ -214,7 +214,10 @@ def test_project_from_encoded_path_matches_names_claude_flattens(tmp_path: Path,
 def test_project_from_encoded_path_matches_truncated_long_path(tmp_path: Path) -> None:
     # Claude Code keeps the first 200 encoded characters and appends "-<hash>".
     projects_dir = tmp_path / "projects"
-    name = "long-project-" + "x" * 220
+    # Size the path below Windows' MAX_PATH limit while keeping it over 200.
+    prefix = "long-project-"
+    padding = 220 - len(_claude_encode(tmp_path / "work")) - len(prefix) - 1
+    name = prefix + "x" * padding
     real_project = tmp_path / "work" / name
     real_project.mkdir(parents=True)
     encoded = _claude_encode(real_project)
