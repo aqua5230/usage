@@ -562,14 +562,27 @@ def _live_session_ids(sessions_dir: Path) -> set[str]:
         entries = list(sessions_dir.glob("*.json"))
     except OSError:
         return ids
+    own_pids = _own_window_pids()
     for entry in entries:
         data = _read_json_file(entry)
         if data is None:
             continue
         session_id = data.get("sessionId")
-        if isinstance(session_id, str) and session_id and _pid_running(data.get("pid")):
+        pid = data.get("pid")
+        if pid in own_pids:
+            continue
+        if isinstance(session_id, str) and session_id and _pid_running(pid):
             ids.add(session_id)
     return ids
+
+
+def _own_window_pids() -> set[int]:
+    """This window's Claude Code process. After /clear its registry entry may still name
+    the session just cleared, which is the one to hand over."""
+    pids = {os.getppid()}
+    with contextlib.suppress(ValueError):
+        pids.add(int(os.environ.get("CLAUDE_PID", "")))
+    return pids
 
 
 def _pid_running(pid: object) -> bool:

@@ -1435,6 +1435,7 @@ def test_build_prompt_skips_session_another_window_is_still_writing(
 ) -> None:
     monkeypatch.setenv("USAGE_LANG", "en")
     _sidecar(tmp_path, monkeypatch)
+    monkeypatch.delenv("CLAUDE_PID", raising=False)
     neighbour, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=1))
     _register_session(tmp_path, neighbour.stem, os.getpid())
 
@@ -1453,6 +1454,25 @@ def test_build_prompt_keeps_session_closed_a_moment_ago(
     _sidecar(tmp_path, monkeypatch)
     _neighbour, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=1))
     _register_session(tmp_path, "some-other-session", os.getpid())
+
+    assert "plan the kyoto trip app" in _resume_prompt(current)
+
+
+@pytest.mark.parametrize("via", ["env", "parent"])
+def test_build_prompt_keeps_session_this_window_just_cleared(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, via: str
+) -> None:
+    # After /clear the registry may still list this window's pre-clear session.
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    cleared, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=1))
+    _register_session(tmp_path, cleared.stem, 4242)
+    monkeypatch.setattr(mod, "_pid_running", lambda pid: True)
+    if via == "env":
+        monkeypatch.setenv("CLAUDE_PID", "4242")
+    else:
+        monkeypatch.delenv("CLAUDE_PID", raising=False)
+        monkeypatch.setattr(os, "getppid", lambda: 4242)
 
     assert "plan the kyoto trip app" in _resume_prompt(current)
 
