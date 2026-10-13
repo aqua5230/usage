@@ -9,6 +9,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - **Windows: usage no longer leaves a WebView2 folder in %TEMP% after each abnormal exit.** Each crash, forced close or shutdown with Windows previously left about 2.5 MB behind. usage now reuses one dedicated folder under `~/.usage/webview`.
+- **Sonnet 5.5 cache reads in the offline price table cost $0.10 per million tokens.** The table, used only when the LiteLLM download fails, still charged $0.20, so offline Sonnet 5.5 spending was overstated.
 
 ## [0.33.3] - 2026-10-09
 
