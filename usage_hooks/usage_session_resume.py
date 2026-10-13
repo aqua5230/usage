@@ -50,7 +50,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any, TypedDict, cast
 
-__version__ = "1.10"
+__version__ = "1.11"
 
 
 class _HiddenConsoleKwargs(TypedDict, total=False):
@@ -100,6 +100,20 @@ _MAX_REQUESTS = 3
 _MAX_REQUEST_CHARS = 280
 _MIN_SUBSTANTIVE_CHARS = 7
 _IMAGE_MARKER = re.compile(r"\[Image(?:\s+#[0-9]+)?\]", re.I)
+# User turns Claude Code writes on the user's behalf: background-task notices, `!` shell
+# runs, and local command output. Matched exactly so a user's own `<Task>` prompt survives.
+_SYSTEM_TURN_PREFIXES = (
+    "<task-notification>",
+    "<bash-input>",
+    "<bash-stdout>",
+    "<local-command-stdout>",
+)
+_SLASH_COMMAND_PREFIXES = ("<command-name>", "<command-message>")
+_SLASH_COMMAND_NAME = re.compile(r"<command-name>(.*?)</command-name>")
+_SLASH_COMMAND_ARGS = re.compile(r"<command-args>(.*?)</command-args>")
+# A session another window still has open and wrote to this recently is that window's
+# work in progress, not this window's previous session.
+_LIVE_SESSION_WINDOW = timedelta(minutes=10)
 _DIAGNOSIS_MAX_AGE = timedelta(hours=48)
 _DIAGNOSIS_REMINDER_COOLDOWN = timedelta(days=7)
 _DIAGNOSIS_CAUSE_KEYS = (
@@ -520,7 +534,12 @@ def _other_jsonls_by_mtime(project_dir: Path, exclude: str) -> list[Path]:
 
     Newest-first so the caller can skip a freshly-written but empty/corrupt log and
     still fall back to the previous session that actually has progress to report.
+    Sessions another window still has open and is still writing are left out: with
+    several windows in one project, the newest log is usually a neighbour's live work.
+    A session closed a moment ago is no longer registered, so it stays a candidate.
     """
+    live_ids = _live_session_ids(project_dir.parent.parent / "sessions")
+    busy_since = (datetime.now() - _LIVE_SESSION_WINDOW).timestamp()
     candidates: list[tuple[float, Path]] = []
     for jsonl in project_dir.glob("*.jsonl"):
         if jsonl.name == exclude:
@@ -529,9 +548,45 @@ def _other_jsonls_by_mtime(project_dir: Path, exclude: str) -> list[Path]:
             mtime = jsonl.stat().st_mtime
         except OSError:
             continue
+        if mtime >= busy_since and jsonl.stem in live_ids:
+            continue
         candidates.append((mtime, jsonl))
     candidates.sort(key=lambda item: item[0], reverse=True)
     return [path for _, path in candidates]
+
+
+def _live_session_ids(sessions_dir: Path) -> set[str]:
+    """Session IDs that open Claude Code windows list in ``~/.claude/sessions/<pid>.json``."""
+    ids: set[str] = set()
+    try:
+        entries = list(sessions_dir.glob("*.json"))
+    except OSError:
+        return ids
+    for entry in entries:
+        data = _read_json_file(entry)
+        if data is None:
+            continue
+        session_id = data.get("sessionId")
+        if isinstance(session_id, str) and session_id and _pid_running(data.get("pid")):
+            ids.add(session_id)
+    return ids
+
+
+def _pid_running(pid: object) -> bool:
+    """False for a registry entry a crashed window left behind."""
+    if not isinstance(pid, int) or isinstance(pid, bool) or pid <= 0:
+        return False
+    # On Windows os.kill(pid, 0) sends CTRL_C_EVENT instead of probing, so the entry
+    # is trusted as is.
+    if os.name == "nt":
+        return True
+    try:
+        os.kill(pid, 0)
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
 
 
 def _parse_session(path: Path) -> tuple[datetime, str, list[str], list[str], list[str]] | None:
@@ -625,6 +680,16 @@ def _clean_request(value: object) -> str:
     if not isinstance(value, str):
         return ""
     text = " ".join(value.split())
+    if text.startswith(_SYSTEM_TURN_PREFIXES):
+        return ""
+    if text.startswith(_SLASH_COMMAND_PREFIXES):
+        # Keep a slash command only when it carries arguments: `/loop 5m check CI` is a
+        # request, a bare `/clear` is not.
+        name = _SLASH_COMMAND_NAME.search(text)
+        args = _SLASH_COMMAND_ARGS.search(text)
+        if name is None or args is None or not args.group(1).strip():
+            return ""
+        text = f"{name.group(1).strip()} {args.group(1).strip()}"
     # Skip the interruption marker Claude Code writes as a user turn — it is noise,
     # not a request.
     if not text or text.startswith("[Request interrupted"):
