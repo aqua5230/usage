@@ -18,6 +18,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from enum import IntEnum
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 from uuid import UUID
 
@@ -84,6 +85,8 @@ UPDATE_ALERT_BODY_LIMIT = 2000
 # szTip is 128 WCHARs including the terminator; pystray raises ValueError past that.
 TOOLTIP_MAX_LENGTH = 127
 PANEL_WIDTH = 380
+# Abnormal exits reuse one dir; pywebview private mode deletes on clean exit: subdir, never ~/.usage
+_WEBVIEW_STORAGE_DIR = Path.home() / ".usage" / "webview"
 _TOAST_AUMID = "com.lollapalooza.usage"
 _TOAST_OPEN_PANEL_ACTION = "open_panel"
 WINDOWS_PANELS = tuple((spec.id, spec.i18n_key, spec.html_filename) for spec in PANEL_SPECS)
@@ -2639,7 +2642,11 @@ def run_app(
 
     start(_current_version(), snapshot, controller.language)
     try:
-        webview.start(gui="edgechromium", debug=os.environ.get("USAGE_DEBUG") == "1")
+        webview.start(
+            gui="edgechromium",
+            debug=os.environ.get("USAGE_DEBUG") == "1",
+            storage_path=str(_WEBVIEW_STORAGE_DIR),
+        )
     finally:
         controller.stopping.set()
         _release_single_instance_lock()
