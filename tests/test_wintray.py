@@ -1814,7 +1814,7 @@ def test_run_app_wires_pystray_and_pywebview(
     fake_pystray = SimpleNamespace(Icon=FakeIcon, Menu=FakeMenu, MenuItem=FakeMenuItem)
     fake_webview = SimpleNamespace(
         create_window=create_window,
-        start=lambda **kwargs: events.append(("start", kwargs["gui"])),
+        start=lambda **kwargs: events.append(("start", kwargs["gui"], kwargs["storage_path"])),
     )
     monkeypatch.setitem(sys.modules, "pystray", fake_pystray)
     monkeypatch.setitem(sys.modules, "webview", fake_webview)
@@ -1826,12 +1826,14 @@ def test_run_app_wires_pystray_and_pywebview(
 
     wintray.run_app(mock=True, interval=60)
 
+    assert wintray._WEBVIEW_STORAGE_DIR.name == "webview"
+    assert wintray._WEBVIEW_STORAGE_DIR.parent == Path.home() / ".usage"
     assert events == [
         ("window", "usage", True, "#eef2f7"),
         "loaded_handler",
         ("icon", "usage"),
         "run_detached",
-        ("start", "edgechromium"),
+        ("start", "edgechromium", str(wintray._WEBVIEW_STORAGE_DIR)),
     ]
 
 

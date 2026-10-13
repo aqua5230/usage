@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Windows: usage no longer leaves a WebView2 folder in %TEMP% after each abnormal exit.** Each crash, forced close or shutdown with Windows previously left about 2.5 MB behind. usage now reuses one dedicated folder under `~/.usage/webview`.
+
 ## [0.33.3] - 2026-10-09
 
 ### Performance
