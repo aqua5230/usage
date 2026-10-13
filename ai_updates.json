@@ -846,6 +846,111 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.3.4",
+          "period": "2026-10-13",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "外掛與代理人清單完整列出，支援結構化輸出",
+                "en": "Complete Plugin and Agent Listings with Structured Output Support"
+              },
+              "body": {
+                "zh-TW": "當你安裝了許多擴充套件，想一次盤點目前啟用了哪些工具與專屬助理時，資訊常會顯示不全。⟦跟檢視樂團編制表一樣，以前只列出編制內樂手還漏寫客席聲部，現在連外聘演奏家與個別聲部名單都按正式姓名全數登載。⟧現在執行 `agy plugin list` 時新增了 `--json` 參數，能輸出方便程式解析的結構化資料。該指令不再只顯示手動匯入的套件，而是將從市集安裝的所有外掛、版本編號以及啟用狀態完整列出。在對話中輸入 `/plugin` 查看外掛詳情時，底下的代理人清單過去會漏掉在 `agents.json` 根目錄宣告的子代理人。這個問題已經修好，現在會依名稱完整顯示所有載入的代理人，不再只抓取資料夾名稱。",
+                "en": "When you have installed many extensions and want to inventory which tools and dedicated assistants are currently active all at once, the information is often incomplete. ⟦Like checking an orchestra roster that previously listed only permanent musicians and missed guest sections, the roster now records every visiting performer and individual section member under their official name.⟧ Running `agy plugin list` now adds a `--json` flag to output structured data for easy programmatic parsing. The command no longer displays only manually imported packages, but completely lists all plugins installed from the marketplace along with their version numbers and enabled status. When typing `/plugin` in a chat to view plugin details, the agent list below previously omitted subagents declared at the root of `agents.json`. This issue is now fixed, and all loaded agents are fully displayed by name instead of only grabbing directory names."
+              },
+              "original": "Added a `--json` flag to `agy plugin list` for machine-readable output, and fixed the command showing only imported plugins: it now lists every installed plugin, including ones installed from a marketplace, with its version and whether it is enabled.\nFixed the `Agents:` row in `/plugin` plugin details leaving out subagents a plugin declares in its root `agents.json`; it now lists every loaded agent by name instead of by its `agents/` folder name."
+            },
+            {
+              "title": {
+                "zh-TW": "模型切換省去思考參數，自動過濾無權限選項",
+                "en": "Model Switching Omits Thinking Parameters and Automatically Filters Unauthorized Options"
+              },
+              "body": {
+                "zh-TW": "想切換對話模型或調整推理解題深度時，以前常因為少打參數或選錯項目而卡住。⟦好比到餐廳點牛排，以前少交代熟度就無法送單，現在廚師會主動端出推薦熟度，點餐看板上也預先撤下沒供應的部位。⟧現在使用 `--model` 或 `/model` 指定模型時，可以直接填寫模型基礎名稱，不必強制加上 `--effort` 參數。系統會自動套用預設的思考層級（伺服器預設值，否則依序採用中等或最低層級），不再報錯中斷。若透過 Google Cloud 按量計費的商業帳號登入，選單會主動隱藏專案無權存取的第三方模型。另外使用應用程式預設憑證（ADC，讓本機直接取得雲端授權的機制）時，思考預算與思考層級衝突的報錯也已修復。",
+                "en": "When switching chat models or tuning reasoning depth, users often got stuck due to missing parameters or selecting invalid options. ⟦Think of ordering steak at a restaurant: previously, leaving out the doneness level prevented placing an order, but now the chef serves a recommended doneness automatically, and unavailable cuts are removed from the menu board in advance.⟧ When specifying a model with `--model` or `/model`, you can now enter just the base model name without being required to add the `--effort` flag. The system automatically applies a default thinking effort (the server default, or otherwise medium or lowest in order) without throwing an error and halting. If logged in through a Google Cloud pay-as-you-go commercial account, the menu proactively hides third-party models that the project has no permission to access. In addition, an error where thinking budgets conflicted with thinking effort when using Application Default Credentials (ADC, a mechanism allowing local environments to directly obtain cloud authorization) has also been fixed."
+              },
+              "original": "Changed `--model` and `/model` to accept a base model name without `--effort`: instead of failing with an error asking for `--effort`, the CLI now picks the model's default thinking level (the server's default for that model, otherwise medium, otherwise the lowest available).\nImproved the `/model` picker for Business sign-in with a Google Cloud project on pay-as-you-go: third-party models your project can't access are now hidden instead of failing when you send a message.\nFixed requests failing with `thinking_budget and thinking_level are not supported together` when signed in with Application Default Credentials and using a model that has a thinking level."
+            },
+            {
+              "title": {
+                "zh-TW": "遠端控制設定面板開放調整，權限刪除即時同步",
+                "en": "Remote Control Settings Panel Opened for Adjustments with Instant Permission Deletion Sync"
+              },
+              "body": {
+                "zh-TW": "出門在外用手機網頁查看終端機進度時，常常碰上偏好選項改不了、或是撤銷規則卻依然生效的窘境。⟦就像拿著平板遙控中央機房，以前面板只顯示無法修改，現在順手調整溫控或撤銷訪客門禁，實體主機的設定檔立刻同步更新。⟧瀏覽器遠端控制（Remote Control，讓使用者透過網頁介面操作終端機工作階段的功能）的設定面板現在已正式開放。視窗中會直接列出專案與全域權限、排隊訊息、AI 額度、遙測數據與工件審查等實際運作項目。透過 `agy remote-control serve` 啟動時會載入 `settings.json`，在網頁上的修改也會即時寫回本機。而在瀏覽器中核准的「永遠允許」規則，過去在規則編輯器或 `/permissions` 分頁移除後依然會繼續生效；現在規則只會存入共用的 `config.json`，移除後便立即失效。",
+                "en": "When checking terminal progress via a mobile browser while away, users often ran into dilemmas where preference options could not be changed or revoked rules remained in effect. ⟦Picture managing a central server room from a tablet: previously the panel only displayed settings without allowing modifications, but now adjusting climate control or revoking visitor access immediately syncs the configuration files on the physical host.⟧ The settings panel for browser Remote Control (a feature allowing users to operate terminal sessions through a web interface) is now officially open. The window directly lists active items such as project and global permissions, queued messages, AI quotas, telemetry data, and artifact reviews. Starting via `agy remote-control serve` loads `settings.json`, and changes made on the web page are immediately written back to the local machine. Previously, \"always allow\" rules approved in the browser remained in effect even after being removed in the rule editor or on the `/permissions` tab. Rules are now stored exclusively in the shared `config.json`, becoming invalid immediately upon removal."
+              },
+              "original": "Improved Remote Control so the browser's Settings modal opens for CLI sessions and shows the settings the CLI actually uses (project and global permissions, queued messages, AI credits, telemetry, and artifact review) instead of a notice that settings can't be changed in the browser, and `agy remote-control serve` sessions now use your saved `settings.json` and save changes made in the browser back to it.\nFixed \"Always allow\" rules approved from a Remote Control browser session still applying after you removed them in the browser's rules editor or the shared tab of `/permissions`; these rules are now saved only to the shared `config.json`."
+            },
+            {
+              "title": {
+                "zh-TW": "指令參數錯誤不再靜默執行，明確回傳警告與狀態碼",
+                "en": "Command Flag Errors No Longer Run Silently, Returning Explicit Warnings and Exit Codes"
+              },
+              "body": {
+                "zh-TW": "在指令列啟動工具時，如果不小心打錯代理人名稱或組合了互相矛盾的參數，很容易因系統沒有明確阻止而產生誤解。⟦猶如車站剪票閘門，以前乘客拿錯票卡還會悄悄放行，現在若是無人自動驗票就立即亮紅燈攔截並列出可用票種，人工窗口也會先響起警告才做後續處置。⟧當使用 `--agent` 指定代理人卻拼錯名稱時，過去系統會默默改用預設代理人執行。現在無頭模式（headless，沒有終端機視覺畫面的執行模式）若搭配 `-p` 遇到名稱不符，會直接以狀態碼 1 結束並列出所有可用代理人。若在一般互動視窗遇到相同狀況，系統則會先顯示 `Agent Not Found` 警告才退回預設代理人。若將 `--print` 與 `--prompt-interactive` 混用，回報衝突後的退出狀態碼也已從原本代表成功的 0 改為狀態碼 2。",
+                "en": "When launching tools from the command line, accidentally mistyping an agent name or combining contradictory flags could easily cause confusion because the system did not clearly intervene. ⟦A station ticket turnstile illustrates this shift: where passenger cards with errors were once quietly let through, automated gates now instantly flash red, intercept entry, and list valid ticket types, while staffed booths sound a warning before taking further action.⟧ When specifying an agent using `--agent` with a misspelled name, the system previously fell back silently to the default agent. In headless mode (an execution mode without a visual terminal interface) combined with `-p`, encountering an unmatched name now exits directly with status code 1 and lists all available agents. Under the same condition in a standard interactive window, the system now displays an `Agent Not Found` warning before falling back to the default agent. When mixing `--print` with `--prompt-interactive`, the exit code after reporting the conflict has also been changed from 0 (which originally indicated success) to exit code 2."
+              },
+              "original": "Fixed `--agent` silently running the default agent when the name matches no agent: headless `-p` runs now exit with code 1 and list the available agents, and interactive sessions show an `Agent Not Found` warning before falling back to the default agent.\nFixed combining `--print` with `--prompt-interactive` exiting with status 0 after reporting the conflict; it now exits with status 2 like other print-mode usage errors."
+            },
+            {
+              "title": {
+                "zh-TW": "模型請求失敗重試間隔縮短，連線不順不再乾等",
+                "en": "Model Request Failure Retry Intervals Shortened to Eliminate Idling During Unstable Connections"
+              },
+              "body": {
+                "zh-TW": "當 AI 伺服器連線不穩或請求連續失敗時，以前終端機常常毫無反應。在模型請求遭遇連續失敗時，系統在自動重試之間的等待時間過去最長可達 4 分鐘，導致整個工作階段長時間停滯。這個問題現在已經修好，自動重試之間的等待間隔上限已縮短為最多 30 秒，減少連線異常時的乾等時間。",
+                "en": "When connections to AI servers are unstable or requests fail repeatedly, the terminal previously often became unresponsive. During consecutive model request failures, the system previously waited up to 4 minutes between automatic retries, leaving the entire session stalled for extended periods. This issue has now been resolved, and the upper limit for wait intervals between automatic retries has been shortened to at most 30 seconds, reducing idle waiting time during connection abnormalities."
+              },
+              "original": "Fixed long stalls when model requests fail repeatedly: the agent now waits at most 30 seconds between automatic retries instead of up to 4 minutes."
+            },
+            {
+              "title": {
+                "zh-TW": "遠端 MCP 登入憑證更穩定，網路暫時中斷不強制登出",
+                "en": "Remote MCP Login Credentials Stabilized to Prevent Forced Logout on Transient Network Drops"
+              },
+              "body": {
+                "zh-TW": "使用需要網頁授權的遠端外掛時，最怕網路稍有波動就被強制登出。當連線至使用 OAuth 驗證的遠端 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器時，過去只要遭遇短暫網路中斷、逾時或伺服器錯誤，系統就會清除登入資訊。現在只有在授權伺服器確實拒絕驗證時才會清除紀錄，短暫斷線不再需要重新登入。",
+                "en": "When using remote plugins that require web authorization, the biggest frustration was being forcibly logged out over minor network fluctuations. When connecting to a remote MCP (Model Context Protocol, a protocol allowing AI to connect to external tools) server that uses OAuth authentication, the system previously cleared login credentials whenever it encountered brief network interruptions, timeouts, or server errors. Now credentials are cleared only when the authorization server definitively rejects authentication, so brief disconnections no longer require logging in again."
+              },
+              "original": "Fixed remote MCP servers that use OAuth signing you out after a temporary network failure, timeout, or server error; saved sign-ins are now cleared only when the server or its authorization server actually rejects them."
+            },
+            {
+              "title": {
+                "zh-TW": "版本庫開啟彩色輸出時，比對指令不再誤報無變更",
+                "en": "Diff Command No Longer Falsely Reports No Changes When Repositories Enable Color Output"
+              },
+              "body": {
+                "zh-TW": "在對話中想查看程式碼修改進度時，終端機有時會明明有改動卻顯示一片空白。在 Git、Mercurial 或 Jujutsu 版本庫中輸入 `/diff` 查看變更時，若版本控制設定了強制彩色輸出（例如 `color.ui = always`），過去系統會誤判並顯示 `No uncommitted changes`。這個問題現在已經修好，即使環境開啟了色彩標記，指令也能正確讀取並顯示所有尚未提交的檔案修改。",
+                "en": "When attempting to review code modification progress during a conversation, the terminal sometimes displayed blank output even when modifications were present. When entering `/diff` to inspect changes in a Git, Mercurial, or Jujutsu repository, if version control was configured to force color output (such as `color.ui = always`), the system previously misinterpreted the output and displayed `No uncommitted changes`. This issue has now been resolved, so the command properly reads and displays all uncommitted file modifications even when color formatting is enabled in the environment."
+              },
+              "original": "Fixed `/diff` showing `No uncommitted changes` in Git, Mercurial, and Jujutsu repositories configured to always color output, for example with `color.ui = always`."
+            },
+            {
+              "title": {
+                "zh-TW": "歷史對話搜尋逾時自動降級，清單不再卡住等待",
+                "en": "Conversation History Search Automatically Fallbacks on Timeout Without Freezing the List"
+              },
+              "body": {
+                "zh-TW": "在輸入框打字引入舊對話時，如果搜尋速度變慢，游標常常會被卡在原地無法挑選。在終端機輸入 `@conversation:` 尋找過往對話時，若對話搜尋速度較慢，選單過去會一直卡在 `Fetching matches for ...` 的讀取畫面。這個問題現在已經修好，只要等候超過 2 秒，選單就會自動退回顯示本機儲存的歷史對話，不必再漫長乾等。",
+                "en": "When typing in the input box to reference an earlier conversation, slow searches often froze the cursor in place and prevented selection. When entering `@conversation:` in the terminal to search for past conversations, if the conversation lookup was slow, the menu previously stayed stuck on the `Fetching matches for ...` loading screen. This issue has now been resolved: after waiting more than 2 seconds, the menu automatically falls back to showing locally stored conversation history, eliminating the need to wait indefinitely."
+              },
+              "original": "Fixed `@conversation:` suggestions getting stuck on `Fetching matches for ...` when conversation search is slow; after 2 seconds the list now falls back to your local conversations."
+            },
+            {
+              "title": {
+                "zh-TW": "讀取殘缺影音檔直接拒絕，避免後續對話連鎖崩潰",
+                "en": "Incomplete Media Files Rejected Directly to Prevent Cascading Conversation Failures"
+              },
+              "body": {
+                "zh-TW": "讓代理人分析專案資料夾裡的媒體檔案時，若檔案未下載完整，可能導致後續整段交談全部報銷。當代理人讀取到內容不完整或只有標頭資訊的 WebM 影音檔案時，過去會將該檔案附加至工作階段中，導致後續的每一次對話請求全部發生錯誤。這個問題現在已經修好，系統在讀取到此類殘缺檔案時會直接拒絕載入，不再將損壞的附件帶入對話，確保後續操作能正常進行。",
+                "en": "When having an agent analyze media files in a project folder, an incompletely downloaded file could ruin the entire subsequent conversation. When an agent read a WebM media file that was incomplete or contained only header information, the system previously attached the file to the session, causing every subsequent conversation request to fail with an error. This issue has now been resolved: the system directly refuses to load such incomplete files and no longer brings corrupted attachments into the conversation, ensuring subsequent operations proceed normally."
+              },
+              "original": "Fixed a conversation failing on every later request after the agent read a truncated or header-only WebM file; such files are now rejected when read instead of being attached."
+            }
+          ]
+        },
+        {
           "version": "1.3.3",
           "period": "2026-10-10",
           "items": [
@@ -1008,133 +1113,6 @@
                 "en": "Sending multiple screenshots in a conversation or having the agent read many images no longer triggers errors from oversized images. Previously, when too many images accumulated in a conversation, calls to the Claude model often failed. Now, whether images are attached by you or read by the agent, the per-side limit has been reduced from 4096 pixels to at most 2576 pixels. This ensures that no matter how many images pile up in a conversation, they reliably stay within the model's limits."
               },
               "original": "Fixed conversations that collect many images failing on Claude models: images the agent views or you attach are now scaled down to at most 2576 pixels per side (previously 4096), keeping them within the model's limits however many images a conversation contains."
-            }
-          ]
-        },
-        {
-          "version": "1.3.1",
-          "period": "2026-10-07",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "/diff 檔案比對檢視升級，跨檔跳轉與進度更清楚",
-                "en": "/diff file comparison view upgraded, making cross-file navigation and progress clearer"
-              },
-              "body": {
-                "zh-TW": "檢查 AI 修改的多個檔案時，`/diff` 畫面的跨檔案切換變得非常流暢。⟦就像使用電子書閱讀器翻閱文件，以前切換章節總會迷失段落，現在翻頁時自動對準修改處並記住捲動位置，右上角還隨時標記目前讀到第幾項變更。⟧按左右箭頭 `←` 與 `→` 切換檔案時，畫面會跳到該檔案的第一個修改區塊，並顯示區塊標頭與修改處前面的文字。每個檔案會記住游標與捲動位置，切換檔案或回到檔案清單後都不會跑位。按 `n` 或 `N` 能繼續跳到下一個或上一個檔案的變更，不再停在當前檔案的最後一處修改。頂端標頭新增靠右的 `change A/B · file X/Y`，標示游標所在的增刪區塊與檔案順序。只有一個檔案變更時省略檔案計數，終端機太窄時隱藏位置標示。底部按鍵提示移除通用的捲動與翻頁說明，視窗太窄時會換行，不再被切斷。",
-                "en": "When inspecting multiple files modified by AI, switching between files in the `/diff` view is now much smoother. ⟦Think of turning pages on an e-reader where changing chapters used to lose your place, but now turning a page aligns right to the edits, remembers your scroll position, and marks in the top-right corner which change you are currently reading.⟧ Pressing the left and right arrows `←` and `→` to switch files jumps to the first modified chunk of that file and displays the chunk header along with the text preceding the edit. Each file remembers its cursor and scroll position so nothing shifts when switching files or returning to the file list. Pressing `n` or `N` continues jumping to the next or previous file's changes instead of stopping at the last modification in the current file. The top header adds a right-aligned `change A/B · file X/Y` indicator that marks the cursor's addition/deletion chunk and file order. When only one file changes, the file count is omitted, and the position indicator is hidden if the terminal is too narrow. Bottom key hints remove generic scrolling and paging descriptions, wrapping onto a new line when the window is too narrow so they are no longer cut off."
-              },
-              "original": "Improved navigation in the `/diff` file view: `←`/`→` now open the next or previous file at its first change with the hunk header and leading context in view, each file remembers its cursor and scroll position when you switch files or go back to the file list, `n`/`N` continue into the next or previous file's changes instead of stopping at the last change in the current file, and the key-hint footer drops the generic scroll and page hints and wraps onto extra lines instead of being cut off on narrow terminals.\nImproved the `/diff` file view header to show where you are: it now ends with a right-aligned `change A/B · file X/Y` position, counting the block of added or removed lines under the cursor and the file's place in the file list (`file X/Y` is left out when only one file changed, and the position is hidden on narrow terminals)."
-            },
-            {
-              "title": {
-                "zh-TW": "/rewind 清楚標示已清除訊息，避免選取報錯",
-                "en": "/rewind clearly labels cleared messages to prevent selection errors"
-              },
-              "body": {
-                "zh-TW": "想要在長對話中退回先前的討論進度時，歷史訊息的呈現更加明確。以前為了節省空間而清掉的舊訊息，在 `/rewind` 清單中會顯示為 `(empty message)`，一旦選取就會發生錯誤。現在這些已清理的訊息會保留原本的文字內容，以淡化樣式標註 `cleared to save space, can't rewind here`，並且無法再被選取，避免你不小心點到無法退回的段落。",
-                "en": "When rewinding to an earlier point in a long conversation, historical messages are now displayed much more clearly. Previously, older messages cleared to save space appeared as `(empty message)` in the `/rewind` list, throwing an error if selected. These cleared messages now retain their original text content, are labeled with a dimmed `cleared to save space, can't rewind here` style, and can no longer be selected, preventing you from accidentally choosing an unrewindable section."
-              },
-              "original": "Fixed `/rewind` in very long conversations listing older messages as `(empty message)` and failing with an error when you picked one: messages that were cleared to save space now show their original text, dimmed and labeled `cleared to save space, can't rewind here`, and can no longer be selected."
-            },
-            {
-              "title": {
-                "zh-TW": "Windows 外掛管理修復，避免檔案佔用與設定讀取失敗",
-                "en": "Windows plugin management fixed to prevent file locking and config load failures"
-              },
-              "body": {
-                "zh-TW": "在 Windows 系統上使用 `/plugin` 管理外掛時，安裝與移除流程現在更穩定。以前如果外掛的 MCP（讓 AI 連接外部工具的協定）伺服器仍在執行，檔案操作便會失敗。現在指令列介面會在替換或刪除資料夾前先停止相關伺服器，完成後再重新啟動。要是有另一個 `agy` 工作階段、Antigravity Hub 或 `remote-control` 背景守護程序仍佔用該外掛，也會提示你關閉該程式後重試。包含 UTF-8 位元組順序標記（BOM，部分編輯器存檔時附加在檔頭、用來辨識文字編碼的特殊標記）的外掛資訊清單、`mcp_config.json` 與 `hooks.json` 檔案現在都能正常讀取。從市集安裝外掛時，也不會再意外覆寫來自其他來源的既有外掛資料夾。",
-                "en": "When managing plugins with `/plugin` on Windows, installation and removal are now more reliable. Previously, file operations would fail if the plugin's MCP (a protocol that lets AI connect to external tools) server was still running. The CLI now stops the relevant servers before replacing or deleting folders, restarting them once complete. If another `agy` session, Antigravity Hub, or `remote-control` background daemon still locks the plugin, it will prompt you to close that process and retry. Plugin manifests, `mcp_config.json`, and `hooks.json` files containing a UTF-8 byte order mark (BOM) can now be read properly. Some editors add this marker at the beginning of a file to identify its text encoding. Installing plugins from the marketplace will also no longer accidentally overwrite existing plugin folders from other sources."
-              },
-              "original": "Fixed installing, reinstalling, and uninstalling plugins with `/plugin` on Windows failing while one of the plugin's MCP servers was running: the CLI now stops the plugin's MCP servers before replacing or deleting its folder and restarts them afterwards, and if another Antigravity process such as another `agy` session, the Antigravity Hub, or the `remote-control` daemon still holds the plugin open, it tells you to close it and retry. Plugin manifests, `mcp_config.json`, and `hooks.json` files saved with a UTF-8 byte-order mark now load, and installing from a marketplace no longer overwrites an existing plugin folder that came from a different source."
-            },
-            {
-              "title": {
-                "zh-TW": "自訂 Agent 支援相對路徑，輕鬆引入附屬檔案",
-                "en": "Custom agents support relative paths for easy inclusion of referenced files"
-              },
-              "body": {
-                "zh-TW": "為自訂 Agent 撰寫 Markdown 設定檔時，引入附屬資源的方式變得更直覺。以前無論作為主要 Agent 或子代理（由主要 Agent 派工的輔助代理）執行，檔案內以相對路徑指定的 `skills:`、`plugins:`、`rules:`、`agents:` 與 `hooks:` 都會被忽略。現在這些設定會以該 Agent 檔案所在的目錄為基準進行解析，例如在設定中寫入 `agents: [child.md]` 就能順利呼叫 `child`，方便將相關技能與子代理打包在一起。",
-                "en": "When writing Markdown config files for custom agents, referencing companion resources is now much more intuitive. Previously, relative paths specified in `skills:`, `plugins:`, `rules:`, `agents:`, and `hooks:` were ignored whether running as the main agent or as a subagent (a supporting agent assigned tasks by the main agent). These settings are now resolved relative to the directory containing that agent file. For example, writing `agents: [child.md]` in the configuration successfully invokes `child`, making it easy to package related skills and subagents together."
-              },
-              "original": "Fixed markdown custom agents ignoring `skills:`, `plugins:`, `rules:`, `agents:`, and `hooks:` entries written as paths relative to the agent's own file when the agent ran as a subagent or as the main agent; such entries now resolve against the agent's directory, so an agent that lists `agents: [child.md]` can invoke `child`."
-            },
-            {
-              "title": {
-                "zh-TW": "子代理遇錯不再誤標完成，即時顯示錯誤原因",
-                "en": "Subagent failures no longer marked Done, showing exact error causes in real time"
-              },
-              "body": {
-                "zh-TW": "派遣子代理在背景處理任務時，執行狀態的呈現更加精確。以前子代理若因額度耗盡或模型算力不足而中斷，在 `/agents` 與執行中的代理清單中仍會被誤標為 `Done`。現在遇到問題時會明確顯示 `Error:` 以及具體的出錯原因，且只要該子代理後續重新取得進展，錯誤標記便會自動清除，方便你隨時掌握背景作業的真實進度。",
-                "en": "When delegating background tasks to subagents, execution statuses are displayed much more accurately. Previously, if a subagent stopped due to exhausted quota or insufficient model capacity, it was still incorrectly marked as `Done` in `/agents` and the active agents list. It now clearly shows `Error:` alongside the specific cause of failure whenever an issue occurs. As soon as the subagent makes further progress later, the error badge is automatically cleared, allowing you to track the actual status of background operations at all times."
-              },
-              "original": "Fixed subagents that stopped on an error, such as running out of quota or model capacity, being shown as `Done` in `/agents` and the list of running agents; they now show `Error:` with the reason, and the error clears once the subagent makes further progress."
-            },
-            {
-              "title": {
-                "zh-TW": "/tasks 納入定時與背景工具，任務清單更完整",
-                "en": "/tasks includes timers and background tools for a complete task list"
-              },
-              "body": {
-                "zh-TW": "透過終端機追蹤各項背景工作時，任務清單現在能掌握全部作業。以前 `/tasks`、作用中任務清單以及終端機狀態列（顯示在終端機底部的狀態資訊）的任務計數，都只會記錄背景 Shell 指令。現在 AI 排程的單次計時器、循環定時工作，以及其他在背景運行的工具都會一併列出。這些任務會明確標示為 `completed` 或 `failed`，不再附帶虛構的結束代碼。",
-                "en": "When tracking background jobs through the terminal, the task list now captures all operations. Previously, `/tasks`, the active task list, and the terminal status line (status information displayed at the bottom of the terminal) task counter only tracked background shell commands. Single-shot timers scheduled by AI, recurring scheduled jobs, and other tools running in the background are now listed as well. These tasks are clearly labeled as `completed` or `failed` without attaching fabricated exit codes."
-              },
-              "original": "Fixed `/tasks`, the active task list, and the status line's task count showing only background shell commands; timers and recurring jobs the agent schedules, and other tools running in the background, now appear there too and are shown as `completed` or `failed` without a made-up exit code."
-            },
-            {
-              "title": {
-                "zh-TW": "立即傳送訊息不再延遲，產物更新時立刻送達",
-                "en": "Immediately sent messages no longer delayed, arriving instantly during artifact updates"
-              },
-              "body": {
-                "zh-TW": "如果你想在 AI 回覆中途插話補充指令，訊息能更即時地送達。以前如果在 `/config` 中將 `Queued Messages` 設定為 `Send Immediately` 立即傳送，只要 AI 在該回合中建立或更新了任務清單或計畫等產物，你的輸入就會被悄悄排隊延後，直到整次回合結束前 AI 都不會看到你剛才輸入的內容。現在訊息會立刻傳遞給 AI，確保你的即時指示能馬上發揮作用。",
-                "en": "If you want to interject instructions while the AI is replying, messages are now delivered much more promptly. Previously, when `Queued Messages` was set to `Send Immediately` in `/config`, your input was silently queued and delayed whenever the AI created or updated artifacts like task lists or plans during that turn, preventing the AI from seeing what you typed until the entire turn finished. Messages are now delivered to the AI immediately, ensuring your real-time instructions take effect right away."
-              },
-              "original": "Fixed messages sent with `Queued Messages` set to `Send Immediately` in `/config` being silently queued until the end of the turn whenever the agent had already written or updated an artifact, such as a task list or plan, during that turn; they now reach the agent right away."
-            },
-            {
-              "title": {
-                "zh-TW": "AI 提問跳出系統通知，不再錯過待覆問題",
-                "en": "AI questions trigger system notifications, preventing missed pending prompts"
-              },
-              "body": {
-                "zh-TW": "將終端機切換到背景執行時，AI 的提問能第一時間提醒你。以前在 `/config` 開啟了 `Notifications` 通知功能，AI 停下來向你詢問問題時，終端機卻不會跳出提示，導致作業在背景乾等。現在指令列介面會像跳出工具授權提示那樣，針對待回覆的問題發出提醒通知，讓你隨時接手確認。",
-                "en": "When running the terminal in the background, questions from the AI can now alert you immediately. Previously, even with `Notifications` enabled in `/config`, no prompt popped up in the terminal when the AI stopped to ask you a question, leaving the job waiting in the background. The CLI now emits reminder notifications for pending questions just like it does for tool approval prompts, allowing you to take over and confirm at any time."
-              },
-              "original": "Fixed terminal notifications not firing when the agent stops to ask you a question; with `Notifications` turned on in `/config`, the CLI now alerts you for pending questions just as it does for tool permission prompts."
-            },
-            {
-              "title": {
-                "zh-TW": "/mcp 重啟服務更穩定，舊行程逾時也能重啟",
-                "en": "/mcp restarts servers more reliably, recovering even when old processes time out"
-              },
-              "body": {
-                "zh-TW": "調整外部工具連線時，重新啟動伺服器的流程變得更可靠。以前透過 `/mcp` 重新啟動 MCP（讓 AI 連接外部工具的協定）伺服器時，若舊的伺服器行程關閉耗時過久，可能會出現 `Failed to stop existing instances for reload: ... signal: killed` 等錯誤並停留在停止狀態。現在這個問題已經修好，無論舊行程關閉耗時多久，伺服器都會順利重新啟動。",
-                "en": "When adjusting external tool connections, restarting servers is now more dependable. Previously, restarting an MCP (a protocol that lets AI connect to external tools) server via `/mcp` could trigger errors like `Failed to stop existing instances for reload: ... signal: killed` and remain stopped if the old server process took too long to shut down. This issue has been fixed so that the server restarts smoothly regardless of how long the old process takes to terminate."
-              },
-              "original": "Fixed restarting an MCP server from `/mcp` sometimes leaving it stopped, with an error such as `Failed to stop existing instances for reload: ... signal: killed`, when the old server process took too long to exit; the server now always starts again."
-            },
-            {
-              "title": {
-                "zh-TW": "帳號驗證補上操作連結，不再誤導登出重登",
-                "en": "Account verification adds action links, eliminating misleading logout advice"
-              },
-              "body": {
-                "zh-TW": "遇到帳號狀態異常或條款限制時，錯誤訊息能提供更具體的解決途徑。以前帳號若需要驗證身分或申訴服務條款（Terms of Service）封鎖，登入錯誤有時只會顯示 `Verify your account to continue.` 卻沒有附上任何網址，甚至建議你登出再重新登入。現在畫面一律會提供驗證或申訴的連結，且在重新登入沒有幫助的情況下不再給出無效的登出建議。",
-                "en": "When encountering abnormal account statuses or terms restrictions, error messages provide clearer resolution paths. Previously, if an account needed identity verification or needed to appeal a Terms of Service ban, login errors sometimes only showed `Verify your account to continue.` without any URL, even suggesting that you log out and log back in. The screen now consistently provides verification or appeal links and no longer suggests an unhelpful logout when re-logging in would not resolve the issue."
-              },
-              "original": "Fixed the sign-in error for accounts that need to verify their identity or appeal a Terms of Service block sometimes showing only `Verify your account to continue.` with no link; the verification or appeal link now always appears, and the CLI no longer suggests logging out and back in when that would not help."
-            },
-            {
-              "title": {
-                "zh-TW": "GEMINI_API_KEY 連線中斷自動重試，避免回合誤中斷",
-                "en": "Automatic retries on GEMINI_API_KEY connection drops prevent false turn cancellations"
-              },
-              "body": {
-                "zh-TW": "使用自訂金鑰連線時，網路短暫斷線不再導致工作階段整次回合失敗。以前在透過 `GEMINI_API_KEY` 執行的工作階段中，若內部與 Gemini API 的連線不小心斷開，整次回合會直接失敗並顯示為如同被你手動取消一樣。現在指令列介面遇到內部斷線時會改為自動重試請求，不必再手動重新輸入。",
-                "en": "When connecting with a custom key, brief network disconnects no longer cause an entire session turn to fail. Previously, in sessions running via `GEMINI_API_KEY`, if the internal connection to the Gemini API was unexpectedly interrupted, the entire turn would fail immediately and appear as though you had manually cancelled it. Now, the command-line interface automatically retries requests upon internal disconnects, so you no longer need to re-enter them manually."
-              },
-              "original": "Fixed `GEMINI_API_KEY` sessions failing a turn as if you had cancelled it when the connection to the Gemini API was dropped internally; the CLI now retries the request instead."
             }
           ]
         }
