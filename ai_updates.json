@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-15",
+  "generated_at": "2026-10-14",
   "tools": [
     {
       "id": "claude_code",
@@ -1553,30 +1553,195 @@
           ]
         },
         {
-          "version": "1.0.49",
-          "period": "2026-10-02",
+          "version": "1.0.50",
+          "period": "2026-10-06",
           "items": [
             {
               "title": {
-                "zh-TW": "掛鉤確認納入所有模式，聯網與生圖先對照提示政策",
-                "en": "Hook confirmations now cover all modes, while web search and image generation check prompt policy first"
+                "zh-TW": "建立平行工作副本更穩定，Git 模式保留未提交修改",
+                "en": "Stabilizing Parallel Working Copies with Git Mode Preserving Uncommitted Changes"
               },
               "body": {
-                "zh-TW": "當你讓 Grok 處理任務時，它何時會停下來請你確認授權，現在有了更明確的規矩。⟦就像社區櫃檯處理快遞與訪客，以前每次有人按電鈴都直接打電話吵你，現在會先對照住戶登記的收件規約，只有未授權的特殊狀況才會撥電話請示。⟧現在進行網路搜尋、網頁抓取與圖片生成等操作時，在跳出提示詢問你之前，會先遵循 `prompt_policy` 設定與既有的規則判定。對於掛鉤（特定事件發生時被觸發的小程式），其權限提示現在於每一種核准模式下都會如實出現，確保自動化腳本在各種環境中都能正常跳出確認。",
-                "en": "When you have Grok handle tasks, the rules for when it pauses to ask for your authorization are now clearer. ⟦Think of a community front desk managing deliveries and visitors: previously, staff phoned to disturb you every time someone rang the bell, but now they check registered delivery rules first and only call for instructions during unauthorized exceptions.⟧ When performing operations such as web searches, web scraping, and image generation, Grok now follows your `prompt_policy` settings and existing rule evaluations before popping up a prompt to ask you. For hooks (scripts triggered when specific events occur), permission prompts now appear reliably under every approval mode, ensuring that automated scripts prompt for confirmation properly across all environments."
+                "zh-TW": "當你想要在不打擾現有進度的情況下另開分支嘗試新想法，這正是啟用工作樹（Git 讓同一專案平行開多份副本的功能）的時機。\n\n⟦跟在廚房另闢備用料理檯一樣，以前移動做到一半的菜容易弄丟備料甚至卡住，現在以 Git 模式換到新工作檯能保留未提交修改，擺設兩張料理桌也不會互相打架。⟧\n\n使用 `-w` 以 Git 模式建立工作樹時，現在能保留當前未提交的修改，並相容採用獨立 git 目錄的儲存庫；在非 Git 儲存庫或空的 Git 儲存庫中執行會顯示清楚錯誤。\n\n使用 `--worktree-ref` 參數建立的副本，不會再誤塞錯誤的子模組內容或 LFS 指標純文字。\n\n若同時以相同標籤發起兩次建立，兩個副本都會順利完成，不再跳出已存在的錯誤；建立失敗時，首頁與各路徑也會統一印出明確原因。",
+                "en": "When you want to branch off to try new ideas without disrupting ongoing work, it is the perfect time to use worktrees (a Git feature that lets you run multiple parallel copies of the same project).\n\n⟦Picture setting up a spare prep counter in a kitchen: moving half-finished dishes used to risk misplacing ingredients or getting stuck, but switching to a new counter in Git mode preserves uncommitted changes, and having two prep tables will not cause them to clash.⟧\n\nWhen creating a worktree in Git mode using `-w`, it now preserves current uncommitted changes and is compatible with repositories that use separate git directories. Running it in a non-Git repository or an empty Git repository now displays a clear error.\n\nCopies created with the `--worktree-ref` flag will no longer mistakenly include incorrect submodule content or raw LFS pointer text.\n\nIf you launch two creations simultaneously with the same label, both copies will complete smoothly without throwing an already-exists error. When creation fails, the home page and all paths also consistently print a clear reason."
               },
-              "original": "Hook permission prompts appear in every approval mode\nWeb searches, fetches, and image generation follow the `prompt_policy` setting and rule decisions before they prompt"
+              "original": "`grok -w` works in repositories that use a separate git dir, and shows a clear error outside a git repo or on an empty repo\nGit-mode worktrees created with `-w` keep uncommitted changes\nWorktrees created with `--worktree-ref` no longer contain the wrong submodule contents or LFS pointer text\nWorktree creation shows the same clear error on every path\nA failed worktree create shows a clear error on the home screen\nTwo worktree creates with the same label at the same time both succeed, instead of one failing with \"already exists\""
             },
             {
               "title": {
-                "zh-TW": "單次放行限下一條指令，終止行程提前阻擋誤殺外覆程式",
-                "en": "One-time approvals apply only to the next command, while process termination blocks accidental kills of shell wrappers"
+                "zh-TW": "移除工作樹嚴格把關，避免誤刪同名檔案",
+                "en": "Strict Safeguards for Removing Worktrees to Avoid Accidental Deletion of Same-Named Files"
               },
               "body": {
-                "zh-TW": "當你在提示畫面上放行指令時，每一次批准能管轄的範圍現在界定得更精確。⟦如同在管制區領用單次通行證，以前核准一次容易讓後面的車輛跟著開過，現在每張證件只放行緊接著的那一輛車；若是發現工程名單包含管制崗哨本身，更會在動手前提早攔截。⟧現在當你在權限卡片上點選「允許一次」（Allow once），這項放行僅嚴格套用到下一條 shell 指令，後續指令不會被順道放行。而執行 `pkill -f` 與 `pgrep -f` 這類搜尋或終止行程的指令時，如果指定的比對條件會殺死包裝 Grok 自身的 shell 外覆程式（shell wrapper），現在會提早被拒絕執行，避免終端機環境意外中斷。",
-                "en": "When you approve commands on the prompt screen, the scope governed by each approval is now defined more precisely. ⟦Picture using a single-entry permit in a restricted area: previously, approving one permit could easily let trailing vehicles drive through behind it, but now each pass releases only the vehicle immediately following; if a project list happens to include the guard post itself, the operation is intercepted early before work begins.⟧ Now, when you select 'Allow once' on a permission card, this release strictly applies only to the next shell command, and subsequent commands are not passed along with it. When running commands like `pkill -f` and `pgrep -f` to search for or terminate processes, if the specified matching pattern would kill the shell wrapper enclosing Grok itself, execution is now rejected early to prevent accidental terminal disruptions."
+                "zh-TW": "整理專案而準備清理用不到的分支副本時，最怕指令一敲下去就連帶抹除尚未存檔的心血。\n\n⟦像清理公用置物櫃一樣，以前只要號碼牌相近就可能整箱清空，現在只要櫃內還有私人物品或在其他樓層有同名置物櫃，管理員就會直接停手拒絕清空。⟧\n\n執行 `grok worktree rm` 刪除工作樹時，若未加上 `-f` 強制參數，只要該工作樹正在使用或有未儲存的變更，指令會立即報錯並拒絕刪除；它也不會誤刪只是碰巧同名的其他無關資料夾。\n\n透過標籤指定刪除時，若發現該標籤同時存在於多個儲存庫，指令會主動拒絕執行以防刪錯對象。\n\n執行 `/fork --worktree` 指令後，終端機回報的圖片與日誌路徑現在都會確實指向本機的真實檔案。",
+                "en": "When organizing a project and preparing to clean up unused branch copies, the biggest fear is running a command that wipes out unsaved work.\n\n⟦Think of cleaning out shared lockers: previously, similar locker numbers could cause the entire box to be cleared, but now, as long as personal belongings remain inside or another locker shares the same name on a different floor, the attendant will stop immediately and refuse to clear it.⟧\n\nWhen running `grok worktree rm` to delete a worktree without adding the `-f` force flag, the command immediately reports an error and refuses deletion if that worktree is in use or has unsaved changes. It also will not accidentally delete other unrelated folders that merely happen to share the same name.\n\nWhen specifying deletion by label, if that label exists across multiple repositories simultaneously, the command actively refuses execution to prevent deleting the wrong target.\n\nAfter running the `/fork --worktree` command, the image and log paths reported by the terminal now reliably point to real local files."
               },
-              "original": "Allow once on a permission card applies only to the next shell command\n`pkill -f` and `pgrep -f` are rejected earlier when the pattern would kill their own shell wrapper"
+              "original": "`grok worktree rm` without `-f` refuses to delete worktrees that are in use or have unsaved changes, and exits with an error\nImage and log paths reported after `/fork --worktree` point at real files\n`grok worktree rm` without `-f` no longer deletes a folder that only shares a name with a removed worktree\n`grok worktree rm` by label refuses when that label exists in more than one repo"
+            },
+            {
+              "title": {
+                "zh-TW": "檔案寫入與目錄定位防護，放棄變更不牽連同名檔",
+                "en": "File Write and Directory Navigation Safeguards with Isolated Discarding for Same-Named Files"
+              },
+              "body": {
+                "zh-TW": "在終端機處理專案檔案時，最擔憂磁碟或路徑異常導致既有檔案被清空或改錯。\n\n寫入檔案若發生失敗，現在會完整保留原本的舊內容，不再留下一片空白的空檔案。使用 `grok --cwd a` 切換目錄時，指令會穩穩停在 `a` 目錄內，不會莫名跑進重複巢狀的 `a/a` 中執行。\n\n在介面中執行放棄檔案變更時，只會還原你親自勾選的檔案，絕不牽連名稱相近的其他檔案。\n\n當工作階段的工作目錄在外部被刪除或不存在時，輸入提示詞會立刻以清楚訊息回報失敗，不再延遲報錯或自行重新建立該工作目錄；即使工作區目錄遺失或工具輸出量極為龐大，終端機工具呼叫也不會失敗或溢位。\n\n以前遇到目錄被搬動或寫入中斷，容易留下空白檔案或動到名稱相近的檔案，現在各項檔案操作都有了明確的停損與保護機制。",
+                "en": "When working with project files in the terminal, the greatest concern is disk or path anomalies wiping out or corrupting existing files.\n\nIf writing to a file fails, it now completely preserves the original content instead of leaving behind a blank, empty file. When switching directories with `grok --cwd a`, the command stays securely inside directory `a` rather than mysteriously running inside a duplicated, nested `a/a`.\n\nWhen discarding file changes in the interface, it only reverts the files you explicitly checked, never affecting other files with similar names.\n\nWhen a session's working directory is deleted externally or does not exist, entering a prompt immediately reports failure with a clear message, rather than delaying errors or recreating that working directory on its own. Terminal tool calls will neither fail nor overflow even if the workspace directory is missing or the tool output volume is massive.\n\nPreviously, moved directories or interrupted writes easily left blank files or touched similarly named files; now, every file operation comes with explicit stop-loss and protection mechanisms."
+              },
+              "original": "A failed file write leaves the previous contents in place instead of an empty file\n`grok --cwd a` stays in `a` instead of running inside `a/a`\nCLI tool calls no longer fail or overflow when the workspace directory is gone or the output is huge\nA prompt fails immediately, with a clear message, when the session working directory is gone, instead of failing later or recreating it\nDiscard changes only the files you select, not similarly named files"
+            },
+            {
+              "title": {
+                "zh-TW": "頂部點選複製分支全名，儀表板完整顯示工作樹",
+                "en": "Click Top Header to Copy Full Branch Names as Dashboard Fully Displays Worktrees"
+              },
+              "body": {
+                "zh-TW": "當你需要把正在開發的分支名稱傳給同事或填入發行紀錄，直接在介面上點選就能省去手動打指令查詢的時間。\n\n⟦彷彿把展示標籤換成了磁吸條，窄視窗中顯示縮寫保持版面整齊，輕輕一點仍能帶走完整的原始名稱。⟧\n\n點選頂部標頭的 Git 分支名稱即可直接複製完整分支名字；就算在狹窄的終端機視窗裡，長分支名會自動縮寫呈現，但點擊後依然能複製出全名。\n\n儀表板現在會標示每個工作階段所屬的工作樹，並在建立新代理人的輸入框中顯示所選的 `-m` 模型，並允許在資料夾選取器內自由切換工作樹模式。\n\n遇到 Git 合併或改基時發生的檔案衝突，也會直接列在變更清單中，方便一眼掌握哪些檔案需要排除衝突。",
+                "en": "When you need to send an active branch name to a colleague or paste it into release notes, clicking directly in the interface saves the time of manually querying it via commands.\n\n⟦A display tag has been swapped for a magnetic strip: narrow windows display abbreviations to keep the layout tidy, yet a single click still picks up the complete original name.⟧\n\nClicking the Git branch name in the top header directly copies the full branch name. Even in narrow terminal windows, long branch names are automatically abbreviated, but clicking still copies the entire name.\n\nThe dashboard now indicates the worktree to which each session belongs, displays the selected `-m` model in the input box for creating new agents, and allows freely toggling worktree mode within the folder picker.\n\nFile conflicts encountered during Git merges or rebases are also listed directly in the changes list, making it easy to see at a glance which files require conflict resolution."
+              },
+              "original": "Clicking the git branch in the header copies the full branch name\nLong branch names abbreviate on narrow terminals and stay copyable\nThe dashboard shows which worktree each session belongs to, shows the `-m` model in the new-agent box, and lets you toggle worktree mode in the folder picker\nMerge and rebase conflicts show up in the changes list"
+            },
+            {
+              "title": {
+                "zh-TW": "精簡模式收合停靠區，關閉分頁不誤送排隊指令",
+                "en": "Compact Mode Collapses Dock Without Sending Queued Prompts on Tab Close"
+              },
+              "body": {
+                "zh-TW": "想在有限的終端機螢幕空間裡專注於當前對話，切換到精簡模式能幫你迅速騰出視野。\n\n⟦比照折疊式工作桌的收納邏輯，以前在長型螢幕上收合側欄容易破壞內部間距，現在收起停靠區時不僅畫面維持清爽留白，快捷鍵呼叫各項抽屜功能也依然順暢無阻。⟧\n\n精簡模式現在會將摘要資訊自動收合，並在較高的終端機視窗中維持合理的內部留白；它也會主動隱藏停靠區或任務面板，效果與手動按下 `Ctrl+G` 鍵完全一致。\n\n當你使用 `Ctrl+G` 隱藏停靠區時，排隊面板與呼叫排隊項目的 `Ctrl+;` 快捷鍵依然能正常彈出與操作。\n\n按下 `Ctrl+P` 開啟的命令面板與模型選擇器，寬度調整為與設定視窗一致；關閉正在執行任務的分頁後，不再把排隊中的提示詞送給模型。",
+                "en": "If you want to focus on the current conversation within limited terminal screen space, switching to compact mode quickly frees up your view.\n\n⟦Following the storage logic of a folding desk: collapsing the sidebar on tall screens previously broke internal spacing, but tucking away the dock now keeps the screen cleanly spaced, and shortcut keys calling drawer functions remain completely unobstructed.⟧\n\nCompact mode now automatically collapses summary information and maintains reasonable internal padding in taller terminal windows. It also actively hides the dock or task panel, matching the exact effect of manually pressing `Ctrl+G`.\n\nWhen you use `Ctrl+G` to hide the dock, the queue panel and the `Ctrl+;` shortcut that summons queued items continue to pop up and operate normally.\n\nThe command palette and model selector opened with `Ctrl+P` have been adjusted to match the width of the settings window. After closing a tab that is executing a task, queued prompts are no longer sent to the model."
+              },
+              "original": "Compact mode collapses recaps and keeps inner spacing on tall terminals\nCompact mode hides the dock, or the tasks pane, the same way `Ctrl+G` does\nThe command palette (`Ctrl+P`) and the model picker open at the same width as the settings modal\nThe queue pane and `Ctrl+;` still appear and work when the dock is hidden with `Ctrl+G`\nClosing a busy tab no longer sends its queued prompts to the model"
+            },
+            {
+              "title": {
+                "zh-TW": "表格支援直接匯出格式，即時預覽掌握伺服器狀態",
+                "en": "Export Formats Supported for Tables with Live Previews Tracking Server Status"
+              },
+              "body": {
+                "zh-TW": "當模型在終端機裡整理出大量比對資料時，你不再需要用滑鼠吃力地框選文字再手動貼入試算表。\n\n輸出的表格現在附帶專屬複製按鈕，能直接匯出為 TSV、CSV 或 Markdown 格式，方便直接貼進 Excel 或各類試算表軟體。\n\n在即時預覽釘選項目中，現在會清楚標明該網址背後是否確實偵測到運作中的應用程式。\n\n時間戳記功能現在支援透過設定介面或輸入 `/timestamps` 指令調整，提供關閉、極簡與開啟三種顯示模式。\n\n在 `/usage` 與 `/session-info` 視窗中，過長的錯誤訊息會自動折行顯示而不再被視窗邊界切斷；狀態訊息與子代理人列表也移除了多餘的破折號符號，整體視覺更為俐落。\n\n以前複製終端機表格總要花時間重新分欄，長訊息也經常被視窗切字，現在各項輸出都能直接對接日常工具並完整呈現。",
+                "en": "When the model organizes large comparison datasets in the terminal, you no longer need to struggle with mouse selections before manually pasting into a spreadsheet.\n\nExported tables now include dedicated copy buttons to export directly in TSV, CSV, or Markdown format, making it easy to paste straight into Excel or various spreadsheet applications.\n\nPinned live preview items now clearly indicate whether a running application is actually detected behind the URL.\n\nThe timestamp feature can now be adjusted via the settings interface or by running `/timestamps`, offering three display modes: off, minimal, and on.\n\nIn the `/usage` and `/session-info` windows, excessively long error messages wrap automatically instead of being cut off by window borders. Redundant dash symbols have also been removed from status messages and subagent lists, producing a cleaner visual layout.\n\nPreviously, copying terminal tables required time to re-split columns, and long messages were frequently clipped by windows; now, every output integrates directly with daily tools and renders completely."
+              },
+              "original": "A timestamps setting offers off, minimal, and on in Settings and `/timestamps`\nLive preview pins include whether an app was observed behind the URL\nTables show copy buttons that export TSV, CSV, or Markdown for spreadsheets\nLong error messages in the `/usage` and `/session-info` modals wrap instead of being cut off\nStatus messages and subagent rows no longer use em dashes"
+            },
+            {
+              "title": {
+                "zh-TW": "歷程摘要無需捲動直接看，斜線指令不拘大小寫",
+                "en": "View History Summaries Without Scrolling as Slash Commands Accept Mixed Case"
+              },
+              "body": {
+                "zh-TW": "隨著對話輪次增加而觸發背景整理時，你現在一眼就能看清當前專案對話的精簡摘要。\n\n⟦恰似調校好的提詞機一樣，以前濃縮的摘要文字容易被推到螢幕下方的視覺死角，現在整理完成的關鍵訊息會滾動到看得見的位置，輸入控制指令時也不會因為按錯大寫鍵而失效。⟧\n\n對話總結摘要現在開箱就能直接在螢幕上完整可見，不需手動捲動捲軸；若該輪有壓縮訊息，回合結束後會捲動到看得見的位置，不再隱沒在視窗底部之外。\n\n斜線指令完全相容大小寫字母，無論輸入 `/COMPACT` 或 `/Compact` 都能正常執行。\n\n輸入 `/context` 檢視上下文時，介面不再擅自顯示代理人沒有回報的自動壓縮門檻；當輸出說明文字中途觸發工具呼叫時，終端機停止無謂重繪分頁器。",
+                "en": "When conversation turns accumulate and trigger background compaction, you can now see the condensed summary of the active project conversation at a single glance.\n\n⟦Much like a calibrated teleprompter, where condensed summary text was once pushed into blind spots below the screen, compiled key messages now scroll into visible view, and control commands will not fail from an accidental Caps Lock.⟧\n\nConversation summaries are now fully visible on screen out of the box without requiring manual scrolling. If a turn includes compacted messages, it scrolls into a visible position once the turn ends, rather than remaining hidden below the window bottom.\n\nSlash commands are fully case-insensitive, executing normally whether you type `/COMPACT` or `/Compact`.\n\nWhen running `/context` to view context, the interface no longer displays auto-compaction thresholds that the agent never reported. When tool calls are triggered mid-explanation, the terminal stops needlessly redrawing the pager."
+              },
+              "original": "Recap summaries show up on screen without scrolling\nSlash commands run in any case, such as `/COMPACT` or `/Compact`\n`/context` no longer shows an auto-compact threshold the agent did not report\nAgent text stops redrawing the pager when a tool call interrupts the sentence\nCompaction messages scroll into view instead of sitting below the bottom of the screen after a turn"
+            },
+            {
+              "title": {
+                "zh-TW": "診斷工具精準點名故障設定，意見回饋真實反映送出結果",
+                "en": "Diagnostics Accurately Pinpoint Faulty Configurations as Feedback Faithfully Reports Delivery Status"
+              },
+              "body": {
+                "zh-TW": "當環境設定異常導致工具無法正常開啟時，精確的自我診斷能幫你省下反覆翻查設定檔的痛苦。\n\n執行 `grok doctor` 健檢指令時，工具現在會指出阻礙啟動的設定檔或設定項目，不再盲目回報零異常。\n\n執行 `grok doctor fix` 自動修復指令時，確認視窗的焦點預設停在「取消」按鈕，避免使用者手快按錯而意外更動了現有的 shell 或 tmux 設定檔。\n\n如果工作流程檔案解析出錯，錯誤報告會明確列出該檔案名稱與詳細的解析錯誤訊息，不再只留下一句含糊的「未知工作流程」。\n\n模型在背景儲存的草稿，在 `/feedback` 視窗中會如實顯示真正的標題；送出回饋時也會精確回報傳送成功或失敗，不再過早顯示感謝提示或重複堆疊前綴字詞。\n\n以前遇到設定衝突只能靠猜測除錯，現在從啟動檢測到回饋提交都具備清晰透明的狀態回饋。",
+                "en": "When environmental configuration issues prevent tools from starting normally, precise self-diagnosis spares you the pain of repeatedly scouring configuration files.\n\nWhen running the `grok doctor` health check command, the tool now pinpoints the configuration files or settings obstructing startup, instead of blindly reporting zero anomalies.\n\nWhen running the `grok doctor fix` auto-repair command, the confirmation dialog defaults focus to the Cancel button, preventing users from accidentally modifying existing shell or tmux configuration files due to quick keystrokes.\n\nIf a workflow file fails to parse, the error report explicitly lists the filename and detailed parse error message, instead of leaving behind a vague \"unknown workflow\".\n\nDrafts saved by the model in the background now faithfully display their actual titles in the `/feedback` window. Submitting feedback also accurately reports delivery success or failure, without prematurely displaying thank-you prompts or stacking duplicate prefixes.\n\nPreviously, resolving configuration conflicts meant guessing and debugging; now, clear and transparent status feedback accompanies everything from startup checks to feedback submissions."
+              },
+              "original": "Drafts the model saves show up under their real titles in `/feedback`\nA workflow file that fails to parse reports that file and the parse error, instead of \"unknown workflow\"\nFeedback submissions report success or failure accurately, without an early thanks or a repeated prefix\n`grok doctor` names the config file or setting that prevents Grok from starting, instead of reporting zero issues\n`grok doctor fix` opens its confirmation on Cancel, so it does not edit shell or tmux config by accident"
+            },
+            {
+              "title": {
+                "zh-TW": "定向中斷指定回覆，取消任務正確標記工具狀態",
+                "en": "Targeted Interruption for Specific Responses While Marking Cancelled Tool States Correctly"
+              },
+              "body": {
+                "zh-TW": "當多個任務同時在終端機背景推進，你中途發現某個方向有誤時，需要精確叫停而不能波及其他正常運作的程序。\n\n⟦猶如工廠產線上裝設的獨立煞車鈕，以前按下拉桿容易讓整排設備全部停擺，現在只會針對指定的工作台煞車，並確實把未做完的工序蓋上作廢印記而非合格章。⟧\n\n發出定向取消請求時，現在只會精準停止客戶端指名中止的那一次回覆，不影響其他正在進行的工作。\n\n在被中途取消的對話輪次裡，尚未取得回應的工具呼叫會正確記錄為已取消，不會再被錯誤判定為執行成功。\n\n選擇讓程式繼續執行時，背景子代理人內部正在跑的指令會安穩保留，不會被無故中斷；按下 `Ctrl+\\` 或帶有修飾鍵的數字時，也不會再誤觸權限面板或取消確認卡上的按鈕。",
+                "en": "When multiple tasks advance concurrently in the background and you spot an error in one direction, you need to halt it precisely without disturbing other operating processes.\n\n⟦Like an independent emergency brake on a factory assembly line: pulling the lever previously risked halting entire rows of equipment, but now it brakes only the designated station and properly stamps unfinished processes as voided rather than approved.⟧\n\nWhen issuing a targeted cancellation request, it now halts only the specific response explicitly designated by the client, without affecting other ongoing work.\n\nIn conversation turns cancelled midway through, tool calls that have not yet received responses are properly recorded as cancelled, rather than erroneously marked as successful.\n\nWhen choosing to let the program continue running, commands running inside background subagents are safely preserved without unintended interruption. Pressing `Ctrl+\\` or numbers with modifier keys also no longer triggers buttons on permission panels or cancellation confirmation cards."
+              },
+              "original": "A targeted cancel stops only the response the client asked to stop\nCancelled turns mark unanswered tool calls as cancelled instead of succeeded\nContinue to run no longer kills commands that are running inside background subagents\n`Ctrl+\\` and other modified digits no longer select an option on a permission or cancel card"
+            },
+            {
+              "title": {
+                "zh-TW": "權限規則容錯升級，原生工具名稱直接納管",
+                "en": "Permission Rules Gain Fault Tolerance with Native Tool Names Managed Directly"
+              },
+              "body": {
+                "zh-TW": "替命令列工具設定存取白名單時，設定檔的一點筆誤不該讓整道防護機制整組失效。\n\n權限規則現在直接支援 `run_terminal_command` 與 `Shell` 等原生工具名稱，讓控管規則能直接對齊底層工具呼叫；當終端機指令符合權限管理員所設定的規則時，終端機會如實提示確認或直接放行。\n\n託管的權限設定檔即使包含個別錯誤鍵值，其餘正確的規則依然會正常載入與生效；某個區段裡若有一條規則語法不正確，也不會再導致該區塊內的其他規則整批失效。\n\n搜尋工具 `grep` 現在會嚴格遵守開頭帶有 `./` 相對路徑的讀取拒絕規則。\n\n以前只要設定檔裡敲錯一個字，所有放行與防護名單就會集體停擺，現在具備了獨立容錯能力，日常安全控管更加穩健。",
+                "en": "When setting up access allowlists for command-line tools, a minor typo in a configuration file should not bring down the entire protection mechanism.\n\nPermission rules now directly support native tool names such as `run_terminal_command` and `Shell`, allowing control rules to align directly with underlying tool calls. When a terminal command matches rules set by the permission manager, the terminal faithfully prompts for confirmation or grants direct access.\n\nEven if a managed permission configuration file contains isolated invalid keys, remaining valid rules still load and take effect normally. An invalid syntax rule within a section will no longer invalidate all other rules across that block.\n\nThe `grep` search tool now strictly honors read denial rules that start with `./` relative paths.\n\nPreviously, a single typo in a configuration file could paralyze every allowlist and safeguard; with standalone fault tolerance now in place, day-to-day security controls are far more dependable."
+              },
+              "original": "Shell permission decisions prompt or approve commands that match the permission manager\nPermission rules accept native tool names such as `run_terminal_command` and `Shell`\nA managed permission file with one bad key keeps its valid rules\nOne bad permission-rule entry no longer drops the other rules in that section\n`grep` respects Read deny rules that use a leading `./`"
+            },
+            {
+              "title": {
+                "zh-TW": "逾 4MB 工作階段持續連線，串流中斷自動重試",
+                "en": "Sessions Over 4MB Stay Connected, Stream Drops Automatically Retry"
+              },
+              "body": {
+                "zh-TW": "當你與模型進行深度的多輪架構探討時，最怕對話累積過長導致連線無故中斷或只吐出半截答案。\n\n⟦就拿長途電話的自動重撥機制來說，以前只要通話時間太長或線路延遲就會被硬生生切斷，現在遇到串流無故中斷會自動重新接通，不同程式重試時也會主動錯開等待秒數防止撞車。⟧\n\n對話內容即使超過 4 MiB，超長的工作階段依然能穩定維持連線；如果模型呼叫中途停滯，在該回合判定失敗前會先自動重試。\n\nChat Completions 串流若在沒有附帶結束原因的情況下突然斷線，會自動重試而非直接留下殘缺片段；各行程的重試等待間隔會各自錯開。\n\n請求封包大小現在會確實遵守 `max_request_bytes` 所設定的上限；直接輸入 `/model` 切換模型時，思考力度會維持你先前的設定，不再擅自跳回新模型的預設力度。",
+                "en": "When you have in-depth, multi-turn architecture discussions with a model, the biggest worry is that conversations grow too long, causing connections to drop without warning or return incomplete answers.\n\n⟦In a long-distance phone system with auto-redial, calls used to get abruptly severed whenever conversations ran too long or lines lagged, but now dropped streams reconnect automatically while retries from different processes stagger their wait times to prevent collisions.⟧\n\nEven when conversation content exceeds 4 MiB, ultra-long sessions maintain a stable connection; if a model call stalls halfway through, it retries automatically before marking the turn as failed.\n\nIf a Chat Completions stream disconnects abruptly without a finish reason, it automatically retries instead of leaving incomplete fragments behind; retry backoff intervals are jittered across processes.\n\nRequest payload sizes now strictly observe the limit configured in `max_request_bytes`; switching models directly with `/model` preserves your previously configured reasoning effort instead of reverting to the new model's default."
+              },
+              "original": "A stalled model call during a turn retries before the turn fails\nLong sessions stay connected when the conversation is larger than 4 MiB\nRequest bodies stay under a configured `max_request_bytes` limit\nThe effort level stays the same after a bare `/model` switch, instead of jumping to the new model default\nChat Completions streams that end without a finish reason are retried instead of returning partial output\nRetry waits differ between processes"
+            },
+            {
+              "title": {
+                "zh-TW": "回滾游標精準停在句尾，排程支援中文時間間隔",
+                "en": "Rewind Cursor Lands Accurately at Prompt End, Scheduler Supports Chinese Time Intervals"
+              },
+              "body": {
+                "zh-TW": "當你需要撤回剛才的提問並稍作微調時，回滾指令能讓你迅速回到上一輪對話。\n\n⟦像是把卡帶倒帶機換上了數位書籤，以前回捲後游標容易停錯位置，現在不僅游標貼心停在提示詞最末端方便接著打字，設定定時巡檢也能直接輸入中文時間。⟧\n\n執行 `/rewind` 指令復原歷史紀錄時，輸入游標現在會精確定位在還原後的提示詞結尾，能直接按倒退鍵或接著補充內容；在開啟持久回滾檢查點功能的環境下，建立新工作階段也不會再莫名當機。\n\n循環指令 `/loop` 與排程工具 `scheduler_create` 現在直接支援非英文字元的時間間隔，例如輸入 `5分` 即可正確建立週期任務，不再引發工作階段崩潰。\n\n若在啟動參數 `--disallowed-tools` 中禁用了某個特定的排程工具，其餘未被禁用的排程工具在開機時依然能正常載入與啟動。",
+                "en": "When you need to undo your previous question and make minor adjustments, the rewind command quickly returns you to the earlier turn.\n\n⟦Upgrading a tape rewinder with digital bookmarks illustrates this behavior: rewind used to leave the cursor in the wrong position, but now the cursor rests conveniently at the very end of the restored prompt for immediate typing, and scheduled checks accept intervals in Chinese.⟧\n\nWhen running `/rewind` to restore conversation history, the input cursor lands precisely at the end of the restored prompt, letting you backspace immediately or continue adding text; creating new sessions with persistent rewind checkpoints enabled also no longer crashes unexpectedly.\n\nThe `/loop` command and the `scheduler_create` tool now directly support non-English time intervals, such as entering `5分` to create recurring tasks without crashing the session.\n\nDisabling a specific scheduler tool through the `--disallowed-tools` startup flag still allows all remaining enabled scheduler tools to load and start normally during launch."
+              },
+              "original": "`/rewind` places the text cursor at the end of the restored prompt\n`/loop` and `scheduler_create` accept non-ASCII intervals such as `5分` without crashing the session\nNaming only one scheduler tool in `--disallowed-tools` no longer makes the other two fail startup\nStarting a new session with durable rewind checkpoints on no longer crashes"
+            },
+            {
+              "title": {
+                "zh-TW": "終端機清楚呈現執行狀態，無頭模式支援管道輸入",
+                "en": "Terminal Clearly Shows Execution Status, Headless Mode Supports Piped Input"
+              },
+              "body": {
+                "zh-TW": "把任務放到背景執行或用腳本串接時，最需要清楚的狀態提示與安靜的輸入管道。\n\n終端機指令執行時會顯示「Running …」，結束顯示「Ran …」；若背景工作階段正等待核准，視窗標題會標註「Action Required」方便即時處理。\n\n在無頭模式（沒有終端機視窗的執行模式）下執行 `grok` 時，能直接從管道傳入的標準輸入讀取提示詞，不再嘗試開啟互動介面。\n\n在 `requirements.toml` 設定 `[features] title_refresh = false`，即使有 `GROK_TITLE_REFRESH` 也會停用標題更新；管理員若釘選 `[cli] use_leader = false`，帶有 `--leader` 旗標也不會啟動主導行程。\n\n以前背景任務常不知卡在哪，現在狀態一目了然，腳本處理也更安靜穩定。",
+                "en": "When running tasks in the background or piping them into scripts, clear status indications and quiet input streams are essential.\n\nTerminal commands display \"Running …\" while executing and \"Ran …\" when finished; if a background session is waiting for approval, the window title displays \"Action Required\" for prompt handling.\n\nWhen running `grok` in headless mode (operating without a terminal window), it reads prompts directly from piped standard input without attempting to launch an interactive interface.\n\nSetting `[features] title_refresh = false` in `requirements.toml` disables title refreshes even when `GROK_TITLE_REFRESH` is present; pinning `[cli] use_leader = false` as an administrator prevents starting a leader process even if the `--leader` flag is passed.\n\nBackground tasks previously left users unsure where work stalled, but status is now immediately clear and script processing is quieter and more reliable."
+              },
+              "original": "Shell command output shows \"Running …\" while a command executes and \"Ran …\" when it finishes\nThe terminal title shows \"Action Required\" when any background session is waiting on approval\nHeadless `grok` accepts a prompt on piped stdin instead of trying to open the UI\n`[features] title_refresh = false` in `requirements.toml` disables title refresh even when `GROK_TITLE_REFRESH` is set\nAn admin pin of `[cli] use_leader = false` keeps `--leader` from starting a leader process"
+            },
+            {
+              "title": {
+                "zh-TW": "設定檔支援多視窗並行寫入，通知掛鉤記憶體受控",
+                "en": "Config Supports Concurrent Multi-Window Writes, Notification Hooks Control Memory Usage"
+              },
+              "body": {
+                "zh-TW": "當你開了多個終端機視窗各自調整偏好時，最怕兩邊一齊存檔導致全域設定互相覆蓋損毀。\n\n現在多個視窗同時修改偏好設定時，不會再遺失或損壞 `config.toml` 內的權限清單或 MCP（讓 AI 連接外部工具的協定）伺服器設定。\n\n在 `[[ui.notifications.hooks]]` 區塊下自訂的通知掛鉤（特定事件發生時被觸發的小程式），遇到符合的事件時會如實執行指定的命令。\n\n即使執行的命令掛鉤印出極為龐大的輸出文字，也不會再導致記憶體用量異常飆高。\n\n輸出至檔案的日誌內容，或在啟用 `NO_COLOR` 變數的環境中，文字皆會維持乾淨純文字格式，避免摻雜難以閱讀的顏色控制碼。\n\n以前多視窗同時編輯設定容易把檔案改爛，掛鉤輸出量一大，記憶體也會飆高，現在底層寫入與日誌處理都更加穩妥。",
+                "en": "When you open multiple terminal windows to adjust preferences, saving simultaneously risks overwriting and corrupting global settings.\n\nWhen multiple windows modify settings simultaneously, permissions lists and MCP (a protocol connecting AI to external tools) server settings in `config.toml` are no longer lost or corrupted.\n\nCustom notification hooks (small programs triggered by specific events) configured under `[[ui.notifications.hooks]]` faithfully execute their specified commands upon matching events.\n\nEven when executed command hooks print massive output text, memory usage no longer spikes abnormally.\n\nLog output written to files, or environments where the `NO_COLOR` variable is active, keeps text in a clean plain-text format, preventing hard-to-read ANSI color codes from leaking in.\n\nEditing preferences across multiple windows previously risked corrupting files, and high hook output caused memory spikes, but underlying file writes and log handling are now far more reliable."
+              },
+              "original": "Custom notification commands under `[[ui.notifications.hooks]]` run when their events match\nGrok windows editing settings at the same time no longer drop or corrupt `config.toml` entries such as MCP servers or permission rules\nLogs written to a file, or written when `NO_COLOR` is set, are plain text\nCommand hooks no longer spike memory when they print a lot of output"
+            },
+            {
+              "title": {
+                "zh-TW": "工具搜尋支援同名伺服器，記憶庫檢索相容中日韓",
+                "en": "Tool Search Supports Same-Named Servers, Memory Retrieval Compatible with CJK"
+              },
+              "body": {
+                "zh-TW": "當你為代理人掛載多個外部服務與知識庫時，精準的工具查找與記憶讀取是維持流暢運作的關鍵。\n\n當多個 MCP（讓 AI 連接外部工具的協定）伺服器提供名稱相同的工具時，執行 `search_tool` 現在會完整列出所有相符工具，不再丟失任何一個伺服器的選項。\n\n網頁擷取工具 `web_fetch` 在將龐大檔案載入記憶體前就會主動拒絕下載，避免耗盡記憶體資源。\n\n記憶庫讀取工具 `memory_get` 會嚴格把關檔案大小，不再回傳超出上限的超長檔案；而檢索工具 `memory_search` 現在能精準在長篇筆記中比對中文、日文與韓文字詞。\n\n以前掛載多個伺服器容易漏掉同名功能，查詢中文筆記也時常撲空，現在工具探索完整且能妥善防範大檔案塞爆記憶體。",
+                "en": "When attaching multiple external services and knowledge bases to an agent, accurate tool discovery and memory retrieval are critical for smooth operation.\n\nWhen multiple MCP (a protocol connecting AI to external tools) servers offer tools with identical names, running `search_tool` lists all matching tools without dropping options from any server.\n\nThe `web_fetch` tool proactively declines downloads before loading oversized files into memory, preventing memory exhaustion.\n\nThe `memory_get` tool strictly enforces file size limits, no longer returning oversized files that exceed thresholds; the `memory_search` tool now accurately matches Chinese, Japanese, and Korean words across lengthy notes.\n\nAttaching multiple servers previously risked missing identically named tools, and querying Chinese notes often came up empty, but tool discovery is now thorough and large files are properly prevented from overflowing memory."
+              },
+              "original": "When several MCP servers expose a tool with the same name, `search_tool` returns all of them\n`web_fetch` rejects a huge file before downloading it into memory\n`memory_get` no longer returns a file that exceeds the read limit\n`memory_search` finds Japanese, Chinese, and Korean words inside longer notes"
+            },
+            {
+              "title": {
+                "zh-TW": "圖片生成拒絕無效檔案，保留透明通道與拍攝方向",
+                "en": "Image Generation Rejects Invalid Files, Preserves Transparency and Camera Orientation"
+              },
+              "body": {
+                "zh-TW": "當你請模型生成創意圖片或處理相簿照片時，最怕拿到的圖檔方向顛倒或是漂亮的去背圖案走樣。\n\n⟦正像專業沖印店處理相片一樣，以前轉檔容易把透明背景洗成整塊死黑、直向自拍洗成橫向躺平，現在重新編碼不僅完全依循拍攝方向標籤轉正，遇到損壞的假圖檔也會在第一時間拒收。⟧\n\n呼叫繪圖功能時，如果模型回傳的內容並非有效圖檔，繪圖工具會主動拒絕處理，不會再硬生生將無效資料存成 `.jpg` 檔。\n\n重新編碼圖片時，轉檔程式會自動讀取並保留 EXIF 標籤所記錄的旋轉方向，讓直拍照片維持正常站立方向。\n\n含有透明背景的圖檔重新轉檔後會繼續維持 PNG 格式，透明部分不會變成一片漆黑。",
+                "en": "When asking a model to generate creative illustrations or process photo albums, inverted image orientations or broken transparency cutouts can ruin the result.\n\n⟦Professional photo labs inspect and process prints with similar rigor: format conversions previously turned transparent backgrounds solid black and flattened portrait selfies sideways, but re-encoding now rotates images upright using orientation tags and promptly rejects corrupted fake files.⟧\n\nWhen invoking image generation, if the model returns content that is not a valid image file, the tool proactively rejects it instead of forcibly saving invalid data as a `.jpg` file.\n\nWhen re-encoding images, the conversion routine automatically reads and preserves rotation orientation recorded in EXIF tags, keeping portrait photos upright.\n\nImages with transparent backgrounds remain in PNG format after re-encoding, preventing transparent areas from turning solid black."
+              },
+              "original": "Imagine replies that are not valid images are rejected instead of being saved as `.jpg` files\nRe-encoded images keep the orientation from their EXIF tags\nTransparent images stay PNG when they are re-encoded, instead of turning black"
+            },
+            {
+              "title": {
+                "zh-TW": "終端機保留縮排定位字元，內建 ripgrep 隨時可用",
+                "en": "Terminal Preserves Indentation Tabs, Bundled ripgrep Ready for Immediate Use"
+              },
+              "body": {
+                "zh-TW": "讓模型在終端機執行指令分析程式碼時，排版縮排與高效搜尋是決定除錯精確度的關鍵。\n\n⟦宛若為工程師配備了專屬高精度量尺與高速探測器，以前回傳輸出時縮排常被抹平變形，現在不僅程式碼定位字元完整保留，即使在最簡陋的容器環境裡也能隨時呼叫全文搜尋引擎。⟧\n\n終端機指令印出的輸出內容中，所包含的 Tab 定位字元在傳送給模型閱讀時會原汁原味保留，不再被擅自抹去或破壞對齊。\n\n工具內建打包的 `ripgrep` 高速搜尋工具，現在直接開放給終端機環境的所有指令呼叫，即便是在沒有額外安裝該工具的精簡容器映像檔內也能直接使用。\n\n終端機工具說明已清楚寫明真實的輸出截斷長度上限；檔案搜尋工具 `grep` 也會切實依循當前工作階段目錄的相對通配規則進行比對。",
+                "en": "When having models run terminal commands to analyze code, formatting indentation and efficient search determine debugging accuracy.\n\n⟦Giving engineers a dedicated precision gauge and high-speed detector reflects this upgrade: returned output previously flattened indentation, but tab characters are now preserved in full and a full-text search engine can be called at any time even in minimal containers.⟧\n\nTab characters contained in terminal command output are now preserved intact when passed to the model, rather than being stripped away or breaking alignment.\n\nThe bundled `ripgrep` search utility is now directly accessible to all commands in the terminal environment, making it immediately usable even inside minimal container images without extra installations.\n\nTerminal tool documentation now clearly states the true output truncation limit; the file search tool `grep` also strictly honors relative globbing patterns from the current session directory."
+              },
+              "original": "Tab characters in terminal command output are kept when the output is shown to the model\nThe bundled ripgrep is available to terminal commands, even on images that do not install it\nShell tool descriptions state the real output truncation limit, and `grep` respects globs relative to the session directory"
             }
           ]
         }
