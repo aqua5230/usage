@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14",
+  "generated_at": "2026-10-15",
   "tools": [
     {
       "id": "claude_code",
@@ -103,7 +103,7 @@
                 "en": "Background Toggle Aborts In-Flight Commands and Fixes Terminal Ghost Characters"
               },
               "body": {
-                "zh-TW": "當你使用方向鍵將當前對話推到背景執行時，背景服務的處理行為現在更加可預測。以前按下左方向鍵 `←` 將工作階段切換至背景時，剛啟動的輪次或以 `!` 開頭的 Shell 指令會在背後默默執行完畢，現在則會立即停止執行。針對輸入時機的異常也做了嚴格防護：若在按 `←` 後立刻送出提示詞且背景服務回應緩慢，過去可能在前景與背景各跑一次，現在不再重複送出。而在啟動階段的掛鉤仍在執行時按 `←` 導致輸入內容消失的問題，現在也能透過上方向鍵 `↑` 找回。在介面顯示方面，全螢幕模式下游標懸停的連結會加上底線提示。開啟 `/diff` 面板時不會再卡住通知訊息。在 MATE 等終端機中複製文字時印出 `52;c;…` 亂碼跳脫字元的瑕疵也已修正。",
+                "zh-TW": "當你使用方向鍵將當前對話推到背景執行時，背景服務的處理行為現在更加可預測。以前按下左方向鍵 `←` 將工作階段切換至背景時，剛啟動的輪次或以 `!` 開頭的 Shell 指令會在背後默默執行完畢，現在則會立即停止執行。針對輸入時機的異常也做了嚴格防護：若在按 `←` 後立刻送出提示詞且背景服務回應緩慢，過去可能在前景與背景各跑一次，現在不再重複送出。而在啟動階段的 hook（掛鉤，特定事件發生時被觸發的小程式）仍在執行時按 `←` 導致輸入內容消失的問題，現在也能透過上方向鍵 `↑` 找回。在介面顯示方面，全螢幕模式下游標懸停的連結會加上底線提示。開啟 `/diff` 面板時不會再卡住通知訊息。在 MATE 等終端機中複製文字時印出 `52;c;…` 亂碼跳脫字元的瑕疵也已修正。",
                 "en": "When using arrow keys to push an active conversation to the background, background handling behavior is now far more predictable. Previously, pressing the left arrow `←` to background a session allowed newly started turns or shell commands prefixed with `!` to continue running silently, but they are now aborted immediately. Strict safeguards are also in place for input timing: submitting a prompt immediately after pressing `←` while the background service is slow to respond no longer duplicates runs across foreground and background. Input dropped after pressing `←` while startup hooks are still executing can now be recovered using the up arrow `↑`. On the visual side, hovered links in full-screen mode now display an underline. Opening the `/diff` panel no longer blocks notifications. An issue causing garbage escape sequences like `52;c;…` when copying text in terminals such as MATE has also been fixed."
               },
               "original": "Fixed a stray `52;c;…` escape sequence printed on screen after copying in older VTE-based terminals such as MATE Terminal\nFixed toasts and notifications waiting unseen for as long as the `/diff` panel or dialog was open\nFixed a prompt sent just after `←` being run twice, once unseen in the foreground, when the background service was slow to answer\nFixed a prompt sent while SessionStart hooks were still running vanishing when `←` moved the session to the background; it is still not sent, but `↑` now brings it back\nImproved fullscreen mode: the link under the mouse pointer is now underlined to show it can be opened\nChanged `←`: a turn or `!` command started while the session moves to the background is now stopped instead of finishing out of sight"
