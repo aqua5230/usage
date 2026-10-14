@@ -176,7 +176,8 @@ export const register: Register = on => {
     }
     return next(e)
   })
-  on('turn.start', ($, e, next) => { hide($); return next(e) })
+  // Since Claude Code 2.1.299 subagents' and teammates' turns fire turn.start too; only the main loop's has no agentId.
+  on('turn.start', ($, e, next) => { if (!e.agentId) hide($); return next(e) })
   on('turn.complete', async ($, e, next) => {
     const result = await next(e)
     if (e.reason !== 'answer' || e.answer.length < 200) return result
