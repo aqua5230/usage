@@ -1398,3 +1398,173 @@ def test_build_prompt_skips_diagnosis_reminder_when_snapshot_is_stale(
     )
 
     assert "Health check:" not in prompt
+
+
+def _register_session(tmp_path: Path, session_id: str, pid: int) -> None:
+    sessions = tmp_path / "sessions"
+    sessions.mkdir(exist_ok=True)
+    (sessions / f"{pid}.json").write_text(
+        json.dumps({"pid": pid, "sessionId": session_id, "kind": "interactive"}),
+        encoding="utf-8",
+    )
+
+
+def _two_sessions(tmp_path: Path, *, neighbour_age: timedelta) -> tuple[Path, Path]:
+    """An older finished session plus a neighbour whose log was written ``neighbour_age`` ago."""
+    project = _project_dir(tmp_path)
+    now = datetime.now().astimezone()
+    finished = project / "finished.jsonl"
+    _write_session(finished, when=now - timedelta(hours=1), request="finish the release notes")
+    stamp = now.timestamp() - 3600
+    os.utime(finished, (stamp, stamp))
+    neighbour = project / "neighbour.jsonl"
+    _write_session(neighbour, when=now - neighbour_age, request="plan the kyoto trip app")
+    stamp = now.timestamp() - neighbour_age.total_seconds()
+    os.utime(neighbour, (stamp, stamp))
+    current = project / "current.jsonl"
+    current.write_text("", encoding="utf-8")
+    return neighbour, current
+
+
+def _resume_prompt(current: Path) -> str:
+    return mod._build_prompt({"transcript_path": str(current), "cwd": "/Users/me/Developer/myproj"})
+
+
+def test_build_prompt_skips_session_another_window_is_still_writing(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    monkeypatch.delenv("CLAUDE_PID", raising=False)
+    neighbour, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=1))
+    _register_session(tmp_path, neighbour.stem, os.getpid())
+
+    prompt = _resume_prompt(current)
+
+    assert "finish the release notes" in prompt
+    assert "kyoto" not in prompt
+
+
+def test_build_prompt_keeps_session_closed_a_moment_ago(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    # Closing a window and opening a new one is the main resume case: the closed session
+    # is no longer registered, so its fresh log must still be handed over.
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    _neighbour, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=1))
+    _register_session(tmp_path, "some-other-session", os.getpid())
+
+    assert "plan the kyoto trip app" in _resume_prompt(current)
+
+
+@pytest.mark.parametrize("via", ["env", "parent"])
+def test_build_prompt_keeps_session_this_window_just_cleared(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path, via: str
+) -> None:
+    # After /clear the registry may still list this window's pre-clear session.
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    cleared, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=1))
+    _register_session(tmp_path, cleared.stem, 4242)
+    monkeypatch.setattr(mod, "_pid_running", lambda pid: True)
+    if via == "env":
+        monkeypatch.setenv("CLAUDE_PID", "4242")
+    else:
+        monkeypatch.delenv("CLAUDE_PID", raising=False)
+        monkeypatch.setattr(os, "getppid", lambda: 4242)
+
+    assert "plan the kyoto trip app" in _resume_prompt(current)
+
+
+def test_build_prompt_keeps_open_window_that_went_quiet(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    neighbour, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=30))
+    _register_session(tmp_path, neighbour.stem, os.getpid())
+
+    assert "plan the kyoto trip app" in _resume_prompt(current)
+
+
+def test_build_prompt_keeps_session_whose_window_crashed(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    neighbour, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=1))
+    _register_session(tmp_path, neighbour.stem, 4242)
+    monkeypatch.setattr(mod, "_pid_running", lambda pid: False)
+
+    assert "plan the kyoto trip app" in _resume_prompt(current)
+
+
+def test_build_prompt_ignores_unreadable_session_registry(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _sidecar(tmp_path, monkeypatch)
+    _neighbour, current = _two_sessions(tmp_path, neighbour_age=timedelta(minutes=1))
+    sessions = tmp_path / "sessions"
+    sessions.mkdir()
+    (sessions / "1.json").write_text("{not json", encoding="utf-8")
+    (sessions / "2.json").write_text("[]", encoding="utf-8")
+    (sessions / "3.json").write_text(json.dumps({"pid": "x", "sessionId": 7}), encoding="utf-8")
+
+    assert "plan the kyoto trip app" in _resume_prompt(current)
+
+
+def test_pid_running_detects_exited_process() -> None:
+    child = subprocess.Popen([sys.executable, "-c", ""])
+    child.wait()
+
+    assert mod._pid_running(os.getpid()) is True
+    if os.name != "nt":
+        assert mod._pid_running(child.pid) is False
+
+
+@pytest.mark.parametrize("pid", [None, "123", True, 0, -1])
+def test_pid_running_rejects_invalid_pid(pid: object) -> None:
+    assert mod._pid_running(pid) is False
+
+
+def test_pid_running_trusts_registry_on_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_kill(pid: int, sig: int) -> None:
+        raise AssertionError("os.kill must not run on Windows")
+
+    monkeypatch.setattr(mod, "os", SimpleNamespace(name="nt", kill=fail_kill))
+
+    assert mod._pid_running(4242) is True
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        "<task-notification>\n<task-id>b1</task-id>\n<status>completed</status>"
+        "\n<summary>Background agent finished the research</summary>\n</task-notification>",
+        "<bash-input>rm -rf /tmp/frames</bash-input>",
+        "<bash-stdout>(Bash completed with no output)</bash-stdout><bash-stderr></bash-stderr>",
+        "<local-command-stdout>Set effort level to high for new sessions</local-command-stdout>",
+        "<command-name>/clear</command-name>\n            <command-message>clear</command-message>"
+        "\n            <command-args></command-args>",
+        "<command-message>effort</command-message>\n<command-name>/effort</command-name>",
+    ],
+)
+def test_clean_request_drops_turns_claude_code_writes(value: str) -> None:
+    assert mod._clean_request(value) == ""
+
+
+def test_clean_request_keeps_slash_command_arguments() -> None:
+    value = (
+        "<command-name>/loop</command-name>\n            <command-message>loop</command-message>"
+        "\n            <command-args>5m check the deploy</command-args>"
+    )
+
+    assert mod._clean_request(value) == "/loop 5m check the deploy"
+
+
+def test_clean_request_keeps_user_tagged_prompt() -> None:
+    value = "<Task>split the settings panel</Task> <Constraints>keep the old API</Constraints>"
+
+    assert mod._clean_request(value) == value
