@@ -11,6 +11,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **Windows: usage no longer leaves a WebView2 folder in %TEMP% after each abnormal exit.** Each crash, forced close or shutdown with Windows previously left about 2.5 MB behind. usage now reuses one dedicated folder under `~/.usage/webview`.
 - **Sonnet 5.5 cache reads in the offline price table cost $0.10 per million tokens.** The table, used only when the LiteLLM download fails, still charged $0.20, so offline Sonnet 5.5 spending was overstated.
 - **Session resume no longer hands over another open window's work.** With several Claude Code windows in one project, a new window picked up whichever session was written last, often a neighbour still running. Sessions another window has open and wrote to in the last 10 minutes are now skipped; a window you just closed is still handed over. Background-task notices, `!` shell runs and bare slash commands no longer show up as your recent requests.
+- **Beginner Mode's terms stay up while background agents work.** Since Claude Code 2.1.299, a subagent or teammate starting its own turn also signals a new turn, which cleared the terms above the prompt and dropped the ones still being picked. Only a new turn in the main conversation clears them now.
 
 ## [0.33.3] - 2026-10-09
 
