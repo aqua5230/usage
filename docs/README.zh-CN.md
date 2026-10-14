@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="readme-logo.png" alt="usage 标志" width="128">
+  <img src="mascot.webp" alt="余余，usage 的额度管家猫" width="160">
 </p>
 
 # usage
