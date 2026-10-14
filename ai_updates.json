@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-14",
+  "generated_at": "2026-10-15",
   "tools": [
     {
       "id": "claude_code",
@@ -1106,6 +1106,11 @@
           ]
         }
       ]
+    },
+    {
+      "id": "grok_build",
+      "name": "Grok Build",
+      "versions": []
     },
     {
       "id": "usage",
