@@ -76,6 +76,9 @@ _CLIENT_SECRET = "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"
 _DEFAULT_RETRY_AFTER_SECONDS = 60.0
 _MAX_RETRY_AFTER_SECONDS = 3600.0
 _rate_limit_until_monotonic = 0.0
+# When each group last appeared in a real API response; in memory only, reset on restart.
+_group_seen_at: dict[str, datetime] = {}
+_MISSING_GROUP_GRACE_MINUTES = 30
 
 
 def _user_agent() -> str:
@@ -160,8 +163,36 @@ def load_quota(max_age_minutes: float = 5) -> AgyQuotaResult | None:
     probed = probe_quota()
     if probed is None:
         return cached
+    probed = _carry_missing_groups(probed, cached)
     _write_cache(probed)
     return probed
+
+
+def _carry_missing_groups(probed: AgyQuotaResult, cached: AgyQuotaResult | None) -> AgyQuotaResult:
+    """Keep a group the API skipped this once, so the group toggle has something to show.
+
+    A group is carried only while the API last returned it within the grace window, so a
+    group Google really removes drops out instead of living on in the cache forever.
+    """
+    now = datetime.now(UTC)
+    for group in probed.groups:
+        _group_seen_at[group.name] = now
+    if cached is None:
+        return probed
+    names = {group.name for group in probed.groups}
+    grace = timedelta(minutes=_MISSING_GROUP_GRACE_MINUTES)
+    missing = [
+        group
+        for group in cached.groups
+        if group.name not in names
+        and group.name in _group_seen_at
+        and now - _group_seen_at[group.name] <= grace
+    ]
+    if not missing:
+        return probed
+    order = {group.name: index for index, group in enumerate(cached.groups)}
+    groups = sorted([*probed.groups, *missing], key=lambda group: order.get(group.name, 0))
+    return AgyQuotaResult(groups=groups, fetched_at=probed.fetched_at)
 
 
 def _resolve_access_token(timeout: float) -> str | None:
