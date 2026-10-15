@@ -71,13 +71,20 @@ def _isolate_muse_sessions(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> N
 @pytest.fixture(autouse=True)
 def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Keep shared startup workers out of the user's real config directories."""
-    from analyzer import diagnosis_snapshot, usage_snapshot
+    from analyzer import diagnosis_snapshot, history_persist, reporter, usage_snapshot
     from installer import claude_pane, session_hooks
+    from loaders import cache_quarantine
     from quota import quota_snapshot
     from usage_common import prefs, service_status
     from usage_hooks import usage_session_resume
 
     state_dir = tmp_path / "user-state"
+    monkeypatch.setattr(history_persist, "STATE_PATH", state_dir / "history_persist_state.json")
+    monkeypatch.setattr(history_persist, "_schedule_next_locked", lambda _delay: None)
+    monkeypatch.setattr(history_persist, "detect_agents", lambda: [])
+    monkeypatch.setattr(reporter, "YEAR_LEDGER_PATH", state_dir / "year_ledger.json")
+    monkeypatch.setattr(reporter, "YEAR_CACHE_PATH", state_dir / "year_cache.json")
+    monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", state_dir / "quarantine")
     monkeypatch.setattr(quota_snapshot, "SNAPSHOT_PATH", state_dir / "quota_snapshot.json")
     monkeypatch.setattr(
         session_hooks, "QUOTA_AWARE_HOOK_TARGET", state_dir / "usage-quota-aware.py"

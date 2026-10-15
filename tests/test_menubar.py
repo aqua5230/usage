@@ -942,6 +942,10 @@ def test_background_daily_maintenance_schedules_diagnosis_snapshot(
         "menubar.update.diagnosis_snapshot.maybe_schedule_refresh",
         lambda: calls.append("snapshot"),
     )
+    monkeypatch.setattr(
+        "menubar.update.history_persist.maybe_schedule_refresh",
+        lambda: calls.append("history"),
+    )
     fake_self = SimpleNamespace(
         _check_update_in_background=lambda **kwargs: calls.append(kwargs),
         _auto_check_schedule=AutoCheckSchedule(),
@@ -951,6 +955,7 @@ def test_background_daily_maintenance_schedules_diagnosis_snapshot(
 
     assert calls == [
         "snapshot",
+        "history",
         {},
     ]
 

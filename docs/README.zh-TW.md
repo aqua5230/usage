@@ -252,6 +252,7 @@ Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 16 款�
 - **Antigravity** 需要連網，而且只有你真的使用它才會發生：額度是用 Antigravity CLI 登入後存下的 OAuth 憑證，向 Google 官方額度端點查詢——依 CLI 版本不同，這個憑證讀自 macOS Keychain、Windows 認證管理員，或本機 token 檔。`usage` 只讀取這個憑證而不寫回，任何刷新後的 access token 也只留在記憶體中；這個呼叫本身讀取額度資訊。
 - **其他背景連網：** 用來標示故障的 Claude 與 Codex 公開狀態頁、估算成本用的公開價格表（斷網會用內建預設），以及偶爾檢查 GitHub 版本更新。
 - **新手模式**只有你打開才會連網：它透過你自己的 Claude Code 登入，把 Claude Code 最新一則回答送給 Claude Haiku 挑名詞。你的名詞紀錄存在 `~/.usage/glossary.json`。
+- **長期紀錄**：Claude Code 預設會刪掉 30 天前的對話紀錄。app 開著時，`usage` 每 6 小時把每日總量存進 `~/.usage/usage_snapshot.json` 和 `~/.usage/year_ledger.json`，報表才看得到更早的日子。這些檔只存在本機。換電腦時，記得把整個 `~/.usage/` 資料夾一起搬過去。
 
 <details>
 <summary>Claude 桌面版額度怎麼讀</summary>

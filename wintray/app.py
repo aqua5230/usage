@@ -26,7 +26,7 @@ from uuid import UUID
 import quota.agy_window_keeper as agy_window_keeper
 import quota.codex_window_keeper as codex_window_keeper
 import quota.window_keeper as window_keeper
-from analyzer import diagnosis_snapshot
+from analyzer import diagnosis_snapshot, history_persist
 from installer.statusline_settings import _statusline_enabled, _toggle_statusline_settings
 from loaders import codex_loader, grok_loader
 from loaders.claude_usage import ClaudeUsageClient, PollState
@@ -917,6 +917,7 @@ class _WindowsTrayController:
         except (OSError, SystemExit):
             logger.warning("Claude Code pane refresh failed", exc_info=True)
         diagnosis_snapshot.maybe_schedule_refresh()
+        history_persist.maybe_schedule_refresh()
         self._clear_stale_update_cache()
         if self._auto_check_schedule.try_begin(time.time()):
             self._run_auto_update_check()

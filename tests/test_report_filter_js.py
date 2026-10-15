@@ -732,6 +732,34 @@ console.log(
   'filter: isoWeek 2026-W1 cross-year; composition 50/40/10; sessions by cost; csv masked'
 );
 
+
+// Ledger totals affect date-filtered totals, never composition or sessions.
+const ledgerCube = JSON.parse(JSON.stringify(filterCube));
+ledgerCube.rows.push([1, 0, 0, 0, 900, 0, 0, 0, 9, 0, 1]);
+ledgerCube.rows.push([2, 1, 1, 1, 500, 0, 0, 0, 5, 0, 1]);
+const ledgerEnv = run(makeEnvironment(ledgerCube, {}, false, filterSessions));
+const ledgerSummary = window.usageReportFilter.applyBounds({from: '2025-12-29', to: '2026-01-01'});
+assert.equal(ledgerSummary.tokens, 1500);
+assert.equal(ledgerSummary.cost, 15);
+assert.equal(ledgerSummary.sessions, 1);
+assert.equal(ledgerSummary.activeDays, 2);
+const ledgerLists = ledgerEnv.compositionSection.querySelectorAll('.rank-list');
+assert.deepEqual(
+  ledgerLists[0].children.map((row) => [
+    row.querySelector('.name').textContent, row.querySelector('.pct').textContent,
+  ]),
+  [['Input', '50.0%'], ['Cache read', '40.0%'], ['Output', '10.0%']]
+);
+assert.deepEqual(
+  ledgerLists[1].children.map((row) => [
+    row.querySelector('.name').textContent, row.querySelector('.pct').textContent,
+  ]),
+  [['Claude Code', '44.4%'], ['Codex', '—']]
+);
+window.usageReportFilter.applyBounds({from: '2026-01-01', to: '2026-01-01'});
+assert.equal(ledgerEnv.compositionSection.hidden, true);
+console.log('ledger: filtered totals retained; composition, hit rates, sessions unchanged');
+
 const chartCube = {
   dates: ['2026-03-01', '2026-03-02'],
   agents: [{id: 'claude-code', name: 'Claude Code'}, {id: 'grok', name: 'Grok'}],
@@ -850,5 +878,6 @@ def test_report_filter_javascript_interactions_and_boundaries(tmp_path: Path) ->
         "zero and full child shares: 100.0% + 0.0%; costs remain",
         "range: 50 tokens, $5, 2 sessions; empty/reversed/clamped/no-previous safe",
         "filter: isoWeek 2026-W1 cross-year; composition 50/40/10; sessions by cost; csv masked",
+        "ledger: filtered totals retained; composition, hit rates, sessions unchanged",
         "daily chart: date range rebuilds pricing; tokens/cost toggle redraws",
     ]
