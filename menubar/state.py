@@ -10,7 +10,7 @@ import logging
 import os
 import threading
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import UTC, datetime, timedelta
 from datetime import time as datetime_time
 from pathlib import Path
@@ -140,6 +140,7 @@ class PopoverState:
     agy_session: QuotaRowState
     agy_weekly: QuotaRowState
     agy_group_name: str
+    agy_group_switchable: bool = field(default=False, kw_only=True)
     grok_weekly: QuotaRowState
     projects: list[tuple[str, int, float | None]]
     projects_yesterday: list[tuple[str, int, float | None]]
@@ -826,6 +827,7 @@ def build_popover_state(
     codex_rows: tuple[QuotaRowState, QuotaRowState],
     agy_rows: tuple[QuotaRowState, QuotaRowState],
     agy_group_name: str,
+    agy_group_switchable: bool = False,
     grok_row: QuotaRowState,
     projects: list[tuple[str, int, float | None]],
     projects_yesterday: list[tuple[str, int, float | None]],
@@ -946,6 +948,7 @@ def build_popover_state(
         agy_session=agy_rows[0],
         agy_weekly=agy_rows[1],
         agy_group_name=agy_group_name,
+        agy_group_switchable=agy_group_switchable,
         grok_weekly=grok_row,
         projects=projects,
         projects_yesterday=projects_yesterday,
@@ -1151,6 +1154,7 @@ def _empty_state(language: str = "en") -> PopoverState:
         agy_session=_missing_row(_t(language, "session_label"), AGY_COLOR, language),
         agy_weekly=_missing_row(_t(language, "weekly_label"), AGY_COLOR, language),
         agy_group_name="",
+        agy_group_switchable=False,
         grok_weekly=_missing_row(_t(language, "weekly_label"), GROK_COLOR, language),
         projects=[],
         projects_yesterday=[],
