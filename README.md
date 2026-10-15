@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/mascot.webp" alt="Yuyu, the usage cat who looks after your quota" width="160">
+  <img src="docs/readme-logo.png" alt="usage logo" width="128">
 </p>
 
 # usage

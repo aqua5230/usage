@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="mascot.webp" alt="유유, usage의 할당량 집사 고양이" width="160">
+  <img src="readme-logo.png" alt="usage 로고" width="128">
 </p>
 
 # usage

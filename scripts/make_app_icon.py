@@ -59,6 +59,14 @@ def main() -> None:
         (ROOT / "assets" / "usage_icon.png", app_icon, 1024, 1024),
         (ROOT / "assets" / "usage_icon_windows.png", app_icon, 1024, 1024),
         (
+            ROOT / "docs" / "readme-logo.png",
+            f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">'
+            f'<circle cx="256" cy="256" r="256" fill="{PAPER}"/>'
+            f'<g transform="translate(64 64) scale(6)">{mark}</g></svg>',
+            512,
+            512,
+        ),
+        (
             ROOT / "docs" / "favicon-32.png",
             f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">'
             f'<rect width="32" height="32" rx="7" fill="{PAPER}"/>'
