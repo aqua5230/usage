@@ -10,6 +10,8 @@
 
 [繁體中文](README.zh-TW.md) · 简体中文 · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介绍页](https://aqua5230.github.io/usage/)
 
+[安装](#安装) · [功能](#功能一览) · [主题](#主题图库) · [对比](#对比) · [故障排除](#故障排除)
+
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![持续集成](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![最新版本](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
@@ -33,19 +35,36 @@
 
 运行于 macOS 12 或更新版本以及 Windows 10/11。
 
-**macOS，通过 Homebrew（推荐）：**
+### macOS（Homebrew，推荐）
 
 ```bash
 brew install --cask aqua5230/usage/usage
 ```
 
-它会自动安装到 Applications 文件夹，只需 `brew upgrade --cask usage` 即可保持最新。想直接下载？从[最新版本](https://github.com/aqua5230/usage/releases/latest)获取 `usage.app.zip`，解压后将 `usage.app` 拖入 Applications 文件夹。
+`brew upgrade --cask usage` 即可保持最新。想直接下载？从[最新版本](https://github.com/aqua5230/usage/releases/latest)获取 `usage.app.zip`，解压后将 `usage.app` 拖入 Applications 文件夹。
 
-**macOS 首次启动：** macOS 15 及更高版本若被拦截，打开“系统设置”→“隐私与安全性”，向下滚动，点击**“仍要打开”**。macOS 14 及更早版本，在 Finder 中右键 `usage.app` → **“打开”** 一次。之后点击菜单栏图标。
+### Windows（便携版）
 
-**Windows：** 从[最新版本](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后运行 `usage.exe`。无需安装。若 SmartScreen 弹出 **“Windows 已保护你的电脑”**，点击**“更多信息”** → **“仍要运行”**。请参见[Windows 支持](#windows-支持)。
+从[最新版本](https://github.com/aqua5230/usage/releases/latest)下载 `usage-windows.zip`，解压后运行 `usage.exe`。无需安装。请参见[Windows 支持](#windows-支持)。
 
-**仅限终端，任何系统（包含 Linux）：** `uvx usage-cli` 无需安装即可打开终端界面；uv 会自动准备 Python 3.13。若要持续使用 `usage` 命令，请运行 `uv tool install usage-cli`。在 Linux 上，`usage setup` 也会安装 Claude Code 状态栏。该路径没有菜单栏或托盘应用。
+### Linux 与仅用终端（uvx）
+
+```bash
+uvx usage-cli
+```
+
+无需安装即可打开终端界面；uv 会自动准备 Python 3.13。若要持续使用 `usage` 命令，请运行 `uv tool install usage-cli`。在 Linux 上，`usage setup` 也会安装 Claude Code 状态栏。该路径没有菜单栏或托盘应用。
+
+<details>
+<summary>首次启动被 macOS Gatekeeper 或 Windows SmartScreen 拦截？</summary>
+
+- **macOS 15 及更高版本：**打开“系统设置”→“隐私与安全性”，向下滚动，点击**“仍要打开”**。
+- **macOS 14 及更早版本：**在 Finder 中右键 `usage.app` → **“打开”** 一次。
+- **Windows：**若 SmartScreen 弹出 **“Windows 已保护你的电脑”**，点击**“更多信息”** → **“仍要运行”**。
+
+之后点击菜单栏或托盘图标。
+
+</details>
 
 `usage` 需要来自 Claude Code、Codex、Antigravity 或 Grok CLI 中至少一款工具的数据，或正在运行的 Claude 桌面版应用。
 
@@ -76,13 +95,15 @@ brew install --cask aqua5230/usage/usage
 
 ### Claude Code 内部
 
-- **进度管家：** 打开新会话时，上次请求、未提交的变更和未完成的待办事项已直接交给 AI。无需 `/resume`，无需回顾。默认关闭。
-- **Token 节省器：** 要求 Claude Code 和 Codex 给出更简洁、更白话的回复，同时保持代码和错误信息逐字节不变。在真实会话的 A/B 测试中，对话后期回复维持缩短约 40%，而不是漂移变长 84%。
-- **侧边面板：** 在工作旁随时查看额度、其他对话和后台任务。[查看侧边面板介绍](#claude-code-侧边面板)。
-- **新手模式：** 用一行白话解释每次回答中最多三个专业术语，稍后带回进行复习。默认关闭；会消耗少量 Claude 额度。
-- **额度感知模式：** 当额度不足时，Claude 会在执行消耗额度的大任务前提醒你，让你选择先做小任务或等待重置。默认关闭；不会额外调用模型。
-- **自动启动 5 小时计时：** 每次 5 小时额度重置后，立即向每款工具发送一条微小消息，以便下一轮窗口立即开始计时。默认关闭。
-- **Token 浪费健康检查：** 每日扫描日志，检查重复读取文件和冗长输出等浪费问题。对 AI 说“show me”，它会引导你完成修复。
+| 功能 | 用途 | 默认 · 配额用量 |
+|---------|--------------|---------------------|
+| **进度管家** | 打开新会话时，上次请求、未提交的变更和未完成的待办事项已直接交给 AI。无需 `/resume`，无需回顾。 | 默认关闭 · 不额外调用模型 |
+| **Token 节省器** | 要求 Claude Code 和 Codex 给出更简洁、更白话的回复，同时保持代码和错误信息逐字节不变。在真实会话的 A/B 测试中，对话后期回复维持**缩短约 40%**，而不是漂移变长 84%。 | 默认关闭 · 不额外调用模型 |
+| **侧边面板** | 在工作旁随时查看额度、其他对话和后台任务。[查看侧边面板介绍](#claude-code-侧边面板)。 | 默认关闭 · 不额外调用模型 |
+| **新手模式** | 用一行白话解释每次回答中最多三个专业术语，稍后带回进行复习。 | 默认关闭 · 少量 Claude 额度 |
+| **额度感知模式** | 当额度不足时，Claude 会在执行消耗额度的大任务前提醒你，让你选择先做小任务或等待重置。 | 默认关闭 · 不额外调用模型 |
+| **自动启动 5 小时计时** | 每次 5 小时额度重置后，立即向每款工具发送一条微小消息，以便下一轮窗口立即开始计时。 | 默认关闭 · 极少配额 |
+| **Token 浪费健康检查** | 每日扫描日志，检查重复读取文件和冗长输出等浪费问题。对 AI 说“show me”，它会引导你完成修复。 | 随进度管家提供 · 不额外调用模型 |
 
 ### 报告与更多
 
@@ -142,49 +163,6 @@ brew install --cask aqua5230/usage/usage
 
 </details>
 
-## 隐私与数据来源
-
-- **本地日志：** Claude Code、Codex、Grok CLI 和 Muse Code 的数值从你电脑上的日志文件读取。其内容绝不会被上传。
-- **Claude 桌面版：** 无需 Claude Code CLI 或状态栏，保持 Claude 桌面版打开，`usage` 即可读取其本地 plan-usage 历史记录。不需要 Cookie、登录令牌或 API 调用。重置时间仅在其本地缓存确认时才会显示；绝不推测时间。
-- **Antigravity** 仅在你使用时才需要联网：配额通过 Antigravity CLI 登录后保存的 OAuth 凭据向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器或本地 token 文件。`usage` 绝不写回该凭据，任何刷新后的 access token 也仅保留在内存中；该调用本身仅读取配额元数据。
-- **其他后台网络活动：** 用于标记故障的 Claude 与 Codex 公开状态页、用于估算费用的公开模型价格表（离线时使用内置价格），以及偶尔在 GitHub 检查新版本。
-- **新手模式**仅在你开启时才会联网：通过你自己的 Claude Code 登录将 Claude Code 最新一条回答发送给 Claude Haiku 挑术语。你的术语列表保存在 `~/.usage/glossary.json`。
-
-<details>
-<summary>Claude 桌面版额度的读取方式</summary>
-
-没有可用的 Claude Code 额度文件时，`usage` 会读取 Claude 桌面版的本地 `plan-usage-history.json`，Windows 的 Microsoft Store 安装版也支持。如果本地 Chromium 块文件 HTTP 缓存中有较新的额度响应，且组织一致，还会读取准确的会话与每周重置时间。较新的缓存观察优先于有采样延迟的历史记录；较旧的缓存须与百分比一致。缓存缺失、格式不支持、过期或数据不一致时，倒计时保持未知。
-
-桌面版通常每 5–15 分钟更新；面板显示数据更新时间，超过 30 分钟标记过期，超过两小时停止显示。采用最新一条组织数据，不会搜索自定义桌面配置目录。这些额度缓存没有各项目的 token 明细；如果桌面会话也在 `~/.claude/projects/` 写入兼容的 Claude Code 日志，原有项目与 token 报表仍会统计。
-
-</details>
-
-## Windows 支持
-
-Windows 原生支持完整核心功能：提供与 macOS 相同的 16 款主题的系统托盘 UI、Claude Code 状态栏 hook 以及 Codex 记录解析均可原生运行。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
-
-<details>
-<summary>托盘图标、任务栏标签及其他差异</summary>
-
-系统托盘图标显示 Claude 或 Codex 当前会话配额的剩余百分比。在右键菜单或面板菜单中选择 **托盘显示来源 → Claude Code / Codex**，立即生效并在重启后保留（默认 Claude）；Codex 没有会话窗口时改用周配额，并在悬停提示中注明；没有配额数据时显示 `--`。悬停提示会汇总两个工具的各个窗口，并优先显示所选来源。左键通过 WebView2 打开配额主题。右键还提供「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
-
-在右键菜单或面板菜单中开启 **显示任务栏额度**，即可在任务栏内部、通知区域左侧透明显示 `Codex: 92%`。标签自动跟随任务栏位置、屏幕缩放和明暗主题，全屏或任务栏自动隐藏时隐藏；点击文字打开面板。空间不足时自动移到任务栏外侧，避免遮挡按钮。托盘保留普通程序图标作为菜单入口；文字使用所选来源和额度窗口。 右键点击标签会打开与系统托盘图标相同的菜单。
-
-面板显示在工作区右下角，而不是紧贴系统托盘图标，更新提示使用系统 Yes/No 对话框。
-
-</details>
-
-### 代码签名政策
-
-Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
-
-团队角色：
-
-- 提交者与审查者：[aqua5230](https://github.com/aqua5230)
-- 批准者：[aqua5230](https://github.com/aqua5230)
-
-隐私政策：除非用户或安装、操作此程序的人员明确要求，否则本程序不会将任何信息传输至其他网络系统。有关 `usage` 代你发出的网络调用及如何避免，请参阅[隐私与数据来源](#隐私与数据来源)。
-
 ## 主题图库
 
 直接在界面中切换 **16 个视觉主题**：
@@ -216,22 +194,6 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 
 </details>
 
-## 故障排除
-
-如果菜单栏显示 `--`，通常并非故障，只是尚无本地数据。
-
-| 症状 | 可能原因 | 解决方法 |
-|---------|--------------|-----|
-| 菜单栏显示 `--` | 尚无数据，或 Claude Code hook 未刷新 | 进行一次 Codex 对话。对于 Claude Code，点击“设置状态栏”（源码安装则运行 `python3 main.py --setup`） |
-| 运行 `usage.app` 里的 `main.py` 报 `ImportError` | 打包版的 `main.py` 需要 app 自带的解释器，无法手动运行 | 别运行那一份。改点 app 里的“设置状态栏”，或 clone 源码从源码运行 |
-| 误点“Quit” | 进程已终止 | 从 Spotlight 或 Applications 重新启动 `usage.app`。（`launchctl start com.lollapalooza.usage` 仅在你开启过“开机自启”时有效。） |
-| 状态显示“N minutes stale” | Claude Code 未运行 | 打开 Claude Code 并让它运行 |
-| Codex 区块为空 | 未找到 Codex 历史记录 | 进行一次 Codex 对话以生成日志 |
-| 今日费用显示 $0.00 | 缺少模型价格 | 删除 `~/.usage/pricing_cache.json`，或检查 `USAGE_DEBUG=1` |
-| Antigravity 卡片未显示 | 未安装或未登录 Antigravity CLI | 安装并登录 Antigravity CLI；后台配额查询成功后卡片会自动出现 |
-| App 无法打开 | macOS Gatekeeper 阻止了它 | 参见[macOS 首次启动](#安装) |
-| Windows 弹出“Windows 已保护你的电脑” | SmartScreen 尚未识别这个下载文件 | 点击“更多信息”→“仍要运行” |
-
 ## 对比
 
 | 功能 | usage | ccusage | TokenTracker |
@@ -253,6 +215,63 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 - 你完全生活在终端中，不想要任何后台运行的菜单栏图标——单次执行的 CLI 工具会更适合你。
 - 你没有在使用 Claude Code、Codex、Antigravity、Grok CLI 或 Claude 桌面版——这样 `usage` 就没有可以读取的使用数据。
 - 你想在 Linux 上用菜单栏。目前只有 macOS 和 Windows 有，不过终端界面（`uvx usage-cli`）在 Linux 上能跑起来。
+
+## Windows 支持
+
+Windows 原生支持完整核心功能：提供与 macOS 相同的 16 款主题的系统托盘 UI、Claude Code 状态栏 hook 以及 Codex 记录解析均可原生运行。系统托盘 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 和 11 通常已经内置。
+
+<details>
+<summary>托盘图标、任务栏标签及其他差异</summary>
+
+系统托盘图标显示 Claude 或 Codex 当前会话配额的剩余百分比。在右键菜单或面板菜单中选择 **托盘显示来源 → Claude Code / Codex**，立即生效并在重启后保留（默认 Claude）；Codex 没有会话窗口时改用周配额，并在悬停提示中注明；没有配额数据时显示 `--`。悬停提示会汇总两个工具的各个窗口，并优先显示所选来源。左键通过 WebView2 打开配额主题。右键还提供「重设面板位置」和「结束」；面板切换、刷新、开机自启和检查更新都在面板菜单中。
+
+在右键菜单或面板菜单中开启 **显示任务栏额度**，即可在任务栏内部、通知区域左侧透明显示 `Codex: 92%`。标签自动跟随任务栏位置、屏幕缩放和明暗主题，全屏或任务栏自动隐藏时隐藏；点击文字打开面板。空间不足时自动移到任务栏外侧，避免遮挡按钮。托盘保留普通程序图标作为菜单入口；文字使用所选来源和额度窗口。 右键点击标签会打开与系统托盘图标相同的菜单。
+
+面板显示在工作区右下角，而不是紧贴系统托盘图标，更新提示使用系统 Yes/No 对话框。
+
+</details>
+
+## 故障排除
+
+如果菜单栏显示 `--`，通常并非故障，只是尚无本地数据。
+
+| 症状 | 可能原因 | 解决方法 |
+|---------|--------------|-----|
+| 菜单栏显示 `--` | 尚无数据，或 Claude Code hook 未刷新 | 进行一次 Codex 对话。对于 Claude Code，点击“设置状态栏”（源码安装则运行 `python3 main.py --setup`） |
+| 运行 `usage.app` 里的 `main.py` 报 `ImportError` | 打包版的 `main.py` 需要 app 自带的解释器，无法手动运行 | 别运行那一份。改点 app 里的“设置状态栏”，或 clone 源码从源码运行 |
+| 误点“Quit” | 进程已终止 | 从 Spotlight 或 Applications 重新启动 `usage.app`。（`launchctl start com.lollapalooza.usage` 仅在你开启过“开机自启”时有效。） |
+| 状态显示“N minutes stale” | Claude Code 未运行 | 打开 Claude Code 并让它运行 |
+| Codex 区块为空 | 未找到 Codex 历史记录 | 进行一次 Codex 对话以生成日志 |
+| 今日费用显示 $0.00 | 缺少模型价格 | 删除 `~/.usage/pricing_cache.json`，或检查 `USAGE_DEBUG=1` |
+| Antigravity 卡片未显示 | 未安装或未登录 Antigravity CLI | 安装并登录 Antigravity CLI；后台配额查询成功后卡片会自动出现 |
+
+## 隐私与数据来源
+
+- **本地日志：** Claude Code、Codex、Grok CLI 和 Muse Code 的数值从你电脑上的日志文件读取。其内容绝不会被上传。
+- **Claude 桌面版：** 无需 Claude Code CLI 或状态栏，保持 Claude 桌面版打开，`usage` 即可读取其本地 plan-usage 历史记录。不需要 Cookie、登录令牌或 API 调用。重置时间仅在其本地缓存确认时才会显示；绝不推测时间。
+- **Antigravity** 仅在你使用时才需要联网：配额通过 Antigravity CLI 登录后保存的 OAuth 凭据向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器或本地 token 文件。`usage` 绝不写回该凭据，任何刷新后的 access token 也仅保留在内存中；该调用本身仅读取配额元数据。
+- **其他后台网络活动：** 用于标记故障的 Claude 与 Codex 公开状态页、用于估算费用的公开模型价格表（离线时使用内置价格），以及偶尔在 GitHub 检查新版本。
+- **新手模式**仅在你开启时才会联网：通过你自己的 Claude Code 登录将 Claude Code 最新一条回答发送给 Claude Haiku 挑术语。你的术语列表保存在 `~/.usage/glossary.json`。
+
+<details>
+<summary>Claude 桌面版额度的读取方式</summary>
+
+没有可用的 Claude Code 额度文件时，`usage` 会读取 Claude 桌面版的本地 `plan-usage-history.json`，Windows 的 Microsoft Store 安装版也支持。如果本地 Chromium 块文件 HTTP 缓存中有较新的额度响应，且组织一致，还会读取准确的会话与每周重置时间。较新的缓存观察优先于有采样延迟的历史记录；较旧的缓存须与百分比一致。缓存缺失、格式不支持、过期或数据不一致时，倒计时保持未知。
+
+桌面版通常每 5–15 分钟更新；面板显示数据更新时间，超过 30 分钟标记过期，超过两小时停止显示。采用最新一条组织数据，不会搜索自定义桌面配置目录。这些额度缓存没有各项目的 token 明细；如果桌面会话也在 `~/.claude/projects/` 写入兼容的 Claude Code 日志，原有项目与 token 报表仍会统计。
+
+</details>
+
+### 代码签名政策
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+团队角色：
+
+- 提交者与审查者：[aqua5230](https://github.com/aqua5230)
+- 批准者：[aqua5230](https://github.com/aqua5230)
+
+隐私政策：除非用户或安装、操作此程序的人员明确要求，否则本程序不会将任何信息传输至其他网络系统。有关 `usage` 代你发出的网络调用及如何避免，请参阅[隐私与数据来源](#隐私与数据来源)。
 
 ## 开发
 

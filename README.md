@@ -10,6 +10,8 @@
 
 [繁體中文](docs/README.zh-TW.md) · [简体中文](docs/README.zh-CN.md) · English · [日本語](docs/README.ja.md) · [한국어](docs/README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [Landing page](https://aqua5230.github.io/usage/)
 
+[Install](#install) · [Features](#what-you-get) · [Themes](#theme-gallery) · [Comparison](#comparison) · [Troubleshooting](#troubleshooting)
+
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![Latest Release](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
@@ -33,19 +35,36 @@
 
 Runs on macOS 12 or newer and Windows 10/11.
 
-**macOS, with Homebrew (recommended):**
+### macOS (Homebrew, recommended)
 
 ```bash
 brew install --cask aqua5230/usage/usage
 ```
 
-It lands in your Applications folder, and `brew upgrade --cask usage` keeps it current. Prefer a direct download? Get `usage.app.zip` from the [latest release](https://github.com/aqua5230/usage/releases/latest), unzip it, and drag `usage.app` into Applications.
+`brew upgrade --cask usage` keeps it current. Prefer a direct download? Get `usage.app.zip` from the [latest release](https://github.com/aqua5230/usage/releases/latest), unzip it, and drag `usage.app` into Applications.
 
-**First launch on macOS:** if macOS 15 or later blocks it, open System Settings → Privacy & Security, scroll down, and click **Open Anyway**. On macOS 14 or earlier, right-click `usage.app` in Finder → **Open** once. Then click the menu bar icon.
+### Windows (portable)
 
-**Windows:** download `usage-windows.zip` from the [latest release](https://github.com/aqua5230/usage/releases/latest), unzip it, and run `usage.exe`. No installer is needed. If SmartScreen shows **Windows protected your PC**, click **More info** → **Run anyway**. See [Windows Support](#windows-support).
+Download `usage-windows.zip` from the [latest release](https://github.com/aqua5230/usage/releases/latest), unzip it, and run `usage.exe`. No installer is needed. See [Windows Support](#windows-support).
 
-**Terminal only, any OS (Linux included):** `uvx usage-cli` opens the terminal interface with nothing to install; uv prepares Python 3.13 by itself. For a persistent `usage` command, run `uv tool install usage-cli`. On Linux, `usage setup` installs the Claude Code status line too. This path has no menu bar or tray app.
+### Linux and terminal only (uvx)
+
+```bash
+uvx usage-cli
+```
+
+Opens the terminal interface with nothing to install; uv prepares Python 3.13 by itself. For a persistent `usage` command, run `uv tool install usage-cli`. On Linux, `usage setup` installs the Claude Code status line too. This path has no menu bar or tray app.
+
+<details>
+<summary>First launch blocked by macOS Gatekeeper or Windows SmartScreen?</summary>
+
+- **macOS 15 or later:** open System Settings → Privacy & Security, scroll down, and click **Open Anyway**.
+- **macOS 14 or earlier:** right-click `usage.app` in Finder → **Open** once.
+- **Windows:** if SmartScreen shows **Windows protected your PC**, click **More info** → **Run anyway**.
+
+Then click the menu bar or tray icon.
+
+</details>
 
 `usage` needs data from at least one of Claude Code, Codex, Antigravity, or Grok CLI, or a running Claude Desktop app.
 
@@ -76,13 +95,15 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 
 ### Inside Claude Code
 
-- **Progress Concierge:** A new session starts with your last request, uncommitted changes, and unfinished todos already handed to the AI. No `/resume`, no recap. Off by default.
-- **Token Saver:** Asks Claude Code and Codex for shorter, plainer replies while keeping code and error messages byte-exact. In an A/B test on real sessions, late replies stayed ~40% shorter instead of drifting 84% longer.
-- **Side pane:** Quotas, other conversations, and background jobs next to your work. [See the side pane](#claude-code-side-pane).
-- **Beginner Mode:** Explains up to three technical terms from each answer in one plain line, then brings them back for review. Off by default; uses a little Claude quota.
-- **Quota-Aware Mode:** When a quota runs low, Claude tells you before a big task that would use it, and lets you do a smaller part or wait for the reset. Off by default; makes no extra model calls.
-- **Auto-start 5-hour session:** Right after a 5-hour quota resets, sends each tool one tiny message so the next window starts counting right away. Off by default.
-- **Token-waste health check:** A daily scan of your logs for repeated file reads and noisy output. Say "show me" and the AI walks you through fixes.
+| Feature | What it does | Default · quota use |
+|---------|--------------|---------------------|
+| **Progress Concierge** | A new session starts with your last request, uncommitted changes, and unfinished todos already handed to the AI. No `/resume`, no recap. | Off · no extra model calls |
+| **Token Saver** | Asks Claude Code and Codex for shorter, plainer replies while keeping code and error messages byte-exact. In an A/B test on real sessions, late replies stayed **~40% shorter** instead of drifting 84% longer. | Off · no extra model calls |
+| **Side pane** | Quotas, other conversations, and background jobs next to your work. [See the side pane](#claude-code-side-pane). | Off · no extra model calls |
+| **Beginner Mode** | Explains up to three technical terms from each answer in one plain line, then brings them back for review. | Off · a little Claude quota |
+| **Quota-Aware Mode** | When a quota runs low, Claude tells you before a big task that would use it, and lets you do a smaller part or wait for the reset. | Off · no extra model calls |
+| **Auto-start 5-hour session** | Right after a 5-hour quota resets, sends each tool one tiny message so the next window starts counting right away. | Off · negligible quota |
+| **Token-waste health check** | A daily scan of your logs for repeated file reads and noisy output. Say "show me" and the AI walks you through fixes. | Comes with Progress Concierge · no extra model calls |
 
 ### Reports and More
 
@@ -142,49 +163,6 @@ See your quota, other conversations, and background jobs without leaving Claude 
 
 </details>
 
-## Privacy & Data Sources
-
-- **Local logs:** Claude Code, Codex, Grok CLI, and Muse Code numbers are read from log files on your machine. Their contents are never uploaded.
-- **Claude Desktop:** Without the Claude Code CLI or a status line, keep Claude Desktop open and `usage` reads its local plan-usage history. No cookies, login tokens, or API calls are needed. Reset times appear only when its local cache confirms them; they are never estimated.
-- **Antigravity**, only if you use it, needs network access: quota is fetched from Google's official quota endpoint with the OAuth credential the Antigravity CLI already stored after sign-in — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version. `usage` never writes that credential back and keeps any refreshed access token in memory only; the call itself reads quota metadata.
-- **Other background network activity:** Public Claude and Codex status pages to flag outages, a public model-pricing table to estimate cost (built-in prices are used offline), and an occasional GitHub check for a new version.
-- **Beginner Mode**, only if you turn it on, sends Claude Code's latest answer to Claude Haiku through your own Claude Code sign-in to pick terms. Your term list stays in `~/.usage/glossary.json`.
-
-<details>
-<summary>How Claude Desktop quota is read</summary>
-
-When Claude Code quota files are unavailable, `usage` reads Claude Desktop's local `plan-usage-history.json`, including Microsoft Store installations on Windows. When a recent response in its local Chromium block-file HTTP cache matches the organization, `usage` also reads the exact session and weekly reset times. Newer cached observations take precedence over throttled history samples; older cache must match the percentages. Missing, unsupported, expired, or inconsistent cache data leaves the countdown unknown.
-
-Desktop samples normally update every 5–15 minutes. The panel shows the observation age, marks it stale after 30 minutes, and stops displaying it after two hours. The most recent organization sample is used; custom desktop profiles are not discovered. These quota caches contain no per-project token counts. Desktop sessions that also write compatible Claude Code logs under `~/.claude/projects/` are counted by the existing project/token reports.
-
-</details>
-
-## Windows Support
-
-Windows has the full core experience: the system-tray UI with the same 16 themes as macOS, the Claude Code status-line hook, and Codex history parsing all work natively. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
-
-<details>
-<summary>Tray icon, taskbar label, and other differences</summary>
-
-The system-tray icon shows the remaining session quota percentage for Claude or Codex. Choose **Tray Display Source → Claude Code / Codex** in the right-click menu or panel menu; the change applies immediately and survives restarts (default: Claude). If Codex has no session window, the icon uses its weekly quota instead and the tooltip identifies that window. Missing quota data shows `--`. The tooltip summarizes both tools, with the selected source first. Left-click opens the quota themes in WebView2. Right-click also provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
-
-Enable **Show Taskbar Quota** in either menu for a transparent `Codex: 92%` label inside the taskbar, immediately left of the notification area. It follows taskbar position, scaling, and light/dark theme, and hides during fullscreen use or taskbar auto-hide. Click the label to open the panel. If buttons leave insufficient space, it moves just outside the taskbar. The normal app icon remains as a menu entry point; the label follows the selected source and quota window. Right-click the label to open the same menu as the tray icon.
-
-The panel opens at the bottom-right of the working area rather than next to the tray icon, and update prompts use a system Yes/No dialog.
-
-</details>
-
-### Code signing policy
-
-Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
-
-Team roles:
-
-- Committers and reviewers: [aqua5230](https://github.com/aqua5230)
-- Approvers: [aqua5230](https://github.com/aqua5230)
-
-Privacy policy: this program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. See [Privacy & Data Sources](#privacy--data-sources) for the network calls `usage` makes on your behalf and how to avoid them.
-
 ## Theme Gallery
 
 Switch between **16 visual themes** directly from the UI:
@@ -216,22 +194,6 @@ Switch between **16 visual themes** directly from the UI:
 
 </details>
 
-## Troubleshooting
-
-If the menu bar shows `--`, it's usually not broken — there's just no local data yet.
-
-| Symptom | Likely cause | Fix |
-|---------|--------------|-----|
-| Menu bar shows `--` | No data yet, or Claude Code hook not refreshed | Run one Codex conversation. For Claude Code, click "Set Up Status Line" (from source: `python3 main.py --setup`) |
-| `ImportError` from `main.py` inside `usage.app` | The bundled `main.py` needs the bundle's own interpreter and cannot be run by hand | Don't run that copy. Click "Set Up Status Line" in the app, or clone the repo to run from source |
-| Accidentally hit "Quit" | Process terminated | Relaunch `usage.app` from Spotlight or Applications. (`launchctl start com.lollapalooza.usage` only works if you enabled Launch at Login.) |
-| Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run |
-| Codex section is empty | No Codex history found | Run a Codex conversation to generate logs |
-| Today's cost shows $0.00 | Model pricing missing | Delete `~/.usage/pricing_cache.json` or check `USAGE_DEBUG=1` |
-| Antigravity card is missing | Antigravity CLI not installed or not signed in | Install and sign in to the Antigravity CLI; the card appears automatically once a background quota fetch succeeds |
-| App won't open | macOS Gatekeeper blocked it | See [First launch on macOS](#install) |
-| Windows shows "Windows protected your PC" | SmartScreen doesn't recognize the download yet | Click More info → Run anyway |
-
 ## Comparison
 
 | Feature | usage | ccusage | TokenTracker |
@@ -253,6 +215,63 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 - You only live in the terminal and don't want another menu bar icon running in the background — a one-off CLI check fits better.
 - You don't use Claude Code, Codex, Antigravity, Grok CLI, or Claude Desktop — there's no usage data for `usage` to read.
 - You want a menu bar on Linux. Only macOS and Windows have one today, though the terminal interface (`uvx usage-cli`) runs on Linux.
+
+## Windows Support
+
+Windows has the full core experience: the system-tray UI with the same 16 themes as macOS, the Claude Code status-line hook, and Codex history parsing all work natively. The tray UI requires Microsoft Edge WebView2 Runtime, which is normally included with Windows 10 and 11.
+
+<details>
+<summary>Tray icon, taskbar label, and other differences</summary>
+
+The system-tray icon shows the remaining session quota percentage for Claude or Codex. Choose **Tray Display Source → Claude Code / Codex** in the right-click menu or panel menu; the change applies immediately and survives restarts (default: Claude). If Codex has no session window, the icon uses its weekly quota instead and the tooltip identifies that window. Missing quota data shows `--`. The tooltip summarizes both tools, with the selected source first. Left-click opens the quota themes in WebView2. Right-click also provides Reset Panel Position and Quit; panel switching, refresh, launch at login, and update checks are in the panel menu.
+
+Enable **Show Taskbar Quota** in either menu for a transparent `Codex: 92%` label inside the taskbar, immediately left of the notification area. It follows taskbar position, scaling, and light/dark theme, and hides during fullscreen use or taskbar auto-hide. Click the label to open the panel. If buttons leave insufficient space, it moves just outside the taskbar. The normal app icon remains as a menu entry point; the label follows the selected source and quota window. Right-click the label to open the same menu as the tray icon.
+
+The panel opens at the bottom-right of the working area rather than next to the tray icon, and update prompts use a system Yes/No dialog.
+
+</details>
+
+## Troubleshooting
+
+If the menu bar shows `--`, it's usually not broken — there's just no local data yet.
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| Menu bar shows `--` | No data yet, or Claude Code hook not refreshed | Run one Codex conversation. For Claude Code, click "Set Up Status Line" (from source: `python3 main.py --setup`) |
+| `ImportError` from `main.py` inside `usage.app` | The bundled `main.py` needs the bundle's own interpreter and cannot be run by hand | Don't run that copy. Click "Set Up Status Line" in the app, or clone the repo to run from source |
+| Accidentally hit "Quit" | Process terminated | Relaunch `usage.app` from Spotlight or Applications. (`launchctl start com.lollapalooza.usage` only works if you enabled Launch at Login.) |
+| Status says "N minutes stale" | Claude Code isn't running | Open Claude Code and let it run |
+| Codex section is empty | No Codex history found | Run a Codex conversation to generate logs |
+| Today's cost shows $0.00 | Model pricing missing | Delete `~/.usage/pricing_cache.json` or check `USAGE_DEBUG=1` |
+| Antigravity card is missing | Antigravity CLI not installed or not signed in | Install and sign in to the Antigravity CLI; the card appears automatically once a background quota fetch succeeds |
+
+## Privacy & Data Sources
+
+- **Local logs:** Claude Code, Codex, Grok CLI, and Muse Code numbers are read from log files on your machine. Their contents are never uploaded.
+- **Claude Desktop:** Without the Claude Code CLI or a status line, keep Claude Desktop open and `usage` reads its local plan-usage history. No cookies, login tokens, or API calls are needed. Reset times appear only when its local cache confirms them; they are never estimated.
+- **Antigravity**, only if you use it, needs network access: quota is fetched from Google's official quota endpoint with the OAuth credential the Antigravity CLI already stored after sign-in — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version. `usage` never writes that credential back and keeps any refreshed access token in memory only; the call itself reads quota metadata.
+- **Other background network activity:** Public Claude and Codex status pages to flag outages, a public model-pricing table to estimate cost (built-in prices are used offline), and an occasional GitHub check for a new version.
+- **Beginner Mode**, only if you turn it on, sends Claude Code's latest answer to Claude Haiku through your own Claude Code sign-in to pick terms. Your term list stays in `~/.usage/glossary.json`.
+
+<details>
+<summary>How Claude Desktop quota is read</summary>
+
+When Claude Code quota files are unavailable, `usage` reads Claude Desktop's local `plan-usage-history.json`, including Microsoft Store installations on Windows. When a recent response in its local Chromium block-file HTTP cache matches the organization, `usage` also reads the exact session and weekly reset times. Newer cached observations take precedence over throttled history samples; older cache must match the percentages. Missing, unsupported, expired, or inconsistent cache data leaves the countdown unknown.
+
+Desktop samples normally update every 5–15 minutes. The panel shows the observation age, marks it stale after 30 minutes, and stops displaying it after two hours. The most recent organization sample is used; custom desktop profiles are not discovered. These quota caches contain no per-project token counts. Desktop sessions that also write compatible Claude Code logs under `~/.claude/projects/` are counted by the existing project/token reports.
+
+</details>
+
+### Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+Team roles:
+
+- Committers and reviewers: [aqua5230](https://github.com/aqua5230)
+- Approvers: [aqua5230](https://github.com/aqua5230)
+
+Privacy policy: this program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. See [Privacy & Data Sources](#privacy--data-sources) for the network calls `usage` makes on your behalf and how to avoid them.
 
 ## Development
 

@@ -10,6 +10,8 @@
 
 繁體中文 · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · [한국어](README.ko.md) &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [官方介紹頁](https://aqua5230.github.io/usage/)
 
+[安裝](#安裝) · [功能](#你會得到什麼) · [主題](#主題展示) · [比較](#跟其他工具比較) · [排錯](#常見問題排查)
+
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![Latest Release](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
@@ -33,19 +35,36 @@
 
 支援 macOS 12 以上，以及 Windows 10/11。
 
-**macOS，用 Homebrew（推薦）：**
+### macOS（Homebrew，推薦）
 
 ```bash
 brew install --cask aqua5230/usage/usage
 ```
 
-安裝後會自動進入「應用程式」資料夾，之後 `brew upgrade --cask usage` 就能更新。想直接下載？到[最新 Release](https://github.com/aqua5230/usage/releases/latest) 下載 `usage.app.zip`，解壓縮後把 `usage.app` 拖進「應用程式」。
+`brew upgrade --cask usage` 就能更新。想直接下載？到[最新 Release](https://github.com/aqua5230/usage/releases/latest) 下載 `usage.app.zip`，解壓縮後把 `usage.app` 拖進「應用程式」。
 
-**macOS 第一次開啟：** macOS 15 以上若被擋，到「系統設定」→「隱私權與安全性」，往下捲，按**「強制打開」**。macOS 14 以前：在 Finder 對 `usage.app` 按右鍵 → **打開** 一次。放行後點選單列圖示即可。
+### Windows（免安裝）
 
-**Windows：** 從[最新 Release](https://github.com/aqua5230/usage/releases/latest) 下載 `usage-windows.zip`，解壓後執行 `usage.exe`，不需要安裝程式。若跳出 SmartScreen 的**「Windows 已保護您的電腦」**，按**「其他資訊」**→**「仍要執行」**。見 [Windows 支援](#windows-支援)。
+從[最新 Release](https://github.com/aqua5230/usage/releases/latest) 下載 `usage-windows.zip`，解壓後執行 `usage.exe`，不需要安裝程式。見 [Windows 支援](#windows-支援)。
 
-**只要終端機，任何系統（含 Linux）：** `uvx usage-cli` 不用安裝就能開終端機介面；uv 會自己準備 Python 3.13。要常駐的 `usage` 指令，執行 `uv tool install usage-cli`。Linux 上跑 `usage setup` 也能裝好 Claude Code 的狀態列。這種方式沒有選單列或系統匣 App。
+### Linux 與僅用終端機（uvx）
+
+```bash
+uvx usage-cli
+```
+
+不用安裝就能開終端機介面；uv 會自己準備 Python 3.13。要常駐的 `usage` 指令，執行 `uv tool install usage-cli`。Linux 上跑 `usage setup` 也能裝好 Claude Code 的狀態列。這種方式沒有選單列或系統匣 App。
+
+<details>
+<summary>首次開啟被 macOS Gatekeeper 或 Windows SmartScreen 擋住？</summary>
+
+- **macOS 15 以上：**到「系統設定」→「隱私權與安全性」，往下捲，按**「強制打開」**。
+- **macOS 14 以前：**在 Finder 對 `usage.app` 按右鍵 → **打開** 一次。
+- **Windows：**若跳出 SmartScreen 的**「Windows 已保護您的電腦」**，按**「其他資訊」**→**「仍要執行」**。
+
+放行後點選單列或系統匣圖示即可。
+
+</details>
 
 `usage` 需要至少一種資料：Claude Code、Codex、Antigravity 或 Grok CLI 的使用資料，或正在執行的 Claude 桌面版。
 
@@ -76,13 +95,15 @@ brew install --cask aqua5230/usage/usage
 
 ### Claude Code 裡
 
-- **進度管家 (Progress Concierge)：** 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用 `/resume`，也不用重講進度。預設關閉。
-- **省 token 模式 (Token Saver)：** 讓 Claude Code 與 Codex 講話更精簡、更白話，程式碼與錯誤訊息一個字都不縮水。在真實 Session 的 A/B 測試中，對話後段回覆維持少約 40%，而不是走鐘變長 84%。
-- **側邊面板：** 在工作旁邊看額度、其他對話與背景工作。[看側邊面板介紹](#claude-code-側邊面板)。
-- **新手模式：** 從每則回答挑最多 3 個專有名詞，各配一行白話解釋，之後再拿出來複習。預設關閉；會用到少量 Claude 額度。
-- **額度感知模式：** 額度快見底時，Claude 開會用到它的大任務前會先告訴你，讓你選先做小的或等重置。預設關閉；不會另外呼叫模型。
-- **自動啟動 5 小時計時：** 5 小時額度一重置，就各送一則極小的訊息，讓下一輪立刻開始計時。預設關閉。
-- **Token 浪費健檢：** 每天掃描紀錄，找出重複讀檔與雜訊輸出。說一聲「給我看」，AI 就帶你看怎麼改。
+| 功能 | 用途 | 預設 · 額度用量 |
+|---------|--------------|---------------------|
+| **進度管家 (Progress Concierge)** | 開新對話時，自動把你上次的請求、未提交的變更與待辦清單交給 AI，不用 `/resume`，也不用重講進度。 | 預設關閉 · 不額外呼叫模型 |
+| **省 token 模式 (Token Saver)** | 讓 Claude Code 與 Codex 講話更精簡、更白話，程式碼與錯誤訊息一個字都不縮水。在真實 Session 的 A/B 測試中，對話後段回覆維持**少約 40%**，而不是走鐘變長 84%。 | 預設關閉 · 不額外呼叫模型 |
+| **側邊面板** | 在工作旁邊看額度、其他對話與背景工作。[看側邊面板介紹](#claude-code-側邊面板)。 | 預設關閉 · 不額外呼叫模型 |
+| **新手模式** | 從每則回答挑最多 3 個專有名詞，各配一行白話解釋，之後再拿出來複習。 | 預設關閉 · 少量 Claude 額度 |
+| **額度感知模式** | 額度快見底時，Claude 開會用到它的大任務前會先告訴你，讓你選先做小的或等重置。 | 預設關閉 · 不額外呼叫模型 |
+| **自動啟動 5 小時計時** | 5 小時額度一重置，就各送一則極小的訊息，讓下一輪立刻開始計時。 | 預設關閉 · 極少額度 |
+| **Token 浪費健檢** | 每天掃描紀錄，找出重複讀檔與雜訊輸出。說一聲「給我看」，AI 就帶你看怎麼改。 | 隨進度管家提供 · 不額外呼叫模型 |
 
 ### 報表與其他
 
@@ -142,49 +163,6 @@ brew install --cask aqua5230/usage/usage
 
 </details>
 
-## 隱私與資料來源
-
-- **本機紀錄：** Claude Code、Codex、Grok CLI 與 Muse Code 的數字讀自你機器上的紀錄檔，內容不會被上傳。
-- **Claude 桌面版：** 沒裝 Claude Code CLI、也沒設定狀態列時，保持 Claude 桌面版開啟，`usage` 會讀它的本機額度歷史。不需要 Cookie、登入權杖或 API 呼叫。重置時間只在本機快取能確認時才顯示，不推測。
-- **Antigravity** 需要連網，而且只有你真的使用它才會發生：額度是用 Antigravity CLI 登入後存下的 OAuth 憑證，向 Google 官方額度端點查詢——依 CLI 版本不同，這個憑證讀自 macOS Keychain、Windows 認證管理員，或本機 token 檔。`usage` 只讀取這個憑證而不寫回，任何刷新後的 access token 也只留在記憶體中；這個呼叫本身讀取額度資訊。
-- **其他背景連網：** 用來標示故障的 Claude 與 Codex 公開狀態頁、估算成本用的公開價格表（斷網會用內建預設），以及偶爾檢查 GitHub 版本更新。
-- **新手模式**只有你打開才會連網：它透過你自己的 Claude Code 登入，把 Claude Code 最新一則回答送給 Claude Haiku 挑名詞。你的名詞紀錄存在 `~/.usage/glossary.json`。
-
-<details>
-<summary>Claude 桌面版額度怎麼讀</summary>
-
-沒有可用的 Claude Code 額度檔時，usage 會讀取 Claude 桌面版的本機 `plan-usage-history.json`，Windows 的 Microsoft Store 安裝版也支援。如果本機 Chromium 區塊檔案 HTTP 快取中有較新的額度回應，且組織一致，還會讀取準確的會話與每週重置時間。較新的快取觀察優先於有取樣延遲的歷史紀錄；較舊的快取須與百分比一致。快取缺失、格式不支援、過期或資料不一致時，倒數保持未知。
-
-桌面版通常每 5–15 分鐘更新；面板顯示資料更新時間，超過 30 分鐘標示過期，超過兩小時停止顯示。採用最新一筆組織資料，不會搜尋自訂桌面設定檔。這些額度快取沒有各專案的 token 明細；若桌面工作階段也在 `~/.claude/projects/` 寫入相容的 Claude Code 日誌，原有專案與 token 報表仍會統計。
-
-</details>
-
-## Windows 支援
-
-Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 16 款主題）、Claude Code 狀態列 hook 與 Codex 記錄解析都原生支援。系統匣 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
-
-<details>
-<summary>系統匣圖示、工作列標籤與其他差異</summary>
-
-系統匣圖示顯示 Claude 或 Codex 目前工作階段額度的剩餘百分比。在右鍵選單或面板選單中選擇 **系統匣顯示來源 → Claude Code / Codex**，立即生效並於重啟後保留（預設 Claude）；Codex 沒有工作階段視窗時改用每週額度，並於提示文字中註明；沒有額度資料時顯示 `--`。提示文字摘要兩個工具的各視窗，並優先顯示所選來源。左鍵會用 WebView2 開啟額度主題面板；右鍵也提供「重設面板位置」與「結束」；面板切換、重新整理、開機自啟與檢查更新都在面板選單。
-
-在右鍵選單或面板選單中開啟 **顯示工作列額度**，即可在工作列內部、通知區域左側透明顯示 `Codex: 92%`。標籤自動跟隨工作列位置、螢幕縮放及明暗主題，全螢幕或工作列自動隱藏時隱藏；點擊文字開啟面板。空間不足時自動移至工作列外側，避免遮住按鈕。系統匣保留一般程式圖示作為選單入口；文字使用所選來源及額度視窗。右鍵點標籤會開啟跟系統匣圖示一樣的選單。
-
-面板開在工作區右下角，而非貼齊系統匣圖示；更新提示使用系統 Yes/No 對話框。
-
-</details>
-
-### 程式碼簽章政策
-
-Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
-
-團隊角色：
-
-- 提交者與審查者：[aqua5230](https://github.com/aqua5230)
-- 批准者：[aqua5230](https://github.com/aqua5230)
-
-隱私權政策：除非使用者或安裝、操作此程式的人員明確要求，否則本程式不會將任何資訊傳輸至其他網路系統。關於 `usage` 替你發出的網路呼叫及如何避免，請參閱[隱私與資料來源](#隱私與資料來源)。
-
 ## 主題展示
 
 內建 **16 款可切換的視覺主題**，可直接在 UI 中切換：
@@ -216,22 +194,6 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 
 </details>
 
-## 常見問題排查
-
-如果顯示 `--` 先別急，絕大多數情況只是還沒有本機資料。
-
-| 症狀 | 原因 | 解法 |
-|------|------|------|
-| menu bar 顯示 `--` | 尚無資料或 hook 未更新 | 先跑一次 Codex。若為 Claude Code，點擊「設定狀態列」（原始碼安裝則跑 `python3 main.py --setup`） |
-| 執行 `usage.app` 裡的 `main.py` 出現 `ImportError` | 打包版的 `main.py` 要用 app 內建的直譯器，無法手動執行 | 別跑那份。改點 app 裡的「設定狀態列」，或 clone 原始碼從原始碼執行 |
-| 不小心按到「結束」 | 程式已終止 | 透過 Spotlight 或應用程式重新開啟 `usage.app`。（`launchctl start com.lollapalooza.usage` 只在你開啟過「開機自啟」時才有作用。） |
-| 顯示「N 分鐘未更新」 | Claude Code 未執行 | 打開 Claude Code 跑一下就會更新 |
-| Codex 區塊空白 | 找不到 Codex 紀錄 | 用 Codex 跑一次對話 |
-| 今日花費是 $0.00 | 價格表對不上或抓取失敗 | 刪掉 `~/.usage/pricing_cache.json` 重新抓取，或檢查 `USAGE_DEBUG=1` |
-| Antigravity 卡片沒出現 | 未安裝或未登入 Antigravity CLI | 安裝並登入 Antigravity CLI，背景額度查詢成功後卡片會自動出現 |
-| App 打不開 | Gatekeeper 擋住 | 見[安裝](#安裝)的「macOS 第一次開啟」 |
-| Windows 跳出「Windows 已保護您的電腦」 | SmartScreen 還不認得這個下載檔 | 按「其他資訊」→「仍要執行」 |
-
 ## 跟其他工具比較
 
 | 功能 | usage | ccusage | TokenTracker |
@@ -253,6 +215,63 @@ Free code signing provided by [SignPath.io](https://about.signpath.io/), certifi
 - 你完全生活在終端機裡，不想要任何背景執行的選單列圖示——單次執行的 CLI 工具會更適合你。
 - 你沒有在使用 Claude Code、Codex、Antigravity、Grok CLI 或 Claude 桌面版——因為這樣 `usage` 就沒有可以讀取的用量資料。
 - 你想在 Linux 上用選單列。目前只有 macOS 與 Windows 有，不過終端機介面（`uvx usage-cli`）在 Linux 上跑得起來。
+
+## Windows 支援
+
+Windows 可完整使用核心功能：系統匣 UI（與 macOS 相同的 16 款主題）、Claude Code 狀態列 hook 與 Codex 記錄解析都原生支援。系統匣 UI 需要 Microsoft Edge WebView2 Runtime；Windows 10 與 11 通常已內建。
+
+<details>
+<summary>系統匣圖示、工作列標籤與其他差異</summary>
+
+系統匣圖示顯示 Claude 或 Codex 目前工作階段額度的剩餘百分比。在右鍵選單或面板選單中選擇 **系統匣顯示來源 → Claude Code / Codex**，立即生效並於重啟後保留（預設 Claude）；Codex 沒有工作階段視窗時改用每週額度，並於提示文字中註明；沒有額度資料時顯示 `--`。提示文字摘要兩個工具的各視窗，並優先顯示所選來源。左鍵會用 WebView2 開啟額度主題面板；右鍵也提供「重設面板位置」與「結束」；面板切換、重新整理、開機自啟與檢查更新都在面板選單。
+
+在右鍵選單或面板選單中開啟 **顯示工作列額度**，即可在工作列內部、通知區域左側透明顯示 `Codex: 92%`。標籤自動跟隨工作列位置、螢幕縮放及明暗主題，全螢幕或工作列自動隱藏時隱藏；點擊文字開啟面板。空間不足時自動移至工作列外側，避免遮住按鈕。系統匣保留一般程式圖示作為選單入口；文字使用所選來源及額度視窗。右鍵點標籤會開啟跟系統匣圖示一樣的選單。
+
+面板開在工作區右下角，而非貼齊系統匣圖示；更新提示使用系統 Yes/No 對話框。
+
+</details>
+
+## 常見問題排查
+
+如果顯示 `--` 先別急，絕大多數情況只是還沒有本機資料。
+
+| 症狀 | 原因 | 解法 |
+|------|------|------|
+| menu bar 顯示 `--` | 尚無資料或 hook 未更新 | 先跑一次 Codex。若為 Claude Code，點擊「設定狀態列」（原始碼安裝則跑 `python3 main.py --setup`） |
+| 執行 `usage.app` 裡的 `main.py` 出現 `ImportError` | 打包版的 `main.py` 要用 app 內建的直譯器，無法手動執行 | 別跑那份。改點 app 裡的「設定狀態列」，或 clone 原始碼從原始碼執行 |
+| 不小心按到「結束」 | 程式已終止 | 透過 Spotlight 或應用程式重新開啟 `usage.app`。（`launchctl start com.lollapalooza.usage` 只在你開啟過「開機自啟」時才有作用。） |
+| 顯示「N 分鐘未更新」 | Claude Code 未執行 | 打開 Claude Code 跑一下就會更新 |
+| Codex 區塊空白 | 找不到 Codex 紀錄 | 用 Codex 跑一次對話 |
+| 今日花費是 $0.00 | 價格表對不上或抓取失敗 | 刪掉 `~/.usage/pricing_cache.json` 重新抓取，或檢查 `USAGE_DEBUG=1` |
+| Antigravity 卡片沒出現 | 未安裝或未登入 Antigravity CLI | 安裝並登入 Antigravity CLI，背景額度查詢成功後卡片會自動出現 |
+
+## 隱私與資料來源
+
+- **本機紀錄：** Claude Code、Codex、Grok CLI 與 Muse Code 的數字讀自你機器上的紀錄檔，內容不會被上傳。
+- **Claude 桌面版：** 沒裝 Claude Code CLI、也沒設定狀態列時，保持 Claude 桌面版開啟，`usage` 會讀它的本機額度歷史。不需要 Cookie、登入權杖或 API 呼叫。重置時間只在本機快取能確認時才顯示，不推測。
+- **Antigravity** 需要連網，而且只有你真的使用它才會發生：額度是用 Antigravity CLI 登入後存下的 OAuth 憑證，向 Google 官方額度端點查詢——依 CLI 版本不同，這個憑證讀自 macOS Keychain、Windows 認證管理員，或本機 token 檔。`usage` 只讀取這個憑證而不寫回，任何刷新後的 access token 也只留在記憶體中；這個呼叫本身讀取額度資訊。
+- **其他背景連網：** 用來標示故障的 Claude 與 Codex 公開狀態頁、估算成本用的公開價格表（斷網會用內建預設），以及偶爾檢查 GitHub 版本更新。
+- **新手模式**只有你打開才會連網：它透過你自己的 Claude Code 登入，把 Claude Code 最新一則回答送給 Claude Haiku 挑名詞。你的名詞紀錄存在 `~/.usage/glossary.json`。
+
+<details>
+<summary>Claude 桌面版額度怎麼讀</summary>
+
+沒有可用的 Claude Code 額度檔時，usage 會讀取 Claude 桌面版的本機 `plan-usage-history.json`，Windows 的 Microsoft Store 安裝版也支援。如果本機 Chromium 區塊檔案 HTTP 快取中有較新的額度回應，且組織一致，還會讀取準確的會話與每週重置時間。較新的快取觀察優先於有取樣延遲的歷史紀錄；較舊的快取須與百分比一致。快取缺失、格式不支援、過期或資料不一致時，倒數保持未知。
+
+桌面版通常每 5–15 分鐘更新；面板顯示資料更新時間，超過 30 分鐘標示過期，超過兩小時停止顯示。採用最新一筆組織資料，不會搜尋自訂桌面設定檔。這些額度快取沒有各專案的 token 明細；若桌面工作階段也在 `~/.claude/projects/` 寫入相容的 Claude Code 日誌，原有專案與 token 報表仍會統計。
+
+</details>
+
+### 程式碼簽章政策
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+團隊角色：
+
+- 提交者與審查者：[aqua5230](https://github.com/aqua5230)
+- 批准者：[aqua5230](https://github.com/aqua5230)
+
+隱私權政策：除非使用者或安裝、操作此程式的人員明確要求，否則本程式不會將任何資訊傳輸至其他網路系統。關於 `usage` 替你發出的網路呼叫及如何避免，請參閱[隱私與資料來源](#隱私與資料來源)。
 
 ## 開發
 
