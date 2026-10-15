@@ -10,6 +10,8 @@
 
 [繁體中文](README.zh-TW.md) · [简体中文](README.zh-CN.md) · [English](../README.md) · [日本語](README.ja.md) · 한국어 &nbsp;|&nbsp; [Discussions](https://github.com/aqua5230/usage/discussions) &nbsp;|&nbsp; [공식 사이트](https://aqua5230.github.io/usage/)
 
+[설치](#설치) · [기능](#제공-기능) · [테마](#테마-갤러리) · [비교](#비교) · [문제 해결](#문제-해결)
+
 [![GitHub stars](https://img.shields.io/github/stars/aqua5230/usage?style=flat)](https://github.com/aqua5230/usage/stargazers)
 [![CI](https://github.com/aqua5230/usage/actions/workflows/check.yml/badge.svg)](https://github.com/aqua5230/usage/actions/workflows/check.yml)
 [![최신 릴리스](https://img.shields.io/github/v/release/aqua5230/usage)](https://github.com/aqua5230/usage/releases/latest)
@@ -33,19 +35,36 @@
 
 macOS 12 이상 및 Windows 10/11에서 실행됩니다.
 
-**macOS, Homebrew(권장):**
+### macOS (Homebrew, 권장)
 
 ```bash
 brew install --cask aqua5230/usage/usage
 ```
 
-Applications 폴더에 설치되며, `brew upgrade --cask usage`로 최신 상태를 유지할 수 있습니다. 직접 다운로드하고 싶으신가요? [최신 릴리스](https://github.com/aqua5230/usage/releases/latest)에서 `usage.app.zip`을 받아 압축을 풀고 `usage.app`을 Applications 폴더로 드래그하세요.
+`brew upgrade --cask usage`로 최신 상태를 유지할 수 있습니다. 직접 다운로드하고 싶으신가요? [최신 릴리스](https://github.com/aqua5230/usage/releases/latest)에서 `usage.app.zip`을 받아 압축을 풀고 `usage.app`을 Applications 폴더로 드래그하세요.
 
-**macOS 첫 실행:** macOS 15 이상에서 차단되면 시스템 설정 → 개인정보 보호 및 보안을 열고 아래로 스크롤한 뒤 **그래도 열기**를 클릭하세요. macOS 14 이하에서는 Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → **열기**를 한 번 실행하세요. 그다음 메뉴 막대 아이콘을 클릭하세요.
+### Windows (포터블)
 
-**Windows:** [최신 릴리스](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 다운로드하고 압축을 풀어 `usage.exe`를 실행하세요. 설치는 필요하지 않습니다. SmartScreen에 **Windows의 PC 보호**가 표시되면 **추가 정보** → **실행**을 클릭하세요. [Windows 지원](#windows-지원)을 참고하세요.
+[최신 릴리스](https://github.com/aqua5230/usage/releases/latest)에서 `usage-windows.zip`을 다운로드하고 압축을 풀어 `usage.exe`를 실행하세요. 설치는 필요하지 않습니다. [Windows 지원](#windows-지원)을 참고하세요.
 
-**터미널 전용, 모든 OS(Linux 포함):** `uvx usage-cli`는 설치 없이 바로 터미널 인터페이스를 엽니다. uv가 Python 3.13을 자동으로 준비합니다. `usage` 명령을 계속 사용하려면 `uv tool install usage-cli`를 실행하세요. Linux에서는 `usage setup`으로 Claude Code 상태 줄도 설치할 수 있습니다. 이 경로에는 메뉴 막대나 트레이 앱이 없습니다.
+### Linux 및 터미널 전용 (uvx)
+
+```bash
+uvx usage-cli
+```
+
+설치 없이 바로 터미널 인터페이스를 엽니다. uv가 Python 3.13을 자동으로 준비합니다. `usage` 명령을 계속 사용하려면 `uv tool install usage-cli`를 실행하세요. Linux에서는 `usage setup`으로 Claude Code 상태 줄도 설치할 수 있습니다. 이 경로에는 메뉴 막대나 트레이 앱이 없습니다.
+
+<details>
+<summary>첫 실행이 macOS Gatekeeper 또는 Windows SmartScreen에 차단되나요?</summary>
+
+- **macOS 15 이상:** 시스템 설정 → 개인정보 보호 및 보안을 열고 아래로 스크롤한 뒤 **그래도 열기**를 클릭하세요.
+- **macOS 14 이하:** Finder에서 `usage.app`을 마우스 오른쪽 버튼으로 클릭 → **열기**를 한 번 실행하세요.
+- **Windows:** SmartScreen에 **Windows의 PC 보호**가 표시되면 **추가 정보** → **실행**을 클릭하세요.
+
+그다음 메뉴 막대나 트레이 아이콘을 클릭하세요.
+
+</details>
 
 `usage`는 Claude Code, Codex, Antigravity, Grok CLI 중 적어도 하나 또는 실행 중인 Claude 데스크톱 앱의 데이터가 필요합니다.
 
@@ -76,13 +95,15 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 
 ### Claude Code 내부
 
-- **진행 상황 컨시어지:** 새 세션을 열면 마지막 요청, 커밋하지 않은 변경 사항, 미완료 todo가 이미 AI에 전달된 상태로 시작됩니다. `/resume`도, 요약도 필요 없습니다. 기본값은 꺼짐입니다.
-- **Token 절약기:** 코드와 오류 메시지는 바이트 단위로 그대로 유지하면서 Claude Code와 Codex에 더 간결하고 쉬운 말로 답하도록 요청합니다. 실제 세션의 A/B 테스트에서 대화 후반 답변은 84% 길어지는 대신 약 40% 더 짧게 유지되었습니다.
-- **사이드 패널:** 작업 화면 옆에서 할당량, 다른 대화, 백그라운드 작업을 확인하세요. [사이드 패널 소개](#claude-code-사이드-패널).
-- **초보자 모드:** 각 답변에서 최대 3개의 전문 용어를 골라 쉬운 한 줄 설명으로 풀어주고, 나중에 복습할 수 있도록 다시 보여줍니다. 기본값은 꺼짐이며 Claude 할당량을 조금 씁니다.
-- **할당량 인식 모드:** 할당량이 부족해지면, 이를 소진할 수 있는 큰 작업을 시작하기 전에 Claude가 미리 알려주어 작은 작업을 먼저 하거나 재설정을 기다릴 수 있게 합니다. 기본값은 꺼짐이며 모델을 따로 호출하지 않습니다.
-- **5시간 세션 자동 시작:** 5시간 할당량이 리셋된 직후 각 도구에 아주 작은 메시지를 하나씩 보내 다음 창이 바로 카운트되도록 합니다. 기본값은 꺼짐입니다.
-- **Token 낭비 상태 점검:** 반복되는 파일 읽기와 불필요한 출력을 찾기 위해 로그를 매일 검사합니다. AI에게 "show me"라고 말하면 해결 방법을 안내합니다.
+| 기능 | 하는 일 | 기본값 · 할당량 사용 |
+|---------|--------------|---------------------|
+| **진행 상황 컨시어지** | 새 세션을 열면 마지막 요청, 커밋하지 않은 변경 사항, 미완료 todo가 이미 AI에 전달된 상태로 시작됩니다. `/resume`도, 요약도 필요 없습니다. | 기본값 꺼짐 · 추가 모델 호출 없음 |
+| **Token 절약기** | 코드와 오류 메시지는 바이트 단위로 그대로 유지하면서 Claude Code와 Codex에 더 간결하고 쉬운 말로 답하도록 요청합니다. 실제 세션의 A/B 테스트에서 대화 후반 답변은 84% 길어지는 대신 **약 40% 더 짧게** 유지되었습니다. | 기본값 꺼짐 · 추가 모델 호출 없음 |
+| **사이드 패널** | 작업 화면 옆에서 할당량, 다른 대화, 백그라운드 작업을 확인하세요. [사이드 패널 소개](#claude-code-사이드-패널). | 기본값 꺼짐 · 추가 모델 호출 없음 |
+| **초보자 모드** | 각 답변에서 최대 3개의 전문 용어를 골라 쉬운 한 줄 설명으로 풀어주고, 나중에 복습할 수 있도록 다시 보여줍니다. | 기본값 꺼짐 · 소량의 Claude 할당량 |
+| **할당량 인식 모드** | 할당량이 부족해지면, 이를 소진할 수 있는 큰 작업을 시작하기 전에 Claude가 미리 알려주어 작은 작업을 먼저 하거나 재설정을 기다릴 수 있게 합니다. | 기본값 꺼짐 · 추가 모델 호출 없음 |
+| **5시간 세션 자동 시작** | 5시간 할당량이 리셋된 직후 각 도구에 아주 작은 메시지를 하나씩 보내 다음 창이 바로 카운트되도록 합니다. | 기본값 꺼짐 · 극소량의 할당량 |
+| **Token 낭비 상태 점검** | 반복되는 파일 읽기와 불필요한 출력을 찾기 위해 로그를 매일 검사합니다. AI에게 "show me"라고 말하면 해결 방법을 안내합니다. | 진행 상황 컨시어지에 포함 · 추가 모델 호출 없음 |
 
 ### 보고서 및 기타
 
@@ -142,49 +163,6 @@ Claude Code를 떠나지 않고 사용량, 다른 대화, 백그라운드 작업
 
 </details>
 
-## 개인정보 보호와 데이터 소스
-
-- **로컬 로그:** Claude Code, Codex, Grok CLI, Muse Code 수치는 컴퓨터의 로컬 로그 파일에서 읽습니다. 그 내용은 절대 업로드되지 않습니다.
-- **Claude Desktop:** Claude Code CLI나 상태 줄이 없어도 Claude 데스크톱을 열어 두면 `usage`가 로컬 플랜 사용 기록을 읽습니다. 쿠키, 로그인 토큰, API 호출이 필요하지 않습니다. 재설정 시간은 로컬 캐시에서 확인될 때만 표시되며 결코 추정하지 않습니다.
-- **Antigravity**는 실제로 사용하는 경우에만 네트워크 연결이 필요합니다: 할당량은 Antigravity CLI가 로그인 후 저장한 OAuth 자격 증명으로 Google의 공식 할당량 엔드포인트에 조회해 가져옵니다——CLI 버전에 따라 macOS 키체인, Windows 자격 증명 관리자, 또는 로컬 token 파일에서 읽습니다. `usage`는 그 자격 증명을 다시 쓰지 않으며, 갱신된 access token도 메모리에만 보관합니다. 이 호출 자체는 할당량 메타데이터를 읽습니다.
-- **기타 백그라운드 네트워크 활동:** 장애를 알리기 위한 Claude와 Codex의 공개 상태 페이지, 비용 추정을 위한 공개 모델 가격표(오프라인에서는 내장 가격 사용), 그리고 가끔 GitHub에서 새 버전을 확인하는 작업입니다.
-- **초보자 모드**는 켰을 때만 네트워크를 사용합니다: 본인의 Claude Code 로그인으로 Claude Code의 최신 답변을 Claude Haiku에 보내 용어를 고릅니다. 용어 목록은 `~/.usage/glossary.json`에 보관됩니다.
-
-<details>
-<summary>Claude Desktop 할당량을 읽는 방법</summary>
-
-Claude Code 한도 파일이 없을 때 `usage`는 Claude Desktop의 로컬 `plan-usage-history.json`을 읽습니다(Windows Microsoft Store 설치 포함). 로컬 Chromium 블록 파일 HTTP 캐시에 최신 응답이 있고 조직이 일치하면 `usage`는 정확한 세션 및 주간 재설정 시간도 읽습니다. 최신 캐시를 지연된 기록보다 우선하며 이전 캐시는 비율이 일치해야 합니다. 캐시가 없거나 형식 미지원, 만료 또는 데이터 불일치이면 카운트다운을 알 수 없음으로 유지합니다.
-
-데스크톱 샘플은 보통 5~15분마다 갱신됩니다. 패널에 데이터 경과 시간을 표시하며, 30분 이후에는 오래된 데이터로 표시하고 2시간 이후에는 표시하지 않습니다. 가장 최근 조직 기록을 사용하며 사용자 지정 프로필은 검색하지 않습니다. 이 한도 캐시에는 프로젝트별 토큰 수가 없습니다. 데스크톱 세션이 `~/.claude/projects/`에 호환되는 Claude Code 로그도 기록하면 기존 프로젝트 및 토큰 보고서에 집계됩니다.
-
-</details>
-
-## Windows 지원
-
-Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다: macOS와 동일한 16가지 테마를 갖춘 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석이 모두 네이티브로 작동합니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10과 11에 이미 포함되어 있습니다.
-
-<details>
-<summary>트레이 아이콘, 작업 표시줄 라벨 및 기타 차이점</summary>
-
-시스템 트레이 아이콘은 Claude 또는 Codex의 남은 세션 할당량을 백분율로 표시합니다. 오른쪽 클릭 메뉴나 패널 메뉴에서 **트레이 표시 소스 → Claude Code / Codex**를 선택하면 즉시 반영되고 재시작 후에도 유지됩니다(기본값: Claude). Codex에 세션 한도가 없으면 주간 할당량을 사용하며 도구 설명에 해당 기간을 표시합니다. 할당량 데이터가 없으면 `--`로 표시합니다. 도구 설명에는 두 도구의 각 창 요약을 표시하며 선택한 소스를 먼저 보여줍니다. 왼쪽 클릭하면 WebView2에서 할당량 테마를 엽니다. 오른쪽 클릭 메뉴에는 '패널 위치 재설정'과 '종료'도 있으며 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인은 패널 메뉴에 있습니다.
-
-메뉴에서 **작업 표시줄 할당량 표시**를 켜면 알림 영역 왼쪽에 투명한 `Codex: 92%` 라벨이 표시됩니다. 작업 표시줄 위치, 화면 배율, 밝고 어두운 테마에 맞춰 표시되며 전체 화면이나 작업 표시줄 자동 숨김 시에는 숨겨집니다. 클릭하면 패널이 열립니다. 버튼 공간이 부족하면 작업 표시줄 바깥으로 이동합니다. 일반 앱 아이콘은 메뉴 진입점으로 유지되며 라벨은 선택한 소스와 할당량 기간을 따릅니다. 라벨을 오른쪽 클릭하면 트레이 아이콘과 같은 메뉴가 열립니다.
-
-패널은 트레이 아이콘 옆이 아니라 작업 영역 오른쪽 아래에 열리며, 업데이트 알림은 시스템 Yes/No 대화 상자를 사용합니다.
-
-</details>
-
-### 코드 서명 정책
-
-Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
-
-팀 역할:
-
-- 커미터 및 리뷰어: [aqua5230](https://github.com/aqua5230)
-- 승인자: [aqua5230](https://github.com/aqua5230)
-
-개인정보 처리방침: 본 프로그램은 사용자나 설치 또는 조작하는 사람의 명시적인 요청이 없는 한, 어떤 정보도 다른 네트워크 시스템으로 전송하지 않습니다. `usage`가 귀하를 대신하여 수행하는 네트워크 호출 및 이를 피하는 방법에 대해서는 [개인정보 보호와 데이터 소스](#개인정보-보호와-데이터-소스)를 참조하세요.
-
 ## 테마 갤러리
 
 UI에서 직접 **16가지 시각 테마**를 전환하세요.
@@ -216,22 +194,6 @@ UI에서 직접 **16가지 시각 테마**를 전환하세요.
 
 </details>
 
-## 문제 해결
-
-메뉴 막대에 `--`가 표시되면 대개 고장이 아니라 아직 로컬 데이터가 없다는 뜻입니다.
-
-| 증상 | 가능한 원인 | 해결 방법 |
-|---------|--------------|-----|
-| 메뉴 막대에 `--` 표시 | 아직 데이터가 없거나 Claude Code hook이 갱신되지 않음 | Codex 대화를 한 번 실행하세요. Claude Code는 "상태 표시줄 설정"을 클릭하세요(소스에서 실행할 때는 `python3 main.py --setup`) |
-| `usage.app` 안의 `main.py` 실행 시 `ImportError` | 번들에 포함된 `main.py`는 앱 내장 인터프리터가 필요해 직접 실행할 수 없음 | 그 파일은 실행하지 마세요. 앱에서 "상태 표시줄 설정"을 클릭하거나, 저장소를 clone해 소스에서 실행하세요 |
-| 실수로 "Quit" 선택 | 프로세스가 종료됨 | Spotlight 또는 Applications에서 `usage.app`을 다시 실행하세요. (`launchctl start com.lollapalooza.usage`는 로그인 시 실행을 켜둔 경우에만 작동합니다.) |
-| 상태에 "N minutes stale" 표시 | Claude Code가 실행 중이 아님 | Claude Code를 열고 실행 상태로 두세요 |
-| Codex 섹션이 비어 있음 | Codex 기록을 찾지 못함 | Codex 대화를 실행하여 로그를 생성하세요 |
-| 오늘 비용이 $0.00으로 표시 | 모델 가격 정보 없음 | `~/.usage/pricing_cache.json`을 삭제하거나 `USAGE_DEBUG=1`을 확인하세요 |
-| Antigravity 카드가 표시되지 않음 | Antigravity CLI가 설치되지 않았거나 로그인되지 않음 | Antigravity CLI를 설치하고 로그인하세요. 백그라운드 할당량 조회가 성공하면 카드가 자동으로 나타납니다 |
-| App이 열리지 않음 | macOS Gatekeeper가 차단함 | [macOS 첫 실행](#설치)을 참고하세요 |
-| Windows에 "Windows의 PC 보호"가 표시됨 | SmartScreen이 아직 이 다운로드를 인식하지 못함 | 추가 정보 → 실행 클릭 |
-
 ## 비교
 
 | 기능 | usage | ccusage | TokenTracker |
@@ -253,6 +215,63 @@ UI에서 직접 **16가지 시각 테마**를 전환하세요.
 - 항상 터미널에서 작업하며 백그라운드에 메뉴 막대 아이콘을 띄워두고 싶지 않은 경우 — 단일 실행 CLI 도구가 더 적합합니다.
 - Claude Code, Codex, Antigravity, Grok CLI 또는 Claude 데스크톱을 사용하지 않는 경우 — `usage`가 읽어올 사용량 데이터가 없기 때문입니다.
 - Linux에서 메뉴 막대를 쓰려는 경우. 현재 메뉴 막대는 macOS와 Windows에만 있지만, 터미널 인터페이스(`uvx usage-cli`)는 Linux에서도 실행됩니다.
+
+## Windows 지원
+
+Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니다: macOS와 동일한 16가지 테마를 갖춘 시스템 트레이 UI, Claude Code 상태 줄 hook, Codex 기록 분석이 모두 네이티브로 작동합니다. 시스템 트레이 UI에는 Microsoft Edge WebView2 Runtime이 필요하며, 보통 Windows 10과 11에 이미 포함되어 있습니다.
+
+<details>
+<summary>트레이 아이콘, 작업 표시줄 라벨 및 기타 차이점</summary>
+
+시스템 트레이 아이콘은 Claude 또는 Codex의 남은 세션 할당량을 백분율로 표시합니다. 오른쪽 클릭 메뉴나 패널 메뉴에서 **트레이 표시 소스 → Claude Code / Codex**를 선택하면 즉시 반영되고 재시작 후에도 유지됩니다(기본값: Claude). Codex에 세션 한도가 없으면 주간 할당량을 사용하며 도구 설명에 해당 기간을 표시합니다. 할당량 데이터가 없으면 `--`로 표시합니다. 도구 설명에는 두 도구의 각 창 요약을 표시하며 선택한 소스를 먼저 보여줍니다. 왼쪽 클릭하면 WebView2에서 할당량 테마를 엽니다. 오른쪽 클릭 메뉴에는 '패널 위치 재설정'과 '종료'도 있으며 패널 전환, 새로 고침, 로그인 시 실행, 업데이트 확인은 패널 메뉴에 있습니다.
+
+메뉴에서 **작업 표시줄 할당량 표시**를 켜면 알림 영역 왼쪽에 투명한 `Codex: 92%` 라벨이 표시됩니다. 작업 표시줄 위치, 화면 배율, 밝고 어두운 테마에 맞춰 표시되며 전체 화면이나 작업 표시줄 자동 숨김 시에는 숨겨집니다. 클릭하면 패널이 열립니다. 버튼 공간이 부족하면 작업 표시줄 바깥으로 이동합니다. 일반 앱 아이콘은 메뉴 진입점으로 유지되며 라벨은 선택한 소스와 할당량 기간을 따릅니다. 라벨을 오른쪽 클릭하면 트레이 아이콘과 같은 메뉴가 열립니다.
+
+패널은 트레이 아이콘 옆이 아니라 작업 영역 오른쪽 아래에 열리며, 업데이트 알림은 시스템 Yes/No 대화 상자를 사용합니다.
+
+</details>
+
+## 문제 해결
+
+메뉴 막대에 `--`가 표시되면 대개 고장이 아니라 아직 로컬 데이터가 없다는 뜻입니다.
+
+| 증상 | 가능한 원인 | 해결 방법 |
+|---------|--------------|-----|
+| 메뉴 막대에 `--` 표시 | 아직 데이터가 없거나 Claude Code hook이 갱신되지 않음 | Codex 대화를 한 번 실행하세요. Claude Code는 "상태 표시줄 설정"을 클릭하세요(소스에서 실행할 때는 `python3 main.py --setup`) |
+| `usage.app` 안의 `main.py` 실행 시 `ImportError` | 번들에 포함된 `main.py`는 앱 내장 인터프리터가 필요해 직접 실행할 수 없음 | 그 파일은 실행하지 마세요. 앱에서 "상태 표시줄 설정"을 클릭하거나, 저장소를 clone해 소스에서 실행하세요 |
+| 실수로 "Quit" 선택 | 프로세스가 종료됨 | Spotlight 또는 Applications에서 `usage.app`을 다시 실행하세요. (`launchctl start com.lollapalooza.usage`는 로그인 시 실행을 켜둔 경우에만 작동합니다.) |
+| 상태에 "N minutes stale" 표시 | Claude Code가 실행 중이 아님 | Claude Code를 열고 실행 상태로 두세요 |
+| Codex 섹션이 비어 있음 | Codex 기록을 찾지 못함 | Codex 대화를 실행하여 로그를 생성하세요 |
+| 오늘 비용이 $0.00으로 표시 | 모델 가격 정보 없음 | `~/.usage/pricing_cache.json`을 삭제하거나 `USAGE_DEBUG=1`을 확인하세요 |
+| Antigravity 카드가 표시되지 않음 | Antigravity CLI가 설치되지 않았거나 로그인되지 않음 | Antigravity CLI를 설치하고 로그인하세요. 백그라운드 할당량 조회가 성공하면 카드가 자동으로 나타납니다 |
+
+## 개인정보 보호와 데이터 소스
+
+- **로컬 로그:** Claude Code, Codex, Grok CLI, Muse Code 수치는 컴퓨터의 로컬 로그 파일에서 읽습니다. 그 내용은 절대 업로드되지 않습니다.
+- **Claude Desktop:** Claude Code CLI나 상태 줄이 없어도 Claude 데스크톱을 열어 두면 `usage`가 로컬 플랜 사용 기록을 읽습니다. 쿠키, 로그인 토큰, API 호출이 필요하지 않습니다. 재설정 시간은 로컬 캐시에서 확인될 때만 표시되며 결코 추정하지 않습니다.
+- **Antigravity**는 실제로 사용하는 경우에만 네트워크 연결이 필요합니다: 할당량은 Antigravity CLI가 로그인 후 저장한 OAuth 자격 증명으로 Google의 공식 할당량 엔드포인트에 조회해 가져옵니다——CLI 버전에 따라 macOS 키체인, Windows 자격 증명 관리자, 또는 로컬 token 파일에서 읽습니다. `usage`는 그 자격 증명을 다시 쓰지 않으며, 갱신된 access token도 메모리에만 보관합니다. 이 호출 자체는 할당량 메타데이터를 읽습니다.
+- **기타 백그라운드 네트워크 활동:** 장애를 알리기 위한 Claude와 Codex의 공개 상태 페이지, 비용 추정을 위한 공개 모델 가격표(오프라인에서는 내장 가격 사용), 그리고 가끔 GitHub에서 새 버전을 확인하는 작업입니다.
+- **초보자 모드**는 켰을 때만 네트워크를 사용합니다: 본인의 Claude Code 로그인으로 Claude Code의 최신 답변을 Claude Haiku에 보내 용어를 고릅니다. 용어 목록은 `~/.usage/glossary.json`에 보관됩니다.
+
+<details>
+<summary>Claude Desktop 할당량을 읽는 방법</summary>
+
+Claude Code 한도 파일이 없을 때 `usage`는 Claude Desktop의 로컬 `plan-usage-history.json`을 읽습니다(Windows Microsoft Store 설치 포함). 로컬 Chromium 블록 파일 HTTP 캐시에 최신 응답이 있고 조직이 일치하면 `usage`는 정확한 세션 및 주간 재설정 시간도 읽습니다. 최신 캐시를 지연된 기록보다 우선하며 이전 캐시는 비율이 일치해야 합니다. 캐시가 없거나 형식 미지원, 만료 또는 데이터 불일치이면 카운트다운을 알 수 없음으로 유지합니다.
+
+데스크톱 샘플은 보통 5~15분마다 갱신됩니다. 패널에 데이터 경과 시간을 표시하며, 30분 이후에는 오래된 데이터로 표시하고 2시간 이후에는 표시하지 않습니다. 가장 최근 조직 기록을 사용하며 사용자 지정 프로필은 검색하지 않습니다. 이 한도 캐시에는 프로젝트별 토큰 수가 없습니다. 데스크톱 세션이 `~/.claude/projects/`에 호환되는 Claude Code 로그도 기록하면 기존 프로젝트 및 토큰 보고서에 집계됩니다.
+
+</details>
+
+### 코드 서명 정책
+
+Free code signing provided by [SignPath.io](https://about.signpath.io/), certificate by [SignPath Foundation](https://signpath.org/).
+
+팀 역할:
+
+- 커미터 및 리뷰어: [aqua5230](https://github.com/aqua5230)
+- 승인자: [aqua5230](https://github.com/aqua5230)
+
+개인정보 처리방침: 본 프로그램은 사용자나 설치 또는 조작하는 사람의 명시적인 요청이 없는 한, 어떤 정보도 다른 네트워크 시스템으로 전송하지 않습니다. `usage`가 귀하를 대신하여 수행하는 네트워크 호출 및 이를 피하는 방법에 대해서는 [개인정보 보호와 데이터 소스](#개인정보-보호와-데이터-소스)를 참조하세요.
 
 ## 개발
 
