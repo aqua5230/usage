@@ -7,8 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.33.5] - 2026-10-16
+
 ### Fixed
 - **Windows tray-icon menus stay outside the taskbar.** Right-clicking the tray icon now uses the same taskbar-aware position and foreground owner as the quota label, preventing the taskbar from covering the menu. Left-click behavior is unchanged.
+- **Windows: hardened three native calls that may relate to crashes while the screen is locked (#202).** The tray icon is no longer redrawn by two threads at once, Windows handles are no longer cut to 32 bits, and the file watcher waits for a pending read to finish before closing it. The crash cause is not yet confirmed.
 
 ## [0.33.4] - 2026-10-15
 
