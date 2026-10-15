@@ -629,6 +629,7 @@ def test_generate_html_restructures_report_into_tools_and_collapsed_appendix() -
         "insights-section",
         "trend-section",
         "tools-section",
+        "composition-section",
         "project-section",
         "session-section",
         "report-appendix",
@@ -698,8 +699,8 @@ def test_generate_html_adds_date_filter_cards_and_fixed_group_note_for_cube() ->
         assert section, class_name
         assert "fixed-range-tag" in section.group(0)
     assert (
-        "<summary><span>[usage]&gt;</span> How these numbers are calculated"
-        '<span class="appendix-desc">Token mix · Cache hit rate · Cost confidence</span>' in html
+        "<summary><span>[usage]&gt;</span> How cost is calculated"
+        '<span class="appendix-desc">Public API price conversion · Cost confidence</span>' in html
     )
 
 
@@ -711,7 +712,7 @@ def test_generate_html_without_cube_keeps_python_rendered_filter_sections() -> N
     assert '<div class="date-filter" data-date-filter>' not in html
     assert 'id="usage-cube-data"' not in html
     assert 'id="usage-session-data"' not in html
-    assert '<span class="week">W19</span>' in html
+    assert '<span class="week">W19 (05/04–05/10)</span>' in html
     assert "Cache read" in html
     assert "2026-05-20 09:15" in html
     assert 'class="section trend-section"' in html
@@ -857,7 +858,7 @@ def test_trend_ascii_marks_an_unfinished_final_week_without_a_delta() -> None:
 
     html = html_report._trend_ascii(daily, "en", date(2026, 8, 31))
 
-    last_row = html.split('<span class="week">W36</span>', 1)[1].split(
+    last_row = html.split('<span class="week">W36 (08/31–08/31)</span>', 1)[1].split(
         '</div><div class="trend-summary">', 1
     )[0]
     assert "in progress" in last_row
@@ -944,7 +945,8 @@ def test_project_share_bar_uses_the_neutral_project_color() -> None:
             f'style="width:{pct}%;background:#8b8577"></div>'
         ) in html
     assert "share-bar" not in html
-    assert 'class="pct"' not in html
+    assert 'class="pct"' in html
+    assert "Other projects" not in html
 
 
 def test_rank_line_gauge_boundaries() -> None:
@@ -963,3 +965,28 @@ def test_rank_line_gauge_boundaries() -> None:
     assert ">—" in over
     assert 'style="width:0.0%;background:#8f86c9"' in negative
     assert ">$0.00<" in negative
+
+
+def test_projects_include_remainder_share_and_cost_without_mutating_input() -> None:
+    data: dict[str, Any] = {
+        "summary": {"total_tokens": 100, "total_cost": 4.0},
+        "by_project": [{"project": "alpha", "tokens": 75, "cost": 3.0, "pct": 75}],
+    }
+    rendered = html_report._render_project_section(data, "en")
+    assert 'data-project-other="true"' in rendered
+    assert '<span class="name">Other projects</span>' in rendered
+    assert 'data-label="Share">25.0%</span>' in rendered
+    assert 'data-label="Tokens">25</span>' in rendered
+    assert 'data-label="Cost">$1.00</span>' in rendered
+    assert len(data["by_project"]) == 1
+    data["summary"]["total_tokens"] = 75
+    assert "Other projects" not in html_report._render_project_section(data, "en")
+    data["summary"]["total_tokens"] = 0
+    assert "Other projects" not in html_report._render_project_section(data, "en")
+
+
+def test_week_delta_warns_only_at_actual_doubling() -> None:
+    assert html_report._trend_delta(1999, 1000, "en") == ("up", "↗ +100%")
+    assert html_report._trend_delta(2000, 1000, "en") == ("surge", "↗ +100%")
+    assert html_report._trend_delta(50, 100, "en") == ("down", "↘ -50%")
+    assert html_report._trend_delta(100, 0, "en") == ("up", "↗ new")

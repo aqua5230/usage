@@ -70,5 +70,6 @@ def render_ledger(data: Mapping[str, Any], lang: str) -> str:
         f'<div class="prompt"><span>[usage]&gt;</span> {html.escape(_label(lang, "ledger_section"))}</div>'
         '<div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>'
         f'<div class="table-wrap"><table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>{note}'
+        f"<div><small>{html.escape(_label(lang, 'ledger_pct_note'))}</small></div>"
         "</section>"
     )

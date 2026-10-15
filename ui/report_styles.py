@@ -185,7 +185,7 @@ h1{
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
 .wrap>.section>.prompt,.filter-scope>.section>.prompt{font-size:1.15rem}
 .wrap>.wrapped-section>.prompt{font-size:1.05rem}
-.composition-section{margin-top:0;padding-top:24px}
+.composition-section{padding-top:24px}
 .composition-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
 .composition-section .rule,.recent-titles-section .rule{background:var(--faint);margin-bottom:12px}
 .contribution-section{margin-top:16px;border-top-color:transparent;padding-top:24px}
@@ -263,8 +263,7 @@ h1{
 .trend-bar div{height:100%;background:var(--cost);opacity:.72}
 .trend-row em{font-style:normal;text-align:right;color:var(--token);font-size:.82rem;font-variant-numeric:tabular-nums}
 .delta{color:var(--muted);white-space:nowrap;text-align:right;justify-self:end;font-size:.78rem;font-weight:600;font-variant-numeric:tabular-nums}
-.delta.up{color:var(--cost)}
-.delta.down{color:var(--warn)}
+.delta.surge{color:var(--warn)}
 .delta.flat{color:var(--muted)}
 .trend-summary{color:var(--text-soft);margin-top:8px;padding-top:12px;border-top:1px solid var(--faint);font-size:.84rem;line-height:1.6}
 .daily-chart-wrap{min-width:0;margin:0 0 24px;padding:14px 0 18px;border-bottom:1px solid var(--faint)}
@@ -391,6 +390,8 @@ td:first-child{color:var(--muted)}
 .sponsor-link a:hover{opacity:1;color:var(--cost)}
 .sponsor a:focus-visible,.sponsor-link a:focus-visible{outline:2px solid var(--cost);outline-offset:4px;border-radius:4px}
 .tools{display:grid;gap:12px;border:none;box-shadow:none;background:transparent}
+.project-section .rank-head,.project-section .rank-line{grid-template-columns:20px minmax(0,1fr) 72px 100px 100px}
+.project-section .project-model-detail .model-name{grid-column:2/4}
 .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
 .tools-head{padding:0 16px;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:-2px}
 .tools-head>span:nth-child(n+2),.rank-head>span:nth-child(n+3){text-align:right}
@@ -503,6 +504,7 @@ td:first-child{color:var(--muted)}
 }
 @media (min-width:781px){
   .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
+  .project-section .rank-head,.project-section .rank-line{grid-template-columns:20px minmax(0,1fr) 72px 100px 100px}
   .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
   .tools-head>:nth-child(1),.tool-row>:nth-child(1){grid-column:2}
   /* 箭頭佔第一欄，工具名才會跟下面專案熱區的名字對齊。 */
@@ -603,11 +605,11 @@ td:first-child{color:var(--muted)}
   .card span{padding:0 0 8px;letter-spacing:.04em}
   .card b{text-align:left;font-size:1.15rem}
   .card i{padding-top:6px}
-  .project-section .rank-line{grid-template-columns:14px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px}
+  .project-section .rank-line{grid-template-columns:14px minmax(0,1fr) auto auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px}
   .project-section .rank-line .arrow{display:inline}
   .project-section .rank-line .name{font-weight:600}
   .project-section .rank-line .tokens,.project-section .rank-line .cost{display:block;text-align:right;font-size:.9rem}
-  .project-section .rank-line .tokens::before,.project-section .rank-line .cost::before{content:none}
+  .project-section .rank-line .pct::before,.project-section .rank-line .tokens::before,.project-section .rank-line .cost::before{content:none}
   .session-section table,.session-section tbody{display:block;min-width:0}
   .session-section thead{display:none}
   .session-section tr{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px;border-bottom:1px solid var(--faint)}

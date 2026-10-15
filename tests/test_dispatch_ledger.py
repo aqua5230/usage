@@ -310,3 +310,25 @@ def test_ledger_escapes_user_text_and_uses_language_separator() -> None:
     assert "&lt;img src=x onerror=1&gt;" in html
     assert "client&lt;portal&gt;" in html
     assert "3 Codex, 4 Antigravity" in html
+
+
+def test_ledger_explains_the_weekly_quota_denominator() -> None:
+    data = {
+        "dispatch_ledger": {
+            "rows": [
+                {
+                    "date": "2026-10-13",
+                    "project": "sample",
+                    "title": "dispatch",
+                    "dispatch_count": 1,
+                    "claude_pct": 2.0,
+                    "codex_pct": 3.0,
+                    "agy_pct": None,
+                }
+            ],
+            "unowned_codex": 1,
+        }
+    }
+    rendered = render_ledger(data, "en")
+    assert "approximate shares of each tool’s weekly quota." in rendered
+    assert "</small><div><small>" in rendered

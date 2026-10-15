@@ -422,6 +422,7 @@ REPORT_FILTER_JS = r"""(() => {
     appendLeftTick(row, color);
     appendTextSpan(row, 'arrow', options.arrow || '→');
     appendTextSpan(row, options.nameClass || 'name', name);
+    if (options.showShare) appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
     appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
     const costKnown = options.costKnown === undefined ? item.costKnown : options.costKnown;
     appendTextSpan(row, 'cost', formatCost(item.cost, costKnown), shareConfig.cost);
@@ -433,8 +434,8 @@ REPORT_FILTER_JS = r"""(() => {
   const projectHeadCells = projectSection
     ? Array.from(projectSection.querySelectorAll('.rank-head > span'))
     : [];
-  const tokensLabel = projectHeadCells[2] ? projectHeadCells[2].textContent : shareConfig.tokens;
-  const costLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.cost;
+  const tokensLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.tokens;
+  const costLabel = projectHeadCells[4] ? projectHeadCells[4].textContent : shareConfig.cost;
 
   function removeProjectDetails(projectRow) {
     let sibling = projectRow.nextElementSibling;
@@ -616,19 +617,27 @@ REPORT_FILTER_JS = r"""(() => {
       }))
       .filter((item) => item.tokens > 0 || item.cost > 0)
       .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
-    projects.slice(0, 10).forEach((project, index) => {
+    const displayed = projects.slice(0, 10);
+    displayed.forEach((project) => {
       const row = createRankRow(
         project.name,
         project,
         summary.tokens,
         '#8b8577',
         // _render_project_section() 無條件顯示花費，這裡跟著一致
-        {projectIndex: project.projectIndex, costKnown: true}
+        {projectIndex: project.projectIndex, costKnown: true, showShare: true}
       );
       list.append(row);
       bindProjectRow(row);
     });
-    if (!projects.length) {
+    const remaining = summary.tokens - displayed.reduce((sum, project) => sum + project.tokens, 0);
+    if (remaining > 0) {
+      const cost = Math.max(0, summary.cost - displayed.reduce((sum, project) => sum + project.cost, 0));
+      const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, '#8b8577', {costKnown: true, showShare: true});
+      other.dataset.projectOther = 'true';
+      list.append(other);
+    }
+    if (!projects.length && remaining <= 0) {
       const empty = document.createElement('div');
       empty.className = 'empty';
       empty.textContent = `→ ${shareConfig.emptyProjects}`;
@@ -717,7 +726,7 @@ REPORT_FILTER_JS = r"""(() => {
     }
     const pct = Math.round((current - previous) / previous * 100);
     if (Math.abs(pct) <= 5) return {className: 'flat', label: '→ 0%'};
-    if (pct > 0) return {className: 'up', label: `↗ +${pct}%`};
+    if (pct > 0) return {className: current >= previous * 2 ? 'surge' : 'up', label: `↗ +${pct}%`};
     return {className: 'down', label: `↘ ${pct}%`};
   }
 
@@ -795,7 +804,7 @@ REPORT_FILTER_JS = r"""(() => {
       const row = document.createElement('div');
       row.className = 'trend-row';
       row.setAttribute('title', tooltip);
-      appendTextSpan(row, 'week', `W${week.week}`);
+      appendTextSpan(row, 'week', `W${week.week} (${formatDate(weekStart).slice(5).replace('-', '/')}–${formatDate(weekEnd).slice(5).replace('-', '/')})`);
       let width = 0;
       if (week.tokens > 0 && maxTokens > 0) {
         width = Math.max(2, Math.min(100, week.tokens / maxTokens * 100));

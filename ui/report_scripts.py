@@ -179,7 +179,7 @@ async function withShareableReport(maskProjects, callback) {
   const restores = [];
   const detached = [];
   if (maskProjects) {
-    document.querySelectorAll('.project-section .rank-line .name').forEach((el, i) => {
+    Array.from(document.querySelectorAll('.project-section .rank-line .name')).filter((el) => !el.closest('[data-project-other]')).forEach((el, i) => {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
@@ -187,7 +187,7 @@ async function withShareableReport(maskProjects, callback) {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
-    document.querySelectorAll('.project-section .lg-name').forEach((el, i) => {
+    Array.from(document.querySelectorAll('.project-section .lg-name')).filter((el) => !el.closest('[data-project-other]')).forEach((el, i) => {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });

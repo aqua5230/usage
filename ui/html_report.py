@@ -142,6 +142,7 @@ def _rank_line(
     arrow: str = "→",
     data_attributes: Mapping[str, object] | None = None,
     hidden: bool = False,
+    show_share: bool = False,
 ) -> str:
     classes = "rank-line" if not row_class else f"rank-line {row_class}"
     attributes = "".join(
@@ -158,7 +159,12 @@ def _rank_line(
         f'<span class="left-tick" aria-hidden="true"{color_attr}></span>'
         f'<span class="arrow">{arrow}</span>'
         f'<span class="name">{html.escape(name)}</span>'
-        f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
+        + (
+            f'<span class="pct" data-label="{_escape(_t(lang, "share"))}">{pct:.1f}%</span>'
+            if show_share
+            else ""
+        )
+        + f'<span class="tokens" data-label="{_escape(_t(lang, "tokens"))}">{_fmt_tokens(tokens)}</span>'
         f'<span class="cost" data-label="{_escape(_t(lang, "cost"))}">{_fmt_cost(cost)}</span>'
         f'<div class="gauge-rail" aria-hidden="true" style="{rail_style}"></div>'
         "</div>"
@@ -279,7 +285,7 @@ def _trend_delta(current: int, previous: int, lang: str) -> tuple[str, str]:
     if abs(pct) <= 5:
         return "flat", "→ 0%"
     if pct > 0:
-        return "up", f"↗ +{pct}%"
+        return "surge" if current >= previous * 2 else "up", f"↗ +{pct}%"
     return "down", f"↘ {pct}%"
 
 
@@ -308,7 +314,7 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
             delta_html = f'<span class="delta {delta_class}">{_escape(delta_label)}</span>'
         rows.append(
             f'<div class="trend-row" title="{tooltip}">'
-            f'<span class="week">W{int(week["week"])}</span>'
+            f'<span class="week">W{int(week["week"])} ({week_start:%m/%d}–{week_end:%m/%d})</span>'
             f"{render_trend_bar(tokens, max_tokens)}"
             f"<em>{_fmt_tokens(tokens)}</em>"
             f"{delta_html}"
@@ -696,29 +702,50 @@ def _render_share_dialog(lang: str) -> str:
 
 
 def _render_project_section(data: Mapping[str, Any], lang: str) -> str:
-    projects = data.get("by_project", [])
+    projects = list(data.get("by_project", []))
+    total = int(data.get("summary", {}).get("total_tokens", 0))
+    remainder = total - sum(int(project["tokens"]) for project in projects)
+    if remainder > 0:
+        cost = max(
+            0.0,
+            float(data.get("summary", {}).get("total_cost", 0))
+            - sum(float(project["cost"]) for project in projects),
+        )
+        projects.append(
+            {
+                "project": _t(lang, "project_others"),
+                "tokens": remainder,
+                "cost": cost,
+                "is_other": True,
+            }
+        )
     cube = data.get("cube")
     cube_projects = cube.get("projects", []) if isinstance(cube, Mapping) else []
     project_indices = {str(project): index for index, project in enumerate(cube_projects)}
     project_rows = [
         _rank_line(
             _display_name(project["project"], lang),
-            float(project["pct"]),
+            int(project["tokens"]) / total * 100 if total else 0.0,
             int(project["tokens"]),
             float(project["cost"]),
             lang,
             _PROJECT_COLOR,
+            show_share=True,
             data_attributes=(
-                {"project-index": project_indices[str(project["project"])]}
-                if str(project["project"]) in project_indices
-                else None
+                {"project-other": "true"}
+                if project.get("is_other")
+                else (
+                    {"project-index": project_indices[str(project["project"])]}
+                    if str(project["project"]) in project_indices
+                    else None
+                )
             ),
         )
-        for index, project in enumerate(projects)
+        for project in projects
     ]
     project_rows_html = "".join(project_rows)
     project_body = (
-        f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "project"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
+        f'<div class="rank-head"><span></span><span>{_escape(_t(lang, "project"))}</span><span>{_escape(_t(lang, "share"))}</span><span>{_escape(_t(lang, "tokens"))}</span><span>{_escape(_t(lang, "cost"))}</span></div>'
         + f'<div class="rank-list">{project_rows_html}</div>'
         if project_rows
         else _empty_line(_t(lang, "empty_projects"))
@@ -921,14 +948,13 @@ def _render_pricing_section(data: Mapping[str, Any], lang: str) -> str:
 
 
 def _render_appendix(data: Mapping[str, Any], lang: str) -> str:
-    composition = _render_composition_section(data, lang)
     pricing = _render_pricing_section(data, lang)
-    if not composition and not pricing:
+    if not pricing:
         return ""
     return (
         '<details class="report-appendix">'
         f'<summary><span>[usage]&gt;</span> {_escape(_t(lang, "appendix_title"))}<span class="appendix-desc">{_escape(_t(lang, "appendix_desc"))}</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>'
-        f"{composition}{pricing}"
+        f"{pricing}"
         "</details>"
     )
 
@@ -1147,6 +1173,7 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
         "expand": _t(lang, "expand"),
         "pathCopied": _t(lang, "share_path_copied"),
         "projectShare": _t(lang, "project_share"),
+        "projectOthers": _t(lang, "project_others"),
     }
     if interactive:
         share_config.update(
@@ -1302,6 +1329,7 @@ def generate_html(
             f"{insight_surface.rstrip()}\n"
             f"  {_render_trend_section(report_data, lang, date_to)}\n"
             f"  {_render_tools_section(report_data, lang)}\n"
+            f"  {_render_composition_section(report_data, lang).strip()}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_session_section(report_data, lang)}\n"
             f"{('  ' + ledger_section + chr(10)) if ledger_section else ''}"
