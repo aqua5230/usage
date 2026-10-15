@@ -7,6 +7,12 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.33.6] - 2026-10-16
+
+### Fixed
+- **Reports keep usage older than 30 days even if you rarely open them.** Claude Code deletes transcripts after 30 days by default, and usage only saved its long-term history when a report was built. The menu bar and Windows tray apps now save the last 45 days every 6 hours in the background, and reports fill days missing from transcripts from that saved history. Filled days count toward totals, trends, tools and projects, but not sessions, token composition or cache hit rate. When moving to a new computer, copy `~/.usage/` as well.
+- **The Antigravity group toggle no longer stops working.** When one quota response skipped a model group, the card had nothing to switch to for five minutes. A group seen in the last 30 minutes is now kept. When the quota really has only one group, every panel and the Windows tray hide the toggle, and your group choice is kept for when both return.
+
 ## [0.33.5] - 2026-10-16
 
 ### Fixed
