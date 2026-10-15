@@ -3629,14 +3629,20 @@ def test_keeper_and_terse_menu_warnings(monkeypatch: pytest.MonkeyPatch, trust: 
 
 
 _NATIVE_ICON_METHODS = (
-    "_show", "_hide", "_update_icon", "_update_title", "_release_icon",
-    "_on_display_change", "_on_taskbarcreated",
+    "_show",
+    "_hide",
+    "_update_icon",
+    "_update_title",
+    "_release_icon",
+    "_on_display_change",
+    "_on_taskbarcreated",
 )
 
 
 @pytest.mark.parametrize("method", _NATIVE_ICON_METHODS)
 def test_native_icon_methods_share_reentrant_lock(
-    monkeypatch: pytest.MonkeyPatch, method: str,
+    monkeypatch: pytest.MonkeyPatch,
+    method: str,
 ) -> None:
     entered = threading.Event()
     release = threading.Event()
@@ -3698,12 +3704,19 @@ def test_native_icon_factory_non_windows(monkeypatch: pytest.MonkeyPatch) -> Non
 @pytest.mark.parametrize("handle", [None, 0, 0x1234567887654321])
 @pytest.mark.parametrize("error", [0, 183])
 def test_native_mutex_handle_boundaries(
-    monkeypatch: pytest.MonkeyPatch, handle: int | None, error: int,
+    monkeypatch: pytest.MonkeyPatch,
+    handle: int | None,
+    error: int,
 ) -> None:
     closed: list[int] = []
-    monkeypatch.setattr(wintray, "_kernel32", SimpleNamespace(
-        CreateMutexW=lambda *_args: handle, CloseHandle=closed.append,
-    ))
+    monkeypatch.setattr(
+        wintray,
+        "_kernel32",
+        SimpleNamespace(
+            CreateMutexW=lambda *_args: handle,
+            CloseHandle=closed.append,
+        ),
+    )
     monkeypatch.setattr(ctypes, "get_last_error", lambda: error, raising=False)
     monkeypatch.setattr(wintray, "_single_instance_handle", None)
     assert wintray._acquire_single_instance_lock() is (not handle or error != 183)
@@ -3716,7 +3729,9 @@ def test_native_mutex_handle_boundaries(
 @pytest.mark.parametrize("handle", [None, 0, 0x1234567887654321])
 @pytest.mark.parametrize("dpi", [0, 96])
 def test_native_geometry_handle_boundaries(
-    monkeypatch: pytest.MonkeyPatch, handle: int | None, dpi: int,
+    monkeypatch: pytest.MonkeyPatch,
+    handle: int | None,
+    dpi: int,
 ) -> None:
     received: list[object] = []
 
@@ -3729,13 +3744,20 @@ def test_native_geometry_handle_boundaries(
         return False
 
     monkeypatch.setattr(wintray, "os", SimpleNamespace(name="nt"))
-    monkeypatch.setattr(wintray, "_user32", SimpleNamespace(
-        GetDpiForWindow=get_dpi, SetWindowPos=set_pos,
-    ))
+    monkeypatch.setattr(
+        wintray,
+        "_user32",
+        SimpleNamespace(
+            GetDpiForWindow=get_dpi,
+            SetWindowPos=set_pos,
+        ),
+    )
     controller = wintray._WindowsTrayController(mock=True, interval=60)
-    controller.window = _window(native=SimpleNamespace(
-        Handle=SimpleNamespace(ToInt64=lambda: handle),
-    ))
+    controller.window = _window(
+        native=SimpleNamespace(
+            Handle=SimpleNamespace(ToInt64=lambda: handle),
+        )
+    )
     assert controller._window_dpi_scale() == (1.0 if dpi else None)
     assert received == [handle]
     monkeypatch.setattr(controller, "_content_scale", lambda: 1.0)
@@ -3743,12 +3765,24 @@ def test_native_geometry_handle_boundaries(
     assert received[-1] == (handle, None, 0, 0, 0, 0, 0x0014)
 
 
-@pytest.mark.parametrize("mode", [
-    "incomplete_stop", "incomplete_complete", "wait_failed", "wait_exception",
-    "result_exception", "stop", "zero_bytes", "submit_error_zero", "result_error_zero",
-])
+@pytest.mark.parametrize(
+    "mode",
+    [
+        "incomplete_stop",
+        "incomplete_complete",
+        "wait_failed",
+        "wait_exception",
+        "result_exception",
+        "stop",
+        "zero_bytes",
+        "submit_error_zero",
+        "result_error_zero",
+    ],
+)
 def test_native_watcher_pending_lifetime(
-    monkeypatch: pytest.MonkeyPatch, mode: str, tmp_path: Path,
+    monkeypatch: pytest.MonkeyPatch,
+    mode: str,
+    tmp_path: Path,
 ) -> None:
     calls: list[object] = []
     last_error = 0
@@ -3800,7 +3834,8 @@ def test_native_watcher_pending_lifetime(
 
     fake = SimpleNamespace(
         ResetEvent=lambda *_args: calls.append("reset"),
-        ReadDirectoryChangesW=read, WaitForMultipleObjects=wait,
+        ReadDirectoryChangesW=read,
+        WaitForMultipleObjects=wait,
         GetOverlappedResult=result,
         CancelIoEx=lambda *_args: calls.append("cancel"),
         CloseHandle=lambda handle: calls.append(("close", handle)),
@@ -3825,23 +3860,33 @@ def test_native_watcher_pending_lifetime(
     else:
         assert calls[-4:] == ["cancel", ("result", True), ("close", 12), ("close", 11)]
         assert calls.count("cancel") == 1
-        assert reads == (2 if mode in (
-            "zero_bytes", "incomplete_complete", "result_error_zero",
-        ) else 1)
+        assert reads == (
+            2
+            if mode
+            in (
+                "zero_bytes",
+                "incomplete_complete",
+                "result_error_zero",
+            )
+            else 1
+        )
     if mode in ("zero_bytes", "incomplete_complete", "result_error_zero"):
         assert changes == [windows_watch.WindowsFileEventChanges(frozenset(), True)]
     else:
         assert changes == []
 
 
-
 def test_native_run_app_rejects_missing_window(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(wintray, "_acquire_single_instance_lock", lambda: True)
     monkeypatch.setattr(wintray, "panel_html", lambda _filename: "")
     monkeypatch.setattr(wintray, "_system_background_color", lambda: "#ffffff")
-    monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(
-        create_window=lambda *_args, **_kwargs: None,
-    ))
+    monkeypatch.setitem(
+        sys.modules,
+        "webview",
+        SimpleNamespace(
+            create_window=lambda *_args, **_kwargs: None,
+        ),
+    )
     with pytest.raises(RuntimeError, match="pywebview did not create a window"):
         wintray.run_app(mock=True, preferences_snapshot={})
 
@@ -3854,7 +3899,9 @@ def test_native_dll_signatures_are_private_and_pointer_sized() -> None:
     assert wintray._user32 is not windll.user32
     assert wintray._kernel32 is not windll.kernel32
     assert wintray._kernel32.CreateMutexW.argtypes == [
-        wintypes.LPVOID, wintypes.BOOL, wintypes.LPCWSTR,
+        wintypes.LPVOID,
+        wintypes.BOOL,
+        wintypes.LPCWSTR,
     ]
     assert wintray._kernel32.CreateMutexW.restype is wintypes.HANDLE
     assert wintray._kernel32.CloseHandle.argtypes == [wintypes.HANDLE]
@@ -3862,8 +3909,13 @@ def test_native_dll_signatures_are_private_and_pointer_sized() -> None:
     assert wintray._user32.GetDpiForWindow.argtypes == [wintypes.HWND]
     assert wintray._user32.GetDpiForWindow.restype is wintypes.UINT
     assert wintray._user32.SetWindowPos.argtypes == [
-        wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int,
-        ctypes.c_int, ctypes.c_int, wintypes.UINT,
+        wintypes.HWND,
+        wintypes.HWND,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+        wintypes.UINT,
     ]
     assert wintray._user32.SetWindowPos.restype is wintypes.BOOL
     value = 0x1234567887654321 if ctypes.sizeof(wintypes.HANDLE) == 8 else 0x12345678

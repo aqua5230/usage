@@ -91,8 +91,13 @@ if os.name == "nt":
     _user32.GetDpiForWindow.argtypes = [wintypes.HWND]
     _user32.GetDpiForWindow.restype = wintypes.UINT
     _user32.SetWindowPos.argtypes = [
-        wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int,
-        ctypes.c_int, ctypes.c_int, wintypes.UINT,
+        wintypes.HWND,
+        wintypes.HWND,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+        ctypes.c_int,
+        wintypes.UINT,
     ]
     _user32.SetWindowPos.restype = wintypes.BOOL
     _kernel32.CreateMutexW.argtypes = [wintypes.LPVOID, wintypes.BOOL, wintypes.LPCWSTR]
