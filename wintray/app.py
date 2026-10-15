@@ -68,6 +68,7 @@ from wintray import login_item as win_login_item
 from wintray import menu as wintray_menu
 from wintray.prefs import TrayProvider, load_tray_provider, save_tray_provider
 from wintray.quota_label import TaskbarQuotaLabel, label_enabled, request_tray_menu
+from wintray.taskbar_menu import install_tray_menu
 from wintray.watch import (
     WindowsFileEventChanges,
     WindowsUsageWatcher,
@@ -2636,6 +2637,7 @@ def run_app(
     window.events.loaded += controller.on_loaded
     icon_image = draw_app_icon() if controller.quota_label_enabled else draw_tray_icon(None)
     icon = pystray.Icon("usage", icon_image, "usage", _menu(controller))
+    install_tray_menu(icon)
     controller.attach(icon, window)
     icon.run_detached()
     from wintray.whats_new import start

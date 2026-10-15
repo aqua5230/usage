@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Windows tray-icon menus stay outside the taskbar.** Right-clicking the tray icon now uses the same taskbar-aware position and foreground owner as the quota label, preventing the taskbar from covering the menu. Left-click behavior is unchanged.
+
 ## [0.33.4] - 2026-10-15
 
 ### Fixed

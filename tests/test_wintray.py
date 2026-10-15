@@ -1820,6 +1820,7 @@ def test_run_app_wires_pystray_and_pywebview(
     monkeypatch.setitem(sys.modules, "webview", fake_webview)
     monkeypatch.setattr(wintray, "draw_tray_icon", lambda value: object())
     monkeypatch.setattr(wintray, "_system_background_color", lambda: "#eef2f7")
+    monkeypatch.setattr(wintray, "install_tray_menu", lambda icon: events.append("tray_menu"))
     monkeypatch.setattr(wintray._WindowsTrayController, "attach", lambda self, icon, view: None)
     # A tray may genuinely be running on the machine executing the tests.
     monkeypatch.setattr(wintray, "_acquire_single_instance_lock", lambda: True)
@@ -1832,6 +1833,7 @@ def test_run_app_wires_pystray_and_pywebview(
         ("window", "usage", True, "#eef2f7"),
         "loaded_handler",
         ("icon", "usage"),
+        "tray_menu",
         "run_detached",
         ("start", "edgechromium", str(wintray._WEBVIEW_STORAGE_DIR)),
     ]
