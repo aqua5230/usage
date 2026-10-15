@@ -70,6 +70,7 @@ def _demo_state(language: str) -> PopoverState:
     state.agy_session = _row(language, "session_label", 18.0, 12_600)
     state.agy_weekly = _row(language, "weekly_label", 12.0, 464_400)
     state.agy_group_name = "GEMINI MODELS"
+    state.agy_group_switchable = True
     state.hide_agy = False
     state.grok_weekly = _row(language, "weekly_label", 38.0, 544_800)
     state.hide_grok = False

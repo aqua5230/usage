@@ -251,6 +251,7 @@
       applyCard("agy", agy);
       const groupButton = document.querySelector('[data-action="set_agy_quota_group"]');
       if (groupButton) {
+        groupButton.hidden = !(agy && agy.groupSwitchable);
         const isClaude = Boolean(agy && /claude/i.test(agy.groupName || ""));
         groupButton.textContent = t(isClaude ? "agy_group_claude_gpt" : "agy_group_gemini");
         groupButton.dataset.group = isClaude ? "gemini" : "claude_gpt";
