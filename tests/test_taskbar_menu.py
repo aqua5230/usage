@@ -122,12 +122,34 @@ def test_popup_handles_shutdown_without_touching_native_functions() -> None:
     taskbar_menu._show_tray_menu(SimpleNamespace(_menu_handle=(456, []), _menu_hwnd=None))
 
 
+@pytest.mark.parametrize("notification", [0x202, 0x203, 0x205, 0x200])
+def test_tray_right_click_uses_taskbar_safe_popup_and_preserves_other_notifications(
+    monkeypatch: pytest.MonkeyPatch, notification: int
+) -> None:
+    calls: list[object] = []
+    native = SimpleNamespace(WM_NOTIFY=0x400, WM_RBUTTONUP=0x205)
+    icon = SimpleNamespace(
+        _message_handlers={0x400: lambda wparam, lparam: calls.append(("original", wparam, lparam))}
+    )
+    monkeypatch.setattr(importlib, "import_module", lambda _: native)
+    monkeypatch.setattr(taskbar_menu, "_show_tray_menu", lambda target: calls.append(target))
+
+    taskbar_menu.install_tray_menu(icon)
+    icon._message_handlers[native.WM_NOTIFY](7, notification)
+
+    assert calls == (
+        [icon] if notification == native.WM_RBUTTONUP else [("original", 7, notification)]
+    )
+
+
 @pytest.mark.skipif(
     sys.platform != "win32" or os.environ.get("USAGE_TEST_NATIVE_MENU") != "1",
     reason="opt-in Windows interactive native menu placement test",
 )
+@pytest.mark.parametrize("origin", ["label", "tray"])
 def test_native_popup_does_not_overlap_taskbar_and_dismisses(
     monkeypatch: pytest.MonkeyPatch,
+    origin: str,
 ) -> None:
     """Exercise the real TrackPopupMenuEx; inspect only this test's own menu."""
     if sys.platform != "win32":
@@ -144,7 +166,16 @@ def test_native_popup_does_not_overlap_taskbar_and_dismisses(
         Image.new("RGBA", (16, 16)),
         menu=Menu(*(MenuItem(f"Test item {i}", lambda *_: None) for i in range(6))),
     )
+    taskbar_menu.install_tray_menu(icon)
     ready, entered, closed = threading.Event(), threading.Event(), threading.Event()
+
+    def cursor(pointer: Any) -> None:
+        point = C.cast(pointer, C.POINTER(W.POINT)).contents
+        left, top, right, bottom = layout.tray
+        point.x, point.y = (left + right) // 2, (top + bottom) // 2
+
+    # Both clicks originate inside the taskbar, regardless of the user's mouse.
+    monkeypatch.setattr(win32, "GetCursorPos", cursor)
     real_popup = win32.TrackPopupMenuEx
 
     def track(*args: Any) -> int:
@@ -162,7 +193,10 @@ def test_native_popup_does_not_overlap_taskbar_and_dismisses(
     tray_thread.start()
     try:
         assert ready.wait(3)
-        taskbar_menu.request_tray_menu(icon)
+        if origin == "label":
+            taskbar_menu.request_tray_menu(icon)
+        else:
+            assert win32.PostMessage(icon._hwnd, win32.WM_NOTIFY, 0, win32.WM_RBUTTONUP)
         assert entered.wait(3)
         first, last = W.RECT(), W.RECT()
         deadline = time.monotonic() + 3

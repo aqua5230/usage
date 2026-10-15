@@ -14,7 +14,7 @@ from typing import Any
 from wintray.taskbar_overlay import TaskbarLayout, TaskbarOverlay
 
 logger = logging.getLogger(__name__)
-WM_LABEL_MENU = 0x8051  # Private WM_APP message; leave tray-icon clicks unchanged.
+WM_LABEL_MENU = 0x8051  # Private WM_APP message for WinForms label clicks.
 TPM_RIGHTALIGN = 0x0008
 TPM_BOTTOMALIGN = 0x0020
 
@@ -49,7 +49,7 @@ def _show_tray_menu(icon: Any) -> None:
         try:
             layout = TaskbarOverlay().layout()
         except Exception:
-            logger.exception("Unable to find the taskbar for the label menu")
+            logger.exception("Unable to find the taskbar for the tray menu")
             layout = None
         if layout is not None:
             x, y, flags = menu_position(layout, (point.x, point.y))
@@ -72,7 +72,22 @@ def _show_tray_menu(icon: Any) -> None:
         if 0 < selected <= len(callbacks):
             callbacks[selected - 1](icon)
     except Exception:
-        logger.exception("Unable to open the menu from the taskbar label")
+        logger.exception("Unable to open the tray menu")
+
+
+def install_tray_menu(icon: Any) -> None:
+    """Route tray right-clicks through the same taskbar-safe popup as the label."""
+    win32 = importlib.import_module("pystray._util.win32")
+    original_notify = icon._message_handlers[win32.WM_NOTIFY]
+
+    def on_notify(wparam: int, lparam: int) -> None:
+        if lparam == win32.WM_RBUTTONUP:
+            # WM_NOTIFY is already handled on the tray thread.
+            _show_tray_menu(icon)
+        else:
+            original_notify(wparam, lparam)
+
+    icon._message_handlers[win32.WM_NOTIFY] = on_notify
 
 
 def request_tray_menu(icon: Any) -> None:
