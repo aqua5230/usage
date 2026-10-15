@@ -44,11 +44,9 @@ def test_footer_layout(tmp_path: Path, script: str) -> None:
     assert result.returncode == 0, result.stdout + result.stderr
 
 
-@pytest.mark.parametrize("panel", sorted((ROOT / "docs" / "panels").glob("*.html")))
-def test_agy_group_button_visibility(panel: Path) -> None:
-    source = panel.read_text(encoding="utf-8")
-    if 'data-action="set_agy_quota_group"' not in source:
-        pytest.skip("panel has no Antigravity group button")
+def test_agy_group_button_visibility() -> None:
+    # The app loads assets/panels/panel_core.js; docs/panels are generated demo copies.
+    source = (ROOT / "assets" / "panels" / "panel_core.js").read_text(encoding="utf-8")
     node = shutil.which("node")
     if node is None:
         pytest.skip("Node is required to execute panel JavaScript")

@@ -145,6 +145,7 @@ async function main() {
           await page.evaluate(switchable => {
             const state = structuredClone(usageDemoPayloads['en']);
             state.agy.groupSwitchable = switchable;
+            state.footer.showInstall = true;
             usageApplyState(state);
           }, switchable);
           assert.equal(await groupButton.evaluate(button => button.hidden), !switchable);

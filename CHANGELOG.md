@@ -7,6 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.33.7] - 2026-10-16
+
+### Fixed
+- **The Antigravity group toggle is hidden when there is nothing to switch to.** v0.33.6 meant to hide it when Google's quota response carries only one model group, but the change missed the panel code the app loads, so every panel still showed a toggle that did nothing. When the Gemini group comes back, the toggle reappears on the next refresh and your saved choice applies again.
+
 ## [0.33.6] - 2026-10-16
 
 ### Changed
