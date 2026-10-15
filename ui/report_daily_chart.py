@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from html import escape
+import math
 from typing import Any, Callable, Mapping
 
 
@@ -86,6 +87,35 @@ def render_daily_chart_toggle(t: Callable[[str], str]) -> str:
     )
 
 
+def nice_ticks(maximum: float, minimum_step: float = 0) -> list[float]:
+    """Use 1/2/5 steps and leave room above the highest bar."""
+    if maximum <= 0:
+        return [0.0]
+    raw = maximum / 2
+    power = 10 ** math.floor(math.log10(raw))
+    step = max(minimum_step, next(value * power for value in (1, 2, 5, 10) if value * power >= raw))
+    return [index * step for index in range(math.ceil(maximum / step) + 1)]
+
+
+def date_label_indices(dates: list[str], plot_width: float = 704) -> list[int]:
+    """Keep endpoints; skip month starts within 120 SVG units of a label."""
+    if not dates:
+        return []
+    result = [0]
+    last = len(dates) - 1
+    step = plot_width / len(dates)
+    for index in range(1, last):
+        if (
+            dates[index].endswith("-01")
+            and (index - result[-1]) * step >= 120
+            and (last - index) * step >= 120
+        ):
+            result.append(index)
+    if last:
+        result.append(last)
+    return result
+
+
 def render_daily_chart(
     cube: Mapping[str, Any],
     t: Callable[[str], str],
@@ -102,6 +132,8 @@ def render_daily_chart(
     plot_width = width - left - right
     plot_height = height - top - bottom
     maximum = max(totals)
+    ticks = nice_ticks(maximum, 1)
+    scale_max = ticks[-1]
     step = plot_width / len(dates)
     if len(dates) <= 31:
         bar_width = max(1, step * 0.55)
@@ -115,9 +147,9 @@ def render_daily_chart(
         f'preserveAspectRatio="none" aria-label="{escape(t("daily_chart_title"), quote=True)}">'
     ]
     labels: list[str] = []
-    for fraction in (1, 0.5, 0):
-        y = top + plot_height * (1 - fraction)
-        label = fmt_tokens(round(maximum * fraction))
+    for tick in reversed(ticks):
+        y = top + plot_height * (1 - tick / scale_max)
+        label = fmt_tokens(round(tick))
         svg.append(
             f'<line class="daily-grid" x1="{left}" y1="{y:.1f}" x2="{width - right}" '
             f'y2="{y:.1f}" vector-effect="non-scaling-stroke"/>'
@@ -134,7 +166,7 @@ def render_daily_chart(
             value = agent["tokens"][index]
             if not value:
                 continue
-            bar_height = value / maximum * plot_height
+            bar_height = value / scale_max * plot_height
             cursor -= bar_height
             rounded = (
                 ' rx="2" ry="2"'
@@ -148,9 +180,9 @@ def render_daily_chart(
         if index == peak:
             labels.append(
                 f'<span class="daily-chart-label daily-peak-label" style="left:{(x + bar_width / 2) / width * 100:.2f}%;'
-                f'top:{max(12, cursor - 5) / height * 100:.2f}%">{escape(fmt_tokens(total))}</span>'
+                f'top:{max(12, cursor - 5) / height * 100:.2f}%">{escape(dates[index][5:] + " · " + fmt_tokens(total))}</span>'
             )
-    for index in sorted({0, len(dates) // 2, len(dates) - 1}):
+    for index in date_label_indices(dates, plot_width):
         x = left + index * step + step / 2
         labels.append(
             f'<span class="daily-chart-label daily-x-label" style="left:{x / width * 100:.2f}%;'
@@ -252,6 +284,22 @@ REPORT_DAILY_CHART_JS = r"""(() => {
     const number = Math.max(0, Number(value) || 0);
     return number > 0 && number < 1 ? `$${number.toFixed(4)}` : `$${number.toFixed(2)}`;
   }
+  function niceTicks(maximum, minimumStep = 0) {
+    if (maximum <= 0) return [0];
+    const raw = maximum / 2;
+    const power = 10 ** Math.floor(Math.log10(raw));
+    const step = Math.max(minimumStep, [1, 2, 5, 10].find((value) => value * power >= raw) * power);
+    return Array.from({length: Math.ceil(maximum / step) + 1}, (_, index) => index * step);
+  }
+  function dateLabelIndices(days, plotWidth) {
+    if (!days.length) return [];
+    const result = [0]; const last = days.length - 1; const step = plotWidth / days.length;
+    for (let index = 1; index < last; index += 1) {
+      if (days[index].endsWith('-01') && (index - result[result.length - 1]) * step >= 120 && (last - index) * step >= 120) result.push(index);
+    }
+    if (last) result.push(last);
+    return result;
+  }
   function modeValue(item, day) { return mode === 'cost' ? item.cost[day] : item.tokens[day]; }
   function displayName(value) {
     const filter = window.usageReportFilter;
@@ -321,6 +369,7 @@ REPORT_DAILY_CHART_JS = r"""(() => {
     const width = 760; const height = 180; const left = 48; const right = 8; const top = 18; const bottom = 32;
     const plotWidth = width - left - right; const plotHeight = height - top - bottom;
     const maximum = Math.max(...totals); const step = plotWidth / data.days.length;
+    const ticks = niceTicks(maximum, mode === 'tokens' ? 1 : 0); const scaleMax = ticks[ticks.length - 1];
     const compactBars = data.days.length <= 31;
     const gap = compactBars ? 0 : data.days.length > 120 ? 0 : data.days.length > 45 ? 1 : Math.min(4, step * .25);
     const barWidth = compactBars ? Math.max(1, step * .55) : Math.max(1, step - gap);
@@ -333,10 +382,10 @@ REPORT_DAILY_CHART_JS = r"""(() => {
       return item;
     };
     canvas.append(svg);
-    [1, .5, 0].forEach((fraction) => {
-      const y = top + plotHeight * (1 - fraction);
+    ticks.slice().reverse().forEach((tick) => {
+      const y = top + plotHeight * (1 - tick / scaleMax);
       svg.append(svgNode('line', 'daily-grid', {x1: left, y1: y, x2: width - right, y2: y, 'vector-effect': 'non-scaling-stroke'}));
-      canvas.append(label('daily-y-label', mode === 'cost' ? formatCost(maximum * fraction) : formatTokens(maximum * fraction), left - 7, y));
+      canvas.append(label('daily-y-label', mode === 'cost' ? formatCost(tick) : formatTokens(tick), left - 7, y));
     });
     const peak = totals.indexOf(maximum);
     data.days.forEach((_day, dayIndex) => {
@@ -346,7 +395,7 @@ REPORT_DAILY_CHART_JS = r"""(() => {
       data.agents.forEach((agent, agentIndex) => {
         const value = modeValue(agent, dayIndex);
         if (!value) return;
-        const barHeight = value / maximum * plotHeight;
+        const barHeight = value / scaleMax * plotHeight;
         cursor -= barHeight;
         const topSegment = !data.agents.slice(agentIndex + 1).some((other) => modeValue(other, dayIndex) > 0);
         group.append(svgNode('rect', 'daily-segment', {x, y: cursor, width: barWidth, height: barHeight, fill: agent.color, rx: topSegment ? 2 : 0, ry: topSegment ? 2 : 0}));
@@ -357,9 +406,9 @@ REPORT_DAILY_CHART_JS = r"""(() => {
       group.addEventListener('blur', () => clearHover(svg, tooltip));
       group.setAttribute('tabindex', '0');
       svg.append(group);
-      if (dayIndex === peak) canvas.append(label('daily-peak-label', mode === 'cost' ? formatCost(totals[dayIndex]) : formatTokens(totals[dayIndex]), x + barWidth / 2, Math.max(12, cursor - 5)));
+      if (dayIndex === peak) canvas.append(label('daily-peak-label', `${data.days[dayIndex].slice(5)} · ${mode === 'cost' ? formatCost(totals[dayIndex]) : formatTokens(totals[dayIndex])}`, x + barWidth / 2, Math.max(12, cursor - 5)));
     });
-    [...new Set([0, Math.floor((data.days.length - 1) / 2), data.days.length - 1])].forEach((index) => {
+    dateLabelIndices(data.days, plotWidth).forEach((index) => {
       canvas.append(label('daily-x-label', data.days[index].slice(5), left + index * step + step / 2, height - 7));
     });
     canvas.append(tooltip); wrap.append(canvas);

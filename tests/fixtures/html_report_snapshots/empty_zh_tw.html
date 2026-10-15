@@ -202,7 +202,7 @@ h1{
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
 .wrap>.section>.prompt,.filter-scope>.section>.prompt{font-size:1.15rem}
 .wrap>.wrapped-section>.prompt{font-size:1.05rem}
-.composition-section{margin-top:0;padding-top:24px}
+.composition-section{padding-top:24px}
 .composition-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
 .composition-section .rule,.recent-titles-section .rule{background:var(--faint);margin-bottom:12px}
 .contribution-section{margin-top:16px;border-top-color:transparent;padding-top:24px}
@@ -280,8 +280,7 @@ h1{
 .trend-bar div{height:100%;background:var(--cost);opacity:.72}
 .trend-row em{font-style:normal;text-align:right;color:var(--token);font-size:.82rem;font-variant-numeric:tabular-nums}
 .delta{color:var(--muted);white-space:nowrap;text-align:right;justify-self:end;font-size:.78rem;font-weight:600;font-variant-numeric:tabular-nums}
-.delta.up{color:var(--cost)}
-.delta.down{color:var(--warn)}
+.delta.surge{color:var(--warn)}
 .delta.flat{color:var(--muted)}
 .trend-summary{color:var(--text-soft);margin-top:8px;padding-top:12px;border-top:1px solid var(--faint);font-size:.84rem;line-height:1.6}
 .daily-chart-wrap{min-width:0;margin:0 0 24px;padding:14px 0 18px;border-bottom:1px solid var(--faint)}
@@ -406,6 +405,8 @@ td:first-child{color:var(--muted)}
 .sponsor-link a:hover{opacity:1;color:var(--cost)}
 .sponsor a:focus-visible,.sponsor-link a:focus-visible{outline:2px solid var(--cost);outline-offset:4px;border-radius:4px}
 .tools{display:grid;gap:12px;border:none;box-shadow:none;background:transparent}
+.project-section .rank-head,.project-section .rank-line{grid-template-columns:20px minmax(0,1fr) 72px 100px 100px}
+.project-section .project-model-detail .model-name{grid-column:2/4}
 .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
 .tools-head{padding:0 16px;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:-2px}
 .tools-head>span:nth-child(n+2),.rank-head>span:nth-child(n+3){text-align:right}
@@ -513,6 +514,7 @@ td:first-child{color:var(--muted)}
 }
 @media (min-width:781px){
   .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
+  .project-section .rank-head,.project-section .rank-line{grid-template-columns:20px minmax(0,1fr) 72px 100px 100px}
   .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
   .tools-head>:nth-child(1),.tool-row>:nth-child(1){grid-column:2}
   /* 箭頭佔第一欄，工具名才會跟下面專案熱區的名字對齊。 */
@@ -613,11 +615,11 @@ td:first-child{color:var(--muted)}
   .card span{padding:0 0 8px;letter-spacing:.04em}
   .card b{text-align:left;font-size:1.15rem}
   .card i{padding-top:6px}
-  .project-section .rank-line{grid-template-columns:14px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px}
+  .project-section .rank-line{grid-template-columns:14px minmax(0,1fr) auto auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px}
   .project-section .rank-line .arrow{display:inline}
   .project-section .rank-line .name{font-weight:600}
   .project-section .rank-line .tokens,.project-section .rank-line .cost{display:block;text-align:right;font-size:.9rem}
-  .project-section .rank-line .tokens::before,.project-section .rank-line .cost::before{content:none}
+  .project-section .rank-line .pct::before,.project-section .rank-line .tokens::before,.project-section .rank-line .cost::before{content:none}
   .session-section table,.session-section tbody{display:block;min-width:0}
   .session-section thead{display:none}
   .session-section tr{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px;border-bottom:1px solid var(--faint)}
@@ -719,7 +721,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案"};
+const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "projectOthers": "其他專案"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -854,7 +856,7 @@ async function withShareableReport(maskProjects, callback) {
   const restores = [];
   const detached = [];
   if (maskProjects) {
-    document.querySelectorAll('.project-section .rank-line .name').forEach((el, i) => {
+    Array.from(document.querySelectorAll('.project-section .rank-line .name')).filter((el) => !el.closest('[data-project-other]')).forEach((el, i) => {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
@@ -862,7 +864,7 @@ async function withShareableReport(maskProjects, callback) {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
-    document.querySelectorAll('.project-section .lg-name').forEach((el, i) => {
+    Array.from(document.querySelectorAll('.project-section .lg-name')).filter((el) => !el.closest('[data-project-other]')).forEach((el, i) => {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
@@ -1009,6 +1011,22 @@ document.addEventListener('click', async (e) => {
     const number = Math.max(0, Number(value) || 0);
     return number > 0 && number < 1 ? `$${number.toFixed(4)}` : `$${number.toFixed(2)}`;
   }
+  function niceTicks(maximum, minimumStep = 0) {
+    if (maximum <= 0) return [0];
+    const raw = maximum / 2;
+    const power = 10 ** Math.floor(Math.log10(raw));
+    const step = Math.max(minimumStep, [1, 2, 5, 10].find((value) => value * power >= raw) * power);
+    return Array.from({length: Math.ceil(maximum / step) + 1}, (_, index) => index * step);
+  }
+  function dateLabelIndices(days, plotWidth) {
+    if (!days.length) return [];
+    const result = [0]; const last = days.length - 1; const step = plotWidth / days.length;
+    for (let index = 1; index < last; index += 1) {
+      if (days[index].endsWith('-01') && (index - result[result.length - 1]) * step >= 120 && (last - index) * step >= 120) result.push(index);
+    }
+    if (last) result.push(last);
+    return result;
+  }
   function modeValue(item, day) { return mode === 'cost' ? item.cost[day] : item.tokens[day]; }
   function displayName(value) {
     const filter = window.usageReportFilter;
@@ -1078,6 +1096,7 @@ document.addEventListener('click', async (e) => {
     const width = 760; const height = 180; const left = 48; const right = 8; const top = 18; const bottom = 32;
     const plotWidth = width - left - right; const plotHeight = height - top - bottom;
     const maximum = Math.max(...totals); const step = plotWidth / data.days.length;
+    const ticks = niceTicks(maximum, mode === 'tokens' ? 1 : 0); const scaleMax = ticks[ticks.length - 1];
     const compactBars = data.days.length <= 31;
     const gap = compactBars ? 0 : data.days.length > 120 ? 0 : data.days.length > 45 ? 1 : Math.min(4, step * .25);
     const barWidth = compactBars ? Math.max(1, step * .55) : Math.max(1, step - gap);
@@ -1090,10 +1109,10 @@ document.addEventListener('click', async (e) => {
       return item;
     };
     canvas.append(svg);
-    [1, .5, 0].forEach((fraction) => {
-      const y = top + plotHeight * (1 - fraction);
+    ticks.slice().reverse().forEach((tick) => {
+      const y = top + plotHeight * (1 - tick / scaleMax);
       svg.append(svgNode('line', 'daily-grid', {x1: left, y1: y, x2: width - right, y2: y, 'vector-effect': 'non-scaling-stroke'}));
-      canvas.append(label('daily-y-label', mode === 'cost' ? formatCost(maximum * fraction) : formatTokens(maximum * fraction), left - 7, y));
+      canvas.append(label('daily-y-label', mode === 'cost' ? formatCost(tick) : formatTokens(tick), left - 7, y));
     });
     const peak = totals.indexOf(maximum);
     data.days.forEach((_day, dayIndex) => {
@@ -1103,7 +1122,7 @@ document.addEventListener('click', async (e) => {
       data.agents.forEach((agent, agentIndex) => {
         const value = modeValue(agent, dayIndex);
         if (!value) return;
-        const barHeight = value / maximum * plotHeight;
+        const barHeight = value / scaleMax * plotHeight;
         cursor -= barHeight;
         const topSegment = !data.agents.slice(agentIndex + 1).some((other) => modeValue(other, dayIndex) > 0);
         group.append(svgNode('rect', 'daily-segment', {x, y: cursor, width: barWidth, height: barHeight, fill: agent.color, rx: topSegment ? 2 : 0, ry: topSegment ? 2 : 0}));
@@ -1114,9 +1133,9 @@ document.addEventListener('click', async (e) => {
       group.addEventListener('blur', () => clearHover(svg, tooltip));
       group.setAttribute('tabindex', '0');
       svg.append(group);
-      if (dayIndex === peak) canvas.append(label('daily-peak-label', mode === 'cost' ? formatCost(totals[dayIndex]) : formatTokens(totals[dayIndex]), x + barWidth / 2, Math.max(12, cursor - 5)));
+      if (dayIndex === peak) canvas.append(label('daily-peak-label', `${data.days[dayIndex].slice(5)} · ${mode === 'cost' ? formatCost(totals[dayIndex]) : formatTokens(totals[dayIndex])}`, x + barWidth / 2, Math.max(12, cursor - 5)));
     });
-    [...new Set([0, Math.floor((data.days.length - 1) / 2), data.days.length - 1])].forEach((index) => {
+    dateLabelIndices(data.days, plotWidth).forEach((index) => {
       canvas.append(label('daily-x-label', data.days[index].slice(5), left + index * step + step / 2, height - 7));
     });
     canvas.append(tooltip); wrap.append(canvas);
@@ -1602,6 +1621,7 @@ document.addEventListener('click', async (e) => {
     appendLeftTick(row, color);
     appendTextSpan(row, 'arrow', options.arrow || '→');
     appendTextSpan(row, options.nameClass || 'name', name);
+    if (options.showShare) appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
     appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
     const costKnown = options.costKnown === undefined ? item.costKnown : options.costKnown;
     appendTextSpan(row, 'cost', formatCost(item.cost, costKnown), shareConfig.cost);
@@ -1613,8 +1633,8 @@ document.addEventListener('click', async (e) => {
   const projectHeadCells = projectSection
     ? Array.from(projectSection.querySelectorAll('.rank-head > span'))
     : [];
-  const tokensLabel = projectHeadCells[2] ? projectHeadCells[2].textContent : shareConfig.tokens;
-  const costLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.cost;
+  const tokensLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.tokens;
+  const costLabel = projectHeadCells[4] ? projectHeadCells[4].textContent : shareConfig.cost;
 
   function removeProjectDetails(projectRow) {
     let sibling = projectRow.nextElementSibling;
@@ -1796,19 +1816,27 @@ document.addEventListener('click', async (e) => {
       }))
       .filter((item) => item.tokens > 0 || item.cost > 0)
       .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
-    projects.slice(0, 10).forEach((project, index) => {
+    const displayed = projects.slice(0, 10);
+    displayed.forEach((project) => {
       const row = createRankRow(
         project.name,
         project,
         summary.tokens,
         '#8b8577',
         // _render_project_section() 無條件顯示花費，這裡跟著一致
-        {projectIndex: project.projectIndex, costKnown: true}
+        {projectIndex: project.projectIndex, costKnown: true, showShare: true}
       );
       list.append(row);
       bindProjectRow(row);
     });
-    if (!projects.length) {
+    const remaining = summary.tokens - displayed.reduce((sum, project) => sum + project.tokens, 0);
+    if (remaining > 0) {
+      const cost = Math.max(0, summary.cost - displayed.reduce((sum, project) => sum + project.cost, 0));
+      const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, '#8b8577', {costKnown: true, showShare: true});
+      other.dataset.projectOther = 'true';
+      list.append(other);
+    }
+    if (!projects.length && remaining <= 0) {
       const empty = document.createElement('div');
       empty.className = 'empty';
       empty.textContent = `→ ${shareConfig.emptyProjects}`;
@@ -1897,7 +1925,7 @@ document.addEventListener('click', async (e) => {
     }
     const pct = Math.round((current - previous) / previous * 100);
     if (Math.abs(pct) <= 5) return {className: 'flat', label: '→ 0%'};
-    if (pct > 0) return {className: 'up', label: `↗ +${pct}%`};
+    if (pct > 0) return {className: current >= previous * 2 ? 'surge' : 'up', label: `↗ +${pct}%`};
     return {className: 'down', label: `↘ ${pct}%`};
   }
 
@@ -1975,7 +2003,7 @@ document.addEventListener('click', async (e) => {
       const row = document.createElement('div');
       row.className = 'trend-row';
       row.setAttribute('title', tooltip);
-      appendTextSpan(row, 'week', `W${week.week}`);
+      appendTextSpan(row, 'week', `W${week.week} (${formatDate(weekStart).slice(5).replace('-', '/')}–${formatDate(weekEnd).slice(5).replace('-', '/')})`);
       let width = 0;
       if (week.tokens > 0 && maxTokens > 0) {
         width = Math.max(2, Math.min(100, week.tokens / maxTokens * 100));

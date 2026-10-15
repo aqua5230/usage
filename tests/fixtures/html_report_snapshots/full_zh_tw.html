@@ -202,7 +202,7 @@ h1{
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
 .wrap>.section>.prompt,.filter-scope>.section>.prompt{font-size:1.15rem}
 .wrap>.wrapped-section>.prompt{font-size:1.05rem}
-.composition-section{margin-top:0;padding-top:24px}
+.composition-section{padding-top:24px}
 .composition-section .prompt,.recent-titles-section .prompt{font-size:.9rem}
 .composition-section .rule,.recent-titles-section .rule{background:var(--faint);margin-bottom:12px}
 .contribution-section{margin-top:16px;border-top-color:transparent;padding-top:24px}
@@ -280,8 +280,7 @@ h1{
 .trend-bar div{height:100%;background:var(--cost);opacity:.72}
 .trend-row em{font-style:normal;text-align:right;color:var(--token);font-size:.82rem;font-variant-numeric:tabular-nums}
 .delta{color:var(--muted);white-space:nowrap;text-align:right;justify-self:end;font-size:.78rem;font-weight:600;font-variant-numeric:tabular-nums}
-.delta.up{color:var(--cost)}
-.delta.down{color:var(--warn)}
+.delta.surge{color:var(--warn)}
 .delta.flat{color:var(--muted)}
 .trend-summary{color:var(--text-soft);margin-top:8px;padding-top:12px;border-top:1px solid var(--faint);font-size:.84rem;line-height:1.6}
 .daily-chart-wrap{min-width:0;margin:0 0 24px;padding:14px 0 18px;border-bottom:1px solid var(--faint)}
@@ -406,6 +405,8 @@ td:first-child{color:var(--muted)}
 .sponsor-link a:hover{opacity:1;color:var(--cost)}
 .sponsor a:focus-visible,.sponsor-link a:focus-visible{outline:2px solid var(--cost);outline-offset:4px;border-radius:4px}
 .tools{display:grid;gap:12px;border:none;box-shadow:none;background:transparent}
+.project-section .rank-head,.project-section .rank-line{grid-template-columns:20px minmax(0,1fr) 72px 100px 100px}
+.project-section .project-model-detail .model-name{grid-column:2/4}
 .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
 .tools-head{padding:0 16px;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:-2px}
 .tools-head>span:nth-child(n+2),.rank-head>span:nth-child(n+3){text-align:right}
@@ -513,6 +514,7 @@ td:first-child{color:var(--muted)}
 }
 @media (min-width:781px){
   .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
+  .project-section .rank-head,.project-section .rank-line{grid-template-columns:20px minmax(0,1fr) 72px 100px 100px}
   .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
   .tools-head>:nth-child(1),.tool-row>:nth-child(1){grid-column:2}
   /* 箭頭佔第一欄，工具名才會跟下面專案熱區的名字對齊。 */
@@ -613,11 +615,11 @@ td:first-child{color:var(--muted)}
   .card span{padding:0 0 8px;letter-spacing:.04em}
   .card b{text-align:left;font-size:1.15rem}
   .card i{padding-top:6px}
-  .project-section .rank-line{grid-template-columns:14px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px}
+  .project-section .rank-line{grid-template-columns:14px minmax(0,1fr) auto auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px}
   .project-section .rank-line .arrow{display:inline}
   .project-section .rank-line .name{font-weight:600}
   .project-section .rank-line .tokens,.project-section .rank-line .cost{display:block;text-align:right;font-size:.9rem}
-  .project-section .rank-line .tokens::before,.project-section .rank-line .cost::before{content:none}
+  .project-section .rank-line .pct::before,.project-section .rank-line .tokens::before,.project-section .rank-line .cost::before{content:none}
   .session-section table,.session-section tbody{display:block;min-width:0}
   .session-section thead{display:none}
   .session-section tr{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px;border-bottom:1px solid var(--faint)}
@@ -692,7 +694,7 @@ td:first-child{color:var(--muted)}
     <section class="section trend-section">
       <div class="prompt"><span>[usage]&gt;</span> 用量趨勢<div class="daily-chart-toggle"><button type="button" data-daily-mode="tokens" aria-pressed="true">Tokens</button><button type="button" data-daily-mode="cost" aria-pressed="false">花費</button></div></div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="daily-chart-wrap"><div class="daily-chart-canvas"><svg class="daily-chart-svg" viewBox="0 0 760 180" role="img" preserveAspectRatio="none" aria-label="每日用量"><line class="daily-grid" x1="48" y1="18.0" x2="752" y2="18.0" vector-effect="non-scaling-stroke"/><line class="daily-grid" x1="48" y1="83.0" x2="752" y2="83.0" vector-effect="non-scaling-stroke"/><line class="daily-grid" x1="48" y1="148.0" x2="752" y2="148.0" vector-effect="non-scaling-stroke"/><rect class="daily-segment" x="79.68" y="104.67" width="77.44" height="43.33" fill="#5abfa0"/><rect class="daily-segment" x="79.68" y="91.67" width="77.44" height="13.00" fill="#e0885a" rx="2" ry="2"/><rect class="daily-segment" x="220.48" y="87.33" width="77.44" height="60.67" fill="#5abfa0"/><rect class="daily-segment" x="220.48" y="70.00" width="77.44" height="17.33" fill="#e0885a" rx="2" ry="2"/><rect class="daily-segment" x="361.28" y="61.33" width="77.44" height="86.67" fill="#e0885a"/><rect class="daily-segment" x="361.28" y="48.33" width="77.44" height="13.00" fill="#c7839f" rx="2" ry="2"/><rect class="daily-segment" x="502.08" y="39.67" width="77.44" height="108.33" fill="#5abfa0"/><rect class="daily-segment" x="502.08" y="18.00" width="77.44" height="21.67" fill="#c7839f" rx="2" ry="2"/><rect class="daily-segment" x="642.88" y="87.33" width="77.44" height="60.67" fill="#e0885a" rx="2" ry="2"/></svg><span class="daily-chart-label daily-y-label" style="left:5.39%;top:10.00%">300.0K</span><span class="daily-chart-label daily-y-label" style="left:5.39%;top:46.11%">150.0K</span><span class="daily-chart-label daily-y-label" style="left:5.39%;top:82.22%">0</span><span class="daily-chart-label daily-peak-label" style="left:71.16%;top:7.22%">300.0K</span><span class="daily-chart-label daily-x-label" style="left:15.58%;top:96.11%">05-04</span><span class="daily-chart-label daily-x-label" style="left:52.63%;top:96.11%">05-12</span><span class="daily-chart-label daily-x-label" style="left:89.68%;top:96.11%">05-20</span></div><div class="daily-chart-legend"><span class="daily-legend-item"><i style="background:#5abfa0"></i>Claude Code <b>490.0K</b></span><span class="daily-legend-item"><i style="background:#e0885a"></i>Codex <b>410.0K</b></span><span class="daily-legend-item"><i style="background:#c7839f"></i>Grok <b>80.0K</b></span></div></div><div class="trend"><div class="trend-row" title="2026-05-04 – 2026-05-10 · 300.0K · $5.79"><span class="week">W19</span><div class="trend-bar" aria-hidden="true"><div style="width:53.57%"></div></div><em>300.0K</em><span class="delta flat"></span></div><div class="trend-row" title="2026-05-11 – 2026-05-17 · 560.0K · $11.13"><span class="week">W20</span><div class="trend-bar" aria-hidden="true"><div style="width:100.00%"></div></div><em>560.0K</em><span class="delta up">↗ +87%</span></div><div class="trend-row" title="2026-05-18 – 2026-05-24 · 140.0K · $2.87"><span class="week">W21</span><div class="trend-bar" aria-hidden="true"><div style="width:25.00%"></div></div><em>140.0K</em><span class="delta down">↘ -75%</span></div><div class="trend-summary">→ 本週比上週少 75%。</div></div>
+      <div class="daily-chart-wrap"><div class="daily-chart-canvas"><svg class="daily-chart-svg" viewBox="0 0 760 180" role="img" preserveAspectRatio="none" aria-label="每日用量"><line class="daily-grid" x1="48" y1="18.0" x2="752" y2="18.0" vector-effect="non-scaling-stroke"/><line class="daily-grid" x1="48" y1="83.0" x2="752" y2="83.0" vector-effect="non-scaling-stroke"/><line class="daily-grid" x1="48" y1="148.0" x2="752" y2="148.0" vector-effect="non-scaling-stroke"/><rect class="daily-segment" x="79.68" y="115.50" width="77.44" height="32.50" fill="#5abfa0"/><rect class="daily-segment" x="79.68" y="105.75" width="77.44" height="9.75" fill="#e0885a" rx="2" ry="2"/><rect class="daily-segment" x="220.48" y="102.50" width="77.44" height="45.50" fill="#5abfa0"/><rect class="daily-segment" x="220.48" y="89.50" width="77.44" height="13.00" fill="#e0885a" rx="2" ry="2"/><rect class="daily-segment" x="361.28" y="83.00" width="77.44" height="65.00" fill="#e0885a"/><rect class="daily-segment" x="361.28" y="73.25" width="77.44" height="9.75" fill="#c7839f" rx="2" ry="2"/><rect class="daily-segment" x="502.08" y="66.75" width="77.44" height="81.25" fill="#5abfa0"/><rect class="daily-segment" x="502.08" y="50.50" width="77.44" height="16.25" fill="#c7839f" rx="2" ry="2"/><rect class="daily-segment" x="642.88" y="102.50" width="77.44" height="45.50" fill="#e0885a" rx="2" ry="2"/></svg><span class="daily-chart-label daily-y-label" style="left:5.39%;top:10.00%">400.0K</span><span class="daily-chart-label daily-y-label" style="left:5.39%;top:46.11%">200.0K</span><span class="daily-chart-label daily-y-label" style="left:5.39%;top:82.22%">0</span><span class="daily-chart-label daily-peak-label" style="left:71.16%;top:25.28%">05-13 · 300.0K</span><span class="daily-chart-label daily-x-label" style="left:15.58%;top:96.11%">05-04</span><span class="daily-chart-label daily-x-label" style="left:89.68%;top:96.11%">05-20</span></div><div class="daily-chart-legend"><span class="daily-legend-item"><i style="background:#5abfa0"></i>Claude Code <b>490.0K</b></span><span class="daily-legend-item"><i style="background:#e0885a"></i>Codex <b>410.0K</b></span><span class="daily-legend-item"><i style="background:#c7839f"></i>Grok <b>80.0K</b></span></div></div><div class="trend"><div class="trend-row" title="2026-05-04 – 2026-05-10 · 300.0K · $5.79"><span class="week">W19 (05/04–05/10)</span><div class="trend-bar" aria-hidden="true"><div style="width:53.57%"></div></div><em>300.0K</em><span class="delta flat"></span></div><div class="trend-row" title="2026-05-11 – 2026-05-17 · 560.0K · $11.13"><span class="week">W20 (05/11–05/17)</span><div class="trend-bar" aria-hidden="true"><div style="width:100.00%"></div></div><em>560.0K</em><span class="delta up">↗ +87%</span></div><div class="trend-row" title="2026-05-18 – 2026-05-24 · 140.0K · $2.87"><span class="week">W21 (05/18–05/24)</span><div class="trend-bar" aria-hidden="true"><div style="width:25.00%"></div></div><em>140.0K</em><span class="delta down">↘ -75%</span></div><div class="trend-summary">→ 本週比上週少 75%。</div></div>
     </section>
     
   
@@ -702,11 +704,16 @@ td:first-child{color:var(--muted)}
       <div class="tools"><div class="tools-head"><span></span><span>佔比</span><span>Tokens</span><span>花費</span></div><div class="tool-row model-group" data-agent-id="claude-code"><div class="tool-head"><span class="arrow">▸</span><span class="sub-agent">Claude</span><span class="sub-plan">Max</span><span class="sub-since" data-mask>訂閱起始 2026-01-15</span><span class="share-bar" aria-hidden="true"><span style="width:62.50%;background:#5abfa0"></span></span></div><span class="pct" data-label="佔比">62.5%</span><span class="tokens" data-label="Tokens">1.5M</span><span class="cost" data-label="花費">$28.55</span></div><div class="rank-line model-child" hidden><span class="left-tick" aria-hidden="true" style="background:#5abfa0"></span><span class="arrow">→</span><span class="name">claude-sonnet-4</span><span class="tokens" data-label="Tokens">1.2M</span><span class="cost" data-label="花費">$23.91</span><div class="gauge-rail" aria-hidden="true" style="width:52.4%;background:#5abfa0"></div></div><div class="tool-row model-group" data-agent-id="codex"><div class="tool-head"><span class="arrow">▸</span><span class="sub-agent">Codex</span><span class="sub-plan">Plus</span><span class="sub-since" data-mask>訂閱起始 2026-03-02</span><span class="share-bar" aria-hidden="true"><span style="width:37.50%;background:#e0885a"></span></span></div><span class="pct" data-label="佔比">37.5%</span><span class="tokens" data-label="Tokens">879.6K</span><span class="cost" data-label="花費">$17.13</span></div><div class="rank-line model-child" hidden><span class="left-tick" aria-hidden="true" style="background:#e0885a"></span><span class="arrow">→</span><span class="name">gpt-5-codex</span><span class="tokens" data-label="Tokens">858.9K</span><span class="cost" data-label="花費">$16.70</span><div class="gauge-rail" aria-hidden="true" style="width:36.6%;background:#e0885a"></div></div><div class="tool-row"><div class="tool-head"><span class="sub-agent">Gemini</span><span class="sub-plan">Pro</span><span class="sub-since" data-mask>訂閱起始 2026-04-10</span></div><span></span><span></span><span></span></div></div>
     </section>
     
+  <section class="section composition-section">
+      <div class="prompt"><span>[usage]&gt;</span> Token 組成</div>
+      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
+      <div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">快取讀取<span class="share-bar" aria-hidden="true"><span style="width:85.26%;background:#78cdb2"></span></span></span><span class="pct" data-label="佔比"> 85.3%</span><span class="tokens" data-label="Tokens">2.0M</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">輸入<span class="share-bar" aria-hidden="true"><span style="width:10.66%;background:#5abfa0"></span></span></span><span class="pct" data-label="佔比"> 10.7%</span><span class="tokens" data-label="Tokens">250.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">快取寫入<span class="share-bar" aria-hidden="true"><span style="width:2.13%;background:#e0885a"></span></span></span><span class="pct" data-label="佔比">  2.1%</span><span class="tokens" data-label="Tokens">50.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">輸出<span class="share-bar" aria-hidden="true"><span style="width:2.00%;background:#8f86c9"></span></span></span><span class="pct" data-label="佔比">  1.9%</span><span class="tokens" data-label="Tokens">45.7K</span></div></div><div class="rank-head"><span></span><span>快取命中率</span></div><p class="composition-hint">命中率越高越好，代表舊脈絡被重複使用而不是重送。</p><div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Codex<span class="share-bar" aria-hidden="true"><span style="width:87.21%;background:#78cdb2"></span></span></span><span class="pct" data-label="快取命中率"> 87.2%</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Claude<span class="share-bar" aria-hidden="true"><span style="width:86.81%;background:#78cdb2"></span></span></span><span class="pct" data-label="快取命中率"> 86.8%</span></div></div>
+    </section>
   
     <section class="section project-section">
       <div class="prompt"><span>[usage]&gt;</span> 專案熱區</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="rank-head"><span></span><span>專案</span><span>Tokens</span><span>花費</span></div><div class="rank-list"><div class="rank-line" data-project-index="0"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">usage</span><span class="tokens" data-label="Tokens">1.6M</span><span class="cost" data-label="花費">$32.07</span><div class="gauge-rail" aria-hidden="true" style="width:70.2%;background:#8b8577"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span><span class="tokens" data-label="Tokens">471.5K</span><span class="cost" data-label="花費">$9.18</span><div class="gauge-rail" aria-hidden="true" style="width:20.1%;background:#8b8577"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">未知</span><span class="tokens" data-label="Tokens">227.3K</span><span class="cost" data-label="花費">$4.43</span><div class="gauge-rail" aria-hidden="true" style="width:9.7%;background:#8b8577"></div></div></div>
+      <div class="rank-head"><span></span><span>專案</span><span>佔比</span><span>Tokens</span><span>花費</span></div><div class="rank-list"><div class="rank-line" data-project-index="0"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">usage</span><span class="pct" data-label="佔比">70.2%</span><span class="tokens" data-label="Tokens">1.6M</span><span class="cost" data-label="花費">$32.07</span><div class="gauge-rail" aria-hidden="true" style="width:70.2%;background:#8b8577"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">client&lt;portal&gt;</span><span class="pct" data-label="佔比">20.1%</span><span class="tokens" data-label="Tokens">471.5K</span><span class="cost" data-label="花費">$9.18</span><div class="gauge-rail" aria-hidden="true" style="width:20.1%;background:#8b8577"></div></div><div class="rank-line"><span class="left-tick" aria-hidden="true" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">未知</span><span class="pct" data-label="佔比">9.7%</span><span class="tokens" data-label="Tokens">227.3K</span><span class="cost" data-label="花費">$4.43</span><div class="gauge-rail" aria-hidden="true" style="width:9.7%;background:#8b8577"></div></div></div>
     </section>
     
   
@@ -741,13 +748,7 @@ td:first-child{color:var(--muted)}
         
     </section>
     
-  <details class="report-appendix"><summary><span>[usage]&gt;</span> 數字怎麼算的<span class="appendix-desc">Token 組成 · 快取命中率 · 花費可信度</span><i class="appendix-caret" aria-hidden="true">▸</i></summary>
-    <section class="section composition-section">
-      <div class="prompt"><span>[usage]&gt;</span> Token 組成</div>
-      <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">快取讀取<span class="share-bar" aria-hidden="true"><span style="width:85.26%;background:#78cdb2"></span></span></span><span class="pct" data-label="佔比"> 85.3%</span><span class="tokens" data-label="Tokens">2.0M</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">輸入<span class="share-bar" aria-hidden="true"><span style="width:10.66%;background:#5abfa0"></span></span></span><span class="pct" data-label="佔比"> 10.7%</span><span class="tokens" data-label="Tokens">250.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">快取寫入<span class="share-bar" aria-hidden="true"><span style="width:2.13%;background:#e0885a"></span></span></span><span class="pct" data-label="佔比">  2.1%</span><span class="tokens" data-label="Tokens">50.0K</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">輸出<span class="share-bar" aria-hidden="true"><span style="width:2.00%;background:#8f86c9"></span></span></span><span class="pct" data-label="佔比">  1.9%</span><span class="tokens" data-label="Tokens">45.7K</span></div></div><div class="rank-head"><span></span><span>快取命中率</span></div><p class="composition-hint">命中率越高越好，代表舊脈絡被重複使用而不是重送。</p><div class="rank-list"><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Codex<span class="share-bar" aria-hidden="true"><span style="width:87.21%;background:#78cdb2"></span></span></span><span class="pct" data-label="快取命中率"> 87.2%</span></div><div class="rank-line"><span class="arrow">&rarr;</span><span class="name">Claude<span class="share-bar" aria-hidden="true"><span style="width:86.81%;background:#78cdb2"></span></span></span><span class="pct" data-label="快取命中率"> 86.8%</span></div></div>
-    </section>
-    <section class="section pricing-section"><div class="prompt"><span>[usage]&gt;</span> 花費可信度</div><div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div><div class="pricing-bar" aria-hidden="true"><i style="width:91.8%;background:var(--cost)"></i><i style="width:8.2%;background:#8b8577"></i></div><div class="rank-list pricing-list"><div class="rank-line pricing-line"><span class="left-tick"></span><span class="arrow">→</span><span class="name">已計價</span><span class="pct">91.8%</span><span class="tokens">900.0K</span></div><div class="rank-line pricing-line"><span class="left-tick" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">無公開價格<span class="pricing-models">未知</span></span><span class="pct">8.2%</span><span class="tokens">80.0K</span></div></div><p class="pricing-hint">花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。</p></section></details>
+  <details class="report-appendix"><summary><span>[usage]&gt;</span> 花費怎麼算的<span class="appendix-desc">公開 API 價目換算 · 花費可信度</span><i class="appendix-caret" aria-hidden="true">▸</i></summary><section class="section pricing-section"><div class="prompt"><span>[usage]&gt;</span> 花費可信度</div><div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div><div class="pricing-bar" aria-hidden="true"><i style="width:91.8%;background:var(--cost)"></i><i style="width:8.2%;background:#8b8577"></i></div><div class="rank-list pricing-list"><div class="rank-line pricing-line"><span class="left-tick"></span><span class="arrow">→</span><span class="name">已計價</span><span class="pct">91.8%</span><span class="tokens">900.0K</span></div><div class="rank-line pricing-line"><span class="left-tick" style="background:#8b8577"></span><span class="arrow">→</span><span class="name">無公開價格<span class="pricing-models">未知</span></span><span class="pct">8.2%</span><span class="tokens">80.0K</span></div></div><p class="pricing-hint">花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。</p></section></details>
   </div>
   
     <section class="section contribution-section">
@@ -761,7 +762,7 @@ td:first-child{color:var(--muted)}
     <section class="section persona-section">
       <div class="prompt"><span>[usage]&gt;</span> 使用習慣</div>
       <div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>
-      <div class="persona-card"><h3>活躍時段</h3><p class="persona-caption">你最常在 14:00 和 21:00 與 AI 協作</p><div class="persona-hours"><div class="persona-hour" title="00:00 0" aria-label="00:00 0"><span style="height:0%"></span><em>00</em></div><div class="persona-hour" title="01:00 0" aria-label="01:00 0"><span style="height:0%"></span><em>01</em></div><div class="persona-hour" title="02:00 0" aria-label="02:00 0"><span style="height:0%"></span><em>02</em></div><div class="persona-hour" title="03:00 0" aria-label="03:00 0"><span style="height:0%"></span><em>03</em></div><div class="persona-hour" title="04:00 0" aria-label="04:00 0"><span style="height:0%"></span><em>04</em></div><div class="persona-hour" title="05:00 0" aria-label="05:00 0"><span style="height:0%"></span><em>05</em></div><div class="persona-hour" title="06:00 0" aria-label="06:00 0"><span style="height:0%"></span><em>06</em></div><div class="persona-hour" title="07:00 0" aria-label="07:00 0"><span style="height:0%"></span><em>07</em></div><div class="persona-hour" title="08:00 0" aria-label="08:00 0"><span style="height:0%"></span><em>08</em></div><div class="persona-hour" title="09:00 2" aria-label="09:00 2"><span style="height:29%"></span><em>09</em></div><div class="persona-hour" title="10:00 0" aria-label="10:00 0"><span style="height:0%"></span><em>10</em></div><div class="persona-hour" title="11:00 0" aria-label="11:00 0"><span style="height:0%"></span><em>11</em></div><div class="persona-hour" title="12:00 0" aria-label="12:00 0"><span style="height:0%"></span><em>12</em></div><div class="persona-hour" title="13:00 0" aria-label="13:00 0"><span style="height:0%"></span><em>13</em></div><div class="persona-hour is-peak" title="14:00 7" aria-label="14:00 7"><span style="height:100%"></span><em>14</em></div><div class="persona-hour" title="15:00 0" aria-label="15:00 0"><span style="height:0%"></span><em>15</em></div><div class="persona-hour" title="16:00 0" aria-label="16:00 0"><span style="height:0%"></span><em>16</em></div><div class="persona-hour" title="17:00 0" aria-label="17:00 0"><span style="height:0%"></span><em>17</em></div><div class="persona-hour" title="18:00 0" aria-label="18:00 0"><span style="height:0%"></span><em>18</em></div><div class="persona-hour" title="19:00 0" aria-label="19:00 0"><span style="height:0%"></span><em>19</em></div><div class="persona-hour" title="20:00 0" aria-label="20:00 0"><span style="height:0%"></span><em>20</em></div><div class="persona-hour" title="21:00 5" aria-label="21:00 5"><span style="height:71%"></span><em>21</em></div><div class="persona-hour" title="22:00 0" aria-label="22:00 0"><span style="height:0%"></span><em>22</em></div><div class="persona-hour" title="23:00 0" aria-label="23:00 0"><span style="height:0%"></span><em>23</em></div></div><div class="persona-peak">峰值 7 則</div></div>
+      <div class="persona-card"><h3>活躍時段</h3><p class="persona-caption">你最常在 14:00 和 21:00 與 AI 協作</p><div class="persona-hours"><div class="persona-hour" title="00:00 0" aria-label="00:00 0"><span style="height:0%"></span><em>00</em></div><div class="persona-hour" title="01:00 0" aria-label="01:00 0"><span style="height:0%"></span><em>01</em></div><div class="persona-hour" title="02:00 0" aria-label="02:00 0"><span style="height:0%"></span><em>02</em></div><div class="persona-hour" title="03:00 0" aria-label="03:00 0"><span style="height:0%"></span><em>03</em></div><div class="persona-hour" title="04:00 0" aria-label="04:00 0"><span style="height:0%"></span><em>04</em></div><div class="persona-hour" title="05:00 0" aria-label="05:00 0"><span style="height:0%"></span><em>05</em></div><div class="persona-hour" title="06:00 0" aria-label="06:00 0"><span style="height:0%"></span><em>06</em></div><div class="persona-hour" title="07:00 0" aria-label="07:00 0"><span style="height:0%"></span><em>07</em></div><div class="persona-hour" title="08:00 0" aria-label="08:00 0"><span style="height:0%"></span><em>08</em></div><div class="persona-hour" title="09:00 2" aria-label="09:00 2"><span style="height:29%"></span><em>09</em></div><div class="persona-hour" title="10:00 0" aria-label="10:00 0"><span style="height:0%"></span><em>10</em></div><div class="persona-hour" title="11:00 0" aria-label="11:00 0"><span style="height:0%"></span><em>11</em></div><div class="persona-hour" title="12:00 0" aria-label="12:00 0"><span style="height:0%"></span><em>12</em></div><div class="persona-hour" title="13:00 0" aria-label="13:00 0"><span style="height:0%"></span><em>13</em></div><div class="persona-hour is-peak" title="14:00 7" aria-label="14:00 7"><span style="height:100%"></span><em>14</em></div><div class="persona-hour" title="15:00 0" aria-label="15:00 0"><span style="height:0%"></span><em>15</em></div><div class="persona-hour" title="16:00 0" aria-label="16:00 0"><span style="height:0%"></span><em>16</em></div><div class="persona-hour" title="17:00 0" aria-label="17:00 0"><span style="height:0%"></span><em>17</em></div><div class="persona-hour" title="18:00 0" aria-label="18:00 0"><span style="height:0%"></span><em>18</em></div><div class="persona-hour" title="19:00 0" aria-label="19:00 0"><span style="height:0%"></span><em>19</em></div><div class="persona-hour" title="20:00 0" aria-label="20:00 0"><span style="height:0%"></span><em>20</em></div><div class="persona-hour" title="21:00 5" aria-label="21:00 5"><span style="height:71%"></span><em>21</em></div><div class="persona-hour" title="22:00 0" aria-label="22:00 0"><span style="height:0%"></span><em>22</em></div><div class="persona-hour" title="23:00 0" aria-label="23:00 0"><span style="height:0%"></span><em>23</em></div></div><div class="persona-peak">峰值 7 則訊息（含工具呼叫）</div></div>
     </section>
     
     <section class="section recent-titles-section">
@@ -815,7 +816,7 @@ reportThemeMedia.addEventListener('change', () => {
   updateThemeToggle();
 });
 
-const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "chartOther": "其他", "cost": "花費", "costUnpriced": "另有 {tokens} tokens 無公開價格", "emptyProjects": "這段期間還沒有專案用量", "kpiActiveValue": "{active} / {total} 天", "narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），主力 LLM 是 {top_model}。", "projectSection": "專案熱區", "share": "佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "花費", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。", "pricingModelSeparator": "、", "pricingPriced": "已計價", "pricingUnpriced": "無公開價格", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "本週比上週少 {pct}%。", "trendCompareFirst": "這是本期第一週的數據。", "trendCompareFlat": "本週跟上週差不多。", "trendCompareNew": "本週是新出現的用量。", "trendCompareUp": "本週是上週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
+const shareConfig = {"collapse": "收合", "copied": "已複製到剪貼簿 ✓", "expand": "展開", "pathCopied": "路徑已複製 ✓", "projectShare": "佔本專案", "projectOthers": "其他專案", "chartOther": "其他", "cost": "花費", "costUnpriced": "另有 {tokens} tokens 無公開價格", "emptyProjects": "這段期間還沒有專案用量", "kpiActiveValue": "{active} / {total} 天", "narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），主力 LLM 是 {top_model}。", "projectSection": "專案熱區", "share": "佔比", "tokens": "Tokens", "unknown": "未知", "vsPrevious": "較前期", "compositionCacheRead": "快取讀取", "compositionCacheWrite": "快取寫入", "compositionHitRate": "快取命中率", "compositionInput": "輸入", "compositionOutput": "輸出", "duration": "時長", "dailyChartTitle": "每日用量", "dailyChartModeTokens": "Tokens", "dailyChartModeCost": "花費", "dailyChartTotal": "合計", "emptyDaily": "這段期間還沒有每日用量", "emptySessions": "這段期間還沒有可列出的會話", "model": "模型", "project": "專案", "pricingAllPriced": "全部用量都有公開價格。", "pricingHint": "花費是用公開 API 價目表換算的等值金額，不是你的訂閱帳單；無公開價格的用量不計入花費。", "pricingModelSeparator": "、", "pricingPriced": "已計價", "pricingUnpriced": "無公開價格", "rank": "排名", "startTime": "開始時間", "trendCompareDown": "本週比上週少 {pct}%。", "trendCompareFirst": "這是本期第一週的數據。", "trendCompareFlat": "本週跟上週差不多。", "trendCompareNew": "本週是新出現的用量。", "trendCompareUp": "本週是上週的 {ratio} 倍。", "trendMarkerNew": "new", "trendWeekInProgress": "進行中"};
 const maskedCsvData = JSON.parse(document.querySelector('#usage-masked-csv-data').textContent);
 const csvDataNode = document.querySelector('#usage-csv-data');
 const csvData = csvDataNode ? JSON.parse(csvDataNode.textContent) : maskedCsvData;
@@ -950,7 +951,7 @@ async function withShareableReport(maskProjects, callback) {
   const restores = [];
   const detached = [];
   if (maskProjects) {
-    document.querySelectorAll('.project-section .rank-line .name').forEach((el, i) => {
+    Array.from(document.querySelectorAll('.project-section .rank-line .name')).filter((el) => !el.closest('[data-project-other]')).forEach((el, i) => {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
@@ -958,7 +959,7 @@ async function withShareableReport(maskProjects, callback) {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
-    document.querySelectorAll('.project-section .lg-name').forEach((el, i) => {
+    Array.from(document.querySelectorAll('.project-section .lg-name')).filter((el) => !el.closest('[data-project-other]')).forEach((el, i) => {
       restores.push({el, original: el.textContent});
       el.textContent = `Project ${i + 1}`;
     });
@@ -1105,6 +1106,22 @@ document.addEventListener('click', async (e) => {
     const number = Math.max(0, Number(value) || 0);
     return number > 0 && number < 1 ? `$${number.toFixed(4)}` : `$${number.toFixed(2)}`;
   }
+  function niceTicks(maximum, minimumStep = 0) {
+    if (maximum <= 0) return [0];
+    const raw = maximum / 2;
+    const power = 10 ** Math.floor(Math.log10(raw));
+    const step = Math.max(minimumStep, [1, 2, 5, 10].find((value) => value * power >= raw) * power);
+    return Array.from({length: Math.ceil(maximum / step) + 1}, (_, index) => index * step);
+  }
+  function dateLabelIndices(days, plotWidth) {
+    if (!days.length) return [];
+    const result = [0]; const last = days.length - 1; const step = plotWidth / days.length;
+    for (let index = 1; index < last; index += 1) {
+      if (days[index].endsWith('-01') && (index - result[result.length - 1]) * step >= 120 && (last - index) * step >= 120) result.push(index);
+    }
+    if (last) result.push(last);
+    return result;
+  }
   function modeValue(item, day) { return mode === 'cost' ? item.cost[day] : item.tokens[day]; }
   function displayName(value) {
     const filter = window.usageReportFilter;
@@ -1174,6 +1191,7 @@ document.addEventListener('click', async (e) => {
     const width = 760; const height = 180; const left = 48; const right = 8; const top = 18; const bottom = 32;
     const plotWidth = width - left - right; const plotHeight = height - top - bottom;
     const maximum = Math.max(...totals); const step = plotWidth / data.days.length;
+    const ticks = niceTicks(maximum, mode === 'tokens' ? 1 : 0); const scaleMax = ticks[ticks.length - 1];
     const compactBars = data.days.length <= 31;
     const gap = compactBars ? 0 : data.days.length > 120 ? 0 : data.days.length > 45 ? 1 : Math.min(4, step * .25);
     const barWidth = compactBars ? Math.max(1, step * .55) : Math.max(1, step - gap);
@@ -1186,10 +1204,10 @@ document.addEventListener('click', async (e) => {
       return item;
     };
     canvas.append(svg);
-    [1, .5, 0].forEach((fraction) => {
-      const y = top + plotHeight * (1 - fraction);
+    ticks.slice().reverse().forEach((tick) => {
+      const y = top + plotHeight * (1 - tick / scaleMax);
       svg.append(svgNode('line', 'daily-grid', {x1: left, y1: y, x2: width - right, y2: y, 'vector-effect': 'non-scaling-stroke'}));
-      canvas.append(label('daily-y-label', mode === 'cost' ? formatCost(maximum * fraction) : formatTokens(maximum * fraction), left - 7, y));
+      canvas.append(label('daily-y-label', mode === 'cost' ? formatCost(tick) : formatTokens(tick), left - 7, y));
     });
     const peak = totals.indexOf(maximum);
     data.days.forEach((_day, dayIndex) => {
@@ -1199,7 +1217,7 @@ document.addEventListener('click', async (e) => {
       data.agents.forEach((agent, agentIndex) => {
         const value = modeValue(agent, dayIndex);
         if (!value) return;
-        const barHeight = value / maximum * plotHeight;
+        const barHeight = value / scaleMax * plotHeight;
         cursor -= barHeight;
         const topSegment = !data.agents.slice(agentIndex + 1).some((other) => modeValue(other, dayIndex) > 0);
         group.append(svgNode('rect', 'daily-segment', {x, y: cursor, width: barWidth, height: barHeight, fill: agent.color, rx: topSegment ? 2 : 0, ry: topSegment ? 2 : 0}));
@@ -1210,9 +1228,9 @@ document.addEventListener('click', async (e) => {
       group.addEventListener('blur', () => clearHover(svg, tooltip));
       group.setAttribute('tabindex', '0');
       svg.append(group);
-      if (dayIndex === peak) canvas.append(label('daily-peak-label', mode === 'cost' ? formatCost(totals[dayIndex]) : formatTokens(totals[dayIndex]), x + barWidth / 2, Math.max(12, cursor - 5)));
+      if (dayIndex === peak) canvas.append(label('daily-peak-label', `${data.days[dayIndex].slice(5)} · ${mode === 'cost' ? formatCost(totals[dayIndex]) : formatTokens(totals[dayIndex])}`, x + barWidth / 2, Math.max(12, cursor - 5)));
     });
-    [...new Set([0, Math.floor((data.days.length - 1) / 2), data.days.length - 1])].forEach((index) => {
+    dateLabelIndices(data.days, plotWidth).forEach((index) => {
       canvas.append(label('daily-x-label', data.days[index].slice(5), left + index * step + step / 2, height - 7));
     });
     canvas.append(tooltip); wrap.append(canvas);
@@ -1698,6 +1716,7 @@ document.addEventListener('click', async (e) => {
     appendLeftTick(row, color);
     appendTextSpan(row, 'arrow', options.arrow || '→');
     appendTextSpan(row, options.nameClass || 'name', name);
+    if (options.showShare) appendTextSpan(row, 'pct', `${share.toFixed(1)}%`, shareConfig.share);
     appendTextSpan(row, 'tokens', formatTokens(item.tokens), shareConfig.tokens);
     const costKnown = options.costKnown === undefined ? item.costKnown : options.costKnown;
     appendTextSpan(row, 'cost', formatCost(item.cost, costKnown), shareConfig.cost);
@@ -1709,8 +1728,8 @@ document.addEventListener('click', async (e) => {
   const projectHeadCells = projectSection
     ? Array.from(projectSection.querySelectorAll('.rank-head > span'))
     : [];
-  const tokensLabel = projectHeadCells[2] ? projectHeadCells[2].textContent : shareConfig.tokens;
-  const costLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.cost;
+  const tokensLabel = projectHeadCells[3] ? projectHeadCells[3].textContent : shareConfig.tokens;
+  const costLabel = projectHeadCells[4] ? projectHeadCells[4].textContent : shareConfig.cost;
 
   function removeProjectDetails(projectRow) {
     let sibling = projectRow.nextElementSibling;
@@ -1892,19 +1911,27 @@ document.addEventListener('click', async (e) => {
       }))
       .filter((item) => item.tokens > 0 || item.cost > 0)
       .sort((left, right) => right.tokens - left.tokens || left.projectIndex - right.projectIndex);
-    projects.slice(0, 10).forEach((project, index) => {
+    const displayed = projects.slice(0, 10);
+    displayed.forEach((project) => {
       const row = createRankRow(
         project.name,
         project,
         summary.tokens,
         '#8b8577',
         // _render_project_section() 無條件顯示花費，這裡跟著一致
-        {projectIndex: project.projectIndex, costKnown: true}
+        {projectIndex: project.projectIndex, costKnown: true, showShare: true}
       );
       list.append(row);
       bindProjectRow(row);
     });
-    if (!projects.length) {
+    const remaining = summary.tokens - displayed.reduce((sum, project) => sum + project.tokens, 0);
+    if (remaining > 0) {
+      const cost = Math.max(0, summary.cost - displayed.reduce((sum, project) => sum + project.cost, 0));
+      const other = createRankRow(shareConfig.projectOthers, {tokens: remaining, cost}, summary.tokens, '#8b8577', {costKnown: true, showShare: true});
+      other.dataset.projectOther = 'true';
+      list.append(other);
+    }
+    if (!projects.length && remaining <= 0) {
       const empty = document.createElement('div');
       empty.className = 'empty';
       empty.textContent = `→ ${shareConfig.emptyProjects}`;
@@ -1993,7 +2020,7 @@ document.addEventListener('click', async (e) => {
     }
     const pct = Math.round((current - previous) / previous * 100);
     if (Math.abs(pct) <= 5) return {className: 'flat', label: '→ 0%'};
-    if (pct > 0) return {className: 'up', label: `↗ +${pct}%`};
+    if (pct > 0) return {className: current >= previous * 2 ? 'surge' : 'up', label: `↗ +${pct}%`};
     return {className: 'down', label: `↘ ${pct}%`};
   }
 
@@ -2071,7 +2098,7 @@ document.addEventListener('click', async (e) => {
       const row = document.createElement('div');
       row.className = 'trend-row';
       row.setAttribute('title', tooltip);
-      appendTextSpan(row, 'week', `W${week.week}`);
+      appendTextSpan(row, 'week', `W${week.week} (${formatDate(weekStart).slice(5).replace('-', '/')}–${formatDate(weekEnd).slice(5).replace('-', '/')})`);
       let width = 0;
       if (week.tokens > 0 && maxTokens > 0) {
         width = Math.max(2, Math.min(100, week.tokens / maxTokens * 100));

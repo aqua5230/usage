@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from ui.report_daily_chart import (
     daily_usage,
+    date_label_indices,
+    nice_ticks,
     pricing_usage,
     render_daily_chart,
     render_pricing_body,
@@ -78,7 +80,7 @@ def test_daily_chart_centers_55_percent_bars_for_31_or_fewer_days() -> None:
     html = render_daily_chart(cube, _t, _tokens, str)
 
     assert 'preserveAspectRatio="none"' in html
-    assert html.count('vector-effect="non-scaling-stroke"') == 3
+    assert html.count('vector-effect="non-scaling-stroke"') == 2
     assert "<text " not in html
     assert 'width="77.44"' in html
     assert 'x="79.68"' in html
@@ -100,3 +102,25 @@ def test_pricing_usage_and_body_cover_priced_and_unpriced() -> None:
     assert "40.0%" in body and "60.0%" in body and "未知" in body
     assert 'class="pricing-bar-labels"' not in body
     assert '<span class="pricing-models">未知</span>' in body
+
+
+def test_daily_ticks_are_nice_and_cover_zero_and_large_values() -> None:
+    assert nice_ticks(0) == [0]
+    assert nice_ticks(1) == [0, 0.5, 1]
+    assert nice_ticks(1, 1) == [0, 1]
+    assert nice_ticks(1_040_000_000) == [0, 1_000_000_000, 2_000_000_000]
+    assert nice_ticks(900_000_000) == [0, 500_000_000, 1_000_000_000]
+
+
+def test_daily_date_labels_keep_endpoints_and_skip_nearby_month_starts() -> None:
+    from datetime import date, timedelta
+
+    assert date_label_indices([]) == []
+    assert date_label_indices(["2026-01-01"]) == [0]
+    days = [(date(2026, 1, 31) + timedelta(days=i)).isoformat() for i in range(62)]
+    assert date_label_indices(days) == [0, 29, 61]
+    # First and last labels remain even when consecutive dates cross a month.
+    assert date_label_indices(["2026-01-31", "2026-02-01"]) == [0, 1]
+    rendered = render_daily_chart(_cube([[0, 0, 0, 0, 42, 0, 0, 0, 0, 1]]), _t, _tokens, str)
+    assert "05-01 · 42" in rendered
+    assert rendered.count("daily-x-label") == 1

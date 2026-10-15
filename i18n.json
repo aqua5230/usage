@@ -260,8 +260,8 @@
     "report_fixed_range": "固定區間",
     "report_fixed_group_note": "以下區塊不受上方日期篩選影響",
     "report_model": "模型",
-    "report_appendix_title": "數字怎麼算的",
-    "report_appendix_desc": "Token 組成 · 快取命中率 · 花費可信度",
+    "report_appendix_title": "花費怎麼算的",
+    "report_appendix_desc": "公開 API 價目換算 · 花費可信度",
     "report_narrative": "過去這段時間你燒了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），主力 LLM 是 {top_model}。",
     "report_period": "區間",
     "report_project": "專案",
@@ -270,7 +270,7 @@
     "report_persona_active_hours": "活躍時段",
     "report_persona_caption": "你最常在 {h1}{h2} 與 AI 協作",
     "report_persona_caption_second": " 和 {h2}",
-    "report_persona_peak": "峰值 {count} 則",
+    "report_persona_peak": "峰值 {count} 則訊息（含工具呼叫）",
     "report_persona_empty": "這段期間還沒有足夠資料",
     "report_recent_titles_heading": "最近在做什麼",
     "report_persona_section": "使用習慣",
@@ -539,7 +539,9 @@
     "quota_aware_action_failed": "無法切換額度感知模式。",
     "claude_beginner_error": "新手模式：{error}",
     "claude_desktop_updated": "Claude 桌面版 · {minutes} 分鐘前更新",
-    "claude_desktop_stale": "Claude 桌面版 · 資料過期 · {minutes} 分鐘前更新"
+    "claude_desktop_stale": "Claude 桌面版 · 資料過期 · {minutes} 分鐘前更新",
+    "report_project_others": "其他專案",
+    "report_ledger_pct_note": "Claude、Codex、Antigravity 三欄是約佔該工具週額度的百分比。"
   },
   "en": {
     "panel_default_name": "Default",
@@ -802,8 +804,8 @@
     "report_fixed_range": "Fixed range",
     "report_fixed_group_note": "The sections below don't follow the date filter above",
     "report_model": "Model",
-    "report_appendix_title": "How these numbers are calculated",
-    "report_appendix_desc": "Token mix · Cache hit rate · Cost confidence",
+    "report_appendix_title": "How cost is calculated",
+    "report_appendix_desc": "Public API price conversion · Cost confidence",
     "report_narrative": "You burned {tokens} tokens. Peak was {peak_date} ({peak_tokens}/day). Top model: {top_model}.",
     "report_period": "Period",
     "report_project": "Project",
@@ -812,7 +814,7 @@
     "report_persona_active_hours": "Active hours",
     "report_persona_caption": "You most often collaborate with AI at {h1}{h2}",
     "report_persona_caption_second": " and {h2}",
-    "report_persona_peak": "Peak {count} messages",
+    "report_persona_peak": "Peak: {count} messages (incl. tool calls)",
     "report_persona_empty": "Not enough data in this period yet",
     "report_recent_titles_heading": "What you worked on",
     "report_persona_section": "Usage habits",
@@ -1081,7 +1083,9 @@
     "quota_aware_action_failed": "Could not change Quota-Aware Mode.",
     "claude_beginner_error": "Beginner Mode: {error}",
     "claude_desktop_updated": "Claude Desktop · updated {minutes}m ago",
-    "claude_desktop_stale": "Claude Desktop · stale · updated {minutes}m ago"
+    "claude_desktop_stale": "Claude Desktop · stale · updated {minutes}m ago",
+    "report_project_others": "Other projects",
+    "report_ledger_pct_note": "The Claude, Codex, and Antigravity columns are approximate shares of each tool’s weekly quota."
   },
   "zh-CN": {
     "panel_default_name": "默认",
@@ -1344,8 +1348,8 @@
     "report_fixed_range": "Fixed range",
     "report_fixed_group_note": "以下区块不受上方日期筛选影响",
     "report_model": "模型",
-    "report_appendix_title": "数字怎么算的",
-    "report_appendix_desc": "Token 组成 · 缓存命中率 · 花费可信度",
+    "report_appendix_title": "花费怎么算的",
+    "report_appendix_desc": "公开 API 价格换算 · 花费可信度",
     "report_narrative": "过去这段时间你烧了 {tokens} tokens。{peak_date} 是高峰（{peak_tokens}/天），主力 LLM 是 {top_model}。",
     "report_period": "区间",
     "report_project": "项目",
@@ -1354,7 +1358,7 @@
     "report_persona_active_hours": "活跃时段",
     "report_persona_caption": "你最常在 {h1}{h2} 与 AI 协作",
     "report_persona_caption_second": " 和 {h2}",
-    "report_persona_peak": "峰值 {count} 条",
+    "report_persona_peak": "峰值 {count} 条消息（含工具调用）",
     "report_persona_empty": "这段期间还没有足够数据",
     "report_recent_titles_heading": "最近在做什么",
     "report_persona_section": "使用习惯",
@@ -1623,7 +1627,9 @@
     "quota_aware_action_failed": "无法切换额度感知模式。",
     "claude_beginner_error": "新手模式：{error}",
     "claude_desktop_updated": "Claude 桌面版 · {minutes} 分钟前更新",
-    "claude_desktop_stale": "Claude 桌面版 · 数据过期 · {minutes} 分钟前更新"
+    "claude_desktop_stale": "Claude 桌面版 · 数据过期 · {minutes} 分钟前更新",
+    "report_project_others": "其他项目",
+    "report_ledger_pct_note": "Claude、Codex、Antigravity 三列是约占该工具周额度的百分比。"
   },
   "ja": {
     "panel_default_name": "デフォルト",
@@ -1886,8 +1892,8 @@
     "report_fixed_range": "Fixed range",
     "report_fixed_group_note": "以下のセクションは上の日付フィルターの影響を受けません",
     "report_model": "モデル",
-    "report_appendix_title": "数値の算出方法",
-    "report_appendix_desc": "トークン構成 · キャッシュヒット率 · コストの信頼度",
+    "report_appendix_title": "コストの算出方法",
+    "report_appendix_desc": "公開 API 料金での換算 · コストの信頼度",
     "report_narrative": "この期間に {tokens} tokens を使いました。ピークは {peak_date}（{peak_tokens}/日）。主力モデル：{top_model}。",
     "report_period": "期間",
     "report_project": "プロジェクト",
@@ -1896,7 +1902,7 @@
     "report_persona_active_hours": "アクティブな時間帯",
     "report_persona_caption": "{h1}{h2} の時間帯に AI との共同作業が最も多い傾向があります",
     "report_persona_caption_second": " と {h2}",
-    "report_persona_peak": "ピーク {count} 件",
+    "report_persona_peak": "ピーク: {count} 件のメッセージ（ツール呼び出しを含む）",
     "report_persona_empty": "この期間はまだ十分なデータがありません",
     "report_recent_titles_heading": "最近の作業",
     "report_persona_section": "利用習慣",
@@ -2165,7 +2171,9 @@
     "quota_aware_action_failed": "クォータ認識モードを切り替えられませんでした。",
     "claude_beginner_error": "初心者モード：{error}",
     "claude_desktop_updated": "Claude デスクトップ · {minutes}分前に更新",
-    "claude_desktop_stale": "Claude デスクトップ · 古いデータ · {minutes}分前に更新"
+    "claude_desktop_stale": "Claude デスクトップ · 古いデータ · {minutes}分前に更新",
+    "report_project_others": "その他のプロジェクト",
+    "report_ledger_pct_note": "Claude、Codex、Antigravity の各列は、各ツールの週間上限に対する推定使用率です。"
   },
   "ko": {
     "panel_default_name": "기본",
@@ -2428,8 +2436,8 @@
     "report_fixed_range": "Fixed range",
     "report_fixed_group_note": "아래 섹션은 위의 날짜 필터와 관계없이 표시됩니다",
     "report_model": "모델",
-    "report_appendix_title": "수치 계산 방식",
-    "report_appendix_desc": "토큰 구성 · 캐시 적중률 · 비용 신뢰도",
+    "report_appendix_title": "비용 계산 방식",
+    "report_appendix_desc": "공개 API 가격 환산 · 비용 신뢰도",
     "report_narrative": "이 기간 동안 {tokens} tokens을 사용했습니다. 최고점은 {peak_date}({peak_tokens}/일). 주력 모델: {top_model}.",
     "report_period": "기간",
     "report_project": "프로젝트",
@@ -2438,7 +2446,7 @@
     "report_persona_active_hours": "활동 시간대",
     "report_persona_caption": "주로 {h1}{h2}에 AI와 협업합니다",
     "report_persona_caption_second": " 및 {h2}",
-    "report_persona_peak": "최고 {count}건",
+    "report_persona_peak": "최고 {count}개 메시지(도구 호출 포함)",
     "report_persona_empty": "이 기간에는 아직 충분한 데이터가 없습니다",
     "report_recent_titles_heading": "최근 작업",
     "report_persona_section": "사용 습관",
@@ -2707,6 +2715,8 @@
     "quota_aware_action_failed": "할당량 인식 모드를 변경할 수 없습니다.",
     "claude_beginner_error": "초보자 모드: {error}",
     "claude_desktop_updated": "Claude 데스크톱 · {minutes}분 전 업데이트",
-    "claude_desktop_stale": "Claude 데스크톱 · 오래된 데이터 · {minutes}분 전 업데이트"
+    "claude_desktop_stale": "Claude 데스크톱 · 오래된 데이터 · {minutes}분 전 업데이트",
+    "report_project_others": "기타 프로젝트",
+    "report_ledger_pct_note": "Claude, Codex, Antigravity 열은 각 도구의 주간 한도 대비 대략적인 사용 비율입니다."
   }
 }
