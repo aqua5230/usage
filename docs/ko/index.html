@@ -119,9 +119,6 @@ h1, h2, h3 { text-wrap: balance; }
 :is(:lang(zh), :lang(ja), :lang(ko)) .install-card p {
   line-height: 1.6;
 }
-:is(:lang(zh), :lang(ja), :lang(ko)) .cta-note {
-  font-size: 14px;
-}
 :is(:lang(zh), :lang(ja), :lang(ko)) .eyebrow {
   font-family: inherit;
   font-size: 12px;
@@ -341,7 +338,7 @@ p, li { text-wrap: pretty; }
   margin-bottom: 24px;
   overflow-wrap: anywhere;
 }
-.hero h1 .accent { color: var(--accent); }
+.hero h1 .accent { color: var(--accent); white-space: nowrap; }
 .hero p.lead {
   font-size: clamp(16px, 1.6vw, 18px);
   color: var(--fg-dim);
@@ -352,9 +349,20 @@ p, li { text-wrap: pretty; }
 }
 :where(:lang(zh), :lang(ja)) .hero p.lead { text-wrap: wrap; }
 .cta { display: flex; gap: 12px; justify-content: flex-start; flex-wrap: wrap; }
-.cta-note { margin: 12px 0 40px; min-height: 24px; font-size: 13px; color: var(--fg-dim); }
-.cta-note a { display: inline-flex; align-items: center; min-height: 24px; color: inherit; text-decoration: underline; }
-.cta-note a:hover { color: var(--fg); }
+.hero .cta { margin-bottom: 48px; }
+/* 首屏的 brew 指令：跟按鈕同高，指令太長時只捲動指令本身，複製鈕固定在右側。 */
+.hero .hero-cmd {
+  flex-direction: row; align-items: center; gap: 10px;
+  width: auto; max-width: 100%; min-height: 44px; margin-top: 0; padding: 0 6px 0 14px;
+  background: #08090d; border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--mono); font-size: 13.5px;
+}
+.hero-cmd-prompt { color: var(--accent); user-select: none; }
+.hero-cmd code {
+  flex: 1 1 auto; min-width: 0; overflow-x: auto; scrollbar-width: none;
+  padding: 0; background: none; font-size: inherit; color: var(--fg);
+}
+.hero-cmd .copy-btn { margin-top: 0; flex-shrink: 0; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   font-size: 15px; font-weight: 550;
@@ -1060,13 +1068,13 @@ footer .kofi:hover { background: var(--accent-hover); }
   <svg class="hero-ring" viewBox="0 0 64 64" aria-hidden="true" focusable="false"><use href="#usage-ring"/></svg>
   <div class="wrap">
     <span class="eyebrow" data-i18n="eyebrow">macOS &amp; Windows · 오픈소스 · AGPL-3.0</span>
-    <h1 data-i18n="h1"><span class="accent">Claude Code</span>, <span class="accent">Codex</span>, <span class="accent">Antigravity</span>, <span class="accent">Grok</span>의 <br>한도를 메뉴 바에 고정.</h1>
+    <h1 data-i18n="h1">Claude Code, Codex, Antigravity, Grok의 <br>한도를 <span class="accent">메뉴 바에 고정</span>.</h1>
     <p class="lead" data-i18n="lead">AI 한도가 얼마나 남았는지 보여주는 작은 macOS 메뉴 바 앱(Windows에서는 시스템 트레이에 상주). 배터리 퍼센트처럼 한눈에 확인.</p>
     <div class="cta">
       <a class="btn btn-primary" href="https://github.com/aqua5230/usage/releases/latest" data-i18n="cta_download">↓ .app 다운로드</a>
+      <div class="copy-wrap hero-cmd"><span class="hero-cmd-prompt" aria-hidden="true">$</span><code translate="no">brew install --cask aqua5230/usage/usage</code><button class="copy-btn" type="button" aria-live="polite"><span class="copy-ring" aria-hidden="true"><svg class="copy-ring-fill" viewBox="0 0 64 64" fill="none"><circle cx="32" cy="32" r="26" pathLength="100" stroke="#BF483C" stroke-width="6" stroke-linecap="round" transform="rotate(242 32 32)"/></svg><svg class="copy-ring-check" viewBox="0 0 16 16" fill="none"><path d="m3 8 3 3 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="copy-label" data-i18n="copy_btn">복사</span></button></div>
       <a class="btn btn-secondary" href="https://github.com/aqua5230/usage" target="_blank" rel="noopener"><span data-i18n="cta_star">★ GitHub에서 스타</span><span class="star-count" id="star-count" hidden></span></a>
     </div>
-    <p class="cta-note"><a href="#first-launch" data-i18n="hero_note">첫 실행이 차단되었나요?</a></p>
     <div class="shot">
       <img width="1448" height="1086" fetchpriority="high" decoding="async" src="../showcase-v3.en.webp" srcset="../showcase-v3.en-800.webp 800w, ../showcase-v3.en.webp 1448w" sizes="(max-width: 1080px) 100vw, 1030px" data-i18n-attr="alt:hero_img_alt" alt="macOS 메뉴 막대에서 실행 중인 usage와 MacBook에 열린 할당량 패널" />
     </div>
@@ -1314,13 +1322,12 @@ const T = {
     lang_menu: 'Language',
     skip_main: 'Skip to main content',
     eyebrow: 'macOS &amp; Windows · open source · AGPL-3.0',
-    h1: 'Pin your <span class="accent">Claude Code</span>, <span class="accent">Codex</span>, <span class="accent">Antigravity</span> &amp; <span class="accent">Grok</span> <br>quota to the menu bar.',
+    h1: 'Pin your Claude Code, Codex, Antigravity &amp; Grok <br>quota <span class="accent">to the menu bar</span>.',
     lead: 'A tiny menu bar app for macOS (and system tray app for Windows) that shows how much of your AI quota is left, like a battery percentage for tokens.',
     hero_img_alt: 'usage running in the macOS menu bar, with the quota popover open on a MacBook',
     cta_download: '↓ Download .app',
     cta_download_win: '↓ Download for Windows',
     cta_star: '★ Star on GitHub',
-    hero_note: 'First launch blocked by macOS?',
     strip_1: '<strong>Shareable HTML reports</strong> — project names hide by default',
     strip_2: '<strong>Local-first</strong> — Claude Code &amp; Codex read straight from your disk',
     strip_3: '<strong>No telemetry</strong>, no accounts, no uploads',
@@ -1399,7 +1406,7 @@ const T = {
   'zh-TW': {
     side_pane_label: '在 CLAUDE CODE 裡',
     side_pane_h2: '你的額度，就在 Claude Code 裡',
-    side_pane_lead: '在 macOS 與 Windows 的 Claude Code 裡看額度、對話與背景工作，包含 Agent 工具開的子代理及其狀態。等你回覆權限確認或 MCP 輸入的對話會標黃色。開啟面板後，終端機寬度 ≥144 欄會自動在右邊打開；比較窄時輸入 <code>/usage-dash</code>。 別的 Claude 對話完成或開始等你時，會跳出通知。',
+    side_pane_lead: '在 macOS 與 Windows 的 Claude Code 裡看額度、對話與背景工作，包含 Agent 工具開的子代理及其狀態。等你回覆權限確認或 MCP 輸入的對話會標黃色。開啟面板後，終端機寬度 ≥144 欄會自動在右邊打開；比較窄時輸入 <code>/usage-dash</code>。別的 Claude 對話完成或開始等你時，會跳出通知。',
     side_pane_point1: '不用離開對話就能看額度',
     side_pane_point2: '等你的對話標黃色',
     side_pane_point3: '背景工作與子代理',
@@ -1416,13 +1423,12 @@ const T = {
     lang_menu: '語言',
     skip_main: '跳至主要內容',
     eyebrow: 'macOS 與 Windows · 開源 · AGPL-3.0',
-    h1: '把 <span class="accent">Claude Code</span>、<span class="accent">Codex</span>、<span class="accent">Antigravity</span> 和 <span class="accent">Grok</span> <br>的用量釘在 menu bar。',
+    h1: '把 Claude Code、Codex、Antigravity 和 Grok <br>的用量<span class="accent">釘在 menu bar</span>。',
     lead: '一個迷你的 macOS menu bar 小工具（Windows 則常駐在系統匣），在螢幕角落顯示你的 AI 配額還剩多少——像電池百分比一樣直觀好懂。',
     hero_img_alt: 'usage 在 macOS 選單列上執行，MacBook 上開著額度面板',
     cta_download: '↓ 下載 .app',
     cta_download_win: '↓ 下載 Windows 版',
     cta_star: '★ 給個星星',
-    hero_note: '第一次打開被 macOS 擋住？',
     strip_1: '<strong>可分享的 HTML 報告</strong>——預設隱藏專案名稱',
     strip_2: '<strong>本地優先</strong>——Claude Code 與 Codex 直接讀你磁碟上的檔案',
     strip_3: '<strong>無遙測</strong>、無帳號、不上傳',
@@ -1476,12 +1482,12 @@ const T = {
     install_p_app: '從 GitHub Releases 抓最新的 <code>usage.app.zip</code>——解壓縮、拖到 <code>/Applications</code>。',
     install_label_win: 'WINDOWS',
     install_h_win: '系統匣',
-    install_p_win: '從 GitHub Releases 抓最新的 <code>usage-windows.zip</code>——解壓縮後執行 <code>usage.exe</code>。 也可在工作列顯示額度標籤，右鍵點它會開啟系統匣選單。',
+    install_p_win: '從 GitHub Releases 抓最新的 <code>usage-windows.zip</code>——解壓縮後執行 <code>usage.exe</code>。也可在工作列顯示額度標籤，右鍵點它會開啟系統匣選單。',
     install_label_any: '跨平台',
     install_h_uvx: 'uvx（零安裝）',
     install_p_uvx: '只有終端機介面，沒有選單列或系統匣。Linux 也能跑，uv 會自備 Python。',
     install_btn_releases: '→ 開啟 Releases 頁面',
-    install_note: '<strong>第一次打開被 macOS 擋住？</strong>打開「系統設定」→「隱私權與安全性」，往下捲，按<strong>「強制打開」</strong>。macOS 14 以前的版本，改成在 <code>usage.app</code> 上按右鍵 →「打開」。<strong>Windows 跳出「Windows 已保護您的電腦」？</strong>按「其他資訊」→<strong>「仍要執行」</strong>。 Claude Code 使用者裝好後，請在選單按<strong>「設定狀態列」</strong>並重開 Claude Code，額度才會出現。',
+    install_note: '<strong>第一次打開被 macOS 擋住？</strong>打開「系統設定」→「隱私權與安全性」，往下捲，按<strong>「強制打開」</strong>。macOS 14 以前的版本，改成在 <code>usage.app</code> 上按右鍵 →「打開」。<strong>Windows 跳出「Windows 已保護您的電腦」？</strong>按「其他資訊」→<strong>「仍要執行」</strong>。Claude Code 使用者裝好後，請在選單按<strong>「設定狀態列」</strong>並重開 Claude Code，額度才會出現。',
     copy_btn: '複製',
     copy_done: '已複製',
     copy_fail: '複製失敗',
@@ -1501,7 +1507,7 @@ const T = {
   'zh-CN': {
     side_pane_label: '在 CLAUDE CODE 中',
     side_pane_h2: '你的额度，就在 Claude Code 中',
-    side_pane_lead: '在 macOS 和 Windows 的 Claude Code 中查看额度、对话和后台任务，包括 Agent 工具启动的子代理及其状态。等待你确认权限或提供 MCP 输入的对话会标为黄色。启用面板后，终端宽度 ≥144 列时会自动在右侧打开；较窄时输入 <code>/usage-dash</code>。 其他 Claude 对话完成或开始等待你时，会弹出通知。',
+    side_pane_lead: '在 macOS 和 Windows 的 Claude Code 中查看额度、对话和后台任务，包括 Agent 工具启动的子代理及其状态。等待你确认权限或提供 MCP 输入的对话会标为黄色。启用面板后，终端宽度 ≥144 列时会自动在右侧打开；较窄时输入 <code>/usage-dash</code>。其他 Claude 对话完成或开始等待你时，会弹出通知。',
     side_pane_point1: '不用离开对话就能查看额度',
     side_pane_point2: '等待你的对话标为黄色',
     side_pane_point3: '后台任务与子代理',
@@ -1518,13 +1524,12 @@ const T = {
     lang_menu: '语言',
     skip_main: '跳至主要内容',
     eyebrow: 'macOS 与 Windows · 开源 · AGPL-3.0',
-    h1: '把 <span class="accent">Claude Code</span>、<span class="accent">Codex</span>、<span class="accent">Antigravity</span> 和 <span class="accent">Grok</span> <br>的用量钉在 menu bar。',
+    h1: '把 Claude Code、Codex、Antigravity 和 Grok <br>的用量<span class="accent">钉在 menu bar</span>。',
     lead: '一个迷你的 macOS menu bar 小工具（Windows 则常驻在系统托盘），在屏幕角落显示你的 AI 额度还剩多少——像电池百分比一样直观好懂。',
     hero_img_alt: 'usage 在 macOS 菜单栏上运行，MacBook 上开着额度面板',
     cta_download: '↓ 下载 .app',
     cta_download_win: '↓ 下载 Windows 版',
     cta_star: '★ 给个星星',
-    hero_note: '首次打开被 macOS 拦截？',
     strip_1: '<strong>可分享的 HTML 报告</strong>——默认隐藏项目名称',
     strip_2: '<strong>本地优先</strong>——Claude Code 与 Codex 直接读你磁盘上的文件',
     strip_3: '<strong>无遥测</strong>、无账号、不上传',
@@ -1578,12 +1583,12 @@ const T = {
     install_p_app: '从 GitHub Releases 拉最新的 <code>usage.app.zip</code>——解压、拖到 <code>/Applications</code>。',
     install_label_win: 'WINDOWS',
     install_h_win: '系统托盘',
-    install_p_win: '从 GitHub Releases 拉最新的 <code>usage-windows.zip</code>——解压后运行 <code>usage.exe</code>。 也可在任务栏显示额度标签，右键点击它会打开系统托盘菜单。',
+    install_p_win: '从 GitHub Releases 拉最新的 <code>usage-windows.zip</code>——解压后运行 <code>usage.exe</code>。也可在任务栏显示额度标签，右键点击它会打开系统托盘菜单。',
     install_label_any: '跨平台',
     install_h_uvx: 'uvx（零安装）',
     install_p_uvx: '只有终端界面，没有菜单栏或系统托盘。Linux 也能跑，uv 会自备 Python。',
     install_btn_releases: '→ 打开 Releases 页面',
-    install_note: '<strong>首次打开被 macOS 拦截？</strong>打开“系统设置”→“隐私与安全性”，向下滚动，点击<strong>“仍要打开”</strong>。macOS 14 及更早版本，改为右键点击 <code>usage.app</code> →“打开”。<strong>Windows 弹出“Windows 已保护你的电脑”？</strong>点击“更多信息”→<strong>“仍要运行”</strong>。 Claude Code 用户安装后，请在菜单中点击<strong>“设置状态栏”</strong>并重启 Claude Code，额度才会显示。',
+    install_note: '<strong>首次打开被 macOS 拦截？</strong>打开“系统设置”→“隐私与安全性”，向下滚动，点击<strong>“仍要打开”</strong>。macOS 14 及更早版本，改为右键点击 <code>usage.app</code> →“打开”。<strong>Windows 弹出“Windows 已保护你的电脑”？</strong>点击“更多信息”→<strong>“仍要运行”</strong>。Claude Code 用户安装后，请在菜单中点击<strong>“设置状态栏”</strong>并重启 Claude Code，额度才会显示。',
     copy_btn: '复制',
     copy_done: '已复制',
     copy_fail: '复制失败',
@@ -1603,7 +1608,7 @@ const T = {
   'ja': {
     side_pane_label: 'CLAUDE CODE の中で',
     side_pane_h2: '使用量を Claude Code の中で確認',
-    side_pane_lead: 'macOS と Windows の Claude Code 内で、使用量、会話、バックグラウンド作業を確認できます。Agent ツールで起動したサブエージェントとその状態も表示します。権限の確認や MCP への入力を待つ会話は黄色で表示。有効にすると、ターミナル幅が144列以上なら右側に自動で開きます。狭い場合は <code>/usage-dash</code> を入力してください。 他の Claude の会話が完了したときや、あなたの入力を待ち始めたときに通知します。',
+    side_pane_lead: 'macOS と Windows の Claude Code 内で、使用量、会話、バックグラウンド作業を確認できます。Agent ツールで起動したサブエージェントとその状態も表示します。権限の確認や MCP への入力を待つ会話は黄色で表示。有効にすると、ターミナル幅が144列以上なら右側に自動で開きます。狭い場合は <code>/usage-dash</code> を入力してください。他の Claude の会話が完了したときや、あなたの入力を待ち始めたときに通知します。',
     side_pane_point1: '会話を離れずに使用量を確認',
     side_pane_point2: '入力待ちの会話を黄色で表示',
     side_pane_point3: 'バックグラウンド作業とサブエージェント',
@@ -1620,13 +1625,12 @@ const T = {
     lang_menu: '言語',
     skip_main: 'メインコンテンツへ移動',
     eyebrow: 'macOS &amp; Windows · オープンソース · AGPL-3.0',
-    h1: '<span class="accent">Claude Code</span>、<span class="accent">Codex</span>、<span class="accent">Antigravity</span>、<span class="accent">Grok</span> の<br>クォータをメニューバーに。',
+    h1: 'Claude Code、Codex、Antigravity、Grok の<br>クォータを<span class="accent">メニューバーに</span>。',
     lead: 'AI クォータの残量をひと目で表示する、小さな macOS メニューバーアプリ（Windows ではシステムトレイに常駐）。バッテリー残量のように分かります。',
     hero_img_alt: 'macOS のメニューバーで動作する usage と、MacBook 上で開いたクォータパネル',
     cta_download: '↓ .app をダウンロード',
     cta_download_win: '↓ Windows 版をダウンロード',
     cta_star: '★ GitHub でスター',
-    hero_note: '初回起動がブロックされた？',
     strip_1: '<strong>共有可能な HTML レポート</strong> — プロジェクト名はデフォルトで非表示',
     strip_2: '<strong>ローカルファースト</strong> — Claude Code と Codex はディスク上のファイルを直接読み取り',
     strip_3: '<strong>テレメトリなし</strong>、アカウント不要、アップロードなし',
@@ -1680,12 +1684,12 @@ const T = {
     install_p_app: 'GitHub Releases から最新の <code>usage.app.zip</code> を取得 — 解凍して <code>/Applications</code> へ。',
     install_label_win: 'WINDOWS',
     install_h_win: 'システムトレイ',
-    install_p_win: 'GitHub Releases から最新の <code>usage-windows.zip</code> を取得 — 解凍して <code>usage.exe</code> を実行。 タスクバーにクォータラベルも表示でき、右クリックでトレイメニューが開きます。',
+    install_p_win: 'GitHub Releases から最新の <code>usage-windows.zip</code> を取得 — 解凍して <code>usage.exe</code> を実行。タスクバーにクォータラベルも表示でき、右クリックでトレイメニューが開きます。',
     install_label_any: '全OS対応',
     install_h_uvx: 'uvx（インストール不要）',
     install_p_uvx: 'ターミナルインターフェースのみ。メニューバーもトレイもありません。Linuxでも動作し、uvがPythonを用意します。',
     install_btn_releases: '→ Releases ページを開く',
-    install_note: '<strong>初回起動が macOS にブロックされた？</strong>「システム設定」→「プライバシーとセキュリティ」を開き、下へスクロールして<strong>「このまま開く」</strong>をクリック。macOS 14 以前では <code>usage.app</code> を右クリック →「開く」。<strong>Windows で「Windows によって PC が保護されました」と表示された？</strong>「詳細情報」→<strong>「実行」</strong>をクリック。 Claude Code を使う場合は、インストール後にメニューの<strong>「ステータスラインを設定」</strong>を押し、Claude Code を再起動するとクォータが表示されます。',
+    install_note: '<strong>初回起動が macOS にブロックされた？</strong>「システム設定」→「プライバシーとセキュリティ」を開き、下へスクロールして<strong>「このまま開く」</strong>をクリック。macOS 14 以前では <code>usage.app</code> を右クリック →「開く」。<strong>Windows で「Windows によって PC が保護されました」と表示された？</strong>「詳細情報」→<strong>「実行」</strong>をクリック。Claude Code を使う場合は、インストール後にメニューの<strong>「ステータスラインを設定」</strong>を押し、Claude Code を再起動するとクォータが表示されます。',
     copy_btn: 'コピー',
     copy_done: 'コピー済み',
     copy_fail: 'コピー失敗',
@@ -1722,13 +1726,12 @@ const T = {
     lang_menu: '언어',
     skip_main: '본문으로 건너뛰기',
     eyebrow: 'macOS &amp; Windows · 오픈소스 · AGPL-3.0',
-    h1: '<span class="accent">Claude Code</span>, <span class="accent">Codex</span>, <span class="accent">Antigravity</span>, <span class="accent">Grok</span>의 <br>한도를 메뉴 바에 고정.',
+    h1: 'Claude Code, Codex, Antigravity, Grok의 <br>한도를 <span class="accent">메뉴 바에 고정</span>.',
     lead: 'AI 한도가 얼마나 남았는지 보여주는 작은 macOS 메뉴 바 앱(Windows에서는 시스템 트레이에 상주). 배터리 퍼센트처럼 한눈에 확인.',
     hero_img_alt: 'macOS 메뉴 막대에서 실행 중인 usage와 MacBook에 열린 할당량 패널',
     cta_download: '↓ .app 다운로드',
     cta_download_win: '↓ Windows 버전 다운로드',
     cta_star: '★ GitHub에서 스타',
-    hero_note: '첫 실행이 차단되었나요?',
     strip_1: '<strong>공유 가능한 HTML 보고서</strong> — 프로젝트 이름은 기본 숨김 처리',
     strip_2: '<strong>로컬 우선</strong> — Claude Code와 Codex는 디스크 파일을 직접 읽음',
     strip_3: '<strong>텔레메트리 없음</strong>, 계정 없음, 업로드 없음',
