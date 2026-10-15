@@ -252,6 +252,7 @@ If the menu bar shows `--`, it's usually not broken — there's just no local da
 - **Antigravity**, only if you use it, needs network access: quota is fetched from Google's official quota endpoint with the OAuth credential the Antigravity CLI already stored after sign-in — read from macOS Keychain, Windows Credential Manager, or a local token file depending on CLI version. `usage` never writes that credential back and keeps any refreshed access token in memory only; the call itself reads quota metadata.
 - **Other background network activity:** Public Claude and Codex status pages to flag outages, a public model-pricing table to estimate cost (built-in prices are used offline), and an occasional GitHub check for a new version.
 - **Beginner Mode**, only if you turn it on, sends Claude Code's latest answer to Claude Haiku through your own Claude Code sign-in to pick terms. Your term list stays in `~/.usage/glossary.json`.
+- **Long-term history:** Claude Code deletes transcripts older than 30 days by default. While the app runs, `usage` saves daily totals to `~/.usage/usage_snapshot.json` and `~/.usage/year_ledger.json` every 6 hours, so reports keep older days. Nothing leaves your machine. When you move to a new computer, copy the whole `~/.usage/` folder too.
 
 <details>
 <summary>How Claude Desktop quota is read</summary>

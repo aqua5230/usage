@@ -252,6 +252,7 @@ Windows에서도 핵심 기능을 모두 네이티브로 사용할 수 있습니
 - **Antigravity**는 실제로 사용하는 경우에만 네트워크 연결이 필요합니다: 할당량은 Antigravity CLI가 로그인 후 저장한 OAuth 자격 증명으로 Google의 공식 할당량 엔드포인트에 조회해 가져옵니다——CLI 버전에 따라 macOS 키체인, Windows 자격 증명 관리자, 또는 로컬 token 파일에서 읽습니다. `usage`는 그 자격 증명을 다시 쓰지 않으며, 갱신된 access token도 메모리에만 보관합니다. 이 호출 자체는 할당량 메타데이터를 읽습니다.
 - **기타 백그라운드 네트워크 활동:** 장애를 알리기 위한 Claude와 Codex의 공개 상태 페이지, 비용 추정을 위한 공개 모델 가격표(오프라인에서는 내장 가격 사용), 그리고 가끔 GitHub에서 새 버전을 확인하는 작업입니다.
 - **초보자 모드**는 켰을 때만 네트워크를 사용합니다: 본인의 Claude Code 로그인으로 Claude Code의 최신 답변을 Claude Haiku에 보내 용어를 고릅니다. 용어 목록은 `~/.usage/glossary.json`에 보관됩니다.
+- **장기 기록:** Claude Code는 기본적으로 30일보다 오래된 대화 기록을 삭제합니다. 앱이 실행 중이면 `usage`가 6시간마다 일별 합계를 `~/.usage/usage_snapshot.json`과 `~/.usage/year_ledger.json`에 저장하므로 리포트에서 이전 날짜도 볼 수 있습니다. 이 파일은 내 컴퓨터에만 저장됩니다. 새 컴퓨터로 옮길 때는 `~/.usage/` 폴더 전체도 함께 복사하세요.
 
 <details>
 <summary>Claude Desktop 할당량을 읽는 방법</summary>

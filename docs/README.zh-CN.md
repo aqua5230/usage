@@ -252,6 +252,7 @@ Windows 原生支持完整核心功能：提供与 macOS 相同的 16 款主题�
 - **Antigravity** 仅在你使用时才需要联网：配额通过 Antigravity CLI 登录后保存的 OAuth 凭据向 Google 官方配额接口查询——依 CLI 版本不同，该凭据读自 macOS 钥匙串、Windows 凭据管理器或本地 token 文件。`usage` 绝不写回该凭据，任何刷新后的 access token 也仅保留在内存中；该调用本身仅读取配额元数据。
 - **其他后台网络活动：** 用于标记故障的 Claude 与 Codex 公开状态页、用于估算费用的公开模型价格表（离线时使用内置价格），以及偶尔在 GitHub 检查新版本。
 - **新手模式**仅在你开启时才会联网：通过你自己的 Claude Code 登录将 Claude Code 最新一条回答发送给 Claude Haiku 挑术语。你的术语列表保存在 `~/.usage/glossary.json`。
+- **长期记录**：Claude Code 默认会删除 30 天前的对话记录。app 运行时，`usage` 每 6 小时把每日总量存入 `~/.usage/usage_snapshot.json` 和 `~/.usage/year_ledger.json`，报表才能看到更早的日子。这些文件只存在本机。换电脑时，记得把整个 `~/.usage/` 文件夹一起搬过去。
 
 <details>
 <summary>Claude 桌面版额度的读取方式</summary>
