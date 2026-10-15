@@ -204,6 +204,7 @@ class UsageScriptBridge(NSObject):
                                 state.agy_session = projection.session
                                 state.agy_weekly = projection.weekly
                                 state.agy_group_name = projection.group_name
+                                state.agy_group_switchable = projection.group_switchable
                                 state.agy_stale = projection.stale
                             self.delegate.popover_controller.setState_(state)
                     return

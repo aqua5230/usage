@@ -57,6 +57,7 @@ class AgyQuotaProjection:
     weekly: QuotaRowState
     stale: AgyStaleState | None
     five_hour: AgyQuotaWindow | None
+    group_switchable: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -113,6 +114,7 @@ def project_quota(
             )
     return AgyQuotaProjection(
         group_name=selected.name,
+        group_switchable=len(quota.groups) >= 2,
         session=_window_row(
             _t(language, "session_label"),
             selected.five_hour,
@@ -182,6 +184,7 @@ def fallback_projection(language: str) -> AgyQuotaProjection:
     """Return inert rows while the card is hidden after an unavailable probe."""
     return AgyQuotaProjection(
         group_name="",
+        group_switchable=False,
         session=QuotaRowState(
             title=_t(language, "session_label"),
             percent=None,

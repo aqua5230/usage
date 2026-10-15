@@ -46,6 +46,7 @@ def test_state_payload_includes_agy_card_data() -> None:
     state.agy_session = projection.session
     state.agy_weekly = projection.weekly
     state.agy_group_name = projection.group_name
+    state.agy_group_switchable = projection.group_switchable
     state.agy_stale = projection.stale
     state.hide_agy = False
 
@@ -77,6 +78,7 @@ def test_state_payload_includes_agy_card_data() -> None:
             "title": "Weekly",
         },
         "groupName": "GEMINI MODELS",
+        "groupSwitchable": False,
         "stale": None,
     }
     grok_payload = cast(dict[str, object], payload["grok"])
@@ -231,6 +233,7 @@ def test_bridge_switches_agy_from_cached_quota(
     assert painted == [state]
     agy_payload = cast(dict[str, object], _state_payload(state)["agy"])
     assert agy_payload["groupName"] == "CLAUDE AND GPT MODELS"
+    assert agy_payload["groupSwitchable"] is True
 
     bridge.userContentController_didReceiveScriptMessage_(
         None,

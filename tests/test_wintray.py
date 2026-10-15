@@ -148,6 +148,7 @@ def test_panel_message_switches_agy_group_without_refresh(
 
     assert menubar_prefs._agy_quota_group() == "claude_gpt"
     assert controller.latest_state.agy_group_name == "CLAUDE AND GPT MODELS"
+    assert controller.latest_state.agy_group_switchable is True
     assert len(painted) == 1
 
 

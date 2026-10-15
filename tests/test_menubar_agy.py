@@ -81,6 +81,7 @@ def test_project_quota_selects_gemini_group_and_converts_percent() -> None:
 
     assert projection is not None
     assert projection.group_name == "GEMINI MODELS"
+    assert projection.group_switchable is True
     assert projection.session.title == "Session"
     assert projection.session.percent == 60.0
     assert projection.session.percent_text == "60% used"
@@ -111,6 +112,11 @@ def test_project_quota_selects_claude_and_falls_back_to_gemini() -> None:
     )
     assert fallback is not None
     assert fallback.group_name == "GEMINI MODELS"
+    assert fallback.group_switchable is False
+
+
+def test_fallback_projection_disables_group_switching() -> None:
+    assert menubar_agy.fallback_projection("en").group_switchable is False
 
 
 def test_switch_reprojects_cached_quota_and_resets_trackers(

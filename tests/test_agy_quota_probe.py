@@ -108,10 +108,12 @@ def _write_token(
 def _reset_token_cache(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     agy_quota_probe._token_cache.clear()
     agy_quota_probe._rate_limit_until_monotonic = 0.0
+    agy_quota_probe._group_seen_at.clear()
     monkeypatch.setattr(agy_quota_probe, "_read_macos_credential", lambda: None)
     yield
     agy_quota_probe._token_cache.clear()
     agy_quota_probe._rate_limit_until_monotonic = 0.0
+    agy_quota_probe._group_seen_at.clear()
 
 
 # --- find_agy (unchanged behavior) -----------------------------------------
@@ -796,3 +798,66 @@ def test_marker_write_and_delete_errors_are_ignored(monkeypatch: pytest.MonkeyPa
     monkeypatch.setattr(agy_quota_probe, "_build_result", lambda raw: result)
     assert agy_quota_probe.probe_quota() == result
     assert agy_quota_probe.auth_expired()
+
+
+def _two_groups(fetched_at: datetime) -> AgyQuotaResult:
+    window = AgyQuotaWindow(84.9, "126h 6m", 7566)
+    gemini = AgyQuotaGroup("GEMINI MODELS", ["Gemini Flash"], window, window)
+    claude = AgyQuotaGroup("CLAUDE AND GPT MODELS", ["Claude Opus"], window, window)
+    return AgyQuotaResult([gemini, claude], fetched_at.isoformat())
+
+
+def _only_claude(fetched_at: datetime) -> AgyQuotaResult:
+    window = AgyQuotaWindow(0.0, "63h 51m", 3831)
+    claude = AgyQuotaGroup("CLAUDE AND GPT MODELS", ["Claude Opus"], window, window)
+    return AgyQuotaResult([claude], fetched_at.isoformat())
+
+
+def test_carry_keeps_group_the_api_skipped_once() -> None:
+    now = datetime.now(UTC)
+    full = _two_groups(now)
+    agy_quota_probe._carry_missing_groups(full, None)
+
+    merged = agy_quota_probe._carry_missing_groups(_only_claude(now), full)
+
+    assert [group.name for group in merged.groups] == ["GEMINI MODELS", "CLAUDE AND GPT MODELS"]
+    assert merged.groups[0] == full.groups[0]
+    assert merged.groups[1].weekly.remaining_percent == 0.0
+
+
+def test_carry_drops_group_unseen_past_grace(monkeypatch: pytest.MonkeyPatch) -> None:
+    now = datetime.now(UTC)
+    full = _two_groups(now)
+    agy_quota_probe._carry_missing_groups(full, None)
+    agy_quota_probe._group_seen_at["GEMINI MODELS"] = now - timedelta(minutes=31)
+
+    merged = agy_quota_probe._carry_missing_groups(_only_claude(now), full)
+
+    assert [group.name for group in merged.groups] == ["CLAUDE AND GPT MODELS"]
+
+
+def test_carry_does_not_revive_group_after_restart() -> None:
+    now = datetime.now(UTC)
+
+    merged = agy_quota_probe._carry_missing_groups(_only_claude(now), _two_groups(now))
+
+    assert [group.name for group in merged.groups] == ["CLAUDE AND GPT MODELS"]
+
+
+def test_load_quota_writes_carried_group_to_cache(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    now = datetime.now(UTC)
+    monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", tmp_path / "agy_quota_cache.json")
+    full = _two_groups(now - timedelta(minutes=6))
+    agy_quota_probe._carry_missing_groups(full, None)
+    agy_quota_probe._write_cache(full)
+    monkeypatch.setattr(agy_quota_probe, "probe_quota", lambda: _only_claude(now))
+
+    loaded = agy_quota_probe.load_quota()
+
+    assert loaded is not None
+    assert [group.name for group in loaded.groups] == ["GEMINI MODELS", "CLAUDE AND GPT MODELS"]
+    cached = agy_quota_probe._read_cache()
+    assert cached is not None
+    assert [group.name for group in cached.groups] == ["GEMINI MODELS", "CLAUDE AND GPT MODELS"]

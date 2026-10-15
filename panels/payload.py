@@ -122,6 +122,7 @@ def _state_payload(
             "session": _row_payload(state.agy_session),
             "weekly": _row_payload(state.agy_weekly),
             "groupName": state.agy_group_name,
+            "groupSwitchable": state.agy_group_switchable,
             "stale": state.agy_stale,
         },
         "grok": {
