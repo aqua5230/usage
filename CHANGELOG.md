@@ -9,6 +9,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [0.33.6] - 2026-10-16
 
+### Changed
+- **The usage report explains its numbers instead of leaving units to guess.** Token composition and cache hit rate now sit in a visible section after tools rather than the collapsed appendix. The daily chart labels the peak's date, marks month starts and uses rounder axis steps; weekly rows show their date range; project hotspots add a share column and an "Other projects" row; the dispatch ledger and persona peak state what their numbers count.
+
 ### Fixed
 - **Reports keep usage older than 30 days even if you rarely open them.** Claude Code deletes transcripts after 30 days by default, and usage only saved its long-term history when a report was built. The menu bar and Windows tray apps now save the last 45 days every 6 hours in the background, and reports fill days missing from transcripts from that saved history. Filled days count toward totals, trends, tools and projects, but not sessions, token composition or cache hit rate. When moving to a new computer, copy `~/.usage/` as well.
 - **The Antigravity group toggle no longer stops working.** When one quota response skipped a model group, the card had nothing to switch to for five minutes. A group seen in the last 30 minutes is now kept. When the quota really has only one group, every panel and the Windows tray hide the toggle, and your group choice is kept for when both return.
