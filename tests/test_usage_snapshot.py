@@ -438,3 +438,24 @@ def test_verify_snapshot_script_ok_and_mismatch(
     mismatch_output = capsys.readouterr().out
     assert "MISMATCH" in mismatch_output
     assert "99" in mismatch_output
+
+
+def test_day_growth_can_replace_a_session_with_smaller_totals(snapshot_path: Path) -> None:
+    """Document the history-persistence stop condition without changing merge rules."""
+    when = datetime(2026, 8, 6, tzinfo=UTC)
+    usage_snapshot.record_entries(
+        [
+            _entry(when=when, session_id="a", input_tokens=100),
+            _entry(when=when, session_id="b", input_tokens=100),
+        ]
+    )
+    snapshot = usage_snapshot.record_entries(
+        [
+            _entry(when=when, session_id="a", input_tokens=50),
+            _entry(when=when, session_id="b", input_tokens=200),
+        ]
+    )
+    assert {row["session_id"]: row["input_tokens"] for row in snapshot["rows"]} == {
+        "a": 50,
+        "b": 200,
+    }

@@ -897,3 +897,116 @@ def test_cube_boundary_values_do_not_create_empty_indexes(
     assert result["cube"]["projects"] == ["unknown"]
     assert result["cube"]["rows"] == [[0, 0, 0, 0, 10, 0, 0, 0, 0.0, 1]]
     assert result["sessions"][0]["project_idx"] == 0
+
+
+@pytest.mark.parametrize("period", ["all", "month"])
+def test_deleted_raw_history_recovered_from_ledger(
+    monkeypatch: pytest.MonkeyPatch, period: str
+) -> None:
+    import json
+    from datetime import timedelta
+
+    fixed_now = datetime(2026, 8, 12, 12, tzinfo=UTC)
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(fixed_now))
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [])
+    days = {}
+    for index in range(7):
+        day = (date(2026, 8, 6) + timedelta(days=index)).isoformat()
+        tokens = (index + 1) * 100_000_000
+        days[day] = {
+            "total_tokens": tokens,
+            "cost": (index + 1) * 10.0,
+            "agent_tokens": {"claude-code": tokens},
+            "model_tokens": {"claude-sonnet-4": tokens},
+            "project_tokens": {"archived-project": tokens},
+            "sessions": 3,
+        }
+    reporter.YEAR_LEDGER_PATH.parent.mkdir(parents=True, exist_ok=True)
+    reporter.YEAR_LEDGER_PATH.write_text(json.dumps({"schema_version": 1, "days": days}))
+
+    data = reporter.build_report_data([], period)
+
+    daily = {row["date"]: row["tokens"] for row in data["daily_trend"] if row["tokens"]}
+    assert daily == {day: value["total_tokens"] for day, value in days.items()}
+    assert data["summary"]["sessions"] == 0
+    assert data["top_sessions"] == []
+    assert data["sessions"] == []
+    assert all(row["sessions"] == 0 for row in data["by_agent"])
+    assert all(row["sessions"] == 0 for row in data["by_project"])
+    assert data["summary"]["input_tokens"] == 0
+    assert data["summary"]["total_tokens"] == 2_800_000_000
+    assert data["summary"]["cost_usd"] == 280.0
+    assert data["by_agent"][0]["tokens"] == 2_800_000_000
+    assert data["by_project"][0]["tokens"] == 2_800_000_000
+    cube = data["cube"]
+    cube_daily = {cube["dates"][int(row[0])]: int(sum(row[4:8])) for row in cube["rows"]}
+    assert cube_daily == daily
+    assert sum(row[8] for row in cube["rows"]) == 280.0
+    again = reporter.build_report_data([], period)
+    assert again["summary"]["total_tokens"] == data["summary"]["total_tokens"]
+    print(f"ledger-only build_report_data({period}): {daily}")
+
+
+def test_ledger_gap_preserves_composition_sessions_and_snapshot(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    import json
+
+    from analyzer import usage_snapshot
+    from ui.html_report import _cache_hit_rate, _render_composition_section
+
+    fixed_now = datetime(2026, 8, 12, 12, tzinfo=UTC)
+    monkeypatch.setattr(reporter, "datetime", _fixed_datetime(fixed_now))
+    live = _entry(
+        when=fixed_now,
+        session_id="real-session",
+        model="claude-sonnet-4",
+        project="project",
+        agent_id="claude-code",
+        input_tokens=50,
+        output_tokens=10,
+        cache_creation_tokens=20,
+        cache_read_tokens=120,
+        cost_usd=1,
+    )
+    monkeypatch.setattr(reporter, "_load_agent_entries", lambda *_args: [live])
+    monkeypatch.setattr(reporter, "_load_year_data_cached", lambda _agents: _empty_year_payload())
+    agents = [AgentInfo(id="claude-code", name="Claude Code", installed=True, data_dir="")]
+    baseline = reporter.build_report_data(agents)
+    days = reporter._aggregate_year_days([live])
+    for value in days.values():
+        value["total_tokens"] = 1000
+        value["cost"] = 5.0
+        value["agent_tokens"] = {"claude-code": 1000}
+        value["model_tokens"] = {"claude-sonnet-4": 1000}
+        value["project_tokens"] = {"project": 1000}
+    reporter.YEAR_LEDGER_PATH.parent.mkdir(parents=True, exist_ok=True)
+    reporter.YEAR_LEDGER_PATH.write_text(json.dumps({"schema_version": 1, "days": days}))
+    data = reporter.build_report_data(agents)
+    again = reporter.build_report_data(agents)
+
+    assert data == again
+    assert data["summary"]["total_tokens"] == 1000
+    assert data["summary"]["cost_usd"] == 5.0
+    for key in (
+        "input_tokens",
+        "output_tokens",
+        "cache_creation_tokens",
+        "cache_read_tokens",
+        "sessions",
+    ):
+        assert data["summary"][key] == baseline["summary"][key]
+    assert data["summary"]["sessions"] == 1
+    assert data["top_sessions"] == baseline["top_sessions"]
+    assert data["sessions"] == baseline["sessions"]
+    assert data["dispatch_ledger"] == baseline["dispatch_ledger"]
+    assert data["by_agent"][0]["sessions"] == 1
+    assert data["by_project"][0]["sessions"] == 1
+    assert _cache_hit_rate(data["by_agent"][0]) == _cache_hit_rate(baseline["by_agent"][0])
+    assert _render_composition_section(data, "en") == _render_composition_section(baseline, "en")
+    real_cube = [row for row in data["cube"]["rows"] if len(row) < 11 or not row[10]]
+    assert real_cube == baseline["cube"]["rows"]
+    assert sum(sum(row[4:8]) for row in data["cube"]["rows"]) == 1000
+    snapshot = json.loads(usage_snapshot.SNAPSHOT_PATH.read_text())
+    assert all(not row["session_id"].startswith("usage-ledger:") for row in snapshot["rows"])
+    assert all(not key.startswith("usage-ledger:") for key in snapshot["sessions"])

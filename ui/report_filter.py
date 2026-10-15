@@ -853,6 +853,7 @@ REPORT_FILTER_JS = r"""(() => {
     let cacheWrite = 0;
     let cacheRead = 0;
     summary.rows.forEach((row) => {
+      if (row[10]) return;
       input += Number(row[4]);
       output += Number(row[5]);
       cacheWrite += Number(row[6]);
@@ -888,6 +889,7 @@ REPORT_FILTER_JS = r"""(() => {
     });
     const byAgent = {};
     summary.rows.forEach((row) => {
+      if (row[10]) return;
       const key = String(row[1]);
       if (!Object.prototype.hasOwnProperty.call(byAgent, key)) {
         byAgent[key] = {input: 0, cacheWrite: 0, cacheRead: 0};

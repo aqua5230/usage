@@ -1997,6 +1997,10 @@ def test_attach_schedules_startup_maintenance_after_tray_is_visible(
         "wintray.app.diagnosis_snapshot.maybe_schedule_refresh",
         lambda: events.append("diagnosis"),
     )
+    monkeypatch.setattr(
+        "wintray.app.history_persist.maybe_schedule_refresh",
+        lambda: events.append("history"),
+    )
     monkeypatch.setattr(claude_pane, "refresh_claude_pane", lambda: events.append("claude-pane"))
     monkeypatch.setattr(
         controller,
@@ -2019,9 +2023,10 @@ def test_attach_schedules_startup_maintenance_after_tray_is_visible(
     ]
     startup = next(thread for thread in threads if thread.target == controller._startup_maintenance)
     startup.target(**startup.kwargs)
-    assert events[-4:] == [
+    assert events[-5:] == [
         "claude-pane",
         "diagnosis",
+        "history",
         "clear-update-cache",
         (
             "update",
