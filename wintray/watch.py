@@ -49,6 +49,7 @@ _NOTIFY_FILTER = (
     | _FILE_NOTIFY_CHANGE_CREATION
 )
 _ERROR_OPERATION_ABORTED = 995
+_ERROR_IO_INCOMPLETE = 996
 _ERROR_IO_PENDING = 997
 _ERROR_NOTIFY_ENUM_DIR = 1022
 _WAIT_OBJECT_0 = 0
@@ -335,33 +336,36 @@ class WindowsUsageWatcher:
         set_last_error: Any = getattr(ctypes, set_last_error_name)
         get_last_error_name = "get_last_error"
         get_last_error: Any = getattr(ctypes, get_last_error_name)
+        pending = False
         try:
             while True:
-                _kernel32.ResetEvent(runtime.io_event)
-                set_last_error(0)
-                submitted = _kernel32.ReadDirectoryChangesW(
-                    runtime.directory_handle,
-                    buffer,
-                    len(buffer),
-                    runtime.spec.recursive,
-                    _NOTIFY_FILTER,
-                    None,
-                    ctypes.byref(overlapped),
-                    None,
-                )
-                error = get_last_error()
-                if not submitted and error != _ERROR_IO_PENDING:
+                if not pending:
+                    _kernel32.ResetEvent(runtime.io_event)
+                    set_last_error(0)
+                    submitted = _kernel32.ReadDirectoryChangesW(
+                        runtime.directory_handle,
+                        buffer,
+                        len(buffer),
+                        runtime.spec.recursive,
+                        _NOTIFY_FILTER,
+                        None,
+                        ctypes.byref(overlapped),
+                        None,
+                    )
+                    error = get_last_error()
+                    if not submitted and error != _ERROR_IO_PENDING:
+                        runtime.ready.set()
+                        if error == _ERROR_NOTIFY_ENUM_DIR:
+                            self._dispatch(WindowsFileEventChanges(frozenset(), True))
+                        else:
+                            self._debug_warning(
+                                "ReadDirectoryChangesW failed for %s (error %s)",
+                                runtime.spec.root,
+                                error,
+                            )
+                        return
+                    pending = True
                     runtime.ready.set()
-                    if error == _ERROR_NOTIFY_ENUM_DIR:
-                        self._dispatch(WindowsFileEventChanges(frozenset(), True))
-                    else:
-                        self._debug_warning(
-                            "ReadDirectoryChangesW failed for %s (error %s)",
-                            runtime.spec.root,
-                            error,
-                        )
-                    return
-                runtime.ready.set()
 
                 wait_result = _kernel32.WaitForMultipleObjects(
                     2,
@@ -370,14 +374,6 @@ class WindowsUsageWatcher:
                     _INFINITE,
                 )
                 if wait_result == _WAIT_OBJECT_0:
-                    _kernel32.CancelIoEx(runtime.directory_handle, ctypes.byref(overlapped))
-                    transferred = wintypes.DWORD()
-                    _kernel32.GetOverlappedResult(
-                        runtime.directory_handle,
-                        ctypes.byref(overlapped),
-                        ctypes.byref(transferred),
-                        True,
-                    )
                     return
                 if wait_result != _WAIT_OBJECT_0 + 1:
                     if wait_result == _WAIT_FAILED:
@@ -388,6 +384,9 @@ class WindowsUsageWatcher:
                         )
                     return
 
+                # Reset before checking completion so a later completion cannot
+                # lose its event signal when ERROR_IO_INCOMPLETE is returned.
+                _kernel32.ResetEvent(runtime.io_event)
                 transferred = wintypes.DWORD()
                 set_last_error(0)
                 completed = _kernel32.GetOverlappedResult(
@@ -398,15 +397,28 @@ class WindowsUsageWatcher:
                 )
                 if not completed:
                     error = get_last_error()
+                    if error == _ERROR_IO_INCOMPLETE:
+                        continue
+                    pending = False
                     if error == _ERROR_OPERATION_ABORTED and self._stopped:
                         return
                     self._dispatch(WindowsFileEventChanges(frozenset(), True))
                     continue
+                pending = False
                 changes = _parse_notifications(runtime.spec, buffer, transferred.value)
                 if changes.paths or changes.needs_full_scan:
                     self._dispatch(changes)
         finally:
             runtime.ready.set()
+            if pending:
+                _kernel32.CancelIoEx(runtime.directory_handle, ctypes.byref(overlapped))
+                transferred = wintypes.DWORD()
+                _kernel32.GetOverlappedResult(
+                    runtime.directory_handle,
+                    ctypes.byref(overlapped),
+                    ctypes.byref(transferred),
+                    True,
+                )
             _kernel32.CloseHandle(runtime.io_event)
             _kernel32.CloseHandle(runtime.directory_handle)
 

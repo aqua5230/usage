@@ -15,6 +15,7 @@ import time
 import webbrowser
 from collections import deque
 from collections.abc import Callable
+from ctypes import wintypes
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta
 from enum import IntEnum
@@ -79,6 +80,70 @@ if TYPE_CHECKING:
     from PIL.Image import Image
 
 logger = logging.getLogger(__name__)
+
+# Private DLL objects keep signatures isolated from pywebview's ctypes functions.
+_user32: Any = None
+_kernel32: Any = None
+if os.name == "nt":
+    _win_dll: Any = getattr(ctypes, "WinDLL")  # noqa: B009
+    _user32 = _win_dll("user32", use_last_error=True)
+    _kernel32 = _win_dll("kernel32", use_last_error=True)
+    _user32.GetDpiForWindow.argtypes = [wintypes.HWND]
+    _user32.GetDpiForWindow.restype = wintypes.UINT
+    _user32.SetWindowPos.argtypes = [
+        wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int,
+        ctypes.c_int, ctypes.c_int, wintypes.UINT,
+    ]
+    _user32.SetWindowPos.restype = wintypes.BOOL
+    _kernel32.CreateMutexW.argtypes = [wintypes.LPVOID, wintypes.BOOL, wintypes.LPCWSTR]
+    _kernel32.CreateMutexW.restype = wintypes.HANDLE
+    _kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
+    _kernel32.CloseHandle.restype = wintypes.BOOL
+
+
+def _tray_icon_class() -> type[Any]:
+    import pystray
+
+    if os.name != "nt":
+        return pystray.Icon  # type: ignore[no-any-return]
+
+    class _WindowsTrayIcon(pystray.Icon):  # type: ignore[misc]
+        """Serialize native HICON access across refresh and tray message threads."""
+
+        def __init__(self, *args: Any, **kwargs: Any) -> None:
+            self._native_icon_lock = threading.RLock()
+            super().__init__(*args, **kwargs)
+
+        def _show(self) -> None:
+            with self._native_icon_lock:
+                super()._show()
+
+        def _hide(self) -> None:
+            with self._native_icon_lock:
+                super()._hide()
+
+        def _update_icon(self) -> None:
+            with self._native_icon_lock:
+                super()._update_icon()
+
+        def _update_title(self) -> None:
+            with self._native_icon_lock:
+                super()._update_title()
+
+        def _release_icon(self) -> None:
+            with self._native_icon_lock:
+                super()._release_icon()
+
+        def _on_display_change(self, wparam: Any, lparam: Any) -> None:
+            with self._native_icon_lock:
+                super()._on_display_change(wparam, lparam)
+
+        def _on_taskbarcreated(self, wparam: Any, lparam: Any) -> None:
+            with self._native_icon_lock:
+                super()._on_taskbarcreated(wparam, lparam)
+
+    return _WindowsTrayIcon
+
 
 SLOW_POLL_INTERVAL_S = 300
 HISTORY_SCAN_CACHE_SECONDS = 30.0
@@ -951,13 +1016,11 @@ class _WindowsTrayController:
         if os.name != "nt":
             return None
         try:
-            library_name = "windll"
-            windll: Any = getattr(ctypes, library_name)
-            user32 = windll.user32
+            user32 = _user32
             native = self.window.native
             handle = native.Handle
-            to_int32 = getattr(handle, "ToInt32", None)
-            hwnd = to_int32() if callable(to_int32) else int(handle)
+            to_int64 = getattr(handle, "ToInt64", None)
+            hwnd = to_int64() if callable(to_int64) else int(handle)
             dpi = int(user32.GetDpiForWindow(hwnd))
         except Exception:
             try:
@@ -1000,12 +1063,11 @@ class _WindowsTrayController:
         if scale is None:
             return False
         try:
-            windll: Any = getattr(ctypes, "windll")  # noqa: B009
-            user32 = windll.user32
+            user32 = _user32
             native = self.window.native
             handle = native.Handle
-            to_int32 = getattr(handle, "ToInt32", None)
-            hwnd = to_int32() if callable(to_int32) else int(handle)
+            to_int64 = getattr(handle, "ToInt64", None)
+            hwnd = to_int64() if callable(to_int64) else int(handle)
             return bool(
                 user32.SetWindowPos(
                     hwnd,
@@ -2572,15 +2634,12 @@ def _acquire_single_instance_lock() -> bool:
     loser's panel fails to initialize and lingers as a bare white window.
     """
     global _single_instance_handle
-    import ctypes
-
-    library_name = "windll"
-    windll: Any = getattr(ctypes, library_name)
-    handle = windll.kernel32.CreateMutexW(None, False, _SINGLE_INSTANCE_MUTEX)
+    handle = _kernel32.CreateMutexW(None, False, _SINGLE_INSTANCE_MUTEX)
     if not handle:
         return True
-    if windll.kernel32.GetLastError() == _ERROR_ALREADY_EXISTS:
-        windll.kernel32.CloseHandle(handle)
+    get_last_error: Any = getattr(ctypes, "get_last_error")  # noqa: B009
+    if get_last_error() == _ERROR_ALREADY_EXISTS:
+        _kernel32.CloseHandle(handle)
         return False
     _single_instance_handle = handle
     return True
@@ -2590,11 +2649,7 @@ def _release_single_instance_lock() -> None:
     global _single_instance_handle
     if _single_instance_handle is None:
         return
-    import ctypes
-
-    library_name = "windll"
-    windll: Any = getattr(ctypes, library_name)
-    windll.kernel32.CloseHandle(_single_instance_handle)
+    _kernel32.CloseHandle(_single_instance_handle)
     _single_instance_handle = None
 
 
@@ -2616,7 +2671,6 @@ def run_app(
         _show_already_running_notice()
         return
 
-    import pystray
     import webview
 
     controller = _WindowsTrayController(mock, interval)
@@ -2636,7 +2690,7 @@ def run_app(
         raise RuntimeError("pywebview did not create a window")
     window.events.loaded += controller.on_loaded
     icon_image = draw_app_icon() if controller.quota_label_enabled else draw_tray_icon(None)
-    icon = pystray.Icon("usage", icon_image, "usage", _menu(controller))
+    icon = _tray_icon_class()("usage", icon_image, "usage", _menu(controller))
     install_tray_menu(icon)
     controller.attach(icon, window)
     icon.run_detached()

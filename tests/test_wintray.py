@@ -772,10 +772,10 @@ def test_geometry_without_showing_converts_logical_to_physical_pixels(
     user32 = SimpleNamespace(SetWindowPos=set_window_pos)
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.window = SimpleNamespace(
-        native=SimpleNamespace(Handle=SimpleNamespace(ToInt32=lambda: 123))
+        native=SimpleNamespace(Handle=SimpleNamespace(ToInt64=lambda: 123))
     )
     monkeypatch.setattr(wintray, "os", SimpleNamespace(name="nt"))
-    monkeypatch.setattr(ctypes, "windll", SimpleNamespace(user32=user32), raising=False)
+    monkeypatch.setattr(wintray, "_user32", user32)
     monkeypatch.setattr(controller, "_window_dpi_scale", lambda: scale)
 
     result = controller._apply_geometry_without_showing(340, 400, 100, 20)
@@ -3626,3 +3626,245 @@ def test_keeper_and_terse_menu_warnings(monkeypatch: pytest.MonkeyPatch, trust: 
         row for row in controller._panel_menu_data() if row.get("i18nKey") == "window_keeper_menu"
     )
     assert not str(keeper["label"]).endswith(" ⚠")
+
+
+_NATIVE_ICON_METHODS = (
+    "_show", "_hide", "_update_icon", "_update_title", "_release_icon",
+    "_on_display_change", "_on_taskbarcreated",
+)
+
+
+@pytest.mark.parametrize("method", _NATIVE_ICON_METHODS)
+def test_native_icon_methods_share_reentrant_lock(
+    monkeypatch: pytest.MonkeyPatch, method: str,
+) -> None:
+    entered = threading.Event()
+    release = threading.Event()
+    attempted = threading.Event()
+    displayed = threading.Event()
+    calls: list[str] = []
+
+    def native_call(self: Any, *args: object) -> None:
+        # Message arguments of zero/None are forwarded unchanged.
+        if args:
+            assert args == (0, None)
+        calls.append(method)
+        if method == "_update_icon":
+            self._release_icon()  # Must allow the backend's nested call.
+        entered.set()
+        assert release.wait(3)
+
+    def display(self: Any, *args: object) -> None:
+        displayed.set()
+
+    base: Any = type("FakeIcon", (), {name: native_call for name in _NATIVE_ICON_METHODS})
+    # Keep the nested release non-blocking; it must still acquire the same lock.
+    if method == "_update_icon":
+        base._release_icon = lambda self: calls.append("nested_release")
+    monkeypatch.setitem(sys.modules, "pystray", SimpleNamespace(Icon=base))
+    monkeypatch.setattr(wintray, "os", SimpleNamespace(name="nt"))
+    icon = wintray._tray_icon_class()()
+    args = (0, None) if method.startswith("_on_") else ()
+    first = threading.Thread(target=getattr(icon, method), args=args)
+    first.start()
+    try:
+        assert entered.wait(3)
+        # Swap the base handler only after the first thread has entered it.
+        base._on_display_change = display
+
+        def other_thread() -> None:
+            attempted.set()
+            icon._on_display_change(0, None)
+
+        second = threading.Thread(target=other_thread)
+        second.start()
+        assert attempted.wait(3)
+        assert not displayed.wait(0.05)
+    finally:
+        release.set()
+        first.join(3)
+    second.join(3)
+    assert not first.is_alive() and not second.is_alive()
+    assert displayed.is_set()
+    assert calls == ([method, "nested_release"] if method == "_update_icon" else [method])
+
+
+def test_native_icon_factory_non_windows(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setitem(sys.modules, "pystray", SimpleNamespace(Icon=object))
+    monkeypatch.setattr(wintray, "os", SimpleNamespace(name="posix"))
+    assert wintray._tray_icon_class() is object
+
+
+@pytest.mark.parametrize("handle", [None, 0, 0x1234567887654321])
+@pytest.mark.parametrize("error", [0, 183])
+def test_native_mutex_handle_boundaries(
+    monkeypatch: pytest.MonkeyPatch, handle: int | None, error: int,
+) -> None:
+    closed: list[int] = []
+    monkeypatch.setattr(wintray, "_kernel32", SimpleNamespace(
+        CreateMutexW=lambda *_args: handle, CloseHandle=closed.append,
+    ))
+    monkeypatch.setattr(ctypes, "get_last_error", lambda: error, raising=False)
+    monkeypatch.setattr(wintray, "_single_instance_handle", None)
+    assert wintray._acquire_single_instance_lock() is (not handle or error != 183)
+    wintray._release_single_instance_lock()
+    wintray._release_single_instance_lock()
+    assert closed == ([handle] if handle else [])
+    assert wintray._single_instance_handle is None
+
+
+@pytest.mark.parametrize("handle", [None, 0, 0x1234567887654321])
+@pytest.mark.parametrize("dpi", [0, 96])
+def test_native_geometry_handle_boundaries(
+    monkeypatch: pytest.MonkeyPatch, handle: int | None, dpi: int,
+) -> None:
+    received: list[object] = []
+
+    def get_dpi(hwnd: object) -> int:
+        received.append(hwnd)
+        return dpi
+
+    def set_pos(*args: object) -> bool:
+        received.append(args)
+        return False
+
+    monkeypatch.setattr(wintray, "os", SimpleNamespace(name="nt"))
+    monkeypatch.setattr(wintray, "_user32", SimpleNamespace(
+        GetDpiForWindow=get_dpi, SetWindowPos=set_pos,
+    ))
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.window = _window(native=SimpleNamespace(
+        Handle=SimpleNamespace(ToInt64=lambda: handle),
+    ))
+    assert controller._window_dpi_scale() == (1.0 if dpi else None)
+    assert received == [handle]
+    monkeypatch.setattr(controller, "_content_scale", lambda: 1.0)
+    assert controller._apply_geometry_without_showing(0, 0, 0, 0) is False
+    assert received[-1] == (handle, None, 0, 0, 0, 0, 0x0014)
+
+
+@pytest.mark.parametrize("mode", [
+    "incomplete_stop", "incomplete_complete", "wait_failed", "wait_exception",
+    "result_exception", "stop", "zero_bytes", "submit_error_zero", "result_error_zero",
+])
+def test_native_watcher_pending_lifetime(
+    monkeypatch: pytest.MonkeyPatch, mode: str, tmp_path: Path,
+) -> None:
+    calls: list[object] = []
+    last_error = 0
+    reads = 0
+    waits = 0
+    results = 0
+    changes: list[windows_watch.WindowsFileEventChanges] = []
+
+    def set_error(value: int) -> None:
+        nonlocal last_error
+        last_error = value
+
+    def read(*args: object) -> bool:
+        nonlocal reads
+        reads += 1
+        calls.append("read")
+        set_error(0 if mode == "submit_error_zero" else 997)
+        return False
+
+    def wait(*args: object) -> int:
+        nonlocal waits
+        waits += 1
+        calls.append("wait")
+        if mode == "wait_exception":
+            raise RuntimeError("wait")
+        if mode == "wait_failed":
+            return windows_watch._WAIT_FAILED
+        if mode == "stop" or waits > (2 if mode == "incomplete_complete" else 1):
+            return 0
+        return 1
+
+    def result(directory: object, overlapped: object, transferred: object, block: bool) -> bool:
+        nonlocal results
+        calls.append(("result", block))
+        if block:
+            set_error(995)  # Cancellation completes with an aborted operation.
+            return False
+        results += 1
+        if mode == "result_exception":
+            raise RuntimeError("result")
+        if mode.startswith("incomplete") and results == 1:
+            set_error(996)
+            return False
+        if mode == "result_error_zero":
+            set_error(0)
+            return False
+        # DWORD defaults to zero: overflow requires a full scan.
+        return True
+
+    fake = SimpleNamespace(
+        ResetEvent=lambda *_args: calls.append("reset"),
+        ReadDirectoryChangesW=read, WaitForMultipleObjects=wait,
+        GetOverlappedResult=result,
+        CancelIoEx=lambda *_args: calls.append("cancel"),
+        CloseHandle=lambda handle: calls.append(("close", handle)),
+    )
+    monkeypatch.setattr(windows_watch, "_kernel32", fake)
+    monkeypatch.setattr(ctypes, "set_last_error", set_error, raising=False)
+    monkeypatch.setattr(ctypes, "get_last_error", lambda: last_error, raising=False)
+    spec = windows_watch.WindowsWatchSpec(tmp_path, recursive=True)
+    runtime = windows_watch._WatchRuntime(spec, 11, 12, threading.Event())
+    watcher = windows_watch.WindowsUsageWatcher([spec], changes.append)
+    watcher._stop_handle = 10
+    if mode in ("wait_exception", "result_exception"):
+        with pytest.raises(RuntimeError):
+            watcher._watch_directory(runtime)
+    else:
+        watcher._watch_directory(runtime)
+    assert runtime.ready.is_set()
+    assert calls[-2:] == [("close", 12), ("close", 11)]
+    if mode == "submit_error_zero":
+        assert "cancel" not in calls
+        assert reads == 1
+    else:
+        assert calls[-4:] == ["cancel", ("result", True), ("close", 12), ("close", 11)]
+        assert calls.count("cancel") == 1
+        assert reads == (2 if mode in (
+            "zero_bytes", "incomplete_complete", "result_error_zero",
+        ) else 1)
+    if mode in ("zero_bytes", "incomplete_complete", "result_error_zero"):
+        assert changes == [windows_watch.WindowsFileEventChanges(frozenset(), True)]
+    else:
+        assert changes == []
+
+
+
+def test_native_run_app_rejects_missing_window(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(wintray, "_acquire_single_instance_lock", lambda: True)
+    monkeypatch.setattr(wintray, "panel_html", lambda _filename: "")
+    monkeypatch.setattr(wintray, "_system_background_color", lambda: "#ffffff")
+    monkeypatch.setitem(sys.modules, "webview", SimpleNamespace(
+        create_window=lambda *_args, **_kwargs: None,
+    ))
+    with pytest.raises(RuntimeError, match="pywebview did not create a window"):
+        wintray.run_app(mock=True, preferences_snapshot={})
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="private Windows DLL signatures")
+def test_native_dll_signatures_are_private_and_pointer_sized() -> None:
+    from ctypes import wintypes
+
+    windll: Any = getattr(ctypes, "windll")  # noqa: B009
+    assert wintray._user32 is not windll.user32
+    assert wintray._kernel32 is not windll.kernel32
+    assert wintray._kernel32.CreateMutexW.argtypes == [
+        wintypes.LPVOID, wintypes.BOOL, wintypes.LPCWSTR,
+    ]
+    assert wintray._kernel32.CreateMutexW.restype is wintypes.HANDLE
+    assert wintray._kernel32.CloseHandle.argtypes == [wintypes.HANDLE]
+    assert wintray._kernel32.CloseHandle.restype is wintypes.BOOL
+    assert wintray._user32.GetDpiForWindow.argtypes == [wintypes.HWND]
+    assert wintray._user32.GetDpiForWindow.restype is wintypes.UINT
+    assert wintray._user32.SetWindowPos.argtypes == [
+        wintypes.HWND, wintypes.HWND, ctypes.c_int, ctypes.c_int,
+        ctypes.c_int, ctypes.c_int, wintypes.UINT,
+    ]
+    assert wintray._user32.SetWindowPos.restype is wintypes.BOOL
+    value = 0x1234567887654321 if ctypes.sizeof(wintypes.HANDLE) == 8 else 0x12345678
+    assert wintypes.HANDLE(value).value == value
