@@ -141,6 +141,15 @@ async function main() {
       }
       const groupButton = page.locator('[data-action="set_agy_quota_group"]');
       if (await groupButton.count()) {
+        for (const switchable of [false, true, false, true]) {
+          await page.evaluate(switchable => {
+            const state = structuredClone(usageDemoPayloads['en']);
+            state.agy.groupSwitchable = switchable;
+            usageApplyState(state);
+          }, switchable);
+          assert.equal(await groupButton.evaluate(button => button.hidden), !switchable);
+          assert.equal(await groupButton.isVisible(), switchable);
+        }
         await groupButton.click();
         assert.deepEqual(await page.evaluate(() => window.testMessages.at(-1)),
           { action: 'set_agy_quota_group', group: 'claude_gpt' });

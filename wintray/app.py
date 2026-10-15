@@ -839,6 +839,7 @@ class _WindowsTrayController:
                 _t(self.language, "weekly_label"), menubar_state.AGY_COLOR, self.language
             ),
             agy_group_name="",
+            agy_group_switchable=False,
             grok_weekly=missing(
                 _t(self.language, "weekly_label"), menubar_state.GROK_COLOR, self.language
             ),
@@ -1692,6 +1693,7 @@ class _WindowsTrayController:
             codex_rows=codex_rows,
             agy_rows=(agy.session, agy.weekly),
             agy_group_name=agy.group_name,
+            agy_group_switchable=agy.group_switchable,
             grok_row=grok.weekly,
             projects=projects[0],
             projects_yesterday=projects[1],
@@ -2364,6 +2366,7 @@ class _WindowsTrayController:
                         self.latest_state.agy_session = projection.session
                         self.latest_state.agy_weekly = projection.weekly
                         self.latest_state.agy_group_name = projection.group_name
+                        self.latest_state.agy_group_switchable = projection.group_switchable
                         self.latest_state.agy_stale = projection.stale
                     self.inject_state(force=True)
             elif action == "switch_panel":
