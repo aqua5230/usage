@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="mascot.webp" alt="ユユ、usage のクォータ執事ネコ" width="160">
+  <img src="readme-logo.png" alt="usage ロゴ" width="128">
 </p>
 
 # usage
