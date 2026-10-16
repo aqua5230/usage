@@ -227,6 +227,27 @@ def test_project_quota_marks_full_session_with_sliding_countdown_as_full() -> No
     assert projection.session.reset_text != "Resets in 4h 59m"
 
 
+def test_project_quota_shows_session_paused_when_weekly_is_spent() -> None:
+    quota = AgyQuotaResult(
+        groups=[
+            AgyQuotaGroup(
+                name="CLAUDE AND GPT MODELS",
+                models=["model"],
+                five_hour=AgyQuotaWindow(100.0, None, None),
+                weekly=AgyQuotaWindow(0.0, "57h", 3420),
+            )
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+
+    projection = menubar_agy.project_quota(quota, "en", now=1_767_225_600.0)
+
+    assert projection is not None
+    assert projection.session.percent_text == "Paused"
+    assert projection.session.reset_text == "Weekly quota used up; waits for weekly reset"
+    assert projection.weekly.percent == 100.0
+
+
 def test_project_quota_marks_cached_result_stale_after_twenty_minutes() -> None:
     now = datetime(2026, 1, 1, 1, 0, tzinfo=UTC)
     quota = AgyQuotaResult(

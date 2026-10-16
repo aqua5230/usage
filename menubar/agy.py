@@ -9,7 +9,7 @@
 from __future__ import annotations
 
 import time
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import cast
 
 import quota.burn_rate as burn_rate
@@ -112,25 +112,35 @@ def project_quota(
                 window_seconds=burn_rate.ROLLING_WINDOW_SECONDS,
                 min_span_seconds=AGY_WEEKLY_FORECAST_MIN_SPAN_SECONDS,
             )
+    session = _window_row(
+        _t(language, "session_label"),
+        selected.five_hour,
+        language,
+        age_minutes,
+        forecast_seconds=session_forecast,
+    )
+    weekly = _window_row(
+        _t(language, "weekly_label"),
+        selected.weekly,
+        language,
+        age_minutes,
+        forecast_seconds=weekly_forecast,
+        warning_max_seconds=AGY_WEEKLY_WARNING_MAX_SECONDS,
+        window_seconds=WEEKLY_WINDOW_SECONDS,
+    )
+    # Google pauses the 5-hour bucket once the weekly one is spent; showing it
+    # as "full" reads as usable, so say it is paused instead.
+    if _remaining_percent(selected.weekly) == 0.0 and not weekly.reset_done:
+        session = replace(
+            session,
+            percent_text=_t(language, "agy_session_paused"),
+            reset_text=_t(language, "agy_session_paused_detail"),
+        )
     return AgyQuotaProjection(
         group_name=selected.name,
         group_switchable=len(quota.groups) >= 2,
-        session=_window_row(
-            _t(language, "session_label"),
-            selected.five_hour,
-            language,
-            age_minutes,
-            forecast_seconds=session_forecast,
-        ),
-        weekly=_window_row(
-            _t(language, "weekly_label"),
-            selected.weekly,
-            language,
-            age_minutes,
-            forecast_seconds=weekly_forecast,
-            warning_max_seconds=AGY_WEEKLY_WARNING_MAX_SECONDS,
-            window_seconds=WEEKLY_WINDOW_SECONDS,
-        ),
+        session=session,
+        weekly=weekly,
         stale=stale,
         five_hour=selected.five_hour,
     )
