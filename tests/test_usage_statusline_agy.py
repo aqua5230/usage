@@ -7,7 +7,9 @@
 from __future__ import annotations
 
 import json
+import re
 import sys
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from typing import Any
 
@@ -52,10 +54,49 @@ def test_statusline_detect_lang_ignores_lang_on_windows(
     )
 
 
+@pytest.fixture(autouse=True)
+def _isolate_usage_agy_cache(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(usage_statusline_agy, "USAGE_AGY_CACHE", str(tmp_path / "agy_cache.json"))
+
+
 def _fixture_data() -> dict[str, Any]:
     data = json.loads(FIXTURE.read_text(encoding="utf-8"))
     assert isinstance(data, dict)
     return data
+
+
+def _write_usage_cache(age: timedelta) -> None:
+    fetched_at = datetime.now(UTC) - age
+    cache = {
+        "fetched_at": fetched_at.isoformat(),
+        "groups": [
+            {
+                "name": "GEMINI MODELS",
+                "weekly": {"remaining_percent": 85.0, "resets_in_minutes": 600},
+                "five_hour": {"remaining_percent": 100.0, "resets_in_minutes": None},
+            }
+        ],
+    }
+    Path(usage_statusline_agy.USAGE_AGY_CACHE).write_text(json.dumps(cache), encoding="utf-8")
+
+
+@pytest.mark.parametrize(
+    ("age_minutes", "expected", "absent"), [(1, "15%", "20%"), (20, "20%", "15%")]
+)
+def test_render_prefers_fresh_usage_cache_over_cli_quota(
+    monkeypatch: pytest.MonkeyPatch, age_minutes: int, expected: str, absent: str
+) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _write_usage_cache(timedelta(minutes=age_minutes))
+    data = _fixture_data()
+    data["terminal_width"] = 300
+    data["model"]["id"] = "Gemini 3.6 Flash"
+    data["quota"] = {"gemini-weekly": {"remaining_fraction": 0.8}}
+
+    output = re.sub(r"\x1b\[[0-9;]*m", "", usage_statusline_agy.render(data))
+
+    assert expected in output
+    assert absent not in output
 
 
 def test_render_fixture_contains_expected_status(monkeypatch: pytest.MonkeyPatch) -> None:
