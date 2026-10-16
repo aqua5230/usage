@@ -7,6 +7,20 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.33.9] - 2026-10-16
+
+### Added
+- **The Antigravity card can switch to the Gemini 4 Argon quota.** The group toggle now cycles Gemini → Claude / GPT → Argon. Argon has a weekly limit only, so its 5-hour row says so. The Claude Code side pane and the Antigravity status line leave Argon out.
+
+### Changed
+- **Report rows show their share as a faint tint across the row.** The thin bars along each row's bottom edge read as crooked underlines; rows now fill with the tool's color up to their share, with spacing instead of separator lines.
+
+### Fixed
+- **Antigravity shows its Gemini weekly quota again.** Google's quota API stopped reporting it, so usage now asks the Antigravity CLI itself (`agy -p /usage`, which makes no model call) and falls back to the API when the CLI is unavailable.
+- **The quota reminder no longer makes Claude think Antigravity is used up.** Each line names the tool and models it limits, a spent Antigravity group is followed by the groups that still have quota, and the reminder ends with Claude Code's own usage.
+- **Grok usage has an API-equivalent value again.** Grok models now match their xAI price entries instead of counting as $0.
+- **The usage report no longer contradicts itself.** The weekly summary names the completed weeks it compares, a partial first week no longer produces changes like +980%, the converted amount is called "API equivalent" everywhere, Wrapped notes which days have saved prices, the "All" range explains that earlier days only have daily totals, the dispatch ledger labels its columns as weekly quota shares, and rankings say they are by tokens.
+
 ## [0.33.8] - 2026-10-16
 
 ### Fixed
