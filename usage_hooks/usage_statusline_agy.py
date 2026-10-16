@@ -302,6 +302,9 @@ def _usage_cached_quota(now: Optional[datetime] = None) -> Dict[str, Dict[str, f
     for group in cache.get("groups") or []:
         group = _as_dict(group)
         name = str(group.get("name", "")).lower()
+        if "argon" in name:
+            # "GEMINI 4 ARGON" is a separate quota; it must not overwrite the Gemini keys.
+            continue
         for marker, five_hour_key, weekly_key in _CACHE_GROUP_KEYS:
             if marker not in name:
                 continue

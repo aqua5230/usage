@@ -144,6 +144,12 @@ def project_quota(
             percent_text=_t(language, "agy_session_paused"),
             reset_text=_t(language, "agy_session_paused_detail"),
         )
+    if _matches_group(selected.name, "argon"):
+        session = replace(
+            session,
+            percent_text="--",
+            reset_text=_t(language, "agy_argon_weekly_only"),
+        )
     return AgyQuotaProjection(
         group_name=selected.name,
         group_switchable=len(quota.groups) >= 2,
@@ -195,7 +201,9 @@ def _matches_group(name: str, preference: str) -> bool:
     normalized = name.lower()
     if preference == "claude_gpt":
         return "claude" in normalized and "gpt" in normalized
-    return "gemini" in normalized
+    if preference == "argon":
+        return "argon" in normalized
+    return "gemini" in normalized and "argon" not in normalized
 
 
 def fallback_projection(language: str) -> AgyQuotaProjection:

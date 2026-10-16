@@ -558,3 +558,69 @@ def test_unreported_window_is_unavailable_and_not_recorded(weekly: bool) -> None
     assert row.reset_text == "Not reported by Google"
     assert trackers["agy_session" if weekly else "agy_weekly"].last_timestamp is None
     assert (projection.weekly if weekly else projection.session).percent_text == "50% used"
+
+
+@pytest.mark.parametrize("preference", ["gemini", "claude_gpt", "argon"])
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [
+        ("GEMINI MODELS", "gemini"),
+        ("CLAUDE AND GPT MODELS", "claude_gpt"),
+        ("Gemini 4 Argon", "argon"),
+    ],
+)
+def test_matches_group_keeps_three_groups_separate(
+    preference: str, name: str, expected: str
+) -> None:
+    assert menubar_agy._matches_group(name, preference) is (preference == expected)
+
+
+@pytest.mark.parametrize("remaining", [0.0, 50.0, 100.0])
+@pytest.mark.parametrize(
+    ("language", "detail"),
+    [
+        ("zh-TW", "這組只有週額度"),
+        ("en", "Weekly limit only"),
+        ("zh-CN", "这组只有周额度"),
+        ("ja", "週間上限のみ"),
+        ("ko", "주간 한도만 있음"),
+    ],
+)
+def test_project_quota_argon_has_weekly_only(remaining: float, language: str, detail: str) -> None:
+    now = datetime(2026, 1, 1, tzinfo=UTC)
+    quota = AgyQuotaResult(
+        groups=[
+            _group("GEMINI MODELS", session_remaining=40, weekly_remaining=90),
+            AgyQuotaGroup(
+                "GEMINI 4 ARGON", ["Gemini 4 Argon"], AgyQuotaWindow(remaining, None, 1440), None
+            ),
+        ],
+        fetched_at=now.isoformat(),
+    )
+    projection = menubar_agy.project_quota(
+        quota, language, now=now.timestamp(), group_preference="argon"
+    )
+    assert projection is not None
+    assert projection.group_name == "GEMINI 4 ARGON"
+    assert projection.five_hour is None
+    assert projection.session.percent is None
+    assert projection.session.available is False
+    assert projection.session.percent_text == "--"
+    assert projection.session.reset_text == detail
+    assert projection.weekly.percent == 100.0 - remaining
+
+
+def test_project_quota_missing_argon_falls_back_to_gemini() -> None:
+    quota = AgyQuotaResult(
+        groups=[
+            _group("CLAUDE AND GPT MODELS", session_remaining=70, weekly_remaining=0),
+            _group("GEMINI MODELS", session_remaining=40, weekly_remaining=90),
+        ],
+        fetched_at="2026-01-01T00:00:00+00:00",
+    )
+    projection = menubar_agy.project_quota(
+        quota, "en", now=1_767_225_600.0, group_preference="argon"
+    )
+    assert projection is not None
+    assert projection.group_name == "GEMINI MODELS"
+    assert projection.session.percent_text == "60% used"

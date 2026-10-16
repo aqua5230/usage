@@ -100,9 +100,12 @@ def test_agy_quota_group_round_trip_and_invalid_values(
     assert menubar_prefs._save_agy_quota_group("claude_gpt") is True
     assert menubar_prefs._agy_quota_group() == "claude_gpt"
     assert prefs._load_preferences()["agy_quota_group"] == "claude_gpt"
+    assert menubar_prefs._save_agy_quota_group("argon") is True
+    assert menubar_prefs._agy_quota_group() == "argon"
+    assert prefs._load_preferences()["agy_quota_group"] == "argon"
     for invalid in ("Claude", "claude_gpt ", None, 1, ["gemini"]):
         assert menubar_prefs._save_agy_quota_group(invalid) is False
-    assert menubar_prefs._agy_quota_group() == "claude_gpt"
+    assert menubar_prefs._agy_quota_group() == "argon"
 
 
 @pytest.mark.parametrize("flavor", ["latte ", "LATTE", 123, None, ["mocha"]])

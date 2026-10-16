@@ -1006,14 +1006,16 @@ def _fake_cli(
     return calls
 
 
-def test_cli_probe_reads_gemini_weekly_and_ignores_argon(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_cli_probe_reads_three_groups_with_argon_weekly_only(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     calls = _fake_cli(monkeypatch, _usage_command_output(datetime.now(UTC)))
 
     result = _real_probe_via_cli(15)
 
     assert result is not None
     assert calls[0][:5] == ["/bin/agy", "-p", "/usage", "--output-format", "json"]
-    gemini, claude = result.groups
+    gemini, claude, argon = result.groups
     assert gemini.name == "GEMINI MODELS"
     assert gemini.weekly is not None and gemini.weekly.remaining_percent == pytest.approx(
         93.43, abs=0.01
@@ -1024,6 +1026,10 @@ def test_cli_probe_reads_gemini_weekly_and_ignores_argon(monkeypatch: pytest.Mon
     assert claude.name == "CLAUDE AND GPT MODELS"
     assert claude.weekly is not None and claude.weekly.remaining_percent == 0
     assert claude.five_hour == AgyQuotaWindow(100.0, None, None)
+    assert argon.name == "GEMINI 4 ARGON"
+    assert argon.models == ["Gemini 4 Argon"]
+    assert argon.five_hour is None
+    assert argon.weekly is not None and argon.weekly.remaining_percent == 0
 
 
 @pytest.mark.parametrize(
@@ -1051,3 +1057,20 @@ def test_probe_quota_prefers_cli_over_api(monkeypatch: pytest.MonkeyPatch) -> No
 
     assert agy_quota_probe.probe_quota() == result
     assert not agy_quota_probe.auth_expired()
+
+
+@pytest.mark.parametrize(
+    ("name", "expected"),
+    [("", None), ("gemini 4 argon", "argon"), ("GEMINI MODELS", "gemini")],
+)
+def test_group_id_argon_boundaries(name: str, expected: str | None) -> None:
+    assert agy_quota_probe._group_id({"name": name}) == expected
+
+
+def test_assemble_groups_argon_missing_windows() -> None:
+    assert agy_quota_probe._assemble_groups({}) == []
+    groups = agy_quota_probe._assemble_groups({"argon": {}})
+    assert len(groups) == 1
+    assert groups[0].name == "GEMINI 4 ARGON"
+    assert groups[0].weekly == AgyQuotaWindow(100.0, None, None)
+    assert groups[0].five_hour is None

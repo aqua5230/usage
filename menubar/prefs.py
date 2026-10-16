@@ -13,7 +13,7 @@ from usage_common.prefs import _load_preferences, _save_preferences
 DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy", "grok")
 DEFAULT_PANEL_FLAVOR = "mocha"
 PANEL_FLAVORS = ("latte", "frappe", "macchiato", "mocha")
-AGY_QUOTA_GROUPS = ("gemini", "claude_gpt")
+AGY_QUOTA_GROUPS = ("gemini", "claude_gpt", "argon")
 
 
 def _resolved_preferences(prefs: Mapping[str, object] | None = None) -> Mapping[str, object]:

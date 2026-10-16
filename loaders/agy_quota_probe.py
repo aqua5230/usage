@@ -620,11 +620,12 @@ def _gemini_group_from_models(raw: object) -> AgyQuotaGroup | None:
 def _assemble_groups(
     windows: dict[str, dict[str, AgyQuotaWindow]],
 ) -> list[AgyQuotaGroup]:
-    """Lay out the two UI groups in fixed order, filling missing windows as full."""
+    """Lay out UI groups in fixed order; Argon has no five-hour window."""
     full = AgyQuotaWindow(100.0, None, None)
     layout = (
         ("gemini", "GEMINI MODELS", ["Gemini Flash", "Gemini Pro"]),
         ("claude-gpt", "CLAUDE AND GPT MODELS", ["Claude Opus", "Claude Sonnet", "GPT-OSS"]),
+        ("argon", "GEMINI 4 ARGON", ["Gemini 4 Argon"]),
     )
     groups: list[AgyQuotaGroup] = []
     for group_id, name, models in layout:
@@ -636,7 +637,7 @@ def _assemble_groups(
                 name=name,
                 models=list(models),
                 weekly=slot.get("weekly", full),
-                five_hour=slot.get("session", full),
+                five_hour=None if group_id == "argon" else slot.get("session", full),
             )
         )
     return groups
@@ -648,8 +649,7 @@ def _group_id(group: dict[str, object]) -> str | None:
         return None
     lower = name.lower()
     if "argon" in lower:
-        # "Gemini 4 Argon" is a separate quota; never let it fill the Gemini group.
-        return None
+        return "argon"
     if "gemini" in lower:
         return "gemini"
     if "claude" in lower or "gpt" in lower:

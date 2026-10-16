@@ -252,9 +252,11 @@
       const groupButton = document.querySelector('[data-action="set_agy_quota_group"]');
       if (groupButton) {
         groupButton.hidden = !(agy && agy.groupSwitchable);
-        const isClaude = Boolean(agy && /claude/i.test(agy.groupName || ""));
-        groupButton.textContent = t(isClaude ? "agy_group_claude_gpt" : "agy_group_gemini");
-        groupButton.dataset.group = isClaude ? "gemini" : "claude_gpt";
+        const groupName = (agy && agy.groupName) || "";
+        const current = /argon/i.test(groupName) ? "argon"
+          : /claude/i.test(groupName) ? "claude_gpt" : "gemini";
+        groupButton.textContent = t("agy_group_" + current);
+        groupButton.dataset.group = { gemini: "claude_gpt", claude_gpt: "argon", argon: "gemini" }[current];
         groupButton.title = t("agy_group_switch_tooltip");
         groupButton.setAttribute("aria-label", t("agy_group_switch_tooltip"));
       }
