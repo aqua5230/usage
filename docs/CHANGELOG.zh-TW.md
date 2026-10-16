@@ -7,7 +7,7 @@
 ## [Unreleased]
 
 ### 修正
-- **Antigravity 又看得到 Gemini 額度了。** usage 之前查的是 Google 的每日測試伺服器，它不再回傳 Gemini 那組，所以只剩 Claude 與 GPT 那組小額度。現在改查 Antigravity CLI 自己用的正式伺服器，兩組都會回來。
+- **Antigravity 又看得到 Gemini 額度了。** usage 之前查的是 Google 的每日測試伺服器，它不再回傳 Gemini 那組，所以只剩 Claude 與 GPT 那組小額度。現在改查 Google 的正式伺服器，兩組都會回來。
 - **週額度用完時，Antigravity 的 5 小時那列改顯示「暫停」。** 這時 Google 會暫停 5 小時限額，以前那列寫「0% 已用／額度全滿」，看起來像還能用。
 
 ## [0.33.7] - 2026-10-16
