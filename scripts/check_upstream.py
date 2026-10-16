@@ -446,9 +446,9 @@ def check_agy_quota_cache() -> Result:
         return _result(path, ["missing or empty groups"])
     broken = []
     for index, group in enumerate(groups):
-        for slot in ("weekly", "five_hour"):
-            if agy_quota_probe._window_from_payload(_get(group, slot)) is None:
-                broken.append(f"groups[{index}]: missing or invalid {slot}")
+        # A null window means Google did not report it, which the loader accepts.
+        if agy_quota_probe._group_from_payload(group) is None:
+            broken.append(f"groups[{index}]: missing or invalid weekly or five_hour")
     return _result(path, broken)
 
 

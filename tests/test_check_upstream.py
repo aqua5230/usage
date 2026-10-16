@@ -335,11 +335,24 @@ def test_sqlite_opens_readonly(monkeypatch: pytest.MonkeyPatch) -> None:
 def quota() -> dict[str, Any]:
     return {
         "fetched_at": now(),
-        "groups": [{"weekly": {"remaining_percent": 40}, "five_hour": {"remaining_percent": 80}}],
+        "groups": [
+            {
+                "name": "GEMINI MODELS",
+                "models": ["Gemini Flash"],
+                "weekly": {"remaining_percent": 40},
+                "five_hour": {"remaining_percent": 80},
+            }
+        ],
     }
 
 
 def test_agy_quota_ok(quota: dict[str, Any]) -> None:
+    write_json(check.agy_quota_probe.CACHE_PATH, quota)
+    assert check.check_agy_quota_cache()[0] == "OK"
+
+
+def test_agy_quota_accepts_unreported_window(quota: dict[str, Any]) -> None:
+    quota["groups"][0]["weekly"] = None
     write_json(check.agy_quota_probe.CACHE_PATH, quota)
     assert check.check_agy_quota_cache()[0] == "OK"
 
