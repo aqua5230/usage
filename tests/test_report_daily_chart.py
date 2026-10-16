@@ -80,7 +80,7 @@ def test_daily_chart_centers_55_percent_bars_for_31_or_fewer_days() -> None:
     html = render_daily_chart(cube, _t, _tokens, str)
 
     assert 'preserveAspectRatio="none"' in html
-    assert html.count('vector-effect="non-scaling-stroke"') == 2
+    assert html.count('vector-effect="non-scaling-stroke"') == 3
     assert "<text " not in html
     assert 'width="77.44"' in html
     assert 'x="79.68"' in html
@@ -106,9 +106,9 @@ def test_pricing_usage_and_body_cover_priced_and_unpriced() -> None:
 
 def test_daily_ticks_are_nice_and_cover_zero_and_large_values() -> None:
     assert nice_ticks(0) == [0]
-    assert nice_ticks(1) == [0, 0.5, 1]
-    assert nice_ticks(1, 1) == [0, 1]
-    assert nice_ticks(1_040_000_000) == [0, 1_000_000_000, 2_000_000_000]
+    assert nice_ticks(1) == [0, 0.6, 1.2]
+    assert nice_ticks(1, 1) == [0, 1, 2]
+    assert nice_ticks(1_040_000_000) == [0, 600_000_000, 1_200_000_000]
     assert nice_ticks(900_000_000) == [0, 500_000_000, 1_000_000_000]
 
 

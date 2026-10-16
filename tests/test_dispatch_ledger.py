@@ -264,7 +264,7 @@ def test_top_session_renders_weekly_quota_after_tokens() -> None:
         "cost": 0.01,
     }
     rendered = html_report._render_session_section({"top_sessions": [row]}, "zh-TW")
-    assert rendered.index("約佔週額度") < rendered.index("花費")
+    assert rendered.index("約佔週額度") < rendered.index("API 等值")
     assert rendered.index("100") < rendered.index("約 0.4%") < rendered.index("$0.0100")
 
 
@@ -343,4 +343,10 @@ def test_ledger_explains_the_weekly_quota_denominator() -> None:
     }
     rendered = render_ledger(data, "en")
     assert "approximate shares of each tool’s weekly quota." in rendered
-    assert "</small><div><small>" in rendered
+    assert "Claude weekly quota" in rendered
+    assert "Codex weekly quota" in rendered
+    assert "Antigravity weekly quota" in rendered
+    assert rendered.index("No record of dispatch by Claude") < rendered.index(
+        '<div class="table-wrap">'
+    )
+    assert rendered.index("approximate shares") < rendered.index('<div class="table-wrap">')
