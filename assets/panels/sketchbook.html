@@ -104,11 +104,11 @@
     .meta { display: flex; gap: 5px; flex-wrap: wrap; font-size: 11px; }
     .meta > div { padding: 2px 7px; border: 1.5px solid var(--ink); border-radius: 11px 13px 10px 14px / 13px 10px 14px 11px; background: #fff; }
     .today { margin: 7px 0; font-size: 12px; font-weight: 700; }
-    .actions { display: flex; gap: 7px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 7px; }
     .action { flex: 1; min-width: 0; min-height: 31px; font-size: 12px; }
     .action.primary { background: #e8efff; box-shadow: 2px 2px 0 var(--ink); }
     .action[data-action="install"] { display: none; }
-    .action[data-action="install"][data-visible="true"] { display: inline-flex; }
+    .action[data-action="install"][data-visible="true"] { display: inline-flex; flex-basis: 100%; }
     .attribution { margin: 7px 0 0; color: var(--muted); font-size: 10px; text-align: center; }
     .attribution a { color: inherit; }
     [data-footer="service-alerts"] { margin-bottom: 6px; }
