@@ -32,7 +32,8 @@ usage 不上傳、不追蹤、不把你的用量資料外送：你的提示詞�
 
 | 用途 | 端點 | 時機 |
 |---|---|---|
-| Antigravity 額度 | `https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary` | app 執行期間定期取得，且僅在 Antigravity 已登入時 |
+| Antigravity 額度 | `https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary` | app 執行期間定期取得，且僅在 Antigravity 已登入時 |
+| Antigravity Gemini 額度 | `https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels` | app 執行期間定期取得，且僅在 Antigravity 已登入時；只在摘要沒有 Gemini 群組時呼叫 |
 | Antigravity token 更新 | `https://oauth2.googleapis.com/token` | 本機存的 access token 過期時 |
 | 服務狀態警示 | `https://status.claude.com/api/v2/components.json`<br>`https://status.openai.com/api/v2/components.json`<br>`https://status.claude.com/api/v2/incidents.json`<br>`https://status.openai.com/api/v2/incidents.json` | 每 5 分鐘；只有相關元件異常時才讀取事件列表 |
 | Token 價目表 | `https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json` | 首次需要時，之後每 7 天 |

@@ -309,6 +309,8 @@ def _usage_cached_quota(now: Optional[datetime] = None) -> Dict[str, Dict[str, f
                 (five_hour_key, group.get("five_hour")),
                 (weekly_key, group.get("weekly")),
             ):
+                if window is None:
+                    continue
                 window = _as_dict(window)
                 remaining = _as_float(window.get("remaining_percent"))
                 if remaining is None:
@@ -322,7 +324,7 @@ def _usage_cached_quota(now: Optional[datetime] = None) -> Dict[str, Dict[str, f
 
 
 def _quota_parts(data: Dict[str, Any], bar_width: int) -> List[Tuple[str, str, str]]:
-    quota = {**_as_dict(data.get("quota")), **_usage_cached_quota()}
+    quota = _usage_cached_quota() or _as_dict(data.get("quota"))
     lang = _detect_lang()
     parts: List[Tuple[str, str, str]] = []
     five_hour_key, weekly_key = _quota_keys(data)

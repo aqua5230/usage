@@ -534,3 +534,27 @@ def test_fresh_cache_with_expired_login_is_stale() -> None:
     assert state is not None
     assert state["ageText"] == "登入過期"
     assert "agy" in state["tooltip"]
+
+
+@pytest.mark.parametrize("weekly", [True, False])
+def test_unreported_window_is_unavailable_and_not_recorded(weekly: bool) -> None:
+    now = datetime.now(UTC)
+    window = AgyQuotaWindow(50, "1h 0m", 60)
+    group = AgyQuotaGroup(
+        "GEMINI MODELS", [], window if weekly else None, None if weekly else window
+    )
+    trackers = _burn_rate_trackers()
+    projection = menubar_agy.project_quota(
+        AgyQuotaResult([group], now.isoformat()),
+        "en",
+        now=now.timestamp(),
+        burn_rate_trackers=trackers,
+    )
+    assert projection is not None
+    row = projection.session if weekly else projection.weekly
+    assert row.available is False
+    assert row.percent is None
+    assert row.percent_text == "--"
+    assert row.reset_text == "Not reported by Google"
+    assert trackers["agy_session" if weekly else "agy_weekly"].last_timestamp is None
+    assert (projection.weekly if weekly else projection.session).percent_text == "50% used"

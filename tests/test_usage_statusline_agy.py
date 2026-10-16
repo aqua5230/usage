@@ -602,3 +602,20 @@ def test_agy_failure_does_not_hide_claude_statusline(monkeypatch: pytest.MonkeyP
 def _set_agy_enabled(state: dict[str, bool], enabled: bool) -> bool:
     state["enabled"] = enabled
     return True
+
+
+def test_fresh_cache_does_not_mix_cli_weekly(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("USAGE_LANG", "en")
+    _write_usage_cache(timedelta(minutes=1))
+    path = Path(usage_statusline_agy.USAGE_AGY_CACHE)
+    cache = json.loads(path.read_text())
+    cache["groups"][0]["weekly"] = None
+    path.write_text(json.dumps(cache))
+    data = _fixture_data()
+    data["model"] = {"id": "gemini-pro"}
+    data["quota"] = {"gemini-weekly": {"remaining_fraction": 0.1}}
+    quota = usage_statusline_agy._usage_cached_quota()
+    assert "gemini-weekly" not in quota
+    parts = usage_statusline_agy._quota_parts(data, 4)
+    assert len(parts) == 1
+    assert "Weekly" not in parts[0][0]

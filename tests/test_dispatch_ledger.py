@@ -222,6 +222,18 @@ def test_agy_quota_uses_cache_only(
     assert result["antigravity:GEMINI MODELS"].resets_at == NOW + timedelta(hours=2)
 
 
+def test_agy_quota_skips_group_without_reported_weekly(
+    paths: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr(rate_limits, "load_rate_limits", lambda: None)
+    monkeypatch.setattr(codex_loader, "load_rate_limits", lambda: None)
+    five_hour = agy_quota_probe.AgyQuotaWindow(99.5, None, 100)
+    group = agy_quota_probe.AgyQuotaGroup("GEMINI MODELS", ["Gemini Flash"], None, five_hour)
+    cached = agy_quota_probe.AgyQuotaResult([group], NOW.isoformat())
+    monkeypatch.setattr(agy_quota_probe, "_read_cache", lambda: cached)
+    assert "antigravity:GEMINI MODELS" not in ledger.load_windows()
+
+
 def test_render_ledger_formats_values_and_escapes_title() -> None:
     row: ledger.LedgerRow = {
         "date": "2026-09-26",

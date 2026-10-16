@@ -98,9 +98,13 @@ def project_quota(
         else:
             session_tracker = burn_rate_trackers["agy_session"]
             weekly_tracker = burn_rate_trackers["agy_weekly"]
-            if session_tracker.last_timestamp is None or sample_ts > session_tracker.last_timestamp:
+            if selected.five_hour is not None and (
+                session_tracker.last_timestamp is None or sample_ts > session_tracker.last_timestamp
+            ):
                 session_tracker.record(sample_ts, 100.0 - _remaining_percent(selected.five_hour))
-            if weekly_tracker.last_timestamp is None or sample_ts > weekly_tracker.last_timestamp:
+            if selected.weekly is not None and (
+                weekly_tracker.last_timestamp is None or sample_ts > weekly_tracker.last_timestamp
+            ):
                 weekly_tracker.record(sample_ts, 100.0 - _remaining_percent(selected.weekly))
             # agy samples arrive every 5 minutes, so the default 10-minute window
             # cannot collect MIN_FORECAST_SAMPLES; this wider window reacts more slowly.
@@ -130,7 +134,11 @@ def project_quota(
     )
     # Google pauses the 5-hour bucket once the weekly one is spent; showing it
     # as "full" reads as usable, so say it is paused instead.
-    if _remaining_percent(selected.weekly) == 0.0 and not weekly.reset_done:
+    if (
+        selected.weekly is not None
+        and _remaining_percent(selected.weekly) == 0.0
+        and not weekly.reset_done
+    ):
         session = replace(
             session,
             percent_text=_t(language, "agy_session_paused"),
@@ -218,8 +226,12 @@ def fallback_projection(language: str) -> AgyQuotaProjection:
 
 def _group_remaining_percent(group: AgyQuotaGroup) -> float:
     return min(
-        _remaining_percent(group.five_hour),
-        _remaining_percent(group.weekly),
+        (
+            _remaining_percent(window)
+            for window in (group.five_hour, group.weekly)
+            if window is not None
+        ),
+        default=100.0,
     )
 
 
@@ -238,7 +250,7 @@ def _cache_age_minutes(fetched_at: str, now: float) -> float:
 
 def _window_row(
     title: str,
-    window: AgyQuotaWindow,
+    window: AgyQuotaWindow | None,
     language: str,
     age_minutes: float = 0,
     forecast_seconds: float | None = None,
@@ -246,6 +258,15 @@ def _window_row(
     *,
     window_seconds: float | None = None,
 ) -> QuotaRowState:
+    if window is None:
+        return QuotaRowState(
+            title=title,
+            available=False,
+            percent=None,
+            percent_text="--",
+            reset_text=_t(language, "agy_window_not_reported"),
+            color=AGY_COLOR,
+        )
     remaining = _remaining_percent(window)
     used = 100.0 - remaining
     warning = False
