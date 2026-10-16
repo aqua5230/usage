@@ -245,6 +245,7 @@ function makeEnvironment(
     cost: 'Cost',
     costUnpriced: '{tokens} tokens have no public pricing',
     kpiActiveValue: '{active} / {total} days',
+    kpiActiveHint: 'A day counts if any tool records usage',
     emptyModels: 'No models',
     emptyProjects: 'No projects',
     projectSection: 'Projects',
@@ -528,6 +529,10 @@ window.usageReportFilter.applyBounds(rangeSummary.bounds);
 assert.equal(rangeEnv.cards.tokens.querySelector('b').textContent, '≈ 50');
 assert.equal(rangeEnv.cards.tokens.querySelector('i').textContent.split('\n')[0], '50');
 assert.equal(rangeEnv.cards.cost.querySelector('b').textContent, '$5.00');
+assert.equal(
+  rangeEnv.cards.active.querySelector('i').textContent,
+  'A day counts if any tool records usage'
+);
 const sumVisible = (rows, className) => rows
   .map((row) => row.querySelector(className).textContent)
   .reduce((sum, value) => sum + Number(value.replace('$', '')), 0);

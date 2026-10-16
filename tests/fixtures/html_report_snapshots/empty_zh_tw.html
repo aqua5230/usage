@@ -358,6 +358,7 @@ h1{
 table{width:100%;border-collapse:collapse;min-width:760px}
 th,td{padding:8px 16px;text-align:left;font-size:.95rem}
 th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--faint)}
+.ledger-table th,.ledger-table .ledger-date{white-space:nowrap}
 td{color:var(--text-soft);border-bottom:1px solid var(--faint)}
 @media (prefers-color-scheme: light){
 :where(html:not([data-theme])) td{border-bottom:1px solid rgba(0,0,0,.03)}
@@ -682,7 +683,7 @@ td:first-child{color:var(--muted)}
   </dialog>
   <div class="filter-scope">
   
-  <section class="cards"><div class="card"><span>燒掉 Tokens</span><b>≈ 0</b><i>0</i></div><div class="card"><span>API 等值</span><b>$0.00</b></div><div class="card"><span>活躍日</span><b>0 / 7 天</b></div></section>
+  <section class="cards"><div class="card"><span>燒掉 Tokens</span><b>≈ 0</b><i>0</i></div><div class="card"><span>API 等值</span><b>$0.00</b></div><div class="card"><span>活躍日</span><b>0 / 7 天</b><i>任一工具當天有用量就算一天</i></div></section>
   </div>
   <p class="sponsor">
     <span class="tagline">No cloud. No tracking. Just yours.</span>
@@ -1878,7 +1879,7 @@ document.addEventListener('click', async (e) => {
     updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join('\n'));
     updateCard('active', shareConfig.kpiActiveValue
       .replace('{active}', summary.activeDays)
-      .replace('{total}', summary.totalDays), '');
+      .replace('{total}', summary.totalDays), shareConfig.kpiActiveHint);
     updateCard('peak', summary.peakDate, `${formatTokens(summary.peakTokens)} ${shareConfig.tokens}`);
   }
 

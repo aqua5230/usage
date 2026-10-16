@@ -604,7 +604,7 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
             (
                 _t(lang, "kpi_active"),
                 _t(lang, "kpi_active_value", active=int(summary["active_days"]), total=total_days),
-                "",
+                _t(lang, "kpi_active_hint"),
             )
         )
         peak = _peak_day(data.get("daily_trend", []))
@@ -623,7 +623,7 @@ def _summary_cards(data: ReportData, lang: str) -> list[tuple[str, str, str]]:
             (
                 _t(lang, "kpi_active"),
                 _t(lang, "kpi_active_value", active=int(summary["active_days"]), total=total_days),
-                "",
+                _t(lang, "kpi_active_hint"),
             )
         )
         peak = _peak_day(data.get("daily_trend", []))
@@ -1131,6 +1131,7 @@ def _render_wrapped_section(data: Mapping[str, Any], lang: str) -> str:
         f'<div class="wrapped-total">{_escape(_fmt_int(int(wrapped.get("total_tokens", 0))))}</div>'
         f'<p class="wrapped-total-label">{_escape(_t(lang, "wrapped_total_tokens", weeks=weeks))}</p>'
         f'<p class="wrapped-analogy">{_escape(_t(lang, "wrapped_books_equivalent", books=_fmt_int(books)))}</p>'
+        f'<p class="composition-hint">{_escape(_t(lang, "wrapped_books_hint"))}</p>'
         "</div>"
         '<div class="wrapped-art">'
         f'<img src="{_escape(_sprite_data_uri(str(beast)))}" alt="{_escape(beast_name)}">'
@@ -1214,6 +1215,7 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                 "cost": _t(lang, "cost"),
                 "costUnpriced": _t(lang, "kpi_cost_unpriced", tokens="{tokens}"),
                 "emptyProjects": _t(lang, "empty_projects"),
+                "kpiActiveHint": _t(lang, "kpi_active_hint"),
                 "kpiActiveValue": _t(lang, "kpi_active_value", active="{active}", total="{total}"),
                 "narrative": _t(
                     lang,

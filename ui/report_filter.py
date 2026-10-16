@@ -679,7 +679,7 @@ REPORT_FILTER_JS = r"""(() => {
     updateCard('cost', formatCost(summary.cost, true), [costDelta, unpriced].filter(Boolean).join('\n'));
     updateCard('active', shareConfig.kpiActiveValue
       .replace('{active}', summary.activeDays)
-      .replace('{total}', summary.totalDays), '');
+      .replace('{total}', summary.totalDays), shareConfig.kpiActiveHint);
     updateCard('peak', summary.peakDate, `${formatTokens(summary.peakTokens)} ${shareConfig.tokens}`);
   }
 

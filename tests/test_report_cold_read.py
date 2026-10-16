@@ -171,3 +171,48 @@ def test_dispatch_ledger_follows_fixed_group_note():
     result = html_report.generate_html(data, language="en")
     assert result.index('class="fixed-group-note"') < result.index("dispatch-ledger-section")
     assert "&lt;0.1%" in result
+
+
+@pytest.mark.parametrize("lang", ["zh-TW", "en", "zh-CN", "ja", "ko"])
+def test_cold_read_labels_and_active_day_definition(lang):
+    from tests.test_html_report_snapshot import _full_report_data
+
+    data = _full_report_data()
+    result = html_report.generate_html(data, language=lang)
+    for key in (
+        "session_section",
+        "share",
+        "pricing_section",
+        "pricing_priced",
+        "wrapped_books_hint",
+    ):
+        assert html_report._t(lang, key) in result
+    hint = html_report._t(lang, "kpi_active_hint")
+    assert f"<i>{hint}</i>" in result
+    assert f'"kpiActiveHint": "{hint}"' in result
+    assert "shareConfig.kpiActiveHint" in result
+    data.pop("cube")
+    assert html_report._summary_cards(data, lang)[2][2] == hint
+
+
+@pytest.mark.parametrize("codex,agy", [(0, 0), (3, 0), (0, 4), (3, 4)])
+def test_ledger_unowned_only_describes_missing_records(codex, agy):
+    from ui.report_ledger import render_ledger
+
+    row = {
+        "date": "2026-10-16",
+        "project": "sample",
+        "title": "dispatch",
+        "dispatch_count": 1,
+        "claude_pct": None,
+        "codex_pct": None,
+        "agy_pct": None,
+    }
+    result = render_ledger(
+        {"dispatch_ledger": {"rows": [row], "unowned_codex": codex, "unowned_agy": agy}},
+        "zh-TW",
+    )
+    assert ("找不到由 Claude 派工的紀錄，未列入上表" in result) == bool(codex or agy)
+    assert ("3 個 Codex" in result) == bool(codex)
+    assert ("4 個 Antigravity" in result) == bool(agy)
+    assert "多半是排程" not in result

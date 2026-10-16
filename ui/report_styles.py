@@ -341,6 +341,7 @@ h1{
 table{width:100%;border-collapse:collapse;min-width:760px}
 th,td{padding:8px 16px;text-align:left;font-size:.95rem}
 th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--faint)}
+.ledger-table th,.ledger-table .ledger-date{white-space:nowrap}
 td{color:var(--text-soft);border-bottom:1px solid var(--faint)}
 """
     + _light_rules("""

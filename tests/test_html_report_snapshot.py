@@ -700,8 +700,8 @@ def test_generate_html_adds_date_filter_cards_and_fixed_group_note_for_cube() ->
         assert "fixed-range-tag" in section.group(0)
     assert (
         "<summary><span>[usage]&gt;</span> How API equivalent is calculated"
-        '<span class="appendix-desc">Public API price conversion · API equivalent confidence</span>'
-        in html
+        '<span class="appendix-desc">Public API price conversion · '
+        "API pricing coverage (by token count)</span>" in html
     )
 
 
@@ -976,7 +976,7 @@ def test_projects_include_remainder_share_and_cost_without_mutating_input() -> N
     rendered = html_report._render_project_section(data, "en")
     assert 'data-project-other="true"' in rendered
     assert '<span class="name">Other projects</span>' in rendered
-    assert 'data-label="Share">25.0%</span>' in rendered
+    assert 'data-label="Token share">25.0%</span>' in rendered
     assert 'data-label="Tokens">25</span>' in rendered
     assert 'data-label="API equivalent">$1.00</span>' in rendered
     assert len(data["by_project"]) == 1

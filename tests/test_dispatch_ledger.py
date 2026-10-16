@@ -346,5 +346,7 @@ def test_ledger_explains_the_weekly_quota_denominator() -> None:
     assert "Claude weekly quota" in rendered
     assert "Codex weekly quota" in rendered
     assert "Antigravity weekly quota" in rendered
-    assert rendered.index("were not dispatched") < rendered.index('<div class="table-wrap">')
+    assert rendered.index("No record of dispatch by Claude") < rendered.index(
+        '<div class="table-wrap">'
+    )
     assert rendered.index("approximate shares") < rendered.index('<div class="table-wrap">')
