@@ -58,7 +58,7 @@ _KEYCHAIN_ACCOUNT = "antigravity"
 _KEYRING_BASE64_PREFIX = "go-keyring-base64:"
 
 _TOKEN_URL = "https://oauth2.googleapis.com/token"
-_QUOTA_URL = "https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary"
+_QUOTA_URL = "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary"
 # Both endpoints return small JSON objects; cap the read so a broken endpoint
 # cannot make us buffer an unbounded response.
 _MAX_RESPONSE_BYTES = 4 * 1024 * 1024
