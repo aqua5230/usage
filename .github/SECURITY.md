@@ -33,6 +33,7 @@ usage does not upload, track, or phone home with your usage data: your prompts, 
 | Purpose | Endpoint | When |
 |---|---|---|
 | Antigravity quota | `https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary` | periodically while the app runs, and only if Antigravity is signed in |
+| Antigravity Gemini quota | `https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels` | periodically while the app runs, and only if Antigravity is signed in; called only when the summary has no Gemini group |
 | Antigravity token refresh | `https://oauth2.googleapis.com/token` | when the stored access token has expired |
 | Service-status banners | `https://status.claude.com/api/v2/components.json`<br>`https://status.openai.com/api/v2/components.json`<br>`https://status.claude.com/api/v2/incidents.json`<br>`https://status.openai.com/api/v2/incidents.json` | every 5 minutes; the incident feed only when a relevant component is abnormal |
 | Token price table | `https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json` | on first need, then every 7 days |

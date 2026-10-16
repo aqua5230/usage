@@ -59,7 +59,8 @@ _KEYRING_BASE64_PREFIX = "go-keyring-base64:"
 
 _TOKEN_URL = "https://oauth2.googleapis.com/token"
 _QUOTA_URL = "https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary"
-# Both endpoints return small JSON objects; cap the read so a broken endpoint
+_MODELS_URL = "https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels"
+# All endpoints return small JSON objects; cap the read so a broken endpoint
 # cannot make us buffer an unbounded response.
 _MAX_RESPONSE_BYTES = 4 * 1024 * 1024
 # Antigravity's installed-app public client constants (same values quotio ships).
@@ -108,8 +109,8 @@ class AgyQuotaGroup:
 
     name: str
     models: list[str]
-    weekly: AgyQuotaWindow
-    five_hour: AgyQuotaWindow
+    weekly: AgyQuotaWindow | None
+    five_hour: AgyQuotaWindow | None
 
 
 @dataclass(frozen=True, slots=True)
@@ -133,7 +134,10 @@ def probe_quota(timeout_seconds: float = 15) -> AgyQuotaResult | None:
     groups_raw = _extract_groups(raw)
     if not groups_raw:
         return None
-    result = _build_result(groups_raw)
+    models_raw = None
+    if not any(_group_id(group) == "gemini" for group in groups_raw):
+        models_raw = _post_json(_MODELS_URL, access_token, {}, timeout_seconds)
+    result = _build_result(groups_raw, models_raw)
     if result is not None:
         with suppress(OSError):
             AUTH_EXPIRED_PATH.unlink(missing_ok=True)
@@ -505,7 +509,9 @@ def _extract_groups(raw: object) -> list[dict[str, object]] | None:
     return None
 
 
-def _build_result(groups_raw: list[dict[str, object]]) -> AgyQuotaResult | None:
+def _build_result(
+    groups_raw: list[dict[str, object]], models_raw: object = None
+) -> AgyQuotaResult | None:
     """Classify buckets into the Gemini / Claude-GPT groups UI expects."""
     windows: dict[str, dict[str, AgyQuotaWindow]] = {}
     for group in groups_raw:
@@ -527,9 +533,45 @@ def _build_result(groups_raw: list[dict[str, object]]) -> AgyQuotaResult | None:
                 continue
             slot[period] = window
     result_groups = _assemble_groups(windows)
+    if not any(_group_id(group) == "gemini" for group in groups_raw):
+        gemini = _gemini_group_from_models(models_raw)
+        if gemini is not None:
+            result_groups.insert(0, gemini)
     if not result_groups:
         return None
     return AgyQuotaResult(groups=result_groups, fetched_at=datetime.now(UTC).isoformat())
+
+
+def _gemini_group_from_models(raw: object) -> AgyQuotaGroup | None:
+    """Use the lowest reported Gemini fraction and classify its reset window."""
+    models = raw.get("models") if isinstance(raw, dict) else None
+    if not isinstance(models, dict):
+        return None
+    candidates: list[tuple[float, dict[str, object]]] = []
+    for model_id, model in models.items():
+        if not isinstance(model_id, str) or not model_id.startswith("gemini-"):
+            continue
+        info = model.get("quotaInfo") if isinstance(model, dict) else None
+        if not isinstance(info, dict):
+            continue
+        fraction = _coerce_float(info.get("remainingFraction"))
+        reset = _bucket_reset_time(info)
+        if fraction is not None and reset is not None and _parse_timestamp(reset) is not None:
+            candidates.append((fraction, info))
+    if not candidates:
+        return None
+    _, bucket = min(candidates, key=lambda candidate: candidate[0])
+    window = _bucket_to_window(bucket)
+    reset = _bucket_reset_time(bucket)
+    assert reset is not None
+    session = _seconds_until(reset) <= 5 * 3600 + 5 * 60
+    template = _assemble_groups({"gemini": {}})[0]
+    return AgyQuotaGroup(
+        name=template.name,
+        models=template.models,
+        weekly=None if session else window,
+        five_hour=window if session else None,
+    )
 
 
 def _assemble_groups(
@@ -744,7 +786,11 @@ def _result_to_payload(result: AgyQuotaResult) -> dict[str, object]:
     }
 
 
-def _window_to_payload(window: AgyQuotaWindow) -> dict[str, float | int | str | None]:
+def _window_to_payload(
+    window: AgyQuotaWindow | None,
+) -> dict[str, float | int | str | None] | None:
+    if window is None:
+        return None
     return {
         "remaining_percent": window.remaining_percent,
         "resets_in": window.resets_in,
@@ -782,8 +828,10 @@ def _group_from_payload(payload: object) -> AgyQuotaGroup | None:
         or not name
         or not isinstance(models, list)
         or not all(isinstance(model, str) and model for model in models)
-        or weekly is None
-        or five_hour is None
+        or "weekly" not in payload
+        or "five_hour" not in payload
+        or (payload["weekly"] is not None and weekly is None)
+        or (payload["five_hour"] is not None and five_hour is None)
     ):
         return None
     return AgyQuotaGroup(name=name, models=models, weekly=weekly, five_hour=five_hour)

@@ -6,6 +6,10 @@
 
 ## [Unreleased]
 
+### 修正
+- **Antigravity 改從 Google 模型清單讀取 Gemini 額度。** Google 的額度摘要不再回傳 Gemini 群組。usage 改從模型清單讀取 Gemini 的 5 小時額度；Google 目前沒有回報週額度，卡片會標明。app 開著時，Antigravity CLI 狀態列也用這份數字。
+- **週額度用完時，Antigravity 的 5 小時那列改顯示「暫停」。** 這時 Google 會暫停 5 小時限額，以前那列寫「0% 已用／額度全滿」，看起來像還能用。
+
 ## [0.33.7] - 2026-10-16
 
 ### 修正

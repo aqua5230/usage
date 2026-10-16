@@ -290,11 +290,12 @@ def load_windows() -> dict[str, QuotaWindow]:
         fetched = _timestamp(agy.fetched_at)
         if fetched:
             for group in agy.groups:
-                minutes = group.weekly.resets_in_minutes
-                if minutes is None:
+                weekly = group.weekly
+                if weekly is None or weekly.resets_in_minutes is None:
                     continue
+                minutes = weekly.resets_in_minutes
                 window = QuotaWindow(
-                    100 - group.weekly.remaining_percent,
+                    100 - weekly.remaining_percent,
                     fetched + timedelta(minutes=minutes),
                     timedelta(days=7),
                 )

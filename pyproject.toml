@@ -81,6 +81,7 @@ select = ["E", "F", "I", "UP", "B", "SIM"]
 # usage_hooks/usage_session_resume.py 同樣裝進 ~/.claude/ 給系統 python3 (3.9) 跑，同一條限制。
 "usage_hooks/usage_session_resume.py" = ["UP017"]
 "usage_hooks/usage_quota_aware.py" = ["UP017", "UP045"]
+"usage_hooks/usage_statusline_agy.py" = ["UP017"]
 # Imported analytics source is kept with minimal path fixes; keep formatting
 # stable for this integration commit.
 "adapters/**/*.py" = ["E501", "I001", "SIM108", "UP015", "UP017"]

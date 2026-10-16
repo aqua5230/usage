@@ -19,7 +19,14 @@ import math
 import os
 import sys
 from contextlib import suppress
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple, cast
+
+# The CLI's own quota comes from daily-cloudcode-pa, which stopped returning the
+# Gemini group; the usage app caches the production host's answer here.
+USAGE_AGY_CACHE = os.path.expanduser("~/.usage/agy_quota_cache.json")
+_CACHE_MAX_AGE_SECONDS = 15 * 60
+_CACHE_GROUP_KEYS = (("gemini", "gemini-5h", "gemini-weekly"), ("claude", "3p-5h", "3p-weekly"))
 
 STATUSLINE_TRANSLATIONS = {
     "zh-TW": {
@@ -280,8 +287,44 @@ def _quota_keys(data: Dict[str, Any]) -> Tuple[str, str]:
     return "3p-5h", "3p-weekly"
 
 
+def _usage_cached_quota(now: Optional[datetime] = None) -> Dict[str, Dict[str, float]]:
+    """Read the usage app's fresh quota cache in the CLI payload's key shape."""
+    try:
+        with open(USAGE_AGY_CACHE, encoding="utf-8") as fh:
+            cache = _as_dict(json.load(fh))
+        fetched_at = datetime.fromisoformat(str(cache.get("fetched_at")))
+        age = ((now or datetime.now(timezone.utc)) - fetched_at).total_seconds()
+    except (OSError, ValueError, TypeError):
+        return {}
+    if not 0 <= age <= _CACHE_MAX_AGE_SECONDS:
+        return {}
+    quota: Dict[str, Dict[str, float]] = {}
+    for group in cache.get("groups") or []:
+        group = _as_dict(group)
+        name = str(group.get("name", "")).lower()
+        for marker, five_hour_key, weekly_key in _CACHE_GROUP_KEYS:
+            if marker not in name:
+                continue
+            for key, window in (
+                (five_hour_key, group.get("five_hour")),
+                (weekly_key, group.get("weekly")),
+            ):
+                if window is None:
+                    continue
+                window = _as_dict(window)
+                remaining = _as_float(window.get("remaining_percent"))
+                if remaining is None:
+                    continue
+                entry = {"remaining_fraction": remaining / 100.0}
+                minutes = _as_float(window.get("resets_in_minutes"))
+                if minutes is not None:
+                    entry["reset_in_seconds"] = minutes * 60 - age
+                quota[key] = entry
+    return quota
+
+
 def _quota_parts(data: Dict[str, Any], bar_width: int) -> List[Tuple[str, str, str]]:
-    quota = _as_dict(data.get("quota"))
+    quota = _usage_cached_quota() or _as_dict(data.get("quota"))
     lang = _detect_lang()
     parts: List[Tuple[str, str, str]] = []
     five_hour_key, weekly_key = _quota_keys(data)

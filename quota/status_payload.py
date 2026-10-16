@@ -97,7 +97,9 @@ def _status_antigravity(now: int) -> dict[str, Any]:
 
     fetched_timestamp = fetched_at.timestamp()
 
-    def window_status(window: agy_quota_probe.AgyQuotaWindow) -> dict[str, Any]:
+    def window_status(window: agy_quota_probe.AgyQuotaWindow | None) -> dict[str, Any]:
+        if window is None:
+            return _status_window(None, None, now)
         return {
             "used_percent": round(100 - window.remaining_percent, 1),
             "resets_in_seconds": (
