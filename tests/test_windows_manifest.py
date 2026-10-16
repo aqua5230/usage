@@ -1,5 +1,6 @@
 # SPDX-License-Identifier: AGPL-3.0-only
 
+import re
 from pathlib import Path
 from xml.etree import ElementTree
 
@@ -23,3 +24,17 @@ def test_windows_build_embeds_manifest() -> None:
 
     assert '$ManifestFile = Join-Path $PSScriptRoot "usage.manifest"' in build_script
     assert "--manifest $ManifestFile `" in build_script
+
+
+def test_windows_build_bundles_hook_sources_where_installers_resolve_them() -> None:
+    # The installers resolve hook sources as <bundle>/usage_hooks/<name>; a hook
+    # bundled anywhere else is never found, so self-heal can't install or update it.
+    installer_sources = "".join(
+        path.read_text(encoding="utf-8") for path in (REPO_ROOT / "installer").glob("*.py")
+    )
+    resolved = set(re.findall(r'"usage_hooks" / "(usage_\w+\.py)"', installer_sources))
+    build_script = (REPO_ROOT / "scripts" / "build_windows.ps1").read_text(encoding="utf-8")
+
+    assert resolved
+    for name in sorted(resolved):
+        assert f"'usage_hooks/{name}');usage_hooks\"" in build_script, name
