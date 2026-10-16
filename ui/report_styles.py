@@ -179,7 +179,7 @@ h1{
 .prompt span{font-size:.72rem;font-weight:400}
 .prompt .prompt-title{font:inherit;color:inherit}
 .fixed-range-tag{padding:1px 6px;border:1px solid var(--card-border);border-radius:999px;color:var(--muted);font-size:.64rem;font-weight:500;letter-spacing:.03em;white-space:nowrap}
-.rule{font-size:0;height:1px;background:var(--card-border);margin-bottom:12px;border:none}
+.rule{display:none;font-size:0;height:1px;background:var(--card-border);margin-bottom:12px;border:none}
 .section .rule{background:transparent}
 .insights-section{margin-block:72px 0;padding-block:24px}
 .insights-section .rule,.wrapped-section .rule{height:0;margin-bottom:16px}
@@ -205,26 +205,25 @@ h1{
 .composition-section .rank-head{margin-top:40px}
 .composition-hint{margin:0;color:var(--text-soft)}
 .rank-head,.rank-line{display:grid;grid-template-columns:20px minmax(0,1fr) 110px 110px;gap:16px;align-items:center}
-.rank-head{padding:0 12px 8px;color:var(--muted);font-size:.72rem;font-weight:600;line-height:1.4;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.rank-head{padding:0 12px 8px;color:var(--muted);font-size:.72rem;font-weight:600;line-height:1.4;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;white-space:nowrap}
 .rank-head>span:nth-child(n+3){text-align:right}
-.rank-line{position:relative;overflow:hidden;padding:12px;color:var(--text-soft);border:none;border-bottom:1px solid var(--faint);border-radius:0;box-shadow:none;background:transparent;transition:transform .2s ease,background-color .2s ease,border-color .2s ease,box-shadow .2s ease}
-.rank-line:hover{transform:none;border:none;border-bottom:1px solid var(--faint);border-radius:0;box-shadow:none;background:transparent}
+.rank-line{position:relative;overflow:hidden;padding:12px;color:var(--text-soft);border:none;border-radius:6px;margin-bottom:4px;box-shadow:none;background:rgba(255,255,255,.015);transition:background-color .15s ease}
+.rank-line:hover{background:rgba(255,255,255,.04)}
 .rank-line:last-child{border-bottom:none}
 .rank-line[data-project-index],.tool-row.model-group{cursor:pointer;transition:background-color .15s ease}
-.tool-row.model-group:hover,.rank-line[data-project-index]:hover{background:var(--hover-glow)}
+.tool-row.model-group:hover,.rank-line[data-project-index]:hover{background:rgba(255,255,255,.04)}
 .tool-row.model-group:focus-visible,.rank-line[data-project-index]:focus-visible{outline:2px solid var(--cost);outline-offset:-2px}
 /* .rank-line 用 class 指定 display:grid，權重高過瀏覽器預設的 [hidden]{display:none}，
    沒有這一條收合只會改到 DOM、畫面照舊全開。 */
 .rank-line[hidden]{display:none}
 .composition-section[hidden]{display:none}
-/* 展開的子列要一眼看出「屬於上面那一列」：整段壓深底色、左側加一條縱線
-   框住，縮排拉大，長條也調淡，免得跟母列的長條搶視線。 */
+/* 展開子列以淡底、左側縱線與縮排標示歸屬，比例仍以整列淡色填充。 */
 .rank-line.model-child{
-  background:var(--soft);box-shadow:inset 3px 0 0 var(--warn)}
+  background:rgba(255,255,255,.01);box-shadow:inset 3px 0 0 var(--warn)}
 .rank-line.model-child .name,.rank-line.model-child .model-name{display:flex;align-items:center;gap:7px;min-width:0;padding-left:34px}
-.rank-line.model-child .share-bar span{opacity:.45}
+.rank-line.model-child .share-bar span{opacity:.12}
 .rank-line.model-child>.left-tick{display:none}
-.rank-line.model-child>.gauge-rail{opacity:.45}
+.rank-line.model-child>.gauge-rail,.project-section .rank-line>.gauge-rail{top:0;bottom:0;left:0;height:100%;opacity:.12;border-radius:6px 0 0 6px;z-index:0}
 .arrow{color:var(--warn);opacity:.3;font-size:.8em}
 /* 可點開的列：箭頭是唯一的可展開提示，用跟裝飾性箭頭一樣的淡度會看不出來。 */
 .tool-row.model-group .arrow,.rank-line[data-project-index] .arrow{opacity:1;font-size:.95rem;color:var(--muted)}
@@ -234,15 +233,15 @@ h1{
    rule has to follow the one above to win. (.tool-head does the same further down.) */
 .name,.model-name{position:static;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-soft);font-size:.9em;font-weight:normal}
 .share-bar{position:absolute;top:0;left:0;width:100%;height:100%;margin:0;overflow:hidden;border-radius:0;background:transparent;z-index:0;pointer-events:none}
-.rank-line .share-bar,.tool-row .share-bar{top:auto;bottom:0;height:2px}
+.rank-line .share-bar,.tool-row .share-bar{top:0;bottom:0;left:0;height:100%;border-radius:6px;z-index:0;pointer-events:none}
 .tool-row .tokens,.rank-line .tokens,.trend-row em,td.tokens-cell{color:var(--text)}
 .rank-line>.left-tick{display:none}
 .share-bar span{display:block;height:100%;border-radius:0;background:var(--cost);opacity:.15}
-.rank-line .share-bar span,.tool-row .share-bar span{height:2px;opacity:.72}
+.rank-line .share-bar span,.tool-row .share-bar span{height:100%;opacity:.12;border-radius:6px 0 0 6px}
 .rank-line>.left-tick,.rank-line>.gauge-rail{position:absolute;z-index:0;pointer-events:none}
-.left-tick{left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;background:var(--cost);opacity:.6}
+.left-tick{display:none;left:0;top:8px;bottom:8px;width:3px;border-radius:0 2px 2px 0;background:var(--cost);opacity:.6}
 .gauge-rail{left:0;bottom:0;height:3px;border-radius:0 2px 0 0;background:var(--cost);opacity:.9;transition:height .15s ease,opacity .15s ease}
-.rank-line:hover>.gauge-rail{height:4px;opacity:1}
+.rank-line:hover>.gauge-rail{height:100%;opacity:.18}
 .child-gauge{margin-left:auto;display:inline-flex;align-items:center;gap:7px;flex-shrink:0;padding-right:6px}
 .child-track{width:48px;height:5px;background:var(--faint);border-radius:3px;overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.2)}
 .child-fill{height:100%;background:var(--warn);border-radius:3px;opacity:.9}
@@ -254,19 +253,20 @@ h1{
 .cost{color:var(--text-soft)}
 .tokens,.cost{font-size:1.15rem;font-weight:700;font-variant-numeric:tabular-nums}
 .tokens,.cost,.pct{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.trend{display:grid;gap:6px}
-.trend-row{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(56px,1fr) 100px 100px;gap:16px;align-items:center;padding:12px;border-bottom:1px solid var(--faint)}
+.trend{display:grid;gap:4px}
+.trend-row{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(56px,1fr) 100px 100px;gap:16px;align-items:center;padding:12px;border-bottom:none;border-radius:6px;margin-bottom:4px;background:rgba(255,255,255,.015);transition:background-color .15s ease}
+.trend-row:hover{background:rgba(255,255,255,.04)}
 .trend-row:last-of-type{border-bottom:none}
 .trend-row .week{color:var(--muted);font-size:.78rem;line-height:1.4}
-/* Same whole-row fill, opacity and square ends as .share-bar; retain its ratio. */
-.trend-bar{position:absolute;top:auto;right:0;bottom:0;left:0;height:2px;z-index:-1;overflow:hidden;pointer-events:none}
-.trend-bar div{height:100%;background:var(--cost);opacity:.72}
+/* Match the rounded, faint whole-row fill of .share-bar; retain its ratio. */
+.trend-bar{position:absolute;top:0;right:0;bottom:0;left:0;height:100%;border-radius:6px;z-index:0;overflow:hidden;pointer-events:none}
+.trend-bar div{height:100%;background:var(--cost);opacity:.12;border-radius:6px 0 0 6px}
 .trend-row em{font-style:normal;text-align:right;color:var(--token);font-size:.82rem;font-variant-numeric:tabular-nums}
 .delta{color:var(--muted);white-space:nowrap;text-align:right;justify-self:end;font-size:.78rem;font-weight:600;font-variant-numeric:tabular-nums}
 .delta.surge{color:var(--warn)}
 .delta.flat{color:var(--muted)}
-.trend-summary{color:var(--text-soft);margin-top:8px;padding-top:12px;border-top:1px solid var(--faint);font-size:.84rem;line-height:1.6}
-.daily-chart-wrap{min-width:0;margin:0 0 24px;padding:14px 0 18px;border-bottom:1px solid var(--faint)}
+.trend-summary{color:var(--text-soft);margin-top:8px;padding-top:6px;border-top:none;font-size:.84rem;line-height:1.6}
+.daily-chart-wrap{min-width:0;margin:0 0 24px;padding:14px 0 8px;border-bottom:none}
 .daily-chart-toggle{display:inline-flex;gap:6px;margin-left:auto;font-family:var(--font-mono);font-size:.82rem}
 .daily-chart-toggle button{border:1px solid var(--card-border);border-radius:7px;background:var(--panel);color:var(--text);padding:5px 9px;font:inherit;font-size:.72rem;line-height:1.3;cursor:pointer}
 .daily-chart-toggle button[aria-pressed="true"]{border-color:var(--cost);color:var(--cost);background:var(--control-hover)}
@@ -302,17 +302,15 @@ h1{
 .report-appendix>.section+.section{border-top:1px solid var(--faint)}
 .report-appendix .composition-section,.report-appendix .pricing-section{font-size:.92em}
 .wrap>.wrapped-section{margin-top:16px}
-.pricing-bar{display:flex;height:2px;overflow:hidden;border-radius:0;background:var(--faint)}.pricing-bar i{display:block;min-width:0;height:100%;opacity:.72}
+.pricing-bar{display:flex;height:10px;overflow:hidden;border-radius:5px;background:rgba(255,255,255,.06)}.pricing-bar i{display:block;min-width:0;height:100%;border-radius:2px;opacity:.8}
 .pricing-list{margin-top:10px}.pricing-line{grid-template-columns:20px minmax(0,1fr) 70px 100px}.pricing-line .tokens{font-size:.9rem}.pricing-models{display:inline;margin-left:8px;color:var(--muted);font-family:var(--font-mono);font-size:.68rem;font-weight:400}.pricing-hint{margin:12px 0 0;color:var(--muted);font-size:.78rem;line-height:1.55}.pricing-all{padding:8px 0;color:var(--text-soft);font-family:var(--font-mono);font-size:.82rem}
 """
     + _light_rules("""
-  .tokens-cell .share-bar span{opacity:.22}
+  .pricing-bar{background:rgba(0,0,0,.06)}
   .scope-tag{background:rgba(176,90,43,.14);border-color:rgba(176,90,43,.22)}
 """)
     + """
-/* Square, frameless fill in the same vocabulary as .share-bar and .trend-bar.
-   The rounded box with a 3px accent rail read as a generic callout and was the
-   last framed surface left in a report that strips frames everywhere else. */
+/* Keep insight copy frameless and aligned with the surrounding section. */
 .insight-note,.insight-action{background:transparent;border:0;border-radius:0;margin-bottom:10px;padding:0;font-size:1rem;line-height:1.6;color:var(--text)}
 .insight-action{border-left-color:var(--warn);margin-bottom:0}
 /* No frame left to inset from, so only the vertical padding still earns its
@@ -325,7 +323,8 @@ h1{
 /* .share-bar 是 position:absolute，這一格沒有定位錨點的話，五條長條會全部
    跑到頁面左上角疊成一塊。 */
 .tokens-cell{position:relative}
-.tokens-cell .share-bar{top:auto;bottom:6px;left:16px;height:3px;max-width:96px}
+td.tokens-cell .share-bar{top:4px;bottom:4px;left:6px;height:calc(100% - 8px);max-width:none;width:calc(100% - 12px);border-radius:4px}
+td.tokens-cell .share-bar span{height:100%;opacity:.12;border-radius:4px}
 .persona-hours{display:grid;grid-template-columns:repeat(24,minmax(8px,1fr));gap:4px;align-items:end;height:176px;padding-top:8px}
 .persona-hour{display:grid;grid-template-rows:1fr auto;gap:7px;align-items:end;min-width:0;height:100%}
 .persona-hour span{display:block;width:100%;min-height:1.5px;border-radius:4px 4px 1px 1px;background:var(--cost);opacity:.35}
@@ -338,14 +337,18 @@ h1{
 .one-pass-row .turns{color:var(--muted);font-weight:500}
 .one-pass-row strong{color:var(--text);font-size:.88rem}
 .table-wrap{overflow-x:auto}
-table{width:100%;border-collapse:collapse;min-width:760px}
+table{width:100%;border-collapse:separate;border-spacing:0 4px;min-width:760px}
 th,td{padding:8px 16px;text-align:left;font-size:.95rem}
-th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:1px solid var(--faint)}
+th{color:var(--muted);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;border-bottom:none;padding:8px 16px 4px}
 .ledger-table th,.ledger-table .ledger-date{white-space:nowrap}
-td{color:var(--text-soft);border-bottom:1px solid var(--faint)}
+td{color:var(--text-soft);border-bottom:none;background:rgba(255,255,255,.02);padding:10px 16px}
+tbody tr td:first-child{border-radius:6px 0 0 6px}
+tbody tr td:last-child{border-radius:0 6px 6px 0}
+tbody tr:hover td{background:rgba(255,255,255,.05)}
 """
     + _light_rules("""
-  td{border-bottom:1px solid rgba(0,0,0,.03)}
+  td{background:rgba(0,0,0,.02)}
+  tbody tr:hover td{background:rgba(0,0,0,.04)}
 """)
     + """
 td:first-child{color:var(--muted)}
@@ -390,14 +393,14 @@ td:first-child{color:var(--muted)}
 .sponsor-link a{display:inline-flex;align-items:center;min-height:24px;color:var(--muted);text-decoration:none;opacity:.7;transition:color .2s ease,opacity .2s ease}
 .sponsor-link a:hover{opacity:1;color:var(--cost)}
 .sponsor a:focus-visible,.sponsor-link a:focus-visible{outline:2px solid var(--cost);outline-offset:4px;border-radius:4px}
-.tools{display:grid;gap:12px;border:none;box-shadow:none;background:transparent}
+.tools{display:grid;gap:4px;border:none;box-shadow:none;background:transparent}
 .project-section .rank-head,.project-section .rank-line{grid-template-columns:20px minmax(0,1fr) 72px 100px 100px}
 .project-section .project-model-detail .model-name{grid-column:2/4}
 .tools-head,.tool-row{display:grid;grid-template-columns:20px minmax(0,1fr) 72px 100px 100px;gap:16px;align-items:center}
 .tools-head{padding:0 16px;color:var(--muted);font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;margin-bottom:-2px}
 .tools-head>span:nth-child(n+2),.rank-head>span:nth-child(n+3){text-align:right}
-.tool-row{position:relative;overflow:hidden;padding:12px;border:none;border-bottom:1px solid var(--faint);border-radius:0;background:transparent;box-shadow:none;transition:transform .25s cubic-bezier(.4,0,.2,1),border-color .25s cubic-bezier(.4,0,.2,1),box-shadow .25s cubic-bezier(.4,0,.2,1)}
-.tool-row:hover{transform:none;border:none;border-bottom:1px solid var(--faint);border-radius:0;background:transparent;box-shadow:none}
+.tool-row{position:relative;overflow:hidden;padding:12px;border:none;border-radius:6px;margin-bottom:4px;background:rgba(255,255,255,.015);box-shadow:none;transition:background-color .15s ease}
+.tool-row:hover{background:rgba(255,255,255,.04)}
 .tool-row:last-child{border-bottom:none}
 .tool-head{position:static;display:flex;align-items:center;gap:14px;flex-wrap:wrap;min-width:0;color:var(--text-soft);font-size:.9em;font-weight:normal}
 .sub-agent{font-weight:700;color:var(--text)}
@@ -405,6 +408,8 @@ td:first-child{color:var(--muted)}
 """
     + _light_rules("""
   .sub-plan{background:rgba(255,255,255,.28);border-color:rgba(0,0,0,.12)}
+  .tool-row,.rank-line,.trend-row{background:rgba(0,0,0,.02)}
+  .tool-row:hover,.rank-line:hover,.trend-row:hover,.tool-row.model-group:hover,.rank-line[data-project-index]:hover{background:rgba(0,0,0,.05)}
 """)
     + """
 .sub-since{color:var(--muted);font-size:.82rem}
@@ -526,8 +531,8 @@ td:first-child{color:var(--muted)}
   .date-filter{align-items:flex-start}
   .date-inputs{width:100%}
   .rank-head,.tools-head{display:none}
-  .rank-list{display:grid;gap:12px}
-  .rank-line{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:none;border-bottom:1px solid var(--card-border);border-radius:0;background:transparent;box-shadow:none}
+  .rank-list{display:grid;gap:4px}
+  .rank-line{display:grid;grid-template-columns:1fr;gap:8px;padding:12px}
   .rank-line .arrow{display:none}
   .tool-row.model-group .arrow,.rank-line[data-project-index] .arrow{display:inline}
   .rank-line .name,.rank-line .model-name{white-space:normal;font-weight:700;color:var(--text)}
@@ -614,7 +619,7 @@ td:first-child{color:var(--muted)}
   .session-section table,.session-section tbody{display:block;min-width:0}
   .session-section thead{display:none}
   .session-section tr{display:grid;grid-template-columns:32px minmax(0,1fr) auto auto;gap:4px 12px;align-items:baseline;padding:12px 4px;border-bottom:1px solid var(--faint)}
-  .session-section td{padding:0;border:0;font-size:.85rem;white-space:nowrap;min-width:0}
+  .session-section td{padding:10px 16px;border:0;font-size:.85rem;white-space:nowrap;min-width:0}
   .session-section td:nth-child(1){grid-column:1;grid-row:1}
   .session-section td:nth-child(3){grid-column:2;grid-row:1;overflow:hidden;text-overflow:ellipsis;font-weight:600;color:var(--text)}
   .session-section td:nth-child(6){grid-column:3;grid-row:1;text-align:right}
