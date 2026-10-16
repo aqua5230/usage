@@ -8,7 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
-- **Antigravity shows the Gemini quota again.** usage queried Google's daily test server, which stopped returning the Gemini group, so only the smaller Claude and GPT group appeared. It now queries Google's production server, which returns both groups.
+- **Antigravity shows the Gemini quota again.** usage queried Google's daily test server, which stopped returning the Gemini group, so only the smaller Claude and GPT group appeared. It now queries Google's production server, which returns both groups. While the app is running, the Antigravity CLI status line uses these numbers too, since the CLI itself still reads the test server.
 - **The Antigravity 5-hour row says "Paused" once the weekly quota is used up.** Google pauses the 5-hour limit at that point, and the row used to read "0% used / Quota full", which looked usable.
 
 ## [0.33.7] - 2026-10-16
