@@ -1002,7 +1002,7 @@ def _fake_cli(
         return type("Completed", (), {"returncode": returncode, "stdout": stdout})()
 
     monkeypatch.setattr(agy_quota_probe, "find_agy", lambda: "/bin/agy")
-    monkeypatch.setattr(agy_quota_probe.subprocess, "run", run)
+    monkeypatch.setattr("loaders.agy_quota_probe.subprocess.run", run)
     return calls
 
 
