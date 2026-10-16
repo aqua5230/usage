@@ -265,8 +265,10 @@ function makeEnvironment(
     project: 'Project',
     rank: 'Rank',
     startTime: 'Start time',
-    trendCompareDown: 'This week dropped {pct}% vs last week.',
-    trendCompareFirst: 'First week of this period.',
+    trendCompareDown: 'Last complete week (W{week}) dropped {pct}% vs the preceding week.',
+    trendPartialWeek: 'only {days} days',
+    compositionMissing: 'Another {tokens} tokens have no input/output breakdown.',
+    trendCompareFirst: 'Fewer than two complete weeks to compare.',
     trendCompareFlat: 'Roughly flat vs last week.',
     trendCompareNew: 'This week has new usage vs last week.',
     trendCompareUp: 'This week is {ratio}× of last week.',
@@ -630,7 +632,7 @@ assert.equal(crossRows[0].getAttribute('title'), '2025-12-29 – 2026-01-04 · 1
 assert.equal(crossRows[0].querySelector('.delta').textContent, '');
 assert.equal(
   filterEnv.trendSection.querySelector('.trend-summary').textContent,
-  '→ First week of this period.'
+  '→ Fewer than two complete weeks to compare.'
 );
 const crossLists = filterEnv.compositionSection.querySelectorAll('.rank-list');
 assert.equal(filterEnv.compositionSection.hidden, false);
@@ -690,7 +692,7 @@ assert.equal(emptyDump.includes('Infinity'), false);
 const oneDay = applyFilter('2026-01-05', '2026-01-05');
 assert.equal(oneDay.tokens, 400);
 assert.equal(trendRows().length, 1);
-assert.equal(trendRows()[0].querySelector('.week').textContent, 'W2 (01/05–01/05)');
+assert.equal(trendRows()[0].querySelector('.week').textContent, 'W2 (01/05–01/05) · only 1 days');
 assert.equal(trendRows()[0].querySelector('.delta').textContent, 'in progress');
 assert.equal(filterEnv.compositionSection.hidden, false);
 const oneDaySessions = filterEnv.sessionSection.querySelectorAll('tr').slice(1);
@@ -704,16 +706,17 @@ applyFilter('2025-12-28', '2026-01-05');
 const fullRows = trendRows();
 assert.deepEqual(
   fullRows.map((row) => row.querySelector('.week').textContent),
-  ['W52 (12/28–12/28)', 'W1 (12/29–01/04)', 'W2 (01/05–01/05)']
+  ['W52 (12/28–12/28) · only 1 days', 'W1 (12/29–01/04)', 'W2 (01/05–01/05)']
 );
 assert.deepEqual(
   fullRows.map((row) => row.querySelector('em').textContent),
   ['200', '100', '400']
 );
+assert.equal(fullRows[1].querySelector('.delta').textContent, '');
 assert.equal(fullRows[2].querySelector('.delta').textContent, 'in progress');
 assert.equal(
   filterEnv.trendSection.querySelector('.trend-summary').textContent,
-  '→ This week dropped 50% vs last week.'
+  '→ Fewer than two complete weeks to compare.'
 );
 const ranked = filterEnv.sessionSection.querySelectorAll('tr').slice(1);
 assert.deepEqual(ranked.map((row) => row.children[5].textContent), ['400', '100', '50']);
@@ -757,7 +760,8 @@ assert.deepEqual(
   [['Claude Code', '44.4%'], ['Codex', '—']]
 );
 window.usageReportFilter.applyBounds({from: '2026-01-01', to: '2026-01-01'});
-assert.equal(ledgerEnv.compositionSection.hidden, true);
+assert.equal(ledgerEnv.compositionSection.hidden, false);
+assert.equal(ledgerLists[0].children.length, 0);
 console.log('ledger: filtered totals retained; composition, hit rates, sessions unchanged');
 
 const chartCube = {
@@ -829,11 +833,18 @@ const monthChart = monthEnv.trendSection.querySelector('.daily-chart-wrap');
 assert.deepEqual(monthChart.querySelectorAll('.daily-x-label').map((el) => el.textContent),
   ['01-31', '03-01', '04-02']);
 assert.deepEqual(monthChart.querySelectorAll('.daily-y-label').map((el) => el.textContent),
-  ['1', '0']);
+  ['2', '1', '0']);
 monthCube.rows = monthCube.rows.map((row) => [...row.slice(0, 4), 0, 0, 0, 0, 0, 1]);
 const zeroChartEnv = run(makeEnvironment(monthCube, {}, true, [], true));
 window.usageReportFilter.applyBounds({from: monthDays[0], to: monthDays.at(-1)});
 assert.ok(zeroChartEnv.trendSection.querySelector('.daily-chart-wrap').querySelector('.empty'));
+for (const [peak, ceiling] of [
+  [1040000000, '1.20B'], [900000000, '1.00B'], [1000000000, '1.20B'], [999, '1.0K'],
+]) {
+  const axisCube = {...chartCube, dates: ['2026-03-01'], rows: [[0, 0, 0, 0, peak, 0, 0, 0, 0, 1]]};
+  const axisEnv = run(makeEnvironment(axisCube, {}, false, [], true));
+  assert.equal(axisEnv.trendSection.querySelector('.daily-y-label').textContent, ceiling);
+}
 console.log('daily chart: date range rebuilds pricing; tokens/cost toggle redraws');
 """
 

@@ -1003,7 +1003,13 @@ def test_ledger_gap_preserves_composition_sessions_and_snapshot(
     assert data["by_agent"][0]["sessions"] == 1
     assert data["by_project"][0]["sessions"] == 1
     assert _cache_hit_rate(data["by_agent"][0]) == _cache_hit_rate(baseline["by_agent"][0])
-    assert _render_composition_section(data, "en") == _render_composition_section(baseline, "en")
+    rendered = _render_composition_section(data, "en")
+    assert "Another 800 tokens have no input/output breakdown." in rendered
+    import re
+
+    assert re.sub(r"<p[^>]*data-composition-missing.*?</p>", "", rendered) == re.sub(
+        r"<p[^>]*data-composition-missing.*?</p>", "", _render_composition_section(baseline, "en")
+    )
     real_cube = [row for row in data["cube"]["rows"] if len(row) < 11 or not row[10]]
     assert real_cube == baseline["cube"]["rows"]
     assert sum(sum(row[4:8]) for row in data["cube"]["rows"]) == 1000

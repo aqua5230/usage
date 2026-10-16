@@ -1013,10 +1013,10 @@ document.addEventListener('click', async (e) => {
   }
   function niceTicks(maximum, minimumStep = 0) {
     if (maximum <= 0) return [0];
-    const raw = maximum / 2;
-    const power = 10 ** Math.floor(Math.log10(raw));
-    const step = Math.max(minimumStep, [1, 2, 5, 10].find((value) => value * power >= raw) * power);
-    return Array.from({length: Math.ceil(maximum / step) + 1}, (_, index) => index * step);
+    const power = 10 ** Math.floor(Math.log10(maximum));
+    const ceiling = [1, 1.2, 1.5, 2, 2.5, 5, 10].find((value) => value * power > maximum) * power;
+    const step = Math.max(minimumStep, ceiling / 2);
+    return Array.from({length: Math.ceil(ceiling / step) + 1}, (_, index) => index * step);
   }
   function dateLabelIndices(days, plotWidth) {
     if (!days.length) return [];
@@ -1934,19 +1934,21 @@ document.addEventListener('click', async (e) => {
       ? weekly.slice(0, -1)
       : weekly;
     if (completed.length < 2) return `→ ${shareConfig.trendCompareFirst}`;
+    const week = completed[completed.length - 1].week;
+    const label = (text) => text.replace('{week}', String(week));
     const current = completed[completed.length - 1].tokens;
     const previous = completed[completed.length - 2].tokens;
     if (previous === 0) {
-      if (current === 0) return `→ ${shareConfig.trendCompareFlat}`;
-      return `→ ${shareConfig.trendCompareNew}`;
+      if (current === 0) return `→ ${label(shareConfig.trendCompareFlat)}`;
+      return `→ ${label(shareConfig.trendCompareNew)}`;
     }
     const pct = Math.round((current - previous) / previous * 100);
-    if (Math.abs(pct) <= 5) return `→ ${shareConfig.trendCompareFlat}`;
+    if (Math.abs(pct) <= 5) return `→ ${label(shareConfig.trendCompareFlat)}`;
     if (pct > 0) {
       const ratio = (current / previous).toFixed(1);
-      return `→ ${shareConfig.trendCompareUp.replace('{ratio}', ratio)}`;
+      return `→ ${label(shareConfig.trendCompareUp).replace('{ratio}', ratio)}`;
     }
-    return `→ ${shareConfig.trendCompareDown.replace('{pct}', String(Math.abs(pct)))}`;
+    return `→ ${label(shareConfig.trendCompareDown).replace('{pct}', String(Math.abs(pct)))}`;
   }
 
   function rebuildTrend(summary) {
@@ -1983,6 +1985,7 @@ document.addEventListener('click', async (e) => {
     }
     const dateTo = parseDate(summary.bounds.to);
     const rangeStart = parseDate(summary.bounds.from);
+    const firstPartial = rangeStart && rangeStart.getUTCDay() !== 1;
     const maxTokens = weekly.reduce((max, week) => Math.max(max, week.tokens), 0);
     const wrap = document.createElement('div');
     wrap.className = 'trend';
@@ -2003,7 +2006,9 @@ document.addEventListener('click', async (e) => {
       const row = document.createElement('div');
       row.className = 'trend-row';
       row.setAttribute('title', tooltip);
-      appendTextSpan(row, 'week', `W${week.week} (${formatDate(weekStart).slice(5).replace('-', '/')}–${formatDate(weekEnd).slice(5).replace('-', '/')})`);
+      const days = Math.round((weekEnd - weekStart) / 86400000) + 1;
+      const partial = idx === 0 && days < 7 ? ` · ${shareConfig.trendPartialWeek.replace('{days}', String(days))}` : '';
+      appendTextSpan(row, 'week', `W${week.week} (${formatDate(weekStart).slice(5).replace('-', '/')}–${formatDate(weekEnd).slice(5).replace('-', '/')})${partial}`);
       let width = 0;
       if (week.tokens > 0 && maxTokens > 0) {
         width = Math.max(2, Math.min(100, week.tokens / maxTokens * 100));
@@ -2022,7 +2027,7 @@ document.addEventListener('click', async (e) => {
       if (idx === weekly.length - 1 && dateTo && weekIsInProgress(week, dateTo)) {
         delta.className = 'delta flat';
         delta.textContent = shareConfig.trendWeekInProgress;
-      } else if (idx > 0) {
+      } else if (idx > 0 && !(idx === 1 && firstPartial)) {
         const change = trendDelta(week.tokens, weekly[idx - 1].tokens);
         delta.className = `delta ${change.className}`;
         delta.textContent = change.label;
@@ -2034,7 +2039,7 @@ document.addEventListener('click', async (e) => {
     });
     const summaryNode = document.createElement('div');
     summaryNode.className = 'trend-summary';
-    summaryNode.textContent = trendSummaryText(weekly, dateTo);
+    summaryNode.textContent = trendSummaryText(firstPartial ? weekly.slice(1) : weekly, dateTo);
     wrap.append(summaryNode);
     replaceSectionBody(section, wrap);
   }
@@ -2059,7 +2064,13 @@ document.addEventListener('click', async (e) => {
       cacheRead += Number(row[7]);
     });
     const total = input + output + cacheWrite + cacheRead;
-    if (total <= 0) {
+    const missing = Math.max(0, summary.tokens - total);
+    const missingNote = section.querySelector('[data-composition-missing]');
+    if (missingNote) {
+      missingNote.hidden = missing === 0;
+      missingNote.textContent = shareConfig.compositionMissing.replace('{tokens}', formatTokens(missing));
+    }
+    if (total <= 0 && missing === 0) {
       section.hidden = true;
       return;
     }
@@ -2278,6 +2289,8 @@ document.addEventListener('click', async (e) => {
     shortcutButtons.forEach((button) => {
       button.setAttribute('aria-pressed', String(button.dataset.range === key));
     });
+    const historyNote = document.querySelector('[data-history-note]');
+    if (historyNote) historyNote.hidden = key !== 'all';
     applyBounds(bounds);
   }
 
@@ -2286,6 +2299,8 @@ document.addEventListener('click', async (e) => {
   });
 
   function applyManualRange(event) {
+    const historyNote = document.querySelector('[data-history-note]');
+    if (historyNote) historyNote.hidden = true;
     shortcutButtons.forEach((button) => button.setAttribute('aria-pressed', 'false'));
     let bounds = normalizeBounds(fromInput.value, toInput.value);
     if (!bounds) return;

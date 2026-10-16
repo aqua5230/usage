@@ -88,13 +88,15 @@ def render_daily_chart_toggle(t: Callable[[str], str]) -> str:
 
 
 def nice_ticks(maximum: float, minimum_step: float = 0) -> list[float]:
-    """Use 1/2/5 steps and leave room above the highest bar."""
+    """Round the ceiling to a readable value, with two intervals where possible."""
     if maximum <= 0:
         return [0.0]
-    raw = maximum / 2
-    power = 10 ** math.floor(math.log10(raw))
-    step = max(minimum_step, next(value * power for value in (1, 2, 5, 10) if value * power >= raw))
-    return [index * step for index in range(math.ceil(maximum / step) + 1)]
+    power = 10 ** math.floor(math.log10(maximum))
+    ceiling = next(
+        value * power for value in (1, 1.2, 1.5, 2, 2.5, 5, 10) if value * power > maximum
+    )
+    step = max(minimum_step, ceiling / 2)
+    return [index * step for index in range(math.ceil(ceiling / step) + 1)]
 
 
 def date_label_indices(dates: list[str], plot_width: float = 704) -> list[int]:
@@ -286,10 +288,10 @@ REPORT_DAILY_CHART_JS = r"""(() => {
   }
   function niceTicks(maximum, minimumStep = 0) {
     if (maximum <= 0) return [0];
-    const raw = maximum / 2;
-    const power = 10 ** Math.floor(Math.log10(raw));
-    const step = Math.max(minimumStep, [1, 2, 5, 10].find((value) => value * power >= raw) * power);
-    return Array.from({length: Math.ceil(maximum / step) + 1}, (_, index) => index * step);
+    const power = 10 ** Math.floor(Math.log10(maximum));
+    const ceiling = [1, 1.2, 1.5, 2, 2.5, 5, 10].find((value) => value * power > maximum) * power;
+    const step = Math.max(minimumStep, ceiling / 2);
+    return Array.from({length: Math.ceil(ceiling / step) + 1}, (_, index) => index * step);
   }
   function dateLabelIndices(days, plotWidth) {
     if (!days.length) return [];

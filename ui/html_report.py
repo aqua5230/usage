@@ -218,19 +218,20 @@ def _trend_summary(weekly: list[dict[str, int | float]], lang: str, date_to: dat
     if len(completed) < 2:
         return f"→ {_t(lang, 'trend_compare_first')}"
 
+    week = int(completed[-1]["week"])
     current = int(completed[-1]["tokens"])
     previous = int(completed[-2]["tokens"])
     if previous == 0:
         if current == 0:
-            return f"→ {_t(lang, 'trend_compare_flat')}"
-        return f"→ {_t(lang, 'trend_compare_new')}"
+            return f"→ {_t(lang, 'trend_compare_flat', week=week)}"
+        return f"→ {_t(lang, 'trend_compare_new', week=week)}"
 
     pct = round((current - previous) / previous * 100)
     if abs(pct) <= 5:
-        return f"→ {_t(lang, 'trend_compare_flat')}"
+        return f"→ {_t(lang, 'trend_compare_flat', week=week)}"
     if pct > 0:
-        return f"→ {_t(lang, 'trend_compare_up', ratio=f'{current / previous:.1f}')}"
-    return f"→ {_t(lang, 'trend_compare_down', pct=abs(pct))}"
+        return f"→ {_t(lang, 'trend_compare_up', week=week, ratio=f'{current / previous:.1f}')}"
+    return f"→ {_t(lang, 'trend_compare_down', week=week, pct=abs(pct))}"
 
 
 _PALETTE = [
@@ -293,6 +294,7 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
     weekly = _weekly_trend(daily)
     max_tokens = max((int(week["tokens"]) for week in weekly), default=0)
     data_start = min((_parse_daily_date(day["date"]) for day in daily), default=None)
+    first_partial = data_start is not None and data_start.weekday() != 0
     rows = []
     for idx, week in enumerate(weekly):
         tokens = int(week["tokens"])
@@ -309,12 +311,17 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
             delta_html = (
                 f'<span class="delta flat">{_escape(_t(lang, "trend_week_in_progress"))}</span>'
             )
-        elif idx > 0:
+        elif idx > 0 and not (idx == 1 and first_partial):
             delta_class, delta_label = _trend_delta(tokens, int(weekly[idx - 1]["tokens"]), lang)
             delta_html = f'<span class="delta {delta_class}">{_escape(delta_label)}</span>'
+        partial_label = ""
+        if idx == 0 and (week_end - week_start).days < 6:
+            partial_label = " · " + _t(
+                lang, "trend_partial_week", days=(week_end - week_start).days + 1
+            )
         rows.append(
             f'<div class="trend-row" title="{tooltip}">'
-            f'<span class="week">W{int(week["week"])} ({week_start:%m/%d}–{week_end:%m/%d})</span>'
+            f'<span class="week">W{int(week["week"])} ({week_start:%m/%d}–{week_end:%m/%d}){_escape(partial_label)}</span>'
             f"{render_trend_bar(tokens, max_tokens)}"
             f"<em>{_fmt_tokens(tokens)}</em>"
             f"{delta_html}"
@@ -324,7 +331,10 @@ def _trend_ascii(daily: list[DailyTrendPoint], lang: str, date_to: date) -> str:
         return _empty_line(_t(lang, "empty_daily"))
 
     trend_rows = "".join(rows)
-    summary = f'<div class="trend-summary">{_escape(_trend_summary(weekly, lang, date_to))}</div>'
+    comparable = weekly[1:] if first_partial else weekly
+    summary = (
+        f'<div class="trend-summary">{_escape(_trend_summary(comparable, lang, date_to))}</div>'
+    )
     return f'<div class="trend">{trend_rows}{summary}</div>'
 
 
@@ -346,7 +356,7 @@ def _hour_histogram_html(histogram: list[int], lang: str) -> str:
             "</div>"
         )
     peak = (
-        f'<div class="persona-peak">{_escape(_t(lang, "persona_peak", count=max_count))}</div>'
+        f'<div class="persona-peak">{_escape(_t(lang, "persona_peak", count=max_count, hour=f"{values.index(max_count):02d}:00–{values.index(max_count) + 1:02d}:00"))}</div>'
         if max_count
         else ""
     )
@@ -649,13 +659,23 @@ def _date_filter(data: Mapping[str, Any], lang: str) -> str:
             ("all", "range_all"),
         )
     )
+    earlier = any(
+        str(cell.get("date", "")) < str(dates[0]) and int(cell.get("tokens", 0)) > 0
+        for week in data.get("contribution", {}).get("weeks", [])
+        for cell in week
+    )
+    history_note = (
+        f'<p class="composition-hint" data-history-note hidden>{_escape(_t(lang, "history_scope", date=dates[0]))}</p>'
+        if earlier
+        else ""
+    )
     return (
         '<div class="date-filter" data-date-filter>'
         f'<div class="date-shortcuts">{buttons}</div>'
         '<div class="date-inputs">'
         f'<label>{_escape(_t(lang, "date_from"))}<input type="date" data-date-from min="{date_min}" max="{date_max}"></label>'
         f'<label>{_escape(_t(lang, "date_to"))}<input type="date" data-date-to min="{date_min}" max="{date_max}"></label>'
-        "</div></div>"
+        f"</div></div>{history_note}"
     )
 
 
@@ -780,7 +800,8 @@ def _render_composition_section(data: Mapping[str, Any], lang: str) -> str:
         ("cache_read", int(summary.get("cache_read_tokens", 0))),
     ]
     total = sum(tokens for _key, tokens in parts)
-    if total <= 0:
+    missing = max(0, int(summary.get("total_tokens", 0)) - total)
+    if total <= 0 and not missing:
         return ""
     colors = {key: _PALETTE[index] for index, (key, _tokens) in enumerate(parts)}
 
@@ -818,6 +839,7 @@ def _render_composition_section(data: Mapping[str, Any], lang: str) -> str:
 
     body = (
         f'<div class="rank-list">{rows}</div>'
+        f'<p class="composition-hint" data-composition-missing{(" hidden" if not missing else "")}>{_escape(_t(lang, "composition_missing", tokens=_fmt_tokens(missing)))}</p>'
         f'<div class="rank-head"><span></span>'
         f"<span>{_escape(_t(lang, 'composition_hit_rate'))}</span></div>"
         f'<p class="composition-hint">{_escape(_t(lang, "composition_hint"))}</p>'
@@ -1044,7 +1066,7 @@ def _render_contribution_section(data: Mapping[str, Any], lang: str) -> str:
         "</div>"
     )
     return _section(
-        _t(lang, "contribution_section"),
+        _t(lang, "contribution_section", weeks=len(weeks)),
         body,
         "contribution-section",
         before_prompt=(
@@ -1084,9 +1106,19 @@ def _render_wrapped_section(data: Mapping[str, Any], lang: str) -> str:
     if beast not in {"phoenix", "dragon"}:
         return ""
 
-    weeks = wrapped.get("weeks", 53)
+    grid = data.get("contribution", {}).get("weeks", [])
+    weeks = len(grid) if grid else wrapped.get("weeks", 53)
     beast_name = _t(lang, f"wrapped_beast_{beast}_title")
-    beast_caption = _t(lang, f"wrapped_beast_{beast}_caption")
+    claude = int(wrapped.get("claude_tokens", 0))
+    codex = int(wrapped.get("codex_tokens", 0))
+    winner, other = (claude, codex) if beast == "phoenix" else (codex, claude)
+    suffix = "_dominant" if winner > 0 and winner >= 2 * other else ""
+    beast_caption = _t(lang, f"wrapped_beast_{beast}_caption{suffix}")
+    cost_note = (
+        _t(lang, "wrapped_cost_scope", date=wrapped["cost_recorded_from"])
+        if wrapped.get("cost_recorded_from")
+        else _t(lang, "wrapped_cost_no_records")
+    )
     books = _estimate_books(int(wrapped.get("total_tokens", 0)))
     top_project = _display_name(wrapped.get("top_project"), lang)
     top_model = _display_name(wrapped.get("top_model"), lang)
@@ -1104,7 +1136,7 @@ def _render_wrapped_section(data: Mapping[str, Any], lang: str) -> str:
         f'<img src="{_escape(_sprite_data_uri(str(beast)))}" alt="{_escape(beast_name)}">'
         "</div>"
         '<div class="wrapped-metrics">'
-        f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_total_cost", weeks=weeks))}</span><b>{_escape(_fmt_cost(float(wrapped.get("total_cost", 0.0))))}</b></div>'
+        f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_total_cost", weeks=weeks))}</span><b>{_escape(_fmt_cost(float(wrapped.get("total_cost", 0.0))))}</b><small>{_escape(cost_note)}</small></div>'
         f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_active_days"))}</span><b>{_escape(_fmt_int(int(wrapped.get("active_days", 0))))}</b></div>'
         f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_longest_streak"))}</span><b>{_escape(_fmt_int(int(wrapped.get("longest_streak", 0))))} {_escape(_t(lang, "contribution_days_unit"))}</b></div>'
         f'<div class="wrapped-metric"><span>{_escape(_t(lang, "wrapped_top_model"))}</span><b>{_escape(top_model)}</b></div>'
@@ -1201,6 +1233,8 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                 "compositionCacheWrite": _t(lang, "composition_cache_write"),
                 "compositionHitRate": _t(lang, "composition_hit_rate"),
                 "compositionInput": _t(lang, "composition_input"),
+                "compositionMissing": _t(lang, "composition_missing", tokens="{tokens}"),
+                "trendPartialWeek": _t(lang, "trend_partial_week", days="{days}"),
                 "compositionOutput": _t(lang, "composition_output"),
                 "duration": _t(lang, "duration"),
                 "dailyChartTitle": _t(lang, "daily_chart_title"),
@@ -1218,11 +1252,11 @@ def _share_config_json(lang: str, *, interactive: bool = False) -> str:
                 "pricingUnpriced": _t(lang, "pricing_unpriced"),
                 "rank": _t(lang, "rank"),
                 "startTime": _t(lang, "start_time"),
-                "trendCompareDown": _t(lang, "trend_compare_down", pct="{pct}"),
+                "trendCompareDown": _t(lang, "trend_compare_down", week="{week}", pct="{pct}"),
                 "trendCompareFirst": _t(lang, "trend_compare_first"),
-                "trendCompareFlat": _t(lang, "trend_compare_flat"),
-                "trendCompareNew": _t(lang, "trend_compare_new"),
-                "trendCompareUp": _t(lang, "trend_compare_up", ratio="{ratio}"),
+                "trendCompareFlat": _t(lang, "trend_compare_flat", week="{week}"),
+                "trendCompareNew": _t(lang, "trend_compare_new", week="{week}"),
+                "trendCompareUp": _t(lang, "trend_compare_up", week="{week}", ratio="{ratio}"),
                 "trendMarkerNew": _t(lang, "trend_marker_new"),
                 "trendWeekInProgress": _t(lang, "trend_week_in_progress"),
             }
@@ -1332,11 +1366,11 @@ def generate_html(
             f"  {_render_composition_section(report_data, lang).strip()}\n"
             f"  {_render_project_section(report_data, lang)}\n"
             f"  {_render_session_section(report_data, lang)}\n"
-            f"{('  ' + ledger_section + chr(10)) if ledger_section else ''}"
             f"  {_render_appendix(report_data, lang)}\n"
         )
         fixed_sections = (
             f"  {_render_contribution_section(report_data, lang)}\n"
+            f"{('  ' + ledger_section + chr(10)) if ledger_section else ''}"
             f"  {_render_persona_section(report_data, lang)}{_render_recent_titles_section(report_data, lang)}\n"
             f"  {_render_wrapped_section(report_data, lang)}\n"
         )

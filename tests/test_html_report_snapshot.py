@@ -511,7 +511,7 @@ def test_generate_html_shows_formatted_unpriced_cost_note() -> None:
 
     html = html_report.generate_html(data, language="zh-TW")
 
-    assert "另有 1.2M tokens 無公開價格" in html
+    assert "其中 1.2M tokens 無公開價格，未計入" in html
     assert "另有 1234567 tokens 無公開價格" not in html
 
 
@@ -699,8 +699,9 @@ def test_generate_html_adds_date_filter_cards_and_fixed_group_note_for_cube() ->
         assert section, class_name
         assert "fixed-range-tag" in section.group(0)
     assert (
-        "<summary><span>[usage]&gt;</span> How cost is calculated"
-        '<span class="appendix-desc">Public API price conversion · Cost confidence</span>' in html
+        "<summary><span>[usage]&gt;</span> How API equivalent is calculated"
+        '<span class="appendix-desc">Public API price conversion · API equivalent confidence</span>'
+        in html
     )
 
 
@@ -907,7 +908,7 @@ def test_trend_summary_excludes_an_unfinished_final_week() -> None:
     ]
 
     assert html_report._trend_summary(weekly, "en", date(2026, 8, 31)) == (
-        "→ This week is 2.0× of last week."
+        "→ Last complete week (W35) is 2.0× the preceding week."
     )
 
 
@@ -918,7 +919,7 @@ def test_trend_summary_returns_first_week_copy_without_two_completed_weeks() -> 
     ]
 
     assert html_report._trend_summary(weekly, "en", date(2026, 8, 31)) == (
-        "→ First week of this period."
+        "→ Fewer than two complete weeks to compare."
     )
 
 
@@ -977,7 +978,7 @@ def test_projects_include_remainder_share_and_cost_without_mutating_input() -> N
     assert '<span class="name">Other projects</span>' in rendered
     assert 'data-label="Share">25.0%</span>' in rendered
     assert 'data-label="Tokens">25</span>' in rendered
-    assert 'data-label="Cost">$1.00</span>' in rendered
+    assert 'data-label="API equivalent">$1.00</span>' in rendered
     assert len(data["by_project"]) == 1
     data["summary"]["total_tokens"] = 75
     assert "Other projects" not in html_report._render_project_section(data, "en")

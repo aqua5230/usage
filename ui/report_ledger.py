@@ -18,6 +18,8 @@ def _label(lang: str, key: str, **kwargs: object) -> str:
 def format_pct(value: float | None, lang: str) -> str:
     if value is None:
         return "—"
+    if 0 < value < 0.1:
+        return "<0.1%"
     number = f"{value:.1f}" if value < 1 else f"{value:.0f}"
     return _label(lang, "quota_approx", value=number)
 
@@ -57,7 +59,12 @@ def render_ledger(data: Mapping[str, Any], lang: str) -> str:
         count = int(ledger.get(key, 0))
         if count:
             unowned.append(
-                _label(lang, "ledger_unowned_part", count=count, agent=_label(lang, label))
+                _label(
+                    lang,
+                    "ledger_unowned_part",
+                    count=count,
+                    agent={"ledger_codex": "Codex", "ledger_agy": "Antigravity"}[label],
+                )
             )
     items = _label(lang, "ledger_unowned_sep").join(unowned)
     note = (
@@ -69,7 +76,8 @@ def render_ledger(data: Mapping[str, Any], lang: str) -> str:
         '<section class="section dispatch-ledger-section">'
         f'<div class="prompt"><span>[usage]&gt;</span> {html.escape(_label(lang, "ledger_section"))}</div>'
         '<div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>'
-        f'<div class="table-wrap"><table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>{note}'
+        f"<div>{note}</div>"
         f"<div><small>{html.escape(_label(lang, 'ledger_pct_note'))}</small></div>"
+        f'<div class="table-wrap"><table><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
         "</section>"
     )
