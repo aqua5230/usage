@@ -7,6 +7,11 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+## [0.33.10] - 2026-10-16
+
+### Fixed
+- **Windows installs hooks and keeps them up to date again.** Since v0.33.2 the Windows build left the hook scripts out of the folder the installer reads, so first-run setup and the resume, terse and quota-aware toggles silently did nothing, and existing hooks stopped updating. macOS was not affected.
+
 ## [0.33.9] - 2026-10-16
 
 ### Added
