@@ -791,3 +791,13 @@ def test_load_entries_handles_synthesized_entry_boundaries(
         ("deepseek-chat", 17, 20.0),
     ]
     assert grok_loader.load_entries(hours_back=1) == []
+
+
+def test_grok_models_resolve_to_xai_prices() -> None:
+    from usage_common.pricing import _resolve_model_key
+
+    price = {"input_cost_per_token": 2e-06, "output_cost_per_token": 6e-06}
+    prices = {"xai/grok-4.7": price, "xai/grok-4.20": price}
+
+    assert _resolve_model_key("grok-4.7", prices) == "xai/grok-4.7"
+    assert _resolve_model_key("grok-4.6", prices) is None
