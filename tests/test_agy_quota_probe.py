@@ -160,10 +160,8 @@ def test_find_agy_returns_none_when_all_paths_miss(
 # --- token freshness + refresh --------------------------------------------
 
 
-def test_quota_url_matches_current_cli_backend() -> None:
-    assert _QUOTA_URL == (
-        "https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary"
-    )
+def test_quota_url_uses_production_host() -> None:
+    assert _QUOTA_URL == ("https://cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary")
 
 
 def test_resolve_access_token_uses_disk_token_when_not_expired(
