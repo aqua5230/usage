@@ -950,3 +950,104 @@ def test_cache_roundtrips_unreported_window(weekly: bool) -> None:
     payload = json.loads(agy_quota_probe.CACHE_PATH.read_text())
     assert payload["groups"][0]["five_hour" if weekly else "weekly"] is None
     assert agy_quota_probe._read_cache() == result
+
+
+# conftest disables the CLI probe for every test; keep the real one for these.
+_real_probe_via_cli = agy_quota_probe._probe_via_cli
+
+
+def _usage_command_output(now: datetime) -> bytes:
+    """Shape of ``agy -p /usage --output-format json`` from agy 1.4.0."""
+
+    def bucket(bucket_id: str, window: str, fraction: float, hours: float) -> dict[str, object]:
+        reset = (now + timedelta(hours=hours)).strftime("%Y-%m-%dT%H:%M:%SZ")
+        return {
+            "id": bucket_id,
+            "window": window,
+            "remaining_fraction": fraction,
+            "reset_time": reset,
+        }
+
+    groups = [
+        {
+            "name": "Gemini Models",
+            "buckets": [
+                bucket("gemini-weekly", "weekly", 0.9342781901359558, 157),
+                bucket("gemini-5h", "5h", 0.9983674883842468, 4),
+            ],
+        },
+        {
+            "name": "Claude and GPT models",
+            "buckets": [
+                bucket("3p-weekly", "weekly", 0, 49),
+                {"id": "3p-5h", "window": "5h", "disabled": True, "remaining_fraction": 1},
+            ],
+        },
+        {
+            "name": "Gemini 4 Argon",
+            "buckets": [bucket("gemini-argon-wtu-weekly", "weekly", 0, 160)],
+        },
+    ]
+    payload = {"status": "SUCCESS", "command": {"name": "usage", "data": {"groups": groups}}}
+    return json.dumps(payload).encode()
+
+
+def _fake_cli(
+    monkeypatch: pytest.MonkeyPatch, stdout: bytes, returncode: int = 0
+) -> list[list[str]]:
+    calls: list[list[str]] = []
+
+    def run(command: list[str], **kwargs: object) -> object:
+        calls.append(command)
+        return type("Completed", (), {"returncode": returncode, "stdout": stdout})()
+
+    monkeypatch.setattr(agy_quota_probe, "find_agy", lambda: "/bin/agy")
+    monkeypatch.setattr(agy_quota_probe.subprocess, "run", run)
+    return calls
+
+
+def test_cli_probe_reads_gemini_weekly_and_ignores_argon(monkeypatch: pytest.MonkeyPatch) -> None:
+    calls = _fake_cli(monkeypatch, _usage_command_output(datetime.now(UTC)))
+
+    result = _real_probe_via_cli(15)
+
+    assert result is not None
+    assert calls[0][:5] == ["/bin/agy", "-p", "/usage", "--output-format", "json"]
+    gemini, claude = result.groups
+    assert gemini.name == "GEMINI MODELS"
+    assert gemini.weekly is not None and gemini.weekly.remaining_percent == pytest.approx(
+        93.43, abs=0.01
+    )
+    assert gemini.five_hour is not None and gemini.five_hour.remaining_percent == pytest.approx(
+        99.84, abs=0.01
+    )
+    assert claude.name == "CLAUDE AND GPT MODELS"
+    assert claude.weekly is not None and claude.weekly.remaining_percent == 0
+    assert claude.five_hour == AgyQuotaWindow(100.0, None, None)
+
+
+@pytest.mark.parametrize(
+    ("stdout", "returncode"),
+    [
+        (b"{}", 1),
+        (b"not json", 0),
+        (b'{"status": "SUCCESS", "response": "unknown command"}', 0),
+    ],
+)
+def test_cli_probe_returns_none_on_unusable_output(
+    monkeypatch: pytest.MonkeyPatch, stdout: bytes, returncode: int
+) -> None:
+    _fake_cli(monkeypatch, stdout, returncode)
+    assert _real_probe_via_cli(15) is None
+
+
+def test_probe_quota_prefers_cli_over_api(monkeypatch: pytest.MonkeyPatch) -> None:
+    result = AgyQuotaResult(groups=[], fetched_at=datetime.now(UTC).isoformat())
+    agy_quota_probe.AUTH_EXPIRED_PATH.touch()
+    monkeypatch.setattr(agy_quota_probe, "_probe_via_cli", lambda timeout: result)
+    monkeypatch.setattr(
+        agy_quota_probe, "_resolve_access_token", lambda timeout: pytest.fail("API must not run")
+    )
+
+    assert agy_quota_probe.probe_quota() == result
+    assert not agy_quota_probe.auth_expired()
