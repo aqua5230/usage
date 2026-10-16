@@ -99,6 +99,19 @@ def test_render_prefers_fresh_usage_cache_over_cli_quota(
     assert absent not in output
 
 
+def test_usage_cache_argon_group_does_not_overwrite_gemini() -> None:
+    _write_usage_cache(timedelta(minutes=1))
+    path = Path(usage_statusline_agy.USAGE_AGY_CACHE)
+    cache = json.loads(path.read_text(encoding="utf-8"))
+    argon_weekly = {"remaining_percent": 0.0, "resets_in_minutes": 9000}
+    cache["groups"].append({"name": "GEMINI 4 ARGON", "weekly": argon_weekly, "five_hour": None})
+    path.write_text(json.dumps(cache), encoding="utf-8")
+
+    quota = usage_statusline_agy._usage_cached_quota()
+
+    assert quota["gemini-weekly"]["remaining_fraction"] == pytest.approx(0.85)
+
+
 def test_render_fixture_contains_expected_status(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("USAGE_LANG", "en")
 

@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.1"
+__version__ = "1.2"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 STATE_PATH = Path.home() / ".usage/quota_aware_state.json"
@@ -96,6 +96,13 @@ def _save(state: dict[str, Any]) -> None:
             os.unlink(temporary)
 
 
+def _usage(used: float, reset: float, now: float) -> str:
+    minutes = max(1, math.ceil((reset - now) / 60))
+    hours, minutes = divmod(minutes, 60)
+    duration = f"{hours}h {minutes}m" if hours else f"{minutes}m"
+    return f"{used:g}% used, resets in {duration}"
+
+
 def reminder(session_id: str, now: float) -> str:
     state = {
         key: value
@@ -105,32 +112,64 @@ def reminder(session_id: str, now: float) -> str:
         and _number(value.get("level")) is not None
     }
     messages = []
-    for tool, window, used, reset in _windows(now):
+    limited = set()
+    windows = _windows(now)
+    for tool, window, used, reset in windows:
         thresholds = (80, 90, 95) if window == "five_hour" else (95,)
         level = max((threshold for threshold in thresholds if used >= threshold), default=0)
+        if level:
+            limited.add(tool)
         # Antigravity's reset is derived from whole-second fields and can drift by a second
         # between snapshots; key on the minute so the same window is not announced twice.
         key = json.dumps([session_id, tool, window, round(reset / 60)])
         if not level or level <= state.get(key, {}).get("level", 0):
             continue
-        minutes = max(1, math.ceil((reset - now) / 60))
-        hours, minutes = divmod(minutes, 60)
-        duration = f"{hours}h {minutes}m" if hours else f"{minutes}m"
         label = "5-hour" if window == "five_hour" else "weekly"
-        messages.append(f"{tool} {label} quota: {used:g}% used, resets in {duration}.")
+        usage = _usage(used, reset, now)
+        if tool.startswith("Antigravity ("):
+            group = tool[len("Antigravity (") : -1]
+            messages.append(
+                f'Antigravity CLI (agy) model group "{group}": {label} quota: {usage}. '
+                "Only limits work sent to agy with those models."
+            )
+        else:
+            scope = "work run in Claude Code" if tool == "Claude Code" else "work sent to Codex"
+            messages.append(f"{tool} {label} quota: {usage}. Only limits {scope}.")
         state[key] = {"resets_at": reset, "level": level}
     if not messages:
         return ""
     _save(state)
+    # A spent agy model group reads as "Antigravity is used up" unless the groups that
+    # still have quota are named next to it.
+    open_groups: dict[str, float] = {}
+    for tool, _window, used, _reset in windows:
+        if tool.startswith("Antigravity (") and tool not in limited:
+            group = tool[len("Antigravity (") : -1]
+            open_groups[group] = max(used, open_groups.get(group, 0.0))
+    if open_groups and any(tool.startswith("Antigravity (") for tool in limited):
+        usable = "; ".join(f'"{group}" {used:g}% used' for group, used in open_groups.items())
+        messages.append(
+            f"Other agy model groups still have quota: {usable}. Work sent to agy with "
+            "those models is unaffected, so Antigravity as a whole is not used up."
+        )
+    own = {
+        window: _usage(used, reset, now)
+        for tool, window, used, reset in windows
+        if tool == "Claude Code"
+    }
+    own_status = (
+        f"5-hour {own.get('five_hour', 'unknown')}; weekly {own.get('seven_day', 'unknown')}."
+        if own
+        else "unknown."
+    )
     return (
-        "[usage quota] " + " ".join(messages) + "\n"
-        "Each quota above is separate: it only limits work that runs on that tool, and a "
-        "model group in parentheses only limits that group's models; other groups are "
-        "unaffected. "
+        "[usage quota] " + "\n".join(messages) + "\n"
+        "Quotas for other tools or model groups do not limit this Claude Code session. "
         "Before starting a large task (many files, long runs, subagents) that will use one "
         "of these quotas, tell the user the remaining quota and reset time, and ask whether "
         "to do a smaller part now or wait for the reset. Otherwise, just proceed and don't "
-        "mention quota."
+        "mention quota.\n"
+        f"Claude Code's own quota: {own_status} This Claude Code session runs on this quota."
     )
 
 

@@ -149,6 +149,7 @@ def _isolate_dispatch_ledger_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: 
     monkeypatch.setattr(agy_loader, "AGY_SESSIONS_DIR", tmp_path / "agy-conversations")
     monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", tmp_path / "agy_quota_cache.json")
     monkeypatch.setattr(agy_quota_probe, "AUTH_EXPIRED_PATH", tmp_path / "agy_auth_expired")
+    monkeypatch.setattr(agy_quota_probe, "_probe_via_cli", lambda timeout: None)
 
 
 @pytest.fixture(autouse=True)

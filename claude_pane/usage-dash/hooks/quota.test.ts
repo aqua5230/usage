@@ -22,6 +22,10 @@ test('agy 的 Claude / GPT 群組不進面板', () => {
   const data = parseQuota('{"agents":{"antigravity":{"available":true,"groups":[{"name":"GEMINI MODELS","five_hour":{"used_percent":28}},{"name":"CLAUDE AND GPT MODELS","five_hour":{"used_percent":99}},{"name":"Claude / GPT"}]}}}')
   expect(data.agents.antigravity!.groups).toEqual([{ name: 'GEMINI MODELS', five_hour: { used_percent: 28 } }])
 })
+test('agy 的 Gemini 4 Argon 群組不進面板', () => {
+  const data = parseQuota('{"agents":{"antigravity":{"available":true,"groups":[{"name":"GEMINI MODELS","seven_day":{"used_percent":8}},{"name":"GEMINI 4 ARGON","seven_day":{"used_percent":100}}]}}}')
+  expect(data.agents.antigravity!.groups).toEqual([{ name: 'GEMINI MODELS', seven_day: { used_percent: 8 } }])
+})
 test('隱藏區塊設定會移除對應工具且不改原資料', () => {
   const data = parseQuota('{"agents":{"claude-code":{"available":true},"codex":{"available":true},"antigravity":{"available":true},"grok":{"available":true}}}')
   expect(hideAgents(data,'{"hide_grok_section":true}').agents).not.toHaveProperty('grok')

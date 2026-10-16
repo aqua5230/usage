@@ -4,12 +4,13 @@
 # Part of "usage". Free software licensed under the GNU Affero General Public
 # License v3.0 only; see the LICENSE file for full terms and the warranty disclaimer.
 
-"""Fetch Antigravity quota straight from the official Cloud Code quota API.
+"""Fetch Antigravity quota from the Antigravity CLI, or the official Cloud Code quota API.
 
-Reads the OAuth token that the Antigravity CLI stores in the platform credential
-store (with its legacy token file as fallback), refreshes it through Google's
-token endpoint when stale, then POSTs the internal ``retrieveUserQuotaSummary``
-endpoint for the quota summary. No CLI is spawned, no screen text is parsed.
+First runs ``agy -p /usage --output-format json``, which returns every quota group
+as JSON without a model call. When that fails, reads the OAuth token that the
+Antigravity CLI stores in the platform credential store (with its legacy token file
+as fallback), refreshes it through Google's token endpoint when stale, then POSTs
+the internal ``retrieveUserQuotaSummary`` endpoint for the quota summary.
 """
 
 from __future__ import annotations
@@ -38,6 +39,7 @@ from usage_common.subprocess_utils import hidden_console_kwargs
 
 CACHE_PATH = Path(os.path.expanduser("~/.usage/agy_quota_cache.json"))
 AUTH_EXPIRED_PATH = CACHE_PATH.parent / "agy_auth_expired"
+_CLI_LOG_PATH = CACHE_PATH.parent / "agy_usage_cli.log"
 
 
 def auth_expired() -> bool:
@@ -122,9 +124,14 @@ class AgyQuotaResult:
 
 
 def probe_quota(timeout_seconds: float = 15) -> AgyQuotaResult | None:
-    """Fetch the quota summary via the Cloud Code API, returning no result on failure."""
+    """Fetch the quota from the Antigravity CLI, else the Cloud Code API; None on failure."""
     if timeout_seconds <= 0:
         return None
+    result = _probe_via_cli(timeout_seconds)
+    if result is not None:
+        with suppress(OSError):
+            AUTH_EXPIRED_PATH.unlink(missing_ok=True)
+        return result
     access_token = _resolve_access_token(timeout_seconds)
     if access_token is None:
         return None
@@ -142,6 +149,42 @@ def probe_quota(timeout_seconds: float = 15) -> AgyQuotaResult | None:
         with suppress(OSError):
             AUTH_EXPIRED_PATH.unlink(missing_ok=True)
     return result
+
+
+def _probe_via_cli(timeout: float) -> AgyQuotaResult | None:
+    """Read ``agy -p /usage`` JSON, the only source that reports the Gemini weekly window.
+
+    The slash command makes no model call. ``--log-file`` reuses one file instead of
+    leaving a new log in the CLI's log directory on every probe.
+    """
+    agy = find_agy()
+    if agy is None:
+        return None
+    command = [agy, "-p", "/usage", "--output-format", "json", "--log-file", str(_CLI_LOG_PATH)]
+    try:
+        completed = subprocess.run(
+            command,
+            check=False,
+            capture_output=True,
+            timeout=timeout,
+            stdin=subprocess.DEVNULL,
+            **hidden_console_kwargs(),
+        )
+    except (OSError, subprocess.SubprocessError):
+        return None
+    if completed.returncode != 0:
+        return None
+    try:
+        payload = json.loads(completed.stdout)
+    except ValueError:
+        return None
+    command_info = payload.get("command") if isinstance(payload, dict) else None
+    groups_raw = _extract_groups(
+        command_info.get("data") if isinstance(command_info, dict) else None
+    )
+    if not groups_raw:
+        return None
+    return _build_result(groups_raw)
 
 
 def find_agy() -> str | None:
@@ -577,11 +620,12 @@ def _gemini_group_from_models(raw: object) -> AgyQuotaGroup | None:
 def _assemble_groups(
     windows: dict[str, dict[str, AgyQuotaWindow]],
 ) -> list[AgyQuotaGroup]:
-    """Lay out the two UI groups in fixed order, filling missing windows as full."""
+    """Lay out UI groups in fixed order; Argon has no five-hour window."""
     full = AgyQuotaWindow(100.0, None, None)
     layout = (
         ("gemini", "GEMINI MODELS", ["Gemini Flash", "Gemini Pro"]),
         ("claude-gpt", "CLAUDE AND GPT MODELS", ["Claude Opus", "Claude Sonnet", "GPT-OSS"]),
+        ("argon", "GEMINI 4 ARGON", ["Gemini 4 Argon"]),
     )
     groups: list[AgyQuotaGroup] = []
     for group_id, name, models in layout:
@@ -593,7 +637,7 @@ def _assemble_groups(
                 name=name,
                 models=list(models),
                 weekly=slot.get("weekly", full),
-                five_hour=slot.get("session", full),
+                five_hour=None if group_id == "argon" else slot.get("session", full),
             )
         )
     return groups
@@ -604,6 +648,8 @@ def _group_id(group: dict[str, object]) -> str | None:
     if name is None:
         return None
     lower = name.lower()
+    if "argon" in lower:
+        return "argon"
     if "gemini" in lower:
         return "gemini"
     if "claude" in lower or "gpt" in lower:

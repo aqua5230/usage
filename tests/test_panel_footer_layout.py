@@ -70,13 +70,28 @@ const context = vm.createContext({
 vm.runInContext(process.argv[1], context);
 for (const agy of [null, {}, { groupSwitchable: false },
   { groupSwitchable: true }, { groupSwitchable: false },
-  { groupSwitchable: true, groupName: 'CLAUDE AND GPT MODELS' }]) {
+  { groupSwitchable: true, groupName: 'CLAUDE AND GPT MODELS' },
+  { groupSwitchable: true, groupName: 'Gemini 4 Argon' }]) {
   context.agy = agy;
   vm.runInContext('renderAgy(agy)', context);
   assert.equal(button.hidden, !(agy && agy.groupSwitchable));
   if (agy && agy.groupSwitchable) {
-    assert.equal(button.dataset.group, agy.groupName ? 'gemini' : 'claude_gpt');
+    const current = agy.groupName === 'Gemini 4 Argon' ? 'argon'
+      : agy.groupName ? 'claude_gpt' : 'gemini';
+    assert.equal(button.textContent, 'agy_group_' + current);
+    assert.equal(button.dataset.group,
+      { gemini: 'claude_gpt', claude_gpt: 'argon', argon: 'gemini' }[current]);
   }
+}
+const names = { gemini: 'GEMINI MODELS', claude_gpt: 'CLAUDE AND GPT MODELS',
+  argon: 'GEMINI 4 ARGON' };
+let current = 'gemini';
+for (const next of ['claude_gpt', 'argon', 'gemini']) {
+  context.agy = { groupSwitchable: true, groupName: names[current] };
+  vm.runInContext('renderAgy(agy)', context);
+  assert.equal(button.textContent, 'agy_group_' + current);
+  assert.equal(button.dataset.group, next);
+  current = button.dataset.group;
 }
 """,
             script,

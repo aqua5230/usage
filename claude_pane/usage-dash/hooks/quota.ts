@@ -22,9 +22,9 @@ export function parseQuota(text: string): Quotas {
     const row = agent as Quotas['agents'][string]
     return [key, row.available === true ? row : { available: false, reason: ['not_signed_in','no_data','error'].includes(row.reason ?? '') ? row.reason : 'no_data' }]
   })) as Quotas['agents']
-  // agy's Claude / GPT pool barely moves and the menu bar panel already shows it; in the pane it is noise.
+  // agy's Claude / GPT pool and the weekly-only Gemini 4 Argon pool are shown in the menu bar panel; in the pane they are noise.
   const agy = agents.antigravity
-  if (agy?.groups) agents.antigravity = { ...agy, groups: agy.groups.filter(group => !['CLAUDE AND GPT MODELS', 'Claude / GPT'].includes(group.name)) }
+  if (agy?.groups) agents.antigravity = { ...agy, groups: agy.groups.filter(group => !['CLAUDE AND GPT MODELS', 'Claude / GPT'].includes(group.name) && !/argon/i.test(group.name)) }
   return { agents }
 }
 export function hideAgents(data: Quotas, preferences: string): Quotas {

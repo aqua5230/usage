@@ -113,10 +113,130 @@ def test_snapshot_and_agy_reset(paths: Path) -> None:
     snapshot()
     output = hook.reminder("one", NOW)
     assert "Codex 5-hour quota: 91% used" in output
-    assert "Antigravity (Gemini) 5-hour quota: 82% used, resets in 40m." in output
+    assert 'Antigravity CLI (agy) model group "Gemini": 5-hour quota: 82% used' in output
+    assert "resets in 40m. Only limits work sent to agy with those models." in output
     state = json.loads(hook.STATE_PATH.read_text(encoding="utf-8"))
     assert any(value["resets_at"] == NOW + 2400 for value in state.values())
     assert hook.reminder("one", NOW) == ""
+
+
+def agy_weekly() -> None:
+    snapshot()
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"].pop("codex")
+    data["agents"]["antigravity"]["groups"] = [
+        {
+            "name": "CLAUDE AND GPT MODELS",
+            "seven_day": {"used_percent": 100, "resets_in_seconds": 177300},
+        }
+    ]
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+
+
+def test_agy_weekly_has_explicit_scope_and_own_quota(paths: Path) -> None:
+    claude(3, 12)
+    agy_weekly()
+    output = hook.reminder("one", NOW)
+    assert output.startswith(
+        '[usage quota] Antigravity CLI (agy) model group "CLAUDE AND GPT MODELS": '
+        "weekly quota: 100% used, resets in 49h 15m. "
+        "Only limits work sent to agy with those models.\n"
+    )
+    assert output.endswith(
+        "Claude Code's own quota: 5-hour 3% used, resets in 1h 20m; "
+        "weekly 12% used, resets in 1h 20m. This Claude Code session runs on this quota."
+    )
+    assert hook.reminder("one", NOW) == ""
+
+
+def test_spent_agy_group_names_groups_that_still_have_quota(paths: Path) -> None:
+    claude(3, 12)
+    agy_weekly()
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"]["antigravity"]["groups"].append(
+        {
+            "name": "GEMINI MODELS",
+            "five_hour": {"used_percent": 1, "resets_in_seconds": 9000},
+            "seven_day": {"used_percent": 7.6, "resets_in_seconds": 500000},
+        }
+    )
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+
+    output = hook.reminder("one", NOW)
+
+    assert (
+        'Other agy model groups still have quota: "GEMINI MODELS" 7.6% used. '
+        "Work sent to agy with those models is unaffected, "
+        "so Antigravity as a whole is not used up.\n"
+    ) in output
+
+
+def test_no_open_group_line_when_every_agy_group_is_spent(paths: Path) -> None:
+    claude(3, 12)
+    agy_weekly()
+    assert "Other agy model groups" not in hook.reminder("one", NOW)
+
+
+@pytest.mark.parametrize("status", [None, "broken", '{"rate_limits": {}}'])
+def test_missing_own_quota_is_explicit(paths: Path, status: str | None) -> None:
+    if status is not None:
+        hook.CLAUDE_STATUS.write_text(status)
+    agy_weekly()
+    output = hook.reminder("one", NOW)
+    assert output.endswith(
+        "Claude Code's own quota: unknown. This Claude Code session runs on this quota."
+    )
+
+
+def test_own_quota_agrees_with_threshold_reminder(paths: Path) -> None:
+    claude(96, 100)
+    output = hook.reminder("one", NOW)
+    assert "Claude Code 5-hour quota: 96% used, resets in 1h 20m." in output
+    assert "Claude Code weekly quota: 100% used, resets in 1h 20m." in output
+    assert output.count("Claude Code's own quota:") == 1
+    assert output.endswith(
+        "Claude Code's own quota: 5-hour 96% used, resets in 1h 20m; "
+        "weekly 100% used, resets in 1h 20m. This Claude Code session runs on this quota."
+    )
+    assert "unknown" not in output
+
+
+@pytest.mark.parametrize("used", [0, 100])
+def test_own_quota_boundary_percentages(paths: Path, used: float) -> None:
+    claude(used, used)
+    agy_weekly()
+    output = hook.reminder("one", NOW)
+    assert f"Claude Code's own quota: 5-hour {used}% used" in output
+    assert f"weekly {used}% used" in output
+
+
+def test_expired_own_quota_is_unknown(paths: Path) -> None:
+    claude(100, 100, NOW - 1)
+    agy_weekly()
+    output = hook.reminder("one", NOW)
+    assert "Claude Code's own quota: unknown." in output
+    assert "Claude Code 5-hour quota:" not in output
+
+
+def test_partial_own_quota_keeps_missing_window_unknown(paths: Path) -> None:
+    hook.CLAUDE_STATUS.write_text(
+        json.dumps({"rate_limits": {"five_hour": {"used_percentage": 0, "resets_at": RESET}}})
+    )
+    agy_weekly()
+    assert "5-hour 0% used, resets in 1h 20m; weekly unknown." in hook.reminder("one", NOW)
+
+
+def test_empty_agy_groups(paths: Path) -> None:
+    agy_weekly()
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"]["antigravity"]["groups"] = []
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    claude(0, 0)
+    assert hook.reminder("one", NOW) == ""
+    claude(80, 0)
+    output = hook.reminder("one", NOW)
+    assert "Antigravity" not in output
+    assert "Claude Code's own quota: 5-hour 80% used" in output
 
 
 def test_agy_reset_drift_is_not_a_new_window(paths: Path) -> None:

@@ -370,6 +370,11 @@ def _resolve_model_key(model: str, pricing: PricingTable) -> str | None:
         if meta_key in pricing:
             return meta_key
 
+    if normalized.startswith("grok-"):
+        xai_key = f"xai/{normalized}"
+        if xai_key in pricing:
+            return xai_key
+
     dated_matches = [key for key in pricing if DATE_SUFFIX_RE.sub("", key) == normalized]
     if dated_matches:
         return sorted(dated_matches, key=lambda key: (len(key), key))[0]
