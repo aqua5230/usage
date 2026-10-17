@@ -1670,6 +1670,56 @@
           ]
         },
         {
+          "version": "0.33.9",
+          "period": "2026-10-16",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "Antigravity 卡片支援切換至 Argon 額度",
+                "en": "Antigravity Card Supports Switching to Argon Quota"
+              },
+              "body": {
+                "zh-TW": "用 Antigravity 的 Gemini 4 Argon 時，現在也能在卡片上看到它的額度。卡片上的群組切換按鈕現在會依序輪播，在 Gemini、Claude 與 GPT 之外，多了一組 Gemini 4 Argon 可以選。⟦正如冷氣遙控器上的模式切換鍵，以前只能在冷氣和除濕之間跳轉，現在多按一下就能切到全新的節能風速，隨時掌握每週能吹多久。⟧由於 Argon 只有每週總額度，原本顯示五小時用量的那一列會直接清楚說明，不會讓你猜測數字為何空白。至於 Claude Code 側邊面板與 Antigravity 的 status line（顯示在終端機最底下的狀態列）則維持精簡，不會顯示 Argon 的資訊。",
+                "en": "If you use Gemini 4 Argon in Antigravity, the card can now show its quota too. The group toggle button on the card now cycles sequentially, adding a Gemini 4 Argon option alongside Gemini, Claude, and GPT. ⟦Think of the mode button on an air conditioner remote: where you previously could only toggle between cooling and dehumidifying, one extra press now switches to a brand-new eco fan speed to track how long you can run it each week.⟧ Because Argon only provides a weekly total quota, the row that previously displayed five-hour usage now explains this clearly rather than leaving you guessing why the number is blank. Meanwhile, the Claude Code side panel and the Antigravity status line (the status bar displayed at the bottom of the terminal) remain streamlined, omitting Argon information."
+              },
+              "original": "**The Antigravity card can switch to the Gemini 4 Argon quota.** The group toggle now cycles Gemini → Claude / GPT → Argon. Argon has a weekly limit only, so its 5-hour row says so. The Claude Code side pane and the Antigravity status line leave Argon out."
+            },
+            {
+              "title": {
+                "zh-TW": "用量報表改用淡色底填滿佔比，版面更易閱讀",
+                "en": "Usage Reports Use Soft Background Fills for Proportions to Improve Readability"
+              },
+              "body": {
+                "zh-TW": "每次打開用量報表想比較各工具的花費時，現在一眼就看得出誰佔得多。原本貼在每列最底部的細條，視覺上往往容易讓人誤以為是排版畫歪的文字底線；現在每一列會依照實際的使用佔比，順著整列填滿該工具專屬的柔和淡色底色。⟦跟用螢光筆畫重點一樣，以前像拿細原子筆在字底下劃出歪斜線段，現在直接順著長度刷上一層淡色標記，一眼就能看清誰佔了最多篇幅。⟧不同工具的列與列之間，也改用乾淨舒適的間距留白，直接取代原本生硬的分隔線，讓整張統計報表變得清爽易讀。",
+                "en": "Whenever you open usage reports to compare spending across tools, you can now see at a glance which one takes the largest share. The thin bar originally tucked at the bottom of each row was often visually mistaken for a misaligned text underline; now, each row fills across with its tool-specific soft pastel background based on actual usage share. ⟦Picture using a marker to highlight key points: instead of scratching crooked lines under text with a fine ballpoint pen, a gentle wash of color now brushes along the entire row so you can spot who takes up the most space at a glance.⟧ Clean, comfortable spacing between rows of different tools directly replaces the rigid dividers, leaving the entire statistics report crisp and readable."
+              },
+              "original": "**Report rows show their share as a faint tint across the row.** The thin bars along each row's bottom edge read as crooked underlines; rows now fill with the tool's color up to their share, with spacing instead of separator lines."
+            },
+            {
+              "title": {
+                "zh-TW": "Antigravity 額度顯示修復，不再漏看週額度或誤判耗盡",
+                "en": "Antigravity Quota Display Fixed to Prevent Missing Weekly Quotas or False Exhaustion"
+              },
+              "body": {
+                "zh-TW": "使用 Antigravity 時，你可能遇過額度資訊消失、甚至讓助理誤判停工的窘境。⟦彷彿盤點庫存，以前清單漏列一筆就以為全部缺貨，現在會翻開帳冊查證，並把各貨架剩餘品項交代清楚。⟧\n\nGemini 週額度重新回歸。由於 Google 的額度 API（提供用量數據的介面）不再回報該數字，usage 改直接向 Antigravity CLI 執行 `agy -p /usage` 查詢且不呼叫模型，無法執行時才退回原 API。\n\n發給 Claude 的額度提醒也不再引發誤會。過去某組額度耗盡，容易讓 Claude 誤以為 Antigravity 徹底停用；現在提示每行都會寫明受限的工具與模型組別，並緊接著列出仍有剩餘額度的組別，末端還會附上 Claude Code 自身用量。",
+                "en": "When using Antigravity, you may have encountered quota information vanishing or even causing an assistant to mistakenly halt work. ⟦Much like taking inventory where a single line missing from a list made you assume everything was out of stock, staff now open the ledger to verify records and clearly account for items left on each shelf.⟧\n\nGemini weekly quotas make a return. Because Google's quota API (the interface providing usage metrics) no longer reports this figure, usage now queries the Antigravity CLI directly with `agy -p /usage` without invoking models, only falling back to the original API if execution fails.\n\nQuota reminders sent to Claude no longer cause misunderstandings. In the past, exhausting a single quota easily led Claude to assume Antigravity was entirely out of commission; now, every reminder line specifies the constrained tool and model group, immediately followed by groups that still have remaining quota, with Claude Code's own usage appended at the end."
+              },
+              "original": "**Antigravity shows its Gemini weekly quota again.** Google's quota API stopped reporting it, so usage now asks the Antigravity CLI itself (`agy -p /usage`, which makes no model call) and falls back to the API when the CLI is unavailable.\n**The quota reminder no longer makes Claude think Antigravity is used up.** Each line names the tool and models it limits, a spent Antigravity group is followed by the groups that still have quota, and the reminder ends with Claude Code's own usage."
+            },
+            {
+              "title": {
+                "zh-TW": "用量報表前後矛盾修復，計費與標籤口徑一致",
+                "en": "Usage Report Inconsistencies Fixed to Align Cost and Label Definitions"
+              },
+              "body": {
+                "zh-TW": "翻閱長期的統計數據時，你可能曾被突然飆高的百分比或不明金額嚇了一跳。⟦如同重新校對後的家庭記帳本，以前看到莫名暴增的支出總讓人困惑，現在每一筆開銷都標明計算方式與比較週期，帳目清清楚楚。⟧\n\n換算金額在全頁統一稱為「API 等值」，不再有混淆稱呼。過去 Grok 模型一律算成零元，現在會正確對上 xAI 官方價格並算回等值金額，Wrapped 統計也會特別註明哪些日期具備價格紀錄。\n\n報表計算邏輯也補齊了各項說明。週總結現在會清楚寫明比較的是哪兩個完整週，不足七天起步的首週不再算出暴增 980% 這類離奇數字；切到「全部」時間範圍時，會備註更早之前僅有每日總量。各模組標示也一併釐清，派工帳本欄位寫明為週額度佔比，各項排行也明訂依 token（AI 處理與計費的文字單位）排序。",
+                "en": "Browsing long-term statistics, you might have been startled by suddenly spiking percentages or unexplained amounts. ⟦Like a reconciled household ledger where an unexplained surge in expenses once caused confusion, every outgoing cost now notes its calculation method and comparison timeframe, keeping the accounts completely transparent.⟧\n\nConverted amounts are consistently labeled throughout the page as “API equivalent” to eliminate confusing naming. Past Grok models were always calculated as zero dollars, but they now properly match official xAI pricing to calculate equivalent amounts, and Wrapped statistics specifically note which dates have pricing records.\n\nReport calculation logic now includes comprehensive explanations. Weekly summaries state clearly which two complete weeks are being compared, preventing partial initial weeks of fewer than seven days from producing bizarre figures like a 980% surge. Switching to the “All” timeframe adds a note that earlier periods only record daily totals. Module labels have also been clarified, specifying the task ledger column as a percentage of weekly quota and explicitly sorting rankings by tokens (text units used for AI processing and billing)."
+              },
+              "original": "**Grok usage has an API-equivalent value again.** Grok models now match their xAI price entries instead of counting as $0.\n**The usage report no longer contradicts itself.** The weekly summary names the completed weeks it compares, a partial first week no longer produces changes like +980%, the converted amount is called \"API equivalent\" everywhere, Wrapped notes which days have saved prices, the \"All\" range explains that earlier days only have daily totals, the dispatch ledger labels its columns as weekly quota shares, and rankings say they are by tokens."
+            }
+          ]
+        },
+        {
           "version": "0.33.8",
           "period": "2026-10-16",
           "items": [
@@ -1683,23 +1733,6 @@
                 "en": "When you open your terminal to work under a deadline and worry about exceeding usage, you no longer have to guess against a blank panel. ⟦Think of a sports center pass: in the past, when the weekly quota ran out, the day's five-hour slot still showed completely full; now it not only retrieves the remaining quota from the list, but also marks it as paused once the total is exhausted.⟧ Previously, Google's quota summary stopped returning the Gemini group, leaving Antigravity temporarily unable to see usage. Now usage reads Gemini's 5-hour quota directly from the model list instead. Because Google does not currently report weekly quota, the card clearly marks it as unreported. As long as the application is running, the Antigravity CLI status line (the status bar displayed at the very bottom of the terminal) also displays these numbers in sync. Once the weekly quota is exhausted, Google pauses the 5-hour limit at that point. In the past, that row displayed \"0% used / full quota\", easily misleading users into thinking it was still usable; now the 5-hour row is directly labeled \"Paused\" to avoid misjudgment."
               },
               "original": "**Antigravity shows your Gemini quota again.** Google's quota summary no longer returns the Gemini group. usage now reads Gemini's five-hour quota from the model list. Google does not currently report its weekly quota; the card labels it as not reported. While the app is running, the Antigravity CLI status line uses these numbers too.\n**The Antigravity 5-hour row says \"Paused\" once the weekly quota is used up.** Google pauses the 5-hour limit at that point, and the row used to read \"0% used / Quota full\", which looked usable."
-            }
-          ]
-        },
-        {
-          "version": "0.33.7",
-          "period": "2026-10-16",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Antigravity 僅剩單一額度分組時，切換按鈕現在會確實收起",
-                "en": "Antigravity Now Properly Hides the Toggle Button When Only a Single Quota Group Remains"
-              },
-              "body": {
-                "zh-TW": "平時點開選單列面板關心用量時，要是 Google 傳回的額度資料只有一個模型分組，介面就不會再擺出派不上用場的切換按鈕。⟦跟雙卡手機只插一張 SIM 卡時不會跳出切換門號的按鈕一樣，以前面板在無處可切換時仍留著一顆按了毫無反應的按鈕，現在只要沒有第二個選項，介面就會自動收起無效開關。⟧前一個版本原本就打算在額度回應只有一組時藏起切換鈕，但當時改動漏掉了應用程式實際載入的面板程式，導致每個面板依舊擺著無用的切換鍵。現在這個問題已經修好，不會再看到空轉的按鈕。日後等到 Gemini 分組額度重新出現，切換按鈕在下次重新整理時就會再次顯示，並繼續沿用你先前儲存的選擇。",
-                "en": "When checking usage by opening the menu bar popover, if the quota data returned by Google contains only one model group, the interface no longer displays a useless toggle button. ⟦Just as a dual-SIM phone does not display a carrier-switching button when only a single SIM card is inserted, the popover previously kept a button that did nothing when clicked with nowhere to switch, but now the interface automatically tucks away the inactive switch whenever there is no second option.⟧ A previous release originally intended to hide the toggle button when the quota response contained only one group, but that change missed the popover script actually loaded by the application, leaving every popover still showing the unused toggle key. This issue has now been resolved, so you will no longer see an idling button. Once the Gemini group quota reappears in the future, the toggle button will show up again on the next refresh, continuing to honor your previously saved selection."
-              },
-              "original": "**The Antigravity group toggle is hidden when there is nothing to switch to.** v0.33.6 meant to hide it when Google's quota response carries only one model group, but the change missed the panel code the app loads, so every panel still showed a toggle that did nothing. When the Gemini group comes back, the toggle reappears on the next refresh and your saved choice applies again."
             }
           ]
         }
