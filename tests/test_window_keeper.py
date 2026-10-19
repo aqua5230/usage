@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
 import threading
 import time
 from pathlib import Path
@@ -13,6 +14,37 @@ from typing import Any
 import pytest
 
 import quota.window_keeper as window_keeper
+
+
+def test_run_claude_ping_skips_user_hooks(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    captured: dict[str, object] = {}
+    settings_path = tmp_path / "keeper" / "claude_settings.json"
+
+    def fake_run(command: list[str], **kwargs: object) -> subprocess.CompletedProcess[str]:
+        captured["command"] = command
+        captured.update(kwargs)
+        return subprocess.CompletedProcess(command, 0, "ok", "")
+
+    monkeypatch.setattr(subprocess, "run", fake_run)
+    monkeypatch.setattr(window_keeper, "KEEPER_CLAUDE_SETTINGS_PATH", settings_path)
+
+    window_keeper._run_claude_ping("/fake/claude")
+
+    assert captured["command"] == [
+        "/fake/claude",
+        "-p",
+        "ok",
+        "--model",
+        "haiku",
+        "--settings",
+        str(settings_path),
+    ]
+    assert settings_path.is_file()
+    assert json.loads(settings_path.read_text(encoding="utf-8")) == {"disableAllHooks": True}
+    assert captured["stdin"] is subprocess.DEVNULL
+    assert captured["capture_output"] is True
+    assert captured["encoding"] == "utf-8"
+    assert captured["timeout"] == window_keeper.PING_TIMEOUT_SECONDS
 
 
 def test_resolve_claude_bin_uses_windows_fallback(monkeypatch: pytest.MonkeyPatch) -> None:

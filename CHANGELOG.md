@@ -7,6 +7,9 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- **Auto-start 5-hour Session no longer runs your own hooks.** Its background `claude -p` and `codex exec` pings fired every hook you had set up, such as SessionStart, UserPromptSubmit and Stop hooks, Codex's `hooks.json`, and the `notify` program in Codex's `config.toml`. A hook that sends a notification or saves the conversation ran once for every ping. Claude Code pings now load a settings file with `disableAllHooks`; Codex pings turn off `features.hooks` and `notify`. Antigravity pings are unchanged.
+
 ## [0.33.10] - 2026-10-16
 
 ### Fixed

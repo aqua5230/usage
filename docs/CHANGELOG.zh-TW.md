@@ -6,6 +6,9 @@
 
 ## [Unreleased]
 
+### 修正
+- **「自動啟動 5 小時計時」不再觸發你自己設定的 hook。** 它在背景跑的 `claude -p` 與 `codex exec` 會觸發你設定的每個 hook，例如 SessionStart、UserPromptSubmit、Stop hook、Codex 的 `hooks.json`，以及 Codex `config.toml` 裡的 `notify` 程式。會發通知或存對話的 hook，每次背景請求都會跑一遍。現在 Claude Code 的背景請求改讀一份開了 `disableAllHooks` 的設定檔；Codex 的背景請求關掉 `features.hooks` 與 `notify`。Antigravity 不變。
+
 ## [0.33.10] - 2026-10-16
 
 ### 修正

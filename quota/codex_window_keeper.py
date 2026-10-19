@@ -161,9 +161,22 @@ def _release() -> None:
 
 
 def _run_codex_ping(codex_bin: str) -> subprocess.CompletedProcess[str]:
+    # Background pings should not trigger user hooks. features.hooks covers
+    # hooks.json; the legacy notify program ignores that flag, so clear it too.
     # encoding="utf-8" is mandatory inside the .app bundle (project invariant).
     return subprocess.run(  # noqa: S603 - shelling out to the user's own codex CLI by resolved path
-        [codex_bin, "exec", "-m", "gpt-5.6-luna", "--skip-git-repo-check", "ok"],
+        [
+            codex_bin,
+            "exec",
+            "-m",
+            "gpt-5.6-luna",
+            "--skip-git-repo-check",
+            "-c",
+            "features.hooks=false",
+            "-c",
+            "notify=[]",
+            "ok",
+        ],
         stdin=subprocess.DEVNULL,
         capture_output=True,
         encoding="utf-8",
