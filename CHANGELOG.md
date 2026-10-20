@@ -5,7 +5,10 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.34.2] - 2026-10-21
+
+### Security
+- **The Windows build ships Pillow 13.0.0.** Pillow 12.3.0, which draws the Windows tray icon and taskbar quota label, had nine known vulnerabilities in its image decoders, one of them critical. `usage` only draws its own icons and never opens images from elsewhere, but installing `usage-cli[windows]` from PyPI now requires Pillow 13.0.0 or later as well.
 
 ### Fixed
 - **The Gemini ⇄ button hides again when Antigravity has only one quota group.** v0.34.1 restyled it in the default panel and the new style overrode its hidden state, so it showed a button that did nothing.

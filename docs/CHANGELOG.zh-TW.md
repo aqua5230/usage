@@ -4,7 +4,10 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## [Unreleased]
+## [0.34.2] - 2026-10-21
+
+### 安全性
+- **Windows 版改用 Pillow 13.0.0。** 負責畫 Windows 系統匣圖示和工作列額度數字的 Pillow 12.3.0，圖片解碼有 9 個已知漏洞，其中 1 個是嚴重等級。usage 只畫自己的圖示，不會開啟外來圖片；但從 PyPI 安裝 `usage-cli[windows]` 時，現在也要求 Pillow 13.0.0 以上。
 
 ### 修正
 - **Antigravity 只有一組額度時，「Gemini ⇄」按鈕又會藏起來了。** v0.34.1 在預設面板改了它的樣式，新樣式蓋掉了隱藏效果，結果顯示一顆按了沒反應的按鈕。

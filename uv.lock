@@ -654,7 +654,7 @@ wheels = [
 
 [[package]]
 name = "usage-cli"
-version = "0.34.1"
+version = "0.34.2"
 source = { editable = "." }
 dependencies = [
     { name = "pyobjc-framework-cocoa", marker = "sys_platform != 'linux' and sys_platform != 'win32'" },
@@ -685,7 +685,7 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "pillow", marker = "sys_platform == 'win32' and extra == 'windows'", specifier = ">=11.0.0" },
+    { name = "pillow", marker = "sys_platform == 'win32' and extra == 'windows'", specifier = ">=13.0.0" },
     { name = "pyobjc-framework-cocoa", marker = "sys_platform == 'darwin'", specifier = ">=11.0" },
     { name = "pyobjc-framework-quartz", marker = "sys_platform == 'darwin'", specifier = ">=11.0" },
     { name = "pyobjc-framework-usernotifications", marker = "sys_platform == 'darwin'", specifier = ">=11.0" },
