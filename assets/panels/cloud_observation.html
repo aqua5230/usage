@@ -767,6 +767,22 @@
     .card[data-card="muse"] .row + .row {
       margin-top: 8px;
     }
+    /* Compact layout keeps this theme's header geometry and decoration. */
+    html.compact-cards body .card[data-card="projects"] { padding-inline: 13px; }
+    html.compact-cards body .card[data-card="projects"] .header {
+      grid-template-columns: 24px minmax(0, 1fr);
+      column-gap: 8px;
+    }
+    html.compact-cards body .card[data-card] .weather-badge {
+      width: 24px;
+      height: 24px;
+      flex-basis: 24px;
+    }
+    html.compact-cards body .card[data-card] .header :is(.brand-icon, .weather-badge) svg {
+      width: 20px;
+      height: 20px;
+    }
+    html.compact-cards body .card[data-card] .header img { border-radius: 50%; }
   </style>
 </head>
 <body>

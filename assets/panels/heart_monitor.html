@@ -189,6 +189,8 @@
     .card[data-card="muse"] .brand-icon { color: var(--accent); }
 
     .hide-muse [data-card="muse"] { display: none; }
+    /* Compact layout keeps this theme's header geometry and decoration. */
+    html.compact-cards body .card[data-card]:not([data-card="projects"]) { padding-inline: 11px; }
   </style>
 </head>
 <body>

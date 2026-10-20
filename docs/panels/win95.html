@@ -605,6 +605,17 @@
     html.compact-cards .card[data-card]:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) > .row {
       padding-bottom: 8px;
     }
+    /* Compact layout keeps this theme's header geometry and decoration. */
+    html.compact-cards body .card[data-card]:not([data-card="projects"]) > .brand {
+      height: 26px;
+      gap: 6px;
+      padding: 3px 4px;
+    }
+    html.compact-cards body .card[data-card] .brand :is(img, .brand-icon) {
+      width: 20px; height: 20px; flex-basis: 20px; border-radius: 0;
+    }
+    html.compact-cards body .card[data-card] .brand h1 { font-size: 13px; }
+    html.compact-cards body .card[data-card="projects"] .brand h1 { font-size: 13px; }
   </style>
 </head>
 <body>

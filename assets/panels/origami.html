@@ -953,6 +953,13 @@
 
     .hide-muse [data-card="muse"] { display: none; }
 
+    /* Compact layout keeps this theme's header geometry and decoration. */
+    html.compact-cards body .card[data-card="projects"] { padding-inline: 13px; }
+    html.compact-cards body .card[data-card="projects"] .brand {
+      grid-template-columns: 24px minmax(0, 1fr);
+      column-gap: 8px;
+    }
+    html.compact-cards body .card[data-card] .brand-icon svg { width: 20px; height: 20px; }
   </style>
 </head>
 <body>
