@@ -597,6 +597,14 @@
     .hide-muse [data-card="muse"] { display: none; }
 
     .card[data-card="muse"] .brand-icon { color: #ffffff; }
+
+    /* Compact cards keep the Win95 window chrome: a full-width title bar and the 8px inner margin. */
+    html.compact-cards .card[data-card]:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) {
+      padding: 2px;
+    }
+    html.compact-cards .card[data-card]:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) > .row {
+      padding-bottom: 8px;
+    }
   </style>
 </head>
 <body>
