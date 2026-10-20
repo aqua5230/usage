@@ -44,7 +44,6 @@ def quota_state() -> PopoverState:
         status_text="",
         today_total=PeriodTotal(),
         yesterday_total=PeriodTotal(),
-        statusline={},
     )
 
 

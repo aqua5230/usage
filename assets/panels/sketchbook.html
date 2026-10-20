@@ -88,7 +88,6 @@
     }
     .switch:hover, .action:hover, .agy-group-toggle:hover { background: #fff0c7; }
     .switch:focus-visible, .action:focus-visible, .agy-group-toggle:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
-    .switch[data-active="true"] { background: #d9f5e1; box-shadow: 2px 2px 0 var(--ink); }
     .agy-group-toggle { flex: none; background: #e8efff; padding: 1px 6px; }
     .project-actions { display: flex; gap: 5px; margin: 7px 0 6px; }
     .project-actions .switch { flex: 1; min-width: 0; }
@@ -156,7 +155,7 @@
       <header class="brand">
         <img src="{{CLAUDE_ICON}}" alt="">
         <h1 data-i18n="claude_name">Claude Code</h1>
-        <button class="switch" data-action="switch" data-i18n="switch_panel">⇄ Switch Panel</button>
+        <button class="switch" data-action="switch" data-i18n="settings_button">⚙ Settings</button>
       </header>
       <div class="row" data-row="session"></div>
       <div class="row" data-row="weekly"></div>
@@ -234,7 +233,6 @@
         <div class="project-actions">
           <button class="switch" data-action="toggle-project-range">Today</button>
           <button class="switch" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
-          <button class="switch" data-action="toggle-statusline" data-i18n="cli">CLI</button>
         </div>
       </header>
       <div data-project-list></div>

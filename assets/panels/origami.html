@@ -260,7 +260,7 @@
     .project-actions {
       grid-column: 1 / 3;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -556,12 +556,6 @@
       border-color: rgba(255, 255, 255, 0.28);
     }
 
-    .switch[data-active="true"] {
-      color: white;
-      border-color: rgba(48, 209, 88, 0.45);
-      background: linear-gradient(180deg, rgba(48, 209, 88, 0.30), rgba(40, 180, 75, 0.20));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    }
 
     @media (prefers-color-scheme: light) {
       .switch:hover {
@@ -846,7 +840,6 @@
       color: #15364e;
     }
 
-    .switch[data-active="true"],
     .action.primary {
       border-color: #174b73;
       background: linear-gradient(135deg, #d8edf6 0 35%, #397aa2 35.4% 70%, #174b73 70.4%);
@@ -854,7 +847,6 @@
       box-shadow: none;
     }
 
-    .switch[data-active="true"]:hover,
     .action.primary:hover {
       color: white;
     }
@@ -968,7 +960,7 @@
       <header class="brand">
         <img src="{{CLAUDE_ICON}}" alt="">
         <h1 data-i18n="claude_name">Claude Code</h1>
-        <button class="switch" data-action="switch" data-i18n="switch_panel">⇄ Switch Panel</button>
+        <button class="switch" data-action="switch" data-i18n="settings_button">⚙ Settings</button>
       </header>
       <div class="row" data-row="session"></div>
       <div class="row" data-row="weekly"></div>
@@ -1046,7 +1038,6 @@
         <div class="project-actions">
           <button class="switch" data-action="toggle-project-range">Today</button>
           <button class="switch" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
-          <button class="switch" data-action="toggle-statusline" data-i18n="cli">CLI</button>
         </div>
       </header>
       <div data-project-list></div>

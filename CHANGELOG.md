@@ -5,6 +5,20 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.34.1] - 2026-10-21
+
+### Changed
+- **The panel's top-right button is now "⚙ Settings".** It opened the whole app menu but was labeled "Switch Panel"; Switch Panel is still in the menu.
+- **The status line switch moved into the Settings menu.** The "Terminal" button next to Today and Report turned off the status line that feeds the Claude quota, one mis-click away from the range buttons. It is now **Settings → Claude Code → Sync quota via status line** on macOS and Windows, with a tooltip that says what turning it off does. The Projects card keeps Today and Report, in two equal columns in every theme.
+- **Quota colors stay quiet until a quota is nearly used up.** Percentages and bars no longer turn yellow at 50%; only 80% and above turns red. The default panel shows percentages in the plain text color and keeps each tool's color on its bar, so a low Claude percentage no longer looks like a warning.
+- **Quota percentages are whole numbers.** Antigravity showed `70.6%` next to whole-number cards. Values round down, so 99.7% never reads as an exhausted 100%.
+- **The Today / Yesterday total matches the project rows.** Its tokens use the same large green numbers with the cost beside them, in every theme.
+- **The default panel is cleaner.** A smaller Settings button, Today as the lead button and Report as the quiet one, a centered divider between Session and Weekly, muted labels, thinner bars with a visible 80% mark, aligned project numbers, and status chips that no longer look like buttons.
+
+### Fixed
+- **Light mode in the default panel is readable again.** Refresh Now and the top project's rank used white text on a light background; white app icons now have an outline on white cards.
+- **The Windows Muse quota check no longer flashes a console window.**
+
 ## [0.34.0] - 2026-10-21
 
 ### Added

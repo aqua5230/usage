@@ -172,7 +172,6 @@ def test_desktop_quota_reaches_popover_and_tui(quota_file: Path) -> None:
         },
         today_total=state_module.PeriodTotal(),
         yesterday_total=state_module.PeriodTotal(),
-        statusline={},
         show_install_button=False,
         hide_claude=False,
         hide_codex=False,

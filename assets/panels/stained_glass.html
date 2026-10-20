@@ -308,7 +308,7 @@
     .project-actions {
       grid-column: 1 / 3;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -629,12 +629,6 @@
       flex: 1;
     }
 
-    .switch[data-active="true"] {
-      color: var(--text);
-      border-color: color-mix(in srgb, var(--projects) 52%, transparent);
-      background: color-mix(in srgb, var(--projects) 24%, var(--panel));
-      box-shadow: inset 0 1px 0 rgba(255, 248, 219, 0.12);
-    }
 
     .attribution {
       position: relative;
@@ -827,7 +821,6 @@
       box-shadow: inset 0 1px 0 rgba(239, 231, 255, 0.18), 0 0 12px rgba(140, 109, 243, 0.12);
     }
     .action.primary:hover { border-color: var(--focus); background: linear-gradient(180deg, rgba(112, 82, 190, 0.72), rgba(51, 30, 112, 0.76)); }
-    .switch[data-active="true"] { color: var(--text); border-color: color-mix(in srgb, var(--projects) 52%, transparent); background: color-mix(in srgb, var(--projects) 24%, var(--panel)); box-shadow: inset 0 1px 0 rgba(244, 240, 255, 0.12); }
     .action:focus-visible, .switch:focus-visible { outline-color: var(--focus); }
 
     @media (prefers-reduced-motion: reduce) {
@@ -886,7 +879,7 @@
       <header class="brand">
         <img src="{{CLAUDE_ICON}}" alt="">
         <h1 data-i18n="claude_name">Claude Code</h1>
-        <button class="switch" data-action="switch" data-i18n="switch_panel">⇄ Switch Panel</button>
+        <button class="switch" data-action="switch" data-i18n="settings_button">⚙ Settings</button>
       </header>
       <div class="row" data-row="session"></div>
       <div class="row" data-row="weekly"></div>
@@ -964,7 +957,6 @@
         <div class="project-actions">
           <button class="switch" data-action="toggle-project-range">Today</button>
           <button class="switch" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
-          <button class="switch" data-action="toggle-statusline" data-i18n="cli">CLI</button>
         </div>
       </header>
       <div data-project-list></div>

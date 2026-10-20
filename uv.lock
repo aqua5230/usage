@@ -654,7 +654,7 @@ wheels = [
 
 [[package]]
 name = "usage-cli"
-version = "0.34.0"
+version = "0.34.1"
 source = { editable = "." }
 dependencies = [
     { name = "pyobjc-framework-cocoa", marker = "sys_platform != 'linux' and sys_platform != 'win32'" },

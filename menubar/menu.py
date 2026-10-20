@@ -11,6 +11,7 @@ from typing import Any, Protocol
 from AppKit import NSMakePoint, NSMenu, NSMenuItem
 
 from installer import claude_pane, login_item, session_hooks
+from installer.statusline_settings import _statusline_enabled
 from menubar.new_badge import apply_badge
 from menubar.prefs import (
     _hide_agy_enabled,
@@ -205,6 +206,16 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
     menu.addItem_(NSMenuItem.separatorItem())
     # Claude Code-only switches stay collapsed in a submenu, like the panel themes.
     claude_submenu = NSMenu.alloc().initWithTitle_(_t(app.language, "claude_code_section"))
+    claude_submenu.addItem_(
+        build_menu_item(
+            app.language,
+            "statusline_sync_menu",
+            "toggleStatusline:",
+            target=app,
+            state=_statusline_enabled(),
+            tooltip_key="statusline_sync_tooltip",
+        )
+    )
     claude_pane_item = build_menu_item(
         app.language,
         "claude_pane_section_menu",

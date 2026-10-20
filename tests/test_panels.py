@@ -136,7 +136,7 @@ def test_win95_panel_preferred_size() -> None:
     assert panel.preferred_size() == (364.0, 1392.0)
 
 
-def test_html_panels_place_analyze_and_cli_in_project_header() -> None:
+def test_html_panels_place_analyze_in_project_header() -> None:
     panel_dir = Path(__file__).resolve().parent.parent / "assets" / "panels"
 
     for panel_path in sorted(panel_dir.glob("*.html")):
@@ -144,10 +144,10 @@ def test_html_panels_place_analyze_and_cli_in_project_header() -> None:
         project_index = html.index('data-action="toggle-project-range"')
         footer_index = html.index('<section class="footer"')
         analyze_index = html.index('data-action="analyze"')
-        cli_index = html.index('data-action="toggle-statusline"')
 
         assert project_index < analyze_index < footer_index, panel_path.name
-        assert project_index < cli_index < footer_index, panel_path.name
+        # The status line switch lives in the settings menu, not on the panel.
+        assert 'data-action="toggle-statusline"' not in html, panel_path.name
         assert html.count('data-action="analyze"') == 1, panel_path.name
         assert "data-cli-panel" not in html
         assert "localStorage" not in html
