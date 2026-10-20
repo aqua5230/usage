@@ -140,8 +140,8 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     project_rows_7d = list(fallback_state.projects_7d)
     project_rows_30d = list(fallback_state.projects_30d)
     project_rows_all = list(fallback_state.projects_all)
-    today_text = fallback_state.today_text
-    yesterday_text = fallback_state.yesterday_text
+    today_total = fallback_state.today_total
+    yesterday_total = fallback_state.yesterday_total
     statusline = fallback_state.statusline
     hide_claude = fallback_state.hide_claude
     hide_codex = fallback_state.hide_codex
@@ -171,8 +171,8 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
                 project_rows_all,
             ) = menubar_state.project_rows_for_windows(all_entries)
         sources.measure("project_rows_windows", started_at)
-        today_text = menubar_state._today_title(app.mock, app.language, entries=all_entries)
-        yesterday_text = menubar_state._yesterday_title(app.mock, app.language, entries=all_entries)
+        today_total = menubar_state._today_total(app.mock, entries=all_entries)
+        yesterday_total = menubar_state._yesterday_total(app.mock, entries=all_entries)
         statusline = menubar_state._statusline_payload(app.language)
         hide_claude = _hide_claude_enabled()
         hide_codex = _hide_codex_enabled()
@@ -219,8 +219,8 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             language=app.language,
             group=group,
             burn_rate_trackers=app.burn_rate_trackers,
-            today_text=today_text,
-            yesterday_text=yesterday_text,
+            today_total=today_total,
+            yesterday_total=yesterday_total,
             statusline=statusline,
             show_install_button=show_install_button,
             hide_claude=hide_claude,
@@ -283,8 +283,8 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         state.projects_7d = project_rows_7d
         state.projects_30d = project_rows_30d
         state.projects_all = project_rows_all
-        state.today_text = today_text
-        state.yesterday_text = yesterday_text
+        state.today_total = today_total
+        state.yesterday_total = yesterday_total
         state.statusline = statusline
         state.hide_claude = hide_claude
         state.hide_codex = hide_codex

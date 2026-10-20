@@ -84,7 +84,9 @@ const context = vm.createContext({
   document: {querySelector: selector => selector.includes('[data-row=')
     ? rowEl : hasCards ? {} : null},
   getComputedStyle: () => ({getPropertyValue: () => 'red'}),
-  window: {PanelHooks: {accentFallback: () => 'red', applyFillVisual() {}}},
+  window: {PanelHooks: {
+    accentFallback: () => 'red', percentColor: (accent) => accent, applyFillVisual() {},
+  }},
   colorFor: () => 'red', labels: () => ({session: 'Session'}), t: key => key,
 });
 const toggle = 'function toggle(state) { const visibleQuotaCards =' + process.argv[1] + '}';

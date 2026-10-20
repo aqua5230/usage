@@ -141,7 +141,7 @@ from menubar.state import (
     _statusline_payload as _statusline_payload,
 )
 from menubar.state import (
-    _today_title as _today_title,
+    _today_total as _today_total,
 )
 from menubar.state import (
     format_human_time as format_human_time,

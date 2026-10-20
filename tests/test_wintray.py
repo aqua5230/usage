@@ -118,8 +118,8 @@ def _state() -> menubar_state.PopoverState:
         projects_all=[],
         rate_text="",
         status_text="",
-        today_text="",
-        yesterday_text="",
+        today_total=menubar_state.PeriodTotal(),
+        yesterday_total=menubar_state.PeriodTotal(),
         statusline={},
     )
 

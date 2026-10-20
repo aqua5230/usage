@@ -703,25 +703,21 @@ def _statusline_payload(language: str) -> dict[str, object]:
     }
 
 
-def _today_text(entries: list[UsageEntry], language: str) -> str:
+def _today_total(entries: list[UsageEntry]) -> menubar_state.PeriodTotal:
     today = datetime.now().astimezone().date()
     selected = [entry for entry in entries if entry.timestamp.astimezone().date() == today]
-    return _t(
-        language,
-        "today_text",
-        cost=f"{sum(calculate_cost(entry) for entry in selected):.2f}",
-        tokens=f"{sum(entry.total_tokens for entry in selected):,}",
+    return menubar_state.PeriodTotal(
+        tokens=sum(entry.total_tokens for entry in selected),
+        cost=sum(calculate_cost(entry) for entry in selected),
     )
 
 
-def _yesterday_text(entries: list[UsageEntry], language: str) -> str:
+def _yesterday_total(entries: list[UsageEntry]) -> menubar_state.PeriodTotal:
     yesterday = datetime.now().astimezone().date() - timedelta(days=1)
     selected = [entry for entry in entries if entry.timestamp.astimezone().date() == yesterday]
-    return _t(
-        language,
-        "yesterday_text",
-        cost=f"{sum(calculate_cost(entry) for entry in selected):.2f}",
-        tokens=f"{sum(entry.total_tokens for entry in selected):,}",
+    return menubar_state.PeriodTotal(
+        tokens=sum(entry.total_tokens for entry in selected),
+        cost=sum(calculate_cost(entry) for entry in selected),
     )
 
 
@@ -859,8 +855,8 @@ class _WindowsTrayController:
             projects_all=[],
             rate_text=_t(self.language, "rate_text", value="--"),
             status_text=_t(self.language, "status_text", value=_t(self.language, "status_loading")),
-            today_text=_t(self.language, "today_text", cost="0.00", tokens="0"),
-            yesterday_text=_t(self.language, "yesterday_text", cost="0.00", tokens="0"),
+            today_total=menubar_state.PeriodTotal(),
+            yesterday_total=menubar_state.PeriodTotal(),
             statusline=_statusline_payload(self.language),
             hide_claude=_hide_claude_enabled(),
             hide_codex=_hide_codex_enabled(),
@@ -1720,15 +1716,15 @@ class _WindowsTrayController:
             language=self.language,
             group=self.tracker.group(),
             burn_rate_trackers=self.burn_rate_trackers,
-            today_text=(
-                _t(self.language, "today_text", cost="45.20", tokens="50,193,442")
+            today_total=(
+                menubar_state.PeriodTotal(tokens=50_193_442, cost=45.20)
                 if self.mock
-                else _today_text(history.entries, self.language)
+                else _today_total(history.entries)
             ),
-            yesterday_text=(
-                _t(self.language, "yesterday_text", cost="41.10", tokens="48,200,000")
+            yesterday_total=(
+                menubar_state.PeriodTotal(tokens=48_200_000, cost=41.10)
                 if self.mock
-                else _yesterday_text(history.entries, self.language)
+                else _yesterday_total(history.entries)
             ),
             statusline=_statusline_payload(self.language),
             show_install_button=outcome.state == PollState.TOKEN_ERROR,

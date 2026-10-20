@@ -2,6 +2,10 @@
       accentFallback(cardEl, computedAccent) {
         return computedAccent;
       },
+      // Color of the percent text below the danger threshold.
+      percentColor(accent) {
+        return accent;
+      },
       applyFillVisual(fillEl, { available, percent, color }) {
         fillEl.style.width = available ? `${Math.max(0, Math.min(100, percent))}%` : "0%";
         fillEl.style.setProperty("--fill-color", color);
@@ -173,6 +177,16 @@
       }
     `;
     document.head.appendChild(compactCardsStyle);
+    // The footer total reuses the project rows' number styles; drop their column sizing.
+    const periodTotalStyle = document.createElement("style");
+    periodTotalStyle.textContent = `
+      [data-footer="today"] :is(.proj-tokens, .proj-cost) {
+        min-width: 0;
+        margin-left: 6px;
+        text-align: left;
+      }
+    `;
+    document.head.appendChild(periodTotalStyle);
     let currentLanguage = "en";
     let projectRange = "1d";
     let latestState = null;
@@ -226,11 +240,10 @@
     // Panels may draw a critical halo past this; colorFor's 80% only turns text red.
     const CRITICAL_PERCENT = 90;
 
+    // Quiet until the quota is nearly gone: no in-between warning color.
     function colorFor(percent, fallback) {
       if (typeof percent !== "number") return fallback;
-      if (percent >= 80) return cssVar("--danger");
-      if (percent >= 50) return cssVar("--warn");
-      return fallback;
+      return percent >= 80 ? cssVar("--danger") : fallback;
     }
 
     function renderRow(card, key, row) {
@@ -276,7 +289,9 @@
       reset.textContent = (compact ? data.resetTextCompact : data.resetText)
         || data.resetText || t("reset_placeholder");
       reset.dataset.warning = data.warning === true ? "true" : "false";
-      percent.style.color = available ? color : "";
+      percent.style.color = available
+        ? colorFor(data.percent, window.PanelHooks.percentColor(accent))
+        : "";
       window.PanelHooks.applyFillVisual(fill, { available, percent: data.percent, color });
       if (compact) percent.textContent = (available ? data.percentTextCompact : data.percentText) || "--";
     }
@@ -448,12 +463,25 @@
       });
     }
 
+    // Same look as a project row: tokens in the projects card's accent, cost muted.
     function renderPeriodTotal(state) {
       const total = document.querySelector('[data-footer="today"]');
       if (!total) return;
-      total.textContent = projectRange === "yesterday"
-        ? (state.footer.yesterday || t("yesterday_text", { cost: "0.00", tokens: "0" }))
-        : (state.footer.today || t("today_text", { cost: "0.00", tokens: "0" }));
+      const yesterday = projectRange === "yesterday";
+      const data = (yesterday ? state.footer.yesterday : state.footer.today) || {};
+      const projectsCard = document.querySelector('.card[data-card="projects"]');
+      if (projectsCard) {
+        total.style.setProperty("--accent", getComputedStyle(projectsCard).getPropertyValue("--accent").trim());
+      }
+      const label = document.createElement("span");
+      label.textContent = t(yesterday ? "yesterday_label" : "today_label");
+      const tokens = document.createElement("span");
+      tokens.className = "proj-tokens";
+      tokens.textContent = data.tokensText || "0";
+      const cost = document.createElement("span");
+      cost.className = "proj-cost";
+      cost.textContent = data.costText || "$0.00";
+      total.replaceChildren(label, tokens, cost);
     }
 
 
@@ -654,5 +682,5 @@
       projects30d: [],
       projectsAll: [],
       statusline: {},
-      footer: { rate: "Rate: --", status: "Status: Loading", today: "Today: $0.00 (0 tokens)", yesterday: "Yesterday: $0.00 (0 tokens)", serviceAlerts: [], showInstall: false }
+      footer: { rate: "Rate: --", status: "Status: Loading", today: { tokensText: "0", costText: "$0.00" }, yesterday: { tokensText: "0", costText: "$0.00" }, serviceAlerts: [], showInstall: false }
     });

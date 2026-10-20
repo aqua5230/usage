@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any
 from usage_common.i18n import _load_i18n_bundle
 
 if TYPE_CHECKING:
-    from menubar.state import PopoverState, QuotaRowState
+    from menubar.state import PeriodTotal, PopoverState, QuotaRowState
 
 CORE_SCRIPT_FILENAME = "panels/panel_core.js"
 
@@ -159,8 +159,8 @@ def _state_payload(
         "footer": {
             "rate": state.rate_text,
             "status": state.status_text,
-            "today": state.today_text,
-            "yesterday": state.yesterday_text,
+            "today": _period_payload(state.today_total),
+            "yesterday": _period_payload(state.yesterday_total),
             "serviceAlerts": list(state.service_alerts),
             "showInstall": state.show_install_button,
         },
@@ -176,3 +176,7 @@ def _fmt_tokens(tokens: int) -> str:
 
 def _fmt_cost(cost: float | None) -> str:
     return "--" if cost is None else f"${cost:.2f}"
+
+
+def _period_payload(total: PeriodTotal) -> dict[str, str]:
+    return {"tokensText": _fmt_tokens(total.tokens), "costText": _fmt_cost(total.cost)}

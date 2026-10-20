@@ -90,6 +90,12 @@ def _bar_color(pct: float, brand: tuple[float, float, float]) -> tuple[float, fl
     return brand
 
 
+@dataclass(slots=True, frozen=True)
+class PeriodTotal:
+    tokens: int = 0
+    cost: float = 0.0
+
+
 @dataclass(slots=True)
 class QuotaRowState:
     title: str
@@ -155,8 +161,8 @@ class PopoverState:
     projects_all: list[tuple[str, int, float | None]]
     rate_text: str
     status_text: str
-    today_text: str
-    yesterday_text: str
+    today_total: PeriodTotal
+    yesterday_total: PeriodTotal
     statusline: dict[str, object]
     service_alerts: tuple[str, ...] = ()
     show_install_button: bool = False
@@ -855,8 +861,8 @@ def build_popover_state(
     language: str,
     group: int,
     burn_rate_trackers: dict[str, BurnRateTracker],
-    today_text: str,
-    yesterday_text: str,
+    today_total: PeriodTotal,
+    yesterday_total: PeriodTotal,
     statusline: dict[str, object],
     show_install_button: bool,
     hide_claude: bool,
@@ -988,8 +994,8 @@ def build_popover_state(
         projects_all=projects_all,
         rate_text=_t(language, "rate_text", value=group_name),
         status_text=status_text,
-        today_text=today_text,
-        yesterday_text=yesterday_text,
+        today_total=today_total,
+        yesterday_total=yesterday_total,
         statusline=statusline,
         service_alerts=service_alerts,
         show_install_button=show_install_button,
@@ -1107,9 +1113,8 @@ def _missing_row(
 
 
 def _format_percent(value: float) -> str:
-    if value.is_integer():
-        return str(int(value))
-    return f"{value:.1f}"
+    # Whole numbers only, rounded down so 99.7% never reads as an exhausted 100%.
+    return str(int(value))
 
 
 def popover_dimensions(state: PopoverState, panel: UsagePanel | None = None) -> tuple[float, float]:
@@ -1222,8 +1227,8 @@ def _empty_state(language: str = "en") -> PopoverState:
         projects_all=[],
         rate_text=_t(language, "rate_text", value="--"),
         status_text=_t(language, "status_text", value=_t(language, "status_loading")),
-        today_text=_t(language, "today_text", cost="0.00", tokens="0"),
-        yesterday_text=_t(language, "yesterday_text", cost="0.00", tokens="0"),
+        today_total=PeriodTotal(),
+        yesterday_total=PeriodTotal(),
         statusline=_statusline_payload(language),
         service_alerts=(),
         show_install_button=False,
@@ -1248,8 +1253,8 @@ def _error_state(message: str, mock: bool, language: str = "en") -> PopoverState
         "status_text",
         value=_t(language, "status_error", message=message),
     )
-    state.today_text = _today_title(mock, language)
-    state.yesterday_text = _yesterday_title(mock, language)
+    state.today_total = _today_total(mock)
+    state.yesterday_total = _yesterday_total(mock)
     state.show_install_button = False
     return state
 
@@ -1262,13 +1267,12 @@ def _statusline_payload(language: str) -> dict[str, object]:
     }
 
 
-def _today_title(
+def _today_total(
     mock: bool = False,
-    language: str = "en",
     entries: list[UsageEntry] | None = None,
-) -> str:
+) -> PeriodTotal:
     if mock:
-        return _t(language, "today_text", cost="45.20", tokens="50,193,442")
+        return PeriodTotal(tokens=50_193_442, cost=45.20)
 
     try:
         today = datetime.now().astimezone().date()
@@ -1290,18 +1294,17 @@ def _today_title(
     except Exception:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("today totals load failed", exc_info=True)
-        return _t(language, "today_text", cost="0.00", tokens="0")
+        return PeriodTotal()
 
-    return _t(language, "today_text", cost=f"{total_cost:.2f}", tokens=f"{total_tokens:,}")
+    return PeriodTotal(tokens=total_tokens, cost=total_cost)
 
 
-def _yesterday_title(
+def _yesterday_total(
     mock: bool = False,
-    language: str = "en",
     entries: list[UsageEntry] | None = None,
-) -> str:
+) -> PeriodTotal:
     if mock:
-        return _t(language, "yesterday_text", cost="41.10", tokens="48,200,000")
+        return PeriodTotal(tokens=48_200_000, cost=41.10)
 
     try:
         yesterday = datetime.now().astimezone().date() - timedelta(days=1)
@@ -1318,11 +1321,6 @@ def _yesterday_title(
     except Exception:
         if os.environ.get("USAGE_DEBUG") == "1":
             logger.warning("yesterday totals load failed", exc_info=True)
-        return _t(language, "yesterday_text", cost="0.00", tokens="0")
+        return PeriodTotal()
 
-    return _t(
-        language,
-        "yesterday_text",
-        cost=f"{total_cost:.2f}",
-        tokens=f"{total_tokens:,}",
-    )
+    return PeriodTotal(tokens=total_tokens, cost=total_cost)

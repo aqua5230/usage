@@ -180,8 +180,8 @@ def _build_popover_state(
         language=delegate.language,
         group=delegate.tracker.group(),
         burn_rate_trackers=delegate.burn_rate_trackers,
-        today_text=menubar._today_title(delegate.mock, delegate.language),
-        yesterday_text=menubar_state._yesterday_title(delegate.mock, delegate.language),
+        today_total=menubar._today_total(delegate.mock),
+        yesterday_total=menubar_state._yesterday_total(delegate.mock),
         statusline=menubar._statusline_payload(delegate.language),
         show_install_button=(
             not hide_claude
@@ -241,7 +241,8 @@ def test_format_human_time_minutes_hours_and_days() -> None:
 
 def test_format_percent() -> None:
     assert menubar._format_percent(50.0) == "50"
-    assert menubar._format_percent(50.5) == "50.5"
+    assert menubar._format_percent(50.5) == "50"
+    assert menubar._format_percent(99.7) == "99"
     assert menubar._format_percent(0.0) == "0"
 
 
@@ -310,7 +311,7 @@ def test_quota_row_formats_available_row() -> None:
 
     assert row.available is True
     assert row.percent == 50.5
-    assert row.percent_text == "50.5% 已用"
+    assert row.percent_text == "50% 已用"
     assert row.reset_text.startswith("重置 ")
     assert row.warning is False
     assert row.color == menubar.WARN_COLOR
@@ -548,11 +549,13 @@ def test_quota_row_keeps_reset_text_when_percent_is_below_warning_floor() -> Non
     assert row.reset_text == "重置 51分鐘"
 
 
-def test_today_title_mock() -> None:
-    assert menubar._today_title(mock=True, language="zh-TW") == "今日：$45.20 (50,193,442 tokens)"
+def test_today_total_mock() -> None:
+    assert menubar._today_total(mock=True) == menubar_state.PeriodTotal(
+        tokens=50_193_442, cost=45.20
+    )
 
 
-def test_today_title_returns_zero_fallback_when_loaders_fail(
+def test_today_total_returns_zero_fallback_when_loaders_fail(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     monkeypatch.setattr(
@@ -561,10 +564,10 @@ def test_today_title_returns_zero_fallback_when_loaders_fail(
         lambda *, hours_back=24: (_ for _ in ()).throw(OSError),
     )
 
-    assert menubar._today_title(mock=False, language="zh-TW") == "今日：$0.00 (0 tokens)"
+    assert menubar._today_total(mock=False) == menubar_state.PeriodTotal()
 
 
-def test_today_title_does_not_reload_codex_when_entries_are_provided(
+def test_today_total_does_not_reload_codex_when_entries_are_provided(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     entry = history_loader.UsageEntry(
@@ -585,12 +588,12 @@ def test_today_title_does_not_reload_codex_when_entries_are_provided(
         lambda *, hours_back=24: pytest.fail("Codex should already be included"),
     )
 
-    assert menubar._today_title(mock=False, language="en", entries=[entry]) == (
-        "Today: $0.01 (150 tokens)"
+    assert menubar._today_total(mock=False, entries=[entry]) == menubar_state.PeriodTotal(
+        tokens=150, cost=0.01
     )
 
 
-def test_yesterday_title_uses_provided_entries() -> None:
+def test_yesterday_total_uses_provided_entries() -> None:
     entry = history_loader.UsageEntry(
         timestamp=datetime.now(tz=UTC) - timedelta(days=1),
         session_id="codex",
@@ -605,13 +608,13 @@ def test_yesterday_title_uses_provided_entries() -> None:
         project="usage",
     )
 
-    assert menubar_state._yesterday_title(False, "en", entries=[entry]) == (
-        "Yesterday: $0.01 (150 tokens)"
+    assert menubar_state._yesterday_total(False, entries=[entry]) == menubar_state.PeriodTotal(
+        tokens=150, cost=0.01
     )
 
 
 @pytest.mark.skipif(not hasattr(time, "tzset"), reason="requires POSIX timezone control")
-def test_yesterday_title_uses_dst_specific_day_boundaries(
+def test_yesterday_total_uses_dst_specific_day_boundaries(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     class FixedDateTime(datetime):
@@ -647,8 +650,8 @@ def test_yesterday_title_uses_dst_specific_day_boundaries(
                 entry(datetime(2026, 3, 9, 4, 0, tzinfo=UTC)),
             ]
 
-            assert menubar_state._yesterday_title(False, "en", entries=entries) == (
-                "Yesterday: $0.01 (10 tokens)"
+            assert menubar_state._yesterday_total(False, entries=entries) == (
+                menubar_state.PeriodTotal(tokens=10, cost=0.01)
             )
     finally:
         if previous_tz is None:
@@ -675,7 +678,7 @@ def test_empty_state() -> None:
     assert state.projects_all == []
     assert isinstance(state.statusline["enabled"], bool)
     assert state.show_install_button is False
-    assert state.yesterday_text == "Yesterday: $0.00 (0 tokens)"
+    assert state.yesterday_total == menubar_state.PeriodTotal()
 
 
 @pytest.mark.parametrize("quota_enabled", [True, False])
@@ -1415,11 +1418,11 @@ def test_statusline_switch_survives_agy_failure(
     assert menubar._enable_statusline_settings() == 0
 
 
-def test_error_state_uses_message_and_mock_today_title() -> None:
+def test_error_state_uses_message_and_mock_today_total() -> None:
     state = menubar._error_state("boom", mock=True, language="zh-TW")
 
     assert "boom" in state.status_text
-    assert state.today_text == "今日：$45.20 (50,193,442 tokens)"
+    assert state.today_total == menubar_state.PeriodTotal(tokens=50_193_442, cost=45.20)
 
 
 def test_popover_size_has_positive_dimensions() -> None:
@@ -2447,7 +2450,7 @@ def test_apply_codex_refresh_result_updates_quota_before_full_refresh(
     assert delegate.codex_5h_pct == 18.5
     assert delegate.codex_model == "gpt-test"
     assert controller.calls == [delegate.latest_state]
-    assert button.titles[-1].endswith("18.5%")
+    assert button.titles[-1].endswith("18%")
 
 
 def test_refresh_error_preserves_codex_quota(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -2601,7 +2604,7 @@ def test_refresh_error_preserves_project_usage(monkeypatch: pytest.MonkeyPatch) 
     assert state.projects_7d == [("Eric-Tools", 165, 0.01)]
     assert state.projects_30d == [("Eric-Tools", 165, 0.01)]
     assert state.projects_all == [("Eric-Tools", 165, 0.01)]
-    assert "165 tokens" in state.today_text
+    assert state.today_total.tokens == 165
 
 
 def test_refresh_success_builds_popover_state_and_pings_window_keeper(
