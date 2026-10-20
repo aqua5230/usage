@@ -12,7 +12,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **Muse quota shows up wherever the other quotas do.** The Claude Code side pane, `usage status --json`, the multi-agent CLI dashboard, Quota-Aware Mode, and the Windows tray (card, tooltip, hide toggle, and notifications) now include Muse. They only read the last saved reading and never start a Muse check.
 
 ### Changed
-- **Four or more quota cards switch to a compact layout.** Four full cards no longer fit on a laptop screen, so every quota card shrinks: a smaller header, Session and weekly side by side, and shorter percent and reset text. Three or fewer cards look the same as before.
+- **Four or more quota cards switch to a compact layout.** Four full cards no longer fit on a laptop screen, so every quota card shrinks: a smaller header, Session and weekly side by side, and shorter percent and reset text. The Projects title shrinks to match. Three or fewer cards look the same as before.
 - **The menu bar shows at most three tools.** With Claude Code, Codex, Antigravity, Grok and Muse all on, the strip got too wide and could slide behind the notch. It now keeps the three with the highest Session usage, in the usual order. The panel still shows every card.
 
 ### Fixed
