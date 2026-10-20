@@ -28,6 +28,8 @@ usage 不上傳、不追蹤、不把你的用量資料外送：你的提示詞�
 
 **Antigravity** 額度透過網路向 Google 官方額度端點取得。詳見下表。
 
+**Muse Code** 本機沒有額度檔，所以 usage 用 Muse 自己的 CLI 送出固定提示詞 `Reply with OK only.`，再從它的 JSON 輸出讀額度。連線由 Muse CLI 用你現有的登入完成，每查一次會用掉一點 Muse 額度。usage 本身不直接呼叫任何 Muse 端點。
+
 ### 所有對外連線
 
 | 用途 | 端點 | 時機 |
@@ -35,6 +37,7 @@ usage 不上傳、不追蹤、不把你的用量資料外送：你的提示詞�
 | Antigravity 額度 | `https://daily-cloudcode-pa.googleapis.com/v1internal:retrieveUserQuotaSummary` | app 執行期間定期取得，且僅在 Antigravity 已登入時 |
 | Antigravity Gemini 額度 | `https://daily-cloudcode-pa.googleapis.com/v1internal:fetchAvailableModels` | app 執行期間定期取得，且僅在 Antigravity 已登入時；只在摘要沒有 Gemini 群組時呼叫 |
 | Antigravity token 更新 | `https://oauth2.googleapis.com/token` | 本機存的 access token 過期時 |
+| Muse 額度 | 經由 Muse 自己的 CLI：`muse exec --json --no-session-log --disable-web-tools`，在空資料夾執行 | 僅在裝了 Muse、且沒隱藏 Muse 卡片時：還沒有讀數時查一次，之後只在讀數超過 30 分鐘、而且你之後用過 Muse 時才查 |
 | 服務狀態警示 | `https://status.claude.com/api/v2/components.json`<br>`https://status.openai.com/api/v2/components.json`<br>`https://status.claude.com/api/v2/incidents.json`<br>`https://status.openai.com/api/v2/incidents.json` | 每 5 分鐘；只有相關元件異常時才讀取事件列表 |
 | Token 價目表 | `https://raw.githubusercontent.com/BerriAI/litellm/main/model_prices_and_context_window.json` | 首次需要時，之後每 7 天 |
 | 更新檢查 | `https://api.github.com/repos/aqua5230/usage/releases/latest` | 最多每 24 小時一次，可從選單關閉 |
