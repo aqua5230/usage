@@ -806,6 +806,10 @@
       white-space: nowrap;
       cursor: pointer;
     }
+    /* display above would otherwise override the hidden attribute. */
+    .card[data-card="agy"] .agy-group-toggle[hidden] {
+      display: none;
+    }
     .card[data-card="agy"] .brand h1 {
       flex: 0 1 auto;
       min-width: 0;

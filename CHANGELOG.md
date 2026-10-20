@@ -5,6 +5,12 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [Unreleased]
+
+### Fixed
+- **The Gemini ⇄ button hides again when Antigravity has only one quota group.** v0.34.1 restyled it in the default panel and the new style overrode its hidden state, so it showed a button that did nothing.
+- **Heart Monitor's English footer buttons keep their text inside.** "Set Up Status Line" did not fit next to Refresh and Quit; button labels now wrap.
+
 ## [0.34.1] - 2026-10-21
 
 ### Changed
