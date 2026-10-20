@@ -762,12 +762,11 @@ def test_switch_panel_menu_contains_update_items(
     assert settings[7].submenu is claude_submenu
     assert [item.title for item in claude_submenu.items] == [
         "Sync quota via status line",
-        "---",
         "Side pane",
         "Beginner Mode",
         "Quota-Aware Mode",
     ]
-    statusline, _separator, pane, beginner, quota = claude_submenu.items
+    statusline, pane, beginner, quota = claude_submenu.items
     assert statusline.action == "toggleStatusline:"
     assert statusline.tooltip == _t("en", "statusline_sync_tooltip")
     assert pane.title == _t("en", "claude_pane_section_menu")

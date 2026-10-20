@@ -150,7 +150,6 @@ def windows_menu_model(panels: tuple[Panel, ...]) -> tuple[MenuEntry, ...]:
             "claude_code_section",
             (
                 MenuCommand("statusline_sync_menu", "toggle_statusline", checked_by="statusline"),
-                MenuSeparator(_PANEL_ONLY),
                 MenuCommand(
                     "claude_pane_section_menu", "toggle_claude_pane", checked_by="claude_pane"
                 ),

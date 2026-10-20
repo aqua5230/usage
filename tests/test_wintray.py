@@ -1592,13 +1592,12 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     claude_code = cast(list[dict[str, object]], menu[12]["children"])
     assert [item.get("i18nKey", item.get("type")) for item in claude_code] == [
         "statusline_sync_menu",
-        "separator",
         "claude_pane_section_menu",
         "claude_beginner_menu",
         "quota_aware_menu",
     ]
     assert claude_code[0]["action"] == "toggle_statusline"
-    assert [item["checked"] for item in claude_code[2:]] == [True, False, True]
+    assert [item["checked"] for item in claude_code[1:]] == [True, False, True]
 
 
 def test_panel_and_tray_menus_render_the_shared_model(

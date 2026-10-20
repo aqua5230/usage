@@ -216,7 +216,6 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
             tooltip_key="statusline_sync_tooltip",
         )
     )
-    claude_submenu.addItem_(NSMenuItem.separatorItem())
     claude_pane_item = build_menu_item(
         app.language,
         "claude_pane_section_menu",
