@@ -17,11 +17,14 @@ macOS 內建的 sips 從中心裁回面板尺寸。
 from __future__ import annotations
 
 import json
+import math
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from typing import Any
 
 _REPO_ROOT = Path(__file__).resolve().parent.parent
 
@@ -47,6 +50,56 @@ WRAPPER = """<!doctype html>
 </script>
 </body></html>
 """
+
+
+# 量高度用：面板把 dynamic_height 量到的內容高度 postMessage 給外層，
+# 寫進 title 讓 --dump-dom 讀得到。
+MEASURE_SCRIPT = """<script>
+  addEventListener("message", function (event) {
+    var height = event.data && event.data.usagePanelHeight;
+    if (height) document.title = String(height);
+  });
+</script>
+"""
+
+
+def _measure(wrapper: Path) -> float | None:
+    # 有動畫的面板（matrix）在虛擬時間下偶爾漏掉回報，量不到就重試。
+    for _attempt in range(3):
+        result = subprocess.run(
+            [
+                str(CHROME),
+                "--headless=new",
+                "--disable-gpu",
+                "--virtual-time-budget=4000",
+                "--dump-dom",
+                wrapper.as_uri(),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        match = re.search(r"<title>([0-9.]+)</title>", result.stdout)
+        if match:
+            return float(match.group(1))
+    return None
+
+
+def _wrapper(
+    tmp_dir: Path, panel: dict[str, Any], language: str, height: int, *, measure: bool
+) -> Path:
+    suffix = LANGUAGE_SUFFIXES[language]
+    path = tmp_dir / f"{panel['id']}{suffix or '.zh'}{'.measure' if measure else ''}.html"
+    html = WRAPPER.format(
+        width=int(panel["width"]),
+        height=height,
+        src=(PANELS_DIR / f"{panel['id']}.html").as_uri(),
+        language=language,
+    )
+    if measure:
+        html = html.replace("</body>", f"{MEASURE_SCRIPT}</body>", 1)
+    path.write_text(html, encoding="utf-8")
+    return path
 
 
 def _capture(wrapper: Path, out: Path, width: int, height: int) -> None:
@@ -92,26 +145,31 @@ def main() -> int:
     # README 用 width="32%" 把截圖三張並排，高度不一就會錯位、留下大片空白
     # （world_cup 812 對上 win95 1055 差了 243px）。全部截成最高的那個尺寸，
     # 面板的 body 是 height: 100vh，拉高後自己的背景會填滿多出來的部分。
-    shot_height = max(int(panel["height"]) for panel in panels)
-
+    # 高度用瀏覽器實際量到的內容高度：panels.json 是五張完整卡的預設高度，
+    # 四張以上切成精簡卡後會在截圖底下多出一大片空白。
     with tempfile.TemporaryDirectory() as tmp:
         tmp_dir = Path(tmp)
+        measured = []
         for panel in panels:
-            width = int(panel["width"])
-            height = shot_height
+            for language in LANGUAGE_SUFFIXES:
+                wrapper = _wrapper(tmp_dir, panel, language, int(panel["height"]), measure=True)
+                height = _measure(wrapper)
+                if height is None:
+                    # 無頭模式偶爾漏掉回報（每次漏的面板不同），另一種語言或
+                    # 其他面板通常有量到；截完要人工看最高那張有沒有被裁到。
+                    print(f"warning: {panel['id']} ({language}) did not report its height")
+                else:
+                    measured.append(height)
+        if not measured:
+            print("error: no panel reported its content height", file=sys.stderr)
+            return 1
+        shot_height = math.ceil(max(measured))
+        print(f"shot height: {shot_height}px")
+        for panel in panels:
             for language, suffix in LANGUAGE_SUFFIXES.items():
-                wrapper = tmp_dir / f"{panel['id']}{suffix or '.zh'}.html"
-                wrapper.write_text(
-                    WRAPPER.format(
-                        width=width,
-                        height=height,
-                        src=(PANELS_DIR / f"{panel['id']}.html").as_uri(),
-                        language=language,
-                    ),
-                    encoding="utf-8",
-                )
+                wrapper = _wrapper(tmp_dir, panel, language, shot_height, measure=False)
                 out = out_dir / f"{panel['id']}{suffix}.png"
-                _capture(wrapper, out, width, height)
+                _capture(wrapper, out, int(panel["width"]), shot_height)
                 print(f"{out.name}: {out.stat().st_size // 1024}KB")
 
     print(f"{len(panels)} themes x {len(LANGUAGE_SUFFIXES)} languages")
