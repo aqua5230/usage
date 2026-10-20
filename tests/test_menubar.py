@@ -30,6 +30,7 @@ from menubar import app as menubar
 from menubar import chrome as menubar_chrome
 from menubar import grok as menubar_grok
 from menubar import menu as menubar_menu
+from menubar import muse as menubar_muse
 from menubar import popover as menubar_popover
 from menubar import prefs as menubar_prefs
 from menubar import refresh as menubar_refresh
@@ -730,10 +731,11 @@ def test_switch_panel_menu_contains_update_items(
         "Codex",
         "Antigravity",
         "Grok",
+        "Muse",
     ]
     hide_parent = next(item for item in main_menu.items if item.submenu is hide_submenu)
     assert hide_parent.title == "Hide Sections"
-    claude_item, codex_item, agy_item, grok_item = hide_submenu.items
+    claude_item, codex_item, agy_item, grok_item, muse_item = hide_submenu.items
     assert claude_item.action == "toggleHideClaude:"
     assert claude_item.state == 0
     assert codex_item.action == "toggleHideCodex:"
@@ -742,6 +744,8 @@ def test_switch_panel_menu_contains_update_items(
     assert agy_item.state == 0
     assert grok_item.action == "toggleHideGrok:"
     assert grok_item.state == 0
+    assert muse_item.action == "toggleHideMuse:"
+    assert muse_item.state == 0
 
     settings = main_menu.items[main_titles.index(_t("en", "launch_at_login")) :]
     assert [item.title for item in settings] == [
@@ -1575,8 +1579,10 @@ def test_hide_grok_enabled_reads_preferences(monkeypatch: pytest.MonkeyPatch) ->
     assert menubar._hide_grok_enabled({}) is False
 
 
+@pytest.mark.parametrize("provider", ["grok", "muse"])
 def test_toggle_hide_grok_persists_preference_and_updates_state(
     monkeypatch: pytest.MonkeyPatch,
+    provider: str,
 ) -> None:
     class FakeController:
         def __init__(self) -> None:
@@ -1595,12 +1601,12 @@ def test_toggle_hide_grok_persists_preference_and_updates_state(
     monkeypatch.setattr(menubar, "_save_preferences", lambda value: saved.append(dict(value)))
     monkeypatch.setattr(menubar_title, "_set_button_title", lambda _app, _state: None)
 
-    delegate.toggleHideGrok_(sender)
+    getattr(delegate, f"toggleHide{provider.title()}_")(sender)
 
-    assert preferences == {"hide_grok_section": True}
+    assert preferences == {f"hide_{provider}_section": True}
     assert saved == [preferences]
     assert sender.state == 1
-    assert delegate.latest_state.hide_grok is True
+    assert getattr(delegate.latest_state, f"hide_{provider}") is True
     assert delegate.popover_controller.states == [delegate.latest_state]
 
 
@@ -1612,6 +1618,7 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
         codex_card_height = 60.0
         agy_card_height = 40.0
         grok_card_height = 30.0
+        muse_card_height = 40.0
         service_alert_height = 0.0
 
         def build_view(self, delegate: Any) -> Any:
@@ -1621,7 +1628,7 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
             return None
 
         def preferred_size(self) -> tuple[float, float]:
-            return (300.0, 500.0)
+            return (300.0, 540.0)
 
     monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
     state = menubar._empty_state()
@@ -1629,6 +1636,10 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
     state.hide_grok = False
     panel = FakePanel()
 
+    state.hide_muse = False
+    # Five visible cards replace the synthetic measured heights with 94px each.
+    assert menubar_popover._popover_size(state, panel).height == 740.0
+    state.hide_muse = True
     # Four visible cards replace the synthetic measured heights with 94px each.
     assert menubar_popover._popover_size(state, panel).height == 646.0
     state.hide_claude = True
@@ -2671,6 +2682,8 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
         agy_projection=menubar_agy.fallback_projection("en"),
         grok_result=grok_result,
         grok_projection=menubar_grok.fallback_projection("en"),
+        muse_result=menubar_muse.MuseRefreshResult(projection=None, hide_muse=True),
+        muse_projection=menubar_muse.fallback_projection("en"),
         debug_timing=False,
     )
 
@@ -3278,3 +3291,106 @@ def test_panel_window_hide_prunes_cache_and_keeps_slow_poll() -> None:
     menubar.AppDelegate._panel_window_did_hide(cast(Any, delegate))
     controller.evictInactivePanelViews.assert_called_once_with()
     reschedule.assert_called_once_with(300.0)
+
+
+@pytest.mark.parametrize(
+    "hidden,percent,reset,expected",
+    [
+        (False, 31.0, False, "47% · 31%"),
+        (True, 31.0, False, "47%"),
+        (False, None, False, "47%"),
+        (False, 31.0, True, "47% · 0%"),
+    ],
+)
+def test_muse_menubar_title_and_icon_follow_grok(
+    monkeypatch: pytest.MonkeyPatch,
+    hidden: bool,
+    percent: float | None,
+    reset: bool,
+    expected: str,
+) -> None:
+    state = menubar._empty_state("en")
+    state.hide_claude = state.hide_codex = state.hide_agy = True
+    state.hide_grok = False
+    state.grok_weekly.percent = 47
+    state.hide_muse = hidden
+    state.muse_session.percent = percent
+    state.muse_session.reset_done = reset
+    app = SimpleNamespace(codex_5h_pct=None, _menubar_text_cache={})
+    assert menubar_title._compose_title(app, state) == expected
+    icons: list[str] = []
+
+    def icon(name: str) -> Any:
+        icons.append(name)
+        return None
+
+    monkeypatch.setattr(menubar_title, "_grok_menubar_icon", lambda: icon("grok"))
+    monkeypatch.setattr(menubar_title, "_muse_menubar_icon", lambda: icon("muse"))
+    menubar_title._menubar_attributed_title(app, state)
+    assert icons == (["grok", "muse"] if not hidden and percent is not None else ["grok"])
+
+
+@pytest.mark.parametrize("fetch_fails", [False, True])
+@pytest.mark.parametrize("hide_preference", [False, True])
+def test_refresh_preserves_muse_on_success_and_fetch_error(
+    monkeypatch: pytest.MonkeyPatch,
+    fetch_fails: bool,
+    hide_preference: bool,
+) -> None:
+    from types import SimpleNamespace
+
+    from loaders.claude_usage import PollOutcome, PollState
+    from menubar import agy, grok, muse, refresh, state
+    from tests.test_muse_quota_probe import quota
+
+    projection = muse.project_quota(quota(), "en", 2801, latest_session=1001)
+    assert projection is not None
+    monkeypatch.setattr(refresh, "_hide_muse_enabled", lambda: hide_preference)
+    monkeypatch.setattr(
+        refresh,
+        "get_service_status",
+        lambda config: ServiceStatus(config.service_name, False, "operational", "", "cache"),
+    )
+    monkeypatch.setattr(state, "_statusline_payload", lambda _language: {})
+    monkeypatch.setattr("quota.codex_window_keeper.maybe_ping", lambda _mock: None)
+    monkeypatch.setattr("quota.agy_window_keeper.maybe_ping", lambda *_args: None)
+
+    async def fetch() -> PollOutcome:
+        if fetch_fails:
+            raise OSError("fetch failed")
+        return PollOutcome(PollState.LOADING)
+
+    missing = state._missing_row("Session", state.CODEX_COLOR)
+    app = SimpleNamespace(
+        language="en",
+        mock=True,
+        latest_state=state._empty_state("en"),
+        _load_history_entries=lambda: [],
+        _project_rows=lambda **_kwargs: [],
+        _fetch=fetch,
+        _statusline_setup_available=lambda: False,
+        tracker=SimpleNamespace(group=lambda: 0),
+        burn_rate_trackers={},
+        _history_load_error_key=None,
+    )
+    sources = refresh.RefreshSources(
+        codex_result={"codex_rows": (missing, missing), "codex_5h_pct": None},
+        history_scan=None,
+        agy_result=agy.AgyRefreshResult(None, True),
+        agy_projection=agy.fallback_projection("en"),
+        grok_result=grok.GrokRefreshResult(None, True),
+        grok_projection=grok.fallback_projection("en"),
+        debug_timing=False,
+        muse_result=muse.MuseRefreshResult(projection, False),
+        muse_projection=projection,
+    )
+    result = refresh.build_result(app, sources)["state"]
+    assert result.muse_session == projection.session
+    assert result.muse_weekly == projection.weekly
+    assert result.muse_stale == projection.stale
+    assert result.hide_muse is hide_preference
+
+    if fetch_fails:
+        assert "OSError" in result.status_text
+    else:
+        assert result.status_text == _t("en", "status_text", value=_t("en", "status_no_data"))

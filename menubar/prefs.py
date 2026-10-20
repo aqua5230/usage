@@ -10,7 +10,7 @@ from collections.abc import Mapping
 
 from usage_common.prefs import _load_preferences, _save_preferences
 
-DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy", "grok")
+DEFAULT_QUOTA_CARD_ORDER = ("claude", "codex", "agy", "grok", "muse")
 DEFAULT_PANEL_FLAVOR = "mocha"
 PANEL_FLAVORS = ("latte", "frappe", "macchiato", "mocha")
 AGY_QUOTA_GROUPS = ("gemini", "claude_gpt", "argon")
@@ -38,6 +38,11 @@ def _hide_agy_enabled(prefs: Mapping[str, object] | None = None) -> bool:
 def _hide_grok_enabled(prefs: Mapping[str, object] | None = None) -> bool:
     data = _resolved_preferences(prefs)
     return data.get("hide_grok_section") is True
+
+
+def _hide_muse_enabled(prefs: Mapping[str, object] | None = None) -> bool:
+    data = _resolved_preferences(prefs)
+    return data.get("hide_muse_section") is True
 
 
 def _panel_flavor(prefs: Mapping[str, object] | None = None) -> str:

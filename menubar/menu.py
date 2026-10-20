@@ -17,6 +17,7 @@ from menubar.prefs import (
     _hide_claude_enabled,
     _hide_codex_enabled,
     _hide_grok_enabled,
+    _hide_muse_enabled,
     _quota_notifications_enabled,
     _window_keeper_enabled,
 )
@@ -134,6 +135,15 @@ def build_switch_menu(app: _SwitchMenuApp, sender: Any) -> None:
             "toggleHideGrok:",
             target=app,
             state=_hide_grok_enabled(),
+        )
+    )
+    hide_submenu.addItem_(
+        build_menu_item(
+            app.language,
+            "muse_name",
+            "toggleHideMuse:",
+            target=app,
+            state=_hide_muse_enabled(),
         )
     )
     hide_parent = NSMenuItem.alloc().initWithTitle_action_keyEquivalent_(

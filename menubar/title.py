@@ -24,6 +24,7 @@ from menubar.chrome import (
     _codex_menubar_icon,
     _grok_menubar_icon,
     _menubar_icon_attachment_string,
+    _muse_menubar_icon,
 )
 from menubar.state import PopoverState, _format_percent
 
@@ -99,6 +100,15 @@ def _menubar_attributed_title(app: _TitleApp, state: PopoverState) -> Any:
             title.appendAttributedString_(_menubar_text_string(app, "  "))
         title.appendAttributedString_(_menubar_icon_attachment_string(_grok_menubar_icon()))
         title.appendAttributedString_(_menubar_text_string(app, f" {grok_percent}"))
+    muse_session_percent = state.muse_session.display_percent
+    muse_visible = not state.hide_muse and muse_session_percent is not None
+    if muse_visible:
+        assert muse_session_percent is not None
+        muse_percent = f"{_format_percent(muse_session_percent)}%"
+        if title.length() > 0:
+            title.appendAttributedString_(_menubar_text_string(app, "  "))
+        title.appendAttributedString_(_menubar_icon_attachment_string(_muse_menubar_icon()))
+        title.appendAttributedString_(_menubar_text_string(app, f" {muse_percent}"))
     if title.length() == 0:
         # Both providers hidden: keep a recognizable, clickable status item.
         title.appendAttributedString_(_menubar_icon_attachment_string(_claude_menubar_icon()))
@@ -142,5 +152,8 @@ def _compose_title(app: _TitleApp, state: PopoverState) -> str:
     if not state.hide_grok and state.grok_weekly.display_percent is not None:
         grok = f"{_format_percent(state.grok_weekly.display_percent)}%"
         parts.append(grok)
+    if not state.hide_muse and state.muse_session.display_percent is not None:
+        muse = f"{_format_percent(state.muse_session.display_percent)}%"
+        parts.append(muse)
     # Both providers hidden: keep a recognizable, clickable status item.
     return " · ".join(parts) if parts else "usage"

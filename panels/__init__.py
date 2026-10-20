@@ -32,6 +32,7 @@ def all_panels() -> tuple[Panel, ...]:
             codex_card_height=spec.codex_card_height,
             agy_card_height=spec.agy_card_height,
             grok_card_height=spec.grok_card_height,
+            muse_card_height=spec.muse_card_height,
             status_wrap_extra_height=spec.status_wrap_extra_height,
             service_alert_height=spec.service_alert_height,
         )

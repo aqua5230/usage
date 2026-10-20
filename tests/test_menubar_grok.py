@@ -91,7 +91,7 @@ def test_build_popover_state_includes_grok_row_and_visibility() -> None:
 
     assert state.hide_grok is False
     assert state.grok_weekly.percent == 18.0
-    assert state.card_order == ("claude", "codex", "agy", "grok")
+    assert state.card_order == ("claude", "codex", "agy", "grok", "muse")
 
 
 @pytest.mark.parametrize(

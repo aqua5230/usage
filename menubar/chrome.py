@@ -21,6 +21,8 @@ _AGY_MENUBAR_ICON: Any = None
 _AGY_MENUBAR_ICON_LOADED = False
 _GROK_MENUBAR_ICON: Any = None
 _GROK_MENUBAR_ICON_LOADED = False
+_MUSE_MENUBAR_ICON: Any = None
+_MUSE_MENUBAR_ICON_LOADED = False
 
 
 class _NoopAlert:
@@ -118,6 +120,19 @@ def _grok_menubar_icon() -> Any:
             if os.environ.get("USAGE_DEBUG") == "1":
                 logger.warning("load Grok menubar icon failed", exc_info=True)
     return _GROK_MENUBAR_ICON
+
+
+def _muse_menubar_icon() -> Any:
+    global _MUSE_MENUBAR_ICON, _MUSE_MENUBAR_ICON_LOADED
+    if not _MUSE_MENUBAR_ICON_LOADED:
+        _MUSE_MENUBAR_ICON_LOADED = True
+        try:
+            _MUSE_MENUBAR_ICON = _load_menubar_brand_icon("muse_mono_menubar.png")
+        except Exception:
+            _MUSE_MENUBAR_ICON = None
+            if os.environ.get("USAGE_DEBUG") == "1":
+                logger.warning("load Muse menubar icon failed", exc_info=True)
+    return _MUSE_MENUBAR_ICON
 
 
 def _menubar_icon_attachment_string(image: Any) -> Any:

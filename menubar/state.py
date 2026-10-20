@@ -72,6 +72,7 @@ CLAUDE_COLOR = (244 / 255, 145 / 255, 100 / 255)
 CODEX_COLOR = (88 / 255, 214 / 255, 230 / 255)
 AGY_COLOR = (107 / 255, 154 / 255, 1.0)
 GROK_COLOR = (138 / 255, 138 / 255, 144 / 255)
+MUSE_COLOR = GROK_COLOR
 WARN_COLOR = (255 / 255, 196 / 255, 57 / 255)
 DANGER_COLOR = (255 / 255, 69 / 255, 58 / 255)
 WEEKLY_FORECAST_WINDOW_SECONDS = 30 * 60
@@ -121,6 +122,10 @@ class GrokStaleState(TypedDict):
     ageText: str
 
 
+class MuseStaleState(TypedDict):
+    ageText: str
+
+
 class HistoryLoadErrorState(TypedDict):
     reasonText: str
 
@@ -159,12 +164,20 @@ class PopoverState:
     hide_claude: bool = False
     hide_codex: bool = False
     hide_agy: bool = True
+    hide_muse: bool = True
+    muse_session: QuotaRowState = field(
+        default_factory=lambda: _missing_row(_t("en", "session_label"), MUSE_COLOR)
+    )
+    muse_weekly: QuotaRowState = field(
+        default_factory=lambda: _missing_row(_t("en", "weekly_label"), MUSE_COLOR)
+    )
+    muse_stale: MuseStaleState | None = None
     hide_grok: bool = True
     codex_stale: CodexStaleState | None = None
     codex_credits: CodexCreditsState | None = None
     agy_stale: AgyStaleState | None = None
     grok_stale: GrokStaleState | None = None
-    card_order: tuple[str, ...] = ("claude", "codex", "agy", "grok")
+    card_order: tuple[str, ...] = ("claude", "codex", "agy", "grok", "muse")
     history_error: HistoryLoadErrorState | None = None
     refresh_status: tuple[str, bool] | None = None
     refresh_queued: bool = False
@@ -831,6 +844,9 @@ def build_popover_state(
     agy_group_switchable: bool = False,
     agy_weekly_only: bool = False,
     grok_row: QuotaRowState,
+    muse_rows: tuple[QuotaRowState, QuotaRowState] | None = None,
+    muse_stale: MuseStaleState | None = None,
+    hide_muse: bool = True,
     projects: list[tuple[str, int, float | None]],
     projects_yesterday: list[tuple[str, int, float | None]],
     projects_7d: list[tuple[str, int, float | None]],
@@ -851,7 +867,7 @@ def build_popover_state(
     codex_credits: CodexCreditsState | None = None,
     agy_stale: AgyStaleState | None,
     grok_stale: GrokStaleState | None,
-    card_order: tuple[str, ...] = ("claude", "codex", "agy", "grok"),
+    card_order: tuple[str, ...] = ("claude", "codex", "agy", "grok", "muse"),
     history_error: HistoryLoadErrorState | None = None,
     service_statuses: tuple[ServiceStatus, ...] = (),
 ) -> PopoverState:
@@ -953,6 +969,18 @@ def build_popover_state(
         agy_group_switchable=agy_group_switchable,
         agy_weekly_only=agy_weekly_only,
         grok_weekly=grok_row,
+        muse_session=(
+            muse_rows[0]
+            if muse_rows
+            else _missing_row(_t(language, "session_label"), MUSE_COLOR, language)
+        ),
+        muse_weekly=(
+            muse_rows[1]
+            if muse_rows
+            else _missing_row(_t(language, "weekly_label"), MUSE_COLOR, language)
+        ),
+        muse_stale=muse_stale,
+        hide_muse=hide_muse,
         projects=projects,
         projects_yesterday=projects_yesterday,
         projects_7d=projects_7d,
@@ -1104,27 +1132,32 @@ def popover_dimensions(state: PopoverState, panel: UsagePanel | None = None) -> 
     agy_deduct = agy_card_height if state.hide_agy else 0.0
     grok_card_height = getattr(active_panel, "grok_card_height", 0.0)
     grok_deduct = grok_card_height if state.hide_grok else 0.0
+    # Muse mirrors Agy's two-row geometry; HTMLPanel does not expose the new field yet.
+    muse_card_height = getattr(active_panel, "muse_card_height", 0.0)
+    muse_deduct = muse_card_height if state.hide_muse else 0.0
     card_heights = (
         active_panel.claude_card_height,
         active_panel.codex_card_height,
         agy_card_height,
         grok_card_height,
+        muse_card_height,
     )
-    visible_cards = sum(
-        not hidden and height > 0
+    visible_card_heights = [
+        height
         for hidden, height in zip(
-            (state.hide_claude, state.hide_codex, state.hide_agy, state.hide_grok),
+            (state.hide_claude, state.hide_codex, state.hide_agy, state.hide_grok, state.hide_muse),
             card_heights,
             strict=True,
         )
-    )
+        if not hidden and height > 0
+    ]
     compact_deduct = 0.0
-    if visible_cards >= 4:
+    if len(visible_card_heights) >= 4:
         # B layout: 19px padding + 26px header + 7px gap + 42px quota row.
         # Keep PanelSpec's original measurements; replace only card estimates.
-        compact_deduct = sum(height - 94.0 for height in card_heights)
+        compact_deduct = sum(height - 94.0 for height in visible_card_heights)
         # A card left with one row spans it across the card at the same height.
-        codex_row_deduct = 42.0 if codex_missing_rows == 2 else 0.0
+        codex_row_deduct = 42.0 if not state.hide_codex and codex_missing_rows == 2 else 0.0
     install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
     status_extra = (
         getattr(active_panel, "status_wrap_extra_height", 0.0) if state.status_long else 0.0
@@ -1155,6 +1188,7 @@ def popover_dimensions(state: PopoverState, panel: UsagePanel | None = None) -> 
         - codex_row_deduct
         - agy_deduct
         - grok_deduct
+        - muse_deduct
     )
     return width, height
 
@@ -1201,6 +1235,8 @@ def _empty_state(language: str = "en") -> PopoverState:
         # is already active.
         hide_agy=menubar_agy.find_agy() is None,
         hide_grok=True,
+        muse_session=_missing_row(_t(language, "session_label"), MUSE_COLOR, language),
+        muse_weekly=_missing_row(_t(language, "weekly_label"), MUSE_COLOR, language),
         card_order=_quota_card_order(),
     )
 

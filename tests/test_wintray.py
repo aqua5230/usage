@@ -1774,10 +1774,10 @@ def test_card_order_persists_into_the_next_loaded_panel(
     controller.on_loaded()
 
     assert preferences["quota_card_order"] == order
-    assert controller.latest_state.card_order == (*order, "grok")
+    assert controller.latest_state.card_order == (*order, "grok", "muse")
     assert len(loaded) == 1
     payload = injected[-1].removeprefix("window.usageApplyState(").removesuffix(")")
-    assert json.loads(payload)["cardOrder"] == [*order, "grok"]
+    assert json.loads(payload)["cardOrder"] == [*order, "grok", "muse"]
 
 
 def test_run_app_wires_pystray_and_pywebview(

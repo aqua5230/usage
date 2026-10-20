@@ -15,8 +15,108 @@ from typing import Any
 import pytest
 
 from menubar import notify
+from menubar.state import PopoverState, QuotaRowState
+from quota.notifications import QuotaNotifier
+from usage_common.i18n import _t
 
 ROOT = Path(__file__).resolve().parents[1]
+
+
+@pytest.fixture
+def quota_state() -> PopoverState:
+    row = QuotaRowState("Session", 89.0, "89%", "", (0.0, 0.0, 0.0))
+    return PopoverState(
+        language="en",
+        claude_session=row,
+        claude_weekly=row,
+        codex_session=row,
+        codex_weekly=row,
+        agy_session=row,
+        agy_weekly=row,
+        agy_group_name="",
+        grok_weekly=row,
+        projects=[],
+        projects_yesterday=[],
+        projects_7d=[],
+        projects_30d=[],
+        projects_all=[],
+        rate_text="",
+        status_text="",
+        today_text="",
+        yesterday_text="",
+        statusline={},
+    )
+
+
+@pytest.mark.parametrize("available", [False, True])
+@pytest.mark.parametrize("stale", [False, True])
+@pytest.mark.parametrize("hidden", [False, True])
+def test_notification_channels_preserves_old_values(
+    quota_state: PopoverState, available: bool, stale: bool, hidden: bool
+) -> None:
+    state = quota_state
+    state.hide_claude = state.hide_codex = state.hide_agy = hidden
+    state.agy_stale = {"ageText": "old"} if stale else None
+    state.codex_stale = {"ageText": "old"} if stale else None
+    names = (
+        "claude_session",
+        "claude_weekly",
+        "codex_session",
+        "codex_weekly",
+        "agy_session",
+        "agy_weekly",
+    )
+    expected = {}
+    for index, name in enumerate(names):
+        percent = None if index == 0 else float(index * 10)
+        setattr(
+            state,
+            name,
+            QuotaRowState(
+                "", percent, "", "", (0.0, 0.0, 0.0), available=available, reset_done=True
+            ),
+        )
+        expected[name] = (percent, available and (not stale or not name.startswith("agy_")))
+
+    channels = notify.notification_channels(state)
+    assert {name: channels[name] for name in names} == expected
+    assert set(channels) == {*names, "muse_session", "muse_weekly"}
+
+
+@pytest.mark.parametrize("channel", ["muse_session", "muse_weekly"])
+@pytest.mark.parametrize("available", [False, True])
+@pytest.mark.parametrize("stale", [False, True])
+@pytest.mark.parametrize("hidden", [False, True])
+def test_muse_channel_availability_and_text(
+    quota_state: PopoverState, channel: str, available: bool, stale: bool, hidden: bool
+) -> None:
+    row = QuotaRowState("", 91.0, "", "", (0.0, 0.0, 0.0), available=available)
+    setattr(quota_state, channel, row)
+    quota_state.muse_stale = {"ageText": "old"} if stale else None
+    quota_state.hide_muse = hidden
+
+    assert notify.notification_channels(quota_state)[channel] == (91.0, available and not stale)
+    assert notify.notification_row(quota_state, channel) is row
+    assert notify.notification_tool(channel) == "Muse"
+    key = "session_label" if channel.endswith("_session") else "weekly_label"
+    assert notify.notification_scope("en", channel) == _t("en", key)
+
+
+@pytest.mark.parametrize("channel", ["muse_session", "muse_weekly"])
+def test_muse_stale_suppresses_events_without_losing_state(
+    quota_state: PopoverState, channel: str
+) -> None:
+    notifier = QuotaNotifier()
+    row = QuotaRowState("", 89.0, "", "", (0.0, 0.0, 0.0))
+    setattr(quota_state, channel, row)
+    assert notifier.update(notify.notification_channels(quota_state)) == []
+    for percent, kind in [(90.0, "warn"), (100.0, "depleted"), (5.0, "restored")]:
+        row.percent = percent
+        quota_state.muse_stale = {"ageText": "old"}
+        assert notifier.update(notify.notification_channels(quota_state)) == []
+        quota_state.muse_stale = None
+        events = notifier.update(notify.notification_channels(quota_state))
+        assert [(event.channel, event.kind) for event in events] == [(channel, kind)]
 
 
 class _FakeSound:

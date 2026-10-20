@@ -107,13 +107,13 @@ def test_registered_panel_i18n_keys() -> None:
 def test_classic_panel_preferred_size() -> None:
     panel = panels.get_panel("classic")
 
-    assert panel.preferred_size() == (364.0, 1132.0)
+    assert panel.preferred_size() == (364.0, 1324.0)
 
 
 def test_catppuccin_panel_preferred_size() -> None:
     panel = panels.get_panel("catppuccin")
 
-    assert panel.preferred_size() == (364.0, 1166.0)
+    assert panel.preferred_size() == (364.0, 1358.0)
 
 
 def test_catppuccin_flavor_is_resolved_after_cached_html_load(
@@ -133,7 +133,7 @@ def test_catppuccin_flavor_is_resolved_after_cached_html_load(
 def test_win95_panel_preferred_size() -> None:
     panel = panels.get_panel("win95")
 
-    assert panel.preferred_size() == (364.0, 1183.0)
+    assert panel.preferred_size() == (364.0, 1392.0)
 
 
 def test_html_panels_place_analyze_and_cli_in_project_header() -> None:
@@ -217,14 +217,27 @@ def test_card_panels_use_shared_core_script(filename: str) -> None:
 
 
 @pytest.mark.parametrize("filename", CARD_PANEL_FILENAMES)
-def test_card_panels_expose_grok_dom_contract(filename: str) -> None:
+@pytest.mark.parametrize("provider", ["grok", "muse"])
+def test_card_panels_expose_quota_dom_contract(filename: str, provider: str) -> None:
     panel_path = Path(__file__).resolve().parent.parent / "assets" / "panels" / filename
     html = panel_path.read_text(encoding="utf-8")
 
-    assert '<section class="card" data-card="grok"' in html
-    assert "data-grok-stale" in html
-    assert "data-grok-stale-age" in html
-    assert "data-grok-stale-tooltip" in html
+    body = html.split("<body>", 1)[1]
+    marker = f'<section class="card" data-card="{provider}"'
+    assert body.count(marker) == 1
+    card = body.split(marker, 1)[1].split("</section>", 1)[0]
+    assert f"data-{provider}-stale" in card
+    assert f"data-{provider}-stale-age" in card
+    assert f"data-{provider}-stale-tooltip" in card
+    assert f'.hide-{provider} [data-card="{provider}"]' in html
+    assert 'data-row="weekly"' in card
+    if provider == "muse":
+        assert 'data-row="session"' in card
+        assert 'data-i18n="muse_name">Muse</h1>' in card
+        assert 'style="--accent: var(--muse)"' in card
+        assert '<svg viewBox="0 0 100 100" fill="currentColor"' in card
+        assert body.index('data-card="grok"') < body.index('data-card="muse"')
+        assert body.index('data-card="muse"') < body.index('data-card="projects"')
 
 
 def test_state_payload_omits_codex_rows_with_empty_titles(
