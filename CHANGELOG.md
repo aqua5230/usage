@@ -16,6 +16,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 - **The menu bar shows at most three tools.** With Claude Code, Codex, Antigravity, Grok and Muse all on, the strip got too wide and could slide behind the notch. It now keeps the three with the highest Session usage, in the usual order. The panel still shows every card.
 
 ### Fixed
+- **Stale-data warnings are readable in the Windows 95 and Cloud Observation themes.** The red warning sat directly on the Windows 95 blue title bar, and the pale amber one on Cloud Observation's sky-blue cards. Both now have enough contrast. In World Cup 2026, the English MATCH STATS heading is no longer cut off by the buttons next to it.
 - **Windows saves the quota card order again.** The tray accepted a new order only when it listed exactly the Claude, Codex, and Antigravity cards, so once the Grok card was in the panel, dragging cards into a new order was not saved. It now uses the same check as macOS.
 - **Auto-start 5-hour Session no longer runs your own hooks.** Its background `claude -p` and `codex exec` pings fired every hook you had set up, such as SessionStart, UserPromptSubmit and Stop hooks, Codex's `hooks.json`, and the `notify` program in Codex's `config.toml`. A hook that sends a notification or saves the conversation ran once for every ping. Claude Code pings now load a settings file with `disableAllHooks`; Codex pings turn off `features.hooks` and `notify`. Antigravity pings are unchanged.
 

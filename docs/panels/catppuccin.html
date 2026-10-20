@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-flavor="{{PANEL_FLAVOR}}">
+<html lang="en" data-flavor="mocha">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -1179,6 +1179,8 @@ h1 {
     html.compact-cards body .card[data-card] .brand-icon svg { width: 20px; height: 20px; }
     html.compact-cards body .card[data-card]:not([data-card="projects"]) { padding-bottom: 24px; }
     html.compact-cards body .card[data-card] .brand h1 { font-size: 15px !important; }
+    /* The uppercase monospace English total needs a second line. */
+    html.compact-cards .today { white-space: normal; }
   </style>
 </head>
 <body>

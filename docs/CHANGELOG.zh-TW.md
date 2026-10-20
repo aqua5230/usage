@@ -15,6 +15,7 @@
 - **選單列最多顯示 3 家。** Claude Code、Codex、Antigravity、Grok、Muse 全開時太寬，可能被瀏海擋住。現在只留 Session 用量最高的 3 家，順序不變。面板照樣顯示所有卡片。
 
 ### 修正
+- **「視窗 95」和「雲圖觀測」佈景的過期提示看得清楚了。** 紅字原本直接壓在視窗 95 的藍色標題列上，淺橘字壓在雲圖觀測的淺藍卡片上，現在都有足夠對比。「世界盃 2026」英文版的 MATCH STATS 標題也不再被旁邊的按鈕擠掉。
 - **Windows 又能記住額度卡的排序了。** 系統匣原本只接受剛好是 Claude、Codex、Antigravity 三張卡的排序，所以面板裡一有 Grok 卡，拖曳排好的順序就存不起來。現在改用跟 macOS 一樣的檢查。
 - **「自動啟動 5 小時計時」不再觸發你自己設定的 hook。** 它在背景跑的 `claude -p` 與 `codex exec` 會觸發你設定的每個 hook，例如 SessionStart、UserPromptSubmit、Stop hook、Codex 的 `hooks.json`，以及 Codex `config.toml` 裡的 `notify` 程式。會發通知或存對話的 hook，每次背景請求都會跑一遍。現在 Claude Code 的背景請求改讀一份開了 `disableAllHooks` 的設定檔；Codex 的背景請求關掉 `features.hooks` 與 `notify`。Antigravity 不變。
 
