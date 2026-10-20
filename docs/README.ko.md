@@ -108,7 +108,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 ### 보고서 및 기타
 
 - **HTML 보고서:** 일간 및 주간 token 추세, 프로젝트 순위, 비용, 기여 히트맵이 포함된 Year in Review를 제공합니다. 완전히 오프라인에서 .html, .csv 또는 .png로 내보낼 수 있으며 프로젝트 이름 마스킹도 지원합니다.
-- **터미널 통합:** `usage status --json`은 Claude Code, Codex, Antigravity, Grok 할당량을 Starship, tmux 또는 자체 스크립트에 전달합니다. [미리 준비된 스니펫](DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
+- **터미널 통합:** `usage status --json`은 Claude Code, Codex, Antigravity, Grok, Muse 할당량을 Starship, tmux 또는 자체 스크립트에 전달합니다. [미리 준비된 스니펫](DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **AI 업데이트 일보:** 매일 공개되는 [웹 페이지](https://aqua5230.github.io/ai-updates/)에서 Claude Code, Codex, Antigravity의 변경 사항을 5개 언어의 알기 쉬운 요약으로 제공합니다.
 - **자유로운 레이아웃:** 패널을 원하는 위치로 드래그하고, 할당량 카드를 드래그해 순서를 바꾸며, 16가지 테마를 전환할 수 있습니다. UI는 시스템 언어(번체 중국어, 간체 중국어, 영어, 일본어, 한국어)를 따릅니다. 할당량 카드가 4개 이상이면 모두 간결한 레이아웃으로 바뀌며, 3개 이하면 기존 레이아웃을 유지합니다.
 
@@ -124,7 +124,7 @@ Codex를 사용한 적이 있다면 `usage`가 기록을 자동으로 가져옵�
 - **Linux:** CI가 Ubuntu에서 `usage setup`을 검증합니다.
 - **진행 상황 컨시어지:** 캐시가 만료될 만큼 오래 둔 대화를 `/resume`으로 다시 열면 다음 메시지에서 다시 보낼 토큰 수를 알려 주고 먼저 `/compact`를 권합니다.
 - **초보자 모드(macOS/Windows):** 전문 용어가 UI 언어로 입력창 위에 표시됩니다. 9를 누르면 "이해함"으로 표시됩니다. 건너뛴 용어는 1일, 3일, 7일 뒤에 다시 나옵니다. 이해한 용어는 7일, 21일, 60일 뒤에 객관식 한 문제로 다시 나오며(하루 최대 한 문제), 틀리면 그 용어는 다시 힌트로 돌아갑니다. `/terms`로 용어 기록을 열 수 있습니다. 용어 고르기는 Claude Code를 통해 Claude Haiku에 맡기며, 5시간 할당량이 90% 이상이면 자동으로 멈춥니다.
-- **할당량 인식 모드(macOS/Windows):** 5시간 할당량이 80%, 90%, 95%를 넘거나 주간 할당량이 95%를 넘으면, Claude Code에 남은 양과 재설정 시각을 한 줄로 알려 줍니다. Claude Code, Codex, Antigravity를 모두 지원하며, 각 단계는 한 대화에서 한 번만 알리고, 각 할당량과 모델 그룹을 별도로 처리하므로 소진된 할당량은 해당 모델에서 실행되는 작업에만 영향을 줍니다.
+- **할당량 인식 모드(macOS/Windows):** 5시간 할당량이 80%, 90%, 95%를 넘거나 주간 할당량이 95%를 넘으면, Claude Code에 남은 양과 재설정 시각을 한 줄로 알려 줍니다. Claude Code, Codex, Antigravity, Muse를 모두 지원하며, 각 단계는 한 대화에서 한 번만 알리고, 각 할당량과 모델 그룹을 별도로 처리하므로 소진된 할당량은 해당 모델에서 실행되는 작업에만 영향을 줍니다.
 - **5시간 세션 자동 시작:** Claude는 Haiku, Antigravity는 Gemini 3.8 Flash Low, Codex는 가장 저렴한 모델을 사용합니다. 소모되는 할당량은 무시할 수 있는 수준입니다.
 - **패널:** 다른 앱으로 포커스가 이동해도 사라지지 않으며, 메뉴 막대 아이콘을 다시 클릭하거나 Esc 키를 눌러야 닫힙니다. 카드 순서는 할당량 카드가 있는 모든 테마(World Cup 2026 제외)에서 공유되며 다시 시작해도 유지됩니다.
 - **HTML 보고서:** "최근 작업" 섹션에는 Claude Code가 최근 대화에 붙인 이름이 나열되며, 마스킹 기능은 이 제목들도 함께 가려줍니다.

@@ -108,7 +108,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 ### Reports and More
 
 - **HTML reports:** Daily and weekly token trends, project rankings, cost, and a Year in Review with a contribution heatmap. Export .html, .csv, or .png fully offline, with optional project-name masking.
-- **Terminal integration:** `usage status --json` hands your Claude Code, Codex, Antigravity, and Grok quota to Starship, tmux, or your own scripts. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
+- **Terminal integration:** `usage status --json` hands your Claude Code, Codex, Antigravity, Grok, and Muse quota to Starship, tmux, or your own scripts. [Ready-made snippets](docs/DEVELOPMENT.md#quota-status-for-other-tools-usage-status).
 - **AI Update Daily:** A daily public [page](https://aqua5230.github.io/ai-updates/) of Claude Code, Codex, and Antigravity changes, with plain-language summaries in five languages.
 - **Your layout:** Drag the panel anywhere, drag quota cards to reorder them, and switch among 16 themes. The UI follows your system language: Traditional Chinese, Simplified Chinese, English, Japanese, or Korean. With four or more quota cards visible, all cards switch to a compact layout; three or fewer keep the usual layout.
 
@@ -124,7 +124,7 @@ Once set up, the bottom of the Claude Code window will show a status line like t
 - **Linux:** CI verifies `usage setup` on Ubuntu.
 - **Progress Concierge:** When you `/resume` a conversation that sat long enough for its cache to expire, it warns how many tokens the next message will re-send and suggests `/compact` first.
 - **Beginner Mode (macOS and Windows):** Terms appear above the prompt in your UI language. Press 9 to mark them understood; skipped terms come back after 1, 3, then 7 days. Understood terms return as a one-question multiple-choice quiz 7, 21, then 60 days later, at most one a day, and a wrong answer puts the term back in the hints. `/terms` opens your term history. Picking terms asks Claude Haiku through your Claude Code, and pauses while your 5-hour quota is at 90% or more.
-- **Quota-Aware Mode (macOS and Windows):** Claude Code gets one line with what is left and when it resets when a 5-hour quota passes 80%, 90%, or 95%, or a weekly quota passes 95%. It covers Claude Code, Codex, and Antigravity, says each level once per conversation, and treats each quota and model group separately, so a used-up one only matters for work that runs on it.
+- **Quota-Aware Mode (macOS and Windows):** Claude Code gets one line with what is left and when it resets when a 5-hour quota passes 80%, 90%, or 95%, or a weekly quota passes 95%. It covers Claude Code, Codex, Antigravity, and Muse, says each level once per conversation, and treats each quota and model group separately, so a used-up one only matters for work that runs on it.
 - **Auto-start 5-hour session:** Claude gets Haiku, Antigravity gets Gemini 3.8 Flash Low, and Codex gets its cheapest model. The quota used is negligible.
 - **Panel:** It stays put when another app takes focus; a second click on the menu bar icon, or Escape, closes it. Card order is shared across every theme with quota cards (all except World Cup 2026) and survives restarts.
 - **HTML reports:** A "What you worked on" section lists the names Claude Code gave your recent conversations, and masking covers those titles too.

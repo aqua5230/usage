@@ -108,7 +108,7 @@ uvx usage-cli
 ### 报告与更多
 
 - **HTML 报告：** 每日和每周 token 趋势、项目排名、费用，以及带有贡献热图的年度回顾。完全离线导出为 .html、.csv 或 .png，支持可选的项目名称遮蔽。
-- **终端集成：** `usage status --json` 会将你的 Claude Code、Codex、Antigravity 和 Grok 额度交给 Starship、tmux 或你自己的脚本。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
+- **终端集成：** `usage status --json` 会将你的 Claude Code、Codex、Antigravity、Grok 和 Muse 额度交给 Starship、tmux 或你自己的脚本。[现成的片段](DEVELOPMENT.md#quota-status-for-other-tools-usage-status)。
 - **AI 更新日报：** 每日公开[网页](https://aqua5230.github.io/ai-updates/)，涵盖 Claude Code、Codex 和 Antigravity 的变更，并提供五种语言的白话摘要。
 - **个性布局：** 面板可自由拖动到任意位置，拖拽配额卡重新排序，并可在 16 款主题间切换。界面自动匹配系统语言：繁体中文、简体中文、英语、日语或韩语。同时显示四张以上额度卡时，全部自动改用精简布局；三张以下保持原样。
 
@@ -124,7 +124,7 @@ uvx usage-cli
 - **Linux：** CI 会在 Ubuntu 上验证 `usage setup`。
 - **进度管家：** 当你用 `/resume` 接回放置过久导致缓存已过期的对话时，它会提示下一条消息需要重新发送多少 token，并建议先执行 `/compact`。
 - **新手模式（macOS 和 Windows）：** 术语会以你的界面语言出现在输入框上方。按 9 标成“懂了”；跳过的术语会在 1、3、7 天后再出现。标成懂了的术语，会在 7、21、60 天后变成一道选择题小测验，一天最多一题；答错就回到提示里。输入 `/terms` 可以查看术语记录。挑术语会通过你的 Claude Code 请 Claude Haiku 帮忙，并在 5 小时额度达到 90% 以上时自动暂停。
-- **额度感知模式（macOS 和 Windows）：** 5 小时额度超过 80%、90%、95%，或周额度超过 95% 时，Claude Code 会收到一行字，写明还剩多少、几点重置。Claude Code、Codex 和 Antigravity 的额度都会看，每一级在同一个对话里只说一次，且各个额度和模型组分别独立处理，因此用尽的额度只影响运行在其上的工作。
+- **额度感知模式（macOS 和 Windows）：** 5 小时额度超过 80%、90%、95%，或周额度超过 95% 时，Claude Code 会收到一行字，写明还剩多少、几点重置。Claude Code、Codex、Antigravity 和 Muse 的额度都会看，每一级在同一个对话里只说一次，且各个额度和模型组分别独立处理，因此用尽的额度只影响运行在其上的工作。
 - **自动启动 5 小时计时：** Claude 用 Haiku、Antigravity 用 Gemini 3.8 Flash Low、Codex 用最省成本的模型。消耗的额度微乎其微。
 - **面板：** 切换到其他 App 时也不会消失；再次点击菜单栏图标或按 Esc 键即可关闭。卡片顺序在所有包含配额卡的主题间共享（除 World Cup 2026 之外），并在重启后保留。
 - **HTML 报告：** “最近在做什么”一区列出 Claude Code 为你近期对话取的名字，遮蔽功能也会涵盖这些标题。

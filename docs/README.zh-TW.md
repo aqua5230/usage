@@ -108,7 +108,7 @@ uvx usage-cli
 ### 報表與其他
 
 - **HTML 報表：** 每日與每週 token 趨勢、專案排行、花費，以及附貢獻熱力圖的 Year in Review。全程離線另存 .html／.csv／.png，可選擇隱藏專案名稱。
-- **終端機整合：** `usage status --json` 把 Claude Code、Codex、Antigravity 與 Grok 的額度交給 Starship、tmux 或你自己的腳本。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
+- **終端機整合：** `usage status --json` 把 Claude Code、Codex、Antigravity、Grok 與 Muse 的額度交給 Starship、tmux 或你自己的腳本。[現成的設定片段](DEVELOPMENT.zh-TW.md#給其他工具讀的配額狀態usage-status)。
 - **AI 更新日報：** 每天更新的公開[網頁](https://aqua5230.github.io/ai-updates/)，整理 Claude Code、Codex、Antigravity 的更新，附五種語言的白話摘要。
 - **照你的習慣擺：** 面板拖到哪都行，額度卡拖曳排序，16 款主題隨時切換。介面跟隨系統語言：繁中、簡中、英、日、韓。同時顯示四張以上額度卡時，全部自動改用精簡版面；三張以下維持原樣。
 
@@ -124,7 +124,7 @@ uvx usage-cli
 - **Linux：** CI 會在 Ubuntu 上驗證 `usage setup`。
 - **進度管家：** 用 `/resume` 接回放太久、快取已過期的對話時，會先提醒下一句要重送多少 token，建議先 `/compact`。
 - **新手模式（macOS／Windows）：** 名詞顯示在輸入框上方，語言跟介面一樣。按 9 標成「懂了」；略過的名詞會在 1、3、7 天後再出現。標成懂了的名詞，會在 7、21、60 天後變成一題選擇題小考，一天最多一題；答錯就回到提示裡。打 `/terms` 可以看名詞紀錄。挑名詞會透過你的 Claude Code 請 Claude Haiku 幫忙；5 小時額度到 90% 以上時會自動暫停。
-- **額度感知模式（macOS／Windows）：** 5 小時額度超過 80%、90%、95%，或週額度超過 95% 時，Claude Code 會收到一行字，寫著還剩多少、幾點重置。Claude Code、Codex、Antigravity 的額度都看，每一級在同一個對話只說一次。每份額度、每個模型組各自獨立，用完的那份只影響會用到它的工作。
+- **額度感知模式（macOS／Windows）：** 5 小時額度超過 80%、90%、95%，或週額度超過 95% 時，Claude Code 會收到一行字，寫著還剩多少、幾點重置。Claude Code、Codex、Antigravity、Muse 的額度都看，每一級在同一個對話只說一次。每份額度、每個模型組各自獨立，用完的那份只影響會用到它的工作。
 - **自動啟動 5 小時計時：** Claude 用 Haiku、Antigravity 用 Gemini 3.8 Flash Low、Codex 用最省成本的模型。用掉的額度小到可以忽略。
 - **面板：** 點到別的 App 也不會消失，要再點一次選單列圖示或按 Esc 才關。額度卡排序在所有包含額度卡的主題間共用（除 World Cup 2026 之外），重開也會記住。
 - **HTML 報表：** 「最近在做什麼」一區列出 Claude Code 為你近期對話取的名字，隱藏專案名稱時這些標題也一併遮蔽。
