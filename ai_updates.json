@@ -1341,6 +1341,11 @@
       ]
     },
     {
+      "id": "muse_code",
+      "name": "Muse Code",
+      "versions": []
+    },
+    {
       "id": "usage",
       "name": "Usage",
       "versions": [
