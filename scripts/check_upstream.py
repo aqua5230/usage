@@ -32,6 +32,7 @@ from loaders import (  # noqa: E402
     codex_loader,
     grok_loader,
     grok_quota_probe,
+    muse_quota_probe,
 )
 from usage_common import service_status  # noqa: E402
 from usage_hooks import usage_statusline  # noqa: E402
@@ -452,6 +453,16 @@ def check_agy_quota_cache() -> Result:
     return _result(path, broken)
 
 
+def check_muse_quota_cache() -> Result:
+    path = muse_quota_probe.CACHE_PATH
+    if not path.is_file():
+        return "NO_DATA", f"{path}: no quota cache"
+    quota = muse_quota_probe.validate_muse_cache(_json(path))
+    if quota is None:
+        return _result(path, ["invalid Muse quota snapshot"])
+    return _fresh(path, quota["checked_at"]) or _result(path, [])
+
+
 def check_grok() -> Result:
     if not grok_loader.GROK_HOME.is_dir():
         return "NO_DATA", f"{grok_loader.GROK_HOME}: no Grok directory"
@@ -600,6 +611,7 @@ def main() -> int:
         ("agy_conversations", check_agy_conversations),
         ("agy_quota_cache", check_agy_quota_cache),
         ("grok", check_grok),
+        ("muse_quota_cache", check_muse_quota_cache),
     ]
     checks += [
         (

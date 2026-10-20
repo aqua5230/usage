@@ -16,6 +16,7 @@ export function compactLines(data: Quotas, sessions: Session[], running: number,
     ['codex', 'Codex', '#10a37f', first],
     ['antigravity', 'agy', '#4285f4', second],
     ['grok', 'Grok', 'white', second],
+    ['muse', 'Muse', '#0082FB', second],
   ] as const) {
     const agent = data.agents[key]
     if (!agent?.available) continue

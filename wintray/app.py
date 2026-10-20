@@ -28,24 +28,27 @@ import quota.codex_window_keeper as codex_window_keeper
 import quota.window_keeper as window_keeper
 from analyzer import diagnosis_snapshot, history_persist
 from installer.statusline_settings import _statusline_enabled, _toggle_statusline_settings
-from loaders import codex_loader, grok_loader
+from loaders import codex_loader, grok_loader, muse_loader
 from loaders.claude_usage import ClaudeUsageClient, PollState
 from loaders.history_loader import UsageEntry, load_entries
 from menubar import agy as menubar_agy
 from menubar import grok as menubar_grok
 from menubar import manual_refresh
+from menubar import muse as menubar_muse
 from menubar import state as menubar_state
 from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
     _hide_grok_enabled,
+    _hide_muse_enabled,
     _panel_flavor,
     _quota_card_order,
     _quota_notification_thresholds,
     _quota_notifications_enabled,
     _save_agy_quota_group,
     _save_panel_flavor,
+    _save_quota_card_order,
     _window_keeper_enabled,
 )
 from panels.catalog import PANEL_SPECS
@@ -317,7 +320,7 @@ document.addEventListener('pointerdown', function(event) {
   var target = event.target;
   var card = target && target.closest && target.closest(
     '[data-card="claude"], [data-card="codex"], [data-card="agy"], '
-    + '[data-card="grok"]'
+    + '[data-card="grok"], [data-card="muse"]'
   );
   var interactive = target && target.closest && target.closest(
     'button, a, input, select, textarea, label, summary, [contenteditable], '
@@ -633,6 +636,11 @@ def build_tooltip(state: menubar_state.PopoverState, provider: TrayProvider = "c
         )
     if not state.hide_grok:
         lines.append(line("Grok", state.grok_weekly))
+    if not state.hide_muse:
+        lines.append(
+            f"{line(_t(state.language, 'muse_name'), state.muse_session)} · "
+            f"{line('', state.muse_weekly).strip()}"
+        )
     text = "\n".join(lines)
     return text if len(text) <= TOOLTIP_MAX_LENGTH else text[:126] + "…"
 
@@ -1598,6 +1606,7 @@ class _WindowsTrayController:
             error_key = "history_load_error_parse"
         try:
             entries.extend(grok_loader.load_entries(hours_back=0))
+            entries.extend(muse_loader.load_entries(hours_back=0))
         except OSError:
             error_key = "history_load_error_file"
         except (ValueError, KeyError, TypeError):
@@ -1642,6 +1651,8 @@ class _WindowsTrayController:
         grok_result = menubar_grok.load_refresh_result(self.language)
         grok = grok_result.projection or menubar_grok.fallback_projection(self.language)
         measure("grok_load", started_at)
+        muse_result = menubar_muse.load_refresh_result(self.language)
+        muse = muse_result.projection or menubar_muse.fallback_projection(self.language)
         started_at = time.monotonic() if debug_timing else 0.0
         local_date = datetime.now().astimezone().date()
         if self._history_cache_date != local_date or menubar_state.history_cache_needs_reload(
@@ -1696,6 +1707,9 @@ class _WindowsTrayController:
             agy_group_name=agy.group_name,
             agy_group_switchable=agy.group_switchable,
             grok_row=grok.weekly,
+            muse_rows=(muse.session, muse.weekly),
+            muse_stale=muse.stale,
+            hide_muse=muse_result.hide_muse or _hide_muse_enabled(),
             projects=projects[0],
             projects_yesterday=projects[1],
             projects_7d=projects[2],
@@ -1926,6 +1940,7 @@ class _WindowsTrayController:
         self.latest_state.hide_codex = _hide_codex_enabled()
         self.latest_state.hide_agy = _hide_agy_enabled()
         self.latest_state.hide_grok = _hide_grok_enabled()
+        self.latest_state.hide_muse = _hide_muse_enabled()
         if self.visible:
             self.inject_state()
 
@@ -2118,6 +2133,14 @@ class _WindowsTrayController:
                         state.agy_weekly.percent,
                         state.agy_weekly.available and state.agy_stale is None,
                     ),
+                    "muse_session": (
+                        state.muse_session.display_percent,
+                        state.muse_session.available and state.muse_stale is None,
+                    ),
+                    "muse_weekly": (
+                        state.muse_weekly.display_percent,
+                        state.muse_weekly.available and state.muse_stale is None,
+                    ),
                 }
             )
             if _quota_notifications_enabled() and not self.mock:
@@ -2137,6 +2160,8 @@ class _WindowsTrayController:
             "codex_weekly": state.codex_weekly,
             "agy_session": state.agy_session,
             "agy_weekly": state.agy_weekly,
+            "muse_session": state.muse_session,
+            "muse_weekly": state.muse_weekly,
         }
         row = rows[event.channel]
         scope = row.title or _t(
@@ -2147,6 +2172,8 @@ class _WindowsTrayController:
             if event.channel.startswith("claude_")
             else "Antigravity"
             if event.channel.startswith("agy_")
+            else _t(self.language, "muse_name")
+            if event.channel.startswith("muse_")
             else "Codex"
         )
         message = _t(
@@ -2346,16 +2373,8 @@ class _WindowsTrayController:
                 self._apply_content_height(payload.get("height"))
                 return None
             if action == "set_card_order":
-                order = payload.get("order")
-                if (
-                    isinstance(order, list)
-                    and all(isinstance(item, str) for item in order)
-                    and len(order) == 3
-                    and set(order) == {"agy", "claude", "codex"}
-                ):
-                    preferences = _load_preferences()
-                    preferences["quota_card_order"] = order
-                    _save_preferences(preferences)
+                # Shared with macOS: drops invalid orders and appends missing cards.
+                _save_quota_card_order(payload.get("order"))
             elif action == "set_panel_flavor":
                 _save_panel_flavor(payload.get("flavor"))
             elif action == "set_agy_quota_group":
@@ -2385,6 +2404,7 @@ class _WindowsTrayController:
                     "hide_codex_section",
                     "hide_agy_section",
                     "hide_grok_section",
+                    "hide_muse_section",
                 }:
                     self.toggle_hide_section(preference_key)
             elif action == "open_ai_daily":
@@ -2510,6 +2530,7 @@ def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCo
         "hide_codex": _hide_codex_enabled,
         "hide_agy": _hide_agy_enabled,
         "hide_grok": _hide_grok_enabled,
+        "hide_muse": _hide_muse_enabled,
         "launch_at_login": win_login_item.is_enabled,
         "quota_notifications": _quota_notifications_enabled,
         "window_keeper": _window_keeper_enabled,

@@ -202,3 +202,14 @@ test('排序把已重置的所有窗口當零、相對時間計入經過秒數',
   expect(byTightest(data,order,100000,60)).toEqual(['claude-code','codex','grok','antigravity'])
   expect(data.agents.codex.five_hour.used_percent).toBe(99)
 })
+
+test('Muse 雙窗口參與排序、隱藏與缺資料規則', () => {
+  const data = parseQuota('{"agents":{"codex":{"available":true,"five_hour":{"used_percent":80}},"muse":{"available":true,"five_hour":{"used_percent":24},"seven_day":{"used_percent":96}}}}')
+  expect(byTightest(data,['codex','muse'])).toEqual(['muse','codex'])
+  expect(hideAgents(data,'{"hide_muse_section":true}').agents).not.toHaveProperty('muse')
+  expect(data.agents).toHaveProperty('muse')
+  for (const reason of ['no_data','not_signed_in','error']) {
+    expect(showsUnavailable('muse',reason)).toBe(reason === 'error')
+  }
+  expect(parseQuota('{"agents":{"muse":{"available":true,"five_hour":{"used_percent":null},"seven_day":{"used_percent":0}}}}').agents.muse).toEqual({available:true,seven_day:{used_percent:0}})
+})

@@ -225,10 +225,19 @@ The JSON carries a `schema_version` so consumers can guard against future change
       "tier": "XPremium",
       "updated_at": "2026-08-14T06:59:30Z",
       "age_seconds": 30
+    },
+    "muse": {
+      "available": true,
+      "five_hour": { "used_percent": 24.0, "resets_at": 1786701600, "resets_in_seconds": 10800 },
+      "seven_day": { "used_percent": 42.0, "resets_at": 1787036400, "resets_in_seconds": 345600 },
+      "updated_at": "2026-08-14T06:59:00Z",
+      "age_seconds": 60
     }
   }
 }
 ```
+
+Muse reads only `~/.usage/muse_quota.json`; status never runs a Muse probe. `window` maps to `five_hour`, `weekly` to `seven_day`, and `checked_at` to UTC `updated_at`. Missing or invalid snapshots report `available: false` with `reason: "no_data"`, including when Muse is not installed. Valid stale snapshots remain readable; reset countdowns stop at zero.
 
 `resets_in_seconds` counts down from `generated_at` to `resets_at` (floored at `0`), and `age_seconds` is how old `updated_at` was at `generated_at`; both are `null` when their source field is.
 

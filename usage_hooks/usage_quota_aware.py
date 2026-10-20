@@ -12,7 +12,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
 
-__version__ = "1.2"
+__version__ = "1.3"
 CLAUDE_STATUS = Path.home() / ".claude/usage-status.json"
 QUOTA_SNAPSHOT = Path.home() / ".usage/quota_snapshot.json"
 STATE_PATH = Path.home() / ".usage/quota_aware_state.json"
@@ -74,6 +74,9 @@ def _windows(now: float) -> list[tuple[str, str, float, float]]:
     codex = agents.get("codex")
     if isinstance(codex, dict) and codex.get("available"):
         add("Codex", codex)
+    muse = agents.get("muse")
+    if isinstance(muse, dict) and muse.get("available"):
+        add("Muse", muse)
     agy = agents.get("antigravity")
     if isinstance(agy, dict) and agy.get("available") and isinstance(agy.get("groups"), list):
         for group in agy["groups"]:
@@ -133,7 +136,7 @@ def reminder(session_id: str, now: float) -> str:
                 "Only limits work sent to agy with those models."
             )
         else:
-            scope = "work run in Claude Code" if tool == "Claude Code" else "work sent to Codex"
+            scope = "work run in Claude Code" if tool == "Claude Code" else f"work sent to {tool}"
             messages.append(f"{tool} {label} quota: {usage}. Only limits {scope}.")
         state[key] = {"resets_at": reset, "level": level}
     if not messages:
