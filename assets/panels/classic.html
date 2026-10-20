@@ -14,7 +14,7 @@
       --text: rgba(255, 255, 255, 0.94);
       --muted: rgba(255, 255, 255, 0.58);
       --track: rgba(255, 255, 255, 0.07);
-      --tick: rgba(255, 255, 255, 0.16);
+      --tick: rgba(255, 255, 255, 0.34);
       --button: rgba(255, 255, 255, 0.08);
       --button-border: rgba(255, 255, 255, 0.18);
       --button-hover: rgba(255, 255, 255, 0.13);
@@ -39,8 +39,8 @@
         --line: rgba(20, 28, 38, 0.13);
         --text: rgba(12, 18, 26, 0.9);
         --muted: rgba(12, 18, 26, 0.55);
-        --track: rgba(12, 18, 26, 0.06);
-        --tick: rgba(12, 18, 26, 0.26);
+        --track: rgba(12, 18, 26, 0.08);
+        --tick: rgba(12, 18, 26, 0.32);
         --button: rgba(12, 18, 26, 0.05);
         --button-border: rgba(12, 18, 26, 0.14);
         --button-hover: rgba(12, 18, 26, 0.10);
@@ -438,7 +438,7 @@
       content: "";
       position: absolute;
       inset: 0 auto 0 calc(80% - 1px);
-      width: 1px;
+      width: 1.5px;
       background: var(--tick);
       pointer-events: none;
     }
@@ -543,8 +543,11 @@
     }
 
     .proj-cost {
+      min-width: 52px;
       color: color-mix(in srgb, var(--muted) 70%, transparent);
       font-size: 12px;
+      font-weight: 500;
+      text-align: right;
       white-space: nowrap;
       font-family: var(--mono);
       font-variant-numeric: tabular-nums;
@@ -698,7 +701,7 @@
     .action.primary {
       border-color: rgba(88, 214, 230, 0.30);
       background: linear-gradient(180deg, rgba(88, 214, 230, 0.26), rgba(24, 172, 216, 0.18));
-      color: rgba(255, 255, 255, 0.92);
+      color: var(--text);
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
     }
 
@@ -731,6 +734,27 @@
       .switch:hover {
         background: rgba(12, 18, 26, 0.10);
         border-color: rgba(12, 18, 26, 0.22);
+      }
+
+      .action.primary {
+        border-color: rgba(24, 172, 216, 0.45);
+        background: linear-gradient(180deg, rgba(88, 214, 230, 0.30), rgba(24, 172, 216, 0.20));
+      }
+
+      .proj-row:first-child .proj-rank {
+        background: color-mix(in srgb, var(--projects) 35%, transparent);
+        color: #0b5120;
+      }
+
+      /* A white app icon needs a dark outline on a white card. */
+      .brand img {
+        box-shadow:
+          0 0 0 1px var(--panel-border),
+          0 4px 10px color-mix(in srgb, var(--accent) 18%, transparent);
+      }
+
+      .track {
+        box-shadow: inset 0 1px 1px rgba(12, 18, 26, 0.06);
       }
     }
 
@@ -767,15 +791,18 @@
 
     .card[data-card="agy"] .agy-group-toggle {
       flex: 0 0 auto;
-      border: 1px solid color-mix(in srgb, var(--agy) 60%, transparent);
+      display: inline-flex;
+      align-items: center;
+      height: 20px;
+      border: 1px solid color-mix(in srgb, var(--agy) 38%, transparent);
       border-radius: 999px;
-      padding: 3px 6px;
+      padding: 0 8px;
       background: color-mix(in srgb, var(--agy) 12%, transparent);
       color: var(--agy);
       font-family: inherit;
-      font-size: 10px;
+      font-size: 10.5px;
       font-weight: 600;
-      line-height: 1.2;
+      line-height: 1;
       white-space: nowrap;
       cursor: pointer;
     }
@@ -808,10 +835,16 @@
       column-gap: 8px;
     }
     html.compact-cards body .card[data-card] .brand-icon svg { width: 15px; height: 15px; }
-    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) {
-      column-gap: 16px;
+    /* The folder artwork carries its own padding inside the viewBox. */
+    html.compact-cards body .card[data-card="projects"] .brand-icon svg { width: 20px; height: 20px; }
+    html.compact-cards body .footer { padding-inline: 13px; }
+    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]):not([data-compact-single="true"]) {
+      column-gap: 0;
     }
-    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) > .row + .row {
+    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]):not([data-compact-single="true"]) > .row[data-row="session"] {
+      padding-right: 12px;
+    }
+    html.compact-cards body .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]):not([data-compact-single="true"]) > .row[data-row="weekly"] {
       border-left: 1px solid var(--line);
       padding-left: 12px;
     }
