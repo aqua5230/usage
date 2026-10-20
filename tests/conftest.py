@@ -71,14 +71,22 @@ def _isolate_muse_sessions(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> N
 @pytest.fixture(autouse=True)
 def _isolate_user_state_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     """Keep shared startup workers out of the user's real config directories."""
-    from analyzer import diagnosis_snapshot, history_persist, reporter, usage_snapshot
-    from installer import claude_pane, session_hooks
-    from loaders import cache_quarantine
+    from analyzer import diagnosis_snapshot, history_persist, reporter, subscription, usage_snapshot
+    from installer import claude_pane, session_hooks, setup_hook
+    from loaders import cache_quarantine, history_loader
     from quota import quota_snapshot
     from usage_common import prefs, service_status
     from usage_hooks import usage_session_resume
 
     state_dir = tmp_path / "user-state"
+    monkeypatch.setattr(subscription, "CODEX_AUTH", state_dir / "codex" / "auth.json")
+    monkeypatch.setattr(
+        history_loader, "HISTORY_CACHE_PATH", state_dir / "history_jsonl_cache.json"
+    )
+    monkeypatch.setattr(setup_hook, "HOOK_TARGET", state_dir / "claude" / "usage-statusline.py")
+    monkeypatch.setattr(
+        setup_hook, "FORWARDER_TARGET", state_dir / "claude" / "usage-statusline-forwarder.py"
+    )
     monkeypatch.setattr(history_persist, "STATE_PATH", state_dir / "history_persist_state.json")
     monkeypatch.setattr(history_persist, "_schedule_next_locked", lambda _delay: None)
     monkeypatch.setattr(history_persist, "detect_agents", lambda: [])
@@ -149,6 +157,7 @@ def _isolate_dispatch_ledger_sources(monkeypatch: pytest.MonkeyPatch, tmp_path: 
     monkeypatch.setattr(agy_loader, "AGY_SESSIONS_DIR", tmp_path / "agy-conversations")
     monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", tmp_path / "agy_quota_cache.json")
     monkeypatch.setattr(agy_quota_probe, "AUTH_EXPIRED_PATH", tmp_path / "agy_auth_expired")
+    monkeypatch.setattr(agy_quota_probe, "_TOKEN_PATH", tmp_path / "antigravity-oauth-token")
     monkeypatch.setattr(agy_quota_probe, "_probe_via_cli", lambda timeout: None)
 
 
