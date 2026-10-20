@@ -90,6 +90,65 @@
       [data-card="grok"] { cursor: grab; }
     `;
     document.head.appendChild(switchHostStyle);
+    const compactCardsStyle = document.createElement("style");
+    compactCardsStyle.textContent = `
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) {
+        padding: 9px 13px 10px;
+        min-height: 0;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: 12px;
+      }
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) > :not(.row) {
+        grid-column: 1 / -1;
+      }
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) > :is(.brand, .header) {
+        height: 26px;
+        min-height: 0;
+        gap: 8px;
+        margin-bottom: 7px;
+        padding-top: 0;
+        padding-bottom: 0;
+      }
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) :is(.brand, .header) :is(img, .brand-icon) {
+        width: 24px;
+        height: 24px;
+        flex-basis: 24px;
+        font-size: 16px;
+        border-radius: 6px;
+      }
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) :is(.brand, .header) h1 {
+        font-size: 15px;
+        line-height: 1.1;
+      }
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) > .row {
+        min-width: 0;
+        padding-top: 0;
+        margin-top: 0;
+        border-top: none;
+      }
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) .row-head {
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) :is(.row-title, .percent) {
+        font-size: 12px;
+        line-height: 15px;
+        white-space: nowrap;
+      }
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) .reset {
+        font-size: 11px;
+        line-height: 14px;
+        margin-top: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      html.compact-cards .card[data-compact-single="true"]:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) > .row {
+        grid-column: 1 / -1;
+      }
+    `;
+    document.head.appendChild(compactCardsStyle);
     let currentLanguage = "en";
     let projectRange = "1d";
     let latestState = null;
@@ -188,11 +247,14 @@
       const fill = el.querySelector(".fill");
       if (!title || !percent || !reset || !fill) return;
       title.textContent = data.title != null ? data.title : labels()[key];
+      const compact = root.classList.contains("compact-cards");
       percent.textContent = data.percentText || "--";
-      reset.textContent = data.resetText || t("reset_placeholder");
+      reset.textContent = (compact ? data.resetTextCompact : data.resetText)
+        || data.resetText || t("reset_placeholder");
       reset.dataset.warning = data.warning === true ? "true" : "false";
       percent.style.color = available ? color : "";
       window.PanelHooks.applyFillVisual(fill, { available, percent: data.percent, color });
+      if (compact) percent.textContent = (available ? data.percentTextCompact : data.percentText) || "--";
     }
 
     function isCriticalRow(row) {
@@ -247,8 +309,23 @@
         : t("codex_credits", { balance: credits.balance || "--" });
     }
 
+    // In compact mode a card with one quota row lets that row span the card.
+    function markSingleRowCards() {
+      const compact = root.classList.contains("compact-cards");
+      QUOTA_CARD_IDS.forEach((id) => {
+        const card = document.querySelector(`.card[data-card="${id}"]`);
+        if (!card) return;
+        const rows = card.querySelectorAll("[data-row]:not([hidden])").length;
+        card.dataset.compactSingle = compact && rows === 1 ? "true" : "false";
+      });
+    }
+
     function renderAgy(agy) {
       applyCard("agy", agy);
+      const agySession = document.querySelector('[data-card="agy"] [data-row="session"]');
+      if (agySession && agy && agy.weeklyOnly && root.classList.contains("compact-cards")) {
+        agySession.hidden = true;
+      }
       const groupButton = document.querySelector('[data-action="set_agy_quota_group"]');
       if (groupButton) {
         groupButton.hidden = !(agy && agy.groupSwitchable);
@@ -392,6 +469,11 @@
       document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
       document.documentElement.classList.toggle('hide-agy', !!state.hideAgy);
       document.documentElement.classList.toggle('hide-grok', !!state.hideGrok);
+      const visibleQuotaCards = QUOTA_CARD_IDS.filter((id) =>
+        !state[`hide${id[0].toUpperCase()}${id.slice(1)}`]
+        && document.querySelector(`.card[data-card="${id}"]`)
+      ).length;
+      root.classList.toggle("compact-cards", visibleQuotaCards >= 4);
       applyCardOrder(state.cardOrder);
       relocateSwitchButton(state);
       currentLanguage = I18N[state.language] ? state.language : currentLanguage;
@@ -402,6 +484,7 @@
       renderCodexCredits(state.codex && state.codex.credits);
       renderAgy(state.agy);
       renderGrok(state.grok);
+      markSingleRowCards();
       renderHistoryLoadError(state.historyError);
       latestState = state;
       renderProjects(

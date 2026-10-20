@@ -608,6 +608,7 @@ def test_project_quota_argon_has_weekly_only(remaining: float, language: str, de
     assert projection.session.percent_text == "--"
     assert projection.session.reset_text == detail
     assert projection.weekly.percent == 100.0 - remaining
+    assert projection.weekly_only is True
 
 
 def test_project_quota_missing_argon_falls_back_to_gemini() -> None:
@@ -623,4 +624,5 @@ def test_project_quota_missing_argon_falls_back_to_gemini() -> None:
     )
     assert projection is not None
     assert projection.group_name == "GEMINI MODELS"
+    assert projection.weekly_only is False
     assert projection.session.percent_text == "60% used"
