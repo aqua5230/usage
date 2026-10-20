@@ -119,6 +119,17 @@ def test_latest_session_ignores_disappeared_files(
     assert probe.latest_session_mtime() == 5000
 
 
+def test_probe_hides_windows_console(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(probe, "hidden_console_kwargs", lambda: {"creationflags": 0x08000000})
+    process = Mock(returncode=0)
+    process.poll.return_value = 0
+    process.communicate.return_value = (json.dumps(event()), "")
+    popen = Mock(return_value=process)
+    monkeypatch.setattr(subprocess, "Popen", popen)
+    probe._probe_worker("/fake/muse")
+    assert popen.call_args.kwargs["creationflags"] == 0x08000000
+
+
 @pytest.mark.parametrize("failure", ["timeout", "exit", "invalid", "write"])
 def test_failure_cools_down_for_30_minutes(monkeypatch: pytest.MonkeyPatch, failure: str) -> None:
     monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")

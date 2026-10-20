@@ -20,6 +20,7 @@ from pathlib import Path
 from typing import TypedDict, TypeGuard
 
 from loaders import muse_loader
+from usage_common.subprocess_utils import hidden_console_kwargs
 
 logger = logging.getLogger(__name__)
 CACHE_PATH = Path.home() / ".usage/muse_quota.json"
@@ -203,6 +204,7 @@ def _probe_worker(executable: str) -> None:
                 stderr=subprocess.PIPE,
                 encoding="utf-8",
                 cwd=PROBE_DIR,
+                **hidden_console_kwargs(),
             )
             _probe_process = process
         try:
