@@ -8,7 +8,7 @@ export function byTightest(data: Quotas, order: readonly string[], now = Date.no
     return { key, index, used, available: agent?.available === true }
   }).sort((a,b) => Number(b.available) - Number(a.available) || b.used - a.used || a.index - b.index).map(row => row.key)
 }
-// agy and Grok are optional, so like the menu bar they stay hidden unless they are set up and failing.
+// agy, Grok and Muse are optional, so like the menu bar they stay hidden unless they are set up and failing.
 export function showsUnavailable(key: string, reason?: string): boolean {
   return key === 'claude-code' || key === 'codex' || reason === 'error'
 }
@@ -31,7 +31,7 @@ export function hideAgents(data: Quotas, preferences: string): Quotas {
   let value: unknown
   try { value = JSON.parse(preferences) } catch { return { ...data, agents: { ...data.agents } } }
   if (!value || typeof value !== 'object' || Array.isArray(value)) return { ...data, agents: { ...data.agents } }
-  const keys: Record<string,string> = { hide_claude_section:'claude-code', hide_codex_section:'codex', hide_agy_section:'antigravity', hide_grok_section:'grok' }
+  const keys: Record<string,string> = { hide_claude_section:'claude-code', hide_codex_section:'codex', hide_agy_section:'antigravity', hide_grok_section:'grok', hide_muse_section:'muse' }
   const hidden = new Set(Object.entries(keys).filter(([key]) => (value as Record<string,unknown>)[key] === true).map(([,agent]) => agent))
   return { ...data, agents: Object.fromEntries(Object.entries(data.agents).filter(([agent]) => !hidden.has(agent))) }
 }

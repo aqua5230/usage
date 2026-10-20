@@ -59,8 +59,8 @@ def project_quota(
     return MuseQuotaProjection(session=rows[0], weekly=rows[1], stale=stale)
 
 
-def load_refresh_result(language: str) -> MuseRefreshResult:
-    quota, latest = probe.load_quota_snapshot()
+def load_refresh_result(language: str, *, allow_probe: bool = True) -> MuseRefreshResult:
+    quota, latest = probe.load_quota_snapshot(allow_probe=allow_probe)
     projection = project_quota(quota, language, latest_session=latest)
     return MuseRefreshResult(projection=projection, hide_muse=projection is None)
 

@@ -16,7 +16,7 @@ from typing import Any, TypedDict
 
 from adapters import rate_limits
 from adapters.types import UsageEntry
-from loaders import agy_loader, agy_quota_probe, codex_loader
+from loaders import agy_loader, agy_quota_probe, codex_loader, muse_quota_probe
 from loaders.claude_paths import claude_config_dirs
 
 _DISPATCH = {
@@ -303,6 +303,11 @@ def load_windows() -> dict[str, QuotaWindow]:
                 windows[group_key] = window
                 for model in group.models:
                     windows[f"antigravity-model:{model.lower()}"] = window
+    muse = muse_quota_probe.read_cache()
+    if muse:
+        window = _window(muse["weekly"]["used_percent"], muse["weekly"]["resets_at"], 7 * 24 * 60)
+        if window:
+            windows["muse"] = window
     return windows
 
 

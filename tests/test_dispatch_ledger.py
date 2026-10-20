@@ -350,3 +350,36 @@ def test_ledger_explains_the_weekly_quota_denominator() -> None:
         '<div class="table-wrap">'
     )
     assert rendered.index("approximate shares") < rendered.index('<div class="table-wrap">')
+
+
+def test_muse_weekly_session_estimate_reads_only_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
+    from dataclasses import replace
+
+    from loaders import muse_quota_probe
+
+    monkeypatch.setattr(rate_limits, "load_rate_limits", lambda: None)
+    monkeypatch.setattr(codex_loader, "load_rate_limits", lambda: None)
+    monkeypatch.setattr(agy_quota_probe, "_read_cache", lambda: None)
+    reset = (NOW + timedelta(days=1)).timestamp()
+    muse_quota_probe.CACHE_PATH.write_text(
+        json.dumps(
+            {
+                "checked_at": NOW.timestamp(),
+                "window": {"used_percent": 80, "resets_at": NOW.timestamp() + 3600},
+                "weekly": {"used_percent": 60, "resets_at": reset},
+            }
+        )
+    )
+    monkeypatch.setattr(
+        muse_quota_probe, "load_quota_snapshot", lambda: pytest.fail("report must not probe Muse")
+    )
+    windows = ledger.load_windows()
+    assert windows["muse"].used_pct == 60
+    entries = [
+        replace(_entry(NOW, "one", 10), agent_id="muse"),
+        replace(_entry(NOW, "two", 20), agent_id="muse"),
+    ]
+    estimates = ledger.estimate_sessions(entries, windows, NOW)
+    assert estimates[("muse", "one")] == 20
+    assert estimates[("muse", "two")] == 40
+    assert ledger.estimate_sessions(entries, windows, NOW + timedelta(days=2)) == {}

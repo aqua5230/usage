@@ -1545,6 +1545,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     monkeypatch.setattr(wintray, "_hide_codex_enabled", lambda: False)
     monkeypatch.setattr(wintray, "_hide_agy_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_hide_grok_enabled", lambda: False)
+    monkeypatch.setattr(wintray, "_hide_muse_enabled", lambda: True)
     monkeypatch.setattr(win_login_item, "is_enabled", lambda: True)
     monkeypatch.setattr(wintray, "_quota_notifications_enabled", lambda: False)
     monkeypatch.setattr(wintray, "_window_keeper_enabled", lambda: True)
@@ -1582,7 +1583,7 @@ def test_panel_menu_data_is_localized_and_reads_current_checks(
     hidden_sections = cast(list[dict[str, object]], menu[3]["children"])
     assert panels[1]["panelId"] == "matrix"
     assert panels[1]["checked"] is True
-    assert [item["checked"] for item in hidden_sections] == [True, False, True, False]
+    assert [item["checked"] for item in hidden_sections] == [True, False, True, False, True]
     assert menu[5]["checked"] is False
     assert menu[7]["checked"] is True
     assert menu[8]["checked"] is False
@@ -1758,12 +1759,12 @@ def test_card_order_persists_into_the_next_loaded_panel(
     controller = wintray._WindowsTrayController(mock=True, interval=60)
     controller.window = window
     controller.visible = True
-    order = ["codex", "claude", "agy"]
+    order = ["muse", "codex", "claude", "agy", "grok"]
 
     monkeypatch.setattr(wintray, "_load_preferences", lambda: preferences.copy())
     monkeypatch.setattr(menubar_prefs, "_load_preferences", lambda: preferences.copy())
     monkeypatch.setattr(
-        wintray,
+        menubar_prefs,
         "_save_preferences",
         lambda updated: preferences.update(updated),
     )
@@ -1774,10 +1775,10 @@ def test_card_order_persists_into_the_next_loaded_panel(
     controller.on_loaded()
 
     assert preferences["quota_card_order"] == order
-    assert controller.latest_state.card_order == (*order, "grok", "muse")
+    assert controller.latest_state.card_order == tuple(order)
     assert len(loaded) == 1
     payload = injected[-1].removeprefix("window.usageApplyState(").removesuffix(")")
-    assert json.loads(payload)["cardOrder"] == [*order, "grok", "muse"]
+    assert json.loads(payload)["cardOrder"] == order
 
 
 def test_run_app_wires_pystray_and_pywebview(
@@ -3926,3 +3927,41 @@ def test_native_dll_signatures_are_private_and_pointer_sized() -> None:
     assert wintray._user32.SetWindowPos.restype is wintypes.BOOL
     value = 0x1234567887654321 if ctypes.sizeof(wintypes.HANDLE) == 8 else 0x12345678
     assert wintypes.HANDLE(value).value == value
+
+
+def test_muse_tooltip_and_notification_channels(monkeypatch: pytest.MonkeyPatch) -> None:
+    state = _state()
+    state.hide_muse = False
+    state.muse_session = replace(state.claude_session, percent=91.0)
+    state.muse_weekly = replace(state.claude_weekly, percent=96.0)
+    assert "Muse Session: 91% · Weekly: 96%" in wintray.build_tooltip(state)
+    state.hide_muse = True
+    assert "Muse" not in wintray.build_tooltip(state)
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    channels: dict[str, tuple[float | None, bool]] = {}
+    monkeypatch.setattr(
+        controller._quota_notifier, "update", lambda values: channels.update(values) or []
+    )
+    controller._process_quota_notifications(state)
+    assert channels["muse_session"] == (91.0, True)
+    assert channels["muse_weekly"] == (96.0, True)
+    state.muse_stale = {"ageText": "1h ago"}
+    controller._process_quota_notifications(state)
+    assert channels["muse_session"] == (91.0, False)
+
+
+def test_muse_notification_uses_muse_name(monkeypatch: pytest.MonkeyPatch) -> None:
+    controller = wintray._WindowsTrayController(mock=True, interval=60)
+    controller.language = "en"
+    state = _state()
+    state.muse_session = replace(state.claude_session, percent=91.0)
+    shown: list[str] = []
+
+    def show_toast(title: str, body: str) -> bool:
+        shown.append(body)
+        return True
+
+    monkeypatch.setattr(controller, "_show_interactive_toast", show_toast)
+    controller._send_quota_notification(NotificationEvent("warn", "muse_session", 90.0), state)
+    assert "Muse" in shown[0]
+    assert "91%" in shown[0]

@@ -800,3 +800,21 @@ test('1M 視窗回報 tokens 並填入對話列與顏色，缺值沿用前次', 
   }
 })
 
+
+test('Muse 在側邊額度顯示雙窗口、品牌藍與舊資料提示', async ($, on) => {
+  mock.clock(on, {now:1000000})
+  on('session.id', () => ({value:'muse'}))
+  const values: PluginState['usage-dash'] = {
+    quotas:parseQuota('{"agents":{"muse":{"available":true,"age_seconds":1200,"five_hour":{"used_percent":24,"resets_in_seconds":3600},"seven_day":{"used_percent":96,"resets_in_seconds":86400}}}}'),
+    updated:1000000,sessions:[],runs:[],agents:[],bgTasks:[],pendingToasts:[],collapsed:{quota:false,sessions:true,runs:true},
+  }
+  on('state.get', ($,e) => ({value:{value:values[e.key],version:0}}))
+  const ui = await $.ui.mount({plugin:'usage-dash',surface:'terminal',component:'Pane',requestId:'usage-dash',props:{title:'Usage',isFocused:true,bodyColumns:44,placement:'dock',scroll:{offset:0,bodyRows:30},view:{}}})
+  const tree = await ui.drawn()
+  const text = flatText(tree)
+  expect(text).toContain('Muse    5h')
+  expect(text).toContain('Week')
+  expect(text).toContain('96%')
+  expect(text).toContain('20m ago')
+  expect(elements(tree).find(node => node.props?.color === '#0082FB' && flatText(node) === 'Muse    ')).toBeDefined()
+})

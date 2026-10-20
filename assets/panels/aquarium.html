@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root {
-      --muse: #0082FB;
+      --muse: linear-gradient(90deg, #9cc8ff 0%, #2f8cff 50%, #0a64d6 100%);
+      --muse-solid: #2f8cff;
       --text: #e0f4ff;
       --muted: #7ab8d4;
       --surface: rgba(0, 40, 80, 0.13);
@@ -769,10 +770,10 @@
       display: grid;
       place-items: center;
       border-radius: 50%;
-      border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-      background: color-mix(in srgb, var(--accent) 18%, rgba(0, 20, 40, 0.75));
-      box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 45%, transparent), inset 0 0 12px color-mix(in srgb, var(--accent) 25%, transparent);
-      color: var(--accent);
+      border: 1px solid color-mix(in srgb, var(--muse-solid) 45%, transparent);
+      background: color-mix(in srgb, var(--muse-solid) 18%, rgba(0, 20, 40, 0.75));
+      box-shadow: 0 0 14px color-mix(in srgb, var(--muse-solid) 45%, transparent), inset 0 0 12px color-mix(in srgb, var(--muse-solid) 25%, transparent);
+      color: var(--muse-solid);
     }
 
     .card[data-card="muse"] .brand-icon svg {
@@ -798,6 +799,25 @@
 
     .card[data-card="muse"] .row + .row {
       margin-top: 8px;
+    }
+    /* Compact layout keeps this theme's header geometry and decoration. */
+    html.compact-cards body .card[data-card="projects"] { padding-inline: 13px; }
+    html.compact-cards body .card[data-card="projects"] .header {
+      grid-template-columns: 24px minmax(0, 1fr);
+      column-gap: 8px;
+    }
+    html.compact-cards body .card[data-card] .reef-badge {
+      width: 24px;
+      height: 24px;
+      flex-basis: 24px;
+    }
+    html.compact-cards body .card[data-card] .header :is(.brand-icon, .reef-badge) svg {
+      width: 20px;
+      height: 20px;
+    }
+    html.compact-cards body .card[data-card] .header img { border-radius: 50%; }
+    html.compact-cards body .card[data-card="agy"] .agy-mark {
+      width: 24px; height: 24px; flex-basis: 24px;
     }
   </style>
 </head>

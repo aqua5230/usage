@@ -142,6 +142,11 @@
 
     .card[data-card="muse"] .brand-icon { color: var(--ink); }
 
+    /* Compact layout keeps this theme's header geometry and decoration. */
+    html.compact-cards body .card[data-card]:not([data-card="projects"]) { padding-inline: 11px; column-gap: 8px; }
+    html.compact-cards body .card[data-card] .brand :is(img, .brand-icon) {
+      border-radius: 9px 11px 8px 12px / 11px 8px 12px 9px;
+    }
   </style>
 </head>
 <body>

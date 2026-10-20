@@ -368,5 +368,39 @@ def test_snapshot_atomic_and_local(monkeypatch: pytest.MonkeyPatch, tmp_path: Pa
     payload = json.loads(quota_snapshot.SNAPSHOT_PATH.read_text(encoding="utf-8"))
     assert payload["schema_version"] == 1
     assert payload["generated_at"]
-    assert set(payload["agents"]) == {"claude-code", "codex", "antigravity", "grok"}
+    assert set(payload["agents"]) == {"claude-code", "codex", "antigravity", "grok", "muse"}
     assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_muse_reminder_scope_threshold_and_dedup(paths: Path) -> None:
+    snapshot()
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"]["muse"] = {
+        "available": True,
+        "five_hour": {"used_percent": 82, "resets_at": RESET},
+        "seven_day": {"used_percent": 96, "resets_at": RESET + 86400},
+    }
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    output = hook.reminder("muse", NOW)
+    assert "Muse 5-hour quota: 82% used" in output
+    assert "Muse weekly quota: 96% used" in output
+    assert "Only limits work sent to Muse." in output
+    assert hook.reminder("muse", NOW) == ""
+    data["agents"]["muse"]["five_hour"]["used_percent"] = 91
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    assert "Muse 5-hour quota: 91% used" in hook.reminder("muse", NOW)
+
+
+@pytest.mark.parametrize(
+    "available,reset,age", [(False, RESET, 0), (True, NOW, 0), (True, RESET, 901)]
+)
+def test_muse_reminder_ignores_unavailable_expired_stale(
+    paths: Path, available: bool, reset: float, age: float
+) -> None:
+    snapshot(age)
+    data = json.loads(hook.QUOTA_SNAPSHOT.read_text())
+    data["agents"] = {
+        "muse": {"available": available, "five_hour": {"used_percent": 99, "resets_at": reset}}
+    }
+    hook.QUOTA_SNAPSHOT.write_text(json.dumps(data))
+    assert hook.reminder("muse", NOW) == ""

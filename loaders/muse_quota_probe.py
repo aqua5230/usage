@@ -231,15 +231,22 @@ def _probe_worker(executable: str) -> None:
             _probe_running = False
 
 
-def load_quota_snapshot() -> tuple[MuseQuotaResult | None, float | None]:
-    """Read sessions once and return the snapshot plus its projection context."""
+def load_quota_snapshot(*, allow_probe: bool = True) -> tuple[MuseQuotaResult | None, float | None]:
+    """Read sessions once and return the snapshot plus its projection context.
+
+    ``allow_probe=False`` only reads: a probe spends Muse quota, so a hidden card never starts one.
+    """
     global _probe_running, _retry_after, _last_attempt_session
     cached = read_cache()
     executable = find_muse()
     if executable is None:
         return None, None
     latest = latest_session_mtime()
-    if latest is None or (cached is not None and not is_stale(cached, latest, time.time())):
+    if (
+        not allow_probe
+        or latest is None
+        or (cached is not None and not is_stale(cached, latest, time.time()))
+    ):
         return cached, latest
     with _probe_lock:
         # A worker may have finished since the first cache read.

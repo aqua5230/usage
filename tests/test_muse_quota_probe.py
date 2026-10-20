@@ -145,6 +145,19 @@ def test_failure_cools_down_for_30_minutes(monkeypatch: pytest.MonkeyPatch, fail
     thread.return_value.start.assert_called_once()
 
 
+def test_hidden_card_reads_snapshot_without_probing(monkeypatch: pytest.MonkeyPatch) -> None:
+    probe.CACHE_PATH.write_text(json.dumps(quota(0)))
+    monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")
+    monkeypatch.setattr(probe, "latest_session_mtime", lambda: 1001)
+    thread = Mock()
+    monkeypatch.setattr(threading, "Thread", thread)
+
+    assert probe.load_quota_snapshot(allow_probe=False) == (probe.read_cache(), 1001)
+    thread.assert_not_called()
+    probe.load_quota_snapshot()
+    thread.return_value.start.assert_called_once()
+
+
 def test_single_background_probe_returns_old_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
     probe.CACHE_PATH.write_text(json.dumps(quota(0)))
     monkeypatch.setattr(probe, "find_muse", lambda: "/fake/muse")

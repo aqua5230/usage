@@ -12,7 +12,7 @@ from typing import Any
 
 from adapters.rate_limits import load_rate_limits as load_claude_rate_limits
 from adapters.types import RateLimits
-from loaders import agy_quota_probe, codex_loader, grok_quota_probe
+from loaders import agy_quota_probe, codex_loader, grok_quota_probe, muse_quota_probe
 from usage_common.time_utils import parse_optional_iso8601_utc
 
 
@@ -38,7 +38,26 @@ def _load_codex_rate_limits() -> RateLimits | None:
     )
 
 
-RATE_LIMIT_LOADERS = {"claude-code": load_claude_rate_limits, "codex": _load_codex_rate_limits}
+def _load_muse_rate_limits() -> RateLimits | None:
+    quota = muse_quota_probe.read_cache()
+    if quota is None:
+        return None
+    return RateLimits(
+        five_hour_pct=quota["window"]["used_percent"],
+        five_hour_resets_at=int(quota["window"]["resets_at"]),
+        seven_day_pct=quota["weekly"]["used_percent"],
+        seven_day_resets_at=int(quota["weekly"]["resets_at"]),
+        updated_at=datetime.fromtimestamp(quota["checked_at"], UTC)
+        .isoformat()
+        .replace("+00:00", "Z"),
+    )
+
+
+RATE_LIMIT_LOADERS = {
+    "claude-code": load_claude_rate_limits,
+    "codex": _load_codex_rate_limits,
+    "muse": _load_muse_rate_limits,
+}
 
 
 def _status_window(used_percent: float | None, resets_at: int | None, now: int) -> dict[str, Any]:
@@ -142,6 +161,30 @@ def _status_grok(now: int) -> dict[str, Any]:
     }
 
 
+def _status_muse(now: int) -> dict[str, Any]:
+    # read_cache never schedules the paid Muse probe.
+    try:
+        quota = muse_quota_probe.read_cache()
+        if quota is None:
+            return _status_agent(None, now)
+        updated_at = (
+            datetime.fromtimestamp(quota["checked_at"], UTC).isoformat().replace("+00:00", "Z")
+        )
+        return {
+            "available": True,
+            "five_hour": _status_window(
+                quota["window"]["used_percent"], int(quota["window"]["resets_at"]), now
+            ),
+            "seven_day": _status_window(
+                quota["weekly"]["used_percent"], int(quota["weekly"]["resets_at"]), now
+            ),
+            "updated_at": updated_at,
+            "age_seconds": _age_seconds(updated_at, now),
+        }
+    except (OSError, UnicodeError, ValueError, OverflowError):
+        return _status_agent(None, now, "error")
+
+
 def _status_payload(*, include_extra_agents: bool = True) -> dict[str, Any]:
     generated_at = datetime.now(UTC).replace(microsecond=0)
     now = int(generated_at.timestamp())
@@ -156,6 +199,7 @@ def _status_payload(*, include_extra_agents: bool = True) -> dict[str, Any]:
     if include_extra_agents:
         agents["antigravity"] = _status_antigravity(now)
         agents["grok"] = _status_grok(now)
+        agents["muse"] = _status_muse(now)
     return {
         "schema_version": 1,
         "generated_at": generated_at.isoformat().replace("+00:00", "Z"),

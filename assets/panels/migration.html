@@ -902,6 +902,18 @@
     .card[data-card="muse"] .brand-icon { color: var(--accent); }
 
     .card[data-card="muse"] .row:last-child { padding-bottom: 10px; }
+    /* Compact layout keeps this theme's header geometry and decoration. */
+    html.compact-cards body .card[data-card="projects"] { padding-inline: 13px; }
+    html.compact-cards body .card[data-card="projects"] .brand {
+      grid-template-columns: 24px minmax(0, 1fr);
+      column-gap: 8px;
+    }
+    html.compact-cards body .card[data-card] .brand-icon svg { width: 20px; height: 20px; }
+    html.compact-cards body .card[data-card]:not([data-card="projects"]) > .brand {
+      height: 32px;
+      padding-block: 2px 4px;
+    }
+    html.compact-cards body .card[data-card]:not([data-card="projects"]) > .row { padding-bottom: 4px; }
   </style>
 </head>
 <body>

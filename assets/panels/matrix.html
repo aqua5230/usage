@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root {
-      --muse: #0082FB;
+      --muse: #2ef272;
       color-scheme: dark;
       --bg: #000000;
       --panel: rgba(0, 20, 8, 0.58);
@@ -573,6 +573,13 @@
     .hide-muse [data-card="muse"] { display: none; }
 
     .card[data-card="muse"] .brand-icon { color: #2ef272; }
+    /* Compact layout keeps this theme's header geometry and decoration. */
+    html.compact-cards body .card[data-card="projects"] { padding-inline: 13px; }
+    html.compact-cards body .card[data-card="projects"] .brand {
+      grid-template-columns: 24px minmax(0, 1fr);
+      column-gap: 8px;
+    }
+    html.compact-cards body .card[data-card] .brand-icon svg { width: 20px; height: 20px; }
   </style>
 </head>
 <body>
