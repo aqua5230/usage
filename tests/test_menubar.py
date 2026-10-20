@@ -1629,7 +1629,8 @@ def test_popover_size_deducts_hidden_cards(monkeypatch: pytest.MonkeyPatch) -> N
     state.hide_grok = False
     panel = FakePanel()
 
-    assert menubar_popover._popover_size(state, panel).height == 500.0
+    # Four visible cards replace the synthetic measured heights with 94px each.
+    assert menubar_popover._popover_size(state, panel).height == 646.0
     state.hide_claude = True
     assert menubar_popover._popover_size(state, panel).height == 400.0
     state.hide_codex = True

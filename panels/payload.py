@@ -69,9 +69,17 @@ def _data_uri(asset_name: str) -> str:
 
 
 def _row_payload(row: QuotaRowState) -> dict[str, object]:
+    from menubar.state import _format_percent
+
+    percent = row.display_percent
     return {
         "percent": row.display_percent,
         "percentText": row.percent_text,
+        "percentTextCompact": (
+            f"{_format_percent(float(percent))}%"
+            if row.available and percent is not None
+            else row.percent_text
+        ),
         "resetText": row.reset_text,
         "resetTextCompact": row.reset_text_compact or row.reset_text,
         "warning": row.warning,
@@ -123,6 +131,7 @@ def _state_payload(
             "weekly": _row_payload(state.agy_weekly),
             "groupName": state.agy_group_name,
             "groupSwitchable": state.agy_group_switchable,
+            "weeklyOnly": state.agy_weekly_only,
             "stale": state.agy_stale,
         },
         "grok": {

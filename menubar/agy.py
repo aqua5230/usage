@@ -58,6 +58,7 @@ class AgyQuotaProjection:
     stale: AgyStaleState | None
     five_hour: AgyQuotaWindow | None
     group_switchable: bool = False
+    weekly_only: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -153,6 +154,7 @@ def project_quota(
     return AgyQuotaProjection(
         group_name=selected.name,
         group_switchable=len(quota.groups) >= 2,
+        weekly_only=_matches_group(selected.name, "argon"),
         session=session,
         weekly=weekly,
         stale=stale,

@@ -141,6 +141,7 @@ class PopoverState:
     agy_weekly: QuotaRowState
     agy_group_name: str
     agy_group_switchable: bool = field(default=False, kw_only=True)
+    agy_weekly_only: bool = field(default=False, kw_only=True)
     grok_weekly: QuotaRowState
     projects: list[tuple[str, int, float | None]]
     projects_yesterday: list[tuple[str, int, float | None]]
@@ -828,6 +829,7 @@ def build_popover_state(
     agy_rows: tuple[QuotaRowState, QuotaRowState],
     agy_group_name: str,
     agy_group_switchable: bool = False,
+    agy_weekly_only: bool = False,
     grok_row: QuotaRowState,
     projects: list[tuple[str, int, float | None]],
     projects_yesterday: list[tuple[str, int, float | None]],
@@ -949,6 +951,7 @@ def build_popover_state(
         agy_weekly=agy_rows[1],
         agy_group_name=agy_group_name,
         agy_group_switchable=agy_group_switchable,
+        agy_weekly_only=agy_weekly_only,
         grok_weekly=grok_row,
         projects=projects,
         projects_yesterday=projects_yesterday,
@@ -1101,6 +1104,27 @@ def popover_dimensions(state: PopoverState, panel: UsagePanel | None = None) -> 
     agy_deduct = agy_card_height if state.hide_agy else 0.0
     grok_card_height = getattr(active_panel, "grok_card_height", 0.0)
     grok_deduct = grok_card_height if state.hide_grok else 0.0
+    card_heights = (
+        active_panel.claude_card_height,
+        active_panel.codex_card_height,
+        agy_card_height,
+        grok_card_height,
+    )
+    visible_cards = sum(
+        not hidden and height > 0
+        for hidden, height in zip(
+            (state.hide_claude, state.hide_codex, state.hide_agy, state.hide_grok),
+            card_heights,
+            strict=True,
+        )
+    )
+    compact_deduct = 0.0
+    if visible_cards >= 4:
+        # B layout: 19px padding + 26px header + 7px gap + 42px quota row.
+        # Keep PanelSpec's original measurements; replace only card estimates.
+        compact_deduct = sum(height - 94.0 for height in card_heights)
+        # A card left with one row spans it across the card at the same height.
+        codex_row_deduct = 42.0 if codex_missing_rows == 2 else 0.0
     install_extra = INSTALL_BUTTON_EXTRA_HEIGHT if state.show_install_button else 0.0
     status_extra = (
         getattr(active_panel, "status_wrap_extra_height", 0.0) if state.status_long else 0.0
@@ -1125,6 +1149,7 @@ def popover_dimensions(state: PopoverState, panel: UsagePanel | None = None) -> 
         + status_extra
         + codex_credits_extra
         + service_alert_extra
+        - compact_deduct
         - claude_deduct
         - codex_deduct
         - codex_row_deduct

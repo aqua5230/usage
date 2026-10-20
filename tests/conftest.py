@@ -20,6 +20,7 @@ collect_ignore = (
     if sys.platform == "darwin"
     else [
         "test_analyzer_pipeline.py",
+        "test_compact_cards.py",
         "test_login_item.py",
         "test_menubar.py",
         "test_menubar_notify.py",

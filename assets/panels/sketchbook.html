@@ -117,6 +117,23 @@
     .card[data-card="claude"], .card[data-card="codex"], .card[data-card="agy"], .card[data-card="grok"] { cursor: grab; }
     .card.is-dragging { cursor: grabbing; opacity: .72; }
     .is-card-dragging, .is-card-dragging * { user-select: none; }
+
+    html.compact-cards .card[data-card] > .row { display: block; }
+    html.compact-cards .card[data-card] .row-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+    }
+    html.compact-cards .card[data-card] .row[data-row],
+    html.compact-cards .card[data-card="codex"]:has(.row[data-row="session"][hidden]) .row[data-row="weekly"] {
+      grid-column: auto; width: auto; justify-self: stretch;
+    }
+    html.compact-cards .card[data-card] .percent { margin: 0; padding: 0; }
+    html.compact-cards .card[data-card] .track {
+      width: 100%; height: 6px; background: var(--muted); border-radius: 4px; overflow: hidden;
+    }
+    html.compact-cards .card[data-card] .fill {
+      width: calc(var(--pct) * 1%); background: var(--fill-color, var(--ink));
+    }
+    html.compact-cards .card[data-card] .fill svg { display: none; }
   </style>
 </head>
 <body>

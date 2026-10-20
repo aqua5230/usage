@@ -194,6 +194,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             agy_rows=(agy_projection.session, agy_projection.weekly),
             agy_group_name=agy_projection.group_name,
             agy_group_switchable=agy_projection.group_switchable,
+            agy_weekly_only=agy_projection.weekly_only,
             grok_row=grok_projection.weekly,
             projects=project_rows,
             projects_yesterday=project_rows_yesterday,
@@ -251,6 +252,7 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         state.agy_weekly = agy_projection.weekly
         state.agy_group_name = agy_projection.group_name
         state.agy_group_switchable = agy_projection.group_switchable
+        state.agy_weekly_only = agy_projection.weekly_only
         state.agy_stale = agy_projection.stale
         state.grok_weekly = grok_projection.weekly
         state.grok_stale = grok_projection.stale

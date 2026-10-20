@@ -62,6 +62,7 @@ def test_state_payload_includes_agy_card_data() -> None:
         "session": {
             "percent": 25.0,
             "percentText": "25% used",
+            "percentTextCompact": "25%",
             "resetText": "Resets in 1h 0m",
             "resetTextCompact": "Resets in 1h 0m",
             "warning": False,
@@ -71,6 +72,7 @@ def test_state_payload_includes_agy_card_data() -> None:
         "weekly": {
             "percent": 50.0,
             "percentText": "50% used",
+            "percentTextCompact": "50%",
             "resetText": "Resets in 1d 0h",
             "resetTextCompact": "Resets in 1d 0h",
             "warning": False,
@@ -79,6 +81,7 @@ def test_state_payload_includes_agy_card_data() -> None:
         },
         "groupName": "GEMINI MODELS",
         "groupSwitchable": False,
+        "weeklyOnly": False,
         "stale": None,
     }
     grok_payload = cast(dict[str, object], payload["grok"])
@@ -113,6 +116,7 @@ def test_state_payload_includes_available_grok_card_data() -> None:
     assert grok_weekly.keys() == {
         "percent",
         "percentText",
+        "percentTextCompact",
         "resetText",
         "resetTextCompact",
         "warning",

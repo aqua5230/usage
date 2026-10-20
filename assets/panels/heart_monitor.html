@@ -176,6 +176,12 @@
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { animation: none !important; transition: none !important; }
     }
+
+    html.compact-cards .card[data-card] > .row { display: block; }
+    html.compact-cards .card[data-card] .row-head {
+      display: flex; align-items: baseline; justify-content: space-between;
+    }
+    html.compact-cards .card[data-card] .ecg-wave { display: none; }
   </style>
 </head>
 <body>
