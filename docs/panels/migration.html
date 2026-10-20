@@ -659,12 +659,6 @@
       border-color: rgba(255, 255, 255, 0.28);
     }
 
-    .switch[data-active="true"] {
-      color: white;
-      border-color: rgba(48, 209, 88, 0.45);
-      background: linear-gradient(180deg, rgba(48, 209, 88, 0.30), rgba(40, 180, 75, 0.20));
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
-    }
 
     @media (prefers-color-scheme: light) {
       .switch:hover {
@@ -821,7 +815,6 @@
     .switch, .action { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; height: auto; padding: 3px 9px; background: rgba(41, 20, 57, 0.50); color: var(--text); font-family: inherit; font-size: 12px; line-height: 1.1; font-weight: 700; border: 1px solid rgba(255, 202, 163, 0.50); box-shadow: inset 0 0 0 1px rgba(255, 202, 163, 0.08); border-radius: 5px; white-space: nowrap; transition: transform 120ms ease-out, background-color 120ms ease-out, border-color 120ms ease-out; }
     .switch:hover, .action:hover { background: rgba(104, 49, 84, 0.70); border-color: rgba(255, 225, 190, 0.78); }
     .action:active, .switch:active { transform: translateY(1px); background: rgba(35, 15, 48, 0.80); filter: none; }
-    .switch[data-active="true"] { background: linear-gradient(180deg, rgba(255, 196, 126, 0.95), var(--accent)); color: #321d35; border-color: rgba(255, 225, 190, 0.90); }
 
     .row, [data-project-list] { padding: 0 2px 4px; position: relative; }
     .row + .row { border-top: 1px dashed var(--line); margin-top: 8px; padding-top: 8px; }
