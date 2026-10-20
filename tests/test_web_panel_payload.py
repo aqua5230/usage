@@ -57,7 +57,7 @@ def test_state_payload_includes_agy_card_data() -> None:
     assert payload["cardOrder"] == ["claude", "codex", "agy", "grok", "muse"]
     assert payload["projectsYesterday"] == []
     footer = cast(dict[str, object], payload["footer"])
-    assert footer["yesterday"] == "Yesterday: $0.00 (0 tokens)"
+    assert footer["yesterday"] == {"tokensText": "0", "costText": "$0.00"}
     assert payload["agy"] == {
         "session": {
             "percent": 25.0,

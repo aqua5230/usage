@@ -18,7 +18,7 @@ sys.path.insert(0, str(_REPO_ROOT))
 
 from menubar import app as menubar  # noqa: E402
 from menubar.prefs import DEFAULT_PANEL_FLAVOR  # noqa: E402
-from menubar.state import PopoverState, QuotaRowState, format_human_time  # noqa: E402
+from menubar.state import PeriodTotal, PopoverState, QuotaRowState, format_human_time  # noqa: E402
 from panels import all_panels  # noqa: E402
 from panels.dynamic_height import inject_content_height_script  # noqa: E402
 from panels.payload import _load_panel_html, _state_payload  # noqa: E402
@@ -85,9 +85,8 @@ def _demo_state(language: str) -> PopoverState:
     state.projects_all = list(DEMO_PROJECTS)
     state.rate_text = _t(language, "rate_text", value=_t(language, "group_active"))
     state.status_text = _t(language, "status_text", value=_t(language, "status_synced"))
-    # 模板自己帶錢字號，cost 只給數字，否則會印成 $$28.51。
-    state.today_text = _t(language, "today_text", cost="28.51", tokens="11,150,000")
-    state.yesterday_text = _t(language, "yesterday_text", cost="19.84", tokens="7,420,000")
+    state.today_total = PeriodTotal(tokens=11_150_000, cost=28.51)
+    state.yesterday_total = PeriodTotal(tokens=7_420_000, cost=19.84)
     state.show_install_button = False
     return state
 

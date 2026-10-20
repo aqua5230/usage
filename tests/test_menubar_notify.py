@@ -15,7 +15,7 @@ from typing import Any
 import pytest
 
 from menubar import notify
-from menubar.state import PopoverState, QuotaRowState
+from menubar.state import PeriodTotal, PopoverState, QuotaRowState
 from quota.notifications import QuotaNotifier
 from usage_common.i18n import _t
 
@@ -42,8 +42,8 @@ def quota_state() -> PopoverState:
         projects_all=[],
         rate_text="",
         status_text="",
-        today_text="",
-        yesterday_text="",
+        today_total=PeriodTotal(),
+        yesterday_total=PeriodTotal(),
         statusline={},
     )
 

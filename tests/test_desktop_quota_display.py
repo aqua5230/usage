@@ -170,8 +170,8 @@ def test_desktop_quota_reaches_popover_and_tui(quota_file: Path) -> None:
         burn_rate_trackers={
             name: BurnRateTracker() for name in ("claude_session", "claude_weekly")
         },
-        today_text="",
-        yesterday_text="",
+        today_total=state_module.PeriodTotal(),
+        yesterday_total=state_module.PeriodTotal(),
         statusline={},
         show_install_button=False,
         hide_claude=False,
