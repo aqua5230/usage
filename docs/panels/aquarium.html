@@ -1169,6 +1169,19 @@
         font-size: 15px;
         line-height: 1.1;
       }
+      /* The projects card keeps its layout; only its icon and title shrink to match the
+         compact quota cards. Its header also holds the Today / Report tabs, so its height stays. */
+      html.compact-cards .card[data-card="projects"] :is(.brand, .header) :is(img, .brand-icon) {
+        width: 24px;
+        height: 24px;
+        flex-basis: 24px;
+        font-size: 16px;
+        border-radius: 6px;
+      }
+      html.compact-cards .card[data-card="projects"] :is(.brand, .header) h1 {
+        font-size: 15px;
+        line-height: 1.1;
+      }
       html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) > .row {
         min-width: 0;
         padding-top: 0;
