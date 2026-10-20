@@ -1749,7 +1749,7 @@ def test_compose_title_hides_grok_when_enabled(monkeypatch: pytest.MonkeyPatch) 
 def test_compose_title_shows_grok_last(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
     delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
-    delegate.codex_5h_pct = 12.0
+    delegate.codex_5h_pct = None
     state = menubar._empty_state()
     state.claude_session.percent = 50.0
     state.agy_session.percent = 25.0
@@ -1759,7 +1759,34 @@ def test_compose_title_shows_grok_last(monkeypatch: pytest.MonkeyPatch) -> None:
     state.hide_agy = False
     state.hide_grok = False
 
-    assert menubar_title._compose_title(delegate, state) == "50% · 12% · 25% · 47%"
+    assert menubar_title._compose_title(delegate, state) == "50% · 25% · 47%"
+
+
+def test_compose_title_keeps_three_highest_in_fixed_order(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(menubar, "_load_preferences", lambda: {})
+    delegate = menubar.AppDelegate.alloc().initWithMock_interval_(True, 60)
+    delegate.codex_5h_pct = 37.0
+    state = menubar._empty_state()
+    state.claude_session.percent = 2.0
+    state.agy_session.percent = 10.0
+    state.muse_session.percent = 12.0
+    state.hide_agy = False
+    state.hide_muse = False
+
+    assert menubar_title._compose_title(delegate, state) == "37% · 10% · 12%"
+
+    # A tie keeps the fixed order, so Claude wins over Antigravity.
+    state.claude_session.percent = 20.0
+    state.agy_session.percent = 20.0
+    state.muse_session.percent = 50.0
+    assert menubar_title._compose_title(delegate, state) == "20% · 37% · 50%"
+
+    # An unknown "--" ranks below even 0%.
+    state.claude_session.percent = None
+    state.agy_session.percent = 0.0
+    assert menubar_title._compose_title(delegate, state) == "37% · 0% · 50%"
 
 
 def test_compose_title_omits_grok_without_percent(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -3157,7 +3184,7 @@ def test_reset_title_keeps_notification_values(monkeypatch: pytest.MonkeyPatch) 
     state.claude_session = state.codex_session = state.agy_session = state.grok_weekly = row
     state.hide_claude = state.hide_codex = state.hide_agy = state.hide_grok = False
     app = SimpleNamespace(codex_5h_pct=100.0, _menubar_text_cache={})
-    assert menubar_title._compose_title(app, state) == "0% · 0% · 0% · 0%"
+    assert menubar_title._compose_title(app, state) == "0% · 0% · 0%"
     texts: list[str] = []
     original_text_string = menubar_title._menubar_text_string
 
@@ -3167,7 +3194,7 @@ def test_reset_title_keeps_notification_values(monkeypatch: pytest.MonkeyPatch) 
 
     monkeypatch.setattr(menubar_title, "_menubar_text_string", record_text)
     menubar_title._menubar_attributed_title(app, state)
-    assert texts.count(" 0%") == 4
+    assert texts.count(" 0%") == 3
     state.claude_session = menubar._missing_row("Session", menubar.CLAUDE_COLOR)
     state.codex_session = menubar._missing_row("", menubar.CODEX_COLOR)
     state.codex_weekly = row
