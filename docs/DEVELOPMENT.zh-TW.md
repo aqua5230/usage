@@ -229,10 +229,19 @@ JSON 帶有 `schema_version`，之後格式若有變動，接的人可以據此�
       "tier": "XPremium",
       "updated_at": "2026-08-14T06:59:30Z",
       "age_seconds": 30
+    },
+    "muse": {
+      "available": true,
+      "five_hour": { "used_percent": 24.0, "resets_at": 1786701600, "resets_in_seconds": 10800 },
+      "seven_day": { "used_percent": 42.0, "resets_at": 1787036400, "resets_in_seconds": 345600 },
+      "updated_at": "2026-08-14T06:59:00Z",
+      "age_seconds": 60
     }
   }
 }
 ```
+
+Muse 只讀 `~/.usage/muse_quota.json`；status 絕不觸發 Muse 探測。`window` 對應 `five_hour`，`weekly` 對應 `seven_day`，`checked_at` 轉成 UTC `updated_at`。快照缺失或無效（含未安裝 Muse）時，回傳 `available: false` 與 `reason: "no_data"`。有效的舊快照仍可讀，重設倒數最低為零。
 
 `resets_in_seconds` 是從 `generated_at` 算到 `resets_at` 還剩幾秒（最小 `0`），`age_seconds` 是 `updated_at` 在 `generated_at` 當下已經過了幾秒；來源欄位是 `null` 時，這兩個也是 `null`。
 

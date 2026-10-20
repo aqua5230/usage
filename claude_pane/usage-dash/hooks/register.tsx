@@ -319,11 +319,11 @@ export const register: Register = (on) => {
       <Box flexDirection="column">
       <Box flexDirection="column" borderStyle="round" borderColor="cyan" paddingX={1}>
       {!fold.quota && <Box flexDirection="column">
-        {byTightest(data, ['claude-code','codex','antigravity','grok'], now, last === null ? 0 : (now-last)/1000).map(key => {
+        {byTightest(data, ['claude-code','codex','antigravity','grok','muse'], now, last === null ? 0 : (now-last)/1000).map(key => {
           const agent = data.agents[key]
           if (!agent || (!agent.available && !showsUnavailable(key, agent.reason))) return null
-          const name = key === 'claude-code' ? 'Claude' : key === 'codex' ? 'Codex' : key === 'antigravity' ? 'agy' : 'Grok'
-          if (!agent.available) return <Text key={key}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{name.padEnd(8)}</Text><Text dimColor>{t(`unavailable_${agent.reason ?? 'no_data'}`)}</Text></Text>
+          const name = key === 'claude-code' ? 'Claude' : key === 'codex' ? 'Codex' : key === 'antigravity' ? 'agy' : key === 'muse' ? 'Muse' : 'Grok'
+          if (!agent.available) return <Text key={key}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : key === 'muse' ? '#0082FB' : 'white'} bold={key === 'grok'}>{name.padEnd(8)}</Text><Text dimColor>{t(`unavailable_${agent.reason ?? 'no_data'}`)}</Text></Text>
           const age = staleAge(agent.age_seconds ?? 0, now, last)
           const groups = agent.groups ?? [{ name: '', five_hour: agent.five_hour, seven_day: agent.seven_day }]
           const rows = groups.flatMap(group => [
@@ -335,7 +335,7 @@ export const register: Register = (on) => {
               const line = window ? dockQuotaLine(label,window,now,last === null ? 0 : (now-last)/1000,e.props.bodyColumns) : null
               // Under 50% stays gray so only the windows worth watching carry color.
               const color = window && effectivePercent(window,now,last === null ? 0 : (now-last)/1000) >= 50 ? line?.color : undefined
-              return <Text key={String(i)}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : 'white'} bold={key === 'grok'}>{i === 0 ? `${name.padEnd(8)}` : '        '}</Text><Text dimColor>{line ? line.label : label}</Text>{line && <Text color={color} dimColor={!color}>{line.filled}</Text>}{line && <Text dimColor>{line.empty}</Text>}{line && ' '}{line && <Text color={color} dimColor={!color}>{line.percent}</Text>}{line && <Text dimColor>{line.countdown}</Text>}{i === 0 && age && <Text color="yellow">{age}</Text>}</Text>
+              return <Text key={String(i)}><Text color={key === 'claude-code' ? '#d97757' : key === 'codex' ? '#10a37f' : key === 'antigravity' ? '#4285f4' : key === 'muse' ? '#0082FB' : 'white'} bold={key === 'grok'}>{i === 0 ? `${name.padEnd(8)}` : '        '}</Text><Text dimColor>{line ? line.label : label}</Text>{line && <Text color={color} dimColor={!color}>{line.filled}</Text>}{line && <Text dimColor>{line.empty}</Text>}{line && ' '}{line && <Text color={color} dimColor={!color}>{line.percent}</Text>}{line && <Text dimColor>{line.countdown}</Text>}{i === 0 && age && <Text color="yellow">{age}</Text>}</Text>
             })}
           </Box>
         })}

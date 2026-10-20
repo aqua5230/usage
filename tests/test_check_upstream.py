@@ -498,7 +498,7 @@ def test_main_exit_and_report(
     monkeypatch.setattr(check.sys, "argv", ["check_upstream.py", "--offline"])
     assert check.main() == exit_code
     output = capsys.readouterr().out.splitlines()
-    assert len(output) == 17
+    assert len(output) == 18
     assert f"{status} codex_sqlite — sample" in output
     assert output[-1].startswith("TOTAL OK=")
 
@@ -607,3 +607,25 @@ def test_sqlite_recent_wal_overrides_old_database(codex_dbs: None) -> None:
         os.utime(path, (old, old))
         state, detail = check.check_codex_sqlite()
         assert state == "OK" and str(path) in detail and "stale:" not in detail
+
+
+@pytest.mark.parametrize(
+    "contents,expected", [(None, "NO_DATA"), ({}, "BROKEN"), ("valid", "OK"), ("stale", "NO_DATA")]
+)
+def test_muse_quota_cache_readonly(contents: Any, expected: str) -> None:
+    path = check.muse_quota_probe.CACHE_PATH
+    if contents is not None:
+        value = (
+            {
+                "checked_at": time.time() - (check.MAX_AGE + 1 if contents == "stale" else 0),
+                "window": {"used_percent": 21, "resets_at": time.time() + 3600},
+                "weekly": {"used_percent": 53, "resets_at": time.time() + 86400},
+            }
+            if isinstance(contents, str)
+            else contents
+        )
+        write_json(path, value)
+        before = path.read_bytes()
+    assert check.check_muse_quota_cache()[0] == expected
+    if contents is not None:
+        assert path.read_bytes() == before

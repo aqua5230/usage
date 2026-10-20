@@ -52,3 +52,10 @@ test('精簡版的相對窗口也隨讀取後時間歸零', () => {
   expect(lines[0].map(part => part.text).join('')).toBe('◆ Codex 5h 0%')
   expect(lines[0].find(part => part.text === '0%')?.color).toBe('green')
 })
+
+test('Muse 用品牌藍顯示雙窗口，未就緒時隱藏', () => {
+  const lines = compactLines({agents:{muse:{available:true,five_hour:{used_percent:24},seven_day:{used_percent:96}}}}, [], 0, 0, 0)
+  expect(lines[1].map(part => part.text).join('')).toBe('◆ Muse 5h 24% Week 96%')
+  expect(lines[1][0]).toEqual({text:'◆ Muse',color:'#0082FB',bold:false})
+  expect(compactLines({agents:{muse:{available:false,reason:'no_data'}}}, [], 0, 0, 0)[1]).toEqual([])
+})
