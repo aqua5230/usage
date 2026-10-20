@@ -5,9 +5,18 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.34.0] - 2026-10-21
+
+### Added
+- **Muse Code has a quota card.** It shows Muse's 5-hour Session and weekly quota with reset countdowns in all 15 quota themes, with a menu bar item, a hide toggle, and the same near-limit, used-up and restored notifications as Antigravity. Muse keeps no quota file, so `usage` asks Muse itself with one small background request, without a session log and from an empty folder. It checks once when there is no reading yet, then only when the reading is over 30 minutes old and you have used Muse since. Each check uses a little of your Muse quota. A failed check waits for new Muse activity before trying again. Hiding the Muse card stops the checks, and the card hides itself when Muse isn't installed.
+- **Muse quota shows up wherever the other quotas do.** The Claude Code side pane, `usage status --json`, the multi-agent CLI dashboard, Quota-Aware Mode, and the Windows tray (card, tooltip, hide toggle, and notifications) now include Muse. They only read the last saved reading and never start a Muse check.
+
+### Changed
+- **Four or more quota cards switch to a compact layout.** Four full cards no longer fit on a laptop screen, so every quota card shrinks: a smaller header, Session and weekly side by side, and shorter percent and reset text. Three or fewer cards look the same as before.
+- **The menu bar shows at most three tools.** With Claude Code, Codex, Antigravity, Grok and Muse all on, the strip got too wide and could slide behind the notch. It now keeps the three with the highest Session usage, in the usual order. The panel still shows every card.
 
 ### Fixed
+- **Windows saves the quota card order again.** The tray accepted a new order only when it listed exactly the Claude, Codex, and Antigravity cards, so once the Grok card was in the panel, dragging cards into a new order was not saved. It now uses the same check as macOS.
 - **Auto-start 5-hour Session no longer runs your own hooks.** Its background `claude -p` and `codex exec` pings fired every hook you had set up, such as SessionStart, UserPromptSubmit and Stop hooks, Codex's `hooks.json`, and the `notify` program in Codex's `config.toml`. A hook that sends a notification or saves the conversation ran once for every ping. Claude Code pings now load a settings file with `disableAllHooks`; Codex pings turn off `features.hooks` and `notify`. Antigravity pings are unchanged.
 
 ## [0.33.10] - 2026-10-16

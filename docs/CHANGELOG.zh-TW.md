@@ -4,9 +4,18 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
-## [Unreleased]
+## [0.34.0] - 2026-10-21
+
+### 新增
+- **Muse Code 有額度卡了。** 顯示 Muse 的 5 小時 Session 與每週額度和重置倒數，15 款額度佈景都有；另有選單列項目、隱藏開關，以及跟 Antigravity 一樣的快用完、已用完、已恢復通知。Muse 本機沒有額度檔，所以 usage 在背景送一次很小的請求直接問 Muse，不留對話紀錄、從空資料夾執行。還沒有讀數時查一次，之後只在讀數超過 30 分鐘、而且你之後用過 Muse 時才查。每查一次會用掉一點 Muse 額度。查詢失敗後，要等你再用 Muse 才會重試。隱藏 Muse 卡片就不再查；沒裝 Muse 時卡片自動隱藏。
+- **其他看得到額度的地方，也都有 Muse 了。** Claude Code 側邊面板、`usage status --json`、多工具終端機儀表板、額度感知模式，以及 Windows 系統匣（卡片、提示文字、隱藏開關、通知）都加上了 Muse。它們只讀最後存下的讀數，不會另外發起 Muse 查詢。
+
+### 變更
+- **額度卡有 4 張以上時，自動改成精簡版。** 4 張完整卡片在筆電螢幕放不下，所以全部額度卡一起縮小：標題變小、Session 和每週並排、百分比和重置文字變短。3 張以下跟以前一樣。
+- **選單列最多顯示 3 家。** Claude Code、Codex、Antigravity、Grok、Muse 全開時太寬，可能被瀏海擋住。現在只留 Session 用量最高的 3 家，順序不變。面板照樣顯示所有卡片。
 
 ### 修正
+- **Windows 又能記住額度卡的排序了。** 系統匣原本只接受剛好是 Claude、Codex、Antigravity 三張卡的排序，所以面板裡一有 Grok 卡，拖曳排好的順序就存不起來。現在改用跟 macOS 一樣的檢查。
 - **「自動啟動 5 小時計時」不再觸發你自己設定的 hook。** 它在背景跑的 `claude -p` 與 `codex exec` 會觸發你設定的每個 hook，例如 SessionStart、UserPromptSubmit、Stop hook、Codex 的 `hooks.json`，以及 Codex `config.toml` 裡的 `notify` 程式。會發通知或存對話的 hook，每次背景請求都會跑一遍。現在 Claude Code 的背景請求改讀一份開了 `disableAllHooks` 的設定檔；Codex 的背景請求關掉 `features.hooks` 與 `notify`。Antigravity 不變。
 
 ## [0.33.10] - 2026-10-16
