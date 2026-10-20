@@ -165,7 +165,7 @@ _TOAST_AUMID = "com.lollapalooza.usage"
 _TOAST_OPEN_PANEL_ACTION = "open_panel"
 WINDOWS_PANELS = tuple((spec.id, spec.i18n_key, spec.html_filename) for spec in PANEL_SPECS)
 # Initial fallback heights until the WebView reports its actual content height.
-# The Windows tray has no Muse card, so its fallback height leaves that card out.
+# Most Windows installs have no Muse CLI, so the fallback leaves that card out.
 PANEL_HEIGHTS = {spec.id: int(spec.height - spec.muse_card_height) for spec in PANEL_SPECS}
 
 # Bright fills keep the dark numerals readable on both Windows taskbar themes.
