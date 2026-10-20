@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+import pytest
+
 from quota.notifications import QuotaNotifier
 
 
@@ -124,6 +126,24 @@ def test_agy_stale_data_does_not_send_notifications() -> None:
     notifier.update({"agy_session": (89.0, True)})
 
     assert notifier.update({"agy_session": (100.0, False)}) == []
+
+
+@pytest.mark.parametrize("channel", ["muse_session", "muse_weekly"])
+def test_muse_warn_depleted_and_restored(channel: str) -> None:
+    notifier = QuotaNotifier([90.0])
+
+    assert notifier.update({channel: (89.0, True)}) == []
+    for percent, kind, threshold in [
+        (90.0, "warn", 90.0),
+        (100.0, "depleted", None),
+        (5.0, "restored", None),
+        (90.0, "warn", 90.0),
+    ]:
+        events = notifier.update({channel: (percent, True)})
+        assert [(event.channel, event.kind, event.threshold) for event in events] == [
+            (channel, kind, threshold)
+        ]
+        assert notifier.update({channel: (percent, True)}) == []
 
 
 def test_default_threshold_only_warns_near_full() -> None:

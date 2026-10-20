@@ -42,6 +42,7 @@ class Panel(Protocol):
     codex_card_height: float
     agy_card_height: float
     grok_card_height: float
+    muse_card_height: float
     service_alert_height: float
 
     def build_view(self, delegate: Any) -> Any: ...

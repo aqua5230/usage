@@ -267,6 +267,10 @@ def test_html_panels_expose_analyze_action() -> None:
             if path.name in card_panel_filenames
             else path.read_text(encoding="utf-8")
         )
+        if path.name in card_panel_filenames:
+            assert 'data-card="muse"' in html, path.name
+            assert "renderMuse(state.muse)" in html, path.name
+            assert "hideMuse: true" in html, path.name
         assert 'data-action="analyze"' in html, path.name
         assert 'data-i18n="analyze_usage"' in html, path.name
         assert "analyze_all" not in html, path.name

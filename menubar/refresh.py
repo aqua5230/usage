@@ -23,12 +23,14 @@ from loaders.claude_usage import PollOutcome, PollState
 from loaders.history_loader import UsageEntry
 from menubar import agy as menubar_agy
 from menubar import grok as menubar_grok
+from menubar import muse as menubar_muse
 from menubar import state as menubar_state
 from menubar.prefs import (
     _hide_agy_enabled,
     _hide_claude_enabled,
     _hide_codex_enabled,
     _hide_grok_enabled,
+    _hide_muse_enabled,
     _quota_card_order,
 )
 from quota import quota_snapshot
@@ -76,6 +78,8 @@ class RefreshSources:
     grok_result: menubar_grok.GrokRefreshResult
     grok_projection: menubar_grok.GrokQuotaProjection
     debug_timing: bool
+    muse_result: menubar_muse.MuseRefreshResult
+    muse_projection: menubar_muse.MuseQuotaProjection
 
     def measure(self, stage: str, started_at: float) -> None:
         if self.debug_timing:
@@ -103,6 +107,8 @@ def load_sources(app: _RefreshApp) -> RefreshSources:
         elapsed_ms = (time.monotonic() - started_at) * 1000
         logger.debug("refresh_timing stage=%s elapsed_ms=%.1f", "grok_load", elapsed_ms)
     grok_projection = grok_result.projection or menubar_grok.fallback_projection(app.language)
+    muse_result = menubar_muse.load_refresh_result(app.language)
+    muse_projection = muse_result.projection or menubar_muse.fallback_projection(app.language)
     return RefreshSources(
         codex_result=codex_result,
         history_scan=(
@@ -111,6 +117,8 @@ def load_sources(app: _RefreshApp) -> RefreshSources:
         agy_result=agy_result,
         agy_projection=agy_projection,
         grok_result=grok_result,
+        muse_result=muse_result,
+        muse_projection=muse_projection,
         grok_projection=grok_projection,
         debug_timing=debug_timing,
     )
@@ -122,6 +130,8 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     agy_projection = sources.agy_projection
     grok_result = sources.grok_result
     grok_projection = sources.grok_projection
+    muse_projection = sources.muse_projection
+    hide_muse = sources.muse_result.hide_muse or _hide_muse_enabled()
     fallback_state = getattr(app, "latest_state", menubar_state._empty_state(app.language))
     project_rows = list(fallback_state.projects)
     project_rows_yesterday = list(fallback_state.projects_yesterday)
@@ -196,6 +206,9 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             agy_group_switchable=agy_projection.group_switchable,
             agy_weekly_only=agy_projection.weekly_only,
             grok_row=grok_projection.weekly,
+            muse_rows=(muse_projection.session, muse_projection.weekly),
+            muse_stale=muse_projection.stale,
+            hide_muse=hide_muse,
             projects=project_rows,
             projects_yesterday=project_rows_yesterday,
             projects_7d=project_rows_7d,
@@ -256,6 +269,10 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         state.agy_stale = agy_projection.stale
         state.grok_weekly = grok_projection.weekly
         state.grok_stale = grok_projection.stale
+        state.muse_session = muse_projection.session
+        state.muse_weekly = muse_projection.weekly
+        state.muse_stale = muse_projection.stale
+        state.hide_muse = hide_muse
         state.history_error = menubar_state.history_load_error_state(
             app._history_load_error_key, app.language
         )

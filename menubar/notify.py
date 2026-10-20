@@ -117,6 +117,8 @@ def notification_tool(channel: str) -> str:
         return "Claude"
     if channel.startswith("agy_"):
         return "Antigravity"
+    if channel.startswith("muse_"):
+        return "Muse"
     return "Codex"
 
 
@@ -134,8 +136,38 @@ def notification_row(state: PopoverState, channel: str) -> QuotaRowState:
         "codex_weekly": state.codex_weekly,
         "agy_session": state.agy_session,
         "agy_weekly": state.agy_weekly,
+        "muse_session": state.muse_session,
+        "muse_weekly": state.muse_weekly,
     }
     return rows[channel]
+
+
+def notification_channels(state: PopoverState) -> dict[str, tuple[float | None, bool]]:
+    return {
+        "claude_session": (
+            state.claude_session.percent,
+            state.claude_session.available,
+        ),
+        "claude_weekly": (state.claude_weekly.percent, state.claude_weekly.available),
+        "codex_session": (state.codex_session.percent, state.codex_session.available),
+        "codex_weekly": (state.codex_weekly.percent, state.codex_weekly.available),
+        "agy_session": (
+            state.agy_session.percent,
+            state.agy_session.available and state.agy_stale is None,
+        ),
+        "agy_weekly": (
+            state.agy_weekly.percent,
+            state.agy_weekly.available and state.agy_stale is None,
+        ),
+        "muse_session": (
+            state.muse_session.display_percent,
+            state.muse_session.available and state.muse_stale is None,
+        ),
+        "muse_weekly": (
+            state.muse_weekly.display_percent,
+            state.muse_weekly.available and state.muse_stale is None,
+        ),
+    }
 
 
 # Keep the instance alive: UNUserNotificationCenter holds its delegate weakly.

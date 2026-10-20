@@ -24,6 +24,7 @@ collect_ignore = (
         "test_login_item.py",
         "test_menubar.py",
         "test_menubar_notify.py",
+        "test_muse_review_regressions.py",
         "test_panels.py",
         "test_web_panel_payload.py",
     ]
@@ -226,6 +227,9 @@ def _isolate_keeper_and_trust_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: P
 
     monkeypatch.setattr(window_keeper, "WINDOW_KEEPER_STATE_PATH", tmp_path / "keeper.json")
     monkeypatch.setattr(
+        window_keeper, "KEEPER_CLAUDE_SETTINGS_PATH", tmp_path / "keeper-settings.json"
+    )
+    monkeypatch.setattr(
         codex_window_keeper, "CODEX_WINDOW_KEEPER_STATE_PATH", tmp_path / "codex-keeper.json"
     )
     monkeypatch.setattr(
@@ -233,3 +237,18 @@ def _isolate_keeper_and_trust_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: P
     )
     monkeypatch.setattr(session_hooks, "CODEX_HOOKS_JSON", tmp_path / "codex" / "hooks.json")
     monkeypatch.setattr(codex_hook_trust, "codex_home", lambda: tmp_path / "codex")
+
+
+@pytest.fixture(autouse=True)
+def _isolate_muse_quota(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    """No test may launch real Muse or access its shared quota snapshot."""
+    from loaders import muse_quota_probe
+
+    monkeypatch.setattr(muse_quota_probe, "CACHE_PATH", tmp_path / "muse_quota.json")
+    monkeypatch.setattr(muse_quota_probe, "PROBE_DIR", tmp_path / "muse-probe")
+    monkeypatch.setattr(muse_quota_probe, "find_muse", lambda: None)
+    monkeypatch.setattr(muse_quota_probe, "_probe_running", False)
+    monkeypatch.setattr(muse_quota_probe, "_retry_after", 0.0)
+    monkeypatch.setattr(muse_quota_probe, "_last_attempt_session", None)
+    monkeypatch.setattr(muse_quota_probe, "_probe_process", None)
+    monkeypatch.setattr(muse_quota_probe, "_probe_shutdown", False)

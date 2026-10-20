@@ -21,6 +21,8 @@ VALID_CHANNELS = frozenset(
         "codex_weekly",
         "agy_session",
         "agy_weekly",
+        "muse_session",
+        "muse_weekly",
     }
 )
 

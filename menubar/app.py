@@ -89,6 +89,7 @@ from menubar.prefs import (
     _hide_claude_enabled,
     _hide_codex_enabled,
     _hide_grok_enabled,
+    _hide_muse_enabled,
     _quota_card_order,
     _quota_notification_thresholds,
     _quota_notifications_enabled,
@@ -507,6 +508,9 @@ class AppDelegate(NSObject):
     def toggleHideGrok_(self, sender: Any) -> None:
         self._toggle_hide_section(sender, "hide_grok_section", "hide_grok", _hide_grok_enabled)
 
+    def toggleHideMuse_(self, sender: Any) -> None:
+        self._toggle_hide_section(sender, "hide_muse_section", "hide_muse", _hide_muse_enabled)
+
     def toggleQuotaNotifications_(self, sender: Any) -> None:
         self._mark_switch_menu_action()
         prefs = _load_preferences()
@@ -844,25 +848,7 @@ class AppDelegate(NSObject):
 
     def _process_quota_notifications(self, state: PopoverState) -> None:
         try:
-            events = self._quota_notifier.update(
-                {
-                    "claude_session": (
-                        state.claude_session.percent,
-                        state.claude_session.available,
-                    ),
-                    "claude_weekly": (state.claude_weekly.percent, state.claude_weekly.available),
-                    "codex_session": (state.codex_session.percent, state.codex_session.available),
-                    "codex_weekly": (state.codex_weekly.percent, state.codex_weekly.available),
-                    "agy_session": (
-                        state.agy_session.percent,
-                        state.agy_session.available and state.agy_stale is None,
-                    ),
-                    "agy_weekly": (
-                        state.agy_weekly.percent,
-                        state.agy_weekly.available and state.agy_stale is None,
-                    ),
-                }
-            )
+            events = self._quota_notifier.update(menubar_notify.notification_channels(state))
             for event in events:
                 if _quota_notifications_enabled() and not self.mock:
                     self._send_quota_notification(event, state)

@@ -44,8 +44,10 @@
           host = document.querySelector('[data-card="agy"] .brand');
         } else if (state.hideClaude && state.hideCodex && state.hideAgy && !state.hideGrok) {
           host = document.querySelector('[data-card="grok"] .brand');
+        } else if (state.hideClaude && state.hideCodex && state.hideAgy && state.hideGrok && !state.hideMuse) {
+          host = document.querySelector('[data-card="muse"] .brand');
         }
-        if (!host || (state.hideClaude && state.hideCodex && state.hideAgy && state.hideGrok)) {
+        if (!host || (state.hideClaude && state.hideCodex && state.hideAgy && state.hideGrok && state.hideMuse)) {
           host = document.querySelector(".footer .actions");
           className = "action";
         }
@@ -87,22 +89,22 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      [data-card="grok"] { cursor: grab; }
+      [data-card="grok"], [data-card="muse"] { cursor: grab; }
     `;
     document.head.appendChild(switchHostStyle);
     const compactCardsStyle = document.createElement("style");
     compactCardsStyle.textContent = `
-      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) {
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) {
         padding: 9px 13px 10px;
         min-height: 0;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         column-gap: 12px;
       }
-      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) > :not(.row) {
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) > :not(.row) {
         grid-column: 1 / -1;
       }
-      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) > :is(.brand, .header) {
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) > :is(.brand, .header) {
         height: 26px;
         min-height: 0;
         gap: 8px;
@@ -110,33 +112,33 @@
         padding-top: 0;
         padding-bottom: 0;
       }
-      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) :is(.brand, .header) :is(img, .brand-icon) {
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) :is(.brand, .header) :is(img, .brand-icon) {
         width: 24px;
         height: 24px;
         flex-basis: 24px;
         font-size: 16px;
         border-radius: 6px;
       }
-      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) :is(.brand, .header) h1 {
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) :is(.brand, .header) h1 {
         font-size: 15px;
         line-height: 1.1;
       }
-      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) > .row {
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) > .row {
         min-width: 0;
         padding-top: 0;
         margin-top: 0;
         border-top: none;
       }
-      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) .row-head {
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) .row-head {
         gap: 6px;
         margin-bottom: 4px;
       }
-      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) :is(.row-title, .percent) {
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) :is(.row-title, .percent) {
         font-size: 12px;
         line-height: 15px;
         white-space: nowrap;
       }
-      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) .reset {
+      html.compact-cards .card:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) .reset {
         font-size: 11px;
         line-height: 14px;
         margin-top: 3px;
@@ -144,8 +146,17 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
-      html.compact-cards .card[data-compact-single="true"]:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]) > .row {
+      html.compact-cards .card[data-compact-single="true"]:is([data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]) > .row {
         grid-column: 1 / -1;
+      }
+      /* The compact "display: grid" above outranks each theme's .hide-* rule,
+         so a hidden card must be hidden again here. */
+      html.compact-cards.hide-claude .card[data-card="claude"],
+      html.compact-cards.hide-codex .card[data-card="codex"],
+      html.compact-cards.hide-agy .card[data-card="agy"],
+      html.compact-cards.hide-grok .card[data-card="grok"],
+      html.compact-cards.hide-muse .card[data-card="muse"] {
+        display: none;
       }
     `;
     document.head.appendChild(compactCardsStyle);
@@ -369,6 +380,23 @@
       staleEl.hidden = true;
     }
 
+    function renderMuse(muse) {
+      applyCard("muse", muse);
+      const staleEl = document.querySelector("[data-muse-stale]");
+      const ageEl = document.querySelector("[data-muse-stale-age]");
+      const tooltipEl = document.querySelector("[data-muse-stale-tooltip]");
+      if (!staleEl || !ageEl || !tooltipEl) return;
+      if (muse && muse.stale && muse.stale.ageText) {
+        ageEl.textContent = muse.stale.ageText;
+        tooltipEl.textContent = t("muse_stale_tooltip");
+        staleEl.hidden = false;
+        return;
+      }
+      ageEl.textContent = "";
+      tooltipEl.textContent = "";
+      staleEl.hidden = true;
+    }
+
     function renderHistoryLoadError(err) {
       const el = document.querySelector("[data-history-error]");
       const textEl = document.querySelector("[data-history-error-text]");
@@ -441,7 +469,7 @@
       }
     }
 
-    const QUOTA_CARD_IDS = ["claude", "codex", "agy", "grok"];
+    const QUOTA_CARD_IDS = ["claude", "codex", "agy", "grok", "muse"];
 
     function applyCardOrder(order) {
       if (cardDrag && cardDrag.dragging) return;
@@ -469,6 +497,7 @@
       document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
       document.documentElement.classList.toggle('hide-agy', !!state.hideAgy);
       document.documentElement.classList.toggle('hide-grok', !!state.hideGrok);
+      document.documentElement.classList.toggle('hide-muse', !!state.hideMuse);
       const visibleQuotaCards = QUOTA_CARD_IDS.filter((id) =>
         !state[`hide${id[0].toUpperCase()}${id.slice(1)}`]
         && document.querySelector(`.card[data-card="${id}"]`)
@@ -484,6 +513,7 @@
       renderCodexCredits(state.codex && state.codex.credits);
       renderAgy(state.agy);
       renderGrok(state.grok);
+      renderMuse(state.muse);
       markSingleRowCards();
       renderHistoryLoadError(state.historyError);
       latestState = state;
@@ -549,7 +579,7 @@
     let cardDrag = null;
 
     document.addEventListener("pointerdown", (event) => {
-      const card = event.target.closest('[data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]');
+      const card = event.target.closest('[data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]');
       if (!card || event.button !== 0 || event.target.closest(window.PanelHooks.pointerdownExcludeSelector)) return;
       cardDrag = { card, pointerId: event.pointerId, startY: event.clientY, dragging: false };
       card.setPointerCapture(event.pointerId);
@@ -564,7 +594,7 @@
         document.documentElement.classList.add("is-card-dragging");
       }
       event.preventDefault();
-      const cards = [...document.querySelectorAll('[data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"]')]
+      const cards = [...document.querySelectorAll('[data-card="claude"], [data-card="codex"], [data-card="agy"], [data-card="grok"], [data-card="muse"]')]
         .filter((card) => card.offsetParent !== null);
       const target = cards.find((card) => card !== cardDrag.card && event.clientY < card.getBoundingClientRect().top + card.getBoundingClientRect().height / 2);
       if (target) target.parentElement.insertBefore(cardDrag.card, target);
@@ -600,9 +630,11 @@
       codex: { session: {}, weekly: {} },
       agy: { session: {}, weekly: {}, groupName: "" },
       grok: { weekly: {} },
-      cardOrder: ["claude", "codex", "agy", "grok"],
+      muse: { session: {}, weekly: {} },
+      cardOrder: ["claude", "codex", "agy", "grok", "muse"],
       hideAgy: true,
       hideGrok: true,
+      hideMuse: true,
       projects: [],
       projectsYesterday: [],
       projects7d: [],
