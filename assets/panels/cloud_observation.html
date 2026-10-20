@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     :root {
-      --muse: #0082FB;
+      --muse: linear-gradient(90deg, #a8d1ff 0%, #4f9cf5 50%, #2f77cc 100%);
+      --muse-solid: #4f9cf5;
       --sky-top: #eaf6ff;
       --sky-bottom: #cfdeef;
       --surface: rgba(255, 255, 255, 0.54);
@@ -749,7 +750,7 @@
 
     .hide-muse [data-card="muse"] { display: none; }
 
-    .card[data-card="muse"] .brand-icon { color: var(--accent); }
+    .card[data-card="muse"] .brand-icon { color: var(--muse-solid); }
 
     .card[data-card="muse"] {
       min-height: 210px;
