@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import ast
 import json
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -82,6 +83,7 @@ def test_quota_hook_python39() -> None:
     assert "timezone.utc" in source
 
 
+@pytest.mark.skipif(sys.platform != "darwin", reason="make_panel_demo imports PyObjC")
 def test_demo_contains_muse() -> None:
     import runpy
 
