@@ -622,7 +622,7 @@
           <div class="event-title">⚽ USAGE 2026</div>
           <div style="display:flex;align-items:center;gap:8px;flex:none;">
             <div class="live"><span class="live-dot"></span><span>LIVE</span></div>
-            <button style="border:1px solid rgba(201,162,39,0.55);background:rgba(4,12,4,0.72);color:#fff;font:inherit;font-size:12px;font-weight:700;min-height:26px;border-radius:999px;padding:0 10px;white-space:nowrap;" data-action="switch" data-i18n="switch_panel">Switch Panel</button>
+            <button style="border:1px solid rgba(201,162,39,0.55);background:rgba(4,12,4,0.72);color:#fff;font:inherit;font-size:12px;font-weight:700;min-height:26px;border-radius:999px;padding:0 10px;white-space:nowrap;" data-action="switch" data-i18n="settings_button">⚙ Settings</button>
           </div>
         </div>
 
@@ -678,7 +678,6 @@
           <div class="section-title">MATCH STATS</div>
           <button class="range-chip" data-action="toggle-project-range">Today</button>
           <button class="range-chip" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
-          <button class="range-chip" data-action="toggle-statusline" data-i18n="cli">CLI</button>
         </div>
         <div data-project-list></div>
       </section>
@@ -954,16 +953,6 @@
 
 
 
-    function renderStatusline(statusline) {
-      const data = statusline || {};
-      const button = document.querySelector('[data-action="toggle-statusline"]');
-      if (button) {
-        const enabled = data.enabled === true;
-        button.dataset.active = enabled ? "true" : "false";
-        button.textContent = enabled ? t("cli_enabled") : t("cli_disabled");
-      }
-    }
-
     window.usageApplyState = function usageApplyState(state) {
       document.documentElement.classList.toggle('hide-codex', !!state.hideCodex);
       document.documentElement.classList.toggle('hide-claude', !!state.hideClaude);
@@ -1014,7 +1003,6 @@
         : projectRange === "all" ? state.projectsAll
         : state.projects
       );
-      renderStatusline(state.statusline || {});
       applyFooter(state.footer || {});
     };
 
@@ -1452,7 +1440,6 @@
         { name: "memory-aware-agent", tokens: 15220600, tokensText: "15,220,600", costText: "$21.45" },
         { name: "obsidian00", tokens: 6188719, tokensText: "6,188,719", costText: "$8.74" },
       ],
-      statusline: {},
       footer: { rate: "速率：高負載", status: "狀態：✓ 已同步", today: "今日：$140.82 (175,369,967 tokens)", serviceAlerts: [], showInstall: false },
     });
   </script>

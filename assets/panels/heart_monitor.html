@@ -122,7 +122,7 @@
     .card[data-card="projects"] { padding: 11px 12px 12px; }
     .card[data-card="projects"] .brand { flex-wrap: wrap; margin-bottom: 0; }
     .project-actions {
-      display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
       flex: 0 0 100%; gap: 1px; margin: 8px 0 4px; padding: 2px;
       border: 1px solid var(--line); border-radius: 6px; background: var(--surface);
     }
@@ -199,7 +199,7 @@
       <header class="brand">
         <img src="{{CLAUDE_ICON}}" alt="">
         <h1 data-i18n="claude_name">Claude Code</h1>
-        <button class="switch" data-action="switch" data-i18n="switch_panel">⇄ Switch Panel</button>
+        <button class="switch" data-action="switch" data-i18n="settings_button">⚙ Settings</button>
       </header>
       <div class="row" data-row="session"></div>
       <div class="row" data-row="weekly"></div>
@@ -277,7 +277,6 @@
         <div class="project-actions">
           <button class="switch" data-action="toggle-project-range">Today</button>
           <button class="switch" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
-          <button class="switch" data-action="toggle-statusline" data-i18n="cli">CLI</button>
         </div>
       </header>
       <div data-project-list></div>

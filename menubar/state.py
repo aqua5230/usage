@@ -16,7 +16,6 @@ from datetime import time as datetime_time
 from pathlib import Path
 from typing import TYPE_CHECKING, Any, NotRequired, Protocol, TypedDict, cast
 
-from installer.statusline_settings import _statusline_enabled
 from loaders import codex_loader, grok_loader, muse_loader
 from loaders.claude_paths import claude_config_dirs
 from loaders.claude_usage import PollOutcome, PollState
@@ -163,7 +162,6 @@ class PopoverState:
     status_text: str
     today_total: PeriodTotal
     yesterday_total: PeriodTotal
-    statusline: dict[str, object]
     service_alerts: tuple[str, ...] = ()
     show_install_button: bool = False
     status_long: bool = False
@@ -863,7 +861,6 @@ def build_popover_state(
     burn_rate_trackers: dict[str, BurnRateTracker],
     today_total: PeriodTotal,
     yesterday_total: PeriodTotal,
-    statusline: dict[str, object],
     show_install_button: bool,
     hide_claude: bool,
     hide_codex: bool,
@@ -996,7 +993,6 @@ def build_popover_state(
         status_text=status_text,
         today_total=today_total,
         yesterday_total=yesterday_total,
-        statusline=statusline,
         service_alerts=service_alerts,
         show_install_button=show_install_button,
         status_long=status_long,
@@ -1229,7 +1225,6 @@ def _empty_state(language: str = "en") -> PopoverState:
         status_text=_t(language, "status_text", value=_t(language, "status_loading")),
         today_total=PeriodTotal(),
         yesterday_total=PeriodTotal(),
-        statusline=_statusline_payload(language),
         service_alerts=(),
         show_install_button=False,
         hide_claude=_hide_claude_enabled(),
@@ -1257,14 +1252,6 @@ def _error_state(message: str, mock: bool, language: str = "en") -> PopoverState
     state.yesterday_total = _yesterday_total(mock)
     state.show_install_button = False
     return state
-
-
-def _statusline_payload(language: str) -> dict[str, object]:
-    return {
-        "enabled": _statusline_enabled(),
-        "enabledText": _t(language, "cli_enabled"),
-        "disabledText": _t(language, "cli_disabled"),
-    }
 
 
 def _today_total(

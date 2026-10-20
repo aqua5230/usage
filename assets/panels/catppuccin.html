@@ -260,7 +260,7 @@
     .project-actions {
       grid-column: 1 / 3;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -1189,7 +1189,7 @@ h1 {
       <header class="brand">
         <img src="{{CLAUDE_ICON}}" alt="">
         <h1 data-i18n="claude_name">Claude Code</h1>
-        <button class="switch" data-action="switch" data-i18n="switch_panel">⇄ Switch Panel</button>
+        <button class="switch" data-action="switch" data-i18n="settings_button">⚙ Settings</button>
       </header>
       <div class="row" data-row="session"></div>
       <div class="row" data-row="weekly"></div>
@@ -1268,7 +1268,6 @@ h1 {
         <div class="project-actions">
           <button class="switch" data-action="toggle-project-range">Today</button>
           <button class="switch" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
-          <button class="switch" data-action="toggle-statusline" data-i18n="cli">CLI</button>
         </div>
       </header>
       <div data-project-list></div>

@@ -319,7 +319,7 @@
     .project-actions {
       grid-column: 1 / 3;
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 8px;
     }
 
@@ -816,7 +816,7 @@
     .card[data-card="projects"] .brand-icon { grid-column: 1; grid-row: 1; justify-self: start; }
     .card[data-card="projects"] h1 { grid-column: 2; grid-row: 1; flex: none; overflow: visible; text-overflow: clip; white-space: normal; }
     .project-actions { grid-column: 1 / 3; grid-row: 2; display: flex; justify-content: space-between; gap: 0; }
-    .project-actions .switch { width: calc((100% - 16px) / 3); }
+    .project-actions .switch { width: calc((100% - 8px) / 2); }
 
     .switch, .action { display: inline-flex; align-items: center; justify-content: center; min-height: 22px; height: auto; padding: 3px 9px; background: rgba(41, 20, 57, 0.50); color: var(--text); font-family: inherit; font-size: 12px; line-height: 1.1; font-weight: 700; border: 1px solid rgba(255, 202, 163, 0.50); box-shadow: inset 0 0 0 1px rgba(255, 202, 163, 0.08); border-radius: 5px; white-space: nowrap; transition: transform 120ms ease-out, background-color 120ms ease-out, border-color 120ms ease-out; }
     .switch:hover, .action:hover { background: rgba(104, 49, 84, 0.70); border-color: rgba(255, 225, 190, 0.78); }
@@ -933,7 +933,7 @@
       <header class="brand">
         <img src="{{CLAUDE_ICON}}" alt="">
         <h1 data-i18n="claude_name">Claude Code</h1>
-        <button class="switch" data-action="switch" data-i18n="switch_panel">⇄ Switch Panel</button>
+        <button class="switch" data-action="switch" data-i18n="settings_button">⚙ Settings</button>
       </header>
       <div class="row" data-row="session"></div>
       <div class="row" data-row="weekly"></div>
@@ -1011,7 +1011,6 @@
         <div class="project-actions">
           <button class="switch" data-action="toggle-project-range">Today</button>
           <button class="switch" data-action="analyze" data-i18n="analyze_usage">Analyze</button>
-          <button class="switch" data-action="toggle-statusline" data-i18n="cli">CLI</button>
         </div>
       </header>
       <div data-project-list></div>

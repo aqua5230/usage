@@ -142,7 +142,6 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
     project_rows_all = list(fallback_state.projects_all)
     today_total = fallback_state.today_total
     yesterday_total = fallback_state.yesterday_total
-    statusline = fallback_state.statusline
     hide_claude = fallback_state.hide_claude
     hide_codex = fallback_state.hide_codex
     hide_agy = agy_result.hide_agy or _hide_agy_enabled()
@@ -173,7 +172,6 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         sources.measure("project_rows_windows", started_at)
         today_total = menubar_state._today_total(app.mock, entries=all_entries)
         yesterday_total = menubar_state._yesterday_total(app.mock, entries=all_entries)
-        statusline = menubar_state._statusline_payload(app.language)
         hide_claude = _hide_claude_enabled()
         hide_codex = _hide_codex_enabled()
         hide_agy = agy_result.hide_agy or _hide_agy_enabled()
@@ -221,7 +219,6 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
             burn_rate_trackers=app.burn_rate_trackers,
             today_total=today_total,
             yesterday_total=yesterday_total,
-            statusline=statusline,
             show_install_button=show_install_button,
             hide_claude=hide_claude,
             hide_codex=hide_codex,
@@ -285,7 +282,6 @@ def build_result(app: _RefreshApp, sources: RefreshSources) -> dict[str, Any]:
         state.projects_all = project_rows_all
         state.today_total = today_total
         state.yesterday_total = yesterday_total
-        state.statusline = statusline
         state.hide_claude = hide_claude
         state.hide_codex = hide_codex
         state.hide_agy = hide_agy

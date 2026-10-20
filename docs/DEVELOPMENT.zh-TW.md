@@ -6,7 +6,7 @@
 
 ## 它怎麼拿到你的用量數字
 
-Claude Code 跟 Codex 的數字來自這兩個工具本來就在你本機留下的檔案。Antigravity 的額度不在磁碟上，所以 usage 會用 Antigravity CLI 存下的 OAuth 憑證（macOS Keychain／Windows 認證管理員）向 Google 的額度端點取得，access token 過期時透過 `https://oauth2.googleapis.com/token` 更新。其他網路活動包括：(1) 估算 Codex 成本時需要 token 單價表，如果本機沒有快取（`~/.usage/pricing_cache.json`），會先用內建 fallback 價格立即顯示成本估算，再在背景嘗試從公開的 [LiteLLM 價格表](https://github.com/BerriAI/litellm) 下載並快取，7 天後過期再抓；下載失敗不影響用量百分比顯示，網路恢復後會自動更新價格表；(2) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關掉）；(3) 每 5 分鐘讀取 Claude 與 Codex 的公開 Statuspage `components.json`，監看 Claude Code／Claude API 與 Codex API，用來顯示服務狀態警示；只有監看的元件異常時才讀取 `incidents.json`。完整的對外連線清單見 [SECURITY.md](../.github/SECURITY.md)。
+Claude Code 跟 Codex 的數字來自這兩個工具本來就在你本機留下的檔案。Antigravity 的額度不在磁碟上，所以 usage 會用 Antigravity CLI 存下的 OAuth 憑證（macOS Keychain／Windows 認證管理員）向 Google 的額度端點取得，access token 過期時透過 `https://oauth2.googleapis.com/token` 更新。其他網路活動包括：(1) 估算 Codex 成本時需要 token 單價表，如果本機沒有快取（`~/.usage/pricing_cache.json`），會先用內建 fallback 價格立即顯示成本估算，再在背景嘗試從公開的 [LiteLLM 價格表](https://github.com/BerriAI/litellm) 下載並快取，7 天後過期再抓；下載失敗不影響用量百分比顯示，網路恢復後會自動更新價格表；(2) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「⚙ 設定」選單關掉）；(3) 每 5 分鐘讀取 Claude 與 Codex 的公開 Statuspage `components.json`，監看 Claude Code／Claude API 與 Codex API，用來顯示服務狀態警示；只有監看的元件異常時才讀取 `incidents.json`。完整的對外連線清單見 [SECURITY.md](../.github/SECURITY.md)。
 
 ### Claude Code 用量
 
@@ -123,7 +123,7 @@ python3 main.py
   2. 專案用量卡：列出近期用量前三名的專案，可點右上角按鈕在「今日 / 7 日 / 月」三段之間切換
   3. 最下面那張小卡是目前速率、同步狀態、今日 token 用量與成本估算（Claude 若 log 有提供實際金額則直接顯示；Codex 成本為依 token 數估算）
   4. 兩顆按鈕：「立即更新」、「結束」
-- **面板**：點右上角「更換面板」按鈕可切換面板樣式。目前內建十六款面板——「預設」（簡潔白色卡片）、「駭客任務」（黑底螢光綠＋數位雨動畫）、「視窗 95」（Windows 95 復古介面）、「復古報紙」（米黃報紙風）、「雲圖觀測」（氣象風玻璃卡片）、「午夜水族箱」（深海動畫）、「稜鏡街機」（彩虹全息動畫）、「黑洞視界」（旋轉吸積盤）、「彩繪玻璃」（鉛條分隔的不規則色塊，隨光線掃過如萬花筒轉動）、「摺紙」（同一版面摺成單色三角紙飛機）、「手繪筆記」（Sketchbook）、「心電圖」（Heart Monitor）、「候鳥遷徙」（暮色天空中 V 字雁陣掠過經緯格線，附航線標籤）、「Catppuccin」（官方配色，四款 flavor 全支援）、「世界盃 2026」——FIFA 轉播 HUD 風格，鮮綠球場、棒人球員追球踢球互動動畫、雙向對戰記分條——以及「蝶類圖鑑」，帶有飄動翅膀動畫的藍曬圖風格蝴蝶標本板。World Cup 2026 僅包含 Claude 與 Codex，沒有 Antigravity 卡片也無法拖曳排序。
+- **面板**：點右上角「⚙ 設定」按鈕，選「更換面板」可切換面板樣式。目前內建十六款面板——「預設」（簡潔白色卡片）、「駭客任務」（黑底螢光綠＋數位雨動畫）、「視窗 95」（Windows 95 復古介面）、「復古報紙」（米黃報紙風）、「雲圖觀測」（氣象風玻璃卡片）、「午夜水族箱」（深海動畫）、「稜鏡街機」（彩虹全息動畫）、「黑洞視界」（旋轉吸積盤）、「彩繪玻璃」（鉛條分隔的不規則色塊，隨光線掃過如萬花筒轉動）、「摺紙」（同一版面摺成單色三角紙飛機）、「手繪筆記」（Sketchbook）、「心電圖」（Heart Monitor）、「候鳥遷徙」（暮色天空中 V 字雁陣掠過經緯格線，附航線標籤）、「Catppuccin」（官方配色，四款 flavor 全支援）、「世界盃 2026」——FIFA 轉播 HUD 風格，鮮綠球場、棒人球員追球踢球互動動畫、雙向對戰記分條——以及「蝶類圖鑑」，帶有飄動翅膀動畫的藍曬圖風格蝴蝶標本板。World Cup 2026 僅包含 Claude 與 Codex，沒有 Antigravity 卡片也無法拖曳排序。
 
   <p align="center">
     <img src="matrix.png" alt="駭客任務面板" width="220">
@@ -134,7 +134,7 @@ python3 main.py
   </p>
 
   選擇會記進 `NSUserDefaults`（macOS 內建的偏好設定儲存區），下次開 app 會記得上次選的面板。
-- **更新檢查（v0.11.0+）**：app 啟動會自動到 GitHub Releases 查最新版（24 小時最多一次，避免每次開都被打擾）。發現新版會跳對話框顯示版本＋ release notes，三顆按鈕：「前往下載 / 稍後再說 / 跳過此版本」。「更換面板」選單裡有「自動檢查更新」（可關閉）和「立即檢查更新」兩個項目。
+- **更新檢查（v0.11.0+）**：app 啟動會自動到 GitHub Releases 查最新版（24 小時最多一次，避免每次開都被打擾）。發現新版會跳對話框顯示版本＋ release notes，三顆按鈕：「前往下載 / 稍後再說 / 跳過此版本」。「⚙ 設定」選單裡有「自動檢查更新」（可關閉）和「立即檢查更新」兩個項目。
 - **權限提醒**：第一次啟動時，macOS 可能會問你要不要讓它在背景跑，點「允許」就好。
 
 ### 終端機 TUI 模式
@@ -278,7 +278,7 @@ set -g status-right '#(usage status --json | jq -r ".agents[\"claude-code\"].sev
 
 LaunchAgent 是 macOS 內建的背景服務管理器（負責「使用者登入後要幫忙啟動哪些程式」），可以讓 usage 在你登入時自動跑起來，不用每次手動啟動。
 
-**最簡單的做法**：點選單列圖示展開 popover，按「⇄ 更換面板」按鈕，選單最下面有「開機自動啟動」一項，勾選即可。.app 版與原始碼版皆適用，不需跑任何指令。
+**最簡單的做法**：點選單列圖示展開 popover，按「⚙ 設定」按鈕，選單最下面有「開機自動啟動」一項，勾選即可。.app 版與原始碼版皆適用，不需跑任何指令。
 
 下面的腳本是給原始碼使用者的另一種安裝方式：
 
@@ -353,7 +353,7 @@ USAGE_LANG=zh-CN python3 main.py   # 簡體中文
 
 ## 一些行為說明
 
-- usage 在本機讀取 `~/.claude/usage-status.json`、v0.1.x 留下的 `~/.claude/usag-status.json`、`~/.claude/tt-status.json`，以及 Codex 的 session 檔。網路活動包括：(a) 如果你有使用 Antigravity，其額度來自 Google 的官方額度端點，使用 Antigravity CLI 已儲存的 OAuth 憑證——依據 CLI 版本讀自 macOS Keychain、Windows 認證管理員或本機 token 檔——這是一次額度元資料呼叫；(b) 讀取公開的 Claude 與 Codex Statuspage.io 頁面來標示故障；(c) 首次估算成本時下載 LiteLLM 價格表（快取 7 天，離線也能用 fallback）；(d) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「更換面板」選單關閉）。
+- usage 在本機讀取 `~/.claude/usage-status.json`、v0.1.x 留下的 `~/.claude/usag-status.json`、`~/.claude/tt-status.json`，以及 Codex 的 session 檔。網路活動包括：(a) 如果你有使用 Antigravity，其額度來自 Google 的官方額度端點，使用 Antigravity CLI 已儲存的 OAuth 憑證——依據 CLI 版本讀自 macOS Keychain、Windows 認證管理員或本機 token 檔——這是一次額度元資料呼叫；(b) 讀取公開的 Claude 與 Codex Statuspage.io 頁面來標示故障；(c) 首次估算成本時下載 LiteLLM 價格表（快取 7 天，離線也能用 fallback）；(d) v0.11.0 起每天最多一次到 GitHub Releases API 查有沒有新版（可在「⚙ 設定」選單關閉）。
 - Claude Code 沒在跑的時候，狀態檔不會更新；但因為實際用量也不會變（除非重置時間到了），所以顯示的數字仍然是有效的；重置時間過了會自動歸零。
 - 如果狀態檔超過 6 小時沒被更新過，會在狀態訊息標註 `⚠ usage stale Nm`（N 為實際分鐘數），提示資料可能過時。
 

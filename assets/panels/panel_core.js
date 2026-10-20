@@ -478,6 +478,7 @@
       const tokens = document.createElement("span");
       tokens.className = "proj-tokens";
       tokens.textContent = data.tokensText || "0";
+      if (label.textContent.endsWith("：")) tokens.style.marginLeft = "0";
       const cost = document.createElement("span");
       cost.className = "proj-cost";
       cost.textContent = data.costText || "$0.00";
@@ -487,16 +488,6 @@
 
 
 
-
-    function renderStatusline(statusline) {
-      const data = statusline || {};
-      const button = document.querySelector('[data-action="toggle-statusline"]');
-      if (button) {
-        const enabled = data.enabled === true;
-        button.dataset.active = enabled ? "true" : "false";
-        button.textContent = enabled ? t("cli_enabled") : t("cli_disabled");
-      }
-    }
 
     function relocateSwitchButton(state) {
       document.querySelectorAll(".usage-switch-host").forEach((host) => {
@@ -566,7 +557,6 @@
         : projectRange === "all" ? state.projectsAll
         : state.projects
       );
-      renderStatusline(state.statusline || {});
       const rate = document.querySelector('[data-footer="rate"]');
       const status = document.querySelector('[data-footer="status"]');
       const serviceAlerts = document.querySelector('[data-footer="service-alerts"]');
@@ -681,6 +671,5 @@
       projects7d: [],
       projects30d: [],
       projectsAll: [],
-      statusline: {},
       footer: { rate: "Rate: --", status: "Status: Loading", today: { tokensText: "0", costText: "$0.00" }, yesterday: { tokensText: "0", costText: "$0.00" }, serviceAlerts: [], showInstall: false }
     });

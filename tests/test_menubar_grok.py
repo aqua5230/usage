@@ -78,7 +78,6 @@ def test_build_popover_state_includes_grok_row_and_visibility() -> None:
         burn_rate_trackers={},
         today_total=menubar_state.PeriodTotal(),
         yesterday_total=menubar_state.PeriodTotal(),
-        statusline={},
         show_install_button=False,
         hide_claude=True,
         hide_codex=True,

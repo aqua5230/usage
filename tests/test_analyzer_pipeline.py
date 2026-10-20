@@ -275,7 +275,7 @@ def test_html_panels_expose_analyze_action() -> None:
         assert 'data-i18n="analyze_usage"' in html, path.name
         assert "analyze_all" not in html, path.name
         assert "projectsAll" in html, path.name
-        assert 'data-action="toggle-statusline"' in html, path.name
+        assert 'data-action="toggle-statusline"' not in html, path.name
 
 
 def test_generate_analysis_report_uses_analyzer_pipeline(

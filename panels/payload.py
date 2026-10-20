@@ -155,7 +155,6 @@ def _state_payload(
         "hideMuse": state.hide_muse,
         "cardOrder": list(state.card_order),
         "historyError": state.history_error,
-        "statusline": state.statusline,
         "footer": {
             "rate": state.rate_text,
             "status": state.status_text,

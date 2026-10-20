@@ -695,14 +695,6 @@ def _save_active_panel_id(panel_id: str) -> None:
     _save_preferences(preferences)
 
 
-def _statusline_payload(language: str) -> dict[str, object]:
-    return {
-        "enabled": _statusline_enabled(),
-        "enabledText": _t(language, "cli_enabled"),
-        "disabledText": _t(language, "cli_disabled"),
-    }
-
-
 def _today_total(entries: list[UsageEntry]) -> menubar_state.PeriodTotal:
     today = datetime.now().astimezone().date()
     selected = [entry for entry in entries if entry.timestamp.astimezone().date() == today]
@@ -857,7 +849,6 @@ class _WindowsTrayController:
             status_text=_t(self.language, "status_text", value=_t(self.language, "status_loading")),
             today_total=menubar_state.PeriodTotal(),
             yesterday_total=menubar_state.PeriodTotal(),
-            statusline=_statusline_payload(self.language),
             hide_claude=_hide_claude_enabled(),
             hide_codex=_hide_codex_enabled(),
             hide_agy=_hide_agy_enabled(),
@@ -1726,7 +1717,6 @@ class _WindowsTrayController:
                 if self.mock
                 else _yesterday_total(history.entries)
             ),
-            statusline=_statusline_payload(self.language),
             show_install_button=outcome.state == PollState.TOKEN_ERROR,
             hide_claude=_hide_claude_enabled(),
             hide_codex=_hide_codex_enabled(),
@@ -2427,6 +2417,8 @@ class _WindowsTrayController:
                 self.toggle_claude_beginner()
             elif action == "toggle_quota_aware":
                 self.toggle_quota_aware()
+            elif action == "toggle_statusline":
+                threading.Thread(target=self._toggle_statusline, daemon=True).start()
             elif action == "check_update":
                 self.check_update()
             elif action == "quit":
@@ -2537,6 +2529,7 @@ def _menu_checked(controller: _WindowsTrayController, entry: wintray_menu.MenuCo
         "claude_pane": _claude_pane_enabled,
         "claude_beginner": _claude_beginner_enabled,
         "quota_aware": _quota_aware_enabled,
+        "statusline": _statusline_enabled,
     }
     return checks[entry.checked_by]() if entry.checked_by is not None else False
 

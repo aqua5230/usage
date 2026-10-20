@@ -138,9 +138,6 @@ from menubar.state import (
     _group_name as _group_name,
 )
 from menubar.state import (
-    _statusline_payload as _statusline_payload,
-)
-from menubar.state import (
     _today_total as _today_total,
 )
 from menubar.state import (
@@ -924,17 +921,12 @@ class AppDelegate(NSObject):
 
     def _finishStatuslineAction_(self, result: dict[str, Any]) -> None:
         self._refresh()
-        self._refresh_statusline_state()
         if result.get("ok", True):
             return
         alert = _make_alert()
         alert.setMessageText_(_t(self.language, "statusline_action_failed"))
         alert.setInformativeText_(str(result.get("output") or result.get("action") or ""))
         alert.runModal()
-
-    def _refresh_statusline_state(self) -> None:
-        self.latest_state.statusline = _statusline_payload(self.language)
-        self.popover_controller.setState_(self.latest_state)
 
     def _analyze_usage_in_background(self, period: str) -> None:
         menubar_actions.analyze_usage_in_background(self, period)

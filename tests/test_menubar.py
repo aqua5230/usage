@@ -182,7 +182,6 @@ def _build_popover_state(
         burn_rate_trackers=delegate.burn_rate_trackers,
         today_total=menubar._today_total(delegate.mock),
         yesterday_total=menubar_state._yesterday_total(delegate.mock),
-        statusline=menubar._statusline_payload(delegate.language),
         show_install_button=(
             not hide_claude
             and outcome.state == PollState.TOKEN_ERROR
@@ -676,7 +675,6 @@ def test_empty_state() -> None:
     assert state.projects_7d == []
     assert state.projects_30d == []
     assert state.projects_all == []
-    assert isinstance(state.statusline["enabled"], bool)
     assert state.show_install_button is False
     assert state.yesterday_total == menubar_state.PeriodTotal()
 
@@ -763,11 +761,15 @@ def test_switch_panel_menu_contains_update_items(
     ]
     assert settings[7].submenu is claude_submenu
     assert [item.title for item in claude_submenu.items] == [
+        "Sync quota via status line",
+        "---",
         "Side pane",
         "Beginner Mode",
         "Quota-Aware Mode",
     ]
-    pane, beginner, quota = claude_submenu.items
+    statusline, _separator, pane, beginner, quota = claude_submenu.items
+    assert statusline.action == "toggleStatusline:"
+    assert statusline.tooltip == _t("en", "statusline_sync_tooltip")
     assert pane.title == _t("en", "claude_pane_section_menu")
     assert pane.action == "toggleClaudePane:"
     assert pane.tooltip == _t("en", "claude_pane_tooltip")
@@ -2656,11 +2658,6 @@ def test_refresh_success_builds_popover_state_and_pings_window_keeper(
         lambda reset_at, percent, source, mock: pings.append((reset_at, percent, source, mock)),
     )
     monkeypatch.setattr(agy_window_keeper, "maybe_ping", lambda *args: None)
-    monkeypatch.setattr(
-        menubar_state,
-        "_statusline_payload",
-        lambda language: {"enabled": False, "language": language},
-    )
 
     class Delegate:
         mock = False
@@ -3381,7 +3378,6 @@ def test_refresh_preserves_muse_on_success_and_fetch_error(
         "get_service_status",
         lambda config: ServiceStatus(config.service_name, False, "operational", "", "cache"),
     )
-    monkeypatch.setattr(state, "_statusline_payload", lambda _language: {})
     monkeypatch.setattr("quota.codex_window_keeper.maybe_ping", lambda _mock: None)
     monkeypatch.setattr("quota.agy_window_keeper.maybe_ping", lambda *_args: None)
 
