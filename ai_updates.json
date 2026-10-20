@@ -1343,7 +1343,157 @@
     {
       "id": "muse_code",
       "name": "Muse Code",
-      "versions": []
+      "versions": [
+        {
+          "version": "1.4.10",
+          "period": "2026-10-21",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "/blender 指令登場，參考圖直接重建為 3D 可編輯場景",
+                "en": "/blender Command Debuts to Reconstruct Reference Images Directly into Editable 3D Scenes"
+              },
+              "body": {
+                "zh-TW": "當你手邊有一張概念設計圖或參考照片，想快速建立立體模型時，往往需要在建模程式裡從零搭建物件與燈光。新推出的 `/blender` 指令能依據參考圖片，自動重建出可自由編輯的 Blender（一套開源三維繪圖工具）場景。⟦就像拿著一張平面設計草圖走進工作室，模型師當場組裝出能拆卸零件、隨意更換視角的立體模型。⟧這讓你省去繁瑣的手動對位，產出的檔案也能立刻在編輯器內接續調整視角、材質與燈光。",
+                "en": "When you have a concept design sketch or reference photo and want to quickly create a 3D model, you often need to build objects and lighting from scratch in modeling software. The newly introduced `/blender` command automatically reconstructs a freely editable Blender (an open-source 3D modeling tool) scene based on reference images.\n\n⟦Picture walking into a studio with a 2D design sketch, where a modeler immediately assembles a 3D model with detachable parts and freely adjustable viewing angles on the spot.⟧\n\nThis saves you from tedious manual alignment, and the generated files can immediately be used to adjust perspectives, materials, and lighting directly in the editor."
+              },
+              "original": "Added `/blender` to reconstruct reference images as editable Blender scenes"
+            },
+            {
+              "title": {
+                "zh-TW": "電腦操作精簡工具呼叫，跳過重複查閱與多餘清單直奔目標",
+                "en": "Computer Use Streamlines Tool Calls, Skipping Redundant Checks and Lists to Head Straight for Goals"
+              },
+              "body": {
+                "zh-TW": "讓 AI 代理操作桌面螢幕時，每多呼叫一次工具，都會拉長等待時間並消耗額度。電腦操作（Computer Use，讓 AI 透過視覺畫面模擬人類點擊與輸入的機制）現在減少了許多冗餘的工具呼叫。當任務明確指定某個應用程式時，它會直接啟動該程式，不再先列出所有應用程式清單；遇到檔案或系統查詢，會直接以終端機指令回答；它還會跳過重複閱讀自身說明的動作。⟦好比熟練的助理接獲指令便立刻動手，不再反覆翻閱員工手冊或把工具箱裡的物件逐一清點一遍。⟧就算畫面當下看起來像是已經做完，它仍會依照指示確實執行任務。",
+                "en": "When having an AI agent operate desktop screens, every extra tool call prolongs waiting times and consumes quota. Computer Use (a mechanism that lets AI simulate human clicks and keystrokes through visual screens) now cuts out many redundant tool calls. When a task explicitly specifies an application, it launches that program directly instead of first listing all applications. When encountering file or system queries, it answers directly with terminal commands. It also skips repeatedly re-reading its own instructions.\n\n⟦Think of a skilled assistant getting straight to work upon receiving an order, instead of repeatedly leafing through the employee handbook or counting every item in the toolbox.⟧\n\nEven if the screen currently looks like the task is already finished, it still carries out the assignment faithfully according to instructions."
+              },
+              "original": "Computer Use makes fewer tool calls: it skips re-reading its own instructions, opens the app a task clearly points to without listing apps first, answers file and system questions with the shell, and does the task even when the screen already looks done"
+            },
+            {
+              "title": {
+                "zh-TW": "背景任務提示頻率降至單次，監聽狀態即刻顯示且長程目標不中斷",
+                "en": "Background Task Prompts Reduced to Once, Displaying Listening States Instantly Without Halting Goal Runs"
+              },
+              "body": {
+                "zh-TW": "在終端機啟動耗時較長的工作時，對話視窗的提示頻率與狀態顯示有了更清晰的安排。執行超過 30 分鐘的背景指令，現在只會主動提示代理一次，不再每隔半小時就提醒，需要時由代理自行排定後續檢查時機。當代理收到長時間背景指令的提示時，對話紀錄會顯示「Waiting for background task」，讓你明白它為何開始動作；針對仍在執行的背景指令，重複發出的等待請求也不再卡住整個等待時間。即使電腦負載偏高或硬碟緩慢，新啟動的監聽器也會即刻出現在頁尾與 `/tasks` 清單中。在長程目標模式（goal run，讓 AI 自主推進多步驟目標的執行流程）下，若工具執行後產生了新的下一步指引，它會替換既有指引並繼續前進，不再提早停下；僅在指引完全相同時才會如常停止。",
+                "en": "When launching long-running jobs in the terminal, prompt frequencies and status displays in conversation windows are now arranged much more clearly. Background commands running longer than 30 minutes will now proactively prompt the agent only once instead of reminding it every half hour, leaving the agent to schedule follow-up checks when needed. When an agent receives a prompt for a long-running background command, the conversation log displays \"Waiting for background task\" so you understand why it started taking action. Repeated wait requests for background commands that are still executing no longer stall the entire wait duration. Even under heavy machine load or slow disk speeds, newly started listeners appear immediately in the footer and the `/tasks` list. In goal run mode (an execution flow where AI autonomously advances multi-step goals), if a tool run produces new next-step guidance, it replaces existing guidance and continues moving forward rather than stopping early. It only stops as usual when the guidance is completely identical."
+              },
+              "original": "A background command that runs past 30 minutes now prompts the agent once instead of every 30 minutes; the agent schedules its own later check if it needs one\nThe transcript shows \"Waiting for background task\" when the agent is prompted about a long-running background command, so you can see why it started working\nA duplicate wait for a background command that is still running no longer holds the chat for its full requested wait\nA monitor you start now appears in the footer and in `/tasks` right away, even when the machine is busy or the disk is slow\nA long goal run no longer stops early when fresh next-step guidance replaces still-active guidance after new tool work; identical guidance still stops as before"
+            },
+            {
+              "title": {
+                "zh-TW": "沙盒環境嚴格隔離設定目錄，Git 技能禁止擅自隱藏未追蹤檔案",
+                "en": "Sandbox Environment Strictly Isolates Config Directories, Forbidding Git Skill from Hiding Untracked Files"
+              },
+              "body": {
+                "zh-TW": "把終端機指令交給 AI 時，機密資料與檔案庫的安全界線至關重要。沙盒（sandbox，隔離執行的受限環境）指令，無法再讀取或修改 `~/.config/muse`、`~/.config/tbh` 或 `XDG_CONFIG_HOME` 下的登入資訊、設定、核准規則與被封鎖程式。任務只要求乾淨工作樹時，Git 技能拒絕用忽略規則或 stash 隱藏未追蹤檔案。掛鉤（hook，特定事件觸發的小程式）參數 `model_provider` 改標註模型供應商；僅 Meta 閘道列為 Meta 擁有的模型回報 `meta`，其餘省略，其上的 Claude 或 GPT 工作階段不再回報為 `meta`。⟦像訪客證開不了保險櫃，清潔工也不准把雜物塞進抽屜掩蓋混亂。⟧",
+                "en": "When delegating terminal commands to AI, the security boundaries of sensitive credentials and repositories are critical. Sandboxed commands (a restricted environment for isolated execution) can no longer read or modify login credentials, settings, approval rules, or blocked applications under `~/.config/muse`, `~/.config/tbh`, or `XDG_CONFIG_HOME`. When a task only requires a clean worktree, the Git skill refuses to hide untracked files using ignore rules or stash. The hook (a small program triggered by a specific event) parameter `model_provider` now indicates the model provider. Only models listed as Meta-owned by the Meta gateway report `meta`, while others omit it, so Claude or GPT sessions running on it no longer report `meta`.\n\n⟦Just as a visitor badge cannot open a safe, a cleaner is also forbidden to shove clutter into drawers to hide a mess.⟧"
+              },
+              "original": "Security: Sandboxed commands can no longer read or change sign-in details, settings, approval rules or blocked apps stored in `~/.config/muse`, `~/.config/tbh` or the same folders under `XDG_CONFIG_HOME`\nSecurity: The git skill now refuses to hide your untracked files with ignore rules or a stash when a task only asks for a clean tree\nSecurity: Hook input `model_provider` now names the vendor of the selected model instead of the connection it was routed through: it is `meta` only for a model the built-in Meta gateway catalog lists as Meta-owned, and is omitted otherwise, so a Claude or GPT session on the Meta gateway no longer reports `meta`"
+            },
+            {
+              "title": {
+                "zh-TW": "工作流程子任務獨立重試，崩潰重啟精準標記中斷狀態",
+                "en": "Workflow Subtasks Retry Independently, Accurately Tagging Interrupted States upon Crash Restarts"
+              },
+              "body": {
+                "zh-TW": "執行包含多個子任務的工作流程時，單一環節發生中斷不再導致整個流程無故卡死。如果工作流程（Workflow，串聯多個子任務自動化執行的機制）的子任務因啟動紀錄無法儲存，或該任務已存有另一筆不同的啟動紀錄而停止，現在會以白話說明未執行任何新操作、其餘子任務仍持續運作，並指引下一步做法。排定重試後立刻遭中斷的任務，恢復時會依照原記錄的模型與思考力度接續運作。若恢復的任務初次儲存在任何內容寫入前就失敗，僅有該任務會重試而非中斷整個流程；重試的儲存再失敗，也僅標記該任務失敗，並告訴你下一步該怎麼做。遇崩潰重新啟動時，若已終止的代理重啟遭拒，其紀錄列會直接標為失敗並讓整體流程完工，不再誤顯為執行中。",
+                "en": "When executing workflows containing multiple subtasks, an interruption in a single step no longer stalls the entire flow without explanation. If a subtask in a workflow (a mechanism that chains multiple subtasks for automated execution) stops because its launch record cannot be saved, or because a different launch record already exists for it, it now explains in plain language that no new operations were run, confirms that other subtasks are still running, and guides next steps. Tasks interrupted immediately after scheduling a retry will resume operation using the originally recorded model and reasoning effort. If an initial save of a resumed task fails before any content is written, only that task retries instead of interrupting the entire workflow. If the retried save fails again, it only marks that task as failed and tells you what to do next. Upon restarting after a crash, if a terminated agent is rejected for restart, its record row is directly marked as failed and allows the overall workflow to finish, rather than mistakenly displaying as running."
+              },
+              "original": "A Workflow child that stops because its start record can't be saved, or because a different start record was already saved for it, now says in plain words that nothing new ran, that the other Workflow children keep running, and what to do next\nA Workflow task that was interrupted right after it scheduled a retry now resumes with its recorded model and effort instead of being held\nWhen a resumed Workflow task's first save fails before anything is written, only that task retries instead of the whole Workflow stopping; if the retry's save fails too, only that task fails and tells you what to do next\nA Workflow resumed after a crash no longer shows a killed agent as still running when its relaunch is refused before it starts; the killed attempt's row now ends Failed and the Workflow completes"
+            },
+            {
+              "title": {
+                "zh-TW": "工作流程恢復後保留自訂名稱，控制台與即時進度完整顯示",
+                "en": "Workflows Retain Custom Names After Resuming, Displaying Fully in Console and Live Progress"
+              },
+              "body": {
+                "zh-TW": "為工作流程取了清楚好記的專屬名稱，卻常在重新啟動或查閱紀錄時被打回預設代號。現在工作流程中途暫停並重新恢復後，各項流程訊息與結束提示都會完整保留先前記錄的自訂名稱。控制室面板以及點開的執行結果頁面，也會持續顯示該流程原本的名稱。新儲存的流程歷史紀錄與即時動態更新都會採用所記錄的名稱；如果遇上過去未儲存名稱的舊版執行紀錄，介面則會明確標記為「name unavailable」，方便你清楚辨識。⟦跟在專案檔案夾貼上手寫標籤一樣，中途交接給其他班次時，標籤依然牢牢貼在封面，不再因為換人接手就退回空白編號。⟧",
+                "en": "Giving a workflow a clear and memorable custom name often used to result in it reverting to a default identifier upon restarting or checking records. Now, after a workflow is paused mid-run and resumed, workflow messages and finish prompts fully retain the previously recorded custom name. The Mission Control panel and opened run result pages also consistently display the workflow's original name. Newly saved workflow history records and real-time live updates will use the recorded name. If encountering legacy execution records where names were not previously saved, the interface clearly marks them as \"name unavailable\" for easy identification.\n\n⟦Much like a handwritten label taped to a project folder stays firmly on the cover during a handover to another shift, it no longer reverts to a blank number just because someone else took over.⟧"
+              },
+              "original": "Workflow messages and exit prompts keep the recorded name after resume\nWorkflow control rooms and opened results keep the recorded workflow name\nNewly saved workflow history and live updates use recorded names, with \"name unavailable\" for older runs that have none"
+            },
+            {
+              "title": {
+                "zh-TW": "子代理忠實遵從自訂思考力度，支援父任務等待時並行處理",
+                "en": "Subagents Faithfully Honor Custom Reasoning Effort, Supporting Concurrent Processing While Parent Waits"
+              },
+              "body": {
+                "zh-TW": "調派多個子代理分頭協同作業時，每位代理的推理深度與模型指派現在都能精準維持。透過工作階段協定啟動的工作階段，現在會遵循所儲存的思考力度（reasoning effort，決定模型在回答前投入多少深度推理的參數）。子代理會嚴格遵循其代理定義中設定的思考力度與專屬模型；當定義的模型無法使用時，會發出通知並改為備援使用當前工作階段的模型。若工作流程中的子代理指名了你工作階段的模型，即使該模型在重啟後被隱藏或自模型清單中移除，子代理依然會維持運行。在父代理處於等待狀態時，子代理現在獲准同步處理待處理的結果，不再平白枯等。⟦彷彿專案主管在等待外部回覆時，被分派任務的助理無須跟著停工，能繼續整理其他已送達的數據資料。⟧",
+                "en": "When dispatching multiple subagents to collaborate on tasks, the reasoning depth and model assignment of each agent can now be maintained precisely. Sessions launched via the session protocol now follow the saved reasoning effort (a parameter determining how much deep reasoning the model invests before answering). Subagents strictly adhere to the reasoning effort and dedicated model specified in their agent definitions. When a defined model is unavailable, a notification is sent, and it falls back to using the current session's model instead. If a subagent in a workflow specifies your session's model, it keeps running even if that model is hidden or removed from the model catalog after a restart. While the parent agent is in a waiting state, subagents are now permitted to process pending results concurrently instead of waiting idly.\n\n⟦Imagine a project manager waiting for an external reply, where assigned assistants need not sit idle and can keep organizing other data that has already arrived.⟧"
+              },
+              "original": "Sessions started through the session protocol honor saved reasoning effort\nSubagents now honor the reasoning effort set in their agent definition\nA Workflow subagent that named your session's model keeps running after a restart even when that model is now hidden or missing from the model list, the same as one that left the model out\nSubagents use their definition's model, falling back to the session model with a notice when unavailable\nAllow subagents to process pending results while the parent waits"
+            },
+            {
+              "title": {
+                "zh-TW": "muse serve 載入對話不再卡死其他請求，健全歷史還原與帳號指引",
+                "en": "muse serve No Longer Blocks Other Requests While Loading Chats, Solidifying History Restoration and Account Guidance"
+              },
+              "body": {
+                "zh-TW": "將 Muse 當作本機背景伺服器運行時，多個工作階段並行存取的排程機制有了顯著改善。當你透過 `muse serve` 處理龐大對話時，伺服器在首次載入歷史紀錄、恢復或分支工作階段、開啟側邊對話、列出待審批項目或讀取工具輸出時，都能持續回應其他請求，不再拖住其他對話；嘗試恢復載入中的工作階段也會依序等待，而非誤報已被佔用。它現在能直接顯示 Muse 1.4.8 仍運行中的對話紀錄，即便儲存檢視檔案遭刪除也能正常還原。若啟動時缺乏模型清單且帳號需補填付款方式、新手導覽或年齡確認，對話輪次會明確說明該做什麼，不再無端要求重新登入。",
+                "en": "When running Muse as a local background server, the scheduling mechanism for concurrent session access has improved significantly. When handling large conversations via `muse serve`, the server continues responding to other requests while initially loading history, resuming or branching sessions, opening side chats, listing pending approval items, or reading tool outputs, without stalling other conversations. Attempts to resume a session that is currently loading will now wait in turn rather than falsely reporting that it is already occupied. It can now directly display ongoing conversation records from Muse 1.4.8 and cleanly restore them even if saved view files were deleted. If the model list is missing at startup and the account requires adding a payment method, completing onboarding, or confirming age, the turn explicitly explains what needs to be done instead of prompting for a re-login without explanation."
+              },
+              "original": "`muse serve` now shows the history of a session that Muse 1.4.8 is still running, instead of failing to read it until that session closes\nWhen a `muse serve` client resumes a chat whose saved history view file was deleted, the chat shows its history again instead of none\n`muse serve` keeps answering other requests while a long session's history loads for the first time, and resuming a session that is still loading waits for it instead of reporting the session as in use\n`muse serve` keeps answering other requests while it resumes or forks a long session, opens a side chat on one, lists its pending approvals or reads one of its tool outputs, instead of stalling every other thread until that session's history is read\nWhen `muse serve` starts with no saved model list and your account still needs a payment method, onboarding or age confirmation, turns now say what to do instead of asking you to log in again"
+            },
+            {
+              "title": {
+                "zh-TW": "手動壓縮支援外接工具，修正檢查點儲存並加速大型工作階段分支",
+                "en": "Manual Compaction Supports External Tools, Fixing Checkpoint Saves and Accelerating Large Session Branching"
+              },
+              "body": {
+                "zh-TW": "對話內容過長而需要精簡上下文時，手動輸入 `/compact` 的觸發條件與儲存機制現在更為可靠。設定了外接工具 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）的工作階段，現在可以直接執行手動 `/compact`，不再回報無可壓縮內容。在儲存檢查點時若恰好遇到其他寫入操作，不會再遺漏儲存；重新開啟已儲存的對話後，壓縮也能持續正常運作，不再重複摘要並最終報錯。如果在送出模型請求前就取消訊息，執行壓縮會如實回報沒有內容可摘要，避免留下錯誤檢查點而導致後續跳過開發者指令。當工具結果被清除或提醒過期時，`/compact` 的 token（AI 處理與計費的文字單位）計算已獲修正；在經歷壓縮的超大型工作階段中，執行 `/btw`、`/side` 與 `/fork` 的開啟速度也明顯加快。",
+                "en": "When conversations grow too long and context needs trimming, the trigger conditions and saving mechanisms for manually running `/compact` are now much more reliable. Sessions configured with external MCP (Model Context Protocol, a protocol enabling AI to connect to external tools) tools can now directly run manual `/compact` without reporting that there is nothing to compact. Saving a checkpoint while another write operation is occurring no longer drops the save. After reopening a saved conversation, compaction continues working normally rather than repeatedly summarizing and ultimately erroring out. If a message is canceled before sending the model request, running compaction accurately reports that there is no content to summarize, preventing invalid checkpoints that could cause subsequent developer instructions to be skipped. The token (a text unit for AI processing and billing) calculation for `/compact` has been corrected when tool results are cleared or reminders expire. In very large compacted sessions, opening speeds for running `/btw`, `/side`, and `/fork` are also noticeably faster."
+              },
+              "original": "Manual `/compact` now compacts sessions with MCP servers configured, instead of answering \"no compactable run is available\"\nA context compaction no longer skips its checkpoint when another session write lands while that checkpoint is being saved\nRunning /compact in a chat whose turns all ended before any model request (for example, a message cancelled before Muse began preparing its model request) now reports that there is nothing to summarize instead of writing a summary checkpoint that could later let the chat skip setting up its developer instructions\nCompaction keeps working after you reopen a saved chat, instead of summarizing again at every boundary and eventually failing with \"could not prepare the conversation\"\nCorrect `/compact` token counts when tool results are cleared or reminders expire\n`/btw`, `/side`, and `/fork` open faster in very large compacted sessions"
+            },
+            {
+              "title": {
+                "zh-TW": "工作階段恢復嚴格檢驗啟動紀錄，掛鉤只在紀錄完整時觸發執行",
+                "en": "Session Resumption Strictly Verifies Startup Logs, Firing Hooks Only When Logs Are Fully Intact"
+              },
+              "body": {
+                "zh-TW": "重新開啟先前儲存的對話時，若背後的執行紀錄曾發生缺損，盲目載入往往會引發非預期的錯誤。如果工作階段的日誌無法證實其最後一次啟動紀錄，現在會直接拒絕恢復該對話，並在訊息中點名損毀的紀錄，不再默默開啟。在終端機介面恢復工作階段時，只有日誌能證實啟動完整的對話才會觸發 SessionStart 掛鉤（hook，特定事件發生時被觸發的小程式），其來源會標註為 `resume`。若對象是從未啟動的分支副本，來源則標註為 `fork`。若是無法證實啟動的副本，則完全不執行掛鉤並在啟動通知中說明。已儲存的工作階段格式也新增了標記欄位，可記錄儲存當下是否仍在啟動中；雖然目前尚未正式寫入，但未來一旦開始記錄，舊版 Muse 將拒絕開啟這類工作階段以防出錯。",
+                "en": "When reopening a previously saved conversation, blindly loading it often causes unexpected errors if the underlying execution logs were corrupted. If a session log cannot verify its last startup record, it now explicitly refuses to resume that conversation and names the corrupted record in the message, rather than opening silently. When resuming a session in the terminal interface, only conversations whose startup can be verified by the log will trigger the SessionStart hook (a small program triggered by a specific event), with its source marked as `resume`. For branched copies that have never been started, the source is marked as `fork`. For copies whose startup cannot be verified, the hook is not executed at all, and an explanation is provided in the startup notification. The saved session format also adds a flag field to record whether it was still starting up at the time of saving. Although not actively written yet, once recorded in the future, legacy versions of Muse will refuse to open such sessions to prevent errors."
+              },
+              "original": "Saved sessions can record whether a run was still starting when they were saved; nothing records it yet, so no session opens differently today, and once a later Muse records it, Muse versions released before that one will not open such a session\nResuming a session whose log cannot prove its last start is refused with a message naming the broken record instead of opening silently\nSessionStart hooks run on every resumed TUI session whose log proves its last start, reporting `resume` (or `fork` for a never-activated clone) as their source; a replayed copy that cannot prove it runs none and says so in its startup notice"
+            },
+            {
+              "title": {
+                "zh-TW": "跨桌面與終端切換即時同步對話，分支重試具備冪等性不再撞號",
+                "en": "Real-time conversation sync across desktop and terminal switches, with idempotent branch retries that prevent collisions"
+              },
+              "body": {
+                "zh-TW": "在桌面應用程式與終端機之間切換工作環境時，不同版本之間的對話紀錄接軌現在省去了不必要的等待。若桌面端與終端機運行的 Muse Code 版本不同，切換時會直接同步另一端剛進行的簡短對話，不再從頭重新建構歷史紀錄（自 1.4.9 以前版本升級後的首次開啟仍會重建一次）。恢復進度落後的對話時，會在同一次恢復中直接補齊最新紀錄，不再出現歷史空白或遺漏即時回覆。使用相同指令識別碼重試分支時，會符合冪等（idempotent，多次執行結果與單次相同）原則直接回傳原始結果，不再報錯；指定不同切分時則維持衝突。即使對話含有中途送達的背景任務通知，分支在應用程式與 SDK 也能順利載入。工作階段中模型重複使用工具識別碼不再破壞後續壓縮，載入重複核准紀錄的工作階段時記憶體消耗也明顯降低。",
+                "en": "When switching work environments between the desktop application and the terminal, bridging conversation history across different versions now eliminates unnecessary waiting. If the desktop app and terminal run different versions of Muse Code, switching will directly sync recent short conversations from the other side rather than rebuilding history from scratch (the first launch after upgrading from versions prior to 1.4.9 still rebuilds once). When restoring a conversation that has fallen behind, the latest records are backfilled in the same restoration pass, preventing history gaps or missing real-time replies. When retrying a branch using the same command identifier, it adheres to idempotent principles (yielding identical results when run multiple times as when run once) and directly returns the original result instead of throwing an error. Specifying a different split continues to raise a conflict. Even if a conversation contains background task notifications delivered midway, branches load smoothly across both the application and the SDK. A model reusing tool identifiers within a session no longer breaks subsequent compaction, and memory consumption drops significantly when loading sessions with duplicate approval records."
+              },
+              "original": "A forked chat whose history has a background-task notice delivered mid-turn now opens in apps and SDKs in more cases, instead of failing to load\nSwitching a conversation between the desktop app and the terminal when they run different versions of Muse Code now catches up a short exchange made on the other side instead of rebuilding its saved history from scratch; the first open after updating from a release before 1.4.9 still rebuilds it once\nResuming a thread whose saved history had fallen far behind now brings it up to date in that same resume, instead of showing no history and missing live replies until the next resume\nA session whose model reused a tool call id for two same-length results no longer becomes impossible to resume or compact after old tool results are cleared\nRetrying a fork with the same command id now returns the original outcome instead of answering command_id_conflict, matching gate-off idempotency; reusing a command id with a different cut still conflicts\nReduce memory use when loading sessions with repeated approval records"
+            },
+            {
+              "title": {
+                "zh-TW": "長篇分析回答改用短句分段，隱藏無回應標記並自動補問",
+                "en": "Long analytical responses switch to short-sentence paragraphs, hiding no-reply markers with automatic follow-up questions"
+              },
+              "body": {
+                "zh-TW": "閱讀 AI 產生的長篇分析報告時，密密麻麻的一整片文字往往讓人難以快速抓住重點。現在遇到長篇分析類型的回答，模型會主動採用短句與精簡段落進行排版，取代過去整面難以閱讀的文字牆。若先前對話中途意外中斷，使得某一輪的最終結果只剩下一行「前一輪未產生助手回覆」的內部標記，Muse 會自動發起一次有限度的重新提問，為你取得真正的實質回覆，並在執行摘要中主動剔除該標記。對話紀錄面板也不再顯示帶有菱形符號的「◆ [Previous turn ended without an assistant reply.]」提示列；如果回答只包含該標記，畫面不會渲染任何內容，若標記後方附有正常回答，則只乾淨呈現正式的回答內容。⟦恰似專業編輯重新編排文稿，不僅將密集論述切成清晰段落，也在印製時主動抽除排版留下的空白除錯標記。⟧",
+                "en": "When reading long analytical reports generated by AI, dense walls of text often make it hard to quickly grasp key points. When encountering long analytical responses, the model now proactively formats output using short sentences and concise paragraphs, replacing the previously unreadable walls of text. If a previous conversation was interrupted unexpectedly so that a turn's final output was left with only an internal marker indicating that the prior turn produced no assistant reply, Muse automatically issues a bounded re-prompt to retrieve a genuine response, actively stripping that marker from the run summaries. The conversation history panel also no longer displays the prompt bar `◆ [Previous turn ended without an assistant reply.]` with its diamond symbol. If a response contains only that marker, the screen renders nothing, and if normal answers follow the marker, it cleanly presents only the formal response content. ⟦A professional editor reformats a manuscript by breaking dense arguments into clear paragraphs and stripping out leftover blank debugging marks before printing.⟧"
+              },
+              "original": "Long analysis answers use short sentences and paragraphs instead of dense walls of text\nA turn whose final answer consists only of the \"[Previous turn ended without an assistant reply.]\" marker now gets one bounded re-prompt for a real reply, and the marker is stripped from run summaries\nThe transcript no longer shows a \"◆ [Previous turn ended without an assistant reply.]\" row — a reply containing only that resume marker renders nothing, and a real answer prefixed by it shows just the answer"
+            },
+            {
+              "title": {
+                "zh-TW": "開發者指令阻擋改以白話引導，SDK 撤回狀態與技能範例修復",
+                "en": "Developer command blocks switch to plain-language guidance, and SDK retraction states and skill examples receive fixes"
+              },
+              "body": {
+                "zh-TW": "串接工具時，晦澀報錯常令人卡關。EdenFS 查全庫 Sapling（`hg files`、`hg locate`、`hg manifest`）卡死前阻擋，改指引 `search` 或 `hg biggrep`。衍生子行程遭拒改以白話說明，不再顯示內部列舉代碼。連接外部工具的 MCP 伺服器啟動存活未回，改報 `the server did not respond during startup` 而非泛用逾時。TypeScript 與 Python SDK 撤回遭拒不再誤標撤回或丟棄；前者的 `StaleDroppableMethod` 納入 `turn/retracted`，窮舉比對需補分支。內建 Three.js 技能改用可運作的 WebGPU 後製，不再引用已移除舊檔。",
+                "en": "When integrating tools, cryptic error messages often cause roadblocks. Sapling repository-wide queries on EdenFS (`hg files`, `hg locate`, `hg manifest`) are blocked before hanging, redirecting users to `search` or `hg biggrep`. Spawned subprocess rejections are now explained in plain language instead of displaying internal enum codes. When an MCP (a protocol connecting AI to external tools) server fails to respond during startup liveness checks, it now reports `the server did not respond during startup` instead of a generic timeout. Retraction rejections in the TypeScript and Python SDKs are no longer mistakenly marked as retracted or dropped. The former's `StaleDroppableMethod` now incorporates `turn/retracted`, requiring an additional branch for exhaustive matching. The built-in Three.js skill now switches to working WebGPU post-processing instead of referencing removed legacy files."
+              },
+              "original": "Spawn rejection hints now explain the reason in plain words instead of internal enum names\nRepository-wide Sapling file listings (`hg files`, `hg locate`, `hg manifest`) on EdenFS checkouts are refused before they hang, pointing at `search` or `hg biggrep` instead\nAn MCP server whose process stays alive but never responds during startup now fails with `the server did not respond during startup` instead of the generic operation timeout\nThe TypeScript and Python SDKs no longer mark a turn retracted, or drop its completion, when its retract is declined; in the TypeScript SDK, `StaleDroppableMethod` gains `turn/retracted`, so code that matches it exhaustively needs a new case\nThe bundled Three.js skill now gives a working WebGPU post-processing example instead of one that imports a file current three.js no longer ships"
+            }
+          ]
+        }
+      ]
     },
     {
       "id": "usage",
