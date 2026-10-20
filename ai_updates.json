@@ -945,6 +945,133 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.4.3",
+          "period": "2026-10-20",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "/diff 與產物檢視器新增搜尋功能，支援跨檔案逐筆跳轉",
+                "en": "/diff and Artifact Viewer Add Search with Cross-File Match Navigation"
+              },
+              "body": {
+                "zh-TW": "比對大批修改內容時，要在冗長的變更清單中精準定位某個函式或變數往往相當費時。在 `/diff` 的檔案清單與檔案檢視中，按下 `/` 即可啟動搜尋。輸入關鍵字時會即時反白相符字串，提示列還會列出整份差異比對與各檔案分別包含多少筆相符項目。按下 `Enter` 會跳到第一筆結果，接著按 `n` 或 `N` 就能跨檔案逐筆來回巡覽，頁首也會顯示如 `match A/B` 的進度指示。⟦尋訪長篇族譜名冊時，以前只能逐頁掃描而容易看漏同行的重複名字；現在輸入字根便立刻標記全冊，提示列載明各章節出現次數，還能依序巡禮每個相符人名。⟧在產物檢視器（artifact viewer，用來預覽生成文件的面板）中按 `n` 與 `N`，現在也會逐筆跳過同一行內的多個項目，不再整行跳躍。",
+                "en": "When reviewing large sets of changes, pinpointing a specific function or variable across a lengthy change list is often time-consuming. In the file list and file view of `/diff`, pressing `/` starts a search. Typing keywords highlights matching strings in real time, while the prompt bar lists total matches across the diff and per file. Pressing `Enter` jumps to the first result, and pressing `n` or `N` navigates back and forth between matches across files, with the header showing progress indicators like `match A/B`. ⟦When searching through a lengthy genealogy registry, people previously had to scan page by page and easily missed duplicate names on the same line; now, typing a root immediately highlights the entire registry, with a prompt bar showing the number of occurrences per chapter, and lets you browse each matching name in sequence.⟧ In the artifact viewer (a panel used to preview generated documents), pressing `n` and `N` now also steps through multiple matches on the same line rather than skipping entire lines."
+              },
+              "original": "Added `/` search to the `/diff` file list and file view: matches are highlighted as you type, the search prompt shows how many matches the diff and each file contain, `Enter` jumps to the first match, and `n`/`N` step through matches one at a time across every file, with `match A/B` in the file view header. `n`/`N` in the artifact viewer now also step through matches one at a time, including several on the same line, instead of jumping from line to line."
+            },
+            {
+              "title": {
+                "zh-TW": "外掛驗證新增結構檢查，修正 Windows 覆寫防護與顏色輸出",
+                "en": "Plugin Validation Adds Structural Checks, Fixing Windows Overwrite Protection and Color Output"
+              },
+              "body": {
+                "zh-TW": "外掛設定疏漏或檔案被佔用以往容易導致異常。`agy plugin validate` 新增結構檢查：無法解析 `hooks.json`、`sidecar.json` 或元件清單時報錯；遇未知掛鉤、無效正規表達式（用符號比對字串）、未讀取的 `hooks/hooks.json`、遺漏路徑、不載入的 `commands/` 與 `workflows/` 或頂層 `\"hooks\"` 鍵名則警告。\n\n在 Windows 更新或重裝外掛時，若被其他工作階段佔用，以前會留下半刪除毀損目錄；新版就位前舊版維持完整，替換失敗也會還原。\n\n`agy plugin install` 與 `agy plugin import` 修正了導向輸出夾帶色碼的問題，現在只在終端機著色，並遵循 `NO_COLOR`、`CLICOLOR` 與 `CLICOLOR_FORCE`。",
+                "en": "Oversights in plugin configuration or occupied files previously caused errors. `agy plugin validate` adds structural checks, reporting errors if `hooks.json`, `sidecar.json`, or component manifests cannot be parsed. It warns on unknown hooks, unread `hooks/hooks.json`, missing paths, unloaded `commands/` and `workflows/`, or top-level `\"hooks\"` keys. It also warns on invalid regular expressions (patterns used to match strings).\n\nWhen updating or reinstalling plugins on Windows, if files were locked by another session, a half-deleted corrupted directory was previously left behind. The old version now remains intact until the new version is in place, and rolls back if replacement fails.\n\n`agy plugin install` and `agy plugin import` fix an issue where redirected output included color escape codes. Output is now colored only in the terminal, respecting `NO_COLOR`, `CLICOLOR`, and `CLICOLOR_FORCE`."
+              },
+              "original": "Improved `agy plugin validate` to also check a plugin's hooks, sidecars, and component lists: it reports an error when `hooks.json`, a `sidecar.json`, or a `skills.json`, `rules.json`, `agents.json`, or `sidecars.json` file can't be parsed, and warns about unknown hook events, hook matchers that aren't valid regular expressions and so never match, a `hooks/hooks.json` file (which isn't read), list entries with no path or with a path missing from the plugin, `commands/` folders and `workflows/` Markdown files (which plugins don't load), and a Claude Code-style top-level `\"hooks\"` key, which loads as a single hook named `hooks`.\nFixed updating or reinstalling a marketplace plugin on Windows leaving it half-deleted when another `agy` session, the Antigravity desktop app, or the Remote Control background service had it open; the installed plugin now stays intact until the new copy is in place, and the previous version is restored if the replacement fails.\nFixed `agy plugin install` and `agy plugin import` writing color codes into piped or redirected output, ignoring `NO_COLOR`, and showing raw codes in older Windows consoles; like `agy plugin validate`, they now use color only in a terminal and follow `NO_COLOR`, `CLICOLOR`, and `CLICOLOR_FORCE`."
+            },
+            {
+              "title": {
+                "zh-TW": "/tasks 計時器改以天時分秒顯示，清楚掌握剩餘時間",
+                "en": "/tasks Timers Switch to Days, Hours, Minutes, and Seconds for Clearer Remaining Time"
+              },
+              "body": {
+                "zh-TW": "當你在背景啟動了長時間排程，隨時掌握任務的等待時間是安排後續工作的關鍵。在終端機查看進行中的排程計時器時，時間標示方式直接影響你掌握進度的速度。在 `/tasks` 任務清單與作用中任務清單中，計時器標籤現在改以天、小時、分鐘與秒數來顯示時間長度，例如呈現為 `1d 2h timer` 或 `5m timer`。以前這裡只會顯示原始秒數，像是 `93784s timer`，讓人難以一眼看出到底還要等多久。⟦盯著大樓停車場的繳費機螢幕，以前停留時間只顯示幾萬秒讓人摸不著頭緒；現在直接換算成幾天幾小時幾分幾秒，一眼就能看清車輛停放了多久。⟧當你設定了排程任務時，只要在對話中輸入 `/tasks`，就能立刻從清單看到以天或分鐘標示的計時器，不必再自行拿計算機換算秒數。",
+                "en": "When running long-running schedules in the background, keeping track of task waiting time is key to planning subsequent work. When checking active scheduled timers in the terminal, the time display format directly affects how quickly you grasp progress. In the `/tasks` task list and active tasks list, timer labels now display durations in days, hours, minutes, and seconds, appearing as `1d 2h timer` or `5m timer`. Previously, this displayed only raw seconds like `93784s timer`, making it hard to tell at a glance how much waiting time remained. ⟦Picture the screen of a parking payment machine, where parking duration previously showed only tens of thousands of seconds and left drivers baffled; now it directly converts into days, hours, minutes, and seconds, making it obvious at a glance how long a vehicle has been parked.⟧ When you configure scheduled tasks, simply typing `/tasks` in a conversation lets you immediately see timers labeled in days or minutes from the list, without needing a calculator to convert seconds yourself."
+              },
+              "original": "Improved timer labels in `/tasks` and the active task list to show durations in days, hours, minutes, and seconds, such as `1d 2h timer` or `5m timer`, instead of raw seconds such as `93784s timer`."
+            },
+            {
+              "title": {
+                "zh-TW": "修復以金鑰連線時未顯示 Gemini 4 Argon 的問題",
+                "en": "Fix Missing Gemini 4 Argon When Connecting with an API Key"
+              },
+              "body": {
+                "zh-TW": "習慣使用個人 API 金鑰切換模型時，可用清單若漏列特定選項會影響工作調度。當你透過環境變數 `GEMINI_API_KEY`（Gemini 服務的存取金鑰）連線時，先前在切換模型的 `/model` 指令選單以及 `--model` 啟動參數中，都沒有列出 Gemini 4 Argon 模型。現在這個問題已經修好，以金鑰連線時也能正常在選單與參數中指定該模型。",
+                "en": "When you are accustomed to switching models using a personal API key, missing options from the available list disrupt workflow planning. When connecting through the `GEMINI_API_KEY` environment variable (the access key for Gemini services), the Gemini 4 Argon model was previously omitted from the `/model` command selection menu and the `--model` launch flag. This issue is now resolved, and you can properly select the model from the menu and specify it via the flag when connecting with an API key."
+              },
+              "original": "Fixed Gemini 4 Argon not shown in `/model` and `--model` when you connect with a `GEMINI_API_KEY`."
+            },
+            {
+              "title": {
+                "zh-TW": "不支援沙盒的作業系統不再列出終端機沙盒選項",
+                "en": "Terminal Sandbox Options Omitted on Operating Systems Lacking Sandbox Support"
+              },
+              "body": {
+                "zh-TW": "在不支援終端機沙盒（隔離執行指令的受限環境）的電腦上打開 CLI，本來就用不了的選項不該出現在選單裡。這類系統包括阻擋非特權使用者命名空間的 Linux 系統，以及 Windows 11 24H2 之前的舊版 Windows，以前命令列介面仍會提供需要沙盒支援的選項。這個問題已經修好，不支援沙盒的系統上不會再看到需要沙盒的選項。",
+                "en": "When opening the CLI on a machine that does not support a terminal sandbox (a restricted environment that isolates command execution), unusable options should not appear in the menu. Such systems include Linux systems blocking unprivileged user namespaces and versions of Windows prior to Windows 11 24H2, where the command-line interface previously still offered options requiring sandbox support. This issue has been resolved, and systems without sandbox support will no longer display options requiring a sandbox."
+              },
+              "original": "Fixed the CLI offering options that need the terminal sandbox on systems where it can't run, such as Linux systems that block unprivileged user namespaces and Windows before Windows 11 24H2."
+            },
+            {
+              "title": {
+                "zh-TW": "自動模式子代理指令改由獨立代理審核，安全操作免手動核准",
+                "en": "Auto-Mode Subagent Commands Reviewed by Independent Agent, Allowing Safe Operations Without Manual Approval"
+              },
+              "body": {
+                "zh-TW": "讓代理在背景自動排解複雜任務時，頻繁跳出確認提示會打斷原本流暢的工作流程。在自動模式下，子代理（subagent，負責分流特定任務的輔助代理）與自訂代理以往只要執行脫離終端機沙盒的指令，每次都會停下來要求你手動核准。現在比照主代理的處理機制，它們的指令會先由另一個獨立代理負責審核。安全指令會直接執行，只有具備潛在風險的操作才會跳出提示向你確認。",
+                "en": "When letting agents automatically handle complex tasks in the background, frequent confirmation prompts interrupt an otherwise smooth workflow. In auto mode, subagents (auxiliary agents that handle specific tasks) and custom agents previously paused to require manual approval every time they executed a command outside the terminal sandbox. Matching the behavior of the main agent, their commands are now reviewed first by an independent agent. Safe commands run directly, and only potentially risky operations prompt you for confirmation."
+              },
+              "original": "Fixed subagents and custom agents in Auto mode asking you to approve every command that would leave the terminal sandbox; like the main agent's, their commands are now first reviewed by a separate agent, so safe commands run without asking and risky ones still prompt you."
+            },
+            {
+              "title": {
+                "zh-TW": "對話壓縮保留子代理編號，精簡摘要不再丟失背景任務",
+                "en": "Conversation Compaction Preserves Subagent IDs, Preventing Compacted Summaries from Losing Background Tasks"
+              },
+              "body": {
+                "zh-TW": "長時間對話進行壓縮整理時，歷史任務資訊若被截斷，會讓代理遺忘先前派出的幫手。以前對話摘要會塞入每個子代理完整的初始提示詞，往往因為長度超限而在記錄對話編號（conversation ID）前就被截斷，導致代理失去對近期子代理的追蹤。現在壓縮摘要只保留各子代理的類型、角色與執行結果，確保識別資訊完整留存，並為語境視窗（context window，模型一次能讀取的記憶上限）留出更多空間。",
+                "en": "When compacting and summarizing long conversations, truncated historical task information causes the agent to forget previously delegated helpers. Previously, conversation summaries included the full initial prompts for each subagent, which frequently exceeded length limits and were truncated before recording conversation IDs, causing the agent to lose track of recent subagents. Compacted summaries now retain only the type, role, and execution results of each subagent, ensuring identifiers are preserved while freeing up space for the context window (the maximum memory a model can read at one time)."
+              },
+              "original": "Fixed the agent losing track of its most recently started subagents after a conversation was compacted, because the summary included each subagent's full initial prompt and was cut off before their conversation IDs; the summary now keeps only each subagent's type, role, and result, which also leaves more room in the context window."
+            },
+            {
+              "title": {
+                "zh-TW": "PostToolUse 掛鉤失敗改為記錄日誌，不再將工具誤判為失敗",
+                "en": "PostToolUse Hook Failures Now Logged Rather Than Misreporting Tool Failures"
+              },
+              "body": {
+                "zh-TW": "設定工具執行的後續連動時，附加檢查腳本若發生異常，不應影響主要操作的成敗判定。在工具呼叫後觸發的 `PostToolUse` 掛鉤（特定事件發生時被觸發的小程式）若執行失敗，例如指令不存在、執行逾時、退出回傳錯誤或輸出無效的 JSON，以前會將原本成功的工具呼叫直接標記為失敗。現在這類失敗只會記錄在日誌中，工具會完整保留原本的執行成果。",
+                "en": "When configuring post-execution actions for tools, errors in supplemental check scripts should not affect the outcome of the primary operation. If `PostToolUse` hooks (small programs triggered when specific events occur) failed after a tool call—such as from a missing command, execution timeout, non-zero exit code, or invalid JSON output—the system previously marked an otherwise successful tool call as failed. Such failures are now recorded only in logs, leaving the original tool results fully intact."
+              },
+              "original": "Fixed a `PostToolUse` hook that fails to run, for example because its command is missing, exits with an error, times out, or prints invalid JSON, marking the tool call it follows as failed even though the tool succeeded; the failure is now logged and the tool keeps its result."
+            },
+            {
+              "title": {
+                "zh-TW": "修復空白檔案建立失敗，以及專案寫入誤報產物路徑的問題",
+                "en": "Fix Empty File Creation Failures and Erroneous Artifact Path Errors on Project Writes"
+              },
+              "body": {
+                "zh-TW": "讓代理建立新模組或初始化目錄時，建立標記檔案與修改專案內容是常見的操作。以前代理在建立如 `__init__.py` 或 `.gitkeep` 等空白檔案時會執行失敗，而且當模型送出空白的產物資訊時，寫入或編輯一般專案檔案也會跳出 `... is not a valid artifact path` 的報錯。現在這個問題已經修好，建立零內容檔案與正常編輯專案檔案都能順利完成。",
+                "en": "When having an agent create new modules or initialize directories, generating marker files and modifying project contents are common operations. Previously, agents failed when creating empty files such as `__init__.py` or `.gitkeep`. In addition, writing or editing normal project files threw a `... is not a valid artifact path` error whenever the model sent blank artifact information. This issue is now resolved, allowing both zero-content file creation and standard project file editing to complete smoothly."
+              },
+              "original": "Fixed the agent failing to create empty files such as `__init__.py` or `.gitkeep`, and failing to write or edit regular project files with `... is not a valid artifact path` when the model sent blank artifact details."
+            },
+            {
+              "title": {
+                "zh-TW": "iPhone 與 iPad 遠端控制支援狀態記憶，不再重複提示條款與通知",
+                "en": "Remote Control on iPhone and iPad Adds State Persistence, Ending Repeated Terms and Notification Prompts"
+              },
+              "body": {
+                "zh-TW": "在行動裝置上透過遠端功能查看進度時，每次開啟都必須手動關閉重複的提示視窗相當不便。在 iPhone 與 iPad 上使用 Remote Control（遠端控制功能）時，以前每次重新開啟，都會重複要求同意 `Security Notice & Data Use` 安全與資料使用條款，並再次彈出 `Enable Notifications` 啟用通知提示。現在應用程式會記住你的回覆，連同主題、排版設定以及已關閉的提示一併儲存。",
+                "en": "When monitoring progress remotely on mobile devices, having to manually dismiss repetitive modal dialogs upon every launch is frustrating. When using Remote Control on iPhone and iPad, reopening previously prompted users to accept the `Security Notice & Data Use` terms again and popped up the `Enable Notifications` prompt each time. The application now remembers your responses, saving them alongside your theme, layout preferences, and dismissed prompts."
+              },
+              "original": "Fixed Remote Control on iPhone and iPad asking you to accept the `Security Notice & Data Use` terms and showing the `Enable Notifications` prompt again every time you reopened it; it now remembers your answers, along with your theme, layout, and dismissed tips."
+            },
+            {
+              "title": {
+                "zh-TW": "修復終端機游標錯位與換行，完善表情符號與多語字元排版",
+                "en": "Fix terminal cursor misalignment and line wrapping, improving emoji and multilingual character layouts"
+              },
+              "body": {
+                "zh-TW": "在終端機處理多國文字與圖示時，字寬計算誤差常導致游標跑位或排版錯亂。\n\n調整視窗（停在 `↑ N more lines` 或框外）、提示過高、按上下鍵移至中日韓或表情符號，以及進入 Vim 視覺模式時游標不再錯位，過長的補全提示也會自動縮短。\n\n在支援圖素叢集寬度的終端機中，從外部編輯器（`Ctrl+G`）或 `Ctrl+Z` 返回後及在 tmux 3.6+ 下，含 👩💻、👍🏽、⚠️ 的行不再漂移。在日中韓語系（如 `LANG=ja_JP.UTF-8`）下含 `→`、`…`、`─`、`•` 時的漂移與提早折行也一併修復。\n\n按方向鍵、`Backspace` 或 `Delete` 不再只刪改半個表情符號、旗幟或變音字母，行末寬字元也會正確折行。在 `/diff` 與 `/artifact` 預覽中，結合符號或零寬字元導致提早折行、空白列或過早以 `…` 截斷也已修好。",
+                "en": "When handling multilingual text and symbols in the terminal, character width calculation errors often lead to cursor displacement or layout glitches.\n\nThe cursor no longer misaligns when resizing the window (resting on `↑ N more lines` or outside the frame), when prompts are excessively tall, when pressing Up or Down keys across CJK characters or emojis, or when entering Vim visual mode. Excessively long completion hints will also automatically shrink.\n\nIn terminals supporting grapheme cluster widths, lines containing 👩💻, 👍🏽, or ⚠️ no longer drift after returning from an external editor (`Ctrl+G`) or `Ctrl+Z`, or under tmux 3.6+. Drifting and premature line wraps when containing `→`, `…`, `─`, or `•` under CJK locales (such as `LANG=ja_JP.UTF-8`) have also been fixed.\n\nPressing arrow keys, `Backspace`, or `Delete` no longer modifies or deletes half of an emoji, flag, or accented letter, and wide characters at line ends now wrap correctly. In `/diff` and `/artifact` previews, premature line wrapping, blank lines, or early truncation with `…` caused by combining characters or zero-width characters have also been fixed."
+              },
+              "original": "Fixed the prompt cursor appearing in the wrong place after resizing the terminal (sometimes on the `↑ N more lines` indicator or below the input box), when a slash command's completion hint didn't fit on the last line of the prompt (the hint is now shortened or left out), when the prompt was taller than the terminal, after pressing `Up` or `Down` onto a line with CJK characters or emoji, and after entering Vim visual mode, which also rewrapped the text.\nFixed the cursor drifting on lines with emoji such as 👩‍💻, 👍🏽, or ⚠️ inside tmux 3.6 and later, and after returning from your external editor (`Ctrl+G`) or a `Ctrl+Z` suspend in terminals that support grapheme-cluster widths.\nFixed the cursor drifting and lines wrapping too early under Japanese, Chinese, or Korean locales such as `LANG=ja_JP.UTF-8` when text contains characters like `→`, `…`, `─`, or `•`, which parts of the CLI counted as two columns wide while the rest drew them as one.\nFixed `Left`, `Right`, `Backspace`, and `Delete` in the prompt and other text boxes moving over or deleting only part of an emoji such as 👩‍💻 or 👍🏽, a flag, or a letter with a combining accent, and fixed text boxes cutting off a wide character, such as a CJK character or emoji, at the end of a wrapped line instead of moving it to the next line.\nFixed lines containing combining marks or other zero-width characters wrapping too early or leaving blank rows in `/diff` and the inline diff preview, and being cut off with `…` too soon in `/artifact` previews."
+            }
+          ]
+        },
+        {
           "version": "1.4.2",
           "period": "2026-10-18",
           "items": [
@@ -1063,100 +1190,6 @@
                 "en": "When typing slash commands into the terminal to adjust settings, you no longer need to double-check Caps Lock. Previously, when using `/title` to set titles or `/remote-control` to enable remote control, entering uppercase toggle arguments (such as `/title ON` or `/remote-control Off`) caused commands to be flagged as invalid and rejected outright. This issue has been resolved, and commands now correctly recognize and toggle settings regardless of whether uppercase or lowercase text is supplied."
               },
               "original": "Fixed `/title` and `/remote-control` rejecting `on` and `off` when typed with uppercase letters, such as `/title ON` or `/remote-control Off`."
-            }
-          ]
-        },
-        {
-          "version": "1.4.0",
-          "period": "2026-10-16",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "分頁標題即時回報進度，不用切回終端機看狀態",
-                "en": "Tab titles report progress in real time without switching back to the terminal"
-              },
-              "body": {
-                "zh-TW": "把終端機縮到背景讓耗時任務自己跑時，我們往往得三不五時切回視窗，確認它到底跑完了沒。⟦走在辦公大樓看電梯燈號，以前得特地走到門前貼著聽聲音才確定動了沒，現在瞄一眼門楣就知道它正在移動、抵達還是卡住。⟧只要你使用的終端機支援 OSC 7501 協定，視窗或分頁標籤就會直接顯示 CLI 正在運作、等待輸入、已完成還是失敗。程式啟動時會先自動偵測終端機是否支援，不支援的軟體不會受到任何干擾。如果想微調顯示方式，可以透過環境變數管理：\n\n```bash\nAGY_CLI_OSC7501=off # 關閉狀態回報\nAGY_CLI_OSC7501=on # 在支援卻未主動回應偵測的終端機上強制開啟\nAGY_CLI_OSC7501_MESSAGES=brief # 只顯示狀態，不顯示等待執行的指令或問題細節\n```",
-                "en": "When minimizing a terminal to run a long-running task in the background, we often have to switch windows repeatedly just to check if it is finished. ⟦Picture glancing at an elevator indicator in an office building: you once had to walk up to the door and listen closely to confirm movement, but now a glance above the door reveals whether it is running, arriving, or stuck.⟧ As long as your terminal supports the OSC 7501 protocol, window or tab titles will directly display whether the CLI is working, waiting for input, completed, or failed. The CLI automatically detects terminal support on startup, so unsupported software remains completely unaffected. If you want to tweak how details are shown, you can manage it with environment variables:\n\n```bash\nAGY_CLI_OSC7501=off # Disable status reporting\nAGY_CLI_OSC7501=on # Force enable on terminals that support it but do not actively respond to detection\nAGY_CLI_OSC7501_MESSAGES=brief # Show only the status, omitting pending commands or prompt details\n```"
-              },
-              "original": "Added terminal status reporting over OSC 7501: in terminals that support it, the tab or window shows whether the CLI is working, waiting for your input, done, or failed. The CLI checks for support first, so other terminals are unaffected. Set `AGY_CLI_OSC7501=off` to turn it off, `AGY_CLI_OSC7501=on` for a terminal that supports it but doesn't answer the check, or `AGY_CLI_OSC7501_MESSAGES=brief` to show only the status without details such as the pending command or question."
-            },
-            {
-              "title": {
-                "zh-TW": "快捷鍵反轉送出模式，臨時插單或排隊免改設定",
-                "en": "Shortcut inverts send mode to bypass queues or jump ahead without changing settings"
-              },
-              "body": {
-                "zh-TW": "打好一段訊息準備送出時，如果目前的發送模式正好與當下需求相反，過去總得大費周章進設定選單切換。⟦跟操作辦公室的印表機一樣，以前預設好排程列印就只能乖乖排隊，現在只要按住切換鍵，就能臨時插單立刻印出，也能隨時把即時文件收進佇列。⟧新增的 `alt+m` 快捷鍵，能依據你在 `/config` 裡設定的訊息排隊模式（Queued Messages）反向發送。在 macOS 上若將 Option 鍵設為 Alt，對應的按鍵組合是 `Option+m`。如果你平時處於排隊模式（Queue），按下這組快捷鍵就會立刻送出眼前這則訊息。反過來說，若平時處於即時發送模式（Send Immediately），這組按鍵則會幫你把訊息存進排程佇列。",
-                "en": "When typing a message and preparing to send it, finding that the current mode opposes what you need previously required a tedious trip through the settings menu. ⟦Think of using an office printer: where a scheduled print preset once forced you to wait in line, holding a toggle key now lets you jump ahead for an immediate print or route an urgent document into the queue at any time.⟧ The new `alt+m` shortcut inverts sending behavior based on the Queued Messages mode configured in `/config`. On macOS, if the Option key is mapped to Alt, the corresponding combination is `Option+m`. If you are normally in Queue mode, pressing this shortcut sends the current message immediately. Conversely, if you are normally in Send Immediately mode, this key combination saves your message into the scheduled queue."
-              },
-              "original": "Added the `alt+m` shortcut (`Option+m` on macOS when Option is set to act as Alt) to send a message using the opposite of your `Queued Messages` setting in `/config`, so you can send right away while in `Queue` mode, or queue a message while in `Send Immediately` mode."
-            },
-            {
-              "title": {
-                "zh-TW": "外掛驗證規則對齊執行環境，行號與格式錯誤一目了然",
-                "en": "Plugin validation rules align with runtime, making line numbers and format errors clear"
-              },
-              "body": {
-                "zh-TW": "開發外掛時最怕驗證工具回報合格，實際載入執行時卻因為隱蔽問題而無法啟動。⟦拿稿件去印刷廠打樣，以前簡易校對常誤判合格格式、又漏看致命排版問題，現在校對標準完全對齊正式印刷機台，哪個檔案第幾行出錯都會清楚標出。⟧驗證指令 `agy plugin validate` 現在改用與執行環境完全相同的規則來檢查外掛。過去簡化的檢查會誤擋未填 `name` 欄位的合格清單，卻又漏掉阻礙外掛載入的真正問題。現在檢查工具會精確標示每個錯誤與警告所在的檔案與行號，且同時接受外掛目錄或個別 `plugin.json` 檔案。工具還會提示 `plugin.json` 的常見錯誤，像是未知欄位與猜測建議、無效名稱，或組件誤置於 `.antigravity-plugin/` 而非根目錄。另外可搭配 `--strict` 讓警告一律算失敗，或使用 `--json` 在自動化建置中輸出報告。",
-                "en": "When developing plugins, nothing is worse than a validation tool reporting success only for hidden problems to block execution at runtime. ⟦A draft sent to a print shop for proofing once suffered from simplified checks that misjudged valid formats while missing fatal layout flaws, but proofs now align entirely with production presses to clearly mark which file and line contain errors.⟧ The validation command `agy plugin validate` now checks plugins using the exact same rules as the runtime environment. In the past, simplified checks falsely blocked valid manifests missing a `name` field while overlooking real issues that prevented plugins from loading. The validation tool now pinpoints the exact file and line number for every error and warning, accepting either plugin directories or individual `plugin.json` files. It also flags common `plugin.json` mistakes, such as unknown fields with suggested fixes, invalid names, or components mistakenly placed in `.antigravity-plugin/` instead of the root directory. Additionally, you can pair it with `--strict` to treat warnings as failures, or use `--json` to output reports in automated builds."
-              },
-              "original": "Improved `agy plugin validate` so it checks a plugin with the same rules the CLI uses to load it, instead of simplified checks that rejected valid plugins (such as a manifest without a `name`) and missed problems that kept a plugin from loading. It lists each error and warning with its file and line, accepts a plugin directory or its `plugin.json`, warns about common `plugin.json` mistakes such as unknown fields (with \"did you mean\" suggestions), invalid names, and components placed inside `.antigravity-plugin/` instead of the plugin root, and adds `--strict` to fail on warnings and `--json` for a machine-readable report in CI."
-            },
-            {
-              "title": {
-                "zh-TW": "啟動驗證暫時斷線會自動重試，不再鎖死工作階段",
-                "en": "Startup eligibility checks retry on transient errors without locking the session"
-              },
-              "body": {
-                "zh-TW": "在網路偶爾斷線或啟動時剛好撞上限流的時刻，終端機若突然整台卡住、拒收訊息，往往讓人不知所措。以前只要啟動時服務短暫連不上或達到速率限制，終端機就會持續跳出 `Eligibility check failed` 錯誤並拒絕每則訊息，非得重開程式不可。現在這項資格檢查遇到暫時性錯誤時會自動重試，不再鎖死整個工作階段，這個問題已經修好，連線恢復後就能直接繼續對話。",
-                "en": "When the network drops intermittently or startup runs into rate limits, having the entire terminal freeze and reject input is disorienting. Previously, if the service became briefly unreachable or hit a rate limit at launch, the terminal repeatedly threw `Eligibility check failed` errors and rejected every message, leaving you no choice but to restart the application. This eligibility check now automatically retries on transient errors instead of locking up the entire session. This issue has been fixed, allowing you to resume your conversation as soon as connectivity recovers."
-              },
-              "original": "Fixed the CLI refusing every message with `Eligibility check failed` until you restarted it when the service was briefly unavailable or rate-limited at launch; the check now retries temporary errors and no longer locks the session."
-            },
-            {
-              "title": {
-                "zh-TW": "外掛 MCP 標頭支援變數替換，權杖驗證不再傳送字面占位符",
-                "en": "Plugin MCP headers support variable substitution, preventing token authentication from sending literal placeholders"
-              },
-              "body": {
-                "zh-TW": "替外掛串接需要身分驗證的自訂服務時，最怕設定好的金鑰變數沒有被正確代入。外掛中的 MCP（讓 AI 連接外部工具的協定）伺服器如果在請求標頭使用了變數，例如 `\"Authorization\": \"Bearer ${TOKEN}\"`，以前會直接送出原始占位符而驗證失敗。現在標頭能像伺服器的指令、參數與環境變數一樣，正確代入你設定的數值，驗證失敗的問題已經修好。",
-                "en": "When connecting a plugin to a custom service that requires authentication, nothing is worse than having configured secret variables fail to substitute properly. If an MCP (a protocol connecting AI to external tools) server in a plugin used variables in request headers, such as `\"Authorization\": \"Bearer ${TOKEN}\"`, it previously sent the raw placeholder directly and failed authentication. Headers now properly substitute your configured values just like server commands, arguments, and environment variables, fixing the authentication failure."
-              },
-              "original": "Fixed plugin MCP servers that use a variable in a request header, such as `\"Authorization\": \"Bearer ${TOKEN}\"`, sending the literal placeholder and failing to authenticate; headers now get the value you configured, like the server's command, arguments, and environment already did."
-            },
-            {
-              "title": {
-                "zh-TW": "差異比較畫面填滿終端機，支援瀏覽百筆提交紀錄",
-                "en": "Diff view fills terminal height and supports browsing up to a hundred commits"
-              },
-              "body": {
-                "zh-TW": "想回顧專案最近的修改歷程時，在終端機裡瀏覽歷史版本往往受限於視野與操作順暢度。在 `/diff` 的提交樹（Commit Tree）檢視畫面中，以前頂端只會計算行數，而且最多只能看到最近 10 筆紀錄。現在整個畫面會自動填滿終端機高度，並支援捲動瀏覽最近 100 筆提交紀錄。頂端標題改為正確顯示提交筆數，游標也只會在提交列停留，只要按下 `Enter` 就能直接開啟該筆內容。",
-                "en": "When reviewing recent project revisions, browsing commit history inside a terminal is often constrained by viewport limits and navigation friction. In the `/diff` commit tree view, the header previously only counted lines and capped visibility at the 10 most recent commits. The view now expands to fill the full terminal height and supports scrolling through the 100 most recent commits. The top header now correctly displays the commit count, the cursor only stops on commit rows, and pressing `Enter` directly opens the selected entry."
-              },
-              "original": "Fixed the `/diff` Commit Tree view: the header now counts commits instead of lines, the cursor stops only on commit rows and `Enter` opens that commit, the view fills the terminal height, and it shows the latest 100 commits (previously 10) with scrolling."
-            },
-            {
-              "title": {
-                "zh-TW": "背景指令狀態不再回溯，完整保留工作進度與日誌",
-                "en": "Background command state no longer rolls back, keeping work progress and logs intact"
-              },
-              "body": {
-                "zh-TW": "讓 AI 助理在背景執行耗時指令的同時，如果你繼續在前景修改程式碼，現在兩邊的進度都不會再莫名遺失。\n\n以前只要背景指令執行完畢，若助理仍在持續工作，手邊剛修改的檔案、任務清單與工作階段花費就會全部遺失，甚至倒退回該指令剛啟動時的狀態。現在狀態回溯問題已經修好，背景任務結束時會妥善保留所有前景進度。\n\n背景指令的任務日誌過去有時會漏掉最後幾行輸出。現在無論指令是正常完成還是中途被取消，最終輸出內容都會完整寫入日誌中。⟦如同把大批文件交給影印機後轉頭批閱公文，以前影印結束時，剛批好的文件會莫名倒退回未批狀態，現在影印和手邊進度都能各自完整保留。⟧",
-                "en": "When having the AI assistant run time-consuming commands in the background while you continue editing code in the foreground, progress on both sides is no longer mysteriously lost.\n\nPreviously, once a background command finished, if the assistant was still actively working, your recent file edits, task lists, and session spend were entirely lost, even rolling back to the state when that command first started. This state regression issue is now fixed, cleanly preserving all foreground progress when background tasks complete.\n\nTask logs for background commands also previously missed the last few lines of output at times. Whether a command finishes normally or is canceled midway through, the final output is now fully written into the log. ⟦Consider handing a large stack of documents to a copier while reviewing paperwork at your desk: previously, finishing the copy job mysteriously reverted freshly reviewed papers to an unreviewed state, but copying and foreground work are now preserved completely.⟧"
-              },
-              "original": "Fixed the agent losing track of its file changes, tasks, and session cost when a background command finished while the agent kept working; they no longer roll back to the point where that command started.\nFixed a background command's final output sometimes missing from its task log; the output is now always recorded when the command finishes or is canceled."
-            },
-            {
-              "title": {
-                "zh-TW": "回覆中的資料夾連結恢復顯示，不再留下一片空白",
-                "en": "Folder links in responses reappear, leaving no blank gaps"
-              },
-              "body": {
-                "zh-TW": "看著 AI 助理在回答中推薦某個專案目錄時，如果路徑文字整段消失，往往讓人摸不著頭緒。以前助理的回覆如果包含指向資料夾的連結，該連結文字有時會從畫面上消失，讓整段說明缺字斷句。現在這個問題已經修好，回答會正常顯示出資料夾名稱，例如 `pipelines/`，讓你一眼看清路徑位置。",
-                "en": "When reading an AI assistant response that recommends a project directory, having the path text vanish entirely is confusing. Previously, if the assistant response contained a link pointing to a folder, the link text occasionally disappeared from the screen, leaving broken sentences with missing words. This issue is now fixed, and responses display folder names normally, such as `pipelines/`, allowing you to see path locations at a glance."
-              },
-              "original": "Fixed links to directories disappearing from agent responses; they now show the directory name, for example `pipelines/`."
             }
           ]
         }
