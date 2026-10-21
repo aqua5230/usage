@@ -8,6 +8,7 @@ Format follows [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Changed
+- **Windows: the taskbar label stops scanning taskbar buttons while the screen is locked.** The scan runs every 2 seconds through UI Automation and is the main suspect in an unexplained crash that happened while Windows was locked (refs #202). Nothing changes while unlocked. This is a mitigation, not a confirmed fix.
 - **Auto-start 5-hour Session sends a lighter ping and no longer clutters your resume list.** The Claude ping now loads no tools or MCP servers and is not saved as a session; the Codex ping runs with `--ephemeral`. Each ping used to load about 20k input tokens and leave an "ok" conversation in `claude --resume` and `codex resume`.
 
 ## [0.34.2] - 2026-10-21

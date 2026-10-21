@@ -5,14 +5,86 @@
 
 from __future__ import annotations
 
+import ctypes as C
 import importlib
 import logging
 import threading
+from functools import cache
 from pathlib import Path
 
 from wintray.taskbar_overlay import Rect
 
 logger = logging.getLogger(__name__)
+
+
+class _WTSINFOEX_LEVEL1_W(C.Structure):
+    # Windows WCHAR and LONG stay 16/32 bits even on hosts with wider C types.
+    _fields_ = [
+        ("SessionId", C.c_uint32),
+        ("SessionState", C.c_int32),
+        ("SessionFlags", C.c_int32),
+        ("WinStationName", C.c_uint16 * 33),
+        ("UserName", C.c_uint16 * 21),
+        ("DomainName", C.c_uint16 * 18),
+        ("LogonTime", C.c_int64),
+        ("ConnectTime", C.c_int64),
+        ("DisconnectTime", C.c_int64),
+        ("LastInputTime", C.c_int64),
+        ("CurrentTime", C.c_int64),
+        ("IncomingBytes", C.c_uint32),
+        ("OutgoingBytes", C.c_uint32),
+        ("IncomingFrames", C.c_uint32),
+        ("OutgoingFrames", C.c_uint32),
+        ("IncomingCompressedBytes", C.c_uint32),
+        ("OutgoingCompressedBytes", C.c_uint32),
+    ]
+
+
+class _WTSINFOEX_LEVEL_W(C.Union):
+    _fields_ = [("WTSInfoExLevel1", _WTSINFOEX_LEVEL1_W)]
+
+
+class _WTSINFOEXW(C.Structure):
+    _fields_ = [("Level", C.c_uint32), ("Data", _WTSINFOEX_LEVEL_W)]
+
+
+@cache
+def _wts_api() -> C.CDLL:
+    # WinDLL is absent from ctypes and its stubs on non-Windows hosts.
+    loader = getattr(C, "WinDLL")  # noqa: B009
+    wts: C.CDLL = loader("wtsapi32", use_last_error=True)
+    wts.WTSQuerySessionInformationW.argtypes = [
+        C.c_void_p,
+        C.c_uint32,
+        C.c_int,
+        C.POINTER(C.c_void_p),
+        C.POINTER(C.c_uint32),
+    ]
+    wts.WTSQuerySessionInformationW.restype = C.c_int
+    wts.WTSFreeMemory.argtypes = [C.c_void_p]
+    wts.WTSFreeMemory.restype = None
+    return wts
+
+
+def _session_locked() -> bool:
+    try:
+        wts = _wts_api()
+        buffer = C.c_void_p()
+        size = C.c_uint32()
+        try:
+            if not wts.WTSQuerySessionInformationW(
+                None, 0xFFFFFFFF, 25, C.byref(buffer), C.byref(size)
+            ):
+                return False
+            if not buffer or size.value < C.sizeof(_WTSINFOEXW):
+                return False
+            info = C.cast(buffer, C.POINTER(_WTSINFOEXW)).contents
+            return bool(info.Level == 1 and info.Data.WTSInfoExLevel1.SessionFlags == 0)
+        finally:
+            if buffer:
+                wts.WTSFreeMemory(buffer)
+    except (OSError, AttributeError):
+        return False
 
 
 class TaskbarObstacles:
@@ -42,7 +114,7 @@ class TaskbarObstacles:
             )
             while not self._stop.is_set():
                 hwnd = self.hwnd
-                if hwnd:
+                if hwnd and not _session_locked():
                     try:
                         root = element.FromHandle(system.IntPtr(hwnd))
                         buttons = root.FindAll(automation.TreeScope.Descendants, condition)
