@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.34.5] - 2026-10-21
+
+### Fixed
+- **The Muse card shows a used-up 5-hour window even when Muse sends no numbers.** Once the window runs out, Muse usually refuses the quota check with a "Subscription quota exhausted" error that only says when the window resets. The card now shows the window as 100% with that reset time. The error has no weekly figure, so the weekly percentage stays from the last reading and the card keeps its "last checked" badge.
+
 ## [0.34.4] - 2026-10-21
 
 ### Fixed
