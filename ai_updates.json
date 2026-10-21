@@ -6,6 +6,34 @@
       "name": "Claude Code",
       "versions": [
         {
+          "version": "2.1.306",
+          "period": "2026-10-21",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "雲端工作階段裡的 `claude -p` 不再誤報沒登入",
+                "en": "`claude -p` in cloud sessions no longer falsely reports \"Not logged in\""
+              },
+              "body": {
+                "zh-TW": "明明登入好了，腳本卻回你「Not logged in」，很容易讓人摸不著頭緒。這發生在雲端工作階段裡另外執行 `claude -p`（不開互動畫面、直接回一次答案）時：只要沒帶上該工作階段的環境變數，就會這樣誤報。現在不會了。",
+                "en": "Running `claude -p` (which answers once without opening the interactive screen) inside a cloud session without that session's environment variables used to report \"Not logged in\", as if you had never signed in. It no longer does."
+              },
+              "original": "Fixed `claude -p` inside cloud sessions reporting \"Not logged in\" when started without the session's environment variables"
+            },
+            {
+              "title": {
+                "zh-TW": "接很多 MCP 工具時，API 錯誤不再被誤報成對話太長",
+                "en": "With many MCP tools, API errors are no longer mislabeled as \"prompt is too long\""
+              },
+              "body": {
+                "zh-TW": "明明才聊幾句，畫面卻說「prompt is too long」，你可能以為得開新對話了。這發生在接了很多 MCP 工具（讓 Claude 連外部服務的擴充）的工作階段：碰到 API 錯誤時，錯誤訊息會被換成這句。它還會順手做一次不必要的 compaction（把舊對話濃縮成摘要）。現在你看到的是原本的 API 錯誤，對話也不會白白被壓縮。",
+                "en": "In sessions with many MCP tools (extensions that connect Claude to outside services), an API error used to show up as \"prompt is too long\", making you think the conversation had grown too long. It also triggered an unneeded compaction (condensing older conversation into a summary). Now you see the original API error, and your conversation is not compacted for nothing."
+              },
+              "original": "Fixed an API error being replaced by \"prompt is too long\", and an unneeded compaction, in sessions with many MCP tools"
+            }
+          ]
+        },
+        {
           "version": "2.1.304",
           "period": "2026-10-19",
           "items": [
@@ -465,166 +493,6 @@
                 "en": "When configuring Code Review workflows in the admin console, redirecting mid-process for authorization no longer loses your initial progress. Previously, leaving the setup workflow to connect a GitHub account prevented the admin console from automatically restoring progress upon return, often requiring a fresh start. This redirection interruption is now resolved, reopening directly to the repository selection screen upon return so you can smoothly resume setup. ⟦Travelers completing an immigration entry form experience the same relief: previously, redirecting to verify identity wiped all entered details upon return, but the system now faithfully preserves form progress and reopens directly at the destination selection step.⟧"
               },
               "original": "[Code Review] Fixed Code Review setup not resuming after you leave to connect GitHub; back in admin settings, it now reopens at the repository picker"
-            }
-          ]
-        },
-        {
-          "version": "2.1.301",
-          "period": "2026-10-15",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "無人值守重試模式支援自訂額度等待上限",
-                "en": "Unattended Retry Mode Adds Configurable Usage Limit Wait Threshold"
-              },
-              "body": {
-                "zh-TW": "當你放著 Claude 在背景通宵跑大量任務時，最怕半夜遇到額度限制而卡住空轉。以前開啟無人值守重試模式（`CLAUDE_CODE_RETRY_WATCHDOG`，遇到錯誤時自動重試的背景守護機制）後，只要撞上額度上限，即使重設時間遠在好幾個小時後，程式也會一直停在那裡乾等。現在新增了環境變數 `CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS`，只要重設等待時間超出你設定的毫秒上限，就會果斷結束該次請求。⟦像排隊等候叫號，要是櫃檯告示牌寫著下一梯次得等好幾個小時，就先收隊離開而不是傻站在大門口枯等過夜。⟧",
-                "en": "When leaving Claude running extensive tasks in the background overnight, hitting usage limits and idling mid-job is a constant worry. Previously, with unattended retry mode enabled (`CLAUDE_CODE_RETRY_WATCHDOG`, a background watchdog that automatically retries on errors), hitting a usage limit caused the process to wait indefinitely, even if the reset time was hours away. The new `CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS` environment variable decisively terminates the request whenever the reset wait time exceeds your configured millisecond threshold. ⟦Think of taking a queue number: if the counter display says the next batch will take several hours, you pack up and leave rather than waiting around outside all night.⟧"
-              },
-              "original": "Added `CLAUDE_CODE_RETRY_WATCHDOG_MAX_USAGE_LIMIT_WAIT_MS` so unattended retry mode (`CLAUDE_CODE_RETRY_WATCHDOG`) ends a request at a usage limit that resets too far away instead of waiting"
-            },
-            {
-              "title": {
-                "zh-TW": "Vim 模式支援括號跳躍與按鍵狀態切換",
-                "en": "Vim Mode Adds Bracket Matching and Key State Switching"
-              },
-              "body": {
-                "zh-TW": "習慣在終端機用快捷鍵飛速跳轉程式碼的 Vim 族群，這版操作手感更貼近原生編輯器。Vim 模式新增了 `%` 移動指令，能跳到配對括號，也能搭配 `d`、`c`、`y` 執行刪除、修改或複製。以前在負載沉重的機器上按 Esc 鍵，有時會卡在 INSERT（插入模式，打字輸入內文的狀態）而無法切換。回答提問輸入框時，自由文字欄位現在支援 NORMAL（一般模式，用來執行移動與指令的瀏覽狀態）。按 Esc 只會先退回一般模式，只有在一般模式下再按 Esc 才會取消，不會直接抹掉你辛苦打好的回答。⟦跟操作傳統手排檔桿一樣，以前離合器踩下偶爾卡在空檔，現在跳檔定位精準俐落，退檔時也不會誤把轉速歸零。⟧",
-                "en": "For Vim users accustomed to navigating code quickly with terminal shortcuts, handling now feels closer to the native editor. Vim mode introduces the `%` motion to jump between matching brackets, which also pairs with `d`, `c`, and `y` for delete, change, or yank operations. Previously, pressing Esc on heavily loaded machines could get stuck in INSERT (the state for typing text) without switching. Free-text fields in prompt inputs now support NORMAL (the navigation state for motions and commands). Pressing Esc now drops back to normal mode first, and only cancels when pressed again in normal mode, preventing your typed answer from being wiped out. ⟦Like shifting a manual transmission, depressing the clutch previously got stuck in neutral at times, but gear changes now lock in cleanly, and downshifting no longer resets engine RPM to zero by mistake.⟧"
-              },
-              "original": "Added the `%` motion to vim mode: jump to the matching bracket, alone or with d/c/y\nFixed vim mode sometimes staying in INSERT after Escape on a slow or busy machine\nFixed Esc discarding a typed AskUserQuestion answer in vim mode: the free-text field now supports vim NORMAL mode, and Esc cancels only from NORMAL"
-            },
-            {
-              "title": {
-                "zh-TW": "OpenTelemetry 追蹤指引與工具決策事件屬性擴充",
-                "en": "OpenTelemetry Tracing Guidance and Expanded Tool Decision Event Attributes"
-              },
-              "body": {
-                "zh-TW": "想在企業儀表板掌握 Claude 呼叫工具的原因，觀測日誌現在記錄得更詳盡。在 `claude-api` 技能中加入 OpenTelemetry（跨系統追蹤運作軌跡的開源標準）的設定指引，包含如何使用 `ant` 工具配置追蹤目的地。工具決策事件 `tool_decision` 新增 `classifier_verdict` 與 `permission_mode` 欄位，讓管理員分清自動模式（auto mode，讓 Claude 自主執行的模式）分類器的決策與既有權限規則。啟用 `OTEL_LOG_TOOL_DETAILS=1` 時，分類器阻擋操作的 `tool_decision` 事件還會以 `classifier_category` 記錄命中的內建規則名稱。⟦就像翻開檢驗報告，以前只標記陰陽性，現在能分清儀器判讀與人工複核，異常時還附上項目名稱。⟧",
-                "en": "Observability logs now record more detail when tracking why Claude invokes tools in enterprise dashboards. Configuration guidance for OpenTelemetry (an open-source standard for tracking execution traces across systems) is now included in the `claude-api` skill, covering how to configure export destinations with the `ant` tool. The `tool_decision` event adds `classifier_verdict` and `permission_mode` fields, helping administrators distinguish classifier decisions in auto mode (the setting allowing Claude to execute autonomously) from existing permission rules. When `OTEL_LOG_TOOL_DETAILS=1` is enabled, `tool_decision` events where the classifier blocks an action also record the triggered built-in rule name in `classifier_category`. ⟦Picture reviewing a lab report: whereas tests previously only showed positive or negative marks, you can now separate automated instrument readings from manual reviews, complete with specific item names when abnormalities occur.⟧"
-              },
-              "original": "Added OpenTelemetry tracing guidance to the `claude-api` skill, including setting up trace destinations with the `ant` CLI\nAdded `classifier_verdict` and `permission_mode` to OpenTelemetry `tool_decision` events, so auto mode classifier decisions can be told apart from permission rules\nAdded `classifier_category` to OpenTelemetry `tool_decision` events, naming the built-in rule a classifier block matched, when `OTEL_LOG_TOOL_DETAILS=1`"
-            },
-            {
-              "title": {
-                "zh-TW": "Mod 擴充模組支援多行輸入與狀態回傳規範",
-                "en": "Mod Extensions Add Multi-Line Input and Standardized Return States"
-              },
-              "body": {
-                "zh-TW": "編寫 Mod（擴充 Claude 功能的模組）時，介面與流程控制更精準。`Input` 元件新增 `rows` 屬性，終端機能多行輸入，Enter 送出、Shift+Enter 或反斜線換行。修復在 `claude -p` 或雲端工作階段，首次回覆未完成就呼叫 `$.model.fork` 報錯 `nothing-to-fork`。提問樹狀清單在桌面端、行動端與 VS Code 支援 Markdown 且最多 48 行，終端機維持 12 行。掛鉤（hook，特定事件觸發的小程式）的 `.catch` 改為只在拋出例外或逾時時執行，內部呼叫產生的事件不再轉給自身。設定或取消設定環境變數的方法 `$.env.set`，完成操作時回傳 `{}`；未執行寫入時，回傳附帶原因的 `{ deny }`。",
-                "en": "Interface and flow control become more precise when authoring a Mod (modules that extend Claude's capabilities). The `Input` component adds a `rows` prop for multi-line terminal input, submitting on Enter and inserting newlines on Shift+Enter or backslash. Calling `$.model.fork` before the initial response finishes in `claude -p` or cloud sessions no longer throws `nothing-to-fork`. Prompt tree lists now support Markdown with up to 48 lines across desktop, mobile, and VS Code, while staying at 12 lines in the terminal. The `.catch` handler on a hook (small programs triggered by specific events) now runs only on thrown exceptions or timeouts, and events generated by internal calls are no longer forwarded back to the hook itself. The `$.env.set` method for setting or unsetting environment variables now returns `{}` on successful operations, and `{ deny }` with a reason when writes are skipped."
-              },
-              "original": "Added `rows` to a mod's `Input`: a text field of several lines in the terminal, where Enter submits and Shift+Enter or a backslash before Enter starts a new line\nFixed a mod's `$.model.fork` returning `nothing-to-fork` when called before the first response of a new Claude Code process had finished, as in `claude -p` runs and cloud sessions\nImproved mods: in VS Code and the desktop and mobile apps, a tree drawn above the question dialog can now hold Markdown and up to 48 rows; the terminal keeps 12 plain rows\nChanged a mod hook's `.catch` handler to run only when the hook throws or times out; events raised beneath the hook's own calls now skip that hook without asking its `.catch`\nChanged a mod's `$.env.set` to resolve with `{}` once the variable is set or unset, or with `{ deny }` saying why when the write is not made"
-            },
-            {
-              "title": {
-                "zh-TW": "模型切換流程與長對話自動摘要優化",
-                "en": "Model Switching Flow and Long Conversation Auto-Summarization Improvements"
-              },
-              "body": {
-                "zh-TW": "聊到一半想切換到上下文視窗較小的模型，長對話轉移現在處理得更順暢。上下文視窗是模型一次能讀取的最大文字量；若對話太長，會先請原模型精簡摘要，以前未經詢問就扣額度摘要的問題已修復。透過 Anthropic API 使用 `fable` 或 `best` 別名時，若組織尚未開放最新版 Fable，會自動退回前一版重試一次。非 Bedrock 的自訂模型名稱即便包含 `application-inference-profile`，也不會誤跑 `awsAuthRefresh` 耽擱掛鉤。透過閘道器連線時，伺服器回傳不同模型名稱，也不會再反覆用不是你選的模型壓縮對話。⟦猶如搭長途客運轉乘小型接駁車，以前未經同意就收費整理行李，現在先徵得同意，再由原班司機精簡包裹；轉運站也不會搞錯車號讓你反覆轉乘。⟧",
-                "en": "Switching mid-conversation to a model with a smaller context window is now much smoother when transferring long dialogs. A context window represents the maximum text volume a model can read at once. When conversations run too long, the original model is asked to summarize them first, resolving an issue where quota was deducted for summarization without asking. When using `fable` or `best` aliases through the Anthropic API, organizations without access to the latest Fable release will automatically fall back to the prior version and retry once. Non-Bedrock custom model names that include `application-inference-profile` no longer mistakenly run `awsAuthRefresh` and delay hooks. When connecting through a gateway, differing model names returned by the server will no longer cause repeated conversation compression using an unselected model. ⟦A passenger transfers from a long-haul coach to a compact shuttle: luggage was previously repacked for an unapproved fee, but permission is now requested first while the original driver streamlines the cargo, and the transit station avoids mixing up fleet numbers that forced endless re-transfers.⟧"
-              },
-              "original": "Fixed the `fable` (and `best`) model alias erroring on the Anthropic API when the newest Fable model is not available to your organization: Claude Code now retries once on the previous Fable model\nFixed switching to a model whose name contains `application-inference-profile` running your `awsAuthRefresh` command and delaying model-switch hooks when the provider is not Bedrock\nFixed a case where switching to a model with a smaller context window could spend usage credits on a summary by the previous model without asking first\nFixed conversations being compacted over and over, on a model you didn't pick, behind an LLM gateway whose responses name a different model than the one requested\nImproved switching to a model with a smaller context window: a conversation too long for the new model is now summarized by the previous model first"
-            },
-            {
-              "title": {
-                "zh-TW": "技能參數填入效能與外掛權限來源顯示修復",
-                "en": "Skill Parameter Hydration Performance and Plugin Permission Attribution Fixes"
-              },
-              "body": {
-                "zh-TW": "在專案中安裝大量自訂技能或外掛工具時，指令呼叫與權限確認現在更俐落透明。過去技能（擴充特定領域知識與指令的手冊）與命令若包含過多或過長的參數名稱，呼叫時會卡頓數秒。現在限制僅填入前 64 個名稱且每個最多 64 個字元。修復了技能、命令與掛鉤在填入大量佔位符時耗用大量記憶體的問題。修復 `/rewind` 回退對話後技能清單在模型中消失的問題，並更正了 `/claude-api` 技能誤稱 AWS 上 Claude 平台不支援 CMEK 外部金鑰端點的說明。外掛或技能掛鉤若觸發 `ask` 詢問決策，彈出的權限確認提示現在會明確標示該掛鉤來自哪一個外掛或技能。⟦類似翻閱零件庫存的規格清冊，以前填寫欄位太多會整疊卡在夾板上動彈不得，現在規格索引限制在精簡欄位內，調用工具時也清楚貼上所屬工具箱的產權標籤。⟧",
-                "en": "Invoking commands and confirming permissions is now cleaner and more transparent when projects install numerous custom skills or plugins. Previously, skills (playbooks expanding domain knowledge and commands) and commands with too many or excessively long parameter names stuttered for seconds during invocation. Hydration is now limited to the first 64 names with a maximum of 64 characters each. An issue where skills, commands, and hooks consumed excessive memory while hydrating numerous placeholders has been resolved. The skill catalog no longer vanishes from the model after running `/rewind` to roll back conversations, and documentation in `/claude-api` mistakenly claiming the Claude platform on AWS lacks CMEK external key endpoint support has been corrected. When a plugin or skill hook triggers an `ask` prompt for decisions, the confirmation dialog now clearly labels which plugin or skill originated the hook. ⟦Imagine consulting a parts inventory ledger: having too many entry fields previously jammed the entire clipboard, but specification indexes are now capped to compact entries, and retrieved tools clearly display ownership labels for their parent toolbox.⟧"
-              },
-              "original": "Fixed skills and commands with very many or very long argument names stalling for seconds when invoked; only the first 64 names, each up to 64 characters, are now filled in\nFixed skills, commands and hooks using very large amounts of memory when their arguments fill many placeholders\nFixed the /claude-api skill saying CMEK external-key endpoints aren't available on Claude Platform on AWS\nFixed skills no longer being listed to the model after using `/rewind`\nFixed the permission prompt for a plugin or skill hook's `ask` decision not showing which plugin or skill the hook comes from"
-            },
-            {
-              "title": {
-                "zh-TW": "帳號登入與憑證更新狀態修復",
-                "en": "Account Login and Credential Refresh Fixes"
-              },
-              "body": {
-                "zh-TW": "登入更新失敗時，錯誤提示更清楚；快速執行短指令後，也不會再因更新途中結束而意外登出。過去當硬碟空間被塞滿時，系統無法完成登入憑證更新，卻彈出讓人一頭霧水的「Please run /login」錯誤訊息。現在會具體指出是哪顆磁碟空間已滿，並明確提醒你刪除檔案釋放空間。當你執行 `claude auth status` 檢查認證或 `claude plugin list` 查詢外掛等耗時短暫的指令時，過去若指令在 token（驗證身分的授權令牌）更新途中結束，會引發更新逾時甚至意外登出。這種登入更新逾時與意外登出的問題已經修好。⟦正如到銀行櫃檯辦理印鑑更新，以前印泥乾掉卻謊稱印章作廢，快閃刷本子還會把帳戶直接凍結；現在印泥不夠會直接請你更換，查詢一下餘額也不再被誤踢出門。⟧",
-                "en": "Error messages are clearer when login refresh fails, and running quick commands will no longer cause accidental logouts if they terminate mid-refresh. Previously, when disk space filled up completely, the system failed to refresh login credentials and instead displayed a confusing \"Please run /login\" error message. It now identifies the exact disk that is out of space and explicitly prompts you to remove files to free up room. When running quick commands like `claude auth status` or `claude plugin list`, if the command exited while refreshing a token (an authorization ticket used to verify identity), it previously triggered refresh timeouts and unexpected logouts. These login refresh timeouts and accidental sign-outs are now fixed. ⟦Consider updating a signature seal at a bank counter: dried ink previously led to false claims that your seal was invalid, and quick passbook checks froze accounts on the spot, but low ink now prompts an immediate refill request and quick balance inquiries no longer get you kicked out.⟧"
-              },
-              "original": "Fixed a misleading \"Please run /login\" error when a full disk keeps the login from being refreshed; the error now names the disk and says to delete files\nFixed sign-in refresh timeouts and unexpected sign-outs after a short command such as `claude auth status` or `claude plugin list` exited in the middle of a token refresh"
-            },
-            {
-              "title": {
-                "zh-TW": "成品發布更新機制與行動版版面繪製修正",
-                "en": "Artifact Publishing Updates and Mobile Layout Rendering Fixes"
-              },
-              "body": {
-                "zh-TW": "請 Claude 產出獨立網頁或文件成品（artifacts）時，更新內容與手機預覽現在都更穩定。在設定了攔截編輯或寫入的 PreToolUse 掛鉤環境下，過去更新成品時常會被直接拒絕。現在 Claude 會先正常編輯檔案再重新發布，而不是試圖在發布呼叫中直接修改檔案。在行動端應用程式中，Claude 產出的網頁以前捲動時文字會穿透到置頂標題上方。現在上方色帶會確實著色覆蓋，捲動內容不再穿幫破圖。⟦彷彿為展覽海報加裝固定展示框，以前更換內容非得當場塗改版面而遭警衛攔阻，現在先取下內頁修潤再重新入框，走動時頂部邊框也能確實遮擋後方紙張。⟧",
-                "en": "Updating content and previewing on phones is now more reliable when asking Claude to produce standalone web pages or document artifacts. In environments configured with PreToolUse hooks that intercept edits or writes, updating artifacts previously met with outright rejection. Claude now edits the file normally before republishing, instead of attempting to modify files directly inside the publishing call. In the mobile app, text on Claude-generated web pages previously bled above the sticky header during scrolling. The top header band now renders solid background fill, preventing scrolled content from showing through. ⟦A display case protects an exhibition poster: updating the print previously involved defacing the surface on-site and drawing security guards, but staff now remove the sheet to touch it up before reframing, and the top frame solidly covers the page beneath as people walk past.⟧"
-              },
-              "original": "Fixed artifact updates being refused where a PreToolUse hook covers Edit or Write; Claude now edits the file and then republishes instead of changing it in the publish call\nImproved artifacts: pages Claude writes now paint the band above a sticky header, so scrolled text no longer shows there in the mobile apps"
-            },
-            {
-              "title": {
-                "zh-TW": "檔案讀取、搜尋工具與 Git 操作修復",
-                "en": "File Reading, Search Tools, and Git Operation Fixes"
-              },
-              "body": {
-                "zh-TW": "盤點專案原始碼或比對版本差異時，底層檢查工具的回報比以往更誠實安全。Grep 與 Glob 等搜尋工具過去在搜尋程式意外崩潰時，會回傳查無結果；現在會老實拋出錯誤告知搜尋失敗。Read 讀取工具不再將 `.xlsm`、`.parquet`、`.epub` 與 `.heic` 等二進位檔案誤當成純文字讀入。使用 `WorktreeCreate` 掛鉤建立的 Git 工作樹（worktree，讓同一專案平行開多份副本的功能），若裡面還有尚未推送的提交，退出 Claude Code 時不會再不問一聲就悄悄刪除。在採用 reftable 格式的 Git 存放庫中，若底層檢查逾時或失敗，`/diff` 指令不再漏掉發生衝突的揀選或復原操作。⟦如同替檔案室裝上嚴格的清點規範，儀器當機不再謊報查無資料，翻閱圖冊不再當成純文字硬讀，搬移未歸檔的文件箱離場時也必定當面確認。⟧",
-                "en": "Underlying inspection tools report results more faithfully and safely when auditing source code or comparing version diffs. When search processes crashed unexpectedly, search tools like Grep and Glob previously returned empty results. They now properly throw errors to report the search failure. The Read tool no longer mistakenly ingests binary files such as `.xlsm`, `.parquet`, `.epub`, and `.heic` as plain text. When exiting Claude Code, Git worktrees (capabilities allowing parallel copies of the same project) created via `WorktreeCreate` hooks are no longer silently deleted if unpushed commits remain. In Git repositories using the reftable format, the `/diff` command no longer misses conflicted cherry-pick or revert operations if underlying inspections time out or fail. ⟦Just as strict auditing protocols govern an archive room, equipment crashes no longer falsely report missing records, illustrated volumes are not forced into plain text transcripts, and unfiled document crates require in-person sign-off before leaving the floor.⟧"
-              },
-              "original": "Fixed quitting removing a worktree made by a `WorktreeCreate` hook without asking when it may hold unpushed commits\nFixed Grep and Glob reporting no matches when the search program failed unexpectedly before returning any results; they now return an error saying the search failed\nFixed the Read tool reading binary files such as .xlsm, .parquet, .epub and .heic as text\nFixed `/diff` not noticing a conflicted cherry-pick or revert in reftable repositories when one of its git checks timed out or failed"
-            },
-            {
-              "title": {
-                "zh-TW": "工作流程自動化與背景指令執行修復",
-                "en": "Workflow Automation and Background Command Execution Fixes"
-              },
-              "body": {
-                "zh-TW": "安排多代理人或腳本排程自動處理專案時，背景步驟與權限控管更為穩定。工作流程代理人過去讀到任務說明未附帶使用者授權的框架備註後，有時會擅自略過自己的步驟卻仍回報執行成功，這個問題已經修復。在同一個工作階段中執行 Bash `cd` 切換目錄後，讀取、編輯或重跑工作流程腳本不再莫名彈出權限確認或直接被拒絕。工具呼叫若在權限檢查期間被回合中途傳入的訊息中斷，現在不會再向模型誤報為使用者拒絕。在 Windows 環境下，被終止的背景 PowerShell 命令輸出檔過去會漏掉結尾的 `[killed]` 標記，現在均已正常補上。⟦恰似工廠的自動化輸送帶，以前看到便箋誤以為沒有權限就偷跳步驟還回報良品，切換站別就拒絕作業；現在每個工序確實執行，中途停機也確實蓋上停止印戳。⟧",
-                "en": "Background steps and permission controls are significantly more dependable when orchestrating multi-agent or scripted project automations. When workflow agents encountered framework notes indicating missing user authorization in task descriptions, they previously skipped steps while falsely reporting success, an issue that is now fixed. After running Bash `cd` to change directories within the same session, reading, editing, or re-running workflow scripts no longer prompts unexpected permission requests or fails with rejections. Tool calls interrupted by incoming mid-turn messages during permission evaluation are no longer falsely reported to the model as user rejections. On Windows, output files from terminated background PowerShell commands that previously missed the trailing `[killed]` indicator now append it properly. ⟦Much like an automated factory conveyor belt, notes once led stations to skip assembly steps while marking items passed and station handoffs triggered outright refusal, but every procedure now executes faithfully while mid-process halts receive clear cancellation stamps.⟧"
-              },
-              "original": "Fixed workflow agents sometimes skipping their step, and the run still reporting success, after reading the harness note that their task text carries no user authority\nFixed a tool call cut off by a message sent mid-turn during its permission check being reported to the model as rejected by the user\nFixed workflow scripts asking for permission or being refused when read, edited or re-run after a Bash `cd` in the same session\nWindows: Fixed stopped background PowerShell commands missing the closing `[killed]` line in their output file"
-            },
-            {
-              "title": {
-                "zh-TW": "終端機文字雜訊、表格排版與暗色色彩修正",
-                "en": "Fixes for Terminal Text Artifacts, Table Layout, and Dark Theme Colors"
-              },
-              "body": {
-                "zh-TW": "開啟終端機執行指令時，螢幕畫面上的字元邊界與色彩層次變得更加乾淨易讀。在 RHEL 8 的 MATE 終端機等使用舊版 VTE（終端機模擬器核心元件，版本低於 0.53）的環境中，修復了 `>0q` 遮擋資料夾信任提示以及退出時出現 `>4m` 雜訊的問題。修復特定版本 iTerm2 啟動時提示字元前方出現殘留 `GOK` 字樣的問題。只有標題列的 Markdown 表格若寬度超出終端機，過去會完全無法顯示（包含出現在計畫核准卡片中的表格），現在均能正常繪製。在暗色 ANSI 主題與 16 色終端機下，填滿方框內的文字維持淡化，但在選取與搜尋醒目提示下不再淡化，清單說明文字也正確比照次要文字淡化處理。⟦就像老舊顯示螢幕完成校正，以前開機常跳出訊號雜訊、寬表格直接破圖消失，現在所有字樣清楚對齊，在暗色背景下也層次分明。⟧",
-                "en": "When opening a terminal to run commands, character boundaries and color gradations on screen are now cleaner and easier to read. In environments such as MATE Terminal on RHEL 8 that use older versions of VTE (terminal emulator core component, versions below 0.53), fixes resolve `>0q` obscuring folder trust prompts and `>4m` noise appearing upon exit. A bug where leftover `GOK` text appeared in front of the prompt upon launching certain iTerm2 versions has been fixed. Markdown tables containing only a header row previously failed to render completely when their width exceeded the terminal (including tables appearing in plan approval cards), but they now draw properly. Under dark ANSI themes and 16-color terminals, text inside filled boxes remains dimmed, but it is no longer dimmed under selections and search highlights, and list descriptions are also correctly dimmed like secondary text. ⟦Old computer displays finally receive proper calibration: boot-up static previously scrambled text and wide tables disappeared broken, but every character now aligns neatly with sharp contrast against dark backgrounds.⟧"
-              },
-              "original": "Fixed stray characters such as `>0q` covering the folder trust prompt, and `>4m` before the shell prompt at exit, in terminals built on VTE older than 0.53 such as MATE Terminal on RHEL 8\nFixed stray `GOK` text appearing in the prompt at startup in some versions of iTerm2\nFixed a Markdown table with only a header row drawing nothing when too wide for the terminal, including in plans on the plan approval card\nFixed dim text on the dark ANSI theme and 16-color terminals: faint inside filled boxes, not faint under selection and search highlights, and list descriptions dimmed like other secondary text"
-            },
-            {
-              "title": {
-                "zh-TW": "工作階段對話壓縮、提示與子代理進度更新優化",
-                "en": "Optimizations for Session Compaction, Prompts, and Subagent Progress Updates"
-              },
-              "body": {
-                "zh-TW": "進行長時間對話或派發子任務時，畫面不再因資料繁重而短暫凍結。在全螢幕模式下執行 `/compact` 或自動壓縮時，過去因重建可見對話紀錄會造成介面短暫卡頓，現在已修復。在長時間運作的子代理人（subagent，負責獨立執行特定子任務的代理人）工作時，進度歷程改為增量更新，不再每次渲染都整條重算。重新接續先前的工作階段時，壓縮提示列不再提供無法載入歷史紀錄的 Ctrl+O 捷徑，而是清楚說明先前訊息儲存在哪個路徑，且此提示在全螢幕下也能正常顯示。當你中途打斷回覆時，過去會立刻冒出建議輸入 `/clear` 清除對話省 token（AI 處理與計費的文字單位）的提示，現在不會再立刻跳出來干擾。⟦比方翻閱長篇連載小說，以前每翻一頁就重新把前幾章裝訂一次導致卡死，現在只順暢翻到最新一頁，換卷時也清楚標記上一冊收在何處。⟧",
-                "en": "When engaging in lengthy conversations or dispatching subtasks, the interface no longer freezes briefly from heavy data loads. A brief UI stutter caused by rebuilding visible message history when running `/compact` or automatic compaction in fullscreen mode has now been fixed. During long-running subagent (an agent that independently performs a specific subtask) tasks, progress history now updates incrementally instead of recalculating the entire trail on every render. When resuming a previous session, the compaction prompt bar no longer offers a Ctrl+O shortcut that fails to load history, but instead clearly explains the path where earlier messages are stored, and this prompt now displays properly in fullscreen mode as well. When you interrupt a response midway, a prompt that previously appeared immediately suggesting `/clear` to clear conversations and save tokens no longer pops up right away to cause disruption. Tokens are units of text used for AI processing and billing. ⟦Reading a serialized novel is much smoother now: rather than rebinding all earlier chapters with every page turn and causing a jam, the reader simply turns to the newest page, with each new volume clearly noting where the previous book is archived.⟧"
-              },
-              "original": "Fixed the compaction row in a resumed session offering ctrl+o for history that is not loaded; it now says where the earlier messages are saved, and also shows in fullscreen\nFixed the \"new task? /clear to save tokens\" hint coming back right after you interrupt a response\nFullscreen mode: Fixed `/compact` and auto-compact briefly freezing the UI while the visible transcript is rebuilt\nImproved rendering performance while a long-running subagent works: its progress trail now updates incrementally instead of being reprocessed in full on every render"
-            },
-            {
-              "title": {
-                "zh-TW": "自架執行器工作階段重試與存放庫連結修復",
-                "en": "Fixes for Self-Hosted Runner Session Retries and Repository Attachment"
-              },
-              "body": {
-                "zh-TW": "串接團隊通訊軟體並使用自託管 Runner 時，工作階段的啟動與釋放更值得信賴。修復從 Slack 啟動的工作階段在受管設定限制 MCP（Model Context Protocol，讓 AI 連接外部工具的協定）伺服器時，無法找到或掛載存放庫的問題。若需停用特定工具，可在設定中配置 `deniedMcpServers`。修復無關的環境設定或工作階段失敗訊息引用 Git 遺失參照字眼時，工作階段被誤判為來源分支已刪除、因而不再重試的問題。即將結束的工作階段若在釋放資源時失敗或遭拒，日誌不再承諾重試；重複失敗時會顯示失敗次數。⟦形同無人調度車隊的基地閘門，以前防護限制一開就找不到車位，報修時引用特定代碼就被誤判為整輛車報廢，現在入庫停妥順暢，收工異常時也會確實記錄次數。⟧",
-                "en": "When integrating team chat apps and using self-hosted runners, session launch and teardown become significantly more reliable. A fix resolves an issue where sessions launched from Slack failed to find or mount repositories when managed settings restricted MCP (Model Context Protocol, a protocol that connects AI to external tools) servers. If specific tools must be disabled, `deniedMcpServers` can be configured in settings. A bug has been fixed where unrelated environment settings or session failure messages citing missing Git reference wording caused sessions to be misidentified as having a deleted source branch, preventing retries. If a terminating session fails or is rejected while releasing resources, logs no longer promise retries. Repeated failures now display the failure count. ⟦Automated fleet depots operate with dependable entry gates: security limits previously blocked vehicles from locating parking bays and repair tickets citing specific codes mistakenly marked entire cars as scrapped, but now parking proceeds smoothly and abnormal check-ins record exact failure counts.⟧"
-              },
-              "original": "Self-hosted runner: Fixed sessions started from Slack being unable to find or attach a repository when managed settings restrict MCP servers; use `deniedMcpServers` to keep those tools off\nSelf-hosted runner: Fixed sessions being reported as having a deleted source branch, and not retried, when an unrelated setup or session failure quoted git's missing-ref wording\nSelf-hosted runner: Fixed the log promising a retry of a failed or declined session release for a session that is ending; repeated failures now show a count"
-            },
-            {
-              "title": {
-                "zh-TW": "VS Code 擴充功能支援數學公式渲染與面板效能修復",
-                "en": "VS Code Extension Support for Mathematical Formulas and Panel Performance Fixes"
-              },
-              "body": {
-                "zh-TW": "在 VS Code 面板與 Claude 討論題目時，公式呈現更漂亮且對話操作更滑順。Claude 的回覆支援 LaTeX 數學公式，包含獨立段落的 `$$`、多行 `\\[ … \\]` 與行內 `$…$`、`\\(…\\)` 語法。VS Code 與 JetBrains 面板中，Pro 與 Max 方案的用量上限橫幅新增「Get more usage」連結。修復對話造成面板當機或凍結後，每次重新載入視窗又強制重開該對話的惡性循環。修復長時間思考時面板變慢的問題，不再每次更新都重新解析整段思考文字。部分語言伺服器回報問題時不再顯示 `[object Object]`，而是正確顯示規則代號（例如 MD013）。非 claude.ai 登入或遠端視窗等未提供聽寫的環境，不再載入原生音訊模組檢查麥克風權限。⟦就像把黑板搬進編輯器，方程式排版工整漂亮，推導再久也不會卡死在惡性循環裡。⟧",
-                "en": "Formulas render more cleanly and conversation interactions feel smoother when discussing problems with Claude in the VS Code panel. Claude's responses now support LaTeX mathematical formulas, including standalone paragraph `$$`, multiline `\\[ … \\]`, and inline `$…$` or `\\(…\\)` syntax. In VS Code and JetBrains panels, a \"Get more usage\" link has been added to the usage limit banner for Pro and Max plans. A fix resolves a vicious cycle where a conversation that crashed or froze the panel was forcefully reopened every time the window reloaded. Panel slowdowns during extended thinking have been resolved by no longer reparsing the entire thinking text on every update. When certain language servers report issues, they no longer display `[object Object]`, correctly showing rule identifiers instead (such as MD013). Environments without dictation, such as non-claude.ai logins or remote windows, no longer load the native audio module to check microphone permissions. ⟦Classroom blackboards move straight into the editor: equations stay neatly typeset, and no derivation freezes the workspace in a vicious cycle no matter how long it takes.⟧"
-              },
-              "original": "[VSCode] Added LaTeX math rendering in Claude's responses, including `$$` and multi-line `\\[ … \\]` blocks and inline `$…$` and `\\(…\\)` math\n[VSCode] Added a \"Get more usage\" link to the usage-limit banner for Pro and Max plans in the VS Code and JetBrains panels\n[VSCode] Fixed a conversation that crashes or freezes the panel being reopened on every reload\n[VSCode] Fixed the chat panel slowing down during long thinking: it no longer re-parses the whole thinking text on every update\n[VSCode] Fixed diagnostics showing \"[object Object]\" instead of the rule code (e.g. MD013) for some language servers\n[VSCode] Fixed the native dictation audio module being loaded, to check microphone permission, where dictation is not offered (non-claude.ai sign-ins, remote windows)"
             }
           ]
         }
@@ -1534,63 +1402,30 @@
           ]
         },
         {
-          "version": "0.34.0",
+          "version": "0.34.3",
           "period": "2026-10-21",
           "items": [
             {
               "title": {
-                "zh-TW": "Muse Code 有自己的額度卡了",
-                "en": "Muse Code gets its own quota card"
+                "zh-TW": "Windows 鎖定螢幕時，工作列標籤暫停掃描",
+                "en": "On Windows, the taskbar label stops scanning while the screen is locked"
               },
               "body": {
-                "zh-TW": "你用 Muse 改完一份報告，想知道還能不能再跑一輪？現在點開 `usage` 面板就看得到 Muse 的額度卡：5 小時 Session（從開始用起算的 5 小時用量窗）和每週額度都有，附重置倒數，15 款額度佈景都能用。選單列多了 Muse 項目和隱藏開關，也有跟 Antigravity 一樣的快用完、已用完、已恢復通知。Muse 本機不留額度檔，所以 `usage` 會在背景送一次很小的請求直接問 Muse，不留對話紀錄，而且從空資料夾執行。⟦跟打電話問銀行餘額一樣，每通都要花錢，所以它不會一直打：還沒有讀數時問一次，之後要等讀數超過 30 分鐘、你又用過 Muse 才再問。⟧每問一次會用掉一點 Muse 額度；查詢失敗就等你再用 Muse 才重試。把 Muse 卡片藏起來就完全不查，沒裝 Muse 時卡片會自己隱藏。",
-                "en": "Anyone juggling several AI coding tools dreads finding out mid-task that one of them has run dry. Say you just used Muse to revise a report and wonder whether there is room for another pass: open the `usage` panel and the Muse quota card is there, with the 5-hour Session (the usage window counted from when you start) and the weekly quota, reset countdowns, and support in all 15 quota themes. The menu bar gains a Muse item and a hide toggle, plus the same near-limit, used-up and restored notifications as Antigravity. Muse keeps no quota file on your machine, so `usage` asks Muse directly with one small background request, saving no conversation log and running from an empty folder. ⟦Phoning the bank for your balance costs a little each time, so you would not call every minute: it asks once when there is no reading yet, then only after the reading is over 30 minutes old and you have used Muse since.⟧ Each check uses a little of your Muse quota, and a failed check waits for new Muse activity before retrying. Hiding the Muse card stops the checks, and the card hides itself when Muse is not installed."
+                "zh-TW": "有 Windows 使用者回報，電腦鎖定期間 `usage` 曾莫名當掉，原因還沒查清楚（refs #202）。工作列上的額度標籤每 2 秒會透過 UI Automation 掃描一次工作列按鈕，好決定自己擺哪裡，這個掃描是頭號嫌疑。現在螢幕鎖定時就不掃，解鎖後一切照舊。⟦像社區警衛晚上關店後就不再每兩分鐘巡一次空蕩蕩的商店街，以前整夜照巡、偶爾自己絆倒，現在鎖門就休息。⟧官方說得很清楚：這是降低風險的措施，不是確認的修復，如果之後還有當機，請繼續回報。",
+                "en": "Some Windows users reported `usage` crashing for no clear reason while the computer was locked, and the cause is still unknown (refs #202). The quota label on the taskbar scans the taskbar buttons every 2 seconds through UI Automation to decide where to sit, and that scan is the main suspect. It now stops scanning while the screen is locked, and nothing changes while the screen is in use. ⟦A night guard used to patrol the empty shopping street every two minutes all night and occasionally trip; now the patrol pauses once the shutters are down.⟧ The changelog is explicit that this is a mitigation, not a confirmed fix, so keep reporting any further crashes."
               },
-              "original": "**Muse Code has a quota card.** It shows Muse's 5-hour Session and weekly quota with reset countdowns in all 15 quota themes, with a menu bar item, a hide toggle, and the same near-limit, used-up and restored notifications as Antigravity. Muse keeps no quota file, so `usage` asks Muse itself with one small background request, without a session log and from an empty folder. It checks once when there is no reading yet, then only when the reading is over 30 minutes old and you have used Muse since. Each check uses a little of your Muse quota. A failed check waits for new Muse activity before trying again. Hiding the Muse card stops the checks, and the card hides itself when Muse isn't installed."
+              "original": "**Windows: the taskbar label stops scanning taskbar buttons while the screen is locked.** The scan runs every 2 seconds through UI Automation and is the main suspect in an unexplained crash that happened while Windows was locked (refs #202). Nothing changes while unlocked. This is a mitigation, not a confirmed fix."
             },
             {
               "title": {
-                "zh-TW": "側邊面板、終端機儀表板和 Windows 系統匣也看得到 Muse 額度",
-                "en": "Muse quota appears in the side pane, terminal dashboard and Windows tray"
+                "zh-TW": "自動啟動 5 小時計時的背景訊息變輕，也不再塞滿接續清單",
+                "en": "Auto-start 5-hour Session sends a lighter ping and stops cluttering your resume list"
               },
               "body": {
-                "zh-TW": "你在 Claude Code 裡寫到一半，想順便瞄一眼 Muse 還剩多少，不必再切回 `usage` 的主面板。Claude Code 側邊面板、`usage status --json` 指令、多工具終端機儀表板和額度感知模式，現在都列出 Muse。Windows 系統匣也一樣，卡片、滑鼠停留時的提示文字、隱藏開關和通知都加上了 Muse。⟦以前 Muse 的數字只擺在總店，現在各分店的櫥窗也擺上了，不過分店只陳列總店最後送來的那批貨，自己不會去進貨。⟧這些地方只讀最後一次存下的讀數，從來不會自己發起 Muse 查詢，所以多開幾個地方看，也不會多花你的 Muse 額度。",
-                "en": "You are halfway through work in Claude Code and want a quick look at how much Muse quota is left, without switching back to the main `usage` panel. The Claude Code side pane, the `usage status --json` command, the multi-agent terminal dashboard and Quota-Aware Mode now all list Muse. The Windows tray does too, with Muse in its card, hover tooltip, hide toggle and notifications. ⟦Muse's numbers used to sit only in the flagship store; now every branch window displays them, but the branches only show the last batch the flagship sent over and never restock on their own.⟧ These places read only the last saved reading and never start a Muse check themselves, so looking in more places does not spend any extra Muse quota."
+                "zh-TW": "想接續昨天的對話，打開 `claude --resume` 或 `codex resume` 卻看到一整排只寫著「ok」的紀錄，要翻半天才找到真正的那筆。那些都是「自動啟動 5 小時計時」在背景送出的小訊息留下的，而且每則還會載入約 2 萬 input token（AI 計算用量的單位）。⟦像每天只是去郵局蓋個戳，以前卻得扛整箱文件排隊，還在登記簿留一筆；現在空手去、蓋完就走。⟧現在 Claude 那則不再載入工具和 MCP 伺服器，也不存成工作階段；Codex 那則改用 `--ephemeral` 執行，同樣不留紀錄。",
+                "en": "You want to pick up yesterday's conversation, open `claude --resume` or `codex resume`, and find a long row of entries that just say \"ok\" before the real one. Those came from the small background pings sent by Auto-start 5-hour Session, and each ping also loaded about 20k input tokens (the unit AI usage is measured in). ⟦It was like going to the post office just for a stamp while hauling a whole box of documents and signing the logbook each time; now you go empty-handed and leave once it is stamped.⟧ The Claude ping now loads no tools or MCP servers and is not saved as a session, and the Codex ping runs with `--ephemeral`, leaving no record either."
               },
-              "original": "**Muse quota shows up wherever the other quotas do.** The Claude Code side pane, `usage status --json`, the multi-agent CLI dashboard, Quota-Aware Mode, and the Windows tray (card, tooltip, hide toggle, and notifications) now include Muse. They only read the last saved reading and never start a Muse check."
-            },
-            {
-              "title": {
-                "zh-TW": "額度卡變多時自動縮小，選單列最多只放 3 家",
-                "en": "Quota cards shrink when there are many, and the menu bar shows at most three tools"
-              },
-              "body": {
-                "zh-TW": "同時用好幾家 AI 工具的人，額度卡一多，筆電螢幕就塞不下。現在只要額度卡有 4 張以上，全部會一起改成精簡版：標題變小、Session 和每週額度並排，百分比和重置文字變短，「專案用量」標題也跟著縮小。3 張以下的樣子跟以前一樣。螢幕最上方的選單列也有同樣的擠法：Claude Code、Codex、Antigravity、Grok、Muse 五家全開時太寬，可能滑到瀏海後面看不到。⟦捷運月台的看板只輪播最近三班車，以前五家擠成一長串、尾巴被瀏海吃掉，現在選單列也只留 Session 用量最高的 3 家，排列順序照舊。⟧想看全部的話，打開面板仍會列出每一張卡。",
-                "en": "If you use several AI tools at once, too many quota cards no longer fit on a laptop screen. Now, once there are four or more quota cards, they all switch to a compact layout together: a smaller header, Session and weekly side by side, and shorter percent and reset text, with the Projects title shrinking to match. Three cards or fewer look the same as before. The menu bar at the top of the screen had the same crowding: with Claude Code, Codex, Antigravity, Grok and Muse all on, it got so wide it could slide behind the notch. ⟦A subway platform sign only cycles through the next three trains; the menu bar used to cram in all five tools until the tail vanished behind the notch, and now it keeps the three with the highest Session usage, in the usual order.⟧ Open the panel and every card is still listed."
-              },
-              "original": "**Four or more quota cards switch to a compact layout.** Four full cards no longer fit on a laptop screen, so every quota card shrinks: a smaller header, Session and weekly side by side, and shorter percent and reset text. The Projects title shrinks to match. Three or fewer cards look the same as before.\n**The menu bar shows at most three tools.** With Claude Code, Codex, Antigravity, Grok and Muse all on, the strip got too wide and could slide behind the notch. It now keeps the three with the highest Session usage, in the usual order. The panel still shows every card."
-            },
-            {
-              "title": {
-                "zh-TW": "兩款佈景的過期提示看清楚了，Windows 也記得住卡片排序",
-                "en": "Stale-data warnings are readable in two themes, and Windows remembers card order"
-              },
-              "body": {
-                "zh-TW": "換了花俏的佈景，有時反而看不到最該注意的提示。「視窗 95」佈景的紅色過期提示（提醒你數字太久沒更新）原本直接壓在藍色標題列上，「雲圖觀測」的淺橘提示壓在淺藍卡片上，現在兩者都有足夠對比；「世界盃 2026」英文版的 MATCH STATS 標題也不再被旁邊的按鈕擠掉。Windows 這邊，系統匣原本只接受剛好是 Claude 額度卡、Codex、Antigravity 三張卡的排序。⟦像衣帽間只認三號碼牌，多掛一件 Grok 外套就整排登記作廢；以前面板一有 Grok 卡，你拖好的順序就存不起來，現在改用跟 macOS 一樣的檢查，順序會記住。⟧",
-                "en": "A flashy theme can end up hiding the one warning you most need to see. In the Windows 95 theme, the red stale-data warning (a reminder that the numbers have not updated in a while) sat right on the blue title bar, and in Cloud Observation the pale amber one sat on sky-blue cards; both now have enough contrast. In World Cup 2026, the English MATCH STATS heading is no longer cut off by the buttons beside it. On Windows, the tray accepted a new card order only when it listed exactly the Claude, Codex and Antigravity cards. ⟦Picture a cloakroom that only recognizes three ticket numbers, so hanging one extra Grok coat voids the whole row: once a Grok card was in the panel, your dragged order was not saved, and now Windows uses the same check as macOS so the order sticks.⟧"
-              },
-              "original": "**Stale-data warnings are readable in the Windows 95 and Cloud Observation themes.** The red warning sat directly on the Windows 95 blue title bar, and the pale amber one on Cloud Observation's sky-blue cards. Both now have enough contrast. In World Cup 2026, the English MATCH STATS heading is no longer cut off by the buttons next to it.\n**Windows saves the quota card order again.** The tray accepted a new order only when it listed exactly the Claude, Codex, and Antigravity cards, so once the Grok card was in the panel, dragging cards into a new order was not saved. It now uses the same check as macOS."
-            },
-            {
-              "title": {
-                "zh-TW": "自動啟動 5 小時計時不再觸發你自己設的 hook",
-                "en": "Auto-start 5-hour Session no longer fires your own hooks"
-              },
-              "body": {
-                "zh-TW": "設過 hook（特定時機自動觸發的小程式）的人，以前可能莫名收到一堆通知，或多出好幾筆存下的對話。原因是「自動啟動 5 小時計時」在背景執行 `claude -p` 和 `codex exec` 送出小請求，每次都會觸發你設的每個 hook，例如工作階段開始時跑的 SessionStart、UserPromptSubmit、Stop hook，Codex 的 `hooks.json`，還有 Codex `config.toml` 裡的 `notify` 程式。⟦請鐘點清潔工來打掃，他每開一次門，門鈴、監視器通知和自動錄影就全響一輪；現在他改走不會觸動感應器的側門。⟧Claude Code 的背景請求改讀一份開了 `disableAllHooks` 的設定檔，Codex 的背景請求則關掉 `features.hooks` 與 `notify`。Antigravity 不變。",
-                "en": "If you have set up hooks (small programs that run automatically at certain moments), you may have been getting a pile of unexplained notifications or extra saved conversations. The cause: Auto-start 5-hour Session sends small background pings through `claude -p` and `codex exec`, and every ping fired every hook you had set up, such as SessionStart, UserPromptSubmit and Stop hooks, Codex's `hooks.json`, and the `notify` program in Codex's `config.toml`. ⟦Imagine hiring a cleaner who sets off your doorbell, camera alerts and auto-recording every time they open the front door; now they use a side door that trips no sensors.⟧ Claude Code pings now load a settings file with `disableAllHooks` turned on, and Codex pings turn off `features.hooks` and `notify`. Antigravity pings are unchanged."
-              },
-              "original": "**Auto-start 5-hour Session no longer runs your own hooks.** Its background `claude -p` and `codex exec` pings fired every hook you had set up, such as SessionStart, UserPromptSubmit and Stop hooks, Codex's `hooks.json`, and the `notify` program in Codex's `config.toml`. A hook that sends a notification or saves the conversation ran once for every ping. Claude Code pings now load a settings file with `disableAllHooks`; Codex pings turn off `features.hooks` and `notify`. Antigravity pings are unchanged."
+              "original": "**Auto-start 5-hour Session sends a lighter ping and no longer clutters your resume list.** The Claude ping now loads no tools or MCP servers and is not saved as a session; the Codex ping runs with `--ephemeral`. Each ping used to load about 20k input tokens and leave an \"ok\" conversation in `claude --resume` and `codex resume`."
             }
           ]
         }
