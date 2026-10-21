@@ -76,7 +76,8 @@ def validate_muse_cache(payload: object) -> MuseQuotaResult | None:
         if not isinstance(window, dict):
             return None
         used, reset = window.get("used_percent"), window.get("resets_at")
-        if not _number(used) or not _number(reset) or not 0 <= used <= 100:
+        # An exhausted window reports past 100 (e.g. 104); the row clamps it for display.
+        if not _number(used) or not _number(reset) or used < 0:
             return None
         windows.append(MuseQuotaWindow(used_percent=float(used), resets_at=float(reset)))
     return MuseQuotaResult(

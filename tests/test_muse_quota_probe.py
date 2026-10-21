@@ -60,11 +60,19 @@ def test_read_missing_corrupt_and_good_cache() -> None:
     assert probe.read_cache() == quota()
 
 
-@pytest.mark.parametrize("value", [True, None, "25", -1, 101, float("nan"), float("inf"), 10**400])
+@pytest.mark.parametrize("value", [True, None, "25", -1, float("nan"), float("inf"), 10**400])
 def test_invalid_percent_rejected(value: object) -> None:
     raw = event()
     raw["payload"]["allowance"]["window"]["used_percent"] = value
     assert probe.parse_muse_allowance(json.dumps(raw), 1000) is None
+
+
+@pytest.mark.parametrize("value", [100, 104, 105, 250])
+def test_exhausted_window_past_100_is_kept(value: int) -> None:
+    raw = event()
+    raw["payload"]["allowance"]["window"]["used_percent"] = value
+    result = probe.parse_muse_allowance(json.dumps(raw), 1000)
+    assert result is not None and result["window"]["used_percent"] == value
 
 
 def test_missing_weekly_is_rejected() -> None:
