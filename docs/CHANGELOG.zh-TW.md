@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 變更
+- **Windows：螢幕鎖定時，工作列標籤不再掃描工作列按鈕。** 這個掃描每 2 秒透過 UI Automation 執行一次，是一起原因不明、發生在 Windows 鎖定期間的崩潰的主要嫌疑（refs #202）。未鎖定時行為不變。這是降低風險的措施，不是確認的修復。
+
 ## [0.34.2] - 2026-10-21
 
 ### 安全性
