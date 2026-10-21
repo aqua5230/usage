@@ -5,6 +5,11 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.34.4] - 2026-10-21
+
+### Fixed
+- **The Muse card stays current after a 5-hour window runs out.** Muse reports an exhausted window as more than 100% used (for example 104%), and `usage` threw those readings away. The card kept the last reading under 100% with a stale-age badge until the window reset; it now shows the window as full.
+
 ## [0.34.3] - 2026-10-21
 
 ### Changed
