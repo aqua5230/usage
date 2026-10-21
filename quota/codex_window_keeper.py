@@ -171,6 +171,8 @@ def _run_codex_ping(codex_bin: str) -> subprocess.CompletedProcess[str]:
             "-m",
             "gpt-5.6-luna",
             "--skip-git-repo-check",
+            # Keep the ping out of the user's `codex resume` list.
+            "--ephemeral",
             "-c",
             "features.hooks=false",
             "-c",

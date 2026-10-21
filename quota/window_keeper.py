@@ -172,6 +172,12 @@ def _run_claude_ping(claude_bin: str) -> subprocess.CompletedProcess[str]:
             "haiku",
             "--settings",
             str(KEEPER_CLAUDE_SETTINGS_PATH),
+            # No tools or MCP servers keeps the ping small; no persistence keeps
+            # it out of the user's /resume list.
+            "--tools",
+            "",
+            "--strict-mcp-config",
+            "--no-session-persistence",
         ],
         stdin=subprocess.DEVNULL,
         capture_output=True,

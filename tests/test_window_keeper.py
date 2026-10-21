@@ -38,6 +38,10 @@ def test_run_claude_ping_skips_user_hooks(monkeypatch: pytest.MonkeyPatch, tmp_p
         "haiku",
         "--settings",
         str(settings_path),
+        "--tools",
+        "",
+        "--strict-mcp-config",
+        "--no-session-persistence",
     ]
     assert settings_path.is_file()
     assert json.loads(settings_path.read_text(encoding="utf-8")) == {"disableAllHooks": True}
