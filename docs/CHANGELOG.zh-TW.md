@@ -4,6 +4,11 @@
 
 本檔記錄 usage 所有重要變更。格式參考 [Keep a Changelog](https://keepachangelog.com/)。
 
+## [Unreleased]
+
+### 變更
+- **「自動啟動 5 小時計時」送出的訊息變輕了，也不再塞滿你的接續清單。** Claude 那則不再載入工具和 MCP，也不存成對話；Codex 那則改用 `--ephemeral`。以前每則約載入 2 萬 input token，還會在 `claude --resume` 和 `codex resume` 留下一筆「ok」對話。
+
 ## [0.34.2] - 2026-10-21
 
 ### 安全性
