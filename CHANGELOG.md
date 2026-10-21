@@ -5,7 +5,7 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
-## [Unreleased]
+## [0.34.3] - 2026-10-21
 
 ### Changed
 - **Windows: the taskbar label stops scanning taskbar buttons while the screen is locked.** The scan runs every 2 seconds through UI Automation and is the main suspect in an unexplained crash that happened while Windows was locked (refs #202). Nothing changes while unlocked. This is a mitigation, not a confirmed fix.
