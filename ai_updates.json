@@ -1337,6 +1337,45 @@
       "name": "GitHub CLI",
       "versions": [
         {
+          "version": "2.103.0",
+          "period": "2026-10-21",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "`gh` 可改用會自動續期的登入憑證（預覽）",
+                "en": "`gh` can sign in with auto-refreshing credentials (preview)"
+              },
+              "body": {
+                "zh-TW": "一般用 `gh` 登入 GitHub，拿到的 token（證明你身分的授權令牌）發下來就不會過期。現在可以改選會過期的 OAuth 憑證：`gh` 會存一把短效的 access token，另配一把會輪替的 refresh token（專門用來換新令牌的憑證）。access token 需要時會自動換新，你不必重新登入。⟦公司門禁卡改成每天自動換發的臨時卡，以前一張卡用到離職，現在卡片天天換新，你照樣每天刷卡進門。⟧這是預覽功能，要自己選擇開啟。只想這一次登入用它，打：\n\n```shell\ngh auth login --expiring\n```\n\n想以後每次登入都優先用它，打：\n\n```shell\ngh config set expiring_credentials enabled\n```",
+                "en": "Normally, signing in to GitHub with `gh` gives you a token (the pass that proves who you are) that never expires. You can now opt into expiring OAuth credentials instead: `gh` stores a short-lived access token alongside a rotating refresh token (a credential used only to get a new pass). The access token is refreshed automatically whenever needed, so you stay signed in without authenticating again. ⟦An office swapped its permanent badges for temporary ones reissued every day: you used to keep one badge until you left the company, and now it renews daily while you still just tap in each morning.⟧ This is a preview you have to opt into. To use it for a single sign-in, run:\n\n```shell\ngh auth login --expiring\n```\n\nTo prefer expiring credentials for every sign-in, run:\n\n```shell\ngh config set expiring_credentials enabled\n```"
+              },
+              "original": "## Expiring, auto-refreshing OAuth tokens (preview)\n\n`gh` can now sign in with expiring OAuth credentials that it refreshes automatically. When you opt in, `gh` stores a short-lived access token alongside a rotating refresh token and refreshes the access token whenever it is needed, so you stay signed in without having to authenticate again.\n\nTo opt in for a single sign-in, run:\n\n```shell\ngh auth login --expiring\n```\n\nTo prefer expiring credentials for every sign-in, run:\n\n```shell\ngh config set expiring_credentials enabled\n```"
+            },
+            {
+              "title": {
+                "zh-TW": "用會過期的 `gh` 憑證時，查狀態、接 git 和寫腳本要注意的事",
+                "en": "Living with expiring `gh` credentials: status, git and scripts"
+              },
+              "body": {
+                "zh-TW": "開了自動續期後，想知道憑證還剩多久，就打 `gh auth status`：它會顯示憑證能不能續期、access token 何時到期。它和 `gh auth token` 都會在需要時自動續期。github.com 和 GHE.com 支援這種 token，其他主機會退回一般不過期的 token。git 走 HTTPS 的話，建議用 git 2.46 以上，並執行 `gh auth setup-git`，讓 `gh` 當 git 的 credential helper（替 git 提供登入資料的程式）。這樣 git 不會把憑證留到過期之後。⟦跟鮮奶一樣，以前能囤一箱慢慢喝，現在得隨喝隨買。⟧腳本和擴充別把 `gh auth token` 的輸出存起來，每次要用都重新執行它；透過 `GH_TOKEN` 或 `GITHUB_TOKEN` 給的 token 則永遠不會續期。",
+                "en": "Once expiring credentials are on, you may want to know how long yours has left. `gh auth status` shows whether a credential is refreshable and when the current access token expires, and both `gh auth status` and `gh auth token` refresh the access token automatically when needed. Expiring tokens are available on github.com and GHE.com; on hosts that do not issue them, `gh` falls back to a regular non-expiring token. If git talks to GitHub over HTTPS, the advice is to use git 2.46 or newer and run `gh auth setup-git` so `gh` acts as git's credential helper (the program that hands git its sign-in details). That way git does not cache the credential past its lifetime. ⟦Treat it like fresh milk: you could once stock up a crate and drink it slowly, and now you buy it as you need it.⟧ So scripts and extensions should not store the output of `gh auth token`; run it again each time a token is needed. Tokens supplied through `GH_TOKEN` or `GITHUB_TOKEN` are never refreshed."
+              },
+              "original": "`gh auth status` shows whether a credential is refreshable and when the current access token expires. Both `gh auth status` and `gh auth token` automatically refresh the access token when needed. Expiring tokens are available on github.com and GHE.com; on hosts that do not issue them, `gh` falls back to a regular non-expiring token.\n\nIf you use HTTPS as your git protocol, we advise using git 2.46 or newer and letting `gh` act as your git credential helper by running `gh auth setup-git`. This way `gh` serves and refreshes the expiring credential for git, and git does not cache it past its lifetime.\n\n> [!IMPORTANT]\n> Expiring access tokens should not be cached. Scripts and extensions that store the output of `gh auth token` will eventually hold an expired token, so run `gh auth token` again each time a token is needed. Tokens supplied through `GH_TOKEN` or `GITHUB_TOKEN` are never refreshed.\n\nFor more information, see [Authenticating with GitHub CLI](https://docs.github.com/github-cli/github-cli/authenticating-with-github-cli#using-expiring-refreshable-tokens)."
+            },
+            {
+              "title": {
+                "zh-TW": "新指令 `gh issue artifact`，在終端機管理 issue 的附件文件（私人預覽）",
+                "en": "New `gh issue artifact` manages issue artifacts from the terminal (private preview)"
+              },
+              "body": {
+                "zh-TW": "規劃一個新功能時，你可能想把規劃書、流程圖或網頁原型直接掛在 GitHub issue（記錄待辦與問題的討論串）上。`gh issue artifact` 把 issue artifacts 帶到命令列，提供 `list`、`view`、`create`、`edit`、`download`、`delete` 六個指令，例如：\n\n```shell\n# Create a Markdown document with an attached image\ngh issue artifact create 142 signin-plan.md --attach ./signin-flow.png\n\n# Create an HTML document\ngh issue artifact create 142 menu-prototype.html\n\n# List or view artifacts\ngh issue artifact list 142\ngh issue artifact view 142 2\n\n# Update a document or restore an earlier version\ngh issue artifact edit 142 2 --body-file signin-plan-v2.md\ngh issue artifact edit 142 2 --restore-version 5\n```\n\n⟦替每張工單配一個專屬資料夾，規劃書和原型都收在裡面，還記得每一版，想退回第 5 版也行。⟧artifacts 也能用 GitHub 網址指定，Markdown 文件可以用 `--attach` 附上圖片和影片。這是私人預覽，只有加入預覽的使用者和組織能用，而且只對加入預覽的儲存庫有效；申請方式在官方的預覽公告討論串。",
+                "en": "When planning a new feature, you may want to hang the plan, a flow chart or a web prototype right on a GitHub issue (the thread that tracks a task or problem). `gh issue artifact` brings issue artifacts to the command line with six commands, `list`, `view`, `create`, `edit`, `download` and `delete`, for example:\n\n```shell\n# Create a Markdown document with an attached image\ngh issue artifact create 142 signin-plan.md --attach ./signin-flow.png\n\n# Create an HTML document\ngh issue artifact create 142 menu-prototype.html\n\n# List or view artifacts\ngh issue artifact list 142\ngh issue artifact view 142 2\n\n# Update a document or restore an earlier version\ngh issue artifact edit 142 2 --body-file signin-plan-v2.md\ngh issue artifact edit 142 2 --restore-version 5\n```\n\n⟦Give every work ticket its own folder that holds the plan and the prototype and remembers every version, so rolling back to version 5 is easy.⟧ Artifacts can also be addressed by their GitHub URLs, and Markdown documents take image and video attachments with `--attach`. This is a private preview: only users and organizations enrolled can use it, and the commands work only for repositories in the preview; access instructions are in the official preview announcement discussion."
+              },
+              "original": "## Manage issue artifacts with `gh issue artifact` (private preview)\n\n`gh issue artifact` brings issue artifacts to the command line. Users and organizations enrolled in the private preview can use the `list`, `view`, `create`, `edit`, `download`, and `delete` commands to manage issue artifacts.\n\n```shell\n# Create a Markdown document with an attached image\ngh issue artifact create 142 signin-plan.md --attach ./signin-flow.png\n\n# Create an HTML document\ngh issue artifact create 142 menu-prototype.html\n\n# List or view artifacts\ngh issue artifact list 142\ngh issue artifact view 142 2\n\n# Update a document or restore an earlier version\ngh issue artifact edit 142 2 --body-file signin-plan-v2.md\ngh issue artifact edit 142 2 --restore-version 5\n```\n\nArtifacts can also be addressed by their GitHub URLs, and Markdown documents support image and video attachments with `--attach`.\n\n> [!IMPORTANT]\n> Issue artifacts are in private preview. These commands only work for repositories enrolled in the preview. See the [Issue Artifacts private preview announcement and feedback discussion](https://github.com/orgs/community/discussions/205881) for access instructions and to share feedback."
+            }
+          ]
+        },
+        {
           "version": "2.102.0",
           "period": "2026-09-30",
           "items": [
@@ -1378,23 +1417,6 @@
                 "en": "When you sign in with `gh auth login` or refresh permissions with `gh auth refresh`, the screen gives you an OAuth device code to paste into the browser's authorization page. You used to highlight it, copy it, then switch to the browser and paste. Now both commands put the code on your clipboard by default, so you just switch over and paste. ⟦Think of a service desk where the clerk hands you the ticket instead of making you copy the number down with a pen.⟧ To turn this off for good, run:\n\n```shell\ngh config set clipboard disabled\n```\n\nIf you pass an explicit clipboard option on a single run, that run follows your choice."
               },
               "original": "## Copy authentication codes to the clipboard by default\n\n`gh auth login` and `gh auth refresh` now copy OAuth device codes to the clipboard by default, saving a manual copy step during authentication.\n\nTo persistently opt out, run:\n\n```shell\ngh config set clipboard disabled\n```\n\nExplicit clipboard options still take precedence for an individual invocation."
-            }
-          ]
-        },
-        {
-          "version": "2.100.0",
-          "period": "2026-09-03",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "GitHub API 流量支援自訂閘道，身分驗證與網址維持直連",
-                "en": "GitHub API Traffic Supports Custom Gateways, While Authentication and URLs Remain Direct"
-              },
-              "body": {
-                "zh-TW": "企業若需要稽核或集中管控網路流量，現在可以透過個別主機的 `api_host` 設定，將 GitHub API 請求導向自訂閘道（gateway，把流量轉去另一個位址再送出的中繼點）。這項改動只會轉發 API 呼叫，登入身分驗證、Git 遠端儲存庫操作與瀏覽器開啟網址仍會直接連線至原始主機。此功能目前仍處於實驗階段，且不是安全邊界，部分請求可能依然會送往原始主機。\n\n```\n# 設定將 github.com 的 API 流量轉發至自訂閘道\ngh config set api_host gh-gateway.example.com --host github.com\n\n# 查詢特定主機目前設定的 API 閘道位址\ngh config get api_host --host github.com\n```\n\n⟦這就像公司設立的公務收發室，員工採購與查詢資料等業務公文統一由專屬窗口轉交處理，但員工出勤打卡、私人包裹寄送與親自拜訪仍直接走大樓正門。⟧",
-                "en": "Organizations that need to audit or centrally manage network traffic can now route GitHub API requests to a custom gateway via the per-host `api_host` setting. This change only forwards API calls; login authentication, Git remote repository operations, and browser-opened URLs still connect directly to the original host. This feature is currently experimental and is not a security boundary, so some requests may still reach the original host.\n\n```\n# Set up forwarding API traffic for github.com to a custom gateway\ngh config set api_host gh-gateway.example.com --host github.com\n\n# Query the currently configured API gateway address for a specific host\ngh config get api_host --host github.com\n```\n\n⟦This is like a company mailroom for official business, where business documents such as procurement requests and data inquiries are routed through a dedicated counter, while employee clock-ins, personal parcel deliveries, and in-person visits still go directly through the building's main entrance.⟧"
-              },
-              "original": "## Experimental: Route GitHub API traffic through a custom host\n\nOrganizations can now route a GitHub host's API traffic through a gateway using the new per-host `api_host` configuration:\n\n```shell\n# Route API traffic for github.com through a gateway\ngh config set api_host gh-gateway.example.com --host github.com\n\n# Read the configured API host\ngh config get api_host --host github.com\n```\n\nThe original host remains in use for authentication, Git remotes, and browser URLs.\n\n> [!NOTE]\n> `api_host` is experimental and is not a security boundary. Requests may still reach the original host."
             }
           ]
         }
