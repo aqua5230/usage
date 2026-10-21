@@ -10,12 +10,14 @@ import json
 import logging
 import math
 import os
+import re
 import shutil
 import subprocess
 import tempfile
 import threading
 import time
 from contextlib import suppress
+from datetime import datetime
 from pathlib import Path
 from typing import TypedDict, TypeGuard
 
@@ -27,6 +29,9 @@ CACHE_PATH = Path.home() / ".usage/muse_quota.json"
 PROBE_DIR = Path.home() / ".usage/muse-probe"
 MUSE_MODEL = "muse-spark-1.3"
 STALE_SECONDS = 30 * 60
+_EXHAUSTED = re.compile(
+    r"Subscription quota exhausted\. Your usage window resets at (\d{4}-\d\d-\d\dT[\d:.]+Z)"
+)
 _probe_lock = threading.Lock()
 _probe_running = False
 _retry_after = 0.0
@@ -107,6 +112,25 @@ def parse_muse_allowance(stdout: str, checked_at: float) -> MuseQuotaResult | No
         except (ValueError, KeyError, TypeError, OverflowError, RecursionError):
             continue
     return None
+
+
+def parse_exhausted_window(stdout: str, cached: MuseQuotaResult | None) -> MuseQuotaResult | None:
+    """Read the 429 Muse returns once the 5-hour window is used up; it carries no allowance.
+
+    Only the window's reset time is known, so the weekly reading and its age stay from ``cached``.
+    """
+    match = _EXHAUSTED.search(stdout)
+    if cached is None or match is None:
+        return None
+    try:
+        reset = datetime.fromisoformat(match[1]).timestamp()
+    except ValueError:
+        return None
+    return MuseQuotaResult(
+        checked_at=cached["checked_at"],
+        window=MuseQuotaWindow(used_percent=100.0, resets_at=reset),
+        weekly=cached["weekly"],
+    )
 
 
 def read_cache() -> MuseQuotaResult | None:
@@ -214,7 +238,10 @@ def _probe_worker(executable: str) -> None:
             process.kill()
             process.communicate()
             raise
-        result = parse_muse_allowance(stdout, time.time()) if process.returncode == 0 else None
+        if process.returncode == 0:
+            result = parse_muse_allowance(stdout, time.time())
+        else:
+            result = parse_exhausted_window(stdout, read_cache())
         if result is not None:
             _write_cache(result)
             succeeded = True

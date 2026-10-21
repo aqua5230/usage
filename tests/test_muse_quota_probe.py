@@ -75,6 +75,36 @@ def test_exhausted_window_past_100_is_kept(value: int) -> None:
     assert result is not None and result["window"]["used_percent"] == value
 
 
+# Captured from Muse Code 1.4.11 on 2026-10-21 while the 5-hour window was used up.
+EXHAUSTED = json.dumps(
+    {
+        "payload_type": "run.terminal.failed",
+        "payload": {
+            "reason": "API error 429 [request_id=x]: Subscription quota exhausted. "
+            "Your usage window resets at 2026-10-21T08:28:56Z. (rate_limit_error)"
+        },
+    }
+)
+EXHAUSTED_QUOTA = {**quota(), "window": {"used_percent": 100.0, "resets_at": 1792571336.0}}
+
+
+def test_exhausted_429_keeps_weekly_and_snapshot_age() -> None:
+    assert probe.parse_exhausted_window(EXHAUSTED, quota()) == EXHAUSTED_QUOTA
+    assert probe.parse_exhausted_window(EXHAUSTED, None) is None
+    assert probe.parse_exhausted_window(json.dumps(event()), quota()) is None
+
+
+def test_exhausted_probe_updates_session_window(monkeypatch: pytest.MonkeyPatch) -> None:
+    probe.CACHE_PATH.write_text(json.dumps(quota()))
+    process = Mock(returncode=1)
+    process.poll.return_value = 1
+    process.communicate.return_value = (EXHAUSTED, "")
+    monkeypatch.setattr(subprocess, "Popen", Mock(return_value=process))
+    probe._probe_worker("/fake/muse")
+    assert probe.read_cache() == EXHAUSTED_QUOTA
+    assert probe._retry_after == 0.0
+
+
 def test_missing_weekly_is_rejected() -> None:
     raw = event()
     del raw["payload"]["allowance"]["weekly"]
