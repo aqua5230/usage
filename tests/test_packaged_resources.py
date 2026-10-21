@@ -10,7 +10,8 @@ import ast
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXCLUDED_DIRS = {"tests", "build", "dist", ".venv", "__pycache__", "scripts"}
+# .claude/worktrees holds other branches' full checkouts; none of it ships in the app.
+EXCLUDED_DIRS = {"tests", "build", "dist", ".venv", "__pycache__", "scripts", ".claude"}
 DataFileReference = tuple[Path, str]
 
 
