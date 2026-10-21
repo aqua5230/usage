@@ -1114,6 +1114,276 @@
       "name": "Muse Code",
       "versions": [
         {
+          "version": "1.4.11",
+          "period": "2026-10-21",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "內建 `web3d` skill，幫你做單檔 3D 網頁和瀏覽器小遊戲",
+                "en": "Built-in `web3d` skill builds single-file 3D web pages and browser games"
+              },
+              "body": {
+                "zh-TW": "想做一個能在瀏覽器裡轉動的 3D 產品展示頁，或一款小遊戲，現在可以直接交給 Muse。內建的 `web3d` skill（教 AI 照固定步驟做某類工作的說明書）會引導它做出單檔的 3D 網頁或瀏覽器遊戲，交件前先開瀏覽器檢查。動工前，它會先規劃每個部分的形狀、周遭環境和材質；第一版能跑之後，再派一個全新的測試子代理實際玩一遍、寫下批評，批評沒處理完不准交件，審查輪數也有時間上限。⟦餐廳出菜前先請另一位廚師試吃挑毛病，挑出的問題改完才端上桌，但試吃不會無限輪下去。⟧你說「停」，或只要它打開頁面時，它會立刻停止檢查。",
+                "en": "Want a 3D product page you can spin in the browser, or a small game? You can now hand it straight to Muse. The built-in `web3d` skill (a playbook that teaches the AI fixed steps for one kind of job) guides it in building single-file 3D web pages and browser games and checking them in a browser before handoff. Before building, it plans each part's shape, surroundings and materials; after the first working build, a fresh tester subagent plays the page and writes a critique that must be closed before delivery, with a time guard on review rounds. ⟦A kitchen has a second chef taste each dish and point out flaws before it goes out, but the tasting does not go on forever.⟧ When you say stop, or just ask it to open the page, it stops checking right away."
+              },
+              "original": "Added a built-in `web3d` skill that guides building single-file 3D web pages and browser games and checking them in a browser before handoff\nThe built-in `web3d` skill now plans each part's shape, surroundings and materials before building, and after the first working build a fresh tester subagent plays the page and writes a critique that must be closed before delivery, with a time guard on review rounds\nThe built-in `web3d` skill now stops checking a page as soon as you say stop or ask it to just open the page"
+            },
+            {
+              "title": {
+                "zh-TW": "新增 `/game-3d-visuals`，`/blender` 也能做一般 3D 工作",
+                "en": "New `/game-3d-visuals`, and `/blender` takes on general 3D work"
+              },
+              "body": {
+                "zh-TW": "手上有幾張參考圖，想做出長得一樣的 3D 模型或遊戲畫面？新的 `/game-3d-visuals` 指令會依參考圖和一份視覺規格驅動 3D 模型與遊戲製作，並反覆比對渲染圖（電腦算出來的成品畫面）和參考圖，直到合格。`/blender` 則擴大到 Blender 裡的一般 3D 工作：建模、照一張圖重建場景、動畫和大型環境都能做，附帶的輔助腳本在 Blender 4 和 5 都能用。它也能拿渲染圖跟參考圖對量，逐格檢查動畫有沒有突然跳動、物體下沉或跑出鏡頭。折射的反彈次數也保留得更多，疊在一起的玻璃不會再渲染得那麼暗。",
+                "en": "Have a few reference images and want a 3D model or game scene that matches them? The new `/game-3d-visuals` command drives 3D models and games from reference images and a visual spec, comparing each render (the finished image the computer calculates) against the references until it passes. `/blender` now covers general 3D work in Blender: object modeling, recreating a scene from an image, animation and large environments, with helper scripts that work on Blender 4 and 5. It can also measure a render against its reference image and check animations frame by frame for pops, sinking and objects leaving the shot. It keeps more refraction bounces too, so stacked glass renders less dark."
+              },
+              "original": "Added `/game-3d-visuals` to drive 3D models and games from reference images, a visual spec, and a render-vs-reference acceptance loop\n`/blender` now handles general 3D work in Blender, including object modeling, scene recreation from an image, animation and large environments, and ships helper scripts that work on Blender 4 and 5\n`/blender` can now measure a render against its reference image and check animations frame by frame for pops, sinking and objects leaving the shot, and keeps more refraction bounces so stacked glass renders less dark"
+            },
+            {
+              "title": {
+                "zh-TW": "工作階段協定新增 `session/leave`，可把對話交給另一台主機",
+                "en": "The session protocol adds `session/leave` to hand a session to another host"
+              },
+              "body": {
+                "zh-TW": "自己寫用戶端、透過工作階段協定（讓其他程式操控 Muse 對話的溝通規則）接 Muse 的開發者，現在多了 `session/leave`。用戶端可以把一個已載入的工作階段交給另一台主機，原本這台主機和上面其他工作階段照常運作。⟦客服把一通電話轉給另一個部門，自己這條線和其他來電都不受影響，跟這個動作一模一樣。⟧另一個修正也跟搬動工作階段有關：主機把閒置的分支卸載後，或主機重新啟動後，用同一個指令重試 `session/fork`，以前會回內部錯誤，現在會拿回那個分支和它的歷史紀錄。",
+                "en": "Developers who write their own clients on top of the session protocol (the rules other programs use to drive Muse conversations) now get `session/leave`. A client can hand one loaded session to another host while this host and its other sessions keep running. ⟦A support agent transfers one call to another department while their own line and every other caller carry on untouched.⟧ A related fix: retrying `session/fork` with the same command after the host unloaded the idle fork, or after a host restart, used to return an internal error; it now returns that fork and its history."
+              },
+              "original": "Added `session/leave` to the session protocol, so a client can hand one loaded session to another host while this host and its other sessions keep running\nRetrying `session/fork` with the same command after the host unloaded the idle fork, or after a host restart, now returns that fork and its history instead of an internal error"
+            },
+            {
+              "title": {
+                "zh-TW": "SDK 能回答 agent 的提問，續接時也收得到待核准的請求",
+                "en": "The SDKs can answer the agent's questions and catch pending approvals on resume"
+              },
+              "body": {
+                "zh-TW": "用 TypeScript 或 Python SDK 把 Muse 嵌進自己程式的人，可能遇過 agent 問了問題，程式卻沒辦法回答。現在 TypeScript 用 `Session.answerUserInput`、Python 用 `Session.answer_user_input` 就能回答，續接工作階段時還沒答的問題也行。續接時也能傳入核准處理器和核准失敗觀察器，續接當下還在等核准的請求會送到處理器，失敗則通知觀察器。SDK 以前會對不接受意見的核准選項送出意見，讓核准一直卡著；現在改回報新的 `feedbackNotAccepted` 失敗類型，列出哪些選項收意見，並改選提供的拒絕或中止選項讓這一輪繼續。程式若逐一處理每種 `ApprovalFailure`，要補上這個新類型。",
+                "en": "If you embed Muse in your own program with the TypeScript or Python SDK, you may have had the agent ask a question your code could not answer. Now TypeScript can answer with `Session.answerUserInput` and Python with `Session.answer_user_input`, including a question still open when a session is resumed. When resuming, you can also pass an approval handler and an approval-failure observer, so an approval still pending at resume reaches the handler and any failure reaches the observer. The SDKs used to send feedback on an approval choice that does not accept it, which left the approval open; they now report the new `feedbackNotAccepted` failure kind, listing the choices that accept feedback, and answer with the offered deny or abort choice so the turn goes on. Code that handles every `ApprovalFailure` kind needs a case for it."
+              },
+              "original": "The TypeScript and Python SDKs can answer the agent's questions with `Session.answerUserInput` and `Session.answer_user_input`, including a question still open when a session is resumed\nThe TypeScript and Python SDKs accept an approval handler and an approval-failure observer when resuming a session, so an approval still pending at resume reaches the handler and any failure reaches the observer\nThe TypeScript and Python SDKs no longer send feedback on an approval choice that does not accept it, which left the approval open; they report the new `feedbackNotAccepted` failure kind (listing the choices that accept feedback) and answer with the offered deny or abort choice so the turn goes on, and code that handles every `ApprovalFailure` kind needs a case for it"
+            },
+            {
+              "title": {
+                "zh-TW": "SDK 補收漏掉的事件時，不再提早收工",
+                "en": "The SDKs no longer stop filling event gaps too early"
+              },
+              "body": {
+                "zh-TW": "SDK 和 Muse 之間的事件偶爾會漏送，這時 SDK 要把缺口補齊。以前較早的缺口通知如果在較晚那則之後又送到一次，Python 和 TypeScript SDK 會提早停止補缺口，甚至回報工作階段已是最新，其實還少了事件。⟦郵差把上週的補寄通知晚於本週的送來，以前你就以為信都到齊、不再等了，現在你認得出那是舊通知，直接丟掉。⟧現在重複的舊通知，Python 會回 `IgnoredStaleFrame`，TypeScript 會回 `ignoredStaleFrame`。TypeScript 的 `StaleDroppableMethod` 也多了 `view/gap`，程式若逐一比對它的每個值，要補一個新分支。",
+                "en": "Events between the SDK and Muse sometimes go missing, and the SDK then has to fill the gap. When an earlier gap notice was redelivered after a later one, the Python and TypeScript SDKs used to stop filling the gap early, or even report the session current while events were still missing. ⟦When last week's redelivery notice arrived after this week's, you used to assume all the mail was in and stop waiting; now you recognize it as an old notice and toss it.⟧ The repeated notice now returns `IgnoredStaleFrame` in Python and `ignoredStaleFrame` in TypeScript. TypeScript's `StaleDroppableMethod` also gains `view/gap`, so code that matches it exhaustively needs a new case."
+              },
+              "original": "The Python SDK no longer stops filling a delivery gap early, or reports the session current with events missing, when an earlier gap notice is redelivered after a later one; the repeat now returns `IgnoredStaleFrame`\nThe TypeScript SDK no longer stops filling a delivery gap early, or reports the session current with events missing, when an earlier gap notice is redelivered after a later one; the repeat now returns `ignoredStaleFrame`, and `StaleDroppableMethod` gains `view/gap`, so code that matches it exhaustively needs a new case"
+            },
+            {
+              "title": {
+                "zh-TW": "agent 外掛能附 MCP 伺服器，用 `muse mcp login` 登入",
+                "en": "Agent plugins can bring MCP servers with `muse mcp login` sign-in"
+              },
+              "body": {
+                "zh-TW": "想裝一個外掛，順便把它要用的外部服務也接好？agent 外掛現在可以附帶 MCP 伺服器（讓 AI 連接外部工具的協定），每個伺服器各自審核，並用 `muse mcp login` 登入。Windows 上，外掛的 hook（特定時機自動觸發的小程式）若用 `/bin/bash` 這類根目錄路徑啟動程式，以前安裝會失敗並顯示「plugin capability path must stay inside plugin root」，現在裝得起來。審核過的 skill 在登入後重新啟用時，授權也不會掉：審核過的 `allowed-tools` 保留預先核准，不會在未登入啟動之後退回跳出核准視窗。",
+                "en": "Want a plugin to set up the outside services it needs at install time? Agent plugins can now supply MCP servers (the protocol that connects AI to external tools), each with its own review and `muse mcp login` sign-in. On Windows, plugins whose hooks (small programs triggered automatically at certain moments) start a program by a rooted path such as `/bin/bash` used to fail to install with \"plugin capability path must stay inside plugin root\"; they now install. A reviewed skill also keeps its grant when it is re-armed after login: reviewed `allowed-tools` keep their preapproval instead of falling back to an approval prompt after a logged-out start."
+              },
+              "original": "Agent plugins can supply MCP servers with per-server review and `muse mcp login` sign-in\nOn Windows, plugins whose hooks start a program by a rooted path such as `/bin/bash` now install instead of failing with \"plugin capability path must stay inside plugin root\"\nA reviewed skill's invocation-grant resolver now survives the post-login re-arm, so reviewed `allowed-tools` keep their preapproval instead of falling back to an approval prompt after a logged-out start"
+            },
+            {
+              "title": {
+                "zh-TW": "`muse exec --json` 列出每次執行的 token 用量，`/usage` 也算進背景工作",
+                "en": "`muse exec --json` reports token usage per run, and `/usage` counts background work"
+              },
+              "body": {
+                "zh-TW": "用腳本跑 Muse、想知道每次花了多少，現在不用自己估。`muse exec --json` 會在每次執行結束前印一行 `run.usage`，列出這次各模型用了多少 token（AI 計算用量的單位），以及你訂閱方案的額度。`/usage` 的總數也把背景工作算進去了，並在另一列 Observers 單獨列出。⟦水費帳單以前只算客廳的水龍頭，現在連後院自動灑水也計入，還分開列一行讓你看清楚。⟧",
+                "en": "If you run Muse from scripts and want to know what each run cost, you no longer have to guess. `muse exec --json` prints a `run.usage` line before each run ends, with the run's token usage (the unit AI usage is measured in) per model and your subscription allowance. `/usage` totals now include background work too, broken out in a separate Observers row. ⟦A water bill that used to count only the kitchen tap now includes the backyard sprinklers, listed on their own line so you can see them.⟧"
+              },
+              "original": "`muse exec --json` prints a `run.usage` line before each run ends, with the run's token usage per model and your subscription allowance\n`/usage` totals now include background work and break it out in a separate Observers row"
+            },
+            {
+              "title": {
+                "zh-TW": "`muse serve` 可用環境設定調容量，當機後重開的對話不再卡住",
+                "en": "`muse serve` takes capacity settings, and chats reopened after a crash no longer look stuck"
+              },
+              "body": {
+                "zh-TW": "把 Muse 架成服務給多個程式共用的話，`muse serve` 現在讀三個環境設定，分別控制工作執行緒、指令受理容量和最多載入幾個工作階段；值寫錯會報出來，並改用正式環境的值。服務執行中你才登入、帳號卻還沒完成初始設定時，回合以前只叫你再登入一次，現在會說明該怎麼做。當機把工作階段紀錄的結尾截掉後，重開的對話以前看起來像卡住，現在歷史、新回合和核准請求都會正常顯示。讀長訊息、工作流程子任務的提示或原始網頁搜尋結果的下一頁時，如果沒有新存檔，也不再把整段對話重讀一遍。",
+                "en": "If you run Muse as a service shared by several programs, `muse serve` now reads three environment settings for its worker threads, command admission capacity and loaded-session ceiling; an invalid value is reported and the production value is used. When you log in while it is running and your account still needs onboarding, turns used to just ask you to log in again; they now say what to do. A chat reopened after a crash cut the end of its session log used to look stuck; its history, new turns and approval requests now show again. Reading the next page of a long agent message, a workflow child's prompt or a raw web-search result no longer rereads the whole chat while nothing new has been saved."
+              },
+              "original": "`muse serve` reads three environment settings for its worker threads, command admission capacity, and loaded-session ceiling; an invalid value is reported and the production value is used\nWhen you log in while `muse serve` is running and your account still needs onboarding, turns now say what to do instead of asking you to log in again\nA `muse serve` chat reopened after a crash cut the end of its session log now shows its history, new turns and approval requests again, instead of looking stuck\nIn `muse serve`, reading the next page of a long agent message, a workflow child's prompt or a raw web-search result no longer rereads the whole chat while nothing new has been saved"
+            },
+            {
+              "title": {
+                "zh-TW": "支援 OSC 7501 的終端機，看得到 Muse 每一項背景工作",
+                "en": "Terminals with OSC 7501 show every piece of background work Muse is running"
+              },
+              "body": {
+                "zh-TW": "Muse 同時在背景跑好幾件事時，你很難知道它到底在忙什麼，又是哪一件在等你。支援程式狀態回報（OSC 7501）的終端機，現在會顯示工作階段正在跑的每個監控和背景終端機。工作流程、子代理和背景的後續回合也會一一列出，還會標出哪一個正在等你回應。⟦機場看板以前只掛一班飛機，現在每班的狀態都上板，哪一班在等你登機一眼就看到。⟧",
+                "en": "When Muse runs several things in the background, it is hard to tell what it is busy with and which one is waiting on you. Terminals that support program status reports (OSC 7501) now show each monitor and background terminal a session is running. Each workflow, subagent and background follow-up turn is listed too, along with which one is waiting for you. ⟦An airport board that used to show just one flight now lists every flight's status, so you spot the one waiting for you to board at a glance.⟧"
+              },
+              "original": "Terminals that support program status reports (OSC 7501) now also show each monitor and background terminal a session is running\nTerminals that support program status reports (OSC 7501) now also show each workflow, subagent and background follow-up turn a session is running, and which one is waiting for you"
+            },
+            {
+              "title": {
+                "zh-TW": "網路核准預設選「這次不再問」，自動審查不再把本機請求全丟給你",
+                "en": "Network approvals default to \"don't ask again\", and auto-review stops handing you every local request"
+              },
+              "body": {
+                "zh-TW": "Muse 要連某個網址時會先問你，以前同一個目的地可能一問再問。現在網路核准提示預設停在「Yes, don't ask again this session」，只針對那個主機和連接埠，直接按 Enter，同一個目的地就不會再問。自動審查（Auto-review）以前看到連往 `localhost` 或 `127.0.0.1` 的請求，光憑位址或連接埠就整個交給你決定，現在會像其他動作一樣自己審。續接一個明確關掉審查員的 Auto-review 工作階段時，以前會被拒絕，現在照當時記下的人工設定繼續。",
+                "en": "Muse asks before connecting to an address, and the same destination could ask again and again. Network approval prompts now start on \"Yes, don't ask again this session\" for that exact host and port, so pressing Enter stops the same destination from asking again. Auto-review used to hand you every request to a local server on `localhost` or `127.0.0.1` just because of its address or port; it now reviews them like any other action. Resuming an Auto-review session with the reviewer explicitly turned off used to be refused; it now proceeds under the recorded human override."
+              },
+              "original": "Network approval prompts now start on \"Yes, don't ask again this session\" for that exact host and port, so pressing Enter stops the same destination from asking again\nAuto-review no longer hands you every request to a local server on `localhost` or `127.0.0.1` just because of its address or port; it reviews them like any other action\nResuming an Auto-review session with the reviewer explicitly off now proceeds under the recorded human override instead of refusing, matching gate-off"
+            },
+            {
+              "title": {
+                "zh-TW": "工作流程當機後續跑，不再重跑已完成的子代理",
+                "en": "Resuming a Workflow after a crash no longer reruns finished subagents"
+              },
+              "body": {
+                "zh-TW": "長時間的工作流程（Workflow，串聯多個子任務自動執行的機制）跑到一半當機，最怕續跑時從頭再來。現在續跑時，在不同時間點已完成的平行子代理不會再重跑，也不會警告存下的復原狀態不可信，除非當機時還有更早啟動的子代理在跑。續跑被拒或啟動後失敗，現在會記下最終結果，用戶端不會一直顯示工作流程還開著。工作流程啟動後的部分歷史遺失、讀不到工作階段的歷史檔，或缺的部分包含工作流程怎麼啟動的紀錄時，續跑都會停下來說明原因，請你重跑那段工作，不再硬接著跑、從頭重跑或只丟一個沒頭沒尾的錯誤。",
+                "en": "When a long Workflow (a mechanism that chains subtasks to run automatically) crashes halfway, the worst outcome is starting over on resume. Resuming now no longer reruns parallel subagents that had already finished at different times, or warns that the saved recovery state was not trustworthy, unless a subagent started before them was still running at the crash. A Workflow resume that is refused or fails after launch now records its final outcome, so clients no longer show the Workflow as open. When part of the saved history written after the Workflow started is missing, when Muse cannot read the session's history file, or when the missing part includes how the Workflow started, resuming now stops with the reason and asks you to run that work again, instead of pressing on, rerunning from the start or failing with a bare error."
+              },
+              "original": "Resuming a Workflow after a crash no longer reruns parallel subagents that had already finished at different times, or warns that the saved recovery state was not trustworthy, unless a subagent started before them was still running at the crash\nA Workflow resume that is refused or fails after launch now records its terminal reconciliation, so clients no longer show the Workflow as open until the host exits\nWhen part of a session's saved history written after a Workflow started is missing, resuming that Workflow now stops with the reason and asks you to run that work again, instead of continuing it\nWhen Muse can't read a session's saved history file, resuming a Workflow from that session now stops with the reason and asks you to run that work again, instead of re-running the Workflow from the start\nWhen the missing part of a session's saved history includes the record of how a Workflow started, resuming that Workflow now also stops with the reason and asks you to run that work again, instead of failing with a bare error"
+            },
+            {
+              "title": {
+                "zh-TW": "工作流程的子代理指定模型時不再被誤拒",
+                "en": "Workflow subagents that name a model are no longer wrongly refused"
+              },
+              "body": {
+                "zh-TW": "明明指名的就是正在用的模型，子代理卻不肯開工，讓人摸不著頭緒。現在工作流程裡的子代理指名的若正是工作階段在用的模型，就算它在模型清單裡被隱藏或不見，也照常執行，跟不指定模型一樣。在舊版開始的工作階段裡，只要 `/model` 對你的供應商列出該模型一次，指名它的子代理也能執行。工作流程裡的代理讀取存下的結果時，會拿到來源和欄位標籤；摘要清單省略較早的結果時，就算完整結果還在，也會收到通知。ParallelGroup 拒絕執行時，錯誤訊息會點名 members 參數和 .defer 改法，不再只給籠統的資料錯誤或內部代理編號。",
+                "en": "Naming a model for a subagent in a Workflow could get refused for no clear reason. A Workflow subagent that names the model your session is running now runs even when that model is hidden or missing from the model list, the same as leaving the model out. In sessions first started on an older version, a subagent that names a model now runs when `/model` lists that model once for your provider. Workflow agents receive source and field labels when reading saved results, and get a notice when the summary list omits earlier results, even when full results are available. ParallelGroup refusals now name the members argument and the .defer correction instead of a generic plain-data error or an internal agent identifier."
+              },
+              "original": "Workflow agents receive source and field labels when reading saved results\nParallelGroup refusals now name the members argument and the .defer correction instead of a generic plain-data error or an internal agent identifier\nA Workflow subagent that names the model your session is running now runs even when that model is hidden or missing from the model list, the same as leaving the model out\nWorkflow agents now get a notice when the summary list omits earlier results, even when full results are available\nA Workflow subagent that names a model now runs in sessions first started on an older version, when `/model` lists that model once for your provider, instead of being refused"
+            },
+            {
+              "title": {
+                "zh-TW": "Muse 只說下一步卻沒動手時，會被催著繼續做",
+                "en": "When Muse only announces its next step, it is nudged to keep going"
+              },
+              "body": {
+                "zh-TW": "請 Muse 做事，它回一句「接下來我會……」就停了，你只好再打一次「繼續」。現在模型只交代下一步、沒有呼叫任何工具時，agent 會請它接著做，每次執行最多催兩次。子代理因設定的模型不能用而改用工作階段模型時，啟動它的 agent 仍會知道實際跑的是哪個模型。Muse 當機重啟後，agent 直接啟動、還沒開始跑的子代理不會自己再啟動一次，而是給上層一個「結果不明」，讓它檢查後決定要不要重開。你回答問題或傳新訊息前備好的 skill 提醒，現在會被丟掉，Muse 不會照著已經過時的建議行動；背景任務完成時，也不再重問還沒答的問題。",
+                "en": "You ask Muse to do something, it replies \"next I will…\" and stops, and you have to type \"continue\" again. Now, when the model only says what it will do next and calls no tool, the agent asks it to go on, up to twice per run. When a subagent runs on the session model because its configured model is unavailable, the agent that started it is still told which model ran. After Muse restarts from a crash, a subagent the agent started directly that had not started running yet is no longer started again by itself; its parent gets one result saying the outcome is unknown, so it can check and start it again if still needed. A skill reminder prepared before you answered Muse's question or sent another message is now dropped, so Muse no longer acts on guidance your answer already settled, and the agent no longer repeats a pending question when a background task finishes."
+              },
+              "original": "After Muse restarts from a crash, a subagent the agent started directly (not from a workflow) that had not started running yet is no longer started again by itself; its parent gets one result saying the outcome is unknown, so it can check and start the subagent again if still needed\nWhen a subagent runs on the session model because its configured model is unavailable, the agent that started it is still told which model ran\nWhen the model only says what it will do next and calls no tool, the agent asks it to go on (up to twice per run) instead of ending the turn there\nA skill reminder prepared before you answered Muse's question or sent it another message is now dropped instead of reaching Muse as current advice, so Muse no longer acts on guidance your answer already settled\nAgent no longer repeats a pending question when a background task finishes"
+            },
+            {
+              "title": {
+                "zh-TW": "壓縮時檢查點沒存成，下一回合會補存，長對話重開又快了",
+                "en": "Missed checkpoints during compaction are saved next turn, so long sessions reopen fast again"
+              },
+              "body": {
+                "zh-TW": "很長的工作階段要重新打開，靠的是檢查點（記錄對話進度的存檔）才能快速接上。壓縮對話時如果檢查點沒存成，下一回合現在會補存，而且不再多做一次摘要，重開長對話又快了。側邊對話在壓縮時正在跑工具，或取消的工作流程工具存不下來時，那次壓縮現在也會存好續接用的檢查點。磁碟滿或寫入失敗排除後，下一個檢查點會正常儲存，不再又跳過一次。壓縮檢查點失敗又無法回復時，工作階段以前每一步都重新摘要同一段歷史，現在會保留每份摘要繼續往下。長工作階段也會在檢查點修剪已涵蓋的紀錄，不再無限長大。",
+                "en": "Reopening a long session quickly depends on checkpoints (saves that record the conversation's progress). When a checkpoint could not be saved during a compaction, the next turn now saves it without another summary, so reopening a long session is fast again. Compactions that happen while a side chat is mid-tool, or after a cancelled workflow tool could not be saved, now save their resume checkpoint too. After a full disk or a failed write clears, the next checkpoint is saved instead of being skipped once more. A session whose compaction checkpoint failed and could not be rolled back used to re-summarize the same history on every step; it now keeps each summary and continues. Long sessions also trim covered records at checkpoints instead of growing without bound."
+              },
+              "original": "When a context checkpoint could not be saved during a compaction, the next turn now saves it without another summary, so reopening a long session is fast again\nResuming a session stays fast after a side chat was mid-tool during a compaction, or after a cancelled workflow tool could not be saved; those compactions now save their resume checkpoint\nLong sessions trim covered records at checkpoints instead of growing without bound\nAfter a full disk or a failed write clears, the next context checkpoint is saved instead of being skipped once more\nA session whose compaction checkpoint failed and could not be rolled back no longer re-summarizes the same history on every step; it keeps each compacted summary and continues"
+            },
+            {
+              "title": {
+                "zh-TW": "有背景任務或分支對話時，檢查點也照常儲存",
+                "en": "Checkpoints keep saving alongside background tasks and branched chats"
+              },
+              "body": {
+                "zh-TW": "Muse 多線並行時，記錄對話進度的檢查點（重開對話時用來快速接上的存檔）以前常被默默漏存。工具執行中有監控或背景任務回報時，這一回合剩下的檢查點現在不再被跳過。在來源對話同一次開啟裡打開的分支、倒回或側邊對話，現在會存自己的檢查點，不必等到 app 重開。重開對話後才完成的背景任務，就算啟動它的回合無法還原，也不再擋住壓縮存檢查點。背景任務還在跑時重開已存的對話，任務完成後，檢查點和任務結果都會照常記錄下來。",
+                "en": "With background tasks, forks or side chats open, checkpoints (saves that record the conversation's progress) used to get skipped quietly. Checkpoints are no longer skipped for the rest of a turn when a monitor or background task reports in while tools are running. A forked, rewound or side chat opened in the same app run as its source now saves its checkpoints instead of skipping them until the app restarts. A background task that finishes after you reopen a chat no longer stops compaction from saving checkpoints when the turn that started it could not be restored. Reopening a saved chat while a task it started is still running no longer stops the checkpoint, or the task's result, from being recorded when that task finishes."
+              },
+              "original": "Context checkpoints are no longer skipped for the rest of a turn when a monitor or background task reports in while tools are running\nA forked, rewound or side chat opened in the same app run as its source now saves its context checkpoints, instead of skipping them until the app restarts\nA background task that finishes after you reopen a chat no longer stops compaction from saving checkpoints when the turn that started it could not be restored\nReopening a saved chat while a background task it started is still running no longer stops compaction from saving its checkpoint, or the task's result from being recorded, when that task finishes"
+            },
+            {
+              "title": {
+                "zh-TW": "`/compact` 在續接和分支的對話裡都能正常用",
+                "en": "`/compact` works properly in resumed and forked chats"
+              },
+              "body": {
+                "zh-TW": "手動打 `/compact` 壓縮對話，卻看不出到底成功沒有？續接工作階段後，`/compact` 現在會在對話紀錄裡顯示「◆ Context compacted」結果列，不再默默毫無變化。續接的分支對話裡，`/compact` 可以重複使用。正在看背景結果時打 `/compact`，現在壓縮的是最新的主要執行，不是那份背景結果。重開的對話裡，如果子代理的結果剛好在先前某次壓縮前才存進去，以前之後每次壓縮都會失敗，現在不會。agent 工作時你先打好的排隊輸入，會在回合結束後的壓縮做完就執行，不再停在閒置的提示前空等。",
+                "en": "Type `/compact` and cannot tell whether it worked? After resuming a session, `/compact` now shows its `◆ Context compacted` outcome row in the transcript instead of silently leaving it unchanged. In resumed forked conversations, `/compact` works repeatedly. Issued while viewing a background delivery, `/compact` now compacts the newest top-level run instead of the delivery run. A reopened chat no longer fails every compaction when a subagent delivery was saved late, just before an earlier compaction. Input you queued while the agent was working now runs after a post-turn compaction instead of waiting at an idle prompt."
+              },
+              "original": "Queued input typed while the agent was working now runs after a post-turn context compaction instead of waiting at an idle prompt\nAfter resuming a session, `/compact` now shows its `◆ Context compacted` outcome row in the transcript instead of silently leaving the transcript unchanged\nA reopened chat no longer fails every compaction when a subagent delivery was saved late, just before an earlier compaction\n`/compact` works repeatedly in resumed forked conversations\n/compact issued while viewing a background delivery now compacts the newest top-level run instead of the delivery run"
+            },
+            {
+              "title": {
+                "zh-TW": "磁碟滿造成的寫入失敗，不再讓對話打不開",
+                "en": "Write failures from a full disk no longer lock you out of a chat"
+              },
+              "body": {
+                "zh-TW": "磁碟滿了是常見的意外，但不該讓整段對話報銷。工具結果因磁碟滿等原因寫不進去的對話，現在不必重開 app 就能再打開。工具呼叫寫不進去、結果卻寫進去的對話，重開後也打得開，只把那一回合擱置，Muse 會說明一次。記錄工作流程啟動結果時遇到磁碟錯誤，對話以前會一直停止存檔到重開為止，現在不會。用圖片倒回所建立的對話，在自動保留歷史的檢查點之後，倒回更早的回合也不再失敗。",
+                "en": "A full disk is a common mishap, but it should not wreck a whole conversation. A saved chat whose tool result could not be written to disk, for example on a full disk, now opens again without a restart. A chat whose tool call could not be written while its result was written now opens after a restart; only that turn is set aside, and Muse says so once. A disk error while recording a workflow launch result no longer stops the chat from saving until restart. In a conversation created by rewinding with an image, rewinding to an earlier turn no longer fails after an automatic history-preserving checkpoint."
+              },
+              "original": "A chat no longer stops saving until restart after a disk error while recording a workflow launch result\nA saved chat whose tool result could not be written to disk (for example on a full disk) now opens again without a restart\nRewinding to an earlier turn no longer fails after an automatic history-preserving checkpoint in a conversation created by rewinding with an image\nA chat whose tool call could not be written to disk (for example on a full disk) while its result was written now opens again after a restart; only that turn is set aside, and Muse says so once"
+            },
+            {
+              "title": {
+                "zh-TW": "續接工作階段時，歷史、推理和背景狀態都會保留",
+                "en": "Resumed sessions keep their history, reasoning and background status"
+              },
+              "body": {
+                "zh-TW": "隔天回來想接著昨天的工作做，最怕打開是空的或少了一截。自動更新時還開著的工作階段，現在續接會帶回歷史，不再空空如也。有待處理背景結果的對話，續接時不再冒出不必要的上下文上限錯誤。檢查點修剪後續接，那些在新一代沒提供工具的 MCP 伺服器（連接外部工具的服務），工具身分綁定不會再弄丟。透過 `muse serve` 續接最早在 `muse` 供應商標籤下記錄、又用了記錄事件外掛的對話，先前的推理會保留，不再被當成別家的丟掉。重開側邊對話或分支後，背景工作狀態仍看得到；續接時也會自動取好名字。",
+                "en": "Coming back the next day to pick up where you left off, the worst surprise is an empty or truncated session. A session left running through an auto-update now resumes with its history instead of coming back empty. Conversations with pending background results resume without unnecessary context limit errors. Resuming after a checkpoint prune no longer loses MCP (servers that connect external tools) tool identity bindings for servers that contribute no tools in the new generation. Resuming over `muse serve` a chat first recorded under the `muse` provider label that also used a plugin recording session events now keeps its earlier reasoning instead of dropping it as another provider's. Background work status stays available after reopening a side conversation or fork, and a resumed session gets its automatic name."
+              },
+              "original": "Resuming a session after a checkpoint prune no longer loses MCP tool identity bindings for servers that contribute no tools in the new generation\nResume conversations with pending background results without unnecessary context limit errors\nResuming over `muse serve` a chat first recorded under the `muse` provider label that also used a plugin recording session events now keeps its earlier reasoning instead of dropping it as another provider's\nA session left running through an auto-update now resumes with its history instead of coming back empty\nGate-on resume settles the session's automatic name like gate-off instead of leaving the reopen unnamed\nKeep background work status available after reopening a side conversation or fork"
+            },
+            {
+              "title": {
+                "zh-TW": "續接清單載入變快，分支裡的 `/fork` 不再失敗",
+                "en": "The resume picker loads faster, and `/fork` works inside forks"
+              },
+              "body": {
+                "zh-TW": "工作階段一多，打開續接選單往下捲就越來越慢。現在每多載一頁，不再把已載入的每一列重掃一遍，清單再長也維持同樣速度；打開分支工作階段時的重複歷史掃描也減少了。選單會註明沒有任何回合的工作階段不會保留。續接撞到衝突時，訊息會點名是哪個工作階段伺服器佔著，不再建議你把它砍掉。從已壓縮對話分出來的分支裡再用 `/fork`，以前會失敗並顯示「source Goal state changed or failed validation」，現在可以正常用。",
+                "en": "The more sessions you have, the slower the resume picker got as you scrolled. Paging in more sessions no longer rescans every loaded row for each new one, so long lists keep loading at the same speed, and opening forked sessions repeats fewer history scans. The picker notes that sessions with no turns are not kept. A resume conflict now names the session server holding it instead of suggesting you kill it. `/fork` in a forked chat branched from a compacted chat used to fail with \"source Goal state changed or failed validation\"; it now works."
+              },
+              "original": "`/fork` now works in a forked chat that was branched from a compacted chat, instead of failing with \"source Goal state changed or failed validation\"\nPaging more sessions into the resume picker now stays linear instead of rescanning every loaded row for each new one, so long session lists keep loading pages at the same speed\nResume conflict names the holding session server instead of suggesting killing it\nResume picker notes that sessions with no turns are not kept\nReduce repeated history scans when opening forked sessions"
+            },
+            {
+              "title": {
+                "zh-TW": "按量計費時，存好的貢獻者模型不再被換成標準價模型",
+                "en": "Pay-as-you-go sessions keep your saved contributor model"
+              },
+              "body": {
+                "zh-TW": "你特地存好要用的貢獻者模型，工作階段一開頭跑的卻不是它。這發生在按量計費（用多少付多少）的工作階段：以前在訂閱檢查回覆之前，會先換成標準價的基礎模型。現在從第一個請求起就保留你存的模型；啟動時被重新對應過的，訂閱檢查一回覆也會換回來。⟦在餐廳指定了主廚，以前櫃台還沒查完會員資格，就先派一般廚師上菜，現在第一道菜就是你點的那位主廚做的。⟧",
+                "en": "In pay-as-you-go sessions (you pay for what you use) with a saved contributor model, the model used to be mapped to the standard-price base until the subscription check answered. Now the saved model is kept from the first request, and one remapped at startup is restored as soon as the subscription check answers. ⟦You requested a particular chef, but the front desk used to send out the regular cook until it finished checking your membership; now your chef makes the very first dish.⟧"
+              },
+              "original": "Pay-as-you-go sessions restore a saved contributor model remapped at startup once the subscription check answers, instead of staying on the standard-price base\nPay-as-you-go sessions keep a saved contributor model from the first request, instead of mapping it to the standard-price base until the subscription check answers"
+            },
+            {
+              "title": {
+                "zh-TW": "服務重啟前會先核對身分，不再誤停長得像的工作階段",
+                "en": "Restarts check ownership first and leave look-alike sessions running"
+              },
+              "body": {
+                "zh-TW": "同時開好幾個 Muse 工作階段時，重啟一個服務不該順手把別的也關掉。服務和迴圈重啟前，現在會拿擁有權紀錄逐一核對每個程序，長得像、但不屬於它的工作階段會留著繼續跑。側邊對話的嘗試現在記在來源工作階段上，不再直接丟掉；搶不到資源的側邊對話照樣開得起來，重試時會補上或接上先前的結果。工作階段保留機制以前只要背景讀一次紀錄失敗，就永遠放棄那個工作階段，現在會在之後再讀，過了保留期限一樣會正常到期。",
+                "en": "With several Muse sessions open, restarting one service should not take the others down with it. Service and loop restarts now verify every process against an ownership record before stopping it, so look-alike sessions are left running. Side chats now record their attempts on the source session instead of dropping them; a contended side chat still opens, and a retry backfills or joins the earlier outcome. Session retention used to give up on a session forever when one background read of its log failed; the read is now retried later, so the session still expires once it is past the retention period."
+              },
+              "original": "Side chats now record their attempts on the source session instead of dropping them, matching gate-off; a contended side still opens and a retry backfills or joins the prior outcome\nService and loop restarts verify every process against an ownership record before stopping it, so look-alike sessions are left running\nSession retention no longer gives up on a session forever when one background read of its log fails; the read is retried on a later pass, so the session still expires once it is past the retention period"
+            },
+            {
+              "title": {
+                "zh-TW": "表格每列都有分隔線，`/new` 和 `/clear` 立刻清畫面",
+                "en": "Tables get row lines, and `/new` and `/clear` clear the screen at once"
+              },
+              "body": {
+                "zh-TW": "在終端機裡看 Muse 回覆，有幾個小地方變順眼了。回覆裡的表格現在每一列之間都畫分隔線。打 `/new` 或 `/clear` 會立刻清空畫面，不再讓舊對話停留好幾秒；新工作階段啟動時你同時打字，第一個字母也不會被吃掉。TUI（在終端機裡畫出來的操作介面）收到工作階段列時，不再清掉終端機原本的捲動紀錄，對話紀錄裡的工作階段列也不會畫兩次。",
+                "en": "Reading Muse's replies in the terminal got a little easier on the eyes. Tables in replies now draw a line between every row. `/new` and `/clear` clear the screen immediately instead of leaving the old chat visible for seconds, and text you type while the fresh session starts no longer loses its first letter. The TUI (the interface drawn inside the terminal) no longer erases the terminal's existing scrollback when session rows arrive, and session rows no longer render twice in the transcript."
+              },
+              "original": "Tables in assistant replies draw a line between every row\nThe TUI no longer erases the terminal's pre-existing scrollback when session rows arrive, matching gate-off\nText you type while `/new` or `/clear` starts a fresh session no longer loses its first letter\nSession rows no longer render twice in the TUI transcript\n/new and /clear now clear the screen immediately instead of leaving the old chat visible for seconds"
+            },
+            {
+              "title": {
+                "zh-TW": "讀影片改在本機擷取畫格，錯誤訊息不再出現兩次",
+                "en": "Video reads extract frames locally, and errors show only once"
+              },
+              "body": {
+                "zh-TW": "交給 Muse 一支影片、要它看內容時，它現在會引導在本機擷取畫格，不必把影片上傳。回合失敗前已經收到部分輸出時，錯誤現在只顯示一次，不再出現兩次。排隊輸入面板在訊息更新失敗時會說明，也會告訴你輸入仍然有效。`/stop all` 期間剛好完成的任務，會回報為已完成，不再讓停止動作失敗。同一段對話裡，也不再一再載入表格格式的 skill。",
+                "en": "Hand Muse a video to look at, and it now guides local frame extraction without uploading the video. When partial output arrived before a turn failed, the error now shows once instead of twice. The queued input panel says when message updates fail and that your input still works. Tasks that finish during `/stop all` are reported as already finished instead of failing the stop. The table-formatting skill is no longer loaded again and again within a conversation."
+              },
+              "original": "Video file reads guide local frame extraction without uploading the video\nThe queued input panel says when message updates fail and that your input still works\nAvoid repeated table-formatting skill loads within a conversation\nReport tasks that finish during `/stop all` as already finished instead of failing the stop\nA failed turn now shows its error once instead of twice when partial output arrived before the failure finished"
+            },
+            {
+              "title": {
+                "zh-TW": "工具執行的指令併入同一條追蹤，hook 的 `model_provider` 恢復正確",
+                "en": "Tool-run commands join the turn's trace, and the hook `model_provider` is correct again"
+              },
+              "body": {
+                "zh-TW": "想追查 Muse 一回合裡到底跑了哪些指令，以前會看到一堆找不到上層的零散追蹤紀錄。現在工具執行的指令，包括 shell、MCP（讓 AI 連接外部工具的協定）呼叫、hook、背景終端機和 `!` shell，都會併進該回合的追蹤，像 `meta` 這類工具產生的下游紀錄，會掛在執行它的工具呼叫底下。⟦家譜上原本有一群人找不到父母，現在每個人都接回自己那一支。⟧在每條 Meta 閘道連線上，包括公司 Mac 啟動器，Muse 模型的 hook（特定時機自動觸發的小程式）輸入 `model_provider` 又會是 `meta`；透過 Meta 閘道提供的 Claude 和 GPT 模型，則照舊不帶這個欄位。",
+                "en": "Trying to trace which commands ran in a Muse turn used to turn up a pile of orphaned traces with no parent. Commands run by tools, including shell, MCP (the protocol that connects AI to external tools) calls, hooks, background terminals and `!` shell, now join the turn's trace, so downstream spans from tools like `meta` nest under the tool call that ran them. ⟦A family tree that had a group of people with no parents now has everyone reattached to their own branch.⟧ On every Meta gateway connection, including the corp Mac launcher, the hook (a small program triggered automatically at certain moments) input `model_provider` is `meta` again for Muse models, and it is still omitted for Claude and GPT models served through the Meta gateway."
+              },
+              "original": "Hook input `model_provider` is `meta` again for Muse models on every Meta gateway connection, including the corp Mac launcher, and is still omitted for Claude and GPT models served through the Meta gateway\nCommands run by tools (shell, MCP calls, hooks, background terminals, `!` shell) now join the turn's trace instead of starting orphan traces, so downstream spans from tools like `meta` nest under the tool call that ran them"
+            }
+          ]
+        },
+        {
           "version": "1.4.10",
           "period": "2026-10-21",
           "items": [
