@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-10-21",
+  "generated_at": "2026-10-22",
   "tools": [
     {
       "id": "claude_code",
@@ -1534,19 +1534,63 @@
           ]
         },
         {
-          "version": "0.33.10",
-          "period": "2026-10-16",
+          "version": "0.34.0",
+          "period": "2026-10-21",
           "items": [
             {
               "title": {
-                "zh-TW": "Windows 版恢復 hook 安裝與更新",
-                "en": "Windows Restores Hook Installation and Updates"
+                "zh-TW": "Muse Code 有自己的額度卡了",
+                "en": "Muse Code gets its own quota card"
               },
               "body": {
-                "zh-TW": "若你在 Windows 電腦上使用時，曾碰過切換設定後毫無動靜，現在各項開關都能正常生效了。⟦就像按下電燈開關，以前怎麼按都沒有反應，現在一按燈就亮了。⟧這項問題源自工具仰賴 hook（掛鉤，特定事件發生時被觸發的小程式）來串接各項功能。從 v0.33.2 版起，Windows 打包時未將 hook 腳本放入安裝程式讀取的資料夾，導致安裝程式找不到檔案。連帶讓首次設定，以及接續對話、精簡模式與額度感知等開關在點擊後靜默沒有反應，原本已裝好的 hook 也停止更新。macOS 系統完全不受此問題影響。現在 Windows 版已恢復正常，能順利安裝並持續更新 hook。",
-                "en": "If you previously experienced toggling settings on Windows with no response, all switches now take effect normally. ⟦Think of flipping a light switch: pressing it previously produced no reaction at all, but now the light turns on immediately.⟧ This issue stemmed from the tool relying on hooks (scripts triggered when specific events occur) to connect various features. Starting from v0.33.2, Windows packaging failed to include hook scripts in the folder read by the installer, leaving the installer unable to find the files. Consequently, initial setup as well as switches for continuing conversations, compact mode, and quota awareness silently failed to respond when clicked, and previously installed hooks also stopped updating. macOS is completely unaffected by this issue. Windows has now returned to normal, smoothly installing and continuously updating hooks."
+                "zh-TW": "你用 Muse 改完一份報告，想知道還能不能再跑一輪？現在點開 `usage` 面板就看得到 Muse 的額度卡：5 小時 Session（從開始用起算的 5 小時用量窗）和每週額度都有，附重置倒數，15 款額度佈景都能用。選單列多了 Muse 項目和隱藏開關，也有跟 Antigravity 一樣的快用完、已用完、已恢復通知。Muse 本機不留額度檔，所以 `usage` 會在背景送一次很小的請求直接問 Muse，不留對話紀錄，而且從空資料夾執行。⟦跟打電話問銀行餘額一樣，每通都要花錢，所以它不會一直打：還沒有讀數時問一次，之後要等讀數超過 30 分鐘、你又用過 Muse 才再問。⟧每問一次會用掉一點 Muse 額度；查詢失敗就等你再用 Muse 才重試。把 Muse 卡片藏起來就完全不查，沒裝 Muse 時卡片會自己隱藏。",
+                "en": "Anyone juggling several AI coding tools dreads finding out mid-task that one of them has run dry. Say you just used Muse to revise a report and wonder whether there is room for another pass: open the `usage` panel and the Muse quota card is there, with the 5-hour Session (the usage window counted from when you start) and the weekly quota, reset countdowns, and support in all 15 quota themes. The menu bar gains a Muse item and a hide toggle, plus the same near-limit, used-up and restored notifications as Antigravity. Muse keeps no quota file on your machine, so `usage` asks Muse directly with one small background request, saving no conversation log and running from an empty folder. ⟦Phoning the bank for your balance costs a little each time, so you would not call every minute: it asks once when there is no reading yet, then only after the reading is over 30 minutes old and you have used Muse since.⟧ Each check uses a little of your Muse quota, and a failed check waits for new Muse activity before retrying. Hiding the Muse card stops the checks, and the card hides itself when Muse is not installed."
               },
-              "original": "**Windows installs hooks and keeps them up to date again.** Since v0.33.2 the Windows build left the hook scripts out of the folder the installer reads, so first-run setup and the resume, terse and quota-aware toggles silently did nothing, and existing hooks stopped updating. macOS was not affected."
+              "original": "**Muse Code has a quota card.** It shows Muse's 5-hour Session and weekly quota with reset countdowns in all 15 quota themes, with a menu bar item, a hide toggle, and the same near-limit, used-up and restored notifications as Antigravity. Muse keeps no quota file, so `usage` asks Muse itself with one small background request, without a session log and from an empty folder. It checks once when there is no reading yet, then only when the reading is over 30 minutes old and you have used Muse since. Each check uses a little of your Muse quota. A failed check waits for new Muse activity before trying again. Hiding the Muse card stops the checks, and the card hides itself when Muse isn't installed."
+            },
+            {
+              "title": {
+                "zh-TW": "側邊面板、終端機儀表板和 Windows 系統匣也看得到 Muse 額度",
+                "en": "Muse quota appears in the side pane, terminal dashboard and Windows tray"
+              },
+              "body": {
+                "zh-TW": "你在 Claude Code 裡寫到一半，想順便瞄一眼 Muse 還剩多少，不必再切回 `usage` 的主面板。Claude Code 側邊面板、`usage status --json` 指令、多工具終端機儀表板和額度感知模式，現在都列出 Muse。Windows 系統匣也一樣，卡片、滑鼠停留時的提示文字、隱藏開關和通知都加上了 Muse。⟦以前 Muse 的數字只擺在總店，現在各分店的櫥窗也擺上了，不過分店只陳列總店最後送來的那批貨，自己不會去進貨。⟧這些地方只讀最後一次存下的讀數，從來不會自己發起 Muse 查詢，所以多開幾個地方看，也不會多花你的 Muse 額度。",
+                "en": "You are halfway through work in Claude Code and want a quick look at how much Muse quota is left, without switching back to the main `usage` panel. The Claude Code side pane, the `usage status --json` command, the multi-agent terminal dashboard and Quota-Aware Mode now all list Muse. The Windows tray does too, with Muse in its card, hover tooltip, hide toggle and notifications. ⟦Muse's numbers used to sit only in the flagship store; now every branch window displays them, but the branches only show the last batch the flagship sent over and never restock on their own.⟧ These places read only the last saved reading and never start a Muse check themselves, so looking in more places does not spend any extra Muse quota."
+              },
+              "original": "**Muse quota shows up wherever the other quotas do.** The Claude Code side pane, `usage status --json`, the multi-agent CLI dashboard, Quota-Aware Mode, and the Windows tray (card, tooltip, hide toggle, and notifications) now include Muse. They only read the last saved reading and never start a Muse check."
+            },
+            {
+              "title": {
+                "zh-TW": "額度卡變多時自動縮小，選單列最多只放 3 家",
+                "en": "Quota cards shrink when there are many, and the menu bar shows at most three tools"
+              },
+              "body": {
+                "zh-TW": "同時用好幾家 AI 工具的人，額度卡一多，筆電螢幕就塞不下。現在只要額度卡有 4 張以上，全部會一起改成精簡版：標題變小、Session 和每週額度並排，百分比和重置文字變短，「專案用量」標題也跟著縮小。3 張以下的樣子跟以前一樣。螢幕最上方的選單列也有同樣的擠法：Claude Code、Codex、Antigravity、Grok、Muse 五家全開時太寬，可能滑到瀏海後面看不到。⟦捷運月台的看板只輪播最近三班車，以前五家擠成一長串、尾巴被瀏海吃掉，現在選單列也只留 Session 用量最高的 3 家，排列順序照舊。⟧想看全部的話，打開面板仍會列出每一張卡。",
+                "en": "If you use several AI tools at once, too many quota cards no longer fit on a laptop screen. Now, once there are four or more quota cards, they all switch to a compact layout together: a smaller header, Session and weekly side by side, and shorter percent and reset text, with the Projects title shrinking to match. Three cards or fewer look the same as before. The menu bar at the top of the screen had the same crowding: with Claude Code, Codex, Antigravity, Grok and Muse all on, it got so wide it could slide behind the notch. ⟦A subway platform sign only cycles through the next three trains; the menu bar used to cram in all five tools until the tail vanished behind the notch, and now it keeps the three with the highest Session usage, in the usual order.⟧ Open the panel and every card is still listed."
+              },
+              "original": "**Four or more quota cards switch to a compact layout.** Four full cards no longer fit on a laptop screen, so every quota card shrinks: a smaller header, Session and weekly side by side, and shorter percent and reset text. The Projects title shrinks to match. Three or fewer cards look the same as before.\n**The menu bar shows at most three tools.** With Claude Code, Codex, Antigravity, Grok and Muse all on, the strip got too wide and could slide behind the notch. It now keeps the three with the highest Session usage, in the usual order. The panel still shows every card."
+            },
+            {
+              "title": {
+                "zh-TW": "兩款佈景的過期提示看清楚了，Windows 也記得住卡片排序",
+                "en": "Stale-data warnings are readable in two themes, and Windows remembers card order"
+              },
+              "body": {
+                "zh-TW": "換了花俏的佈景，有時反而看不到最該注意的提示。「視窗 95」佈景的紅色過期提示（提醒你數字太久沒更新）原本直接壓在藍色標題列上，「雲圖觀測」的淺橘提示壓在淺藍卡片上，現在兩者都有足夠對比；「世界盃 2026」英文版的 MATCH STATS 標題也不再被旁邊的按鈕擠掉。Windows 這邊，系統匣原本只接受剛好是 Claude 額度卡、Codex、Antigravity 三張卡的排序。⟦像衣帽間只認三號碼牌，多掛一件 Grok 外套就整排登記作廢；以前面板一有 Grok 卡，你拖好的順序就存不起來，現在改用跟 macOS 一樣的檢查，順序會記住。⟧",
+                "en": "A flashy theme can end up hiding the one warning you most need to see. In the Windows 95 theme, the red stale-data warning (a reminder that the numbers have not updated in a while) sat right on the blue title bar, and in Cloud Observation the pale amber one sat on sky-blue cards; both now have enough contrast. In World Cup 2026, the English MATCH STATS heading is no longer cut off by the buttons beside it. On Windows, the tray accepted a new card order only when it listed exactly the Claude, Codex and Antigravity cards. ⟦Picture a cloakroom that only recognizes three ticket numbers, so hanging one extra Grok coat voids the whole row: once a Grok card was in the panel, your dragged order was not saved, and now Windows uses the same check as macOS so the order sticks.⟧"
+              },
+              "original": "**Stale-data warnings are readable in the Windows 95 and Cloud Observation themes.** The red warning sat directly on the Windows 95 blue title bar, and the pale amber one on Cloud Observation's sky-blue cards. Both now have enough contrast. In World Cup 2026, the English MATCH STATS heading is no longer cut off by the buttons next to it.\n**Windows saves the quota card order again.** The tray accepted a new order only when it listed exactly the Claude, Codex, and Antigravity cards, so once the Grok card was in the panel, dragging cards into a new order was not saved. It now uses the same check as macOS."
+            },
+            {
+              "title": {
+                "zh-TW": "自動啟動 5 小時計時不再觸發你自己設的 hook",
+                "en": "Auto-start 5-hour Session no longer fires your own hooks"
+              },
+              "body": {
+                "zh-TW": "設過 hook（特定時機自動觸發的小程式）的人，以前可能莫名收到一堆通知，或多出好幾筆存下的對話。原因是「自動啟動 5 小時計時」在背景執行 `claude -p` 和 `codex exec` 送出小請求，每次都會觸發你設的每個 hook，例如工作階段開始時跑的 SessionStart、UserPromptSubmit、Stop hook，Codex 的 `hooks.json`，還有 Codex `config.toml` 裡的 `notify` 程式。⟦請鐘點清潔工來打掃，他每開一次門，門鈴、監視器通知和自動錄影就全響一輪；現在他改走不會觸動感應器的側門。⟧Claude Code 的背景請求改讀一份開了 `disableAllHooks` 的設定檔，Codex 的背景請求則關掉 `features.hooks` 與 `notify`。Antigravity 不變。",
+                "en": "If you have set up hooks (small programs that run automatically at certain moments), you may have been getting a pile of unexplained notifications or extra saved conversations. The cause: Auto-start 5-hour Session sends small background pings through `claude -p` and `codex exec`, and every ping fired every hook you had set up, such as SessionStart, UserPromptSubmit and Stop hooks, Codex's `hooks.json`, and the `notify` program in Codex's `config.toml`. ⟦Imagine hiring a cleaner who sets off your doorbell, camera alerts and auto-recording every time they open the front door; now they use a side door that trips no sensors.⟧ Claude Code pings now load a settings file with `disableAllHooks` turned on, and Codex pings turn off `features.hooks` and `notify`. Antigravity pings are unchanged."
+              },
+              "original": "**Auto-start 5-hour Session no longer runs your own hooks.** Its background `claude -p` and `codex exec` pings fired every hook you had set up, such as SessionStart, UserPromptSubmit and Stop hooks, Codex's `hooks.json`, and the `notify` program in Codex's `config.toml`. A hook that sends a notification or saves the conversation ran once for every ping. Claude Code pings now load a settings file with `disableAllHooks`; Codex pings turn off `features.hooks` and `notify`. Antigravity pings are unchanged."
             }
           ]
         }
