@@ -5,6 +5,15 @@
 All notable changes to usage are documented here.
 Format follows [Keep a Changelog](https://keepachangelog.com/).
 
+## [0.34.6] - 2026-10-23
+
+### Changed
+- **The usage report shows where each dispatch quota went.** The dispatch ledger's seven-column table is now "Where your dispatch quota went (last 7 days)": one block per quota, for Codex and each Antigravity model group, with how much of it is used this week, the conversations whose dispatched work used it (top five, then "N more"), and the rest as "Other (your own use, or no dispatch record found)". Antigravity groups each have their own weekly quota and are no longer added together; the old table could total more than 100%. When all of Codex's usage came before its reset, the block says so in one line.
+
+### Fixed
+- **The Muse card records a used-up weekly allowance as the weekly limit.** Muse sends the same "Subscription quota exhausted" error for both limits, and v0.34.5 always recorded it as the 5-hour window. A used-up week showed "Session 100%, resets in 3 days" while the weekly row kept an old reading. A reset more than 5 hours away now marks the weekly row as 100% with that reset time.
+- **Wrapped captions say "over the past year".** The data covers a rolling 53 weeks, not the calendar year.
+
 ## [0.34.5] - 2026-10-21
 
 ### Fixed
