@@ -169,8 +169,9 @@ def test_dispatch_ledger_follows_fixed_group_note() -> None:
                 "title": "dispatch",
                 "dispatch_count": 1,
                 "claude_pct": 0.01,
-                "codex_pct": None,
-                "agy_pct": None,
+                "codex_pct": 0.01,
+                "agy_groups": {},
+                "codex_reset": False,
             }
         ]
     }
@@ -202,23 +203,13 @@ def test_cold_read_labels_and_active_day_definition(lang: str) -> None:
 
 
 @pytest.mark.parametrize("codex,agy", [(0, 0), (3, 0), (0, 4), (3, 4)])
-def test_ledger_unowned_only_describes_missing_records(codex: int, agy: int) -> None:
+def test_ledger_without_quota_shares_omits_unowned_counts(codex: int, agy: int) -> None:
     from ui.report_ledger import render_ledger
 
-    row = {
-        "date": "2026-10-16",
-        "project": "sample",
-        "title": "dispatch",
-        "dispatch_count": 1,
-        "claude_pct": None,
-        "codex_pct": None,
-        "agy_pct": None,
-    }
-    result = render_ledger(
-        {"dispatch_ledger": {"rows": [row], "unowned_codex": codex, "unowned_agy": agy}},
-        "zh-TW",
+    assert (
+        render_ledger(
+            {"dispatch_ledger": {"rows": [], "unowned_codex": codex, "unowned_agy": agy}},
+            "zh-TW",
+        )
+        == ""
     )
-    assert ("找不到由 Claude 派工的紀錄，未列入上表" in result) == bool(codex or agy)
-    assert ("3 個 Codex" in result) == bool(codex)
-    assert ("4 個 Antigravity" in result) == bool(agy)
-    assert "多半是排程" not in result

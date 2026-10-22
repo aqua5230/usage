@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import sqlite3
+from dataclasses import replace
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -31,6 +32,7 @@ def paths(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> tuple[Path, Path, 
     monkeypatch.setattr(agy_loader, "AGY_SESSIONS_DIR", agy)
     monkeypatch.setattr(agy_quota_probe, "CACHE_PATH", tmp_path / ".usage" / "agy-quota.json")
     monkeypatch.setattr(cache_quarantine, "QUARANTINE_DIR", tmp_path / ".usage" / "quarantine")
+    monkeypatch.setattr(ledger, "resolve_project_name", lambda cwd: "test-project")
     ledger._file_cache.clear()
     ledger._codex_cache.clear()
     return claude, codex, agy
@@ -84,7 +86,7 @@ def test_foreground_dispatch_matches_real_fake_files(paths: tuple[Path, Path, Pa
     claude, codex, _ = paths
     _claude(claude, A, "codex exec 'do work'")
     _codex(codex, "child")
-    result = ledger.build_ledger({}, NOW)
+    result = ledger.build_ledger({("codex", "child", "codex"): 1}, NOW)
     assert len(result["rows"]) == 1
     assert result["rows"][0]["title"] == "Task A"
     assert result["rows"][0]["dispatch_count"] == 1
@@ -107,7 +109,9 @@ def test_background_command_with_hidden_brief_matches_by_time(
     claude, codex, _ = paths
     _claude(claude, A, 'codex exec "$(cat brief.md)" &')
     _codex(codex, "child", message="the brief contents are absent from command")
-    assert ledger.build_ledger({}, NOW)["rows"][0]["title"] == "Task A"
+    assert (
+        ledger.build_ledger({("codex", "child", "codex"): 1}, NOW)["rows"][0]["title"] == "Task A"
+    )
 
 
 def test_simultaneous_different_cwd_matches_each_owner() -> None:
@@ -171,7 +175,7 @@ def _entry(when: datetime, session: str, tokens: int, cache_read: int = 0) -> Us
 
 
 def test_missing_quota_is_none() -> None:
-    assert ledger.estimate_sessions([_entry(NOW, "s", 10)], {}, NOW) == {}
+    assert ledger.estimate_sessions([_entry(NOW, "s", 10)], {}, NOW) == ({}, set())
     assert ledger.estimate_pct(10, 100, None, NOW) is None
 
 
@@ -182,7 +186,10 @@ def test_cross_period_counts_only_current_tokens() -> None:
         _entry(NOW, "s", 100, 200),
         _entry(NOW, "other", 100),
     ]
-    assert ledger.estimate_sessions(entries, {"codex": window}, NOW)[("codex", "s")] == 25
+    assert ledger.estimate_sessions(entries, {"codex": window}, NOW) == (
+        {("codex", "s", "codex"): 25, ("codex", "other", "codex"): 25},
+        set(),
+    )
 
 
 def test_agy_models_share_group_denominator() -> None:
@@ -199,9 +206,9 @@ def test_agy_models_share_group_denominator() -> None:
     entries[0].agent_id = entries[1].agent_id = "antigravity"
     entries[0].model = "gemini-3-flash-preview"
     entries[1].model = "gemini-3.1-pro"
-    estimates = ledger.estimate_sessions(entries, windows, NOW)
-    assert estimates[("antigravity", "flash")] == pytest.approx(20)
-    assert estimates[("antigravity", "pro")] == pytest.approx(40)
+    estimates, resets = ledger.estimate_sessions(entries, windows, NOW)
+    assert estimates[("antigravity", "flash", "antigravity:GEMINI MODELS")] == pytest.approx(20)
+    assert estimates[("antigravity", "pro", "antigravity:GEMINI MODELS")] == pytest.approx(40)
 
 
 def test_agy_quota_uses_cache_only(
@@ -232,25 +239,6 @@ def test_agy_quota_skips_group_without_reported_weekly(
     cached = agy_quota_probe.AgyQuotaResult([group], NOW.isoformat())
     monkeypatch.setattr(agy_quota_probe, "_read_cache", lambda: cached)
     assert "antigravity:GEMINI MODELS" not in ledger.load_windows()
-
-
-def test_render_ledger_formats_values_and_escapes_title() -> None:
-    row: ledger.LedgerRow = {
-        "date": "2026-09-26",
-        "project": "work",
-        "title": "<script>",
-        "dispatch_count": 2,
-        "claude_pct": 0.4,
-        "codex_pct": 3,
-        "agy_pct": None,
-        "total_pct": 3.4,
-    }
-    rendered = render_ledger(
-        {"dispatch_ledger": {"rows": [row], "unowned_codex": 1, "unowned_agy": 0}}, "zh-TW"
-    )
-    assert "約 0.4%" in rendered and "約 3%" in rendered
-    assert "&lt;script&gt;" in rendered and "<script>" not in rendered
-    assert "1 個 Codex" in rendered
 
 
 def test_top_session_renders_weekly_quota_after_tokens() -> None:
@@ -304,57 +292,7 @@ def test_session_title_falls_back_to_first_user_text(tmp_path: Path) -> None:
     assert ledger._session_title(tmp_path / "missing.jsonl") == ""
 
 
-def test_ledger_escapes_user_text_and_uses_language_separator() -> None:
-    row = {
-        "date": "2026-09-26",
-        "project": "client<portal>",
-        "title": "<img src=x onerror=1>",
-        "dispatch_count": 1,
-        "claude_pct": None,
-        "codex_pct": 2.0,
-        "agy_pct": None,
-        "total_pct": 2.0,
-    }
-    html = render_ledger(
-        {"dispatch_ledger": {"rows": [row], "unowned_codex": 3, "unowned_agy": 4}}, "en"
-    )
-    assert "<img" not in html
-    assert "&lt;img src=x onerror=1&gt;" in html
-    assert "client&lt;portal&gt;" in html
-    assert "3 Codex, 4 Antigravity" in html
-
-
-def test_ledger_explains_the_weekly_quota_denominator() -> None:
-    data = {
-        "dispatch_ledger": {
-            "rows": [
-                {
-                    "date": "2026-10-13",
-                    "project": "sample",
-                    "title": "dispatch",
-                    "dispatch_count": 1,
-                    "claude_pct": 2.0,
-                    "codex_pct": 3.0,
-                    "agy_pct": None,
-                }
-            ],
-            "unowned_codex": 1,
-        }
-    }
-    rendered = render_ledger(data, "en")
-    assert "approximate shares of each tool’s weekly quota." in rendered
-    assert "Claude weekly quota" in rendered
-    assert "Codex weekly quota" in rendered
-    assert "Antigravity weekly quota" in rendered
-    assert rendered.index("No record of dispatch by Claude") < rendered.index(
-        '<div class="table-wrap">'
-    )
-    assert rendered.index("approximate shares") < rendered.index('<div class="table-wrap">')
-
-
 def test_muse_weekly_session_estimate_reads_only_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
-    from dataclasses import replace
-
     from loaders import muse_quota_probe
 
     monkeypatch.setattr(rate_limits, "load_rate_limits", lambda: None)
@@ -379,7 +317,233 @@ def test_muse_weekly_session_estimate_reads_only_snapshot(monkeypatch: pytest.Mo
         replace(_entry(NOW, "one", 10), agent_id="muse"),
         replace(_entry(NOW, "two", 20), agent_id="muse"),
     ]
-    estimates = ledger.estimate_sessions(entries, windows, NOW)
-    assert estimates[("muse", "one")] == 20
-    assert estimates[("muse", "two")] == 40
-    assert ledger.estimate_sessions(entries, windows, NOW + timedelta(days=2)) == {}
+    estimates, resets = ledger.estimate_sessions(entries, windows, NOW)
+    assert estimates[("muse", "one", "muse")] == 20
+    assert estimates[("muse", "two", "muse")] == 40
+    assert ledger.estimate_sessions(entries, windows, NOW + timedelta(days=2)) == ({}, set())
+
+
+def test_agy_groups_remain_separate_across_children(paths: tuple[Path, Path, Path]) -> None:
+    claude, _, agy = paths
+    _claude(claude, A, "agy -p one & agy -p two")
+    for child in ("one", "two"):
+        _agy(agy, child)
+    gemini = ledger.QuotaWindow(60, NOW + timedelta(days=1), timedelta(days=7))
+    other = ledger.QuotaWindow(40, NOW + timedelta(days=2), timedelta(days=7))
+    windows = {
+        "antigravity:GEMINI MODELS": gemini,
+        "antigravity-model:gemini": gemini,
+        "antigravity:CLAUDE AND GPT MODELS": other,
+        "antigravity-model:claude": other,
+    }
+    entries = [
+        replace(_entry(NOW, child, tokens), agent_id="antigravity", model=model)
+        for child, model, tokens in (
+            ("one", "gemini", 10),
+            ("one", "claude", 10),
+            ("two", "gemini", 20),
+        )
+    ]
+    estimates, resets = ledger.estimate_sessions(entries, windows, NOW)
+    assert estimates[("antigravity", "one", "antigravity:GEMINI MODELS")] == 20
+    assert estimates[("antigravity", "one", "antigravity:CLAUDE AND GPT MODELS")] == 40
+    data = ledger.build_ledger(estimates, NOW, resets)
+    assert data["rows"][0]["agy_groups"] == {"GEMINI MODELS": 60, "CLAUDE AND GPT MODELS": 40}
+    assert data["rows"][0]["total_pct"] == 100
+    rendered = render_ledger({"dispatch_ledger": data}, "zh-TW")
+    assert rendered.index("Gemini") < rendered.index("Claude/GPT")
+    assert "約 40%" in rendered and "約 60%" in rendered
+
+
+@pytest.mark.parametrize(
+    ("lang", "label"),
+    [
+        ("zh-TW", "最近 7 天的派工都在額度重置前，算在上週。"),
+        (
+            "en",
+            "All dispatched work in the last 7 days came before the quota reset, "
+            "so it counts toward last week.",
+        ),
+    ],
+)
+@pytest.mark.parametrize("agent", ["codex", "claude-code", "antigravity"])
+def test_pre_window_usage_renders_reset(
+    paths: tuple[Path, Path, Path], agent: str, lang: str, label: str
+) -> None:
+    claude, codex, agy = paths
+    is_agy = agent == "antigravity"
+    _claude(claude, A, "agy -p task" if is_agy else "codex exec task")
+    if is_agy:
+        _agy(agy, "child")
+    else:
+        _codex(codex, "child")
+    window = ledger.QuotaWindow(10, NOW + timedelta(days=6), timedelta(days=7))
+    group = "antigravity:GEMINI MODELS" if is_agy else agent
+    windows = {group: window}
+    if is_agy:
+        windows["antigravity-model:gemini"] = window
+    session = A if agent == "claude-code" else "child"
+    entry = replace(_entry(NOW - timedelta(days=2), session, 10), agent_id=agent, model="gemini")
+    estimates, resets = ledger.estimate_sessions([entry], windows, NOW)
+    assert not estimates
+    assert resets == {(agent, session, group)}
+    data = ledger.build_ledger(estimates, NOW, resets)
+    row = data["rows"][0]
+    tool = {"claude-code": "claude", "codex": "codex", "antigravity": "agy"}[agent]
+    assert row.get(f"{tool}_reset") is True
+    rendered = render_ledger({"dispatch_ledger": data}, lang)
+    if agent == "codex":
+        assert label in rendered
+        assert "Codex</h3>" in rendered
+        assert "Task A" not in rendered
+    else:
+        assert rendered == ""
+
+
+def test_child_without_usage_or_window_stays_dash(paths: tuple[Path, Path, Path]) -> None:
+    claude, codex, _ = paths
+    _claude(claude, A, "codex exec task")
+    _codex(codex, "child")
+    estimates, resets = ledger.estimate_sessions([], {}, NOW)
+    data = ledger.build_ledger(estimates, NOW, resets)
+    assert data["rows"][0]["codex_pct"] is None
+    assert data["rows"][0]["codex_reset"] is False
+    assert render_ledger({"dispatch_ledger": data}, "zh-TW") == ""
+
+
+def test_project_uses_resolver(
+    paths: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    claude, codex, _ = paths
+    cwd = "/work/election-desk/戰情室"
+    _claude(claude, A, "codex exec task", cwd=cwd)
+    _codex(codex, "child", cwd=cwd)
+    seen: list[str] = []
+
+    def resolve(value: str) -> str:
+        seen.append(value)
+        return "election-desk"
+
+    monkeypatch.setattr(ledger, "resolve_project_name", resolve)
+    data = ledger.build_ledger({}, NOW)
+    assert seen == [cwd]
+    assert data["rows"][0]["project"] == "election-desk"
+
+
+def _row(index: int, codex: float | None = None, **groups: float) -> ledger.LedgerRow:
+    return {
+        "date": "2026-10-23",
+        "project": "client<portal>",
+        "title": f"<task {index}>",
+        "dispatch_count": index,
+        "claude_pct": 90,
+        "codex_pct": codex,
+        "agy_groups": groups,
+        "claude_reset": False,
+        "codex_reset": False,
+        "agy_reset": False,
+        "total_pct": 90 + (codex or 0) + sum(groups.values()),
+    }
+
+
+def test_blocks_sort_and_roll_up_each_quota_independently() -> None:
+    rows = [_row(i, float(i), **{"GEMINI 4 ARGON": float(2 * (9 - i))}) for i in range(1, 9)]
+    blocks = ledger.ledger_blocks(rows, {"codex": 40, "antigravity:GEMINI 4 ARGON": 50})
+    assert [b["quota"] for b in blocks] == ["antigravity:GEMINI 4 ARGON", "codex"]
+    assert [r["dispatch_count"] for r, _ in blocks[0]["conversations"]] == [1, 2, 3, 4, 5]
+    assert [r["dispatch_count"] for r, _ in blocks[1]["conversations"]] == [8, 7, 6, 5, 4]
+    assert blocks[0]["more_count"] == blocks[1]["more_count"] == 3
+    assert blocks[0]["more_pct"] == 12
+    assert blocks[1]["more_pct"] == 6
+    assert blocks[1]["other_pct"] == 4
+    rendered = render_ledger({"dispatch_ledger": {"rows": rows, "used_pct": {"codex": 40}}}, "en")
+    assert rendered.count("3 more dispatching conversations") == 2
+    assert '3 more dispatching conversations</span><span class="pct">about 6%</span>' in rendered
+    assert '3 more dispatching conversations</span><span class="pct">about 12%</span>' in rendered
+    assert rendered.index("Argon") < rendered.index("Codex ·")
+    assert rendered.count('class="rank-line"') == 13
+
+
+@pytest.mark.parametrize(
+    ("used", "expected"), [(None, None), (10.49, None), (10.5, 0.5), (9, None), (15, 5)]
+)
+def test_other_is_current_used_minus_all_dispatches(
+    used: float | None, expected: float | None
+) -> None:
+    usage = {} if used is None else {"codex": used}
+    rows = [_row(1, 10)]
+    assert ledger.ledger_blocks(rows, usage)[0]["other_pct"] == expected
+    rendered = render_ledger({"dispatch_ledger": {"rows": rows, "used_pct": usage}}, "en")
+    assert ("Other (your own use, or no dispatch record found)" in rendered) == (
+        expected is not None
+    )
+
+
+def test_reset_block_last_and_never_has_other() -> None:
+    row = _row(1, **{"GEMINI MODELS": 20})
+    row["codex_reset"] = True
+    blocks = ledger.ledger_blocks([row], {"codex": 1})
+    assert [block["quota"] for block in blocks] == ["antigravity:GEMINI MODELS", "codex"]
+    rendered = render_ledger(
+        {"dispatch_ledger": {"rows": [row], "used_pct": {"codex": 1}}}, "zh-TW"
+    )
+    assert "Codex · 本週已用 1%" in rendered
+    assert "其他（" not in rendered
+
+
+@pytest.mark.parametrize(
+    ("group", "short"),
+    [
+        ("GEMINI MODELS", "Gemini"),
+        ("CLAUDE AND GPT MODELS", "Claude/GPT"),
+        ("GEMINI 4 ARGON", "Argon"),
+        ("<model & group>", "&lt;model &amp; group&gt;"),
+    ],
+)
+def test_names_and_masked_text_are_escaped(group: str, short: str) -> None:
+    row = _row(2, **{group: 0.01})
+    rendered = render_ledger(
+        {"dispatch_ledger": {"rows": [row], "used_pct": {f"antigravity:{group}": 96.7}}}, "zh-TW"
+    )
+    assert f'<h3 class="ledger-quota">{short} · 本週已用 97%</h3>' in rendered
+    assert "<span data-mask>&lt;task 2&gt;</span>" in rendered
+    assert "<span data-mask>client&lt;portal&gt;</span> · 派工 2 次" in rendered
+    assert "&lt;0.1%" in rendered
+    assert "<task" not in rendered
+
+
+def test_only_displayed_titles_are_read_from_all_owned_conversations(
+    paths: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    claude, codex, agy = paths
+    estimates: dict[ledger.SessionGroup, float] = {}
+    for i in range(20):
+        owner = f"owner-{i}"
+        when = NOW - timedelta(minutes=i * 3)
+        _claude(claude, owner, "codex exec task & agy -p task", when=when)
+        _codex(codex, f"child-{i}", when=when)
+        estimates[("codex", f"child-{i}", "codex")] = float(20 - i)
+        estimates[("claude-code", owner, "claude-code")] = float(100 - i)
+    # The last owner lies outside the old top 15 and leads a different quota.
+    _agy(agy, "agy-child")
+    monkeypatch.setattr(
+        ledger,
+        "_agy_candidates",
+        lambda *_: [
+            ledger.Candidate("antigravity", "agy-child", NOW - timedelta(minutes=57), "/work/a")
+        ],
+    )
+    estimates[("claude-code", "owner-19", "claude-code")] = 0
+    estimates[("antigravity", "agy-child", "antigravity:GEMINI MODELS")] = 50
+    calls: list[str] = []
+
+    def title(path: Path) -> str:
+        calls.append(path.stem)
+        return path.stem
+
+    monkeypatch.setattr(ledger, "_session_title", title)
+    data = ledger.build_ledger(estimates, NOW)
+    assert len(data["rows"]) == 20
+    assert set(calls) == {"owner-0", "owner-1", "owner-2", "owner-3", "owner-4", "owner-19"}
+    assert len(calls) == 6
+    assert "owner-19" in render_ledger({"dispatch_ledger": data}, "en")
