@@ -6,8 +6,9 @@
 from __future__ import annotations
 
 import html
-from typing import Any, Mapping
+from typing import Any, Mapping, cast
 
+from analyzer.dispatch_ledger import LedgerData, ledger_blocks
 from usage_common.i18n import _t
 
 
@@ -15,12 +16,13 @@ def _label(lang: str, key: str, **kwargs: object) -> str:
     return _t(lang, f"report_{key}", **kwargs)
 
 
-def format_pct(value: float | None, lang: str, *, reset: bool = False) -> str:
+def format_pct(value: float | None, lang: str) -> str:
     if value is None:
-        return _label(lang, "ledger_reset") if reset else "—"
+        return "—"
     if 0 < value < 0.1:
         return "<0.1%"
-    number = f"{value:.1f}" if value < 1 else f"{value:.0f}"
+    # Round first so 0.95 reads "1%", not "1.0%".
+    number = f"{value:.1f}" if round(value, 1) < 1 else f"{value:.0f}"
     return _label(lang, "quota_approx", value=number)
 
 
@@ -32,74 +34,69 @@ _AGY_GROUP_SHORT = {
 }
 
 
-def _month_day(value: str) -> str:
-    """The ledger covers the last 7 days, so the year only pushes the date onto two lines."""
-    return value[5:] if len(value) == 10 and value[4] == "-" else value
+def _rank_line(name: str, value: float, lang: str) -> str:
+    return (
+        '<div class="rank-line">'
+        f'<span class="name"><span class="arrow">&rarr;</span> {name}</span>'
+        f'<span class="pct">{html.escape(format_pct(value, lang))}</span></div>'
+    )
 
 
 def render_ledger(data: Mapping[str, Any], lang: str) -> str:
     ledger = data.get("dispatch_ledger")
     if not isinstance(ledger, Mapping):
         return ""
-    rows = ledger.get("rows")
-    if not isinstance(rows, list) or not rows:
+    typed = cast(LedgerData, ledger)
+    blocks = ledger_blocks(typed.get("rows", []), typed.get("used_pct", {}))
+    if not blocks:
         return ""
-    headers = (
-        "ledger_date",
-        "project",
-        "ledger_title",
-        "ledger_count",
-        "ledger_claude",
-        "ledger_codex",
-        "ledger_agy",
-    )
-    head = "".join(f"<th>{html.escape(_label(lang, key))}</th>" for key in headers)
-    body = "".join(
-        "<tr>"
-        + f'<td class="ledger-date">{html.escape(_month_day(str(row["date"])))}</td>'
-        + f"<td data-mask>{html.escape(str(row['project']))}</td>"
-        + f'<td class="name" data-mask>{html.escape(str(row["title"]))}</td>'
-        + f"<td>{int(row['dispatch_count'])}</td>"
-        + "".join(
-            f"<td>{html.escape(format_pct(row[f'{tool}_pct'], lang, reset=row.get(f'{tool}_reset', False)))}</td>"
-            for tool in ("claude", "codex")
-        )
-        + "<td>"
-        + (
-            "<br>".join(
-                f"{html.escape(_AGY_GROUP_SHORT.get(group, group))} {html.escape(format_pct(value, lang))}"
-                for group, value in sorted(row.get("agy_groups", {}).items())
-            )
-            or html.escape(format_pct(None, lang, reset=row.get("agy_reset", False)))
-        )
-        + "</td></tr>"
-        for row in rows
-    )
-    unowned = []
-    for key, label in (("unowned_codex", "ledger_codex"), ("unowned_agy", "ledger_agy")):
-        count = int(ledger.get(key, 0))
-        if count:
-            unowned.append(
-                _label(
-                    lang,
-                    "ledger_unowned_part",
-                    count=count,
-                    agent={"ledger_codex": "Codex", "ledger_agy": "Antigravity"}[label],
+    body = []
+    for block in blocks:
+        quota = block["quota"]
+        group = quota.removeprefix("antigravity:")
+        name = "Codex" if quota == "codex" else _AGY_GROUP_SHORT.get(group, group)
+        used = block["used_pct"]
+        header = html.escape(name)
+        if used is not None:
+            header += " · " + html.escape(_label(lang, "ledger_used", pct=f"{used:.0f}"))
+        lines = []
+        if block["all_reset"]:
+            lines.append(f"<p>{html.escape(_label(lang, 'ledger_all_reset'))}</p>")
+        else:
+            for row, share in block["conversations"]:
+                # Escape the translated template before inserting masked project markup.
+                meta = html.escape(
+                    _label(
+                        lang, "ledger_row_meta", project="{project}", count=row["dispatch_count"]
+                    )
+                ).replace("{project}", f"<span data-mask>{html.escape(row['project'])}</span>")
+                title = f"<span data-mask>{html.escape(row['title'])}</span>"
+                lines.append(
+                    _rank_line(f'{title} <span class="ledger-meta">· {meta}</span>', share, lang)
                 )
-            )
-    items = _label(lang, "ledger_unowned_sep").join(unowned)
-    note = (
-        f"<small>{html.escape(_label(lang, 'ledger_unowned', items=items))}</small>"
-        if unowned
-        else ""
-    )
+            if block["more_count"]:
+                lines.append(
+                    _rank_line(
+                        html.escape(_label(lang, "ledger_more", count=block["more_count"])),
+                        block["more_pct"],
+                        lang,
+                    )
+                )
+            if block["other_pct"] is not None:
+                lines.append(
+                    _rank_line(
+                        html.escape(_label(lang, "ledger_other")),
+                        block["other_pct"],
+                        lang,
+                    )
+                )
+        body.append(
+            f'<h3 class="ledger-quota">{header}</h3>'
+            f'<div class="rank-list ledger-list">{"".join(lines)}</div>'
+        )
     return (
         '<section class="section dispatch-ledger-section">'
         f'<div class="prompt"><span>[usage]&gt;</span> {html.escape(_label(lang, "ledger_section"))}</div>'
         '<div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>'
-        f"<div>{html.escape(_label(lang, 'ledger_lead'))}</div>"
-        f"<div><small>{html.escape(_label(lang, 'ledger_pct_note'))}</small></div>"
-        f'<div class="table-wrap"><table class="ledger-table"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
-        f"<div>{note}</div>"
-        "</section>"
+        f"<p>{html.escape(_label(lang, 'ledger_lead'))}</p>" + "".join(body) + "</section>"
     )

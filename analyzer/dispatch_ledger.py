@@ -73,6 +73,52 @@ class LedgerData(TypedDict):
     rows: list[LedgerRow]
     unowned_codex: int
     unowned_agy: int
+    used_pct: dict[str, float]
+
+
+class LedgerBlock(TypedDict):
+    quota: str
+    used_pct: float | None
+    conversations: list[tuple[LedgerRow, float]]
+    more_count: int
+    more_pct: float
+    other_pct: float | None
+    all_reset: bool
+
+
+def ledger_blocks(rows: list[LedgerRow], used_pct: dict[str, float]) -> list[LedgerBlock]:
+    """Select each quota's top five from every owned conversation."""
+    shares: dict[str, list[tuple[LedgerRow, float]]] = defaultdict(list)
+    for row in rows:
+        if row["codex_pct"] is not None and row["codex_pct"] > 0:
+            shares["codex"].append((row, row["codex_pct"]))
+        for group, value in row["agy_groups"].items():
+            if value > 0:
+                shares[f"antigravity:{group}"].append((row, value))
+    if any(row["codex_reset"] for row in rows):
+        shares.setdefault("codex", [])
+    blocks: list[LedgerBlock] = []
+    for quota, conversations in shares.items():
+        conversations.sort(key=lambda item: item[1], reverse=True)
+        total = sum(value for _, value in conversations)
+        used = used_pct.get(quota)
+        other = max(0.0, used - total) if used is not None else None
+        blocks.append(
+            {
+                "quota": quota,
+                "used_pct": used,
+                "conversations": conversations[:5],
+                "more_count": len(conversations[5:]),
+                "more_pct": sum(value for _, value in conversations[5:]),
+                "other_pct": other if other is not None and other >= 0.5 else None,
+                "all_reset": quota == "codex" and not conversations,
+            }
+        )
+    blocks.sort(
+        key=lambda block: sum(value for _, value in block["conversations"]) + block["more_pct"],
+        reverse=True,
+    )
+    return blocks
 
 
 def _timestamp(value: object) -> datetime | None:
@@ -407,13 +453,19 @@ def build_ledger(
     estimates: dict[SessionGroup, float],
     now: datetime,
     reset_sessions: set[SessionGroup] | None = None,
+    used_pct: dict[str, float] | None = None,
 ) -> LedgerData:
     cutoff = now - timedelta(days=7)
     paths = _claude_paths(cutoff)
     dispatches = [
         item for path in paths for item in _read_dispatches(path) if cutoff <= item.timestamp <= now
     ]
-    empty: LedgerData = {"rows": [], "unowned_codex": 0, "unowned_agy": 0}
+    empty: LedgerData = {
+        "rows": [],
+        "unowned_codex": 0,
+        "unowned_agy": 0,
+        "used_pct": used_pct or {},
+    }
     if not dispatches:
         return empty
     known_sessions = {path.stem for path in paths}
@@ -479,7 +531,13 @@ def build_ledger(
             )
         )
     rows.sort(key=lambda item: item[1]["total_pct"], reverse=True)
-    for owner, row in rows[:15]:
-        row["title"] = _session_title(path_by_session[owner])
-        empty["rows"].append(row)
+    empty["rows"] = [row for _, row in rows]
+    displayed = {
+        id(row)
+        for block in ledger_blocks(empty["rows"], empty["used_pct"])
+        for row, _ in block["conversations"]
+    }
+    for owner, row in rows:
+        if id(row) in displayed:
+            row["title"] = _session_title(path_by_session[owner])
     return empty

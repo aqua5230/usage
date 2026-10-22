@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import html
 import json
 import os
 import sqlite3
@@ -87,7 +86,7 @@ def test_foreground_dispatch_matches_real_fake_files(paths: tuple[Path, Path, Pa
     claude, codex, _ = paths
     _claude(claude, A, "codex exec 'do work'")
     _codex(codex, "child")
-    result = ledger.build_ledger({}, NOW)
+    result = ledger.build_ledger({("codex", "child", "codex"): 1}, NOW)
     assert len(result["rows"]) == 1
     assert result["rows"][0]["title"] == "Task A"
     assert result["rows"][0]["dispatch_count"] == 1
@@ -110,7 +109,9 @@ def test_background_command_with_hidden_brief_matches_by_time(
     claude, codex, _ = paths
     _claude(claude, A, 'codex exec "$(cat brief.md)" &')
     _codex(codex, "child", message="the brief contents are absent from command")
-    assert ledger.build_ledger({}, NOW)["rows"][0]["title"] == "Task A"
+    assert (
+        ledger.build_ledger({("codex", "child", "codex"): 1}, NOW)["rows"][0]["title"] == "Task A"
+    )
 
 
 def test_simultaneous_different_cwd_matches_each_owner() -> None:
@@ -240,28 +241,6 @@ def test_agy_quota_skips_group_without_reported_weekly(
     assert "antigravity:GEMINI MODELS" not in ledger.load_windows()
 
 
-def test_render_ledger_formats_values_and_escapes_title() -> None:
-    row: ledger.LedgerRow = {
-        "date": "2026-09-26",
-        "project": "work",
-        "title": "<script>",
-        "dispatch_count": 2,
-        "claude_pct": 0.4,
-        "codex_pct": 3,
-        "agy_groups": {},
-        "claude_reset": False,
-        "codex_reset": False,
-        "agy_reset": False,
-        "total_pct": 3.4,
-    }
-    rendered = render_ledger(
-        {"dispatch_ledger": {"rows": [row], "unowned_codex": 1, "unowned_agy": 0}}, "zh-TW"
-    )
-    assert "約 0.4%" in rendered and "約 3%" in rendered
-    assert "&lt;script&gt;" in rendered and "<script>" not in rendered
-    assert "1 個 Codex" in rendered
-
-
 def test_top_session_renders_weekly_quota_after_tokens() -> None:
     row = {
         "start_time": "2026-09-26 12:00",
@@ -311,60 +290,6 @@ def test_session_title_falls_back_to_first_user_text(tmp_path: Path) -> None:
     )
     assert ledger._session_title(path) == "幫我整理派工帳本"
     assert ledger._session_title(tmp_path / "missing.jsonl") == ""
-
-
-def test_ledger_escapes_user_text_and_uses_language_separator() -> None:
-    row = {
-        "date": "2026-09-26",
-        "project": "client<portal>",
-        "title": "<img src=x onerror=1>",
-        "dispatch_count": 1,
-        "claude_pct": None,
-        "codex_pct": 2.0,
-        "agy_groups": {},
-        "claude_reset": False,
-        "codex_reset": False,
-        "agy_reset": False,
-        "total_pct": 2.0,
-    }
-    html = render_ledger(
-        {"dispatch_ledger": {"rows": [row], "unowned_codex": 3, "unowned_agy": 4}}, "en"
-    )
-    assert "<img" not in html
-    assert "&lt;img src=x onerror=1&gt;" in html
-    assert "client&lt;portal&gt;" in html
-    assert "3 Codex, 4 Antigravity" in html
-
-
-def test_ledger_explains_the_weekly_quota_denominator() -> None:
-    data = {
-        "dispatch_ledger": {
-            "rows": [
-                {
-                    "date": "2026-10-13",
-                    "project": "sample",
-                    "title": "dispatch",
-                    "dispatch_count": 1,
-                    "claude_pct": 2.0,
-                    "codex_pct": 3.0,
-                    "agy_groups": {},
-                    "claude_reset": False,
-                    "codex_reset": False,
-                    "agy_reset": False,
-                }
-            ],
-            "unowned_codex": 1,
-        }
-    }
-    rendered = render_ledger(data, "en")
-    assert "Percentages are shares of that tool&#x27;s current weekly quota." in rendered
-    assert "Claude weekly quota" in rendered
-    assert "Codex weekly quota" in rendered
-    assert "Antigravity weekly quota" in rendered
-    table = rendered.index('<div class="table-wrap">')
-    assert rendered.index("Each row is one Claude conversation") < table
-    assert rendered.index("Percentages are shares") < table
-    assert rendered.index("No record of dispatch by Claude") > table
 
 
 def test_muse_weekly_session_estimate_reads_only_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -426,11 +351,20 @@ def test_agy_groups_remain_separate_across_children(paths: tuple[Path, Path, Pat
     assert data["rows"][0]["agy_groups"] == {"GEMINI MODELS": 60, "CLAUDE AND GPT MODELS": 40}
     assert data["rows"][0]["total_pct"] == 100
     rendered = render_ledger({"dispatch_ledger": data}, "zh-TW")
-    assert "<td>Claude/GPT 約 40%<br>Gemini 約 60%</td>" in rendered
+    assert rendered.index("Gemini") < rendered.index("Claude/GPT")
+    assert "約 40%" in rendered and "約 60%" in rendered
 
 
 @pytest.mark.parametrize(
-    ("lang", "label"), [("zh-TW", "算在上週額度"), ("en", "Last week's quota")]
+    ("lang", "label"),
+    [
+        ("zh-TW", "最近 7 天的派工都在額度重置前，算在上週。"),
+        (
+            "en",
+            "All dispatched work in the last 7 days came before the quota reset, "
+            "so it counts toward last week.",
+        ),
+    ],
 )
 @pytest.mark.parametrize("agent", ["codex", "claude-code", "antigravity"])
 def test_pre_window_usage_renders_reset(
@@ -457,7 +391,13 @@ def test_pre_window_usage_renders_reset(
     row = data["rows"][0]
     tool = {"claude-code": "claude", "codex": "codex", "antigravity": "agy"}[agent]
     assert row.get(f"{tool}_reset") is True
-    assert f"<td>{html.escape(label)}</td>" in render_ledger({"dispatch_ledger": data}, lang)
+    rendered = render_ledger({"dispatch_ledger": data}, lang)
+    if agent == "codex":
+        assert label in rendered
+        assert "Codex</h3>" in rendered
+        assert "Task A" not in rendered
+    else:
+        assert rendered == ""
 
 
 def test_child_without_usage_or_window_stays_dash(paths: tuple[Path, Path, Path]) -> None:
@@ -468,7 +408,7 @@ def test_child_without_usage_or_window_stays_dash(paths: tuple[Path, Path, Path]
     data = ledger.build_ledger(estimates, NOW, resets)
     assert data["rows"][0]["codex_pct"] is None
     assert data["rows"][0]["codex_reset"] is False
-    assert "<td>—</td><td>—</td><td>—</td>" in render_ledger({"dispatch_ledger": data}, "zh-TW")
+    assert render_ledger({"dispatch_ledger": data}, "zh-TW") == ""
 
 
 def test_project_uses_resolver(
@@ -490,15 +430,120 @@ def test_project_uses_resolver(
     assert data["rows"][0]["project"] == "election-desk"
 
 
-def test_agy_group_names_and_small_percentages_are_escaped() -> None:
-    row = {
-        "date": "2026-09-26",
-        "project": "work",
-        "title": "task",
-        "dispatch_count": 1,
-        "claude_pct": None,
-        "codex_pct": None,
-        "agy_groups": {"<model & group>": 0.01},
+def _row(index: int, codex: float | None = None, **groups: float) -> ledger.LedgerRow:
+    return {
+        "date": "2026-10-23",
+        "project": "client<portal>",
+        "title": f"<task {index}>",
+        "dispatch_count": index,
+        "claude_pct": 90,
+        "codex_pct": codex,
+        "agy_groups": groups,
+        "claude_reset": False,
+        "codex_reset": False,
+        "agy_reset": False,
+        "total_pct": 90 + (codex or 0) + sum(groups.values()),
     }
-    rendered = render_ledger({"dispatch_ledger": {"rows": [row]}}, "en")
-    assert "<td>&lt;model &amp; group&gt; &lt;0.1%</td>" in rendered
+
+
+def test_blocks_sort_and_roll_up_each_quota_independently() -> None:
+    rows = [_row(i, float(i), **{"GEMINI 4 ARGON": float(2 * (9 - i))}) for i in range(1, 9)]
+    blocks = ledger.ledger_blocks(rows, {"codex": 40, "antigravity:GEMINI 4 ARGON": 50})
+    assert [b["quota"] for b in blocks] == ["antigravity:GEMINI 4 ARGON", "codex"]
+    assert [r["dispatch_count"] for r, _ in blocks[0]["conversations"]] == [1, 2, 3, 4, 5]
+    assert [r["dispatch_count"] for r, _ in blocks[1]["conversations"]] == [8, 7, 6, 5, 4]
+    assert blocks[0]["more_count"] == blocks[1]["more_count"] == 3
+    assert blocks[0]["more_pct"] == 12
+    assert blocks[1]["more_pct"] == 6
+    assert blocks[1]["other_pct"] == 4
+    rendered = render_ledger({"dispatch_ledger": {"rows": rows, "used_pct": {"codex": 40}}}, "en")
+    assert rendered.count("3 more dispatching conversations") == 2
+    assert '3 more dispatching conversations</span><span class="pct">about 6%</span>' in rendered
+    assert '3 more dispatching conversations</span><span class="pct">about 12%</span>' in rendered
+    assert rendered.index("Argon") < rendered.index("Codex ·")
+    assert rendered.count('class="rank-line"') == 13
+
+
+@pytest.mark.parametrize(
+    ("used", "expected"), [(None, None), (10.49, None), (10.5, 0.5), (9, None), (15, 5)]
+)
+def test_other_is_current_used_minus_all_dispatches(
+    used: float | None, expected: float | None
+) -> None:
+    usage = {} if used is None else {"codex": used}
+    rows = [_row(1, 10)]
+    assert ledger.ledger_blocks(rows, usage)[0]["other_pct"] == expected
+    rendered = render_ledger({"dispatch_ledger": {"rows": rows, "used_pct": usage}}, "en")
+    assert ("Other (your own use, or no dispatch record found)" in rendered) == (
+        expected is not None
+    )
+
+
+def test_reset_block_last_and_never_has_other() -> None:
+    row = _row(1, **{"GEMINI MODELS": 20})
+    row["codex_reset"] = True
+    blocks = ledger.ledger_blocks([row], {"codex": 1})
+    assert [block["quota"] for block in blocks] == ["antigravity:GEMINI MODELS", "codex"]
+    rendered = render_ledger(
+        {"dispatch_ledger": {"rows": [row], "used_pct": {"codex": 1}}}, "zh-TW"
+    )
+    assert "Codex · 本週已用 1%" in rendered
+    assert "其他（" not in rendered
+
+
+@pytest.mark.parametrize(
+    ("group", "short"),
+    [
+        ("GEMINI MODELS", "Gemini"),
+        ("CLAUDE AND GPT MODELS", "Claude/GPT"),
+        ("GEMINI 4 ARGON", "Argon"),
+        ("<model & group>", "&lt;model &amp; group&gt;"),
+    ],
+)
+def test_names_and_masked_text_are_escaped(group: str, short: str) -> None:
+    row = _row(2, **{group: 0.01})
+    rendered = render_ledger(
+        {"dispatch_ledger": {"rows": [row], "used_pct": {f"antigravity:{group}": 96.7}}}, "zh-TW"
+    )
+    assert f'<h3 class="ledger-quota">{short} · 本週已用 97%</h3>' in rendered
+    assert "<span data-mask>&lt;task 2&gt;</span>" in rendered
+    assert "<span data-mask>client&lt;portal&gt;</span> · 派工 2 次" in rendered
+    assert "&lt;0.1%" in rendered
+    assert "<task" not in rendered
+
+
+def test_only_displayed_titles_are_read_from_all_owned_conversations(
+    paths: tuple[Path, Path, Path], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    claude, codex, agy = paths
+    estimates: dict[ledger.SessionGroup, float] = {}
+    for i in range(20):
+        owner = f"owner-{i}"
+        when = NOW - timedelta(minutes=i * 3)
+        _claude(claude, owner, "codex exec task & agy -p task", when=when)
+        _codex(codex, f"child-{i}", when=when)
+        estimates[("codex", f"child-{i}", "codex")] = float(20 - i)
+        estimates[("claude-code", owner, "claude-code")] = float(100 - i)
+    # The last owner lies outside the old top 15 and leads a different quota.
+    _agy(agy, "agy-child")
+    monkeypatch.setattr(
+        ledger,
+        "_agy_candidates",
+        lambda *_: [
+            ledger.Candidate("antigravity", "agy-child", NOW - timedelta(minutes=57), "/work/a")
+        ],
+    )
+    estimates[("claude-code", "owner-19", "claude-code")] = 0
+    estimates[("antigravity", "agy-child", "antigravity:GEMINI MODELS")] = 50
+    calls: list[str] = []
+
+    def title(path: Path) -> str:
+        calls.append(path.stem)
+        return path.stem
+
+    monkeypatch.setattr(ledger, "_session_title", title)
+    data = ledger.build_ledger(estimates, NOW)
+    assert len(data["rows"]) == 20
+    assert set(calls) == {"owner-0", "owner-1", "owner-2", "owner-3", "owner-4", "owner-19"}
+    assert len(calls) == 6
+    assert "owner-19" in render_ledger({"dispatch_ledger": data}, "en")

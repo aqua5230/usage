@@ -1328,7 +1328,12 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         "sessions": session_rows,
         "daily_trend": daily_trend,
         "top_sessions": top_sessions,
-        "dispatch_ledger": dispatch_ledger.build_ledger(group_estimates, now, reset_sessions),
+        "dispatch_ledger": dispatch_ledger.build_ledger(
+            group_estimates,
+            now,
+            reset_sessions,
+            {key: window.used_pct for key, window in windows.items()},
+        ),
         "comparison": comparison,
         "subscriptions": subscription.load_subscriptions(),
         "persona": _load_persona_for_period(period),

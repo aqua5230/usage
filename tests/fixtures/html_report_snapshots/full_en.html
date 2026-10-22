@@ -532,6 +532,10 @@ td:first-child{color:var(--muted)}
   :not(.rank-head)+.rank-list>.rank-line:first-child{margin-top:28px}
   :not(.rank-head)+.rank-list>.rank-line:first-child>.pct::before,:not(.rank-head)+.rank-list>.rank-line:first-child>.tokens::before,:not(.rank-head)+.rank-list>.rank-line:first-child>.cost::before{content:attr(data-label);position:absolute;bottom:100%;right:0;margin-bottom:12px;font-size:.72rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.08em;pointer-events:none;white-space:nowrap}
 }
+.ledger-quota{margin:20px 0 8px;color:var(--text);font-size:.98rem;font-weight:700}
+.rank-list.ledger-list>.rank-line{grid-template-columns:minmax(0,1fr) auto}
+.rank-list.ledger-list>.rank-line:first-child{margin-top:0}
+.ledger-meta{color:var(--muted)}
 @media (min-width:641px){
   header>div:first-child{grid-column:1/-1;grid-row:1}
   header>.header-actions{grid-column:2;grid-row:1;align-self:start}
