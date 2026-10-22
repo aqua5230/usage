@@ -18,6 +18,7 @@ from adapters import rate_limits
 from adapters.types import UsageEntry
 from loaders import agy_loader, agy_quota_probe, codex_loader, muse_quota_probe
 from loaders.claude_paths import claude_config_dirs
+from usage_common.project_resolver import resolve_project_name
 
 _DISPATCH = {
     "codex": re.compile(r"(^|[;&|(\s])codex exec"),
@@ -61,7 +62,10 @@ class LedgerRow(TypedDict):
     dispatch_count: int
     claude_pct: float | None
     codex_pct: float | None
-    agy_pct: float | None
+    agy_groups: dict[str, float]
+    claude_reset: bool
+    codex_reset: bool
+    agy_reset: bool
     total_pct: float
 
 
@@ -319,11 +323,15 @@ def estimate_pct(
     return session_tokens / total_tokens * window.used_pct
 
 
+SessionGroup = tuple[str, str, str]
+
+
 def estimate_sessions(
     entries: list[UsageEntry], windows: dict[str, QuotaWindow], now: datetime
-) -> dict[tuple[str, str], float | None]:
+) -> tuple[dict[SessionGroup, float], set[SessionGroup]]:
     totals: dict[str, int] = defaultdict(int)
     sessions: dict[tuple[str, str, str], int] = defaultdict(int)
+    before_window: set[SessionGroup] = set()
     for entry in entries:
         group = entry.agent_id
         if entry.agent_id == "antigravity":
@@ -351,18 +359,21 @@ def estimate_sessions(
                 "",
             )
         window = windows.get(group)
-        if window is None or not window.resets_at - window.length <= entry.timestamp <= now:
-            continue
         tokens = entry.input_tokens + entry.output_tokens + entry.cache_creation_tokens
+        if window is None or entry.timestamp > now or tokens <= 0:
+            continue
+        key = (entry.agent_id, entry.session_id, group)
+        if entry.timestamp < window.resets_at - window.length:
+            before_window.add(key)
+            continue
         totals[group] += tokens
-        sessions[(entry.agent_id, entry.session_id, group)] += tokens
-    estimates: dict[tuple[str, str], float | None] = {}
+        sessions[key] += tokens
+    estimates: dict[SessionGroup, float] = {}
     for (agent_id, session_id, group), tokens in sessions.items():
         value = estimate_pct(tokens, totals[group], windows.get(group), now)
         if value is not None:
-            key = (agent_id, session_id)
-            estimates[key] = (estimates.get(key) or 0.0) + value
-    return estimates
+            estimates[(agent_id, session_id, group)] = value
+    return estimates, before_window - sessions.keys()
 
 
 def _session_title(path: Path) -> str:
@@ -392,7 +403,11 @@ def _session_title(path: Path) -> str:
     return title or first_text
 
 
-def build_ledger(estimates: dict[tuple[str, str], float | None], now: datetime) -> LedgerData:
+def build_ledger(
+    estimates: dict[SessionGroup, float],
+    now: datetime,
+    reset_sessions: set[SessionGroup] | None = None,
+) -> LedgerData:
     cutoff = now - timedelta(days=7)
     paths = _claude_paths(cutoff)
     dispatches = [
@@ -426,27 +441,40 @@ def build_ledger(estimates: dict[tuple[str, str], float | None], now: datetime) 
         origin = by_owner.get(owner)
         if not origin:
             continue
-        shares = {"claude-code": estimates.get(("claude-code", owner))}
-        for agent_id in ("codex", "antigravity"):
-            values = [estimates.get((agent_id, session_id)) for session_id in children[agent_id]]
-            shares[agent_id] = (
-                sum(value for value in values if value is not None)
-                if any(value is not None for value in values)
-                else None
-            )
+        claude_pct = estimates.get(("claude-code", owner, "claude-code"))
+        codex_values = [
+            estimates[("codex", child, "codex")]
+            for child in children["codex"]
+            if ("codex", child, "codex") in estimates
+        ]
+        codex_pct = sum(codex_values) if codex_values else None
+        agy_groups: dict[str, float] = {}
+        for (agent, child, group), value in estimates.items():
+            if agent == "antigravity" and child in children[agent]:
+                name = group.removeprefix("antigravity:")
+                agy_groups[name] = agy_groups.get(name, 0.0) + value
+        reset_agents = {
+            agent
+            for agent, session, _ in reset_sessions or set()
+            if (agent == "claude-code" and session == owner)
+            or session in children.get(agent, set())
+        }
         first = min(origin, key=lambda item: item.timestamp)
         rows.append(
             (
                 owner,
                 {
                     "date": first.timestamp.astimezone().strftime("%Y-%m-%d"),
-                    "project": Path(first.cwd).name or "unknown",
+                    "project": resolve_project_name(first.cwd),
                     "title": "",
                     "dispatch_count": len(origin),
-                    "claude_pct": shares["claude-code"],
-                    "codex_pct": shares["codex"],
-                    "agy_pct": shares["antigravity"],
-                    "total_pct": sum(value for value in shares.values() if value is not None),
+                    "claude_pct": claude_pct,
+                    "codex_pct": codex_pct,
+                    "agy_groups": agy_groups,
+                    "claude_reset": claude_pct is None and "claude-code" in reset_agents,
+                    "codex_reset": codex_pct is None and "codex" in reset_agents,
+                    "agy_reset": not agy_groups and "antigravity" in reset_agents,
+                    "total_pct": (claude_pct or 0) + (codex_pct or 0) + sum(agy_groups.values()),
                 },
             )
         )

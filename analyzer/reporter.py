@@ -1258,7 +1258,13 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         entry for entry in weekly_entries if not ledger_backfill.is_ledger_entry(entry)
     ]
     windows = dispatch_ledger.load_windows() if weekly_entries else {}
-    estimates = dispatch_ledger.estimate_sessions(weekly_entries, windows, now)
+    group_estimates, reset_sessions = dispatch_ledger.estimate_sessions(
+        weekly_entries, windows, now
+    )
+    estimates: dict[tuple[str, str], float] = {}
+    for (agent_id, session_id, _), value in group_estimates.items():
+        key = (agent_id, session_id)
+        estimates[key] = estimates.get(key, 0.0) + value
     sessions_by_cost = sorted(
         aggregate_sessions(real_entries), key=lambda session: session.cost_usd, reverse=True
     )
@@ -1322,7 +1328,7 @@ def build_report_data(agents: list[AgentInfo], period: str = "month") -> ReportD
         "sessions": session_rows,
         "daily_trend": daily_trend,
         "top_sessions": top_sessions,
-        "dispatch_ledger": dispatch_ledger.build_ledger(estimates, now),
+        "dispatch_ledger": dispatch_ledger.build_ledger(group_estimates, now, reset_sessions),
         "comparison": comparison,
         "subscriptions": subscription.load_subscriptions(),
         "persona": _load_persona_for_period(period),

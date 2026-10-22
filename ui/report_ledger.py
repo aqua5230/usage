@@ -15,9 +15,9 @@ def _label(lang: str, key: str, **kwargs: object) -> str:
     return _t(lang, f"report_{key}", **kwargs)
 
 
-def format_pct(value: float | None, lang: str) -> str:
+def format_pct(value: float | None, lang: str, *, reset: bool = False) -> str:
     if value is None:
-        return "—"
+        return _label(lang, "ledger_reset") if reset else "—"
     if 0 < value < 0.1:
         return "<0.1%"
     number = f"{value:.1f}" if value < 1 else f"{value:.0f}"
@@ -53,10 +53,18 @@ def render_ledger(data: Mapping[str, Any], lang: str) -> str:
         + f'<td class="name" data-mask>{html.escape(str(row["title"]))}</td>'
         + f"<td>{int(row['dispatch_count'])}</td>"
         + "".join(
-            f"<td>{html.escape(format_pct(row[key], lang))}</td>"
-            for key in ("claude_pct", "codex_pct", "agy_pct")
+            f"<td>{html.escape(format_pct(row[f'{tool}_pct'], lang, reset=row.get(f'{tool}_reset', False)))}</td>"
+            for tool in ("claude", "codex")
         )
-        + "</tr>"
+        + "<td>"
+        + (
+            "<br>".join(
+                f"{html.escape(group)} {html.escape(format_pct(value, lang))}"
+                for group, value in sorted(row.get("agy_groups", {}).items())
+            )
+            or html.escape(format_pct(None, lang, reset=row.get("agy_reset", False)))
+        )
+        + "</td></tr>"
         for row in rows
     )
     unowned = []
