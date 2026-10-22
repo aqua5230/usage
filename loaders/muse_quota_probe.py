@@ -29,6 +29,7 @@ CACHE_PATH = Path.home() / ".usage/muse_quota.json"
 PROBE_DIR = Path.home() / ".usage/muse-probe"
 MUSE_MODEL = "muse-spark-1.3"
 STALE_SECONDS = 30 * 60
+WINDOW_SECONDS = 5 * 3600
 _EXHAUSTED = re.compile(
     r"Subscription quota exhausted\. Your usage window resets at (\d{4}-\d\d-\d\dT[\d:.]+Z)"
 )
@@ -114,10 +115,13 @@ def parse_muse_allowance(stdout: str, checked_at: float) -> MuseQuotaResult | No
     return None
 
 
-def parse_exhausted_window(stdout: str, cached: MuseQuotaResult | None) -> MuseQuotaResult | None:
-    """Read the 429 Muse returns once the 5-hour window is used up; it carries no allowance.
+def parse_exhausted_window(
+    stdout: str, cached: MuseQuotaResult | None, now: float
+) -> MuseQuotaResult | None:
+    """Read the 429 Muse returns once a window is used up; it carries no allowance.
 
-    Only the window's reset time is known, so the weekly reading and its age stay from ``cached``.
+    The reply names only a reset time. Within 5 hours it is the 5-hour window, so the weekly
+    reading and its age stay from ``cached``. Further out it can only be the weekly allowance.
     """
     match = _EXHAUSTED.search(stdout)
     if cached is None or match is None:
@@ -126,11 +130,17 @@ def parse_exhausted_window(stdout: str, cached: MuseQuotaResult | None) -> MuseQ
         reset = datetime.fromisoformat(match[1]).timestamp()
     except ValueError:
         return None
-    return MuseQuotaResult(
-        checked_at=cached["checked_at"],
-        window=MuseQuotaWindow(used_percent=100.0, resets_at=reset),
-        weekly=cached["weekly"],
-    )
+    used_up = MuseQuotaWindow(used_percent=100.0, resets_at=reset)
+    if reset - now <= WINDOW_SECONDS:
+        return MuseQuotaResult(
+            checked_at=cached["checked_at"], window=used_up, weekly=cached["weekly"]
+        )
+    window = cached["window"]
+    # Nothing runs without weekly allowance, so a lapsed window is empty. One resetting past
+    # 5 hours is a weekly 429 that v0.34.5 recorded as the 5-hour window.
+    if not now < window["resets_at"] <= now + WINDOW_SECONDS:
+        window = MuseQuotaWindow(used_percent=0.0, resets_at=now)
+    return MuseQuotaResult(checked_at=now, window=window, weekly=used_up)
 
 
 def read_cache() -> MuseQuotaResult | None:
@@ -241,7 +251,7 @@ def _probe_worker(executable: str) -> None:
         if process.returncode == 0:
             result = parse_muse_allowance(stdout, time.time())
         else:
-            result = parse_exhausted_window(stdout, read_cache())
+            result = parse_exhausted_window(stdout, read_cache(), time.time())
         if result is not None:
             _write_cache(result)
             succeeded = True
