@@ -714,6 +714,89 @@
       "name": "Antigravity",
       "versions": [
         {
+          "version": "1.4.5",
+          "period": "2026-10-22",
+          "items": [
+            {
+              "title": {
+                "zh-TW": "回覆正文與收合思考區塊空行區隔，頂端僅保留標題",
+                "en": "Blank line separates response text from collapsed thought block, leaving only the header at the top"
+              },
+              "body": {
+                "zh-TW": "閱讀代理人剛生成的回覆時，若思考過程與正文擠成一團，往往會打斷閱讀節奏。⟦像在會議中翻閱專案報告，以前草稿筆記直接黏在結論上方容易分散焦點；現在頂端只留一張寫著構思時間的簡潔書籤，中間隔出一行空白，正文一目了然，需要時再翻開整份草稿。⟧現在代理人開始輸出回覆後，收合的思考區塊只會顯示 `Thought for …` 標題，不再重複列出思考過程的文字片段。收合的思考區塊與正文之間也多了一行空行隔開，文字段落不會再擠在一起。如果你想確認剛才完整的推導邏輯，只要手動展開該區塊，依然能查閱完整的思考內容。",
+                "en": "When reading a newly generated response from an agent, having the thought process clustered against the main text often breaks your reading flow. ⟦Picture reviewing a project report during a meeting: previously, draft notes stuck directly above the conclusion would distract focus, whereas now only a neat bookmark noting thinking time remains at the top with a blank line in between, keeping the main text clear at a glance while letting you unfold the full draft whenever needed.⟧ Now, once the agent begins outputting a response, the collapsed thought block only displays the `Thought for …` header instead of repeating text snippets from the thought process. A blank line also separates the collapsed thought block from the main text, so text paragraphs no longer bunch together. If you want to verify the complete reasoning logic behind it, you can still view the full thoughts simply by expanding the block manually."
+              },
+              "original": "Improved how agent responses read: a blank line now separates the collapsed thought block from the response, and once the response starts, the collapsed thought shows only its `Thought for …` header instead of repeating a snippet of the thinking; expand it to see the full thinking."
+            },
+            {
+              "title": {
+                "zh-TW": "比對檢視支援折疊搜尋計數，游標樣式與停駐位置對齊",
+                "en": "Diff view supports folded search counts, aligning cursor style and resting position"
+              },
+              "body": {
+                "zh-TW": "檢閱程式碼變更時，折疊起來的未更動行數常讓搜尋結果變得難以掌握。⟦好比翻閱厚重的帳冊索引，以前夾在折頁裡的項目算不進筆數，各分冊的標記色塊也不一致；現在標籤直接註記折疊處藏有幾筆帳目，選取欄位也統一換成箭頭符號，翻到當前回合就直接對準第一筆明細。⟧在 `/diff` 檔案檢視中以 `/` 搜尋時，工具現在會計算折疊行內的相符項目，以 `match 2/5 · +3 hidden` 顯示隱藏數量，`f` 鍵展開提示也改為 `show N hidden matches`。介面上，`Commit Tree` 改用與 `All Changes` 及 `Per Turn` 相同的 `>` 游標與選取色，不再用高亮色塊；切換到 `Per Turn` 時游標也會直接停在第一個檔案，不必再跳過回合標題。",
+                "en": "When reviewing code changes, collapsed unchanged lines often make search results hard to track. ⟦Much like browsing a thick ledger index, items tucked inside folded pages were previously excluded from match counts and marker color blocks across volumes were inconsistent, whereas tabs now directly annotate how many entries are hidden in folds, selection columns uniformly switch to arrow symbols, and turning to the current turn lands straight on the first detail.⟧ When searching with `/` inside the `/diff` file view, the tool now counts matches within folded lines, displaying the hidden count as `match 2/5 · +3 hidden`, and the `f` key expand hint is now updated to `show N hidden matches`. On the interface, `Commit Tree` now uses the same `>` cursor and selection color as `All Changes` and `Per Turn` instead of highlight blocks; when switching to `Per Turn`, the cursor also rests directly on the first file without needing to skip past turn headers."
+              },
+              "original": "Improved `/` search in the `/diff` file view to count matches inside folded unchanged lines, such as `match 2/5 · +3 hidden` or `no matches · +1 hidden`, and the `f` hint now reads `show N hidden matches`.\nImproved `/diff`'s `Commit Tree` to mark the selected commit with the same `>` cursor and selection color as `All Changes` and `Per Turn` instead of a highlighted bar, and made `Per Turn` start with the cursor on the first file instead of its turn header."
+            },
+            {
+              "title": {
+                "zh-TW": "循環排程引入偏移時間差，避免整點邊界流量暴增",
+                "en": "Recurring schedules introduce time offsets to prevent traffic spikes on hour boundaries"
+              },
+              "body": {
+                "zh-TW": "若有多個背景任務排在整點同時啟動，瞬間湧入的連線很容易讓伺服器塞車。⟦跟社區大樓安排住戶分流一樣，以前所有單位全擠在整點出門容易在閘門大塞車；現在為每個單位分配固定的前後時間差，整點前後平順出發，需要分秒不差的專車依然能申請在準點出發。⟧由代理人透過 `schedule` 工具建立的循環 cron 排程，現在觸發時會依每個排程套用固定的偏移時間，不再剛好卡在整點邊界，有效分散尖峰流量。在一天內多次重複的任務（例如每 30 分鐘或每小時一次），會在各自週期內的特定時間點觸發。每天早上 9:00 等固定時間排程，依然會在預定的該分鐘內執行。若排程需要嚴格對準時刻，代理人也能要求精確時間，而 `@every` 間隔排程則維持原樣不變。",
+                "en": "When multiple background tasks are scheduled to launch at the same time on the hour, an instant surge of connections easily congests the server. ⟦Just as a residential complex staggers departures for its tenants, having every household head out right on the hour previously caused massive gate congestion, but assigning a fixed offset window to each unit now smooths out traffic around the hour while reserved shuttles that require exact timing can still request sharp departure times.⟧ Recurring cron schedules created by an agent via the `schedule` tool now apply a fixed offset time to each schedule when triggered, no longer landing exactly on hour boundaries and effectively spreading out peak traffic. Tasks that repeat multiple times throughout the day (such as every 30 minutes or once an hour) trigger at specific points within their respective intervals. Fixed-time schedules like 9:00 AM every morning still execute within their scheduled minute. If a schedule requires strict time alignment, the agent can also request exact timing, while `@every` interval schedules remain unchanged."
+              },
+              "original": "Improved recurring cron schedules created with the agent's `schedule` tool to fire at a consistent per-schedule offset instead of exactly on the cron boundary, to avoid traffic spikes: schedules that repeat within a day, such as every 30 minutes or hourly, now fire somewhere within their period, fixed-time schedules such as daily at 9:00 still fire within their scheduled minute, and the agent can request exact timing when a schedule needs it. `@every` schedules are unchanged."
+            },
+            {
+              "title": {
+                "zh-TW": "降低閒置與執行資源消耗，長對話與啟動載入更流暢",
+                "en": "Reduced idle and runtime resource consumption with smoother long conversations and startup loading"
+              },
+              "body": {
+                "zh-TW": "長時間在終端機開啟工具或處理大型專案時，背景消耗的硬體資源現在明顯下降。\n\n當畫面沒有任何文字變動時，終端機會暫停螢幕重繪，讓閒置時的 CPU 使用率約減少一半。而在模型輸出串流回覆的過程中，工具會略過重複的畫面更新，並降低額度餘額的刷新頻率以節省運算效能。\n\n長篇對話的渲染效能有所改善，重新恢復長對話工作階段時的載入速度也提升。命令列介面啟動並刷新對話摘要時，CPU 開銷也一併降低。\n\n在記憶體管理方面，輸入提示詞與各類文字時改為打字時才動態配置儲存空間，不再預先保留整塊記憶體。閒置時的 CPU 消耗降低，長對話顯示與恢復載入也更快。",
+                "en": "When keeping the tool open in the terminal for long periods or working on large projects, background hardware resource consumption has now noticeably decreased.\n\nWhen there are no text changes on screen, the terminal pauses screen repaints, cutting idle CPU usage roughly in half. Meanwhile, while the model streams output, the tool skips redundant screen redraws and lowers the refresh frequency of quota balances to save computing power.\n\nRendering performance for long conversations has improved, and loading speed when resuming long conversation sessions has also increased. When the command-line interface launches and refreshes conversation summaries, CPU overhead is similarly reduced.\n\nRegarding memory management, storage space for prompt inputs and various texts is now dynamically allocated during typing instead of pre-allocating entire memory blocks. Idle CPU consumption drops, and long conversation display as well as resumption loading become faster."
+              },
+              "original": "Improved idle CPU usage by pausing screen refreshes while nothing on screen changes, roughly halving the CLI's CPU use when it is idle.\nImproved CPU usage while a response streams by skipping redundant screen updates and refreshing the credit balance less often.\nImproved rendering speed for long conversations, and made long conversations load faster when you resume them.\nImproved startup CPU usage when the CLI refreshes its conversation summaries.\nImproved memory usage by allocating storage for the prompt and other text inputs as you type instead of reserving it up front."
+            },
+            {
+              "title": {
+                "zh-TW": "模型遭安全機制阻擋時停止無止盡重試",
+                "en": "Stop infinite retries when the model is blocked by safety mechanisms"
+              },
+              "body": {
+                "zh-TW": "遇上模型回覆被內容安全過濾機制阻擋的突發狀況，代理人過去容易陷入停不下來的重試迴圈。以前遇到回應被安全過濾器阻擋時，代理人會在背景靜默重試，甚至可能陷入無止盡的重試迴圈；現在這個問題已經修好，遇到阻擋時不再默默持續重試。",
+                "en": "When encountering unexpected situations where a model response was blocked by content safety filters, agents previously tended to get trapped in an endless retry loop. In the past, when a response was blocked by safety filters, the agent would silently retry in the background and could even enter an infinite retry loop; this issue has now been resolved, and it no longer keeps silently retrying when blocked."
+              },
+              "original": "Fixed the agent silently retrying, potentially without end, when a model response was blocked by content safety filters."
+            },
+            {
+              "title": {
+                "zh-TW": "外掛設定支援以字串指定技能路徑，避免載入失敗",
+                "en": "Plugin configuration supports specifying skill paths as strings to prevent loading failures"
+              },
+              "body": {
+                "zh-TW": "想載入為其他工具設計的外掛程式時，設定檔格式只要稍有不同就會直接報錯。以前如果外掛的 `plugin.json` 將 `skills` 欄位寫成單一路徑字串（例如 `\"skills\": \"./skills/\"`）而非陣列清單，外掛就會載入失敗。現在這個問題已經修好，工具能正確辨識單一路徑字串並完成載入。",
+                "en": "When trying to load plugins designed for other tools, any slight difference in configuration format would directly trigger an error. Previously, if a plugin's `plugin.json` specified the `skills` field as a single path string (such as `\"skills\": \"./skills/\"`) instead of an array list, the plugin failed to load. This issue has now been resolved, and the tool correctly recognizes a single path string and completes loading."
+              },
+              "original": "Fixed plugins failing to load when `plugin.json` gives `skills` as a single path string, such as `\"skills\": \"./skills/\"`, instead of an array, as some plugins written for other tools do."
+            },
+            {
+              "title": {
+                "zh-TW": "市集外掛安裝與更新遇網路中斷自動重試一次",
+                "en": "Marketplace plugin installation and updates automatically retry once on network interruption"
+              },
+              "body": {
+                "zh-TW": "從市集安裝或自動更新外掛程式時，偶發的網路震盪容易造成程序中斷。以前下載內容短暫過時或下載中斷時，市集外掛安裝與自動更新可能因校驗碼不符或網路錯誤而失敗；現在命令列介面會自動重試下載一次。",
+                "en": "When installing or automatically updating plugins from the marketplace, occasional network disruptions easily interrupted the process. Previously, when downloaded content was temporarily stale or downloads were interrupted, marketplace plugin installations and automatic updates could fail due to checksum mismatches or network errors; the command-line interface now automatically retries the download once."
+              },
+              "original": "Fixed marketplace plugin installs and automatic updates failing with a checksum mismatch or network error when a download was briefly stale or interrupted; the CLI now retries the download once."
+            }
+          ]
+        },
+        {
           "version": "1.4.4",
           "period": "2026-10-21",
           "items": [
@@ -942,23 +1025,6 @@
                 "en": "When handling multilingual text and symbols in the terminal, character width calculation errors often lead to cursor displacement or layout glitches.\n\nThe cursor no longer misaligns when resizing the window (resting on `↑ N more lines` or outside the frame), when prompts are excessively tall, when pressing Up or Down keys across CJK characters or emojis, or when entering Vim visual mode. Excessively long completion hints will also automatically shrink.\n\nIn terminals supporting grapheme cluster widths, lines containing 👩💻, 👍🏽, or ⚠️ no longer drift after returning from an external editor (`Ctrl+G`) or `Ctrl+Z`, or under tmux 3.6+. Drifting and premature line wraps when containing `→`, `…`, `─`, or `•` under CJK locales (such as `LANG=ja_JP.UTF-8`) have also been fixed.\n\nPressing arrow keys, `Backspace`, or `Delete` no longer modifies or deletes half of an emoji, flag, or accented letter, and wide characters at line ends now wrap correctly. In `/diff` and `/artifact` previews, premature line wrapping, blank lines, or early truncation with `…` caused by combining characters or zero-width characters have also been fixed."
               },
               "original": "Fixed the prompt cursor appearing in the wrong place after resizing the terminal (sometimes on the `↑ N more lines` indicator or below the input box), when a slash command's completion hint didn't fit on the last line of the prompt (the hint is now shortened or left out), when the prompt was taller than the terminal, after pressing `Up` or `Down` onto a line with CJK characters or emoji, and after entering Vim visual mode, which also rewrapped the text.\nFixed the cursor drifting on lines with emoji such as 👩‍💻, 👍🏽, or ⚠️ inside tmux 3.6 and later, and after returning from your external editor (`Ctrl+G`) or a `Ctrl+Z` suspend in terminals that support grapheme-cluster widths.\nFixed the cursor drifting and lines wrapping too early under Japanese, Chinese, or Korean locales such as `LANG=ja_JP.UTF-8` when text contains characters like `→`, `…`, `─`, or `•`, which parts of the CLI counted as two columns wide while the rest drew them as one.\nFixed `Left`, `Right`, `Backspace`, and `Delete` in the prompt and other text boxes moving over or deleting only part of an emoji such as 👩‍💻 or 👍🏽, a flag, or a letter with a combining accent, and fixed text boxes cutting off a wide character, such as a CJK character or emoji, at the end of a wrapped line instead of moving it to the next line.\nFixed lines containing combining marks or other zero-width characters wrapping too early or leaving blank rows in `/diff` and the inline diff preview, and being cut off with `…` too soon in `/artifact` previews."
-            }
-          ]
-        },
-        {
-          "version": "1.4.2",
-          "period": "2026-10-18",
-          "items": [
-            {
-              "title": {
-                "zh-TW": "Remote Control 在 daemon 模式下能正常顯示對話紀錄",
-                "en": "Remote Control Displays Conversation History Properly in Daemon Mode"
-              },
-              "body": {
-                "zh-TW": "如果你習慣將工具以 daemon（在背景持續運作的服務）模式啟動，再透過 Remote Control 遠端操控介面查看進度，可能曾遇過找不到過去紀錄的狀況。以前在這種背景情境下，Remote Control 不會顯示先前的對話紀錄。現在這個問題已經修復，在 daemon 模式下對話紀錄會正常顯示。",
-                "en": "If you usually launch the tool in daemon mode and check progress through the Remote Control interface, you might have run into cases where past records could not be found. Previously in these background scenarios, Remote Control did not display prior conversation history. This issue has now been fixed, and conversation history displays properly in daemon mode."
-              },
-              "original": "Fixed conversation history not showing in Remote Control in daemon mode."
             }
           ]
         }
