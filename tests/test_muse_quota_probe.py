@@ -89,9 +89,35 @@ EXHAUSTED_QUOTA = {**quota(), "window": {"used_percent": 100.0, "resets_at": 179
 
 
 def test_exhausted_429_keeps_weekly_and_snapshot_age() -> None:
-    assert probe.parse_exhausted_window(EXHAUSTED, quota()) == EXHAUSTED_QUOTA
-    assert probe.parse_exhausted_window(EXHAUSTED, None) is None
-    assert probe.parse_exhausted_window(json.dumps(event()), quota()) is None
+    now = 1792571336 - 3600
+    assert probe.parse_exhausted_window(EXHAUSTED, quota(), now) == EXHAUSTED_QUOTA
+    assert probe.parse_exhausted_window(EXHAUSTED, None, now) is None
+    assert probe.parse_exhausted_window(json.dumps(event()), quota(), now) is None
+
+
+WEEKLY_RESET = 1792972800.0  # 2026-10-26T00:00:00Z, seen in a 429 on 2026-10-22.
+WEEKLY_EXHAUSTED = EXHAUSTED.replace("2026-10-21T08:28:56Z", "2026-10-26T00:00:00Z")
+
+
+@pytest.mark.parametrize(
+    "window_reset,expected_window",
+    [
+        (1_000, {"used_percent": 0.0, "resets_at": 2_000}),  # Lapsed: nothing ran since.
+        (2_000 + 3600, {"used_percent": 25, "resets_at": 2_000 + 3600}),  # Still open.
+        (WEEKLY_RESET, {"used_percent": 0.0, "resets_at": 2_000}),  # v0.34.5 misread.
+    ],
+)
+def test_weekly_429_fills_weekly_and_refreshes_age(
+    window_reset: float, expected_window: dict[str, float]
+) -> None:
+    now = 2_000.0
+    cached = quota()
+    cached["window"]["resets_at"] = window_reset
+    assert probe.parse_exhausted_window(WEEKLY_EXHAUSTED, cached, now) == {
+        "checked_at": now,
+        "window": expected_window,
+        "weekly": {"used_percent": 100.0, "resets_at": WEEKLY_RESET},
+    }
 
 
 def test_exhausted_probe_updates_session_window(monkeypatch: pytest.MonkeyPatch) -> None:
