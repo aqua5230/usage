@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import json
 import os
 import sqlite3
@@ -356,14 +357,14 @@ def test_ledger_explains_the_weekly_quota_denominator() -> None:
         }
     }
     rendered = render_ledger(data, "en")
-    assert "approximate share of that tool&#x27;s weekly quota; heaviest rows first." in rendered
+    assert "Percentages are shares of that tool&#x27;s current weekly quota." in rendered
     assert "Claude weekly quota" in rendered
     assert "Codex weekly quota" in rendered
     assert "Antigravity weekly quota" in rendered
-    assert rendered.index("No record of dispatch by Claude") < rendered.index(
-        '<div class="table-wrap">'
-    )
-    assert rendered.index("approximate share") < rendered.index('<div class="table-wrap">')
+    table = rendered.index('<div class="table-wrap">')
+    assert rendered.index("Each row is one Claude conversation") < table
+    assert rendered.index("Percentages are shares") < table
+    assert rendered.index("No record of dispatch by Claude") > table
 
 
 def test_muse_weekly_session_estimate_reads_only_snapshot(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -425,10 +426,12 @@ def test_agy_groups_remain_separate_across_children(paths: tuple[Path, Path, Pat
     assert data["rows"][0]["agy_groups"] == {"GEMINI MODELS": 60, "CLAUDE AND GPT MODELS": 40}
     assert data["rows"][0]["total_pct"] == 100
     rendered = render_ledger({"dispatch_ledger": data}, "zh-TW")
-    assert "<td>CLAUDE AND GPT MODELS 約 40%<br>GEMINI MODELS 約 60%</td>" in rendered
+    assert "<td>Claude/GPT 約 40%<br>Gemini 約 60%</td>" in rendered
 
 
-@pytest.mark.parametrize(("lang", "label"), [("zh-TW", "已重置"), ("en", "Reset")])
+@pytest.mark.parametrize(
+    ("lang", "label"), [("zh-TW", "算在上週額度"), ("en", "Last week's quota")]
+)
 @pytest.mark.parametrize("agent", ["codex", "claude-code", "antigravity"])
 def test_pre_window_usage_renders_reset(
     paths: tuple[Path, Path, Path], agent: str, lang: str, label: str
@@ -454,7 +457,7 @@ def test_pre_window_usage_renders_reset(
     row = data["rows"][0]
     tool = {"claude-code": "claude", "codex": "codex", "antigravity": "agy"}[agent]
     assert row.get(f"{tool}_reset") is True
-    assert f"<td>{label}</td>" in render_ledger({"dispatch_ledger": data}, lang)
+    assert f"<td>{html.escape(label)}</td>" in render_ledger({"dispatch_ledger": data}, lang)
 
 
 def test_child_without_usage_or_window_stays_dash(paths: tuple[Path, Path, Path]) -> None:

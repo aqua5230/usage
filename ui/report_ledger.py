@@ -24,6 +24,14 @@ def format_pct(value: float | None, lang: str, *, reset: bool = False) -> str:
     return _label(lang, "quota_approx", value=number)
 
 
+# Antigravity's quota groups arrive as shouty names that wrap the cell onto four lines.
+_AGY_GROUP_SHORT = {
+    "GEMINI MODELS": "Gemini",
+    "CLAUDE AND GPT MODELS": "Claude/GPT",
+    "GEMINI 4 ARGON": "Argon",
+}
+
+
 def _month_day(value: str) -> str:
     """The ledger covers the last 7 days, so the year only pushes the date onto two lines."""
     return value[5:] if len(value) == 10 and value[4] == "-" else value
@@ -59,7 +67,7 @@ def render_ledger(data: Mapping[str, Any], lang: str) -> str:
         + "<td>"
         + (
             "<br>".join(
-                f"{html.escape(group)} {html.escape(format_pct(value, lang))}"
+                f"{html.escape(_AGY_GROUP_SHORT.get(group, group))} {html.escape(format_pct(value, lang))}"
                 for group, value in sorted(row.get("agy_groups", {}).items())
             )
             or html.escape(format_pct(None, lang, reset=row.get("agy_reset", False)))
@@ -89,8 +97,9 @@ def render_ledger(data: Mapping[str, Any], lang: str) -> str:
         '<section class="section dispatch-ledger-section">'
         f'<div class="prompt"><span>[usage]&gt;</span> {html.escape(_label(lang, "ledger_section"))}</div>'
         '<div class="rule" aria-hidden="true">────────────────────────────────────────────────────────</div>'
-        f"<div>{note}</div>"
+        f"<div>{html.escape(_label(lang, 'ledger_lead'))}</div>"
         f"<div><small>{html.escape(_label(lang, 'ledger_pct_note'))}</small></div>"
         f'<div class="table-wrap"><table class="ledger-table"><thead><tr>{head}</tr></thead><tbody>{body}</tbody></table></div>'
+        f"<div>{note}</div>"
         "</section>"
     )
